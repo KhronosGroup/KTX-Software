@@ -1088,7 +1088,11 @@ toktxApp::main(int argc, _TCHAR *argv[])
             createInfo.baseWidth = levelWidth = image->getWidth();
             createInfo.baseHeight = levelHeight = image->getHeight();
             createInfo.baseDepth = levelDepth = options.depth;
-            if (image->getHeight() == 1 && !options.two_d)
+            if (options.depth > 1) {
+                // In this con't care about image->getHeight(). Images are
+                // always considered to be 2d. No need to set options.two_d.
+                createInfo.numDimensions = 3;
+            } else if (image->getHeight() == 1 && !options.two_d)
                 createInfo.numDimensions = 1;
             else
                 createInfo.numDimensions = 2;
@@ -1198,12 +1202,19 @@ toktxApp::main(int argc, _TCHAR *argv[])
             cout << ", imageSize = " << imageSize << endl;
         }
 #endif
-        ktxTexture_SetImageFromMemory(ktxTexture(texture),
-                                      level,
-                                      layer,
-                                      faceSlice,
-                                      *image,
-                                      image->getByteCount());
+        ret = ktxTexture_SetImageFromMemory(ktxTexture(texture),
+                                            level,
+                                            layer,
+                                            faceSlice,
+                                            *image,
+                                            image->getByteCount());
+        // Only an error in this program could lead to ret != SUCCESS
+        // hence no user message.
+        assert(ret == KTX_SUCCESS);
+
+        // This does not work for mipmaps for 3d textures. For those it is
+        // necessary to present the base images for each slice to a
+        // resampler that can sample across images.
         if (options.genmipmap) {
             for (uint32_t glevel = 1; glevel < createInfo.numLevels; glevel++)
             {
@@ -1230,12 +1241,13 @@ toktxApp::main(int argc, _TCHAR *argv[])
                 //if (options.gmopts.mipRenormalize)
                 //    levelImage->renormalize_normal_map();
 
-                ktxTexture_SetImageFromMemory(ktxTexture(texture),
+                ret = ktxTexture_SetImageFromMemory(ktxTexture(texture),
                                               glevel,
                                               layer,
                                               faceSlice,
                                               *levelImage,
                                               levelImage->getByteCount());
+                assert(ret == KTX_SUCCESS);
                 delete levelImage;
             }
         }
@@ -1255,21 +1267,36 @@ toktxApp::main(int argc, _TCHAR *argv[])
 
     /*
      * Add orientation metadata.
-     * Note: 1D textures and 2D textures with a height of 1 don't need
-     * orientation metadata
      */
-    if (options.metadata && createInfo.baseHeight > 1) {
+    if (options.metadata) {
         ktxHashList* ht = &texture->kvDataHead;
-        char orientation[10];
+        char orientation[20];
         if (options.ktx2) {
             orientation[0] = 'r';
-            orientation[1] = options.lower_left_maps_to_s0t0 ? 'u' : 'd';
-            orientation[2] = 0;
+            if (createInfo.baseHeight > 1) {
+                orientation[1] = options.lower_left_maps_to_s0t0 ? 'u' : 'd';
+                if (createInfo.baseDepth > 1) {
+                    orientation[2] = options.lower_left_maps_to_s0t0
+                                   ? 'o'  : 'i';
+                }
+                else {
+                    orientation[2] = 0;
+                }
+            } else {
+                orientation[1] = 0;
+            }
         } else {
-            assert(strlen(KTX_ORIENTATION2_FMT) < sizeof(orientation));
-
-            snprintf(orientation, sizeof(orientation), KTX_ORIENTATION2_FMT,
-                     'r', options.lower_left_maps_to_s0t0 ? 'u' : 'd');
+            assert(strlen(KTX_ORIENTATION3_FMT) < sizeof(orientation));
+            if (createInfo.baseHeight == 1) {
+                snprintf(orientation, sizeof(orientation), KTX_ORIENTATION1_FMT,
+                         'r');
+            } else if (createInfo.baseDepth == 1) {
+                snprintf(orientation, sizeof(orientation), KTX_ORIENTATION2_FMT,
+                         'r', options.lower_left_maps_to_s0t0 ? 'u' : 'd');
+            } else
+                snprintf(orientation, sizeof(orientation), KTX_ORIENTATION3_FMT,
+                         'r', options.lower_left_maps_to_s0t0 ? 'u' : 'd',
+                         options.lower_left_maps_to_s0t0 ? 'o' : 'i');
         }
         ktxHashList_AddKVPair(ht, KTX_ORIENTATION_KEY,
                               (unsigned int)strlen(orientation) + 1,
@@ -1464,6 +1491,12 @@ toktxApp::validateOptions()
     if (options.resize && options.mipmap) {
         error("only one of --resize and --mipmap can be specified.");
         usage();
+        exit(1);
+    }
+
+    if (options.depth > 1 && options.genmipmap) {
+        error("generation of mipmaps for 3d textures is not supported.\n"
+              "A PR to add this feature will be gratefully accepted!");
         exit(1);
     }
 

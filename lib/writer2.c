@@ -126,6 +126,7 @@ ktxTexture2_setImageFromStream(ktxTexture2* This, ktx_uint32_t level,
 {
     ktx_size_t imageByteLength;
     ktx_size_t imageByteOffset;
+    ktx_error_code_e result;
 
     if (!This || !src)
         return KTX_INVALID_VALUE;
@@ -133,8 +134,12 @@ ktxTexture2_setImageFromStream(ktxTexture2* This, ktx_uint32_t level,
     if (!This->pData)
         return KTX_INVALID_OPERATION;
 
-    ktxTexture_GetImageOffset(ktxTexture(This), level, layer, faceSlice,
-                                         &imageByteOffset);
+    result = ktxTexture_GetImageOffset(ktxTexture(This),
+                                       level, layer, faceSlice,
+                                       &imageByteOffset);
+    if (result != KTX_SUCCESS)
+       return result;
+
     imageByteLength = ktxTexture_GetImageSize(ktxTexture(This), level);
 
     if (srcSize != imageByteLength)
