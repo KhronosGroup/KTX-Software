@@ -1089,7 +1089,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
             createInfo.baseHeight = levelHeight = image->getHeight();
             createInfo.baseDepth = levelDepth = options.depth;
             if (options.depth > 1) {
-                // In this con't care about image->getHeight(). Images are
+                // In this case, don't care about image->getHeight(). Images are
                 // always considered to be 2d. No need to set options.two_d.
                 createInfo.numDimensions = 3;
             } else if (image->getHeight() == 1 && !options.two_d)
