@@ -83,6 +83,14 @@ add_test( NAME toktx-different-colortype-second-file-warning
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
 )
 
+add_test( NAME toktx-depth-layers
+    COMMAND toktx --depth 4 --layers 4 a b c d e
+)
+
+add_test( NAME toktx-depth-genmipmap
+    COMMAND toktx --test --depth 7 --genmipmap --t2 3dtex_7_mipmap_reference_u.ktx2 ../srcimages/red16.png ../srcimages/orange16.png ../srcimages/yellow16.png ../srcimages/green16.png ../srcimages/blue16.png ../srcimages/indigo16.png ../srcimages/violet16.png
+)
+
 set_tests_properties(
     toktx-test-foobar
     toktx-automipmap-mipmaps
@@ -98,6 +106,8 @@ set_tests_properties(
     toktx-invalid-swizzle-char
     toktx-invalid-target-type
     toktx-different-colortype-second-file-error
+    toktx-depth-layers
+    toktx-depth-genmipmap
 PROPERTIES
     WILL_FAIL TRUE
 )
@@ -228,3 +238,6 @@ gencmpktx( astc_ldr_10x5_FlightHelmet_baseColor   astc_ldr_10x5_FlightHelmet_bas
 gencmpktx( astc_ldr_8x8_FlightHelmet_baseColor    astc_ldr_8x8_FlightHelmet_baseColor.ktx2   ../srcimages/FlightHelmet_baseColor.png "--test --encode astc --astc_blk_d 8x8" "" "")
 gencmpktx( astc_ldr_12x10_FlightHelmet_baseColor  astc_ldr_12x10_FlightHelmet_baseColor.ktx2 ../srcimages/FlightHelmet_baseColor.png "--test --encode astc --astc_blk_d 12x10" "" "")
 gencmpktx( astc_ldr_12x12_FlightHelmet_baseColor  astc_ldr_12x12_FlightHelmet_baseColor.ktx2 ../srcimages/FlightHelmet_baseColor.png "--test --encode astc --astc_blk_d 12x12" "" "")
+gencmpktx( 3dtex_7_reference_u 3dtex_7_reference_u.ktx2 ../srcimages/red16.png ../srcimages/orange16.png ../srcimages/yellow16.png ../srcimages/green16.png ../srcimages/blue16.png ../srcimages/indigo16.png ../srcimages/violet16.png "--test --t2 --depth 7" "" "")
+gencmpktx( arraytex_7_reference_u arraytex_7_reference_u.ktx2 ../srcimages/red16.png ../srcimages/orange16.png ../srcimages/yellow16.png ../srcimages/green16.png ../srcimages/blue16.png ../srcimages/indigo16.png ../srcimages/violet16.png "--test --t2 --layers 7" "" "")
+gencmpktx( arraytex_7_mipmap_reference_u arraytex_7_mipmap_reference_u.ktx2 ../srcimages/red16.png ../srcimages/orange16.png ../srcimages/yellow16.png ../srcimages/green16.png ../srcimages/blue16.png ../srcimages/indigo16.png ../srcimages/violet16.png "--test --t2 --layers 7 --genmipmap" "" "")
