@@ -221,10 +221,16 @@ set( GL3_SOURCES
     glloadtests/shader-based/GL3LoadTests.cpp
     glloadtests/shader-based/GL3LoadTestSample.cpp
     glloadtests/shader-based/GL3LoadTestSample.h
+    glloadtests/shader-based/InstancedSampleBase.cpp
+    glloadtests/shader-based/InstancedSampleBase.h
     glloadtests/shader-based/mygl.h
     glloadtests/shader-based/shaders.cpp
+    glloadtests/shader-based/Texture3d.cpp
+    glloadtests/shader-based/Texture3d.h
     glloadtests/shader-based/TextureArray.cpp
     glloadtests/shader-based/TextureArray.h
+    glloadtests/shader-based/TextureMipmap.cpp
+    glloadtests/shader-based/TextureMipmap.h
     glloadtests/shader-based/TextureCubemap.cpp
     glloadtests/shader-based/TextureCubemap.h
     glloadtests/shader-based/TexturedCube.cpp

@@ -37,6 +37,8 @@ class GL3LoadTestSample : public LoadTestSample {
                                           const std::string sBasePath);
 
   protected:
+    using ShaderSource = std::vector<const GLchar*>;
+
     virtual void keyPressed(uint32_t /*keyCode*/) { }
     virtual void viewChanged() { }
 
@@ -64,6 +66,7 @@ class GL3LoadTestSample : public LoadTestSample {
     void loadMesh(std::string filename, glMeshLoader::MeshBuffer& meshBuffer,
                   std::vector<glMeshLoader::VertexLayout> vertexLayout,
                   float scale);
+    static void makeShader(GLenum type, ShaderSource& source, GLuint* shader);
     static void makeShader(GLenum type, const GLchar* const source,
                            GLuint* shader);
     static void makeProgram(GLuint vs, GLuint fs, GLuint* program);

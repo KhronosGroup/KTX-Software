@@ -33,19 +33,18 @@ static const GLchar* pszGLLangVer = "#version 330 core\n";
 /* ------------------------------------------------------------------------- */
 
 void
-GL3LoadTestSample::makeShader(GLenum type, const GLchar* const source,
+GL3LoadTestSample::makeShader(GLenum type,
+                              ShaderSource& source,
                               GLuint* shader)
 {
     GLint sh = glCreateShader(type);
     GLint shaderCompiled;
-    const GLchar* ss[2];
 
     if (strstr((const char*)glGetString(GL_VERSION), "GL ES") == NULL)
-        ss[0] = pszGLLangVer;
+        source.insert(source.cbegin(), pszGLLangVer);
     else
-        ss[0] = pszESLangVer;
-    ss[1] = source;
-    glShaderSource(sh, 2, ss, NULL);
+        source.insert(source.cbegin(), pszESLangVer);
+    glShaderSource(sh, (GLsizei)source.size(), source.data(), NULL);
     glCompileShader(sh);
 
     // Check if compilation succeeded
@@ -70,6 +69,15 @@ GL3LoadTestSample::makeShader(GLenum type, const GLchar* const source,
     } else {
         *shader = sh;
     }
+}
+
+void
+GL3LoadTestSample::makeShader(GLenum type, const GLchar* const source,
+                              GLuint* shader)
+{
+    ShaderSource ss;
+    ss.push_back(source);
+    makeShader(type, ss, shader);
 }
 
 void

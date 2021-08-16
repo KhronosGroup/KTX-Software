@@ -300,6 +300,7 @@ InstancedSampleBase::buildCommandBuffers()
         vkCmdSetScissor(vkctx.drawCmdBuffers[i], 0, 1,
                 &static_cast<const VkRect2D&>(scissor));
 
+        setSubclassPushConstants(i);
         vkCmdBindDescriptorSets(vkctx.drawCmdBuffers[i],
                         VK_PIPELINE_BIND_POINT_GRAPHICS,
                         pipelineLayout, 0, 1,
@@ -419,7 +420,7 @@ InstancedSampleBase::setupDescriptorPool()
 void
 InstancedSampleBase::setupDescriptorSetLayout()
 {
-    std::vector<vk::DescriptorSetLayoutBinding> setLayoutBindings =
+    DescriptorBindings descriptorBindings =
     {
         // Binding 0 : Vertex shader uniform buffer
         {0,
@@ -433,10 +434,12 @@ InstancedSampleBase::setupDescriptorSetLayout()
          vk::ShaderStageFlagBits::eFragment},
     };
 
+    //addSubclassDescriptors(descriptorBindings);
+
     vk::DescriptorSetLayoutCreateInfo descriptorLayout(
                               {},
-                              static_cast<uint32_t>(setLayoutBindings.size()),
-                              setLayoutBindings.data());
+                              static_cast<uint32_t>(descriptorBindings.size()),
+                              descriptorBindings.data());
 
     vkctx.device.createDescriptorSetLayout(&descriptorLayout, nullptr,
                                            &descriptorSetLayout);
@@ -445,6 +448,12 @@ InstancedSampleBase::setupDescriptorSetLayout()
                                                     {},
                                                     1,
                                                     &descriptorSetLayout);
+
+    std::vector<vk::PushConstantRange> pushConstantRanges;
+    addSubclassPushConstantRanges(pushConstantRanges);
+    if (pushConstantRanges.size() > 0) {
+        pipelineLayoutCreateInfo.setPushConstantRanges(pushConstantRanges);
+    }
 
     vkctx.device.createPipelineLayout(&pipelineLayoutCreateInfo,
                                       nullptr,
@@ -497,7 +506,9 @@ InstancedSampleBase::setupDescriptorSet()
 
 void
 InstancedSampleBase::preparePipelines(const char* const fragShaderName,
-                                      const char* const vertShaderName)
+                                      const char* const vertShaderName,
+                                      uint32_t instanceCountConstId,
+                                      uint32_t instanceCount)
 {
     vk::PipelineInputAssemblyStateCreateInfo inputAssemblyState(
             {},
@@ -548,6 +559,17 @@ InstancedSampleBase::preparePipelines(const char* const fragShaderName,
     // Load shaders
     std::array<vk::PipelineShaderStageCreateInfo,2> shaderStages;
     std::string filepath = getAssetPath() + "shaders/";
+    // What a lot of code to set a single constant value.
+    vk::SpecializationInfo specializationInfo;
+    vk::SpecializationMapEntry mapEntries[1];
+    mapEntries[0].setConstantID(instanceCountConstId);
+    mapEntries[0].setOffset(0);
+    mapEntries[0].setSize(4);
+    specializationInfo.setMapEntryCount(1);
+    specializationInfo.setPMapEntries(mapEntries);
+    specializationInfo.setPData(&instanceCount);
+    specializationInfo.setDataSize(sizeof(instanceCount));
+    shaderStages[0].pSpecializationInfo = &specializationInfo;
     shaderStages[0] = loadShader(filepath + vertShaderName,
                                 vk::ShaderStageFlagBits::eVertex);
     shaderStages[1] = loadShader(filepath + fragShaderName,
@@ -572,12 +594,20 @@ InstancedSampleBase::preparePipelines(const char* const fragShaderName,
                                          &pipelines.solid);
 }
 
+#define _PAD16(nbytes) (ktx_uint32_t)(16 * ceilf((float)(nbytes) / 16))
+
 void
-InstancedSampleBase::prepareUniformBuffers(uint32_t shaderDeclaredInstances)
+InstancedSampleBase::prepareUniformBuffers(uint32_t instanceCount,
+                                           uint32_t shaderDeclaredInstances)
 {
     uboVS.instance = new UboInstanceData[instanceCount];
 
-    uint32_t uboSize = sizeof(uboVS.matrices)
+    // Elements of the array of UboInstanceData will be aligned on 16-byte
+    // boundaries per the std140 rule for mat4/vec4. _PAD16 is unnecessary
+    // right now but will become so if anything is added to the ubo before
+    // the UboInstanceData. _PAD16 is put here as a warning.
+    uint32_t uboSize = _PAD16(sizeof(uboVS.matrices))
+             //+ instanceCount * sizeof(UboInstanceData);
              + shaderDeclaredInstances * sizeof(UboInstanceData);
 
     // Vertex shader uniform buffer block
@@ -590,23 +620,31 @@ InstancedSampleBase::prepareUniformBuffers(uint32_t shaderDeclaredInstances)
         &uniformDataVS.memory,
         &uniformDataVS.descriptor);
 
-    // Array indices and model matrices are fixed
+    // MoltenVK can't specialize array-length constants, an MSL limitation,
+    // so we have to potentially modify instanceCount. We can't just
+    // declare a very long array in the shaders because we get a MoltenVK
+    // validation error when the allocation we make above is less than
+    // the declared length. Making the array length 1, works on macOS
+    // but not on iOS where only 1 instance is drawn correctly. See
+    // MoltenVK issues 1420 and 1421.
+    // https://github.com/KhronosGroup/MoltenVK/issues/1421.
     // Paren around std::min avoids a SNAFU that windef.h has a "min" macro.
-    int32_t maxLayers = (std::min)(instanceCount, shaderDeclaredInstances);
+    instanceCount = (std::min)(shaderDeclaredInstances, instanceCount);
+
+    // Array indices and model matrices are fixed
     float offset = -1.5f;
-    float center = (maxLayers * offset) / 2;
-    for (int32_t i = 0; i < maxLayers; i++)
+    float center = (instanceCount * offset) / 2;
+    for (uint32_t i = 0; i < instanceCount; i++)
     {
         // Instance model matrix
         uboVS.instance[i].model = glm::translate(glm::mat4(), glm::vec3(0.0f, i * offset - center, 0.0f));
         uboVS.instance[i].model = glm::rotate(uboVS.instance[i].model, glm::radians(60.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-        // Instance array index
-        uboVS.instance[i].arrayIndex.x = (float)i;
     }
 
     // Update instanced part of the uniform buffer
     uint8_t *pData;
-    uint32_t dataOffset = sizeof(uboVS.matrices);
+    // N.B. See comment re _PAD16 before uboSize above.
+    uint32_t dataOffset = _PAD16(sizeof(uboVS.matrices));
     uint32_t dataSize = instanceCount * sizeof(UboInstanceData);
     VK_CHECK_RESULT(vkMapMemory(vkctx.device, uniformDataVS.memory, dataOffset, dataSize, 0, (void **)&pData));
     memcpy(pData, uboVS.instance, dataSize);
@@ -655,6 +693,8 @@ InstancedSampleBase::prepareSamplerAndView()
         samplerInfo.maxAnisotropy = 1.0;
     }
     samplerInfo.borderColor = vk::BorderColor::eFloatOpaqueWhite;
+    // To make viewer more useful in verifying the content of 3d textures.
+    samplerInfo.addressModeW = vk::SamplerAddressMode::eClampToEdge;
     sampler = vkctx.device.createSampler(samplerInfo);
     
     // Create image view.
@@ -676,14 +716,18 @@ InstancedSampleBase::prepareSamplerAndView()
 void
 InstancedSampleBase::prepare(const char* const fragShaderName,
                              const char* const vertShaderName,
+                             uint32_t instanceCountConstId,
+                             uint32_t instanceCount,
                              uint32_t shaderDeclaredInstances)
 {
+    this->instanceCount = instanceCount;
     prepareSamplerAndView();
     setupVertexDescriptions();
     generateQuad();
-    prepareUniformBuffers(shaderDeclaredInstances);
+    prepareUniformBuffers(instanceCount, shaderDeclaredInstances);
     setupDescriptorSetLayout();
-    preparePipelines(fragShaderName, vertShaderName);
+    preparePipelines(fragShaderName, vertShaderName,
+                     instanceCountConstId, instanceCount );
     setupDescriptorPool();
     setupDescriptorSet();
     vkctx.createDrawCommandBuffers();

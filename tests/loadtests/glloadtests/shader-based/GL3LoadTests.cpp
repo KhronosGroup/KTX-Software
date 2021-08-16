@@ -19,8 +19,10 @@
 #include "BasisuTest.h"
 #include "DrawTexture.h"
 #include "TexturedCube.h"
+#include "Texture3d.h"
 #include "TextureCubemap.h"
 #include "TextureArray.h"
+#include "TextureMipmap.h"
 
 #if !defined TEST_BASIS_COMPRESSION
 #define TEST_BASIS_COMPRESSION 1
@@ -44,7 +46,14 @@ GLLoadTests::showFile(std::string& filename)
 
     LoadTestSample::PFN_create createViewer;
     LoadTestSample* pViewer;
-    if (kTexture->isArray) {
+    if (kTexture->numDimensions == 3)
+       createViewer = Texture3d::create;
+    else if (kTexture->isArray && kTexture->isCubemap) {
+        // TODO: Add cubemap array app.
+        std::stringstream message;
+        message << "Display of cubemap array textures not yet implemented.";
+        throw std::runtime_error(message.str());
+    } else if (kTexture->isArray) {
         createViewer = TextureArray::create;
     } else if (kTexture->isCubemap) {
 #if !defined(__EMSCRIPTEN__)
@@ -54,7 +63,10 @@ GLLoadTests::showFile(std::string& filename)
                                  " because there is no libassimp support.");
 #endif
     } else if (kTexture->numLevels > 1) {
-        createViewer = DrawTexture::create;
+        // TODO: Add option to choose tis display showing the individual
+        // mipmaps vs. DrawTexture that displays a single rect using the
+        // mipmaps, if present.
+        createViewer = TextureMipmap::create;
     } else {
         createViewer = DrawTexture::create;
     }
@@ -132,6 +144,10 @@ const GLLoadTests::sampleInvocation siSamples[] = {
     { TextureArray::create,
       "testimages/texturearray_etc2_unorm.ktx2",
       "KTX2: ETC2 Compressed Texture Array"
+    },
+    { Texture3d::create,
+      "testimages/3dtex_7_reference_u.ktx2",
+      "RGBA8 3d Texture, Depth == 7"
     },
     { TexturedCube::create,
       "testimages/rgb-mipmap-reference-u.ktx2",
