@@ -40,7 +40,9 @@ class InstancedSampleBase : public GL3LoadTestSample
     GLuint gnTexture;
     GLuint gnInstancingProg;
     GLuint gnUbo;
-    
+
+    ktx_transcode_fmt_e transcodeTarget;
+
     bool bInitialized;
     bool bIsMipmapped;
 

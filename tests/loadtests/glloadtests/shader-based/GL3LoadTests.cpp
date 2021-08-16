@@ -62,7 +62,7 @@ GLLoadTests::showFile(std::string& filename)
         throw std::runtime_error("Emscripten viewer can't display cube maps"
                                  " because there is no libassimp support.");
 #endif
-    } else if (kTexture->numLevels > 1) {
+    } else if (kTexture->numLevels > 1 || kTexture->generateMipmaps) {
         // TODO: Add option to choose tis display showing the individual
         // mipmaps vs. DrawTexture that displays a single rect using the
         // mipmaps, if present.

@@ -28,6 +28,8 @@
 
 #include "argparser.h"
 #include "InstancedSampleBase.h"
+#include "TranscodeTargetStrToFmt.h"
+#include "GLTextureTranscoder.hpp"
 #include "ltexceptions.h"
 
 #define member_size(type, member) sizeof(((type *)0)->member)
@@ -124,6 +126,13 @@ InstancedSampleBase::InstancedSampleBase(uint32_t width, uint32_t height,
                 << "\" failed: " << ktxErrorString(ktxresult);
         throw std::runtime_error(message.str());
     }
+
+    if (ktxTexture_NeedsTranscoding(kTexture)) {
+        transcodeTarget = KTX_TTF_NOSELECTION;
+        TextureTranscoder tc;
+        tc.transcode((ktxTexture2*)kTexture, transcodeTarget);
+    }
+
     ktxresult = ktxTexture_GLUpload(kTexture, &gnTexture, &texTarget,
                                     &glerror);
     
@@ -143,11 +152,18 @@ InstancedSampleBase::InstancedSampleBase(uint32_t width, uint32_t height,
         }
     }
 
-    textureInfo.numLevels = kTexture->numLevels;
+    if (kTexture->generateMipmaps) {
+        // GLUpload will have generated the mipmaps already.
+        uint32_t maxDim = (std::max)(
+                    (std::max)(kTexture->baseWidth, kTexture->baseHeight),
+                    kTexture->baseDepth);
+        textureInfo.numLevels = (uint32_t)floor(log2(maxDim)) + 1;
+    } else {
+        textureInfo.numLevels = kTexture->numLevels;
+    }
     textureInfo.numLayers = kTexture->numLayers;
     textureInfo.baseDepth = kTexture->baseDepth;
-    if (kTexture->numLevels > 1 || kTexture->generateMipmaps)
-        // GLUpload will have generated the mipmaps already.
+    if (textureInfo.numLevels > 1)
         bIsMipmapped = true;
     else
         bIsMipmapped = false;
@@ -167,6 +183,8 @@ InstancedSampleBase::resize(uint32_t width, uint32_t height)
 {
     this->w_width = width;
     this->w_height = height;
+
+    glViewport(0, 0, width, height);
     updateUniformBufferMatrices();
 }
 
@@ -194,8 +212,9 @@ InstancedSampleBase::processArgs(std::string sArgs)
 {
     // Options descriptor
     struct argparser::option longopts[] = {
-      {"external",      argparser::option::no_argument, &externalFile, 1},
-      {NULL,            argparser::option::no_argument, NULL,          0}
+      {"external",         argparser::option::no_argument, &externalFile, 1},
+      {"transcode-target", argparser::option::required_argument, nullptr, 2},
+      {NULL,               argparser::option::no_argument, NULL,          0}
     };
 
     argvector argv(sArgs);
@@ -205,7 +224,10 @@ InstancedSampleBase::processArgs(std::string sArgs)
     while ((ch = ap.getopt(nullptr, longopts, nullptr)) != -1) {
         switch (ch) {
             case 0: break;
-            default: assert(false); // Error in args in sample table.
+          case 2:
+            transcodeTarget = TranscodeTargetStrToFmt(ap.optarg);
+            break;
+          default: assert(false); // Error in args in sample table.
         }
     }
     assert(ap.optind < argv.size());

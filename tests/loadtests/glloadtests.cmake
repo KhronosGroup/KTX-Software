@@ -212,6 +212,8 @@ set( ES1_SOURCES
 )
 
 set( GL3_SOURCES
+    common/TranscodeTargetStrToFmt.cpp
+    common/TranscodeTargetStrToFmt.h
     common/disable_glm_warnings.h
     common/reenable_warnings.h
     glloadtests/shader-based/BasisuTest.cpp
