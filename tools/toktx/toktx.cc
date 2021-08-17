@@ -1278,8 +1278,8 @@ toktxApp::main(int argc, _TCHAR *argv[])
                 if (createInfo.baseDepth > 1) {
                     orientation[2] = options.lower_left_maps_to_s0t0
                                    ? 'o'  : 'i';
-                }
-                else {
+                    orientation[3] = 0;
+                } else {
                     orientation[2] = 0;
                 }
             } else {
