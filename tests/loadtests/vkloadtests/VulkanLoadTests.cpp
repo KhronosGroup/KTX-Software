@@ -25,6 +25,7 @@
 
 #include "VulkanLoadTests.h"
 #include "Texture.h"
+#include "Texture3d.h"
 #include "TextureArray.h"
 #include "TextureCubemap.h"
 #include "TexturedCube.h"
@@ -296,7 +297,14 @@ VulkanLoadTests::showFile(std::string& filename)
 
     VulkanLoadTestSample::PFN_create createViewer;
     VulkanLoadTestSample* pViewer;
-    if (kTexture->isArray) {
+    if (kTexture->numDimensions == 3)
+       createViewer = Texture3d::create;
+    else if (kTexture->isArray && kTexture->isCubemap) {
+        // TODO: Add cubemap array app.
+        std::stringstream message;
+        message << "Display of cubemap array textures not yet implemented.";
+        throw std::runtime_error(message.str());
+    } else if (kTexture->isArray) {
         createViewer = TextureArray::create;
     } else if (kTexture->isCubemap) {
         createViewer = TextureCubemap::create;
@@ -353,6 +361,14 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
     { TextureMipmap::create,
       "testimages/rgba-mipmap-reference-basis.ktx2",
       "ETC1S+BasisLZ Compressed RGBA8 + Mipmap"
+    },
+    { Texture3d::create,
+      "testimages/3dtex_7_reference_u.ktx2",
+      "RGBA8 3d Texture, Depth == 7"
+    },
+    { TextureArray::create,
+      "testimages/arraytex_7_mipmap_reference_u.ktx2",
+      "RGBA8 Array Texture, Layers = 7"
     },
     { TextureCubemap::create,
       "testimages/cubemap_goldengate_uastc_rdo4_zstd5_rd.ktx2",

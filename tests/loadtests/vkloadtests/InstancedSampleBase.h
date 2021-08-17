@@ -57,9 +57,6 @@ class InstancedSampleBase : public VulkanLoadTestSample
     struct UboInstanceData {
         // Model matrix
         glm::mat4 model;
-        // Texture array index
-        // Vec4 due to padding
-        glm::vec4 arrayIndex;
     };
 
     struct {
@@ -68,6 +65,11 @@ class InstancedSampleBase : public VulkanLoadTestSample
             glm::mat4 projection;
             glm::mat4 view;
         } matrices;
+        // N.B. The UBO structure declared in the shader has the array of
+        // instance data inside the structure rather than pointed at from the
+        // structure. The start of the array will be aligned on a 16-byte
+        // boundary as it starts with a matrix.
+        //
         // Separate data for each instance
         UboInstanceData *instance;
     } uboVS;
@@ -88,20 +90,33 @@ class InstancedSampleBase : public VulkanLoadTestSample
     // Setup vertices for a single uv-mapped quad
     void generateQuad();
 
+    using DescriptorBindings = std::vector<vk::DescriptorSetLayoutBinding>;
+    using PushConstantRanges = std::vector<vk::PushConstantRange>;
+    virtual void addSubclassDescriptors(DescriptorBindings&) { }
+    virtual void addSubclassPushConstantRanges(PushConstantRanges&) { }
+    virtual void setSubclassPushConstants(uint32_t) { }
     void setupVertexDescriptions();
     void setupDescriptorPool();
     void setupDescriptorSetLayout();
     void setupDescriptorSet();
     void preparePipelines(const char* const fragShaderName,
-                          const char* const vertShaderName);
+                          const char* const vertShaderName,
+                          uint32_t instanceCountConstId,
+                          uint32_t instanceCount);
 
-    void prepareUniformBuffers(uint32_t shaderDeclaredInstances);
+    void prepareUniformBuffers(uint32_t instanceCount,
+                               // See note in prepare declaration.
+                               uint32_t shaderDeclaredInstances);
     void updateUniformBufferMatrices();
 
     void prepareSamplerAndView();
     
     void prepare(const char* const fragShaderName,
                  const char* const vertShaderName,
+                 uint32_t instanceCountConstId,
+                 uint32_t instanceCount,
+                 // Solely because of MoltenVK issue #1420.
+                 // It can't specialize array length constants.
                  uint32_t shaderDeclaredInstances);
 
     void processArgs(std::string sArgs);

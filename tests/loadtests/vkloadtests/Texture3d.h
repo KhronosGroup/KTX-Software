@@ -6,15 +6,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#ifndef _TEXTURE_MIPMAP_H_
-#define _TEXTURE_MIPMAP_H_
+#ifndef _TEXTURE_3D_H_
+#define _TEXTURE_3D_H_
 
 /**
  * @internal
- * @file TextureMipmap.h
+ * @file Texture3d.h
  * @~English
  *
- * @brief Declaration of test sample for loading and displaying all the levels of a 2D mipmapped texture.
+ * @brief Declaration of test sample for loading and displaying the slices of a 3d texture..
  *
  * @author Mark Callow, www.edgewise-consulting.com.
  */
@@ -23,13 +23,12 @@
 
 #include "InstancedSampleBase.h"
 
-#include <ktxvulkan.h>
 #include <glm/gtc/matrix_transform.hpp>
 
-class TextureMipmap : public InstancedSampleBase
+class Texture3d : public InstancedSampleBase
 {
   public:
-    TextureMipmap(VulkanContext& vkctx,
+    Texture3d(VulkanContext& vkctx,
                  uint32_t width, uint32_t height,
                  const char* const szArgs,
                  const std::string sBasePath);
@@ -38,6 +37,10 @@ class TextureMipmap : public InstancedSampleBase
     create(VulkanContext& vkctx,
            uint32_t width, uint32_t height,
            const char* const szArgs, const std::string sBasePath);
+
+  protected:
+    virtual void addSubclassPushConstantRanges(PushConstantRanges&);
+    virtual void setSubclassPushConstants(uint32_t bufferIndex);
 };
 
-#endif /* _TEXTURE_MIPMAP_H_ */
+#endif /* _TEXTURE_3D_H_ */

@@ -20,7 +20,7 @@ struct Instance
 // Sadly the above does not work on iOS, only macOS so declare
 // roughly the max size expected and in the app allocate the size
 // as declared.
-layout(constant_id = 1) const int instanceCount = 16;
+layout(constant_id = 1) const int instanceCount = 30;
 
 layout (binding = 0, std140) uniform UBO
 {
@@ -29,13 +29,20 @@ layout (binding = 0, std140) uniform UBO
 	Instance instance[instanceCount];
 } ubo;
 
-layout (location = 0) out vec2 outUV;
-layout (location = 1) out flat float lambda;
+// Workaround MoltenVK issue 1421 by passing instanceCount as a push constant.
+// https://github.com/KhronosGroup/MoltenVK/issues/1421.
+layout(push_constant) uniform PushConstants
+{
+	uint instanceCount;
+} constants;
+
+layout (location = 0) out vec3 outUVW;
 
 void main() 
 {
-    outUV = inUV;
-    lambda = gl_InstanceIndex+0.5;
-    mat4 modelView = ubo.view * ubo.instance[gl_InstanceIndex].model;
-    gl_Position = ubo.projection * modelView * inPos;
+    float divisor = max(1.0, constants.instanceCount - 1);
+    //float divisor = max(1.0, instanceCount - 1);
+	outUVW = vec3(inUV, gl_InstanceIndex / divisor);
+	mat4 modelView = ubo.view * ubo.instance[gl_InstanceIndex].model;
+	gl_Position = ubo.projection * modelView * inPos;
 }

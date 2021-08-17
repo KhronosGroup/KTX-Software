@@ -8,10 +8,10 @@
 
 /**
  * @internal
- * @file TextureArray.cpp
+ * @file TextureMipmap.cpp
  * @~English
  *
- * @brief Definition of test sample for loading and displaying the layers of a 2D array texture.
+ * @brief Definition of test sample for loading and displaying all the levels of a 2D mipmapped texture.
  *
  * @author Mark Callow, www.edgewise-consulting.com.
  */
@@ -27,18 +27,43 @@
 #include <ktx.h>
 
 #include "argparser.h"
-#include "TextureArray.h"
+#include "TextureMipmap.h"
 #include "ltexceptions.h"
 
 #define member_size(type, member) sizeof(((type *)0)->member)
 
-const GLchar* pszFsArraySamplerDeclaration =
-    "uniform mediump sampler2DArray uSampler;\n\n";
+const GLchar* pszLodFsDeclarations =
+    "precision mediump float;\n"
 
-const GLchar* pszArrayVsMain =
+    "in vec2 UV;\n"
+    "flat in float lambda;\n\n"
+
+    "layout (location = 0) out vec4 outFragColor;\n\n"
+
+    "uniform mediump sampler2D uSampler;\n\n";
+
+const GLchar* pszLodFsMain =
+   "void main()\n"
+    "{\n"
+    "    outFragColor = textureLod(uSampler, UV, lambda);\n"
+    "}";
+
+const GLchar* pszLodSrgbEncodeFsMain =
     "void main()\n"
     "{\n"
-    "    UVW = vec3(inUV, gl_InstanceID);\n"
+    "    vec4 t_color = textureLod(uSampler, UV, lambda);\n"
+    "    outFragColor.rgb = srgb_encode(t_color.rgb);\n"
+    "    outFragColor.a = t_color.a;\n"
+    "}";
+
+const GLchar* pszLodVsMain =
+    "out vec2 UV;\n"
+    "flat out float lambda;\n\n"
+
+    "void main()\n"
+    "{\n"
+    "    UV = inUV;\n"
+    "    lambda = gl_InstanceID + 0.5;\n"
     "    mat4 modelView = ubo.view * ubo.instance[gl_InstanceID].model;\n"
     "    gl_Position = ubo.projection * modelView * inPos;\n"
     "}";
@@ -46,48 +71,48 @@ const GLchar* pszArrayVsMain =
 /* ------------------------------------------------------------------------- */
 
 LoadTestSample*
-TextureArray::create(uint32_t width, uint32_t height,
+TextureMipmap::create(uint32_t width, uint32_t height,
                      const char* const szArgs, const std::string sBasePath)
 {
-    return new TextureArray(width, height, szArgs, sBasePath);
+    return new TextureMipmap(width, height, szArgs, sBasePath);
 }
 
 /**
  * @internal
- * @class TextureArray
+ * @class TextureMipmap
  * @~English
  *
  * @brief Test loading of 2D texture arrays.
  */
-TextureArray::TextureArray(uint32_t width, uint32_t height,
+TextureMipmap::TextureMipmap(uint32_t width, uint32_t height,
                            const char* const szArgs,
                            const std::string sBasePath)
         : InstancedSampleBase(width, height, szArgs, sBasePath)
 {
     zoom = -15.0f;
-    if (texTarget != GL_TEXTURE_2D_ARRAY) {
+    if (texTarget != GL_TEXTURE_2D || textureInfo.numLevels == 1) {
         std::stringstream message;
         
-        message << "TextureArray requires an array texture.";
+        message << "TextureMipmap requires a 2D mipmapped texture.";
         throw std::runtime_error(message.str());
     }
 
     // Checking if KVData contains keys of interest would go here.
 
-    instanceCount = textureInfo.numLayers;
+    instanceCount = textureInfo.numLevels;
+
     InstancedSampleBase::ShaderSource fs;
     InstancedSampleBase::ShaderSource vs;
 
-    fs.push_back(pszInstancingFsDeclarations);
-    fs.push_back(pszFsArraySamplerDeclaration);
+    fs.push_back(pszLodFsDeclarations);
     if (framebufferColorEncoding() == GL_LINEAR) {
         fs.push_back(pszSrgbEncodeFunc);
-        fs.push_back(pszInstancingSrgbEncodeFsMain);
+        fs.push_back(pszLodSrgbEncodeFsMain);
     } else {
-        fs.push_back(pszInstancingFsMain);;
+        fs.push_back(pszLodFsMain);;
     }
     vs.push_back(pszInstancingVsDeclarations);
-    vs.push_back(pszArrayVsMain);
+    vs.push_back(pszLodVsMain);
 
     try {
         prepare(fs, vs);

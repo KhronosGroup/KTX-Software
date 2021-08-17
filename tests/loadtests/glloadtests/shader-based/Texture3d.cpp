@@ -2,16 +2,16 @@
 /* vi: set sw=2 ts=4 expandtab: */
 
 /*
- * Copyright 2018-2020 Mark Callow.
+ * Copyright 2021 Mark Callow.
  * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
  * @internal
- * @file TextureArray.cpp
+ * @file Texture3d.cpp
  * @~English
  *
- * @brief Definition of test sample for loading and displaying the layers of a 2D array texture.
+ * @brief Definition of test sample for loading and displaying the slices of a 3d texture.
  *
  * @author Mark Callow, www.edgewise-consulting.com.
  */
@@ -27,18 +27,18 @@
 #include <ktx.h>
 
 #include "argparser.h"
-#include "TextureArray.h"
+#include "Texture3d.h"
 #include "ltexceptions.h"
 
 #define member_size(type, member) sizeof(((type *)0)->member)
 
-const GLchar* pszFsArraySamplerDeclaration =
-    "uniform mediump sampler2DArray uSampler;\n\n";
+const GLchar* pszFsSampler3dDeclaration =
+    "uniform mediump sampler3D uSampler;\n\n";
 
-const GLchar* pszArrayVsMain =
+const GLchar* psz3dVsMain =
     "void main()\n"
     "{\n"
-    "    UVW = vec3(inUV, gl_InstanceID);\n"
+    "    UVW = vec3(inUV, float(gl_InstanceID) / float(INSTANCE_COUNT - 1U));\n"
     "    mat4 modelView = ubo.view * ubo.instance[gl_InstanceID].model;\n"
     "    gl_Position = ubo.projection * modelView * inPos;\n"
     "}";
@@ -46,40 +46,41 @@ const GLchar* pszArrayVsMain =
 /* ------------------------------------------------------------------------- */
 
 LoadTestSample*
-TextureArray::create(uint32_t width, uint32_t height,
+Texture3d::create(uint32_t width, uint32_t height,
                      const char* const szArgs, const std::string sBasePath)
 {
-    return new TextureArray(width, height, szArgs, sBasePath);
+    return new Texture3d(width, height, szArgs, sBasePath);
 }
 
 /**
  * @internal
- * @class TextureArray
+ * @class Texture3d
  * @~English
  *
  * @brief Test loading of 2D texture arrays.
  */
-TextureArray::TextureArray(uint32_t width, uint32_t height,
+Texture3d::Texture3d(uint32_t width, uint32_t height,
                            const char* const szArgs,
                            const std::string sBasePath)
         : InstancedSampleBase(width, height, szArgs, sBasePath)
 {
     zoom = -15.0f;
-    if (texTarget != GL_TEXTURE_2D_ARRAY) {
+    if (texTarget != GL_TEXTURE_3D) {
         std::stringstream message;
         
-        message << "TextureArray requires an array texture.";
+        message << "Texture3d requires an 3d texture.";
         throw std::runtime_error(message.str());
     }
 
     // Checking if KVData contains keys of interest would go here.
 
-    instanceCount = textureInfo.numLayers;
+    instanceCount = textureInfo.baseDepth;
+
     InstancedSampleBase::ShaderSource fs;
     InstancedSampleBase::ShaderSource vs;
 
     fs.push_back(pszInstancingFsDeclarations);
-    fs.push_back(pszFsArraySamplerDeclaration);
+    fs.push_back(pszFsSampler3dDeclaration);
     if (framebufferColorEncoding() == GL_LINEAR) {
         fs.push_back(pszSrgbEncodeFunc);
         fs.push_back(pszInstancingSrgbEncodeFsMain);
@@ -87,7 +88,7 @@ TextureArray::TextureArray(uint32_t width, uint32_t height,
         fs.push_back(pszInstancingFsMain);;
     }
     vs.push_back(pszInstancingVsDeclarations);
-    vs.push_back(pszArrayVsMain);
+    vs.push_back(psz3dVsMain);
 
     try {
         prepare(fs, vs);
@@ -96,5 +97,11 @@ TextureArray::TextureArray(uint32_t width, uint32_t height,
         cleanup();
         throw;
     }
+
+    // Texture was bound by prepare()
+    // Set this so it is easier to recognize that the texture has the expected
+    // slices.
+    glTexParameteri(texTarget, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
     bInitialized = true;
 }

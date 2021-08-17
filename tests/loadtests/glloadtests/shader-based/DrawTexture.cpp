@@ -30,6 +30,7 @@
 
 #include "DrawTexture.h"
 #include "GLTextureTranscoder.hpp"
+#include "TranscodeTargetStrToFmt.h"
 #include "frame.h"
 #include "quad.h"
 #include "argparser.h"
@@ -350,62 +351,13 @@ DrawTexture::processArgs(std::string sArgs)
         switch (ch) {
           case 0: break;
           case 2:
-            transcodeTarget = strtofmt(ap.optarg);
+            transcodeTarget = TranscodeTargetStrToFmt(ap.optarg);
             break;
           default: assert(false); // Error in args in sample table.
         }
     }
     assert(ap.optind < argv.size());
     ktxfilename = argv[ap.optind];
-}
-
-ktx_transcode_fmt_e
-DrawTexture::strtofmt(_tstring format)
-{
-    if (!format.compare("ETC1_RGB"))
-        return KTX_TTF_ETC1_RGB;
-    else if (!format.compare("ETC2_RGBA"))
-        return KTX_TTF_ETC2_RGBA;
-    else if (!format.compare("BC1_RGB"))
-        return KTX_TTF_BC1_RGB;
-    else if (!format.compare("BC3_RGBA"))
-        return KTX_TTF_BC3_RGBA;
-    else if (!format.compare("BC4_R"))
-        return KTX_TTF_BC4_R;
-    else if (!format.compare("BC5_RG"))
-        return KTX_TTF_BC5_RG;
-    else if (!format.compare("BC7_M6_RGB"))
-        return KTX_TTF_BC7_M6_RGB;
-    else if (!format.compare("BC7_M5_RGBA"))
-        return KTX_TTF_BC7_M5_RGBA;
-    else if (!format.compare("PVRTC1_4_RGB"))
-        return KTX_TTF_PVRTC1_4_RGB;
-    else if (!format.compare("PVRTC1_4_RGBA"))
-        return KTX_TTF_PVRTC1_4_RGBA;
-    else if (!format.compare("ASTC_4x4_RGBA"))
-        return KTX_TTF_ASTC_4x4_RGBA;
-    else if (!format.compare("PVRTC2_4_RGB"))
-        return KTX_TTF_PVRTC2_4_RGB;
-    else if (!format.compare("PVRTC2_4_RGBA"))
-        return KTX_TTF_PVRTC2_4_RGBA;
-    else if (!format.compare("ETC2_EAC_R11"))
-        return KTX_TTF_ETC2_EAC_R11;
-    else if (!format.compare("ETC2_EAC_RG11"))
-        return KTX_TTF_ETC2_EAC_RG11;
-    else if (!format.compare("RGBA32"))
-        return KTX_TTF_RGBA32;
-    else if (!format.compare("RGB565"))
-        return KTX_TTF_RGB565;
-    else if (!format.compare("BGR565"))
-        return KTX_TTF_BGR565;
-    else if (!format.compare("RGBA4444"))
-        return KTX_TTF_RGBA4444;
-    else if (!format.compare("ETC"))
-        return KTX_TTF_ETC;
-    else if (!format.compare("BC1_OR_3"))
-        return KTX_TTF_BC1_OR_3;
-    assert(false); // Error in args in sample table.
-    return static_cast<ktx_transcode_fmt_e>(-1); // To keep compilers happy.
 }
 
 /* ------------------------------------------------------------------------- */
