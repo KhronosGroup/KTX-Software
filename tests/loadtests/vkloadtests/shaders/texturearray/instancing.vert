@@ -12,21 +12,28 @@ layout (location = 1) in vec2 inUV;
 struct Instance
 {
 	mat4 model;
-	vec4 arrayIndex;
 };
 
-layout (binding = 0) uniform UBO 
+// Keep the default value small to avoid MoltenVK issue 1420.
+// https://github.com/KhronosGroup/MoltenVK/issues/1420
+//layout(constant_id = 1) const int instanceCount = 1;
+// Sadly the above does not work on iOS, only macOS so declare
+// roughly the max size expected and in the app allocate the size
+// as declared.
+layout(constant_id = 1) const int instanceCount = 30;
+
+layout (binding = 0, std140) uniform UBO
 {
 	mat4 projection;
 	mat4 view;
-	Instance instance[8];
+	Instance instance[instanceCount];
 } ubo;
 
 layout (location = 0) out vec3 outUVW;
 
 void main() 
 {
-	outUVW = vec3(inUV, ubo.instance[gl_InstanceIndex].arrayIndex.x);
+	outUVW = vec3(inUV, gl_InstanceIndex);
 	mat4 modelView = ubo.view * ubo.instance[gl_InstanceIndex].model;
 	gl_Position = ubo.projection * modelView * inPos;
 }

@@ -8,10 +8,10 @@
 
 /**
  * @internal
- * @file TextureArray.h
+ * @file Texture3d.h
  * @~English
  *
- * @brief Declaration of test sample for loading and displaying the layers of a 2D array texture.
+ * @brief Declaration of test sample for loading and displaying the slices of a 3d texture..
  *
  * @author Mark Callow, www.edgewise-consulting.com.
  */
@@ -25,10 +25,10 @@
 #define VERTEX_BUFFER_BIND_ID 0
 #define ENABLE_VALIDATION false
 
-class TextureArray : public InstancedSampleBase
+class Texture3d : public InstancedSampleBase
 {
   public:
-    TextureArray(uint32_t width, uint32_t height,
+    Texture3d(uint32_t width, uint32_t height,
                  const char* const szArgs,
                  const std::string sBasePath);
 

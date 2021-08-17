@@ -49,9 +49,9 @@ compile_shader(shader_cube cube vkloadtests/shaders/cube shaders )
 compile_shader(shader_cubemap_reflect reflect vkloadtests/shaders/cubemap shaders )
 compile_shader(shader_cubemap_skybox skybox vkloadtests/shaders/cubemap shaders )
 compile_shader_list(shader_texture vkloadtests/shaders/texture shaders texture.vert texture1d.frag texture2d.frag)
+compile_shader(shader_texture3d instancing3d vkloadtests/shaders/texture3d shaders )
 compile_shader(shader_texturearray instancing vkloadtests/shaders/texturearray shaders )
 compile_shader(shader_texturemipmap instancinglod vkloadtests/shaders/texturemipmap shaders )
-
 
 add_custom_target(
     spirv_shaders
@@ -61,6 +61,7 @@ add_custom_target(
     shader_cubemap_reflect
     shader_cubemap_skybox
     shader_texture
+    shader_texture3d
     shader_texturearray
     shader_texturemipmap
 )
@@ -85,6 +86,8 @@ add_executable( vkloadtests
     vkloadtests/InstancedSampleBase.h
     vkloadtests/Texture.cpp
     vkloadtests/Texture.h
+    vkloadtests/Texture3d.cpp
+    vkloadtests/Texture3d.h
     vkloadtests/TextureArray.cpp
     vkloadtests/TextureArray.h
     vkloadtests/TextureCubemap.cpp

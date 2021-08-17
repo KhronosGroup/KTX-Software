@@ -11,7 +11,7 @@
  * @class TextureMipmap
  * @~English
  *
- * @brief Test loading of 2D texture arrays.
+ * @brief Definition of test sample for loading and displaying all the levels of a 2D mipmapped texture.
  *
  * @author Mark Callow, www.edgewise-consulting.com.
  *
@@ -42,6 +42,9 @@ TextureMipmap::create(VulkanContext& vkctx,
     return new TextureMipmap(vkctx, width, height, szArgs, sBasePath);
 }
 
+#define INSTANCE_COUNT_CONST_ID 1
+#define INSTANCES_DECLARED_IN_SHADER 16
+
 TextureMipmap::TextureMipmap(VulkanContext& vkctx,
                  uint32_t width, uint32_t height,
                  const char* const szArgs, const std::string sBasePath)
@@ -55,10 +58,12 @@ TextureMipmap::TextureMipmap(VulkanContext& vkctx,
         message << "TextureMipmap requires a mipmapped texture.";
         throw std::runtime_error(message.str());
     }
-    instanceCount = texture.levelCount;
 
     try {
-        prepare("instancinglod.frag.spv", "instancinglod.vert.spv", 20U);
+        prepare("instancinglod.frag.spv", "instancinglod.vert.spv",
+                INSTANCE_COUNT_CONST_ID, texture.levelCount,
+                INSTANCES_DECLARED_IN_SHADER);
+
     } catch (std::exception& e) {
         (void)e; // To quiet unused variable warnings from some compilers.
         cleanup();
