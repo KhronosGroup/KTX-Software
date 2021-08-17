@@ -2289,7 +2289,7 @@ ktxTexture2_inflateZstdInt(ktxTexture2* This, ktx_uint8_t* pDeflatedData,
     ktxLevelIndexEntry* nindex;
     ktx_uint32_t uncompressedLevelAlignment;
 
-    ZSTD_DCtx* dctx = ZSTD_createDCtx();
+    ZSTD_DCtx* dctx;
 
     if (pDeflatedData == NULL)
         return KTX_INVALID_VALUE;
@@ -2308,6 +2308,7 @@ ktxTexture2_inflateZstdInt(ktxTexture2* This, ktx_uint8_t* pDeflatedData,
         ktxTexture2_calcPostInflationLevelAlignment(This);
 
     ktx_size_t inflatedByteLength = 0;
+    dctx = ZSTD_createDCtx();
     for (int32_t level = This->numLevels - 1; level >= 0; level--) {
         size_t levelByteLength =
             ZSTD_decompressDCtx(dctx, pInflatedData + levelOffset,
@@ -2339,6 +2340,7 @@ ktxTexture2_inflateZstdInt(ktxTexture2* This, ktx_uint8_t* pDeflatedData,
     This->dataSize = inflatedByteLength;
     This->supercompressionScheme = KTX_SS_NONE;
     memcpy(cindex, nindex, levelIndexByteLength); // Update level index
+    free(nindex);
     This->_private->_requiredLevelAlignment = uncompressedLevelAlignment;
     // Set bytesPlane as we're now sized.
     uint32_t* bdb = This->pDfd + 1;
