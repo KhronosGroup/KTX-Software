@@ -523,8 +523,8 @@ typedef KTX_error_code
  *        ktxTexture.
  * @copydoc ktxTexture2_GetImageOffset
  */
-#define ktxTexture_GetImageOffset(This, faceSlice, layer, level, pOffset) \
-            (This)->vtbl->GetImageOffset(This, faceSlice, layer, level, pOffset)
+#define ktxTexture_GetImageOffset(This, level, layer, faceSlice, pOffset) \
+            (This)->vtbl->GetImageOffset(This, level, layer, faceSlice, pOffset)
 
 /**
  * @~English
