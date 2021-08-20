@@ -14,6 +14,10 @@ DEF_VER=v4.0
 LF='
 '
 
+# Change directory to this script location which must be root of the
+# Git repo.
+cd $(dirname $0)
+
 function genversion() {
   # Try git-describe, then default.
   if [ -d ${GIT_DIR:-.git} -o -f .git ]; then
