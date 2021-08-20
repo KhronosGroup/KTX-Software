@@ -16,7 +16,7 @@ LF='
 
 # Change directory to this script location which must be root of the
 # Git repo.
-#cd $(dirname $0)
+cd $(dirname $0)
 
 function genversion() {
   # Try git-describe, then default.

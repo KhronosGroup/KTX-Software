@@ -42,13 +42,6 @@ cpack -G RPM
 cpack -G TBZ2
 popd
 
-echo "***** toktx version.h *****"
-cat tools/toktx/version.h
-echo "****** toktx version ******"
-build/linux-release/tools/toktx/toktx --version
-echo "***************************"
-
-
 echo "Configure KTX-Software (Linux Debug without SSE support)"
 ${CMAKE_EXE} . -G Ninja -B$nosse_debug_build_dir -DCMAKE_BUILD_TYPE=Debug -DBASISU_SUPPORT_SSE=OFF
 pushd $nosse_debug_build_dir
