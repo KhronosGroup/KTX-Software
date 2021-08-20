@@ -42,6 +42,9 @@ cpack -G RPM
 cpack -G TBZ2
 popd
 
+echo "***** libktx version.h *****"
+cat lib/version.h
+
 echo "Configure KTX-Software (Linux Debug without SSE support)"
 ${CMAKE_EXE} . -G Ninja -B$nosse_debug_build_dir -DCMAKE_BUILD_TYPE=Debug -DBASISU_SUPPORT_SSE=OFF
 pushd $nosse_debug_build_dir
