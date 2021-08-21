@@ -135,7 +135,7 @@ build_script:
     pwd
     cat ../tools/toktx/version.h
     echo "****** toktx version ******"
-    Release/toktx --version
+    & $env:CONFIGURATION/toktx --version
     echo "***************************"
 
     popd
