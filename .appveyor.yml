@@ -130,6 +130,14 @@ build_script:
     pushd $env:KTX_BUILD_DIR
     cmake --build . --config $env:CONFIGURATION
     cmake --build . --config $env:CONFIGURATION --target PACKAGE
+
+    echo "***** toktx version.h *****"
+    pwd
+    cat ../tools/toktx/version.h
+    echo "****** toktx version ******"
+    Release/toktx --version
+    echo "***************************"
+
     popd
     $env:KTX_BUILD_DIR_NOSSE = "$env:BUILD_DIR\nosse"
     echo "Build without SSE support via $env:CMAKE_GEN Arch:$env:PLATFORM dir:$env:KTX_BUILD_DIR_NOSSE"
