@@ -131,15 +131,15 @@ build_script:
     cmake --build . --config $env:CONFIGURATION
     cmake --build . --config $env:CONFIGURATION --target PACKAGE
 
-    echo "***** toktx version.h *****"
-    pwd
-    cat ../tools/toktx/version.h
-    echo "****** toktx version ******"
-    # Because toktx prints version to stderr.
-    $ErrorActionPreference = 'Continue'
-    & $env:CONFIGURATION/toktx --version
-    $ErrorActionPreference = 'Stop'
-    echo "***************************"
+#    echo "***** toktx version.h *****"
+#    pwd
+#    cat ../tools/toktx/version.h
+#    echo "****** toktx version ******"
+#    # Because toktx prints version to stderr.
+#    $ErrorActionPreference = 'Continue'
+#    & $env:CONFIGURATION/toktx --version
+#    $ErrorActionPreference = 'Stop'
+#    echo "***************************"
 
     popd
     $env:KTX_BUILD_DIR_NOSSE = "$env:BUILD_DIR\nosse"

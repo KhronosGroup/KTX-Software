@@ -42,11 +42,11 @@ cpack -G RPM
 cpack -G TBZ2
 popd
 
-echo "***** toktx version.h *****"
-cat tools/toktx/version.h
-echo "****** toktx version ******"
-build/linux-release/tools/toktx/toktx --version
-echo "***************************"
+#echo "***** toktx version.h *****"
+#cat tools/toktx/version.h
+#echo "****** toktx version ******"
+#build/linux-release/tools/toktx/toktx --version
+#echo "***************************"
 
 
 echo "Configure KTX-Software (Linux Debug without SSE support)"
