@@ -135,7 +135,10 @@ build_script:
     pwd
     cat ../tools/toktx/version.h
     echo "****** toktx version ******"
+    # Because toktx prints version to stderr.
+    $ErrorActionPreference = 'Continue'
     & $env:CONFIGURATION/toktx --version
+    $ErrorActionPreference = 'Stop'
     echo "***************************"
 
     popd
