@@ -95,6 +95,13 @@ if ! cpack -G productbuild; then
   exit 1
 fi
 
+#echo "***** toktx version.h *****"
+#pwd
+#cat ../tools/toktx/version.h
+#echo "****** toktx version ******"
+#Release/toktx --version
+#echo "***************************"
+
 popd
 
 pushd build-macos-sse
