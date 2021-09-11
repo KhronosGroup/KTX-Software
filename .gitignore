@@ -39,3 +39,6 @@ version.h
 # Visual Studio
 .vs/
 CMakeSettings.json
+
+# Build bindings
+/interface/java_binding/build/

@@ -31,8 +31,11 @@ public abstract class KTXTexture {
      */
     public native byte[] getData();
     public native long getDataSize();
+    public native long getDataSizeUncompressed();
     public native int getElementSize();
     public native int getRowPitch(int level);
+    public native int getImageSize(int level);
+    public native long getImageOffset(int level, int layer, int faceSlice);
 
     /**
      * Destroy the KTX texture and free memory image resources

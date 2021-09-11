@@ -56,16 +56,16 @@ void copy_ktx_basis_params(JNIEnv *env, jobject params, ktxBasisParams &out)
     jfieldID maxEndpoints = env->GetFieldID(ktx_basis_params_class, "maxEndpoints", "I");
     jfieldID endpointRDOThreshold = env->GetFieldID(ktx_basis_params_class, "endpointRDOThreshold", "F");
     jfieldID maxSelectors = env->GetFieldID(ktx_basis_params_class, "maxSelectors", "I");
-    jfieldID selectorRDOThreshold = env->GetField(ktx_basis_params_class, "selectorRDOThreshold", "F");
+    jfieldID selectorRDOThreshold = env->GetFieldID(ktx_basis_params_class, "selectorRDOThreshold", "F");
     jfieldID inputSwizzle = env->GetFieldID(ktx_basis_params_class, "inputSwizzle", "[C");
     jfieldID normalMap = env->GetFieldID(ktx_basis_params_class, "normalMap", "Z");
     jfieldID separateRGToRGB_A = env->GetFieldID(ktx_basis_params_class, "separateRGToRGB_A", "Z");
     jfieldID preSwizzle = env->GetFieldID(ktx_basis_params_class, "preSwizzle", "Z");
     jfieldID noEndpointRDO = env->GetFieldID(ktx_basis_params_class, "noEndpointRDO", "Z");
     jfieldID noSelectorRDO = env->GetFieldID(ktx_basis_params_class, "noSelectorRDO", "Z");
-    jfieldID uastcFlag = env->GetFieldID(ktx_basis_params_class, "uastcFlags", "I");
+    jfieldID uastcFlags = env->GetFieldID(ktx_basis_params_class, "uastcFlags", "I");
     jfieldID uastcRDO = env->GetFieldID(ktx_basis_params_class, "uastcRDO", "Z");
-    jfieldID uastcRDOQualitySelector = env->GetFieldID(ktx_basis_params_class, "uastcRDOQualityScalar", "F");
+    jfieldID uastcRDOQualityScalar = env->GetFieldID(ktx_basis_params_class, "uastcRDOQualityScalar", "F");
     jfieldID uastcRDODictSize = env->GetFieldID(ktx_basis_params_class, "uastcRDODictSize", "I");
     jfieldID uastcRDOMaxSmoothBlockErrorScale = env->GetFieldID(ktx_basis_params_class, "uastcRDOMaxSmoothBlockErrorScale", "F");
     jfieldID uastcRDOMaxSmoothBlockStdDev = env->GetFieldID(ktx_basis_params_class, "uastcRDOMaxSmoothBlockStdDev", "F");
@@ -86,7 +86,7 @@ void copy_ktx_basis_params(JNIEnv *env, jobject params, ktxBasisParams &out)
         static_cast<jbyteArray>(env->GetObjectField(params, inputSwizzle)),
         0,
         4,
-        &out.inputSwizzle
+        reinterpret_cast<jbyte*>(&out.inputSwizzle)
     );
     out.normalMap = env->GetBooleanField(params, normalMap);
     out.separateRGToRGB_A = env->GetBooleanField(params, separateRGToRGB_A);

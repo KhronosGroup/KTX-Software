@@ -1,3 +1,5 @@
+#include <assert.h>
+#include <iostream>
 #include "libktx-jni.h"
 
 extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KTXTexture1_getGlFormat(JNIEnv *env,
@@ -44,7 +46,7 @@ extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KTXTexture1_create(JNI
     assert (ktx_texture_class != NULL);
 
     jmethodID ktx_texture_ctor = env->GetMethodID(ktx_texture_class, "<init>", "(J)V");
-    jobject texture = env->NewObject(ktx_texture_class, ktx_texture_ctor, static_cast<jlong>(instance));
+    jobject texture = env->NewObject(ktx_texture_class, ktx_texture_ctor, reinterpret_cast<jlong>(instance));
 
     return texture;
 }

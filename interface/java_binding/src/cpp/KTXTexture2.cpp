@@ -1,5 +1,5 @@
-#include <assert>
-#include <stdio>
+#include <assert.h>
+#include <iostream>
 #include "libktx-jni.h"
 
 extern "C" JNIEXPORT jint JNICALL Java_org_khronos_KTXTexture2_getOETF(JNIEnv *env, jobject thiz)
@@ -15,16 +15,6 @@ extern "C" JNIEXPORT jboolean JNICALL Java_org_khronos_KTXTexture2_getPremultipl
 extern "C" JNIEXPORT jboolean JNICALL Java_org_khronos_KTXTexture2_needsTranscoding(JNIEnv *env, jobject thiz)
 {
     return ktxTexture2_NeedsTranscoding(get_ktx2_texture(env, thiz));
-}
-
-extern "C" JNIEXPORT jlong JNICALL Java_org_khronos_KTXTexture2_getDataSizeUncompressed(JNIEnv *env, jobject thiz)
-{
-    return ktxTexture2_GetDataSizeUncompressed(get_ktx2_texture(env, thiz));
-}
-
-extern "C" JNIEXPORT jlong JNICALL Java_org_khronos_KTXTexture2_getImageSize(JNIEnv *env, jobject thiz)
-{
-    return ktxTexture2_GetImageSize(get_ktx2_texture(env, thiz));
 }
 
 extern "C" JNIEXPORT jint JNICALL Java_org_khronos_KTXTexture2_compressBasisEx(JNIEnv *env,
@@ -50,7 +40,10 @@ extern "C" JNIEXPORT jint JNICALL Java_org_khronos_KTXTexture2_transcodeBasis(JN
                                                                                 jint outputFormat,
                                                                                 jint transcodeFlags)
 {
-    return ktxTexture2_TranscodeBasis(get_ktx2_texture(env, thiz), outputFormat, transcodeFlags);
+    return ktxTexture2_TranscodeBasis(
+        get_ktx2_texture(env, thiz),
+        static_cast<ktx_transcode_fmt_e>(outputFormat),
+        transcodeFlags);
 }
 
 extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_KTXTexture2_create(JNIEnv *env,
@@ -79,7 +72,7 @@ extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_KTXTexture2_create(JNIEnv 
     assert (ktx_texture_class != NULL);
 
     jmethodID ktx_texture_ctor = env->GetMethodID(ktx_texture_class, "<init>", "(J)V");
-    jobject texture = env->NewObject(ktx_texture_class, ktx_texture_ctor, static_cast<jlong>(instance));
+    jobject texture = env->NewObject(ktx_texture_class, ktx_texture_ctor, reinterpret_cast<jlong>(instance));
 
     return texture;
 }

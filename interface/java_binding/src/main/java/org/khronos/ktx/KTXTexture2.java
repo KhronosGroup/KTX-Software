@@ -8,8 +8,6 @@ public class KTXTexture2 extends KTXTexture {
     public native int getOETF();
     public native boolean getPremultipliedAlpha();
     public native boolean needsTranscoding();
-    public native long getDataSizeUncompressed();
-    public native long getImageSize(int level);
 
     public native int compressBasisEx(KTXBasisParams params);
     public native int compressBasis(int quality);
