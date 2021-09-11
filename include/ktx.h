@@ -751,6 +751,7 @@ typedef enum {
  * @sa ktxTexture_CreateFrom*
  */
 enum ktxTextureCreateFlagBits {
+
     KTX_TEXTURE_CREATE_NO_FLAGS = 0x00,
     KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT = 0x01,
                                    /*!< Load the images from the KTX source. */

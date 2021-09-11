@@ -1,0 +1,86 @@
+#include <assert>
+#include <stdio>
+#include "libktx-jni.h"
+
+extern "C" JNIEXPORT jint JNICALL Java_org_khronos_KTXTexture2_getOETF(JNIEnv *env, jobject thiz)
+{
+    return ktxTexture2_GetOETF(get_ktx2_texture(env, thiz));
+}
+
+extern "C" JNIEXPORT jboolean JNICALL Java_org_khronos_KTXTexture2_getPremultipliedAlpha(JNIEnv *env, jobject thiz)
+{
+    return ktxTexture2_GetPremultipliedAlpha(get_ktx2_texture(env, thiz));
+}
+
+extern "C" JNIEXPORT jboolean JNICALL Java_org_khronos_KTXTexture2_needsTranscoding(JNIEnv *env, jobject thiz)
+{
+    return ktxTexture2_NeedsTranscoding(get_ktx2_texture(env, thiz));
+}
+
+extern "C" JNIEXPORT jlong JNICALL Java_org_khronos_KTXTexture2_getDataSizeUncompressed(JNIEnv *env, jobject thiz)
+{
+    return ktxTexture2_GetDataSizeUncompressed(get_ktx2_texture(env, thiz));
+}
+
+extern "C" JNIEXPORT jlong JNICALL Java_org_khronos_KTXTexture2_getImageSize(JNIEnv *env, jobject thiz)
+{
+    return ktxTexture2_GetImageSize(get_ktx2_texture(env, thiz));
+}
+
+extern "C" JNIEXPORT jint JNICALL Java_org_khronos_KTXTexture2_compressBasisEx(JNIEnv *env,
+                                                                                jobject thiz,
+                                                                                jobject jparams)
+{
+    ktxBasisParams params;
+    copy_ktx_basis_params(env, jparams, params);
+
+    return ktxTexture2_CompressBasisEx(get_ktx2_texture(env, thiz),
+                                        &params);
+}
+
+extern "C" JNIEXPORT jint JNICALL Java_org_khronos_KTXTexture2_compressBasis(JNIEnv *env,
+                                                                                jobject thiz,
+                                                                                jint quality)
+{
+    return ktxTexture2_CompressBasis(get_ktx2_texture(env, thiz), static_cast<uint32_t>(quality));
+}
+
+extern "C" JNIEXPORT jint JNICALL Java_org_khronos_KTXTexture2_transcodeBasis(JNIEnv *env,
+                                                                                jobject thiz,
+                                                                                jint outputFormat,
+                                                                                jint transcodeFlags)
+{
+    return ktxTexture2_TranscodeBasis(get_ktx2_texture(env, thiz), outputFormat, transcodeFlags);
+}
+
+extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_KTXTexture2_create(JNIEnv *env,
+                                                                        jobject thiz,
+                                                                        jobject jcreateInfo,
+                                                                        jint jStorageAllocation)
+{
+    ktxTextureCreateInfo info;
+    copy_ktx_texture_create_info(env, jcreateInfo, info);
+    ktxTextureCreateStorageEnum storageAllocation = static_cast<ktxTextureCreateStorageEnum>(jStorageAllocation);
+
+    ktxTexture2 *instance;
+    KTX_error_code result;
+
+    result = ktxTexture2_Create(&info, storageAllocation, &instance);
+
+    if (result != KTX_SUCCESS)
+    {
+        std::cout << "Failure to create KTX2Texture, error " << result << std::endl;
+        return NULL;
+    }
+
+    assert (instance != NULL);
+
+    jclass ktx_texture_class = env->FindClass("org/khronos/ktx/KTXTexture2");
+    assert (ktx_texture_class != NULL);
+
+    jmethodID ktx_texture_ctor = env->GetMethodID(ktx_texture_class, "<init>", "(J)V");
+    jobject texture = env->NewObject(ktx_texture_class, ktx_texture_ctor, static_cast<jlong>(instance));
+
+    return texture;
+}
+
