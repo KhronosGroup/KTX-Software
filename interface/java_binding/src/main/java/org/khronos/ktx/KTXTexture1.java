@@ -12,4 +12,6 @@ public class KTXTexture1 extends KTXTexture{
 
     public static native KTXTexture1 create(KTXTextureCreateInfo info,
                                             int storageAllocation);
+    public static native KTXTexture1 createFromNamedFile(String filename,
+                                                         int createFlags);
 }

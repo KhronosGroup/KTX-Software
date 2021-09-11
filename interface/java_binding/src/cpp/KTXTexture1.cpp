@@ -28,7 +28,7 @@ extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KTXTexture1_create(JNI
     ktxTextureCreateInfo info;
     copy_ktx_texture_create_info(env, java_create_info, info);
 
-    ktxTexture1 *instance;
+    ktxTexture1 *instance = NULL;
     KTX_error_code result;
 
     ktxTextureCreateStorageEnum storage_alloc = static_cast<ktxTextureCreateStorageEnum>(storageAllocation);
@@ -42,11 +42,25 @@ extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KTXTexture1_create(JNI
         return NULL;
     }
 
-    jclass ktx_texture_class = env->FindClass("org/khronos/ktx/KTXTexture1");
-    assert (ktx_texture_class != NULL);
-
-    jmethodID ktx_texture_ctor = env->GetMethodID(ktx_texture_class, "<init>", "(J)V");
-    jobject texture = env->NewObject(ktx_texture_class, ktx_texture_ctor, reinterpret_cast<jlong>(instance));
-
-    return texture;
+    return make_ktx1_wrapper(env, instance);
 }
+
+extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KTXTexture1_createFromNamedFile(JNIEnv *env,
+                                                                                            jobject thiz,
+                                                                                            jstring filename,
+                                                                                            jint createFlags)
+{
+    const char *filenameArray = env->GetStringUTFChars(filename, NULL);
+    ktxTexture1 *instance = NULL;
+
+    jint result = ktxTexture1_CreateFromNamedFile(filenameArray, createFlags, &instance);
+
+    if (result != KTX_SUCCESS) {
+        return NULL;
+    }
+
+    assert (instance != NULL);
+
+    return make_ktx1_wrapper(env, instance);
+}
+

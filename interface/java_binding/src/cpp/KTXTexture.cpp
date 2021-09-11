@@ -237,8 +237,8 @@ extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KTXTexture_setImageFromMe
 }
 
 extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KTXTexture_writeToNamedFile(JNIEnv *env,
-                                                                                                jobject thiz,
-                                                                                                jstring dstName)
+                                                                                    jobject thiz,
+                                                                                    jstring dstName)
 {
     const char *dstNameArray = env->GetStringUTFChars(dstName, NULL);
 
@@ -248,3 +248,27 @@ extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KTXTexture_writeToNamedFi
 
     return result;
 }
+
+extern "C" JNIEXPORT jbyteArray JNICALL Java_org_khronos_KTXTexture_writeToMemory(JNIEnv *env,
+                                                                                    jobject thiz)
+{
+    ktx_uint8_t *ppDstBytes;
+    ktx_size_t pSize;
+    KTX_error_code result = ktxTexture_WriteToMemory(get_ktx_texture(env, thiz), &ppDstBytes, &pSize);
+
+    if (result != KTX_SUCCESS) {
+        return NULL;
+    }
+
+    jbyteArray out = env->NewByteArray(pSize);
+
+    env->SetByteArrayRegion(out,
+                            0,
+                            pSize,
+                            reinterpret_cast<const jbyte*>(ppDstBytes));
+
+    delete ppDstBytes;
+
+    return out;
+}
+

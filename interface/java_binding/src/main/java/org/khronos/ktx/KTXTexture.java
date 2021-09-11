@@ -62,4 +62,6 @@ public abstract class KTXTexture {
      * @param dstFilename - The name of the destination file.
      */
     public native int writeToNamedFile(String dstFilename);
+
+    public native byte[] writeToMemory();
 }

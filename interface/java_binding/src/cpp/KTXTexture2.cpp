@@ -77,3 +77,23 @@ extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_KTXTexture2_create(JNIEnv 
     return texture;
 }
 
+extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KTXTexture2_createFromNamedFile(JNIEnv *env,
+                                                                                            jobject thiz,
+                                                                                            jstring filename,
+                                                                                            jint createFlags)
+{
+    const char *filenameArray = env->GetStringUTFChars(filename, NULL);
+    ktxTexture2 *instance = NULL;
+
+    jint result = ktxTexture2_CreateFromNamedFile(filenameArray, createFlags, &instance);
+
+    if (result != KTX_SUCCESS) {
+        return NULL;
+    }
+
+    assert (instance != NULL);
+
+    return make_ktx2_wrapper(env, instance);
+}
+
+

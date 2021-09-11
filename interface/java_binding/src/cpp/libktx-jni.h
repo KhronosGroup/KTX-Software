@@ -8,6 +8,9 @@
 ktxTexture *get_ktx_texture(JNIEnv *env, jobject thiz);
 void set_ktx_texture(JNIEnv *env, jobject thiz, ktxTexture *texture);
 
+jobject make_ktx1_wrapper(JNIEnv *env, ktxTexture1 *texture);
+jobject make_ktx2_wrapper(JNIEnv *env, ktxTexture2 *texture);
+
 void copy_ktx_texture_create_info(JNIEnv *env, jobject info, ktxTextureCreateInfo &out);
 void copy_ktx_basis_params(JNIEnv *env, jobject params, ktxBasisParams &out);
 

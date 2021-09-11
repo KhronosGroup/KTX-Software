@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "libktx-jni.h"
 
 ktxTexture *get_ktx_texture(JNIEnv *env, jobject thiz)
@@ -16,6 +17,26 @@ void set_ktx_texture(JNIEnv *env, jobject thiz, ktxTexture *texture)
     env->SetLongField(thiz,
                         ktx_instance_field,
                         reinterpret_cast<jlong>(texture));
+}
+
+jobject make_ktx1_wrapper(JNIEnv *env, ktxTexture1 *texture)
+{
+    jclass ktx_texture_class = env->FindClass("org/khronos/ktx/KTXTexture1");
+    assert (ktx_texture_class != NULL);
+
+    jmethodID ktx_texture_ctor = env->GetMethodID(ktx_texture_class, "<init>", "(J)V");
+
+    return env->NewObject(ktx_texture_class, ktx_texture_ctor, reinterpret_cast<jlong>(texture));
+}
+
+jobject make_ktx2_wrapper(JNIEnv *env, ktxTexture2 *texture)
+{
+    jclass ktx_texture_class = env->FindClass("org/khronos/ktx/KTXTexture2");
+    assert (ktx_texture_class != NULL);
+
+    jmethodID ktx_texture_ctor = env->GetMethodID(ktx_texture_class, "<init>", "(J)V");
+
+    return env->NewObject(ktx_texture_class, ktx_texture_ctor, reinterpret_cast<jlong>(texture));
 }
 
 void copy_ktx_texture_create_info(JNIEnv *env, jobject info, ktxTextureCreateInfo &out)
