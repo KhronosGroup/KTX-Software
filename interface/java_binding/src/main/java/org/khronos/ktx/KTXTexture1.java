@@ -29,4 +29,8 @@ public class KTXTexture1 extends KTXTexture {
      */
     public static native KTXTexture1 createFromNamedFile(String filename,
                                                          int createFlags);
+
+    public static KTXTexture1 createFromNamedFile(String filename) {
+        return createFromNamedFile(filename, KTXTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
+    }
 }

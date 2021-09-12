@@ -1,6 +1,8 @@
 #include <assert.h>
 #include "libktx-jni.h"
 
+#include <iostream>
+
 ktxTexture *get_ktx_texture(JNIEnv *env, jobject thiz)
 {
     jclass ktx_texture_class = env->GetObjectClass(thiz);
@@ -69,6 +71,9 @@ void copy_ktx_texture_create_info(JNIEnv *env, jobject info, ktxTextureCreateInf
 
 void copy_ktx_basis_params(JNIEnv *env, jobject params, ktxBasisParams &out)
 {
+    // Undocumented quirk!
+    out.structSize = sizeof(ktxBasisParams);
+
     jclass ktx_basis_params_class = env->GetObjectClass(params);
     jfieldID uastc = env->GetFieldID(ktx_basis_params_class, "uastc", "Z");
     jfieldID verbose = env->GetFieldID(ktx_basis_params_class, "verbose", "Z");

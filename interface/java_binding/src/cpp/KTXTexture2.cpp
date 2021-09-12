@@ -31,7 +31,7 @@ extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KTXTexture2_compressBasis
                                                                                 jobject thiz,
                                                                                 jobject jparams)
 {
-    ktxBasisParams params;
+    ktxBasisParams params = {};
     copy_ktx_basis_params(env, jparams, params);
 
     return ktxTexture2_CompressBasisEx(get_ktx2_texture(env, thiz),

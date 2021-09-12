@@ -159,10 +159,50 @@ public class KTXTexture2Test {
         assertEquals(KTXSupercmpScheme.NONE, texture.getSupercompressionScheme());
 
         assertEquals(KTXErrorCode.SUCCESS, texture.compressBasis(1));
+
         assertEquals(false, texture.isCompressed());
         assertEquals(KTXSupercmpScheme.BASIS_LZ, texture.getSupercompressionScheme());
 
         texture.destroy();
+    }
+
+    @Test
+    public void testCompressBasisEx() {
+        Path testKTXFile = Paths.get("")
+                .resolve("../../tests/testimages/arraytex_7_mipmap_reference_u.ktx2")
+                .toAbsolutePath()
+                .normalize();
+
+        KTXTexture2 texture = KTXTexture2.createFromNamedFile(testKTXFile.toString(),
+                KTXTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
+
+        assertNotNull(texture);
+        assertEquals(false, texture.isCompressed());
+        assertEquals(KTXSupercmpScheme.NONE, texture.getSupercompressionScheme());
+
+        assertEquals(KTXErrorCode.SUCCESS, texture.compressBasisEx(new KTXBasisParams()));
+
+        assertEquals(false, texture.isCompressed());
+        assertEquals(KTXSupercmpScheme.BASIS_LZ, texture.getSupercompressionScheme());
+
+        texture.destroy();
+    }
+
+    @Test
+    public void testTranscodeBasis() {
+        Path testKTXFile = Paths.get("")
+                .resolve("../../tests/testimages/color_grid_basis.ktx2")
+                .toAbsolutePath()
+                .normalize();
+
+        KTXTexture2 texture = KTXTexture2.createFromNamedFile(testKTXFile.toString(),
+                KTXTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
+
+        assertNotNull(texture);
+
+        texture.transcodeBasis(KTXTranscodeFormat.ASTC_4x4_RGBA, 0);
+
+        assertEquals(VkFormat.VK_FORMAT_ASTC_4x4_SRGB_BLOCK, texture.getVkFormat());
     }
 
     @Test
