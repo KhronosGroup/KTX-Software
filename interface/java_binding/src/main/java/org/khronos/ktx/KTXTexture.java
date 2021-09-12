@@ -24,6 +24,7 @@ public abstract class KTXTexture {
     public native int getBaseHeight();
     public native int getBaseDepth();
     public native int getNumDimensions();
+    public native int getNumLevels();
     public native int getNumFaces();
 
     /**
@@ -63,5 +64,8 @@ public abstract class KTXTexture {
      */
     public native int writeToNamedFile(String dstFilename);
 
+    /**
+     * This **might** not work (INVALID_OPERATION for some reason)
+     */
     public native byte[] writeToMemory();
 }

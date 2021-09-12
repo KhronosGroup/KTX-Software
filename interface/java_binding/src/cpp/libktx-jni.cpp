@@ -52,6 +52,7 @@ void copy_ktx_texture_create_info(JNIEnv *env, jobject info, ktxTextureCreateInf
     jfieldID f_num_faces = env->GetFieldID(ktx_info_class, "numFaces", "I");
     jfieldID f_is_array = env->GetFieldID(ktx_info_class, "isArray", "Z");
     jfieldID f_generate_mipmaps = env->GetFieldID(ktx_info_class, "generateMipmaps", "Z");
+    jfieldID f_vk_format = env->GetFieldID(ktx_info_class, "vkFormat", "I");
 
     out.glInternalformat = env->GetIntField(info, f_gl_internalformat);
     out.baseWidth = env->GetIntField(info, f_base_width);
@@ -63,6 +64,7 @@ void copy_ktx_texture_create_info(JNIEnv *env, jobject info, ktxTextureCreateInf
     out.numFaces = env->GetIntField(info, f_num_faces);
     out.isArray = env->GetBooleanField(info, f_is_array) ? KTX_TRUE : KTX_FALSE;
     out.generateMipmaps = env->GetBooleanField(info, f_generate_mipmaps) ? KTX_TRUE : KTX_FALSE;
+    out.vkFormat = env->GetIntField(info, f_vk_format);
 }
 
 void copy_ktx_basis_params(JNIEnv *env, jobject params, ktxBasisParams &out)

@@ -56,6 +56,7 @@ extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KTXTexture1_createFrom
     jint result = ktxTexture1_CreateFromNamedFile(filenameArray, createFlags, &instance);
 
     if (result != KTX_SUCCESS) {
+        std::cout << "Failure to createFromNamedFile KTX1Texture, error " << result << std::endl;
         return NULL;
     }
 

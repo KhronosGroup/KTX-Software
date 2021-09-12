@@ -1,4 +1,4 @@
-Java bindings for libktx, made by [Shukant Pal](https://github.com/ShukantPal) originally for the [Texture Compression Tool](https://compressor.shukantpal.com).
+Java bindings for libktx, made with love by [Shukant Pal](https://github.com/ShukantPal) originally for the [Texture Compression Tool](https://compressor.shukantpal.com).
 
 ## Build and install libktx-jni
 
@@ -10,3 +10,16 @@ mkdir build && cd build
 cmake ../src/cpp && make
 cmake --install .
 ```
+
+## Run tests on macOS
+
+It's tricky - I know:
+
+```
+ _JAVA_OPTIONS=-Djava.library.path=/usr/local/lib mvn test
+```
+
+## Things to do
+
+* Tests for memory leaks!
+* Full coverage of KTX api

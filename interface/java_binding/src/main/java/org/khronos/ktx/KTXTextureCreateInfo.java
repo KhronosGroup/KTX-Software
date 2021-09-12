@@ -2,15 +2,16 @@ package org.khronos.ktx;
 
 public class KTXTextureCreateInfo {
     private int glInternalformat;
-    private int baseWidth;
-    private int baseHeight;
-    private int baseDepth;
-    private int numDimensions;
-    private int numLevels;
-    private int numLayers;
-    private int numFaces;
-    private boolean isArray;
-    private boolean generateMipmaps;
+    private int baseWidth = 0;
+    private int baseHeight = 0;
+    private int baseDepth = 1;
+    private int numDimensions = 2;
+    private int numLevels = 1;
+    private int numLayers = 1;
+    private int numFaces = 1;
+    private boolean isArray = false;
+    private boolean generateMipmaps = false;
+    private int vkFormat;
 
     public int getGlInternalformat() {
         return this.glInternalformat;
@@ -90,5 +91,13 @@ public class KTXTextureCreateInfo {
 
     public void setGenerateMipmaps(boolean generateMipmaps) {
         this.generateMipmaps = generateMipmaps;
+    }
+
+    public int getVkFormat() {
+        return this.vkFormat;
+    }
+
+    public void setVkFormat(int vkFormat) {
+        this.vkFormat = vkFormat;
     }
 }
