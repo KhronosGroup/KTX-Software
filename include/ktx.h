@@ -1148,14 +1148,14 @@ typedef enum ktx_pack_astc_block_dimension_e {
 
 /**
  * @~English
- * @brief Options specifiying ASTC encoder profile function
+ * @brief Options specifiying ASTC encoder profile transfer function
  */
-typedef enum ktx_pack_astc_encoder_function_e {
-    KTX_PACK_ASTC_ENCODER_FUNCTION_UNKNOWN,
-    KTX_PACK_ASTC_ENCODER_FUNCTION_SRGB,
-    KTX_PACK_ASTC_ENCODER_FUNCTION_LINEAR,
-    KTX_PACK_ASTC_ENCODER_FUNCTION_MAX = KTX_PACK_ASTC_ENCODER_FUNCTION_LINEAR
-} ktx_pack_astc_encoder_function_e;
+typedef enum ktx_pack_astc_encoder_transfer_function_e {
+    KTX_PACK_ASTC_ENCODER_TRANSFER_FUNCTION_UNKNOWN,
+    KTX_PACK_ASTC_ENCODER_TRANSFER_FUNCTION_SRGB,
+    KTX_PACK_ASTC_ENCODER_TRANSFER_FUNCTION_LINEAR,
+    KTX_PACK_ASTC_ENCODER_TRANSFER_FUNCTION_MAX = KTX_PACK_ASTC_ENCODER_TRANSFER_FUNCTION_LINEAR
+} ktx_pack_astc_encoder_transfer_function_e;
 
 /**
  * @~English
@@ -1197,8 +1197,8 @@ typedef struct ktxAstcParams {
         /*!< Combinations of block dimensions that astcenc supports
           i.e. 6x6, 8x8, 6x5 etc*/
 
-    ktx_uint32_t function;
-        /*!< Can be {linear/srgb} from astcenc*/
+    ktx_uint32_t transferFunction;
+        /*!< Input/output transfer function for astcenc can be {linear/srgb}*/
 
     ktx_uint32_t mode;
         /*!< Can be {ldr/hdr} from astcenc*/

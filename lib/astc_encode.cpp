@@ -214,7 +214,7 @@ astcDefaultOptions() {
     params.verbose = false;
     params.threadCount = 1;
     params.blockDimension = KTX_PACK_ASTC_BLOCK_DIMENSION_6x6;
-    params.function = KTX_PACK_ASTC_ENCODER_FUNCTION_UNKNOWN;
+	params.transferFunction = KTX_PACK_ASTC_ENCODER_TRANSFER_FUNCTION_UNKNOWN;
     params.mode = KTX_PACK_ASTC_ENCODER_MODE_LDR;
     params.qualityLevel = KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM;
     params.normalMap = false;
@@ -302,19 +302,19 @@ astcVkFormat(ktx_uint32_t block_size, bool sRGB) {
 static astcenc_profile
 astcEncoderAction(const ktxAstcParams &params, const uint32_t* bdb) {
 
-    if (params.function == KTX_PACK_ASTC_ENCODER_FUNCTION_SRGB &&
+    if (params.transferFunction == KTX_PACK_ASTC_ENCODER_TRANSFER_FUNCTION_SRGB &&
         params.mode == KTX_PACK_ASTC_ENCODER_MODE_LDR) {
         return ASTCENC_PRF_LDR_SRGB;
     }
-    else if (params.function == KTX_PACK_ASTC_ENCODER_FUNCTION_LINEAR &&
+    else if (params.transferFunction == KTX_PACK_ASTC_ENCODER_TRANSFER_FUNCTION_LINEAR &&
         params.mode == KTX_PACK_ASTC_ENCODER_MODE_LDR) {
         return ASTCENC_PRF_LDR;
     }
-    else if (params.function == KTX_PACK_ASTC_ENCODER_FUNCTION_LINEAR &&
+    else if (params.transferFunction == KTX_PACK_ASTC_ENCODER_TRANSFER_FUNCTION_LINEAR &&
         params.mode == KTX_PACK_ASTC_ENCODER_MODE_HDR) {
         return ASTCENC_PRF_HDR;
     }
-    else if (params.function == KTX_PACK_ASTC_ENCODER_FUNCTION_UNKNOWN) {
+    else if (params.transferFunction == KTX_PACK_ASTC_ENCODER_TRANSFER_FUNCTION_UNKNOWN) {
         // If no options provided assume the user wants to use
         // color space info provided from the file
 
