@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021, Shukant Pal and Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include <assert.h>
 #include "libktx-jni.h"
 
@@ -67,6 +72,36 @@ void copy_ktx_texture_create_info(JNIEnv *env, jobject info, ktxTextureCreateInf
     out.isArray = env->GetBooleanField(info, f_is_array) ? KTX_TRUE : KTX_FALSE;
     out.generateMipmaps = env->GetBooleanField(info, f_generate_mipmaps) ? KTX_TRUE : KTX_FALSE;
     out.vkFormat = env->GetIntField(info, f_vk_format);
+}
+
+void copy_ktx_astc_params(JNIEnv *env, jobject params, ktxAstcParams &out)
+{
+    // Undocumented quirk!
+    out.structSize = sizeof(ktxAstcParams);
+
+    jclass ktx_astc_params_class = env->GetObjectClass(params);
+    jfieldID verbose = env->GetFieldID(ktx_astc_params_class, "verbose", "Z");
+    jfieldID threadCount = env->GetFieldID(ktx_astc_params_class, "threadCount", "I");
+    jfieldID blockDimension = env->GetFieldID(ktx_astc_params_class, "blockDimension", "I");
+    jfieldID transferFunction = env->GetFieldID(ktx_astc_params_class, "transferFunction", "I");
+    jfieldID mode = env->GetFieldID(ktx_astc_params_class, "mode", "I");
+    jfieldID qualityLevel = env->GetFieldID(ktx_astc_params_class, "qualityLevel", "I");
+    jfieldID normalMap = env->GetFieldID(ktx_astc_params_class, "normalMap", "Z");
+    jfieldID inputSwizzle = env->GetFieldID(ktx_astc_params_class, "inputSwizzle", "[C");
+
+    out.verbose = env->GetBooleanField(params, verbose);
+    out.threadCount = env->GetIntField(params, threadCount);
+    out.blockDimension = env->GetIntField(params, blockDimension);
+    out.function = env->GetIntField(params, transferFunction);// to be renamed in #482
+    out.mode = env->GetIntField(params, mode);
+    out.qualityLevel = env->GetIntField(params, qualityLevel);
+    out.normalMap = env->GetBooleanField(params, normalMap);
+    env->GetByteArrayRegion(
+        static_cast<jbyteArray>(env->GetObjectField(params, inputSwizzle)),
+        0,
+        4,
+        reinterpret_cast<jbyte*>(&out.inputSwizzle)
+    );
 }
 
 void copy_ktx_basis_params(JNIEnv *env, jobject params, ktxBasisParams &out)

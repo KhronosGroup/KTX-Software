@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021, Shukant Pal and Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.khronos.ktx;
 
 public class KTXTexture2 extends KTXTexture {
@@ -11,6 +16,8 @@ public class KTXTexture2 extends KTXTexture {
     public native int getVkFormat();
     public native int getSupercompressionScheme();
 
+    //    public native int compressAstcEx(KTXAstcParams params);
+    //    public native int compressAstc(int quality);
     public native int compressBasisEx(KTXBasisParams params);
     public native int compressBasis(int quality);
     public native int transcodeBasis(int outputFormat, int transcodeFlags);

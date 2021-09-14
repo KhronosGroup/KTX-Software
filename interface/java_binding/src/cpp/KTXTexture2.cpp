@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021, Shukant Pal and Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include <assert.h>
 #include <iostream>
 #include "libktx-jni.h"
@@ -26,6 +31,25 @@ extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KTXTexture2_getSupercompr
 {
     return get_ktx2_texture(env, thiz)->supercompressionScheme;
 }
+
+//extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KTXTexture2_compressAstcEx(JNIEnv *env,
+//                                                                                jobject thiz,
+//                                                                                jobject jparams)
+//{
+//    ktxAstcParams params = {};
+//    copy_ktx_astc_params(env, jparams, params);
+//
+//    return ktxTexture2_CompressAstcEx(get_ktx2_texture(env, thiz),
+//                                        &params);
+//}
+//
+//extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KTXTexture2_compressAstc(JNIEnv *env,
+//                                                                                jobject thiz,
+//                                                                                jint quality)
+//{
+//    return ktxTexture2_CompressAstc(get_ktx2_texture(env, thiz),
+//                                        static_cast<uint32_t>(quality));
+//}
 
 extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KTXTexture2_compressBasisEx(JNIEnv *env,
                                                                                 jobject thiz,

@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021, Shukant Pal and Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 CMAKE_MINIMUM_REQUIRED(VERSION 3.16)
 PROJECT(libktx-jni)
 
