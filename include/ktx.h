@@ -1198,7 +1198,13 @@ typedef struct ktxAstcParams {
           i.e. 6x6, 8x8, 6x5 etc*/
 
     ktx_uint32_t transferFunction;
-        /*!< Input/output transfer function for astcenc can be {linear/srgb}*/
+        /*!< Input/output transfer function for astcenc that can be {linear/srgb}
+        ASTC supports non-linear sRGB color space conversion at both compression and decompression time.
+        To keep images in sRGB color space until the point that they are used:
+            - Compress images with `srgb` transferFunction.
+            - When loading images, use the sRGB texture formats instead of the regular texture formats.
+            The sRGB texture formats contain SRGB8_ALPHA8 in the name, for example,
+            COMPRESSED_SRGB8_ALPHA8_ASTC_4x4_KHR. There is an sRGB equivalent for every RGBA format.*/
 
     ktx_uint32_t mode;
         /*!< Can be {ldr/hdr} from astcenc*/
