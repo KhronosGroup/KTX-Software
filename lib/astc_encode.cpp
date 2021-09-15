@@ -214,7 +214,6 @@ astcDefaultOptions() {
     params.verbose = false;
     params.threadCount = 1;
     params.blockDimension = KTX_PACK_ASTC_BLOCK_DIMENSION_6x6;
-	params.transferFunction = KTX_PACK_ASTC_ENCODER_TRANSFER_FUNCTION_UNKNOWN;
     params.mode = KTX_PACK_ASTC_ENCODER_MODE_LDR;
     params.qualityLevel = KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM;
     params.normalMap = false;
@@ -302,35 +301,19 @@ astcVkFormat(ktx_uint32_t block_size, bool sRGB) {
 static astcenc_profile
 astcEncoderAction(const ktxAstcParams &params, const uint32_t* bdb) {
 
-    if (params.transferFunction == KTX_PACK_ASTC_ENCODER_TRANSFER_FUNCTION_SRGB &&
-        params.mode == KTX_PACK_ASTC_ENCODER_MODE_LDR) {
-        return ASTCENC_PRF_LDR_SRGB;
-    }
-    else if (params.transferFunction == KTX_PACK_ASTC_ENCODER_TRANSFER_FUNCTION_LINEAR &&
-        params.mode == KTX_PACK_ASTC_ENCODER_MODE_LDR) {
-        return ASTCENC_PRF_LDR;
-    }
-    else if (params.transferFunction == KTX_PACK_ASTC_ENCODER_TRANSFER_FUNCTION_LINEAR &&
-        params.mode == KTX_PACK_ASTC_ENCODER_MODE_HDR) {
-        return ASTCENC_PRF_HDR;
-    }
-    else if (params.transferFunction == KTX_PACK_ASTC_ENCODER_TRANSFER_FUNCTION_UNKNOWN) {
-        // If no options provided assume the user wants to use
-        // color space info provided from the file
+    ktx_uint32_t transfer = KHR_DFDVAL(bdb, TRANSFER);
 
-        ktx_uint32_t transfer = KHR_DFDVAL(bdb, TRANSFER);
-        if (transfer == KHR_DF_TRANSFER_SRGB &&
-            params.mode == KTX_PACK_ASTC_ENCODER_MODE_LDR)
-            return ASTCENC_PRF_LDR_SRGB;
-        else if (transfer == KHR_DF_TRANSFER_LINEAR) {
-            if (params.mode == KTX_PACK_ASTC_ENCODER_MODE_LDR)
-                return ASTCENC_PRF_LDR;
-            else
-                return ASTCENC_PRF_HDR;
-        }
+    if (transfer == KHR_DF_TRANSFER_SRGB &&
+        params.mode == KTX_PACK_ASTC_ENCODER_MODE_LDR)
+        return ASTCENC_PRF_LDR_SRGB;
+    else if (transfer == KHR_DF_TRANSFER_LINEAR) {
+        if (params.mode == KTX_PACK_ASTC_ENCODER_MODE_LDR)
+            return ASTCENC_PRF_LDR;
+        else
+            return ASTCENC_PRF_HDR;
     }
     // TODO: Add support for the following
-    // KTX_PACK_ASTC_ENCODER_ACTION_COMP_HDR_RGB_LDR_ALPHA; not supported
+    // KTX_PACK_ASTC_ENCODER_ACTION_COMP_HDR_RGB_LDR_ALPHA; currently not supported
 
   return ASTCENC_PRF_LDR_SRGB;
 }

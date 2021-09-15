@@ -1389,13 +1389,6 @@ toktxApp::main(int argc, _TCHAR *argv[])
                 }
             }
 
-            if (chosenOETF == KHR_DF_TRANSFER_SRGB) {
-                astcopts.transferFunction = KTX_PACK_ASTC_ENCODER_TRANSFER_FUNCTION_SRGB;
-            }
-            else {
-                astcopts.transferFunction = KTX_PACK_ASTC_ENCODER_TRANSFER_FUNCTION_LINEAR;
-            }
-
             astcopts.threadCount = options.threadCount;
             astcopts.normalMap = options.normalMode;
 
