@@ -1148,17 +1148,6 @@ typedef enum ktx_pack_astc_block_dimension_e {
 
 /**
  * @~English
- * @brief Options specifiying ASTC encoder profile transfer function
- */
-typedef enum ktx_pack_astc_encoder_transfer_function_e {
-    KTX_PACK_ASTC_ENCODER_TRANSFER_FUNCTION_UNKNOWN,
-    KTX_PACK_ASTC_ENCODER_TRANSFER_FUNCTION_SRGB,
-    KTX_PACK_ASTC_ENCODER_TRANSFER_FUNCTION_LINEAR,
-    KTX_PACK_ASTC_ENCODER_TRANSFER_FUNCTION_MAX = KTX_PACK_ASTC_ENCODER_TRANSFER_FUNCTION_LINEAR
-} ktx_pack_astc_encoder_transfer_function_e;
-
-/**
- * @~English
  * @brief Options specifying ASTC encoder profile mode
  *        This and function is used later to derive the profile.
  */
