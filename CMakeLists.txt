@@ -291,7 +291,7 @@ macro(commom_lib_settings lib write)
     if(WIN32)
         target_compile_definitions(
             ${lib}
-        PRIVATE 
+        PRIVATE
             "KTX_API=__declspec(dllexport)"
         PUBLIC # only for basisu_c_binding.
             BASISU_NO_ITERATOR_DEBUG_LEVEL
@@ -897,3 +897,5 @@ endif()
 # endif()
 
 include(CPack)
+
+include(cmake/jni.cmake)

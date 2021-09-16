@@ -5,11 +5,11 @@
 
 #include <assert.h>
 #include <cstring>
-#include <ktx.h>
 #include <jni.h>
 #include <vector>
 #include <iostream>
 
+#include "ktx.h"
 #include "libktx-jni.h"
 
 struct pinned_image_buf

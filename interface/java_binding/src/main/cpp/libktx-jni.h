@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#ifndef LIBKTX_JNI_H_2b113062
-#define LIBKTX_JNI_H_2b113062
+#ifndef LIBKTX_JNI_H_2B113062
+#define LIBKTX_JNI_H_2B113062
 
-#include <ktx.h>
+#include "ktx.h"
 #include <jni.h>
 
 // Utilities for extracting KTXTexture.texture pointer
