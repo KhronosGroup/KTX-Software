@@ -194,196 +194,100 @@ public class VkFormat {
     public static final int VK_FORMAT_ASTC_12x10_SRGB_BLOCK = 182;
     public static final int VK_FORMAT_ASTC_12x12_UNORM_BLOCK = 183;
     public static final int VK_FORMAT_ASTC_12x12_SRGB_BLOCK = 184;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_G8B8G8R8_422_UNORM = 1000156000;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_B8G8R8G8_422_UNORM = 1000156001;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM = 1000156002;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_G8_B8R8_2PLANE_420_UNORM = 1000156003;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_G8_B8_R8_3PLANE_422_UNORM = 1000156004;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_G8_B8R8_2PLANE_422_UNORM = 1000156005;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_G8_B8_R8_3PLANE_444_UNORM = 1000156006;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_R10X6_UNORM_PACK16 = 1000156007;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_R10X6G10X6_UNORM_2PACK16 = 1000156008;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_R10X6G10X6B10X6A10X6_UNORM_4PACK16 = 1000156009;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_G10X6B10X6G10X6R10X6_422_UNORM_4PACK16 = 1000156010;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_B10X6G10X6R10X6G10X6_422_UNORM_4PACK16 = 1000156011;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_420_UNORM_3PACK16 = 1000156012;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16 = 1000156013;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_422_UNORM_3PACK16 = 1000156014;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16 = 1000156015;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_444_UNORM_3PACK16 = 1000156016;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_R12X4_UNORM_PACK16 = 1000156017;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_R12X4G12X4_UNORM_2PACK16 = 1000156018;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_R12X4G12X4B12X4A12X4_UNORM_4PACK16 = 1000156019;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_G12X4B12X4G12X4R12X4_422_UNORM_4PACK16 = 1000156020;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_B12X4G12X4R12X4G12X4_422_UNORM_4PACK16 = 1000156021;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_420_UNORM_3PACK16 = 1000156022;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_G12X4_B12X4R12X4_2PLANE_420_UNORM_3PACK16 = 1000156023;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_422_UNORM_3PACK16 = 1000156024;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_G12X4_B12X4R12X4_2PLANE_422_UNORM_3PACK16 = 1000156025;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_444_UNORM_3PACK16 = 1000156026;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_G16B16G16R16_422_UNORM = 1000156027;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_B16G16R16G16_422_UNORM = 1000156028;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_G16_B16_R16_3PLANE_420_UNORM = 1000156029;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_G16_B16R16_2PLANE_420_UNORM = 1000156030;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_G16_B16_R16_3PLANE_422_UNORM = 1000156031;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_G16_B16R16_2PLANE_422_UNORM = 1000156032;
-    // Provided by public static final int VK_VERSION_1_1
     public static final int VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM = 1000156033;
-    // Provided by public static final int VK_IMG_format_pvrtc
     public static final int VK_FORMAT_PVRTC1_2BPP_UNORM_BLOCK_IMG = 1000054000;
-    // Provided by public static final int VK_IMG_format_pvrtc
     public static final int VK_FORMAT_PVRTC1_4BPP_UNORM_BLOCK_IMG = 1000054001;
-    // Provided by public static final int VK_IMG_format_pvrtc
     public static final int VK_FORMAT_PVRTC2_2BPP_UNORM_BLOCK_IMG = 1000054002;
-    // Provided by public static final int VK_IMG_format_pvrtc
     public static final int VK_FORMAT_PVRTC2_4BPP_UNORM_BLOCK_IMG = 1000054003;
-    // Provided by public static final int VK_IMG_format_pvrtc
     public static final int VK_FORMAT_PVRTC1_2BPP_SRGB_BLOCK_IMG = 1000054004;
-    // Provided by public static final int VK_IMG_format_pvrtc
     public static final int VK_FORMAT_PVRTC1_4BPP_SRGB_BLOCK_IMG = 1000054005;
-    // Provided by public static final int VK_IMG_format_pvrtc
     public static final int VK_FORMAT_PVRTC2_2BPP_SRGB_BLOCK_IMG = 1000054006;
-    // Provided by public static final int VK_IMG_format_pvrtc
     public static final int VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG = 1000054007;
-    // Provided by public static final int VK_EXT_texture_compression_astc_hdr
     public static final int VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK_EXT = 1000066000;
-    // Provided by public static final int VK_EXT_texture_compression_astc_hdr
     public static final int VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK_EXT = 1000066001;
-    // Provided by public static final int VK_EXT_texture_compression_astc_hdr
     public static final int VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK_EXT = 1000066002;
-    // Provided by public static final int VK_EXT_texture_compression_astc_hdr
     public static final int VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK_EXT = 1000066003;
-    // Provided by public static final int VK_EXT_texture_compression_astc_hdr
     public static final int VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK_EXT = 1000066004;
-    // Provided by public static final int VK_EXT_texture_compression_astc_hdr
     public static final int VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK_EXT = 1000066005;
-    // Provided by public static final int VK_EXT_texture_compression_astc_hdr
     public static final int VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK_EXT = 1000066006;
-    // Provided by public static final int VK_EXT_texture_compression_astc_hdr
     public static final int VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK_EXT = 1000066007;
-    // Provided by public static final int VK_EXT_texture_compression_astc_hdr
     public static final int VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK_EXT = 1000066008;
-    // Provided by public static final int VK_EXT_texture_compression_astc_hdr
     public static final int VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK_EXT = 1000066009;
-    // Provided by public static final int VK_EXT_texture_compression_astc_hdr
     public static final int VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK_EXT = 1000066010;
-    // Provided by public static final int VK_EXT_texture_compression_astc_hdr
     public static final int VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK_EXT = 1000066011;
-    // Provided by public static final int VK_EXT_texture_compression_astc_hdr
     public static final int VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK_EXT = 1000066012;
-    // Provided by public static final int VK_EXT_texture_compression_astc_hdr
     public static final int VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK_EXT = 1000066013;
-    // Provided by public static final int VK_EXT_ycbcr_2plane_444_formats
     public static final int VK_FORMAT_G8_B8R8_2PLANE_444_UNORM_EXT = 1000330000;
-    // Provided by public static final int VK_EXT_ycbcr_2plane_444_formats
     public static final int VK_FORMAT_G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16_EXT = 1000330001;
-    // Provided by public static final int VK_EXT_ycbcr_2plane_444_formats
     public static final int VK_FORMAT_G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16_EXT = 1000330002;
-    // Provided by public static final int VK_EXT_ycbcr_2plane_444_formats
     public static final int VK_FORMAT_G16_B16R16_2PLANE_444_UNORM_EXT = 1000330003;
-    // Provided by public static final int VK_EXT_4444_formats
     public static final int VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT = 1000340000;
-    // Provided by public static final int VK_EXT_4444_formats
     public static final int VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT = 1000340001;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_G8B8G8R8_422_UNORM_KHR = VK_FORMAT_G8B8G8R8_422_UNORM;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_B8G8R8G8_422_UNORM_KHR = VK_FORMAT_B8G8R8G8_422_UNORM;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM_KHR = VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_G8_B8R8_2PLANE_420_UNORM_KHR = VK_FORMAT_G8_B8R8_2PLANE_420_UNORM;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_G8_B8_R8_3PLANE_422_UNORM_KHR = VK_FORMAT_G8_B8_R8_3PLANE_422_UNORM;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_G8_B8R8_2PLANE_422_UNORM_KHR = VK_FORMAT_G8_B8R8_2PLANE_422_UNORM;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_G8_B8_R8_3PLANE_444_UNORM_KHR = VK_FORMAT_G8_B8_R8_3PLANE_444_UNORM;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_R10X6_UNORM_PACK16_KHR = VK_FORMAT_R10X6_UNORM_PACK16;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_R10X6G10X6_UNORM_2PACK16_KHR = VK_FORMAT_R10X6G10X6_UNORM_2PACK16;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_R10X6G10X6B10X6A10X6_UNORM_4PACK16_KHR = VK_FORMAT_R10X6G10X6B10X6A10X6_UNORM_4PACK16;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_G10X6B10X6G10X6R10X6_422_UNORM_4PACK16_KHR = VK_FORMAT_G10X6B10X6G10X6R10X6_422_UNORM_4PACK16;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_B10X6G10X6R10X6G10X6_422_UNORM_4PACK16_KHR = VK_FORMAT_B10X6G10X6R10X6G10X6_422_UNORM_4PACK16;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_420_UNORM_3PACK16_KHR = VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_420_UNORM_3PACK16;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16_KHR = VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_422_UNORM_3PACK16_KHR = VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_422_UNORM_3PACK16;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16_KHR = VK_FORMAT_G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_444_UNORM_3PACK16_KHR = VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_444_UNORM_3PACK16;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_R12X4_UNORM_PACK16_KHR = VK_FORMAT_R12X4_UNORM_PACK16;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_R12X4G12X4_UNORM_2PACK16_KHR = VK_FORMAT_R12X4G12X4_UNORM_2PACK16;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_R12X4G12X4B12X4A12X4_UNORM_4PACK16_KHR = VK_FORMAT_R12X4G12X4B12X4A12X4_UNORM_4PACK16;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_G12X4B12X4G12X4R12X4_422_UNORM_4PACK16_KHR = VK_FORMAT_G12X4B12X4G12X4R12X4_422_UNORM_4PACK16;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_B12X4G12X4R12X4G12X4_422_UNORM_4PACK16_KHR = VK_FORMAT_B12X4G12X4R12X4G12X4_422_UNORM_4PACK16;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_420_UNORM_3PACK16_KHR = VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_420_UNORM_3PACK16;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_G12X4_B12X4R12X4_2PLANE_420_UNORM_3PACK16_KHR = VK_FORMAT_G12X4_B12X4R12X4_2PLANE_420_UNORM_3PACK16;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_422_UNORM_3PACK16_KHR = VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_422_UNORM_3PACK16;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_G12X4_B12X4R12X4_2PLANE_422_UNORM_3PACK16_KHR = VK_FORMAT_G12X4_B12X4R12X4_2PLANE_422_UNORM_3PACK16;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_444_UNORM_3PACK16_KHR = VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_444_UNORM_3PACK16;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_G16B16G16R16_422_UNORM_KHR = VK_FORMAT_G16B16G16R16_422_UNORM;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_B16G16R16G16_422_UNORM_KHR = VK_FORMAT_B16G16R16G16_422_UNORM;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_G16_B16_R16_3PLANE_420_UNORM_KHR = VK_FORMAT_G16_B16_R16_3PLANE_420_UNORM;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_G16_B16R16_2PLANE_420_UNORM_KHR = VK_FORMAT_G16_B16R16_2PLANE_420_UNORM;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_G16_B16_R16_3PLANE_422_UNORM_KHR = VK_FORMAT_G16_B16_R16_3PLANE_422_UNORM;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_G16_B16R16_2PLANE_422_UNORM_KHR = VK_FORMAT_G16_B16R16_2PLANE_422_UNORM;
-    // Provided by public static final int VK_KHR_sampler_ycbcr_conversion
     public static final int VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM_KHR = VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM;
 }
