@@ -12,9 +12,6 @@
 
 #include "libktx-jni.h"
 
-/* We aren't working with OpenGL :) so header's not available */
-#define GL_RGBA8										0x8058
-
 struct pinned_image_buf
 {
     jbyteArray handle;
