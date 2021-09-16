@@ -413,14 +413,12 @@ class scApp : public ktxApp {
         struct astcOptions : public ktxAstcParams {
             clampedOption<ktx_uint32_t> threadCount;
             clampedOption<ktx_uint32_t> blockDimension;
-            clampedOption<ktx_uint32_t> function;
             clampedOption<ktx_uint32_t> mode;
             clampedOption<ktx_uint32_t> qualityLevel;
 
             astcOptions() :
                 threadCount(ktxAstcParams::threadCount, 1, 10000),
                 blockDimension(ktxAstcParams::blockDimension, 0, KTX_PACK_ASTC_BLOCK_DIMENSION_MAX),
-                function(ktxAstcParams::function, 0, KTX_PACK_ASTC_ENCODER_FUNCTION_MAX),
                 mode(ktxAstcParams::mode, 0, KTX_PACK_ASTC_ENCODER_MODE_MAX),
                 qualityLevel(ktxAstcParams::qualityLevel, 0, KTX_PACK_ASTC_QUALITY_LEVEL_MAX)
             {
@@ -432,9 +430,6 @@ class scApp : public ktxApp {
                 structSize = sizeof(ktxAstcParams);
                 blockDimension.clear();
                 blockDimension = KTX_PACK_ASTC_BLOCK_DIMENSION_6x6;
-                function.clear();
-                // Default to unknown to have a chance to use color space from file
-                function = KTX_PACK_ASTC_ENCODER_FUNCTION_UNKNOWN;
                 mode.clear();
                 qualityLevel.clear();
                 normalMap = false;
