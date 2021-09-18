@@ -1148,17 +1148,6 @@ typedef enum ktx_pack_astc_block_dimension_e {
 
 /**
  * @~English
- * @brief Options specifiying ASTC encoder profile function
- */
-typedef enum ktx_pack_astc_encoder_function_e {
-    KTX_PACK_ASTC_ENCODER_FUNCTION_UNKNOWN,
-    KTX_PACK_ASTC_ENCODER_FUNCTION_SRGB,
-    KTX_PACK_ASTC_ENCODER_FUNCTION_LINEAR,
-    KTX_PACK_ASTC_ENCODER_FUNCTION_MAX = KTX_PACK_ASTC_ENCODER_FUNCTION_LINEAR
-} ktx_pack_astc_encoder_function_e;
-
-/**
- * @~English
  * @brief Options specifying ASTC encoder profile mode
  *        This and function is used later to derive the profile.
  */
@@ -1196,9 +1185,6 @@ typedef struct ktxAstcParams {
     ktx_uint32_t blockDimension;
         /*!< Combinations of block dimensions that astcenc supports
           i.e. 6x6, 8x8, 6x5 etc*/
-
-    ktx_uint32_t function;
-        /*!< Can be {linear/srgb} from astcenc*/
 
     ktx_uint32_t mode;
         /*!< Can be {ldr/hdr} from astcenc*/

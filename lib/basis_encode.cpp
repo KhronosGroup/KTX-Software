@@ -604,6 +604,14 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         g_cpu_supports_sse41 = false;
 #endif
 
+    ktx_uint32_t transfer = KHR_DFDVAL(BDB, TRANSFER);
+    if (transfer == KHR_DF_TRANSFER_SRGB)
+        cparams.m_perceptual = true;
+    else
+        cparams.m_perceptual = false;
+
+    cparams.m_mip_gen = false; // We provide the mip levels.
+
     cparams.m_uastc = params->uastc;
     if (params->uastc) {
         cparams.m_pack_uastc_flags = params->uastcFlags;
@@ -631,13 +639,6 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         }
     } else {
         // ETC1S-related params.
-        ktx_uint32_t transfer = KHR_DFDVAL(BDB, TRANSFER);
-        if (transfer == KHR_DF_TRANSFER_SRGB)
-            cparams.m_perceptual = true;
-        else
-            cparams.m_perceptual = false;
-
-        cparams.m_mip_gen = false; // We provide the mip levels.
 
         // Explicit specification is required as 0 is a valid value
         // in the basis_compressor leaving us without a good way to
