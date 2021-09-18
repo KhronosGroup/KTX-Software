@@ -9,7 +9,6 @@ public class KTXAstcParams {
     private boolean verbose;
     private int threadCount;
     private int blockDimension;
-    private int transferFunction;
     private int mode;
     private int qualityLevel;
     private boolean normalMap;
@@ -37,14 +36,6 @@ public class KTXAstcParams {
 
     public void setBlockDimension(int blockDimension) {
         this.blockDimension = blockDimension;
-    }
-
-    public int getTransferFunction() {
-        return transferFunction;
-    }
-
-    public void setTransferFunction(int transferFunction) {
-        this.transferFunction = transferFunction;
     }
 
     public int getMode() {

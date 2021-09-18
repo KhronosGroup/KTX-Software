@@ -83,7 +83,6 @@ void copy_ktx_astc_params(JNIEnv *env, jobject params, ktxAstcParams &out)
     jfieldID verbose = env->GetFieldID(ktx_astc_params_class, "verbose", "Z");
     jfieldID threadCount = env->GetFieldID(ktx_astc_params_class, "threadCount", "I");
     jfieldID blockDimension = env->GetFieldID(ktx_astc_params_class, "blockDimension", "I");
-    jfieldID transferFunction = env->GetFieldID(ktx_astc_params_class, "transferFunction", "I");
     jfieldID mode = env->GetFieldID(ktx_astc_params_class, "mode", "I");
     jfieldID qualityLevel = env->GetFieldID(ktx_astc_params_class, "qualityLevel", "I");
     jfieldID normalMap = env->GetFieldID(ktx_astc_params_class, "normalMap", "Z");
@@ -92,7 +91,6 @@ void copy_ktx_astc_params(JNIEnv *env, jobject params, ktxAstcParams &out)
     out.verbose = env->GetBooleanField(params, verbose);
     out.threadCount = env->GetIntField(params, threadCount);
     out.blockDimension = env->GetIntField(params, blockDimension);
-    out.function = env->GetIntField(params, transferFunction);// to be renamed in #482
     out.mode = env->GetIntField(params, mode);
     out.qualityLevel = env->GetIntField(params, qualityLevel);
     out.normalMap = env->GetBooleanField(params, normalMap);
@@ -156,6 +154,7 @@ void copy_ktx_basis_params(JNIEnv *env, jobject params, ktxBasisParams &out)
     out.preSwizzle = env->GetBooleanField(params, preSwizzle);
     out.noEndpointRDO = env->GetBooleanField(params, noEndpointRDO);
     out.noSelectorRDO = env->GetBooleanField(params, noSelectorRDO);
+    out.uastcRDO = env->GetBooleanField(params, uastcRDO);
     out.uastcFlags = env->GetIntField(params, uastcFlags);
     out.uastcRDOQualityScalar = env->GetFloatField(params, uastcRDOQualityScalar);
     out.uastcRDODictSize = env->GetIntField(params, uastcRDODictSize);

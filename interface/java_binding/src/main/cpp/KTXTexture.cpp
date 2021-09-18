@@ -158,7 +158,7 @@ extern "C" JNIEXPORT jbyteArray JNICALL Java_org_khronos_ktx_KTXTexture_getData(
     jbyteArray outputArray = env->NewByteArray(dataSize);
     jsize outputLength = env->GetArrayLength(outputArray);
 
-    if (outputLength != dataSize) {
+    if ((ktx_size_t) outputLength != dataSize) {
         return NULL;
     }
 
