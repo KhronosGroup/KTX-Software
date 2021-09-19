@@ -77,4 +77,4 @@ ci_scripts/build_wasm_docker.sh
 
 # Java
 
-LIBKTX_BINARY_DIR=$release_build_dir ci_scripts/build_java.sh
+LIBKTX_BINARY_DIR=$(pwd)/$release_build_dir ci_scripts/build_java.sh
