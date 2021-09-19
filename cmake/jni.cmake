@@ -7,7 +7,7 @@ if (KTX_FEATURE_JNI)
 
         if (APPLE)
             include_directories($ENV{JAVA_HOME}/include/darwin)
-        elseif(WINDOWS)
+        elseif(WIN32)
             include_directories($ENV{JAVA_HOME}/include/win32)
         else()
             include_directories($ENV{JAVA_HOME}/include/linux)

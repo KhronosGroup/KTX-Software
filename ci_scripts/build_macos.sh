@@ -5,6 +5,13 @@
 # exit if any command fails
 set -e
 
+# Travis CI doesn't java_home for some reason
+if [ -z "$JAVA_HOME" ]; then
+  echo Setting JAVA_HOME from /usr/libexec/java_home
+  export JAVA_HOME=$(/usr/libexec/java_home)
+  echo JAVA_HOME is $JAVA_HOME
+fi
+
 # Due to the spaces in the platform names, must use array variables so
 # destination args can be expanded to a single word.
 OSX_XCODE_OPTIONS=(-alltargets -destination "platform=OS X,arch=x86_64")
@@ -135,3 +142,9 @@ cmake --build . --config Release -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIG
 # echo "Build KTX-Software (iOS Simulator Release)"
 # cmake --build . --config Release -- -sdk iphonesimulator
 popd
+
+#
+# Java
+#
+
+LIBKTX_BINARY_DIR=$(pwd)/$DEPLOY_BUILD_DIR ci_scripts/build_java.sh
