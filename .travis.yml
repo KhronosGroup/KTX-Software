@@ -104,7 +104,6 @@ script:
     ./ci_scripts/build_macos.sh
     ;;
     esac
-- ./ci_scripts/build_java.sh
 
 # See if this helps with truncated logs.
 after_script:

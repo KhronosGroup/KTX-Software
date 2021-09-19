@@ -8,5 +8,5 @@ echo "LIBKTX_BINARY_DIR " $LIBKTX_BINARY_DIR
 build_libktx_java_dir=interface/java_binding
 
 pushd $build_libktx_java_dir
-mvn package
+LIBKTX_BINARY_DIR=$LIBKTX_BINARY_DIR mvn package
 popd
