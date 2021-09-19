@@ -147,4 +147,6 @@ popd
 # Java
 #
 
+ls
+ls $DEPLOY_BUILD_DIR
 LIBKTX_BINARY_DIR=$(pwd)/$DEPLOY_BUILD_DIR ci_scripts/build_java.sh
