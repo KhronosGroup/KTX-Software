@@ -149,4 +149,8 @@ popd
 
 ls
 ls $DEPLOY_BUILD_DIR
-LIBKTX_BINARY_DIR=$(pwd)/$DEPLOY_BUILD_DIR ci_scripts/build_java.sh
+echo "/build"
+ls $DEPLOY_BUILD_DIR/build
+echo "/lib"
+ls $DEPLOY_BUILD_DIR/lib
+LIBKTX_BINARY_DIR=$(pwd)/$DEPLOY_BUILD_DIR/build ci_scripts/build_java.sh
