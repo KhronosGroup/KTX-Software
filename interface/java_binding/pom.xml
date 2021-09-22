@@ -7,11 +7,12 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>org.khronos.ktx</groupId>
+  <groupId>org.khronos</groupId>
   <artifactId>libktx</artifactId>
   <version>1.0-SNAPSHOT</version>
 
   <name>libktx</name>
+  <description>Java Bindings for Khronos KTX Library</description>
   <url>https://www.khronos.org/ktx/</url>
   <licenses>
     <license>
@@ -27,6 +28,11 @@
       <organizationUrl>http://www.shukantpal.com</organizationUrl>
     </developer>
   </developers>
+  <scm>
+    <connection>scm:git:git://github.com/KhronosGroup/KTX-Software.git</connection>
+    <developerConnection>scm:git:ssh://github.com:KhronosGroup/KTX-Software.git</developerConnection>
+    <url>https://github.com/KhronosGroup/KTX-Software/tree/master</url>
+  </scm>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
