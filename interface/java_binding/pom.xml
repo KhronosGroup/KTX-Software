@@ -13,6 +13,20 @@
 
   <name>libktx</name>
   <url>https://www.khronos.org/ktx/</url>
+  <licenses>
+    <license>
+      <name>The Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <name>Shukant Pal</name>
+      <email>shukantpal@outlook.com</email>
+      <organization>Pal Ventures</organization>
+      <organizationUrl>http://www.shukantpal.com</organizationUrl>
+    </developer>
+  </developers>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
