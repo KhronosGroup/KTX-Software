@@ -1,7 +1,9 @@
 Copyright (c) 2021, Shukant Pal and Contributors \
 SPDX-License-Identifier: Apache-2.0
 
-Java bindings for libktx, made with love by [Shukant Pal](https://github.com/ShukantPal) originally for the [Texture Compression Tool](https://compressor.shukantpal.com).
+Java bindings for [libktx](https://github.com/KhronosGroup/KTX-Software), made with love by [Shukant Pal](https://github.com/ShukantPal) originally for the [Texture Compression Tool](https://compressor.shukantpal.com).
+
+The `libktx-jni` library is built by the CMake project in the repository root. This library glues the `libktx` API with the interfaces provided in this Java library. You'll need to install `libktx`, `libktx-jni` to use the bindings.
 
 ## Usage
 
@@ -31,16 +33,15 @@ public class App {
 }
 ```
 
-## Build and install libktx-jni
+## Build JAR
 
-You must have `libktx` installed on your system already. The build was
-tested on macOS / Linux - Windows build needs contribution :)!
+You must have Maven installed:
 
 ```
-mkdir build && cd build
-cmake ../src/cpp && make
-cmake --install .
+maven package
 ```
+
+This will place a JAR in the `target` directory in interfaces/java_binding. When building your application, include this JAR in the build.
 
 ## Run tests on macOS
 
@@ -49,8 +50,3 @@ It's tricky - I know:
 ```
  _JAVA_OPTIONS=-Djava.library.path=/usr/local/lib mvn test
 ```
-
-## Things to do
-
-* Tests for memory leaks!
-* Full coverage of KTX api
