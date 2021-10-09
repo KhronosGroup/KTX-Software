@@ -81,16 +81,16 @@ pushd $DEPLOY_BUILD_DIR
 
 # Build and test Debug
 echo "Build KTX-Software (macOS universal binary Debug)"
-cmake --build . --config Debug -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | handle_compiler_output
+cmake --build . --config Debug -DKTX_FEATURE_JNI=ON -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | handle_compiler_output
 echo "Test KTX-Software (macOS universal binary Debug)"
 ctest -C Debug # --verbose
 
 # Build and test Release
 echo "Build KTX-Software (macOS universal binary Release)"
 if [ -n "$MACOS_CERTIFICATES_P12" ]; then
-  cmake --build . --config Release | handle_compiler_output
+  cmake --build . --config Release -DKTX_FEATURE_JNI=ON | handle_compiler_output
 else
-  cmake --build . --config Release -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | handle_compiler_output
+  cmake --build . --config Release -DKTX_FEATURE_JNI=ON -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | handle_compiler_output
 fi
 echo "Test KTX-Software (macOS universal binary Release)"
 ctest -C Release # --verbose
