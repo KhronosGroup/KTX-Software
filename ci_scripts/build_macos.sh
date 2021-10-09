@@ -114,12 +114,12 @@ popd
 pushd build-macos-sse
 
 echo "Build KTX-Software (macOS with SSE support Debug)"
-cmake --build . --config Debug -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | handle_compiler_output
+cmake --build . --config Debug -DKTX_FEATURE_JNI=ON -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | handle_compiler_output
 
 echo "Test KTX-Software (macOS with SSE support Debug)"
 ctest -C Debug # --verbose
 echo "Build KTX-Software (macOS with SSE support Release)"
-cmake --build . --config Release -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | handle_compiler_output
+cmake --build . --config Release -DKTX_FEATURE_JNI=ON -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | handle_compiler_output
 
 echo "Test KTX-Software (macOS with SSE support Release)"
 ctest -C Release # --verbose

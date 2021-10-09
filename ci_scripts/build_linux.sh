@@ -21,7 +21,7 @@ nosse_release_build_dir=${linux_build_base}-nosse-release
 mkdir -p $build_parent_dir
 
 echo "Configure KTX-Software (Linux Debug)"
-${CMAKE_EXE} . -G Ninja -B$debug_build_dir -DCMAKE_BUILD_TYPE=Debug -DKTX_FEATURE_LOADTEST_APPS=ON
+${CMAKE_EXE} . -G Ninja -B$debug_build_dir -DCMAKE_BUILD_TYPE=Debug -DKTX_FEATURE_JNI=ON -DKTX_FEATURE_LOADTEST_APPS=ON
 pushd $debug_build_dir
 echo "Build KTX-Software (Linux Debug)"
 ${CMAKE_EXE} --build .
@@ -30,7 +30,7 @@ ctest # --verbose
 popd
 
 echo "Configure KTX-Software (Linux Release)"
-${CMAKE_EXE} . -G Ninja -B$release_build_dir -DCMAKE_BUILD_TYPE=Release -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON
+${CMAKE_EXE} . -G Ninja -B$release_build_dir -DCMAKE_BUILD_TYPE=Release -DKTX_FEATURE_JNI=ON -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON
 pushd $release_build_dir
 echo "Build KTX-Software (Linux Release)"
 ${CMAKE_EXE} --build .
@@ -50,7 +50,7 @@ popd
 
 
 echo "Configure KTX-Software (Linux Debug without SSE support)"
-${CMAKE_EXE} . -G Ninja -B$nosse_debug_build_dir -DCMAKE_BUILD_TYPE=Debug -DBASISU_SUPPORT_SSE=OFF
+${CMAKE_EXE} . -G Ninja -B$nosse_debug_build_dir -DCMAKE_BUILD_TYPE=Debug -DKTX_FEATURE_JNI=ON -DBASISU_SUPPORT_SSE=OFF
 pushd $nosse_debug_build_dir
 echo "Build KTX-Software (Linux Debug without SSE support)"
 ${CMAKE_EXE} --build .
@@ -59,7 +59,7 @@ ctest # --verbose
 popd
 
 echo "Configure KTX-Software (Linux Release without SSE support)"
-${CMAKE_EXE} . -G Ninja -B$nosse_release_build_dir -DCMAKE_BUILD_TYPE=Release -DBASISU_SUPPORT_SSE=OFF
+${CMAKE_EXE} . -G Ninja -B$nosse_release_build_dir -DCMAKE_BUILD_TYPE=Release -DKTX_FEATURE_JNI=ON -DBASISU_SUPPORT_SSE=OFF
 pushd $nosse_release_build_dir
 echo "Build KTX-Software (Linux Release without SSE support)"
 ${CMAKE_EXE} --build .
