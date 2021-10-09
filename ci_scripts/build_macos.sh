@@ -5,7 +5,7 @@
 # exit if any command fails
 set -e
 
-# Travis CI doesn't java_home for some reason
+# Travis CI doesn't have JAVA_HOME for some reason
 if [ -z "$JAVA_HOME" ]; then
   echo Setting JAVA_HOME from /usr/libexec/java_home
   export JAVA_HOME=$(/usr/libexec/java_home)
