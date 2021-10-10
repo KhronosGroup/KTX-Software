@@ -25,6 +25,7 @@ public class KtxTestLibraryLoader
             started = true;
 
             String ktxDir = System.getenv("LIBKTX_BINARY_DIR");
+            String ktxLibrary = null;
             String ktxJNILibrary = null;
 
             if (ktxDir != null &&
@@ -37,11 +38,17 @@ public class KtxTestLibraryLoader
 
                 for (File file : ktxDirFile.listFiles()) {
                     if (!file.isFile()) continue;
-                    if (ktxJNILibrary != null) break;
+                    if (ktxLibrary != null && ktxJNILibrary != null) break;
 
                     String[] tokens = file.getName().split("\\.");
 
-                    if (ktxJNILibrary == null &&
+                    if (ktxLibrary == null &&
+                            tokens.length == 2 &&
+                            tokens[0].contentEquals("libktx")) {
+
+                        ktxLibrary = file.getAbsolutePath();
+                        System.out.println("KTXTestLibraryLoader found libktx at " + ktxLibrary);
+                    } else if (ktxJNILibrary == null &&
                             tokens.length == 2 &&
                             tokens[0].contentEquals("libktx-jni")) {
 
@@ -50,6 +57,11 @@ public class KtxTestLibraryLoader
                     }
                 }
             }
+
+            if (ktxLibrary != null)
+                System.load(ktxLibrary);
+            else
+                System.loadLibrary("ktx");
 
             if (ktxJNILibrary != null)
                 System.load(ktxJNILibrary);
