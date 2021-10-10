@@ -26,11 +26,6 @@ public class KtxInternalformat {
     public static final int GL_COMPRESSED_RGBA_S3TC_DXT3_EXT  = 0x83F2;
     public static final int GL_COMPRESSED_RGBA_S3TC_DXT5_EXT  = 0x83F3;
 
-    public static final int GL_COMPRESSED_RGB_S3TC_DXT1_EXT = 0x83F0;
-    public static final int GL_COMPRESSED_RGBA_S3TC_DXT1_EXT = 0x83F1;
-    public static final int GL_COMPRESSED_RGBA_S3TC_DXT3_EXT = 0x83F2;
-    public static final int GL_COMPRESSED_RGBA_S3TC_DXT5_EXT = 0x83F3;
-
     public static final int GL_SRGB_EXT                       = 0x8C40;
     public static final int GL_SRGB8_EXT                      = 0x8C41;
     public static final int GL_SRGB_ALPHA_EXT                 = 0x8C42;
@@ -56,10 +51,6 @@ public class KtxInternalformat {
     public static final int GL_ATC_RGB_AMD = 0x8C92;
     public static final int GL_ATC_RGBA_EXPLICIT_ALPHA_AMD = 0x8C93;
     public static final int GL_ATC_RGBA_INTERPOLATED_ALPHA_AMD = 0x87EE;
-
-    public static final int GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT = 0x8C4D;
-    public static final int GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT = 0x8C4E;
-    public static final int GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT = 0x8C4F;
 
     public static final int GL_COMPRESSED_LUMINANCE_LATC1_EXT = 0x8C70;
     public static final int GL_COMPRESSED_LUMINANCE_ALPHA_LATC2_EXT = 0x8C72;
