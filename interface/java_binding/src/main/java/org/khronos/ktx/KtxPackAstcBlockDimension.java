@@ -5,7 +5,7 @@
 
 package org.khronos.ktx;
 
-public class KTXPackAstcBlockDimension {
+public class KtxPackAstcBlockDimension {
     public static final int D4x4 = 0;
     public static final int D5x4 = 1;
     public static final int D5x5 = 2;

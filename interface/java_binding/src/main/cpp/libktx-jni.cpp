@@ -28,7 +28,7 @@ void set_ktx_texture(JNIEnv *env, jobject thiz, ktxTexture *texture)
 
 jobject make_ktx1_wrapper(JNIEnv *env, ktxTexture1 *texture)
 {
-    jclass ktx_texture_class = env->FindClass("org/khronos/ktx/KTXTexture1");
+    jclass ktx_texture_class = env->FindClass("org/khronos/ktx/KtxTexture1");
     assert (ktx_texture_class != NULL);
 
     jmethodID ktx_texture_ctor = env->GetMethodID(ktx_texture_class, "<init>", "(J)V");
@@ -38,7 +38,7 @@ jobject make_ktx1_wrapper(JNIEnv *env, ktxTexture1 *texture)
 
 jobject make_ktx2_wrapper(JNIEnv *env, ktxTexture2 *texture)
 {
-    jclass ktx_texture_class = env->FindClass("org/khronos/ktx/KTXTexture2");
+    jclass ktx_texture_class = env->FindClass("org/khronos/ktx/KtxTexture2");
     assert (ktx_texture_class != NULL);
 
     jmethodID ktx_texture_ctor = env->GetMethodID(ktx_texture_class, "<init>", "(J)V");

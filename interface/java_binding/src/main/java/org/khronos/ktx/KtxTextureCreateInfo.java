@@ -5,7 +5,7 @@
 
 package org.khronos.ktx;
 
-public class KTXTextureCreateInfo {
+public class KtxTextureCreateInfo {
     private int glInternalformat;
     private int baseWidth = 0;
     private int baseHeight = 0;

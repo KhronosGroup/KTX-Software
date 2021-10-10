@@ -5,7 +5,7 @@
 
 package org.khronos.ktx;
 
-public class KTXBasisParams {
+public class KtxBasisParams {
     private boolean uastc;
     private boolean verbose;
     private boolean noSSE;

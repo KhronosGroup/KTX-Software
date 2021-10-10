@@ -5,7 +5,7 @@
 
 package org.khronos.ktx;
 
-public class KTXPackAstcQualityLevel {
+public class KtxPackAstcQualityLevel {
     public static final int FASTEST = 0;
     public static final int FAST = 10;
     public static final int MEDIUM = 60;

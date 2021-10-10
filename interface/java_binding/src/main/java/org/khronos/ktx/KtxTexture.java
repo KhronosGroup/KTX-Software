@@ -5,11 +5,11 @@
 
 package org.khronos.ktx;
 
-public abstract class KTXTexture {
+public abstract class KtxTexture {
     private final long instance;
     private long buffers;
 
-    protected KTXTexture(long instance) {
+    protected KtxTexture(long instance) {
         this.instance = instance;
         this.buffers = 0;
     }

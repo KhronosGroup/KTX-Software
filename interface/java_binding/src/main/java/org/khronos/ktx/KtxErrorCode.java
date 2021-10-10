@@ -5,7 +5,7 @@
 
 package org.khronos.ktx;
 
-public class KTXErrorCode {
+public class KtxErrorCode {
     public static final int SUCCESS = 0;
     public static final int FILE_DATA_ERROR = 1;
     public static final int FILE_ISPIPE = 2;

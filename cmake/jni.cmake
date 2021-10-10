@@ -14,9 +14,9 @@ if (KTX_FEATURE_JNI)
         endif()
 
         add_library(ktx-jni SHARED
-            interface/java_binding/src/main/cpp/KTXTexture.cpp
-            interface/java_binding/src/main/cpp/KTXTexture1.cpp
-            interface/java_binding/src/main/cpp/KTXTexture2.cpp
+            interface/java_binding/src/main/cpp/KtxTexture.cpp
+            interface/java_binding/src/main/cpp/KtxTexture1.cpp
+            interface/java_binding/src/main/cpp/KtxTexture2.cpp
             interface/java_binding/src/main/cpp/libktx-jni.cpp
         )
 

@@ -15,7 +15,7 @@ import java.util.Arrays;
 
 import static org.junit.jupiter.api.extension.ExtensionContext.Namespace.GLOBAL;
 
-public class KTXTestLibraryLoader
+public class KtxTestLibraryLoader
         implements BeforeAllCallback, ExtensionContext.Store.CloseableResource {
     private static boolean started = false;
 

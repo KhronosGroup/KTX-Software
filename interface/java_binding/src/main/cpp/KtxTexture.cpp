@@ -78,7 +78,7 @@ static void free_buffer_list(JNIEnv *env, jobject thiz)
     delete buffers;
 }
 
-extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KTXTexture_getBufferListSize(JNIEnv *env, jobject thiz)
+extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture_getBufferListSize(JNIEnv *env, jobject thiz)
 {
     jclass ktx_texture_class = env->GetObjectClass(thiz);
     jfieldID ktx_buffers_field = env->GetFieldID(ktx_texture_class, "buffers", "J");
@@ -89,62 +89,62 @@ extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KTXTexture_getBufferListS
     return buffers ? buffers->size() : 0;
 }
 
-extern "C" JNIEXPORT jboolean JNICALL Java_org_khronos_ktx_KTXTexture_isArray(JNIEnv *env, jobject thiz)
+extern "C" JNIEXPORT jboolean JNICALL Java_org_khronos_ktx_KtxTexture_isArray(JNIEnv *env, jobject thiz)
 {
     return get_ktx_texture(env, thiz)->isArray;
 }
 
-extern "C" JNIEXPORT jboolean JNICALL Java_org_khronos_ktx_KTXTexture_isCubemap(JNIEnv *env, jobject thiz)
+extern "C" JNIEXPORT jboolean JNICALL Java_org_khronos_ktx_KtxTexture_isCubemap(JNIEnv *env, jobject thiz)
 {
     return get_ktx_texture(env, thiz)->isCubemap;
 }
 
-extern "C" JNIEXPORT jboolean JNICALL Java_org_khronos_ktx_KTXTexture_isCompressed(JNIEnv *env, jobject thiz)
+extern "C" JNIEXPORT jboolean JNICALL Java_org_khronos_ktx_KtxTexture_isCompressed(JNIEnv *env, jobject thiz)
 {
     return get_ktx_texture(env, thiz)->isCompressed;
 }
 
-extern "C" JNIEXPORT jboolean JNICALL Java_org_khronos_ktx_KTXTexture_getGenerateMipmaps(JNIEnv *env, jobject thiz)
+extern "C" JNIEXPORT jboolean JNICALL Java_org_khronos_ktx_KtxTexture_getGenerateMipmaps(JNIEnv *env, jobject thiz)
 {
     return get_ktx_texture(env, thiz)->generateMipmaps;
 }
 
-extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KTXTexture_getBaseWidth(JNIEnv *env, jobject thiz)
+extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture_getBaseWidth(JNIEnv *env, jobject thiz)
 {
     return get_ktx_texture(env, thiz)->baseWidth;
 }
 
-extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KTXTexture_getBaseHeight(JNIEnv *env, jobject thiz)
+extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture_getBaseHeight(JNIEnv *env, jobject thiz)
 {
     return get_ktx_texture(env, thiz)->baseHeight;
 }
 
-extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KTXTexture_getBaseDepth(JNIEnv *env, jobject thiz)
+extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture_getBaseDepth(JNIEnv *env, jobject thiz)
 {
     return get_ktx_texture(env, thiz)->baseDepth;
 }
 
-extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KTXTexture_getNumDimensions(JNIEnv *env, jobject thiz)
+extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture_getNumDimensions(JNIEnv *env, jobject thiz)
 {
     return get_ktx_texture(env, thiz)->numDimensions;
 }
 
-extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KTXTexture_getNumLevels(JNIEnv *env, jobject thiz)
+extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture_getNumLevels(JNIEnv *env, jobject thiz)
 {
     return get_ktx_texture(env, thiz)->numLevels;
 }
 
-extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KTXTexture_getNumLayers(JNIEnv *env, jobject thiz)
+extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture_getNumLayers(JNIEnv *env, jobject thiz)
 {
     return get_ktx_texture(env, thiz)->numLayers;
 }
 
-extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KTXTexture_getNumFaces(JNIEnv *env, jobject thiz)
+extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture_getNumFaces(JNIEnv *env, jobject thiz)
 {
     return get_ktx_texture(env, thiz)->numFaces;
 }
 
-extern "C" JNIEXPORT jbyteArray JNICALL Java_org_khronos_ktx_KTXTexture_getData(JNIEnv *env, jobject thiz)
+extern "C" JNIEXPORT jbyteArray JNICALL Java_org_khronos_ktx_KtxTexture_getData(JNIEnv *env, jobject thiz)
 {
     ktxTexture *texture = get_ktx_texture(env, thiz);
     ktx_uint8_t *data = ktxTexture_GetData(texture);
@@ -170,7 +170,7 @@ extern "C" JNIEXPORT jbyteArray JNICALL Java_org_khronos_ktx_KTXTexture_getData(
     return outputArray;
 }
 
-extern "C" JNIEXPORT jlong JNICALL Java_org_khronos_ktx_KTXTexture_getDataSize(JNIEnv *env, jobject thiz)
+extern "C" JNIEXPORT jlong JNICALL Java_org_khronos_ktx_KtxTexture_getDataSize(JNIEnv *env, jobject thiz)
 {
     return static_cast<jlong>(ktxTexture_GetDataSize(get_ktx_texture(env, thiz)));
 }
@@ -180,26 +180,26 @@ extern "C" JNIEXPORT jlong JNICALL Java_org_khronos_KTXTexture_getDataSizeUncomp
     return ktxTexture_GetDataSizeUncompressed(get_ktx_texture(env, thiz));
 }
 
-extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KTXTexture_getElementSize(JNIEnv *env, jobject thiz)
+extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture_getElementSize(JNIEnv *env, jobject thiz)
 {
     return static_cast<jint>(ktxTexture_GetElementSize(get_ktx_texture(env, thiz)));
 }
 
-extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KTXTexture_getRowPitch(JNIEnv *env,
+extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture_getRowPitch(JNIEnv *env,
                                                                             jobject thiz,
                                                                             jint level)
 {
     return static_cast<jint>(ktxTexture_GetRowPitch(get_ktx_texture(env, thiz), level));
 }
 
-extern "C" JNIEXPORT jlong JNICALL Java_org_khronos_ktx_KTXTexture_getImageSize(JNIEnv *env,
+extern "C" JNIEXPORT jlong JNICALL Java_org_khronos_ktx_KtxTexture_getImageSize(JNIEnv *env,
                                                                             jobject thiz,
                                                                             jint level)
 {
     return ktxTexture_GetImageSize(get_ktx_texture(env, thiz), level);
 }
 
-extern "C" JNIEXPORT jlong JNICALL Java_org_khronos_ktx_KTXTexture_getImageOffset(JNIEnv *env,
+extern "C" JNIEXPORT jlong JNICALL Java_org_khronos_ktx_KtxTexture_getImageOffset(JNIEnv *env,
                                                                             jobject thiz,
                                                                             jint level,
                                                                             jint layer,
@@ -218,14 +218,14 @@ extern "C" JNIEXPORT jlong JNICALL Java_org_khronos_ktx_KTXTexture_getImageOffse
 
 /* Useful methods :) (not properties) */
 
-extern "C" JNIEXPORT void JNICALL Java_org_khronos_ktx_KTXTexture_destroy(JNIEnv *env, jobject thiz)
+extern "C" JNIEXPORT void JNICALL Java_org_khronos_ktx_KtxTexture_destroy(JNIEnv *env, jobject thiz)
 {
     ktxTexture_Destroy(get_ktx_texture(env, thiz));
     set_ktx_texture(env, thiz, NULL);
     free_buffer_list(env, thiz);
 }
 
-extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KTXTexture_setImageFromMemory(JNIEnv *env,
+extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture_setImageFromMemory(JNIEnv *env,
                                                                                     jobject thiz,
                                                                                     jint level,
                                                                                     jint layer,
@@ -248,7 +248,7 @@ extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KTXTexture_setImageFromMe
     return result;
 }
 
-extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KTXTexture_writeToNamedFile(JNIEnv *env,
+extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture_writeToNamedFile(JNIEnv *env,
                                                                                     jobject thiz,
                                                                                     jstring dstName)
 {
@@ -261,7 +261,7 @@ extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KTXTexture_writeToNamedFi
     return result;
 }
 
-extern "C" JNIEXPORT jbyteArray JNICALL Java_org_khronos_ktx_KTXTexture_writeToMemory(JNIEnv *env,
+extern "C" JNIEXPORT jbyteArray JNICALL Java_org_khronos_ktx_KtxTexture_writeToMemory(JNIEnv *env,
                                                                                     jobject thiz)
 {
     ktx_uint8_t *ppDstBytes;

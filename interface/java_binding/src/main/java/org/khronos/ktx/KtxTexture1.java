@@ -5,8 +5,8 @@
 
 package org.khronos.ktx;
 
-public class KTXTexture1 extends KTXTexture {
-    protected KTXTexture1(long instance) {
+public class KtxTexture1 extends KtxTexture {
+    protected KtxTexture1(long instance) {
         super(instance);
     }
 
@@ -21,7 +21,7 @@ public class KTXTexture1 extends KTXTexture {
      * @param createInfo - Paramaters for the texture
      * @param storageAllocation - Pass {@link KTXCreateStorage.ALLOC} if you will write image data.
      */
-    public static native KTXTexture1 create(KTXTextureCreateInfo info,
+    public static native KtxTexture1 create(KtxTextureCreateInfo info,
                                             int storageAllocation);
 
     /**
@@ -32,10 +32,10 @@ public class KTXTexture1 extends KTXTexture {
      *                   want to read image data! Otherwise, {@link KTXTexture.getData()} will
      *                    return null.
      */
-    public static native KTXTexture1 createFromNamedFile(String filename,
+    public static native KtxTexture1 createFromNamedFile(String filename,
                                                          int createFlags);
 
-    public static KTXTexture1 createFromNamedFile(String filename) {
-        return createFromNamedFile(filename, KTXTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
+    public static KtxTexture1 createFromNamedFile(String filename) {
+        return createFromNamedFile(filename, KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
     }
 }

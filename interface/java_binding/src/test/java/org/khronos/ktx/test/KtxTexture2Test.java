@@ -17,17 +17,18 @@ import java.nio.file.Paths;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@ExtendWith({ KTXTestLibraryLoader.class })
-public class KTXTexture2Test {
+@ExtendWith({ KtxTestLibraryLoader.class })
+public class KtxTexture2Test {
+
     @Test
     public void testCreateFromNamedFile() {
-        Path testKTXFile = Paths.get("")
+        Path testKtxFile = Paths.get("")
                 .resolve("../../tests/testimages/astc_ldr_4x4_FlightHelmet_baseColor.ktx2")
                 .toAbsolutePath()
                 .normalize();
 
-        KTXTexture2 texture = KTXTexture2.createFromNamedFile(testKTXFile.toString(),
-                                                            KTXTextureCreateFlagBits.NO_FLAGS);
+        KtxTexture2 texture = KtxTexture2.createFromNamedFile(testKtxFile.toString(),
+                                                            KtxTextureCreateFlagBits.NO_FLAGS);
 
         assertNotNull(texture);
         assertEquals(texture.getNumLevels(), 1);
@@ -35,20 +36,20 @@ public class KTXTexture2Test {
         assertEquals(texture.getVkFormat(), VkFormat.VK_FORMAT_ASTC_4x4_SRGB_BLOCK);
         assertEquals(texture.getBaseWidth(), 2048);
         assertEquals(texture.getBaseHeight(), 2048);
-        assertEquals(texture.getSupercompressionScheme(), KTXSupercmpScheme.NONE);
+        assertEquals(texture.getSupercompressionScheme(), KtxSupercmpScheme.NONE);
 
         texture.destroy();
     }
 
     @Test
     public void testCreateFromNamedFileMipmapped() {
-        Path testKTXFile = Paths.get("")
+        Path testKtxFile = Paths.get("")
                 .resolve("../../tests/testimages/astc_mipmap_ldr_4x4_posx.ktx2")
                 .toAbsolutePath()
                 .normalize();
 
-        KTXTexture2 texture = KTXTexture2.createFromNamedFile(testKTXFile.toString(),
-                KTXTextureCreateFlagBits.NO_FLAGS);
+        KtxTexture2 texture = KtxTexture2.createFromNamedFile(testKtxFile.toString(),
+                KtxTextureCreateFlagBits.NO_FLAGS);
 
         assertNotNull(texture);
         assertEquals(texture.getNumLevels(), 12);
@@ -60,13 +61,13 @@ public class KTXTexture2Test {
 
     @Test
     public void testGetImageSize() {
-        Path testKTXFile = Paths.get("")
+        Path testKtxFile = Paths.get("")
                 .resolve("../../tests/testimages/astc_mipmap_ldr_4x4_posx.ktx2")
                 .toAbsolutePath()
                 .normalize();
 
-        KTXTexture2 texture = KTXTexture2.createFromNamedFile(testKTXFile.toString(),
-                KTXTextureCreateFlagBits.NO_FLAGS);
+        KtxTexture2 texture = KtxTexture2.createFromNamedFile(testKtxFile.toString(),
+                KtxTextureCreateFlagBits.NO_FLAGS);
 
         assertNotNull(texture);
         assertEquals( 4194304, texture.getImageSize(0));
@@ -76,13 +77,13 @@ public class KTXTexture2Test {
 
     @Test
     public void testGetImageOffset() {
-        Path testKTXFile = Paths.get("")
+        Path testKtxFile = Paths.get("")
                 .resolve("../../tests/testimages/astc_mipmap_ldr_4x4_posx.ktx2")
                 .toAbsolutePath()
                 .normalize();
 
-        KTXTexture2 texture = KTXTexture2.createFromNamedFile(testKTXFile.toString(),
-                KTXTextureCreateFlagBits.NO_FLAGS);
+        KtxTexture2 texture = KtxTexture2.createFromNamedFile(testKtxFile.toString(),
+                KtxTextureCreateFlagBits.NO_FLAGS);
 
         assertNotNull(texture);
 
@@ -98,13 +99,13 @@ public class KTXTexture2Test {
 
     @Test
     public void testGetSize() {
-        Path testKTXFile = Paths.get("")
+        Path testKtxFile = Paths.get("")
                 .resolve("../../tests/testimages/astc_mipmap_ldr_4x4_posx.ktx2")
                 .toAbsolutePath()
                 .normalize();
 
-        KTXTexture2 texture = KTXTexture2.createFromNamedFile(testKTXFile.toString(),
-                KTXTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
+        KtxTexture2 texture = KtxTexture2.createFromNamedFile(testKtxFile.toString(),
+                KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
 
         assertNotNull(texture);
         assertEquals(texture.getNumLevels(), 12);
@@ -127,18 +128,18 @@ public class KTXTexture2Test {
 
     @Test
     public void testGetData() throws IOException {
-        Path testKTXFile = Paths.get("")
+        Path testKtxFile = Paths.get("")
                 .resolve("../../tests/testimages/astc_mipmap_ldr_4x4_posx.ktx2")
                 .toAbsolutePath()
                 .normalize();
 
-        KTXTexture2 texture = KTXTexture2.createFromNamedFile(testKTXFile.toString(),
-                KTXTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
+        KtxTexture2 texture = KtxTexture2.createFromNamedFile(testKtxFile.toString(),
+                KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
 
         assertNotNull(texture);
         assertEquals(texture.getNumLevels(), 12);
 
-        byte[] file = Files.readAllBytes(testKTXFile);
+        byte[] file = Files.readAllBytes(testKtxFile);
         byte[] data = texture.getData();
         int level0Length = texture.getImageSize(0);
 
@@ -151,74 +152,74 @@ public class KTXTexture2Test {
 
     @Test
     public void testCompressBasis() {
-        Path testKTXFile = Paths.get("")
+        Path testKtxFile = Paths.get("")
                 .resolve("../../tests/testimages/arraytex_7_mipmap_reference_u.ktx2")
                 .toAbsolutePath()
                 .normalize();
 
-        KTXTexture2 texture = KTXTexture2.createFromNamedFile(testKTXFile.toString(),
-                KTXTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
+        KtxTexture2 texture = KtxTexture2.createFromNamedFile(testKtxFile.toString(),
+                KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
 
         assertNotNull(texture);
         assertEquals(false, texture.isCompressed());
-        assertEquals(KTXSupercmpScheme.NONE, texture.getSupercompressionScheme());
+        assertEquals(KtxSupercmpScheme.NONE, texture.getSupercompressionScheme());
 
-        assertEquals(KTXErrorCode.SUCCESS, texture.compressBasis(1));
+        assertEquals(KtxErrorCode.SUCCESS, texture.compressBasis(1));
 
         assertEquals(false, texture.isCompressed());
-        assertEquals(KTXSupercmpScheme.BASIS_LZ, texture.getSupercompressionScheme());
+        assertEquals(KtxSupercmpScheme.BASIS_LZ, texture.getSupercompressionScheme());
 
         texture.destroy();
     }
 
     @Test
     public void testCompressBasisEx() {
-        Path testKTXFile = Paths.get("")
+        Path testKtxFile = Paths.get("")
                 .resolve("../../tests/testimages/arraytex_7_mipmap_reference_u.ktx2")
                 .toAbsolutePath()
                 .normalize();
 
-        KTXTexture2 texture = KTXTexture2.createFromNamedFile(testKTXFile.toString(),
-                KTXTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
+        KtxTexture2 texture = KtxTexture2.createFromNamedFile(testKtxFile.toString(),
+                KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
 
         assertNotNull(texture);
         assertEquals(false, texture.isCompressed());
-        assertEquals(KTXSupercmpScheme.NONE, texture.getSupercompressionScheme());
+        assertEquals(KtxSupercmpScheme.NONE, texture.getSupercompressionScheme());
 
-        assertEquals(KTXErrorCode.SUCCESS, texture.compressBasisEx(new KTXBasisParams()));
+        assertEquals(KtxErrorCode.SUCCESS, texture.compressBasisEx(new KtxBasisParams()));
 
         assertEquals(false, texture.isCompressed());
-        assertEquals(KTXSupercmpScheme.BASIS_LZ, texture.getSupercompressionScheme());
+        assertEquals(KtxSupercmpScheme.BASIS_LZ, texture.getSupercompressionScheme());
 
         texture.destroy();
     }
 
     @Test
     public void testTranscodeBasis() {
-        Path testKTXFile = Paths.get("")
+        Path testKtxFile = Paths.get("")
                 .resolve("../../tests/testimages/color_grid_basis.ktx2")
                 .toAbsolutePath()
                 .normalize();
 
-        KTXTexture2 texture = KTXTexture2.createFromNamedFile(testKTXFile.toString(),
-                KTXTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
+        KtxTexture2 texture = KtxTexture2.createFromNamedFile(testKtxFile.toString(),
+                KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
 
         assertNotNull(texture);
 
-        texture.transcodeBasis(KTXTranscodeFormat.ASTC_4x4_RGBA, 0);
+        texture.transcodeBasis(KtxTranscodeFormat.ASTC_4x4_RGBA, 0);
 
         assertEquals(VkFormat.VK_FORMAT_ASTC_4x4_SRGB_BLOCK, texture.getVkFormat());
     }
 
     @Test
     public void testCreate() {
-        KTXTextureCreateInfo info = new KTXTextureCreateInfo();
+        KtxTextureCreateInfo info = new KtxTextureCreateInfo();
 
         info.setBaseWidth(10);
         info.setBaseHeight(10);
         info.setVkFormat(VkFormat.VK_FORMAT_ASTC_4x4_SRGB_BLOCK);
 
-        KTXTexture2 texture = KTXTexture2.create(info, KTXCreateStorage.ALLOC);
+        KtxTexture2 texture = KtxTexture2.create(info, KtxCreateStorage.ALLOC);
         assertNotNull(texture);
 
         byte[] imageData = new byte[10 * 10];

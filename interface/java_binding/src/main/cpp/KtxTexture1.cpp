@@ -13,19 +13,19 @@ extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KTXTexture1_getGlFormat(J
     return get_ktx1_texture(env, thiz)->glFormat;
 }
 
-extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KTXTexture1_getGlInternalformat(JNIEnv *env,
+extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture1_getGlInternalformat(JNIEnv *env,
                                                                                 jobject thiz)
 {
     return get_ktx1_texture(env, thiz)->glInternalformat;
 }
 
-extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KTXTexture1_getGlBaseInternalformat(JNIEnv *env,
+extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture1_getGlBaseInternalformat(JNIEnv *env,
                                                                                 jobject thiz)
 {
     return get_ktx1_texture(env, thiz)->glBaseInternalformat;
 }
 
-extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KTXTexture1_create(JNIEnv *env,
+extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KtxTexture1_create(JNIEnv *env,
                                                                                 jobject thiz,
                                                                                 jobject java_create_info,
                                                                                 jint storageAllocation)
@@ -50,7 +50,7 @@ extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KTXTexture1_create(JNI
     return make_ktx1_wrapper(env, instance);
 }
 
-extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KTXTexture1_createFromNamedFile(JNIEnv *env,
+extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KtxTexture1_createFromNamedFile(JNIEnv *env,
                                                                                             jobject thiz,
                                                                                             jstring filename,
                                                                                             jint createFlags)

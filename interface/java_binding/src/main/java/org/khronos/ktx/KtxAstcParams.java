@@ -5,7 +5,7 @@
 
 package org.khronos.ktx;
 
-public class KTXAstcParams {
+public class KtxAstcParams {
     private boolean verbose;
     private int threadCount;
     private int blockDimension;

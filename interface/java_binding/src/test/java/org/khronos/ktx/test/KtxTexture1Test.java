@@ -17,20 +17,20 @@ import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@ExtendWith({ KTXTestLibraryLoader.class })
-public class KTXTexture1Test {
+@ExtendWith({ KtxTestLibraryLoader.class })
+public class KtxTexture1Test {
     @Test
     public void testCreateFromNamedFile() {
-        Path testKTXFile = Paths.get("")
+        Path testKtxFile = Paths.get("")
                 .resolve("../../tests/testimages/etc1.ktx")
                 .toAbsolutePath()
                 .normalize();
 
-        KTXTexture1 texture = KTXTexture1.createFromNamedFile(testKTXFile.toString(),
-                                                            KTXTextureCreateFlagBits.NO_FLAGS);
+        KtxTexture1 texture = KtxTexture1.createFromNamedFile(testKtxFile.toString(),
+                                                            KtxTextureCreateFlagBits.NO_FLAGS);
 
         assertNotNull(texture);
-        assertEquals(texture.getGlInternalformat(), KTXInternalformat.GL_ETC1_RGB8_OES);
+        assertEquals(texture.getGlInternalformat(), KtxInternalformat.GL_ETC1_RGB8_OES);
         assertEquals(texture.isArray(), false);
         assertEquals(texture.isCompressed(), true);
         assertEquals(texture.getGenerateMipmaps(), false);
@@ -41,19 +41,19 @@ public class KTXTexture1Test {
 
     @Test
     public void testWriteToNamedFile() throws IOException {
-        Path testKTXFile = Paths.get("")
+        Path testKtxFile = Paths.get("")
                 .resolve("../../tests/testimages/etc2-rgb.ktx")
                 .toAbsolutePath()
                 .normalize();
         File copyFile = File.createTempFile("copyktx", ".ktx");
 
-        KTXTexture1 texture = KTXTexture1.createFromNamedFile(testKTXFile.toString(), KTXTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
+        KtxTexture1 texture = KtxTexture1.createFromNamedFile(testKtxFile.toString(), KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
         assertNotNull(texture);
 
         int result = texture.writeToNamedFile(copyFile.getAbsolutePath().toString());
-        assertEquals(result, KTXErrorCode.SUCCESS);
+        assertEquals(result, KtxErrorCode.SUCCESS);
 
-        byte[] original = Files.readAllBytes(testKTXFile);
+        byte[] original = Files.readAllBytes(testKtxFile);
         byte[] copy = Files.readAllBytes(copyFile.toPath());
 
         assertArrayEquals(copy, original);
@@ -63,15 +63,15 @@ public class KTXTexture1Test {
 
     @Test
     public void testWriteToMemory() throws IOException {
-        Path testKTXFile = Paths.get("")
+        Path testKtxFile = Paths.get("")
                 .resolve("../../tests/testimages/etc2-rgba1.ktx")
                 .toAbsolutePath()
                 .normalize();
 
-        KTXTexture1 texture = KTXTexture1.createFromNamedFile(testKTXFile.toString(), KTXTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
+        KtxTexture1 texture = KtxTexture1.createFromNamedFile(testKtxFile.toString(), KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
         assertNotNull(texture);
 
-        byte[] file = Files.readAllBytes(testKTXFile);
+        byte[] file = Files.readAllBytes(testKtxFile);
         byte[] data = texture.writeToMemory();
 
         assertArrayEquals(file, data);
@@ -81,16 +81,16 @@ public class KTXTexture1Test {
 
     @Test
     public void testGetData() throws IOException {
-        Path testKTXFile = Paths.get("")
+        Path testKtxFile = Paths.get("")
                 .resolve("../../tests/testimages/etc2-rgba1.ktx")
                 .toAbsolutePath()
                 .normalize();
 
-        KTXTexture1 texture = KTXTexture1.createFromNamedFile(testKTXFile.toString(), KTXTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
+        KtxTexture1 texture = KtxTexture1.createFromNamedFile(testKtxFile.toString(), KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
         assertNotNull(texture);
 
         byte[] data = texture.getData();
-        byte[] file = Files.readAllBytes(testKTXFile);
+        byte[] file = Files.readAllBytes(testKtxFile);
         int level0Size = texture.getImageSize(0);
 
         for (int i = 0; i < level0Size; i++) {
@@ -102,13 +102,13 @@ public class KTXTexture1Test {
 
     @Test
     public void testCreate() {
-        KTXTextureCreateInfo info = new KTXTextureCreateInfo();
+        KtxTextureCreateInfo info = new KtxTextureCreateInfo();
 
-        info.setGlInternalformat(KTXInternalformat.GL_COMPRESSED_RGBA_ASTC_4x4_KHR);
+        info.setGlInternalformat(KtxInternalformat.GL_COMPRESSED_RGBA_ASTC_4x4_KHR);
         info.setBaseWidth(10);
         info.setBaseHeight(10);
 
-        KTXTexture1 texture = KTXTexture1.create(info, KTXCreateStorage.ALLOC);
+        KtxTexture1 texture = KtxTexture1.create(info, KtxCreateStorage.ALLOC);
         assertNotNull(texture);
 
         byte[] imageData = new byte[10 * 10];

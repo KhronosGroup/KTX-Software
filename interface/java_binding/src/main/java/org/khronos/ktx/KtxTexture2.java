@@ -5,8 +5,8 @@
 
 package org.khronos.ktx;
 
-public class KTXTexture2 extends KTXTexture {
-    protected KTXTexture2(long instance) {
+public class KtxTexture2 extends KtxTexture {
+    protected KtxTexture2(long instance) {
         super(instance);
     }
 
@@ -16,9 +16,9 @@ public class KTXTexture2 extends KTXTexture {
     public native int getVkFormat();
     public native int getSupercompressionScheme();
 
-    //    public native int compressAstcEx(KTXAstcParams params);
-    //    public native int compressAstc(int quality);
-    public native int compressBasisEx(KTXBasisParams params);
+    public native int compressAstcEx(KtxAstcParams params);
+    public native int compressAstc(int quality);
+    public native int compressBasisEx(KtxBasisParams params);
     public native int compressBasis(int quality);
     public native int transcodeBasis(int outputFormat, int transcodeFlags);
 
@@ -28,7 +28,7 @@ public class KTXTexture2 extends KTXTexture {
      * @param createInfo - Paramaters for the texture
      * @param storageAllocation - Pass {@link KTXCreateStorage.ALLOC} if you will write image data.
      */
-    public static native KTXTexture2 create(KTXTextureCreateInfo createInfo,
+    public static native KtxTexture2 create(KtxTextureCreateInfo createInfo,
                                             int storageAllocation);
 
     /**
@@ -39,10 +39,10 @@ public class KTXTexture2 extends KTXTexture {
      *                   want to read image data! Otherwise, {@link KTXTexture.getData()} will
      *                    return null.
      */
-    public static native KTXTexture2 createFromNamedFile(String filename,
+    public static native KtxTexture2 createFromNamedFile(String filename,
                                                          int createFlags);
 
-    public static KTXTexture2 createFromNamedFile(String filename) {
-        return createFromNamedFile(filename, KTXTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
+    public static KtxTexture2 createFromNamedFile(String filename) {
+        return createFromNamedFile(filename, KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
     }
 }

@@ -5,7 +5,7 @@
 
 package org.khronos.ktx;
 
-public class KTXPackAstcEncoderMode {
+public class KtxPackAstcEncoderMode {
     public static final int DEFAULT = 0;
     public static final int LDR = 1;
     public static final int HDR = 2;

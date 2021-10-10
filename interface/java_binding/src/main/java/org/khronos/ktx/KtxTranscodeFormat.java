@@ -5,7 +5,7 @@
 
 package org.khronos.ktx;
 
-public class KTXTranscodeFormat {
+public class KtxTranscodeFormat {
     public static final int ETC1_RGB = 0;
     public static final int ETC2_RGBA = 1;
     public static final int BC1_RGB = 2;

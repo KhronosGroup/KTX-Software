@@ -5,7 +5,7 @@
 
 package org.khronos.ktx;
 
-public class KTXInternalformat {
+public class KtxInternalformat {
     public static final int GL_RGBA8 = 0x8058;
 
     public static final int GL_COMPRESSED_RGB_S3TC_DXT1_EXT = 0x83F0;
