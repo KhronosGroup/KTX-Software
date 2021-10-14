@@ -503,7 +503,7 @@ toktxApp::usage()
         "\n"
         "  The target texture type (number of components in the output texture) is chosen\n"
         "  via --target_type. Swizzling of the components of the input file is specified\n"
-        "  with --input_swizzle and swizzzle metadata can be specified with --swizzle\n"
+        "  with --input_swizzle and swizzle metadata can be specified with --swizzle\n"
         "  Defaults, shown in the following tables, are based on the components of the\n"
         "  input file and whether the target texture format is uncompressed or\n"
         "  block-compressed including the universal formats. Input components are\n"

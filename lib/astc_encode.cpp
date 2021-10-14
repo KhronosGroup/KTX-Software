@@ -599,6 +599,7 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
     astcenc_profile profile{ASTCENC_PRF_LDR_SRGB};
 
     astcenc_swizzle swizzle{ASTCENC_SWZ_R, ASTCENC_SWZ_G, ASTCENC_SWZ_B, ASTCENC_SWZ_A};
+    astcenc_swizzle swizzle_normal{ASTCENC_SWZ_R, ASTCENC_SWZ_R, ASTCENC_SWZ_R, ASTCENC_SWZ_A};
 
     uint32_t        block_size_x{6};
     uint32_t        block_size_y{6};
@@ -610,7 +611,7 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
                         block_size_x, block_size_y, block_size_z);
     quality = astcQuality(params->qualityLevel);
     profile = astcEncoderAction(*params, BDB);
-    swizzle = astcSwizzle(*params);
+    swizzle = (params->normalMap ? swizzle_normal : astcSwizzle(*params));
 
     astcenc_config   astc_config;
     astcenc_context *astc_context;
