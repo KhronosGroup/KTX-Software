@@ -599,7 +599,7 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
     astcenc_profile profile{ASTCENC_PRF_LDR_SRGB};
 
     astcenc_swizzle swizzle{ASTCENC_SWZ_R, ASTCENC_SWZ_G, ASTCENC_SWZ_B, ASTCENC_SWZ_A};
-    astcenc_swizzle swizzle_normal{ASTCENC_SWZ_R, ASTCENC_SWZ_R, ASTCENC_SWZ_R, ASTCENC_SWZ_A};
+    astcenc_swizzle swizzle_normal{ASTCENC_SWZ_R, ASTCENC_SWZ_R, ASTCENC_SWZ_R, ASTCENC_SWZ_G};
 
     uint32_t        block_size_x{6};
     uint32_t        block_size_y{6};
