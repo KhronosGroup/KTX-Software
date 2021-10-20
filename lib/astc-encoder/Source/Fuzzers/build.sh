@@ -20,7 +20,7 @@
 
 # This script is invoked by oss-fuzz from <root>/Source/
 
-# Generate a dummy verison header (normally built by CMake variable expansion)
+# Generate a dummy version header (normally built by CMake variable expansion)
 echo "#pragma once" > astcenccli_version.h
 echo "#define VERSION_STRING \"0.0.0\"" >> astcenccli_version.h
 echo "#define YEAR_STRING \"2021\"" >> astcenccli_version.h
@@ -41,7 +41,7 @@ for source in ./*.cpp; do
       -o ${BASE}.o
 done
 
-ar -qc libastcenc.a  *.o
+ar -qc libastcenc.a *.o
 
 # Build project local fuzzers
 for fuzzer in ./Fuzzers/fuzz_*.cpp; do
@@ -52,3 +52,7 @@ for fuzzer in ./Fuzzers/fuzz_*.cpp; do
       -I. -std=c++14 $fuzzer $LIB_FUZZING_ENGINE ./libastcenc.a \
       -o $OUT/$(basename -s .cpp $fuzzer)
 done
+
+# Cleanup temporary build files
+rm *.o
+rm *.a

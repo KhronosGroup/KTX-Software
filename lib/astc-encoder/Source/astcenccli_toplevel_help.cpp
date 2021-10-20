@@ -376,7 +376,7 @@ ADVANCED COMPRESSION
 
        -2partitionlimitfactor <factor>
            Stop compression work on a block after only testing blocks with
-           up to two partions and one plane of weights, unless the two
+           up to two partitions and one plane of weights, unless the two
            partition error term is lower than the error term from encoding
            with one partition by more than the specified factor. Preset
            defaults are:
@@ -389,7 +389,7 @@ ADVANCED COMPRESSION
 
        -3partitionlimitfactor <factor>
            Stop compression work on a block after only testing blocks with
-           up to three partions and one plane of weights, unless the three
+           up to three partitions and one plane of weights, unless the three
            partition error term is lower than the error term from encoding
            with two partitions by more than the specified factor. Preset
            defaults are:

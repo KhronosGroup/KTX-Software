@@ -322,7 +322,7 @@ static void compute_ideal_colors_and_weights_3_comp(
 	ei.ep.partition_count = partition_count;
 	promise(partition_count > 0);
 
-	unsigned int texel_count= bsd.texel_count;
+	unsigned int texel_count = bsd.texel_count;
 	promise(texel_count > 0);
 
 	partition_metrics pms[BLOCK_MAX_PARTITIONS];
@@ -499,8 +499,8 @@ static void compute_ideal_colors_and_weights_4_comp(
 	promise(texel_count > 0);
 	promise(partition_count > 0);
 
-	float lowparam[BLOCK_MAX_PARTITIONS] { 1e10, 1e10, 1e10, 1e10 };
-	float highparam[BLOCK_MAX_PARTITIONS] { -1e10, -1e10, -1e10, -1e10 };
+	float lowparam[BLOCK_MAX_PARTITIONS] { 1e10f, 1e10f, 1e10f, 1e10f };
+	float highparam[BLOCK_MAX_PARTITIONS] { -1e10f, -1e10f, -1e10f, -1e10f };
 
 	line4 lines[BLOCK_MAX_PARTITIONS];
 
