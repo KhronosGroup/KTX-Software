@@ -56,14 +56,16 @@ if [ -n "$MACOS_CERTIFICATES_P12" ]; then
   -DBASISU_SUPPORT_SSE=OFF \
   -DXCODE_CODE_SIGN_IDENTITY="${CODE_SIGN_IDENTITY}" \
   -DXCODE_DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
-  -DPRODUCTBUILD_IDENTITY_NAME="${PKG_SIGN_IDENTITY}"
+  -DPRODUCTBUILD_IDENTITY_NAME="${PKG_SIGN_IDENTITY}" \
+  -DKTX_FEATURE_JNI=ON
 else # No secure variables means a PR or fork build.
   echo "************* No Secure variables. ******************"
   cmake -GXcode -B$DEPLOY_BUILD_DIR \
   -DCMAKE_OSX_ARCHITECTURES="\$(ARCHS_STANDARD)" \
   -DKTX_FEATURE_DOC=ON \
   -DKTX_FEATURE_LOADTEST_APPS=ON \
-  -DBASISU_SUPPORT_SSE=OFF
+  -DBASISU_SUPPORT_SSE=OFF \
+  -DKTX_FEATURE_JNI=ON
 fi
 
 echo "Configure KTX-Software (macOS x86_64) with SSE support"
@@ -71,7 +73,8 @@ cmake -GXcode -Bbuild-macos-sse \
   -DCMAKE_OSX_ARCHITECTURES="x86_64" \
   -DKTX_FEATURE_LOADTEST_APPS=ON \
   -DBASISU_SUPPORT_SSE=ON \
-  -DISA_SSE41=ON
+  -DISA_SSE41=ON \
+  -DKTX_FEATURE_JNI=ON
 
 # Cause the build pipes below to set the exit to the exit code of the
 # last program to exit non-zero.
@@ -81,16 +84,16 @@ pushd $DEPLOY_BUILD_DIR
 
 # Build and test Debug
 echo "Build KTX-Software (macOS universal binary Debug)"
-cmake --build . --config Debug -DKTX_FEATURE_JNI=ON -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | handle_compiler_output
+cmake --build . --config Debug -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | handle_compiler_output
 echo "Test KTX-Software (macOS universal binary Debug)"
 ctest -C Debug # --verbose
 
 # Build and test Release
 echo "Build KTX-Software (macOS universal binary Release)"
 if [ -n "$MACOS_CERTIFICATES_P12" ]; then
-  cmake --build . --config Release -DKTX_FEATURE_JNI=ON | handle_compiler_output
+  cmake --build . --config Release | handle_compiler_output
 else
-  cmake --build . --config Release -DKTX_FEATURE_JNI=ON -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | handle_compiler_output
+  cmake --build . --config Release -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | handle_compiler_output
 fi
 echo "Test KTX-Software (macOS universal binary Release)"
 ctest -C Release # --verbose
@@ -114,12 +117,12 @@ popd
 pushd build-macos-sse
 
 echo "Build KTX-Software (macOS with SSE support Debug)"
-cmake --build . --config Debug -DKTX_FEATURE_JNI=ON -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | handle_compiler_output
+cmake --build . --config Debug -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | handle_compiler_output
 
 echo "Test KTX-Software (macOS with SSE support Debug)"
 ctest -C Debug # --verbose
 echo "Build KTX-Software (macOS with SSE support Release)"
-cmake --build . --config Release -DKTX_FEATURE_JNI=ON -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | handle_compiler_output
+cmake --build . --config Release -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | handle_compiler_output
 
 echo "Test KTX-Software (macOS with SSE support Release)"
 ctest -C Release # --verbose
@@ -131,7 +134,7 @@ popd
 #
 
 echo "Configure KTX-Software (iOS)"
-cmake -GXcode -Bbuild-ios -DISA_NEON=ON -DCMAKE_SYSTEM_NAME=iOS -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=OFF
+cmake -GXcode -Bbuild-ios -DISA_NEON=ON -DCMAKE_SYSTEM_NAME=iOS -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=OFF -DKTX_FEATURE_JNI=ON
 pushd build-ios
 echo "Build KTX-Software (iOS Debug)"
 cmake --build . --config Debug  -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO | handle_compiler_output
