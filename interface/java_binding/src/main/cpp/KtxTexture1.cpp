@@ -7,7 +7,7 @@
 #include <iostream>
 #include "libktx-jni.h"
 
-extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KTXTexture1_getGlFormat(JNIEnv *env,
+extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture1_getGlFormat(JNIEnv *env,
                                                                                 jobject thiz)
 {
     return get_ktx1_texture(env, thiz)->glFormat;
@@ -43,7 +43,7 @@ extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KtxTexture1_create(JNI
 
     if (result != KTX_SUCCESS)
     {
-        std::cout << "Failure to create KTX1Texture, error " << result << std::endl;
+        std::cout << "Failure to create Ktx1Texture, error " << result << std::endl;
         return NULL;
     }
 
@@ -61,7 +61,7 @@ extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KtxTexture1_createFrom
     jint result = ktxTexture1_CreateFromNamedFile(filenameArray, createFlags, &instance);
 
     if (result != KTX_SUCCESS) {
-        std::cout << "Failure to createFromNamedFile KTX1Texture, error " << result << std::endl;
+        std::cout << "Failure to createFromNamedFile Ktx1Texture, error " << result << std::endl;
         return NULL;
     }
 

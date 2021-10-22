@@ -7,17 +7,17 @@
 #include <iostream>
 #include "libktx-jni.h"
 
-extern "C" JNIEXPORT jint JNICALL Java_org_khronos_KTXTexture2_getOETF(JNIEnv *env, jobject thiz)
+extern "C" JNIEXPORT jint JNICALL Java_org_khronos_KtxTexture2_getOETF(JNIEnv *env, jobject thiz)
 {
     return ktxTexture2_GetOETF(get_ktx2_texture(env, thiz));
 }
 
-extern "C" JNIEXPORT jboolean JNICALL Java_org_khronos_KTXTexture2_getPremultipliedAlpha(JNIEnv *env, jobject thiz)
+extern "C" JNIEXPORT jboolean JNICALL Java_org_khronos_KtxTexture2_getPremultipliedAlpha(JNIEnv *env, jobject thiz)
 {
     return ktxTexture2_GetPremultipliedAlpha(get_ktx2_texture(env, thiz));
 }
 
-extern "C" JNIEXPORT jboolean JNICALL Java_org_khronos_KTXTexture2_needsTranscoding(JNIEnv *env, jobject thiz)
+extern "C" JNIEXPORT jboolean JNICALL Java_org_khronos_KtxTexture2_needsTranscoding(JNIEnv *env, jobject thiz)
 {
     return ktxTexture2_NeedsTranscoding(get_ktx2_texture(env, thiz));
 }
@@ -96,7 +96,7 @@ extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KtxTexture2_create(JNI
 
     if (result != KTX_SUCCESS)
     {
-        std::cout << "Failure to create KTX2Texture, error " << result << std::endl;
+        std::cout << "Failure to create Ktx2Texture, error " << result << std::endl;
         return NULL;
     }
 
@@ -122,7 +122,7 @@ extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KtxTexture2_createFrom
     jint result = ktxTexture2_CreateFromNamedFile(filenameArray, createFlags, &instance);
 
     if (result != KTX_SUCCESS) {
-        std::cout << "Failure to createFromNamedFile KTX2Texture, error " << result << std::endl;
+        std::cout << "Failure to createFromNamedFile Ktx2Texture, error " << result << std::endl;
         return NULL;
     }
 
