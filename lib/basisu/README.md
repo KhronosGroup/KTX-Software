@@ -50,6 +50,8 @@ The encoder optionally uses Zstandard's single source file compressor (in zstd/z
 
 The command line tool used to create, validate, and transcode/unpack .basis/.KTX2 files is named "basisu". Run basisu without any parameters for help. 
 
+The library and command line tool have no other 3rd party dependencies (that are not already in the repo), so it's pretty easy to build.
+
 To build basisu (without SSE 4.1 support - the default):
 
 ```
@@ -86,11 +88,11 @@ To compress a image to a higher quality UASTC .basis file:
 
 To compress a image to a higher quality UASTC .basis file with RDO post processing, so the .basis file is more compressible:
 
-`basisu -uastc -uastc_level 2 -uastc_rdo_q .75 x.png`
+`basisu -uastc -uastc_level 2 -uastc_rdo_l .75 x.png`
 
 -uastc_level X ranges from 0-4 and controls the UASTC encoder's performance vs. quality tradeoff. Level 0 is very fast, but low quality, level 2 is the default quality, while level 3 is the highest practical quality. Level 4 is impractically slow, but highest quality.
 
--uastc_rdo_q X controls the rate distortion stage's quality setting. The lower this value, the higher the quality, but the larger the compressed file size. Good values to try are between .2-3.0. The default is 1.0. RDO post-processing is currently pretty slow, but we'll be optimizing it over time.
+-uastc_rdo_l X controls the rate distortion stage's quality setting. The lower this value, the higher the quality, but the larger the compressed file size. Good values to try are between .2-3.0. The default is 1.0. RDO post-processing is currently pretty slow, but we'll be optimizing it over time.
 
 UASTC texture video is supported and has been tested. In RDO mode with 7zip LZMA, we've seen average bitrates between 1-2 bpp. ETC1S mode is recommended for texture video, which gets bitrates around .25-.3 bpp.
 
@@ -213,6 +215,69 @@ The "WebGL" directory contains three simple WebGL demos that use the transcoder 
 Both the transcoder and now the compressor (as of 12/17/2020) may be compiled using emscripten to WebAssembly and used on the web. Currently, multithreading is not supported by the compressor when compiled with emscripten. A simple Web compression demo is in webgl/encode_test. All compressor features, including texture video, are supported and fully exposed.
 
 To enable compression support compile the JavaScript wrappers in `webgl/transcoding/basis_wrappers.cpp` with `BASISU_SUPPORT_ENCODING` set to 1. See the webgl/encoding directory. 
+
+### Low-level C++ encoder API
+
+You can call the encoder directly, instead of using the command line tool. We'll be adding documentation and some examples by the end of the year. For now, some important notes:
+
+First, ALWAYS call ```basisu::basisu_encoder_init()``` to initialize the library. Otherwise, you'll get undefined behavior or black textures.
+
+Create a job pool, fill in the ```basis_compress_params``` struct, then call ```basisu::basis_compressor::init()```, then ```basisu::basis_compressor::process()```. Like this for UASTC:
+
+```
+bool test()
+{
+	basisu_encoder_init();
+
+	image img;
+	if (!load_image("test.png", img))
+	{
+		printf("Can't load image\n");
+		return false;
+	}
+
+	basis_compressor_params basisCompressorParams;
+
+	basisCompressorParams.m_source_images.push_back(img);
+	basisCompressorParams.m_perceptual = false;
+	basisCompressorParams.m_mip_srgb = false;
+
+	basisCompressorParams.m_write_output_basis_files = true;
+	basisCompressorParams.m_out_filename = "test.basis";
+
+	basisCompressorParams.m_uastc = true;
+	basisCompressorParams.m_rdo_uastc_multithreading = false;
+	basisCompressorParams.m_multithreading = false;
+	basisCompressorParams.m_debug = true;
+	basisCompressorParams.m_status_output = true;
+	basisCompressorParams.m_compute_stats = true;
+	
+	basisu::job_pool jpool(1);
+	basisCompressorParams.m_pJob_pool = &jpool;
+
+	basisu::basis_compressor basisCompressor;
+	basisu::enable_debug_printf(true);
+
+	bool ok = basisCompressor.init(basisCompressorParams);
+	if (ok)
+	{
+		basisu::basis_compressor::error_code result = basisCompressor.process();
+
+		if (result == basisu::basis_compressor::cECSuccess)
+			printf("Success\n");
+		else
+		{
+			printf("Failure\n");
+			ok = false;
+		}
+	}
+	else
+		printf("Failure\n");
+	return ok;
+}
+```
+
+The command line tool uses this API too, so you can always look at that to see what it does given a set of command line options.
 
 ### Repository Licensing with REUSE
 
