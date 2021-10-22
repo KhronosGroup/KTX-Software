@@ -14,10 +14,8 @@ import java.nio.file.Paths;
 
 public class App {
     static {
-        // Load libktx
-        System.loadLibrary("ktx");
-
         // Load libktx-jni, which provides the JNI stubs for natively implemented Java methods
+        // This should also load libktx automatically! If it doesn't, you may need to load libktx manually.
         System.loadLibrary("ktx-jni");
     }
 
@@ -50,3 +48,8 @@ It's tricky - I know:
 ```
  _JAVA_OPTIONS=-Djava.library.path=/usr/local/lib mvn test
 ```
+
+## Building libktx-jni
+
+You'll need to pass `-DKTX_FEATURE_JNI=ON` when building libktx so that the libktx-jni
+library is built as well.

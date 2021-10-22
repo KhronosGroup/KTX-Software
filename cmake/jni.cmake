@@ -23,6 +23,14 @@ if (KTX_FEATURE_JNI)
         target_include_directories(ktx-jni PRIVATE include)
 
         target_link_libraries(ktx-jni ktx)
+
+        if(APPLE)
+            set_target_properties(ktx-jni PROPERTIES
+                XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
+                INSTALL_RPATH "@executable_path;/usr/local/lib"
+            )
+        endif()
+
         install(TARGETS ktx-jni LIBRARY)
     else()
         message(FATAL_ERROR "JAVA_HOME is not set with KTX_FEATURE_JNI enabled! Turn it off to skip this.")
