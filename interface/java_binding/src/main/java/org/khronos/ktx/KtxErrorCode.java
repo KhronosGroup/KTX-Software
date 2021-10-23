@@ -5,6 +5,7 @@
 
 package org.khronos.ktx;
 
+/** Error codes returned from KTX functions as "int". */
 public class KtxErrorCode {
     public static final int SUCCESS = 0;
     public static final int FILE_DATA_ERROR = 1;
