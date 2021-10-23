@@ -5,6 +5,7 @@
 
 package org.khronos.ktx;
 
+/** @see KtxTexture2 */
 public class KtxPackUASTCFlagBits {
     public static final int LEVEL_FASTEST = 0;
     public static final int LEVEL_FASTER = 1;
