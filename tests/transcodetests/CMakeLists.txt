@@ -37,8 +37,14 @@ gtest_discover_tests( transcodetests
 )
 
 if(WIN32)
-    # The Windows ktx.dll seem to not include needed symbols from basisu_transcoder.cpp
-    # This is a workaround to get it linking
+    target_compile_definitions(
+        transcodetests
+    PRIVATE
+        $<$<STREQUAL:"${BASISU_CBIND_LIBTYPE}","STATIC">:KHRONOS_STATIC>
+    )
+
+    # The Windows ktx.dll does not export needed symbols from
+    # basisu_transcoder.cpp. This is a workaround to get it linking.
     add_library(obj_tmp_basisu OBJECT
         ${PROJECT_SOURCE_DIR}/lib/basisu/transcoder/basisu_transcoder.cpp
         ${PROJECT_SOURCE_DIR}/lib/basisu/zstd/zstd.c
