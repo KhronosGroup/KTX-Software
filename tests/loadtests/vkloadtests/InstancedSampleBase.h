@@ -101,11 +101,9 @@ class InstancedSampleBase : public VulkanLoadTestSample
     void setupDescriptorSet();
     void preparePipelines(const char* const fragShaderName,
                           const char* const vertShaderName,
-                          uint32_t instanceCountConstId,
-                          uint32_t instanceCount);
+                          uint32_t instanceCountConstId);
 
-    void prepareUniformBuffers(uint32_t instanceCount,
-                               // See note in prepare declaration.
+    void prepareUniformBuffers(// See note in prepare declaration.
                                uint32_t shaderDeclaredInstances);
     void updateUniformBufferMatrices();
 
