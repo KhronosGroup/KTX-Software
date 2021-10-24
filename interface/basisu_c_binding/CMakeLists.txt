@@ -1,7 +1,12 @@
 # Copyright 2017-2020 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-add_library(obj_basisu_cbind STATIC
+set(LIB_TYPE STATIC)
+# Parent scope variables set in this context are not seen in it and, if there
+# is a way to explicitly reference one, I've not found it. So 2-step.
+set(BASISU_CBIND_LIBTYPE ${LIB_TYPE} PARENT_SCOPE)
+
+add_library(obj_basisu_cbind ${LIB_TYPE}
     inc/basisu_c_binding.h
     src/basisu_c_binding.cpp
 )
@@ -32,6 +37,6 @@ if(WIN32)
     target_compile_definitions(
         obj_basisu_cbind
     PRIVATE 
-        "KTX_BASISU_API=__declspec(dllexport)"
+        $<IF:$<STREQUAL:"${LIB_TYPE}","STATIC">,KHRONOS_STATIC,KTX_BASISU_API=__declspec\(dllexport\)>
     )
 endif()
