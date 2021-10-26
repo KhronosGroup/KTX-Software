@@ -45,6 +45,11 @@ cmake . -B build -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON
 
 If you need the library to be static, enable the `KTX_FEATURE_STATIC_LIBRARY` setting (always enabled on iOS and Emscripten).
 
+> **Note:**
+>
+> When trying to link static library, make sure to
+> define `KHRONOS_STATIC` before including KTX header files.
+
 Building
 --------
 
