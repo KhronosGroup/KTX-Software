@@ -268,6 +268,7 @@ macro(commom_lib_settings lib write)
     )
 
     if( LIB_TYPE STREQUAL STATIC )
+        # KHRONOS_STATIC overrides the value of KTX_API set below.
         target_compile_definitions(${lib} PUBLIC KHRONOS_STATIC)
     endif()
 
@@ -293,7 +294,9 @@ macro(commom_lib_settings lib write)
         target_compile_definitions(
             ${lib}
         PRIVATE
-            "KTX_API=__declspec(dllexport)"
+            # KHRONOS_STATIC defined earlier for the static library overrides
+            # so no need for a generator expression to conditionally set this.
+            KTX_API=__declspec\(dllexport\)
         PUBLIC # only for basisu_c_binding.
             BASISU_NO_ITERATOR_DEBUG_LEVEL
         )
@@ -468,20 +471,7 @@ PRIVATE
 # It it not clear to me if generator expressions can be used here
 # hence the long-winded way.
 if(MSVC)
-    set_source_files_properties(
-        lib/basisu/transcoder/basisu_transcoder.cpp
-        lib/basisu/encoder/basisu_enc.cpp
-        PROPERTIES COMPILE_OPTIONS "/wd4100;/wd4189"
-        )
-    set_source_files_properties(
-        lib/basisu/encoder/basisu_kernels_sse.cpp
-        lib/basisu/encoder/basisu_comp.cpp
-        PROPERTIES COMPILE_OPTIONS "/wd4244"
-        )
-    set_source_files_properties(
-        lib/basisu/encoder/basisu_uastc_enc.cpp
-        PROPERTIES COMPILE_OPTIONS "/wd4800"
-        )
+# Currently no need to disable any warnings in basisu code. Rich fixed them.
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     set_source_files_properties(
         # It's too much work to discriminate which files need which warnings
@@ -504,11 +494,6 @@ elseif(EMSCRIPTEN)
         )
 elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
     #message(STATUS "CMAKE_CXX_COMPILER_VERSION = ${CMAKE_CXX_COMPILER_VERSION}")
-    set_source_files_properties(
-        lib/basisu/transcoder/basisu_transcoder.cpp
-        lib/basisu/encoder/basisu_enc.cpp
-        PROPERTIES COMPILE_OPTIONS "-Wno-unused-variable;-Wno-sign-compare;-Wno-shorten-64-to-32"
-        )
     if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "12.0.5")
         set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter;-Wno-deprecated-copy;-Wno-uninitialized-const-reference"
@@ -679,6 +664,7 @@ if(${ASTC_BUILD_UNIVERSAL} EQUAL -1)
             endif()
         elseif(CPU_ARCHITECTURE STREQUAL armv8 OR CPU_ARCHITECTURE STREQUAL arm64)
             set(ASTC_LIB_NAME astcenc-neon-static)
+            set(ISA_NEON ON)
         else()
             message(STATUS "Unsupported ISA for ${CPU_ARCHITECTURE} arch, using ISA_NONE.")
             set(ISA_NONE ON)

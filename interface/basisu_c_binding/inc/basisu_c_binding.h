@@ -3,7 +3,9 @@
 
 #pragma once
 
-#if defined(_WIN32)
+#if defined(KHRONOS_STATIC)
+  #define KTX_BASISU_API
+#elif defined(_WIN32)
   #if !defined(KTX_BASISU_API)
     #define KTX_BASISU_API __declspec(dllimport)
   #endif
