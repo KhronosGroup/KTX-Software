@@ -314,7 +314,7 @@ ADVANCED COMPRESSION
            Higher numbers give better quality, as more complex blocks can
            be encoded, but will increase search time. Preset defaults are:
 
-               -fastest    : 3
+               -fastest    : 2
                -fast       : 3
                -medium     : 4
                -thorough   : 4
@@ -326,10 +326,10 @@ ADVANCED COMPRESSION
            diminishing returns especially for smaller block sizes. Preset
            defaults are:
 
-               -fastest    :    2
+               -fastest    :    8
                -fast       :   12
-               -medium     :   25
-               -thorough   :   75
+               -medium     :   26
+               -thorough   :   76
                -exhaustive : 1024
 
        -blockmodelimit <number>
@@ -337,28 +337,28 @@ ADVANCED COMPRESSION
            determined distribution of block mode frequency. This option is
            ineffective for 3D textures. Preset defaults are:
 
-               -fastest    :  30
+               -fastest    :  40
                -fast       :  55
-               -medium     :  75
-               -thorough   :  92
+               -medium     :  76
+               -thorough   :  93
                -exhaustive : 100
 
        -refinementlimit <value>
            Iterate only <value> refinement iterations on colors and
            weights. Minimum value is 1. Preset defaults are:
 
-               -fastest    : 1
+               -fastest    : 2
                -fast       : 3
-               -medium     : 2
+               -medium     : 3
                -thorough   : 4
                -exhaustive : 4
 
        -candidatelimit <value>
            Trial only <value> candidate encodings for each block mode:
 
-               -fastest    : 1
-               -fast       : 2
-               -medium     : 2
+               -fastest    : 2
+               -fast       : 3
+               -medium     : 3
                -thorough   : 4
                -exhaustive : 4
 
@@ -368,7 +368,7 @@ ADVANCED COMPRESSION
            ineffective for HDR textures. Preset defaults, where N is the
            number of texels in a block, are:
 
-               -fastest    : MAX(57-19*log10(N),  79-35*log10(N))
+               -fastest    : MAX(63-19*log10(N),  85-35*log10(N))
                -fast       : MAX(63-19*log10(N),  85-35*log10(N))
                -medium     : MAX(70-19*log10(N),  95-35*log10(N))
                -thorough   : MAX(77-19*log10(N), 105-35*log10(N))
@@ -376,20 +376,20 @@ ADVANCED COMPRESSION
 
        -2partitionlimitfactor <factor>
            Stop compression work on a block after only testing blocks with
-           up to two partions and one plane of weights, unless the two
+           up to two partitions and one plane of weights, unless the two
            partition error term is lower than the error term from encoding
            with one partition by more than the specified factor. Preset
            defaults are:
 
-               -fastest    :  1.00
-               -fast       :  1.00
-               -medium     :  1.20
-               -thorough   :  2.50
-               -exhaustive : 10.00
+               -fastest    :  1.0
+               -fast       :  1.0
+               -medium     :  1.2
+               -thorough   :  2.5
+               -exhaustive : 10.0
 
        -3partitionlimitfactor <factor>
            Stop compression work on a block after only testing blocks with
-           up to three partions and one plane of weights, unless the three
+           up to three partitions and one plane of weights, unless the three
            partition error term is lower than the error term from encoding
            with two partitions by more than the specified factor. Preset
            defaults are:
@@ -407,8 +407,8 @@ ADVANCED COMPRESSION
            normal maps. Preset defaults are:
 
                -fastest    : 0.50
-               -fast       : 0.50
-               -medium     : 0.75
+               -fast       : 0.65
+               -medium     : 0.85
                -thorough   : 0.95
                -exhaustive : 0.99
 

@@ -132,19 +132,19 @@ class ResultSummary():
         if (self.tTimesRel):
             # Performance summaries
             dat = (np.mean(self.tTimesRel), np.std(self.tTimesRel))
-            result.append("\nTotal speed:   Mean:  %+0.2f x   Std: %0.2f x" % dat)
+            result.append("\nTotal speed:   Mean:  %+0.3f x   Std: %0.2f x" % dat)
 
             dat = (np.mean(self.cTimesRel), np.std(self.cTimesRel))
-            result.append("Coding speed:  Mean:  %+0.2f x   Std: %0.2f x" % dat)
+            result.append("Coding speed:  Mean:  %+0.3f x   Std: %0.2f x" % dat)
 
             dat = (np.mean(self.psnrRel), np.std(self.psnrRel))
-            result.append("Quality diff:  Mean:  %+0.2f dB  Std: %0.2f dB" % dat)
+            result.append("Quality diff:  Mean:  %+0.3f dB  Std: %0.2f dB" % dat)
 
             dat = (np.mean(self.cTime), np.std(self.cTime))
-            result.append("Coding time:   Mean:  %+0.2f s   Std: %0.2f s" % dat)
+            result.append("Coding time:   Mean:  %+0.3f s   Std: %0.2f s" % dat)
 
             dat = (np.mean(self.psnr), np.std(self.psnr))
-            result.append("Quality abs:   Mean: %+0.2f dB  Std: %0.2f dB" % dat)
+            result.append("Quality:       Mean: %+0.3f dB  Std: %0.2f dB" % dat)
 
         return "\n".join(result)
 

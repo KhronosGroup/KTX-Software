@@ -251,7 +251,7 @@ static std::string get_slice_filename(
 	unsigned int index,
 	bool& error
 ) {
-	size_t sep = basename.find_last_of(".");
+	size_t sep = basename.find_last_of('.');
 	if (sep == std::string::npos)
 	{
 		error = true;
@@ -955,7 +955,7 @@ static int edit_astcenc_config(
 				return 1;
 			}
 
-			config.tune_low_weight_count_limit= atoi(argv[argidx - 1]);
+			config.tune_low_weight_count_limit = atoi(argv[argidx - 1]);
 		}
 		else if (!strcmp(argv[argidx], "-refinementlimit"))
 		{
@@ -1130,14 +1130,14 @@ static void print_astcenc_config(
 		printf("    RGB power:                  %g\n", (double)config.v_rgb_power );
 		printf("    RGB base weight:            %g\n", (double)config.v_rgb_base);
 		printf("    RGB mean weight:            %g\n", (double)config.v_rgb_mean);
-		printf("    RGB stdev weight:           %g\n", (double)config.v_rgba_mean_stdev_mix);
+		printf("    RGB stdev weight:           %g\n", (double)config.v_rgb_stdev);
 		printf("    RGB mean/stdev mixing:      %g\n", (double)config.v_rgba_mean_stdev_mix);
 		printf("    Alpha power:                %g\n", (double)config.v_a_power);
 		printf("    Alpha base weight:          %g\n", (double)config.v_a_base);
 		printf("    Alpha mean weight:          %g\n", (double)config.v_a_mean);
 		printf("    Alpha stdev weight:         %g\n", (double)config.v_a_stdev);
-		printf("    RGB alpha scale weight:     %d\n", (config.flags & ASTCENC_FLG_MAP_NORMAL));
-		if ((config.flags & ASTCENC_FLG_MAP_NORMAL))
+		printf("    RGB alpha scale weight:     %d\n", (config.flags & ASTCENC_FLG_USE_ALPHA_WEIGHT));
+		if ((config.flags & ASTCENC_FLG_USE_ALPHA_WEIGHT))
 		{
 			printf("    Radius RGB alpha scale:     %u texels\n", config.a_scale_radius);
 		}
@@ -1713,9 +1713,11 @@ int main(
 	// Print metrics in comparison mode
 	if (operation & ASTCENC_STAGE_COMPARE)
 	{
+		bool is_normal_map = config.flags & ASTCENC_FLG_MAP_NORMAL;
+
 		compute_error_metrics(
-		    image_uncomp_in_is_hdr, image_uncomp_in_component_count, image_uncomp_in,
-		    image_decomp_out, cli_config.low_fstop, cli_config.high_fstop);
+		    image_uncomp_in_is_hdr, is_normal_map, image_uncomp_in_component_count,
+		    image_uncomp_in, image_decomp_out, cli_config.low_fstop, cli_config.high_fstop);
 	}
 
 	// Store compressed image

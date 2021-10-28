@@ -17,10 +17,6 @@
 
 /**
  * @brief Unit tests for the vectorized SIMD functionality.
- *
- * This test suite is a partial implementation, focussing on 4-wide vectors.
- * We're adding things as we touch related parts of the code, but there is some
- * technical debt to catch up on to get full coverage.
  */
 
 #include <limits>
