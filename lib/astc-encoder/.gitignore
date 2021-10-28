@@ -5,6 +5,8 @@
 *.log
 *.diff
 *.user
+*.o 
+*.a
 __pycache__
 Scratch
 Proto
@@ -36,3 +38,4 @@ TestOutput
 /*.astc
 astc_reference-main*
 Docs/Profiling.md
+Source/astcenccli_version.h

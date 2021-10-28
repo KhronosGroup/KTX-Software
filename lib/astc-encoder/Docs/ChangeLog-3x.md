@@ -15,7 +15,7 @@ The 3.1 release is the second release in the 3.x series. This release gives
 another performance boost, typically between 5 and 20% faster than the 3.0
 release, as well as further incremental improvements to image quality. A number
 of build system improvements make astcenc easier and faster to integrate into
-other projects as a library, including support for building unversal binaries
+other projects as a library, including support for building universal binaries
 on macOS. Full change list is shown below.
 
 Reminder for users of the library interface - the API is not designed to be
@@ -30,8 +30,8 @@ updated `astcenc.h` header.
     visual system, which is most sensitive to green, then red, then blue.
   * **Feature:** Codec supports a new low weight search mode, which is a
     simpler weight assignment for encodings with a low number of weights in the
-    weight grid. The weight threshold can be overriden using the new
-    `-lowweightmodelimit` commadn line option.
+    weight grid. The weight threshold can be overridden using the new
+    `-lowweightmodelimit` command line option.
   * **Feature:** All platform builds now support building a native binary.
     Native binaries automatically select the SIMD level based on the default
     configuration of the compiler in use. Native binaries built on one machine

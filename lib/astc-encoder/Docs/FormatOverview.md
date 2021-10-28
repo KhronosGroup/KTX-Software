@@ -105,8 +105,8 @@ example a red ball sitting on green grass. In these scenarios a single color
 gradient will not be able to accurately represent all of the texels' values. To
 support this ASTC allows a block to define up to four distinct color gradients,
 known as partitions, and can assign each texel to a single partition. For our
-example we require two partitions, one for our ball texels and one our grass
-texels.
+example we require two partitions, one for our ball texels and one for our
+grass texels.
 
 ![Two partition gradient storage](./FormatOverviewImg/gradient-2p.svg)
 

@@ -24,7 +24,7 @@ if(MSVC)
     add_compile_options("/wd4324") # Disable structure was padded due to alignment specifier
 endif()
 
-project(astcencoder VERSION 3.1.0)
+project(astcencoder VERSION 3.2.0)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
