@@ -135,6 +135,16 @@ macro(astcenc_set_properties NAME)
             # Use pthreads on Linux/macOS
             $<$<PLATFORM_ID:Linux,Darwin>:-pthread>)
 
+    if(${ENABLE_ASAN})
+        target_compile_options(${NAME}
+            PRIVATE
+                $<$<CXX_COMPILER_ID:${CLANG_LIKE}>:-fsanitize=address>)
+
+        target_link_options(${NAME}
+            PRIVATE
+                $<$<CXX_COMPILER_ID:${CLANG_LIKE}>:-fsanitize=address>)
+    endif()
+
     if(${CLI})
         # Enable LTO on release builds
         set_property(TARGET ${NAME}

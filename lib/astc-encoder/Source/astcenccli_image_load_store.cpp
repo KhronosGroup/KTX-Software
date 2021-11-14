@@ -1706,7 +1706,7 @@ static astcenc_image* load_dds_uncompressed_image(
 	// The bytes per component in the DDS file itself
 	int bytes_per_component = 0;
 	int components = 0;
-	scanline_transfer copy_method = R8_TO_RGBA8;;
+	scanline_transfer copy_method = R8_TO_RGBA8;
 
 	// figure out the format actually used in the DDS file.
 	if (use_dx10_header)
@@ -2367,7 +2367,7 @@ int load_cimage(
 	unsigned int dim_y = unpack_bytes(hdr.dim_y[0], hdr.dim_y[1], hdr.dim_y[2], 0);
 	unsigned int dim_z = unpack_bytes(hdr.dim_z[0], hdr.dim_z[1], hdr.dim_z[2], 0);
 
-	if (dim_x == 0 || dim_z == 0 || dim_z == 0)
+	if (dim_x == 0 || dim_y == 0 || dim_z == 0)
 	{
 		printf("ERROR: File corrupt '%s'\n", filename);
 		return 1;

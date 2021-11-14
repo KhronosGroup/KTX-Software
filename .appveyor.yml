@@ -28,7 +28,7 @@ environment:
 
 branches:
   except:
-    - /subrepo\/*/
+    - /^subrepo\/.+/
 
 # Do not skip tags. Deploy will not be run either.
 skip_tags: false

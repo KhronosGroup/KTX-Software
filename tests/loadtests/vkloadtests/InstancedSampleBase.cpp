@@ -507,8 +507,7 @@ InstancedSampleBase::setupDescriptorSet()
 void
 InstancedSampleBase::preparePipelines(const char* const fragShaderName,
                                       const char* const vertShaderName,
-                                      uint32_t instanceCountConstId,
-                                      uint32_t instanceCount)
+                                      uint32_t instanceCountConstId)
 {
     vk::PipelineInputAssemblyStateCreateInfo inputAssemblyState(
             {},
@@ -597,8 +596,7 @@ InstancedSampleBase::preparePipelines(const char* const fragShaderName,
 #define _PAD16(nbytes) (ktx_uint32_t)(16 * ceilf((float)(nbytes) / 16))
 
 void
-InstancedSampleBase::prepareUniformBuffers(uint32_t instanceCount,
-                                           uint32_t shaderDeclaredInstances)
+InstancedSampleBase::prepareUniformBuffers(uint32_t shaderDeclaredInstances)
 {
     uboVS.instance = new UboInstanceData[instanceCount];
 
@@ -717,17 +715,17 @@ void
 InstancedSampleBase::prepare(const char* const fragShaderName,
                              const char* const vertShaderName,
                              uint32_t instanceCountConstId,
-                             uint32_t instanceCount,
+                             uint32_t instanceCountIn,
                              uint32_t shaderDeclaredInstances)
 {
-    this->instanceCount = instanceCount;
+    this->instanceCount = instanceCountIn;
     prepareSamplerAndView();
     setupVertexDescriptions();
     generateQuad();
-    prepareUniformBuffers(instanceCount, shaderDeclaredInstances);
+    prepareUniformBuffers(shaderDeclaredInstances);
     setupDescriptorSetLayout();
     preparePipelines(fragShaderName, vertShaderName,
-                     instanceCountConstId, instanceCount );
+                     instanceCountConstId);
     setupDescriptorPool();
     setupDescriptorSet();
     vkctx.createDrawCommandBuffers();

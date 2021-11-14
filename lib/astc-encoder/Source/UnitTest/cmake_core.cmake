@@ -16,9 +16,9 @@
 #  ----------------------------------------------------------------------------
 
 if(${UNIVERSAL_BUILD})
-    set(ASTC_TEST test-simd)
+    set(ASTC_TEST test-unit)
 else()
-    set(ASTC_TEST test-simd-${ISA_SIMD})
+    set(ASTC_TEST test-unit-${ISA_SIMD})
 endif()
 
 add_executable(${ASTC_TEST})
@@ -26,6 +26,7 @@ add_executable(${ASTC_TEST})
 target_sources(${ASTC_TEST}
     PRIVATE
         test_simd.cpp
+        test_softfloat.cpp
         ../astcenc_mathlib_softfloat.cpp)
 
 target_include_directories(${ASTC_TEST}
@@ -118,6 +119,14 @@ elseif(${ISA_SIMD} MATCHES "avx2")
             $<$<CXX_COMPILER_ID:MSVC>:/arch:AVX2>)
 
 endif()
+
+target_compile_options(${ASTC_TEST}
+    PRIVATE
+        $<$<CXX_COMPILER_ID:${CLANG_LIKE}>:-fsanitize=undefined>)
+
+target_link_options(${ASTC_TEST}
+    PRIVATE
+        $<$<CXX_COMPILER_ID:${CLANG_LIKE}>:-fsanitize=undefined>)
 
 target_link_libraries(${ASTC_TEST}
     PRIVATE
