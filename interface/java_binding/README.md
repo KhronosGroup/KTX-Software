@@ -36,7 +36,7 @@ public class App {
 You must have Maven installed:
 
 ```
-maven package
+mvn package
 ```
 
 This will place a JAR in the `target` directory in interfaces/java_binding. When building your application, include this JAR in the build.

@@ -145,3 +145,8 @@ cmake --build . --config Release -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIG
 # echo "Build KTX-Software (iOS Simulator Release)"
 # cmake --build . --config Release -- -sdk iphonesimulator
 popd
+
+# Java
+
+LIBKTX_BINARY_DIR=$DEPLOY_BUILD_DIR/Debug ci_scripts/build_java.sh
+
