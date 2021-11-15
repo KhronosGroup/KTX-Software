@@ -1342,14 +1342,14 @@ toktxApp::main(int argc, _TCHAR *argv[])
         f = _tfopen(options.outfile.c_str(), "wb");
 
     if (f) {
-       if (options.etc1s || options.bopts.uastc) {
-            commandOptions::basisOptions& bopts = options.bopts;
-            if (bopts.normalMap && chosenOETF != KHR_DF_TRANSFER_LINEAR) {
+       if (options.normalMode && chosenOETF != KHR_DF_TRANSFER_LINEAR) {
                 fprintf(stderr, "%s: --normal_map specified but input file(s) are"
                         " not linear.", name.c_str());
                 exitCode = 1;
                 goto cleanup;
-            }
+       }
+       if (options.etc1s || options.bopts.uastc) {
+            commandOptions::basisOptions& bopts = options.bopts;
             if (options.inputSwizzle.size()) {
                 for (i = 0; i < 4; i++) {
                      options.bopts.inputSwizzle[i] = options.inputSwizzle[i];
@@ -1376,9 +1376,6 @@ toktxApp::main(int argc, _TCHAR *argv[])
             }
         } else if (options.astc) {
             commandOptions::astcOptions& astcopts = options.astcopts;
-#if TRAVIS_DEBUG
-            astcopts.print();
-#endif
             if (options.inputSwizzle.size()) {
                 for (i = 0; i < options.inputSwizzle.size(); i++) {
                      astcopts.inputSwizzle[i] = options.inputSwizzle[i];
@@ -1391,6 +1388,10 @@ toktxApp::main(int argc, _TCHAR *argv[])
 
             astcopts.threadCount = options.threadCount;
             astcopts.normalMap = options.normalMode;
+
+#if TRAVIS_DEBUG
+            astcopts.print();
+#endif
 
             ret = ktxTexture2_CompressAstcEx((ktxTexture2*)texture, &astcopts);
             if (KTX_SUCCESS != ret) {
