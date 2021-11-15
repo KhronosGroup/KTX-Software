@@ -7,6 +7,8 @@ The `libktx-jni` library is built by the CMake project in the repository root. T
 
 ## Usage
 
+The setup is as follows:
+
 ```java
 import org.khronos.ktx.KtxTexture2;
 
