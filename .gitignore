@@ -39,3 +39,8 @@ version.h
 # Visual Studio
 .vs/
 CMakeSettings.json
+
+# Build bindings & maven
+/interface/java_binding/build/
+/interface/java_binding/target/
+/interface/java_binding/libktx.iml
