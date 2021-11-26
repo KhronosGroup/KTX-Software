@@ -238,8 +238,8 @@ gencmpktx( astc_ldr_10x5_FlightHelmet_baseColor   astc_ldr_10x5_FlightHelmet_bas
 gencmpktx( astc_ldr_8x8_FlightHelmet_baseColor    astc_ldr_8x8_FlightHelmet_baseColor.ktx2   ../srcimages/FlightHelmet_baseColor.png "--test --encode astc --astc_blk_d 8x8" "" "")
 gencmpktx( astc_ldr_12x10_FlightHelmet_baseColor  astc_ldr_12x10_FlightHelmet_baseColor.ktx2 ../srcimages/FlightHelmet_baseColor.png "--test --encode astc --astc_blk_d 12x10" "" "")
 gencmpktx( astc_ldr_12x12_FlightHelmet_baseColor  astc_ldr_12x12_FlightHelmet_baseColor.ktx2 ../srcimages/FlightHelmet_baseColor.png "--test --encode astc --astc_blk_d 12x12" "" "")
-gencmpktx( astc_ldr_6x6_Iron_Bars_001_normal      astc_ldr_6x6_Iron_Bars_001_normal.ktx2     ../srcimages/Iron_Bars/Iron_Bars_001_normal.jpg "--test --normal_mode --encode astc --astc_blk_d 6x6" "" "")
-gencmpktx( astc_ldr_5x4_Iron_Bars_001_normal      astc_ldr_5x4_Iron_Bars_001_normal.ktx2     ../srcimages/Iron_Bars/Iron_Bars_001_normal.jpg "--test --normal_mode --encode astc --astc_blk_d 5x4" "" "")
+gencmpktx( astc_ldr_6x6_Iron_Bars_001_normal      astc_ldr_6x6_Iron_Bars_001_normal.ktx2     ../srcimages/Iron_Bars/Iron_Bars_001_normal.jpg "--test --assign_oetf linear --normal_mode --encode astc --astc_blk_d 6x6" "" "")
+gencmpktx( astc_ldr_5x4_Iron_Bars_001_normal      astc_ldr_5x4_Iron_Bars_001_normal.ktx2     ../srcimages/Iron_Bars/Iron_Bars_001_normal.jpg "--test --assign_oetf linear --normal_mode --encode astc --astc_blk_d 5x4" "" "")
 
 gencmpktx( astc_ldr_6x6_arraytex_7 astc_ldr_6x6_arraytex_7.ktx2 "../srcimages/red16.png ../srcimages/orange16.png ../srcimages/yellow16.png ../srcimages/green16.png ../srcimages/blue16.png ../srcimages/indigo16.png ../srcimages/violet16.png" "--test --layers 7 --encode astc --astc_blk_d 6x6" "" "")
 gencmpktx( astc_ldr_6x6_arraytex_7_mipmap astc_ldr_6x6_arraytex_7_mipmap.ktx2 "../srcimages/red16.png ../srcimages/orange16.png ../srcimages/yellow16.png ../srcimages/green16.png ../srcimages/blue16.png ../srcimages/indigo16.png ../srcimages/violet16.png" "--test --layers 7 --encode astc --astc_blk_d 6x6 --genmipmap" "" "")
