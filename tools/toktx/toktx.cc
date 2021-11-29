@@ -1343,7 +1343,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
 
     if (f) {
        if (options.normalMode && chosenOETF != KHR_DF_TRANSFER_LINEAR) {
-                fprintf(stderr, "%s: --normal_map specified but input file(s) are"
+                fprintf(stderr, "%s: --normal_mode specified but input file(s) are"
                         " not linear.", name.c_str());
                 exitCode = 1;
                 goto cleanup;

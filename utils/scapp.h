@@ -302,20 +302,25 @@ astcEncoderMode(const char* mode) {
                  deterministic).</dd>
       </dl>
     <dt>--normal_mode</dt>
-                 <dd>For ASTC encoder '@b --encode astc' assumes the input texture is
-                 a three component linear LDR normal map storing unit length
-                 normals as (R=X, G=Y, B=Z). The output will be a two component
-                 X+Y normal map stored as (RGB=X, A=Y), optimized for angular
-                 error instead of simple PSNR. The Z component can be recovered
-                 programmatically in shader code by using the equation:
+                 <dd>Only valid for linear textures with two or three components.
+                 If the input texture has three linear components it is assumed to
+                 be a three component linear normal map storing unit length
+                 normals as (R=X, G=Y, B=Z). It will be converted to a two
+                 component X+Y normal map stored as (RGB=X, A=Y) prior to
+                 encoding.  If the input has 2 linear components it is assumed to
+                 be an X+Y normal map.
+                 The Z component can be recovered programmatically in shader
+                 code by using the equations:
                  <pre>
       nml.xy = texture(...).ga;              // Load in [0,1]
       nml.xy = nml.xy * 2.0 - 1.0;           // Unpack to [-1,1]
       nml.z = sqrt(1 - dot(nml.xy, nml.xy)); // Compute Z
                  </pre>
-                 For ETC1S encoder '@b --encode etc1s' tunes codec parameters for
-                 better quality on normal maps (no selector RDO, no endpoint RDO).
-                 Only valid for linear textures.</dd>
+                 Encoding is optimized for normal maps. For ASTC encoding,
+                 '--encode astc', the encoder is directed to optimize for angular
+                 error instead of simple PSNR.  For ETC1S encoding, '@b--encode etc1s',
+                 RDO is disabled (no selector RDO, no endpoint RDO) to provide
+                 better quality.</dd>
     <dt>--no_sse</dt>
                  <dd>Forbid use of the SSE instruction set. Ignored if CPU does not
                  support SSE. Only the Basis Universal compressor uses SSE.</dd>
@@ -636,17 +641,17 @@ class scApp : public ktxApp {
           "               normals as (R=X, G=Y, B=Z). It will be converted to a two \n"
           "               component X+Y normal map stored as (RGB=X, A=Y) prior to\n"
           "               encoding.  If the input has 2 linear components it is assumed to\n"
-          "               be an X+Y normal map.\n"
+          "               be an X+Y normal map.\n\n"
           "               The Z component can be recovered programmatically in shader\n"
           "               code by using the equations:\n\n"
           "                   nml.xy = texture(...).ga;              // Load in [0,1]\n"
           "                   nml.xy = nml.xy * 2.0 - 1.0;           // Unpack to [-1,1]\n"
           "                   nml.z = sqrt(1 - dot(nml.xy, nml.xy)); // Compute Z\n\n"
           "               Encoding is optimized for normal maps. For ASTC encoding,\n"
-          "              '--encode astc', the encoder is directed to optimized for angular\n"
+          "              '--encode astc', the encoder is directed to optimize for angular\n"
           "               error instead of simple PSNR.  For ETC1S encoding, '--encode etc1s',\n"
           "               RDO is disabled (no selector RDO, no endpoint RDO) to provide \n"
-          "               better quality on normal maps.\n\n"
+          "               better quality.\n\n"
           "  --no_sse\n"
           "               Forbid use of the SSE instruction set. Ignored if CPU does not\n"
           "               support SSE. Only the Basis Universal compressor uses SSE.\n"
