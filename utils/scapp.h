@@ -309,6 +309,7 @@ astcEncoderMode(const char* mode) {
                  component X+Y normal map stored as (RGB=X, A=Y) prior to
                  encoding.  If the input has 2 linear components it is assumed to
                  be an X+Y normal map.
+
                  The Z component can be recovered programmatically in shader
                  code by using the equations:
                  <pre>
