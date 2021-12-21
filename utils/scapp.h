@@ -328,6 +328,11 @@ astcEncoderMode(const char* mode) {
                  unit normals are calculated. Do not use this to generate X+Y normals
                  for --normal_mode. For 4-component inputs a 3D unit normal is calculated.
                  1.0 is used for the value of the 4th component.</dd>
+    <dt>--perceptual</dt>
+                 <dd>The codec should optimize perceptual error, instead of direct
+                 RMS error. This aims to improves perceived image quality, but
+                 typically lowers the measured PSNR score. Perceptual methods are
+                 currently only available for normal maps and RGB color data.</dd>
     <dt>--no_sse</dt>
                  <dd>Forbid use of the SSE instruction set. Ignored if CPU does not
                  support SSE. Only the Basis Universal compressor uses SSE.</dd>
@@ -668,6 +673,11 @@ class scApp : public ktxApp {
           "               unit normals are calculated. Do not use this to generate X+Y normals \n"
           "               for --normal_mode. For 4-component inputs a 3D unit normal is calculated.\n"
           "               1.0 is used for the value of the 4th component."
+          "  --perceptual\n"
+          "               The codec should optimize perceptual error, instead of direct\n"
+          "               RMS error. This aims to improves perceived image quality, but\n"
+          "               typically lowers the measured PSNR score. Perceptual methods are\n"
+          "               currently only available for normal maps and RGB color data.\n"
           "  --no_sse\n"
           "               Forbid use of the SSE instruction set. Ignored if CPU does not\n"
           "               support SSE. Only the Basis Universal compressor uses SSE.\n"
@@ -734,9 +744,10 @@ scApp::scApp(string& version, string& defaultVersion,
       { "astc_quality", argparser::option::required_argument, NULL, 1014 },
       { "encode", argparser::option::required_argument, NULL, 1015 },
       { "normalize", argparser::option::no_argument, NULL, 1016 },
+      { "perceptual", argparser::option::no_argument, NULL, 1017 },
       // Deprecated options
       { "bcmp", argparser::option::no_argument, NULL, 'b' },
-      { "uastc", argparser::option::optional_argument, NULL, 1017 }
+      { "uastc", argparser::option::optional_argument, NULL, 1018 }
   };
   const int lastOptionIndex = sizeof(my_option_list)
                               / sizeof(argparser::option);
@@ -926,6 +937,9 @@ scApp::processOption(argparser& parser, int opt)
         options.normalize = true;
         break;
       case 1017:
+        options.perceptual = true;
+        break;
+      case 1018:
         if (options.etc1s) {
              cerr << "Only one of `--encode etc1s | --bcmp` and `--uastc [<level>]` can be specified."
                   << endl;
