@@ -459,6 +459,7 @@ class scApp : public ktxApp {
         int          astc;
         ktx_bool_t   normalMode;
         ktx_bool_t   normalize;
+        ktx_bool_t   perceptual;
         clamped<ktx_uint32_t> zcmpLevel;
         clamped<ktx_uint32_t> threadCount;
         struct basisOptions bopts;
@@ -474,6 +475,7 @@ class scApp : public ktxApp {
             astc = false;
             normalMode = false;
             normalize = false;
+            perceptual = false;
         }
     };
 
