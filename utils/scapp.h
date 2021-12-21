@@ -322,6 +322,9 @@ astcEncoderMode(const char* mode) {
                  error instead of simple PSNR.  For ETC1S encoding, '@b--encode etc1s',
                  RDO is disabled (no selector RDO, no endpoint RDO) to provide
                  better quality.</dd>
+    <dt>--normalize</dt>
+                 <dd>Only valid for linear textures with two or three components."
+                 Normalize input normals to have a unit length."</dd>
     <dt>--no_sse</dt>
                  <dd>Forbid use of the SSE instruction set. Ignored if CPU does not
                  support SSE. Only the Basis Universal compressor uses SSE.</dd>
@@ -446,6 +449,7 @@ class scApp : public ktxApp {
         int          zcmp;
         int          astc;
         ktx_bool_t   normalMode;
+        ktx_bool_t   normalize;
         clamped<ktx_uint32_t> zcmpLevel;
         clamped<ktx_uint32_t> threadCount;
         struct basisOptions bopts;
@@ -460,6 +464,7 @@ class scApp : public ktxApp {
             zcmp = false;
             astc = false;
             normalMode = false;
+            normalize = false;
         }
     };
 
@@ -653,6 +658,9 @@ class scApp : public ktxApp {
           "               error instead of simple PSNR.  For ETC1S encoding, '--encode etc1s',\n"
           "               RDO is disabled (no selector RDO, no endpoint RDO) to provide \n"
           "               better quality.\n\n"
+          "  --normalize\n"
+          "               Only valid for linear textures with two or three components.\n"
+          "               Normalize input normals to have a unit length.\n"
           "  --no_sse\n"
           "               Forbid use of the SSE instruction set. Ignored if CPU does not\n"
           "               support SSE. Only the Basis Universal compressor uses SSE.\n"
@@ -718,9 +726,10 @@ scApp::scApp(string& version, string& defaultVersion,
       { "astc_mode", argparser::option::required_argument, NULL, 1013 },
       { "astc_quality", argparser::option::required_argument, NULL, 1014 },
       { "encode", argparser::option::required_argument, NULL, 1015 },
+      { "normalize", argparser::option::no_argument, NULL, 1016 },
       // Deprecated options
       { "bcmp", argparser::option::no_argument, NULL, 'b' },
-      { "uastc", argparser::option::optional_argument, NULL, 1016 }
+      { "uastc", argparser::option::optional_argument, NULL, 1017 }
   };
   const int lastOptionIndex = sizeof(my_option_list)
                               / sizeof(argparser::option);
@@ -906,6 +915,9 @@ scApp::processOption(argparser& parser, int opt)
         options.ktx2 = 1;
         break;
       case 1016:
+        options.normalize = true;
+        break;
+      case 1017:
         if (options.etc1s) {
              cerr << "Only one of `--encode etc1s|--bcmp` and `--uastc [<level>]` can be specified."
                   << endl;
