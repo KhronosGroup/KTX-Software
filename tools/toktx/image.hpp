@@ -187,7 +187,15 @@ class color<componentType, 4> : public color_base<componentType, 4> {
          if (i > 3) i = 3;
          comps[i] = val;
      }
-};
+     void normalize() {
+         auto len = r * r + g * g + b * b + a * a; // Not sure about a here
+         len = sqrt(len);
+         r /= len;
+         g /= len;
+         b /= len;
+         a /= len;
+     }
+ };
 
 template <typename componentType>
 class color<componentType, 3> : public color_base<componentType, 3> {
@@ -209,6 +217,13 @@ class color<componentType, 3> : public color_base<componentType, 3> {
         if (i > 2) i = 2;
         comps[i] = (componentType)val;
     }
+     void normalize() {
+         auto len = r * r + g * g + b * b;
+         len = sqrt(len);
+         r /= len;
+         g /= len;
+         b /= len;
+     }
 };
 
 template <typename componentType>
@@ -230,6 +245,12 @@ class color<componentType, 2> : public color_base<componentType, 2> {
          if (i > 1) i = 1;
          comps[i] = (componentType)val;
      }
+     void normalize() {
+         auto len = r * r + g * g;
+         len = sqrt(len);
+         r /= len;
+         g /= len;
+     }
 };
 
 template <typename componentType>
@@ -249,6 +270,8 @@ class color<componentType, 1> : public color_base<componentType, 1> {
      void set(uint32_t i, float val) {
          if (i > 0) i = 0;
          comps[i] = (componentType)val;
+     }
+     void normalize() {
      }
 };
 
@@ -314,6 +337,7 @@ class Image {
     virtual Image& yflip() = 0;
     virtual Image& transformOETF(OETFFunc decode, OETFFunc encode,
                                  float gamma = 1.0f) = 0;
+    virtual Image& normalize() = 0;
     virtual Image& swizzle(std::string& swizzle) = 0;
     virtual Image& copyToR(Image&) = 0;
     virtual Image& copyToRG(Image&) = 0;
@@ -577,6 +601,15 @@ class ImageT : public Image {
                 brightness = cclamp(encode(intensity, gamma), 0.0f, 1.0f);
                 c.set(comp, roundf(brightness * Color::one()));
             }
+        }
+        return *this;
+    }
+
+    virtual ImageT& normalize() {
+        uint32_t pixelCount = getPixelCount();
+        for (uint32_t i = 0; i < pixelCount; ++i) {
+            Color& c = pixels[i];
+            c.normalize();
         }
         return *this;
     }

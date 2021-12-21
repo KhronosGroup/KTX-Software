@@ -903,6 +903,10 @@ toktxApp::main(int argc, _TCHAR *argv[])
             image->yflip();
         }
 
+        if (options.normalize) {
+            image->normalize();
+        }
+
         if (options.targetType != commandOptions::eUnspecified) {
             if (options.targetType != (int)image->getComponentCount()) {
                 Image* newImage = nullptr;
@@ -1237,9 +1241,8 @@ toktxApp::main(int argc, _TCHAR *argv[])
                     goto cleanup;
                 }
 
-                // TODO: add an option for renormalize;
-                //if (options.gmopts.mipRenormalize)
-                //    levelImage->renormalize_normal_map();
+                if (options.normalize)
+                    levelImage->normalize();
 
                 ret = ktxTexture_SetImageFromMemory(ktxTexture(texture),
                                               glevel,
