@@ -1363,6 +1363,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
                 }
             }
 
+            bopts.perceptual = options.perceptual;
             bopts.threadCount = options.threadCount;
             bopts.normalMap = options.normalMode;
 
@@ -1389,6 +1390,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
                 }
             }
 
+            astcopts.perceptual = options.perceptual;
             astcopts.threadCount = options.threadCount;
             astcopts.normalMap = options.normalMode;
 

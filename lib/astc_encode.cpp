@@ -618,6 +618,9 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
     profile = astcEncoderAction(*params, BDB);
     swizzle = astcSwizzle(*params);
 
+    if(params->perceptual)
+        flags |= ASTCENC_FLG_USE_PERCEPTUAL;
+
     astcenc_config   astc_config;
     astcenc_context *astc_context;
     astcenc_error astc_error = astcenc_config_init(profile,

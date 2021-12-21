@@ -626,6 +626,8 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     ktx_uint32_t transfer = KHR_DFDVAL(BDB, TRANSFER);
     if (transfer == KHR_DF_TRANSFER_SRGB)
         cparams.m_perceptual = true;
+    else if (params->perceptual)
+        cparams.m_perceptual = params->perceptual; // We should probably warn in this case because basis doesn't like this perceptual with linear
     else
         cparams.m_perceptual = false;
 

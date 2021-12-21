@@ -1173,12 +1173,12 @@ extern KTX_API const ktx_uint32_t KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL;
 typedef struct ktxAstcParams {
     ktx_uint32_t structSize;
         /*!< Size of this struct. Used so library can tell which version
-             of struct is being passed.
-         */
+             of struct is being passed.*/
+
     ktx_bool_t verbose;
         /*!< If true, prints Astc encoder operation details to
-             @c stdout. Not recommended for GUI apps.
-         */
+             @c stdout. Not recommended for GUI apps.*/
+
     ktx_uint32_t threadCount;
         /*!< Number of threads used for compression. Default is 1. */
 
@@ -1197,8 +1197,14 @@ typedef struct ktxAstcParams {
         /*!< Tunes codec parameters for better quality on normal maps
           In this mode normals are compressed to X,Y components
           Discarding Z component, reader will need to generate Z
-          component in shaders.
-        */
+          component in shaders.*/
+
+    ktx_bool_t perceptual;
+        /*!< The codec should optimize perceptual error, instead of direct
+           RMS error. This aims to improves perceived image quality, but
+           typically lowers the measured PSNR score. Perceptual methods are
+           currently only available for normal maps and RGB color data.*/
+
     char inputSwizzle[4];
          /*!< A swizzle to provide as input to astcenc. It must match the regular
              expression /^[rgba01]{4}$/.*/
@@ -1300,6 +1306,11 @@ typedef struct ktxBasisParams {
         /*!< Tunes codec parameters for better quality on normal maps (no
              selector RDO, no endpoint RDO) and sets the texture's DFD appropriately.
              Only valid for linear textures.
+         */
+    ktx_bool_t perceptual;
+        /*!< If true, the input is assumed to be in sRGB space.
+             True on photos, albedo/spec maps, and false on normal maps.
+             Tunes codec parameters for better quality.
          */
     ktx_bool_t separateRGToRGB_A;
         /*!< @deprecated. This was and is a no-op. 2-component inputs have always been
