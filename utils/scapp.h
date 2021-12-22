@@ -193,6 +193,11 @@ astcEncoderMode(const char* mode) {
                      <tr><td>exhaustive </td> <td>(equivalent to quality = 100) </td></tr>
                  </table>
                  </dd>
+        <dt>--astc_perceptual</dt>
+                 <dd>The codec should optimize perceptual error, instead of direct
+                 RMS error. This aims to improves perceived image quality, but
+                 typically lowers the measured PSNR score. Perceptual methods are
+                 currently only available for normal maps and RGB color data.</dd>
       </dl>
       <dl>
       <dt>etc1s:</dt>
@@ -323,6 +328,7 @@ astcEncoderMode(const char* mode) {
                  RDO is disabled (no selector RDO, no endpoint RDO) to provide
                  better quality.</dd>
     <dt>--normalize</dt>
+<<<<<<< HEAD
                  <dd>Normalize input normals to have a unit length. Only valid for
                  linear textures with 2 or more components. For 2-component inputs 2D
                  unit normals are calculated. Do not use this to generate X+Y normals
@@ -333,6 +339,18 @@ astcEncoderMode(const char* mode) {
                  RMS error. This aims to improves perceived image quality, but
                  typically lowers the measured PSNR score. Perceptual methods are
                  currently only available for normal maps and RGB color data.</dd>
+||||||| parent of 3f1373ef (Move perceptual to be astc only option)
+                 <dd>Only valid for linear textures with two or three components."
+                 Normalize input normals to have a unit length."</dd>
+    <dt>--perceptual</dt>
+                 <dd>The codec should optimize perceptual error, instead of direct
+                 RMS error. This aims to improves perceived image quality, but
+                 typically lowers the measured PSNR score. Perceptual methods are
+                 currently only available for normal maps and RGB color data.</dd>
+=======
+                 <dd>Only valid for linear textures with two or three components."
+                 Normalize input normals to have a unit length."</dd>
+>>>>>>> 3f1373ef (Move perceptual to be astc only option)
     <dt>--no_sse</dt>
                  <dd>Forbid use of the SSE instruction set. Ignored if CPU does not
                  support SSE. Only the Basis Universal compressor uses SSE.</dd>
@@ -459,7 +477,6 @@ class scApp : public ktxApp {
         int          astc;
         ktx_bool_t   normalMode;
         ktx_bool_t   normalize;
-        ktx_bool_t   perceptual;
         clamped<ktx_uint32_t> zcmpLevel;
         clamped<ktx_uint32_t> threadCount;
         struct basisOptions bopts;
@@ -475,7 +492,6 @@ class scApp : public ktxApp {
             astc = false;
             normalMode = false;
             normalize = false;
-            perceptual = false;
         }
     };
 
@@ -549,6 +565,11 @@ class scApp : public ktxApp {
           "                   medium     | (equivalent to quality =  60)\n"
           "                   thorough   | (equivalent to quality =  98)\n"
           "                   exhaustive | (equivalent to quality = 100)\n"
+          "      --astc_perceptual\n"
+          "               The codec should optimize perceptual error, instead of direct\n"
+          "               RMS error. This aims to improves perceived image quality, but\n"
+          "               typically lowers the measured PSNR score. Perceptual methods are\n"
+          "               currently only available for normal maps and RGB color data.\n"
           "    etc1s:\n"
           "               Supercompress the image data with ETC1S / BasisLZ.\n"
           "               RED images will become RGB with RED in each component. RG images\n"
@@ -744,9 +765,9 @@ scApp::scApp(string& version, string& defaultVersion,
       { "astc_blk_d", argparser::option::required_argument, NULL, 1012 },
       { "astc_mode", argparser::option::required_argument, NULL, 1013 },
       { "astc_quality", argparser::option::required_argument, NULL, 1014 },
-      { "encode", argparser::option::required_argument, NULL, 1015 },
-      { "normalize", argparser::option::no_argument, NULL, 1016 },
-      { "perceptual", argparser::option::no_argument, NULL, 1017 },
+      { "astc_perceptual", argparser::option::no_argument, NULL, 1015 },
+      { "encode", argparser::option::required_argument, NULL, 1016 },
+      { "normalize", argparser::option::no_argument, NULL, 1017 },
       // Deprecated options
       { "bcmp", argparser::option::no_argument, NULL, 'b' },
       { "uastc", argparser::option::optional_argument, NULL, 1018 }
@@ -931,15 +952,15 @@ scApp::processOption(argparser& parser, int opt)
         options.ktx2 = 1;
         break;
       case 1015:
+        options.astcopts.perceptual = true;
+        break;
+      case 1016:
         setEncoder(parser.optarg);
         options.ktx2 = 1;
         hasArg = true;
         break;
-      case 1016:
-        options.normalize = true;
-        break;
       case 1017:
-        options.perceptual = true;
+        options.normalize = true;
         break;
       case 1018:
         if (options.etc1s) {
