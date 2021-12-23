@@ -159,6 +159,65 @@ public:
     static uint32_t one() { return ((1 << sizeof(componentType) * 8) - 1); }
 };
 
+struct vec3_base {
+    float r;
+    float g;
+    float b;
+    vec3_base() : r(0.0f), g(0.0f), b(0.0f) {}
+    vec3_base(float _r, float _g) : r(_r), g(_g), b(0.0f) {}
+    vec3_base(float _r, float _g, float _b) : r(_r), g(_g), b(_b) {}
+    void base_normalize() {
+        float len = r * r + g * g + b * b;
+        len = sqrtf(len);
+        if (len > 0.0f)
+        {
+            r /= len;
+            g /= len;
+            b /= len;
+        }
+    }
+    void clamp(float a, float b) {
+        r = basisu::clampf(r, a, b);
+        g = basisu::clampf(g, a, b);
+        b = basisu::clampf(b, a, b);
+    }
+};
+
+template <typename componentType>
+struct vec3 : public vec3_base {
+    static constexpr float s[5]={0.0f, 255.0f, 65535.0f, 0.0f, 4294967295.0f};
+    static constexpr float h[5]={0.0f, 128.0f, 32768.0f, 0.0f, 2147483648.0f};
+    static constexpr uint32_t i = sizeof(componentType);
+
+    vec3(float _r, float _g) : vec3_base(_r, _g, 0.0f) {}
+    vec3(float _r, float _g, float _b) : vec3_base(_r, _g, _b) {}
+    void normalize() {
+        // Zero normals in range [-1, 1] can't be normalized
+        if (h[i] == r && h[i] == g && h[i] == b) {
+            return;
+        } else {
+            r = r / s[i] * 2.0f - 1.0f;
+            g = g / s[i] * 2.0f - 1.0f;
+            b = b / s[i] * 2.0f - 1.0f;
+            clamp(-1.0f, 1.0f);
+            base_normalize();
+            r = (componentType)(std::floor((r + 1.0f) * s[i] * 0.5f + 0.5f));
+            g = (componentType)(std::floor((g + 1.0f) * s[i] * 0.5f + 0.5f));
+            b = (componentType)(std::floor((b + 1.0f) * s[i] * 0.5f + 0.5f));
+            clamp(0, s[i]);
+        }
+    }
+};
+
+template<>
+struct vec3<float> : public vec3_base {
+    vec3(float _r, float _g) : vec3_base(_r, _g, 0.0f) {}
+    vec3(float _r, float _g, float _b) : vec3_base(_r, _g, _b) {}
+    void normalize(){
+        base_normalize();
+    }
+};
+
 template <typename componentType, uint32_t componentCount>
 class color { };
 
@@ -188,12 +247,11 @@ class color<componentType, 4> : public color_base<componentType, 4> {
          comps[i] = val;
      }
      void normalize() {
-         auto len = r * r + g * g + b * b + a * a; // Not sure about a here
-         len = sqrt(len);
-         r /= len;
-         g /= len;
-         b /= len;
-         a /= len;
+        vec3<componentType> v(r, g, b);
+        v.normalize();
+        r = (componentType)v.r;
+        g = (componentType)v.g;
+        b = (componentType)v.b;
      }
  };
 
@@ -218,11 +276,11 @@ class color<componentType, 3> : public color_base<componentType, 3> {
         comps[i] = (componentType)val;
     }
      void normalize() {
-         auto len = r * r + g * g + b * b;
-         len = sqrt(len);
-         r /= len;
-         g /= len;
-         b /= len;
+        vec3<componentType> v(r, g, b);
+        v.normalize();
+        r = (componentType)v.r;
+        g = (componentType)v.g;
+        b = (componentType)v.b;
      }
 };
 
@@ -246,10 +304,10 @@ class color<componentType, 2> : public color_base<componentType, 2> {
          comps[i] = (componentType)val;
      }
      void normalize() {
-         auto len = r * r + g * g;
-         len = sqrt(len);
-         r /= len;
-         g /= len;
+        vec3<componentType> v(r, g);
+        v.normalize();
+        r = (componentType)v.r;
+        g = (componentType)v.g;
      }
 };
 
