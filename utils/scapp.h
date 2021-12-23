@@ -194,7 +194,7 @@ astcEncoderMode(const char* mode) {
                  </table>
                  </dd>
         <dt>--astc_perceptual</dt>
-                 <dd>The codec should optimize perceptual error, instead of direct
+                 <dd>The codec should optimize for perceptual error, instead of direct
                  RMS error. This aims to improves perceived image quality, but
                  typically lowers the measured PSNR score. Perceptual methods are
                  currently only available for normal maps and RGB color data.</dd>
@@ -566,7 +566,7 @@ class scApp : public ktxApp {
           "                   thorough   | (equivalent to quality =  98)\n"
           "                   exhaustive | (equivalent to quality = 100)\n"
           "      --astc_perceptual\n"
-          "               The codec should optimize perceptual error, instead of direct\n"
+          "               The codec should optimize for perceptual error, instead of direct\n"
           "               RMS error. This aims to improves perceived image quality, but\n"
           "               typically lowers the measured PSNR score. Perceptual methods are\n"
           "               currently only available for normal maps and RGB color data.\n"
