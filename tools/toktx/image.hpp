@@ -177,9 +177,9 @@ struct vec3_base {
         }
     }
     void clamp(float a, float b) {
-        r = basisu::clampf(r, a, b);
-        g = basisu::clampf(g, a, b);
-        b = basisu::clampf(b, a, b);
+        r = cclamp(r, a, b);
+        g = cclamp(g, a, b);
+        b = cclamp(b, a, b);
     }
 };
 
