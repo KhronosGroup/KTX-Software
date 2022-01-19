@@ -773,7 +773,7 @@ ktxValidator::ktxValidator() : ktxApp(myversion, mydefversion, options)
                                 / sizeof(argparser::option);
     option_list.insert(option_list.begin(), my_option_list,
                        my_option_list + lastOptionIndex);
-    short_opts += "qm:";
+    short_opts += "qm:w";
 }
 
 void
