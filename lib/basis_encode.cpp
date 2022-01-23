@@ -1019,7 +1019,7 @@ cleanup:
         priv._supercompressionGlobalData = 0;
         priv._sgdByteLength = 0;
     }
-    if (new_data) delete new_data;
+    if (new_data) free(new_data);
     return result;
 }
 
