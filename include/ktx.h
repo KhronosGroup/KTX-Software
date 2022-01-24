@@ -700,9 +700,10 @@ typedef struct ktxTexture2 {
 /**
  * @memberof ktxTexture
  * @~English
- * @brief Structure for passing texture information to ktxTexture[12]_Create().
+ * @brief Structure for passing texture information to ktxTexture1_Create() and
+ *        ktxTexture2_Create().
  *
- * @sa ktxTexture_Create()
+ * @sa ktxTexture1_Create() and ktxTexture2_Create().
  */
 typedef struct
 {
@@ -736,7 +737,7 @@ typedef struct
  * @~English
  * @brief Enum for requesting, or not, allocation of storage for images.
  *
- * @sa ktxTexture_Create()
+ * @sa ktxTexture1_Create() and ktxTexture2_Create().
  */
 typedef enum {
     KTX_TEXTURE_CREATE_NO_STORAGE = 0,  /*!< Don't allocate any image storage. */
