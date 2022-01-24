@@ -1213,10 +1213,19 @@ ktxTexture2_CompressAstc(ktxTexture2* This, ktx_uint32_t quality);
  * @memberof ktxTexture2
  * @~English
  * @brief Structure for passing extended parameters to
- *        ktxTexture2_CompressBasisEx.
+ *        ktxTexture2_CompressBasisEx().
  *
- * Passing a struct initialized to 0 (e.g. " = {};") will use the default
- * values. Only those settings to be modified need be non-zero.
+ * If you only want default values, use ktxTexture2_CompressBasis(). Here, at a minimum you
+ * must initialize the structure as follows:
+ * @code
+ *  ktxBasisParams params = {};
+ *  params.structSize = sizeof(params);
+ *  params.compressionLevel = KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL;
+ * @endcode
+ *
+ * @e compressionLevel has to be explicitly set because 0 is a valid @e compressionLevel
+ * but is not the default used by the BasisU encoder when no value is set. Only the other
+ * settings that are to be non-default must be non-zero.
  */
 typedef struct ktxBasisParams {
     ktx_uint32_t structSize;
