@@ -108,7 +108,7 @@ struct glFuncPtrs gl;
 #define GL_FUNCTION(type, func, required)                                  \
   if ( wglGetProcAddressPtr )                                              \
     gl.func = (type)wglGetProcAddressPtr(#func);                           \
-  if ( !gl.##func)                                                         \
+  if ( !gl.func)                                                           \
     gl.func = (type)LoadProcAddr(ktxOpenGLModuleHandle, #func);            \
   if ( !gl.func && required) {                                             \
     fprintf(stderr, noloadmsg, #func);                                     \
