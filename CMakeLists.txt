@@ -38,9 +38,12 @@ option( KTX_FEATURE_TESTS "Create unit tests" ON )
 option( KTX_FEATURE_JNI "Create Java bindings for libktx" OFF )
 
 set_target_processor_type(CPU_ARCHITECTURE)
-if(CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86)
-    option( BASISU_SUPPORT_SSE "Compile with SSE support so applications can choose to use it" ON )
-endif()
+CMAKE_DEPENDENT_OPTION( BASISU_SUPPORT_SSE
+    "Compile with SSE support so applications can choose to use it"
+    ON
+    "CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86"
+    OFF
+)
 
 CMAKE_DEPENDENT_OPTION(KTX_EMBED_BITCODE "Embed bitcode in binaries" OFF "APPLE AND IOS" OFF)
 
