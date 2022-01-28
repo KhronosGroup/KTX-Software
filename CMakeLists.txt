@@ -58,15 +58,10 @@ if(APPLE)
     endif()
 endif()
 
-# Might become options in the future
-
-# option( KTX_FEATURE_KTX1 "KTX version 1" ON )
-# option( KTX_FEATURE_KTX2 "KTX version 2" ON )
-
-set( KTX_FEATURE_KTX1 ON )
-set( KTX_FEATURE_KTX2 ON )
-set( KTX_FEATURE_VULKAN ON )
-set( KTX_FEATURE_GL_UPLOAD "" ON )
+option( KTX_FEATURE_KTX1 "Enable KTX 1 support" ON )
+option( KTX_FEATURE_KTX2 "Enable KTX 2 support" ON )
+option( KTX_FEATURE_VULKAN "Enable Vulkan texture upload" ON )
+option( KTX_FEATURE_GL_UPLOAD "Enable OpenGL texture upload" ON )
 
 # Platform specific settings
 
