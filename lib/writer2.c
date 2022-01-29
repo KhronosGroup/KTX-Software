@@ -717,17 +717,22 @@ ktxTexture2_DeflateZstd(ktxTexture2* This, ktx_uint32_t compressionLevel)
               case ZSTD_error_parameter_outOfBound:
                 return KTX_INVALID_VALUE;
               case ZSTD_error_dstSize_tooSmall:
+#ifdef DEBUG
+                assert(false && "Deflate dstSize too small.");
+#else
+                return KTX_OUT_OF_MEMORY;
+#endif
               case ZSTD_error_workSpace_tooSmall:
 #ifdef DEBUG
-                assert(true); // inflatedDataCapacity too small.
+                assert(false && "Deflate workspace too small.");
 #else
                 return KTX_OUT_OF_MEMORY;
 #endif
               case ZSTD_error_memory_allocation:
                 return KTX_OUT_OF_MEMORY;
               default:
-                // The remaining errors look they should only occur during
-                // decompression but just in case.
+                // The remaining errors look like they should only
+                // occur during decompression but just in case.
 #ifdef DEBUG
                 assert(true);
 #else
