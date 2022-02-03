@@ -814,7 +814,7 @@ typedef KTX_error_code (*ktxStream_skip)(ktxStream* str,
 
 /**
  * @~English
- * @brief type for a pointer to a stream reading function
+ * @brief type for a pointer to a stream writing function
  */
 typedef KTX_error_code (*ktxStream_write)(ktxStream* str, const void *src,
                                           const ktx_size_t size,
