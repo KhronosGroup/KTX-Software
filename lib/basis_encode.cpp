@@ -389,9 +389,6 @@ static bool basisuEncoderInitialized = false;
  * @exception KTX_INVALID_OPERATION
  *                              The texture image format's component size is not 8-bits.
  * @exception KTX_INVALID_OPERATION
- *                              @c separateRGToRGB_A is specified but the texture
- *                              has only 1 component.
- * @exception KTX_INVALID_OPERATION
  *                              Both preSwizzle and and inputSwizzle are specified
  *                              in @a params.
  * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out compression.
@@ -425,9 +422,6 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
 
     if (component_size != 1)
         return KTX_INVALID_OPERATION; // Basis must have 8-bit components.
-
-    if (params->separateRGToRGB_A && num_components == 1)
-        return KTX_INVALID_OPERATION;
 
     if (This->pData == NULL) {
         result = ktxTexture2_LoadImageData(This, NULL, 0);

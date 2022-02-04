@@ -135,7 +135,7 @@ astcEncoderMode(const char* mode) {
 // so the table below has to be laboriously done in html.
 //! [scApp options]
   <dl>
-    <dt>--encode &lt;astc|etc1s|uastc&gt;</dt>
+    <dt>--encode &lt;astc | etc1s | uastc&gt;</dt>
                  <dd>Compress the image data to ASTC, transcodable ETC1S / BasisLZ or
                  high-quality transcodable UASTC format. Implies @b --t2.
                  With each encoding option the following encoder specific options
@@ -143,7 +143,7 @@ astcEncoderMode(const char* mode) {
       <dl>
       <dt>astc:</dt>
                  <dd>Create a texture in high-quality ASTC format.</dd>
-        <dt>--astc_blk_d &lt;XxY|XxYxZ&gt;</dt>
+        <dt>--astc_blk_d &lt;XxY | XxYxZ&gt;</dt>
                  <dd>Specify which block dimension to use for compressing the textures.
                  e.g. @b --astc_blk_d 6x5 for 2D or @b --astc_blk_d 6x6x6 for 3D.
                  6x6 is default for 2D.
@@ -175,7 +175,7 @@ astcEncoderMode(const char* mode) {
                          <tr><td>6x6x5</td> <td>0.71 bpp</td></tr>
                          <tr><td>6x6x6</td> <td>0.59 bpp</td></tr>
                  </table></dd>
-        <dt>--astc_mode &lt;ldr|hdr&gt;</dt>
+        <dt>--astc_mode &lt;ldr | hdr&gt;</dt>
                  <dd>Specify which encoding mode to use. LDR is the default unless the input.
                  image is 16-bit in which case the default is HDR.</dd>
         <dt>--astc_quality &lt;level&gt;</dt>
@@ -307,8 +307,8 @@ astcEncoderMode(const char* mode) {
                  be a three component linear normal map storing unit length
                  normals as (R=X, G=Y, B=Z). It will be converted to a two
                  component X+Y normal map stored as (RGB=X, A=Y) prior to
-                 encoding.  If the input has 2 linear components it is assumed to
-                 be an X+Y normal map.
+                 encoding. If unsure that your normals are unit length, use @b --normalize.
+                 If the input has 2 linear components it is assumed to be an X+Y map of unit normals.
 
                  The Z component can be recovered programmatically in shader
                  code by using the equations:
@@ -497,14 +497,14 @@ class scApp : public ktxApp {
     void usage()
     {
         cerr <<
-          "  --encode <astc|etc1s|uastc>\n"
+          "  --encode <astc | etc1s | uastc>\n"
           "               Compress the image data to ASTC, transcodable ETC1S / BasisLZ or\n"
           "               high-quality transcodable UASTC format. Implies --t2.\n"
           "               With each encoding option the following encoder specific options\n"
           "               become valid, otherwise they are ignored.\n\n"
           "    astc:\n"
           "               Create a texture in high-quality ASTC format.\n"
-          "      --astc_blk_d <XxY|XxYxZ>\n"
+          "      --astc_blk_d <XxY | XxYxZ>\n"
           "               Specify which block dimension to use for compressing the textures.\n"
           "               e.g. --astc_blk_d 6x5 for 2D or --astc_blk_d 6x6x6 for 3D.\n"
           "               6x6 is default for 2D.\n\n"
@@ -522,7 +522,7 @@ class scApp : public ktxApp {
           "                       4x4x3: 2.67 bpp       6x5x5: 0.85 bpp\n"
           "                       4x4x4: 2.00 bpp       6x6x5: 0.71 bpp\n"
           "                       5x4x4: 1.60 bpp       6x6x6: 0.59 bpp\n"
-          "      --astc_mode <ldr|hdr>\n"
+          "      --astc_mode <ldr | hdr>\n"
           "               Specify which encoding mode to use. LDR is the default unless the input.\n"
           "               image is 16-bit in which case the default is HDR.\n"
           "      --astc_quality <level>\n"
@@ -646,8 +646,9 @@ class scApp : public ktxApp {
           "               be a three component linear normal map storing unit length\n"
           "               normals as (R=X, G=Y, B=Z). It will be converted to a two \n"
           "               component X+Y normal map stored as (RGB=X, A=Y) prior to\n"
-          "               encoding.  If the input has 2 linear components it is assumed to\n"
-          "               be an X+Y normal map.\n\n"
+          "               encoding. If unsure that your normals are unit length, use\n"
+          "               '--normalize'. If the input has 2 linear components it is assumed to\n"
+          "               be an X+Y map of unit normals.\n\n"
           "               The Z component can be recovered programmatically in shader\n"
           "               code by using the equations:\n\n"
           "                   nml.xy = texture(...).ga;              // Load in [0,1]\n"
@@ -777,7 +778,7 @@ scApp::processOption(argparser& parser, int opt)
     switch (opt) {
       case 'z':
         if (options.etc1s) {
-            cerr << "Only one of '--encode etc1s|--bcmp'  and --zcmp can be specified."
+            cerr << "Only one of '--encode etc1s | --bcmp'  and --zcmp can be specified."
                  << endl;
             usage();
             exit(1);
@@ -901,7 +902,7 @@ scApp::processOption(argparser& parser, int opt)
             exit(1);
         }
         if (options.bopts.uastc) {
-            cerr << "Only one of --bcmp and '--encode etc1s|--uastc' can be specified.\n"
+            cerr << "Only one of --bcmp and '--encode etc1s | --uastc' can be specified.\n"
                  << "--bcmp is deprecated, use '--encode etc1s' instead."
                  << endl;
             usage();
@@ -919,7 +920,7 @@ scApp::processOption(argparser& parser, int opt)
         break;
       case 1017:
         if (options.etc1s) {
-             cerr << "Only one of `--encode etc1s|--bcmp` and `--uastc [<level>]` can be specified."
+             cerr << "Only one of `--encode etc1s | --bcmp` and `--uastc [<level>]` can be specified."
                   << endl;
              usage();
              exit(1);
