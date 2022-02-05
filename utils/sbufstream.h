@@ -13,25 +13,40 @@
  *
  * @brief A ktxStream that wraps a C++ std::streambuf.
  *
- * Modified from Paolo's original to remove unique pointer to the streambuf. As our use it to pass the
- * streambuf from an istream or istringstream we can't be attempting to delete the stringbuf. Also
- * the destructor now destructs the stream, if not already destructed.
+ * Modified from Paolo's original to make it a template so that the  reference to std::streambuf can
+ * be passed either as a `unique_ptr` or a regular pointer.  As our use is to pass the streambuf from
+ * an istream, potentially that from std::cin, or an istringstream that is not being not allocated by `new`
+ * we can't use a `unique_ptr`. i.e. can't attempt to delete the stringbuf when done. Also the
+ * destructor now destructs the stream, if not already destructed.
  *
  * @author Paolo Jovon
  * @author Mark Callow
  */
 
-//#include <algorithm>
 #include <iostream>
 #include <memory>
-//#include <utility>
-//#include <vector>
 #include <ktx.h>
 
 static std::ostream cnull(0);
 static std::ostream& logstream = cnull;
 //static std::ostream logstream = std::cerr;
 
+/// @brief Template for a ktxStream that wraps a C++ std::streambuf.
+///
+/// The template supports 2 ways of referencing the underlying std::streambuf:
+/// as a @c unique_ptr or as a regular pointer. For the former case, the
+/// @c unique_ptr std::streambuf and StreambufStream should be created
+/// like this:
+/// @code
+///     // Can use stringbuf or any class derived from it.
+///     auto filebuf = std::make_unique<std::filebuf>();
+///     StreambufStream<std::unique_ptr<std::streambuf>>ktxStream(
+///                                                        std::move(filebuf),
+///                                                        ios::in);
+/// @endcode
+///
+///
+template <typename T>
 class StreambufStream
 {
     // Doubt this will ever get triggered
@@ -39,28 +54,14 @@ class StreambufStream
                   "Chars are != 1 byte in this platform");
 
 public:
-    StreambufStream(std::streambuf* streambuf,
-                    std::ios::openmode seek_mode = std::ios::in | std::ios::out)
+   StreambufStream(T streambuf,
+                   std::ios::openmode seek_mode = std::ios::in | std::ios::out)
         : _streambuf{std::move(streambuf)}
         , _seek_mode{seek_mode}
         , _stream{std::make_unique<ktxStream>()}
         , _destructed{false}
     {
-        _stream->type = eStreamTypeCustom;
-        _stream->closeOnDestruct = false;
-
-        auto& custom_ptr = _stream->data.custom_ptr;
-        custom_ptr.address = this;
-        custom_ptr.allocatorAddress = nullptr; // N/A
-        custom_ptr.size = 0; // N/A
-
-        _stream->read = read;
-        _stream->skip = skip;
-        _stream->write = write;
-        _stream->getpos = getpos;
-        _stream->setpos = setpos;
-        _stream->getsize = getsize;
-        _stream->destruct = destruct;
+        initialize_stream();
     }
 
     StreambufStream(const StreambufStream&) = delete;
@@ -71,9 +72,6 @@ public:
 
     virtual ~StreambufStream()
     {
-        // ktxStream will have been destructed if
-        // KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT was passed to the
-        // ktxTexture?_CreateFromStream function. Otherwise do it.
         if (!_destructed)
             stream()->destruct(stream());
     }
@@ -83,10 +81,7 @@ public:
         return _stream.get();
     }
 
-    inline std::streambuf* streambuf() const
-    {
-        return _streambuf;
-    }
+    std::streambuf* streambuf() const;
 
     inline std::ios::openmode seek_mode() const
     {
@@ -104,6 +99,24 @@ public:
     }
 
 protected:
+    void initialize_stream() {
+        _stream->type = eStreamTypeCustom;
+        _stream->closeOnDestruct = false;
+
+        auto& custom_ptr = _stream->data.custom_ptr;
+        custom_ptr.address = this;
+        custom_ptr.allocatorAddress = nullptr; // N/A
+        custom_ptr.size = 0; // N/A
+
+        _stream->read = read;
+        _stream->skip = skip;
+        _stream->write = write;
+        _stream->getpos = getpos;
+        _stream->setpos = setpos;
+        _stream->getsize = getsize;
+        _stream->destruct = destruct;
+    }
+
     // C++ streambuf overrides
 
     // ktxStream vtable implementations
@@ -188,9 +201,25 @@ protected:
         self->_destructed = true;
     }
 
-    std::streambuf* _streambuf;
+    T _streambuf;
     std::ios::openmode _seek_mode;
     std::unique_ptr<ktxStream> _stream;
+    // ktxTexture?_CreateFromStream destructs the ktxStream when finished, if
+    // KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT was passed. This variable tracks
+    // if the ktxStream's destructor has been called.
     bool _destructed;
 };
 
+// I have not yet found a way to do this inside the template definition.
+// However `inline` should prevent any multiple definition errors.
+template<>
+inline std::streambuf* StreambufStream<std::streambuf*>::streambuf() const
+{
+    return _streambuf;
+}
+
+template<>
+inline std::streambuf* StreambufStream<std::unique_ptr<std::streambuf>>::streambuf() const
+{
+    return _streambuf.get();
+}

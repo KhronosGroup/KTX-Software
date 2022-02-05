@@ -1991,7 +1991,7 @@ ktxValidator::validateTranscode(validationContext& ctx)
     istream& is = *ctx.inp;
     is.seekg(0);
     streambuf* _streambuf = (is.rdbuf());
-    StreambufStream ktx2Stream(_streambuf, ios::in);
+    StreambufStream<streambuf*> ktx2Stream(_streambuf, ios::in);
     KtxTexture<ktxTexture2> texture2;
     ktx_error_code_e result = ktxTexture2_CreateFromStream(ktx2Stream.stream(),
                                         KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
