@@ -1046,7 +1046,7 @@ ktxValidator::main(int argc, _TCHAR *argv[])
 }
 
 void
-ktxValidator::validateFile(const string& filename)
+ktxValidator::validateFile(const _tstring& filename)
 {
     validationContext context;
     istream* isp;
@@ -1070,7 +1070,9 @@ ktxValidator::validateFile(const string& filename)
             isp = &cin;
         }
     } else {
-        ifs = ifstream(filename, ios_base::in | ios_base::binary);
+        // MS's STL has `open` overloads that accept wchar_t to handle
+        // Window's Unicode file names.
+        ifs.open(filename, ios_base::in | ios_base::binary);
         isp = &ifs;
     }
 
