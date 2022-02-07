@@ -928,7 +928,18 @@ template<typename ... Args>
 void
 ktxValidator::logger::addIssue(severity severity, issue issue, Args ... args)
 {
-    if (!quiet) {
+    if (quiet) {
+        switch (severity) {
+          case eError:
+            errorCount++;
+            break;
+          case eFatal:
+            break;
+          case eWarning:
+            warningCount++;
+            break;
+        }
+    } else {
         if (!headerWritten) {
             cout << "Issues in: " << nameOfFileBeingValidated << std::endl;
             headerWritten = true;
