@@ -1291,14 +1291,8 @@ typedef struct ktxBasisParams {
              selector RDO, no endpoint RDO). Only valid for linear textures.
          */
     ktx_bool_t separateRGToRGB_A;
-        /*!< @deprecated. Use inputSwizzle "rrrg" instead. If texture has 2 components
-             this swizzle will be automatically applied.
-             Separates the input R and G channels to RGB and A (for tangent
-             space XY normal maps). Equivalent to @c inputSwizzle "rrrg".
-             Separation is the default for 2 component textures. If both this
-             and inputSwizzle are set, the latter wins therefore set
-             @c inputSwizzle to change the default for 2 component
-             textures.
+        /*!< @deprecated. This was and is a no-op. 2-component inputs have always
+             been automatically separated using an "rrrg" inputSwizzle. @sa inputSwizzle and normalMode.
          */
     ktx_bool_t preSwizzle;
         /*!< If the texture has @c KTXswizzle metadata, apply it before
