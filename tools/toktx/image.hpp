@@ -164,7 +164,6 @@ struct vec3_base {
     float g;
     float b;
     vec3_base() : r(0.0f), g(0.0f), b(0.0f) {}
-    vec3_base(float _r, float _g) : r(_r), g(_g), b(0.0f) {}
     vec3_base(float _r, float _g, float _b) : r(_r), g(_g), b(_b) {}
     void base_normalize() {
         float len = r * r + g * g + b * b;
@@ -183,12 +182,14 @@ struct vec3_base {
     }
 };
 
+static constexpr float h[5]={0.0f, 128.0f, 32768.0f, 0.0f, 2147483648.0f};
+static constexpr float s[5]={0.0f, 255.0f, 65535.0f, 0.0f, 4294967295.0f};
+
 template <typename componentType>
 struct vec3 : public vec3_base {
-    static constexpr float s[5]={0.0f, 255.0f, 65535.0f, 0.0f, 4294967295.0f};
-    static constexpr float h[5]={0.0f, 128.0f, 32768.0f, 0.0f, 2147483648.0f};
     static constexpr uint32_t i = sizeof(componentType);
 
+    explicit vec3(float _r) : vec3_base(_r, 0.0f, 0.0f) {}
     vec3(float _r, float _g) : vec3_base(_r, _g, 0.0f) {}
     vec3(float _r, float _g, float _b) : vec3_base(_r, _g, _b) {}
     void normalize() {
@@ -211,6 +212,7 @@ struct vec3 : public vec3_base {
 
 template<>
 struct vec3<float> : public vec3_base {
+    explicit vec3(float _r) : vec3_base(_r, 0.0f, 0.0f) {}
     vec3(float _r, float _g) : vec3_base(_r, _g, 0.0f) {}
     vec3(float _r, float _g, float _b) : vec3_base(_r, _g, _b) {}
     void normalize(){
@@ -224,40 +226,48 @@ class color { };
 template <typename componentType>
 class color<componentType, 4> : public color_base<componentType, 4> {
   public:
-     union {
-         componentType comps[4];
+    using value_type = componentType;
+    union {
+        componentType comps[4];
 
-         struct {
-             componentType r;
-             componentType g;
-             componentType b;
-             componentType a;
-         };
-     };
-     componentType operator [](unsigned int i) {
-         if (i > 3) i = 3;
-         return comps[i];
-     }
-     void set(uint32_t i, float val) {
-         if (i > 3) i = 3;
-         comps[i] = (componentType)val;
-     }
-     void set(uint32_t i, componentType val) {
-         if (i > 3) i = 3;
-         comps[i] = val;
-     }
-     void normalize() {
-        vec3<componentType> v(r, g, b);
-        v.normalize();
-        r = (componentType)v.r;
-        g = (componentType)v.g;
-        b = (componentType)v.b;
+        struct {
+            componentType r;
+            componentType g;
+            componentType b;
+            componentType a;
+        };
+    };
+    color() {}
+    color(componentType _r, componentType _g, componentType _b, componentType _a) :
+       r(_r), g(_g), b(_b), a(_a) {}
+    componentType operator [](unsigned int i) {
+        if (i > 3) i = 3;
+        return comps[i];
+    }
+    void set(uint32_t i, float val) {
+        if (i > 3) i = 3;
+        comps[i] = (componentType)val;
+    }
+    void set(uint32_t i, componentType val) {
+        if (i > 3) i = 3;
+        comps[i] = val;
+    }
+    constexpr uint32_t comps_count() const {
+        return 4;
+    }
+    void normalize() {
+       vec3<componentType> v(r, g, b);
+       v.normalize();
+       r = (componentType)v.r;
+       g = (componentType)v.g;
+       b = (componentType)v.b;
      }
  };
 
 template <typename componentType>
 class color<componentType, 3> : public color_base<componentType, 3> {
   public:
+    using value_type = componentType;
     union {
        componentType comps[3];
 
@@ -267,6 +277,11 @@ class color<componentType, 3> : public color_base<componentType, 3> {
            componentType b;
        };
     };
+    color() {}
+    color(componentType _r, componentType _g, componentType _b) :
+        r(_r), g(_g), b(_b) {}
+    color(componentType _r, componentType _g, componentType _b, componentType) :
+       r(_r), g(_g), b(_b) {}
     componentType operator [](unsigned int i) {
         if (i > 2) i = 2;
         return comps[i];
@@ -275,62 +290,98 @@ class color<componentType, 3> : public color_base<componentType, 3> {
         if (i > 2) i = 2;
         comps[i] = (componentType)val;
     }
-     void normalize() {
+    void set(uint32_t i, componentType val) {
+        if (i > 2) i = 2;
+        comps[i] = val;
+    }
+    constexpr uint32_t comps_count() const {
+        return 3;
+    }
+    void normalize() {
         vec3<componentType> v(r, g, b);
         v.normalize();
         r = (componentType)v.r;
         g = (componentType)v.g;
         b = (componentType)v.b;
-     }
+    }
 };
 
 template <typename componentType>
 class color<componentType, 2> : public color_base<componentType, 2> {
   public:
-     union {
-         componentType comps[2];
+    using value_type = componentType;
+    union {
+        componentType comps[2];
 
-         struct {
-             componentType r;
-             componentType g;
-         };
-     };
-     componentType operator [](unsigned int i) {
-         if (i > 1) i = 1;
-         return comps[i];
-     }
-     void set(uint32_t i, float val) {
-         if (i > 1) i = 1;
-         comps[i] = (componentType)val;
-     }
-     void normalize() {
-        vec3<componentType> v(r, g);
+        struct {
+            componentType r;
+            componentType g;
+        };
+    };
+    color() {}
+    color(componentType _r, componentType _g) :
+       r(_r), g(_g) {}
+    color(componentType _r, componentType _g, componentType, componentType) :
+      r(_r), g(_g) {}
+    componentType operator [](unsigned int i) {
+        if (i > 1) i = 1;
+        return comps[i];
+    }
+    void set(uint32_t i, float val) {
+        if (i > 1) i = 1;
+        comps[i] = (componentType)val;
+    }
+    void set(uint32_t i, componentType val) {
+        if (i > 1) i = 1;
+        comps[i] = val;
+    }
+    constexpr uint32_t comps_count() const {
+        return 2;
+    }
+    void normalize() {
+        vec3<componentType> v(r, g, s[sizeof(componentType)] * 0.5f);
         v.normalize();
         r = (componentType)v.r;
         g = (componentType)v.g;
-     }
+    }
 };
 
 template <typename componentType>
 class color<componentType, 1> : public color_base<componentType, 1> {
   public:
-     union {
-         componentType comps[1];
+    using value_type = componentType;
+    union {
+        componentType comps[1];
 
-         struct {
-             componentType r;
-         };
-     };
-     componentType operator [](unsigned int i) {
-         if (i > 0) i = 0;
-         return comps[i];
-     }
-     void set(uint32_t i, float val) {
-         if (i > 0) i = 0;
-         comps[i] = (componentType)val;
-     }
-     void normalize() {
-     }
+        struct {
+            componentType r;
+        };
+    };
+    color() {}
+    color(componentType _r) :
+       r(_r) {}
+    color(componentType _r, componentType, componentType, componentType) :
+       r(_r) {}
+    componentType operator [](unsigned int i) {
+        if (i > 0) i = 0;
+        return comps[i];
+    }
+    void set(uint32_t i, float val) {
+        if (i > 0) i = 0;
+        comps[i] = (componentType)val;
+    }
+    void set(uint32_t i, componentType val) {
+        if (i > 0) i = 0;
+        comps[i] = val;
+    }
+    constexpr uint32_t comps_count() const {
+        return 1;
+    }
+    void normalize() {
+        vec3<componentType> v(r, s[sizeof(componentType)] * 0.5f, s[sizeof(componentType)] * 0.5f);
+        v.normalize();
+        r = (componentType)v.r;
+    }
 };
 
 // Abstract base class for all Images.
@@ -746,6 +797,10 @@ using r16color = color<uint16_t, 1>;
 using rg16color = color<uint16_t, 2>;
 using rgb16color = color<uint16_t, 3>;
 using rgba16color = color<uint16_t, 4>;
+using r32color = color<uint32_t, 1>;
+using rg32color = color<uint32_t, 2>;
+using rgb32color = color<uint32_t, 3>;
+using rgba32color = color<uint32_t, 4>;
 
 class r8image : public ImageT<uint8_t, 1> {
   public:

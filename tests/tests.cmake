@@ -15,6 +15,7 @@ add_subdirectory(streamtests)
 
 add_executable( unittests
     unittests/unittests.cc
+    unittests/unittests.cpp
     unittests/wthelper.h
 )
 
@@ -23,6 +24,7 @@ target_include_directories(
 PRIVATE
     $<TARGET_PROPERTY:ktx,INCLUDE_DIRECTORIES>
     ${PROJECT_SOURCE_DIR}/lib
+    ${PROJECT_SOURCE_DIR}/tools
 )
 
 target_link_libraries(
