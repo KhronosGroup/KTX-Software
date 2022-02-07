@@ -211,7 +211,6 @@ static ktxAstcParams
 astcDefaultOptions() {
     ktxAstcParams params{};
     params.structSize = sizeof(params);
-    params.verbose = false;
     params.threadCount = 1;
     params.blockDimension = KTX_PACK_ASTC_BLOCK_DIMENSION_6x6;
     params.mode = KTX_PACK_ASTC_ENCODER_MODE_LDR;
@@ -619,18 +618,14 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
                                                    quality, flags,
                                                    &astc_config);
 
-    if (astc_error != ASTCENC_SUCCESS) {
-        std::cout << "ASTC config init failed with error " << astcenc_get_error_string(astc_error) << std::endl;
+    if (astc_error != ASTCENC_SUCCESS)
         return KTX_INVALID_OPERATION;
-    }
 
     astc_error  = astcenc_context_alloc(&astc_config, threadCount,
                                         &astc_context);
 
-    if (astc_error != ASTCENC_SUCCESS) {
-        std::cout << "ASTC context alloc failed with error " << astcenc_get_error_string(astc_error) << std::endl;
+    if (astc_error != ASTCENC_SUCCESS)
         return KTX_INVALID_OPERATION;
-    }
 
     // Walk in reverse on levels so we don't have to do this later
     assert(prototype->dataSize && "Prototype texture size not initialized.\n");
@@ -657,12 +652,6 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
         ktx_size_t offset = ktxTexture2_levelDataOffset(This, level);
 
         for (uint32_t image = 0; image < levelImages; image++) {
-            if (params->verbose)
-                std::cout << "ASTC compressor: compressing image " <<
-                             (This->numLevels - level - 1) * levelImages + image + 1
-                             << " of " << This->numLevels * levelImages
-                             << std::endl;
-
             astcenc_image *input_image = nullptr;
             if (num_components == 1)
                 input_image = unorm8x1ArrayToImage(This->pData + offset,
