@@ -151,6 +151,22 @@ else
 fi
 
 numtests=$numtests+1
+if ktx2check < color_grid_uastc_zstd.ktx2; then
+    passed=$passed+1
+else
+    echo "Valid file read via stdin failed validation."
+    failed=$failed+1
+fi
+
+numtests=$numtests+1
+if cat color_grid_uastc_zstd.ktx2 | ktx2check; then
+    passed=$passed+1
+else
+    echo "Valid file read via stdin failed validation."
+    failed=$failed+1
+fi
+
+numtests=$numtests+1
 cd ../badktx2
 if $ktx2check invalid_face_count.ktx2 > /dev/null; then
     echo "Invalid face count not spotted."

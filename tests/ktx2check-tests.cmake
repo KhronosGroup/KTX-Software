@@ -37,34 +37,45 @@ add_test( NAME ktx2check-test-all-quiet
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
 )
 
+add_test( NAME ktx2check-test-stdin-read
+    COMMAND ${BASH_EXECUTABLE} -c "$<TARGET_FILE:ktx2check> < color_grid_uastc_zstd.ktx2
+"
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
+)
+
+add_test( NAME ktx2check-test-pipe-read
+    COMMAND ${BASH_EXECUTABLE} -c "cat color_grid_uastc_zstd.ktx2 | $<TARGET_FILE:ktx2check>"
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
+)
+
 add_test( NAME ktx2check-test-invalid-face-count
     COMMAND ktx2check invalid_face_count.ktx2
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/badktx2
 )
 
 add_test( NAME ktx2check-test-invalid-face-count-quiet
     COMMAND ktx2check --quiet invalid_face_count.ktx2
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/badktx2
 )
 
 add_test( NAME ktx2check-test-incorrect-mip-layout-and-padding
     COMMAND ktx2check incorrect_mip_layout_and_padding.ktx2
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/badktx2
 )
 
 add_test( NAME ktx2check-test-incorrect-mip-layout-and-padding-quiet
     COMMAND ktx2check --quiet incorrect_mip_layout_and_padding.ktx2
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/badktx2
 )
 
 add_test( NAME ktx2check-test-bad-typesize
     COMMAND ktx2check bad_typesize.ktx2
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/badktx2
 )
 
 add_test( NAME ktx2check-test-no-nul-on-value
     COMMAND ktx2check no_nul_on_kvd_val.ktx2
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/badktx2
 )
 
 set_tests_properties(
