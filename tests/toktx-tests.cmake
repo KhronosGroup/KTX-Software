@@ -186,6 +186,8 @@ gencmpktx( swizzle_r_to_gb_convert_to_rgba_u cyan_rgba_reference_u.ktx2 ../srcim
 gencmpktx( swizzle_r_to_gb_convert_to_rgba_basis cyan_rgb_reference_basis.ktx2 ../srcimages/level0.ppm "--nowarn --t2 --test --input_swizzle 0rr1 --target_type RGBA --bcmp" "" "" )
 gencmpktx( swizzle_r_to_gb_convert_to_rgba_uastc cyan_rgb_reference_uastc.ktx2 ../srcimages/level0.ppm "--nowarn --t2 --test --input_swizzle 0rr1 --target_type RGBA --uastc --" "" "" )
 
+gencmpktx( uastc_Iron_Bars_001_normal      uastc_Iron_Bars_001_normal.ktx2     ../srcimages/Iron_Bars/Iron_Bars_001_normal_unnormalized.png "--test --assign_oetf linear --normal_mode --encode uastc" "" "")
+gencmpktx( etc1s_Iron_Bars_001_normal      etc1s_Iron_Bars_001_normal.ktx2     ../srcimages/Iron_Bars/Iron_Bars_001_normal_unnormalized.png "--test --assign_oetf linear --normal_mode --encode etc1s" "" "")
 
 gencmpktx( gAMA_chunk_png g03n2c08.ktx2 ../srcimages/g03n2c08.png "--test --t2" "" "" )
 gencmpktx( cHRM_chunk_png ccwn2c08.ktx2 ../srcimages/ccwn2c08.png "--test --t2" "" "" )
