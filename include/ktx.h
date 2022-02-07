@@ -1291,8 +1291,8 @@ typedef struct ktxBasisParams {
              selector RDO, no endpoint RDO). Only valid for linear textures.
          */
     ktx_bool_t separateRGToRGB_A;
-        /*!< @deprecated. This was and is a no-op. 2-component inputs have always
-             been automatically separated using an "rrrg" inputSwizzle. @sa inputSwizzle and normalMode.
+        /*!< @deprecated. This was and is a no-op. 2-component inputs have always been
+             automatically separated using an "rrrg" inputSwizzle. @sa inputSwizzle and normalMode.
          */
     ktx_bool_t preSwizzle;
         /*!< If the texture has @c KTXswizzle metadata, apply it before
