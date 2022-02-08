@@ -15,7 +15,7 @@ add_subdirectory(streamtests)
 
 add_executable( unittests
     unittests/unittests.cc
-    unittests/unittests.cpp
+    unittests/image_unittests.cc
     unittests/wthelper.h
 )
 
