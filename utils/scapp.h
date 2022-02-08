@@ -914,6 +914,7 @@ scApp::processOption(argparser& parser, int opt)
       case 1015:
         setEncoder(parser.optarg);
         options.ktx2 = 1;
+        hasArg = true;
         break;
       case 1016:
         options.normalize = true;
