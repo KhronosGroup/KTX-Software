@@ -684,24 +684,33 @@ ktxTexture2_DeflateZstd(ktxTexture2* This, ktx_uint32_t compressionLevel)
 {
     ktx_uint32_t levelIndexByteLength =
                             This->numLevels * sizeof(ktxLevelIndexEntry);
-    // Allocate a temporary buffer the same size as the current data since
-    // that will clearly be big enough.
-    ktx_uint8_t* workBuf = malloc(This->dataSize + levelIndexByteLength);
+    ktx_uint8_t* workBuf;
     ktx_uint8_t* cmpData;
-    ktx_size_t dstRemainingByteLength = This->dataSize;
+    ktx_size_t dstRemainingByteLength = 0;
     ktx_size_t byteLengthCmp = 0;
     ktx_size_t levelOffset = 0;
     ktxLevelIndexEntry* cindex = This->_private->_levelIndex;
-    ktxLevelIndexEntry* nindex = (ktxLevelIndexEntry*)workBuf;
-    ktx_uint8_t* pCmpDst = &workBuf[levelIndexByteLength];
+    ktxLevelIndexEntry* nindex;
+    ktx_uint8_t* pCmpDst;
 
     ZSTD_CCtx* cctx = ZSTD_createCCtx();
 
-    if (workBuf == NULL)
-        return KTX_OUT_OF_MEMORY;
-
     if (This->supercompressionScheme != KTX_SS_NONE)
         return KTX_INVALID_OPERATION;
+
+    // On rare occasions the deflated data can be a few bytes larger than
+    // the source data. Calculating the dst buffer size using
+    // ZSTD_compressBound provides a suitable size plus compression is said
+    // to run faster when the dst buffer is >= compressBound.
+    for (int32_t level = This->numLevels - 1; level >= 0; level--) {
+        dstRemainingByteLength += ZSTD_compressBound(cindex[level].byteLength);
+    }
+
+    workBuf = malloc(dstRemainingByteLength + levelIndexByteLength);
+    if (workBuf == NULL)
+        return KTX_OUT_OF_MEMORY;
+    nindex = (ktxLevelIndexEntry*)workBuf;
+    pCmpDst = &workBuf[levelIndexByteLength];
 
     for (int32_t level = This->numLevels - 1; level >= 0; level--) {
         size_t levelByteLengthCmp =
@@ -717,17 +726,22 @@ ktxTexture2_DeflateZstd(ktxTexture2* This, ktx_uint32_t compressionLevel)
               case ZSTD_error_parameter_outOfBound:
                 return KTX_INVALID_VALUE;
               case ZSTD_error_dstSize_tooSmall:
+#ifdef DEBUG
+                assert(false && "Deflate dstSize too small.");
+#else
+                return KTX_OUT_OF_MEMORY;
+#endif
               case ZSTD_error_workSpace_tooSmall:
 #ifdef DEBUG
-                assert(true); // inflatedDataCapacity too small.
+                assert(false && "Deflate workspace too small.");
 #else
                 return KTX_OUT_OF_MEMORY;
 #endif
               case ZSTD_error_memory_allocation:
                 return KTX_OUT_OF_MEMORY;
               default:
-                // The remaining errors look they should only occur during
-                // decompression but just in case.
+                // The remaining errors look like they should only
+                // occur during decompression but just in case.
 #ifdef DEBUG
                 assert(true);
 #else

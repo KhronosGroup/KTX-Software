@@ -35,11 +35,15 @@ option( KTX_FEATURE_DOC "Create KTX documentation" OFF )
 option( KTX_FEATURE_LOADTEST_APPS "Create load tests apps that load and display various KTX textures" OFF )
 option( KTX_FEATURE_STATIC_LIBRARY "Create static libraries (shared otherwise)" ${LIB_TYPE_DEFAULT} )
 option( KTX_FEATURE_TESTS "Create unit tests" ON )
+option( KTX_FEATURE_JNI "Create Java bindings for libktx" OFF )
 
 set_target_processor_type(CPU_ARCHITECTURE)
-if(CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86)
-    option( BASISU_SUPPORT_SSE "Compile with SSE support so applications can choose to use it" ON )
-endif()
+CMAKE_DEPENDENT_OPTION( BASISU_SUPPORT_SSE
+    "Compile with SSE support so applications can choose to use it"
+    ON
+    "CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86"
+    OFF
+)
 
 CMAKE_DEPENDENT_OPTION(KTX_EMBED_BITCODE "Embed bitcode in binaries" OFF "APPLE AND IOS" OFF)
 
@@ -54,15 +58,10 @@ if(APPLE)
     endif()
 endif()
 
-# Might become options in the future
-
-# option( KTX_FEATURE_KTX1 "KTX version 1" ON )
-# option( KTX_FEATURE_KTX2 "KTX version 2" ON )
-
-set( KTX_FEATURE_KTX1 ON )
-set( KTX_FEATURE_KTX2 ON )
-set( KTX_FEATURE_VULKAN ON )
-set( KTX_FEATURE_GL_UPLOAD "" ON )
+option( KTX_FEATURE_KTX1 "Enable KTX 1 support" ON )
+option( KTX_FEATURE_KTX2 "Enable KTX 2 support" ON )
+option( KTX_FEATURE_VULKAN "Enable Vulkan texture upload" ON )
+option( KTX_FEATURE_GL_UPLOAD "Enable OpenGL texture upload" ON )
 
 # Platform specific settings
 
@@ -883,3 +882,5 @@ endif()
 # endif()
 
 include(CPack)
+
+include(cmake/jni.cmake)

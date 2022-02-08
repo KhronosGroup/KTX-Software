@@ -5,6 +5,13 @@
 # exit if any command fails
 set -e
 
+# Travis CI doesn't have JAVA_HOME for some reason
+if [ -z "$JAVA_HOME" ]; then
+  echo Setting JAVA_HOME from /usr/libexec/java_home
+  export JAVA_HOME=$(/usr/libexec/java_home)
+  echo JAVA_HOME is $JAVA_HOME
+fi
+
 # Due to the spaces in the platform names, must use array variables so
 # destination args can be expanded to a single word.
 OSX_XCODE_OPTIONS=(-alltargets -destination "platform=OS X,arch=x86_64")
@@ -49,14 +56,16 @@ if [ -n "$MACOS_CERTIFICATES_P12" ]; then
   -DBASISU_SUPPORT_SSE=OFF \
   -DXCODE_CODE_SIGN_IDENTITY="${CODE_SIGN_IDENTITY}" \
   -DXCODE_DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
-  -DPRODUCTBUILD_IDENTITY_NAME="${PKG_SIGN_IDENTITY}"
+  -DPRODUCTBUILD_IDENTITY_NAME="${PKG_SIGN_IDENTITY}" \
+  -DKTX_FEATURE_JNI=ON
 else # No secure variables means a PR or fork build.
   echo "************* No Secure variables. ******************"
   cmake -GXcode -B$DEPLOY_BUILD_DIR \
   -DCMAKE_OSX_ARCHITECTURES="\$(ARCHS_STANDARD)" \
   -DKTX_FEATURE_DOC=ON \
   -DKTX_FEATURE_LOADTEST_APPS=ON \
-  -DBASISU_SUPPORT_SSE=OFF
+  -DBASISU_SUPPORT_SSE=OFF \
+  -DKTX_FEATURE_JNI=ON
 fi
 
 echo "Configure KTX-Software (macOS x86_64) with SSE support"
@@ -64,7 +73,8 @@ cmake -GXcode -Bbuild-macos-sse \
   -DCMAKE_OSX_ARCHITECTURES="x86_64" \
   -DKTX_FEATURE_LOADTEST_APPS=ON \
   -DBASISU_SUPPORT_SSE=ON \
-  -DISA_SSE41=ON
+  -DISA_SSE41=ON \
+  -DKTX_FEATURE_JNI=ON
 
 # Cause the build pipes below to set the exit to the exit code of the
 # last program to exit non-zero.
@@ -124,7 +134,7 @@ popd
 #
 
 echo "Configure KTX-Software (iOS)"
-cmake -GXcode -Bbuild-ios -DISA_NEON=ON -DCMAKE_SYSTEM_NAME=iOS -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=OFF
+cmake -GXcode -Bbuild-ios -DISA_NEON=ON -DCMAKE_SYSTEM_NAME=iOS -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=OFF -DKTX_FEATURE_JNI=ON
 pushd build-ios
 echo "Build KTX-Software (iOS Debug)"
 cmake --build . --config Debug  -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO | handle_compiler_output
@@ -135,3 +145,8 @@ cmake --build . --config Release -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIG
 # echo "Build KTX-Software (iOS Simulator Release)"
 # cmake --build . --config Release -- -sdk iphonesimulator
 popd
+
+# Java
+
+LIBKTX_BINARY_DIR=$(pwd)/$DEPLOY_BUILD_DIR/Release ci_scripts/build_java.sh
+

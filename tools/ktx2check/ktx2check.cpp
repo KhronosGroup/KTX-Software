@@ -29,6 +29,7 @@
 #include "dfdutils/dfd.h"
 #include "texture.h"
 #include "basis_sgd.h"
+
 // Gotta love Windows :-)
 #if defined(_MSC_VER)
   #define strncasecmp _strnicmp
@@ -773,7 +774,7 @@ ktxValidator::ktxValidator() : ktxApp(myversion, mydefversion, options)
                                 / sizeof(argparser::option);
     option_list.insert(option_list.begin(), my_option_list,
                        my_option_list + lastOptionIndex);
-    short_opts += "qm:";
+    short_opts += "qm:w";
 }
 
 void
@@ -1191,11 +1192,11 @@ ktxValidator::validateHeader(validationContext& ctx)
                     HeaderData.InvalidRequiredIndexEntry, "dfd");
 
     checkOptionalIndexEntry(ctx.header.keyValueData,
-                    HeaderData.InvalidRequiredIndexEntry, "kvd");
+                    HeaderData.InvalidOptionalIndexEntry, "kvd");
 
     if (ctx.header.supercompressionScheme == KTX_SS_BASIS_LZ) {
         checkRequiredIndexEntry(ctx.header.supercompressionGlobalData,
-                                HeaderData.InvalidOptionalIndexEntry, "sgd");
+                                HeaderData.InvalidRequiredIndexEntry, "sgd");
     } else {
         checkOptionalIndexEntry(ctx.header.supercompressionGlobalData,
                                 HeaderData.InvalidOptionalIndexEntry, "sgd");
