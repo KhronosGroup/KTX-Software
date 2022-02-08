@@ -319,7 +319,7 @@ astcEncoderMode(const char* mode) {
                  </pre>
                  Encoding is optimized for normal maps. For ASTC encoding,
                  '--encode astc', the encoder is directed to optimize for angular
-                 error instead of simple PSNR.  For ETC1S encoding, '@b--encode etc1s',
+                 error instead of simple PSNR.  For ETC1S encoding, '@b --encode etc1s',
                  RDO is disabled (no selector RDO, no endpoint RDO) to provide
                  better quality.</dd>
     <dt>--normalize</dt>
