@@ -90,8 +90,8 @@ $toktx --nowarn --t2 --test --input_swizzle 0rr1 --target_type RGBA cyan_rgba_re
 $toktx --nowarn --t2 --test --input_swizzle 0rr1 --target_type RGBA --bcmp cyan_rgb_reference_basis.ktx2 ../srcimages/level0.ppm
 $toktx --nowarn --t2 --test --input_swizzle 0rr1 --target_type RGBA --uastc -- cyan_rgb_reference_uastc.ktx2 ../srcimages/level0.ppm
 
-$toktx --nowarn --t2 --test --assign_oetf linear --normal_mode --encode uastc uastc_Iron_Bars_001_normal.ktx2 ../srcimages/Iron_Bars/Iron_Bars_001_normal_unnormalized.png
-$toktx --nowarn --t2 --test --assign_oetf linear --normal_mode --encode etc1s etc1s_Iron_Bars_001_normal.ktx2 ../srcimages/Iron_Bars/Iron_Bars_001_normal_unnormalized.png
+$toktx --nowarn --t2 --test --assign_oetf linear --normalize --normal_mode --encode uastc uastc_Iron_Bars_001_normal.ktx2 ../srcimages/Iron_Bars/Iron_Bars_001_normal_unnormalized.png
+$toktx --nowarn --t2 --test --assign_oetf linear --normalize --normal_mode --encode etc1s etc1s_Iron_Bars_001_normal.ktx2 ../srcimages/Iron_Bars/Iron_Bars_001_normal_unnormalized.png
 
 # ... and additional files for the load tests.
 
@@ -125,8 +125,8 @@ $toktx --test --encode astc --astc_blk_d 10x5   astc_ldr_10x5_FlightHelmet_baseC
 $toktx --test --encode astc --astc_blk_d 8x8    astc_ldr_8x8_FlightHelmet_baseColor.ktx2   ../srcimages/FlightHelmet_baseColor.png
 $toktx --test --encode astc --astc_blk_d 12x10  astc_ldr_12x10_FlightHelmet_baseColor.ktx2 ../srcimages/FlightHelmet_baseColor.png
 $toktx --test --encode astc --astc_blk_d 12x12  astc_ldr_12x12_FlightHelmet_baseColor.ktx2 ../srcimages/FlightHelmet_baseColor.png
-$toktx --test --assign_oetf linear --normal_mode --encode astc --astc_blk_d 6x6  astc_ldr_6x6_Iron_Bars_001_normal.ktx2 ../srcimages/Iron_Bars/Iron_Bars_001_normal_unnormalized.png
-$toktx --test --assign_oetf linear --normal_mode --encode astc --astc_blk_d 5x4  astc_ldr_5x4_Iron_Bars_001_normal.ktx2 ../srcimages/Iron_Bars/Iron_Bars_001_normal_unnormalized.png
+$toktx --test --assign_oetf linear --normalize --normal_mode --encode astc --astc_blk_d 6x6  astc_ldr_6x6_Iron_Bars_001_normal.ktx2 ../srcimages/Iron_Bars/Iron_Bars_001_normal_unnormalized.png
+$toktx --test --assign_oetf linear --normalize --normal_mode --encode astc --astc_blk_d 5x4  astc_ldr_5x4_Iron_Bars_001_normal.ktx2 ../srcimages/Iron_Bars/Iron_Bars_001_normal_unnormalized.png
 
 $toktx --test --layers 7 --encode astc --astc_blk_d 6x6             astc_ldr_6x6_arraytex_7.ktx2        ../srcimages/red16.png ../srcimages/orange16.png ../srcimages/yellow16.png ../srcimages/green16.png ../srcimages/blue16.png ../srcimages/indigo16.png ../srcimages/violet16.png
 $toktx --test --layers 7 --encode astc --astc_blk_d 6x6 --genmipmap astc_ldr_6x6_arraytex_7_mipmap.ktx2 ../srcimages/red16.png ../srcimages/orange16.png ../srcimages/yellow16.png ../srcimages/green16.png ../srcimages/blue16.png ../srcimages/indigo16.png ../srcimages/violet16.png
