@@ -4,6 +4,11 @@
 add_test( NAME ktx2check-test-help
     COMMAND ktx2check --help
 )
+set_tests_properties(
+    ktx2check-test-help
+PROPERTIES
+    PASS_REGULAR_EXPRESSION "^Usage: ktx2check"
+)
 
 add_test( NAME ktx2check-test-version
     COMMAND ktx2check --version
@@ -11,16 +16,28 @@ add_test( NAME ktx2check-test-version
 set_tests_properties(
     ktx2check-test-version
 PROPERTIES
-    PASS_REGULAR_EXPRESSION "^ktx2check v[0-9\\.]+"
+    PASS_REGULAR_EXPRESSION "^ktx2check v[0-9][0-9\\.]+"
 )
 
+# The duplication of this and other fail tests below is due to a "limitation"
+# (i.e. a bug) in ctest which does not check for a non-zero error code 
+# when a FAIL_REGULAR_EXPRESSION is specified but only for a match to the FRE.
 add_test( NAME ktx2check-test-foobar
     COMMAND ktx2check --foobar
 )
 set_tests_properties(
     ktx2check-test-foobar
 PROPERTIES
+    WILL_FAIL TRUE
     FAIL_REGULAR_EXPRESSION "^Usage: ktx2check"
+)
+add_test( NAME ktx2check-test-foobar-exit-code
+    COMMAND ktx2check --foobar
+)
+set_tests_properties(
+    ktx2check-test-foobar-exit-code
+PROPERTIES
+    WILL_FAIL TRUE
 )
 
 add_test( NAME ktx2check-test-all
@@ -35,6 +52,11 @@ add_test( NAME ktx2check-test-all-quiet
     COMMAND ${BASH_EXECUTABLE} -c "$<TARGET_FILE:ktx2check> --quiet *.ktx2"
     COMMAND_EXPAND_LISTS
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
+)
+set_tests_properties(
+    ktx2check-test-all-quiet
+PROPERTIES
+    PASS_REGULAR_EXPRESSION "^$"
 )
 
 add_test( NAME ktx2check-test-stdin-read
@@ -57,6 +79,10 @@ add_test( NAME ktx2check-test-invalid-face-count-quiet
     COMMAND ktx2check --quiet invalid_face_count.ktx2
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/badktx2
 )
+add_test( NAME ktx2check-test-invalid-face-count-quiet-exit-code
+    COMMAND ktx2check --quiet invalid_face_count.ktx2
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/badktx2
+)
 
 add_test( NAME ktx2check-test-incorrect-mip-layout-and-padding
     COMMAND ktx2check incorrect_mip_layout_and_padding.ktx2
@@ -67,8 +93,21 @@ add_test( NAME ktx2check-test-incorrect-mip-layout-and-padding-quiet
     COMMAND ktx2check --quiet incorrect_mip_layout_and_padding.ktx2
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/badktx2
 )
+add_test( NAME ktx2check-test-incorrect-mip-layout-and-padding-quiet-exit-code
+    COMMAND ktx2check incorrect_mip_layout_and_padding.ktx2
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/badktx2
+)
 
 add_test( NAME ktx2check-test-bad-typesize
+    COMMAND ktx2check bad_typesize.ktx2
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/badktx2
+)
+set_tests_properties(
+    ktx2check-test-bad-typesize
+PROPERTIES
+    FAIL_REGULAR_EXPRESSION "ERROR: typeSize, 1, does not match data described by the DFD."
+)
+add_test( NAME ktx2check-test-bad-typesize-exit-code
     COMMAND ktx2check bad_typesize.ktx2
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/badktx2
 )
@@ -77,17 +116,14 @@ add_test( NAME ktx2check-test-no-nul-on-value
     COMMAND ktx2check no_nul_on_kvd_val.ktx2
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/badktx2
 )
-
 set_tests_properties(
-    ktx2check-test-help
+    ktx2check-test-no-nul-on-value
 PROPERTIES
-    PASS_REGULAR_EXPRESSION "^Usage: ktx2check"
+    FAIL_REGULAR_EXPRESSION "WARNING: KTXswizzle value missing encouraged NUL termination."
 )
-
-set_tests_properties(
-    ktx2check-test-all-quiet
-PROPERTIES
-    PASS_REGULAR_EXPRESSION "^$"
+add_test( NAME ktx2check-test-no-nul-on-value-exit-code
+    COMMAND ktx2check no_nul_on_kvd_val.ktx2
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/badktx2
 )
 
 set_tests_properties(
@@ -98,25 +134,15 @@ PROPERTIES
 )
 
 set_tests_properties(
-    ktx2check-test-foobar
+    ktx2check-test-bad-typesize
+    ktx2check-test-bad-typesize-exit-code
     ktx2check-test-invalid-face-count
     ktx2check-test-invalid-face-count-quiet
+    ktx2check-test-invalid-face-count-quiet-exit-code
     ktx2check-test-incorrect-mip-layout-and-padding
     ktx2check-test-incorrect-mip-layout-and-padding-quiet
-PROPERTIES
-    WILL_FAIL TRUE
-)
-
-set_tests_properties(
-    ktx2check-test-bad-typesize
-PROPERTIES
-    WILL_FAIL TRUE
-    FAIL_REGULAR_EXPRESSION "ERROR: typeSize, 1, does not match data described by the DFD."
-)
-
-set_tests_properties(
+    ktx2check-test-incorrect-mip-layout-and-padding-quiet-exit-code
     ktx2check-test-no-nul-on-value
 PROPERTIES
     WILL_FAIL TRUE
-    FAIL_REGULAR_EXPRESSION "WARNING: KTXswizzle value missing encouraged NUL termination."
 )
