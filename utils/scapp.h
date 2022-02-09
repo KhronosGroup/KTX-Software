@@ -302,11 +302,11 @@ astcEncoderMode(const char* mode) {
                  deterministic).</dd>
       </dl>
     <dt>--normal_mode</dt>
-                 <dd>Only valid for linear textures with two or three components.
-                 If the input texture has three linear components it is assumed to
+                 <dd>Only valid for linear textures with two or more components.
+                 If the input texture has three or four linear components it is assumed to
                  be a three component linear normal map storing unit length
-                 normals as (R=X, G=Y, B=Z). It will be converted to a two
-                 component X+Y normal map stored as (RGB=X, A=Y) prior to
+                 normals as (R=X, G=Y, B=Z). A fourth component will be ignored. The map will be
+                 converted to a two component X+Y normal map stored as (RGB=X, A=Y) prior to
                  encoding. If unsure that your normals are unit length, use @b --normalize.
                  If the input has 2 linear components it is assumed to be an X+Y map of unit normals.
 
@@ -323,8 +323,11 @@ astcEncoderMode(const char* mode) {
                  RDO is disabled (no selector RDO, no endpoint RDO) to provide
                  better quality.</dd>
     <dt>--normalize</dt>
-                 <dd>Only valid for linear textures with two or three components."
-                 Normalize input normals to have a unit length."</dd>
+                 <dd>Normalize input normals to have a unit length. Only valid for
+                 linear textures with 2 or more components. For 2-component inputs 2D
+                 unit normals are calculated. Do not use this to generate X+Y normals
+                 for --normal_mode. For 4-component inputs a 3D unit normal is calculated.
+                 1.0 is used for the value of the 4th component.</dd>
     <dt>--no_sse</dt>
                  <dd>Forbid use of the SSE instruction set. Ignored if CPU does not
                  support SSE. Only the Basis Universal compressor uses SSE.</dd>
@@ -641,14 +644,13 @@ class scApp : public ktxApp {
           "               Disable RDO multithreading (slightly higher compression,\n"
           "               deterministic).\n\n"
           "  --normal_mode\n"
-          "               Only valid for linear textures with two or three components.\n"
-          "               If the input texture has three linear components it is assumed to\n"
+          "               Only valid for linear textures with two or more components.\n"
+          "               If the input texture has three or four linear components it is assumed to\n"
           "               be a three component linear normal map storing unit length\n"
-          "               normals as (R=X, G=Y, B=Z). It will be converted to a two \n"
-          "               component X+Y normal map stored as (RGB=X, A=Y) prior to\n"
-          "               encoding. If unsure that your normals are unit length, use\n"
-          "               '--normalize'. If the input has 2 linear components it is assumed to\n"
-          "               be an X+Y map of unit normals.\n\n"
+          "               normals as (R=X, G=Y, B=Z). A fourth component will be ignored. The map will be\n"
+          "               converted to a two component X+Y normal map stored as (RGB=X, A=Y) prior to\n"
+          "               encoding. If unsure that your normals are unit length, use @b --normalize.\n"
+          "               If the input has 2 linear components it is assumed to be an X+Y map of unit normals.\n\n"
           "               The Z component can be recovered programmatically in shader\n"
           "               code by using the equations:\n\n"
           "                   nml.xy = texture(...).ga;              // Load in [0,1]\n"
@@ -660,8 +662,11 @@ class scApp : public ktxApp {
           "               RDO is disabled (no selector RDO, no endpoint RDO) to provide \n"
           "               better quality.\n\n"
           "  --normalize\n"
-          "               Only valid for linear textures with two or three components.\n"
-          "               Normalize input normals to have a unit length.\n"
+          "               Normalize input normals to have a unit length. Only valid for\n"
+          "               linear textures with 2 or more components. For 2-component inputs 2D\n"
+          "               unit normals are calculated. Do not use this to generate X+Y normals \n"
+          "               for --normal_mode. For 4-component inputs a 3D unit normal is calculated.\n"
+          "               1.0 is used for the value of the 4th component."
           "  --no_sse\n"
           "               Forbid use of the SSE instruction set. Ignored if CPU does not\n"
           "               support SSE. Only the Basis Universal compressor uses SSE.\n"
