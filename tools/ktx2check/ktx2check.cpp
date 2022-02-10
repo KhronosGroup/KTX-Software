@@ -739,33 +739,33 @@ class ktxValidator : public ktxApp {
     void validateSgd(validationContext& ctx);
     void validateDataSize(validationContext& ctx);
     bool validateTranscode(validationContext& ctx); // Must be called last.
-    bool validateMetadata(validationContext& ctx, char* key, uint8_t* value,
-                          uint32_t valueLen);
+    bool validateMetadata(validationContext& ctx, const char* key,
+                          const uint8_t* value, uint32_t valueLen);
 
     typedef void (ktxValidator::*validateMetadataFunc)(validationContext& ctx,
-                                                       char* key,
-                                                       uint8_t* value,
+                                                       const char* key,
+                                                       const uint8_t* value,
                                                        uint32_t valueLen);
-    void validateCubemapIncomplete(validationContext& ctx, char* key,
-                                   uint8_t* value, uint32_t valueLen);
-    void validateOrientation(validationContext& ctx, char* key,
-                             uint8_t* value, uint32_t valueLen);
-    void validateGlFormat(validationContext& ctx, char* key,
-                          uint8_t* value, uint32_t valueLen);
-    void validateDxgiFormat(validationContext& ctx, char* key,
-                            uint8_t* value, uint32_t valueLen);
-    void validateMetalPixelFormat(validationContext& ctx, char* key,
-                                  uint8_t* value, uint32_t valueLen);
-    void validateSwizzle(validationContext& ctx, char* key,
-                        uint8_t* value, uint32_t valueLen);
-    void validateWriter(validationContext& ctx, char* key,
-                        uint8_t* value, uint32_t valueLen);
-    void validateWriterScParams(validationContext& ctx, char* key,
-                                uint8_t* value, uint32_t valueLen);
-    void validateAstcDecodeMode(validationContext& ctx, char* key,
-                                uint8_t* value, uint32_t valueLen);
-    void validateAnimData(validationContext& ctx, char* key,
-                          uint8_t* value, uint32_t valueLen);
+    void validateCubemapIncomplete(validationContext& ctx, const char* key,
+                                   const uint8_t* value, uint32_t valueLen);
+    void validateOrientation(validationContext& ctx, const char* key,
+                             const uint8_t* value, uint32_t valueLen);
+    void validateGlFormat(validationContext& ctx, const char* key,
+                          const uint8_t* value, uint32_t valueLen);
+    void validateDxgiFormat(validationContext& ctx, const char* key,
+                            const uint8_t* value, uint32_t valueLen);
+    void validateMetalPixelFormat(validationContext& ctx, const char* key,
+                                  const uint8_t* value, uint32_t valueLen);
+    void validateSwizzle(validationContext& ctx, const char* key,
+                        const uint8_t* value, uint32_t valueLen);
+    void validateWriter(validationContext& ctx, const char* key,
+                        const uint8_t* value, uint32_t valueLen);
+    void validateWriterScParams(validationContext& ctx, const char* key,
+                                const uint8_t* value, uint32_t valueLen);
+    void validateAstcDecodeMode(validationContext& ctx, const char* key,
+                                const uint8_t* value, uint32_t valueLen);
+    void validateAnimData(validationContext& ctx, const char* key,
+                          const uint8_t* value, uint32_t valueLen);
 
     typedef struct {
         string name;
@@ -1749,8 +1749,8 @@ ktxValidator::validateKvd(validationContext& ctx)
 }
 
 bool
-ktxValidator::validateMetadata(validationContext& ctx, char* key,
-                               uint8_t* pValue, uint32_t valueLen)
+ktxValidator::validateMetadata(validationContext& ctx, const char* key,
+                               const uint8_t* pValue, uint32_t valueLen)
 {
 #define CALL_MEMBER_FN(object,ptrToMember)  ((object)->*(ptrToMember))
     vector<metadataValidator>::const_iterator it;
@@ -1769,8 +1769,10 @@ ktxValidator::validateMetadata(validationContext& ctx, char* key,
 }
 
 void
-ktxValidator::validateCubemapIncomplete(validationContext& ctx, char* key,
-                                        uint8_t*, uint32_t valueLen)
+ktxValidator::validateCubemapIncomplete(validationContext& ctx,
+                                        const char* key,
+                                        const uint8_t*,
+                                        uint32_t valueLen)
 {
     ctx.cubemapIncompleteFound = true;
     if (valueLen != 1)
@@ -1778,88 +1780,118 @@ ktxValidator::validateCubemapIncomplete(validationContext& ctx, char* key,
 }
 
 void
-ktxValidator::validateOrientation(validationContext& ctx, char* key,
-                                  uint8_t* value, uint32_t valueLen)
+ktxValidator::validateOrientation(validationContext& ctx,
+                                  const char* key,
+                                  const uint8_t* value,
+                                  uint32_t valueLen)
 {
     if (valueLen == 0) {
         addIssue(logger::eError, Metadata.MissingValue, key);
         return;
     }
 
-    if (value[valueLen-1] != '\0')
+    string orientation;
+    const char* pOrientation = reinterpret_cast<const char*>(value);
+    if (value[valueLen - 1] != '\0') {
+        // regex_match on some platforms will fail to match an otherwise
+        // valid swizzle due to lack of a NUL terminator even IF there is
+        // no '$' at the end of the regex. Make a copy to avoid this.    
+        orientation.assign(pOrientation, valueLen);
+        pOrientation = orientation.c_str();
         addIssue(logger::eWarning, Metadata.ValueNotNulTerminated, key);
+    }
 
     if (valueLen != ctx.dimensionCount + 1)
         addIssue(logger::eError, Metadata.InvalidValue, key);
 
     switch (ctx.dimensionCount) {
       case 1:
-        if (!regex_match ((char*)value, regex("^[rl]$") ))
+        if (!regex_match (pOrientation, regex("^[rl]$") ))
             addIssue(logger::eError, Metadata.InvalidValue, key);
         break;
       case 2:
-        if (!regex_match((char*)value, regex("^[rl][du]$")))
+        if (!regex_match(pOrientation, regex("^[rl][du]$")))
             addIssue(logger::eError, Metadata.InvalidValue, key);
         break;
       case 3:
-        if (!regex_match((char*)value, regex("^[rl][du][oi]$")))
+        if (!regex_match(pOrientation, regex("^[rl][du][oi]$")))
             addIssue(logger::eError, Metadata.InvalidValue, key);
         break;
     }
 }
 
 void
-ktxValidator::validateGlFormat(validationContext& /*ctx*/, char* key,
-                               uint8_t* /*value*/, uint32_t valueLen)
+ktxValidator::validateGlFormat(validationContext& /*ctx*/,
+                               const char* key,
+                               const uint8_t* /*value*/,
+                               uint32_t valueLen)
 {
     if (valueLen != sizeof(uint32_t) * 3)
         addIssue(logger::eError, Metadata.InvalidValue, key);
 }
 
 void
-ktxValidator::validateDxgiFormat(validationContext& /*ctx*/, char* key,
-                                 uint8_t* /*value*/, uint32_t valueLen)
-{
+ktxValidator::validateDxgiFormat(validationContext& /*ctx*/,
+                                 const char* key,
+                                 const uint8_t* /*value*/,
+                                 uint32_t valueLen)
+                            {
     if (valueLen != sizeof(uint32_t))
         addIssue(logger::eError, Metadata.InvalidValue, key);}
 
 void
-ktxValidator::validateMetalPixelFormat(validationContext& /*ctx*/, char* key,
-                                       uint8_t* /*value*/, uint32_t valueLen)
+ktxValidator::validateMetalPixelFormat(validationContext& /*ctx*/,
+                                       const char* key,
+                                       const uint8_t* /*value*/,
+                                       uint32_t valueLen)
 {
     if (valueLen != sizeof(uint32_t))
         addIssue(logger::eError, Metadata.InvalidValue, key);
 }
 
 void
-ktxValidator::validateSwizzle(validationContext& /*ctx*/, char* key,
-                              uint8_t* value, uint32_t valueLen)
+ktxValidator::validateSwizzle(validationContext& /*ctx*/,
+                              const char* key,
+                              const uint8_t* value,
+                              uint32_t valueLen)
 {
-    if (value[valueLen-1] != '\0')
+    string swizzle;
+    const char* pSwizzle = reinterpret_cast<const char*>(value);
+    if (value[valueLen - 1] != '\0') {
         addIssue(logger::eWarning, Metadata.ValueNotNulTerminated, key);
-    if (!regex_match((char*)value, regex("^[rgba01]{4}$")))
+        // See comment in validateOrientation.    
+        swizzle.assign(pSwizzle, valueLen);
+        pSwizzle = swizzle.c_str();
+    }
+    if (!regex_match(pSwizzle, regex("^[rgba01]{4}$")))
         addIssue(logger::eError, Metadata.InvalidValue, key);
 }
 
 void
-ktxValidator::validateWriter(validationContext& /*ctx*/, char* key,
-                             uint8_t* value, uint32_t valueLen)
+ktxValidator::validateWriter(validationContext& /*ctx*/,
+                             const char* key,
+                             const uint8_t* value,
+                             uint32_t valueLen)
 {
     if (value[valueLen-1] != '\0')
         addIssue(logger::eWarning, Metadata.ValueNotNulTerminated, key);
 }
 
 void
-ktxValidator::validateWriterScParams(validationContext& /*ctx*/, char* key,
-                                     uint8_t* value, uint32_t valueLen)
+ktxValidator::validateWriterScParams(validationContext& /*ctx*/,
+                                     const char* key,
+                                     const uint8_t* value,
+                                     uint32_t valueLen)
 {
     if (value[valueLen-1] != '\0')
         addIssue(logger::eWarning, Metadata.ValueNotNulTerminated, key);
 }
 
 void
-ktxValidator::validateAstcDecodeMode(validationContext& ctx, char* key,
-                                     uint8_t* value, uint32_t valueLen)
+ktxValidator::validateAstcDecodeMode(validationContext& ctx,
+                                     const char* key,
+                                     const uint8_t* value,
+                                     uint32_t valueLen)
 {
     if (valueLen == 0) {
         addIssue(logger::eError, Metadata.MissingValue, key);
@@ -1885,8 +1917,10 @@ ktxValidator::validateAstcDecodeMode(validationContext& ctx, char* key,
 }
 
 void
-ktxValidator::validateAnimData(validationContext& ctx, char* key,
-                               uint8_t* /*value*/, uint32_t valueLen)
+ktxValidator::validateAnimData(validationContext& ctx,
+                               const char* key,
+                               const uint8_t* /*value*/,
+                               uint32_t valueLen)
 {
     if (ctx.cubemapIncompleteFound) {
          addIssue(logger::eError, Metadata.NotAllowed, key,

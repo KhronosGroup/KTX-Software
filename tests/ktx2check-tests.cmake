@@ -19,9 +19,10 @@ PROPERTIES
     PASS_REGULAR_EXPRESSION "^ktx2check v[0-9][0-9\\.]+"
 )
 
-# The duplication of this and other fail tests below is due to a "limitation"
-# (i.e. a bug) in ctest which does not check for a non-zero error code 
-# when a FAIL_REGULAR_EXPRESSION is specified but only for a match to the FRE.
+# The near duplication of this and other tests below is due to a "limitation"
+# (i.e. a bug) in ctest which checks for neither a zero error code when a
+# PASS_REGULAR_EXPRESSION is specified nor a non-zero error code when a
+# FAIL_REGULAR_EXPRESSION is specified but only for matches to the REs.
 add_test( NAME ktx2check-test-foobar
     COMMAND ktx2check --foobar
 )
@@ -41,14 +42,16 @@ PROPERTIES
 )
 
 add_test( NAME ktx2check-test-all
-    # Invoke via sh workaround, since CMake puts asterisk in quotes otherwise ( "*.ktx2" )
+    # Invoke via sh workaround, since CMake puts asterisk in quotes
+	# otherwise ( "*.ktx2" )
     COMMAND ${BASH_EXECUTABLE} -c "$<TARGET_FILE:ktx2check> *.ktx2"
     COMMAND_EXPAND_LISTS
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
 )
 
 add_test( NAME ktx2check-test-all-quiet
-    # Invoke via sh workaround, since CMake puts asterisk in quotes otherwise ( "*.ktx2" )
+    # Invoke via sh workaround, since CMake puts asterisk in quotes
+    # otherwise ( "*.ktx2" )
     COMMAND ${BASH_EXECUTABLE} -c "$<TARGET_FILE:ktx2check> --quiet *.ktx2"
     COMMAND_EXPAND_LISTS
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
@@ -119,10 +122,14 @@ add_test( NAME ktx2check-test-no-nul-on-value
 set_tests_properties(
     ktx2check-test-no-nul-on-value
 PROPERTIES
-    FAIL_REGULAR_EXPRESSION "WARNING: KTXswizzle value missing encouraged NUL termination."
+    PASS_REGULAR_EXPRESSION "WARNING: KTXswizzle value missing encouraged NUL termination."
 )
 add_test( NAME ktx2check-test-no-nul-on-value-exit-code
     COMMAND ktx2check no_nul_on_kvd_val.ktx2
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/badktx2
+)
+add_test( NAME ktx2check-test-no-nul-on-value-warn-as-error-exit-code
+    COMMAND ktx2check -w no_nul_on_kvd_val.ktx2
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/badktx2
 )
 
@@ -142,7 +149,7 @@ set_tests_properties(
     ktx2check-test-incorrect-mip-layout-and-padding
     ktx2check-test-incorrect-mip-layout-and-padding-quiet
     ktx2check-test-incorrect-mip-layout-and-padding-quiet-exit-code
-    ktx2check-test-no-nul-on-value
+	ktx2check-test-no-nul-on-value-warn-as-error-exit-code
 PROPERTIES
     WILL_FAIL TRUE
 )
