@@ -39,8 +39,8 @@ switches: dfd2vk.inl vk2dfd.inl
 dfd2vk.inl: vulkan/vulkan_core.h makedfd2vk.pl
 	./makedfd2vk.pl $< $@
 
-vk2dfd.inl: vulkan/vulkan_core.h makevkswitch.pl
-	./makevkswitch.pl $< $@
+vk2dfd.inl: vulkan/vulkan_core.h makevk2dfd.pl
+	./makevk2dfd.pl $< $@
 
 # For those who wish to generate a project from the gyp file so
 # as to use xcode for debugging.
