@@ -1,3 +1,6 @@
+# -*- tab-width: 4; -*-
+# vi: set sw=2 ts=4 expandtab:
+
 # Copyright 2020 Andreas Atteneder
 # SPDX-License-Identifier: Apache-2.0
 
@@ -43,7 +46,7 @@ PROPERTIES
 
 add_test( NAME ktx2check-test-all
     # Invoke via sh workaround, since CMake puts asterisk in quotes
-	# otherwise ( "*.ktx2" )
+    # otherwise ( "*.ktx2" )
     COMMAND ${BASH_EXECUTABLE} -c "$<TARGET_FILE:ktx2check> *.ktx2"
     COMMAND_EXPAND_LISTS
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
@@ -149,7 +152,7 @@ set_tests_properties(
     ktx2check-test-incorrect-mip-layout-and-padding
     ktx2check-test-incorrect-mip-layout-and-padding-quiet
     ktx2check-test-incorrect-mip-layout-and-padding-quiet-exit-code
-	ktx2check-test-no-nul-on-value-warn-as-error-exit-code
+    ktx2check-test-no-nul-on-value-warn-as-error-exit-code
 PROPERTIES
     WILL_FAIL TRUE
 )
