@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <errno.h>
 #include <math.h>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <regex>
@@ -29,17 +30,11 @@
 #include "dfdutils/dfd.h"
 #include "texture.h"
 #include "basis_sgd.h"
+#include "sbufstream.h"
 
-// Gotta love Windows :-)
+// Gotta love Microsoft & Windows :-)
 #if defined(_MSC_VER)
   #define strncasecmp _strnicmp
-  #if defined(_WIN64)
-    #define ftello _ftelli64
-    #define fseeko _fseeki64
-  #else
-    #define ftello ftell
-    #define fseeko fseek
-  #endif
 #endif
 #include "version.h"
 
@@ -396,6 +391,12 @@ struct {
     };
 } System;
 
+struct {
+    issue Failure {
+        ERROR | 0x0100, "Transcode of BasisU payload failed: %s"
+    };
+} Transcode;
+
 /////////////////////////////////////////////////////////////////////
 //                       External Functions                        //
 //     These are in libktx but not part of its public API.         //
@@ -447,6 +448,70 @@ uint32_t padn_len(uint32_t n, size_t nbytes) {
 }
 
 /////////////////////////////////////////////////////////////////////
+//                        A RAIIfied ktxTexture.                   //
+/////////////////////////////////////////////////////////////////////
+
+template <typename T>
+class KtxTexture final
+{
+public:
+    KtxTexture(std::nullptr_t null = nullptr)
+        : _handle{nullptr}
+    {
+        (void)null;
+    }
+
+    KtxTexture(T* handle)
+        : _handle{handle}
+    {
+    }
+
+    KtxTexture(const KtxTexture&) = delete;
+    KtxTexture &operator=(const KtxTexture&) = delete;
+
+    KtxTexture(KtxTexture&& toMove)
+        : _handle{toMove._handle}
+    {
+        toMove._handle = nullptr;
+    }
+
+    KtxTexture &operator=(KtxTexture&& toMove)
+    {
+        _handle = toMove._handle;
+        toMove._handle = nullptr;
+        return *this;
+    }
+
+    ~KtxTexture()
+    {
+        if (_handle)
+        {
+            ktxTexture_Destroy(handle<ktxTexture>()); _handle = nullptr;
+        }
+    }
+
+    template <typename U = T>
+    inline U* handle() const
+    {
+        return reinterpret_cast<U*>(_handle);
+    }
+
+    template <typename U = T>
+    inline U** pHandle()
+    {
+        return reinterpret_cast<U**>(&_handle);
+    }
+
+    inline operator T*() const
+    {
+        return _handle;
+    }
+
+private:
+    T* _handle;
+};
+
+/////////////////////////////////////////////////////////////////////
 //                    Validator Class Definition                   //
 /////////////////////////////////////////////////////////////////////
 
@@ -489,7 +554,7 @@ class ktxValidator : public ktxApp {
     } logger;
 
     struct validationContext {
-        FILE* inf;
+        istream* inp;
         KTX_header2 header;
         size_t levelIndexSize;
         uint32_t layerCount;
@@ -498,7 +563,6 @@ class ktxValidator : public ktxApp {
         uint32_t* pDfd4Format;
         uint32_t* pActualDfd;
         uint64_t dataSizeFromLevelIndex;
-        uint64_t curFileOffset;  // Keep our own so can use stdin.
         bool cubemapIncompleteFound;
 
         struct formatInfo {
@@ -513,12 +577,12 @@ class ktxValidator : public ktxApp {
         } formatInfo;
 
         validationContext() {
-            inf = nullptr;
+            //inf = nullptr;
+            inp = nullptr;
             pDfd4Format = nullptr;
             pActualDfd = nullptr;
             cubemapIncompleteFound = false;
             dataSizeFromLevelIndex = 0;
-            curFileOffset = 0;
         }
 
         ~validationContext() {
@@ -643,34 +707,19 @@ class ktxValidator : public ktxApp {
                 return lcm4(formatInfo.blockByteLength);
         }
 
-        void init (FILE* f) {
+        void init(istream* is) {
             if (pDfd4Format != nullptr) delete pDfd4Format;
-            inf = f;
+            inp = is;
             dataSizeFromLevelIndex = 0;
-        }
-
-        ktx_size_t fileRead(void* ptr, size_t size, size_t nitems) {
-            ktx_size_t result;
-            result = fread(ptr, size, nitems, inf);
-            if (result == nitems) curFileOffset += (size * nitems);
-            return result;
-        }
-
-        int fileError() {
-            return ferror(inf);
         }
 
         // Move read point from curOffset to next multiple of alignment bytes.
         // Use read not fseeko/setpos so stdin can be used.
-        ktx_uint32_t skipPadding(uint32_t alignment) {
-            uint32_t padLen = padn_len(alignment, curFileOffset);
-            uint8_t padBuf[32];
-            ktx_uint32_t result = 1;
+        void skipPadding(uint32_t alignment) {
+            uint32_t padLen = padn_len(alignment, inp->tellg());
             if (padLen) {
-                if (fileRead(padBuf, padLen, 1) != 1)
-                    result = 0;
+                inp->seekg(padLen, ios_base::cur);
             }
-            return result;
         }
     };
 
@@ -689,33 +738,34 @@ class ktxValidator : public ktxApp {
     void validateKvd(validationContext& ctx);
     void validateSgd(validationContext& ctx);
     void validateDataSize(validationContext& ctx);
-    bool validateMetadata(validationContext& ctx, char* key, uint8_t* value,
-                          uint32_t valueLen);
+    bool validateTranscode(validationContext& ctx); // Must be called last.
+    bool validateMetadata(validationContext& ctx, const char* key,
+                          const uint8_t* value, uint32_t valueLen);
 
     typedef void (ktxValidator::*validateMetadataFunc)(validationContext& ctx,
-                                                       char* key,
-                                                       uint8_t* value,
+                                                       const char* key,
+                                                       const uint8_t* value,
                                                        uint32_t valueLen);
-    void validateCubemapIncomplete(validationContext& ctx, char* key,
-                                   uint8_t* value, uint32_t valueLen);
-    void validateOrientation(validationContext& ctx, char* key,
-                             uint8_t* value, uint32_t valueLen);
-    void validateGlFormat(validationContext& ctx, char* key,
-                          uint8_t* value, uint32_t valueLen);
-    void validateDxgiFormat(validationContext& ctx, char* key,
-                            uint8_t* value, uint32_t valueLen);
-    void validateMetalPixelFormat(validationContext& ctx, char* key,
-                                  uint8_t* value, uint32_t valueLen);
-    void validateSwizzle(validationContext& ctx, char* key,
-                        uint8_t* value, uint32_t valueLen);
-    void validateWriter(validationContext& ctx, char* key,
-                        uint8_t* value, uint32_t valueLen);
-    void validateWriterScParams(validationContext& ctx, char* key,
-                                uint8_t* value, uint32_t valueLen);
-    void validateAstcDecodeMode(validationContext& ctx, char* key,
-                                uint8_t* value, uint32_t valueLen);
-    void validateAnimData(validationContext& ctx, char* key,
-                          uint8_t* value, uint32_t valueLen);
+    void validateCubemapIncomplete(validationContext& ctx, const char* key,
+                                   const uint8_t* value, uint32_t valueLen);
+    void validateOrientation(validationContext& ctx, const char* key,
+                             const uint8_t* value, uint32_t valueLen);
+    void validateGlFormat(validationContext& ctx, const char* key,
+                          const uint8_t* value, uint32_t valueLen);
+    void validateDxgiFormat(validationContext& ctx, const char* key,
+                            const uint8_t* value, uint32_t valueLen);
+    void validateMetalPixelFormat(validationContext& ctx, const char* key,
+                                  const uint8_t* value, uint32_t valueLen);
+    void validateSwizzle(validationContext& ctx, const char* key,
+                        const uint8_t* value, uint32_t valueLen);
+    void validateWriter(validationContext& ctx, const char* key,
+                        const uint8_t* value, uint32_t valueLen);
+    void validateWriterScParams(validationContext& ctx, const char* key,
+                                const uint8_t* value, uint32_t valueLen);
+    void validateAstcDecodeMode(validationContext& ctx, const char* key,
+                                const uint8_t* value, uint32_t valueLen);
+    void validateAnimData(validationContext& ctx, const char* key,
+                          const uint8_t* value, uint32_t valueLen);
 
     typedef struct {
         string name;
@@ -736,12 +786,11 @@ class ktxValidator : public ktxApp {
     } options;
 
     void skipPadding(validationContext& ctx, uint32_t alignment) {
-        if (ctx.skipPadding(alignment) == 0) {
-            if (ctx.fileError())
-                addIssue(logger::eFatal, IOError.FileRead, strerror(errno));
-            else
-                addIssue(logger::eFatal, IOError.UnexpectedEOF, 0);
-        }
+        ctx.skipPadding(alignment);
+        if (ctx.inp->fail())
+            addIssue(logger::eFatal, IOError.FileRead, strerror(errno));
+        else if (ctx.inp->eof())
+            addIssue(logger::eFatal, IOError.UnexpectedEOF, 0);
     }
 };
 
@@ -879,7 +928,18 @@ template<typename ... Args>
 void
 ktxValidator::logger::addIssue(severity severity, issue issue, Args ... args)
 {
-    if (!quiet) {
+    if (quiet) {
+        switch (severity) {
+          case eError:
+            errorCount++;
+            break;
+          case eFatal:
+            break;
+          case eWarning:
+            warningCount++;
+            break;
+        }
+    } else {
         if (!headerWritten) {
             cout << "Issues in: " << nameOfFileBeingValidated << std::endl;
             headerWritten = true;
@@ -997,25 +1057,40 @@ ktxValidator::main(int argc, _TCHAR *argv[])
 }
 
 void
-ktxValidator::validateFile(const string& filename)
+ktxValidator::validateFile(const _tstring& filename)
 {
-    FILE* inf;
     validationContext context;
+    istream* isp;
+    // These 2 need to be declared here so they stay around for the life
+    // of this method.
+    ifstream ifs;
+    stringstream buffer;
 
     if (filename.compare(_T("-")) == 0) {
-        inf = stdin;
 #if defined(_WIN32)
         /* Set "stdin" to have binary mode */
         (void)_setmode( _fileno( stdin ), _O_BINARY );
 #endif
+        // Can we seek in this cin?
+        cin.seekg(0);
+        if (cin.fail()) {
+            // Read entire file into a stringstream so we can seek.
+            buffer << std::cin.rdbuf();
+            isp = &buffer;
+        } else {
+            isp = &cin;
+        }
     } else {
-        inf = _tfopen(filename.c_str(), "rb");
+        // MS's STL has `open` overloads that accept wchar_t to handle
+        // Window's Unicode file names.
+        ifs.open(filename, ios_base::in | ios_base::binary);
+        isp = &ifs;
     }
 
-    logger.startFile(inf == stdin ? "stdin" : filename);
-    if (inf) {
+    logger.startFile(isp != &ifs ? "stdin" : filename);
+    if (!isp->fail()) {
         try {
-            context.init(inf);
+            context.init(isp);
             validateHeader(context);
             validateLevelIndex(context);
             validateDfd(context);
@@ -1025,6 +1100,7 @@ ktxValidator::validateFile(const string& filename)
             validateSgd(context);
             skipPadding(context, context.requiredLevelAlignment());
             validateDataSize(context);
+            validateTranscode(context);
         } catch (fatal& e) {
             if (!options.quiet)
                 cout << "    " << e.what() << endl;
@@ -1032,7 +1108,7 @@ ktxValidator::validateFile(const string& filename)
         } catch (max_issues_exceeded& e) {
             cout << e.what() << endl;
         }
-        fclose(inf);
+        if (isp == &ifs) ifs.close();
     } else {
         addIssue(logger::eFatal, IOError.FileOpen, strerror(errno));
     }
@@ -1063,12 +1139,12 @@ ktxValidator::validateHeader(validationContext& ctx)
     ktx_uint8_t identifier_reference[12] = KTX2_IDENTIFIER_REF;
     ktx_uint32_t max_dim;
 
-    if (ctx.fileRead(&ctx.header, sizeof(KTX_header2), 1) != 1) {
-        if (ctx.fileError())
-            addIssue(logger::eFatal, IOError.FileRead, strerror(errno));
-        else
-            addIssue(logger::eFatal, IOError.UnexpectedEOF);
-    }
+    ctx.inp->read((char *)&ctx.header, sizeof(KTX_header2));
+    if (ctx.inp->fail())
+        addIssue(logger::eFatal, IOError.FileRead, strerror(errno));
+    else if (ctx.inp->eof())
+        addIssue(logger::eFatal, IOError.UnexpectedEOF);
+
     // Is this a KTX2 file?
     if (memcmp(&ctx.header.identifier, identifier_reference, 12) != 0) {
         addIssue(logger::eFatal, FileError.NotKTX2);
@@ -1203,8 +1279,7 @@ ktxValidator::validateHeader(validationContext& ctx)
     }
 
     ctx.levelIndexSize = sizeof(ktxLevelIndexEntry) * ctx.levelCount;
-    ctx.curFileOffset = KTX2_HEADER_SIZE + ctx.levelIndexSize;
-    uint64_t offset = ctx.curFileOffset;
+    uint64_t offset = KTX2_HEADER_SIZE + ctx.levelIndexSize;
     if (offset != ctx.header.dataFormatDescriptor.byteOffset)
         addIssue(logger::eError, HeaderData.InvalidDFDOffset);
     offset += ctx.header.dataFormatDescriptor.byteLength;
@@ -1227,14 +1302,12 @@ ktxValidator::validateHeader(validationContext& ctx)
 void
 ktxValidator::validateLevelIndex(validationContext& ctx)
 {
-     ktxLevelIndexEntry* levelIndex = new ktxLevelIndexEntry[ctx.levelCount];
-     if (ctx.fileRead(levelIndex, ctx.levelIndexSize, 1) != 1) {
-        if (ctx.fileError())
-            addIssue(logger::eFatal, IOError.FileRead, strerror(errno));
-        else
-            addIssue(logger::eFatal, IOError.UnexpectedEOF);
-    }
-    ctx.curFileOffset += ctx.levelIndexSize;
+    ktxLevelIndexEntry* levelIndex = new ktxLevelIndexEntry[ctx.levelCount];
+    ctx.inp->read((char *)levelIndex, ctx.levelIndexSize);
+    if (ctx.inp->fail())
+        addIssue(logger::eFatal, IOError.FileRead, strerror(errno));
+    else if (ctx.inp->eof())
+        addIssue(logger::eFatal, IOError.UnexpectedEOF);
 
     uint32_t requiredLevelAlignment = ctx.requiredLevelAlignment();
     size_t expectedOffset = 0;
@@ -1322,12 +1395,12 @@ ktxValidator::validateDfd(validationContext& ctx)
     // header.dataFormatDescriptor.byteOffset points to this location.
     ctx.pActualDfd = new uint32_t[ctx.header.dataFormatDescriptor.byteLength
                                / sizeof(uint32_t)];
-    if (ctx.fileRead(ctx.pActualDfd, ctx.header.dataFormatDescriptor.byteLength, 1) != 1) {
-        if (ctx.fileError())
-            addIssue(logger::eFatal, IOError.FileRead, strerror(errno));
-        else
-            addIssue(logger::eFatal, IOError.UnexpectedEOF);
-    }
+    ctx.inp->read((char *)ctx.pActualDfd,
+                  ctx.header.dataFormatDescriptor.byteLength);
+    if (ctx.inp->fail())
+        addIssue(logger::eFatal, IOError.FileRead, strerror(errno));
+    else if (ctx.inp->eof())
+        addIssue(logger::eFatal, IOError.UnexpectedEOF);
 
     if (ctx.header.dataFormatDescriptor.byteLength != *ctx.pActualDfd)
         addIssue(logger::eError, DFD.SizeMismatch);
@@ -1569,12 +1642,11 @@ ktxValidator::validateKvd(validationContext& ctx)
         return;
 
     uint8_t* kvd = new uint8_t[kvdLen];
-    if (ctx.fileRead(kvd, kvdLen, 1) != 1) {
-        if (ctx.fileError())
-            addIssue(logger::eFatal, IOError.FileRead, strerror(errno));
-        else
-            addIssue(logger::eFatal, IOError.UnexpectedEOF);
-    }
+    ctx.inp->read((char *)kvd, kvdLen);
+    if (ctx.inp->fail())
+        addIssue(logger::eFatal, IOError.FileRead, strerror(errno));
+    else if (ctx.inp->eof())
+        addIssue(logger::eFatal, IOError.UnexpectedEOF);
 
     // Check all kv pairs have valuePadding and it's included in kvdLen;
     uint8_t* pCurKv = kvd;
@@ -1677,8 +1749,8 @@ ktxValidator::validateKvd(validationContext& ctx)
 }
 
 bool
-ktxValidator::validateMetadata(validationContext& ctx, char* key,
-                               uint8_t* pValue, uint32_t valueLen)
+ktxValidator::validateMetadata(validationContext& ctx, const char* key,
+                               const uint8_t* pValue, uint32_t valueLen)
 {
 #define CALL_MEMBER_FN(object,ptrToMember)  ((object)->*(ptrToMember))
     vector<metadataValidator>::const_iterator it;
@@ -1697,8 +1769,10 @@ ktxValidator::validateMetadata(validationContext& ctx, char* key,
 }
 
 void
-ktxValidator::validateCubemapIncomplete(validationContext& ctx, char* key,
-                                        uint8_t*, uint32_t valueLen)
+ktxValidator::validateCubemapIncomplete(validationContext& ctx,
+                                        const char* key,
+                                        const uint8_t*,
+                                        uint32_t valueLen)
 {
     ctx.cubemapIncompleteFound = true;
     if (valueLen != 1)
@@ -1706,88 +1780,118 @@ ktxValidator::validateCubemapIncomplete(validationContext& ctx, char* key,
 }
 
 void
-ktxValidator::validateOrientation(validationContext& ctx, char* key,
-                                  uint8_t* value, uint32_t valueLen)
+ktxValidator::validateOrientation(validationContext& ctx,
+                                  const char* key,
+                                  const uint8_t* value,
+                                  uint32_t valueLen)
 {
     if (valueLen == 0) {
         addIssue(logger::eError, Metadata.MissingValue, key);
         return;
     }
 
-    if (value[valueLen-1] != '\0')
+    string orientation;
+    const char* pOrientation = reinterpret_cast<const char*>(value);
+    if (value[valueLen - 1] != '\0') {
+        // regex_match on some platforms will fail to match an otherwise
+        // valid swizzle due to lack of a NUL terminator even IF there is
+        // no '$' at the end of the regex. Make a copy to avoid this.    
+        orientation.assign(pOrientation, valueLen);
+        pOrientation = orientation.c_str();
         addIssue(logger::eWarning, Metadata.ValueNotNulTerminated, key);
+    }
 
     if (valueLen != ctx.dimensionCount + 1)
         addIssue(logger::eError, Metadata.InvalidValue, key);
 
     switch (ctx.dimensionCount) {
       case 1:
-        if (!regex_match ((char*)value, regex("^[rl]$") ))
+        if (!regex_match (pOrientation, regex("^[rl]$") ))
             addIssue(logger::eError, Metadata.InvalidValue, key);
         break;
       case 2:
-        if (!regex_match((char*)value, regex("^[rl][du]$")))
+        if (!regex_match(pOrientation, regex("^[rl][du]$")))
             addIssue(logger::eError, Metadata.InvalidValue, key);
         break;
       case 3:
-        if (!regex_match((char*)value, regex("^[rl][du][oi]$")))
+        if (!regex_match(pOrientation, regex("^[rl][du][oi]$")))
             addIssue(logger::eError, Metadata.InvalidValue, key);
         break;
     }
 }
 
 void
-ktxValidator::validateGlFormat(validationContext& /*ctx*/, char* key,
-                               uint8_t* /*value*/, uint32_t valueLen)
+ktxValidator::validateGlFormat(validationContext& /*ctx*/,
+                               const char* key,
+                               const uint8_t* /*value*/,
+                               uint32_t valueLen)
 {
     if (valueLen != sizeof(uint32_t) * 3)
         addIssue(logger::eError, Metadata.InvalidValue, key);
 }
 
 void
-ktxValidator::validateDxgiFormat(validationContext& /*ctx*/, char* key,
-                                 uint8_t* /*value*/, uint32_t valueLen)
-{
+ktxValidator::validateDxgiFormat(validationContext& /*ctx*/,
+                                 const char* key,
+                                 const uint8_t* /*value*/,
+                                 uint32_t valueLen)
+                            {
     if (valueLen != sizeof(uint32_t))
         addIssue(logger::eError, Metadata.InvalidValue, key);}
 
 void
-ktxValidator::validateMetalPixelFormat(validationContext& /*ctx*/, char* key,
-                                       uint8_t* /*value*/, uint32_t valueLen)
+ktxValidator::validateMetalPixelFormat(validationContext& /*ctx*/,
+                                       const char* key,
+                                       const uint8_t* /*value*/,
+                                       uint32_t valueLen)
 {
     if (valueLen != sizeof(uint32_t))
         addIssue(logger::eError, Metadata.InvalidValue, key);
 }
 
 void
-ktxValidator::validateSwizzle(validationContext& /*ctx*/, char* key,
-                              uint8_t* value, uint32_t valueLen)
+ktxValidator::validateSwizzle(validationContext& /*ctx*/,
+                              const char* key,
+                              const uint8_t* value,
+                              uint32_t valueLen)
 {
-    if (value[valueLen-1] != '\0')
+    string swizzle;
+    const char* pSwizzle = reinterpret_cast<const char*>(value);
+    if (value[valueLen - 1] != '\0') {
         addIssue(logger::eWarning, Metadata.ValueNotNulTerminated, key);
-    if (!regex_match((char*)value, regex("^[rgba01]{4}$")))
+        // See comment in validateOrientation.    
+        swizzle.assign(pSwizzle, valueLen);
+        pSwizzle = swizzle.c_str();
+    }
+    if (!regex_match(pSwizzle, regex("^[rgba01]{4}$")))
         addIssue(logger::eError, Metadata.InvalidValue, key);
 }
 
 void
-ktxValidator::validateWriter(validationContext& /*ctx*/, char* key,
-                             uint8_t* value, uint32_t valueLen)
+ktxValidator::validateWriter(validationContext& /*ctx*/,
+                             const char* key,
+                             const uint8_t* value,
+                             uint32_t valueLen)
 {
     if (value[valueLen-1] != '\0')
         addIssue(logger::eWarning, Metadata.ValueNotNulTerminated, key);
 }
 
 void
-ktxValidator::validateWriterScParams(validationContext& /*ctx*/, char* key,
-                                     uint8_t* value, uint32_t valueLen)
+ktxValidator::validateWriterScParams(validationContext& /*ctx*/,
+                                     const char* key,
+                                     const uint8_t* value,
+                                     uint32_t valueLen)
 {
     if (value[valueLen-1] != '\0')
         addIssue(logger::eWarning, Metadata.ValueNotNulTerminated, key);
 }
 
 void
-ktxValidator::validateAstcDecodeMode(validationContext& ctx, char* key,
-                                     uint8_t* value, uint32_t valueLen)
+ktxValidator::validateAstcDecodeMode(validationContext& ctx,
+                                     const char* key,
+                                     const uint8_t* value,
+                                     uint32_t valueLen)
 {
     if (valueLen == 0) {
         addIssue(logger::eError, Metadata.MissingValue, key);
@@ -1813,8 +1917,10 @@ ktxValidator::validateAstcDecodeMode(validationContext& ctx, char* key,
 }
 
 void
-ktxValidator::validateAnimData(validationContext& ctx, char* key,
-                               uint8_t* /*value*/, uint32_t valueLen)
+ktxValidator::validateAnimData(validationContext& ctx,
+                               const char* key,
+                               const uint8_t* /*value*/,
+                               uint32_t valueLen)
 {
     if (ctx.cubemapIncompleteFound) {
          addIssue(logger::eError, Metadata.NotAllowed, key,
@@ -1844,12 +1950,11 @@ ktxValidator::validateSgd(validationContext& ctx)
     }
 
     uint8_t* sgd = new uint8_t[sgdByteLength];
-    if (ctx.fileRead(sgd, sgdByteLength, 1) != 1) {
-        if (ctx.fileError())
-            addIssue(logger::eFatal, IOError.FileRead, strerror(errno));
-        else
-            addIssue(logger::eFatal, IOError.UnexpectedEOF);
-    }
+    ctx.inp->read((char *)sgd, sgdByteLength);
+    if (ctx.inp->fail())
+        addIssue(logger::eFatal, IOError.FileRead, strerror(errno));
+    else if (ctx.inp->eof())
+        addIssue(logger::eFatal, IOError.UnexpectedEOF);
 
     // firstImages contains the indices of the first images for each level.
     // The last array entry contains the total number of images which is what
@@ -1904,23 +2009,58 @@ ktxValidator::validateDataSize(validationContext& ctx)
     // Expects to be called after validateSgd so current file offset is at
     // the start of the data.
     uint64_t dataSizeInFile;
-    if (ctx.inf != stdin) {
-        off_t dataStart = (off_t)ftello(ctx.inf);
-        if (fseeko(ctx.inf, 0, SEEK_END) < 0)
-            addIssue(logger::eFatal, IOError.FileSeekEndFailure,
-                     strerror(errno));
-        off_t dataEnd = (off_t)ftello(ctx.inf);
-        if (dataEnd < 0)
-            addIssue(logger::eFatal, IOError.FileTellFailure, strerror(errno));
-        dataSizeInFile = dataEnd - dataStart;
-    } else {
-        // Is this going to be really slow?
-        dataSizeInFile = 0;
-        while (getc(ctx.inf) != EOF)
-            dataSizeInFile++;
-        if (ctx.fileError())
-            addIssue(logger::eFatal, IOError.FileRead, strerror(errno));
-    }
+    off_t dataStart = (off_t)(ctx.inp->tellg());
+
+    ctx.inp->seekg(0, ios_base::end);
+    if (ctx.inp->fail())
+        addIssue(logger::eFatal, IOError.FileSeekEndFailure,
+                 strerror(errno));
+    off_t dataEnd = (off_t)(ctx.inp->tellg());
+    if (dataEnd < 0)
+        addIssue(logger::eFatal, IOError.FileTellFailure, strerror(errno));
+    dataSizeInFile = dataEnd - dataStart;
     if (dataSizeInFile != ctx.dataSizeFromLevelIndex)
         addIssue(logger::eError, FileError.IncorrectDataSize);
 }
+
+// Must be called last as it rewinds the file.
+bool
+ktxValidator::validateTranscode(validationContext& ctx)
+{
+    uint32_t* bdb = ctx.pActualDfd + 1; // Basic descriptor block.
+    uint32_t model = KHR_DFDVAL(bdb, MODEL);
+    if (model != KHR_DF_MODEL_UASTC && model != KHR_DF_MODEL_ETC1S) {
+        // Nothin to do. Not transcodable.
+        return true;
+    }
+
+    bool retval;
+    istream& is = *ctx.inp;
+    is.seekg(0);
+    streambuf* _streambuf = (is.rdbuf());
+    StreambufStream<streambuf*> ktx2Stream(_streambuf, ios::in);
+    KtxTexture<ktxTexture2> texture2;
+    ktx_error_code_e result = ktxTexture2_CreateFromStream(ktx2Stream.stream(),
+                                        KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                        texture2.pHandle());
+    if (result != KTX_SUCCESS) {
+        addIssue(logger::eError, FileError.CreateFailure,
+                 ktxErrorString(result));
+        retval = false;
+    }
+
+    if (model == KHR_DF_MODEL_ETC1S)
+        result = ktxTexture2_TranscodeBasis(texture2.handle(),
+                                            KTX_TTF_ETC2_RGBA, 0);
+    else
+        result = ktxTexture2_TranscodeBasis(texture2.handle(),
+                                            KTX_TTF_ASTC_4x4_RGBA,  0);
+    if (result != KTX_SUCCESS) {
+        addIssue(logger::eError, Transcode.Failure, ktxErrorString(result));
+        retval = false;
+    } else {
+        retval = true;
+    }
+    return retval;
+}
+
