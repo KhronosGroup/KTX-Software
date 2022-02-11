@@ -8,9 +8,7 @@ branches:
   except:
   - ktxsw
 
-language:
-  - cpp
-  - node_js
+language: cpp
 
 matrix:
   include:
@@ -28,9 +26,6 @@ matrix:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
         - VULKAN_SDK_VER="1.1.85"
       compiler: gcc # clang is tested by macOS build
-      sudo: required
-      node_js:
-        - node
     - os: osx
       env:
         - VULKAN_SDK_VER="1.1.85.0"
@@ -82,7 +77,7 @@ script:
 
 deploy:
   provider: pages
-  skip-cleanup: true
+  cleanup: false
   github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
   local-dir: out/doc/html
   on:

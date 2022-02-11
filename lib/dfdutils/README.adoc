@@ -46,7 +46,7 @@ returns the VkFormat matching a DFD.
 
 API documentation can be found http://github.khronos.org/dfdutils/[here].
 
-makevkswitch.pl and makedfdtovk.pl generate the code used by
+makevk2dfd.pl and makedfd2vk.pl generate the code used by
 `vk2dfd.c` and `dfd2vk.c` to convert from Vulkan enums to data
 format descriptors and back again; these should be run with the
 Vulkan header (or the format enum subset of it) as input, since
@@ -62,12 +62,12 @@ example.
 The commands` syntax is
 [source,sh]
 ----
-makevkswitch.pl [<vulkan header>] [<output_file>]
+makevk2dfd.pl [<vulkan header>] [<output_file>]
 makedfd2vk.pl [<vulkan_header>] [<output_file>]
 ----
 With no arguments they read from `stdin` and write to `stdout`.
-With 1 argument the commands read the first argument file and write
-to `stdout`. With 2 arguments they read the first argument file and
+With 1 argument they read the first argument file and write to
+`stdout`. With 2 arguments they read the first argument file and
 write to the second.
 
 [NOTE]

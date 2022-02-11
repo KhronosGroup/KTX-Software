@@ -1,11 +1,13 @@
 #!/usr/bin/perl
+# -*- tab-width: 4; -*-
+# vi: set sw=2 ts=4 expandtab:
 
 # Copyright 2019-2020 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
 # N.B. 0 arguments, read stdin, write stdout.
 # 1 argument, read ARGV[0], write stdout.
-# 2 arguments, read ARGV[1], write ARGV[2].
+# 2 arguments, read ARGV[0], write ARGV[1].
 if (@ARGV > 1) {
     open (my $output, '>', $ARGV[1]);
     select $output;
@@ -27,9 +29,9 @@ print " ************************************************************************
 # Loop over each line of input
 while ($line = <>) {
 
-    # Match any format that starts with a channel description (some number of R, G, B, A or a number)
-    # In PERL, "=~" performs a regex operation on the left argument
-    # m/<regex>/ matches the regular expression
+    # Match any format that starts with a channel description (some number
+    # of R, G, B, A or a number). # In PERL, "=~" performs a regex
+    # operation on the left argument m/<regex>/ matches the regular expression
     if ($line =~ m/VK_FORMAT_[RGBA0-9]+_/) {
 
         # Set $format to the enum identifier
@@ -130,10 +132,12 @@ while ($line = <>) {
             }
         }
 
-        # If we weren't VK_FORMAT_ plus a channel, we might be a compressed format, that ends "_BLOCK"
+        # If we weren't VK_FORMAT_ plus a channel, we might be a compressed
+        # format, that ends "_BLOCK"
         # N.B. We don't currently process compressed formats here.
         # They're essentially all special cases anyway.
-        # The decoding code that this is derived from is retained for future work.
+        # The code for compressed formats from the code the above is
+        # derived from is retained here for future work.
     } elsif (0 && $line =~ m/(VK_FORMAT_[A-Z0-9x_]+_BLOCK(_EXT)?)/) {
 
         # Extract the format identifier from the rest of the line
@@ -163,7 +167,7 @@ while ($line = <>) {
                 $foundFormats{$format} = 1;
 
                 # All the other BC formats don't have a channel identifier in the name, so we regex match them
-            } elsif ($line =~ m/VK_FORMAT_(BC[2-7H])_([A-Z]+)_BLOCK/) {
+            } elsif ($line =~ m/VK_FORMAT_(BC(?:[2-57]|6H))_([A-Z]+)_BLOCK/) {
                 $scheme = $1;
                 $suffix = $2;
                 print "case $format: return createDFDCompressed(c_$scheme, 4, 4, 1, s_$suffix);\n";
