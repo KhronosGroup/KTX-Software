@@ -71,14 +71,14 @@ add_custom_target(mkvkformatfiles
 
 list(APPEND makevkswitch_input
     "lib/vkformat_enum.h"
-    "lib/dfdutils/makevkswitch.pl")
+    "lib/dfdutils/makevk2dfd.pl")
 set(makevkswitch_output
     "${PROJECT_SOURCE_DIR}/lib/dfdutils/vk2dfd.inl")
 if(CMAKE_HOST_WIN32)
     add_custom_command(
         OUTPUT ${makevkswitch_output}
         COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
-        COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makevkswitch.pl lib/vkformat_enum.h lib/dfdutils/vk2dfd.inl
+        COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makevk2dfd.pl lib/vkformat_enum.h lib/dfdutils/vk2dfd.inl
         COMMAND "${BASH_EXECUTABLE}" -c "unix2dos ${PROJECT_SOURCE_DIR}/lib/dfdutils/vk2dfd.inl"
         DEPENDS ${makevkswitch_input}
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
@@ -89,7 +89,7 @@ else()
     add_custom_command(
         OUTPUT ${makevkswitch_output}
         COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
-        COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makevkswitch.pl lib/vkformat_enum.h lib/dfdutils/vk2dfd.inl
+        COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makevk2dfd.pl lib/vkformat_enum.h lib/dfdutils/vk2dfd.inl
         DEPENDS ${makevkswitch_input}
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
         COMMENT "Generating VkFormat/DFD switch body"
@@ -97,7 +97,7 @@ else()
     )
 endif()
 
-add_custom_target(makevkswitch
+add_custom_target(makevk2dfd
     DEPENDS ${makevkswitch_output}
     SOURCES ${makevkswitch_input}
 )
@@ -141,6 +141,6 @@ add_custom_target(mkvk SOURCES ${CMAKE_CURRENT_LIST_FILE})
 
 add_dependencies(mkvk
     mkvkformatfiles
-    makevkswitch
+    makevk2dfd
     makedfd2vk
 )
