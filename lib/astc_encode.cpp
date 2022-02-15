@@ -330,13 +330,11 @@ static astcenc_swizzle
 astcSwizzle(const ktxAstcParams &params) {
 
     astcenc_swizzle swizzle{ASTCENC_SWZ_R, ASTCENC_SWZ_G, ASTCENC_SWZ_B, ASTCENC_SWZ_A};
-    const astcenc_swizzle normal_swizzle{ASTCENC_SWZ_R, ASTCENC_SWZ_R, ASTCENC_SWZ_R, ASTCENC_SWZ_G};
 
     std::vector<astcenc_swz*> swizzle_array{&swizzle.r, &swizzle.g, &swizzle.b, &swizzle.a};
     std::string inputSwizzle = params.inputSwizzle;
 
-    if (inputSwizzle.size() > 0)
-    {
+    if (inputSwizzle.size() > 0) {
         assert(inputSwizzle.size() == 4 && "InputSwizzle is invalid.");
 
         for (int i = 0; i < 4; i++) {
@@ -353,16 +351,11 @@ astcSwizzle(const ktxAstcParams &params) {
             else if (inputSwizzle[i] == '1')
                 *swizzle_array[i] = ASTCENC_SWZ_1;
         }
-
-        return swizzle;
+    } else if (params.normalMap) {
+        return {ASTCENC_SWZ_R, ASTCENC_SWZ_R, ASTCENC_SWZ_R, ASTCENC_SWZ_G};
     }
-    else
-    {
-        if (params.normalMap)
-            return normal_swizzle;
 
-        return swizzle;
-    }
+    return swizzle;
 }
 
 static void
