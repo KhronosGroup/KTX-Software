@@ -445,6 +445,7 @@ class scApp : public ktxApp {
                 mode.clear();
                 qualityLevel.clear();
                 normalMap = false;
+                for (int i = 0; i < 4; i++) inputSwizzle[i] = 0;
             }
         };
         int          ktx2;

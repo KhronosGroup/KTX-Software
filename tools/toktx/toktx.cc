@@ -1357,7 +1357,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
                 for (i = 0; i < 4; i++) {
                      bopts.inputSwizzle[i] = options.inputSwizzle[i];
                 }
-            } else if (defaultSwizzle.size()) {
+            } else if (defaultSwizzle.size() && !options.normalMode) {
                  for (i = 0; i < 4; i++) {
                      bopts.inputSwizzle[i] = defaultSwizzle[i];
                 }
@@ -1383,7 +1383,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
                 for (i = 0; i < options.inputSwizzle.size(); i++) {
                      astcopts.inputSwizzle[i] = options.inputSwizzle[i];
                 }
-            } else if (defaultSwizzle.size()) {
+            } else if (defaultSwizzle.size() && !options.normalMode) {
                  for (i = 0; i < options.inputSwizzle.size(); i++) {
                      astcopts.inputSwizzle[i] = defaultSwizzle[i];
                 }

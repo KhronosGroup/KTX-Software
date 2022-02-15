@@ -330,25 +330,39 @@ static astcenc_swizzle
 astcSwizzle(const ktxAstcParams &params) {
 
     astcenc_swizzle swizzle{ASTCENC_SWZ_R, ASTCENC_SWZ_G, ASTCENC_SWZ_B, ASTCENC_SWZ_A};
+    const astcenc_swizzle normal_swizzle{ASTCENC_SWZ_R, ASTCENC_SWZ_R, ASTCENC_SWZ_R, ASTCENC_SWZ_G};
 
     std::vector<astcenc_swz*> swizzle_array{&swizzle.r, &swizzle.g, &swizzle.b, &swizzle.a};
+    std::string inputSwizzle = params.inputSwizzle;
 
-    for (int i = 0; i < 4; i++) {
-        if (params.inputSwizzle[i] == 'r')
-            *swizzle_array[i] = ASTCENC_SWZ_R;
-        else if (params.inputSwizzle[i] == 'g')
-            *swizzle_array[i] = ASTCENC_SWZ_G;
-        else if (params.inputSwizzle[i] == 'b')
-            *swizzle_array[i] = ASTCENC_SWZ_B;
-        else if (params.inputSwizzle[i] == 'a')
-            *swizzle_array[i] = ASTCENC_SWZ_A;
-        else if (params.inputSwizzle[i] == '0')
-            *swizzle_array[i] = ASTCENC_SWZ_0;
-        else if (params.inputSwizzle[i] == '1')
-            *swizzle_array[i] = ASTCENC_SWZ_1;
+    if (inputSwizzle.size() > 0)
+    {
+        assert(inputSwizzle.size() == 4 && "InputSwizzle is invalid.");
+
+        for (int i = 0; i < 4; i++) {
+            if (inputSwizzle[i] == 'r')
+                *swizzle_array[i] = ASTCENC_SWZ_R;
+            else if (inputSwizzle[i] == 'g')
+                *swizzle_array[i] = ASTCENC_SWZ_G;
+            else if (inputSwizzle[i] == 'b')
+                *swizzle_array[i] = ASTCENC_SWZ_B;
+            else if (inputSwizzle[i] == 'a')
+                *swizzle_array[i] = ASTCENC_SWZ_A;
+            else if (inputSwizzle[i] == '0')
+                *swizzle_array[i] = ASTCENC_SWZ_0;
+            else if (inputSwizzle[i] == '1')
+                *swizzle_array[i] = ASTCENC_SWZ_1;
+        }
+
+        return swizzle;
     }
+    else
+    {
+        if (params.normalMap)
+            return normal_swizzle;
 
-    return swizzle;
+        return swizzle;
+    }
 }
 
 static void
@@ -598,7 +612,6 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
     astcenc_profile profile{ASTCENC_PRF_LDR_SRGB};
 
     astcenc_swizzle swizzle{ASTCENC_SWZ_R, ASTCENC_SWZ_G, ASTCENC_SWZ_B, ASTCENC_SWZ_A};
-    const astcenc_swizzle normal_swizzle{ASTCENC_SWZ_R, ASTCENC_SWZ_R, ASTCENC_SWZ_R, ASTCENC_SWZ_G};
 
     uint32_t        block_size_x{6};
     uint32_t        block_size_y{6};
@@ -610,7 +623,7 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
                         block_size_x, block_size_y, block_size_z);
     quality = astcQuality(params->qualityLevel);
     profile = astcEncoderAction(*params, BDB);
-    swizzle = params->normalMap ? normal_swizzle : astcSwizzle(*params);
+    swizzle = astcSwizzle(*params);
 
     astcenc_config   astc_config;
     astcenc_context *astc_context;
