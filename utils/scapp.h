@@ -193,6 +193,11 @@ astcEncoderMode(const char* mode) {
                      <tr><td>exhaustive </td> <td>(equivalent to quality = 100) </td></tr>
                  </table>
                  </dd>
+        <dt>--astc_perceptual</dt>
+                 <dd>The codec should optimize for perceptual error, instead of direct
+                 RMS error. This aims to improve perceived image quality, but
+                 typically lowers the measured PSNR score. Perceptual methods are
+                 currently only available for normal maps and RGB color data.</dd>
       </dl>
       <dl>
       <dt>etc1s:</dt>
@@ -542,6 +547,11 @@ class scApp : public ktxApp {
           "                   medium     | (equivalent to quality =  60)\n"
           "                   thorough   | (equivalent to quality =  98)\n"
           "                   exhaustive | (equivalent to quality = 100)\n"
+          "      --astc_perceptual\n"
+          "               The codec should optimize for perceptual error, instead of direct\n"
+          "               RMS error. This aims to improve perceived image quality, but\n"
+          "               typically lowers the measured PSNR score. Perceptual methods are\n"
+          "               currently only available for normal maps and RGB color data.\n"
           "    etc1s:\n"
           "               Supercompress the image data with ETC1S / BasisLZ.\n"
           "               RED images will become RGB with RED in each component. RG images\n"
@@ -732,11 +742,12 @@ scApp::scApp(string& version, string& defaultVersion,
       { "astc_blk_d", argparser::option::required_argument, NULL, 1012 },
       { "astc_mode", argparser::option::required_argument, NULL, 1013 },
       { "astc_quality", argparser::option::required_argument, NULL, 1014 },
-      { "encode", argparser::option::required_argument, NULL, 1015 },
-      { "normalize", argparser::option::no_argument, NULL, 1016 },
+      { "astc_perceptual", argparser::option::no_argument, NULL, 1015 },
+      { "encode", argparser::option::required_argument, NULL, 1016 },
+      { "normalize", argparser::option::no_argument, NULL, 1017 },
       // Deprecated options
       { "bcmp", argparser::option::no_argument, NULL, 'b' },
-      { "uastc", argparser::option::optional_argument, NULL, 1017 }
+      { "uastc", argparser::option::optional_argument, NULL, 1018 }
   };
   const int lastOptionIndex = sizeof(my_option_list)
                               / sizeof(argparser::option);
@@ -918,14 +929,17 @@ scApp::processOption(argparser& parser, int opt)
         options.ktx2 = 1;
         break;
       case 1015:
+        options.astcopts.perceptual = true;
+        break;
+      case 1016:
         setEncoder(parser.optarg);
         options.ktx2 = 1;
         hasArg = true;
         break;
-      case 1016:
+      case 1017:
         options.normalize = true;
         break;
-      case 1017:
+      case 1018:
         if (options.etc1s) {
              cerr << "Only one of `--encode etc1s | --bcmp` and `--uastc [<level>]` can be specified."
                   << endl;
