@@ -503,7 +503,7 @@ toktxApp::usage()
         "\n"
         "  The target texture type (number of components in the output texture) is chosen\n"
         "  via --target_type. Swizzling of the components of the input file is specified\n"
-        "  with --input_swizzle and swizzzle metadata can be specified with --swizzle\n"
+        "  with --input_swizzle and swizzle metadata can be specified with --swizzle\n"
         "  Defaults, shown in the following tables, are based on the components of the\n"
         "  input file and whether the target texture format is uncompressed or\n"
         "  block-compressed including the universal formats. Input components are\n"
@@ -903,6 +903,10 @@ toktxApp::main(int argc, _TCHAR *argv[])
             image->yflip();
         }
 
+        if (options.normalize) {
+            image->normalize();
+        }
+
         if (options.targetType != commandOptions::eUnspecified) {
             if (options.targetType != (int)image->getComponentCount()) {
                 Image* newImage = nullptr;
@@ -1237,9 +1241,8 @@ toktxApp::main(int argc, _TCHAR *argv[])
                     goto cleanup;
                 }
 
-                // TODO: add an option for renormalize;
-                //if (options.gmopts.mipRenormalize)
-                //    levelImage->renormalize_normal_map();
+                if (options.normalize)
+                    levelImage->normalize();
 
                 ret = ktxTexture_SetImageFromMemory(ktxTexture(texture),
                                               glevel,
@@ -1342,21 +1345,21 @@ toktxApp::main(int argc, _TCHAR *argv[])
         f = _tfopen(options.outfile.c_str(), "wb");
 
     if (f) {
-       if (options.etc1s || options.bopts.uastc) {
-            commandOptions::basisOptions& bopts = options.bopts;
-            if (bopts.normalMap && chosenOETF != KHR_DF_TRANSFER_LINEAR) {
-                fprintf(stderr, "%s: --normal_map specified but input file(s) are"
+       if (options.normalMode && chosenOETF != KHR_DF_TRANSFER_LINEAR) {
+                fprintf(stderr, "%s: --normal_mode specified but input file(s) are"
                         " not linear.", name.c_str());
                 exitCode = 1;
                 goto cleanup;
-            }
+       }
+       if (options.etc1s || options.bopts.uastc) {
+            commandOptions::basisOptions& bopts = options.bopts;
             if (options.inputSwizzle.size()) {
                 for (i = 0; i < 4; i++) {
-                     options.bopts.inputSwizzle[i] = options.inputSwizzle[i];
+                     bopts.inputSwizzle[i] = options.inputSwizzle[i];
                 }
-            } else if (defaultSwizzle.size()) {
+            } else if (defaultSwizzle.size() && !options.normalMode) {
                  for (i = 0; i < 4; i++) {
-                     options.bopts.inputSwizzle[i] = defaultSwizzle[i];
+                     bopts.inputSwizzle[i] = defaultSwizzle[i];
                 }
             }
 
@@ -1376,14 +1379,11 @@ toktxApp::main(int argc, _TCHAR *argv[])
             }
         } else if (options.astc) {
             commandOptions::astcOptions& astcopts = options.astcopts;
-#if TRAVIS_DEBUG
-            astcopts.print();
-#endif
             if (options.inputSwizzle.size()) {
                 for (i = 0; i < options.inputSwizzle.size(); i++) {
                      astcopts.inputSwizzle[i] = options.inputSwizzle[i];
                 }
-            } else if (defaultSwizzle.size()) {
+            } else if (defaultSwizzle.size() && !options.normalMode) {
                  for (i = 0; i < options.inputSwizzle.size(); i++) {
                      astcopts.inputSwizzle[i] = defaultSwizzle[i];
                 }
@@ -1391,6 +1391,10 @@ toktxApp::main(int argc, _TCHAR *argv[])
 
             astcopts.threadCount = options.threadCount;
             astcopts.normalMap = options.normalMode;
+
+#if TRAVIS_DEBUG
+            astcopts.print();
+#endif
 
             ret = ktxTexture2_CompressAstcEx((ktxTexture2*)texture, &astcopts);
             if (KTX_SUCCESS != ret) {
