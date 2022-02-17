@@ -328,29 +328,11 @@ astcEncoderMode(const char* mode) {
                  RDO is disabled (no selector RDO, no endpoint RDO) to provide
                  better quality.</dd>
     <dt>--normalize</dt>
-<<<<<<< HEAD
                  <dd>Normalize input normals to have a unit length. Only valid for
                  linear textures with 2 or more components. For 2-component inputs 2D
                  unit normals are calculated. Do not use this to generate X+Y normals
                  for --normal_mode. For 4-component inputs a 3D unit normal is calculated.
                  1.0 is used for the value of the 4th component.</dd>
-    <dt>--perceptual</dt>
-                 <dd>The codec should optimize perceptual error, instead of direct
-                 RMS error. This aims to improves perceived image quality, but
-                 typically lowers the measured PSNR score. Perceptual methods are
-                 currently only available for normal maps and RGB color data.</dd>
-||||||| parent of 3f1373ef (Move perceptual to be astc only option)
-                 <dd>Only valid for linear textures with two or three components."
-                 Normalize input normals to have a unit length."</dd>
-    <dt>--perceptual</dt>
-                 <dd>The codec should optimize perceptual error, instead of direct
-                 RMS error. This aims to improves perceived image quality, but
-                 typically lowers the measured PSNR score. Perceptual methods are
-                 currently only available for normal maps and RGB color data.</dd>
-=======
-                 <dd>Only valid for linear textures with two or three components."
-                 Normalize input normals to have a unit length."</dd>
->>>>>>> 3f1373ef (Move perceptual to be astc only option)
     <dt>--no_sse</dt>
                  <dd>Forbid use of the SSE instruction set. Ignored if CPU does not
                  support SSE. Only the Basis Universal compressor uses SSE.</dd>
@@ -696,11 +678,6 @@ class scApp : public ktxApp {
           "               unit normals are calculated. Do not use this to generate X+Y normals \n"
           "               for --normal_mode. For 4-component inputs a 3D unit normal is calculated.\n"
           "               1.0 is used for the value of the 4th component."
-          "  --perceptual\n"
-          "               The codec should optimize perceptual error, instead of direct\n"
-          "               RMS error. This aims to improves perceived image quality, but\n"
-          "               typically lowers the measured PSNR score. Perceptual methods are\n"
-          "               currently only available for normal maps and RGB color data.\n"
           "  --no_sse\n"
           "               Forbid use of the SSE instruction set. Ignored if CPU does not\n"
           "               support SSE. Only the Basis Universal compressor uses SSE.\n"

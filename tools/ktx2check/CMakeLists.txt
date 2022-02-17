@@ -17,10 +17,18 @@ PRIVATE
     ${PROJECT_SOURCE_DIR}/other_include
 )
 
+set_target_properties(
+    ktx2check PROPERTIES
+    # Force C++14 (for std::make_unique on AppleClang and Linux GCC)
+    CXX_STANDARD 14
+    CXX_STANDARD_REQUIRED YES
+)
+
 target_link_libraries(
     ktx2check
     ktx
     objUtil
 )
+
 set_tool_properties(ktx2check)
 set_xcode_code_sign(ktx2check)

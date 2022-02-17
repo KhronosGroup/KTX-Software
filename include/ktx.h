@@ -1316,11 +1316,6 @@ typedef struct ktxBasisParams {
              selector RDO, no endpoint RDO) and sets the texture's DFD appropriately.
              Only valid for linear textures.
          */
-    ktx_bool_t perceptual;
-        /*!< If true, the input is assumed to be in sRGB space.
-             True on photos, albedo/spec maps, and false on normal maps.
-             Tunes codec parameters for better quality.
-         */
     ktx_bool_t separateRGToRGB_A;
         /*!< @deprecated. This was and is a no-op. 2-component inputs have always been
              automatically separated using an "rrrg" inputSwizzle. @sa inputSwizzle and normalMode.
