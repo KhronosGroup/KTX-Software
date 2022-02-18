@@ -1207,7 +1207,7 @@ typedef struct ktxAstcParams {
          */
 
     ktx_bool_t perceptual;
-        /*!< The codec should optimize perceptual error, instead of direct
+        /*!< The codec should optimize for perceptual error, instead of direct
            RMS error. This aims to improves perceived image quality, but
            typically lowers the measured PSNR score. Perceptual methods are
            currently only available for normal maps and RGB color data.
