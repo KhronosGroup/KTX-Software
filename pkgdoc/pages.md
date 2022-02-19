@@ -15,8 +15,9 @@ The KTX software consists of
 - The KTX tools including `toktx` for creating KTX files from PNG or Netpbm format images.
 
 For information about the KTX format see the
-<a href="http://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/">
-formal specification.</a>
+<a href="https://www.khronos.org/registry/KTX/">
+KTX Registry</a> where you can find the formal specifications
+and helpful tools for implementers.
 
 The software is open source software. See @ref license for details.
 
