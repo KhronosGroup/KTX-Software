@@ -1175,33 +1175,48 @@ typedef struct ktxAstcParams {
         /*!< Size of this struct. Used so library can tell which version
              of struct is being passed.
          */
+
     ktx_bool_t verbose;
         /*!< If true, prints Astc encoder operation details to
              @c stdout. Not recommended for GUI apps.
          */
+
     ktx_uint32_t threadCount;
-        /*!< Number of threads used for compression. Default is 1. */
+        /*!< Number of threads used for compression. Default is 1.
+         */
 
     /* astcenc params */
     ktx_uint32_t blockDimension;
         /*!< Combinations of block dimensions that astcenc supports
-          i.e. 6x6, 8x8, 6x5 etc*/
+          i.e. 6x6, 8x8, 6x5 etc
+         */
 
     ktx_uint32_t mode;
-        /*!< Can be {ldr/hdr} from astcenc*/
+        /*!< Can be {ldr/hdr} from astcenc
+         */
 
     ktx_uint32_t qualityLevel;
-        /*!< astcenc supports -fastest, -fast, -medium, -thorough, -exhaustive*/
+        /*!< astcenc supports -fastest, -fast, -medium, -thorough, -exhaustive
+         */
 
     ktx_bool_t normalMap;
         /*!< Tunes codec parameters for better quality on normal maps
           In this mode normals are compressed to X,Y components
           Discarding Z component, reader will need to generate Z
           component in shaders.
-        */
+         */
+
+    ktx_bool_t perceptual;
+        /*!< The codec should optimize for perceptual error, instead of direct
+           RMS error. This aims to improves perceived image quality, but
+           typically lowers the measured PSNR score. Perceptual methods are
+           currently only available for normal maps and RGB color data.
+         */
+
     char inputSwizzle[4];
          /*!< A swizzle to provide as input to astcenc. It must match the regular
-             expression /^[rgba01]{4}$/.*/
+             expression /^[rgba01]{4}$/.
+          */
 } ktxAstcParams;
 
 KTX_API KTX_error_code KTX_APIENTRY
@@ -1338,28 +1353,35 @@ typedef struct ktxBasisParams {
                 KTX_PACK_UASTC_LEVEL_VERYSLOW | 48.24dB
          */
     ktx_bool_t uastcRDO;
-        /*!< Enable Rate Distortion Optimization (RDO) post-processing. */
+        /*!< Enable Rate Distortion Optimization (RDO) post-processing.
+         */
     float uastcRDOQualityScalar;
         /*!< UASTC RDO quality scalar (lambda). Lower values yield higher
              quality/larger LZ compressed files, higher values yield lower
              quality/smaller LZ compressed files. A good range to try is [.2,4].
-             Full range is [.001,50.0]. Default is 1.0. */
+             Full range is [.001,50.0]. Default is 1.0.
+         */
     ktx_uint32_t uastcRDODictSize;
         /*!< UASTC RDO dictionary size in bytes. Default is 4096. Lower
-             values=faster, but give less compression. Range is [64,65536]. */
+             values=faster, but give less compression. Range is [64,65536].
+         */
     float uastcRDOMaxSmoothBlockErrorScale;
         /*!< UASTC RDO max smooth block error scale. Range is [1,300].
              Default is 10.0, 1.0 is disabled. Larger values suppress more
-             artifacts (and allocate more bits) on smooth blocks. */
+             artifacts (and allocate more bits) on smooth blocks.
+         */
     float uastcRDOMaxSmoothBlockStdDev;
         /*!< UASTC RDO max smooth block standard deviation. Range is
              [.01,65536.0]. Default is 18.0. Larger values expand the range of
-             blocks considered smooth. */
+             blocks considered smooth.
+         */
     ktx_bool_t uastcRDODontFavorSimplerModes;
-        /*!< Do not favor simpler UASTC modes in RDO mode. */
+        /*!< Do not favor simpler UASTC modes in RDO mode.
+         */
     ktx_bool_t uastcRDONoMultithreading;
         /*!< Disable RDO multithreading (slightly higher compression,
-             deterministic). */
+             deterministic).
+         */
 
 } ktxBasisParams;
 
