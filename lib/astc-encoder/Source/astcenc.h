@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2020-2021 Arm Limited
+// Copyright 2020-2022 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -405,36 +405,6 @@ struct astcenc_config
 	/** @brief The ASTC block size Z dimension. */
 	unsigned int block_z;
 
-	/** @brief The size of the texel kernel for error weighting (-v). */
-	unsigned int v_rgba_radius;
-
-	/** @brief The mean and stdev component mix for error weighting (-v). */
-	float v_rgba_mean_stdev_mix;
-
-	/** @brief The texel RGB power for error weighting (-v). */
-	float v_rgb_power;
-
-	/** @brief The texel RGB base weight for error weighting (-v). */
-	float v_rgb_base;
-
-	/** @brief The texel RGB mean weight for error weighting (-v). */
-	float v_rgb_mean;
-
-	/** @brief The texel RGB stdev for error weighting (-v). */
-	float v_rgb_stdev;
-
-	/** @brief The texel A power for error weighting (-va). */
-	float v_a_power;
-
-	/** @brief The texel A base weight for error weighting (-va). */
-	float v_a_base;
-
-	/** @brief The texel A mean weight for error weighting (-va). */
-	float v_a_mean;
-
-	/** @brief The texel A stdev for error weighting (-va). */
-	float v_a_stdev;
-
 	/** @brief The red component weight scale for error weighting (-cw). */
 	float cw_r_weight;
 
@@ -455,13 +425,6 @@ struct astcenc_config
 	 * texels that are adjcent to non-transparent texels.
 	 */
 	unsigned int a_scale_radius;
-
-	/**
-	 * @brief The additional weight for block edge texels (-b).
-	 *
-	 * This is generic tool for reducing artefacts visible on block changes.
-	 */
-	float b_deblock_weight;
 
 	/** @brief The RGBM scale factor for the shared multiplier (-rgbm). */
 	float rgbm_m_scale;

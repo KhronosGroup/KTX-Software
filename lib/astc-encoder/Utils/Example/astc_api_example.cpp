@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 	uint8_t *image_data = (uint8_t*)stbi_load(argv[1], &image_x, &image_y, &image_c, 4);
 	if (!image_data)
 	{
-		printf("Failed to load image \"%s\"\n", image_data);
+		printf("Failed to load image \"%s\"\n", argv[1]);
 		return 1;
 	}
 

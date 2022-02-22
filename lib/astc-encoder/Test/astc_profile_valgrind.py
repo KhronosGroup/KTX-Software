@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # -----------------------------------------------------------------------------
-# Copyright 2020-2021 Arm Limited
+# Copyright 2020-2022 Arm Limited
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy
@@ -116,7 +116,7 @@ def run_pass(image, noStartup, encoder, blocksize, quality):
 
     if noStartup:
         args = ["gprof2dot", "--format=callgrind", "--output=out.dot", "callgrind.txt",
-                "-s", "-z", "compress_block(astcenc_context const&, astcenc_image const&, image_block const&, physical_compressed_block&, compression_working_buffers&)"]
+                "-s", "-z", "compress_block(astcenc_context const&, image_block const&, physical_compressed_block&, compression_working_buffers&)"]
     else:
         args = ["gprof2dot", "--format=callgrind", "--output=out.dot", "callgrind.txt",
                 "-s",  "-z", "main"]
@@ -143,32 +143,20 @@ def parse_command_line():
     parser.add_argument("img", type=argparse.FileType("r"),
                         help="The image file to test")
 
-    testencoders = ["sse2", "sse4.1", "avx2"]
-    encoders = testencoders + ["all"]
-    parser.add_argument("--encoder", dest="encoders", default="avx2",
+    encoders = ["sse2", "sse4.1", "avx2"]
+    parser.add_argument("--encoder", dest="encoder", default="avx2",
                         choices=encoders, help="select encoder variant")
 
-    testqualities = ["fastest", "fast", "medium", "thorough", "20", "30", "40", "50"]
-    qualities = testqualities + ["all"]
-    parser.add_argument("--test-quality", dest="qualities", default="medium",
+    testquant = [str(x) for x in range (0, 101, 10)]
+    testqual = ["-fastest", "-fast", "-medium", "-thorough", "-exhaustive"]
+    qualities = testqual + testquant
+    parser.add_argument("--test-quality", dest="quality", default="medium",
                         choices=qualities, help="select compression quality")
 
     parser.add_argument("--no-startup", dest="noStartup", default=False,
                         action="store_true", help="Exclude init")
 
     args = parser.parse_args()
-
-    if args.encoders == "all":
-        args.encoders = testencoders
-    else:
-        args.encoders = [args.encoders]
-
-    if args.qualities == "all":
-        args.qualities = testqualities
-    elif args.qualities in ["fastest", "fast", "medium", "thorough"]:
-        args.qualities = [f"-{args.qualities}"]
-    else:
-        args.qualities = [args.qualities]
 
     return args
 
@@ -181,11 +169,7 @@ def main():
         int: The process return code.
     """
     args = parse_command_line()
-
-    for quality in args.qualities:
-        for encoder in args.encoders:
-            run_pass(args.img.name, args.noStartup, encoder, "6x6", quality)
-
+    run_pass(args.img.name, args.noStartup, args.encoder, "6x6", args.quality)
     return 0
 
 

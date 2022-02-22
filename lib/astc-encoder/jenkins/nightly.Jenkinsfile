@@ -41,7 +41,7 @@ pipeline {
                     - name: artifactory-ms-docker
                   containers:
                     - name: astcenc
-                      image: mobile-studio--docker.eu-west-1.artifactory.aws.arm.com/astcenc:3.0.0
+                      image: mobile-studio--docker.eu-west-1.artifactory.aws.arm.com/astcenc:3.1.0
                       command:
                         - sleep
                       args:

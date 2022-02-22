@@ -2,7 +2,8 @@ FROM ubuntu:18.04
 
 RUN useradd -u 1000 -U -m -c Jenkins jenkins
 
-RUN apt update && apt-get install -y \
+RUN apt update && apt -y upgrade \
+  && apt install -y \
     software-properties-common \
     clang \
     clang++-9 \
@@ -18,15 +19,18 @@ RUN apt update && apt-get install -y \
     python3-pil \
     ca-certificates \
     gnupg \
-    wget
+    wget \
+  && rm -rf /var/lib/apt/lists/*
 
 # Install python modules
 RUN pip3 install requests
 
 # Install Coverity static analysis tools
-COPY cov-analysis-linux64-2019.09 /coverity/
-RUN chmod -R a+rw /coverity
-ENV PATH="/coverity/bin:$PATH"
+COPY coverity_* /tmp/
+RUN chmod 555 /tmp/coverity_install.sh && \
+  /tmp/coverity_install.sh -q --license.region=6 --license.agreement=agree --license.cov.path=/tmp/coverity_license.dat -dir /usr/local/cov-analysis && \
+  rm /tmp/coverity_*
+ENV PATH="/usr/local/cov-analysis/bin:$PATH"
 
 # Install up-to-date CMake, as standard Ubuntu 18.04 package is too old
 RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null \

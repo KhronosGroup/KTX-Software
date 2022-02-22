@@ -118,6 +118,7 @@ macro(astcenc_set_properties NAME)
             $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-c++98-c++11-compat-pedantic>
             $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-float-equal>
             $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-deprecated-declarations>
+            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-atomic-implicit-seq-cst>
 
             # Clang 10 also throws up warnings we need to investigate (ours)
             $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-old-style-cast>
@@ -127,8 +128,7 @@ macro(astcenc_set_properties NAME)
             $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-shift-sign-overflow>
             $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-format-nonliteral>
 
-            $<$<CXX_COMPILER_ID:Clang>:-Wdocumentation>)
-
+           $<$<CXX_COMPILER_ID:Clang>:-Wdocumentation>)
 
     target_link_options(${NAME}
         PRIVATE

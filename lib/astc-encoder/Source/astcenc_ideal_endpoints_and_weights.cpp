@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2011-2021 Arm Limited
+// Copyright 2011-2022 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -31,7 +31,6 @@
  *
  * @param      bsd         The block size information.
  * @param      blk         The image block color data to compress.
- * @param      ewb         The image block weighted error data.
  * @param      pi          The partition info for the current trial.
  * @param[out] ei          The computed ideal endpoints and weights.
  * @param      component   The color component to compute.
@@ -39,7 +38,6 @@
 static void compute_ideal_colors_and_weights_1_comp(
 	const block_size_descriptor& bsd,
 	const image_block& blk,
-	const error_weight_block& ewb,
 	const partition_info& pi,
 	endpoints_and_weights& ei,
 	unsigned int component
@@ -54,78 +52,73 @@ static void compute_ideal_colors_and_weights_1_comp(
 	float lowvalues[BLOCK_MAX_PARTITIONS] { 1e10f, 1e10f, 1e10f, 1e10f };
 	float highvalues[BLOCK_MAX_PARTITIONS] { -1e10f, -1e10f, -1e10f, -1e10f };
 
-	float partition_error_scale[BLOCK_MAX_PARTITIONS];
-	float linelengths_rcp[BLOCK_MAX_PARTITIONS];
+	float length_squared[BLOCK_MAX_PARTITIONS];
+	float scale[BLOCK_MAX_PARTITIONS];
 
-	const float *error_weights = nullptr;
+	float error_weight;
 	const float* data_vr = nullptr;
 
 	assert(component < BLOCK_MAX_COMPONENTS);
 	switch (component)
 	{
 	case 0:
-		error_weights = ewb.texel_weight_r;
+		error_weight = blk.channel_weight.lane<0>();
 		data_vr = blk.data_r;
 		break;
 	case 1:
-		error_weights = ewb.texel_weight_g;
+		error_weight = blk.channel_weight.lane<1>();
 		data_vr = blk.data_g;
 		break;
 	case 2:
-		error_weights = ewb.texel_weight_b;
+		error_weight = blk.channel_weight.lane<2>();
 		data_vr = blk.data_b;
 		break;
 	default:
-		error_weights = ewb.texel_weight_a;
+		error_weight = blk.channel_weight.lane<3>();
 		data_vr = blk.data_a;
 		break;
 	}
 
 	for (int i = 0; i < texel_count; i++)
 	{
-		if (error_weights[i] > 1e-10f)
-		{
-			float value = data_vr[i];
-			int partition = pi.partition_of_texel[i];
+		float value = data_vr[i];
+		int partition = pi.partition_of_texel[i];
 
-			lowvalues[partition] = astc::min(value, lowvalues[partition]);
-			highvalues[partition] = astc::max(value, highvalues[partition]);
-		}
+		lowvalues[partition] = astc::min(value, lowvalues[partition]);
+		highvalues[partition] = astc::max(value, highvalues[partition]);
 	}
 
 	vmask4 sep_mask = vint4::lane_id() == vint4(component);
 	for (int i = 0; i < partition_count; i++)
 	{
-		float diff = highvalues[i] - lowvalues[i];
-
-		if (diff < 0)
+		float length = highvalues[i] - lowvalues[i];
+		if (length < 0.0f)
 		{
 			lowvalues[i] = 0.0f;
 			highvalues[i] = 0.0f;
 		}
 
-		diff = astc::max(diff, 1e-7f);
-
-		partition_error_scale[i] = diff * diff;
-		linelengths_rcp[i] = 1.0f / diff;
+		length = astc::max(length, 1e-7f);
+		length_squared[i] = length * length;
+		scale[i] = 1.0f / length;
 
 		ei.ep.endpt0[i] = select(blk.data_min, vfloat4(lowvalues[i]), sep_mask);
 		ei.ep.endpt1[i] = select(blk.data_max, vfloat4(highvalues[i]), sep_mask);
 	}
 
 	bool is_constant_wes = true;
-	float constant_wes = partition_error_scale[pi.partition_of_texel[0]] * error_weights[0];
+	float constant_wes = length_squared[pi.partition_of_texel[0]] * error_weight;
 
 	for (int i = 0; i < texel_count; i++)
 	{
 		float value = data_vr[i];
 		int partition = pi.partition_of_texel[i];
 		value -= lowvalues[partition];
-		value *= linelengths_rcp[partition];
+		value *= scale[partition];
 		value = astc::clamp1f(value);
 
 		ei.weights[i] = value;
-		ei.weight_error_scale[i] = partition_error_scale[partition] * error_weights[i];
+		ei.weight_error_scale[i] = length_squared[partition] * error_weight;
 		assert(!astc::isnan(ei.weight_error_scale[i]));
 
 		is_constant_wes = is_constant_wes && ei.weight_error_scale[i] == constant_wes;
@@ -147,7 +140,6 @@ static void compute_ideal_colors_and_weights_1_comp(
  *
  * @param      bsd          The block size information.
  * @param      blk          The image block color data to compress.
- * @param      ewb          The image block weighted error data.
  * @param      pi           The partition info for the current trial.
  * @param[out] ei           The computed ideal endpoints and weights.
  * @param      component1   The first color component to compute.
@@ -156,7 +148,6 @@ static void compute_ideal_colors_and_weights_1_comp(
 static void compute_ideal_colors_and_weights_2_comp(
 	const block_size_descriptor& bsd,
 	const image_block& blk,
-	const error_weight_block& ewb,
 	const partition_info& pi,
 	endpoints_and_weights& ei,
 	int component1,
@@ -171,24 +162,29 @@ static void compute_ideal_colors_and_weights_2_comp(
 
 	partition_metrics pms[BLOCK_MAX_PARTITIONS];
 
-	const float *error_weights;
+	float error_weight;
 	const float* data_vr = nullptr;
 	const float* data_vg = nullptr;
 	if (component1 == 0 && component2 == 1)
 	{
-		error_weights = ewb.texel_weight_rg;
+		error_weight = hadd_s(blk.channel_weight.swz<0, 1>()) / 2.0f;
+
 		data_vr = blk.data_r;
 		data_vg = blk.data_g;
 	}
 	else if (component1 == 0 && component2 == 2)
 	{
-		error_weights = ewb.texel_weight_rb;
+		error_weight = hadd_s(blk.channel_weight.swz<0, 2>()) / 2.0f;
+
 		data_vr = blk.data_r;
 		data_vg = blk.data_b;
 	}
 	else // (component1 == 1 && component2 == 2)
 	{
-		error_weights = ewb.texel_weight_gb;
+		assert(component1 == 1 && component2 == 2);
+
+		error_weight = hadd_s(blk.channel_weight.swz<1, 2>()) / 2.0f;
+
 		data_vr = blk.data_g;
 		data_vg = blk.data_b;
 	}
@@ -200,7 +196,7 @@ static void compute_ideal_colors_and_weights_2_comp(
 	float scale[BLOCK_MAX_PARTITIONS];
 	float length_squared[BLOCK_MAX_PARTITIONS];
 
-	compute_avgs_and_dirs_2_comp(pi, blk, ewb, component1, component2, pms);
+	compute_avgs_and_dirs_2_comp(pi, blk, component1, component2, pms);
 
 	for (int i = 0; i < partition_count; i++)
 	{
@@ -216,21 +212,14 @@ static void compute_ideal_colors_and_weights_2_comp(
 
 	for (int i = 0; i < texel_count; i++)
 	{
-		if (error_weights[i] > 1e-10f)
-		{
-			int partition = pi.partition_of_texel[i];
-			vfloat4 point = vfloat2(data_vr[i], data_vg[i]) * pms[partition].color_scale.swz<0, 1>();
-			line2 l = lines[partition];
-			float param = dot_s(point - l.a, l.b);
-			ei.weights[i] = param;
+		int partition = pi.partition_of_texel[i];
+		vfloat4 point = vfloat2(data_vr[i], data_vg[i]);
+		line2 l = lines[partition];
+		float param = dot_s(point - l.a, l.b);
+		ei.weights[i] = param;
 
-			lowparam[partition] = astc::min(param, lowparam[partition]);
-			highparam[partition] = astc::max(param, highparam[partition]);
-		}
-		else
-		{
-			ei.weights[i] = -1e38f;
-		}
+		lowparam[partition] = astc::min(param, lowparam[partition]);
+		highparam[partition] = astc::max(param, highparam[partition]);
 	}
 
 	vfloat4 lowvalues[BLOCK_MAX_PARTITIONS];
@@ -242,7 +231,7 @@ static void compute_ideal_colors_and_weights_2_comp(
 		if (length < 0.0f) // Case for when none of the texels had any weight
 		{
 			lowparam[i] = 0.0f;
-			highparam[i] = 1e-7f;
+			highparam[i] = 0.0f;
 		}
 
 		// It is possible for a uniform-color partition to produce length=0; this causes NaN issues
@@ -251,17 +240,11 @@ static void compute_ideal_colors_and_weights_2_comp(
 		length_squared[i] = length * length;
 		scale[i] = 1.0f / length;
 
-		vfloat4 ep0 = lines[i].a + lines[i].b * lowparam[i];
-		vfloat4 ep1 = lines[i].a + lines[i].b * highparam[i];
-
-		ep0 = ep0.swz<0, 1>() / pms[i].color_scale;
-
-		ep1 = ep1.swz<0, 1>() / pms[i].color_scale;
-
-		lowvalues[i] = ep0;
-		highvalues[i] = ep1;
+		lowvalues[i] = lines[i].a + lines[i].b * lowparam[i];
+		highvalues[i] = lines[i].a + lines[i].b * highparam[i];
 	}
 
+	// TODO: Merge this into loop above?
 	vmask4 comp1_mask = vint4::lane_id() == vint4(component1);
 	vmask4 comp2_mask = vint4::lane_id() == vint4(component2);
 	for (int i = 0; i < partition_count; i++)
@@ -274,7 +257,7 @@ static void compute_ideal_colors_and_weights_2_comp(
 	}
 
 	bool is_constant_wes = true;
-	float constant_wes = length_squared[pi.partition_of_texel[0]] * error_weights[0];
+	float constant_wes = length_squared[pi.partition_of_texel[0]] * error_weight;
 
 	for (int i = 0; i < texel_count; i++)
 	{
@@ -283,7 +266,7 @@ static void compute_ideal_colors_and_weights_2_comp(
 		idx = astc::clamp1f(idx);
 
 		ei.weights[i] = idx;
-		ei.weight_error_scale[i] = length_squared[partition] * error_weights[i];
+		ei.weight_error_scale[i] = length_squared[partition] * error_weight;
 		assert(!astc::isnan(ei.weight_error_scale[i]));
 
 		is_constant_wes = is_constant_wes && ei.weight_error_scale[i] == constant_wes;
@@ -305,7 +288,6 @@ static void compute_ideal_colors_and_weights_2_comp(
  *
  * @param      bsd                 The block size information.
  * @param      blk                 The image block color data to compress.
- * @param      ewb                 The image block weighted error data.
  * @param      pi                  The partition info for the current trial.
  * @param[out] ei                  The computed ideal endpoints and weights.
  * @param      omitted_component   The color component excluded from the calculation.
@@ -313,7 +295,6 @@ static void compute_ideal_colors_and_weights_2_comp(
 static void compute_ideal_colors_and_weights_3_comp(
 	const block_size_descriptor& bsd,
 	const image_block& blk,
-	const error_weight_block& ewb,
 	const partition_info& pi,
 	endpoints_and_weights& ei,
 	unsigned int omitted_component
@@ -327,34 +308,34 @@ static void compute_ideal_colors_and_weights_3_comp(
 
 	partition_metrics pms[BLOCK_MAX_PARTITIONS];
 
-	const float *error_weights;
+	float error_weight;
 	const float* data_vr = nullptr;
 	const float* data_vg = nullptr;
 	const float* data_vb = nullptr;
 	if (omitted_component == 0)
 	{
-		error_weights = ewb.texel_weight_gba;
+		error_weight = hadd_s(blk.channel_weight.swz<0, 1, 2>()) / 3.0f;
 		data_vr = blk.data_g;
 		data_vg = blk.data_b;
 		data_vb = blk.data_a;
 	}
 	else if (omitted_component == 1)
 	{
-		error_weights = ewb.texel_weight_rba;
+		error_weight = hadd_s(blk.channel_weight.swz<0, 2, 3>()) / 3.0f;
 		data_vr = blk.data_r;
 		data_vg = blk.data_b;
 		data_vb = blk.data_a;
 	}
 	else if (omitted_component == 2)
 	{
-		error_weights = ewb.texel_weight_rga;
+		error_weight = hadd_s(blk.channel_weight.swz<0, 1, 3>()) / 3.0f;
 		data_vr = blk.data_r;
 		data_vg = blk.data_g;
 		data_vb = blk.data_a;
 	}
 	else
 	{
-		error_weights = ewb.texel_weight_rgb;
+		error_weight = hadd_s(blk.channel_weight.swz<0, 1, 2>()) / 3.0f;
 		data_vr = blk.data_r;
 		data_vg = blk.data_g;
 		data_vb = blk.data_b;
@@ -367,7 +348,7 @@ static void compute_ideal_colors_and_weights_3_comp(
 	float scale[BLOCK_MAX_PARTITIONS];
 	float length_squared[BLOCK_MAX_PARTITIONS];
 
-	compute_avgs_and_dirs_3_comp(pi, blk, ewb, omitted_component, pms);
+	compute_avgs_and_dirs_3_comp(pi, blk, omitted_component, pms);
 
 	for (unsigned int i = 0; i < partition_count; i++)
 	{
@@ -383,27 +364,20 @@ static void compute_ideal_colors_and_weights_3_comp(
 
 	for (unsigned int i = 0; i < texel_count; i++)
 	{
-		if (error_weights[i] > 1e-10f)
-		{
-			int partition = pi.partition_of_texel[i];
-			vfloat4 point = vfloat3(data_vr[i], data_vg[i], data_vb[i]) * pms[partition].color_scale;
-			line3 l = lines[partition];
-			float param = dot3_s(point - l.a, l.b);
-			ei.weights[i] = param;
+		int partition = pi.partition_of_texel[i];
+		vfloat4 point = vfloat3(data_vr[i], data_vg[i], data_vb[i]);
+		line3 l = lines[partition];
+		float param = dot3_s(point - l.a, l.b);
+		ei.weights[i] = param;
 
-			lowparam[partition] = astc::min(param, lowparam[partition]);
-			highparam[partition] = astc::max(param, highparam[partition]);
-		}
-		else
-		{
-			ei.weights[i] = -1e38f;
-		}
+		lowparam[partition] = astc::min(param, lowparam[partition]);
+		highparam[partition] = astc::max(param, highparam[partition]);
 	}
 
 	for (unsigned int i = 0; i < partition_count; i++)
 	{
 		float length = highparam[i] - lowparam[i];
-		if (length < 0)			// Case for when none of the texels had any weight
+		if (length < 0.0f) // Case for when none of the texels had any weight
 		{
 			lowparam[i] = 0.0f;
 			highparam[i] = 1e-7f;
@@ -412,15 +386,11 @@ static void compute_ideal_colors_and_weights_3_comp(
 		// It is possible for a uniform-color partition to produce length=0; this causes NaN issues
 		// so set to a small value to avoid this problem.
 		length = astc::max(length, 1e-7f);
-
 		length_squared[i] = length * length;
 		scale[i] = 1.0f / length;
 
 		vfloat4 ep0 = lines[i].a + lines[i].b * lowparam[i];
 		vfloat4 ep1 = lines[i].a + lines[i].b * highparam[i];
-
-		ep0 = ep0 * pms[i].icolor_scale;
-		ep1 = ep1 * pms[i].icolor_scale;
 
 		vfloat4 bmin = blk.data_min;
 		vfloat4 bmax = blk.data_max;
@@ -449,7 +419,7 @@ static void compute_ideal_colors_and_weights_3_comp(
 
 
 	bool is_constant_wes = true;
-	float constant_wes = length_squared[pi.partition_of_texel[0]] * error_weights[0];
+	float constant_wes = length_squared[pi.partition_of_texel[0]] * error_weight;
 
 	for (unsigned int i = 0; i < texel_count; i++)
 	{
@@ -458,7 +428,7 @@ static void compute_ideal_colors_and_weights_3_comp(
 		idx = astc::clamp1f(idx);
 
 		ei.weights[i] = idx;
-		ei.weight_error_scale[i] = length_squared[partition] * error_weights[i];
+		ei.weight_error_scale[i] = length_squared[partition] * error_weight;
 		assert(!astc::isnan(ei.weight_error_scale[i]));
 
 		is_constant_wes = is_constant_wes && ei.weight_error_scale[i] == constant_wes;
@@ -480,18 +450,16 @@ static void compute_ideal_colors_and_weights_3_comp(
  *
  * @param      bsd                 The block size information.
  * @param      blk                 The image block color data to compress.
- * @param      ewb                 The image block weighted error data.
  * @param      pi                  The partition info for the current trial.
  * @param[out] ei                  The computed ideal endpoints and weights.
  */
 static void compute_ideal_colors_and_weights_4_comp(
 	const block_size_descriptor& bsd,
 	const image_block& blk,
-	const error_weight_block& ewb,
 	const partition_info& pi,
 	endpoints_and_weights& ei
 ) {
-	const float *error_weights = ewb.texel_weight;
+	const float error_weight = hadd_s(blk.channel_weight) / 4.0f;
 
 	int partition_count = pi.partition_count;
 
@@ -509,7 +477,7 @@ static void compute_ideal_colors_and_weights_4_comp(
 
 	partition_metrics pms[BLOCK_MAX_PARTITIONS];
 
-	compute_avgs_and_dirs_4_comp(pi, blk, ewb, pms);
+	compute_avgs_and_dirs_4_comp(pi, blk, pms);
 
 	// If the direction points from light to dark then flip so ep0 is darkest
 	for (int i = 0; i < partition_count; i++)
@@ -526,50 +494,39 @@ static void compute_ideal_colors_and_weights_4_comp(
 
 	for (int i = 0; i < texel_count; i++)
 	{
-		if (error_weights[i] > 1e-10f)
-		{
-			int partition = pi.partition_of_texel[i];
+		int partition = pi.partition_of_texel[i];
 
-			vfloat4 point = blk.texel(i) * pms[partition].color_scale;
-			line4 l = lines[partition];
+		vfloat4 point = blk.texel(i);
+		line4 l = lines[partition];
 
-			float param = dot_s(point - l.a, l.b);
-			ei.weights[i] = param;
+		float param = dot_s(point - l.a, l.b);
+		ei.weights[i] = param;
 
-			lowparam[partition] = astc::min(param, lowparam[partition]);
-			highparam[partition] = astc::max(param, highparam[partition]);
-		}
-		else
-		{
-			ei.weights[i] = -1e38f;
-		}
+		lowparam[partition] = astc::min(param, lowparam[partition]);
+		highparam[partition] = astc::max(param, highparam[partition]);
 	}
 
 	for (int i = 0; i < partition_count; i++)
 	{
 		float length = highparam[i] - lowparam[i];
-		if (length < 0)
+		if (length < 0.0f) // Case for when none of the texels had any weight
 		{
 			lowparam[i] = 0.0f;
-			highparam[i] = 1e-7f;
+			highparam[i] = 0.0f;
 		}
 
 		// It is possible for a uniform-color partition to produce length=0; this causes NaN issues
 		// so set to a small value to avoid this problem.
 		length = astc::max(length, 1e-7f);
-
 		length_squared[i] = length * length;
 		scale[i] = 1.0f / length;
 
-		vfloat4 ep0 = lines[i].a + lines[i].b * lowparam[i];
-		vfloat4 ep1 = lines[i].a + lines[i].b * highparam[i];
-
-		ei.ep.endpt0[i] = ep0 * pms[i].icolor_scale;
-		ei.ep.endpt1[i] = ep1 * pms[i].icolor_scale;
+		ei.ep.endpt0[i] = lines[i].a + lines[i].b * lowparam[i];
+		ei.ep.endpt1[i] = lines[i].a + lines[i].b * highparam[i];
 	}
 
 	bool is_constant_wes = true;
-	float constant_wes = length_squared[pi.partition_of_texel[0]] * error_weights[0];
+	float constant_wes = length_squared[pi.partition_of_texel[0]] * error_weight;
 
 	for (int i = 0; i < texel_count; i++)
 	{
@@ -578,7 +535,7 @@ static void compute_ideal_colors_and_weights_4_comp(
 		idx = astc::clamp1f(idx);
 
 		ei.weights[i] = idx;
-		ei.weight_error_scale[i] = error_weights[i] * length_squared[partition];
+		ei.weight_error_scale[i] = length_squared[partition] * error_weight;
 		assert(!astc::isnan(ei.weight_error_scale[i]));
 
 		is_constant_wes = is_constant_wes && ei.weight_error_scale[i] == constant_wes;
@@ -599,7 +556,6 @@ static void compute_ideal_colors_and_weights_4_comp(
 void compute_ideal_colors_and_weights_1plane(
 	const block_size_descriptor& bsd,
 	const image_block& blk,
-	const error_weight_block& ewb,
 	const partition_info& pi,
 	endpoints_and_weights& ei
 ) {
@@ -607,11 +563,11 @@ void compute_ideal_colors_and_weights_1plane(
 
 	if (uses_alpha)
 	{
-		compute_ideal_colors_and_weights_4_comp(bsd, blk, ewb, pi, ei);
+		compute_ideal_colors_and_weights_4_comp(bsd, blk, pi, ei);
 	}
 	else
 	{
-		compute_ideal_colors_and_weights_3_comp(bsd, blk, ewb,  pi, ei, 3);
+		compute_ideal_colors_and_weights_3_comp(bsd, blk, pi, ei, 3);
 	}
 }
 
@@ -619,7 +575,6 @@ void compute_ideal_colors_and_weights_1plane(
 void compute_ideal_colors_and_weights_2planes(
 	const block_size_descriptor& bsd,
 	const image_block& blk,
-	const error_weight_block& ewb,
 	unsigned int plane2_component,
 	endpoints_and_weights& ei1,
 	endpoints_and_weights& ei2
@@ -633,43 +588,43 @@ void compute_ideal_colors_and_weights_2planes(
 	case 0: // Separate weights for red
 		if (uses_alpha)
 		{
-			compute_ideal_colors_and_weights_3_comp(bsd, blk, ewb, pi, ei1, 0);
+			compute_ideal_colors_and_weights_3_comp(bsd, blk, pi, ei1, 0);
 		}
 		else
 		{
-			compute_ideal_colors_and_weights_2_comp(bsd, blk, ewb, pi, ei1, 1, 2);
+			compute_ideal_colors_and_weights_2_comp(bsd, blk, pi, ei1, 1, 2);
 		}
-		compute_ideal_colors_and_weights_1_comp(bsd, blk, ewb, pi, ei2, 0);
+		compute_ideal_colors_and_weights_1_comp(bsd, blk, pi, ei2, 0);
 		break;
 
 	case 1: // Separate weights for green
 		if (uses_alpha)
 		{
-			compute_ideal_colors_and_weights_3_comp(bsd,blk, ewb,  pi, ei1, 1);
+			compute_ideal_colors_and_weights_3_comp(bsd,blk, pi, ei1, 1);
 		}
 		else
 		{
-			compute_ideal_colors_and_weights_2_comp(bsd, blk, ewb, pi, ei1, 0, 2);
+			compute_ideal_colors_and_weights_2_comp(bsd, blk, pi, ei1, 0, 2);
 		}
-		compute_ideal_colors_and_weights_1_comp(bsd, blk, ewb, pi, ei2, 1);
+		compute_ideal_colors_and_weights_1_comp(bsd, blk, pi, ei2, 1);
 		break;
 
 	case 2: // Separate weights for blue
 		if (uses_alpha)
 		{
-			compute_ideal_colors_and_weights_3_comp(bsd, blk, ewb, pi, ei1, 2);
+			compute_ideal_colors_and_weights_3_comp(bsd, blk, pi, ei1, 2);
 		}
 		else
 		{
-			compute_ideal_colors_and_weights_2_comp(bsd, blk, ewb, pi, ei1, 0, 1);
+			compute_ideal_colors_and_weights_2_comp(bsd, blk, pi, ei1, 0, 1);
 		}
-		compute_ideal_colors_and_weights_1_comp(bsd, blk, ewb, pi, ei2, 2);
+		compute_ideal_colors_and_weights_1_comp(bsd, blk, pi, ei2, 2);
 		break;
 
 	default: // Separate weights for alpha
 		assert(uses_alpha);
-		compute_ideal_colors_and_weights_3_comp(bsd, blk, ewb, pi, ei1, 3);
-		compute_ideal_colors_and_weights_1_comp(bsd, blk, ewb, pi, ei2, 3);
+		compute_ideal_colors_and_weights_3_comp(bsd, blk, pi, ei1, 3);
+		compute_ideal_colors_and_weights_1_comp(bsd, blk, pi, ei2, 3);
 		break;
 	}
 }
@@ -1098,9 +1053,9 @@ static inline vfloat4 compute_rgbo_vector(
 }
 
 /* See header for documentation. */
+// TODO: Specialize for 1 partition?
 void recompute_ideal_colors_1plane(
 	const image_block& blk,
-	const error_weight_block& ewb,
 	const partition_info& pi,
 	const decimation_info& di,
 	int weight_quant_mode,
@@ -1127,24 +1082,21 @@ void recompute_ideal_colors_1plane(
 	for (int i = 0; i < partition_count; i++)
 	{
 		vfloat4 rgba_sum(1e-17f);
-		vfloat4 rgba_weight_sum(1e-17f);
 
 		unsigned int texel_count = pi.partition_texel_count[i];
 		const uint8_t *texel_indexes = pi.texels_of_partition[i];
 
+		// TODO: Use gathers?
 		promise(texel_count > 0);
 		for (unsigned int j = 0; j < texel_count; j++)
 		{
 			unsigned int tix = texel_indexes[j];
-
-			vfloat4 rgba = blk.texel(tix);
-			vfloat4 error_weight = ewb.error_weights[tix];
-
-			rgba_sum += rgba * error_weight;
-			rgba_weight_sum += error_weight;
+			rgba_sum += blk.texel(tix);
 		}
 
-		vfloat4 scale_direction = normalize((rgba_sum * (1.0f / rgba_weight_sum)).swz<0, 1, 2>());
+		rgba_sum = rgba_sum * blk.channel_weight;
+		vfloat4 rgba_weight_sum = max(blk.channel_weight * static_cast<float>(texel_count), 1e-17f);
+		vfloat4 scale_dir = normalize((rgba_sum / rgba_weight_sum).swz<0, 1, 2>());
 
 		float scale_max = 0.0f;
 		float scale_min = 1e10f;
@@ -1152,28 +1104,25 @@ void recompute_ideal_colors_1plane(
 		float wmin1 = 1.0f;
 		float wmax1 = 0.0f;
 
-		vfloat4 left_sum    = vfloat4::zero();
-		vfloat4 middle_sum  = vfloat4::zero();
-		vfloat4 right_sum   = vfloat4::zero();
-		vfloat4 lmrs_sum    = vfloat4::zero();
+		float left_sum_s = 0.0f;
+		float middle_sum_s = 0.0f;
+		float right_sum_s = 0.0f;
 
 		vfloat4 color_vec_x = vfloat4::zero();
 		vfloat4 color_vec_y = vfloat4::zero();
 
 		vfloat4 scale_vec = vfloat4::zero();
 
-		vfloat4 weight_weight_sum = vfloat4(1e-17f);
-		float psum = 1e-17f;
+		float weight_weight_sum_s = 1e-17f;
+
+		vfloat4 color_weight = blk.channel_weight;
+		float ls_weight = hadd_rgb_s(color_weight);
 
 		for (unsigned int j = 0; j < texel_count; j++)
 		{
 			unsigned int tix = texel_indexes[j];
 
 			vfloat4 rgba = blk.texel(tix);
-			vfloat4 color_weight = ewb.error_weights[tix];
-
-			// TODO: Move this calculation out to the color block?
-			float ls_weight = hadd_rgb_s(color_weight);
 
 			float idx0;
 			if (!is_decimated)
@@ -1190,54 +1139,41 @@ void recompute_ideal_colors_1plane(
 			wmin1 = astc::min(idx0, wmin1);
 			wmax1 = astc::max(idx0, wmax1);
 
-			float scale = dot3_s(scale_direction, rgba);
+			float scale = dot3_s(scale_dir, rgba);
 			scale_min = astc::min(scale, scale_min);
 			scale_max = astc::max(scale, scale_max);
 
-			vfloat4 left   = color_weight * (om_idx0 * om_idx0);
-			vfloat4 middle = color_weight * (om_idx0 * idx0);
-			vfloat4 right  = color_weight * (idx0 * idx0);
-
-			vfloat4 lmrs = vfloat3(om_idx0 * om_idx0,
-			                       om_idx0 * idx0,
-			                       idx0 * idx0) * ls_weight;
-
-			left_sum   += left;
-			middle_sum += middle;
-			right_sum  += right;
-			lmrs_sum   += lmrs;
+			left_sum_s   += om_idx0 * om_idx0;
+			middle_sum_s += om_idx0 * idx0;
+			right_sum_s  += idx0 * idx0;
+			weight_weight_sum_s += idx0;
 
 			vfloat4 color_idx(idx0);
-			vfloat4 cwprod = color_weight * rgba;
+			vfloat4 cwprod = rgba;
 			vfloat4 cwiprod = cwprod * color_idx;
 
 			color_vec_y += cwiprod;
 			color_vec_x += cwprod - cwiprod;
 
-			scale_vec += vfloat2(om_idx0, idx0) * (ls_weight * scale);
-			weight_weight_sum += color_weight * color_idx;
-			psum += dot3_s(color_weight * color_idx, color_idx);
+			scale_vec += vfloat2(om_idx0, idx0) * (scale * ls_weight);
 		}
 
-		// Calculations specific to mode #7, the HDR RGB-scale mode
-		vfloat4 rgbq_sum = color_vec_x + color_vec_y;
-		rgbq_sum.set_lane<3>(hadd_rgb_s(color_vec_y));
+		vfloat4 left_sum   = vfloat4(left_sum_s) * color_weight;
+		vfloat4 middle_sum = vfloat4(middle_sum_s) * color_weight;
+		vfloat4 right_sum  = vfloat4(right_sum_s) * color_weight;
+		vfloat4 lmrs_sum   = vfloat3(left_sum_s, middle_sum_s, right_sum_s) * ls_weight;
 
-		vfloat4 rgbovec = compute_rgbo_vector(rgba_weight_sum, weight_weight_sum,
-		                                  rgbq_sum, psum);
-		rgbo_vectors[i] = rgbovec;
+		vfloat4 weight_weight_sum = vfloat4(weight_weight_sum_s) * color_weight;
+		float psum = right_sum_s * hadd_rgb_s(color_weight);
 
-		// We will occasionally get a failure due to the use of a singular (non-invertible) matrix.
-		// Record whether such a failure has taken place; if it did, compute rgbo_vectors[] with a
-		// different method later
-		float chkval = dot_s(rgbovec, rgbovec);
-		int rgbo_fail = chkval != chkval;
+		color_vec_x = color_vec_x * color_weight;
+		color_vec_y = color_vec_y * color_weight;
 
 		// Initialize the luminance and scale vectors with a reasonable default
 		float scalediv = scale_min * (1.0f / astc::max(scale_max, 1e-10f));
 		scalediv = astc::clamp1f(scalediv);
 
-		vfloat4 sds = scale_direction * scale_max;
+		vfloat4 sds = scale_dir * scale_max;
 
 		rgbs_vectors[i] = vfloat4(sds.lane<0>(), sds.lane<1>(), sds.lane<2>(), scalediv);
 
@@ -1245,7 +1181,7 @@ void recompute_ideal_colors_1plane(
 		{
 			// If all weights in the partition were equal, then just take average of all colors in
 			// the partition and use that as both endpoint colors
-			vfloat4 avg = (color_vec_x + color_vec_y) * (1.0f / rgba_weight_sum);
+			vfloat4 avg = (color_vec_x + color_vec_y) / rgba_weight_sum;
 
 			vmask4 notnan_mask = avg == avg;
 			ep.endpt0[i] = select(ep.endpt0[i], avg, notnan_mask);
@@ -1287,13 +1223,21 @@ void recompute_ideal_colors_1plane(
 			if (fabsf(ls_det1) > (ls_mss1 * 1e-4f) && scale_ep0 == scale_ep0 && scale_ep1 == scale_ep1 && scale_ep0 < scale_ep1)
 			{
 				float scalediv2 = scale_ep0 * (1.0f / scale_ep1);
-				vfloat4 sdsm = scale_direction * scale_ep1;
+				vfloat4 sdsm = scale_dir * scale_ep1;
 				rgbs_vectors[i] = vfloat4(sdsm.lane<0>(), sdsm.lane<1>(), sdsm.lane<2>(), scalediv2);
 			}
 		}
 
-		// If the calculation of an RGB-offset vector failed, try to compute a value another way
-		if (rgbo_fail)
+		// Calculations specific to mode #7, the HDR RGB-scale mode
+		vfloat4 rgbq_sum = color_vec_x + color_vec_y;
+		rgbq_sum.set_lane<3>(hadd_rgb_s(color_vec_y));
+
+		vfloat4 rgbovec = compute_rgbo_vector(rgba_weight_sum, weight_weight_sum, rgbq_sum, psum);
+		rgbo_vectors[i] = rgbovec;
+
+		// We can get a failure due to the use of a singular (non-invertible) matrix
+		// If it failed, compute rgbo_vectors[] with a different method ...
+		if (astc::isnan(dot_s(rgbovec, rgbovec)))
 		{
 			vfloat4 v0 = ep.endpt0[i];
 			vfloat4 v1 = ep.endpt1[i];
@@ -1303,7 +1247,6 @@ void recompute_ideal_colors_1plane(
 
 			vfloat4 avg = (v0 + v1) * 0.5f;
 			vfloat4 ep0 = avg - vfloat4(avgdif) * 0.5f;
-
 			rgbo_vectors[i] = vfloat4(ep0.lane<0>(), ep0.lane<1>(), ep0.lane<2>(), avgdif);
 		}
 	}
@@ -1312,7 +1255,6 @@ void recompute_ideal_colors_1plane(
 /* See header for documentation. */
 void recompute_ideal_colors_2planes(
 	const image_block& blk,
-	const error_weight_block& ewb,
 	const block_size_descriptor& bsd,
 	const decimation_info& di,
 	int weight_quant_mode,
@@ -1340,28 +1282,26 @@ void recompute_ideal_colors_2planes(
 		dec_weights_quant_uvalue_plane2[i] = qat->unquantized_value[dec_weights_quant_pvalue_plane2[i]] * (1.0f / 64.0f);
 	}
 
-	vfloat4 rgba_sum = ewb.block_error_weighted_rgba_sum;
-	vfloat4 rgba_weight_sum = ewb.block_error_weight_sum;
-
 	unsigned int texel_count = bsd.texel_count;
-	vfloat4 scale_direction = normalize((rgba_sum * (1.0f / rgba_weight_sum)).swz<0, 1, 2>());
+	vfloat4 rgba_weight_sum = max(blk.channel_weight * static_cast<float>(texel_count), 1e-17f);
+	vfloat4 scale_dir = normalize(blk.data_mean.swz<0, 1, 2>());
 
 	float scale_max = 0.0f;
 	float scale_min = 1e10f;
 
 	float wmin1 = 1.0f;
 	float wmax1 = 0.0f;
+
 	float wmin2 = 1.0f;
 	float wmax2 = 0.0f;
 
-	vfloat4 left_sum    = vfloat4::zero();
-	vfloat4 middle_sum  = vfloat4::zero();
-	vfloat4 right_sum   = vfloat4::zero();
+	float left1_sum_s = 0.0f;
+	float middle1_sum_s = 0.0f;
+	float right1_sum_s = 0.0f;
 
-	vfloat4 left2_sum   = vfloat4::zero();
-	vfloat4 middle2_sum = vfloat4::zero();
-	vfloat4 right2_sum  = vfloat4::zero();
-	vfloat4 lmrs_sum    = vfloat4::zero();
+	float left2_sum_s = 0.0f;
+	float middle2_sum_s = 0.0f;
+	float right2_sum_s = 0.0f;
 
 	vfloat4 color_vec_x = vfloat4::zero();
 	vfloat4 color_vec_y = vfloat4::zero();
@@ -1369,15 +1309,14 @@ void recompute_ideal_colors_2planes(
 	vfloat4 scale_vec = vfloat4::zero();
 
 	vfloat4 weight_weight_sum = vfloat4(1e-17f);
-	float psum = 1e-17f;
+
+	vmask4 p2_mask = vint4::lane_id() == vint4(plane2_component);
+	vfloat4 color_weight = blk.channel_weight;
+	float ls_weight = hadd_rgb_s(color_weight);
 
 	for (unsigned int j = 0; j < texel_count; j++)
 	{
 		vfloat4 rgba = blk.texel(j);
-		vfloat4 color_weight = ewb.error_weights[j];
-
-		// TODO: Move this calculation out to the color block?
-		float ls_weight = hadd_rgb_s(color_weight);
 
 		float idx0;
 		if (!is_decimated)
@@ -1394,22 +1333,13 @@ void recompute_ideal_colors_2planes(
 		wmin1 = astc::min(idx0, wmin1);
 		wmax1 = astc::max(idx0, wmax1);
 
-		float scale = dot3_s(scale_direction, rgba);
+		float scale = dot3_s(scale_dir, rgba);
 		scale_min = astc::min(scale, scale_min);
 		scale_max = astc::max(scale, scale_max);
 
-		vfloat4 left   = color_weight * (om_idx0 * om_idx0);
-		vfloat4 middle = color_weight * (om_idx0 * idx0);
-		vfloat4 right  = color_weight * (idx0 * idx0);
-
-		vfloat4 lmrs = vfloat3(om_idx0 * om_idx0,
-		                       om_idx0 * idx0,
-		                       idx0 * idx0) * ls_weight;
-
-		left_sum   += left;
-		middle_sum += middle;
-		right_sum  += right;
-		lmrs_sum   += lmrs;
+		left1_sum_s   += om_idx0 * om_idx0;
+		middle1_sum_s += om_idx0 * idx0;
+		right1_sum_s  += idx0 * idx0;
 
 		float idx1;
 		if (!is_decimated)
@@ -1426,18 +1356,13 @@ void recompute_ideal_colors_2planes(
 		wmin2 = astc::min(idx1, wmin2);
 		wmax2 = astc::max(idx1, wmax2);
 
-		vfloat4 left2   = color_weight * (om_idx1 * om_idx1);
-		vfloat4 middle2 = color_weight * (om_idx1 * idx1);
-		vfloat4 right2  = color_weight * (idx1 * idx1);
+		left2_sum_s   += om_idx1 * om_idx1;
+		middle2_sum_s += om_idx1 * idx1;
+		right2_sum_s  += idx1 * idx1;
 
-		left2_sum   += left2;
-		middle2_sum += middle2;
-		right2_sum  += right2;
-
-		vmask4 p2_mask = vint4::lane_id() == vint4(plane2_component);
 		vfloat4 color_idx = select(vfloat4(idx0), vfloat4(idx1), p2_mask);
 
-		vfloat4 cwprod = color_weight * rgba;
+		vfloat4 cwprod = rgba;
 		vfloat4 cwiprod = cwprod * color_idx;
 
 		color_vec_y += cwiprod;
@@ -1445,26 +1370,27 @@ void recompute_ideal_colors_2planes(
 
 		scale_vec += vfloat2(om_idx0, idx0) * (ls_weight * scale);
 		weight_weight_sum += (color_weight * color_idx);
-		psum += dot3_s(color_weight * color_idx, color_idx);
 	}
 
-	// Calculations specific to mode #7, the HDR RGB-scale mode
-	vfloat4 rgbq_sum = color_vec_x + color_vec_y;
-	rgbq_sum.set_lane<3>(hadd_rgb_s(color_vec_y));
+	vfloat4 left1_sum   = vfloat4(left1_sum_s) * color_weight;
+	vfloat4 middle1_sum = vfloat4(middle1_sum_s) * color_weight;
+	vfloat4 right1_sum  = vfloat4(right1_sum_s) * color_weight;
+	vfloat4 lmrs_sum    = vfloat3(left1_sum_s, middle1_sum_s, right1_sum_s) * ls_weight;
 
-	rgbo_vector = compute_rgbo_vector(rgba_weight_sum, weight_weight_sum, rgbq_sum, psum);
+	vfloat4 left2_sum   = vfloat4(left2_sum_s) * color_weight;
+	vfloat4 middle2_sum = vfloat4(middle2_sum_s) * color_weight;
+	vfloat4 right2_sum  = vfloat4(right2_sum_s) * color_weight;
 
-	// We will occasionally get a failure due to the use of a singular (non-invertible) matrix.
-	// Record whether such a failure has taken place; if it did, compute rgbo_vectors[] with a
-	// different method later
-	float chkval = dot_s(rgbo_vector, rgbo_vector);
-	int rgbo_fail = chkval != chkval;
+	float psum = dot3_s(select(right1_sum, right2_sum, p2_mask), color_weight);
+
+	color_vec_x = color_vec_x * color_weight;
+	color_vec_y = color_vec_y * color_weight;
 
 	// Initialize the luminance and scale vectors with a reasonable default
 	float scalediv = scale_min * (1.0f / astc::max(scale_max, 1e-10f));
 	scalediv = astc::clamp1f(scalediv);
 
-	vfloat4 sds = scale_direction * scale_max;
+	vfloat4 sds = scale_dir * scale_max;
 
 	rgbs_vector = vfloat4(sds.lane<0>(), sds.lane<1>(), sds.lane<2>(), scalediv);
 
@@ -1472,7 +1398,7 @@ void recompute_ideal_colors_2planes(
 	{
 		// If all weights in the partition were equal, then just take average of all colors in
 		// the partition and use that as both endpoint colors
-		vfloat4 avg = (color_vec_x + color_vec_y) * (1.0f / rgba_weight_sum);
+		vfloat4 avg = (color_vec_x + color_vec_y) / rgba_weight_sum;
 
 		vmask4 p1_mask = vint4::lane_id() != vint4(plane2_component);
 		vmask4 notnan_mask = avg == avg;
@@ -1487,22 +1413,22 @@ void recompute_ideal_colors_2planes(
 	{
 		// Otherwise, complete the analytic calculation of ideal-endpoint-values for the given
 		// set of texel weights and pixel colors
-		vfloat4 color_det1 = (left_sum * right_sum) - (middle_sum * middle_sum);
+		vfloat4 color_det1 = (left1_sum * right1_sum) - (middle1_sum * middle1_sum);
 		vfloat4 color_rdet1 = 1.0f / color_det1;
 
 		float ls_det1  = (lmrs_sum.lane<0>() * lmrs_sum.lane<2>()) - (lmrs_sum.lane<1>() * lmrs_sum.lane<1>());
 		float ls_rdet1 = 1.0f / ls_det1;
 
-		vfloat4 color_mss1 = (left_sum * left_sum)
-		                   + (2.0f * middle_sum * middle_sum)
-		                   + (right_sum * right_sum);
+		vfloat4 color_mss1 = (left1_sum * left1_sum)
+		                   + (2.0f * middle1_sum * middle1_sum)
+		                   + (right1_sum * right1_sum);
 
 		float ls_mss1 = (lmrs_sum.lane<0>() * lmrs_sum.lane<0>())
 		              + (2.0f * lmrs_sum.lane<1>() * lmrs_sum.lane<1>())
 		              + (lmrs_sum.lane<2>() * lmrs_sum.lane<2>());
 
-		vfloat4 ep0 = (right_sum * color_vec_x - middle_sum * color_vec_y) * color_rdet1;
-		vfloat4 ep1 = (left_sum * color_vec_y - middle_sum * color_vec_x) * color_rdet1;
+		vfloat4 ep0 = (right1_sum * color_vec_x - middle1_sum * color_vec_y) * color_rdet1;
+		vfloat4 ep1 = (left1_sum * color_vec_y - middle1_sum * color_vec_x) * color_rdet1;
 
 		float scale_ep0 = (lmrs_sum.lane<2>() * scale_vec.lane<0>() - lmrs_sum.lane<1>() * scale_vec.lane<1>()) * ls_rdet1;
 		float scale_ep1 = (lmrs_sum.lane<0>() * scale_vec.lane<1>() - lmrs_sum.lane<1>() * scale_vec.lane<0>()) * ls_rdet1;
@@ -1518,7 +1444,7 @@ void recompute_ideal_colors_2planes(
 		if (fabsf(ls_det1) > (ls_mss1 * 1e-4f) && scale_ep0 == scale_ep0 && scale_ep1 == scale_ep1 && scale_ep0 < scale_ep1)
 		{
 			float scalediv2 = scale_ep0 * (1.0f / scale_ep1);
-			vfloat4 sdsm = scale_direction * scale_ep1;
+			vfloat4 sdsm = scale_dir * scale_ep1;
 			rgbs_vector = vfloat4(sdsm.lane<0>(), sdsm.lane<1>(), sdsm.lane<2>(), scalediv2);
 		}
 	}
@@ -1527,9 +1453,8 @@ void recompute_ideal_colors_2planes(
 	{
 		// If all weights in the partition were equal, then just take average of all colors in
 		// the partition and use that as both endpoint colors
-		vfloat4 avg = (color_vec_x + color_vec_y) * (1.0f / rgba_weight_sum);
+		vfloat4 avg = (color_vec_x + color_vec_y) / rgba_weight_sum;
 
-		vmask4 p2_mask = vint4::lane_id() == vint4(plane2_component);
 		vmask4 notnan_mask = avg == avg;
 		vmask4 full_mask = p2_mask & notnan_mask;
 
@@ -1550,7 +1475,6 @@ void recompute_ideal_colors_2planes(
 		vfloat4 ep0 = (right2_sum * color_vec_x - middle2_sum * color_vec_y) * color_rdet2;
 		vfloat4 ep1 = (left2_sum * color_vec_y - middle2_sum * color_vec_x) * color_rdet2;
 
-		vmask4 p2_mask = vint4::lane_id() == vint4(plane2_component);
 		vmask4 det_mask = abs(color_det2) > (color_mss2 * 1e-4f);
 		vmask4 notnan_mask = (ep0 == ep0) & (ep1 == ep1);
 		vmask4 full_mask = p2_mask & det_mask & notnan_mask;
@@ -1559,8 +1483,15 @@ void recompute_ideal_colors_2planes(
 		ep.endpt1[0] = select(ep.endpt1[0], ep1, full_mask);
 	}
 
-	// If the calculation of an RGB-offset vector failed, try to compute a value another way
-	if (rgbo_fail)
+	// Calculations specific to mode #7, the HDR RGB-scale mode
+	vfloat4 rgbq_sum = color_vec_x + color_vec_y;
+	rgbq_sum.set_lane<3>(hadd_rgb_s(color_vec_y));
+
+	rgbo_vector = compute_rgbo_vector(rgba_weight_sum, weight_weight_sum, rgbq_sum, psum);
+
+	// We can get a failure due to the use of a singular (non-invertible) matrix
+	// If it failed, compute rgbo_vectors[] with a different method ...
+	if (astc::isnan(dot_s(rgbo_vector, rgbo_vector)))
 	{
 		vfloat4 v0 = ep.endpt0[0];
 		vfloat4 v1 = ep.endpt1[0];

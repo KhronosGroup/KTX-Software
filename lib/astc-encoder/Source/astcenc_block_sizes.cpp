@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2011-2021 Arm Limited
+// Copyright 2011-2022 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -30,7 +30,7 @@
  * @param[out] is_dual_plane   True if this block mode has two weight planes.
  * @param[out] quant_mode      The quantization level for the weights.
  *
- * @return Returns true of valid mode, false otherwise.
+ * @return Returns true if a valid mode, false otherwise.
  */
 static bool decode_block_mode_2d(
 	unsigned int block_mode,
@@ -144,7 +144,7 @@ static bool decode_block_mode_2d(
  * @param[out] is_dual_plane   True if this block mode has two weight planes.
  * @param[out] quant_mode      The quantization level for the weights.
  *
- * @return Returns true of valid mode, false otherwise.
+ * @return Returns true if a valid mode, false otherwise.
  */
 static bool decode_block_mode_3d(
 	unsigned int block_mode,
@@ -854,6 +854,8 @@ static void construct_block_size_descriptor_2d(
 	unsigned int always_block_mode_count = 0;
 	unsigned int always_decimation_mode_count = 0;
 
+	float always_threshold = 0.0f;
+
 	// Iterate twice; first time keep the "always" blocks, second time keep the "non-always" blocks.
 	// This ensures that the always block modes and decimation modes are at the start of the list.
 	for (unsigned int j = 0; j < 2; j ++)
@@ -869,12 +871,12 @@ static void construct_block_size_descriptor_2d(
 			float percentile = percentiles[i];
 			bool selected = (percentile <= mode_cutoff) || !can_omit_modes;
 
-			if (j == 0 && percentile != 0.0f)
+			if (j == 0 && percentile > always_threshold)
 			{
 				continue;
 			}
 
-			if (j == 1 && percentile == 0.0f)
+			if (j == 1 && percentile <= always_threshold)
 			{
 				continue;
 			}
@@ -905,13 +907,13 @@ static void construct_block_size_descriptor_2d(
 
 			// Allocate and initialize the decimation table entry if we've not used it yet
 			int decimation_mode = decimation_mode_index[y_weights * 16 + x_weights];
-			if (decimation_mode == -1)
+			if (decimation_mode < 0)
 			{
 				decimation_mode = construct_dt_entry_2d(x_texels, y_texels, x_weights, y_weights, bsd);
 				decimation_mode_index[y_weights * 16 + x_weights] = decimation_mode;
 
 	#if !defined(ASTCENC_DECOMPRESS_ONLY)
-				if (percentile == 0.0f)
+				if (percentile <= always_threshold)
 				{
 					always_decimation_mode_count++;
 				}
@@ -920,7 +922,7 @@ static void construct_block_size_descriptor_2d(
 
 	#if !defined(ASTCENC_DECOMPRESS_ONLY)
 			// Flatten the block mode heuristic into some precomputed flags
-			if (percentile == 0.0f)
+			if (percentile <= always_threshold)
 			{
 				always_block_mode_count++;
 				bsd.block_modes[packed_idx].percentile_hit = true;

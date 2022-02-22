@@ -25,18 +25,21 @@ cd build
 # Configure your build of choice, for example:
 
 # x86-64 using NMake
-cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=.\ ^
-    -DISA_AVX2=ON -DISA_SSE41=ON -DISA_SSE2=ON ..
+cmake -G "NMake Makefiles" -T ClangCL -DCMAKE_BUILD_TYPE=Release ^
+    -DCMAKE_INSTALL_PREFIX=.\ -DISA_AVX2=ON -DISA_SSE41=ON -DISA_SSE2=ON ..
 
 # x86-64 using Visual Studio solution
-cmake -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=.\ ^
+cmake -G "Visual Studio 16 2019" -T ClangCL -DCMAKE_INSTALL_PREFIX=.\ ^
     -DISA_AVX2=ON -DISA_SSE41=ON -DISA_SSE2=ON ..
-
 ```
 
 This example shows all SIMD variants being enabled. It is possible to build a
 subset of the supported variants by enabling only the ones you require. At
 least one variant must be enabled.
+
+Using the Visual Studio Clang-cl LLVM toolchain (`-T ClangCL`) is optional but
+produces signficantly faster binaries than the default toolchain. The C++ LLVM
+toolchain component must be installed via the Visual Studio installer.
 
 ### Building
 
