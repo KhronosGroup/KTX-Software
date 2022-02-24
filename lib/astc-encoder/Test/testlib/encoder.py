@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # -----------------------------------------------------------------------------
-# Copyright 2019-2021 Arm Limited
+# Copyright 2019-2022 Arm Limited
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy
@@ -61,7 +61,7 @@ class EncoderBase():
         self.binary = binary
 
     def build_cli(self, image, blockSize="6x6", preset="-thorough",
-                  keepOutput=True):
+                  keepOutput=True, threads=None):
         """
         Build the command line needed for the given test.
 
@@ -72,6 +72,7 @@ class EncoderBase():
             keepOutput (bool): Should the test preserve output images? This is
                 only a hint and discarding output may be ignored if the encoder
                 version used can't do it natively.
+            threads (int or None): The thread count to use.
 
         Returns:
             list(str): A list of command line arguments.
@@ -186,7 +187,8 @@ class EncoderBase():
         # pylint: disable=unused-argument,no-self-use,redundant-returns-doc
         assert False, "Missing subclass implementation"
 
-    def run_test(self, image, blockSize, preset, testRuns, keepOutput=True):
+    def run_test(self, image, blockSize, preset, testRuns, keepOutput=True,
+                 threads=None):
         """
         Run the test N times.
 
@@ -198,6 +200,7 @@ class EncoderBase():
             keepOutput (bool): Should the test preserve output images? This is
                 only a hint and discarding output may be ignored if the encoder
                 version used can't do it natively.
+            threads (int or None): The thread count to use.
 
         Returns:
             tuple(float, float, float, float): Returns the best results from
@@ -205,7 +208,7 @@ class EncoderBase():
             (seconds), and coding rate (M pixels/s).
         """
         # pylint: disable=assignment-from-no-return
-        command = self.build_cli(image, blockSize, preset, keepOutput)
+        command = self.build_cli(image, blockSize, preset, keepOutput, threads)
 
         # Execute test runs
         bestPSNR = 0
@@ -258,7 +261,7 @@ class Encoder2x(EncoderBase):
         super().__init__(name, variant, binary)
 
     def build_cli(self, image, blockSize="6x6", preset="-thorough",
-                  keepOutput=True):
+                  keepOutput=True, threads=None):
         opmode = self.SWITCHES[image.colorProfile]
         srcPath = image.filePath
 
@@ -290,10 +293,9 @@ class Encoder2x(EncoderBase):
             command.append("-a")
             command.append("1")
 
-        # Limit core count on NEON builds to avoid test device throttling
-        if self.variant == "neon":
+        if threads is not None:
             command.append("-j")
-            command.append("2")
+            command.append("%u" % threads)
 
         return command
 
@@ -361,7 +363,7 @@ class Encoder1_7(EncoderBase):
         super().__init__(name, None, binary)
 
     def build_cli(self, image, blockSize="6x6", preset="-thorough",
-                  keepOutput=True):
+                  keepOutput=True, threads=None):
 
         if preset == "-fastest":
             preset = "-fast"
@@ -393,6 +395,10 @@ class Encoder1_7(EncoderBase):
 
         if image.isAlphaScaled:
             command.append("-alphablend")
+
+        if threads is not None:
+            command.append("-j")
+            command.append("%u" % threads)
 
         return command
 

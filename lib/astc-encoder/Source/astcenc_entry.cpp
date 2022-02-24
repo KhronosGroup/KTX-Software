@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2011-2021 Arm Limited
+// Copyright 2011-2022 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -411,18 +411,6 @@ static astcenc_error validate_config(
 	}
 #endif
 
-	config.v_rgba_mean_stdev_mix = astc::max(config.v_rgba_mean_stdev_mix, 0.0f);
-	config.v_rgb_power = astc::max(config.v_rgb_power, 0.0f);
-	config.v_rgb_base = astc::max(config.v_rgb_base, 0.0f);
-	config.v_rgb_mean = astc::max(config.v_rgb_mean, 0.0f);
-	config.v_rgb_stdev = astc::max(config.v_rgb_stdev, 0.0f);
-	config.v_a_power = astc::max(config.v_a_power, 0.0f);
-	config.v_a_base = astc::max(config.v_a_base, 0.0f);
-	config.v_a_mean = astc::max(config.v_a_mean, 0.0f);
-	config.v_a_stdev = astc::max(config.v_a_stdev, 0.0f);
-
-	config.b_deblock_weight = astc::max(config.b_deblock_weight, 0.0f);
-
 	config.rgbm_m_scale = astc::max(config.rgbm_m_scale, 1.0f);
 
 	config.tune_partition_count_limit = astc::clamp(config.tune_partition_count_limit, 1u, 4u);
@@ -586,9 +574,6 @@ astcenc_error astcenc_config_init(
 	}
 
 	// Set heuristics to the defaults for each color profile
-	config.v_rgba_radius = 0;
-	config.v_rgba_mean_stdev_mix = 0.0f;
-
 	config.cw_r_weight = 1.0f;
 	config.cw_g_weight = 1.0f;
 	config.cw_b_weight = 1.0f;
@@ -606,40 +591,9 @@ astcenc_error astcenc_config_init(
 	{
 	case ASTCENC_PRF_LDR:
 	case ASTCENC_PRF_LDR_SRGB:
-		config.v_rgb_power = 1.0f;
-		config.v_rgb_base = 1.0f;
-		config.v_rgb_mean = 0.0f;
-		config.v_rgb_stdev = 0.0f;
-
-		config.v_a_power = 1.0f;
-		config.v_a_base = 1.0f;
-		config.v_a_mean = 0.0f;
-		config.v_a_stdev = 0.0f;
 		break;
 	case ASTCENC_PRF_HDR_RGB_LDR_A:
-		config.v_rgb_power = 0.75f;
-		config.v_rgb_base = 0.0f;
-		config.v_rgb_mean = 1.0f;
-		config.v_rgb_stdev = 0.0f;
-
-		config.v_a_power = 1.0f;
-		config.v_a_base = 0.05f;
-		config.v_a_mean = 0.0f;
-		config.v_a_stdev = 0.0f;
-
-		config.tune_db_limit = 999.0f;
-		break;
 	case ASTCENC_PRF_HDR:
-		config.v_rgb_power = 0.75f;
-		config.v_rgb_base = 0.0f;
-		config.v_rgb_mean = 1.0f;
-		config.v_rgb_stdev = 0.0f;
-
-		config.v_a_power = 0.75f;
-		config.v_a_base = 0.0f;
-		config.v_a_mean = 1.0f;
-		config.v_a_stdev = 0.0f;
-
 		config.tune_db_limit = 999.0f;
 		break;
 	default:
@@ -663,27 +617,13 @@ astcenc_error astcenc_config_init(
 
 		// Normals are prone to blocking artifacts on smooth curves
 		// so force compressor to try harder here ...
-		config.b_deblock_weight = 1.8f;
 		config.tune_db_limit *= 1.03f;
-
-		if (flags & ASTCENC_FLG_USE_PERCEPTUAL)
-		{
-			config.v_rgba_radius = 3;
-			config.v_rgba_mean_stdev_mix = 0.0f;
-			config.v_rgb_mean = 0.0f;
-			config.v_rgb_stdev = 50.0f;
-			config.v_a_mean = 0.0f;
-			config.v_a_stdev = 50.0f;
-		}
 	}
 	else if (flags & ASTCENC_FLG_MAP_MASK)
 	{
-		config.v_rgba_radius = 3;
-		config.v_rgba_mean_stdev_mix = 0.03f;
-		config.v_rgb_mean = 0.0f;
-		config.v_rgb_stdev = 25.0f;
-		config.v_a_mean = 0.0f;
-		config.v_a_stdev = 25.0f;
+		// Masks are prone to blocking artifacts on mask edges
+		// so force compressor to try harder here ...
+		config.tune_db_limit *= 1.03f;
 	}
 	else if (flags & ASTCENC_FLG_MAP_RGBM)
 	{
@@ -756,8 +696,6 @@ astcenc_error astcenc_context_alloc(
 	ctx->working_buffers = nullptr;
 
 	// These are allocated per-compress, as they depend on image size
-	ctx->input_averages = nullptr;
-	ctx->input_variances = nullptr;
 	ctx->input_alpha_averages = nullptr;
 
 	// Copy the config first and validate the copy (we may modify it)
@@ -778,9 +716,6 @@ astcenc_error astcenc_context_alloc(
 	// Do setup only needed by compression
 	if (!(status & ASTCENC_FLG_DECOMPRESS_ONLY))
 	{
-		// Expand deblock supression into a weight scale per texel in the block
-		expand_deblock_weights(*ctx);
-
 		// Turn a dB limit into a per-texel error for faster use later
 		if ((ctx->config.profile == ASTCENC_PRF_LDR) || (ctx->config.profile == ASTCENC_PRF_LDR_SRGB))
 		{
@@ -951,14 +886,21 @@ static void compress_image(
 			{
 				blk.origin_texel = vfloat4::zero();
 				blk.data_min = vfloat4::zero();
-				blk.data_max = blk.data_min;
-				blk.grayscale = false;
+				blk.data_mean = vfloat4::zero();
+				blk.data_max = vfloat4::zero();
+				blk.grayscale = true;
 			}
+
+			// Populate the block channel weights
+			blk.channel_weight = vfloat4(ctx.config.cw_r_weight,
+			                             ctx.config.cw_g_weight,
+			                             ctx.config.cw_b_weight,
+			                             ctx.config.cw_a_weight);
 
 			int offset = ((z * yblocks + y) * xblocks + x) * 16;
 			uint8_t *bp = buffer + offset;
 			physical_compressed_block* pcb = reinterpret_cast<physical_compressed_block*>(bp);
-			compress_block(ctx, image, blk, *pcb, temp_buffers);
+			compress_block(ctx, blk, *pcb, temp_buffers);
 		}
 
 		ctx.manage_compress.complete_task_assignment(count);
@@ -1025,34 +967,29 @@ astcenc_error astcenc_compress_image(
 		astcenc_compress_reset(ctx);
 	}
 
-	if (ctx->config.v_rgb_mean != 0.0f || ctx->config.v_rgb_stdev != 0.0f ||
-	    ctx->config.v_a_mean != 0.0f || ctx->config.v_a_stdev != 0.0f ||
-	    ctx->config.a_scale_radius != 0)
+	if (ctx->config.a_scale_radius != 0)
 	{
 		// First thread to enter will do setup, other threads will subsequently
 		// enter the critical section but simply skip over the initialization
-		auto init_avg_var = [ctx, &image, swizzle]() {
+		auto init_avg = [ctx, &image, swizzle]() {
 			// Perform memory allocations for the destination buffers
 			size_t texel_count = image.dim_x * image.dim_y * image.dim_z;
-			ctx->input_averages = new vfloat4[texel_count];
-			ctx->input_variances = new vfloat4[texel_count];
 			ctx->input_alpha_averages = new float[texel_count];
 
-			return init_compute_averages_and_variances(
-				image, ctx->config.v_rgb_power, ctx->config.v_a_power,
-				ctx->config.v_rgba_radius, ctx->config.a_scale_radius, *swizzle,
-				ctx->avg_var_preprocess_args);
+			return init_compute_averages(
+				image, ctx->config.a_scale_radius, *swizzle,
+				ctx->avg_preprocess_args);
 		};
 
 		// Only the first thread actually runs the initializer
-		ctx->manage_avg_var.init(init_avg_var);
+		ctx->manage_avg.init(init_avg);
 
 		// All threads will enter this function and dynamically grab work
-		compute_averages_and_variances(*ctx, ctx->avg_var_preprocess_args);
+		compute_averages(*ctx, ctx->avg_preprocess_args);
 	}
 
-	// Wait for compute_averages_and_variances to complete before compressing
-	ctx->manage_avg_var.wait();
+	// Wait for compute_averages to complete before compressing
+	ctx->manage_avg.wait();
 
 	compress_image(*ctx, thread_index, image, *swizzle, data_out);
 
@@ -1060,12 +997,6 @@ astcenc_error astcenc_compress_image(
 	ctx->manage_compress.wait();
 
 	auto term_compress = [ctx]() {
-		delete[] ctx->input_averages;
-		ctx->input_averages = nullptr;
-
-		delete[] ctx->input_variances;
-		ctx->input_variances = nullptr;
-
 		delete[] ctx->input_alpha_averages;
 		ctx->input_alpha_averages = nullptr;
 	};
@@ -1090,7 +1021,7 @@ astcenc_error astcenc_compress_reset(
 		return ASTCENC_ERR_BAD_CONTEXT;
 	}
 
-	ctx->manage_avg_var.reset();
+	ctx->manage_avg.reset();
 	ctx->manage_compress.reset();
 	return ASTCENC_SUCCESS;
 #endif

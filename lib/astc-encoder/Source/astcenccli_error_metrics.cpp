@@ -129,7 +129,7 @@ void compute_error_metrics(
 	kahan_accum4 log_errorsum;
 	kahan_accum4 mpsnr_errorsum;
 	double mean_angular_errorsum = 0.0;
-	float worst_angular_errorsum = 0.0;
+	double worst_angular_errorsum = 0.0;
 
 	unsigned int dim_x = astc::min(img1->dim_x, img2->dim_x);
 	unsigned int dim_y = astc::min(img1->dim_y, img2->dim_y);
@@ -282,9 +282,9 @@ void compute_error_metrics(
 					// Float error can push this outside of valid range for acos, so clamp to avoid NaN issues
 					float normal_cos = clamp(-1.0f, 1.0f, dot3(normal1, normal2)).lane<0>();
 					float rad_to_degrees = 180.0f / astc::PI;
-					float error_degrees = std::acos(static_cast<double>(normal_cos)) * static_cast<double>(rad_to_degrees);
+					double error_degrees = std::acos(static_cast<double>(normal_cos)) * static_cast<double>(rad_to_degrees);
 
-					mean_angular_errorsum += static_cast<double>(error_degrees) / (dim_x * dim_y * dim_z);
+					mean_angular_errorsum += error_degrees / (dim_x * dim_y * dim_z);
 					worst_angular_errorsum = astc::max(worst_angular_errorsum, error_degrees);
 				}
 			}
@@ -396,7 +396,7 @@ void compute_error_metrics(
 	if (compute_normal_metrics)
 	{
 		printf("    Mean Angular Error:       %9.4f degrees\n", mean_angular_errorsum);
-		printf("    Worst Angular Error:      %9.4f degrees\n", (double)worst_angular_errorsum);
+		printf("    Worst Angular Error:      %9.4f degrees\n", worst_angular_errorsum);
 	}
 
 	printf("\n");

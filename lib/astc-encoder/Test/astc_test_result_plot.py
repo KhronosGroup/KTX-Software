@@ -62,7 +62,7 @@ def find_reference_results():
                 quality = match.group(2)
                 imageSet = os.path.basename(root)
 
-                if imageSet != "Kodak":
+                if imageSet not in ["Kodak", "Khronos", "HDRIHaven"]:
                     continue
 
                 testRef = trs.ResultSet(imageSet)
@@ -232,7 +232,7 @@ def plot(results, chartRows, chartCols, blockSizes,
             if not relative:
                 ax.set_xlim(left=0, right=limits[0])
             else:
-                ax.set_xlim(left=1, right=limits[0])
+                ax.set_xlim(left=0, right=limits[0])
 
     fig.tight_layout()
     fig.savefig(fileName)
@@ -290,7 +290,7 @@ def main():
         [
             # Relative scores
             ["thorough", "medium", "fast", "fastest"],
-            ["ref-3.1-avx2"],
+            ["ref-3.3-avx2"],
             ["4x4", "6x6", "8x8"],
             True,
             "ref-1.7",
@@ -303,7 +303,7 @@ def main():
         [
             # Relative scores
             ["thorough", "medium", "fast", "fastest"],
-            ["ref-3.1-avx2"],
+            ["ref-3.3-avx2"],
             ["4x4", "6x6", "8x8"],
             True,
             "ref-2.5-avx2",
@@ -316,7 +316,7 @@ def main():
         [
             # Relative scores
             ["thorough", "medium", "fast", "fastest"],
-            ["ref-3.1-avx2"],
+            ["ref-3.3-avx2"],
             ["4x4", "6x6", "8x8"],
             True,
             "ref-3.0-avx2",
@@ -326,17 +326,17 @@ def main():
         ], [
             # Relative ISAs of latest
             ["thorough", "medium", "fast", "fastest"],
-            ["ref-3.1-sse4.1", "ref-3.1-avx2"],
+            ["ref-3.3-sse4.1", "ref-3.3-avx2"],
             ["4x4", "6x6", "8x8"],
             True,
-            "ref-3.1-sse2",
+            "ref-3.3-sse2",
             None,
             "relative-3.x-isa.png",
             (None, None)
         ], [
             # Relative quality of latest
             ["medium", "fast", "fastest"],
-            ["ref-3.1-avx2"],
+            ["ref-3.3-avx2"],
             ["4x4", "6x6", "8x8"],
             True,
             None,

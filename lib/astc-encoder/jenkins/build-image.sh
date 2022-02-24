@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-DOCKER_REGISTRY=mobile-studio--docker.eu-west-1.artifactory.aws.arm.com
+ARTIFACTORY_URL=eu-west-1.artifactory.aws.arm.com
+DOCKER_REGISTRY=mobile-studio--docker.${ARTIFACTORY_URL}
 IMAGE_NAME=astcenc
-IMAGE_VERSION=3.0.0
+IMAGE_VERSION=3.1.0
 
 # Check Artifactory credentials are set
 if [[ -z "${ARTIFACTORY_CREDENTIALS}" ]]
@@ -17,11 +18,8 @@ rm -fr tmp
 mkdir -p tmp
 
 echo "Get static analysis tools"
-curl --user ${ARTIFACTORY_CREDENTIALS} https://eu-west-1.artifactory.aws.arm.com/artifactory/mobile-studio.tools/coverity201909.tar.xz --output tmp/coverity.tar.xz
-pushd tmp
-  tar xf coverity.tar.xz
-  rm coverity.tar.xz
-popd
+curl --user ${ARTIFACTORY_CREDENTIALS} https://${ARTIFACTORY_URL}/artifactory/mobile-studio.tools/coverity/cov-analysis-linux64-2020.12.sh --output tmp/coverity_install.sh
+curl --user ${ARTIFACTORY_CREDENTIALS} https://${ARTIFACTORY_URL}/artifactory/mobile-studio.tools/coverity/license.dat --output tmp/coverity_license.dat
 
 echo "Building image"
 docker build -f jenkins/build.Dockerfile \

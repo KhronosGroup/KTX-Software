@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # -----------------------------------------------------------------------------
-# Copyright 2020-2021 Arm Limited
+# Copyright 2020-2022 Arm Limited
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy
@@ -799,7 +799,7 @@ class CLIPTest(CLITestBase):
         command = [
             self.binary, "-tl",
             "./Test/Images/Small/LDR-RGB/ldr-rgb-10.png",
-            decompFile, "4x4", "-exhaustive"]
+            decompFile, "4x4", "-medium"]
 
         noMaskdB = float(self.exec(command, LDR_RGB_PSNR_PATTERN))
 
@@ -1237,140 +1237,6 @@ class CLIPTest(CLITestBase):
 
         # RMSE should get worse (higher) if we reduce search space
         self.assertGreater(testRMSE, refRMSE)
-
-    def test_deblock(self):
-        """
-        Test deblock bias.
-        """
-        inputFile = "./Test/Images/Small/LDR-RGBA/ldr-rgba-00.png"
-        decompFile = self.get_tmp_image_path("LDR", "decomp")
-
-        # Compute the basic image without any channel weights
-        command = [
-            self.binary, "-tl",
-            inputFile, decompFile, "4x4", "-medium"]
-
-        self.exec(command)
-        refRMSE = sum(self.get_channel_rmse(inputFile, decompFile))
-
-        command += ["-b", "1.8"]
-        self.exec(command)
-        testRMSE = sum(self.get_channel_rmse(inputFile, decompFile))
-
-        # RMSE should be different with deblocking
-        self.assertNotEqual(testRMSE, refRMSE)
-
-    def test_low_level_control_v(self):
-        """
-        Test low level control options.
-        """
-        inputFile = "./Test/Images/Small/LDR-RGBA/ldr-rgba-00.png"
-        decompFile = self.get_tmp_image_path("LDR", "decomp")
-
-        # Compute the basic image without any channel weights
-        command = [
-            self.binary, "-tl",
-            inputFile, decompFile, "4x4", "-medium"]
-
-        self.exec(command)
-        refRMSE = sum(self.get_channel_rmse(inputFile, decompFile))
-
-        # Test that explicit defaults match same as implicit defaults
-        command2 = command + ["-v", "0", "1", "1", "0", "0", "0"]
-        self.exec(command2)
-        testRMSE = sum(self.get_channel_rmse(inputFile, decompFile))
-        self.assertEqual(testRMSE, refRMSE)
-
-        # Mutate the values to check they are worse than ref
-        subtests = [
-            ("ref", ["-v", "2.5", "0.85", "0.25", "0.75", "25.0", "0.03"]),
-            ("radius", ["-v", "3.5", "0.85", "0.25", "0.75", "25.0", "0.03"]),
-            ("power", ["-v", "2.5", "1.85", "0.25", "0.75", "25.0", "0.03"]),
-            ("base", ["-v", "2.5", "0.85", "0.05", "0.75", "25.0", "0.03"]),
-            ("avg", ["-v", "2.5", "0.85", "0.25", "2.75", "25.0", "0.03"]),
-            ("stdev", ["-v", "2.5", "0.85", "0.25", "0.75", "99.0", "0.03"]),
-            ("mix", ["-v", "2.5", "0.85", "0.25", "0.75", "25.0", "1.03"])
-        ]
-
-        # Test that our mutations made it worse; note we manually chose values
-        # that did for this test image - this is not guranteed for all images
-        resultSet = set()
-        for (name, params) in subtests:
-            with self.subTest(param=name):
-                testCommand = command + params
-                self.exec(testCommand)
-                testRMSE = sum(self.get_channel_rmse(inputFile, decompFile))
-                self.assertGreater(testRMSE, refRMSE)
-                resultSet.add(testRMSE)
-
-        # Test that each mutation was "differently" worse; i.e. some new
-        # error metric was used
-        self.assertEqual(len(resultSet), len(subtests))
-
-    def test_low_level_control_v_issue_105(self):
-        """
-        Test low level control options.
-
-        Regression test for:
-        * https://github.com/ARM-software/astc-encoder/issues/105
-        """
-        inputFile = "./Test/Images/Small/LDR-RGBA/ldr-rgba-00.png"
-        decompFile = self.get_tmp_image_path("LDR", "decomp")
-
-        # Compute the basic image without any channel weights
-        command = [
-            self.binary, "-tl",
-            inputFile, decompFile, "4x4", "-medium",
-            "-v", "0", "1", "2", "0", "0", "0"]
-
-        # This should not segfault ...
-        self.exec(command)
-
-    def test_low_level_control_va(self):
-        """
-        Test low level control options.
-        """
-        inputFile = "./Test/Images/Small/LDR-RGBA/ldr-rgba-00.png"
-        decompFile = self.get_tmp_image_path("LDR", "decomp")
-
-        # Compute the basic image without any channel weights
-        command = [
-            self.binary, "-tl",
-            inputFile, decompFile, "4x4", "-medium",
-            "-v", "2.5", "0.85", "0.25", "0.75", "25.0", "0.03"]
-
-        self.exec(command)
-        refRMSE = sum(self.get_channel_rmse(inputFile, decompFile))
-
-        # Test that explicit defaults match same as implicit defaults
-        command2 = command + ["-va", "1", "1", "0", "0"]
-        self.exec(command2)
-        testRMSE = sum(self.get_channel_rmse(inputFile, decompFile))
-        self.assertEqual(testRMSE, refRMSE)
-
-        # Mutate the values to check they are worse than ref
-        subtests = [
-            ("ref", ["-va", "2.8", "0.25", "0.75", "25.0"]),
-            ("power", ["-va", "4.8", "0.25", "0.75", "25.0"]),
-            ("base", ["-va", "2.8", "0.05", "0.75", "25.0"]),
-            ("avg", ["-va", "2.8", "0.25", "2.75", "25.0"]),
-            ("stdev", ["-va", "2.8", "0.25", "0.75", "99.0"])
-        ]
-
-        # Test that our mutations made it worse; note we manually chose values
-        # that did for this test image - this is not guranteed for all images
-        resultSet = set()
-        for (name, params) in subtests:
-            with self.subTest(param=name):
-                testCommand = command + params
-                self.exec(testCommand)
-                testRMSE = sum(self.get_channel_rmse(inputFile, decompFile))
-                self.assertNotEqual(testRMSE, refRMSE)
-                resultSet.add(testRMSE)
-
-        # Test that each mutation was "differently" worse; i.e. some new
-        # error metric was used
-        self.assertEqual(len(resultSet), len(subtests))
 
     @unittest.skipIf(os.cpu_count() == 1, "Cannot test on single core host")
     def test_thread_count(self):
@@ -1837,36 +1703,6 @@ class CLINTest(CLITestBase):
 
         self.exec(command)
 
-    def test_cl_v_missing_args(self):
-        """
-        Test -cl with -v and missing arguments.
-        """
-        # Build a valid command
-        command = [
-            self.binary, "-cl",
-            self.get_ref_image_path("LDR", "input", "A"),
-            self.get_tmp_image_path("LDR", "comp"),
-            "4x4", "-fast",
-            "-v", "3", "1.1", "0.8", "0.25", "0.5", "0.04"]
-
-        # Run the command, incrementally omitting arguments
-        self.exec_with_omit(command, 7)
-
-    def test_cl_va_missing_args(self):
-        """
-        Test -cl with -va and missing arguments.
-        """
-        # Build a valid command
-        command = [
-            self.binary, "-cl",
-            self.get_ref_image_path("LDR", "input", "A"),
-            self.get_tmp_image_path("LDR", "comp"),
-            "4x4", "-fast",
-            "-va", "1.1", "0.8", "0.25", "0.5"]
-
-        # Run the command, incrementally omitting arguments
-        self.exec_with_omit(command, 7)
-
     def test_cl_a_missing_args(self):
         """
         Test -cl with -a and missing arguments.
@@ -1893,21 +1729,6 @@ class CLINTest(CLITestBase):
             self.get_tmp_image_path("LDR", "comp"),
             "4x4", "-fast",
             "-cw", "0", "1", "2", "3"]
-
-        # Run the command, incrementally omitting arguments
-        self.exec_with_omit(command, 7)
-
-    def test_cl_b_missing_args(self):
-        """
-        Test -cl with -b and missing arguments.
-        """
-        # Build a valid command
-        command = [
-            self.binary, "-cl",
-            self.get_ref_image_path("LDR", "input", "A"),
-            self.get_tmp_image_path("LDR", "comp"),
-            "4x4", "-fast",
-            "-b", "1.6"]
 
         # Run the command, incrementally omitting arguments
         self.exec_with_omit(command, 7)

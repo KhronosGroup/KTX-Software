@@ -226,7 +226,7 @@ speed. Our test sets show an average of 12% improvement in the codec for
 Key for performance charts:
 
 * Color = block size (see legend).
-* Letter = image format (N = normal map, G = greyscale, L = LDR, H = HDR).
+* Letter = image format (N = normal map, G = grayscale, L = LDR, H = HDR).
 
 **Absolute performance vs 2.1 release:**
 
@@ -283,7 +283,7 @@ recompile your client-side code using the updated `astcenc.h` header.
 Key for performance charts:
 
 * Color = block size (see legend).
-* Letter = image format (N = normal map, G = greyscale, L = LDR, H = HDR).
+* Letter = image format (N = normal map, G = grayscale, L = LDR, H = HDR).
 
 **Absolute performance vs 2.0 release:**
 
@@ -313,7 +313,7 @@ major changes over the earlier 1.7 series, and is not command-line compatible.
 Key for performance charts
 
 * Color = block size (see legend).
-* Letter = image format (N = normal map, G = greyscale, L = LDR, H = HDR).
+* Letter = image format (N = normal map, G = grayscale, L = LDR, H = HDR).
 
 **Absolute performance vs 1.7 release:**
 

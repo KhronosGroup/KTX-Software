@@ -778,17 +778,17 @@ static unsigned int get_format(
 struct ktx_header
 {
 	uint8_t magic[12];
-	uint32_t endianness;		// should be 0x04030201; if it is instead 0x01020304, then the endianness of everything must be switched.
-	uint32_t gl_type;			// 0 for compressed textures, otherwise value from table 3.2 (page 162) of OpenGL 4.0 spec
-	uint32_t gl_type_size;		// size of data elements to do endianness swap on (1=endian-neutral data)
-	uint32_t gl_format;			// 0 for compressed textures, otherwise value from table 3.3 (page 163) of OpenGLl spec
-	uint32_t gl_internal_format;	// sized-internal-format, corresponding to table 3.12 to 3.14 (pages 182-185) of OpenGL spec
+	uint32_t endianness;				// should be 0x04030201; if it is instead 0x01020304, then the endianness of everything must be switched.
+	uint32_t gl_type;					// 0 for compressed textures, otherwise value from table 3.2 (page 162) of OpenGL 4.0 spec
+	uint32_t gl_type_size;				// size of data elements to do endianness swap on (1=endian-neutral data)
+	uint32_t gl_format;					// 0 for compressed textures, otherwise value from table 3.3 (page 163) of OpenGL spec
+	uint32_t gl_internal_format;		// sized-internal-format, corresponding to table 3.12 to 3.14 (pages 182-185) of OpenGL spec
 	uint32_t gl_base_internal_format;	// unsized-internal-format: corresponding to table 3.11 (page 179) of OpenGL spec
-	uint32_t pixel_width;		// texture dimensions; not rounded up to block size for compressed.
-	uint32_t pixel_height;		// must be 0 for 1D textures.
-	uint32_t pixel_depth;		// must be 0 for 1D, 2D and cubemap textures.
+	uint32_t pixel_width;				// texture dimensions; not rounded up to block size for compressed.
+	uint32_t pixel_height;				// must be 0 for 1D textures.
+	uint32_t pixel_depth;				// must be 0 for 1D, 2D and cubemap textures.
 	uint32_t number_of_array_elements;	// 0 if not a texture array
-	uint32_t number_of_faces;	// 6 for cubemaps, 1 for non-cubemaps
+	uint32_t number_of_faces;			// 6 for cubemaps, 1 for non-cubemaps
 	uint32_t number_of_mipmap_levels;	// 0 or 1 for non-mipmapped textures; 0 indicates that auto-mipmap-gen should be done at load time.
 	uint32_t bytes_of_key_value_data;	// size in bytes of the key-and-value area immediately following the header.
 };

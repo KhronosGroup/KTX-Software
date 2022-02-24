@@ -64,4 +64,4 @@ Binary payload
 
 The binary payload is a byte stream that immediately follows the header. It
 contains 16 bytes per compressed block. The number of compressed blocks is
-determined programmatically based on the header information.
+determined from the header information.

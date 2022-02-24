@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2011-2021 Arm Limited
+// Copyright 2011-2022 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -161,14 +161,13 @@ COMPRESSION
        -mask
            The input texture is a mask texture with unrelated data stored
            in the various color components, so enable error heuristics that
-           aim to improve perceptual quality by minimizing the effect of
-           error cross-talk across the color components.
+           aim to improve quality by minimizing the effect of error
+           cross-talk across the color components.
 
        -normal
            The input texture is a three component linear LDR normal map
            storing unit length normals as (R=X, G=Y, B=Z). The output will
-           be a two component X+Y normal map stored as (RGB=X, A=Y),
-           optimized for angular error instead of simple PSNR. The Z
+           be a two component X+Y normal map stored as (RGB=X, A=Y). The Z
            component can be recovered programmatically in shader code by
            using the equation:
 
@@ -218,17 +217,8 @@ R"(
 COMPRESSION TIPS & TRICKS
        ASTC is a block-based format that can be prone to block artifacts.
        If block artifacts are a problem when compressing a given texture,
-       adding some or all of following command-line options may help:
-
-           -b 1.8
-           -v 2 1 1 0 25 0.1
-           -va 1 1 0 25
-           -dblimit 60
-
-       The -b option is a general-purpose block-artifact reduction option.
-       The -v and -va option settings will concentrate effort where smooth
-       regions lie next to regions with high detail, which are particularly
-       prone to block artifacts.
+       increasing the compressor quality preset can help to alleviate the
+       problem.
 
        If a texture exhibits severe block artifacts in only some of the
        color components, which is a common problem for mask textures, then
@@ -242,34 +232,6 @@ ADVANCED COMPRESSION
 
        These options provide low-level control of the codec error metric
        computation, used to determine what good compression looks like.
-
-       -v <radius> <power> <base> <mean> <stdev> <mix>
-           Compute the per-texel relative error weighting for the RGB color
-           components as follows:
-
-           weight = 1 / (<base> + <mean> * mean^2 + <stdev> * stdev^2)
-
-           The <radius> argument specifies the texel radius of the
-           neighborhood over which the average and standard deviation are
-           computed.
-
-           The <mix> parameter is used to control the degree of mixing of
-           the average and stddev error values across the color components.
-           Setting this parameter to 0 causes the computation to be done
-           separately for each color component; setting it to 1 causes the
-           results from the RGB components to be combined and applied to
-           all three components. Intermediate values between these two
-           settings do a linear mix of the two.
-
-           The <power> argument is a power used to raise the values of the
-           input texels before computing average and standard deviation;
-           e.g. a power of 0.5 causes the codec to take the square root
-           of every input texel value.
-
-       -va <power> <base> <mean> <stdev>
-           Compute the per-texel relative error weighting for the alpha
-           component, when used in conjunction with -v. See documentation
-           of -v for individual parameter documentation.
 
        -a <radius>
            For textures with alpha component, scale per-texel weights by
@@ -289,12 +251,6 @@ ADVANCED COMPRESSION
            error significance. Set values above 1 to increase a component's
            significance, and values below 1 to decrease it. Set to 0 to
            exclude a component from error computation.
-
-       -b <weight>
-           Assign an additional weight scaling for texels at compression
-           block edges and corners. Setting this to a value above 1
-           increases the significance of texels closer to the edges of a
-           block, and can help to reduce block artifacts.
 
        -mpsnr <low> <high>
            Set the low and high f-stop values for the mPSNR error metric.

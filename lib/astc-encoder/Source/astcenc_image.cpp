@@ -173,6 +173,8 @@ void fetch_image_block(
 	int idx = 0;
 
 	vfloat4 data_min(1e38f);
+	vfloat4 data_mean(0.0f);
+	vfloat4 data_mean_scale(1.0f / static_cast<float>(bsd.texel_count));
 	vfloat4 data_max(-1e38f);
 	bool grayscale = true;
 
@@ -225,6 +227,7 @@ void fetch_image_block(
 
 				// Compute block metadata
 				data_min = min(data_min, datav);
+				data_mean += datav * data_mean_scale;
 				data_max = max(data_max, datav);
 
 				if (grayscale && (datav.lane<0>() != datav.lane<1>() || datav.lane<0>() != datav.lane<2>()))
@@ -259,6 +262,7 @@ void fetch_image_block(
 
 	// Store block metadata
 	blk.data_min = data_min;
+	blk.data_mean = data_mean;
 	blk.data_max = data_max;
 	blk.grayscale = grayscale;
 }

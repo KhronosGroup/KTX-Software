@@ -4,19 +4,86 @@ This page summarizes the major functional and performance changes in each
 release of the 3.x series.
 
 All performance data on this page is measured on an Intel Core i5-9600K
-clocked at 4.2 GHz, running astcenc using AVX2 and 6 threads.
+clocked at 4.2 GHz, running `astcenc` using AVX2 and 6 threads.
+
+
+<!-- ---------------------------------------------------------------------- -->
+## 3.4
+
+**Status:** In development
+
+The 3.4 release introduces another round of optimizations, removing a number
+of power-user configuration options to simplify the core compressor data path.
+
+* **General:**
+  * **Feature:** The `-v` and `-va` options to set a per-texel error weight
+    function are no longer supported.
+  * **Feature:** The `-b` option to set a per-texel error weight boost for
+    block border texels is no longer supported.
+  * **Feature:** The `-a` option to set a per-texel error weight based on texel
+    alpha value is no longer supported as an error weighting tool, but is still
+    supported for providing sprite-sheet RDO.
+  * **Feature:** The `-mask` option to set an error metric for mask map
+    textures is still supported, but is currently a no-op in the compressor.
+  * **Feature:** The `-perceptual` option to set a perceptual error metric is
+    still supported, but is currently a no-op in the compressor for mask map
+    and normal map textures.
+
+### Performance:
+
+Key for charts:
+
+* Color = block size (see legend).
+* Letter = image format (N = normal map, G = grayscale, L = LDR, H = HDR).
+
+**Relative performance vs 3.3 release:**
+
+Pending ...
+
+<!-- ---------------------------------------------------------------------- -->
+## 3.3
+
+**Status:** November 2021
+
+The 3.3 release improves image quality for normal maps, and two component
+textures. Normal maps are expected to compress 25% slower than the 3.2
+release, although it should be noted that they are still faster to compress
+in 3.3 than when using the 2.5 series. This release also fixes one reported
+stability issue.
+
+* **General:**
+  * **Feature:** Normal map image quality has been improved.
+  * **Feature:** Two component image quality has been improved, provided
+    that unused components are correctly zero-weighted using e.g. `-cw` on the
+    command line.
+  * **Bug-fix:** Improved stability when trying to compress complex blocks that
+    could not beat even the starting quality threshold. These will now always
+    compress in to a constant color blocks.
+
+<!-- ---------------------------------------------------------------------- -->
+## 3.2
+
+**Status:** August 2021
+
+The 3.2 release is a bugfix release; no significant image quality or
+performance differences are expected.
+
+* **General:**
+  * **Bug-fix:** Improved stability when new contexts were created while other
+    contexts were compressing or decompressing an image.
+  * **Bug-fix:** Improved stability when decompressing blocks with invalid
+    block encodings.
 
 <!-- ---------------------------------------------------------------------- -->
 ## 3.1
 
 **Status:** July 2021
 
-The 3.1 release is the second release in the 3.x series. This release gives
-another performance boost, typically between 5 and 20% faster than the 3.0
-release, as well as further incremental improvements to image quality. A number
-of build system improvements make astcenc easier and faster to integrate into
-other projects as a library, including support for building universal binaries
-on macOS. Full change list is shown below.
+The 3.1 release gives another performance boost, typically between 5 and 20%
+faster than the 3.0 release, as well as further incremental improvements to
+image quality. A number of build system improvements make astcenc easier and
+faster to integrate into other projects as a library, including support for
+building universal binaries on macOS. Full change list is shown below.
 
 Reminder for users of the library interface - the API is not designed to be
 binary compatible across versions, and this release is not compatible with
@@ -59,7 +126,7 @@ updated `astcenc.h` header.
 Key for charts:
 
 * Color = block size (see legend).
-* Letter = image format (N = normal map, G = greyscale, L = LDR, H = HDR).
+* Letter = image format (N = normal map, G = grayscale, L = LDR, H = HDR).
 
 **Relative performance vs 3.0 release:**
 
@@ -110,7 +177,7 @@ updated `astcenc.h` header.
 Key for charts:
 
 * Color = block size (see legend).
-* Letter = image format (N = normal map, G = greyscale, L = LDR, H = HDR).
+* Letter = image format (N = normal map, G = grayscale, L = LDR, H = HDR).
 
 **Absolute performance vs 2.5 release:**
 

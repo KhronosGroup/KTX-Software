@@ -43,7 +43,7 @@ spec:
     - name: artifactory-ms-docker
   containers:
     - name: astcenc
-      image: mobile-studio--docker.eu-west-1.artifactory.aws.arm.com/astcenc:3.0.0
+      image: mobile-studio--docker.eu-west-1.artifactory.aws.arm.com/astcenc:3.1.0
       command:
         - sleep
       args:
@@ -75,9 +75,9 @@ spec:
 
                     cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ -DISA_AVX2=ON ..
 
-                    cov-configure --template --compiler cc --comptype gcc
-                    cov-configure --template --compiler c++ --comptype g++
-                    cov-build --dir ${WORKSPACE}/intermediate make install
+                    cov-configure --config ${WORKSPACE}/coverity.conf --template --compiler cc --comptype gcc
+                    cov-configure --config ${WORKSPACE}/coverity.conf --template --compiler c++ --comptype g++
+                    cov-build --config ${WORKSPACE}/coverity.conf --dir ${WORKSPACE}/intermediate make install
                     cov-analyze --dir ${WORKSPACE}/intermediate
                     cov-commit-defects --dir ${WORKSPACE}/intermediate \\
                                        --stream astcenc-master \\

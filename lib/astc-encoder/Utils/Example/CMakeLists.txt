@@ -35,7 +35,7 @@ project(astcencoder_example VERSION 1.0.0)
 ExternalProject_Add(astcencoder
     GIT_REPOSITORY https://github.com/ARM-software/astc-encoder
     GIT_TAG main
-    CMAKE_CACHE_ARGS -DCLI:String=OFF
+    CMAKE_CACHE_ARGS -DCLI:STRING=OFF -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
     INSTALL_COMMAND "")
 
 ExternalProject_Get_property(astcencoder

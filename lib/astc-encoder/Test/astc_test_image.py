@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # -----------------------------------------------------------------------------
-# Copyright 2019-2021 Arm Limited
+# Copyright 2019-2022 Arm Limited
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy
@@ -164,7 +164,7 @@ def format_result(image, reference, result):
 
 
 def run_test_set(encoder, testRef, testSet, quality, blockSizes, testRuns,
-                 keepOutput):
+                 keepOutput, threads):
     """
     Execute all tests in the test set.
 
@@ -178,6 +178,7 @@ def run_test_set(encoder, testRef, testSet, quality, blockSizes, testRuns,
         keepOutput (bool): Should the test preserve output images? This is
             only a hint and discarding output may be ignored if the encoder
             version used can't do it natively.
+        threads (int or None): The thread count to use.
 
     Returns:
         ResultSet: The test results.
@@ -203,7 +204,7 @@ def run_test_set(encoder, testRef, testSet, quality, blockSizes, testRuns,
             dat = (curCount, maxCount, blkSz, image.testFile)
             print("Running %u/%u %s %s ... " % dat, end='', flush=True)
             res = encoder.run_test(image, blkSz, "-%s" % quality, testRuns,
-                                   keepOutput)
+                                   keepOutput, threads)
             res = trs.Record(blkSz, image.testFile, res[0], res[1], res[2], res[3])
             resultSet.add_record(res)
 
@@ -296,7 +297,7 @@ def parse_command_line():
     refcoders = ["ref-1.7",
                  "ref-2.5-neon", "ref-2.5-sse2", "ref-2.5-sse4.1", "ref-2.5-avx2",
                  "ref-3.0-neon", "ref-3.0-sse2", "ref-3.0-sse4.1", "ref-3.0-avx2",
-                 "ref-3.1-neon", "ref-3.1-sse2", "ref-3.1-sse4.1", "ref-3.1-avx2",
+                 "ref-3.3-neon", "ref-3.3-sse2", "ref-3.3-sse4.1", "ref-3.3-avx2",
                  "ref-main-neon", "ref-main-sse2", "ref-main-sse4.1", "ref-main-avx2"]
 
     # All test encoders
@@ -349,6 +350,10 @@ def parse_command_line():
 
     parser.add_argument("--keep-output", dest="keepOutput", default=False,
                         action="store_true", help="keep image output")
+
+    parser.add_argument("-j", dest="threads", default=None,
+                        type=int, help="thread count")
+
 
     args = parser.parse_args()
 
@@ -421,7 +426,7 @@ def main():
 
                 resultSet = run_test_set(encoder, testRef, testSet, quality,
                                          args.blockSizes, testRepeats,
-                                         args.keepOutput)
+                                         args.keepOutput, args.threads)
 
                 resultSet.save_to_file(testRes)
 
