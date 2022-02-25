@@ -1,6 +1,6 @@
 #  SPDX-License-Identifier: Apache-2.0
 #  ----------------------------------------------------------------------------
-#  Copyright 2020-2021 Arm Limited
+#  Copyright 2020-2022 Arm Limited
 #
 #  Licensed under the Apache License, Version 2.0 (the "License"); you may not
 #  use this file except in compliance with the License. You may obtain a copy
@@ -89,6 +89,12 @@ macro(astcenc_set_properties NAME)
                 ASTCENC_DECOMPRESS_ONLY)
     endif()
 
+    if(${BLOCK_MAX_TEXELS})
+        target_compile_definitions(${NAME}
+            PRIVATE
+                ASTCENC_BLOCK_MAX_TEXELS=${BLOCK_MAX_TEXELS})
+    endif()
+
     if(${DIAGNOSTICS})
         target_compile_definitions(${NAME}
             PUBLIC
@@ -128,7 +134,7 @@ macro(astcenc_set_properties NAME)
             $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-shift-sign-overflow>
             $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-format-nonliteral>
 
-           $<$<CXX_COMPILER_ID:Clang>:-Wdocumentation>)
+            $<$<CXX_COMPILER_ID:Clang>:-Wdocumentation>)
 
     target_link_options(${NAME}
         PRIVATE

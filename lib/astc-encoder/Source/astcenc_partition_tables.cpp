@@ -93,15 +93,15 @@ static bool compare_canonical_partitionings(
  * which have the same texel assignment groupings. It is only useful for the compressor to test one
  * of each, so we mark duplicates as invalid.
  *
- * @param         texel_count   The first canonical bit pattern to check.
- * @param[in,out] pt            The table of partitioning information entries.
+* @param          bit_patterns   The scratch memory for the bit patterns.
+ * @param         texel_count    The first canonical bit pattern to check.
+ * @param[in,out] pt             The table of partitioning information entries.
  */
 static void remove_duplicate_partitionings(
+	uint64_t* bit_patterns,
 	int texel_count,
 	partition_info pt[BLOCK_MAX_PARTITIONINGS]
 ) {
-	uint64_t bit_patterns[BLOCK_MAX_PARTITIONINGS * 7];
-
 	for (unsigned int i = 0; i < BLOCK_MAX_PARTITIONINGS; i++)
 	{
 		generate_canonical_partitioning(texel_count, pt[i].partition_of_texel, bit_patterns + i * 7);
@@ -373,7 +373,11 @@ void init_partition_tables(
 		generate_one_partition_info_entry(bsd, 4, i, par_tab4[i]);
 	}
 
-	remove_duplicate_partitionings(bsd.texel_count, par_tab2);
-	remove_duplicate_partitionings(bsd.texel_count, par_tab3);
-	remove_duplicate_partitionings(bsd.texel_count, par_tab4);
+	uint64_t* bit_patterns = new uint64_t[BLOCK_MAX_PARTITIONINGS * 7];
+
+	remove_duplicate_partitionings(bit_patterns, bsd.texel_count, par_tab2);
+	remove_duplicate_partitionings(bit_patterns, bsd.texel_count, par_tab3);
+	remove_duplicate_partitionings(bit_patterns, bsd.texel_count, par_tab4);
+
+	delete[] bit_patterns;
 }

@@ -171,6 +171,20 @@ void unpack_weights(
 	}
 }
 
+/**
+ * @brief Return an FP32 NaN value for use in error colors.
+ *
+ * This NaN encoding will turn into 0xFFFF when converted to an FP16 NaN.
+ *
+ * @return The float color value.
+ */
+static float error_color_nan()
+{
+	if32 v;
+	v.u = 0xFFFFE000U;
+	return v.f;
+}
+
 /* See header for documentation. */
 void decompress_symbolic_block(
 	astcenc_profile decode_mode,
@@ -195,10 +209,10 @@ void decompress_symbolic_block(
 	{
 		for (unsigned int i = 0; i < bsd.texel_count; i++)
 		{
-			blk.data_r[i] = std::numeric_limits<float>::quiet_NaN();
-			blk.data_g[i] = std::numeric_limits<float>::quiet_NaN();
-			blk.data_b[i] = std::numeric_limits<float>::quiet_NaN();
-			blk.data_a[i] = std::numeric_limits<float>::quiet_NaN();
+			blk.data_r[i] = error_color_nan();
+			blk.data_g[i] = error_color_nan();
+			blk.data_b[i] = error_color_nan();
+			blk.data_a[i] = error_color_nan();
 			blk.rgb_lns[i] = 0;
 			blk.alpha_lns[i] = 0;
 		}
@@ -234,7 +248,7 @@ void decompress_symbolic_block(
 			{
 			case ASTCENC_PRF_LDR_SRGB:
 			case ASTCENC_PRF_LDR:
-				color = vfloat4(std::numeric_limits<float>::quiet_NaN());
+				color = vfloat4(error_color_nan());
 				break;
 			case ASTCENC_PRF_HDR_RGB_LDR_A:
 			case ASTCENC_PRF_HDR:

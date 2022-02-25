@@ -16,6 +16,13 @@ The 3.4 release introduces another round of optimizations, removing a number
 of power-user configuration options to simplify the core compressor data path.
 
 * **General:**
+  * **Feature:** Many memory allocations have been moved off the stack into
+    dynamically allocated working memory. This significantly reduces the peak
+    stack usage, allowing the compressor to run in systems with 128KB stack
+    limits.
+  * **Feature:** Builds now support `-DBLOCK_MAX_TEXELS=<count>` to allow a
+    compressor to support a subset of block sizes. This can reduce binary size
+    and runtime memory footprint, and improve performance.
   * **Feature:** The `-v` and `-va` options to set a per-texel error weight
     function are no longer supported.
   * **Feature:** The `-b` option to set a per-texel error weight boost for
@@ -186,3 +193,7 @@ Key for charts:
 **Relative performance vs 2.5 release:**
 
 ![Relative scores 3.0 vs 2.5](./ChangeLogImg/relative-2.5-to-3.0.png)
+
+- - -
+
+_Copyright © 2021-2022, Arm Limited and contributors. All rights reserved._

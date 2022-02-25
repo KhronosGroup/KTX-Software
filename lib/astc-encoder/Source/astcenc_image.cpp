@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2011-2021 Arm Limited
+// Copyright 2011-2022 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -318,9 +318,9 @@ void write_image_block(
 				{
 					vint4 colori = vint4::zero();
 
-					if (blk.data_r[idx] == std::numeric_limits<float>::quiet_NaN())
+					// Errors are NaN encoded - convert to magenta error color
+					if (blk.data_r[idx] != blk.data_r[idx])
 					{
-						// Can't display NaN - show magenta error color
 						colori = vint4(0xFF, 0x00, 0xFF, 0xFF);
 					}
 					else if (needs_swz)
@@ -374,11 +374,8 @@ void write_image_block(
 				{
 					vint4 color;
 
-					if (blk.data_r[idx] == std::numeric_limits<float>::quiet_NaN())
-					{
-						color = vint4(0xFFFF);
-					}
-					else if (needs_swz)
+					// NaNs are handled inline - no need to special case
+					if (needs_swz)
 					{
 						data[ASTCENC_SWZ_R] = blk.data_r[idx];
 						data[ASTCENC_SWZ_G] = blk.data_g[idx];
@@ -433,11 +430,8 @@ void write_image_block(
 				{
 					vfloat4 color = blk.texel(idx);
 
-					if (color.lane<0>() == std::numeric_limits<float>::quiet_NaN())
-					{
-						color = vfloat4(std::numeric_limits<float>::quiet_NaN());
-					}
-					else if (needs_swz)
+					// NaNs are handled inline - no need to special case
+					if (needs_swz)
 					{
 						data[ASTCENC_SWZ_R] = color.lane<0>();
 						data[ASTCENC_SWZ_G] = color.lane<1>();

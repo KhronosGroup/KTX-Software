@@ -201,3 +201,7 @@ A channel as LDR.
 For other use cases the alpha channel is simply a fourth data channel which is
 also storing an HDR value. For these cases use the `-cH` compressor option
 which will treat all channels as HDR data.
+
+- - -
+
+_Copyright © 2019-2022, Arm Limited and contributors. All rights reserved._

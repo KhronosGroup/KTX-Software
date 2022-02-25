@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2011-2021 Arm Limited
+// Copyright 2011-2022 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -169,7 +169,7 @@ int determine_image_components(const astcenc_image * img)
 		}
 	}
 
-	int image_components = 1 + (is_luma == 0 ? 0 : 2) + (has_alpha ? 0 : 1);
+	int image_components = 1 + (is_luma == 0 ? 2 : 0) + (has_alpha ? 1 : 0);
 	return image_components;
 }
 

@@ -231,13 +231,22 @@ static astcenc_error validate_block_size(
 	unsigned int block_y,
 	unsigned int block_z
 ) {
-	if (((block_z <= 1) && is_legal_2d_block_size(block_x, block_y)) ||
-	    ((block_z >= 2) && is_legal_3d_block_size(block_x, block_y, block_z)))
+	// Test if this is a legal block size at all
+	bool is_legal = (((block_z <= 1) && is_legal_2d_block_size(block_x, block_y)) ||
+	                 ((block_z >= 2) && is_legal_3d_block_size(block_x, block_y, block_z)));
+	if (!is_legal)
 	{
-		return ASTCENC_SUCCESS;
+		return ASTCENC_ERR_BAD_BLOCK_SIZE;
 	}
 
-	return ASTCENC_ERR_BAD_BLOCK_SIZE;
+	// Test if this build has sufficient capacity for this block size
+	bool have_capacity = (block_x * block_y * block_z) <= BLOCK_MAX_TEXELS;
+	if (!have_capacity)
+	{
+		return ASTCENC_ERR_NOT_IMPLEMENTED;
+	}
+
+	return ASTCENC_SUCCESS;
 }
 
 /**
@@ -1110,7 +1119,7 @@ astcenc_error astcenc_decompress_image(
 			                          scb, blk);
 
 			write_image_block(image_out, blk, *ctx->bsd,
-			                 x * block_x, y * block_y, z * block_z, *swizzle);
+			                  x * block_x, y * block_y, z * block_z, *swizzle);
 		}
 
 		ctx->manage_decompress.complete_task_assignment(count);

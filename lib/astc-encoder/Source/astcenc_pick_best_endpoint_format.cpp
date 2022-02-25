@@ -1052,7 +1052,8 @@ unsigned int compute_ideal_endpoint_formats(
 	int partition_format_specifiers[TUNE_MAX_TRIAL_CANDIDATES][BLOCK_MAX_PARTITIONS],
 	int block_mode[TUNE_MAX_TRIAL_CANDIDATES],
 	quant_method quant_level[TUNE_MAX_TRIAL_CANDIDATES],
-	quant_method quant_level_mod[TUNE_MAX_TRIAL_CANDIDATES]
+	quant_method quant_level_mod[TUNE_MAX_TRIAL_CANDIDATES],
+	compression_working_buffers& tmpbuf
 ) {
 	int partition_count = pi.partition_count;
 
@@ -1077,10 +1078,10 @@ unsigned int compute_ideal_endpoint_formats(
 		    format_of_choice[i]);
 	}
 
-	alignas(ASTCENC_VECALIGN) float errors_of_best_combination[WEIGHTS_MAX_BLOCK_MODES];
-	alignas(ASTCENC_VECALIGN) quant_method best_quant_levels[WEIGHTS_MAX_BLOCK_MODES];
-	quant_method best_quant_levels_mod[WEIGHTS_MAX_BLOCK_MODES];
-	int best_ep_formats[WEIGHTS_MAX_BLOCK_MODES][4];
+	float* errors_of_best_combination = tmpbuf.errors_of_best_combination;
+	quant_method* best_quant_levels = tmpbuf.best_quant_levels;
+	quant_method* best_quant_levels_mod = tmpbuf.best_quant_levels_mod;
+	int (&best_ep_formats)[WEIGHTS_MAX_BLOCK_MODES][BLOCK_MAX_PARTITIONS] = tmpbuf.best_ep_formats;
 
 	// Ensure that the "overstep" of the last iteration in the vectorized loop will contain data
 	// that will never be picked as best candidate

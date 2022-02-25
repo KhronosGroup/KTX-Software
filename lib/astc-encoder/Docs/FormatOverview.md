@@ -482,3 +482,7 @@ which allow applications to reduce the intermediate precision to either UNORM8
 [astc_3d]: https://www.khronos.org/registry/OpenGL/extensions/KHR/KHR_texture_compression_astc_sliced_3d.txt
 [astc_full]: https://www.khronos.org/registry/OpenGL/extensions/OES/OES_texture_compression_astc.txt
 [astc_decode]: https://www.khronos.org/registry/OpenGL/extensions/EXT/EXT_texture_compression_astc_decode_mode.txt
+
+- - -
+
+_Copyright © 2019-2022, Arm Limited and contributors. All rights reserved._

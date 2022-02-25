@@ -114,3 +114,7 @@ not introduced any obvious memory errors. Build a release build with symbols
 information with `-DCMAKE_BUILD_TYPE=RelWithDebInfo` and then run:
 
     valgrind --tool=memcheck --track-origins=yes <command>
+
+- - -
+
+_Copyright © 2019-2022, Arm Limited and contributors. All rights reserved._
