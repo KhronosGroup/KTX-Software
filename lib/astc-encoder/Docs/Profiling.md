@@ -46,3 +46,7 @@ Standard syntax x86-64 disassembly can be generated using:
 ```shell
 objdump -C -M intel --no-show-raw -d -S <binary> > dis.txt
 ```
+
+- - -
+
+_Copyright © 2020-2022, Arm Limited and contributors. All rights reserved._

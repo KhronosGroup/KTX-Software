@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2011-2021 Arm Limited
+// Copyright 2011-2022 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -111,7 +111,7 @@ static void compute_angular_offsets(
 	promise(weight_count > 0);
 	promise(max_angular_steps > 0);
 
-	alignas(ASTCENC_VECALIGN) int isamplev[BLOCK_MAX_WEIGHTS] { 0 };
+	alignas(ASTCENC_VECALIGN) int isamplev[BLOCK_MAX_WEIGHTS];
 
 	// Precompute isample; arrays are always allocated 64 elements long
 	for (unsigned int i = 0; i < weight_count; i += ASTCENC_SIMD_WIDTH)
@@ -518,11 +518,13 @@ void compute_angular_endpoints_1plane(
 	const block_size_descriptor& bsd,
 	const float* dec_weight_quant_uvalue,
 	const float* dec_weight_quant_sig,
-	float low_value[WEIGHTS_MAX_BLOCK_MODES],
-	float high_value[WEIGHTS_MAX_BLOCK_MODES]
+	compression_working_buffers& tmpbuf
 ) {
-	float low_values[WEIGHTS_MAX_DECIMATION_MODES][12];
-	float high_values[WEIGHTS_MAX_DECIMATION_MODES][12];
+	float (&low_value)[WEIGHTS_MAX_BLOCK_MODES] = tmpbuf.weight_low_value1;
+	float (&high_value)[WEIGHTS_MAX_BLOCK_MODES] = tmpbuf.weight_high_value1;
+
+	float (&low_values)[WEIGHTS_MAX_DECIMATION_MODES][12] = tmpbuf.weight_low_values1;
+	float (&high_values)[WEIGHTS_MAX_DECIMATION_MODES][12] = tmpbuf.weight_high_values1;
 
 	unsigned int max_decimation_modes = only_always ? bsd.always_decimation_mode_count
 	                                                : bsd.decimation_mode_count;
@@ -580,15 +582,17 @@ void compute_angular_endpoints_2planes(
 	const block_size_descriptor& bsd,
 	const float* dec_weight_quant_uvalue,
 	const float* dec_weight_quant_sig,
-	float low_value1[WEIGHTS_MAX_BLOCK_MODES],
-	float high_value1[WEIGHTS_MAX_BLOCK_MODES],
-	float low_value2[WEIGHTS_MAX_BLOCK_MODES],
-	float high_value2[WEIGHTS_MAX_BLOCK_MODES]
+	compression_working_buffers& tmpbuf
 ) {
-	float low_values1[WEIGHTS_MAX_DECIMATION_MODES][12];
-	float high_values1[WEIGHTS_MAX_DECIMATION_MODES][12];
-	float low_values2[WEIGHTS_MAX_DECIMATION_MODES][12];
-	float high_values2[WEIGHTS_MAX_DECIMATION_MODES][12];
+	float (&low_value1)[WEIGHTS_MAX_BLOCK_MODES] = tmpbuf.weight_low_value1;
+	float (&high_value1)[WEIGHTS_MAX_BLOCK_MODES] = tmpbuf.weight_high_value1;
+	float (&low_value2)[WEIGHTS_MAX_BLOCK_MODES] = tmpbuf.weight_low_value2;
+	float (&high_value2)[WEIGHTS_MAX_BLOCK_MODES] = tmpbuf.weight_high_value2;
+
+	float (&low_values1)[WEIGHTS_MAX_DECIMATION_MODES][12] = tmpbuf.weight_low_values1;
+	float (&high_values1)[WEIGHTS_MAX_DECIMATION_MODES][12] = tmpbuf.weight_high_values1;
+	float (&low_values2)[WEIGHTS_MAX_DECIMATION_MODES][12] = tmpbuf.weight_low_values2;
+	float (&high_values2)[WEIGHTS_MAX_DECIMATION_MODES][12] = tmpbuf.weight_high_values2;
 
 	promise(bsd.decimation_mode_count > 0);
 	for (unsigned int i = 0; i < bsd.decimation_mode_count; i++)

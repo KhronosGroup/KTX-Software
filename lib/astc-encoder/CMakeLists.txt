@@ -1,6 +1,6 @@
 #  SPDX-License-Identifier: Apache-2.0
 #  ----------------------------------------------------------------------------
-#  Copyright 2020-2021 Arm Limited
+#  Copyright 2020-2022 Arm Limited
 #
 #  Licensed under the Apache License, Version 2.0 (the "License"); you may not
 #  use this file except in compliance with the License. You may obtain a copy
@@ -183,12 +183,15 @@ endif()
 
 function(printopt optName optVal)
     if(${optVal})
-        message(STATUS "  ${optName} -  ON")
+        message(STATUS "  ${optName}  - ON")
     else()
-        message(STATUS "  ${optName} - OFF")
+        message(STATUS "  ${optName}  - OFF")
     endif()
 endfunction()
 
+if("${BLOCK_MAX_TEXELS}")
+     message(STATUS "  Max block texels - ${BLOCK_MAX_TEXELS}")
+endif()
 printopt("AVX2 backend   " ${ISA_AVX2})
 printopt("SSE4.1 backend " ${ISA_SSE41})
 printopt("SSE2 backend   " ${ISA_SSE2})

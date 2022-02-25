@@ -73,3 +73,7 @@ interpolation weights. This gets very confusing in functions using all three!
 We are slowly refactoring the code to only use "weight" to mean the endpoint
 interpolation weights. The error weighting factors used for other purposes are
 being updated to use the using the term "significance".
+
+- - -
+
+_Copyright © 2020-2022, Arm Limited and contributors. All rights reserved._

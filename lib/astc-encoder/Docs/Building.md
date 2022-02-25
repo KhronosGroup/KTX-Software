@@ -118,17 +118,6 @@ make install -j16
 
 For codec developers there are a number of useful features in the build system.
 
-### No intrinsics build
-
-All normal builds will use SIMD accelerated code paths using intrinsics, as all
-target architectures (x86-64 and aarch64) guarantee SIMD availability. For
-development purposes it is possible to build an intrinsic-free build which uses
-no explicit SIMD acceleration (the compiler may still auto-vectorize).
-
-To enable this binary variant add `-DISA_NONE=ON` to the CMake command line
-when configuring. It is NOT recommended to use this for production; it is
-significantly slower than the vectorized SIMD builds.
-
 ### Build Types
 
 We support and test the following `CMAKE_BUILD_TYPE` options.
@@ -141,6 +130,26 @@ We support and test the following `CMAKE_BUILD_TYPE` options.
 
 Note that optimized release builds are compiled with link-time optimization,
 which can make profiling more challenging ...
+
+### No intrinsics builds
+
+All normal builds will use SIMD accelerated code paths using intrinsics, as all
+target architectures (x86-64 and aarch64) guarantee SIMD availability. For
+development purposes it is possible to build an intrinsic-free build which uses
+no explicit SIMD acceleration (the compiler may still auto-vectorize).
+
+To enable this binary variant add `-DISA_NONE=ON` to the CMake command line
+when configuring. It is NOT recommended to use this for production; it is
+significantly slower than the vectorized SIMD builds.
+
+### Constrained block sizebuilds
+
+All normal builds will support all ASTC block sizes, including the worst case
+6x6x6 3D block size (216 texels per block). Compressor memory footprint and
+performance can be improved by limiting the block sizes supported in the build
+by adding `-DBLOCK_MAX_TEXELS=<texel_count>` to to CMake command line when
+configuring. Legal block sizes that are unavailable in a restricted build will
+return the error `ASTCENC_ERR_NOT_IMPLEMENTED` during context creation.
 
 ### Testing
 
@@ -186,3 +195,7 @@ integrated into other projects using CMake. An example of the CMake integration
 and the codec API usage can be found in the `./Utils/Example` directory in the
 repository. See the [Example Readme](../Utils/Example/README.md) for more
 details.
+
+- - -
+
+_Copyright © 2019-2022, Arm Limited and contributors. All rights reserved._

@@ -322,3 +322,7 @@ Key for performance charts
 **Relative performance vs 1.7 release:**
 
 ![Relative scores 2.0 vs 1.7](./ChangeLogImg/relative-1.7-to-2.0.png)
+
+- - -
+
+_Copyright © 2020-2022, Arm Limited and contributors. All rights reserved._

@@ -66,6 +66,13 @@
 /* ============================================================================
   Constants
 ============================================================================ */
+#if !defined(ASTCENC_BLOCK_MAX_TEXELS)
+	#define ASTCENC_BLOCK_MAX_TEXELS 216 // A 3D 6x6x6 block
+#endif
+
+/** @brief The maximum number of texels a block can support (6x6x6 block). */
+static constexpr unsigned int BLOCK_MAX_TEXELS { ASTCENC_BLOCK_MAX_TEXELS };
+
 /** @brief The maximum number of components a block can support. */
 static constexpr unsigned int BLOCK_MAX_COMPONENTS { 4 };
 
@@ -74,9 +81,6 @@ static constexpr unsigned int BLOCK_MAX_PARTITIONS { 4 };
 
 /** @brief The number of partitionings, per partition count, suported by the ASTC format. */
 static constexpr unsigned int BLOCK_MAX_PARTITIONINGS { 1024 };
-
-/** @brief The maximum number of texels a block can support (6x6x6 block). */
-static constexpr unsigned int BLOCK_MAX_TEXELS { 216 };
 
 /** @brief The maximum number of weights used during partition selection for texel clustering. */
 static constexpr uint8_t BLOCK_MAX_KMEANS_TEXELS { 64 };
@@ -1022,6 +1026,59 @@ struct alignas(ASTCENC_VECALIGN) compression_working_buffers
 	 * For two plane encodings, second plane weights start at @c WEIGHTS_PLANE2_OFFSET offsets.
 	 */
 	alignas(ASTCENC_VECALIGN) uint8_t dec_weights_quant_pvalue[WEIGHTS_MAX_BLOCK_MODES * BLOCK_MAX_WEIGHTS];
+
+	/** @brief Error of the best encoding combination for each block mode. */
+	alignas(ASTCENC_VECALIGN) float errors_of_best_combination[WEIGHTS_MAX_BLOCK_MODES];
+
+	/** @brief The best color quant for each block mode. */
+	alignas(ASTCENC_VECALIGN) quant_method best_quant_levels[WEIGHTS_MAX_BLOCK_MODES];
+
+	/** @brief The best color quant for each block mode if modes are the same and we have spare bits. */
+	quant_method best_quant_levels_mod[WEIGHTS_MAX_BLOCK_MODES];
+
+	/** @brief The best endpoint format for each partition. */
+	int best_ep_formats[WEIGHTS_MAX_BLOCK_MODES][BLOCK_MAX_PARTITIONS];
+
+	/** @brief The total bit storage needed for quantized weights for each block mode. */
+	int qwt_bitcounts[WEIGHTS_MAX_BLOCK_MODES];
+
+	/** @brief The cumulative error for quantized weights for each block mode. */
+	float qwt_errors[WEIGHTS_MAX_BLOCK_MODES];
+
+	/** @brief The low weight value in plane 1 for each block mode. */
+	float weight_low_value1[WEIGHTS_MAX_BLOCK_MODES];
+
+	/** @brief The high weight value in plane 1 for each block mode. */
+	float weight_high_value1[WEIGHTS_MAX_BLOCK_MODES];
+
+	/** @brief The low weight value in plane 1 for each quant level and decimation mode. */
+	float weight_low_values1[WEIGHTS_MAX_DECIMATION_MODES][12];
+
+	/** @brief The high weight value in plane 1 for each quant level and decimation mode. */
+	float weight_high_values1[WEIGHTS_MAX_DECIMATION_MODES][12];
+
+	/** @brief The low weight value in plane 2 for each block mode. */
+	float weight_low_value2[WEIGHTS_MAX_BLOCK_MODES];
+
+	/** @brief The high weight value in plane 2 for each block mode. */
+	float weight_high_value2[WEIGHTS_MAX_BLOCK_MODES];
+
+	/** @brief The low weight value in plane 2 for each quant level and decimation mode. */
+	float weight_low_values2[WEIGHTS_MAX_DECIMATION_MODES][12];
+
+	/** @brief The high weight value in plane 2 for each quant level and decimation mode. */
+	float weight_high_values2[WEIGHTS_MAX_DECIMATION_MODES][12];
+};
+
+struct dt_init_working_buffers
+{
+	uint8_t weight_count_of_texel[BLOCK_MAX_TEXELS];
+	uint8_t grid_weights_of_texel[BLOCK_MAX_TEXELS][4];
+	uint8_t weights_of_texel[BLOCK_MAX_TEXELS][4];
+
+	uint8_t texel_count_of_weight[BLOCK_MAX_WEIGHTS];
+	uint8_t texels_of_weight[BLOCK_MAX_WEIGHTS][BLOCK_MAX_TEXELS];
+	uint8_t texel_weights_of_weight[BLOCK_MAX_WEIGHTS][BLOCK_MAX_TEXELS];
 };
 
 /**
@@ -1935,6 +1992,7 @@ void unpack_weights(
  * @param[out] block_mode                    The best packed block mode indexes.
  * @param[out] quant_level                   The best color quant level.
  * @param[out] quant_level_mod               The best color quant level if endpoints are the same.
+ * @param[out] tmpbuf                        Preallocated scratch buffers for the compressor.
  *
  * @return The actual number of candidate matches returned.
  */
@@ -1949,7 +2007,8 @@ unsigned int compute_ideal_endpoint_formats(
 	int partition_format_specifiers[TUNE_MAX_TRIAL_CANDIDATES][BLOCK_MAX_PARTITIONS],
 	int block_mode[TUNE_MAX_TRIAL_CANDIDATES],
 	quant_method quant_level[TUNE_MAX_TRIAL_CANDIDATES],
-	quant_method quant_level_mod[TUNE_MAX_TRIAL_CANDIDATES]);
+	quant_method quant_level_mod[TUNE_MAX_TRIAL_CANDIDATES],
+	compression_working_buffers& tmpbuf);
 
 /**
  * @brief For a given 1 plane weight set recompute the endpoint colors.
@@ -2018,8 +2077,7 @@ void prepare_angular_tables();
  * @param      bsd                       The block size descriptor for the current trial.
  * @param      dec_weight_quant_uvalue   The decimated and quantized weight values.
  * @param      dec_weight_quant_sig      The significance of each weight.
- * @param[out] low_value                 The lowest weight to consider for each block mode.
- * @param[out] high_value                The highest weight to consider for each block mode.
+ * @param[out] tmpbuf                    Preallocated scratch buffers for the compressor.
  */
 void compute_angular_endpoints_1plane(
 	unsigned int tune_low_weight_limit,
@@ -2027,30 +2085,23 @@ void compute_angular_endpoints_1plane(
 	const block_size_descriptor& bsd,
 	const float* dec_weight_quant_uvalue,
 	const float* dec_weight_quant_sig,
-	float low_value[WEIGHTS_MAX_BLOCK_MODES],
-	float high_value[WEIGHTS_MAX_BLOCK_MODES]);
+	compression_working_buffers& tmpbuf);
 
 /**
  * @brief Compute the angular endpoints for two planes for each block mode.
  *
- * @param      tune_low_weight_limit    Weight count cutoff below which we use simpler searches.
- * @param     bsd                       The block size descriptor for the current trial.
- * @param     dec_weight_quant_uvalue   The decimated and quantized weight values.
- * @param     dec_weight_quant_sig      The significance of each weight.
- * @param[out] low_value1               The lowest weight p1 to consider for each block mode.
- * @param[out] high_value1              The highest weight p1 to consider for each block mode.
- * @param[out] low_value2               The lowest weight p2 to consider for each block mode.
- * @param[out] high_value2              The highest weight p2 to consider for each block mode.
+ * @param      tune_low_weight_limit     Weight count cutoff below which we use simpler searches.
+ * @param      bsd                       The block size descriptor for the current trial.
+ * @param      dec_weight_quant_uvalue   The decimated and quantized weight values.
+ * @param      dec_weight_quant_sig      The significance of each weight.
+ * @param[out] tmpbuf                    Preallocated scratch buffers for the compressor.
  */
 void compute_angular_endpoints_2planes(
 	unsigned int tune_low_weight_limit,
 	const block_size_descriptor& bsd,
 	const float* dec_weight_quant_uvalue,
 	const float* dec_weight_quant_sig,
-	float low_value1[WEIGHTS_MAX_BLOCK_MODES],
-	float high_value1[WEIGHTS_MAX_BLOCK_MODES],
-	float low_value2[WEIGHTS_MAX_BLOCK_MODES],
-	float high_value2[WEIGHTS_MAX_BLOCK_MODES]);
+	compression_working_buffers& tmpbuf);
 
 /* ============================================================================
   Functionality for high level compression and decompression access.
