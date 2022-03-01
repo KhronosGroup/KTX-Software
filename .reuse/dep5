@@ -99,7 +99,7 @@ Files: lib/basisu/basisu_astc_decomp.*
 Copyright: 2016 The Android Open Source Project
 License: Apache-2.0
 
-Files: lib/basisu/lodepng.*
+Files: tools/toktx/lodepng.*
 Copyright: 2005-2019 Lode Vandevenne
 License: Zlib
 

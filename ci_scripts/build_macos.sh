@@ -47,12 +47,15 @@ fi
 # of defines and options, we have no choice but to disable SSE. This is done
 # by our cpu type detection script (cmake/cputypetest.cmake) which notices the
 # multiple architectures and indicates a cpu type that does not support SSE.
+# Also BasisU OpenCL code seems to be producing different results with
+# Universal binary than x64 binary.
 echo "Configure KTX-Software (macOS universal binary) without SSE support"
 if [ -n "$MACOS_CERTIFICATES_P12" ]; then
   cmake -GXcode -B$DEPLOY_BUILD_DIR \
   -DCMAKE_OSX_ARCHITECTURES="\$(ARCHS_STANDARD)" \
   -DKTX_FEATURE_DOC=ON \
   -DKTX_FEATURE_LOADTEST_APPS=ON \
+  -DBASISU_SUPPORT_OPENCL=OFF \
   -DBASISU_SUPPORT_SSE=OFF \
   -DXCODE_CODE_SIGN_IDENTITY="${CODE_SIGN_IDENTITY}" \
   -DXCODE_DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
@@ -64,6 +67,7 @@ else # No secure variables means a PR or fork build.
   -DCMAKE_OSX_ARCHITECTURES="\$(ARCHS_STANDARD)" \
   -DKTX_FEATURE_DOC=ON \
   -DKTX_FEATURE_LOADTEST_APPS=ON \
+  -DBASISU_SUPPORT_OPENCL=OFF \
   -DBASISU_SUPPORT_SSE=OFF \
   -DKTX_FEATURE_JNI=ON
 fi
@@ -81,6 +85,7 @@ cmake -GXcode -Bbuild-macos-sse \
 set -o pipefail
 
 pushd $DEPLOY_BUILD_DIR
+export CUR_BUILD_DIR="$(pwd)"
 
 # Build and test Debug
 echo "Build KTX-Software (macOS universal binary Debug)"
@@ -115,6 +120,7 @@ fi
 popd
 
 pushd build-macos-sse
+export CUR_BUILD_DIR="$(pwd)"
 
 echo "Build KTX-Software (macOS with SSE support Debug)"
 cmake --build . --config Debug -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | handle_compiler_output
@@ -136,6 +142,7 @@ popd
 echo "Configure KTX-Software (iOS)"
 cmake -GXcode -Bbuild-ios -DISA_NEON=ON -DCMAKE_SYSTEM_NAME=iOS -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=OFF -DKTX_FEATURE_JNI=ON
 pushd build-ios
+export CUR_BUILD_DIR="$(pwd)"
 echo "Build KTX-Software (iOS Debug)"
 cmake --build . --config Debug  -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO | handle_compiler_output
 # echo "Build KTX-Software (iOS Simulator Debug)"

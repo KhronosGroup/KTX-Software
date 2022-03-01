@@ -371,9 +371,6 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
     return result;
  }
 
-static basist::etc1_global_selector_codebook
-            global_codebook(g_global_selector_cb_size, g_global_selector_cb);
-
 /**
  * @memberof ktxTexture2 @private
  * @ingroup reader
@@ -490,7 +487,7 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
     // FIXME: Do more validation.
 
     // Prepare low-level transcoder for transcoding slices.
-    basist::basisu_lowlevel_etc1s_transcoder bit(&global_codebook);
+    basist::basisu_lowlevel_etc1s_transcoder bit;
 
     // basisu_transcoder_state is used to find the previous frame when
     // decoding a video P-Frame. It tracks the previous frame for each mip

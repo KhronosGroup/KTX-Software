@@ -81,9 +81,11 @@ extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture2_transcodeBasi
 }
 
 extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KtxTexture2_create(JNIEnv *env,
-                                                                        jobject thiz,
-                                                                        jobject jcreateInfo,
-                                                                        jint jStorageAllocation)
+             jobject,
+
+             jobject jcreateInfo,
+
+             jint jStorageAllocation)
 {
     ktxTextureCreateInfo info;
     copy_ktx_texture_create_info(env, jcreateInfo, info);
@@ -112,7 +114,7 @@ extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KtxTexture2_create(JNI
 }
 
 extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KtxTexture2_createFromNamedFile(JNIEnv *env,
-                                                                                            jobject thiz,
+                                                                                            jobject,
                                                                                             jstring filename,
                                                                                             jint createFlags)
 {

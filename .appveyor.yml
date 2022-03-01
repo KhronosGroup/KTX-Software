@@ -3,28 +3,90 @@
 
 version: "{build}"
 
-image:
-  - Visual Studio 2015
-  - Visual Studio 2017
-  - Visual Studio 2019
-
 configuration:
-  - Debug
-  - Release
 
 platform:
   - x64
 #  - Win32
 
 environment:
-  BUILD_DIR: build
   CMAKE_GEN: Visual Studio 15 2017
   GIT_TRACE: 0
+  BUILD_DIR: build
+  OPENCL_SDK_HOME: https://github.com/intel/llvm/releases/download/2021-09
+  OPENCL_SDK_NAME: win-oclcpuexp-2021.12.9.0.24_rel
   OPENGL_ES_EMULATOR: C:/Imagination/Windows_x86_64
   OPENGL_ES_EMULATOR_WIN: C:\Imagination\Windows_x86_64
-  PVR_SDK_GH_VER: 4.3
-  PVR_SDK_DL_VER: 2020_R1
+  PVR_SDK_HOME: https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/
   VULKAN_SDK_VER: 1.2.176.1
+
+  matrix:
+    - FEATURE_DOC: OFF
+      FEATURE_LOADTESTS: ON
+      SUPPORT_SSE: ON
+      SUPPORT_OPENCL: OFF
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      CMAKE_GEN: Visual Studio 14 2015
+      CONFIGURATION: Debug
+    - FEATURE_DOC: OFF
+      FEATURE_LOADTESTS: ON
+      SUPPORT_SSE: ON
+      SUPPORT_OPENCL: OFF
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      CMAKE_GEN: Visual Studio 14 2015
+      CONFIGURATION: Release
+    - FEATURE_DOC: OFF
+      FEATURE_LOADTESTS: ON
+      SUPPORT_SSE: ON
+      SUPPORT_OPENCL: OFF
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      CMAKE_GEN: Visual Studio 15 2017
+      CONFIGURATION: Debug
+    - FEATURE_DOC: OFF
+      FEATURE_LOADTESTS: ON
+      SUPPORT_SSE: ON
+      SUPPORT_OPENCL: OFF
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      CMAKE_GEN: Visual Studio 15 2017
+      CONFIGURATION: Release
+    - FEATURE_DOC: OFF
+      FEATURE_LOADTESTS: ON
+      SUPPORT_SSE: ON
+      SUPPORT_OPENCL: OFF
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      CMAKE_GEN: Visual Studio 16 2019
+      CONFIGURATION: Debug
+      # This is the configuration used for the release.
+    - FEATURE_DOC: ON
+      FEATURE_LOADTESTS: ON
+      SUPPORT_SSE: ON
+      SUPPORT_OPENCL: OFF
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      CMAKE_GEN: Visual Studio 16 2019
+      CONFIGURATION: Release
+    - FEATURE_DOC: OFF
+      FEATURE_LOADTESTS: OFF
+      SUPPORT_SSE: ON
+      SUPPORT_OPENCL: ON
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      CMAKE_GEN: Visual Studio 16 2019
+      CONFIGURATION: Release
+    - FEATURE_DOC: OFF
+      FEATURE_LOADTESTS: OFF
+      SUPPORT_SSE: OFF
+      SUPPORT_OPENCL: ON
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      CMAKE_GEN: Visual Studio 16 2019
+      CONFIGURATION: Release
+    - FEATURE_DOC: OFF
+      FEATURE_LOADTESTS: OFF
+      SUPPORT_SSE: OFF
+      SUPPORT_OPENCL: OFF
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      CMAKE_GEN: Visual Studio 16 2019
+      CONFIGURATION: Release
+
+#matrix:
 
 branches:
   except:
@@ -33,6 +95,8 @@ branches:
 # Do not skip tags. Deploy will not be run either.
 skip_tags: false
 
+# Keep this to remind me how to do this in case I need it again.
+# Since we7re not currently using image this has no effect.
 for:
   - matrix:
       only:
@@ -53,11 +117,12 @@ for:
 build:
   verbosity: detailed
 
+on_failure:
+  - ps: $env:APPVEYOR_BUILD_FOLDER/ci_scripts/on_failure.ps1
 # Following is for GIT_TRACE: 1 above.
-#on_failure:
 #  - ps: Get-ChildItem .\.git\lfs\objects\logs\*.log | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
 
-# Following is for when we want to stop RDP exiting at end of build.
+# Uncomment the Following to stop RDP exiting at end of build.
 #on_finish:
 #  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
@@ -72,32 +137,24 @@ init:
 #  - ps: '$blockRdp = $true; iex ((new-object net.webclient).DownloadString(''https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1''))'
 # - ps: | #iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
-# N.B.: for some reason indenting "- cmd" on the following lines causes syntax errors.
-# Not using PS for downloads because its curl is completely different.
+# N.B.: for some reason indenting "- cmd" on the following lines causes syntax
+# errors. Not using PS for downloads because its curl is completely different.
 install:
 - if not "%appveyor_build_worker_image%" == "Visual Studio 2019" cinst doxygen.install
 #- ps: |
     #run mkversion
     #Update-AppveyorBuild -Version "$($env:ospsuite_version).$($env:appveyor_build_version)"
+
+    # Use cmd.exe because PS curl is very different.
+    # To avoid going down a rathole note very well that in at least some of
+    # the CI environments, cmd.exe does not support pushd and popd. Sigh!
+    # Also keep quotes in following echos & rems to avoid issues with
+    # cmd special characters, e.g. &.
 - cmd: |
-    REM Download PowerVR OpenGL ES Emulator libraries (latest version).
-    md %OPENGL_ES_EMULATOR_WIN%
-    cd %OPENGL_ES_EMULATOR_WIN%
-    curl -L -O https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/libGLES_CM.dll
-    curl -L -O https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/libGLES_CM.lib
-    curl -L -O https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/libGLESv2.dll
-    curl -L -O https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/libGLESv2.lib
-    curl -L -O https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/libEGL.dll
-    curl -L -O https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/libEGL.lib
-    REM Install VulkanSDK
-    cd C:\
-    curl -o VulkanSDK-Installer.exe https://sdk.lunarg.com/sdk/download/%VULKAN_SDK_VER%/windows/VulkanSDK-%VULKAN_SDK_VER%-Installer.exe?Human=true
-    .\VulkanSDK-Installer.exe /S
-    REM refresh the environment to pick up VulkanSDK changes.
+    ci_scripts/install_win.bat
+    @echo "Pick up environment changes made to registry by the install script."
     refreshenv
-    REM cd back to cloned repo.
-    cd C:\projects\ktx
-    REM Pull only Windows binaries.
+    @echo "Pull Windows binaries from LFS."
     git lfs pull --include=other_lib/win
 # # One-line install/build zlib (for loadtests) into C:\Program Files\zlib
 # - ps: |
@@ -120,16 +177,8 @@ before_build:
 
 build_script:
 - ps: |
-    # Pick up PATH changes made by Doxygen installer.
-    refreshenv
     $ErrorActionPreference = 'Stop'
-    # Configure and build with SSE support (default).
-    $env:KTX_BUILD_DIR = "$env:BUILD_DIR"
-    echo "Build via $env:CMAKE_GEN Arch:$env:PLATFORM dir:$env:KTX_BUILD_DIR"
-    cmake -G "$env:CMAKE_GEN" -A $env:PLATFORM . -B $env:KTX_BUILD_DIR -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON -DOPENGL_ES_EMULATOR="$env:OPENGL_ES_EMULATOR"
-    pushd $env:KTX_BUILD_DIR
-    cmake --build . --config $env:CONFIGURATION
-    cmake --build . --config $env:CONFIGURATION --target PACKAGE
+    ci_scripts/build_win.ps1
 
     #echo "***** toktx version.h *****"
     #pwd
@@ -142,31 +191,21 @@ build_script:
     #echo "***************************"
 
     popd
-    $env:KTX_BUILD_DIR_NOSSE = "$env:BUILD_DIR\nosse"
-    echo "Build without SSE support via $env:CMAKE_GEN Arch:$env:PLATFORM dir:$env:KTX_BUILD_DIR_NOSSE"
-    cmake -G "$env:CMAKE_GEN" -A $env:PLATFORM . -B $env:KTX_BUILD_DIR_NOSSE -DBASISU_SUPPORT_SSE=OFF
-    pushd $env:KTX_BUILD_DIR_NOSSE
-    cmake --build . --config $env:CONFIGURATION
-    popd
 
     echo "Done Building"
 
 test_script:
 - ps: |
     $ErrorActionPreference = 'Stop'
-    $env:KTX_BUILD_DIR = "$env:BUILD_DIR"
-    pushd $env:KTX_BUILD_DIR
-    ctest -C $env:CONFIGURATION
-    popd
-    $env:KTX_BUILD_DIR_NOSSE = "$env:BUILD_DIR\nosse"
-    pushd $env:KTX_BUILD_DIR_NOSSE
+    $Env:Phase = "test"
+    pushd $env:BUILD_DIR
     ctest -C $env:CONFIGURATION
     popd
 
 artifacts:
-  # Save in cloud storage so we can deploy it. Will be kept unnecessarily for 6 months.
-  # Would be nice to avoid saving artifacts from every build in the matrix. No info
-  # in Appveyor docs.
+  # Save in cloud storage so we can deploy it. Will be kept unnecessarily for
+  # 6 months. Would be nice to avoid saving artifacts from every build in the
+  # matrix. No info in Appveyor docs.
   - path: '$(BUILD_DIR)/KTX-Software-*.exe'
     name: WindowsInstaller
   - path: '$(BUILD_DIR)/KTX-Software-*.exe.sha1'

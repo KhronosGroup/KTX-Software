@@ -19,8 +19,6 @@
 
 using namespace basist;
 
-extern basist::etc1_global_selector_codebook *g_pGlobal_codebook;
-
 class basis_file
 {
     unsigned int m_magic = 0;
@@ -32,7 +30,7 @@ class basis_file
 public:
     basis_file()
     :
-    m_transcoder(g_pGlobal_codebook)
+    m_transcoder()
     {}
     
     bool open(const uint8_t *buffer, uint32_t newByteLength);

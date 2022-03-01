@@ -21,7 +21,7 @@
 #include <stdexcept>
 
 #include "image.hpp"
-#include "encoder/lodepng.h"
+#include "lodepng.h"
 #include <KHR/khr_df.h>
 #include "dfd.h"
 

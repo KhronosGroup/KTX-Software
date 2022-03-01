@@ -51,6 +51,7 @@ Image* Image::CreateFromFile(const _tstring& name,
             continue;
         }
     }
+    fclose(f);
     if (func == CreateFunctions.end()) {
         std::stringstream message;
 

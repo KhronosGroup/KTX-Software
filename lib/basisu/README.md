@@ -1,6 +1,17 @@
 # basis_universal
 Basis Universal Supercompressed GPU Texture Codec
 
+<sub>(This software is available under a free and permissive license (Apache 2.0), but like many other large open source projects it needs financial support to sustain its continued security, bug fixes and improvements. In addition to maintenance and stability there are many desirable features and new interchange formats we would like to add. If your company is using Basis Universal in a product, please consider reaching out.)</sub>
+
+Businesses: support continued development and maintenance via invoiced technical support, maintenance, or sponsoring contracts:
+<br>&nbsp;&nbsp;_E-mail: info @ binomial dot info_ or contact us on [Twitter](https://twitter.com/_binomial)
+
+Also see the [Sponsors](https://github.com/BinomialLLC/basis_universal/wiki/Sponsors-and-Supporters) wiki page.
+
+----
+
+[![Build status](https://ci.appveyor.com/api/projects/status/87eb0o96pjho4sh0?svg=true)](https://ci.appveyor.com/project/BinomialLLC/basis-universal)
+
 Basis Universal is a ["supercompressed"](http://gamma.cs.unc.edu/GST/gst.pdf) GPU texture data interchange system that supports two highly compressed intermediate file formats (.basis or the [.KTX2 open standard from the Khronos Group](https://github.khronos.org/KTX-Specification/)) that can be quickly transcoded to a [very wide variety](https://github.com/BinomialLLC/basis_universal/wiki/OpenGL-texture-format-enums-table) of GPU compressed and uncompressed pixel formats: ASTC 4x4 L/LA/RGB/RGBA, PVRTC1 4bpp RGB/RGBA, PVRTC2 RGB/RGBA, BC7 mode 6 RGB, BC7 mode 5 RGB/RGBA, BC1-5 RGB/RGBA/X/XY, ETC1 RGB, ETC2 RGBA, ATC RGB/RGBA, ETC2 EAC R11 and RG11, FXT1 RGB, and uncompressed raster image formats 8888/565/4444. 
 
 The system now supports two modes: a high quality mode which is internally based off the [UASTC compressed texture format](https://richg42.blogspot.com/2020/01/uastc-block-format-encoding.html), and the original lower quality mode which is based off a subset of ETC1 called "ETC1S". UASTC is for extremely high quality (similar to BC7 quality) textures, and ETC1S is for very small files. The ETC1S system includes built-in data compression, while the UASTC system includes an optional Rate Distortion Optimization (RDO) post-process stage that conditions the encoded UASTC texture data in the .basis file so it can be more effectively LZ compressed by the end user. More technical details about UASTC integration are [here](https://github.com/BinomialLLC/basis_universal/wiki/UASTC-implementation-details).
@@ -20,6 +31,12 @@ For v1.13, we've added numerous ETC1S encoder optimizations designed to greatly 
 
 [Release Notes](https://github.com/BinomialLLC/basis_universal/wiki/Release-Notes)
 
+### The first texture (and possibly image/video) compression codec developed without "Lena"
+
+We retired Lena years ago. No testing is done with this image:
+
+https://www.losinglena.com/
+
 ### Quick Introduction
 
 Probably the most important concept to understand about Basis Universal before using it: The system supports **two** very different universal texture modes: The original "ETC1S" mode is low/medium quality, but the resulting file sizes are very small because the system has built-in compression for ETC1S texture format files. This is the command line encoding tool's default mode. ETC1S textures work best on images, photos, map data, or albedo/specular/etc. textures, but don't work as well on normal maps. 
@@ -34,17 +51,11 @@ For tangent space normal maps, you should separate X into RGB and Y into Alpha, 
 
 ### License and 3rd party code dependencies
 
-Detailed legal, license, and IP information is [here](https://github.com/BinomialLLC/basis_universal/wiki/Legal-IP-License-Information). Basis Universal itself uses the Apache 2.0 licenses, but it utilizes some zlib and optional BSD code (Zstandard). The supported texture formats are [open Khronos Group standards](https://www.khronos.org/registry/DataFormat/specs/1.1/dataformat.1.1.html).
+Detailed legal, license, and IP information is [here](https://github.com/BinomialLLC/basis_universal/wiki/Legal-IP-License-Information). Basis Universal itself uses the Apache 2.0 licenses, but it also utilizes some optional BSD code (Zstandard). The supported texture formats are [open Khronos Group standards](https://www.khronos.org/registry/DataFormat/specs/1.1/dataformat.1.1.html).
 
 All C/C++ code dependencies are present inside the Basis Universal repo itself to simplify building.
 
-The stand-alone transcoder (in the "transcoder" directory) is a single .cpp source file library which has no 3rd party code dependencies apart from zstd/zstddeclib.c, which is optional. (It's only used for decompressing UASTC KTX2 files that use Zstandard.)
-
-The encoder uses [lodepng](https://lodev.org/lodepng/) for loading and saving PNG images, which is Copyright (c) 2005-2019 Lode Vandevenne. It uses the zlib license. It also uses [apg_bmp](https://github.com/capnramses/apg/tree/master/apg_bmp) for loading BMP images, which is Copyright 2019 Anton Gerdelan. It uses the Apache 2.0 license.
-
-The encoder uses [tcuAstcUtil.cpp](https://chromium.googlesource.com/external/deqp/+/refs/heads/master/framework/common/tcuAstcUtil.cpp), from the [Android drawElements Quality Program (deqp) Testing Suite](https://source.android.com/devices/graphics/deqp-testing), for unpacking the transcoder's ASTC output for testing/validation purposes. This code is Copyright 2016 The Android Open Source Project, and uses the Apache 2.0 license. We have modified the code so it has no external dependencies, and disabled HDR support.
-
-The encoder optionally uses Zstandard's single source file compressor (in zstd/zstd.c) to support compressing supercompressed KTX2 files.
+The encoder optionally uses Zstandard's single source file compressor (in zstd/zstd.c) to support compressing supercompressed KTX2 files. The stand-alone transcoder (in the "transcoder" directory) is a single .cpp source file library which has no 3rd party code dependencies apart from zstd/zstddeclib.c, which is also technically optional. It's only used for decompressing UASTC KTX2 files that use Zstandard.
 
 ### Command Line Compression Tool
 
@@ -210,6 +221,18 @@ The "WebGL" directory contains three simple WebGL demos that use the transcoder 
 ![Screenshot of 'gltf' example running in a browser.](webgl/gltf/preview.png)
 ![Screenshot of 'encode_test' example running in a browser.](webgl/encode_test/preview.png)
 
+### Installation using the vcpkg dependency manager
+
+You can download and install Basis Universal using the [vcpkg](https://github.com/Microsoft/vcpkg/) dependency manager:
+
+    git clone https://github.com/Microsoft/vcpkg.git
+    cd vcpkg
+    ./bootstrap-vcpkg.sh
+    ./vcpkg integrate install
+    vcpkg install basisu
+
+The Basis Universal port in vcpkg is kept up to date by Microsoft team members and community contributors. If the version is out of date, please [create an issue or pull request](https://github.com/Microsoft/vcpkg) on the vcpkg repository.
+
 ### WebAssembly Support Using Emscripten
 
 Both the transcoder and now the compressor (as of 12/17/2020) may be compiled using emscripten to WebAssembly and used on the web. Currently, multithreading is not supported by the compressor when compiled with emscripten. A simple Web compression demo is in webgl/encode_test. All compressor features, including texture video, are supported and fully exposed.
@@ -293,48 +316,3 @@ To ensure continued REUSE compliance, run `reuse lint` at the root of
 a clean, checked-out repository periodically, or run it during CI tests
 before any build artifacts have been created.
 
-### Special Thanks
-A huge thanks to Google for partnering with us and enabling this system to be open sourced. 
-
-Thank you to [Esri - Environmental Systems Research Institute](https://www.esri.com/) for sponsoring the encoder optimization work in the v1.13 release, and the KTX2 work in the v1.15 release.
-
-Thanks to the Khronos Group for building an open ecosystem that supports ETC1S/UASTC.
-
-Thanks to a number of companies or groups who have supported or helped out Binomial over the years: Intel, SpaceX, Netflix, Forgotten Empires, Microsoft, Polystream, Hothead Games, BioDigital, Magic Leap, Blizzard Entertainment, Insomniac Games, Rockstar Games, Facebook, Activision, the Khronos Group, and the organizers at CppCon.
-
-Thanks to Dave Wilkinson (AMD/Khronos) for supporting us and giving us very valuable feedback while we developed Basis Universal.
-
-Thanks to Chris Wein (Netflix), who showed us the path to Texture Video.
-
-Thanks to Mike Dussault (SpaceX) and Elon Musk for supporting Binomial in the early days.
-
-Thanks to Graeme Devine at Magic Leap.
-
-Thanks to Matt Pritchard, formerly of Valve Software and Microsoft, for helping me with the computer hardware I used while building this system and its predecessor. 
-
-Thanks to John Brooks at Blue Shift, Inc. for inspiring this work by showing me his Dreamcast texture compression system around 2002, and for releasing etc2comp. I first saw the subblock flip estimation approach (used in basisu_etc.cpp) in etc2comp.
-
-Thanks to Colt McAnlis, for advertising one of my earlier open source texture compression libraries at GDC, and Won Chun, who originally suggested making a universal system.
-
-Thanks to Chas Boyd (Microsoft), for inspiring us to work on texture compression full-time. Chas also gave us great feedback about UASTC before it was released.
-
-Thanks to Mark Callow at Edgewise Consulting for his work on glTF and the KTX2 file format.
-
-I first saw using precomputed tables for quickly computing optimal encodings of solid color blocks in ryg_dxt. The method that limits the canonical Huffman codelengths to a maximum codesize was used in Yoshizaki's lharc. The canonical Huffman codelength compression system is similar to Katz's Deflate method.
-
-### Possible improvements
-The codebook generation process is basically a high quality, but slow and brute force reference. It's possible to massively speed up codebook gen in several ways. One way is to not throw away the tree structures constructed during the creation of the initial codebooks. 
-
-The way the -q (quality) option is converted to codebook sizes is very simple (fixed formulas), and could be improved. It has a tendency to plateau on some files.
-
-The various Huffman codes could be divided up into groups (like Zstd), for much faster Huffman decoding in the transcoder. Also, larger slices could be divided up into multiple segments, and each segment transcoded using a different thread. Both of these changes would modify the format.
-
-PVRTC1 modulation values could be determined using multiple threads and/or SIMD code.
-
-PVRTC1 2bpp support wouldn't be hard to add.
-
-The transcoder's BC7 tables are a bit large, and can be reduced, which would allow the transcoder to be downloaded more quickly.
-
-3-bit selectors for alpha would greatly improve the quality of the alpha, but would break the file format and require extensive additions to the compressor/transcoder.
-
-Fast 6x6 ASTC support may be possible.

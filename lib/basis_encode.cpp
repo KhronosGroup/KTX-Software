@@ -19,6 +19,7 @@
  */
 
 #include <inttypes.h>
+#include <stdlib.h>
 #include <zstd.h>
 #include <KHR/khr_df.h>
 
@@ -444,7 +445,12 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     }
 
     if (!basisuEncoderInitialized) {
-        basisu_encoder_init();
+        // force_serialization uses a mutex to serialize when multiple command
+        // queues per thread are used. We shouldn't need to worry about this.
+        // How to decide whether to use OpenCL?
+        basisu_encoder_init((BASISU_SUPPORT_OPENCL ? true : false)/*use_opencl*/
+                            /*opencl_force_serialization = false*/);
+        //atexit(basisu_encoder_deinit);
         basisuEncoderInitialized = true;
     }
 
@@ -607,10 +613,6 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     // Setup rest of compressor parameters
     //
 
-    // Why's there no default for this? I have no idea.
-    basist::etc1_global_selector_codebook sel_codebook(basist::g_global_selector_cb_size,
-                                                       basist::g_global_selector_cb);
-
     ktx_uint32_t threadCount = params->threadCount;
     if (threadCount < 1)
         threadCount = 1;
@@ -707,8 +709,6 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
             cparams.m_no_endpoint_rdo = params->noEndpointRDO;
             cparams.m_no_selector_rdo = params->noSelectorRDO;
         }
-
-        cparams.m_pSel_codebook = &sel_codebook;
     }
 
     // Flip images across Y axis
@@ -729,7 +729,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     // No need to set.
 
     if (This->isVideo) {
-        // Encoder uses this to decode whether to create p-frames.
+        // Encoder uses this to decide whether to create p-frames.
         cparams.m_tex_type = cBASISTexTypeVideoFrames;
         // cparams.m_us_per_frame & m_framerate are not used by
         // the encoder, except to write the values into the .basis file header,
@@ -757,6 +757,11 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
 #endif
 
     basis_compressor c;
+
+    // As we don't use it, file reading support has been removed from the
+    // BasisU code. Ensure we don't accidentally try to use it.
+    assert(cparams.m_read_source_images == false
+           && "m_read_source_images must be false");
 
     // init() only returns false if told to read source image files and the
     // list of files is empty.
