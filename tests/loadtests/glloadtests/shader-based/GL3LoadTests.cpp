@@ -78,8 +78,12 @@ GLLoadTests::showFile(std::string& filename)
 
 const GLLoadTests::sampleInvocation siSamples[] = {
     { DrawTexture::create,
-      "testimages/Iron_Bars_001_normal_uastc_rdo3_zstd5.ktx2",
-      "Transcode of UASTC+rdo+zstd Compressed KTX2 normal map mipmapped"
+      "testimages/etc1s_Iron_Bars_001_normal.ktx2",
+      "Transcode of ETC1S+BasisLZ Compressed KTX2 XY normal map mipmapped"
+    },
+    { DrawTexture::create,
+      "testimages/uastc_Iron_Bars_001_normal.ktx2",
+      "Transcode of UASTC+zstd Compressed KTX2 XY normal map mipmapped"
     },
     { DrawTexture::create,
       "testimages/color_grid_uastc_zstd.ktx2",

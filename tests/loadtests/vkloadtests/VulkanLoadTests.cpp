@@ -323,8 +323,12 @@ VulkanLoadTests::showFile(std::string& filename)
 
 const VulkanLoadTests::sampleInvocation siSamples[] = {
     { Texture::create,
-      "testimages/Iron_Bars_001_normal_uastc_rdo3_zstd5.ktx2",
-      "UASTC+rdo+zstd compressed KTX2 normal map mipmapped"
+      "testimages/etc1s_Iron_Bars_001_normal.ktx2",
+      "Transcode of ETC1S+BasisLZ Compressed KTX2 XY normal map mipmapped"
+    },
+    { Texture::create,
+      "testimages/uastc_Iron_Bars_001_normal.ktx2",
+      "Transcode of UASTC+zstd Compressed KTX2 XY normal map mipmapped"
     },
     { Texture::create,
       "testimages/ktx_document_uastc_rdo4_zstd5.ktx2",
