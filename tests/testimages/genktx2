@@ -97,7 +97,6 @@ $toktx --test --bcmp color_grid_basis.ktx2 ../srcimages/color_grid.png
 # ... and additional files for the load tests.
 
 $toktx --test --lower_left_maps_to_s0t0 rgb-reference-metadata.ktx ../srcimages/rgb.ppm
-$toktx --test --genmipmap --threads 1 --zcmp 5 --uastc --uastc_rdo_l 3 Iron_Bars_001_normal_uastc_rdo3_zstd5.ktx2 ../srcimages/Iron_Bars/Iron_Bars_001_normal.jpg
 
 # ... the files with the KTX icons too, but this script only works with my
 # arrangement of workareas, so keep commented out.

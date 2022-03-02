@@ -22,6 +22,8 @@ include(CMakeDependentOption)
 include(cmake/xcode.cmake)
 include(cmake/cputypetest.cmake)
 
+find_package(OpenCL)
+
 # OPTIONS
 
 if( IOS OR EMSCRIPTEN )
@@ -30,7 +32,12 @@ else()
     set( LIB_TYPE_DEFAULT OFF )
 endif()
 
-CMAKE_DEPENDENT_OPTION(KTX_FEATURE_TOOLS "Create KTX tools" ON "NOT IOS;NOT ANDROID;NOT EMSCRIPTEN" OFF)
+CMAKE_DEPENDENT_OPTION( KTX_FEATURE_TOOLS
+                        "Create KTX tools"
+                        ON
+                        "NOT IOS;NOT ANDROID;NOT EMSCRIPTEN"
+                        OFF
+)
 option( KTX_FEATURE_DOC "Create KTX documentation" OFF )
 option( KTX_FEATURE_LOADTEST_APPS "Create load tests apps that load and display various KTX textures" OFF )
 option( KTX_FEATURE_STATIC_LIBRARY "Create static libraries (shared otherwise)" ${LIB_TYPE_DEFAULT} )
@@ -39,13 +46,40 @@ option( KTX_FEATURE_JNI "Create Java bindings for libktx" OFF )
 
 set_target_processor_type(CPU_ARCHITECTURE)
 CMAKE_DEPENDENT_OPTION( BASISU_SUPPORT_SSE
-    "Compile with SSE support so applications can choose to use it"
+    "Compile with SSE support so applications can choose to use it."
     ON
     "CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86"
     OFF
 )
+CMAKE_DEPENDENT_OPTION( BASISU_SUPPORT_OPENCL
+    "Compile with OpenCL support so applications can choose to use it."
+    OFF
+    "OpenCL_FOUND OR WIN32"
+    OFF
+)
 
-CMAKE_DEPENDENT_OPTION(KTX_EMBED_BITCODE "Embed bitcode in binaries" OFF "APPLE AND IOS" OFF)
+if(BASISU_SUPPORT_OPENCL AND WIN32 AND NOT OpenCL_FOUND)
+    # To avoid fiddly setting up of OpenCL on Windows CI VMs, use copy in repo.
+    set(OpenCL_INCLUDE_DIR
+        "${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu/opencl"
+        # FORCE to override *-NOTFOUND set by the failed find.
+        CACHE PATH "" FORCE
+    )
+    set(OpenCL_LIBRARY
+        "${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu/opencl/lib/OpenCL64.lib"
+        CACHE FILEPATH "" FORCE
+    )
+    set(OpenCL_INCLUDE_DIRS ${OpenCL_INCLUDE_DIR})
+    set(OpenCL_LIBRARIES ${OpenCL_LIBRARY})
+endif()
+
+
+CMAKE_DEPENDENT_OPTION( KTX_EMBED_BITCODE
+    "Embed bitcode in binaries"
+    OFF
+    "APPLE AND IOS"
+    OFF
+)
 
 if(APPLE)
     set(XCODE_CODE_SIGN_IDENTITY "Development" CACHE STRING "Xcode code sign ID")
@@ -139,8 +173,6 @@ set(KTX_MAIN_SRC
     lib/basisu/transcoder/basisu_containers.h
     lib/basisu/transcoder/basisu_containers_impl.h
     lib/basisu/transcoder/basisu_file_headers.h
-    lib/basisu/transcoder/basisu_global_selector_cb.h
-    lib/basisu/transcoder/basisu_global_selector_palette.h
     lib/basisu/transcoder/basisu_transcoder_internal.h
     lib/basisu/transcoder/basisu_transcoder_uastc.h
     lib/basisu/transcoder/basisu_transcoder.cpp
@@ -403,14 +435,7 @@ PRIVATE
 
 # Adding write capability to target ktx
 
-set(BASISU_ENCODER_C_SRC
-    lib/basisu/encoder/apg_bmp.c
-    lib/basisu/encoder/apg_bmp.h
-    )
-
 set(BASISU_ENCODER_CXX_SRC
-    lib/basisu/encoder/basisu_astc_decomp.cpp
-    lib/basisu/encoder/basisu_astc_decomp.h
     lib/basisu/encoder/basisu_backend.cpp
     lib/basisu/encoder/basisu_backend.h
     lib/basisu/encoder/basisu_basis_file.cpp
@@ -425,14 +450,14 @@ set(BASISU_ENCODER_CXX_SRC
     lib/basisu/encoder/basisu_etc.h
     lib/basisu/encoder/basisu_frontend.cpp
     lib/basisu/encoder/basisu_frontend.h
-    lib/basisu/encoder/basisu_global_selector_palette_helpers.cpp
-    lib/basisu/encoder/basisu_global_selector_palette_helpers.h
     lib/basisu/encoder/basisu_gpu_texture.cpp
     lib/basisu/encoder/basisu_gpu_texture.h
     lib/basisu/encoder/basisu_kernels_declares.h
     lib/basisu/encoder/basisu_kernels_imp.h
     lib/basisu/encoder/basisu_kernels_sse.cpp
     lib/basisu/encoder/basisu_miniz.h
+    lib/basisu/encoder/basisu_opencl.cpp
+    lib/basisu/encoder/basisu_opencl.h
     lib/basisu/encoder/basisu_pvrtc1_4.cpp
     lib/basisu/encoder/basisu_pvrtc1_4.h
     lib/basisu/encoder/basisu_resample_filters.cpp
@@ -448,11 +473,7 @@ set(BASISU_ENCODER_CXX_SRC
     lib/basisu/encoder/cppspmd_math_declares.h
     lib/basisu/encoder/cppspmd_sse.h
     lib/basisu/encoder/cppspmd_type_aliases.h
-    lib/basisu/encoder/jpgd.cpp
-    lib/basisu/encoder/jpgd.h
-    lib/basisu/encoder/lodepng.cpp
-    lib/basisu/encoder/lodepng.h
-    )
+)
 
 target_sources(
     ktx
@@ -510,6 +531,7 @@ target_include_directories(
 PRIVATE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu>
     $<INSTALL_INTERFACE:lib/basisu>
+    $<$<BOOL:${BASISU_SUPPORT_OPENCL}>:${OpenCL_INCLUDE_DIRS}>
 )
 target_compile_definitions(
     ktx
@@ -524,6 +546,8 @@ PRIVATE
     BASISD_SUPPORT_KTX2=1
     $<$<BOOL:${BASISU_SUPPORT_SSE}>:BASISU_SUPPORT_SSE=1>
     $<$<NOT:$<BOOL:${BASISU_SUPPORT_SSE}>>:BASISU_SUPPORT_SSE=0>
+    $<$<BOOL:${BASISU_SUPPORT_OPENCL}>:BASISU_SUPPORT_OPENCL=1>
+    $<$<NOT:$<BOOL:${BASISU_SUPPORT_OPENCL}>>:BASISU_SUPPORT_OPENCL=0>
 )
 target_compile_options(
     ktx
@@ -531,6 +555,11 @@ PRIVATE
     $<$<AND:$<BOOL:${BASISU_SUPPORT_SSE}>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:
         -msse4.1
     >
+)
+target_link_libraries(
+    ktx
+PRIVATE
+    $<$<BOOL:${BASISU_SUPPORT_OPENCL}>:${OpenCL_LIBRARIES}>
 )
 
 if(EMSCRIPTEN)
@@ -696,6 +725,9 @@ set(KTX_INSTALL_TARGETS ktx)
 
 if(KTX_FEATURE_STATIC_LIBRARY)
     list(APPEND KTX_INSTALL_TARGETS ${ASTC_LIB_NAME})
+    if(BASISU_SUPPORT_OPENCL)
+        list(APPEND ${OpenCL_LIBRARIES})
+    endif()
 endif()
 
 # Install

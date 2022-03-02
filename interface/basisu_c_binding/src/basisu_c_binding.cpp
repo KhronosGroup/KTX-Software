@@ -8,8 +8,6 @@
 
 using namespace basist;
 
-basist::etc1_global_selector_codebook *g_pGlobal_codebook;
-
 #define MAGIC 0xDEADBEE1
 
 bool basis_file::open(const uint8_t *buffer, uint32_t newByteLength) {
@@ -226,10 +224,7 @@ extern "C" {
 
 KTX_BASISU_API void ktx_basisu_basis_init()
 {
-    basisu_transcoder_init();
-    
-    if (!g_pGlobal_codebook)
-        g_pGlobal_codebook = new basist::etc1_global_selector_codebook(g_global_selector_cb_size, g_global_selector_cb);
+    basisu_transcoder_init();    
 }
 
 #ifdef KTX_BASISU_C_BINDINGS

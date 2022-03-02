@@ -141,7 +141,7 @@ namespace msc {
     class BasisLzEtc1sImageTranscoder : public basisu_lowlevel_etc1s_transcoder {
       public:
         BasisLzEtc1sImageTranscoder()
-                : basisu_lowlevel_etc1s_transcoder(buildSelectorCodebook()) { }
+                : basisu_lowlevel_etc1s_transcoder() { }
 
         // Yes, code in the following functions handling data coming in from
         // ArrayBuffers IS copying the data. Sigh! According to Alon Zakai:
@@ -280,18 +280,6 @@ namespace msc {
         }
 
       protected:
-        static basist::etc1_global_selector_codebook* pGlobal_codebook;
-
-        static basist::etc1_global_selector_codebook*
-        buildSelectorCodebook()
-        {
-           if (!pGlobal_codebook) {
-                pGlobal_codebook = new basist::etc1_global_selector_codebook(
-                                                     g_global_selector_cb_size,
-                                                     g_global_selector_cb);
-            }
-            return pGlobal_codebook;
-        }
     };
 
     class UastcImageTranscoder : public basisu_lowlevel_uastc_transcoder {
@@ -376,8 +364,6 @@ namespace msc {
             return ret;
         }
     };
-
-    basist::etc1_global_selector_codebook* BasisLzEtc1sImageTranscoder::pGlobal_codebook;
 }
 
 /** @page msc_basis_transcoder Basis Image Transcoder binding

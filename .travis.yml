@@ -41,6 +41,7 @@ jobs:
         - VULKAN_INSTALL_DIR="$HOME/VulkanSDK/$VULKAN_SDK_VER"
         - VULKAN_SDK="$VULKAN_INSTALL_DIR/macOS"
         - DEPLOY_BUILD_DIR=build-macos-universal
+        - CUR_BUILD_DIR=none
       compiler: clang
       osx_image: xcode12.4
 
@@ -107,15 +108,18 @@ script:
 
 # See if this helps with truncated logs.
 after_script:
- - sleep 10
+  - sleep 10
 
-# after_failure:
-#   - echo "Now uploading the failed tests"
-#   - ls -alsh ./tests/testimages/toktx*
-#   - tar -cvf failed-tests.tar ./tests/testimages/toktx*
-#   - curl --upload-file failed-tests.tar https://transfer.sh/toktx-failed-tests.tar
+after_failure:
+  - ./ci_scripts/on_failure.sh
 
-# Errors in something run in after_success: don't cause the build to fail so don't use.
+# Errors in something run in after_success: don't cause the build to fail
+# so don't use for anything important.
+after_success:
+  # The settings of CUR_BUILD_DIR make in the build scripts are not being
+  # propagated to this script. Hardwire the directory with the current problem.
+#  - rurl=$(curl --upload-file ./build-macos-sse/Testing/Temporary/LastTest.log https://transfer.sh/ktx-last-test.log) ; echo $rurl
+
 
 before_deploy:
   - |
@@ -123,13 +127,14 @@ before_deploy:
     linux)
       ;;
     osx)
-      # Only notarize if we're going to deploy. I.e on a tag. Also check for access
-      # to signing certs to make sure we don't try this on a fork which has a tag.
+      # Only notarize if we're going to deploy. I.e on a tag. Also check for
+      # access to signing certs to make sure we don't try this on a fork which
+      # has a tag.
       #
-      # Although undocumented, except for a blog post, before_deploy is run for each
-      # deployment so we need to take steps to prevent notarization being run twice.
-      # https://github.com/travis-ci/travis-ci/issues/2570 about this has been open
-      # for years. What a crock!
+      # Although undocumented, except for a blog post, before_deploy is run for
+      # each deployment so we need to take steps to prevent notarization being
+      # run twice. https://github.com/travis-ci/travis-ci/issues/2570 about
+      # this has been open for years. What a crock!
       if [ -n "$MACOS_CERTIFICATES_P12" -a -n "$TRAVIS_TAG" -a -z "$NOTARIZED" ]; then
         ./ci_scripts/notarize.sh build-macos/KTX-Software-*.pkg $APPLE_ID $DEVELOPMENT_TEAM $ALTOOL_PASSWORD; export NOTARIZED="true"
       fi

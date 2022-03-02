@@ -26,7 +26,7 @@ extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture1_getGlBaseInte
 }
 
 extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KtxTexture1_create(JNIEnv *env,
-                                                                                jobject thiz,
+                                                                                jobject,
                                                                                 jobject java_create_info,
                                                                                 jint storageAllocation)
 {
@@ -51,7 +51,7 @@ extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KtxTexture1_create(JNI
 }
 
 extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KtxTexture1_createFromNamedFile(JNIEnv *env,
-                                                                                            jobject thiz,
+                                                                                            jobject,
                                                                                             jstring filename,
                                                                                             jint createFlags)
 {

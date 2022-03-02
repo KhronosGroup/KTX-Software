@@ -2,9 +2,13 @@
 # SPDX-License-Identifier: Apache-2.0
 
 add_executable( toktx
+    ${PROJECT_SOURCE_DIR}/lib/basisu/encoder/jpgd.cpp
+    ${PROJECT_SOURCE_DIR}/lib/basisu/encoder/jpgd.h
     image.cc
     image.hpp
     jpgimage.cc
+    lodepng.cc
+    lodepng.h
     npbmimage.cc
     pngimage.cc
     stdafx.h

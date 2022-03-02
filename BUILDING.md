@@ -40,15 +40,25 @@ cmake --build build
 This creates the `libktx` library and the command line tools. To create the complete project generate the project like this:
 
 ```bash
-cmake . -B build -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON
+cmake . -B build -D KTX_FEATURE_LOADTEST_APPS=ON -D KTX_FEATURE_DOC=ON
 ```
 
-If you need the library to be static, enable the `KTX_FEATURE_STATIC_LIBRARY` setting (always enabled on iOS and Emscripten).
+If you need the library to be static, add `-D KTX_FEATURE_STATIC_LIBRARY=ON` to the CMake configure command (always enabled on iOS and Emscripten).
 
 > **Note:**
 >
-> When trying to link static library, make sure to
+> When linking to the static library, make sure to
 > define `KHRONOS_STATIC` before including KTX header files.
+> This is especially important on Windows.
+
+If you want the Basis Universal encoders in `libktx` to use OpenCL
+add `-D BASISU_SUPPORT_OPENCL=ON` to the CMake configure command.
+
+> **Note:**
+> 
+>  There is very little advantage to using OpenCL in the context
+>  of `libktx`. It is disabled in the default build configuration.
+
 
 Building
 --------
@@ -62,6 +72,12 @@ You need to install the following
 - [GNU Make](https://www.gnu.org/software/make) or [Ninja](https://ninja-build.org) (recommended)
 - [Doxygen](#doxygen) (only if generating documentation)
 
+To build `libktx` such that the Basis Universal encoders will use
+OpenCL you need
+
+- OpenCL headers
+- OpenCL driver
+
 Additional requirements for the load tests applications
 
 - SDL2 development library
@@ -74,8 +90,11 @@ Additional requirements for the load tests applications
 On Ubuntu and Debian these can be installed via
 
 ```bash
-sudo apt install build-essential cmake libzstd-dev ninja-build doxygen libsdl2-dev libgl1-mesa-glx libgl1-mesa-dev libvulkan1 libvulkan-dev libassimp-dev
+sudo apt install build-essential cmake libzstd-dev ninja-build doxygen libsdl2-dev libgl1-mesa-glx libgl1-mesa-dev libvulkan1 libvulkan-dev libassimp-dev opencl-c-headers mesa-opencl-icd
 ```
+
+`mesa-opencl-icd` should be replaced by the appropriate package for your GPU.
+
 
 KTX requires `glslc`, which comes with [Vulkan SDK](#vulkan-sdk) (in sub-
 folder `x86_64/bin/glslc`). Make sure the complete path to the tool is in
@@ -96,7 +115,7 @@ You should be able then to build like this
 # First either configure a debug build of libktx and the tools
 cmake . -G Ninja -B build
 # ...or alternatively a release build including all targets
-cmake . -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON
+cmake . -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -D KTX_FEATURE_LOADTEST_APPS=ON -D KTX_FEATURE_DOC=ON
 
 # Compile the project
 cmake --build build
@@ -129,8 +148,9 @@ To build for macOS:
 mkdir build
 cmake -G Xcode -B build/mac
 
-# If you want to build the load test apps as well, you have to set the `KTX_FEATURE_LOADTEST_APPS` parameter:
-cmake -GXcode -Bbuild/mac -DKTX_FEATURE_LOADTEST_APPS=ON"
+# If you want to build the load test apps as well, you have to
+# set the `KTX_FEATURE_LOADTEST_APPS` parameter:
+cmake -GXcode -Bbuild/mac -D KTX_FEATURE_LOADTEST_APPS=ON
 
 # Compile the project
 cmake --build build/mac
@@ -147,7 +167,7 @@ Example how to build universal binaries
 
 ```bash
 # Configure universal binaries and disable SSE 
-cmake -G Xcode -B build-macos-universal -DCMAKE_OSX_ARCHITECTURES="\$(ARCHS_STANDARD)" -DBASISU_SUPPORT_SSE=OFF
+cmake -G Xcode -B build-macos-universal -D CMAKE_OSX_ARCHITECTURES="\$(ARCHS_STANDARD)" -D BASISU_SUPPORT_SSE=OFF
 # Build 
 cmake --build build-macos-universal
 # Easy way to check if the resulting binaries are universal
@@ -164,6 +184,9 @@ file build-macos-universal/Debug/toktx
 # build-macos-universal/Debug/toktx (for architecture x86_64):	Mach-O 64-bit executable x86_64
 # build-macos-universal/Debug/toktx (for architecture arm64):	Mach-O 64-bit executable arm64
 ```
+
+To explicity build for one or the other architecture use
+`-D CMAKE_OSX_ARCHITECTURES=arm64` or `-D CMAKE_OSX_ARCHITECTURES=x86_64`
 
 ##### macOS signing
 
@@ -188,10 +211,10 @@ To build for iOS:
 ```bash
 # This creates an Xcode project at `build/ios/KTX-Software.xcodeproj` containing the libktx targets.
 mkdir build # if it does not exist
-cmake -G Xcode -B build/ios -DCMAKE_SYSTEM_NAME=iOS
+cmake -G Xcode -B build/ios -D CMAKE_SYSTEM_NAME=iOS
 
 # This creates a project to build the load test apps as well.
-cmake -G Xcode -B build/ios -DKTX_FEATURE_LOADTEST_APPS=ON"
+cmake -G Xcode -B build/ios -D KTX_FEATURE_LOADTEST_APPS=ON"
 
 # Compile the project
 cmake --build build -- -sdk iphoneos
@@ -235,7 +258,7 @@ Install [Emscripten](https://emscripten.org) and follow the [install instruction
 
 ```bash
 # Configure
-emcmake cmake -B build-web-debug . -DCMAKE_BUILD_TYPE=Debug
+emcmake cmake -B build-web-debug . -D CMAKE_BUILD_TYPE=Debug
 
 # Build
 cmake --build build-web-debug --config Debug
@@ -291,7 +314,7 @@ To configure for Universal Windows Platform (Windows Store) you have to
 Example UWP configuration
 
 ```bash
-cmake . -A ARM64 -B build_uwp_arm64 -DCMAKE_SYSTEM_NAME:String=WindowsStore -DCMAKE_SYSTEM_VERSION:String="10.0"
+cmake . -A ARM64 -B build_uwp_arm64 -D CMAKE_SYSTEM_NAME:String=WindowsStore -D CMAKE_SYSTEM_VERSION:String="10.0"
 # Build `ktx.dll` only
 cmake -B build_uwp_arm64 --target ktx
 ```
@@ -326,6 +349,11 @@ Imagination Technologies' PowerVR emulator as that alone supports OpenGL ES
 <sup>*</sup>You will need to build ANGLE yourself and copy the libs
 and dlls to the appropriate directories under `other_lib/win`. Note
 that ANGLE's OpenGL ES 3 support is not yet complete.
+
+#### OpenCL for Windows
+
+To build `libktx` such that the Basis Universal encoders will use
+OpenCL you need an OpenCL driver, which is typically included in the driver for your GPU, and an OpenCL SDK. If no SDK is present, the build will use the headers and library that are included in this repo.
 
 ### Android
 
@@ -416,5 +444,10 @@ sure the directory containing the `doxygen` executable is in your `$PATH`.
 You need to install the Open Asset Import Library [`libassimp`](https://github.com/assimp/assimp) 
 on GNU/Linux and macOS if you want to build the KTX vulkan loader tests.
 The KTX Git repo has binaries for iOS and Windows. You'll find `libassimp` in the standard package manager on GNU/Linux. On macOS it can be installed via [MacPorts](https://www.macports.org/install.php) or [Brew](https://brew.sh/).
+
+### OpenCL
+
+You need to install an OpenCL SDK and OpenCL driver on GNU/Linux and Windows if you want to build _libktx_ so the Basis Universal encoders use OpenCL. Drivers are standard on macOS & iOS and Xcode includes the SDK. On GNU/Linux these can be installed via the package manager. On Windows, the GPU driver typically includes an OpenCL driver. The place from which to download the SDK depends on your GPU vendor.
+
 
 {# vim: set ai ts=4 sts=4 sw=2 expandtab textwidth=75:}

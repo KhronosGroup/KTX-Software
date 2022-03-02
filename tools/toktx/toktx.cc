@@ -1432,11 +1432,11 @@ toktxApp::main(int argc, _TCHAR *argv[])
             }
         }
         if (KTX_SUCCESS != ret) {
-            fclose(f);
             if (f != stdout)
                 _tunlink(options.outfile.c_str());
             exitCode = 2;
         }
+        fclose(f);
     } else {
         fprintf(stderr, "%s: could not open output file \"%s\". %s\n",
                 name.c_str(), options.outfile.c_str(), strerror(errno));
