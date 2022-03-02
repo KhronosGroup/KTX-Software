@@ -116,8 +116,6 @@ You should be able then to build like this
 cmake . -G Ninja -B build
 # ...or alternatively a release build including all targets
 cmake . -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -D KTX_FEATURE_LOADTEST_APPS=ON -D KTX_FEATURE_DOC=ON
-# To configure so the Basis Universal encoders will use OpenCL add
-# -D BASISU_SUPPORT_OPENCL=ON to the above.
 
 # Compile the project
 cmake --build build
@@ -188,7 +186,7 @@ file build-macos-universal/Debug/toktx
 ```
 
 To explicity build for one or the other architecture use
-`-D CMAKE_OSX_ARCHITECTURES=arm64` or -`D CMAKE_OSX_ARCHITECTURES=x86_64`
+`-D CMAKE_OSX_ARCHITECTURES=arm64` or `-D CMAKE_OSX_ARCHITECTURES=x86_64`
 
 ##### macOS signing
 
@@ -449,6 +447,7 @@ The KTX Git repo has binaries for iOS and Windows. You'll find `libassimp` in th
 
 ### OpenCL
 
+You need to install an OpenCL SDK and OpenCL driver on GNU/Linux and Windows if you want to build _libktx_ so the Basis Universal encoders use OpenCL. Drivers are standard on macOS & iOS and Xcode includes the SDK. On GNU/Linux these can be installed via the package manager. On Windows, the GPU driver typically includes an OpenCL driver. The place from which to download the SDK depends on your GPU vendor.
 
 
 {# vim: set ai ts=4 sts=4 sw=2 expandtab textwidth=75:}
