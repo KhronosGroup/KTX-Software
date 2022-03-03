@@ -37,6 +37,14 @@
 	#endif
 #endif
 
+// Using unaligned loads and stores causes errors when using UBSan. Jam it off.
+#if defined(__has_feature)
+#if __has_feature(undefined_behavior_sanitizer)
+#undef BASISD_USE_UNALIGNED_WORD_READS
+#define BASISD_USE_UNALIGNED_WORD_READS 0
+#endif
+#endif
+
 #define BASISD_SUPPORTED_BASIS_VERSION (0x13)
 
 #ifndef BASISD_SUPPORT_KTX2
@@ -12440,12 +12448,8 @@ namespace basist
 				bits = read_bits64(blk.m_bytes, bit_ofs, basisu::minimum<int>(64, 128 - (int)bit_ofs));
 			else
 			{
-#ifdef __EMSCRIPTEN__
 				bits = blk.m_dwords[2];
 				bits |= (((uint64_t)blk.m_dwords[3]) << 32U);
-#else
-				bits = blk.m_qwords[1];
-#endif
 				
 				if (bit_ofs >= 64U)
 					bits >>= (bit_ofs - 64U);
@@ -16863,7 +16867,7 @@ namespace basist
 		{
 			m_format = basist::basis_tex_format::cETC1S;
 			
-			// 3.10.2: "Whether the image has 1 or 2 slices can be determined from the DFD’s sample count."
+			// 3.10.2: "Whether the image has 1 or 2 slices can be determined from the DFD's sample count."
 			// If m_has_alpha is true it may be 2-channel RRRG or 4-channel RGBA, but we let the caller deal with that.
 			m_has_alpha = (m_header.m_dfd_byte_length == 60);
 			
