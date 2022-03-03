@@ -186,14 +186,11 @@ gencmpktx orient-down-metadata.ktx ../srcimages/up.ppm
 gencmpktx rgba-reference.ktx --lower_left_maps_to_s0t0 --nometadata ../srcimages/rgba.pam
 gencmpktx rgb-mipmap-reference.ktx --lower_left_maps_to_s0t0 --mipmap --nometadata ../srcimages/level0.ppm ../srcimages/level1.ppm ../srcimages/level2.ppm ../srcimages/level3.ppm ../srcimages/level4.ppm ../srcimages/level5.ppm ../srcimages/level6.ppm
 gencmpktx rgb-mipmap-reference-u.ktx2 --test --t2 --mipmap ../srcimages/level0.ppm ../srcimages/level1.ppm ../srcimages/level2.ppm ../srcimages/level3.ppm ../srcimages/level4.ppm ../srcimages/level5.ppm ../srcimages/level6.ppm
-if [ $(uname) == "Darwin" ]; then
-  # Run only on macOS until we figure out the Basis compressor non-determinancy.
-  gencmpktx alpha_simple_basis.ktx2 --test --bcmp ../srcimages/alpha_simple.png
-  gencmpktx kodim17_basis.ktx2 --test --bcmp ../srcimages/kodim17.png
-  gencmpktx color_grid_basis.ktx2 --test --bcmp ../srcimages/color_grid.png
-  gencmpktx cimg5293_uastc.ktx2 --uastc --genmipmap --test ../srcimages/CIMG5293.jpg
-  gencmpktx cimg5293_uastc_zstd.ktx2 --zcmp --uastc --genmipmap --test ../srcimages/CIMG5293.jpg
-fi
+gencmpktx alpha_simple_basis.ktx2 --test --bcmp ../srcimages/alpha_simple.png
+gencmpktx kodim17_basis.ktx2 --test --bcmp ../srcimages/kodim17.png
+gencmpktx color_grid_basis.ktx2 --test --bcmp ../srcimages/color_grid.png
+gencmpktx cimg5293_uastc.ktx2 --uastc --genmipmap --test ../srcimages/CIMG5293.jpg
+gencmpktx cimg5293_uastc_zstd.ktx2 --zcmp --uastc --genmipmap --test ../srcimages/CIMG5293.jpg
 
 filelist=$(mktemp)
 printf "../srcimages/level0.ppm\n../srcimages/level1.ppm\n../srcimages/level2.ppm\n../srcimages/level3.ppm\n../srcimages/level4.ppm\n../srcimages/level5.ppm\n../srcimages/level6.ppm" > $filelist
