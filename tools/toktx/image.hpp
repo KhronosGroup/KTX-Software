@@ -175,14 +175,14 @@ struct vec3_base {
             b /= len;
         }
     }
-    void clamp(float a, float b) {
-        r = cclamp(r, a, b);
-        g = cclamp(g, a, b);
-        b = cclamp(b, a, b);
+    void clamp(float _a, float _b) {
+        r = cclamp(r, _a, _b);
+        g = cclamp(g, _a, _b);
+        b = cclamp(b, _a, _b);
     }
 };
 
-static constexpr float h[5]={0.0f, 128.0f, 32768.0f, 0.0f, 2147483648.0f};
+static constexpr float m[5]={0.0f, 128.0f, 32768.0f, 0.0f, 2147483648.0f};
 static constexpr float s[5]={0.0f, 255.0f, 65535.0f, 0.0f, 4294967295.0f};
 
 template <typename componentType>
@@ -194,7 +194,7 @@ struct vec3 : public vec3_base {
     vec3(float _r, float _g, float _b) : vec3_base(_r, _g, _b) {}
     void normalize() {
         // Zero normals in range [-1, 1] can't be normalized
-        if (h[i] == r && h[i] == g && h[i] == b) {
+        if (m[i] == r && m[i] == g && m[i] == b) {
             return;
         } else {
             r = r / s[i] * 2.0f - 1.0f;
@@ -202,9 +202,9 @@ struct vec3 : public vec3_base {
             b = b / s[i] * 2.0f - 1.0f;
             clamp(-1.0f, 1.0f);
             base_normalize();
-            r = (componentType)(std::floor((r + 1.0f) * s[i] * 0.5f + 0.5f));
-            g = (componentType)(std::floor((g + 1.0f) * s[i] * 0.5f + 0.5f));
-            b = (componentType)(std::floor((b + 1.0f) * s[i] * 0.5f + 0.5f));
+            r = (std::floor((r + 1.0f) * s[i] * 0.5f + 0.5f));
+            g = (std::floor((g + 1.0f) * s[i] * 0.5f + 0.5f));
+            b = (std::floor((b + 1.0f) * s[i] * 0.5f + 0.5f));
             clamp(0, s[i]);
         }
     }
@@ -256,7 +256,7 @@ class color<componentType, 4> : public color_base<componentType, 4> {
         return 4;
     }
     void normalize() {
-       vec3<componentType> v(r, g, b);
+       vec3<componentType> v((float)r, (float)g, (float)b);
        v.normalize();
        r = (componentType)v.r;
        g = (componentType)v.g;
@@ -298,7 +298,7 @@ class color<componentType, 3> : public color_base<componentType, 3> {
         return 3;
     }
     void normalize() {
-        vec3<componentType> v(r, g, b);
+        vec3<componentType> v((float)r, (float)g, (float)b);
         v.normalize();
         r = (componentType)v.r;
         g = (componentType)v.g;
@@ -339,7 +339,7 @@ class color<componentType, 2> : public color_base<componentType, 2> {
         return 2;
     }
     void normalize() {
-        vec3<componentType> v(r, g, s[sizeof(componentType)] * 0.5f);
+        vec3<componentType> v((float)r, (float)g, s[sizeof(componentType)] * 0.5f);
         v.normalize();
         r = (componentType)v.r;
         g = (componentType)v.g;
@@ -378,7 +378,7 @@ class color<componentType, 1> : public color_base<componentType, 1> {
         return 1;
     }
     void normalize() {
-        vec3<componentType> v(r, s[sizeof(componentType)] * 0.5f, s[sizeof(componentType)] * 0.5f);
+        vec3<componentType> v((float)r, s[sizeof(componentType)] * 0.5f, s[sizeof(componentType)] * 0.5f);
         v.normalize();
         r = (componentType)v.r;
     }
@@ -481,9 +481,9 @@ class ImageT : public Image {
         if (!pixels)
             throw std::bad_alloc();
 
-        for (uint32_t b = 0; b < w * h; ++b)
+        for (uint32_t p = 0; p < w * h; ++p)
             for(uint32_t c = 0; c < componentCount; ++c)
-                memset(&pixels[b].comps[c], 0, sizeof(componentType));
+                memset(&pixels[p].comps[c], 0, sizeof(componentType));
     }
 
     ImageT(uint32_t w, uint32_t h, Color* pixels) : Image(w, h), pixels(pixels)
