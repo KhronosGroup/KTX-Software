@@ -5,44 +5,44 @@
 # exit if any command fails
 set -e
 
+# Set some defaults
+CONFIGURATION=${CONFIGURATION:-Release}
+FEATURE_DOC=${FEATURE_DOC:-OFF}
+FEATURE_JNI=${FEATURE_JNI:-OFF}
+FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-ON}
+PACKAGE=${PACKAGE:-NO}
+SUPPORT_SSE=${SUPPORT_SSE:-ON}
+SUPPORT_OPENCL=${SUPPORT_OPENCL:-OFF}
+
+BUILD_DIR=${BUILD_DIR:-build/linux-$CONFIGURATION}
+
 # Explicitly take newer CMake installed from apt.kitware.com
 CMAKE_EXE=/usr/bin/cmake
 
+mkdir -p $BUILD_DIR
 
-# Linux
-
-build_parent_dir=build
-linux_build_base=$build_parent_dir/linux
-debug_build_dir=${linux_build_base}-debug
-release_build_dir=${linux_build_base}-release
-nosse_debug_build_dir=${linux_build_base}-nosse-debug
-nosse_release_build_dir=${linux_build_base}-nosse-release
-
-mkdir -p $build_parent_dir
-
-echo "Configure KTX-Software (Linux Debug)"
-${CMAKE_EXE} . -G Ninja -B$debug_build_dir -DCMAKE_BUILD_TYPE=Debug -DKTX_FEATURE_JNI=ON -DKTX_FEATURE_LOADTEST_APPS=ON
-pushd $debug_build_dir
-export CUR_BUILD_DIR="$(pwd)"
-echo "Build KTX-Software (Linux Debug)"
+echo "Configure KTX-Software (Linux $CONFIGURATION) dir=$BUILD_DIR FEATURE_DOC=$FEATURE_DOC FEATURE_JNI=$FEATURE_JNI FEATURE_LOADTESTS=$FEATURE_LOADTESTS SUPPORT_SSE=$SUPPORT_SSE SUPPORT_OPENCL=$SUPPORT_OPENCL"
+${CMAKE_EXE} . -G Ninja -B$BUILD_DIR \
+  -D CMAKE_BUILD_TYPE=$CONFIGURATION \
+  -D KTX_FEATURE_DOC=$FEATURE_DOC \
+  -D KTX_FEATURE_JNI=$FEATURE_JNI \
+  -D KTX_FEATURE_LOADTEST_APPS=$FEATURE_LOADTESTS \
+  -D BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL \
+  -D BASISU_SUPPORT_SSE=$SUPPORT_SSE
+pushd $BUILD_DIR
+echo "Build KTX-Software (Linux $CONFIGURATION)"
 ${CMAKE_EXE} --build .
-echo "Test KTX-Software (Linux Debug)"
+echo "Test KTX-Software (Linux $CONFIGURATION)"
 ctest # --verbose
 popd
 
-echo "Configure KTX-Software (Linux Release)"
-${CMAKE_EXE} . -G Ninja -B$release_build_dir -DCMAKE_BUILD_TYPE=Release -DKTX_FEATURE_JNI=ON -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=ON
-pushd $release_build_dir
-export CUR_BUILD_DIR="$(pwd)"
-echo "Build KTX-Software (Linux Release)"
-${CMAKE_EXE} --build .
-echo "Test KTX-Software (Linux Release)"
-ctest # --verbose
-echo "Pack KTX-Software (Linux Release)"
-cpack -G DEB
-cpack -G RPM
-cpack -G TBZ2
-popd
+if [ "$PACKAGE" == "YES" ]; then
+  echo "Pack KTX-Software (Linux $CONFIGURATION) FEATURE_DOC=$FEATURE_DOC FEATURE_JNI=$FEATURE_JNI FEATURE_LOADTESTS=$FEATURE_LOADTESTS SUPPORT_SSE=$SUPPORT_SSE SUPPORT_OPENCL=$SUPPORT_OPENCL"
+  cpack -G DEB
+  cpack -G RPM
+  cpack -G TBZ2
+  popd
+fi
 
 #echo "***** toktx version.h *****"
 #cat tools/toktx/version.h
@@ -51,34 +51,6 @@ popd
 #echo "***************************"
 
 
-echo "Configure KTX-Software (Linux Debug without SSE support)"
-${CMAKE_EXE} . -G Ninja -B$nosse_debug_build_dir -DCMAKE_BUILD_TYPE=Debug -DKTX_FEATURE_JNI=ON -DBASISU_SUPPORT_SSE=OFF
-pushd $nosse_debug_build_dir
-export CUR_BUILD_DIR="$(pwd)"
-echo "Build KTX-Software (Linux Debug without SSE support)"
-${CMAKE_EXE} --build .
-echo "Test KTX-Software (Linux Debug without SSE support)"
-ctest # --verbose
-popd
-
-echo "Configure KTX-Software (Linux Release without SSE support)"
-${CMAKE_EXE} . -G Ninja -B$nosse_release_build_dir -DCMAKE_BUILD_TYPE=Release -DKTX_FEATURE_JNI=ON -DBASISU_SUPPORT_SSE=OFF
-pushd $nosse_release_build_dir
-export CUR_BUILD_DIR="$(pwd)"
-echo "Build KTX-Software (Linux Release without SSE support)"
-${CMAKE_EXE} --build .
-echo "Test KTX-Software (Linux Release without SSE support)"
-ctest # --verbose
-popd
-
-# Verify licensing meets REUSE standard.
-reuse lint
-
-
-# Emscripten/WebAssembly
-
-ci_scripts/build_wasm_docker.sh
-
-# Java
-
-LIBKTX_BINARY_DIR=$(pwd)/$release_build_dir ci_scripts/build_java.sh
+if [ "$FEATURE_JNI" == "YES" ]; then
+  LIBKTX_BINARY_DIR=$(pwd)/$release_build_dir ci_scripts/build_java.sh
+fi

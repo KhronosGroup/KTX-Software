@@ -22,4 +22,3 @@ echo "Install Vulkan SDK"
 sudo apt update
 sudo apt install vulkan-sdk
 
-pip3 install reuse
