@@ -33,12 +33,12 @@ enum bu_image_flags__bits_e { eBUImageIsPframe = 0x02 };
 typedef uint32_t buFlags;
 
 typedef struct ktxBasisLzGlobalHeader {
-    uint16_t endpointCount;
-    uint16_t selectorCount;
-    uint32_t endpointsByteLength;
-    uint32_t selectorsByteLength;
-    uint32_t tablesByteLength;
-    uint32_t extendedByteLength;
+	uint16_t endpointCount;
+	uint16_t selectorCount;
+	uint32_t endpointsByteLength;
+	uint32_t selectorsByteLength;
+	uint32_t tablesByteLength;
+	uint32_t extendedByteLength;
 } ktxBasisLzGlobalHeader;
 
 // This header is followed by imageCount "slice" descriptions.
@@ -47,15 +47,15 @@ typedef struct ktxBasisLzGlobalHeader {
 // These offsets are relative to start of a mip level as given by the
 // main levelIndex.
 typedef struct ktxBasisLzEtc1sImageDesc {
-    buFlags imageFlags;
-    uint32_t rgbSliceByteOffset;
-    uint32_t rgbSliceByteLength;
-    uint32_t alphaSliceByteOffset;
-    uint32_t alphaSliceByteLength;
+	buFlags  imageFlags;
+	uint32_t rgbSliceByteOffset;
+	uint32_t rgbSliceByteLength;
+	uint32_t alphaSliceByteOffset;
+	uint32_t alphaSliceByteLength;
 } ktxBasisLzEtc1sImageDesc;
 
 #define BGD_ETC1S_IMAGE_DESCS(bgd) \
-        reinterpret_cast<ktxBasisLzEtc1sImageDesc*>(bgd + sizeof(ktxBasisLzGlobalHeader))
+	reinterpret_cast<ktxBasisLzEtc1sImageDesc *>(bgd + sizeof(ktxBasisLzGlobalHeader))
 
 // The are followed in the global data by these ...
 //    uint8_t[endpointsByteLength] endpointsData;
@@ -63,7 +63,7 @@ typedef struct ktxBasisLzEtc1sImageDesc {
 //    uint8_t[tablesByteLength] tablesData;
 
 #define BGD_ENDPOINTS_ADDR(bgd, imageCount) \
-    (bgd + sizeof(ktxBasisLzGlobalHeader) + sizeof(ktxBasisLzEtc1sImageDesc) * imageCount)
+	(bgd + sizeof(ktxBasisLzGlobalHeader) + sizeof(ktxBasisLzEtc1sImageDesc) * imageCount)
 
 #define BGD_SELECTORS_ADDR(bgd, bgdh, imageCount) (BGD_ENDPOINTS_ADDR(bgd, imageCount) + bgdh.endpointsByteLength)
 
@@ -73,9 +73,9 @@ typedef struct ktxBasisLzEtc1sImageDesc {
 
 // Just because this is a convenient place to put it for basis_{en,trans}code.
 enum alpha_content_e {
-    eNone,
-    eAlpha,
-    eGreen
+	eNone,
+	eAlpha,
+	eGreen
 };
 
 #ifdef __cplusplus

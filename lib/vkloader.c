@@ -17,40 +17,38 @@
  */
 
 #ifdef _WIN32
-#define _CRT_SECURE_NO_WARNINGS
+#	define _CRT_SECURE_NO_WARNINGS
 #endif
-
 
 #include <assert.h>
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "vk_funcs.h"   // Must be included before ktxvulkan.h.
-#include "ktxvulkan.h"
 #include "ktxint.h"
-#include "unused.h"
+#include "ktxvulkan.h"
 #include "texture1.h"
 #include "texture2.h"
+#include "unused.h"
 #include "vk_format.h"
+#include "vk_funcs.h"        // Must be included before ktxvulkan.h.
 
 // Macro to check and display Vulkan return results.
 // Use when the only possible errors are caused by invalid usage by this loader.
 #if defined(_DEBUG)
-#define VK_CHECK_RESULT(f)                                                  \
-{                                                                           \
-    VkResult res = (f);                                                     \
-    if (res != VK_SUCCESS)                                                  \
-    {                                                                       \
-        /* XXX Find an errorString function. */                             \
-        fprintf(stderr, "Fatal error in ktxLoadVkTexture*: "                \
-                "VkResult is \"%d\" in %s at line %d\n",                    \
-                res, __FILE__, __LINE__);                                   \
-        assert(res == VK_SUCCESS);                                          \
-    }                                                                       \
-}
+#	define VK_CHECK_RESULT(f)                                           \
+		{                                                                \
+			VkResult res = (f);                                          \
+			if (res != VK_SUCCESS) {                                     \
+				/* XXX Find an errorString function. */                  \
+				fprintf(stderr, "Fatal error in ktxLoadVkTexture*: "     \
+				                "VkResult is \"%d\" in %s at line %d\n", \
+				        res, __FILE__, __LINE__);                        \
+				assert(res == VK_SUCCESS);                               \
+			}                                                            \
+		}
 #else
-#define VK_CHECK_RESULT(f) ((void)f)
+#	define VK_CHECK_RESULT(f) ((void) f)
 #endif
 
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
@@ -59,16 +57,16 @@
 #define VK_FLAGS_NONE 0
 
 static void
-setImageLayout(
-    VkCommandBuffer cmdBuffer,
-    VkImage image,
-    VkImageLayout oldLayout,
-    VkImageLayout newLayout,
-    VkImageSubresourceRange subresourceRange);
+    setImageLayout(
+        VkCommandBuffer         cmdBuffer,
+        VkImage                 image,
+        VkImageLayout           oldLayout,
+        VkImageLayout           newLayout,
+        VkImageSubresourceRange subresourceRange);
 
 static void
-generateMipmaps(ktxVulkanTexture* vkTexture, ktxVulkanDeviceInfo* vdi,
-                VkFilter filter, VkImageLayout initialLayout);
+    generateMipmaps(ktxVulkanTexture *vkTexture, ktxVulkanDeviceInfo *vdi,
+                    VkFilter filter, VkImageLayout initialLayout);
 
 /**
  * @defgroup ktx_vkloader Vulkan Texture Image Loader
@@ -95,22 +93,20 @@ generateMipmaps(ktxVulkanTexture* vkTexture, ktxVulkanDeviceInfo* vdi,
  *
  * @sa ktxVulkanDeviceInfo_construct(), ktxVulkanDeviceInfo_destroy()
  */
-ktxVulkanDeviceInfo*
-ktxVulkanDeviceInfo_Create(VkPhysicalDevice physicalDevice, VkDevice device,
-                           VkQueue queue, VkCommandPool cmdPool,
-                           const VkAllocationCallbacks* pAllocator)
-{
-    ktxVulkanDeviceInfo* newvdi;
-    newvdi = (ktxVulkanDeviceInfo*)malloc(sizeof(ktxVulkanDeviceInfo));
-    if (newvdi != NULL) {
-        if (ktxVulkanDeviceInfo_Construct(newvdi, physicalDevice, device,
-                                    queue, cmdPool, pAllocator) != KTX_SUCCESS)
-        {
-            free(newvdi);
-            newvdi = 0;
-        }
-    }
-    return newvdi;
+ktxVulkanDeviceInfo *
+    ktxVulkanDeviceInfo_Create(VkPhysicalDevice physicalDevice, VkDevice device,
+                               VkQueue queue, VkCommandPool cmdPool,
+                               const VkAllocationCallbacks *pAllocator) {
+	ktxVulkanDeviceInfo *newvdi;
+	newvdi = (ktxVulkanDeviceInfo *) malloc(sizeof(ktxVulkanDeviceInfo));
+	if (newvdi != NULL) {
+		if (ktxVulkanDeviceInfo_Construct(newvdi, physicalDevice, device,
+		                                  queue, cmdPool, pAllocator) != KTX_SUCCESS) {
+			free(newvdi);
+			newvdi = 0;
+		}
+	}
+	return newvdi;
 }
 
 /**
@@ -141,43 +137,41 @@ ktxVulkanDeviceInfo_Create(VkPhysicalDevice physicalDevice, VkDevice device,
  * @sa ktxVulkanDeviceInfo_destruct()
  */
 KTX_error_code
-ktxVulkanDeviceInfo_Construct(ktxVulkanDeviceInfo* This,
-                              VkPhysicalDevice physicalDevice, VkDevice device,
-                              VkQueue queue, VkCommandPool cmdPool,
-                              const VkAllocationCallbacks* pAllocator)
-{
-    VkCommandBufferAllocateInfo cmdBufInfo = {
-        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO
-    };
-    VkResult result;
+    ktxVulkanDeviceInfo_Construct(ktxVulkanDeviceInfo *This,
+                                  VkPhysicalDevice physicalDevice, VkDevice device,
+                                  VkQueue queue, VkCommandPool cmdPool,
+                                  const VkAllocationCallbacks *pAllocator) {
+	VkCommandBufferAllocateInfo cmdBufInfo = {
+	    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO};
+	VkResult result;
 
 #if defined(KTX_USE_FUNCPTRS_FOR_VULKAN)
-    // Delay loading not supported so must do it ourselves.
-    if (!ktxVulkanModuleHandle) {
-        ktx_error_code_e kresult = ktxLoadVulkanLibrary();
-        if (kresult != KTX_SUCCESS)
-            return kresult;
-    }
+	// Delay loading not supported so must do it ourselves.
+	if (!ktxVulkanModuleHandle) {
+		ktx_error_code_e kresult = ktxLoadVulkanLibrary();
+		if (kresult != KTX_SUCCESS)
+			return kresult;
+	}
 #endif
 
-    This->physicalDevice = physicalDevice;
-    This->device = device;
-    This->queue = queue;
-    This->cmdPool = cmdPool;
-    This->pAllocator = pAllocator;
-    vkGetPhysicalDeviceMemoryProperties(physicalDevice,
-                                        &This->deviceMemoryProperties);
+	This->physicalDevice = physicalDevice;
+	This->device         = device;
+	This->queue          = queue;
+	This->cmdPool        = cmdPool;
+	This->pAllocator     = pAllocator;
+	vkGetPhysicalDeviceMemoryProperties(physicalDevice,
+	                                    &This->deviceMemoryProperties);
 
-    // Use a separate command buffer for texture loading. Needed for
-    // submitting image barriers and converting tilings.
-    cmdBufInfo.commandPool = cmdPool;
-    cmdBufInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    cmdBufInfo.commandBufferCount = 1;
-    result = vkAllocateCommandBuffers(device, &cmdBufInfo, &This->cmdBuffer);
-    if (result != VK_SUCCESS) {
-        return KTX_OUT_OF_MEMORY; // XXX Consider an equivalent to pGlError
-    }
-    return KTX_SUCCESS;
+	// Use a separate command buffer for texture loading. Needed for
+	// submitting image barriers and converting tilings.
+	cmdBufInfo.commandPool        = cmdPool;
+	cmdBufInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	cmdBufInfo.commandBufferCount = 1;
+	result                        = vkAllocateCommandBuffers(device, &cmdBufInfo, &This->cmdBuffer);
+	if (result != VK_SUCCESS) {
+		return KTX_OUT_OF_MEMORY;        // XXX Consider an equivalent to pGlError
+	}
+	return KTX_SUCCESS;
 }
 
 /**
@@ -189,11 +183,9 @@ ktxVulkanDeviceInfo_Construct(ktxVulkanDeviceInfo* This,
  *
  * @param This pointer to the ktxVulkanDeviceInfo to destruct.
  */
-void
-ktxVulkanDeviceInfo_Destruct(ktxVulkanDeviceInfo* This)
-{
-    vkFreeCommandBuffers(This->device, This->cmdPool, 1,
-                         &This->cmdBuffer);
+void ktxVulkanDeviceInfo_Destruct(ktxVulkanDeviceInfo *This) {
+	vkFreeCommandBuffers(This->device, This->cmdPool, 1,
+	                     &This->cmdBuffer);
 }
 
 /**
@@ -205,33 +197,27 @@ ktxVulkanDeviceInfo_Destruct(ktxVulkanDeviceInfo* This)
  *
  * @param This pointer to the ktxVulkanDeviceInfo to destroy.
  */
-void
-ktxVulkanDeviceInfo_Destroy(ktxVulkanDeviceInfo* This)
-{
-    assert(This != NULL);
-    ktxVulkanDeviceInfo_Destruct(This);
-    free(This);
+void ktxVulkanDeviceInfo_Destroy(ktxVulkanDeviceInfo *This) {
+	assert(This != NULL);
+	ktxVulkanDeviceInfo_Destruct(This);
+	free(This);
 }
 
 /* Get appropriate memory type index for a memory allocation. */
 static uint32_t
-ktxVulkanDeviceInfo_getMemoryType(ktxVulkanDeviceInfo* This,
-                                  uint32_t typeBits, VkFlags properties)
-{
-    for (uint32_t i = 0; i < 32; i++)
-    {
-        if ((typeBits & 1) == 1)
-        {
-            if ((This->deviceMemoryProperties.memoryTypes[i].propertyFlags & properties) == properties)
-            {
-                return i;
-            }
-        }
-        typeBits >>= 1;
-    }
+    ktxVulkanDeviceInfo_getMemoryType(ktxVulkanDeviceInfo *This,
+                                      uint32_t typeBits, VkFlags properties) {
+	for (uint32_t i = 0; i < 32; i++) {
+		if ((typeBits & 1) == 1) {
+			if ((This->deviceMemoryProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+				return i;
+			}
+		}
+		typeBits >>= 1;
+	}
 
-    // XXX : throw error
-    return 0;
+	// XXX : throw error
+	return 0;
 }
 
 //======================================================================
@@ -239,16 +225,16 @@ ktxVulkanDeviceInfo_getMemoryType(ktxVulkanDeviceInfo* This,
 //======================================================================
 
 typedef struct user_cbdata_optimal {
-    VkBufferImageCopy* region; // Specify destination region in final image.
-    VkDeviceSize offset;       // Offset of current level in staging buffer
-    ktx_uint32_t numFaces;
-    ktx_uint32_t numLayers;
-    // The following are used only by optimalTilingPadCallback
-    ktx_uint8_t* dest;         // Pointer to mapped staging buffer.
-    ktx_uint32_t elementSize;
-    ktx_uint32_t numDimensions;
+	VkBufferImageCopy *region;        // Specify destination region in final image.
+	VkDeviceSize       offset;        // Offset of current level in staging buffer
+	ktx_uint32_t       numFaces;
+	ktx_uint32_t       numLayers;
+	// The following are used only by optimalTilingPadCallback
+	ktx_uint8_t *dest;        // Pointer to mapped staging buffer.
+	ktx_uint32_t elementSize;
+	ktx_uint32_t numDimensions;
 #if defined(_DEBUG)
-    VkBufferImageCopy* regionsArrayEnd;
+	VkBufferImageCopy *regionsArrayEnd;
 #endif
 } user_cbdata_optimal;
 
@@ -269,37 +255,36 @@ typedef struct user_cbdata_optimal {
  * @copydetails PFNKTXITERCB
  */
 static KTX_error_code
-optimalTilingCallback(int miplevel, int face,
-                      int width, int height, int depth,
-                      ktx_uint64_t faceLodSize,
-                      void* pixels, void* userdata)
-{
-    user_cbdata_optimal* ud = (user_cbdata_optimal*)userdata;
-    UNUSED(pixels);
+    optimalTilingCallback(int miplevel, int face,
+                          int width, int height, int depth,
+                          ktx_uint64_t faceLodSize,
+                          void *pixels, void *userdata) {
+	user_cbdata_optimal *ud = (user_cbdata_optimal *) userdata;
+	UNUSED(pixels);
 
-    // Set up copy to destination region in final image
+	// Set up copy to destination region in final image
 #if defined(_DEBUG)
-    assert(ud->region < ud->regionsArrayEnd);
+	assert(ud->region < ud->regionsArrayEnd);
 #endif
-    ud->region->bufferOffset = ud->offset;
-    ud->offset += faceLodSize;
-    // These 2 are expressed in texels.
-    ud->region->bufferRowLength = 0;
-    ud->region->bufferImageHeight = 0;
-    ud->region->imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    ud->region->imageSubresource.mipLevel = miplevel;
-    ud->region->imageSubresource.baseArrayLayer = face;
-    ud->region->imageSubresource.layerCount = ud->numLayers * ud->numFaces;
-    ud->region->imageOffset.x = 0;
-    ud->region->imageOffset.y = 0;
-    ud->region->imageOffset.z = 0;
-    ud->region->imageExtent.width = width;
-    ud->region->imageExtent.height = height;
-    ud->region->imageExtent.depth = depth;
+	ud->region->bufferOffset = ud->offset;
+	ud->offset += faceLodSize;
+	// These 2 are expressed in texels.
+	ud->region->bufferRowLength                 = 0;
+	ud->region->bufferImageHeight               = 0;
+	ud->region->imageSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+	ud->region->imageSubresource.mipLevel       = miplevel;
+	ud->region->imageSubresource.baseArrayLayer = face;
+	ud->region->imageSubresource.layerCount     = ud->numLayers * ud->numFaces;
+	ud->region->imageOffset.x                   = 0;
+	ud->region->imageOffset.y                   = 0;
+	ud->region->imageOffset.z                   = 0;
+	ud->region->imageExtent.width               = width;
+	ud->region->imageExtent.height              = height;
+	ud->region->imageExtent.depth               = depth;
 
-    ud->region += 1;
+	ud->region += 1;
 
-    return KTX_SUCCESS;
+	return KTX_SUCCESS;
 }
 
 uint32_t lcm4(uint32_t a);
@@ -326,83 +311,82 @@ uint32_t lcm4(uint32_t a);
  * selected to minimize the buffering needed between reading the file and
  * copying the data into the staging buffer. Obviously when
  * @c ktx_Texture_IterateFaceLevels is being used, this is a moot point.
-*
+ *
  * @copydetails PFNKTXITERCB
  */
 KTX_error_code
-optimalTilingPadCallback(int miplevel, int face,
-                         int width, int height, int depth,
-                         ktx_uint64_t faceLodSize,
-                         void* pixels, void* userdata)
-{
-    user_cbdata_optimal* ud = (user_cbdata_optimal*)userdata;
-    ktx_uint32_t rowPitch = width * ud->elementSize;
+    optimalTilingPadCallback(int miplevel, int face,
+                             int width, int height, int depth,
+                             ktx_uint64_t faceLodSize,
+                             void *pixels, void *userdata) {
+	user_cbdata_optimal *ud       = (user_cbdata_optimal *) userdata;
+	ktx_uint32_t         rowPitch = width * ud->elementSize;
 
-    // Set bufferOffset in destination region in final image
+	// Set bufferOffset in destination region in final image
 #if defined(_DEBUG)
-    assert(ud->region < ud->regionsArrayEnd);
+	assert(ud->region < ud->regionsArrayEnd);
 #endif
-    ud->region->bufferOffset = ud->offset;
+	ud->region->bufferOffset = ud->offset;
 
-    // Copy data into staging buffer
-    if (_KTX_PAD_UNPACK_ALIGN_LEN(rowPitch) == 0) {
-        // No padding. Can copy in bulk.
-        memcpy(ud->dest + ud->offset, pixels, faceLodSize);
-        ud->offset += faceLodSize;
-    } else {
-        // Must remove padding. Copy a row at a time.
+	// Copy data into staging buffer
+	if (_KTX_PAD_UNPACK_ALIGN_LEN(rowPitch) == 0) {
+		// No padding. Can copy in bulk.
+		memcpy(ud->dest + ud->offset, pixels, faceLodSize);
+		ud->offset += faceLodSize;
+	} else {
+		// Must remove padding. Copy a row at a time.
 		ktx_uint32_t image, imageIterations;
-		ktx_int32_t row;
-        ktx_uint32_t paddedRowPitch;
+		ktx_int32_t  row;
+		ktx_uint32_t paddedRowPitch;
 
-        if (ud->numDimensions == 3)
-            imageIterations = depth;
-        else if (ud->numLayers > 1)
-            imageIterations = ud->numLayers * ud->numFaces;
-        else
-            imageIterations = 1;
-        rowPitch = paddedRowPitch = width * ud->elementSize;
-        paddedRowPitch = _KTX_PAD_UNPACK_ALIGN(paddedRowPitch);
-        for (image = 0; image < imageIterations; image++) {
-            for (row = 0; row < height; row++) {
-                memcpy(ud->dest + ud->offset, pixels, rowPitch);
-                ud->offset += rowPitch;
-                pixels = (ktx_uint8_t*)pixels + paddedRowPitch;
-            }
-        }
-    }
+		if (ud->numDimensions == 3)
+			imageIterations = depth;
+		else if (ud->numLayers > 1)
+			imageIterations = ud->numLayers * ud->numFaces;
+		else
+			imageIterations = 1;
+		rowPitch = paddedRowPitch = width * ud->elementSize;
+		paddedRowPitch            = _KTX_PAD_UNPACK_ALIGN(paddedRowPitch);
+		for (image = 0; image < imageIterations; image++) {
+			for (row = 0; row < height; row++) {
+				memcpy(ud->dest + ud->offset, pixels, rowPitch);
+				ud->offset += rowPitch;
+				pixels = (ktx_uint8_t *) pixels + paddedRowPitch;
+			}
+		}
+	}
 
-    // Round to needed multiples for next region, if necessary.
-    if (ud->offset % ud->elementSize != 0 || ud->offset % 4 != 0) {
-        // Only elementSizes of 1,2 and 3 will bring us here.
-        assert(ud->elementSize < 4 && ud->elementSize > 0);
-        ktx_uint32_t lcm = lcm4(ud->elementSize);
-        ud->offset = _KTX_PADN(lcm, ud->offset);
-    }
-    // These 2 are expressed in texels; not suitable for dealing with padding.
-    ud->region->bufferRowLength = 0;
-    ud->region->bufferImageHeight = 0;
-    ud->region->imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    ud->region->imageSubresource.mipLevel = miplevel;
-    ud->region->imageSubresource.baseArrayLayer = face;
-    ud->region->imageSubresource.layerCount = ud->numLayers * ud->numFaces;
-    ud->region->imageOffset.x = 0;
-    ud->region->imageOffset.y = 0;
-    ud->region->imageOffset.z = 0;
-    ud->region->imageExtent.width = width;
-    ud->region->imageExtent.height = height;
-    ud->region->imageExtent.depth = depth;
+	// Round to needed multiples for next region, if necessary.
+	if (ud->offset % ud->elementSize != 0 || ud->offset % 4 != 0) {
+		// Only elementSizes of 1,2 and 3 will bring us here.
+		assert(ud->elementSize < 4 && ud->elementSize > 0);
+		ktx_uint32_t lcm = lcm4(ud->elementSize);
+		ud->offset       = _KTX_PADN(lcm, ud->offset);
+	}
+	// These 2 are expressed in texels; not suitable for dealing with padding.
+	ud->region->bufferRowLength                 = 0;
+	ud->region->bufferImageHeight               = 0;
+	ud->region->imageSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+	ud->region->imageSubresource.mipLevel       = miplevel;
+	ud->region->imageSubresource.baseArrayLayer = face;
+	ud->region->imageSubresource.layerCount     = ud->numLayers * ud->numFaces;
+	ud->region->imageOffset.x                   = 0;
+	ud->region->imageOffset.y                   = 0;
+	ud->region->imageOffset.z                   = 0;
+	ud->region->imageExtent.width               = width;
+	ud->region->imageExtent.height              = height;
+	ud->region->imageExtent.depth               = depth;
 
-    ud->region += 1;
+	ud->region += 1;
 
-    return KTX_SUCCESS;
+	return KTX_SUCCESS;
 }
 
 typedef struct user_cbdata_linear {
-    VkImage destImage;
-    VkDevice device;
-    uint8_t* dest;   // Pointer to mapped Image memory
-    ktxTexture* texture;
+	VkImage     destImage;
+	VkDevice    device;
+	uint8_t    *dest;        // Pointer to mapped Image memory
+	ktxTexture *texture;
 } user_cbdata_linear;
 
 /**
@@ -413,29 +397,27 @@ typedef struct user_cbdata_linear {
  * Copy the image data into the mapped Vulkan image.
  */
 KTX_error_code
-linearTilingCallback(int miplevel, int face,
-                      int width, int height, int depth,
-                      ktx_uint64_t faceLodSize,
-                      void* pixels, void* userdata)
-{
-    user_cbdata_linear* ud = (user_cbdata_linear*)userdata;
-    VkSubresourceLayout subResLayout;
-    VkImageSubresource subRes = {
-      .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-      .mipLevel = miplevel,
-      .arrayLayer = face
-    };
-    UNUSED(width);
-    UNUSED(height);
-    UNUSED(depth);
+    linearTilingCallback(int miplevel, int face,
+                         int width, int height, int depth,
+                         ktx_uint64_t faceLodSize,
+                         void *pixels, void *userdata) {
+	user_cbdata_linear *ud = (user_cbdata_linear *) userdata;
+	VkSubresourceLayout subResLayout;
+	VkImageSubresource  subRes = {
+	     .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+	     .mipLevel   = miplevel,
+	     .arrayLayer = face};
+	UNUSED(width);
+	UNUSED(height);
+	UNUSED(depth);
 
-    // Get sub resources layout. Includes row pitch, size,
-    // offsets, etc.
-    vkGetImageSubresourceLayout(ud->device, ud->destImage, &subRes,
-                                &subResLayout);
-    // Copies all images of the miplevel (for array & 3d) or a single face.
-    memcpy(ud->dest + subResLayout.offset, pixels, faceLodSize);
-    return KTX_SUCCESS;
+	// Get sub resources layout. Includes row pitch, size,
+	// offsets, etc.
+	vkGetImageSubresourceLayout(ud->device, ud->destImage, &subRes,
+	                            &subResLayout);
+	// Copies all images of the miplevel (for array & 3d) or a single face.
+	memcpy(ud->dest + subResLayout.offset, pixels, faceLodSize);
+	return KTX_SUCCESS;
 }
 
 /**
@@ -456,86 +438,83 @@ linearTilingCallback(int miplevel, int face,
  * strides appears to be for an R8G8B8A8_UNORM of the same texel size.
  */
 KTX_error_code
-linearTilingPadCallback(int miplevel, int face,
-                      int width, int height, int depth,
-                      ktx_uint64_t faceLodSize,
-                      void* pixels, void* userdata)
-{
-    user_cbdata_linear* ud = (user_cbdata_linear*)userdata;
-    VkSubresourceLayout subResLayout;
-    VkImageSubresource subRes = {
-      .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-      .mipLevel = miplevel,
-      .arrayLayer = face
-    };
-    VkDeviceSize offset;
-    ktx_size_t   imageSize = 0;
-    VkDeviceSize imagePitch = 0;
-    ktx_uint32_t srcRowPitch;
-    ktx_uint32_t rowIterations;
-    ktx_uint32_t imageIterations;
-    ktx_uint32_t row, image;
-    ktx_uint8_t* pSrc;
-    ktx_size_t   copySize;
-    UNUSED(width);
+    linearTilingPadCallback(int miplevel, int face,
+                            int width, int height, int depth,
+                            ktx_uint64_t faceLodSize,
+                            void *pixels, void *userdata) {
+	user_cbdata_linear *ud = (user_cbdata_linear *) userdata;
+	VkSubresourceLayout subResLayout;
+	VkImageSubresource  subRes = {
+	     .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+	     .mipLevel   = miplevel,
+	     .arrayLayer = face};
+	VkDeviceSize offset;
+	ktx_size_t   imageSize  = 0;
+	VkDeviceSize imagePitch = 0;
+	ktx_uint32_t srcRowPitch;
+	ktx_uint32_t rowIterations;
+	ktx_uint32_t imageIterations;
+	ktx_uint32_t row, image;
+	ktx_uint8_t *pSrc;
+	ktx_size_t   copySize;
+	UNUSED(width);
 
-    // Get sub resources layout. Includes row pitch, size,
-    // offsets, etc.
-    vkGetImageSubresourceLayout(ud->device, ud->destImage, &subRes,
-                                &subResLayout);
+	// Get sub resources layout. Includes row pitch, size,
+	// offsets, etc.
+	vkGetImageSubresourceLayout(ud->device, ud->destImage, &subRes,
+	                            &subResLayout);
 
-    srcRowPitch = ktxTexture_GetRowPitch(ud->texture, miplevel);
+	srcRowPitch = ktxTexture_GetRowPitch(ud->texture, miplevel);
 
-    if (subResLayout.rowPitch != srcRowPitch)
-        rowIterations = height;
-    else
-        rowIterations = 1;
+	if (subResLayout.rowPitch != srcRowPitch)
+		rowIterations = height;
+	else
+		rowIterations = 1;
 
-    imageIterations = 1;
-    // Arrays, including cube map arrays, or 3D textures
-    // Note from the Vulkan spec:
-    //  *  arrayPitch is undefined for images that were not
-    //     created as arrays.
-    //  *  depthPitch is defined only for 3D images.
-    if (ud->texture->numLayers > 1 || ud->texture->numDimensions == 3) {
-        imageSize = ktxTexture_GetImageSize(ud->texture, miplevel);
-        if (ud->texture->numLayers > 1) {
-            imagePitch = subResLayout.arrayPitch;
-            if (imagePitch != imageSize)
-                imageIterations
-                        = ud->texture->numLayers * ud->texture->numFaces;
-        } else {
-            imagePitch = subResLayout.depthPitch;
-            if (imagePitch != imageSize)
-                imageIterations = depth;
-        }
-        assert(imageSize <= imagePitch);
-    }
+	imageIterations = 1;
+	// Arrays, including cube map arrays, or 3D textures
+	// Note from the Vulkan spec:
+	//  *  arrayPitch is undefined for images that were not
+	//     created as arrays.
+	//  *  depthPitch is defined only for 3D images.
+	if (ud->texture->numLayers > 1 || ud->texture->numDimensions == 3) {
+		imageSize = ktxTexture_GetImageSize(ud->texture, miplevel);
+		if (ud->texture->numLayers > 1) {
+			imagePitch = subResLayout.arrayPitch;
+			if (imagePitch != imageSize)
+				imageIterations = ud->texture->numLayers * ud->texture->numFaces;
+		} else {
+			imagePitch = subResLayout.depthPitch;
+			if (imagePitch != imageSize)
+				imageIterations = depth;
+		}
+		assert(imageSize <= imagePitch);
+	}
 
-    if (rowIterations > 1) {
-        // Copy the minimum of srcRowPitch, the GL_UNPACK_ALIGNMENT padded size,
-        // and subResLayout.rowPitch.
-        if (subResLayout.rowPitch < srcRowPitch)
-            copySize = subResLayout.rowPitch;
-        else
-            copySize = srcRowPitch;
-    } else if (imageIterations > 1)
-        copySize = faceLodSize / imageIterations;
-    else
-        copySize = faceLodSize;
+	if (rowIterations > 1) {
+		// Copy the minimum of srcRowPitch, the GL_UNPACK_ALIGNMENT padded size,
+		// and subResLayout.rowPitch.
+		if (subResLayout.rowPitch < srcRowPitch)
+			copySize = subResLayout.rowPitch;
+		else
+			copySize = srcRowPitch;
+	} else if (imageIterations > 1)
+		copySize = faceLodSize / imageIterations;
+	else
+		copySize = faceLodSize;
 
-    offset = subResLayout.offset;
-    // Copy image data to destImage via its mapped memory.
-    for (image = 0; image < imageIterations; image++) {
-        pSrc = (ktx_uint8_t*)pixels + imageSize * image;
-        for (row = 0; row < rowIterations; row++) {
-            memcpy(ud->dest + offset, pSrc, copySize);
-            offset += subResLayout.rowPitch;
-            pSrc += srcRowPitch;
-          }
-        offset += imagePitch;
-    }
-    return KTX_SUCCESS;
+	offset = subResLayout.offset;
+	// Copy image data to destImage via its mapped memory.
+	for (image = 0; image < imageIterations; image++) {
+		pSrc = (ktx_uint8_t *) pixels + imageSize * image;
+		for (row = 0; row < rowIterations; row++) {
+			memcpy(ud->dest + offset, pSrc, copySize);
+			offset += subResLayout.rowPitch;
+			pSrc += srcRowPitch;
+		}
+		offset += imagePitch;
+	}
+	return KTX_SUCCESS;
 }
 
 /**
@@ -593,539 +572,524 @@ linearTilingPadCallback(int miplevel, int face,
  *                              on either the CPU or the Vulkan device.
  */
 KTX_error_code
-ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
-                      ktxVulkanTexture* vkTexture,
-                      VkImageTiling tiling,
-                      VkImageUsageFlags usageFlags,
-                      VkImageLayout finalLayout)
-{
-    KTX_error_code           kResult;
-    VkFilter                 blitFilter = VK_FILTER_LINEAR;
-    VkFormat                 vkFormat;
-    VkImageType              imageType;
-    VkImageViewType          viewType;
-    VkImageCreateFlags       createFlags = 0;
-    VkImageFormatProperties  imageFormatProperties;
-    VkResult                 vResult;
-    VkCommandBufferBeginInfo cmdBufBeginInfo = {
-        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-        .pNext = NULL
-    };
-    VkImageCreateInfo        imageCreateInfo = {
-         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-         .pNext = NULL
-    };
-    VkMemoryAllocateInfo     memAllocInfo = {
-        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-        .pNext = NULL,
-        .allocationSize = 0,
-        .memoryTypeIndex = 0
-    };
-    VkMemoryRequirements     memReqs;
-    ktx_uint32_t             numImageLayers, numImageLevels;
-    ktx_uint32_t elementSize = ktxTexture_GetElementSize(This);
-    ktx_bool_t               canUseFasterPath;
+    ktxTexture_VkUploadEx(ktxTexture *This, ktxVulkanDeviceInfo *vdi,
+                          ktxVulkanTexture *vkTexture,
+                          VkImageTiling     tiling,
+                          VkImageUsageFlags usageFlags,
+                          VkImageLayout     finalLayout) {
+	KTX_error_code           kResult;
+	VkFilter                 blitFilter = VK_FILTER_LINEAR;
+	VkFormat                 vkFormat;
+	VkImageType              imageType;
+	VkImageViewType          viewType;
+	VkImageCreateFlags       createFlags = 0;
+	VkImageFormatProperties  imageFormatProperties;
+	VkResult                 vResult;
+	VkCommandBufferBeginInfo cmdBufBeginInfo = {
+	    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+	    .pNext = NULL};
+	VkImageCreateInfo imageCreateInfo = {
+	    .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+	    .pNext = NULL};
+	VkMemoryAllocateInfo memAllocInfo = {
+	    .sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+	    .pNext           = NULL,
+	    .allocationSize  = 0,
+	    .memoryTypeIndex = 0};
+	VkMemoryRequirements memReqs;
+	ktx_uint32_t         numImageLayers, numImageLevels;
+	ktx_uint32_t         elementSize = ktxTexture_GetElementSize(This);
+	ktx_bool_t           canUseFasterPath;
 
-    if (!vdi || !This || !vkTexture) {
-        return KTX_INVALID_VALUE;
-    }
+	if (!vdi || !This || !vkTexture) {
+		return KTX_INVALID_VALUE;
+	}
 
-    if (!This->pData && !ktxTexture_isActiveStream(This)) {
-        /* Nothing to upload. */
-        return KTX_INVALID_OPERATION;
-    }
+	if (!This->pData && !ktxTexture_isActiveStream(This)) {
+		/* Nothing to upload. */
+		return KTX_INVALID_OPERATION;
+	}
 
-    /* _ktxCheckHeader should have caught this. */
-    assert(This->numFaces == 6 ? This->numDimensions == 2 : VK_TRUE);
+	/* _ktxCheckHeader should have caught this. */
+	assert(This->numFaces == 6 ? This->numDimensions == 2 : VK_TRUE);
 
-    numImageLayers = This->numLayers;
-    if (This->isCubemap) {
-        numImageLayers *= 6;
-        createFlags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
-    }
+	numImageLayers = This->numLayers;
+	if (This->isCubemap) {
+		numImageLayers *= 6;
+		createFlags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+	}
 
-    assert(This->numDimensions >= 1 && This->numDimensions <= 3);
-    switch (This->numDimensions) {
-      case 1:
-        imageType = VK_IMAGE_TYPE_1D;
-        viewType = This->isArray ?
-                        VK_IMAGE_VIEW_TYPE_1D_ARRAY : VK_IMAGE_VIEW_TYPE_1D;
-        break;
-      case 2:
-      default: // To keep compilers happy.
-        imageType = VK_IMAGE_TYPE_2D;
-        if (This->isCubemap)
-            viewType = This->isArray ?
-                        VK_IMAGE_VIEW_TYPE_CUBE_ARRAY : VK_IMAGE_VIEW_TYPE_CUBE;
-        else
-            viewType = This->isArray ?
-                        VK_IMAGE_VIEW_TYPE_2D_ARRAY : VK_IMAGE_VIEW_TYPE_2D;
-        break;
-      case 3:
-        imageType = VK_IMAGE_TYPE_3D;
-        /* 3D array textures not supported in Vulkan. Attempts to create or
-         * load them should have been trapped long before this.
-         */
-        assert(!This->isArray);
-        viewType = VK_IMAGE_VIEW_TYPE_3D;
-        break;
-    }
+	assert(This->numDimensions >= 1 && This->numDimensions <= 3);
+	switch (This->numDimensions) {
+		case 1:
+			imageType = VK_IMAGE_TYPE_1D;
+			viewType  = This->isArray ?
+			                VK_IMAGE_VIEW_TYPE_1D_ARRAY :
+                            VK_IMAGE_VIEW_TYPE_1D;
+			break;
+		case 2:
+		default:        // To keep compilers happy.
+			imageType = VK_IMAGE_TYPE_2D;
+			if (This->isCubemap)
+				viewType = This->isArray ?
+				               VK_IMAGE_VIEW_TYPE_CUBE_ARRAY :
+                               VK_IMAGE_VIEW_TYPE_CUBE;
+			else
+				viewType = This->isArray ?
+				               VK_IMAGE_VIEW_TYPE_2D_ARRAY :
+                               VK_IMAGE_VIEW_TYPE_2D;
+			break;
+		case 3:
+			imageType = VK_IMAGE_TYPE_3D;
+			/* 3D array textures not supported in Vulkan. Attempts to create or
+			 * load them should have been trapped long before this.
+			 */
+			assert(!This->isArray);
+			viewType = VK_IMAGE_VIEW_TYPE_3D;
+			break;
+	}
 
-    vkFormat = ktxTexture_GetVkFormat(This);
-    if (vkFormat == VK_FORMAT_UNDEFINED) {
-        return KTX_INVALID_OPERATION;
-    }
+	vkFormat = ktxTexture_GetVkFormat(This);
+	if (vkFormat == VK_FORMAT_UNDEFINED) {
+		return KTX_INVALID_OPERATION;
+	}
 
-    /* Get device properties for the requested image format */
-    if (tiling == VK_IMAGE_TILING_OPTIMAL) {
-        // Ensure we can copy from staging buffer to image.
-        usageFlags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-    }
-    if (This->generateMipmaps) {
-        // Ensure we can blit between levels.
-        usageFlags |= (VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
-    }
-    vResult = vkGetPhysicalDeviceImageFormatProperties(vdi->physicalDevice,
-                                                      vkFormat,
-                                                      imageType,
-                                                      tiling,
-                                                      usageFlags,
-                                                      createFlags,
-                                                      &imageFormatProperties);
-    if (vResult == VK_ERROR_FORMAT_NOT_SUPPORTED) {
-        return KTX_INVALID_OPERATION;
-    }
-    if (This->numLayers > imageFormatProperties.maxArrayLayers) {
-        return KTX_INVALID_OPERATION;
-    }
+	/* Get device properties for the requested image format */
+	if (tiling == VK_IMAGE_TILING_OPTIMAL) {
+		// Ensure we can copy from staging buffer to image.
+		usageFlags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+	}
+	if (This->generateMipmaps) {
+		// Ensure we can blit between levels.
+		usageFlags |= (VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
+	}
+	vResult = vkGetPhysicalDeviceImageFormatProperties(vdi->physicalDevice,
+	                                                   vkFormat,
+	                                                   imageType,
+	                                                   tiling,
+	                                                   usageFlags,
+	                                                   createFlags,
+	                                                   &imageFormatProperties);
+	if (vResult == VK_ERROR_FORMAT_NOT_SUPPORTED) {
+		return KTX_INVALID_OPERATION;
+	}
+	if (This->numLayers > imageFormatProperties.maxArrayLayers) {
+		return KTX_INVALID_OPERATION;
+	}
 
-    if (This->generateMipmaps) {
-        uint32_t max_dim;
-        VkFormatProperties    formatProperties;
-        VkFormatFeatureFlags  formatFeatureFlags;
-        VkFormatFeatureFlags  neededFeatures
-            = VK_FORMAT_FEATURE_BLIT_DST_BIT | VK_FORMAT_FEATURE_BLIT_SRC_BIT;
-        vkGetPhysicalDeviceFormatProperties(vdi->physicalDevice,
-                                            vkFormat,
-                                            &formatProperties);
-        assert(vResult == VK_SUCCESS);
-        if (tiling == VK_IMAGE_TILING_OPTIMAL)
-            formatFeatureFlags = formatProperties.optimalTilingFeatures;
-        else
-            formatFeatureFlags = formatProperties.linearTilingFeatures;
+	if (This->generateMipmaps) {
+		uint32_t             max_dim;
+		VkFormatProperties   formatProperties;
+		VkFormatFeatureFlags formatFeatureFlags;
+		VkFormatFeatureFlags neededFeatures = VK_FORMAT_FEATURE_BLIT_DST_BIT | VK_FORMAT_FEATURE_BLIT_SRC_BIT;
+		vkGetPhysicalDeviceFormatProperties(vdi->physicalDevice,
+		                                    vkFormat,
+		                                    &formatProperties);
+		assert(vResult == VK_SUCCESS);
+		if (tiling == VK_IMAGE_TILING_OPTIMAL)
+			formatFeatureFlags = formatProperties.optimalTilingFeatures;
+		else
+			formatFeatureFlags = formatProperties.linearTilingFeatures;
 
-        if ((formatFeatureFlags & neededFeatures) != neededFeatures)
-            return KTX_INVALID_OPERATION;
+		if ((formatFeatureFlags & neededFeatures) != neededFeatures)
+			return KTX_INVALID_OPERATION;
 
-        if (formatFeatureFlags & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT)
-            blitFilter = VK_FILTER_LINEAR;
-        else
-            blitFilter = VK_FILTER_NEAREST; // XXX INVALID_OP?
+		if (formatFeatureFlags & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT)
+			blitFilter = VK_FILTER_LINEAR;
+		else
+			blitFilter = VK_FILTER_NEAREST;        // XXX INVALID_OP?
 
-        max_dim = MAX(MAX(This->baseWidth, This->baseHeight), This->baseDepth);
-        numImageLevels = (uint32_t)floor(log2(max_dim)) + 1;
-    } else {
-        numImageLevels = This->numLevels;
-    }
+		max_dim        = MAX(MAX(This->baseWidth, This->baseHeight), This->baseDepth);
+		numImageLevels = (uint32_t) floor(log2(max_dim)) + 1;
+	} else {
+		numImageLevels = This->numLevels;
+	}
 
-    if (numImageLevels > imageFormatProperties.maxMipLevels) {
-        return KTX_INVALID_OPERATION;
-    }
+	if (numImageLevels > imageFormatProperties.maxMipLevels) {
+		return KTX_INVALID_OPERATION;
+	}
 
-    if (This->classId == ktxTexture2_c) {
-        canUseFasterPath = KTX_TRUE;
-    } else {
-        ktx_uint32_t actualRowPitch = ktxTexture_GetRowPitch(This, 0);
-        ktx_uint32_t tightRowPitch = elementSize * This->baseWidth;
-        // If the texture's images do not have any row padding, we can use a
-        // faster path. Only uncompressed textures might have padding.
-        //
-        // The first test in the if will match compressed textures, because
-        // they all have a block size that is a multiple of 4, as well as
-        // a class of uncompressed textures that will never need padding.
-        //
-        // The second test matches textures whose level 0 has no padding. Any
-        // texture whose block size is not a multiple of 4 will need padding
-        // at some miplevel even if level 0 does not. So, if more than 1 level
-        // exists, we must use the slower path.
-        //
-        // Note all elementSizes > 4 Will be a multiple of 4, so only
-        // elementSizes of 1, 2 & 3 are a concern here.
-        if (elementSize % 4 == 0  /* There'll be no padding at any level. */
-               /* There is no padding at level 0 and no other levels. */
-            || (This->numLevels == 1 && actualRowPitch == tightRowPitch))
-            canUseFasterPath = KTX_TRUE;
-        else
-            canUseFasterPath = KTX_FALSE;
-    }
+	if (This->classId == ktxTexture2_c) {
+		canUseFasterPath = KTX_TRUE;
+	} else {
+		ktx_uint32_t actualRowPitch = ktxTexture_GetRowPitch(This, 0);
+		ktx_uint32_t tightRowPitch  = elementSize * This->baseWidth;
+		// If the texture's images do not have any row padding, we can use a
+		// faster path. Only uncompressed textures might have padding.
+		//
+		// The first test in the if will match compressed textures, because
+		// they all have a block size that is a multiple of 4, as well as
+		// a class of uncompressed textures that will never need padding.
+		//
+		// The second test matches textures whose level 0 has no padding. Any
+		// texture whose block size is not a multiple of 4 will need padding
+		// at some miplevel even if level 0 does not. So, if more than 1 level
+		// exists, we must use the slower path.
+		//
+		// Note all elementSizes > 4 Will be a multiple of 4, so only
+		// elementSizes of 1, 2 & 3 are a concern here.
+		if (elementSize % 4 == 0 /* There'll be no padding at any level. */
+		                         /* There is no padding at level 0 and no other levels. */
+		    || (This->numLevels == 1 && actualRowPitch == tightRowPitch))
+			canUseFasterPath = KTX_TRUE;
+		else
+			canUseFasterPath = KTX_FALSE;
+	}
 
-    vkTexture->width = This->baseWidth;
-    vkTexture->height = This->baseHeight;
-    vkTexture->depth = This->baseDepth;
-    vkTexture->imageLayout = finalLayout;
-    vkTexture->imageFormat = vkFormat;
-    vkTexture->levelCount = numImageLevels;
-    vkTexture->layerCount = numImageLayers;
-    vkTexture->viewType = viewType;
+	vkTexture->width       = This->baseWidth;
+	vkTexture->height      = This->baseHeight;
+	vkTexture->depth       = This->baseDepth;
+	vkTexture->imageLayout = finalLayout;
+	vkTexture->imageFormat = vkFormat;
+	vkTexture->levelCount  = numImageLevels;
+	vkTexture->layerCount  = numImageLayers;
+	vkTexture->viewType    = viewType;
 
-    VK_CHECK_RESULT(vkBeginCommandBuffer(vdi->cmdBuffer, &cmdBufBeginInfo));
+	VK_CHECK_RESULT(vkBeginCommandBuffer(vdi->cmdBuffer, &cmdBufBeginInfo));
 
-    if (tiling == VK_IMAGE_TILING_OPTIMAL)
-    {
-        // Create a host-visible staging buffer that contains the raw image data
-        VkBuffer stagingBuffer;
-        VkDeviceMemory stagingMemory;
-        VkBufferImageCopy* copyRegions;
-        VkDeviceSize textureSize;
-        VkBufferCreateInfo bufferCreateInfo = {
-          .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-          .pNext = NULL
-        };
-        VkImageSubresourceRange subresourceRange;
-        VkFence copyFence;
-        VkFenceCreateInfo fenceCreateInfo = {
-            .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
-            .pNext = NULL,
-            .flags = VK_FLAGS_NONE
-        };
-        VkSubmitInfo submitInfo = {
-            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-            .pNext = NULL
-        };
-        ktx_uint8_t* pMappedStagingBuffer;
-        ktx_uint32_t numCopyRegions;
-        user_cbdata_optimal cbData;
+	if (tiling == VK_IMAGE_TILING_OPTIMAL) {
+		// Create a host-visible staging buffer that contains the raw image data
+		VkBuffer           stagingBuffer;
+		VkDeviceMemory     stagingMemory;
+		VkBufferImageCopy *copyRegions;
+		VkDeviceSize       textureSize;
+		VkBufferCreateInfo bufferCreateInfo = {
+		    .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+		    .pNext = NULL};
+		VkImageSubresourceRange subresourceRange;
+		VkFence                 copyFence;
+		VkFenceCreateInfo       fenceCreateInfo = {
+		          .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+		          .pNext = NULL,
+		          .flags = VK_FLAGS_NONE};
+		VkSubmitInfo submitInfo = {
+		    .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+		    .pNext = NULL};
+		ktx_uint8_t        *pMappedStagingBuffer;
+		ktx_uint32_t        numCopyRegions;
+		user_cbdata_optimal cbData;
 
+		textureSize           = ktxTexture_GetDataSizeUncompressed(This);
+		bufferCreateInfo.size = textureSize;
+		if (canUseFasterPath) {
+			/*
+			 * Because all array layers and faces are the same size they can
+			 * be copied in a single operation so there'll be 1 copy per mip
+			 * level.
+			 */
+			numCopyRegions = This->numLevels;
+		} else {
+			/*
+			 * Have to copy all images individually into the staging
+			 * buffer so we can place them at correct multiples of
+			 * elementSize and 4 and also need a copy region per image
+			 * in case they end up with padding between them.
+			 */
+			numCopyRegions = This->isArray ? This->numLevels : This->numLevels * This->numFaces;
+			/*
+			 * Add extra space to allow for possible padding described
+			 * above. A bit ad-hoc but it's only a small amount of
+			 * memory.
+			 */
+			bufferCreateInfo.size += numCopyRegions * elementSize * 4;
+		}
+		copyRegions = (VkBufferImageCopy *) malloc(sizeof(VkBufferImageCopy) * numCopyRegions);
+		if (copyRegions == NULL) {
+			return KTX_OUT_OF_MEMORY;
+		}
 
-        textureSize = ktxTexture_GetDataSizeUncompressed(This);
-        bufferCreateInfo.size = textureSize;
-        if (canUseFasterPath) {
-            /*
-             * Because all array layers and faces are the same size they can
-             * be copied in a single operation so there'll be 1 copy per mip
-             * level.
-             */
-            numCopyRegions = This->numLevels;
-        } else {
-            /*
-             * Have to copy all images individually into the staging
-             * buffer so we can place them at correct multiples of
-             * elementSize and 4 and also need a copy region per image
-             * in case they end up with padding between them.
-             */
-            numCopyRegions = This->isArray ? This->numLevels
-                                  : This->numLevels * This->numFaces;
-            /*
-             * Add extra space to allow for possible padding described
-             * above. A bit ad-hoc but it's only a small amount of
-             * memory.
-             */
-            bufferCreateInfo.size += numCopyRegions * elementSize * 4;
-        }
-        copyRegions = (VkBufferImageCopy*)malloc(sizeof(VkBufferImageCopy)
-                                                   * numCopyRegions);
-        if (copyRegions == NULL) {
-            return KTX_OUT_OF_MEMORY;
-        }
+		// This buffer is used as a transfer source for the buffer copy
+		bufferCreateInfo.usage       = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+		bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-        // This buffer is used as a transfer source for the buffer copy
-        bufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-        bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		VK_CHECK_RESULT(vkCreateBuffer(vdi->device, &bufferCreateInfo,
+		                               vdi->pAllocator, &stagingBuffer));
 
-        VK_CHECK_RESULT(vkCreateBuffer(vdi->device, &bufferCreateInfo,
-                                       vdi->pAllocator, &stagingBuffer));
+		// Get memory requirements for the staging buffer (alignment,
+		// memory type bits)
+		vkGetBufferMemoryRequirements(vdi->device, stagingBuffer, &memReqs);
 
-        // Get memory requirements for the staging buffer (alignment,
-        // memory type bits)
-        vkGetBufferMemoryRequirements(vdi->device, stagingBuffer, &memReqs);
+		memAllocInfo.allocationSize = memReqs.size;
+		// Get memory type index for a host visible buffer
+		memAllocInfo.memoryTypeIndex = ktxVulkanDeviceInfo_getMemoryType(
+		    vdi,
+		    memReqs.memoryTypeBits,
+		    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-        memAllocInfo.allocationSize = memReqs.size;
-        // Get memory type index for a host visible buffer
-        memAllocInfo.memoryTypeIndex = ktxVulkanDeviceInfo_getMemoryType(
-                vdi,
-                memReqs.memoryTypeBits,
-                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
-              | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-        );
+		vResult = vkAllocateMemory(vdi->device, &memAllocInfo,
+		                           vdi->pAllocator, &stagingMemory);
+		if (vResult != VK_SUCCESS) {
+			return KTX_OUT_OF_MEMORY;
+		}
+		VK_CHECK_RESULT(vkBindBufferMemory(vdi->device, stagingBuffer,
+		                                   stagingMemory, 0));
 
-        vResult = vkAllocateMemory(vdi->device, &memAllocInfo,
-                                  vdi->pAllocator, &stagingMemory);
-        if (vResult != VK_SUCCESS) {
-            return KTX_OUT_OF_MEMORY;
-        }
-        VK_CHECK_RESULT(vkBindBufferMemory(vdi->device, stagingBuffer,
-                                           stagingMemory, 0));
+		VK_CHECK_RESULT(vkMapMemory(vdi->device, stagingMemory, 0,
+		                            memReqs.size, 0,
+		                            (void **) &pMappedStagingBuffer));
 
-        VK_CHECK_RESULT(vkMapMemory(vdi->device, stagingMemory, 0,
-                                    memReqs.size, 0,
-                                    (void **)&pMappedStagingBuffer));
-
-        cbData.offset = 0;
-        cbData.region = copyRegions;
-        cbData.numFaces = This->numFaces;
-        cbData.numLayers = This->numLayers;
-        cbData.dest = pMappedStagingBuffer;
-        cbData.elementSize = elementSize;
-        cbData.numDimensions = This->numDimensions;
+		cbData.offset        = 0;
+		cbData.region        = copyRegions;
+		cbData.numFaces      = This->numFaces;
+		cbData.numLayers     = This->numLayers;
+		cbData.dest          = pMappedStagingBuffer;
+		cbData.elementSize   = elementSize;
+		cbData.numDimensions = This->numDimensions;
 #if defined(_DEBUG)
-        cbData.regionsArrayEnd = copyRegions + numCopyRegions;
+		cbData.regionsArrayEnd = copyRegions + numCopyRegions;
 #endif
-        if (canUseFasterPath) {
-            // Bulk load the data to the staging buffer and iterate
-            // over levels.
+		if (canUseFasterPath) {
+			// Bulk load the data to the staging buffer and iterate
+			// over levels.
 
-            if (This->pData) {
-                // Image data has already been loaded. Copy to staging
-                // buffer.
-                assert(This->dataSize <= memAllocInfo.allocationSize);
-                memcpy(pMappedStagingBuffer, This->pData, This->dataSize);
-            } else {
-                /* Load the image data directly into the staging buffer. */
-                /* The strange cast quiets an Xcode warning when building
-                 * for the Generic iOS Device where size_t is 32-bit even
-                 * when building for arm64. */
-                kResult = ktxTexture_LoadImageData(This,
-                                      pMappedStagingBuffer,
-                                      (ktx_size_t)memAllocInfo.allocationSize);
-                if (kResult != KTX_SUCCESS)
-                    return kResult;
-            }
+			if (This->pData) {
+				// Image data has already been loaded. Copy to staging
+				// buffer.
+				assert(This->dataSize <= memAllocInfo.allocationSize);
+				memcpy(pMappedStagingBuffer, This->pData, This->dataSize);
+			} else {
+				/* Load the image data directly into the staging buffer. */
+				/* The strange cast quiets an Xcode warning when building
+				 * for the Generic iOS Device where size_t is 32-bit even
+				 * when building for arm64. */
+				kResult = ktxTexture_LoadImageData(This,
+				                                   pMappedStagingBuffer,
+				                                   (ktx_size_t) memAllocInfo.allocationSize);
+				if (kResult != KTX_SUCCESS)
+					return kResult;
+			}
 
-            // Iterate over mip levels to set up the copy regions.
-            kResult = ktxTexture_IterateLevels(This,
-                                               optimalTilingCallback,
-                                               &cbData);
-            // XXX Check for possible errors.
-        } else {
-            // Iterate over face-levels with callback that copies the
-            // face-levels to Vulkan-valid offsets in the staging buffer while
-            // removing padding. Using face-levels minimizes pre-staging-buffer
-            // buffering, in the event the data is not already loaded.
-            if (This->pData) {
-                kResult = ktxTexture_IterateLevelFaces(
-                                            This,
-                                            optimalTilingPadCallback,
-                                            &cbData);
-            } else {
-                kResult = ktxTexture_IterateLoadLevelFaces(
-                                            This,
-                                            optimalTilingPadCallback,
-                                            &cbData);
-                // XXX Check for possible errors.
-            }
-        }
+			// Iterate over mip levels to set up the copy regions.
+			kResult = ktxTexture_IterateLevels(This,
+			                                   optimalTilingCallback,
+			                                   &cbData);
+			// XXX Check for possible errors.
+		} else {
+			// Iterate over face-levels with callback that copies the
+			// face-levels to Vulkan-valid offsets in the staging buffer while
+			// removing padding. Using face-levels minimizes pre-staging-buffer
+			// buffering, in the event the data is not already loaded.
+			if (This->pData) {
+				kResult = ktxTexture_IterateLevelFaces(
+				    This,
+				    optimalTilingPadCallback,
+				    &cbData);
+			} else {
+				kResult = ktxTexture_IterateLoadLevelFaces(
+				    This,
+				    optimalTilingPadCallback,
+				    &cbData);
+				// XXX Check for possible errors.
+			}
+		}
 
-        vkUnmapMemory(vdi->device, stagingMemory);
+		vkUnmapMemory(vdi->device, stagingMemory);
 
-        // Create optimal tiled target image
-        imageCreateInfo.imageType = imageType;
-        imageCreateInfo.flags = createFlags;
-        imageCreateInfo.format = vkFormat;
-        // numImageLevels ensures enough levels for generateMipmaps.
-        imageCreateInfo.mipLevels = numImageLevels;
-        imageCreateInfo.arrayLayers = numImageLayers;
-        imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-        imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-        imageCreateInfo.usage = usageFlags;
-        imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        imageCreateInfo.extent.width = vkTexture->width;
-        imageCreateInfo.extent.height = vkTexture->height;
-        imageCreateInfo.extent.depth = vkTexture->depth;
+		// Create optimal tiled target image
+		imageCreateInfo.imageType = imageType;
+		imageCreateInfo.flags     = createFlags;
+		imageCreateInfo.format    = vkFormat;
+		// numImageLevels ensures enough levels for generateMipmaps.
+		imageCreateInfo.mipLevels     = numImageLevels;
+		imageCreateInfo.arrayLayers   = numImageLayers;
+		imageCreateInfo.samples       = VK_SAMPLE_COUNT_1_BIT;
+		imageCreateInfo.tiling        = VK_IMAGE_TILING_OPTIMAL;
+		imageCreateInfo.usage         = usageFlags;
+		imageCreateInfo.sharingMode   = VK_SHARING_MODE_EXCLUSIVE;
+		imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		imageCreateInfo.extent.width  = vkTexture->width;
+		imageCreateInfo.extent.height = vkTexture->height;
+		imageCreateInfo.extent.depth  = vkTexture->depth;
 
-        VK_CHECK_RESULT(vkCreateImage(vdi->device, &imageCreateInfo,
-                                      vdi->pAllocator, &vkTexture->image));
+		VK_CHECK_RESULT(vkCreateImage(vdi->device, &imageCreateInfo,
+		                              vdi->pAllocator, &vkTexture->image));
 
-        vkGetImageMemoryRequirements(vdi->device, vkTexture->image, &memReqs);
+		vkGetImageMemoryRequirements(vdi->device, vkTexture->image, &memReqs);
 
-        memAllocInfo.allocationSize = memReqs.size;
+		memAllocInfo.allocationSize = memReqs.size;
 
-        memAllocInfo.memoryTypeIndex = ktxVulkanDeviceInfo_getMemoryType(
-                                          vdi, memReqs.memoryTypeBits,
-                                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-        VK_CHECK_RESULT(vkAllocateMemory(vdi->device, &memAllocInfo,
-                                         vdi->pAllocator,
-                                         &vkTexture->deviceMemory));
-        VK_CHECK_RESULT(vkBindImageMemory(vdi->device, vkTexture->image,
-                                          vkTexture->deviceMemory, 0));
+		memAllocInfo.memoryTypeIndex = ktxVulkanDeviceInfo_getMemoryType(
+		    vdi, memReqs.memoryTypeBits,
+		    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+		VK_CHECK_RESULT(vkAllocateMemory(vdi->device, &memAllocInfo,
+		                                 vdi->pAllocator,
+		                                 &vkTexture->deviceMemory));
+		VK_CHECK_RESULT(vkBindImageMemory(vdi->device, vkTexture->image,
+		                                  vkTexture->deviceMemory, 0));
 
-        subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        subresourceRange.baseMipLevel = 0;
-        subresourceRange.levelCount = This->numLevels;
-        subresourceRange.baseArrayLayer = 0;
-        subresourceRange.layerCount = numImageLayers;
+		subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+		subresourceRange.baseMipLevel   = 0;
+		subresourceRange.levelCount     = This->numLevels;
+		subresourceRange.baseArrayLayer = 0;
+		subresourceRange.layerCount     = numImageLayers;
 
-        // Image barrier to transition, possibly only the base level, image
-        // layout to TRANSFER_DST_OPTIMAL so it can be used as the copy
-        // destination.
-        setImageLayout(
-            vdi->cmdBuffer,
-            vkTexture->image,
-            VK_IMAGE_LAYOUT_UNDEFINED,
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            subresourceRange);
+		// Image barrier to transition, possibly only the base level, image
+		// layout to TRANSFER_DST_OPTIMAL so it can be used as the copy
+		// destination.
+		setImageLayout(
+		    vdi->cmdBuffer,
+		    vkTexture->image,
+		    VK_IMAGE_LAYOUT_UNDEFINED,
+		    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		    subresourceRange);
 
-        // Copy mip levels from staging buffer
-        vkCmdCopyBufferToImage(
-            vdi->cmdBuffer, stagingBuffer,
-            vkTexture->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            numCopyRegions, copyRegions
-            );
+		// Copy mip levels from staging buffer
+		vkCmdCopyBufferToImage(
+		    vdi->cmdBuffer, stagingBuffer,
+		    vkTexture->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		    numCopyRegions, copyRegions);
 
-        free(copyRegions);
+		free(copyRegions);
 
-        if (This->generateMipmaps) {
-            generateMipmaps(vkTexture, vdi,
-                            blitFilter, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-        } else {
-            // Transition image layout to finalLayout after all mip levels
-            // have been copied.
-            // In this case numImageLevels == This->numLevels
-            //subresourceRange.levelCount = numImageLevels;
-            setImageLayout(
-                vdi->cmdBuffer,
-                vkTexture->image,
-                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                finalLayout,
-                subresourceRange);
-        }
+		if (This->generateMipmaps) {
+			generateMipmaps(vkTexture, vdi,
+			                blitFilter, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+		} else {
+			// Transition image layout to finalLayout after all mip levels
+			// have been copied.
+			// In this case numImageLevels == This->numLevels
+			// subresourceRange.levelCount = numImageLevels;
+			setImageLayout(
+			    vdi->cmdBuffer,
+			    vkTexture->image,
+			    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+			    finalLayout,
+			    subresourceRange);
+		}
 
-        // Submit command buffer containing copy and image layout commands
-        VK_CHECK_RESULT(vkEndCommandBuffer(vdi->cmdBuffer));
+		// Submit command buffer containing copy and image layout commands
+		VK_CHECK_RESULT(vkEndCommandBuffer(vdi->cmdBuffer));
 
-        // Create a fence to make sure that the copies have finished before
-        // continuing
-        VK_CHECK_RESULT(vkCreateFence(vdi->device, &fenceCreateInfo,
-                                      vdi->pAllocator, &copyFence));
+		// Create a fence to make sure that the copies have finished before
+		// continuing
+		VK_CHECK_RESULT(vkCreateFence(vdi->device, &fenceCreateInfo,
+		                              vdi->pAllocator, &copyFence));
 
-        submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &vdi->cmdBuffer;
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers    = &vdi->cmdBuffer;
 
-        VK_CHECK_RESULT(vkQueueSubmit(vdi->queue, 1, &submitInfo, copyFence));
+		VK_CHECK_RESULT(vkQueueSubmit(vdi->queue, 1, &submitInfo, copyFence));
 
-        VK_CHECK_RESULT(vkWaitForFences(vdi->device, 1, &copyFence,
-                                        VK_TRUE, DEFAULT_FENCE_TIMEOUT));
+		VK_CHECK_RESULT(vkWaitForFences(vdi->device, 1, &copyFence,
+		                                VK_TRUE, DEFAULT_FENCE_TIMEOUT));
 
-        vkDestroyFence(vdi->device, copyFence, vdi->pAllocator);
+		vkDestroyFence(vdi->device, copyFence, vdi->pAllocator);
 
-        // Clean up staging resources
-        vkFreeMemory(vdi->device, stagingMemory, vdi->pAllocator);
-        vkDestroyBuffer(vdi->device, stagingBuffer, vdi->pAllocator);
-    }
-    else
-    {
-        VkImage mappableImage;
-        VkDeviceMemory mappableMemory;
-        VkFence nullFence = { VK_NULL_HANDLE };
-        VkSubmitInfo submitInfo = {
-            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-            .pNext = NULL
-        };
-        user_cbdata_linear cbData;
-        PFNKTXITERCB callback;
+		// Clean up staging resources
+		vkFreeMemory(vdi->device, stagingMemory, vdi->pAllocator);
+		vkDestroyBuffer(vdi->device, stagingBuffer, vdi->pAllocator);
+	} else {
+		VkImage        mappableImage;
+		VkDeviceMemory mappableMemory;
+		VkFence        nullFence  = {VK_NULL_HANDLE};
+		VkSubmitInfo   submitInfo = {
+		      .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+		      .pNext = NULL};
+		user_cbdata_linear cbData;
+		PFNKTXITERCB       callback;
 
-        imageCreateInfo.imageType = imageType;
-        imageCreateInfo.flags = createFlags;
-        imageCreateInfo.format = vkFormat;
-        imageCreateInfo.extent.width = vkTexture->width;
-        imageCreateInfo.extent.height = vkTexture->height;
-        imageCreateInfo.extent.depth = vkTexture->depth;
-        // numImageLevels ensures enough levels for generateMipmaps.
-        imageCreateInfo.mipLevels = numImageLevels;
-        imageCreateInfo.arrayLayers = numImageLayers;
-        imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-        imageCreateInfo.tiling = VK_IMAGE_TILING_LINEAR;
-        imageCreateInfo.usage = usageFlags;
-        imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
+		imageCreateInfo.imageType     = imageType;
+		imageCreateInfo.flags         = createFlags;
+		imageCreateInfo.format        = vkFormat;
+		imageCreateInfo.extent.width  = vkTexture->width;
+		imageCreateInfo.extent.height = vkTexture->height;
+		imageCreateInfo.extent.depth  = vkTexture->depth;
+		// numImageLevels ensures enough levels for generateMipmaps.
+		imageCreateInfo.mipLevels     = numImageLevels;
+		imageCreateInfo.arrayLayers   = numImageLayers;
+		imageCreateInfo.samples       = VK_SAMPLE_COUNT_1_BIT;
+		imageCreateInfo.tiling        = VK_IMAGE_TILING_LINEAR;
+		imageCreateInfo.usage         = usageFlags;
+		imageCreateInfo.sharingMode   = VK_SHARING_MODE_EXCLUSIVE;
+		imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
 
-        // Load mip map level 0 to linear tiling image
-        VK_CHECK_RESULT(vkCreateImage(vdi->device, &imageCreateInfo,
-                                      vdi->pAllocator, &mappableImage));
+		// Load mip map level 0 to linear tiling image
+		VK_CHECK_RESULT(vkCreateImage(vdi->device, &imageCreateInfo,
+		                              vdi->pAllocator, &mappableImage));
 
-        // Get memory requirements for this image
-        // like size and alignment
-        vkGetImageMemoryRequirements(vdi->device, mappableImage, &memReqs);
-        // Set memory allocation size to required memory size
-        memAllocInfo.allocationSize = memReqs.size;
+		// Get memory requirements for this image
+		// like size and alignment
+		vkGetImageMemoryRequirements(vdi->device, mappableImage, &memReqs);
+		// Set memory allocation size to required memory size
+		memAllocInfo.allocationSize = memReqs.size;
 
-        // Get memory type that can be mapped to host memory
-        memAllocInfo.memoryTypeIndex = ktxVulkanDeviceInfo_getMemoryType(
-                vdi,
-                memReqs.memoryTypeBits,
-                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+		// Get memory type that can be mapped to host memory
+		memAllocInfo.memoryTypeIndex = ktxVulkanDeviceInfo_getMemoryType(
+		    vdi,
+		    memReqs.memoryTypeBits,
+		    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-        // Allocate host memory
-        vResult = vkAllocateMemory(vdi->device, &memAllocInfo, vdi->pAllocator,
-                                  &mappableMemory);
-        if (vResult != VK_SUCCESS) {
-            return KTX_OUT_OF_MEMORY;
-        }
-        VK_CHECK_RESULT(vkBindImageMemory(vdi->device, mappableImage,
-                                          mappableMemory, 0));
+		// Allocate host memory
+		vResult = vkAllocateMemory(vdi->device, &memAllocInfo, vdi->pAllocator,
+		                           &mappableMemory);
+		if (vResult != VK_SUCCESS) {
+			return KTX_OUT_OF_MEMORY;
+		}
+		VK_CHECK_RESULT(vkBindImageMemory(vdi->device, mappableImage,
+		                                  mappableMemory, 0));
 
-        cbData.destImage = mappableImage;
-        cbData.device = vdi->device;
-        cbData.texture = This;
-        callback = canUseFasterPath ?
-                         linearTilingCallback : linearTilingPadCallback;
+		cbData.destImage = mappableImage;
+		cbData.device    = vdi->device;
+		cbData.texture   = This;
+		callback         = canUseFasterPath ?
+		                       linearTilingCallback :
+                               linearTilingPadCallback;
 
-        // Map image memory
-        VK_CHECK_RESULT(vkMapMemory(vdi->device, mappableMemory, 0,
-                        memReqs.size, 0, (void **)&cbData.dest));
+		// Map image memory
+		VK_CHECK_RESULT(vkMapMemory(vdi->device, mappableMemory, 0,
+		                            memReqs.size, 0, (void **) &cbData.dest));
 
-        // Iterate over images to copy texture data into mapped image memory.
-        if (ktxTexture_isActiveStream(This)) {
-            kResult = ktxTexture_IterateLoadLevelFaces(This,
-                                                       callback,
-                                                       &cbData);
-        } else {
-            kResult = ktxTexture_IterateLevelFaces(This,
-                                                   callback,
-                                                   &cbData);
-        }
-        // XXX Check for possible errors
+		// Iterate over images to copy texture data into mapped image memory.
+		if (ktxTexture_isActiveStream(This)) {
+			kResult = ktxTexture_IterateLoadLevelFaces(This,
+			                                           callback,
+			                                           &cbData);
+		} else {
+			kResult = ktxTexture_IterateLevelFaces(This,
+			                                       callback,
+			                                       &cbData);
+		}
+		// XXX Check for possible errors
 
-        vkUnmapMemory(vdi->device, mappableMemory);
+		vkUnmapMemory(vdi->device, mappableMemory);
 
-        // Linear tiled images can be directly used as textures.
-        vkTexture->image = mappableImage;
-        vkTexture->deviceMemory = mappableMemory;
+		// Linear tiled images can be directly used as textures.
+		vkTexture->image        = mappableImage;
+		vkTexture->deviceMemory = mappableMemory;
 
-        if (This->generateMipmaps) {
-            generateMipmaps(vkTexture, vdi,
-                            blitFilter,
-                            VK_IMAGE_LAYOUT_PREINITIALIZED);
-        } else {
-            VkImageSubresourceRange subresourceRange;
-            subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            subresourceRange.baseMipLevel = 0;
-            subresourceRange.levelCount = numImageLevels;
-            subresourceRange.baseArrayLayer = 0;
-            subresourceRange.layerCount = numImageLayers;
+		if (This->generateMipmaps) {
+			generateMipmaps(vkTexture, vdi,
+			                blitFilter,
+			                VK_IMAGE_LAYOUT_PREINITIALIZED);
+		} else {
+			VkImageSubresourceRange subresourceRange;
+			subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+			subresourceRange.baseMipLevel   = 0;
+			subresourceRange.levelCount     = numImageLevels;
+			subresourceRange.baseArrayLayer = 0;
+			subresourceRange.layerCount     = numImageLayers;
 
-           // Transition image layout to finalLayout.
-            setImageLayout(
-                vdi->cmdBuffer,
-                vkTexture->image,
-                VK_IMAGE_LAYOUT_PREINITIALIZED,
-                finalLayout,
-                subresourceRange);
-        }
+			// Transition image layout to finalLayout.
+			setImageLayout(
+			    vdi->cmdBuffer,
+			    vkTexture->image,
+			    VK_IMAGE_LAYOUT_PREINITIALIZED,
+			    finalLayout,
+			    subresourceRange);
+		}
 
-        // Submit command buffer containing image layout commands
-        VK_CHECK_RESULT(vkEndCommandBuffer(vdi->cmdBuffer));
+		// Submit command buffer containing image layout commands
+		VK_CHECK_RESULT(vkEndCommandBuffer(vdi->cmdBuffer));
 
-        submitInfo.waitSemaphoreCount = 0;
-        submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &vdi->cmdBuffer;
+		submitInfo.waitSemaphoreCount = 0;
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers    = &vdi->cmdBuffer;
 
-        VK_CHECK_RESULT(vkQueueSubmit(vdi->queue, 1, &submitInfo, nullFence));
-        VK_CHECK_RESULT(vkQueueWaitIdle(vdi->queue));
-    }
-    return KTX_SUCCESS;
+		VK_CHECK_RESULT(vkQueueSubmit(vdi->queue, 1, &submitInfo, nullFence));
+		VK_CHECK_RESULT(vkQueueWaitIdle(vdi->queue));
+	}
+	return KTX_SUCCESS;
 }
-
 
 /** @memberof ktxTexture
  * @~English
@@ -1139,13 +1103,12 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
  *     control.
  */
 KTX_error_code
-ktxTexture_VkUpload(ktxTexture* texture, ktxVulkanDeviceInfo* vdi,
-                    ktxVulkanTexture *vkTexture)
-{
-    return ktxTexture_VkUploadEx(ktxTexture(texture), vdi, vkTexture,
-                                 VK_IMAGE_TILING_OPTIMAL,
-                                 VK_IMAGE_USAGE_SAMPLED_BIT,
-                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    ktxTexture_VkUpload(ktxTexture *texture, ktxVulkanDeviceInfo *vdi,
+                        ktxVulkanTexture *vkTexture) {
+	return ktxTexture_VkUploadEx(ktxTexture(texture), vdi, vkTexture,
+	                             VK_IMAGE_TILING_OPTIMAL,
+	                             VK_IMAGE_USAGE_SAMPLED_BIT,
+	                             VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
 /** @memberof ktxTexture1
@@ -1157,14 +1120,13 @@ ktxTexture_VkUpload(ktxTexture* texture, ktxVulkanDeviceInfo* vdi,
  * @copydetails ktxTexture::ktxTexture_VkUploadEx
  */
 KTX_error_code
-ktxTexture1_VkUploadEx(ktxTexture1* This, ktxVulkanDeviceInfo* vdi,
-                       ktxVulkanTexture* vkTexture,
-                       VkImageTiling tiling,
-                       VkImageUsageFlags usageFlags,
-                       VkImageLayout finalLayout)
-{
-    return ktxTexture_VkUploadEx(ktxTexture(This), vdi, vkTexture,
-                                 tiling, usageFlags, finalLayout);
+    ktxTexture1_VkUploadEx(ktxTexture1 *This, ktxVulkanDeviceInfo *vdi,
+                           ktxVulkanTexture *vkTexture,
+                           VkImageTiling     tiling,
+                           VkImageUsageFlags usageFlags,
+                           VkImageLayout     finalLayout) {
+	return ktxTexture_VkUploadEx(ktxTexture(This), vdi, vkTexture,
+	                             tiling, usageFlags, finalLayout);
 }
 
 /** @memberof ktxTexture1
@@ -1179,13 +1141,12 @@ ktxTexture1_VkUploadEx(ktxTexture1* This, ktxVulkanDeviceInfo* vdi,
  *     control.
  */
 KTX_error_code
-ktxTexture1_VkUpload(ktxTexture1* texture, ktxVulkanDeviceInfo* vdi,
-                     ktxVulkanTexture *vkTexture)
-{
-    return ktxTexture_VkUploadEx(ktxTexture(texture), vdi, vkTexture,
-                                 VK_IMAGE_TILING_OPTIMAL,
-                                 VK_IMAGE_USAGE_SAMPLED_BIT,
-                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    ktxTexture1_VkUpload(ktxTexture1 *texture, ktxVulkanDeviceInfo *vdi,
+                         ktxVulkanTexture *vkTexture) {
+	return ktxTexture_VkUploadEx(ktxTexture(texture), vdi, vkTexture,
+	                             VK_IMAGE_TILING_OPTIMAL,
+	                             VK_IMAGE_USAGE_SAMPLED_BIT,
+	                             VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
 /** @memberof ktxTexture2
@@ -1197,14 +1158,13 @@ ktxTexture1_VkUpload(ktxTexture1* texture, ktxVulkanDeviceInfo* vdi,
  * @copydetails ktxTexture::ktxTexture_VkUploadEx
  */
 KTX_error_code
-ktxTexture2_VkUploadEx(ktxTexture2* This, ktxVulkanDeviceInfo* vdi,
-                       ktxVulkanTexture* vkTexture,
-                       VkImageTiling tiling,
-                       VkImageUsageFlags usageFlags,
-                       VkImageLayout finalLayout)
-{
-    return ktxTexture_VkUploadEx(ktxTexture(This), vdi, vkTexture,
-                                 tiling, usageFlags, finalLayout);
+    ktxTexture2_VkUploadEx(ktxTexture2 *This, ktxVulkanDeviceInfo *vdi,
+                           ktxVulkanTexture *vkTexture,
+                           VkImageTiling     tiling,
+                           VkImageUsageFlags usageFlags,
+                           VkImageLayout     finalLayout) {
+	return ktxTexture_VkUploadEx(ktxTexture(This), vdi, vkTexture,
+	                             tiling, usageFlags, finalLayout);
 }
 
 /** @memberof ktxTexture2
@@ -1219,13 +1179,12 @@ ktxTexture2_VkUploadEx(ktxTexture2* This, ktxVulkanDeviceInfo* vdi,
  *     control.
  */
 KTX_error_code
-ktxTexture2_VkUpload(ktxTexture2* This, ktxVulkanDeviceInfo* vdi,
-                     ktxVulkanTexture *vkTexture)
-{
-    return ktxTexture_VkUploadEx(ktxTexture(This), vdi, vkTexture,
-                                 VK_IMAGE_TILING_OPTIMAL,
-                                 VK_IMAGE_USAGE_SAMPLED_BIT,
-                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    ktxTexture2_VkUpload(ktxTexture2 *This, ktxVulkanDeviceInfo *vdi,
+                         ktxVulkanTexture *vkTexture) {
+	return ktxTexture_VkUploadEx(ktxTexture(This), vdi, vkTexture,
+	                             VK_IMAGE_TILING_OPTIMAL,
+	                             VK_IMAGE_USAGE_SAMPLED_BIT,
+	                             VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
 /** @memberof ktxTexture1
@@ -1236,16 +1195,15 @@ ktxTexture2_VkUpload(ktxTexture2* This, ktxVulkanDeviceInfo* vdi,
  *         there is no mapping from the GL internalformat and format.
  */
 VkFormat
-ktxTexture1_GetVkFormat(ktxTexture1* This)
-{
-    VkFormat vkFormat;
+    ktxTexture1_GetVkFormat(ktxTexture1 *This) {
+	VkFormat vkFormat;
 
-    vkFormat = vkGetFormatFromOpenGLInternalFormat(This->glInternalformat);
-    if (vkFormat == VK_FORMAT_UNDEFINED) {
-        vkFormat = vkGetFormatFromOpenGLFormat(This->glFormat,
-            This->glType);
-    }
-    return vkFormat;
+	vkFormat = vkGetFormatFromOpenGLInternalFormat(This->glInternalformat);
+	if (vkFormat == VK_FORMAT_UNDEFINED) {
+		vkFormat = vkGetFormatFromOpenGLFormat(This->glFormat,
+		                                       This->glType);
+	}
+	return vkFormat;
 }
 
 /** @memberof ktxTexture2
@@ -1255,9 +1213,8 @@ ktxTexture1_GetVkFormat(ktxTexture1* This)
  * @copydetails ktxTexture1::ktxTexture1_GetVkFormat
  */
 VkFormat
-ktxTexture2_GetVkFormat(ktxTexture2* This)
-{
-    return This->vkFormat;
+    ktxTexture2_GetVkFormat(ktxTexture2 *This) {
+	return This->vkFormat;
 }
 
 /** @memberof ktxTexture
@@ -1269,12 +1226,11 @@ ktxTexture2_GetVkFormat(ktxTexture2* This)
  * @copydetails ktxTexture1::ktxTexture1_GetVkFormat
  */
 VkFormat
-ktxTexture_GetVkFormat(ktxTexture* This)
-{
-    if (This->classId == ktxTexture2_c)
-        return ktxTexture2_GetVkFormat((ktxTexture2*)This);
-    else
-        return ktxTexture1_GetVkFormat((ktxTexture1*)This);
+    ktxTexture_GetVkFormat(ktxTexture *This) {
+	if (This->classId == ktxTexture2_c)
+		return ktxTexture2_GetVkFormat((ktxTexture2 *) This);
+	else
+		return ktxTexture1_GetVkFormat((ktxTexture1 *) This);
 }
 
 //======================================================================
@@ -1290,141 +1246,133 @@ ktxTexture_GetVkFormat(ktxTexture* This)
  * chapter 11.4 "Image Layout" for details.
  */
 static void
-setImageLayout(
-    VkCommandBuffer cmdBuffer,
-    VkImage image,
-    VkImageLayout oldLayout,
-    VkImageLayout newLayout,
-    VkImageSubresourceRange subresourceRange)
-{
-    // Create an image barrier object
-    VkImageMemoryBarrier imageMemoryBarrier = {
-        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-        .pNext = NULL,
-         // Some default values
-        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED
-    };
+    setImageLayout(
+        VkCommandBuffer         cmdBuffer,
+        VkImage                 image,
+        VkImageLayout           oldLayout,
+        VkImageLayout           newLayout,
+        VkImageSubresourceRange subresourceRange) {
+	// Create an image barrier object
+	VkImageMemoryBarrier imageMemoryBarrier = {
+	    .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+	    .pNext = NULL,
+	    // Some default values
+	    .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+	    .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED};
 
-    imageMemoryBarrier.oldLayout = oldLayout;
-    imageMemoryBarrier.newLayout = newLayout;
-    imageMemoryBarrier.image = image;
-    imageMemoryBarrier.subresourceRange = subresourceRange;
+	imageMemoryBarrier.oldLayout        = oldLayout;
+	imageMemoryBarrier.newLayout        = newLayout;
+	imageMemoryBarrier.image            = image;
+	imageMemoryBarrier.subresourceRange = subresourceRange;
 
-    // Source layouts (old)
-    // The source access mask controls actions to be finished on the old
-    // layout before it will be transitioned to the new layout.
-    switch (oldLayout)
-    {
-    case VK_IMAGE_LAYOUT_UNDEFINED:
-        // Image layout is undefined (or does not matter).
-        // Only valid as initial layout. No flags required.
-        imageMemoryBarrier.srcAccessMask = 0;
-        break;
+	// Source layouts (old)
+	// The source access mask controls actions to be finished on the old
+	// layout before it will be transitioned to the new layout.
+	switch (oldLayout) {
+		case VK_IMAGE_LAYOUT_UNDEFINED:
+			// Image layout is undefined (or does not matter).
+			// Only valid as initial layout. No flags required.
+			imageMemoryBarrier.srcAccessMask = 0;
+			break;
 
-    case VK_IMAGE_LAYOUT_PREINITIALIZED:
-        // Image is preinitialized.
-        // Only valid as initial layout for linear images; preserves memory
-        // contents. Make sure host writes have finished.
-        imageMemoryBarrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
-        break;
+		case VK_IMAGE_LAYOUT_PREINITIALIZED:
+			// Image is preinitialized.
+			// Only valid as initial layout for linear images; preserves memory
+			// contents. Make sure host writes have finished.
+			imageMemoryBarrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
+			break;
 
-    case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
-        // Image is a color attachment.
-        // Make sure writes to the color buffer have finished
-        imageMemoryBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-        break;
+		case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+			// Image is a color attachment.
+			// Make sure writes to the color buffer have finished
+			imageMemoryBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			break;
 
-    case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
-        // Image is a depth/stencil attachment.
-        // Make sure any writes to the depth/stencil buffer have finished.
-        imageMemoryBarrier.srcAccessMask
-                                = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-        break;
+		case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+			// Image is a depth/stencil attachment.
+			// Make sure any writes to the depth/stencil buffer have finished.
+			imageMemoryBarrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+			break;
 
-    case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
-        // Image is a transfer source.
-        // Make sure any reads from the image have finished
-        imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-        break;
+		case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
+			// Image is a transfer source.
+			// Make sure any reads from the image have finished
+			imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+			break;
 
-    case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
-        // Image is a transfer destination.
-        // Make sure any writes to the image have finished.
-        imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        break;
+		case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+			// Image is a transfer destination.
+			// Make sure any writes to the image have finished.
+			imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			break;
 
-    case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
-        // Image is read by a shader.
-        // Make sure any shader reads from the image have finished
-        imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
-        break;
+		case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+			// Image is read by a shader.
+			// Make sure any shader reads from the image have finished
+			imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			break;
 
-    default:
-        /* Value not used by callers, so not supported. */
-        assert(KTX_FALSE);
-    }
+		default:
+			/* Value not used by callers, so not supported. */
+			assert(KTX_FALSE);
+	}
 
-    // Target layouts (new)
-    // The destination access mask controls the dependency for the new image
-    // layout.
-    switch (newLayout)
-    {
-    case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
-        // Image will be used as a transfer destination.
-        // Make sure any writes to the image have finished.
-        imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        break;
+	// Target layouts (new)
+	// The destination access mask controls the dependency for the new image
+	// layout.
+	switch (newLayout) {
+		case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+			// Image will be used as a transfer destination.
+			// Make sure any writes to the image have finished.
+			imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			break;
 
-    case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
-        // Image will be used as a transfer source.
-        // Make sure any reads from and writes to the image have finished.
-        imageMemoryBarrier.srcAccessMask |= VK_ACCESS_TRANSFER_READ_BIT;
-        imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-        break;
+		case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
+			// Image will be used as a transfer source.
+			// Make sure any reads from and writes to the image have finished.
+			imageMemoryBarrier.srcAccessMask |= VK_ACCESS_TRANSFER_READ_BIT;
+			imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+			break;
 
-    case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
-        // Image will be used as a color attachment.
-        // Make sure any writes to the color buffer have finished.
-        imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-        imageMemoryBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-        break;
+		case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+			// Image will be used as a color attachment.
+			// Make sure any writes to the color buffer have finished.
+			imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+			imageMemoryBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			break;
 
-    case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
-        // Image layout will be used as a depth/stencil attachment.
-        // Make sure any writes to depth/stencil buffer have finished.
-        imageMemoryBarrier.dstAccessMask
-                                = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-        break;
+		case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+			// Image layout will be used as a depth/stencil attachment.
+			// Make sure any writes to depth/stencil buffer have finished.
+			imageMemoryBarrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+			break;
 
-    case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
-        // Image will be read in a shader (sampler, input attachment).
-        // Make sure any writes to the image have finished.
-        if (imageMemoryBarrier.srcAccessMask == 0)
-        {
-            imageMemoryBarrier.srcAccessMask
-                    = VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
-        }
-        imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-        break;
-    default:
-        /* Value not used by callers, so not supported. */
-        assert(KTX_FALSE);
-    }
+		case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+			// Image will be read in a shader (sampler, input attachment).
+			// Make sure any writes to the image have finished.
+			if (imageMemoryBarrier.srcAccessMask == 0) {
+				imageMemoryBarrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
+			}
+			imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			break;
+		default:
+			/* Value not used by callers, so not supported. */
+			assert(KTX_FALSE);
+	}
 
-    // Put barrier on top of pipeline.
-    VkPipelineStageFlags srcStageFlags = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
-    VkPipelineStageFlags destStageFlags = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+	// Put barrier on top of pipeline.
+	VkPipelineStageFlags srcStageFlags  = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+	VkPipelineStageFlags destStageFlags = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
 
-    // Add the barrier to the passed command buffer
-    vkCmdPipelineBarrier(
-        cmdBuffer,
-        srcStageFlags,
-        destStageFlags,
-        0,
-        0, NULL,
-        0, NULL,
-        1, &imageMemoryBarrier);
+	// Add the barrier to the passed command buffer
+	vkCmdPipelineBarrier(
+	    cmdBuffer,
+	    srcStageFlags,
+	    destStageFlags,
+	    0,
+	    0, NULL,
+	    0, NULL,
+	    1, &imageMemoryBarrier);
 }
 
 /** @internal
@@ -1445,95 +1393,94 @@ setImageLayout(
  * @param[in] initialLayout the layout of the image on entry to the function.
  */
 static void
-generateMipmaps(ktxVulkanTexture* vkTexture, ktxVulkanDeviceInfo* vdi,
-                VkFilter blitFilter, VkImageLayout initialLayout)
-{
-    VkImageSubresourceRange subresourceRange;
-    memset(&subresourceRange, 0, sizeof(subresourceRange));
-    subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    subresourceRange.baseMipLevel = 0;
-    subresourceRange.levelCount = 1;
-    subresourceRange.baseArrayLayer = 0;
-    subresourceRange.layerCount = vkTexture->layerCount;
+    generateMipmaps(ktxVulkanTexture *vkTexture, ktxVulkanDeviceInfo *vdi,
+                    VkFilter blitFilter, VkImageLayout initialLayout) {
+	VkImageSubresourceRange subresourceRange;
+	memset(&subresourceRange, 0, sizeof(subresourceRange));
+	subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+	subresourceRange.baseMipLevel   = 0;
+	subresourceRange.levelCount     = 1;
+	subresourceRange.baseArrayLayer = 0;
+	subresourceRange.layerCount     = vkTexture->layerCount;
 
-    // Transition base level to SRC_OPTIMAL for blitting.
-    setImageLayout(
-        vdi->cmdBuffer,
-        vkTexture->image,
-        initialLayout,
-        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-        subresourceRange);
+	// Transition base level to SRC_OPTIMAL for blitting.
+	setImageLayout(
+	    vdi->cmdBuffer,
+	    vkTexture->image,
+	    initialLayout,
+	    VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+	    subresourceRange);
 
-    // Generate the mip chain
-    // ----------------------
-    // Blit level n from level n-1.
-    for (uint32_t i = 1; i < vkTexture->levelCount; i++)
-    {
-        VkImageBlit imageBlit;
-        memset(&imageBlit, 0, sizeof(imageBlit));
+	// Generate the mip chain
+	// ----------------------
+	// Blit level n from level n-1.
+	for (uint32_t i = 1; i < vkTexture->levelCount; i++) {
+		VkImageBlit imageBlit;
+		memset(&imageBlit, 0, sizeof(imageBlit));
 
-        // Source
-        imageBlit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        imageBlit.srcSubresource.layerCount = vkTexture->layerCount;
-        imageBlit.srcSubresource.mipLevel = i-1;
-        imageBlit.srcOffsets[1].x = MAX(1, vkTexture->width >> (i - 1));
-        imageBlit.srcOffsets[1].y = MAX(1, vkTexture->height >> (i - 1));
-        imageBlit.srcOffsets[1].z = MAX(1, vkTexture->depth >> (i - 1));;
+		// Source
+		imageBlit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		imageBlit.srcSubresource.layerCount = vkTexture->layerCount;
+		imageBlit.srcSubresource.mipLevel   = i - 1;
+		imageBlit.srcOffsets[1].x           = MAX(1, vkTexture->width >> (i - 1));
+		imageBlit.srcOffsets[1].y           = MAX(1, vkTexture->height >> (i - 1));
+		imageBlit.srcOffsets[1].z           = MAX(1, vkTexture->depth >> (i - 1));
+		;
 
-        // Destination
-        imageBlit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        imageBlit.dstSubresource.layerCount = 1;
-        imageBlit.dstSubresource.mipLevel = i;
-        imageBlit.dstOffsets[1].x = MAX(1, vkTexture->width >> i);
-        imageBlit.dstOffsets[1].y = MAX(1, vkTexture->height >> i);
-        imageBlit.dstOffsets[1].z = MAX(1, vkTexture->depth >> i);
+		// Destination
+		imageBlit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		imageBlit.dstSubresource.layerCount = 1;
+		imageBlit.dstSubresource.mipLevel   = i;
+		imageBlit.dstOffsets[1].x           = MAX(1, vkTexture->width >> i);
+		imageBlit.dstOffsets[1].y           = MAX(1, vkTexture->height >> i);
+		imageBlit.dstOffsets[1].z           = MAX(1, vkTexture->depth >> i);
 
-        VkImageSubresourceRange mipSubRange;
-        memset(&mipSubRange, 0, sizeof(mipSubRange));
+		VkImageSubresourceRange mipSubRange;
+		memset(&mipSubRange, 0, sizeof(mipSubRange));
 
-        mipSubRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        mipSubRange.baseMipLevel = i;
-        mipSubRange.levelCount = 1;
-        mipSubRange.layerCount = vkTexture->layerCount;
+		mipSubRange.aspectMask   = VK_IMAGE_ASPECT_COLOR_BIT;
+		mipSubRange.baseMipLevel = i;
+		mipSubRange.levelCount   = 1;
+		mipSubRange.layerCount   = vkTexture->layerCount;
 
-        // Transiton current mip level to transfer dest
-        setImageLayout(
-            vdi->cmdBuffer,
-            vkTexture->image,
-            VK_IMAGE_LAYOUT_UNDEFINED,
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            mipSubRange);
+		// Transiton current mip level to transfer dest
+		setImageLayout(
+		    vdi->cmdBuffer,
+		    vkTexture->image,
+		    VK_IMAGE_LAYOUT_UNDEFINED,
+		    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		    mipSubRange);
 
-        // Blit from previous level
-        vkCmdBlitImage(
-            vdi->cmdBuffer,
-            vkTexture->image,
-            VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-            vkTexture->image,
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            1,
-            &imageBlit,
-            blitFilter);
+		// Blit from previous level
+		vkCmdBlitImage(
+		    vdi->cmdBuffer,
+		    vkTexture->image,
+		    VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+		    vkTexture->image,
+		    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		    1,
+		    &imageBlit,
+		    blitFilter);
 
-        // Transiton current mip level to transfer source for read in
-        // next iteration.
-        setImageLayout(
-            vdi->cmdBuffer,
-            vkTexture->image,
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-            mipSubRange);
-    }
+		// Transiton current mip level to transfer source for read in
+		// next iteration.
+		setImageLayout(
+		    vdi->cmdBuffer,
+		    vkTexture->image,
+		    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		    VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+		    mipSubRange);
+	}
 
-    // After the loop, all mip layers are in TRANSFER_SRC layout.
-    // Transition all to final layout.
-    subresourceRange.levelCount = vkTexture->levelCount;
-    setImageLayout(
-        vdi->cmdBuffer,
-        vkTexture->image,
-        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-        vkTexture->imageLayout,
-        subresourceRange);
+	// After the loop, all mip layers are in TRANSFER_SRC layout.
+	// Transition all to final layout.
+	subresourceRange.levelCount = vkTexture->levelCount;
+	setImageLayout(
+	    vdi->cmdBuffer,
+	    vkTexture->image,
+	    VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+	    vkTexture->imageLayout,
+	    subresourceRange);
 }
 
 //======================================================================
@@ -1552,12 +1499,10 @@ generateMipmaps(ktxVulkanTexture* vkTexture, ktxVulkanDeviceInfo* vdi,
  *                   loaded.
  * @param pAllocator pointer to the allocator used during loading.
  */
-void
-ktxVulkanTexture_Destruct(ktxVulkanTexture* vkTexture, VkDevice device,
-                          const VkAllocationCallbacks* pAllocator)
-{
-    vkDestroyImage(device, vkTexture->image, pAllocator);
-    vkFreeMemory(device, vkTexture->deviceMemory, pAllocator);
+void ktxVulkanTexture_Destruct(ktxVulkanTexture *vkTexture, VkDevice device,
+                               const VkAllocationCallbacks *pAllocator) {
+	vkDestroyImage(device, vkTexture->image, pAllocator);
+	vkFreeMemory(device, vkTexture->deviceMemory, pAllocator);
 }
 
 /** @} */

@@ -15,62 +15,62 @@
 #include "stdafx.h"
 #include <cstdlib>
 #include <cstring>
+#include <inttypes.h>
 #include <iostream>
 #include <sstream>
 #include <thread>
 #include <vector>
-#include <inttypes.h>
 #include <zstd.h>
 
-#include "GL/glcorearb.h"
-#include "ktx.h"
 #include "../../lib/vkformat_enum.h"
+#include "GL/glcorearb.h"
 #include "argparser.h"
+#include "image.hpp"
+#include "ktx.h"
 #include "scapp.h"
 #include "version.h"
-#include "image.hpp"
 #if (IMAGE_DEBUG) && defined(_DEBUG) && defined(_WIN32) && !defined(_WIN32_WCE)
-#  include "imdebug.h"
+#	include "imdebug.h"
 #elif defined(IMAGE_DEBUG) && IMAGE_DEBUG
-#  undef IMAGE_DEBUG
-#  define IMAGE_DEBUG 0
+#	undef IMAGE_DEBUG
+#	define IMAGE_DEBUG 0
 #endif
 
 #if !defined(GL_RED)
-#define GL_RED                          0x1903
-#define GL_RGB8                         0x8051
-#define GL_RGB16                        0x8054
-#define GL_RGBA8                        0x8058
-#define GL_RGBA16                       0x805B
+#	define GL_RED 0x1903
+#	define GL_RGB8 0x8051
+#	define GL_RGB16 0x8054
+#	define GL_RGBA8 0x8058
+#	define GL_RGBA16 0x805B
 #endif
 #if !defined(GL_RG)
-#define GL_RG                           0x8227
-#define GL_R8                           0x8229
-#define GL_R16                          0x822A
-#define GL_RG8                          0x822B
-#define GL_RG16                         0x822C
+#	define GL_RG 0x8227
+#	define GL_R8 0x8229
+#	define GL_R16 0x822A
+#	define GL_RG8 0x822B
+#	define GL_RG16 0x822C
 #endif
 
 #ifndef GL_SR8
 // From GL_EXT_texture_sRGB_R8
-#define GL_SR8                          0x8FBD // same as GL_SR8_EXT
+#	define GL_SR8 0x8FBD        // same as GL_SR8_EXT
 #endif
 
 #ifndef GL_SRG8
 // From GL_EXT_texture_sRGB_RG8
-#define GL_SRG8                         0x8FBE // same as GL_SRG8_EXT
+#	define GL_SRG8 0x8FBE        // same as GL_SRG8_EXT
 #endif
 
 enum oetf_e {
-    OETF_LINEAR = 0,
-    OETF_SRGB = 1,
-    OETF_UNSET = 2
+	OETF_LINEAR = 0,
+	OETF_SRGB   = 1,
+	OETF_UNSET  = 2
 };
 
 static ktx_uint32_t log2(ktx_uint32_t v);
 #if IMAGE_DEBUG
-static void dumpImage(_TCHAR* name, int width, int height, int components,
-                      int componentSize, unsigned char* srcImage);
+static void dumpImage(_TCHAR *name, int width, int height, int components,
+                      int componentSize, unsigned char *srcImage);
 #endif
 
 using namespace std;
@@ -329,154 +329,158 @@ string mydefversion(STR(TOKTX_DEFAULT_VERSION));
 
 class toktxApp : public scApp {
   public:
-    toktxApp();
-    virtual ~toktxApp() { };
+	toktxApp();
+	virtual ~toktxApp(){};
 
-    virtual int main(int argc, _TCHAR* argv[]);
-    virtual void usage();
+	virtual int  main(int argc, _TCHAR *argv[]);
+	virtual void usage();
 
-    void warning(const char *pFmt, va_list args);
-    void warning(const char *pFmt, ...);
-    void warning(const string&);
+	void warning(const char *pFmt, va_list args);
+	void warning(const char *pFmt, ...);
+	void warning(const string &);
 
   protected:
-    virtual bool processOption(argparser& parser, int opt);
-    void processEnvOptions();
-    void validateOptions();
-    void validateSwizzle(string& swizzle);
+	virtual bool processOption(argparser &parser, int opt);
+	void         processEnvOptions();
+	void         validateOptions();
+	void         validateSwizzle(string &swizzle);
 
-    struct commandOptions : public scApp::commandOptions {
-        struct mipgenOptions {
-            string filter;
-            float filterScale;
-            enum basisu::Resampler::Boundary_Op wrapMode;
+	struct commandOptions : public scApp::commandOptions {
+		struct mipgenOptions {
+			string                              filter;
+			float                               filterScale;
+			enum basisu::Resampler::Boundary_Op wrapMode;
 
-            mipgenOptions() : filter("lanczos4"), filterScale(1.0),
-                  wrapMode(basisu::Resampler::Boundary_Op::BOUNDARY_CLAMP) { }
-        };
+			mipgenOptions() :
+			    filter("lanczos4"), filterScale(1.0), wrapMode(basisu::Resampler::Boundary_Op::BOUNDARY_CLAMP) {
+			}
+		};
 
-        int          automipmap;
-        int          cubemap;
-        int          genmipmap;
-        int          metadata;
-        int          mipmap;
-        int          two_d;
-        khr_df_transfer_e convert_oetf;
-        khr_df_transfer_e assign_oetf;
-        khr_df_primaries_e assign_primaries;
-        int          useStdin;
-        int          lower_left_maps_to_s0t0;
-        int          warn;
-        struct mipgenOptions gmopts;
-        unsigned int depth;
-        unsigned int layers;
-        unsigned int levels;
-        float        scale;
-        int          resize;
-        struct {
-            unsigned int width;
-            unsigned int height;
-        } newGeom;
-        string inputSwizzle;
-        string swizzle;
-        enum {
-            // These values are selected to match the number of components.
-            eUnspecified=0, eR=1, eRG, eRGB, eRGBA
-        } targetType;
+		int                  automipmap;
+		int                  cubemap;
+		int                  genmipmap;
+		int                  metadata;
+		int                  mipmap;
+		int                  two_d;
+		khr_df_transfer_e    convert_oetf;
+		khr_df_transfer_e    assign_oetf;
+		khr_df_primaries_e   assign_primaries;
+		int                  useStdin;
+		int                  lower_left_maps_to_s0t0;
+		int                  warn;
+		struct mipgenOptions gmopts;
+		unsigned int         depth;
+		unsigned int         layers;
+		unsigned int         levels;
+		float                scale;
+		int                  resize;
+		struct {
+			unsigned int width;
+			unsigned int height;
+		} newGeom;
+		string inputSwizzle;
+		string swizzle;
+		enum {
+			// These values are selected to match the number of components.
+			eUnspecified = 0,
+			eR           = 1,
+			eRG,
+			eRGB,
+			eRGBA
+		} targetType;
 
-        commandOptions() {
-            automipmap = 0;
-            cubemap = 0;
-            genmipmap = 0;
-            ktx2 = 0;
-            metadata = 1;
-            mipmap = 0;
-            two_d = 0;
-            useStdin = 0;
-            test = 0;
-            depth = 1;
-            layers = 1;
-            levels = 1;
-            convert_oetf = KHR_DF_TRANSFER_UNSPECIFIED;
-            assign_oetf = KHR_DF_TRANSFER_UNSPECIFIED;
-            assign_primaries = KHR_DF_PRIMARIES_MAX;
-            // As required by spec. Opposite of OpenGL {,ES}, same as
-            // Vulkan, et al.
-            lower_left_maps_to_s0t0 = 0;
-            warn = 1;
-            scale = 1.0f;
-            resize = 0;
-            newGeom.width = newGeom.height = 0;
-            targetType = eUnspecified;
-       }
+		commandOptions() {
+			automipmap       = 0;
+			cubemap          = 0;
+			genmipmap        = 0;
+			ktx2             = 0;
+			metadata         = 1;
+			mipmap           = 0;
+			two_d            = 0;
+			useStdin         = 0;
+			test             = 0;
+			depth            = 1;
+			layers           = 1;
+			levels           = 1;
+			convert_oetf     = KHR_DF_TRANSFER_UNSPECIFIED;
+			assign_oetf      = KHR_DF_TRANSFER_UNSPECIFIED;
+			assign_primaries = KHR_DF_PRIMARIES_MAX;
+			// As required by spec. Opposite of OpenGL {,ES}, same as
+			// Vulkan, et al.
+			lower_left_maps_to_s0t0 = 0;
+			warn                    = 1;
+			scale                   = 1.0f;
+			resize                  = 0;
+			newGeom.width = newGeom.height = 0;
+			targetType                     = eUnspecified;
+		}
 
 #define TRAVIS_DEBUG 0
 #if TRAVIS_DEBUG
-        void print() {
-            cout << "threadCount = " << threadCount.value << endl;
-            cout << "qualityLevel = " << qualityLevel.value << endl;
-            cout << "maxEndpoints = " << maxEndpoints.value << endl;
-            cout << "maxSelectors = " << maxSelectors.value << endl;
-            cout << "structSize = " << structSize << endl;
-            cout << "threadCount = " << ktxBasisParams::threadCount << endl;
-            cout << "compressionLevel = " << compressionLevel << endl;
-            cout << "qualityLevel = " << ktxBasisParams::qualityLevel << endl;
-            cout << "compressionLevel = " << compressionLevel << endl;
-            cout << "maxEndpoints = " << ktxBasisParams::maxEndpoints << endl;
-            cout << "endpointRDOThreshold = " << endpointRDOThreshold << endl;
-            cout << "maxSelectors = " << ktxBasisParams::maxSelectors << endl;
-            cout << "selectorRDOThreshold = " << selectorRDOThreshold << endl;
-            cout << "normalMap = " << normalMap << endl;
-            cout << "separateRGToRGB_A = " << separateRGToRGB_A << endl;
-            cout << "preSwizzle = " << preSwizzle << endl;
-            cout << "noEndpointRDO = " << noEndpointRDO << endl;
-            cout << "noSelectorRDO = " << noSelectorRDO << endl;
-            cout << "uastc = " << uastc << endl;
-            cout << "uastcFlags = " << uastcFlags << endl;
-            cout << "uastcRDO = " << uastcRDO << endl;
-            cout << "uastcRDODictSize = " << uastcRDODictSize << endl;
-            cout << "uastcRDOQualityScalar = " << uastcRDOQualityScalar << endl;
-        }
+		void print() {
+			cout << "threadCount = " << threadCount.value << endl;
+			cout << "qualityLevel = " << qualityLevel.value << endl;
+			cout << "maxEndpoints = " << maxEndpoints.value << endl;
+			cout << "maxSelectors = " << maxSelectors.value << endl;
+			cout << "structSize = " << structSize << endl;
+			cout << "threadCount = " << ktxBasisParams::threadCount << endl;
+			cout << "compressionLevel = " << compressionLevel << endl;
+			cout << "qualityLevel = " << ktxBasisParams::qualityLevel << endl;
+			cout << "compressionLevel = " << compressionLevel << endl;
+			cout << "maxEndpoints = " << ktxBasisParams::maxEndpoints << endl;
+			cout << "endpointRDOThreshold = " << endpointRDOThreshold << endl;
+			cout << "maxSelectors = " << ktxBasisParams::maxSelectors << endl;
+			cout << "selectorRDOThreshold = " << selectorRDOThreshold << endl;
+			cout << "normalMap = " << normalMap << endl;
+			cout << "separateRGToRGB_A = " << separateRGToRGB_A << endl;
+			cout << "preSwizzle = " << preSwizzle << endl;
+			cout << "noEndpointRDO = " << noEndpointRDO << endl;
+			cout << "noSelectorRDO = " << noSelectorRDO << endl;
+			cout << "uastc = " << uastc << endl;
+			cout << "uastcFlags = " << uastcFlags << endl;
+			cout << "uastcRDO = " << uastcRDO << endl;
+			cout << "uastcRDODictSize = " << uastcRDODictSize << endl;
+			cout << "uastcRDOQualityScalar = " << uastcRDOQualityScalar << endl;
+		}
 #endif
-    } options;
+	} options;
 };
 
-toktxApp::toktxApp() : scApp(myversion, mydefversion, options)
-{
-    argparser::option my_option_list[] = {
-        { "2d", argparser::option::no_argument, &options.two_d, 1 },
-        { "automipmap", argparser::option::no_argument, &options.automipmap, 1 },
-        { "cubemap", argparser::option::no_argument, &options.cubemap, 1 },
-        { "genmipmap", argparser::option::no_argument, &options.genmipmap, 1 },
-        { "filter", argparser::option::required_argument, NULL, 'f' },
-        { "fscale", argparser::option::required_argument, NULL, 'F' },
-        { "wrapping", argparser::option::required_argument, NULL, 'w' },
-        { "depth", argparser::option::required_argument, NULL, 'd' },
-        { "layers", argparser::option::required_argument, NULL, 'a' },
-        { "levels", argparser::option::required_argument, NULL, 'l' },
-        { "mipmap", argparser::option::no_argument, &options.mipmap, 1 },
-        { "nometadata", argparser::option::no_argument, &options.metadata, 0 },
-        { "nowarn", argparser::option::no_argument, &options.warn, 0 },
-        { "lower_left_maps_to_s0t0", argparser::option::no_argument, &options.lower_left_maps_to_s0t0, 1 },
-        { "upper_left_maps_to_s0t0", argparser::option::no_argument, &options.lower_left_maps_to_s0t0, 0 },
-        { "linear", argparser::option::no_argument, (int*)&options.assign_oetf, KHR_DF_TRANSFER_LINEAR },
-        { "srgb", argparser::option::no_argument, (int*)&options.assign_oetf, KHR_DF_TRANSFER_SRGB },
-        { "resize", argparser::option::required_argument, NULL, 'r' },
-        { "scale", argparser::option::required_argument, NULL, 's' },
-        { "input_swizzle", argparser::option::required_argument, NULL, 1100},
-        { "swizzle", argparser::option::required_argument, NULL, 1101},
-        { "target_type", argparser::option::required_argument, NULL, 1102},
-        { "convert_oetf", argparser::option::required_argument, NULL, 1103},
-        { "assign_oetf", argparser::option::required_argument, NULL, 1104},
-        { "assign_primaries", argparser::option::required_argument, NULL, 1105},
-        { "t2", argparser::option::no_argument, &options.ktx2, 1},
-    };
+toktxApp::toktxApp() :
+    scApp(myversion, mydefversion, options) {
+	argparser::option my_option_list[] = {
+	    {"2d", argparser::option::no_argument, &options.two_d, 1},
+	    {"automipmap", argparser::option::no_argument, &options.automipmap, 1},
+	    {"cubemap", argparser::option::no_argument, &options.cubemap, 1},
+	    {"genmipmap", argparser::option::no_argument, &options.genmipmap, 1},
+	    {"filter", argparser::option::required_argument, NULL, 'f'},
+	    {"fscale", argparser::option::required_argument, NULL, 'F'},
+	    {"wrapping", argparser::option::required_argument, NULL, 'w'},
+	    {"depth", argparser::option::required_argument, NULL, 'd'},
+	    {"layers", argparser::option::required_argument, NULL, 'a'},
+	    {"levels", argparser::option::required_argument, NULL, 'l'},
+	    {"mipmap", argparser::option::no_argument, &options.mipmap, 1},
+	    {"nometadata", argparser::option::no_argument, &options.metadata, 0},
+	    {"nowarn", argparser::option::no_argument, &options.warn, 0},
+	    {"lower_left_maps_to_s0t0", argparser::option::no_argument, &options.lower_left_maps_to_s0t0, 1},
+	    {"upper_left_maps_to_s0t0", argparser::option::no_argument, &options.lower_left_maps_to_s0t0, 0},
+	    {"linear", argparser::option::no_argument, (int *) &options.assign_oetf, KHR_DF_TRANSFER_LINEAR},
+	    {"srgb", argparser::option::no_argument, (int *) &options.assign_oetf, KHR_DF_TRANSFER_SRGB},
+	    {"resize", argparser::option::required_argument, NULL, 'r'},
+	    {"scale", argparser::option::required_argument, NULL, 's'},
+	    {"input_swizzle", argparser::option::required_argument, NULL, 1100},
+	    {"swizzle", argparser::option::required_argument, NULL, 1101},
+	    {"target_type", argparser::option::required_argument, NULL, 1102},
+	    {"convert_oetf", argparser::option::required_argument, NULL, 1103},
+	    {"assign_oetf", argparser::option::required_argument, NULL, 1104},
+	    {"assign_primaries", argparser::option::required_argument, NULL, 1105},
+	    {"t2", argparser::option::no_argument, &options.ktx2, 1},
+	};
 
-    const int lastOptionIndex = sizeof(my_option_list)
-                                / sizeof(argparser::option);
-    option_list.insert(option_list.begin(), my_option_list,
-                       my_option_list + lastOptionIndex);
-    short_opts += "f:F:w:d:a:l:r:s:";
+	const int lastOptionIndex = sizeof(my_option_list) / sizeof(argparser::option);
+	option_list.insert(option_list.begin(), my_option_list,
+	                   my_option_list + lastOptionIndex);
+	short_opts += "f:F:w:d:a:l:r:s:";
 }
 
 toktxApp theApp;
@@ -484,1086 +488,1048 @@ toktxApp theApp;
 // I really HATE this duplication of text but I cannot find a simple way to
 // avoid it that works on all platforms (e.g running man toktx) even if I was
 // willing to tolerate markup commands in the usage output.
-void
-toktxApp::usage()
-{
-    cerr <<
-        "Usage: " << name << " [options] <outfile> [<infile>.{pam,pgm,ppm} ...]\n"
-        "\n"
-        "  <outfile>    The destination ktx file. \".ktx\" will appended if necessary.\n"
-        "               If it is '-' the output will be written to stdout.\n"
-        "  <infile>     One or more image files in .jpg, .png, .pam, .ppm, or .pgm\n"
-        "               format. Other formats can be readily converted to these formats\n"
-        "               using tools such as ImageMagick and XnView. When no infile is\n"
-        "               specified, stdin is used. infiles prefixed with '@' are read as\n"
-        "               text files listing actual file names to process with one file\n"
-        "               path per line. Paths must be absolute or relative to the current\n"
-        "               directory when toktx is run. If '@@' is used instead, paths must\n"
-        "               be absolute or relative to the location of the list file.\n"
-        "\n"
-        "  The target texture type (number of components in the output texture) is chosen\n"
-        "  via --target_type. Swizzling of the components of the input file is specified\n"
-        "  with --input_swizzle and swizzle metadata can be specified with --swizzle\n"
-        "  Defaults, shown in the following tables, are based on the components of the\n"
-        "  input file and whether the target texture format is uncompressed or\n"
-        "  block-compressed including the universal formats. Input components are\n"
-        "  arbitrarily labeled r, g, b & a.\n"
-        "\n"
-        "  |                      Uncompressed Formats                           |\n"
-        "  |---------------------------------------------------------------------|\n"
-        "  | Input components | 1 (greyscale) | 2 (greyscale alpha) |  3  |  4   |\n"
-        "  | Target type      |       R       |         RG          | RGB | RGBA |\n"
-        "  | Input swizzle    |       -       |         -           |  -  |  -   |\n"
-        "  | Swizzle          |     rrr1      |        rrrg         |  -  |  -   |\n"
-        "\n"
-        "  |                      Block-compressed formats                       |\n"
-        "  |---------------------------------------------------------------------|\n"
-        "  | Target type      |      RGB      |        RGBA         | RGB | RGBA |\n"
-        "  | Input swizzle    |      rrr1     |        rrrg         |  -  |  -   |\n"
-        "  | Swizzle          |       -       |         -           |  -  |  -   |\n"
-        "\n"
-        "  As can be seen from the table one- and two-component inputs are treated as\n"
-        "  luminance{,-alpha} in accordance with the JPEG and PNG specifications. For\n"
-        "  consistency Netpbm inputs are handled the same way. Use of R & RG types for\n"
-        "  uncompressed formats saves space but note that the sRGB versions of these\n"
-        "  formats are not widely supported so a warning will be issued prompting you\n"
-        "  to convert the input to linear.\n"
-        "\n"
-        "  Options are:\n"
-        "\n"
-        "  --2d         If the image height is 1, by default a KTX file for a 1D\n"
-        "               texture is created. With this option one for a 2D texture is\n"
-        "               created instead.\n"
-        "  --automipmap Causes the KTX file to be marked to request generation of a\n"
-        "               mipmap pyramid when the file is loaded. This option is mutually\n"
-        "               exclusive with --genmipmap, --levels and --mipmap.\n"
-        "  --cubemap    KTX file is for a cubemap. At least 6 <infile>s must be provided,\n"
-        "               more if --mipmap is also specified. Provide the images in the\n"
-        "               order +X, -X, +Y, -Y, +Z, -Z where the arrangement is a\n"
-        "               left-handed coordinate system with +Y up. So if you're facing +Z,\n"
-        "               -X will be on your left and +X on your right. If --layers > 1\n"
-        "               is specified, provide the faces for layer 0 first then for\n"
-        "               layer 1, etc. Images must have an upper left origin so\n"
-        "               --lower_left_maps_to_s0t0 is ignored with this option.\n"
-        "  --depth <number>\n"
-        "               KTX file is for a 3D texture with a depth of number where\n"
-        "               number > 1. Provide the file(s) for z=0 first then those for\n"
-        "               z=1, etc. It is an error to specify this together with\n"
-        "               --layers > 1 or --cubemap.\n"
-        "  --genmipmap  Causes mipmaps to be generated for each input file. This option\n"
-        "               is mutually exclusive with --automipmap and --mipmap. When set\n"
-        "               the following mipmap-generation related options become valid,\n"
-        "               otherwise they are ignored.\n"
-        "      --filter <name>\n"
-        "               Specifies the filter to use when generating the mipmaps. name\n"
-        "               is a string. The default is lanczos4. The following names are\n"
-        "               recognized: box, tent, bell, b-spline, mitchell, lanczos3\n"
-        "               lanczos4, lanczos6, lanczos12, blackman, kaiser, gaussian,\n"
-        "               catmullrom, quadratic_interp, quadratic_approx and\n"
-        "               quadratic_mix.\n"
-        "      --fscale <floatVal>\n"
-        "               The filter scale to use. The default is 1.0.\n"
-        "      --wmode <mode>\n"
-        "               Specify how to sample pixels near the image boundaries. Values\n"
-        "               are wrap, reflect and clamp. The default is clamp.\n"
-        "  --layers <number>\n"
-        "               KTX file is for an array texture with number of layers\n"
-        "               where number > 1. Provide the file(s) for layer 0 first then\n"
-        "               those for layer 1, etc. It is an error to specify this\n"
-        "               together with --depth > 1.\n"
-        "  --levels <number>\n"
-        "               KTX file is for a mipmap pyramid with <number> of levels rather\n"
-        "               than a full pyramid. number must be <= the maximum number of\n"
-        "               levels determined from the size of the base image. This option is\n"
-        "               mutually exclusive with @b --automipmap.\n"
-        "  --mipmap     KTX file is for a mipmap pyramid with one infile being explicitly\n"
-        "               provided for each level. Provide the images in the order of layer\n"
-        "               then face or depth slice then level with the base-level image\n"
-        "               first then in order down to the 1x1 image or the level specified\n"
-        "               by --levels.  This option is mutually exclusive with --automipmap\n"
-        "               and --genmipmap. Note that this ordering differs from that in the\n"
-        "               created texture as it is felt to be more user-friendly.\n"
-        "  --nometadata Do not write KTXorientation metadata into the output file.\n"
-        "               Use of this option is not recommended.\n"
-        "  --nowarn     Silence warnings which are issued when certain transformations\n"
-        "               are performed on input images.\n"
-        "  --upper_left_maps_to_s0t0\n"
-        "               Map the logical upper left corner of the image to s0,t0.\n"
-        "               Although opposite to the OpenGL convention, this is the DEFAULT\n"
-        "               BEHAVIOUR. netpbm and PNG files have an upper left origin so\n"
-        "               this option does not flip the input images. When this option is\n"
-        "               in effect, toktx writes a KTXorientation value of S=r,T=d into\n"
-        "               the output file to inform loaders of the logical orientation. If\n"
-        "               an OpenGL {,ES} loader ignores the orientation value, the image\n"
-        "               will appear upside down.\n"
-        "  --lower_left_maps_to_s0t0\n"
-        "               Map the logical lower left corner of the image to s0,t0.\n"
-        "               This causes the input netpbm and PNG images to be flipped\n"
-        "               vertically to a lower-left origin. When this option is in effect,\n"
-        "               toktx writes a KTXorientation value of S=r,T=u into the output\n"
-        "               file to inform loaders of the logical orientation. If a Vulkan\n"
-        "               loader ignores the orientation value, the image will appear\n"
-        "               upside down. This option is ignored with --cubemap.\n"
-        "  --assign_oetf <linear|srgb>\n"
-        "               Force the created texture to have the specified transfer\n"
-        "               function. If this is specified, implicit or explicit color space\n"
-        "               information from the input file(s) will be ignored and no color\n"
-        "               transformation will be performed. USE WITH CAUTION preferably\n"
-        "               only when you know the file format information is wrong.\n"
-        "  --assign_primaries <bt709|none|srgb>\n"
-        "               Force the created texture to have the specified primaries. If\n"
-        "               this is specified, implicit or explicit color space information\n"
-        "               from the input file(s) will be ignored and no color\n"
-        "               transformation will be performed. USE WITH CAUTION preferably\n"
-        "               only when you know the file format information is wrong.\n"
-        "  --convert_oetf <linear|srgb>\n"
-        "               Convert the input images to the specified transfer function, if\n"
-        "               the current transfer function is different. If both this and\n"
-        "               --assign_oetf are specified, conversion will be performed from\n"
-        "               the assigned transfer function to the transfer function specified\n"
-        "               by this option, if different.\n"
-        "  --linear     Deprecated. Use --assign_oetf linear.\n"
-        "  --srgb       Deprecated. Use --assign_oetf srgb.\n"
-        "  --input_swizzle <swizzle>\n"
-        "               Swizzle the input components according to swizzle which is an\n"
-        "               alhpanumeric sequence matching the regular expression\n"
-        "               ^[rgba01]{4}$.\n"
-        "  --swizzle <swizzle>\n"
-        "               Add swizzle metadata to the file being created. swizzle has the\n"
-        "               same syntax as the parameter for --input_swizzle. Not recommended\n"
-        "               for use with block-cmpressed textures, including Basis Universal\n"
-        "               formats, because something like `rabb` may yield drastically\n"
-        "               different error metrics if done after compression.\n"
-        "  --target_type <type>\n"
-        "               Specify the number of components in the created texture. type is\n"
-        "               one of the following strings: @c R, @c RG, @c RGB or @c RGBA.\n"
-        "               Excess input components will be dropped. Output components with\n"
-        "               no mapping from the input will be set to 0 or, if the alpha\n"
-        "               component, 1.0.\n"
-        "  --resize <width>x<height>\n"
-        "               Resize images to @e width X @e height. This should not be used\n"
-        "               with @b--mipmap as it would resize all the images to the same\n"
-        "               size. Resampler options can be set via --filter and --fscale.\n"
-        "  --scale <value>\n"
-        "               Scale images by <value> as they are read. Resampler options can\n"
-        "               be set via --filter and --fscale.\n"
-        "  --t2         Output in KTX2 format. Default is KTX.\n";
-    scApp::usage();
-    cerr << endl <<
-        "Options can also be set in the environment variable TOKTX_OPTIONS.\n"
-        "TOKTX_OPTIONS is parsed first. If conflicting options appear in TOKTX_OPTIONS\n"
-        "or the command line, the last one seen wins. However if both --automipmap and\n"
-        "--mipmap are seen, it is always flagged as an error. You can, for example,\n"
-        "set TOKTX_OPTIONS=--lower_left_maps_to_s0t0 to change the default mapping of\n"
-        "the logical image origin to match the GL convention.\n";
+void toktxApp::usage() {
+	cerr << "Usage: " << name << " [options] <outfile> [<infile>.{pam,pgm,ppm} ...]\n"
+	                             "\n"
+	                             "  <outfile>    The destination ktx file. \".ktx\" will appended if necessary.\n"
+	                             "               If it is '-' the output will be written to stdout.\n"
+	                             "  <infile>     One or more image files in .jpg, .png, .pam, .ppm, or .pgm\n"
+	                             "               format. Other formats can be readily converted to these formats\n"
+	                             "               using tools such as ImageMagick and XnView. When no infile is\n"
+	                             "               specified, stdin is used. infiles prefixed with '@' are read as\n"
+	                             "               text files listing actual file names to process with one file\n"
+	                             "               path per line. Paths must be absolute or relative to the current\n"
+	                             "               directory when toktx is run. If '@@' is used instead, paths must\n"
+	                             "               be absolute or relative to the location of the list file.\n"
+	                             "\n"
+	                             "  The target texture type (number of components in the output texture) is chosen\n"
+	                             "  via --target_type. Swizzling of the components of the input file is specified\n"
+	                             "  with --input_swizzle and swizzle metadata can be specified with --swizzle\n"
+	                             "  Defaults, shown in the following tables, are based on the components of the\n"
+	                             "  input file and whether the target texture format is uncompressed or\n"
+	                             "  block-compressed including the universal formats. Input components are\n"
+	                             "  arbitrarily labeled r, g, b & a.\n"
+	                             "\n"
+	                             "  |                      Uncompressed Formats                           |\n"
+	                             "  |---------------------------------------------------------------------|\n"
+	                             "  | Input components | 1 (greyscale) | 2 (greyscale alpha) |  3  |  4   |\n"
+	                             "  | Target type      |       R       |         RG          | RGB | RGBA |\n"
+	                             "  | Input swizzle    |       -       |         -           |  -  |  -   |\n"
+	                             "  | Swizzle          |     rrr1      |        rrrg         |  -  |  -   |\n"
+	                             "\n"
+	                             "  |                      Block-compressed formats                       |\n"
+	                             "  |---------------------------------------------------------------------|\n"
+	                             "  | Target type      |      RGB      |        RGBA         | RGB | RGBA |\n"
+	                             "  | Input swizzle    |      rrr1     |        rrrg         |  -  |  -   |\n"
+	                             "  | Swizzle          |       -       |         -           |  -  |  -   |\n"
+	                             "\n"
+	                             "  As can be seen from the table one- and two-component inputs are treated as\n"
+	                             "  luminance{,-alpha} in accordance with the JPEG and PNG specifications. For\n"
+	                             "  consistency Netpbm inputs are handled the same way. Use of R & RG types for\n"
+	                             "  uncompressed formats saves space but note that the sRGB versions of these\n"
+	                             "  formats are not widely supported so a warning will be issued prompting you\n"
+	                             "  to convert the input to linear.\n"
+	                             "\n"
+	                             "  Options are:\n"
+	                             "\n"
+	                             "  --2d         If the image height is 1, by default a KTX file for a 1D\n"
+	                             "               texture is created. With this option one for a 2D texture is\n"
+	                             "               created instead.\n"
+	                             "  --automipmap Causes the KTX file to be marked to request generation of a\n"
+	                             "               mipmap pyramid when the file is loaded. This option is mutually\n"
+	                             "               exclusive with --genmipmap, --levels and --mipmap.\n"
+	                             "  --cubemap    KTX file is for a cubemap. At least 6 <infile>s must be provided,\n"
+	                             "               more if --mipmap is also specified. Provide the images in the\n"
+	                             "               order +X, -X, +Y, -Y, +Z, -Z where the arrangement is a\n"
+	                             "               left-handed coordinate system with +Y up. So if you're facing +Z,\n"
+	                             "               -X will be on your left and +X on your right. If --layers > 1\n"
+	                             "               is specified, provide the faces for layer 0 first then for\n"
+	                             "               layer 1, etc. Images must have an upper left origin so\n"
+	                             "               --lower_left_maps_to_s0t0 is ignored with this option.\n"
+	                             "  --depth <number>\n"
+	                             "               KTX file is for a 3D texture with a depth of number where\n"
+	                             "               number > 1. Provide the file(s) for z=0 first then those for\n"
+	                             "               z=1, etc. It is an error to specify this together with\n"
+	                             "               --layers > 1 or --cubemap.\n"
+	                             "  --genmipmap  Causes mipmaps to be generated for each input file. This option\n"
+	                             "               is mutually exclusive with --automipmap and --mipmap. When set\n"
+	                             "               the following mipmap-generation related options become valid,\n"
+	                             "               otherwise they are ignored.\n"
+	                             "      --filter <name>\n"
+	                             "               Specifies the filter to use when generating the mipmaps. name\n"
+	                             "               is a string. The default is lanczos4. The following names are\n"
+	                             "               recognized: box, tent, bell, b-spline, mitchell, lanczos3\n"
+	                             "               lanczos4, lanczos6, lanczos12, blackman, kaiser, gaussian,\n"
+	                             "               catmullrom, quadratic_interp, quadratic_approx and\n"
+	                             "               quadratic_mix.\n"
+	                             "      --fscale <floatVal>\n"
+	                             "               The filter scale to use. The default is 1.0.\n"
+	                             "      --wmode <mode>\n"
+	                             "               Specify how to sample pixels near the image boundaries. Values\n"
+	                             "               are wrap, reflect and clamp. The default is clamp.\n"
+	                             "  --layers <number>\n"
+	                             "               KTX file is for an array texture with number of layers\n"
+	                             "               where number > 1. Provide the file(s) for layer 0 first then\n"
+	                             "               those for layer 1, etc. It is an error to specify this\n"
+	                             "               together with --depth > 1.\n"
+	                             "  --levels <number>\n"
+	                             "               KTX file is for a mipmap pyramid with <number> of levels rather\n"
+	                             "               than a full pyramid. number must be <= the maximum number of\n"
+	                             "               levels determined from the size of the base image. This option is\n"
+	                             "               mutually exclusive with @b --automipmap.\n"
+	                             "  --mipmap     KTX file is for a mipmap pyramid with one infile being explicitly\n"
+	                             "               provided for each level. Provide the images in the order of layer\n"
+	                             "               then face or depth slice then level with the base-level image\n"
+	                             "               first then in order down to the 1x1 image or the level specified\n"
+	                             "               by --levels.  This option is mutually exclusive with --automipmap\n"
+	                             "               and --genmipmap. Note that this ordering differs from that in the\n"
+	                             "               created texture as it is felt to be more user-friendly.\n"
+	                             "  --nometadata Do not write KTXorientation metadata into the output file.\n"
+	                             "               Use of this option is not recommended.\n"
+	                             "  --nowarn     Silence warnings which are issued when certain transformations\n"
+	                             "               are performed on input images.\n"
+	                             "  --upper_left_maps_to_s0t0\n"
+	                             "               Map the logical upper left corner of the image to s0,t0.\n"
+	                             "               Although opposite to the OpenGL convention, this is the DEFAULT\n"
+	                             "               BEHAVIOUR. netpbm and PNG files have an upper left origin so\n"
+	                             "               this option does not flip the input images. When this option is\n"
+	                             "               in effect, toktx writes a KTXorientation value of S=r,T=d into\n"
+	                             "               the output file to inform loaders of the logical orientation. If\n"
+	                             "               an OpenGL {,ES} loader ignores the orientation value, the image\n"
+	                             "               will appear upside down.\n"
+	                             "  --lower_left_maps_to_s0t0\n"
+	                             "               Map the logical lower left corner of the image to s0,t0.\n"
+	                             "               This causes the input netpbm and PNG images to be flipped\n"
+	                             "               vertically to a lower-left origin. When this option is in effect,\n"
+	                             "               toktx writes a KTXorientation value of S=r,T=u into the output\n"
+	                             "               file to inform loaders of the logical orientation. If a Vulkan\n"
+	                             "               loader ignores the orientation value, the image will appear\n"
+	                             "               upside down. This option is ignored with --cubemap.\n"
+	                             "  --assign_oetf <linear|srgb>\n"
+	                             "               Force the created texture to have the specified transfer\n"
+	                             "               function. If this is specified, implicit or explicit color space\n"
+	                             "               information from the input file(s) will be ignored and no color\n"
+	                             "               transformation will be performed. USE WITH CAUTION preferably\n"
+	                             "               only when you know the file format information is wrong.\n"
+	                             "  --assign_primaries <bt709|none|srgb>\n"
+	                             "               Force the created texture to have the specified primaries. If\n"
+	                             "               this is specified, implicit or explicit color space information\n"
+	                             "               from the input file(s) will be ignored and no color\n"
+	                             "               transformation will be performed. USE WITH CAUTION preferably\n"
+	                             "               only when you know the file format information is wrong.\n"
+	                             "  --convert_oetf <linear|srgb>\n"
+	                             "               Convert the input images to the specified transfer function, if\n"
+	                             "               the current transfer function is different. If both this and\n"
+	                             "               --assign_oetf are specified, conversion will be performed from\n"
+	                             "               the assigned transfer function to the transfer function specified\n"
+	                             "               by this option, if different.\n"
+	                             "  --linear     Deprecated. Use --assign_oetf linear.\n"
+	                             "  --srgb       Deprecated. Use --assign_oetf srgb.\n"
+	                             "  --input_swizzle <swizzle>\n"
+	                             "               Swizzle the input components according to swizzle which is an\n"
+	                             "               alhpanumeric sequence matching the regular expression\n"
+	                             "               ^[rgba01]{4}$.\n"
+	                             "  --swizzle <swizzle>\n"
+	                             "               Add swizzle metadata to the file being created. swizzle has the\n"
+	                             "               same syntax as the parameter for --input_swizzle. Not recommended\n"
+	                             "               for use with block-cmpressed textures, including Basis Universal\n"
+	                             "               formats, because something like `rabb` may yield drastically\n"
+	                             "               different error metrics if done after compression.\n"
+	                             "  --target_type <type>\n"
+	                             "               Specify the number of components in the created texture. type is\n"
+	                             "               one of the following strings: @c R, @c RG, @c RGB or @c RGBA.\n"
+	                             "               Excess input components will be dropped. Output components with\n"
+	                             "               no mapping from the input will be set to 0 or, if the alpha\n"
+	                             "               component, 1.0.\n"
+	                             "  --resize <width>x<height>\n"
+	                             "               Resize images to @e width X @e height. This should not be used\n"
+	                             "               with @b--mipmap as it would resize all the images to the same\n"
+	                             "               size. Resampler options can be set via --filter and --fscale.\n"
+	                             "  --scale <value>\n"
+	                             "               Scale images by <value> as they are read. Resampler options can\n"
+	                             "               be set via --filter and --fscale.\n"
+	                             "  --t2         Output in KTX2 format. Default is KTX.\n";
+	scApp::usage();
+	cerr << endl
+	     << "Options can also be set in the environment variable TOKTX_OPTIONS.\n"
+	        "TOKTX_OPTIONS is parsed first. If conflicting options appear in TOKTX_OPTIONS\n"
+	        "or the command line, the last one seen wins. However if both --automipmap and\n"
+	        "--mipmap are seen, it is always flagged as an error. You can, for example,\n"
+	        "set TOKTX_OPTIONS=--lower_left_maps_to_s0t0 to change the default mapping of\n"
+	        "the logical image origin to match the GL convention.\n";
 }
 
 static uint32_t
-imageCount(uint32_t levelCount, uint32_t layerCount,
-           uint32_t faceCount, uint32_t baseDepth)
-{
-    assert((faceCount == 1 && baseDepth >= 1)
-           || (faceCount > 1 && baseDepth == 1));
+    imageCount(uint32_t levelCount, uint32_t layerCount,
+               uint32_t faceCount, uint32_t baseDepth) {
+	assert((faceCount == 1 && baseDepth >= 1) || (faceCount > 1 && baseDepth == 1));
 
-    uint32_t layerPixelDepth = baseDepth;
-    for(uint32_t level = 1; level < levelCount; level++)
-        layerPixelDepth += maximum(baseDepth >> level, 1U);
-    // NOTA BENE: faceCount * layerPixelDepth is only reasonable because
-    // faceCount and depth can't both be > 1. I.e there are no 3d cubemaps.
-    return layerCount * faceCount * layerPixelDepth;
+	uint32_t layerPixelDepth = baseDepth;
+	for (uint32_t level = 1; level < levelCount; level++)
+		layerPixelDepth += maximum(baseDepth >> level, 1U);
+	// NOTA BENE: faceCount * layerPixelDepth is only reasonable because
+	// faceCount and depth can't both be > 1. I.e there are no 3d cubemaps.
+	return layerCount * faceCount * layerPixelDepth;
 }
 
-int _tmain(int argc, _TCHAR* argv[])
-{
-    return theApp.main(argc, argv);
+int _tmain(int argc, _TCHAR *argv[]) {
+	return theApp.main(argc, argv);
 }
 
-int
-toktxApp::main(int argc, _TCHAR *argv[])
-{
-    KTX_error_code ret;
-    ktxTextureCreateInfo createInfo;
-    ktxTexture* texture = 0;
-    int exitCode = 0;
-    unsigned int componentCount = 1, faceSlice, level, layer, levelCount = 1;
-    unsigned int levelWidth=0, levelHeight=0, levelDepth=0;
-    // These initializations are to avoid compiler warnings.
-    khr_df_transfer_e chosenOETF = KHR_DF_TRANSFER_UNSPECIFIED;
-    khr_df_primaries_e chosenPrimaries = KHR_DF_PRIMARIES_UNSPECIFIED;
-    struct _imageAttribs {
-        khr_df_transfer_e oetf;
-        khr_df_primaries_e primaries;
-        uint32_t componentCount;
-        bool oetfWarned;
-        bool primariesWarned;
-        bool componentCountWarned;
-    } expectedAttribs = {
-        KHR_DF_TRANSFER_UNSPECIFIED,
-        KHR_DF_PRIMARIES_UNSPECIFIED,
-        3,
-        false,
-        false,
-        false
-    };
-    string defaultSwizzle;
+int toktxApp::main(int argc, _TCHAR *argv[]) {
+	KTX_error_code       ret;
+	ktxTextureCreateInfo createInfo;
+	ktxTexture          *texture        = 0;
+	int                  exitCode       = 0;
+	unsigned int         componentCount = 1, faceSlice, level, layer, levelCount = 1;
+	unsigned int         levelWidth = 0, levelHeight = 0, levelDepth = 0;
+	// These initializations are to avoid compiler warnings.
+	khr_df_transfer_e  chosenOETF      = KHR_DF_TRANSFER_UNSPECIFIED;
+	khr_df_primaries_e chosenPrimaries = KHR_DF_PRIMARIES_UNSPECIFIED;
+	struct _imageAttribs {
+		khr_df_transfer_e  oetf;
+		khr_df_primaries_e primaries;
+		uint32_t           componentCount;
+		bool               oetfWarned;
+		bool               primariesWarned;
+		bool               componentCountWarned;
+	} expectedAttribs = {
+	    KHR_DF_TRANSFER_UNSPECIFIED,
+	    KHR_DF_PRIMARIES_UNSPECIFIED,
+	    3,
+	    false,
+	    false,
+	    false};
+	string defaultSwizzle;
 
-    processEnvOptions();
-    processCommandLine(argc, argv, eDisallowStdin, eFirst);
-    validateOptions();
+	processEnvOptions();
+	processCommandLine(argc, argv, eDisallowStdin, eFirst);
+	validateOptions();
 
-    memset(&createInfo, 0, sizeof(createInfo));
-    if (options.cubemap)
-      createInfo.numFaces = 6;
-    else
-      createInfo.numFaces = 1;
+	memset(&createInfo, 0, sizeof(createInfo));
+	if (options.cubemap)
+		createInfo.numFaces = 6;
+	else
+		createInfo.numFaces = 1;
 
-    createInfo.numLayers = options.layers;
-    createInfo.isArray = options.layers > 1;
+	createInfo.numLayers = options.layers;
+	createInfo.isArray   = options.layers > 1;
 
-    // TO DO: handle 3D textures.
+	// TO DO: handle 3D textures.
 
-    faceSlice = layer = level = 0;
-    std::vector<_tstring>::const_iterator it;
-    uint32_t i;
-    for (it = options.infiles.begin(), i = 0;
-         it < options.infiles.end();
-         it++, i++)
-    {
-        const _tstring& infile = *it;
+	faceSlice = layer = level = 0;
+	std::vector<_tstring>::const_iterator it;
+	uint32_t                              i;
+	for (it = options.infiles.begin(), i = 0;
+	     it < options.infiles.end();
+	     it++, i++) {
+		const _tstring &infile = *it;
 
-        Image* image;
-        try {
-            Image::rescale_e rescale = Image::eNoRescale;
-            if (options.etc1s || options.bopts.uastc)
-                rescale = Image::rescale_e::eAlwaysRescaleTo8Bits;
-            else if (options.astc)
-                rescale = Image::rescale_e::eRescaleTo8BitsIfLess;
+		Image *image;
+		try {
+			Image::rescale_e rescale = Image::eNoRescale;
+			if (options.etc1s || options.bopts.uastc)
+				rescale = Image::rescale_e::eAlwaysRescaleTo8Bits;
+			else if (options.astc)
+				rescale = Image::rescale_e::eRescaleTo8BitsIfLess;
 
-            image =
-              Image::CreateFromFile(infile,
-                                    options.assign_oetf == KHR_DF_TRANSFER_UNSPECIFIED,
-                                    rescale);
+			image =
+			    Image::CreateFromFile(infile,
+			                          options.assign_oetf == KHR_DF_TRANSFER_UNSPECIFIED,
+			                          rescale);
 
-            // If input is > 8bit and user wants LDR issue quality loss warning
-            if (options.astc && image->getComponentSize() > 1
-                && options.astcopts.mode == KTX_PACK_ASTC_ENCODER_MODE_LDR) {
-                stringstream msg;
-                msg << "Input file is 16-bit but LDR option is specified. "
-                    << "Expect quality loss in the output."
-                    << endl;
-                warning(msg.str());
-            }
+			// If input is > 8bit and user wants LDR issue quality loss warning
+			if (options.astc && image->getComponentSize() > 1 && options.astcopts.mode == KTX_PACK_ASTC_ENCODER_MODE_LDR) {
+				stringstream msg;
+				msg << "Input file is 16-bit but LDR option is specified. "
+				    << "Expect quality loss in the output."
+				    << endl;
+				warning(msg.str());
+			}
 
-            // If input is < 8bit and user wants HDR issue warning
-            if (options.astc && image->getComponentSize() <= 1 &&
-                options.astcopts.mode == KTX_PACK_ASTC_ENCODER_MODE_HDR) {
-                stringstream msg;
-                msg << "Input file is not 16-bit but HDR option is specified."
-                    << endl;
-                warning(msg.str());
-            }
+			// If input is < 8bit and user wants HDR issue warning
+			if (options.astc && image->getComponentSize() <= 1 &&
+			    options.astcopts.mode == KTX_PACK_ASTC_ENCODER_MODE_HDR) {
+				stringstream msg;
+				msg << "Input file is not 16-bit but HDR option is specified."
+				    << endl;
+				warning(msg.str());
+			}
 
-            // If no astc mode option is specified and
-            // if input is <= 8bit default to LDR otherwise default to HDR
-            if (options.astc && options.astcopts.mode == KTX_PACK_ASTC_ENCODER_MODE_DEFAULT) {
-                if (image->getComponentSize() <= 1)
-                    options.astcopts.mode = KTX_PACK_ASTC_ENCODER_MODE_LDR;
-                else
-                    options.astcopts.mode = KTX_PACK_ASTC_ENCODER_MODE_HDR;
-            }
+			// If no astc mode option is specified and
+			// if input is <= 8bit default to LDR otherwise default to HDR
+			if (options.astc && options.astcopts.mode == KTX_PACK_ASTC_ENCODER_MODE_DEFAULT) {
+				if (image->getComponentSize() <= 1)
+					options.astcopts.mode = KTX_PACK_ASTC_ENCODER_MODE_LDR;
+				else
+					options.astcopts.mode = KTX_PACK_ASTC_ENCODER_MODE_HDR;
+			}
 
-            // Check that all input files have matching oetf, primaries and
-            // component count. Raise error or warning depending on attribute
-            // and assign or convert options.
-            if (i == 0) {
-                // First file.
-                expectedAttribs.oetf = image->getOetf();
-                expectedAttribs.primaries = image->getPrimaries();
-                expectedAttribs.componentCount = image->getComponentCount();
-            } else {
-                // Subsequent files.
-                if (image->getOetf() != expectedAttribs.oetf
-                    && options.convert_oetf == KHR_DF_TRANSFER_UNSPECIFIED)
-                {
-                    stringstream msg;
-                    msg << "\"" << infile << "\" is encoded with a "
-                        "different transfer function (OETF) than preceding "
-                        "file(s)." << endl;
-                    if (options.assign_oetf == KHR_DF_TRANSFER_UNSPECIFIED) {
-                        cerr << name << ": " << msg.str();
-                        exitCode = 1;
-                        goto cleanup;
-                    } else if (!expectedAttribs.oetfWarned) {
-                        warning(msg.str());
-                        expectedAttribs.oetfWarned = true;
-                    }
-                    // Don't warn when convert_oetf is set as proper conversions
-                    // will be done so all images will be in the same space.
-                }
-                if (image->getPrimaries() != expectedAttribs.primaries) {
-                    stringstream msg;
-                    msg << "\"" << infile << "\" has different color "
-                         "primaries than preceding file(s)." << endl;
-                    if (options.assign_primaries == KHR_DF_PRIMARIES_UNSPECIFIED) {
-                        cerr << name << ": " << msg.str();
-                        exitCode = 1;
-                        goto cleanup;
-                    } else if (!expectedAttribs.primariesWarned) {
-                        warning(msg.str());
-                        expectedAttribs.primariesWarned = true;
-                    }
-                    // There is no convert_primaries option.
-                }
-                if (image->getComponentCount() != expectedAttribs.componentCount) {
-                    stringstream msg;
-                    msg << "\"" << infile
-                        << "\" has a different colortype_e"
-                        << " (component count) than preceding file(s)."
-                        << endl;
-                    if (options.targetType == commandOptions::eUnspecified) {
-                        cerr << name << ": " << msg.str();
-                        exitCode = 1;
-                        goto cleanup;
-                    } else if (!expectedAttribs.componentCountWarned) {
-                        msg << "The components of the level or layer derived "
-                            << "from this file will likely be significantly "
-                            << "different"
-                            << endl
-                            << "from those in other levels or layers."
-                            << endl;
-                        warning(msg.str());
-                        expectedAttribs.componentCountWarned = true;
-                    }
-                }
-            }
+			// Check that all input files have matching oetf, primaries and
+			// component count. Raise error or warning depending on attribute
+			// and assign or convert options.
+			if (i == 0) {
+				// First file.
+				expectedAttribs.oetf           = image->getOetf();
+				expectedAttribs.primaries      = image->getPrimaries();
+				expectedAttribs.componentCount = image->getComponentCount();
+			} else {
+				// Subsequent files.
+				if (image->getOetf() != expectedAttribs.oetf && options.convert_oetf == KHR_DF_TRANSFER_UNSPECIFIED) {
+					stringstream msg;
+					msg << "\"" << infile << "\" is encoded with a "
+					                         "different transfer function (OETF) than preceding "
+					                         "file(s)."
+					    << endl;
+					if (options.assign_oetf == KHR_DF_TRANSFER_UNSPECIFIED) {
+						cerr << name << ": " << msg.str();
+						exitCode = 1;
+						goto cleanup;
+					} else if (!expectedAttribs.oetfWarned) {
+						warning(msg.str());
+						expectedAttribs.oetfWarned = true;
+					}
+					// Don't warn when convert_oetf is set as proper conversions
+					// will be done so all images will be in the same space.
+				}
+				if (image->getPrimaries() != expectedAttribs.primaries) {
+					stringstream msg;
+					msg << "\"" << infile << "\" has different color "
+					                         "primaries than preceding file(s)."
+					    << endl;
+					if (options.assign_primaries == KHR_DF_PRIMARIES_UNSPECIFIED) {
+						cerr << name << ": " << msg.str();
+						exitCode = 1;
+						goto cleanup;
+					} else if (!expectedAttribs.primariesWarned) {
+						warning(msg.str());
+						expectedAttribs.primariesWarned = true;
+					}
+					// There is no convert_primaries option.
+				}
+				if (image->getComponentCount() != expectedAttribs.componentCount) {
+					stringstream msg;
+					msg << "\"" << infile
+					    << "\" has a different colortype_e"
+					    << " (component count) than preceding file(s)."
+					    << endl;
+					if (options.targetType == commandOptions::eUnspecified) {
+						cerr << name << ": " << msg.str();
+						exitCode = 1;
+						goto cleanup;
+					} else if (!expectedAttribs.componentCountWarned) {
+						msg << "The components of the level or layer derived "
+						    << "from this file will likely be significantly "
+						    << "different"
+						    << endl
+						    << "from those in other levels or layers."
+						    << endl;
+						warning(msg.str());
+						expectedAttribs.componentCountWarned = true;
+					}
+				}
+			}
 
-            if (options.assign_oetf != KHR_DF_TRANSFER_UNSPECIFIED) {
-                image->setOetf(options.assign_oetf);
-            }
+			if (options.assign_oetf != KHR_DF_TRANSFER_UNSPECIFIED) {
+				image->setOetf(options.assign_oetf);
+			}
 
-            if (options.convert_oetf != KHR_DF_TRANSFER_UNSPECIFIED &&
-                options.convert_oetf != image->getOetf()) {
-                OETFFunc decode, encode;
-                if (image->getOetf() == KHR_DF_TRANSFER_SRGB)
-                    decode = decode_sRGB;
-                else
-                    decode = decode_linear;
-                if (options.convert_oetf == KHR_DF_TRANSFER_SRGB)
-                    encode = encode_sRGB;
-                else
-                    encode = encode_linear;
-                image->transformOETF(decode, encode);
-                image->setOetf(options.convert_oetf);
-            }
-            if (options.assign_primaries != KHR_DF_PRIMARIES_MAX) {
-                image->setPrimaries(options.assign_primaries);
-            }
-        } catch (exception& e) {
-            cerr << name << ": failed to create image from "
-                      << infile << ". " << e.what() << endl;
-            exit(2);
-        }
+			if (options.convert_oetf != KHR_DF_TRANSFER_UNSPECIFIED &&
+			    options.convert_oetf != image->getOetf()) {
+				OETFFunc decode, encode;
+				if (image->getOetf() == KHR_DF_TRANSFER_SRGB)
+					decode = decode_sRGB;
+				else
+					decode = decode_linear;
+				if (options.convert_oetf == KHR_DF_TRANSFER_SRGB)
+					encode = encode_sRGB;
+				else
+					encode = encode_linear;
+				image->transformOETF(decode, encode);
+				image->setOetf(options.convert_oetf);
+			}
+			if (options.assign_primaries != KHR_DF_PRIMARIES_MAX) {
+				image->setPrimaries(options.assign_primaries);
+			}
+		} catch (exception &e) {
+			cerr << name << ": failed to create image from "
+			     << infile << ". " << e.what() << endl;
+			exit(2);
+		}
 
-        /* Sanity check. */
-        assert(image->getWidth() * image->getHeight() * image->getPixelSize()
-                  == image->getByteCount());
+		/* Sanity check. */
+		assert(image->getWidth() * image->getHeight() * image->getPixelSize() == image->getByteCount());
 
-        if (options.scale != 1.0f || options.resize) {
-            Image* scaledImage;
-            if (options.scale != 1.0f) {
-                scaledImage = image->createImage(
-                              (uint32_t)(image->getWidth() * options.scale),
-                              (uint32_t)(image->getHeight() * options.scale));
+		if (options.scale != 1.0f || options.resize) {
+			Image *scaledImage;
+			if (options.scale != 1.0f) {
+				scaledImage = image->createImage(
+				    (uint32_t) (image->getWidth() * options.scale),
+				    (uint32_t) (image->getHeight() * options.scale));
 
-            } else {
-                scaledImage = image->createImage(options.newGeom.width,
-                                                 options.newGeom.height);
-            }
+			} else {
+				scaledImage = image->createImage(options.newGeom.width,
+				                                 options.newGeom.height);
+			}
 
-            try {
-                image->resample(*scaledImage,
-                                image->getOetf() == KHR_DF_TRANSFER_SRGB,
-                                options.gmopts.filter.c_str(),
-                                options.gmopts.filterScale,
-                                basisu::Resampler::Boundary_Op::BOUNDARY_CLAMP);
-            } catch (runtime_error& e) {
-                cerr << name << ": Image::resample() failed! "
-                          << e.what() << endl;
-                exitCode = 1;
-                goto cleanup;
-            }
-            scaledImage->setOetf(image->getOetf());
-            scaledImage->setColortype(image->getColortype());
-            scaledImage->setPrimaries(image->getPrimaries());
-            delete image;
-            image = scaledImage;
-        }
+			try {
+				image->resample(*scaledImage,
+				                image->getOetf() == KHR_DF_TRANSFER_SRGB,
+				                options.gmopts.filter.c_str(),
+				                options.gmopts.filterScale,
+				                basisu::Resampler::Boundary_Op::BOUNDARY_CLAMP);
+			} catch (runtime_error &e) {
+				cerr << name << ": Image::resample() failed! "
+				     << e.what() << endl;
+				exitCode = 1;
+				goto cleanup;
+			}
+			scaledImage->setOetf(image->getOetf());
+			scaledImage->setColortype(image->getColortype());
+			scaledImage->setPrimaries(image->getPrimaries());
+			delete image;
+			image = scaledImage;
+		}
 
-        if (image->getHeight() > 1 && options.lower_left_maps_to_s0t0) {
-            image->yflip();
-        }
+		if (image->getHeight() > 1 && options.lower_left_maps_to_s0t0) {
+			image->yflip();
+		}
 
-        if (options.normalize) {
-            image->normalize();
-        }
+		if (options.normalize) {
+			image->normalize();
+		}
 
-        if (options.targetType != commandOptions::eUnspecified) {
-            if (options.targetType != (int)image->getComponentCount()) {
-                Image* newImage = nullptr;
-                // The casts in the following copyTo* definitions only work
-                // because, thanks to the switch, at runtime we always pass
-                // the image type being cast to.
-                if (image->getComponentSize() == 2) {
-                    switch (options.targetType) {
-                      case commandOptions::eR:
-                        newImage = new r16image(image->getWidth(), image->getHeight());
-                        image->copyToR(*newImage);
-                        break;
-                      case commandOptions::eRG:
-                        newImage = new rg16image(image->getWidth(), image->getHeight());
-                        image->copyToRG(*newImage);
-                        break;
-                      case commandOptions::eRGB:
-                        newImage = new rgb16image(image->getWidth(), image->getHeight());
-                        image->copyToRGB(*newImage);
-                        break;
-                      case commandOptions::eRGBA:
-                        newImage = new rgba16image(image->getWidth(), image->getHeight());
-                        image->copyToRGBA(*newImage);
-                        break;
-                      case commandOptions::eUnspecified:
-                        assert(false);
-                    }
-                } else {
-                    switch (options.targetType) {
-                      case commandOptions::eR:
-                        newImage = new r8image(image->getWidth(), image->getHeight());
-                        image->copyToR(*newImage);
-                        break;
-                      case commandOptions::eRG:
-                        newImage = new rg8image(image->getWidth(), image->getHeight());
-                        image->copyToRG(*newImage);
-                        break;
-                      case commandOptions::eRGB:
-                        newImage = new rgb8image(image->getWidth(), image->getHeight());
-                        image->copyToRGB(*newImage);
-                        break;
-                      case commandOptions::eRGBA:
-                        newImage = new rgba8image(image->getWidth(), image->getHeight());
-                        image->copyToRGBA(*newImage);
-                        break;
-                      case commandOptions::eUnspecified:
-                        assert(false);
-                    }
-                }
-                if (newImage) {
-                     delete image;
-                     image = newImage;
-                } else {
-                    cerr << name << ": creation of image for new target type"
-                                    " failed. Out of memory." << endl;
-                    exitCode = 1;
-                    goto cleanup;
-                }
-            } else {
-                if (image->getColortype() < Image::colortype_e::eR) {
-                    // Color type is currently set to luminance. Override.
-                    assert(image->getComponentCount() < 3);
-                    if (options.targetType == commandOptions::eR)
-                        image->setColortype(Image::colortype_e::eR);
-                    else
-                        image->setColortype(Image::colortype_e::eRG);
-                }
-            }
-        }
+		if (options.targetType != commandOptions::eUnspecified) {
+			if (options.targetType != (int) image->getComponentCount()) {
+				Image *newImage = nullptr;
+				// The casts in the following copyTo* definitions only work
+				// because, thanks to the switch, at runtime we always pass
+				// the image type being cast to.
+				if (image->getComponentSize() == 2) {
+					switch (options.targetType) {
+						case commandOptions::eR:
+							newImage = new r16image(image->getWidth(), image->getHeight());
+							image->copyToR(*newImage);
+							break;
+						case commandOptions::eRG:
+							newImage = new rg16image(image->getWidth(), image->getHeight());
+							image->copyToRG(*newImage);
+							break;
+						case commandOptions::eRGB:
+							newImage = new rgb16image(image->getWidth(), image->getHeight());
+							image->copyToRGB(*newImage);
+							break;
+						case commandOptions::eRGBA:
+							newImage = new rgba16image(image->getWidth(), image->getHeight());
+							image->copyToRGBA(*newImage);
+							break;
+						case commandOptions::eUnspecified:
+							assert(false);
+					}
+				} else {
+					switch (options.targetType) {
+						case commandOptions::eR:
+							newImage = new r8image(image->getWidth(), image->getHeight());
+							image->copyToR(*newImage);
+							break;
+						case commandOptions::eRG:
+							newImage = new rg8image(image->getWidth(), image->getHeight());
+							image->copyToRG(*newImage);
+							break;
+						case commandOptions::eRGB:
+							newImage = new rgb8image(image->getWidth(), image->getHeight());
+							image->copyToRGB(*newImage);
+							break;
+						case commandOptions::eRGBA:
+							newImage = new rgba8image(image->getWidth(), image->getHeight());
+							image->copyToRGBA(*newImage);
+							break;
+						case commandOptions::eUnspecified:
+							assert(false);
+					}
+				}
+				if (newImage) {
+					delete image;
+					image = newImage;
+				} else {
+					cerr << name << ": creation of image for new target type"
+					                " failed. Out of memory."
+					     << endl;
+					exitCode = 1;
+					goto cleanup;
+				}
+			} else {
+				if (image->getColortype() < Image::colortype_e::eR) {
+					// Color type is currently set to luminance. Override.
+					assert(image->getComponentCount() < 3);
+					if (options.targetType == commandOptions::eR)
+						image->setColortype(Image::colortype_e::eR);
+					else
+						image->setColortype(Image::colortype_e::eRG);
+				}
+			}
+		}
 
-        if (options.inputSwizzle.size() > 0
-            // inputSwizzle is handled during BasisU and astc encoding
-            && !options.etc1s && !options.bopts.uastc && !options.astc) {
-            image->swizzle(options.inputSwizzle);
-        }
+		if (options.inputSwizzle.size() > 0
+		    // inputSwizzle is handled during BasisU and astc encoding
+		    && !options.etc1s && !options.bopts.uastc && !options.astc) {
+			image->swizzle(options.inputSwizzle);
+		}
 
-        if (i == 0) {
-            // First file.
-            chosenOETF = image->getOetf();
-            chosenPrimaries = image->getPrimaries();
+		if (i == 0) {
+			// First file.
+			chosenOETF      = image->getOetf();
+			chosenPrimaries = image->getPrimaries();
 
-            if (image->getColortype() < Image::colortype_e::eR) {  // Luminance type?
-                if (image->getColortype() == Image::colortype_e::eLuminance) {
-                    defaultSwizzle = "rrr1";
-                } else if (image->getColortype() == Image::colortype_e::eLuminanceAlpha) {
-                    defaultSwizzle = "rrrg";
-                }
-            }
+			if (image->getColortype() < Image::colortype_e::eR) {        // Luminance type?
+				if (image->getColortype() == Image::colortype_e::eLuminance) {
+					defaultSwizzle = "rrr1";
+				} else if (image->getColortype() == Image::colortype_e::eLuminanceAlpha) {
+					defaultSwizzle = "rrrg";
+				}
+			}
 
-            bool srgb = (image->getOetf() == KHR_DF_TRANSFER_SRGB);
-            componentCount = image->getComponentCount();
-            switch (componentCount) {
-              case 1:
-                switch (image->getComponentSize()) {
-                  case 1:
-                    createInfo.glInternalformat
-                                    = srgb ? GL_SR8 : GL_R8;
-                    createInfo.vkFormat
-                                    = srgb ? VK_FORMAT_R8_SRGB
-                                           : VK_FORMAT_R8_UNORM;
-                    break;
-                  case 2:
-                    createInfo.glInternalformat = GL_R16;
-                    createInfo.vkFormat = VK_FORMAT_R16_UNORM;
-                    break;
-                  case 4:
-                    createInfo.glInternalformat = GL_R32F;
-                    createInfo.vkFormat = VK_FORMAT_R32_SFLOAT;
-                    break;
-                }
-                break;
+			bool srgb      = (image->getOetf() == KHR_DF_TRANSFER_SRGB);
+			componentCount = image->getComponentCount();
+			switch (componentCount) {
+				case 1:
+					switch (image->getComponentSize()) {
+						case 1:
+							createInfo.glInternalformat = srgb ? GL_SR8 : GL_R8;
+							createInfo.vkFormat         = srgb ? VK_FORMAT_R8_SRGB : VK_FORMAT_R8_UNORM;
+							break;
+						case 2:
+							createInfo.glInternalformat = GL_R16;
+							createInfo.vkFormat         = VK_FORMAT_R16_UNORM;
+							break;
+						case 4:
+							createInfo.glInternalformat = GL_R32F;
+							createInfo.vkFormat         = VK_FORMAT_R32_SFLOAT;
+							break;
+					}
+					break;
 
-              case 2:
-                 switch (image->getComponentSize()) {
-                  case 1:
-                    createInfo.glInternalformat
-                                    = srgb ? GL_SRG8 : GL_RG8;
-                    createInfo.vkFormat
-                                    = srgb ? VK_FORMAT_R8G8_SRGB
-                                           : VK_FORMAT_R8G8_UNORM;
-                    break;
-                  case 2:
-                    createInfo.glInternalformat = GL_RG16;
-                    createInfo.vkFormat = VK_FORMAT_R16G16_UNORM;
-                    break;
-                  case 4:
-                    createInfo.glInternalformat = GL_RG32F;
-                    createInfo.vkFormat = VK_FORMAT_R32G32_SFLOAT;
-                    break;
-                }
-                break;
+				case 2:
+					switch (image->getComponentSize()) {
+						case 1:
+							createInfo.glInternalformat = srgb ? GL_SRG8 : GL_RG8;
+							createInfo.vkFormat         = srgb ? VK_FORMAT_R8G8_SRGB : VK_FORMAT_R8G8_UNORM;
+							break;
+						case 2:
+							createInfo.glInternalformat = GL_RG16;
+							createInfo.vkFormat         = VK_FORMAT_R16G16_UNORM;
+							break;
+						case 4:
+							createInfo.glInternalformat = GL_RG32F;
+							createInfo.vkFormat         = VK_FORMAT_R32G32_SFLOAT;
+							break;
+					}
+					break;
 
-              case 3:
-                 switch (image->getComponentSize()) {
-                  case 1:
-                    createInfo.glInternalformat
-                                    = srgb ? GL_SRGB8 : GL_RGB8;
-                    createInfo.vkFormat
-                                    = srgb ? VK_FORMAT_R8G8B8_SRGB
-                                           : VK_FORMAT_R8G8B8_UNORM;
-                    break;
-                  case 2:
-                    createInfo.glInternalformat = GL_RGB16;
-                    createInfo.vkFormat = VK_FORMAT_R16G16B16_UNORM;
-                    break;
-                  case 4:
-                    createInfo.glInternalformat = GL_RGB32F;
-                    createInfo.vkFormat = VK_FORMAT_R32G32B32_SFLOAT;
-                    break;
-                }
-                break;
+				case 3:
+					switch (image->getComponentSize()) {
+						case 1:
+							createInfo.glInternalformat = srgb ? GL_SRGB8 : GL_RGB8;
+							createInfo.vkFormat         = srgb ? VK_FORMAT_R8G8B8_SRGB : VK_FORMAT_R8G8B8_UNORM;
+							break;
+						case 2:
+							createInfo.glInternalformat = GL_RGB16;
+							createInfo.vkFormat         = VK_FORMAT_R16G16B16_UNORM;
+							break;
+						case 4:
+							createInfo.glInternalformat = GL_RGB32F;
+							createInfo.vkFormat         = VK_FORMAT_R32G32B32_SFLOAT;
+							break;
+					}
+					break;
 
-              case 4:
-                 switch (image->getComponentSize()) {
-                  case 1:
-                    createInfo.glInternalformat
-                                    = srgb ? GL_SRGB8_ALPHA8 : GL_RGBA8;
-                    createInfo.vkFormat
-                                    = srgb ? VK_FORMAT_R8G8B8A8_SRGB
-                                           : VK_FORMAT_R8G8B8A8_UNORM;
-                    break;
-                  case 2:
-                    createInfo.glInternalformat = GL_RGBA16;
-                    createInfo.vkFormat = VK_FORMAT_R16G16B16A16_UNORM;
-                    break;
-                  case 4:
-                    createInfo.glInternalformat = GL_RGBA32F;
-                    createInfo.vkFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
-                    break;
-                }
-                break;
+				case 4:
+					switch (image->getComponentSize()) {
+						case 1:
+							createInfo.glInternalformat = srgb ? GL_SRGB8_ALPHA8 : GL_RGBA8;
+							createInfo.vkFormat         = srgb ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8A8_UNORM;
+							break;
+						case 2:
+							createInfo.glInternalformat = GL_RGBA16;
+							createInfo.vkFormat         = VK_FORMAT_R16G16B16A16_UNORM;
+							break;
+						case 4:
+							createInfo.glInternalformat = GL_RGBA32F;
+							createInfo.vkFormat         = VK_FORMAT_R32G32B32A32_SFLOAT;
+							break;
+					}
+					break;
 
-              default:
-                /* If we get here there's a bug. */
-                assert(0);
-            }
-            if (createInfo.vkFormat == VK_FORMAT_R8_SRGB
-                || createInfo.vkFormat == VK_FORMAT_R8G8_SRGB) {
-                warning("GPU support of sRGB variants of R & RG formats is"
-                        " limited.\nConsider using '--convert_oetf linear'"
-                        " to avoid these formats.");
-            }
-            createInfo.baseWidth = levelWidth = image->getWidth();
-            createInfo.baseHeight = levelHeight = image->getHeight();
-            createInfo.baseDepth = levelDepth = options.depth;
-            if (options.depth > 1) {
-                // In this case, don't care about image->getHeight(). Images are
-                // always considered to be 2d. No need to set options.two_d.
-                createInfo.numDimensions = 3;
-            } else if (image->getHeight() == 1 && !options.two_d)
-                createInfo.numDimensions = 1;
-            else
-                createInfo.numDimensions = 2;
-            if (options.automipmap) {
-                createInfo.numLevels = 1;
-                createInfo.generateMipmaps = KTX_TRUE;
-            } else {
-                createInfo.generateMipmaps = KTX_FALSE;
-                if (options.mipmap || options.genmipmap) {
-                    // Calculate number of miplevels
-                    GLuint max_dim = image->getWidth() > image->getHeight() ?
-                                     image->getWidth() : image->getHeight();
-                    createInfo.numLevels = log2(max_dim) + 1;
-                    if (options.levels > 1) {
-                        if (options.levels > createInfo.numLevels) {
-                            cerr << name << "--levels value is greater than "
-                                 << "the maximum levels for the image size."
-                                 << endl;
-                            exitCode = 1;
-                            goto cleanup;
-                        }
-                        // Override the above.
-                        createInfo.numLevels = options.levels;
-                    }
-                } else {
-                    createInfo.numLevels = 1;
-                }
-                // Figure out how many levels we'll read from files.
-                if (options.mipmap) {
-                    levelCount = createInfo.numLevels;
-                } else {
-                    levelCount = 1;
-                }
-            }
-            // Check we have enough files.
-            uint32_t requiredFileCount = imageCount(options.genmipmap ? 1 : levelCount,
-                                             createInfo.numLayers,
-                                             createInfo.numFaces,
-                                             createInfo.baseDepth);
-            if (requiredFileCount > options.infiles.size()) {
-                cerr << name << ": too few files for " << levelCount
-                     << " levels, " << createInfo.numLayers
-                     << " layers and " << createInfo.numFaces
-                     << " faces." << endl;
-                exitCode = 1;
-                goto cleanup;
-            } else if (requiredFileCount < options.infiles.size()) {
-                cerr << name << ": too many files for " << levelCount
-                     << " levels, " << createInfo.numLayers
-                     << " layers and " << createInfo.numFaces
-                     << " faces. Extras will be ignored." << endl;
-                options.infiles.erase(options.infiles.begin() + requiredFileCount,
-                                          options.infiles.end());
-            }
-            if (options.ktx2) {
-                ret = ktxTexture2_Create(&createInfo,
-                                         KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                         (ktxTexture2**)&texture);
-            } else {
-                ret = ktxTexture1_Create(&createInfo,
-                                         KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                         (ktxTexture1**)&texture);
-            }
-            if (KTX_SUCCESS != ret) {
-                fprintf(stderr, "%s failed to create ktxTexture; KTX error: %s\n",
-                        name.c_str(), ktxErrorString(ret));
-                exitCode = 2;
-                goto cleanup;
-            }
-        } else {
-            // Input file order is layer, faceSlice, level. This seems easier for
-            // a human to manage than the order in a KTX file. It keeps the
-            // base level images and their mip levels together.
-            level++;
-            levelWidth >>= 1;
-            levelHeight >>= 1;
-            levelDepth >>= 1;
-            if (level == levelCount) {
-                faceSlice++;
-                level = 0;
-                levelWidth = createInfo.baseWidth;
-                levelHeight = createInfo.baseHeight;
-                levelDepth = createInfo.baseDepth;
-                if (faceSlice == (options.cubemap ? 6 : levelDepth)) {
-                    faceSlice = 0;
-                    layer++;
-                    if (layer == options.layers) {
-                        // We're done.
-                        break;
-                    }
-                }
-            }
-        }
+				default:
+					/* If we get here there's a bug. */
+					assert(0);
+			}
+			if (createInfo.vkFormat == VK_FORMAT_R8_SRGB || createInfo.vkFormat == VK_FORMAT_R8G8_SRGB) {
+				warning("GPU support of sRGB variants of R & RG formats is"
+				        " limited.\nConsider using '--convert_oetf linear'"
+				        " to avoid these formats.");
+			}
+			createInfo.baseWidth = levelWidth = image->getWidth();
+			createInfo.baseHeight = levelHeight = image->getHeight();
+			createInfo.baseDepth = levelDepth = options.depth;
+			if (options.depth > 1) {
+				// In this case, don't care about image->getHeight(). Images are
+				// always considered to be 2d. No need to set options.two_d.
+				createInfo.numDimensions = 3;
+			} else if (image->getHeight() == 1 && !options.two_d)
+				createInfo.numDimensions = 1;
+			else
+				createInfo.numDimensions = 2;
+			if (options.automipmap) {
+				createInfo.numLevels       = 1;
+				createInfo.generateMipmaps = KTX_TRUE;
+			} else {
+				createInfo.generateMipmaps = KTX_FALSE;
+				if (options.mipmap || options.genmipmap) {
+					// Calculate number of miplevels
+					GLuint max_dim       = image->getWidth() > image->getHeight() ?
+					                           image->getWidth() :
+                                               image->getHeight();
+					createInfo.numLevels = log2(max_dim) + 1;
+					if (options.levels > 1) {
+						if (options.levels > createInfo.numLevels) {
+							cerr << name << "--levels value is greater than "
+							     << "the maximum levels for the image size."
+							     << endl;
+							exitCode = 1;
+							goto cleanup;
+						}
+						// Override the above.
+						createInfo.numLevels = options.levels;
+					}
+				} else {
+					createInfo.numLevels = 1;
+				}
+				// Figure out how many levels we'll read from files.
+				if (options.mipmap) {
+					levelCount = createInfo.numLevels;
+				} else {
+					levelCount = 1;
+				}
+			}
+			// Check we have enough files.
+			uint32_t requiredFileCount = imageCount(options.genmipmap ? 1 : levelCount,
+			                                        createInfo.numLayers,
+			                                        createInfo.numFaces,
+			                                        createInfo.baseDepth);
+			if (requiredFileCount > options.infiles.size()) {
+				cerr << name << ": too few files for " << levelCount
+				     << " levels, " << createInfo.numLayers
+				     << " layers and " << createInfo.numFaces
+				     << " faces." << endl;
+				exitCode = 1;
+				goto cleanup;
+			} else if (requiredFileCount < options.infiles.size()) {
+				cerr << name << ": too many files for " << levelCount
+				     << " levels, " << createInfo.numLayers
+				     << " layers and " << createInfo.numFaces
+				     << " faces. Extras will be ignored." << endl;
+				options.infiles.erase(options.infiles.begin() + requiredFileCount,
+				                      options.infiles.end());
+			}
+			if (options.ktx2) {
+				ret = ktxTexture2_Create(&createInfo,
+				                         KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+				                         (ktxTexture2 **) &texture);
+			} else {
+				ret = ktxTexture1_Create(&createInfo,
+				                         KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+				                         (ktxTexture1 **) &texture);
+			}
+			if (KTX_SUCCESS != ret) {
+				fprintf(stderr, "%s failed to create ktxTexture; KTX error: %s\n",
+				        name.c_str(), ktxErrorString(ret));
+				exitCode = 2;
+				goto cleanup;
+			}
+		} else {
+			// Input file order is layer, faceSlice, level. This seems easier for
+			// a human to manage than the order in a KTX file. It keeps the
+			// base level images and their mip levels together.
+			level++;
+			levelWidth >>= 1;
+			levelHeight >>= 1;
+			levelDepth >>= 1;
+			if (level == levelCount) {
+				faceSlice++;
+				level       = 0;
+				levelWidth  = createInfo.baseWidth;
+				levelHeight = createInfo.baseHeight;
+				levelDepth  = createInfo.baseDepth;
+				if (faceSlice == (options.cubemap ? 6 : levelDepth)) {
+					faceSlice = 0;
+					layer++;
+					if (layer == options.layers) {
+						// We're done.
+						break;
+					}
+				}
+			}
+		}
 
-        if (options.cubemap && image->getWidth() != image->getHeight()
-            && image->getWidth() != levelWidth) {
-            cerr << name << ": \"" << infile << "\" intended for a cubemap "
-                            << "face, is not square or has incorrect" << endl
-                            << "size for current mipmap level" << endl;
-            exitCode = 1;
-            goto cleanup;
-        }
+		if (options.cubemap && image->getWidth() != image->getHeight() && image->getWidth() != levelWidth) {
+			cerr << name << ": \"" << infile << "\" intended for a cubemap "
+			     << "face, is not square or has incorrect" << endl
+			     << "size for current mipmap level" << endl;
+			exitCode = 1;
+			goto cleanup;
+		}
 #if TRAVIS_DEBUG
-        if (options.etc1s) {
-            cout << "level = " << level << ", faceSlice = " << faceSlice;
-            cout << ", srcImg = " << hex  << (void *)srcImg << dec;
-            cout << ", imageSize = " << imageSize << endl;
-        }
+		if (options.etc1s) {
+			cout << "level = " << level << ", faceSlice = " << faceSlice;
+			cout << ", srcImg = " << hex << (void *) srcImg << dec;
+			cout << ", imageSize = " << imageSize << endl;
+		}
 #endif
-        ret = ktxTexture_SetImageFromMemory(ktxTexture(texture),
-                                            level,
-                                            layer,
-                                            faceSlice,
-                                            *image,
-                                            image->getByteCount());
-        // Only an error in this program could lead to ret != SUCCESS
-        // hence no user message.
-        assert(ret == KTX_SUCCESS);
+		ret = ktxTexture_SetImageFromMemory(ktxTexture(texture),
+		                                    level,
+		                                    layer,
+		                                    faceSlice,
+		                                    *image,
+		                                    image->getByteCount());
+		// Only an error in this program could lead to ret != SUCCESS
+		// hence no user message.
+		assert(ret == KTX_SUCCESS);
 
-        // This does not work for mipmaps for 3d textures. For those it is
-        // necessary to present the base images for each slice to a
-        // resampler that can sample across images.
-        if (options.genmipmap) {
-            for (uint32_t glevel = 1; glevel < createInfo.numLevels; glevel++)
-            {
-                Image *levelImage = image->createImage(
-                    maximum<uint32_t>(1, image->getWidth() >> glevel),
-                    maximum<uint32_t>(1, image->getHeight() >> glevel));
-                levelImage->setOetf(image->getOetf());
-                levelImage->setColortype(image->getColortype());
-                levelImage->setPrimaries(image->getPrimaries());
-                try {
-                    image->resample(*levelImage,
-                                    image->getOetf() == KHR_DF_TRANSFER_SRGB,
-                                    options.gmopts.filter.c_str(),
-                                    options.gmopts.filterScale,
-                                    options.gmopts.wrapMode);
-                } catch (runtime_error& e) {
-                    cerr << name << ": Image::resample() failed! "
-                              << e.what() << endl;
-                    exitCode = 1;
-                    goto cleanup;
-                }
+		// This does not work for mipmaps for 3d textures. For those it is
+		// necessary to present the base images for each slice to a
+		// resampler that can sample across images.
+		if (options.genmipmap) {
+			for (uint32_t glevel = 1; glevel < createInfo.numLevels; glevel++) {
+				Image *levelImage = image->createImage(
+				    maximum<uint32_t>(1, image->getWidth() >> glevel),
+				    maximum<uint32_t>(1, image->getHeight() >> glevel));
+				levelImage->setOetf(image->getOetf());
+				levelImage->setColortype(image->getColortype());
+				levelImage->setPrimaries(image->getPrimaries());
+				try {
+					image->resample(*levelImage,
+					                image->getOetf() == KHR_DF_TRANSFER_SRGB,
+					                options.gmopts.filter.c_str(),
+					                options.gmopts.filterScale,
+					                options.gmopts.wrapMode);
+				} catch (runtime_error &e) {
+					cerr << name << ": Image::resample() failed! "
+					     << e.what() << endl;
+					exitCode = 1;
+					goto cleanup;
+				}
 
-                if (options.normalize)
-                    levelImage->normalize();
+				if (options.normalize)
+					levelImage->normalize();
 
-                ret = ktxTexture_SetImageFromMemory(ktxTexture(texture),
-                                              glevel,
-                                              layer,
-                                              faceSlice,
-                                              *levelImage,
-                                              levelImage->getByteCount());
-                assert(ret == KTX_SUCCESS);
-                delete levelImage;
-            }
-        }
+				ret = ktxTexture_SetImageFromMemory(ktxTexture(texture),
+				                                    glevel,
+				                                    layer,
+				                                    faceSlice,
+				                                    *levelImage,
+				                                    levelImage->getByteCount());
+				assert(ret == KTX_SUCCESS);
+				delete levelImage;
+			}
+		}
 
 #if IMAGE_DEBUG
-        {
-            ktx_size_t offset;
-            ktxTexture_GetImageOffset(texture, level, 0, faceSlice, &offset);
-            dumpImage(infile, image->getWidth(), image->getHeight(),
-                      image->getComponentCount(), image->getComponentSize(),
-                      texture.pData + offset);
-        }
+		{
+			ktx_size_t offset;
+			ktxTexture_GetImageOffset(texture, level, 0, faceSlice, &offset);
+			dumpImage(infile, image->getWidth(), image->getHeight(),
+			          image->getComponentCount(), image->getComponentSize(),
+			          texture.pData + offset);
+		}
 #endif
 
-        delete image;
-    }
+		delete image;
+	}
 
-    /*
-     * Add orientation metadata.
-     */
-    if (options.metadata) {
-        ktxHashList* ht = &texture->kvDataHead;
-        char orientation[20];
-        if (options.ktx2) {
-            orientation[0] = 'r';
-            if (createInfo.baseHeight > 1) {
-                orientation[1] = options.lower_left_maps_to_s0t0 ? 'u' : 'd';
-                if (createInfo.baseDepth > 1) {
-                    orientation[2] = options.lower_left_maps_to_s0t0
-                                   ? 'o'  : 'i';
-                    orientation[3] = 0;
-                } else {
-                    orientation[2] = 0;
-                }
-            } else {
-                orientation[1] = 0;
-            }
-        } else {
-            assert(strlen(KTX_ORIENTATION3_FMT) < sizeof(orientation));
-            if (createInfo.baseHeight == 1) {
-                snprintf(orientation, sizeof(orientation), KTX_ORIENTATION1_FMT,
-                         'r');
-            } else if (createInfo.baseDepth == 1) {
-                snprintf(orientation, sizeof(orientation), KTX_ORIENTATION2_FMT,
-                         'r', options.lower_left_maps_to_s0t0 ? 'u' : 'd');
-            } else
-                snprintf(orientation, sizeof(orientation), KTX_ORIENTATION3_FMT,
-                         'r', options.lower_left_maps_to_s0t0 ? 'u' : 'd',
-                         options.lower_left_maps_to_s0t0 ? 'o' : 'i');
-        }
-        ktxHashList_AddKVPair(ht, KTX_ORIENTATION_KEY,
-                              (unsigned int)strlen(orientation) + 1,
-                              orientation);
-    }
-    if (options.ktx2) {
-        // Add required writer metadata.
-        stringstream writer;
-        writeId(writer, options.test != 0);
-        ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
-                              (ktx_uint32_t)writer.str().length() + 1,
-                              writer.str().c_str());
+	/*
+	 * Add orientation metadata.
+	 */
+	if (options.metadata) {
+		ktxHashList *ht = &texture->kvDataHead;
+		char         orientation[20];
+		if (options.ktx2) {
+			orientation[0] = 'r';
+			if (createInfo.baseHeight > 1) {
+				orientation[1] = options.lower_left_maps_to_s0t0 ? 'u' : 'd';
+				if (createInfo.baseDepth > 1) {
+					orientation[2] = options.lower_left_maps_to_s0t0 ? 'o' : 'i';
+					orientation[3] = 0;
+				} else {
+					orientation[2] = 0;
+				}
+			} else {
+				orientation[1] = 0;
+			}
+		} else {
+			assert(strlen(KTX_ORIENTATION3_FMT) < sizeof(orientation));
+			if (createInfo.baseHeight == 1) {
+				snprintf(orientation, sizeof(orientation), KTX_ORIENTATION1_FMT,
+				         'r');
+			} else if (createInfo.baseDepth == 1) {
+				snprintf(orientation, sizeof(orientation), KTX_ORIENTATION2_FMT,
+				         'r', options.lower_left_maps_to_s0t0 ? 'u' : 'd');
+			} else
+				snprintf(orientation, sizeof(orientation), KTX_ORIENTATION3_FMT,
+				         'r', options.lower_left_maps_to_s0t0 ? 'u' : 'd',
+				         options.lower_left_maps_to_s0t0 ? 'o' : 'i');
+		}
+		ktxHashList_AddKVPair(ht, KTX_ORIENTATION_KEY,
+		                      (unsigned int) strlen(orientation) + 1,
+		                      orientation);
+	}
+	if (options.ktx2) {
+		// Add required writer metadata.
+		stringstream writer;
+		writeId(writer, options.test != 0);
+		ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
+		                      (ktx_uint32_t) writer.str().length() + 1,
+		                      writer.str().c_str());
 
-        string swizzle;
-        // Add Swizzle metadata
-        if (options.swizzle.size()) {
-            swizzle = options.swizzle;
-        } else if (!options.etc1s && !options.bopts.uastc && !options.astc
-                   && defaultSwizzle.size()) {
-            swizzle = defaultSwizzle;
-        }
-        if (swizzle.size()) {
-            ktxHashList_AddKVPair(&texture->kvDataHead, KTX_SWIZZLE_KEY,
-                                  (uint32_t)swizzle.size()+1,
-                                  // +1 is for the NUL on the c_str
-                                  swizzle.c_str());
-        }
+		string swizzle;
+		// Add Swizzle metadata
+		if (options.swizzle.size()) {
+			swizzle = options.swizzle;
+		} else if (!options.etc1s && !options.bopts.uastc && !options.astc && defaultSwizzle.size()) {
+			swizzle = defaultSwizzle;
+		}
+		if (swizzle.size()) {
+			ktxHashList_AddKVPair(&texture->kvDataHead, KTX_SWIZZLE_KEY,
+			                      (uint32_t) swizzle.size() + 1,
+			                      // +1 is for the NUL on the c_str
+			                      swizzle.c_str());
+		}
 
-        if (options.ktx2 && chosenPrimaries != KHR_DF_PRIMARIES_BT709) {
-            KHR_DFDSETVAL(((ktxTexture2*)texture)->pDfd + 1, PRIMARIES,
-                          chosenPrimaries);
-        }
-    }
+		if (options.ktx2 && chosenPrimaries != KHR_DF_PRIMARIES_BT709) {
+			KHR_DFDSETVAL(((ktxTexture2 *) texture)->pDfd + 1, PRIMARIES,
+			              chosenPrimaries);
+		}
+	}
 
-    FILE* f;
-    if (options.outfile.compare("-") == 0) {
-        f = stdout;
+	FILE *f;
+	if (options.outfile.compare("-") == 0) {
+		f = stdout;
 #if defined(_WIN32)
-        /* Set "stdout" to have binary mode */
-        (void)_setmode( _fileno( stdout ), _O_BINARY );
+		/* Set "stdout" to have binary mode */
+		(void) _setmode(_fileno(stdout), _O_BINARY);
 #endif
-    } else
-        f = _tfopen(options.outfile.c_str(), "wb");
+	} else
+		f = _tfopen(options.outfile.c_str(), "wb");
 
-    if (f) {
-       if (options.normalMode && chosenOETF != KHR_DF_TRANSFER_LINEAR) {
-                fprintf(stderr, "%s: --normal_mode specified but input file(s) are"
-                        " not linear.", name.c_str());
-                exitCode = 1;
-                goto cleanup;
-       }
-       if (options.etc1s || options.bopts.uastc) {
-            commandOptions::basisOptions& bopts = options.bopts;
-            if (options.inputSwizzle.size()) {
-                for (i = 0; i < 4; i++) {
-                     bopts.inputSwizzle[i] = options.inputSwizzle[i];
-                }
-            } else if (defaultSwizzle.size() && !options.normalMode) {
-                 for (i = 0; i < 4; i++) {
-                     bopts.inputSwizzle[i] = defaultSwizzle[i];
-                }
-            }
+	if (f) {
+		if (options.normalMode && chosenOETF != KHR_DF_TRANSFER_LINEAR) {
+			fprintf(stderr, "%s: --normal_mode specified but input file(s) are"
+			                " not linear.",
+			        name.c_str());
+			exitCode = 1;
+			goto cleanup;
+		}
+		if (options.etc1s || options.bopts.uastc) {
+			commandOptions::basisOptions &bopts = options.bopts;
+			if (options.inputSwizzle.size()) {
+				for (i = 0; i < 4; i++) {
+					bopts.inputSwizzle[i] = options.inputSwizzle[i];
+				}
+			} else if (defaultSwizzle.size() && !options.normalMode) {
+				for (i = 0; i < 4; i++) {
+					bopts.inputSwizzle[i] = defaultSwizzle[i];
+				}
+			}
 
-            bopts.threadCount = options.threadCount;
-            bopts.normalMap = options.normalMode;
+			bopts.threadCount = options.threadCount;
+			bopts.normalMap   = options.normalMode;
 
 #if TRAVIS_DEBUG
-            bopts.print();
+			bopts.print();
 #endif
-            ret = ktxTexture2_CompressBasisEx((ktxTexture2*)texture, &bopts);
-            if (KTX_SUCCESS != ret) {
-                fprintf(stderr, "%s failed to compress KTX file \"%s\"; KTX error: %s\n",
-                        name.c_str(), options.outfile.c_str(),
-                        ktxErrorString(ret));
-                exitCode = 2;
-                goto cleanup;
-            }
-        } else if (options.astc) {
-            commandOptions::astcOptions& astcopts = options.astcopts;
-            if (options.inputSwizzle.size()) {
-                for (i = 0; i < options.inputSwizzle.size(); i++) {
-                     astcopts.inputSwizzle[i] = options.inputSwizzle[i];
-                }
-            } else if (defaultSwizzle.size() && !options.normalMode) {
-                 for (i = 0; i < options.inputSwizzle.size(); i++) {
-                     astcopts.inputSwizzle[i] = defaultSwizzle[i];
-                }
-            }
+			ret = ktxTexture2_CompressBasisEx((ktxTexture2 *) texture, &bopts);
+			if (KTX_SUCCESS != ret) {
+				fprintf(stderr, "%s failed to compress KTX file \"%s\"; KTX error: %s\n",
+				        name.c_str(), options.outfile.c_str(),
+				        ktxErrorString(ret));
+				exitCode = 2;
+				goto cleanup;
+			}
+		} else if (options.astc) {
+			commandOptions::astcOptions &astcopts = options.astcopts;
+			if (options.inputSwizzle.size()) {
+				for (i = 0; i < options.inputSwizzle.size(); i++) {
+					astcopts.inputSwizzle[i] = options.inputSwizzle[i];
+				}
+			} else if (defaultSwizzle.size() && !options.normalMode) {
+				for (i = 0; i < options.inputSwizzle.size(); i++) {
+					astcopts.inputSwizzle[i] = defaultSwizzle[i];
+				}
+			}
 
-            astcopts.threadCount = options.threadCount;
-            astcopts.normalMap = options.normalMode;
+			astcopts.threadCount = options.threadCount;
+			astcopts.normalMap   = options.normalMode;
 
 #if TRAVIS_DEBUG
-            astcopts.print();
+			astcopts.print();
 #endif
 
-            ret = ktxTexture2_CompressAstcEx((ktxTexture2*)texture, &astcopts);
-            if (KTX_SUCCESS != ret) {
-                fprintf(stderr, "%s failed to compress KTX file \"%s\" to astc; KTX error: %s\n",
-                        name.c_str(), options.outfile.c_str(),
-                        ktxErrorString(ret));
-                exitCode = 2;
-                goto cleanup;
-            }
-        } else {
-            ret = KTX_SUCCESS;
-        }
-        if (KTX_SUCCESS == ret) {
-            if (options.zcmp) {
-                ret = ktxTexture2_DeflateZstd((ktxTexture2*)texture,
-                                               options.zcmpLevel);
-                if (KTX_SUCCESS != ret) {
-                    cerr << name << ": Zstd deflation failed; KTX error: "
-                         << ktxErrorString(ret) << endl;
-                    exitCode = 2;
-                    goto cleanup;
-                }
-            }
-            if (!getParamsStr().empty()) {
-                ktxHashList_AddKVPair(&texture->kvDataHead, scparamKey.c_str(),
-                (ktx_uint32_t)getParamsStr().length() + 1,
-                getParamsStr().c_str());
-            }
-            ret = ktxTexture_WriteToStdioStream(ktxTexture(texture), f);
-            if (KTX_SUCCESS != ret) {
-                fprintf(stderr, "%s failed to write KTX file \"%s\"; KTX error: %s\n",
-                        name.c_str(), options.outfile.c_str(),
-                        ktxErrorString(ret));
-                exitCode = 2;
-            }
-        }
-        if (KTX_SUCCESS != ret) {
-            if (f != stdout)
-                _tunlink(options.outfile.c_str());
-            exitCode = 2;
-        }
-        fclose(f);
-    } else {
-        fprintf(stderr, "%s: could not open output file \"%s\". %s\n",
-                name.c_str(), options.outfile.c_str(), strerror(errno));
-        exitCode = 2;
-    }
+			ret = ktxTexture2_CompressAstcEx((ktxTexture2 *) texture, &astcopts);
+			if (KTX_SUCCESS != ret) {
+				fprintf(stderr, "%s failed to compress KTX file \"%s\" to astc; KTX error: %s\n",
+				        name.c_str(), options.outfile.c_str(),
+				        ktxErrorString(ret));
+				exitCode = 2;
+				goto cleanup;
+			}
+		} else {
+			ret = KTX_SUCCESS;
+		}
+		if (KTX_SUCCESS == ret) {
+			if (options.zcmp) {
+				ret = ktxTexture2_DeflateZstd((ktxTexture2 *) texture,
+				                              options.zcmpLevel);
+				if (KTX_SUCCESS != ret) {
+					cerr << name << ": Zstd deflation failed; KTX error: "
+					     << ktxErrorString(ret) << endl;
+					exitCode = 2;
+					goto cleanup;
+				}
+			}
+			if (!getParamsStr().empty()) {
+				ktxHashList_AddKVPair(&texture->kvDataHead, scparamKey.c_str(),
+				                      (ktx_uint32_t) getParamsStr().length() + 1,
+				                      getParamsStr().c_str());
+			}
+			ret = ktxTexture_WriteToStdioStream(ktxTexture(texture), f);
+			if (KTX_SUCCESS != ret) {
+				fprintf(stderr, "%s failed to write KTX file \"%s\"; KTX error: %s\n",
+				        name.c_str(), options.outfile.c_str(),
+				        ktxErrorString(ret));
+				exitCode = 2;
+			}
+		}
+		if (KTX_SUCCESS != ret) {
+			if (f != stdout)
+				_tunlink(options.outfile.c_str());
+			exitCode = 2;
+		}
+		fclose(f);
+	} else {
+		fprintf(stderr, "%s: could not open output file \"%s\". %s\n",
+		        name.c_str(), options.outfile.c_str(), strerror(errno));
+		exitCode = 2;
+	}
 
 cleanup:
-    if (texture) ktxTexture_Destroy(ktxTexture(texture));
-    return exitCode;
+	if (texture)
+		ktxTexture_Destroy(ktxTexture(texture));
+	return exitCode;
 }
 
+void toktxApp::validateOptions() {
+	scApp::validateOptions();
 
-void
-toktxApp::validateOptions()
-{
-    scApp::validateOptions();
+	if (options.automipmap + options.genmipmap + options.mipmap > 1) {
+		error("only one of --automipmap, --genmipmap and "
+		      "--mipmap may be specified.");
+		usage();
+		exit(1);
+	}
+	if ((options.automipmap || options.genmipmap) && options.levels > 1) {
+		error("cannot specify --levels > 1 with --automipmap or --genmipmap.");
+		usage();
+		exit(1);
+	}
+	if (options.cubemap && options.lower_left_maps_to_s0t0) {
+		error("cubemaps require images to have an upper-left origin. "
+		      "Ignoring --lower_left_maps_to_s0t0.");
+		options.lower_left_maps_to_s0t0 = 0;
+	}
+	if (options.cubemap && options.depth > 1) {
+		error("cubemaps cannot have depth > 1.");
+		usage();
+		exit(1);
+	}
+	if (options.layers > 1 && options.depth > 1) {
+		error("cannot have 3D array textures.");
+		usage();
+		exit(1);
+	}
+	if (options.scale != 1.0 && options.resize) {
+		error("only one of --scale and --resize can be specified.");
+		usage();
+		exit(1);
+	}
+	if (options.resize && options.mipmap) {
+		error("only one of --resize and --mipmap can be specified.");
+		usage();
+		exit(1);
+	}
 
-    if (options.automipmap + options.genmipmap + options.mipmap > 1) {
-        error("only one of --automipmap, --genmipmap and "
-              "--mipmap may be specified.");
-        usage();
-        exit(1);
-    }
-    if ((options.automipmap || options.genmipmap) && options.levels > 1) {
-        error("cannot specify --levels > 1 with --automipmap or --genmipmap.");
-        usage();
-        exit(1);
-    }
-    if (options.cubemap && options.lower_left_maps_to_s0t0) {
-        error("cubemaps require images to have an upper-left origin. "
-              "Ignoring --lower_left_maps_to_s0t0.");
-        options.lower_left_maps_to_s0t0 = 0;
-    }
-    if (options.cubemap && options.depth > 1) {
-        error("cubemaps cannot have depth > 1.");
-        usage();
-        exit(1);
-    }
-    if (options.layers > 1 && options.depth > 1) {
-        error("cannot have 3D array textures.");
-        usage();
-        exit(1);
-    }
-    if (options.scale != 1.0 && options.resize) {
-        error("only one of --scale and --resize can be specified.");
-        usage();
-        exit(1);
-    }
-    if (options.resize && options.mipmap) {
-        error("only one of --resize and --mipmap can be specified.");
-        usage();
-        exit(1);
-    }
+	if (options.depth > 1 && options.genmipmap) {
+		error("generation of mipmaps for 3d textures is not supported.\n"
+		      "A PR to add this feature will be gratefully accepted!");
+		exit(1);
+	}
 
-    if (options.depth > 1 && options.genmipmap) {
-        error("generation of mipmaps for 3d textures is not supported.\n"
-              "A PR to add this feature will be gratefully accepted!");
-        exit(1);
-    }
+	if (options.outfile.compare(_T("-")) != 0 && options.outfile.find_last_of('.') == _tstring::npos) {
+		options.outfile.append(options.ktx2 ? _T(".ktx2") : _T(".ktx"));
+	}
 
-    if (options.outfile.compare(_T("-")) != 0
-            && options.outfile.find_last_of('.') == _tstring::npos)
-    {
-        options.outfile.append(options.ktx2 ? _T(".ktx2") : _T(".ktx"));
-    }
-
-    ktx_uint32_t requiredInputFiles = options.cubemap ? 6 : 1 * options.levels;
-    if (requiredInputFiles > options.infiles.size()) {
-        error("too few input files.");
-        exit(1);
-    }
-    /* Whether there are enough input files for all the mipmap levels in
-     * a full pyramid can only be checked when the first file has been
-     * read and the size determined.
-     */
+	ktx_uint32_t requiredInputFiles = options.cubemap ? 6 : 1 * options.levels;
+	if (requiredInputFiles > options.infiles.size()) {
+		error("too few input files.");
+		exit(1);
+	}
+	/* Whether there are enough input files for all the mipmap levels in
+	 * a full pyramid can only be checked when the first file has been
+	 * read and the size determined.
+	 */
 }
 
-void
-toktxApp::validateSwizzle(string& swizzle)
-{
-    if (swizzle.size() != 4) {
-        error("a swizzle parameter must have 4 characters.");
-        exit(1);
-    }
-    std::for_each(swizzle.begin(), swizzle.end(), [](char & c) {
-        c = (char)::tolower(c);
-    });
+void toktxApp::validateSwizzle(string &swizzle) {
+	if (swizzle.size() != 4) {
+		error("a swizzle parameter must have 4 characters.");
+		exit(1);
+	}
+	std::for_each(swizzle.begin(), swizzle.end(), [](char &c) {
+		c = (char) ::tolower(c);
+	});
 
-    for (int i = 0; i < 4; i++) {
-        if (swizzle[i] != 'r'
-            && swizzle[i] != 'g'
-            && swizzle[i] != 'b'
-            && swizzle[i] != 'a'
-            && swizzle[i] != '0'
-            && swizzle[i] != '1') {
-            error("invalid character in swizzle.");
-            usage();
-            exit(1);
-        }
-    }
+	for (int i = 0; i < 4; i++) {
+		if (swizzle[i] != 'r' && swizzle[i] != 'g' && swizzle[i] != 'b' && swizzle[i] != 'a' && swizzle[i] != '0' && swizzle[i] != '1') {
+			error("invalid character in swizzle.");
+			usage();
+			exit(1);
+		}
+	}
 }
 
-void
-toktxApp::processEnvOptions() {
-    _tstring toktx_options;
-    _TCHAR* env_options = _tgetenv(_T("TOKTX_OPTIONS"));
+void toktxApp::processEnvOptions() {
+	_tstring toktx_options;
+	_TCHAR  *env_options = _tgetenv(_T("TOKTX_OPTIONS"));
 
-    if (env_options != nullptr)
-        toktx_options = env_options;
-    else
-        return;
+	if (env_options != nullptr)
+		toktx_options = env_options;
+	else
+		return;
 
-    if (!toktx_options.empty()) {
-        istringstream iss(toktx_options);
-        argvector arglist;
-        for (_tstring w; iss >> w; )
-            arglist.push_back(w);
+	if (!toktx_options.empty()) {
+		istringstream iss(toktx_options);
+		argvector     arglist;
+		for (_tstring w; iss >> w;)
+			arglist.push_back(w);
 
-        argparser optparser(arglist, 0);
-        processOptions(optparser);
-        if (optparser.optind != arglist.size()) {
-            cerr << "Only options are allowed in the TOKTX_OPTIONS "
-                 << "environment variable." << endl;
-            usage();
-            exit(1);
-        }
-    }
+		argparser optparser(arglist, 0);
+		processOptions(optparser);
+		if (optparser.optind != arglist.size()) {
+			cerr << "Only options are allowed in the TOKTX_OPTIONS "
+			     << "environment variable." << endl;
+			usage();
+			exit(1);
+		}
+	}
 }
 
 /*
@@ -1573,223 +1539,215 @@ toktxApp::processEnvOptions() {
  *
  * @param[in]     parser,     an @c argparser holding the options to process.
  */
-bool
-toktxApp::processOption(argparser& parser, int opt)
-{
-    switch (opt) {
-      case 0:
-        break;
-      case 'a':
-        options.layers = strtoi(parser.optarg.c_str());
-        break;
-      case 'd':
-        options.depth = strtoi(parser.optarg.c_str());
-        break;
-      case 'l':
-        options.levels = strtoi(parser.optarg.c_str());
-        break;
-      case 'f':
-        options.gmopts.filter = parser.optarg;
-        break;
-      case 'F':
-        options.gmopts.filterScale = strtof(parser.optarg.c_str(), nullptr);
-        break;
-      case 'w':
-        if (!parser.optarg.compare("wrap")) {
-            options.gmopts.wrapMode
-                  = basisu::Resampler::Boundary_Op::BOUNDARY_WRAP;
-        } else if (!parser.optarg.compare("clamp")) {
-            options.gmopts.wrapMode
-                  = basisu::Resampler::Boundary_Op::BOUNDARY_CLAMP;
-        } else if (!parser.optarg.compare("reflect")) {
-            options.gmopts.wrapMode
-                  = basisu::Resampler::Boundary_Op::BOUNDARY_REFLECT;
-        } else {
-            cerr << "Unrecognized mode \"" << parser.optarg
-                 << "\" passed to --wmode" << endl;
-            usage();
-            exit(1);
-        }
-        break;
-      case 'r':
-        {
-            istringstream iss(parser.optarg);
-            char x;
-            iss >> options.newGeom.width >> x >> options.newGeom.height;
-            if (iss.fail()) {
-                cerr << "Bad resize geometry." << endl;
-                usage();
-                exit(1);
-            }
-            options.resize = 1;
-            break;
-        }
-      case 's':
-        options.scale = strtof(parser.optarg.c_str(), nullptr);
-        if (options.scale > 2000.0f) {
-            cerr << name << ": Unreasonable scale factor of "
-                 << options.scale << "." << endl;
-            exit(1);
-        }
-        break;
-      case 1100:
-        validateSwizzle(parser.optarg);
-        options.inputSwizzle = parser.optarg;
-        break;
-      case 1101:
-        validateSwizzle(parser.optarg);
-        options.swizzle = parser.optarg;
-        break;
-      case 1102:
-        std::for_each(parser.optarg.begin(), parser.optarg.end(), [](char & c) {
-            c = (char)::toupper(c);
-        });
-        if (parser.optarg.compare("R") == 0)
-          options.targetType = commandOptions::eR;
-        else if (parser.optarg.compare("RG") == 0)
-          options.targetType = commandOptions::eRG;
-        else if (parser.optarg.compare("RGB") == 0)
-          options.targetType = commandOptions::eRGB;
-        else if (parser.optarg.compare("RGBA") == 0)
-          options.targetType = commandOptions::eRGBA;
-        else {
-            cerr << name << ": unrecognized target_type \"" << parser.optarg
-                 << "\"." << endl;
-            usage();
-            exit(1);
-        }
-        break;
-      case 1103:
-        std::for_each(parser.optarg.begin(), parser.optarg.end(), [](char & c) {
-            c = (char)::tolower(c);
-        });
-        if (parser.optarg.compare("linear") == 0)
-            options.convert_oetf = KHR_DF_TRANSFER_LINEAR;
-        else if (parser.optarg.compare("srgb") == 0)
-            options.convert_oetf = KHR_DF_TRANSFER_SRGB;
-        break;
-      case 1104:
-        std::for_each(parser.optarg.begin(), parser.optarg.end(), [](char & c) {
-            c = (char)::tolower(c);
-        });
-        if (parser.optarg.compare("linear") == 0)
-            options.assign_oetf = KHR_DF_TRANSFER_LINEAR;
-        else if (parser.optarg.compare("srgb") == 0)
-            options.assign_oetf = KHR_DF_TRANSFER_SRGB;
-        break;
-      case 1105:
-        std::for_each(parser.optarg.begin(), parser.optarg.end(), [](char & c) {
-            c = (char)::tolower(c);
-        });
-        if (parser.optarg.compare("bt709") == 0)
-            options.assign_primaries = KHR_DF_PRIMARIES_BT709;
-        else if (parser.optarg.compare("none") == 0)
-            options.assign_primaries = KHR_DF_PRIMARIES_UNSPECIFIED;
-        if (parser.optarg.compare("srgb") == 0)
-            options.assign_primaries = KHR_DF_PRIMARIES_SRGB;
-        break;
-      case ':':
-      default:
-        return scApp::processOption(parser, opt);
-    }
-    return true;
+bool toktxApp::processOption(argparser &parser, int opt) {
+	switch (opt) {
+		case 0:
+			break;
+		case 'a':
+			options.layers = strtoi(parser.optarg.c_str());
+			break;
+		case 'd':
+			options.depth = strtoi(parser.optarg.c_str());
+			break;
+		case 'l':
+			options.levels = strtoi(parser.optarg.c_str());
+			break;
+		case 'f':
+			options.gmopts.filter = parser.optarg;
+			break;
+		case 'F':
+			options.gmopts.filterScale = strtof(parser.optarg.c_str(), nullptr);
+			break;
+		case 'w':
+			if (!parser.optarg.compare("wrap")) {
+				options.gmopts.wrapMode = basisu::Resampler::Boundary_Op::BOUNDARY_WRAP;
+			} else if (!parser.optarg.compare("clamp")) {
+				options.gmopts.wrapMode = basisu::Resampler::Boundary_Op::BOUNDARY_CLAMP;
+			} else if (!parser.optarg.compare("reflect")) {
+				options.gmopts.wrapMode = basisu::Resampler::Boundary_Op::BOUNDARY_REFLECT;
+			} else {
+				cerr << "Unrecognized mode \"" << parser.optarg
+				     << "\" passed to --wmode" << endl;
+				usage();
+				exit(1);
+			}
+			break;
+		case 'r': {
+			istringstream iss(parser.optarg);
+			char          x;
+			iss >> options.newGeom.width >> x >> options.newGeom.height;
+			if (iss.fail()) {
+				cerr << "Bad resize geometry." << endl;
+				usage();
+				exit(1);
+			}
+			options.resize = 1;
+			break;
+		}
+		case 's':
+			options.scale = strtof(parser.optarg.c_str(), nullptr);
+			if (options.scale > 2000.0f) {
+				cerr << name << ": Unreasonable scale factor of "
+				     << options.scale << "." << endl;
+				exit(1);
+			}
+			break;
+		case 1100:
+			validateSwizzle(parser.optarg);
+			options.inputSwizzle = parser.optarg;
+			break;
+		case 1101:
+			validateSwizzle(parser.optarg);
+			options.swizzle = parser.optarg;
+			break;
+		case 1102:
+			std::for_each(parser.optarg.begin(), parser.optarg.end(), [](char &c) {
+				c = (char) ::toupper(c);
+			});
+			if (parser.optarg.compare("R") == 0)
+				options.targetType = commandOptions::eR;
+			else if (parser.optarg.compare("RG") == 0)
+				options.targetType = commandOptions::eRG;
+			else if (parser.optarg.compare("RGB") == 0)
+				options.targetType = commandOptions::eRGB;
+			else if (parser.optarg.compare("RGBA") == 0)
+				options.targetType = commandOptions::eRGBA;
+			else {
+				cerr << name << ": unrecognized target_type \"" << parser.optarg
+				     << "\"." << endl;
+				usage();
+				exit(1);
+			}
+			break;
+		case 1103:
+			std::for_each(parser.optarg.begin(), parser.optarg.end(), [](char &c) {
+				c = (char) ::tolower(c);
+			});
+			if (parser.optarg.compare("linear") == 0)
+				options.convert_oetf = KHR_DF_TRANSFER_LINEAR;
+			else if (parser.optarg.compare("srgb") == 0)
+				options.convert_oetf = KHR_DF_TRANSFER_SRGB;
+			break;
+		case 1104:
+			std::for_each(parser.optarg.begin(), parser.optarg.end(), [](char &c) {
+				c = (char) ::tolower(c);
+			});
+			if (parser.optarg.compare("linear") == 0)
+				options.assign_oetf = KHR_DF_TRANSFER_LINEAR;
+			else if (parser.optarg.compare("srgb") == 0)
+				options.assign_oetf = KHR_DF_TRANSFER_SRGB;
+			break;
+		case 1105:
+			std::for_each(parser.optarg.begin(), parser.optarg.end(), [](char &c) {
+				c = (char) ::tolower(c);
+			});
+			if (parser.optarg.compare("bt709") == 0)
+				options.assign_primaries = KHR_DF_PRIMARIES_BT709;
+			else if (parser.optarg.compare("none") == 0)
+				options.assign_primaries = KHR_DF_PRIMARIES_UNSPECIFIED;
+			if (parser.optarg.compare("srgb") == 0)
+				options.assign_primaries = KHR_DF_PRIMARIES_SRGB;
+			break;
+		case ':':
+		default:
+			return scApp::processOption(parser, opt);
+	}
+	return true;
 }
 
 void toktxApp::warning(const char *pFmt, va_list args) {
-    if (options.warn) {
-        cerr << name << " warning! ";
-        vfprintf(stderr, pFmt, args);
-        cerr << endl;
-    }
+	if (options.warn) {
+		cerr << name << " warning! ";
+		vfprintf(stderr, pFmt, args);
+		cerr << endl;
+	}
 }
 
 void toktxApp::warning(const char *pFmt, ...) {
-    if (options.warn) {
-        va_list args;
-        va_start(args, pFmt);
+	if (options.warn) {
+		va_list args;
+		va_start(args, pFmt);
 
-        warning(pFmt, args);
-        cerr << endl;
-    }
+		warning(pFmt, args);
+		cerr << endl;
+	}
 }
 
-void toktxApp::warning(const string& msg) {
-    if (options.warn) {
-        cerr << name << " warning! ";
-        cerr << msg;
-    }
+void toktxApp::warning(const string &msg) {
+	if (options.warn) {
+		cerr << name << " warning! ";
+		cerr << msg;
+	}
 }
 
 void warning(const char *pFmt, ...) {
-    va_list args;
-    va_start(args, pFmt);
+	va_list args;
+	va_start(args, pFmt);
 
-    theApp.warning(pFmt, args);
-    va_end(args);
+	theApp.warning(pFmt, args);
+	va_end(args);
 }
 
-void warning(const string& msg) {
-   theApp.warning(msg);
+void warning(const string &msg) {
+	theApp.warning(msg);
 }
 
 static ktx_uint32_t
-log2(ktx_uint32_t v)
-{
-    ktx_uint32_t e;
+    log2(ktx_uint32_t v) {
+	ktx_uint32_t e;
 
-    /* http://aggregate.org/MAGIC/ */
-    v |= (v >> 1);
-    v |= (v >> 2);
-    v |= (v >> 4);
-    v |= (v >> 8);
-    v |= (v >> 16);
-    v = v & ~(v >> 1);
+	/* http://aggregate.org/MAGIC/ */
+	v |= (v >> 1);
+	v |= (v >> 2);
+	v |= (v >> 4);
+	v |= (v >> 8);
+	v |= (v >> 16);
+	v = v & ~(v >> 1);
 
-    e = (v & 0xAAAAAAAA) ? 1 : 0;
-    e |= (v & 0xCCCCCCCC) ? 2 : 0;
-    e |= (v & 0xF0F0F0F0) ? 4 : 0;
-    e |= (v & 0xFF00FF00) ? 8 : 0;
-    e |= (v & 0xFFFF0000) ? 16 : 0;
+	e = (v & 0xAAAAAAAA) ? 1 : 0;
+	e |= (v & 0xCCCCCCCC) ? 2 : 0;
+	e |= (v & 0xF0F0F0F0) ? 4 : 0;
+	e |= (v & 0xFF00FF00) ? 8 : 0;
+	e |= (v & 0xFFFF0000) ? 16 : 0;
 
-    return e;
+	return e;
 }
 
 #if IMAGE_DEBUG
 static void
-dumpImage(_TCHAR* name, int width, int height, int components, int componentSize,
-          unsigned char* srcImage)
-{
-    char formatstr[2048];
-    char *imagefmt;
-    char *fmtname;
-    int bitsPerComponent = componentSize == 2 ? 16 : 8;
+    dumpImage(_TCHAR *name, int width, int height, int components, int componentSize,
+              unsigned char *srcImage) {
+	char  formatstr[2048];
+	char *imagefmt;
+	char *fmtname;
+	int   bitsPerComponent = componentSize == 2 ? 16 : 8;
 
-    switch (components) {
-      case 1:
-        imagefmt = "r b=";
-        fmtname = "R";
-        break;
-      case 2:
-        imagefmt = "rg b=";
-        fmtname = "RG";
-        break;
-      case 3:
-        imagefmt = "rgb b=";
-        fmtname = "RGB";
-        break;
-      case 4:
-        imagefmt = "rgba b=";
-        fmtname = "RGBA";
-        break;
-      default:
-        assert(0);
-    }
-    sprintf(formatstr, "%s%d w=%%d h=%%d t=\'%s %s%d\' %%p",
-            imagefmt,
-            bitsPerComponent,
-            name,
-            fmtname,
-            bitsPerComponent);
-    imdebug(formatstr, width, height, srcImage);
+	switch (components) {
+		case 1:
+			imagefmt = "r b=";
+			fmtname  = "R";
+			break;
+		case 2:
+			imagefmt = "rg b=";
+			fmtname  = "RG";
+			break;
+		case 3:
+			imagefmt = "rgb b=";
+			fmtname  = "RGB";
+			break;
+		case 4:
+			imagefmt = "rgba b=";
+			fmtname  = "RGBA";
+			break;
+		default:
+			assert(0);
+	}
+	sprintf(formatstr, "%s%d w=%%d h=%%d t=\'%s %s%d\' %%p",
+	        imagefmt,
+	        bitsPerComponent,
+	        name,
+	        fmtname,
+	        bitsPerComponent);
+	imdebug(formatstr, width, height, srcImage);
 }
 #endif

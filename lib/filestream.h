@@ -19,9 +19,9 @@
 /*
  * ktxFileInit: Initialize a ktxStream to a ktxFileStream with a FILE object
  */
-KTX_error_code ktxFileStream_construct(ktxStream* str, FILE* file,
+KTX_error_code ktxFileStream_construct(ktxStream *str, FILE *file,
                                        ktx_bool_t closeFileOnDestruct);
 
-void ktxFileStream_destruct(ktxStream* str);
+void ktxFileStream_destruct(ktxStream *str);
 
 #endif /* FILESTREAM_H */

@@ -45,120 +45,96 @@
  * @author Mark Callow, HI Corporation
  */
 
-KTX_error_code  ktxCheckHeader1_(KTX_header* pHeader,
-                                 KTX_supplemental_info* pSuppInfo)
-{
-    ktx_uint8_t identifier_reference[12] = KTX_IDENTIFIER_REF;
-    ktx_uint32_t max_dim;
+KTX_error_code ktxCheckHeader1_(KTX_header            *pHeader,
+                                KTX_supplemental_info *pSuppInfo) {
+	ktx_uint8_t  identifier_reference[12] = KTX_IDENTIFIER_REF;
+	ktx_uint32_t max_dim;
 
-    assert(pHeader != NULL && pSuppInfo != NULL);
+	assert(pHeader != NULL && pSuppInfo != NULL);
 
-    /* Compare identifier, is this a KTX file? */
-    if (memcmp(pHeader->identifier, identifier_reference, 12) != 0)
-    {
-        return KTX_UNKNOWN_FILE_FORMAT;
-    }
+	/* Compare identifier, is this a KTX file? */
+	if (memcmp(pHeader->identifier, identifier_reference, 12) != 0) {
+		return KTX_UNKNOWN_FILE_FORMAT;
+	}
 
-    if (pHeader->endianness == KTX_ENDIAN_REF_REV)
-    {
-        /* Convert endianness of pHeader fields. */
-        _ktxSwapEndian32(&pHeader->glType, 12);
+	if (pHeader->endianness == KTX_ENDIAN_REF_REV) {
+		/* Convert endianness of pHeader fields. */
+		_ktxSwapEndian32(&pHeader->glType, 12);
 
-        if (pHeader->glTypeSize != 1 &&
-            pHeader->glTypeSize != 2 &&
-            pHeader->glTypeSize != 4)
-        {
-            /* Only 8-, 16-, and 32-bit types supported so far. */
-            return KTX_FILE_DATA_ERROR;
-        }
-    }
-    else if (pHeader->endianness != KTX_ENDIAN_REF)
-    {
-        return KTX_FILE_DATA_ERROR;
-    }
+		if (pHeader->glTypeSize != 1 &&
+		    pHeader->glTypeSize != 2 &&
+		    pHeader->glTypeSize != 4) {
+			/* Only 8-, 16-, and 32-bit types supported so far. */
+			return KTX_FILE_DATA_ERROR;
+		}
+	} else if (pHeader->endianness != KTX_ENDIAN_REF) {
+		return KTX_FILE_DATA_ERROR;
+	}
 
-    /* Check glType and glFormat */
-    pSuppInfo->compressed = 0;
-    if (pHeader->glType == 0 || pHeader->glFormat == 0)
-    {
-        if (pHeader->glType + pHeader->glFormat != 0)
-        {
-            /* either both or none of glType, glFormat must be zero */
-            return KTX_FILE_DATA_ERROR;
-        }
-        pSuppInfo->compressed = 1;
-    }
+	/* Check glType and glFormat */
+	pSuppInfo->compressed = 0;
+	if (pHeader->glType == 0 || pHeader->glFormat == 0) {
+		if (pHeader->glType + pHeader->glFormat != 0) {
+			/* either both or none of glType, glFormat must be zero */
+			return KTX_FILE_DATA_ERROR;
+		}
+		pSuppInfo->compressed = 1;
+	}
 
-    if (pHeader->glFormat == pHeader->glInternalformat) {
-        // glInternalFormat is either unsized (which is no longer and should
-        // never have been supported by libktx) or glFormat is sized.
-        return KTX_FILE_DATA_ERROR;
-    }
+	if (pHeader->glFormat == pHeader->glInternalformat) {
+		// glInternalFormat is either unsized (which is no longer and should
+		// never have been supported by libktx) or glFormat is sized.
+		return KTX_FILE_DATA_ERROR;
+	}
 
-    /* Check texture dimensions. KTX files can store 8 types of textures:
-       1D, 2D, 3D, cube, and array variants of these. There is currently
-       no GL extension for 3D array textures. */
-    if ((pHeader->pixelWidth == 0) ||
-        (pHeader->pixelDepth > 0 && pHeader->pixelHeight == 0))
-    {
-        /* texture must have width */
-        /* texture must have height if it has depth */
-        return KTX_FILE_DATA_ERROR;
-    }
+	/* Check texture dimensions. KTX files can store 8 types of textures:
+	   1D, 2D, 3D, cube, and array variants of these. There is currently
+	   no GL extension for 3D array textures. */
+	if ((pHeader->pixelWidth == 0) ||
+	    (pHeader->pixelDepth > 0 && pHeader->pixelHeight == 0)) {
+		/* texture must have width */
+		/* texture must have height if it has depth */
+		return KTX_FILE_DATA_ERROR;
+	}
 
+	if (pHeader->pixelDepth > 0) {
+		if (pHeader->numberOfArrayElements > 0) {
+			/* No 3D array textures yet. */
+			return KTX_UNSUPPORTED_TEXTURE_TYPE;
+		}
+		pSuppInfo->textureDimension = 3;
+	} else if (pHeader->pixelHeight > 0) {
+		pSuppInfo->textureDimension = 2;
+	} else {
+		pSuppInfo->textureDimension = 1;
+	}
 
-    if (pHeader->pixelDepth > 0)
-    {
-        if (pHeader->numberOfArrayElements > 0)
-        {
-            /* No 3D array textures yet. */
-            return KTX_UNSUPPORTED_TEXTURE_TYPE;
-        }
-        pSuppInfo->textureDimension = 3;
-    }
-    else if (pHeader->pixelHeight > 0)
-    {
-        pSuppInfo->textureDimension = 2;
-    }
-    else
-    {
-        pSuppInfo->textureDimension = 1;
-    }
+	if (pHeader->numberOfFaces == 6) {
+		if (pSuppInfo->textureDimension != 2) {
+			/* cube map needs 2D faces */
+			return KTX_FILE_DATA_ERROR;
+		}
+	} else if (pHeader->numberOfFaces != 1) {
+		/* numberOfFaces must be either 1 or 6 */
+		return KTX_FILE_DATA_ERROR;
+	}
 
-    if (pHeader->numberOfFaces == 6)
-    {
-        if (pSuppInfo->textureDimension != 2)
-        {
-            /* cube map needs 2D faces */
-            return KTX_FILE_DATA_ERROR;
-        }
-    }
-    else if (pHeader->numberOfFaces != 1)
-    {
-        /* numberOfFaces must be either 1 or 6 */
-        return KTX_FILE_DATA_ERROR;
-    }
+	/* Check number of mipmap levels */
+	if (pHeader->numberOfMipLevels == 0) {
+		pSuppInfo->generateMipmaps = 1;
+		pHeader->numberOfMipLevels = 1;
+	} else {
+		pSuppInfo->generateMipmaps = 0;
+	}
 
-    /* Check number of mipmap levels */
-    if (pHeader->numberOfMipLevels == 0)
-    {
-        pSuppInfo->generateMipmaps = 1;
-        pHeader->numberOfMipLevels = 1;
-    }
-    else
-    {
-        pSuppInfo->generateMipmaps = 0;
-    }
+	/* This test works for arrays too because height or depth will be 0. */
+	max_dim = MAX(MAX(pHeader->pixelWidth, pHeader->pixelHeight), pHeader->pixelDepth);
+	if (max_dim < ((ktx_uint32_t) 1 << (pHeader->numberOfMipLevels - 1))) {
+		/* Can't have more mip levels than 1 + log2(max(width, height, depth)) */
+		return KTX_FILE_DATA_ERROR;
+	}
 
-    /* This test works for arrays too because height or depth will be 0. */
-    max_dim = MAX(MAX(pHeader->pixelWidth, pHeader->pixelHeight), pHeader->pixelDepth);
-    if (max_dim < ((ktx_uint32_t)1 << (pHeader->numberOfMipLevels - 1)))
-    {
-        /* Can't have more mip levels than 1 + log2(max(width, height, depth)) */
-        return KTX_FILE_DATA_ERROR;
-    }
-
-    return KTX_SUCCESS;
+	return KTX_SUCCESS;
 }
 
 /**
@@ -176,84 +152,66 @@ KTX_error_code  ktxCheckHeader1_(KTX_header* pHeader,
  *
  * @author Mark Callow, HI Corporation
  */
-KTX_error_code ktxCheckHeader2_(KTX_header2* pHeader,
-                                KTX_supplemental_info* pSuppInfo)
-{
-// supp info is compressed, generateMipmaps and num dimensions. Don't need
-// compressed as formatSize gives us that. I think the other 2 aren't needed.
-    ktx_uint8_t identifier_reference[12] = KTX2_IDENTIFIER_REF;
+KTX_error_code ktxCheckHeader2_(KTX_header2           *pHeader,
+                                KTX_supplemental_info *pSuppInfo) {
+	// supp info is compressed, generateMipmaps and num dimensions. Don't need
+	// compressed as formatSize gives us that. I think the other 2 aren't needed.
+	ktx_uint8_t identifier_reference[12] = KTX2_IDENTIFIER_REF;
 
-    assert(pHeader != NULL && pSuppInfo != NULL);
-    ktx_uint32_t max_dim;
+	assert(pHeader != NULL && pSuppInfo != NULL);
+	ktx_uint32_t max_dim;
 
-    /* Compare identifier, is this a KTX file? */
-    if (memcmp(pHeader->identifier, identifier_reference, 12) != 0)
-    {
-        return KTX_UNKNOWN_FILE_FORMAT;
-    }
+	/* Compare identifier, is this a KTX file? */
+	if (memcmp(pHeader->identifier, identifier_reference, 12) != 0) {
+		return KTX_UNKNOWN_FILE_FORMAT;
+	}
 
-    /* Check texture dimensions. KTX files can store 8 types of textures:
-       1D, 2D, 3D, cube, and array variants of these. There is currently
-       no extension for 3D array textures in any 3D API. */
-    if ((pHeader->pixelWidth == 0) ||
-        (pHeader->pixelDepth > 0 && pHeader->pixelHeight == 0))
-    {
-        /* texture must have width */
-        /* texture must have height if it has depth */
-        return KTX_FILE_DATA_ERROR;
-    }
+	/* Check texture dimensions. KTX files can store 8 types of textures:
+	   1D, 2D, 3D, cube, and array variants of these. There is currently
+	   no extension for 3D array textures in any 3D API. */
+	if ((pHeader->pixelWidth == 0) ||
+	    (pHeader->pixelDepth > 0 && pHeader->pixelHeight == 0)) {
+		/* texture must have width */
+		/* texture must have height if it has depth */
+		return KTX_FILE_DATA_ERROR;
+	}
 
-    if (pHeader->pixelDepth > 0)
-    {
-        if (pHeader->layerCount > 0)
-        {
-            /* No 3D array textures yet. */
-            return KTX_UNSUPPORTED_TEXTURE_TYPE;
-        }
-        pSuppInfo->textureDimension = 3;
-    }
-    else if (pHeader->pixelHeight > 0)
-    {
-        pSuppInfo->textureDimension = 2;
-    }
-    else
-    {
-        pSuppInfo->textureDimension = 1;
-    }
+	if (pHeader->pixelDepth > 0) {
+		if (pHeader->layerCount > 0) {
+			/* No 3D array textures yet. */
+			return KTX_UNSUPPORTED_TEXTURE_TYPE;
+		}
+		pSuppInfo->textureDimension = 3;
+	} else if (pHeader->pixelHeight > 0) {
+		pSuppInfo->textureDimension = 2;
+	} else {
+		pSuppInfo->textureDimension = 1;
+	}
 
-    if (pHeader->faceCount == 6)
-    {
-        if (pSuppInfo->textureDimension != 2)
-        {
-            /* cube map needs 2D faces */
-            return KTX_FILE_DATA_ERROR;
-        }
-    }
-    else if (pHeader->faceCount != 1)
-    {
-        /* numberOfFaces must be either 1 or 6 */
-        return KTX_FILE_DATA_ERROR;
-    }
+	if (pHeader->faceCount == 6) {
+		if (pSuppInfo->textureDimension != 2) {
+			/* cube map needs 2D faces */
+			return KTX_FILE_DATA_ERROR;
+		}
+	} else if (pHeader->faceCount != 1) {
+		/* numberOfFaces must be either 1 or 6 */
+		return KTX_FILE_DATA_ERROR;
+	}
 
-    // Check number of mipmap levels
-    if (pHeader->levelCount == 0)
-    {
-        pSuppInfo->generateMipmaps = 1;
-        pHeader->levelCount = 1;
-    }
-    else
-    {
-        pSuppInfo->generateMipmaps = 0;
-    }
+	// Check number of mipmap levels
+	if (pHeader->levelCount == 0) {
+		pSuppInfo->generateMipmaps = 1;
+		pHeader->levelCount        = 1;
+	} else {
+		pSuppInfo->generateMipmaps = 0;
+	}
 
-    // This test works for arrays too because height or depth will be 0.
-    max_dim = MAX(MAX(pHeader->pixelWidth, pHeader->pixelHeight), pHeader->pixelDepth);
-    if (max_dim < ((ktx_uint32_t)1 << (pHeader->levelCount - 1)))
-    {
-        // Can't have more mip levels than 1 + log2(max(width, height, depth))
-        return KTX_FILE_DATA_ERROR;
-    }
+	// This test works for arrays too because height or depth will be 0.
+	max_dim = MAX(MAX(pHeader->pixelWidth, pHeader->pixelHeight), pHeader->pixelDepth);
+	if (max_dim < ((ktx_uint32_t) 1 << (pHeader->levelCount - 1))) {
+		// Can't have more mip levels than 1 + log2(max(width, height, depth))
+		return KTX_FILE_DATA_ERROR;
+	}
 
-    return KTX_SUCCESS;
-
+	return KTX_SUCCESS;
 }

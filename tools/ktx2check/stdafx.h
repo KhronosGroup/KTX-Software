@@ -9,36 +9,34 @@
 #include <assert.h>
 #include <stdio.h>
 #ifdef _WIN32
-#include <io.h>
-#include <tchar.h>
-#if _MSC_VER < 1900
-#define snprintf _snprintf
-#endif
+#	include <io.h>
+#	include <tchar.h>
+#	if _MSC_VER < 1900
+#		define snprintf _snprintf
+#	endif
 #else
-#include <unistd.h>
+#	include <unistd.h>
 
-#define _tmain main
-#define _TCHAR char
-#define _tcsncmp strncmp
-#define _tcscmp strcmp
-#define _tgetenv getenv
-#define _tcscpy strcpy
-#define _tcsncpy strncpy
-#define _tcsnpcpy strnpcpy
-#define _stscanf sscanf
-#define _tcslen strlen
-#define _tcscat strcat
-#define _tcsrchr strrchr
-#define _tcschr strchr
-#define _setmode(x, y) 0
-#define _tfopen fopen
-#define _trename rename
-#define _tunlink unlink
-#define _T(x) x
+#	define _tmain main
+#	define _TCHAR char
+#	define _tcsncmp strncmp
+#	define _tcscmp strcmp
+#	define _tgetenv getenv
+#	define _tcscpy strcpy
+#	define _tcsncpy strncpy
+#	define _tcsnpcpy strnpcpy
+#	define _stscanf sscanf
+#	define _tcslen strlen
+#	define _tcscat strcat
+#	define _tcsrchr strrchr
+#	define _tcschr strchr
+#	define _setmode(x, y) 0
+#	define _tfopen fopen
+#	define _trename rename
+#	define _tunlink unlink
+#	define _T(x) x
 
 #endif
-#include <fcntl.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <string.h>
-
-

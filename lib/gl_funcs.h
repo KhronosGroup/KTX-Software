@@ -20,16 +20,16 @@
 #ifndef _GL_FUNCS_H_
 #define _GL_FUNCS_H_
 
-#undef GL_GLEXT_PROTOTYPES // Just to be sure.
+#undef GL_GLEXT_PROTOTYPES        // Just to be sure.
 #include "GL/glcorearb.h"
 #include "ktx.h"
 
 #if WINDOWS
-#define WINDOWS_LEAN_AND_MEAN
-#include <windows.h>
+#	define WINDOWS_LEAN_AND_MEAN
+#	include <windows.h>
 extern HMODULE ktxOpenGLModuleHandle;
 #else
-extern void* ktxOpenGLModuleHandle;
+extern void *ktxOpenGLModuleHandle;
 #endif
 
 extern ktx_error_code_e ktxLoadOpenGLLibrary(void);
@@ -45,20 +45,19 @@ extern struct glFuncPtrs {
 #if !defined(NO_SHORTCUTS)
 // Macros to allow standard, i.e always present functions, to be called
 // by their prototype names.
-#define glBindTexture gl.glBindTexture
-#define glCompressedTexImage2D gl.glCompressedTexImage2D
-#define glCompressedTexSubImage2D gl.glCompressedTexSubImage2D
-#define glDeleteTextures gl.glDeleteTextures
-#define glGenTextures gl.glGenTextures
-#define glGetError gl.glGetError
-#define glGetIntegerv gl.glGetIntegerv
-#define glGetString(x) (const char*)gl.glGetString(x)
-#define glPixelStorei gl.glPixelStorei
-#define glTexImage2D gl.glTexImage2D
-#define glTexSubImage2D gl.glTexSubImage2D
-#define glTexParameteri gl.glTexParameteri
-#define glTexParameteriv gl.glTexParameteriv
+#	define glBindTexture gl.glBindTexture
+#	define glCompressedTexImage2D gl.glCompressedTexImage2D
+#	define glCompressedTexSubImage2D gl.glCompressedTexSubImage2D
+#	define glDeleteTextures gl.glDeleteTextures
+#	define glGenTextures gl.glGenTextures
+#	define glGetError gl.glGetError
+#	define glGetIntegerv gl.glGetIntegerv
+#	define glGetString(x) (const char *) gl.glGetString(x)
+#	define glPixelStorei gl.glPixelStorei
+#	define glTexImage2D gl.glTexImage2D
+#	define glTexSubImage2D gl.glTexSubImage2D
+#	define glTexParameteri gl.glTexParameteri
+#	define glTexParameteriv gl.glTexParameteriv
 #endif
 
 #endif /* _GL_FUNCS_H_ */
-

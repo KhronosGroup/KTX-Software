@@ -27,24 +27,22 @@
 //! @author Jacob Str&ouml;m, Ericsson AB.
 //!
 
+#include "image.hpp"
 #include "stdafx.h"
 #include <inttypes.h>
 #include <stdlib.h>
-#include "image.hpp"
 
+static int tupleSize(const char *tupleType);
 
-static int tupleSize(const char* tupleType);
-
-static void throwOnReadFailure(FILE* src)
-{
-    if (feof(src)) {
-        throw std::runtime_error("Unexpected end-of-file.");
-    } else {
-        std::stringstream message;
-        message << "I/O error reading file: "
-                << strerror(ferror(src));
-        throw std::runtime_error(message.str());
-    }
+static void throwOnReadFailure(FILE *src) {
+	if (feof(src)) {
+		throw std::runtime_error("Unexpected end-of-file.");
+	} else {
+		std::stringstream message;
+		message << "I/O error reading file: "
+		        << strerror(ferror(src));
+		throw std::runtime_error(message.str());
+	}
 }
 
 // Skips over comments in a netpbm file
@@ -52,53 +50,44 @@ static void throwOnReadFailure(FILE* src)
 //
 // Written by Jacob Strom
 //
-static
-void skipComments(FILE *src)
-{
-    int c;
+static void skipComments(FILE *src) {
+	int c;
 
-    while((c = getc(src)) == '#')
-    {
-        char line[1024];
-        if (fgets(line, sizeof(line), src) == NULL)
-            throwOnReadFailure(src);
-    }
-    ungetc(c, src);
+	while ((c = getc(src)) == '#') {
+		char line[1024];
+		if (fgets(line, sizeof(line), src) == NULL)
+			throwOnReadFailure(src);
+	}
+	ungetc(c, src);
 }
 
 // Skips over white spaces in a netpbm file
 //
 // Written by Jacob Strom
 //
-static
-void skipSpaces(FILE *src)
-{
-    int c;
+static void skipSpaces(FILE *src) {
+	int c;
 
-    c = getc(src);
-    while(c == ' ' || c == '\t' || c == '\n' || c == '\f' || c == '\r')
-    {
-        c = getc(src);
-    }
-    ungetc(c, src);
+	c = getc(src);
+	while (c == ' ' || c == '\t' || c == '\n' || c == '\f' || c == '\r') {
+		c = getc(src);
+	}
+	ungetc(c, src);
 }
-
 
 // Skips over intervening non-data elements in a netpbm file
-static
-void skipNonData(FILE *src)
-{
-    skipSpaces(src);
-    skipComments(src);
-    skipSpaces(src);
+static void skipNonData(FILE *src) {
+	skipSpaces(src);
+	skipComments(src);
+	skipSpaces(src);
 }
 
-static Image* createFromPPM(FILE*, bool transformOETF, Image::rescale_e rescale);
-static Image* createFromPGM(FILE*, bool transformOETF, Image::rescale_e rescale);
-static Image* createFromPAM(FILE*, bool transformOETF, Image::rescale_e rescale);
-static void parseHeader(FILE* src, uint32_t& width, uint32_t& height,
-                        int32_t& maxval);
-static void readImage(FILE* src, Image& image, int32_t maxval);
+static Image *createFromPPM(FILE *, bool transformOETF, Image::rescale_e rescale);
+static Image *createFromPGM(FILE *, bool transformOETF, Image::rescale_e rescale);
+static Image *createFromPAM(FILE *, bool transformOETF, Image::rescale_e rescale);
+static void   parseHeader(FILE *src, uint32_t &width, uint32_t &height,
+                          int32_t &maxval);
+static void   readImage(FILE *src, Image &image, int32_t maxval);
 
 //!
 //! @internal
@@ -119,29 +108,27 @@ static void readImage(FILE* src, Image& image, int32_t maxval);
 //!
 //! @author Mark Callow
 //!
-Image*
-Image::CreateFromNPBM(FILE* src, bool transformOETF, Image::rescale_e rescale)
-{
-    char line[255];
-    int numvals;
+Image *
+    Image::CreateFromNPBM(FILE *src, bool transformOETF, Image::rescale_e rescale) {
+	char line[255];
+	int  numvals;
 
-    skipNonData(src);
+	skipNonData(src);
 
-    numvals = fscanf(src, "%3s", line);
-    if (numvals != 0) {
-        if (strcmp(line, "P6") == 0) {
-            return createFromPPM(src, transformOETF, rescale);
-        } else if (strcmp(line, "P5") == 0) {
-            return createFromPGM(src, transformOETF, rescale);
-        } else if (strcmp(line, "P7") == 0) {
-            return createFromPAM(src, transformOETF, rescale);
-        } else if (strcmp(line, "P3") == 0) {
-            throw std::runtime_error("Plain PPM format is not supported.");
-        }
-    }
-    throw different_format();
+	numvals = fscanf(src, "%3s", line);
+	if (numvals != 0) {
+		if (strcmp(line, "P6") == 0) {
+			return createFromPPM(src, transformOETF, rescale);
+		} else if (strcmp(line, "P5") == 0) {
+			return createFromPGM(src, transformOETF, rescale);
+		} else if (strcmp(line, "P7") == 0) {
+			return createFromPAM(src, transformOETF, rescale);
+		} else if (strcmp(line, "P3") == 0) {
+			throw std::runtime_error("Plain PPM format is not supported.");
+		}
+	}
+	throw different_format();
 }
-
 
 //!
 //! @internal
@@ -169,43 +156,42 @@ Image::CreateFromNPBM(FILE* src, bool transformOETF, Image::rescale_e rescale)
 //!
 //! @author Mark Callow
 //!
-Image*
-createFromPPM(FILE* src, bool transformOETF, Image::rescale_e rescale)
-{
-    int32_t maxval;
-    uint32_t width, height;
-    Image* image;
+Image *
+    createFromPPM(FILE *src, bool transformOETF, Image::rescale_e rescale) {
+	int32_t  maxval;
+	uint32_t width, height;
+	Image   *image;
 
-    skipNonData(src);
+	skipNonData(src);
 
-    parseHeader(src, width, height, maxval);
-    //fprintf(stderr, "maxval is %d\n",maxval);
+	parseHeader(src, width, height, maxval);
+	// fprintf(stderr, "maxval is %d\n",maxval);
 
-    // PPM is 3 components
-    if (maxval > 255 && rescale != Image::rescale_e::eAlwaysRescaleTo8Bits)
-        image = new rgb16image(width, height);
-    else
-        image = new rgb8image(width, height);
-    image->setColortype(Image::eRGB);
+	// PPM is 3 components
+	if (maxval > 255 && rescale != Image::rescale_e::eAlwaysRescaleTo8Bits)
+		image = new rgb16image(width, height);
+	else
+		image = new rgb8image(width, height);
+	image->setColortype(Image::eRGB);
 
-    // We need to remove the newline.
-    while((char)getc(src) != '\n') ;
+	// We need to remove the newline.
+	while ((char) getc(src) != '\n')
+		;
 
-    readImage(src, *image, maxval);
-    if (transformOETF) {
-        if (maxval <= 255) {
-            image->transformOETF(decode_bt709, encode_sRGB);
-            image->setOetf(KHR_DF_TRANSFER_SRGB);
-        } else {
-            image->transformOETF(decode_bt709, encode_linear);
-            image->setOetf(KHR_DF_TRANSFER_LINEAR);
-        }
-    } else {
-        image->setOetf(KHR_DF_TRANSFER_ITU);
-    }
-    return image;
+	readImage(src, *image, maxval);
+	if (transformOETF) {
+		if (maxval <= 255) {
+			image->transformOETF(decode_bt709, encode_sRGB);
+			image->setOetf(KHR_DF_TRANSFER_SRGB);
+		} else {
+			image->transformOETF(decode_bt709, encode_linear);
+			image->setOetf(KHR_DF_TRANSFER_LINEAR);
+		}
+	} else {
+		image->setOetf(KHR_DF_TRANSFER_ITU);
+	}
+	return image;
 }
-
 
 //!
 //! @internal
@@ -233,42 +219,41 @@ createFromPPM(FILE* src, bool transformOETF, Image::rescale_e rescale)
 //!
 //! @author Mark Callow
 //!
-Image*
-createFromPGM(FILE* src, bool transformOETF, Image::rescale_e rescale)
-{
-    int maxval;
-    uint32_t width, height;
-    Image* image;
+Image *
+    createFromPGM(FILE *src, bool transformOETF, Image::rescale_e rescale) {
+	int      maxval;
+	uint32_t width, height;
+	Image   *image;
 
-    skipNonData(src);
+	skipNonData(src);
 
-    parseHeader(src, width, height, maxval);
+	parseHeader(src, width, height, maxval);
 
-    // PGM is 1 component. Treat as luminance for consistency with .png & .jpg.
-    if (maxval > 255 && rescale != Image::rescale_e::eAlwaysRescaleTo8Bits)
-        image = new r16image(width, height);
-    else
-        image = new r8image(width, height);
-    image->setColortype(Image::eLuminance);
+	// PGM is 1 component. Treat as luminance for consistency with .png & .jpg.
+	if (maxval > 255 && rescale != Image::rescale_e::eAlwaysRescaleTo8Bits)
+		image = new r16image(width, height);
+	else
+		image = new r8image(width, height);
+	image->setColortype(Image::eLuminance);
 
-    /* gotta eat the newline too */
-    while((char)getc(src) != '\n') ;
+	/* gotta eat the newline too */
+	while ((char) getc(src) != '\n')
+		;
 
-    readImage(src, *image, maxval);
-    if (transformOETF) {
-         if (maxval <= 255) {
-            image->transformOETF(decode_bt709, encode_sRGB);
-            image->setOetf(KHR_DF_TRANSFER_SRGB);
-        } else {
-            image->transformOETF(decode_bt709, encode_linear);
-            image->setOetf(KHR_DF_TRANSFER_LINEAR);
-        }
-    } else {
-        image->setOetf(KHR_DF_TRANSFER_ITU);
-    }
-    return image;
+	readImage(src, *image, maxval);
+	if (transformOETF) {
+		if (maxval <= 255) {
+			image->transformOETF(decode_bt709, encode_sRGB);
+			image->setOetf(KHR_DF_TRANSFER_SRGB);
+		} else {
+			image->transformOETF(decode_bt709, encode_linear);
+			image->setOetf(KHR_DF_TRANSFER_LINEAR);
+		}
+	} else {
+		image->setOetf(KHR_DF_TRANSFER_ITU);
+	}
+	return image;
 }
-
 
 //!
 //! @internal
@@ -300,226 +285,216 @@ createFromPGM(FILE* src, bool transformOETF, Image::rescale_e rescale)
 //!
 //! @author Mark Callow
 //!
-Image*
-createFromPAM(FILE* src, bool transformOETF, Image::rescale_e rescale)
-{
-    char line[255];
+Image *
+    createFromPAM(FILE *src, bool transformOETF, Image::rescale_e rescale) {
+	char line[255];
 #define MAX_TUPLETYPE_SIZE 20
 #define xtupletype_sscanf_fmt(ms) tupletype_sscanf_fmt(ms)
-#define tupletype_sscanf_fmt(ms) "TUPLTYPE %"#ms"s"
-    char tupleType[MAX_TUPLETYPE_SIZE+1];   // +1 for terminating NUL.
-    // Initialization avoids potentially uninitialized variable warning.
-    unsigned int width=0, height=0;
-    unsigned int maxval=0, depth=0;
-    unsigned int numFieldsFound = 0;
-    unsigned int components;
-    Image* image = nullptr;
+#define tupletype_sscanf_fmt(ms) "TUPLTYPE %" #ms "s"
+	char tupleType[MAX_TUPLETYPE_SIZE + 1];        // +1 for terminating NUL.
+	// Initialization avoids potentially uninitialized variable warning.
+	unsigned int width = 0, height = 0;
+	unsigned int maxval = 0, depth = 0;
+	unsigned int numFieldsFound = 0;
+	unsigned int components;
+	Image       *image = nullptr;
 
-    for (;;) {
-        skipNonData(src);
-        if (!fgets(line, sizeof(line), src))
-            throwOnReadFailure(src);
-        if (strcmp(line, "ENDHDR\n") == 0)
-            break;
+	for (;;) {
+		skipNonData(src);
+		if (!fgets(line, sizeof(line), src))
+			throwOnReadFailure(src);
+		if (strcmp(line, "ENDHDR\n") == 0)
+			break;
 
-        if (sscanf(line, "HEIGHT %u", &height))
-            numFieldsFound++;
-        else if (sscanf(line, "WIDTH %u", &width))
-            numFieldsFound++;
-        else if (sscanf(line, "DEPTH %u", &depth))
-            numFieldsFound++;
-        else if (sscanf(line, "MAXVAL %u", &maxval))
-            numFieldsFound++;
-        else if (sscanf(line, xtupletype_sscanf_fmt(MAX_TUPLETYPE_SIZE),
-                        tupleType))
-            numFieldsFound++;
-    };
+		if (sscanf(line, "HEIGHT %u", &height))
+			numFieldsFound++;
+		else if (sscanf(line, "WIDTH %u", &width))
+			numFieldsFound++;
+		else if (sscanf(line, "DEPTH %u", &depth))
+			numFieldsFound++;
+		else if (sscanf(line, "MAXVAL %u", &maxval))
+			numFieldsFound++;
+		else if (sscanf(line, xtupletype_sscanf_fmt(MAX_TUPLETYPE_SIZE),
+		                tupleType))
+			numFieldsFound++;
+	};
 
-    if (numFieldsFound < 5)
-        throw Image::invalid_file("Invalid PAM header.");
+	if (numFieldsFound < 5)
+		throw Image::invalid_file("Invalid PAM header.");
 
-    if ((components = tupleSize(tupleType)) < 1)
-        throw Image::invalid_file("Invalid TUPLTYPE.");
+	if ((components = tupleSize(tupleType)) < 1)
+		throw Image::invalid_file("Invalid TUPLTYPE.");
 
-    if (components != depth)
-        throw Image::invalid_file("Mismatched TUPLTYPE and DEPTH.");
+	if (components != depth)
+		throw Image::invalid_file("Mismatched TUPLTYPE and DEPTH.");
 
-    if (maxval <= 0 || maxval >= (1<<16)) {
-        throw Image::invalid_file("Max color component value must be > 0 && < 65536.");
-    }
-    if (maxval > 255 && rescale != Image::rescale_e::eAlwaysRescaleTo8Bits) {
-        switch (depth) {
-          case 1:
-            image = new r16image(width, height);
-            break;
-          case 2:
-            image = new rg16image(width, height);
-            break;
-          case 3:
-            image = new rgb16image(width, height);
-            break;
-          case 4:
-            image = new rgba16image(width, height);
-            break;
-        }
-    } else {
-        switch (depth) {
-          case 1:
-            image = new r8image(width, height);
-            break;
-          case 2:
-            image = new rg8image(width, height);
-            break;
-          case 3:
-            image = new rgb8image(width, height);
-            break;
-          case 4:
-            image = new rgba8image(width, height);
-            break;
-        }
-    }
-    switch (depth) {
-      case 1:
-        // NPBM specs do spec. what a depth 1 image is.
-        // We choose to treat is luminance, for consistency with PNG.
-        image->setColortype(Image::eLuminance);
-        break;
-      case 2:
-        // As with depth=1, handle consistently with PNG.
-        image->setColortype(Image::eLuminanceAlpha);
-        break;
-      case 3:
-        image->setColortype(Image::eRGB);
-        break;
-      case 4:
-        image->setColortype(Image::eRGBA);
-        break;
-    }
+	if (maxval <= 0 || maxval >= (1 << 16)) {
+		throw Image::invalid_file("Max color component value must be > 0 && < 65536.");
+	}
+	if (maxval > 255 && rescale != Image::rescale_e::eAlwaysRescaleTo8Bits) {
+		switch (depth) {
+			case 1:
+				image = new r16image(width, height);
+				break;
+			case 2:
+				image = new rg16image(width, height);
+				break;
+			case 3:
+				image = new rgb16image(width, height);
+				break;
+			case 4:
+				image = new rgba16image(width, height);
+				break;
+		}
+	} else {
+		switch (depth) {
+			case 1:
+				image = new r8image(width, height);
+				break;
+			case 2:
+				image = new rg8image(width, height);
+				break;
+			case 3:
+				image = new rgb8image(width, height);
+				break;
+			case 4:
+				image = new rgba8image(width, height);
+				break;
+		}
+	}
+	switch (depth) {
+		case 1:
+			// NPBM specs do spec. what a depth 1 image is.
+			// We choose to treat is luminance, for consistency with PNG.
+			image->setColortype(Image::eLuminance);
+			break;
+		case 2:
+			// As with depth=1, handle consistently with PNG.
+			image->setColortype(Image::eLuminanceAlpha);
+			break;
+		case 3:
+			image->setColortype(Image::eRGB);
+			break;
+		case 4:
+			image->setColortype(Image::eRGBA);
+			break;
+	}
 
+	readImage(src, *image, maxval);
+	if (transformOETF) {
+		if (maxval <= 255) {
+			image->transformOETF(decode_bt709, encode_sRGB);
+			image->setOetf(KHR_DF_TRANSFER_SRGB);
+		} else {
+			image->transformOETF(decode_bt709, encode_linear);
+			image->setOetf(KHR_DF_TRANSFER_LINEAR);
+		}
+	} else {
+		image->setOetf(KHR_DF_TRANSFER_ITU);
+	}
 
-    readImage(src, *image, maxval);
-    if (transformOETF) {
-        if (maxval <= 255) {
-            image->transformOETF(decode_bt709, encode_sRGB);
-            image->setOetf(KHR_DF_TRANSFER_SRGB);
-        } else {
-            image->transformOETF(decode_bt709, encode_linear);
-            image->setOetf(KHR_DF_TRANSFER_LINEAR);
-        }
-    } else {
-        image->setOetf(KHR_DF_TRANSFER_ITU);
-    }
-
-    return image;
+	return image;
 }
-
 
 static int
-tupleSize(const char* tupleType)
-{
-    if (strcmp(tupleType, "BLACKANDWHITE") == 0)
-        return -1;
-    else if (strcmp(tupleType, "GRAYSCALE") == 0)
-        return 1;
-    else if (strcmp(tupleType, "GRAYSCALE_ALPHA") == 0)
-        return 2;
-    else if (strcmp(tupleType, "RGB") == 0)
-        return 3;
-    else if (strcmp(tupleType, "RGB_ALPHA") == 0)
-        return 4;
-    else
-        return -1;
+    tupleSize(const char *tupleType) {
+	if (strcmp(tupleType, "BLACKANDWHITE") == 0)
+		return -1;
+	else if (strcmp(tupleType, "GRAYSCALE") == 0)
+		return 1;
+	else if (strcmp(tupleType, "GRAYSCALE_ALPHA") == 0)
+		return 2;
+	else if (strcmp(tupleType, "RGB") == 0)
+		return 3;
+	else if (strcmp(tupleType, "RGB_ALPHA") == 0)
+		return 4;
+	else
+		return -1;
 }
 
 static void
-rescale16to8(uint8_t* dst, uint16_t* src, uint32_t maxval, uint32_t count)
-{
-    float multiplier = 255.0f / maxval;
-    for (uint32_t i = 0; i < count; ++i) {
-        *dst++ = (uint8_t)roundf(*src++ * multiplier);
-    }
+    rescale16to8(uint8_t *dst, uint16_t *src, uint32_t maxval, uint32_t count) {
+	float multiplier = 255.0f / maxval;
+	for (uint32_t i = 0; i < count; ++i) {
+		*dst++ = (uint8_t) roundf(*src++ * multiplier);
+	}
 }
 
 static void
-rescale8(uint8_t* dst, uint8_t* src, uint32_t maxval, uint32_t count)
-{
-    float multiplier = 255.0f / maxval;
-    for (uint32_t i = 0; i < count; ++i) {
-        *dst++ = (uint8_t)roundf(*src++ * multiplier);
-    }
+    rescale8(uint8_t *dst, uint8_t *src, uint32_t maxval, uint32_t count) {
+	float multiplier = 255.0f / maxval;
+	for (uint32_t i = 0; i < count; ++i) {
+		*dst++ = (uint8_t) roundf(*src++ * multiplier);
+	}
 }
 
 static void
-rescale16(uint16_t* dst, uint16_t* src, uint32_t maxval, uint32_t count)
-{
-    float multiplier = 65535.0f / maxval;
-    for (uint32_t i = 0; i < count; ++i) {
-        *dst++ = (uint16_t)roundf(*src++ * multiplier);
-    }
+    rescale16(uint16_t *dst, uint16_t *src, uint32_t maxval, uint32_t count) {
+	float multiplier = 65535.0f / maxval;
+	for (uint32_t i = 0; i < count; ++i) {
+		*dst++ = (uint16_t) roundf(*src++ * multiplier);
+	}
 }
 
 /*
  * SwapEndian16: Swaps endianness in an array of 16-bit values
  */
 static void
-swapEndian16(uint16_t* pData16, size_t count)
-{
-    for (size_t i = 0; i < count; ++i)
-    {
-        uint16_t x = *pData16;
-        *pData16++ = (x << 8) | (x >> 8);
-    }
+    swapEndian16(uint16_t *pData16, size_t count) {
+	for (size_t i = 0; i < count; ++i) {
+		uint16_t x = *pData16;
+		*pData16++ = (x << 8) | (x >> 8);
+	}
 }
 
 //#define IS_LITTLE_ENDIAN (((union foo { uint16_t x; uint8_t c; }){1}).c)
 
-union foo { uint16_t x; uint8_t c; } bar{1};
+union foo {
+	uint16_t x;
+	uint8_t  c;
+} bar{1};
 #define IS_LITTLE_ENDIAN (bar.c)
 
-void
-readImage(FILE* src, Image& image, int32_t maxval)
-{
-    // Image have either 2 bytes/pixel if maxval > 255 or 1 byte. If 2, MSB is
-    // first.
-    char* buffer16 = 0;
-    void* pBuffer;
-    uint32_t nitems;
+void readImage(FILE *src, Image &image, int32_t maxval) {
+	// Image have either 2 bytes/pixel if maxval > 255 or 1 byte. If 2, MSB is
+	// first.
+	char    *buffer16 = 0;
+	void    *pBuffer;
+	uint32_t nitems;
 
-    if (maxval > 255 && image.getComponentSize() == 1) {
-        // Need to rescale so read the image into a temporary buffer.
-        nitems = 2;
-        buffer16 = new char[image.getByteCount()*nitems];
-        pBuffer = buffer16;
-    } else {
-        pBuffer = image;
-        nitems = 1;
-    }
-    if (fread(pBuffer, image.getByteCount(), nitems, src) != 1)
-        throwOnReadFailure(src);
+	if (maxval > 255 && image.getComponentSize() == 1) {
+		// Need to rescale so read the image into a temporary buffer.
+		nitems   = 2;
+		buffer16 = new char[image.getByteCount() * nitems];
+		pBuffer  = buffer16;
+	} else {
+		pBuffer = image;
+		nitems  = 1;
+	}
+	if (fread(pBuffer, image.getByteCount(), nitems, src) != 1)
+		throwOnReadFailure(src);
 
-    if (IS_LITTLE_ENDIAN && maxval > 255) {
-        swapEndian16((uint16_t*)pBuffer,
-                     image.getPixelCount() * image.getComponentCount());
-    }
+	if (IS_LITTLE_ENDIAN && maxval > 255) {
+		swapEndian16((uint16_t *) pBuffer,
+		             image.getPixelCount() * image.getComponentCount());
+	}
 
-    if (buffer16 != nullptr) {
-        rescale16to8(image, (uint16_t*)pBuffer, maxval,
-                     image.getPixelCount() * image.getComponentCount());
-        delete[] buffer16;
-    }
-    // Maxval is whitepoint. Rescale needed if white is not uint MAX.
-    else if (maxval < 255) {
-        rescale8((uint8_t*)pBuffer, (uint8_t*)pBuffer, maxval,
-                 image.getPixelCount() * image.getComponentCount());
-    }
-    else if (maxval > 255 && maxval < 65535) {
-        rescale16((uint16_t*)pBuffer, (uint16_t*)pBuffer, maxval,
-                  image.getPixelCount() * image.getComponentCount());
-    }
+	if (buffer16 != nullptr) {
+		rescale16to8(image, (uint16_t *) pBuffer, maxval,
+		             image.getPixelCount() * image.getComponentCount());
+		delete[] buffer16;
+	}
+	// Maxval is whitepoint. Rescale needed if white is not uint MAX.
+	else if (maxval < 255) {
+		rescale8((uint8_t *) pBuffer, (uint8_t *) pBuffer, maxval,
+		         image.getPixelCount() * image.getComponentCount());
+	} else if (maxval > 255 && maxval < 65535) {
+		rescale16((uint16_t *) pBuffer, (uint16_t *) pBuffer, maxval,
+		          image.getPixelCount() * image.getComponentCount());
+	}
 
-    image.setOetf(KHR_DF_TRANSFER_ITU);
+	image.setOetf(KHR_DF_TRANSFER_ITU);
 }
-
 
 //!
 //! @internal
@@ -534,29 +509,28 @@ readImage(FILE* src, Image& image, int32_t maxval)
 //! @exception invalid_file if there is no width or height, if maxval is not
 //!                         an integer or if maxval is out of range.
 //!
-void parseHeader(FILE* src, uint32_t& width, uint32_t& height, int32_t& maxval)
-{
-    uint32_t numvals;
+void parseHeader(FILE *src, uint32_t &width, uint32_t &height, int32_t &maxval) {
+	uint32_t numvals;
 
-    numvals = fscanf(src, "%u %u", &width, &height);
-    if (numvals != 2) {
-        fclose(src);
-        throw Image::invalid_file("width or height is missing.");
-    }
-    if (width <= 0 || height <= 0) {
-        fclose(src);
-        throw Image::invalid_file("width or height is negative.");
-    }
+	numvals = fscanf(src, "%u %u", &width, &height);
+	if (numvals != 2) {
+		fclose(src);
+		throw Image::invalid_file("width or height is missing.");
+	}
+	if (width <= 0 || height <= 0) {
+		fclose(src);
+		throw Image::invalid_file("width or height is negative.");
+	}
 
-    skipNonData(src);
+	skipNonData(src);
 
-    numvals = fscanf(src, "%d", &maxval);
-    if (numvals == 0) {
-        fclose(src);
-        throw Image::invalid_file("maxval must be an integer.");
-    }
-    if (maxval <= 0 || maxval >= (1<<16)) {
-        fclose(src);
-        throw Image::invalid_file("Max color component value must be > 0 && < 65536.");
-    }
+	numvals = fscanf(src, "%d", &maxval);
+	if (numvals == 0) {
+		fclose(src);
+		throw Image::invalid_file("maxval must be an integer.");
+	}
+	if (maxval <= 0 || maxval >= (1 << 16)) {
+		fclose(src);
+		throw Image::invalid_file("Max color component value must be > 0 && < 65536.");
+	}
 }
