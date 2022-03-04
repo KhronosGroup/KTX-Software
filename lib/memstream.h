@@ -27,17 +27,17 @@
  * Initialize a ktxStream to a ktxMemStream with internally
  * allocated memory. Can be read or written.
  */
-KTX_error_code ktxMemStream_construct(ktxStream* str,
+KTX_error_code ktxMemStream_construct(ktxStream *str,
                                       ktx_bool_t freeOnDestruct);
 /*
  * Initialize a ktxStream to a read-only ktxMemStream reading
  * from an array of bytes.
  */
-KTX_error_code ktxMemStream_construct_ro(ktxStream* str,
-                                         const ktx_uint8_t* pBytes,
-                                         const ktx_size_t size);
-void ktxMemStream_destruct(ktxStream* str);
+KTX_error_code ktxMemStream_construct_ro(ktxStream         *str,
+                                         const ktx_uint8_t *pBytes,
+                                         const ktx_size_t   size);
+void           ktxMemStream_destruct(ktxStream *str);
 
-KTX_error_code ktxMemStream_getdata(ktxStream* str, ktx_uint8_t** ppBytes);
+KTX_error_code ktxMemStream_getdata(ktxStream *str, ktx_uint8_t **ppBytes);
 
 #endif /* MEMSTREAM_H */

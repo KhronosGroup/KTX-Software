@@ -11,360 +11,356 @@
  * the Binomial LLC repo instead: https://github.com/BinomialLLC/basis_universal.
  */
 
-#include <emscripten/bind.h>
 #include "basisu/transcoder/basisu_transcoder.h"
+#include <emscripten/bind.h>
 
 using namespace emscripten;
 using namespace basist;
 
 namespace msc {
-    // Container independent image description. This was originally in a PR
-    // submitted to the BasisU repo to add container independent transcoders.
-    // However the code that was eventually added favored explicit parameters
-    // over collecting them in a struct. To maintain backward compatibility for
-    // msc_basisu_trancoder users, recreate the struct here.
-    struct basisu_image_desc {
-        uint32_t m_flags;
-        uint32_t m_rgb_byte_offset;
-        uint32_t m_rgb_byte_length;
-        uint32_t m_alpha_byte_offset;
-        uint32_t m_alpha_byte_length;
-        uint32_t m_orig_width;
-        uint32_t m_orig_height;
-        uint32_t m_num_blocks_x;
-        uint32_t m_num_blocks_y;
-        uint32_t m_level;
+// Container independent image description. This was originally in a PR
+// submitted to the BasisU repo to add container independent transcoders.
+// However the code that was eventually added favored explicit parameters
+// over collecting them in a struct. To maintain backward compatibility for
+// msc_basisu_trancoder users, recreate the struct here.
+struct basisu_image_desc {
+	uint32_t m_flags;
+	uint32_t m_rgb_byte_offset;
+	uint32_t m_rgb_byte_length;
+	uint32_t m_alpha_byte_offset;
+	uint32_t m_alpha_byte_length;
+	uint32_t m_orig_width;
+	uint32_t m_orig_height;
+	uint32_t m_num_blocks_x;
+	uint32_t m_num_blocks_y;
+	uint32_t m_level;
 
-        basisu_image_desc() {
-            memset(this, 0, sizeof(*this));
-        }
+	basisu_image_desc() {
+		memset(this, 0, sizeof(*this));
+	}
 
-        basisu_image_desc(basis_tex_format, uint32_t width, uint32_t height,
-                          uint32_t level)
-        {
-            memset(this, 0, sizeof(*this));
-            m_orig_width = width;
-            m_orig_height = height;
-            // Current formats are all 4 x 4 so ignore tex format param.
-            const uint32_t bw = 4, bh = 4;
-            m_num_blocks_x = (m_orig_width + (bw - 1)) / bw;
-            m_num_blocks_y = (m_orig_height + (bh - 1)) / bh;
-            m_level = level;
-        }
+	basisu_image_desc(basis_tex_format, uint32_t width, uint32_t height,
+	                  uint32_t level) {
+		memset(this, 0, sizeof(*this));
+		m_orig_width  = width;
+		m_orig_height = height;
+		// Current formats are all 4 x 4 so ignore tex format param.
+		const uint32_t bw = 4, bh = 4;
+		m_num_blocks_x = (m_orig_width + (bw - 1)) / bw;
+		m_num_blocks_y = (m_orig_height + (bh - 1)) / bh;
+		m_level        = level;
+	}
 
-        basisu_image_desc(const basis_slice_desc* pSlice_desc,
-                          const bool hasAlphaSlice,
-                          uint32_t level = 0) : m_level(level)
-        {
-            m_flags = pSlice_desc->m_flags & cSliceDescFlagsFrameIsIFrame;
-            m_rgb_byte_offset = pSlice_desc->m_file_ofs;
-            m_rgb_byte_length = pSlice_desc->m_file_size;
-            m_orig_width = pSlice_desc->m_orig_width;
-            m_orig_height = pSlice_desc->m_orig_height;
-            m_num_blocks_x = pSlice_desc->m_num_blocks_x;
-            m_num_blocks_y = pSlice_desc->m_num_blocks_y;
-            if (hasAlphaSlice) {
-                ++pSlice_desc;
-                m_alpha_byte_offset = pSlice_desc->m_file_ofs;
-                m_alpha_byte_length = pSlice_desc->m_file_size;
-            } else {
-                m_alpha_byte_offset = 0;
-                m_alpha_byte_length = 0;
-            }
-        }
-    };
+	basisu_image_desc(const basis_slice_desc *pSlice_desc,
+	                  const bool              hasAlphaSlice,
+	                  uint32_t                level = 0) :
+	    m_level(level) {
+		m_flags           = pSlice_desc->m_flags & cSliceDescFlagsFrameIsIFrame;
+		m_rgb_byte_offset = pSlice_desc->m_file_ofs;
+		m_rgb_byte_length = pSlice_desc->m_file_size;
+		m_orig_width      = pSlice_desc->m_orig_width;
+		m_orig_height     = pSlice_desc->m_orig_height;
+		m_num_blocks_x    = pSlice_desc->m_num_blocks_x;
+		m_num_blocks_y    = pSlice_desc->m_num_blocks_y;
+		if (hasAlphaSlice) {
+			++pSlice_desc;
+			m_alpha_byte_offset = pSlice_desc->m_file_ofs;
+			m_alpha_byte_length = pSlice_desc->m_file_size;
+		} else {
+			m_alpha_byte_offset = 0;
+			m_alpha_byte_length = 0;
+		}
+	}
+};
 
-    // This is needed because the enum defining CDecode* is anonymous.
-    enum TranscodeFlagBits {
-        TranscodeAlphaDataToOpaqueFormats =
-               cDecodeFlagsTranscodeAlphaDataToOpaqueFormats,
-        HighQuality = cDecodeFlagsHighQuality
-    };
+// This is needed because the enum defining CDecode* is anonymous.
+enum TranscodeFlagBits {
+	TranscodeAlphaDataToOpaqueFormats =
+	    cDecodeFlagsTranscodeAlphaDataToOpaqueFormats,
+	HighQuality = cDecodeFlagsHighQuality
+};
 
-    class BasisTranscoderState: public basisu_transcoder_state {
-    };
+class BasisTranscoderState : public basisu_transcoder_state {
+};
 
-    class TranscodedImage {
-      public:
-        TranscodedImage(size_t size) : image(size) { }
+class TranscodedImage {
+  public:
+	TranscodedImage(size_t size) :
+	    image(size) {
+	}
 
-        uint8_t* data() { return image.data(); }
-        size_t size() { return image.size(); }
+	uint8_t *data() {
+		return image.data();
+	}
+	size_t size() {
+		return image.size();
+	}
 
-        val get_typed_memory_view() {
-           return val(typed_memory_view(image.size(), image.data()));
-        }
+	val get_typed_memory_view() {
+		return val(typed_memory_view(image.size(), image.data()));
+	}
 
-      protected:
-        std::vector<uint8_t> image;
-    };
+  protected:
+	std::vector<uint8_t> image;
+};
 
-    class ImageTranscoderHelper {
-        // block size calculations
-        static inline uint32_t getWidthInBlocks(uint32_t w, uint32_t bw)
-        {
-            return (w + (bw - 1)) / bw;
-        }
+class ImageTranscoderHelper {
+	// block size calculations
+	static inline uint32_t getWidthInBlocks(uint32_t w, uint32_t bw) {
+		return (w + (bw - 1)) / bw;
+	}
 
-        static inline uint32_t getHeightInBlocks(uint32_t h, uint32_t bh)
-        {
-            return (h + (bh - 1)) / bh;
-        }        //
+	static inline uint32_t getHeightInBlocks(uint32_t h, uint32_t bh) {
+		return (h + (bh - 1)) / bh;
+	}        //
 
-      public:
-        static size_t getTranscodedImageByteLength(transcoder_texture_format format,
-                                                   uint32_t width, uint32_t height)
-        {
-            uint32_t blockByteLength =
-                      basis_get_bytes_per_block_or_pixel(format);
-            if (basis_transcoder_format_is_uncompressed(format)) {
-                return width * height * blockByteLength;
-            } else if (format == transcoder_texture_format::cTFPVRTC1_4_RGB
-                       || format == transcoder_texture_format::cTFPVRTC1_4_RGBA) {
-                // For PVRTC1, Basis only writes (or requires)
-                // blockWidth * blockHeight * blockByteLength. But GL requires
-                // extra padding for very small textures:
-                // https://www.khronos.org/registry/OpenGL/extensions/IMG/IMG_texture_compression_pvrtc.txt
-                const uint32_t paddedWidth = (width + 3) & ~3;
-                const uint32_t paddedHeight = (height + 3) & ~3;
-                return (std::max(8U, paddedWidth)
-                        * std::max(8U, paddedHeight) * 4 + 7) / 8;
-            } else {
-                uint32_t blockWidth = getWidthInBlocks(width, basis_get_block_width(format));
-                uint32_t blockHeight = getHeightInBlocks(height, basis_get_block_height(format));
-                return blockWidth * blockHeight * blockByteLength;
-            }
-        }
-    };
+  public:
+	static size_t getTranscodedImageByteLength(transcoder_texture_format format,
+	                                           uint32_t width, uint32_t height) {
+		uint32_t blockByteLength =
+		    basis_get_bytes_per_block_or_pixel(format);
+		if (basis_transcoder_format_is_uncompressed(format)) {
+			return width * height * blockByteLength;
+		} else if (format == transcoder_texture_format::cTFPVRTC1_4_RGB || format == transcoder_texture_format::cTFPVRTC1_4_RGBA) {
+			// For PVRTC1, Basis only writes (or requires)
+			// blockWidth * blockHeight * blockByteLength. But GL requires
+			// extra padding for very small textures:
+			// https://www.khronos.org/registry/OpenGL/extensions/IMG/IMG_texture_compression_pvrtc.txt
+			const uint32_t paddedWidth  = (width + 3) & ~3;
+			const uint32_t paddedHeight = (height + 3) & ~3;
+			return (std::max(8U, paddedWidth) * std::max(8U, paddedHeight) * 4 + 7) / 8;
+		} else {
+			uint32_t blockWidth  = getWidthInBlocks(width, basis_get_block_width(format));
+			uint32_t blockHeight = getHeightInBlocks(height, basis_get_block_height(format));
+			return blockWidth * blockHeight * blockByteLength;
+		}
+	}
+};
 
+class BasisLzEtc1sImageTranscoder : public basisu_lowlevel_etc1s_transcoder {
+  public:
+	BasisLzEtc1sImageTranscoder() :
+	    basisu_lowlevel_etc1s_transcoder() {
+	}
 
-    class BasisLzEtc1sImageTranscoder : public basisu_lowlevel_etc1s_transcoder {
-      public:
-        BasisLzEtc1sImageTranscoder()
-                : basisu_lowlevel_etc1s_transcoder() { }
+	// Yes, code in the following functions handling data coming in from
+	// ArrayBuffers IS copying the data. Sigh! According to Alon Zakai:
+	//
+	//     "There isn't a way to let compiled code access a new ArrayBuffer.
+	//     The compiled code has hardcoded access to the wasm Memory it was
+	//     instantiated with - all the pointers it can understand are
+	//     indexes into that Memory. It can't refer to anything else,
+	//     I'm afraid."
+	//
+	//     "In the future using different address spaces or techniques with
+	//     reference types may open up some possibilities here."
 
-        // Yes, code in the following functions handling data coming in from
-        // ArrayBuffers IS copying the data. Sigh! According to Alon Zakai:
-        //
-        //     "There isn't a way to let compiled code access a new ArrayBuffer.
-        //     The compiled code has hardcoded access to the wasm Memory it was
-        //     instantiated with - all the pointers it can understand are
-        //     indexes into that Memory. It can't refer to anything else,
-        //     I'm afraid."
-        //
-        //     "In the future using different address spaces or techniques with
-        //     reference types may open up some possibilities here."
+	bool decode_palettes(uint32_t num_endpoints, const val &jsEndpoints,
+	                     uint32_t num_selectors, const val &jsSelectors) {
+		std::vector<uint8_t> cEndpoints{}, cSelectors{};
+		cEndpoints.resize(jsEndpoints["byteLength"].as<size_t>());
+		val memory        = val::module_property("HEAP8")["buffer"];
+		val endpointsView = jsEndpoints["constructor"].new_(memory,
+		                                                    reinterpret_cast<uintptr_t>(cEndpoints.data()),
+		                                                    jsEndpoints["length"].as<uint32_t>());
+		endpointsView.call<void>("set", jsEndpoints);
 
-        bool decode_palettes(uint32_t num_endpoints, const val& jsEndpoints,
-                             uint32_t num_selectors, const val& jsSelectors)
-        {
-            std::vector<uint8_t> cEndpoints{}, cSelectors{};
-            cEndpoints.resize(jsEndpoints["byteLength"].as<size_t>());
-            val memory = val::module_property("HEAP8")["buffer"];
-            val endpointsView = jsEndpoints["constructor"].new_(memory,
-                                            reinterpret_cast<uintptr_t>(cEndpoints.data()),
-                                            jsEndpoints["length"].as<uint32_t>());
-            endpointsView.call<void>("set", jsEndpoints);
+		cSelectors.resize(jsSelectors["byteLength"].as<size_t>());
+		// In case the resize caused HEAP8 to grow.
+		memory            = val::module_property("HEAP8")["buffer"];
+		val selectorsView = jsSelectors["constructor"].new_(memory,
+		                                                    reinterpret_cast<uintptr_t>(cSelectors.data()),
+		                                                    jsSelectors["length"].as<uint32_t>());
+		selectorsView.call<void>("set", jsSelectors);
 
-            cSelectors.resize(jsSelectors["byteLength"].as<size_t>());
-            // In case the resize caused HEAP8 to grow.
-            memory = val::module_property("HEAP8")["buffer"];
-            val selectorsView = jsSelectors["constructor"].new_(memory,
-                                            reinterpret_cast<uintptr_t>(cSelectors.data()),
-                                            jsSelectors["length"].as<uint32_t>());
-            selectorsView.call<void>("set", jsSelectors);
+		return basisu_lowlevel_etc1s_transcoder::decode_palettes(num_endpoints,
+		                                                         cEndpoints.data(),
+		                                                         cEndpoints.size(),
+		                                                         num_selectors,
+		                                                         cSelectors.data(),
+		                                                         cSelectors.size());
+	}
 
-            return basisu_lowlevel_etc1s_transcoder::decode_palettes(num_endpoints,
-                                                       cEndpoints.data(),
-                                                       cEndpoints.size(),
-                                                       num_selectors,
-                                                       cSelectors.data(),
-                                                       cSelectors.size());
-        }
+	bool decode_tables(const val &jsTableData) {
+		std::vector<uint8_t> cTableData{};
 
-        bool decode_tables(const val& jsTableData)
-        {
-            std::vector<uint8_t> cTableData{};
+		cTableData.resize(jsTableData["byteLength"].as<size_t>());
+		val memory        = val::module_property("HEAP8")["buffer"];
+		val TableDataView = jsTableData["constructor"].new_(memory,
+		                                                    reinterpret_cast<uintptr_t>(cTableData.data()),
+		                                                    jsTableData["length"].as<uint32_t>());
+		TableDataView.call<void>("set", jsTableData);
 
-            cTableData.resize(jsTableData["byteLength"].as<size_t>());
-            val memory = val::module_property("HEAP8")["buffer"];
-            val TableDataView = jsTableData["constructor"].new_(memory,
-                                            reinterpret_cast<uintptr_t>(cTableData.data()),
-                                            jsTableData["length"].as<uint32_t>());
-            TableDataView.call<void>("set", jsTableData);
+		return basisu_lowlevel_etc1s_transcoder::decode_tables(
+		    cTableData.data(),
+		    cTableData.size());
+	}
 
-            return basisu_lowlevel_etc1s_transcoder::decode_tables(
-                                                          cTableData.data(),
-                                                          cTableData.size());
-        }
+	// @~English
+	// @brief Transcode a single BasisLZ supercompressed ETC1S image.
+	//
+	// @param[in] targetFormat the format to which to transcode the image.
+	//                         This enum comes from Basis Universal.
+	// @param[in] jsInSlices   emscripten::val of a .subarray of the
+	//                         ArrayBuffer holding the file data that
+	//                         points to the first slice for this image.
+	//                         An alpha slice, if it exists, always
+	//                         immediately follows the rgb slice.
+	// @param[in] imageDesc    reference to a struct basisu_image_desc
+	//                         giving information about the image.
+	// @param[in] decodeFlags
+	//                   an OR of basisu_decode_flags bits setting decode
+	//                   options. The only one of general interest is
+	//                   @c cDecodeFlagsTranscodeAlphaDataToOpaqueFormats.
+	//                   This can be used when @p targetFormat lacks an
+	//                   alpha component. When set the alpha slice is
+	//                   transcoded into the RGB components of the target.
+	//
+	// @return An emscripten::val with 1 entries, @c transcodedImage. If
+	//         the transcode failed, @c transcodedImage will be undefined.
+	//
+	emscripten::val transcode_image(
+	    transcoder_texture_format targetFormat,
+	    const val                &jsInSlices,
+	    basisu_image_desc        &imageDesc,
+	    uint32_t                  decodeFlags = 0,
+	    bool                      isVideo     = false) {
+		// First of all copy in the deflated data.
+		std::vector<uint8_t> deflatedSlices;
+		uint32_t             deflatedSlicesByteLength = jsInSlices["byteLength"].as<uint32_t>();
+		deflatedSlices.resize(deflatedSlicesByteLength);
+		val memory = val::module_property("HEAP8")["buffer"];
 
-        // @~English
-        // @brief Transcode a single BasisLZ supercompressed ETC1S image.
-        //
-        // @param[in] targetFormat the format to which to transcode the image.
-        //                         This enum comes from Basis Universal.
-        // @param[in] jsInSlices   emscripten::val of a .subarray of the 
-        //                         ArrayBuffer holding the file data that
-        //                         points to the first slice for this image.
-        //                         An alpha slice, if it exists, always
-        //                         immediately follows the rgb slice.
-        // @param[in] imageDesc    reference to a struct basisu_image_desc
-        //                         giving information about the image.
-        // @param[in] decodeFlags
-        //                   an OR of basisu_decode_flags bits setting decode
-        //                   options. The only one of general interest is
-        //                   @c cDecodeFlagsTranscodeAlphaDataToOpaqueFormats.
-        //                   This can be used when @p targetFormat lacks an
-        //                   alpha component. When set the alpha slice is
-        //                   transcoded into the RGB components of the target.
-        //
-        // @return An emscripten::val with 1 entries, @c transcodedImage. If
-        //         the transcode failed, @c transcodedImage will be undefined.
-        //
-        emscripten::val transcode_image(
-                          transcoder_texture_format targetFormat,
-                          const val& jsInSlices,
-                          basisu_image_desc& imageDesc,
-                          uint32_t decodeFlags = 0,
-                          bool isVideo = false)
-        {
-            // First of all copy in the deflated data.
-            std::vector <uint8_t> deflatedSlices;
-            uint32_t deflatedSlicesByteLength
-                                     = jsInSlices["byteLength"].as<uint32_t>();
-            deflatedSlices.resize(deflatedSlicesByteLength);
-            val memory = val::module_property("HEAP8")["buffer"];
+		val memoryView = jsInSlices["constructor"].new_(memory,
+		                                                reinterpret_cast<uintptr_t>(deflatedSlices.data()),
+		                                                deflatedSlices.size());
+		memoryView.call<void>("set", jsInSlices);
 
-            val memoryView = jsInSlices["constructor"].new_(memory,
-                             reinterpret_cast<uintptr_t>(deflatedSlices.data()),
-                             deflatedSlices.size());
-            memoryView.call<void>("set", jsInSlices);
+		size_t tiByteLength =
+		    ImageTranscoderHelper::getTranscodedImageByteLength(targetFormat,
+		                                                        imageDesc.m_orig_width,
+		                                                        imageDesc.m_orig_height);
+		TranscodedImage *dst = new TranscodedImage(tiByteLength);
+		// ETC1S texel block dimensions
+		const uint32_t bw = 4, bh = 4;
+		uint32_t       numBlocksX = (imageDesc.m_orig_width + (bw - 1)) / bw;
+		uint32_t       numBlocksY = (imageDesc.m_orig_height + (bh - 1)) / bh;
 
-            size_t tiByteLength =
-            ImageTranscoderHelper::getTranscodedImageByteLength(targetFormat,
-                                                      imageDesc.m_orig_width,
-                                                      imageDesc.m_orig_height);
-            TranscodedImage* dst = new TranscodedImage(tiByteLength);
-            // ETC1S texel block dimensions
-            const uint32_t bw = 4, bh = 4;
-            uint32_t numBlocksX =( imageDesc.m_orig_width + (bw - 1)) / bw;
-            uint32_t numBlocksY = (imageDesc.m_orig_height + (bh - 1)) / bh;
+		bool status = basisu_lowlevel_etc1s_transcoder::transcode_image(
+		    targetFormat,
+		    dst->data(),
+		    dst->size(),
+		    deflatedSlices.data(),
+		    deflatedSlices.size(),
+		    numBlocksX,
+		    numBlocksY,
+		    imageDesc.m_orig_width,
+		    imageDesc.m_orig_height,
+		    imageDesc.m_level,
+		    imageDesc.m_rgb_byte_offset,
+		    imageDesc.m_rgb_byte_length,
+		    imageDesc.m_alpha_byte_offset,
+		    imageDesc.m_alpha_byte_length,
+		    decodeFlags,
+		    imageDesc.m_alpha_byte_length != 0,
+		    isVideo
+		    // API currently doesn't have any
+		    // way indicate if this is an
+		    // iFrame or pFrame.
+		);
+		val ret = val::object();
+		if (status) {
+			ret.set("transcodedImage", dst);
+		}
+		return ret;
+	}
 
-            bool status = basisu_lowlevel_etc1s_transcoder::transcode_image(
-                                              targetFormat,
-                                              dst->data(),
-                                              dst->size(),
-                                              deflatedSlices.data(),
-                                              deflatedSlices.size(),
-                                              numBlocksX,
-                                              numBlocksY,
-                                              imageDesc.m_orig_width,
-                                              imageDesc.m_orig_height,
-                                              imageDesc.m_level,
-                                              imageDesc.m_rgb_byte_offset,
-                                              imageDesc.m_rgb_byte_length,
-                                              imageDesc.m_alpha_byte_offset,
-                                              imageDesc.m_alpha_byte_length,
-                                              decodeFlags,
-                                              imageDesc.m_alpha_byte_length != 0,
-                                              isVideo
-                                              // API currently doesn't have any
-                                              // way indicate if this is an
-                                              // iFrame or pFrame.
-                                              );
-            val ret = val::object();
-            if (status) {
-                ret.set("transcodedImage", dst);
-            }
-            return ret;
-        }
+  protected:
+};
 
-      protected:
-    };
+class UastcImageTranscoder : public basisu_lowlevel_uastc_transcoder {
+  public:
+	UastcImageTranscoder() :
+	    basisu_lowlevel_uastc_transcoder() {
+	}
 
-    class UastcImageTranscoder : public basisu_lowlevel_uastc_transcoder {
-      public:
-        UastcImageTranscoder() :  basisu_lowlevel_uastc_transcoder() { }
+	// @~English
+	// @brief Transcode a single UASTC encoded image.
+	//
+	// @param[in] targetFormat the format to which to transcode the image.
+	//                         This enum comes from Basis Universal.
+	// @param[in] jsInSlices   emscripten::val of a .subarray of the
+	//                         ArrayBuffer holding the file data that
+	//                         points to the the image to transcode.
+	// @param[in] imageDesc    reference to a struct basisu_image_desc
+	//                         giving information about the image.
+	// @param[in] decodeFlags
+	//                   an OR of basisu_decode_flags bits setting decode
+	//                   options. The only one of general interest is
+	//                   @c cDecodeFlagsTranscodeAlphaDataToOpaqueFormats.
+	//                   This can be used when @p targetFormat lacks an
+	//                   alpha component. When set, the alpha components
+	//                   are decoded into the RGB components of the target.
+	//
+	// @return An emscripten::val with 1 entries, @c transcodedImage. If
+	//         the transcode failed, @c transcodedImage will be undefined.
+	//
+	emscripten::val transcode_image(
+	    transcoder_texture_format targetFormat,
+	    const val                &jsInImage,
+	    basisu_image_desc        &imageDesc,
+	    uint32_t                  decodeFlags = 0,
+	    bool                      hasAlpha    = false,
+	    bool                      isVideo     = false) {
+		// Copy in the deflated image.
+		std::vector<uint8_t> deflatedImage;
+		size_t               deflatedImageByteLength = jsInImage["byteLength"].as<size_t>();
+		deflatedImage.resize(deflatedImageByteLength);
+		val memory     = val::module_property("HEAP8")["buffer"];
+		val memoryView = jsInImage["constructor"].new_(memory,
+		                                               reinterpret_cast<uintptr_t>(deflatedImage.data()),
+		                                               deflatedImageByteLength);
+		memoryView.call<void>("set", jsInImage);
 
-        // @~English
-        // @brief Transcode a single UASTC encoded image.
-        //
-        // @param[in] targetFormat the format to which to transcode the image.
-        //                         This enum comes from Basis Universal.
-        // @param[in] jsInSlices   emscripten::val of a .subarray of the 
-        //                         ArrayBuffer holding the file data that
-        //                         points to the the image to transcode.
-        // @param[in] imageDesc    reference to a struct basisu_image_desc
-        //                         giving information about the image.
-        // @param[in] decodeFlags
-        //                   an OR of basisu_decode_flags bits setting decode
-        //                   options. The only one of general interest is
-        //                   @c cDecodeFlagsTranscodeAlphaDataToOpaqueFormats.
-        //                   This can be used when @p targetFormat lacks an
-        //                   alpha component. When set, the alpha components
-        //                   are decoded into the RGB components of the target.
-        //
-        // @return An emscripten::val with 1 entries, @c transcodedImage. If
-        //         the transcode failed, @c transcodedImage will be undefined.
-        //
-        emscripten::val transcode_image(
-                          transcoder_texture_format targetFormat,
-                          const val& jsInImage,
-                          basisu_image_desc& imageDesc,
-                          uint32_t decodeFlags = 0,
-                          bool hasAlpha = false,
-                          bool isVideo = false)
-        {
-            // Copy in the deflated image.
-            std::vector <uint8_t> deflatedImage;
-            size_t deflatedImageByteLength
-                                     = jsInImage["byteLength"].as<size_t>();
-            deflatedImage.resize(deflatedImageByteLength);
-            val memory = val::module_property("HEAP8")["buffer"];
-            val memoryView = jsInImage["constructor"].new_(memory,
-                              reinterpret_cast<uintptr_t>(deflatedImage.data()),
-                              deflatedImageByteLength);
-            memoryView.call<void>("set", jsInImage);
+		size_t tiByteLength =
+		    ImageTranscoderHelper::getTranscodedImageByteLength(targetFormat,
+		                                                        imageDesc.m_orig_width,
+		                                                        imageDesc.m_orig_height);
+		TranscodedImage *dst = new TranscodedImage(tiByteLength);
+		// UASTC texel block dimensions
+		const uint32_t bw = 4, bh = 4;
+		uint32_t       numBlocksX = (imageDesc.m_orig_width + (bw - 1)) / bw;
+		uint32_t       numBlocksY = (imageDesc.m_orig_height + (bh - 1)) / bh;
 
-            size_t tiByteLength =
-            ImageTranscoderHelper::getTranscodedImageByteLength(targetFormat,
-                                                      imageDesc.m_orig_width,
-                                                      imageDesc.m_orig_height);
-            TranscodedImage* dst = new TranscodedImage(tiByteLength);
-            // UASTC texel block dimensions
-            const uint32_t bw = 4, bh = 4;
-            uint32_t numBlocksX =( imageDesc.m_orig_width + (bw - 1)) / bw;
-            uint32_t numBlocksY = (imageDesc.m_orig_height + (bh - 1)) / bh;
-
-            bool status =
-                basisu_lowlevel_uastc_transcoder::transcode_image(
-                                              targetFormat,
-                                              dst->data(),
-                                              dst->size(),
-                                              deflatedImage.data(),
-                                              deflatedImage.size(),
-                                              numBlocksX,
-                                              numBlocksY,
-                                              imageDesc.m_orig_width,
-                                              imageDesc.m_orig_height,
-                                              imageDesc.m_level,
-                                              imageDesc.m_rgb_byte_offset,
-                                              imageDesc.m_rgb_byte_length,
-                                              decodeFlags,
-                                              hasAlpha,
-                                              isVideo
-                                              // API currently doesn't have any
-                                              // way indicate if this is an
-                                              // iFrame or pFrame.
-                                              );
-            val ret = val::object();
-            if (status) {
-                ret.set("transcodedImage", dst);
-            }
-            return ret;
-        }
-    };
-}
+		bool status =
+		    basisu_lowlevel_uastc_transcoder::transcode_image(
+		        targetFormat,
+		        dst->data(),
+		        dst->size(),
+		        deflatedImage.data(),
+		        deflatedImage.size(),
+		        numBlocksX,
+		        numBlocksY,
+		        imageDesc.m_orig_width,
+		        imageDesc.m_orig_height,
+		        imageDesc.m_level,
+		        imageDesc.m_rgb_byte_offset,
+		        imageDesc.m_rgb_byte_length,
+		        decodeFlags,
+		        hasAlpha,
+		        isVideo
+		        // API currently doesn't have any
+		        // way indicate if this is an
+		        // iFrame or pFrame.
+		    );
+		val ret = val::object();
+		if (status) {
+			ret.set("transcodedImage", dst);
+		}
+		return ret;
+	}
+};
+}        // namespace msc
 
 /** @page msc_basis_transcoder Basis Image Transcoder binding
 
@@ -468,7 +464,7 @@ enum TextureFormat = {
     "UASTC4x4",
 };
 
-enum TranscodeFlagBits = 
+enum TranscodeFlagBits =
     "TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS",
     "HIGH_QUALITY",
 };
@@ -717,86 +713,76 @@ transcodeUastc(targetFormat) {
 
 */
 
-EMSCRIPTEN_BINDINGS(ktx_wrappers)
-{
-    enum_<transcoder_texture_format>("TranscodeTarget")
-        .value("ETC1_RGB", transcoder_texture_format::cTFETC1_RGB)
-        .value("BC1_RGB", transcoder_texture_format::cTFBC1_RGB)
-        .value("BC4_R", transcoder_texture_format::cTFBC4_R)
-        .value("BC5_RG", transcoder_texture_format::cTFBC5_RG)
-        .value("BC3_RGBA", transcoder_texture_format::cTFBC3_RGBA)
-        .value("PVRTC1_4_RGB", transcoder_texture_format::cTFPVRTC1_4_RGB)
-        .value("PVRTC1_4_RGBA", transcoder_texture_format::cTFPVRTC1_4_RGBA)
-        .value("BC7_RGBA", transcoder_texture_format::cTFBC7_RGBA)
-        // Deprecated. Use BC7_RGBA.
-        .value("BC7_M6_RGB", transcoder_texture_format::cTFBC7_M6_RGB)
-        // Deprecated. Use BC7_RGBA.
-        .value("BC7_M5_RGBA", transcoder_texture_format::cTFBC7_M5_RGBA)
-        .value("ETC2_RGBA", transcoder_texture_format::cTFETC2_RGBA)
-        .value("ASTC_4x4_RGBA", transcoder_texture_format::cTFASTC_4x4_RGBA)
-        .value("RGBA32", transcoder_texture_format::cTFRGBA32)
-        .value("RGB565", transcoder_texture_format::cTFRGB565)
-        .value("BGR565", transcoder_texture_format::cTFBGR565)
-        .value("RGBA4444", transcoder_texture_format::cTFRGBA4444)
-        .value("PVRTC2_4_RGB", transcoder_texture_format::cTFPVRTC2_4_RGB)
-        .value("PVRTC2_4_RGBA", transcoder_texture_format::cTFPVRTC2_4_RGBA)
-        .value("EAC_R11", transcoder_texture_format::cTFETC2_EAC_R11)
-        .value("EAC_RG11", transcoder_texture_format::cTFETC2_EAC_RG11)
-    ;
+EMSCRIPTEN_BINDINGS(ktx_wrappers) {
+	enum_<transcoder_texture_format>("TranscodeTarget")
+	    .value("ETC1_RGB", transcoder_texture_format::cTFETC1_RGB)
+	    .value("BC1_RGB", transcoder_texture_format::cTFBC1_RGB)
+	    .value("BC4_R", transcoder_texture_format::cTFBC4_R)
+	    .value("BC5_RG", transcoder_texture_format::cTFBC5_RG)
+	    .value("BC3_RGBA", transcoder_texture_format::cTFBC3_RGBA)
+	    .value("PVRTC1_4_RGB", transcoder_texture_format::cTFPVRTC1_4_RGB)
+	    .value("PVRTC1_4_RGBA", transcoder_texture_format::cTFPVRTC1_4_RGBA)
+	    .value("BC7_RGBA", transcoder_texture_format::cTFBC7_RGBA)
+	    // Deprecated. Use BC7_RGBA.
+	    .value("BC7_M6_RGB", transcoder_texture_format::cTFBC7_M6_RGB)
+	    // Deprecated. Use BC7_RGBA.
+	    .value("BC7_M5_RGBA", transcoder_texture_format::cTFBC7_M5_RGBA)
+	    .value("ETC2_RGBA", transcoder_texture_format::cTFETC2_RGBA)
+	    .value("ASTC_4x4_RGBA", transcoder_texture_format::cTFASTC_4x4_RGBA)
+	    .value("RGBA32", transcoder_texture_format::cTFRGBA32)
+	    .value("RGB565", transcoder_texture_format::cTFRGB565)
+	    .value("BGR565", transcoder_texture_format::cTFBGR565)
+	    .value("RGBA4444", transcoder_texture_format::cTFRGBA4444)
+	    .value("PVRTC2_4_RGB", transcoder_texture_format::cTFPVRTC2_4_RGB)
+	    .value("PVRTC2_4_RGBA", transcoder_texture_format::cTFPVRTC2_4_RGBA)
+	    .value("EAC_R11", transcoder_texture_format::cTFETC2_EAC_R11)
+	    .value("EAC_RG11", transcoder_texture_format::cTFETC2_EAC_RG11);
 
-    enum_<basis_tex_format>("TextureFormat")
-        .value("ETC1S", basis_tex_format::cETC1S)
-        .value("UASTC4x4", basis_tex_format::cUASTC4x4)
-    ;
+	enum_<basis_tex_format>("TextureFormat")
+	    .value("ETC1S", basis_tex_format::cETC1S)
+	    .value("UASTC4x4", basis_tex_format::cUASTC4x4);
 
-    enum_<msc::TranscodeFlagBits>("TranscodeFlagBits")
-        .value("TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS",
-               msc::TranscodeAlphaDataToOpaqueFormats)
-        .value("HIGH_QUALITY", msc::HighQuality)
-    ;
+	enum_<msc::TranscodeFlagBits>("TranscodeFlagBits")
+	    .value("TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS",
+	           msc::TranscodeAlphaDataToOpaqueFormats)
+	    .value("HIGH_QUALITY", msc::HighQuality);
 
-    function("initTranscoders", basisu_transcoder_init);
-    function("isFormatSupported", basis_is_format_supported);
+	function("initTranscoders", basisu_transcoder_init);
+	function("isFormatSupported", basis_is_format_supported);
 
-    class_<msc::basisu_image_desc>("ImageInfo")
-        .constructor<basis_tex_format,uint32_t,uint32_t,uint32_t>()
-        .property("flags", &msc::basisu_image_desc::m_flags)
-        .property("rgbByteOffset", &msc::basisu_image_desc::m_rgb_byte_offset)
-        .property("rgbByteLength", &msc::basisu_image_desc::m_rgb_byte_length)
-        .property("alphaByteOffset", &msc::basisu_image_desc::m_alpha_byte_offset)
-        .property("alphaByteLength", &msc::basisu_image_desc::m_alpha_byte_length)
-        .property("width", &msc::basisu_image_desc::m_orig_width)
-        .property("height", &msc::basisu_image_desc::m_orig_height)
-        .property("numBlocksX", &msc::basisu_image_desc::m_num_blocks_x)
-        .property("numBlocksY", &msc::basisu_image_desc::m_num_blocks_y)
-        .property("level", &msc::basisu_image_desc::m_level)
-        ;
+	class_<msc::basisu_image_desc>("ImageInfo")
+	    .constructor<basis_tex_format, uint32_t, uint32_t, uint32_t>()
+	    .property("flags", &msc::basisu_image_desc::m_flags)
+	    .property("rgbByteOffset", &msc::basisu_image_desc::m_rgb_byte_offset)
+	    .property("rgbByteLength", &msc::basisu_image_desc::m_rgb_byte_length)
+	    .property("alphaByteOffset", &msc::basisu_image_desc::m_alpha_byte_offset)
+	    .property("alphaByteLength", &msc::basisu_image_desc::m_alpha_byte_length)
+	    .property("width", &msc::basisu_image_desc::m_orig_width)
+	    .property("height", &msc::basisu_image_desc::m_orig_height)
+	    .property("numBlocksX", &msc::basisu_image_desc::m_num_blocks_x)
+	    .property("numBlocksY", &msc::basisu_image_desc::m_num_blocks_y)
+	    .property("level", &msc::basisu_image_desc::m_level);
 
-    class_<msc::BasisLzEtc1sImageTranscoder>("BasisLzEtc1sImageTranscoder")
-        .constructor()
-        .class_function("getBytesPerBlock", basis_get_bytes_per_block_or_pixel)
-        .function("decodePalettes",
-                  &msc::BasisLzEtc1sImageTranscoder::decode_palettes)
-        .function("decodeTables",
-                  &msc::BasisLzEtc1sImageTranscoder::decode_tables)
-        .function("transcodeImage",
-                  &msc::BasisLzEtc1sImageTranscoder::transcode_image)
-        ;
+	class_<msc::BasisLzEtc1sImageTranscoder>("BasisLzEtc1sImageTranscoder")
+	    .constructor()
+	    .class_function("getBytesPerBlock", basis_get_bytes_per_block_or_pixel)
+	    .function("decodePalettes",
+	              &msc::BasisLzEtc1sImageTranscoder::decode_palettes)
+	    .function("decodeTables",
+	              &msc::BasisLzEtc1sImageTranscoder::decode_tables)
+	    .function("transcodeImage",
+	              &msc::BasisLzEtc1sImageTranscoder::transcode_image);
 
-    class_<msc::UastcImageTranscoder>("UastcImageTranscoder")
-        .constructor()
-        .class_function("getBytesPerBlock", basis_get_bytes_per_block_or_pixel)
-        .function("transcodeImage",
-                  &msc::UastcImageTranscoder::transcode_image)
-        ;
+	class_<msc::UastcImageTranscoder>("UastcImageTranscoder")
+	    .constructor()
+	    .class_function("getBytesPerBlock", basis_get_bytes_per_block_or_pixel)
+	    .function("transcodeImage",
+	              &msc::UastcImageTranscoder::transcode_image);
 
-    class_<basisu_transcoder_state>("BasisTranscoderState")
-        .constructor()
-        ;
+	class_<basisu_transcoder_state>("BasisTranscoderState")
+	    .constructor();
 
-    class_<msc::TranscodedImage>("TranscodedImage")
-        .function( "get_typed_memory_view",
-                  &msc::TranscodedImage::get_typed_memory_view )
-    ;
-
+	class_<msc::TranscodedImage>("TranscodedImage")
+	    .function("get_typed_memory_view",
+	              &msc::TranscodedImage::get_typed_memory_view);
 }

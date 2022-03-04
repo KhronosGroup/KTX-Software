@@ -23,41 +23,39 @@
 const std::vector<Image::CreateFunction> Image::CreateFunctions = {
     CreateFromNPBM,
     CreateFromPNG,
-    CreateFromJPG
-};
+    CreateFromJPG};
 
-Image* Image::CreateFromFile(const _tstring& name,
+Image *Image::CreateFromFile(const _tstring &name,
                              bool transformOETF, rescale_e rescale) {
-    FILE* f;
-    Image* image;
+	FILE  *f;
+	Image *image;
 
-    f = _tfopen(name.c_str(), "rb");
-    if (!f) {
-      std::stringstream message;
+	f = _tfopen(name.c_str(), "rb");
+	if (!f) {
+		std::stringstream message;
 
-      message << "Could not open input file \"" << name << "\". ";
-      message << strerror(errno);
-      throw std::runtime_error(message.str());
-    }
+		message << "Could not open input file \"" << name << "\". ";
+		message << strerror(errno);
+		throw std::runtime_error(message.str());
+	}
 
-    std::vector<CreateFunction>::const_iterator
-        func = CreateFunctions.begin();
-    for (; func < CreateFunctions.end(); func++ ) {
-        try {
-            image = (*func)(f, transformOETF, rescale);
-            return image;
-        } catch (different_format&) {
-            rewind(f);
-            continue;
-        }
-    }
-    fclose(f);
-    if (func == CreateFunctions.end()) {
-        std::stringstream message;
+	std::vector<CreateFunction>::const_iterator
+	    func = CreateFunctions.begin();
+	for (; func < CreateFunctions.end(); func++) {
+		try {
+			image = (*func)(f, transformOETF, rescale);
+			return image;
+		} catch (different_format &) {
+			rewind(f);
+			continue;
+		}
+	}
+	fclose(f);
+	if (func == CreateFunctions.end()) {
+		std::stringstream message;
 
-        message << "Format of input file \"" << name << "\" is unsupported.";
-        throw std::runtime_error(message.str());
-    }
-    return nullptr; // Keep compilers happy.
+		message << "Format of input file \"" << name << "\" is unsupported.";
+		throw std::runtime_error(message.str());
+	}
+	return nullptr;        // Keep compilers happy.
 }
-

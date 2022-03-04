@@ -15,23 +15,23 @@
 #define _UNUSED_H
 
 #if (__cplusplus == 201703L)
-#define MAYBE_UNUSED [[maybe_unused]]
+#	define MAYBE_UNUSED [[maybe_unused]]
 #elif __GNUC__ || __clang__
-  #define MAYBE_UNUSED __attribute__((unused))
+#	define MAYBE_UNUSED __attribute__((unused))
 #else
-  // Boohoo. VC++ has no equivalent
-  #define MAYBE_UNUSED
+// Boohoo. VC++ has no equivalent
+#	define MAYBE_UNUSED
 #endif
 
 #define U_ASSERT_ONLY MAYBE_UNUSED
 
 // For unused parameters of c functions. Portable.
-#define UNUSED(x) (void)(x)
+#define UNUSED(x) (void) (x)
 
-#if !__clang__ && __GNUC__ // grumble ... clang ... grumble
-#define FALLTHROUGH __attribute__((fallthrough))
+#if !__clang__ && __GNUC__        // grumble ... clang ... grumble
+#	define FALLTHROUGH __attribute__((fallthrough))
 #else
-#define FALLTHROUGH
+#	define FALLTHROUGH
 #endif
 
 #endif /* UNUSED_H */

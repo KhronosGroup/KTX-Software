@@ -17,10 +17,10 @@
  * @author Mark Callow, HI Corporation
  */
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 // This is to avoid compile warnings. strlen is defined as returning
 // size_t and is used by the uthash macros. This avoids having to
@@ -28,13 +28,12 @@
 // casts would be required because the key and value lengths in KTX
 // are specified as 4 byte quantities so we can't change _keyAndValue
 // below to use size_t.
-#define strlen(x) ((unsigned int)strlen(x))
+#define strlen(x) ((unsigned int) strlen(x))
 
 #include "uthash.h"
 
 #include "ktx.h"
 #include "ktxint.h"
-
 
 /**
  * @internal
@@ -42,13 +41,12 @@
  * @brief Hash list entry structure
  */
 typedef struct ktxKVListEntry {
-    unsigned int keyLen;    /*!< Length of the key */
-    char* key;              /*!< Pointer to key string */
-    unsigned int valueLen;  /*!< Length of the value */
-    void* value;            /*!< Pointer to the value */
-    UT_hash_handle hh;      /*!< handle used by UT hash */
+	unsigned int   keyLen;   /*!< Length of the key */
+	char          *key;      /*!< Pointer to key string */
+	unsigned int   valueLen; /*!< Length of the value */
+	void          *value;    /*!< Pointer to the value */
+	UT_hash_handle hh;       /*!< handle used by UT hash */
 } ktxKVListEntry;
-
 
 /**
  * @memberof ktxHashList @public
@@ -57,12 +55,9 @@ typedef struct ktxKVListEntry {
  *
  * @param [in] pHead pointer to the location to write the list head.
  */
-void
-ktxHashList_Construct(ktxHashList* pHead)
-{
-    *pHead = NULL;
+void ktxHashList_Construct(ktxHashList *pHead) {
+	*pHead = NULL;
 }
-
 
 /**
  * @memberof ktxHashList @public
@@ -72,17 +67,14 @@ ktxHashList_Construct(ktxHashList* pHead)
  * @param [in] pHead pointer to head of the list.
  * @param [in] orig  head of the original hash list.
  */
-void
-ktxHashList_ConstructCopy(ktxHashList* pHead, ktxHashList orig)
-{
-    ktxHashListEntry* entry = orig;
-    *pHead = NULL;
-    for (; entry != NULL; entry = ktxHashList_Next(entry)) {
-        (void)ktxHashList_AddKVPair(pHead,
-                                    entry->key, entry->valueLen, entry->value);
-    }
+void ktxHashList_ConstructCopy(ktxHashList *pHead, ktxHashList orig) {
+	ktxHashListEntry *entry = orig;
+	*pHead                  = NULL;
+	for (; entry != NULL; entry = ktxHashList_Next(entry)) {
+		(void) ktxHashList_AddKVPair(pHead,
+		                             entry->key, entry->valueLen, entry->value);
+	}
 }
-
 
 /**
  * @memberof ktxHashList @public
@@ -94,20 +86,17 @@ ktxHashList_ConstructCopy(ktxHashList* pHead, ktxHashList orig)
  *
  * @param [in] pHead pointer to the hash list to be destroyed.
  */
-void
-ktxHashList_Destruct(ktxHashList* pHead)
-{
-    ktxKVListEntry* kv;
-    ktxKVListEntry* head = *pHead;
+void ktxHashList_Destruct(ktxHashList *pHead) {
+	ktxKVListEntry *kv;
+	ktxKVListEntry *head = *pHead;
 
-    for(kv = head; kv != NULL;) {
-        ktxKVListEntry* tmp = (ktxKVListEntry*)kv->hh.next;
-        HASH_DELETE(hh, head, kv);
-        free(kv);
-        kv = tmp;
-    }
+	for (kv = head; kv != NULL;) {
+		ktxKVListEntry *tmp = (ktxKVListEntry *) kv->hh.next;
+		HASH_DELETE(hh, head, kv);
+		free(kv);
+		kv = tmp;
+	}
 }
-
 
 /**
  * @memberof ktxHashList @public
@@ -121,17 +110,15 @@ ktxHashList_Destruct(ktxHashList* pHead)
  * @exception KTX_OUT_OF_MEMORY if not enough memory.
  */
 KTX_error_code
-ktxHashList_Create(ktxHashList** ppHl)
-{
-    ktxHashList* hl = (ktxHashList*)malloc(sizeof (ktxKVListEntry*));
-    if (hl == NULL)
-        return KTX_OUT_OF_MEMORY;
+    ktxHashList_Create(ktxHashList **ppHl) {
+	ktxHashList *hl = (ktxHashList *) malloc(sizeof(ktxKVListEntry *));
+	if (hl == NULL)
+		return KTX_OUT_OF_MEMORY;
 
-    ktxHashList_Construct(hl);
-    *ppHl = hl;
-    return KTX_SUCCESS;
+	ktxHashList_Construct(hl);
+	*ppHl = hl;
+	return KTX_SUCCESS;
 }
-
 
 /**
  * @memberof ktxHashList @public
@@ -146,17 +133,15 @@ ktxHashList_Create(ktxHashList** ppHl)
  * @exception KTX_OUT_OF_MEMORY if not enough memory.
  */
 KTX_error_code
-ktxHashList_CreateCopy(ktxHashList** ppHl, ktxHashList orig)
-{
-    ktxHashList* hl = (ktxHashList*)malloc(sizeof (ktxKVListEntry*));
-    if (hl == NULL)
-        return KTX_OUT_OF_MEMORY;
+    ktxHashList_CreateCopy(ktxHashList **ppHl, ktxHashList orig) {
+	ktxHashList *hl = (ktxHashList *) malloc(sizeof(ktxKVListEntry *));
+	if (hl == NULL)
+		return KTX_OUT_OF_MEMORY;
 
-    ktxHashList_ConstructCopy(hl, orig);
-    *ppHl = hl;
-    return KTX_SUCCESS;
+	ktxHashList_ConstructCopy(hl, orig);
+	*ppHl = hl;
+	return KTX_SUCCESS;
 }
-
 
 /**
  * @memberof ktxHashList @public
@@ -168,17 +153,15 @@ ktxHashList_CreateCopy(ktxHashList** ppHl, ktxHashList orig)
  *
  * @param [in] pHead pointer to the hash list to be destroyed.
  */
-void
-ktxHashList_Destroy(ktxHashList* pHead)
-{
-    ktxHashList_Destruct(pHead);
-    free(pHead);
+void ktxHashList_Destroy(ktxHashList *pHead) {
+	ktxHashList_Destruct(pHead);
+	free(pHead);
 }
 
-#if !__clang__ && __GNUC__ // Grumble clang grumble
+#if !__clang__ && __GNUC__        // Grumble clang grumble
 // These are in uthash.h macros. I don't want to change that file.
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
+#	pragma GCC diagnostic push
+#	pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
 #endif
 
 /**
@@ -198,36 +181,34 @@ ktxHashList_Destroy(ktxHashList* pHead)
  *            empty string or @p valueLen == 0.
  */
 KTX_error_code
-ktxHashList_AddKVPair(ktxHashList* pHead, const char* key, unsigned int valueLen, const void* value)
-{
-    if (pHead && key && (valueLen == 0 || value)) {
-        unsigned int keyLen = (unsigned int)strlen(key) + 1;
-        ktxKVListEntry* kv;
+    ktxHashList_AddKVPair(ktxHashList *pHead, const char *key, unsigned int valueLen, const void *value) {
+	if (pHead && key && (valueLen == 0 || value)) {
+		unsigned int    keyLen = (unsigned int) strlen(key) + 1;
+		ktxKVListEntry *kv;
 
-        if (keyLen == 1)
-            return KTX_INVALID_VALUE;   /* Empty string */
+		if (keyLen == 1)
+			return KTX_INVALID_VALUE; /* Empty string */
 
-        /* Allocate all the memory as a block */
-        kv = (ktxKVListEntry*)malloc(sizeof(ktxKVListEntry) + keyLen + valueLen);
-        /* Put key first */
-        kv->key = (char *)kv + sizeof(ktxKVListEntry);
-        kv->keyLen = keyLen;
-        memcpy(kv->key, key, keyLen);
-        /* then value */
-        kv->valueLen = valueLen;
-        if (valueLen > 0) {
-            kv->value = kv->key + keyLen;
-            memcpy(kv->value, value, valueLen);
-        } else {
-            kv->value = 0;
-        }
+		/* Allocate all the memory as a block */
+		kv = (ktxKVListEntry *) malloc(sizeof(ktxKVListEntry) + keyLen + valueLen);
+		/* Put key first */
+		kv->key    = (char *) kv + sizeof(ktxKVListEntry);
+		kv->keyLen = keyLen;
+		memcpy(kv->key, key, keyLen);
+		/* then value */
+		kv->valueLen = valueLen;
+		if (valueLen > 0) {
+			kv->value = kv->key + keyLen;
+			memcpy(kv->value, value, valueLen);
+		} else {
+			kv->value = 0;
+		}
 
-        HASH_ADD_KEYPTR( hh, *pHead, kv->key, kv->keyLen-1, kv);
-        return KTX_SUCCESS;
-    } else
-        return KTX_INVALID_VALUE;
+		HASH_ADD_KEYPTR(hh, *pHead, kv->key, kv->keyLen - 1, kv);
+		return KTX_SUCCESS;
+	} else
+		return KTX_INVALID_VALUE;
 }
-
 
 /**
  * @memberof ktxHashList @public
@@ -244,19 +225,17 @@ ktxHashList_AddKVPair(ktxHashList* pHead, const char* key, unsigned int valueLen
  *            string.
  */
 KTX_error_code
-ktxHashList_DeleteKVPair(ktxHashList* pHead, const char* key)
-{
-    if (pHead && key) {
-        ktxKVListEntry* kv;
+    ktxHashList_DeleteKVPair(ktxHashList *pHead, const char *key) {
+	if (pHead && key) {
+		ktxKVListEntry *kv;
 
-        HASH_FIND_STR( *pHead, key, kv );  /* kv: pointer to target entry. */
-        if (kv != NULL)
-            HASH_DEL(*pHead, kv);
-        return KTX_SUCCESS;
-    } else
-        return KTX_INVALID_VALUE;
+		HASH_FIND_STR(*pHead, key, kv); /* kv: pointer to target entry. */
+		if (kv != NULL)
+			HASH_DEL(*pHead, kv);
+		return KTX_SUCCESS;
+	} else
+		return KTX_INVALID_VALUE;
 }
-
 
 /**
  * @memberof ktxHashList @public
@@ -271,15 +250,13 @@ ktxHashList_DeleteKVPair(ktxHashList* pHead, const char* key)
  *            string.
  */
 KTX_error_code
-ktxHashList_DeleteEntry(ktxHashList* pHead, ktxHashListEntry* pEntry)
-{
-    if (pHead && pEntry) {
-        HASH_DEL(*pHead, pEntry);
-        return KTX_SUCCESS;
-    } else
-        return KTX_INVALID_VALUE;
+    ktxHashList_DeleteEntry(ktxHashList *pHead, ktxHashListEntry *pEntry) {
+	if (pHead && pEntry) {
+		HASH_DEL(*pHead, pEntry);
+		return KTX_SUCCESS;
+	} else
+		return KTX_INVALID_VALUE;
 }
-
 
 /**
  * @memberof ktxHashList @public
@@ -298,23 +275,21 @@ ktxHashList_DeleteEntry(ktxHashList* pHead, ktxHashListEntry* pEntry)
  * @exception KTX_NOT_FOUND     an entry matching @p key was not found.
  */
 KTX_error_code
-ktxHashList_FindEntry(ktxHashList* pHead, const char* key,
-                      ktxHashListEntry** ppEntry)
-{
-    if (pHead && key) {
-        ktxKVListEntry* kv;
+    ktxHashList_FindEntry(ktxHashList *pHead, const char *key,
+                          ktxHashListEntry **ppEntry) {
+	if (pHead && key) {
+		ktxKVListEntry *kv;
 
-        HASH_FIND_STR( *pHead, key, kv );  /* kv: output pointer */
+		HASH_FIND_STR(*pHead, key, kv); /* kv: output pointer */
 
-        if (kv) {
-            *ppEntry = kv;
-            return KTX_SUCCESS;
-        } else
-            return KTX_NOT_FOUND;
-    } else
-        return KTX_INVALID_VALUE;
+		if (kv) {
+			*ppEntry = kv;
+			return KTX_SUCCESS;
+		} else
+			return KTX_NOT_FOUND;
+	} else
+		return KTX_INVALID_VALUE;
 }
-
 
 /**
  * @memberof ktxHashList @public
@@ -335,24 +310,23 @@ ktxHashList_FindEntry(ktxHashList* pHead, const char* key,
  * @exception KTX_NOT_FOUND     an entry matching @p key was not found.
  */
 KTX_error_code
-ktxHashList_FindValue(ktxHashList *pHead, const char* key, unsigned int* pValueLen, void** ppValue)
-{
-    if (pValueLen && ppValue) {
-        ktxHashListEntry* pEntry;
-        KTX_error_code result;
+    ktxHashList_FindValue(ktxHashList *pHead, const char *key, unsigned int *pValueLen, void **ppValue) {
+	if (pValueLen && ppValue) {
+		ktxHashListEntry *pEntry;
+		KTX_error_code    result;
 
-        result = ktxHashList_FindEntry(pHead, key, &pEntry);
-        if (result == KTX_SUCCESS) {
-            ktxHashListEntry_GetValue(pEntry, pValueLen, ppValue);
-            return KTX_SUCCESS;
-        } else
-            return result;
-    } else
-        return KTX_INVALID_VALUE;
+		result = ktxHashList_FindEntry(pHead, key, &pEntry);
+		if (result == KTX_SUCCESS) {
+			ktxHashListEntry_GetValue(pEntry, pValueLen, ppValue);
+			return KTX_SUCCESS;
+		} else
+			return result;
+	} else
+		return KTX_INVALID_VALUE;
 }
 
 #if !__clang__ && __GNUC__
-#pragma GCC diagnostic pop
+#	pragma GCC diagnostic pop
 #endif
 
 /**
@@ -377,15 +351,13 @@ ktxHashList_FindValue(ktxHashList *pHead, const char* key, unsigned int* pValueL
  * @return a pointer to the next entry or NULL.
  *
  */
-ktxHashListEntry*
-ktxHashList_Next(ktxHashListEntry* entry)
-{
-    if (entry) {
-        return ((ktxKVListEntry*)entry)->hh.next;
-    } else
-        return NULL;
+ktxHashListEntry *
+    ktxHashList_Next(ktxHashListEntry *entry) {
+	if (entry) {
+		return ((ktxKVListEntry *) entry)->hh.next;
+	} else
+		return NULL;
 }
-
 
 /**
  * @memberof ktxHashList @public
@@ -410,60 +382,57 @@ ktxHashList_Next(ktxHashListEntry* entry)
  *                              data.
  */
 KTX_error_code
-ktxHashList_Serialize(ktxHashList* pHead,
-                      unsigned int* pKvdLen, unsigned char** ppKvd)
-{
+    ktxHashList_Serialize(ktxHashList  *pHead,
+                          unsigned int *pKvdLen, unsigned char **ppKvd) {
+	if (pHead && pKvdLen && ppKvd) {
+		ktxKVListEntry *kv;
+		unsigned int    bytesOfKeyValueData = 0;
+		unsigned int    keyValueLen;
+		unsigned char  *sd;
+		char            padding[4] = {0, 0, 0, 0};
 
-    if (pHead && pKvdLen && ppKvd) {
-        ktxKVListEntry* kv;
-        unsigned int bytesOfKeyValueData = 0;
-        unsigned int keyValueLen;
-        unsigned char* sd;
-        char padding[4] = {0, 0, 0, 0};
+		for (kv = *pHead; kv != NULL; kv = kv->hh.next) {
+			/* sizeof(sd) is to make space to write keyAndValueByteSize */
+			keyValueLen = kv->keyLen + kv->valueLen + sizeof(ktx_uint32_t);
+			/* Add valuePadding */
+			keyValueLen = _KTX_PAD4(keyValueLen);
+			bytesOfKeyValueData += keyValueLen;
+		}
 
-        for (kv = *pHead; kv != NULL; kv = kv->hh.next) {
-            /* sizeof(sd) is to make space to write keyAndValueByteSize */
-            keyValueLen = kv->keyLen + kv->valueLen + sizeof(ktx_uint32_t);
-            /* Add valuePadding */
-            keyValueLen = _KTX_PAD4(keyValueLen);
-            bytesOfKeyValueData += keyValueLen;
-        }
+		if (bytesOfKeyValueData == 0) {
+			*pKvdLen = 0;
+			*ppKvd   = NULL;
+		} else {
+			sd = malloc(bytesOfKeyValueData);
+			if (!sd)
+				return KTX_OUT_OF_MEMORY;
 
-        if (bytesOfKeyValueData == 0) {
-            *pKvdLen = 0;
-            *ppKvd = NULL;
-        } else {
-            sd = malloc(bytesOfKeyValueData);
-            if (!sd)
-                return KTX_OUT_OF_MEMORY;
+			*pKvdLen = bytesOfKeyValueData;
+			*ppKvd   = sd;
 
-            *pKvdLen = bytesOfKeyValueData;
-            *ppKvd = sd;
+			for (kv = *pHead; kv != NULL; kv = kv->hh.next) {
+				int padLen;
 
-            for (kv = *pHead; kv != NULL; kv = kv->hh.next) {
-                int padLen;
-
-                keyValueLen = kv->keyLen + kv->valueLen;
-                *(ktx_uint32_t*)sd = keyValueLen;
-                sd += sizeof(ktx_uint32_t);
-                memcpy(sd, kv->key, kv->keyLen);
-                sd += kv->keyLen;
-                if (kv->valueLen > 0)
-                    memcpy(sd, kv->value, kv->valueLen);
-                sd += kv->valueLen;
-                padLen = _KTX_PAD4_LEN(keyValueLen);
-                memcpy(sd, padding, padLen);
-                sd += padLen;
-            }
-        }
-        return KTX_SUCCESS;
-    } else
-        return KTX_INVALID_VALUE;
+				keyValueLen          = kv->keyLen + kv->valueLen;
+				*(ktx_uint32_t *) sd = keyValueLen;
+				sd += sizeof(ktx_uint32_t);
+				memcpy(sd, kv->key, kv->keyLen);
+				sd += kv->keyLen;
+				if (kv->valueLen > 0)
+					memcpy(sd, kv->value, kv->valueLen);
+				sd += kv->valueLen;
+				padLen = _KTX_PAD4_LEN(keyValueLen);
+				memcpy(sd, padding, padLen);
+				sd += padLen;
+			}
+		}
+		return KTX_SUCCESS;
+	} else
+		return KTX_INVALID_VALUE;
 }
 
-
-int sort_by_key_codepoint(ktxKVListEntry* a, ktxKVListEntry* b) {
-  return strcmp(a->key, b->key);
+int sort_by_key_codepoint(ktxKVListEntry *a, ktxKVListEntry *b) {
+	return strcmp(a->key, b->key);
 }
 
 /**
@@ -478,18 +447,16 @@ int sort_by_key_codepoint(ktxKVListEntry* a, ktxKVListEntry* b) {
  * @exception KTX_INVALID_VALUE if @p This is NULL.
  */
 KTX_error_code
-ktxHashList_Sort(ktxHashList* pHead)
-{
-    if (pHead) {
-        //ktxKVListEntry* kv = (ktxKVListEntry*)pHead;
+    ktxHashList_Sort(ktxHashList *pHead) {
+	if (pHead) {
+		// ktxKVListEntry* kv = (ktxKVListEntry*)pHead;
 
-        HASH_SORT(*pHead, sort_by_key_codepoint);
-        return KTX_SUCCESS;
-    } else {
-        return KTX_INVALID_VALUE;
-    }
+		HASH_SORT(*pHead, sort_by_key_codepoint);
+		return KTX_SUCCESS;
+	} else {
+		return KTX_INVALID_VALUE;
+	}
 }
-
 
 /**
  * @memberof ktxHashList @public
@@ -512,39 +479,37 @@ ktxHashList_Sort(ktxHashList* pHead)
  *                              table.
  */
 KTX_error_code
-ktxHashList_Deserialize(ktxHashList* pHead, unsigned int kvdLen, void* pKvd)
-{
-    char* src = pKvd;
-    KTX_error_code result;
+    ktxHashList_Deserialize(ktxHashList *pHead, unsigned int kvdLen, void *pKvd) {
+	char          *src = pKvd;
+	KTX_error_code result;
 
-    if (kvdLen == 0 || pKvd == NULL || pHead == NULL)
-        return KTX_INVALID_VALUE;
+	if (kvdLen == 0 || pKvd == NULL || pHead == NULL)
+		return KTX_INVALID_VALUE;
 
-    if (*pHead != NULL)
-        return KTX_INVALID_OPERATION;
+	if (*pHead != NULL)
+		return KTX_INVALID_OPERATION;
 
-    result = KTX_SUCCESS;
-    while (result == KTX_SUCCESS && src < (char *)pKvd + kvdLen) {
-        char* key;
-        unsigned int keyLen, valueLen;
-        void* value;
-        ktx_uint32_t keyAndValueByteSize = *((ktx_uint32_t*)src);
+	result = KTX_SUCCESS;
+	while (result == KTX_SUCCESS && src < (char *) pKvd + kvdLen) {
+		char        *key;
+		unsigned int keyLen, valueLen;
+		void        *value;
+		ktx_uint32_t keyAndValueByteSize = *((ktx_uint32_t *) src);
 
-        src += sizeof(keyAndValueByteSize);
-        key = src;
-        keyLen = (unsigned int)strlen(key) + 1;
-        value = key + keyLen;
+		src += sizeof(keyAndValueByteSize);
+		key    = src;
+		keyLen = (unsigned int) strlen(key) + 1;
+		value  = key + keyLen;
 
-        valueLen = keyAndValueByteSize - keyLen;
-        result = ktxHashList_AddKVPair(pHead, key, valueLen,
+		valueLen = keyAndValueByteSize - keyLen;
+		result   = ktxHashList_AddKVPair(pHead, key, valueLen,
                                        valueLen > 0 ? value : NULL);
-        if (result == KTX_SUCCESS) {
-            src += _KTX_PAD4(keyAndValueByteSize);
-        }
-    }
-    return result;
+		if (result == KTX_SUCCESS) {
+			src += _KTX_PAD4(keyAndValueByteSize);
+		}
+	}
+	return result;
 }
-
 
 /**
  * @memberof ktxHashListEntry @public
@@ -562,18 +527,16 @@ ktxHashList_Deserialize(ktxHashList* pHead, unsigned int kvdLen, void* pKvd)
  * @exception KTX_INVALID_VALUE if @p pKvd or @p pHt is NULL or kvdLen == 0.
  */
 KTX_error_code
-ktxHashListEntry_GetKey(ktxHashListEntry* This,
-                        unsigned int* pKeyLen, char** ppKey)
-{
-    if (pKeyLen && ppKey) {
-        ktxKVListEntry* kv = (ktxKVListEntry*)This;
-        *pKeyLen = kv->keyLen;
-        *ppKey = kv->key;
-        return KTX_SUCCESS;
-    } else
-        return KTX_INVALID_VALUE;
+    ktxHashListEntry_GetKey(ktxHashListEntry *This,
+                            unsigned int *pKeyLen, char **ppKey) {
+	if (pKeyLen && ppKey) {
+		ktxKVListEntry *kv = (ktxKVListEntry *) This;
+		*pKeyLen           = kv->keyLen;
+		*ppKey             = kv->key;
+		return KTX_SUCCESS;
+	} else
+		return KTX_INVALID_VALUE;
 }
-
 
 /**
  * @memberof ktxHashListEntry @public
@@ -590,14 +553,13 @@ ktxHashListEntry_GetKey(ktxHashListEntry* This,
  * @exception KTX_INVALID_VALUE if @p pKvd or @p pHt is NULL or kvdLen == 0.
  */
 KTX_error_code
-ktxHashListEntry_GetValue(ktxHashListEntry* This,
-                          unsigned int* pValueLen, void** ppValue)
-{
-    if (pValueLen && ppValue) {
-        ktxKVListEntry* kv = (ktxKVListEntry*)This;
-        *pValueLen = kv->valueLen;
-        *ppValue = kv->valueLen > 0 ? kv->value : NULL;
-        return KTX_SUCCESS;
-    } else
-        return KTX_INVALID_VALUE;
+    ktxHashListEntry_GetValue(ktxHashListEntry *This,
+                              unsigned int *pValueLen, void **ppValue) {
+	if (pValueLen && ppValue) {
+		ktxKVListEntry *kv = (ktxKVListEntry *) This;
+		*pValueLen         = kv->valueLen;
+		*ppValue           = kv->valueLen > 0 ? kv->value : NULL;
+		return KTX_SUCCESS;
+	} else
+		return KTX_INVALID_VALUE;
 }
