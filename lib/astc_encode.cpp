@@ -21,6 +21,7 @@
 #include <iostream>
 #include <string>
 #include <unordered_map>
+#include <vector>
 #include <zstd.h>
 #include <KHR/khr_df.h>
 
@@ -32,7 +33,6 @@
 #include "vk_format.h"
 
 #include "astc-encoder/Source/astcenc.h"
-#include "../tools/toktx/image.hpp"
 
 // Provide pthreads support on windows
 #if defined(_WIN32) && !defined(__CYGWIN__)

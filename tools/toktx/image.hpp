@@ -480,7 +480,10 @@ class ImageT : public Image {
         pixels = (Color*)malloc(bytes);
         if (!pixels)
             throw std::bad_alloc();
-        memset(pixels, 0, bytes);
+
+        for (uint32_t b = 0; b < w * h; ++b)
+            for(uint32_t c = 0; c < componentCount; ++c)
+                memset(&pixels[b].comps[c], 0, sizeof(componentType));
     }
 
     ImageT(uint32_t w, uint32_t h, Color* pixels) : Image(w, h), pixels(pixels)
