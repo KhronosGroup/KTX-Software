@@ -91,8 +91,12 @@ else
   cmake --build . --config Release -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | handle_compiler_output
 fi
 
-echo "Test KTX-Software (macOS $ARCH $CONFIGURATION)"
-ctest -C Release # --verbose
+# Rosetta 2 should let x86_64 tests run on an Apple Silicon Mac hence the -o.
+if [ "$ARCH" == "$(uname -m)" -o "$ARCH" == "x64_64" ]; then
+  echo "Test KTX-Software (macOS $ARCH $CONFIGURATION)"
+  ctest -C Release # --verbose
+fi
+
 echo "Install KTX-Software (macOS $ARCH $CONFIGURATION)"
 if [ "$PACKAGE" == "YES" ]; then
   cmake --install . --config Release --prefix ../install-macos-release
