@@ -157,6 +157,7 @@ script:
        ./ci_scripts/build_macos.sh
     else
       ./ci_scripts/build_ios.sh
+    fi
     ;;
   esac
 
