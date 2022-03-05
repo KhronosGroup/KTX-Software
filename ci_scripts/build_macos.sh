@@ -54,27 +54,27 @@ fi
 
 echo "Configure KTX-Software (macOS $ARCH $CONFIGURATION) dir=$BUILD_DIR FEATURE_DOC=$FEATURE_DOC FEATURE_JNI=$FEATURE_JNI FEATURE_LOADTESTS=$FEATURE_LOADTESTS SUPPORT_SSE=$SUPPORT_SSE SUPPORT_OPENCL=$SUPPORT_OPENCL"
 if [ -n "$MACOS_CERTIFICATES_P12" ]; then
-  cmake -GXcode -B$BUILD_DIR \
+  cmake -GXcode -B$BUILD_DIR . \
   -D CMAKE_OSX_ARCHITECTURES="$ARCHS" \
   -D KTX_FEATURE_DOC=$FEATURE_DOC \
   -D KTX_FEATURE_JNI=$FEATURE_JNI \
   -D KTX_FEATURE_LOADTEST_APPS=$FEATURE_LOADTESTS \
   -D BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL \
   -D BASISU_SUPPORT_SSE=$SUPPORT_SSE \
-  $(if [ "$ARCH" == "x86_64" ]; then echo -- -D ISA_SSE41=ON; fi) \
+  $(if [ "$ARCH" == "x86_64" ]; then echo -D ISA_SSE41=ON; fi) \
   -D XCODE_CODE_SIGN_IDENTITY="${CODE_SIGN_IDENTITY}" \
   -D XCODE_DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
   -D PRODUCTBUILD_IDENTITY_NAME="${PKG_SIGN_IDENTITY}"
 else # No secure variables means a PR or fork build.
   echo "************* No Secure variables. ******************"
-  cmake -GXcode -B$DEPLOY_BUILD_DIR \
+  cmake -GXcode -B$BUILD_DIR . \
   -D CMAKE_OSX_ARCHITECTURES="$ARCHS" \
   -D KTX_FEATURE_DOC=$FEATURE_DOC \
   -D KTX_FEATURE_JNI=$FEATURE_JNI \
   -D KTX_FEATURE_LOADTEST_APPS=$FEATURE_LOADTESTS \
   -D BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL \
   -D BASISU_SUPPORT_SSE=$SUPPORT_SSE \
-  $(if [ "$ARCH" == "x86_64" ]; then echo -- -D ISA_SSE41=ON; fi) \
+  $(if [ "$ARCH" == "x86_64" ]; then echo -D ISA_SSE41=ON; fi)
 fi
 
 # Cause the build pipes below to set the exit to the exit code of the

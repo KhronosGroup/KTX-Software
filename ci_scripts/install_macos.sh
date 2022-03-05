@@ -7,12 +7,8 @@
 # Exit if any command fails.
 set -e
 
-brew update > /dev/null
-brew install git-lfs
 git lfs install
 git lfs version
-brew install doxygen
-brew install sdl2
 brew link sdl2
 gem install xcpretty
 

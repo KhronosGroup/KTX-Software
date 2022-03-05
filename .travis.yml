@@ -15,6 +15,14 @@ osx_image: xcode12.4
 
 language: cpp
 
+addons:
+  homebrew:
+    packages:
+    - git-lfs
+    - doxygen
+    - sdl2
+    #update: true
+
 env:
   global:
     - BUILD_DIR=build
