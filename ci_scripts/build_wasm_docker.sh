@@ -1,35 +1,57 @@
-#!/bin/bash
+#!/bin/sh
 # Copyright 2015-2020 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-# Emscripten/WebAssembly
+# Build WebAssembly with Emscripten in Docker.
+
+# Exit if any command fails.
+set -e
+
+# Set parameters from command-line arguments, if any.
+for i in $@; do
+  eval $i
+done
+
+# Set defaults
+CONFIGURATION=${CONFIGURATION:-Release}
+FEATURE_DOC=${FEATURE_DOC:-OFF}
+FEATURE_JNI=${FEATURE_JNI:-OFF}
+FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-ON}
+PACKAGE=${PACKAGE:-NO}
+SUPPORT_SSE=OFF
+SUPPORT_OPENCL=${SUPPORT_OPENCL:-OFF}
+
+BUILD_DIR=${BUILD_DIR:-build/web-$CONFIGURATION}
 
 # Check if emscripten container is already running as CI will already have started it.
 if [ "$(docker container inspect -f '{{.State.Status}}' emscripten 2> /dev/null)" != "running" ]
 then
   # Create docker container.
   docker run -dit --name emscripten -v $(pwd):/src emscripten/emsdk bash
+else
+  echo "Docker running"
+  dockerrunning=1
 fi
 
-echo "Emscripten version"
+echo "\nEmscripten version"
 docker exec -it emscripten sh -c "emcc --version"
 
-build_parent_dir=build
-web_build_base=$build_parent_dir/web
-debug_build_dir=${web_build_base}-debug
-release_build_dir=${web_build_base}-release
+mkdir -p $BUILD_DIR
 
-mkdir -p $build_parent_dir
+echo "Configure/Build KTX-Software (Web $CONFIGURATION)"
+docker exec -it emscripten sh -c "emcmake cmake -B$BUILD_DIR . \
+    -D KTX_FEATURE_DOC=OFF \
+    -D KTX_FEATURE_LOADTEST_APPS=$FEATURE_LOADTESTS \
+  && cmake --build $BUILD_DIR --config $CONFIGURATION"
 
-echo "Configure/Build KTX-Software (Web Debug)"
-docker exec -it emscripten sh -c "emcmake cmake -B${web_build_base}-debug -DKTX_FEATURE_LOADTEST_APPS=ON . && cmake --build ${web_build_base}-debug --config Debug"
-echo "Configure/Build KTX-Software (Web Release)"
-docker exec -it emscripten sh -c "emcmake cmake -B${web_build_base}-release -DKTX_FEATURE_LOADTEST_APPS=ON . && cmake --build ${web_build_base}-release --config Release"
+if [ "$PACKAGE" == "YES" ]; then
+  echo "Pack KTX-Software (Web Release)"
+  # Call cmake rather than cpack so we don't need knowledge of the working
+  # directory inside docker.
+  docker exec -it emscripten sh -c "cmake --build $BUILD_DIR --config $CONFIGURATION --target package"
+fi
 
-echo "Pack KTX-Software (Web Release)"
-# Call cmake rather than cpack so we don't need knowledge of the working directory
-# inside docker.
-docker exec -it emscripten sh -c "cmake --build ${web_build_base}-release --config Release --target package"
-
-docker stop emscripten
-docker rm emscripten
+if [ -z $dockerrunning ]; then
+  docker stop emscripten > /dev/null
+  docker rm emscripten > /dev/null
+fi

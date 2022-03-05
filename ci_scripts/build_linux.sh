@@ -1,9 +1,16 @@
-#!/bin/bash
+#!/bin/sh
 # Copyright 2015-2020 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-# exit if any command fails
+# Build on Linux.
+
+# Exit if any command fails.
 set -e
+
+# Set parameters from command-line arguments, if any.
+for i in $@; do
+  eval $i
+done
 
 # Set some defaults
 CONFIGURATION=${CONFIGURATION:-Release}

@@ -2,7 +2,9 @@
 # Copyright 2015-2020 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-# exit if any command fails
+# Build for macOS with Xcode.
+
+# Exit if any command fails.
 set -e
 
 # Travis CI doesn't have JAVA_HOME for some reason
@@ -12,7 +14,12 @@ if [ -z "$JAVA_HOME" ]; then
   echo JAVA_HOME is $JAVA_HOME
 fi
 
-# Set some defaults
+# Set parameters from command-line arguments, if any.
+for i in $@; do
+  eval $i
+done
+
+# Set defaults
 ARCH=${ARCH:-$(uname -m)}
 CONFIGURATION=${CONFIGURATION:-Release}
 FEATURE_DOC=${FEATURE_DOC:-OFF}
