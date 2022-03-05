@@ -119,7 +119,7 @@ install:
 - |
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
-    if [ "$CHECK_REUSE" == "YES" -o "$CHECK_REUSE" == "ONLY"]; then
+    if [ "$CHECK_REUSE" == "YES" -o "$CHECK_REUSE" == "ONLY" ]; then
       pip3 install reuse
     fi
     if [ "$CHECK_REUSE" != "ONLY" ]; then

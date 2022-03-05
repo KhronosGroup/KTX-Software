@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 echo "Now uploading the failed tests"
-ls -alsh ./tests/testimages/toktx*
 tar -cvf failed-tests.tar ./tests/testimages/toktx*
 # curl/transfer.sh prints the retrieval URL on completion. As the output
 # is not terminated with a new-line it does not show up in Travis-CI's
