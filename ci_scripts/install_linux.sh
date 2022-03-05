@@ -7,6 +7,17 @@
 # Exit if any command fails.
 set -e
 
+# Set parameters from command-line arguments, if any.
+for i in $@; do
+  eval $i
+done
+
+WASM_BUILD=${WASM_BUILD:-NO}
+
+if [ "$WASM_BUILD" == "YES" ]; then
+  exit
+fi
+
 sudo apt-get -qq update
 sudo apt-get -qq install ninja-build
 sudo apt-get -qq install doxygen
