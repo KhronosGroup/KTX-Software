@@ -11,9 +11,6 @@ tar -cvf failed-tests.tar ./tests/testimages/toktx*
 rurl=$(curl --upload-file failed-tests.tar https://transfer.sh/toktx-failed-tests.tar)
 echo $rurl
 echo "Now uploading the test log"
-# The settings of CUR_BUILD_DIR make in the build scripts are not being
-# propagated to this script. Hardwire the directory with the current problem.
-#rurl=$(curl --upload-file $CUR_BUILD_DIR/Testing/Temporary/LastTest.log https://transfer.sh/ktx-failed-tests.log)
-rurl=$(curl --upload-file ./build-macos-sse/Testing/Temporary/LastTest.log https://transfer.sh/ktx-failed-tests.log)
+rurl=$(curl --upload-file $BUILD_DIR/Testing/Temporary/LastTest.log https://transfer.sh/ktx-failed-tests.log)
 echo $rurl
 
