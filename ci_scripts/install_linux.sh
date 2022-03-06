@@ -12,14 +12,6 @@ for i in $@; do
   eval $i
 done
 
-WASM_BUILD=${WASM_BUILD:-NO}
-
-echo "Before WASM_BUILD check WASM_BUILD=$WASM_BUILD"
-if [ "$WASM_BUILD" == "YES" ]; then
-  echo "Exiting. wasm build is yes".
-  exit
-fi
-
 sudo apt-get -qq update
 sudo apt-get -qq install ninja-build
 sudo apt-get -qq install doxygen

@@ -17,6 +17,7 @@ CONFIGURATION=${CONFIGURATION:-Release}
 FEATURE_DOC=${FEATURE_DOC:-OFF}
 FEATURE_JNI=${FEATURE_JNI:-OFF}
 FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-ON}
+FEATURE_TOOLS=${FEATURE_TOOLS:-OFF}
 PACKAGE=${PACKAGE:-NO}
 SUPPORT_SSE=OFF
 SUPPORT_OPENCL=${SUPPORT_OPENCL:-OFF}
@@ -44,7 +45,7 @@ docker exec -it emscripten sh -c "emcmake cmake -B$BUILD_DIR . \
     -D KTX_FEATURE_LOADTEST_APPS=$FEATURE_LOADTESTS \
   && cmake --build $BUILD_DIR --config $CONFIGURATION"
 
-if [ "$PACKAGE" == "YES" ]; then
+if [ "$PACKAGE" = "YES" ]; then
   echo "Pack KTX-Software (Web Release)"
   # Call cmake rather than cpack so we don't need knowledge of the working
   # directory inside docker.
