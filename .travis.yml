@@ -164,7 +164,7 @@ script:
     fi
     ;;
   osx)
-    if [ "$PLATFORM" = "macOS" ]
+    if [ "$PLATFORM" = "macOS" ]; then
       ./ci_scripts/build_macos.sh
     else
       ./ci_scripts/build_ios.sh
