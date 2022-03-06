@@ -108,7 +108,6 @@ if(EMSCRIPTEN)
     target_compile_options( GLAppSDL PUBLIC
         "SHELL:-s DISABLE_EXCEPTION_CATCHING=0"
         "SHELL:-s USE_SDL=2"
-        "SHELL:-s USE_WEBGL2=1"
     )
 endif()
 
