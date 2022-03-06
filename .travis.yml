@@ -152,7 +152,9 @@ script:
 - |
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
-    if [ "$CHECK_REUSE" = "YES" -o "$CHECK_REUSE" = "ONLY"]; then
+    echo "CHECK_REUSE = $CHECK_REUSE"
+    if [ "$CHECK_REUSE" = "YES" -o "$CHECK_REUSE" = "ONLY" ]; then
+      echo "Calling reuse lint."
       reuse lint
     fi
     if [ "$CHECK_REUSE" != "ONLY" ]; then
@@ -173,8 +175,8 @@ script:
   esac
 
 # See if this helps with truncated logs.
-after_script:
-  - sleep 10
+#after_script:
+#  - sleep 10
 
 after_failure:
   - ./ci_scripts/on_failure.sh

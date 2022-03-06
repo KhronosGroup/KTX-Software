@@ -1,4 +1,4 @@
-#!/bin/sh
+#! /usr/bin/env bash
 # Copyright 2015-2020 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
