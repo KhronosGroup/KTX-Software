@@ -110,7 +110,7 @@ before_install:
     linux)
       if [ "$WASM_BUILD" = "YES" ]; then
         docker run -dit --name emscripten -v $(pwd):/src emscripten/emsdk bash
-      elif [ "$CHECK_REUSE" != "ONLY" 
+      elif [ "$CHECK_REUSE" != "ONLY" ]; then
         sudo apt-get update
       fi
       ;;
