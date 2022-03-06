@@ -108,9 +108,10 @@ before_install:
   - |
     case "${TRAVIS_OS_NAME:-linux}" in
     linux)
-      sudo apt-get update
       if [ "$WASM_BUILD" = "YES" ]; then
-          docker run -dit --name emscripten -v $(pwd):/src emscripten/emsdk bash
+        docker run -dit --name emscripten -v $(pwd):/src emscripten/emsdk bash
+      elif [ "$CHECK_REUSE" != "ONLY" 
+        sudo apt-get update
       fi
       ;;
     esac
@@ -122,7 +123,7 @@ install:
     if [ "$CHECK_REUSE" = "YES" -o "$CHECK_REUSE" = "ONLY" ]; then
       pip3 install reuse
     fi
-    if [ "$CHECK_REUSE" != "ONLY" -a "$WASM_BUILD != "YES" ]; then
+    if [ "$CHECK_REUSE" != "ONLY" -a "$WASM_BUILD" != "YES" ]; then
       ./ci_scripts/install_linux.sh
     fi
     ;;
