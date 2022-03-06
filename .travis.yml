@@ -156,14 +156,16 @@ script:
       reuse lint
     fi
     if [ "$CHECK_REUSE" != "ONLY" ]; then
-      ./ci_scripts/build_linux.sh
+      if [ "$WASM_BUILD" = "YES" ]; then
+        ./ci_scripts/build_wasm_docker.sh
+      else
+        ./ci_scripts/build_linux.sh
+      fi
     fi
     ;;
   osx)
-    if [ "$WASM_BUILD" = "YES" ]; then
-     ./ci_scripts/build_wasm_docker.sh
-    elif [ "$PLATFORM" = "macOS" ]; then
-       ./ci_scripts/build_macos.sh
+    if [ "$PLATFORM" = "macOS" ]
+      ./ci_scripts/build_macos.sh
     else
       ./ci_scripts/build_ios.sh
     fi

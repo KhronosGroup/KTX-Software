@@ -37,7 +37,7 @@ cmake . -G Ninja -B$BUILD_DIR \
   -D BASISU_SUPPORT_SSE=$SUPPORT_SSE
 pushd $BUILD_DIR
 echo "Build KTX-Software (Linux $CONFIGURATION)"
-${CMAKE_EXE} --build .
+cmake --build .
 echo "Test KTX-Software (Linux $CONFIGURATION)"
 ctest # --verbose
 
