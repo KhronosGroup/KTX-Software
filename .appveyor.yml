@@ -225,7 +225,7 @@ test_script:
 
 artifacts:
   # Save in cloud storage so we can deploy it. Will be kept unnecessarily for
-  # 6 months. Would be nice to avoid saving artifacts from every build in the
+  # 1 month. Would be nice to avoid saving artifacts from every build in the
   # matrix. No info in Appveyor docs.
   - path: '$(BUILD_DIR)/KTX-Software-*.exe'
     name: WindowsInstaller
@@ -253,3 +253,10 @@ deploy:
       APPVEYOR_REPO_TAG: true       # deploy on tag push only
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
       CONFIGURATION: Release
+      FEATURE_DOC: ON
+      FEATURE_JNI: ON
+      FEATURE_LOADTESTS: ON
+      FEATURE_TOOLS: ON
+      PACKAGE: YES
+      SUPPORT_SSE: ON
+      SUPPORT_OPENCL: OFF
