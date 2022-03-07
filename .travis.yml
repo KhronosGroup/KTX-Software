@@ -49,21 +49,21 @@ env:
       SUPPORT_SSE=ON SUPPORT_OPENCL=ON PACKAGE=NO
     - CONFIGURATION=Release PLATFORM=macOS ARCH=arm64
       FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
-      SUPPORT_SSE=ON SUPPORT_OPENCL=ON PACKAGE=NO
+      SUPPORT_SSE=ON SUPPORT_OPENCL=ON
 
     - CONFIGURATION=Release PLATFORM=macOS ARCH=x86_64
       FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
       SUPPORT_SSE=OFF SUPPORT_OPENCL=ON PACKAGE=NO
     - CONFIGURATION=Release PLATFORM=macOS ARCH=arm64
       FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
-      SUPPORT_SSE=OFF SUPPORT_OPENCL=ON PACKAGE=NO
+      SUPPORT_SSE=OFF SUPPORT_OPENCL=ON
 
     - CONFIGURATION=Release PLATFORM=macOS ARCH=x86_64
       FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
-      SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF PACKAGE=NO
+      SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF
     - CONFIGURATION=Release PLATFORM=macOS ARCH=arm64
       FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
-      SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF PACKAGE=NO
+      SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF
 
     - CONFIGURATION=Debug PLATFORM=iOS
       FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=ON FEATURE_TOOLS=OFF
@@ -270,9 +270,7 @@ deploy:
     on:
       #branch: master
       tags: true
-      condition: $TRAVIS_OS_NAME = osx
-      condition: ARCH = x86_64
-      condition: PACKAGE: YES
+      condition: $TRAVIS_OS_NAME = osx && ARCH = x86_64 && PACKAGE = YES
 
   - provider: releases
     # dpl v2 is broken. Same named but different releases are created for this
@@ -296,22 +294,6 @@ deploy:
     on:
       tags: true
       #branch: master
-      condition: $TRAVIS_OS_NAME = osx
-      condition: PACKAGE: YES
-
-  - provider: releases
-    #edge: true # Use bleeding edge (dplv2)
-    token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
-    file_glob: true
-    file:
-      - $BUILD_DIR/KTX-Software-*-*
-    cleanup: false
-    draft: true
-    #prerelease: true
-    on:
-      tags: true
-      #branch: master
-      condition: $TRAVIS_OS_NAME = linux
-      condition: PACKAGE: YES
+      condition: PACKAGE = YES
 
 # vim:ai:ts=4:sts=2:sw=2:expandtab
