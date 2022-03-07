@@ -17,40 +17,54 @@ environment:
   OPENCL_SDK_NAME: win-oclcpuexp-2021.12.9.0.24_rel
   OPENGL_ES_EMULATOR: C:/Imagination/Windows_x86_64
   OPENGL_ES_EMULATOR_WIN: C:\Imagination\Windows_x86_64
+  PACKAGE: NO
   PVR_SDK_HOME: https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/
   VULKAN_SDK_VER: 1.2.176.1
 
   matrix:
     - FEATURE_DOC: OFF
+      FEATURE_JNI: OFF
       FEATURE_LOADTESTS: ON
+      FEATURE_TOOLS: ON
       SUPPORT_SSE: ON
       SUPPORT_OPENCL: OFF
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       CMAKE_GEN: Visual Studio 14 2015
       CONFIGURATION: Debug
+      PACKAGE: NO
     - FEATURE_DOC: OFF
+      FEATURE_JNI: OFF
       FEATURE_LOADTESTS: ON
+      FEATURE_TOOLS: ON
+      PACKAGE: YES
       SUPPORT_SSE: ON
       SUPPORT_OPENCL: OFF
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       CMAKE_GEN: Visual Studio 14 2015
       CONFIGURATION: Release
     - FEATURE_DOC: OFF
+      FEATURE_JNI: OFF
       FEATURE_LOADTESTS: ON
+      FEATURE_TOOLS: ON
       SUPPORT_SSE: ON
       SUPPORT_OPENCL: OFF
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       CMAKE_GEN: Visual Studio 15 2017
       CONFIGURATION: Debug
     - FEATURE_DOC: OFF
+      FEATURE_JNI: OFF
       FEATURE_LOADTESTS: ON
+      FEATURE_TOOLS: ON
+      PACKAGE: YES
       SUPPORT_SSE: ON
       SUPPORT_OPENCL: OFF
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       CMAKE_GEN: Visual Studio 15 2017
       CONFIGURATION: Release
     - FEATURE_DOC: OFF
+      FEATURE_JNI: ON
       FEATURE_LOADTESTS: ON
+      FEATURE_TOOLS: ON
       SUPPORT_SSE: ON
       SUPPORT_OPENCL: OFF
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
@@ -58,21 +72,28 @@ environment:
       CONFIGURATION: Debug
       # This is the configuration used for the release.
     - FEATURE_DOC: ON
+      FEATURE_JNI: ON
       FEATURE_LOADTESTS: ON
+      FEATURE_TOOLS: ON
+      PACKAGE: YES
       SUPPORT_SSE: ON
       SUPPORT_OPENCL: OFF
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
       CMAKE_GEN: Visual Studio 16 2019
       CONFIGURATION: Release
     - FEATURE_DOC: OFF
+      FEATURE_JNI: OFF
       FEATURE_LOADTESTS: OFF
+      FEATURE_TOOLS: OFF
       SUPPORT_SSE: ON
       SUPPORT_OPENCL: ON
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
       CMAKE_GEN: Visual Studio 16 2019
       CONFIGURATION: Release
     - FEATURE_DOC: OFF
+      FEATURE_JNI: OFF
       FEATURE_LOADTESTS: OFF
+      FEATURE_TOOLS: OFF
       SUPPORT_SSE: OFF
       SUPPORT_OPENCL: ON
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019

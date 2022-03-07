@@ -25,14 +25,14 @@ addons:
 
 env:
   global:
-    - BUILD_DIR=build
-    - CHECK_REUSE=NO
-    - PACKAGE=NO
-    - WASM_BUILD=NO
-    - VULKAN_SDK_VER="1.2.176.1"
+    - BUILD_DIR: build
+    - CHECK_REUSE: NO
+    - PACKAGE: NO
+    - WASM_BUILD: NO
+    - VULKAN_SDK_VER: "1.2.176.1"
     # This is just to tell the install script where to install.
-    - VULKAN_INSTALL_DIR="$HOME/VulkanSDK/$VULKAN_SDK_VER"
-    - VULKAN_SDK="$VULKAN_INSTALL_DIR/macOS"
+    - VULKAN_INSTALL_DIR: "$HOME/VulkanSDK/$VULKAN_SDK_VER"
+    - VULKAN_SDK: "$VULKAN_INSTALL_DIR/macOS"
   jobs:
     - CONFIGURATION=Debug PLATFORM=macOS ARCH=x86_64
       FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=ON FEATURE_TOOLS=ON
@@ -77,13 +77,13 @@ jobs:
     - os: linux
       dist: focal
       env:
-        - CHECK_REUSE=ONLY
+        - CHECK_REUSE: ONLY
     - os: linux
       dist: focal
       compiler: gcc # clang is tested by macOS build
       env:
         # NB: This must not have the fourth component of the version number.
-        - VULKAN_SDK_VER="1.2.176"
+        - VULKAN_SDK_VER: "1.2.176"
         - CONFIGURATION=Debug
           FEATURE_DOC=OFF FEATURE_JNI=ON FEATURE_LOADTESTS=ON FEATURE_TOOLS=ON
           SUPPORT_SSE=ON SUPPORT_OPENCL=OFF
@@ -92,7 +92,7 @@ jobs:
       compiler: gcc
       env:
         # NB: This must not have the fourth component of the version number.
-        - VULKAN_SDK_VER="1.2.176"
+        - VULKAN_SDK_VER: "1.2.176"
         - CONFIGURATION=Release
           FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=ON FEATURE_TOOLS=ON
           SUPPORT_SSE=ON SUPPORT_OPENCL=OFF PACKAGE=YES
