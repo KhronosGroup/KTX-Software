@@ -1,8 +1,10 @@
-#!/bin/sh
+#! /usr/bin/env bash
 # Copyright 2015-2020 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-# exit if any command fails
+# Build for macOS with Xcode.
+
+# Exit if any command fails.
 set -e
 
 # Travis CI doesn't have JAVA_HOME for some reason
@@ -12,22 +14,34 @@ if [ -z "$JAVA_HOME" ]; then
   echo JAVA_HOME is $JAVA_HOME
 fi
 
+# Set parameters from command-line arguments, if any.
+for i in $@; do
+  eval $i
+done
+
+# Set defaults
+ARCH=${ARCH:-$(uname -m)}
+CONFIGURATION=${CONFIGURATION:-Release}
+FEATURE_DOC=${FEATURE_DOC:-OFF}
+FEATURE_JNI=${FEATURE_JNI:-OFF}
+FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-ON}
+FEATURE_TOOLS=${FEATURE_TOOLS:-ON}
+PACKAGE=${PACKAGE:-NO}
+SUPPORT_SSE=${SUPPORT_SSE:-ON}
+SUPPORT_OPENCL=${SUPPORT_OPENCL:-OFF}
+
+BUILD_DIR=${BUILD_DIR:-build/macos-$ARCH-$CONFIGURATION}
+
+export VULKAN_SDK=${VULKAN_SDK:-VULKAN_SDK=~/VulkanSDK/1.2.176.1/macOS}
+
+# Ensure that Vulkan SDK's glslc is in PATH
+export PATH="${VULKAN_SDK}/bin:$PATH"
+
 # Due to the spaces in the platform names, must use array variables so
 # destination args can be expanded to a single word.
 OSX_XCODE_OPTIONS=(-alltargets -destination "platform=OS X,arch=x86_64")
 IOS_XCODE_OPTIONS=(-alltargets -destination "generic/platform=iOS" -destination "platform=iOS Simulator,OS=latest")
 XCODE_CODESIGN_ENV='CODE_SIGN_IDENTITY= CODE_SIGN_ENTITLEMENTS= CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO'
-
-if [ -z "$VULKAN_SDK" ]; then
-  export VULKAN_SDK=~/VulkanSDK/1.2.176.1/macOS
-fi
-
-# Ensure that Vulkan SDK's glslc is in PATH
-export PATH="${VULKAN_SDK}/bin:$PATH"
-
-if [ -z "$DEPLOY_BUILD_DIR" ]; then
-  DEPLOY_BUILD_DIR=build-macos-universal
-fi
 
 if which -s xcpretty ; then
   function handle_compiler_output() {
@@ -39,75 +53,61 @@ else
   }
 fi
 
-#
-# macOS
-#
-
-# Since the compiler is called twice (for x86_64 and arm64) with the same set
-# of defines and options, we have no choice but to disable SSE. This is done
-# by our cpu type detection script (cmake/cputypetest.cmake) which notices the
-# multiple architectures and indicates a cpu type that does not support SSE.
-# Also BasisU OpenCL code seems to be producing different results with
-# Universal binary than x64 binary.
-echo "Configure KTX-Software (macOS universal binary) without SSE support"
+echo "Configure KTX-Software (macOS $ARCH $CONFIGURATION) dir=$BUILD_DIR FEATURE_DOC=$FEATURE_DOC FEATURE_JNI=$FEATURE_JNI FEATURE_LOADTESTS=$FEATURE_LOADTESTS FEATURE_TOOLS=$FEATURE_TOOLS SUPPORT_SSE=$SUPPORT_SSE SUPPORT_OPENCL=$SUPPORT_OPENCL"
 if [ -n "$MACOS_CERTIFICATES_P12" ]; then
-  cmake -GXcode -B$DEPLOY_BUILD_DIR \
-  -DCMAKE_OSX_ARCHITECTURES="\$(ARCHS_STANDARD)" \
-  -DKTX_FEATURE_DOC=ON \
-  -DKTX_FEATURE_LOADTEST_APPS=ON \
-  -DBASISU_SUPPORT_OPENCL=OFF \
-  -DBASISU_SUPPORT_SSE=OFF \
-  -DXCODE_CODE_SIGN_IDENTITY="${CODE_SIGN_IDENTITY}" \
-  -DXCODE_DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
-  -DPRODUCTBUILD_IDENTITY_NAME="${PKG_SIGN_IDENTITY}" \
-  -DKTX_FEATURE_JNI=ON
+  cmake -GXcode -B$BUILD_DIR . \
+  -D CMAKE_OSX_ARCHITECTURES="$ARCHS" \
+  -D KTX_FEATURE_DOC=$FEATURE_DOC \
+  -D KTX_FEATURE_JNI=$FEATURE_JNI \
+  -D KTX_FEATURE_LOADTEST_APPS=$FEATURE_LOADTESTS \
+  -D KTX_FEATURE_TOOLS=$FEATURE_TOOLS \
+  -D BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL \
+  -D BASISU_SUPPORT_SSE=$SUPPORT_SSE \
+  $(if [ "$ARCH" = "x86_64" ]; then echo -D ISA_SSE41=ON; fi) \
+  -D XCODE_CODE_SIGN_IDENTITY="${CODE_SIGN_IDENTITY}" \
+  -D XCODE_DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
+  -D PRODUCTBUILD_IDENTITY_NAME="${PKG_SIGN_IDENTITY}"
 else # No secure variables means a PR or fork build.
   echo "************* No Secure variables. ******************"
-  cmake -GXcode -B$DEPLOY_BUILD_DIR \
-  -DCMAKE_OSX_ARCHITECTURES="\$(ARCHS_STANDARD)" \
-  -DKTX_FEATURE_DOC=ON \
-  -DKTX_FEATURE_LOADTEST_APPS=ON \
-  -DBASISU_SUPPORT_OPENCL=OFF \
-  -DBASISU_SUPPORT_SSE=OFF \
-  -DKTX_FEATURE_JNI=ON
+  cmake -GXcode -B$BUILD_DIR . \
+  -D CMAKE_OSX_ARCHITECTURES="$ARCHS" \
+  -D KTX_FEATURE_DOC=$FEATURE_DOC \
+  -D KTX_FEATURE_JNI=$FEATURE_JNI \
+  -D KTX_FEATURE_LOADTEST_APPS=$FEATURE_LOADTESTS \
+  -D KTX_FEATURE_TOOLS=$FEATURE_TOOLS \
+  -D BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL \
+  -D BASISU_SUPPORT_SSE=$SUPPORT_SSE \
+  $(if [ "$ARCH" = "x86_64" ]; then echo -D ISA_SSE41=ON; fi)
 fi
-
-echo "Configure KTX-Software (macOS x86_64) with SSE support"
-cmake -GXcode -Bbuild-macos-sse \
-  -DCMAKE_OSX_ARCHITECTURES="x86_64" \
-  -DKTX_FEATURE_LOADTEST_APPS=ON \
-  -DBASISU_SUPPORT_SSE=ON \
-  -DISA_SSE41=ON \
-  -DKTX_FEATURE_JNI=ON
 
 # Cause the build pipes below to set the exit to the exit code of the
 # last program to exit non-zero.
 set -o pipefail
 
-pushd $DEPLOY_BUILD_DIR
-export CUR_BUILD_DIR="$(pwd)"
-
-# Build and test Debug
-echo "Build KTX-Software (macOS universal binary Debug)"
-cmake --build . --config Debug -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | handle_compiler_output
-echo "Test KTX-Software (macOS universal binary Debug)"
-ctest -C Debug # --verbose
+pushd $BUILD_DIR
 
 # Build and test Release
-echo "Build KTX-Software (macOS universal binary Release)"
-if [ -n "$MACOS_CERTIFICATES_P12" ]; then
+echo "Build KTX-Software (macOS $ARCH $CONFIGURATION) FEATURE_DOC=$FEATURE_DOC FEATURE_JNI=$FEATURE_JNI FEATURE_LOADTESTS=$FEATURE_LOADTESTS FEATURE_TOOLS=$FEATURE_TOOLS SUPPORT_SSE=$SUPPORT_SSE SUPPORT_OPENCL=$SUPPORT_OPENCL"
+if [ -n "$MACOS_CERTIFICATES_P12" -a "$CONFIGURATION" = "Release" ]; then
   cmake --build . --config Release | handle_compiler_output
 else
   cmake --build . --config Release -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | handle_compiler_output
 fi
-echo "Test KTX-Software (macOS universal binary Release)"
-ctest -C Release # --verbose
-echo "Install KTX-Software (macOS universal binary Release)"
-cmake --install . --config Release --prefix ../install-macos-release
-echo "Pack KTX-Software (macOS Release)"
-if ! cpack -G productbuild; then
-  cat _CPack_Packages/Darwin/productbuild/ProductBuildOutput.log
-  exit 1
+
+# Rosetta 2 should let x86_64 tests run on an Apple Silicon Mac hence the -o.
+if [ "$ARCH" = "$(uname -m)" -o "$ARCH" = "x64_64" ]; then
+  echo "Test KTX-Software (macOS $ARCH $CONFIGURATION)"
+  ctest -C Release # --verbose
+fi
+
+echo "Install KTX-Software (macOS $ARCH $CONFIGURATION)"
+if [ "$PACKAGE" = "YES" ]; then
+  cmake --install . --config Release --prefix ../install-macos-release
+  echo "Pack KTX-Software (macOS $CONFIGURATION)"
+  if ! cpack -G productbuild; then
+    cat _CPack_Packages/Darwin/productbuild/ProductBuildOutput.log
+    exit 1
+  fi
 fi
 
 #echo "***** toktx version.h *****"
@@ -119,41 +119,7 @@ fi
 
 popd
 
-pushd build-macos-sse
-export CUR_BUILD_DIR="$(pwd)"
-
-echo "Build KTX-Software (macOS with SSE support Debug)"
-cmake --build . --config Debug -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | handle_compiler_output
-
-echo "Test KTX-Software (macOS with SSE support Debug)"
-ctest -C Debug # --verbose
-echo "Build KTX-Software (macOS with SSE support Release)"
-cmake --build . --config Release -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | handle_compiler_output
-
-echo "Test KTX-Software (macOS with SSE support Release)"
-ctest -C Release # --verbose
-
-popd
-
-#
-# iOS
-#
-
-echo "Configure KTX-Software (iOS)"
-cmake -GXcode -Bbuild-ios -DISA_NEON=ON -DCMAKE_SYSTEM_NAME=iOS -DKTX_FEATURE_LOADTEST_APPS=ON -DKTX_FEATURE_DOC=OFF -DKTX_FEATURE_JNI=ON
-pushd build-ios
-export CUR_BUILD_DIR="$(pwd)"
-echo "Build KTX-Software (iOS Debug)"
-cmake --build . --config Debug  -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO | handle_compiler_output
-# echo "Build KTX-Software (iOS Simulator Debug)"
-# cmake --build . --config Debug -- -sdk iphonesimulator
-echo "Build KTX-Software (iOS Release)"
-cmake --build . --config Release -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO | handle_compiler_output
-# echo "Build KTX-Software (iOS Simulator Release)"
-# cmake --build . --config Release -- -sdk iphonesimulator
-popd
-
-# Java
-
-LIBKTX_BINARY_DIR=$(pwd)/$DEPLOY_BUILD_DIR/Release ci_scripts/build_java.sh
+if [ "$FEATURE_JNI" = "YES" ]; then
+  LIBKTX_BINARY_DIR=$(pwd)/$DEPLOY_BUILD_DIR/Release ci_scripts/build_java.sh
+fi
 

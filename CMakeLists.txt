@@ -505,11 +505,15 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
 elseif(EMSCRIPTEN)
     set_source_files_properties(
         ${BASISU_ENCODER_CXX_SRC}
-        PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-variable;-Wno-unused-parameter"
+        PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-variable;-Wno-unused-parameter;-Wno-unused-but-set-variable"
         )
     set_source_files_properties(
         lib/basisu/transcoder/basisu_transcoder.cpp
-        PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable;"
+        PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable"
+        )
+    set_source_files_properties(
+        lib/basisu/zstd/zstd.c
+        PROPERTIES COMPILE_OPTIONS "-Wno-unused-but-set-variable;-Wno-bitwise-instead-of-logical"
         )
 elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
     #message(STATUS "CMAKE_CXX_COMPILER_VERSION = ${CMAKE_CXX_COMPILER_VERSION}")

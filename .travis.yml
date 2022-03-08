@@ -4,78 +4,188 @@
 # CI build script for Travis.
 # See https://docs.travis-ci.com/user/multi-os/ for more info.
 
-language:
-  - cpp
-  - node_js
-  - java
+# If we specify both osx & linux here, we'll get osx & linux jobs for all the
+# configurations under env.jobs. Since there are 3 environment variables
+# common to all osx jobs, vs 1 for linux, we choose to use the global
+# env. variables for osx and hence also env.jobs There are fewer linux jobs and fewer all-job
+# environment variables so it is easier to explicitly specify the linux
+# jobs.
+os: osx
+osx_image: xcode12.4
 
-os: linux
-dist: focal
+language: cpp
+
+addons:
+  homebrew:
+    packages:
+    - git-lfs
+    - doxygen
+    - sdl2
+    #update: true
+
+env:
+  global:
+    - BUILD_DIR: build
+    - CHECK_REUSE: NO
+    - GIT_LFS_SKIP_SMUDGE: 1
+    - PACKAGE: NO
+    - VULKAN_SDK_VER: "1.2.176.1"
+    # This is just to tell the install script where to install.
+    - VULKAN_INSTALL_DIR: "$HOME/VulkanSDK/$VULKAN_SDK_VER"
+    - VULKAN_SDK: "$VULKAN_INSTALL_DIR/macOS"
+    - WASM_BUILD: NO
+  jobs:
+    - CONFIGURATION=Debug PLATFORM=macOS ARCH=x86_64
+      FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=ON FEATURE_TOOLS=ON
+      SUPPORT_SSE=ON SUPPORT_OPENCL=OFF
+    - CONFIGURATION=Release PLATFORM=macOS ARCH=x86_64
+      FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=ON FEATURE_TOOLS=ON
+      SUPPORT_SSE=ON SUPPORT_OPENCL=OFF PACKAGE=YES
+    - CONFIGURATION=Release PLATFORM=macOS ARCH=arm64
+      FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=OFF FEATURE_TOOLS=ON
+      SUPPORT_SSE=ON SUPPORT_OPENCL=OFF PACKAGE=YES
+
+    - CONFIGURATION=Release PLATFORM=macOS ARCH=x86_64
+      FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
+      SUPPORT_SSE=ON SUPPORT_OPENCL=ON PACKAGE=NO
+    - CONFIGURATION=Release PLATFORM=macOS ARCH=arm64
+      FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
+      SUPPORT_SSE=ON SUPPORT_OPENCL=ON
+
+    - CONFIGURATION=Release PLATFORM=macOS ARCH=x86_64
+      FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
+      SUPPORT_SSE=OFF SUPPORT_OPENCL=ON PACKAGE=NO
+    - CONFIGURATION=Release PLATFORM=macOS ARCH=arm64
+      FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
+      SUPPORT_SSE=OFF SUPPORT_OPENCL=ON
+
+    - CONFIGURATION=Release PLATFORM=macOS ARCH=x86_64
+      FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
+      SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF
+    - CONFIGURATION=Release PLATFORM=macOS ARCH=arm64
+      FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
+      SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF
+
+    - CONFIGURATION=Debug PLATFORM=iOS
+      FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=ON FEATURE_TOOLS=OFF
+      SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF
+    - CONFIGURATION=Release PLATFORM=iOS
+      FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=ON FEATURE_TOOLS=OFF
+      SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF
 
 jobs:
   include:
     - os: linux
-      addons:
-        apt:
-          #sources:
-          #  - sourceline: 'ppa:ubuntu-toolchain-r/test'
-          packages:
-            - gcc-7
-            - g++-7
-            - cmake
       dist: focal
       env:
-        # NB: This must not have the fourth component of the version number.
-        - VULKAN_SDK_VER="1.2.176"
+        - CHECK_REUSE: ONLY
+    - os: linux
+      dist: focal
       compiler: gcc # clang is tested by macOS build
-      language: python
-      python: '3.7'
-      services:
-        - docker
-      node_js:
-        - node
-    - os: osx
       env:
-        - VULKAN_SDK_VER="1.2.176.1"
-        # This is just to tell the install script where to install.
-        - VULKAN_INSTALL_DIR="$HOME/VulkanSDK/$VULKAN_SDK_VER"
-        - VULKAN_SDK="$VULKAN_INSTALL_DIR/macOS"
-        - DEPLOY_BUILD_DIR=build-macos-universal
-        - CUR_BUILD_DIR=none
+        # NB: This must not have the fourth component of the version number.
+        - VULKAN_SDK_VER: "1.2.176"
+        - CONFIGURATION=Debug
+          FEATURE_DOC=OFF FEATURE_JNI=ON FEATURE_LOADTESTS=ON FEATURE_TOOLS=ON
+          SUPPORT_SSE=ON SUPPORT_OPENCL=OFF
+    - os: linux
+      dist: focal
+      compiler: gcc
+      env:
+        # NB: This must not have the fourth component of the version number.
+        - VULKAN_SDK_VER: "1.2.176"
+        - CONFIGURATION=Release
+          FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=ON FEATURE_TOOLS=ON
+          SUPPORT_SSE=ON SUPPORT_OPENCL=OFF PACKAGE=YES
+    - os: linux
+      dist: focal
+      compiler: gcc
+      env:
+        - CONFIGURATION=Release
+          FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF
+          FEATURE_TOOLS=OFF
+          SUPPORT_SSE=ON SUPPORT_OPENCL=ON PACKAGE=NO
+    - os: linux
+      dist: focal
+      compiler: gcc
+      env:
+        - CONFIGURATION=Release
+          FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF
+          FEATURE_TOOLS=OFF
+          SUPPORT_SSE=OFF SUPPORT_OPENCL=ON PACKAGE=NO
+    - os: linux
+      dist: focal
+      compiler: gcc
+      env:
+        - CONFIGURATION=Release
+          FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF
+          FEATURE_TOOLS=OFF
+          SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF PACKAGE=NO
+    - os: linux
+      dist: focal
       compiler: clang
-      osx_image: xcode12.4
-
-#env:
-  #global:
+      services: docker
+      env:
+        - WASM_BUILD=YES
+        - CONFIGURATION=Debug
+          FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=ON
+          SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF
+    - os: linux
+      dist: focal
+      compiler: clang
+      services: docker
+      env:
+        - WASM_BUILD=YES
+        - CONFIGURATION=Release
+          FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=ON
+          SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF PACKAGE=YES
 
 # Phase 1: Git clone - done automatically.
 # Phase 2: Install apt addons.
 # Phase 3: Install cache components - Currently not using a cache
 # then the following phases:
 before_install:
-- echo "Running on the following travis CI runner"
-- uname -a
-- echo "CMake version on the runner is"
-- cmake --version
-- eval "${MATRIX_EVAL}"
-- echo -e "machine github.com\n  login $GITHUB_TOKEN" >> ~/.netrc # Prevent rate limiting on Git LFS.
-- cat ~/.netrc
-- |
-  case "${TRAVIS_OS_NAME:-linux}" in
-  linux)
-    sudo apt-get update
-    docker run -dit --name emscripten -v $(pwd):/src emscripten/emsdk bash
-    ;;
-  esac
+  - echo "Running on the following travis CI runner"
+  - uname -a
+  - echo "CMake version on the runner is"
+  - cmake --version
+  #- eval "${MATRIX_EVAL}"
+  - echo -e "machine github.com\n  login $GITHUB_TOKEN" >> ~/.netrc # Prevent rate limiting on Git LFS.
+  - cat ~/.netrc
+  - |
+    case "${TRAVIS_OS_NAME:-linux}" in
+    linux)
+      if [ "$WASM_BUILD" = "YES" ]; then
+        docker run -dit --name emscripten -v $(pwd):/src emscripten/emsdk bash
+      elif [ "$CHECK_REUSE" != "ONLY" ]; then
+        sudo apt-get update
+      fi
+      ;;
+    esac
 
 install:
 - |
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
-    ./ci_scripts/install_linux.sh
+    if [ "$CHECK_REUSE" = "YES" -o "$CHECK_REUSE" = "ONLY" ]; then
+      pip3 install reuse
+    fi
+    if [ "$CHECK_REUSE" != "ONLY" -a "$WASM_BUILD" != "YES" ]; then
+      ./ci_scripts/install_linux.sh
+      git lfs pull --include=tests/srcimages --include=tests/testimages
+      if [ "$FEATURE_LOADTESTS" = "ON" ]; then
+        git lfs pull --include=other_lib/linux
+      fi
+    fi
     ;;
   osx)
     ./ci_scripts/install_macos.sh
+    git lfs pull --include=tests/srcimages --include=tests/testimages
+    if [ "$FEATURE_LOADTESTS" = "ON" -a "$PLATFORM" = "macOS" ]; then
+      git lfs pull --include=other_lib/mac
+    else
+      git lfs pull --include=other_lib/ios
+    fi
     ;;
   esac
 
@@ -99,16 +209,31 @@ script:
 - |
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
-    ./ci_scripts/build_linux.sh
+    echo "CHECK_REUSE = $CHECK_REUSE"
+    if [ "$CHECK_REUSE" = "YES" -o "$CHECK_REUSE" = "ONLY" ]; then
+      echo "Calling reuse lint."
+      reuse lint
+    fi
+    if [ "$CHECK_REUSE" != "ONLY" ]; then
+      if [ "$WASM_BUILD" = "YES" ]; then
+        ./ci_scripts/build_wasm_docker.sh
+      else
+        ./ci_scripts/build_linux.sh
+      fi
+    fi
     ;;
   osx)
-    ./ci_scripts/build_macos.sh
+    if [ "$PLATFORM" = "macOS" ]; then
+      ./ci_scripts/build_macos.sh
+    else
+      ./ci_scripts/build_ios.sh
+    fi
     ;;
-    esac
+  esac
 
 # See if this helps with truncated logs.
-after_script:
-  - sleep 10
+#after_script:
+#  - sleep 10
 
 after_failure:
   - ./ci_scripts/on_failure.sh
@@ -136,7 +261,7 @@ before_deploy:
       # run twice. https://github.com/travis-ci/travis-ci/issues/2570 about
       # this has been open for years. What a crock!
       if [ -n "$MACOS_CERTIFICATES_P12" -a -n "$TRAVIS_TAG" -a -z "$NOTARIZED" ]; then
-        ./ci_scripts/notarize.sh build-macos/KTX-Software-*.pkg $APPLE_ID $DEVELOPMENT_TEAM $ALTOOL_PASSWORD; export NOTARIZED="true"
+        ./ci_scripts/notarize.sh $BUILD_DIR/KTX-Software-*.pkg $APPLE_ID $DEVELOPMENT_TEAM $ALTOOL_PASSWORD; export NOTARIZED="true"
       fi
       if [ -z "$RELNOTES" -a -f RELEASE_NOTES.md ]; then
         # Copy RELEASE_NOTES into an env. var. so we can remove lines that are
@@ -150,13 +275,14 @@ before_deploy:
 deploy:
   - provider: pages
     #edge: true # Use bleeding edge (dplv2)
-    skip_cleanup: true
+    cleanup: false
     token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
-    local_dir: $DEPLOY_BUILD_DIR/docs/html
+    local_dir: $BUILD_DIR/docs/html
     on:
       #branch: master
-      condition: $TRAVIS_OS_NAME = osx
       tags: true
+      condition: $TRAVIS_OS_NAME = osx && ARCH = x86_64 && PACKAGE = YES
+
   - provider: releases
     # dpl v2 is broken. Same named but different releases are created for this
     # and the deploy below. Happens even when neither of release_notes or
@@ -165,7 +291,7 @@ deploy:
     token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
     file_glob: true
     file:
-      - $DEPLOY_BUILD_DIR/KTX-Software-*.pkg
+      - $BUILD_DIR/KTX-Software-*-*
     # This goes to the release description so covers all versions.
     # These are dpl v2 parameters.
     #release_notes_file: RELEASE_NOTES.md
@@ -173,26 +299,12 @@ deploy:
     # dpl v1. Sadly this doesn't work. See https://github.com/travis-ci/dpl/issues/155.
     # body: $RELNOTES
     # Do release note deployment manually for now.
-    skip_cleanup: true
+    cleanup: false
     draft: true
     #prerelease: true
     on:
       tags: true
       #branch: master
-      condition: $TRAVIS_OS_NAME = osx
-  - provider: releases
-    #edge: true # Use bleeding edge (dplv2)
-    token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
-    file_glob: true
-    file:
-      - build/linux-release/KTX-Software-*-Linux.*
-      - build/web-release/KTX-Software-*-Web-*
-    skip_cleanup: true
-    draft: true
-    #prerelease: true
-    on:
-      tags: true
-      #branch: master
-      condition: $TRAVIS_OS_NAME = linux
+      condition: PACKAGE = YES
 
 # vim:ai:ts=4:sts=2:sw=2:expandtab

@@ -76,17 +76,17 @@ add_test( NAME ktx2check-test-pipe-read
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
 )
 
-add_test( NAME ktx2check-test-invalid-face-count
-    COMMAND ktx2check invalid_face_count.ktx2
+add_test( NAME ktx2check-test-invalid-face-count-and-padding
+    COMMAND ktx2check invalid_face_count_and_padding.ktx2
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/badktx2
 )
 
-add_test( NAME ktx2check-test-invalid-face-count-quiet
-    COMMAND ktx2check --quiet invalid_face_count.ktx2
+add_test( NAME ktx2check-test-invalid-face-count-and-padding-quiet
+    COMMAND ktx2check --quiet invalid_face_count_and_padding.ktx2
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/badktx2
 )
-add_test( NAME ktx2check-test-invalid-face-count-quiet-exit-code
-    COMMAND ktx2check --quiet invalid_face_count.ktx2
+add_test( NAME ktx2check-test-invalid-face-count-and-padding-quiet-exit-code
+    COMMAND ktx2check --quiet invalid_face_count_and_padding.ktx2
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/badktx2
 )
 
@@ -137,7 +137,7 @@ add_test( NAME ktx2check-test-no-nul-on-value-warn-as-error-exit-code
 )
 
 set_tests_properties(
-    ktx2check-test-invalid-face-count-quiet
+    ktx2check-test-invalid-face-count-and-padding-quiet
     ktx2check-test-incorrect-mip-layout-and-padding-quiet
 PROPERTIES
     FAIL_REGULAR_EXPRESSION "^$"
@@ -146,9 +146,9 @@ PROPERTIES
 set_tests_properties(
     ktx2check-test-bad-typesize
     ktx2check-test-bad-typesize-exit-code
-    ktx2check-test-invalid-face-count
-    ktx2check-test-invalid-face-count-quiet
-    ktx2check-test-invalid-face-count-quiet-exit-code
+    ktx2check-test-invalid-face-count-and-padding
+    ktx2check-test-invalid-face-count-and-padding-quiet
+    ktx2check-test-invalid-face-count-and-padding-quiet-exit-code
     ktx2check-test-incorrect-mip-layout-and-padding
     ktx2check-test-incorrect-mip-layout-and-padding-quiet
     ktx2check-test-incorrect-mip-layout-and-padding-quiet-exit-code

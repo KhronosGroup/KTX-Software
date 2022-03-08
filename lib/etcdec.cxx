@@ -172,11 +172,16 @@ submitted to the exclusive jurisdiction of the Swedish Courts.
 // code to suppress them. Yes it is a mod but it doesn't change
 // the source of the functions or the compiled binary code.
 #if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable: 4100 4244 )
+  #pragma warning(push)
+  #pragma warning(disable: 4100 4244 )
 #elif __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wunused-parameter"
+  #if defined(EMSCRIPTEN)
+    // Emscripten 3.1.6 lang warns this but not clang 13 in Xcode and Xcode
+    // warns no such warning group if this is set, hence the extra ifdef.
+    #pragma clang diagnostic ignored "-Wunused-but-set-variable"
+  #endif
 #elif __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -303,11 +308,9 @@ void read_big_endian_2byte_word(unsigned short *blockadr, FILE *f)
 {
 	uint8 bytes[2];
 	unsigned short block;
-	// This is to silence -Wunused-result from GCC 4.8+.
-	size_t numitems; 
 
-	numitems = fread(&bytes[0], 1, 1, f);
-	numitems = fread(&bytes[1], 1, 1, f);
+	(void)fread(&bytes[0], 1, 1, f);
+	(void)fread(&bytes[1], 1, 1, f);
 
 	block = 0;
 	block |= bytes[0];
@@ -323,13 +326,11 @@ void read_big_endian_4byte_word(unsigned int *blockadr, FILE *f)
 {
 	uint8 bytes[4];
 	unsigned int block;
-	// This is to silence -Wunused-result from GCC 4.8+.
-	size_t numitems; 
 
-	numitems = fread(&bytes[0], 1, 1, f);
-	numitems = fread(&bytes[1], 1, 1, f);
-	numitems = fread(&bytes[2], 1, 1, f);
-	numitems = fread(&bytes[3], 1, 1, f);
+	(void)fread(&bytes[0], 1, 1, f);
+	(void)fread(&bytes[1], 1, 1, f);
+	(void)fread(&bytes[2], 1, 1, f);
+	(void)fread(&bytes[3], 1, 1, f);
 
 	block = 0;
 	block |= bytes[0];
