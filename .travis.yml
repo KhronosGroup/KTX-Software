@@ -180,6 +180,7 @@ install:
     ;;
   osx)
     ./ci_scripts/install_macos.sh
+    git lfs pull --include=tests/srcimages --include=tests/testimages
     if [ "$FEATURE_LOADTESTS" = "ON" -a "$PLATFORM" = "macOS" ]; then
       git lfs pull --include=other_lib/mac
     else
