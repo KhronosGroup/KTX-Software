@@ -1,4 +1,3 @@
-rem echo off
 rem Copyright 2022 The Khronos Group Inc.
 rem SPDX-License-Identifier: Apache-2.0
 
