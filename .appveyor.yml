@@ -12,6 +12,7 @@ platform:
 environment:
   CMAKE_GEN: Visual Studio 15 2017
   GIT_TRACE: 0
+  GIT_LFS_SKIP_SMUDGE: 1
   BUILD_DIR: build
   OPENCL_SDK_HOME: https://github.com/intel/llvm/releases/download/2021-09
   OPENCL_SDK_NAME: win-oclcpuexp-2021.12.9.0.24_rel
@@ -175,8 +176,14 @@ install:
     ci_scripts/install_win.bat
     @echo "Pick up environment changes made to registry by the install script."
     refreshenv
-    @echo "Pull Windows binaries from LFS."
-    git lfs pull --include=other_lib/win
+    @echo "Pull needed files from LFS."
+    git lfs pull --include=tests/srcimages --include=tests/testimages
+    if %FEATURE_LOADTESTS% == ON (
+      git lfs pull --include=other_lib/win
+    )
+    if %SUPPORT_OPENCL% == ON (
+      git lfs pull --include=lib/basisu/opencl
+    )
 # # One-line install/build zlib (for loadtests) into C:\Program Files\zlib
 # - ps: |
 #     Invoke-WebRequest -Uri https://raw.githubusercontent.com/horta/zlib.install/master/install.bat -OutFile install.bat

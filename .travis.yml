@@ -27,12 +27,13 @@ env:
   global:
     - BUILD_DIR: build
     - CHECK_REUSE: NO
+    - GIT_LFS_SKIP_SMUDGE: 1
     - PACKAGE: NO
-    - WASM_BUILD: NO
     - VULKAN_SDK_VER: "1.2.176.1"
     # This is just to tell the install script where to install.
     - VULKAN_INSTALL_DIR: "$HOME/VulkanSDK/$VULKAN_SDK_VER"
     - VULKAN_SDK: "$VULKAN_INSTALL_DIR/macOS"
+    - WASM_BUILD: NO
   jobs:
     - CONFIGURATION=Debug PLATFORM=macOS ARCH=x86_64
       FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=ON FEATURE_TOOLS=ON
@@ -171,10 +172,19 @@ install:
     fi
     if [ "$CHECK_REUSE" != "ONLY" -a "$WASM_BUILD" != "YES" ]; then
       ./ci_scripts/install_linux.sh
+      git lfs pull --include=tests/srcimages --include=tests/testimages
+      if [ "$FEATURE_LOADTESTS" = "ON" ]; then
+        git lfs pull --include=other_lib/linux
+      fi
     fi
     ;;
   osx)
     ./ci_scripts/install_macos.sh
+    if [ "$FEATURE_LOADTESTS" = "ON" -a "$PLATFORM" = "macOS" ]; then
+      git lfs pull --include=other_lib/mac
+    else
+      git lfs pull --include=other_lib/ios
+    fi
     ;;
   esac
 
