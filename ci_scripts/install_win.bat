@@ -5,6 +5,14 @@ rem SPDX-License-Identifier: Apache-2.0
 rem This is a .bat file because PS curl is very different.
 
 setlocal EnableDelayedExpansion
+setlocal
+
+rem Allow parameter setting on command line. Parameter must look like,
+rem including the quotes shown "VAR=string".
+for /f "delims=" %%a in (%*) do call set %%a
+
+if [%FEATURE_LOADTESTS%] == [] set FEATURE_LOADTESTS=ON
+if [%SUPPORT_OPENCL%] == [] set SUPPORT_OPENCL=OFF
 
 rem pushd/popd doesn't work in at least some of the appveyor environments.
 set curdir=%cd%

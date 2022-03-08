@@ -253,10 +253,4 @@ deploy:
       APPVEYOR_REPO_TAG: true       # deploy on tag push only
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
       CONFIGURATION: Release
-      FEATURE_DOC: ON
-      FEATURE_JNI: ON
-      FEATURE_LOADTESTS: ON
-      FEATURE_TOOLS: ON
       PACKAGE: YES
-      SUPPORT_SSE: ON
-      SUPPORT_OPENCL: OFF

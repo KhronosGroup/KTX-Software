@@ -1,6 +1,15 @@
 # Copyright 2022 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
+# Allow setting of variables on the command line. A command line parameter
+# must look like (including the quotes shown) '$VAR="string"'. Spaces
+# around the equals are acceptable.
+for ($i=0; $i -lt $args.length; $i++)
+{
+   echo $($args[$i])
+   Invoke-Expression $($args[$i])
+}
+
 # Setting env vars here sets them in environment for parent as well so
 # use local variables to avoid pollution.
 $BUILD_DIR `
