@@ -1,3 +1,4 @@
+@echo off
 rem Copyright 2022 The Khronos Group Inc.
 rem SPDX-License-Identifier: Apache-2.0
 
@@ -16,7 +17,9 @@ if [%SUPPORT_OPENCL%] == [] set SUPPORT_OPENCL=OFF
 rem pushd/popd doesn't work in at least some of the appveyor environments.
 set curdir=%cd%
 
-git lfs pull --include=tests/srcimages --include=tests/testimages
+rem It seems this version or this shell does not support multiple --includes.
+git lfs pull --include=tests/srcimages
+git lfs pull --include=tests/testimages
 
 if %FEATURE_LOADTESTS% == ON (
   @echo "Download PowerVR OpenGL ES Emulator libraries (latest version)."
