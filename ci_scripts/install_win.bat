@@ -17,6 +17,8 @@ if [%SUPPORT_OPENCL%] == [] set SUPPORT_OPENCL=OFF
 rem pushd/popd doesn't work in at least some of the appveyor environments.
 set curdir=%cd%
 
+git lfs pull --include=tests/srcimages --include=tests/testimages
+
 if %FEATURE_LOADTESTS% == ON (
   @echo "Download PowerVR OpenGL ES Emulator libraries (latest version)."
   md %OPENGL_ES_EMULATOR_WIN%
@@ -50,6 +52,13 @@ if %SUPPORT_OPENCL% == ON (
 )
 @echo "Return to cloned repo."
 cd %curdir%
+rem "Must be in repo root for this."
+if %FEATURE_LOADTESTS% == ON (
+  git lfs pull --include=other_lib/win
+)
+if %SUPPORT_OPENCL% == ON (
+  git lfs pull --include=lib/basisu/opencl
+)
 goto :end
 
 rem Subroutine "add_to_user_path" -------------------------------
