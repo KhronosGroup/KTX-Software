@@ -5,6 +5,7 @@
 
 #include <assert.h>
 #include <cstring>
+#include <cstdint>
 #include <jni.h>
 #include <vector>
 #include <iostream>
@@ -155,6 +156,11 @@ extern "C" JNIEXPORT jbyteArray JNICALL Java_org_khronos_ktx_KtxTexture_getData(
 
     ktx_size_t dataSize = ktxTexture_GetDataSize(texture);
 
+    if (dataSize >= UINT32_MAX) {
+        std::cout << "getData array too large for Java" << std::endl;
+        return NULL;
+    }
+
     jbyteArray outputArray = env->NewByteArray(static_cast<jsize>(dataSize));
     jsize outputLength = env->GetArrayLength(outputArray);
 
@@ -270,6 +276,11 @@ extern "C" JNIEXPORT jbyteArray JNICALL Java_org_khronos_ktx_KtxTexture_writeToM
 
     if (result != KTX_SUCCESS) {
         std::cout << "Failed to writeToMemory KTXTexture, error " << result << std::endl;
+        return NULL;
+    }
+    if (pSize >= UINT32_MAX) {
+        std::cout << "writeToMemory array is too large for Java" << std::endl;
+        delete ppDstBytes;// make sure to delete it
         return NULL;
     }
 
