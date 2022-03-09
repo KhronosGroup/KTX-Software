@@ -12,6 +12,7 @@ public class KtxAstcParams {
     private int mode;
     private int qualityLevel;
     private boolean normalMap;
+    private boolean perceptual;
     private char[] inputSwizzle = new char[4];
 
     public boolean isVerbose() {
@@ -60,6 +61,14 @@ public class KtxAstcParams {
 
     public void setNormalMap(boolean normalMap) {
         this.normalMap = normalMap;
+    }
+
+    public boolean isPerceptual() {
+        return perceptual;
+    }
+
+    public void setPerceptual(boolean perceptual) {
+        this.perceptual = perceptual;
     }
 
     public char[] getInputSwizzle() {

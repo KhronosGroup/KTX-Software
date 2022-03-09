@@ -5,6 +5,8 @@ Java bindings for [libktx](https://github.com/KhronosGroup/KTX-Software), made w
 
 The `libktx-jni` library is built by the CMake project in the repository root. This library glues the `libktx` API with the interfaces provided in this Java library. You'll need to install `libktx`, `libktx-jni` to use the bindings.
 
+Note: Java does not support arrays with more than 2³² elements so you should not use this library for images larger than several gigabytes in size.
+
 ## Usage
 
 The setup is as follows:
