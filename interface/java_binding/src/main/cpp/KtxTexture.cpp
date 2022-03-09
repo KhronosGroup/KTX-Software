@@ -78,7 +78,7 @@ static void free_buffer_list(JNIEnv *env, jobject thiz)
     delete buffers;
 }
 
-extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture_getBufferListSize(JNIEnv *env, jobject thiz)
+extern "C" JNIEXPORT jsize JNICALL Java_org_khronos_ktx_KtxTexture_getBufferListSize(JNIEnv *env, jobject thiz)
 {
     jclass ktx_texture_class = env->GetObjectClass(thiz);
     jfieldID ktx_buffers_field = env->GetFieldID(ktx_texture_class, "buffers", "J");
@@ -86,7 +86,7 @@ extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture_getBufferListS
     std::vector<pinned_image_buf> *buffers =
         reinterpret_cast<std::vector<pinned_image_buf>*>(env->GetLongField(thiz, ktx_buffers_field));
 
-    return buffers ? buffers->size() : 0;
+    return static_cast<jsize>(buffers ? buffers->size() : 0);
 }
 
 extern "C" JNIEXPORT jboolean JNICALL Java_org_khronos_ktx_KtxTexture_isArray(JNIEnv *env, jobject thiz)
@@ -155,7 +155,7 @@ extern "C" JNIEXPORT jbyteArray JNICALL Java_org_khronos_ktx_KtxTexture_getData(
 
     ktx_size_t dataSize = ktxTexture_GetDataSize(texture);
 
-    jbyteArray outputArray = env->NewByteArray(dataSize);
+    jbyteArray outputArray = env->NewByteArray(static_cast<jsize>(dataSize));
     jsize outputLength = env->GetArrayLength(outputArray);
 
     if ((ktx_size_t) outputLength != dataSize) {
@@ -164,7 +164,7 @@ extern "C" JNIEXPORT jbyteArray JNICALL Java_org_khronos_ktx_KtxTexture_getData(
 
     env->SetByteArrayRegion(outputArray,
                             0,
-                            dataSize,
+                            static_cast<jsize>(dataSize),
                             reinterpret_cast<jbyte*>(data));
 
     return outputArray;
@@ -273,11 +273,11 @@ extern "C" JNIEXPORT jbyteArray JNICALL Java_org_khronos_ktx_KtxTexture_writeToM
         return NULL;
     }
 
-    jbyteArray out = env->NewByteArray(pSize);
+    jbyteArray out = env->NewByteArray(static_cast<jsize>(pSize));
 
     env->SetByteArrayRegion(out,
                             0,
-                            pSize,
+                            static_cast<jsize>(pSize),
                             reinterpret_cast<const jbyte*>(ppDstBytes));
 
     delete ppDstBytes;
