@@ -155,7 +155,9 @@ class color_base {
 public:
     static uint32_t getComponentCount() { return componentCount; }
     static uint32_t getComponentSize() { return sizeof(componentType); }
-    static uint32_t getPixelSize() { return componentCount * sizeof(componentType); }
+    static uint32_t getPixelSize() {
+        return componentCount * sizeof(componentType);
+    }
     static uint32_t one() { return ((1 << sizeof(componentType) * 8) - 1); }
 };
 
@@ -182,8 +184,8 @@ struct vec3_base {
     }
 };
 
-static constexpr float m[5]={0.0f, 128.0f, 32768.0f, 0.0f, 2147483648.0f};
-static constexpr float s[5]={0.0f, 255.0f, 65535.0f, 0.0f, 4294967295.0f};
+static constexpr float gc_m[5]={0.0f, 128.0f, 32768.0f, 0.0f, 2147483648.0f};
+static constexpr float gc_s[5]={0.0f, 255.0f, 65535.0f, 0.0f, 4294967295.0f};
 
 template <typename componentType>
 struct vec3 : public vec3_base {
@@ -194,18 +196,18 @@ struct vec3 : public vec3_base {
     vec3(float _r, float _g, float _b) : vec3_base(_r, _g, _b) {}
     void normalize() {
         // Zero normals in range [-1, 1] can't be normalized
-        if (m[i] == r && m[i] == g && m[i] == b) {
+        if (gc_m[i] == r && gc_m[i] == g && gc_m[i] == b) {
             return;
         } else {
-            r = r / s[i] * 2.0f - 1.0f;
-            g = g / s[i] * 2.0f - 1.0f;
-            b = b / s[i] * 2.0f - 1.0f;
+            r = r / gc_s[i] * 2.0f - 1.0f;
+            g = g / gc_s[i] * 2.0f - 1.0f;
+            b = b / gc_s[i] * 2.0f - 1.0f;
             clamp(-1.0f, 1.0f);
             base_normalize();
-            r = (std::floor((r + 1.0f) * s[i] * 0.5f + 0.5f));
-            g = (std::floor((g + 1.0f) * s[i] * 0.5f + 0.5f));
-            b = (std::floor((b + 1.0f) * s[i] * 0.5f + 0.5f));
-            clamp(0, s[i]);
+            r = (std::floor((r + 1.0f) * gc_s[i] * 0.5f + 0.5f));
+            g = (std::floor((g + 1.0f) * gc_s[i] * 0.5f + 0.5f));
+            b = (std::floor((b + 1.0f) * gc_s[i] * 0.5f + 0.5f));
+            clamp(0, gc_s[i]);
         }
     }
 };
@@ -238,8 +240,8 @@ class color<componentType, 4> : public color_base<componentType, 4> {
         };
     };
     color() {}
-    color(componentType _r, componentType _g, componentType _b, componentType _a) :
-       r(_r), g(_g), b(_b), a(_a) {}
+    color(componentType _r, componentType _g, componentType _b,
+          componentType _a) : r(_r), g(_g), b(_b), a(_a) {}
     componentType operator [](unsigned int i) {
         if (i > 3) i = 3;
         return comps[i];
@@ -339,7 +341,8 @@ class color<componentType, 2> : public color_base<componentType, 2> {
         return 2;
     }
     void normalize() {
-        vec3<componentType> v((float)r, (float)g, s[sizeof(componentType)] * 0.5f);
+        vec3<componentType> v((float)r, (float)g,
+                              gc_s[sizeof(componentType)] * 0.5f);
         v.normalize();
         r = (componentType)v.r;
         g = (componentType)v.g;
@@ -378,7 +381,8 @@ class color<componentType, 1> : public color_base<componentType, 1> {
         return 1;
     }
     void normalize() {
-        vec3<componentType> v((float)r, s[sizeof(componentType)] * 0.5f, s[sizeof(componentType)] * 0.5f);
+        vec3<componentType> v((float)r, gc_s[sizeof(componentType)] * 0.5f,
+                              gc_s[sizeof(componentType)] * 0.5f);
         v.normalize();
         r = (componentType)v.r;
     }
