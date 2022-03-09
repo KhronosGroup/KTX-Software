@@ -86,6 +86,7 @@ void copy_ktx_astc_params(JNIEnv *env, jobject params, ktxAstcParams &out)
     jfieldID mode = env->GetFieldID(ktx_astc_params_class, "mode", "I");
     jfieldID qualityLevel = env->GetFieldID(ktx_astc_params_class, "qualityLevel", "I");
     jfieldID normalMap = env->GetFieldID(ktx_astc_params_class, "normalMap", "Z");
+    jfieldID perceptual = env->GetFieldID(ktx_astc_params_class, "perceptual", "Z");
     jfieldID inputSwizzle = env->GetFieldID(ktx_astc_params_class, "inputSwizzle", "[C");
 
     out.verbose = env->GetBooleanField(params, verbose);
@@ -94,6 +95,8 @@ void copy_ktx_astc_params(JNIEnv *env, jobject params, ktxAstcParams &out)
     out.mode = env->GetIntField(params, mode);
     out.qualityLevel = env->GetIntField(params, qualityLevel);
     out.normalMap = env->GetBooleanField(params, normalMap);
+    out.perceptual = env->GetBooleanField(params, perceptual);
+
     env->GetByteArrayRegion(
         static_cast<jbyteArray>(env->GetObjectField(params, inputSwizzle)),
         0,
@@ -120,7 +123,6 @@ void copy_ktx_basis_params(JNIEnv *env, jobject params, ktxBasisParams &out)
     jfieldID selectorRDOThreshold = env->GetFieldID(ktx_basis_params_class, "selectorRDOThreshold", "F");
     jfieldID inputSwizzle = env->GetFieldID(ktx_basis_params_class, "inputSwizzle", "[C");
     jfieldID normalMap = env->GetFieldID(ktx_basis_params_class, "normalMap", "Z");
-    jfieldID separateRGToRGB_A = env->GetFieldID(ktx_basis_params_class, "separateRGToRGB_A", "Z");
     jfieldID preSwizzle = env->GetFieldID(ktx_basis_params_class, "preSwizzle", "Z");
     jfieldID noEndpointRDO = env->GetFieldID(ktx_basis_params_class, "noEndpointRDO", "Z");
     jfieldID noSelectorRDO = env->GetFieldID(ktx_basis_params_class, "noSelectorRDO", "Z");
@@ -150,7 +152,6 @@ void copy_ktx_basis_params(JNIEnv *env, jobject params, ktxBasisParams &out)
         reinterpret_cast<jbyte*>(&out.inputSwizzle)
     );
     out.normalMap = env->GetBooleanField(params, normalMap);
-    out.separateRGToRGB_A = env->GetBooleanField(params, separateRGToRGB_A);
     out.preSwizzle = env->GetBooleanField(params, preSwizzle);
     out.noEndpointRDO = env->GetBooleanField(params, noEndpointRDO);
     out.noSelectorRDO = env->GetBooleanField(params, noSelectorRDO);

@@ -18,7 +18,6 @@ public class KtxBasisParams {
     private float selectorRDOThreshold;
     private char[] inputSwizzle = new char[4];
     private boolean normalMap;
-    private boolean separateRGToRGB_A;
     private boolean preSwizzle;
     private boolean noEndpointRDO;
     private boolean noSelectorRDO;
@@ -128,14 +127,6 @@ public class KtxBasisParams {
 
     public void setNormalMap(boolean normalMap) {
         this.normalMap = normalMap;
-    }
-
-    public boolean isSeparateRGToRGB_A() {
-        return separateRGToRGB_A;
-    }
-
-    public void setSeparateRGToRGB_A(boolean separateRGToRGB_A) {
-        this.separateRGToRGB_A = separateRGToRGB_A;
     }
 
     public boolean isPreSwizzle() {
