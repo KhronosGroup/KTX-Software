@@ -1,7 +1,9 @@
 # Copyright 2022 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
+echo "Phase = $env:Phase"
 if (! $env:Phase) {
+  echo "Exiting on_failure script."
   exit
 }
 
