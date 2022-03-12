@@ -462,8 +462,12 @@ Texture::setupDescriptorPool()
                                         2,
                                         static_cast<uint32_t>(poolSizes.size()),
                                         poolSizes.data());
-    vkctx.device.createDescriptorPool(&descriptorPoolInfo, nullptr,
-                                      &descriptorPool);
+    vk::Result res = vkctx.device.createDescriptorPool(&descriptorPoolInfo,
+                                                   nullptr,
+                                                   &descriptorPool);
+    if (res != vk::Result::eSuccess) {
+        throw bad_vulkan_alloc((int)res, "createDescriptorPool");
+    }
 }
 
 void
@@ -488,17 +492,25 @@ Texture::setupDescriptorSetLayout()
                               static_cast<uint32_t>(setLayoutBindings.size()),
                               setLayoutBindings.data());
 
-    vkctx.device.createDescriptorSetLayout(&descriptorLayout, nullptr,
-                                           &descriptorSetLayout);
+    vk::Result res
+        = vkctx.device.createDescriptorSetLayout(&descriptorLayout,
+                                                 nullptr,
+                                                 &descriptorSetLayout);
+    if (res != vk::Result::eSuccess) {
+        throw bad_vulkan_alloc((int)res, "createDescriptorSetLayout");
+    }
 
     vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo(
                                                     {},
                                                     1,
                                                     &descriptorSetLayout);
 
-    vkctx.device.createPipelineLayout(&pipelineLayoutCreateInfo,
-                                      nullptr,
-                                      &pipelineLayout);
+    res = vkctx.device.createPipelineLayout(&pipelineLayoutCreateInfo,
+                                            nullptr,
+                                            &pipelineLayout);
+    if (res != vk::Result::eSuccess) {
+        throw bad_vulkan_alloc((int)res, "createPipelineLayout");
+    }
 }
 
 void
@@ -509,7 +521,11 @@ Texture::setupDescriptorSet()
             1,
             &descriptorSetLayout);
 
-    vkctx.device.allocateDescriptorSets(&allocInfo, &descriptorSet);
+    vk::Result res
+        = vkctx.device.allocateDescriptorSets(&allocInfo, &descriptorSet);
+    if (res != vk::Result::eSuccess) {
+        throw bad_vulkan_alloc((int)res, "allocateDescriptorSets");
+    }
 
     // Image descriptor for the color map texture
     vk::DescriptorImageInfo texDescriptor(
@@ -622,9 +638,13 @@ Texture::preparePipelines()
     pipelineCreateInfo.stageCount = (uint32_t)shaderStages.size();
     pipelineCreateInfo.pStages = shaderStages.data();
 
-    vkctx.device.createGraphicsPipelines(vkctx.pipelineCache, 1,
-                                         &pipelineCreateInfo, nullptr,
-                                         &pipelines.solid);
+    vk::Result res
+        = vkctx.device.createGraphicsPipelines(vkctx.pipelineCache, 1,
+                                               &pipelineCreateInfo, nullptr,
+                                               &pipelines.solid);
+    if (res != vk::Result::eSuccess) {
+        throw bad_vulkan_alloc((int)res, "createGraphicsPipelines");
+    }
 }
 
 // Prepare and initialize uniform buffer containing shader uniforms

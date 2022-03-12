@@ -4156,8 +4156,13 @@ static unsigned readChunk_iTXt(LodePNGInfo* info, const LodePNGDecompressSetting
     } else {
       if(!ucvector_resize(&decoded, length + 1)) CERROR_BREAK(error, 83 /*alloc fail*/);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstringop-overflow"
+      // gcc 11 throws a bogus -Wstringop-overflow warning on the following
+      // line. Seems unaware that ucvector_resize will have resized the data.
       decoded.data[length] = 0;
       for(i = 0; i != length; ++i) decoded.data[i] = data[begin + i];
+#pragma GCC diagnostic pop
     }
 
     error = lodepng_add_itext(info, key, langtag, transkey, (char*)decoded.data);

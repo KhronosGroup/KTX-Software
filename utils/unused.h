@@ -14,7 +14,7 @@
 #ifndef _UNUSED_H
 #define _UNUSED_H
 
-#if (__cplusplus == 201703L)
+#if (__cplusplus >= 201703L)
 #define MAYBE_UNUSED [[maybe_unused]]
 #elif __GNUC__ || __clang__
   #define MAYBE_UNUSED __attribute__((unused))
