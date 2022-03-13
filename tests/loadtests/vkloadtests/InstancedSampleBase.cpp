@@ -120,9 +120,17 @@ InstancedSampleBase::InstancedSampleBase(VulkanContext& vkctx,
         // Ensure we can blit between levels.
         usageFlags |= (vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eTransferSrc);
     }
-    vkctx.gpu.getImageFormatProperties(vkFormat, imageType, tiling,
-                                       usageFlags, createFlags,
-                                       &imageFormatProperties);
+    vk::Result res
+        = vkctx.gpu.getImageFormatProperties(vkFormat, imageType, tiling,
+                                             usageFlags, createFlags,
+                                             &imageFormatProperties);
+    if (res != vk::Result::eSuccess) {
+        if (res == vk::Result::eErrorFormatNotSupported) {
+            throw unsupported_ttype();
+        } else {
+            throw bad_vulkan_alloc((int)res, "device.getImageFormatProperties");
+        }
+    }
     numLevels = kTexture->numLevels;
     if (kTexture->generateMipmaps) {
         uint32_t max_dim = std::max(std::max(kTexture->baseWidth, kTexture->baseHeight), kTexture->baseDepth);
@@ -413,8 +421,12 @@ InstancedSampleBase::setupDescriptorPool()
                                         2,
                                         static_cast<uint32_t>(poolSizes.size()),
                                         poolSizes.data());
-    vkctx.device.createDescriptorPool(&descriptorPoolInfo, nullptr,
-                                      &descriptorPool);
+    vk::Result res = vkctx.device.createDescriptorPool(&descriptorPoolInfo,
+                                                       nullptr,
+                                                       &descriptorPool);
+    if (res != vk::Result::eSuccess) {
+        throw bad_vulkan_alloc((int)res, "createDescriptorPool");
+    }
 }
 
 void
@@ -441,8 +453,13 @@ InstancedSampleBase::setupDescriptorSetLayout()
                               static_cast<uint32_t>(descriptorBindings.size()),
                               descriptorBindings.data());
 
-    vkctx.device.createDescriptorSetLayout(&descriptorLayout, nullptr,
-                                           &descriptorSetLayout);
+    vk::Result res
+        = vkctx.device.createDescriptorSetLayout(&descriptorLayout,
+                                                 nullptr,
+                                                 &descriptorSetLayout);
+    if (res != vk::Result::eSuccess) {
+        throw bad_vulkan_alloc((int)res, "createDescriptorSetLayout");
+    }
 
     vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo(
                                                     {},
@@ -455,9 +472,12 @@ InstancedSampleBase::setupDescriptorSetLayout()
         pipelineLayoutCreateInfo.setPushConstantRanges(pushConstantRanges);
     }
 
-    vkctx.device.createPipelineLayout(&pipelineLayoutCreateInfo,
-                                      nullptr,
-                                      &pipelineLayout);
+    res = vkctx.device.createPipelineLayout(&pipelineLayoutCreateInfo,
+                                            nullptr,
+                                            &pipelineLayout);
+    if (res != vk::Result::eSuccess) {
+        throw bad_vulkan_alloc((int)res, "createPipelineLayout");
+    }
 }
 
 void
@@ -468,7 +488,11 @@ InstancedSampleBase::setupDescriptorSet()
             1,
             &descriptorSetLayout);
 
-    vkctx.device.allocateDescriptorSets(&allocInfo, &descriptorSet);
+    vk::Result res
+        = vkctx.device.allocateDescriptorSets(&allocInfo, &descriptorSet);
+    if (res != vk::Result::eSuccess) {
+        throw bad_vulkan_alloc((int)res, "allocateDescriptorSets");
+    }
 
     // Image descriptor for the color map texture
     vk::DescriptorImageInfo texDescriptor(
@@ -588,9 +612,13 @@ InstancedSampleBase::preparePipelines(const char* const fragShaderName,
     pipelineCreateInfo.stageCount = (uint32_t)shaderStages.size();
     pipelineCreateInfo.pStages = shaderStages.data();
 
-    vkctx.device.createGraphicsPipelines(vkctx.pipelineCache, 1,
-                                         &pipelineCreateInfo, nullptr,
-                                         &pipelines.solid);
+    vk::Result res
+        = vkctx.device.createGraphicsPipelines(vkctx.pipelineCache, 1,
+                                               &pipelineCreateInfo, nullptr,
+                                               &pipelines.solid);
+    if (res != vk::Result::eSuccess) {
+        throw bad_vulkan_alloc((int)res, "createGraphicsPipelines");
+    }
 }
 
 #define _PAD16(nbytes) (ktx_uint32_t)(16 * ceilf((float)(nbytes) / 16))

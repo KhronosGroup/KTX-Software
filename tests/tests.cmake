@@ -17,6 +17,7 @@ add_executable( unittests
     unittests/unittests.cc
     unittests/image_unittests.cc
     unittests/wthelper.h
+    tests.cmake
 )
 
 target_include_directories(
@@ -25,6 +26,7 @@ PRIVATE
     $<TARGET_PROPERTY:ktx,INCLUDE_DIRECTORIES>
     ${PROJECT_SOURCE_DIR}/lib
     ${PROJECT_SOURCE_DIR}/tools
+    loadtests/common
 )
 
 target_link_libraries(

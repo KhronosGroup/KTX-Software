@@ -186,6 +186,7 @@ submitted to the exclusive jurisdiction of the Swedish Courts.
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+#pragma GCC diagnostic ignored "-Wunused-result" // For the freads.
 #endif
 
 // Typedefs
@@ -309,8 +310,8 @@ void read_big_endian_2byte_word(unsigned short *blockadr, FILE *f)
 	uint8 bytes[2];
 	unsigned short block;
 
-	(void)fread(&bytes[0], 1, 1, f);
-	(void)fread(&bytes[1], 1, 1, f);
+	fread(&bytes[0], 1, 1, f);
+	fread(&bytes[1], 1, 1, f);
 
 	block = 0;
 	block |= bytes[0];
@@ -327,10 +328,10 @@ void read_big_endian_4byte_word(unsigned int *blockadr, FILE *f)
 	uint8 bytes[4];
 	unsigned int block;
 
-	(void)fread(&bytes[0], 1, 1, f);
-	(void)fread(&bytes[1], 1, 1, f);
-	(void)fread(&bytes[2], 1, 1, f);
-	(void)fread(&bytes[3], 1, 1, f);
+	fread(&bytes[0], 1, 1, f);
+	fread(&bytes[1], 1, 1, f);
+	fread(&bytes[2], 1, 1, f);
+	fread(&bytes[3], 1, 1, f);
 
 	block = 0;
 	block |= bytes[0];

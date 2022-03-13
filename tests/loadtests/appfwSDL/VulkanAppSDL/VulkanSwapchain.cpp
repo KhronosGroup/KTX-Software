@@ -67,7 +67,7 @@
 bool
 VulkanSwapchain::initSurface(SDL_Window* window)
 {
-    VkResult U_ASSERT_ONLY err;
+    U_ASSERT_ONLY VkResult err;
 
     if (!SDL_Vulkan_CreateSurface(window, instance, &surface)) {
         std::string msg = "SDL_CreateVulkanSurface failed: ";
@@ -218,7 +218,7 @@ void
 VulkanSwapchain::create(uint32_t *width, uint32_t *height,
                         bool vsync)
 {
-    VkResult U_ASSERT_ONLY err;
+    U_ASSERT_ONLY VkResult err;
     VkSwapchainKHR oldSwapchain = swapchain;
 
     // Get physical device surface properties and formats

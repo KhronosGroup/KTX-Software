@@ -328,7 +328,7 @@ namespace vkTools
 
         //shaderCode = malloc(size);
         char *shaderCode = new char[size];
-        size_t U_ASSERT_ONLY retval = fread(shaderCode, size, 1, fp);
+        U_ASSERT_ONLY size_t retval = fread(shaderCode, size, 1, fp);
         assert(retval == 1);
         (void)retval; // Supress VC++ unused variable warning for Release config.
         assert(size > 0);

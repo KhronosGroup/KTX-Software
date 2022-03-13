@@ -34,6 +34,7 @@ extern "C" {
 }
 #include "gtest/gtest.h"
 #include "wthelper.h"
+#include "ltexceptions.h"
 
 // These are so we can test swizzle_to_rgba. Do not put inside "namespace {"
 // as there is no "namespace {" in basis_encode.cpp where the function is
@@ -884,6 +885,47 @@ TEST_F(SwizzleToRGBATestRGBA8, BGRZERO) {
 TEST_F(SwizzleToRGBATestRGBA8, ARGB) {
     swizzle_e r_to_rgba_mapping[4] = { A, R, G, B };
     runTest(r_to_rgba_mapping);
+}
+
+//////////////////////////////
+// LoadTest exceptions tests
+//////////////////////////////
+
+#define OUT_OF_HOST_MEMORY -1
+#define OUT_OF_DEVICE_MEMORY -2
+#define FRAGMENTED_POOL -12
+#define OUT_OF_POOL_MEMORY -1000069000
+
+TEST(BadVulkanAllocExceptionTest, NoDeviceMemory) {
+    try {
+        throw bad_vulkan_alloc(OUT_OF_DEVICE_MEMORY, "no device memory test");
+    } catch (bad_vulkan_alloc& e) {
+        EXPECT_EQ(strcmp(e.what(), "Out of device memory for no device memory test."), 0);
+    }
+}
+
+TEST(BadVulkanAllocExceptionTest, NoHostMemory) {
+    try {
+        throw bad_vulkan_alloc(OUT_OF_HOST_MEMORY, "no host memory test");
+    } catch (bad_vulkan_alloc& e) {
+        EXPECT_EQ(strcmp(e.what(), "Out of host memory for no host memory test."), 0);
+    }
+}
+
+TEST(BadVulkanAllocExceptionTest, NoPoolMemory) {
+    try {
+        throw bad_vulkan_alloc(OUT_OF_POOL_MEMORY, "no pool memory test");
+    } catch (bad_vulkan_alloc& e) {
+        EXPECT_EQ(strcmp(e.what(), "Out of pool memory for no pool memory test."), 0);
+    }
+}
+
+TEST(BadVulkanAllocExceptionTest, PoolFragmented) {
+    try {
+        throw bad_vulkan_alloc(FRAGMENTED_POOL, "fragmented pool memory test");
+    } catch (bad_vulkan_alloc& e) {
+        EXPECT_EQ(strcmp(e.what(), "Pool fragmented when allocating for fragmented pool memory test."), 0);
+    }
 }
 
 }  // namespace

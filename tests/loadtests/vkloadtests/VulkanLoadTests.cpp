@@ -220,6 +220,30 @@ VulkanLoadTests::invokeSample(Direction dir)
             } else {
                 dir == Direction::eForward ? ++sampleIndex : --sampleIndex;
             }
+        } catch (bad_vulkan_alloc& e) {
+            const SDL_MessageBoxButtonData buttons[] = {
+                /* .flags, .buttonid, .text */
+                { SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 0, "Abort" },
+            };
+            const SDL_MessageBoxData messageboxdata = {
+                SDL_MESSAGEBOX_ERROR,                               // .flags
+                NULL,                                               // .window
+                infiles.size() > 0 ?
+                 fileTitle.c_str() : sampleInv->title,              // .title
+                e.what(),                                           // .message
+                SDL_arraysize(buttons),                             // .numbuttons
+                buttons,                                            // .buttons
+                NULL //&colorScheme                                 // .colorScheme
+            };
+            int buttonid;
+            if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {
+                SDL_Log("error displaying error message box");
+                exit(1);
+            }
+            if (buttonid == 0) {
+                // We've been told to quit or no button was pressed.
+                exit(1);
+            }
         } catch (std::exception& e) {
             const SDL_MessageBoxButtonData buttons[] = {
                 /* .flags, .buttonid, .text */

@@ -386,8 +386,12 @@ TextureCubemap::setupDescriptorPool()
                                         2,
                                         static_cast<uint32_t>(poolSizes.size()),
                                         poolSizes.data());
-    vkctx.device.createDescriptorPool(&descriptorPoolInfo, nullptr,
-                                      &descriptorPool);
+    vk::Result res = vkctx.device.createDescriptorPool(&descriptorPoolInfo,
+                                                       nullptr,
+                                                       &descriptorPool);
+    if (res != vk::Result::eSuccess) {
+        throw bad_vulkan_alloc((int)res, "createDescriptorPool");
+    }
 }
 
 void
@@ -416,17 +420,25 @@ TextureCubemap::setupDescriptorSetLayout()
                               static_cast<uint32_t>(setLayoutBindings.size()),
                               setLayoutBindings.data());
 
-    vkctx.device.createDescriptorSetLayout(&descriptorLayout, nullptr,
-                                           &descriptorSetLayout);
+    vk::Result res
+        = vkctx.device.createDescriptorSetLayout(&descriptorLayout,
+                                                 nullptr,
+                                                 &descriptorSetLayout);
+    if (res != vk::Result::eSuccess) {
+        throw bad_vulkan_alloc((int)res, "createDescriptorSetLayout");
+    }
 
     vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo(
                                                     {},
                                                     1,
                                                     &descriptorSetLayout);
 
-    vkctx.device.createPipelineLayout(&pipelineLayoutCreateInfo,
-                                      nullptr,
-                                      &pipelineLayout);
+    res = vkctx.device.createPipelineLayout(&pipelineLayoutCreateInfo,
+                                            nullptr,
+                                            &pipelineLayout);
+    if (res != vk::Result::eSuccess) {
+        throw bad_vulkan_alloc((int)res, "createPipelineLayout");
+    }
 }
 
 void
@@ -437,7 +449,12 @@ TextureCubemap::setupDescriptorSets()
             1,
             &descriptorSetLayout);
 
-    vkctx.device.allocateDescriptorSets(&allocInfo, &descriptorSets.object);
+    vk::Result res
+         = vkctx.device.allocateDescriptorSets(&allocInfo,
+                                               &descriptorSets.object);
+    if (res != vk::Result::eSuccess) {
+        throw bad_vulkan_alloc((int)res, "allocateDescriptorSets");
+    }
 
     // Image descriptor for the cubemap texture
     vk::DescriptorImageInfo cubeMapDescriptor(
@@ -473,7 +490,11 @@ TextureCubemap::setupDescriptorSets()
                              nullptr);
 
     // Sky box descriptor set
-    vkctx.device.allocateDescriptorSets(&allocInfo, &descriptorSets.skybox);
+    res = vkctx.device.allocateDescriptorSets(&allocInfo,
+                                              &descriptorSets.skybox);
+    if (res != vk::Result::eSuccess) {
+        throw bad_vulkan_alloc((int)res, "allocateDescriptorSets");
+    }
 
     writeDescriptorSets =
     {
@@ -581,9 +602,13 @@ TextureCubemap::preparePipelines()
     pipelineCreateInfo.stageCount = (uint32_t)shaderStages.size();
     pipelineCreateInfo.pStages = shaderStages.data();
 
-    vkctx.device.createGraphicsPipelines(vkctx.pipelineCache, 1,
-                                         &pipelineCreateInfo, nullptr,
-                                         &pipelines.skybox);
+    vk::Result res
+        = vkctx.device.createGraphicsPipelines(vkctx.pipelineCache, 1,
+                                               &pipelineCreateInfo, nullptr,
+                                               &pipelines.skybox);
+    if (res != vk::Result::eSuccess) {
+        throw bad_vulkan_alloc((int)res, "createGraphicsPipelines");
+    }
 
     // Cube map reflect pipeline
     shaderStages[0] = loadShader(filepath + "reflect.vert.spv",
@@ -597,9 +622,12 @@ TextureCubemap::preparePipelines()
     // Flip cull mode
     rasterizationState.cullMode = vk::CullModeFlagBits::eFront;
 
-    vkctx.device.createGraphicsPipelines(vkctx.pipelineCache, 1,
-                                         &pipelineCreateInfo, nullptr,
-                                         &pipelines.reflect);
+    res = vkctx.device.createGraphicsPipelines(vkctx.pipelineCache, 1,
+                                               &pipelineCreateInfo, nullptr,
+                                               &pipelines.reflect);
+    if (res != vk::Result::eSuccess) {
+        throw bad_vulkan_alloc((int)res, "createGraphicsPipelines");
+    }
 }
 
 // Prepare and initialize uniform buffer containing shader uniforms

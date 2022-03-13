@@ -164,7 +164,7 @@ void test_texture_set( TextureSet & textureSet, FormatFeature & format ) {
 
     basisu.close();
 
-    void * data;
+    void * data = 0; // = 0 to silence over-enthusiastic gcc 11 warning.
     unsigned long fsize;
 
     path = combine_paths(image_path,textureSet.ktxPath);

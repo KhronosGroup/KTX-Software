@@ -176,9 +176,9 @@ uint32_t basis_file::transcodeImage(void* dst, uint32_t dst_size, uint32_t image
 
     if (basis_transcoder_format_is_uncompressed(transcoder_format))
     {
-        const uint32_t MAYBE_UNUSED bytes_per_pixel = basis_get_uncompressed_bytes_per_pixel(transcoder_format);
-        const uint32_t MAYBE_UNUSED bytes_per_line = orig_width * bytes_per_pixel;
-        const uint32_t MAYBE_UNUSED bytes_per_slice = bytes_per_line * orig_height;
+        MAYBE_UNUSED const uint32_t bytes_per_pixel = basis_get_uncompressed_bytes_per_pixel(transcoder_format);
+        MAYBE_UNUSED const uint32_t bytes_per_line = orig_width * bytes_per_pixel;
+        MAYBE_UNUSED const uint32_t bytes_per_slice = bytes_per_line * orig_height;
 
         assert(bytes_per_slice <= dst_size);
 
@@ -195,7 +195,7 @@ uint32_t basis_file::transcodeImage(void* dst, uint32_t dst_size, uint32_t image
     {
         uint32_t bytes_per_block = basis_get_bytes_per_block_or_pixel(transcoder_format);
 
-        uint32_t MAYBE_UNUSED required_size = total_blocks * bytes_per_block;
+        MAYBE_UNUSED uint32_t required_size = total_blocks * bytes_per_block;
 
         if (transcoder_format == transcoder_texture_format::cTFPVRTC1_4_RGB || transcoder_format == transcoder_texture_format::cTFPVRTC1_4_RGBA)
         {

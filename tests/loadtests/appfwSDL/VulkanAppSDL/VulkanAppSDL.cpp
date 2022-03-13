@@ -404,7 +404,7 @@ VulkanAppSDL::initializeVulkan()
 bool
 VulkanAppSDL::createInstance()
 {
-    VkResult MAYBE_UNUSED err;
+    MAYBE_UNUSED VkResult err;
     uint32_t instanceLayerCount = 0;
     std::vector<const char *>* instanceValidationLayers = nullptr;
 
@@ -592,7 +592,7 @@ VulkanAppSDL::createInstance()
 bool
 VulkanAppSDL::findGpu()
 {
-    vk::Result MAYBE_UNUSED err;
+    MAYBE_UNUSED vk::Result err;
     uint32_t gpuCount;
 
     // Make initial call to query gpu_count, then second call for gpu info.
@@ -970,8 +970,8 @@ VulkanAppSDL::prepareDepthBuffer()
     view.viewType = VK_IMAGE_VIEW_TYPE_2D;
 
     VkMemoryRequirements mem_reqs;
-    VkResult U_ASSERT_ONLY err;
-    bool U_ASSERT_ONLY pass;
+    U_ASSERT_ONLY VkResult err;
+    U_ASSERT_ONLY bool pass;
 
     /* create image */
     err = vkCreateImage(vkctx.device, &image, NULL, &vkctx.depthBuffer.image);
@@ -1157,7 +1157,7 @@ VulkanAppSDL::prepareRenderPass()
         0,
         NULL,
     };
-    VkResult U_ASSERT_ONLY err;
+    U_ASSERT_ONLY VkResult err;
 
     err = vkCreateRenderPass(vkctx.device, &rp_info, NULL, &vkctx.renderPass);
     assert(!err);
@@ -1208,7 +1208,7 @@ VulkanAppSDL::prepareFramebuffers()
         w_height,
         1,
     };
-    VkResult U_ASSERT_ONLY err;
+    U_ASSERT_ONLY VkResult err;
     uint32_t i;
 
     vkctx.framebuffers.resize(vkctx.swapchain.imageCount);
@@ -1225,7 +1225,7 @@ VulkanAppSDL::prepareFramebuffers()
 void
 VulkanAppSDL::flushInitialCommands()
 {
-    VkResult U_ASSERT_ONLY err;
+    U_ASSERT_ONLY VkResult err;
 
     if (setupCmdBuffer == VK_NULL_HANDLE)
         return;
@@ -1410,7 +1410,7 @@ VulkanAppSDL::setImageLayout(VkImage image, VkImageAspectFlags aspectMask,
         VkImageLayout new_image_layout,
         VkImageAspectFlags srcAccessMask)
 {
-    VkResult U_ASSERT_ONLY err;
+    U_ASSERT_ONLY VkResult err;
 
     if (setupCmdBuffer == VK_NULL_HANDLE) {
         const VkCommandBufferAllocateInfo cbaInfo = {

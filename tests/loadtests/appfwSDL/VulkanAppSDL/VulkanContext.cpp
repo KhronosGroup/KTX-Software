@@ -24,6 +24,7 @@
 #include "VulkanContext.h"
 // Until exceptions are used everywhere...
 #include "vulkancheckres.h"
+#include "ltexceptions.h"
 #include "unused.h"
 
 vk::CommandBuffer
@@ -36,13 +37,21 @@ VulkanContext::createCommandBuffer(vk::CommandBufferLevel level, bool begin)
             level,
             1);
 
-    device.allocateCommandBuffers(&cmdBufAllocateInfo, &cmdBuffer);
+    vk::Result res
+      = device.allocateCommandBuffers(&cmdBufAllocateInfo, &cmdBuffer);
+
+    if (res != vk::Result::eSuccess) {
+        throw bad_vulkan_alloc((int)res, "device.allocateCommandBuffers");
+    }
 
     // If requested, also start the new command buffer
     if (begin)
     {
         vk::CommandBufferBeginInfo cmdBufInfo;
-        cmdBuffer.begin(&cmdBufInfo);
+        res = cmdBuffer.begin(&cmdBufInfo);
+        if (res != vk::Result::eSuccess) {
+            throw bad_vulkan_alloc((int)res, "cmdBuffer.begin");
+        }
     }
 
     return cmdBuffer;
@@ -63,7 +72,15 @@ VulkanContext::flushCommandBuffer(vk::CommandBuffer& cmdBuffer,
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &cmdBuffer;
 
-    queue.submit(1, &submitInfo, nullptr);
+    vk::Result res = queue.submit(1, &submitInfo, nullptr);
+    if (res != vk::Result::eSuccess) {
+        if (res == vk::Result::eErrorDeviceLost) {
+            throw std::runtime_error("Vulkan device lost.");
+        } else {
+            throw bad_vulkan_alloc((int)res, "queue.submit");
+        }
+    }
+
     queue.waitIdle();
 
     if (free) {
@@ -155,13 +172,16 @@ VulkanContext::createBuffer(vk::BufferUsageFlags usageFlags,
     vk::MemoryAllocateInfo memAlloc(0, 0);
     vk::BufferCreateInfo bufferCreateInfo({}, size, usageFlags);
 
-    device.createBuffer(&bufferCreateInfo, nullptr, buffer);
+    vk::Result res = device.createBuffer(&bufferCreateInfo, nullptr, buffer);
+    if (res != vk::Result::eSuccess) {
+        return false;
+    }
 
     device.getBufferMemoryRequirements(*buffer, &memReqs);
     memAlloc.allocationSize = memReqs.size;
     memAlloc.memoryTypeIndex = getMemoryType(memReqs.memoryTypeBits,
                                              memoryPropertyFlags);
-    vk::Result res = device.allocateMemory(&memAlloc, nullptr, memory);
+    res = device.allocateMemory(&memAlloc, nullptr, memory);
     if (res == vk::Result::eSuccess) {
         if (data != nullptr)
         {
@@ -296,7 +316,11 @@ VulkanContext::loadShader(std::string filename)
     vk::ShaderModule shaderModule;
     vk::ShaderModuleCreateInfo moduleCreateInfo({}, codeSize, shaderCode);
 
-    device.createShaderModule(&moduleCreateInfo, NULL, &shaderModule);
+    vk::Result res
+          = device.createShaderModule(&moduleCreateInfo, NULL, &shaderModule);
+    if (res != vk::Result::eSuccess) {
+        throw bad_vulkan_alloc((int)res, "device.createShaderModule");
+    }
 
     delete[] shaderCode;
 
@@ -307,7 +331,7 @@ VulkanContext::loadShader(std::string filename)
 uint32_t*
 VulkanContext::readSpv(const char *filename, size_t *pSize) {
     size_t size;
-    size_t U_ASSERT_ONLY retval;
+    U_ASSERT_ONLY size_t retval;
     uint32_t* shader_code;
 
     SDL_RWops* rw = SDL_RWFromFile(filename, "rb");

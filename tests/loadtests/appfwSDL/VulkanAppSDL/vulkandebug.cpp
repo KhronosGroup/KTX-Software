@@ -97,7 +97,7 @@ namespace vkDebug
         dbgCreateInfo.pfnCallback = (PFN_vkDebugReportCallbackEXT)messageCallback;
         dbgCreateInfo.flags = flags;
 
-        VkResult U_ASSERT_ONLY err = CreateDebugReportCallback(
+        U_ASSERT_ONLY VkResult err = CreateDebugReportCallback(
             instance,
             &dbgCreateInfo,
             nullptr,

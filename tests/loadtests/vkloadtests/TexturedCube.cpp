@@ -654,7 +654,7 @@ TexturedCube::prepareDescriptorPool() {
         2,
         typeCounts,
     };
-    VkResult U_ASSERT_ONLY err;
+    U_ASSERT_ONLY VkResult err;
 
     err = vkCreateDescriptorPool(vkctx.device, &dpoolCreateInfo, NULL,
                                  &descriptorPool);
