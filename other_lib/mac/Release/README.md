@@ -9,5 +9,5 @@ Library Information
   https://github.com/MarkCallow/assimp.git.
 - libminizip is a universal binary build of
   https://github.com/domoticz/minizip.git 
-- libSDL is a universal binary build of commit 13845:210fb62f0c96 from
-  https://hg.libsdl.org/SDL.
+- libSDL is a universal binary build of changeset
+  13845:210fb62f0c96 from https://hg.libsdl.org/SDL.

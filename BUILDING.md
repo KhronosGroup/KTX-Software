@@ -319,6 +319,11 @@ cmake . -A ARM64 -B build_uwp_arm64 -D CMAKE_SYSTEM_NAME:String=WindowsStore -D 
 cmake -B build_uwp_arm64 --target ktx
 ```
 
+A `bash` shell is needed by the `mkversion` script used during the build. If you installed your `git` via the
+[Git for Windows](https://gitforwindows.org/) package you are good to go.
+Alternatives are
+[Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install) plus a Linux distribution or [Cygwin](https://www.cygwin.com/)  .
+
 The NSIS compiler is needed if you intend to build packages.
 
 CMake can include OpenGL ES versions of the KTX loader tests in the
@@ -329,7 +334,7 @@ The KTX loader tests use libSDL 2.0.12+. You do not need SDL if you only wish to
 
 The KTX vulkan loader tests require a [Vulkan SDK](#vulkan-sdk)
 and the Open Asset Import Library [`libassimp`](#libassimp). You must
-install the former.
+install the former. The latter is included in this repo.
 
 #### OpenGL ES Emulator for Windows
 
@@ -394,6 +399,9 @@ binaries from [libsdl.org](https://libsdl.org), if you prefer.
 
 #### macOS Notes
 
+To build for both Intel and Apple Silicon you need a universal binary
+build of SDL as it provided in the KTX Git repo.
+
 If you wish to use the provided version of SDL in other applications
 on your system, you can install the framework. Open a shell and enter
 the following command
@@ -428,7 +436,7 @@ For other GNU/Linux distributions a `.tar.gz` file is available. See
 
 For Windows install the Vulkan SDK via the installer.
 
-For iOS and macOS, install the Vulkan SDK by copying the content of the mounted `.dmg` to some location of choice. You need version 1.2.141.2 or later. This SDK contains MoltenVK (Vulkan Portability on Metal) for both iOS and macOS.
+For iOS and macOS, install the Vulkan SDK by downloading the macOS installer and double-clicking _install_ in the mounted `.dmg`. You need version 1.2.189.1 or later for Apple Silicon support. This SDK contains MoltenVK (Vulkan Portability on Metal) for both iOS and macOS.
 
 ### Doxygen
 
