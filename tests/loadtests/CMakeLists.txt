@@ -13,7 +13,7 @@ endif()
 if(NOT EMSCRIPTEN AND NOT WIN32)
     # libassimp needs zlib. On Windows we use a dll which has zlib embedded.
     # There is no offcial libassimp for Emscripten yet and we've had no
-    # time to experiment so tests that use assimp are no included in the
+    # time to experiment so tests that use assimp are not included in the
     # Emscripten build.
     find_package( ZLIB REQUIRED )
     set( KTX_ZLIB_LIBRARIES ZLIB::ZLIB )
@@ -37,8 +37,8 @@ if(APPLE AND IOS)
 endif()
 
 function( ensure_runtime_dependencies_windows target )
-    # Custom copy commands to ensure all dependencies (DLLs, testimages, shaders, models) are in correct location
-    # relative to executable.
+    # Custom copy commands to ensure all dependencies (DLLs, testimages,
+    # shaders, models) are in correct location relative to executable.
     add_custom_command( TARGET ${target} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2.dll" "$<TARGET_FILE_DIR:${target}>"
         COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/assimp.dll" "$<TARGET_FILE_DIR:${target}>"
@@ -83,6 +83,10 @@ if(EMSCRIPTEN)
          "SHELL:-s USE_SDL=2"
     )
 endif()
+
+set_target_properties(appfwSDL PROPERTIES
+    CXX_VISIBILITY_PRESET ${STATIC_APP_LIB_SYMBOL_VISIBILITY}
+)
 
 target_include_directories(
     appfwSDL
@@ -130,6 +134,9 @@ if(OPENGL_FOUND)
     )
 endif()
 
+set_target_properties(GLAppSDL PROPERTIES
+    CXX_VISIBILITY_PRESET ${STATIC_APP_LIB_SYMBOL_VISIBILITY}
+)
 
 set( LOAD_TEST_COMMON_LIBS )
 
@@ -144,7 +151,6 @@ if(APPLE)
     else()
         set( LOAD_TEST_COMMON_LIBS
             ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libassimp.a
-            ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libIrrXML.a
             ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libminizip.a
         )
     endif()

@@ -39,36 +39,36 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ---------------------------------------------------------------------------
 */
 
-/** @file ai_assert.h
- *  @brief Declares the assimp-specific assertion handler.
+/** @file GltfMaterial.h
+ *  @brief glTF-specific material macros
+ *  These will be made generic at some future date
  */
 
-#pragma once
-#ifndef AI_ASSERT_H_INC
-#define AI_ASSERT_H_INC
+#ifndef AI_GLTFMATERIAL_H_INC
+#define AI_GLTFMATERIAL_H_INC
 
-#include <assimp/defs.h>
-
-#if defined(ASSIMP_BUILD_DEBUG)
-
-namespace Assimp {
-
-/// @brief Assert violation behavior can be customized: see AssertHandler.h.
-/// @param failedExpression     The expression to validate.
-/// @param file                 The file location    
-/// @param line                 The line number
-ASSIMP_API void aiAssertViolation(const char* failedExpression, const char* file, int line);
-
-}
+#ifdef __GNUC__
+#   pragma GCC system_header
 #endif
 
-// Define assertion resolinig
-#if defined(ASSIMP_BUILD_DEBUG)
-#   define ai_assert(expression) (void)((!!(expression)) || (Assimp::aiAssertViolation(#expression, __FILE__, __LINE__), 0))
-#   define ai_assert_entry() ai_assert(false)
-#else
-#   define  ai_assert(expression)
-#   define  ai_assert_entry()
-#endif // ASSIMP_BUILD_DEBUG
+#include <assimp/material.h>
 
-#endif // AI_ASSERT_H_INC
+#define AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLICROUGHNESS_TEXTURE aiTextureType_UNKNOWN, 0
+#define AI_MATKEY_GLTF_ALPHAMODE "$mat.gltf.alphaMode", 0, 0
+#define AI_MATKEY_GLTF_ALPHACUTOFF "$mat.gltf.alphaCutoff", 0, 0
+
+#define _AI_MATKEY_GLTF_MAPPINGNAME_BASE "$tex.mappingname"
+#define _AI_MATKEY_GLTF_MAPPINGID_BASE "$tex.mappingid"
+#define _AI_MATKEY_GLTF_MAPPINGFILTER_MAG_BASE "$tex.mappingfiltermag"
+#define _AI_MATKEY_GLTF_MAPPINGFILTER_MIN_BASE "$tex.mappingfiltermin"
+#define _AI_MATKEY_GLTF_SCALE_BASE "$tex.scale"
+#define _AI_MATKEY_GLTF_STRENGTH_BASE "$tex.strength"
+
+#define AI_MATKEY_GLTF_MAPPINGNAME(type, N) _AI_MATKEY_GLTF_MAPPINGNAME_BASE, type, N
+#define AI_MATKEY_GLTF_MAPPINGID(type, N) _AI_MATKEY_GLTF_MAPPINGID_BASE, type, N
+#define AI_MATKEY_GLTF_MAPPINGFILTER_MAG(type, N) _AI_MATKEY_GLTF_MAPPINGFILTER_MAG_BASE, type, N
+#define AI_MATKEY_GLTF_MAPPINGFILTER_MIN(type, N) _AI_MATKEY_GLTF_MAPPINGFILTER_MIN_BASE, type, N
+#define AI_MATKEY_GLTF_TEXTURE_SCALE(type, N) _AI_MATKEY_GLTF_SCALE_BASE, type, N
+#define AI_MATKEY_GLTF_TEXTURE_STRENGTH(type, N) _AI_MATKEY_GLTF_STRENGTH_BASE, type, N
+
+#endif

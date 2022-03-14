@@ -12,18 +12,18 @@ with or without modification, are permitted provided that the following
 conditions are met:
 
 * Redistributions of source code must retain the above
-copyright notice, this list of conditions and the
-following disclaimer.
+  copyright notice, this list of conditions and the
+  following disclaimer.
 
 * Redistributions in binary form must reproduce the above
-copyright notice, this list of conditions and the
-following disclaimer in the documentation and/or other
-materials provided with the distribution.
+  copyright notice, this list of conditions and the
+  following disclaimer in the documentation and/or other
+  materials provided with the distribution.
 
 * Neither the name of the assimp team, nor the names of its
-contributors may be used to endorse or promote products
-derived from this software without specific prior
-written permission of the assimp team.
+  contributors may be used to endorse or promote products
+  derived from this software without specific prior
+  written permission of the assimp team.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -40,44 +40,29 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #pragma once
-#ifndef AI_AABB_H_INC
-#define AI_AABB_H_INC
+#ifndef AI_BASE64_HPP_INC
+#define AI_BASE64_HPP_INC
 
-#ifdef __GNUC__
-#pragma GCC system_header
-#endif
+#include <stdint.h>
+#include <vector>
+#include <string>
 
-#include <assimp/vector3.h>
+namespace Assimp {
+namespace Base64 {
 
-// ---------------------------------------------------------------------------
-/** 
- *  An axis-aligned bounding box.  
- */
-struct aiAABB {
-    C_STRUCT aiVector3D mMin;
-    C_STRUCT aiVector3D mMax;
+/// @brief Will encode the given 
+/// @param in 
+/// @param inLength 
+/// @param out 
+void Encode(const uint8_t *in, size_t inLength, std::string &out);
+void Encode(const std::vector<uint8_t>& in, std::string &out);
+std::string Encode(const std::vector<uint8_t>& in);
 
-#ifdef __cplusplus
-    /// @brief The default class constructor.
-    aiAABB() :
-            mMin(), mMax() {
-        // empty
-    }
+size_t Decode(const char *in, size_t inLength, uint8_t *&out);
+size_t Decode(const std::string& in, std::vector<uint8_t>& out);
+std::vector<uint8_t> Decode(const std::string& in);
 
-    /// @brief The class constructor with the minimum and maximum.
-    /// @param min  The minimum dimension.
-    /// @param max  The maximum dimension.
-    aiAABB(const aiVector3D &min, const aiVector3D &max) :
-            mMin(min), mMax(max) {
-        // empty
-    }
+} // namespace Base64
+} // namespace Assimp
 
-    ///	@brief  The class destructor.
-    ~aiAABB() {
-        // empty
-    }
-
-#endif // __cplusplus
-};
-
-#endif // AI_AABB_H_INC
+#endif // AI_BASE64_HPP_INC

@@ -19,15 +19,18 @@ if(APPLE)
     if(IOS)
         set( MOLTENVK_FRAMEWORK ${MOLTENVK_SDK}/iOS/framework/MoltenVK.framework )
         if( NOT IS_DIRECTORY ${MOLTENVK_FRAMEWORK})
-            # Fallback: Older Vulkan SDKs have MoltenVK.framework at a different sub path
+            # Fallback: Older Vulkan SDKs have MoltenVK.framework at a
+            # different sub path
             message("Could not find MoltenVK framework (at '${MOLTENVK_FRAMEWORK}')")
             set(MOLTENVK_FRAMEWORK ${MOLTENVK_SDK}/iOS/MoltenVK.framework)
         endif()
         if( NOT IS_DIRECTORY ${MOLTENVK_FRAMEWORK})
             message("Could not find MoltenVK framework (at '${MOLTENVK_FRAMEWORK}')")
-            # Fallback: One newer Vulkan SDKs it's a .xcframework at the root level
-            # CMake does not support linking those directly (see https://gitlab.kitware.com/cmake/cmake/-/issues/21752),
-            # so we manually pick the static library file for iOS arm64 from a subfolder here
+            # Fallback: On newer Vulkan SDKs it's a .xcframework at the root
+            # level. CMake does not support linking those directly (see
+            # https://gitlab.kitware.com/cmake/cmake/-/issues/21752), so we
+            # manually pick the static library file for iOS arm64 from a
+            # subfolder here
             if( IS_DIRECTORY ${MOLTENVK_SDK}/MoltenVK.xcframework )
                 set( MOLTENVK_FRAMEWORK ${MOLTENVK_SDK}/MoltenVK.xcframework/ios-arm64/libMoltenVK.a )
             endif()
@@ -104,6 +107,7 @@ add_executable( vkloadtests
     vkloadtests/VulkanLoadTestSample.h
     ${LOAD_TEST_COMMON_RESOURCE_FILES}
     ${SHADER_SOURCES}
+    vkloadtests.cmake
 )
 if(IOS)
     set_xcode_code_sign(vkloadtests)
@@ -127,6 +131,10 @@ target_link_libraries(
     ${KTX_ZLIB_LIBRARIES}
     objUtil
     appfwSDL
+)
+
+set_target_properties(vkloadtests PROPERTIES
+    CXX_VISIBILITY_PRESET ${STATIC_APP_LIB_SYMBOL_VISIBILITY}
 )
 
 if(IOS)
@@ -209,7 +217,6 @@ PRIVATE
 
 if(APPLE)
     set_source_files_properties(${SHADER_SOURCES} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/shaders")
-
     set(PRODUCT_NAME "vkloadtests")
     set(EXECUTABLE_NAME ${PRODUCT_NAME})
     # How amazingly irritating. We have to set both of these to the same value.
@@ -239,8 +246,6 @@ if(APPLE)
     if(NOT IOS)
         set_target_properties( vkloadtests PROPERTIES
             INSTALL_RPATH "@executable_path/../Frameworks"
-            # No Apple silicon support yet, so restrict archs to Intel
-            XCODE_ATTRIBUTE_ARCHS x86_64
         )
         add_custom_command( TARGET vkloadtests POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/$<TARGET_FILE_NAME:ktx>"

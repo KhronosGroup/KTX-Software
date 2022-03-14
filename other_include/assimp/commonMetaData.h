@@ -12,18 +12,18 @@ with or without modification, are permitted provided that the following
 conditions are met:
 
 * Redistributions of source code must retain the above
-copyright notice, this list of conditions and the
-following disclaimer.
+  copyright notice, this list of conditions and the
+  following disclaimer.
 
 * Redistributions in binary form must reproduce the above
-copyright notice, this list of conditions and the
-following disclaimer in the documentation and/or other
-materials provided with the distribution.
+  copyright notice, this list of conditions and the
+  following disclaimer in the documentation and/or other
+  materials provided with the distribution.
 
 * Neither the name of the assimp team, nor the names of its
-contributors may be used to endorse or promote products
-derived from this software without specific prior
-written permission of the assimp team.
+  contributors may be used to endorse or promote products
+  derived from this software without specific prior
+  written permission of the assimp team.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -39,45 +39,31 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ---------------------------------------------------------------------------
 */
 
+/** @file commonMetaData.h
+ *  @brief Defines a set of common scene metadata keys.
+ */
 #pragma once
-#ifndef AI_AABB_H_INC
-#define AI_AABB_H_INC
+#ifndef AI_COMMONMETADATA_H_INC
+#define AI_COMMONMETADATA_H_INC
 
 #ifdef __GNUC__
 #pragma GCC system_header
 #endif
 
-#include <assimp/vector3.h>
+/// Scene metadata holding the name of the importer which loaded the source asset.
+/// This is always present if the scene was created from an imported asset.
+#define AI_METADATA_SOURCE_FORMAT "SourceAsset_Format"
 
-// ---------------------------------------------------------------------------
-/** 
- *  An axis-aligned bounding box.  
- */
-struct aiAABB {
-    C_STRUCT aiVector3D mMin;
-    C_STRUCT aiVector3D mMax;
+/// Scene metadata holding the version of the source asset as a string, if available.
+/// Not all formats add this metadata.
+#define AI_METADATA_SOURCE_FORMAT_VERSION "SourceAsset_FormatVersion"
 
-#ifdef __cplusplus
-    /// @brief The default class constructor.
-    aiAABB() :
-            mMin(), mMax() {
-        // empty
-    }
+/// Scene metadata holding the name of the software which generated the source asset, if available.
+/// Not all formats add this metadata.
+#define AI_METADATA_SOURCE_GENERATOR "SourceAsset_Generator"
 
-    /// @brief The class constructor with the minimum and maximum.
-    /// @param min  The minimum dimension.
-    /// @param max  The maximum dimension.
-    aiAABB(const aiVector3D &min, const aiVector3D &max) :
-            mMin(min), mMax(max) {
-        // empty
-    }
+/// Scene metadata holding the source asset copyright statement, if available.
+/// Not all formats add this metadata.
+#define AI_METADATA_SOURCE_COPYRIGHT "SourceAsset_Copyright"
 
-    ///	@brief  The class destructor.
-    ~aiAABB() {
-        // empty
-    }
-
-#endif // __cplusplus
-};
-
-#endif // AI_AABB_H_INC
+#endif

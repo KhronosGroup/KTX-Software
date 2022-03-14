@@ -3,11 +3,7 @@
 
 if(KTX_FEATURE_LOADTEST_APPS)
     # Test apps that load and display various KTX textures
-    if(APPLE AND CPU_ARCHITECTURE STREQUAL arm64)
-        message(WARNING "Building load test apps is not supported on Apple Silicon as host platform, so they are skipped")
-    else()
-        add_subdirectory(loadtests)
-    endif()
+    add_subdirectory(loadtests)
 endif()
 
 # gtest based unit-tests

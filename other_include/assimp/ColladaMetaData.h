@@ -1,15 +1,14 @@
 /*
----------------------------------------------------------------------------
 Open Asset Import Library (assimp)
----------------------------------------------------------------------------
+----------------------------------------------------------------------
 
-Copyright (c) 2006-2019, assimp team
+Copyright (c) 2006-2022, assimp team
 
 All rights reserved.
 
 Redistribution and use of this software in source and binary forms,
-with or without modification, are permitted provided that the following
-conditions are met:
+with or without modification, are permitted provided that the
+following conditions are met:
 
 * Redistributions of source code must retain the above
   copyright notice, this list of conditions and the
@@ -36,14 +35,22 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
----------------------------------------------------------------------------
+
+----------------------------------------------------------------------
 */
 
-/* Helper macro to set a pointer to NULL in debug builds
+/** @file ColladaMetaData.h
+ * Declares common metadata constants used by Collada files
  */
-#if (defined ASSIMP_BUILD_DEBUG)
-#   define AI_DEBUG_INVALIDATE_PTR(x) x = NULL;
-#else
-#   define AI_DEBUG_INVALIDATE_PTR(x)
+#pragma once
+#ifndef AI_COLLADAMETADATA_H_INC
+#define AI_COLLADAMETADATA_H_INC
+
+#ifdef __GNUC__
+#pragma GCC system_header
 #endif
 
+#define AI_METADATA_COLLADA_ID "Collada_id"
+#define AI_METADATA_COLLADA_SID "Collada_sid"
+
+#endif

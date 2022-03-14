@@ -4,9 +4,10 @@
 Library Information
 ===================
 
-- libassimp is a custom build including only 3DS, Collada, FBX,
-  glTF, obj and stl importers.
-- libminizip is copied from my MacPorts /opt/local/lib folder.
-- libSDL is a standard build done on my machine.
-- libIrrXML.a is built by the libassimp build. It is required
-  even though the XML importer is not included.
+- libassimp is a universal binary build of v5.2.2 (with small fixes needed
+  to avoid build erors) including only the importers. Source URL is
+  https://github.com/MarkCallow/assimp.git.
+- libminizip is a universal binary build of
+  https://github.com/domoticz/minizip.git 
+- libSDL is a universal binary build of commit 13845:210fb62f0c96 from
+  https://hg.libsdl.org/SDL.

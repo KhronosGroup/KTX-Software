@@ -6,7 +6,7 @@
 	<dict>
 		<key>Resources/Info.plist</key>
 		<data>
-		drDxth4xn7yC6jNs23IDmzQd6wo=
+		H/QOWmuxbCEIWHL+O2TzSGIrLT4=
 		</data>
 		<key>Resources/License.txt</key>
 		<data>
@@ -18,7 +18,7 @@
 		</data>
 		<key>Resources/default.metallib</key>
 		<data>
-		Mp2xZ/ImK+qiewJUABPEZD4KGp8=
+		0R8a3ztg9yRfnxoHa3KQYR9oOGM=
 		</data>
 	</dict>
 	<key>files2</key>
@@ -27,20 +27,20 @@
 		<dict>
 			<key>cdhash</key>
 			<data>
-			wciKiALZDClWI7YPA0l0RsQUXKw=
+			Su/rORg46gDmTDDQGqwp5j6oXHE=
 			</data>
 			<key>requirement</key>
-			<string>identifier "org.libsdl.hidapi" and anchor apple generic and certificate leaf[subject.CN] = "Apple Development: Mark Callow (3668SYX9G5)" and certificate 1[field.1.2.840.113635.100.6.2.1] /* exists */</string>
+			<string>cdhash H"372ba1a66daa48d698c6e1617ceb870f260dd5a5" or cdhash H"4aefeb391838ea00e64c30d01aac29e63ea85c71" or cdhash H"2289bce4640e9ff3507b6ae3db8b61f3809133a3" or cdhash H"0f0d89f3855d8f1a47349dc704f60e7e22e263db"</string>
 		</dict>
 		<key>Headers/SDL.h</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			y6Zw1zugKvy7YINfHUZioLU3h7c=
+			o3KVp4++KuUyoa+pJDOXTKG80xY=
 			</data>
 			<key>hash2</key>
 			<data>
-			GRE94BY3eDOjtR9EDg6HtLEJAZjYaNV+dq4yfaEVj+U=
+			CLsLV07G2/+c6GGLTVZh91FNYojAHOsuglk/oCKmlso=
 			</data>
 		</dict>
 		<key>Headers/SDL_assert.h</key>
@@ -179,11 +179,11 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			K/UpbzGqq8vPXCNo//37Qod99bU=
+			06e1jUIsAc9O803iXrh2jmdbXuM=
 			</data>
 			<key>hash2</key>
 			<data>
-			ndL6QYSkZleJN4Va0neG0C1cytQi6sN2YRBZNqg0KGU=
+			6pGmPxZapBntgteeWW4BRZnhLf1R4CvlFsk60Xd3BPs=
 			</data>
 		</dict>
 		<key>Headers/SDL_filesystem.h</key>
@@ -223,22 +223,22 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			A5VM8GOD6pgO+5umTAfGePUVpKE=
+			M0Oo9dh3zLva6qpGJhBbgAxAIuY=
 			</data>
 			<key>hash2</key>
 			<data>
-			GNOzk3bli3Um2gMNnpq6O6rl97hq0dZfj5BIgDSfl9A=
+			Nef5r8Bidx1FeTffn9+uzNZMlwxu1J37V4LOzOibxx4=
 			</data>
 		</dict>
 		<key>Headers/SDL_hints.h</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			2fcgomKzlDXR0nG2BTecGYNI2fw=
+			Y/V7ZMK3DLAAA1KJ1CsiPtfLUyI=
 			</data>
 			<key>hash2</key>
 			<data>
-			c8vMBfNzwpL6I0l2aghiLSNE3c/ZmOnQCIJCucACo7k=
+			HBJIyAVY4EOZvVUBAzx+ZSbPX80iKepn/qu67KjAaO4=
 			</data>
 		</dict>
 		<key>Headers/SDL_joystick.h</key>
@@ -718,11 +718,11 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			drDxth4xn7yC6jNs23IDmzQd6wo=
+			H/QOWmuxbCEIWHL+O2TzSGIrLT4=
 			</data>
 			<key>hash2</key>
 			<data>
-			oJTa/GPUGbLuumeD0r3mJ2+vlejUGNvrIqGF7ff4Hk8=
+			MhOwQuOb+HhtWIF+GdWftj1HkfU61DYID+Pl3v8+8c0=
 			</data>
 		</dict>
 		<key>Resources/License.txt</key>
@@ -751,11 +751,11 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			Mp2xZ/ImK+qiewJUABPEZD4KGp8=
+			0R8a3ztg9yRfnxoHa3KQYR9oOGM=
 			</data>
 			<key>hash2</key>
 			<data>
-			nTUBNl319cJwZLag6VcH4LF+dIjUoCOfS5FhrVYg16o=
+			bPQEgSNx1bAyqRdrfDm70UU8fGl7tmfS5JhOqeOeFLI=
 			</data>
 		</dict>
 	</dict>
