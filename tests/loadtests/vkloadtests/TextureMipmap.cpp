@@ -66,9 +66,12 @@ TextureMipmap::TextureMipmap(VulkanContext& vkctx,
 
     } catch (std::exception& e) {
         (void)e; // To quiet unused variable warnings from some compilers.
-        cleanup();
+        // For reasons I don't understand ~InstancedSampleBase is called
+        // during the throw before the exception is caught. ~InstancedSampleBase
+        // also calls cleanup(). In Texture, an identically structured class
+        // which does not have a base class between it and LoadTestSample, the
+        // destructor is not called during throw.
+        //cleanup();
         throw;
     }
 }
-
-

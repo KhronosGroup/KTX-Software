@@ -62,7 +62,7 @@ Texture3d::Texture3d(VulkanContext& vkctx,
                 INSTANCES_DECLARED_IN_SHADER);
     } catch (std::exception& e) {
         (void)e; // To quiet unused variable warnings from some compilers.
-        cleanup();
+        //cleanup(); // See explanation in TextureMipmap.cpp
         throw;
     }
 }
