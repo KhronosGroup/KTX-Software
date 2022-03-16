@@ -3,7 +3,7 @@
 
 find_package(OpenGL)
 
-if(NOT WIN32 AND NOT IOS AND NOT EMSCRIPTEN)
+if(NOT WIN32 AND NOT APPLE AND NOT EMSCRIPTEN)
     find_package(SDL2 REQUIRED)
 endif()
 if(LINUX)
@@ -12,7 +12,7 @@ endif()
 
 if(NOT EMSCRIPTEN AND NOT WIN32)
     # libassimp needs zlib. On Windows we use a dll which has zlib embedded.
-    # There is no offcial libassimp for Emscripten yet and we've had no
+    # There is no official libassimp for Emscripten yet and we've had no
     # time to experiment so tests that use assimp are not included in the
     # Emscripten build.
     find_package( ZLIB REQUIRED )
@@ -143,6 +143,7 @@ set( LOAD_TEST_COMMON_LIBS )
 if(APPLE)
     set( EXE_FLAG MACOSX_BUNDLE )
     set( KTX_ICON ${PROJECT_SOURCE_DIR}/icons/mac/ktx_app.icns )
+    set( SDL2_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
     if(IOS)
         set( LOAD_TEST_COMMON_LIBS
             ${CMAKE_SOURCE_DIR}/other_lib/ios/$<CONFIG>-iphoneos/libSDL2.a
@@ -150,6 +151,7 @@ if(APPLE)
         )
     else()
         set( LOAD_TEST_COMMON_LIBS
+            ${CMAKE_SOURCE_DIR}/other_lib/mac/$<CONFIG>/libSDL2.dylib
             ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libassimp.a
             ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libminizip.a
         )
