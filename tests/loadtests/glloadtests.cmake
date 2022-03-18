@@ -73,6 +73,7 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
                 ${CoreBluetooth_LIBRARY}
                 ${CoreGraphics_LIBRARY}
                 ${CoreMotion_LIBRARY}
+                ${CoreHaptics_LIBRARY}
                 ${Foundation_LIBRARY}
                 ${GameController_LIBRARY}
                 ${Metal_LIBRARY}

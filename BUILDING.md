@@ -160,8 +160,8 @@ cmake --build build/mac
 Macs are either based on Intel or the newer Apple Silicon architecture. By default CMake configures to build for your host's platform, whichever it is. If you want to cross compile universal binaries (that support both platforms), add the parameter `-DCMAKE_OSX_ARCHITECTURES="\$(ARCHS_STANDARD)"` to cmake.
 
 > **Known limitations:**
-> - Load tests apps are not supported on native Apple Silicon and cannot be cross compiled for Intel either
-> - Intel Macs have support for SSE, but if you're building universal binaries, you have to disable SSE or the build will fail
+> - Intel Macs have support for SSE, but if you're building universal binaries,
+>   you have to disable SSE or the build will fail
 
 Example how to build universal binaries
 
@@ -392,41 +392,35 @@ Dependencies
 
 ### SDL
 
-Builds of SDL are provided in the KTX Git repo. These binaries
-were built from a post 2.0.12 changeset given below. However
-Standard SDL 2.0.12 works fine everywhere so you can download
-binaries from [libsdl.org](https://libsdl.org), if you prefer.
+Needed if you want to build the KTX load tests.
+
+On GNU/Linux you need to install `libsdl2-dev` using your package manager. Builds
+of SDL are provided in the KTX Git repo for iOS, macOS and Windows. These
+binaries were built from the 2.0.20 tag. For macOS and Windows you can download
+binaries from [libsdl.org](https://www.libsdl.org/download-2.0.php), if you
+prefer.
 
 #### macOS Notes
 
 To build for both Intel and Apple Silicon you need a universal binary
-build of SDL as it provided in the KTX Git repo.
+build of SDL as is provided in the KTX Git repo.
 
-If you wish to use the provided version of SDL in other applications
-on your system, you can install the framework. Open a shell and enter
-the following command
-
-```bash
-cp -R other_lib/mac/<configuration>/SDL2.framework /Library/Frameworks
-```
-
-replacing `<configuration>` with your choice of `Debug` or `Release`.
+For Apple Silicon you need at least release 2.0.14 of SDL.
 
 #### Building SDL from source
 
-As noted above, KTX uses a post SDL 2.0.12 changeset, no.
-[13845](https://hg.libsdl.org/SDL/rev/210fb62f0c96) in the canonical
-Mercurial repo at https://hg.libsdl.org/SDL or the automated GitHub
-mirror at https://github.com/spurious/SDL-mirror. Clone the repo,
-checkout changeset [13845](https://hg.libsdl.org/SDL/rev/210fb62f0c96)
-and follow the SDL build instructions.
+As noted above, KTX uses
+[SDL release 2.0.20](https://github.com/libsdl-org/SDL/tree/release-2.0.20) in
+the canonical Mercurial repo at https://github.com/libsdl-org/SDL. Clone the repo, checkout tag `release-2.0.20`and follow the SDL build instructions.
 
 Copy the results of your build to the appropriate place under the
 `other_lib` directory.
 
 ### Vulkan SDK
 
-Download [Vulkan SDK from Lunar G](https://vulkan.lunarg.com/sdk/home).
+Needed if you want to build the KTX Vulkan load tests, `vkloadtests`.
+
+Download the [Vulkan SDK from Lunar G](https://vulkan.lunarg.com/sdk/home).
 
 For Ubuntu (Xenial and Bionic) install packages are available. See [Getting
 Started - Ubuntu](https://vulkan.lunarg.com/doc/sdk/1.2.141.2/linux/getting_started_ubuntu.html) for detailed instructions.
@@ -440,22 +434,28 @@ For iOS and macOS, install the Vulkan SDK by downloading the macOS installer and
 
 ### Doxygen
 
-You need this if you want to generate the _libktx_ and _ktxtools_
-documentation. You need a minimum of version 1.8.14 to generate
-the documentation correctly. You can download binaries and
-also find instructions for building it from source at [Doxygen
-downloads](http://www.stack.nl/~dimitri/doxygen/download.html). Make
+Needed if you want to generate the _libktx_ and _ktxtools_ documentation.
+
+You need a minimum of version 1.8.14 to generate the documentation correctly. You
+can download binaries and also find instructions for building it from source at
+[Doxygen downloads](http://www.stack.nl/~dimitri/doxygen/download.html). Make
 sure the directory containing the `doxygen` executable is in your `$PATH`.
 
 ### libassimp
 
-You need to install the Open Asset Import Library [`libassimp`](https://github.com/assimp/assimp) 
-on GNU/Linux and macOS if you want to build the KTX vulkan loader tests.
-The KTX Git repo has binaries for iOS and Windows. You'll find `libassimp` in the standard package manager on GNU/Linux. On macOS it can be installed via [MacPorts](https://www.macports.org/install.php) or [Brew](https://brew.sh/).
+Needed if you want to build the KTX load tests.
+
+On GNU/Linux you need to install the Open Asset Import Library [`libassimp-de`]
+using your package manager. The KTX Git repo has binaries for iOS, macOS and Windows.
+
+Canonical source is at https://github.com/assimp/assimp. 
 
 ### OpenCL
 
-You need to install an OpenCL SDK and OpenCL driver on GNU/Linux and Windows if you want to build _libktx_ so the Basis Universal encoders use OpenCL. Drivers are standard on macOS & iOS and Xcode includes the SDK. On GNU/Linux these can be installed via the package manager. On Windows, the GPU driver typically includes an OpenCL driver. The place from which to download the SDK depends on your GPU vendor.
+Needed if you want to enable the Basis Universal encoders to use OpenCL when
+building _libktx_.
+
+On GNU/Linux and Windows you need to install an OpenCL SDK and OpenCL driver. Drivers are standard on macOS & iOS and Xcode includes the SDK. On GNU/Linux the SDK can be installed using your package manager. On Windows, the place from which to download the SDK depends on your GPU vendor. In both cases, the GPU driver typically includes an OpenCL driver. 
 
 
 {# vim: set ai ts=4 sts=4 sw=2 expandtab textwidth=75:}

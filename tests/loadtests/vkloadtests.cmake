@@ -199,6 +199,7 @@ if(APPLE)
             ${CoreBluetooth_LIBRARY}
             ${CoreGraphics_LIBRARY}
             ${CoreMotion_LIBRARY}
+            ${CoreHaptics_LIBRARY}
             ${Foundation_LIBRARY}
             ${GameController_LIBRARY}
             ${Metal_LIBRARY}
