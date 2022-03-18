@@ -164,7 +164,7 @@ elseif(LINUX)
     endif()
     set( LOAD_TEST_COMMON_LIBS
         ${assimp_LIBRARIES}
-        ${CMAKE_SOURCE_DIR}/other_lib/linux/${LINUX_LIB_DIR}-x64/libSDL2.a
+        ${SDL2_LIBRARIES}
     )
 elseif(WIN32)
     set( EXE_FLAG WIN32 )

@@ -7,12 +7,6 @@
 # exit if any command fails
 set -e
 
-# Pull just the mac/ios files and images to save time. git clone
-# was done before any code we control so before we could install
-# git-lfs. Therefore we have to pull the files stored in git LFS.
-git lfs pull --include=other_lib/mac,other_lib/ios,tests/testimages,tests/srcimages
-sudo cp -r other_lib/mac/Release/SDL2.framework /Library/Frameworks
-
 # No certs so we're building either a PR or a fork.
 if [ -z "$MACOS_CERTIFICATES_P12" ]; then
   exit 0
