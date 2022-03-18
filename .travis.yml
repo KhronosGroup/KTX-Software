@@ -11,7 +11,7 @@
 # environment variables so it is easier to explicitly specify the linux
 # jobs.
 os: osx
-osx_image: xcode12.4
+osx_image: xcode13.2
 
 language: cpp
 
