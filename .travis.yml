@@ -172,12 +172,14 @@ install:
     fi
     if [ "$CHECK_REUSE" != "ONLY" -a "$WASM_BUILD" != "YES" ]; then
       ./ci_scripts/install_linux.sh
-      git lfs pull --include=tests/srcimages --include=tests/testimages
+      git lfs pull --include=tests/srcimages
+      git lfs pull --include=tests/testimages
     fi
     ;;
   osx)
     ./ci_scripts/install_macos.sh
-    git lfs pull --include=tests/srcimages --include=tests/testimages
+    git lfs pull --include=tests/srcimages
+    git lfs pull --include=tests/testimages
     if [ "$FEATURE_LOADTESTS" = "ON" -a "$PLATFORM" = "macOS" ]; then
       git lfs pull --include=other_lib/mac
     else
