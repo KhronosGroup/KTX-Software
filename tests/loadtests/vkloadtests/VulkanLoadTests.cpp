@@ -226,14 +226,14 @@ VulkanLoadTests::invokeSample(Direction dir)
                 { SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 0, "Abort" },
             };
             const SDL_MessageBoxData messageboxdata = {
-                SDL_MESSAGEBOX_ERROR,                               // .flags
-                NULL,                                               // .window
+                SDL_MESSAGEBOX_ERROR,                           // .flags
+                NULL,                                           // .window
                 infiles.size() > 0 ?
-                 fileTitle.c_str() : sampleInv->title,              // .title
-                e.what(),                                           // .message
-                SDL_arraysize(buttons),                             // .numbuttons
-                buttons,                                            // .buttons
-                NULL //&colorScheme                                 // .colorScheme
+                  fileTitle.c_str() : sampleInv->title,         // .title
+                e.what(),                                       // .message
+                SDL_arraysize(buttons),                         // .numbuttons
+                buttons,                                        // .buttons
+                NULL //&colorScheme                             // .colorScheme
             };
             int buttonid;
             if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {
@@ -384,11 +384,12 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
     },
     { TextureMipmap::create,
       "testimages/ktx_document_basis.ktx2",
-      "ETC1S+BasisLZ  compressed RGBA8 + Mipmap"
+      "ETC1S+BasisLZ  compressed RGBA + Mipmap"
     },
     { TextureMipmap::create,
       "testimages/rgba-mipmap-reference-basis.ktx2",
-      "ETC1S+BasisLZ Compressed RGBA8 + Mipmap"
+      // ETC1S encoder removed all-1 alpha from rgba-mipmap-reference.
+      "ETC1S+BasisLZ Compressed RGB + Mipmap"
     },
     { Texture3d::create,
       "testimages/3dtex_7_reference_u.ktx2",
@@ -400,19 +401,19 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
     },
     { TextureCubemap::create,
       "testimages/cubemap_goldengate_uastc_rdo4_zstd5_rd.ktx2",
-      "UASTC+rdo+zstd Compressed Cube Map"
+      "UASTC+rdo+zstd Compressed RGB Cube Map"
     },
     { TextureCubemap::create,
       "--preload testimages/cubemap_goldengate_uastc_rdo4_zstd5_rd.ktx2",
-      "UASTC+rdo+zstd Compressed Cube Map from pre-loaded images"
+      "UASTC+rdo+zstd Compressed RGB Cube Map from pre-loaded images"
     },
     { TextureCubemap::create,
         "testimages/cubemap_yokohama_basis_rd.ktx2",
-        "ETC1S+BasisLZ Compressed Cube Map"
+        "ETC1S+BasisLZ Compressed RGB Cube Map"
     },
     { TextureCubemap::create,
         "--preload testimages/cubemap_yokohama_basis_rd.ktx2",
-        "ETC1S+BasisLZ Compressed Cube Map from pre-loaded images"
+        "ETC1S+BasisLZ Compressed RGB Cube Map from pre-loaded images"
     },
     { TextureCubemap::create,
         "testimages/skybox_zstd.ktx2",

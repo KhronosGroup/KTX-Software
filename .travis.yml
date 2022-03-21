@@ -11,7 +11,7 @@
 # environment variables so it is easier to explicitly specify the linux
 # jobs.
 os: osx
-osx_image: xcode12.4
+osx_image: xcode13.2
 
 language: cpp
 
@@ -42,19 +42,19 @@ env:
       FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=ON FEATURE_TOOLS=ON
       SUPPORT_SSE=ON SUPPORT_OPENCL=OFF PACKAGE=YES
     - CONFIGURATION=Release PLATFORM=macOS ARCH=arm64
-      FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=OFF FEATURE_TOOLS=ON
+      FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=ON FEATURE_TOOLS=ON
       SUPPORT_SSE=ON SUPPORT_OPENCL=OFF PACKAGE=YES
 
     - CONFIGURATION=Release PLATFORM=macOS ARCH=x86_64
       FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
-      SUPPORT_SSE=ON SUPPORT_OPENCL=ON PACKAGE=NO
+      SUPPORT_SSE=ON SUPPORT_OPENCL=ON
     - CONFIGURATION=Release PLATFORM=macOS ARCH=arm64
       FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
       SUPPORT_SSE=ON SUPPORT_OPENCL=ON
 
     - CONFIGURATION=Release PLATFORM=macOS ARCH=x86_64
       FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
-      SUPPORT_SSE=OFF SUPPORT_OPENCL=ON PACKAGE=NO
+      SUPPORT_SSE=OFF SUPPORT_OPENCL=ON
     - CONFIGURATION=Release PLATFORM=macOS ARCH=arm64
       FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
       SUPPORT_SSE=OFF SUPPORT_OPENCL=ON
@@ -172,20 +172,10 @@ install:
     fi
     if [ "$CHECK_REUSE" != "ONLY" -a "$WASM_BUILD" != "YES" ]; then
       ./ci_scripts/install_linux.sh
-      git lfs pull --include=tests/srcimages --include=tests/testimages
-      if [ "$FEATURE_LOADTESTS" = "ON" ]; then
-        git lfs pull --include=other_lib/linux
-      fi
-    fi
+   fi
     ;;
   osx)
     ./ci_scripts/install_macos.sh
-    git lfs pull --include=tests/srcimages --include=tests/testimages
-    if [ "$FEATURE_LOADTESTS" = "ON" -a "$PLATFORM" = "macOS" ]; then
-      git lfs pull --include=other_lib/mac
-    else
-      git lfs pull --include=other_lib/ios
-    fi
     ;;
   esac
 

@@ -9,6 +9,7 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
         ${EXE_FLAG}
         ${sources}
         ${LOAD_TEST_COMMON_RESOURCE_FILES}
+        glloadtests.cmake
     )
 
     target_include_directories(
@@ -18,6 +19,10 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
         $<TARGET_PROPERTY:GLAppSDL,INTERFACE_INCLUDE_DIRECTORIES>
         $<TARGET_PROPERTY:ktx,INCLUDE_DIRECTORIES>
         $<TARGET_PROPERTY:objUtil,INTERFACE_INCLUDE_DIRECTORIES>
+    )
+
+    set_target_properties(${target} PROPERTIES
+        CXX_VISIBILITY_PRESET ${STATIC_APP_LIB_SYMBOL_VISIBILITY}
     )
 
     if(OPENGL_FOUND)
@@ -68,6 +73,7 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
                 ${CoreBluetooth_LIBRARY}
                 ${CoreGraphics_LIBRARY}
                 ${CoreMotion_LIBRARY}
+                ${CoreHaptics_LIBRARY}
                 ${Foundation_LIBRARY}
                 ${GameController_LIBRARY}
                 ${Metal_LIBRARY}
@@ -145,17 +151,18 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
     if(APPLE)
         set(PRODUCT_NAME "${target}")
         set(EXECUTABLE_NAME ${PRODUCT_NAME})
-        # How amazingly irritating. We have to set both of these to the same value.
-        # The first must be set otherwise the app cannot be installed on iOS. The second
-        # has to be set to avoid an Xcode warning.
+        # How amazingly irritating. We have to set both of these to the same
+        # value. The first must be set otherwise the app cannot be installed
+        # on iOS. The second has to be set to avoid an Xcode warning.
         set(PRODUCT_BUNDLE_IDENTIFIER "org.khronos.ktx.${PRODUCT_NAME}")
         set_target_properties(${target} PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.ktx.${PRODUCT_NAME}")
         configure_file( ${INFO_PLIST} ${target}/Info.plist )
         set_target_properties( ${target} PROPERTIES
             MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_BINARY_DIR}/${target}/Info.plist"
             MACOSX_BUNDLE_ICON_FILE "ktx_app.icns"
-            # Because libassimp is built with bitcode disabled. It's not important unless
-            # submitting to the App Store and currently bitcode is optional.
+            # Because libassimp is built with bitcode disabled. It's not
+            # important unless submitting to the App Store and currently
+            # bitcode is optional.
             XCODE_ATTRIBUTE_ENABLE_BITCODE "NO"
             XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES"
             XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME "ktx_app"
@@ -172,8 +179,6 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
         if(NOT IOS)
             set_target_properties( ${target} PROPERTIES
                 INSTALL_RPATH "@executable_path/../Frameworks"
-                # No Apple silicon support yet, so restrict archs to Intel
-                XCODE_ATTRIBUTE_ARCHS x86_64
             )
             add_custom_command( TARGET ${target} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Frameworks/$<TARGET_FILE_NAME:ktx>"

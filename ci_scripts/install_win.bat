@@ -17,11 +17,11 @@ if [%SUPPORT_OPENCL%] == [] set SUPPORT_OPENCL=OFF
 rem pushd/popd doesn't work in at least some of the appveyor environments.
 set curdir=%cd%
 
-rem It seems this version or this shell does not support multiple --includes.
-git lfs pull --include=tests/srcimages
-git lfs pull --include=tests/testimages
+git lfs pull --include=tests/srcimages,tests/testimages
 
 if %FEATURE_LOADTESTS% == ON (
+  rem "Must be in repo root for this lfs pull."
+  git lfs pull --include=other_lib/win
   @echo "Download PowerVR OpenGL ES Emulator libraries (latest version)."
   md %OPENGL_ES_EMULATOR_WIN%
   cd %OPENGL_ES_EMULATOR_WIN%
@@ -35,9 +35,13 @@ if %FEATURE_LOADTESTS% == ON (
   cd C:\
   curl -o VulkanSDK-Installer.exe https://sdk.lunarg.com/sdk/download/%VULKAN_SDK_VER%/windows/VulkanSDK-%VULKAN_SDK_VER%-Installer.exe?Human=true
   .\VulkanSDK-Installer.exe /S
+  @echo "Return to cloned repo."
+  cd %curdir%
 )
 
 if %SUPPORT_OPENCL% == ON (
+  rem "Must be in repo root for this lfs pull."
+  git lfs pull --include=lib/basisu/opencl
   @echo "Download and install OpenCL CPU runtime..."
   @echo "... in sibling of cloned repo (%APPVEYOR_BUILD_FOLDER%/../opencl)."
   cd %APPVEYOR_BUILD_FOLDER%\..
@@ -51,15 +55,8 @@ if %SUPPORT_OPENCL% == ON (
   rem "system PATH being duplicated as the setx result containing it"
   rem "is written to the user PATH."
   call :add_to_user_path "!cd!\%OPENCL_SDK_NAME%"
-)
-@echo "Return to cloned repo."
-cd %curdir%
-rem "Must be in repo root for this."
-if %FEATURE_LOADTESTS% == ON (
-  git lfs pull --include=other_lib/win
-)
-if %SUPPORT_OPENCL% == ON (
-  git lfs pull --include=lib/basisu/opencl
+  @echo "Return to cloned repo."
+  cd %curdir%
 )
 goto :end
 

@@ -35,9 +35,15 @@
  */
 #if defined(KHRONOS_STATIC)
   #define KTX_API
-#elif defined(_WIN32)
+#elif defined(_WIN32) || defined(__CYGWIN__)
   #if !defined(KTX_API)
-    #define KTX_API __declspec(dllimport)
+    #if __GNUC__
+      #define KTX_API __attribute__ ((dllimport))
+    #elif _MSC_VER
+      #define KTX_API __declspec(dllimport)
+    #else
+      #error "Your compiler's equivalent of dllimport is unknown"
+    #endif
   #endif
 #elif defined(__ANDROID__)
   #define KTX_API __attribute__((visibility("default")))
@@ -326,7 +332,7 @@ typedef struct ktxTexture {
  * KTX_TRUE if mipmaps should be generated for the texture by
  * ktxTexture_GLUpload() or ktxTexture_VkUpload().
  */
-/**
+/**n
  * @typedef ktxTexture::baseWidth
  * @~English
  * @brief Width of the texture's base level.

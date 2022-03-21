@@ -666,6 +666,26 @@ PUBLIC
     utils
 )
 
+# In C++ apps that use statically linked Libraries all compilatiom units must
+# be compiled with matching symbol visibility settings to avoid warnings from
+# clang. Many 3rd party libraries, including libassimp which is used by the
+# load test apps that statically link also to several internal libraries, use
+# "hidden" to avoid conflicts with other libraries.
+#
+# TODO: set "hidden" as a global option. I do not want to take the time right
+# now to deal with the fallout from hiding globals in libktx. Apart from
+# having to mark all the public symbols of libktx for clang and gcc with
+# __attribute__((visibility("default"))) there will be ramifications to
+# texturetests and unittests. Marking the public symbols is easy for those
+# already tagged with KTX_API. But all the symbols exported via
+# internalexport.def and internalexport_write.def have to be tagged with
+# KTX_API which may also require additional inclusion of ktx.h to get the
+# definition.
+set (STATIC_APP_LIB_SYMBOL_VISIBILITY hidden)
+set_target_properties(objUtil PROPERTIES
+    CXX_VISIBILITY_PRESET ${STATIC_APP_LIB_SYMBOL_VISIBILITY}
+)
+
 add_subdirectory(interface/basisu_c_binding)
 
 # Only one architecture is supported at once, if neither of

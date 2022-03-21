@@ -3,7 +3,30 @@
 
 # Find Vulkan package
 if(IOS)
-    # On iOS we link against MoltenVK.framework manually (see below)
+    # On iOS we link against MoltenVK.framework manually
+    set( MOLTENVK_FRAMEWORK ${MOLTENVK_SDK}/iOS/framework/MoltenVK.framework )
+    if( NOT IS_DIRECTORY ${MOLTENVK_FRAMEWORK})
+        # Fallback: Older Vulkan SDKs have MoltenVK.framework at a
+        # different sub path
+        message("Could not find MoltenVK framework (at '${MOLTENVK_FRAMEWORK}')")
+        set(MOLTENVK_FRAMEWORK ${MOLTENVK_SDK}/iOS/MoltenVK.framework)
+    endif()
+    if( NOT IS_DIRECTORY ${MOLTENVK_FRAMEWORK})
+        message("Could not find MoltenVK framework (at '${MOLTENVK_FRAMEWORK}')")
+        # Fallback: On newer Vulkan SDKs it's a .xcframework at the root
+        # level. CMake does not support linking those directly (see
+        # https://gitlab.kitware.com/cmake/cmake/-/issues/21752), so we
+        # manually pick the static library file for iOS arm64 from a
+        # subfolder here
+        if( IS_DIRECTORY ${MOLTENVK_SDK}/MoltenVK.xcframework )
+            set( MOLTENVK_FRAMEWORK ${MOLTENVK_SDK}/MoltenVK.xcframework/ios-arm64/libMoltenVK.a )
+        endif()
+    endif()
+    if( NOT EXISTS ${MOLTENVK_FRAMEWORK})
+        message(SEND_ERROR "Could not find MoltenVK framework (at MOLTENVK_SDK dir '${MOLTENVK_SDK}')")
+    else()
+        message(STATUS "Found MoltenVK framework at ${MOLTENVK_FRAMEWORK}")
+    endif()
 else()
     find_package(Vulkan REQUIRED)
     if(Vulkan_FOUND)
@@ -13,30 +36,23 @@ else()
         string(REGEX REPLACE lib/.*$ lib/ Vulkan_LIBRARY_DIR ${Vulkan_LIBRARY})
         message(STATUS "Found Vulkan at ${Vulkan_INCLUDE_DIR} & ${Vulkan_LIBRARY}")
     endif()
-endif()
-
-if(APPLE)
-    if(IOS)
-        set( MOLTENVK_FRAMEWORK ${MOLTENVK_SDK}/iOS/framework/MoltenVK.framework )
-        if( NOT IS_DIRECTORY ${MOLTENVK_FRAMEWORK})
-            # Fallback: Older Vulkan SDKs have MoltenVK.framework at a different sub path
-            message("Could not find MoltenVK framework (at '${MOLTENVK_FRAMEWORK}')")
-            set(MOLTENVK_FRAMEWORK ${MOLTENVK_SDK}/iOS/MoltenVK.framework)
-        endif()
-        if( NOT IS_DIRECTORY ${MOLTENVK_FRAMEWORK})
-            message("Could not find MoltenVK framework (at '${MOLTENVK_FRAMEWORK}')")
-            # Fallback: One newer Vulkan SDKs it's a .xcframework at the root level
-            # CMake does not support linking those directly (see https://gitlab.kitware.com/cmake/cmake/-/issues/21752),
-            # so we manually pick the static library file for iOS arm64 from a subfolder here
-            if( IS_DIRECTORY ${MOLTENVK_SDK}/MoltenVK.xcframework )
-                set( MOLTENVK_FRAMEWORK ${MOLTENVK_SDK}/MoltenVK.xcframework/ios-arm64/libMoltenVK.a )
-            endif()
-        endif()
-        if( NOT EXISTS ${MOLTENVK_FRAMEWORK})
-            message(SEND_ERROR "Could not find MoltenVK framework (at MOLTENVK_SDK dir '${MOLTENVK_SDK}')")
-        else()
-            message(STATUS "Found MoltenVK framework at ${MOLTENVK_FRAMEWORK}")
-        endif()
+    if(APPLE)
+        # Vulkan_LIBRARY points to "libvulkan.dylib".
+        # Find the name of the actual dylib which includes the version no.
+        # Keep this for when CI has macOS 12.3 support!
+        #execute_process(COMMAND readlink -f ${Vulkan_LIBRARY}
+        execute_process(COMMAND ${PROJECT_SOURCE_DIR}/ci_scripts/readlink.sh ${Vulkan_LIBRARY}
+                        OUTPUT_VARIABLE Vulkan_LIBRARY_REAL_PATH_NAME
+                        OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+        string(REGEX REPLACE ^.*/libvulkan libvulkan
+               Vulkan_LIBRARY_REAL_FILE_NAME ${Vulkan_LIBRARY_REAL_PATH_NAME}
+        )
+        # Find the name that includes only the major version number.
+        execute_process(COMMAND readlink ${Vulkan_LIBRARY}
+                        OUTPUT_VARIABLE Vulkan_LIBRARY_SONAME_FILE_NAME
+                        OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
     endif()
 endif()
 
@@ -104,6 +120,7 @@ add_executable( vkloadtests
     vkloadtests/VulkanLoadTestSample.h
     ${LOAD_TEST_COMMON_RESOURCE_FILES}
     ${SHADER_SOURCES}
+    vkloadtests.cmake
 )
 if(IOS)
     set_xcode_code_sign(vkloadtests)
@@ -127,6 +144,10 @@ target_link_libraries(
     ${KTX_ZLIB_LIBRARIES}
     objUtil
     appfwSDL
+)
+
+set_target_properties(vkloadtests PROPERTIES
+    CXX_VISIBILITY_PRESET ${STATIC_APP_LIB_SYMBOL_VISIBILITY}
 )
 
 if(IOS)
@@ -180,6 +201,7 @@ if(APPLE)
             ${CoreBluetooth_LIBRARY}
             ${CoreGraphics_LIBRARY}
             ${CoreMotion_LIBRARY}
+            ${CoreHaptics_LIBRARY}
             ${Foundation_LIBRARY}
             ${GameController_LIBRARY}
             ${Metal_LIBRARY}
@@ -209,7 +231,6 @@ PRIVATE
 
 if(APPLE)
     set_source_files_properties(${SHADER_SOURCES} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/shaders")
-
     set(PRODUCT_NAME "vkloadtests")
     set(EXECUTABLE_NAME ${PRODUCT_NAME})
     # How amazingly irritating. We have to set both of these to the same value.
@@ -239,14 +260,14 @@ if(APPLE)
     if(NOT IOS)
         set_target_properties( vkloadtests PROPERTIES
             INSTALL_RPATH "@executable_path/../Frameworks"
-            # No Apple silicon support yet, so restrict archs to Intel
-            XCODE_ATTRIBUTE_ARCHS x86_64
         )
         add_custom_command( TARGET vkloadtests POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/$<TARGET_FILE_NAME:ktx>"
             COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE_NAME:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/$<TARGET_SONAME_FILE_NAME:ktx>"
             COMMAND ${CMAKE_COMMAND} -E copy "${Vulkan_LIBRARY_DIR}/libMoltenVK.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/libMoltenVK.dylib"
             COMMAND ${CMAKE_COMMAND} -E copy "${Vulkan_LIBRARY_DIR}/libVkLayer*.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/"
+            COMMAND ${CMAKE_COMMAND} -E copy "${Vulkan_LIBRARY_REAL_PATH_NAME}" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/"
+            COMMAND ${CMAKE_COMMAND} -E create_symlink "${Vulkan_LIBRARY_REAL_FILE_NAME}" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/${Vulkan_LIBRARY_SONAME_FILE_NAME}"
             COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/other_lib/mac/$<CONFIG>/libSDL2.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/libSDL2.dylib"
             COMMENT "Copy libraries/frameworks to build destination"
         )
@@ -267,7 +288,7 @@ if(APPLE)
                 COMPONENT VkLoadTestApp
         )
 
-        ## Uncomment for Bundle analyzation
+        ## Uncomment for Bundle analysis
         # install( CODE "
         #     include(BundleUtilities)
         #     verify_app($<TARGET_BUNDLE_DIR:vkloadtests>)

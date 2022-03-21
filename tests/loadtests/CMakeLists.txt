@@ -3,7 +3,7 @@
 
 find_package(OpenGL)
 
-if(NOT WIN32 AND NOT IOS AND NOT EMSCRIPTEN)
+if(NOT WIN32 AND NOT APPLE AND NOT EMSCRIPTEN)
     find_package(SDL2 REQUIRED)
 endif()
 if(LINUX)
@@ -12,8 +12,8 @@ endif()
 
 if(NOT EMSCRIPTEN AND NOT WIN32)
     # libassimp needs zlib. On Windows we use a dll which has zlib embedded.
-    # There is no offcial libassimp for Emscripten yet and we've had no
-    # time to experiment so tests that use assimp are no included in the
+    # There is no official libassimp for Emscripten yet and we've had no
+    # time to experiment so tests that use assimp are not included in the
     # Emscripten build.
     find_package( ZLIB REQUIRED )
     set( KTX_ZLIB_LIBRARIES ZLIB::ZLIB )
@@ -27,6 +27,7 @@ if(APPLE AND IOS)
     find_library(CoreAudio_LIBRARY CoreAudio)
     find_library(CoreBluetooth_LIBRARY CoreBluetooth)
     find_library(CoreGraphics_LIBRARY CoreGraphics)
+    find_library(CoreHaptics_LIBRARY CoreHaptics)
     find_library(CoreMotion_LIBRARY CoreMotion)
     find_library(Foundation_LIBRARY Foundation)
     find_library(GameController_LIBRARY GameController)
@@ -37,8 +38,8 @@ if(APPLE AND IOS)
 endif()
 
 function( ensure_runtime_dependencies_windows target )
-    # Custom copy commands to ensure all dependencies (DLLs, testimages, shaders, models) are in correct location
-    # relative to executable.
+    # Custom copy commands to ensure all dependencies (DLLs, testimages,
+    # shaders, models) are in correct location relative to executable.
     add_custom_command( TARGET ${target} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2.dll" "$<TARGET_FILE_DIR:${target}>"
         COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/assimp.dll" "$<TARGET_FILE_DIR:${target}>"
@@ -83,6 +84,10 @@ if(EMSCRIPTEN)
          "SHELL:-s USE_SDL=2"
     )
 endif()
+
+set_target_properties(appfwSDL PROPERTIES
+    CXX_VISIBILITY_PRESET ${STATIC_APP_LIB_SYMBOL_VISIBILITY}
+)
 
 target_include_directories(
     appfwSDL
@@ -130,12 +135,16 @@ if(OPENGL_FOUND)
     )
 endif()
 
+set_target_properties(GLAppSDL PROPERTIES
+    CXX_VISIBILITY_PRESET ${STATIC_APP_LIB_SYMBOL_VISIBILITY}
+)
 
 set( LOAD_TEST_COMMON_LIBS )
 
 if(APPLE)
     set( EXE_FLAG MACOSX_BUNDLE )
     set( KTX_ICON ${PROJECT_SOURCE_DIR}/icons/mac/ktx_app.icns )
+    set( SDL2_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
     if(IOS)
         set( LOAD_TEST_COMMON_LIBS
             ${CMAKE_SOURCE_DIR}/other_lib/ios/$<CONFIG>-iphoneos/libSDL2.a
@@ -143,8 +152,8 @@ if(APPLE)
         )
     else()
         set( LOAD_TEST_COMMON_LIBS
+            ${CMAKE_SOURCE_DIR}/other_lib/mac/$<CONFIG>/libSDL2.dylib
             ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libassimp.a
-            ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libIrrXML.a
             ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libminizip.a
         )
     endif()
@@ -155,7 +164,7 @@ elseif(LINUX)
     endif()
     set( LOAD_TEST_COMMON_LIBS
         ${assimp_LIBRARIES}
-        ${CMAKE_SOURCE_DIR}/other_lib/linux/${LINUX_LIB_DIR}-x64/libSDL2.a
+        ${SDL2_LIBRARIES}
     )
 elseif(WIN32)
     set( EXE_FLAG WIN32 )

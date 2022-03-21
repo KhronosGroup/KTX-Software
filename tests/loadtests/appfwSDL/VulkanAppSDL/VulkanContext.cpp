@@ -130,10 +130,15 @@ VulkanContext::createPresentCommandBuffers()
 void
 VulkanContext::destroyDrawCommandBuffers()
 {
-    if (drawCmdBuffers.size() > 0)
+    if (drawCmdBuffers.size() > 0) {
         vkFreeCommandBuffers(device, commandPool,
                         static_cast<uint32_t>(drawCmdBuffers.size()),
                         drawCmdBuffers.data());
+    }
+    for (uint32_t i = 0; i < drawCmdBuffers.size(); ++i) {
+        drawCmdBuffers[i] = nullptr;
+    }
+
 }
 
 void
