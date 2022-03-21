@@ -34,3 +34,5 @@ if [ "$FEATURE_LOADTESTS" = "ON" ]; then
   sudo apt update
   sudo apt install vulkan-sdk
 fi
+
+git lfs pull --include=tests/srcimages,tests/testimages

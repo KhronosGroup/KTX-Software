@@ -13,12 +13,21 @@ for i in $@; do
 done
 
 FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-ON}
+PLATFORM=${PLATFORM:-macOS}
 
 git lfs install
 git lfs version
 gem install xcpretty
 
+git lfs pull --include=tests/srcimages,tests/testimages
+
 if [ "$FEATURE_LOADTESTS" = "ON" ]; then
+  if [ "$PLATFORM" = "macOS" ]; then
+    git lfs pull --include=other_lib/mac
+  else
+    git lfs pull --include=other_lib/ios
+  fi
+
   # Current dir. is .../build/{KhronosGroup,msc-}/KTX-Software. cd to 'build'.
   pushd ../..
   wget -O vulkansdk-macos-$VULKAN_SDK_VER.dmg https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/mac/vulkansdk-macos-$VULKAN_SDK_VER.dmg?Human=true
