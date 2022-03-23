@@ -177,9 +177,7 @@ submitted to the exclusive jurisdiction of the Swedish Courts.
 #elif __clang__
   #pragma clang diagnostic push
   #pragma clang diagnostic ignored "-Wunused-parameter"
-  #if defined(EMSCRIPTEN)
-    // Emscripten 3.1.6 lang warns this but not clang 13 in Xcode and Xcode
-    // warns no such warning group if this is set, hence the extra ifdef.
+  #if __clang_major__ >= 13 && __clang_minor__ >= 1
     #pragma clang diagnostic ignored "-Wunused-but-set-variable"
   #endif
 #elif __GNUC__
