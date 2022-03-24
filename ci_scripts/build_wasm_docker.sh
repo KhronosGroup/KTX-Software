@@ -52,7 +52,7 @@ if [ "$PACKAGE" = "YES" ]; then
   docker exec -it emscripten sh -c "cmake --build $BUILD_DIR --config $CONFIGURATION --target package"
 fi
 
-if [ -z $dockerrunning ]; then
+if [ -n $dockerrunning ]; then
   docker stop emscripten > /dev/null
   docker rm emscripten > /dev/null
 fi
