@@ -1533,8 +1533,6 @@ namespace basisu
 			packed_uint<4> packed_img_size(img_size);
 			append_vector(ktx_data, (uint8_t *)&packed_img_size, sizeof(packed_img_size));
 
-			uint32_t bytes_written = 0;
-
 			for (uint32_t array_index = 0; array_index < maximum<uint32_t>(1, header.m_numberOfArrayElements); array_index++)
 			{
 				for (uint32_t face_index = 0; face_index < header.m_numberOfFaces; face_index++)
@@ -1542,8 +1540,6 @@ namespace basisu
 					const gpu_image& img = gpu_images[cubemap_flag ? (array_index * 6 + face_index) : array_index][level_index];
 
 					append_vector(ktx_data, (uint8_t *)img.get_ptr(), img.get_size_in_bytes());
-					
-					bytes_written += img.get_size_in_bytes();
 				}
 			
 			} // array_index

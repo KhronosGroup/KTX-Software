@@ -1281,6 +1281,15 @@ static uint64_t find_optimal_solution(uint32_t mode, bc7enc_vec4F xl, bc7enc_vec
 	return pResults->m_best_overall_err;
 }
 
+#if (__cplusplus >= 201703L)
+#define MAYBE_UNUSED [[maybe_unused]]
+#elif __GNUC__ || __clang__
+  #define MAYBE_UNUSED __attribute__((unused))
+#else
+  // VC++ has no equivalent
+  #define MAYBE_UNUSED
+#endif
+
 void check_best_overall_error(const color_cell_compressor_params *pParams, color_cell_compressor_results *pResults)
 {
 	const uint32_t n = pParams->m_num_selector_weights;
@@ -1301,12 +1310,12 @@ void check_best_overall_error(const color_cell_compressor_params *pParams, color
 		for (uint32_t c = 0; c < 4; c++)
 			colors[i].m_c[c] = (uint8_t)astc_interpolate_linear(colors[0].m_c[c], colors[n - 1].m_c[c], pParams->m_pSelector_weights[i]);
 
-	uint64_t total_err = 0;
+    MAYBE_UNUSED uint64_t total_err = 0;
 	for (uint32_t p = 0; p < pParams->m_num_pixels; p++)
 	{
 		const color_quad_u8 &orig = pParams->m_pPixels[p];
 		const color_quad_u8 &packed = colors[pResults->m_pSelectors[p]];
-				
+
 		if (pParams->m_has_alpha)
 			total_err += compute_color_distance_rgba(&orig, &packed, pParams->m_perceptual, pParams->m_weights);
 		else

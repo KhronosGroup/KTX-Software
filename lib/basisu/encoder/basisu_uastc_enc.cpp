@@ -383,13 +383,17 @@ namespace basisu
 			}
 		}
 
+#if UASTC_WRITE_MODE_DESCS
 		uint32_t total_endpoint_bits = 0;
+#endif
 
 		for (uint32_t i = 0; i < total_tq_values; i++)
 		{
 			const uint32_t num_bits = ep_trits ? 8 : 7;
 			uastc_write_bits(buf, block_bit_offset, tq_values[i], num_bits, "ETQ");
+#if UASTC_WRITE_MODE_DESCS
 			total_endpoint_bits += num_bits;
+#endif
 		}
 
 		if (tq_mul > 1)
@@ -414,20 +418,24 @@ namespace basisu
 					num_bits = 5;
 			}
 			uastc_write_bits(buf, block_bit_offset, tq_accum, num_bits, "ETQ");
+#if UASTC_WRITE_MODE_DESCS
 			total_endpoint_bits += num_bits;
+#endif
 		}
 
 		for (uint32_t i = 0; i < total_values; i++)
 		{
 			uastc_write_bits(buf, block_bit_offset, bit_values[i], ep_bits, "EBITS");
+#if UASTC_WRITE_MODE_DESCS
 			total_endpoint_bits += ep_bits;
+#endif
 		}
 
 #if UASTC_WRITE_MODE_DESCS
 		uint32_t weight_start = block_bit_offset;
+        uint32_t total_weight_bits = 0;
 #endif
 
-		uint32_t total_weight_bits = 0;
 		const uint32_t plane_shift = (total_planes == 2) ? 1 : 0;
 		for (uint32_t i = 0; i < 16 * total_planes; i++)
 		{
@@ -443,7 +451,9 @@ namespace basisu
 
 			uastc_write_bits(buf, block_bit_offset, weights[i], numbits, nullptr);
 
+#if UASTC_WRITE_MODE_DESCS
 			total_weight_bits += numbits;
+#endif
 		}
 
 #if UASTC_WRITE_MODE_DESCS
