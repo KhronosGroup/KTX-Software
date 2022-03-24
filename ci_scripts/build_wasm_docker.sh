@@ -7,6 +7,13 @@
 # Exit if any command fails.
 set -e
 
+function atexit {
+  if [ -z $dockerrunning ]; then
+    docker stop emscripten > /dev/null
+    docker rm emscripten > /dev/null
+  fi
+}
+
 # Set parameters from command-line arguments, if any.
 for i in $@; do
   eval $i
@@ -23,6 +30,8 @@ SUPPORT_SSE=OFF
 SUPPORT_OPENCL=${SUPPORT_OPENCL:-OFF}
 
 BUILD_DIR=${BUILD_DIR:-build/web-$CONFIGURATION}
+
+trap atexit EXIT
 
 # Check if emscripten container is already running as CI will already have started it.
 if [ "$(docker container inspect -f '{{.State.Status}}' emscripten 2> /dev/null)" != "running" ]
@@ -52,7 +61,3 @@ if [ "$PACKAGE" = "YES" ]; then
   docker exec -it emscripten sh -c "cmake --build $BUILD_DIR --config $CONFIGURATION --target package"
 fi
 
-if [ -n $dockerrunning ]; then
-  docker stop emscripten > /dev/null
-  docker rm emscripten > /dev/null
-fi
