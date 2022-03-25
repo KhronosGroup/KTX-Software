@@ -1303,13 +1303,12 @@ namespace basisu
 
 		m_output_basis_file = comp_data;
 
-		uint32_t total_orig_pixels = 0, total_texels = 0, total_orig_texels = 0;
+		uint32_t total_orig_pixels = 0, total_orig_texels = 0;
 		for (uint32_t i = 0; i < m_slice_descs.size(); i++)
 		{
 			const basisu_backend_slice_desc& slice_desc = m_slice_descs[i];
 
 			total_orig_pixels += slice_desc.m_orig_width * slice_desc.m_orig_height;
-			total_texels += slice_desc.m_width * slice_desc.m_height;
 		}
 
 		m_basis_file_size = (uint32_t)comp_data.size();

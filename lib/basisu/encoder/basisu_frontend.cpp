@@ -2346,8 +2346,6 @@ namespace basisu
 					if (!cluster_block_indices.size())
 						continue;
 
-					uint64_t overall_best_err = 0;
-
 					uint64_t total_err[4][4][4];
 					clear_obj(total_err);
 
@@ -2398,8 +2396,6 @@ namespace basisu
 							}
 
 							m_optimized_cluster_selectors[cluster_index].set_selector(x, y, best_sel);
-
-							overall_best_err += best_err;
 						} // x
 					} // y
 

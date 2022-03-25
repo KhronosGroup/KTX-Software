@@ -148,16 +148,6 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"
     add_compile_options(-Wall -Wextra)
     add_compile_options( $<IF:$<CONFIG:Debug>,-O0,-O3> )
     if(EMSCRIPTEN)
-        # For reasons I have yet to understand, the clang v12 used by the
-        # current Emscripten versions raises this deprecated copy warning on
-        # the assimp headers while the clang v12 used by Xcode does not. I am
-        # also unable to update the assimp headers as the macOS build of the
-        # matching version of libassimp fails. There has been no response
-        # from the assimp project and I don't have time to investigate.
-        # Therefore, since we don't have an Emscripten port of libassimp,
-        # meaning the relevant load tests will never be called, just globally
-        # suppress the warning.
-        add_compile_options(-Wno-deprecated-copy)
         add_link_options( $<IF:$<CONFIG:Debug>,-gsource-map,-O3> )
     else()
         add_link_options( $<IF:$<CONFIG:Debug>,-g,-O3> )
@@ -489,6 +479,10 @@ PRIVATE
 # Turn off these warnings until Rich fixes the occurences.
 # It it not clear to me if generator expressions can be used here
 # hence the long-winded way.
+#message(STATUS
+#        "CMAKE_CXX_COMPILER_ID = ${CMAKE_CXX_COMPILER_ID} "
+#        "CMAKE_CXX_COMPILER_VERSION = ${CMAKE_CXX_COMPILER_VERSION}"
+#)
 if(MSVC)
 # Currently no need to disable any warnings in basisu code. Rich fixed them.
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
@@ -497,26 +491,18 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
         # disabled.
         ${BASISU_ENCODER_CXX_SRC}
         PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-variable;-Wno-class-memaccess;-Wno-misleading-indentation;-Wno-extra;-Wno-deprecated-copy;-Wno-parentheses;-Wno-strict-aliasing"
-        )
+    )
     set_source_files_properties(
         lib/basisu/transcoder/basisu_transcoder.cpp
         PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable;-Wno-class-memaccess;-Wno-maybe-uninitialized"
+    )
+    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "11.0")
+        set_source_files_properties(
+            lib/basisu/zstd/zstd.c
+            PROPERTIES COMPILE_OPTIONS "-Wno-unused-but-set-variable"
         )
-elseif(EMSCRIPTEN)
-    set_source_files_properties(
-        ${BASISU_ENCODER_CXX_SRC}
-        PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-variable;-Wno-unused-parameter;-Wno-unused-but-set-variable"
-        )
-    set_source_files_properties(
-        lib/basisu/transcoder/basisu_transcoder.cpp
-        PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable"
-        )
-    set_source_files_properties(
-        lib/basisu/zstd/zstd.c
-        PROPERTIES COMPILE_OPTIONS "-Wno-unused-but-set-variable;-Wno-bitwise-instead-of-logical"
-        )
+    endif()
 elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-    #message(STATUS "CMAKE_CXX_COMPILER_VERSION = ${CMAKE_CXX_COMPILER_VERSION}")
     if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "12.0.5")
         set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter;-Wno-deprecated-copy;-Wno-uninitialized-const-reference"
@@ -524,7 +510,32 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
     else()
         set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter"
-            )
+        )
+    endif()
+    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "13.1")
+        set_source_files_properties(
+            # We haven't fixed zstd.c because the fix would have to be applied
+            # every time the upstream script is used to create an updated
+            # single file decoder.
+            lib/basisu/zstd/zstd.c
+            PROPERTIES COMPILE_OPTIONS "-Wno-unused-but-set-variable"
+        )
+    endif()
+    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "15.0")
+        # These are for Emscripten which is ahead of xcode in its clang
+        # version. Also future proofing for when xcode catches up.
+        set_source_files_properties(
+            ${BASISU_ENCODER_CXX_SRC}
+            PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-variable;-Wno-unused-parameter"
+        )
+        set_source_files_properties(
+            lib/basisu/transcoder/basisu_transcoder.cpp
+            PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable"
+        )
+        set_source_files_properties(
+            lib/basisu/zstd/zstd.c
+            PROPERTIES COMPILE_OPTIONS "-Wno-unused-but-set-variable;-Wno-bitwise-instead-of-logical"
+        )
     endif()
 else()
     message(ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")
