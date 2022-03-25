@@ -496,7 +496,7 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
         lib/basisu/transcoder/basisu_transcoder.cpp
         PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable;-Wno-class-memaccess;-Wno-maybe-uninitialized"
     )
-    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "11#.0")
+    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "11.0")
         set_source_files_properties(
             lib/basisu/zstd/zstd.c
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-but-set-variable"
