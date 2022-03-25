@@ -7,7 +7,7 @@
 # Exit if any command fails.
 set -e
 
-function atexit {
+atexit () {
   if [ -z $dockerrunning ]; then
     docker stop emscripten > /dev/null
     docker rm emscripten > /dev/null
