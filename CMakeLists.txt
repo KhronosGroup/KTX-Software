@@ -364,9 +364,9 @@ macro(commom_lib_settings lib write)
             target_compile_options(${lib} PRIVATE "-fembed-bitcode")
         endif()
         if(NOT IOS)
-            # Set a common RUNTIME_OUTPUT_DIR for all target, so that INSTALL RPATH
-            # is functional in build directory as well. BUILD_WITH_INSTALL_RPATH is necessary
-            # for working code signing.
+            # Set a common RUNTIME_OUTPUT_DIR for all target, so that
+            # INSTALL RPATH is functional in build directory as well.
+            # BUILD_WITH_INSTALL_RPATH is necessary for working code signing.
             set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
         endif()
 
@@ -411,6 +411,13 @@ set(KTX_BUILD_DIR "${CMAKE_BINARY_DIR}")
 
 commom_lib_settings(ktx 1)
 commom_lib_settings(ktx_read 0)
+
+if(KTX_FEATURE_JNI)
+    # Do not use add_subdirectory here. We want libktx-jni.dylib in the same
+    # output directory as libktx. If add_subdirectory is used, it will end
+    # up in a different place.
+    include(interface/java_binding/jni.cmake)
+endif()
 
 create_version_header(lib ktx)
 create_version_file()
@@ -950,5 +957,3 @@ endif()
 # endif()
 
 include(CPack)
-
-include(cmake/jni.cmake)
