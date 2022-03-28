@@ -75,7 +75,3 @@ cmake --build . --config $CONFIGURATION -- -sdk iphoneos CODE_SIGN_IDENTITY="" C
 
 popd
 
-if [ "$FEATURE_JNI" = "YES" ]; then
-  LIBKTX_BINARY_DIR=$(pwd)/$DEPLOY_BUILD_DIR/Release ci_scripts/build_java.sh
-fi
-

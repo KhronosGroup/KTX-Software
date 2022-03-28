@@ -57,6 +57,6 @@ popd
 #echo "***************************"
 
 
-if [ "$FEATURE_JNI" = "YES" ]; then
-  LIBKTX_BINARY_DIR=$(pwd)/$release_build_dir ci_scripts/build_java.sh
+if [ "$FEATURE_JNI" = "ON" ]; then
+  LIBKTX_BINARY_DIR=$(pwd)/$BUILD_DIR ci_scripts/build_java.sh
 fi
