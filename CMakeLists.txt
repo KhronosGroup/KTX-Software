@@ -903,6 +903,14 @@ cpack_add_component(library
     DESCRIPTION "Main KTX library"
     REQUIRED
 )
+if(KTX_FEATURE_JNI)
+cpack_add_component(jni
+    DISPLAY_NAME "JNI"
+    DESCRIPTION "Java native interface library for KTX library"
+    DEPENDS library
+    DISABLED
+)
+endif()
 # if(KTX_NAMELINKS)
 #     cpack_add_component(Namelinks
 #         DEPENDS library
@@ -947,6 +955,7 @@ else()
         library
         tools
         dev
+        jni
         # Headers
     )
 endif()

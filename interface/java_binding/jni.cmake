@@ -11,7 +11,7 @@ else()
     set(JAVA_HOME ENV{JAVA_HOME})
 endif()
 if (JAVA_HOME)
-    include_directories($ENV{JAVA_HOME}/include)
+    include_directories(${JAVA_HOME}/include)
 
     if (APPLE)
         include_directories(${JAVA_HOME}/include/darwin)
@@ -35,7 +35,7 @@ if (JAVA_HOME)
         XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
         #INSTALL_RPATH "@executable_path;/usr/local/lib"
     )
-    set_xcode_code_sign(ktx-jni)
+    #set_xcode_code_sign(ktx-jni)
 
     if(APPLE AND KTX_EMBED_BITCODE)
         target_compile_options(ktx-jni PRIVATE "-fembed-bitcode")

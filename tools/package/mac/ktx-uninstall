@@ -8,9 +8,11 @@ if [ "$EUID" -ne 0 ]
 fi
 
 cd /
-for pkg in com.khronos.ktx.dev com.khronos.ktx.library com.khronos.ktx.tools
+for pkg in com.khronos.ktx.dev com.khronos.ktx.jni com.khronos.ktx.library com.khronos.ktx.tools
 do
-    pkgutil --only-files --files $pkg | xargs -n 1 rm # sudo rm -i
+    # pkgutil's --only-files shows only regular files. There are symbolic
+    # links we need to deal with.
+    pkgutil --files $pkg | xargs -n 1 sh -c 'if [ -f $0 -o -L $0 ]; then rm $0; fi'
     pkgutil --forget $pkg
 done
 
