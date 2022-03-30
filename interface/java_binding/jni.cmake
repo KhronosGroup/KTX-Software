@@ -33,9 +33,9 @@ if (JAVA_HOME)
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}
         XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
-        #INSTALL_RPATH "@executable_path;/usr/local/lib"
+        INSTALL_RPATH "@rpath;/usr/local/lib"
     )
-    #set_xcode_code_sign(ktx-jni)
+    set_xcode_code_sign(ktx-jni)
 
     if(APPLE AND KTX_EMBED_BITCODE)
         target_compile_options(ktx-jni PRIVATE "-fembed-bitcode")
