@@ -413,10 +413,7 @@ commom_lib_settings(ktx 1)
 commom_lib_settings(ktx_read 0)
 
 if(KTX_FEATURE_JNI)
-    # Do not use add_subdirectory here. We want libktx-jni.dylib in the same
-    # output directory as libktx. If add_subdirectory is used, it will end
-    # up in a different place.
-    include(interface/java_binding/jni.cmake)
+    add_subdirectory(interface/java_binding)
 endif()
 
 create_version_header(lib ktx)

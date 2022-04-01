@@ -5,11 +5,10 @@ find_package(Java REQUIRED)
 find_program(MAVEN_EXECUTABLE mvn PATHS $ENV{PATH})
 
 add_library(ktx-jni SHARED
-    interface/java_binding/src/main/cpp/KtxTexture.cpp
-    interface/java_binding/src/main/cpp/KtxTexture1.cpp
-    interface/java_binding/src/main/cpp/KtxTexture2.cpp
-    interface/java_binding/src/main/cpp/libktx-jni.cpp
-    interface/java_binding/jni.cmake
+    src/main/cpp/KtxTexture.cpp
+    src/main/cpp/KtxTexture1.cpp
+    src/main/cpp/KtxTexture2.cpp
+    src/main/cpp/libktx-jni.cpp
 )
 
 target_include_directories(ktx-jni SYSTEM PRIVATE
@@ -19,6 +18,7 @@ target_include_directories(ktx-jni SYSTEM PRIVATE
 )
 
 set_target_properties(ktx-jni PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
     XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
@@ -34,10 +34,8 @@ target_include_directories(ktx-jni PRIVATE include)
 
 target_link_libraries(ktx-jni ktx)
 
-install(TARGETS ktx-jni
-    LIBRARY
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        COMPONENT jni
+install(TARGETS ktx-jni LIBRARY
+    COMPONENT jni
 )
 
 add_custom_command(
@@ -51,12 +49,12 @@ add_custom_command(
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/interface/java_binding
 )
 
-add_custom_target( ktx-jar
+add_custom_target( ktx-jar ALL
     DEPENDS
         ${CMAKE_SOURCE_DIR}/interface/java_binding/target/libktx-${PROJECT_VERSION}-source.jar
         ${CMAKE_SOURCE_DIR}/interface/java_binding/target/libktx-${PROJECT_VERSION}.jar
     WORKING_DIRECTORY
-        interface/java_binding
+        ${CMAKE_SOURCE_DIR}/interface/java_binding
     COMMENT
         "Java wrapper target"
 )
