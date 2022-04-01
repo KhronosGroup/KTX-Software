@@ -364,7 +364,7 @@ macro(commom_lib_settings lib write)
             target_compile_options(${lib} PRIVATE "-fembed-bitcode")
         endif()
         if(NOT IOS)
-            # Set a common RUNTIME_OUTPUT_DIR for all target, so that
+            # Set a common RUNTIME_OUTPUT_DIR for all targets, so that
             # INSTALL RPATH is functional in build directory as well.
             # BUILD_WITH_INSTALL_RPATH is necessary for working code signing.
             set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
