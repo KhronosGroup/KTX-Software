@@ -8,7 +8,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <properties>
-    <revision>3.0.0</revision>
+    <revision>4.0.0-SNAPSHOT</revision>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
@@ -16,7 +16,7 @@
 
   <groupId>org.khronos</groupId>
   <artifactId>libktx</artifactId>
-  <version>${revision}</version>
+  <version>${revision}</version>  <!-- property MUST be "revision". -->
   <name>libktx</name>
   <description>Java Bindings for Khronos KTX Library</description>
   <url>https://www.khronos.org/ktx/</url>

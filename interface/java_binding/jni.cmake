@@ -4,22 +4,18 @@
 find_package(Java REQUIRED)
 find_program(MAVEN_EXECUTABLE mvn PATHS $ENV{PATH})
 
-include_directories(${_JAVA_HOME}/include)
-
-if (APPLE)
-    include_directories(${_JAVA_HOME}/include/darwin)
-elseif(WIN32)
-    include_directories(${_JAVA_HOME}/include/win32)
-else()
-    include_directories(${_JAVA_HOME}/include/linux)
-endif()
-
 add_library(ktx-jni SHARED
     interface/java_binding/src/main/cpp/KtxTexture.cpp
     interface/java_binding/src/main/cpp/KtxTexture1.cpp
     interface/java_binding/src/main/cpp/KtxTexture2.cpp
     interface/java_binding/src/main/cpp/libktx-jni.cpp
     interface/java_binding/jni.cmake
+)
+
+target_include_directories(ktx-jni SYSTEM PRIVATE
+      ${_JAVA_HOME}/include
+      # Has to be one long line otherwise directory is not set as SYSTEM.
+      $<IF:$<BOOL:APPLE>,${_JAVA_HOME}/include/darwin,$<IF:$<BOOL:WIN32>,${_JAVA_HOME}/include/win32,${_JAVA_HOME}/include/linux>>
 )
 
 set_target_properties(ktx-jni PROPERTIES
@@ -37,6 +33,12 @@ endif()
 target_include_directories(ktx-jni PRIVATE include)
 
 target_link_libraries(ktx-jni ktx)
+
+install(TARGETS ktx-jni
+    LIBRARY
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        COMPONENT jni
+)
 
 add_custom_command(
     OUTPUT
@@ -59,8 +61,8 @@ add_custom_target( ktx-jar
         "Java wrapper target"
 )
 
-install(TARGETS ktx-jni
-    LIBRARY
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        COMPONENT jni
+install(FILES
+    ${CMAKE_SOURCE_DIR}/interface/java_binding/target/libktx-${PROJECT_VERSION}.jar
+    TYPE LIB
+    COMPONENT jni
 )
