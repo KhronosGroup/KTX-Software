@@ -7,10 +7,16 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
+  <properties>
+    <revision>3.0.0</revision>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
+  </properties>
+
   <groupId>org.khronos</groupId>
   <artifactId>libktx</artifactId>
-  <version>1.0-SNAPSHOT</version>
-
+  <version>${revision}</version>
   <name>libktx</name>
   <description>Java Bindings for Khronos KTX Library</description>
   <url>https://www.khronos.org/ktx/</url>
@@ -33,12 +39,6 @@
     <developerConnection>scm:git:ssh://github.com:KhronosGroup/KTX-Software.git</developerConnection>
     <url>https://github.com/KhronosGroup/KTX-Software/tree/master</url>
   </scm>
-
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>11</maven.compiler.source>
-    <maven.compiler.target>11</maven.compiler.target>
-  </properties>
 
   <dependencies>
     <dependency>
@@ -144,6 +144,26 @@
           </execution>
         </executions>
       </plugin>
+      <!--
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>properties-maven-plugin</artifactId>
+        <version>1.0-alpha-1</version>
+        <executions>
+          <execution>
+            <phase>initialize</phase>
+            <goals>
+              <goal>read-project-properties</goal>
+            </goals>
+            <configuration>
+              <files>
+                <file>version.properties</file>
+              </files>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      -->
     </plugins>
   </build>
   <profiles>
