@@ -18,7 +18,7 @@ target_include_directories(ktx-jni SYSTEM PRIVATE
 )
 
 set_target_properties(ktx-jni PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>
+    LIBRARY_OUTPUT_DIRECTORY ${KTX_BUILD_DIR}/$<CONFIG>
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
     XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
@@ -63,4 +63,16 @@ install(FILES
     ${CMAKE_SOURCE_DIR}/interface/java_binding/target/libktx-${PROJECT_VERSION}.jar
     TYPE LIB
     COMPONENT jni
+)
+
+add_test( NAME Java-wrapper
+    COMMAND ${MAVEN_EXECUTABLE} -Drevision=${PROJECT_VERSION} test
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/interface/java_binding
+)
+
+set_tests_properties(
+    Java-wrapper
+PROPERTIES
+    #ENVIRONMENT _JAVA_OPTIONS=-Djava.library.path=$<TARGET_PROPERTY:ktx-jni,LIBRARY_OUTPUT_DIRECTORY>
+    ENVIRONMENT _JAVA_OPTIONS=-Djava.library.path=${KTX_BUILD_DIR}/$<CONFIG>
 )
