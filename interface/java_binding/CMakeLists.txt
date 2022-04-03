@@ -73,6 +73,5 @@ add_test( NAME Java-wrapper
 set_tests_properties(
     Java-wrapper
 PROPERTIES
-    #ENVIRONMENT _JAVA_OPTIONS=-Djava.library.path=$<TARGET_PROPERTY:ktx-jni,LIBRARY_OUTPUT_DIRECTORY>
-    ENVIRONMENT _JAVA_OPTIONS=-Djava.library.path=${KTX_BUILD_DIR}/$<CONFIG>
+    ENVIRONMENT _JAVA_OPTIONS=-Djava.library.path=$<TARGET_GENEX_EVAL:ktx-jni,$<TARGET_PROPERTY:ktx-jni,LIBRARY_OUTPUT_DIRECTORY>>
 )
