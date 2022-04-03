@@ -898,13 +898,13 @@ endif()
 
 cpack_add_component(library
     DISPLAY_NAME "Library"
-    DESCRIPTION "Main KTX library"
+    DESCRIPTION "Main KTX library."
     REQUIRED
 )
 if(KTX_FEATURE_JNI)
 cpack_add_component(jni
-    DISPLAY_NAME "JNI"
-    DESCRIPTION "Java native interface library for KTX library"
+    DISPLAY_NAME "Java wrapper"
+    DESCRIPTION "Java wrapper and native interface for KTX library."
     DEPENDS library
     DISABLED
 )
@@ -922,7 +922,7 @@ cpack_add_component(tools
 )
 cpack_add_component(dev
     DISPLAY_NAME "Development"
-    DESCRIPTION "Additional resources for development (header files and documentation)"
+    DESCRIPTION "Additional resources for development (header files and documentation)."
     DEPENDS library
     DISABLED
 )
