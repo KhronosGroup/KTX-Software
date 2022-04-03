@@ -118,8 +118,3 @@ fi
 #echo "***************************"
 
 popd
-
-if [ "$FEATURE_JNI" = "ON" ]; then
-  LIBKTX_BINARY_DIR=$(pwd)/$BUILD_DIR/Release ci_scripts/build_java.sh
-fi
-

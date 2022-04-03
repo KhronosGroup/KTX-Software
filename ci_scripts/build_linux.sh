@@ -55,8 +55,3 @@ popd
 #echo "****** toktx version ******"
 #build/linux-release/tools/toktx/toktx --version
 #echo "***************************"
-
-
-if [ "$FEATURE_JNI" = "ON" ]; then
-  LIBKTX_BINARY_DIR=$(pwd)/$BUILD_DIR ci_scripts/build_java.sh
-fi
