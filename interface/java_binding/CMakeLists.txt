@@ -1,7 +1,7 @@
 # Copyright (c) 2021, Shukant Pal and Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-find_package(Java REQUIRED)
+find_package(Java 11 REQUIRED COMPONENTS Development)
 find_program(MAVEN_EXECUTABLE mvn PATHS $ENV{PATH})
 
 add_library(ktx-jni SHARED
