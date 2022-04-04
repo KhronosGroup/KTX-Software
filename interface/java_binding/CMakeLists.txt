@@ -14,7 +14,7 @@ add_library(ktx-jni SHARED
 target_include_directories(ktx-jni SYSTEM PRIVATE
       ${_JAVA_HOME}/include
       # Has to be one long line otherwise directory is not set as SYSTEM.
-      $<IF:$<BOOL:APPLE>,${_JAVA_HOME}/include/darwin,$<IF:$<BOOL:WIN32>,${_JAVA_HOME}/include/win32,${_JAVA_HOME}/include/linux>>
+      $<IF:$<BOOL:${APPLE}>,${_JAVA_HOME}/include/darwin,$<IF:$<BOOL:${WIN32}>,${_JAVA_HOME}/include/win32,${_JAVA_HOME}/include/linux>>
 )
 
 set_target_properties(ktx-jni PROPERTIES
