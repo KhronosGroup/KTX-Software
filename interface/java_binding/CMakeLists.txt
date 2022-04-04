@@ -22,7 +22,7 @@ set_target_properties(ktx-jni PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
     XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
-    INSTALL_RPATH "@rpath;/usr/local/lib"
+    INSTALL_RPATH "@rpath;/usr/local/lib;${KTX_BUILD_DIR}/$<CONFIG>"
 )
 set_xcode_code_sign(ktx-jni)
 
