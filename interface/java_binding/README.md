@@ -42,10 +42,10 @@ You must have Maven installed.
 
 Pass `-DKTX_FEATURE_JNI=ON` when configuring the CMake build for `libktx` so that `libktx-jni` and `libktx.jar` are built as well.
 
-This will place the libraries in the \<config\> directory of the build
-directory you configured with CMake and the JAR in the `target` directory in `interfaces/java_binding`. When building your application, include this JAR in the build.
+This will place the libraries in a sub-directory of the build directory you
+configured with CMake corresponding to the configuration you are building, usually `Debug` or `Release` and the JAR in the `target` directory in `interfaces/java_binding`. When building your application, include this JAR in the build.
 
-The installers install the JAR is the same library directory as `libktx` and `libktx-jni`. 
+The installers install the JAR is the same library directory as `libktx` and `libktx-jni`. On GNU/Linux and macOS this is `/usr/local/lib`.
 
 ## Manually Build JAR
 
@@ -71,4 +71,4 @@ The path shown above is for the case when `libktx` and `libktx-jni` have been in
  _JAVA_OPTIONS=-Djava.library.path=/path/to/your/cmake/build/<config> mvn test
 ```
 
-where `<config>` is your build configuration, either `Debug` or `Release`.
+where `<config>` is your build configuration, usually either `Debug` or `Release`.
