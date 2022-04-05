@@ -201,7 +201,7 @@ before_build:
 build_script:
 - ps: |
     #$ErrorActionPreference = 'Stop'
-    echo "JAVA_HOME = $JAVA_HOME"
+    echo "CMAKE_GEN = $CMAKE_GEN, JAVA_HOME = $JAVA_HOME"
     ci_scripts/build_win.ps1
 
     #echo "***** toktx version.h *****"
