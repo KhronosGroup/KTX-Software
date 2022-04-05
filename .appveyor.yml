@@ -71,6 +71,7 @@ environment:
 #      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
 #      CMAKE_GEN: Visual Studio 16 2019
 #      CONFIGURATION: Debug
+#      JAVA_HOME: C:\Program Files\Java\jdk17
       # This is the configuration used for the release.
     - FEATURE_DOC: ON
       FEATURE_JNI: ON
@@ -82,6 +83,7 @@ environment:
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
       CMAKE_GEN: Visual Studio 16 2019
       CONFIGURATION: Release
+      JAVA_HOME: C:\Program Files\Java\jdk17
     - FEATURE_DOC: OFF
       FEATURE_JNI: OFF
       FEATURE_LOADTESTS: OFF
@@ -118,7 +120,7 @@ branches:
 skip_tags: false
 
 # Keep this to remind me how to do this in case I need it again.
-# Since we7re not currently using image this has no effect.
+# Since we're not currently using image this has no effect.
 for:
   - matrix:
       only:
