@@ -179,10 +179,10 @@ install:
     # cmd special characters, e.g. &.
 - cmd: |
     ci_scripts/install_win.bat
-    @echo "JAVA_HOME = %JAVA_HOME%"
-    @echo "Pick up environment changes made to registry by the install script."
+    echo "JAVA_HOME = %JAVA_HOME%"
+    echo "Pick up environment changes made to registry by the install script."
     refreshenv
-    @echo "JAVA_HOME = %JAVA_HOME%"
+    echo "JAVA_HOME = %JAVA_HOME%"
 # # One-line install/build zlib (for loadtests) into C:\Program Files\zlib
 # - ps: |
 #     Invoke-WebRequest -Uri https://raw.githubusercontent.com/horta/zlib.install/master/install.bat -OutFile install.bat
