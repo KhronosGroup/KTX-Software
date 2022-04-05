@@ -1,7 +1,17 @@
 # Copyright (c) 2021, Shukant Pal and Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-find_package(Java 11 REQUIRED COMPONENTS Development)
+
+if(WIN32 AND "$ENV{APPVEYOR}" STREQUAL "True")
+    message(STATUS "Setting _JAVA_HOME to $ENV{JAVA_HOME}")
+    # This is a helping hand to the FindJava module as by itself, it doesn't
+    # find the JVMs on Appveyor. To avoid the rathole I've just been down
+    # note that we can't use the PATHS or HINTS parameters of find_package
+    # because they are exclusive to "config" mode and there are no cmake
+    # config files in the JDK.
+    set(_JAVA_HOME $ENV{JAVA_HOME})
+endif()
+find_package(Java 11 REQUIRED COMPONENTS Development MODULE)
 find_program(MAVEN_EXECUTABLE mvn PATHS $ENV{PATH})
 
 add_library(ktx-jni SHARED
