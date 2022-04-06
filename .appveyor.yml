@@ -179,9 +179,12 @@ install:
     # cmd special characters, e.g. &.
 - cmd: |
     ci_scripts/install_win.bat
+    rem JAVA_HOME is in registry so refreshenv will override build setting.
+    set MY_JAVA_HOME=%JAVA_HOME%
     echo "JAVA_HOME = %JAVA_HOME%"
     echo "Pick up environment changes made to registry by the install script."
     refreshenv
+    set JAVA_HOME=%MY_JAVA_HOME%
     echo "JAVA_HOME = %JAVA_HOME%"
 # # One-line install/build zlib (for loadtests) into C:\Program Files\zlib
 # - ps: |
