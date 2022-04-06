@@ -847,7 +847,6 @@ set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/License.rtf")
 
 # Custom package file name
 set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${KTX_VERSION_FULL}-${CMAKE_SYSTEM_NAME}")
-#set(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/icons\\\\ktx_logo_sq.bmp")
 
 if(APPLE)
     install(FILES tools/package/mac/ktx-uninstall
@@ -870,22 +869,25 @@ if(APPLE)
     set(CPACK_PRODUCTBUILD_BACKGROUND "ktx_logo_190_xp.png")
     set(CPACK_PRODUCTBUILD_BACKGROUND_MIME_TYPE "image/png")
     set(CPACK_PRODUCTBUILD_BACKGROUND_ALIGNMENT "bottomleft")
-    #set(CPACK_PRODUCTBUILD_BACKGROUND_SCALING "proportional")
 
 elseif(LINUX)
     set(CPACK_GENERATOR DEB RPM TBZ2)
     set(CPACK_PACKAGE_CHECKSUM SHA1)
     set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ReadMe.txt")
 elseif(WIN32)
-    # Use the Icon file for the installer.exe
+    # Add logo to top left of installer pages. Despite the installer-
+    # independent variable name, this does nothing for PRODUCTBUILD
+    # hence setting here only. Format has to be old BMP (use
+    # BMP3:<output file> with ImageMagick `convert`) and the final
+    # separator must be as shown. Recommended size is 150x57 pixels but
+    # to my eye on my screen 200x111 is much less aliased than the 150x83
+    # proportionally scaled logo.
+    set(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/icons/win\\\\ktx_logo_200_bmp3.bmp")
+    # Set the icon for the installer and uninstaller
     set(CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}/icons/win/ktx_app.ico")
-    # Icon in the add/remove control panel. Must be an .exe file
-    #set(CPACK_NSIS_INSTALLED_ICON_NAME bin\\\\${EXE_TARGET_NAME}.exe)
-    # set the install/unistall icon used for the installer itself
-    # There is a bug in NSI that does not handle full unix paths properly.
-    # Don't know if 2 or 4 backslashes are needed.
-    set(CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}/icons/win\\ktx_app.ico")
-    set(CPACK_NSIS_MUI_UNIICON "${CMAKE_CURRENT_SOURCE_DIR}/icons/win\\ktx_app.ico")
+    set(CPACK_NSIS_MUI_UNIICON "${CMAKE_CURRENT_SOURCE_DIR}/icons/win/ktx_app.ico")
+    # Set icon in Windows' add/remove control panel. Must be an .exe file.
+    set(CPACK_NSIS_INSTALLED_ICON_NAME uninstall.exe)
     set(CPACK_NSIS_MANIFEST_DPI_AWARE ON)
     set(CPACK_NSIS_URL_INFO_ABOUT ${CPACK_PACKAGE_HOMEPAGE_URL})
     set(CPACK_NSIS_CONTACT ${CPACK_PACKAGE_CONTACT})
