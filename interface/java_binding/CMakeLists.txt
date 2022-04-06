@@ -46,7 +46,7 @@ install(TARGETS ktx-jni LIBRARY
 
 add_custom_command(
     OUTPUT
-        ${CMAKE_SOURCE_DIR}/interface/java_binding/target/libktx-${PROJECT_VERSION}-source.jar
+        ${CMAKE_SOURCE_DIR}/interface/java_binding/target/libktx-${PROJECT_VERSION}-sources.jar
         ${CMAKE_SOURCE_DIR}/interface/java_binding/target/libktx-${PROJECT_VERSION}.jar
     COMMAND
         ${MAVEN_EXECUTABLE} -Drevision=${PROJECT_VERSION} -Dmaven.test.skip=true package
@@ -57,7 +57,7 @@ add_custom_command(
 
 add_custom_target( ktx-jar ALL
     DEPENDS
-        ${CMAKE_SOURCE_DIR}/interface/java_binding/target/libktx-${PROJECT_VERSION}-source.jar
+        ${CMAKE_SOURCE_DIR}/interface/java_binding/target/libktx-${PROJECT_VERSION}-sources.jar
         ${CMAKE_SOURCE_DIR}/interface/java_binding/target/libktx-${PROJECT_VERSION}.jar
     WORKING_DIRECTORY
         ${CMAKE_SOURCE_DIR}/interface/java_binding
