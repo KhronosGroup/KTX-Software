@@ -103,6 +103,7 @@ environment:
       CMAKE_GEN: Visual Studio 16 2019
       CONFIGURATION: Release
     - FEATURE_DOC: OFF
+      FEATURE_JNI: OFF
       FEATURE_LOADTESTS: OFF
       SUPPORT_SSE: OFF
       SUPPORT_OPENCL: OFF
