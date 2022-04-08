@@ -227,6 +227,7 @@ test_script:
     $Env:Phase = "test"
     pushd $env:BUILD_DIR
     ctest -C $env:CONFIGURATION
+    ls -l Release
     cat Testing/Temporary/LastTest.log
     popd
 
