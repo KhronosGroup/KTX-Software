@@ -8,12 +8,12 @@ else()
     set(maven_cmd "mvn")
 endif()
 find_program(MAVEN_EXECUTABLE ${maven_cmd}
-  DOC "Location of `mvn` or (on Windows) `mvn.cmd` executable"
+    DOC "Location of `mvn` or (on Windows) `mvn.cmd` executable"
     PATHS $ENV{PATH}
 )
-
+message("MAVEN_EXECUTABLE is ${MAVEN_EXECUTABLE}")
 if("${_JAVA_HOME}" STREQUAL "")
-  message(FATAL_ERROR "Set JAVA_HOME in your environment or turn off KTX_FEATURE_JNI.")
+    message(FATAL_ERROR "Set JAVA_HOME in your environment or turn off KTX_FEATURE_JNI.")
 endif()
 
 add_library(ktx-jni SHARED

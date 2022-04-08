@@ -227,6 +227,7 @@ test_script:
     $Env:Phase = "test"
     pushd $env:BUILD_DIR
     ctest -C $env:CONFIGURATION
+    cat Testing/Temporary/LastTest.log
     popd
 
 artifacts:
