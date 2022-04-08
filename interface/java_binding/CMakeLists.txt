@@ -4,6 +4,10 @@
 find_package(Java 11 REQUIRED COMPONENTS Development)
 find_program(MAVEN_EXECUTABLE mvn PATHS $ENV{PATH})
 
+if("${_JAVA_HOME}" STREQUAL "")
+  message(FATAL_ERROR "Set JAVA_HOME in your environment or turn off KTX_FEATURE_JNI.")
+endif()
+
 add_library(ktx-jni SHARED
     src/main/cpp/KtxTexture.cpp
     src/main/cpp/KtxTexture1.cpp
