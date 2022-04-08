@@ -223,7 +223,7 @@ build_script:
 
 test_script:
 - ps: |
-    $ErrorActionPreference = 'Stop'
+    #$ErrorActionPreference = 'Stop'
     $Env:Phase = "test"
     pushd $env:BUILD_DIR
     ctest -C $env:CONFIGURATION
