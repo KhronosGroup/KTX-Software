@@ -11,7 +11,6 @@ find_program(MAVEN_EXECUTABLE ${maven_cmd}
     DOC "Location of `mvn` or (on Windows) `mvn.cmd` executable"
     PATHS $ENV{PATH}
 )
-message(STATUS "MAVEN_EXECUTABLE is ${MAVEN_EXECUTABLE}")
 if("${_JAVA_HOME}" STREQUAL "")
     message(FATAL_ERROR "Set JAVA_HOME in your environment or turn off KTX_FEATURE_JNI.")
 endif()
@@ -21,7 +20,10 @@ add_library(ktx-jni SHARED
     src/main/cpp/KtxTexture1.cpp
     src/main/cpp/KtxTexture2.cpp
     src/main/cpp/libktx-jni.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/ktx-jni.manifest
 )
+
+configure_file(src/main/cpp/ktx-jni.manifest.in ktx-jni.manifest)
 
 target_include_directories(ktx-jni SYSTEM PRIVATE
       ${_JAVA_HOME}/include
