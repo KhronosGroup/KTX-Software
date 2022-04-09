@@ -55,7 +55,9 @@ target_include_directories(ktx-jni PRIVATE include)
 target_link_libraries(ktx-jni ktx)
 
 install(TARGETS ktx-jni LIBRARY
-    COMPONENT jni
+    RUNTIME
+        DESTINATION ${CMAKE_INSTALL_BINDIR}
+        COMPONENT jni
 )
 
 add_custom_command(
