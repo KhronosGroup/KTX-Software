@@ -23,55 +23,55 @@ environment:
   VULKAN_SDK_VER: 1.2.176.1
 
   matrix:
-#    - FEATURE_DOC: OFF
-#      FEATURE_JNI: OFF
-#      FEATURE_LOADTESTS: ON
-#      FEATURE_TOOLS: ON
-#      SUPPORT_SSE: ON
-#      SUPPORT_OPENCL: OFF
-#      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-#      CMAKE_GEN: Visual Studio 14 2015
-#      CONFIGURATION: Debug
-#      PACKAGE: NO
-#    - FEATURE_DOC: OFF
-#      FEATURE_JNI: OFF
-#      FEATURE_LOADTESTS: ON
-#      FEATURE_TOOLS: ON
-#      PACKAGE: YES
-#      SUPPORT_SSE: ON
-#      SUPPORT_OPENCL: OFF
-#      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-#      CMAKE_GEN: Visual Studio 14 2015
-#      CONFIGURATION: Release
-#    - FEATURE_DOC: OFF
-#      FEATURE_JNI: OFF
-#      FEATURE_LOADTESTS: ON
-#      FEATURE_TOOLS: ON
-#      SUPPORT_SSE: ON
-#      SUPPORT_OPENCL: OFF
-#      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-#      CMAKE_GEN: Visual Studio 15 2017
-#      CONFIGURATION: Debug
-#    - FEATURE_DOC: OFF
-#      FEATURE_JNI: OFF
-#      FEATURE_LOADTESTS: ON
-#      FEATURE_TOOLS: ON
-#      PACKAGE: YES
-#      SUPPORT_SSE: ON
-#      SUPPORT_OPENCL: OFF
-#      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-#      CMAKE_GEN: Visual Studio 15 2017
-#      CONFIGURATION: Release
-#    - FEATURE_DOC: OFF
-#      FEATURE_JNI: ON
-#      FEATURE_LOADTESTS: ON
-#      FEATURE_TOOLS: ON
-#      SUPPORT_SSE: ON
-#      SUPPORT_OPENCL: OFF
-#      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-#      CMAKE_GEN: Visual Studio 16 2019
-#      CONFIGURATION: Debug
-#      JAVA_HOME: C:\Program Files\Java\jdk17
+    - FEATURE_DOC: OFF
+      FEATURE_JNI: OFF
+      FEATURE_LOADTESTS: ON
+      FEATURE_TOOLS: ON
+      SUPPORT_SSE: ON
+      SUPPORT_OPENCL: OFF
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      CMAKE_GEN: Visual Studio 14 2015
+      CONFIGURATION: Debug
+      PACKAGE: NO
+    - FEATURE_DOC: OFF
+      FEATURE_JNI: OFF
+      FEATURE_LOADTESTS: ON
+      FEATURE_TOOLS: ON
+      PACKAGE: YES
+      SUPPORT_SSE: ON
+      SUPPORT_OPENCL: OFF
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      CMAKE_GEN: Visual Studio 14 2015
+      CONFIGURATION: Release
+    - FEATURE_DOC: OFF
+      FEATURE_JNI: OFF
+      FEATURE_LOADTESTS: ON
+      FEATURE_TOOLS: ON
+      SUPPORT_SSE: ON
+      SUPPORT_OPENCL: OFF
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      CMAKE_GEN: Visual Studio 15 2017
+      CONFIGURATION: Debug
+    - FEATURE_DOC: OFF
+      FEATURE_JNI: OFF
+      FEATURE_LOADTESTS: ON
+      FEATURE_TOOLS: ON
+      PACKAGE: YES
+      SUPPORT_SSE: ON
+      SUPPORT_OPENCL: OFF
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      CMAKE_GEN: Visual Studio 15 2017
+      CONFIGURATION: Release
+    - FEATURE_DOC: OFF
+      FEATURE_JNI: ON
+      FEATURE_LOADTESTS: ON
+      FEATURE_TOOLS: ON
+      SUPPORT_SSE: ON
+      SUPPORT_OPENCL: OFF
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      CMAKE_GEN: Visual Studio 16 2019
+      CONFIGURATION: Debug
+      JAVA_HOME: C:\Program Files\Java\jdk17
       # This is the configuration used for the release.
     - FEATURE_DOC: ON
       FEATURE_JNI: ON
@@ -206,7 +206,7 @@ before_build:
 
 build_script:
 - ps: |
-    #$ErrorActionPreference = 'Stop'
+    $ErrorActionPreference = 'Stop'
     ci_scripts/build_win.ps1
 
     #echo "***** toktx version.h *****"
@@ -219,16 +219,11 @@ build_script:
     #$ErrorActionPreference = 'Stop'
     #echo "***************************"
 
-    echo "Done Building"
-
 test_script:
 - ps: |
-    #$ErrorActionPreference = 'Stop'
     $Env:Phase = "test"
     pushd $env:BUILD_DIR
     ctest -C $env:CONFIGURATION
-    ls -l Release
-    cat Testing/Temporary/LastTest.log
     popd
 
 artifacts:
