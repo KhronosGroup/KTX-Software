@@ -54,11 +54,19 @@ target_include_directories(ktx-jni PRIVATE include)
 
 target_link_libraries(ktx-jni ktx)
 
-install(TARGETS ktx-jni LIBRARY
-    RUNTIME
-        DESTINATION ${CMAKE_INSTALL_BINDIR}
-        COMPONENT jni
-)
+if(APPLE OR LINUX)
+    install(TARGETS ktx-jni
+        LIBRARY
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            COMPONENT jni
+    )
+else()
+    install(TARGETS ktx-jni LIBRARY
+        RUNTIME
+            DESTINATION ${CMAKE_INSTALL_BINDIR}
+            COMPONENT jni
+    )
+endif()
 
 add_custom_command(
     OUTPUT
