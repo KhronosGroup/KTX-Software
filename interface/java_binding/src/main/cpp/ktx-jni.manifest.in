@@ -1,4 +1,10 @@
 <?xml version='1.0' encoding='UTF-8' standalone='yes'?> 
+<!-- Copyright 2022 The Khronos Group Inc. -->
+<!-- SPDX-License-Identifier: Apache-1.0 -->
+
+<!-- This is to make testing during build work. It also makes the
+     installed software more secure as Windows will only look for
+     ktx.dll in the same directory as ktx-jni.dll. -->
 <assembly xmlns='urn:schemas-microsoft-com:asm.v1' manifestVersion='1.0'>
   <assemblyIdentity type='win32' name='ktx-jni' version='${PROJECT_VERSION}.0'>
   </assemblyIdentity>
