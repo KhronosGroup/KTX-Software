@@ -6,34 +6,36 @@
 # around the equals are acceptable.
 for ($i=0; $i -lt $args.length; $i++)
 {
-   echo $($args[$i])
-   Invoke-Expression $($args[$i])
+ Invoke-Expression $($args[$i])
+}
+
+function Set-Config-Variable {
+  param ( $VariableName, $DefaultValue )
+  $res = get-variable $VariableName -ValueOnly -ErrorAction 'SilentlyContinue'
+  if ($res -eq $null) {
+    $res = [Environment]::GetEnvironmentVariable($VariableName)
+    if ($res -eq $null) {
+        $res = $DefaultValue
+    }
+  } 
+  return $res
 }
 
 # Setting env vars here sets them in environment for parent as well so
 # use local variables to avoid pollution.
-$BUILD_DIR `
-  = $(if ($env:BUILD_DIR) { $env:BUILD_DIR} else { "build/build-batch-vs2019" })
-$CONFIGURATION `
-  = $(if ($env:CONFIGURATION) { $env:CONFIGURATION } else { "Release" })
-$CMAKE_GEN `
-  = $(if ($env:CMAKE_GEN) { $env:CMAKE_GEN } else { "Visual Studio 16 2019" })
-$FEATURE_DOC = $(if ($env:FEATURE_DOC) { $env:FEATURE_DOC } else { "OFF" })
-$FEATURE_JNI = $(if ($env:FEATURE_JNI) { $env:FEATURE_JNI } else { "OFF" })
-$FEATURE_LOADTESTS `
-  = $(if ($env:FEATURE_LOADTESTS) { $env:FEATURE_LOADTESTS } else { "OFF" })
-$FEATURE_TOOLS = $(if ($env:FEATURE_TOOLS) { $env:FEATURE_TOOLS } else { "ON" })
-$PLATFORM = $(if ($env:PLATFORM) { $env:PLATFORM } else { "x64" })
-$PACKAGE = $(if ($env:PACKAGE) { $env:PACKAGE } else { "NO" })
-$SUPPORT_SSE = $(if ($env:SUPPORT_SSE) { $env:SUPPORT_SSE } else { "OFF" })
-$SUPPORT_OPENCL `
-   = $(if ($env:SUPPORT_OPENCL) { $env:SUPPORT_OPENCL } else { "OFF" })
-$OPENGL_ES_EMULATOR = $(if ($env:OPENGL_ES_EMULATOR) {
-  $env:OPENGL_ES_EMULATOR
-} else {
+$BUILD_DIR = Set-Config-Variable BUILD_DIR "build/build-batch-vs2019"
+$CONFIGURATION = Set-Config-Variable CONFIGURATION "Release"
+$CMAKE_GEN = Set-Config-Variable CMAKE_GEN "Visual Studio 16 2019"
+$FEATURE_DOC = Set-Config-Variable FEATURE_DOC "OFF"
+$FEATURE_JNI = Set-Config-Variable FEATURE_JNI "OFF"
+$FEATURE_LOADTESTS = Set-Config-Variable FEATURE_LOADTESTS "OFF"
+$FEATURE_TOOLS = Set-Config-Variable FEATURE_TOOLS "ON"
+$PLATFORM = Set-Config-Variable PLATFORM "x64"
+$PACKAGE = Set-Config-Variable PACKAGE "NO"
+$SUPPORT_SSE = Set-Config-Variable SUPPORT_SSE "ON"
+$SUPPORT_OPENCL = Set-Config-Variable SUPPORT_OPENCL "OFF"
+$OPENGL_ES_EMULATOR = Set-Config-Variable OPENGL_ES_EMULATOR `
   "c:/Imagination` Technologies/PowerVR_Graphics/PowerVR_Tools/PVRVFrame/Library/Windows_x86_64"
-
-})
 
 if ($FEATURE_LOADTESTS -eq "ON")  { $need_gles_emulator=1 }
 
