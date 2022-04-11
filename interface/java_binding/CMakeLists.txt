@@ -1,7 +1,7 @@
 # Copyright (c) 2021, Shukant Pal and Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-find_package(Java 11 REQUIRED COMPONENTS Development)
+find_package(JNI 11 REQUIRED COMPONENTS Development)
 if(WIN32)
     set(maven_cmd "mvn.cmd")
 else()
@@ -11,9 +11,6 @@ find_program(MAVEN_EXECUTABLE ${maven_cmd}
     DOC "Location of `mvn` or (on Windows) `mvn.cmd` executable"
     PATHS $ENV{PATH}
 )
-if("${_JAVA_HOME}" STREQUAL "")
-    message(FATAL_ERROR "Set JAVA_HOME in your environment or turn off KTX_FEATURE_JNI.")
-endif()
 
 add_library(ktx-jni SHARED
     src/main/cpp/KtxTexture.cpp
@@ -26,9 +23,7 @@ add_library(ktx-jni SHARED
 configure_file(src/main/cpp/ktx-jni.manifest.in ktx-jni.manifest)
 
 target_include_directories(ktx-jni SYSTEM PRIVATE
-      ${_JAVA_HOME}/include
-      # Has to be one long line otherwise directory is not set as SYSTEM.
-      $<IF:$<BOOL:${APPLE}>,${_JAVA_HOME}/include/darwin,$<IF:$<BOOL:${WIN32}>,${_JAVA_HOME}/include/win32,${_JAVA_HOME}/include/linux>>
+      ${JNI_INCLUDE_DIRS}
 )
 
 set_target_properties(ktx-jni PROPERTIES
