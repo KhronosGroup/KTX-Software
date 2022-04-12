@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/zsh
 # Copyright 2019-2020 The Khronos Group, Inc.
 # SPDX-License-Identifier: Apache-2.0
 
@@ -8,9 +8,14 @@ if [ "$EUID" -ne 0 ]
 fi
 
 cd /
-for pkg in com.khronos.ktx.dev com.khronos.ktx.library com.khronos.ktx.tools
+for pkg in $(pkgutil --pkgs='com.khronos.ktx.*')
 do
-    pkgutil --only-files --files $pkg | xargs -n 1 rm # sudo rm -i
+    # pkgutil's --only-files shows only regular files. There are symbolic
+    # links we need to deal with.
+    pkgutil --files $pkg | xargs -n 1 sh -c 'if [ -f $0 -o -L $0 ]; then rm $0; fi'
+    # Deal with doc/KTX-Software
+    pkgutil --only-dirs --files $pkg | xargs -n 1 sh -c 'if [ -d $0 -a $(basename $0) = "KTX-Software" ]; then rm -rf $0; fi'
+
     pkgutil --forget $pkg
 done
 

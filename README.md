@@ -10,8 +10,7 @@ The Official Khronos KTX Software Repository
 |----------------------| :------: | :-----------: |
 | [![Build Status](https://travis-ci.com/KhronosGroup/KTX-Software.svg?branch=master)](https://travis-ci.com/KhronosGroup/KTX-Software) | [![Build status](https://ci.appveyor.com/api/projects/status/rj9bg8g2jphg3rc0/branch/master?svg=true)](https://ci.appveyor.com/project/msc-/ktx/branch/master) | [![Build status](https://codedocs.xyz/KhronosGroup/KTX-Software.svg)](https://codedocs.xyz/KhronosGroup/KTX-Software/) |
 
-This is the official home of the source code
-for the Khronos KTX library and tools.
+This is the official home of the source code for the Khronos KTX library and tools.
 
 KTX (Khronos Texture) is a lightweight container for textures for OpenGL<sup>®</sup>, Vulkan<sup>®</sup> and other GPU APIs. KTX files contain all the parameters needed for texture loading. A single file can contain anything from a simple base-level 2D texture through to a cubemap array texture with mipmaps. Contained textures can be in a Basis Universal format, in any of the block-compressed formats supported by OpenGL family and Vulkan APIs and extensions or in an uncompressed single-plane format. Basis Universal currently encompasses two formats that can be quickly transcoded to any GPU-supported format: LZ/ETC1S, which combines block-compression and supercompression, and UASTC, a block-compressed format. Formats other than LZ/ETC1S can be supercompressed with Zstd.
 
@@ -32,6 +31,8 @@ from them. [`lib`](https://github.com/KhronosGroup/KTX-Software/tree/master/lib)
 Javascript wrapper. [`interface/js_binding`](https://github.com/KhronosGroup/KTX-Software/tree/master/interface/js_binding)
 - *msc\_basis\_transcoder.{js,wasm}* - Web assembly transcoder and
 Javascript wrapper for Basis Universal formats. For use with KTX parsers written in Javascript. [`interface/js_binding`](https://github.com/KhronosGroup/KTX-Software/tree/master/interface/js_binding)
+- *libktx.jar, libktx-jni* - Java wrapper and native interface library.
+[`interface/java_binding`](https://github.com/KhronosGroup/KTX-Software/tree/master/interface/java_binding)
 - *ktx2check* - a tool for validating KTX Version 2 format files. [`tools/ktx2check`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/ktx2check)
 - *ktx2ktx2* - a tool for converting a KTX Version 1 file to a KTX
 Version 2 file. [`tools/ktx2ktx2`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/ktx2ktx2)
@@ -75,8 +76,8 @@ distribution archives, you **must** follow the instructions below.
 
 #### <a id="kwexpansion"></a>$Date$ keyword expansion
 
-$Date$ keywords are expanded via a smudge & clean filter. To install
-the filter, issue the following commands in the root of your clone.
+$Date$ keywords are expanded via smudge & clean filters. To install
+the filters, issue the following commands in the root of your clone.
 
 On Unix (Linux, Mac OS X, etc.) platforms and Windows using Git for
 Windows' Git Bash or Cygwin's bash terminal:

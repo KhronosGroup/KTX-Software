@@ -355,8 +355,9 @@ macro(commom_lib_settings lib write)
     endif()
 
     if(WIN32)
-        # By wrapping in generator expression we force multi configuration generators (like Visual Studio)
-        # to take the exact path and not change it.
+        # By wrapping in generator expression we force multi configuration
+        # generators (like Visual Studio) to take the exact path and not
+        # change it.
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
 
     elseif(APPLE)
@@ -364,10 +365,10 @@ macro(commom_lib_settings lib write)
             target_compile_options(${lib} PRIVATE "-fembed-bitcode")
         endif()
         if(NOT IOS)
-            # Set a common RUNTIME_OUTPUT_DIR for all target, so that INSTALL RPATH
-            # is functional in build directory as well. BUILD_WITH_INSTALL_RPATH is necessary
-            # for working code signing.
-            set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
+            # Set a common RUNTIME_OUTPUT_DIR for all targets, so that
+            # INSTALL RPATH is functional in build directory as well.
+            # BUILD_WITH_INSTALL_RPATH is necessary for working code signing.
+            set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${KTX_BUILD_DIR}/$<CONFIG>)
         endif()
 
     elseif(LINUX)
@@ -411,6 +412,10 @@ set(KTX_BUILD_DIR "${CMAKE_BINARY_DIR}")
 
 commom_lib_settings(ktx 1)
 commom_lib_settings(ktx_read 0)
+
+if(KTX_FEATURE_JNI)
+    add_subdirectory(interface/java_binding)
+endif()
 
 create_version_header(lib ktx)
 create_version_file()
@@ -861,14 +866,28 @@ if(APPLE)
 
     # Contains the `summary.html` file, shown at end of installation
     set(CPACK_PRODUCTBUILD_RESOURCES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tools/package/mac/Resources")
+    set(CPACK_PRODUCTBUILD_BACKGROUND "ktx_logo_190_xp.png")
+    set(CPACK_PRODUCTBUILD_BACKGROUND_MIME_TYPE "image/png")
+    set(CPACK_PRODUCTBUILD_BACKGROUND_ALIGNMENT "bottomleft")
 
 elseif(LINUX)
     set(CPACK_GENERATOR DEB RPM TBZ2)
     set(CPACK_PACKAGE_CHECKSUM SHA1)
     set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ReadMe.txt")
 elseif(WIN32)
-    # Use the Icon file for the installer.exe
+    # Add logo to top left of installer pages. Despite the installer-
+    # independent variable name, this does nothing for PRODUCTBUILD
+    # hence setting here only. Format has to be old BMP (use
+    # BMP3:<output file> with ImageMagick `convert`) and the final
+    # separator must be as shown. Recommended size is 150x57 pixels but
+    # to my eye on my screen 200x111 is much less aliased than the 150x83
+    # proportionally scaled logo.
+    set(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/icons/win\\\\ktx_logo_200_bmp3.bmp")
+    # Set the icon for the installer and uninstaller
     set(CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}/icons/win/ktx_app.ico")
+    set(CPACK_NSIS_MUI_UNIICON "${CMAKE_CURRENT_SOURCE_DIR}/icons/win/ktx_app.ico")
+    # Set icon in Windows' add/remove control panel. Must be an .exe file.
+    set(CPACK_NSIS_INSTALLED_ICON_NAME uninstall.exe)
     set(CPACK_NSIS_MANIFEST_DPI_AWARE ON)
     set(CPACK_NSIS_URL_INFO_ABOUT ${CPACK_PACKAGE_HOMEPAGE_URL})
     set(CPACK_NSIS_CONTACT ${CPACK_PACKAGE_CONTACT})
@@ -893,9 +912,17 @@ endif()
 
 cpack_add_component(library
     DISPLAY_NAME "Library"
-    DESCRIPTION "Main KTX library"
+    DESCRIPTION "Main KTX library."
     REQUIRED
 )
+if(KTX_FEATURE_JNI)
+cpack_add_component(jni
+    DISPLAY_NAME "Java wrapper"
+    DESCRIPTION "Java wrapper and native interface for KTX library."
+    DEPENDS library
+    DISABLED
+)
+endif()
 # if(KTX_NAMELINKS)
 #     cpack_add_component(Namelinks
 #         DEPENDS library
@@ -909,7 +936,7 @@ cpack_add_component(tools
 )
 cpack_add_component(dev
     DISPLAY_NAME "Development"
-    DESCRIPTION "Additional resources for development (header files and documentation)"
+    DESCRIPTION "Additional resources for development (header files and documentation)."
     DEPENDS library
     DISABLED
 )
@@ -940,6 +967,7 @@ else()
         library
         tools
         dev
+        jni
         # Headers
     )
 endif()
@@ -950,5 +978,3 @@ endif()
 # endif()
 
 include(CPack)
-
-include(cmake/jni.cmake)

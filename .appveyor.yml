@@ -71,6 +71,7 @@ environment:
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
       CMAKE_GEN: Visual Studio 16 2019
       CONFIGURATION: Debug
+      JAVA_HOME: C:\Program Files\Java\jdk17
       # This is the configuration used for the release.
     - FEATURE_DOC: ON
       FEATURE_JNI: ON
@@ -82,6 +83,7 @@ environment:
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
       CMAKE_GEN: Visual Studio 16 2019
       CONFIGURATION: Release
+      JAVA_HOME: C:\Program Files\Java\jdk17
     - FEATURE_DOC: OFF
       FEATURE_JNI: OFF
       FEATURE_LOADTESTS: OFF
@@ -101,6 +103,7 @@ environment:
       CMAKE_GEN: Visual Studio 16 2019
       CONFIGURATION: Release
     - FEATURE_DOC: OFF
+      FEATURE_JNI: OFF
       FEATURE_LOADTESTS: OFF
       SUPPORT_SSE: OFF
       SUPPORT_OPENCL: OFF
@@ -118,23 +121,26 @@ branches:
 skip_tags: false
 
 # Keep this to remind me how to do this in case I need it again.
-# Since we7re not currently using image this has no effect.
+# Since we're not currently using image this has no effect.
 for:
   - matrix:
       only:
         - image: Visual Studio 2015
     environment:
       CMAKE_GEN: Visual Studio 14 2015
+      JAVA_HOME: C:\Program Files\Java\jdk13
   - matrix:
       only:
         - image: Visual Studio 2017
     environment:
       CMAKE_GEN: Visual Studio 15 2017
+      JAVA_HOME: C:\Program Files\Java\jdk13
   - matrix:
       only:
         - image: Visual Studio 2019
     environment:
       CMAKE_GEN: Visual Studio 16 2019
+      JAVA_HOME: C:\Program Files\Java\jdk17
 
 build:
   verbosity: detailed
@@ -174,8 +180,11 @@ install:
     # cmd special characters, e.g. &.
 - cmd: |
     ci_scripts/install_win.bat
-    @echo "Pick up environment changes made to registry by the install script."
+    rem JAVA_HOME is in registry so refreshenv overrides job setting.
+    set JOB_JAVA_HOME=%JAVA_HOME%
+    echo "Pick up environment changes made to registry by the install script."
     refreshenv
+    set JAVA_HOME=%JOB_JAVA_HOME%
 # # One-line install/build zlib (for loadtests) into C:\Program Files\zlib
 # - ps: |
 #     Invoke-WebRequest -Uri https://raw.githubusercontent.com/horta/zlib.install/master/install.bat -OutFile install.bat
@@ -210,13 +219,8 @@ build_script:
     #$ErrorActionPreference = 'Stop'
     #echo "***************************"
 
-    popd
-
-    echo "Done Building"
-
 test_script:
 - ps: |
-    $ErrorActionPreference = 'Stop'
     $Env:Phase = "test"
     pushd $env:BUILD_DIR
     ctest -C $env:CONFIGURATION
