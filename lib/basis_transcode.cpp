@@ -138,8 +138,11 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
     uint32_t* BDB = This->pDfd + 1;
     khr_df_model_e colorModel = (khr_df_model_e)KHR_DFDVAL(BDB, MODEL);
     if (colorModel != KHR_DF_MODEL_UASTC
+        // Constructor has checked color model matches BASIS_LZ.
         && This->supercompressionScheme != KTX_SS_BASIS_LZ)
-    return KTX_INVALID_OPERATION; // Not in a transcodable format.
+    {
+        return KTX_INVALID_OPERATION; // Not in a transcodable format.
+    }
 
     DECLARE_PRIVATE(priv, This);
     if (This->supercompressionScheme == KTX_SS_BASIS_LZ) {
@@ -174,7 +177,6 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
             }
         }
     } else {
-        assert(colorModel == KHR_DF_MODEL_UASTC);
         uint32_t channelId = KHR_DFDSVAL(BDB, 0, CHANNELID);
         if (channelId == KHR_DF_CHANNEL_UASTC_RGBA)
             alphaContent = eAlpha;

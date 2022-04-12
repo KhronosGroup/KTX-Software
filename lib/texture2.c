@@ -709,6 +709,13 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
     }
     This->isCompressed = (This->_protected->_formatSize.flags & KTX_FORMAT_SIZE_COMPRESSED_BIT);
 
+    if (This->supercompressionScheme == KTX_SS_BASIS_LZ
+        && KHR_DFDVAL(This->pDfd + 1, MODEL) != KHR_DF_MODEL_ETC1S)
+    {
+        result = KTX_FILE_DATA_ERROR;
+        goto cleanup;
+    }
+
     This->_private->_requiredLevelAlignment
                           = ktxTexture2_calcRequiredLevelAlignment(This);
 
