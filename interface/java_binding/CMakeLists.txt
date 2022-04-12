@@ -31,12 +31,11 @@ set_target_properties(ktx-jni PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
     XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
-    # This serves a couple of purposes. First it sets places where the
-    # library is expected to be found and second it is also the LC_RPATH
-    # to use when searching for libktx. The first is necessary because the
-    # only executable that will ever be searching for this is the JVM whose
-    # LC_RPATH we obviously can't set. For that reason including @rpath here
-    # is not useful.
+    # The location of libktx_jni must be set explicitly in java.library.path.
+    # This sets places to search for libktx. The second is needed to
+    # successfully run the tests during build. Setting "./" here, to say look
+    # in the same directory, does not work. @executable_path does not
+    # work as the executable here is the JVM.
     INSTALL_RPATH "/usr/local/lib;${KTX_BUILD_DIR}/$<CONFIG>"
 )
 set_xcode_code_sign(ktx-jni)
