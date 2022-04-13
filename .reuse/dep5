@@ -8,8 +8,8 @@ Source: https://github.com/KhronosGroup/KTX-Software
 # general wildcards go first.
 
 # The majority of images & icons fall under the Khronos license
-Files: */*.png */*.ktx */*.ico */*.icns */*.jpg */*.pam */*.pgm */*.ppm */*.ktx */*.ktx2 */*.basis */*.pspimage
-Copyright: 2015-2020 The Khronos Group Inc.
+Files: */*.bmp */*.png */*.ico */*.icns */*.jpg */*.pam */*.pgm */*.ppm */*.ktx */*.ktx2 */*.basis */*.pspimage
+Copyright: 2015-2022 The Khronos Group Inc.
 License: Apache-2.0
 
 ## Exceptions to the above ...
