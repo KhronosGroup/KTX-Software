@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8' standalone='yes'?> 
 <!-- Copyright 2022 The Khronos Group Inc. -->
-<!-- SPDX-License-Identifier: Apache-1.0 -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
 
 <!-- This is to make testing during build work. It also makes the
      installed software more secure as Windows will only look for

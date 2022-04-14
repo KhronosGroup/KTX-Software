@@ -168,7 +168,9 @@ install:
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
     if [ "$CHECK_REUSE" = "YES" -o "$CHECK_REUSE" = "ONLY" ]; then
+      set -e  # because the if below swallows a bad exit status.
       pip3 install reuse
+      set +e
     fi
     if [ "$CHECK_REUSE" != "ONLY" -a "$WASM_BUILD" != "YES" ]; then
       ./ci_scripts/install_linux.sh
@@ -202,7 +204,9 @@ script:
     echo "CHECK_REUSE = $CHECK_REUSE"
     if [ "$CHECK_REUSE" = "YES" -o "$CHECK_REUSE" = "ONLY" ]; then
       echo "Calling reuse lint."
+      set -e  # because the if below swallows a bad exit status.
       reuse lint
+      set +e
     fi
     if [ "$CHECK_REUSE" != "ONLY" ]; then
       if [ "$WASM_BUILD" = "YES" ]; then

@@ -19,6 +19,7 @@ PRIVATE
 
 set_target_properties(
     ktx2check PROPERTIES
+    CXX_VISIBILITY_PRESET ${STATIC_APP_LIB_SYMBOL_VISIBILITY}
     # Force C++14 (for std::make_unique on AppleClang and Linux GCC)
     CXX_STANDARD 14
     CXX_STANDARD_REQUIRED YES
