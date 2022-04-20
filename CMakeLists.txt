@@ -48,7 +48,7 @@ set_target_processor_type(CPU_ARCHITECTURE)
 CMAKE_DEPENDENT_OPTION( BASISU_SUPPORT_SSE
     "Compile with SSE support so applications can choose to use it."
     ON
-    "CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86"
+    "( NOT CMAKE_OSX_ARCHITECTURES STREQUAL $(ARCHS_STANDARD) ) AND ( CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86 )"
     OFF
 )
 CMAKE_DEPENDENT_OPTION( BASISU_SUPPORT_OPENCL
@@ -846,7 +846,17 @@ set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ReadMe.rtf")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/License.rtf")
 
 # Custom package file name
-set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${KTX_VERSION_FULL}-${CMAKE_SYSTEM_NAME}")
+if (APPLE)
+    if(${CMAKE_OSX_ARCHITECTURES} STREQUAL "\$(ARCHS_STANDARD)")
+        set(processor_name "universal")
+    else()
+        set(processor_name ${CMAKE_OSX_ARCHITECTURES})
+    endif()
+else()
+    set(processor_name ${CMAKE_SYSTEM_PROCESSOR})
+endif()
+message("processor_name is ${processor_name}")
+set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${KTX_VERSION_FULL}-${CMAKE_SYSTEM_NAME}-${processor_name}")
 
 if(APPLE)
     install(FILES tools/package/mac/ktx-uninstall
