@@ -854,7 +854,7 @@ set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/License.rtf")
 
 # Custom package file name
 if (APPLE)
-    if(${CMAKE_OSX_ARCHITECTURES} STREQUAL "\$(ARCHS_STANDARD)")
+    if(${CMAKE_OSX_ARCHITECTURES} STREQUAL "$(ARCHS_STANDARD)")
         set(processor_name "universal")
     else()
         set(processor_name ${CMAKE_OSX_ARCHITECTURES})
