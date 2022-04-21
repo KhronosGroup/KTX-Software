@@ -853,14 +853,19 @@ set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ReadMe.rtf")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/License.rtf")
 
 # Custom package file name
-if (APPLE)
-    if(${CMAKE_OSX_ARCHITECTURES} STREQUAL "$(ARCHS_STANDARD)")
+if( APPLE AND CMAKE_OSX_ARCHITECTURES )
+    # CMAKE_SYSTEM_PROCESSOR typically set to build host processor here.
+    # CMAKE_OSX_ARCHITECTURES governs target of build.
+    if( ${CMAKE_OSX_ARCHITECTURES} STREQUAL "$(ARCHS_STANDARD)" )
         set(processor_name "universal")
     else()
         set(processor_name ${CMAKE_OSX_ARCHITECTURES})
     endif()
-else()
+elseif( CMAKE_SYSTEM_PROCESSOR )
     set(processor_name ${CMAKE_SYSTEM_PROCESSOR})
+elseif( IOS )
+    # CMAKE_SYSTEM_PROCESSOR not set when building for iOS.
+    set(processor_name "arm64")
 endif()
 set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${KTX_VERSION_FULL}-${CMAKE_SYSTEM_NAME}-${processor_name}")
 
