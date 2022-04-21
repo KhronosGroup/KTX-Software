@@ -20,7 +20,7 @@ for i in $@; do
 done
 
 # Set defaults
-ARCH=${ARCH:-$(uname -m)}
+ARCHS=${ARCHS:-$(uname -m)}
 CONFIGURATION=${CONFIGURATION:-Release}
 FEATURE_DOC=${FEATURE_DOC:-OFF}
 FEATURE_JNI=${FEATURE_JNI:-OFF}
@@ -30,7 +30,11 @@ PACKAGE=${PACKAGE:-NO}
 SUPPORT_SSE=${SUPPORT_SSE:-ON}
 SUPPORT_OPENCL=${SUPPORT_OPENCL:-OFF}
 
-BUILD_DIR=${BUILD_DIR:-build/macos-$ARCH-$CONFIGURATION}
+if [ "$ARCHS" = '(ARCHS_STANDARD)' ]; then
+  BUILD_DIR=${BUILD_DIR:-build/macos-universal-$CONFIGURATION}
+else
+  BUILD_DIR=${BUILD_DIR:-build/macos-$ARCHS-$CONFIGURATION}
+fi
 
 export VULKAN_SDK=${VULKAN_SDK:-VULKAN_SDK=~/VulkanSDK/1.2.176.1/macOS}
 
@@ -53,7 +57,7 @@ else
   }
 fi
 
-echo "Configure KTX-Software (macOS $ARCH $CONFIGURATION) dir=$BUILD_DIR FEATURE_DOC=$FEATURE_DOC FEATURE_JNI=$FEATURE_JNI FEATURE_LOADTESTS=$FEATURE_LOADTESTS FEATURE_TOOLS=$FEATURE_TOOLS SUPPORT_SSE=$SUPPORT_SSE SUPPORT_OPENCL=$SUPPORT_OPENCL"
+echo "Configure KTX-Software (macOS $ARCHS $CONFIGURATION) dir=$BUILD_DIR FEATURE_DOC=$FEATURE_DOC FEATURE_JNI=$FEATURE_JNI FEATURE_LOADTESTS=$FEATURE_LOADTESTS FEATURE_TOOLS=$FEATURE_TOOLS SUPPORT_SSE=$SUPPORT_SSE SUPPORT_OPENCL=$SUPPORT_OPENCL"
 if [ -n "$MACOS_CERTIFICATES_P12" ]; then
   cmake -GXcode -B$BUILD_DIR . \
   -D CMAKE_OSX_ARCHITECTURES="$ARCHS" \
@@ -63,7 +67,7 @@ if [ -n "$MACOS_CERTIFICATES_P12" ]; then
   -D KTX_FEATURE_TOOLS=$FEATURE_TOOLS \
   -D BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL \
   -D BASISU_SUPPORT_SSE=$SUPPORT_SSE \
-  $(if [ "$ARCH" = "x86_64" ]; then echo -D ISA_SSE41=ON; fi) \
+  $(if [ "$ARCHS" = "x86_64" ]; then echo -D ISA_SSE41=ON; fi) \
   -D XCODE_CODE_SIGN_IDENTITY="${CODE_SIGN_IDENTITY}" \
   -D XCODE_DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
   -D PRODUCTBUILD_IDENTITY_NAME="${PKG_SIGN_IDENTITY}"
@@ -77,7 +81,7 @@ else # No secure variables means a PR or fork build.
   -D KTX_FEATURE_TOOLS=$FEATURE_TOOLS \
   -D BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL \
   -D BASISU_SUPPORT_SSE=$SUPPORT_SSE \
-  $(if [ "$ARCH" = "x86_64" ]; then echo -D ISA_SSE41=ON; fi)
+  $(if [ "$ARCHS" = "x86_64" ]; then echo -D ISA_SSE41=ON; fi)
 fi
 
 # Cause the build pipes below to set the exit to the exit code of the
@@ -87,7 +91,7 @@ set -o pipefail
 pushd $BUILD_DIR
 
 # Build and test Release
-echo "Build KTX-Software (macOS $ARCH $CONFIGURATION) FEATURE_DOC=$FEATURE_DOC FEATURE_JNI=$FEATURE_JNI FEATURE_LOADTESTS=$FEATURE_LOADTESTS FEATURE_TOOLS=$FEATURE_TOOLS SUPPORT_SSE=$SUPPORT_SSE SUPPORT_OPENCL=$SUPPORT_OPENCL"
+echo "Build KTX-Software (macOS $ARCHS $CONFIGURATION) FEATURE_DOC=$FEATURE_DOC FEATURE_JNI=$FEATURE_JNI FEATURE_LOADTESTS=$FEATURE_LOADTESTS FEATURE_TOOLS=$FEATURE_TOOLS SUPPORT_SSE=$SUPPORT_SSE SUPPORT_OPENCL=$SUPPORT_OPENCL"
 if [ -n "$MACOS_CERTIFICATES_P12" -a "$CONFIGURATION" = "Release" ]; then
   cmake --build . --config Release | handle_compiler_output
 else
@@ -95,12 +99,12 @@ else
 fi
 
 # Rosetta 2 should let x86_64 tests run on an Apple Silicon Mac hence the -o.
-if [ "$ARCH" = "$(uname -m)" -o "$ARCH" = "x64_64" ]; then
-  echo "Test KTX-Software (macOS $ARCH $CONFIGURATION)"
+if [ "$ARCHS" = "$(uname -m)" -o "$ARCHS" = "x64_64" ]; then
+  echo "Test KTX-Software (macOS $ARCHS $CONFIGURATION)"
   ctest -C Release # --verbose
 fi
 
-echo "Install KTX-Software (macOS $ARCH $CONFIGURATION)"
+echo "Install KTX-Software (macOS $ARCHS $CONFIGURATION)"
 if [ "$PACKAGE" = "YES" ]; then
   cmake --install . --config Release --prefix ../install-macos-release
   echo "Pack KTX-Software (macOS $CONFIGURATION)"
