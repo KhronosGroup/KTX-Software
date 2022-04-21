@@ -44,6 +44,13 @@ option( KTX_FEATURE_STATIC_LIBRARY "Create static libraries (shared otherwise)" 
 option( KTX_FEATURE_TESTS "Create unit tests" ON )
 option( KTX_FEATURE_JNI "Create Java bindings for libktx" OFF )
 
+if(POLICY CMP0127)
+    # cmake_dependent_option() supports full Condition Syntax. Introduced in
+    # 3.22. Not all build environments have 3.22+. Regrettably Travis has
+    # 3.22.1 which defaults to the NEW policy. 3.22.4+ default to OLD.
+    # Avoid warning and force OLD for Travis.
+    cmake_policy(SET CMP0127 OLD)
+endif()
 set_target_processor_type(CPU_ARCHITECTURE)
 CMAKE_DEPENDENT_OPTION( BASISU_SUPPORT_SSE
     "Compile with SSE support so applications can choose to use it."
