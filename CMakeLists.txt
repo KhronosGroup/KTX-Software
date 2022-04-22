@@ -44,11 +44,17 @@ option( KTX_FEATURE_STATIC_LIBRARY "Create static libraries (shared otherwise)" 
 option( KTX_FEATURE_TESTS "Create unit tests" ON )
 option( KTX_FEATURE_JNI "Create Java bindings for libktx" OFF )
 
+if(POLICY CMP0127)
+    # cmake_dependent_option() supports full Condition Syntax. Introduced in
+    # 3.22. Not all build environments have 3.22+. Set policy to avoid warning.
+    # Seems the parens in the match string trigger the warning.
+    cmake_policy(SET CMP0127 NEW)
+endif()
 set_target_processor_type(CPU_ARCHITECTURE)
 CMAKE_DEPENDENT_OPTION( BASISU_SUPPORT_SSE
     "Compile with SSE support so applications can choose to use it."
     ON
-    "CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86"
+    "NOT CMAKE_OSX_ARCHITECTURES STREQUAL \"$(ARCHS_STANDARD)\"; CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86"
     OFF
 )
 CMAKE_DEPENDENT_OPTION( BASISU_SUPPORT_OPENCL
@@ -846,7 +852,21 @@ set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ReadMe.rtf")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/License.rtf")
 
 # Custom package file name
-set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${KTX_VERSION_FULL}-${CMAKE_SYSTEM_NAME}")
+if( APPLE AND CMAKE_OSX_ARCHITECTURES )
+    # CMAKE_SYSTEM_PROCESSOR typically set to build host processor here.
+    # CMAKE_OSX_ARCHITECTURES governs target of build.
+    if( ${CMAKE_OSX_ARCHITECTURES} STREQUAL "$(ARCHS_STANDARD)" )
+        set(processor_name "universal")
+    else()
+        set(processor_name ${CMAKE_OSX_ARCHITECTURES})
+    endif()
+elseif( CMAKE_SYSTEM_PROCESSOR )
+    set(processor_name ${CMAKE_SYSTEM_PROCESSOR})
+elseif( IOS )
+    # CMAKE_SYSTEM_PROCESSOR not set when building for iOS.
+    set(processor_name "arm64")
+endif()
+set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${KTX_VERSION_FULL}-${CMAKE_SYSTEM_NAME}-${processor_name}")
 
 if(APPLE)
     install(FILES tools/package/mac/ktx-uninstall
@@ -892,13 +912,11 @@ elseif(WIN32)
     set(CPACK_NSIS_URL_INFO_ABOUT ${CPACK_PACKAGE_HOMEPAGE_URL})
     set(CPACK_NSIS_CONTACT ${CPACK_PACKAGE_CONTACT})
     set(CPACK_NSIS_MODIFY_PATH ON)
+    set(CPACK_NSIS_UNINSTALL_NAME "Uninstall")
     set(CPACK_PACKAGE_INSTALL_DIRECTORY "KTX-Software")
     ## Alternative: add major version at end
     #set(CPACK_PACKAGE_INSTALL_DIRECTORY "KTX-Software-${PROJECT_VERSION_MAJOR}")
     set(CPACK_PACKAGE_CHECKSUM SHA1)
-    # Custom Package name to make sure it has the "-win64" suffix.
-    set(CPACK_VERSION_FULL ${KTX_VERSION_FULL})
-    set(CPACK_PROJECT_CONFIG_FILE ${CMAKE_SOURCE_DIR}/cmake/package.txt)
 elseif(EMSCRIPTEN)
     set(CPACK_GENERATOR ZIP)
     set(CPACK_ARCHIVE_KTX_JS_FILE_NAME "${CMAKE_PROJECT_NAME}-${KTX_VERSION_FULL}-Web-libktx")

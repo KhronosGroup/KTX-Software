@@ -115,7 +115,7 @@ git_describe_raw(KTX_VERSION_FULL --abbrev=0 --match v[0-9]*)
 # generate_version(TOKTX_VERSION tools/toktx)
 # message("TOKTX_VERSION: ${TOKTX_VERSION}")
 
-# First try a full regex ( vMARJOR.MINOR.PATCH-TWEAK )
+# First try a full regex ( vMAJOR.MINOR.PATCH-TWEAK )
 string(REGEX MATCH "^v([0-9]*)\.([0-9]*)\.([0-9]*)(-[^\.]*)"
        KTX_VERSION ${KTX_VERSION_FULL})
 
@@ -125,7 +125,7 @@ if(KTX_VERSION)
     set(KTX_VERSION_PATCH ${CMAKE_MATCH_3})
     set(KTX_VERSION_TWEAK ${CMAKE_MATCH_4})
 else()
-    # If full regex failed, go for vMARJOR.MINOR.PATCH
+    # If full regex failed, go for vMAJOR.MINOR.PATCH
     string(REGEX MATCH "^v([0-9]*)\.([0-9]*)\.([^\.]*)"
             KTX_VERSION ${KTX_VERSION_FULL})
 
