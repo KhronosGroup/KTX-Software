@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2020-2021 Arm Limited
+// Copyright 2020-2022 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -353,7 +353,7 @@ TEST(vfloat4, Load1)
 /** @brief Test vfloat4 loada. */
 TEST(vfloat4, Loada)
 {
-	vfloat4 a(&(f32_data[0]));
+	vfloat4 a = vfloat4::loada(&(f32_data[0]));
 	EXPECT_EQ(a.lane<0>(), 0.0f);
 	EXPECT_EQ(a.lane<1>(), 1.0f);
 	EXPECT_EQ(a.lane<2>(), 2.0f);
@@ -1263,7 +1263,7 @@ TEST(vint4, Load1)
 /** @brief Test vint4 loada. */
 TEST(vint4, Loada)
 {
-	vint4 a(&(s32_data[0]));
+	vint4 a = vint4::loada(&(s32_data[0]));
 	EXPECT_EQ(a.lane<0>(), 0);
 	EXPECT_EQ(a.lane<1>(), 1);
 	EXPECT_EQ(a.lane<2>(), 2);
@@ -2023,7 +2023,7 @@ TEST(vfloat8, Load1)
 /** @brief Test vfloat8 loada. */
 TEST(vfloat8, Loada)
 {
-	vfloat8 a(&(f32_data[0]));
+	vfloat8 a = vfloat8::loada(&(f32_data[0]));
 	EXPECT_EQ(a.lane<0>(), 0.0f);
 	EXPECT_EQ(a.lane<1>(), 1.0f);
 	EXPECT_EQ(a.lane<2>(), 2.0f);
@@ -2776,7 +2776,7 @@ TEST(vint8, Load1)
 /** @brief Test vint8 loada. */
 TEST(vint8, Loada)
 {
-	vint8 a(&(s32_data[0]));
+	vint8 a = vint8::loada(&(s32_data[0]));
 	EXPECT_EQ(a.lane<0>(), 0);
 	EXPECT_EQ(a.lane<1>(), 1);
 	EXPECT_EQ(a.lane<2>(), 2);

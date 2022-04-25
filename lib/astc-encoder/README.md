@@ -58,7 +58,7 @@ from 0.89 bits/pixel up to 8 bits/pixel.
 Release build binaries for the `astcenc` stable releases are provided in the
 [GitHub Releases page][3].
 
-**Latest 3.x stable release:** 3.3
+**Latest 3.x stable release:** 3.6
 * Change log: [3.x series](./Docs/ChangeLog-3x.md)
 
 **Latest 2.x stable release:** 2.5
@@ -223,7 +223,7 @@ Graphics forums](https://community.arm.com/graphics/).
 
 - - -
 
-_Copyright © 2013-2021, Arm Limited and contributors. All rights reserved._
+_Copyright © 2013-2022, Arm Limited and contributors. All rights reserved._
 
 [1]: ./Docs/FormatOverview.md
 [2]: https://www.khronos.org/registry/DataFormat/specs/1.3/dataformat.1.3.html#ASTC

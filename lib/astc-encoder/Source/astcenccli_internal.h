@@ -91,7 +91,7 @@ struct cli_config_options
 };
 
 /**
- * Functions to load image from file.
+ * @brief Load uncompressed image.
  *
  * @param filename               The file path on disk.
  * @param y_flip                 Should this image be Y flipped?
@@ -107,7 +107,23 @@ astcenc_image* load_ncimage(
 	unsigned int& component_count);
 
 /**
- * @brief Save a DDS uncompressed image using a local store routine.
+ * @brief Load uncompressed PNG image.
+ *
+ * @param filename               The file path on disk.
+ * @param y_flip                 Should this image be Y flipped?
+ * @param[out] is_hdr            Is the loaded image HDR?
+ * @param[out] component_count   The number of components in the loaded image.
+ *
+ * @return The astc image file, or nullptr on error.
+ */
+astcenc_image* load_png_with_wuffs(
+	const char* filename,
+	bool y_flip,
+	bool& is_hdr,
+	unsigned int& component_count);
+
+/**
+ * @brief Save an uncompressed image.
  *
  * @param img        The source data for the image.
  * @param filename   The name of the file to save.

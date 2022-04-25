@@ -31,7 +31,7 @@ ISPC_BIN = "./Binaries/ISPC/ispc_astc.exe"
 ISPC_QUALITY = ["rgba", "rgb"]
 
 ASTC_BIN = "./astcenc/astcenc-avx2"
-ASTC_QUALITY = ["-medium", "-fast", "-fastest"]
+ASTC_QUALITY = ["0", "8", "10", "20", "30", "40", "50", "60"]
 
 TEST_BLOCK_SIZES = ["4x4", "6x6", "8x8"]
 

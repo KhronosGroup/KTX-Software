@@ -268,6 +268,76 @@ void fetch_image_block(
 }
 
 /* See header for documentation. */
+void fetch_image_block_fast_ldr(
+	astcenc_profile decode_mode,
+	const astcenc_image& img,
+	image_block& blk,
+	const block_size_descriptor& bsd,
+	unsigned int xpos,
+	unsigned int ypos,
+	unsigned int zpos,
+	const astcenc_swizzle& swz
+) {
+	(void)swz;
+	(void)decode_mode;
+
+	unsigned int xsize = img.dim_x;
+	unsigned int ysize = img.dim_y;
+
+	blk.xpos = xpos;
+	blk.ypos = ypos;
+	blk.zpos = zpos;
+
+	vfloat4 data_min(1e38f);
+	vfloat4 data_mean = vfloat4::zero();
+	vfloat4 data_max(-1e38f);
+	bool grayscale = true;
+	int idx = 0;
+
+	const uint8_t* plane = static_cast<const uint8_t*>(img.data[0]);
+	for (unsigned int y = ypos; y < ypos + bsd.ydim; y++)
+	{
+		unsigned int yi = astc::min(y, ysize - 1);
+
+		for (unsigned int x = xpos; x < xpos + bsd.xdim; x++)
+		{
+			unsigned int xi = astc::min(x, xsize - 1);
+
+			vint4 datavi = vint4(plane + (4 * xsize * yi) + (4 * xi));
+			vfloat4 datav = int_to_float(datavi) * (65535.0f / 255.0f);
+
+			// Compute block metadata
+			data_min = min(data_min, datav);
+			data_mean += datav;
+			data_max = max(data_max, datav);
+
+			if (grayscale && (datav.lane<0>() != datav.lane<1>() || datav.lane<0>() != datav.lane<2>()))
+			{
+				grayscale = false;
+			}
+
+			blk.data_r[idx] = datav.lane<0>();
+			blk.data_g[idx] = datav.lane<1>();
+			blk.data_b[idx] = datav.lane<2>();
+			blk.data_a[idx] = datav.lane<3>();
+
+			idx++;
+		}
+	}
+
+	// Reverse the encoding so we store origin block in the original format
+	blk.origin_texel = blk.texel(0) / 65535.0f;
+
+	// Store block metadata
+	blk.rgb_lns[0] = 0;
+	blk.alpha_lns[0] = 0;
+	blk.data_min = data_min;
+	blk.data_mean = data_mean / static_cast<float>(bsd.texel_count);
+	blk.data_max = data_max;
+	blk.grayscale = grayscale;
+}
+
+/* See header for documentation. */
 void write_image_block(
 	astcenc_image& img,
 	const image_block& blk,

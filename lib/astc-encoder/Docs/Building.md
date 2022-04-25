@@ -14,8 +14,8 @@ Builds for Windows are tested with CMake 3.17 and Visual Studio 2019.
 ### Configuring the build
 
 To use CMake you must first configure the build. Create a build directory
-in the root of the astenc checkout, and then run `cmake` inside that directory
-to generate the build system.
+in the root of the `astenc` checkout, and then run `cmake` inside that
+directory to generate the build system.
 
 ```shell
 # Create a build directory
@@ -25,20 +25,20 @@ cd build
 # Configure your build of choice, for example:
 
 # x86-64 using NMake
-cmake -G "NMake Makefiles" -T ClangCL -DCMAKE_BUILD_TYPE=Release ^
+cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release ^
     -DCMAKE_INSTALL_PREFIX=.\ -DISA_AVX2=ON -DISA_SSE41=ON -DISA_SSE2=ON ..
 
 # x86-64 using Visual Studio solution
-cmake -G "Visual Studio 16 2019" -T ClangCL -DCMAKE_INSTALL_PREFIX=.\ ^
-    -DISA_AVX2=ON -DISA_SSE41=ON -DISA_SSE2=ON ..
+cmake -G "Visual Studio 16 2019" -T ClangCL ^
+    -DCMAKE_INSTALL_PREFIX=.\ -DISA_AVX2=ON -DISA_SSE41=ON -DISA_SSE2=ON ..
 ```
 
 This example shows all SIMD variants being enabled. It is possible to build a
 subset of the supported variants by enabling only the ones you require. At
 least one variant must be enabled.
 
-Using the Visual Studio Clang-cl LLVM toolchain (`-T ClangCL`) is optional but
-produces signficantly faster binaries than the default toolchain. The C++ LLVM
+Using the Visual Studio Clang-CL LLVM toolchain (`-T ClangCL`) is optional but
+produces significantly faster binaries than the default toolchain. The C++ LLVM
 toolchain component must be installed via the Visual Studio installer.
 
 ### Building
@@ -190,7 +190,7 @@ Windows packages will use the `.zip` format, other packages will use the
 
 ## Integrating as a library into another project
 
-The core codec of astcenc is built as a library, and so can be easily
+The core codec of `astcenc` is built as a library, and so can be easily
 integrated into other projects using CMake. An example of the CMake integration
 and the codec API usage can be found in the `./Utils/Example` directory in the
 repository. See the [Example Readme](../Utils/Example/README.md) for more

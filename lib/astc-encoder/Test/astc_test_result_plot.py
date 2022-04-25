@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # -----------------------------------------------------------------------------
-# Copyright 2020-2021 Arm Limited
+# Copyright 2020-2022 Arm Limited
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy
@@ -62,7 +62,7 @@ def find_reference_results():
                 quality = match.group(2)
                 imageSet = os.path.basename(root)
 
-                if imageSet not in ["Kodak", "Khronos", "HDRIHaven"]:
+                if imageSet not in ["Kodak", "Khronos", "HDRIHaven", "KodakSim"]:
                     continue
 
                 testRef = trs.ResultSet(imageSet)
@@ -229,10 +229,10 @@ def plot(results, chartRows, chartCols, blockSizes,
 
             ax.grid(ls=':')
 
-            if not relative:
-                ax.set_xlim(left=0, right=limits[0])
-            else:
-                ax.set_xlim(left=0, right=limits[0])
+            if limits and limits[0]:
+                ax.set_xlim(left=limits[0][0], right=limits[0][1])
+            if limits and limits[1]:
+                ax.set_ylim(bottom=limits[1][0], top=limits[1][1])
 
     fig.tight_layout()
     fig.savefig(fileName)
@@ -246,7 +246,13 @@ def main():
         int: The process return code.
     """
 
-    absoluteXLimit = 60
+    absXMin = 0
+    absXMax = 80
+    absXLimits = (absXMin, absXMax)
+
+    relXMin = 0.8
+    relXMax = None
+    relXLimits = (relXMin, relXMax)
 
     charts = [
         # --------------------------------------------------------
@@ -254,7 +260,7 @@ def main():
         [
             # Relative scores
             ["thorough", "medium", "fast"],
-            ["ref-2.5-avx2", "ref-3.1-avx2"],
+            ["ref-2.5-avx2", "ref-3.5-avx2"],
             ["4x4", "6x6", "8x8"],
             True,
             "ref-1.7",
@@ -264,19 +270,19 @@ def main():
         ], [
             # Absolute scores
             ["thorough", "medium", "fast"],
-            ["ref-1.7", "ref-2.5-avx2", "ref-3.1-avx2"],
+            ["ref-1.7", "ref-2.5-avx2", "ref-3.5-avx2"],
             ["4x4", "6x6", "8x8"],
             False,
             None,
             None,
             "absolute-stable-series.png",
-            (absoluteXLimit, None)
+            (absXLimits, None)
         ],
         # --------------------------------------------------------
         # Latest 2.x vs 1.7 release charts
         [
             # Relative scores
-            ["thorough", "medium", "fast", "fastest"],
+            ["thorough", "medium", "fast"],
             ["ref-2.5-avx2"],
             ["4x4", "6x6", "8x8"],
             True,
@@ -289,8 +295,8 @@ def main():
         # Latest 3.x vs 1.7 release charts
         [
             # Relative scores
-            ["thorough", "medium", "fast", "fastest"],
-            ["ref-3.3-avx2"],
+            ["thorough", "medium", "fast"],
+            ["ref-3.6-avx2"],
             ["4x4", "6x6", "8x8"],
             True,
             "ref-1.7",
@@ -303,7 +309,7 @@ def main():
         [
             # Relative scores
             ["thorough", "medium", "fast", "fastest"],
-            ["ref-3.3-avx2"],
+            ["ref-3.6-avx2"],
             ["4x4", "6x6", "8x8"],
             True,
             "ref-2.5-avx2",
@@ -316,27 +322,27 @@ def main():
         [
             # Relative scores
             ["thorough", "medium", "fast", "fastest"],
-            ["ref-3.3-avx2"],
+            ["ref-3.6-avx2"],
             ["4x4", "6x6", "8x8"],
             True,
-            "ref-3.0-avx2",
+            "ref-3.5-avx2",
             None,
             "relative-3.x-vs-3.x.png",
-            (None, None)
+            (relXLimits, None),
         ], [
             # Relative ISAs of latest
             ["thorough", "medium", "fast", "fastest"],
-            ["ref-3.3-sse4.1", "ref-3.3-avx2"],
+            ["ref-3.6-sse4.1", "ref-3.6-avx2"],
             ["4x4", "6x6", "8x8"],
             True,
-            "ref-3.3-sse2",
+            "ref-3.6-sse2",
             None,
             "relative-3.x-isa.png",
             (None, None)
         ], [
             # Relative quality of latest
             ["medium", "fast", "fastest"],
-            ["ref-3.3-avx2"],
+            ["ref-3.6-avx2"],
             ["4x4", "6x6", "8x8"],
             True,
             None,

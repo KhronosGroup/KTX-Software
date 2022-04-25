@@ -23,7 +23,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 
-DATABASE = "log.csv"
+DATABASE = "competitive.csv"
 
 
 class Series:
@@ -75,7 +75,8 @@ def plot_diff(series_a, series_b):
     diff_qual = np.subtract(series_a.qual, series_b.qual)
     label = f"{series_a.name} vs {series_b.name}"
 
-    plt.scatter(diff_perf, diff_qual, s=2, label=label)
+    plt.scatter(diff_perf, diff_qual, s=2, c="#0091BD", label=label)
+    plt.scatter(np.mean(diff_perf), np.mean(diff_qual), s=10, c="#FFA500", marker="*")
 
     plt.axhline(y=0, color="r", linestyle="dotted", lw=0.5)
     plt.axvline(x=1, color="r", linestyle="dotted", lw=0.5)
@@ -103,21 +104,21 @@ def main():
         perf, qual = get_series(DATABASE, "ISPC", "rgb", block_size)
         series_set.append(Series(f"{block_size} IPSC Fast", perf, qual))
 
-        perf, qual = get_series(DATABASE, "ASTC", "-medium", block_size)
-        series_set.append(Series(f"{block_size} ASTC Medium", perf, qual))
+        perf, qual = get_series(DATABASE, "ASTC", "60", block_size)
+        series_set.append(Series(f"{block_size} ASTC 60", perf, qual))
 
-        perf, qual = get_series(DATABASE, "ASTC", "-fast", block_size)
-        series_set.append(Series(f"{block_size} ASTC Fast", perf, qual))
+        perf, qual = get_series(DATABASE, "ASTC", "50", block_size)
+        series_set.append(Series(f"{block_size} ASTC 50", perf, qual))
 
-        perf, qual = get_series(DATABASE, "ASTC", "-fastest", block_size)
-        series_set.append(Series(f"{block_size} ASTC Fastest", perf, qual))
+        perf, qual = get_series(DATABASE, "ASTC", "10", block_size)
+        series_set.append(Series(f"{block_size} ASTC 10", perf, qual))
+
+        perf, qual = get_series(DATABASE, "ASTC", "8", block_size)
+        series_set.append(Series(f"{block_size} ASTC 8", perf, qual))
 
         plot(block_size, series_set)
 
-        plot_diff(series_set[2], series_set[0])
         plot_diff(series_set[3], series_set[0])
-        plot_diff(series_set[3], series_set[1])
-        plot_diff(series_set[4], series_set[1])
 
     return 0
 

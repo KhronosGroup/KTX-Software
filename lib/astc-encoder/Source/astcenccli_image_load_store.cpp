@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2011-2021 Arm Limited
+// Copyright 2011-2022 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -2190,6 +2190,8 @@ static const struct
 	const char* ending2;
 	astcenc_image* (*loader_func)(const char*, bool, bool&, unsigned int&);
 } loader_descs[] {
+	// LDR formats
+	{".png",   ".PNG",  load_png_with_wuffs},
 	// HDR formats
 	{".exr",   ".EXR",  load_image_with_tinyexr },
 	// Container formats

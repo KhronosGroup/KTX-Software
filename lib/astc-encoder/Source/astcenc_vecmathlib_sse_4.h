@@ -1017,4 +1017,42 @@ ASTCENC_SIMD_INLINE vfloat4 int_as_float(vint4 v)
 	return vfloat4(_mm_castsi128_ps(v.m));
 }
 
+#if defined(ASTCENC_NO_INVARIANCE) && (ASTCENC_SSE >= 41)
+
+#define ASTCENC_USE_NATIVE_DOT_PRODUCT 1
+
+/**
+ * @brief Return the dot product for the full 4 lanes, returning scalar.
+ */
+ASTCENC_SIMD_INLINE float dot_s(vfloat4 a, vfloat4 b)
+{
+	return _mm_cvtss_f32(_mm_dp_ps(a.m, b.m, 0xFF));
+}
+
+/**
+ * @brief Return the dot product for the full 4 lanes, returning vector.
+ */
+ASTCENC_SIMD_INLINE vfloat4 dot(vfloat4 a, vfloat4 b)
+{
+	return vfloat4(_mm_dp_ps(a.m, b.m, 0xFF));
+}
+
+/**
+ * @brief Return the dot product for the bottom 3 lanes, returning scalar.
+ */
+ASTCENC_SIMD_INLINE float dot3_s(vfloat4 a, vfloat4 b)
+{
+	return _mm_cvtss_f32(_mm_dp_ps(a.m, b.m, 0x77));
+}
+
+/**
+ * @brief Return the dot product for the bottom 3 lanes, returning vector.
+ */
+ASTCENC_SIMD_INLINE vfloat4 dot3(vfloat4 a, vfloat4 b)
+{
+	return vfloat4(_mm_dp_ps(a.m, b.m, 0x77));
+}
+
+#endif // #if defined(ASTCENC_NO_INVARIANCE) && (ASTCENC_SSE >= 41)
+
 #endif // #ifndef ASTC_VECMATHLIB_SSE_4_H_INCLUDED

@@ -62,7 +62,7 @@ struct astcenc_preset_config
 static const std::array<astcenc_preset_config, 5> preset_configs_high {{
 	{
 		ASTCENC_PRE_FASTEST,
-		2, 8, 40, 2, 2, 85.2f, 63.2f, 3.5f, 3.5f, 1.0f, 1.0f, 0.5f, 25
+		2, 8, 42, 2, 2, 85.2f, 63.2f, 3.5f, 3.5f, 1.0f, 1.0f, 0.5f, 25
 	}, {
 		ASTCENC_PRE_FAST,
 		3, 12, 55, 3, 3, 85.2f, 63.2f, 3.5f, 3.5f, 1.0f, 1.1f, 0.65f, 20
@@ -205,7 +205,7 @@ static astcenc_error validate_profile(
 ) {
 	// Values in this enum are from an external user, so not guaranteed to be
 	// bounded to the enum values
-	switch(static_cast<int>(profile))
+	switch (static_cast<int>(profile))
 	{
 	case ASTCENC_PRF_LDR_SRGB:
 	case ASTCENC_PRF_LDR:
@@ -291,7 +291,7 @@ static astcenc_error validate_compression_swz(
 	astcenc_swz swizzle
 ) {
 	// Not all enum values are handled; SWZ_Z is invalid for compression
-	switch(static_cast<int>(swizzle))
+	switch (static_cast<int>(swizzle))
 	{
 	case ASTCENC_SWZ_R:
 	case ASTCENC_SWZ_G:
@@ -339,7 +339,7 @@ static astcenc_error validate_decompression_swz(
 ) {
 	// Values in this enum are from an external user, so not guaranteed to be
 	// bounded to the enum values
-	switch(static_cast<int>(swizzle))
+	switch (static_cast<int>(swizzle))
 	{
 	case ASTCENC_SWZ_R:
 	case ASTCENC_SWZ_G:
@@ -596,7 +596,7 @@ astcenc_error astcenc_config_init(
 
 	// Values in this enum are from an external user, so not guaranteed to be
 	// bounded to the enum values
-	switch(static_cast<int>(profile))
+	switch (static_cast<int>(profile))
 	{
 	case ASTCENC_PRF_LDR:
 	case ASTCENC_PRF_LDR_SRGB:
@@ -618,6 +618,11 @@ astcenc_error astcenc_config_init(
 
 	if (flags & ASTCENC_FLG_MAP_NORMAL)
 	{
+		// Normal map encoding uses L+A blocks, so allow one more partitioning
+		// than normal. We need need fewer bits for endpoints, so more likely
+		// to be able to use more partitions than an RGB/RGBA block
+		config.tune_partition_count_limit = astc::min(config.tune_partition_count_limit + 1u, 4u);
+
 		config.cw_g_weight = 0.0f;
 		config.cw_b_weight = 0.0f;
 		config.tune_2_partition_early_out_limit_factor *= 1.5f;
@@ -670,8 +675,6 @@ astcenc_error astcenc_context_alloc(
 	astcenc_context** context
 ) {
 	astcenc_error status;
-	astcenc_context* ctx = nullptr;
-	block_size_descriptor* bsd = nullptr;
 	const astcenc_config& config = *configp;
 
 	status = validate_cpu_float();
@@ -699,7 +702,7 @@ astcenc_error astcenc_context_alloc(
 	}
 #endif
 
-	ctx = new astcenc_context;
+	astcenc_context* ctx = new astcenc_context;
 	ctx->thread_count = thread_count;
 	ctx->config = config;
 	ctx->working_buffers = nullptr;
@@ -715,11 +718,13 @@ astcenc_error astcenc_context_alloc(
 		return status;
 	}
 
-	bsd = new block_size_descriptor;
+	ctx->bsd = aligned_malloc<block_size_descriptor>(sizeof(block_size_descriptor), ASTCENC_VECALIGN);
 	bool can_omit_modes = config.flags & ASTCENC_FLG_SELF_DECOMPRESS_ONLY;
 	init_block_size_descriptor(config.block_x, config.block_y, config.block_z,
-	                           can_omit_modes, static_cast<float>(config.tune_block_mode_limit) / 100.0f, *bsd);
-	ctx->bsd = bsd;
+	                           can_omit_modes,
+	                           config.tune_partition_count_limit,
+	                           static_cast<float>(config.tune_block_mode_limit) / 100.0f,
+	                           *ctx->bsd);
 
 #if !defined(ASTCENC_DECOMPRESS_ONLY)
 	// Do setup only needed by compression
@@ -741,8 +746,7 @@ astcenc_error astcenc_context_alloc(
 		              "compression_working_buffers size must be multiple of vector alignment");
 		if (!ctx->working_buffers)
 		{
-			term_block_size_descriptor(*bsd);
-			delete bsd;
+			aligned_free<block_size_descriptor>(ctx->bsd);
 			delete ctx;
 			*context = nullptr;
 			return ASTCENC_ERR_OUT_OF_MEM;
@@ -752,7 +756,7 @@ astcenc_error astcenc_context_alloc(
 
 #if defined(ASTCENC_DIAGNOSTICS)
 	ctx->trace_log = new TraceLog(ctx->config.trace_file_path);
-	if(!ctx->trace_log->m_file)
+	if (!ctx->trace_log->m_file)
 	{
 		return ASTCENC_ERR_DTRACE_FAILURE;
 	}
@@ -778,11 +782,10 @@ void astcenc_context_free(
 	if (ctx)
 	{
 		aligned_free<compression_working_buffers>(ctx->working_buffers);
-		term_block_size_descriptor(*(ctx->bsd));
+		aligned_free<block_size_descriptor>(ctx->bsd);
 #if defined(ASTCENC_DIAGNOSTICS)
 		delete ctx->trace_log;
 #endif
-		delete ctx->bsd;
 		delete ctx;
 	}
 }
@@ -805,13 +808,15 @@ static void compress_image(
 	const astcenc_swizzle& swizzle,
 	uint8_t* buffer
 ) {
-	const block_size_descriptor *bsd = ctx.bsd;
+	const block_size_descriptor& bsd = *ctx.bsd;
 	astcenc_profile decode_mode = ctx.config.profile;
+
 	image_block blk;
 
-	int block_x = bsd->xdim;
-	int block_y = bsd->ydim;
-	int block_z = bsd->zdim;
+	int block_x = bsd.xdim;
+	int block_y = bsd.ydim;
+	int block_z = bsd.zdim;
+	blk.texel_count = block_x * block_y * block_z;
 
 	int dim_x = image.dim_x;
 	int dim_y = image.dim_y;
@@ -820,15 +825,39 @@ static void compress_image(
 	int xblocks = (dim_x + block_x - 1) / block_x;
 	int yblocks = (dim_y + block_y - 1) / block_y;
 	int zblocks = (dim_z + block_z - 1) / block_z;
+	int block_count = zblocks * yblocks * xblocks;
 
 	int row_blocks = xblocks;
 	int plane_blocks = xblocks * yblocks;
+
+	// Populate the block channel weights
+	blk.channel_weight = vfloat4(ctx.config.cw_r_weight,
+	                             ctx.config.cw_g_weight,
+	                             ctx.config.cw_b_weight,
+	                             ctx.config.cw_a_weight);
 
 	// Use preallocated scratch buffer
 	auto& temp_buffers = ctx.working_buffers[thread_index];
 
 	// Only the first thread actually runs the initializer
-	ctx.manage_compress.init(zblocks * yblocks * xblocks);
+	ctx.manage_compress.init(block_count);
+
+
+	// Determine if we can use an optimized load function
+	bool needs_swz = (swizzle.r != ASTCENC_SWZ_R) || (swizzle.g != ASTCENC_SWZ_G) ||
+	                 (swizzle.b != ASTCENC_SWZ_B) || (swizzle.a != ASTCENC_SWZ_A);
+
+	bool needs_hdr = (decode_mode == ASTCENC_PRF_HDR) ||
+	                 (decode_mode == ASTCENC_PRF_HDR_RGB_LDR_A);
+
+	bool use_fast_load = !needs_swz && !needs_hdr &&
+	                     block_z == 1 && image.data_type == ASTCENC_TYPE_U8;
+
+	auto load_func = fetch_image_block;
+	if (use_fast_load)
+	{
+		load_func = fetch_image_block_fast_ldr;
+	}
 
 	// All threads run this processing loop until there is no work remaining
 	while (true)
@@ -888,7 +917,7 @@ static void compress_image(
 			// Fetch the full block for compression
 			if (use_full_block)
 			{
-				fetch_image_block(decode_mode, image, blk, *bsd, x * block_x, y * block_y, z * block_z, swizzle);
+				load_func(decode_mode, image, blk, bsd, x * block_x, y * block_y, z * block_z, swizzle);
 			}
 			// Apply alpha scale RDO - substitute constant color block
 			else
@@ -899,12 +928,6 @@ static void compress_image(
 				blk.data_max = vfloat4::zero();
 				blk.grayscale = true;
 			}
-
-			// Populate the block channel weights
-			blk.channel_weight = vfloat4(ctx.config.cw_r_weight,
-			                             ctx.config.cw_g_weight,
-			                             ctx.config.cw_b_weight,
-			                             ctx.config.cw_a_weight);
 
 			int offset = ((z * yblocks + y) * xblocks + x) * 16;
 			uint8_t *bp = buffer + offset;
@@ -1079,6 +1102,7 @@ astcenc_error astcenc_decompress_image(
 	}
 
 	image_block blk;
+	blk.texel_count = block_x * block_y * block_z;
 
 	// If context thread count is one then implicitly reset
 	if (ctx->thread_count == 1)
@@ -1187,7 +1211,7 @@ astcenc_error astcenc_get_block_info(
 	const auto& pi = bsd.get_partition_info(partition_count, scb.partition_index);
 
 	const block_mode& bm = bsd.get_block_mode(scb.block_mode);
-	const decimation_info& di = *bsd.decimation_tables[bm.decimation_mode];
+	const decimation_info& di = bsd.get_decimation_info(bm.decimation_mode);
 
 	info->weight_x = di.weight_x;
 	info->weight_y = di.weight_y;
@@ -1261,7 +1285,7 @@ const char* astcenc_get_error_string(
 ) {
 	// Values in this enum are from an external user, so not guaranteed to be
 	// bounded to the enum values
-	switch(static_cast<int>(status))
+	switch (static_cast<int>(status))
 	{
 	case ASTCENC_SUCCESS:
 		return "ASTCENC_SUCCESS";
