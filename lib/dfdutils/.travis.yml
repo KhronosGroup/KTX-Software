@@ -37,7 +37,8 @@ install:
   linux)
     # No need to install git-lfs. It is part of Travis's Ubuntu environment.
     sudo apt-get -qq update &&
-    sudo apt-get -qq install doxygen
+    sudo apt-get -qq install doxygen &&
+    pip3 install reuse
     ;;
   osx)
     brew install doxygen
@@ -54,6 +55,7 @@ script:
 - |
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
+    reuse lint &&
     make
     ;;
   osx)
