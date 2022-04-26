@@ -1,4 +1,4 @@
-#!/bin/sh
+#! /usr/bin/env bash
 # Copyright 2015-2020 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
@@ -37,14 +37,35 @@ trap atexit EXIT
 if [ "$(docker container inspect -f '{{.State.Status}}' emscripten 2> /dev/null)" != "running" ]
 then
   # Create docker container.
-  docker run -dit --name emscripten -v $(pwd):/src emscripten/emsdk bash
+
+  #   In the event that /src ends up having the same owner as the repo
+  # (cwd) on the docker host, which is presumably the user running
+  # this script, it is necessary to set the uid/gid used to run the
+  # commands in docker. This is because the recent fix for
+  # CVE-2022-24765 causes Git to error when the repo owner differs from
+  # the user running the command. For details see
+  # https://github.blog/2022-04-12-git-security-vulnerability-announced/
+  #   When I run docker locally on macOS /src is owned by root which is
+  # the default docker user so we don't trip over the CVE fix. However
+  # on Travis /src ends up owned by the same uid as the repo on the host.
+  # Since .travis.yml starts docker before calling this script, the correct
+  # uid is set there. This is retained as an example in case some other
+  # system exhibits the same behavior as Travis.
+  if [ -n "$TRAVIS" ]; then
+    ugids="--user $(id -u):$(id -g)"
+  fi
+  echo "Starting docker"
+  docker run -dit --name emscripten $ugids -v $(pwd):/src emscripten/emsdk bash
 else
   echo "Docker running"
   dockerrunning=1
 fi
 
-echo "\nEmscripten version"
-docker exec -it emscripten sh -c "emcc --version"
+echo "Software versions"
+echo '*****************'
+docker exec -it emscripten sh -c "emcc -v; echo '********'"
+docker exec -it emscripten sh -c "cmake --version; echo '********'"
+docker exec -it emscripten sh -c "git --version; echo '********'"
 
 mkdir -p $BUILD_DIR
 
