@@ -161,7 +161,12 @@ before_install:
     case "${TRAVIS_OS_NAME:-linux}" in
     linux)
       if [ "$WASM_BUILD" = "YES" ]; then
-        docker run -dit --name emscripten -v $(pwd):/src emscripten/emsdk bash
+        # Need to set uid/gid because, unlike when running docker locally,
+        # /src ends up being owned by the uid/gid running this script and
+        # the recent fix for CVE-2022-24765 in Git causes Git to error
+        # when the repo owner differs from the user. For details see
+        # https://github.blog/2022-04-12-git-security-vulnerability-announced/
+        docker run -dit --name emscripten --user "$(id -u):$(id -g)" -v $(pwd):/src emscripten/emsdk bash
       elif [ "$CHECK_REUSE" != "ONLY" ]; then
         sudo apt-get update
       fi
@@ -206,7 +211,6 @@ script:
 - |
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
-    echo "CHECK_REUSE = $CHECK_REUSE"
     if [ "$CHECK_REUSE" = "YES" -o "$CHECK_REUSE" = "ONLY" ]; then
       echo "Calling reuse lint."
       set -e  # because the if below swallows a bad exit status.
