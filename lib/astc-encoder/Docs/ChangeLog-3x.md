@@ -6,14 +6,119 @@ release of the 3.x series.
 All performance data on this page is measured on an Intel Core i5-9600K
 clocked at 4.2 GHz, running `astcenc` using AVX2 and 6 threads.
 
+<!-- ---------------------------------------------------------------------- -->
+## 3.7
+
+**Status:** April 2022
+
+The 3.7 release contains another round of performance optimizations, including
+significant improvements to the command line front-end (faster PNG loader) and
+the arm64 build of the codec (faster NEON implementation).
+
+* **General:**
+  * **Feature:** The command line tool PNG loader has been switched to use
+    the Wuffs library, which is robust and significantly faster than the
+    current stb_image implementation.
+  * **Feature:** Support for non-invariant builds returns. Opt-in to slightly
+    faster, but not bit-exact, builds by setting `-DNO_INVARIANCE=ON` for the
+    CMake configuration. This improves performance by around 2%.
+  * **Optimization:** Changed SIMD `select()` so that it matches the default
+    NEON behavior (bitwise select), rather than the default x86-64 behavior
+    (lane select on MSB). Specialization `select_msb()` added for the one case
+    we want to select on a sign-bit, where NEON needs a different
+    implementation. This provides a significant (>25%) performance uplift on
+    NEON implementations.
+
+### Performance:
+
+Key for charts:
+
+* Color = block size (see legend).
+* Letter = image format (N = normal map, G = grayscale, L = LDR, H = HDR).
+
+**Relative performance vs 3.5 release:**
+
+![Relative scores 3.7 vs 3.6](./ChangeLogImg/relative-3.6-to-3.7.png)
+
+<!-- ---------------------------------------------------------------------- -->
+## 3.6
+
+**Status:** April 2022
+
+The 3.6 release contains another round of performance optimizations.
+
+There are no interface changes in this release, but in general the API is not
+designed to be binary compatible across versions. We always recommend
+rebuilding your client-side code using the updated `astcenc.h` header.
+
+* **General:**
+  * **Feature:** Data tables are now optimized for contexts without the
+    `SELF_DECOMPRESS_ONLY` flag set. The flag therefore no longer improves
+    compression performance, but still reduces context creation time and
+    context data table memory footprint.
+  * **Feature:** Image quality for 4x4 `-fastest` configuration has been
+    improved.
+  * **Optimization:** Decimation modes are reliably excluded from processing
+    when they are only partially selected in the compressor configuration (e.g.
+    if used for single plane, but not dual plane modes). This is a significant
+    performance optimization for all quality levels.
+  * **Optimization:** Fast-path block load function variant added for 2D LDR
+    images with no swizzle. This is a moderate performance optimization for the
+    fast and fastest quality levels.
+
+### Performance:
+
+Key for charts:
+
+* Color = block size (see legend).
+* Letter = image format (N = normal map, G = grayscale, L = LDR, H = HDR).
+
+**Relative performance vs 3.5 release:**
+
+![Relative scores 3.6 vs 3.5](./ChangeLogImg/relative-3.5-to-3.6.png)
+
+<!-- ---------------------------------------------------------------------- -->
+## 3.5
+
+**Status:** March 2022
+
+The 3.5 release contains another round of performance optimizations.
+
+There are no interface changes in this release, but in general the API is not
+designed to be binary compatible across versions. We always recommend
+rebuilding your client-side code using the updated `astcenc.h` header.
+
+* **General:**
+  * **Feature:** Compressor configurations using `SELF_DECOMPRESS_ONLY` mode
+    store compacted partition tables, which significantly improves both
+    context create time and runtime performance.
+  * **Feature:** Bilinear infill for decimated weight grids supports a new
+    variant for half-decimated grids which are only decimated in one axis.
+
+### Performance:
+
+Key for charts:
+
+* Color = block size (see legend).
+* Letter = image format (N = normal map, G = grayscale, L = LDR, H = HDR).
+
+**Relative performance vs 3.4 release:**
+
+![Relative scores 3.5 vs 3.4](./ChangeLogImg/relative-3.4-to-3.5.png)
+
 
 <!-- ---------------------------------------------------------------------- -->
 ## 3.4
 
-**Status:** In development
+**Status:** February 2022
 
 The 3.4 release introduces another round of optimizations, removing a number
 of power-user configuration options to simplify the core compressor data path.
+
+Reminder for users of the library interface - the API is not designed to be
+binary compatible across versions, and this release is not compatible with
+earlier releases. Please update and rebuild your client-side code using the
+updated `astcenc.h` header.
 
 * **General:**
   * **Feature:** Many memory allocations have been moved off the stack into
@@ -35,6 +140,13 @@ of power-user configuration options to simplify the core compressor data path.
   * **Feature:** The `-perceptual` option to set a perceptual error metric is
     still supported, but is currently a no-op in the compressor for mask map
     and normal map textures.
+  * **Bug-fix:** Corrected decompression of error blocks in some cases, so now
+    returning the expected error color (magenta for LDR, NaN for HDR). Note
+    that astcenc determines the error color to use based on the output image
+    data type not the decoder profile.
+* **Binary releases:**
+  * **Improvement:** Windows binaries changed to use ClangCL 12.0, which gives
+    up to 10% performance improvement.
 
 ### Performance:
 
@@ -45,7 +157,8 @@ Key for charts:
 
 **Relative performance vs 3.3 release:**
 
-Pending ...
+![Relative scores 3.4 vs 3.3](./ChangeLogImg/relative-3.3-to-3.4.png)
+
 
 <!-- ---------------------------------------------------------------------- -->
 ## 3.3

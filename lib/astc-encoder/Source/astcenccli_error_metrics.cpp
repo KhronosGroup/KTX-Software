@@ -291,7 +291,7 @@ void compute_error_metrics(
 		}
 	}
 
-	float pixels = (float)(dim_x * dim_y * dim_z);
+	float pixels = static_cast<float>(dim_x * dim_y * dim_z);
 	float num = 0.0f;
 	float alpha_num = 0.0f;
 	float log_num = 0.0f;
@@ -333,7 +333,7 @@ void compute_error_metrics(
 	}
 
 	float denom = samples;
-	float stopcount = (float)(fstop_hi - fstop_lo + 1);
+	float stopcount = static_cast<float>(fstop_hi - fstop_lo + 1);
 	float mpsnr_denom = pixels * 3.0f * stopcount * 255.0f * 255.0f;
 
 	float psnr;
@@ -349,32 +349,32 @@ void compute_error_metrics(
 
 	if (componentmask & 8)
 	{
-		printf("    PSNR (LDR-RGBA):          %9.4f dB\n", (double)psnr);
+		printf("    PSNR (LDR-RGBA):          %9.4f dB\n", static_cast<double>(psnr));
 
 		float alpha_psnr;
 		if (alpha_num == 0.0f)
 			alpha_psnr = 999.0f;
 		else
 			alpha_psnr = 10.0f * log10f(denom / alpha_num);
-		printf("    Alpha-weighted PSNR:      %9.4f dB\n", (double)alpha_psnr);
+		printf("    Alpha-weighted PSNR:      %9.4f dB\n", static_cast<double>(alpha_psnr));
 
 		float rgb_num = hadd_rgb_s(errorsum.sum);
 		if (rgb_num == 0.0f)
 			rgb_psnr = 999.0f;
 		else
 			rgb_psnr = 10.0f * log10f(pixels * 3.0f / rgb_num);
-		printf("    PSNR (LDR-RGB):           %9.4f dB\n", (double)rgb_psnr);
+		printf("    PSNR (LDR-RGB):           %9.4f dB\n", static_cast<double>(rgb_psnr));
 	}
 	else
 	{
-		printf("    PSNR (LDR-RGB):           %9.4f dB\n", (double)psnr);
+		printf("    PSNR (LDR-RGB):           %9.4f dB\n", static_cast<double>(psnr));
 	}
 
 	if (compute_hdr_metrics)
 	{
 		printf("    PSNR (RGB norm to peak):  %9.4f dB (peak %f)\n",
-		       (double)(rgb_psnr + 20.0f * log10f(rgb_peak)),
-		       (double)rgb_peak);
+		       static_cast<double>(rgb_psnr + 20.0f * log10f(rgb_peak)),
+		       static_cast<double>(rgb_peak));
 
 		float mpsnr;
 		if (mpsnr_num == 0.0f)
@@ -387,10 +387,10 @@ void compute_error_metrics(
 		}
 
 		printf("    mPSNR (RGB):              %9.4f dB (fstops %+d to %+d)\n",
-		       (double)mpsnr, fstop_lo, fstop_hi);
+		       static_cast<double>(mpsnr), fstop_lo, fstop_hi);
 
 		float logrmse = astc::sqrt(log_num / pixels);
-		printf("    LogRMSE (RGB):            %9.4f\n", (double)logrmse);
+		printf("    LogRMSE (RGB):            %9.4f\n", static_cast<double>(logrmse));
 	}
 
 	if (compute_normal_metrics)

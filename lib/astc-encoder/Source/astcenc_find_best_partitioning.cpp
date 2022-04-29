@@ -253,8 +253,8 @@ static inline unsigned int partition_mismatch2(
 	const uint64_t a[2],
 	const uint64_t b[2]
 ) {
-	int v1 = astc::popcount(a[0] ^ b[0]) + astc::popcount(a[1] ^ b[1]);
-	int v2 = astc::popcount(a[0] ^ b[1]) + astc::popcount(a[1] ^ b[0]);
+	int v1 = popcount(a[0] ^ b[0]) + popcount(a[1] ^ b[1]);
+	int v2 = popcount(a[0] ^ b[1]) + popcount(a[1] ^ b[0]);
 	return astc::min(v1, v2);
 }
 
@@ -270,17 +270,17 @@ static inline unsigned int partition_mismatch3(
 	const uint64_t a[3],
 	const uint64_t b[3]
 ) {
-	int p00 = astc::popcount(a[0] ^ b[0]);
-	int p01 = astc::popcount(a[0] ^ b[1]);
-	int p02 = astc::popcount(a[0] ^ b[2]);
+	int p00 = popcount(a[0] ^ b[0]);
+	int p01 = popcount(a[0] ^ b[1]);
+	int p02 = popcount(a[0] ^ b[2]);
 
-	int p10 = astc::popcount(a[1] ^ b[0]);
-	int p11 = astc::popcount(a[1] ^ b[1]);
-	int p12 = astc::popcount(a[1] ^ b[2]);
+	int p10 = popcount(a[1] ^ b[0]);
+	int p11 = popcount(a[1] ^ b[1]);
+	int p12 = popcount(a[1] ^ b[2]);
 
-	int p20 = astc::popcount(a[2] ^ b[0]);
-	int p21 = astc::popcount(a[2] ^ b[1]);
-	int p22 = astc::popcount(a[2] ^ b[2]);
+	int p20 = popcount(a[2] ^ b[0]);
+	int p21 = popcount(a[2] ^ b[1]);
+	int p22 = popcount(a[2] ^ b[2]);
 
 	int s0 = p11 + p22;
 	int s1 = p12 + p21;
@@ -309,25 +309,25 @@ static inline unsigned int partition_mismatch4(
 	const uint64_t a[4],
 	const uint64_t b[4]
 ) {
-	int p00 = astc::popcount(a[0] ^ b[0]);
-	int p01 = astc::popcount(a[0] ^ b[1]);
-	int p02 = astc::popcount(a[0] ^ b[2]);
-	int p03 = astc::popcount(a[0] ^ b[3]);
+	int p00 = popcount(a[0] ^ b[0]);
+	int p01 = popcount(a[0] ^ b[1]);
+	int p02 = popcount(a[0] ^ b[2]);
+	int p03 = popcount(a[0] ^ b[3]);
 
-	int p10 = astc::popcount(a[1] ^ b[0]);
-	int p11 = astc::popcount(a[1] ^ b[1]);
-	int p12 = astc::popcount(a[1] ^ b[2]);
-	int p13 = astc::popcount(a[1] ^ b[3]);
+	int p10 = popcount(a[1] ^ b[0]);
+	int p11 = popcount(a[1] ^ b[1]);
+	int p12 = popcount(a[1] ^ b[2]);
+	int p13 = popcount(a[1] ^ b[3]);
 
-	int p20 = astc::popcount(a[2] ^ b[0]);
-	int p21 = astc::popcount(a[2] ^ b[1]);
-	int p22 = astc::popcount(a[2] ^ b[2]);
-	int p23 = astc::popcount(a[2] ^ b[3]);
+	int p20 = popcount(a[2] ^ b[0]);
+	int p21 = popcount(a[2] ^ b[1]);
+	int p22 = popcount(a[2] ^ b[2]);
+	int p23 = popcount(a[2] ^ b[3]);
 
-	int p30 = astc::popcount(a[3] ^ b[0]);
-	int p31 = astc::popcount(a[3] ^ b[1]);
-	int p32 = astc::popcount(a[3] ^ b[2]);
-	int p33 = astc::popcount(a[3] ^ b[3]);
+	int p30 = popcount(a[3] ^ b[0]);
+	int p31 = popcount(a[3] ^ b[1]);
+	int p32 = popcount(a[3] ^ b[2]);
+	int p33 = popcount(a[3] ^ b[3]);
 
 	int mx23 = astc::min(p22 + p33, p23 + p32);
 	int mx13 = astc::min(p21 + p33, p23 + p31);
@@ -360,45 +360,57 @@ static void count_partition_mismatch_bits(
 	const uint64_t bitmaps[BLOCK_MAX_PARTITIONS],
 	unsigned int mismatch_counts[BLOCK_MAX_PARTITIONINGS]
 ) {
-	const auto* pt = bsd.get_partition_table(partition_count);
+	unsigned int active_count = bsd.partitioning_count_selected[partition_count - 1];
 
-	// Function pointer dispatch table
-	const mismatch_dispatch dispatch[3] {
-		partition_mismatch2,
-		partition_mismatch3,
-		partition_mismatch4
-	};
-
-	for (unsigned int i = 0; i < BLOCK_MAX_PARTITIONINGS; i++)
+	if (partition_count == 2)
 	{
-		int bitcount = 255;
-		if (pt->partition_count == partition_count)
+		for (unsigned int i = 0; i < active_count; i++)
 		{
-			bitcount = dispatch[partition_count - 2](bitmaps, pt->coverage_bitmaps);
+			int bitcount = partition_mismatch2(bitmaps, bsd.coverage_bitmaps_2[i]);
+			mismatch_counts[i] = astc::max(bitcount, static_cast<int>(bsd.partitioning_valid_2[i]));
 		}
-
-		mismatch_counts[i] = bitcount;
-		pt++;
+	}
+	else if (partition_count == 3)
+	{
+		for (unsigned int i = 0; i < active_count; i++)
+		{
+			int bitcount = partition_mismatch3(bitmaps, bsd.coverage_bitmaps_3[i]);
+			mismatch_counts[i] = astc::max(bitcount, static_cast<int>(bsd.partitioning_valid_3[i]));
+		}
+	}
+	else
+	{
+		for (unsigned int i = 0; i < active_count; i++)
+		{
+			int bitcount = partition_mismatch4(bitmaps, bsd.coverage_bitmaps_4[i]);
+			mismatch_counts[i] = astc::max(bitcount, static_cast<int>(bsd.partitioning_valid_4[i]));
+		}
 	}
 }
 
 /**
  * @brief Use counting sort on the mismatch array to sort partition candidates.
  *
+ * @param      partitioning_count   The number of packed partitionings.
  * @param      mismatch_count       Partitioning mismatch counts, in index order.
  * @param[out] partition_ordering   Partition index values, in mismatch order.
+ *
+ * @return The number of active partitions in this selection.
  */
-static void get_partition_ordering_by_mismatch_bits(
+static unsigned int get_partition_ordering_by_mismatch_bits(
+	unsigned int partitioning_count,
 	const unsigned int mismatch_count[BLOCK_MAX_PARTITIONINGS],
 	unsigned int partition_ordering[BLOCK_MAX_PARTITIONINGS]
 ) {
 	unsigned int mscount[256] { 0 };
 
 	// Create the histogram of mismatch counts
-	for (unsigned int i = 0; i < BLOCK_MAX_PARTITIONINGS; i++)
+	for (unsigned int i = 0; i < partitioning_count; i++)
 	{
 		mscount[mismatch_count[i]]++;
 	}
+
+	unsigned int active_count = partitioning_count - mscount[255];
 
 	// Create a running sum from the histogram array
 	// Cells store previous values only; i.e. exclude self after sum
@@ -412,11 +424,13 @@ static void get_partition_ordering_by_mismatch_bits(
 
 	// Use the running sum as the index, incrementing after read to allow
 	// sequential entries with the same count
-	for (unsigned int i = 0; i < BLOCK_MAX_PARTITIONINGS; i++)
+	for (unsigned int i = 0; i < partitioning_count; i++)
 	{
 		unsigned int idx = mscount[mismatch_count[i]]++;
 		partition_ordering[idx] = i;
 	}
+
+	return active_count;
 }
 
 /**
@@ -426,8 +440,10 @@ static void get_partition_ordering_by_mismatch_bits(
  * @param      blk                  The image block color data to compress.
  * @param      partition_count      The desired number of partitions in the block.
  * @param[out] partition_ordering   The list of recommended partition indices, in priority order.
+ *
+ * @return The number of active partitionings in this selection.
  */
-static void compute_kmeans_partition_ordering(
+static unsigned int compute_kmeans_partition_ordering(
 	const block_size_descriptor& bsd,
 	const image_block& blk,
 	unsigned int partition_count,
@@ -466,7 +482,9 @@ static void compute_kmeans_partition_ordering(
 	count_partition_mismatch_bits(bsd, partition_count, bitmaps, mismatch_counts);
 
 	// Sort the partitions based on the number of mismatched bits
-	get_partition_ordering_by_mismatch_bits(mismatch_counts, partition_ordering);
+	return get_partition_ordering_by_mismatch_bits(
+	    bsd.partitioning_count_selected[partition_count - 1],
+	    mismatch_counts, partition_ordering);
 }
 
 /* See header for documentation. */
@@ -500,7 +518,8 @@ void find_best_partition_candidates(
 	weight_imprecision_estim = weight_imprecision_estim * weight_imprecision_estim;
 
 	unsigned int partition_sequence[BLOCK_MAX_PARTITIONINGS];
-	compute_kmeans_partition_ordering(bsd, blk, partition_count, partition_sequence);
+	unsigned int sequence_len = compute_kmeans_partition_ordering(bsd, blk, partition_count, partition_sequence);
+	partition_search_limit = astc::min(partition_search_limit, sequence_len);
 
 	bool uses_alpha = !blk.is_constant_channel(3);
 
@@ -518,13 +537,7 @@ void find_best_partition_candidates(
 		for (unsigned int i = 0; i < partition_search_limit; i++)
 		{
 			unsigned int partition = partition_sequence[i];
-			const auto& pi = bsd.get_partition_info(partition_count, partition);
-
-			unsigned int bk_partition_count = pi.partition_count;
-			if (bk_partition_count < partition_count)
-			{
-				break;
-			}
+			const auto& pi = bsd.get_raw_partition_info(partition_count, partition);
 
 			// Compute weighting to give to each component in each partition
 			partition_metrics pms[BLOCK_MAX_PARTITIONS];
@@ -617,13 +630,7 @@ void find_best_partition_candidates(
 		for (unsigned int i = 0; i < partition_search_limit; i++)
 		{
 			unsigned int partition = partition_sequence[i];
-			const auto& pi = bsd.get_partition_info(partition_count, partition);
-
-			unsigned int bk_partition_count = pi.partition_count;
-			if (bk_partition_count < partition_count)
-			{
-				break;
-			}
+			const auto& pi = bsd.get_raw_partition_info(partition_count, partition);
 
 			// Compute weighting to give to each component in each partition
 			partition_metrics pms[BLOCK_MAX_PARTITIONS];
@@ -704,7 +711,7 @@ void find_best_partition_candidates(
 		}
 	}
 
-	// Same parition is best for both, so use this first unconditionally
+	// Same partition is best for both, so use this first unconditionally
 	if (uncor_best_partition == samec_best_partitions[0])
 	{
 		best_partitions[0] = samec_best_partitions[0];
@@ -722,6 +729,10 @@ void find_best_partition_candidates(
 		best_partitions[0] = samec_best_partitions[0];
 		best_partitions[1] = uncor_best_partition;
 	}
+
+	// Convert these back into canonical partition IDs for the rest of the codec
+	best_partitions[0] = bsd.get_raw_partition_info(partition_count, best_partitions[0]).partition_index;
+	best_partitions[1] = bsd.get_raw_partition_info(partition_count, best_partitions[1]).partition_index;
 }
 
 #endif

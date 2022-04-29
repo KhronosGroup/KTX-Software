@@ -127,12 +127,13 @@ macro(astcenc_set_properties NAME)
             $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-atomic-implicit-seq-cst>
 
             # Clang 10 also throws up warnings we need to investigate (ours)
-            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-old-style-cast>
             $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-cast-align>
             $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-sign-conversion>
             $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-implicit-int-conversion>
             $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-shift-sign-overflow>
             $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-format-nonliteral>
+            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-reserved-identifier>
+            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-cast-function-type>
 
             $<$<CXX_COMPILER_ID:Clang>:-Wdocumentation>)
 
@@ -141,7 +142,7 @@ macro(astcenc_set_properties NAME)
             # Use pthreads on Linux/macOS
             $<$<PLATFORM_ID:Linux,Darwin>:-pthread>)
 
-    if(${ENABLE_ASAN})
+    if(${ASAN})
         target_compile_options(${NAME}
             PRIVATE
                 $<$<CXX_COMPILER_ID:${CLANG_LIKE}>:-fsanitize=address>)
@@ -149,6 +150,12 @@ macro(astcenc_set_properties NAME)
         target_link_options(${NAME}
             PRIVATE
                 $<$<CXX_COMPILER_ID:${CLANG_LIKE}>:-fsanitize=address>)
+    endif()
+
+    if(${NO_INVARIANCE})
+            target_compile_definitions(${NAME}
+                PRIVATE
+                    ASTCENC_NO_INVARIANCE=1)
     endif()
 
     if(${CLI})
@@ -248,6 +255,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     string(CONCAT EXTERNAL_CXX_FLAGS
             " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -fno-strict-aliasing>"
             " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-unused-parameter>"
+            " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-old-style-cast>"
             " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-double-promotion>"
             " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-zero-as-null-pointer-constant>"
             " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-disabled-macro-expansion>"
@@ -256,7 +264,13 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
             " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-implicit-fallthrough>"
             " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-tautological-type-limit-compare>"
             " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-cast-qual>"
-            " $<$<CXX_COMPILER_ID:Clang>: -Wno-missing-prototypes>")
+            " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-reserved-identifier>"
+            " $<$<CXX_COMPILER_ID:Clang>: -Wno-missing-prototypes>"
+            " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-suggest-override>"
+            " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-used-but-marked-unused>"
+            " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-noexcept-type>"
+            " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-comma>"
+            " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-c99-extensions>")
 
     set_source_files_properties(astcenccli_image_external.cpp
         PROPERTIES

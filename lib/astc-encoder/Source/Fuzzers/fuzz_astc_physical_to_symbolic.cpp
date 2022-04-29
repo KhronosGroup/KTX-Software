@@ -69,6 +69,7 @@ bool bsd_initializer()
 		    testSz[i].y,
 		    testSz[i].z,
 		    false,
+		    4,
 		    1.0f,
 		    testBSD[i]);
 	}
