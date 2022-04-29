@@ -84,7 +84,7 @@ void free_image(astcenc_image * img)
 
 	for (unsigned int z = 0; z < img->dim_z; z++)
 	{
-		delete[] (char*)img->data[z];
+		delete[] reinterpret_cast<char*>(img->data[z]);
 	}
 
 	delete[] img->data;
@@ -197,10 +197,10 @@ astcenc_image* astc_img_from_floatx4_array(
 				src[4 * x + 3]
 			));
 
-			data16[(4 * dim_x * y) + (4 * x    )] = (uint16_t)colorf16.lane<0>();
-			data16[(4 * dim_x * y) + (4 * x + 1)] = (uint16_t)colorf16.lane<1>();
-			data16[(4 * dim_x * y) + (4 * x + 2)] = (uint16_t)colorf16.lane<2>();
-			data16[(4 * dim_x * y) + (4 * x + 3)] = (uint16_t)colorf16.lane<3>();
+			data16[(4 * dim_x * y) + (4 * x    )] = static_cast<uint16_t>(colorf16.lane<0>());
+			data16[(4 * dim_x * y) + (4 * x + 1)] = static_cast<uint16_t>(colorf16.lane<1>());
+			data16[(4 * dim_x * y) + (4 * x + 2)] = static_cast<uint16_t>(colorf16.lane<2>());
+			data16[(4 * dim_x * y) + (4 * x + 3)] = static_cast<uint16_t>(colorf16.lane<3>());
 		}
 	}
 
@@ -369,10 +369,10 @@ uint8_t* unorm8x4_array_from_astc_img(
 
 			for (unsigned int x = 0; x < dim_x; x++)
 			{
-				dst[4 * x    ] = (uint8_t)astc::flt2int_rtn(astc::clamp1f(data32[(4 * dim_x * ymod) + (4 * x    )]) * 255.0f);
-				dst[4 * x + 1] = (uint8_t)astc::flt2int_rtn(astc::clamp1f(data32[(4 * dim_x * ymod) + (4 * x + 1)]) * 255.0f);
-				dst[4 * x + 2] = (uint8_t)astc::flt2int_rtn(astc::clamp1f(data32[(4 * dim_x * ymod) + (4 * x + 2)]) * 255.0f);
-				dst[4 * x + 3] = (uint8_t)astc::flt2int_rtn(astc::clamp1f(data32[(4 * dim_x * ymod) + (4 * x + 3)]) * 255.0f);
+				dst[4 * x    ] = static_cast<uint8_t>(astc::flt2int_rtn(astc::clamp1f(data32[(4 * dim_x * ymod) + (4 * x    )]) * 255.0f));
+				dst[4 * x + 1] = static_cast<uint8_t>(astc::flt2int_rtn(astc::clamp1f(data32[(4 * dim_x * ymod) + (4 * x + 1)]) * 255.0f));
+				dst[4 * x + 2] = static_cast<uint8_t>(astc::flt2int_rtn(astc::clamp1f(data32[(4 * dim_x * ymod) + (4 * x + 2)]) * 255.0f));
+				dst[4 * x + 3] = static_cast<uint8_t>(astc::flt2int_rtn(astc::clamp1f(data32[(4 * dim_x * ymod) + (4 * x + 3)]) * 255.0f));
 			}
 		}
 	}

@@ -103,7 +103,7 @@ def run_size_macos(binary):
 
         if line.startswith("Segment"):
             parts = line.split()
-            assert(len(parts) == 3)
+            assert len(parts) >= 3, parts
 
             currentSegment = parts[1]
             size = int(parts[2])
@@ -119,7 +119,7 @@ def run_size_macos(binary):
 
         if line.startswith("Section"):
             parts = line.split()
-            assert(len(parts) == 3)
+            assert len(parts) >= 3, parts
 
             section = parts[1]
             size = int(parts[2])

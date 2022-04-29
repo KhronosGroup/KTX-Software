@@ -111,7 +111,7 @@ pipeline {
           }
         }
         /* Build for Windows on x86-64 using MSVC */
-        stage('Windows') {
+        stage('Windows MSVC') {
           agent {
             label 'Windows'
           }
@@ -127,7 +127,7 @@ pipeline {
                   call c:\\progra~2\\micros~1\\2019\\buildtools\\vc\\auxiliary\\build\\vcvars64.bat
                   mkdir build_rel
                   cd build_rel
-                  cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ -DISA_AVX2=ON -DISA_SSE41=ON -DISA_SSE2=ON -DPACKAGE=x64 ..
+                  cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ -DISA_AVX2=ON -DISA_SSE41=ON -DISA_SSE2=ON -DPACKAGE=x64-cl ..
                   nmake install package
                 '''
               }
@@ -146,7 +146,59 @@ pipeline {
             stage('Stash') {
               steps {
                 dir('build_rel') {
-                  stash name: 'astcenc-windows-x64', includes: '*.zip'
+                  stash name: 'astcenc-windows-x64-cl', includes: '*.zip'
+                }
+              }
+            }
+            stage('Test') {
+              steps {
+                bat '''
+                  set Path=c:\\Python38;c:\\Python38\\Scripts;%Path%
+                  call python ./Test/astc_test_image.py --test-set Small --test-quality medium
+                '''
+              }
+            }
+          }
+        }
+        /* Build for Windows on x86-64 using MSVC + ClangCL */
+        stage('Windows ClangCL') {
+          agent {
+            label 'Windows'
+          }
+          stages {
+            stage('Clean') {
+              steps {
+                bat 'git clean -ffdx'
+              }
+            }
+            stage('Build R') {
+              steps {
+                bat '''
+                  call c:\\progra~2\\micros~1\\2019\\buildtools\\vc\\auxiliary\\build\\vcvars64.bat
+                  mkdir build_rel
+                  cd build_rel
+                  cmake -G "Visual Studio 16 2019" -T ClangCL -DCMAKE_INSTALL_PREFIX=../ -DISA_AVX2=ON -DISA_SSE41=ON -DISA_SSE2=ON -DPACKAGE=x64-clangcl ..
+                  msbuild astcencoder.sln -property:Configuration=Release
+                  msbuild PACKAGE.vcxproj -property:Configuration=Release
+                  msbuild INSTALL.vcxproj -property:Configuration=Release
+                '''
+              }
+            }
+            stage('Build D') {
+              steps {
+                bat '''
+                  call c:\\progra~2\\micros~1\\2019\\buildtools\\vc\\auxiliary\\build\\vcvars64.bat
+                  mkdir build_dbg
+                  cd build_dbg
+                  cmake -G "Visual Studio 16 2019" -T ClangCL -DISA_AVX2=ON -DISA_SSE41=ON -DISA_SSE2=ON ..
+                  msbuild astcencoder.sln -property:Configuration=Debug
+                '''
+              }
+            }
+            stage('Stash') {
+              steps {
+                dir('build_rel') {
+                  stash name: 'astcenc-windows-x64-clangcl', includes: '*.zip'
                 }
               }
             }
@@ -246,8 +298,11 @@ spec:
             dir('upload/linux-x64') {
               unstash 'astcenc-linux-x64'
             }
-            dir('upload/windows-x64') {
-              unstash 'astcenc-windows-x64'
+            dir('upload/windows-x64-cl') {
+              unstash 'astcenc-windows-x64-cl'
+            }
+            dir('upload/windows-x64-clangcl') {
+              unstash 'astcenc-windows-x64-clangcl'
             }
             dir('upload/macos-x64') {
               unstash 'astcenc-macos-x64'

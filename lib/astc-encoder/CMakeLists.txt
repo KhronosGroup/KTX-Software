@@ -24,7 +24,7 @@ if(MSVC)
     add_compile_options("/wd4324") # Disable structure was padded due to alignment specifier
 endif()
 
-project(astcencoder VERSION 3.3.0)
+project(astcencoder VERSION 3.7.0)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -42,7 +42,9 @@ option(ISA_NONE "Enable builds for no SIMD")
 option(ISA_NATIVE "Enable builds for native SIMD")
 option(DECOMPRESSOR "Enable builds for decompression only")
 option(DIAGNOSTICS "Enable builds for diagnostic trace")
+option(ASAN "Enable builds width address sanitizer")
 option(UNITTEST "Enable builds for unit tests")
+option(NO_INVARIANCE "Enable builds without invariance")
 option(CLI "Enable build of CLI" ON)
 
 set(UNIVERSAL_BUILD OFF)
@@ -202,7 +204,9 @@ if("${MACOS_BUILD}")
     printopt("Universal bin  " ${UNIVERSAL_BUILD})
 endif()
 printopt("Decompressor   " ${DECOMPRESSOR})
+printopt("No invariance  " ${NO_INVARIANCE})
 printopt("Diagnostics    " ${DIAGNOSTICS})
+printopt("ASAN           " ${ASAN})
 printopt("Unit tests     " ${UNITTEST})
 
 # Subcomponents

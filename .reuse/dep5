@@ -86,6 +86,10 @@ Files: lib/astc-encoder/Source/tinyexr.h
 Copyright: 2014-2019 Syoyo Fujita and many contributors
 License: BSD-3-Clause
 
+Files: lib/astc-encoder/Source/wuffs-v0.3.c
+Copyright: 2022 The Wuffs Authors.
+License: Apache-2.0
+
 # We have asked Binomial about REUSE compliance for their repo, see https://github.com/BinomialLLC/basis_universal/issues/165
 Files: lib/basisu/*
 Copyright: 2019-2020 Binomial LLC

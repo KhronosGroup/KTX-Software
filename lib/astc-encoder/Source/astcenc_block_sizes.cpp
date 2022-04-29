@@ -29,6 +29,7 @@
  * @param[out] y_weights       The number of weights in the Y dimension.
  * @param[out] is_dual_plane   True if this block mode has two weight planes.
  * @param[out] quant_mode      The quantization level for the weights.
+ * @param[out] weight_bits     The storage bit count for the weights.
  *
  * @return Returns true if a valid mode, false otherwise.
  */
@@ -37,7 +38,8 @@ static bool decode_block_mode_2d(
 	unsigned int& x_weights,
 	unsigned int& y_weights,
 	bool& is_dual_plane,
-	unsigned int& quant_mode
+	unsigned int& quant_mode,
+	unsigned int& weight_bits
 ) {
 	unsigned int base_quant_mode = (block_mode >> 4) & 1;
 	unsigned int H = (block_mode >> 9) & 1;
@@ -128,7 +130,7 @@ static bool decode_block_mode_2d(
 	quant_mode = (base_quant_mode - 2) + 6 * H;
 	is_dual_plane = D != 0;
 
-	unsigned int weight_bits = get_ise_sequence_bitcount(weight_count, (quant_method)quant_mode);
+	weight_bits = get_ise_sequence_bitcount(weight_count, static_cast<quant_method>(quant_mode));
 	return (weight_count <= BLOCK_MAX_WEIGHTS &&
 	        weight_bits >= BLOCK_MIN_WEIGHT_BITS &&
 	        weight_bits <= BLOCK_MAX_WEIGHT_BITS);
@@ -143,6 +145,7 @@ static bool decode_block_mode_2d(
  * @param[out] z_weights       The number of weights in the Z dimension.
  * @param[out] is_dual_plane   True if this block mode has two weight planes.
  * @param[out] quant_mode      The quantization level for the weights.
+ * @param[out] weight_bits     The storage bit count for the weights.
  *
  * @return Returns true if a valid mode, false otherwise.
  */
@@ -152,7 +155,8 @@ static bool decode_block_mode_3d(
 	unsigned int& y_weights,
 	unsigned int& z_weights,
 	bool& is_dual_plane,
-	unsigned int& quant_mode
+	unsigned int& quant_mode,
+	unsigned int& weight_bits
 ) {
 	unsigned int base_quant_mode = (block_mode >> 4) & 1;
 	unsigned int H = (block_mode >> 9) & 1;
@@ -229,7 +233,7 @@ static bool decode_block_mode_3d(
 	quant_mode = (base_quant_mode - 2) + 6 * H;
 	is_dual_plane = D != 0;
 
-	unsigned int weight_bits = get_ise_sequence_bitcount(weight_count, (quant_method)quant_mode);
+	weight_bits = get_ise_sequence_bitcount(weight_count, static_cast<quant_method>(quant_mode));
 	return (weight_count <= BLOCK_MAX_WEIGHTS &&
 	        weight_bits >= BLOCK_MIN_WEIGHT_BITS &&
 	        weight_bits <= BLOCK_MAX_WEIGHT_BITS);
@@ -318,14 +322,16 @@ static void init_decimation_info_2d(
 		}
 	}
 
+	uint8_t max_texel_weight_count = 0;
 	for (unsigned int i = 0; i < texels_per_block; i++)
 	{
 		di.texel_weight_count[i] = wb.weight_count_of_texel[i];
+		max_texel_weight_count = astc::max(max_texel_weight_count, di.texel_weight_count[i]);
 
 		for (unsigned int j = 0; j < wb.weight_count_of_texel[i]; j++)
 		{
 			di.texel_weights_int_4t[j][i] = wb.weights_of_texel[i][j];
-			di.texel_weights_float_4t[j][i] = ((float)wb.weights_of_texel[i][j]) * (1.0f / WEIGHTS_TEXEL_SUM);
+			di.texel_weights_float_4t[j][i] = static_cast<float>(wb.weights_of_texel[i][j]) * (1.0f / WEIGHTS_TEXEL_SUM);
 			di.texel_weights_4t[j][i] = wb.grid_weights_of_texel[i][j];
 		}
 
@@ -338,10 +344,12 @@ static void init_decimation_info_2d(
 		}
 	}
 
+	di.max_texel_weight_count = max_texel_weight_count;
+
 	for (unsigned int i = 0; i < weights_per_block; i++)
 	{
 		unsigned int texel_count_wt = wb.texel_count_of_weight[i];
-		di.weight_texel_count[i] = (uint8_t)texel_count_wt;
+		di.weight_texel_count[i] = static_cast<uint8_t>(texel_count_wt);
 
 		for (unsigned int j = 0; j < texel_count_wt; j++)
 		{
@@ -349,7 +357,7 @@ static void init_decimation_info_2d(
 
 			// Create transposed versions of these for better vectorization
 			di.weight_texel[j][i] = texel;
-			di.weights_flt[j][i] = (float)wb.texel_weights_of_weight[i][j];
+			di.weights_flt[j][i] = static_cast<float>(wb.texel_weights_of_weight[i][j]);
 
 			// perform a layer of array unrolling. An aspect of this unrolling is that
 			// one of the texel-weight indexes is an identity-mapped index; we will use this
@@ -583,9 +591,11 @@ static void init_decimation_info_3d(
 		}
 	}
 
+	uint8_t max_texel_weight_count = 0;
 	for (unsigned int i = 0; i < texels_per_block; i++)
 	{
 		di.texel_weight_count[i] = wb.weight_count_of_texel[i];
+		max_texel_weight_count = astc::max(max_texel_weight_count, di.texel_weight_count[i]);
 
 		// Init all 4 entries so we can rely on zeros for vectorization
 		for (unsigned int j = 0; j < 4; j++)
@@ -598,15 +608,17 @@ static void init_decimation_info_3d(
 		for (unsigned int j = 0; j < wb.weight_count_of_texel[i]; j++)
 		{
 			di.texel_weights_int_4t[j][i] = wb.weights_of_texel[i][j];
-			di.texel_weights_float_4t[j][i] = ((float)wb.weights_of_texel[i][j]) * (1.0f / WEIGHTS_TEXEL_SUM);
+			di.texel_weights_float_4t[j][i] = static_cast<float>(wb.weights_of_texel[i][j]) * (1.0f / WEIGHTS_TEXEL_SUM);
 			di.texel_weights_4t[j][i] = wb.grid_weights_of_texel[i][j];
 		}
 	}
 
+	di.max_texel_weight_count = max_texel_weight_count;
+
 	for (unsigned int i = 0; i < weights_per_block; i++)
 	{
 		unsigned int texel_count_wt = wb.texel_count_of_weight[i];
-		di.weight_texel_count[i] = (uint8_t)texel_count_wt;
+		di.weight_texel_count[i] = static_cast<uint8_t>(texel_count_wt);
 
 		for (unsigned int j = 0; j < texel_count_wt; j++)
 		{
@@ -747,31 +759,30 @@ static void assign_kmeans_texels(
  * @param y_weights   The number of weights in the Y dimension.
  * @param bsd         The block size descriptor we are populating.
  * @param wb          The decimation table init scratch working buffers.
- *
- * @return The new entry's index in the compacted decimation table array.
+ * @param index       The packed array index to populate.
  */
-static int construct_dt_entry_2d(
+static void construct_dt_entry_2d(
 	unsigned int x_texels,
 	unsigned int y_texels,
 	unsigned int x_weights,
 	unsigned int y_weights,
 	block_size_descriptor& bsd,
-	dt_init_working_buffers& wb
+	dt_init_working_buffers& wb,
+	unsigned int index
 ) {
-	unsigned int dm_index = bsd.decimation_mode_count;
 	unsigned int weight_count = x_weights * y_weights;
 	assert(weight_count <= BLOCK_MAX_WEIGHTS);
 
 	bool try_2planes = (2 * weight_count) <= BLOCK_MAX_WEIGHTS;
 
-	decimation_info *di = aligned_malloc<decimation_info>(sizeof(decimation_info), ASTCENC_VECALIGN);
-	init_decimation_info_2d(x_texels, y_texels, x_weights, y_weights, *di, wb);
+	decimation_info& di = bsd.decimation_tables[index];
+	init_decimation_info_2d(x_texels, y_texels, x_weights, y_weights, di, wb);
 
 	int maxprec_1plane = -1;
 	int maxprec_2planes = -1;
 	for (int i = 0; i < 12; i++)
 	{
-		unsigned int bits_1plane = get_ise_sequence_bitcount(weight_count, (quant_method)i);
+		unsigned int bits_1plane = get_ise_sequence_bitcount(weight_count, static_cast<quant_method>(i));
 		if (bits_1plane >= BLOCK_MIN_WEIGHT_BITS && bits_1plane <= BLOCK_MAX_WEIGHT_BITS)
 		{
 			maxprec_1plane = i;
@@ -779,7 +790,7 @@ static int construct_dt_entry_2d(
 
 		if (try_2planes)
 		{
-			unsigned int bits_2planes = get_ise_sequence_bitcount(2 * weight_count, (quant_method)i);
+			unsigned int bits_2planes = get_ise_sequence_bitcount(2 * weight_count, static_cast<quant_method>(i));
 			if (bits_2planes >= BLOCK_MIN_WEIGHT_BITS && bits_2planes <= BLOCK_MAX_WEIGHT_BITS)
 			{
 				maxprec_2planes = i;
@@ -789,16 +800,10 @@ static int construct_dt_entry_2d(
 
 	// At least one of the two should be valid ...
 	assert(maxprec_1plane >= 0 || maxprec_2planes >= 0);
-	bsd.decimation_modes[dm_index].maxprec_1plane = static_cast<int8_t>(maxprec_1plane);
-	bsd.decimation_modes[dm_index].maxprec_2planes = static_cast<int8_t>(maxprec_2planes);
-
-	// Default to not enabled - we'll populate these based on active block modes
-	bsd.decimation_modes[dm_index].percentile_hit = false;
-
-	bsd.decimation_tables[dm_index] = di;
-
-	bsd.decimation_mode_count++;
-	return dm_index;
+	bsd.decimation_modes[index].maxprec_1plane = static_cast<int8_t>(maxprec_1plane);
+	bsd.decimation_modes[index].maxprec_2planes = static_cast<int8_t>(maxprec_2planes);
+	bsd.decimation_modes[index].ref_1_plane = 0;
+	bsd.decimation_modes[index].ref_2_planes = 0;
 }
 
 /**
@@ -828,7 +833,6 @@ static void construct_block_size_descriptor_2d(
 	bsd.ydim = static_cast<uint8_t>(y_texels);
 	bsd.zdim = 1;
 	bsd.texel_count = static_cast<uint8_t>(x_texels * y_texels);
-	bsd.decimation_mode_count = 0;
 
 	for (unsigned int i = 0; i < MAX_DMI; i++)
 	{
@@ -838,6 +842,7 @@ static void construct_block_size_descriptor_2d(
 	// Gather all the decimation grids that can be used with the current block
 #if !defined(ASTCENC_DECOMPRESS_ONLY)
 	const float *percentiles = get_2d_percentile_table(x_texels, y_texels);
+	float always_cutoff = 0.0f;
 #else
 	// Unused in decompress-only builds
 	(void)can_omit_modes;
@@ -845,58 +850,89 @@ static void construct_block_size_descriptor_2d(
 #endif
 
 	// Construct the list of block formats referencing the decimation tables
-	unsigned int packed_idx = 0;
-	unsigned int always_block_mode_count = 0;
-	unsigned int always_decimation_mode_count = 0;
+	unsigned int packed_bm_idx = 0;
+	unsigned int packed_dm_idx = 0;
 
-	float always_threshold = 0.0f;
+	// Trackers
+	unsigned int bm_counts[4] { 0 };
+	unsigned int dm_counts[4] { 0 };
 
-	// Iterate twice; first time keep the "always" blocks, second time keep the "non-always" blocks.
-	// This ensures that the always block modes and decimation modes are at the start of the list.
-	for (unsigned int j = 0; j < 2; j ++)
+	// Clear the list to a known-bad value
+	for (unsigned int i = 0; i < WEIGHTS_MAX_BLOCK_MODES; i++)
+	{
+		bsd.block_mode_packed_index[i] = BLOCK_BAD_BLOCK_MODE;
+	}
+
+	// Iterate four times to build a usefully ordered list:
+	//   - Pass 0 - keep selected single plane "always" block modes
+	//   - Pass 1 - keep selected single plane "non-always" block modes
+	//   - Pass 2 - keep select dual plane block modes
+	//   - Pass 3 - keep everything else that's legal
+	unsigned int limit = can_omit_modes ? 3 : 4;
+	for (unsigned int j = 0; j < limit; j ++)
 	{
 		for (unsigned int i = 0; i < WEIGHTS_MAX_BLOCK_MODES; i++)
 		{
-			unsigned int x_weights, y_weights;
+			// Skip modes we've already included in a previous pass
+			if (bsd.block_mode_packed_index[i] != BLOCK_BAD_BLOCK_MODE)
+			{
+				continue;
+			}
+
+			// Decode parameters
+			unsigned int x_weights;
+			unsigned int y_weights;
 			bool is_dual_plane;
-
 			unsigned int quant_mode;
+			unsigned int weight_bits;
+			bool valid = decode_block_mode_2d(i, x_weights, y_weights, is_dual_plane, quant_mode, weight_bits);
 
+			// Always skip invalid encodings for the current block size
+			if (!valid || (x_weights > x_texels) || (y_weights > y_texels))
+			{
+				continue;
+			}
+
+			// Selectively skip dual plane encodings
+			if (((j <= 1) && is_dual_plane) || (j == 2 && !is_dual_plane))
+			{
+				continue;
+			}
+
+			// Always skip encodings we can't physically encode based on
+			// generic encoding bit availability
+			if (is_dual_plane)
+			{
+				 // This is the only check we need as only support 1 partition
+				 if ((109 - weight_bits) <= 0)
+				 {
+					continue;
+				 }
+			}
+			else
+			{
+				// This is conservative - fewer bits may be available for > 1 partition
+				 if ((111 - weight_bits) <= 0)
+				 {
+					continue;
+				 }
+			}
+
+			// Selectively skip encodings based on percentile
+			bool percentile_hit = false;
 	#if !defined(ASTCENC_DECOMPRESS_ONLY)
-			float percentile = percentiles[i];
-			bool selected = (percentile <= mode_cutoff) || !can_omit_modes;
-
-			if (j == 0 && percentile > always_threshold)
+			if (j == 0)
 			{
-				continue;
+				percentile_hit = percentiles[i] <= always_cutoff;
 			}
-
-			if (j == 1 && percentile <= always_threshold)
+			else
 			{
-				continue;
-			}
-
-	#else
-			// Decompressor builds can never discard modes, as we cannot make any
-			// assumptions about the modes the original compressor used
-			bool selected = true;
-
-			if (j == 1)
-			{
-				continue;
+				percentile_hit = percentiles[i] <= mode_cutoff;
 			}
 	#endif
 
-			// ASSUMPTION: No compressor will use more weights in a dimension than
-			// the block has actual texels, because it wastes bits. Decompression
-			// of an image which violates this assumption will fail, even though it
-			// is technically permitted by the specification.
-
-			// Skip modes that are invalid, too large, or not selected by heuristic
-			bool valid = decode_block_mode_2d(i, x_weights, y_weights, is_dual_plane, quant_mode);
-			if (!selected || !valid || (x_weights > x_texels) || (y_weights > y_texels))
+			if (j != 3 && !percentile_hit)
 			{
-				bsd.block_mode_packed_index[i] = BLOCK_BAD_BLOCK_MODE;
 				continue;
 			}
 
@@ -904,63 +940,62 @@ static void construct_block_size_descriptor_2d(
 			int decimation_mode = decimation_mode_index[y_weights * 16 + x_weights];
 			if (decimation_mode < 0)
 			{
-				decimation_mode = construct_dt_entry_2d(x_texels, y_texels, x_weights, y_weights, bsd, *wb);
-				decimation_mode_index[y_weights * 16 + x_weights] = decimation_mode;
+				construct_dt_entry_2d(x_texels, y_texels, x_weights, y_weights, bsd, *wb, packed_dm_idx);
+				decimation_mode_index[y_weights * 16 + x_weights] = packed_dm_idx;
+				decimation_mode = packed_dm_idx;
 
-	#if !defined(ASTCENC_DECOMPRESS_ONLY)
-				if (percentile <= always_threshold)
-				{
-					always_decimation_mode_count++;
-				}
-	#endif
+				dm_counts[j]++;
+				packed_dm_idx++;
 			}
 
-	#if !defined(ASTCENC_DECOMPRESS_ONLY)
-			// Flatten the block mode heuristic into some precomputed flags
-			if (percentile <= always_threshold)
+			auto& bm = bsd.block_modes[packed_bm_idx];
+			auto& dm = bsd.decimation_modes[decimation_mode];
+
+			if (is_dual_plane)
 			{
-				always_block_mode_count++;
-				bsd.block_modes[packed_idx].percentile_hit = true;
-				bsd.decimation_modes[decimation_mode].percentile_hit = true;
-			}
-			else if (percentile <= mode_cutoff)
-			{
-				bsd.block_modes[packed_idx].percentile_hit = true;
-				bsd.decimation_modes[decimation_mode].percentile_hit = true;
+				dm.ref_2_planes = 1;
 			}
 			else
 			{
-				bsd.block_modes[packed_idx].percentile_hit = false;
+				dm.ref_1_plane = 1;
 			}
-	#endif
 
-			bsd.block_modes[packed_idx].decimation_mode = static_cast<uint8_t>(decimation_mode);
-			bsd.block_modes[packed_idx].quant_mode = static_cast<uint8_t>(quant_mode);
-			bsd.block_modes[packed_idx].is_dual_plane = static_cast<uint8_t>(is_dual_plane);
-			bsd.block_modes[packed_idx].mode_index = static_cast<uint16_t>(i);
-			bsd.block_mode_packed_index[i] = static_cast<uint16_t>(packed_idx);
-			packed_idx++;
+			bm.decimation_mode = static_cast<uint8_t>(decimation_mode);
+			bm.quant_mode = static_cast<uint8_t>(quant_mode);
+			bm.is_dual_plane = static_cast<uint8_t>(is_dual_plane);
+			bm.weight_bits = static_cast<uint8_t>(weight_bits);
+			bm.mode_index = static_cast<uint16_t>(i);
+
+			bsd.block_mode_packed_index[i] = static_cast<uint16_t>(packed_bm_idx);
+
+			packed_bm_idx++;
+			bm_counts[j]++;
 		}
 	}
 
-	bsd.block_mode_count = packed_idx;
-	bsd.always_block_mode_count = always_block_mode_count;
-	bsd.always_decimation_mode_count = always_decimation_mode_count;
+	bsd.block_mode_count_1plane_always = bm_counts[0];
+	bsd.block_mode_count_1plane_selected = bm_counts[0] + bm_counts[1];
+	bsd.block_mode_count_1plane_2plane_selected = bm_counts[0] + bm_counts[1] + bm_counts[2];
+	bsd.block_mode_count_all = bm_counts[0] + bm_counts[1] + bm_counts[2] + bm_counts[3];
+
+	bsd.decimation_mode_count_always = dm_counts[0];
+	bsd.decimation_mode_count_selected = dm_counts[0] + dm_counts[1] + dm_counts[2];
+	bsd.decimation_mode_count_all = dm_counts[0] + dm_counts[1] + dm_counts[2] + dm_counts[3];
 
 #if !defined(ASTCENC_DECOMPRESS_ONLY)
-	assert(bsd.always_block_mode_count > 0);
-	assert(bsd.always_decimation_mode_count > 0);
+	assert(bsd.block_mode_count_1plane_always > 0);
+	assert(bsd.decimation_mode_count_always > 0);
 
 	delete[] percentiles;
 #endif
 
 	// Ensure the end of the array contains valid data (should never get read)
-	for (unsigned int i = bsd.decimation_mode_count; i < WEIGHTS_MAX_DECIMATION_MODES; i++)
+	for (unsigned int i = bsd.decimation_mode_count_all; i < WEIGHTS_MAX_DECIMATION_MODES; i++)
 	{
 		bsd.decimation_modes[i].maxprec_1plane = -1;
 		bsd.decimation_modes[i].maxprec_2planes = -1;
-		bsd.decimation_modes[i].percentile_hit = false;
-		bsd.decimation_tables[i] = nullptr;
+		bsd.decimation_modes[i].ref_1_plane = 0;
+		bsd.decimation_modes[i].ref_2_planes = 0;
 	}
 
 	// Determine the texels to use for kmeans clustering.
@@ -1017,21 +1052,21 @@ static void construct_block_size_descriptor_3d(
 					continue;
 				}
 
-				decimation_info *di = aligned_malloc<decimation_info>(sizeof(decimation_info), ASTCENC_VECALIGN);
+				decimation_info& di = bsd.decimation_tables[decimation_mode_count];
 				decimation_mode_index[z_weights * 64 + y_weights * 8 + x_weights] = decimation_mode_count;
-				init_decimation_info_3d(x_texels, y_texels, z_texels, x_weights, y_weights, z_weights, *di, *wb);
+				init_decimation_info_3d(x_texels, y_texels, z_texels, x_weights, y_weights, z_weights, di, *wb);
 
 				int maxprec_1plane = -1;
 				int maxprec_2planes = -1;
 				for (unsigned int i = 0; i < 12; i++)
 				{
-					unsigned int bits_1plane = get_ise_sequence_bitcount(weight_count, (quant_method)i);
+					unsigned int bits_1plane = get_ise_sequence_bitcount(weight_count, static_cast<quant_method>(i));
 					if (bits_1plane >= BLOCK_MIN_WEIGHT_BITS && bits_1plane <= BLOCK_MAX_WEIGHT_BITS)
 					{
 						maxprec_1plane = i;
 					}
 
-					unsigned int bits_2planes = get_ise_sequence_bitcount(2 * weight_count, (quant_method)i);
+					unsigned int bits_2planes = get_ise_sequence_bitcount(2 * weight_count, static_cast<quant_method>(i));
 					if (bits_2planes >= BLOCK_MIN_WEIGHT_BITS && bits_2planes <= BLOCK_MAX_WEIGHT_BITS)
 					{
 						maxprec_2planes = i;
@@ -1045,8 +1080,8 @@ static void construct_block_size_descriptor_3d(
 
 				bsd.decimation_modes[decimation_mode_count].maxprec_1plane = static_cast<int8_t>(maxprec_1plane);
 				bsd.decimation_modes[decimation_mode_count].maxprec_2planes = static_cast<int8_t>(maxprec_2planes);
-				bsd.decimation_modes[decimation_mode_count].percentile_hit = false;
-				bsd.decimation_tables[decimation_mode_count] = di;
+				bsd.decimation_modes[decimation_mode_count].ref_1_plane = maxprec_1plane == -1 ? 0 : 1;
+				bsd.decimation_modes[decimation_mode_count].ref_2_planes = maxprec_2planes == -1 ? 0 : 1;
 				decimation_mode_count++;
 			}
 		}
@@ -1057,59 +1092,94 @@ static void construct_block_size_descriptor_3d(
 	{
 		bsd.decimation_modes[i].maxprec_1plane = -1;
 		bsd.decimation_modes[i].maxprec_2planes = -1;
-		bsd.decimation_modes[i].percentile_hit = false;
-		bsd.decimation_tables[i] = nullptr;
+		bsd.decimation_modes[i].ref_1_plane = 0;
+		bsd.decimation_modes[i].ref_2_planes = 0;
 	}
 
-	bsd.decimation_mode_count = decimation_mode_count;
+	bsd.decimation_mode_count_always = 0; // Skipped for 3D modes
+	bsd.decimation_mode_count_selected = decimation_mode_count;
+	bsd.decimation_mode_count_all = decimation_mode_count;
 
 	// Construct the list of block formats
-	unsigned int packed_idx = 0;
+	// Construct the list of block formats referencing the decimation tables
+
+	// Clear the list to a known-bad value
 	for (unsigned int i = 0; i < WEIGHTS_MAX_BLOCK_MODES; i++)
 	{
-		unsigned int x_weights, y_weights, z_weights;
-		bool is_dual_plane;
-		unsigned int quant_mode;
-		bool permit_encode = true;
-
-		if (decode_block_mode_3d(i, x_weights, y_weights, z_weights, is_dual_plane, quant_mode))
-		{
-			if (x_weights > x_texels || y_weights > y_texels || z_weights > z_texels)
-			{
-				permit_encode = false;
-			}
-		}
-		else
-		{
-			permit_encode = false;
-		}
-
-		if (!permit_encode)
-		{
-			bsd.block_mode_packed_index[i] = BLOCK_BAD_BLOCK_MODE;
-			continue;
-		}
-
-		int decimation_mode = decimation_mode_index[z_weights * 64 + y_weights * 8 + x_weights];
-		bsd.block_modes[packed_idx].decimation_mode = static_cast<uint8_t>(decimation_mode);
-		bsd.block_modes[packed_idx].quant_mode = static_cast<uint8_t>(quant_mode);
-		bsd.block_modes[packed_idx].is_dual_plane = static_cast<uint8_t>(is_dual_plane);
-		bsd.block_modes[packed_idx].mode_index = static_cast<uint16_t>(i);
-
-		// No percentile table, so enable everything all the time ...
-		bsd.block_modes[packed_idx].percentile_hit = true;
-		bsd.decimation_modes[decimation_mode].percentile_hit = true;
-
-		bsd.block_mode_packed_index[i] = static_cast<uint16_t>(packed_idx);
-
-		packed_idx++;
+		bsd.block_mode_packed_index[i] = BLOCK_BAD_BLOCK_MODE;
 	}
 
-	bsd.block_mode_count = packed_idx;
+	unsigned int packed_idx = 0;
+	unsigned int bm_counts[2] { 0 };
 
-	// These are never used = the MODE0 fast path is skipped for 3D blocks
-	bsd.always_block_mode_count = 0;
-	bsd.always_decimation_mode_count = 0;
+	// Iterate two times to build a usefully ordered list:
+	//   - Pass 0 - keep valid single plane block modes
+	//   - Pass 1 - keep valid dual plane block modes
+	for (unsigned int j = 0; j < 2; j++)
+	{
+		for (unsigned int i = 0; i < WEIGHTS_MAX_BLOCK_MODES; i++)
+		{
+			// Skip modes we've already included in a previous pass
+			if (bsd.block_mode_packed_index[i] != BLOCK_BAD_BLOCK_MODE)
+			{
+				continue;
+			}
+
+			unsigned int x_weights;
+			unsigned int y_weights;
+			unsigned int z_weights;
+			bool is_dual_plane;
+			unsigned int quant_mode;
+			unsigned int weight_bits;
+
+			bool valid = decode_block_mode_3d(i, x_weights, y_weights, z_weights, is_dual_plane, quant_mode, weight_bits);
+			// Skip invalid encodings
+			if (!valid || x_weights > x_texels || y_weights > y_texels || z_weights > z_texels)
+			{
+				continue;
+			}
+
+			// Skip encodings in the wrong iteration
+			if ((j == 0 && is_dual_plane) || (j == 1 && !is_dual_plane))
+			{
+				continue;
+			}
+
+			// Always skip encodings we can't physically encode based on bit availability
+			if (is_dual_plane)
+			{
+				 // This is the only check we need as only support 1 partition
+				 if ((109 - weight_bits) <= 0)
+				 {
+					continue;
+				 }
+			}
+			else
+			{
+				// This is conservative - fewer bits may be available for > 1 partition
+				 if ((111 - weight_bits) <= 0)
+				 {
+					continue;
+				 }
+			}
+
+			int decimation_mode = decimation_mode_index[z_weights * 64 + y_weights * 8 + x_weights];
+			bsd.block_modes[packed_idx].decimation_mode = static_cast<uint8_t>(decimation_mode);
+			bsd.block_modes[packed_idx].quant_mode = static_cast<uint8_t>(quant_mode);
+			bsd.block_modes[packed_idx].weight_bits = static_cast<uint8_t>(weight_bits);
+			bsd.block_modes[packed_idx].is_dual_plane = static_cast<uint8_t>(is_dual_plane);
+			bsd.block_modes[packed_idx].mode_index = static_cast<uint16_t>(i);
+
+			bsd.block_mode_packed_index[i] = static_cast<uint16_t>(packed_idx);
+			bm_counts[j]++;
+			packed_idx++;
+		}
+	}
+
+	bsd.block_mode_count_1plane_always = 0;  // Skipped for 3D modes
+	bsd.block_mode_count_1plane_selected = bm_counts[0];
+	bsd.block_mode_count_1plane_2plane_selected = bm_counts[0] + bm_counts[1];
+	bsd.block_mode_count_all = bm_counts[0] + bm_counts[1];
 
 	// Determine the texels to use for kmeans clustering.
 	assign_kmeans_texels(bsd);
@@ -1123,6 +1193,7 @@ void init_block_size_descriptor(
 	unsigned int y_texels,
 	unsigned int z_texels,
 	bool can_omit_modes,
+	unsigned int partition_count_cutoff,
 	float mode_cutoff,
 	block_size_descriptor& bsd
 ) {
@@ -1135,15 +1206,5 @@ void init_block_size_descriptor(
 		construct_block_size_descriptor_2d(x_texels, y_texels, can_omit_modes, mode_cutoff, bsd);
 	}
 
-	init_partition_tables(bsd);
-}
-
-/* See header for documentation. */
-void term_block_size_descriptor(
-	block_size_descriptor& bsd
-) {
-	for (unsigned int i = 0; i < bsd.decimation_mode_count; i++)
-	{
-		aligned_free<const decimation_info>(bsd.decimation_tables[i]);
-	}
+	init_partition_tables(bsd, can_omit_modes, partition_count_cutoff);
 }

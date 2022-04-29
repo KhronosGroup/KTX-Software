@@ -55,8 +55,8 @@ static int pthread_create(
 	void* (*threadfunc)(void*),
 	void* thread_arg
 ) {
-	(void)attribs;
-	LPTHREAD_START_ROUTINE func = (LPTHREAD_START_ROUTINE)threadfunc;
+	static_cast<void>(attribs);
+	LPTHREAD_START_ROUTINE func = reinterpret_cast<LPTHREAD_START_ROUTINE>(threadfunc);
 	*thread = CreateThread(nullptr, 0, func, thread_arg, 0, nullptr);
 	return 0;
 }
@@ -68,7 +68,7 @@ static int pthread_join(
 	pthread_t thread,
 	void** value
 ) {
-	(void)value;
+	static_cast<void>(value);
 	WaitForSingleObject(thread, INFINITE);
 	return 0;
 }
@@ -88,7 +88,7 @@ double get_time()
 	GetSystemTimePreciseAsFileTime(&tv);
 	unsigned long long ticks = tv.dwHighDateTime;
 	ticks = (ticks << 32) | tv.dwLowDateTime;
-	return ((double)ticks) / 1.0e7;
+	return static_cast<double>(ticks) / 1.0e7;
 }
 
 /* ============================================================================
@@ -111,7 +111,7 @@ double get_time()
 {
 	timeval tv;
 	gettimeofday(&tv, 0);
-	return (double)tv.tv_sec + (double)tv.tv_usec * 1.0e-6;
+	return static_cast<double>(tv.tv_sec) + static_cast<double>(tv.tv_usec) * 1.0e-6;
 }
 
 #endif
@@ -144,7 +144,7 @@ struct launch_desc
 static void* launch_threads_helper(
 	void *p
 ) {
-	launch_desc* ltd = (launch_desc*)p;
+	launch_desc* ltd = reinterpret_cast<launch_desc*>(p);
 	ltd->func(ltd->thread_count, ltd->thread_id, ltd->payload);
 	return nullptr;
 }
@@ -172,7 +172,7 @@ void launch_threads(
 		thread_descs[i].func = func;
 
 		pthread_create(&(thread_descs[i].thread_handle), nullptr,
-		               launch_threads_helper, (void*)&(thread_descs[i]));
+		               launch_threads_helper, reinterpret_cast<void*>(thread_descs + i));
 	}
 
 	// ... and then wait for them to complete
