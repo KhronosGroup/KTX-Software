@@ -278,7 +278,7 @@ before_deploy:
 deploy:
   - provider: pages
     #edge: true # Use bleeding edge (dplv2)
-    cleanup: false
+    skip_cleanup: true    # dpl v1 only
     token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
     local_dir: $BUILD_DIR/docs/html
     on:
@@ -302,9 +302,9 @@ deploy:
     # dpl v1. Sadly this doesn't work. See https://github.com/travis-ci/dpl/issues/155.
     # body: $RELNOTES
     # Do release note deployment manually for now.
-    cleanup: false
+    skip_cleanup: true    # dpl v1 only
     draft: true
-    #prerelease: true
+    prerelease: true
     on:
       tags: true
       #branch: master
