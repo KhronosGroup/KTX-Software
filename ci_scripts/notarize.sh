@@ -10,15 +10,16 @@
 # Usage: notarize.sh <path/to/pkg> <appleid> <devteam> <password-label>
 #    path/to/pkg - path a signed .pkg file to be notarized.
 #    appleid - Apple developer login.
-#    devtem - 10 character development team identifier.
-#    password - app-specific password for altool to use when logging in to <applieid>.
-#               If the password is stored in the keychain then this argument should be
-#               of the form @keychain:<pw_label> where <pw_label> is the label
-#               of the password in the keychain.
+#    devteam - 10 character development team identifier.
+#    password - app-specific password for altool to use when logging in to
+#               <applieid>. If the password is stored in the keychain then
+#               this argument should be of the form @keychain:<pw_label>
+#               where <pw_label> is the label of the password in the keychain.
 #
-# Retrieving this password from the keychain during a Travis-CI build is not working for
-# reasons that are not clear. altool is hanging. Clearly macOS security is asking
-# for permission for altool to access the keychain, even though this was set up.
+# Retrieving this password from the keychain during a Travis-CI build is not
+# working for reasons that are not clear. altool is hanging. Clearly macOS
+# security is asking for permission for altool to access the keychain, even
+# though this was set up.
 
 # Thanks to Armin Briegel for the script that inspired this one.
 
