@@ -1,7 +1,19 @@
 # Copyright (c) 2021, Shukant Pal and Contributors
 # SPDX-License-Identifier: Apache-2.0
 
+# This ugliness is to workaround that, unless JAVA_HOME is explicitly set,
+# FindJNI tries to find a Java framework even though recent Java versions,
+# such as we need, are not Frameworks so the search fails. This is still the
+# case in CMake 3.19.2. Even if this is fixed in the latest CMake, due to some
+# of our CI build environments we can't use it.
+if(DEFINED CMAKE_FIND_FRAMEWORK)
+    set(SAVED_CMAKE_FIND_FRAMEWORK ${CMAKE_FIND_FRAMEWORK})
+endif()
+set(CMAKE_FIND_FRAMEWORK NEVER)
 find_package(JNI 11 REQUIRED COMPONENTS Development)
+if(DEFINED SAVED_CMAKE_FIND_FRAMEWORK)
+    set(CMAKE_FIND_FRAMEWORK ${SAVED_CMAKE_FIND_FRAMEWORK})
+endif()
 if(WIN32)
     set(maven_cmd "mvn.cmd")
 else()
