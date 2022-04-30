@@ -2,20 +2,22 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 Release Notes
 =============
-## Version 4.1.0
+## Version 4.1.0-rc1
 ### New Features in v4.1.0
 
-ARM's ASTC encoder has been added to `libktx`.
+* ARM's ASTC encoder has been added to `libktx`. As a result you can now use `toktx` to create KTX files with ASTC encoded payloads.
 
-Full normal map handling has been added. 3-component normal maps can be
-converted to 2-component and the components separated into the RGB and alpha channels of ASTC, ETC1S or UASTC compressed textures. A `--normalize` option has been added to `toktx` to convert an input normal map to the unit normals needed.
+* Full normal map handling has been added. 3-component normal maps can be
+converted to 2-component and the components separated into the RGB and alpha channels of ASTC, ETC1S or UASTC compressed textures. A `--normalize` option has been added to `toktx` to convert an input normal map to unit normals which are needed to allow the third component to be recreated in a shader.
 
-A Java wrapper and JNI module for `libktx` has been added.
+* A Java wrapper and JNI module for `libktx` has been added.
+
+* An install package for Apple Silicon has been added.
 
 ### Significant Changes since v4.0.0
 
 * Basis Universal has been updated to version 1.16.3. Encoder performance is
-hugely improved with the ETC1S encoder being 4 times faster.
+hugely improved compared to v4.0.0 with the ETC1S encoder being 4 times faster.
 
 
 ### Known Issues in v4.1.0.
@@ -53,158 +55,166 @@ in the basis_universal repository.
 ### Changes since v4.0.0 (by part)
 ### libktx
 
-* Farewell GYP. :-( (f1f04a7e) (@null)
+* git subrepo pull (merge) lib/astc-encoder (51f47631) (@MarkCallow)
 
-* Miscellaneous fixes (#558) (66f6d750) (@null)
+* git subrepo pull (merge) lib/dfdutils (7c24a986) (@MarkCallow)
 
-* Fix new in clang 13.1 (Xcode13.3) warnings (#553) (b8d462b0) (@null)
+* git subrepo pull (merge) lib/dfdutils (c5abc161) (@MarkCallow)
 
-* Fix non-clang warnings (#549) (4e7e40a0) (@null)
+* Farewell GYP. :-( (f1f04a7e) (@MarkCallow)
 
-* Split each build configuration into a separate CI job.  (#546) (9d1204cc) (@null)
+* Miscellaneous fixes (#558) (66f6d750) (@MarkCallow)
 
-* Update to Basis1.16.3 (#543) (c65cfd0d) (@null)
+* Fix new in clang 13.1 (Xcode13.3) warnings (#553) (b8d462b0) (@MarkCallow)
 
-* Remove image.hpp dependency (#542) (9fde96b9) (@null)
+* Fix non-clang warnings (#549) (4e7e40a0) (@MarkCallow)
 
-* Update to Basis 1.16.1 (#541) (cb45eadc) (@null)
+* Split each build configuration into a separate CI job.  (#546) (9d1204cc) (@MarkCallow)
 
-* git subrepo pull (merge) lib/astc-encoder (#540) (d98aa680) (@null)
+* Update to Basis1.16.3 (#543) (c65cfd0d) (@MarkCallow)
 
-* git subrepo pull (merge) lib/astc-encoder (#537) (dbfeb82a) (@null)
+* Remove image.hpp dependency (#542) (9fde96b9) (@wasimabbas-arm)
 
-* Add astc perceptual mode support (#534) (57e62de1) (@null)
+* Update to Basis 1.16.1 (#541) (cb45eadc) (@MarkCallow)
 
-* Improve Astc & BasisU normal map support (#493) (2d6ff949) (@null)
+* git subrepo pull (merge) lib/astc-encoder (#540) (d98aa680) (@wasimabbas-arm)
 
-* git subrepo pull lib/dfdutils (5ff4811c) (@null)
+* git subrepo pull (merge) lib/astc-encoder (#537) (dbfeb82a) (@wasimabbas-arm)
 
-* git subrepo push lib/dfdutils (ce2a4619) (@null)
+* Add astc perceptual mode support (#534) (57e62de1) (@wasimabbas-arm)
 
-* Calculate dst buffer size with ZSTD\_compressBound. (#527) (81d2be5c) (@null)
+* Improve Astc & BasisU normal map support (#493) (2d6ff949) (@wasimabbas-arm)
 
-* Remove extraneous token concatenation operator. (a8f4a71d) (@null)
+* git subrepo pull lib/dfdutils (5ff4811c) (@MarkCallow)
 
-* Fix malloc/delete pair. (0a3fe5b1) (@null)
+* git subrepo push lib/dfdutils (ce2a4619) (@MarkCallow)
 
-* Manually update git-subrepo parent (929c75c3) (@null)
+* Calculate dst buffer size with ZSTD\_compressBound. (#527) (81d2be5c) (@MarkCallow)
 
-* git subrepo pull (merge) lib/astc-encoder (f5daffea) (@null)
+* Remove extraneous token concatenation operator. (a8f4a71d) (@MarkCallow)
 
-* Fix parent commit pointer. (1a356d0e) (@null)
+* Fix malloc/delete pair. (0a3fe5b1) (@sergeyext)
 
-* git subrepo pull (merge) lib/basisu (24c9f7bb) (@null)
+* Manually update git-subrepo parent (929c75c3) (@wasimabbas-arm)
 
-* Move common params out from ETC1S case. (a2ccc90e) (@null)
+* git subrepo pull (merge) lib/astc-encoder (f5daffea) (@wasimabbas-arm)
 
-* Remove transferFunction from astc options (#482) (1f085d30) (@null)
+* Fix parent commit pointer. (1a356d0e) (@MarkCallow)
 
-* Fix leak in zstd inflation. Fixes #465. (720b6cf3) (@null)
+* git subrepo pull (merge) lib/basisu (24c9f7bb) (@MarkCallow)
 
-* Support array and 3d textures. (#468) (b0532530) (@null)
+* Move common params out from ETC1S case. (a2ccc90e) (@MarkCallow)
 
-* Add more astc tests (#460) (14284e7d) (@null)
+* Remove transferFunction from astc options (#482) (1f085d30) (@wasimabbas-arm)
 
-* Add astc support (#433) (da435dee) (@null)
+* Fix leak in zstd inflation. Fixes #465. (720b6cf3) (@MarkCallow)
 
-* Actually byte swap keyAndValueByteSize values. Fix issue #447. (00118086) (@null)
+* Support array and 3d textures. (#468) (b0532530) (@MarkCallow)
 
-* Add KTXmetalPixelFormat to valid list used by ktxTexture2\_WriteToStream. (871f111d) (@null)
+* Add more astc tests (#460) (14284e7d) (@wasimabbas-arm)
 
-* Fix astc-encoder/.gitrepo parent after latest pull. (f99221eb) (@null)
+* Add astc support (#433) (da435dee) (@wasimabbas-arm)
 
-* git subrepo pull (merge) lib/astc-encoder (66692454) (@null)
+* Actually byte swap keyAndValueByteSize values. Fix issue #447. (00118086) (@MarkCallow)
 
-* Fix astc-encoder/.gitrepo parent pointer. (f39b13b1) (@null)
+* Add KTXmetalPixelFormat to valid list used by ktxTexture2\_WriteToStream. (871f111d) (@MarkCallow)
 
-* Fix memory leak in VkUpload (#448) (2b2b48fa) (@null)
+* Fix astc-encoder/.gitrepo parent after latest pull. (f99221eb) (@MarkCallow)
 
-* Fix: if ("GL\_EXT\_texture\_sRGB") is supported,then srgb should be supported (#446) (13f17410) (@null)
+* git subrepo pull (merge) lib/astc-encoder (66692454) (@MarkCallow)
 
-* git subrepo commit (merge) lib/astc-encoder (1264f867) (@null)
+* Fix astc-encoder/.gitrepo parent pointer. (f39b13b1) (@MarkCallow)
 
-* git subrepo pull (merge) lib/astc-encoder (15369663) (@null)
+* Fix memory leak in VkUpload (#448) (2b2b48fa) (@bin)
 
-* Make `ktxStream` public (#438) (78929f80) (@null)
+* Fix: if ("GL\_EXT\_texture\_sRGB") is supported,then srgb should be supported (#446) (13f17410) (@dusthand)
 
-* git subrepo pull (merge) lib/astc-encoder (535c883b) (@null)
+* git subrepo commit (merge) lib/astc-encoder (1264f867) (@MarkCallow)
 
-* Fix mismatched malloc and delete (#440) (9d42b86f) (@null)
+* git subrepo pull (merge) lib/astc-encoder (15369663) (@MarkCallow)
 
-* Cleanup Vulkan SDK environment variables. (354f640e) (@null)
+* Make `ktxStream` public (#438) (78929f80) (@UberLambda)
 
-* git subrepo pull (merge) lib/astc-encoder (3e75b6a3) (@null)
+* git subrepo pull (merge) lib/astc-encoder (535c883b) (@MarkCallow)
 
-* Remove unneeded parts of astc-encoder. (360d10bb) (@null)
+* Fix mismatched malloc and delete (#440) (9d42b86f) (@cperthuisoc)
 
-* git subrepo clone https://github.com/ARM-software/astc-encoder.git lib/astc-encoder (db359593) (@null)
+* Cleanup Vulkan SDK environment variables. (354f640e) (@MarkCallow)
 
-* Raise warning levels to /W4 & -Wall -Wextra (#418) (ca6f6e7d) (@null)
+* git subrepo pull (merge) lib/astc-encoder (3e75b6a3) (@MarkCallow)
 
-* Minor build tweaks (#407) (6a38a069) (@null)
+* Remove unneeded parts of astc-encoder. (360d10bb) (@MarkCallow)
+
+* git subrepo clone https://github.com/ARM-software/astc-encoder.git lib/astc-encoder (db359593) (@MarkCallow)
+
+* Raise warning levels to /W4 & -Wall -Wextra (#418) (ca6f6e7d) (@MarkCallow)
+
+* Minor build tweaks (#407) (6a38a069) (@MarkCallow)
 
 ### Tools
 
-* Farewell GYP. :-( (f1f04a7e) (@null)
+* Farewell GYP. :-( (f1f04a7e) (@MarkCallow)
 
-* Miscellaneous fixes (#558) (66f6d750) (@null)
+* Miscellaneous fixes (#558) (66f6d750) (@MarkCallow)
 
-* Add JNI component and integrate Java build & test with CMake (#556) (e29e0996) (@null)
+* Add JNI component and integrate Java build & test with CMake (#556) (e29e0996) (@MarkCallow)
 
-* Fix non-clang warnings (#549) (4e7e40a0) (@null)
+* Fix non-clang warnings (#549) (4e7e40a0) (@MarkCallow)
 
-* Fix VS warnings (#544) (8c6b3571) (@null)
+* Fix VS warnings (#544) (8c6b3571) (@wasimabbas-arm)
 
-* Remove image.hpp dependency (#542) (9fde96b9) (@null)
+* Remove image.hpp dependency (#542) (9fde96b9) (@wasimabbas-arm)
 
-* Update to Basis 1.16.1 (#541) (cb45eadc) (@null)
+* Update to Basis 1.16.1 (#541) (cb45eadc) (@MarkCallow)
 
-* Improve Astc & BasisU normal map support (#493) (2d6ff949) (@null)
+* Improve Astc & BasisU normal map support (#493) (2d6ff949) (@wasimabbas-arm)
 
-* Validate BasisU Transcode (#532) (39e2d96e) (@null)
+* Validate BasisU Transcode (#532) (39e2d96e) (@MarkCallow)
 
-* Fix mismatched errors for required and optional index entries. (b8786496) (@null)
+* Fix mismatched errors for required and optional index entries. (b8786496) (@MarkCallow)
 
-* fix missing -w flag for ktx2check (eade072d) (@null)
+* fix missing -w flag for ktx2check (eade072d) (@sidsethupathi)
 
-* Remove transferFunction from astc options (#482) (1f085d30) (@null)
+* Remove transferFunction from astc options (#482) (1f085d30) (@wasimabbas-arm)
 
-* Ensure NUL on end of 3d orientation. (74501ef3) (@null)
+* Ensure NUL on end of 3d orientation. (74501ef3) (@MarkCallow)
 
-* Support array and 3d textures. (#468) (b0532530) (@null)
+* Support array and 3d textures. (#468) (b0532530) (@MarkCallow)
 
-* Fix checks for mismatched image attributes. (#466) (4eca0ef3) (@null)
+* Fix checks for mismatched image attributes. (#466) (4eca0ef3) (@MarkCallow)
 
-* Add more astc tests (#460) (14284e7d) (@null)
+* Add more astc tests (#460) (14284e7d) (@wasimabbas-arm)
 
-* Add astc support (#433) (da435dee) (@null)
+* Add astc support (#433) (da435dee) (@wasimabbas-arm)
 
-* macOS Apple Silicon support (#415) (ebab2ea8) (@null)
+* macOS Apple Silicon support (#415) (ebab2ea8) (@atteneder)
 
-* Raise warning levels to /W4 & -Wall -Wextra (#418) (ca6f6e7d) (@null)
+* Raise warning levels to /W4 & -Wall -Wextra (#418) (ca6f6e7d) (@MarkCallow)
 
-* Fix validation errors (#417) (78cd2b01) (@null)
+* Fix validation errors (#417) (78cd2b01) (@MarkCallow)
 
 
 
 ### JS Wrappers
 
-* Farewell GYP. :-( (f1f04a7e) (@null)
+* Farewell GYP. :-( (f1f04a7e) (@MarkCallow)
 
-* Update to Basis 1.16.1 (#541) (cb45eadc) (@null)
+* Update to Basis 1.16.1 (#541) (cb45eadc) (@MarkCallow)
 
-* Raise warning levels to /W4 & -Wall -Wextra (#418) (ca6f6e7d) (@null)
+* Raise warning levels to /W4 & -Wall -Wextra (#418) (ca6f6e7d) (@MarkCallow)
 
 ### Java Wrapper
 
-* Miscellaneous fixes (#558) (66f6d750) (@null)
+* Workaround FindJNI searching for framework when JAVA\_HOME not set. (#566) (957a198b) (@MarkCallow)
 
-* Add JNI component and integrate Java build & test with CMake (#556) (e29e0996) (@null)
+* Miscellaneous fixes (#558) (66f6d750) (@MarkCallow)
 
-* Fix warnings in JNI library and update to latest libktx API. (#548) (6f98b3c4) (@null)
+* Add JNI component and integrate Java build & test with CMake (#556) (e29e0996) (@MarkCallow)
 
-* Update to Basis 1.16.1 (#541) (cb45eadc) (@null)
+* Fix warnings in JNI library and update to latest libktx API. (#548) (6f98b3c4) (@ShukantPal)
 
-* Feature: Java bindings for libktx (#481) (a7159924) (@null)
+* Update to Basis 1.16.1 (#541) (cb45eadc) (@MarkCallow)
+
+* Feature: Java bindings for libktx (#481) (a7159924) (@ShukantPal)
 
 
