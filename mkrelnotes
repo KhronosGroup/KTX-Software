@@ -58,10 +58,10 @@ function commit_summary() {
   # info from GitHub via HTTPS.
   summary=$(git log --pretty="$SUMMARY_FORMAT" -n 1 $hash)
   if [ -z "$pr" ]; then
-    cmtjson="$(curl -n https://api.github.com/repos/KhronosGroup/KTX-Software/commits/$hash 2>/dev/null)"
+    cmtjson="$(curl --netrc https://api.github.com/repos/KhronosGroup/KTX-Software/commits/$hash 2>/dev/null)"
     author="$(echo $cmtjson | jq -r -e '.author.login')"
   else
-    prjson="$(curl -n https://api.github.com/repos/KhronosGroup/KTX-Software/pulls/$pr 2>/dev/null)"
+    prjson="$(curl --netrc https://api.github.com/repos/KhronosGroup/KTX-Software/pulls/$pr 2>/dev/null)"
     author="$(echo $prjson | jq -r -e '.user.login')"
   fi
   summary+=" (@$author)"
