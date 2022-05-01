@@ -135,15 +135,15 @@ jobs:
 #        - CONFIGURATION=Debug
 #          FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=ON
 #          SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF
-#    - os: linux
-#      dist: focal
-#      compiler: clang
-#      services: docker
-#      env:
-#        - WASM_BUILD=YES
-#        - CONFIGURATION=Release
-#          FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=ON
-#          SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF PACKAGE=YES
+    - os: linux
+      dist: focal
+      compiler: clang
+      services: docker
+      env:
+        - WASM_BUILD=YES
+        - CONFIGURATION=Release
+          FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=ON
+          SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF PACKAGE=YES
 
 # Phase 1: Git clone - done automatically.
 # Phase 2: Install apt addons.
