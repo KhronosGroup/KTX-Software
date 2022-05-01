@@ -287,29 +287,32 @@ deploy:
       condition: $TRAVIS_OS_NAME = osx && $ARCHS = x86_64 && $PACKAGE = YES
 
   - provider: releases
-    # dpl v2 is broken. Same named but different releases are created for this
-    # and the deploy below. Happens even when neither of release_notes or
-    # release_notes_file is specified.
-    edge: true # Use bleeding edge (dplv2)
-    # Seemingly unnecessary, this prevents dplv2 from creating multiple drafts.
-    name: $TRAVIS_TAG
     token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
     file_glob: true
     file:
       - $BUILD_DIR/KTX-Software-*-*
-    # This goes to the release description so covers all versions.
-    # These are dpl v2 parameters.
-    #release_notes_file: RELEASE_NOTES.md
-    release_notes: $RELNOTES
-    # dpl v1. Sadly this doesn't work. See https://github.com/travis-ci/dpl/issues/155.
-    # body: $RELNOTES
-    # Do release note deployment manually for now.
-    #skip_cleanup: true    # dpl v1 only
     draft: true
     prerelease: true
     on:
       tags: true
       #branch: master
       condition: $PACKAGE = YES
+    # ------------------- dpl v1 ---------------------
+    # Sadly this doesn't work. See https://github.com/travis-ci/dpl/issues/155.
+    # Do release note deployment manually.
+    #body: $RELNOTES
+    #skip_cleanup: true
+    # ------------------- dpl v2 ---------------------
+    # dpl v2 is broken. Same named but different releases are created for this
+    # and the deploy below. Happens even when neither of release_notes or
+    # release_notes_file is specified.
+    edge: true # Use bleeding edge (dplv2)
+    # Seemingly unnecessary, this prevents dplv2 from creating multiple drafts.
+    name: $TRAVIS_TAG
+    overwrite: true
+    # This goes to the release description so covers all versions.
+    #release_notes_file: RELEASE_NOTES.md
+    release_notes: $RELNOTES
+    # ------------------------------------------------
 
 # vim:ai:ts=4:sts=2:sw=2:expandtab
