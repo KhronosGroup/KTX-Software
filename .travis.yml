@@ -40,9 +40,9 @@ env:
     # them during CI. CI runs on x86_64 and there is a PostBuild command
     # that attempts to execute the compiled-for-m1 tests to have gtest
     # add the list of tests to the cmake test runner.
-    - CONFIGURATION=Debug PLATFORM=macOS ARCHS=x86_64
-      FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=ON FEATURE_TOOLS=ON
-      SUPPORT_SSE=ON SUPPORT_OPENCL=OFF
+#    - CONFIGURATION=Debug PLATFORM=macOS ARCHS=x86_64
+#      FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=ON FEATURE_TOOLS=ON
+#      SUPPORT_SSE=ON SUPPORT_OPENCL=OFF
     - CONFIGURATION=Release PLATFORM=macOS ARCHS=x86_64
       FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=ON FEATURE_TOOLS=ON
       SUPPORT_SSE=ON SUPPORT_OPENCL=OFF PACKAGE=YES
@@ -50,33 +50,33 @@ env:
       FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=ON FEATURE_TESTS=OFF
       FEATURE_TOOLS=ON SUPPORT_SSE=ON SUPPORT_OPENCL=OFF PACKAGE=YES
 
-    - CONFIGURATION=Release PLATFORM=macOS ARCHS=x86_64
-      FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
-      SUPPORT_SSE=ON SUPPORT_OPENCL=ON
-    - CONFIGURATION=Release PLATFORM=macOS ARCHS=arm64
-      FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TESTS=OFF
-      FEATURE_TOOLS=OFF SUPPORT_SSE=ON SUPPORT_OPENCL=ON
-
-    - CONFIGURATION=Release PLATFORM=macOS ARCHS=x86_64
-      FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
-      SUPPORT_SSE=OFF SUPPORT_OPENCL=ON
-    - CONFIGURATION=Release PLATFORM=macOS ARCHS=arm64
-      FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TESTS=OFF
-      FEATURE_TOOLS=OFF SUPPORT_SSE=OFF SUPPORT_OPENCL=ON
-
-    - CONFIGURATION=Release PLATFORM=macOS ARCHS=x86_64
-      FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
-      SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF
-    - CONFIGURATION=Release PLATFORM=macOS ARCHS=arm64
-      FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TESTS=OFF
-      FEATURE_TOOLS=OFF SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF
-
-    - CONFIGURATION=Debug PLATFORM=iOS
-      FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=ON FEATURE_TOOLS=OFF
-      SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF
-    - CONFIGURATION=Release PLATFORM=iOS
-      FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=ON FEATURE_TOOLS=OFF
-      SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF
+#    - CONFIGURATION=Release PLATFORM=macOS ARCHS=x86_64
+#      FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
+#      SUPPORT_SSE=ON SUPPORT_OPENCL=ON
+#    - CONFIGURATION=Release PLATFORM=macOS ARCHS=arm64
+#      FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TESTS=OFF
+#      FEATURE_TOOLS=OFF SUPPORT_SSE=ON SUPPORT_OPENCL=ON
+#
+#    - CONFIGURATION=Release PLATFORM=macOS ARCHS=x86_64
+#      FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
+#      SUPPORT_SSE=OFF SUPPORT_OPENCL=ON
+#    - CONFIGURATION=Release PLATFORM=macOS ARCHS=arm64
+#      FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TESTS=OFF
+#      FEATURE_TOOLS=OFF SUPPORT_SSE=OFF SUPPORT_OPENCL=ON
+#
+#    - CONFIGURATION=Release PLATFORM=macOS ARCHS=x86_64
+#      FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
+#      SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF
+#    - CONFIGURATION=Release PLATFORM=macOS ARCHS=arm64
+#      FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TESTS=OFF
+#      FEATURE_TOOLS=OFF SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF
+#
+#    - CONFIGURATION=Debug PLATFORM=iOS
+#      FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=ON FEATURE_TOOLS=OFF
+#      SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF
+#    - CONFIGURATION=Release PLATFORM=iOS
+#      FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=ON FEATURE_TOOLS=OFF
+#      SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF
 
 jobs:
   include:
@@ -84,15 +84,15 @@ jobs:
       dist: focal
       env:
         - CHECK_REUSE: ONLY
-    - os: linux
-      dist: focal
-      compiler: gcc # clang is tested by macOS build
-      env:
-        # NB: This must not have the fourth component of the version number.
-        - VULKAN_SDK_VER: "1.2.176"
-        - CONFIGURATION=Debug
-          FEATURE_DOC=OFF FEATURE_JNI=ON FEATURE_LOADTESTS=ON FEATURE_TOOLS=ON
-          SUPPORT_SSE=ON SUPPORT_OPENCL=OFF
+#    - os: linux
+#      dist: focal
+#      compiler: gcc # clang is tested by macOS build
+#      env:
+#        # NB: This must not have the fourth component of the version number.
+#        - VULKAN_SDK_VER: "1.2.176"
+#        - CONFIGURATION=Debug
+#          FEATURE_DOC=OFF FEATURE_JNI=ON FEATURE_LOADTESTS=ON FEATURE_TOOLS=ON
+#          SUPPORT_SSE=ON SUPPORT_OPENCL=OFF
     - os: linux
       dist: focal
       compiler: gcc
@@ -102,48 +102,48 @@ jobs:
         - CONFIGURATION=Release
           FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=ON FEATURE_TOOLS=ON
           SUPPORT_SSE=ON SUPPORT_OPENCL=OFF PACKAGE=YES
-    - os: linux
-      dist: focal
-      compiler: gcc
-      env:
-        - CONFIGURATION=Release
-          FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF
-          FEATURE_TOOLS=OFF
-          SUPPORT_SSE=ON SUPPORT_OPENCL=ON PACKAGE=NO
-    - os: linux
-      dist: focal
-      compiler: gcc
-      env:
-        - CONFIGURATION=Release
-          FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF
-          FEATURE_TOOLS=OFF
-          SUPPORT_SSE=OFF SUPPORT_OPENCL=ON PACKAGE=NO
-    - os: linux
-      dist: focal
-      compiler: gcc
-      env:
-        - CONFIGURATION=Release
-          FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF
-          FEATURE_TOOLS=OFF
-          SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF PACKAGE=NO
-    - os: linux
-      dist: focal
-      compiler: clang
-      services: docker
-      env:
-        - WASM_BUILD=YES
-        - CONFIGURATION=Debug
-          FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=ON
-          SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF
-    - os: linux
-      dist: focal
-      compiler: clang
-      services: docker
-      env:
-        - WASM_BUILD=YES
-        - CONFIGURATION=Release
-          FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=ON
-          SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF PACKAGE=YES
+#    - os: linux
+#      dist: focal
+#      compiler: gcc
+#      env:
+#        - CONFIGURATION=Release
+#          FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF
+#          FEATURE_TOOLS=OFF
+#          SUPPORT_SSE=ON SUPPORT_OPENCL=ON PACKAGE=NO
+#    - os: linux
+#      dist: focal
+#      compiler: gcc
+#      env:
+#        - CONFIGURATION=Release
+#          FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF
+#          FEATURE_TOOLS=OFF
+#          SUPPORT_SSE=OFF SUPPORT_OPENCL=ON PACKAGE=NO
+#    - os: linux
+#      dist: focal
+#      compiler: gcc
+#      env:
+#        - CONFIGURATION=Release
+#          FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF
+#          FEATURE_TOOLS=OFF
+#          SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF PACKAGE=NO
+#    - os: linux
+#      dist: focal
+#      compiler: clang
+#      services: docker
+#      env:
+#        - WASM_BUILD=YES
+#        - CONFIGURATION=Debug
+#          FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=ON
+#          SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF
+#    - os: linux
+#      dist: focal
+#      compiler: clang
+#      services: docker
+#      env:
+#        - WASM_BUILD=YES
+#        - CONFIGURATION=Release
+#          FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=ON
+#          SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF PACKAGE=YES
 
 # Phase 1: Git clone - done automatically.
 # Phase 2: Install apt addons.
@@ -284,7 +284,7 @@ deploy:
     on:
       #branch: master
       tags: true
-      condition: $TRAVIS_OS_NAME = osx && ARCHS = x86_64 && PACKAGE = YES
+      condition: $TRAVIS_OS_NAME = osx && $ARCHS = x86_64 && $PACKAGE = YES
 
   - provider: releases
     # dpl v2 is broken. Same named but different releases are created for this
@@ -308,6 +308,6 @@ deploy:
     on:
       tags: true
       #branch: master
-      condition: PACKAGE = YES
+      condition: $PACKAGE = YES
 
 # vim:ai:ts=4:sts=2:sw=2:expandtab
