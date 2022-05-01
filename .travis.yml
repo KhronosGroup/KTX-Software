@@ -266,14 +266,14 @@ before_deploy:
       if [ -n "$MACOS_CERTIFICATES_P12" -a -n "$TRAVIS_TAG" -a -z "$NOTARIZED" ]; then
         ./ci_scripts/notarize.sh $BUILD_DIR/KTX-Software-*.pkg $APPLE_ID $DEVELOPMENT_TEAM $ALTOOL_PASSWORD; export NOTARIZED="true"
       fi
-      if [ -z "$RELNOTES" -a -f RELEASE_NOTES.md ]; then
-        # Copy RELEASE_NOTES into an env. var. so we can remove lines that are
-        # unnecessary in the context of a GitHub release description.
-        RELNOTES=$(cat RELEASE_NOTES.md | awk '/^Release Notes/,/^## Version/ { next }
-                                          ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }')
-      fi
       ;;
     esac
+    if [ -z "$RELNOTES" -a -f RELEASE_NOTES.md ]; then
+      # Copy RELEASE_NOTES into an env. var. so we can remove lines that are
+      # unnecessary in the context of a GitHub release description.
+      RELNOTES=$(cat RELEASE_NOTES.md | awk '/^Release Notes/,/^## Version/ { next }
+                                        ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }')
+    fi
 
 deploy:
   - provider: pages
