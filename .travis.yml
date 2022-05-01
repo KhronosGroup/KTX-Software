@@ -300,7 +300,8 @@ deploy:
     # ------------------- dpl v1 ---------------------
     # Sadly this doesn't work. See https://github.com/travis-ci/dpl/issues/155.
     # Do release note deployment manually.
-    body: $RELNOTES
+    #body: $RELNOTES
+    release_notes: $RELNOTES
     skip_cleanup: true
     # ------------------- dpl v2 ---------------------
     # dpl v2 is broken. Same named but different releases are created each
