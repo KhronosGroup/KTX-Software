@@ -291,6 +291,8 @@ deploy:
     # and the deploy below. Happens even when neither of release_notes or
     # release_notes_file is specified.
     edge: true # Use bleeding edge (dplv2)
+    # Seemingly unnecessary, this prevents dplv2 from creating multiple drafts.
+    name: $TRAVIS_TAG
     token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
     file_glob: true
     file:
