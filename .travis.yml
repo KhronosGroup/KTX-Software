@@ -277,8 +277,8 @@ before_deploy:
 
 deploy:
   - provider: pages
-    #edge: true # Use bleeding edge (dplv2)
-    skip_cleanup: true    # dpl v1 only
+    edge: true # Use bleeding edge (dplv2)
+    #skip_cleanup: true    # dpl v1 only
     token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
     local_dir: $BUILD_DIR/docs/html
     on:
@@ -290,7 +290,7 @@ deploy:
     # dpl v2 is broken. Same named but different releases are created for this
     # and the deploy below. Happens even when neither of release_notes or
     # release_notes_file is specified.
-    #edge: true # Use bleeding edge (dplv2)
+    edge: true # Use bleeding edge (dplv2)
     token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
     file_glob: true
     file:
@@ -298,11 +298,11 @@ deploy:
     # This goes to the release description so covers all versions.
     # These are dpl v2 parameters.
     #release_notes_file: RELEASE_NOTES.md
-    #release_notes: $RELNOTES
+    release_notes: $RELNOTES
     # dpl v1. Sadly this doesn't work. See https://github.com/travis-ci/dpl/issues/155.
     # body: $RELNOTES
     # Do release note deployment manually for now.
-    skip_cleanup: true    # dpl v1 only
+    #skip_cleanup: true    # dpl v1 only
     draft: true
     prerelease: true
     on:
