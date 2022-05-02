@@ -272,7 +272,8 @@ before_deploy:
       # Copy RELEASE_NOTES into an env. var. so we can remove lines that are
       # unnecessary in the context of a GitHub release description.
       RELNOTES=$(awk '/^Release Notes/,/^## Version/ { next }
-                      ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }' RELEASE_NOTES.md | perl -p -e 's#\n#/<br />#')
+                      ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }' RELEASE_NOTES.md | perl -p -e 's#\n#<br />#')
+      echo $RELNOTES
     fi
 
 deploy:
