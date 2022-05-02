@@ -271,8 +271,8 @@ before_deploy:
     if [ -z "$RELNOTES" -a -f RELEASE_NOTES.md ]; then
       # Copy RELEASE_NOTES into an env. var. so we can remove lines that are
       # unnecessary in the context of a GitHub release description.
-      RELNOTES=$(cat RELEASE_NOTES.md | awk '/^Release Notes/,/^## Version/ { next }
-                                        ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }')
+      RELNOTES=$(awk '/^Release Notes/,/^## Version/ { next }
+                      ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }' RELEASE_NOTES.md | perl -p -e 's#\n#/<br />#')
     fi
 
 deploy:
@@ -300,8 +300,7 @@ deploy:
     # ------------------- dpl v1 ---------------------
     # Sadly this doesn't work. See https://github.com/travis-ci/dpl/issues/155.
     # Do release note deployment manually.
-    body: |
-      $RELNOTES
+    body: $RELNOTES
     skip_cleanup: true
     # ------------------- dpl v2 ---------------------
     # dpl v2 is broken. Same named but different releases are created each
@@ -316,5 +315,9 @@ deploy:
     #release_notes_file: RELEASE_NOTES.md
     #release_notes: $RELNOTES
     # ------------------------------------------------
+
+after_deploy:
+  - |
+    curl --netrc --data @CHANGELOG.md "https://api.github.com/repos/$TRAVIS_REPO_SLUG/releases"
 
 # vim:ai:ts=4:sts=2:sw=2:expandtab
