@@ -302,6 +302,7 @@ deploy:
     # Sadly this doesn't work. See https://github.com/travis-ci/dpl/issues/155.
     # Do release note deployment manually.
     body: $RELNOTES
+    overwrite: true
     skip_cleanup: true
     # ------------------- dpl v2 ---------------------
     # dpl v2 is broken. Same named but different releases are created each
@@ -317,8 +318,8 @@ deploy:
     #release_notes: $RELNOTES
     # ------------------------------------------------
 
-after_deploy:
-  - |
-    curl --netrc --data @CHANGELOG.md "https://api.github.com/repos/$TRAVIS_REPO_SLUG/releases"
+#after_deploy:
+#  - |
+#    curl --netrc --data @CHANGELOG.md "https://api.github.com/repos/$TRAVIS_REPO_SLUG/releases"
 
 # vim:ai:ts=4:sts=2:sw=2:expandtab
