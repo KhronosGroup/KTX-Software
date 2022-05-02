@@ -300,15 +300,15 @@ deploy:
     # ------------------- dpl v1 ---------------------
     # Sadly this doesn't work. See https://github.com/travis-ci/dpl/issues/155.
     # Do release note deployment manually.
-    #body: $RELNOTES
-    release_notes: $RELNOTES
+    body: |
+      $RELNOTES
     skip_cleanup: true
     # ------------------- dpl v2 ---------------------
     # dpl v2 is broken. Same named but different releases are created each
     # time a job in the build triggers this deploy. Some would be called
-    # "Draft" were it not for specifying name here. overwrite does not
+    # "Draft" were it not for specifying name here. `overwrite` does not
     # help. Happens even when neither of release_notes or release_notes_file
-    # is specified.
+    # is specified. See https://github.com/travis-ci/dpl/issues/1213.
     #edge: true # Use bleeding edge (dplv2)
     #name: $TRAVIS_TAG
     #overwrite: true
