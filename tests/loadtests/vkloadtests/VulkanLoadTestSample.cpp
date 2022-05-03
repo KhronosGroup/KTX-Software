@@ -47,7 +47,7 @@ VulkanLoadTestSample::loadMesh(std::string filename,
 
     mesh->createBuffers(
         vkctx.device,
-        vkctx.memoryProperties,
+        static_cast<VkPhysicalDeviceMemoryProperties>(vkctx.memoryProperties),
         meshBuffer,
         vertexLayout,
         scale,
