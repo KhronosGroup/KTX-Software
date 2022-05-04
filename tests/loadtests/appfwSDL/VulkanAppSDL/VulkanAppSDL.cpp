@@ -1289,11 +1289,11 @@ VulkanAppSDL::prepareTextOverlay()
         std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
         VkPipelineShaderStageCreateInfo shaderStage;
         std::string filepath = getAssetPath() + "shaders/textoverlay.vert.spv";
-        shaderStage = vkctx.loadShader(filepath, vk::ShaderStageFlagBits::eVertex);
+        shaderStage = static_cast<VkPipelineShaderStageCreateInfo>(vkctx.loadShader(filepath, vk::ShaderStageFlagBits::eVertex));
         shaderStages.push_back(shaderStage);
         shaderModules.push_back(shaderStage.module);
         filepath = getAssetPath() + "shaders/textoverlay.frag.spv";
-        shaderStage = vkctx.loadShader(filepath, vk::ShaderStageFlagBits::eFragment);
+        shaderStage = static_cast<VkPipelineShaderStageCreateInfo>(vkctx.loadShader(filepath, vk::ShaderStageFlagBits::eFragment));
         shaderStages.push_back(shaderStage);
         shaderModules.push_back(shaderStage.module);
 
