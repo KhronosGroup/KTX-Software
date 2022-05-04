@@ -282,8 +282,8 @@ before_deploy:
               gsub(/\\/,"\\\\"); gsub(/\"/,"\\\""); printf "%s\\n", $0
           }' RELEASE_NOTES.md)
       # ------------------- dpl v2 ---------------------
-      RELNOTES=$(awk '/^Release Notes/,/^## Version/ { next }
-           ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }' RELEASE_NOTES.md)
+      #RELNOTES=$(awk '/^Release Notes/,/^## Version/ { next }
+      #     ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }' RELEASE_NOTES.md)
       # ------------------------------------------------
     fi
 
