@@ -271,15 +271,25 @@ before_deploy:
     if [ -z "$RELNOTES" -a -f RELEASE_NOTES.md ]; then
       # Copy RELEASE_NOTES into an env. var. so we can remove lines that are
       # unnecessary in the context of a GitHub release description.
+      # ------------------- dpl v1 ---------------------
+      # dpl v1 passes unmodified data to GitHub. To satisfy the JSON parser
+      # we need to convert all '\n' to the string "\n" and escape
+      # double-quotes and backslashes with backslashes. See
+      # https://github.com/travis-ci/dpl/issues/155.
+      RELNOTES=$(awk '
+          /^Release Notes/,/^## Version/ { next }
+          ! /<!-- Copyright/ && ! /<!-- SPDX/ {
+              gsub(/\\/,"\\\\"); gsub(/\"/,"\\\""); printf "%s\\n", $0
+          }' RELEASE_NOTES.md)
+      # ------------------- dpl v2 ---------------------
       RELNOTES=$(awk '/^Release Notes/,/^## Version/ { next }
-                      ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }' RELEASE_NOTES.md | perl -p -e 's#\n#<br />#')
-      echo $RELNOTES
+           ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }' RELEASE_NOTES.md)
+      # ------------------------------------------------
     fi
 
 deploy:
   - provider: pages
     edge: true # Use bleeding edge (dplv2)
-    #skip_cleanup: true    # dpl v1 only
     token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
     local_dir: $BUILD_DIR/docs/html
     on:
@@ -299,10 +309,7 @@ deploy:
       #branch: master
       condition: $PACKAGE = YES
     # ------------------- dpl v1 ---------------------
-    # Sadly this doesn't work. See https://github.com/travis-ci/dpl/issues/155.
-    # Do release note deployment manually.
     body: $RELNOTES
-    overwrite: true
     skip_cleanup: true
     # ------------------- dpl v2 ---------------------
     # dpl v2 is broken. Same named but different releases are created each
