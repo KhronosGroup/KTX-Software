@@ -80,10 +80,10 @@ env:
 
 jobs:
   include:
-    - os: linux
-      dist: focal
-      env:
-        - CHECK_REUSE: ONLY
+#    - os: linux
+#      dist: focal
+#      env:
+#        - CHECK_REUSE: ONLY
 #    - os: linux
 #      dist: focal
 #      compiler: gcc # clang is tested by macOS build
@@ -309,7 +309,7 @@ deploy:
       #branch: master
       condition: $PACKAGE = YES
     # ------------------- dpl v1 ---------------------
-    body: "This is the release description."
+    release_notes: "This is the release description."
     skip_cleanup: true
     # ------------------- dpl v2 ---------------------
     # dpl v2 is broken. Same named but different releases are created each
