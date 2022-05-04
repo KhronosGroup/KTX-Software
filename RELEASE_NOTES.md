@@ -2,7 +2,7 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 Release Notes
 =============
-## Version 4.1.0-rc1
+## Version 4.1.0
 ### New Features in v4.1.0
 
 * ARM's ASTC encoder has been added to `libktx`. As a result you can now use `toktx` to create KTX files with ASTC encoded payloads.
@@ -35,7 +35,7 @@ of `toktx`.  In general the dimensions of block compressed textures
 must be a multiple of the block size and, if
 `WEBGL_compressed_texture_s3tc` on WebGL 1.0 is expected to be one
 of the targets, then the dimensions must be a power of 2. For
-portability glTF's KHR\_texture\_basisu extension requires texture
+portability glTF's _KHR\_texture\_basisu_ extension requires texture
 dimensions to be a multiple of 4, the block size of the Universal texture
 formats.
 
