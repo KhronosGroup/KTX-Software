@@ -279,7 +279,7 @@ before_deploy:
       RELNOTES=$(awk '
           /^Release Notes/,/^## Version/ { next }
           ! /<!-- Copyright/ && ! /<!-- SPDX/ {
-              gsub(/\\/,"\\\\"); gsub(/"/,"\\\""); printf "%s\\n", $0
+              gsub(/\\/,"\\\\"); gsub(/\"/,"\\\""); printf "%s\\n", $0
           }' RELEASE_NOTES.md)
       # ------------------- dpl v2 ---------------------
       #RELNOTES=$(awk '/^Release Notes/,/^## Version/ { next }
@@ -288,15 +288,15 @@ before_deploy:
     fi
 
 deploy:
-  - provider: pages
-    edge: true # Use bleeding edge (dplv2)
-    token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
-    local_dir: $BUILD_DIR/docs/html
-    on:
-      #branch: master
-      tags: true
-      condition: $TRAVIS_OS_NAME = osx && $ARCHS = x86_64 && $PACKAGE = YES
-
+#  - provider: pages
+#    edge: true # Use bleeding edge (dplv2)
+#    token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
+#    local_dir: $BUILD_DIR/docs/html
+#    on:
+#      #branch: master
+#      tags: true
+#      condition: $TRAVIS_OS_NAME = osx && $ARCHS = x86_64 && $PACKAGE = YES
+#
   - provider: releases
     token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
     name: $TRAVIS_TAG
@@ -311,7 +311,6 @@ deploy:
       condition: $PACKAGE = YES
     # ------------------- dpl v1 ---------------------
     body: "This is the release description."
-    #body: $RELNOTES
     skip_cleanup: true
     # ------------------- dpl v2 ---------------------
     # dpl v2 is broken. Same named but different releases are created each
