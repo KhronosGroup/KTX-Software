@@ -299,6 +299,7 @@ deploy:
 #
   - provider: releases
     token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
+    name: $TRAVIS_TAG
     file_glob: true
     file:
       - $BUILD_DIR/KTX-Software-*-*
