@@ -279,7 +279,7 @@ before_deploy:
       RELNOTES=$(awk '
           /^Release Notes/,/^## Version/ { next }
           ! /<!-- Copyright/ && ! /<!-- SPDX/ {
-              gsub(/\\/,"\\\\"); gsub(/"/,"\\\""); printf "%s<br />", $0
+              gsub(/\\/,"\\\\"); gsub(/"/,"\\\""); printf "%s\\\\n", $0
           }' RELEASE_NOTES.md)
       # ------------------- dpl v2 ---------------------
       #RELNOTES=$(awk '/^Release Notes/,/^## Version/ { next }
