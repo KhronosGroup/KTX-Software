@@ -306,12 +306,12 @@ deploy:
     draft: true
     prerelease: true
     on:
-      tags: true
+      #tags: true
       #branch: master
       condition: $PACKAGE = YES
     # ------------------- dpl v1 ---------------------
-    #body: "This is the release description."
-    body: $RELNOTES
+    body: "This is the release description."
+    #body: $RELNOTES
     skip_cleanup: true
     # ------------------- dpl v2 ---------------------
     # dpl v2 is broken. Same named but different releases are created each
