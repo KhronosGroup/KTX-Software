@@ -308,6 +308,7 @@ deploy:
     on:
       #tags: true
       #branch: master
+      branch: release-prep
       condition: $PACKAGE = YES
     # ------------------- dpl v1 ---------------------
     body: "This is the release description."

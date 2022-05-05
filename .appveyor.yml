@@ -251,9 +251,9 @@ deploy:
     # Can't get this to work using artifact.path so use artifact.name set above.
     artifact: WindowsInstaller,WindowsInstallerSha1
     draft: true
-    #prerelease: true
+    prerelease: true
     on:
-      APPVEYOR_REPO_TAG: true       # deploy on tag push only
+      #APPVEYOR_REPO_TAG: true       # deploy on tag push only
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
       CONFIGURATION: Release
       PACKAGE: YES
