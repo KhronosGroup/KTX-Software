@@ -135,15 +135,15 @@ jobs:
 #        - CONFIGURATION=Debug
 #          FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=ON
 #          SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF
-    - os: linux
-      dist: focal
-      compiler: clang
-      services: docker
-      env:
-        - WASM_BUILD=YES
-        - CONFIGURATION=Release
-          FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=ON
-          SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF PACKAGE=YES
+#    - os: linux
+#      dist: focal
+#      compiler: clang
+#      services: docker
+#      env:
+#        - WASM_BUILD=YES
+#        - CONFIGURATION=Release
+#          FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=ON
+#          SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF PACKAGE=YES
 
 # Phase 1: Git clone - done automatically.
 # Phase 2: Install apt addons.
@@ -288,15 +288,15 @@ before_deploy:
     fi
 
 deploy:
-  - provider: pages
-    edge: true # Use bleeding edge (dplv2)
-    token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
-    local_dir: $BUILD_DIR/docs/html
-    on:
-      #branch: master
-      tags: true
-      condition: $TRAVIS_OS_NAME = osx && $ARCHS = x86_64 && $PACKAGE = YES
-
+#  - provider: pages
+#    edge: true # Use bleeding edge (dplv2)
+#    token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
+#    local_dir: $BUILD_DIR/docs/html
+#    on:
+#      #branch: master
+#      tags: true
+#      condition: $TRAVIS_OS_NAME = osx && $ARCHS = x86_64 && $PACKAGE = YES
+#
   - provider: releases
     token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
     file_glob: true
@@ -309,7 +309,7 @@ deploy:
       #branch: master
       condition: $PACKAGE = YES
     # ------------------- dpl v1 ---------------------
-    release_notes: "This is the release description."
+    body: "This is the release description."
     skip_cleanup: true
     # ------------------- dpl v2 ---------------------
     # dpl v2 is broken. Same named but different releases are created each
