@@ -276,11 +276,10 @@ before_deploy:
       # we need to convert all '\n' to the string "\n" and escape
       # double-quotes and backslashes with backslashes. See
       # https://github.com/travis-ci/dpl/issues/155.
-      #        gsub(/\\/,"\\\\"); gsub(/"/,"\\\""); printf "%s\\\n", $0
       RELNOTES=$(awk '
           /^Release Notes/,/^## Version/ { next }
           ! /<!-- Copyright/ && ! /<!-- SPDX/ {
-              print
+              gsub(/\\/,"\\\\"); gsub(/"/,"\\\""); printf "%s<br />", $0
           }' RELEASE_NOTES.md)
       # ------------------- dpl v2 ---------------------
       #RELNOTES=$(awk '/^Release Notes/,/^## Version/ { next }
@@ -312,7 +311,7 @@ deploy:
       condition: $PACKAGE = YES
     # ------------------- dpl v1 ---------------------
     #body: "This is the release description."
-    body: ${RELNOTES@Q}
+    body: $RELNOTES
     skip_cleanup: true
     # ------------------- dpl v2 ---------------------
     # dpl v2 is broken. Same named but different releases are created each
