@@ -309,10 +309,11 @@ deploy:
 #      #branch: master
 #      condition: $PACKAGE = YES
 # ---------------------------------------------------------
-# ------------------- dpl v1 ---------------------
-    # We can't use
+# ----------------------- dpl v1 -------------------------
+    # The only difference c/f dpl v2 is use of `release_notes` vs `body`.
+    # However we can't use
     #body: $RELNOTES
-    # because a bug in its backing Ruby code does not allow options that
+    # because a bug in v1's backing Ruby code does not allow options that
     # contain newlines leading to an error on Travis when we try.
     # See https://github.com/travis-ci/dpl/issues/155.
     #
@@ -322,11 +323,11 @@ deploy:
     # recognize it as an actual newline so never changes the format from
     # the initial heading format.
     #
-    # So we can't use dpl v1 therefore we've rolled our own script.
+    # Since we can't use either dpl v1 or v2 we've rolled our own script.
 
   - provider: script
     edge: true
-    script: ruby ci_scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -n "$RELNOTES" -t ${TRAVIS_TAG} --draft true --prerelease true $BUILD_DIR/KTX-Software-*-*
+    script: ruby ci_scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -n "${RELNOTES:Q}" -t ${TRAVIS_TAG} --draft true --prerelease true $BUILD_DIR/KTX-Software-*-*
     on:
       tags: true
       #branch: master
