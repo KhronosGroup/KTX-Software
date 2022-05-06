@@ -7,6 +7,7 @@
 require 'optparse'
 require 'ostruct'
 require 'octokit'
+require 'mime/types'
 
 options = OpenStruct.new
 options.draft = false
@@ -80,5 +81,8 @@ end
 puts "release.assets_url: #{release.assets_url}"
 ARGV.each do |file|
   puts "uploading asset #{file} to #{release_url}"
-  client.upload_asset(release_url, file)
+  types = MIME::Types.type_for(file)
+  puts types.inspect
+  puts "#{types[0]}"
+  client.upload_asset(release_url, file, {:content_type => "#{types[0]}"})
 end
