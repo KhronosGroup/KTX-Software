@@ -21,6 +21,8 @@ OptionParser.new do |opt|
   opt.on('-p', '--prerelease BOOLEAN', TrueClass, 'true if prerelease') { |o| options[:prerelease] = o }
 end.parse!
 
+puts ARGV.inspect
+
 raise OptionParser::MissingArgument if options[:secret].nil?
 raise OptionParser::MissingArgument if options[:repo_slug].nil?
 raise OptionParser::MissingArgument if options[:relnotes_file].nil? and options[:relnotes].nil?
@@ -66,6 +68,7 @@ if tag_matched == false
       :prerelease => options[:prerelease],
       :body => body 
     })
+    release_url = release.url
 else
   release = client.update_release(release_url,
     { :name => options[:tag_name],
@@ -74,4 +77,8 @@ else
       :body => body 
     })
 end
-puts "release.assete_url: #{release.assets_url}"
+puts "release.assets_url: #{release.assets_url}"
+ARGV.each do |file|
+  puts "uploading asset #{file} to #{release_url}"
+  client.upload_asset(release_url, file)
+end

@@ -251,7 +251,7 @@ after_success:
 
 before_deploy:
   - |
-    gem install octokit
+    gem install octokit mime-types
     case "${TRAVIS_OS_NAME:-linux}" in
     linux)
       ;;
@@ -312,15 +312,6 @@ deploy:
 #      condition: $PACKAGE = YES
 # ---------------------------------------------------------
 # ------------------- dpl v1 ---------------------
-  - provider: releases
-    token: $GITHUB_TOKEN
-    name: $TRAVIS_TAG
-    draft: true
-    prerelease: true
-    skip_cleanup: true
-    file_glob: true
-    file:
-      - $BUILD_DIR/KTX-Software-*-*
     # We can't use
     #body: $RELNOTES
     # because a bug in its backing Ruby code does not allow options that
@@ -333,20 +324,14 @@ deploy:
     # recognize it as an actual newline so never changes the format from
     # the initial heading format.
     #
-    # So we've rolled our own script. See below. But keep using "releases"
-    # to deploy the assets because it is easier.
+    # So we can't use dpl v1 therefore we've rolled our own script.
+
+  - provider: script
+    edge: true
+    script: ruby ci_scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -n "$RELNOTES" -t ${TRAVIS_TAG} --draft true --prerelease true $BUILD_DIR/KTX-Software-*-*
     on:
       tags: true
       #branch: master
       condition: $PACKAGE = YES
-
-#  - provider: script
-#    edge: true
-#    script: ruby ci_scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -n "$RELNOTES" -t ${TRAVIS_TAG}
-#    on:
-#      tags: true
-#      #branch: master
-#      condition: $PACKAGE = YES
-
 
 # vim:ai:ts=4:sts=2:sw=2:expandtab
