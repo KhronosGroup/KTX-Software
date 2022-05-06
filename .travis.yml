@@ -340,13 +340,13 @@ deploy:
       #branch: master
       condition: $PACKAGE = YES
 
-  - provider: script
-    edge: true
-    script: ruby ci_scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -n "$RELNOTES" -t ${TRAVIS_TAG}
-    on:
-      tags: true
-      #branch: master
-      condition: $PACKAGE = YES
+#  - provider: script
+#    edge: true
+#    script: ruby ci_scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -n "$RELNOTES" -t ${TRAVIS_TAG}
+#    on:
+#      tags: true
+#      #branch: master
+#      condition: $PACKAGE = YES
 
 
 # vim:ai:ts=4:sts=2:sw=2:expandtab
