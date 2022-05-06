@@ -47,6 +47,7 @@ else
 end
 
 releases.each do |release|
+  puts "Release tag_name = #{release.tag_name}"
   if release.tag_name == options[:tag_name]
     release_url = release.rels[:self].href
     tag_matched = true

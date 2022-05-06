@@ -312,10 +312,19 @@ deploy:
 #      condition: $PACKAGE = YES
 # ---------------------------------------------------------
 # ------------------- dpl v1 ---------------------
-    # We can't use dpl v1 either because a bug in its backing Ruby code does
-    # not allow options that contain newlines leading to an error on Travis
-    # when we try
-    #    body: $RELNOTES
+  - provider: releases
+    token: $GITHUB_TOKEN
+    name: $TRAVIS_TAG
+    draft: true
+    prerelease: true
+    skip_cleanup: true
+    file_glob: true
+    file:
+      - $BUILD_DIR/KTX-Software-*-*
+    # We can't use
+    #body: $RELNOTES
+    # because a bug in its backing Ruby code does not allow options that
+    # contain newlines leading to an error on Travis when we try.
     # See https://github.com/travis-ci/dpl/issues/155.
     #
     # The obvious workarounds of literal "\n" or "<br />" do not work.
@@ -323,15 +332,9 @@ deploy:
     # causes a newline in the rendering, the markdown interpreter does not
     # recognize it as an actual newline so never changes the format from
     # the initial heading format.
-    # So we've rolled our own ...
-  - provider: releases
-    token: $GITHUB_TOKEN
-    draft: true
-    prerelease: true
-    skip_cleanup: true
-    file_glob: true
-    file:
-      - $BUILD_DIR/KTX-Software-*-*
+    #
+    # So we've rolled our own script. See below. But keep using "releases"
+    # to deploy the assets because it is easier.
     on:
       tags: true
       #branch: master
