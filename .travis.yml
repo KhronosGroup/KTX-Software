@@ -269,14 +269,12 @@ before_deploy:
       fi
       ;;
     esac
-    #if [ -z "$RELNOTES" -a -f RELEASE_NOTES.md ]; then
-    #  # ------------------- dpl v2 ---------------------
-    #  # Remove lines that are unnecessary in the context of a GitHub
-    #  # release description.
-    #  RELNOTES=$(awk '/^Release Notes/,/^## Version/ { next }
-    #       ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }' RELEASE_NOTES.md)
-    #  # ------------------------------------------------
-    #fi
+    if [ -z "$RELNOTES" -a -f RELEASE_NOTES.md ]; then
+      # Remove lines that are unnecessary in the context of a GitHub
+      # release description.
+      RELNOTES=$(awk '/^Release Notes/,/^## Version/ { next }
+           ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }' RELEASE_NOTES.md)
+    fi
 
 deploy:
 #  - provider: pages
