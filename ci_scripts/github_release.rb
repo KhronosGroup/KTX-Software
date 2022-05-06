@@ -18,7 +18,7 @@ end.parse!
 
 raise OptionParser::MissingArgument if options[:secret].nil?
 raise OptionParser::MissingArgument if options[:repo_slug].nil?
-raise OptionParser::MissingArgument if options[:relnotes_file].nil and options[:relnotes].nil?
+raise OptionParser::MissingArgument if options[:relnotes_file].nil? and options[:relnotes].nil?
 raise OptionParser::MissingArgument if options[:tag_name].nil?
 
 client = Octokit::Client.new(:access_token => options[:secret])
@@ -35,7 +35,7 @@ puts "Deploying to repo: #{options[:repo_slug]}"
 tag_matched = false
 release_url = nil
 releases = client.releases(options[:repo_slug])
-if not options[:relnotes].nil
+if not options[:relnotes].nil?
   body = options[:relnotes]
 else
   body = File.open(options[:relnotes_file], "rb").read

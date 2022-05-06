@@ -251,6 +251,7 @@ after_success:
 
 before_deploy:
   - |
+    gem install octokit
     case "${TRAVIS_OS_NAME:-linux}" in
     linux)
       ;;
