@@ -5,15 +5,20 @@
 # Thanks to Valerio Mazzeo (@valeriomazzeo) for the original of this.
 
 require 'optparse'
+require 'ostruct'
 require 'octokit'
 
-options = {}
+options = OpenStruct.new
+options.draft = false
+options.prerelease = false
 OptionParser.new do |opt|
   opt.on('-s', '--secret SECRET', 'GitHub access token') { |o| options[:secret] = o }
   opt.on('-r', '--repo-slug REPO_SLUG', 'Repo slug. i.e.: apple/swift') { |o| options[:repo_slug] = o }
   opt.on('-n', '--relnotes RELNOTES_STRING', 'Release notes') { |o| options[:relnotes] = o }
   opt.on('-c', '--relnotes-file RELNOTES_FILE', 'Release notes path') { |o| options[:relnotes_file] = o }
   opt.on('-t', '--tag TAG', 'Tag name') { |o| options[:tag_name] = o }
+  opt.on('-d', '--draft BOOLEAN', TrueClass, 'true if draft release') { |o| options[:draft] = o }
+  opt.on('-p', '--prerelease BOOLEAN', TrueClass, 'true if prerelease') { |o| options[:prerelease] = o }
 end.parse!
 
 raise OptionParser::MissingArgument if options[:secret].nil?
@@ -51,7 +56,19 @@ puts "tag #{options[:tag_name]} matched: #{tag_matched}."
 
 # if tag has been pushed directly to git, create a github release
 if tag_matched == false
-  client.create_release(options[:repo_slug], options[:tag_name], { :name => options[:tag_name], :body => body })
+  client.create_release(
+    options[:repo_slug],
+    options[:tag_name],
+    { :name => options[:tag_name],
+      #:draft => options[:draft],
+      #:prerelease => options[:prerelease],
+      :body => body 
+    })
 else
-  client.update_release(release_url, { :name => options[:tag_name], :body => body })
+  client.update_release(release_url,
+    { :name => options[:tag_name],
+      #:draft => options[:draft],
+      #:prerelease => options[:prerelease],
+      :body => body 
+    })
 end
