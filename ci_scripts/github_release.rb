@@ -54,22 +54,24 @@ releases.each do |release|
   end
 end
 puts "tag #{options[:tag_name]} matched: #{tag_matched}."
+puts "release_url: #{release_url}."
 
 # if tag has been pushed directly to git, create a github release
 if tag_matched == false
-  client.create_release(
+  release = client.create_release(
     options[:repo_slug],
     options[:tag_name],
     { :name => options[:tag_name],
-      #:draft => options[:draft],
-      #:prerelease => options[:prerelease],
+      :draft => options[:draft],
+      :prerelease => options[:prerelease],
       :body => body 
     })
 else
-  client.update_release(release_url,
+  release = client.update_release(release_url,
     { :name => options[:tag_name],
-      #:draft => options[:draft],
-      #:prerelease => options[:prerelease],
+      :draft => options[:draft],
+      :prerelease => options[:prerelease],
       :body => body 
     })
 end
+puts "release.assete_url: #{release.assets_url}"
