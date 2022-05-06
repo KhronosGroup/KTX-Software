@@ -84,5 +84,5 @@ ARGV.each do |file|
   types = MIME::Types.type_for(file)
   puts types.inspect
   puts "#{types[0]}"
-  client.upload_asset(release_url, file, {:content_type => "#{types[0]}"})
+  client.upload_asset(release_url, file)
 end

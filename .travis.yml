@@ -30,6 +30,7 @@ env:
     - FEATURE_TESTS: ON
     - GIT_LFS_SKIP_SMUDGE: 1
     - PACKAGE: NO
+    - REL_DESC_FILE: "/tmp/rel_desc.md"
     - VULKAN_SDK_VER: "1.2.176.1"
     # This is just to tell the Vulkan install script where to install.
     - VULKAN_INSTALL_DIR: "$HOME/VulkanSDK/$VULKAN_SDK_VER"
@@ -269,11 +270,12 @@ before_deploy:
       fi
       ;;
     esac
-    if [ -z "$RELNOTES" -a -f RELEASE_NOTES.md ]; then
+    if [ ! -f $REL_DESC_FILE -a -f RELEASE_NOTES.md ]; then
       # Remove lines that are unnecessary in the context of a GitHub
       # release description.
-      RELNOTES=$(awk '/^Release Notes/,/^## Version/ { next }
-           ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }' RELEASE_NOTES.md)
+      awk '/^Release Notes/,/^## Version/ { next }
+           ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }' RELEASE_NOTES.md |
+        > $REL_DESC_FILE
     fi
 
 deploy:
@@ -295,6 +297,7 @@ deploy:
     # of these releases are called "Draft". To avoid this name is specified
     # here. See https://github.com/travis-ci/dpl/issues/1213.
 #  - provider: releases
+#    edge: true
 #    token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
 #    name: $TRAVIS_TAG
 #    file_glob: true
@@ -324,13 +327,25 @@ deploy:
     # the initial heading format.
     #
     # Since we can't use either dpl v1 or v2 we've rolled our own script.
-
-  - provider: script
-    edge: true
-    script: ruby ci_scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -n "${RELNOTES:Q}" -t ${TRAVIS_TAG} --draft true --prerelease true $BUILD_DIR/KTX-Software-*-*
+  - provider: releases
+    token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
+    name: $TRAVIS_TAG
+    file_glob: true
+    file:
+      - $BUILD_DIR/KTX-Software-*-*
+    draft: true
+    prerelease: true
     on:
       tags: true
       #branch: master
       condition: $PACKAGE = YES
+
+#  - provider: script
+#    edge: true
+#    script: ruby ci_scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -c "$REL_DESC_FILE" -t ${TRAVIS_TAG} --draft true --prerelease true
+#    on:
+#      tags: true
+#      #branch: master
+#      condition: $PACKAGE = YES
 
 # vim:ai:ts=4:sts=2:sw=2:expandtab
