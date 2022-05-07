@@ -30,7 +30,7 @@ env:
     - FEATURE_TESTS: ON
     - GIT_LFS_SKIP_SMUDGE: 1
     - PACKAGE: NO
-    - REL_DESC_FILE: "/tmp/rel_desc.md"
+    - REL_DESC_FILE: "$BUILD_DIR/rel_desc.md"
     - VULKAN_SDK_VER: "1.2.176.1"
     # This is just to tell the Vulkan install script where to install.
     - VULKAN_INSTALL_DIR: "$HOME/VulkanSDK/$VULKAN_SDK_VER"

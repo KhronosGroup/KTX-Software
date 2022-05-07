@@ -22,8 +22,6 @@ OptionParser.new do |opt|
   opt.on('-p', '--prerelease BOOLEAN', TrueClass, 'true if prerelease') { |o| options[:prerelease] = o }
 end.parse!
 
-puts ARGV.inspect
-
 raise OptionParser::MissingArgument if options[:secret].nil?
 raise OptionParser::MissingArgument if options[:repo_slug].nil?
 raise OptionParser::MissingArgument if options[:relnotes_file].nil? and options[:relnotes].nil?
@@ -40,9 +38,6 @@ end
 puts "Logged in as #{user.name}"
 puts "Deploying to repo: #{options[:repo_slug]}"
 
-tag_matched = false
-release_url = nil
-releases = client.releases(options[:repo_slug])
 if not options[:relnotes].nil?
   body = options[:relnotes]
   puts "body from CLI:"
@@ -53,19 +48,23 @@ end
 
 puts "#{body}"
 
+tag_matched = false
+our_release = nil
+releases = client.releases(options[:repo_slug])
 releases.each do |release|
   puts "Release tag_name = #{release.tag_name}"
   if release.tag_name == options[:tag_name]
-    release_url = release.rels[:self].href
-    tag_matched = true
+    tag_matched= true
+    our_release = release
+    break
   end
 end
 puts "tag #{options[:tag_name]} matched: #{tag_matched}."
-puts "release_url: #{release_url}."
+puts "our_release.url: #{our_release.url}."
 
 # if tag has been pushed directly to git, create a github release
-if tag_matched == false
-  release = client.create_release(
+if not our_release
+  our_release = client.create_release(
     options[:repo_slug],
     options[:tag_name],
     { :name => options[:tag_name],
@@ -75,9 +74,13 @@ if tag_matched == false
     })
     release_url = release.url
 else
-  release = client.update_release(release_url,
+  release = client.update_release(our_release.url,
     {
-      :body => body 
+      :body => body,
+      :tag_name => our_release.tag_name,
+      :name => our_release.name,
+      :draft => our_release.draft,
+      :prerelease => our_release.prerelease
     })
 end
 puts "release.assets_url: #{release.assets_url}"
