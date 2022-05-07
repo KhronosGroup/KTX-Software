@@ -330,26 +330,26 @@ deploy:
     # the initial heading format.
     #
     # Since we can't use either dpl v1 or v2 we've rolled our own script.
-  - provider: releases
-    token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
-    name: $TRAVIS_TAG
-    skip_cleanup: true
-    file_glob: true
-    file:
-      - $BUILD_DIR/KTX-Software-*-*
-    draft: true
-    prerelease: true
-    on:
-      tags: true
-      #branch: master
-      condition: $PACKAGE = YES
-
-#  - provider: script
-#    edge: true
-#    script: ruby ci_scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -c "$REL_DESC_FILE" -t ${TRAVIS_TAG} --draft true --prerelease true
+#  - provider: releases
+#    token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
+#    name: $TRAVIS_TAG
+#    skip_cleanup: true
+#    file_glob: true
+#    file:
+#      - $BUILD_DIR/KTX-Software-*-*
+#    draft: true
+#    prerelease: true
 #    on:
 #      tags: true
 #      #branch: master
 #      condition: $PACKAGE = YES
+
+  - provider: script
+    edge: true
+    script: ruby ci_scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -c "$REL_DESC_FILE" -t ${TRAVIS_TAG} --draft true --prerelease true
+    on:
+      tags: true
+      #branch: master
+      condition: $PACKAGE = YES
 
 # vim:ai:ts=4:sts=2:sw=2:expandtab
