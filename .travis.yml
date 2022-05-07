@@ -276,6 +276,9 @@ before_deploy:
       awk '/^Release Notes/,/^## Version/ { next }
            ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }' RELEASE_NOTES.md |
         > $REL_DESC_FILE
+      # dpl v2 alternative
+      #RELNOTES=$(awk '/^Release Notes/,/^## Version/ { next }
+      #     ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }' RELEASE_NOTES.md)
     fi
 
 deploy:
@@ -303,8 +306,8 @@ deploy:
 #    file_glob: true
 #    file:
 #      - $BUILD_DIR/KTX-Software-*-*
-#    #release_notes_file: RELEASE_NOTES.md
-#    release_notes: $RELNOTES
+#    release_notes_file: REL_DESC_FILE.md
+#    #release_notes: $RELNOTES
 #    draft: true
 #    prerelease: true
 #    on:
@@ -330,6 +333,7 @@ deploy:
   - provider: releases
     token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
     name: $TRAVIS_TAG
+    skip_cleanup: true
     file_glob: true
     file:
       - $BUILD_DIR/KTX-Software-*-*
