@@ -75,7 +75,7 @@ if not our_release
       :body => body 
     })
 else
-  release = client.update_release(our_release.url,
+  our_release = client.update_release(our_release.url,
     {
       :body => body,
       :tag_name => our_release.tag_name,
@@ -84,13 +84,13 @@ else
       :prerelease => our_release.prerelease
     })
 end
-puts "release.assets_url: #{release.assets_url}"
+puts "release.assets_url: #{our_release.assets_url}"
 ARGV.each do |file|
-  puts "uploading asset #{file} to #{release_url}"
+  puts "uploading asset #{file} to #{our_release.url}"
   types = MIME::Types.type_for(file)
   puts types.inspect
   puts "#{types[0]}"
-  client.upload_asset(release_url, file,
+  client.upload_asset(our_release.url, file,
     {:name => file, :content_type => content_type(file)})
 end
 
