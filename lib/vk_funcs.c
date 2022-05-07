@@ -79,7 +79,7 @@ static PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr;
 /* Define pointers for functions libktx is using. */
 #define VK_FUNCTION(fun) PFN_##fun ktx_##fun;
 
-#include "vk_funclist.inl"
+// #include "vk_funclist.inl"
 
 #undef VK_FUNCTION
 
@@ -164,12 +164,29 @@ ktxLoadVulkanLibrary(void)
     }
 #endif
 
-#include "vk_funclist.inl"
+// #include "vk_funclist.inl"
 
     return KTX_SUCCESS;
 }
 
 #undef VK_FUNCTION
+
+PFN_vkVoidFunction
+ktxLoadVulkanFunction(const char* pName) {
+    ktx_error_code_e rc = ktxLoadVulkanLibrary();
+    if (rc != KTX_SUCCESS) {
+        return NULL;
+    }
+
+    PFN_vkVoidFunction pfn = LoadProcAddr(ktxVulkanModuleHandle, pName);
+    if (pfn == NULL) {
+        fprintf(stderr, "Couldn't load Vulkan command: %s\n", pName);
+        return NULL;
+    }
+    return pfn;
+}
+
+
 
 #else
 
