@@ -274,7 +274,7 @@ before_deploy:
       # Remove lines that are unnecessary in the context of a GitHub
       # release description.
       awk '/^Release Notes/,/^## Version/ { next }
-           ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }' RELEASE_NOTES.md
+           ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }' RELEASE_NOTES.md \
         > $REL_DESC_FILE
       # dpl v2 alternative
       #RELNOTES=$(awk '/^Release Notes/,/^## Version/ { next }
