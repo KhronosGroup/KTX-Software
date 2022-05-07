@@ -82,7 +82,9 @@ else
       :prerelease => our_release.prerelease
     })
 end
-puts "release.assets_url: #{our_release.assets_url}"
+
+# We're not using this so it isn't thoroughly tested. Asset uploads
+# are done by the Travis CI "releases" provider.
 ARGV.each { |file| upload_file(file) }
 
 def upload_file(path)

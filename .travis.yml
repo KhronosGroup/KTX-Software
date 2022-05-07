@@ -44,12 +44,12 @@ env:
 #    - CONFIGURATION=Debug PLATFORM=macOS ARCHS=x86_64
 #      FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=ON FEATURE_TOOLS=ON
 #      SUPPORT_SSE=ON SUPPORT_OPENCL=OFF
-#    - CONFIGURATION=Release PLATFORM=macOS ARCHS=x86_64
-#      FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=ON FEATURE_TOOLS=ON
-#      SUPPORT_SSE=ON SUPPORT_OPENCL=OFF PACKAGE=YES
-#    - CONFIGURATION=Release PLATFORM=macOS ARCHS=arm64
-#      FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=ON FEATURE_TESTS=OFF
-#      FEATURE_TOOLS=ON SUPPORT_SSE=ON SUPPORT_OPENCL=OFF PACKAGE=YES
+    - CONFIGURATION=Release PLATFORM=macOS ARCHS=x86_64
+      FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=ON FEATURE_TOOLS=ON
+      SUPPORT_SSE=ON SUPPORT_OPENCL=OFF DEPLOY_DOCS=YES PACKAGE=YES
+    - CONFIGURATION=Release PLATFORM=macOS ARCHS=arm64
+      FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=ON FEATURE_TESTS=OFF
+      FEATURE_TOOLS=ON SUPPORT_SSE=ON SUPPORT_OPENCL=OFF PACKAGE=YES
 
 #    - CONFIGURATION=Release PLATFORM=macOS ARCHS=x86_64
 #      FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
@@ -282,14 +282,14 @@ before_deploy:
     fi
 
 deploy:
-#  - provider: pages
-#    edge: true # Use bleeding edge (dplv2)
-#    token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
-#    local_dir: $BUILD_DIR/docs/html
-#    on:
-#      #branch: master
-#      tags: true
-#      condition: $TRAVIS_OS_NAME = osx && $ARCHS = x86_64 && $PACKAGE = YES
+  - provider: pages
+    edge: true # Use bleeding edge (dplv2)
+    token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
+    local_dir: $BUILD_DIR/docs/html
+    on:
+      #branch: master
+      tags: true
+      condition: $DEPLOY_DOCS = YES
 
 # ----------------------- dpl v2 -------------------------
     # dpl v2 releases provider is broken. Same named but different releases
@@ -316,8 +316,11 @@ deploy:
 #      condition: $PACKAGE = YES
 # ---------------------------------------------------------
 # ----------------------- dpl v1 -------------------------
-    # The only difference c/f dpl v2 is use of `release_notes` vs `body`.
-    # However we can't use
+  - provider: releases
+    token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
+    name: $TRAVIS_TAG
+    skip_cleanup: true
+    # We can't use
     #body: $RELNOTES
     # because a bug in v1's backing Ruby code does not allow options that
     # contain newlines leading to an error on Travis when we try.
@@ -329,11 +332,8 @@ deploy:
     # recognize it as an actual newline so never changes the format from
     # the initial heading format.
     #
-    # Since we can't use either dpl v1 or v2 we've rolled our own script.
-  - provider: releases
-    token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
-    name: $TRAVIS_TAG
-    skip_cleanup: true
+    # Since we can't use either this or v2 to deply the release notes, we've
+    # rolled our own provider script.
     file_glob: true
     file:
       - $BUILD_DIR/KTX-Software-*-*
