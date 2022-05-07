@@ -2,7 +2,7 @@
 # Copyright 2022 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-# Thanks to Valerio Mazzeo (@valeriomazzeo) for the original of this.
+# Thanks to Valerio Mazzeo (@valeriomazzeo) inspiring this.
 
 require 'optparse'
 require 'ostruct'
@@ -11,6 +11,7 @@ require 'mime/types'
 
 options = OpenStruct.new
 options.draft = false
+options.overwrite = false
 options.prerelease = false
 OptionParser.new do |opt|
   opt.on('-s', '--secret SECRET', 'GitHub access token') { |o| options[:secret] = o }
@@ -19,6 +20,7 @@ OptionParser.new do |opt|
   opt.on('-c', '--relnotes-file RELNOTES_FILE', 'Release notes path') { |o| options[:relnotes_file] = o }
   opt.on('-t', '--tag TAG', 'Tag name') { |o| options[:tag_name] = o }
   opt.on('-d', '--draft BOOLEAN', TrueClass, 'true if draft release') { |o| options[:draft] = o }
+  opt.on('-d', '--overwrite BOOLEAN', TrueClass, 'true to overwrite existing assets') { |o| options[:overwrite] = o }
   opt.on('-p', '--prerelease BOOLEAN', TrueClass, 'true if prerelease') { |o| options[:prerelease] = o }
 end.parse!
 
@@ -40,13 +42,9 @@ puts "Deploying to repo: #{options[:repo_slug]}"
 
 if not options[:relnotes].nil?
   body = options[:relnotes]
-  puts "body from CLI:"
 else
   body = File.open(options[:relnotes_file], "rb").read
-  puts  "body from file #{options[:relnotes_file]}:"
 end
-
-puts "#{body}"
 
 tag_matched = false
 our_release = nil
@@ -85,17 +83,36 @@ else
     })
 end
 puts "release.assets_url: #{our_release.assets_url}"
-ARGV.each do |file|
-  puts "uploading asset #{file} to #{our_release.url}"
-  types = MIME::Types.type_for(file)
-  puts types.inspect
-  puts "#{types[0]}"
+ARGV.each { |file| upload_file(file) }
+
+def upload_file(path)
+  #puts "uploading asset #{file} to #{our_release.url}"
+  file = normalize_filename(path)
+  asset = asset(file)
+  return info :skip_existing, file if asset && !overwrite?
+  delete(asset, file) if asset
+  info :upload_file, file
   client.upload_asset(our_release.url, file,
     {:name => file, :content_type => content_type(file)})
+end
+
+def asset(name)
+  client.release_assets(url).detect { |asset| asset.name == name }
 end
 
 def content_type(file)
   type = MIME::Types.type_for(file).first
   type ||= 'application/octet-stream'
   type.to_s
+end
+
+def delete(asset, file)
+  info :overwrite_existing, file
+  client.delete_release_asset(asset.url)
+end
+
+def normalize_filename(str)
+  str = File.basename(str)
+  str = str.split(' ').first
+  str.gsub(/[^\w@+\-_]/, '.')
 end
