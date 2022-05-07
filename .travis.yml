@@ -346,6 +346,7 @@ deploy:
 
   - provider: script
     edge: true
+    skip_cleanup: true
     script: ruby ci_scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -c "$REL_DESC_FILE" -t ${TRAVIS_TAG} --draft true --prerelease true
     on:
       tags: true

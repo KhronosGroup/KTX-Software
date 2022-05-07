@@ -60,7 +60,9 @@ releases.each do |release|
   end
 end
 puts "tag #{options[:tag_name]} matched: #{tag_matched}."
-puts "our_release.url: #{our_release.url}."
+if our_release
+  puts "our_release.url: #{our_release.url}."
+end
 
 # if tag has been pushed directly to git, create a github release
 if not our_release
@@ -72,7 +74,6 @@ if not our_release
       :prerelease => options[:prerelease],
       :body => body 
     })
-    release_url = release.url
 else
   release = client.update_release(our_release.url,
     {
