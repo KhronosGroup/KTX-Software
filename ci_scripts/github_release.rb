@@ -49,6 +49,8 @@ else
   body = File.open(options[:relnotes_file], "rb").read
 end
 
+puts body
+
 releases.each do |release|
   puts "Release tag_name = #{release.tag_name}"
   if release.tag_name == options[:tag_name]
@@ -84,5 +86,12 @@ ARGV.each do |file|
   types = MIME::Types.type_for(file)
   puts types.inspect
   puts "#{types[0]}"
-  client.upload_asset(release_url, file)
+  client.upload_asset(release_url, file,
+    {:name => file, :content_type => content_type(file)})
+end
+
+def content_type(file)
+  type = MIME::Types.type_for(file).first
+  type ||= 'application/octet-stream'
+  type.to_s
 end
