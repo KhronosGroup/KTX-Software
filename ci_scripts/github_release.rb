@@ -45,11 +45,13 @@ release_url = nil
 releases = client.releases(options[:repo_slug])
 if not options[:relnotes].nil?
   body = options[:relnotes]
+  puts "body from CLI:"
 else
   body = File.open(options[:relnotes_file], "rb").read
+  puts  "body from file #{options[:relnotes_file]}:"
 end
 
-puts body
+puts "#{body}"
 
 releases.each do |release|
   puts "Release tag_name = #{release.tag_name}"
@@ -74,9 +76,7 @@ if tag_matched == false
     release_url = release.url
 else
   release = client.update_release(release_url,
-    { :name => options[:tag_name],
-      :draft => options[:draft],
-      :prerelease => options[:prerelease],
+    {
       :body => body 
     })
 end
