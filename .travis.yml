@@ -314,7 +314,6 @@ deploy:
 #      tags: true
 #      #branch: master
 #      condition: $PACKAGE = YES
-# ---------------------------------------------------------
 # ----------------------- dpl v1 -------------------------
   - provider: releases
     token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
@@ -322,8 +321,9 @@ deploy:
     skip_cleanup: true
     # We can't use
     #body: $RELNOTES
-    # because a bug in v1's backing Ruby code does not allow options that
-    # contain newlines leading to an error on Travis when we try.
+    # because a bug in v1's backing Ruby code does not allow passing it
+    # command line option arguments that contain newlines leading to an
+    # error on Travis when we try.
     # See https://github.com/travis-ci/dpl/issues/155.
     #
     # The obvious workarounds of literal "\n" or "<br />" do not work.
@@ -333,7 +333,7 @@ deploy:
     # the initial heading format.
     #
     # Since we can't use either this or v2 to deply the release notes, we've
-    # rolled our own provider script.
+    # rolled our own provider script for the body.
     file_glob: true
     file:
       - $BUILD_DIR/KTX-Software-*-*
@@ -351,5 +351,6 @@ deploy:
       tags: true
       #branch: master
       condition: $PACKAGE = YES
+# ---------------------------------------------------------
 
 # vim:ai:ts=4:sts=2:sw=2:expandtab

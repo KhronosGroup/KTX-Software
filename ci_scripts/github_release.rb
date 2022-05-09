@@ -84,7 +84,7 @@ else
 end
 
 # We're not using this so it isn't thoroughly tested. Asset uploads
-# are done by the Travis CI "releases" provider.
+# are done using the Travis CI "releases" provider.
 ARGV.each { |file| upload_file(file) }
 
 def upload_file(path)
@@ -116,5 +116,8 @@ end
 def normalize_filename(str)
   str = File.basename(str)
   str = str.split(' ').first
+  # We likely don't need transliterate as our package names are English.
+  # See https://github.com/travis-ci/dpl/blob/d104a6ec5fb0ba480875fe120d1e9e986824b9dc/lib/dpl/helper/transliterate.rb
+  #str = transliterate(str) # 
   str.gsub(/[^\w@+\-_]/, '.')
 end
