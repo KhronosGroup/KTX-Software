@@ -16,9 +16,13 @@ converted to 2-component and the components separated into the RGB and alpha cha
 
 ### Significant Changes since v4.0.0
 
-* Basis Universal has been updated to version 1.16.3. Encoder performance is
-hugely improved compared to v4.0.0 with the ETC1S encoder being 4 times faster.
-
+* Basis Universal has been updated to version 1.16.3.
+    * The ETC1S encoder performance is now approximastely 30% faster.
+    * Optional OpenCL support has been added to the ETC1S encoder. Add
+      `-D SUPPORT_OPENCL` when configuring the CMake build to enable it.
+      As OpenCL may not be any faster when encoding individual files -
+      it highly depends on your hardware - it is disabled in the default
+      build and release packages.
 
 ### Known Issues in v4.1.0.
 
@@ -32,10 +36,8 @@ a CMYK image.
 must be aware of WebGL restrictions with regard to texture size and
 may need to resize images appropriately using the --resize feature
 of `toktx`.  In general the dimensions of block compressed textures
-must be a multiple of the block size and, if
-`WEBGL_compressed_texture_s3tc` on WebGL 1.0 is expected to be one
-of the targets, then the dimensions must be a power of 2. For
-portability glTF's _KHR\_texture\_basisu_ extension requires texture
+must be a multiple of the block size and for WebGL 1.0 must be a power
+of 2. For portability glTF's _KHR\_texture\_basisu_ extension requires texture
 dimensions to be a multiple of 4, the block size of the Universal texture
 formats.
 
