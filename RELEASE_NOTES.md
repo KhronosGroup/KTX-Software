@@ -7,8 +7,7 @@ Release Notes
 
 * ARM's ASTC encoder has been added to `libktx`. As a result you can now use `toktx` to create KTX files with ASTC encoded payloads.
 
-* Full normal map handling has been added. 3-component normal maps can be
-converted to 2-component and the components separated into the RGB and alpha channels of ASTC, ETC1S or UASTC compressed textures. A `--normalize` option has been added to `toktx` to convert an input normal map to unit normals which are needed to allow the third component to be recreated in a shader.
+* Full normal map handling has been added. 3-component normal maps can be converted to 2-component and the components separated into the RGB and alpha channels of ASTC, ETC1S or UASTC compressed textures. A `--normalize` option has been added to `toktx` to convert an input normal map to unit normals which are needed to allow the third component to be recreated in a shader.
 
 * A Java wrapper and JNI module for `libktx` has been added.
 
@@ -18,41 +17,19 @@ converted to 2-component and the components separated into the RGB and alpha cha
 
 * Basis Universal has been updated to version 1.16.3.
     * The ETC1S encoder performance is now approximastely 30% faster.
-    * Optional OpenCL support has been added to the ETC1S encoder. Add
-      `-D SUPPORT_OPENCL` when configuring the CMake build to enable it.
-      As OpenCL may not be any faster when encoding individual files -
-      it highly depends on your hardware - it is disabled in the default
-      build and release packages.
+    * Optional OpenCL support has been added to the ETC1S encoder. Add `-D SUPPORT_OPENCL` when configuring the CMake build to enable it. As OpenCL may not be any faster when encoding individual files - it highly depends on your hardware - it is disabled in the default build and release packages.
 
 ### Known Issues in v4.1.0.
 
 * `toktx` will not read JPEG files with a width or height > 32768 pixels.
 
-* `toktx` will not read 4-component JPEG files such as those sometimes
-created by Adobe software where the 4th component can be used to re-create
-a CMYK image.
+* `toktx` will not read 4-component JPEG files such as those sometimes created by Adobe software where the 4th component can be used to re-create a CMYK image.
 
-* Users making Basisu encoded or block compressed textures for WebGL
-must be aware of WebGL restrictions with regard to texture size and
-may need to resize images appropriately using the --resize feature
-of `toktx`.  In general the dimensions of block compressed textures
-must be a multiple of the block size and for WebGL 1.0 must be a power
-of 2. For portability glTF's _KHR\_texture\_basisu_ extension requires texture
-dimensions to be a multiple of 4, the block size of the Universal texture
-formats.
+* Users making Basisu encoded or block compressed textures for WebGL must be aware of WebGL restrictions with regard to texture size and may need to resize images appropriately using the --resize feature of `toktx`.  In general the dimensions of block compressed textures must be a multiple of the block size and for WebGL 1.0 must be a power of 2. For portability glTF's _KHR\_texture\_basisu_ extension requires texture dimensions to be a multiple of 4, the block size of the Universal texture formats.
 
-* Basis Universal encoding results (both ETC1S/LZ and UASTC) are
-non-deterministic across platforms. Results are valid but level
-sizes and data will differ slightly.
-See [issue #60](https://github.com/BinomialLLC/basis_universal/issues/60)
-in the basis_universal repository.
+* Basis Universal encoding results (both ETC1S/LZ and UASTC) are non-deterministic across platforms. Results are valid but level sizes and data will differ slightly. See [issue #60](https://github.com/BinomialLLC/basis_universal/issues/60) in the basis_universal repository.
 
-* UASTC RDO results differ from run to run unless multi-threading
-or RDO multi-threading is disabled. In `toktx` use `--threads 1` for the
-former or `--uastc_rdo_m` for the latter. As with the preceeding issue
-results are valid but level sizes will differ slightly. See
-[issue #151](https://github.com/BinomialLLC/basis_universal/issues/151)
-in the basis_universal repository.
+* UASTC RDO results differ from run to run unless multi-threading or RDO multi-threading is disabled. In `toktx` use `--threads 1` for the former or `--uastc_rdo_m` for the latter. As with the preceeding issue results are valid but level sizes will differ slightly. See [issue #151](https://github.com/BinomialLLC/basis_universal/issues/151) in the basis_universal repository.
 
 ### Changes since v4.0.0 (by part)
 ### libktx
