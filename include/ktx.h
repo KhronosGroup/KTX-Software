@@ -861,27 +861,27 @@ typedef void (*ktxStream_destruct)(ktxStream* str);
  */
 struct ktxStream
 {
-    ktxStream_read read;   /*!< @internal pointer to function for reading bytes. */
-    ktxStream_skip skip;   /*!< @internal pointer to function for skipping bytes. */
-    ktxStream_write write; /*!< @internal pointer to function for writing bytes. */
-    ktxStream_getpos getpos; /*!< @internal pointer to function for getting current position in stream. */
-    ktxStream_setpos setpos; /*!< @internal pointer to function for setting current position in stream. */
-    ktxStream_getsize getsize; /*!< @internal pointer to function for querying size. */
-    ktxStream_destruct destruct; /*!< @internal destruct the stream. */
+    ktxStream_read read;   /*!< pointer to function for reading bytes. */
+    ktxStream_skip skip;   /*!< pointer to function for skipping bytes. */
+    ktxStream_write write; /*!< pointer to function for writing bytes. */
+    ktxStream_getpos getpos; /*!< pointer to function for getting current position in stream. */
+    ktxStream_setpos setpos; /*!< pointer to function for setting current position in stream. */
+    ktxStream_getsize getsize; /*!< pointer to function for querying size. */
+    ktxStream_destruct destruct; /*!< destruct the stream. */
 
     enum streamType type;
     union {
-        FILE* file;
-        ktxMem* mem;
+        FILE* file;        /**< a stdio FILE pointer for a ktxFileStream. */
+        ktxMem* mem;       /**< a pointer to a ktxMem struct for a ktxMemStream. */
         struct
         {
-            void* address;
-            void* allocatorAddress;
-            ktx_size_t size;
-        } custom_ptr;
-    } data;                /**< @internal pointer to the stream data. */
-    ktx_off_t readpos;     /**< @internal used by FileStream for stdin. */
-    ktx_bool_t closeOnDestruct; /**< @internal Close FILE* or dispose of memory on destruct. */
+            void* address;           /**< pointer to the data. */
+            void* allocatorAddress;  /**< pointer to a memory allocator. */
+            ktx_size_t size;         /**< size of the data. */
+        } custom_ptr;      /**< pointer to a struct for custom streams. */
+    } data;                /**< pointer to the stream data. */
+    ktx_off_t readpos;     /**< used by FileStream for stdin. */
+    ktx_bool_t closeOnDestruct; /**< Close FILE* or dispose of memory on destruct. */
 };
 
 /*
