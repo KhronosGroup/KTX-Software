@@ -55,7 +55,6 @@
 #define KTX_FILE_STREAM_MAX (1 << (sizeof(ktx_off_t) - 1) - 1)
 
 /**
- * @internal
  * @~English
  * @brief Read bytes from a ktxFileStream.
  *
@@ -92,7 +91,6 @@ KTX_error_code ktxFileStream_read(ktxStream* str, void* dst, const ktx_size_t co
 }
 
 /**
- * @internal
  * @~English
  * @brief Skip bytes in a ktxFileStream.
  *
@@ -133,7 +131,6 @@ KTX_error_code ktxFileStream_skip(ktxStream* str, const ktx_size_t count)
 }
 
 /**
- * @internal
  * @~English
  * @brief Write bytes to a ktxFileStream.
  *
@@ -174,7 +171,6 @@ KTX_error_code ktxFileStream_write(ktxStream* str, const void *src,
 }
 
 /**
- * @internal
  * @~English
  * @brief Get the current read/write position in a ktxFileStream.
  *
@@ -219,13 +215,12 @@ KTX_error_code ktxFileStream_getpos(ktxStream* str, ktx_off_t* pos)
 }
 
 /**
- * @internal
  * @~English
  * @brief Set the current read/write position in a ktxFileStream.
  *
  * Offset of 0 is the start of the file. This function operates
  * like Linux > 3.1's @c lseek() when it is passed a @c whence
- * of @c SEEK_DATA is it returns and error if the seek would
+ * of @c SEEK_DATA as it returns an error if the seek would
  * go beyond the end of the file.
  *
  * @param [in] str    pointer to the ktxStream whose r/w position is to be set.
@@ -275,7 +270,6 @@ KTX_error_code ktxFileStream_setpos(ktxStream* str, ktx_off_t pos)
 }
 
 /**
- * @internal
  * @~English
  * @brief Get the size of a ktxFileStream in bytes.
  *
@@ -336,12 +330,13 @@ KTX_error_code ktxFileStream_getsize(ktxStream* str, ktx_size_t* size)
 }
 
 /**
- * @internal
  * @~English
  * @brief Initialize a ktxFileStream.
  *
  * @param [in] str      pointer to the ktxStream to initialize.
  * @param [in] file     pointer to the underlying FILE object.
+ * @param [in] closeFileOnDestruct if not false, stdio file pointer will be closed when ktxStream
+ *             is destructed.
  *
  * @return      KTX_SUCCESS on success, KTX_INVALID_VALUE on error.
  *
@@ -369,7 +364,6 @@ KTX_error_code ktxFileStream_construct(ktxStream* str, FILE* file,
 }
 
 /**
- * @internal
  * @~English
  * @brief Destruct the stream, potentially closing the underlying FILE.
  *

@@ -30,6 +30,7 @@ env:
     - FEATURE_TESTS: ON
     - GIT_LFS_SKIP_SMUDGE: 1
     - PACKAGE: NO
+    - REL_DESC_FILE: "$BUILD_DIR/rel_desc.md"
     - VULKAN_SDK_VER: "1.2.176.1"
     # This is just to tell the Vulkan install script where to install.
     - VULKAN_INSTALL_DIR: "$HOME/VulkanSDK/$VULKAN_SDK_VER"
@@ -45,7 +46,7 @@ env:
       SUPPORT_SSE=ON SUPPORT_OPENCL=OFF
     - CONFIGURATION=Release PLATFORM=macOS ARCHS=x86_64
       FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=ON FEATURE_TOOLS=ON
-      SUPPORT_SSE=ON SUPPORT_OPENCL=OFF PACKAGE=YES
+      SUPPORT_SSE=ON SUPPORT_OPENCL=OFF DEPLOY_DOCS=YES PACKAGE=YES
     - CONFIGURATION=Release PLATFORM=macOS ARCHS=arm64
       FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=ON FEATURE_TESTS=OFF
       FEATURE_TOOLS=ON SUPPORT_SSE=ON SUPPORT_OPENCL=OFF PACKAGE=YES
@@ -251,6 +252,7 @@ after_success:
 
 before_deploy:
   - |
+    gem install octokit mime-types
     case "${TRAVIS_OS_NAME:-linux}" in
     linux)
       ;;
@@ -266,48 +268,89 @@ before_deploy:
       if [ -n "$MACOS_CERTIFICATES_P12" -a -n "$TRAVIS_TAG" -a -z "$NOTARIZED" ]; then
         ./ci_scripts/notarize.sh $BUILD_DIR/KTX-Software-*.pkg $APPLE_ID $DEVELOPMENT_TEAM $ALTOOL_PASSWORD; export NOTARIZED="true"
       fi
-      if [ -z "$RELNOTES" -a -f RELEASE_NOTES.md ]; then
-        # Copy RELEASE_NOTES into an env. var. so we can remove lines that are
-        # unnecessary in the context of a GitHub release description.
-        RELNOTES=$(cat RELEASE_NOTES.md | awk '/^Release Notes/,/^## Version/ { next }
-                                          ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }')
-      fi
       ;;
     esac
+    if [ ! -f $REL_DESC_FILE -a -f RELEASE_NOTES.md ]; then
+      # Remove lines that are unnecessary in the context of a GitHub
+      # release description.
+      awk '/^Release Notes/,/^## Version/ { next }
+           ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }' RELEASE_NOTES.md \
+      > $REL_DESC_FILE
+      # dpl v2 alternative
+      #RELNOTES=$(awk '/^Release Notes/,/^## Version/ { next }
+      #     ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }' RELEASE_NOTES.md)
+    fi
 
 deploy:
   - provider: pages
-    #edge: true # Use bleeding edge (dplv2)
-    cleanup: false
+    edge: true # Use bleeding edge (dplv2)
     token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
     local_dir: $BUILD_DIR/docs/html
     on:
       #branch: master
       tags: true
-      condition: $TRAVIS_OS_NAME = osx && ARCHS = x86_64 && PACKAGE = YES
+      condition: $DEPLOY_DOCS = YES
 
+# ----------------------- dpl v2 -------------------------
+    # dpl v2 releases provider is broken. Same named but different releases
+    # are created each time a job in the build triggers this deploy. This
+    # may be because draft is true and the GitHub API returns 404 when
+    # querying a draft release by name (you can only query by id) causing
+    # it to use create_release every time instead of update_release. Some
+    # of these releases are called "Draft". To avoid this name is specified
+    # here. See https://github.com/travis-ci/dpl/issues/1213.
+#  - provider: releases
+#    edge: true
+#    token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
+#    name: $TRAVIS_TAG
+#    file_glob: true
+#    file:
+#      - $BUILD_DIR/KTX-Software-*-*
+#    release_notes_file: REL_DESC_FILE.md
+#    #release_notes: $RELNOTES
+#    draft: true
+#    prerelease: true
+#    on:
+#      tags: true
+#      #branch: master
+#      condition: $PACKAGE = YES
+# ----------------------- dpl v1 -------------------------
   - provider: releases
-    # dpl v2 is broken. Same named but different releases are created for this
-    # and the deploy below. Happens even when neither of release_notes or
-    # release_notes_file is specified.
-    #edge: true # Use bleeding edge (dplv2)
     token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
+    name: $TRAVIS_TAG
+    skip_cleanup: true
+    # We can't use
+    #body: $RELNOTES
+    # because a bug in v1's backing Ruby code does not allow passing it
+    # command line option arguments that contain newlines leading to an
+    # error on Travis when we try.
+    # See https://github.com/travis-ci/dpl/issues/155.
+    #
+    # The obvious workarounds of literal "\n" or "<br />" do not work.
+    # The text is passed to GitHub but "\n" is shown literally. While "<br />"
+    # causes a newline in the rendering, the markdown interpreter does not
+    # recognize it as an actual newline so never changes the format from
+    # the initial heading format.
+    #
+    # Since we can't use either this or v2 to deply the release notes, we've
+    # rolled our own provider script for the body.
     file_glob: true
     file:
       - $BUILD_DIR/KTX-Software-*-*
-    # This goes to the release description so covers all versions.
-    # These are dpl v2 parameters.
-    #release_notes_file: RELEASE_NOTES.md
-    #release_notes: $RELNOTES
-    # dpl v1. Sadly this doesn't work. See https://github.com/travis-ci/dpl/issues/155.
-    # body: $RELNOTES
-    # Do release note deployment manually for now.
-    cleanup: false
     draft: true
-    #prerelease: true
+    prerelease: true
     on:
       tags: true
       #branch: master
-      condition: PACKAGE = YES
+      condition: $PACKAGE = YES
+
+  - provider: script
+    edge: true
+    script: ruby ci_scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -c $REL_DESC_FILE -t ${TRAVIS_TAG} --draft true --prerelease true
+    on:
+      tags: true
+      #branch: master
+      condition: $PACKAGE = YES
+# ---------------------------------------------------------
 
 # vim:ai:ts=4:sts=2:sw=2:expandtab

@@ -245,13 +245,13 @@ deploy:
     # Deploy to GitHub Releases
     provider: GitHub
     auth_token:
-      secure: ZEoxs4bA/iVAEfPdQOVDq0fyKA6eyecgyvQ0/1kMu6ic2+H6Aua6kPk2hNvWG4tM
+      secure: ts/Kjg56NnVMgXsM2J/4jXA3W9kIA58rg4B32uRuJDqyNRmkAGWlCXP9Zbp29Uip
     # Don't set so tag name will be used as release name.
     #release:
     # Can't get this to work using artifact.path so use artifact.name set above.
     artifact: WindowsInstaller,WindowsInstallerSha1
     draft: true
-    #prerelease: true
+    prerelease: true
     on:
       APPVEYOR_REPO_TAG: true       # deploy on tag push only
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019

@@ -87,6 +87,8 @@ function( CreateDocLibKTX )
         lib/strings.c
         lib/glloader.c
         lib/hashlist.c
+        lib/filestream.c
+        lib/memstream.c
         lib/texture.c
         lib/texture1.c
         lib/texture2.c

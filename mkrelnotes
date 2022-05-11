@@ -54,14 +54,14 @@ function commit_summary() {
   pr=$(git log --oneline -n 1 $hash | grep -o -E "\(#[0-9]+\)" | grep -o -E "[0-9]+")
   # Even in PR's the commit has the full name of the user as known to GitHub,
   # not their GitHub username. We want to use the GitHub username so there will
-  # be a link back to the person. We can retrieve this by requesting detailed info
-  # from GitHub via HTTPS.
+  # be a link back to the person. We can retrieve this by requesting detailed
+  # info from GitHub via HTTPS.
   summary=$(git log --pretty="$SUMMARY_FORMAT" -n 1 $hash)
   if [ -z "$pr" ]; then
-    cmtjson="$(curl -n https://api.github.com/repos/KhronosGroup/KTX-Software/commits/$hash 2>/dev/null)"
+    cmtjson="$(curl --netrc https://api.github.com/repos/KhronosGroup/KTX-Software/commits/$hash 2>/dev/null)"
     author="$(echo $cmtjson | jq -r -e '.author.login')"
   else
-    prjson="$(curl -n https://api.github.com/repos/KhronosGroup/KTX-Software/pulls/$pr 2>/dev/null)"
+    prjson="$(curl --netrc https://api.github.com/repos/KhronosGroup/KTX-Software/pulls/$pr 2>/dev/null)"
     author="$(echo $prjson | jq -r -e '.user.login')"
   fi
   summary+=" (@$author)"
@@ -71,7 +71,8 @@ function commit_summary() {
     body="$(git log --pretty="%b" -n 1 $hash | sed -E 's/^(.+)/  \1/')"
     if [ -n "$body" ]; then
       echo ""
-      # Remove CR which some multi-line commit bodies contain for unknown reasons.
+      # Remove CR which some multi-line commit bodies contain for unknown
+      # reasons.
       echo "$body" | tr -d \\r | sed -e 's/_/\\_/g'
     fi
   fi
@@ -217,6 +218,7 @@ if [ -n "$includeTests" ]; then
   tests=$(log "Tests" tests)
 fi
 js_binding=$(log "JS Wrappers" interface/js_binding)
+java_binding=$(log "Java Wrapper" interface/java_binding)
 
 if [ -n "$includeBuildSystem" ]; then
    cmake=$(log "Build System" $(find . \( -path ./build -o -path ./.git -o -path ./other_include \) -prune -false -o -name CMakeLists.txt -o -name '*.cmake'))
@@ -239,6 +241,8 @@ $tools
 $tests
 
 $js_binding
+
+$java_binding
 
 $cmake
 EOF
