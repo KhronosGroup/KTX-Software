@@ -96,7 +96,7 @@ copy_rgb_to_rgba(uint8_t* rgbadst, uint8_t* rgbsrc, uint32_t,
 }
 
 // This is not static only so the unit tests can access it.
-void
+KTX_API void
 swizzle_to_rgba(uint8_t* rgbadst, uint8_t* rgbasrc, uint32_t src_len,
                 ktx_size_t image_size, swizzle_e swizzle[4])
 {

@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "ktx.h"
 #include "vkformat_enum.h"
 
 bool
@@ -83,7 +84,7 @@ isProhibitedFormat(VkFormat format)
     }
 }
 
-bool
+KTX_API bool
 isValidFormat(VkFormat format)
 {
     if (format <= VK_FORMAT_MAX_STANDARD_ENUM)

@@ -15,6 +15,8 @@
 #pragma once
 #include "../transcoder/basisu.h"
 
+#include "ktx.h"
+
 #define BASISU_RESAMPLER_DEBUG_OPS (0)
 #define BASISU_RESAMPLER_DEFAULT_FILTER "lanczos4"
 #define BASISU_RESAMPLER_MAX_DIMENSION (16384)
@@ -24,7 +26,7 @@ namespace basisu
 	// float or double
 	typedef float Resample_Real;
 
-	class Resampler
+	class KTX_API Resampler
 	{
 	public:
 		typedef Resample_Real Sample;
@@ -108,7 +110,7 @@ namespace basisu
 
 		static Contrib_List *make_clist(
 			int src_x, int dst_x, Boundary_Op boundary_op,
-			Resample_Real(*Pfilter)(Resample_Real),
+			Resample_Real (*Pfilter)(Resample_Real),
 			Resample_Real filter_support,
 			Resample_Real filter_scale,
 			Resample_Real src_ofs);

@@ -20,6 +20,8 @@
 
 #include <KHR/khr_df.h>
 
+#include "ktx.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -161,7 +163,7 @@ typedef struct _Primaries {
     float Wy; /*!< White y. */
 } Primaries;
 
-khr_df_primaries_e findMapping(Primaries *p, float latitude);
+KTX_API khr_df_primaries_e findMapping(Primaries *p, float latitude);
 
 #ifdef __cplusplus
 }
