@@ -108,7 +108,7 @@ namespace basisu
 
 		static Contrib_List *make_clist(
 			int src_x, int dst_x, Boundary_Op boundary_op,
-			Resample_Real (*Pfilter)(Resample_Real),
+			Resample_Real(*Pfilter)(Resample_Real),
 			Resample_Real filter_support,
 			Resample_Real filter_scale,
 			Resample_Real src_ofs);
