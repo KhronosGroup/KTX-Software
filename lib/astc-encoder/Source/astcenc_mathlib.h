@@ -76,7 +76,12 @@
 #endif
 
 #if ASTCENC_AVX
-  #define ASTCENC_VECALIGN 32
+  // Working around a bug in older GCC versions distributed by Mingw
+  #if defined(__MINGW32__) && __GNUC__ < 11
+    #define ASTCENC_VECALIGN 16
+  #else
+    #define ASTCENC_VECALIGN 32
+  #endif
 #else
   #define ASTCENC_VECALIGN 16
 #endif
