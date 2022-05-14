@@ -28,7 +28,7 @@ jobs:
     - uses: seanmiddleditch/gha-setup-ninja@v3
     - uses: egor-tensin/setup-mingw@v2
     - name: Configure Mingw x64
-      run: cmake -B build -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++
+      run: cmake -B build -G "Ninja Multi-Config" -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++
     - name: Build Mingw x64 Debug
       run: cmake --build build --config Debug
     - name: Build Mingw x64 RelWithDebInfo
