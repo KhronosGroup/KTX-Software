@@ -98,7 +98,9 @@ typedef struct ktxVulkanFunctions {
  */
 typedef struct ktxVulkanTexture
 {
-    ktxVulkanFunctions vkFuncs; /*!< Handle to the functions used to allocate the texture */
+    PFN_vkDestroyImage vkDestroyImage; /*!< Pointer to vkDestroyImage function */
+    PFN_vkFreeMemory vkFreeMemory; /*!< Pointer to vkFreeMemory function */
+
     VkImage image; /*!< Handle to the Vulkan image created by the loader. */
     VkFormat imageFormat;     /*!< Format of the image data. */
     VkImageLayout imageLayout; /*!< Layout of the created image. Has the same

@@ -194,7 +194,8 @@ ktxVulkanDeviceInfo_Construct(ktxVulkanDeviceInfo* This,
  * @param  cmdPool        handle of the Vulkan command pool.
  * @param  pAllocator     pointer to the allocator to use for the image
  *                        memory. If NULL, the default allocator will be used.
- * @param pFunctions      pointer to the struct of functions used for
+ * @param  pFunctions     pointer to the struct of functions to use for vulkan
+ *                        operations.
  *
  * @returns KTX_SUCCESS on success, KTX_OUT_OF_MEMORY if a command buffer could
  *          not be allocated.
@@ -256,25 +257,23 @@ do {                             \
 
     if (instance == VK_NULL_HANDLE || pFunctions == NULL) {
         // This is the old behavior, where no functions where specified. We take a shot at loading them dynamically.
-#if defined(KTX_USE_FUNCPTRS_FOR_VULKAN)
-        // Delay loading not supported so must do it ourselves.
-        if (!ktxVulkanModuleHandle) {
-            ktx_error_code_e kresult = ktxLoadVulkanLibrary();
-            if (kresult != KTX_SUCCESS)
-                return kresult;
-        }
-#endif
+
+        // The reason we check this here, is that ktxLoadVulkanFunction doesn't give us a proper error code.
+        ktx_error_code_e kresult = ktxLoadVulkanLibrary();
+        if (kresult != KTX_SUCCESS)
+            return kresult;
 
         // if pFunctions are null, then we try to load the minimum number of required functions.
         if (pFunctions == NULL) {
             LOAD_EXT_FUNC(funcs, vkGetInstanceProcAddr);
         }
 
-        // If we have no instance, we will need to bind the instance instructions and the function instructions
+        // If we have no instance, we will need to bind the instance-level functions, as we won't be able to load them
+        // through vkGetInstanceProcAddr, and we need to load vkGetDeviceProcAddr.
         if (instance == VK_NULL_HANDLE) {
             LOAD_EXT_FUNC(funcs, vkGetDeviceProcAddr);
 
-            // These require an instance and we don't have that.
+            // These require an instance, which we don't have.
             LOAD_EXT_FUNC(funcs, vkGetPhysicalDeviceFormatProperties);
             LOAD_EXT_FUNC(funcs, vkGetPhysicalDeviceImageFormatProperties);
             LOAD_EXT_FUNC(funcs, vkGetPhysicalDeviceMemoryProperties);
@@ -932,7 +931,8 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
     vkTexture->levelCount = numImageLevels;
     vkTexture->layerCount = numImageLayers;
     vkTexture->viewType = viewType;
-    vkTexture->vkFuncs = vdi->vkFuncs;
+    vkTexture->vkDestroyImage = vdi->vkFuncs.vkDestroyImage;
+    vkTexture->vkFreeMemory = vdi->vkFuncs.vkFreeMemory;
 
     VK_CHECK_RESULT(
             vdi->vkFuncs.vkBeginCommandBuffer(vdi->cmdBuffer, &cmdBufBeginInfo)
@@ -1746,8 +1746,8 @@ void
 ktxVulkanTexture_Destruct(ktxVulkanTexture* vkTexture, VkDevice device,
                           const VkAllocationCallbacks* pAllocator)
 {
-    vkTexture->vkFuncs.vkDestroyImage(device, vkTexture->image, pAllocator);
-    vkTexture->vkFuncs.vkFreeMemory(device, vkTexture->deviceMemory, pAllocator);
+    vkTexture->vkDestroyImage(device, vkTexture->image, pAllocator);
+    vkTexture->vkFreeMemory(device, vkTexture->deviceMemory, pAllocator);
 }
 
 /** @} */

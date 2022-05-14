@@ -21,19 +21,12 @@
 #ifndef _VK_FUNCS_H_
 #define _VK_FUNCS_H_
 
-#if !defined(KTX_USE_FUNCPTRS_FOR_VULKAN)
-#define KTX_USE_FUNCPTRS_FOR_VULKAN 1
-#endif
-
-#if defined(KTX_USE_FUNCPTRS_FOR_VULKAN)
 #define VK_NO_PROTOTYPES
-#endif
 
 #include "vulkan/vk_platform.h"
 #include "vulkan/vulkan_core.h"
 #include "ktx.h"
 
-#if defined(KTX_USE_FUNCPTRS_FOR_VULKAN)
 
 #if WINDOWS
 #define WINDOWS_LEAN_AND_MEAN
@@ -48,9 +41,6 @@ ktx_error_code_e ktxLoadVulkanLibrary(void);
 // This is used to load instance functions through libktx's methods.
 PFN_vkVoidFunction ktxLoadVulkanFunction(const char* pName);
 
-#undef VK_FUNCTION
-
-#endif /* KTX_USE_FUNCPTRS_FOR_VULKAN */
 
 #endif /* _VK_FUNCS_H_ */
 
