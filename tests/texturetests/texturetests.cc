@@ -1354,7 +1354,7 @@ TEST(ktxTexture_calcLevelOffset, OffsetOfEachLevelRGBA2D) {
     // Offsets for 16x16, 5 level RGBA8 texture.
     // KTX 1: level 0 ... level 4
     ktx_uint32_t ktx1offsets[] = {0, 1024, 1024+256, 1024+256+64, 1024+256+64+16};
-    // KTX 2: level 4 ... level 0 with mip padding to an 8 byte alignment.
+    // KTX 2: level 0 ... level 4 with mip padding to a 4 byte alignment.
     ktx_uint32_t ktx2offsets[] = {4+16+64+256, 4+16+64, 4+16, 4, 0};
 
     result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE,
@@ -1389,7 +1389,7 @@ TEST(ktxTexture_calcLevelOffset, OffsetOfEachLevelRGB2D) {
     // Offsets for 9x9, 4 level RGB8 texture.
     // KTX 1: level 0 ... level 4
     ktx_uint32_t ktx1offsets[] = {0, 28*9, 28*9+12*4, 28*9+12*4+8*2};
-    // KTX 2: level 4 ... level 0 with mip padding to an 8 byte alignment.
+    // KTX 2: level 0 ... level 4 with mip padding to a 12 byte alignment.
     ktx_uint32_t ktx2offsets[] = {12*4+24, 6*2+12, 3*1+9, 0};
 
     result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE,
@@ -1412,6 +1412,54 @@ TEST(ktxTexture_calcLevelOffset, OffsetOfEachLevelRGB2D) {
     }
     if (ktx1texture)
         ktxTexture_Destroy(ktxTexture(ktx1texture));
+    if (ktx2texture)
+        ktxTexture_Destroy(ktxTexture(ktx2texture));
+}
+
+TEST(ktxTexture_calcLevelOffset, OffsetOfEachLevelD16_UNORM_S8_UINT) {
+    ktxTexture2* ktx2texture = 0;
+    TestCreateInfo createInfo(9, 9, 1, 2, 0,
+                              VK_FORMAT_D16_UNORM_S8_UINT, KTX_FALSE, 1, 1);
+    KTX_error_code result;
+    // Offsets for 9x9, 4 level  texture.
+    // KTX 2: level 0 ... level 4 with mip padding to a 4 byte alignment.
+    ktx_uint32_t ktx2offsets[] = {4+16+64, 4+16, 4, 0};
+
+    result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE,
+                                &ktx2texture);
+    EXPECT_EQ(result, KTX_SUCCESS);
+    ASSERT_TRUE(ktx2texture != NULL) << "ktxTexture2_Create failed: "
+                                 << ktxErrorString(result);
+
+    for (ktx_uint32_t i = 0; i < createInfo.numLevels; i++) {
+        ktx_size_t levelOffset;
+        levelOffset = ktxTexture2_calcLevelOffset(ktx2texture, i);
+        EXPECT_EQ(levelOffset, ktx2offsets[i]);
+    }
+    if (ktx2texture)
+        ktxTexture_Destroy(ktxTexture(ktx2texture));
+}
+
+TEST(ktxTexture_calcLevelOffset, OffsetOfEachLevelD32_SFLOAT_S8_UINT) {
+    ktxTexture2* ktx2texture = 0;
+    TestCreateInfo createInfo(9, 9, 1, 2, 0,
+                              VK_FORMAT_D32_SFLOAT_S8_UINT, KTX_FALSE, 1, 1);
+    KTX_error_code result;
+    // Offsets for 9x9, 4 level  texture.
+    // KTX 2: level 0 ... level 4 with mip padding to an 8 byte alignment.
+    ktx_uint32_t ktx2offsets[] = {8+32+128, 8+32, 8, 0};
+
+    result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE,
+                                &ktx2texture);
+    EXPECT_EQ(result, KTX_SUCCESS);
+    ASSERT_TRUE(ktx2texture != NULL) << "ktxTexture2_Create failed: "
+                                 << ktxErrorString(result);
+
+    for (ktx_uint32_t i = 0; i < createInfo.numLevels; i++) {
+        ktx_size_t levelOffset;
+        levelOffset = ktxTexture2_calcLevelOffset(ktx2texture, i);
+        EXPECT_EQ(levelOffset, ktx2offsets[i]);
+    }
     if (ktx2texture)
         ktxTexture_Destroy(ktxTexture(ktx2texture));
 }

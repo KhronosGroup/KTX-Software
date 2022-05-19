@@ -179,11 +179,11 @@ set(KTX_MAIN_SRC
     lib/dfdutils/createdfd.c
     lib/dfdutils/colourspaces.c
     lib/dfdutils/dfd.h
-    lib/dfdutils/dfd2vk.inl
     lib/dfdutils/interpretdfd.c
     lib/dfdutils/printdfd.c
     lib/dfdutils/queries.c
     lib/dfdutils/vk2dfd.c
+    lib/dfdutils/vk2dfd.inl
     lib/dfdutils/vulkan/vk_platform.h
     lib/dfdutils/vulkan/vulkan_core.h
     lib/etcdec.cxx
