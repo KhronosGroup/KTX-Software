@@ -41,6 +41,48 @@
 std::string myversion(STR(KTX2CHECK_VERSION));
 std::string mydefversion(STR(KTX2CHECK_DEFAULT_VERSION));
 
+#if !defined(BITFIELD_ORDER_FROM_MSB)
+// This declaration is solely to make debugging of certain problems easier.
+// Most compilers, including all those tested so far, including clang, gcc
+// and msvc, order bitfields from the lsb so these struct declarations work.
+// Possibly this is because I've only tested on little-endian machines?
+struct sampleType {
+    uint32_t bitOffset: 16;
+    uint32_t bitLength: 8;
+    uint32_t channelType: 8; // Includes qualifiers
+    uint32_t samplePosition0: 8;
+    uint32_t samplePosition1: 8;
+    uint32_t samplePosition2: 8;
+    uint32_t samplePosition3: 8;
+    uint32_t lower;
+    uint32_t upper;
+};
+
+struct BDFD {
+    uint32_t vendorId: 17;
+    uint32_t descriptorType: 15;
+    uint32_t versionNumber: 16;
+    uint32_t descriptorBlockSize: 16;
+    uint32_t model: 8;
+    uint32_t primaries: 8;
+    uint32_t transfer: 8;
+    uint32_t flags: 8;
+    uint32_t texelBlockDimension0: 8;
+    uint32_t texelBlockDimension1: 8;
+    uint32_t texelBlockDimension2: 8;
+    uint32_t texelBlockDimension3: 8;
+    uint32_t bytesPlane0: 8;
+    uint32_t bytesPlane1: 8;
+    uint32_t bytesPlane2: 8;
+    uint32_t bytesPlane3: 8;
+    uint32_t bytesPlane4: 8;
+    uint32_t bytesPlane5: 8;
+    uint32_t bytesPlane6: 8;
+    uint32_t bytesPlane7: 8;
+    struct sampleType samples[6];
+};
+#endif
+
 /** @page ktx2check ktx2check
 @~English
 
@@ -1229,7 +1271,27 @@ ktxValidator::validateHeader(validationContext& ctx)
 
     if (ctx.header.vkFormat != VK_FORMAT_UNDEFINED) {
         if (ctx.header.supercompressionScheme != KTX_SS_BASIS_LZ) {
-            uint32_t* pDfd = vk2dfd((VkFormat)ctx.header.vkFormat);
+            uint32_t* pDfd;
+            // Combined depth stencil formats are not seen outside a Vulkan
+            // device so are not supported by vk2dfd. These are the KTX
+            // definitions.
+            switch((VkFormat)ctx.header.vkFormat) {
+              case VK_FORMAT_D16_UNORM_S8_UINT:
+                // 2 16-bit words. D16 in the first. S8 in the 8 LSBs of the second.
+                pDfd = createDFDDepthStencil(16, 8, 4);
+                break;
+              case VK_FORMAT_D24_UNORM_S8_UINT:
+                // 1 32-bit word. D24 in the MSBs. S8 in the LSBs.
+                pDfd = createDFDDepthStencil(24, 8, 4);
+                break;
+              case VK_FORMAT_D32_SFLOAT_S8_UINT:
+                // 2 32-bit words. D32 float in the first word. S8 in LSBs of the
+                // second.
+                pDfd = createDFDDepthStencil(32, 8, 8);
+                break;
+              default:
+                pDfd = vk2dfd((VkFormat)ctx.header.vkFormat);
+            }
             if (pDfd == nullptr)
                 addIssue(logger::eFatal, ValidatorError.CreateDfdFailure,
                          vkFormatString((VkFormat)ctx.header.vkFormat));

@@ -20,7 +20,10 @@
 
 #include "dfd.h"
 
-static uint32_t *writeHeader(int numSamples, int bytes, int suffix)
+typedef enum { i_COLOR, i_NON_COLOR } channels_infotype;
+
+static uint32_t *writeHeader(int numSamples, int bytes, int suffix,
+                             channels_infotype infotype)
 {
     uint32_t *DFD = (uint32_t *) malloc(sizeof(uint32_t) *
                                         (1 + KHR_DF_WORD_SAMPLESTART +
@@ -40,8 +43,12 @@ static uint32_t *writeHeader(int numSamples, int bytes, int suffix)
           << KHR_DF_SHIFT_DESCRIPTORBLOCKSIZE));
     BDFD[KHR_DF_WORD_MODEL] =
         ((KHR_DF_MODEL_RGBSDA << KHR_DF_SHIFT_MODEL) | /* Only supported model */
-         (KHR_DF_PRIMARIES_BT709 << KHR_DF_SHIFT_PRIMARIES) | /* Assumed */
          (KHR_DF_FLAG_ALPHA_STRAIGHT << KHR_DF_SHIFT_FLAGS));
+    if (infotype == i_COLOR) {
+        BDFD[KHR_DF_WORD_PRIMARIES] |= KHR_DF_PRIMARIES_BT709 << KHR_DF_SHIFT_PRIMARIES; /* Assumed */
+    } else {
+        BDFD[KHR_DF_WORD_PRIMARIES] |= KHR_DF_PRIMARIES_UNSPECIFIED << KHR_DF_SHIFT_PRIMARIES;
+    }
     if (suffix == s_SRGB) {
         BDFD[KHR_DF_WORD_TRANSFER] |= KHR_DF_TRANSFER_SRGB << KHR_DF_SHIFT_TRANSFER;
     } else {
@@ -178,7 +185,7 @@ uint32_t *createDFDUnpacked(int bigEndian, int numChannels, int bytes,
     if (bigEndian) {
         int channelCounter, channelByte;
         /* Number of samples = number of channels * bytes per channel */
-        DFD = writeHeader(numChannels * bytes, numChannels * bytes, suffix);
+        DFD = writeHeader(numChannels * bytes, numChannels * bytes, suffix, i_COLOR);
         /* First loop over the channels */
         for (channelCounter = 0; channelCounter < numChannels; ++channelCounter) {
             int channel = channelCounter;
@@ -197,7 +204,7 @@ uint32_t *createDFDUnpacked(int bigEndian, int numChannels, int bytes,
 
         int sampleCounter;
         /* One sample per channel */
-        DFD = writeHeader(numChannels, numChannels * bytes, suffix);
+        DFD = writeHeader(numChannels, numChannels * bytes, suffix, i_COLOR);
         for (sampleCounter = 0; sampleCounter < numChannels; ++sampleCounter) {
             int channel = sampleCounter;
             if (redBlueSwap && (channel == 0 || channel == 2)) {
@@ -239,7 +246,7 @@ uint32_t *createDFDPacked(int bigEndian, int numChannels,
     uint32_t *DFD = 0;
     if (numChannels == 6) {
         /* Special case E5B9G9R9 */
-        DFD = writeHeader(numChannels, 4, s_UFLOAT);
+        DFD = writeHeader(numChannels, 4, s_UFLOAT, i_COLOR);
         writeSample(DFD, 0, 0,
                     9, 0,
                     1, 1, s_UNORM);
@@ -292,7 +299,7 @@ uint32_t *createDFDPacked(int bigEndian, int numChannels,
             }
             bitOffset += bits[channelCounter];
         }
-        DFD = writeHeader(numSamples, totalBits >> 3, suffix);
+        DFD = writeHeader(numSamples, totalBits >> 3, suffix, i_COLOR);
 
         sampleCounter = 0;
         for (bitOffset = 0; bitOffset < totalBits;) {
@@ -336,7 +343,7 @@ uint32_t *createDFDPacked(int bigEndian, int numChannels,
         }
 
         /* One sample per channel */
-        DFD = writeHeader(numChannels, totalBits >> 3, suffix);
+        DFD = writeHeader(numChannels, totalBits >> 3, suffix, i_COLOR);
         for (sampleCounter = 0; sampleCounter < numChannels; ++sampleCounter) {
             writeSample(DFD, sampleCounter, channels[sampleCounter],
                         bits[sampleCounter], bitOffset,
@@ -627,7 +634,7 @@ uint32_t *createDFDDepthStencil(int depthBits,
     /* N.B. Little-endian is assumed. */
     uint32_t *DFD = 0;
     DFD = writeHeader((depthBits > 0) + (stencilBits > 0),
-                      sizeBytes, s_UNORM);
+                      sizeBytes, s_UNORM, i_NON_COLOR);
     if (depthBits == 32) {
         writeSample(DFD, 0, KHR_DF_CHANNEL_RGBSDA_DEPTH,
                     32, 0,
