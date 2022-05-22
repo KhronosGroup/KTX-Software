@@ -329,7 +329,7 @@ macro(commom_lib_settings lib write)
         # The generator automatically sets the needed VCLinker
         # option when a .def file is seen in sources.
         # The def files that we add have a different syntax depending on the ABI
-        if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+        if(MINGW)
             target_sources(
                 ${lib}
             PRIVATE
