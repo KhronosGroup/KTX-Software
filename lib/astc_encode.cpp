@@ -35,7 +35,7 @@
 #include "astc-encoder/Source/astcenc.h"
 
 // Provide pthreads support on windows
-#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
+#if defined(_WIN32) && !defined(WIN32_HAS_PTHREADS)
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
