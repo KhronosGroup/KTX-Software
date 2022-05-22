@@ -18,9 +18,10 @@ EXPORTS
     _ZNK6basist17basisu_transcoder20get_image_level_infoEPKvjRNS_23basisu_image_level_infoEjj
     _ZN6basist17basisu_transcoder17start_transcodingEPKvj
     _ZNK6basist17basisu_transcoder21transcode_image_levelEPKvjjjPvjNS_25transcoder_texture_formatEjjPNS_23basisu_transcoder_stateEj
+    createDFDCompressed
+    createDFDDepthStencil
     createDFDUnpacked
     createDFDPacked
-    createDFDCompressed
     findMapping
     interpretDFD
     isProhibitedFormat

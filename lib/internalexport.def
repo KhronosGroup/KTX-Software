@@ -18,9 +18,10 @@ EXPORTS
     ?get_image_level_info@basisu_transcoder@basist@@QEBA_NPEBXIAEAUbasisu_image_level_info@2@II@Z
     ?start_transcoding@basisu_transcoder@basist@@QEAA_NPEBXI@Z
     ?transcode_image_level@basisu_transcoder@basist@@QEBA_NPEBXIIIPEAXIW4transcoder_texture_format@2@IIPEAUbasisu_transcoder_state@2@I@Z
+    createDFDCompressed
+    createDFDDepthStencil
     createDFDUnpacked
     createDFDPacked
-    createDFDCompressed
     findMapping
     interpretDFD
     isProhibitedFormat

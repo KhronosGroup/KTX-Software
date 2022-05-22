@@ -311,6 +311,37 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
 }
 
 /**
+ * @private
+ * @~English
+ * @brief Create a DFD for a VkFormat.
+ *
+ * This KTX-specific function adds support for combined depth stencil formats
+ * which are not supported by @e dfdutils' @c vk2dfd function because they
+ * are not seen outside a Vulkan device. KTX has its own definitions for
+ * these that enable uploading, with some effort.
+ *
+ * @param[in] vkFormat   the format for which to create a DFD.
+ */
+static uint32_t*
+ktxVk2dfd(ktx_uint32_t vkFormat)
+{
+    switch(vkFormat) {
+      case VK_FORMAT_D16_UNORM_S8_UINT:
+        // 2 16-bit words. D16 in the first. S8 in the 8 LSBs of the second.
+        return createDFDDepthStencil(16, 8, 4);
+      case VK_FORMAT_D24_UNORM_S8_UINT:
+        // 1 32-bit word. D24 in the MSBs. S8 in the LSBs.
+        return createDFDDepthStencil(24, 8, 4);
+      case VK_FORMAT_D32_SFLOAT_S8_UINT:
+        // 2 32-bit words. D32 float in the first word. S8 in LSBs of the
+        // second.
+        return createDFDDepthStencil(32, 8, 8);
+      default:
+        return vk2dfd(vkFormat);
+    }
+}
+
+/**
  * @memberof ktxTexture2 @private
  * @~English
  * @brief Do the part of ktxTexture2 construction that is common to
@@ -370,26 +401,7 @@ ktxTexture2_construct(ktxTexture2* This, ktxTextureCreateInfo* createInfo,
     memset(This, 0, sizeof(*This));
 
     if (createInfo->vkFormat != VK_FORMAT_UNDEFINED) {
-        // Combined depth stencil formats are not seen outside a Vulkan device
-        // so are not supported by vk2dfd. KTX has its own definitions for
-        // these that enable uploading, with some effort.
-        switch(createInfo->vkFormat) {
-          case VK_FORMAT_D16_UNORM_S8_UINT:
-            // 2 16-bit words. D16 in the first. S8 in the 8 LSBs of the second.
-            This->pDfd = createDFDDepthStencil(16, 8, 4);
-            break;
-          case VK_FORMAT_D24_UNORM_S8_UINT:
-            // 1 32-bit word. D24 in the MSBs. S8 in the LSBs.
-            This->pDfd = createDFDDepthStencil(24, 8, 4);
-            break;
-          case VK_FORMAT_D32_SFLOAT_S8_UINT:
-            // 2 32-bit words. D32 float in the first word. S8 in LSBs of the
-            // second.
-            This->pDfd = createDFDDepthStencil(32, 8, 8);
-            break;
-          default:
-            This->pDfd = vk2dfd(createInfo->vkFormat);
-        }
+        This->pDfd = ktxVk2dfd(createInfo->vkFormat);
         if (!This->pDfd)
             return KTX_INVALID_VALUE;  // Format is unknown or unsupported.
 
