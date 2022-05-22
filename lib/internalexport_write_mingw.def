@@ -1,0 +1,17 @@
+; Copyright 2019-2020 Mark Callow
+; SPDX-License-Identifier: Apache-2.0
+
+; Export internal functions used by internal test programs and the
+; validator. Using this file avoids having to decorate those internal
+; functions or updating such decorations as the tests evolve. Updating
+; this feels less obnoxious.
+
+LIBRARY libktx
+EXPORTS
+    _ZN6basisu9ResamplerD1Ev
+    _ZN6basisu9ResamplerC1EiiiiNS0_11Boundary_OpEffPKcPNS0_12Contrib_ListES5_ffff
+    _ZN6basisu9Resampler8put_lineEPKf
+    _ZN6basisu9Resampler8get_lineEv
+    _Z15swizzle_to_rgbaPhS_jyP9swizzle_e
+    appendLibId
+

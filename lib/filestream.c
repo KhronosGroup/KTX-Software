@@ -52,6 +52,10 @@
   typedef unsigned short mode_t;
 #endif
 
+#if defined(__MINGW32__)
+    #define S_IFSOCK 0xC000
+#endif
+
 #define KTX_FILE_STREAM_MAX (1 << (sizeof(ktx_off_t) - 1) - 1)
 
 /**

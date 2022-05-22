@@ -326,14 +326,24 @@ macro(commom_lib_settings lib write)
         PUBLIC # only for basisu_c_binding.
             BASISU_NO_ITERATOR_DEBUG_LEVEL
         )
-        target_sources(
-            ${lib}
-        PRIVATE
-            # The msvs generator automatically sets the needed VCLinker
-            # option when a .def file is seen in sources.
-            lib/internalexport.def
-            $<${write}:lib/internalexport_write.def>
-        )
+        # The generator automatically sets the needed VCLinker
+        # option when a .def file is seen in sources.
+        # The def files that we add have a different syntax depending on the ABI
+        if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+            target_sources(
+                ${lib}
+            PRIVATE
+                lib/internalexport_mingw.def
+                $<${write}:lib/internalexport_write_mingw.def>
+            )
+        else()
+            target_sources(
+                ${lib}
+            PRIVATE
+                lib/internalexport.def
+                $<${write}:lib/internalexport_write.def>
+            )
+        endif()
     elseif(EMSCRIPTEN)
         target_compile_definitions(${lib} PRIVATE
             # To reduce size, don't support transcoding to formats not
