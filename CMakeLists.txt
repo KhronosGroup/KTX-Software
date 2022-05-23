@@ -329,7 +329,7 @@ macro(commom_lib_settings lib write)
         # The generator automatically sets the needed VCLinker
         # option when a .def file is seen in sources.
         # The def files that we add have a different syntax depending on the ABI
-        if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+        if(MINGW)
             target_sources(
                 ${lib}
             PRIVATE
@@ -375,6 +375,15 @@ macro(commom_lib_settings lib write)
         # generators (like Visual Studio) to take the exact path and not
         # change it.
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
+        
+        if(MINGW)
+            # Check if the Threads package is provided; if using Mingw it MIGHT be
+            find_package(Threads)
+            if(Threads_FOUND)
+                target_compile_definitions(ktx PRIVATE WIN32_HAS_PTHREADS)
+                target_link_libraries(ktx PRIVATE Threads::Threads)
+            endif()
+        endif()
 
     elseif(APPLE)
         if(KTX_EMBED_BITCODE)
