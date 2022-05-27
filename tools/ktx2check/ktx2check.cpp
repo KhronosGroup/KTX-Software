@@ -274,7 +274,7 @@ struct {
         ERROR | 0x0059, "DFD texelBlockDimension3 is non-zero indicating an unsupported four-dimensional texture."
     };
     issue BytesPlane0Zero {
-        ERROR | 0x005a, "DFD bytesPlane0 must be non-zero for non-supercompressed texture with %s."
+        ERROR | 0x005a, "DFD bytesPlane0 must be non-zero for non-supercompressed %s texture."
     };
     issue MultiplaneFormatsNotSupported {
         ERROR | 0x005b, "DFD has non-zero value in bytesPlane[1-7] indicating unsupported multiplane format."
@@ -319,13 +319,22 @@ struct {
         ERROR | 0x0067, "DFD colorModel for non block-compressed textures must be RGBSDA."
     };
     issue MixedChannels {
-        ERROR | 0x0067, "DFD has channels with differing flags, e.g. some float, some integer."
+        ERROR | 0x0068, "DFD has channels with differing flags, e.g. some float, some integer."
     };
     issue Multisample {
-        ERROR | 0x0067, "DFD indicates multiple sample locations."
+        ERROR | 0x0069, "DFD indicates multiple sample locations."
     };
     issue NonTrivialEndianness {
-        ERROR | 0x0067, "DFD describes non little-endian data."
+        ERROR | 0x006a, "DFD describes non little-endian data."
+    };
+    issue InvalidPrimaries {
+        ERROR | 0x006b, "DFD primaries value, %d, is invalid."
+    };
+    issue SampleCountMismatch {
+        ERROR | 0x006c, "DFD sample count %d differs from expected %d."
+    };
+    issue BytesPlane0Mismatch {
+        ERROR | 0x006d, "DFD bytesPlane0 value %d differs from expected %d."
     };
 } DFD;
 
@@ -742,8 +751,6 @@ class ktxValidator : public ktxApp {
         uint32_t requiredLevelAlignment() {
             if (header.supercompressionScheme != KTX_SS_NONE)
                 return 1;
-            else if (header.vkFormat == VK_FORMAT_UNDEFINED)
-                return 16;
             else
                 return lcm4(formatInfo.blockByteLength);
         }
@@ -1624,18 +1631,47 @@ ktxValidator::validateDfd(validationContext& ctx)
     }
 
     if (analyze) {
-        string vkFormatStr(vkFormatString((VkFormat)ctx.header.vkFormat));
+        // ctx.pActualDfd differs from what is expected. To help developers, do
+        // a more in depth analysis.
 
-        // ctx.pActualDfd differs from what is expected. To help developers, do a
-        // more in depth analysis.
+        string vkFormatStr(vkFormatString((VkFormat)ctx.header.vkFormat));
+        uint32_t* expBdb = ctx.pDfd4Format + 1; // Expected basic block.
+
         if (KHR_DFDVAL(bdb, VENDORID) != KHR_DF_VENDORID_KHRONOS
             || KHR_DFDVAL(bdb, DESCRIPTORTYPE) != KHR_DF_KHR_DESCRIPTORTYPE_BASICFORMAT
             || KHR_DFDVAL(bdb, VERSIONNUMBER) < KHR_DF_VERSIONNUMBER_1_3)
             addIssue(logger::eError, DFD.IncorrectBasics);
-        if (KHR_DFDSAMPLECOUNT(bdb) == 0)
+
+        khr_df_primaries_e aPrim, ePrim;
+        aPrim = (khr_df_primaries_e)KHR_DFDVAL(bdb, PRIMARIES);
+        ePrim = (khr_df_primaries_e)KHR_DFDVAL(expBdb, PRIMARIES);
+        if (aPrim != ePrim) {
+            // Okay. Any valid PRIMARIES value can be used. Check validity.
+            if (aPrim < 0 || aPrim > KHR_DF_PRIMARIES_ADOBERGB)
+                 addIssue(logger::eError, DFD.InvalidPrimaries, aPrim);
+        }
+
+        // Don't check flags because all the expected DFDs we create have
+        // ALPHA_STRAIGHT but ALPHA_PREMULTIPLIED is also valid.
+
+        int aVal, eVal;
+        if (KHR_DFDSAMPLECOUNT(bdb) == 0) {
             addIssue(logger::eError, DFD.ZeroSamples, vkFormatStr.c_str());
-        if (!(bdb[KHR_DF_WORD_BYTESPLANE0] & ~KHR_DF_MASK_BYTESPLANE0))
-             addIssue(logger::eError, DFD.BytesPlane0Zero, vkFormatStr.c_str());
+        } else {
+            aVal = KHR_DFDSAMPLECOUNT(bdb);
+            eVal = KHR_DFDSAMPLECOUNT(expBdb);
+            if (aVal != eVal)
+                addIssue(logger::eError, DFD.SampleCountMismatch, aVal, eVal);
+        }
+
+        aVal = KHR_DFDVAL(bdb, BYTESPLANE0);
+        if (aVal == 0) {
+            addIssue(logger::eError, DFD.BytesPlane0Zero, vkFormatStr.c_str());
+        } else {
+            eVal = KHR_DFDVAL(expBdb, BYTESPLANE0);
+            if (aVal != eVal)
+                addIssue(logger::eError, DFD.BytesPlane0Mismatch, aVal, eVal);
+        }
 
         if (ctx.formatInfo.isBlockCompressed) {
             // _BLOCK formats.

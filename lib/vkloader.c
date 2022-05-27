@@ -60,6 +60,7 @@
 
 static void
 setImageLayout(
+    ktxVulkanFunctions vkFuncs,
     VkCommandBuffer cmdBuffer,
     VkImage image,
     VkImageLayout oldLayout,
@@ -100,11 +101,33 @@ ktxVulkanDeviceInfo_Create(VkPhysicalDevice physicalDevice, VkDevice device,
                            VkQueue queue, VkCommandPool cmdPool,
                            const VkAllocationCallbacks* pAllocator)
 {
+    return ktxVulkanDeviceInfo_CreateEx(VK_NULL_HANDLE, physicalDevice, device,
+                                        queue, cmdPool, pAllocator, NULL);
+}
+
+/**
+ * @memberof ktxVulkanDeviceInfo
+ * @~English
+ * @brief Create a ktxVulkanDeviceInfo object.
+ *
+ * Allocates CPU memory for a ktxVulkanDeviceInfo object then calls
+ * ktxVulkanDeviceInfo_construct(). See it for documentation of the
+ * parameters.
+ *
+ * @return a pointer to the constructed ktxVulkanDeviceInfo.
+ *
+ * @sa ktxVulkanDeviceInfo_construct(), ktxVulkanDeviceInfo_destroy()
+ */
+ktxVulkanDeviceInfo*
+ktxVulkanDeviceInfo_CreateEx(VkInstance instance, VkPhysicalDevice physicalDevice, VkDevice device,
+                           VkQueue queue, VkCommandPool cmdPool,
+                           const VkAllocationCallbacks* pAllocator, const ktxVulkanFunctions* pFuncs)
+{
     ktxVulkanDeviceInfo* newvdi;
     newvdi = (ktxVulkanDeviceInfo*)malloc(sizeof(ktxVulkanDeviceInfo));
     if (newvdi != NULL) {
-        if (ktxVulkanDeviceInfo_Construct(newvdi, physicalDevice, device,
-                                    queue, cmdPool, pAllocator) != KTX_SUCCESS)
+        if (ktxVulkanDeviceInfo_ConstructEx(newvdi, instance, physicalDevice, device,
+                                          queue, cmdPool, pAllocator, pFuncs) != KTX_SUCCESS)
         {
             free(newvdi);
             newvdi = 0;
@@ -146,26 +169,162 @@ ktxVulkanDeviceInfo_Construct(ktxVulkanDeviceInfo* This,
                               VkQueue queue, VkCommandPool cmdPool,
                               const VkAllocationCallbacks* pAllocator)
 {
-    VkCommandBufferAllocateInfo cmdBufInfo = {
-        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO
-    };
-    VkResult result;
+   return ktxVulkanDeviceInfo_ConstructEx(This, VK_NULL_HANDLE, physicalDevice, device, queue,
+                                          cmdPool, pAllocator, NULL);
+}
 
-#if defined(KTX_USE_FUNCPTRS_FOR_VULKAN)
-    // Delay loading not supported so must do it ourselves.
-    if (!ktxVulkanModuleHandle) {
-        ktx_error_code_e kresult = ktxLoadVulkanLibrary();
-        if (kresult != KTX_SUCCESS)
-            return kresult;
-    }
-#endif
+/**
+ * @memberof ktxVulkanDeviceInfo
+ * @~English
+ * @brief Construct a ktxVulkanDeviceInfo object.
+ *
+ * Records the device information, allocates a command buffer that will be
+ * used to transfer image data to the Vulkan device and retrieves the physical
+ * device memory properties for ease of use when allocating device memory for
+ * the images.
+ *
+ * Pass a valid ktxVulkanDeviceInfo* to any Vulkan KTX image loading
+ * function to provide it with the information.
+ *
+ * @param  This            pointer to the ktxVulkanDeviceInfo object to
+ *                        initialize.
+ * @param  physicalDevice handle of the Vulkan physical device.
+ * @param  device         handle of the Vulkan logical device.
+ * @param  queue          handle of the Vulkan queue.
+ * @param  cmdPool        handle of the Vulkan command pool.
+ * @param  pAllocator     pointer to the allocator to use for the image
+ *                        memory. If NULL, the default allocator will be used.
+ * @param  pFunctions     pointer to the struct of functions to use for vulkan
+ *                        operations.
+ *
+ * @returns KTX_SUCCESS on success, KTX_OUT_OF_MEMORY if a command buffer could
+ *          not be allocated.
+ *
+ * @sa ktxVulkanDeviceInfo_destruct()
+ */
+KTX_error_code
+ktxVulkanDeviceInfo_ConstructEx(ktxVulkanDeviceInfo* This,
+                              VkInstance instance,
+                              VkPhysicalDevice physicalDevice, VkDevice device,
+                              VkQueue queue, VkCommandPool cmdPool,
+                              const VkAllocationCallbacks* pAllocator,
+                              const ktxVulkanFunctions* pFunctions)
+{
 
+#define LOAD_EXT_FUNC(member, fun) \
+do {                             \
+  if ((member).fun == NULL) {            \
+    (member).fun = (PFN_##fun)ktxLoadVulkanFunction(#fun); \
+    if ((member).fun == NULL) {          \
+        return KTX_FALSE;                               \
+    }\
+  } \
+} while (0)
+
+#define LOAD_INST_FUNC(member, instance, fun) \
+do {                             \
+  if ((member).fun == NULL) {            \
+    (member).fun = (PFN_##fun)((member).vkGetInstanceProcAddr)((instance), #fun); \
+    if ((member).fun == NULL) {          \
+        return KTX_FALSE;                               \
+    }\
+  } \
+} while (0)
+
+#define LOAD_DEVICE_FUNC(member, device, fun) \
+do {                             \
+  if ((member).fun == NULL) {            \
+    (member).fun = (PFN_##fun)((member).vkGetDeviceProcAddr)((device), #fun); \
+    if ((member).fun == NULL) {          \
+        return KTX_FALSE;                               \
+    }\
+  } \
+} while (0)
+
+
+    This->instance = instance;
     This->physicalDevice = physicalDevice;
     This->device = device;
     This->queue = queue;
     This->cmdPool = cmdPool;
     This->pAllocator = pAllocator;
-    vkGetPhysicalDeviceMemoryProperties(physicalDevice,
+
+    ktxVulkanFunctions funcs;
+    memset(&funcs, 0, sizeof(ktxVulkanFunctions));
+
+    if (pFunctions != NULL)
+        funcs = *pFunctions;
+
+    if (instance == VK_NULL_HANDLE || pFunctions == NULL) {
+        // This is the old behavior, where no functions where specified. We take a shot at loading them dynamically.
+
+        // The reason we check this here, is that ktxLoadVulkanFunction doesn't give us a proper error code.
+        ktx_error_code_e kresult = ktxLoadVulkanLibrary();
+        if (kresult != KTX_SUCCESS)
+            return kresult;
+
+        // if pFunctions are null, then we try to load the minimum number of required functions.
+        if (pFunctions == NULL) {
+            LOAD_EXT_FUNC(funcs, vkGetInstanceProcAddr);
+        }
+
+        // If we have no instance, we will need to bind the instance-level functions, as we won't be able to load them
+        // through vkGetInstanceProcAddr, and we need to load vkGetDeviceProcAddr.
+        if (instance == VK_NULL_HANDLE) {
+            LOAD_EXT_FUNC(funcs, vkGetDeviceProcAddr);
+
+            // These require an instance, which we don't have.
+            LOAD_EXT_FUNC(funcs, vkGetPhysicalDeviceFormatProperties);
+            LOAD_EXT_FUNC(funcs, vkGetPhysicalDeviceImageFormatProperties);
+            LOAD_EXT_FUNC(funcs, vkGetPhysicalDeviceMemoryProperties);
+        }
+    }
+
+    // We now load the rest of the functions in.
+    LOAD_INST_FUNC(funcs, instance, vkGetPhysicalDeviceFormatProperties);
+    LOAD_INST_FUNC(funcs, instance, vkGetPhysicalDeviceMemoryProperties);
+    LOAD_INST_FUNC(funcs, instance, vkGetPhysicalDeviceImageFormatProperties);
+
+
+    // We now get to device functions.
+    LOAD_INST_FUNC(funcs, instance, vkGetDeviceProcAddr);
+
+    LOAD_DEVICE_FUNC(funcs, device, vkAllocateCommandBuffers);
+    LOAD_DEVICE_FUNC(funcs, device, vkFreeCommandBuffers);
+    LOAD_DEVICE_FUNC(funcs, device, vkAllocateMemory);
+    LOAD_DEVICE_FUNC(funcs, device, vkFreeMemory);
+    LOAD_DEVICE_FUNC(funcs, device, vkBeginCommandBuffer);
+    LOAD_DEVICE_FUNC(funcs, device, vkEndCommandBuffer);
+    LOAD_DEVICE_FUNC(funcs, device, vkBindBufferMemory);
+    LOAD_DEVICE_FUNC(funcs, device, vkBindImageMemory);
+    LOAD_DEVICE_FUNC(funcs, device, vkCmdBlitImage);
+    LOAD_DEVICE_FUNC(funcs, device, vkCmdCopyBufferToImage);
+    LOAD_DEVICE_FUNC(funcs, device, vkCmdPipelineBarrier);
+    LOAD_DEVICE_FUNC(funcs, device, vkCreateImage);
+    LOAD_DEVICE_FUNC(funcs, device, vkDestroyImage);
+    LOAD_DEVICE_FUNC(funcs, device, vkCreateBuffer);
+    LOAD_DEVICE_FUNC(funcs, device, vkDestroyBuffer);
+    LOAD_DEVICE_FUNC(funcs, device, vkCreateFence);
+    LOAD_DEVICE_FUNC(funcs, device, vkDestroyFence);
+    LOAD_DEVICE_FUNC(funcs, device, vkWaitForFences);
+    LOAD_DEVICE_FUNC(funcs, device, vkMapMemory);
+    LOAD_DEVICE_FUNC(funcs, device, vkUnmapMemory);
+    LOAD_DEVICE_FUNC(funcs, device, vkQueueSubmit);
+    LOAD_DEVICE_FUNC(funcs, device, vkQueueWaitIdle);
+    LOAD_DEVICE_FUNC(funcs, device, vkGetBufferMemoryRequirements);
+    LOAD_DEVICE_FUNC(funcs, device, vkGetImageMemoryRequirements);
+    LOAD_DEVICE_FUNC(funcs, device, vkGetImageSubresourceLayout);
+
+
+
+    This->vkFuncs = funcs;
+
+    VkCommandBufferAllocateInfo cmdBufInfo = {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO
+    };
+    VkResult result;
+
+    This->vkFuncs.vkGetPhysicalDeviceMemoryProperties(physicalDevice,
                                         &This->deviceMemoryProperties);
 
     // Use a separate command buffer for texture loading. Needed for
@@ -173,11 +332,15 @@ ktxVulkanDeviceInfo_Construct(ktxVulkanDeviceInfo* This,
     cmdBufInfo.commandPool = cmdPool;
     cmdBufInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     cmdBufInfo.commandBufferCount = 1;
-    result = vkAllocateCommandBuffers(device, &cmdBufInfo, &This->cmdBuffer);
+    result = This->vkFuncs.vkAllocateCommandBuffers(device, &cmdBufInfo, &This->cmdBuffer);
     if (result != VK_SUCCESS) {
         return KTX_OUT_OF_MEMORY; // XXX Consider an equivalent to pGlError
     }
     return KTX_SUCCESS;
+
+#undef LOAD_EXT_FUNC
+#undef LOAD_INST_FUNC
+#undef LOAD_DEVICE_FUNC
 }
 
 /**
@@ -192,7 +355,7 @@ ktxVulkanDeviceInfo_Construct(ktxVulkanDeviceInfo* This,
 void
 ktxVulkanDeviceInfo_Destruct(ktxVulkanDeviceInfo* This)
 {
-    vkFreeCommandBuffers(This->device, This->cmdPool, 1,
+    This->vkFuncs.vkFreeCommandBuffers(This->device, This->cmdPool, 1,
                          &This->cmdBuffer);
 }
 
@@ -399,6 +562,7 @@ optimalTilingPadCallback(int miplevel, int face,
 }
 
 typedef struct user_cbdata_linear {
+    ktxVulkanFunctions vkFuncs;
     VkImage destImage;
     VkDevice device;
     uint8_t* dest;   // Pointer to mapped Image memory
@@ -431,7 +595,7 @@ linearTilingCallback(int miplevel, int face,
 
     // Get sub resources layout. Includes row pitch, size,
     // offsets, etc.
-    vkGetImageSubresourceLayout(ud->device, ud->destImage, &subRes,
+    ud->vkFuncs.vkGetImageSubresourceLayout(ud->device, ud->destImage, &subRes,
                                 &subResLayout);
     // Copies all images of the miplevel (for array & 3d) or a single face.
     memcpy(ud->dest + subResLayout.offset, pixels, faceLodSize);
@@ -481,7 +645,7 @@ linearTilingPadCallback(int miplevel, int face,
 
     // Get sub resources layout. Includes row pitch, size,
     // offsets, etc.
-    vkGetImageSubresourceLayout(ud->device, ud->destImage, &subRes,
+    ud->vkFuncs.vkGetImageSubresourceLayout(ud->device, ud->destImage, &subRes,
                                 &subResLayout);
 
     srcRowPitch = ktxTexture_GetRowPitch(ud->texture, miplevel);
@@ -685,7 +849,7 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         // Ensure we can blit between levels.
         usageFlags |= (VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
     }
-    vResult = vkGetPhysicalDeviceImageFormatProperties(vdi->physicalDevice,
+    vResult = vdi->vkFuncs.vkGetPhysicalDeviceImageFormatProperties(vdi->physicalDevice,
                                                       vkFormat,
                                                       imageType,
                                                       tiling,
@@ -705,7 +869,7 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         VkFormatFeatureFlags  formatFeatureFlags;
         VkFormatFeatureFlags  neededFeatures
             = VK_FORMAT_FEATURE_BLIT_DST_BIT | VK_FORMAT_FEATURE_BLIT_SRC_BIT;
-        vkGetPhysicalDeviceFormatProperties(vdi->physicalDevice,
+        vdi->vkFuncs.vkGetPhysicalDeviceFormatProperties(vdi->physicalDevice,
                                             vkFormat,
                                             &formatProperties);
         assert(vResult == VK_SUCCESS);
@@ -767,8 +931,12 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
     vkTexture->levelCount = numImageLevels;
     vkTexture->layerCount = numImageLayers;
     vkTexture->viewType = viewType;
+    vkTexture->vkDestroyImage = vdi->vkFuncs.vkDestroyImage;
+    vkTexture->vkFreeMemory = vdi->vkFuncs.vkFreeMemory;
 
-    VK_CHECK_RESULT(vkBeginCommandBuffer(vdi->cmdBuffer, &cmdBufBeginInfo));
+    VK_CHECK_RESULT(
+            vdi->vkFuncs.vkBeginCommandBuffer(vdi->cmdBuffer, &cmdBufBeginInfo)
+            );
 
     if (tiling == VK_IMAGE_TILING_OPTIMAL)
     {
@@ -832,12 +1000,13 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         bufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
         bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-        VK_CHECK_RESULT(vkCreateBuffer(vdi->device, &bufferCreateInfo,
+        VK_CHECK_RESULT(
+                vdi->vkFuncs.vkCreateBuffer(vdi->device, &bufferCreateInfo,
                                        vdi->pAllocator, &stagingBuffer));
 
         // Get memory requirements for the staging buffer (alignment,
         // memory type bits)
-        vkGetBufferMemoryRequirements(vdi->device, stagingBuffer, &memReqs);
+        vdi->vkFuncs.vkGetBufferMemoryRequirements(vdi->device, stagingBuffer, &memReqs);
 
         memAllocInfo.allocationSize = memReqs.size;
         // Get memory type index for a host visible buffer
@@ -848,15 +1017,17 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
               | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
         );
 
-        vResult = vkAllocateMemory(vdi->device, &memAllocInfo,
+        vResult = vdi->vkFuncs.vkAllocateMemory(vdi->device, &memAllocInfo,
                                   vdi->pAllocator, &stagingMemory);
         if (vResult != VK_SUCCESS) {
             return KTX_OUT_OF_MEMORY;
         }
-        VK_CHECK_RESULT(vkBindBufferMemory(vdi->device, stagingBuffer,
+        VK_CHECK_RESULT(
+                vdi->vkFuncs.vkBindBufferMemory(vdi->device, stagingBuffer,
                                            stagingMemory, 0));
 
-        VK_CHECK_RESULT(vkMapMemory(vdi->device, stagingMemory, 0,
+        VK_CHECK_RESULT(
+                vdi->vkFuncs.vkMapMemory(vdi->device, stagingMemory, 0,
                                     memReqs.size, 0,
                                     (void **)&pMappedStagingBuffer));
 
@@ -915,7 +1086,7 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
             }
         }
 
-        vkUnmapMemory(vdi->device, stagingMemory);
+        vdi->vkFuncs.vkUnmapMemory(vdi->device, stagingMemory);
 
         // Create optimal tiled target image
         imageCreateInfo.imageType = imageType;
@@ -933,20 +1104,23 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         imageCreateInfo.extent.height = vkTexture->height;
         imageCreateInfo.extent.depth = vkTexture->depth;
 
-        VK_CHECK_RESULT(vkCreateImage(vdi->device, &imageCreateInfo,
+        VK_CHECK_RESULT(
+                vdi->vkFuncs.vkCreateImage(vdi->device, &imageCreateInfo,
                                       vdi->pAllocator, &vkTexture->image));
 
-        vkGetImageMemoryRequirements(vdi->device, vkTexture->image, &memReqs);
+        vdi->vkFuncs.vkGetImageMemoryRequirements(vdi->device, vkTexture->image, &memReqs);
 
         memAllocInfo.allocationSize = memReqs.size;
 
         memAllocInfo.memoryTypeIndex = ktxVulkanDeviceInfo_getMemoryType(
                                           vdi, memReqs.memoryTypeBits,
                                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-        VK_CHECK_RESULT(vkAllocateMemory(vdi->device, &memAllocInfo,
+        VK_CHECK_RESULT(
+                vdi->vkFuncs.vkAllocateMemory(vdi->device, &memAllocInfo,
                                          vdi->pAllocator,
                                          &vkTexture->deviceMemory));
-        VK_CHECK_RESULT(vkBindImageMemory(vdi->device, vkTexture->image,
+        VK_CHECK_RESULT(
+                vdi->vkFuncs.vkBindImageMemory(vdi->device, vkTexture->image,
                                           vkTexture->deviceMemory, 0));
 
         subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -959,6 +1133,7 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         // layout to TRANSFER_DST_OPTIMAL so it can be used as the copy
         // destination.
         setImageLayout(
+            vdi->vkFuncs,
             vdi->cmdBuffer,
             vkTexture->image,
             VK_IMAGE_LAYOUT_UNDEFINED,
@@ -966,7 +1141,7 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
             subresourceRange);
 
         // Copy mip levels from staging buffer
-        vkCmdCopyBufferToImage(
+        vdi->vkFuncs.vkCmdCopyBufferToImage(
             vdi->cmdBuffer, stagingBuffer,
             vkTexture->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
             numCopyRegions, copyRegions
@@ -983,6 +1158,7 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
             // In this case numImageLevels == This->numLevels
             //subresourceRange.levelCount = numImageLevels;
             setImageLayout(
+                vdi->vkFuncs,
                 vdi->cmdBuffer,
                 vkTexture->image,
                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -991,26 +1167,30 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         }
 
         // Submit command buffer containing copy and image layout commands
-        VK_CHECK_RESULT(vkEndCommandBuffer(vdi->cmdBuffer));
+        VK_CHECK_RESULT(
+                vdi->vkFuncs.vkEndCommandBuffer(vdi->cmdBuffer));
 
         // Create a fence to make sure that the copies have finished before
         // continuing
-        VK_CHECK_RESULT(vkCreateFence(vdi->device, &fenceCreateInfo,
+        VK_CHECK_RESULT(
+                vdi->vkFuncs.vkCreateFence(vdi->device, &fenceCreateInfo,
                                       vdi->pAllocator, &copyFence));
 
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &vdi->cmdBuffer;
 
-        VK_CHECK_RESULT(vkQueueSubmit(vdi->queue, 1, &submitInfo, copyFence));
+        VK_CHECK_RESULT(
+                vdi->vkFuncs.vkQueueSubmit(vdi->queue, 1, &submitInfo, copyFence));
 
-        VK_CHECK_RESULT(vkWaitForFences(vdi->device, 1, &copyFence,
+        VK_CHECK_RESULT(
+                vdi->vkFuncs.vkWaitForFences(vdi->device, 1, &copyFence,
                                         VK_TRUE, DEFAULT_FENCE_TIMEOUT));
 
-        vkDestroyFence(vdi->device, copyFence, vdi->pAllocator);
+        vdi->vkFuncs.vkDestroyFence(vdi->device, copyFence, vdi->pAllocator);
 
         // Clean up staging resources
-        vkFreeMemory(vdi->device, stagingMemory, vdi->pAllocator);
-        vkDestroyBuffer(vdi->device, stagingBuffer, vdi->pAllocator);
+        vdi->vkFuncs.vkFreeMemory(vdi->device, stagingMemory, vdi->pAllocator);
+        vdi->vkFuncs.vkDestroyBuffer(vdi->device, stagingBuffer, vdi->pAllocator);
     }
     else
     {
@@ -1040,12 +1220,13 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
 
         // Load mip map level 0 to linear tiling image
-        VK_CHECK_RESULT(vkCreateImage(vdi->device, &imageCreateInfo,
+        VK_CHECK_RESULT(
+                vdi->vkFuncs.vkCreateImage(vdi->device, &imageCreateInfo,
                                       vdi->pAllocator, &mappableImage));
 
         // Get memory requirements for this image
         // like size and alignment
-        vkGetImageMemoryRequirements(vdi->device, mappableImage, &memReqs);
+        vdi->vkFuncs.vkGetImageMemoryRequirements(vdi->device, mappableImage, &memReqs);
         // Set memory allocation size to required memory size
         memAllocInfo.allocationSize = memReqs.size;
 
@@ -1056,14 +1237,16 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
         // Allocate host memory
-        vResult = vkAllocateMemory(vdi->device, &memAllocInfo, vdi->pAllocator,
+        vResult = vdi->vkFuncs.vkAllocateMemory(vdi->device, &memAllocInfo, vdi->pAllocator,
                                   &mappableMemory);
         if (vResult != VK_SUCCESS) {
             return KTX_OUT_OF_MEMORY;
         }
-        VK_CHECK_RESULT(vkBindImageMemory(vdi->device, mappableImage,
+        VK_CHECK_RESULT(
+                vdi->vkFuncs.vkBindImageMemory(vdi->device, mappableImage,
                                           mappableMemory, 0));
 
+        cbData.vkFuncs = vdi->vkFuncs;
         cbData.destImage = mappableImage;
         cbData.device = vdi->device;
         cbData.texture = This;
@@ -1071,7 +1254,8 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
                          linearTilingCallback : linearTilingPadCallback;
 
         // Map image memory
-        VK_CHECK_RESULT(vkMapMemory(vdi->device, mappableMemory, 0,
+        VK_CHECK_RESULT(
+                vdi->vkFuncs.vkMapMemory(vdi->device, mappableMemory, 0,
                         memReqs.size, 0, (void **)&cbData.dest));
 
         // Iterate over images to copy texture data into mapped image memory.
@@ -1086,7 +1270,7 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         }
         // XXX Check for possible errors
 
-        vkUnmapMemory(vdi->device, mappableMemory);
+        vdi->vkFuncs.vkUnmapMemory(vdi->device, mappableMemory);
 
         // Linear tiled images can be directly used as textures.
         vkTexture->image = mappableImage;
@@ -1106,6 +1290,7 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
 
            // Transition image layout to finalLayout.
             setImageLayout(
+                vdi->vkFuncs,
                 vdi->cmdBuffer,
                 vkTexture->image,
                 VK_IMAGE_LAYOUT_PREINITIALIZED,
@@ -1114,14 +1299,14 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         }
 
         // Submit command buffer containing image layout commands
-        VK_CHECK_RESULT(vkEndCommandBuffer(vdi->cmdBuffer));
+        VK_CHECK_RESULT(vdi->vkFuncs.vkEndCommandBuffer(vdi->cmdBuffer));
 
         submitInfo.waitSemaphoreCount = 0;
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &vdi->cmdBuffer;
 
-        VK_CHECK_RESULT(vkQueueSubmit(vdi->queue, 1, &submitInfo, nullFence));
-        VK_CHECK_RESULT(vkQueueWaitIdle(vdi->queue));
+        VK_CHECK_RESULT(vdi->vkFuncs.vkQueueSubmit(vdi->queue, 1, &submitInfo, nullFence));
+        VK_CHECK_RESULT(vdi->vkFuncs.vkQueueWaitIdle(vdi->queue));
     }
     return KTX_SUCCESS;
 }
@@ -1291,6 +1476,7 @@ ktxTexture_GetVkFormat(ktxTexture* This)
  */
 static void
 setImageLayout(
+    ktxVulkanFunctions vkFuncs,
     VkCommandBuffer cmdBuffer,
     VkImage image,
     VkImageLayout oldLayout,
@@ -1417,7 +1603,7 @@ setImageLayout(
     VkPipelineStageFlags destStageFlags = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
 
     // Add the barrier to the passed command buffer
-    vkCmdPipelineBarrier(
+    vkFuncs.vkCmdPipelineBarrier(
         cmdBuffer,
         srcStageFlags,
         destStageFlags,
@@ -1458,6 +1644,7 @@ generateMipmaps(ktxVulkanTexture* vkTexture, ktxVulkanDeviceInfo* vdi,
 
     // Transition base level to SRC_OPTIMAL for blitting.
     setImageLayout(
+        vdi->vkFuncs,
         vdi->cmdBuffer,
         vkTexture->image,
         initialLayout,
@@ -1498,6 +1685,7 @@ generateMipmaps(ktxVulkanTexture* vkTexture, ktxVulkanDeviceInfo* vdi,
 
         // Transiton current mip level to transfer dest
         setImageLayout(
+            vdi->vkFuncs,
             vdi->cmdBuffer,
             vkTexture->image,
             VK_IMAGE_LAYOUT_UNDEFINED,
@@ -1505,7 +1693,7 @@ generateMipmaps(ktxVulkanTexture* vkTexture, ktxVulkanDeviceInfo* vdi,
             mipSubRange);
 
         // Blit from previous level
-        vkCmdBlitImage(
+        vdi->vkFuncs.vkCmdBlitImage(
             vdi->cmdBuffer,
             vkTexture->image,
             VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
@@ -1518,6 +1706,7 @@ generateMipmaps(ktxVulkanTexture* vkTexture, ktxVulkanDeviceInfo* vdi,
         // Transiton current mip level to transfer source for read in
         // next iteration.
         setImageLayout(
+            vdi->vkFuncs,
             vdi->cmdBuffer,
             vkTexture->image,
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -1529,6 +1718,7 @@ generateMipmaps(ktxVulkanTexture* vkTexture, ktxVulkanDeviceInfo* vdi,
     // Transition all to final layout.
     subresourceRange.levelCount = vkTexture->levelCount;
     setImageLayout(
+        vdi->vkFuncs,
         vdi->cmdBuffer,
         vkTexture->image,
         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
@@ -1556,8 +1746,8 @@ void
 ktxVulkanTexture_Destruct(ktxVulkanTexture* vkTexture, VkDevice device,
                           const VkAllocationCallbacks* pAllocator)
 {
-    vkDestroyImage(device, vkTexture->image, pAllocator);
-    vkFreeMemory(device, vkTexture->deviceMemory, pAllocator);
+    vkTexture->vkDestroyImage(device, vkTexture->image, pAllocator);
+    vkTexture->vkFreeMemory(device, vkTexture->deviceMemory, pAllocator);
 }
 
 /** @} */
