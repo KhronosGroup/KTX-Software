@@ -16,6 +16,23 @@ on:
 
 jobs:
 
+  windows-arm64:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        # Fetch all history to make sure tags are
+        # included (used for version creation)
+        fetch-depth: 0
+    - name: Configure Windows arm64
+      run: cmake -B build -G "Visual Studio 17 2022" -AArm64 -DKTX_FEATURE_TESTS=OFF
+    - name: Build Windows arm64 Debug
+      run: cmake --build build --config Debug
+    - name: Build Windows arm64 RelWithDebInfo
+      run: cmake --build build --config RelWithDebInfo
+    - name: Build Windows arm64 Release
+      run: cmake --build build --config Release
+
   mingw:
     runs-on: windows-latest
 
