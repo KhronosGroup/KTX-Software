@@ -41,4 +41,4 @@ PRIVATE
 )
 
 set_tool_properties(toktx)
-set_xcode_code_sign(toktx)
+set_code_sign(toktx)

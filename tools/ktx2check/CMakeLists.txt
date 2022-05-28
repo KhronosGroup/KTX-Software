@@ -32,4 +32,4 @@ target_link_libraries(
 )
 
 set_tool_properties(ktx2check)
-set_xcode_code_sign(ktx2check)
+set_code_sign(ktx2check)

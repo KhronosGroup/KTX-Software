@@ -19,7 +19,7 @@ include(CTest)
 include(GNUInstallDirs)
 include(CMakeDependentOption)
 
-include(cmake/xcode.cmake)
+include(cmake/codesign.cmake)
 include(cmake/cputypetest.cmake)
 
 find_package(OpenCL)
@@ -96,6 +96,10 @@ if(APPLE)
         set(XCODE_PROVISIONING_PROFILE_SPECIFIER "" CACHE STRING "Xcode provisioning profile specifier")
         set(MOLTENVK_SDK "$ENV{VULKAN_SDK}/../MoltenVK" CACHE STRING "MoltenVK directory inside the Vulkan SDK")
     endif()
+endif()
+
+if(WIN32)
+    set(WINDOWS_CODE_SIGN_IDENTITY "" CACHE STRING "Subject Name of Windows code signing certificate. Displayed in 'Issued To' field of certmgr.")
 endif()
 
 option( KTX_FEATURE_KTX1 "Enable KTX 1 support" ON )
@@ -241,7 +245,7 @@ macro(commom_lib_settings lib write)
         SOVERSION ${PROJECT_VERSION_MAJOR}
         XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
     )
-    set_xcode_code_sign(${lib})
+    set_code_sign(${lib})
 
     target_compile_definitions(
         ${lib}
@@ -914,6 +918,7 @@ elseif(LINUX)
     set(CPACK_PACKAGE_CHECKSUM SHA1)
     set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ReadMe.txt")
 elseif(WIN32)
+    set(CPACK_GENERATOR "NSIS")
     # Add logo to top left of installer pages. Despite the installer-
     # independent variable name, this does nothing for PRODUCTBUILD
     # hence setting here only. Format has to be old BMP (use
@@ -933,9 +938,17 @@ elseif(WIN32)
     set(CPACK_NSIS_MODIFY_PATH ON)
     set(CPACK_NSIS_UNINSTALL_NAME "Uninstall")
     set(CPACK_PACKAGE_INSTALL_DIRECTORY "KTX-Software")
+    if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.20")
+        set(CPACK_NSIS_BRANDING_TEXT "KTX for Windows")
+    endif()
     ## Alternative: add major version at end
     #set(CPACK_PACKAGE_INSTALL_DIRECTORY "KTX-Software-${PROJECT_VERSION_MAJOR}")
-    set(CPACK_PACKAGE_CHECKSUM SHA1)
+    if (WINDOWS_CODE_SIGN_IDENTITY)
+        set_nsis_installer_codesign_cmd()
+    else()
+        # We're not signing the package so provide a checksum file.
+        set(CPACK_PACKAGE_CHECKSUM SHA1)
+    endif()
 elseif(EMSCRIPTEN)
     set(CPACK_GENERATOR ZIP)
     set(CPACK_ARCHIVE_KTX_JS_FILE_NAME "${CMAKE_PROJECT_NAME}-${KTX_VERSION_FULL}-Web-libktx")
