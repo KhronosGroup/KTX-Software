@@ -84,7 +84,7 @@ function(find_kits _kit_root _kit_versions)
   endif()
   if (_kits_path)
       file(GLOB ${_kit_versions} "${_kits_path}/bin/10.*")
-      # Reverse list, so newer (higher-numbered) versions appear first.
+      # Reverse list, so newer versions (higher-numbered) appear first.
       list(REVERSE ${_kit_versions})
   endif ()
   unset(_kits_path CACHE)
@@ -115,23 +115,6 @@ if (WIN32 AND NOT signtool_EXECUTABLE)
       endif()
     endif()
   endforeach()
-
-  if (NOT signtool_EXECUTABLE)
-    # Second, try osslsigncode from Cygwin.
-    # The extra paths are for Windows CMD - when using Mingw from cygwin,
-    # will be on path already.
-    find_program(OSSLSIGNCODE
-        NAMES osslsigncode
-        PATHS "C:/osslsigncode"
-              "$ENV{ProgramFiles}/osslsigncode"
-        PATH_SUFFIXES bin
-    )
-
-    if (NOT signtool_EXECUTABLE AND NOT OSSLSIGNCODE)
-        # As a last resort search the path.
-        find_program(signtool_EXECUTABLE signtool)
-    endif ()
-  endif ()
 
   if (signtool_EXECUTABLE)
     mark_as_advanced (signtool_EXECUTABLE)

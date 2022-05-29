@@ -19,13 +19,8 @@ macro (set_code_sign target)
   if (WIN32 AND WINDOWS_CODE_SIGN_IDENTITY)
     find_package(signtool REQUIRED)
 
-    if (NOT SIGN_PARAMS)
-      set(SIGN_PARAMS /fd sha256 /n "${WINDOWS_CODE_SIGN_IDENTITY}"
-          /tr http://ts.ssl.com /td sha256
-          /d KTX-Software /du https://github.com/KhronosGroup/KTX-Software)
-    endif()
-
     if (signtool_EXECUTABLE)
+      configure_sign_params()
       add_custom_command( TARGET ${target}
        POST_BUILD
        COMMAND ${signtool_EXECUTABLE} sign ${SIGN_PARAMS} $<TARGET_FILE:${target}>
@@ -35,35 +30,49 @@ macro (set_code_sign target)
   endif()
 endmacro (set_code_sign)
 
-function(set_nsis_installer_codesign_cmd)
-  if (WIN32 AND signtool_EXECUTABLE)
-    # CPACK_NSIS_FINALIZE_CMD is a variable whose value is to be substituted
-    # into the !finalize and !uninstfinalize commands in
-    # cmake/modules/NSIS.template.in. This variable is ours. It is not a
-    # standard CPACK variable. The name MUST start with CPACK otherwise
-    # it will not be defined when cpack runs its configure_file step.
-    foreach(param IN LISTS SIGN_PARAMS)
-      # Quote the parameters because at least one of them,
-      # WINDOWS_CODE_SIGN_IDENTITY, has spaces. It is easier to quote
-      # all of them than determine which have spaces.
-      #
-      # Insane quoting is needed due to the 2-step process used to configure
-      # the final output. First cpack creates a CPackConfig.cmake file in
-      # which the value set here appears as the argument to a cmake
-      # `set` command where it is put inside quotes. That variable's value
-      # is then substituted into the output.
-      string(APPEND NSIS_SIGN_PARAMS "\\\"${param}\\\" ")
-    endforeach()
+function(configure_sign_params)
+  if (NOT SIGN_PARAMS)
+    set(SIGN_PARAMS /fd sha256 /n "${WINDOWS_CODE_SIGN_IDENTITY}"
+        /tr http://ts.ssl.com /td sha256
+        /d KTX-Software /du https://github.com/KhronosGroup/KTX-Software
+        PARENT_SCOPE)
+  endif()
+endfunction()
 
-    # Note 1: cpack does not show any output from this command whether
-    # it succeeds or fails.
-    #
-    # Note 2: Do not move the %1 to NSIS.template.in. We need an empty
-    # command there when we aren't signing. %1 is replaced by the name
-    # of the installer or uninstaller during NSIS compilation.
-    set(CPACK_NSIS_FINALIZE_CMD "\\\"${signtool_EXECUTABLE}\\\" sign ${NSIS_SIGN_PARAMS} %1"
-      PARENT_SCOPE
-    )
-    unset(NSIS_SIGN_PARAMS)
+function(set_nsis_installer_codesign_cmd)
+  if (WIN32 AND WINDOWS_CODE_SIGN_IDENTITY)
+    # To make calls to the above macro and this order independent ...
+    find_package(signtool REQUIRED)
+    if (signtool_EXECUTABLE)
+      configure_sign_params()
+      # CPACK_NSIS_FINALIZE_CMD is a variable whose value is to be substituted
+      # into the !finalize and !uninstfinalize commands in
+      # cmake/modules/NSIS.template.in. This variable is ours. It is not a
+      # standard CPACK variable. The name MUST start with CPACK otherwise
+      # it will not be defined when cpack runs its configure_file step.
+      foreach(param IN LISTS SIGN_PARAMS)
+        # Quote the parameters because at least one of them,
+        # WINDOWS_CODE_SIGN_IDENTITY, has spaces. It is easier to quote
+        # all of them than determine which have spaces.
+        #
+        # Insane quoting is needed due to the 2-step process used to configure
+        # the final output. First cpack creates a CPackConfig.cmake file in
+        # which the value set here appears as the argument to a cmake
+        # `set` command where it is put inside quotes. That variable's value
+        # is then substituted into the output.
+        string(APPEND NSIS_SIGN_PARAMS "\\\"${param}\\\" ")
+      endforeach()
+
+      # Note 1: cpack/NSIS does not show any output when running signtool,
+      # whether it succeeds or fails.
+      #
+      # Note 2: Do not move the %1 to NSIS.template.in. We need an empty
+      # command there when we aren't signing. %1 is replaced by the name
+      # of the installer or uninstaller during NSIS compilation.
+      set(CPACK_NSIS_FINALIZE_CMD "\\\"${signtool_EXECUTABLE}\\\" sign ${NSIS_SIGN_PARAMS} %1"
+        PARENT_SCOPE
+      )
+      unset(NSIS_SIGN_PARAMS)
+    endif()
   endif()
 endfunction()
