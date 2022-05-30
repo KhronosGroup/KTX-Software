@@ -47,7 +47,9 @@ jobs:
         # included (used for version creation)
         fetch-depth: 0
     - name: Install Doxygen
-      run: choco install doxygen
+      uses: crazy-max/ghaction-chocolatey@v2
+      with:
+        args: install doxygen
       if: matrix.FEATURE_DOC == 'ON'
     - name: Build arm64 Windows
       run: powershell ./ci_scripts/build_win.ps1
