@@ -49,7 +49,7 @@ jobs:
     - name: Install Doxygen
       uses: crazy-max/ghaction-chocolatey@v2
       with:
-        args: install doxygen
+        args: install doxygen.install
       if: matrix.FEATURE_DOC == 'ON'
     - name: Build arm64 Windows
       run: powershell ./ci_scripts/build_win.ps1
