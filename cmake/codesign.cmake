@@ -32,7 +32,7 @@ endmacro (set_code_sign)
 
 function(configure_sign_params)
   if (NOT SIGN_PARAMS)
-    set(SIGN_PARAMS /fd sha256 /n "${WINDOWS_CODE_SIGN_IDENTITY}"
+    set(SIGN_PARAMS /sm /fd sha256 /n "${WINDOWS_CODE_SIGN_IDENTITY}"
         /tr http://ts.ssl.com /td sha256
         /d KTX-Software /du https://github.com/KhronosGroup/KTX-Software
         PARENT_SCOPE)

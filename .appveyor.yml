@@ -207,11 +207,11 @@ before_build:
     git checkout -q TODO.md lib/mainpage.md pkgdoc/pages.md
     git status
 
-# Install signing certificate
+# Install signing certificate.
 - ps: |
     $cert_file = "the_khronos_group_inc.p12"
     appveyor-tools\secure-file -decrypt "${cert_file}.enc" -secret $env:CERT_DC_SECRET -salt $env:CERT_DC_SALT
-    certutil -p $env:CERT_PK_PASS -importpfx $cert_file NoExport
+    certutil -p $env:CERT_PK_PASS -importpfx My $cert_file NoExport
     rm $cert_file
 
 build_script:
