@@ -189,9 +189,11 @@ install:
 # - ps: |
 #     Invoke-WebRequest -Uri https://raw.githubusercontent.com/horta/zlib.install/master/install.bat -OutFile install.bat
 #     ./install.bat
+- ps: iex ((New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/appveyor/secure-file/master/install.ps1'))
+
+
 #cache:
 #  - other_lib
-
 before_build:
 # Expand date keywords. -q is because the VS2019 image has a more
 # recent git version (2.21.0) in which git checkout writes to StdErr
@@ -203,6 +205,13 @@ before_build:
     rm TODO.md, lib/mainpage.md, pkgdoc/pages.md
     git checkout -q TODO.md lib/mainpage.md pkgdoc/pages.md
     git status
+
+# Install signing certificate
+- ps: |
+    $cert_file=the_khronos_group_inc.p12
+    appveyor-tools\secure-file -decrypt $cert_file -secret $env:CERT_DC_SECRET -salt $env:CERT_DC_SALT
+    certutil -p $env:CERT_PK_PASS -importpfx My $cert_file NoExport
+    rm $cert_file
 
 build_script:
 - ps: |
