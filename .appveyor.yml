@@ -21,6 +21,7 @@ environment:
   PACKAGE: NO
   PVR_SDK_HOME: https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/
   VULKAN_SDK_VER: 1.2.176.1
+  WINDOWS_CODE_SIGN_IDENTITY: The Khronos Group Inc
 
   matrix:
 #    - FEATURE_DOC: OFF
