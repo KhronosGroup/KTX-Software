@@ -56,11 +56,23 @@ pushd $BUILD_DIR
 try {
   #git status
   cmake --build . --config $CONFIGURATION
+  # Return an error code if cmake fails
+  if(!$?){
+    popd
+    exit 1
+  }
+
   #git status
   if ($PACKAGE -eq "YES") {
     cmake --build . --config $CONFIGURATION --target PACKAGE
+    # Return an error code if cmake fails
+    if(!$?){
+      popd
+      exit 1
+    }
   }
   echo "Done building."
-} finally {
-  popd
+}
+finally {
+ popd
 }

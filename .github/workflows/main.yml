@@ -26,10 +26,11 @@ jobs:
         FEATURE_TOOLS: [OFF, ON]
         PACKAGE: [NO, YES]
     env:
-      BUILD_DIR: "build/build-batch-"
+      BUILD_DIR: "build/build-batch"
       CONFIGURATION: "${{matrix.CONFIGURATION}}"
       CMAKE_GEN: "${{matrix.CMAKE_GEN}}"
       FEATURE_DOC: "${{matrix.FEATURE_DOC}}"
+      FEATURE_TOOLS: "${{matrix.FEATURE_TOOLS}}"
       PACKAGE: "${{matrix.PACKAGE}}"
 
       PLATFORM: "arm64"
