@@ -209,7 +209,7 @@ before_build:
 # Install signing certificate
 - ps: |
     $cert_file = "the_khronos_group_inc.p12"
-    appveyor-tools\secure-file -decrypt $cert_file -secret $env:CERT_DC_SECRET -salt $env:CERT_DC_SALT
+    appveyor-tools\secure-file -decrypt "${cert_file}.enc" -secret $env:CERT_DC_SECRET -salt $env:CERT_DC_SALT
     certutil -p $env:CERT_PK_PASS -importpfx My $cert_file NoExport
     rm $cert_file
 
