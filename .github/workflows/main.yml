@@ -18,20 +18,35 @@ jobs:
 
   windows-arm64:
     runs-on: windows-latest
+    strategy:
+      matrix:
+        CONFIGURATION: [Debug, RelWithDebInfo, Release]
+        CMAKE_GEN: ["Visual Studio 16 2019"]
+        FEATURE_DOC: [OFF, ON]
+        FEATURE_TOOLS: [OFF, ON]
+        PACKAGE: [NO, YES]
+    env:
+      BUILD_DIR: "build/build-batch-"
+      CONFIGURATION: "${{matrix.CONFIGURATION}}"
+      CMAKE_GEN: "${{matrix.CMAKE_GEN}}"
+      FEATURE_DOC: "${{matrix.FEATURE_DOC}}"
+      PACKAGE: "${{matrix.PACKAGE}}"
+
+      PLATFORM: "arm64"
+      SUPPORT_SSE: OFF
+
+      # No tests on arm64 since the host is x64 and can't run the built tests
+      FEATURE_JNI: OFF # Not sure of the state of JNI on arm64 windows
+      FEATURE_TESTS: OFF 
+      FEATURE_LOADTESTS: OFF
     steps:
     - uses: actions/checkout@v2
       with:
         # Fetch all history to make sure tags are
         # included (used for version creation)
         fetch-depth: 0
-    - name: Configure Windows arm64
-      run: cmake -B build -G "Visual Studio 17 2022" -AArm64 -DKTX_FEATURE_TESTS=OFF
-    - name: Build Windows arm64 Debug
-      run: cmake --build build --config Debug
-    - name: Build Windows arm64 RelWithDebInfo
-      run: cmake --build build --config RelWithDebInfo
-    - name: Build Windows arm64 Release
-      run: cmake --build build --config Release
+    - name: Build arm64 Windows
+      run: powershell ./ci_scripts/build_win.ps1
 
   mingw:
     runs-on: windows-latest
