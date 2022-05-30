@@ -21,7 +21,7 @@ jobs:
     strategy:
       matrix:
         CONFIGURATION: [Debug, RelWithDebInfo, Release]
-        CMAKE_GEN: ["Visual Studio 16 2019"]
+        CMAKE_GEN: ["Visual Studio 17 2022"] # Only version available on Actions w/ windows latest
         FEATURE_DOC: [OFF, ON]
         FEATURE_TOOLS: [OFF, ON]
         PACKAGE: [NO, YES]
