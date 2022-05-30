@@ -168,7 +168,7 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
             XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME "ktx_app"
             XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2" # iPhone and iPad
         )
-        set_xcode_code_sign(${target})
+        set_code_sign(${target})
         unset(PRODUCT_NAME)
         unset(EXECUTABLE_NAME)
         unset(PRODUCT_BUNDLE_IDENTIFIER)
@@ -260,7 +260,7 @@ if(IOS OR EMULATE_GLES)
     # OpenGL ES 1.0
     create_gl_target( es1loadtests "${ES1_SOURCES}" SDL_GL_CONTEXT_PROFILE_ES 1 0 ON )
     if(IOS)
-        set_xcode_code_sign(es1loadtests)
+        set_code_sign(es1loadtests)
     endif()
 endif()
 
@@ -268,7 +268,7 @@ if(IOS OR EMSCRIPTEN OR EMULATE_GLES)
     # OpenGL ES 3.0
     create_gl_target( es3loadtests "${GL3_SOURCES}" SDL_GL_CONTEXT_PROFILE_ES 3 0 ON )
     if(IOS)
-        set_xcode_code_sign(es3loadtests)
+        set_code_sign(es3loadtests)
     endif()
 endif()
 
