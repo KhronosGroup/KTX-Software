@@ -41,6 +41,7 @@ jobs:
       FEATURE_TESTS: OFF 
       FEATURE_LOADTESTS: OFF
     steps:
+    - uses: mattnotmitt/doxygen-action@v1.9.2 # Easier to use action in all cases than try to make this conditional
     - uses: actions/checkout@v2
       with:
         # Fetch all history to make sure tags are
