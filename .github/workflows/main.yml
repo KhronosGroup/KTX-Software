@@ -41,12 +41,14 @@ jobs:
       FEATURE_TESTS: OFF 
       FEATURE_LOADTESTS: OFF
     steps:
-    - uses: mattnotmitt/doxygen-action@v1.9.2 # Easier to use action in all cases than try to make this conditional
     - uses: actions/checkout@v2
       with:
         # Fetch all history to make sure tags are
         # included (used for version creation)
         fetch-depth: 0
+    - name: Install Doxygen
+      run: choco install doxygen
+      if: matrix.FEATURE_DOC == ON
     - name: Build arm64 Windows
       run: powershell ./ci_scripts/build_win.ps1
 
