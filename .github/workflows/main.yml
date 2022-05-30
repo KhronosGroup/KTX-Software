@@ -48,7 +48,7 @@ jobs:
         fetch-depth: 0
     - name: Install Doxygen
       run: choco install doxygen
-      if: matrix.FEATURE_DOC == ON
+      if: matrix.FEATURE_DOC == 'ON'
     - name: Build arm64 Windows
       run: powershell ./ci_scripts/build_win.ps1
 
