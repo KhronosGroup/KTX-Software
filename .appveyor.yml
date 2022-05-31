@@ -21,7 +21,6 @@ environment:
   PACKAGE: NO
   PVR_SDK_HOME: https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/
   VULKAN_SDK_VER: 1.2.176.1
-  WINDOWS_CODE_SIGN_IDENTITY: The Khronos Group Inc
 
   matrix:
 #    - FEATURE_DOC: OFF
@@ -190,7 +189,7 @@ install:
 # - ps: |
 #     Invoke-WebRequest -Uri https://raw.githubusercontent.com/horta/zlib.install/master/install.bat -OutFile install.bat
 #     ./install.bat
-- ps: iex ((New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/appveyor/secure-file/master/install.ps1'))
+- ps: if ($env:CERT_PK_PASS) { iex ((New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/appveyor/secure-file/master/install.ps1')) }
 
 
 #cache:
@@ -207,12 +206,16 @@ before_build:
     git checkout -q TODO.md lib/mainpage.md pkgdoc/pages.md
     git status
 
-# Install signing certificate.
+# Install signing certificate into current user's personal store.
 - ps: |
-    $cert_file = "the_khronos_group_inc.p12"
-    appveyor-tools\secure-file -decrypt "${cert_file}.enc" -secret $env:CERT_DC_SECRET -salt $env:CERT_DC_SALT
-    certutil -p $env:CERT_PK_PASS -importpfx My $cert_file NoExport
-    rm $cert_file
+    if ($env:CERT_PK_PASS) {
+      $cert_file = "the_khronos_group_inc.p12"
+      appveyor-tools\secure-file -decrypt "${cert_file}.enc" -secret $env:CERT_DC_SECRET -salt $env:CERT_DC_SALT
+      certutil -user -p $env:CERT_PK_PASS -importpfx My $cert_file NoExport
+      rm $cert_file
+    } else {
+      $env:WINDOWS_CODE_SIGN_IDENTITY = ''
+    }
 
 build_script:
 - ps: |
