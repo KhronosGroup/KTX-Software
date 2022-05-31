@@ -209,12 +209,14 @@ before_build:
 # Install signing certificate into current user's personal store.
 - ps: |
     if ($env:CERT_PK_PASS) {
+      echo "importing cert file"
       $cert_file = "the_khronos_group_inc.p12"
       appveyor-tools\secure-file -decrypt "${cert_file}.enc" -secret $env:CERT_DC_SECRET -salt $env:CERT_DC_SALT
       certutil -user -p $env:CERT_PK_PASS -importpfx My $cert_file NoExport
       rm $cert_file
     } else {
       $env:WINDOWS_CODE_SIGN_IDENTITY = ''
+      echo "not importing cert file"
     }
 
 build_script:
