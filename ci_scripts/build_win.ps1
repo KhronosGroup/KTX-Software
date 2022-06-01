@@ -42,6 +42,11 @@ if ($FEATURE_LOADTESTS -eq "ON")  { $need_gles_emulator=1 }
 
 echo "Build via $CMAKE_GEN dir: $build_dir Arch: $PLATFORM Config: $CONFIGURATION, FEATURE_LOADTESTS: $FEATURE_LOADTESTS, FEATURE_DOC: $FEATURE_DOC, FEATURE_JNI: $FEATURE_JNI, FEATURE_TOOLS: $FEATURE_TOOLS, FEATURE_TESTS: $FEATURE_TESTS, SUPPORT_SSE: $SUPPORT_SSE, SUPPORT_OPENCL: $SUPPORT_OPENCL"
 
+if (($PACKAGE -eq "YES") -and ($FEATURE_TOOLS -eq "OFF")) {
+  echo "Error: Cannot package a configuration that does not build tools. Set FEATURE_TOOLS to ON or PACKAGE to NO"
+  exit 2
+}
+
 cmake . -G "$CMAKE_GEN" -A $PLATFORM -B $BUILD_DIR `
   -D KTX_FEATURE_DOC=$FEATURE_DOC `
   -D KTX_FEATURE_JNI=$FEATURE_JNI `
