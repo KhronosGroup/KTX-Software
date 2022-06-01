@@ -213,7 +213,7 @@ before_build:
 #   This happens on the development machine too. Since the root CA
 #   certificates of both user and machine stores appear to be identical and
 #   the interactive `certmgr` for the user store can import the same
-#   certificate I don't understand this.
+#   certificate I don't understand the reason.
 - ps: |
     if ($env:CERT_PK_PASS) {
       $cert_file = "the_khronos_group_inc.p12"

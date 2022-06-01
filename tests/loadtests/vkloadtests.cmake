@@ -122,9 +122,8 @@ add_executable( vkloadtests
     ${SHADER_SOURCES}
     vkloadtests.cmake
 )
-if(IOS)
-    set_code_sign(vkloadtests)
-endif()
+
+set_code_sign(vkloadtests)
 
 target_include_directories(
     vkloadtests
@@ -249,7 +248,6 @@ if(APPLE)
         XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME "ktx_app"
         XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2" # iPhone and iPad
     )
-    set_code_sign(vkloadtests)
     unset(PRODUCT_NAME)
     unset(EXECUTABLE_NAME)
     unset(PRODUCT_BUNDLE_IDENTIFIER)

@@ -12,6 +12,8 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
         glloadtests.cmake
     )
 
+    set_code_sign(${target})
+
     target_include_directories(
         ${target}
     PRIVATE
@@ -168,7 +170,6 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
             XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME "ktx_app"
             XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2" # iPhone and iPad
         )
-        set_code_sign(${target})
         unset(PRODUCT_NAME)
         unset(EXECUTABLE_NAME)
         unset(PRODUCT_BUNDLE_IDENTIFIER)
@@ -259,17 +260,11 @@ endif()
 if(IOS OR EMULATE_GLES)
     # OpenGL ES 1.0
     create_gl_target( es1loadtests "${ES1_SOURCES}" SDL_GL_CONTEXT_PROFILE_ES 1 0 ON )
-    if(IOS)
-        set_code_sign(es1loadtests)
-    endif()
 endif()
 
 if(IOS OR EMSCRIPTEN OR EMULATE_GLES)
     # OpenGL ES 3.0
     create_gl_target( es3loadtests "${GL3_SOURCES}" SDL_GL_CONTEXT_PROFILE_ES 3 0 ON )
-    if(IOS)
-        set_code_sign(es3loadtests)
-    endif()
 endif()
 
 if( (APPLE AND NOT IOS) OR LINUX OR WIN32 )

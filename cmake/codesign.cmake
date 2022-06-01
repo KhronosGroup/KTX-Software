@@ -32,9 +32,10 @@ endmacro (set_code_sign)
 
 function(configure_sign_params)
   if (NOT SIGN_PARAMS)
-    # N.B. Look for cert in Local Computer store (/sm). See comment at
-    # begin_build phase in .appveyor.yml for reason. This means admin
-    # elevation is required when importing the certificate.
+    # Default to looking for cert. in user's store but allow let user tell
+    # us to look Local Computer store. See comment at begin_build phase
+    # in .appveyor.yml for reason. User store is preferred because importing
+    # the cert. does not need admin elevation.
     if (WIN_CS_CERT_SEARCH_MACHINE_STORE)
       set(store "/sm")
     endif()
