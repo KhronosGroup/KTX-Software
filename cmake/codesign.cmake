@@ -16,7 +16,7 @@ macro (set_code_sign target)
     endif()
   endif()
 
-  if (WIN32 AND WINDOWS_CODE_SIGN_IDENTITY)
+  if (WIN32 AND WIN_CODE_SIGN_IDENTITY)
     find_package(signtool REQUIRED)
 
     if (signtool_EXECUTABLE)
@@ -32,7 +32,13 @@ endmacro (set_code_sign)
 
 function(configure_sign_params)
   if (NOT SIGN_PARAMS)
-    set(SIGN_PARAMS /fd sha256 /n "${WINDOWS_CODE_SIGN_IDENTITY}"
+    # N.B. Look for cert in Local Computer store (/sm). See comment at
+    # begin_build phase in .appveyor.yml for reason. This means admin
+    # elevation is required when importing the certificate.
+    if (WIN_CS_CERT_SEARCH_MACHINE_STORE)
+      set(store "/sm")
+    endif()
+    set(SIGN_PARAMS ${store} /fd sha256 /n "${WIN_CODE_SIGN_IDENTITY}"
         /tr http://ts.ssl.com /td sha256
         /d KTX-Software /du https://github.com/KhronosGroup/KTX-Software
         PARENT_SCOPE)
@@ -40,7 +46,7 @@ function(configure_sign_params)
 endfunction()
 
 function(set_nsis_installer_codesign_cmd)
-  if (WIN32 AND WINDOWS_CODE_SIGN_IDENTITY)
+  if (WIN32 AND WIN_CODE_SIGN_IDENTITY)
     # To make calls to the above macro and this order independent ...
     find_package(signtool REQUIRED)
     if (signtool_EXECUTABLE)
@@ -52,13 +58,13 @@ function(set_nsis_installer_codesign_cmd)
       # it will not be defined when cpack runs its configure_file step.
       foreach(param IN LISTS SIGN_PARAMS)
         # Quote the parameters because at least one of them,
-        # WINDOWS_CODE_SIGN_IDENTITY, has spaces. It is easier to quote
+        # WIN_CODE_SIGN_IDENTITY, has spaces. It is easier to quote
         # all of them than determine which have spaces.
         #
         # Insane escaping is needed due to the 2-step process used to
-        # configure the final output. First cpack creates a CPackConfig.cmake
-        # file in which the value set here appears as the argument to a cmake
-        # `set` command where it is put inside quotes. That variable's value
+        # configure the final output. First cpack creates CPackConfig.cmake
+        # in which the value set here appears, inside quotes, as the
+        # argument to a cmake `set` command. That variable's value
         # is then substituted into the output.
         string(APPEND NSIS_SIGN_PARAMS "\\\"${param}\\\" ")
       endforeach()
