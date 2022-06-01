@@ -220,6 +220,8 @@ before_build:
       appveyor-tools\secure-file -decrypt "${cert_file}.enc" -secret $env:CERT_DC_SECRET -salt $env:CERT_DC_SALT
       certutil -p $env:CERT_PK_PASS -importpfx My $cert_file NoExport
       rm $cert_file
+      $env:WIN_CODE_SIGN_IDENTITY = 'The Khronos Group Inc'
+      $env:WIN_CS_CERT_SEARCH_MACHINE_STORE = 'ON'
     } else {
       $env:WINDOWS_CODE_SIGN_IDENTITY = ''
     }
@@ -227,7 +229,7 @@ before_build:
 build_script:
 - ps: |
     $ErrorActionPreference = 'Stop'
-    ci_scripts/build_win.ps1 '$WIN_CERTIFICATE_SEARCH_MACHINE_STORE="ON"'
+    ci_scripts/build_win.ps1
 
     #echo "***** toktx version.h *****"
     #pwd
