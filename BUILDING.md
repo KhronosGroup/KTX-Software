@@ -193,15 +193,15 @@ To explicity build for one or the other architecture use
 To sign the applications you need to set the following CMake variables:
 
 | Name | Value |
-| :---: | :---: |
-| XCODE\_CODE\_SIGN\_IDENTITY | Owner of the _Developer ID Application_ certificate to use for signing. |
+| :--: | ----- |
+| XCODE\_CODE\_SIGN\_IDENTITY | Owner* of the _Developer ID Application_ certificate to use for signing. |
 | XCODE\_DEVELOPMENT\_TEAM | Development team of the certificate owner.
 
 To sign the installation package you need to set the following variables:
 
 | Name | Value |
-| :---: | :---: |
-| PRODUCTBUILD\_IDENTITY\_NAME | Owner of the _Developer ID Installer_ certificate to use for signing. |
+| :--: | ----- |
+| PRODUCTBUILD\_IDENTITY\_NAME | Owner* of the _Developer ID Installer_ certificate to use for signing. |
 | PRODUCTBUILD\_KEYCHAIN\_PATH | Path to the keychain file with the certificate. Blank if its in the default keychain.
 
 #### iOS
@@ -226,11 +226,16 @@ If using the CMake GUI, when it asks you to specify the generator for the projec
 
 To sign the applications you need to set the following CMake variables:
 
-| Name | Value |
-| :---: | :---: |
-| XCODE\_CODE\_SIGN\_IDENTITY | Owner of the _Apple Development_ certificate to use for signing. |
+| Name  | Value |
+| :---: | ----- |
+| XCODE\_CODE\_SIGN\_IDENTITY | Owner* of the _Apple Development_ certificate to use for signing. |
 | XCODE\_DEVELOPMENT\_TEAM | Development team used to create the Provisioning Profile. This may not be the same as the team of the _Apple Development_ certificate owner.
 | XCODE\_PROVISIONING\_PROFILE | Name of the profile to use.
+
+\* _Owner_ is what is formally known as the _Subject Name_ of a certificate. It
+is the string displayed by the Keychain Access app in the list of installed
+certificates and shown as the value of the _Common Name_ field of the _Subject
+Name_ section of the details shown after double-clicking the certificate.
 
 ### Web/Emscripten
 
@@ -335,6 +340,19 @@ The KTX loader tests use libSDL 2.0.12+. You do not need SDL if you only wish to
 The KTX vulkan loader tests require a [Vulkan SDK](#vulkan-sdk)
 and the Open Asset Import Library [`libassimp`](#libassimp). You must
 install the former. The latter is included in this repo.
+
+##### Windows signing
+
+To sign applications and the NSIS installer you need to import your certificate to either the Current User or Local Machine certificate store. This can be done
+interactively with Windows' commands `certmgr` and `certlm` respectively. Then you need to set the following CMake variables:
+
+| Name  | Value |
+| :---: | ----- |
+| WIN\_CODE\_SIGN\_IDENTITY | Owner* of the _Developer ID Application_ certificate to use for signing. |
+| WIN\_CS\_CERT\_SEARCH\_MACHINE\_STORE | Check this option if your certificate is in the Local Machine store.
+
+\* Owner is what is formally known as the _Subject Name_ of a certificate. It is
+displayed in the _Issued To_ column of `certmgr` and `certlm`.
 
 #### OpenGL ES Emulator for Windows
 
