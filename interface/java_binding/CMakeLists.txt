@@ -50,7 +50,7 @@ set_target_properties(ktx-jni PROPERTIES
     # work as the executable here is the JVM.
     INSTALL_RPATH "/usr/local/lib;${KTX_BUILD_DIR}/$<CONFIG>"
 )
-set_xcode_code_sign(ktx-jni)
+set_code_sign(ktx-jni)
 
 if(APPLE AND KTX_EMBED_BITCODE)
     target_compile_options(ktx-jni PRIVATE "-fembed-bitcode")

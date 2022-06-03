@@ -189,20 +189,42 @@ install:
 # - ps: |
 #     Invoke-WebRequest -Uri https://raw.githubusercontent.com/horta/zlib.install/master/install.bat -OutFile install.bat
 #     ./install.bat
+- ps: if ($env:CERT_PK_PASS) { iex ((New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/appveyor/secure-file/master/install.ps1')) }
+
+
 #cache:
 #  - other_lib
-
 before_build:
-# Expand date keywords. -q is because the VS2019 image has a more
-# recent git version (2.21.0) in which git checkout writes to StdErr
-# which PS treats as an exception causing the build to fail, if checkout
-# is the last command in this shell. The write is an innocuous message
-# about the number of paths updated.
+# Expand date keywords.
+#   -q is because the VS2019 image has a more recent git version (2.21.0)
+#   in which git checkout writes to StdErr which PS treats as an exception
+#   causing the build to fail, if checkout is the last command in this shell.
+#   The write is an innocuous message about the number of paths updated.
 - ps: |
     ./install-gitconfig.bat
     rm TODO.md, lib/mainpage.md, pkgdoc/pages.md
     git checkout -q TODO.md lib/mainpage.md pkgdoc/pages.md
     git status
+
+# Import signing certificate into local machine store.
+#   This is because `certutil -user`, to install in user's store,
+#   produces a pop-up dialog that stalls CI while waiting for an answer.
+#   The dialog warns that the trusted root CA of the cert can't be verified.
+#   This happens on the development machine too. Since the root CA
+#   certificates of both user and machine stores appear to be identical and
+#   the interactive `certmgr` for the user store can import the same
+#   certificate I don't understand the reason.
+- ps: |
+    if ($env:CERT_PK_PASS) {
+      $cert_file = "the_khronos_group_inc.p12"
+      appveyor-tools\secure-file -decrypt "${cert_file}.enc" -secret $env:CERT_DC_SECRET -salt $env:CERT_DC_SALT
+      certutil -p $env:CERT_PK_PASS -importpfx My $cert_file NoExport
+      rm $cert_file
+      $env:WIN_CODE_SIGN_IDENTITY = 'The Khronos Group Inc'
+      $env:WIN_CS_CERT_SEARCH_MACHINE_STORE = 'ON'
+    } else {
+      $env:WINDOWS_CODE_SIGN_IDENTITY = ''
+    }
 
 build_script:
 - ps: |

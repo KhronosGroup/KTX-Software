@@ -19,7 +19,7 @@ include(CTest)
 include(GNUInstallDirs)
 include(CMakeDependentOption)
 
-include(cmake/xcode.cmake)
+include(cmake/codesign.cmake)
 include(cmake/cputypetest.cmake)
 
 find_package(OpenCL)
@@ -87,7 +87,15 @@ CMAKE_DEPENDENT_OPTION( KTX_EMBED_BITCODE
     OFF
 )
 
+option( KTX_FEATURE_KTX1 "Enable KTX 1 support" ON )
+option( KTX_FEATURE_KTX2 "Enable KTX 2 support" ON )
+option( KTX_FEATURE_VULKAN "Enable Vulkan texture upload" ON )
+option( KTX_FEATURE_GL_UPLOAD "Enable OpenGL texture upload" ON )
+
+# Platform specific settings
+
 if(APPLE)
+    # Signing
     set(XCODE_CODE_SIGN_IDENTITY "Development" CACHE STRING "Xcode code sign ID")
     set(XCODE_DEVELOPMENT_TEAM "" CACHE STRING "Xcode development team ID")
     set(PRODUCTBUILD_IDENTITY_NAME "" CACHE STRING "productbuild identity name")
@@ -96,25 +104,28 @@ if(APPLE)
         set(XCODE_PROVISIONING_PROFILE_SPECIFIER "" CACHE STRING "Xcode provisioning profile specifier")
         set(MOLTENVK_SDK "$ENV{VULKAN_SDK}/../MoltenVK" CACHE STRING "MoltenVK directory inside the Vulkan SDK")
     endif()
-endif()
 
-option( KTX_FEATURE_KTX1 "Enable KTX 1 support" ON )
-option( KTX_FEATURE_KTX2 "Enable KTX 2 support" ON )
-option( KTX_FEATURE_VULKAN "Enable Vulkan texture upload" ON )
-option( KTX_FEATURE_GL_UPLOAD "Enable OpenGL texture upload" ON )
-
-# Platform specific settings
-
-if (WIN32 AND ${CMAKE_SYSTEM_NAME} STREQUAL "WindowsStore")
-    # Disable OpenGL upload on Universal Windows Platform
-    set(KTX_FEATURE_GL_UPLOAD OFF)
-endif()
-
-if(APPLE)
+    # Deployment
     set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "macOS Deployment Target")
     if(IOS)
         set(CMAKE_XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET "11.0" CACHE STRING "iOS Deployment Target")
         set(CMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH NO)
+    endif()
+endif()
+
+if (WIN32)
+    # Signing
+    set(WIN_CODE_SIGN_IDENTITY "" CACHE STRING "Subject Name of Windows code signing certificate. Displayed in 'Issued To' field of cert{lm,mgr}.")
+    CMAKE_DEPENDENT_OPTION( WIN_CS_CERT_SEARCH_MACHINE_STORE
+        "When set, machine store will be searched for signing certificate instead of user store."
+        OFF
+        WIN_CODE_SIGN_IDENTITY
+        OFF
+    )
+
+    if (${CMAKE_SYSTEM_NAME} STREQUAL "WindowsStore")
+        # Disable OpenGL upload on Universal Windows Platform
+        set(KTX_FEATURE_GL_UPLOAD OFF)
     endif()
 endif()
 
@@ -241,7 +252,7 @@ macro(commom_lib_settings lib write)
         SOVERSION ${PROJECT_VERSION_MAJOR}
         XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
     )
-    set_xcode_code_sign(${lib})
+    set_code_sign(${lib})
 
     target_compile_definitions(
         ${lib}
@@ -914,6 +925,7 @@ elseif(LINUX)
     set(CPACK_PACKAGE_CHECKSUM SHA1)
     set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ReadMe.txt")
 elseif(WIN32)
+    set(CPACK_GENERATOR "NSIS")
     # Add logo to top left of installer pages. Despite the installer-
     # independent variable name, this does nothing for PRODUCTBUILD
     # hence setting here only. Format has to be old BMP (use
@@ -933,9 +945,17 @@ elseif(WIN32)
     set(CPACK_NSIS_MODIFY_PATH ON)
     set(CPACK_NSIS_UNINSTALL_NAME "Uninstall")
     set(CPACK_PACKAGE_INSTALL_DIRECTORY "KTX-Software")
+    if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.20")
+        set(CPACK_NSIS_BRANDING_TEXT "KTX for Windows")
+    endif()
     ## Alternative: add major version at end
     #set(CPACK_PACKAGE_INSTALL_DIRECTORY "KTX-Software-${PROJECT_VERSION_MAJOR}")
-    set(CPACK_PACKAGE_CHECKSUM SHA1)
+    if (WIN_CODE_SIGN_IDENTITY)
+        set_nsis_installer_codesign_cmd()
+    else()
+        # We're not signing the package so provide a checksum file.
+        set(CPACK_PACKAGE_CHECKSUM SHA1)
+    endif()
 elseif(EMSCRIPTEN)
     set(CPACK_GENERATOR ZIP)
     set(CPACK_ARCHIVE_KTX_JS_FILE_NAME "${CMAKE_PROJECT_NAME}-${KTX_VERSION_FULL}-Web-libktx")

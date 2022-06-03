@@ -24,4 +24,4 @@ target_link_libraries(
 )
 
 set_tool_properties(ktx2ktx2)
-set_xcode_code_sign(ktx2ktx2)
+set_code_sign(ktx2ktx2)
