@@ -32,9 +32,9 @@ endmacro (set_code_sign)
 
 function(configure_sign_params)
   if (NOT SIGN_PARAMS)
-    # Default to looking for cert. in user's store but allow let user tell
-    # us to look Local Computer store. See comment at begin_build phase
-    # in .appveyor.yml for reason. User store is preferred because importing
+    # Default to looking for cert. in user's store but let user tell us
+    # to look Local Computer store. See comment at begin_build phase in
+    # .appveyor.yml for reason. User store is preferred because importing
     # the cert. does not need admin elevation.
     if (WIN_CS_CERT_SEARCH_MACHINE_STORE)
       set(store "/sm")
