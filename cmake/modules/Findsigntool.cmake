@@ -61,8 +61,9 @@ endfunction()
 # _root     string          KitsRoot for the Windows version whose kits to find.
 # _versions variable name   Variable in which to return the list of versions.
 #
-function(find_kits _kit_root _kit_versions)
+function(find_kits _winver _kit_versions)
   set(${_kit_versions})
+  set(_kit_root "KitsRoot${_winver}")
   set(regkey "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows Kits\\Installed Roots")
   set(regval ${_kit_root})
   if(CMAKE_HOST_SYSTEM_NAME MATCHES "Windows")
@@ -83,7 +84,7 @@ function(find_kits _kit_root _kit_versions)
     endif ()
   endif()
   if (_kits_path)
-      file(GLOB ${_kit_versions} "${_kits_path}/bin/10.*")
+      file(GLOB ${_kit_versions} "${_kits_path}/bin/${_winver}.*")
       # Reverse list, so newer versions (higher-numbered) appear first.
       list(REVERSE ${_kit_versions})
   endif ()
@@ -100,7 +101,7 @@ if (WIN32 AND NOT signtool_EXECUTABLE)
 
   # Look for latest signtool
   foreach(winver 11 10)
-    find_kits("KitsRoot${winver}" kit_versions)
+    find_kits(${winver} kit_versions)
     if (kit_versions)
       find_program(signtool_EXECUTABLE
           NAMES           signtool
