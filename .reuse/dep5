@@ -195,3 +195,8 @@ License: Apache-2.0
 Files: other_include/stb/*
 Copyright: 2017 Sean Barrett
 License: MIT
+
+# This file exists purely to pass our cert to CI and is not otherwise needed.
+Files: the_khronos_group_inc.p12.enc
+Copyright: 2022 The Khronos Group Inc.
+License: Apache-2.0

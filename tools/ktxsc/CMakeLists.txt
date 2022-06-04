@@ -24,4 +24,4 @@ target_link_libraries(
 )
 
 set_tool_properties(ktxsc)
-set_xcode_code_sign(ktxsc)
+set_code_sign(ktxsc)
