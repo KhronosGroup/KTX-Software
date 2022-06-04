@@ -319,9 +319,13 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
              // Load pending. Complete it.
             result = ktxTexture2_LoadImageData(This, NULL, 0);
             if (result != KTX_SUCCESS)
+            {
+                ktxTexture2_Destroy(prototype);
                 return result;
+            }
         } else {
             // No data to transcode.
+            ktxTexture2_Destroy(prototype);
             return KTX_INVALID_OPERATION;
         }
     }
