@@ -52,6 +52,7 @@ jobs:
       run: powershell ./ci_scripts/build_win.ps1
 
   windows-arm64-package:
+    runs-on: windows-latest
     needs: windows-arm64 # Don't package if the main build matrix fails
     env:
       WINDOWS_CODE_SIGN_IDENTITY: The Khronos Group Inc
