@@ -87,11 +87,11 @@ jobs:
         args: install doxygen.install
 
     - name: Install Signing Certificate
-      run: powershell |
-            $cert_file = "the_khronos_group_inc.p12"
-            appveyor-tools\secure-file -decrypt "${cert_file}.enc" -secret $env:CERT_DC_SECRET -salt $env:CERT_DC_SALT
-            certutil -p $env:CERT_PK_PASS -importpfx My $cert_file NoExport
-            rm $cert_file
+      run: |
+        $cert_file = "the_khronos_group_inc.p12"
+        appveyor-tools\secure-file -decrypt "${cert_file}.enc" -secret $env:CERT_DC_SECRET -salt $env:CERT_DC_SALT
+        certutil -p $env:CERT_PK_PASS -importpfx My $cert_file NoExport
+        rm $cert_file
 
     - name: Package arm64 Windows
       run: powershell ./ci_scripts/build_win.ps1
