@@ -15,29 +15,64 @@ on:
 
 
 jobs:
+  env:
+    WINDOWS_CODE_SIGN_IDENTITY: The Khronos Group Inc
 
   windows-arm64:
     runs-on: windows-latest
     strategy:
       matrix:
         CONFIGURATION: [Debug, RelWithDebInfo, Release]
-        CMAKE_GEN: ["Visual Studio 17 2022"] # Only version available on Actions w/ windows latest
-        FEATURE_DOC: [OFF, ON]
-        PACKAGE: [NO, YES]
+        FEATURE_TOOLS: [ON, OFF]
     env:
-      BUILD_DIR: "build/build-batch"
+      # Skip downloading necessities for the load tests since we can't test
+      # them on arm64 anyway
+      GIT_LFS_SKIP_SMUDGE: 1
+
+      BUILD_DIR: "build/build-batch-vs2022"
       CONFIGURATION: "${{matrix.CONFIGURATION}}"
-      CMAKE_GEN: "${{matrix.CMAKE_GEN}}"
-      FEATURE_DOC: "${{matrix.FEATURE_DOC}}"
-      FEATURE_TOOLS: "${{matrix.PACKAGE}}"
-      PACKAGE: "${{matrix.PACKAGE}}"
+      CMAKE_GEN: "Visual Studio 17 2022" # Only VS version on Windows Server 2022
+      FEATURE_TOOLS: "${{matrix.FEATURE_TOOLS}}"
+      PACKAGE: NO
 
       PLATFORM: "arm64"
       SUPPORT_SSE: OFF
 
       # No tests on arm64 since the host is x64 and can't run the built tests
       FEATURE_JNI: OFF # Not sure of the state of JNI on arm64 windows
-      FEATURE_TESTS: OFF 
+      FEATURE_TESTS: OFF
+      FEATURE_LOADTESTS: OFF
+
+      # We don't need docs or packaging for the testing build matrix
+      PACKAGE: OFF
+      FEATURE_DOC: OFF
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        # Fetch all history to make sure tags are
+        # included (used for version creation)
+        fetch-depth: 0
+    - name: Build arm64 Windows
+      run: powershell ./ci_scripts/build_win.ps1
+
+  windows-arm64-package:
+    needs: windows-arm64 # Don't package if the main build matrix fails
+    env:
+      BUILD_DIR: "build/build-package-vs2022"
+      CONFIGURATION: "Release"
+      CMAKE_GEN: "Visual Studio 17 2022"
+      FEATURE_TOOLS: YES # Packaging will fail in CPack/NSIS if tools aren't built when trying to package
+      FEATURE_DOC: ON # Want docs when packaging
+      PACKAGE: YES
+
+      PLATFORM: "arm64"
+      SUPPORT_SSE: OFF
+
+      # No tests on arm64 since the host is x64 and can't run the built tests
+      FEATURE_JNI: OFF
+
+      # Don't bother with tests when packaging
+      FEATURE_TESTS: OFF
       FEATURE_LOADTESTS: OFF
     steps:
     - uses: actions/checkout@v2
@@ -45,13 +80,38 @@ jobs:
         # Fetch all history to make sure tags are
         # included (used for version creation)
         fetch-depth: 0
+    # Need doxygen since we construct docs when packaging
+    # This has been observed to fail due to Sourceforge host failure
+    # Can't control that so please manually re-run if we time out here
     - name: Install Doxygen
       uses: crazy-max/ghaction-chocolatey@v2
       with:
         args: install doxygen.install
-      if: matrix.FEATURE_DOC == 'ON'
-    - name: Build arm64 Windows
+
+    - name: Install Signing Certificate
+      run: powershell |
+            $cert_file = "the_khronos_group_inc.p12"
+            appveyor-tools\secure-file -decrypt "${cert_file}.enc" -secret $env:CERT_DC_SECRET -salt $env:CERT_DC_SALT
+            certutil -p $env:CERT_PK_PASS -importpfx My $cert_file NoExport
+            rm $cert_file
+
+    - name: Package arm64 Windows
       run: powershell ./ci_scripts/build_win.ps1
+
+    - name: Run Signing Script
+      run: iex ((New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/appveyor/secure-file/master/install.ps1'))
+
+    - name: Get KTX version
+      id: ktx-version
+      run: |
+        KTX_VERSION=$(cat ${{matrix.BUILD_DIR}}/ktx.version)
+        echo "::set-output name=ktx-version::$KTX_VERSION"
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: KTX-Software-${{ steps.ktx-version.outputs.ktx-version }}-Windows-ARM64.exe
+        path: install-windows-arm64
 
   mingw:
     runs-on: windows-latest
