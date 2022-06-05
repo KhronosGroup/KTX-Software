@@ -19,7 +19,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        CONFIGURATION: [Debug, RelWithDebInfo, Release]
+        CONFIGURATION: [Debug, Release]
         FEATURE_TOOLS: [ON, OFF]
     env:
       # Skip downloading necessities for the load tests since we can't test
@@ -73,6 +73,7 @@ jobs:
       FEATURE_TESTS: OFF
       FEATURE_LOADTESTS: OFF
     steps:
+    - shell: pwsh
     - uses: actions/checkout@v2
       with:
         # Fetch all history to make sure tags are
@@ -89,8 +90,8 @@ jobs:
     - name: Install Signing Certificate
       run: |
         $cert_file = "the_khronos_group_inc.p12"
-        appveyor-tools\secure-file -decrypt "${cert_file}.enc" -secret $env:CERT_DC_SECRET -salt $env:CERT_DC_SALT
-        certutil -p $env:CERT_PK_PASS -importpfx My $cert_file NoExport
+        echo ${{ secrets.CERT_BASE64 }} | base64 --decode > $cert_file
+        certutil -p ${{ secrets.CERT_PK_PASS }} -importpfx My $cert_file NoExport
         rm $cert_file
 
     - name: Package arm64 Windows
