@@ -73,7 +73,6 @@ jobs:
       FEATURE_TESTS: OFF
       FEATURE_LOADTESTS: OFF
     steps:
-    - shell: pwsh
     - uses: actions/checkout@v2
       with:
         # Fetch all history to make sure tags are
