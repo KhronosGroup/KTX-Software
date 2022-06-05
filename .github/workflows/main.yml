@@ -15,9 +15,6 @@ on:
 
 
 jobs:
-  env:
-    WINDOWS_CODE_SIGN_IDENTITY: The Khronos Group Inc
-
   windows-arm64:
     runs-on: windows-latest
     strategy:
@@ -58,6 +55,7 @@ jobs:
   windows-arm64-package:
     needs: windows-arm64 # Don't package if the main build matrix fails
     env:
+      WINDOWS_CODE_SIGN_IDENTITY: The Khronos Group Inc
       BUILD_DIR: "build/build-package-vs2022"
       CONFIGURATION: "Release"
       CMAKE_GEN: "Visual Studio 17 2022"
