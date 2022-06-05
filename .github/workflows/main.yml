@@ -30,7 +30,6 @@ jobs:
       CONFIGURATION: "${{matrix.CONFIGURATION}}"
       CMAKE_GEN: "Visual Studio 17 2022" # Only VS version on Windows Server 2022
       FEATURE_TOOLS: "${{matrix.FEATURE_TOOLS}}"
-      PACKAGE: NO
 
       PLATFORM: "arm64"
       SUPPORT_SSE: OFF
@@ -41,7 +40,7 @@ jobs:
       FEATURE_LOADTESTS: OFF
 
       # We don't need docs or packaging for the testing build matrix
-      PACKAGE: OFF
+      PACKAGE: NO
       FEATURE_DOC: OFF
     steps:
     - uses: actions/checkout@v2
