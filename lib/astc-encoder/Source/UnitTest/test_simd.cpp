@@ -1753,6 +1753,72 @@ TEST(vint4, store_nbytes)
 	EXPECT_EQ(out, 42);
 }
 
+/** @brief Test vint8 store_lanes_masked. */
+TEST(vint4, store_lanes_masked)
+{
+	int resulta[4] { 0 };
+
+	// Store nothing
+	vmask4 mask1 = vint4(0) == vint4(1);
+	vint4 data1 = vint4(1);
+
+	store_lanes_masked(resulta, data1, mask1);
+	vint4 result1v(resulta);
+	vint4 expect1v = vint4::zero();
+	EXPECT_TRUE(all(result1v == expect1v));
+
+	// Store half
+	vmask4 mask2 = vint4(1, 1, 0, 0) == vint4(1);
+	vint4 data2 = vint4(2);
+
+	store_lanes_masked(resulta, data2, mask2);
+	vint4 result2v(resulta);
+	vint4 expect2v = vint4(2, 2, 0, 0);
+	EXPECT_TRUE(all(result2v == expect2v));
+
+	// Store all
+	vmask4 mask3 = vint4(1) == vint4(1);
+	vint4 data3 = vint4(3);
+
+	store_lanes_masked(resulta, data3, mask3);
+	vint4 result3v(resulta);
+	vint4 expect3v = vint4(3);
+	EXPECT_TRUE(all(result3v == expect3v));
+}
+
+/** @brief Test vint8 store_lanes_masked to unaligned address. */
+TEST(vint4, store_lanes_masked_unaligned)
+{
+	int8_t resulta[17] { 0 };
+
+	// Store nothing
+	vmask4 mask1 = vint4(0) == vint4(1);
+	vint4 data1 = vint4(1);
+
+	store_lanes_masked(reinterpret_cast<int*>(resulta + 1), data1, mask1);
+	vint4 result1v(reinterpret_cast<int*>(resulta + 1));
+	vint4 expect1v = vint4::zero();
+	EXPECT_TRUE(all(result1v == expect1v));
+
+	// Store half
+	vmask4 mask2 = vint4(1, 1, 0, 0) == vint4(1);
+	vint4 data2 = vint4(2);
+
+	store_lanes_masked(reinterpret_cast<int*>(resulta + 1), data2, mask2);
+	vint4 result2v(reinterpret_cast<int*>(resulta + 1));
+	vint4 expect2v = vint4(2, 2, 0, 0);
+	EXPECT_TRUE(all(result2v == expect2v));
+
+	// Store all
+	vmask4 mask3 = vint4(1) == vint4(1);
+	vint4 data3 = vint4(3);
+
+	store_lanes_masked(reinterpret_cast<int*>(resulta + 1), data3, mask3);
+	vint4 result3v(reinterpret_cast<int*>(resulta + 1));
+	vint4 expect3v = vint4(3);
+	EXPECT_TRUE(all(result3v == expect3v));
+}
+
 /** @brief Test vint4 gatheri. */
 TEST(vint4, gatheri)
 {
@@ -1886,6 +1952,62 @@ TEST(vmask4, not)
 	vmask4 m1 = m1a == m1b;
 	vmask4 r = ~m1;
 	EXPECT_EQ(mask(r), 0x5);
+}
+
+/** @brief Test vint4 table permute. */
+TEST(vint4, vtable_8bt_32bi_32entry)
+{
+	vint4 table0(0x00010203, 0x04050607, 0x08090a0b, 0x0c0d0e0f);
+	vint4 table1(0x10111213, 0x14151617, 0x18191a1b, 0x1c1d1e1f);
+
+	vint4 table0p, table1p;
+	vtable_prepare(table0, table1, table0p, table1p);
+
+	vint4 index(0, 7, 4, 31);
+
+	vint4 result = vtable_8bt_32bi(table0p, table1p, index);
+
+	EXPECT_EQ(result.lane<0>(),  3);
+	EXPECT_EQ(result.lane<1>(),  4);
+	EXPECT_EQ(result.lane<2>(),  7);
+	EXPECT_EQ(result.lane<3>(), 28);
+}
+
+/** @brief Test vint4 table permute. */
+TEST(vint4, vtable_8bt_32bi_64entry)
+{
+	vint4 table0(0x00010203, 0x04050607, 0x08090a0b, 0x0c0d0e0f);
+	vint4 table1(0x10111213, 0x14151617, 0x18191a1b, 0x1c1d1e1f);
+	vint4 table2(0x20212223, 0x24252627, 0x28292a2b, 0x2c2d2e2f);
+	vint4 table3(0x30313233, 0x34353637, 0x38393a3b, 0x3c3d3e3f);
+
+	vint4 table0p, table1p, table2p, table3p;
+	vtable_prepare(table0, table1, table2, table3, table0p, table1p, table2p, table3p);
+
+	vint4 index(0, 7, 38, 63);
+
+	vint4 result = vtable_8bt_32bi(table0p, table1p, table2p, table3p, index);
+
+	EXPECT_EQ(result.lane<0>(),  3);
+	EXPECT_EQ(result.lane<1>(),  4);
+	EXPECT_EQ(result.lane<2>(), 37);
+	EXPECT_EQ(result.lane<3>(), 60);
+}
+
+/** @brief Test vint4 rgba byte interleave. */
+TEST(vint4, interleave_rgba8)
+{
+	vint4 r(0x01, 0x11, 0x21, 0x31);
+	vint4 g(0x02, 0x12, 0x22, 0x32);
+	vint4 b(0x03, 0x13, 0x23, 0x33);
+	vint4 a(0x04, 0x14, 0x24, 0x34);
+
+	vint4 result = interleave_rgba8(r, g, b, a);
+
+	EXPECT_EQ(result.lane<0>(), 0x04030201);
+	EXPECT_EQ(result.lane<1>(), 0x14131211);
+	EXPECT_EQ(result.lane<2>(), 0x24232221);
+	EXPECT_EQ(result.lane<3>(), 0x34333231);
 }
 
 # if ASTCENC_SIMD_WIDTH == 8
@@ -2973,6 +3095,42 @@ TEST(vint8, max)
 	EXPECT_EQ(r.lane<7>(), 5);
 }
 
+/** @brief Test vint8 lsl. */
+TEST(vint8, lsl)
+{
+	vint8 a(1, 2, 4, -4, 1, 2, 4, -4);
+	a = lsl<0>(a);
+	EXPECT_EQ(a.lane<0>(), 1);
+	EXPECT_EQ(a.lane<1>(), 2);
+	EXPECT_EQ(a.lane<2>(), 4);
+	EXPECT_EQ(a.lane<3>(), 0xFFFFFFFC);
+	EXPECT_EQ(a.lane<4>(), 1);
+	EXPECT_EQ(a.lane<5>(), 2);
+	EXPECT_EQ(a.lane<6>(), 4);
+	EXPECT_EQ(a.lane<7>(), 0xFFFFFFFC);
+
+
+	a = lsl<1>(a);
+	EXPECT_EQ(a.lane<0>(), 2);
+	EXPECT_EQ(a.lane<1>(), 4);
+	EXPECT_EQ(a.lane<2>(), 8);
+	EXPECT_EQ(a.lane<3>(), 0xFFFFFFF8);
+	EXPECT_EQ(a.lane<4>(), 2);
+	EXPECT_EQ(a.lane<5>(), 4);
+	EXPECT_EQ(a.lane<6>(), 8);
+	EXPECT_EQ(a.lane<7>(), 0xFFFFFFF8);
+
+	a = lsl<2>(a);
+	EXPECT_EQ(a.lane<0>(), 8);
+	EXPECT_EQ(a.lane<1>(), 16);
+	EXPECT_EQ(a.lane<2>(), 32);
+	EXPECT_EQ(a.lane<3>(), 0xFFFFFFE0);
+	EXPECT_EQ(a.lane<4>(), 8);
+	EXPECT_EQ(a.lane<5>(), 16);
+	EXPECT_EQ(a.lane<6>(), 32);
+	EXPECT_EQ(a.lane<7>(), 0xFFFFFFE0);
+}
+
 /** @brief Test vint8 lsr. */
 TEST(vint8, lsr)
 {
@@ -3139,6 +3297,72 @@ TEST(vint8, store_nbytes)
 	EXPECT_EQ(out[1], 314);
 }
 
+/** @brief Test vint8 store_lanes_masked. */
+TEST(vint8, store_lanes_masked)
+{
+	int resulta[8] { 0 };
+
+	// Store nothing
+	vmask8 mask1 = vint8(0) == vint8(1);
+	vint8 data1 = vint8(1);
+
+	store_lanes_masked(resulta, data1, mask1);
+	vint8 result1v(resulta);
+	vint8 expect1v = vint8::zero();
+	EXPECT_TRUE(all(result1v == expect1v));
+
+	// Store half
+	vmask8 mask2 = vint8(1, 1, 1, 1, 0, 0, 0, 0) == vint8(1);
+	vint8 data2 = vint8(2);
+
+	store_lanes_masked(resulta, data2, mask2);
+	vint8 result2v(resulta);
+	vint8 expect2v = vint8(2, 2, 2, 2, 0, 0, 0, 0);
+	EXPECT_TRUE(all(result2v == expect2v));
+
+	// Store all
+	vmask8 mask3 = vint8(1) == vint8(1);
+	vint8 data3 = vint8(3);
+
+	store_lanes_masked(resulta, data3, mask3);
+	vint8 result3v(resulta);
+	vint8 expect3v = vint8(3);
+	EXPECT_TRUE(all(result3v == expect3v));
+}
+
+/** @brief Test vint8 store_lanes_masked to unaligned address. */
+TEST(vint8, store_lanes_masked_unaligned)
+{
+	int8_t resulta[33] { 0 };
+
+	// Store nothing
+	vmask8 mask1 = vint8(0) == vint8(1);
+	vint8 data1 = vint8(1);
+
+	store_lanes_masked(reinterpret_cast<int*>(resulta + 1), data1, mask1);
+	vint8 result1v(reinterpret_cast<int*>(resulta + 1));
+	vint8 expect1v = vint8::zero();
+	EXPECT_TRUE(all(result1v == expect1v));
+
+	// Store half
+	vmask8 mask2 = vint8(1, 1, 1, 1, 0, 0, 0, 0) == vint8(1);
+	vint8 data2 = vint8(2);
+
+	store_lanes_masked(reinterpret_cast<int*>(resulta + 1), data2, mask2);
+	vint8 result2v(reinterpret_cast<int*>(resulta + 1));
+	vint8 expect2v = vint8(2, 2, 2, 2, 0, 0, 0, 0);
+	EXPECT_TRUE(all(result2v == expect2v));
+
+	// Store all
+	vmask8 mask3 = vint8(1) == vint8(1);
+	vint8 data3 = vint8(3);
+
+	store_lanes_masked(reinterpret_cast<int*>(resulta + 1), data3, mask3);
+	vint8 result3v(reinterpret_cast<int*>(resulta + 1));
+	vint8 expect3v = vint8(3);
+	EXPECT_TRUE(all(result3v == expect3v));
+}
+
 /** @brief Test vint8 gatheri. */
 TEST(vint8, gatheri)
 {
@@ -3266,6 +3490,54 @@ TEST(vmask8, not)
 	vmask8 m1 = m1a == m1b;
 	vmask8 r = ~m1;
 	EXPECT_EQ(mask(r), 0x55);
+}
+
+/** @brief Test vint8 table permute. */
+TEST(vint8, vtable_8bt_32bi_32entry)
+{
+	vint4 table0(0x00010203, 0x04050607, 0x08090a0b, 0x0c0d0e0f);
+	vint4 table1(0x10111213, 0x14151617, 0x18191a1b, 0x1c1d1e1f);
+
+	vint8 table0p, table1p;
+	vtable_prepare(table0, table1, table0p, table1p);
+
+	vint8 index(0, 7, 4, 15, 16, 20, 23, 31);
+
+	vint8 result = vtable_8bt_32bi(table0p, table1p, index);
+
+	EXPECT_EQ(result.lane<0>(),  3);
+	EXPECT_EQ(result.lane<1>(),  4);
+	EXPECT_EQ(result.lane<2>(),  7);
+	EXPECT_EQ(result.lane<3>(), 12);
+	EXPECT_EQ(result.lane<4>(), 19);
+	EXPECT_EQ(result.lane<5>(), 23);
+	EXPECT_EQ(result.lane<6>(), 20);
+	EXPECT_EQ(result.lane<7>(), 28);
+}
+
+/** @brief Test vint4 table permute. */
+TEST(vint8, vtable_8bt_32bi_64entry)
+{
+	vint4 table0(0x00010203, 0x04050607, 0x08090a0b, 0x0c0d0e0f);
+	vint4 table1(0x10111213, 0x14151617, 0x18191a1b, 0x1c1d1e1f);
+	vint4 table2(0x20212223, 0x24252627, 0x28292a2b, 0x2c2d2e2f);
+	vint4 table3(0x30313233, 0x34353637, 0x38393a3b, 0x3c3d3e3f);
+
+	vint8 table0p, table1p, table2p, table3p;
+	vtable_prepare(table0, table1, table2, table3, table0p, table1p, table2p, table3p);
+
+	vint8 index(0, 7, 4, 15, 16, 20, 38, 63);
+
+	vint8 result = vtable_8bt_32bi(table0p, table1p, table2p, table3p, index);
+
+	EXPECT_EQ(result.lane<0>(),  3);
+	EXPECT_EQ(result.lane<1>(),  4);
+	EXPECT_EQ(result.lane<2>(),  7);
+	EXPECT_EQ(result.lane<3>(), 12);
+	EXPECT_EQ(result.lane<4>(), 19);
+	EXPECT_EQ(result.lane<5>(), 23);
+	EXPECT_EQ(result.lane<6>(), 37);
+	EXPECT_EQ(result.lane<7>(), 60);
 }
 
 #endif

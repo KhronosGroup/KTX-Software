@@ -561,13 +561,13 @@ void find_best_partition_candidates(
 				uncor_lines[j].b = normalize_safe(pm.dir, unit4());
 
 				uncor_plines[j].amod = uncor_lines[j].a - uncor_lines[j].b * dot(uncor_lines[j].a, uncor_lines[j].b);
-				uncor_plines[j].bs   = uncor_lines[j].b;
+				uncor_plines[j].bs = uncor_lines[j].b;
 
 				samec_lines[j].a = vfloat4::zero();
 				samec_lines[j].b = normalize_safe(pm.avg, unit4());
 
 				samec_plines[j].amod = vfloat4::zero();
-				samec_plines[j].bs   = samec_lines[j].b;
+				samec_plines[j].bs = samec_lines[j].b;
 			}
 
 			float uncor_error = 0.0f;

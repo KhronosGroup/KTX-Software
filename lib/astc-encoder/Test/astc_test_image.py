@@ -251,16 +251,8 @@ def get_encoder_params(encoderName, referenceName, imageSet):
     if encoderName.startswith("ref"):
         _, version, simd = encoderName.split("-")
 
-        # 2.x variants
-        if version.startswith("2."):
-            encoder = te.Encoder2xRel(version, simd)
-            name = f"reference-{version}-{simd}"
-            outDir = "Test/Images/%s" % imageSet
-            refName = None
-            return (encoder, name, outDir, refName)
-
-        # 3.x variants
-        if version.startswith("3."):
+        # 2.x and 3.x variants
+        if version.startswith("2.") or version.startswith("3."):
             encoder = te.Encoder2xRel(version, simd)
             name = f"reference-{version}-{simd}"
             outDir = "Test/Images/%s" % imageSet
@@ -302,15 +294,15 @@ def parse_command_line():
 
     # All test encoders
     testcoders = ["none", "neon", "sse2", "sse4.1", "avx2", "native"]
-    testcodersAArch64 = ["none", "neon", "native"]
-    testcodersX86 = ["none", "sse2", "sse4.1", "avx2", "native"]
+    testcodersAArch64 = ["none", "neon"]
+    testcodersX86 = ["none", "sse2", "sse4.1", "avx2"]
 
     coders = refcoders + testcoders + ["all-aarch64", "all-x86"]
 
     parser.add_argument("--encoder", dest="encoders", default="avx2",
                         choices=coders, help="test encoder variant")
 
-    parser.add_argument("--reference", dest="reference", default="ref-3.7-avx2",
+    parser.add_argument("--reference", dest="reference", default="ref-main-avx2",
                         choices=refcoders, help="reference encoder variant")
 
     astcProfile = ["ldr", "ldrs", "hdr", "all"]
