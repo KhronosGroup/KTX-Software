@@ -239,6 +239,9 @@ struct {
     issue IncorrectDfd {
         FATAL | 0x0041, "DFD created for %s confused interpretDFD()."
     };
+    issue DfdValidationFailure {
+        FATAL | 0x0042, "DFD validation passed a DFD which extactFormatInfo() could not handle."
+    };
 } ValidatorError;
 
 struct {
@@ -587,9 +590,8 @@ class ktxValidator : public ktxApp {
         template<typename ... Args>
         void addIssue(severity severity, issue issue, Args ... args);
         void startFile(const std::string& filename) {
+            // {error,warning}Count are cumulative so don't clear them.
             nameOfFileBeingValidated = filename;
-            errorCount = 0;
-            warningCount = 0;
             headerWritten = false;
         }
         uint32_t getErrorCount() { return this->errorCount; }
@@ -725,8 +727,8 @@ class ktxValidator : public ktxApp {
             return calcLayerSize(level) * layerCount;
         }
 
-        bool extractFormatInfo() {
-            uint32_t* bdb = pDfd4Format + 1;
+        bool extractFormatInfo(uint32_t* dfd) {
+            uint32_t* bdb = dfd + 1;
             struct formatInfo& fi = formatInfo;
             fi.blockDimension.x = KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION0) + 1;
             fi.blockDimension.y = KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION1) + 1;
@@ -741,7 +743,7 @@ class ktxValidator : public ktxApp {
                 InterpretDFDResult result;
 
                 fi.isBlockCompressed = false;
-                result = interpretDFD(pDfd4Format, &r, &g, &b, &a, &fi.wordSize);
+                result = interpretDFD(dfd, &r, &g, &b, &a, &fi.wordSize);
                 if (result > i_UNSUPPORTED_ERROR_BIT)
                     return false;
             }
@@ -1168,7 +1170,7 @@ ktxValidator::validateFile(const _tstring& filename)
             context.init(isp);
             validateHeader(context);
             validateLevelIndex(context);
-            validateDfd(context);
+            // DFD is validated from within validateLevelIndex.
             validateKvd(context);
             if (context.header.supercompressionGlobalData.byteLength > 0)
                 skipPadding(context, 8);
@@ -1308,7 +1310,7 @@ ktxValidator::validateHeader(validationContext& ctx)
             if (ctx.pDfd4Format == nullptr) {
                 addIssue(logger::eFatal, ValidatorError.CreateDfdFailure,
                          vkFormatString((VkFormat)ctx.header.vkFormat));
-            } else if (!ctx.extractFormatInfo()) {
+            } else if (!ctx.extractFormatInfo(ctx.pDfd4Format)) {
                 addIssue(logger::eError, ValidatorError.IncorrectDfd,
                          vkFormatString((VkFormat)ctx.header.vkFormat));
             }
@@ -1383,6 +1385,16 @@ ktxValidator::validateLevelIndex(validationContext& ctx)
         addIssue(logger::eFatal, IOError.FileRead, strerror(errno));
     else if (ctx.inp->eof())
         addIssue(logger::eFatal, IOError.UnexpectedEOF);
+
+    validateDfd(ctx);
+    if (!ctx.pDfd4Format) {
+        // VK_FORMAT_UNDEFINED so we have to get info from the actual DFD.
+        // Not hugely robust but validateDfd does check known undefineds such
+        // as UASTC.
+        if (!ctx.extractFormatInfo(ctx.pActualDfd)) {
+            addIssue(logger::eError, ValidatorError.DfdValidationFailure);
+        }
+    }
 
     uint32_t requiredLevelAlignment = ctx.requiredLevelAlignment();
     size_t expectedOffset = 0;
@@ -1525,9 +1537,12 @@ ktxValidator::validateDfd(validationContext& ctx)
                     && (bdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0] & 0xffff0000) != 0)
                     addIssue(logger::eError, DFD.InvalidTexelBlockDimension,
                              4, 4, "UASTC");
-                if (ctx.header.supercompressionScheme != KTX_SS_ZSTD) {
-                    if (KHR_DFDVAL(bdb, BYTESPLANE0) == 0)
-                        addIssue(logger::eError, DFD.BytesPlane0Zero, "UASTC");
+                uint32_t bytesPlane0 = KHR_DFDVAL(bdb, BYTESPLANE0);
+                if (ctx.header.supercompressionScheme == KTX_SS_NONE) {
+                    if (bytesPlane0 != 16) {
+                        addIssue(logger::eError, DFD.BytesPlane0Mismatch,
+                                 bytesPlane0, 16);
+                    }
                 } else {
                      if (KHR_DFDVAL(bdb, BYTESPLANE0) != 0) {
                           addIssue(logger::eError, DFD.NotUnsized, "UASTC");
@@ -1565,7 +1580,7 @@ ktxValidator::validateDfd(validationContext& ctx)
                     addIssue(logger::eError, DFD.TexelBlockDimensionZeroForUndefined);
                 if (KHR_DFDVAL(bdb, TEXELBLOCKDIMENSION3) != 0)
                     addIssue(logger::eError, DFD.FourDimensionalTexturesNotSupported);
-                if (ctx.header.supercompressionScheme != KTX_SS_ZSTD) {
+                if (ctx.header.supercompressionScheme == KTX_SS_NONE) {
                     if (KHR_DFDVAL(bdb, BYTESPLANE0) == 0)
                         addIssue(logger::eError, DFD.BytesPlane0Zero,
                                  "VK_FORMAT_UNDEFINED");
