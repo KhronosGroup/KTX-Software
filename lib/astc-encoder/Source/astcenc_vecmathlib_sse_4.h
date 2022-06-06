@@ -1167,7 +1167,7 @@ ASTCENC_SIMD_INLINE vint4 interleave_rgba8(vint4 r, vint4 g, vint4 b, vint4 a)
 {
 // Workaround an XCode compiler internal fault; note is slower than slli_epi32
 // so we should revert this when we get the opportunity
-#if __APPLE__
+#if defined(__APPLE__)
 	__m128i value = r.m;
 	value = _mm_add_epi32(value, _mm_bslli_si128(g.m, 1));
 	value = _mm_add_epi32(value, _mm_bslli_si128(b.m, 2));
@@ -1192,7 +1192,7 @@ ASTCENC_SIMD_INLINE void store_lanes_masked(int* base, vint4 data, vmask4 mask)
 #if ASTCENC_AVX >= 2
 	_mm_maskstore_epi32(base, _mm_castps_si128(mask.m), data.m);
 #else
-	_mm_maskmoveu_si128(data.m, _mm_castps_si128(mask.m), (char*)base);
+	_mm_maskmoveu_si128(data.m, _mm_castps_si128(mask.m), reinterpret_cast<char*>(base));
 #endif
 }
 

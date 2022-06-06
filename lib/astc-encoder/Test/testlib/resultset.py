@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # -----------------------------------------------------------------------------
-# Copyright 2020 Arm Limited
+# Copyright 2020-2022 Arm Limited
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy
@@ -300,7 +300,7 @@ class ResultSet():
         if not os.path.exists(dirName):
             os.makedirs(dirName)
 
-        with open(filePath, "w") as csvfile:
+        with open(filePath, "w", newline="") as csvfile:
             writer = csv.writer(csvfile)
             self._save_header(writer)
             for record in self.records:

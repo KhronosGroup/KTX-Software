@@ -278,7 +278,7 @@ void decompress_symbolic_block(
 	const auto& bm = bsd.get_block_mode(scb.block_mode);
 	const auto& di = bsd.get_decimation_info(bm.decimation_mode);
 
-	int is_dual_plane = bm.is_dual_plane;
+	bool is_dual_plane = static_cast<bool>(bm.is_dual_plane);
 
 	// Unquantize and undecimate the weights
 	int plane1_weights[BLOCK_MAX_TEXELS];

@@ -1124,8 +1124,8 @@ unsigned int compute_ideal_endpoint_formats(
 
 	promise(partition_count > 0);
 
-	int encode_hdr_rgb = blk.rgb_lns[0];
-	int encode_hdr_alpha = blk.alpha_lns[0];
+	bool encode_hdr_rgb = static_cast<bool>(blk.rgb_lns[0]);
+	bool encode_hdr_alpha = static_cast<bool>(blk.alpha_lns[0]);
 
 	// Compute the errors that result from various encoding choices (such as using luminance instead
 	// of RGB, discarding Alpha, using RGB-scale in place of two separate RGB endpoints and so on)
