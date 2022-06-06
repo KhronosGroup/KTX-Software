@@ -1544,7 +1544,7 @@ ktxValidator::validateDfd(validationContext& ctx)
                                  bytesPlane0, 16);
                     }
                 } else {
-                     if (KHR_DFDVAL(bdb, BYTESPLANE0) != 0) {
+                     if (bytesPlane0 != 0) {
                           addIssue(logger::eError, DFD.NotUnsized, "UASTC");
                      }
                 }
