@@ -101,10 +101,10 @@ macro(astcenc_set_properties NAME)
                 ASTCENC_DIAGNOSTICS)
     endif()
 
-    if(MSVC)
-        string(APPEND compile_options "/EHsc ")
-    else()
-
+    # So that non-msvc platforms will write out a 0 properly in the
+    # following generator expressions
+    if(NOT MSVC)
+        set(MSVC 0)
     endif()
 
     target_compile_options(${NAME}
