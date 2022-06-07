@@ -13,23 +13,29 @@ on:
   # Allow manual trigger
   workflow_dispatch:
 
-
 jobs:
   windows-arm64:
     runs-on: windows-latest
     strategy:
       matrix:
-        CONFIGURATION: [Debug, Release]
-        FEATURE_TOOLS: [ON, OFF]
+        options: [
+          {config: Debug, package: NO, tools: OFF, docs: OFF},
+          {config: Release, package: YES, tools: ON, docs: ON}
+        ]
     env:
-      # Skip downloading necessities for the load tests since we can't test
-      # them on arm64 anyway
+      # Skip downloading necessities for the load tests and source and golden
+      # images for the other tests since we can't test them on arm64 anyway.
       GIT_LFS_SKIP_SMUDGE: 1
+      WINDOWS_CODE_SIGN_IDENTITY: The Khronos Group Inc
 
       BUILD_DIR: "build/build-batch-vs2022"
-      CONFIGURATION: "${{matrix.CONFIGURATION}}"
+      CONFIGURATION: "${{matrix.options.config}}"
       CMAKE_GEN: "Visual Studio 17 2022" # Only VS version on Windows Server 2022
-      FEATURE_TOOLS: "${{matrix.FEATURE_TOOLS}}"
+      CMAKE_GENERATOR_TOOLSET: "ClangCL"
+
+      PACKAGE: ${{matrix.options.package}}
+      FEATURE_TOOLS: ${{matrix.options.tools}}
+      FEATURE_DOC: ${{matrix.options.docs}}
 
       PLATFORM: "arm64"
       SUPPORT_SSE: OFF
@@ -39,73 +45,46 @@ jobs:
       FEATURE_TESTS: OFF
       FEATURE_LOADTESTS: OFF
 
-      # We don't need docs or packaging for the testing build matrix
-      PACKAGE: NO
-      FEATURE_DOC: OFF
     steps:
     - uses: actions/checkout@v2
       with:
         # Fetch all history to make sure tags are
         # included (used for version creation)
         fetch-depth: 0
-    - name: Build arm64 Windows
-      run: powershell ./ci_scripts/build_win.ps1
 
-  windows-arm64-package:
-    runs-on: windows-latest
-    needs: windows-arm64 # Don't package if the main build matrix fails
-    env:
-      WINDOWS_CODE_SIGN_IDENTITY: The Khronos Group Inc
-      BUILD_DIR: "build/build-package-vs2022"
-      CONFIGURATION: "Release"
-      CMAKE_GEN: "Visual Studio 17 2022"
-      FEATURE_TOOLS: YES # Packaging will fail in CPack/NSIS if tools aren't built when trying to package
-      FEATURE_DOC: ON # Want docs when packaging
-      PACKAGE: YES
-
-      PLATFORM: "arm64"
-      SUPPORT_SSE: OFF
-
-      # No tests on arm64 since the host is x64 and can't run the built tests
-      FEATURE_JNI: OFF
-
-      # Don't bother with tests when packaging
-      FEATURE_TESTS: OFF
-      FEATURE_LOADTESTS: OFF
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        # Fetch all history to make sure tags are
-        # included (used for version creation)
-        fetch-depth: 0
-    # Need doxygen since we construct docs when packaging
+    # Need doxygen if docs are supposed to be built
     # This has been observed to fail due to Sourceforge host failure
     # Can't control that so please manually re-run if we time out here
     - name: Install Doxygen
+      if: matrix.options.docs == ON
       uses: crazy-max/ghaction-chocolatey@v2
       with:
         args: install doxygen.install
 
+    - name: Setup Secure File
+      if: matrix.options.package == YES
+      run: iex ((New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/appveyor/secure-file/master/install.ps1'))
+
     - name: Install Signing Certificate
+      if: matrix.options.package == YES
       run: |
         $cert_file = "the_khronos_group_inc.p12"
         echo ${{ secrets.CERT_BASE64 }} | base64 --decode > $cert_file
         certutil -p ${{ secrets.CERT_PK_PASS }} -importpfx My $cert_file NoExport
         rm $cert_file
 
-    - name: Package arm64 Windows
+    - name: Build arm64 Windows
       run: powershell ./ci_scripts/build_win.ps1
 
-    - name: Run Signing Script
-      run: iex ((New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/appveyor/secure-file/master/install.ps1'))
-
     - name: Get KTX version
+      if: matrix.options.package == YES
       id: ktx-version
       run: |
         KTX_VERSION=$(cat ${{matrix.BUILD_DIR}}/ktx.version)
         echo "::set-output name=ktx-version::$KTX_VERSION"
 
     - name: Upload Artifact
+      if: matrix.options.package == YES
       uses: actions/upload-artifact@v2
       with:
         name: KTX-Software-${{ steps.ktx-version.outputs.ktx-version }}-Windows-ARM64.exe

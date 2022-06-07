@@ -77,10 +77,10 @@ function(set_target_processor_type out)
         set(${out} x86_64 PARENT_SCOPE)
 
     else()
-        if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-            if("${CMAKE_GENERATOR_PLATFORM}" STREQUAL "ARM")
+        if(MSVC) # MSVC is true for all msvc-style compilers, including clang-cl
+            if("${CMAKE_GENERATOR_PLATFORM}" STREQUAL "ARM" OR "${CMAKE_GENERATOR_PLATFORM}" STREQUAL "arm")
                 set(processor "arm")
-            elseif("${CMAKE_GENERATOR_PLATFORM}" STREQUAL "ARM64")
+            elseif("${CMAKE_GENERATOR_PLATFORM}" STREQUAL "ARM64" OR "${CMAKE_GENERATOR_PLATFORM}" STREQUAL "arm64")
                 set(processor "arm64")
             else()
                 set(C_PREPROCESS ${CMAKE_C_COMPILER} /EP /nologo)
