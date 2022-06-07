@@ -31,6 +31,10 @@ jobs:
       BUILD_DIR: "build/build-batch-vs2022"
       CONFIGURATION: "${{matrix.options.config}}"
       CMAKE_GEN: "Visual Studio 17 2022" # Only VS version on Windows Server 2022
+
+      # CMake specific env vars
+      # CMake complains if we set the toolset without the generator
+      CMAKE_GENERATOR: ${{env.CMAKE_GEN}}
       CMAKE_GENERATOR_TOOLSET: "ClangCL"
 
       PACKAGE: ${{matrix.options.package}}
