@@ -93,7 +93,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: KTX-Software-${{ steps.ktx-version.outputs.ktx-version }}-Windows-ARM64
-        path: $env:BUILD_DIR/KTX-Software-${{ steps.ktx-version.outputs.ktx-version }}-Windows-ARM64.exe
+        path: ${{env.BUILD_DIR}}/KTX-Software-${{ steps.ktx-version.outputs.ktx-version }}-Windows-ARM64.exe
 
   mingw:
     runs-on: windows-latest
