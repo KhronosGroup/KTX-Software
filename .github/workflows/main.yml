@@ -56,17 +56,17 @@ jobs:
     # This has been observed to fail due to Sourceforge host failure
     # Can't control that so please manually re-run if we time out here
     - name: Install Doxygen
-      if: matrix.options.docs == ON
+      if: matrix.options.docs == 'ON'
       uses: crazy-max/ghaction-chocolatey@v2
       with:
         args: install doxygen.install
 
     - name: Setup Secure File
-      if: matrix.options.package == YES
+      if: matrix.options.package == 'YES'
       run: iex ((New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/appveyor/secure-file/master/install.ps1'))
 
     - name: Install Signing Certificate
-      if: matrix.options.package == YES
+      if: matrix.options.package == 'YES'
       run: |
         $cert_file = "the_khronos_group_inc.p12"
         echo ${{ secrets.CERT_BASE64 }} | base64 --decode > $cert_file
@@ -77,14 +77,14 @@ jobs:
       run: powershell ./ci_scripts/build_win.ps1
 
     - name: Get KTX version
-      if: matrix.options.package == YES
+      if: matrix.options.package == 'YES'
       id: ktx-version
       run: |
         KTX_VERSION=$(cat ${{matrix.BUILD_DIR}}/ktx.version)
         echo "::set-output name=ktx-version::$KTX_VERSION"
 
     - name: Upload Artifact
-      if: matrix.options.package == YES
+      if: matrix.options.package == 'YES'
       uses: actions/upload-artifact@v2
       with:
         name: KTX-Software-${{ steps.ktx-version.outputs.ktx-version }}-Windows-ARM64.exe
