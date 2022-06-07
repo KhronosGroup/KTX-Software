@@ -92,8 +92,8 @@ jobs:
       if: matrix.options.package == 'YES'
       uses: actions/upload-artifact@v2
       with:
-        name: install-windows-arm64
-        path: KTX-Software-${{ steps.ktx-version.outputs.ktx-version }}-Windows-ARM64.exe
+        name: KTX-Software-${{ steps.ktx-version.outputs.ktx-version }}-Windows-ARM64
+        path: $env:BUILD_DIR/KTX-Software-${{ steps.ktx-version.outputs.ktx-version }}-Windows-ARM64.exe
 
   mingw:
     runs-on: windows-latest
