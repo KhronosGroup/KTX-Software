@@ -1124,8 +1124,8 @@ unsigned int compute_ideal_endpoint_formats(
 
 	promise(partition_count > 0);
 
-	int encode_hdr_rgb = blk.rgb_lns[0];
-	int encode_hdr_alpha = blk.alpha_lns[0];
+	bool encode_hdr_rgb = static_cast<bool>(blk.rgb_lns[0]);
+	bool encode_hdr_alpha = static_cast<bool>(blk.alpha_lns[0]);
 
 	// Compute the errors that result from various encoding choices (such as using luminance instead
 	// of RGB, discarding Alpha, using RGB-scale in place of two separate RGB endpoints and so on)
@@ -1316,10 +1316,8 @@ unsigned int compute_ideal_endpoint_formats(
 		vint lane_ids = vint::lane_id() + vint(start_block_mode);
 		for (unsigned int j = start_block_mode; j < end_block_mode; j += ASTCENC_SIMD_WIDTH)
 		{
-			vfloat err = vfloat(&errors_of_best_combination[j]);
-			vmask mask1 = err < vbest_ep_error;
-			vmask mask2 = vint(reinterpret_cast<int*>(best_quant_levels + j)) > vint(4);
-			vmask mask = mask1 & mask2;
+			vfloat err = vfloat(errors_of_best_combination + j);
+			vmask mask = err < vbest_ep_error;
 			vbest_ep_error = select(vbest_ep_error, err, mask);
 			vbest_error_index = select(vbest_error_index, lane_ids, mask);
 			lane_ids += vint(ASTCENC_SIMD_WIDTH);

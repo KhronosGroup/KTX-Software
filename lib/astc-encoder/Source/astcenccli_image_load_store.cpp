@@ -2295,7 +2295,7 @@ bool store_ncimage(
 		eptr = ".ktx"; // use KTX file format if we don't have an ending.
 	}
 
-	for (int i=0; i < storer_descr_count; i++)
+	for (int i = 0; i < storer_descr_count; i++)
 	{
 		if (strcmp(eptr, storer_descs[i].ending1) == 0
 		 || strcmp(eptr, storer_descs[i].ending2) == 0)

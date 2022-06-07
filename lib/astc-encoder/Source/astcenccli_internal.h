@@ -68,6 +68,9 @@ struct cli_config_options
 	/** @brief The number of threads to use for processing. */
 	unsigned int thread_count;
 
+	/** @brief The number of repeats to execute for benchmarking. */
+	unsigned int repeat_count;
+
 	/** @brief The number of image slices to load for a 3D image. */
 	unsigned int array_size;
 

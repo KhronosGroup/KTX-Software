@@ -44,6 +44,16 @@ PROPERTIES
     WILL_FAIL TRUE
 )
 
+add_test( NAME ktx2check-test-fail-when-last-file-valid
+    COMMAND ktx2check ../badktx2/bad_typesize.ktx2 astc_ldr_6x6_arraytex_7.ktx2
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
+)
+set_tests_properties(
+     ktx2check-test-fail-when-last-file-valid
+PROPERTIES
+    WILL_FAIL TRUE
+)
+
 add_test( NAME ktx2check-test-all
     # Invoke via sh workaround, since CMake puts asterisk in quotes
     # otherwise ( "*.ktx2" )

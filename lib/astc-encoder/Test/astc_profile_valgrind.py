@@ -82,12 +82,18 @@ def postprocess_cga(logfile, outfile):
         function[2] *= 100.0
 
     with open(outfile, "w") as fileHandle:
+
+        totals = 0.0
         for function in functionTable:
             # Omit entries less than 1% load
             if function[2] < 1:
                 break
 
+            totals += function[2]
             fileHandle.write("%5.2f%%  %s\n" % (function[2], function[0]))
+
+        fileHandle.write("======\n")
+        fileHandle.write(f"{totals:5.2f}%\n")
 
 
 def run_pass(image, noStartup, encoder, blocksize, quality):

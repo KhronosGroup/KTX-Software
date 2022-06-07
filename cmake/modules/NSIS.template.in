@@ -33,9 +33,6 @@
 ;--------------------------------
 ;Signing
 
-;  !finalize '@signtool_EXECUTABLE@ sign /s "Khronos Group" /fd SHA256 /td SHA256 "%1"'
-;  !uninstfinalize '@signtool_EXECUTABLE@ sign /s "Khronos Group" /fd SHA256 /td SHA256 "%1"'
-
   !finalize '@CPACK_NSIS_FINALIZE_CMD@'
   !uninstfinalize '@CPACK_NSIS_FINALIZE_CMD@'
 
