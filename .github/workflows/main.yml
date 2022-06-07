@@ -85,8 +85,7 @@ jobs:
       if: matrix.options.package == 'YES'
       id: ktx-version
       run: |
-        KTX_VERSION=$(cat ${{matrix.BUILD_DIR}}/ktx.version)
-        echo "::set-output name=ktx-version::$KTX_VERSION"
+        $env:KTX_VERSION = Get-Content ${{matrix.BUILD_DIR}}/ktx.version
 
     - name: Upload Artifact
       if: matrix.options.package == 'YES'
