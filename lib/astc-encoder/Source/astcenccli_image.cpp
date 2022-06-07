@@ -36,12 +36,12 @@ astcenc_image *alloc_image(
 	img->dim_y = dim_y;
 	img->dim_z = dim_z;
 
+	void** data = new void*[dim_z];
+	img->data = data;
+
 	if (bitness == 8)
 	{
-		void** data = new void*[dim_z];
 		img->data_type = ASTCENC_TYPE_U8;
-		img->data = data;
-
 		for (unsigned int z = 0; z < dim_z; z++)
 		{
 			data[z] = new uint8_t[dim_x * dim_y * 4];
@@ -49,10 +49,7 @@ astcenc_image *alloc_image(
 	}
 	else if (bitness == 16)
 	{
-		void** data = new void*[dim_z];
 		img->data_type = ASTCENC_TYPE_F16;
-		img->data = data;
-
 		for (unsigned int z = 0; z < dim_z; z++)
 		{
 			data[z] = new uint16_t[dim_x * dim_y * 4];
@@ -61,10 +58,7 @@ astcenc_image *alloc_image(
 	else // if (bitness == 32)
 	{
 		assert(bitness == 32);
-		void** data = new void*[dim_z];
 		img->data_type = ASTCENC_TYPE_F32;
-		img->data = data;
-
 		for (unsigned int z = 0; z < dim_z; z++)
 		{
 			data[z] = new float[dim_x * dim_y * 4];

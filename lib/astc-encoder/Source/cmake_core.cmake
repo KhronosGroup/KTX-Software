@@ -83,6 +83,16 @@ macro(astcenc_set_properties NAME)
             # MSVC defines
             $<$<CXX_COMPILER_ID:MSVC>:_CRT_SECURE_NO_WARNINGS>)
 
+    # Work around compiler bug in MSVC when targeting arm64
+    # https://developercommunity.visualstudio.com/t/inlining-turns-constant-into-register-operand-for/1394798
+    # https://github.com/microsoft/vcpkg/pull/24869
+    if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+        if(CPU_ARCHITECTURE STREQUAL armv8 OR CPU_ARCHITECTURE STREQUAL arm64)
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /d2ssa-cfg-sink-")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /d2ssa-cfg-sink-")
+        endif()
+    endif()
+
     if(${DECOMPRESSOR})
         target_compile_definitions(${NAME}
             PRIVATE
@@ -109,6 +119,7 @@ macro(astcenc_set_properties NAME)
             # MSVC compiler defines
             $<$<CXX_COMPILER_ID:MSVC>:/EHsc>
             $<$<CXX_COMPILER_ID:MSVC>:/fp:strict>
+            $<$<CXX_COMPILER_ID:MSVC>:/wd4324>
 
             # G++ and Clang++ compiler defines
             $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall>
@@ -279,8 +290,16 @@ endif()
 
 astcenc_set_properties(${ASTC_TARGET}-static)
 
+    target_compile_options(${ASTC_TARGET}-static
+        PRIVATE
+            $<$<CXX_COMPILER_ID:MSVC>:/W4>)
+
 if(${CLI})
     astcenc_set_properties(${ASTC_TARGET})
+
+    target_compile_options(${ASTC_TARGET}
+        PRIVATE
+            $<$<CXX_COMPILER_ID:MSVC>:/W3>)
 
     string(TIMESTAMP astcencoder_YEAR "%Y")
 

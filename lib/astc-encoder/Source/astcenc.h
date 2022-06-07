@@ -312,29 +312,6 @@ static const unsigned int ASTCENC_FLG_MAP_NORMAL          = 1 << 0;
 static const unsigned int ASTCENC_FLG_MAP_MASK             = 1 << 1;
 
 /**
- * @brief Enable RGBM map compression.
- *
- * Input data will be treated as HDR data that has been stored in an LDR RGBM-encoded wrapper
- * format. Data must be preprocessed by the user to be in LDR RGBM format before calling the
- * compression function, this flag is only used to control the use of RGBM-specific heuristics and
- * error metrics.
- *
- * IMPORTANT: The ASTC format is prone to bad failure modes with unconstrained RGBM data; very small
- * M values can round to zero due to quantization and result in black or white pixels. It is highly
- * recommended that the minimum value of M used in the encoding is kept above a lower threshold (try
- * 16 or 32). Applying this threshold reduces the number of very dark colors that can be
- * represented, but is still higher precision than 8-bit LDR.
- *
- * When this flag is set the value of @c rgbm_m_scale in the context must be set to the RGBM scale
- * factor used during reconstruction. This defaults to 5 when in RGBM mode.
- *
- * It is recommended that the value of @c cw_a_weight is set to twice the value of the multiplier
- * scale, ensuring that the M value is accurately encoded. This defaults to 10 when in RGBM mode,
- * matching the default scale factor.
- */
-static const unsigned int ASTCENC_FLG_MAP_RGBM             = 1 << 6;
-
-/**
  * @brief Enable alpha weighting.
  *
  * The input alpha value is used for transparency, so errors in the RGB components are weighted by
@@ -368,6 +345,29 @@ static const unsigned int ASTCENC_FLG_DECOMPRESS_ONLY      = 1 << 4;
  * cannot reliably decompress arbitrary ASTC images.
  */
 static const unsigned int ASTCENC_FLG_SELF_DECOMPRESS_ONLY = 1 << 5;
+
+/**
+ * @brief Enable RGBM map compression.
+ *
+ * Input data will be treated as HDR data that has been stored in an LDR RGBM-encoded wrapper
+ * format. Data must be preprocessed by the user to be in LDR RGBM format before calling the
+ * compression function, this flag is only used to control the use of RGBM-specific heuristics and
+ * error metrics.
+ *
+ * IMPORTANT: The ASTC format is prone to bad failure modes with unconstrained RGBM data; very small
+ * M values can round to zero due to quantization and result in black or white pixels. It is highly
+ * recommended that the minimum value of M used in the encoding is kept above a lower threshold (try
+ * 16 or 32). Applying this threshold reduces the number of very dark colors that can be
+ * represented, but is still higher precision than 8-bit LDR.
+ *
+ * When this flag is set the value of @c rgbm_m_scale in the context must be set to the RGBM scale
+ * factor used during reconstruction. This defaults to 5 when in RGBM mode.
+ *
+ * It is recommended that the value of @c cw_a_weight is set to twice the value of the multiplier
+ * scale, ensuring that the M value is accurately encoded. This defaults to 10 when in RGBM mode,
+ * matching the default scale factor.
+ */
+static const unsigned int ASTCENC_FLG_MAP_RGBM             = 1 << 6;
 
 /**
  * @brief The bit mask of all valid flags.
@@ -497,14 +497,14 @@ struct astcenc_config
 	float tune_refinement_mse_overshoot;
 
 	/**
-	 * @brief The threshold for skipping 2.2/3.1/3.2/4.1 trials (-2partitionlimitfactor).
+	 * @brief The threshold for skipping 3.1/4.1 trials (-2partitionlimitfactor).
 	 *
 	 * This option is further scaled for normal maps, so it skips less often.
 	 */
 	float tune_2_partition_early_out_limit_factor;
 
 	/**
-	 * @brief The threshold for skipping 3.2/4.1 trials (-3partitionlimitfactor).
+	 * @brief The threshold for skipping 4.1 trials (-3partitionlimitfactor).
 	 *
 	 * This option is further scaled for normal maps, so it skips less often.
 	 */

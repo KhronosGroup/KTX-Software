@@ -232,7 +232,6 @@ class EncoderBase():
 class Encoder2x(EncoderBase):
     """
     This class wraps the latest `astcenc` 2.x series binaries from main branch.
-    branch.
     """
     VERSION = "main"
 
