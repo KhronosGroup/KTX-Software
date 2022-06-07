@@ -20,10 +20,6 @@ cmake_minimum_required(VERSION 3.15)
 cmake_policy(SET CMP0069 NEW)  # LTO support
 cmake_policy(SET CMP0091 NEW)  # MSVC runtime support
 
-if(MSVC)
-    add_compile_options("/wd4324") # Disable structure was padded due to alignment specifier
-endif()
-
 project(astcencoder VERSION 4.0.0)
 
 set(CMAKE_CXX_STANDARD 14)
