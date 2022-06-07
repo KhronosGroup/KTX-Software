@@ -69,8 +69,8 @@ jobs:
       if: matrix.options.package == 'YES'
       run: |
         $cert_file = "the_khronos_group_inc.p12"
-        echo ${{ secrets.CERT_BASE64 }} | base64 --decode > $cert_file
-        certutil -p ${{ secrets.CERT_PK_PASS }} -importpfx My $cert_file NoExport
+        appveyor-tools\secure-file -decrypt "${cert_file}.enc" -secret $env:CERT_DC_SECRET -salt $env:CERT_DC_SALT
+        certutil -p $env:CERT_PK_PASS -importpfx My $cert_file NoExport
         rm $cert_file
 
     - name: Build arm64 Windows
