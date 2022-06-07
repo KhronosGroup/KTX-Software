@@ -21,17 +21,6 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang" AND ${CLI})
     set(CMAKE_CXX_COMPILE_OPTIONS_IPO "-flto")
 endif()
 
-# Add Flag to work around compiler bug in MSVC when targeting Arm64
-# See:
-# https://developercommunity.visualstudio.com/t/inlining-turns-constant-into-register-operand-for/1394798
-# https://github.com/microsoft/vcpkg/pull/24869
-if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-    if(CPU_ARCHITECTURE STREQUAL armv8 OR CPU_ARCHITECTURE STREQUAL arm64)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /d2ssa-cfg-sink-")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /d2ssa-cfg-sink-")
-    endif()
-endif()
-
 if(${DECOMPRESSOR})
     set(CODEC dec)
 else()
