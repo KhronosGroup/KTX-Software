@@ -347,6 +347,14 @@ struct vmask4
 	}
 
 	/**
+	 * @brief Get the scalar from a single lane.
+	 */
+	template <int32_t l> ASTCENC_SIMD_INLINE uint32_t lane() const
+	{
+		return vgetq_lane_s32(m, l);
+	}
+
+	/**
 	 * @brief The vector ...
 	 */
 	uint32x4_t m;
@@ -874,7 +882,7 @@ ASTCENC_SIMD_INLINE vint4 float_to_float16(vfloat4 a)
 static inline uint16_t float_to_float16(float a)
 {
 	vfloat4 av(a);
-	return float_to_float16(av).lane<0>();
+	return (uint16_t)float_to_float16(av).lane<0>();
 }
 
 /**
@@ -1017,22 +1025,22 @@ ASTCENC_SIMD_INLINE vint4 interleave_rgba8(vint4 r, vint4 g, vint4 b, vint4 a)
  */
 ASTCENC_SIMD_INLINE void store_lanes_masked(int* base, vint4 data, vmask4 mask)
 {
-	if (mask.m[3])
+	if (mask.lane<3>())
 	{
 		store(data, base);
 	}
-	else if(mask.m[2])
+	else if(mask.lane<2>())
 	{
 		base[0] = data.lane<0>();
 		base[1] = data.lane<1>();
 		base[2] = data.lane<2>();
 	}
-	else if(mask.m[1])
+	else if(mask.lane<1>())
 	{
 		base[0] = data.lane<0>();
 		base[1] = data.lane<1>();
 	}
-	else if(mask.m[0])
+	else if(mask.lane<0>())
 	{
 		base[0] = data.lane<0>();
 	}
