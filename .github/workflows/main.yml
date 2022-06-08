@@ -24,7 +24,7 @@ jobs:
         ]
     env:
       # Skip downloading necessities for the load tests and source and golden
-      # images for the other tests since we can't run arm64 tests on the x64 
+      # images for the other tests since we can't run arm64 tests on the x64
       # build host.
       GIT_LFS_SKIP_SMUDGE: 1
 
@@ -95,6 +95,14 @@ jobs:
       with:
         name: KTX-Software-${{ steps.ktx-version.outputs.ktx-version }}-Windows-arm64
         path: ${{env.BUILD_DIR}}/KTX-Software-*.exe*
+
+    - name: Upload To Release
+      uses: softprops/action-gh-release@v1
+      if: (matrix.options.package == 'YES') && (github.event_name == 'release') && startsWith(github.ref, 'refs/tags/')
+      with:
+        files: ${{env.BUILD_DIR}}/KTX-Software-*.exe*
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   mingw:
     runs-on: windows-latest
