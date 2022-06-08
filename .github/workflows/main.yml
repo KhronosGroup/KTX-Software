@@ -19,12 +19,13 @@ jobs:
     strategy:
       matrix:
         options: [
-          {config: Debug, package: NO, tools: OFF, docs: OFF},
+          {config: Debug, package: NO, tools: ON, docs: OFF},
           {config: Release, package: YES, tools: ON, docs: ON}
         ]
     env:
       # Skip downloading necessities for the load tests and source and golden
-      # images for the other tests since we can't test them on arm64 anyway.
+      # images for the other tests since we can't run arm64 tests on the x64 
+      # build host.
       GIT_LFS_SKIP_SMUDGE: 1
 
       BUILD_DIR: "build/build-batch-vs2022"
@@ -60,11 +61,11 @@ jobs:
       with:
         args: install doxygen.install
 
-    - name: Setup Secure File
+    - name: Install Certificate File Decryption Tool
       if: matrix.options.package == 'YES'
       run: iex ((New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/appveyor/secure-file/master/install.ps1'))
 
-    - name: Install Signing Certificate
+    - name: Import Certificate to Certificate Store
       if: matrix.options.package == 'YES'
       run: |
         if ($env:CERT_PK_PASS) {
@@ -93,7 +94,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: KTX-Software-${{ steps.ktx-version.outputs.ktx-version }}-Windows-arm64
-        path: ${{env.BUILD_DIR}}/KTX-Software-*.exe
+        path: ${{env.BUILD_DIR}}/KTX-Software-*.exe*
 
   mingw:
     runs-on: windows-latest
