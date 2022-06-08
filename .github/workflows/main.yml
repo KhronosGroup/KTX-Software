@@ -45,6 +45,10 @@ jobs:
       FEATURE_TESTS: OFF
       FEATURE_LOADTESTS: OFF
 
+      CERT_PK_PASS: ${{ secrets.CERT_PK_PASS }}
+      CERT_DC_SECRET: ${{ secrets.CERT_DC_SECRET }}
+      CERT_DC_SALT: ${{ secrets.CERT_DC_SALT }}
+
     steps:
     - uses: actions/checkout@v2
       with:
