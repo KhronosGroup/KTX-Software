@@ -71,20 +71,25 @@ jobs:
 
     - name: Import Certificate to Certificate Store
       if: matrix.options.package == 'YES'
+      id: cert-import
       run: |
         if ($env:CERT_PK_PASS) {
           $cert_file = "the_khronos_group_inc.p12"
           appveyor-tools\secure-file -decrypt "${cert_file}.enc" -secret $env:CERT_DC_SECRET -salt $env:CERT_DC_SALT
           certutil -p $env:CERT_PK_PASS -importpfx My $cert_file NoExport
           rm $cert_file
-          $env:WIN_CODE_SIGN_IDENTITY = 'The Khronos Group Inc'
-          $env:WIN_CS_CERT_SEARCH_MACHINE_STORE = 'ON'
+          echo "::set-output name=win_code_sign_identity::'The Khronos Group Inc'"
+          echo "::set-output name=win_cs_cert_search_machine_store::'ON'"
         } else {
-          $env:WINDOWS_CODE_SIGN_IDENTITY = ''
+          echo "::set-output name=win_code_sign_identity::''"
+          echo "::set-output name=win_cs_cert_search_machine_store::'OFF'"
         }
 
     - name: Build arm64 Windows
       run: powershell ./ci_scripts/build_win.ps1
+      env:
+        WIN_CODE_SIGN_IDENTITY: ${{ steps.cert-import.outputs.win_code_sign_identity }}
+        WIN_CS_CERT_SEARCH_MACHINE_STORE: ${{ steps.cert-import.outputs.win_cs_cert_search_machine_store }}
 
     - name: Get KTX version
       if: matrix.options.package == 'YES'
@@ -106,7 +111,7 @@ jobs:
       with:
         files: ${{env.BUILD_DIR}}/KTX-Software-*.exe*
       env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   mingw:
     runs-on: windows-latest
