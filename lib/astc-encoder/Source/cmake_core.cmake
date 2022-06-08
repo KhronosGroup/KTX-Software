@@ -111,12 +111,6 @@ macro(astcenc_set_properties NAME)
                 ASTCENC_DIAGNOSTICS)
     endif()
 
-    # So that non-msvc platforms will write out a 0 properly in the
-    # following generator expressions
-    if(NOT MSVC)
-        set(MSVC 0)
-    endif()
-
     target_compile_options(${NAME}
         PRIVATE
             # Use pthreads on Linux/macOS
@@ -129,34 +123,34 @@ macro(astcenc_set_properties NAME)
             # arguments a build will fail when -Werror is specified.
 
             # MSVC compiler defines
-            $<$<BOOL:${MSVC}>:/EHsc>
-            $<$<BOOL:${MSVC}>:/fp:strict>
-            $<$<BOOL:${MSVC}>:/wd4324>
+            $<$<CXX_COMPILER_ID:MSVC>:/EHsc>
+            $<$<CXX_COMPILER_ID:MSVC>:/fp:strict>
+            $<$<CXX_COMPILER_ID:MSVC>>:/wd4324>
 
             # G++ and Clang++ compiler defines
-            $<$<NOT:${MSVC}>:-Wall>
-            $<$<NOT:${MSVC}>:-Wextra>
-            $<$<NOT:${MSVC}>:-Wpedantic>
-            $<$<NOT:${MSVC}>:-Werror>
-            $<$<NOT:${MSVC}>:-Wshadow>
-            $<$<NOT:${MSVC}>:-Wdouble-promotion>
+            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall>
+            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wextra>
+            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wpedantic>
+            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Werror>
+            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wshadow>
+            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wdouble-promotion>
 
             # Hide noise thrown up by Clang 10 and clang-cl
-            $<$<NOT:${MSVC}>:-Wno-unknown-warning-option>
-            $<$<NOT:${MSVC}>:-Wno-c++98-compat-pedantic>
-            $<$<NOT:${MSVC}>:-Wno-c++98-c++11-compat-pedantic>
-            $<$<NOT:${MSVC}>:-Wno-float-equal>
-            $<$<NOT:${MSVC}>:-Wno-deprecated-declarations>
-            $<$<NOT:${MSVC}>:-Wno-atomic-implicit-seq-cst>
+            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-unknown-warning-option>
+            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-c++98-compat-pedantic>
+            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-c++98-c++11-compat-pedantic>
+            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-float-equal>
+            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-deprecated-declarations>
+            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-atomic-implicit-seq-cst>
 
             # Clang 10 also throws up warnings we need to investigate (ours)
-            $<$<NOT:${MSVC}>:-Wno-cast-align>
-            $<$<NOT:${MSVC}>:-Wno-sign-conversion>
-            $<$<NOT:${MSVC}>:-Wno-implicit-int-conversion>
-            $<$<NOT:${MSVC}>:-Wno-shift-sign-overflow>
-            $<$<NOT:${MSVC}>:-Wno-format-nonliteral>
-            $<$<NOT:${MSVC}>:-Wno-reserved-identifier>
-            $<$<NOT:${MSVC}>:-Wno-cast-function-type>
+            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-cast-align>
+            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-sign-conversion>
+            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-implicit-int-conversion>
+            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-shift-sign-overflow>
+            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-format-nonliteral>
+            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-reserved-identifier>
+            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-cast-function-type>
 
             $<$<CXX_COMPILER_ID:Clang>:-Wdocumentation>)
 
