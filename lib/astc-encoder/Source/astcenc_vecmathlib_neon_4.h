@@ -204,7 +204,7 @@ struct vint4
 	{
 		uint32x2_t t8 {};
 		// Cast is safe - NEON loads are allowed to be unaligned
-		t8 = vld1_lane_u32((const uint32_t*)p, t8, 0);
+		t8 = vld1_lane_u32(reinterpret_cast<const uint32_t*>(p), t8, 0);
 		uint16x4_t t16 = vget_low_u16(vmovl_u8(vreinterpret_u8_u32(t8)));
 		m = vreinterpretq_s32_u32(vmovl_u16(t16));
 	}
@@ -590,7 +590,7 @@ ASTCENC_SIMD_INLINE void store(vint4 a, int* p)
  */
 ASTCENC_SIMD_INLINE void store_nbytes(vint4 a, uint8_t* p)
 {
-	vst1q_lane_s32((int32_t*)p, a.m, 0);
+	vst1q_lane_s32(reinterpret_cast<int32_t*>(p), a.m, 0);
 }
 
 /**
@@ -882,7 +882,7 @@ ASTCENC_SIMD_INLINE vint4 float_to_float16(vfloat4 a)
 static inline uint16_t float_to_float16(float a)
 {
 	vfloat4 av(a);
-	return (uint16_t)float_to_float16(av).lane<0>();
+	return static_cast<uint16_t>(float_to_float16(av).lane<0>());
 }
 
 /**
