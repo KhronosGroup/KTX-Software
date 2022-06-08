@@ -116,16 +116,10 @@ macro(astcenc_set_properties NAME)
             # Use pthreads on Linux/macOS
             $<$<PLATFORM_ID:Linux,Darwin>:-pthread>
 
-            # Using MSVC rather than CXX_COMPILER_ID generator variable
-            # because CXX_COMPILER_ID when using an msvc-style compiler 
-            # like clang-cl won't work as desired.
-            # Since clang-cl is also capable of accepting gnu style
-            # arguments a build will fail when -Werror is specified.
-
             # MSVC compiler defines
             $<$<CXX_COMPILER_ID:MSVC>:/EHsc>
             $<$<CXX_COMPILER_ID:MSVC>:/fp:strict>
-            $<$<CXX_COMPILER_ID:MSVC>>:/wd4324>
+            $<$<CXX_COMPILER_ID:MSVC>:/wd4324>
 
             # G++ and Clang++ compiler defines
             $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall>
