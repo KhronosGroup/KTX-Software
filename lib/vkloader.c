@@ -186,8 +186,13 @@ ktxVulkanDeviceInfo_Construct(ktxVulkanDeviceInfo* This,
  * Pass a valid ktxVulkanDeviceInfo* to any Vulkan KTX image loading
  * function to provide it with the information.
  *
- * @param  This            pointer to the ktxVulkanDeviceInfo object to
+ * @param  This           pointer to the ktxVulkanDeviceInfo object to
  *                        initialize.
+ * @param  instance       handle of the Vulkan instance. If @c VK_NULL_HANDLE,
+ *                        which is not recommended, the function will attempt
+ *                        to initialize the instance-level functions via the
+ *                        platform's standard dynamic library symbol loading
+ *                        mechanisms.
  * @param  physicalDevice handle of the Vulkan physical device.
  * @param  device         handle of the Vulkan logical device.
  * @param  queue          handle of the Vulkan queue.
@@ -195,7 +200,8 @@ ktxVulkanDeviceInfo_Construct(ktxVulkanDeviceInfo* This,
  * @param  pAllocator     pointer to the allocator to use for the image
  *                        memory. If NULL, the default allocator will be used.
  * @param  pFunctions     pointer to the struct of functions to use for vulkan
- *                        operations.
+ *                        operations. Can be NULL in which case the function
+ *                        will retrieve the proc addresses itself.
  *
  * @returns KTX_SUCCESS on success, KTX_OUT_OF_MEMORY if a command buffer could
  *          not be allocated.

@@ -118,7 +118,8 @@ ktxLoadVulkanFunction(const char* pName) {
         return NULL;
     }
 
-    PFN_vkVoidFunction pfn = LoadProcAddr(ktxVulkanModuleHandle, pName);
+    PFN_vkVoidFunction pfn
+           = (PFN_vkVoidFunction)LoadProcAddr(ktxVulkanModuleHandle, pName);
     if (pfn == NULL) {
         fprintf(stderr, "Couldn't load Vulkan command: %s\n", pName);
         return NULL;
