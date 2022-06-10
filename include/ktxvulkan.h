@@ -53,6 +53,15 @@ VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkSampler)
 extern "C" {
 #endif
 
+/**
+ * @struct ktxVulkanFunctions
+ * @~English
+ * @brief Struct for applications to pass Vulkan function pointers to the
+ *        ktxTexture_VkUpload functions via a ktxVulkanDeviceInfo struct.
+ *
+ * @c vkGetInstanceProcAddr and @c vkGetDeviceProcAddr should be set, others
+ * are optional.
+ */
 typedef struct ktxVulkanFunctions {
     // These are functions pointers we need to perform our vulkan duties.
     PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr;
@@ -91,6 +100,7 @@ typedef struct ktxVulkanFunctions {
 
 /**
  * @class ktxVulkanTexture
+ * @~English
  * @brief Struct for returning information about the Vulkan texture image
  *        created by the ktxTexture_VkUpload* functions.
  *
@@ -127,6 +137,7 @@ ktxVulkanTexture_Destruct(ktxVulkanTexture* This, VkDevice device,
 
 /**
  * @class ktxVulkanDeviceInfo
+ * @~English
  * @brief Struct for passing information about the Vulkan device on which
  *        to create images to the texture image loading functions.
  *
