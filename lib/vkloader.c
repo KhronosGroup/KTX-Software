@@ -262,20 +262,24 @@ do {                             \
         funcs = *pFunctions;
 
     if (instance == VK_NULL_HANDLE || pFunctions == NULL) {
-        // This is the old behavior, where no functions where specified. We take a shot at loading them dynamically.
+        // This is the old behavior, where no functions where specified. We
+        // take a shot at loading them dynamically.
 
-        // The reason we check this here, is that ktxLoadVulkanFunction doesn't give us a proper error code.
+        // The reason we check this here, is that ktxLoadVulkanFunction doesn't
+        // give us a proper error code.
         ktx_error_code_e kresult = ktxLoadVulkanLibrary();
         if (kresult != KTX_SUCCESS)
             return kresult;
 
-        // if pFunctions are null, then we try to load the minimum number of required functions.
+        // If pFunctions are null, then we try to load the minimum number of
+        // required functions.
         if (pFunctions == NULL) {
             LOAD_EXT_FUNC(funcs, vkGetInstanceProcAddr);
         }
 
-        // If we have no instance, we will need to bind the instance-level functions, as we won't be able to load them
-        // through vkGetInstanceProcAddr, and we need to load vkGetDeviceProcAddr.
+        // If we have no instance, we will need to bind the instance-level
+        // functions, as we won't be able to load them through
+        // vkGetInstanceProcAddr, and we need to load vkGetDeviceProcAddr.
         if (instance == VK_NULL_HANDLE) {
             LOAD_EXT_FUNC(funcs, vkGetDeviceProcAddr);
 
@@ -322,7 +326,6 @@ do {                             \
     LOAD_DEVICE_FUNC(funcs, device, vkGetImageSubresourceLayout);
 
 
-
     This->vkFuncs = funcs;
 
     VkCommandBufferAllocateInfo cmdBufInfo = {
@@ -338,7 +341,8 @@ do {                             \
     cmdBufInfo.commandPool = cmdPool;
     cmdBufInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     cmdBufInfo.commandBufferCount = 1;
-    result = This->vkFuncs.vkAllocateCommandBuffers(device, &cmdBufInfo, &This->cmdBuffer);
+    result = This->vkFuncs.vkAllocateCommandBuffers(device, &cmdBufInfo,
+                                                    &This->cmdBuffer);
     if (result != VK_SUCCESS) {
         return KTX_OUT_OF_MEMORY; // XXX Consider an equivalent to pGlError
     }
