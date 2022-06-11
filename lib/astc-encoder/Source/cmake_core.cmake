@@ -204,6 +204,12 @@ macro(astcenc_set_properties NAME)
                     ASTCENC_F16C=0)
         endif()
 
+        # Workaround MSVC codegen bug for NEON builds see:
+        # https://developercommunity.visualstudio.com/t/inlining-turns-constant-into-register-operand-for/1394798
+        target_compile_options(${NAME}
+            PRIVATE
+            $<$<CXX_COMPILER_ID:MSVC>:/d2ssa-cfg-sink->)
+
     elseif((${ISA_SIMD} MATCHES "sse2") OR (${UNIVERSAL_BUILD} AND ${ISA_SSE2}))
         if(NOT ${UNIVERSAL_BUILD})
             target_compile_definitions(${NAME}
@@ -257,6 +263,19 @@ macro(astcenc_set_properties NAME)
                 $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-mavx2 -mpopcnt -mf16c>
                 $<$<CXX_COMPILER_ID:MSVC>:/arch:AVX2>
                 $<$<CXX_COMPILER_ID:AppleClang>:-Wno-unused-command-line-argument>)
+
+        # Non-invariant builds enable us to loosen the compiler constraints on
+        # floating point, but this is only worth doing on CPUs with AVX2 because
+        # this implies we can also enable the FMA instruction set extensions
+        # which significantly improve performance. Note that this DOES reduce
+        # image quality by up to 0.2 dB (normally much less), but buys an
+        # average of 10-15% performance improvement ...
+        if(${NO_INVARIANCE})
+            target_compile_options(${NAME}
+                PRIVATE
+                    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-mfma>
+                    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-ffp-contract=fast>)
+        endif()
 
     endif()
 

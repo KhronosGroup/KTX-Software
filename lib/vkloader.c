@@ -186,8 +186,13 @@ ktxVulkanDeviceInfo_Construct(ktxVulkanDeviceInfo* This,
  * Pass a valid ktxVulkanDeviceInfo* to any Vulkan KTX image loading
  * function to provide it with the information.
  *
- * @param  This            pointer to the ktxVulkanDeviceInfo object to
+ * @param  This           pointer to the ktxVulkanDeviceInfo object to
  *                        initialize.
+ * @param  instance       handle of the Vulkan instance. If @c VK_NULL_HANDLE,
+ *                        which is not recommended, the function will attempt
+ *                        to initialize the instance-level functions via the
+ *                        platform's standard dynamic library symbol loading
+ *                        mechanisms.
  * @param  physicalDevice handle of the Vulkan physical device.
  * @param  device         handle of the Vulkan logical device.
  * @param  queue          handle of the Vulkan queue.
@@ -195,7 +200,8 @@ ktxVulkanDeviceInfo_Construct(ktxVulkanDeviceInfo* This,
  * @param  pAllocator     pointer to the allocator to use for the image
  *                        memory. If NULL, the default allocator will be used.
  * @param  pFunctions     pointer to the struct of functions to use for vulkan
- *                        operations.
+ *                        operations. Can be NULL in which case the function
+ *                        will retrieve the proc addresses itself.
  *
  * @returns KTX_SUCCESS on success, KTX_OUT_OF_MEMORY if a command buffer could
  *          not be allocated.
@@ -256,20 +262,24 @@ do {                             \
         funcs = *pFunctions;
 
     if (instance == VK_NULL_HANDLE || pFunctions == NULL) {
-        // This is the old behavior, where no functions where specified. We take a shot at loading them dynamically.
+        // This is the old behavior, where no functions where specified. We
+        // take a shot at loading them dynamically.
 
-        // The reason we check this here, is that ktxLoadVulkanFunction doesn't give us a proper error code.
+        // The reason we check this here, is that ktxLoadVulkanFunction doesn't
+        // give us a proper error code.
         ktx_error_code_e kresult = ktxLoadVulkanLibrary();
         if (kresult != KTX_SUCCESS)
             return kresult;
 
-        // if pFunctions are null, then we try to load the minimum number of required functions.
+        // If pFunctions are null, then we try to load the minimum number of
+        // required functions.
         if (pFunctions == NULL) {
             LOAD_EXT_FUNC(funcs, vkGetInstanceProcAddr);
         }
 
-        // If we have no instance, we will need to bind the instance-level functions, as we won't be able to load them
-        // through vkGetInstanceProcAddr, and we need to load vkGetDeviceProcAddr.
+        // If we have no instance, we will need to bind the instance-level
+        // functions, as we won't be able to load them through
+        // vkGetInstanceProcAddr, and we need to load vkGetDeviceProcAddr.
         if (instance == VK_NULL_HANDLE) {
             LOAD_EXT_FUNC(funcs, vkGetDeviceProcAddr);
 
@@ -316,7 +326,6 @@ do {                             \
     LOAD_DEVICE_FUNC(funcs, device, vkGetImageSubresourceLayout);
 
 
-
     This->vkFuncs = funcs;
 
     VkCommandBufferAllocateInfo cmdBufInfo = {
@@ -332,7 +341,8 @@ do {                             \
     cmdBufInfo.commandPool = cmdPool;
     cmdBufInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     cmdBufInfo.commandBufferCount = 1;
-    result = This->vkFuncs.vkAllocateCommandBuffers(device, &cmdBufInfo, &This->cmdBuffer);
+    result = This->vkFuncs.vkAllocateCommandBuffers(device, &cmdBufInfo,
+                                                    &This->cmdBuffer);
     if (result != VK_SUCCESS) {
         return KTX_OUT_OF_MEMORY; // XXX Consider an equivalent to pGlError
     }
