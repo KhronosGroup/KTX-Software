@@ -174,6 +174,10 @@ submitted to the exclusive jurisdiction of the Swedish Courts.
 #if defined(_MSC_VER)
   #pragma warning(push)
   #pragma warning(disable: 4100 4244 )
+  #if __clang__ // Handle clang-cl
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wunused-parameter"
+  #endif
 #elif __clang__
   #pragma clang diagnostic push
   #pragma clang diagnostic ignored "-Wunused-parameter"
@@ -1862,6 +1866,11 @@ void decompressBlockAlpha16bit(uint8* data, uint8* img, int width, int height, i
 // Reenable warnings disabled at the top of this file.
 #if defined(_MSC_VER)
 #pragma warning(pop)
+#if __clang__ // Handle clang-cl
+#pragma clang diagnostic pop
+#endif
+#elif __clang__
+#pragma clang diagnostic pop
 #else
 #pragma GCC diagnostic pop
 #endif

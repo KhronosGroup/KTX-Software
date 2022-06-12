@@ -524,7 +524,7 @@ PRIVATE
 #        "CMAKE_CXX_COMPILER_ID = ${CMAKE_CXX_COMPILER_ID} "
 #        "CMAKE_CXX_COMPILER_VERSION = ${CMAKE_CXX_COMPILER_VERSION}"
 #)
-if(MSVC)
+if(${CMAKE_CXX_COMPILER_ID} MATCHES "MSVC")
 # Currently no need to disable any warnings in basisu code. Rich fixed them.
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     set_source_files_properties(
@@ -551,6 +551,15 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
     else()
         set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter"
+        )
+    endif()
+    # Compiler ID Clang and Frontend variant MSVC means we're using clang-cl
+    # Not sure why but "${CMAKE_CXX_COMPILER_FRONTEND_VARIANT}" doesn't
+    # evaluate in this if statement as expected
+    if (CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "MSVC")
+        set_source_files_properties(
+            lib/basisu/zstd/zstd.c
+            PROPERTIES COMPILE_OPTIONS "-Wno-unused-function"
         )
     endif()
     if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "13.1")
