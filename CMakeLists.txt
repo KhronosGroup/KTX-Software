@@ -553,22 +553,22 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter"
         )
     endif()
-    # Compiler ID Clang and Frontend variant MSVC means we're using clang-cl
-    # Not sure why but "${CMAKE_CXX_COMPILER_FRONTEND_VARIANT}" doesn't
-    # evaluate in this if statement as expected
-    if (CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "MSVC")
+    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "12.0.0")
+        # Primarily an issue on windows using clang/clangcl
+        # Lowest tested clang version was 12.0.0 and highest was 14.0.4
         set_source_files_properties(
             lib/basisu/zstd/zstd.c
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-function"
         )
     endif()
     if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "13.1")
+        get_source_file_property(zstd_options lib/basisu/zstd/zstd.c COMPILE_OPTIONS)
         set_source_files_properties(
             # We haven't fixed zstd.c because the fix would have to be applied
             # every time the upstream script is used to create an updated
             # single file decoder.
             lib/basisu/zstd/zstd.c
-            PROPERTIES COMPILE_OPTIONS "-Wno-unused-but-set-variable"
+            PROPERTIES COMPILE_OPTIONS "${zstd_options};-Wno-unused-but-set-variable"
         )
     endif()
     if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "15.0")
