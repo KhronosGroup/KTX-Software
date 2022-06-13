@@ -77,8 +77,7 @@ static HMODULE
 ktxGetVulkanModuleHandle()
 {
     HMODULE module = NULL;
-    BOOL found;
-    found = GetModuleHandleExA(
+    GetModuleHandleExA(
 		0,
 		VULKANLIB,
 		&module

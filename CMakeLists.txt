@@ -278,6 +278,9 @@ macro(commom_lib_settings lib write)
                 -Wno-nested-anon-types
                 -Wno-gnu-anonymous-struct
             >
+            $<$<CXX_COMPILER_ID:GNU>:
+                -Wno-cast-function-type
+            >
             # not clang options
             $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:
                 -Wno-pedantic
