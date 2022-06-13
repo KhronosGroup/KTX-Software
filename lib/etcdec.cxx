@@ -178,7 +178,7 @@ submitted to the exclusive jurisdiction of the Swedish Courts.
 #if __clang__
   #pragma clang diagnostic push
   #pragma clang diagnostic ignored "-Wunused-parameter"
-  #if __clang_major__ > 13 || (__clang_major__ == 13 && __clang_minor__ >= 1)
+  #if __has_warning("-Wunused-but-set-variable")
     #pragma clang diagnostic ignored "-Wunused-but-set-variable"
   #endif
 #elif __GNUC__
