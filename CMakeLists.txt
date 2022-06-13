@@ -155,7 +155,7 @@ endif()
 include(cmake/mkvk.cmake)
 
 # Global compile & link options including optimization flags
-if(MSVC)
+if(MSVC OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
     # With /W4 VS2015 (V19.0) issues many warnings that VS2017 & 2019 don't
     # so only increase warning level for recent versions.
     add_compile_options($<$<VERSION_GREATER_EQUAL:${CMAKE_CXX_COMPILER_VERSION},19.16>:/W4>)
