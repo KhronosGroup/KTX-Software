@@ -564,7 +564,7 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-function"
         )
     endif()
-    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "13.1")
+    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "13.0.0")
         get_source_file_property(zstd_options lib/basisu/zstd/zstd.c COMPILE_OPTIONS)
         set_source_files_properties(
             # We haven't fixed zstd.c because the fix would have to be applied
