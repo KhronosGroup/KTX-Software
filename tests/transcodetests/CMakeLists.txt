@@ -55,4 +55,9 @@ if(WIN32)
             BASISU_NO_ITERATOR_DEBUG_LEVEL
         )
     target_link_libraries(transcodetests obj_tmp_basisu)
+
+    # Disable some known warnings in the transcoder
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+        target_compile_options(obj_tmp_basisu PRIVATE "-Wno-class-memaccess" "-Wno-maybe-uninitialized")
+    endif()
 endif()

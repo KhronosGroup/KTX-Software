@@ -529,7 +529,7 @@ PRIVATE
 #)
 if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 # Currently no need to disable any warnings in basisu code. Rich fixed them.
-elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set_source_files_properties(
         # It's too much work to discriminate which files need which warnings
         # disabled.
@@ -546,7 +546,7 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-but-set-variable"
         )
     endif()
-elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "12.0.5")
         set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter;-Wno-deprecated-copy;-Wno-uninitialized-const-reference"

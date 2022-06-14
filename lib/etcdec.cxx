@@ -175,6 +175,7 @@ submitted to the exclusive jurisdiction of the Swedish Courts.
   #pragma warning(push)
   #pragma warning(disable: 4100 4244)
 #endif
+// clang-cl defines both _MSC_VER and __clang__
 #if __clang__
   #pragma clang diagnostic push
   #pragma clang diagnostic ignored "-Wunused-parameter"
