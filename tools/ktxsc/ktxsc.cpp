@@ -12,6 +12,7 @@
 #include <thread>
 #include <vector>
 #include <ktx.h>
+#include <libgen.h>
 
 #include <KHR/khr_df.h>
 
@@ -49,17 +50,17 @@ Supercompress the images in a KTX2 file.
     ktxsc [options] [@e infile ...]
 
 @section ktxsc_description DESCRIPTION
-    @b ktxsc can encode and supercompresses the images in Khronos texture
-    format version 2 files (KTX2) .  Uncompressed files, i.e those whose vkFormat
-    name does not end in @c _BLOCK can be encoded to Basis Universal
-    (encoded to ETC1S then supercompressed with an integrated LZ step),
-    encoded to UASTC or supercompressed with Zstandard (zstd). Any image
+    @b ktxsc can encode and supercompress the images in Khronos texture
+    format version 2 files (KTX2).  Uncompressed files, i.e those whose vkFormat
+    name does not end in @c _BLOCK can be encoded to ASTC, Basis Universal
+    (encoded to ETC1S then supercompressed with an integrated LZ step)
+    or UASTC and optionally supercompressed with Zstandard (zstd). Any image
     format, except Basis Universal, can be supercompressed with zstd. For best
     results with UASTC, the data should be conditioned for zstd by using the
     @e --uastc_rdo_q and, optionally, @e --uastc_rdo_d options.
 
     @b ktxsc reads each named @e infile and compresses it in place. When
-    @e infile is not specified, a single file will be read from @e stdin. and the
+    @e infile is not specified, a single file will be read from @e stdin and the
     output written to @e stdout. When one or more files is specified each will
     be compressed in place.
 
@@ -146,16 +147,26 @@ ktxSupercompressor::usage()
         "  Options are:\n"
         "\n"
         "  -o outfile, --output=outfile\n"
-        "               Writes the output to outfile. If there is more than 1 input\n"
-        "               file the ommand prints its usage message and exits. If outfile\n"
-        "               is 'stdout', output will be written to stdout. If there is more\n"
-        "               than 1 infile the command prints its usage message and exits.\n"
+        "               Writes the output to outfile. If outfile is 'stdout', output\n"
+        "               will be written to stdout. If there is more than 1 input file\n"
+        "               the command prints its usage message and exits.\n"
         "  -f, --force  If the output file cannot be opened, remove it and create a\n"
         "               new file, without prompting for confirmation regardless of\n"
         "               its permissions.\n";
         scApp::usage();
 }
 
+
+static _tstring dir_name(_tstring& path)
+{
+    // Supports both Unix-style and Windows-style.
+    size_t last_separator = path.find_last_of("/\\");
+    if (last_separator != string::npos) {
+        return path.substr(0, last_separator + 1);
+    } else {
+        return std::basic_string<_TCHAR>();
+    }
+}
 
 int _tmain(int argc, _TCHAR* argv[])
 {
@@ -171,7 +182,8 @@ ktxSupercompressor::main(int argc, _TCHAR *argv[])
     KTX_error_code result;
     ktxTexture2* texture = 0;
     int exitCode = 0;
-    const _TCHAR* pTmpFile = 0;
+    _tstring tmpfile;
+
 
     processCommandLine(argc, argv, eAllowStdin);
     validateOptions();
@@ -179,7 +191,6 @@ ktxSupercompressor::main(int argc, _TCHAR *argv[])
     std::vector<_tstring>::const_iterator it;
     for (it = options.infiles.begin(); it < options.infiles.end(); it++) {
         _tstring infile = *it;
-        _tstring tmpfile = _T("/tmp/ktxsc.XXXXXX");
 
         if (infile.compare(_T("-")) == 0) {
             //infile = 0;
@@ -202,15 +213,24 @@ ktxSupercompressor::main(int argc, _TCHAR *argv[])
             } else if (options.outfile.length()) {
                 outf = _tfopen(options.outfile.c_str(), "wxb");
             } else {
+                // Make a temporary file in the same directory as the source
+                // file to avoid cross-device rename issues later.
+                tmpfile = dir_name(infile) + _T("ktxsc.tmp.XXXXXX");
 #if defined(_WIN32)
-                pTmpFile = _mktemp(&tmpfile[0]);
-                if (pTmpFile != nullptr)
+                // In stdlib.h
+                //_tchar drive[_MAX_DRIVE];
+                //_tchar dirname[_MAX_DIR];
+                //_tsplitpath_s(infile.c_str(), drive, _MAX_DRIVE, dir, _MAX_DIR,
+                //              NULL, 0 NULL, 0);
+                if (_tmktemp_s(&tmpfile[0], tmpfile.size()) == 0)
                     outf = _tfopen(tmpfile.c_str(), "wb");
+  #if defined(_DEBUG)
                 else
-                    outf = nullptr;
+                    assert(false);
+  #endif
 #else
-                outf = fdopen(mkstemp(&tmpfile[0]), "wb");
-                pTmpFile = tmpfile.c_str();
+                int fd_tmp = mkstemp(&tmpfile[0]);
+                outf = fdopen(fd_tmp, "wb");
 #endif
             }
 
@@ -263,7 +283,7 @@ ktxSupercompressor::main(int argc, _TCHAR *argv[])
                 if ((options.etc1s || options.bopts.uastc) && texture->isCompressed) {
                     cerr << name << ": "
                          << "Cannot encode already block-compressed textures "
-                         << "to Basis Universal or UASTC."
+                         << "to ASTC, Basis Universal or UASTC."
                          << endl;
                     exitCode = 1;
                     goto cleanup;
@@ -341,7 +361,7 @@ ktxSupercompressor::main(int argc, _TCHAR *argv[])
                 (void)fclose(outf);
                 if (!options.outfile.length() && !options.useStdout) {
                     // Move the new file over the original.
-                    assert(pTmpFile && infile.length());
+                    assert(tmpfile.size() > 0 && infile.length());
                     int err = _trename(tmpfile.c_str(), infile.c_str());
                     if (err) {
                         cerr << name
@@ -371,7 +391,7 @@ ktxSupercompressor::main(int argc, _TCHAR *argv[])
     return 0;
 
 cleanup:
-  if (pTmpFile) (void)_tunlink(pTmpFile);
+  if (tmpfile.size() > 0) (void)_tunlink(tmpfile.c_str());
     if (options.outfile.length()) (void)_tunlink(options.outfile.c_str());
     return exitCode;
 }
