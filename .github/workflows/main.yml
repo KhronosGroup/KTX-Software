@@ -13,8 +13,105 @@ on:
   # Allow manual trigger
   workflow_dispatch:
 
-
 jobs:
+  windows-arm64:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        options: [
+          {config: Debug, package: NO, tools: ON, docs: OFF},
+          {config: Release, package: YES, tools: ON, docs: ON}
+        ]
+    env:
+      # Skip downloading necessities for the load tests and source and golden
+      # images for the other tests since we can't run arm64 tests on the x64
+      # build host.
+      GIT_LFS_SKIP_SMUDGE: 1
+
+      BUILD_DIR: "build/build-batch-vs2022"
+      CONFIGURATION: "${{matrix.options.config}}"
+      CMAKE_GEN: "Visual Studio 17 2022" # Only VS version on Windows Server 2022
+      CMAKE_TOOLSET: "ClangCL"
+
+      PACKAGE: ${{matrix.options.package}}
+      FEATURE_TOOLS: ${{matrix.options.tools}}
+      FEATURE_DOC: ${{matrix.options.docs}}
+
+      PLATFORM: "arm64"
+      SUPPORT_SSE: OFF
+
+      # No tests on arm64 since the host is x64 and can't run the built tests
+      FEATURE_JNI: OFF # Not sure of the state of JNI on arm64 windows
+      FEATURE_TESTS: OFF
+      FEATURE_LOADTESTS: OFF
+
+      CERT_PK_PASS: ${{ secrets.CERT_PK_PASS }}
+      CERT_DC_SECRET: ${{ secrets.CERT_DC_SECRET }}
+      CERT_DC_SALT: ${{ secrets.CERT_DC_SALT }}
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        # Fetch all history to make sure tags are
+        # included (used for version creation)
+        fetch-depth: 0
+
+    # Need doxygen if docs are supposed to be built
+    # This has been observed to fail due to Sourceforge host failure
+    # Can't control that so please manually re-run if we time out here
+    - name: Install Doxygen
+      if: matrix.options.docs == 'ON'
+      uses: crazy-max/ghaction-chocolatey@v2
+      with:
+        args: install doxygen.install
+
+    - name: Install Certificate File Decryption Tool
+      if: matrix.options.package == 'YES'
+      run: iex ((New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/appveyor/secure-file/master/install.ps1'))
+
+    - name: Import Certificate to Certificate Store
+      if: matrix.options.package == 'YES'
+      id: cert-import
+      run: |
+        if ($env:CERT_PK_PASS) {
+          $cert_file = "the_khronos_group_inc.p12"
+          appveyor-tools\secure-file -decrypt "${cert_file}.enc" -secret $env:CERT_DC_SECRET -salt $env:CERT_DC_SALT
+          certutil -p $env:CERT_PK_PASS -importpfx My $cert_file NoExport
+          rm $cert_file
+          echo "::set-output name=win_code_sign_identity::'The Khronos Group Inc'"
+          echo "::set-output name=win_cs_cert_search_machine_store::'ON'"
+        } else {
+          echo "::set-output name=win_code_sign_identity::''"
+          echo "::set-output name=win_cs_cert_search_machine_store::'OFF'"
+        }
+
+    - name: Build arm64 Windows
+      run: powershell ./ci_scripts/build_win.ps1
+      env:
+        WIN_CODE_SIGN_IDENTITY: ${{ steps.cert-import.outputs.win_code_sign_identity }}
+        WIN_CS_CERT_SEARCH_MACHINE_STORE: ${{ steps.cert-import.outputs.win_cs_cert_search_machine_store }}
+
+    - name: Get KTX version
+      if: matrix.options.package == 'YES'
+      id: ktx-version
+      run: |
+        $env:KTX_VERSION = Get-Content $env:BUILD_DIR/ktx.version
+        echo "::set-output name=ktx-version::$env:KTX_VERSION"
+
+    - name: Upload Artifact
+      if: matrix.options.package == 'YES'
+      uses: actions/upload-artifact@v2
+      with:
+        name: KTX-Software-${{ steps.ktx-version.outputs.ktx-version }}-Windows-arm64
+        path: ${{env.BUILD_DIR}}/KTX-Software-*.exe*
+
+    - name: Upload To Release
+      uses: softprops/action-gh-release@v1
+      if: (matrix.options.package == 'YES') && (github.event_name == 'release') && startsWith(github.ref, 'refs/tags/')
+      with:
+        files: ${{env.BUILD_DIR}}/KTX-Software-*.exe*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   mingw:
     runs-on: windows-latest
@@ -31,8 +128,6 @@ jobs:
       run: cmake -B build -G "Ninja Multi-Config" -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++
     - name: Build Mingw x64 Debug
       run: cmake --build build --config Debug
-    - name: Build Mingw x64 RelWithDebInfo
-      run: cmake --build build --config RelWithDebInfo
     - name: Build Mingw x64 Release
       run: cmake --build build --config Release
 

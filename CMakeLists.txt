@@ -278,6 +278,9 @@ macro(commom_lib_settings lib write)
                 -Wno-nested-anon-types
                 -Wno-gnu-anonymous-struct
             >
+            $<$<CXX_COMPILER_ID:GNU>:
+                -Wno-cast-function-type
+            >
             # not clang options
             $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:
                 -Wno-pedantic
@@ -524,9 +527,9 @@ PRIVATE
 #        "CMAKE_CXX_COMPILER_ID = ${CMAKE_CXX_COMPILER_ID} "
 #        "CMAKE_CXX_COMPILER_VERSION = ${CMAKE_CXX_COMPILER_VERSION}"
 #)
-if(MSVC)
+if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 # Currently no need to disable any warnings in basisu code. Rich fixed them.
-elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set_source_files_properties(
         # It's too much work to discriminate which files need which warnings
         # disabled.
@@ -543,7 +546,7 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-but-set-variable"
         )
     endif()
-elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "12.0.5")
         set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter;-Wno-deprecated-copy;-Wno-uninitialized-const-reference"
@@ -553,13 +556,22 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter"
         )
     endif()
-    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "13.1")
+    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "12.0.0")
+        # Primarily an issue on windows using clang/clangcl
+        # Lowest tested clang version was 12.0.0 and highest was 14.0.4
+        set_source_files_properties(
+            lib/basisu/zstd/zstd.c
+            PROPERTIES COMPILE_OPTIONS "-Wno-unused-function"
+        )
+    endif()
+    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "13.0.0")
+        get_source_file_property(zstd_options lib/basisu/zstd/zstd.c COMPILE_OPTIONS)
         set_source_files_properties(
             # We haven't fixed zstd.c because the fix would have to be applied
             # every time the upstream script is used to create an updated
             # single file decoder.
             lib/basisu/zstd/zstd.c
-            PROPERTIES COMPILE_OPTIONS "-Wno-unused-but-set-variable"
+            PROPERTIES COMPILE_OPTIONS "${zstd_options};-Wno-unused-but-set-variable"
         )
     endif()
     if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "15.0")
@@ -890,6 +902,13 @@ if( APPLE AND CMAKE_OSX_ARCHITECTURES )
     else()
         set(processor_name ${CMAKE_OSX_ARCHITECTURES})
     endif()
+elseif(CMAKE_CXX_COMPILER_ARCHITECTURE_ID)
+    # When targeting Windows arm64 CMAKE_SYSTEM_PROCESSOR will incorrectly 
+    # return AMD64.
+    # See: https://gitlab.kitware.com/cmake/cmake/-/issues/15170
+    # We assume that when building for Windows arm64 that we are using MSVC
+    # so we can detect the processor arch name with CMAKE_CXX_COMPILER_ARCHITECTURE_ID
+    set(processor_name ${CMAKE_CXX_COMPILER_ARCHITECTURE_ID})
 elseif( CMAKE_SYSTEM_PROCESSOR )
     set(processor_name ${CMAKE_SYSTEM_PROCESSOR})
 elseif( IOS )

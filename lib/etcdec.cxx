@@ -173,11 +173,13 @@ submitted to the exclusive jurisdiction of the Swedish Courts.
 // the source of the functions or the compiled binary code.
 #if defined(_MSC_VER)
   #pragma warning(push)
-  #pragma warning(disable: 4100 4244 )
-#elif __clang__
+  #pragma warning(disable: 4100 4244)
+#endif
+// clang-cl defines both _MSC_VER and __clang__
+#if __clang__
   #pragma clang diagnostic push
   #pragma clang diagnostic ignored "-Wunused-parameter"
-  #if __clang_major__ > 13 || (__clang_major__ == 13 && __clang_minor__ >= 1)
+  #if __has_warning("-Wunused-but-set-variable")
     #pragma clang diagnostic ignored "-Wunused-but-set-variable"
   #endif
 #elif __GNUC__
@@ -1862,6 +1864,9 @@ void decompressBlockAlpha16bit(uint8* data, uint8* img, int width, int height, i
 // Reenable warnings disabled at the top of this file.
 #if defined(_MSC_VER)
 #pragma warning(pop)
-#else
+#endif
+#if __clang__
+#pragma clang diagnostic pop
+#elif __GNUC__
 #pragma GCC diagnostic pop
 #endif

@@ -43,6 +43,14 @@ if(WIN32)
         $<$<STREQUAL:"${BASISU_CBIND_LIBTYPE}","STATIC">:KHRONOS_STATIC>
     )
 
+    # Disable some known warnings in the transcoder
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+        set_source_files_properties(
+            ${PROJECT_SOURCE_DIR}/lib/basisu/transcoder/basisu_transcoder.cpp
+            PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable;-Wno-class-memaccess;-Wno-maybe-uninitialized"
+        )
+    endif()
+
     # The Windows ktx.dll does not export needed symbols from
     # basisu_transcoder.cpp. This is a workaround to get it linking.
     add_library(obj_tmp_basisu OBJECT

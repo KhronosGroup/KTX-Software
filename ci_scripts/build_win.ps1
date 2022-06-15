@@ -26,10 +26,12 @@ function Set-Config-Variable {
 $BUILD_DIR = Set-Config-Variable BUILD_DIR "build/build-batch-vs2019"
 $CONFIGURATION = Set-Config-Variable CONFIGURATION "Release"
 $CMAKE_GEN = Set-Config-Variable CMAKE_GEN "Visual Studio 16 2019"
+$CMAKE_TOOLSET = Set-Config-Variable CMAKE_TOOLSET ""
 $FEATURE_DOC = Set-Config-Variable FEATURE_DOC "OFF"
 $FEATURE_JNI = Set-Config-Variable FEATURE_JNI "OFF"
 $FEATURE_LOADTESTS = Set-Config-Variable FEATURE_LOADTESTS "OFF"
 $FEATURE_TOOLS = Set-Config-Variable FEATURE_TOOLS "ON"
+$FEATURE_TESTS = Set-Config-Variable FEATURE_TESTS "ON"
 $PLATFORM = Set-Config-Variable PLATFORM "x64"
 $PACKAGE = Set-Config-Variable PACKAGE "NO"
 $SUPPORT_SSE = Set-Config-Variable SUPPORT_SSE "ON"
@@ -41,13 +43,24 @@ $WIN_CS_CERT_SEARCH_MACHINE_STORE = Set-Config-Variable WIN_CS_CERT_SEARCH_MACHI
 
 if ($FEATURE_LOADTESTS -eq "ON")  { $need_gles_emulator=1 }
 
-echo "Build via $CMAKE_GEN dir: $build_dir Arch: $PLATFORM Config: $CONFIGURATION, FEATURE_LOADTESTS: $FEATURE_LOADTESTS, FEATURE_DOC: $FEATURE_DOC, FEATURE_JNI: $FEATURE_JNI, FEATURE_TOOLS: $FEATURE_TOOLS, SUPPORT_SSE: $SUPPORT_SSE, SUPPORT_OPENCL: $SUPPORT_OPENCL WIN_CODE_SIGN_IDENTITY: $WIN_CODE_SIGN_IDENTITY WIN_CS_CERT_SEARCH_MACHINE_STORE: $WIN_CS_CERT_SEARCH_MACHINE_STORE"
+echo "Build via $CMAKE_GEN dir: $BUILD_DIR Arch: $PLATFORM Toolset: $CMAKE_TOOLSET Config: $CONFIGURATION, FEATURE_LOADTESTS: $FEATURE_LOADTESTS, FEATURE_DOC: $FEATURE_DOC, FEATURE_JNI: $FEATURE_JNI, FEATURE_TOOLS: $FEATURE_TOOLS, FEATURE_TESTS: $FEATURE_TESTS, SUPPORT_SSE: $SUPPORT_SSE, SUPPORT_OPENCL: $SUPPORT_OPENCL WIN_CODE_SIGN_IDENTITY: $WIN_CODE_SIGN_IDENTITY WIN_CS_CERT_SEARCH_MACHINE_STORE: $WIN_CS_CERT_SEARCH_MACHINE_STORE"
 
-cmake . -G "$CMAKE_GEN" -A $PLATFORM -B $BUILD_DIR `
+if (($PACKAGE -eq "YES") -and ($FEATURE_TOOLS -eq "OFF")) {
+  echo "Error: Cannot package a configuration that does not build tools. Set FEATURE_TOOLS to ON or PACKAGE to NO"
+  exit 2
+}
+
+$TOOLSET_OPTION = ""
+if($CMAKE_TOOLSET){
+  $TOOLSET_OPTION = "-T $CMAKE_TOOLSET"
+}
+
+cmake . -G "$CMAKE_GEN" -A $PLATFORM $TOOLSET_OPTION -B $BUILD_DIR `
   -D KTX_FEATURE_DOC=$FEATURE_DOC `
   -D KTX_FEATURE_JNI=$FEATURE_JNI `
   -D KTX_FEATURE_LOADTEST_APPS=$FEATURE_LOADTESTS `
   -D KTX_FEATURE_TOOLS=$FEATURE_TOOLS `
+  -D KTX_FEATURE_TESTS=$FEATURE_TESTS `
   -D BASISU_SUPPORT_SSE=$SUPPORT_SSE `
   -D BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL `
   -D WIN_CODE_SIGN_IDENTITY=$WIN_CODE_SIGN_IDENTITY `
@@ -58,11 +71,23 @@ pushd $BUILD_DIR
 try {
   #git status
   cmake --build . --config $CONFIGURATION
+  # Return an error code if cmake fails
+  if(!$?){
+    popd
+    exit 1
+  }
+
   #git status
   if ($PACKAGE -eq "YES") {
     cmake --build . --config $CONFIGURATION --target PACKAGE
+    # Return an error code if cmake fails
+    if(!$?){
+      popd
+      exit 1
+    }
   }
   echo "Done building."
-} finally {
-  popd
+}
+finally {
+ popd
 }
