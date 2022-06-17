@@ -130,6 +130,8 @@ jobs:
       run: cmake --build build --config Debug
     - name: Build Mingw x64 Release
       run: cmake --build build --config Release
+    - name: Test Mingw build
+      run: ctest --test-dir build -C Release
 
   linux:
 
