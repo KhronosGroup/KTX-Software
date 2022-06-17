@@ -134,6 +134,9 @@ jobs:
       run: cmake --build build --config Release
     - name: Test Mingw build
       run: ctest --test-dir build -C Release
+    - name: Upload test log
+      if: ${{ failure() }}
+      run: ci_scripts/on_failure.ps1
 
   linux:
 

@@ -145,7 +145,7 @@ build:
   verbosity: detailed
 
 on_failure:
-  - ps: $env:APPVEYOR_BUILD_FOLDER/ci_scripts/on_failure.ps1
+  - ps: $env:APPVEYOR_BUILD_FOLDER/ci_scripts/on_failure.ps1 $env:APPVEYOR_BUILD_FOLDER $env:BUILD_DIR
 # Following is for GIT_TRACE: 1 above.
 #  - ps: Get-ChildItem .\.git\lfs\objects\logs\*.log | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
 
@@ -164,15 +164,22 @@ init:
 #  - ps: '$blockRdp = $true; iex ((new-object net.webclient).DownloadString(''https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1''))'
 # - ps: | #iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
+
 # N.B.: for some reason indenting "- cmd" on the following lines causes syntax
-# errors. Not using PS for downloads because its curl is completely different.
+# errors.
 install:
 - if not "%appveyor_build_worker_image%" == "Visual Studio 2019" cinst doxygen.install
 #- ps: |
     #run mkversion
     #Update-AppveyorBuild -Version "$($env:ospsuite_version).$($env:appveyor_build_version)"
 
-    # Use cmd.exe because PS curl is very different.
+    # Not using PS for install because "curl" is an alias for
+    # Invoke-WebRequest a completely different command that is difficult to
+    # use for downloads. When I wrote the .bat script, so I could use the
+    # real  curl, I did not know PS's curl was just an alias and I could get
+    # the real curl with "curl.exe". Doh! Now it is a case of if it ain't
+    # broke don't fix it.
+    #
     # To avoid going down a rathole note very well that in at least some of
     # the CI environments, cmd.exe does not support pushd and popd. Sigh!
     # Also keep quotes in following echos & rems to avoid issues with
