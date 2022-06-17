@@ -124,6 +124,8 @@ jobs:
         fetch-depth: 0
     - uses: seanmiddleditch/gha-setup-ninja@v3
     - uses: Honeybunch/setup-mingw@v3
+    - name: Pull test images from Git LFS
+      run: git lfs pull --include=tests/srcimages,tests/testimages
     - name: Configure Mingw x64
       run: cmake -B build -G "Ninja Multi-Config" -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++
     - name: Build Mingw x64 Debug
