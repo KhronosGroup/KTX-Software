@@ -12,7 +12,11 @@
 #include <thread>
 #include <vector>
 #include <ktx.h>
-#include <libgen.h>
+
+#if defined(_WIN32)
+#define WINDOWS_LEAN_AND_MEAN
+#include <windows.h>
+#endif
 
 #include <KHR/khr_df.h>
 
@@ -178,7 +182,7 @@ int _tmain(int argc, _TCHAR* argv[])
 int
 ktxSupercompressor::main(int argc, _TCHAR *argv[])
 {
-    FILE *inf, *outf;
+    FILE *inf, *outf = nullptr;
     KTX_error_code result;
     ktxTexture2* texture = 0;
     int exitCode = 0;
@@ -193,7 +197,6 @@ ktxSupercompressor::main(int argc, _TCHAR *argv[])
         _tstring infile = *it;
 
         if (infile.compare(_T("-")) == 0) {
-            //infile = 0;
             inf = stdin;
 #if defined(_WIN32)
             /* Set "stdin" to have binary mode */
@@ -217,17 +220,11 @@ ktxSupercompressor::main(int argc, _TCHAR *argv[])
                 // file to avoid cross-device rename issues later.
                 tmpfile = dir_name(infile) + _T("ktxsc.tmp.XXXXXX");
 #if defined(_WIN32)
-                // In stdlib.h
-                //_tchar drive[_MAX_DRIVE];
-                //_tchar dirname[_MAX_DIR];
-                //_tsplitpath_s(infile.c_str(), drive, _MAX_DRIVE, dir, _MAX_DIR,
-                //              NULL, 0 NULL, 0);
+                // Despite receiving size() the debug CRT version of mktemp_s
+                // asserts that the string template is NUL terminated.
+                tmpfile.push_back(_T('\0'));
                 if (_tmktemp_s(&tmpfile[0], tmpfile.size()) == 0)
                     outf = _tfopen(tmpfile.c_str(), "wb");
-  #if defined(_DEBUG)
-                else
-                    assert(false);
-  #endif
 #else
                 int fd_tmp = mkstemp(&tmpfile[0]);
                 outf = fdopen(fd_tmp, "wb");
@@ -362,10 +359,15 @@ ktxSupercompressor::main(int argc, _TCHAR *argv[])
                 if (!options.outfile.length() && !options.useStdout) {
                     // Move the new file over the original.
                     assert(tmpfile.size() > 0 && infile.length());
-                    int err = _trename(tmpfile.c_str(), infile.c_str());
-                    if (err) {
+#if defined(_WIN32)
+                    // Windows' rename() fails if the destination file exists!
+                    if (!MoveFileEx(tmpfile.c_str(), infile.c_str(),
+                                    MOVEFILE_REPLACE_EXISTING)) {
+#else
+                    if (_trename(tmpfile.c_str(), infile.c_str()) {
+#endif
                         cerr << name
-                             << ": rename of \"%s\" to \"%s\" failed: "
+                             << ": rename of \"" << tmpfile << "\" to \"" << infile << "\" failed: "
                              << strerror(errno) << endl;
                         exitCode = 2;
                         goto cleanup;
