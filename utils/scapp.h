@@ -322,17 +322,17 @@ astcEncoderMode(const char* mode) {
       nml.xy = nml.xy * 2.0 - 1.0;           // Unpack to [-1,1]
       nml.z = sqrt(1 - dot(nml.xy, nml.xy)); // Compute Z
                  </pre>
-                 Encoding is optimized for normal maps. For ASTC encoding,
-                 '--encode astc', the encoder is directed to optimize for angular
-                 error instead of simple PSNR.  For ETC1S encoding, '@b --encode etc1s',
-                 RDO is disabled (no selector RDO, no endpoint RDO) to provide
-                 better quality.</dd>
+                 For ASTC encoding, '--encode astc', encoder parameters are
+                 tuned for better quality on normal maps. For ETC1S encoding,
+                 '@b --encode etc1s', RDO is disabled (no selector RDO, no
+                 endpoint RDO) to provide better quality.</dd>
     <dt>--normalize</dt>
-                 <dd>Normalize input normals to have a unit length. Only valid for
-                 linear textures with 2 or more components. For 2-component inputs 2D
-                 unit normals are calculated. Do not use this to generate X+Y normals
-                 for --normal_mode. For 4-component inputs a 3D unit normal is calculated.
-                 1.0 is used for the value of the 4th component.</dd>
+                 <dd>Normalize input normals to have a unit length. Only valid
+                 for linear textures with 2 or more components. For 2-component
+                 inputs 2D unit normals are calculated. Do not use these 2D unit
+                 normals to generate X+Y normals for --normal_mode. For
+                 4-component inputs a 3D unit normal is calculated. 1.0 is used
+                 for the value of the 4th component.</dd>
     <dt>--no_sse</dt>
                  <dd>Forbid use of the SSE instruction set. Ignored if CPU does not
                  support SSE. Only the Basis Universal compressor uses SSE.</dd>

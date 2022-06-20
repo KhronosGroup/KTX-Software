@@ -13,42 +13,30 @@ depth=../..
 # Change dir to the testimages folder, the script location...
 cd $(dirname $0)
 
-# Make paths relative to the testimages directory.
-ktx_root=$depth
-toktx_vs2013=$ktx_root/build/msvs/win/vs2013/x64/Release/toktx.exe
-toktx_vs2015=$ktx_root/build/msvs/win/vs2015/x64/Release/toktx.exe
-toktx_cmake=$ktx_root/build/cmake/linux/Release/toktx
-toktx_cmake_d=$ktx_root/build/cmake/linux/Debug/toktx
-toktx_make=$ktx_root/build/make/linux/out/Release/toktx
-toktx_make_d=$ktx_root/build/make/linux/out/Debug/toktx
-
 # Ensure generation is not polluted by user environment
 unset TOKTX_OPTIONS
 
-if [ -n "$1" -a -x "$1" ]; then
+if [ -n "$1" -a -x "$2" ]; then
   toktx="$1"
-elif [ -x "$toktx_vs2013" ]; then
-  toktx=$toktx_vs2013
-elif [ -x "$toktx_vs2015" ]; then
-  toktx=$toktx_vs2015
-elif [ -x "$toktx_cmake" ]; then
-  toktx=$toktx_cmake
-elif [ -x "$toktx_cmake_d" ]; then
-  toktx=$toktx_cmake_d
-elif [ -x "$toktx_make" ]; then
-  toktx=$toktx_gmake
-elif [ -x "$toktx_make_d" ]; then
-  toktx=$toktx_gmake
 elif which toktx >/dev/null; then
   toktx=toktx
 else
-  echo $0: None of $toktx_vs2013, $toktx_vs2015, $toktx_gmake or $toktx_cmake found.
-  echo $0: Nor was toktx found in along PATH.
+  echo $0: toktx not found along $PATH.
   echo $0: Aborting generation
   exit 1
 fi
 
-# Generate the files ...
+if [ -n "$2" -a -x "$1" ]; then
+  ktxsc="$2"
+elif which ktxsc >/dev/null; then
+  ktxsc=ktxsc
+else
+  echo $0: ktxsc not found along $PATH.
+  echo $0: Aborting generation
+  exit 1
+fi
+
+# Generate the reference files for toktx and sctests ...
 
 $toktx --lower_left_maps_to_s0t0 --nometadata rgb-reference.ktx ../srcimages/rgb.ppm
 # The purpose of this is testing automatic mipmap generation. Since SRGB is
@@ -135,3 +123,5 @@ $toktx --test --depth 7  --encode astc --astc_blk_d 6x6             astc_ldr_6x6
 $toktx --test --layers 7 --t2 arraytex_7_reference_u.ktx2 ../srcimages/red16.png ../srcimages/orange16.png ../srcimages/yellow16.png ../srcimages/green16.png ../srcimages/blue16.png ../srcimages/indigo16.png ../srcimages/violet16.png
 $toktx --test --depth 7 --t2 3dtex_7_reference_u.ktx2 ../srcimages/red16.png ../srcimages/orange16.png ../srcimages/yellow16.png ../srcimages/green16.png ../srcimages/blue16.png ../srcimages/indigo16.png ../srcimages/violet16.png
 $toktx --test --layers 7 --genmipmap --t2 arraytex_7_mipmap_reference_u.ktx2 ../srcimages/red16.png ../srcimages/orange16.png ../srcimages/yellow16.png ../srcimages/green16.png ../srcimages/blue16.png ../srcimages/indigo16.png ../srcimages/violet16.png
+
+$ktxsc -o skybox_zstd.ktx2 --force --test --zcmp 5 skybox.ktx2

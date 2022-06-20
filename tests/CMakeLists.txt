@@ -14,5 +14,6 @@ endif()
 # tools tests
 if(KTX_FEATURE_TOOLS)
     include( ktx2check-tests.cmake )
+    include( ktxsc-tests.cmake )
     include( toktx-tests.cmake )
 endif()

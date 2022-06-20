@@ -13,72 +13,30 @@ depth=../..
 # Change dir to the testimages folder, the script location...
 cd $(dirname $0)
 
-# Make paths relative to the testimages directory.
-ktx_root=$depth
-toktx_vs2013=$ktx_root/build/msvs/win/vs2013/x64/Release/toktx.exe
-toktx_vs2015=$ktx_root/build/msvs/win/vs2015/x64/Release/toktx.exe
-toktx_cmake=$ktx_root/build/cmake/linux/Release/toktx
-toktx_cmake_d=$ktx_root/build/cmake/linux/Debug/toktx
-toktx_make=$ktx_root/build/make/linux/out/Release/toktx
-toktx_make_d=$ktx_root/build/make/linux/out/Debug/toktx
-
-ktx2ktx2_vs2013=$ktx_root/build/msvs/win/vs2013/x64/Release/ktx2ktx2.exe
-ktx2ktx2_vs2015=$ktx_root/build/msvs/win/vs2015/x64/Release/ktx2ktx2.exe
-ktx2ktx2_cmake=$ktx_root/build/cmake/linux/Release/ktx2ktx2
-ktx2ktx2_cmake_d=$ktx_root/build/cmake/linux/Debug/ktx2ktx2
-ktx2ktx2_make=$ktx_root/build/make/linux/out/Release/ktx2ktx2
-ktx2ktx2_make_d=$ktx_root/build/make/linux/out/Debug/ktx2ktx2
-
 # Ensure generation is not polluted by user environment
 unset TOKTX_OPTIONS
 
 if [ -n "$1" -a -x "$1" ]; then
   toktx="$1"
-elif [ -x "$toktx_vs2013" ]; then
-  toktx=$toktx_vs2013
-elif [ -x "$toktx_vs2015" ]; then
-  toktx=$toktx_vs2015
-elif [ -x "$toktx_cmake" ]; then
-  toktx=$toktx_cmake
-elif [ -x "$toktx_cmake_d" ]; then
-  toktx=$toktx_cmake_d
-elif [ -x "$toktx_make" ]; then
-  toktx=$toktx_gmake
-elif [ -x "$toktx_make_d" ]; then
-  toktx=$toktx_gmake
 elif which toktx >/dev/null; then
   toktx=toktx
 else
-  echo $0: None of $toktx_vs2013, $toktx_vs2015, $toktx_gmake or $toktx_cmake found.
-  echo $0: Nor was toktx found in along PATH.
+  echo $0: toktx not found along $PATH.
   echo $0: Aborting generation
   exit 1
 fi
 
 if [ -n "$2" -a -x "$2" ]; then
-  ktx2ktx2="$1"
-elif [ -x "$ktx2ktx2_vs2013" ]; then
-  ktx2ktx2=$ktx2ktx2_vs2013
-elif [ -x "$ktx2ktx2_vs2015" ]; then
-  ktx2ktx2=$ktx2ktx2_vs2015
-elif [ -x "$ktx2ktx2_cmake" ]; then
-  ktx2ktx2=$ktx2ktx2_cmake
-elif [ -x "$ktx2ktx2_cmake_d" ]; then
-  ktx2ktx2=$ktx2ktx2_cmake_d
-elif [ -x "$ktx2ktx2_make" ]; then
-  ktx2ktx2=$ktx2ktx2_gmake
-elif [ -x "$ktx2ktx2_make_d" ]; then
-  ktx2ktx2=$ktx2ktx2_gmake
+  ktx2ktx2="$2"
 elif which ktx2ktx2 >/dev/null; then
   ktx2ktx2=ktx2ktx2
 else
-  echo $0: None of $ktx2ktx2_vs2013, $ktx2ktx2_vs2015, $ktx2ktx2_gmake or $ktx2ktx2_cmake found.
-  echo $0: Nor was ktx2ktx2 found in along PATH.
+  echo $0: ktx2ktx2 not found along $PATH.
   echo $0: Aborting generation
   exit 1
 fi
 
-# Generate reference files for toktx-tests ...
+# Generate some reference files for toktx-tests ...
 
 $ktx2ktx2 --test -f -o orient-down-metadata-u.ktx2 orient-down-metadata.ktx
 $ktx2ktx2 --test -f -o orient-up-metadata-u.ktx2 orient-up-metadata.ktx
