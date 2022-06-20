@@ -215,6 +215,20 @@ ktxSupercompressor::main(int argc, _TCHAR *argv[])
 #endif
             } else if (options.outfile.length()) {
                 outf = _tfopen(options.outfile.c_str(), "wxb");
+                // Mingw gcc and possibly some Linux versions do not accept
+                // 'x' as a mode character, following an earlier version of the
+                // `fopen` spec. Work around this annoying limitation. Don't
+                // use ifdefs as all the places suffering this limitation are
+                // not known to us.
+                if (!outf && errno == EINVAL) {
+                    outf = _tfopen(options.outfile.c_str(), "r");
+                    if (outf) {
+                        outf = nullptr;
+                        errno = EEXIST;
+                    } else {
+                        outf = _tfopen(options.outfile.c_str(), "wb");
+                    }
+                }
             } else {
                 // Make a temporary file in the same directory as the source
                 // file to avoid cross-device rename issues later.
