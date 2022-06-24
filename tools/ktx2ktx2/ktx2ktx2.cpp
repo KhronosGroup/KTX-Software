@@ -76,11 +76,6 @@ Create a KTX 2 file from a KTX file.
     <dd>Name the output file @e outfile. If @e outfile is 'stdout', output will
         be written to stdout. If there is more than 1 input file, the command
         prints its usage message and exits.</dd>
-    <dt>-d outdir, --output-dir=outdir</dt>
-    <dd>Writes the output files to the directory @e outdir. If both
-        @b --output and @b --output-dir are specified, @e outfile will
-        be written in @e outdir. If @b infile is @e stdin or @b outfile is
-        @e stdout, the command prints its usage message and exits.</dd>
     <dt>-f, --force</dt>
     <dd>If the destination file already exists, remove it and create a
         new file, without prompting for confirmation regardless of its
@@ -121,7 +116,6 @@ class ktxUpgrader : public ktxApp {
 
     struct commandOptions : public ktxApp::commandOptions {
         _tstring     appName;
-        _tstring     outdir;
         bool         useStdout;
         bool         force;
         bool         rewriteBadOrientation;
@@ -140,7 +134,6 @@ ktxUpgrader::ktxUpgrader() : ktxApp(myversion, mydefversion, options)
     argparser::option my_option_list[] = {
         { "force", argparser::option::no_argument, NULL, 'f' },
         { "outfile", argparser::option::required_argument, NULL, 'o' },
-        { "outdir", argparser::option::required_argument, NULL, 'd' },
         { "rewritebado", argparser::option::no_argument, NULL, 'b' },
     };
     const int lastOptionIndex = sizeof(my_option_list)
@@ -173,11 +166,6 @@ ktxUpgrader::usage()
         "               Name the output file outfile. If @e outfile is 'stdout', output\n"
         "               will be written to stdout. If there is more than 1 infile,\n"
         "               the command prints its usage message and exits.\n"
-        "  -d outdir, --output-dir=outdir\n"
-        "               Writes the output files to the directory outdir. If both\n"
-        "               --output and --output-dir are specified, outfile\n"
-        "               will be written in outdir. If infile is stdin or outfile is\n"
-        "               stdout, the command prints its usage message and exits.\n"
         "  -f, --force  If the output file already exists, remove it and create a\n"
         "               new file, without prompting for confirmation regardless of\n"
         "               its permissions.\n";
@@ -381,9 +369,6 @@ ktxUpgrader::processOption(argparser& parser, int opt)
     switch (opt) {
       case 'b':
         options.rewriteBadOrientation = true;
-        break;
-      case 'd':
-        options.outdir = parser.optarg.c_str();
         break;
      case 'f':
         options.force = true;
