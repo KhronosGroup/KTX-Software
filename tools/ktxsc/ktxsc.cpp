@@ -4,7 +4,6 @@
 // Copyright 2019-2020 Mark Callow
 // SPDX-License-Identifier: Apache-2.0
 
-#include "stdafx.h"
 #include <cstdlib>
 #include <errno.h>
 #include <iostream>
@@ -84,7 +83,7 @@ Supercompress the images in a KTX2 file.
     @snippet{doc} scapp.h scApp options
 
 @section ktxsc_exitstatus EXIT STATUS
-    @b toktx exits 0 on success, 1 on command line errors and 2 on
+    @b ktxsc exits 0 on success, 1 on command line errors and 2 on
     functional errors.
 
 @section ktxsc_history HISTORY
@@ -180,14 +179,13 @@ int _tmain(int argc, _TCHAR* argv[])
 }
 
 int
-ktxSupercompressor::main(int argc, _TCHAR *argv[])
+ktxSupercompressor::main(int argc, _TCHAR* argv[])
 {
     FILE *inf, *outf = nullptr;
     KTX_error_code result;
     ktxTexture2* texture = 0;
     int exitCode = 0;
     _tstring tmpfile;
-
 
     processCommandLine(argc, argv, eAllowStdin);
     validateOptions();
@@ -214,21 +212,7 @@ ktxSupercompressor::main(int argc, _TCHAR *argv[])
                 (void)_setmode( _fileno( stdout ), _O_BINARY );
 #endif
             } else if (options.outfile.length()) {
-                outf = _tfopen(options.outfile.c_str(), "wxb");
-                // Mingw gcc and possibly some Linux versions do not accept
-                // 'x' as a mode character, following an earlier version of the
-                // `fopen` spec. Work around this annoying limitation. Don't
-                // use ifdefs as all the places suffering this limitation are
-                // not known to us.
-                if (!outf && errno == EINVAL) {
-                    outf = _tfopen(options.outfile.c_str(), "r");
-                    if (outf) {
-                        outf = nullptr;
-                        errno = EEXIST;
-                    } else {
-                        outf = _tfopen(options.outfile.c_str(), "wb");
-                    }
-                }
+                outf = fopen_write_exclusive(options.outfile);
             } else {
                 // Make a temporary file in the same directory as the source
                 // file to avoid cross-device rename issues later.
@@ -434,7 +418,7 @@ ktxSupercompressor::validateOptions()
 /*
  * @brief process a command line option
  *
- * @return
+ * @return true of option processed.
  *
  * @param[in]     parser,     an @c argparser holding the options to process.
  */

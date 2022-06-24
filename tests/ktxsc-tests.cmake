@@ -4,7 +4,7 @@
 # Copyright 2022 Mark Callow
 # SPDX-License-Identifier: Apache-2.0
 
-# toktx share a common scapp class with ktxsc so the toktx tests suffice
+# toktx shares a common scapp class with ktxsc so the toktx tests suffice
 # for testing actual compression.
 
 add_test( NAME ktxsc-test-help
@@ -68,28 +68,30 @@ PROPERTIES
 
 set( IMG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/testimages" )
 
-function( gencmpktx test_name reference source args inplace )
-    if (NOT inplace)
-        set( workfile ktxsc.${reference} )
-        add_test( NAME ktxsc-cmp-${test_name}
-            COMMAND ${BASH_EXECUTABLE} -c "$<TARGET_FILE:ktxsc> --test ${args} -o ${workfile} ${source} && diff ${reference} ${workfile} && rm ${workfile}"
-            WORKING_DIRECTORY ${IMG_DIR}
-        )
-    elseif(${inplace} STREQUAL "cur-dir")
-        set( workfile ktxsc.ip1.${reference} )
-        add_test( NAME ktxsc-cmp-${test_name}
-            COMMAND ${BASH_EXECUTABLE} -c "cp ${source} ${workfile} && $<TARGET_FILE:ktxsc> --test ${args} ${workfile} && diff ${reference} ${workfile} && rm ${workfile}"
-            WORKING_DIRECTORY ${IMG_DIR}
-        )
-    elseif(${inplace} STREQUAL "different-dir")
-        set( workfile ktxsc.ip2.${reference} )
-        add_test( NAME ktxsc-cmp-${test_name}
-            COMMAND ${BASH_EXECUTABLE} -c "cp ${source} ${workfile} && pushd ../.. && $<TARGET_FILE:ktxsc> --test ${args} ${IMG_DIR}/${workfile} && popd && diff ${reference} ${workfile} && rm ${workfile}"
-            WORKING_DIRECTORY ${IMG_DIR}
-        )
-    endif()
+function( sccmpktx test_name reference source args )
+    set( workfile ktxsc.${reference} )
+    add_test( NAME ktxsc-${test_name}
+        COMMAND ${BASH_EXECUTABLE} -c "$<TARGET_FILE:ktxsc> --test ${args} -o ${workfile} ${source} && diff ${reference} ${workfile} && rm ${workfile}"
+        WORKING_DIRECTORY ${IMG_DIR}
+    )
 endfunction()
 
-gencmpktx( compress-explicit-output skybox_zstd.ktx2 skybox.ktx2 "--zcmp 5" "" "" )
-gencmpktx( compress-in-place-cur-dir skybox_zstd.ktx2 skybox.ktx2 "--zcmp 5" "cur-dir" )
-gencmpktx( compress-in-place-different-dir skybox_zstd.ktx2 skybox.ktx2 "--zcmp 5" "different-dir" )
+function( sccmpktxinplacecurdir test_name reference source args )
+    set( workfile ktxsc.ip1.${reference} )
+    add_test( NAME ktxsc-inplace-curdir-${test_name}
+        COMMAND ${BASH_EXECUTABLE} -c "cp ${source} ${workfile} && $<TARGET_FILE:ktxsc> --test ${args} ${workfile} && diff ${reference} ${workfile} && rm ${workfile}"
+        WORKING_DIRECTORY ${IMG_DIR}
+    )
+endfunction()
+
+function( sccmpktxinplacediffdir test_name reference source args )
+    set( workfile ktxsc.ip2.${reference} )
+    add_test( NAME ktxsc-inplace-diffdir-${test_name}
+        COMMAND ${BASH_EXECUTABLE} -c "cp ${source} ${workfile} && pushd ../.. && $<TARGET_FILE:ktxsc> --test ${args} ${IMG_DIR}/${workfile} && popd && diff ${reference} ${workfile} && rm ${workfile}"
+        WORKING_DIRECTORY ${IMG_DIR}
+    )
+endfunction()
+
+sccmpktx( zcmp-cubemap skybox_zstd.ktx2 skybox.ktx2 "--zcmp 5" )
+sccmpktxinplacecurdir( zcmp-cubemap skybox_zstd.ktx2 skybox.ktx2 "--zcmp 5" )
+sccmpktxinplacediffdir( zcmp_cubemap skybox_zstd.ktx2 skybox.ktx2 "--zcmp 5" )

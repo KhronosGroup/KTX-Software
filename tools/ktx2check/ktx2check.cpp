@@ -6,7 +6,6 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#include "stdafx.h"
 #include <cstdlib>
 #include <errno.h>
 #include <math.h>
@@ -110,7 +109,7 @@ Check the validity of a KTX 2 file.
     @snippetdoc ktxapp.h ktxApp options
 
 @section ktx2check_exitstatus EXIT STATUS
-    @b toktx exits 0 on success, 1 on command line errors and 2 on
+    @b ktx2check exits 0 on success, 1 on command line errors and 2 on
     validation errors.
 
 @section ktx2check_history HISTORY

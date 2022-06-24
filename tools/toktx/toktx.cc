@@ -12,7 +12,6 @@
 // add ..\imdebug.lib to the libraries list in the project properties.
 #define IMAGE_DEBUG 0
 
-#include "stdafx.h"
 #include <cstdlib>
 #include <cstring>
 #include <iostream>

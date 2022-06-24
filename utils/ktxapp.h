@@ -12,6 +12,7 @@
 #include <vector>
 #include <ktx.h>
 
+#include "stdafx.h"
 #include "argparser.h"
 
 #define QUOTE(x) #x
@@ -70,9 +71,9 @@ struct clamped
 /**
 //! [ktxApp options]
   <dl>
-  <dt>--help</dt>
+  <dt>-h, --help</dt>
   <dd>Print this usage message and exit.</dd>
-  <dt>--version</dt>
+  <dt>-v, --version</dt>
   <dd>Print the version number of this program and exit.</dd>
   </dl>
 
@@ -84,8 +85,8 @@ class ktxApp {
     virtual int main(int argc, _TCHAR* argv[]) = 0;
     virtual void usage() {
         cerr <<
-          "  --help       Print this usage message and exit.\n"
-          "  --version    Print the version number of this program and exit.\n";
+          "  -h, --help    Print this usage message and exit.\n"
+          "  -v, --version Print the version number of this program and exit.\n";
     };
 
   protected:
@@ -110,6 +111,36 @@ class ktxApp {
         vfprintf(stderr, pFmt, args);
         va_end(args);
         cerr << "\n";
+    }
+
+    /** @internal
+     * @~English
+     * @brief Open a stdio file stream for writing with "exclusive" use.
+     *
+     * Assumes binary mode.
+     * is returned.
+     *
+     * Works around an annoying limitation of Mingw gcc's, and possibly other
+     * Linux versions', @c fopen. Mingw gcc does not accept 'x' as a mode
+     * character, following an early version of the `fopen` spec. We don't use
+     * ifdefs as all the places suffering this limitation are not known to us.
+     *
+     * @return A stdio FILE* for the created file. If the file already exists
+     *         reteurns nullptr and sets errno to EEXIST.
+     */
+    static FILE* fopen_write_exclusive(const _tstring& path) {
+        FILE* file = ::_tfopen(path.c_str(), "wxb");
+        if (!file && errno == EINVAL) {
+            file = ::_tfopen(path.c_str(), "r");
+            if (file) {
+                fclose(file);
+                file = nullptr;
+                errno = EEXIST;
+            } else {
+                file = ::_tfopen(path.c_str(), "wb");
+            }
+        }
+        return file;
     }
 
     int strtoi(const char* str)
