@@ -41,7 +41,6 @@ fi
 $ktx2ktx2 --test -f -o orient-down-metadata-u.ktx2 orient-down-metadata.ktx
 $ktx2ktx2 --test -f -o orient-up-metadata-u.ktx2 orient-up-metadata.ktx
 $ktx2ktx2 --test -f pattern_02_bc2.ktx
-$ktx2ktx2 --test -f -o rgb-mipmap-reference-u.ktx2 rgb-mipmap-reference.ktx
 $ktx2ktx2 --test -f -o rgba-reference-u.ktx2 rgba-reference.ktx
 $ktx2ktx2 --test -f texturearray_astc_8x8_unorm.ktx
 $ktx2ktx2 --test -f texturearray_bc3_unorm.ktx
