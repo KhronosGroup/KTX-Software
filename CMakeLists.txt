@@ -563,7 +563,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
             message(FATAL "Unsupported AppleClang version")
         endif()
     else()
-        set( clang_version CMAKE_CXX_COMPILER_VERSION )
+        set( clang_version ${CMAKE_CXX_COMPILER_VERSION} )
     endif()
     if (${clang_version} VERSION_GREATER_EQUAL "12.0.5")
         set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
