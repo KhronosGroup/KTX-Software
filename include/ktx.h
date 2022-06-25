@@ -1173,7 +1173,7 @@ extern KTX_API const ktx_uint32_t KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL;
  * @brief Structure for passing extended parameters to
  *        ktxTexture_CompressAstc.
  *
- * Passing a struct initialized to 0 (e.g. " = {};") will use the default
+ * Passing a struct initialized to 0 (e.g. " = {0};") will use the default
  * values. Only those settings to be modified need be non-zero.
  */
 typedef struct ktxAstcParams {
@@ -1240,7 +1240,7 @@ ktxTexture2_CompressAstc(ktxTexture2* This, ktx_uint32_t quality);
  * If you only want default values, use ktxTexture2_CompressBasis(). Here, at a minimum you
  * must initialize the structure as follows:
  * @code
- *  ktxBasisParams params = {};
+ *  ktxBasisParams params = {0};
  *  params.structSize = sizeof(params);
  *  params.compressionLevel = KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL;
  * @endcode

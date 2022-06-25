@@ -594,14 +594,14 @@ linearTilingCallback(int miplevel, int face,
 {
     user_cbdata_linear* ud = (user_cbdata_linear*)userdata;
     VkSubresourceLayout subResLayout;
-    VkImageSubresource subRes = {
 #if !defined(_MSC_VER) || _MSC_VER >= 1920
+    VkImageSubresource subRes = {
       .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
       .mipLevel = miplevel,
       .arrayLayer = face
-#endif
     };
-#if _MSC_VER < 1920
+#else
+    VkImageSubresource subRes = {0};
     subRes.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     subRes.mipLevel = miplevel;
     subRes.arrayLayer = face;
@@ -654,14 +654,14 @@ linearTilingPadCallback(int miplevel, int face,
     ktx_uint8_t* pSrc;
     ktx_size_t   copySize;
     VkSubresourceLayout subResLayout;
-    VkImageSubresource subRes = {
 #if !defined(_MSC_VER) || _MSC_VER >= 1920
+    VkImageSubresource subRes = {
       .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
       .mipLevel = miplevel,
       .arrayLayer = face
-#endif
     };
-#if _MSC_VER < 1920
+#else
+    VkImageSubresource subRes = {0};
     subRes.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     subRes.mipLevel = miplevel;
     subRes.arrayLayer = face;
