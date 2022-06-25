@@ -6,6 +6,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
+#include "ktxapp.h"
+
 #include <cstdlib>
 #include <errno.h>
 #include <math.h>
@@ -19,10 +21,8 @@
 #include <vector>
 
 #include <ktx.h>
-
 #include <KHR/khr_df.h>
 
-#include "ktxapp.h"
 #include "ktxint.h"
 #include "vkformat_enum.h"
 #define LIBKTX // To stop dfdutils including vulkan_core.h.

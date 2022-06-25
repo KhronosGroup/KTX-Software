@@ -14,7 +14,8 @@
 // add ..\imdebug.lib to the libraries list in the project properties.
 #define IMAGE_DEBUG 0
 
-#include "stdafx.h"
+#include "ktxapp.h"
+
 #include <cstdlib>
 #include <errno.h>
 #include <iostream>
@@ -23,7 +24,6 @@
 #include <ktx.h>
 
 #include "argparser.h"
-#include "ktxapp.h"
 #include "version.h"
 #if (IMAGE_DEBUG) && defined(_DEBUG) && defined(_WIN32) && !defined(_WIN32_WCE)
 #  include "imdebug.h"

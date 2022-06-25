@@ -9,6 +9,7 @@
 #include <algorithm>
 #endif
 
+#include <iostream>
 #include <vector>
 #include <ktx.h>
 

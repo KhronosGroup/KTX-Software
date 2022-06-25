@@ -4,10 +4,12 @@
 // Copyright 2019-2020 The Khronos Group Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-#include <zstd.h>
 #include "ktxapp.h"
-#include <unordered_map>
+
 #include <algorithm>
+#include <thread>
+#include <unordered_map>
+#include <zstd.h>
 
 template<typename T>
 struct clampedOption

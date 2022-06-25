@@ -4,6 +4,8 @@
 // Copyright 2019-2020 Mark Callow
 // SPDX-License-Identifier: Apache-2.0
 
+#include "scapp.h"
+
 #include <cstdlib>
 #include <errno.h>
 #include <iostream>
@@ -20,7 +22,6 @@
 #include <KHR/khr_df.h>
 
 #include "argparser.h"
-#include "scapp.h"
 #include "version.h"
 
 #if defined(_MSC_VER)
