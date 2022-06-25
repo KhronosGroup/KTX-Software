@@ -4,6 +4,8 @@
 // Copyright 2019-2020 The Khronos Group Inc.
 // SPDX-License-Identifier: Apache-2.0
 
+#include "stdafx.h"
+
 #include <stdarg.h>
 #if (_MSVC_LANG >= 201703L || __cplusplus >= 201703L)
 #include <algorithm>
@@ -13,7 +15,6 @@
 #include <vector>
 #include <ktx.h>
 
-#include "stdafx.h"
 #include "argparser.h"
 
 #define QUOTE(x) #x
