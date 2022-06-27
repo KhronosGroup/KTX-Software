@@ -9,7 +9,6 @@
 #include <algorithm>
 #include <thread>
 #include <unordered_map>
-#include <inttypes.h>
 #include <zstd.h>
 
 template<typename T>
