@@ -991,20 +991,16 @@ cpack_add_component(library
     DESCRIPTION "Main KTX library."
     REQUIRED
 )
-if(KTX_FEATURE_JNI)
+#cpack_add_component(Namelinks
+#    DEPENDS library
+#    HIDDEN
+#)
 cpack_add_component(jni
     DISPLAY_NAME "Java wrapper"
     DESCRIPTION "Java wrapper and native interface for KTX library."
     DEPENDS library
     DISABLED
 )
-endif()
-# if(KTX_NAMELINKS)
-#     cpack_add_component(Namelinks
-#         DEPENDS library
-#         HIDDEN
-#     )
-# endif()
 cpack_add_component(tools
     DISPLAY_NAME "Command line tools"
     DESCRIPTION "Command line tools for creating, converting and inspecting KTX files."
@@ -1016,22 +1012,19 @@ cpack_add_component(dev
     DEPENDS library
     DISABLED
 )
-
-if(KTX_FEATURE_LOADTEST_APPS)
-    cpack_add_component(GlLoadTestApps
-        GROUP LoadTestApps
-        DISPLAY_NAME "OpenGL Test Applications"
-        DISABLED
-    )
-    cpack_add_component(VkLoadTestApp
-        GROUP LoadTestApps
-        DISPLAY_NAME "Vulkan Test Application"
-        DISABLED
-    )
-    cpack_add_component_group(LoadTestApps
-        DISPLAY_NAME "Load Test Applications"
-    )
-endif()
+cpack_add_component(GlLoadTestApps
+    GROUP LoadTestApps
+    DISPLAY_NAME "OpenGL Test Applications"
+    DISABLED
+)
+cpack_add_component(VkLoadTestApp
+    GROUP LoadTestApps
+    DISPLAY_NAME "Vulkan Test Application"
+    DISABLED
+)
+cpack_add_component_group(LoadTestApps
+    DISPLAY_NAME "Load Test Applications"
+)
 
 if(EMSCRIPTEN)
     set(CPACK_COMPONENTS_ALL
@@ -1041,11 +1034,24 @@ if(EMSCRIPTEN)
 else()
     set(CPACK_COMPONENTS_ALL
         library
-        tools
         dev
-        jni
-        # Headers
     )
+    if(KTX_FEATURE_TOOLS)
+        list(APPEND CPACK_COMPONENTS_ALL
+            tools
+        )
+    endif()
+    if(KTX_FEATURE_JNI)
+        list(APPEND CPACK_COMPONENTS_ALL
+            jni
+        )
+    endif()
+#    if(KTX_FEATURE_LOADTEST_APPS)
+#        list(APPEND CPACK_COMPONENTS_ALL
+#            GLLoadTestApps
+#            VkLoadTestApp
+#        )
+#    endif()
 endif()
 # if(KTX_NAMELINKS)
 #     list(APPEND CPACK_COMPONENTS_ALL
