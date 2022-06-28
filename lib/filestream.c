@@ -71,6 +71,7 @@
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
  *
  * @exception KTX_INVALID_VALUE @p dst is @c NULL or @p src is @c NULL.
+ * @exception KTX_FILE_READ_ERROR  an error occurred while reading the file.
  * @exception KTX_FILE_UNEXPECTED_EOF not enough data to satisfy the request.
  */
 static
@@ -86,8 +87,15 @@ KTX_error_code ktxFileStream_read(ktxStream* str, void* dst, const ktx_size_t co
     if ((nread = fread(dst, 1, count, str->data.file)) != count) {
         if (feof(str->data.file)) {
             return KTX_FILE_UNEXPECTED_EOF;
-        } else
+        } else {
+            if (ferror(str->data.file))
+                fprintf(stderr, "Error reading filestream: %s\n",
+                        strerror(errno));
+            else
+                fprintf(stderr, "Attempted to read %ld bytes, only %ld read\n",
+                        count, nread);
             return KTX_FILE_READ_ERROR;
+        }
     }
     str->readpos += count;
 
@@ -108,6 +116,7 @@ KTX_error_code ktxFileStream_read(ktxStream* str, void* dst, const ktx_size_t co
  *
  * @exception KTX_INVALID_VALUE @p str is @c NULL or @p count is less than zero.
  * @exception KTX_INVALID_OPERATION skipping @p count bytes would go beyond EOF.
+ * @exception KTX_FILE_READ_ERROR  an error occurred while reading the file.
  * @exception KTX_FILE_UNEXPECTED_EOF not enough data to satisfy the request.
  *                                    @p count is set to the number of bytes
  *                                    skipped.
@@ -125,11 +134,17 @@ KTX_error_code ktxFileStream_skip(ktxStream* str, const ktx_size_t count)
         if (ret == EOF) {
             if (feof(str->data.file))
                 return KTX_FILE_UNEXPECTED_EOF;
-            else
+            else {
+                if (ferror(str->data.file))
+                    fprintf(stderr, "Error skipping with getc in filestream: %s\n",
+                            strerror(errno));
+                else
+                    fprintf(stderr, "getc in filestream returned EOF but neither ferror() nor feof() returned true.\n");
                 return KTX_FILE_READ_ERROR;
+            }
         }
     }
-   str->readpos += count;
+    str->readpos += count;
 
     return KTX_SUCCESS;
 }
