@@ -84,6 +84,8 @@ KTX_error_code ktxFileStream_read(ktxStream* str, void* dst, const ktx_size_t co
 
     assert(str->type == eStreamTypeFile);
 
+    if (ferror(str->data.file))
+        fprintf(stderr, "filestream error indicator set before read: %s\n", strerror(errno));
     if ((nread = fread(dst, 1, count, str->data.file)) != count) {
         if (feof(str->data.file)) {
             return KTX_FILE_UNEXPECTED_EOF;

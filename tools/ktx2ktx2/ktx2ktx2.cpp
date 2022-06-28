@@ -115,7 +115,6 @@ class ktxUpgrader : public ktxApp {
     void validateOptions();
 
     struct commandOptions : public ktxApp::commandOptions {
-        _tstring     appName;
         bool         useStdout;
         bool         force;
         bool         rewriteBadOrientation;
@@ -257,9 +256,9 @@ ktxUpgrader::main(int argc, _TCHAR* argv[])
                                         (ktxTexture**)&texture);
 
                 if (result != KTX_SUCCESS) {
-                    cerr << options.appName
+                    cerr << name
                          << " failed to create ktxTexture from " << infile
-                          << "; " << ktxErrorString(result) << endl;
+                         << ": " << ktxErrorString(result) << endl;
                     exitCode = 2;
                     goto cleanup;
                 }
@@ -289,7 +288,7 @@ ktxUpgrader::main(int argc, _TCHAR* argv[])
                                                           orientLen,
                                                           orientation);
                            } else {
-                                cerr << options.appName
+                                cerr << name
                                      << ": Warning: Dropping unrecognized "
                                      << "metadata \"" << key << "\""
                                      << std::endl;
@@ -312,7 +311,7 @@ ktxUpgrader::main(int argc, _TCHAR* argv[])
                 (void)fclose(inf);
                 (void)fclose(outf);
                 if (result != KTX_SUCCESS) {
-                    cerr << options.appName
+                    cerr << name
                          << " failed to write KTX2 file; "
                          << ktxErrorString(result) << endl;
                     (void)_tunlink(options.outfile.c_str());
@@ -320,7 +319,7 @@ ktxUpgrader::main(int argc, _TCHAR* argv[])
                     goto cleanup;
                 }
             } else {
-                cerr << options.appName
+                cerr << name
                      << " could not open output file \""
                      << (options.outfile.length() ? options.outfile.c_str()
                                                   : "stdout")
@@ -329,7 +328,7 @@ ktxUpgrader::main(int argc, _TCHAR* argv[])
                 goto cleanup;
             }
         } else {
-            cerr << options.appName
+            cerr << name
                  << " could not open input file \""
                  << (infile.compare(_T("-")) ? infile : "stdin") << "\". "
                  << strerror(errno) << endl;

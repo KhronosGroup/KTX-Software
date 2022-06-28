@@ -258,8 +258,8 @@ ktxSupercompressor::main(int argc, _TCHAR* argv[])
 
                 if (result != KTX_SUCCESS) {
                     cerr << name
-                         << " failed to create ktxTexture; "
-                         << ktxErrorString(result) << endl;
+                         << " failed to create ktxTexture from " << infile
+                         << ": " << ktxErrorString(result) << endl;
                     exitCode = 2;
                     goto cleanup;
                 }
