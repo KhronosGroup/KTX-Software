@@ -4,9 +4,8 @@
 // Copyright 2019-2020 Mark Callow
 // SPDX-License-Identifier: Apache-2.0
 
-#include "scapp.h"
-
 #include <cstdlib>
+#include "scapp.h"    // Placed second to avoid GCC11/Windows compile errors.
 #include <errno.h>
 #include <iostream>
 #include <sstream>
