@@ -5,7 +5,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <cstdlib>
-#include "scapp.h"    // Placed second to avoid GCC11/Windows compile errors.
 #include <errno.h>
 #include <iostream>
 #include <sstream>
@@ -21,6 +20,7 @@
 #include <KHR/khr_df.h>
 
 #include "argparser.h"
+#include "scapp.h"
 #include "version.h"
 
 #if defined(_MSC_VER)
