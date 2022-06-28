@@ -4,6 +4,15 @@
 // Copyright 2019-2020 Mark Callow
 // SPDX-License-Identifier: Apache-2.0
 
+#if defined(_WIN32)
+  // <windows.h> must appear before "scapp.h" for error-free mingw/gcc11 build.
+  // _CRT_SECURE_NO_WARNINGS must be defined before <windows.h> and <iostream>
+  // so we can't rely on the definition included by "scapp.h".
+  #define _CRT_SECURE_NO_WARNINGS
+  #define WINDOWS_LEAN_AND_MEAN
+  #include <windows.h>
+#endif
+
 #include <cstdlib>
 #include <errno.h>
 #include <iostream>
@@ -11,11 +20,6 @@
 #include <thread>
 #include <vector>
 #include <ktx.h>
-
-#if defined(_WIN32)
-#define WINDOWS_LEAN_AND_MEAN
-#include <windows.h>
-#endif
 
 #include <KHR/khr_df.h>
 

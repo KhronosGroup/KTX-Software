@@ -5,7 +5,7 @@
 
 #pragma once
 
-#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS // For _WIN32. Must be before <stdio.h>.
 #include <assert.h>
 #include <stdio.h>
 #ifdef _WIN32
