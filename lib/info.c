@@ -232,6 +232,7 @@ printKTXInfo2(ktxStream* stream, KTX_header* pHeader)
     // are a multiple of 4, all levels and faces will also be a multiple
     // of 4 so mipPadding and facePadding will always be 0. So they are
     // ignored here.
+    fprintf(stdout, "\nData Sizes (bytes)\n------------------\n");
     for (uint32_t level = 0; level < levelCount; level++) {
         ktx_uint32_t faceLodSize;
         ktx_uint32_t lodSize;
@@ -245,8 +246,9 @@ printKTXInfo2(ktxStream* stream, KTX_header* pHeader)
         }
         result = stream->skip(stream, lodSize);
         dataSize += lodSize;
+        fprintf(stdout, "Level %d: %d\n", level, lodSize);
     }
-    fprintf(stdout, "\nTotal data size = %zu\n", dataSize);
+    fprintf(stdout, "\nTotal: %zu\n", dataSize);
 }
 
 /**
