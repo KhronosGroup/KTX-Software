@@ -10,14 +10,6 @@
 // add ..\imdebug.lib to the libraries list in the project properties.
 #define IMAGE_DEBUG 0
 
-#if defined(_WIN32)
-  // <windows.h> must appear before "scapp.h" for error-free mingw/gcc11 build.
-  // _CRT_SECURE_NO_WARNINGS must be defined before <windows.h> and <iostream>.
-  #define _CRT_SECURE_NO_WARNINGS
-  #define WINDOWS_LEAN_AND_MEAN
-  #include <windows.h>
-#endif
-
 #include "ktxapp.h"
 
 #include <cstdlib>
