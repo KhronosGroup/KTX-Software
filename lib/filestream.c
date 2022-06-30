@@ -91,10 +91,10 @@ KTX_error_code ktxFileStream_read(ktxStream* str, void* dst, const ktx_size_t co
             return KTX_FILE_UNEXPECTED_EOF;
         } else {
             if (ferror(str->data.file))
-                fprintf(stderr, "Error reading filestream: %s\n",
-                        strerror(errno));
+                fprintf(stderr, "Error reading filestream. Attempted to read %ld bytes, only %ld read.\n",
+                        count, nread);
             else
-                fprintf(stderr, "Attempted to read %ld bytes, only %ld read\n",
+                fprintf(stderr, "Attempted to read %ld bytes, only %ld read.\n",
                         count, nread);
             return KTX_FILE_READ_ERROR;
         }

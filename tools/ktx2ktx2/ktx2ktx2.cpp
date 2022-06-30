@@ -1,12 +1,8 @@
 // -*- tab-width: 4; -*-
 // vi: set sw=2 ts=4 sts=4 expandtab:
 
-// $Id$
-
-//
 // Copyright 2019-2020 The Khronos Group, Inc.
 // SPDX-License-Identifier: Apache-2.0
-//
 
 // To use, download from http://www.billbaxter.com/projects/imdebug/
 // Put imdebug.dll in %SYSTEMROOT% (usually C:\WINDOWS), imdebug.h in
@@ -196,7 +192,7 @@ ktxUpgrader::main(int argc, _TCHAR* argv[])
         _tstring infile = *it;
         _tstring outfile;
 
-        if (!infile.compare(_T("-"))) {
+        if (infile.compare(_T("-")) == 0) {
             inf = stdin;
 #if defined(_WIN32)
             /* Set "stdin" to have binary mode */
@@ -237,7 +233,7 @@ ktxUpgrader::main(int argc, _TCHAR* argv[])
                 if (!force) {
                     if (isatty(fileno(stdin))) {
                         char answer;
-                        cout << "Output file " << options.outfile.c_str()
+                        cout << "Output file " << options.outfile
                              << " exists. Overwrite? [Y or n] ";
                         cin >> answer;
                         if (answer == 'Y') {
@@ -251,11 +247,15 @@ ktxUpgrader::main(int argc, _TCHAR* argv[])
             }
 
             if (outf) {
-                result = ktxTexture_CreateFromStdioStream(inf,
+                result = ktxTexture1_CreateFromStdioStream(inf,
                                         KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-                                        (ktxTexture**)&texture);
+                                        &texture);
 
-                if (result != KTX_SUCCESS) {
+                if (result == KTX_UNKNOWN_FILE_FORMAT) {
+                    cerr << infile << " is not a KTX v1 file." << endl;
+                    exitCode = 2;
+                    goto cleanup;
+                } else if (result != KTX_SUCCESS) {
                     cerr << name
                          << " failed to create ktxTexture from " << infile
                          << ": " << ktxErrorString(result) << endl;

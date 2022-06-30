@@ -40,12 +40,6 @@
   #undef max
 #endif
 
-#if IMAGE_DEBUG
-static void dumpImage(_TCHAR* name, int width, int height, int components,
-                      int componentSize, bool isLuminance,
-                      unsigned char* srcImage);
-#endif
-
 using namespace std;
 
 /** @page ktxsc ktxsc
@@ -119,7 +113,6 @@ class ktxSupercompressor : public scApp {
     struct commandOptions : public scApp::commandOptions {
         bool        useStdout;
         bool        force;
-        string      outfile;
 
         commandOptions() {
             force = false;
@@ -252,11 +245,15 @@ ktxSupercompressor::main(int argc, _TCHAR* argv[])
             }
 
             if (outf) {
-                result = ktxTexture_CreateFromStdioStream(inf,
+                result = ktxTexture2_CreateFromStdioStream(inf,
                                         KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-                                        (ktxTexture**)&texture);
+                                        &texture);
 
-                if (result != KTX_SUCCESS) {
+                if (result == KTX_UNKNOWN_FILE_FORMAT) {
+                    cerr << infile << " is not a KTX v2 file." << endl;
+                    exitCode = 2;
+                    goto cleanup;
+                } else if (result != KTX_SUCCESS) {
                     cerr << name
                          << " failed to create ktxTexture from " << infile
                          << ": " << ktxErrorString(result) << endl;

@@ -66,6 +66,25 @@ PROPERTIES
     WILL_FAIL TRUE
 )
 
+add_test( NAME ktxsc-test-ktx1-in
+    COMMAND ktxsc -o foo orient-up-metadata.ktx
+)
+set_tests_properties(
+    ktxsc-test-ktx1-in
+PROPERTIES
+    WILL_FAIL TRUE
+    FAIL_REGULAR_EXPRESSION ".*is not a KTX v2 file\?$"
+)
+
+add_test( NAME ktxsc-test-ktx2-in-exit-code
+    COMMAND ktxsc -o foo orient-up-metadata.ktx
+)
+set_tests_properties(
+    ktxsc-test-ktx2-in-exit-code
+PROPERTIES
+    WILL_FAIL TRUE
+)
+
 set( IMG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/testimages" )
 
 function( sccmpktx test_name reference source args )

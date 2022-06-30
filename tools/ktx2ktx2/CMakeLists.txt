@@ -3,7 +3,6 @@
 
 add_executable( ktx2ktx2
     ktx2ktx2.cpp
-    stdafx.h
 )
 create_version_header( tools/ktx2ktx2 ktx2ktx2 )
 

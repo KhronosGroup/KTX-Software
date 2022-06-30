@@ -63,6 +63,25 @@ PROPERTIES
     WILL_FAIL TRUE
 )
 
+add_test( NAME ktx2ktx2-test-ktx2-in
+    COMMAND ktx2ktx2 -o foo CesiumlogoFlat.ktx2
+)
+set_tests_properties(
+    ktx2ktx2-test-ktx2-in
+PROPERTIES
+    WILL_FAIL TRUE
+    FAIL_REGULAR_EXPRESSION ".*is not a KTX v1 file\?$"
+)
+
+add_test( NAME ktx2ktx2-test-ktx2-in-exit-code
+    COMMAND ktx2ktx2 -o foo CesiumlogoFlat.ktx2
+)
+set_tests_properties(
+    ktx2ktx2-test-ktx2-in-exit-code
+PROPERTIES
+    WILL_FAIL TRUE
+)
+
 set( IMG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/testimages" )
 
 function( cnvrtcmpktx test_name reference source args )
