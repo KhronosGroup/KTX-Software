@@ -225,7 +225,7 @@ ktxUpgrader::main(int argc, _TCHAR* argv[])
                 (void)_setmode( _fileno( stdout ), _O_BINARY );
 #endif
             } else if (outfile.length()) {
-                outf = fopen_write_exclusive(outfile);
+                outf = fopen_write_if_not_exists(outfile);
             }
 
             if (!outf && errno == EEXIST) {

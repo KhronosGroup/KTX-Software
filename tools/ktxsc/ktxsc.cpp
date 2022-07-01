@@ -209,7 +209,7 @@ ktxSupercompressor::main(int argc, _TCHAR* argv[])
                 (void)_setmode( _fileno( stdout ), _O_BINARY );
 #endif
             } else if (options.outfile.length()) {
-                outf = fopen_write_exclusive(options.outfile);
+                outf = fopen_write_if_not_exists(options.outfile);
             } else {
                 // Make a temporary file in the same directory as the source
                 // file to avoid cross-device rename issues later.

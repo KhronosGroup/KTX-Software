@@ -117,7 +117,7 @@ class ktxApp {
 
     /** @internal
      * @~English
-     * @brief Open a file for writing failing if it exists.
+     * @brief Open a file for writing, failing if it exists.
      *
      * Assumes binary mode is wanted.
      *
@@ -131,7 +131,7 @@ class ktxApp {
      * @return A stdio FILE* for the created file. If the file already exists
      *         returns nullptr and sets errno to EEXIST.
      */
-    static FILE* fopen_write_exclusive(const _tstring& path) {
+    static FILE* fopen_write_if_not_exists(const _tstring& path) {
         FILE* file = ::_tfopen(path.c_str(), "wxb");
         if (!file && errno == EINVAL) {
             file = ::_tfopen(path.c_str(), "r");
