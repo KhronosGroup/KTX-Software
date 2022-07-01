@@ -739,7 +739,6 @@ add_library( objUtil STATIC
     utils/argparser.h
     utils/ktxapp.h
     utils/sbufstream.h
-    utils/stdafx.h
     utils/scapp.h
     utils/stdafx.h
     utils/unused.h
