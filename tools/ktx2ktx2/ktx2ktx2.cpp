@@ -250,15 +250,17 @@ ktxUpgrader::main(int argc, _TCHAR* argv[])
                 result = ktxTexture1_CreateFromStdioStream(inf,
                                         KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                         &texture);
-
-                if (result == KTX_UNKNOWN_FILE_FORMAT) {
-                    cerr << infile << " is not a KTX v1 file." << endl;
-                    exitCode = 2;
-                    goto cleanup;
-                } else if (result != KTX_SUCCESS) {
-                    cerr << name
-                         << " failed to create ktxTexture from " << infile
-                         << ": " << ktxErrorString(result) << endl;
+                if (result != KTX_SUCCESS) {
+                    if (result == KTX_UNKNOWN_FILE_FORMAT) {
+                        cerr << infile << " is not a KTX v1 file." << endl;
+                    } else if (result != KTX_SUCCESS) {
+                        cerr << name
+                             << " failed to create ktxTexture from " << infile
+                             << ": " << ktxErrorString(result) << endl;
+                    }
+                    (void)fclose(inf);
+                    (void)fclose(outf);
+                    (void)_tunlink(options.outfile.c_str());
                     exitCode = 2;
                     goto cleanup;
                 }

@@ -393,7 +393,7 @@ ktxSupercompressor::main(int argc, _TCHAR* argv[])
     return 0;
 
 cleanup:
-  if (tmpfile.size() > 0) (void)_tunlink(tmpfile.c_str());
+    if (tmpfile.size() > 0) (void)_tunlink(tmpfile.c_str());
     if (options.outfile.length()) (void)_tunlink(options.outfile.c_str());
     return exitCode;
 }

@@ -25,18 +25,17 @@ PROPERTIES
     PASS_REGULAR_EXPRESSION "^ktxsc v[0-9][0-9\\.]+"
 )
 
-# The near duplication of this and other tests below is due to a "limitation"
-# (i.e. a bug) in ctest which checks for neither a zero error code when a
-# PASS_REGULAR_EXPRESSION is specified nor a non-zero error code when a
-# FAIL_REGULAR_EXPRESSION is specified but only for matches to the REs.
+# Why are there <test> and matching <test>-exit-code tests
+#
+# See comment under the same title in ./ktx2check-tests.cmake.
+
 add_test( NAME ktxsc-test-foobar
     COMMAND ktxsc --foobar
 )
 set_tests_properties(
     ktxsc-test-foobar
 PROPERTIES
-    WILL_FAIL TRUE
-    FAIL_REGULAR_EXPRESSION "^Usage: ktxsc"
+    PASS_REGULAR_EXPRESSION "^Usage: ktxsc"
 )
 add_test( NAME ktxsc-test-foobar-exit-code
     COMMAND ktxsc --foobar
@@ -53,8 +52,7 @@ add_test( NAME ktxsc-test-many-in-one-out
 set_tests_properties(
     ktxsc-test-many-in-one-out
 PROPERTIES
-    WILL_FAIL TRUE
-    FAIL_REGULAR_EXPRESSION "^Can't use -o when there are multiple infiles."
+    PASS_REGULAR_EXPRESSION "^Can't use -o when there are multiple infiles."
 )
 
 add_test( NAME ktxsc-test-many-in-one-out-exit-code
@@ -66,26 +64,26 @@ PROPERTIES
     WILL_FAIL TRUE
 )
 
+set( IMG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/testimages" )
+
 add_test( NAME ktxsc-test-ktx1-in
-    COMMAND ktxsc -o foo orient-up-metadata.ktx
+    COMMAND ktxsc --zcmp 5 -o foo orient-up-metadata.ktx
+    WORKING_DIRECTORY "${IMG_DIR}"
 )
 set_tests_properties(
     ktxsc-test-ktx1-in
 PROPERTIES
-    WILL_FAIL TRUE
-    FAIL_REGULAR_EXPRESSION ".*is not a KTX v2 file\?$"
+    PASS_REGULAR_EXPRESSION ".* is not a KTX v2 file."
 )
-
-add_test( NAME ktxsc-test-ktx2-in-exit-code
-    COMMAND ktxsc -o foo orient-up-metadata.ktx
+add_test( NAME ktxsc-test-ktx1-in-exit-code
+    COMMAND ktxsc --zcmp 5 -o foo orient-up-metadata.ktx
+    WORKING_DIRECTORY ${IMG_DIR}
 )
 set_tests_properties(
-    ktxsc-test-ktx2-in-exit-code
+    ktxsc-test-ktx1-in-exit-code
 PROPERTIES
     WILL_FAIL TRUE
 )
-
-set( IMG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/testimages" )
 
 function( sccmpktx test_name reference source args )
     set( workfile ktxsc.${reference} )

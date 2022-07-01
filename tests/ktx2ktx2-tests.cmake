@@ -22,18 +22,17 @@ PROPERTIES
     PASS_REGULAR_EXPRESSION "^ktx2ktx2 v[0-9][0-9\\.]+"
 )
 
-# The near duplication of this and other tests below is due to a "limitation"
-# (i.e. a bug) in ctest which checks for neither a zero error code when a
-# PASS_REGULAR_EXPRESSION is specified nor a non-zero error code when a
-# FAIL_REGULAR_EXPRESSION is specified but only for matches to the REs.
+# Why are there <test> and matching <test>-exit-code tests
+#
+# See comment under the same title in ./ktx2check-tests.cmake.
+
 add_test( NAME ktx2ktx2-test-foobar
     COMMAND ktx2ktx2 --foobar
 )
 set_tests_properties(
     ktx2ktx2-test-foobar
 PROPERTIES
-    WILL_FAIL TRUE
-    FAIL_REGULAR_EXPRESSION "^Usage: ktx2ktx2"
+    PASS_REGULAR_EXPRESSION "^Usage: ktx2ktx2"
 )
 add_test( NAME ktx2ktx2-test-foobar-exit-code
     COMMAND ktx2ktx2 --foobar
@@ -50,8 +49,7 @@ add_test( NAME ktx2ktx2-test-many-in-one-out
 set_tests_properties(
     ktx2ktx2-test-many-in-one-out
 PROPERTIES
-    WILL_FAIL TRUE
-    FAIL_REGULAR_EXPRESSION "^Can't use -o when there are multiple infiles."
+    PASS_REGULAR_EXPRESSION "^Can't use -o when there are multiple infiles."
 )
 
 add_test( NAME ktx2ktx2-test-many-in-one-out-exit-code
@@ -63,26 +61,26 @@ PROPERTIES
     WILL_FAIL TRUE
 )
 
+set( IMG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/testimages" )
+
 add_test( NAME ktx2ktx2-test-ktx2-in
     COMMAND ktx2ktx2 -o foo CesiumlogoFlat.ktx2
+    WORKING_DIRECTORY ${IMG_DIR}
 )
 set_tests_properties(
     ktx2ktx2-test-ktx2-in
 PROPERTIES
-    WILL_FAIL TRUE
-    FAIL_REGULAR_EXPRESSION ".*is not a KTX v1 file\?$"
+    PASS_REGULAR_EXPRESSION ".* is not a KTX v1 file."
 )
-
 add_test( NAME ktx2ktx2-test-ktx2-in-exit-code
     COMMAND ktx2ktx2 -o foo CesiumlogoFlat.ktx2
+    WORKING_DIRECTORY ${IMG_DIR}
 )
 set_tests_properties(
     ktx2ktx2-test-ktx2-in-exit-code
 PROPERTIES
     WILL_FAIL TRUE
 )
-
-set( IMG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/testimages" )
 
 function( cnvrtcmpktx test_name reference source args )
     set( workfile ktx2ktx2.${reference} )
