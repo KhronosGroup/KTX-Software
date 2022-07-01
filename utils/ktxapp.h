@@ -117,18 +117,19 @@ class ktxApp {
 
     /** @internal
      * @~English
-     * @brief Open a stdio file stream for writing with "exclusive" use.
+     * @brief Open a file for writing failing if it exists.
      *
-     * Assumes binary mode.
-     * is returned.
+     * Assumes binary mode is wanted.
      *
-     * Works around an annoying limitation of Mingw gcc's, and possibly other
-     * Linux versions', @c fopen. Mingw gcc does not accept 'x' as a mode
-     * character, following an early version of the `fopen` spec. We don't use
-     * ifdefs as all the places suffering this limitation are not known to us.
+     * Works around an annoying limitation of the VS2013-era msvcrt's
+     * @c fopen that implements an early version of the @c fopen spec.
+     * that does not accept 'x' as a mode character. For some reason
+     * Mingw uses this ancient version. Rather than use ifdef heuristics
+     * to identify sufferers of the limitation, it handles the error case
+     * and uses an alternate way to check for file existence.
      *
      * @return A stdio FILE* for the created file. If the file already exists
-     *         reteurns nullptr and sets errno to EEXIST.
+     *         returns nullptr and sets errno to EEXIST.
      */
     static FILE* fopen_write_exclusive(const _tstring& path) {
         FILE* file = ::_tfopen(path.c_str(), "wxb");

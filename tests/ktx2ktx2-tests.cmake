@@ -64,7 +64,7 @@ PROPERTIES
 set( IMG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/testimages" )
 
 add_test( NAME ktx2ktx2-test-ktx2-in
-    COMMAND ktx2ktx2 -o foo CesiumlogoFlat.ktx2
+    COMMAND ktx2ktx2 -o foo CesiumLogoFlat.ktx2
     WORKING_DIRECTORY ${IMG_DIR}
 )
 set_tests_properties(
@@ -73,7 +73,7 @@ PROPERTIES
     PASS_REGULAR_EXPRESSION ".* is not a KTX v1 file."
 )
 add_test( NAME ktx2ktx2-test-ktx2-in-exit-code
-    COMMAND ktx2ktx2 -o foo CesiumlogoFlat.ktx2
+    COMMAND ktx2ktx2 -o foo CesiumLogoFlat.ktx2
     WORKING_DIRECTORY ${IMG_DIR}
 )
 set_tests_properties(

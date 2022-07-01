@@ -84,18 +84,10 @@ KTX_error_code ktxFileStream_read(ktxStream* str, void* dst, const ktx_size_t co
 
     assert(str->type == eStreamTypeFile);
 
-    if (ferror(str->data.file))
-        fprintf(stderr, "filestream error indicator set before read: %s\n", strerror(errno));
     if ((nread = fread(dst, 1, count, str->data.file)) != count) {
         if (feof(str->data.file)) {
             return KTX_FILE_UNEXPECTED_EOF;
         } else {
-            if (ferror(str->data.file))
-                fprintf(stderr, "Error reading filestream. Attempted to read %ld bytes, only %ld read.\n",
-                        count, nread);
-            else
-                fprintf(stderr, "Attempted to read %ld bytes, only %ld read.\n",
-                        count, nread);
             return KTX_FILE_READ_ERROR;
         }
     }
@@ -134,14 +126,9 @@ KTX_error_code ktxFileStream_skip(ktxStream* str, const ktx_size_t count)
     for (ktx_uint32_t i = 0; i < count; i++) {
         int ret = getc(str->data.file);
         if (ret == EOF) {
-            if (feof(str->data.file))
+            if (feof(str->data.file)) {
                 return KTX_FILE_UNEXPECTED_EOF;
-            else {
-                if (ferror(str->data.file))
-                    fprintf(stderr, "Error skipping with getc in filestream: %s\n",
-                            strerror(errno));
-                else
-                    fprintf(stderr, "getc in filestream returned EOF but neither ferror() nor feof() returned true.\n");
+            } else {
                 return KTX_FILE_READ_ERROR;
             }
         }
