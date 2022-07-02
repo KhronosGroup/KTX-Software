@@ -4,12 +4,19 @@ name: KTX-Software CI
 
 on:
   # Trigger the workflow on pull request,
-  # but only for the main branch
+  # but only for the master branch
   pull_request:
-  # Also trigger on release created events
-  release:
-    types:
-      - created
+    branchs:
+      - master
+    paths-ignore:
+      - .appveyor.yml
+      - .travis.yml
+
+  # Also trigger on push of release tags
+  push:
+    tags:
+      - "v*.*.*"
+
   # Allow manual trigger
   workflow_dispatch:
 
@@ -107,8 +114,10 @@ jobs:
 
     - name: Upload To Release
       uses: softprops/action-gh-release@v1
-      if: (matrix.options.package == 'YES') && (github.event_name == 'release') && startsWith(github.ref, 'refs/tags/')
+      if: (matrix.options.package == 'YES') github.event_name == 'push') && startsWith(github.ref, 'refs/tags/')
       with:
+        draft: true
+        prerelease: true
         files: ${{env.BUILD_DIR}}/KTX-Software-*.exe*
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -203,3 +212,14 @@ jobs:
       with:
         name: KTX-Software-${{ steps.ktx-version.outputs.ktx-version }}-Android
         path: install-android
+
+    - name: Upload To Release
+      uses: softprops/action-gh-release@v1
+      if: (matrix.options.package == 'YES') github.event_name == 'push') && startsWith(github.ref, 'refs/tags/')
+      with:
+        draft: true
+        prerelease: true
+        files: KTX-Software-*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
