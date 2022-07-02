@@ -10,8 +10,11 @@ echo "Phase = $env:Phase"
 if ($env:GITHUB_ACTIONS -or $env:Phase) {
   pushd $repo_root
   echo "Now uploading the failed tests"
-  ls -Name  tests/testimages/ktxsc* tests/testimages/toktx*
-  if (tar -cvf failed-images.tar tests/testimages/ktxsc* tests/testimages/toktx*) {
+  $image_list = "tests/testimages/ktx2ktx2*", "tests/testimages/ktxsc*", "tests/testimages/toktx*"
+  ls $image_list
+  echo "Current directory is"
+  pwd
+  if (tar -cvf failed-images.tar $image_list) {
     # N.B. In PS, "curl" is an alias for Invoke-WebRequest. Uploading a
     # file via that looks like a p.i.t.a so use the real curl command.
     curl.exe --upload-file failed-images.tar https://transfer.sh/ktx-failed-images.tar

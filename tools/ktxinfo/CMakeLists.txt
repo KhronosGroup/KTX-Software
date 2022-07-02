@@ -3,7 +3,6 @@
 
 add_executable( ktxinfo
     ktxinfo.cpp
-    stdafx.h
 )
 create_version_header( tools/ktxinfo ktxinfo )
 

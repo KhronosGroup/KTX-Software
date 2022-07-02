@@ -22,18 +22,32 @@ PROPERTIES
     PASS_REGULAR_EXPRESSION "^ktx2check v[0-9][0-9\\.]+"
 )
 
-# The near duplication of this and other tests below is due to a "limitation"
-# (i.e. a bug) in ctest which checks for neither a zero error code when a
-# PASS_REGULAR_EXPRESSION is specified nor a non-zero error code when a
-# FAIL_REGULAR_EXPRESSION is specified but only for matches to the REs.
+# Why are there <test> and matching <test>-exit-code tests
+#
+# A "limitation", i.e. a bug or misfeature, in ctest is that it tests
+# REGULAR_EXPRESSION match OR exit code. For WILL_FAIL tests, failure is
+# recognized by first attempting to match the FAIL_REGULAR_EXPRESSION
+# and then checking the exit code. Thus if the app's exit-code is non-zero
+# the test will fail regardless of whether the match succeeds. When the
+# match succeeds ctests notes this in the LastTest.log. Nothing is noted
+# about a failed match. Similarly for non WILL_FAIL tests, ctest tests
+# PASS_REGULAR_EXPRESSION match OR exit code == 0.
+#
+# When failures occur all the KTX tools BOTH output a message, which
+# we want to verify in these tests, and exit with a non-zero error
+# code, which we also want to verify. We need a different test for
+# each case. Perversely to test for the intended failure message we have
+# to use a non WILL_FAIL test with a PASS_REGULAR_EXPRESSION so that
+# when the PASS RE fails to match we are guaranteed the exit code
+# test will fail. When it does match the exit code is not checked.
+
 add_test( NAME ktx2check-test-foobar
     COMMAND ktx2check --foobar
 )
 set_tests_properties(
     ktx2check-test-foobar
 PROPERTIES
-    WILL_FAIL TRUE
-    FAIL_REGULAR_EXPRESSION "^Usage: ktx2check"
+    PASS_REGULAR_EXPRESSION "^Usage: ktx2check"
 )
 add_test( NAME ktx2check-test-foobar-exit-code
     COMMAND ktx2check --foobar
@@ -121,7 +135,7 @@ add_test( NAME ktx2check-test-bad-typesize
 set_tests_properties(
     ktx2check-test-bad-typesize
 PROPERTIES
-    FAIL_REGULAR_EXPRESSION "ERROR: typeSize, 1, does not match data described by the DFD."
+    PASS_REGULAR_EXPRESSION "ERROR: typeSize, 1, does not match data described by the DFD."
 )
 add_test( NAME ktx2check-test-bad-typesize-exit-code
     COMMAND ktx2check bad_typesize.ktx2
@@ -150,17 +164,14 @@ set_tests_properties(
     ktx2check-test-invalid-face-count-and-padding-quiet
     ktx2check-test-incorrect-mip-layout-and-padding-quiet
 PROPERTIES
-    FAIL_REGULAR_EXPRESSION "^$"
+    PASS_REGULAR_EXPRESSION "^$"
 )
 
 set_tests_properties(
-    ktx2check-test-bad-typesize
     ktx2check-test-bad-typesize-exit-code
     ktx2check-test-invalid-face-count-and-padding
-    ktx2check-test-invalid-face-count-and-padding-quiet
     ktx2check-test-invalid-face-count-and-padding-quiet-exit-code
     ktx2check-test-incorrect-mip-layout-and-padding
-    ktx2check-test-incorrect-mip-layout-and-padding-quiet
     ktx2check-test-incorrect-mip-layout-and-padding-quiet-exit-code
     ktx2check-test-no-nul-on-value-warn-as-error-exit-code
 PROPERTIES

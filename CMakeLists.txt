@@ -547,7 +547,25 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         )
     endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "12.0.5")
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+        # Versions equivalency from https://en.wikipedia.org/wiki/Xcode#Xcode_11.x_-_14.x_(since_SwiftUI_framework)_2
+        if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "14")
+            set( clang_version ${CMAKE_CXX_COMPILER_VERSION})
+        elseif (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "13.1.0")
+            set( clang_version "13.0.0")
+        elseif (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "13.0.0")
+            set( clang_version "12.0.0")
+        elseif (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "12.0.5")
+            set( clang_version "11.1.0")
+        elseif (${CMAKE_CXX_COMPILER_VERSION} VERSION_EQUAL "12.0.0")
+            set( clang_version "10.0.0")
+        else()
+            message(FATAL "Unsupported AppleClang version")
+        endif()
+    else()
+        set( clang_version ${CMAKE_CXX_COMPILER_VERSION} )
+    endif()
+    if (${clang_version} VERSION_GREATER_EQUAL "12.0.5")
         set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter;-Wno-deprecated-copy;-Wno-uninitialized-const-reference"
             )
@@ -556,7 +574,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter"
         )
     endif()
-    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "12.0.0")
+    if (${clang_version} VERSION_GREATER_EQUAL "12.0.0")
         # Primarily an issue on windows using clang/clangcl
         # Lowest tested clang version was 12.0.0 and highest was 14.0.4
         set_source_files_properties(
@@ -564,7 +582,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-function"
         )
     endif()
-    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "13.0.0")
+    if (${clang_version} VERSION_GREATER_EQUAL "13.0.0")
         get_source_file_property(zstd_options lib/basisu/zstd/zstd.c COMPILE_OPTIONS)
         set_source_files_properties(
             # We haven't fixed zstd.c because the fix would have to be applied
@@ -574,7 +592,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
             PROPERTIES COMPILE_OPTIONS "${zstd_options};-Wno-unused-but-set-variable"
         )
     endif()
-    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "15.0")
+    if (${clang_version} VERSION_GREATER_EQUAL "15.0")
         # These are for Emscripten which is ahead of xcode in its clang
         # version. Also future proofing for when xcode catches up.
         set_source_files_properties(
@@ -722,6 +740,7 @@ add_library( objUtil STATIC
     utils/ktxapp.h
     utils/sbufstream.h
     utils/scapp.h
+    utils/stdafx.h
     utils/unused.h
     )
 target_include_directories(

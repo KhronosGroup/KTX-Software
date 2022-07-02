@@ -4,10 +4,12 @@
 // Copyright 2019-2020 The Khronos Group Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-#include <zstd.h>
 #include "ktxapp.h"
-#include <unordered_map>
+
 #include <algorithm>
+#include <thread>
+#include <unordered_map>
+#include <zstd.h>
 
 template<typename T>
 struct clampedOption
@@ -136,17 +138,18 @@ astcEncoderMode(const char* mode) {
 //! [scApp options]
   <dl>
     <dt>--encode &lt;astc | etc1s | uastc&gt;</dt>
-                 <dd>Compress the image data to ASTC, transcodable ETC1S / BasisLZ or
-                 high-quality transcodable UASTC format. Implies @b --t2.
-                 With each encoding option the following encoder specific options
-                 become valid, otherwise they are ignored.</dd>
+                 <dd>Compress the image data to ASTC, transcodable
+                 ETC1S / BasisLZ or high-quality transcodable UASTC format.
+                 Implies @b --t2. With each encoding option the following
+                 encoder specific options become valid, otherwise they are
+                 ignored.</dd>
       <dl>
       <dt>astc:</dt>
                  <dd>Create a texture in high-quality ASTC format.</dd>
         <dt>--astc_blk_d &lt;XxY | XxYxZ&gt;</dt>
-                 <dd>Specify which block dimension to use for compressing the textures.
-                 e.g. @b --astc_blk_d 6x5 for 2D or @b --astc_blk_d 6x6x6 for 3D.
-                 6x6 is default for 2D.
+                 <dd>Specify which block dimension to use for compressing the
+                 textures. e.g. @b --astc_blk_d 6x5 for 2D or
+                 @b --astc_blk_d 6x6x6 for 3D. 6x6 is the default for 2D.
                  <table>
                      <tr><th>Supported 2D block dimensions are:</th></tr>
                          <tr><td>4x4</td> <td>8.00 bpp</td></tr>
@@ -176,13 +179,15 @@ astcEncoderMode(const char* mode) {
                          <tr><td>6x6x6</td> <td>0.59 bpp</td></tr>
                  </table></dd>
         <dt>--astc_mode &lt;ldr | hdr&gt;</dt>
-                 <dd>Specify which encoding mode to use. LDR is the default unless the input.
-                 image is 16-bit in which case the default is HDR.</dd>
+                 <dd>Specify which encoding mode to use. LDR is the default
+                 unless the input image is 16-bit in which case the default is
+                 HDR.</dd>
         <dt>--astc_quality &lt;level&gt;</dt>
-                 <dd>The quality level configures the quality-performance tradeoff for
-                 the compressor; more complete searches of the search space improve
-                 image quality at the expense of compression time. Default is 'medium'
-                 The quality level can be set to fastest (0) and thorough (100) via the
+                 <dd>The quality level configures the quality-performance
+                 tradeoff for the compressor; more complete searches of the
+                 search space improve image quality at the expense of
+                 compression time. Default is 'medium'. The quality level can be
+                 set between fastest (0) and exhaustive (100) via the
                  following fixed quality presets:
                  <table>
                      <tr><th>Level      </th> <th> Quality                      </th></tr>
@@ -194,72 +199,75 @@ astcEncoderMode(const char* mode) {
                  </table>
                  </dd>
         <dt>--astc_perceptual</dt>
-                 <dd>The codec should optimize for perceptual error, instead of direct
-                 RMS error. This aims to improve perceived image quality, but
-                 typically lowers the measured PSNR score. Perceptual methods are
-                 currently only available for normal maps and RGB color data.</dd>
+                 <dd>The codec should optimize for perceptual error, instead of
+                 direct RMS error. This aims to improve perceived image quality,
+                 but typically lowers the measured PSNR score. Perceptual
+                 methods are currently only available for normal maps and RGB
+                 color data.</dd>
       </dl>
       <dl>
       <dt>etc1s:</dt>
                  <dd>Supercompress the image data with ETC1S / BasisLZ.
-                 RED images will become RGB with RED in each component. RG images
-                 will have R in the RGB part and G in the alpha part of the
-                 compressed texture. When set, the following BasisLZ-related
+                 RED images will become RGB with RED in each component. RG
+                 images will have R in the RGB part and G in the alpha part of
+                 the compressed texture. When set, the following BasisLZ-related
                  options become valid, otherwise they are ignored.</dd>
         <dt>--no_multithreading</dt>
-                 <dd>Disable multithreading. Deprecated. For backward compatibility.
-                 Use @b --threads 1 instead.</dd>
+                 <dd>Disable multithreading. Deprecated. For backward
+                 compatibility. Use @b --threads 1 instead.</dd>
         <dt>--clevel &lt;level&gt;</dt>
-                 <dd>ETC1S / BasisLZ compression level, an encoding speed vs. quality
-                 tradeoff. Range is [0,5], default is 1. Higher values are slower,
-                 but give higher quality.</dd>
+                 <dd>ETC1S / BasisLZ compression level, an encoding speed vs.
+                 quality tradeoff. Range is [0,5], default is 1. Higher values
+                 are slower but give higher quality.</dd>
         <dt>--qlevel &lt;level&gt;</dt>
-                 <dd>ETC1S / BasisLZ quality level. Range is [1,255]. Lower gives
-                 better compression/lower quality/faster. Higher gives less
-                 compression/higher quality/slower. @b --qlevel automatically
-                 determines values for @b --max_endpoints, @b --max-selectors,
-                 @b --endpoint_rdo_threshold and @b --selector_rdo_threshold for the
-                 target quality level. Setting these options overrides the values
-                 determined by -qlevel which defaults to 128 if neither it nor
-                 both of @b --max_endpoints and @b --max_selectors have been set.
+                 <dd>ETC1S / BasisLZ quality level. Range is [1,255]. Lower
+                 gives better compression/lower quality/faster. Higher gives
+                 less compression/higher quality/slower. @b --qlevel
+                 automatically determines values for @b --max_endpoints,
+                 @b --max-selectors, @b --endpoint_rdo_threshold and
+                 @b --selector_rdo_threshold for the target quality level.
+                 Setting these options overrides the values determined by
+                 -qlevel which defaults to 128 if neither it nor both of
+                 @b --max_endpoints and @b --max_selectors have been set.
 
                  Note that both of @b --max_endpoints and @b --max_selectors
                  must be set for them to have any effect. If all three options
-                 are set, a warning will be issued that @b --qlevel will be ignored.
+                 are set, a warning will be issued that @b --qlevel will be
+                 ignored.
 
                  Note also that @b --qlevel will only determine values for
-                 @b --endpoint_rdo_threshold and @b --selector_rdo_threshold when
-                 its value exceeds 128, otherwise their defaults will be used.</dd>
+                 @b --endpoint_rdo_threshold and @b --selector_rdo_threshold
+                 when its value exceeds 128, otherwise their defaults will be
+                 used.</dd>
         <dt>--max_endpoints &lt;arg&gt;</dt>
-                 <dd>Manually set the maximum number of color endpoint clusters. Range
-                 is [1,16128]. Default is 0, unset.</dd>
+                 <dd>Manually set the maximum number of color endpoint clusters.
+                 Range is [1,16128]. Default is 0, unset.</dd>
         <dt>--endpoint_rdo_threshold &lt;arg&gt;</dt>
-                 <dd>Set endpoint RDO quality threshold. The default is 1.25. Lower
-                 is higher quality but less quality per output bit (try
-                 [1.0,3.0]). This will override the value chosen by @b --qlevel.</dd>
+                 <dd>Set endpoint RDO quality threshold. The default is 1.25.
+                 Lower is higher quality but less quality per output bit (try
+                 [1.0,3.0]). This will override the value chosen by
+                 @b --qlevel.</dd>
         <dt>--max_selectors &lt;arg&gt;</dt>
-                 <dd>Manually set the maximum number of color selector clusters from
-                 [1,16128]. Default is 0, unset.</dd>
+                 <dd>Manually set the maximum number of color selector clusters
+                 from [1,16128]. Default is 0, unset.</dd>
         <dt>--selector_rdo_threshold &lt;arg&gt;</dt>
-                 <dd>Set selector RDO quality threshold. The default is 1.25. Lower
-                 is higher quality but less quality per output bit (try
-                 [1.0,3.0]). This will override the value chosen by @b --qlevel.</dd>
-        <dt>--separate_rg_to_color_alpha</dt>
-                 <dd>Separates the input R and G channels to RGB and A (for tangent
-                 space XY normal maps). Only needed with 3 or 4 component input
-                 images.</dd>
+                 <dd>Set selector RDO quality threshold. The default is 1.25.
+                 Lower is higher quality but less quality per output bit (try
+                 [1.0,3.0]). This will override the value chosen by
+                 @b --qlevel.</dd>
         <dt>--no_endpoint_rdo</dt>
-                 <dd>Disable endpoint rate distortion optimizations. Slightly faster,
-                 less noisy output, but lower quality per output bit. Default is
-                 to do endpoint RDO.</dd>
+                 <dd>Disable endpoint rate distortion optimizations. Slightly
+                 faster, less noisy output, but lower quality per output bit.
+                 Default is to do endpoint RDO.</dd>
         <dt>--no_selector_rdo</dt>
-                 <dd>Disable selector rate distortion optimizations. Slightly faster,
-                 less noisy output, but lower quality per output bit. Default is
-                 to do selector RDO.</dd>
+                 <dd>Disable selector rate distortion optimizations. Slightly
+                 faster, less noisy output, but lower quality per output bit.
+                 Default is to do selector RDO.</dd>
       </dl>
       <dl>
       <dt>uastc:</dt>
-                 <dd>Create a texture in high-quality transcodable UASTC format.</dd>
+                 <dd>Create a texture in high-quality transcodable UASTC
+                 format.</dd>
         <dt>--uastc_quality &lt;level&gt;</dt>
                  <dd>This optional parameter selects a speed vs quality
                  tradeoff as shown in the following table:
@@ -273,29 +281,31 @@ astcEncoderMode(const char* mode) {
                    <tr><td>4   </td><td> Very slow </td><td> 48.24dB</td></tr>
                </table>
 
-                 You are strongly encouraged to also specify @b --zcmp to losslessly
-                 compress the UASTC data. This and any LZ-style compression can
-                 be made more effective by conditioning the UASTC texture data
-                 using the Rate Distortion Optimization (RDO) post-process stage.
-                 When uastc encoding is set the following options become available
-                 for controlling RDO:</dd>
+                 You are strongly encouraged to also specify @b --zcmp to
+                 losslessly compress the UASTC data. This and any LZ-style
+                 compression can be made more effective by conditioning the
+                 UASTC texture data using the Rate Distortion Optimization (RDO)
+                 post-process stage. When uastc encoding is set the following
+                 options become available for controlling RDO:</dd>
         <dt>--uastc_rdo_l [&lt;lambda&gt;]</dt>
-                 <dd>Enable UASTC RDO post-processing and optionally set UASTC RDO
-                 quality scalar (lambda) to @e lambda.  Lower values yield higher
-                 quality/larger LZ compressed files, higher values yield lower
-                 quality/smaller LZ compressed files. A good range to try is
-                 [.25,10]. For normal maps a good range is [.25,.75]. The full
-                 range is [.001,10.0]. Default is 1.0.
+                 <dd>Enable UASTC RDO post-processing and optionally set UASTC
+                 RDO quality scalar (lambda) to @e lambda.  Lower values yield
+                 higher quality/larger LZ compressed files, higher values yield
+                 lower quality/smaller LZ compressed files. A good range to try
+                 is [.25,10]. For normal maps a good range is [.25,.75]. The
+                 full range is [.001,10.0]. Default is 1.0.
 
-                 Note that previous versions used the @b --uastc_rdo_q option which
-                 was removed because the RDO algorithm changed.</dd>
+                 Note that previous versions used the @b --uastc_rdo_q option
+                 which was removed because the RDO algorithm changed.</dd>
         <dt>--uastc_rdo_d &lt;dictsize&gt;</dt>
-                 <dd>Set UASTC RDO dictionary size in bytes. Default is 4096. Lower
-                 values=faster, but give less compression. Range is [64,65536].</dd>
+                 <dd>Set UASTC RDO dictionary size in bytes. Default is 4096.
+                 Lower values=faster, but give less compression. Range is
+                 [64,65536].</dd>
         <dt>--uastc_rdo_b &lt;scale&gt;</dt>
-                 <dd>Set UASTC RDO max smooth block error scale. Range is [1.0,300.0].
-                 Default is 10.0, 1.0 is disabled. Larger values suppress more
-                 artifacts (and allocate more bits) on smooth blocks.</dd>
+                 <dd>Set UASTC RDO max smooth block error scale. Range is
+                 [1.0,300.0]. Default is 10.0, 1.0 is disabled. Larger values
+                 suppress more artifacts (and allocate more bits) on smooth
+                 blocks.</dd>
         <dt>--uastc_rdo_s &lt;deviation&gt;</dt>
                  <dd>Set UASTC RDO max smooth block standard deviation. Range is
                  [.01,65536.0]. Default is 18.0. Larger values expand the range
@@ -308,12 +318,14 @@ astcEncoderMode(const char* mode) {
       </dl>
     <dt>--normal_mode</dt>
                  <dd>Only valid for linear textures with two or more components.
-                 If the input texture has three or four linear components it is assumed to
-                 be a three component linear normal map storing unit length
-                 normals as (R=X, G=Y, B=Z). A fourth component will be ignored. The map will be
-                 converted to a two component X+Y normal map stored as (RGB=X, A=Y) prior to
-                 encoding. If unsure that your normals are unit length, use @b --normalize.
-                 If the input has 2 linear components it is assumed to be an X+Y map of unit normals.
+                 If the input texture has three or four linear components it is
+                 assumed to be a three component linear normal map storing unit
+                 length normals as (R=X, G=Y, B=Z). A fourth component will be
+                 ignored. The map will be converted to a two component X+Y
+                 normal map stored as (RGB=X, A=Y) prior to encoding. If unsure
+                 that your normals are unit length, use @b --normalize. If the
+                 input has 2 linear components it is assumed to be an X+Y map
+                 of unit normals.
 
                  The Z component can be recovered programmatically in shader
                  code by using the equations:
@@ -334,35 +346,38 @@ astcEncoderMode(const char* mode) {
                  4-component inputs a 3D unit normal is calculated. 1.0 is used
                  for the value of the 4th component.</dd>
     <dt>--no_sse</dt>
-                 <dd>Forbid use of the SSE instruction set. Ignored if CPU does not
-                 support SSE. Only the Basis Universal compressor uses SSE.</dd>
+                 <dd>Forbid use of the SSE instruction set. Ignored if CPU does
+                 not support SSE. Only the Basis Universal compressor uses
+                 SSE.</dd>
     <dt>--bcmp</dt>
                  <dd>Deprecated. Use '@b --encode etc1s' instead.</dd>
     <dt>--uastc [&lt;level&gt;]</dt>
                  <dd>Deprecated. Use '@b --encode uastc' instead.</dd>
     <dt>--zcmp [&lt;compressionLevel&gt;]</dt>
-                 <dd>Supercompress the data with Zstandard. Implies @b --t2. Can be used
-                 with data in any format except ETC1S / BasisLZ. Most
-                 effective with RDO-conditioned UASTC or uncompressed formats. The
-                 optional compressionLevel range is 1 - 22 and the default is 3.
-                 Lower values=faster but give less compression. Values above 20
-                 should be used with caution as they require more memory.</dd>
+                 <dd>Supercompress the data with Zstandard. Implies @b --t2. Can
+                 be used with data in any format except ETC1S / BasisLZ. Most
+                 effective with RDO-conditioned UASTC or uncompressed formats.
+                 The optional compressionLevel range is 1 - 22 and the default
+                 is 3. Lower values=faster but give less compression. Values
+                 above 20 should be used with caution as they require more
+                 memory.</dd>
     <dt>--threads &lt;count&gt;</dt>
-                 <dd>Explicitly set the number of threads to use during compression.
-                 By default, ETC1S / BasisLZ and ASTC compression will use the number of
-                 threads reported by thread::hardware_concurrency or 1 if value
-                 returned is 0.</dd>
+                 <dd>Explicitly set the number of threads to use during
+                 compression. By default, ETC1S / BasisLZ and ASTC compression
+                 will use the number of threads reported by
+                 thread::hardware_concurrency or 1 if value returned is 0.</dd>
     <dt>--verbose</dt>
-                 <dd>Print encoder/compressor activity status to stdout. Currently
-                 only the astc, etc1s and uastc encoders emit status.</dd>
+                 <dd>Print encoder/compressor activity status to stdout.
+                 Currently only the astc, etc1s and uastc encoders emit
+                 status.</dd>
   </dl>
   @snippet{doc} ktxapp.h ktxApp options
 
   In case of ambiguity, such as when the last option is one with an optional
   parameter, separate options from file names with " -- ".
 
-  Any specified ETC1S / BasisLZ and supercompression options are recorded in
-  the metadata item @c KTXwriterScParams in the output file.
+  Any specified ASTC, ETC1S / BasisLZ, UASTC and supercompression options are
+  recorded in the metadata item @c KTXwriterScParams in the output file.
 //! [scApp options]
 */
 
@@ -514,9 +529,9 @@ class scApp : public ktxApp {
           "    astc:\n"
           "               Create a texture in high-quality ASTC format.\n"
           "      --astc_blk_d <XxY | XxYxZ>\n"
-          "               Specify which block dimension to use for compressing the textures.\n"
+          "               Specify block dimension to use for compressing the textures.\n"
           "               e.g. --astc_blk_d 6x5 for 2D or --astc_blk_d 6x6x6 for 3D.\n"
-          "               6x6 is default for 2D.\n\n"
+          "               6x6 is the default for 2D.\n\n"
           "                   Supported 2D block dimensions are:\n\n"
           "                       4x4: 8.00 bpp         10x5:  2.56 bpp\n"
           "                       5x4: 6.40 bpp         10x6:  2.13 bpp\n"
@@ -532,14 +547,14 @@ class scApp : public ktxApp {
           "                       4x4x4: 2.00 bpp       6x6x5: 0.71 bpp\n"
           "                       5x4x4: 1.60 bpp       6x6x6: 0.59 bpp\n"
           "      --astc_mode <ldr | hdr>\n"
-          "               Specify which encoding mode to use. LDR is the default unless the input.\n"
-          "               image is 16-bit in which case the default is HDR.\n"
+          "               Specify which encoding mode to use. LDR is the default unless the\n"
+          "               input image is 16-bit in which case the default is HDR.\n"
           "      --astc_quality <level>\n"
           "               The quality level configures the quality-performance tradeoff for\n"
-          "               the compressor; more complete searches of the search space improve\n"
-          "               image quality at the expense of compression time. Default is 'medium'\n"
-          "               The quality level can be set to fastest (0) and thorough (100) via the \n"
-          "               following fixed quality presets:\n\n"
+          "               the compressor; more complete searches of the search space\n"
+          "               improve image quality at the expense of compression time. Default\n"
+          "               is 'medium'. The quality level can be set between fastest (0) and\n"
+          "               exhaustive (100) via the following fixed quality presets:\n\n"
           "                   Level      |  Quality\n"
           "                   ---------- | -----------------------------\n"
           "                   fastest    | (equivalent to quality =   0)\n"
@@ -563,7 +578,7 @@ class scApp : public ktxApp {
           "               Use --threads 1 instead.\n"
           "      --clevel <level>\n"
           "               ETC1S / BasisLZ compression level, an encoding speed vs. quality\n"
-          "               tradeoff. Range is [0,5], default is 1. Higher values are slower,\n"
+          "               tradeoff. Range is [0,5], default is 1. Higher values are slower\n"
           "               but give higher quality.\n"
           "      --qlevel <level>\n"
           "               ETC1S / BasisLZ quality level. Range is [1,255]. Lower gives\n"
@@ -596,10 +611,6 @@ class scApp : public ktxApp {
           "               Set selector RDO quality threshold. The default is 1.25. Lower\n"
           "               is higher quality but less quality per output bit (try\n"
           "               [1.0,3.0]). This will override the value chosen by --qlevel.\n"
-          "      --separate_rg_to_color_alpha\n"
-          "               Separates the input R and G channels to RGB and A (for tangent\n"
-          "               space XY normal maps). Only needed with 3 or 4 component input\n"
-          "               images.\n"
           "      --no_endpoint_rdo\n"
           "               Disable endpoint rate distortion optimizations. Slightly faster,\n"
           "               less noisy output, but lower quality per output bit. Default is\n"
@@ -655,29 +666,32 @@ class scApp : public ktxApp {
           "               Disable RDO multithreading (slightly higher compression,\n"
           "               deterministic).\n\n"
           "  --normal_mode\n"
-          "               Only valid for linear textures with two or more components.\n"
-          "               If the input texture has three or four linear components it is assumed to\n"
-          "               be a three component linear normal map storing unit length\n"
-          "               normals as (R=X, G=Y, B=Z). A fourth component will be ignored. The map will be\n"
-          "               converted to a two component X+Y normal map stored as (RGB=X, A=Y) prior to\n"
-          "               encoding. If unsure that your normals are unit length, use @b --normalize.\n"
-          "               If the input has 2 linear components it is assumed to be an X+Y map of unit normals.\n\n"
+          "               Only valid for linear textures with two or more components. If\n"
+          "               the input texture has three or four linear components it is\n"
+          "               assumed to be a three component linear normal map storing unit\n"
+          "               length normals as (R=X, G=Y, B=Z). A fourth component will be\n"
+          "               ignored. The map will be converted to a two component X+Y normal\n"
+          "               map stored as (RGB=X, A=Y) prior to encoding. If unsure that\n"
+          "               your normals are unit length, use @b --normalize. If the input\n"
+          "               has 2 linear components it is assumed to be an X+Y map of unit\n"
+          "               normals.\n\n"
           "               The Z component can be recovered programmatically in shader\n"
           "               code by using the equations:\n\n"
           "                   nml.xy = texture(...).ga;              // Load in [0,1]\n"
           "                   nml.xy = nml.xy * 2.0 - 1.0;           // Unpack to [-1,1]\n"
           "                   nml.z = sqrt(1 - dot(nml.xy, nml.xy)); // Compute Z\n\n"
           "               Encoding is optimized for normal maps. For ASTC encoding,\n"
-          "              '--encode astc', the encoder is directed to optimize for angular\n"
-          "               error instead of simple PSNR.  For ETC1S encoding, '--encode etc1s',\n"
-          "               RDO is disabled (no selector RDO, no endpoint RDO) to provide \n"
-          "               better quality.\n\n"
+          "              '--encode astc', encoder parameters are tuned for better quality\n"
+          "               on normal maps. .  For ETC1S encoding, '--encode etc1s',i RDO is\n"
+          "               disabled (no selector RDO, no endpoint RDO) to provide better\n"
+          "               quality.\n\n"
           "  --normalize\n"
           "               Normalize input normals to have a unit length. Only valid for\n"
-          "               linear textures with 2 or more components. For 2-component inputs 2D\n"
-          "               unit normals are calculated. Do not use this to generate X+Y normals \n"
-          "               for --normal_mode. For 4-component inputs a 3D unit normal is calculated.\n"
-          "               1.0 is used for the value of the 4th component."
+          "               linear textures with 2 or more components. For 2-component inputs\n"
+          "               2D unit normals are calculated. Do not use these 2D unit normals\n"
+          "               to generate X+Y normals for --normal_mode. For 4-component inputs\n"
+          "               a 3D unit normal is calculated. 1.0 is used for the value of the\n"
+          "               4th component.\n"
           "  --no_sse\n"
           "               Forbid use of the SSE instruction set. Ignored if CPU does not\n"
           "               support SSE. Only the Basis Universal compressor uses SSE.\n"
@@ -694,9 +708,9 @@ class scApp : public ktxApp {
           "               should be used with caution as they require more memory.\n"
           "  --threads <count>\n"
           "               Explicitly set the number of threads to use during compression.\n"
-          "               By default, ETC1S / BasisLZ and ASTC compression will use the number of\n"
-          "               threads reported by thread::hardware_concurrency or 1 if value\n"
-          "               returned is 0.\n"
+          "               By default, ETC1S / BasisLZ and ASTC compression will use the\n"
+          "               number of threads reported by thread::hardware_concurrency or 1\n"
+          "               if value returned is 0.\n"
           "  --verbose\n"
           "               Print encoder/compressor activity status to stdout. Currently\n"
           "               only the astc, etc1s and uastc encoders emit status.\n"
@@ -706,8 +720,8 @@ class scApp : public ktxApp {
           "In case of ambiguity, such as when the last option is one with an optional\n"
           "parameter, options can be separated from file names with \" -- \".\n"
           "\n"
-          "Any specified ETC1S / BasisLZ and supercompression options are recorded in\n"
-          "the metadata item @c KTXwriterScParams in the output file.\n"
+          "Any specified ASTC, ETC1S / BasisLZ, UASTC and supercompression options are\n"
+          "recorded in the metadata item @c KTXwriterScParams in the output file.\n"
           << endl;
     }
 };

@@ -11,8 +11,6 @@ add_executable( toktx
     lodepng.h
     npbmimage.cc
     pngimage.cc
-    stdafx.h
-    targetver.h
     toktx.cc
 )
 create_version_header( tools/toktx toktx )

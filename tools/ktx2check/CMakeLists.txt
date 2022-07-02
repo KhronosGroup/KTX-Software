@@ -3,7 +3,6 @@
 
 add_executable( ktx2check
     ktx2check.cpp
-    stdafx.h
 )
 create_version_header( tools/ktx2check ktx2check )
 

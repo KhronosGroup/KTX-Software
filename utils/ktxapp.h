@@ -4,11 +4,14 @@
 // Copyright 2019-2020 The Khronos Group Inc.
 // SPDX-License-Identifier: Apache-2.0
 
+#include "stdafx.h"
+
 #include <stdarg.h>
 #if (_MSVC_LANG >= 201703L || __cplusplus >= 201703L)
 #include <algorithm>
 #endif
 
+#include <iostream>
 #include <vector>
 #include <ktx.h>
 
@@ -70,9 +73,9 @@ struct clamped
 /**
 //! [ktxApp options]
   <dl>
-  <dt>--help</dt>
+  <dt>-h, --help</dt>
   <dd>Print this usage message and exit.</dd>
-  <dt>--version</dt>
+  <dt>-v, --version</dt>
   <dd>Print the version number of this program and exit.</dd>
   </dl>
 
@@ -84,8 +87,8 @@ class ktxApp {
     virtual int main(int argc, _TCHAR* argv[]) = 0;
     virtual void usage() {
         cerr <<
-          "  --help       Print this usage message and exit.\n"
-          "  --version    Print the version number of this program and exit.\n";
+          "  -h, --help    Print this usage message and exit.\n"
+          "  -v, --version Print the version number of this program and exit.\n";
     };
 
   protected:
@@ -110,6 +113,37 @@ class ktxApp {
         vfprintf(stderr, pFmt, args);
         va_end(args);
         cerr << "\n";
+    }
+
+    /** @internal
+     * @~English
+     * @brief Open a file for writing, failing if it exists.
+     *
+     * Assumes binary mode is wanted.
+     *
+     * Works around an annoying limitation of the VS2013-era msvcrt's
+     * @c fopen that implements an early version of the @c fopen spec.
+     * that does not accept 'x' as a mode character. For some reason
+     * Mingw uses this ancient version. Rather than use ifdef heuristics
+     * to identify sufferers of the limitation, it handles the error case
+     * and uses an alternate way to check for file existence.
+     *
+     * @return A stdio FILE* for the created file. If the file already exists
+     *         returns nullptr and sets errno to EEXIST.
+     */
+    static FILE* fopen_write_if_not_exists(const _tstring& path) {
+        FILE* file = ::_tfopen(path.c_str(), "wxb");
+        if (!file && errno == EINVAL) {
+            file = ::_tfopen(path.c_str(), "r");
+            if (file) {
+                fclose(file);
+                file = nullptr;
+                errno = EEXIST;
+            } else {
+                file = ::_tfopen(path.c_str(), "wb");
+            }
+        }
+        return file;
     }
 
     int strtoi(const char* str)

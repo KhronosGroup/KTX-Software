@@ -594,11 +594,19 @@ linearTilingCallback(int miplevel, int face,
 {
     user_cbdata_linear* ud = (user_cbdata_linear*)userdata;
     VkSubresourceLayout subResLayout;
+#if !defined(_MSC_VER) || _MSC_VER >= 1920
     VkImageSubresource subRes = {
       .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
       .mipLevel = miplevel,
       .arrayLayer = face
     };
+#else
+    VkImageSubresource subRes = {0};
+    subRes.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    subRes.mipLevel = miplevel;
+    subRes.arrayLayer = face;
+#endif
+
     UNUSED(width);
     UNUSED(height);
     UNUSED(depth);
@@ -636,12 +644,6 @@ linearTilingPadCallback(int miplevel, int face,
                       void* pixels, void* userdata)
 {
     user_cbdata_linear* ud = (user_cbdata_linear*)userdata;
-    VkSubresourceLayout subResLayout;
-    VkImageSubresource subRes = {
-      .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-      .mipLevel = miplevel,
-      .arrayLayer = face
-    };
     VkDeviceSize offset;
     ktx_size_t   imageSize = 0;
     VkDeviceSize imagePitch = 0;
@@ -651,6 +653,20 @@ linearTilingPadCallback(int miplevel, int face,
     ktx_uint32_t row, image;
     ktx_uint8_t* pSrc;
     ktx_size_t   copySize;
+    VkSubresourceLayout subResLayout;
+#if !defined(_MSC_VER) || _MSC_VER >= 1920
+    VkImageSubresource subRes = {
+      .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+      .mipLevel = miplevel,
+      .arrayLayer = face
+    };
+#else
+    VkImageSubresource subRes = {0};
+    subRes.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    subRes.mipLevel = miplevel;
+    subRes.arrayLayer = face;
+#endif
+
     UNUSED(width);
 
     // Get sub resources layout. Includes row pitch, size,

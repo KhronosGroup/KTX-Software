@@ -12,12 +12,11 @@
 // add ..\imdebug.lib to the libraries list in the project properties.
 #define IMAGE_DEBUG 0
 
-#include "stdafx.h"
+#include "scapp.h"
+
 #include <cstdlib>
 #include <cstring>
-#include <iostream>
 #include <sstream>
-#include <thread>
 #include <vector>
 #include <inttypes.h>
 #include <zstd.h>
@@ -26,7 +25,6 @@
 #include "ktx.h"
 #include "../../lib/vkformat_enum.h"
 #include "argparser.h"
-#include "scapp.h"
 #include "version.h"
 #include "image.hpp"
 #if (IMAGE_DEBUG) && defined(_DEBUG) && defined(_WIN32) && !defined(_WIN32_WCE)

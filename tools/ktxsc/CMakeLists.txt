@@ -3,7 +3,6 @@
 
 add_executable( ktxsc
     ktxsc.cpp
-    stdafx.h
 )
 create_version_header( tools/ktxsc ktxsc )
 

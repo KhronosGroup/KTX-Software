@@ -4,7 +4,15 @@
 // Copyright 2019-2020 Mark Callow
 // SPDX-License-Identifier: Apache-2.0
 
-#include "stdafx.h"
+#if defined(_WIN32)
+  // <windows.h> must appear before "scapp.h" for error-free mingw/gcc11 build.
+  // _CRT_SECURE_NO_WARNINGS must be defined before <windows.h> and <iostream>
+  // so we can't rely on the definition included by "scapp.h".
+  #define _CRT_SECURE_NO_WARNINGS
+  #define WINDOWS_LEAN_AND_MEAN
+  #include <windows.h>
+#endif
+
 #include <cstdlib>
 #include <errno.h>
 #include <iostream>
@@ -12,11 +20,6 @@
 #include <thread>
 #include <vector>
 #include <ktx.h>
-
-#if defined(_WIN32)
-#define WINDOWS_LEAN_AND_MEAN
-#include <windows.h>
-#endif
 
 #include <KHR/khr_df.h>
 
@@ -35,12 +38,6 @@
 #if defined(_MSC_VER)
   #undef min
   #undef max
-#endif
-
-#if IMAGE_DEBUG
-static void dumpImage(_TCHAR* name, int width, int height, int components,
-                      int componentSize, bool isLuminance,
-                      unsigned char* srcImage);
 #endif
 
 using namespace std;
@@ -84,7 +81,7 @@ Supercompress the images in a KTX2 file.
     @snippet{doc} scapp.h scApp options
 
 @section ktxsc_exitstatus EXIT STATUS
-    @b toktx exits 0 on success, 1 on command line errors and 2 on
+    @b ktxsc exits 0 on success, 1 on command line errors and 2 on
     functional errors.
 
 @section ktxsc_history HISTORY
@@ -116,7 +113,6 @@ class ktxSupercompressor : public scApp {
     struct commandOptions : public scApp::commandOptions {
         bool        useStdout;
         bool        force;
-        string      outfile;
 
         commandOptions() {
             force = false;
@@ -180,14 +176,13 @@ int _tmain(int argc, _TCHAR* argv[])
 }
 
 int
-ktxSupercompressor::main(int argc, _TCHAR *argv[])
+ktxSupercompressor::main(int argc, _TCHAR* argv[])
 {
     FILE *inf, *outf = nullptr;
     KTX_error_code result;
     ktxTexture2* texture = 0;
     int exitCode = 0;
     _tstring tmpfile;
-
 
     processCommandLine(argc, argv, eAllowStdin);
     validateOptions();
@@ -214,21 +209,7 @@ ktxSupercompressor::main(int argc, _TCHAR *argv[])
                 (void)_setmode( _fileno( stdout ), _O_BINARY );
 #endif
             } else if (options.outfile.length()) {
-                outf = _tfopen(options.outfile.c_str(), "wxb");
-                // Mingw gcc and possibly some Linux versions do not accept
-                // 'x' as a mode character, following an earlier version of the
-                // `fopen` spec. Work around this annoying limitation. Don't
-                // use ifdefs as all the places suffering this limitation are
-                // not known to us.
-                if (!outf && errno == EINVAL) {
-                    outf = _tfopen(options.outfile.c_str(), "r");
-                    if (outf) {
-                        outf = nullptr;
-                        errno = EEXIST;
-                    } else {
-                        outf = _tfopen(options.outfile.c_str(), "wb");
-                    }
-                }
+                outf = fopen_write_if_not_exists(options.outfile);
             } else {
                 // Make a temporary file in the same directory as the source
                 // file to avoid cross-device rename issues later.
@@ -264,14 +245,18 @@ ktxSupercompressor::main(int argc, _TCHAR *argv[])
             }
 
             if (outf) {
-                result = ktxTexture_CreateFromStdioStream(inf,
+                result = ktxTexture2_CreateFromStdioStream(inf,
                                         KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-                                        (ktxTexture**)&texture);
+                                        &texture);
 
-                if (result != KTX_SUCCESS) {
+                if (result == KTX_UNKNOWN_FILE_FORMAT) {
+                    cerr << infile << " is not a KTX v2 file." << endl;
+                    exitCode = 2;
+                    goto cleanup;
+                } else if (result != KTX_SUCCESS) {
                     cerr << name
-                         << " failed to create ktxTexture; "
-                         << ktxErrorString(result) << endl;
+                         << " failed to create ktxTexture from " << infile
+                         << ": " << ktxErrorString(result) << endl;
                     exitCode = 2;
                     goto cleanup;
                 }
@@ -408,7 +393,8 @@ ktxSupercompressor::main(int argc, _TCHAR *argv[])
     return 0;
 
 cleanup:
-  if (tmpfile.size() > 0) (void)_tunlink(tmpfile.c_str());
+    (void)fclose(outf); // N.B Windows refuses to unlink an open file.
+    if (tmpfile.size() > 0) (void)_tunlink(tmpfile.c_str());
     if (options.outfile.length()) (void)_tunlink(options.outfile.c_str());
     return exitCode;
 }
@@ -434,7 +420,7 @@ ktxSupercompressor::validateOptions()
 /*
  * @brief process a command line option
  *
- * @return
+ * @return true of option processed.
  *
  * @param[in]     parser,     an @c argparser holding the options to process.
  */
