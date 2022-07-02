@@ -5,24 +5,31 @@ Release Notes
 ## Version 4.1.0
 ### New Features in v4.1.0
 
-* ARM's ASTC encoder has been added to `libktx`. As a result you can now use `toktx` to create KTX files with ASTC encoded payloads.
+* ARM's ASTC encoder has been added to `libktx`. As a result you can now use `toktx` to create KTX files with ASTC encoded payloads. Thanks to @wasimabbas-arm.
 
 * Full normal map handling has been added. 3-component normal maps can be
 converted to 2-component and the components separated into the RGB and alpha channels of ASTC, ETC1S or UASTC compressed textures. A `--normalize` option has been added to `toktx` to convert an input normal map to unit normals which are needed to allow the third component to be recreated in a shader.
+Thanks to @wasimabbas-arm.
 
-* A Java wrapper and JNI module for `libktx` has been added.
+* A Java wrapper and JNI module for `libktx` has been added. Thanks to @ShukantPal.
 
 * An install package for Apple Silicon has been added.
 
-* The formerly internal `ktxStream` class has been exposed enabling possibilities such as wrapping a ktxStream around a C++ stream so that textures can be created from the C++ stream's content. See [sbufstream.h](https://github.com/KhronosGroup/KTX-Software/blob/master/utils/sbufstream.h)
+* An install package for Windows Arm-64 has been added. Thanks to @Honeybunch.
+
+* The formerly internal `ktxStream` class has been exposed enabling possibilities such as wrapping a ktxStream around a C++ stream so that textures can be created from the C++ stream's content. See [sbufstream.h](https://github.com/KhronosGroup/KTX-Software/blob/master/utils/sbufstream.h). Thanks to @UberLambda.
 
 * `ktx2check` now verifies BasisLZ supercompression data by performing a transcode.
 
 ### Significant Changes since v4.0.0
 
 * Basis Universal has been updated to version 1.16.3.
-    * The ETC1S encoder performance is now approximastely 30% faster.
+    * The ETC1S encoder performance is now approximately 30% faster.
     * Optional OpenCL support has been added to the ETC1S encoder. Add `-D SUPPORT_OPENCL` when configuring the CMake build to enable it. As OpenCL may not be any faster when encoding individual files - it highly depends on your hardware - it is disabled in the default build and release packages.
+
+* Windows install packages are now signed.
+
+* Textures with Depth-stencil formats are now created with DFDs and alignments matching the KTX v2 specification.
 
 ### Known Issues in v4.1.0.
 
@@ -38,6 +45,28 @@ converted to 2-component and the components separated into the RGB and alpha cha
 
 ### Changes since v4.0.0 (by part)
 ### libktx
+
+* Regularize Tools (#594) (870b9fff) (@MarkCallow)
+
+* Fixing build for arm64 Windows (#582) (b995ac33) (@Honeybunch)
+
+* Update astc-encoder (#592) (a6bcd33d) (@MarkCallow)
+
+* Fix missing documentation and compile warning. (#591) (ed9e7253) (@MarkCallow)
+
+* Update astc encoder (#586) (1cb97511) (@MarkCallow)
+
+* Release memory before early exit. (#584) (a4fddf6b) (@kacprzak)
+
+* Introduce proper vulkan initialization (#570) (bb9babcb) (@rHermes)
+
+* Using cmake's MINGW variable to detect proper ABI (#579) (a70e831e) (@Honeybunch)
+
+* Fix handling of combined depth-stencil textures (#575) (e4bf1aaa) (@MarkCallow)
+
+* Fix build on Mingw (#574) (1f07cb07) (@Honeybunch)
+
+* Prepare Release 4.1. (#571) (4a52fe45) (@MarkCallow)
 
 * git subrepo pull (merge) lib/astc-encoder (51f47631) (@MarkCallow)
 
@@ -137,6 +166,18 @@ converted to 2-component and the components separated into the RGB and alpha cha
 
 ### Tools
 
+* Regularize Tools (#594) (870b9fff) (@MarkCallow)
+
+* Fix cross-device rename failure (#593) (f020c1ba) (@MarkCallow)
+
+* Fix wrong alignment used when checking VK\_FORMAT\_UNDEFINED files (#585) (c7e4edc7) (@MarkCallow)
+
+* Sign Windows executables, dlls and NSIS installers. (#583) (dc231b32) (@MarkCallow)
+
+* Fix broken bytesPlane0 test. Add extra analysis. (#578) (243ba439) (@MarkCallow)
+
+* Fix handling of combined depth-stencil textures (#575) (e4bf1aaa) (@MarkCallow)
+
 * Farewell GYP. :-( (f1f04a7e) (@MarkCallow)
 
 * Miscellaneous fixes (#558) (66f6d750) (@MarkCallow)
@@ -177,6 +218,8 @@ converted to 2-component and the components separated into the RGB and alpha cha
 
 * Fix validation errors (#417) (78cd2b01) (@MarkCallow)
 
+
+
 ### JS Wrappers
 
 * Farewell GYP. :-( (f1f04a7e) (@MarkCallow)
@@ -186,6 +229,8 @@ converted to 2-component and the components separated into the RGB and alpha cha
 * Raise warning levels to /W4 & -Wall -Wextra (#418) (ca6f6e7d) (@MarkCallow)
 
 ### Java Wrapper
+
+* Sign Windows executables, dlls and NSIS installers. (#583) (dc231b32) (@MarkCallow)
 
 * Workaround FindJNI searching for framework when JAVA\_HOME not set. (#566) (957a198b) (@MarkCallow)
 
