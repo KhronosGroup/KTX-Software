@@ -76,6 +76,7 @@ jobs:
       run: |
         git tag
         git describe
+        git describe --abbrev=0 --match 'v[0-9]*'
 
     - name: Install Certificate File Decryption Tool
       if: matrix.options.package == 'YES'
