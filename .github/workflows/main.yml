@@ -63,6 +63,9 @@ jobs:
         # included (used for version creation)
         fetch-depth: 0
 
+    - name: Workaround actions/checkout mishandling of tags
+      run: git fetch -f origin ${{ github.ref }}:${{ github.ref }}
+
     # Need doxygen if docs are supposed to be built
     # This has been observed to fail due to Sourceforge host failure
     # Can't control that so please manually re-run if we time out here
@@ -145,6 +148,8 @@ jobs:
         fetch-depth: 0
     - uses: seanmiddleditch/gha-setup-ninja@v3
     - uses: Honeybunch/setup-mingw@v3
+    - name: Workaround actions/checkout mishandling of tags
+      run: git fetch -f origin ${{ github.ref }}:${{ github.ref }}
     - name: Pull test images from Git LFS
       run: git lfs pull --include=tests/srcimages,tests/testimages
     - name: Configure Mingw x64
@@ -176,6 +181,9 @@ jobs:
       with:
         ndk-version: r21e
         add-to-path: false
+
+    - name: Workaround actions/checkout mishandling of tags
+      run: git fetch -f origin ${{ github.ref }}:${{ github.ref }}
 
     - name: android_Debug
       run: ./ci_scripts/build_android_debug.sh
