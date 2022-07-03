@@ -72,8 +72,10 @@ jobs:
       with:
         args: install doxygen.install
 
-    - name: List Git tags
-      run: git tag
+    - name: Run git tag and git describe
+      run: |
+        git tag
+        git describe
 
     - name: Install Certificate File Decryption Tool
       if: matrix.options.package == 'YES'
@@ -224,10 +226,10 @@ jobs:
       uses: actions/download-artifact@v3
       if: (github.event_name == 'push') && (github.ref_type == 'tag')
       with:
-        name: ${{ steps.upload-artifact.name }}
+        name: KTX-Software-${{ steps.ktx-version.outputs.ktx-version }}-Android
 
     - name: List downloaded file
-      run: ls -l  ${{ steps.upload-artifact.name }}
+      run: echo artifact name is ${{ steps.upload-artifact.name }} && ls -l KTX-Software-${{ steps.ktx-version.outputs.ktx-version }}-Android
 
     - name: Upload To Release
       uses: softprops/action-gh-release@v1
