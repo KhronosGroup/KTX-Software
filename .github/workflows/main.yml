@@ -226,6 +226,9 @@ jobs:
       with:
         name: ${{ steps.upload-artifact.name }}
 
+    - name: List downloaded file
+      run: ls -l  ${{ steps.upload-artifact.name }}
+
     - name: Upload To Release
       uses: softprops/action-gh-release@v1
       if: (github.event_name == 'push') && (github.ref_type == 'tag')
