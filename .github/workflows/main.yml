@@ -57,7 +57,7 @@ jobs:
       CERT_DC_SALT: ${{ secrets.CERT_DC_SALT }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         # Fetch all history to make sure tags are
         # included (used for version creation)
@@ -126,7 +126,7 @@ jobs:
 
     - name: Upload To Release
       uses: softprops/action-gh-release@v1
-      if: matrix.options.package == 'YES' && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+      if: matrix.options.package == 'YES' && github.event_name == 'push' && github.ref_type == 'tag'
       with:
         draft: true
         prerelease: true
@@ -138,7 +138,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         # Fetch all history to make sure tags are
         # included (used for version creation)
@@ -164,7 +164,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         # Fetch all history to make sure tags are
         # included (used for version creation)
@@ -232,15 +232,13 @@ jobs:
     # Although the preceding step made an archive, Actions helpfully :-(
     # unarchives the files on download.
     - name: Create zip for deployment.
-      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+      if: github.event_name == 'push' && github.ref_type == 'tag'
       run: |
         zip -r KTX-Software-${{ steps.ktx-version.outputs.ktx-version }}-Android.zip install-android
-        ls -l KTX-Software*
-        pwd
 
     - name: Upload To Release
       uses: softprops/action-gh-release@v1
-      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+      if: github.event_name == 'push' && github.ref_type == 'tag'
       with:
         draft: true
         prerelease: true
