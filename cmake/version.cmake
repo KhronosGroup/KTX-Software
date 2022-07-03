@@ -110,7 +110,7 @@ endfunction()
 
 # Get latest tag
 git_describe_raw(KTX_VERSION_FULL --abbrev=0 --match v[0-9]*)
-#message("KTX full version: ${KTX_VERSION_FULL}")
+message("KTX full version: ${KTX_VERSION_FULL}")
 
 # generate_version(TOKTX_VERSION tools/toktx)
 # message("TOKTX_VERSION: ${TOKTX_VERSION}")
@@ -154,12 +154,12 @@ else()
         set(KTX_VERSION_PATCH "0" )
         set(KTX_VERSION_TWEAK "-noversion" )
     endif()
-endif()
+e#ndif()
 
 set(KTX_VERSION ${KTX_VERSION_MAJOR}.${KTX_VERSION_MINOR}.${KTX_VERSION_PATCH})
 set(KTX_VERSION_FULL ${KTX_VERSION}${KTX_VERSION_TWEAK})
 
-# message("KTX version: ${KTX_VERSION}  major: ${KTX_VERSION_MAJOR} minor:${KTX_VERSION_MINOR} patch:${KTX_VERSION_PATCH} tweak:${KTX_VERSION_TWEAK}")
+ message("KTX version: ${KTX_VERSION}  major: ${KTX_VERSION_MAJOR} minor:${KTX_VERSION_MINOR} patch:${KTX_VERSION_PATCH} tweak:${KTX_VERSION_TWEAK}")
 
 
 #

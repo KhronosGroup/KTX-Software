@@ -72,6 +72,9 @@ jobs:
       with:
         args: install doxygen.install
 
+    - name: List Git tags
+      run: git tag
+
     - name: Install Certificate File Decryption Tool
       if: matrix.options.package == 'YES'
       run: iex ((New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/appveyor/secure-file/master/install.ps1'))
@@ -207,11 +210,21 @@ jobs:
         echo "::set-output name=ktx-version::$KTX_VERSION"
 
     # Android artifact
+    # Zips the include and lib dirs installed for each architecture
+    # by the preceding steps and uploads the zip.
     - name: upload artifact
+      id: upload-artifact
       uses: actions/upload-artifact@v2
       with:
         name: KTX-Software-${{ steps.ktx-version.outputs.ktx-version }}-Android
         path: install-android
+
+    # Download the zip from the previous step.
+    - name: Download zipped artifact
+      uses: actions/download-artifact@v3
+      if: (github.event_name == 'push') && (github.ref_type == 'tag')
+      with:
+        name: ${{ steps.upload-artifact.name }}
 
     - name: Upload To Release
       uses: softprops/action-gh-release@v1
@@ -219,7 +232,7 @@ jobs:
       with:
         draft: true
         prerelease: true
-        files: KTX-Software-*
+        files: ${{ steps.upload-artifact.name }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
