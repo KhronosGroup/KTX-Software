@@ -154,7 +154,7 @@ else()
         set(KTX_VERSION_PATCH "0" )
         set(KTX_VERSION_TWEAK "-noversion" )
     endif()
-e#ndif()
+endif()
 
 set(KTX_VERSION ${KTX_VERSION_MAJOR}.${KTX_VERSION_MINOR}.${KTX_VERSION_PATCH})
 set(KTX_VERSION_FULL ${KTX_VERSION}${KTX_VERSION_TWEAK})
