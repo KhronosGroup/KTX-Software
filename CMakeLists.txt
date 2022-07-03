@@ -934,6 +934,9 @@ elseif( IOS )
     # CMAKE_SYSTEM_PROCESSOR not set when building for iOS.
     set(processor_name "arm64")
 endif()
+string(TOLOWER "${processor_name}" processor_name)
+message(STATUS "processor_name is ${processor_name}, CPU_ARCHITECTURE is ${CPU_ARCHITECTURE}")
+message(STATUS "KTX_VERSION_FULL = ${KTX_VERSION_FULL}")
 set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${KTX_VERSION_FULL}-${CMAKE_SYSTEM_NAME}-${processor_name}")
 
 if(APPLE)
