@@ -74,7 +74,13 @@ jobs:
 
     - name: Run git tag and git describe
       run: |
-        git tag
+        git tag -n5
+        echo "git describe"
+        git describe
+        git describe --abbrev=0 --match 'v[0-9]*'
+        echo "git fetch"
+        git fetch --unshallow --tags
+        echo "git describe, again"
         git describe
         git describe --abbrev=0 --match 'v[0-9]*'
 
@@ -222,15 +228,14 @@ jobs:
         name: KTX-Software-${{ steps.ktx-version.outputs.ktx-version }}-Android
         path: install-android
 
-    # Download the zip from the previous step.
-    - name: Download zipped artifact
-      uses: actions/download-artifact@v3
+    # Make an archive to be deployed.
+    # Although the preceding step made an archive, Actions helpfully :-(
+    # unarchives the files on download.
+    - name: Create zip for deployment.
       if: (github.event_name == 'push') && (github.ref_type == 'tag')
-      with:
-        name: KTX-Software-${{ steps.ktx-version.outputs.ktx-version }}-Android
-
-    - name: List downloaded file
-      run: echo artifact name is ${{ steps.upload-artifact.name }} && ls -l KTX-Software-${{ steps.ktx-version.outputs.ktx-version }}-Android
+      run: |
+        zip -r KTX-Software-${{ steps.ktx-version.outputs.ktx-version }}-Android install-android
+        ls KTX-Software*
 
     - name: Upload To Release
       uses: softprops/action-gh-release@v1
@@ -238,7 +243,7 @@ jobs:
       with:
         draft: true
         prerelease: true
-        files: ${{ steps.upload-artifact.name }}
+        files:  KTX-Software-${{ steps.ktx-version.outputs.ktx-version }}-Android.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
