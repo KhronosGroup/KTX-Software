@@ -237,7 +237,7 @@ jobs:
       if: github.event_name == 'push' && github.ref_type == 'tag'
       run: |
         zip_basename=KTX-Software-${{ steps.ktx-version.outputs.ktx-version }}-Android
-        ln install-android $zip_basename
+        ln -s install-android $zip_basename
         zip -r $zip_basename.zip $zip_basename
         sha1sum $zip_basename.zip > $zip_basename.zip.sha1
 
