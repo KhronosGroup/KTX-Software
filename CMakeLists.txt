@@ -913,6 +913,9 @@ set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ReadMe.rtf")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/License.rtf")
 
 # Custom package file name
+# This does not use the ${CPU_ARCHITECTURE} set earlier because the hope is
+# that the BasisU SIMD code will be changed to no longer need compile time
+# definitions and we can remove the complex cputypetest.cmake.
 if( APPLE AND CMAKE_OSX_ARCHITECTURES )
     # CMAKE_SYSTEM_PROCESSOR typically set to build host processor here.
     # CMAKE_OSX_ARCHITECTURES governs target of build.
@@ -935,8 +938,7 @@ elseif( IOS )
     set(processor_name "arm64")
 endif()
 string(TOLOWER "${processor_name}" processor_name)
-message(STATUS "processor_name is ${processor_name}, CPU_ARCHITECTURE is ${CPU_ARCHITECTURE}")
-message(STATUS "KTX_VERSION_FULL = ${KTX_VERSION_FULL}")
+#message(STATUS "processor_name is ${processor_name}, CPU_ARCHITECTURE is ${CPU_ARCHITECTURE}")
 set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${KTX_VERSION_FULL}-${CMAKE_SYSTEM_NAME}-${processor_name}")
 
 if(APPLE)

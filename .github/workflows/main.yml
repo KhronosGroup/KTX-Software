@@ -63,7 +63,9 @@ jobs:
         # included (used for version creation)
         fetch-depth: 0
 
-    - name: Workaround actions/checkout mishandling of tags
+    - name: Force fetch provoking tag's annotation.
+      # Work around https://github.com/actions/checkout/issues/290.
+      if: github.ref_type == 'tag'
       run: git fetch -f origin ${{ github.ref }}:${{ github.ref }}
 
     # Need doxygen if docs are supposed to be built
@@ -74,18 +76,6 @@ jobs:
       uses: crazy-max/ghaction-chocolatey@v2
       with:
         args: install doxygen.install
-
-    - name: Run git tag and git describe
-      run: |
-        git tag -n5
-        echo "git describe"
-        git describe
-        git describe --abbrev=0 --match 'v[0-9]*'
-        echo "git fetch"
-        git fetch --unshallow --tags
-        echo "git describe, again"
-        git describe
-        git describe --abbrev=0 --match 'v[0-9]*'
 
     - name: Install Certificate File Decryption Tool
       if: matrix.options.package == 'YES'
@@ -148,7 +138,9 @@ jobs:
         fetch-depth: 0
     - uses: seanmiddleditch/gha-setup-ninja@v3
     - uses: Honeybunch/setup-mingw@v3
-    - name: Workaround actions/checkout mishandling of tags
+    - name: Force update provoking tag
+      # Work around https://github.com/actions/checkout/issues/290.
+      if: github.ref_type == 'tag'
       run: git fetch -f origin ${{ github.ref }}:${{ github.ref }}
     - name: Pull test images from Git LFS
       run: git lfs pull --include=tests/srcimages,tests/testimages
@@ -182,7 +174,9 @@ jobs:
         ndk-version: r21e
         add-to-path: false
 
-    - name: Workaround actions/checkout mishandling of tags
+    - name: Force fetch provoking tag's annotation.
+      # Work around https://github.com/actions/checkout/issues/290.
+      if: github.ref_type == 'tag'
       run: git fetch -f origin ${{ github.ref }}:${{ github.ref }}
 
     - name: android_Debug
@@ -242,7 +236,10 @@ jobs:
     - name: Create zip for deployment.
       if: github.event_name == 'push' && github.ref_type == 'tag'
       run: |
-        zip -r KTX-Software-${{ steps.ktx-version.outputs.ktx-version }}-Android.zip install-android
+        zip_basename=KTX-Software-${{ steps.ktx-version.outputs.ktx-version }}-Android
+        ln install-android $zip_basename
+        zip -r $zip_basename.zip $zip_basename
+        sha1sum $zip_basename.zip > $zip_basename.zip.sha1
 
     - name: Upload To Release
       uses: softprops/action-gh-release@v1
@@ -250,7 +247,7 @@ jobs:
       with:
         draft: true
         prerelease: true
-        files:  KTX-Software-${{ steps.ktx-version.outputs.ktx-version }}-Android.zip
+        files:  KTX-Software-${{ steps.ktx-version.outputs.ktx-version }}-Android.zip*
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
