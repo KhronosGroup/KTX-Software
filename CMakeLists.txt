@@ -252,7 +252,13 @@ macro(commom_lib_settings lib write)
         SOVERSION ${PROJECT_VERSION_MAJOR}
         XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
     )
-    set_code_sign(${lib})
+    if(IOS)
+        set_target_properties(${lib} PROPERTIES
+            FRAMEWORK TRUE
+        )
+    endif()
+
+    set_code_sign(${lib} "NOPPS")
 
     target_compile_definitions(
         ${lib}
@@ -832,9 +838,6 @@ set(KTX_INSTALL_TARGETS ktx)
 
 if(KTX_FEATURE_STATIC_LIBRARY)
     list(APPEND KTX_INSTALL_TARGETS ${ASTC_LIB_NAME})
-    if(BASISU_SUPPORT_OPENCL)
-        list(APPEND ${OpenCL_LIBRARIES})
-    endif()
 endif()
 
 # Install
@@ -844,6 +847,12 @@ if(APPLE OR LINUX)
     set(KTX_NAMELINKS ON)
     install(TARGETS ${KTX_INSTALL_TARGETS}
         EXPORT KTXTargets
+        ARCHIVE
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            COMPONENT library
+        FRAMEWORK
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            COMPONENT library
         LIBRARY
             DESTINATION ${CMAKE_INSTALL_LIBDIR}
             COMPONENT library
@@ -919,10 +928,15 @@ set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/License.rtf")
 if( APPLE AND CMAKE_OSX_ARCHITECTURES )
     # CMAKE_SYSTEM_PROCESSOR typically set to build host processor here.
     # CMAKE_OSX_ARCHITECTURES governs target of build.
-    if( ${CMAKE_OSX_ARCHITECTURES} STREQUAL "$(ARCHS_STANDARD)" )
+    list(LENGTH CMAKE_OSX_ARCHITECTURES archs_len)
+    list(GET CMAKE_OSX_ARCHITECTURES 0 arch0)
+    # Cannot use CMAKE_OSX_ARCHITECTURES instead of arch0 due to if() being
+    # confused by potentially multiple architectures between OR and STREQUAL.
+    # It's okay in the else() clause but as we've already set arch0...
+    if( ${archs_len} GREATER 1 OR ${arch0} STREQUAL "$(ARCHS_STANDARD)" )
         set(processor_name "universal")
     else()
-        set(processor_name ${CMAKE_OSX_ARCHITECTURES})
+        set(processor_name ${arch0})
     endif()
 elseif(CMAKE_CXX_COMPILER_ARCHITECTURE_ID)
     # When targeting Windows arm64 CMAKE_SYSTEM_PROCESSOR will incorrectly 
@@ -942,26 +956,28 @@ string(TOLOWER "${processor_name}" processor_name)
 set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${KTX_VERSION_FULL}-${CMAKE_SYSTEM_NAME}-${processor_name}")
 
 if(APPLE)
-    install(FILES tools/package/mac/ktx-uninstall
-        DESTINATION ${CMAKE_INSTALL_BINDIR}
-        PERMISSIONS OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-        COMPONENT tools
-    )
-    set(CPACK_GENERATOR productbuild)
-    # Trick the productbuild generator into creating more useful package IDs
-    set(CPACK_PACKAGE_NAME "ktx")
-    set(CPACK_PACKAGE_VENDOR "khronos")
-    # Install at root level
-    set(CPACK_PACKAGING_INSTALL_PREFIX "/usr/local")
+    if(NOT IOS)
+        install(FILES tools/package/mac/ktx-uninstall
+            DESTINATION ${CMAKE_INSTALL_BINDIR}
+            PERMISSIONS OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+            COMPONENT tools
+        )
+        set(CPACK_GENERATOR productbuild)
+        # Trick the productbuild generator into creating more useful package IDs
+        set(CPACK_PACKAGE_NAME "ktx")
+        set(CPACK_PACKAGE_VENDOR "khronos")
+        # Install at root level
+        set(CPACK_PACKAGING_INSTALL_PREFIX "/usr/local")
 
-    set(CPACK_PRODUCTBUILD_IDENTITY_NAME ${PRODUCTBUILD_IDENTITY_NAME})
-    set(CPACK_PRODUCTBUILD_KEYCHAIN_PATH ${PRODUCTBUILD_KEYCHAIN_PATH})
+        set(CPACK_PRODUCTBUILD_IDENTITY_NAME ${PRODUCTBUILD_IDENTITY_NAME})
+        set(CPACK_PRODUCTBUILD_KEYCHAIN_PATH ${PRODUCTBUILD_KEYCHAIN_PATH})
 
-    # Contains the `summary.html` file, shown at end of installation
-    set(CPACK_PRODUCTBUILD_RESOURCES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tools/package/mac/Resources")
-    set(CPACK_PRODUCTBUILD_BACKGROUND "ktx_logo_190_xp.png")
-    set(CPACK_PRODUCTBUILD_BACKGROUND_MIME_TYPE "image/png")
-    set(CPACK_PRODUCTBUILD_BACKGROUND_ALIGNMENT "bottomleft")
+        # Contains the `summary.html` file, shown at end of installation
+        set(CPACK_PRODUCTBUILD_RESOURCES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tools/package/mac/Resources")
+        set(CPACK_PRODUCTBUILD_BACKGROUND "ktx_logo_190_xp.png")
+        set(CPACK_PRODUCTBUILD_BACKGROUND_MIME_TYPE "image/png")
+        set(CPACK_PRODUCTBUILD_BACKGROUND_ALIGNMENT "bottomleft")
+    endif()
 
 elseif(LINUX)
     set(CPACK_GENERATOR DEB RPM TBZ2)

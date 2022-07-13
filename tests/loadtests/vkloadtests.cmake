@@ -125,8 +125,7 @@ add_executable( vkloadtests
 
 set_code_sign(vkloadtests)
 
-target_include_directories(
-    vkloadtests
+target_include_directories(vkloadtests
 PRIVATE
     ${SDL2_INCLUDE_DIRS}
     $<TARGET_PROPERTY:appfwSDL,INTERFACE_INCLUDE_DIRECTORIES>
@@ -137,8 +136,7 @@ PRIVATE
     vkloadtests/utils
 )
 
-target_link_libraries(
-    vkloadtests
+target_link_libraries(vkloadtests
     ktx
     ${KTX_ZLIB_LIBRARIES}
     objUtil

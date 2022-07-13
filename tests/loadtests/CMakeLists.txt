@@ -20,7 +20,15 @@ if(NOT EMSCRIPTEN AND NOT WIN32)
 endif()
 
 if(APPLE AND IOS)
-    set(CMAKE_OSX_ARCHITECTURES "arm64")
+    if( CMAKE_OSX_ARCHITECTURES )
+        list(LENGTH CMAKE_OSX_ARCHITECTURES archs_len)
+        list(GET CMAKE_OSX_ARCHITECTURES 0 arch0)
+        if( ${archs_len} GREATER 1 OR (NOT ${arch0} STREQUAL "arm64") )
+            message(FATAL_ERROR "iOS loadtests only supported on arm64."
+                    " Please disable KTX_FEATURE_LOADTEST_APPS or change "
+                    "CMAKE_OSX_ARCHITECTURES.")
+        endif()
+    endif()
     # Find Frameworks
     find_library(AudioToolbox_LIBRARY AudioToolbox)
     find_library(AVFoundation_LIBRARY AVFoundation)
