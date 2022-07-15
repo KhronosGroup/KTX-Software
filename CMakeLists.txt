@@ -786,25 +786,25 @@ list(FIND CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" ASTC_BUILD_UNIVERSAL)
 
 if(${ASTC_BUILD_UNIVERSAL} EQUAL -1)
     if (${ISA_NONE})
-        set(ASTC_LIB_NAME astcenc-none-static)
+        set(ASTC_LIB_TARGET astcenc-none-static)
     else()
         if(CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86)
             if (${ISA_SSE41})
-                set(ASTC_LIB_NAME astcenc-sse4.1-static)
+                set(ASTC_LIB_TARGET astcenc-sse4.1-static)
             elseif (${ISA_SSE2})
-                set(ASTC_LIB_NAME astcenc-sse2-static)
+                set(ASTC_LIB_TARGET astcenc-sse2-static)
             else()
                 set(ISA_AVX2 ON)
-                set(ASTC_LIB_NAME astcenc-avx2-static)
+                set(ASTC_LIB_TARGET astcenc-avx2-static)
             endif()
             if(CPU_ARCHITECTURE STREQUAL x86)
                 set(ISA_NONE ON)
                 set(ISA_AVX2 OFF)
                 set(ASTCENC_POPCNT 0)
-                set(ASTC_LIB_NAME astcenc-none-static)
+                set(ASTC_LIB_TARGET astcenc-none-static)
             endif()
         elseif(CPU_ARCHITECTURE STREQUAL armv8 OR CPU_ARCHITECTURE STREQUAL arm64)
-            set(ASTC_LIB_NAME astcenc-neon-static)
+            set(ASTC_LIB_TARGET astcenc-neon-static)
             set(ISA_NEON ON)
         else()
             message(STATUS "Unsupported ISA for ${CPU_ARCHITECTURE} arch, using ISA_NONE.")
@@ -812,14 +812,32 @@ if(${ASTC_BUILD_UNIVERSAL} EQUAL -1)
         endif()
     endif()
 else()
-    set(ASTC_LIB_NAME astcenc-static)
+    set(ASTC_LIB_TARGET astcenc-static)
 endif()
 
 # astcenc
 set(CLI OFF) # Only build as library not the CLI astcencoder
 add_subdirectory(lib/astc-encoder)
-set_property(TARGET ${ASTC_LIB_NAME} PROPERTY POSITION_INDEPENDENT_CODE ON)
-target_link_libraries(ktx PRIVATE ${ASTC_LIB_NAME})
+set_property(TARGET ${ASTC_LIB_TARGET} PROPERTY POSITION_INDEPENDENT_CODE ON)
+
+if(KTX_FEATURE_STATIC_LIBRARY AND NOT WIN32)
+    # Make a single static library to simplify linking.
+    add_dependencies(ktx ${ASTC_LIB_TARGET})
+    add_custom_command( TARGET ktx
+        POST_BUILD
+        COMMAND libtool -static -o $<TARGET_FILE:ktx> $<TARGET_FILE:ktx> $<TARGET_FILE:${ASTC_LIB_TARGET}>
+    )
+
+    # Don't know libtool equivalent on Windows so on Windows with static libs
+    # applications will have to link with  both ktx and ${ASTC_LIB_TARGET}.
+    # Static libs are unlikely to be used on Windows so not a problem.
+else()
+    if(KTX_FEATURE_STATIC_LIBRARY)
+        # For WIN32
+        list(APPEND KTX_INSTALL_TARGETS ${ASTC_LIB_TARGET})
+    endif()
+    target_link_libraries(ktx PRIVATE ${ASTC_LIB_TARGET})
+endif()
 
 # Tools
 if(KTX_FEATURE_TOOLS)
@@ -835,10 +853,6 @@ if(KTX_FEATURE_DOC)
 endif()
 
 set(KTX_INSTALL_TARGETS ktx)
-
-if(KTX_FEATURE_STATIC_LIBRARY)
-    list(APPEND KTX_INSTALL_TARGETS ${ASTC_LIB_NAME})
-endif()
 
 # Install
 
@@ -977,8 +991,12 @@ if(APPLE)
         set(CPACK_PRODUCTBUILD_BACKGROUND "ktx_logo_190_xp.png")
         set(CPACK_PRODUCTBUILD_BACKGROUND_MIME_TYPE "image/png")
         set(CPACK_PRODUCTBUILD_BACKGROUND_ALIGNMENT "bottomleft")
+    else()
+        set(CPACK_GENERATOR ZIP)
+        set(CPACK_ARCHIVE_KTX_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}")
+        set(CPACK_ARCHIVE_COMPONENT_INSTALL OFF)
+        set(CPACK_PACKAGE_CHECKSUM SHA1)
     endif()
-
 elseif(LINUX)
     set(CPACK_GENERATOR DEB RPM TBZ2)
     set(CPACK_PACKAGE_CHECKSUM SHA1)

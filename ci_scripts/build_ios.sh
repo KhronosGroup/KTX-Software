@@ -75,10 +75,13 @@ do
   #echo "Build KTX-Software (iOS Simulator $config) FEATURE_DOC=$FEATURE_DOC FEATURE_JNI=$FEATURE_JNI FEATURE_LOADTESTS=$FEATURE_LOADTESTS SUPPORT_SSE=OFF SUPPORT_OPENCL=$SUPPORT_OPENCL"
   # cmake --build . --config $config -- -sdk iphonesimulator
 
-  popd
-
-  cmake --install $BUILD_DIR --config $config --prefix install-ios/iphoneos
-  #cmake --install . --config $config-iphonesimulator --prefix ../install-ios/iphonesimulator
+  if [ "$config" = "Release" -a "$PACKAGE" = "YES" ]; then
+    echo "Pack KTX-Software (iOS $config)"
+    if ! cpack ; then
+      cat _CPack_Packages/iOS/ZIP/ZipBuildOutput.log
+      exit 1
+    fi
+  fi
 done
 
-
+popd
