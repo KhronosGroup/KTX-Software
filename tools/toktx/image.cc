@@ -45,6 +45,7 @@ Image* Image::CreateFromFile(const _tstring& name,
     for (; func < CreateFunctions.end(); func++ ) {
         try {
             image = (*func)(f, transformOETF, rescale);
+            fclose(f);
             return image;
         } catch (different_format&) {
             rewind(f);
