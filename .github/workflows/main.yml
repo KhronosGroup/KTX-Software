@@ -179,12 +179,13 @@ jobs:
       if: github.ref_type == 'tag'
       run: git fetch -f origin ${{ github.ref }}:${{ github.ref }}
 
-    - name: android_Debug
+    - name: android_Debug_arm64-v8a
       run: ./ci_scripts/build_android_debug.sh
       env:
         ANDROID_ABI: arm64-v8a
         ANDROID_NDK: ${{ steps.setup-ndk.outputs.ndk-path }}
         ASTC_ISA: "ISA_NEON=ON"
+        CONFIGURATION: Debug
 
     - name: android_arm64-v8a
       run: ./ci_scripts/build_android.sh
