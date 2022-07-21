@@ -223,10 +223,10 @@ set( GL3_SOURCES
     common/TranscodeTargetStrToFmt.h
     common/disable_glm_warnings.h
     common/reenable_warnings.h
-    glloadtests/shader-based/BasisuTest.cpp
-    glloadtests/shader-based/BasisuTest.h
     glloadtests/shader-based/DrawTexture.cpp
     glloadtests/shader-based/DrawTexture.h
+    glloadtests/shader-based/EncodeTexture.cpp
+    glloadtests/shader-based/EncodeTexture.h
     glloadtests/shader-based/GL3LoadTests.cpp
     glloadtests/shader-based/GL3LoadTestSample.cpp
     glloadtests/shader-based/GL3LoadTestSample.h

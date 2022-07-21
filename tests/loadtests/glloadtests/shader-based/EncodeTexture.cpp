@@ -7,8 +7,11 @@
  */
 
 /**
- * @file    BasisuTest.cpp
- * @brief    Draw a textured cube.
+ * @file    EncodeTexture.cpp
+ * @brief    Encode a texture then texture a cube with it, transcoding if necessary.
+ *
+ * This is used principally to check the encoders are properly linked on platforms where the ktx tools are
+ * unavailable and libktx is a static library.
  *
  * @author Mark Callow, www.edgewise-consulting.com.
  */
@@ -28,9 +31,12 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "reenable_warnings.h"
 
-#include "BasisuTest.h"
+#include "EncodeTexture.h"
 #include "GLTextureTranscoder.hpp"
+#include "TranscodeTargetStrToFmt.h"
 #include "cube.h"
+#include "argparser.h"
+#include "ltexceptions.h"
 
 /* ------------------------------------------------------------------------- */
 
@@ -40,14 +46,14 @@ extern const GLchar *pszDecalFs, *pszDecalSrgbEncodeFs;
 /* ------------------------------------------------------------------------- */
 
 LoadTestSample*
-BasisuTest::create(uint32_t width, uint32_t height,
+EncodeTexture::create(uint32_t width, uint32_t height,
                     const char* const szArgs,
                     const std::string sBasePath)
 {
-    return new BasisuTest(width, height, szArgs, sBasePath);
+    return new EncodeTexture(width, height, szArgs, sBasePath);
 }
 
-BasisuTest::BasisuTest(uint32_t width, uint32_t height,
+EncodeTexture::EncodeTexture(uint32_t width, uint32_t height,
                            const char* const szArgs,
                            const std::string sBasePath)
         : GL3LoadTestSample(width, height, szArgs, sBasePath)
@@ -62,8 +68,12 @@ BasisuTest::BasisuTest(uint32_t width, uint32_t height,
 
     bInitialized = GL_FALSE;
     gnTexture = 0;
+    encodeTarget = EF_ETC1S;
+    transcodeTarget = KTX_TTF_NOSELECTION;
 
-    filename = getAssetPath() + szArgs;
+    processArgs(szArgs);
+
+    filename = getAssetPath() + ktxfilename;
     ktxresult = ktxTexture_CreateFromNamedFile(filename.c_str(),
                                                KTX_TEXTURE_CREATE_NO_FLAGS,
                                                (ktxTexture**)&kTexture);
@@ -75,8 +85,24 @@ BasisuTest::BasisuTest(uint32_t width, uint32_t height,
         throw std::runtime_error(message.str());
     }
 
-    if (!ktxTexture2_NeedsTranscoding(kTexture) && !kTexture->isCompressed) {
-        ktxresult = ktxTexture2_CompressBasis(kTexture, 0);
+    if (!kTexture->isCompressed) {
+        switch (encodeTarget) {
+          case EF_ASTC:
+            ktxresult = ktxTexture2_CompressAstc(kTexture, 0);
+            break;
+          case EF_ETC1S:
+            ktxresult = ktxTexture2_CompressBasis(kTexture, 0);
+            break;
+          case EF_UASTC:
+            {
+                ktxBasisParams params = { };
+                params.structSize = sizeof(params);
+                params.uastc = KTX_TRUE;
+                params.threadCount = 1;
+                ktxresult = ktxTexture2_CompressBasisEx(kTexture, &params);
+                break;
+            }
+        }
         if (KTX_SUCCESS != ktxresult) {
             std::stringstream message;
 
@@ -85,8 +111,11 @@ BasisuTest::BasisuTest(uint32_t width, uint32_t height,
             throw std::runtime_error(message.str());
         }
     }
-    TextureTranscoder tc;
-    tc.transcode((ktxTexture2*)kTexture);
+
+    if (ktxTexture2_NeedsTranscoding(kTexture)) {
+        TextureTranscoder tc;
+        tc.transcode((ktxTexture2*)kTexture);
+    }
 
     ktxresult = ktxTexture_GLUpload(ktxTexture(kTexture), &gnTexture, &target,
                                     &glerror);
@@ -119,13 +148,17 @@ BasisuTest::BasisuTest(uint32_t width, uint32_t height,
         std::stringstream message;
 
         message << "Load of texture from \"" << filename << "\" failed: ";
-        if (ktxresult == KTX_GL_ERROR) {
-            message << std::showbase << "GL error " << std::hex << glerror
-                    << " occurred.";
+        if (ktxresult == KTX_GL_ERROR && glerror == GL_INVALID_ENUM) {
+            throw unsupported_ctype();
         } else {
-            message << ktxErrorString(ktxresult);
+            if (ktxresult == KTX_GL_ERROR) {
+                message << std::showbase << "GL error " << std::hex << glerror
+                        << " occurred.";
+            } else {
+                message << ktxErrorString(ktxresult);
+            }
+            throw std::runtime_error(message.str());
         }
-        throw std::runtime_error(message.str());
     }
 
     // By default dithering is enabled. Dithering does not provide visual
@@ -201,7 +234,7 @@ BasisuTest::BasisuTest(uint32_t width, uint32_t height,
     bInitialized = GL_TRUE;
 }
 
-BasisuTest::~BasisuTest()
+EncodeTexture::~EncodeTexture()
 {
     glEnable(GL_DITHER);
     glDisable(GL_CULL_FACE);
@@ -215,9 +248,49 @@ BasisuTest::~BasisuTest()
     assert(GL_NO_ERROR == glGetError());
 }
 
+/* ------------------------------------------------------------------------- */
 
 void
-BasisuTest::resize(uint32_t uWidth, uint32_t uHeight)
+EncodeTexture::processArgs(std::string sArgs)
+{
+    // Options descriptor
+    struct argparser::option longopts[] = {
+      {"encode",           argparser::option::required_argument, nullptr, 1},
+      {"transcode-target", argparser::option::required_argument, nullptr, 2},
+      {NULL,               argparser::option::no_argument,       nullptr, 0}
+    };
+
+    argvector argv(sArgs);
+    argparser ap(argv);
+
+    int ch;
+    while ((ch = ap.getopt(nullptr, longopts, nullptr)) != -1) {
+        switch (ch) {
+          case 0: break;
+          case 1:
+            if (!ap.optarg.compare("astc"))
+                encodeTarget = EF_ASTC;
+            else if (!ap.optarg.compare("etc1s"))
+                encodeTarget = EF_ETC1S;
+            else if (!ap.optarg.compare("uastc"))
+                encodeTarget = EF_UASTC;
+            else
+                assert(false && "Error in args in sample table");
+            break;
+          case 2:
+            transcodeTarget = TranscodeTargetStrToFmt(ap.optarg);
+            break;
+          default: assert(false && "Error in args in sample table");
+        }
+    }
+    assert(ap.optind < argv.size());
+    ktxfilename = argv[ap.optind];
+}
+
+/* ------------------------------------------------------------------------- */
+
+void
+EncodeTexture::resize(uint32_t uWidth, uint32_t uHeight)
 {
     glm::mat4 matProj;
 
@@ -230,7 +303,7 @@ BasisuTest::resize(uint32_t uWidth, uint32_t uHeight)
 }
 
 void
-BasisuTest::run(uint32_t msTicks)
+EncodeTexture::run(uint32_t msTicks)
 {
     // Setup the view matrix : just turn around the cube.
     const float fDistance = 5.0f;
