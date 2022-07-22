@@ -7,8 +7,13 @@
 # Exit if any command fails.
 set -e
 
-# Set parameters from command-line arguments, if any.
-for i in $@; do
+# Set parameters from command-line arguments, if any. This is designed
+# to handle args of the form PARAM=value or PARAM="value1 value2 ...".
+# Any other form of CL args must be handled first.
+echo num options = $#
+for i in "$@"; do
+  echo == $i
+  i=${i/ /\\ }
   eval $i
 done
 
@@ -77,7 +82,7 @@ do
 
   if [ "$config" = "Release" -a "$PACKAGE" = "YES" ]; then
     echo "Pack KTX-Software (iOS $config)"
-    if ! cpack ; then
+    if ! cpack -C Release; then
       cat _CPack_Packages/iOS/ZIP/ZipBuildOutput.log
       exit 1
     fi
