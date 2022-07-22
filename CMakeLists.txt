@@ -774,6 +774,13 @@ set (STATIC_APP_LIB_SYMBOL_VISIBILITY hidden)
 set_target_properties(objUtil PROPERTIES
     CXX_VISIBILITY_PRESET ${STATIC_APP_LIB_SYMBOL_VISIBILITY}
 )
+if(KTX_FEATURE_STATIC_LIBRARY AND
+   (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
+    set_source_files_properties(
+        lib/astc_encode.cpp
+        PROPERTIES COMPILE_OPTIONS "-fvisibility=hidden"
+    )
+endif()
 
 add_subdirectory(interface/basisu_c_binding)
 
@@ -808,6 +815,7 @@ if(${ASTC_BUILD_UNIVERSAL} EQUAL -1)
             set(ISA_NEON ON)
         else()
             message(STATUS "Unsupported ISA for ${CPU_ARCHITECTURE} arch, using ISA_NONE.")
+            set(ASTC_LIB_TARGET astcenc-none-static)
             set(ISA_NONE ON)
         endif()
     endif()
@@ -820,7 +828,7 @@ set(CLI OFF) # Only build as library not the CLI astcencoder
 add_subdirectory(lib/astc-encoder)
 set_property(TARGET ${ASTC_LIB_TARGET} PROPERTY POSITION_INDEPENDENT_CODE ON)
 
-if(KTX_FEATURE_STATIC_LIBRARY AND NOT WIN32)
+if(KTX_FEATURE_STATIC_LIBRARY AND NOT WIN32 AND NOT EMSCRIPTEN)
     # Make a single static library to simplify linking.
     add_dependencies(ktx ${ASTC_LIB_TARGET})
     add_custom_command( TARGET ktx
@@ -828,14 +836,11 @@ if(KTX_FEATURE_STATIC_LIBRARY AND NOT WIN32)
         COMMAND libtool -static -o $<TARGET_FILE:ktx> $<TARGET_FILE:ktx> $<TARGET_FILE:${ASTC_LIB_TARGET}>
     )
 
-    # Don't know libtool equivalent on Windows so on Windows with static libs
-    # applications will have to link with  both ktx and ${ASTC_LIB_TARGET}.
-    # Static libs are unlikely to be used on Windows so not a problem.
+    # Don't know libtool equivalent on Windows or Emscripten. Applications
+    # will have to link with  both ktx and ${ASTC_LIB_TARGET}. Static libs
+    # are unlikely to be used on Windows so not a problem there. For Emscripten
+    # everything is built into the JS module so not an issue there either.
 else()
-    if(KTX_FEATURE_STATIC_LIBRARY)
-        # For WIN32
-        list(APPEND KTX_INSTALL_TARGETS ${ASTC_LIB_TARGET})
-    endif()
     target_link_libraries(ktx PRIVATE ${ASTC_LIB_TARGET})
 endif()
 
@@ -853,6 +858,9 @@ if(KTX_FEATURE_DOC)
 endif()
 
 set(KTX_INSTALL_TARGETS ktx)
+if(KTX_FEATURE_STATIC_LIBRARY AND (WIN32 OR EMSCRIPTEN))
+    list(APPEND KTX_INSTALL_TARGETS ${ASTC_LIB_TARGET})
+endif()
 
 # Install
 
@@ -920,7 +928,6 @@ install( FILES
     DESTINATION lib/cmake/ktx
     COMPONENT library
 )
-
 
 # CPack
 
