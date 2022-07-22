@@ -109,7 +109,7 @@ fi
 
 if [ "$PACKAGE" = "YES" ]; then
   echo "Pack KTX-Software (macOS $CONFIGURATION)"
-  if ! cpack -G productbuild; then
+  if ! cpack -C Release -G productbuild; then
     cat _CPack_Packages/Darwin/productbuild/ProductBuildOutput.log
     exit 1
   fi
