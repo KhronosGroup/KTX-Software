@@ -571,21 +571,19 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     else()
         set( clang_version ${CMAKE_CXX_COMPILER_VERSION} )
     endif()
-    if (${clang_version} VERSION_GREATER_EQUAL "12.0.5")
+    if (${clang_version} VERSION_GREATER_EQUAL "12.0.0")
         set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter;-Wno-deprecated-copy;-Wno-uninitialized-const-reference"
-            )
-    else()
-        set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
-            PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter"
         )
-    endif()
-    if (${clang_version} VERSION_GREATER_EQUAL "12.0.0")
         # Primarily an issue on windows using clang/clangcl
         # Lowest tested clang version was 12.0.0 and highest was 14.0.4
         set_source_files_properties(
             lib/basisu/zstd/zstd.c
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-function"
+        )
+    else()
+        set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
+            PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter"
         )
     endif()
     if (${clang_version} VERSION_GREATER_EQUAL "13.0.0")

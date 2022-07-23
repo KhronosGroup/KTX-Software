@@ -249,7 +249,7 @@ after_success:
 
 before_deploy:
   - |
-    gem install octokit -v '~> 4.15.0' mime-types
+    gem install octokit:'~> 4.15.0' mime-types
     case "${TRAVIS_OS_NAME:-linux}" in
     linux)
       ;;
