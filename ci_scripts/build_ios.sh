@@ -7,8 +7,13 @@
 # Exit if any command fails.
 set -e
 
-# Set parameters from command-line arguments, if any.
-for i in $@; do
+# Set parameters from command-line arguments, if any. This is designed
+# to handle args of the form PARAM=value or PARAM="value1 value2 ...".
+# Any other form of CL args must be handled first.
+echo num options = $#
+for i in "$@"; do
+  echo == $i
+  i=${i/ /\\ }
   eval $i
 done
 
@@ -23,9 +28,9 @@ PACKAGE=${PACKAGE:-NO}
 SUPPORT_SSE=OFF
 SUPPORT_OPENCL=${SUPPORT_OPENCL:-OFF}
 
-BUILD_DIR=${BUILD_DIR:-build/ios-$CONFIGURATION}
+BUILD_DIR=${BUILD_DIR:-build/ios}
 
-export VULKAN_SDK=${VULKAN_SDK:-VULKAN_SDK=~/VulkanSDK/1.2.176.1/macOS}
+export VULKAN_SDK=${VULKAN_SDK:-~/VulkanSDK/1.2.198.1/macOS}
 
 # Ensure that Vulkan SDK's glslc is in PATH
 export PATH="${VULKAN_SDK}/bin:$PATH"
@@ -54,7 +59,7 @@ set -o pipefail
 # iOS
 #
 
-echo "Configure KTX-Software (iOS $CONFIGURATION) dir=$BUILD_DIR FEATURE_DOC=$FEATURE_DOC FEATURE_JNI=$FEATURE_JNI FEATURE_LOADTESTS=$FEATURE_LOADTESTS FEATURE_TOOLS=$FEATURE_TOOLS SUPPORT_SSE=$SUPPORT_SSE SUPPORT_OPENCL=$SUPPORT_OPENCL"
+echo "Configure KTX-Software (iOS) dir=$BUILD_DIR FEATURE_DOC=$FEATURE_DOC FEATURE_JNI=$FEATURE_JNI FEATURE_LOADTESTS=$FEATURE_LOADTESTS FEATURE_TOOLS=$FEATURE_TOOLS SUPPORT_SSE=$SUPPORT_SSE SUPPORT_OPENCL=$SUPPORT_OPENCL"
 cmake -GXcode -B$BUILD_DIR \
   -D ISA_NEON=ON \
   -D CMAKE_SYSTEM_NAME=iOS \
@@ -64,14 +69,24 @@ cmake -GXcode -B$BUILD_DIR \
   -D KTX_FEATURE_TOOLS=$FEATURE_TOOLS \
   -D BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL \
   -D BASISU_SUPPORT_SSE=$SUPPORT_SSE
+
 pushd $BUILD_DIR
 
-echo "Build KTX-Software (iOS $CONFIGURATION) FEATURE_DOC=$FEATURE_DOC FEATURE_JNI=$FEATURE_JNI FEATURE_LOADTESTS=$FEATURE_LOADTESTS FEATURE_TOOLS=$FEATURE_TOOLS SUPPORT_SSE=$SUPPORT_SSE SUPPORT_OPENCL=$SUPPORT_OPENCL"
-cmake --build . --config $CONFIGURATION -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO | handle_compiler_output
+for config in $CONFIGURATION
+do
+  echo "Build KTX-Software (iOS $config) FEATURE_DOC=$FEATURE_DOC FEATURE_JNI=$FEATURE_JNI FEATURE_LOADTESTS=$FEATURE_LOADTESTS FEATURE_TOOLS=$FEATURE_TOOLS SUPPORT_SSE=OFF SUPPORT_OPENCL=$SUPPORT_OPENCL"
+  cmake --build . --config $config -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO | handle_compiler_output
 
-# echo "Build KTX-Software (iOS Simulator)"
-#echo "Build KTX-Software (iOS Simulator $CONFIGURATION) FEATURE_DOC=$FEATURE_DOC FEATURE_JNI=$FEATURE_JNI FEATURE_LOADTESTS=$FEATURE_LOADTESTS SUPPORT_SSE=OFF SUPPORT_OPENCL=$SUPPORT_OPENCL"
-# cmake --build . --config $CONFIGURATION -- -sdk iphonesimulator
+  #echo "Build KTX-Software (iOS Simulator $config) FEATURE_DOC=$FEATURE_DOC FEATURE_JNI=$FEATURE_JNI FEATURE_LOADTESTS=$FEATURE_LOADTESTS SUPPORT_SSE=OFF SUPPORT_OPENCL=$SUPPORT_OPENCL"
+  # cmake --build . --config $config -- -sdk iphonesimulator
+
+  if [ "$config" = "Release" -a "$PACKAGE" = "YES" ]; then
+    echo "Pack KTX-Software (iOS $config)"
+    if ! cpack -C Release; then
+      cat _CPack_Packages/iOS/ZIP/ZipBuildOutput.log
+      exit 1
+    fi
+  fi
+done
 
 popd
-

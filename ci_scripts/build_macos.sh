@@ -107,11 +107,9 @@ if [ "$ARCHS" = "$(uname -m)" -o "$ARCHS" = "x64_64" ]; then
   ctest -C Release # --verbose
 fi
 
-echo "Install KTX-Software (macOS $ARCHS $CONFIGURATION)"
 if [ "$PACKAGE" = "YES" ]; then
-  cmake --install . --config Release --prefix ../install-macos-release
   echo "Pack KTX-Software (macOS $CONFIGURATION)"
-  if ! cpack -G productbuild; then
+  if ! cpack -C Release -G productbuild; then
     cat _CPack_Packages/Darwin/productbuild/ProductBuildOutput.log
     exit 1
   fi

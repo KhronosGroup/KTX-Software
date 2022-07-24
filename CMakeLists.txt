@@ -252,7 +252,13 @@ macro(commom_lib_settings lib write)
         SOVERSION ${PROJECT_VERSION_MAJOR}
         XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
     )
-    set_code_sign(${lib})
+    if(IOS)
+        set_target_properties(${lib} PROPERTIES
+            FRAMEWORK TRUE
+        )
+    endif()
+
+    set_code_sign(${lib} "NOPPS")
 
     target_compile_definitions(
         ${lib}
@@ -565,21 +571,19 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     else()
         set( clang_version ${CMAKE_CXX_COMPILER_VERSION} )
     endif()
-    if (${clang_version} VERSION_GREATER_EQUAL "12.0.5")
+    if (${clang_version} VERSION_GREATER_EQUAL "12.0.0")
         set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter;-Wno-deprecated-copy;-Wno-uninitialized-const-reference"
-            )
-    else()
-        set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
-            PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter"
         )
-    endif()
-    if (${clang_version} VERSION_GREATER_EQUAL "12.0.0")
         # Primarily an issue on windows using clang/clangcl
         # Lowest tested clang version was 12.0.0 and highest was 14.0.4
         set_source_files_properties(
             lib/basisu/zstd/zstd.c
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-function"
+        )
+    else()
+        set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
+            PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter"
         )
     endif()
     if (${clang_version} VERSION_GREATER_EQUAL "13.0.0")
@@ -768,6 +772,13 @@ set (STATIC_APP_LIB_SYMBOL_VISIBILITY hidden)
 set_target_properties(objUtil PROPERTIES
     CXX_VISIBILITY_PRESET ${STATIC_APP_LIB_SYMBOL_VISIBILITY}
 )
+if(KTX_FEATURE_STATIC_LIBRARY AND
+   (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
+    set_source_files_properties(
+        lib/astc_encode.cpp
+        PROPERTIES COMPILE_OPTIONS "-fvisibility=hidden"
+    )
+endif()
 
 add_subdirectory(interface/basisu_c_binding)
 
@@ -780,40 +791,56 @@ list(FIND CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" ASTC_BUILD_UNIVERSAL)
 
 if(${ASTC_BUILD_UNIVERSAL} EQUAL -1)
     if (${ISA_NONE})
-        set(ASTC_LIB_NAME astcenc-none-static)
+        set(ASTC_LIB_TARGET astcenc-none-static)
     else()
         if(CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86)
             if (${ISA_SSE41})
-                set(ASTC_LIB_NAME astcenc-sse4.1-static)
+                set(ASTC_LIB_TARGET astcenc-sse4.1-static)
             elseif (${ISA_SSE2})
-                set(ASTC_LIB_NAME astcenc-sse2-static)
+                set(ASTC_LIB_TARGET astcenc-sse2-static)
             else()
                 set(ISA_AVX2 ON)
-                set(ASTC_LIB_NAME astcenc-avx2-static)
+                set(ASTC_LIB_TARGET astcenc-avx2-static)
             endif()
             if(CPU_ARCHITECTURE STREQUAL x86)
                 set(ISA_NONE ON)
                 set(ISA_AVX2 OFF)
                 set(ASTCENC_POPCNT 0)
-                set(ASTC_LIB_NAME astcenc-none-static)
+                set(ASTC_LIB_TARGET astcenc-none-static)
             endif()
         elseif(CPU_ARCHITECTURE STREQUAL armv8 OR CPU_ARCHITECTURE STREQUAL arm64)
-            set(ASTC_LIB_NAME astcenc-neon-static)
+            set(ASTC_LIB_TARGET astcenc-neon-static)
             set(ISA_NEON ON)
         else()
             message(STATUS "Unsupported ISA for ${CPU_ARCHITECTURE} arch, using ISA_NONE.")
+            set(ASTC_LIB_TARGET astcenc-none-static)
             set(ISA_NONE ON)
         endif()
     endif()
 else()
-    set(ASTC_LIB_NAME astcenc-static)
+    set(ASTC_LIB_TARGET astcenc-static)
 endif()
 
 # astcenc
 set(CLI OFF) # Only build as library not the CLI astcencoder
 add_subdirectory(lib/astc-encoder)
-set_property(TARGET ${ASTC_LIB_NAME} PROPERTY POSITION_INDEPENDENT_CODE ON)
-target_link_libraries(ktx PRIVATE ${ASTC_LIB_NAME})
+set_property(TARGET ${ASTC_LIB_TARGET} PROPERTY POSITION_INDEPENDENT_CODE ON)
+
+if(KTX_FEATURE_STATIC_LIBRARY AND NOT WIN32 AND NOT EMSCRIPTEN)
+    # Make a single static library to simplify linking.
+    add_dependencies(ktx ${ASTC_LIB_TARGET})
+    add_custom_command( TARGET ktx
+        POST_BUILD
+        COMMAND libtool -static -o $<TARGET_FILE:ktx> $<TARGET_FILE:ktx> $<TARGET_FILE:${ASTC_LIB_TARGET}>
+    )
+
+    # Don't know libtool equivalent on Windows or Emscripten. Applications
+    # will have to link with  both ktx and ${ASTC_LIB_TARGET}. Static libs
+    # are unlikely to be used on Windows so not a problem there. For Emscripten
+    # everything is built into the JS module so not an issue there either.
+else()
+    target_link_libraries(ktx PRIVATE ${ASTC_LIB_TARGET})
+endif()
 
 # Tools
 if(KTX_FEATURE_TOOLS)
@@ -829,12 +856,8 @@ if(KTX_FEATURE_DOC)
 endif()
 
 set(KTX_INSTALL_TARGETS ktx)
-
-if(KTX_FEATURE_STATIC_LIBRARY)
-    list(APPEND KTX_INSTALL_TARGETS ${ASTC_LIB_NAME})
-    if(BASISU_SUPPORT_OPENCL)
-        list(APPEND ${OpenCL_LIBRARIES})
-    endif()
+if(KTX_FEATURE_STATIC_LIBRARY AND (WIN32 OR EMSCRIPTEN))
+    list(APPEND KTX_INSTALL_TARGETS ${ASTC_LIB_TARGET})
 endif()
 
 # Install
@@ -844,6 +867,12 @@ if(APPLE OR LINUX)
     set(KTX_NAMELINKS ON)
     install(TARGETS ${KTX_INSTALL_TARGETS}
         EXPORT KTXTargets
+        ARCHIVE
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            COMPONENT library
+        FRAMEWORK
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            COMPONENT library
         LIBRARY
             DESTINATION ${CMAKE_INSTALL_LIBDIR}
             COMPONENT library
@@ -898,7 +927,6 @@ install( FILES
     COMPONENT library
 )
 
-
 # CPack
 
 include(CPackComponent)
@@ -913,13 +941,21 @@ set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ReadMe.rtf")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/License.rtf")
 
 # Custom package file name
+# This does not use the ${CPU_ARCHITECTURE} set earlier because the hope is
+# that the BasisU SIMD code will be changed to no longer need compile time
+# definitions and we can remove the complex cputypetest.cmake.
 if( APPLE AND CMAKE_OSX_ARCHITECTURES )
     # CMAKE_SYSTEM_PROCESSOR typically set to build host processor here.
     # CMAKE_OSX_ARCHITECTURES governs target of build.
-    if( ${CMAKE_OSX_ARCHITECTURES} STREQUAL "$(ARCHS_STANDARD)" )
+    list(LENGTH CMAKE_OSX_ARCHITECTURES archs_len)
+    list(GET CMAKE_OSX_ARCHITECTURES 0 arch0)
+    # Cannot use CMAKE_OSX_ARCHITECTURES instead of arch0 due to if() being
+    # confused by potentially multiple architectures between OR and STREQUAL.
+    # It's okay in the else() clause but as we've already set arch0...
+    if( ${archs_len} GREATER 1 OR ${arch0} STREQUAL "$(ARCHS_STANDARD)" )
         set(processor_name "universal")
     else()
-        set(processor_name ${CMAKE_OSX_ARCHITECTURES})
+        set(processor_name ${arch0})
     endif()
 elseif(CMAKE_CXX_COMPILER_ARCHITECTURE_ID)
     # When targeting Windows arm64 CMAKE_SYSTEM_PROCESSOR will incorrectly 
@@ -934,30 +970,38 @@ elseif( IOS )
     # CMAKE_SYSTEM_PROCESSOR not set when building for iOS.
     set(processor_name "arm64")
 endif()
+string(TOLOWER "${processor_name}" processor_name)
+#message(STATUS "processor_name is ${processor_name}, CPU_ARCHITECTURE is ${CPU_ARCHITECTURE}")
 set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${KTX_VERSION_FULL}-${CMAKE_SYSTEM_NAME}-${processor_name}")
 
 if(APPLE)
-    install(FILES tools/package/mac/ktx-uninstall
-        DESTINATION ${CMAKE_INSTALL_BINDIR}
-        PERMISSIONS OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-        COMPONENT tools
-    )
-    set(CPACK_GENERATOR productbuild)
-    # Trick the productbuild generator into creating more useful package IDs
-    set(CPACK_PACKAGE_NAME "ktx")
-    set(CPACK_PACKAGE_VENDOR "khronos")
-    # Install at root level
-    set(CPACK_PACKAGING_INSTALL_PREFIX "/usr/local")
+    if(NOT IOS)
+        install(FILES tools/package/mac/ktx-uninstall
+            DESTINATION ${CMAKE_INSTALL_BINDIR}
+            PERMISSIONS OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+            COMPONENT tools
+        )
+        set(CPACK_GENERATOR productbuild)
+        # Trick the productbuild generator into creating more useful package IDs
+        set(CPACK_PACKAGE_NAME "ktx")
+        set(CPACK_PACKAGE_VENDOR "khronos")
+        # Install at root level
+        set(CPACK_PACKAGING_INSTALL_PREFIX "/usr/local")
 
-    set(CPACK_PRODUCTBUILD_IDENTITY_NAME ${PRODUCTBUILD_IDENTITY_NAME})
-    set(CPACK_PRODUCTBUILD_KEYCHAIN_PATH ${PRODUCTBUILD_KEYCHAIN_PATH})
+        set(CPACK_PRODUCTBUILD_IDENTITY_NAME ${PRODUCTBUILD_IDENTITY_NAME})
+        set(CPACK_PRODUCTBUILD_KEYCHAIN_PATH ${PRODUCTBUILD_KEYCHAIN_PATH})
 
-    # Contains the `summary.html` file, shown at end of installation
-    set(CPACK_PRODUCTBUILD_RESOURCES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tools/package/mac/Resources")
-    set(CPACK_PRODUCTBUILD_BACKGROUND "ktx_logo_190_xp.png")
-    set(CPACK_PRODUCTBUILD_BACKGROUND_MIME_TYPE "image/png")
-    set(CPACK_PRODUCTBUILD_BACKGROUND_ALIGNMENT "bottomleft")
-
+        # Contains the `summary.html` file, shown at end of installation
+        set(CPACK_PRODUCTBUILD_RESOURCES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tools/package/mac/Resources")
+        set(CPACK_PRODUCTBUILD_BACKGROUND "ktx_logo_190_xp.png")
+        set(CPACK_PRODUCTBUILD_BACKGROUND_MIME_TYPE "image/png")
+        set(CPACK_PRODUCTBUILD_BACKGROUND_ALIGNMENT "bottomleft")
+    else()
+        set(CPACK_GENERATOR ZIP)
+        set(CPACK_ARCHIVE_KTX_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}")
+        set(CPACK_ARCHIVE_COMPONENT_INSTALL OFF)
+        set(CPACK_PACKAGE_CHECKSUM SHA1)
+    endif()
 elseif(LINUX)
     set(CPACK_GENERATOR DEB RPM TBZ2)
     set(CPACK_PACKAGE_CHECKSUM SHA1)

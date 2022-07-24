@@ -12,7 +12,18 @@ macro (set_code_sign target)
       BUILD_WITH_INSTALL_RPATH ON
     )
     if(IOS)
-      set_property (TARGET ${target} PROPERTY XCODE_ATTRIBUTE_PROVISIONING_PROFILE_SPECIFIER ${XCODE_PROVISIONING_PROFILE_SPECIFIER})
+      set(set_pps FALSE)
+      if(${ARGC} EQUAL 1)
+        set(set_pps TRUE)
+      elseif (NOT ${ARGV1} STREQUAL "NOPPS")
+        set(set_pps TRUE)
+      endif()
+      if (${set_pps})
+        set_property(TARGET ${target}
+           PROPERTY XCODE_ATTRIBUTE_PROVISIONING_PROFILE_SPECIFIER ${XCODE_PROVISIONING_PROFILE_SPECIFIER}
+        )
+      endif()
+      unset(set_pps)
     endif()
   endif()
 

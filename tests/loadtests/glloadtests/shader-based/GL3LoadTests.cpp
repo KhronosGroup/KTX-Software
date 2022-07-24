@@ -16,7 +16,7 @@
  */
 
 #include "GLLoadTests.h"
-#include "BasisuTest.h"
+#include "EncodeTexture.h"
 #include "DrawTexture.h"
 #include "TexturedCube.h"
 #include "Texture3d.h"
@@ -24,8 +24,8 @@
 #include "TextureArray.h"
 #include "TextureMipmap.h"
 
-#if !defined TEST_BASIS_COMPRESSION
-#define TEST_BASIS_COMPRESSION 1
+#if !defined TEST_COMPRESSION
+#define TEST_COMPRESSION 1
 #endif
 
 LoadTestSample*
@@ -109,14 +109,18 @@ const GLLoadTests::sampleInvocation siSamples[] = {
       "--transcode-target RGBA4444 testimages/kodim17_basis.ktx2",
       "Transcode of ETC1S+BasisLZ Compressed KTX2 RGB not mipmapped to RGBA4444"
     },
-    { BasisuTest::create,
+    { EncodeTexture::create,
       "testimages/FlightHelmet_baseColor_basis.ktx2",
       "Transcode of ETC1S+BasisLZ Compressed KTX2 RGBA not mipmapped"
     },
-#if TEST_BASIS_COMPRESSION
-    { BasisuTest::create,
+#if TEST_COMPRESSION
+    { EncodeTexture::create,
       "testimages/rgba-reference-u.ktx2",
       "Encode to ETC1S+BasisLZ then Transcode of Compressed KTX2 RGBA not mipmapped"
+    },
+    { EncodeTexture::create,
+      "--encode astc testimages/rgba-reference-u.ktx2",
+      "Encode to ASTC then display RGBA not mipmapped"
     },
 #endif
 #if !defined(__EMSCRIPTEN__)

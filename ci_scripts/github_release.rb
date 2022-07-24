@@ -2,8 +2,9 @@
 # Copyright 2022 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-# Thanks to Valerio Mazzeo (@valeriomazzeo) inspiring this.
+# Thanks to Valerio Mazzeo (@valeriomazzeo) for inspiring this.
 
+gem 'octokit', '~> 4.15.0'
 require 'optparse'
 require 'ostruct'
 require 'octokit'

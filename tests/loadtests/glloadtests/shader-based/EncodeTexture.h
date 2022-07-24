@@ -2,28 +2,28 @@
 /* vi: set sw=2 ts=4 expandtab: */
 
 /*
- * Copyright 2018-2020 Mark Callow.
+ * Copyright 2018-2022 Mark Callow.
  * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
- * @file    BasisuTest.h
- * @brief   GLLoadTestSample derived class for drawing a textured cube.
+ * @file    EncodeTexture.h
+ * @brief   GLLoadTestSample derived class for encoding a texture and texturing a cube with it.
  *
  * @author Mark Callow, www.edgewise-consulting.com.
  */
 
-#ifndef BASISU_TEST_H
-#define BASISU_TEST_H
+#ifndef ENCODE_TEXTURE_H
+#define ENCODE_TEXTURE_H
 
 #include "GL3LoadTestSample.h"
 
-class BasisuTest : public GL3LoadTestSample {
+class EncodeTexture : public GL3LoadTestSample {
   public:
-    BasisuTest(uint32_t width, uint32_t height,
+    EncodeTexture(uint32_t width, uint32_t height,
                 const char* const szArgs,
                 const std::string sBasePath);
-    ~BasisuTest();
+    ~EncodeTexture();
 
     virtual void resize(uint32_t width, uint32_t height);
     virtual void run(uint32_t msTicks);
@@ -35,6 +35,8 @@ class BasisuTest : public GL3LoadTestSample {
            const char* const szArgs, const std::string sBasePath);
 
   protected:
+    void processArgs(std::string sArgs);
+
     GLuint gnTexture;
     GLuint gnTexProg;
 
@@ -46,6 +48,9 @@ class BasisuTest : public GL3LoadTestSample {
     GLint gulSamplerLocTP;
 
     bool bInitialized;
+    ktx_transcode_fmt_e transcodeTarget;
+    enum encode_fmt_e { EF_ASTC = 1, EF_ETC1S = 2, EF_UASTC = 3 };
+    encode_fmt_e encodeTarget;
 };
 
-#endif /* BASISU_TEST_H */
+#endif /* ENCODE_TEXTURE_H */
