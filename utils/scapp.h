@@ -334,10 +334,13 @@ astcEncoderMode(const char* mode) {
       nml.xy = nml.xy * 2.0 - 1.0;           // Unpack to [-1,1]
       nml.z = sqrt(1 - dot(nml.xy, nml.xy)); // Compute Z
                  </pre>
-                 For ASTC encoding, '--encode astc', encoder parameters are
+                 For ASTC encoding, '@b --encode astc', encoder parameters are
                  tuned for better quality on normal maps. For ETC1S encoding,
-                 '@b --encode etc1s', RDO is disabled (no selector RDO, no
+                 @b '--encode etc1s', RDO is disabled (no selector RDO, no
                  endpoint RDO) to provide better quality.</dd>
+
+                 In @em toktx you can prevent conversion of the normal map to
+                 two components by specifying '@b --input_swizzle rgb1'.
     <dt>--normalize</dt>
                  <dd>Normalize input normals to have a unit length. Only valid
                  for linear textures with 2 or more components. For 2-component
@@ -685,6 +688,8 @@ class scApp : public ktxApp {
           "               on normal maps. .  For ETC1S encoding, '--encode etc1s',i RDO is\n"
           "               disabled (no selector RDO, no endpoint RDO) to provide better\n"
           "               quality.\n\n"
+          "               In toktx you can prevent conversion of the normal map to\n"
+          "               two components by specifying '--input_swizzle rgb1'.\n\n"
           "  --normalize\n"
           "               Normalize input normals to have a unit length. Only valid for\n"
           "               linear textures with 2 or more components. For 2-component inputs\n"

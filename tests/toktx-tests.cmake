@@ -83,12 +83,20 @@ add_test( NAME toktx-different-colortype-second-file-warning
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
 )
 
+add_test( NAME toktx-depth-lt-two
+    COMMAND toktx --depth 1 a b
+)
+
 add_test( NAME toktx-depth-layers
     COMMAND toktx --depth 4 --layers 4 a b c d e
 )
 
 add_test( NAME toktx-depth-genmipmap
     COMMAND toktx --test --depth 7 --genmipmap --t2 3dtex_7_mipmap_reference_u.ktx2 ../srcimages/red16.png ../srcimages/orange16.png ../srcimages/yellow16.png ../srcimages/green16.png ../srcimages/blue16.png ../srcimages/indigo16.png ../srcimages/violet16.png
+)
+
+add_test( NAME toktx-layers-lt-one
+    COMMAND toktx --layers 0 a b
 )
 
 set_tests_properties(
@@ -107,7 +115,9 @@ set_tests_properties(
     toktx-invalid-target-type
     toktx-different-colortype-second-file-error
     toktx-depth-layers
+    toktx-depth-lt-two
     toktx-depth-genmipmap
+    toktx-layers-lt-one
 PROPERTIES
     WILL_FAIL TRUE
 )
@@ -250,5 +260,6 @@ gencmpktx( astc_ldr_6x6_arraytex_7_mipmap astc_ldr_6x6_arraytex_7_mipmap.ktx2 ".
 gencmpktx( astc_ldr_6x6_3dtex_7 astc_ldr_6x6_3dtex_7.ktx2 "../srcimages/red16.png ../srcimages/orange16.png ../srcimages/yellow16.png ../srcimages/green16.png ../srcimages/blue16.png ../srcimages/indigo16.png ../srcimages/violet16.png" "--test --depth 7 --encode astc --astc_blk_d 6x6" "" "")
 
 gencmpktx( 3dtex_7_reference_u 3dtex_7_reference_u.ktx2 "../srcimages/red16.png ../srcimages/orange16.png ../srcimages/yellow16.png ../srcimages/green16.png ../srcimages/blue16.png ../srcimages/indigo16.png ../srcimages/violet16.png" "--test --t2 --depth 7" "" "")
+gencmpktx( arraytex_1_reference_u arraytex_1_reference_u.ktx2 "../srcimages/red16.png" "--test --t2 --layers 1" "" "")
 gencmpktx( arraytex_7_reference_u arraytex_7_reference_u.ktx2 "../srcimages/red16.png ../srcimages/orange16.png ../srcimages/yellow16.png ../srcimages/green16.png ../srcimages/blue16.png ../srcimages/indigo16.png ../srcimages/violet16.png" "--test --t2 --layers 7" "" "")
 gencmpktx( arraytex_7_mipmap_reference_u arraytex_7_mipmap_reference_u.ktx2 "../srcimages/red16.png ../srcimages/orange16.png ../srcimages/yellow16.png ../srcimages/green16.png ../srcimages/blue16.png ../srcimages/indigo16.png ../srcimages/violet16.png" "--test --t2 --layers 7 --genmipmap" "" "")
