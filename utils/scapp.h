@@ -316,6 +316,10 @@ astcEncoderMode(const char* mode) {
                  <dd>Disable RDO multithreading (slightly higher compression,
                  deterministic).</dd>
       </dl>
+    <dt>--input_swizzle &lt;swizzle&gt;
+                 <dd>Swizzle the input components according to @e swizzle which
+                 is an alhpanumeric sequence matching the regular expression
+                 @c ^[rgba01]{4}$.
     <dt>--normal_mode</dt>
                  <dd>Only valid for linear textures with two or more components.
                  If the input texture has three or four linear components it is
@@ -479,6 +483,7 @@ class scApp : public ktxApp {
         ktx_bool_t   normalize;
         clamped<ktx_uint32_t> zcmpLevel;
         clamped<ktx_uint32_t> threadCount;
+        string inputSwizzle;
         struct basisOptions bopts;
         struct astcOptions astcopts;
 
@@ -503,6 +508,7 @@ class scApp : public ktxApp {
     enum HasArg { eNone, eOptional, eRequired };
     void captureOption(const argparser& parser, HasArg hasArg);
     void validateOptions();
+    void validateSwizzle(string& swizzle);
 
   public:
     scApp(string& version, string& defaultVersion, scApp::commandOptions& options);
@@ -668,6 +674,10 @@ class scApp : public ktxApp {
           "      --uastc_rdo_m\n"
           "               Disable RDO multithreading (slightly higher compression,\n"
           "               deterministic).\n\n"
+          "  --input_swizzle <swizzle>\n"
+          "               Swizzle the input components according to swizzle which is an\n"
+          "               alhpanumeric sequence matching the regular expression\n"
+          "               ^[rgba01]{4}$.\n"
           "  --normal_mode\n"
           "               Only valid for linear textures with two or more components. If\n"
           "               the input texture has three or four linear components it is\n"
@@ -688,8 +698,8 @@ class scApp : public ktxApp {
           "               on normal maps. .  For ETC1S encoding, '--encode etc1s',i RDO is\n"
           "               disabled (no selector RDO, no endpoint RDO) to provide better\n"
           "               quality.\n\n"
-          "               In toktx you can prevent conversion of the normal map to\n"
-          "               two components by specifying '--input_swizzle rgb1'.\n\n"
+          "               You can prevent conversion of the normal map to two components\n"
+          "               by specifying '--input_swizzle rgb1'.\n\n"
           "  --normalize\n"
           "               Normalize input normals to have a unit length. Only valid for\n"
           "               linear textures with 2 or more components. For 2-component inputs\n"
@@ -763,6 +773,7 @@ scApp::scApp(string& version, string& defaultVersion,
       { "astc_quality", argparser::option::required_argument, NULL, 1014 },
       { "astc_perceptual", argparser::option::no_argument, NULL, 1015 },
       { "encode", argparser::option::required_argument, NULL, 1016 },
+      { "input_swizzle", argparser::option::required_argument, NULL, 1100},
       { "normalize", argparser::option::no_argument, NULL, 1017 },
       // Deprecated options
       { "bcmp", argparser::option::no_argument, NULL, 'b' },
@@ -800,6 +811,31 @@ scApp::validateOptions() {
         && (options.bopts.maxEndpoints + options.bopts.maxSelectors)) {
         cerr << name << ": Warning: ignoring --qlevel as it, --max_endpoints"
              << " and --max_selectors are all set." << endl;
+    }
+}
+
+void
+scApp::validateSwizzle(string& swizzle)
+{
+    if (swizzle.size() != 4) {
+        error("a swizzle parameter must have 4 characters.");
+        exit(1);
+    }
+    std::for_each(swizzle.begin(), swizzle.end(), [](char & c) {
+        c = (char)::tolower(c);
+    });
+
+    for (int i = 0; i < 4; i++) {
+        if (swizzle[i] != 'r'
+            && swizzle[i] != 'g'
+            && swizzle[i] != 'b'
+            && swizzle[i] != 'a'
+            && swizzle[i] != '0'
+            && swizzle[i] != '1') {
+            error("invalid character in swizzle.");
+            usage();
+            exit(1);
+        }
     }
 }
 
@@ -975,6 +1011,12 @@ scApp::processOption(argparser& parser, int opt)
             options.bopts.uastcFlags |= level;
             hasArg = true;
         }
+        break;
+      case 1100:
+        validateSwizzle(parser.optarg);
+        options.inputSwizzle = parser.optarg;
+        hasArg = true;
+        capture = false; // Not a compression parameter.
         break;
       default:
         return false;

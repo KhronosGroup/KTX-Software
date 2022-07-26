@@ -276,7 +276,7 @@ ktxSupercompressor::main(int argc, _TCHAR* argv[])
                     exitCode = 1;
                     goto cleanup;
                 }
-                if ((options.etc1s || options.bopts.uastc) && texture->isCompressed) {
+                if ((options.astc || options.etc1s || options.bopts.uastc) && texture->isCompressed) {
                     cerr << name << ": "
                          << "Cannot encode already block-compressed textures "
                          << "to ASTC, Basis Universal or UASTC."
@@ -293,35 +293,54 @@ ktxSupercompressor::main(int argc, _TCHAR* argv[])
                                       (ktx_uint32_t)writer.str().length() + 1,
                                       writer.str().c_str());
 
+                ktx_uint32_t transfer = ktxTexture2_GetOETF(texture);
+                if (options.normalMode && transfer != KHR_DF_TRANSFER_LINEAR) {
+                    cerr << name << ": "
+                         << "--normal_mode specified but input file(s) are not "
+                         << "linear." << endl;
+                    exitCode = 1;
+                    goto cleanup;
+                }
                 if (options.etc1s || options.bopts.uastc) {
                     commandOptions::basisOptions& bopts = options.bopts;
-                    ktx_uint32_t transfer = ktxTexture2_GetOETF(texture);
-                    if (bopts.normalMap && transfer != KHR_DF_TRANSFER_LINEAR) {
-                        cerr << name << ": "
-                             << "--normal_map specified but input file(s) are "
-                                "not linear."
-                             << endl;
-                        exitCode = 1;
-                        goto cleanup;
-                    }
+#if 0
                     uint32_t componentCount, componentByteLength;
                     ktxTexture2_GetComponentInfo(texture,
                                                  &componentCount,
                                                  &componentByteLength);
-                    if (componentCount == 1 || componentCount == 2) {
-                        // Ensure this is not set as it would result in R in
-                        // both RGB and A. This is because we have to pass RGBA
-                        // to the BasisU encoder and, since a 2-channel file is
-                        // considered grayscale-alpha, the "grayscale" component
-                        // is swizzled to RGB and the alpha component is
-                        // swizzled to A.
-                        bopts.separateRGToRGB_A = false;
+#endif
+                    if (options.inputSwizzle.size()) {
+                        for (uint32_t i = 0; i < options.inputSwizzle.size(); i++) {
+                             bopts.inputSwizzle[i] = options.inputSwizzle[i];
+                        }
                     }
 
                     result = ktxTexture2_CompressBasisEx(texture, &bopts);
                     if (result != KTX_SUCCESS) {
                         cerr << name
-                             << " failed to compress KTX2 file; "
+                             << " failed to compress KTX file \"" << infile
+                             << "\" with Basis Universal; KTX error: "
+                             << ktxErrorString(result) << endl;
+                        exitCode = 2;
+                        goto cleanup;
+                    }
+                } else if (options.astc) {
+                    commandOptions::astcOptions& astcopts = options.astcopts;
+                    if (options.inputSwizzle.size()) {
+                        for (uint32_t i = 0; i < options.inputSwizzle.size(); i++) {
+                             astcopts.inputSwizzle[i] = options.inputSwizzle[i];
+                        }
+                    }
+
+                    astcopts.threadCount = options.threadCount;
+                    astcopts.normalMap = options.normalMode;
+
+                    result = ktxTexture2_CompressAstcEx((ktxTexture2*)texture,
+                                                     &astcopts);
+                    if (result != KTX_SUCCESS) {
+                        cerr << name
+                             << " failed to compress KTX file \"" << infile
+                             << "\" with ASTC; KTX error: "
                              << ktxErrorString(result) << endl;
                         exitCode = 2;
                         goto cleanup;
@@ -349,7 +368,7 @@ ktxSupercompressor::main(int argc, _TCHAR* argv[])
                 result = ktxTexture_WriteToStdioStream(ktxTexture(texture), outf);
                 if (result != KTX_SUCCESS) {
                     cerr << name
-                         << " failed to write KTX2 file; "
+                         << " failed to write KTX file; "
                          << ktxErrorString(result) << endl;
                     exitCode = 2;
                     goto cleanup;
@@ -410,7 +429,12 @@ ktxSupercompressor::validateOptions()
         usage();
         exit(1);
     }
-    if (!options.etc1s && !options.zcmp && !options.bopts.uastc) {
+    if (options.etc1s && options.zcmp) {
+        cerr << "Can't encode to etc1s and supercompress with zstd." << endl;
+        usage();
+        exit(1);
+    }
+    if (!options.astc && !options.etc1s && !options.zcmp && !options.bopts.uastc) {
        cerr << "Must specify one of --zcmp, --etc1s (deprecated --bcmp) or --uastc." << endl;
        usage();
        exit(1);

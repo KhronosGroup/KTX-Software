@@ -263,10 +263,6 @@ Create a KTX file from JPEG, PNG or netpbm format files.
     <dt>--scale &lt;value&gt;</dt>
     <dd>Scale images by @e value as they are read. Resampler options can
         be set via @b --filter and  @b --fscale. </dd>.
-    <dt>--input_swizzle &lt;swizzle&gt;
-    <dd>Swizzle the input components according to @e swizzle which
-        is an alhpanumeric sequence matching the regular expression
-        @c ^[rgba01]{4}$.
     <dt>--swizzle &lt;swizzle&gt;
     <dd>Add swizzle metadata to the file being created. @e swizzle
         has the same syntax as the parameter for @b --input_swizzle.
@@ -343,7 +339,6 @@ class toktxApp : public scApp {
     virtual bool processOption(argparser& parser, int opt);
     void processEnvOptions();
     void validateOptions();
-    void validateSwizzle(string& swizzle);
 
     struct commandOptions : public scApp::commandOptions {
         struct mipgenOptions {
@@ -377,7 +372,6 @@ class toktxApp : public scApp {
             unsigned int width;
             unsigned int height;
         } newGeom;
-        string inputSwizzle;
         string swizzle;
         enum {
             // These values are selected to match the number of components.
@@ -463,7 +457,6 @@ toktxApp::toktxApp() : scApp(myversion, mydefversion, options)
         { "srgb", argparser::option::no_argument, (int*)&options.assign_oetf, KHR_DF_TRANSFER_SRGB },
         { "resize", argparser::option::required_argument, NULL, 'r' },
         { "scale", argparser::option::required_argument, NULL, 's' },
-        { "input_swizzle", argparser::option::required_argument, NULL, 1100},
         { "swizzle", argparser::option::required_argument, NULL, 1101},
         { "target_type", argparser::option::required_argument, NULL, 1102},
         { "convert_oetf", argparser::option::required_argument, NULL, 1103},
@@ -624,10 +617,6 @@ toktxApp::usage()
         "               by this option, if different.\n"
         "  --linear     Deprecated. Use --assign_oetf linear.\n"
         "  --srgb       Deprecated. Use --assign_oetf srgb.\n"
-        "  --input_swizzle <swizzle>\n"
-        "               Swizzle the input components according to swizzle which is an\n"
-        "               alhpanumeric sequence matching the regular expression\n"
-        "               ^[rgba01]{4}$.\n"
         "  --swizzle <swizzle>\n"
         "               Add swizzle metadata to the file being created. swizzle has the\n"
         "               same syntax as the parameter for --input_swizzle. Not recommended\n"
@@ -1169,8 +1158,8 @@ toktxApp::main(int argc, _TCHAR *argv[])
                 goto cleanup;
             }
         } else {
-            // Input file order is layer, faceSlice, level. This seems easier for
-            // a human to manage than the order in a KTX file. It keeps the
+            // Input file order is layer, faceSlice, level. This seems easier
+            // for a human to manage than the order in a KTX file. It keeps the
             // base level images and their mip levels together.
             level++;
             levelWidth >>= 1;
@@ -1347,20 +1336,20 @@ toktxApp::main(int argc, _TCHAR *argv[])
         f = _tfopen(options.outfile.c_str(), "wb");
 
     if (f) {
-       if (options.normalMode && chosenOETF != KHR_DF_TRANSFER_LINEAR) {
-                fprintf(stderr, "%s: --normal_mode specified but input file(s) are"
-                        " not linear.", name.c_str());
-                exitCode = 1;
-                goto cleanup;
-       }
-       if (options.etc1s || options.bopts.uastc) {
+        if (options.normalMode && chosenOETF != KHR_DF_TRANSFER_LINEAR) {
+            fprintf(stderr, "%s: --normal_mode specified but input file(s) are"
+                    " not linear.", name.c_str());
+            exitCode = 1;
+            goto cleanup;
+        }
+        if (options.etc1s || options.bopts.uastc) {
             commandOptions::basisOptions& bopts = options.bopts;
             if (options.inputSwizzle.size()) {
-                for (i = 0; i < 4; i++) {
+                for (i = 0; i < options.inputSwizzle.size(); i++) {
                      bopts.inputSwizzle[i] = options.inputSwizzle[i];
                 }
             } else if (defaultSwizzle.size() && !options.normalMode) {
-                 for (i = 0; i < 4; i++) {
+                 for (i = 0; i < defaultSwizzle.size(); i++) {
                      bopts.inputSwizzle[i] = defaultSwizzle[i];
                 }
             }
@@ -1373,7 +1362,8 @@ toktxApp::main(int argc, _TCHAR *argv[])
 #endif
             ret = ktxTexture2_CompressBasisEx((ktxTexture2*)texture, &bopts);
             if (KTX_SUCCESS != ret) {
-                fprintf(stderr, "%s failed to compress KTX file \"%s\"; KTX error: %s\n",
+                fprintf(stderr, "%s failed to compress KTX file \"%s\" with "
+                        "Basis Universal; KTX error: %s\n",
                         name.c_str(), options.outfile.c_str(),
                         ktxErrorString(ret));
                 exitCode = 2;
@@ -1400,7 +1390,8 @@ toktxApp::main(int argc, _TCHAR *argv[])
 
             ret = ktxTexture2_CompressAstcEx((ktxTexture2*)texture, &astcopts);
             if (KTX_SUCCESS != ret) {
-                fprintf(stderr, "%s failed to compress KTX file \"%s\" to astc; KTX error: %s\n",
+                fprintf(stderr, "%s failed to compress KTX file \"%s\"with "
+                        "ASTC; KTX error: %s\n",
                         name.c_str(), options.outfile.c_str(),
                         ktxErrorString(ret));
                 exitCode = 2;
@@ -1517,31 +1508,6 @@ toktxApp::validateOptions()
 }
 
 void
-toktxApp::validateSwizzle(string& swizzle)
-{
-    if (swizzle.size() != 4) {
-        error("a swizzle parameter must have 4 characters.");
-        exit(1);
-    }
-    std::for_each(swizzle.begin(), swizzle.end(), [](char & c) {
-        c = (char)::tolower(c);
-    });
-
-    for (int i = 0; i < 4; i++) {
-        if (swizzle[i] != 'r'
-            && swizzle[i] != 'g'
-            && swizzle[i] != 'b'
-            && swizzle[i] != 'a'
-            && swizzle[i] != '0'
-            && swizzle[i] != '1') {
-            error("invalid character in swizzle.");
-            usage();
-            exit(1);
-        }
-    }
-}
-
-void
 toktxApp::processEnvOptions() {
     _tstring toktx_options;
     _TCHAR* env_options = _tgetenv(_T("TOKTX_OPTIONS"));
@@ -1651,10 +1617,6 @@ toktxApp::processOption(argparser& parser, int opt)
                  << options.scale << "." << endl;
             exit(1);
         }
-        break;
-      case 1100:
-        validateSwizzle(parser.optarg);
-        options.inputSwizzle = parser.optarg;
         break;
       case 1101:
         validateSwizzle(parser.optarg);
