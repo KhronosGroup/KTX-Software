@@ -273,7 +273,7 @@ result = ktxTexture_SetImageFromMemory(ktxTexture(texture),
 int quality = 100;
 result = ktxTexture2_CompressBasis(texture, quality);
 
-ktxTexture2_WriteToNamedFile(texture, "mytex3d.ktx2");
+ktxTexture_WriteToNamedFile(ktxTexture(texture), "mytex3d.ktx2");
 ktxTexture_Destroy(ktxTexture(texture));
 ~~~~~~~~~~~~~~~~
 
