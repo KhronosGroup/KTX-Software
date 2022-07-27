@@ -79,7 +79,7 @@ using namespace std;
 Create a KTX file from JPEG, PNG or netpbm format files.
 
 @section toktx_synopsis SYNOPSIS
-    toktx [options] @e outfile [@e infile.{pam,pgm,ppm} ...]
+    toktx [options] @e outfile [@e infile.{jpg,png,pam,pgm,ppm} ...]
 
 @section toktx_description DESCRIPTION
     Create a Khronos format texture file (KTX) from a set of JPEG (.jpg),
@@ -88,10 +88,10 @@ Create a KTX file from JPEG, PNG or netpbm format files.
     @e outfile is '-' the output will be written to stdout.
 
     @b toktx reads each named @e infile. which must be in .jpg, .png, .pam,
-    .ppm or .pgm format. @e infiles prefixed with '@' are read as text files listing
-    actual file names to process with one file path per line. Paths must be
-    absolute or relative to the current directory when @b toktx is run. If
-    '\@@' is used instead, paths must be absolute or relative to the location
+    .ppm or .pgm format. @e infiles prefixed with '@' are read as text files
+    listing actual file names to process with one file path per line. Paths
+    must be absolute or relative to the current directory when @b toktx is run.
+    If '\@@' is used instead, paths must be absolute or relative to the location
     of the list file.
 
     The target texture type (number of components in the output texture) is
@@ -117,12 +117,12 @@ Create a KTX file from JPEG, PNG or netpbm format files.
     prompting you to convert the input to linear.
 
     The primaries, transfer function (OETF) and the texture's sRGB-ness is set
-    based on the input file unless @b --assign_oetf linear or @b --assign_oetf srgb
-    is specified. For .jpg files @b toktx always sets BT709/sRGB primaries and the
-    sRGB OETF in the output file and creates sRGB format textures. Netpbm files
-    always use BT.709/sRGB primaries and the BT.709 OETF. @b toktx tranforms
-    these images to the sRGB OETF, sets BT709/sRGB primaries and the sRGB OETF
-    in the output file and creates sRGB format textures.
+    based on the input file unless @b --assign_oetf linear or @b --assign_oetf
+    srgb is specified. For .jpg files @b toktx always sets BT709/sRGB primaries
+    and the sRGB OETF in the output file and creates sRGB format textures.
+    Netpbm files always use BT.709/sRGB primaries and the BT.709 OETF. @b toktx
+    tranforms these images to the sRGB OETF, sets BT709/sRGB primaries and the
+    sRGB OETF in the output file and creates sRGB format textures.
 
     For .png files the OETF is set as follows:
 
@@ -133,17 +133,18 @@ Create a KTX file from JPEG, PNG or netpbm format files.
         <dd>primaries are set to BT.709 and OETF to sRGB. gAMA and cHRM chunks
         are ignored.</dd>
     <dt>iCCP chunk present:</dt>
-        <dd>General ICC profiles are not yet supported by toktx or the KTX2 format.
-        In future these images may be transformed to linear or sRGB OETF as
-        appropriate for the profile. sRGB chunk must not be present.</dd>
+        <dd>General ICC profiles are not yet supported by toktx or the KTX2
+        format. In future these images may be transformed to linear or sRGB
+        OETF as appropriate for the profile. sRGB chunk must not be present.
+        </dd>
     <dt>gAMA and/or cHRM chunks present without sRGB or iCCP:</dt>
-        <dd>If gAMA is < 60000 the image is transformed to and the OETF is set to
-        sRGB. otherwise the image is transformed to and the OETF is set to
+        <dd>If gAMA is < 60000 the image is transformed to and the OETF is set
+        to sRGB. otherwise the image is transformed to and the OETF is set to
         linear. The color primaries in cHRM are matched to one of the
         standard sets listed in the Khronos Data Format Specification (the
         KHR_DF_PRIMARIES values from khr_df.h) and the primaries
-        field of the output file's DFD is set to the matched value. If no match is
-        found the primaries field is set to UNSPECIFIED.</dd>
+        field of the output file's DFD is set to the matched value. If no match
+        is found the primaries field is set to UNSPECIFIED.</dd>
     </dl>
 
     The following options are always available:
@@ -168,7 +169,7 @@ Create a KTX file from JPEG, PNG or netpbm format files.
     <dd>KTX file is for a 3D texture with a depth of @e number where
         @e number &gt; 1. Provide the file(s) for z=0 first then those for
         z=1, etc. It is an error to specify this together with
-        @b --layers &gt; 1 or @b --cubemap.</dd>
+        @b --layers or @b --cubemap.</dd>
     <dt>--genmipmap</dt>
     <dd>Causes mipmaps to be generated for each input file. This option is
         mutually exclusive with @b --automipmap and @b --mipmap. When set,
@@ -191,15 +192,15 @@ Create a KTX file from JPEG, PNG or netpbm format files.
     </dd>
     <dt>--layers &lt;number&gt;</dt>
     <dd>KTX file is for an array texture with @e number of layers where
-        @e number &gt; 1. Provide the file(s) for layer 0 first then those
+        @e number &gt; 0. Provide the file(s) for layer 0 first then those
         for layer 1, etc. It is an error to specify this together with
-        @b --depth &gt; 1.</dd>
+        @b --depth.</dd>
     <dt>--levels &lt;number&gt;</dt>
     <dd>KTX file is for a mipmap pyramid with @e number of levels rather than
-        a full pyramid. @e number must be &lt;= the maximum number of levels
-        determined from the size of the base image. Provide the base level
-        image first, if using @b --mipmap. This option is mutually exclusive
-        with @b --automipmap.</dd>
+        a full pyramid. @e number must be &gt; 1 and  &lt;= the maximum number
+        of levels determined from the size of the base level image. Provide the
+        base level image first, if using @b --mipmap. This option is mutually
+        exclusive with @b --automipmap.</dd>
     <dt>--mipmap</dt>
     <dd>KTX file is for a mipmap pyramid with one @b infile being explicitly
         provided for each level. Provide the images in the order of layer
@@ -234,22 +235,23 @@ Create a KTX file from JPEG, PNG or netpbm format files.
         ignores the orientation value, the image will appear upside down.
         This option is ignored with @b --cubemap. </dd>
     <dt>--assign_oetf &lt;linear|srgb&gt;</dt>
-    <dd>Force the created texture to have the specified transfer function. If this is
-        specified, implicit or explicit color space information from the input file(s)
-        will be ignored and no color transformation will be performed. USE WITH
-        CAUTION preferably only when you know the file format information is
-        wrong.</dd>
+    <dd>Force the created texture to have the specified transfer function. If
+        this is specified, implicit or explicit color space information from the
+        input file(s) will be ignored and no color transformation will be
+        performed. USE WITH CAUTION preferably only when you know the file
+        format information is wrong.</dd>
     <dt>--assign_primaries &lt;bt709|none|srgb&gt;</dt>
     <dd>Force the created texture to have the specified primaries. If this is
-        specified, implicit or explicit color space information from the input file(s)
-        will be ignored and no color transformation will be performed. USE WITH
-        CAUTION preferably only when you know the file format information is
-        wrong.</dd>
+        specified, implicit or explicit color space information from the input
+        file(s) will be ignored and no color transformation will be performed.
+        USE WITH CAUTION preferably only when you know the file format
+        information is wrong.</dd>
     <dt>--convert_oetf &lt;linear|srgb&gt;</dt>
-    <dd>Convert the input images to the specified transfer function, if the current
-        transfer function is different. If both this and @b --assign_oetf are
-        specified, conversion will be performed from the assigned transfer function
-        to the transfer function specified by this option, if different.
+    <dd>Convert the input images to the specified transfer function, if the
+        current transfer function is different. If both this and
+        @b --assign_oetf are specified, conversion will be performed from the
+        assigned transfer function to the transfer function specified by this
+        option, if different.
     <dt>--linear</dt>
     <dd>Deprecated. Use @b --assign_oetf linear.</dd>
     <dt>--srgb</dt>
@@ -261,10 +263,6 @@ Create a KTX file from JPEG, PNG or netpbm format files.
     <dt>--scale &lt;value&gt;</dt>
     <dd>Scale images by @e value as they are read. Resampler options can
         be set via @b --filter and  @b --fscale. </dd>.
-    <dt>--input_swizzle &lt;swizzle&gt;
-    <dd>Swizzle the input components according to @e swizzle which
-        is an alhpanumeric sequence matching the regular expression
-        @c ^[rgba01]{4}$.
     <dt>--swizzle &lt;swizzle&gt;
     <dd>Add swizzle metadata to the file being created. @e swizzle
         has the same syntax as the parameter for @b --input_swizzle.
@@ -341,7 +339,6 @@ class toktxApp : public scApp {
     virtual bool processOption(argparser& parser, int opt);
     void processEnvOptions();
     void validateOptions();
-    void validateSwizzle(string& swizzle);
 
     struct commandOptions : public scApp::commandOptions {
         struct mipgenOptions {
@@ -375,7 +372,6 @@ class toktxApp : public scApp {
             unsigned int width;
             unsigned int height;
         } newGeom;
-        string inputSwizzle;
         string swizzle;
         enum {
             // These values are selected to match the number of components.
@@ -393,7 +389,7 @@ class toktxApp : public scApp {
             useStdin = 0;
             test = 0;
             depth = 1;
-            layers = 1;
+            layers = 0;
             levels = 1;
             convert_oetf = KHR_DF_TRANSFER_UNSPECIFIED;
             assign_oetf = KHR_DF_TRANSFER_UNSPECIFIED;
@@ -407,35 +403,6 @@ class toktxApp : public scApp {
             newGeom.width = newGeom.height = 0;
             targetType = eUnspecified;
        }
-
-#define TRAVIS_DEBUG 0
-#if TRAVIS_DEBUG
-        void print() {
-            cout << "threadCount = " << threadCount.value << endl;
-            cout << "qualityLevel = " << qualityLevel.value << endl;
-            cout << "maxEndpoints = " << maxEndpoints.value << endl;
-            cout << "maxSelectors = " << maxSelectors.value << endl;
-            cout << "structSize = " << structSize << endl;
-            cout << "threadCount = " << ktxBasisParams::threadCount << endl;
-            cout << "compressionLevel = " << compressionLevel << endl;
-            cout << "qualityLevel = " << ktxBasisParams::qualityLevel << endl;
-            cout << "compressionLevel = " << compressionLevel << endl;
-            cout << "maxEndpoints = " << ktxBasisParams::maxEndpoints << endl;
-            cout << "endpointRDOThreshold = " << endpointRDOThreshold << endl;
-            cout << "maxSelectors = " << ktxBasisParams::maxSelectors << endl;
-            cout << "selectorRDOThreshold = " << selectorRDOThreshold << endl;
-            cout << "normalMap = " << normalMap << endl;
-            cout << "separateRGToRGB_A = " << separateRGToRGB_A << endl;
-            cout << "preSwizzle = " << preSwizzle << endl;
-            cout << "noEndpointRDO = " << noEndpointRDO << endl;
-            cout << "noSelectorRDO = " << noSelectorRDO << endl;
-            cout << "uastc = " << uastc << endl;
-            cout << "uastcFlags = " << uastcFlags << endl;
-            cout << "uastcRDO = " << uastcRDO << endl;
-            cout << "uastcRDODictSize = " << uastcRDODictSize << endl;
-            cout << "uastcRDOQualityScalar = " << uastcRDOQualityScalar << endl;
-        }
-#endif
     } options;
 };
 
@@ -461,7 +428,6 @@ toktxApp::toktxApp() : scApp(myversion, mydefversion, options)
         { "srgb", argparser::option::no_argument, (int*)&options.assign_oetf, KHR_DF_TRANSFER_SRGB },
         { "resize", argparser::option::required_argument, NULL, 'r' },
         { "scale", argparser::option::required_argument, NULL, 's' },
-        { "input_swizzle", argparser::option::required_argument, NULL, 1100},
         { "swizzle", argparser::option::required_argument, NULL, 1101},
         { "target_type", argparser::option::required_argument, NULL, 1102},
         { "convert_oetf", argparser::option::required_argument, NULL, 1103},
@@ -486,7 +452,7 @@ void
 toktxApp::usage()
 {
     cerr <<
-        "Usage: " << name << " [options] <outfile> [<infile>.{pam,pgm,ppm} ...]\n"
+        "Usage: " << name << " [options] <outfile> [<infile>.{jpg,png,pam,pgm,ppm} ...]\n"
         "\n"
         "  <outfile>    The destination ktx file. \".ktx\" will appended if necessary.\n"
         "               If it is '-' the output will be written to stdout.\n"
@@ -547,7 +513,7 @@ toktxApp::usage()
         "               KTX file is for a 3D texture with a depth of number where\n"
         "               number > 1. Provide the file(s) for z=0 first then those for\n"
         "               z=1, etc. It is an error to specify this together with\n"
-        "               --layers > 1 or --cubemap.\n"
+        "               --layers or --cubemap.\n"
         "  --genmipmap  Causes mipmaps to be generated for each input file. This option\n"
         "               is mutually exclusive with --automipmap and --mipmap. When set\n"
         "               the following mipmap-generation related options become valid,\n"
@@ -566,14 +532,14 @@ toktxApp::usage()
         "               are wrap, reflect and clamp. The default is clamp.\n"
         "  --layers <number>\n"
         "               KTX file is for an array texture with number of layers\n"
-        "               where number > 1. Provide the file(s) for layer 0 first then\n"
+        "               where number > 0. Provide the file(s) for layer 0 first then\n"
         "               those for layer 1, etc. It is an error to specify this\n"
-        "               together with --depth > 1.\n"
+        "               together with --depth.\n"
         "  --levels <number>\n"
         "               KTX file is for a mipmap pyramid with <number> of levels rather\n"
-        "               than a full pyramid. number must be <= the maximum number of\n"
-        "               levels determined from the size of the base image. This option is\n"
-        "               mutually exclusive with @b --automipmap.\n"
+        "               than a full pyramid. number must be > 1 and <= the maximum number\n"
+        "               of levels determined from the size of the base image. This option\n"
+        "               is mutually exclusive with @b --automipmap.\n"
         "  --mipmap     KTX file is for a mipmap pyramid with one infile being explicitly\n"
         "               provided for each level. Provide the images in the order of layer\n"
         "               then face or depth slice then level with the base-level image\n"
@@ -622,10 +588,6 @@ toktxApp::usage()
         "               by this option, if different.\n"
         "  --linear     Deprecated. Use --assign_oetf linear.\n"
         "  --srgb       Deprecated. Use --assign_oetf srgb.\n"
-        "  --input_swizzle <swizzle>\n"
-        "               Swizzle the input components according to swizzle which is an\n"
-        "               alhpanumeric sequence matching the regular expression\n"
-        "               ^[rgba01]{4}$.\n"
         "  --swizzle <swizzle>\n"
         "               Add swizzle metadata to the file being created. swizzle has the\n"
         "               same syntax as the parameter for --input_swizzle. Not recommended\n"
@@ -715,10 +677,12 @@ toktxApp::main(int argc, _TCHAR *argv[])
     else
       createInfo.numFaces = 1;
 
-    createInfo.numLayers = options.layers;
-    createInfo.isArray = options.layers > 1;
-
-    // TO DO: handle 3D textures.
+    if (options.layers) {
+        createInfo.numLayers = options.layers;
+        createInfo.isArray = KTX_TRUE;
+    } else {
+        createInfo.numLayers = 1;
+    }
 
     faceSlice = layer = level = 0;
     std::vector<_tstring>::const_iterator it;
@@ -1165,8 +1129,8 @@ toktxApp::main(int argc, _TCHAR *argv[])
                 goto cleanup;
             }
         } else {
-            // Input file order is layer, faceSlice, level. This seems easier for
-            // a human to manage than the order in a KTX file. It keeps the
+            // Input file order is layer, faceSlice, level. This seems easier
+            // for a human to manage than the order in a KTX file. It keeps the
             // base level images and their mip levels together.
             level++;
             levelWidth >>= 1;
@@ -1181,7 +1145,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
                 if (faceSlice == (options.cubemap ? 6 : levelDepth)) {
                     faceSlice = 0;
                     layer++;
-                    if (layer == options.layers) {
+                    if (layer == createInfo.numLayers) {
                         // We're done.
                         break;
                     }
@@ -1343,101 +1307,31 @@ toktxApp::main(int argc, _TCHAR *argv[])
         f = _tfopen(options.outfile.c_str(), "wb");
 
     if (f) {
-       if (options.normalMode && chosenOETF != KHR_DF_TRANSFER_LINEAR) {
-                fprintf(stderr, "%s: --normal_mode specified but input file(s) are"
-                        " not linear.", name.c_str());
-                exitCode = 1;
-                goto cleanup;
-       }
-       if (options.etc1s || options.bopts.uastc) {
-            commandOptions::basisOptions& bopts = options.bopts;
-            if (options.inputSwizzle.size()) {
-                for (i = 0; i < 4; i++) {
-                     bopts.inputSwizzle[i] = options.inputSwizzle[i];
-                }
-            } else if (defaultSwizzle.size() && !options.normalMode) {
-                 for (i = 0; i < 4; i++) {
-                     bopts.inputSwizzle[i] = defaultSwizzle[i];
-                }
-            }
-
-            bopts.threadCount = options.threadCount;
-            bopts.normalMap = options.normalMode;
-
-#if TRAVIS_DEBUG
-            bopts.print();
-#endif
-            ret = ktxTexture2_CompressBasisEx((ktxTexture2*)texture, &bopts);
-            if (KTX_SUCCESS != ret) {
-                fprintf(stderr, "%s failed to compress KTX file \"%s\"; KTX error: %s\n",
-                        name.c_str(), options.outfile.c_str(),
-                        ktxErrorString(ret));
-                exitCode = 2;
-                goto cleanup;
-            }
-        } else if (options.astc) {
-            commandOptions::astcOptions& astcopts = options.astcopts;
-            if (options.inputSwizzle.size()) {
-                for (i = 0; i < options.inputSwizzle.size(); i++) {
-                     astcopts.inputSwizzle[i] = options.inputSwizzle[i];
-                }
-            } else if (defaultSwizzle.size() && !options.normalMode) {
-                 for (i = 0; i < options.inputSwizzle.size(); i++) {
-                     astcopts.inputSwizzle[i] = defaultSwizzle[i];
-                }
-            }
-
-            astcopts.threadCount = options.threadCount;
-            astcopts.normalMap = options.normalMode;
-
-#if TRAVIS_DEBUG
-            astcopts.print();
-#endif
-
-            ret = ktxTexture2_CompressAstcEx((ktxTexture2*)texture, &astcopts);
-            if (KTX_SUCCESS != ret) {
-                fprintf(stderr, "%s failed to compress KTX file \"%s\" to astc; KTX error: %s\n",
-                        name.c_str(), options.outfile.c_str(),
-                        ktxErrorString(ret));
-                exitCode = 2;
-                goto cleanup;
-            }
-        } else {
-            ret = KTX_SUCCESS;
+        if (options.astc || options.etc1s || options.bopts.uastc || options.zcmp) {
+            string& swizzle = options.inputSwizzle.size() == 0 && defaultSwizzle.size() && !options.normalMode
+                            ? defaultSwizzle
+                            : options.inputSwizzle;
+            exitCode = encode((ktxTexture2*)texture, swizzle,
+                               f == stdout ? "stdout" : options.outfile);
+            if (exitCode)
+                goto closefileandcleanup;
         }
-        if (KTX_SUCCESS == ret) {
-            if (options.zcmp) {
-                ret = ktxTexture2_DeflateZstd((ktxTexture2*)texture,
-                                               options.zcmpLevel);
-                if (KTX_SUCCESS != ret) {
-                    cerr << name << ": Zstd deflation failed; KTX error: "
-                         << ktxErrorString(ret) << endl;
-                    exitCode = 2;
-                    goto cleanup;
-                }
-            }
-            if (!getParamsStr().empty()) {
-                ktxHashList_AddKVPair(&texture->kvDataHead, scparamKey.c_str(),
-                (ktx_uint32_t)getParamsStr().length() + 1,
-                getParamsStr().c_str());
-            }
-            ret = ktxTexture_WriteToStdioStream(ktxTexture(texture), f);
-            if (KTX_SUCCESS != ret) {
-                fprintf(stderr, "%s failed to write KTX file \"%s\"; KTX error: %s\n",
-                        name.c_str(), options.outfile.c_str(),
-                        ktxErrorString(ret));
-                exitCode = 2;
-            }
-        }
+        ret = ktxTexture_WriteToStdioStream(ktxTexture(texture), f);
         if (KTX_SUCCESS != ret) {
-            if (f != stdout)
-                _tunlink(options.outfile.c_str());
+            cerr << name << ": "
+                 << "%s failed to write KTX file \"" << options.outfile
+                 << "\"; KTX error: " << ktxErrorString(ret) << endl;
             exitCode = 2;
         }
+closefileandcleanup:
         fclose(f);
+        if (exitCode && (f != stdout)) {
+            _tunlink(options.outfile.c_str());
+        }
     } else {
-        fprintf(stderr, "%s: could not open output file \"%s\". %s\n",
-                name.c_str(), options.outfile.c_str(), strerror(errno));
+        cerr << name << ": "
+             << "could not open output file \"" << options.outfile
+             << "\". " << strerror(errno) << endl;
         exitCode = 2;
     }
 
@@ -1473,7 +1367,7 @@ toktxApp::validateOptions()
         usage();
         exit(1);
     }
-    if (options.layers > 1 && options.depth > 1) {
+    if (options.layers && options.depth > 1) {
         error("cannot have 3D array textures.");
         usage();
         exit(1);
@@ -1513,31 +1407,6 @@ toktxApp::validateOptions()
 }
 
 void
-toktxApp::validateSwizzle(string& swizzle)
-{
-    if (swizzle.size() != 4) {
-        error("a swizzle parameter must have 4 characters.");
-        exit(1);
-    }
-    std::for_each(swizzle.begin(), swizzle.end(), [](char & c) {
-        c = (char)::tolower(c);
-    });
-
-    for (int i = 0; i < 4; i++) {
-        if (swizzle[i] != 'r'
-            && swizzle[i] != 'g'
-            && swizzle[i] != 'b'
-            && swizzle[i] != 'a'
-            && swizzle[i] != '0'
-            && swizzle[i] != '1') {
-            error("invalid character in swizzle.");
-            usage();
-            exit(1);
-        }
-    }
-}
-
-void
 toktxApp::processEnvOptions() {
     _tstring toktx_options;
     _TCHAR* env_options = _tgetenv(_T("TOKTX_OPTIONS"));
@@ -1574,17 +1443,35 @@ toktxApp::processEnvOptions() {
 bool
 toktxApp::processOption(argparser& parser, int opt)
 {
+    // N.B. It is not possible for an optarg string to be a negative number
+    // because the leading '-' will make the parser think it is an option
+    // leading to a "missing required argument" error before this is ever called.
     switch (opt) {
       case 0:
         break;
       case 'a':
-        options.layers = strtoi(parser.optarg.c_str());
+        options.layers = (uint32_t)strtoi(parser.optarg.c_str());
+        if (options.layers == 0) {
+            cerr << name << ": "
+                 << "To create an array texture set --layers > 0." << endl;
+            exit(1);
+        }
         break;
       case 'd':
-        options.depth = strtoi(parser.optarg.c_str());
+        options.depth = (uint32_t)strtoi(parser.optarg.c_str());
+        if (options.depth < 2) {
+            cerr << name << ": "
+                 << "To create a 3d texture set --depth > 1." << endl;
+            exit(1);
+        }
         break;
       case 'l':
-        options.levels = strtoi(parser.optarg.c_str());
+        options.levels = (uint32_t)strtoi(parser.optarg.c_str());
+        if (options.levels < 2) {
+            cerr << name << ": "
+                 << "--levels must be > 1." << endl;
+            exit(1);
+        }
         break;
       case 'f':
         options.gmopts.filter = parser.optarg;
@@ -1629,10 +1516,6 @@ toktxApp::processOption(argparser& parser, int opt)
                  << options.scale << "." << endl;
             exit(1);
         }
-        break;
-      case 1100:
-        validateSwizzle(parser.optarg);
-        options.inputSwizzle = parser.optarg;
         break;
       case 1101:
         validateSwizzle(parser.optarg);

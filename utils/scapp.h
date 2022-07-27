@@ -11,6 +11,8 @@
 #include <unordered_map>
 #include <zstd.h>
 
+#include <KHR/khr_df.h>
+
 template<typename T>
 struct clampedOption
 {
@@ -316,6 +318,10 @@ astcEncoderMode(const char* mode) {
                  <dd>Disable RDO multithreading (slightly higher compression,
                  deterministic).</dd>
       </dl>
+    <dt>--input_swizzle &lt;swizzle&gt;
+                 <dd>Swizzle the input components according to @e swizzle which
+                 is an alhpanumeric sequence matching the regular expression
+                 @c ^[rgba01]{4}$.
     <dt>--normal_mode</dt>
                  <dd>Only valid for linear textures with two or more components.
                  If the input texture has three or four linear components it is
@@ -334,10 +340,13 @@ astcEncoderMode(const char* mode) {
       nml.xy = nml.xy * 2.0 - 1.0;           // Unpack to [-1,1]
       nml.z = sqrt(1 - dot(nml.xy, nml.xy)); // Compute Z
                  </pre>
-                 For ASTC encoding, '--encode astc', encoder parameters are
+                 For ASTC encoding, '@b --encode astc', encoder parameters are
                  tuned for better quality on normal maps. For ETC1S encoding,
-                 '@b --encode etc1s', RDO is disabled (no selector RDO, no
+                 @b '--encode etc1s', RDO is disabled (no selector RDO, no
                  endpoint RDO) to provide better quality.</dd>
+
+                 In @em toktx you can prevent conversion of the normal map to
+                 two components by specifying '@b --input_swizzle rgb1'.
     <dt>--normalize</dt>
                  <dd>Normalize input normals to have a unit length. Only valid
                  for linear textures with 2 or more components. For 2-component
@@ -440,6 +449,34 @@ class scApp : public ktxApp {
                 verbose = false; // Default to quiet operation.
                 for (int i = 0; i < 4; i++) inputSwizzle[i] = 0;
             }
+#define TRAVIS_DEBUG 0
+#if TRAVIS_DEBUG
+            void print() {
+                cout << "threadCount = " << threadCount.value << endl;
+                cout << "qualityLevel = " << qualityLevel.value << endl;
+                cout << "maxEndpoints = " << maxEndpoints.value << endl;
+                cout << "maxSelectors = " << maxSelectors.value << endl;
+                cout << "structSize = " << structSize << endl;
+                cout << "threadCount = " << ktxBasisParams::threadCount << endl;
+                cout << "compressionLevel = " << compressionLevel << endl;
+                cout << "qualityLevel = " << ktxBasisParams::qualityLevel << endl;
+                cout << "compressionLevel = " << compressionLevel << endl;
+                cout << "maxEndpoints = " << ktxBasisParams::maxEndpoints << endl;
+                cout << "endpointRDOThreshold = " << endpointRDOThreshold << endl;
+                cout << "maxSelectors = " << ktxBasisParams::maxSelectors << endl;
+                cout << "selectorRDOThreshold = " << selectorRDOThreshold << endl;
+                cout << "normalMap = " << normalMap << endl;
+                cout << "separateRGToRGB_A = " << separateRGToRGB_A << endl;
+                cout << "preSwizzle = " << preSwizzle << endl;
+                cout << "noEndpointRDO = " << noEndpointRDO << endl;
+                cout << "noSelectorRDO = " << noSelectorRDO << endl;
+                cout << "uastc = " << uastc << endl;
+                cout << "uastcFlags = " << uastcFlags << endl;
+                cout << "uastcRDO = " << uastcRDO << endl;
+                cout << "uastcRDODictSize = " << uastcRDODictSize << endl;
+                cout << "uastcRDOQualityScalar = " << uastcRDOQualityScalar << endl;
+            }
+#endif
         };
 
         struct astcOptions : public ktxAstcParams {
@@ -476,6 +513,7 @@ class scApp : public ktxApp {
         ktx_bool_t   normalize;
         clamped<ktx_uint32_t> zcmpLevel;
         clamped<ktx_uint32_t> threadCount;
+        string inputSwizzle;
         struct basisOptions bopts;
         struct astcOptions astcopts;
 
@@ -500,6 +538,7 @@ class scApp : public ktxApp {
     enum HasArg { eNone, eOptional, eRequired };
     void captureOption(const argparser& parser, HasArg hasArg);
     void validateOptions();
+    void validateSwizzle(string& swizzle);
 
   public:
     scApp(string& version, string& defaultVersion, scApp::commandOptions& options);
@@ -517,6 +556,9 @@ class scApp : public ktxApp {
         else if (encoding == "uastc")
             options.bopts.uastc = 1;
     }
+
+    int encode(ktxTexture2* texture, const string& swizzle,
+               const _tstring& filename);
 
     void usage()
     {
@@ -665,6 +707,10 @@ class scApp : public ktxApp {
           "      --uastc_rdo_m\n"
           "               Disable RDO multithreading (slightly higher compression,\n"
           "               deterministic).\n\n"
+          "  --input_swizzle <swizzle>\n"
+          "               Swizzle the input components according to swizzle which is an\n"
+          "               alhpanumeric sequence matching the regular expression\n"
+          "               ^[rgba01]{4}$.\n"
           "  --normal_mode\n"
           "               Only valid for linear textures with two or more components. If\n"
           "               the input texture has three or four linear components it is\n"
@@ -685,6 +731,8 @@ class scApp : public ktxApp {
           "               on normal maps. .  For ETC1S encoding, '--encode etc1s',i RDO is\n"
           "               disabled (no selector RDO, no endpoint RDO) to provide better\n"
           "               quality.\n\n"
+          "               You can prevent conversion of the normal map to two components\n"
+          "               by specifying '--input_swizzle rgb1'.\n\n"
           "  --normalize\n"
           "               Normalize input normals to have a unit length. Only valid for\n"
           "               linear textures with 2 or more components. For 2-component inputs\n"
@@ -758,6 +806,7 @@ scApp::scApp(string& version, string& defaultVersion,
       { "astc_quality", argparser::option::required_argument, NULL, 1014 },
       { "astc_perceptual", argparser::option::no_argument, NULL, 1015 },
       { "encode", argparser::option::required_argument, NULL, 1016 },
+      { "input_swizzle", argparser::option::required_argument, NULL, 1100},
       { "normalize", argparser::option::no_argument, NULL, 1017 },
       // Deprecated options
       { "bcmp", argparser::option::no_argument, NULL, 'b' },
@@ -795,6 +844,31 @@ scApp::validateOptions() {
         && (options.bopts.maxEndpoints + options.bopts.maxSelectors)) {
         cerr << name << ": Warning: ignoring --qlevel as it, --max_endpoints"
              << " and --max_selectors are all set." << endl;
+    }
+}
+
+void
+scApp::validateSwizzle(string& swizzle)
+{
+    if (swizzle.size() != 4) {
+        error("a swizzle parameter must have 4 characters.");
+        exit(1);
+    }
+    std::for_each(swizzle.begin(), swizzle.end(), [](char & c) {
+        c = (char)::tolower(c);
+    });
+
+    for (int i = 0; i < 4; i++) {
+        if (swizzle[i] != 'r'
+            && swizzle[i] != 'g'
+            && swizzle[i] != 'b'
+            && swizzle[i] != 'a'
+            && swizzle[i] != '0'
+            && swizzle[i] != '1') {
+            error("invalid character in swizzle.");
+            usage();
+            exit(1);
+        }
     }
 }
 
@@ -971,6 +1045,12 @@ scApp::processOption(argparser& parser, int opt)
             hasArg = true;
         }
         break;
+      case 1100:
+        validateSwizzle(parser.optarg);
+        options.inputSwizzle = parser.optarg;
+        hasArg = true;
+        capture = false; // Not a compression parameter.
+        break;
       default:
         return false;
     }
@@ -982,4 +1062,93 @@ scApp::processOption(argparser& parser, int opt)
     }
 
     return true;
+}
+
+/* @internal
+ * @brief Compress a texture according to the specified @c options.
+ *
+ * @param[in] texture    the texture to compress
+ * @param[in] swizzle    swizzle the encoder should apply to the input data
+ * @param[in] filename   Name of the file corresponding to the texture.
+ *
+ * @return 0 on success, an exit code on error.
+ */
+int
+scApp::encode(ktxTexture2* texture, const string& swizzle,
+              const _tstring& filename)
+{
+    ktx_error_code_e result;
+
+    ktx_uint32_t oetf = ktxTexture2_GetOETF(texture);
+    if (options.normalMode && oetf != KHR_DF_TRANSFER_LINEAR) {
+        cerr << name << ": "
+             << "--normal_mode specified but input file(s) are not "
+             << "linear." << endl;
+        return 1;
+
+    }
+    if (options.etc1s || options.bopts.uastc) {
+        commandOptions::basisOptions& bopts = options.bopts;
+        if (swizzle.size()) {
+            for (uint32_t i = 0; i < swizzle.size(); i++) {
+                 bopts.inputSwizzle[i] = swizzle[i];
+            }
+        }
+
+        bopts.threadCount = options.threadCount;
+        bopts.normalMap = options.normalMode;
+
+#if TRAVIS_DEBUG
+        bopts.print();
+#endif
+        result = ktxTexture2_CompressBasisEx(texture, &bopts);
+        if (KTX_SUCCESS != result) {
+            cerr << name
+                 << " failed to compress KTX file \"" << filename
+                 << "\" with Basis Universal; KTX error: "
+                 << ktxErrorString(result) << endl;
+            return 2;
+        }
+    } else if (options.astc) {
+        commandOptions::astcOptions& astcopts = options.astcopts;
+        if (swizzle.size()) {
+            for (uint32_t i = 0; i < swizzle.size(); i++) {
+                 astcopts.inputSwizzle[i] = swizzle[i];
+            }
+        }
+
+        astcopts.threadCount = options.threadCount;
+        astcopts.normalMap = options.normalMode;
+
+        result = ktxTexture2_CompressAstcEx((ktxTexture2*)texture,
+                                         &astcopts);
+        if (KTX_SUCCESS != result) {
+            cerr << name
+                 << " failed to compress KTX file \"" << filename
+                 << "\" with ASTC; KTX error: "
+                 << ktxErrorString(result) << endl;
+            return 2;
+        }
+    } else {
+        result = KTX_SUCCESS;
+    }
+    if (KTX_SUCCESS == result) {
+        if (options.zcmp) {
+            result = ktxTexture2_DeflateZstd((ktxTexture2*)texture,
+                                              options.zcmpLevel);
+            if (KTX_SUCCESS != result) {
+                cerr << name << ": Zstd deflation of \"" << filename
+                     << "\" failed; KTX error: "
+                     << ktxErrorString(result) << endl;
+                return 2;
+            }
+        }
+    }
+    if (!getParamsStr().empty()) {
+        ktxHashList_AddKVPair(&texture->kvDataHead,
+            scparamKey.c_str(),
+            (ktx_uint32_t)getParamsStr().length() + 1,
+            getParamsStr().c_str());
+    }
+    return 0;
 }
