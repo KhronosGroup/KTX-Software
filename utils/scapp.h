@@ -11,6 +11,8 @@
 #include <unordered_map>
 #include <zstd.h>
 
+#include <KHR/khr_df.h>
+
 template<typename T>
 struct clampedOption
 {
@@ -447,6 +449,34 @@ class scApp : public ktxApp {
                 verbose = false; // Default to quiet operation.
                 for (int i = 0; i < 4; i++) inputSwizzle[i] = 0;
             }
+#define TRAVIS_DEBUG 0
+#if TRAVIS_DEBUG
+            void print() {
+                cout << "threadCount = " << threadCount.value << endl;
+                cout << "qualityLevel = " << qualityLevel.value << endl;
+                cout << "maxEndpoints = " << maxEndpoints.value << endl;
+                cout << "maxSelectors = " << maxSelectors.value << endl;
+                cout << "structSize = " << structSize << endl;
+                cout << "threadCount = " << ktxBasisParams::threadCount << endl;
+                cout << "compressionLevel = " << compressionLevel << endl;
+                cout << "qualityLevel = " << ktxBasisParams::qualityLevel << endl;
+                cout << "compressionLevel = " << compressionLevel << endl;
+                cout << "maxEndpoints = " << ktxBasisParams::maxEndpoints << endl;
+                cout << "endpointRDOThreshold = " << endpointRDOThreshold << endl;
+                cout << "maxSelectors = " << ktxBasisParams::maxSelectors << endl;
+                cout << "selectorRDOThreshold = " << selectorRDOThreshold << endl;
+                cout << "normalMap = " << normalMap << endl;
+                cout << "separateRGToRGB_A = " << separateRGToRGB_A << endl;
+                cout << "preSwizzle = " << preSwizzle << endl;
+                cout << "noEndpointRDO = " << noEndpointRDO << endl;
+                cout << "noSelectorRDO = " << noSelectorRDO << endl;
+                cout << "uastc = " << uastc << endl;
+                cout << "uastcFlags = " << uastcFlags << endl;
+                cout << "uastcRDO = " << uastcRDO << endl;
+                cout << "uastcRDODictSize = " << uastcRDODictSize << endl;
+                cout << "uastcRDOQualityScalar = " << uastcRDOQualityScalar << endl;
+            }
+#endif
         };
 
         struct astcOptions : public ktxAstcParams {
@@ -526,6 +556,9 @@ class scApp : public ktxApp {
         else if (encoding == "uastc")
             options.bopts.uastc = 1;
     }
+
+    int encode(ktxTexture2* texture, const string& swizzle,
+               const _tstring& filename);
 
     void usage()
     {
@@ -1029,4 +1062,93 @@ scApp::processOption(argparser& parser, int opt)
     }
 
     return true;
+}
+
+/* @internal
+ * @brief Compress a texture according to the specified @c options.
+ *
+ * @param[in] texture    the texture to compress
+ * @param[in] swizzle    swizzle the encoder should apply to the input data
+ * @param[in] filename   Name of the file corresponding to the texture.
+ *
+ * @return 0 on success, an exit code on error.
+ */
+int
+scApp::encode(ktxTexture2* texture, const string& swizzle,
+              const _tstring& filename)
+{
+    ktx_error_code_e result;
+
+    ktx_uint32_t oetf = ktxTexture2_GetOETF(texture);
+    if (options.normalMode && oetf != KHR_DF_TRANSFER_LINEAR) {
+        cerr << name << ": "
+             << "--normal_mode specified but input file(s) are not "
+             << "linear." << endl;
+        return 1;
+
+    }
+    if (options.etc1s || options.bopts.uastc) {
+        commandOptions::basisOptions& bopts = options.bopts;
+        if (swizzle.size()) {
+            for (uint32_t i = 0; i < swizzle.size(); i++) {
+                 bopts.inputSwizzle[i] = swizzle[i];
+            }
+        }
+
+        bopts.threadCount = options.threadCount;
+        bopts.normalMap = options.normalMode;
+
+#if TRAVIS_DEBUG
+        bopts.print();
+#endif
+        result = ktxTexture2_CompressBasisEx(texture, &bopts);
+        if (KTX_SUCCESS != result) {
+            cerr << name
+                 << " failed to compress KTX file \"" << filename
+                 << "\" with Basis Universal; KTX error: "
+                 << ktxErrorString(result) << endl;
+            return 2;
+        }
+    } else if (options.astc) {
+        commandOptions::astcOptions& astcopts = options.astcopts;
+        if (swizzle.size()) {
+            for (uint32_t i = 0; i < swizzle.size(); i++) {
+                 astcopts.inputSwizzle[i] = swizzle[i];
+            }
+        }
+
+        astcopts.threadCount = options.threadCount;
+        astcopts.normalMap = options.normalMode;
+
+        result = ktxTexture2_CompressAstcEx((ktxTexture2*)texture,
+                                         &astcopts);
+        if (KTX_SUCCESS != result) {
+            cerr << name
+                 << " failed to compress KTX file \"" << filename
+                 << "\" with ASTC; KTX error: "
+                 << ktxErrorString(result) << endl;
+            return 2;
+        }
+    } else {
+        result = KTX_SUCCESS;
+    }
+    if (KTX_SUCCESS == result) {
+        if (options.zcmp) {
+            result = ktxTexture2_DeflateZstd((ktxTexture2*)texture,
+                                              options.zcmpLevel);
+            if (KTX_SUCCESS != result) {
+                cerr << name << ": Zstd deflation of \"" << filename
+                     << "\" failed; KTX error: "
+                     << ktxErrorString(result) << endl;
+                return 2;
+            }
+        }
+    }
+    if (!getParamsStr().empty()) {
+        ktxHashList_AddKVPair(&texture->kvDataHead,
+            scparamKey.c_str(),
+            (ktx_uint32_t)getParamsStr().length() + 1,
+            getParamsStr().c_str());
+    }
+    return 0;
 }

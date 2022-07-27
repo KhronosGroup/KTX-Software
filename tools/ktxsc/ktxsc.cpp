@@ -21,8 +21,6 @@
 #include <vector>
 #include <ktx.h>
 
-#include <KHR/khr_df.h>
-
 #include "argparser.h"
 #include "scapp.h"
 #include "version.h"
@@ -293,78 +291,9 @@ ktxSupercompressor::main(int argc, _TCHAR* argv[])
                                       (ktx_uint32_t)writer.str().length() + 1,
                                       writer.str().c_str());
 
-                ktx_uint32_t transfer = ktxTexture2_GetOETF(texture);
-                if (options.normalMode && transfer != KHR_DF_TRANSFER_LINEAR) {
-                    cerr << name << ": "
-                         << "--normal_mode specified but input file(s) are not "
-                         << "linear." << endl;
-                    exitCode = 1;
+                exitCode = encode(texture, options.inputSwizzle, infile);
+                if (exitCode)
                     goto cleanup;
-                }
-                if (options.etc1s || options.bopts.uastc) {
-                    commandOptions::basisOptions& bopts = options.bopts;
-#if 0
-                    uint32_t componentCount, componentByteLength;
-                    ktxTexture2_GetComponentInfo(texture,
-                                                 &componentCount,
-                                                 &componentByteLength);
-#endif
-                    if (options.inputSwizzle.size()) {
-                        for (uint32_t i = 0; i < options.inputSwizzle.size(); i++) {
-                             bopts.inputSwizzle[i] = options.inputSwizzle[i];
-                        }
-                    }
-
-                    result = ktxTexture2_CompressBasisEx(texture, &bopts);
-                    if (result != KTX_SUCCESS) {
-                        cerr << name
-                             << " failed to compress KTX file \"" << infile
-                             << "\" with Basis Universal; KTX error: "
-                             << ktxErrorString(result) << endl;
-                        exitCode = 2;
-                        goto cleanup;
-                    }
-                } else if (options.astc) {
-                    commandOptions::astcOptions& astcopts = options.astcopts;
-                    if (options.inputSwizzle.size()) {
-                        for (uint32_t i = 0; i < options.inputSwizzle.size(); i++) {
-                             astcopts.inputSwizzle[i] = options.inputSwizzle[i];
-                        }
-                    }
-
-                    astcopts.threadCount = options.threadCount;
-                    astcopts.normalMap = options.normalMode;
-
-                    result = ktxTexture2_CompressAstcEx((ktxTexture2*)texture,
-                                                     &astcopts);
-                    if (result != KTX_SUCCESS) {
-                        cerr << name
-                             << " failed to compress KTX file \"" << infile
-                             << "\" with ASTC; KTX error: "
-                             << ktxErrorString(result) << endl;
-                        exitCode = 2;
-                        goto cleanup;
-                    }
-                } else {
-                    result = KTX_SUCCESS;
-                }
-                if (KTX_SUCCESS == result) {
-                    if (options.zcmp) {
-                        result = ktxTexture2_DeflateZstd((ktxTexture2*)texture,
-                                                          options.zcmpLevel);
-                        if (KTX_SUCCESS != result) {
-                            cerr << name << ": Zstd deflation failed; "
-                                            "KTX error: "
-                                 << ktxErrorString(result) << endl;
-                            exitCode = 2;
-                            goto cleanup;
-                        }
-                    }
-                }
-                if (!getParamsStr().empty()) {
-                    ktxHashList_AddKVPair(&texture->kvDataHead, scparamKey.c_str(),
-                    (ktx_uint32_t)getParamsStr().length() + 1, getParamsStr().c_str());
-                }
                 result = ktxTexture_WriteToStdioStream(ktxTexture(texture), outf);
                 if (result != KTX_SUCCESS) {
                     cerr << name
@@ -386,7 +315,8 @@ ktxSupercompressor::main(int argc, _TCHAR* argv[])
 #endif
                     {
                         cerr << name
-                             << ": rename of \"" << tmpfile << "\" to \"" << infile << "\" failed: "
+                             << ": rename of \"" << tmpfile << "\" to \""
+                             << infile << "\" failed: "
                              << strerror(errno) << endl;
                         exitCode = 2;
                         goto cleanup;

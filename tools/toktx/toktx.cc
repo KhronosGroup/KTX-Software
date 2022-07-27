@@ -403,35 +403,6 @@ class toktxApp : public scApp {
             newGeom.width = newGeom.height = 0;
             targetType = eUnspecified;
        }
-
-#define TRAVIS_DEBUG 0
-#if TRAVIS_DEBUG
-        void print() {
-            cout << "threadCount = " << threadCount.value << endl;
-            cout << "qualityLevel = " << qualityLevel.value << endl;
-            cout << "maxEndpoints = " << maxEndpoints.value << endl;
-            cout << "maxSelectors = " << maxSelectors.value << endl;
-            cout << "structSize = " << structSize << endl;
-            cout << "threadCount = " << ktxBasisParams::threadCount << endl;
-            cout << "compressionLevel = " << compressionLevel << endl;
-            cout << "qualityLevel = " << ktxBasisParams::qualityLevel << endl;
-            cout << "compressionLevel = " << compressionLevel << endl;
-            cout << "maxEndpoints = " << ktxBasisParams::maxEndpoints << endl;
-            cout << "endpointRDOThreshold = " << endpointRDOThreshold << endl;
-            cout << "maxSelectors = " << ktxBasisParams::maxSelectors << endl;
-            cout << "selectorRDOThreshold = " << selectorRDOThreshold << endl;
-            cout << "normalMap = " << normalMap << endl;
-            cout << "separateRGToRGB_A = " << separateRGToRGB_A << endl;
-            cout << "preSwizzle = " << preSwizzle << endl;
-            cout << "noEndpointRDO = " << noEndpointRDO << endl;
-            cout << "noSelectorRDO = " << noSelectorRDO << endl;
-            cout << "uastc = " << uastc << endl;
-            cout << "uastcFlags = " << uastcFlags << endl;
-            cout << "uastcRDO = " << uastcRDO << endl;
-            cout << "uastcRDODictSize = " << uastcRDODictSize << endl;
-            cout << "uastcRDOQualityScalar = " << uastcRDOQualityScalar << endl;
-        }
-#endif
     } options;
 };
 
@@ -1336,103 +1307,31 @@ toktxApp::main(int argc, _TCHAR *argv[])
         f = _tfopen(options.outfile.c_str(), "wb");
 
     if (f) {
-        if (options.normalMode && chosenOETF != KHR_DF_TRANSFER_LINEAR) {
-            fprintf(stderr, "%s: --normal_mode specified but input file(s) are"
-                    " not linear.", name.c_str());
-            exitCode = 1;
-            goto cleanup;
+        if (options.astc || options.etc1s || options.bopts.uastc || options.zcmp) {
+            string& swizzle = options.inputSwizzle.size() == 0 && defaultSwizzle.size() && !options.normalMode
+                            ? defaultSwizzle
+                            : options.inputSwizzle;
+            exitCode = encode((ktxTexture2*)texture, swizzle,
+                               f == stdout ? "stdout" : options.outfile);
+            if (exitCode)
+                goto closefileandcleanup;
         }
-        if (options.etc1s || options.bopts.uastc) {
-            commandOptions::basisOptions& bopts = options.bopts;
-            if (options.inputSwizzle.size()) {
-                for (i = 0; i < options.inputSwizzle.size(); i++) {
-                     bopts.inputSwizzle[i] = options.inputSwizzle[i];
-                }
-            } else if (defaultSwizzle.size() && !options.normalMode) {
-                 for (i = 0; i < defaultSwizzle.size(); i++) {
-                     bopts.inputSwizzle[i] = defaultSwizzle[i];
-                }
-            }
-
-            bopts.threadCount = options.threadCount;
-            bopts.normalMap = options.normalMode;
-
-#if TRAVIS_DEBUG
-            bopts.print();
-#endif
-            ret = ktxTexture2_CompressBasisEx((ktxTexture2*)texture, &bopts);
-            if (KTX_SUCCESS != ret) {
-                fprintf(stderr, "%s failed to compress KTX file \"%s\" with "
-                        "Basis Universal; KTX error: %s\n",
-                        name.c_str(), options.outfile.c_str(),
-                        ktxErrorString(ret));
-                exitCode = 2;
-                goto cleanup;
-            }
-        } else if (options.astc) {
-            commandOptions::astcOptions& astcopts = options.astcopts;
-            if (options.inputSwizzle.size()) {
-                for (i = 0; i < options.inputSwizzle.size(); i++) {
-                     astcopts.inputSwizzle[i] = options.inputSwizzle[i];
-                }
-            } else if (defaultSwizzle.size() && !options.normalMode) {
-                 for (i = 0; i < options.inputSwizzle.size(); i++) {
-                     astcopts.inputSwizzle[i] = defaultSwizzle[i];
-                }
-            }
-
-            astcopts.threadCount = options.threadCount;
-            astcopts.normalMap = options.normalMode;
-
-#if TRAVIS_DEBUG
-            astcopts.print();
-#endif
-
-            ret = ktxTexture2_CompressAstcEx((ktxTexture2*)texture, &astcopts);
-            if (KTX_SUCCESS != ret) {
-                fprintf(stderr, "%s failed to compress KTX file \"%s\"with "
-                        "ASTC; KTX error: %s\n",
-                        name.c_str(), options.outfile.c_str(),
-                        ktxErrorString(ret));
-                exitCode = 2;
-                goto cleanup;
-            }
-        } else {
-            ret = KTX_SUCCESS;
-        }
-        if (KTX_SUCCESS == ret) {
-            if (options.zcmp) {
-                ret = ktxTexture2_DeflateZstd((ktxTexture2*)texture,
-                                               options.zcmpLevel);
-                if (KTX_SUCCESS != ret) {
-                    cerr << name << ": Zstd deflation failed; KTX error: "
-                         << ktxErrorString(ret) << endl;
-                    exitCode = 2;
-                    goto cleanup;
-                }
-            }
-            if (!getParamsStr().empty()) {
-                ktxHashList_AddKVPair(&texture->kvDataHead, scparamKey.c_str(),
-                (ktx_uint32_t)getParamsStr().length() + 1,
-                getParamsStr().c_str());
-            }
-            ret = ktxTexture_WriteToStdioStream(ktxTexture(texture), f);
-            if (KTX_SUCCESS != ret) {
-                fprintf(stderr, "%s failed to write KTX file \"%s\"; KTX error: %s\n",
-                        name.c_str(), options.outfile.c_str(),
-                        ktxErrorString(ret));
-                exitCode = 2;
-            }
-        }
+        ret = ktxTexture_WriteToStdioStream(ktxTexture(texture), f);
         if (KTX_SUCCESS != ret) {
-            if (f != stdout)
-                _tunlink(options.outfile.c_str());
+            cerr << name << ": "
+                 << "%s failed to write KTX file \"" << options.outfile
+                 << "\"; KTX error: " << ktxErrorString(ret) << endl;
             exitCode = 2;
         }
+closefileandcleanup:
         fclose(f);
+        if (exitCode && (f != stdout)) {
+            _tunlink(options.outfile.c_str());
+        }
     } else {
-        fprintf(stderr, "%s: could not open output file \"%s\". %s\n",
-                name.c_str(), options.outfile.c_str(), strerror(errno));
+        cerr << name << ": "
+             << "could not open output file \"" << options.outfile
+             << "\". " << strerror(errno) << endl;
         exitCode = 2;
     }
 
