@@ -196,9 +196,11 @@ set( LOAD_TEST_COMMON_RESOURCE_FILES
     ${MODELS}
 )
 
-include(glloadtests.cmake)
+if(KTX_FEATURE_GL_UPLOAD)
+    include(glloadtests.cmake)
+endif()
 
-if(NOT EMSCRIPTEN)
+if(KTX_FEATURE_VULKAN AND NOT EMSCRIPTEN)
     include(vkloadtests.cmake)
 endif()
 
