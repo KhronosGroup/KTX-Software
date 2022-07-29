@@ -23,6 +23,7 @@ PRIVATE
     $<TARGET_PROPERTY:objUtil,INTERFACE_INCLUDE_DIRECTORIES>
     ${PROJECT_SOURCE_DIR}/lib
     ${PROJECT_SOURCE_DIR}/lib/basisu
+    ${PROJECT_SOURCE_DIR}/lib/dfdutils
     ${PROJECT_SOURCE_DIR}/other_include
 )
 
