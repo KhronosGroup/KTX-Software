@@ -229,7 +229,9 @@ ktxTexture_WriteToNamedFile(texture, "mytex3d.ktx");
 ktxTexture_Destroy(texture);
 ~~~~~~~~~~~~~~~~
 
-## Writing a BasisLZ/ETC1S-compressed Texture
+## Writing a Basis-compressed Universal Texture
+
+Basis compression supports two universal texture formats: _BasisLZ/ETC1S_ and _UASTC_. The latter gives higher quality at a larger file size. Textures can be compressed to either format using `ktxTexture2_CompressBasisEx` as shown in this example. 
 
 ~~~~~~~~~~~~~~~~{.c}
 #include <ktx.h>
@@ -241,6 +243,8 @@ KTX_error_code result;
 ktx_uint32_t level, layer, faceSlice;
 FILE* src;
 ktx_size_t srcSize;
+ktxBasisParams params = {0};
+params.structSize = sizeof(params);
 
 createInfo.glInternalformat = 0;  //Ignored as we'll create a KTX2 texture.
 createInfo.vkFormat = VK_FORMAT_R8G8B8A8_UNORM;
@@ -259,7 +263,8 @@ result = ktxTexture2_Create(&createInfo,
                             KTX_TEXTURE_CREATE_ALLOC_STORAGE,
                             &texture);
 
-src = // Open a stdio FILE* on the baseLevel image, slice 0.
+src = // Open the file for the baseLevel image, slice 0 and
+      // read it into memory.
 srcSize = // Query size of the file.
 level = 0;
 layer = 0;
@@ -270,15 +275,31 @@ result = ktxTexture_SetImageFromMemory(ktxTexture(texture),
 // Repeat for the other 15 slices of the base level and all other levels
 // up to createInfo.numLevels.
 
-int quality = 100;
-result = ktxTexture2_CompressBasis(texture, quality);
+// For BasisLZ/ETC1S
+params.compressionLevel = KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL;
+// For UASTC
+params.uastc = KTX_TRUE;
+// Set other BasisLZ/ETC1S or UASTC params to change default quality settings.
+result = ktxtexture2_CompressBasisEx(texture, &params);
 
 ktxTexture_WriteToNamedFile(ktxTexture(texture), "mytex3d.ktx2");
 ktxTexture_Destroy(ktxTexture(texture));
 ~~~~~~~~~~~~~~~~
 
+There is a shortcut that can be used when compressing to BasisLZ/ETC1S. Remove
+the declaration and initialization of `params` in the previous example and
+replace `ktxtexture2_CompressBasisEx` with
 
-## Transcoding a BasisLZ/ETC1S-compressed Texture
+~~~~~~~~~~~~~~~~{.c}
+// Quality range is 1 - 255. 0 gets the default quality, currently 128.
+// The qualityLevel field in ktxBasisParams is set from this.
+int quality = 0;
+result = ktxTexture2_CompressBasis(texture, quality);
+~~~~~~~~~~~~~~~~
+
+
+
+## Transcoding a BasisLZ/ETC1S or UASTC-compressed Texture
 
 ~~~~~~~~~~~~~~~~{.c}
 #include <ktx.h>
@@ -317,3 +338,66 @@ if (ktxTexture2_NeedsTranscoding(texture)) {
 }
 ~~~~~~~~~~~~~~~~
 
+## Writing an ASTC-Compressed Texture
+
+~~~~~~~~~~~~~~~~{.c}
+#include <ktx.h>
+#include <vkformat_enum.h>
+
+ktxTexture2* texture;
+ktxTextureCreateInfo createInfo;
+KTX_error_code result;
+ktx_uint32_t level, layer, faceSlice;
+FILE* src;
+ktx_size_t srcSize;
+ktxAstcParams params = {0};
+params.structSize = sizeof(params);
+
+createInfo.glInternalformat = 0;  //Ignored as we'll create a KTX2 texture.
+createInfo.vkFormat = VK_FORMAT_R8G8B8A8_UNORM;
+createInfo.baseWidth = 2048;
+createInfo.baseHeight = 1024;
+createInfo.baseDepth = 16;
+createInfo.numDimensions = 3.
+// Note: it is not necessary to provide a full mipmap pyramid.
+createInfo.numLevels = log2(createInfo.baseWidth) + 1
+createInfo.numLayers = 1;
+createInfo.numFaces = 1;
+createInfo.isArray = KTX_FALSE;
+createInfo.generateMipmaps = KTX_FALSE;
+
+result = ktxTexture2_Create(&createInfo,
+                            KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                            &texture);
+
+src = // Open the file for the baseLevel image, slice 0 and
+      // read it into memory.
+srcSize = // Query size of the file.
+level = 0;
+layer = 0;
+faceSlice = 0;                           
+result = ktxTexture_SetImageFromMemory(ktxTexture(texture),
+                                       level, layer, faceSlice,
+                                       src, srcSize);
+// Repeat for the other 15 slices of the base level and all other levels
+// up to createInfo.numLevels.
+
+params.threadCount = 1;
+params.blockDimension = KTX_PACK_ASTC_BLOCK_DIMENSION_6x6;
+params.mode = KTX_PACK_ASTC_ENCODER_MODE_LDR;
+params.qualityLevel = KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM;
+result = ktxtexture2_CompressAstcEx(texture, &params);
+
+ktxTexture_WriteToNamedFile(ktxTexture(texture), "mytex3d.ktx2");
+ktxTexture_Destroy(ktxTexture(texture));
+~~~~~~~~~~~~~~~~
+
+There is a shortcut that can be used when the only `params` field you want to
+modify is the `qualityLevel`. Remove the declaration and initialization of
+`params` in the previous example and replace `ktxtexture2_CompressAstcEx` with
+
+~~~~~~~~~~~~~~~~{.c}
+// Quality range is 0 - 100. 0 is fastest/lowest. 100 is slowest/highest.
+int quality = KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM;
+result = ktxTexture2_CompressAstc(texture, quality);
+~~~~~~~~~~~~~~~~
