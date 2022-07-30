@@ -1173,8 +1173,9 @@ extern KTX_API const ktx_uint32_t KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL;
  * @brief Structure for passing extended parameters to
  *        ktxTexture_CompressAstc.
  *
- * Passing a struct initialized to 0 (e.g. " = {0};") will use the default
- * values. Only those settings to be modified need be non-zero.
+ * Passing a struct initialized to 0 (e.g. " = {0};") will use blockDimension
+ * 4x4, mode LDR and qualityLevel FASTEST. Setting qualityLevel to
+ * KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM is recommended.
  */
 typedef struct ktxAstcParams {
     ktx_uint32_t structSize;
