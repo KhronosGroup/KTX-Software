@@ -76,12 +76,12 @@ docker exec -it emscripten sh -c "emcmake cmake -B$BUILD_DIR . \
     -D CMAKE_BUILD_TYPE=$CONFIGURATION \
     -D KTX_FEATURE_DOC=OFF \
     -D KTX_FEATURE_LOADTEST_APPS=$FEATURE_LOADTESTS \
-  && cmake --build $BUILD_DIR --config $CONFIGURATION"
+  && cmake --build $BUILD_DIR"
 
 if [ "$PACKAGE" = "YES" ]; then
   echo "Pack KTX-Software (Web $CONFIGURATION)"
   # Call cmake rather than cpack so we don't need knowledge of the working
   # directory inside docker.
-  docker exec -it emscripten sh -c "cmake --build $BUILD_DIR --config $CONFIGURATION --target package"
+  docker exec -it emscripten sh -c "cmake --build $BUILD_DIR --target package"
 fi
 
