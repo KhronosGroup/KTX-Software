@@ -221,7 +221,11 @@ test_script:
 - ps: |
     $Env:Phase = "test"
     pushd $env:BUILD_DIR
-    ctest -C $env:CONFIGURATION
+    $configArray = $env:CONFIGURATION.split(",")
+    foreach ($config in $configArray) {
+      echo "Testing KTX-Software ($config)"
+      ctest -C $config
+    }
     popd
 
 artifacts:
