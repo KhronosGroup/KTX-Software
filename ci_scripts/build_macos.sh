@@ -99,7 +99,7 @@ IFS=, ; for config in $CONFIGURATION
 do
   IFS=$oldifs # Because of ; IFS set above will still be present.
   # Build and test
-  echo "Build KTX-Software (macOS $ARCHS $config) FEATURE_DOC=$FEATURE_DOC FEATURE_JNI=$FEATURE_JNI FEATURE_LOADTESTS=$FEATURE_LOADTESTS FEATURE_TESTS=$FEATURE_TESTS FEATURE_TOOLS=$FEATURE_TOOLS SUPPORT_SSE=$SUPPORT_SSE SUPPORT_OPENCL=$SUPPORT_OPENCL"
+  echo "Build KTX-Software (macOS $ARCHS $config)"
   if [ -n "$MACOS_CERTIFICATES_P12" -a "$config" = "Release" ]; then
     cmake --build . --config $config | handle_compiler_output
   else
@@ -113,7 +113,7 @@ do
   fi
 
   if [ "$config" = "Release" -a "$PACKAGE" = "YES" ]; then
-    echo "Pack KTX-Software (macOS $config)"
+    echo "Pack KTX-Software (macOS $ARCHS $config)"
     if ! cpack -C $config -G productbuild; then
       cat _CPack_Packages/Darwin/productbuild/ProductBuildOutput.log
       exit 1

@@ -74,7 +74,7 @@ oldifs=$IFS
 IFS=, ; for config in $CONFIGURATION
 do
   IFS=$oldifs # Because of ; IFS set above will still be present.
-  echo "Build KTX-Software (iOS $config) FEATURE_DOC=$FEATURE_DOC FEATURE_JNI=$FEATURE_JNI FEATURE_LOADTESTS=$FEATURE_LOADTESTS FEATURE_TOOLS=$FEATURE_TOOLS SUPPORT_SSE=OFF SUPPORT_OPENCL=$SUPPORT_OPENCL"
+  echo "Build KTX-Software (iOS $config)"
   cmake --build . --config $config -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO | handle_compiler_output
 
   #echo "Build KTX-Software (iOS Simulator $config) FEATURE_DOC=$FEATURE_DOC FEATURE_JNI=$FEATURE_JNI FEATURE_LOADTESTS=$FEATURE_LOADTESTS SUPPORT_SSE=OFF SUPPORT_OPENCL=$SUPPORT_OPENCL"
