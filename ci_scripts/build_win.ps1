@@ -1,9 +1,12 @@
 # Copyright 2022 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-# Allow setting of variables on the command line. A command line parameter
+#   Allow setting of variables on the command line. A command line parameter
 # must look like (including the quotes shown) '$VAR="string"'. Spaces
 # around the equals are acceptable.
+#   Since the cmake Visual Studio generator generates multi-config build
+# trees, CONFIGURATION can be a comma separated list of the configurations
+# to build
 for ($i=0; $i -lt $args.length; $i++)
 {
  Invoke-Expression $($args[$i])
@@ -43,7 +46,7 @@ $WIN_CS_CERT_SEARCH_MACHINE_STORE = Set-Config-Variable WIN_CS_CERT_SEARCH_MACHI
 
 if ($FEATURE_LOADTESTS -eq "ON")  { $need_gles_emulator=1 }
 
-echo "Build via $CMAKE_GEN dir: $BUILD_DIR Arch: $PLATFORM Toolset: $CMAKE_TOOLSET Config: $CONFIGURATION, FEATURE_LOADTESTS: $FEATURE_LOADTESTS, FEATURE_DOC: $FEATURE_DOC, FEATURE_JNI: $FEATURE_JNI, FEATURE_TOOLS: $FEATURE_TOOLS, FEATURE_TESTS: $FEATURE_TESTS, SUPPORT_SSE: $SUPPORT_SSE, SUPPORT_OPENCL: $SUPPORT_OPENCL WIN_CODE_SIGN_IDENTITY: $WIN_CODE_SIGN_IDENTITY WIN_CS_CERT_SEARCH_MACHINE_STORE: $WIN_CS_CERT_SEARCH_MACHINE_STORE"
+echo "Configure KTX-Software (Windows $CMAKE_GEN) dir: $BUILD_DIR Arch: $PLATFORM Toolset: $CMAKE_TOOLSET FEATURE_LOADTESTS: $FEATURE_LOADTESTS, FEATURE_DOC: $FEATURE_DOC, FEATURE_JNI: $FEATURE_JNI, FEATURE_TOOLS: $FEATURE_TOOLS, FEATURE_TESTS: $FEATURE_TESTS, SUPPORT_SSE: $SUPPORT_SSE, SUPPORT_OPENCL: $SUPPORT_OPENCL WIN_CODE_SIGN_IDENTITY: $WIN_CODE_SIGN_IDENTITY WIN_CS_CERT_SEARCH_MACHINE_STORE: $WIN_CS_CERT_SEARCH_MACHINE_STORE"
 
 if (($PACKAGE -eq "YES") -and ($FEATURE_TOOLS -eq "OFF")) {
   echo "Error: Cannot package a configuration that does not build tools. Set FEATURE_TOOLS to ON or PACKAGE to NO"
@@ -67,27 +70,32 @@ cmake . -G "$CMAKE_GEN" -A $PLATFORM $TOOLSET_OPTION -B $BUILD_DIR `
   -D WIN_CS_CERT_SEARCH_MACHINE_STORE=$WIN_CS_CERT_SEARCH_MACHINE_STORE `
   $(if ($need_gles_emulator) {"-D"}) $(if ($need_gles_emulator) {"OPENGL_ES_EMULATOR=$OPENGL_ES_EMULATOR"})
 
-pushd $BUILD_DIR
-try {
-  #git status
-  cmake --build . --config $CONFIGURATION
-  # Return an error code if cmake fails
-  if(!$?){
-    popd
-    exit 1
-  }
-
-  #git status
-  if ($PACKAGE -eq "YES") {
-    cmake --build . --config $CONFIGURATION --target PACKAGE
+$configArray = $CONFIGURATION.split(",")
+foreach ($config in $configArray) {
+  pushd $BUILD_DIR
+  try {
+    #git status
+    echo "Build KTX-Software (Windows $PLATFORM $config)"
+    cmake --build . --config $config
     # Return an error code if cmake fails
     if(!$?){
       popd
       exit 1
     }
+
+    #git status
+    if ($PACKAGE -eq "YES" -and $config -eq "Release") {
+    echo "Pack KTX-Software (Windows $PLATFORM $config)"
+      cmake --build . --config $config --target PACKAGE
+      # Return an error code if cmake fails
+      if(!$?){
+        popd
+        exit 1
+      }
+    }
+    echo "Done building."
+  } finally {
+   popd
   }
-  echo "Done building."
 }
-finally {
- popd
-}
+
