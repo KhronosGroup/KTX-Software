@@ -647,6 +647,9 @@ toktxApp::main(int argc, _TCHAR *argv[])
     int exitCode = 0;
     unsigned int componentCount = 1, faceSlice, level, layer, levelCount = 1;
     unsigned int levelWidth=0, levelHeight=0, levelDepth=0;
+    // These initializations are to avoid compiler warnings.
+    khr_df_transfer_e chosenOETF = KHR_DF_TRANSFER_UNSPECIFIED;
+    khr_df_primaries_e chosenPrimaries = KHR_DF_PRIMARIES_UNSPECIFIED;
     struct _imageAttribs {
         khr_df_transfer_e oetf;
         khr_df_primaries_e primaries;
@@ -944,6 +947,8 @@ toktxApp::main(int argc, _TCHAR *argv[])
 
         if (i == 0) {
             // First file.
+            chosenOETF = image->getOetf();
+            chosenPrimaries = image->getPrimaries();
 
             if (image->getColortype() < Image::colortype_e::eR) {  // Luminance type?
                 if (image->getColortype() == Image::colortype_e::eLuminance) {
@@ -1285,9 +1290,9 @@ toktxApp::main(int argc, _TCHAR *argv[])
                                   swizzle.c_str());
         }
 
-        if (options.ktx2 && expectedAttribs.primaries != KHR_DF_PRIMARIES_BT709) {
+        if (options.ktx2 && chosenPrimaries != KHR_DF_PRIMARIES_BT709) {
             KHR_DFDSETVAL(((ktxTexture2*)texture)->pDfd + 1, PRIMARIES,
-                          expectedAttribs.primaries);
+                          chosenPrimaries);
         }
     }
 
