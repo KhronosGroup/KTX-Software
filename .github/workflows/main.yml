@@ -72,7 +72,7 @@ jobs:
     # Can't control that so please manually re-run if we time out here
     - name: Install Doxygen
       if: matrix.options.docs == 'ON'
-      run: choco install doxygen
+      run: choco install doxygen.install
 
     - name: Install Certificate File Decryption Tool
       if: matrix.options.package == 'YES'
