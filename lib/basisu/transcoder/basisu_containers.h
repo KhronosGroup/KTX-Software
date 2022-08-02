@@ -10,6 +10,8 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-value"
 #pragma GCC diagnostic ignored "-Wclass-memaccess"
+#elif __clang__ && __has_warning("-Wdeprecated-builtins")
+    #pragma clang diagnostic ignored "-Wdeprecated-builtins"
 #endif
 
 #if defined(__linux__) && !defined(ANDROID)
