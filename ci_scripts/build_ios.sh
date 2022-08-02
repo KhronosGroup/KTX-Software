@@ -10,10 +10,7 @@ set -e
 # Set parameters from command-line arguments, if any. This is designed
 # to handle args of the form PARAM=value or PARAM="value1 value2 ...".
 # Any other form of CL args must be handled first.
-echo num options = $#
 for i in "$@"; do
-  echo == $i
-  i=${i/ /\\ }
   eval $i
 done
 
@@ -72,9 +69,12 @@ cmake -GXcode -B$BUILD_DIR \
 
 pushd $BUILD_DIR
 
-for config in $CONFIGURATION
+oldifs=$IFS
+#; is necessary because `for` is a Special Builtin.
+IFS=, ; for config in $CONFIGURATION
 do
-  echo "Build KTX-Software (iOS $config) FEATURE_DOC=$FEATURE_DOC FEATURE_JNI=$FEATURE_JNI FEATURE_LOADTESTS=$FEATURE_LOADTESTS FEATURE_TOOLS=$FEATURE_TOOLS SUPPORT_SSE=OFF SUPPORT_OPENCL=$SUPPORT_OPENCL"
+  IFS=$oldifs # Because of ; IFS set above will still be present.
+  echo "Build KTX-Software (iOS $config)"
   cmake --build . --config $config -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO | handle_compiler_output
 
   #echo "Build KTX-Software (iOS Simulator $config) FEATURE_DOC=$FEATURE_DOC FEATURE_JNI=$FEATURE_JNI FEATURE_LOADTESTS=$FEATURE_LOADTESTS SUPPORT_SSE=OFF SUPPORT_OPENCL=$SUPPORT_OPENCL"
@@ -82,7 +82,7 @@ do
 
   if [ "$config" = "Release" -a "$PACKAGE" = "YES" ]; then
     echo "Pack KTX-Software (iOS $config)"
-    if ! cpack -C Release; then
+    if ! cpack -C $config; then
       cat _CPack_Packages/iOS/ZIP/ZipBuildOutput.log
       exit 1
     fi

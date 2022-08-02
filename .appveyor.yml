@@ -31,17 +31,7 @@ environment:
       SUPPORT_OPENCL: OFF
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       CMAKE_GEN: Visual Studio 14 2015
-      CONFIGURATION: Debug
-    - FEATURE_DOC: OFF
-      FEATURE_JNI: OFF
-      FEATURE_LOADTESTS: ON
-      FEATURE_TOOLS: ON
-      PACKAGE: NO
-      SUPPORT_SSE: ON
-      SUPPORT_OPENCL: OFF
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-      CMAKE_GEN: Visual Studio 14 2015
-      CONFIGURATION: Release
+      CONFIGURATION: Debug,Release
     - FEATURE_DOC: OFF
       FEATURE_JNI: OFF
       FEATURE_LOADTESTS: ON
@@ -50,27 +40,7 @@ environment:
       SUPPORT_OPENCL: OFF
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       CMAKE_GEN: Visual Studio 15 2017
-      CONFIGURATION: Debug
-    - FEATURE_DOC: OFF
-      FEATURE_JNI: OFF
-      FEATURE_LOADTESTS: ON
-      FEATURE_TOOLS: ON
-      PACKAGE: NO
-      SUPPORT_SSE: ON
-      SUPPORT_OPENCL: OFF
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-      CMAKE_GEN: Visual Studio 15 2017
-      CONFIGURATION: Release
-    - FEATURE_DOC: OFF
-      FEATURE_JNI: ON
-      FEATURE_LOADTESTS: ON
-      FEATURE_TOOLS: ON
-      SUPPORT_SSE: ON
-      SUPPORT_OPENCL: OFF
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-      CMAKE_GEN: Visual Studio 16 2019
-      CONFIGURATION: Debug
-      JAVA_HOME: C:\Program Files\Java\jdk17
+      CONFIGURATION: Debug,Release
       # This is the configuration used for the release.
     - FEATURE_DOC: ON
       FEATURE_JNI: ON
@@ -81,7 +51,7 @@ environment:
       SUPPORT_OPENCL: OFF
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
       CMAKE_GEN: Visual Studio 16 2019
-      CONFIGURATION: Release
+      CONFIGURATION: Debug,Release
       JAVA_HOME: C:\Program Files\Java\jdk17
     - FEATURE_DOC: OFF
       FEATURE_JNI: OFF
@@ -251,7 +221,11 @@ test_script:
 - ps: |
     $Env:Phase = "test"
     pushd $env:BUILD_DIR
-    ctest -C $env:CONFIGURATION
+    $configArray = $env:CONFIGURATION.split(",")
+    foreach ($config in $configArray) {
+      echo "Testing KTX-Software ($config)"
+      ctest -C $config
+    }
     popd
 
 artifacts:
@@ -283,5 +257,4 @@ deploy:
     on:
       APPVEYOR_REPO_TAG: true       # deploy on tag push only
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-      CONFIGURATION: Release
       PACKAGE: YES

@@ -26,8 +26,7 @@ jobs:
     strategy:
       matrix:
         options: [
-          {config: Debug, package: NO, tools: ON, docs: OFF},
-          {config: Release, package: YES, tools: ON, docs: ON}
+          {config: 'Debug,Release', package: YES, tools: ON, docs: ON},
         ]
     env:
       # Skip downloading necessities for the load tests and source and golden
@@ -69,13 +68,13 @@ jobs:
       run: git fetch -f origin ${{ github.ref }}:${{ github.ref }}
 
     # Need doxygen if docs are supposed to be built
-    # This has been observed to fail due to Sourceforge host failure
-    # Can't control that so please manually re-run if we time out here
+    # Use the pre-installed `choco`. Although it's v1 it works. Do not
+    # do `uses: crazy-max/ghaction-chocolatey@v2` because it suffers
+    # frequent failures due to Chocolatey attempts to blackmail you
+    # into purchasing a license. If this does fail, re-run the build.
     - name: Install Doxygen
       if: matrix.options.docs == 'ON'
-      uses: crazy-max/ghaction-chocolatey@v2
-      with:
-        args: install doxygen.install
+      run: choco install doxygen.install
 
     - name: Install Certificate File Decryption Tool
       if: matrix.options.package == 'YES'

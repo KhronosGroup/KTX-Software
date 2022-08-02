@@ -32,9 +32,9 @@ SUPPORT_SSE=${SUPPORT_SSE:-ON}
 SUPPORT_OPENCL=${SUPPORT_OPENCL:-OFF}
 
 if [ "$ARCHS" = '(ARCHS_STANDARD)' ]; then
-  BUILD_DIR=${BUILD_DIR:-build/macos-universal-$CONFIGURATION}
+  BUILD_DIR=${BUILD_DIR:-build/macos-universal}
 else
-  BUILD_DIR=${BUILD_DIR:-build/macos-$ARCHS-$CONFIGURATION}
+  BUILD_DIR=${BUILD_DIR:-build/macos-$ARCHS}
 fi
 
 export VULKAN_SDK=${VULKAN_SDK:-VULKAN_SDK=~/VulkanSDK/1.2.176.1/macOS}
@@ -58,7 +58,7 @@ else
   }
 fi
 
-echo "Configure KTX-Software (macOS $ARCHS $CONFIGURATION) dir=$BUILD_DIR FEATURE_DOC=$FEATURE_DOC FEATURE_JNI=$FEATURE_JNI FEATURE_LOADTESTS=$FEATURE_LOADTESTS FEATURE_TESTS=$FEATURE_TESTS FEATURE_TOOLS=$FEATURE_TOOLS SUPPORT_SSE=$SUPPORT_SSE SUPPORT_OPENCL=$SUPPORT_OPENCL"
+echo "Configure KTX-Software (macOS $ARCHS) dir=$BUILD_DIR FEATURE_DOC=$FEATURE_DOC FEATURE_JNI=$FEATURE_JNI FEATURE_LOADTESTS=$FEATURE_LOADTESTS FEATURE_TESTS=$FEATURE_TESTS FEATURE_TOOLS=$FEATURE_TOOLS SUPPORT_SSE=$SUPPORT_SSE SUPPORT_OPENCL=$SUPPORT_OPENCL"
 if [ -n "$MACOS_CERTIFICATES_P12" ]; then
   cmake -GXcode -B$BUILD_DIR . \
   -D CMAKE_OSX_ARCHITECTURES="$ARCHS" \
@@ -93,27 +93,33 @@ set -o pipefail
 
 pushd $BUILD_DIR
 
-# Build and test Release
-echo "Build KTX-Software (macOS $ARCHS $CONFIGURATION) FEATURE_DOC=$FEATURE_DOC FEATURE_JNI=$FEATURE_JNI FEATURE_LOADTESTS=$FEATURE_LOADTESTS FEATURE_TESTS=$FEATURE_TESTS FEATURE_TOOLS=$FEATURE_TOOLS SUPPORT_SSE=$SUPPORT_SSE SUPPORT_OPENCL=$SUPPORT_OPENCL"
-if [ -n "$MACOS_CERTIFICATES_P12" -a "$CONFIGURATION" = "Release" ]; then
-  cmake --build . --config Release | handle_compiler_output
-else
-  cmake --build . --config Release -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | handle_compiler_output
-fi
-
-# Rosetta 2 should let x86_64 tests run on an Apple Silicon Mac hence the -o.
-if [ "$ARCHS" = "$(uname -m)" -o "$ARCHS" = "x64_64" ]; then
-  echo "Test KTX-Software (macOS $ARCHS $CONFIGURATION)"
-  ctest -C Release # --verbose
-fi
-
-if [ "$PACKAGE" = "YES" ]; then
-  echo "Pack KTX-Software (macOS $CONFIGURATION)"
-  if ! cpack -C Release -G productbuild; then
-    cat _CPack_Packages/Darwin/productbuild/ProductBuildOutput.log
-    exit 1
+oldifs=$IFS
+#; is necessary because `for` is a Special Builtin.
+IFS=, ; for config in $CONFIGURATION
+do
+  IFS=$oldifs # Because of ; IFS set above will still be present.
+  # Build and test
+  echo "Build KTX-Software (macOS $ARCHS $config)"
+  if [ -n "$MACOS_CERTIFICATES_P12" -a "$config" = "Release" ]; then
+    cmake --build . --config $config | handle_compiler_output
+  else
+    cmake --build . --config $config -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | handle_compiler_output
   fi
-fi
+
+  # Rosetta 2 should let x86_64 tests run on an Apple Silicon Mac hence the -o.
+  if [ "$ARCHS" = "$(uname -m)" -o "$ARCHS" = "x64_64" ]; then
+    echo "Test KTX-Software (macOS $ARCHS $config)"
+    ctest -C $config # --verbose
+  fi
+
+  if [ "$config" = "Release" -a "$PACKAGE" = "YES" ]; then
+    echo "Pack KTX-Software (macOS $ARCHS $config)"
+    if ! cpack -C $config -G productbuild; then
+      cat _CPack_Packages/Darwin/productbuild/ProductBuildOutput.log
+      exit 1
+    fi
+  fi
+done
 
 #echo "***** toktx version.h *****"
 #pwd
