@@ -138,6 +138,7 @@ ktxTexture_construct(ktxTexture* This, ktxTextureCreateInfo* createInfo,
     if (createInfo->numLayers == 0)
         return KTX_INVALID_VALUE;
     This->numLayers = createInfo->numLayers;
+    This->isArray = createInfo->isArray;
 
     if (createInfo->numFaces == 6) {
         if (This->numDimensions != 2) {
@@ -170,9 +171,6 @@ ktxTexture_construct(ktxTexture* This, ktxTextureCreateInfo* createInfo,
             return KTX_INVALID_OPERATION;
         }
     }
-
-    This->numLayers = createInfo->numLayers;
-    This->isArray = createInfo->isArray;
 
     ktxHashList_Construct(&This->kvDataHead);
     return KTX_SUCCESS;

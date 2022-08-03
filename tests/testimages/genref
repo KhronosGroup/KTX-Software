@@ -121,6 +121,7 @@ $toktx --test --layers 7 --encode astc --astc_blk_d 6x6 --genmipmap astc_ldr_6x6
 $toktx --test --depth 7  --encode astc --astc_blk_d 6x6             astc_ldr_6x6_3dtex_7.ktx2           ../srcimages/red16.png ../srcimages/orange16.png ../srcimages/yellow16.png ../srcimages/green16.png ../srcimages/blue16.png ../srcimages/indigo16.png ../srcimages/violet16.png
 
 $toktx --test --layers 1 --t2 arraytex_1_reference_u.ktx2 ../srcimages/red16.png
+$toktx --test --depth 1 --t2 3dtex_1_reference_u.ktx2 ../srcimages/red16.png
 $toktx --test --depth 7 --t2 3dtex_7_reference_u.ktx2 ../srcimages/red16.png ../srcimages/orange16.png ../srcimages/yellow16.png ../srcimages/green16.png ../srcimages/blue16.png ../srcimages/indigo16.png ../srcimages/violet16.png
 $toktx --test --layers 7 --t2 arraytex_7_reference_u.ktx2 ../srcimages/red16.png ../srcimages/orange16.png ../srcimages/yellow16.png ../srcimages/green16.png ../srcimages/blue16.png ../srcimages/indigo16.png ../srcimages/violet16.png
 $toktx --test --depth 7 --t2 3dtex_7_reference_u.ktx2 ../srcimages/red16.png ../srcimages/orange16.png ../srcimages/yellow16.png ../srcimages/green16.png ../srcimages/blue16.png ../srcimages/indigo16.png ../srcimages/violet16.png

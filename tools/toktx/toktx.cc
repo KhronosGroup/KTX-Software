@@ -167,7 +167,7 @@ Create a KTX file from JPEG, PNG or netpbm format files.
         is ignored with this option.</dd>
     <dt>--depth &lt;number&gt;</dt>
     <dd>KTX file is for a 3D texture with a depth of @e number where
-        @e number &gt; 1. Provide the file(s) for z=0 first then those for
+        @e number &gt; 0. Provide the file(s) for z=0 first then those for
         z=1, etc. It is an error to specify this together with
         @b --layers or @b --cubemap.</dd>
     <dt>--genmipmap</dt>
@@ -388,7 +388,7 @@ class toktxApp : public scApp {
             two_d = 0;
             useStdin = 0;
             test = 0;
-            depth = 1;
+            depth = 0;
             layers = 0;
             levels = 1;
             convert_oetf = KHR_DF_TRANSFER_UNSPECIFIED;
@@ -511,7 +511,7 @@ toktxApp::usage()
         "               --lower_left_maps_to_s0t0 is ignored with this option.\n"
         "  --depth <number>\n"
         "               KTX file is for a 3D texture with a depth of number where\n"
-        "               number > 1. Provide the file(s) for z=0 first then those for\n"
+        "               number > 0. Provide the file(s) for z=0 first then those for\n"
         "               z=1, etc. It is an error to specify this together with\n"
         "               --layers or --cubemap.\n"
         "  --genmipmap  Causes mipmaps to be generated for each input file. This option\n"
@@ -625,12 +625,12 @@ imageCount(uint32_t levelCount, uint32_t layerCount,
     assert((faceCount == 1 && baseDepth >= 1)
            || (faceCount > 1 && baseDepth == 1));
 
-    uint32_t layerPixelDepth = baseDepth;
+    uint32_t levelPixelDepth = baseDepth;
     for(uint32_t level = 1; level < levelCount; level++)
-        layerPixelDepth += maximum(baseDepth >> level, 1U);
+        levelPixelDepth += maximum(baseDepth >> level, 1U);
     // NOTA BENE: faceCount * layerPixelDepth is only reasonable because
     // faceCount and depth can't both be > 1. I.e there are no 3d cubemaps.
-    return layerCount * faceCount * layerPixelDepth;
+    return layerCount * faceCount * levelPixelDepth;
 }
 
 int _tmain(int argc, _TCHAR* argv[])
@@ -1048,8 +1048,8 @@ toktxApp::main(int argc, _TCHAR *argv[])
             }
             createInfo.baseWidth = levelWidth = image->getWidth();
             createInfo.baseHeight = levelHeight = image->getHeight();
-            createInfo.baseDepth = levelDepth = options.depth;
-            if (options.depth > 1) {
+            createInfo.baseDepth = levelDepth = options.depth ? options.depth : 1;
+            if (options.depth > 0) {
                 // In this case, don't care about image->getHeight(). Images are
                 // always considered to be 2d. No need to set options.two_d.
                 createInfo.numDimensions = 3;
@@ -1233,9 +1233,9 @@ toktxApp::main(int argc, _TCHAR *argv[])
         char orientation[20];
         if (options.ktx2) {
             orientation[0] = 'r';
-            if (createInfo.baseHeight > 1) {
+            if (createInfo.numDimensions > 1) {
                 orientation[1] = options.lower_left_maps_to_s0t0 ? 'u' : 'd';
-                if (createInfo.baseDepth > 1) {
+                if (createInfo.numDimensions > 2) {
                     orientation[2] = options.lower_left_maps_to_s0t0
                                    ? 'o'  : 'i';
                     orientation[3] = 0;
@@ -1247,10 +1247,10 @@ toktxApp::main(int argc, _TCHAR *argv[])
             }
         } else {
             assert(strlen(KTX_ORIENTATION3_FMT) < sizeof(orientation));
-            if (createInfo.baseHeight == 1) {
+            if (createInfo.numDimensions == 1) {
                 snprintf(orientation, sizeof(orientation), KTX_ORIENTATION1_FMT,
                          'r');
-            } else if (createInfo.baseDepth == 1) {
+            } else if (createInfo.numDimensions == 2) {
                 snprintf(orientation, sizeof(orientation), KTX_ORIENTATION2_FMT,
                          'r', options.lower_left_maps_to_s0t0 ? 'u' : 'd');
             } else
@@ -1357,12 +1357,12 @@ toktxApp::validateOptions()
               "Ignoring --lower_left_maps_to_s0t0.");
         options.lower_left_maps_to_s0t0 = 0;
     }
-    if (options.cubemap && options.depth > 1) {
-        error("cubemaps cannot have depth > 1.");
+    if (options.cubemap && options.depth > 0) {
+        error("cubemaps cannot have 3D textures.");
         usage();
         exit(1);
     }
-    if (options.layers && options.depth > 1) {
+    if (options.layers && options.depth > 0) {
         error("cannot have 3D array textures.");
         usage();
         exit(1);
@@ -1454,9 +1454,9 @@ toktxApp::processOption(argparser& parser, int opt)
         break;
       case 'd':
         options.depth = (uint32_t)strtoi(parser.optarg.c_str());
-        if (options.depth < 2) {
+        if (options.depth == 0) {
             cerr << name << ": "
-                 << "To create a 3d texture set --depth > 1." << endl;
+                 << "To create a 3d texture set --depth > 0." << endl;
             exit(1);
         }
         break;
