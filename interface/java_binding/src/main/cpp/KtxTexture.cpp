@@ -292,7 +292,7 @@ extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture_setImageFromBu
                                 src,
                                 srcSize);
 
-    /* it is the caller's responsibility to make sure the buffer lives long enough */
+    push_buffer_list(env, thiz, srcBuffer);
 
     return result;
 }

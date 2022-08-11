@@ -5,18 +5,25 @@
 
 package org.khronos.ktx.test;
 
-import java.nio.ByteBuffer;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.khronos.ktx.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.khronos.ktx.KtxBasisParams;
+import org.khronos.ktx.KtxCreateStorage;
+import org.khronos.ktx.KtxErrorCode;
+import org.khronos.ktx.KtxSupercmpScheme;
+import org.khronos.ktx.KtxTexture2;
+import org.khronos.ktx.KtxTextureCreateFlagBits;
+import org.khronos.ktx.KtxTextureCreateInfo;
+import org.khronos.ktx.KtxTranscodeFormat;
+import org.khronos.ktx.VkFormat;
 
 @ExtendWith({ KtxTestLibraryLoader.class })
 public class KtxTexture2Test {
@@ -242,7 +249,14 @@ public class KtxTexture2Test {
 
         ByteBuffer imageData = ByteBuffer.allocateDirect(10 * 10);
         texture.setImageFromBuffer(0, 0, 0, imageData);
-
+        // GC sensitive code commented out because it flakes a lot, but this showcases
+        // the intended behavior.
+        // WeakReference<ByteBuffer> imageDataRef = new WeakReference<>(imageData);
+        // imageData = null;
+        // System.gc();
+        // assertNotNull(imageDataRef.get());
         texture.destroy();
+        // System.gc();
+        // assertNull(imageDataRef.get());
     }
 }
