@@ -15,8 +15,13 @@
 
 struct pinned_image_buf
 {
-    jbyteArray handle;
+    // When data is NULL this reference is a GlobalRef stored in ref.
+    // When data is non-null this reference is a pinned array stored in handle.
     jbyte *data;
+    union {
+        jbyteArray handle;
+        jobject ref;
+    };
 };
 
 // The buffer list is a vector of memory buffers pinned by KTXTexture. These buffers are pinned
@@ -51,6 +56,18 @@ static void push_buffer_list(JNIEnv *env, jobject thiz, jbyteArray handle, jbyte
     buffers->push_back(buf);
 }
 
+static void push_buffer_list(JNIEnv *env, jobject thiz, jobject handle)
+{
+    std::vector<pinned_image_buf> *buffers = get_or_create_buffer_list(env, thiz);
+
+    pinned_image_buf buf;
+
+    buf.data = NULL;
+    buf.ref = env->NewGlobalRef(handle);
+
+    buffers->push_back(buf);
+}
+
 static void free_buffer_list(JNIEnv *env, jobject thiz)
 {
     jclass ktx_texture_class = env->GetObjectClass(thiz);
@@ -72,7 +89,11 @@ static void free_buffer_list(JNIEnv *env, jobject thiz)
     {
         pinned_image_buf buffer = *it;
 
-        env->ReleaseByteArrayElements(buffer.handle, buffer.data, JNI_ABORT);
+        if (buffer.data == NULL) {
+            env->DeleteGlobalRef(buffer.ref);
+        } else {
+            env->ReleaseByteArrayElements(buffer.handle, buffer.data, JNI_ABORT);
+        }
     }
 
     env->SetLongField(thiz, ktx_buffers_field, 0);
@@ -250,6 +271,28 @@ extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture_setImageFromMe
 
     push_buffer_list(env, thiz, srcArray, reinterpret_cast<jbyte*>(src));
     /* DO NOT FREE SRC BUFFER NOW (see destroy()) */
+
+    return result;
+}
+
+extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture_setImageFromBuffer(JNIEnv *env,
+                                                                                    jobject thiz,
+                                                                                    jint level,
+                                                                                    jint layer,
+                                                                                    jint faceSlice,
+                                                                                    jobject srcBuffer)
+{
+    ktx_uint8_t *src = reinterpret_cast<ktx_uint8_t*>(env->GetDirectBufferAddress(srcBuffer));
+    ktx_size_t srcSize = static_cast<ktx_size_t>(env->GetDirectBufferCapacity(srcBuffer));
+
+    jint result = ktxTexture_SetImageFromMemory(get_ktx_texture(env, thiz),
+                                level,
+                                layer,
+                                faceSlice,
+                                src,
+                                srcSize);
+
+    /* it is the caller's responsibility to make sure the buffer lives long enough */
 
     return result;
 }

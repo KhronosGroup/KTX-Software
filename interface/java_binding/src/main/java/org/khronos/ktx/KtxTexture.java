@@ -5,6 +5,8 @@
 
 package org.khronos.ktx;
 
+import java.nio.ByteBuffer;
+
 public abstract class KtxTexture {
     private final long instance;
     private long buffers;
@@ -46,14 +48,14 @@ public abstract class KtxTexture {
     /**
      * Destroy the KTX texture and free memory image resources
      *
-     * NOTE: If you try to use a {@link KTXTexture} after it's destroyed, that will cause a segmentation
+     * NOTE: If you try to use a {@link KtxTexture} after it's destroyed, that will cause a segmentation
      * fault (the texture pointer is set to NULL).
      */
     public native void destroy();
 
     /**
      * Set the image data - the passed data should be not modified after passing it! The bytes
-     * will be kept in memory until {@link KTXTexture#destroy} is called.
+     * will be kept in memory until {@link KtxTexture#destroy()} is called.
      *
      * @param level - The image level, should be 0 for non-mipmapped textures
      * @param layer - The texture layer, should be 0 for non-arrays
@@ -61,6 +63,16 @@ public abstract class KtxTexture {
      * @param src - The image data
      */
     public native int setImageFromMemory(int level, int layer, int faceSlice, byte[] src);
+
+    /**
+     * Set the image data - the passed buffer must not be modified until {@link KtxTexture#destroy()} is called.
+     *
+     * @param level - The image level, should be 0 for non-mipmapped textures
+     * @param layer - The texture layer, should be 0 for non-arrays
+     * @param faceSlice - The face slice, should be 0 for non-cubemaps
+     * @param src - The image data as a direct byte buffer.
+     */
+    public native int setImageFromBuffer(int level, int layer, int faceSlice, ByteBuffer src);
 
     /**
      * Write the KTX image to the given destination file in KTX format

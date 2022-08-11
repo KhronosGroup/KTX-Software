@@ -5,6 +5,7 @@
 
 package org.khronos.ktx.test;
 
+import java.nio.ByteBuffer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.khronos.ktx.*;
@@ -212,7 +213,7 @@ public class KtxTexture2Test {
     }
 
     @Test
-    public void testCreate() {
+    public void testCreateFromArray() {
         KtxTextureCreateInfo info = new KtxTextureCreateInfo();
 
         info.setBaseWidth(10);
@@ -224,6 +225,23 @@ public class KtxTexture2Test {
 
         byte[] imageData = new byte[10 * 10];
         texture.setImageFromMemory(0, 0, 0, imageData);
+
+        texture.destroy();
+    }
+
+    @Test
+    public void testCreateFromBuffer() {
+        KtxTextureCreateInfo info = new KtxTextureCreateInfo();
+
+        info.setBaseWidth(10);
+        info.setBaseHeight(10);
+        info.setVkFormat(VkFormat.VK_FORMAT_ASTC_4x4_SRGB_BLOCK);
+
+        KtxTexture2 texture = KtxTexture2.create(info, KtxCreateStorage.ALLOC);
+        assertNotNull(texture);
+
+        ByteBuffer imageData = ByteBuffer.allocateDirect(10 * 10);
+        texture.setImageFromBuffer(0, 0, 0, imageData);
 
         texture.destroy();
     }

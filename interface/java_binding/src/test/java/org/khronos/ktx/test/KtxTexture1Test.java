@@ -5,6 +5,7 @@
 
 package org.khronos.ktx.test;
 
+import java.nio.ByteBuffer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.khronos.ktx.*;
@@ -101,7 +102,7 @@ public class KtxTexture1Test {
     }
 
     @Test
-    public void testCreate() {
+    public void testCreateFromArray() {
         KtxTextureCreateInfo info = new KtxTextureCreateInfo();
 
         info.setGlInternalformat(KtxInternalformat.GL_COMPRESSED_RGBA_ASTC_4x4_KHR);
@@ -113,6 +114,23 @@ public class KtxTexture1Test {
 
         byte[] imageData = new byte[10 * 10];
         texture.setImageFromMemory(0, 0, 0, imageData);
+
+        texture.destroy();
+    }
+
+    @Test
+    public void testCreateFromBuffer() {
+        KtxTextureCreateInfo info = new KtxTextureCreateInfo();
+
+        info.setGlInternalformat(KtxInternalformat.GL_COMPRESSED_RGBA_ASTC_4x4_KHR);
+        info.setBaseWidth(10);
+        info.setBaseHeight(10);
+
+        KtxTexture1 texture = KtxTexture1.create(info, KtxCreateStorage.ALLOC);
+        assertNotNull(texture);
+
+        ByteBuffer imageData = ByteBuffer.allocateDirect(10 * 10);
+        texture.setImageFromBuffer(0, 0, 0, imageData);
 
         texture.destroy();
     }
