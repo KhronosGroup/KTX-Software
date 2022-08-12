@@ -1018,6 +1018,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         priv._requiredLevelAlignment = 1;
     }
     This->vkFormat = VK_FORMAT_UNDEFINED;
+    This->isCompressed = KTX_TRUE;
 
     // Block-compressed textures never need byte swapping so typeSize is 1.
     assert(This->_protected->_typeSize == 1);

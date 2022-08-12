@@ -106,8 +106,8 @@ EncodeTexture::EncodeTexture(uint32_t width, uint32_t height,
         if (KTX_SUCCESS != ktxresult) {
             std::stringstream message;
 
-            message << "Encoding of ktxTexture2 to Basis failed: "
-                    << ktxErrorString(ktxresult);
+            message << "Encoding of ktxTexture2 to " << encodeTarget
+                    << " failed: " << ktxErrorString(ktxresult);
             throw std::runtime_error(message.str());
         }
     }
