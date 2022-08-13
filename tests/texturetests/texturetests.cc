@@ -1833,7 +1833,8 @@ class ktxTexture1WriteKTX2TestBase
         // supposed to do so we can check it's actually doing it..
         ktxHashListEntry* pWriter = nullptr;;
         ktxHashList_FindEntry(hl, KTX_WRITER_KEY, &pWriter);
-        appendLibId(hl, pWriter);
+        result = appendLibId(hl, pWriter);
+        EXPECT_EQ(result, KTX_SUCCESS);
         ktxHashList_Sort(hl);
         // And retrieve the comparison metadata.
         ktxHashList_Serialize(hl, &kvDataLen, &kvData);
@@ -2694,9 +2695,10 @@ TEST_F(ktxTexture2_MetadataTest, NoLibVersionDupOnMultipleWrites) {
         if (texture)
             ktxTexture_Destroy(ktxTexture(texture));
 
-        ktx_uint32_t valueLens[iterations];
-        ktx_uint8_t* values[iterations];
+        std::string writers[iterations];
         for (uint32_t i = 0; i < iterations; i++) {
+            ktx_uint32_t valueLen;
+            ktx_uint8_t* value;
             result = ktxTexture2_CreateFromMemory(newMemFiles[i],
                                                   newMemFileLens[i],
                                                   KTX_TEXTURE_CREATE_ALLOC_STORAGE,
@@ -2708,8 +2710,13 @@ TEST_F(ktxTexture2_MetadataTest, NoLibVersionDupOnMultipleWrites) {
 
             result = ktxHashList_FindValue(&texture->kvDataHead,
                                           "KTXwriter",
-                                          &valueLens[i], (void**)&values[i]);
+                                          &valueLen, (void**)&value);
             EXPECT_EQ(result, KTX_SUCCESS);
+            // We want ktxWriteTo* to NUL terminate the value when adding
+            // the libktx version.
+            ASSERT_TRUE(value[valueLen-1] == '\0')
+                        << "KTXwriter not NUL terminated";
+            writers[i] = (char*)value;
             if (texture)
                 ktxTexture_Destroy(ktxTexture(texture));
         }
@@ -2717,7 +2724,7 @@ TEST_F(ktxTexture2_MetadataTest, NoLibVersionDupOnMultipleWrites) {
         for (uint32_t i = 1; i < iterations; i++) {
             // This is a valid test because we know all our calls to libktx
             // use the same version of libktx.
-            EXPECT_EQ(0, strcmp((char*)values[i-1], (char *)values[i]));
+            EXPECT_EQ(0, writers[i-1].compare(writers[i]));
         }
 
         for (uint32_t i = 0; i < iterations; i++) {
@@ -2746,9 +2753,14 @@ TEST_F(ktxTexture2_MetadataTest, LibVersionUpdatedCorrectly) {
                                        "KTXwriter",
                                         &curWriterLen, (void**)&curWriterVal);
         EXPECT_EQ(result, KTX_SUCCESS);
+        // We want ktxWriteTo* to NUL terminate the value when adding
+        // the libktx version.
         ASSERT_TRUE(curWriterVal[curWriterLen-1] == '\0')
                     << "KTXwriter not NUL terminated";
-        std::string writer((char*)curWriterVal);
+        // The pointer returned by FindValue becomes invalid when the texture
+        // is destroyed hence saving to this string. -1 to omit the terminator.
+        std::string curWriter((char*)curWriterVal, curWriterLen-1);
+        std::string writer(curWriter);
         size_t slash_pos = writer.find_last_of('/');
         ASSERT_TRUE(slash_pos != std::string::npos)
                     << "KTXwriter does not have lib version.";
@@ -2787,11 +2799,10 @@ TEST_F(ktxTexture2_MetadataTest, LibVersionUpdatedCorrectly) {
         ASSERT_TRUE(newWriterVal[newWriterLen-1] == '\0')
                     << "KTXwriter not NUL terminated";
 
-        EXPECT_EQ(0, strcmp((char*)curWriterVal, (char *)newWriterVal));
+        EXPECT_EQ(0, curWriter.compare((char *)newWriterVal));
 
         if (texture)
             ktxTexture_Destroy(ktxTexture(texture));
-
 
         if (newMemFile)
             free(newMemFile);
