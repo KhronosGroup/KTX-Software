@@ -63,7 +63,7 @@ GLLoadTests::showFile(std::string& filename)
                                  " because there is no libassimp support.");
 #endif
     } else if (kTexture->numLevels > 1 || kTexture->generateMipmaps) {
-        // TODO: Add option to choose tis display showing the individual
+        // TODO: Add option to choose to display showing the individual
         // mipmaps vs. DrawTexture that displays a single rect using the
         // mipmaps, if present.
         createViewer = TextureMipmap::create;
@@ -115,8 +115,12 @@ const GLLoadTests::sampleInvocation siSamples[] = {
     },
 #if TEST_COMPRESSION
     { EncodeTexture::create,
-      "testimages/rgba-reference-u.ktx2",
+      "--encode etc1s testimages/rgba-reference-u.ktx2",
       "Encode to ETC1S+BasisLZ then Transcode of Compressed KTX2 RGBA not mipmapped"
+    },
+    { EncodeTexture::create,
+      "--encode uastc testimages/rgba-reference-u.ktx2",
+      "Encode to UASTC then Transcode of Compressed KTX2 RGBA not mipmapped"
     },
     { EncodeTexture::create,
       "--encode astc testimages/rgba-reference-u.ktx2",

@@ -759,10 +759,6 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
  *
  * Such textures can be directly uploaded to a GPU via a graphics API.
  *
- * @memberof ktxTexture2
- * @ingroup writer
- * @~English
- *
  * @param[in]   This    pointer to the ktxTexture2 object of interest.
  * @param[in]   quality Compression quality, a value from 0 - 100.
                         Higher=higher quality/slower speed.

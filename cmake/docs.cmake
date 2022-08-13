@@ -82,6 +82,7 @@ function( CreateDocLibKTX )
         lib/mainpage.md
         LICENSE.md
         include
+        lib/astc_encode.cpp
         lib/basis_encode.cpp
         lib/basis_transcode.cpp
         lib/strings.c
