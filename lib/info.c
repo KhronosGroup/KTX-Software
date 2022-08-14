@@ -75,14 +75,16 @@ printKVData(ktx_uint8_t* pKvd, ktx_uint32_t kvdLen)
                 fprintf(stdout, "%s: ", key);
                 // XXX How to tell if a value is binary and how to output it?
                 // valueLen includes the terminating NUL, if any.
-                if (value[valueLen-1] == '\0')
-                    fprintf(stdout, "%s\n", value);
-                else {
-                    for (ktx_uint32_t i=0; i < valueLen; i++) {
-                        fputc(value[i], stdout);
+                if (value) {
+                    if (value[valueLen-1] == '\0') {
+                        fprintf(stdout, "%s", value);
+                    } else {
+                        for (ktx_uint32_t i=0; i < valueLen; i++) {
+                            fputc(value[i], stdout);
+                        }
                     }
-                    fputc('\n', stdout);
                 }
+                fputc('\n', stdout);
             }
         }
         ktxHashList_Destruct(&kvDataHead);

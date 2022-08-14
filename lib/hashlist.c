@@ -580,10 +580,11 @@ ktxHashListEntry_GetKey(ktxHashListEntry* This,
  * @~English
  * @brief Return the value from a ktxHashListEntry
  *
- * @param [in]      This        The target hash list entry.
+ * @param [in]     This         The target hash list entry.
  * @param [in,out] pValueLen    @p *pValueLen is set to the number of bytes of
  *                              data in the returned value.
- * @param [in,out] ppValue      @p *ppValue is set to point to the value for @p key.
+ * @param [in,out] ppValue      @p *ppValue is set to point to the value of
+ *                              of the target entry.
  *
  * @return KTX_SUCCESS or one of the following error codes.
  *

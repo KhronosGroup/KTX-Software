@@ -53,47 +53,113 @@
  * @{
  */
 
+#if defined(_WIN32) || defined(linux) || defined(__linux) || defined(__linux__) || defined(__EMSCRIPTEN__)
 /** @internal
- *  @~English
- *  @brief Append the library's id to existing writeId.
+ * @~English
+ * @brief strnstr for Windows, Linux and Emscripten.
+ *
+ * strnstr is available in <apple>OS and BSD distributions. To use in Linux
+ * requires linking an additional library, libbsd. It is simpler to use ours.
+ *
+ * @param[in] haystack   pointer to string to search.
+ * @param[in] needle     pointer to string to search for.
+ * @param[in] len        length of @p haystack string. Also used as limit to
+ *                       length of @p needle string.
+ *
+ * @return    @p haystack, if @p needle is an empty string otherwise NULL, if
+ *            @p needle does not occur in @p haystack, or a pointer to the
+ *            first character of the first occurrence of @p needle.
+ */
+static char*
+strnstr(const char *haystack, const char *needle, size_t len)
+{
+    size_t i;
+    size_t needleLen;
+
+    needleLen = strnlen(needle, len);
+    if (needleLen == 0)
+        return (char *)haystack;
+
+    for (i = 0; i <= len - needleLen; i++)
+    {
+        if (haystack[0] == needle[0]
+            && strncmp(haystack, needle, needleLen) == 0)
+            return (char *)haystack;
+        haystack++;
+    }
+    return NULL;
+}
+#endif
+
+/** @internal
+ * @~English
+ * @brief Append the library's id to the KTXwriter value.
+ *
+ * @param[in] head         pointer to the head of the hash list.
+ * @param[in] writerEntry  pointer to an existing KTXwriter entry.
+ *
+ * @return    KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_OUT_OF_MEMORY  not enough memory for temporary strings.
  */
 KTX_error_code
 appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
 {
     KTX_error_code result;
     const char* id;
-    const char* libId;
-    const char idIntro[] = " / libktx ";
-    ktx_uint32_t idLen;
+    const char* libVer;
+    const char libIdIntro[] = " / libktx ";
+    ktx_uint32_t idLen, libIdLen;
     if (writerEntry) {
         result = ktxHashListEntry_GetValue(writerEntry, &idLen, (void**)&id);
     } else {
         id = "Unidentified app";
         idLen = 17;
     }
-    if (strstr(id, "__default__") != NULL) {
-        libId = STR(LIBKTX_DEFAULT_VERSION);
+    // strnstr needed because KTXwriter values may not be NUL terminated.
+    if (strnstr(id, "__default__", idLen) != NULL) {
+        libVer = STR(LIBKTX_DEFAULT_VERSION);
     } else {
-        libId = STR(LIBKTX_VERSION);
+        libVer = STR(LIBKTX_VERSION);
     }
-    if (id[idLen-1] == '\0')
-      idLen--;
-    // sizeof(idIntro) includes the terminating NUL which we will overwrite
+    // sizeof(libIdIntro) includes the terminating NUL which we will overwrite
     // so no need for +1 after strlen.
-    ktx_uint32_t fullIdLen = idLen + sizeof(idIntro)
-                             + (ktx_uint32_t)strlen(libId);
-    char* fullId = malloc(fullIdLen);
-    strncpy(fullId, id, idLen);
-    // &idIntro[0] instead of idIntro is to workaround a gcc warning
+    libIdLen = sizeof(libIdIntro) + (ktx_uint32_t)strlen(libVer);
+    char* libId = malloc(libIdLen);
+    if (!libId)
+        return KTX_OUT_OF_MEMORY;
+    // &libIdIntro[0] instead of libIdIntro is to workaround a gcc warning
     // that I'm passing the same thing to sizeof as to the src
     // parameter (i.e. I'm requesting the sizeof a pointer).
-    // Actually idIntro is an array of char not a pointer. Looks
+    // Actually libIdIntro is an array of char not a pointer. Looks
     // like a gcc bug.
-    strncpy(&fullId[idLen], &idIntro[0], sizeof(idIntro));
-    strcpy(&fullId[idLen + sizeof(idIntro)-1], libId);
+    strncpy(libId, &libIdIntro[0], sizeof(libIdIntro));
+    strncpy(&libId[sizeof(libIdIntro)-1], libVer, strlen(libVer) + 1);
+
+    if (strnstr(id, libId, idLen) != NULL) {
+        // This lib id is already in the writer value.
+        return KTX_SUCCESS;
+    }
+
+    const char* libVerPos = strnstr(id, libIdIntro, idLen);
+    if (libVerPos != NULL) {
+        // There is a libktx version but not the current version.
+        idLen = libVerPos - id;
+    } else if (id[idLen-1] == '\0') {
+        idLen--;
+    }
+
+    ktx_uint32_t fullIdLen = idLen + strlen(libId) + 1;
+    char* fullId = malloc(fullIdLen);
+    if (!fullId)
+        return KTX_OUT_OF_MEMORY;
+    strncpy(fullId, id, idLen);
+    strncpy(&fullId[idLen], libId, libIdLen);
+    assert(fullId[fullIdLen-1] == '\0');
 
     ktxHashList_DeleteEntry(head, writerEntry);
     result = ktxHashList_AddKVPair(head, KTX_WRITER_KEY, fullIdLen, fullId);
+    free(libId);
     free(fullId);
     return result;
 }

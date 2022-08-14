@@ -23,6 +23,7 @@
   #endif
 #endif
 
+#include <string>
 #include <limits.h>
 #include <stdint.h>
 #include <string.h>
@@ -1832,7 +1833,8 @@ class ktxTexture1WriteKTX2TestBase
         // supposed to do so we can check it's actually doing it..
         ktxHashListEntry* pWriter = nullptr;;
         ktxHashList_FindEntry(hl, KTX_WRITER_KEY, &pWriter);
-        appendLibId(hl, pWriter);
+        result = appendLibId(hl, pWriter);
+        EXPECT_EQ(result, KTX_SUCCESS);
         ktxHashList_Sort(hl);
         // And retrieve the comparison metadata.
         ktxHashList_Serialize(hl, &kvDataLen, &kvData);
@@ -2663,4 +2665,148 @@ TEST_F(ktxTexture2_MetadataTest, NoMetadata) {
     }
 }
 #endif
+
+TEST_F(ktxTexture2_MetadataTest, NoLibVersionDupOnMultipleWrites) {
+    ktxTexture2* texture;
+    KTX_error_code result;
+
+    if (ktxMemFile != NULL) {
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
+                                              KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                              &texture);
+        ASSERT_TRUE(result == KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
+                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture->pData != NULL) << "Image storage not allocated";
+
+        const ktx_uint32_t iterations = 2;
+        ktx_size_t newMemFileLens[iterations];
+        ktx_uint8_t* newMemFiles[iterations];
+        for (uint32_t i = 0; i < iterations; i++) {
+            result = ktxTexture_WriteToMemory(ktxTexture(texture),
+                                              &newMemFiles[i],
+                                              &newMemFileLens[i]);
+            EXPECT_EQ(result, KTX_SUCCESS);
+        }
+        for (uint32_t i = 1; i < iterations; i++) {
+            EXPECT_EQ(newMemFileLens[i-1], newMemFileLens[i]);
+        }
+
+        if (texture)
+            ktxTexture_Destroy(ktxTexture(texture));
+
+        std::string writers[iterations];
+        for (uint32_t i = 0; i < iterations; i++) {
+            ktx_uint32_t valueLen;
+            ktx_uint8_t* value;
+            result = ktxTexture2_CreateFromMemory(newMemFiles[i],
+                                                  newMemFileLens[i],
+                                                  KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                                  &texture);
+            ASSERT_TRUE(result == KTX_SUCCESS);
+            ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
+                                         << ktxErrorString(result);
+            ASSERT_TRUE(texture->pData != NULL) << "Image storage not allocated";
+
+            result = ktxHashList_FindValue(&texture->kvDataHead,
+                                          "KTXwriter",
+                                          &valueLen, (void**)&value);
+            EXPECT_EQ(result, KTX_SUCCESS);
+            // We want ktxWriteTo* to NUL terminate the value when adding
+            // the libktx version.
+            ASSERT_TRUE(value[valueLen-1] == '\0')
+                        << "KTXwriter not NUL terminated";
+            writers[i] = (char*)value;
+            if (texture)
+                ktxTexture_Destroy(ktxTexture(texture));
+        }
+
+        for (uint32_t i = 1; i < iterations; i++) {
+            // This is a valid test because we know all our calls to libktx
+            // use the same version of libktx.
+            EXPECT_EQ(0, writers[i-1].compare(writers[i]));
+        }
+
+        for (uint32_t i = 0; i < iterations; i++) {
+            if (newMemFiles[i])
+                free(newMemFiles[i]);
+        }
+    }
+}
+
+TEST_F(ktxTexture2_MetadataTest, LibVersionUpdatedCorrectly) {
+    ktxTexture2* texture;
+    KTX_error_code result;
+
+    if (ktxMemFile != NULL) {
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
+                                              KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                              &texture);
+        ASSERT_TRUE(result == KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
+                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture->pData != NULL) << "Image storage not allocated";
+
+        ktx_uint32_t curWriterLen;
+        ktx_uint8_t* curWriterVal;
+        result = ktxHashList_FindValue(&texture->kvDataHead,
+                                       "KTXwriter",
+                                        &curWriterLen, (void**)&curWriterVal);
+        EXPECT_EQ(result, KTX_SUCCESS);
+        // We want ktxWriteTo* to NUL terminate the value when adding
+        // the libktx version.
+        ASSERT_TRUE(curWriterVal[curWriterLen-1] == '\0')
+                    << "KTXwriter not NUL terminated";
+        // The pointer returned by FindValue becomes invalid when the texture
+        // is destroyed hence saving to this string. -1 to omit the terminator.
+        std::string curWriter((char*)curWriterVal, curWriterLen-1);
+        std::string writer(curWriter);
+        size_t slash_pos = writer.find_last_of('/');
+        ASSERT_TRUE(slash_pos != std::string::npos)
+                    << "KTXwriter does not have lib version.";
+        writer.replace(slash_pos + 2, std::string::npos, "libktx v3.0.0");
+        result = ktxHashList_AddKVPair(&texture->kvDataHead,
+                                       "KTXwriter",
+                                       writer.length(), writer.c_str());
+        EXPECT_EQ(result, KTX_SUCCESS);
+
+
+        ktx_size_t newMemFileLen;
+        ktx_uint8_t* newMemFile;
+        result = ktxTexture_WriteToMemory(ktxTexture(texture),
+                                          &newMemFile,
+                                          &newMemFileLen);
+        EXPECT_EQ(result, KTX_SUCCESS);
+
+        if (texture)
+            ktxTexture_Destroy(ktxTexture(texture));
+
+        ktx_uint32_t newWriterLen;
+        ktx_uint8_t* newWriterVal;
+        result = ktxTexture2_CreateFromMemory(newMemFile,
+                                              newMemFileLen,
+                                              KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                              &texture);
+        ASSERT_TRUE(result == KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
+                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture->pData != NULL) << "Image storage not allocated";
+
+        result = ktxHashList_FindValue(&texture->kvDataHead,
+                                       "KTXwriter",
+                                        &newWriterLen, (void**)&newWriterVal);
+        EXPECT_EQ(result, KTX_SUCCESS);
+        ASSERT_TRUE(newWriterVal[newWriterLen-1] == '\0')
+                    << "KTXwriter not NUL terminated";
+
+        EXPECT_EQ(0, curWriter.compare((char *)newWriterVal));
+
+        if (texture)
+            ktxTexture_Destroy(ktxTexture(texture));
+
+        if (newMemFile)
+            free(newMemFile);
+    }
+}
+
 }  // namespace
