@@ -53,7 +53,7 @@
  * @{
  */
 
-#if defined(_WIN32) || defined(linux) || defined(__linux) || defined(__linux__)
+#if defined(_WIN32) || defined(linux) || defined(__linux) || defined(__linux__) || defined(__EMSCRIPTEN__)
 /** @internal
  * @~English
  * @brief strnstr for Windows & Linux.
