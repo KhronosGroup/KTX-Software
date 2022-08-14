@@ -53,10 +53,22 @@
  * @{
  */
 
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(linux) || defined(__linux) || defined(__linux__)
 /** @internal
- *  @~English
- *  @brief strnstr for Windows. Neede because write entries may not be NUL terminated.
+ * @~English
+ * @brief strnstr for Windows & Linux.
+ *
+ * strnstr is available in <apple>OS and BSD distributions. To use in Linux
+ * requires linking an additional library, libbsd. It is simpler to use ours.
+ *
+ * @param[in] haystack   pointer to string to search.
+ * @param[in] needle     pointer to string to search for.
+ * @param[in] len        length of @p haystack string. Also used as limit to
+ *                       length of @p needle string.
+ *
+ * @return    @p haystack, if @p needle is an empty string otherwise NULL, if
+ *            @p needle does not occur in @p haystack, or a pointer to the
+ *            first character of the first occurrence of @p needle.
  */
 static char*
 strnstr(const char *haystack, const char *needle, size_t len)
@@ -80,8 +92,15 @@ strnstr(const char *haystack, const char *needle, size_t len)
 #endif
 
 /** @internal
- *  @~English
- *  @brief Append the library's id to existing writeId.
+ * @~English
+ * @brief Append the library's id to the KTXwriter value.
+ *
+ * @param[in] head         pointer to the head of the hash list.
+ * @param[in] writerEntry  pointer to an existing KTXwriter entry.
+ *
+ * @return    KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_OUT_OF_MEMORY  not enough memory for temporary strings.
  */
 KTX_error_code
 appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
@@ -97,6 +116,7 @@ appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
         id = "Unidentified app";
         idLen = 17;
     }
+    // strnstr needed because KTXwriter values may not be NUL terminated.
     if (strnstr(id, "__default__", idLen) != NULL) {
         libVer = STR(LIBKTX_DEFAULT_VERSION);
     } else {
