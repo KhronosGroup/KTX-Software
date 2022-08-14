@@ -56,7 +56,7 @@
 #if defined(_WIN32) || defined(linux) || defined(__linux) || defined(__linux__) || defined(__EMSCRIPTEN__)
 /** @internal
  * @~English
- * @brief strnstr for Windows & Linux.
+ * @brief strnstr for Windows, Linux and Emscripten.
  *
  * strnstr is available in <apple>OS and BSD distributions. To use in Linux
  * requires linking an additional library, libbsd. It is simpler to use ours.
