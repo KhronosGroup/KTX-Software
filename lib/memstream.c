@@ -698,11 +698,10 @@ KTX_error_code ktxMemStream_construct(ktxStream* str,
 
 /**
  * @~English
- * @brief Initialize a read-write ktxMemStream.
+ * @brief Initialize a read-write ktxMemStream from externally allocated
+ * memory.
  *
- * Memory is allocated as data is written. The caller of this is
- * responsible for freeing this memory unless @a freeOnDestruct
- * is not KTX_FALSE.
+ * Write operations beyond the externally allocated buffer size are forbidden.
  *
  * @param [in] str      pointer to a ktxStream struct to initialize.
  * @param [in] bytes    pointer to an array of bytes containing the data.
