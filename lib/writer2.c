@@ -54,7 +54,7 @@
  */
 
 #if defined(_WIN32) || defined(linux) || defined(__linux) || defined(__linux__) || defined(__EMSCRIPTEN__)
-/** @internal
+ /** @internal
  * @~English
  * @brief strnstr for Windows, Linux and Emscripten.
  *
@@ -92,16 +92,16 @@ strnstr(const char *haystack, const char *needle, size_t len)
 #endif
 
 /** @internal
- * @~English
- * @brief Append the library's id to the KTXwriter value.
- *
- * @param[in] head         pointer to the head of the hash list.
- * @param[in] writerEntry  pointer to an existing KTXwriter entry.
- *
- * @return    KTX_SUCCESS on success, other KTX_* enum values on error.
- *
- * @exception KTX_OUT_OF_MEMORY  not enough memory for temporary strings.
- */
+* @~English
+* @brief Append the library's id to the KTXwriter value.
+*
+* @param[in] head         pointer to the head of the hash list.
+* @param[in] writerEntry  pointer to an existing KTXwriter entry.
+*
+* @return    KTX_SUCCESS on success, other KTX_* enum values on error.
+*
+* @exception KTX_OUT_OF_MEMORY  not enough memory for temporary strings.
+*/
 KTX_error_code
 appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
 {
@@ -727,6 +727,89 @@ ktxTexture2_WriteToMemory(ktxTexture2* This,
      * value obtained from ktxMemStream_getdata() thanks to the
      * KTX_FALSE passed to the constructor above.
      */
+    ktxMemStream_destruct(&dststr);
+    return KTX_SUCCESS;
+
+}
+
+/**
+* @memberof ktxTexture2
+* @~English
+* @brief Write a ktxTexture object to block of memory in KTX format, or query the size
+* of the serialized data.
+* 
+* This function should be called twice: first to obtain the size of the memory buffer by,
+* passing NULL to @p pDstBytes, then second to actually write the serialized data. That
+* way, the Application is fully responsible for memory management.
+*
+* Callers are strongly urged to include a KTXwriter item in the texture's metadata.
+* It can be added by code, similar to the following, prior to calling this
+* function.
+* @code
+*     char writer[100];
+*     snprintf(writer, sizeof(writer), "%s version %s", appName, appVer);
+*     ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
+*                           (ktx_uint32_t)strlen(writer) + 1,
+*                           writer);
+* @endcode
+*
+* @param[in]     This       pointer to the target ktxTexture object.
+* @param[in,out] pDstBytes  pointer to the memory to write to. The Application
+*                           is responsible for both allocating and freeing this
+*                           memory. When @p pDstBytes is NULL, the function will
+*                           attempt to calculate the size of the buffer and store
+*                           it to @p pSize so that the Application can allocate
+*                           the memory required to contain the serialized data.
+* @param[in,out] pSize      pointer to location to write the size in bytes of
+*                           the KTX data.
+*
+* @return      KTX_SUCCESS on success, other KTX_* enum values on error.
+*
+* @exception KTX_INVALID_VALUE @p This or @p pSize is NULL.
+* @exception KTX_INVALID_OPERATION
+*                              The ktxTexture does not contain any image data.
+* @exception KTX_INVALID_OPERATION
+*                              Both kvDataHead and kvData are set in the
+*                              ktxTexture
+* @exception KTX_FILE_OVERFLOW The file exceeded the maximum size supported by
+*                              the system.
+* @exception KTX_FILE_WRITE_ERROR
+*                              An error occurred while writing the file.
+*/
+KTX_error_code
+ktxTexture2_WriteToMemory2(ktxTexture2* This,
+    ktx_uint8_t* pDstBytes, ktx_size_t* pSize)
+{
+    struct ktxStream dststr;
+    KTX_error_code result;
+    ktx_size_t strSize;
+
+    if (!This || !pSize)
+        return KTX_INVALID_VALUE;
+
+    if (!pDstBytes)
+    {
+        //only estimate the size
+        result = ktxMemStream_construct_counter(&dststr);
+    }
+    else
+    {
+        //make a stream from existing buffer
+        result = ktxMemStream_construct_proxy(&dststr, pDstBytes, *pSize);
+    }
+    if (result != KTX_SUCCESS)
+        return result;
+
+    result = ktxTexture2_WriteToStream(This, &dststr);
+    if(result != KTX_SUCCESS)
+    {
+        ktxMemStream_destruct(&dststr);
+        return result;
+    }
+
+    dststr.getsize(&dststr, &strSize);
+    *pSize = (GLsizei)strSize;
+
     ktxMemStream_destruct(&dststr);
     return KTX_SUCCESS;
 

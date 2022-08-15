@@ -496,6 +496,78 @@ ktxTexture1_WriteToMemory(ktxTexture1* This,
 
 }
 
+/**
+ * @memberof ktxTexture
+ * @~English
+ * @brief Write a ktxTexture object to block of memory in KTX format, or query the size
+ * of the serialized data.
+ * 
+ * This function should be called twice: first to obtain the size of the memory buffer by,
+ * passing NULL to @p pDstBytes, then second to actually write the serialized data. That
+ * way, the Application is fully responsible for memory management.
+ *
+ * @param[in]     This       pointer to the target ktxTexture object.
+ * @param[in,out] pDstBytes  pointer to the memory to write to. The Application
+ *                           is responsible for both allocating and freeing this
+ *                           memory. When @p pDstBytes is NULL, the function will
+ *                           attempt to calculate the size of the buffer and store
+ *                           it to @p pSize so that the Application can allocate
+ *                           the memory required to contain the serialized data.
+ * @param[in,out] pSize      pointer to location to write the size in bytes of
+ *                           the KTX data.
+ *
+ * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_INVALID_VALUE @p This or @p pSize is NULL.
+ * @exception KTX_INVALID_OPERATION
+ *                              The ktxTexture does not contain any image data.
+ * @exception KTX_INVALID_OPERATION
+ *                              Both kvDataHead and kvData are set in the
+ *                              ktxTexture
+ * @exception KTX_FILE_OVERFLOW The file exceeded the maximum size supported by
+ *                              the system.
+ * @exception KTX_FILE_WRITE_ERROR
+ *                              An error occurred while writing the file.
+ */
+KTX_error_code
+ktxTexture1_WriteToMemory2(ktxTexture1* This,
+    ktx_uint8_t* pDstBytes, ktx_size_t* pSize)
+{
+    struct ktxStream dststr;
+    KTX_error_code result;
+    ktx_size_t strSize;
+
+    if (!This || !pSize)
+        return KTX_INVALID_VALUE;
+
+    if (!pDstBytes)
+    {
+        //only estimate the size
+        result = ktxMemStream_construct_counter(&dststr);
+    }
+    else
+    {
+        //make a stream from existing buffer
+        result = ktxMemStream_construct_proxy(&dststr, pDstBytes, pSize);
+    }
+    if (result != KTX_SUCCESS)
+        return result;
+
+    result = ktxTexture1_WriteToStream(This, &dststr);
+    if(result != KTX_SUCCESS)
+    {
+        ktxMemStream_destruct(&dststr);
+        return result;
+    }
+
+    dststr.getsize(&dststr, &strSize);
+    *pSize = (GLsizei)strSize;
+
+    ktxMemStream_destruct(&dststr);
+    return KTX_SUCCESS;
+
+}
+
 ktx_uint32_t lcm4(uint32_t a);
 KTX_error_code appendLibId(ktxHashList* head,
                            ktxHashListEntry* writerEntry);
