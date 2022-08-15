@@ -2448,6 +2448,16 @@ ktxTexture2_WriteToMemory(ktxTexture2* This,
 }
 
 KTX_error_code
+ktxTexture2_WriteToMemory2(ktxTexture2* This,
+                          ktx_uint8_t* pDstBytes, ktx_size_t* pSize)
+{
+    UNUSED(This);
+    UNUSED(pDstBytes);
+    UNUSED(pSize);
+    return KTX_INVALID_OPERATION;
+}
+
+KTX_error_code
 ktxTexture2_WriteToStream(ktxTexture2* This,
                           ktxStream* dststr)
 {
