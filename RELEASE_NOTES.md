@@ -33,6 +33,8 @@ Thanks to @wasimabbas-arm.
 
 * Specifying `--layers 1` to `toktx` now creates an array texture with 1 layer. Previously it created a non-array texture.
 
+* Specifying `--depth 1` to `toktx` now creates a 3d texture with depth of 1. Previously it created a 2d texture.
+
 * `--normal_map` in `ktxsc` and `toktx` has been replaced by `--normal_mode` which converts 3-component maps to 2-component as well as optimizing the encoding. To prevent the conversion, also specify `--input_swizzle rgb1`.
 
 ### Known Issues in v4.1.0.
@@ -47,12 +49,26 @@ Thanks to @wasimabbas-arm.
 
 * UASTC RDO results differ from run to run unless multi-threading or RDO multi-threading is disabled. In `toktx` use `--threads 1` for the former or `--uastc_rdo_m` for the latter. As with the preceeding issue results are valid but level sizes will differ slightly. See [issue #151](https://github.com/BinomialLLC/basis_universal/issues/151) in the basis_universal repository.
 
-* Neither the Vulkan nor the GL loader support depth/stencil textures.
+* Neither the Vulkan nor GL loaders support depth/stencil textures.
+
+### Notice
+
+* This is the last release for which building with Visual Studio 2015 is supported. You may still be able to build with it for a while but don't rely on it.
 
 ### Changes since v4.0.0 (by part)
 ### libktx
 
-* git subrepo push lib/dfdutils (dd799a9b) (@null)
+* Check for existing libktx version string (#620) (a2f1ac25) (@MarkCallow)
+
+* Set isCompressed at end of CompressBasisEx. (#618) (c63b4c9d) (@MarkCallow)
+
+* Allow creation of 3d textures with --depth 1. (#610) (3a5d09ac) (@MarkCallow)
+
+* Fix newly emerged warning from clang (#608) (cd394d6d) (@MarkCallow)
+
+* Update for UASTC and ASTC. (727de5e8) (@MarkCallow)
+
+* git subrepo push lib/dfdutils (dd799a9b) (@MarkCallow)
 
 * Remove incorrect use of ktxTexture2\_WriteTo... (7d91d62e) (@MarkCallow)
 
@@ -176,6 +192,12 @@ Thanks to @wasimabbas-arm.
 
 ### Tools
 
+* Allow creation of 3d textures with --depth 1. (#610) (3a5d09ac) (@MarkCallow)
+
+* Fix newly emerged warning from clang (#608) (cd394d6d) (@MarkCallow)
+
+* Build-system fixes (#606) (48bb42b0) (@pierremoreau)
+
 * Allow creation of single layer array textures. (#602) (de93656b) (@MarkCallow)
 
 * Close file after successful load (#597) (32d26662) (@AndrewChan2022)
@@ -243,6 +265,10 @@ Thanks to @wasimabbas-arm.
 * Raise warning levels to /W4 & -Wall -Wextra (#418) (ca6f6e7d) (@MarkCallow)
 
 ### Java Wrapper
+
+* [FIX] Fix jni package names in KtxTexture2.cpp (#621) (758fc864) (@Illithidek)
+
+* Set isCompressed at end of CompressBasisEx. (#618) (c63b4c9d) (@MarkCallow)
 
 * Sign Windows executables, dlls and NSIS installers. (#583) (dc231b32) (@MarkCallow)
 
