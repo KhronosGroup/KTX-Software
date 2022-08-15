@@ -548,7 +548,7 @@ ktxTexture1_WriteToMemory2(ktxTexture1* This,
     else
     {
         //make a stream from existing buffer
-        result = ktxMemStream_construct_proxy(&dststr, pDstBytes, pSize);
+        result = ktxMemStream_construct_proxy(&dststr, pDstBytes, *pSize);
     }
     if (result != KTX_SUCCESS)
         return result;
