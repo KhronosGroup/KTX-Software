@@ -487,6 +487,10 @@ typedef KTX_error_code
     (KTX_APIENTRY* PFNKTEXWRITETOMEMORY)(ktxTexture* This,
                                          ktx_uint8_t** bytes, ktx_size_t* size);
 typedef KTX_error_code
+    (KTX_APIENTRY* PFNKTEXWRITETOMEMORY2)(ktxTexture* This,
+                                         ktx_uint8_t* bytes, ktx_size_t* size);
+
+typedef KTX_error_code
     (KTX_APIENTRY* PFNKTEXWRITETOSTREAM)(ktxTexture* This,
                                          ktxStream* dststr);
 
@@ -509,6 +513,7 @@ typedef KTX_error_code
     PFNKTEXWRITETOSTDIOSTREAM WriteToStdioStream;
     PFNKTEXWRITETONAMEDFILE WriteToNamedFile;
     PFNKTEXWRITETOMEMORY WriteToMemory;
+    PFNKTEXWRITETOMEMORY2 WriteToMemory2;
     PFNKTEXWRITETOSTREAM WriteToStream;
 };
 
@@ -629,6 +634,14 @@ typedef KTX_error_code
  */
 #define ktxTexture_WriteToMemory(This, ppDstBytes, pSize) \
                   (This)->vtbl->WriteToMemory(This, ppDstBytes, pSize)
+
+/**
+ * @~English
+ * @brief Helper for calling the WriteToMemory2 virtual method of a ktxTexture.
+ * @copydoc ktxTexture2_WriteToMemory2
+ */
+#define ktxTexture_WriteToMemory2(This, pDstBytes, pSize) \
+                  (This)->vtbl->WriteToMemory2(This, pDstBytes, pSize)
 
 /**
  * @~English
