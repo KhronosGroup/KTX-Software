@@ -2483,6 +2483,7 @@ struct ktxTexture_vtbl ktxTexture2_vtbl = {
     (PFNKTEXWRITETOSTDIOSTREAM)ktxTexture2_WriteToStdioStream,
     (PFNKTEXWRITETONAMEDFILE)ktxTexture2_WriteToNamedFile,
     (PFNKTEXWRITETOMEMORY)ktxTexture2_WriteToMemory,
+    (PFNKTEXWRITETOMEMORY2)ktxTexture2_WriteToMemory2,
     (PFNKTEXWRITETOSTREAM)ktxTexture2_WriteToStream,
 };
 
