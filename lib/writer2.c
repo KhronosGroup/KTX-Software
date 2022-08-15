@@ -92,16 +92,16 @@ strnstr(const char *haystack, const char *needle, size_t len)
 #endif
 
 /** @internal
-* @~English
-* @brief Append the library's id to the KTXwriter value.
-*
-* @param[in] head         pointer to the head of the hash list.
-* @param[in] writerEntry  pointer to an existing KTXwriter entry.
-*
-* @return    KTX_SUCCESS on success, other KTX_* enum values on error.
-*
-* @exception KTX_OUT_OF_MEMORY  not enough memory for temporary strings.
-*/
+ * @~English
+ * @brief Append the library's id to the KTXwriter value.
+ *
+ * @param[in] head         pointer to the head of the hash list.
+ * @param[in] writerEntry  pointer to an existing KTXwriter entry.
+ *
+ * @return    KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_OUT_OF_MEMORY  not enough memory for temporary strings.
+ */
 KTX_error_code
 appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
 {
