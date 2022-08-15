@@ -54,7 +54,7 @@
  */
 
 #if defined(_WIN32) || defined(linux) || defined(__linux) || defined(__linux__) || defined(__EMSCRIPTEN__)
- /** @internal
+/** @internal
  * @~English
  * @brief strnstr for Windows, Linux and Emscripten.
  *
