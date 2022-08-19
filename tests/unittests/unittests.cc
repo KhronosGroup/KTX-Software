@@ -194,6 +194,50 @@ TEST(MemStreamTest, WriteExpand) {
     ktxMemStream_destruct(&stream);
 }
 
+TEST(MemStreamTest, Counter) {
+    ktxStream stream;
+    const size_t count = 29;
+    const size_t count2 = 26;
+    size_t returnedCount;
+    ktx_error_code_e ret;
+
+    ktxMemStream_construct_counter(&stream);
+    stream.write(&stream, NULL, 1, count);
+    stream.write(&stream, NULL, 1, count2);
+    stream.getsize(&stream, &returnedCount);
+    EXPECT_EQ(returnedCount, count + count2);
+    stream.setpos(&stream, 0);
+    ret = stream.read(&stream, NULL, 1);
+    EXPECT_EQ(ret, KTX_INVALID_OPERATION);
+
+    ktxMemStream_destruct(&stream);
+}
+
+TEST(MemStreamTest, Proxy) {
+    ktxStream stream;
+    const ktx_uint8_t* data = (ktx_uint8_t*)"29 bytes of rubbish to write.";
+    const ktx_uint8_t* data2 = (ktx_uint8_t*)" 26 more bytes of rubbish.";
+    const size_t count = 29;
+    const size_t count2 = 26;
+    size_t returnedCount;
+    ktx_uint8_t targetBuf[count];
+    char readBuf[count];
+    ktx_error_code_e ret;
+
+    ktxMemStream_construct_proxy(&stream, targetBuf, count);
+    ret = stream.write(&stream, data, 1, count);
+    EXPECT_EQ(ret, KTX_SUCCESS);
+    ret = stream.write(&stream, data2, 1, count2);
+    EXPECT_EQ(ret, KTX_INVALID_OPERATION);
+    stream.getsize(&stream, &returnedCount);
+    EXPECT_EQ(returnedCount, count);
+    stream.setpos(&stream, 0);
+    stream.read(&stream, readBuf, count);
+    EXPECT_EQ(memcmp(data, readBuf, count), 0);
+
+    ktxMemStream_destruct(&stream);
+}
+
 //////////////////////////////
 // WriterTestHelper tests.
 //////////////////////////////
