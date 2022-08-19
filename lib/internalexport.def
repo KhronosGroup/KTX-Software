@@ -29,6 +29,8 @@ EXPORTS
     ktxCheckHeader1_
     ktxMemStream_construct
     ktxMemStream_construct_ro
+    ktxMemStream_construct_proxy
+    ktxMemStream_construct_counter
     ktxMemStream_destruct
     ktxMemStream_getdata
     ktxTexture_calcImageSize
