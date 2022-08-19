@@ -24,7 +24,6 @@
 #include "ktx.h"
 #include "ktxint.h"
 #include "memstream.h"
-#include "unused.h"
 
 /**
 * @brief Default allocation size for a ktxMemStream.
@@ -361,11 +360,8 @@ KTX_error_code ktxMemStream_read(ktxStream* str, void* dst, const ktx_size_t cou
 * @return      KTX_INVALID_OPERATION.
 */
 static
-KTX_error_code ktxMemStream_disable_read(ktxStream* str, void* dst, const ktx_size_t count)
+KTX_error_code ktxMemStream_disable_read(ktxStream*, void*, const ktx_size_t)
 {
-    UNUSED(str);
-    UNUSED(dst);
-    UNUSED(count);
     return KTX_INVALID_OPERATION;
 }
 
@@ -526,11 +522,9 @@ KTX_error_code ktxMemStream_norealloc_write(ktxStream* str, const void* src,
 * @exception KTX_INVALID_VALUE        @p dst is @c NULL or @p mem is @c NULL.
 */
 static
-KTX_error_code ktxMemStream_dummy_write(ktxStream* str, const void* src,
+KTX_error_code ktxMemStream_dummy_write(ktxStream* str, const void*,
     const ktx_size_t size, const ktx_size_t count)
 {
-    UNUSED(src);
-
     ktxMem* mem;
 
     if (!str || (mem = str->data.mem) == 0)
