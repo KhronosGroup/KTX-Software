@@ -501,7 +501,7 @@ KTX_error_code appendLibId(ktxHashList* head,
                            ktxHashListEntry* writerEntry);
 
 /**
- * @memberof ktxTexture
+ * @memberof ktxTexture1
  * @~English
  * @brief Write a ktxTexture object to a ktxStream in KTX 2 format.
  *
@@ -516,6 +516,10 @@ KTX_error_code appendLibId(ktxHashList* head,
  * @exception KTX_INVALID_OPERATION
  *                              The ktxTexture contains unknownY KTX- or ktx-
  *                              prefixed metadata keys.
+ * @exception KTX_INVALID_OPERATION
+ *                              The length of the already set writerId metadata
+ *                              plus the library's version id exceeds the
+ *                              maximum allowed.
  * @exception KTX_FILE_OVERFLOW The file exceeded the maximum size supported by
  *                              the system.
  * @exception KTX_FILE_WRITE_ERROR
@@ -579,6 +583,9 @@ ktxTexture1_WriteKTX2ToStream(ktxTexture1* This, ktxStream* dststr)
 
         ktxHashListEntry_GetKey(pEntry, &keyLen, &key);
         if (strncasecmp(key, "KTX", 3) == 0) {
+            // N.B. Writer metadata is not legal in a KTX v1 file but we know
+            // we're going to write this out as a v2 file so we allow it so
+            // conversion apps can identify themselves.
             if (strcmp(key, KTX_ORIENTATION_KEY) && strcmp(key, KTX_WRITER_KEY)) {
                 result = KTX_INVALID_OPERATION;
                 goto cleanup;
@@ -618,6 +625,7 @@ ktxTexture1_WriteKTX2ToStream(ktxTexture1* This, ktxStream* dststr)
                               count+1, newOrient);
     }
     pEntry = NULL;
+    // See comment at valid metadata check at line 582.
     result = ktxHashList_FindEntry(&This->kvDataHead, KTX_WRITER_KEY,
                                    &pEntry);
     result = appendLibId(&This->kvDataHead, pEntry);

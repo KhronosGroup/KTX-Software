@@ -21,6 +21,7 @@
 #endif
 
 #include <assert.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -101,6 +102,10 @@ strnstr(const char *haystack, const char *needle, size_t len)
  * @return    KTX_SUCCESS on success, other KTX_* enum values on error.
  *
  * @exception KTX_OUT_OF_MEMORY  not enough memory for temporary strings.
+ * @exception KTX_INVALID_OPERATION
+ *                               the length of the value of writerEntry and the
+ *                               lib id being added is greater than the
+ *                               maximum allowed.
  */
 KTX_error_code
 appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
@@ -109,9 +114,11 @@ appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
     const char* id;
     const char* libVer;
     const char libIdIntro[] = " / libktx ";
-    ktx_uint32_t idLen, libIdLen;
+    size_t idLen, libIdLen;
     if (writerEntry) {
-        result = ktxHashListEntry_GetValue(writerEntry, &idLen, (void**)&id);
+        ktx_uint32_t len;
+        result = ktxHashListEntry_GetValue(writerEntry, &len, (void**)&id);
+        idLen = len;
     } else {
         id = "Unidentified app";
         idLen = 17;
@@ -122,8 +129,8 @@ appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
     } else {
         libVer = STR(LIBKTX_VERSION);
     }
-    // sizeof(libIdIntro) includes the terminating NUL which we will overwrite
-    // so no need for +1 after strlen.
+    // sizeof(libIdIntro) includes space for the terminating NUL which we will
+    // overwrite so no need for +1 after strlen.
     libIdLen = sizeof(libIdIntro) + (ktx_uint32_t)strlen(libVer);
     char* libId = malloc(libIdLen);
     if (!libId)
@@ -149,7 +156,9 @@ appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
         idLen--;
     }
 
-    ktx_uint32_t fullIdLen = idLen + strlen(libId) + 1;
+    size_t fullIdLen = idLen + strlen(libId) + 1;
+    if (fullIdLen > UINT_MAX)
+        return KTX_INVALID_OPERATION;
     char* fullId = malloc(fullIdLen);
     if (!fullId)
         return KTX_OUT_OF_MEMORY;
@@ -158,7 +167,8 @@ appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
     assert(fullId[fullIdLen-1] == '\0');
 
     ktxHashList_DeleteEntry(head, writerEntry);
-    result = ktxHashList_AddKVPair(head, KTX_WRITER_KEY, fullIdLen, fullId);
+    result = ktxHashList_AddKVPair(head, KTX_WRITER_KEY,
+                                   (ktx_uint32_t)fullIdLen, fullId);
     free(libId);
     free(fullId);
     return result;
@@ -330,6 +340,10 @@ ktx_bool_t __disableWriterMetadata__ = KTX_FALSE;
  * @exception KTX_INVALID_OPERATION
  *                              Both kvDataHead and kvData are set in the
  *                              ktxTexture
+ * @exception KTX_INVALID_OPERATION
+ *                              The length of the already set writerId metadata
+ *                              plus the library's version id exceeds the
+ *                              maximum allowed.
  * @exception KTX_FILE_OVERFLOW The file exceeded the maximum size supported by
  *                              the system.
  * @exception KTX_FILE_WRITE_ERROR

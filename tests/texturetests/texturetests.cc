@@ -1821,6 +1821,8 @@ class ktxTexture1WriteKTX2TestBase
                                   (unsigned int)strlen(helper.orientation_ktx2) + 1,
                                   helper.orientation_ktx2);
         }
+        // N.B. Writer metadata is not legal in a KTX v1 file but we know
+        // we're going to write this out as a v2 file so okay.
         if (writeWriterMeta) {
             ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
                                   (uint32_t)helper.writer_ktx2.size(),
@@ -1930,6 +1932,8 @@ class ktxTexture1WriteKTX2TestBase
         // Add desired keys & values to both the texture and a comparator.
         char rubbishValue[] = "some rubbish value";
         for (uint32_t i = 0; i < 2; i++) {
+            // N.B. Writer metadata is not legal in a KTX v1 file but we know
+            // we're going to write this out as a v2 file so okay.
             ktxHashList_AddKVPair(hlists[i], KTX_WRITER_KEY,
                                   (uint32_t)helper.writer_ktx2.size(),
                                   helper.writer_ktx2.data());
@@ -2767,7 +2771,8 @@ TEST_F(ktxTexture2_MetadataTest, LibVersionUpdatedCorrectly) {
         writer.replace(slash_pos + 2, std::string::npos, "libktx v3.0.0");
         result = ktxHashList_AddKVPair(&texture->kvDataHead,
                                        "KTXwriter",
-                                       writer.length(), writer.c_str());
+                                       (ktx_uint32_t)writer.length(),
+                                       writer.c_str());
         EXPECT_EQ(result, KTX_SUCCESS);
 
 
