@@ -167,7 +167,8 @@ appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
     assert(fullId[fullIdLen-1] == '\0');
 
     ktxHashList_DeleteEntry(head, writerEntry);
-    result = ktxHashList_AddKVPair(head, KTX_WRITER_KEY, fullIdLen, fullId);
+    result = ktxHashList_AddKVPair(head, KTX_WRITER_KEY,
+                                   (ktx_uint32_t)fullIdLen, fullId);
     free(libId);
     free(fullId);
     return result;

@@ -2771,7 +2771,8 @@ TEST_F(ktxTexture2_MetadataTest, LibVersionUpdatedCorrectly) {
         writer.replace(slash_pos + 2, std::string::npos, "libktx v3.0.0");
         result = ktxHashList_AddKVPair(&texture->kvDataHead,
                                        "KTXwriter",
-                                       writer.length(), writer.c_str());
+                                       (ktx_uint32_t)writer.length(),
+                                       writer.c_str());
         EXPECT_EQ(result, KTX_SUCCESS);
 
 
