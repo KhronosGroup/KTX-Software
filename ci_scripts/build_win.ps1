@@ -24,11 +24,13 @@ function Set-ConfigVariable {
   return $res
 }
 
-# Setting env vars here sets them in environment for parent as well so
-# use local variables to avoid pollution.
-$BUILD_DIR = Set-ConfigVariable BUILD_DIR "build/build-batch-vs2019"
+# These defaults are here to permit easy running of the script locally
+# when debugging is needed. Use local variables to avoid polluting the
+# environment. Some case have been observed where setting env. var's here
+# sets them for the parent as well.
+$BUILD_DIR = Set-ConfigVariable BUILD_DIR "build/build-batch-vs2022"
 $CONFIGURATION = Set-ConfigVariable CONFIGURATION "Release"
-$CMAKE_GEN = Set-ConfigVariable CMAKE_GEN "Visual Studio 16 2019"
+$CMAKE_GEN = Set-ConfigVariable CMAKE_GEN "Visual Studio 17 2022"
 $CMAKE_TOOLSET = Set-ConfigVariable CMAKE_TOOLSET ""
 $FEATURE_DOC = Set-ConfigVariable FEATURE_DOC "OFF"
 $FEATURE_JNI = Set-ConfigVariable FEATURE_JNI "OFF"
