@@ -60,8 +60,6 @@ function Augment-UserPath {
   param ( $PathAddition )
   $key='HKCU:\Environment'
   $curUserPath=(Get-ItemProperty -Path $key -Name Path).Path
-  echo $curUserPath
-  echo "setx PATH $curUserPath;$PathAddition"
 }
 
 if ($SUPPORT_OPENCL -eq "ON") {

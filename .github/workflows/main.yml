@@ -139,7 +139,7 @@ jobs:
         }
 
     - name: Install Dependencies
-      # This script only installs what's needed by ON FEATURE_s.
+      # This script only installs what's needed by ON FEATUREs.
       run: ci_scripts/install_win.ps1
 
     - name: Set up JDK 17.
@@ -155,15 +155,14 @@ jobs:
       # Although each step gets a new Powershell instance, that instance
       # is spawned from some parent Powershell so it does not pick up
       # the changes from the registry. Use Chocolatey's helper to
-      # pull in the changes. We have to first import it as it isn't
-      # there by default.
+      # pull in the changes.
       #   After import `refreshenv` is an alias for
-      # Update-SessionEnvironment. Without the import this would end up
-      # calling the cmd.exe version, which won't help Powershell, and
+      # Update-SessionEnvironment. Without the import refreshenv will end
+      # up calling the cmd.exe version, which won't help Powershell, and
       # Update-SessionEnvironment will not exist.
       #   Unfortunately this resets JAVA_HOME to whatever is in the registry.
       # The one from the Set Up JDK step was set in the environment before
-      # this step was called.
+      # this step is called.
       run: |
         $step_java_home=$env:JAVA_HOME
         Import-Module "$env:ChocolateyInstall/helpers/chocolateyInstaller.psm1"

@@ -141,6 +141,7 @@ build_script:
     $JOB_JAVA_HOME=$env:JAVA_HOME
     Import-Module "$env:ChocolateyInstall/helpers/chocolateyInstaller.psm1"
     refreshenv
+    $env:JAVA_HOME=$JOB_JAVA_HOME
     #$ErrorActionPreference = 'Stop'
     ci_scripts/build_win.ps1
 
