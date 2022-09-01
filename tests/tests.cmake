@@ -57,9 +57,12 @@ target_link_libraries(
     ${CMAKE_THREAD_LIBS_INIT}
 )
 
-gtest_discover_tests(unittests TEST_PREFIX unittest )
-# For some reason on Travis, 5s was not long enough for Release config.
+gtest_discover_tests(unittests
+    TEST_PREFIX unittest
+    # With the 5s default we get periodic timeouts on Travis & GitHub CI.
+    DISCOVERY_TIMEOUT 15
+)
 gtest_discover_tests(texturetests
     TEST_PREFIX texturetest
-    DISCOVERY_TIMEOUT 20
+    DISCOVERY_TIMEOUT 15
 )

@@ -20,36 +20,78 @@ on:
   # Allow manual trigger
   workflow_dispatch:
 
+#runs-on: windows-2019
 jobs:
-  windows-arm64:
-    runs-on: windows-latest
+  windows:
     strategy:
       matrix:
+        os: [ windows-latest ]
+        platform: [ x64 ]
         options: [
-          {config: 'Debug,Release', package: YES, tools: ON, docs: ON},
+          {config: 'Debug,Release',
+           doc: ON, jni: ON, loadtests: ON, tests: ON, tools: ON,
+           package: YES,
+           sse: ON, opencl: OFF},
+          {config: Release,
+           doc: OFF, loadtests: OFF, tests: OFF, tools: OFF,
+           package: NO,
+           sse: OFF, opencl: OFF},
+          {config: Release,
+           doc: OFF, loadtests: OFF, tests: OFF, tools: OFF,
+           package: NO,
+           sse: OFF, opencl: ON},
+          {config: Release,
+           doc: OFF, loadtests: OFF, tests: OFF, tools: OFF,
+           package: NO,
+           sse: ON, opencl: ON}
         ]
+        include:
+          - os: windows-latest
+            generator: 'Visual Studio 17 2022'
+            toolset: v143
+          - os: windows-2019
+            generator: 'Visual Studio 16 2019'
+            toolset: v142
+            platform: x64
+            options: {
+              config: 'Debug,Release',
+              doc: ON, jni: ON, loadtests: ON, tests: ON, tools: ON,
+              package: NO,
+              sse: ON, opencl: OFF
+            }
+          - os: windows-latest
+            generator: 'Visual Studio 17 2022'
+            toolset: CLangCL
+            platform: arm64
+            # No tests on arm64 since the host is x64 and can't run the
+            # built tests
+            options: {
+              config: 'Debug,Release',
+              doc: ON, jni: OFF, loadtests: OFF, tests: OFF, tools: ON,
+              package: YES
+            }
+    runs-on: ${{ matrix.os }}
     env:
       # Skip downloading necessities for the load tests and source and golden
       # images for the other tests since we can't run arm64 tests on the x64
       # build host.
       GIT_LFS_SKIP_SMUDGE: 1
 
-      BUILD_DIR: "build/build-batch-vs2022"
-      CONFIGURATION: "${{matrix.options.config}}"
-      CMAKE_GEN: "Visual Studio 17 2022" # Only VS version on Windows Server 2022
-      CMAKE_TOOLSET: "ClangCL"
+      BUILD_DIR: "build"
 
-      PACKAGE: ${{matrix.options.package}}
-      FEATURE_TOOLS: ${{matrix.options.tools}}
-      FEATURE_DOC: ${{matrix.options.docs}}
+      CMAKE_GEN: ${{ matrix.generator }}
+      PLATFORM: ${{ matrix.platform }}
+      CMAKE_TOOLSET: ${{ matrix.toolset }}
 
-      PLATFORM: "arm64"
-      SUPPORT_SSE: OFF
-
-      # No tests on arm64 since the host is x64 and can't run the built tests
-      FEATURE_JNI: OFF # Not sure of the state of JNI on arm64 windows
-      FEATURE_TESTS: OFF
-      FEATURE_LOADTESTS: OFF
+      CONFIGURATION: ${{ matrix.options.config }}
+      FEATURE_DOC: ${{ matrix.options.doc }}
+      FEATURE_JNI: ${{ matrix.options.jni }}
+      FEATURE_LOADTESTS: ${{ matrix.options.loadtests }}
+      FEATURE_TESTS: ${{ matrix.options.tests }}
+      FEATURE_TOOLS: ${{ matrix.options.tools }}
+      PACKAGE: ${{ matrix.options.package }}
+      SUPPORT_OPENCL: ${{ matrix.options.opencl }}
+      SUPPORT_SSE: ${{ matrix.options.sse }}
 
       CODE_SIGN_TIMESTAMP_URL: "http://timestamp.digicert.com"
       AZURE_KEY_VAULT_URL: ${{ secrets.AZURE_KEY_VAULT_URL }}
@@ -57,6 +99,13 @@ jobs:
       AZURE_KEY_VAULT_CLIENT_ID: ${{ secrets.AZURE_KEY_VAULT_CLIENT_ID }}
       AZURE_KEY_VAULT_CLIENT_SECRET: ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }}
       AZURE_KEY_VAULT_TENANT_ID: ${{ secrets.AZURE_KEY_VAULT_TENANT_ID }}
+
+      OPENCL_SDK_HOME: https://github.com/intel/llvm/releases/download/2021-09
+      OPENCL_SDK_NAME: win-oclcpuexp-2021.12.9.0.24_rel
+      OPENGL_ES_EMULATOR: C:/Imagination/Windows_x86_64
+      OPENGL_ES_EMULATOR_WIN: C:\Imagination\Windows_x86_64
+      PVR_SDK_HOME: https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/
+      VULKAN_SDK_VER: 1.2.176.1
 
     steps:
     - uses: actions/checkout@v3
@@ -76,7 +125,7 @@ jobs:
     # frequent failures due to Chocolatey attempts to blackmail you
     # into purchasing a license. If this does fail, re-run the build.
     - name: Install Doxygen
-      if: matrix.options.docs == 'ON'
+      if: matrix.options.doc == 'ON'
       run: choco install doxygen.install
 
     - name: Install AzureSignTool
@@ -89,8 +138,38 @@ jobs:
           echo "::set-output name=code_sign_key_vault::"
         }
 
-    - name: Build arm64 Windows
-      run: powershell ./ci_scripts/build_win.ps1
+    - name: Install Dependencies
+      # This script only installs what's needed by ON FEATURE_s.
+      run: ci_scripts/install_win.ps1
+
+    - name: Set up JDK 17.
+      if: matrix.options.jni == 'ON'
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Build Windows
+      #   The installers run as part of "Install Dependencies" add
+      # environment variables to the registry and augment $Path there.
+      # Although each step gets a new Powershell instance, that instance
+      # is spawned from some parent Powershell so it does not pick up
+      # the changes from the registry. Use Chocolatey's helper to
+      # pull in the changes. We have to first import it as it isn't
+      # there by default.
+      #   After import `refreshenv` is an alias for
+      # Update-SessionEnvironment. Without the import this would end up
+      # calling the cmd.exe version, which won't help Powershell, and
+      # Update-SessionEnvironment will not exist.
+      #   Unfortunately this resets JAVA_HOME to whatever is in the registry.
+      # The one from the Set Up JDK step was set in the environment before
+      # this step was called.
+      run: |
+        $step_java_home=$env:JAVA_HOME
+        Import-Module "$env:ChocolateyInstall/helpers/chocolateyInstaller.psm1"
+        refreshenv
+        $env:JAVA_HOME=$step_java_home
+        ci_scripts/build_win.ps1
       env:
         CODE_SIGN_KEY_VAULT: ${{ steps.install-ast.outputs.code_sign_key_vault }}
 

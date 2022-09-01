@@ -30,65 +30,9 @@ environment:
       FEATURE_TOOLS: ON
       SUPPORT_SSE: ON
       SUPPORT_OPENCL: OFF
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-      CMAKE_GEN: Visual Studio 14 2015
-      CONFIGURATION: Debug,Release
-    - FEATURE_DOC: OFF
-      FEATURE_JNI: OFF
-      FEATURE_LOADTESTS: ON
-      FEATURE_TOOLS: ON
-      SUPPORT_SSE: ON
-      SUPPORT_OPENCL: OFF
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       CMAKE_GEN: Visual Studio 15 2017
       CONFIGURATION: Debug,Release
-    - FEATURE_DOC: OFF
-      FEATURE_JNI: OFF
-      FEATURE_LOADTESTS: ON
-      FEATURE_TOOLS: ON
-      SUPPORT_SSE: ON
-      SUPPORT_OPENCL: OFF
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-      CMAKE_GEN: Visual Studio 16 2019
-      CONFIGURATION: Debug,Release
-      # This is the configuration used for the release.
-    - FEATURE_DOC: ON
-      FEATURE_JNI: ON
-      FEATURE_LOADTESTS: ON
-      FEATURE_TOOLS: ON
-      PACKAGE: YES
-      SUPPORT_SSE: ON
-      SUPPORT_OPENCL: OFF
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
-      CMAKE_GEN: Visual Studio 17 2022
-      CONFIGURATION: Debug,Release
-      JAVA_HOME: C:\Program Files\Java\jdk17
-    - FEATURE_DOC: OFF
-      FEATURE_JNI: OFF
-      FEATURE_LOADTESTS: OFF
-      FEATURE_TOOLS: OFF
-      SUPPORT_SSE: ON
-      SUPPORT_OPENCL: ON
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
-      CMAKE_GEN: Visual Studio 17 2022
-      CONFIGURATION: Release
-    - FEATURE_DOC: OFF
-      FEATURE_JNI: OFF
-      FEATURE_LOADTESTS: OFF
-      FEATURE_TOOLS: OFF
-      SUPPORT_SSE: OFF
-      SUPPORT_OPENCL: ON
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
-      CMAKE_GEN: Visual Studio 17 2022
-      CONFIGURATION: Release
-    - FEATURE_DOC: OFF
-      FEATURE_JNI: OFF
-      FEATURE_LOADTESTS: OFF
-      SUPPORT_SSE: OFF
-      SUPPORT_OPENCL: OFF
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
-      CMAKE_GEN: Visual Studio 17 2022
-      CONFIGURATION: Release
 
 #matrix:
 
@@ -155,24 +99,9 @@ install:
     #run mkversion
     #Update-AppveyorBuild -Version "$($env:ospsuite_version).$($env:appveyor_build_version)"
 
-    # Not using PS for install because "curl" is an alias for
-    # Invoke-WebRequest a completely different command that is difficult to
-    # use for downloads. When I wrote the .bat script, so I could use the
-    # real  curl, I did not know PS's curl was just an alias and I could get
-    # the real curl with "curl.exe". Doh! Now it is a case of if it ain't
-    # broke don't fix it.
-    #
-    # To avoid going down a rathole note very well that in at least some of
-    # the CI environments, cmd.exe does not support pushd and popd. Sigh!
-    # Also keep quotes in following echos & rems to avoid issues with
-    # cmd special characters, e.g. &.
-- cmd: |
-    ci_scripts/install_win.bat
-    rem JAVA_HOME is in registry so refreshenv overrides job setting.
-    set JOB_JAVA_HOME=%JAVA_HOME%
-    echo "Pick up environment changes made to registry by the install script."
-    refreshenv
-    set JAVA_HOME=%JOB_JAVA_HOME%
+- ps: ci_scripts/install_win.ps1
+
+
 # # One-line install/build zlib (for loadtests) into C:\Program Files\zlib
 # - ps: |
 #     Invoke-WebRequest -Uri https://raw.githubusercontent.com/horta/zlib.install/master/install.bat -OutFile install.bat
@@ -180,7 +109,6 @@ install:
 - ps: if ($env:PACKAGE -eq "YES" -and $env:AZURE_KEY_VAULT_URL) {
         dotnet tool install --global AzureSignTool
       }
-
 
 #cache:
 #  - other_lib
@@ -204,6 +132,15 @@ before_build:
 
 build_script:
 - ps: |
+    echo "Pick up environment changes made to registry by the install script."
+    # We do this here so we're not dependent on Appveyor always using
+    # the same PS instance to run the install phase and this. If they
+    # gave us a truly fresh PS lauched from the system then this would
+    # become superfluous.
+    # JAVA_HOME is in registry so refreshenv overrides job setting.
+    $JOB_JAVA_HOME=$env:JAVA_HOME
+    Import-Module "$env:ChocolateyInstall/helpers/chocolateyInstaller.psm1"
+    refreshenv
     #$ErrorActionPreference = 'Stop'
     ci_scripts/build_win.ps1
 

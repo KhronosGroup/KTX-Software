@@ -33,6 +33,8 @@ target_compile_features(transcodetests PUBLIC cxx_std_11)
 
 gtest_discover_tests( transcodetests
     TEST_PREFIX transcodetest
+    # With the 5s default we get periodic timeouts on Travis & GitHub CI.
+    DISCOVERY_TIMEOUT 15
     EXTRA_ARGS "${PROJECT_SOURCE_DIR}/tests/testimages/"
 )
 
