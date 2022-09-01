@@ -22,8 +22,6 @@ include(CMakeDependentOption)
 include(cmake/codesign.cmake)
 include(cmake/cputypetest.cmake)
 
-find_package(OpenCL)
-
 # OPTIONS
 
 if( IOS OR EMSCRIPTEN )
@@ -63,6 +61,10 @@ CMAKE_DEPENDENT_OPTION( BASISU_SUPPORT_OPENCL
     "OpenCL_FOUND OR WIN32"
     OFF
 )
+
+if(BASISU_SUPPORT_OPENCL)
+    find_package(OpenCL)
+endif()
 
 if(BASISU_SUPPORT_OPENCL AND WIN32 AND NOT OpenCL_FOUND)
     # To avoid fiddly setting up of OpenCL on Windows CI VMs, use copy in repo.
