@@ -11,7 +11,15 @@ add_library(obj_basisu_cbind ${LIB_TYPE}
     src/basisu_c_binding.cpp
 )
 
-target_compile_features(obj_basisu_cbind PUBLIC c_std_99 cxx_std_11)
+# Using cxx_std_17 because VS 2022 raises a set but unused variable warning
+# and pre-c++-17 there is no 'unused' attribute. equivalent.
+target_compile_features(obj_basisu_cbind PUBLIC c_std_99 cxx_std_17)
+# Need this to make VS correctly define __cplusplus to the std in use.
+target_compile_options(
+    obj_basisu_cbind
+PRIVATE
+    $<$<CXX_COMPILER_ID:MSVC>:/Zc:__cplusplus>
+)
 
 target_include_directories(
     obj_basisu_cbind
