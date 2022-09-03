@@ -135,13 +135,8 @@ appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
     char* libId = malloc(libIdLen);
     if (!libId)
         return KTX_OUT_OF_MEMORY;
-    // &libIdIntro[0] instead of libIdIntro is to workaround a gcc warning
-    // that I'm passing the same thing to sizeof as to the src
-    // parameter (i.e. I'm requesting the sizeof a pointer).
-    // Actually libIdIntro is an array of char not a pointer. Looks
-    // like a gcc bug.
-    strncpy(libId, &libIdIntro[0], sizeof(libIdIntro));
-    strncpy(&libId[sizeof(libIdIntro)-1], libVer, strlen(libVer) + 1);
+    strncpy(libId, libIdIntro, libIdLen);
+    strncpy(&libId[sizeof(libIdIntro)-1], libVer, libIdLen-sizeof(libIdIntro));
 
     if (strnstr(id, libId, idLen) != NULL) {
         // This lib id is already in the writer value.
