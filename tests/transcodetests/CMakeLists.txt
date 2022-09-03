@@ -48,14 +48,12 @@ if(WIN32)
     # Retrieve and set warning settings for the 2 files from the ktx target.
     # See comment in ../../CMakeLists.txt around line 625.
     if (transcoder_options)
-        message(STATUS "transcoder_options in transcodetests = ${transcoder_options}")
         set_source_files_properties(
             ${PROJECT_SOURCE_DIR}/lib/basisu/transcoder/basisu_transcoder.cpp
             PROPERTIES COMPILE_OPTIONS "${transcoder_options}"
         )
     endif()
     if (zstd_options)
-        message(STATUS "zstd_options in transcodetests = ${zstd_options}")
         set_source_files_properties(
             ${PROJECT_SOURCE_DIR}/lib/basisu/zstd/zstd.c
             PROPERTIES COMPILE_OPTIONS "${zstd_options}"

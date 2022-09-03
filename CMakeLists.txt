@@ -691,8 +691,6 @@ get_source_file_property(transcoder_options
     COMPILE_OPTIONS
 )
 get_source_file_property(zstd_options lib/basisu/zstd/zstd.c COMPILE_OPTIONS)
-message(STATUS "transcoder_options = ${transcoder_options}")
-message(STATUS "zstd_options = ${zstd_options}")
 
 target_include_directories(
     ktx
