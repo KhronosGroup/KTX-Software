@@ -640,6 +640,9 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         # Primarily an issue on windows using clang/clangcl
         # Lowest tested clang version was 12.0.0 and highest was 14.0.4
         set_source_files_properties(
+            # We haven't fixed zstd.c because the fix would have to be applied
+            # every time the upstream script is used to create an updated
+            # single file decoder.
             lib/basisu/zstd/zstd.c
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-function"
         )
@@ -651,11 +654,16 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     if (${clang_version} VERSION_GREATER_EQUAL "13.0.0")
         get_source_file_property(zstd_options lib/basisu/zstd/zstd.c COMPILE_OPTIONS)
         set_source_files_properties(
-            # We haven't fixed zstd.c because the fix would have to be applied
-            # every time the upstream script is used to create an updated
-            # single file decoder.
             lib/basisu/zstd/zstd.c
             PROPERTIES COMPILE_OPTIONS "${zstd_options};-Wno-unused-but-set-variable"
+        )
+    endif()
+    if (${clang_version} VERSION_GREATER_EQUAL "14.0.5")
+        # Primarily an issue on windows using clang/clangcl. Not seeing in
+        # Emscripten which is currently tip of tree clang v16.0.0.
+        set_source_files_properties(
+            lib/basisu/zstd/zstd.c
+            PROPERTIES COMPILE_OPTIONS "-Wno-bitwise-instead-of-logical"
         )
     endif()
     if (${clang_version} VERSION_GREATER_EQUAL "15.0")
