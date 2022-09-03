@@ -62,6 +62,15 @@ jobs:
           - os: windows-latest
             generator: 'Visual Studio 17 2022'
             toolset: CLangCL
+            platform: x64
+            options: {
+              config: 'Release',
+              doc: ON, jni: OFF, loadtests: OFF, tests: ON, tools: ON,
+              package: YES
+            }
+          - os: windows-latest
+            generator: 'Visual Studio 17 2022'
+            toolset: CLangCL
             platform: arm64
             # No tests on arm64 since the host is x64 and can't run the
             # built tests
