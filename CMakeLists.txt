@@ -633,12 +633,13 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     else()
         set( clang_version ${CMAKE_CXX_COMPILER_VERSION} )
     endif()
+    # BEWARE: set_source_files_properties is not additive; it replaces.
     if (${clang_version} VERSION_GREATER_EQUAL "12.0.0")
         set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter;-Wno-deprecated-copy;-Wno-uninitialized-const-reference"
         )
         # Primarily an issue on windows using clang/clangcl
-        # Lowest tested clang version was 12.0.0 and highest was 14.0.4
+        # Lowest tested clang version was 12.0.0 and highest was 14.0.5
         set_source_files_properties(
             # We haven't fixed zstd.c because the fix would have to be applied
             # every time the upstream script is used to create an updated
@@ -659,11 +660,10 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         )
     endif()
     if (${clang_version} VERSION_GREATER_EQUAL "14.0.5")
-        # Primarily an issue on windows using clang/clangcl. Not seeing in
-        # Emscripten which is currently tip of tree clang v16.0.0.
+        get_source_file_property(zstd_options lib/basisu/zstd/zstd.c COMPILE_OPTIONS)
         set_source_files_properties(
             lib/basisu/zstd/zstd.c
-            PROPERTIES COMPILE_OPTIONS "-Wno-bitwise-instead-of-logical"
+            PROPERTIES COMPILE_OPTIONS "${zstd_options};-Wno-bitwise-instead-of-logical"
         )
     endif()
     if (${clang_version} VERSION_GREATER_EQUAL "15.0")
@@ -677,14 +677,22 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
             lib/basisu/transcoder/basisu_transcoder.cpp
             PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable"
         )
-        set_source_files_properties(
-            lib/basisu/zstd/zstd.c
-            PROPERTIES COMPILE_OPTIONS "-Wno-unused-but-set-variable;-Wno-bitwise-instead-of-logical"
-        )
     endif()
 else()
     message(FATAL_ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")
 endif()
+
+# Retrieve the final set of properties for use by the transcodetests.
+# We do this because the CMake feature that would allow the transcodetests
+# target to retrieve these from the ktx target are not available until
+# v18 and we still need to work with v16 in the Emscripten Docker image.
+get_source_file_property(transcoder_options
+    lib/basisu/transcoder/basisu_transcoder.cpp
+    COMPILE_OPTIONS
+)
+get_source_file_property(zstd_options lib/basisu/zstd/zstd.c COMPILE_OPTIONS)
+message(STATUS "transcoder_options = ${transcoder_options}")
+message(STATUS "zstd_options = ${zstd_options}")
 
 target_include_directories(
     ktx

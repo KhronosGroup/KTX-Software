@@ -45,11 +45,20 @@ if(WIN32)
         $<$<STREQUAL:"${BASISU_CBIND_LIBTYPE}","STATIC">:KHRONOS_STATIC>
     )
 
-    # Disable some known warnings in the transcoder
-    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    # Retrieve and set warning settings for the 2 files from the ktx target.
+    # See comment in ../../CMakeLists.txt around line 625.
+    if (transcoder_options)
+        message(STATUS "transcoder_options in transcodetests = ${transcoder_options}")
         set_source_files_properties(
             ${PROJECT_SOURCE_DIR}/lib/basisu/transcoder/basisu_transcoder.cpp
-            PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable;-Wno-class-memaccess;-Wno-maybe-uninitialized"
+            PROPERTIES COMPILE_OPTIONS "${transcoder_options}"
+        )
+    endif()
+    if (zstd_options)
+        message(STATUS "zstd_options in transcodetests = ${zstd_options}")
+        set_source_files_properties(
+            ${PROJECT_SOURCE_DIR}/lib/basisu/zstd/zstd.c
+            PROPERTIES COMPILE_OPTIONS "${zstd_options}"
         )
     endif()
 
