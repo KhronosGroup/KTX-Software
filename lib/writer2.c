@@ -115,6 +115,7 @@ appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
     const char* libVer;
     const char libIdIntro[] = " / libktx ";
     size_t idLen, libIdLen;
+
     if (writerEntry) {
         ktx_uint32_t len;
         result = ktxHashListEntry_GetValue(writerEntry, &len, (void**)&id);
@@ -123,20 +124,22 @@ appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
         id = "Unidentified app";
         idLen = 17;
     }
+
     // strnstr needed because KTXwriter values may not be NUL terminated.
     if (strnstr(id, "__default__", idLen) != NULL) {
         libVer = STR(LIBKTX_DEFAULT_VERSION);
     } else {
         libVer = STR(LIBKTX_VERSION);
     }
-    // sizeof(libIdIntro) includes space for the terminating NUL which we will
+    // sizeof(libIdIntro) includes space for its terminating NUL which we will
     // overwrite so no need for +1 after strlen.
     libIdLen = sizeof(libIdIntro) + (ktx_uint32_t)strlen(libVer);
     char* libId = malloc(libIdLen);
     if (!libId)
         return KTX_OUT_OF_MEMORY;
     strncpy(libId, libIdIntro, libIdLen);
-    strncpy(&libId[sizeof(libIdIntro)-1], libVer, libIdLen-sizeof(libIdIntro));
+    strncpy(&libId[sizeof(libIdIntro)-1], libVer,
+            libIdLen-(sizeof(libIdIntro)-1));
 
     if (strnstr(id, libId, idLen) != NULL) {
         // This lib id is already in the writer value.
