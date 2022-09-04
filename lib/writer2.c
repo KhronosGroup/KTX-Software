@@ -115,6 +115,7 @@ appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
     const char* libVer;
     const char libIdIntro[] = " / libktx ";
     size_t idLen, libIdLen;
+
     if (writerEntry) {
         ktx_uint32_t len;
         result = ktxHashListEntry_GetValue(writerEntry, &len, (void**)&id);
@@ -123,25 +124,22 @@ appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
         id = "Unidentified app";
         idLen = 17;
     }
+
     // strnstr needed because KTXwriter values may not be NUL terminated.
     if (strnstr(id, "__default__", idLen) != NULL) {
         libVer = STR(LIBKTX_DEFAULT_VERSION);
     } else {
         libVer = STR(LIBKTX_VERSION);
     }
-    // sizeof(libIdIntro) includes space for the terminating NUL which we will
+    // sizeof(libIdIntro) includes space for its terminating NUL which we will
     // overwrite so no need for +1 after strlen.
     libIdLen = sizeof(libIdIntro) + (ktx_uint32_t)strlen(libVer);
     char* libId = malloc(libIdLen);
     if (!libId)
         return KTX_OUT_OF_MEMORY;
-    // &libIdIntro[0] instead of libIdIntro is to workaround a gcc warning
-    // that I'm passing the same thing to sizeof as to the src
-    // parameter (i.e. I'm requesting the sizeof a pointer).
-    // Actually libIdIntro is an array of char not a pointer. Looks
-    // like a gcc bug.
-    strncpy(libId, &libIdIntro[0], sizeof(libIdIntro));
-    strncpy(&libId[sizeof(libIdIntro)-1], libVer, strlen(libVer) + 1);
+    strncpy(libId, libIdIntro, libIdLen);
+    strncpy(&libId[sizeof(libIdIntro)-1], libVer,
+            libIdLen-(sizeof(libIdIntro)-1));
 
     if (strnstr(id, libId, idLen) != NULL) {
         // This lib id is already in the writer value.
