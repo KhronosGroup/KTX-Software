@@ -216,11 +216,11 @@ include(cmake/mkvk.cmake)
 if(MSVC)
     # With /W4 VS2015 (V19.0) issues many warnings that VS2017 & 2019 don't
     # so only increase warning level for recent versions.
-    add_compile_options($<$<VERSION_GREATER_EQUAL:${CMAKE_CXX_COMPILER_VERSION},19.16>:/W4>)
+    add_compile_options( $<$<VERSION_GREATER_EQUAL:${CMAKE_CXX_COMPILER_VERSION},19.16>:/W4$<SEMICOLON>/WX> )
     add_compile_options( $<IF:$<CONFIG:Debug>,/Gz,/O2> )
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"
        OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-    add_compile_options(-Wall -Wextra)
+    add_compile_options(-Wall -Wextra -Werror)
     add_compile_options( $<IF:$<CONFIG:Debug>,-O0,-O3> )
     if(EMSCRIPTEN)
         add_link_options( $<IF:$<CONFIG:Debug>,-gsource-map,-O3> )
