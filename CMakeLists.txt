@@ -788,8 +788,9 @@ add_subdirectory(interface/basisu_c_binding)
 # On arm based systems ISA_NEON is default
 
 list(FIND CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" ASTC_BUILD_UNIVERSAL)
+list(LENGTH CMAKE_OSX_ARCHITECTURES ARCHITECTURE_COUNT)
 
-if(${ASTC_BUILD_UNIVERSAL} EQUAL -1)
+if(${ASTC_BUILD_UNIVERSAL} EQUAL -1 AND ARCHITECTURE_COUNT LESS_EQUAL 1)
     if (${ISA_NONE})
         set(ASTC_LIB_TARGET astcenc-none-static)
     else()
