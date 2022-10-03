@@ -830,9 +830,15 @@ set_property(TARGET ${ASTC_LIB_TARGET} PROPERTY POSITION_INDEPENDENT_CODE ON)
 if(KTX_FEATURE_STATIC_LIBRARY AND NOT WIN32 AND NOT EMSCRIPTEN)
     # Make a single static library to simplify linking.
     add_dependencies(ktx ${ASTC_LIB_TARGET})
+    set(LIBTOOL_ARGS)
+    if(LINUX)
+        set(LIBTOOL_ARGS ${LIBTOOL_ARGS} --mode=link --tag=CC cc)
+    endif()
+    set(LIBTOOL_ARGS ${LIBTOOL_ARGS} -static -o
+        $<TARGET_FILE:ktx> $<TARGET_FILE:ktx> $<TARGET_FILE:${ASTC_LIB_TARGET}>)
     add_custom_command( TARGET ktx
         POST_BUILD
-        COMMAND libtool -static -o $<TARGET_FILE:ktx> $<TARGET_FILE:ktx> $<TARGET_FILE:${ASTC_LIB_TARGET}>
+        COMMAND libtool ${LIBTOOL_ARGS}
     )
 
     # Don't know libtool equivalent on Windows or Emscripten. Applications
