@@ -1340,7 +1340,7 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
 
 /** @memberof ktxTexture
  * @~English
- * @brief Create a Vulkan image object from a ktxTexture1 object.
+ * @brief Create a Vulkan image object from a ktxTexture object.
  *
  * Calls ktxTexture_VkUploadEx() with the most commonly used options:
  * VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT and
