@@ -130,7 +130,7 @@ VulkanSwapchain::initSurface(SDL_Window* window)
         ERROR_RETURN("Could not find a graphics or presenting queue!");
     }
 
-    // TODO : Add support for separate graphics and presenting queue
+    // TODO: Add support for separate graphics and presenting queue
     if (graphicsQueueIndex != presentQueueIndex)
     {
         ERROR_RETURN("Separate graphics and present queues not yet supported!");
@@ -154,7 +154,7 @@ VulkanSwapchain::initSurface(SDL_Window* window)
     // If the surface format list only includes one entry with
     // VK_FORMAT_UNDEFINED, there is no preferred format.
     // Assume VK_FORMAT_B8G8R8A8_RGB.
-    // TODO Consider passing in desired format from app.
+    // TODO: Consider passing in desired format from app.
     if ((formatCount == 1) && (surfaceFormats[0].format == VK_FORMAT_UNDEFINED))
     {
         colorFormat = VK_FORMAT_B8G8R8A8_SRGB;

@@ -131,8 +131,6 @@ class VulkanAppSDL : public AppBaseSDL {
     std::vector<const char*> extensionNames;
     std::vector<const char*> deviceValidationLayers;
 
-    uint32_t vkQueueFamilyIndex;
-
     VkCommandBuffer setupCmdBuffer;
     VkSurfaceKHR vsSurface;
 
