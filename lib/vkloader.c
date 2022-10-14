@@ -119,15 +119,18 @@ ktxVulkanDeviceInfo_Create(VkPhysicalDevice physicalDevice, VkDevice device,
  * @sa ktxVulkanDeviceInfo_construct(), ktxVulkanDeviceInfo_destroy()
  */
 ktxVulkanDeviceInfo*
-ktxVulkanDeviceInfo_CreateEx(VkInstance instance, VkPhysicalDevice physicalDevice, VkDevice device,
-                           VkQueue queue, VkCommandPool cmdPool,
-                           const VkAllocationCallbacks* pAllocator, const ktxVulkanFunctions* pFuncs)
+ktxVulkanDeviceInfo_CreateEx(VkInstance instance,
+                             VkPhysicalDevice physicalDevice, VkDevice device,
+                             VkQueue queue, VkCommandPool cmdPool,
+                             const VkAllocationCallbacks* pAllocator,
+                             const ktxVulkanFunctions* pFuncs)
 {
     ktxVulkanDeviceInfo* newvdi;
     newvdi = (ktxVulkanDeviceInfo*)malloc(sizeof(ktxVulkanDeviceInfo));
     if (newvdi != NULL) {
-        if (ktxVulkanDeviceInfo_ConstructEx(newvdi, instance, physicalDevice, device,
-                                          queue, cmdPool, pAllocator, pFuncs) != KTX_SUCCESS)
+        if (ktxVulkanDeviceInfo_ConstructEx(newvdi, instance, physicalDevice,
+                                            device, queue, cmdPool, pAllocator,
+                                            pFuncs) != KTX_SUCCESS)
         {
             free(newvdi);
             newvdi = 0;
@@ -146,8 +149,25 @@ ktxVulkanDeviceInfo_CreateEx(VkInstance instance, VkPhysicalDevice physicalDevic
  * device memory properties for ease of use when allocating device memory for
  * the images.
  *
+ * If @c VK_IMAGE_TILING_OPTIMAL will be passed to ktxTexture_VkUploadEx(), the
+ * family of the @a queue parameter must support transfers. This is true if
+ * any of @c VK_QUEUE_GRAPHICS_BIT, @c VK_QUEUE_COMPUTE_BIT or
+ * @c VK_QUEUE_TRANSFER_BIT is set in the @c queueFlags property of the queue's
+ * @c VkQueueFamilyProperties. If protected memory is being used, i.e
+ * @c queueFlags has the @c VK_QUEUE_PROTECTED_BIT set, then
+ * @c VK_IMAGE_TILING_OPTIMAL must be passed to ktxTexture_VkUploadEx().
+ *
+ * VkImages created in VkUploadEx() will have @c VK_SHARING_MODE_EXCLUSIVE set.
+ * Thus the resulting image will be usable only with queues of the same family
+ * as @a queue.
+ *
  * Pass a valid ktxVulkanDeviceInfo* to any Vulkan KTX image loading
  * function to provide it with the information.
+ *
+ * @returns KTX_SUCCESS on success, KTX_OUT_OF_MEMORY if a command buffer could
+ *          not be allocated.
+ *
+ * @sa ktxVulkanDeviceInfo_destruct()
  *
  * @param  This            pointer to the ktxVulkanDeviceInfo object to
  *                        initialize.
@@ -158,10 +178,6 @@ ktxVulkanDeviceInfo_CreateEx(VkInstance instance, VkPhysicalDevice physicalDevic
  * @param  pAllocator     pointer to the allocator to use for the image
  *                        memory. If NULL, the default allocator will be used.
  *
- * @returns KTX_SUCCESS on success, KTX_OUT_OF_MEMORY if a command buffer could
- *          not be allocated.
- *
- * @sa ktxVulkanDeviceInfo_destruct()
  */
 KTX_error_code
 ktxVulkanDeviceInfo_Construct(ktxVulkanDeviceInfo* This,
@@ -174,39 +190,16 @@ ktxVulkanDeviceInfo_Construct(ktxVulkanDeviceInfo* This,
 }
 
 /**
- * @memberof ktxVulkanDeviceInfo
- * @~English
- * @brief Construct a ktxVulkanDeviceInfo object.
+ * @copydoc ktxVulkanDeviceInfo_Construct
  *
- * Records the device information, allocates a command buffer that will be
- * used to transfer image data to the Vulkan device and retrieves the physical
- * device memory properties for ease of use when allocating device memory for
- * the images.
- *
- * Pass a valid ktxVulkanDeviceInfo* to any Vulkan KTX image loading
- * function to provide it with the information.
- *
- * @param  This           pointer to the ktxVulkanDeviceInfo object to
- *                        initialize.
  * @param  instance       handle of the Vulkan instance. If @c VK_NULL_HANDLE,
  *                        which is not recommended, the function will attempt
  *                        to initialize the instance-level functions via the
  *                        platform's standard dynamic library symbol loading
  *                        mechanisms.
- * @param  physicalDevice handle of the Vulkan physical device.
- * @param  device         handle of the Vulkan logical device.
- * @param  queue          handle of the Vulkan queue.
- * @param  cmdPool        handle of the Vulkan command pool.
- * @param  pAllocator     pointer to the allocator to use for the image
- *                        memory. If NULL, the default allocator will be used.
  * @param  pFunctions     pointer to the struct of functions to use for vulkan
  *                        operations. Can be NULL in which case the function
  *                        will retrieve the proc addresses itself.
- *
- * @returns KTX_SUCCESS on success, KTX_OUT_OF_MEMORY if a command buffer could
- *          not be allocated.
- *
- * @sa ktxVulkanDeviceInfo_destruct()
  */
 KTX_error_code
 ktxVulkanDeviceInfo_ConstructEx(ktxVulkanDeviceInfo* This,
@@ -344,7 +337,7 @@ do {                             \
     result = This->vkFuncs.vkAllocateCommandBuffers(device, &cmdBufInfo,
                                                     &This->cmdBuffer);
     if (result != VK_SUCCESS) {
-        return KTX_OUT_OF_MEMORY; // XXX Consider an equivalent to pGlError
+        return KTX_OUT_OF_MEMORY; // TODO: Consider an equivalent to pGlError
     }
     return KTX_SUCCESS;
 
@@ -739,6 +732,10 @@ linearTilingPadCallback(int miplevel, int face,
  * and information about the texture in the @c ktxVulkanTexture pointed at by
  * @p vkTexture.
  *
+ * The created VkImage will have @c VK_SHARING_MODE_EXCLUSIVE set thus the
+ * resulting image will be usable only with queues of the same family as
+ * the @c queue in the ktxVulkanDeviceInfo pointed to by @a vdi.
+ *
  * @p usageFlags and thus acceptable usage of the created image may be
  * augmented as follows:
  * - with @c VK_IMAGE_USAGE_TRANSFER_DST_BIT if @p tiling is
@@ -746,9 +743,9 @@ linearTilingPadCallback(int miplevel, int face,
  * - with <code>VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT</code>
  *   if @c generateMipmaps is set in the @c ktxTexture.
  *
- * Most Vulkan implementations support VK_IMAGE_TILING_LINEAR only for a very
- * limited number of formats and features. Generally VK_IMAGE_TILING_OPTIMAL is
- * preferred. The latter requires a staging buffer so will use more memory
+ * Most Vulkan implementations support @c VK_IMAGE_TILING_LINEAR only for a very
+ * limited number of formats and features. Generally @c VK_IMAGE_TILING_OPTIMAL
+ * is preferred. The latter requires a staging buffer so will use more memory
  * during loading.
  *
  * @param[in] This          pointer to the ktxTexture from which to upload.
@@ -776,11 +773,13 @@ linearTilingPadCallback(int miplevel, int face,
  * @exception KTX_INVALID_OPERATION Requested mipmap generation is not supported
  *                                  by the physical device for the combination
  *                                  of the ktxTexture's format and @p tiling.
- * @exception KTX_INVALID_OPERATION Number of mip levels or array layers exceeds the
- *                                maximums supported for the ktxTexture's format
- *                                and @p tiling.
- * @exception KTX_OUT_OF_MEMORY Sufficient memory could not be allocated
- *                              on either the CPU or the Vulkan device.
+ * @exception KTX_INVALID_OPERATION Number of mip levels or array layers exceeds
+ *                                  the maximums supported for the ktxTexture's
+ *                                  format and @p tiling.
+ * @exception KTX_OUT_OF_MEMORY Sufficient memory could not be allocated on
+ *                              either the CPU or the Vulkan device.
+ *
+ * @sa ktxVulkanDeviceInfo_construct()
  */
 KTX_error_code
 ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,

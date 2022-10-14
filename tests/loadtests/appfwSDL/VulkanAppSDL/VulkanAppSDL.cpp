@@ -778,7 +778,7 @@ VulkanAppSDL::createDevice()
     float queue_priorities[1] = {0.0};
     const vk::DeviceQueueCreateInfo queueInfo(
         {},
-        vkQueueFamilyIndex,
+        vkctx.swapchain.queueIndex,
         1,
         queue_priorities
     );
