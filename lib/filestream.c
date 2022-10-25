@@ -310,7 +310,7 @@ KTX_error_code ktxFileStream_getsize(ktxStream* str, ktx_size_t* size)
   // Need to flush so that fstat will return the current size.
   // Can ignore return value. The only error that can happen is to tell you
   // it was a NOP because the file is read only.
-#if (defined(_MSC_VER) && _MSC_VER < 1900) || defined(__MINGW32__) && !defined(_UCRT)
+#if (defined(_MSC_VER) && _MSC_VER < 1900) || defined(__MINGW64__) && !defined(_UCRT)
   // Bug in VS2013 msvcrt. fflush on FILE open for READ changes file offset
   // to 4096.
   if (str->data.file->_flag & _IOWRT)
