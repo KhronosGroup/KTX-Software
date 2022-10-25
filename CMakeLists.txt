@@ -356,6 +356,12 @@ macro(commom_lib_settings lib write)
                 lib/internalexport_mingw.def
                 $<${write}:lib/internalexport_write_mingw.def>
             )
+            # Need these flags if mingw happens to target the ucrt (new) rather 
+            # than the legacy msvcrt. Otherwise tests will fail to run because
+            # the necessary dlls will be missing. If we statically link 
+            # them instead it's fine. This does not cause any abberations if 
+            # the mingw toolchain targets msvcrt instead.
+            target_link_options(${lib} PUBLIC -static-libgcc -static-libstdc++)
         else()
             target_sources(
                 ${lib}
