@@ -1694,7 +1694,7 @@ KTX_API KTX_error_code KTX_APIENTRY ktxPrintInfoForMemory(const ktx_uint8_t* byt
 /**
  * @deprecated Will be dropped before V4 release.
  */
-#define ktxTexture_GetSize ktxTexture_getDatasize
+#define ktxTexture_GetSize ktxTexture_GetDatasize
 
 /**
 @~English
