@@ -342,28 +342,34 @@ struct {
 
 struct {
     issue IncorrectByteLength {
-        ERROR | 0x0070, "Level %d byteLength or uncompressedByteLength does not match expected value."
+        ERROR | 0x0070, "Level %d byteLength %#x does not match expected value %#x."
     };
     issue ByteOffsetTooSmall {
-        ERROR | 0x0071, "Level %d byteOffset is smaller than expected value."
+        ERROR | 0x0071, "Level %d byteOffset %#x is smaller than expected value %#x."
     };
     issue IncorrectByteOffset {
-        ERROR | 0x0072, "Level %d byteOffset does not match expected value."
+        ERROR | 0x0072, "Level %d byteOffset %#x does not match expected value %#x."
+    };
+    issue IncorrectUncompressedByteLength {
+        ERROR | 0x0073, "Level %d uncompressedByteLength %#x does not match expected value %#x."
+    };
+    issue UnequalByteLengths {
+        ERROR | 0x0074, "Level %d uncompressedByteLength does not match byteLength."
     };
     issue UnalignedOffset {
-        ERROR | 0x0073, "Level %d byteOffset is not aligned to required %d byte alignment."
+        ERROR | 0x0075, "Level %d byteOffset is not aligned to required %d byte alignment."
     };
     issue ExtraPadding {
-        ERROR | 0x0074, "Level %d has disallowed extra padding."
+        ERROR | 0x0076, "Level %d has disallowed extra padding."
     };
     issue ZeroOffsetOrLength {
-        ERROR | 0x0075, "Level %d's byteOffset or byteLength is 0."
+        ERROR | 0x0077, "Level %d's byteOffset or byteLength is 0."
     };
     issue ZeroUncompressedLength {
-        ERROR | 0x0076, "Level %d's uncompressedByteLength is 0."
+        ERROR | 0x0078, "Level %d's uncompressedByteLength is 0."
     };
     issue IncorrectLevelOrder {
-        ERROR | 0x0077, "Larger mip levels are before smaller."
+        ERROR | 0x0079, "Larger mip levels are before smaller."
     };
 } LevelIndex;
 
@@ -1415,24 +1421,28 @@ ktxValidator::validateLevelIndex(validationContext& ctx)
     for (int32_t level = ctx.levelCount-1; level >= 0; level--) {
         if (ctx.header.vkFormat != VK_FORMAT_UNDEFINED
             && ctx.header.supercompressionScheme == KTX_SS_NONE) {
-            if (levelIndex[level].uncompressedByteLength !=
-                ctx.calcLevelSize(level))
-                addIssue(logger::eError, LevelIndex.IncorrectByteLength, level);
+            ktx_size_t actualUBL = levelIndex[level].uncompressedByteLength;
+            ktx_size_t expectedUBL = ctx.calcLevelSize(level);
+            if (actualUBL != expectedUBL)
+                addIssue(logger::eError,
+                         LevelIndex.IncorrectUncompressedByteLength,
+                         level, actualUBL, expectedUBL);
 
             if (levelIndex[level].byteLength !=
                 levelIndex[level].uncompressedByteLength)
-                addIssue(logger::eError, LevelIndex.IncorrectByteLength, level);
+                addIssue(logger::eError, LevelIndex.UnequalByteLengths, level);
 
             ktx_size_t expectedByteOffset = ctx.calcLevelOffset(level);
-            if (levelIndex[level].byteOffset != expectedByteOffset) {
-                if (levelIndex[level].byteOffset % requiredLevelAlignment != 0)
+            ktx_size_t actualByteOffset = levelIndex[level].byteOffset;
+            if (actualByteOffset != expectedByteOffset) {
+                if (actualByteOffset % requiredLevelAlignment != 0)
                     addIssue(logger::eError, LevelIndex.UnalignedOffset,
                              level, requiredLevelAlignment);
                 if (levelIndex[level].byteOffset > expectedByteOffset)
                     addIssue(logger::eError, LevelIndex.ExtraPadding, level);
                 else
                     addIssue(logger::eError, LevelIndex.ByteOffsetTooSmall,
-                             level);
+                             level, actualByteOffset, expectedByteOffset);
             }
         } else {
             // Can only do minimal validation as we have no idea what the
@@ -1448,7 +1458,7 @@ ktxValidator::validateLevelIndex(validationContext& ctx)
             if (levelIndex[level].byteOffset != expectedOffset) {
                 addIssue(logger::eError,
                          LevelIndex.IncorrectByteOffset,
-                         level);
+                         level, levelIndex[level].byteOffset, expectedOffset);
             }
             if (ctx.header.supercompressionScheme == KTX_SS_NONE) {
                 if (levelIndex[level].byteLength < lastByteLength)
@@ -1464,6 +1474,15 @@ ktxValidator::validateLevelIndex(validationContext& ctx)
             }
             expectedOffset += padn(requiredLevelAlignment,
                                    levelIndex[level].byteLength);
+            if (ctx.header.vkFormat != VK_FORMAT_UNDEFINED) {
+                // We can validate the uncompressedByteLength.
+                ktx_size_t actualUBL = levelIndex[level].uncompressedByteLength;
+                ktx_size_t expectedUBL = ctx.calcLevelSize(level);
+                if (actualUBL != expectedUBL)
+                    addIssue(logger::eError,
+                             LevelIndex.IncorrectUncompressedByteLength,
+                             level, actualUBL, expectedUBL);
+            }
         }
         ctx.dataSizeFromLevelIndex += padn(ctx.requiredLevelAlignment(),
                                            levelIndex[level].byteLength);
@@ -1678,13 +1697,17 @@ ktxValidator::validateDfd(validationContext& ctx)
                 addIssue(logger::eError, DFD.SampleCountMismatch, aVal, eVal);
         }
 
-        aVal = KHR_DFDVAL(bdb, BYTESPLANE0);
-        if (aVal == 0) {
-            addIssue(logger::eError, DFD.BytesPlane0Zero, vkFormatStr.c_str());
-        } else {
+        if (ctx.header.supercompressionScheme == KTX_SS_NONE) {
+            // bP0 for supercompressed has already been checked.
+            aVal = KHR_DFDVAL(bdb, BYTESPLANE0);
             eVal = KHR_DFDVAL(expBdb, BYTESPLANE0);
-            if (aVal != eVal)
-                addIssue(logger::eError, DFD.BytesPlane0Mismatch, aVal, eVal);
+            if (aVal != eVal) {
+                if (aVal == 0)
+                    addIssue(logger::eError, DFD.BytesPlane0Zero,
+                             vkFormatStr.c_str());
+                else
+                    addIssue(logger::eError, DFD.BytesPlane0Mismatch, aVal, eVal);
+            }
         }
 
         if (ctx.formatInfo.isBlockCompressed) {
