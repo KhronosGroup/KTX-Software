@@ -2366,9 +2366,11 @@ ktxTexture2_inflateZstdInt(ktxTexture2* This, ktx_uint8_t* pDeflatedData,
         nindex[level].byteOffset = levelOffset;
         nindex[level].uncompressedByteLength = nindex[level].byteLength =
                                                             levelByteLength;
-        inflatedByteLength += levelByteLength;
-        levelOffset += _KTX_PADN(uncompressedLevelAlignment, levelByteLength);
-        inflatedDataCapacity -= levelByteLength;
+        ktx_size_t paddedLevelByteLength
+              = _KTX_PADN(uncompressedLevelAlignment, levelByteLength);
+        inflatedByteLength += paddedLevelByteLength;
+        levelOffset += paddedLevelByteLength;
+        inflatedDataCapacity -= paddedLevelByteLength;
     }
     ZSTD_freeDCtx(dctx);
 
