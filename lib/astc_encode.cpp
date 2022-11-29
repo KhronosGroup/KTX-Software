@@ -61,6 +61,8 @@ pthread_join(pthread_t thread, void** value) {
     return 0;
 }
 
+#elif defined(_WIN32) && !defined(WIN32_HAS_PTHREADS)
+#include <pthread.h>
 #endif
 
 static astcenc_image*
