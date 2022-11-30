@@ -39,6 +39,10 @@ function genversion() {
         # No containing tag. Get version number a previous tag.
         VN=$(git describe --match "v[0-9]*" $(git rev-list -1 HEAD $1) 2>/dev/null)
       fi
+      if [ -z "$VN" ]; then
+        # No tags at all, best we can do is tag the commit.
+        VN="$DEF_VER-$(git rev-parse --short HEAD 2>/dev/null)"
+      fi
     fi
     case "$VN" in
     *$LF*) (exit 1) ;;
