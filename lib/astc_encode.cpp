@@ -45,9 +45,9 @@ typedef HANDLE pthread_t;
 typedef int pthread_attr_t;
 
 /* Public function, see header file for detailed documentation */
-static int 
-pthread_create(pthread_t *thread, const pthread_attr_t *attribs, void *(*threadfunc)(void *), void *thread_arg)
-{
+static int
+pthread_create(pthread_t* thread, const pthread_attr_t* attribs,
+               void* (*threadfunc)(void*), void* thread_arg) {
     (void)attribs;
     LPTHREAD_START_ROUTINE func = (LPTHREAD_START_ROUTINE)threadfunc;
     *thread = CreateThread(nullptr, 0, func, thread_arg, 0, nullptr);
@@ -55,9 +55,8 @@ pthread_create(pthread_t *thread, const pthread_attr_t *attribs, void *(*threadf
 }
 
 /* Public function, see header file for detailed documentation */
-static int 
-pthread_join(pthread_t thread, void **value)
-{
+static int
+pthread_join(pthread_t thread, void** value) {
     (void)value;
     WaitForSingleObject(thread, INFINITE);
     return 0;
