@@ -34,9 +34,10 @@
 
 #include "astc-encoder/Source/astcenc.h"
 
+#if !defined(_WIN32) || defined(WIN32_HAS_PTHREADS)
+#include <pthread.h>
+#else
 // Provide pthreads support on windows
-#if defined(_WIN32) && !defined(WIN32_HAS_PTHREADS)
-
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
@@ -44,9 +45,9 @@ typedef HANDLE pthread_t;
 typedef int pthread_attr_t;
 
 /* Public function, see header file for detailed documentation */
-static int
-pthread_create(pthread_t* thread, const pthread_attr_t* attribs,
-               void* (*threadfunc)(void*), void* thread_arg) {
+static int 
+pthread_create(pthread_t *thread, const pthread_attr_t *attribs, void *(*threadfunc)(void *), void *thread_arg)
+{
     (void)attribs;
     LPTHREAD_START_ROUTINE func = (LPTHREAD_START_ROUTINE)threadfunc;
     *thread = CreateThread(nullptr, 0, func, thread_arg, 0, nullptr);
@@ -54,15 +55,13 @@ pthread_create(pthread_t* thread, const pthread_attr_t* attribs,
 }
 
 /* Public function, see header file for detailed documentation */
-static int
-pthread_join(pthread_t thread, void** value) {
+static int 
+pthread_join(pthread_t thread, void **value)
+{
     (void)value;
     WaitForSingleObject(thread, INFINITE);
     return 0;
 }
-
-#else defined(_WIN32) && defined(WIN32_HAS_PTHREADS)
-#include <pthread.h>
 #endif
 
 static astcenc_image*
