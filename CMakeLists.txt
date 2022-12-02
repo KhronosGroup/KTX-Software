@@ -314,7 +314,6 @@ macro(commom_lib_settings lib write)
     )
 
     if( LIB_TYPE STREQUAL STATIC )
-        # KHRONOS_STATIC overrides the value of KTX_API set below.
         target_compile_definitions(${lib} PUBLIC KHRONOS_STATIC)
     endif()
 
@@ -340,9 +339,8 @@ macro(commom_lib_settings lib write)
         target_compile_definitions(
             ${lib}
         PRIVATE
-            # KHRONOS_STATIC defined earlier for the static library overrides
-            # so no need for a generator expression to conditionally set this.
-            KTX_API=__declspec\(dllexport\)
+            # Only set dllexport when building a shared library.
+            $<$<STREQUAL:${LIB_TYPE},SHARED>:KTX_API=__declspec\(dllexport\)>
         PUBLIC # only for basisu_c_binding.
             BASISU_NO_ITERATOR_DEBUG_LEVEL
         )
@@ -405,7 +403,7 @@ macro(commom_lib_settings lib write)
         if(MINGW)
             # Check if the Threads package is provided; if using Mingw it MIGHT be
             find_package(Threads)
-            if(Threads_FOUND)
+            if(Threads_FOUND AND CMAKE_USE_PTHREADS_INIT)
                 target_compile_definitions(ktx PRIVATE WIN32_HAS_PTHREADS)
                 target_link_libraries(ktx PRIVATE Threads::Threads)
             endif()
