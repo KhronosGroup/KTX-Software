@@ -137,9 +137,9 @@ License: BSD-3-Clause
 
 Files: other_include/GL/glew.h other_include/GL/glxew.h other_include/GL/wglew.h other_lib/win/Release-x65/glew32.*
 Copyright: 2008-2015, Nigel Stewart <nigels[]users sourceforge net>
-Copyright: 2002-2008, Milan Ikits <milan ikits[]ieee org>
-Copyright: 2002-2008, Marcelo E. Magallon <mmagallo[]debian org>
-Copyright: 2002, Lev Povalahev
+           2002-2008, Milan Ikits <milan ikits[]ieee org>
+           2002-2008, Marcelo E. Magallon <mmagallo[]debian org>
+           2002, Lev Povalahev
 License: BSD-3-Clause
 
 Files: other_include/EGL/*.h other_include/GL*/*.h other_include/KHR/khrplatform.h
