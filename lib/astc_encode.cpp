@@ -34,9 +34,10 @@
 
 #include "astc-encoder/Source/astcenc.h"
 
+#if !defined(_WIN32) || defined(WIN32_HAS_PTHREADS)
+#include <pthread.h>
+#else
 // Provide pthreads support on windows
-#if defined(_WIN32) && !defined(WIN32_HAS_PTHREADS)
-
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
@@ -60,7 +61,6 @@ pthread_join(pthread_t thread, void** value) {
     WaitForSingleObject(thread, INFINITE);
     return 0;
 }
-
 #endif
 
 static astcenc_image*
