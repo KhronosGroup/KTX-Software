@@ -41,6 +41,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
+#ifndef WIN_PTHREADS_H
 typedef HANDLE pthread_t;
 typedef int pthread_attr_t;
 
@@ -61,6 +62,7 @@ pthread_join(pthread_t thread, void** value) {
     WaitForSingleObject(thread, INFINITE);
     return 0;
 }
+#endif
 #endif
 
 static astcenc_image*
