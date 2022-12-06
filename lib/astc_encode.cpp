@@ -34,7 +34,7 @@
 
 #include "astc-encoder/Source/astcenc.h"
 
-#if !defined(_WIN32) || defined(WIN32_HAS_PTHREADS)
+#if !defined(_WIN32)
 #include <pthread.h>
 #else
 // Provide pthreads support on windows
