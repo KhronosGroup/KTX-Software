@@ -400,15 +400,6 @@ macro(commom_lib_settings lib write)
         # change it.
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
         
-        if(MINGW)
-            # Check if the Threads package is provided; if using Mingw it MIGHT be
-            find_package(Threads)
-            if(Threads_FOUND AND CMAKE_USE_PTHREADS_INIT)
-                target_compile_definitions(ktx PRIVATE WIN32_HAS_PTHREADS)
-                target_link_libraries(ktx PRIVATE Threads::Threads)
-            endif()
-        endif()
-
     elseif(APPLE)
         if(KTX_EMBED_BITCODE)
             target_compile_options(${lib} PRIVATE "-fembed-bitcode")
