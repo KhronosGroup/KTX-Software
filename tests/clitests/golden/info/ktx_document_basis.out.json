@@ -1,0 +1,218 @@
+{
+    "$id": "ktx-schema-url-1.0",
+    "header": {
+        "identifier": "«KTX 20»\r\n\x1A\n",
+        "vkFormat": "VK_FORMAT_UNDEFINED",
+        "typeSize": 1,
+        "pixelWidth": 1024,
+        "pixelHeight": 1024,
+        "pixelDepth": 0,
+        "layerCount": 0,
+        "faceCount": 1,
+        "levelCount": 11,
+        "supercompressionScheme": "KTX_SS_BASIS_LZ"
+    },
+    "index": {
+        "dataFormatDescriptor": {
+            "byteOffset": 344,
+            "byteLength": 60
+        },
+        "keyValueData": {
+            "byteOffset": 404,
+            "byteLength": 116
+        },
+        "supercompressionGlobalData": {
+            "byteOffset": 520,
+            "byteLength": 5206
+        },
+        "levels": [
+            {
+                "byteOffset": 16093,
+                "byteLength": 12711,
+                "uncompressedByteLength": 0
+            },
+            {
+                "byteOffset": 10233,
+                "byteLength": 5860,
+                "uncompressedByteLength": 0
+            },
+            {
+                "byteOffset": 7638,
+                "byteLength": 2595,
+                "uncompressedByteLength": 0
+            },
+            {
+                "byteOffset": 6561,
+                "byteLength": 1077,
+                "uncompressedByteLength": 0
+            },
+            {
+                "byteOffset": 6075,
+                "byteLength": 486,
+                "uncompressedByteLength": 0
+            },
+            {
+                "byteOffset": 5852,
+                "byteLength": 223,
+                "uncompressedByteLength": 0
+            },
+            {
+                "byteOffset": 5771,
+                "byteLength": 81,
+                "uncompressedByteLength": 0
+            },
+            {
+                "byteOffset": 5749,
+                "byteLength": 22,
+                "uncompressedByteLength": 0
+            },
+            {
+                "byteOffset": 5741,
+                "byteLength": 8,
+                "uncompressedByteLength": 0
+            },
+            {
+                "byteOffset": 5733,
+                "byteLength": 8,
+                "uncompressedByteLength": 0
+            },
+            {
+                "byteOffset": 5726,
+                "byteLength": 7,
+                "uncompressedByteLength": 0
+            }
+        ]
+    },
+    "dataFormatDescriptor": {
+        "totalSize": 60,
+        "blocks": [
+            {
+                "descriptorType": "KHR_DF_KHR_DESCRIPTORTYPE_BASICFORMAT",
+                "vendorId": "KHR_DF_VENDORID_KHRONOS",
+                "descriptorBlockSize": 56,
+                "versionNumber": "KHR_DF_VERSIONNUMBER_1_3",
+                "flags": [
+                    "KHR_DF_FLAG_ALPHA_STRAIGHT"
+                ],
+                "transferFunction": "KHR_DF_TRANSFER_SRGB",
+                "colorPrimaries": "KHR_DF_PRIMARIES_BT709",
+                "colorModel": "KHR_DF_MODEL_ETC1S",
+                "texelBlockDimension": [4, 4, 1, 1],
+                "bytesPlane": [0, 0, 0, 0, 0, 0, 0, 0],
+                "samples": [
+                    {
+                        "qualifiers": [],
+                        "channelType": "KHR_DF_CHANNEL_ETC1S_RGB",
+                        "bitLength": 63,
+                        "bitOffset": 0,
+                        "samplePosition": [0, 0, 0, 0],
+                        "sampleLower": 0,
+                        "sampleUpper": 4294967295
+                    },
+                    {
+                        "qualifiers": [],
+                        "channelType": "KHR_DF_CHANNEL_ETC1S_AAA",
+                        "bitLength": 63,
+                        "bitOffset": 64,
+                        "samplePosition": [0, 0, 0, 0],
+                        "sampleLower": 0,
+                        "sampleUpper": 4294967295
+                    }
+                ]
+            }
+        ]
+    },
+    "keyValueData": {
+        "KTXorientation": "rd",
+        "KTXwriter": "toktx v4.0.__default__ / libktx v4.0.__default__",
+        "KTXwriterScParams": "-bcmp"
+    },
+    "supercompressionGlobalData": {
+        "type": "KTX_SS_BASIS_LZ",
+        "endpointCount": 333,
+        "selectorCount": 1977,
+        "endpointsByteLength": 731,
+        "selectorsByteLength": 3470,
+        "tablesByteLength": 765,
+        "extendedByteLength": 0,
+        "images": [
+            {
+                "imageFlags": [],
+                "rgbSliceByteLength": 9151,
+                "rgbSliceByteOffset": 0,
+                "alphaSliceByteLength": 3560,
+                "alphaSliceByteOffset": 9151
+            },
+            {
+                "imageFlags": [],
+                "rgbSliceByteLength": 4344,
+                "rgbSliceByteOffset": 0,
+                "alphaSliceByteLength": 1516,
+                "alphaSliceByteOffset": 4344
+            },
+            {
+                "imageFlags": [],
+                "rgbSliceByteLength": 1849,
+                "rgbSliceByteOffset": 0,
+                "alphaSliceByteLength": 746,
+                "alphaSliceByteOffset": 1849
+            },
+            {
+                "imageFlags": [],
+                "rgbSliceByteLength": 723,
+                "rgbSliceByteOffset": 0,
+                "alphaSliceByteLength": 354,
+                "alphaSliceByteOffset": 723
+            },
+            {
+                "imageFlags": [],
+                "rgbSliceByteLength": 309,
+                "rgbSliceByteOffset": 0,
+                "alphaSliceByteLength": 177,
+                "alphaSliceByteOffset": 309
+            },
+            {
+                "imageFlags": [],
+                "rgbSliceByteLength": 137,
+                "rgbSliceByteOffset": 0,
+                "alphaSliceByteLength": 86,
+                "alphaSliceByteOffset": 137
+            },
+            {
+                "imageFlags": [],
+                "rgbSliceByteLength": 43,
+                "rgbSliceByteOffset": 0,
+                "alphaSliceByteLength": 38,
+                "alphaSliceByteOffset": 43
+            },
+            {
+                "imageFlags": [],
+                "rgbSliceByteLength": 11,
+                "rgbSliceByteOffset": 0,
+                "alphaSliceByteLength": 11,
+                "alphaSliceByteOffset": 11
+            },
+            {
+                "imageFlags": [],
+                "rgbSliceByteLength": 4,
+                "rgbSliceByteOffset": 0,
+                "alphaSliceByteLength": 4,
+                "alphaSliceByteOffset": 4
+            },
+            {
+                "imageFlags": [],
+                "rgbSliceByteLength": 4,
+                "rgbSliceByteOffset": 0,
+                "alphaSliceByteLength": 4,
+                "alphaSliceByteOffset": 4
+            },
+            {
+                "imageFlags": [],
+                "rgbSliceByteLength": 4,
+                "rgbSliceByteOffset": 0,
+                "alphaSliceByteLength": 3,
+                "alphaSliceByteOffset": 4
+            }
+        ]
+    }
+}

@@ -21,6 +21,8 @@ function(set_tool_properties tool_target)
 endfunction()
 
 
+add_subdirectory(ktx)
+
 add_subdirectory(ktx2check)
 add_subdirectory(ktx2ktx2)
 add_subdirectory(ktxinfo)
@@ -28,6 +30,8 @@ add_subdirectory(ktxsc)
 add_subdirectory(toktx)
 
 install(TARGETS
+    ktxtools
+
     ktx2check
     ktx2ktx2
     ktxinfo
