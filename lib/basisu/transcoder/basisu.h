@@ -331,25 +331,31 @@ namespace basisu
 				{
 					uint32_t l = read_le_dword(m_bytes);
 					uint32_t h = m_bytes[4];
-					return static_cast<uint64_t>(l) | (static_cast<uint64_t>(h) << 32U);
+                    // I'm pretty sure compilers just return the low 32-bits
+                    // when casting a 64-bit value to 32-bit so simply
+                    // returning l should work. But in case I'm missing
+                    // something useful that is being done, I'm just adding
+                    // casts to avoid the compiler warnings. See
+                    // https://github.com/BinomialLLC/basis_universal/issues/306.
+					return static_cast<uint32_t>(static_cast<uint64_t>(l) | (static_cast<uint64_t>(h) << 32U));
 				}
 				case 6:
 				{
 					uint32_t l = read_le_dword(m_bytes);
 					uint32_t h = (m_bytes[5] << 8U) | m_bytes[4];
-					return static_cast<uint64_t>(l) | (static_cast<uint64_t>(h) << 32U);
+					return static_cast<uint32_t>(static_cast<uint64_t>(l) | (static_cast<uint64_t>(h) << 32U));
 				}
 				case 7:
 				{
 					uint32_t l = read_le_dword(m_bytes);
 					uint32_t h = (m_bytes[6] << 16U) | (m_bytes[5] << 8U) | m_bytes[4];
-					return static_cast<uint64_t>(l) | (static_cast<uint64_t>(h) << 32U);
+					return static_cast<uint32_t>(static_cast<uint64_t>(l) | (static_cast<uint64_t>(h) << 32U));
 				}
 				case 8:  
 				{
 					uint32_t l = read_le_dword(m_bytes);
 					uint32_t h = read_le_dword(m_bytes + 4);
-					return static_cast<uint64_t>(l) | (static_cast<uint64_t>(h) << 32U);
+					return static_cast<uint32_t>(static_cast<uint64_t>(l) | (static_cast<uint64_t>(h) << 32U));
 				}
 				default: 
 				{
