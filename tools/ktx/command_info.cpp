@@ -6,10 +6,15 @@
 #include "command.h"
 
 #include <ktx.h>
-
+#include <fmt/os.h> // For std::error_code
+#include <fmt/printf.h>
 #include <iostream>
+#include <sstream>
+#include <utility>
 
 #include "stdafx.h"
+#include "utility.h"
+#include "validate.h"
 
 
 // -------------------------------------------------------------------------------------------------
@@ -40,8 +45,11 @@ Prints information about a KTX2 file.
             @b mini-json - Minified JSON (Every optional formatting is skipped).
             The default format is @b text.
         </dd>
+        <dt>-h, --help</dt>
+        <dd>Print the usage message and exit.</dd>
+        <dt>-v, --version</dt>
+        <dd>Print the version number of this program and exit.</dd>
     </dl>
-    @snippet{doc} ktx/command.h command options
 
 @section ktxtools_info_exitstatus EXIT STATUS
     @b ktx @b info exits
@@ -74,8 +82,8 @@ class CommandInfo : public Command {
     Options options;
 
 public:
-    // TODO KTX Tools P5: Support --version
-    // TODO KTX Tools P5: Support --help with proper usage
+    // TODO Tools P5: Support --version
+    // TODO Tools P5: Support --help with proper usage
     void initializeOptions();
     virtual bool processOption(argparser& parser, int opt) override;
     void processPositional(const std::vector<_tstring>& infiles, const _tstring& outfile);
@@ -107,7 +115,7 @@ bool CommandInfo::processOption(argparser& parser, int opt) {
         } else if (parser.optarg == "mini-json") {
             options.format = Options::OutputFormat::json_mini;
         } else {
-            // TODO KTX Tools P5: Print usage, Failure: unsupported format
+            // TODO Tools P5: Print usage, Failure: unsupported format
             std::cerr << "Print usage, Failure: unsupported format" << std::endl;
             return false;
         }
@@ -121,9 +129,9 @@ bool CommandInfo::processOption(argparser& parser, int opt) {
 
 void CommandInfo::processPositional(const std::vector<_tstring>& infiles, const _tstring& outfile) {
     if (infiles.size() > 1) {
-        // TODO KTX Tools P5: Print usage, Failure: infiles.size() > 1
+        // TODO Tools P5: Print usage, Failure: infiles.size() > 1
         std::cerr << "Print usage, Failure: infiles.size() > 1" << std::endl;
-        // TODO KTX Tools P1: Instead of std::exit handle argument parsing failures and stop execution
+        // TODO Tools P1: Instead of std::exit handle argument parsing failures and stop execution
         std::exit(1);
         // return false;
     }
@@ -141,18 +149,11 @@ int CommandInfo::main(int argc, _TCHAR* argv[]) {
 }
 
 int CommandInfo::printInfo(const _tstring& infile, Options::OutputFormat format) {
-    FILE* inf;
+    FileGuard file(infile.c_str(), "rb");
 
-    // TODO KTX Tools P5: fclose?
-#ifdef _WIN32
-    _tfopen_s(&inf, infile.c_str(), "rb");
-#else
-    inf = _tfopen(infile.c_str(), "rb");
-#endif
-
-    if (!inf) {
-        // TODO KTX Tools P5: Is strerror depricated?
-        std::cerr << processName << ": Could not open input file \"" << infile << "\". " << strerror(errno) << std::endl;
+    if (!file) {
+        const auto ec = std::make_error_code(static_cast<std::errc>(errno));
+        fmt::print(stderr, "{}: Could not open input file \"{}\". {}: {}\n", processName, infile, ec, ec.message());
         return 2;
     }
 
@@ -160,15 +161,15 @@ int CommandInfo::printInfo(const _tstring& infile, Options::OutputFormat format)
 
     switch (format) {
     case Options::OutputFormat::text:
-        result = printInfoText(inf);
+        result = printInfoText(file);
         break;
 
     case Options::OutputFormat::json:
-        result = printInfoJSON(inf, false);
+        result = printInfoJSON(file, false);
         break;
 
     case Options::OutputFormat::json_mini:
-        result = printInfoJSON(inf, true);
+        result = printInfoJSON(file, true);
         break;
 
     default:
@@ -177,15 +178,15 @@ int CommandInfo::printInfo(const _tstring& infile, Options::OutputFormat format)
     }
 
     if (result ==  KTX_FILE_UNEXPECTED_EOF) {
-        std::cerr << processName << ": Unexpected end of file reading \"" << infile << "\"." << std::endl;
+        fmt::print(stderr, "{}: Unexpected end of file reading \"{}\".\n", processName, infile);
         return 2;
 
     } else if (result == KTX_UNKNOWN_FILE_FORMAT) {
-        std::cerr << processName << ": " << infile << " is not a KTX2 file." << std::endl;
+        fmt::print(stderr, "{}: \"{}\" is not a KTX2 file.\n", processName, infile);
         return 2;
 
     } else if (result != KTX_SUCCESS) {
-        std::cerr << processName << ": " << infile << " failed to process KTX2 file: ERROR_CODE " << result << std::endl;
+        fmt::print(stderr, "{}: {} failed to process KTX2 file: ERROR_CODE {}\n", processName, infile, static_cast<int>(result));
         return 2;
     }
 
@@ -193,24 +194,74 @@ int CommandInfo::printInfo(const _tstring& infile, Options::OutputFormat format)
 }
 
 KTX_error_code CommandInfo::printInfoText(FILE* inf) {
+    std::ostringstream messagesOS;
+    const auto validationResult = validateStream(inf, false, [&](const ValidationReport& issue) {
+        fmt::print(messagesOS, "{}-{:04}: {}\n", toString(issue.type), issue.id, issue.message);
+        fmt::print(messagesOS, "    {}\n", issue.details);
+    });
+
+    fmt::print("Validation {}\n", validationResult == 0 ? "successful" : "failed");
+    const auto validationMessages = std::move(messagesOS).str();
+    if (!validationMessages.empty()) {
+        fmt::print("\n");
+        fmt::print("{}", validationMessages);
+    }
+    fmt::print("\n");
+
+    const int fileResult = fseek(inf, 0, SEEK_SET);
+    if (fileResult != 0) {
+        const auto ec = std::make_error_code(static_cast<std::errc>(errno));
+        fmt::print(stderr, "{}: Could not rewind the input file. {}: {}\n", processName, ec, ec.message());
+    }
+
     return ktxPrintKTX2InfoTextForStdioStream(inf);
 }
 
 KTX_error_code CommandInfo::printInfoJSON(FILE* inf, bool minified) {
+    const auto base_indent = minified ? 0 : +0;
+    const auto indent_width = minified ? 0 : 4;
     const char* space = minified ? "" : " ";
     const char* nl = minified ? "" : "\n";
 
-    std::cout << "{" << nl;
-    // TODO KTX Tools P5: ktx-schema-url-1.0 will has to be replaced with the actual URL
-    std::cout << (minified ? "" : "    ") << "\"$id\":" << space << "\"ktx-schema-url-1.0\"," << nl;
+    std::ostringstream messagesOS;
+    PrintIndent pi{messagesOS, base_indent, indent_width};
 
-    // TODO KTX Tools P4: Call validate JSON print and include "valid" and "messages" in the JSON output
-    // result = validateAndPrintJSON(inf, 1, 4, minified);
-    // std::cout << "," << nl;
-    const auto ec = ktxPrintKTX2InfoJSONForStdioStream(inf, 1, 4, minified);
-    std::cout << "}" << nl;
+    bool first = true;
+    const auto validationResult = validateStream(inf, false, [&](const ValidationReport& issue) {
+        if (!std::exchange(first, false)) {
+            pi(2, "}},{}", nl);
+        }
+        pi(2, "{{{}", nl);
+        pi(3, "\"id\":{}{},{}", space, issue.id, nl);
+        pi(3, "\"type\":{}\"{}\",{}", space, toString(issue.type), nl);
+        pi(3, "\"message\":{}\"{}\",{}", space, escape_json_copy(issue.message), nl);
+        pi(3, "\"details\":{}\"{}\"{}", space, escape_json_copy(issue.details), nl);
+    });
 
-    return ec;
+    PrintIndent out{std::cout, base_indent, indent_width};
+    out(0, "{{{}", nl);
+    out(1, "\"$schema\":{}\"https://schema.khronos.org/ktx/info_v0.json\",{}", space, nl);
+    out(1, "\"valid\":{}{},{}", space, validationResult == 0, nl);
+    if (!first) {
+        out(1, "\"messages\":{}[{}", space, nl);
+        fmt::print("{}", std::move(messagesOS).str());
+        out(2, "}}{}", nl);
+        out(1, "],{}", nl);
+    } else {
+        out(1, "\"messages\":{}[],{}", space, nl);
+    }
+
+    const int fileResult = fseek(inf, 0, SEEK_SET);
+    if (fileResult != 0) {
+        const auto ec = std::make_error_code(static_cast<std::errc>(errno));
+        fmt::print(stderr, "{}: Could not rewind the input file. {}: {}\n", processName, ec, ec.message());
+    }
+
+    const auto ktx_ec = ktxPrintKTX2InfoJSONForStdioStream(inf, base_indent + 1, indent_width, minified);
+
+    out(0, "}}{}", nl);
+
+    return ktx_ec;
 }
 
 } // namespace ktx

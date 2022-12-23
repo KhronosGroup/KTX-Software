@@ -119,6 +119,7 @@ ktxSupercompressionSchemeString(ktxSupercmpScheme scheme)
       case KTX_SS_NONE: return "KTX_SS_NONE";
       case KTX_SS_BASIS_LZ: return "KTX_SS_BASIS_LZ";
       case KTX_SS_ZSTD: return "KTX_SS_ZSTD";
+      case KTX_SS_ZLIB: return "KTX_SS_ZLIB";
       default:
         if (scheme < KTX_SS_BEGIN_VENDOR_RANGE
             || scheme >= KTX_SS_BEGIN_RESERVED)

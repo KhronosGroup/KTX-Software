@@ -39,28 +39,33 @@ Unified CLI frontend for the KTX-Software library.
         </dd>
         <dt>transcode</dt>
         <dd>
-            @warning TODO KTX Tools P5: This section is incomplete
+            @warning TODO Tools P5: This section is incomplete
         </dd>
         <dt>encode</dt>
         <dd>
-            @warning TODO KTX Tools P5: This section is incomplete
+            @warning TODO Tools P5: This section is incomplete
         </dd>
         <dt>extract</dt>
         <dd>
-            @warning TODO KTX Tools P5: This section is incomplete
+            @warning TODO Tools P5: This section is incomplete
         </dd>
         <dt>create</dt>
         <dd>
-            @warning TODO KTX Tools P5: This section is incomplete
+            @warning TODO Tools P5: This section is incomplete
         </dd>
         <dt>help</dt>
         <dd>
-            @warning TODO KTX Tools P5: This section is incomplete
+            @warning TODO Tools P5: This section is incomplete
         </dd>
     </dl>
 
     The following options are also available without a command:
-    @snippet{doc} ktx/command.h command options
+    <dl>
+        <dt>-h, --help</dt>
+        <dd>Print the usage message and exit.</dd>
+        <dt>-v, --version</dt>
+        <dd>Print the version number of this program and exit.</dd>
+    </dl>
 
 @section ktxtools_exitstatus EXIT STATUS
     @b ktx @b info exits
@@ -87,8 +92,8 @@ public:
     virtual bool processOption(argparser& parser, int opt) override {
         (void) parser;
         (void) opt;
-        // TODO KTX Tools P5: Parse --version
-        // TODO KTX Tools P5: Parse --help
+        // TODO Tools P5: Parse --version
+        // TODO Tools P5: Parse --help
         return true;
     }
     virtual int main(int argc, _TCHAR* argv[]) override;
@@ -98,12 +103,12 @@ int Tools::main(int argc, _TCHAR* argv[]) {
     (void) argv;
 
     if (argc < 2) {
-        // TODO KTX Tools P5: Print usage, Failure: missing sub command
+        // TODO Tools P5: Print usage, Failure: missing sub command
         std::cerr << "Print usage, Failure: missing sub command" << std::endl;
         return EXIT_FAILURE;
     }
 
-    // TODO KTX Tools P5: Print usage, Failure: incorrect sub command {commandName}
+    // TODO Tools P5: Print usage, Failure: incorrect sub command {commandName}
     std::cerr << "Print usage, Failure: incorrect sub command {commandName}" << std::endl;
     return EXIT_FAILURE;
 }
@@ -112,10 +117,12 @@ int Tools::main(int argc, _TCHAR* argv[]) {
 
 KTX_COMMAND_BUILTIN(ktxInfo)
 KTX_COMMAND_BUILTIN(ktxValidate)
+// KTX_COMMAND_BUILTIN(ktxHelp)
 
 std::unordered_map<std::string, ktx::pfnBuiltinCommand> builtinCommands = {
     { "info",       ktxInfo },
     { "validate",   ktxValidate }
+    // { "help",       ktxHelp }
 };
 
 int _tmain(int argc, _TCHAR* argv[]) {

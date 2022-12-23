@@ -294,8 +294,16 @@ printKVDataJSON(ktx_uint8_t* pKvd, ktx_uint32_t kvdLen, ktx_uint32_t base_indent
     ktxHashList_Destruct(&kvDataHead);
 }
 
+/**
+ * @internal
+ * @~English
+ * @brief Print the KTX 1/2 file identifier.
+ *
+ * @param [in]  identifier
+ * @param [in]  json specifies if "\x1A" should be escaped as "\u001A" to not break most json tools
+ */
 void
-printIdentifier(const ktx_uint8_t identifier[12])
+printIdentifier(const ktx_uint8_t identifier[12], bool json)
 {
     // Convert identifier for better display.
     uint32_t idlen = 0;
@@ -321,9 +329,10 @@ printIdentifier(const ktx_uint8_t identifier[12])
 				u8identifier[idlen] = 'r';
 				break;
 			  default:
-				nchars = snprintf(&u8identifier[idlen],
+                nchars = snprintf(&u8identifier[idlen],
                                   sizeof(u8identifier) - idlen,
-					              "\\x%02X", identifier[i]);
+                                  json ? "\\u%04X" : "\\x%02X",
+                                  identifier[i]);
 				idlen += nchars - 1;
 			}
 		} else {
@@ -352,7 +361,7 @@ void
 printKTXHeader(KTX_header* pHeader)
 {
     fprintf(stdout, "identifier: ");
-    printIdentifier(pHeader->identifier);
+    printIdentifier(pHeader->identifier, false);
     fprintf(stdout, "\n");
     fprintf(stdout, "endianness: %#x\n", pHeader->endianness);
     fprintf(stdout, "glType: %#x\n", pHeader->glType);
@@ -495,7 +504,7 @@ void
 printKTX2Header(KTX_header2* pHeader)
 {
     fprintf(stdout, "identifier: ");
-    printIdentifier(pHeader->identifier);
+    printIdentifier(pHeader->identifier, false);
     fprintf(stdout, "\n");
 	fprintf(stdout, "vkFormat: %s\n", vkFormatString(pHeader->vkFormat));
     fprintf(stdout, "typeSize: %d\n", pHeader->typeSize);
@@ -679,7 +688,7 @@ printKTX2Info2JSON(ktxStream* stream, KTX_header2* pHeader, ktx_uint32_t base_in
 
     PRINT_INDENT(0, "\"header\":%s{%s", space, nl)
     PRINT_INDENT(1, "\"identifier\":%s\"", space)
-    printIdentifier(pHeader->identifier);
+    printIdentifier(pHeader->identifier, true);
     printf("\",%s", nl);
     PRINT_INDENT(1, "\"vkFormat\":%s\"%s\",%s", space, vkFormatString(pHeader->vkFormat), nl);
     PRINT_INDENT(1, "\"typeSize\":%s%d,%s", space, pHeader->typeSize, nl);
@@ -800,6 +809,11 @@ printKTX2Info2JSON(ktxStream* stream, KTX_header2* pHeader, ktx_uint32_t base_in
 
         case KTX_SS_ZSTD: {
             PRINT_INDENT(1, "\"type\":%s\"%s\"%s", space, "KTX_SS_ZSTD", nl)
+            break;
+        }
+
+        case KTX_SS_ZLIB: {
+            PRINT_INDENT(1, "\"type\":%s\"%s\"%s", space, "KTX_SS_ZLIB", nl)
             break;
         }
 

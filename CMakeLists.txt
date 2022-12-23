@@ -43,6 +43,7 @@ option( KTX_FEATURE_LOADTEST_APPS "Create load tests apps that load and display 
 option( KTX_FEATURE_STATIC_LIBRARY "Create static libraries (shared otherwise)" ${LIB_TYPE_DEFAULT} )
 option( KTX_FEATURE_TESTS "Create unit tests" ON )
 option( KTX_FEATURE_JNI "Create Java bindings for libktx" OFF )
+option( KTX_TOOLS_TESTS "Enable KTX CLI Tools tests (requires CTS submodule)" OFF )
 
 if(POLICY CMP0127)
     # cmake_dependent_option() supports full Condition Syntax. Introduced in
@@ -234,12 +235,23 @@ add_library( ktx ${LIB_TYPE}
     ${KTX_MAIN_SRC}
     )
 
+if(${LIB_TYPE} STREQUAL "STATIC")
+    set(KTX_TARGET_NAME_STATIC_LIB ktx)
+
+elseif(KTX_FEATURE_TOOLS)
+    # KTX Tools requires a static library version from ktx, build a separate one if needed
+    set(KTX_TARGET_NAME_STATIC_LIB ktx_static)
+    add_library( ktx_static STATIC
+        ${KTX_MAIN_SRC}
+        )
+endif()
+
 # Read-only library
 add_library( ktx_read ${LIB_TYPE}
     ${KTX_MAIN_SRC}
     )
 
-macro(commom_lib_settings lib write)
+macro(commom_lib_settings lib write library_type)
 
     if(TARGET mkvk)
         # Creating vulkan headers is only required when Vulkan SDK updates.
@@ -313,7 +325,7 @@ macro(commom_lib_settings lib write)
         $<INSTALL_INTERFACE:utils>
     )
 
-    if( LIB_TYPE STREQUAL STATIC )
+    if( ${library_type} STREQUAL STATIC )
         target_compile_definitions(${lib} PUBLIC KHRONOS_STATIC)
     endif()
 
@@ -340,7 +352,7 @@ macro(commom_lib_settings lib write)
             ${lib}
         PRIVATE
             # Only set dllexport when building a shared library.
-            $<$<STREQUAL:${LIB_TYPE},SHARED>:KTX_API=__declspec\(dllexport\)>
+            $<$<STREQUAL:${library_type},SHARED>:KTX_API=__declspec\(dllexport\)>
         PUBLIC # only for basisu_c_binding.
             BASISU_NO_ITERATOR_DEBUG_LEVEL
         )
@@ -404,8 +416,8 @@ macro(commom_lib_settings lib write)
             # Check if the Threads package is provided; if using Mingw it MIGHT be
             find_package(Threads)
             if(Threads_FOUND AND CMAKE_USE_PTHREADS_INIT)
-                target_compile_definitions(ktx PRIVATE WIN32_HAS_PTHREADS)
-                target_link_libraries(ktx PRIVATE Threads::Threads)
+                target_compile_definitions(${lib} PRIVATE WIN32_HAS_PTHREADS)
+                target_link_libraries(${lib} PRIVATE Threads::Threads)
             endif()
         endif()
 
@@ -459,8 +471,11 @@ endmacro(commom_lib_settings)
 
 set(KTX_BUILD_DIR "${CMAKE_BINARY_DIR}")
 
-commom_lib_settings(ktx 1)
-commom_lib_settings(ktx_read 0)
+commom_lib_settings(ktx 1 ${LIB_TYPE})
+if(TARGET ktx_static)
+    commom_lib_settings(ktx_static 1 "STATIC")
+endif()
+commom_lib_settings(ktx_read 0 ${LIB_TYPE})
 
 if(KTX_FEATURE_JNI)
     add_subdirectory(interface/java_binding)
@@ -519,16 +534,23 @@ set(BASISU_ENCODER_CXX_SRC
     lib/basisu/encoder/cppspmd_type_aliases.h
 )
 
-target_sources(
-    ktx
-PRIVATE
-    lib/basis_encode.cpp
-    lib/astc_encode.cpp
-    ${BASISU_ENCODER_C_SRC}
-    ${BASISU_ENCODER_CXX_SRC}
-    lib/writer1.c
-    lib/writer2.c
-)
+macro(ktx_write_target_sources target)
+    target_sources(
+        ${target}
+    PRIVATE
+        lib/basis_encode.cpp
+        lib/astc_encode.cpp
+        ${BASISU_ENCODER_C_SRC}
+        ${BASISU_ENCODER_CXX_SRC}
+        lib/writer1.c
+        lib/writer2.c
+    )
+endmacro()
+
+ktx_write_target_sources(ktx)
+if(TARGET ktx_static)
+    ktx_write_target_sources(ktx_static)
+endif()
 
 # Turn off these warnings until Rich fixes the occurences.
 # It it not clear to me if generator expressions can be used here
@@ -620,41 +642,48 @@ else()
     message(ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")
 endif()
 
-target_include_directories(
-    ktx
-PRIVATE
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu>
-    $<INSTALL_INTERFACE:lib/basisu>
-    $<$<BOOL:${BASISU_SUPPORT_OPENCL}>:${OpenCL_INCLUDE_DIRS}>
-)
-target_compile_definitions(
-    ktx
-PUBLIC
-    KTX_FEATURE_WRITE
-PRIVATE
-    # BASISD_SUPPORT_KTX2 has to be 1 to compile the encoder. We
-    # don't use it. Hopefully it doesn't add too much code. We're using
-    # the zstd encoder in basisu by explicitly including the file in our
-    # source list. We don't need the related code in the encoder.
-    BASISD_SUPPORT_KTX2_ZSTD=0
-    BASISD_SUPPORT_KTX2=1
-    $<$<BOOL:${BASISU_SUPPORT_SSE}>:BASISU_SUPPORT_SSE=1>
-    $<$<NOT:$<BOOL:${BASISU_SUPPORT_SSE}>>:BASISU_SUPPORT_SSE=0>
-    $<$<BOOL:${BASISU_SUPPORT_OPENCL}>:BASISU_SUPPORT_OPENCL=1>
-    $<$<NOT:$<BOOL:${BASISU_SUPPORT_OPENCL}>>:BASISU_SUPPORT_OPENCL=0>
-)
-target_compile_options(
-    ktx
-PRIVATE
-    $<$<AND:$<BOOL:${BASISU_SUPPORT_SSE}>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:
-        -msse4.1
-    >
-)
-target_link_libraries(
-    ktx
-PRIVATE
-    $<$<BOOL:${BASISU_SUPPORT_OPENCL}>:${OpenCL_LIBRARIES}>
-)
+macro(setup_ktx_target target)
+    target_include_directories(
+        ${target}
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu>
+        $<INSTALL_INTERFACE:lib/basisu>
+        $<$<BOOL:${BASISU_SUPPORT_OPENCL}>:${OpenCL_INCLUDE_DIRS}>
+    )
+    target_compile_definitions(
+        ${target}
+    PUBLIC
+        KTX_FEATURE_WRITE
+    PRIVATE
+        # BASISD_SUPPORT_KTX2 has to be 1 to compile the encoder. We
+        # don't use it. Hopefully it doesn't add too much code. We're using
+        # the zstd encoder in basisu by explicitly including the file in our
+        # source list. We don't need the related code in the encoder.
+        BASISD_SUPPORT_KTX2_ZSTD=0
+        BASISD_SUPPORT_KTX2=1
+        $<$<BOOL:${BASISU_SUPPORT_SSE}>:BASISU_SUPPORT_SSE=1>
+        $<$<NOT:$<BOOL:${BASISU_SUPPORT_SSE}>>:BASISU_SUPPORT_SSE=0>
+        $<$<BOOL:${BASISU_SUPPORT_OPENCL}>:BASISU_SUPPORT_OPENCL=1>
+        $<$<NOT:$<BOOL:${BASISU_SUPPORT_OPENCL}>>:BASISU_SUPPORT_OPENCL=0>
+    )
+    target_compile_options(
+        ${target}
+    PRIVATE
+        $<$<AND:$<BOOL:${BASISU_SUPPORT_SSE}>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:
+            -msse4.1
+        >
+    )
+    target_link_libraries(
+        ${target}
+    PRIVATE
+        $<$<BOOL:${BASISU_SUPPORT_OPENCL}>:${OpenCL_LIBRARIES}>
+    )
+endmacro()
+
+setup_ktx_target(ktx)
+if (TARGET ktx_static)
+    setup_ktx_target(ktx_static)
+endif()
 
 if(EMSCRIPTEN)
     set(
