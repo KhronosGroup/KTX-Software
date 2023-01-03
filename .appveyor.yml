@@ -23,15 +23,15 @@ environment:
   VULKAN_SDK_VER: 1.2.176.1
 
   matrix:
-    - FEATURE_DOC: OFF
-      FEATURE_JNI: OFF
-      FEATURE_LOADTESTS: ON
-      FEATURE_TOOLS: ON
-      SUPPORT_SSE: ON
-      SUPPORT_OPENCL: OFF
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-      CMAKE_GEN: Visual Studio 15 2017
-      CONFIGURATION: Debug,Release
+#    - FEATURE_DOC: OFF
+#      FEATURE_JNI: OFF
+#      FEATURE_LOADTESTS: ON
+#      FEATURE_TOOLS: ON
+#      SUPPORT_SSE: ON
+#      SUPPORT_OPENCL: OFF
+#      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+#      CMAKE_GEN: Visual Studio 15 2017
+#      CONFIGURATION: Debug,Release
       # This is the configuration used for the release.
     - FEATURE_DOC: ON
       FEATURE_JNI: ON
