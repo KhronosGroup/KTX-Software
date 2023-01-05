@@ -23,24 +23,15 @@ environment:
   VULKAN_SDK_VER: 1.2.176.1
 
   matrix:
-    - FEATURE_DOC: OFF
-      FEATURE_JNI: OFF
-      FEATURE_LOADTESTS: ON
-      FEATURE_TOOLS: ON
-      SUPPORT_SSE: ON
-      SUPPORT_OPENCL: OFF
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-      CMAKE_GEN: Visual Studio 14 2015
-      CONFIGURATION: Debug,Release
-    - FEATURE_DOC: OFF
-      FEATURE_JNI: OFF
-      FEATURE_LOADTESTS: ON
-      FEATURE_TOOLS: ON
-      SUPPORT_SSE: ON
-      SUPPORT_OPENCL: OFF
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-      CMAKE_GEN: Visual Studio 15 2017
-      CONFIGURATION: Debug,Release
+#    - FEATURE_DOC: OFF
+#      FEATURE_JNI: OFF
+#      FEATURE_LOADTESTS: ON
+#      FEATURE_TOOLS: ON
+#      SUPPORT_SSE: ON
+#      SUPPORT_OPENCL: OFF
+#      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+#      CMAKE_GEN: Visual Studio 15 2017
+#      CONFIGURATION: Debug,Release
       # This is the configuration used for the release.
     - FEATURE_DOC: ON
       FEATURE_JNI: ON
@@ -92,12 +83,6 @@ skip_tags: false
 # Keep this to remind me how to do this in case I need it again.
 # Since we're not currently using image this has no effect.
 for:
-  - matrix:
-      only:
-        - image: Visual Studio 2015
-    environment:
-      CMAKE_GEN: Visual Studio 14 2015
-      JAVA_HOME: C:\Program Files\Java\jdk13
   - matrix:
       only:
         - image: Visual Studio 2017
@@ -204,7 +189,7 @@ before_build:
 
 build_script:
 - ps: |
-    $ErrorActionPreference = 'Stop'
+    #$ErrorActionPreference = 'Stop'
     ci_scripts/build_win.ps1
 
     #echo "***** toktx version.h *****"

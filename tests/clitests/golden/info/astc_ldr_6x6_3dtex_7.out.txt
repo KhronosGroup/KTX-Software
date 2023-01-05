@@ -1,0 +1,51 @@
+Header
+
+identifier: «KTX 20»\r\n\x1A\n
+vkFormat: VK_FORMAT_ASTC_6x6_SRGB_BLOCK
+typeSize: 1
+pixelWidth: 16
+pixelHeight: 16
+pixelDepth: 7
+layerCount: 0
+faceCount: 1
+levelCount: 1
+supercompressionScheme: KTX_SS_NONE
+dataFormatDescriptor.byteOffset: 0x68
+dataFormatDescriptor.byteLength: 44
+keyValueData.byteOffset: 0x94
+keyValueData.byteLength: 144
+supercompressionGlobalData.byteOffset: 0
+supercompressionGlobalData.byteLength: 0
+
+Level Index
+
+Level0.byteOffset: 0x130
+Level0.byteLength: 1008
+Level0.uncompressedByteLength: 1008
+
+Data Format Descriptor
+
+DFD total bytes: 44
+BDB descriptor type: KHR_DF_KHR_DESCRIPTORTYPE_BASICFORMAT
+Vendor ID: KHR_DF_VENDORID_KHRONOS
+Descriptor block size: 40 (1 sample)
+VersionNumber: KHR_DF_VERSIONNUMBER_1_3
+Flags: 0x0 (KHR_DF_FLAG_ALPHA_STRAIGHT)
+Transfer: KHR_DF_TRANSFER_SRGB
+Primaries: KHR_DF_PRIMARIES_BT709
+Model: KHR_DF_MODEL_ASTC
+Dimensions: 6, 6, 1, 1
+Plane bytes: 16, 0, 0, 0, 0, 0, 0, 0
+Sample 0:
+    Qualifiers: 0x0 ()
+    Channel Type: 0x0 (KHR_DF_CHANNEL_ASTC_DATA)
+    Length: 128 bits Offset: 0
+    Position: 0, 0, 0, 0
+    Lower: 0x00000000
+    Upper: 0xffffffff
+
+Key/Value Data
+
+KTXorientation: rdi
+KTXwriter: toktx v4.0.__default__ / libktx v4.0.__default__
+KTXwriterScParams: --encode astc --astc_blk_d 6x6

@@ -37,9 +37,11 @@ class argparser {
   public:
     struct option {
         const char* name;
-        enum {no_argument, required_argument, optional_argument} has_arg;
+        enum has_arg_t {no_argument, required_argument, optional_argument} has_arg;
         int* flag;
         int val;
+
+        option(const char* name, has_arg_t has_arg, int* flag, int val) : name(name), has_arg(has_arg), flag(flag), val(val) {}
     };
 
     _tstring optarg;

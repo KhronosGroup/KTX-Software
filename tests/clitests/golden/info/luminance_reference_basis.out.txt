@@ -1,0 +1,66 @@
+Header
+
+identifier: «KTX 20»\r\n\x1A\n
+vkFormat: VK_FORMAT_UNDEFINED
+typeSize: 1
+pixelWidth: 200
+pixelHeight: 100
+pixelDepth: 0
+layerCount: 0
+faceCount: 1
+levelCount: 1
+supercompressionScheme: KTX_SS_BASIS_LZ
+dataFormatDescriptor.byteOffset: 0x68
+dataFormatDescriptor.byteLength: 44
+keyValueData.byteOffset: 0x94
+keyValueData.byteLength: 120
+supercompressionGlobalData.byteOffset: 0x110
+supercompressionGlobalData.byteLength: 1395
+
+Level Index
+
+Level0.byteOffset: 0x683
+Level0.byteLength: 1937
+Level0.uncompressedByteLength: 0
+
+Data Format Descriptor
+
+DFD total bytes: 44
+BDB descriptor type: KHR_DF_KHR_DESCRIPTORTYPE_BASICFORMAT
+Vendor ID: KHR_DF_VENDORID_KHRONOS
+Descriptor block size: 40 (1 sample)
+VersionNumber: KHR_DF_VERSIONNUMBER_1_3
+Flags: 0x0 (KHR_DF_FLAG_ALPHA_STRAIGHT)
+Transfer: KHR_DF_TRANSFER_SRGB
+Primaries: KHR_DF_PRIMARIES_BT709
+Model: KHR_DF_MODEL_ETC1S
+Dimensions: 4, 4, 1, 1
+Plane bytes: 0, 0, 0, 0, 0, 0, 0, 0
+Sample 0:
+    Qualifiers: 0x0 ()
+    Channel Type: 0x0 (KHR_DF_CHANNEL_ETC1S_RGB)
+    Length: 64 bits Offset: 0
+    Position: 0, 0, 0, 0
+    Lower: 0x00000000
+    Upper: 0xffffffff
+
+Key/Value Data
+
+KTXorientation: rd
+KTXwriter: toktx v4.0.__default__ / libktx v4.0.__default__
+KTXwriterScParams: --bcmp
+
+Basis Supercompression Global Data
+
+endpointCount: 131
+selectorCount: 288
+endpointsByteLength: 164
+selectorsByteLength: 973
+tablesByteLength: 218
+extendedByteLength: 0
+
+imageFlags: 0
+rgbSliceByteLength: 1937
+rgbSliceByteOffset: 0
+alphaSliceByteLength: 0
+alphaSliceByteOffset: 0
