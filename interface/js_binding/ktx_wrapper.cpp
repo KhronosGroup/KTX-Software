@@ -284,6 +284,7 @@ enum SupercmpScheme {
     "NONE",
     "BASIS_LZ",
     "ZSTD"
+    "ZLIB"
 };
 
 @endcode
@@ -427,6 +428,8 @@ EMSCRIPTEN_BINDINGS(ktx)
         .value("UNSUPPORTED_TEXTURE_TYPE", KTX_UNSUPPORTED_TEXTURE_TYPE)
         .value("UNSUPPORTED_FEATURE", KTX_UNSUPPORTED_FEATURE)
         .value("LIBRARY_NOT_LINKED", KTX_LIBRARY_NOT_LINKED)
+        .value("DECOMPRESS_LENGTH_ERROR", KTX_DECOMPRESS_LENGTH_ERROR)
+        .value("DECOMPRESS_CHECKSUM_ERROR", KTX_DECOMPRESS_CHECKSUM_ERROR)
         ;
 
     enum_<ktx_texture_transcode_fmt_e>("TranscodeTarget")
@@ -473,6 +476,7 @@ EMSCRIPTEN_BINDINGS(ktx)
         .value("NONE", KTX_SS_NONE)
         .value("BASIS_LZ", KTX_SS_BASIS_LZ)
         .value("ZSTD", KTX_SS_ZSTD)
+        .value("ZLIB", KTX_SS_ZLIB)
     ;
 
     value_object<ktxOrientation>("Orientation")

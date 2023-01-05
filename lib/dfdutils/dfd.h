@@ -19,6 +19,7 @@
 #define _DFD_H_
 
 #include <KHR/khr_df.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -126,8 +127,47 @@ enum InterpretDFDResult interpretDFD(const uint32_t *DFD,
                                      InterpretedDFDChannel *A,
                                      uint32_t *wordBytes);
 
+/* Returns the string representation.
+ * If there is no direct match or the value is invalid returns NULL */
+const char* dfdToStringVendorID(khr_df_vendorid_e value);
+
+/* Returns the string representation.
+ * If there is no direct match or the value is invalid returns NULL */
+const char* dfdToStringDescriptorType(khr_df_khr_descriptortype_e value);
+
+/* Returns the string representation.
+ * If there is no direct match or the value is invalid returns NULL */
+const char* dfdToStringVersionNumber(khr_df_versionnumber_e value);
+
+/* Returns the string representation of a bit in a khr_df_flags_e.
+ * If there is no direct match or the value is invalid returns NULL */
+const char* dfdToStringFlagsBit(uint32_t bit_index, bool bit_value);
+
+/* Returns the string representation.
+ * If there is no direct match or the value is invalid returns NULL */
+const char* dfdToStringTransferFunction(khr_df_transfer_e value);
+
+/* Returns the string representation.
+ * If there is no direct match or the value is invalid returns NULL */
+const char* dfdToStringColorPrimaries(khr_df_primaries_e value);
+
+/* Returns the string representation.
+ * If there is no direct match or the value is invalid returns NULL */
+const char* dfdToStringColorModel(khr_df_model_e value);
+
+/* Returns the string representation of a bit in a khr_df_sample_datatype_qualifiers_e.
+ * If there is no direct match or the value is invalid returns NULL */
+const char* dfdToStringSampleDatatypeQualifiersBit(uint32_t bit_index, bool bit_value);
+
+/* Returns the string representation.
+ * If there is no direct match or the value is invalid returns NULL */
+const char* dfdToStringChannelId(khr_df_model_e model, khr_df_model_channels_e value);
+
 /* Print a human-readable interpretation of a data format descriptor. */
-void printDFD(uint32_t *DFD);
+void printDFD(uint32_t *DFD, uint32_t dataSize);
+
+/* Print a JSON interpretation of a data format descriptor. */
+void printDFDJSON(uint32_t *DFD, uint32_t dataSize, uint32_t base_indent, uint32_t indent_width, bool minified);
 
 /* Get the number of components & component size from a DFD for an
  * unpacked format.
@@ -161,7 +201,8 @@ typedef struct _Primaries {
     float Wy; /*!< White y. */
 } Primaries;
 
-khr_df_primaries_e findMapping(Primaries *p, float latitude);
+khr_df_primaries_e findMapping(const Primaries *p, float latitude);
+bool getPrimaries(khr_df_primaries_e primaries, Primaries *p);
 
 #ifdef __cplusplus
 }

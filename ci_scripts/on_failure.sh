@@ -26,4 +26,3 @@ fi
 echo "Now uploading the test log"
 rurl=$(curl --upload-file $build_dir/Testing/Temporary/LastTest.log https://transfer.sh/ktx-failed-tests.log)
 echo $rurl
-

@@ -25,8 +25,9 @@ CONFIGURATION=${CONFIGURATION:-Release}
 FEATURE_DOC=${FEATURE_DOC:-OFF}
 FEATURE_JNI=${FEATURE_JNI:-OFF}
 FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-OpenGL+Vulkan}
-FEATURE_TOOLS=${FEATURE_TOOLS:-ON}
 FEATURE_TESTS=${FEATURE_TESTS:-ON}
+FEATURE_TOOLS=${FEATURE_TOOLS:-ON}
+FEATURE_TOOLS_CTS=${FEATURE_TOOLS_CTS:-ON}
 PACKAGE=${PACKAGE:-NO}
 SUPPORT_SSE=${SUPPORT_SSE:-ON}
 SUPPORT_OPENCL=${SUPPORT_OPENCL:-OFF}
@@ -58,6 +59,10 @@ else
   }
 fi
 
+if [ "$FEATURE_TOOLS_CTS" = "ON" ]; then
+  git submodule update --init --recursive tests/cts
+fi
+
 cmake_args=("-G" "Xcode" \
   "-B" $BUILD_DIR \
   "-D" "CMAKE_OSX_ARCHITECTURES=$ARCHS" \
@@ -66,6 +71,7 @@ cmake_args=("-G" "Xcode" \
   "-D" "KTX_FEATURE_LOADTEST_APPS=$FEATURE_LOADTESTS" \
   "-D" "KTX_FEATURE_TESTS=$FEATURE_TESTS" \
   "-D" "KTX_FEATURE_TOOLS=$FEATURE_TOOLS" \
+  "-D" "KTX_FEATURE_TOOLS_CTS=$FEATURE_TOOLS_CTS" \
   "-D" "BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL" \
   "-D" "BASISU_SUPPORT_SSE=$SUPPORT_SSE"
 )
@@ -112,7 +118,7 @@ do
   # Rosetta 2 should let x86_64 tests run on an Apple Silicon Mac hence the -o.
   if [ "$ARCHS" = "$(uname -m)" -o "$ARCHS" = "x64_64" ]; then
     echo "Test KTX-Software (macOS $ARCHS $config)"
-    ctest -C $config # --verbose
+    ctest --output-on-failure -C $config # --verbose
   fi
 
   if [ "$config" = "Release" -a "$PACKAGE" = "YES" ]; then

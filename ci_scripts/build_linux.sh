@@ -39,6 +39,7 @@ else
 fi
 FEATURE_TESTS=${FEATURE_TESTS:-ON}
 FEATURE_TOOLS=${FEATURE_TOOLS:-ON}
+FEATURE_TOOLS_CTS=${FEATURE_TOOLS_CTS:-ON}
 FEATURE_GL_UPLOAD=${FEATURE_GL_UPLOAD:-ON}
 FEATURE_VK_UPLOAD=${FEATURE_VK_UPLOAD:-ON}
 PACKAGE=${PACKAGE:-NO}
@@ -67,6 +68,10 @@ fi
 
 mkdir -p $BUILD_DIR
 
+if [ "$FEATURE_TOOLS_CTS" = "ON" ]; then
+  git submodule update --init --recursive tests/cts
+fi
+
 cmake_args=("-G" "$CMAKE_GEN"
   "-B" $BUILD_DIR \
   "-D" "CMAKE_BUILD_TYPE=$CONFIGURATION" \
@@ -75,6 +80,7 @@ cmake_args=("-G" "$CMAKE_GEN"
   "-D" "KTX_FEATURE_LOADTEST_APPS=$FEATURE_LOADTESTS" \
   "-D" "KTX_FEATURE_TESTS=$FEATURE_TESTS" \
   "-D" "KTX_FEATURE_TOOLS=$FEATURE_TOOLS" \
+  "-D" "KTX_FEATURE_TOOLS_CTS=$FEATURE_TOOLS_CTS" \
   "-D" "KTX_FEATURE_GL_UPLOAD=$FEATURE_GL_UPLOAD" \
   "-D" "KTX_FEATURE_VK_UPLOAD=$FEATURE_VK_UPLOAD" \
   "-D" "BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL" \
@@ -109,7 +115,7 @@ do
   cmake --build . --config $config
   if [ "$ARCH" = "$(uname -m)" ]; then
     echo "Test KTX-Software (Linux $ARCH $config)"
-    ctest -C $config #--verbose
+    ctest -C $config --output-on-failure #--verbose
   fi
   if [ "$config" = "Release" -a "$PACKAGE" = "YES" ]; then
     echo "Pack KTX-Software (Linux $ARCH $config)"

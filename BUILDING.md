@@ -51,6 +51,10 @@ If you need the library to be static, add `-D KTX_FEATURE_STATIC_LIBRARY=ON` to 
 > define `KHRONOS_STATIC` before including KTX header files.
 > This is especially important on Windows.
 
+If you want to run the CTS tests (recommended only during KTX development)
+add `-D KTX_FEATURE_TOOLS_CTS=ON` to the CMake configure command and fetch
+the CTS submodule. For more information see [Conformance Test Suite](#conformance-test-suite).
+
 If you want the Basis Universal encoders in `libktx` to use OpenCL
 add `-D BASISU_SUPPORT_OPENCL=ON` to the CMake configure command.
 
@@ -420,6 +424,48 @@ cmake --build "build-android"
 ```
 
 > Note: SSE has to be disabled currently (for ABIs x86 and x86_64) due to [an issue](https://github.com/BinomialLLC/basis_universal/pull/233).
+
+Conformance Test Suite
+------------
+
+The submodule of [CTS Repository](https://github.com/KhronosGroup/KTX-Software-CTS/) is optional and
+only required for running the CTS tests during KTX development. If the CTS test suit is desired it
+can be fetched during cloning with the additional `--recurse-submodules` git clone flag:
+```bash
+git clone --recurse-submodules git@github.com:KhronosGroup/KTX-Software.git
+```
+If the repository was already cloned or whenever the submodule ref changes the submodule has to be
+updated with:
+```bash
+git submodule update --init --recursive tests/cts
+```
+(For more information on submodules see the [git documentation](https://git-scm.com/book/en/v2/Git-Tools-Submodules).)
+
+Once the submodule is fetched the CTS tests can be enabled with the `KTX_FEATURE_TOOLS_CTS`
+cmake option during cmake configuration. Please note that for `KTX_FEATURE_TOOLS_CTS` to take
+effect both `KTX_FEATURE_TESTS` and `KTX_FEATURE_TOOLS` has to be also enabled.
+The CTS integrates into `ctest` so running `ctest` will also execute the CTS tests too.
+The test cases can be limited to the CTS tests with `ctest -R ktxToolTests`.
+
+Example for development workflow with CTS testing:
+```bash
+# Git clone and submodule fetch 
+git clone git@github.com:KhronosGroup/KTX-Software.git
+cd KTX-Software/
+git submodule update --init --recursive tests/cts
+# Configure 
+mkdir build
+cmake -B build . -DKTX_FEATURE_DOC=ON -DKTX_FEATURE_STATIC_LIBRARY=ON -DKTX_FEATURE_TOOLS_CTS=ON -DKTX_FEATURE_TESTS=ON -DKTX_FEATURE_TOOLS_CTS=ON
+# Build everything (depending on workflow its better to build the specific target like 'ktxtools'):
+cmake --build build --target all 
+# Run every test case:
+ctest --test-dir build
+# Run only the CTS test cases:
+ctest --test-dir build -R ktxToolTests
+```
+
+To create and update CTS test cases and about their specific features and usages
+see the [CTS documentation](https://github.com/KhronosGroup/KTX-Software-CTS/blob/main/README.md).
 
 Dependencies
 ------------

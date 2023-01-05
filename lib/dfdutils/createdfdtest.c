@@ -37,6 +37,6 @@ int main()
     int channels[] = {0,1,2};
     uint32_t *DFD = createDFDPacked(1, 3, bits, channels, s_UNORM);
 #endif
-    printDFD(DFD);
+    printDFD(DFD, *DFD);
     return 0;
 }

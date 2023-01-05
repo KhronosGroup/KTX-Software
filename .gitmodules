@@ -1,0 +1,8 @@
+# Copyright 2022-2023 The Khronos Group Inc.
+# Copyright 2022-2023 RasterGrid Kft.
+# SPDX-License-Identifier: Apache-2.0
+
+[submodule "tests/cts"]
+	path = tests/cts
+	url = https://github.com/KhronosGroup/KTX-Software-CTS.git
+	branch = main
