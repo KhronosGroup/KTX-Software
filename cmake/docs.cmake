@@ -108,7 +108,7 @@ function( CreateDocKTXTools )
     set( DOXYGEN_SHOW_FILES NO )
     set( DOXYGEN_FILE_PATTERNS *.cpp )
     set( DOXYGEN_RECURSIVE YES )
-    set( DOXYGEN_EXAMPLE_PATH utils )
+    set( DOXYGEN_EXAMPLE_PATH utils tools )
     set( DOXYGEN_HTML_OUTPUT html/ktxtools )
     set( DOXYGEN_MAN_EXTENSION .1 )
     set( DOXYGEN_GENERATE_TAGFILE ${CMAKE_BINARY_DIR}/docs/ktxtools.tag )
@@ -120,6 +120,9 @@ function( CreateDocKTXTools )
         tools/ktx2ktx2/ktx2ktx2.cpp
         tools/ktxsc/ktxsc.cpp
         tools/toktx/toktx.cc
+        tools/ktx/ktx_main.cpp
+        tools/ktx/command_info.cpp
+        tools/ktx/command_validate.cpp
     )
     add_docs_cmake(ktxtools.doc)
 endfunction()

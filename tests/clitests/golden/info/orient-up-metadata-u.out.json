@@ -1,0 +1,88 @@
+{
+    "$id": "ktx-schema-url-1.0",
+    "header": {
+        "identifier": "«KTX 20»\r\n\x1A\n",
+        "vkFormat": "VK_FORMAT_R8G8B8_SRGB",
+        "typeSize": 1,
+        "pixelWidth": 128,
+        "pixelHeight": 128,
+        "pixelDepth": 0,
+        "layerCount": 0,
+        "faceCount": 1,
+        "levelCount": 1,
+        "supercompressionScheme": "KTX_SS_NONE"
+    },
+    "index": {
+        "dataFormatDescriptor": {
+            "byteOffset": 104,
+            "byteLength": 76
+        },
+        "keyValueData": {
+            "byteOffset": 180,
+            "byteLength": 92
+        },
+        "supercompressionGlobalData": {
+            "byteOffset": 0,
+            "byteLength": 0
+        },
+        "levels": [
+            {
+                "byteOffset": 276,
+                "byteLength": 49152,
+                "uncompressedByteLength": 49152
+            }
+        ]
+    },
+    "dataFormatDescriptor": {
+        "totalSize": 76,
+        "blocks": [
+            {
+                "descriptorType": "KHR_DF_KHR_DESCRIPTORTYPE_BASICFORMAT",
+                "vendorId": "KHR_DF_VENDORID_KHRONOS",
+                "descriptorBlockSize": 72,
+                "versionNumber": "KHR_DF_VERSIONNUMBER_1_3",
+                "flags": [
+                    "KHR_DF_FLAG_ALPHA_STRAIGHT"
+                ],
+                "transferFunction": "KHR_DF_TRANSFER_SRGB",
+                "colorPrimaries": "KHR_DF_PRIMARIES_BT709",
+                "colorModel": "KHR_DF_MODEL_RGBSDA",
+                "texelBlockDimension": [1, 1, 1, 1],
+                "bytesPlane": [3, 0, 0, 0, 0, 0, 0, 0],
+                "samples": [
+                    {
+                        "qualifiers": [],
+                        "channelType": "KHR_DF_CHANNEL_RGBSDA_RED",
+                        "bitLength": 7,
+                        "bitOffset": 0,
+                        "samplePosition": [0, 0, 0, 0],
+                        "sampleLower": 0,
+                        "sampleUpper": 255
+                    },
+                    {
+                        "qualifiers": [],
+                        "channelType": "KHR_DF_CHANNEL_RGBSDA_GREEN",
+                        "bitLength": 7,
+                        "bitOffset": 8,
+                        "samplePosition": [0, 0, 0, 0],
+                        "sampleLower": 0,
+                        "sampleUpper": 255
+                    },
+                    {
+                        "qualifiers": [],
+                        "channelType": "KHR_DF_CHANNEL_RGBSDA_BLUE",
+                        "bitLength": 7,
+                        "bitOffset": 16,
+                        "samplePosition": [0, 0, 0, 0],
+                        "sampleLower": 0,
+                        "sampleUpper": 255
+                    }
+                ]
+            }
+        ]
+    },
+    "keyValueData": {
+        "KTXorientation": "ru",
+        "KTXwriter": "ktx2ktx2 v4.0.__default__ / libktx v4.0.__default__"
+    }
+}

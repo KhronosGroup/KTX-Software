@@ -13,6 +13,8 @@ endif()
 
 # tools tests
 if(KTX_FEATURE_TOOLS)
+    add_subdirectory(clitests)
+
     include( ktx2check-tests.cmake )
     include( ktx2ktx2-tests.cmake )
     include( ktxsc-tests.cmake )

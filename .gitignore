@@ -40,6 +40,9 @@ version.h
 .vs/
 CMakeSettings.json
 
+# Visual Studio Code
+.vscode/
+
 # Build bindings & maven
 /interface/java_binding/build/
 /interface/java_binding/target/
