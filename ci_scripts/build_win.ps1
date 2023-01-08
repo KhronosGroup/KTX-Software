@@ -20,7 +20,7 @@ function Set-Config-Variable {
     if ($res -eq $null) {
         $res = $DefaultValue
     }
-  }
+  } 
   return $res
 }
 
