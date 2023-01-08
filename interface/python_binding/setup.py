@@ -1,8 +1,11 @@
 from setuptools import setup
 
+__name__    = 'pyktx'
+__version__ = '4.1.0rc3'
+
 setup(
-    name='pyktx',
-    version='4.0.0-RC14',
+    name=__name__,
+    version=__version__,
     description='A Python interface to the libktx library',
     author='Shukant Pal',
     author_email='foss@shukantpal.com',

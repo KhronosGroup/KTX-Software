@@ -43,6 +43,8 @@ option( KTX_FEATURE_LOADTEST_APPS "Create load tests apps that load and display 
 option( KTX_FEATURE_STATIC_LIBRARY "Create static libraries (shared otherwise)" ${LIB_TYPE_DEFAULT} )
 option( KTX_FEATURE_TESTS "Create unit tests" ON )
 option( KTX_FEATURE_JNI "Create Java bindings for libktx" OFF )
+option( KTX_FEATURE_PY "Create Python source distribution" OFF )
+option( KTX_FEATURE_PY_BDIST "Create Python binary distribution" ${KTX_FEATURE_PY} )
 
 if(POLICY CMP0127)
     # cmake_dependent_option() supports full Condition Syntax. Introduced in
@@ -464,6 +466,10 @@ commom_lib_settings(ktx_read 0)
 
 if(KTX_FEATURE_JNI)
     add_subdirectory(interface/java_binding)
+endif()
+
+if(KTX_FEATURE_PY)
+    add_subdirectory(interface/python_binding)
 endif()
 
 create_version_header(lib ktx)

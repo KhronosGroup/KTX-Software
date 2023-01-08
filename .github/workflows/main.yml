@@ -48,6 +48,7 @@ jobs:
 
       # No tests on arm64 since the host is x64 and can't run the built tests
       FEATURE_JNI: OFF # Not sure of the state of JNI on arm64 windows
+      FEATURE_PY: ${{matrix.options.config == 'Release'}}
       FEATURE_TESTS: OFF
       FEATURE_LOADTESTS: OFF
 
@@ -116,13 +117,22 @@ jobs:
         name: KTX-Software-${{ steps.ktx-version.outputs.ktx-version }}-Windows-arm64
         path: ${{env.BUILD_DIR}}/KTX-Software-*.exe*
 
+    - name: Upload Python distributions
+      if: matrix.options.package == 'YES'
+      uses: actions/upload-artifact@v2
+      with:
+        name: pyktx
+        path: interface/python_binding/dist/**
+
     - name: Upload To Release
       uses: softprops/action-gh-release@v1
       if: matrix.options.package == 'YES' && github.event_name == 'push' && github.ref_type == 'tag'
       with:
         draft: true
         prerelease: true
-        files: ${{env.BUILD_DIR}}/KTX-Software-*.exe*
+        files: |
+          ${{env.BUILD_DIR}}/KTX-Software-*.exe*
+          interface/python_binding/dist/**
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
