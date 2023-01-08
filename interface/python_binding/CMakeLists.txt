@@ -4,6 +4,12 @@
 find_package (Python3 COMPONENTS Interpreter)
 file(GLOB pyktx_py_src "pyktx/*.py")
 
+set(PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
+if(DEFINED PYTHON AND NOT ${PYTHON} STREQUAL "")
+    set(PYTHON_EXECUTABLE ${PYTHON})
+    message(STATUS "Override PYTHON with ${PYTHON}")
+endif()
+
 add_custom_command(
     DEPENDS
         ${pyktx_py_src}
@@ -16,7 +22,7 @@ add_custom_command(
     OUTPUT
         ${CMAKE_SOURCE_DIR}/interface/python_binding/dist/libktx-${PROJECT_VERSION}.tgz
     COMMAND
-        ${Python3_EXECUTABLE} ./setup.py sdist
+        ${PYTHON_EXECUTABLE} ./setup.py sdist
     WORKING_DIRECTORY
         ${CMAKE_SOURCE_DIR}/interface/python_binding
 )
@@ -30,7 +36,7 @@ add_custom_command(
         ${CMAKE_COMMAND} -E env
             LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
             LIBKTX_LIB_DIR=${KTX_BUILD_DIR}/$<CONFIG>
-        ${Python3_EXECUTABLE} ./setup.py bdist_wheel
+        ${PYTHON_EXECUTABLE} ./setup.py bdist_wheel
     WORKING_DIRECTORY
         ${CMAKE_SOURCE_DIR}/interface/python_binding
 )
@@ -49,7 +55,7 @@ add_custom_command(
     TARGET pyktx
     PRE_BUILD
     COMMAND
-        ${Python3_EXECUTABLE} -m pip install -r ${CMAKE_SOURCE_DIR}/interface/python_binding/requirements.txt
+        ${PYTHON_EXECUTABLE} -m pip install -r ${CMAKE_SOURCE_DIR}/interface/python_binding/requirements.txt
     COMMENT
         "Install dependencies for pyktx build"
 )
@@ -58,7 +64,7 @@ add_custom_command(
     TARGET pyktx
     PRE_BUILD
     COMMAND
-       ${Python3_EXECUTABLE} -c \"import sys\; print('python: ' + sys.version)\"
+       ${PYTHON_EXECUTABLE} -c \"import sys\; print('python: ' + sys.version)\"
     COMMENT
         "Python version"
 )

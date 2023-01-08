@@ -20,7 +20,7 @@ function Set-Config-Variable {
     if ($res -eq $null) {
         $res = $DefaultValue
     }
-  } 
+  }
   return $res
 }
 
@@ -38,6 +38,7 @@ $FEATURE_TOOLS = Set-Config-Variable FEATURE_TOOLS "ON"
 $FEATURE_TESTS = Set-Config-Variable FEATURE_TESTS "ON"
 $PLATFORM = Set-Config-Variable PLATFORM "x64"
 $PACKAGE = Set-Config-Variable PACKAGE "NO"
+$PYTHON = Set-Config-Variable PYTHON ""
 $SUPPORT_SSE = Set-Config-Variable SUPPORT_SSE "ON"
 $SUPPORT_OPENCL = Set-Config-Variable SUPPORT_OPENCL "OFF"
 $OPENGL_ES_EMULATOR = Set-Config-Variable OPENGL_ES_EMULATOR `
@@ -70,6 +71,7 @@ cmake . -G "$CMAKE_GEN" -A $PLATFORM $TOOLSET_OPTION -B $BUILD_DIR `
   -D BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL `
   -D WIN_CODE_SIGN_IDENTITY=$WIN_CODE_SIGN_IDENTITY `
   -D WIN_CS_CERT_SEARCH_MACHINE_STORE=$WIN_CS_CERT_SEARCH_MACHINE_STORE `
+  -D PYTHON=$PYTHON
   $(if ($need_gles_emulator) {"-D"}) $(if ($need_gles_emulator) {"OPENGL_ES_EMULATOR=$OPENGL_ES_EMULATOR"})
 
 $configArray = $CONFIGURATION.split(",")
