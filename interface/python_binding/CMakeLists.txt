@@ -53,3 +53,12 @@ add_custom_command(
     COMMENT
         "Install dependencies for pyktx build"
 )
+
+add_custom_command(
+    TARGET pyktx
+    PRE_BUILD
+    COMMAND
+       ${Python3_EXECUTABLE} -c \"import sys\; print('python: ' + sys.version)\"
+    COMMENT
+        "Python version"
+)

@@ -81,6 +81,10 @@ jobs:
         - CHECK_REUSE: ONLY
     - os: linux
       dist: focal
+      addons:
+        apt:
+          packages:
+            - python3
       compiler: gcc # clang is tested by macOS build
       env:
         # NB: This must not have the fourth component of the version number.
@@ -90,6 +94,10 @@ jobs:
           SUPPORT_SSE=ON SUPPORT_OPENCL=OFF
     - os: linux
       dist: focal
+      addons:
+        apt:
+          packages:
+            - python3
       compiler: gcc
       env:
         # NB: This must not have the fourth component of the version number.
