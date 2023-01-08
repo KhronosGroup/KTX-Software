@@ -25,6 +25,7 @@ environment:
   matrix:
     - FEATURE_DOC: OFF
       FEATURE_JNI: OFF
+      FEATURE_PY: OFF
       FEATURE_LOADTESTS: ON
       FEATURE_TOOLS: ON
       SUPPORT_SSE: ON
@@ -34,6 +35,7 @@ environment:
       CONFIGURATION: Debug,Release
     - FEATURE_DOC: OFF
       FEATURE_JNI: OFF
+      FEATURE_PY: OFF
       FEATURE_LOADTESTS: ON
       FEATURE_TOOLS: ON
       SUPPORT_SSE: ON
@@ -44,6 +46,7 @@ environment:
       # This is the configuration used for the release.
     - FEATURE_DOC: ON
       FEATURE_JNI: ON
+      FEATURE_PY: ON
       FEATURE_LOADTESTS: ON
       FEATURE_TOOLS: ON
       PACKAGE: YES
@@ -55,6 +58,7 @@ environment:
       JAVA_HOME: C:\Program Files\Java\jdk17
     - FEATURE_DOC: OFF
       FEATURE_JNI: OFF
+      FEATURE_PY: OFF
       FEATURE_LOADTESTS: OFF
       FEATURE_TOOLS: OFF
       SUPPORT_SSE: ON
@@ -64,6 +68,7 @@ environment:
       CONFIGURATION: Release
     - FEATURE_DOC: OFF
       FEATURE_JNI: OFF
+      FEATURE_PY: OFF
       FEATURE_LOADTESTS: OFF
       FEATURE_TOOLS: OFF
       SUPPORT_SSE: OFF
@@ -73,6 +78,7 @@ environment:
       CONFIGURATION: Release
     - FEATURE_DOC: OFF
       FEATURE_JNI: OFF
+      FEATURE_PY: OFF
       FEATURE_LOADTESTS: OFF
       SUPPORT_SSE: OFF
       SUPPORT_OPENCL: OFF
