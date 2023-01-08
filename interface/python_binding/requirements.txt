@@ -1,2 +1,5 @@
+# Copyright (c) 2023, Shukant Pal and Contributors
+# SPDX-License-Identifier: Apache-2.0
+
 cffi==1.15.1
 setuptools==65.6.3

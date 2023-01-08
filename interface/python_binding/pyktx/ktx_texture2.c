@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2023, Shukant Pal and Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include <ktx.h>
 #include "ktx_texture2.h"
 #include <stddef.h>

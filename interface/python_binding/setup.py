@@ -1,3 +1,6 @@
+# Copyright (c) 2023, Shukant Pal and Contributors
+# SPDX-License-Identifier: Apache-2.0
+
 from setuptools import setup
 
 __name__    = 'pyktx'

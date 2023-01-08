@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2023, Shukant Pal and Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #ifndef KTX_TEXTURE2_H_9E005417467F4F98A33ACF592FE1D6FE
 #define KTX_TEXTURE2_H_9E005417467F4F98A33ACF592FE1D6FE
 

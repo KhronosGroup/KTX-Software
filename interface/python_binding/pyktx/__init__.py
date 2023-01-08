@@ -1,3 +1,6 @@
+# Copyright (c) 2023, Shukant Pal and Contributors
+# SPDX-License-Identifier: Apache-2.0
+
 import os
 
 LIBKTX_INSTALL_DIR = os.getenv('LIBKTX_INSTALL_DIR')

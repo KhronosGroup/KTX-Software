@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Shukant Pal and Contributors
+# Copyright (c) 2023, Shukant Pal and Contributors
 # SPDX-License-Identifier: Apache-2.0
 
 from .gl_internalformat import GlInternalformat
