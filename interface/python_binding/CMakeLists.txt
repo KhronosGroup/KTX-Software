@@ -9,6 +9,10 @@ if(DEFINED PYTHON AND NOT ${PYTHON} STREQUAL "")
     set(PYTHON_EXECUTABLE ${PYTHON})
     message(STATUS "Override PYTHON with ${PYTHON}")
 endif()
+if (LINUX AND NOT Python3_FOUND)
+    set(PYTHON_EXECUTABLE python)
+    message(STATUS "CMake failed to find python3. Will continue assuming it's on PATH")
+endif()
 
 add_custom_command(
     DEPENDS

@@ -48,7 +48,7 @@ jobs:
 
       # No tests on arm64 since the host is x64 and can't run the built tests
       FEATURE_JNI: OFF # Not sure of the state of JNI on arm64 windows
-      FEATURE_PY: ON
+      FEATURE_PY: OFF
       FEATURE_TESTS: OFF
       FEATURE_LOADTESTS: OFF
 
@@ -57,10 +57,6 @@ jobs:
       CERT_DC_SALT: ${{ secrets.CERT_DC_SALT }}
 
     steps:
-    - uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-        architecture: x64
     - uses: actions/checkout@v3
       with:
         # Fetch all history to make sure tags are
