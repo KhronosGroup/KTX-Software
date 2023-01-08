@@ -5,10 +5,16 @@ from cffi import FFI
 import os
 
 LIBKTX_INSTALL_DIR = os.getenv("LIBKTX_INSTALL_DIR")
+LIBKTX_INCLUDE_DIR = os.getenv("LIBKTX_INCLUDE_DIR")
+LIBKTX_LIB_DIR = os.getenv("LIBKTX_LIB_DIR")
 
-if LIBKTX_INSTALL_DIR == None:
-    if os.name == 'nt':
+if os.name == 'nt':
+    if LIBKTX_INSTALL_DIR is None:
         LIBKTX_INSTALL_DIR = 'C:\\Program Files\\KTX-Software'
+    if LIBKTX_INCLUDE_DIR is None:
+        LIBKTX_INCLUDE_DIR = LIBKTX_INSTALL_DIR + '\\include'
+    if LIBKTX_LIB_DIR is None:
+        LIBKTX_LIB_DIR = LIBKTX_INSTALL_DIR + '\\lib'
 
 ffibuilder = FFI()
 
@@ -167,10 +173,10 @@ ffibuilder.set_source(
     #include "ktx_texture2.h"
     """,
     include_dirs=['pyktx']
-        + ([LIBKTX_INSTALL_DIR + '\\include'] if os.name == 'nt' else []),
+                 + ([LIBKTX_INCLUDE_DIR] if LIBKTX_INCLUDE_DIR is not None else []),
     sources=['pyktx/ktx_texture.c', 'pyktx/ktx_texture1.c', 'pyktx/ktx_texture2.c'],
     libraries=['ktx'],
-    library_dirs=([LIBKTX_INSTALL_DIR + '\\lib'] if os.name == 'nt' else []))
+    library_dirs=([LIBKTX_LIB_DIR] if LIBKTX_LIB_DIR is not None else []))
 
 if __name__ == "__main__":
     ffibuilder.compile(verbose=True)
