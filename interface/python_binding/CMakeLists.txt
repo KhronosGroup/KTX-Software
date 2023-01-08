@@ -21,6 +21,8 @@ add_custom_command(
         ${CMAKE_SOURCE_DIR}/interface/python_binding
 )
 
+message(STATUS DEBUG_BUILD "${CMAKE_BINARY_DIR}")
+
 add_custom_command(
     DEPENDS
         ${CMAKE_SOURCE_DIR}/interface/python_binding/dist/libktx-${PROJECT_VERSION}.tgz
