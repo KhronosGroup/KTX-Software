@@ -48,7 +48,7 @@ jobs:
 
       # No tests on arm64 since the host is x64 and can't run the built tests
       FEATURE_JNI: OFF # Not sure of the state of JNI on arm64 windows
-      FEATURE_PY: ${{matrix.options.package}}
+      FEATURE_PY: ON
       FEATURE_TESTS: OFF
       FEATURE_LOADTESTS: OFF
 
