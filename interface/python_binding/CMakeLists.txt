@@ -21,8 +21,6 @@ add_custom_command(
         ${CMAKE_SOURCE_DIR}/interface/python_binding
 )
 
-message(STATUS DEBUG_BUILD "${CMAKE_BINARY_DIR}")
-
 add_custom_command(
     DEPENDS
         ${CMAKE_SOURCE_DIR}/interface/python_binding/dist/libktx-${PROJECT_VERSION}.tgz
@@ -30,10 +28,8 @@ add_custom_command(
         ${CMAKE_SOURCE_DIR}/interface/python_binding/dist
     COMMAND
         ${CMAKE_COMMAND} -E env
-            C_INCLUDE_PATH=${CMAKE_SOURCE_DIR}/include
-            LDFLAGS=\"-L${KTX_BUILD_DIR} -L${KTX_BUILD_DIR}/Release -L${KTX_BUILD_DIR}/Debug\" # Libraries might be in Xcode project layout
             LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
-            LIBKTX_LIB_DIR=${KTX_BUILD_DIR}
+            LIBKTX_LIB_DIR=${KTX_BUILD_DIR}/$<CONFIG>
         ${Python3_EXECUTABLE} ./setup.py bdist_wheel
     WORKING_DIRECTORY
         ${CMAKE_SOURCE_DIR}/interface/python_binding
