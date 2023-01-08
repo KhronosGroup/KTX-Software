@@ -12,6 +12,8 @@ for i in $@; do
   eval $i
 done
 
+echo which python $(which python) and path is $PATH
+
 # Set some defaults
 CONFIGURATION=${CONFIGURATION:-Release}
 FEATURE_DOC=${FEATURE_DOC:-OFF}
