@@ -1,0 +1,31 @@
+# Copyright 2023 Shukant Pal
+# SPDX-License-Identifier: Apache-2.0
+name: Publish to PyPI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  pypi:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download latest release metadata
+        run: |
+           curl \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              -o latest.json \
+              https://api.github.com/repos/KhronosGroup/KTX-Software/releases/latest
+      - name: Filter out pyktx- assets
+        run: |
+          jq '.assets | map(select(.name | startswith("pyktx-"))) | map(.browser_download_url)' < latest.json > pyktx.json 
+      - name: Create dist directory
+        run: |
+          mkdir dist
+      - name: Download assets
+        run: |
+          cd dist; jq -c '.[]' ../pyktx.json | xargs -L 1 curl -O -J; cd..
+      - name: Publish distribution 📦 to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
