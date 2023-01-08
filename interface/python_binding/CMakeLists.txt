@@ -31,7 +31,7 @@ add_custom_command(
     COMMAND
         ${CMAKE_COMMAND} -E env
             C_INCLUDE_PATH=${CMAKE_SOURCE_DIR}/include
-            LDFLAGS=-L${CMAKE_BINARY_DIR}
+            LDFLAGS=\"-L${KTX_BUILD_DIR} -L${KTX_BUILD_DIR}/Release -L${KTX_BUILD_DIR}/Debug\" # Libraries might be in Xcode project layout
         ${Python3_EXECUTABLE} ./setup.py bdist_wheel
     WORKING_DIRECTORY
         ${CMAKE_SOURCE_DIR}/interface/python_binding
