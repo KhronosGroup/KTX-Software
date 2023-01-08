@@ -1,7 +1,7 @@
 from setuptools import setup
 
 __name__    = 'pyktx'
-__version__ = '4.1.0rc3'
+__version__ = '4.0.0rc16'
 
 setup(
     name=__name__,
