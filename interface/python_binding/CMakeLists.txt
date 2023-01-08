@@ -1,22 +1,22 @@
 # Copyright 2023 Shukant Pal
 # SPDX-License-Identifier: Apache-2.0
 
-file(GLOB pyktx_src
-    "pyktx/*.py"
-    "pyktx/ktx_texture.h"
-    "pyktx/ktx_texture1.h"
-    "pyktx/ktx_texture2.h"
-    "pyktx/ktx_texture.c"
-    "pyktx/ktx_texture1.c"
-    "pyktx/ktx_texture2.c")
+find_package (Python3 COMPONENTS Interpreter)
+file(GLOB pyktx_py_src "pyktx/*.py")
 
 add_custom_command(
     DEPENDS
-        ${pyktx_src}
+        ${pyktx_py_src}
+        pyktx/ktx_texture.h
+        pyktx/ktx_texture1.h
+        pyktx/ktx_texture2.h
+        pyktx/ktx_texture.c
+        pyktx/ktx_texture1.c
+        pyktx/ktx_texture2.c
     OUTPUT
         ${CMAKE_SOURCE_DIR}/interface/python_binding/dist/libktx-${PROJECT_VERSION}.tgz
     COMMAND
-        python ./setup.py sdist
+        ${Python3_EXECUTABLE} ./setup.py sdist
     WORKING_DIRECTORY
         ${CMAKE_SOURCE_DIR}/interface/python_binding
 )
@@ -24,6 +24,23 @@ add_custom_command(
 add_custom_command(
     DEPENDS
         ${CMAKE_SOURCE_DIR}/interface/python_binding/dist/libktx-${PROJECT_VERSION}.tgz
+    OUTPUT
+        ${CMAKE_SOURCE_DIR}/interface/python_binding/dist
     COMMAND
-        python ./setup.py bdist_wheel
+        ${CMAKE_COMMAND} -E env
+            C_INCLUDE_PATH=${CMAKE_SOURCE_DIR}/include
+            LDFLAGS=-L${CMAKE_BINARY_DIR}
+        ${Python3_EXECUTABLE} ./setup.py bdist_wheel
+    WORKING_DIRECTORY
+        ${CMAKE_SOURCE_DIR}/interface/python_binding
+)
+
+add_custom_target( pyktx ALL
+    DEPENDS
+        ${CMAKE_SOURCE_DIR}/interface/python_binding/dist
+        ktx
+    WORKING_DIRECTORY
+        ${CMAKE_SOURCE_DIR}/interface/python_binding
+    COMMENT
+        "Python distributions"
 )
