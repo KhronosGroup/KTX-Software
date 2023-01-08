@@ -46,3 +46,12 @@ add_custom_target( pyktx ALL
     COMMENT
         "Python distributions"
 )
+
+add_custom_command(
+    TARGET pyktx
+    PRE_BUILD
+    COMMAND
+        ${Python3_EXECUTABLE} -m pip install -r ${CMAKE_SOURCE_DIR}/interface/python_binding/requirements.txt
+    COMMENT
+        "Install dependencies for pyktx build"
+)
