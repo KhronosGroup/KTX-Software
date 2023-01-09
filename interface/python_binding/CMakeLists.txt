@@ -31,6 +31,12 @@ add_custom_command(
         ${CMAKE_SOURCE_DIR}/interface/python_binding
 )
 
+if(LINUX)
+    set(LIBKTX_LIB_DIR ${KTX_BUILD_DIR})
+else()
+    set(LIBKTX_LIB_DIR ${KTX_BUILD_DIR}/$<CONFIG>)
+endif()
+
 add_custom_command(
     DEPENDS
         ${CMAKE_SOURCE_DIR}/interface/python_binding/dist/libktx-${PROJECT_VERSION}.tgz
@@ -39,7 +45,7 @@ add_custom_command(
     COMMAND
         ${CMAKE_COMMAND} -E env
             LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
-            LIBKTX_LIB_DIR=${KTX_BUILD_DIR}/$<CONFIG>
+            LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
         ${PYTHON_EXECUTABLE} ./setup.py bdist_wheel
     WORKING_DIRECTORY
         ${CMAKE_SOURCE_DIR}/interface/python_binding
