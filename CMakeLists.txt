@@ -831,18 +831,12 @@ set(CLI OFF) # Only build as library not the CLI astcencoder
 add_subdirectory(lib/astc-encoder)
 set_property(TARGET ${ASTC_LIB_TARGET} PROPERTY POSITION_INDEPENDENT_CODE ON)
 
-if(KTX_FEATURE_STATIC_LIBRARY AND NOT WIN32 AND NOT EMSCRIPTEN)
+if(KTX_FEATURE_STATIC_LIBRARY AND APPLE)
     # Make a single static library to simplify linking.
     add_dependencies(ktx ${ASTC_LIB_TARGET})
-    set(LIBTOOL_ARGS)
-    if(LINUX)
-        set(LIBTOOL_ARGS ${LIBTOOL_ARGS} --mode=link --tag=CC cc)
-    endif()
-    set(LIBTOOL_ARGS ${LIBTOOL_ARGS} -static -o
-        $<TARGET_FILE:ktx> $<TARGET_FILE:ktx> $<TARGET_FILE:${ASTC_LIB_TARGET}>)
     add_custom_command( TARGET ktx
         POST_BUILD
-        COMMAND libtool ${LIBTOOL_ARGS}
+        COMMAND libtool -static -o $<TARGET_FILE:ktx> $<TARGET_FILE:ktx> $<TARGET_FILE:${ASTC_LIB_TARGET}>
     )
 
     # Don't know libtool equivalent on Windows or Emscripten. Applications
@@ -867,7 +861,7 @@ if(KTX_FEATURE_DOC)
 endif()
 
 set(KTX_INSTALL_TARGETS ktx)
-if(KTX_FEATURE_STATIC_LIBRARY AND (WIN32 OR EMSCRIPTEN))
+if(KTX_FEATURE_STATIC_LIBRARY AND NOT APPLE)
     list(APPEND KTX_INSTALL_TARGETS ${ASTC_LIB_TARGET})
 endif()
 
