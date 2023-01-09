@@ -356,10 +356,10 @@ macro(commom_lib_settings lib write)
                 lib/internalexport_mingw.def
                 $<${write}:lib/internalexport_write_mingw.def>
             )
-            # Need these flags if mingw happens to target the ucrt (new) rather 
+            # Need these flags if mingw happens to target the ucrt (new) rather
             # than the legacy msvcrt. Otherwise tests will fail to run because
-            # the necessary dlls will be missing. If we statically link 
-            # them instead it's fine. This does not cause any abberations if 
+            # the necessary dlls will be missing. If we statically link
+            # them instead it's fine. This does not cause any abberations if
             # the mingw toolchain targets msvcrt instead.
             target_link_options(${lib} PUBLIC -static-libgcc -static-libstdc++)
         else()
@@ -401,7 +401,7 @@ macro(commom_lib_settings lib write)
         # generators (like Visual Studio) to take the exact path and not
         # change it.
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
-        
+
         if(MINGW)
             # Check if the Threads package is provided; if using Mingw it MIGHT be
             find_package(Threads)
@@ -466,6 +466,12 @@ commom_lib_settings(ktx_read 0)
 
 if(KTX_FEATURE_JNI)
     add_subdirectory(interface/java_binding)
+endif()
+
+# This is put here so CMake doesn't warn that "PYTHON" is unused if KTX_FEATURE_PY=OFF
+# PYTHON_EXECUTABLE is resolved in python_binding/CMakeLists.txt
+if(DEFINED PYTHON)
+    set(PYTHON_EXECUTABLE ${PYTHON})
 endif()
 
 if(KTX_FEATURE_PY)
@@ -975,7 +981,7 @@ if( APPLE AND CMAKE_OSX_ARCHITECTURES )
         set(processor_name ${arch0})
     endif()
 elseif(CMAKE_CXX_COMPILER_ARCHITECTURE_ID)
-    # When targeting Windows arm64 CMAKE_SYSTEM_PROCESSOR will incorrectly 
+    # When targeting Windows arm64 CMAKE_SYSTEM_PROCESSOR will incorrectly
     # return AMD64.
     # See: https://gitlab.kitware.com/cmake/cmake/-/issues/15170
     # We assume that when building for Windows arm64 that we are using MSVC
