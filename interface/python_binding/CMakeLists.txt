@@ -51,6 +51,7 @@ add_custom_command(
         ${CMAKE_SOURCE_DIR}/interface/python_binding
 )
 
+
 add_custom_target( pyktx ALL
     DEPENDS
         ${CMAKE_SOURCE_DIR}/interface/python_binding/dist
@@ -68,4 +69,39 @@ add_custom_command(
         ${PYTHON_EXECUTABLE} -m pip install -r ${CMAKE_SOURCE_DIR}/interface/python_binding/requirements.txt
     COMMENT
         "Install dependencies for pyktx build"
+)
+
+add_custom_command(
+    TARGET pyktx
+    PRE_BUILD
+    COMMAND
+        ${PYTHON_EXECUTABLE} -c "\"
+import os
+
+for root, directories, files in os.walk('pyktx'):
+    for file in files:
+        if (file.endswith('.o') or
+            file.endswith('.obj') or
+            file.endswith('.lib') or
+            file.endswith('.so') or
+            file.endswith('.dylib') or
+            file.endswith('.dll') or
+            file.startswith('native')):
+            os.remove(file)
+\""
+    COMMENT
+        "Clean up pyktx build artifacts"
+    WORKING_DIRECTORY
+        ${CMAKE_SOURCE_DIR}/interface/python_binding/pyktx
+)
+
+add_test(NAME pyktx
+    COMMAND
+        ${CMAKE_COMMAND} -E env
+            LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
+            LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
+        ${PYTHON_EXECUTABLE} build.py;
+        ${PYTHON_EXECUTABLE} -m unittest discover --start-directory tests -p test_*.py
+    WORKING_DIRECTORY
+        ${CMAKE_SOURCE_DIR}/interface/python_binding
 )
