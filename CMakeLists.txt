@@ -923,6 +923,9 @@ else()
     target_link_libraries(ktx PRIVATE ${ASTC_LIB_TARGET})
 endif()
 
+# FMT
+add_subdirectory(other_projects/fmt)
+
 # Tools
 if(KTX_FEATURE_TOOLS)
     add_subdirectory(tools)
