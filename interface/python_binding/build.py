@@ -2,7 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from cffi import FFI
+import sys
 import os
+import unittest
 
 LIBKTX_INSTALL_DIR = os.getenv("LIBKTX_INSTALL_DIR")
 LIBKTX_INCLUDE_DIR = os.getenv("LIBKTX_INCLUDE_DIR")
@@ -186,3 +188,10 @@ ffibuilder.set_source(
 
 if __name__ == "__main__":
     ffibuilder.compile(verbose=True)
+
+    if 'KTX_RUN_TESTS' in os.environ and os.environ['KTX_RUN_TESTS'] == 'ON':
+        suite = unittest.TestLoader().discover(os.path.join(os.path.dirname(__file__), 'tests'))
+        result = unittest.TextTestRunner(verbosity=2).run(suite)
+
+        if not result.wasSuccessful():
+            sys.exit(1)
