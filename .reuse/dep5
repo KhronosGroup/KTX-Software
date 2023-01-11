@@ -201,6 +201,10 @@ Files: the_khronos_group_inc.p12.enc
 Copyright: 2022 The Khronos Group Inc.
 License: Apache-2.0
 
+Files: other_projects/fmt/*
+Copyright: 2012 - present Victor Zverovich
+License: MIT
+
 # Golden files for text based cli test outputs
 Files: tests/clitests/golden/*
 Copyright: 2022-2023 The Khronos Group Inc.
