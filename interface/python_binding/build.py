@@ -15,6 +15,11 @@ if os.name == 'nt':
         LIBKTX_INCLUDE_DIR = LIBKTX_INSTALL_DIR + '\\include'
     if LIBKTX_LIB_DIR is None:
         LIBKTX_LIB_DIR = LIBKTX_INSTALL_DIR + '\\lib'
+elif os.name == 'osx':
+    if LIBKTX_INCLUDE_DIR is None:
+        LIBKTX_INCLUDE_DIR = '/usr/local/include'
+    if LIBKTX_LIB_DIR is None:
+        LIBKTX_LIB_DIR = '/usr/local/lib'
 
 ffibuilder = FFI()
 
@@ -78,6 +83,7 @@ ffibuilder.cdef(
                                                 uint32_t faceSlice);
     int PY_ktxTexture_get_classId(ktxTexture *);
     bool PY_ktxTexture_get_isArray(ktxTexture *);
+    bool PY_ktxTexture_get_isCompressed(ktxTexture *);
     bool PY_ktxTexture_get_isCubemap(ktxTexture *);
     bool PY_ktxTexture_get_generateMipmaps(ktxTexture *);
     uint32_t PY_ktxTexture_get_baseWidth(ktxTexture *);

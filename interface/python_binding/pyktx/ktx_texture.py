@@ -30,6 +30,10 @@ class KtxTexture:
         return lib.PY_ktxTexture_get_isArray(self._ptr)
 
     @property
+    def is_compressed(self) -> bool:
+        return lib.PY_ktxTexture_get_isCompressed(self._ptr)
+
+    @property
     def is_cubemap(self) -> bool:
         return lib.PY_ktxTexture_get_isCubemap(self._ptr)
 

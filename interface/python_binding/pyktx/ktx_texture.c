@@ -81,6 +81,7 @@ ktxWriteToMemory PY_ktxHashListEntry_GetValue(ktxHashListEntry *entry)
 
 KTX_IMPL(class_id, classId);
 KTX_IMPL(ktx_bool_t, isArray);
+KTX_IMPL(ktx_bool_t, isCompressed);
 KTX_IMPL(ktx_bool_t, isCubemap);
 KTX_IMPL(ktx_bool_t, generateMipmaps);
 KTX_IMPL(ktx_uint32_t, baseWidth);

@@ -18,7 +18,7 @@ from .vk_format import VkFormat
 class KtxTexture2(KtxTexture):
     @staticmethod
     def create(create_info: KtxTextureCreateInfo, storage_allocation: KtxTextureCreateStorage) -> 'KtxTexture2':
-        result = lib.PY_ktxTexture2_Create(create_info.gl_internal_format.value,
+        result = lib.PY_ktxTexture2_Create(0,
                                            create_info.vk_format.value,
                                            ffi.NULL,
                                            create_info.base_width,
