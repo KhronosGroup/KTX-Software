@@ -20,7 +20,8 @@ class TestKtxTexture1(unittest.TestCase):
 
     def test_write_to_named_file(self):
         test_ktx_file = os.path.join(__test_images__, 'etc2-rgb.ktx')
-        copy_file = NamedTemporaryFile()
+        copy_file = NamedTemporaryFile(delete=False)
+        copy_file.close()
 
         texture = KtxTexture1.create_from_named_file(test_ktx_file, KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT)
         texture.write_to_named_file(copy_file.name)
@@ -28,7 +29,7 @@ class TestKtxTexture1(unittest.TestCase):
         with open(test_ktx_file, 'rb') as original, open(copy_file.name, 'rb') as copy:
             self.assertEqual(original.read(), copy.read())
 
-        copy_file.close()
+        os.unlink(copy_file.name)
 
     def test_write_to_memory(self):
         test_ktx_file = os.path.join(__test_images__, 'etc2-rgba1.ktx')
