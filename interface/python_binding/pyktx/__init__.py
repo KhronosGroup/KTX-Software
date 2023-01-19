@@ -3,12 +3,15 @@
 
 import os
 
-LIBKTX_INSTALL_DIR = os.getenv('LIBKTX_INSTALL_DIR')
+LIBKTX_INSTALL_DIR = os.getenv("LIBKTX_INSTALL_DIR")
+LIBKTX_LIB_DIR = os.getenv("LIBKTX_LIB_DIR")
 
 if os.name == 'nt':
-    if LIBKTX_INSTALL_DIR == None:
+    if LIBKTX_INSTALL_DIR is None:
         LIBKTX_INSTALL_DIR = 'C:\\Program Files\\KTX-Software'
-    os.add_dll_directory(LIBKTX_INSTALL_DIR + '\\bin')
+    if LIBKTX_LIB_DIR is None:
+        LIBKTX_LIB_DIR = LIBKTX_INSTALL_DIR + '\\bin'
+    os.add_dll_directory(LIBKTX_LIB_DIR)
 
 from .gl_internalformat import *
 from .ktx_astc_params import *

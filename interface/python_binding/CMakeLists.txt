@@ -14,6 +14,12 @@ if (LINUX AND NOT Python3_FOUND)
     message(STATUS "CMake failed to find python3. Will continue assuming it's on PATH")
 endif()
 
+if(LINUX)
+    set(LIBKTX_LIB_DIR ${KTX_BUILD_DIR})
+else()
+    set(LIBKTX_LIB_DIR ${KTX_BUILD_DIR}/$<CONFIG>)
+endif()
+
 add_custom_command(
     DEPENDS
         ${pyktx_py_src}
@@ -26,16 +32,13 @@ add_custom_command(
     OUTPUT
         ${CMAKE_SOURCE_DIR}/interface/python_binding/dist/libktx-${PROJECT_VERSION}.tgz
     COMMAND
+        ${CMAKE_COMMAND} -E env
+            LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
+            LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
         ${PYTHON_EXECUTABLE} ./setup.py sdist
     WORKING_DIRECTORY
         ${CMAKE_SOURCE_DIR}/interface/python_binding
 )
-
-if(LINUX)
-    set(LIBKTX_LIB_DIR ${KTX_BUILD_DIR})
-else()
-    set(LIBKTX_LIB_DIR ${KTX_BUILD_DIR}/$<CONFIG>)
-endif()
 
 add_custom_command(
     DEPENDS
@@ -88,6 +91,7 @@ add_test(NAME pyktx
             LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
             LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
             KTX_RUN_TESTS=ON
+            DYLD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{DYLD_LIBRARY_PATH}
         ${PYTHON_EXECUTABLE} build.py
     WORKING_DIRECTORY
         ${CMAKE_SOURCE_DIR}/interface/python_binding

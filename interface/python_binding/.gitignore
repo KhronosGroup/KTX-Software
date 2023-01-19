@@ -7,3 +7,6 @@ pyktx.egg-info
 venv
 *.iml
 .eggs
+__pycache__
+Release
+Debug
