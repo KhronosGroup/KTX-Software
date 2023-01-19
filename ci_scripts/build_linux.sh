@@ -43,7 +43,7 @@ pushd $BUILD_DIR
 echo "Build KTX-Software (Linux $CONFIGURATION)"
 cmake --build .
 echo "Test KTX-Software (Linux $CONFIGURATION)"
-ctest # --verbose
+ctest --output-on-failure # --verbose
 
 if [ "$PACKAGE" = "YES" ]; then
   echo "Pack KTX-Software (Linux $CONFIGURATION) FEATURE_DOC=$FEATURE_DOC FEATURE_JNI=$FEATURE_JNI FEATURE_PY=$FEATURE_PY FEATURE_LOADTESTS=$FEATURE_LOADTESTS FEATURE_TOOLS=$FEATURE_TOOLS SUPPORT_SSE=$SUPPORT_SSE SUPPORT_OPENCL=$SUPPORT_OPENCL"
