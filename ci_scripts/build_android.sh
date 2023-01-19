@@ -27,7 +27,7 @@ pushd "build-android-$ANDROID_ABI"
 echo "Build KTX-Software (Android $ANDROID_ABI Release)"
 cmake --build . --config $CONFIGURATION -j
 # echo "Test KTX-Software (Android $ANDROID_ABI Release)"
-# ctest -C Release # --verbose
+# ctest --output-on-failure -C Release # --verbose
 if [ "$CONFIGURATION" = "Release" ]; then
   echo "Install KTX-Software (Android $ANDROID_ABI Release)"
   cmake --install . --config Release --prefix ../install-android/$ANDROID_ABI

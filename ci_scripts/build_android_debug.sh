@@ -26,7 +26,7 @@ pushd "build-android-$ANDROID_ABI-debug"
 echo "Build KTX-Software (Android $ANDROID_ABI Debug)"
 cmake --build . --config Debug -j
 # echo "Test KTX-Software (Android $ANDROID_ABI Debug)"
-# ctest -C Debug # --verbose
+# ctest --output-on-failure -C Debug # --verbose
 echo "Install KTX-Software (Android $ANDROID_ABI Debug)"
 cmake --install . --config Debug --prefix ../install-android-debug/$ANDROID_ABI
 
