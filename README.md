@@ -6,8 +6,6 @@
 The Official Khronos KTX Software Repository
 ---
 
-**NOTE: The default branch will be renamed from `master` to `main` on Feb 1st, 2023. If you have a clone you will probably want to rename your clone's 'master' branch, following the popup instructions that will be seen when browsing the github repository after the change, or just delete 'master' and pull the new 'main', if it's purely a tracker with no local content.**
-
 | GNU/Linux, iOS, macOS & wasm | Windows | Android, Mingw & Windows-arm64 | Documentation |
 |------------------------------| :-----: | :----------------------------: | :-----------: |
 | [![Build Status](https://travis-ci.com/KhronosGroup/KTX-Software.svg?branch=master)](https://travis-ci.com/KhronosGroup/KTX-Software) | [![Build status](https://ci.appveyor.com/api/projects/status/rj9bg8g2jphg3rc0/branch/master?svg=true)](https://ci.appveyor.com/project/msc-/ktx/branch/master) | [![KTX-Software CI](https://github.com/KhronosGroup/KTX-Software/actions/workflows/main.yml/badge.svg)](https://github.com/KhronosGroup/KTX-Software/actions/workflows/main.yml) | [![Build status](https://codedocs.xyz/KhronosGroup/KTX-Software.svg)](https://codedocs.xyz/KhronosGroup/KTX-Software/) |
