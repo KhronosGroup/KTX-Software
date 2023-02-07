@@ -12,13 +12,15 @@
 #include <algorithm>
 #include <array>
 #include <stdexcept>
-#include <utility>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
+#include <vector>
 
 #include "utility.h"
 #include "validation_messages.h"
 #include "formats.h"
+#include "sbufstream.h"
 #define LIBKTX // To stop dfdutils including vulkan_core.h.
 #include "dfdutils/dfd.h"
 
@@ -274,26 +276,63 @@ private:
 
 // -------------------------------------------------------------------------------------------------
 
-class ValidationContextStream : public ValidationContext {
+class ValidationContextIOStream : public ValidationContext {
 private:
-    FileGuard fileGuard; /// Only used if the file is owned by the validation context
+    std::ifstream file; /// Only used if the file is owned by the validation context
+    std::istream& stream;
+
+public:
+    ValidationContextIOStream(bool warningsAsErrors, std::function<void(const ValidationReport&)> callback, std::istream& stream) :
+        ValidationContext(warningsAsErrors, std::move(callback)),
+        stream(stream) {
+
+        if (!stream)
+            fatal(IOError::FileOpen, "?", errnoMessage());
+    }
+
+    ValidationContextIOStream(bool warningsAsErrors, std::function<void(const ValidationReport&)> callback, const _tstring& filepath) :
+        ValidationContext(warningsAsErrors, std::move(callback)),
+        file(filepath, std::ios::in | std::ios::binary),
+        stream(file) {
+
+        if (!file) {
+            fatal(IOError::FileOpen, filepath, errnoMessage());
+        }
+    }
+
+private:
+    virtual void read(std::size_t offset, void* readDst, std::size_t readSize, std::string_view name) override {
+        stream.seekg(offset);
+        if (!stream)
+            fatal(IOError::FileSeekFailure, offset, name, errnoMessage());
+
+        stream.read(reinterpret_cast<char*>(readDst), readSize);
+        const auto bytesRead = stream.gcount();
+        if (stream.eof()) {
+            fatal(IOError::UnexpectedEOF, readSize, offset, name, bytesRead);
+        } else if (stream.fail()) {
+            fatal(IOError::FileReadFailure, readSize, bytesRead, offset, name, errnoMessage());
+        }
+    }
+
+    virtual KTX_error_code createKTXTexture(ktxTextureCreateFlags createFlags, ktxTexture2** newTex) override {
+        stream.seekg(0);
+        if (!stream)
+            fatal(IOError::RewindFailure, errnoMessage());
+
+        StreambufStream<std::streambuf*> ktx2Stream{stream.rdbuf(), std::ios::in | std::ios::binary};
+        return ktxTexture2_CreateFromStream(ktx2Stream.stream(), createFlags, newTex);
+    }
+};
+
+class ValidationContextStdioStream : public ValidationContext {
+private:
     FILE* file;
 
 public:
-    ValidationContextStream(bool warningsAsErrors, std::function<void(const ValidationReport&)> callback, FILE* file) :
-            ValidationContext(warningsAsErrors, std::move(callback)),
-            file(file) {
-    }
-
-    ValidationContextStream(bool warningsAsErrors, std::function<void(const ValidationReport&)> callback, const _tstring& filepath) :
-            ValidationContext(warningsAsErrors, std::move(callback)),
-            fileGuard(filepath.c_str(), "rb"),
-            file(fileGuard) {
-
-        if (!file) {
-            const auto ec = std::make_error_code(static_cast<std::errc>(errno));
-            fatal(IOError::FileOpen, filepath, ec.message());
-        }
+    ValidationContextStdioStream(bool warningsAsErrors, std::function<void(const ValidationReport&)> callback, FILE* file) :
+        ValidationContext(warningsAsErrors, std::move(callback)),
+        file(file) {
     }
 
 private:
@@ -352,18 +391,9 @@ private:
 
 // -------------------------------------------------------------------------------------------------
 
-int validateFile(const _tstring& filepath, bool warningsAsErrors, std::function<void(const ValidationReport&)> callback) {
+int validateIOStream(std::istream& stream, bool warningsAsErrors, std::function<void(const ValidationReport&)> callback) {
     try {
-        ValidationContextStream ctx{warningsAsErrors, std::move(callback), filepath};
-        return ctx.validate();
-    } catch (const FatalValidationError&) {
-        return RETURN_CODE_VALIDATION_FAILURE;
-    }
-}
-
-int validateStream(FILE* file, bool warningsAsErrors, std::function<void(const ValidationReport&)> callback) {
-    try {
-        ValidationContextStream ctx{warningsAsErrors, std::move(callback), file};
+        ValidationContextIOStream ctx{warningsAsErrors, std::move(callback), stream};
         return ctx.validate();
     } catch (const FatalValidationError&) {
         return RETURN_CODE_VALIDATION_FAILURE;
@@ -373,6 +403,24 @@ int validateStream(FILE* file, bool warningsAsErrors, std::function<void(const V
 int validateMemory(const char* data, std::size_t size, bool warningsAsErrors, std::function<void(const ValidationReport&)> callback) {
     try {
         ValidationContextMemory ctx{warningsAsErrors, std::move(callback), data, size};
+        return ctx.validate();
+    } catch (const FatalValidationError&) {
+        return RETURN_CODE_VALIDATION_FAILURE;
+    }
+}
+
+int validateNamedFile(const _tstring& filepath, bool warningsAsErrors, std::function<void(const ValidationReport&)> callback) {
+    try {
+        ValidationContextIOStream ctx{warningsAsErrors, std::move(callback), filepath};
+        return ctx.validate();
+    } catch (const FatalValidationError&) {
+        return RETURN_CODE_VALIDATION_FAILURE;
+    }
+}
+
+int validateStdioStream(FILE* file, bool warningsAsErrors, std::function<void(const ValidationReport&)> callback) {
+    try {
+        ValidationContextStdioStream ctx{warningsAsErrors, std::move(callback), file};
         return ctx.validate();
     } catch (const FatalValidationError&) {
         return RETURN_CODE_VALIDATION_FAILURE;
@@ -491,7 +539,7 @@ void ValidationContext::validateHeader() {
     if (header.faceCount != 6 && header.faceCount != 1)
         error(HeaderData::InvalidFaceCount, header.faceCount);
 
-    // Cube map faces are validated 2D by checking: CubeHeightWidthMismatch and CubeWithDepth
+    // 2D Cube map faces were validated by CubeHeightWidthMismatch and CubeWithDepth
 
     // Validate levelCount
     if (isFormatBlockCompressed(vkFormat))
@@ -764,7 +812,7 @@ void ValidationContext::validateDFD() {
         const auto remainingDFDBytes = static_cast<std::size_t>(ptrDFDEnd - ptrDFDIt);
 
         if (++numBlocks > MAX_NUM_DFD_BLOCK) {
-            error(DFD::TooManyDFDBlocks, numBlocks, remainingDFDBytes);
+            warning(DFD::TooManyDFDBlocks, numBlocks, remainingDFDBytes);
             break;
         }
 
@@ -859,9 +907,9 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
                 error(DFD::IncorrectModelFor422, blockIndex, toString(khr_df_model_e(block.model)), toString(VkFormat(header.vkFormat)));
 
     } else if (isFormatBlockCompressed(VkFormat(header.vkFormat))) {
-        khr_df_model_e expectedColorModel = getColorModelForBlockCompressedFormat(VkFormat(header.vkFormat));
-        if (block.model != expectedColorModel)
-            error(DFD::IncorrectModelForBlock, blockIndex, toString(khr_df_model_e(block.model)), toString(VkFormat(header.vkFormat)), toString(expectedColorModel));
+        const auto expectedBCColorModel = getColorModelForBlockCompressedFormat(VkFormat(header.vkFormat));
+        if (khr_df_model_e(block.model) != expectedBCColorModel)
+            error(DFD::IncorrectModelForBlock, blockIndex, toString(khr_df_model_e(block.model)), toString(VkFormat(header.vkFormat)), toString(expectedBCColorModel));
 
     } else if (header.vkFormat != VK_FORMAT_UNDEFINED) {
         if (block.model != KHR_DF_MODEL_RGBSDA)
@@ -902,34 +950,46 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
                     const auto& expected = (*expectedSamples)[i];
 
                     if (parsed.bitOffset != expected.bitOffset)
-                        error(DFD::FormatMismatch, blockIndex, i + 1, "bitOffset", parsed.bitOffset, expected.bitOffset, toString(VkFormat(header.vkFormat)));
+                        error(DFD::FormatMismatch, blockIndex, i + 1, "bitOffset", parsed.bitOffset,
+                                expected.bitOffset, toString(VkFormat(header.vkFormat)));
                     if (parsed.bitLength != expected.bitLength)
-                        error(DFD::FormatMismatch, blockIndex, i + 1, "bitLength", parsed.bitLength, expected.bitLength, toString(VkFormat(header.vkFormat)));
+                        error(DFD::FormatMismatch, blockIndex, i + 1, "bitLength", parsed.bitLength,
+                                expected.bitLength, toString(VkFormat(header.vkFormat)));
                     if (parsed.channelType != expected.channelType)
                         error(DFD::FormatMismatch, blockIndex, i + 1, "channelType",
                                 toString(khr_df_model_e(block.model), khr_df_model_channels_e(parsed.channelType)),
                                 toString(expectedColorModel.value_or(KHR_DF_MODEL_UNSPECIFIED), khr_df_model_channels_e(expected.channelType)),
                                 toString(VkFormat(header.vkFormat)));
                     if (parsed.qualifierLinear != expected.qualifierLinear)
-                        error(DFD::FormatMismatch, blockIndex, i + 1, "qualifierLinear", parsed.qualifierLinear, expected.qualifierLinear, toString(VkFormat(header.vkFormat)));
+                        error(DFD::FormatMismatch, blockIndex, i + 1, "qualifierLinear", parsed.qualifierLinear,
+                                expected.qualifierLinear, toString(VkFormat(header.vkFormat)));
                     if (parsed.qualifierExponent != expected.qualifierExponent)
-                        error(DFD::FormatMismatch, blockIndex, i + 1, "qualifierExponent", parsed.qualifierExponent, expected.qualifierExponent, toString(VkFormat(header.vkFormat)));
+                        error(DFD::FormatMismatch, blockIndex, i + 1, "qualifierExponent", parsed.qualifierExponent,
+                                expected.qualifierExponent, toString(VkFormat(header.vkFormat)));
                     if (parsed.qualifierSigned != expected.qualifierSigned)
-                        error(DFD::FormatMismatch, blockIndex, i + 1, "qualifierSigned", parsed.qualifierSigned, expected.qualifierSigned, toString(VkFormat(header.vkFormat)));
+                        error(DFD::FormatMismatch, blockIndex, i + 1, "qualifierSigned", parsed.qualifierSigned,
+                                expected.qualifierSigned, toString(VkFormat(header.vkFormat)));
                     if (parsed.qualifierFloat != expected.qualifierFloat)
-                        error(DFD::FormatMismatch, blockIndex, i + 1, "qualifierFloat", parsed.qualifierFloat, expected.qualifierFloat, toString(VkFormat(header.vkFormat)));
+                        error(DFD::FormatMismatch, blockIndex, i + 1, "qualifierFloat", parsed.qualifierFloat,
+                                expected.qualifierFloat, toString(VkFormat(header.vkFormat)));
                     if (parsed.samplePosition0 != expected.samplePosition0)
-                        error(DFD::FormatMismatch, blockIndex, i + 1, "samplePosition0", parsed.samplePosition0, expected.samplePosition0, toString(VkFormat(header.vkFormat)));
+                        error(DFD::FormatMismatch, blockIndex, i + 1, "samplePosition0", parsed.samplePosition0,
+                                expected.samplePosition0, toString(VkFormat(header.vkFormat)));
                     if (parsed.samplePosition1 != expected.samplePosition1)
-                        error(DFD::FormatMismatch, blockIndex, i + 1, "samplePosition1", parsed.samplePosition1, expected.samplePosition1, toString(VkFormat(header.vkFormat)));
+                        error(DFD::FormatMismatch, blockIndex, i + 1, "samplePosition1", parsed.samplePosition1,
+                                expected.samplePosition1, toString(VkFormat(header.vkFormat)));
                     if (parsed.samplePosition2 != expected.samplePosition2)
-                        error(DFD::FormatMismatch, blockIndex, i + 1, "samplePosition2", parsed.samplePosition2, expected.samplePosition2, toString(VkFormat(header.vkFormat)));
+                        error(DFD::FormatMismatch, blockIndex, i + 1, "samplePosition2", parsed.samplePosition2,
+                                expected.samplePosition2, toString(VkFormat(header.vkFormat)));
                     if (parsed.samplePosition3 != expected.samplePosition3)
-                        error(DFD::FormatMismatch, blockIndex, i + 1, "samplePosition3", parsed.samplePosition3, expected.samplePosition3, toString(VkFormat(header.vkFormat)));
+                        error(DFD::FormatMismatch, blockIndex, i + 1, "samplePosition3", parsed.samplePosition3,
+                                expected.samplePosition3, toString(VkFormat(header.vkFormat)));
                     if (parsed.lower != expected.lower)
-                        error(DFD::FormatMismatch, blockIndex, i + 1, "sampleLower", parsed.lower, expected.lower, toString(VkFormat(header.vkFormat)));
+                        error(DFD::FormatMismatch, blockIndex, i + 1, "sampleLower", parsed.lower,
+                                expected.lower, toString(VkFormat(header.vkFormat)));
                     if (parsed.upper != expected.upper)
-                        error(DFD::FormatMismatch, blockIndex, i + 1, "sampleUpper", parsed.upper, expected.upper, toString(VkFormat(header.vkFormat)));
+                        error(DFD::FormatMismatch, blockIndex, i + 1, "sampleUpper", parsed.upper,
+                                expected.upper, toString(VkFormat(header.vkFormat)));
                 }
             }
 
@@ -1111,7 +1171,7 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
     }
 
     // -------------------------------------------------------------------------------------------------
-    // Check that were deferred during header parsing until the BDFD is available
+    // Checks that were deferred during header parsing until the BDFD is available
 
     if (header.vkFormat == VK_FORMAT_UNDEFINED && !isSupercompressionBlockCompressed(ktxSupercmpScheme(header.supercompressionScheme))) {
         // Not VK_FORMAT_UNDEFINED and BlockCompressed Supercompressions were already checked before
@@ -1165,7 +1225,7 @@ void ValidationContext::validateKVD() {
         const auto remainingKVDBytes = ptrKVDEnd - ptrEntry;
 
         if (++numKVEntry > MAX_NUM_KV_ENTRY) {
-            error(Metadata::TooManyEntries, numKVEntry - 1, remainingKVDBytes);
+            warning(Metadata::TooManyEntries, numKVEntry - 1, remainingKVDBytes);
             ptrEntry = ptrKVDEnd;
             break;
         }

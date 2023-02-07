@@ -97,7 +97,7 @@ struct IOError {
 struct FileError {
     static constexpr IssueFatal NotKTX2{
         2001, "Not a KTX2 file.",
-        "Not a KTX2 file. The beginning of the file does not matches the expected file identifier \"«KTX 20»\\r\\n\\x1A\\n\"."
+        "Not a KTX2 file. The beginning of the file does not match the expected file identifier \"«KTX 20»\\r\\n\\x1A\\n\"."
     };
     // static constexpr IssueFatal IncorrectDataSize{
     //     2003, "Size of image data in file does not match size calculated from levelIndex."
@@ -107,7 +107,7 @@ struct FileError {
 struct HeaderData {
     static constexpr IssueError ProhibitedFormat{
         3001, "Prohibited VkFormat.",
-        "Prohibited VkFormat {} must not be used in a KTX2 file."
+        "VkFormat {} is prohibited in a KTX2 file."
     };
     static constexpr IssueError InvalidFormat{
         3002, "Invalid VkFormat.",
@@ -281,9 +281,9 @@ struct DFD {
         6001, "Mismatching dfdTotalSize and dfdByteLength. dfdTotalSize must match dfdByteLength.",
         "dfdTotalSize is {} but dfdByteLength is {} and they must match."
     };
-    static constexpr IssueError TooManyDFDBlocks{
-        6002, "Too many DFD blocks.",
-        "The number of DFD blocks exceeds the maximum allowed {}. {} byte(s) left unprocessed."
+    static constexpr IssueWarning TooManyDFDBlocks{
+        6002, "Too many DFD blocks. The number of DFD blocks exceeds the validator limit.",
+        "The number of DFD blocks exceeds the validator limit of {}. Skipping validation of the remaining {} byte(s)."
     };
     static constexpr IssueWarning UnknownDFDBlock{
         6003, "Unrecognized DFD block.",
@@ -437,9 +437,9 @@ struct DFD {
 };
 
 struct Metadata {
-    static constexpr IssueError TooManyEntries{
-        7001, "Invalid Key/Value Data. The number of key-value entries exceeds the maximum allowed.",
-        "The number of key-value entries exceeds the maximum allowed {}. {} byte(s) left unprocessed."
+    static constexpr IssueWarning TooManyEntries{
+        7001, "Too many Key/Value entries. The number of key-value entries exceeds the validator limit.",
+        "The number of key-value entries exceeds the validator limit of {}. Skipping validation of the remaining {} byte(s)."
     };
     static constexpr IssueError NotEnoughDataForAnEntry{
         7002, "Invalid Key/Value Data. Not enough data left in Key/Value Data to process another key-value entry",

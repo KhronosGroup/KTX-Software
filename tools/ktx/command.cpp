@@ -7,7 +7,7 @@
 #include "version.h"
 
 #include "stdafx.h"
-#include <stdarg.h>
+#include <cstdarg>
 #include <iostream>
 
 

@@ -60,12 +60,7 @@ Unified CLI frontend for the KTX-Software library.
     </dl>
 
     The following options are also available without a command:
-    <dl>
-        <dt>-h, --help</dt>
-        <dd>Print the usage message and exit.</dd>
-        <dt>-v, --version</dt>
-        <dd>Print the version number of this program and exit.</dd>
-    </dl>
+    @snippet{doc} ktx/command.h command options
 
 @section ktxtools_exitstatus EXIT STATUS
     @b ktx @b info exits

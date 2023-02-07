@@ -50,7 +50,16 @@ namespace ktx {
 typedef int (*pfnBuiltinCommand)(int argc, _TCHAR* argv[]);
 typedef int (KTX_COMMAND_PTR *pfnImportedCommand)(int argc, _TCHAR* argv[]);
 
-
+/**
+//! [command options]
+<dl>
+    <dt>-h, --help</dt>
+    <dd>Print this usage message and exit.</dd>
+    <dt>-v, --version</dt>
+    <dd>Print the version number of this program and exit.</dd>
+</dl>
+//! [command options]
+*/
 class Command {
 protected:
     _tstring processName;

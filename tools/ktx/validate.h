@@ -23,8 +23,9 @@ struct ValidationReport {
     std::string details;
 };
 
-int validateFile(const _tstring& filepath, bool warningsAsErrors, std::function<void(const ValidationReport&)> callback);
-int validateStream(FILE* file, bool warningsAsErrors, std::function<void(const ValidationReport&)> callback);
+int validateIOStream(std::istream& stream, bool warningsAsErrors, std::function<void(const ValidationReport&)> callback);
 int validateMemory(const char* data, std::size_t size, bool warningsAsErrors, std::function<void(const ValidationReport&)> callback);
+int validateNamedFile(const _tstring& filepath, bool warningsAsErrors, std::function<void(const ValidationReport&)> callback);
+int validateStdioStream(FILE* file, bool warningsAsErrors, std::function<void(const ValidationReport&)> callback);
 
 } // namespace ktx

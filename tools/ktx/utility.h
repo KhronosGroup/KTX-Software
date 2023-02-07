@@ -17,48 +17,6 @@
 
 namespace ktx {
 
-class FileGuard {
-    FILE* file = nullptr;
-
-public:
-    constexpr inline FileGuard() = default;
-    explicit inline FileGuard(const char* tfilepath, const char* mode) {
-#ifdef _WIN32
-        _tfopen_s(&file, tfilepath, mode);
-#else
-        file = _tfopen(tfilepath, mode);
-#endif
-    }
-
-    FileGuard(const FileGuard&) = delete;
-    FileGuard& operator=(const FileGuard&) & = delete;
-    FileGuard(FileGuard&&) = delete;
-    FileGuard& operator=(FileGuard&&) & = delete;
-
-    inline ~FileGuard() {
-        if (file != nullptr)
-            fclose(file);
-    }
-
-public:
-    /*implicit*/ inline operator FILE*() {
-        return file;
-    }
-
-    /*implicit*/ inline operator const FILE*() const {
-        return file;
-    }
-
-    explicit inline operator bool() const {
-        return file;
-    }
-
-    [[nodiscard]] inline bool operator!() const {
-        return !file;
-    }
-};
-
-// -------------------------------------------------------------------------------------------------
 
 template <typename T>
 [[nodiscard]] constexpr inline T align(const T value, const T alignment) noexcept {
@@ -83,8 +41,8 @@ template <typename T>
 // C++20 - std::to_underlying
 template <typename E>
 [[nodiscard]] constexpr inline auto to_underlying(E e) noexcept {
-	static_assert(std::is_enum_v<E>, "E has to be an enum type");
-	return static_cast<std::underlying_type_t<E>>(e);
+    static_assert(std::is_enum_v<E>, "E has to be an enum type");
+    return static_cast<std::underlying_type_t<E>>(e);
 }
 
 // C++20 - string.starts_with(prefix)
@@ -97,7 +55,8 @@ template <typename E>
     return string.find(c) != std::string_view::npos;
 }
 
-// C++20 - std::identity
+/// C++20 - std::identity
+/// identity is a function object type whose operator() returns its argument unchanged.
 struct identity {
     using is_transparent = void;
 
@@ -111,15 +70,6 @@ template <typename Range, typename Comp = std::less<>, typename Proj = identity>
 [[nodiscard]] constexpr inline bool is_sorted(const Range& range, Comp&& comp = {}, Proj&& proj = {}) {
     return std::is_sorted(std::begin(range), std::end(range), [&](const auto& lhs, const auto& rhs) {
         return comp(std::invoke(proj, lhs), std::invoke(proj, rhs));
-    });
-}
-
-/// \param range must be sorted
-template <typename Range, typename Proj = identity>
-[[nodiscard]] constexpr inline bool is_unique(const Range& range, Proj&& proj = {}) {
-    const auto end = std::end(range);
-    return end == std::adjacent_find(std::begin(range), end, [&](const auto& lhs, const auto& rhs) {
-       return std::invoke(proj, lhs) == std::invoke(proj, rhs);
     });
 }
 
@@ -152,6 +102,11 @@ inline void replace_all_inplace(std::string& string, std::string_view search, st
 
 // --- UTF-8 ---------------------------------------------------------------------------------------
 
+/**
+ * @internal
+ * @brief Given the lead byte of a UTF-8 sequence returns the expected length of the codepoint
+ * @param[in] leadByte The lead byte of a UTF-8 sequence
+ * @return The expected length of the codepoint */
 [[nodiscard]] constexpr inline int sequenceLength(uint8_t leadByte) noexcept {
     if ((leadByte & 0b1000'0000u) == 0b0000'0000u)
         return 1;
@@ -165,6 +120,12 @@ inline void replace_all_inplace(std::string& string, std::string_view search, st
     return 0;
 }
 
+/**
+ * @internal
+ * @brief Checks if the codepoint was coded as a longer than required sequence
+ * @param[in] codepoint The unicode codepoint
+ * @param[in] length The UTF-8 sequence length
+ * @return True if the sequence length was inappropriate for the given codepoint */
 [[nodiscard]] constexpr inline bool isOverlongSequence(uint32_t codepoint, int length) noexcept {
     if (codepoint < 0x80)
         return length != 1;
@@ -176,11 +137,22 @@ inline void replace_all_inplace(std::string& string, std::string_view search, st
         return false;
 }
 
+/**
+ * @internal
+ * @brief Checks if the codepoint is valid
+ * @param[in] codepoint The unicode codepoint
+ * @return True if the codepoint is a valid unicode codepoint */
 [[nodiscard]] constexpr inline bool isCodepointValid(uint32_t codepoint) noexcept {
     return codepoint <= 0x0010FFFFu
             && !(0xD800u <= codepoint && codepoint <= 0xDBFFu);
 }
 
+/**
+ * @internal
+ * @brief Safely checks and advances an UTF-8 sequence iterator to the next unicode codepoint
+ * @param[in] it iterator to be advanced
+ * @param[in] end iterator pointing to the end of the range
+ * @return True if the advance operation was successful and the advanced codepoint was valid UTF-8 sequence */
 template <typename Iterator>
 [[nodiscard]] constexpr bool advanceUTF8(Iterator& it, Iterator end) noexcept {
     if (it == end)
@@ -230,6 +202,11 @@ template <typename Iterator>
     return true;
 }
 
+/**
+ * @internal
+ * @brief Validates an UTF-8 sequence
+ * @param[in] text The string to be validated
+ * @return nullopt if the sequence is valid otherwise the first index where an invalid UTF-8 character was found */
 [[nodiscard]] constexpr inline std::optional<std::size_t> validateUTF8(std::string_view text) noexcept {
     auto it = text.begin();
     const auto end = text.end();
@@ -256,5 +233,9 @@ public:
         fmt::print(os, std::forward<Fmt>(fmt), std::forward<Args>(args)...);
     }
 };
+
+[[nodiscard]] inline std::string errnoMessage() {
+    return std::make_error_code(static_cast<std::errc>(errno)).message();
+}
 
 } // namespace ktx

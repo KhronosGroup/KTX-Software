@@ -27,7 +27,8 @@ Validates a KTX2 file.
     ktx validate [options] @e input_file
 
 @section ktxtools_validate_description DESCRIPTION
-    @b ktx @b validate validates and prints validation information about the KTX2 file provided as argument.
+    @b ktx @b validate validates a Khronos texture format version 2 file (KTX2) given as argument.
+    Prints any found error and warning to the stdout.
 
     @note @b ktx @b validate prints using UTF-8 encoding. If your console is not
     set for UTF-8 you will see incorrect characters in output of the file
@@ -46,11 +47,8 @@ Validates a KTX2 file.
         <dd>Check compatibility with KHR_texture_basisu glTF extension. Unset by default.</dd>
         <dt>-e, --warnings-as-errors</dt>
         <dd>Treat warnings as errors. Unset by default.</dd>
-        <dt>-h, --help</dt>
-        <dd>Print the usage message and exit.</dd>
-        <dt>-v, --version</dt>
-        <dd>Print the version number of this program and exit.</dd>
     </dl>
+    @snippet{doc} ktx/command.h command options
 
 @section ktxtools_validate_exitstatus EXIT STATUS
     @b ktx @b validate exits
@@ -158,7 +156,7 @@ int CommandValidate::validate(const _tstring& infile, bool warningsAsErrors, Opt
     switch (format) {
     case Options::OutputFormat::text: {
         std::ostringstream messagesOS;
-        const auto validationResult = validateFile(infile, warningsAsErrors, [&](const ValidationReport& issue) {
+        const auto validationResult = validateNamedFile(infile, warningsAsErrors, [&](const ValidationReport& issue) {
             fmt::print(messagesOS, "{}-{:04}: {}\n", toString(issue.type), issue.id, issue.message);
             fmt::print(messagesOS, "    {}\n", issue.details);
         });
@@ -183,7 +181,7 @@ int CommandValidate::validate(const _tstring& infile, bool warningsAsErrors, Opt
         PrintIndent pi{messagesOS, base_indent, indent_width};
 
         bool first = true;
-        const auto validationResult = validateFile(infile, warningsAsErrors, [&](const ValidationReport& issue) {
+        const auto validationResult = validateNamedFile(infile, warningsAsErrors, [&](const ValidationReport& issue) {
             if (!std::exchange(first, false)) {
                 pi(2, "}},{}", nl);
             }

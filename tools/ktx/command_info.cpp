@@ -8,10 +8,12 @@
 #include <ktx.h>
 #include <fmt/os.h> // For std::error_code
 #include <fmt/printf.h>
+#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <utility>
 
+#include "sbufstream.h"
 #include "stdafx.h"
 #include "utility.h"
 #include "validate.h"
@@ -45,11 +47,8 @@ Prints information about a KTX2 file.
             @b mini-json - Minified JSON (Every optional formatting is skipped).
             The default format is @b text.
         </dd>
-        <dt>-h, --help</dt>
-        <dd>Print the usage message and exit.</dd>
-        <dt>-v, --version</dt>
-        <dd>Print the version number of this program and exit.</dd>
     </dl>
+    @snippet{doc} ktx/command.h command options
 
 @section ktxtools_info_exitstatus EXIT STATUS
     @b ktx @b info exits
@@ -94,8 +93,8 @@ public:
 
 private:
     int printInfo(const _tstring& infile, Options::OutputFormat format);
-    KTX_error_code printInfoText(FILE* inf);
-    KTX_error_code printInfoJSON(FILE* inf, bool minified);
+    KTX_error_code printInfoText(std::istream& file);
+    KTX_error_code printInfoJSON(std::istream& file, bool minified);
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -149,11 +148,10 @@ int CommandInfo::main(int argc, _TCHAR* argv[]) {
 }
 
 int CommandInfo::printInfo(const _tstring& infile, Options::OutputFormat format) {
-    FileGuard file(infile.c_str(), "rb");
+    std::ifstream file(infile, std::ios::binary | std::ios::in);
 
     if (!file) {
-        const auto ec = std::make_error_code(static_cast<std::errc>(errno));
-        fmt::print(stderr, "{}: Could not open input file \"{}\". {}: {}\n", processName, infile, ec, ec.message());
+        fmt::print(stderr, "{}: Could not open input file \"{}\": {}\n", processName, infile, errnoMessage());
         return 2;
     }
 
@@ -193,9 +191,9 @@ int CommandInfo::printInfo(const _tstring& infile, Options::OutputFormat format)
     return EXIT_SUCCESS;
 }
 
-KTX_error_code CommandInfo::printInfoText(FILE* inf) {
+KTX_error_code CommandInfo::printInfoText(std::istream& file) {
     std::ostringstream messagesOS;
-    const auto validationResult = validateStream(inf, false, [&](const ValidationReport& issue) {
+    const auto validationResult = validateIOStream(file, false, [&](const ValidationReport& issue) {
         fmt::print(messagesOS, "{}-{:04}: {}\n", toString(issue.type), issue.id, issue.message);
         fmt::print(messagesOS, "    {}\n", issue.details);
     });
@@ -208,16 +206,17 @@ KTX_error_code CommandInfo::printInfoText(FILE* inf) {
     }
     fmt::print("\n");
 
-    const int fileResult = fseek(inf, 0, SEEK_SET);
-    if (fileResult != 0) {
-        const auto ec = std::make_error_code(static_cast<std::errc>(errno));
-        fmt::print(stderr, "{}: Could not rewind the input file. {}: {}\n", processName, ec, ec.message());
+    file.seekg(0);
+    if (!file) {
+        fmt::print(stderr, "{}: Could not rewind the input file: {}\n", processName, errnoMessage());
+        return KTX_FILE_SEEK_ERROR;
     }
 
-    return ktxPrintKTX2InfoTextForStdioStream(inf);
+    StreambufStream<std::streambuf*> ktx2Stream{file.rdbuf(), std::ios::in | std::ios::binary};
+    return ktxPrintKTX2InfoTextForStream(ktx2Stream.stream());
 }
 
-KTX_error_code CommandInfo::printInfoJSON(FILE* inf, bool minified) {
+KTX_error_code CommandInfo::printInfoJSON(std::istream& file, bool minified) {
     const auto base_indent = minified ? 0 : +0;
     const auto indent_width = minified ? 0 : 4;
     const char* space = minified ? "" : " ";
@@ -227,7 +226,7 @@ KTX_error_code CommandInfo::printInfoJSON(FILE* inf, bool minified) {
     PrintIndent pi{messagesOS, base_indent, indent_width};
 
     bool first = true;
-    const auto validationResult = validateStream(inf, false, [&](const ValidationReport& issue) {
+    const auto validationResult = validateIOStream(file, false, [&](const ValidationReport& issue) {
         if (!std::exchange(first, false)) {
             pi(2, "}},{}", nl);
         }
@@ -251,14 +250,15 @@ KTX_error_code CommandInfo::printInfoJSON(FILE* inf, bool minified) {
         out(1, "\"messages\":{}[],{}", space, nl);
     }
 
-    const int fileResult = fseek(inf, 0, SEEK_SET);
-    if (fileResult != 0) {
-        const auto ec = std::make_error_code(static_cast<std::errc>(errno));
-        fmt::print(stderr, "{}: Could not rewind the input file. {}: {}\n", processName, ec, ec.message());
+    file.seekg(0);
+    if (!file) {
+        out(0, "}}{}", nl);
+        fmt::print(stderr, "{}: Could not rewind the input file: {}\n", processName, errnoMessage());
+        return KTX_FILE_SEEK_ERROR;
     }
 
-    const auto ktx_ec = ktxPrintKTX2InfoJSONForStdioStream(inf, base_indent + 1, indent_width, minified);
-
+    StreambufStream<std::streambuf*> ktx2Stream{file.rdbuf(), std::ios::in | std::ios::binary};
+    const auto ktx_ec = ktxPrintKTX2InfoJSONForStream(ktx2Stream.stream(), base_indent + 1, indent_width, minified);
     out(0, "}}{}", nl);
 
     return ktx_ec;
