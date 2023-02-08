@@ -42,9 +42,17 @@ CMAKE_DEPENDENT_OPTION( KTX_FEATURE_TOOLS
 option( KTX_FEATURE_DOC "Create KTX documentation" OFF )
 option( KTX_FEATURE_LOADTEST_APPS "Create load tests apps that load and display various KTX textures" OFF )
 option( KTX_FEATURE_STATIC_LIBRARY "Create static libraries (shared otherwise)" ${LIB_TYPE_DEFAULT} )
-option( KTX_FEATURE_TESTS "Create unit tests" ON )
 option( KTX_FEATURE_JNI "Create Java bindings for libktx" OFF )
-option( KTX_TOOLS_TESTS "Enable KTX CLI Tools tests (requires CTS submodule)" OFF )
+option( KTX_FEATURE_TESTS "Create unit tests" ON )
+option( KTX_FEATURE_TOOLS_CTS "Enable KTX CLI Tools CTS tests (requires CTS submodule)" OFF )
+
+if(KTX_FEATURE_TOOLS_CTS AND NOT KTX_FEATURE_TOOLS)
+    message(WARNING "KTX_FEATURE_TOOLS is not set -> disabling KTX_FEATURE_TOOLS_CTS")
+    set(KTX_FEATURE_TOOLS_CTS "OFF")
+elseif(KTX_FEATURE_TOOLS_CTS AND NOT KTX_FEATURE_TESTS)
+    message(WARNING "KTX_FEATURE_TESTS is not set -> disabling KTX_FEATURE_TOOLS_CTS")
+    set(KTX_FEATURE_TOOLS_CTS "OFF")
+endif()
 
 if(POLICY CMP0127)
     # cmake_dependent_option() supports full Condition Syntax. Introduced in
@@ -575,6 +583,9 @@ if(KTX_FEATURE_JNI)
 endif()
 
 create_version_header(lib ktx)
+if(TARGET ktx_static)
+    add_dependencies(ktx_static ktx_version)
+endif()
 create_version_file()
 
 target_compile_definitions(
