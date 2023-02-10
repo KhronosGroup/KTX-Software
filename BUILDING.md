@@ -411,12 +411,17 @@ Dependencies
 #### Conformance Test Suite - CTS
 
 The submodule of [CTS Repository](https://github.com/KhronosGroup/KTX-Software-CTS/) is optional and
-is only required for running the CTS tests. When used for the first time or whenever the ref changes
-the submodule has to be updated with:
+only required for running the CTS tests. If the CTS test suit is desired it can be fetched
+during cloning with the additional `--recurse-submodules` git clone flag:
+```bash
+git clone --recurse-submodules git@github.com:KhronosGroup/KTX-Software.git
+```
+If the repository was already cloned or whenever the submodule ref changes the submodule has to be
+updated with:
 ```bash
 git submodule update --init --recursive tests/cts
 ```
-(For more information on submodules see the [git documentation](https://git-scm.com/book/en/v2/Git-Tools-Submodules))
+(For more information on submodules see the [git documentation](https://git-scm.com/book/en/v2/Git-Tools-Submodules).)
 
 Once the submodule is fetched the CTS tests can be enabled with the `KTX_FEATURE_TOOLS_CTS`
 cmake option during cmake configuration. Please note that for `KTX_FEATURE_TOOLS_CTS` to take

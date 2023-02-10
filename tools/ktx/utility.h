@@ -149,10 +149,10 @@ inline void replace_all_inplace(std::string& string, std::string_view search, st
 
 /**
  * @internal
- * @brief Safely checks and advances an UTF-8 sequence iterator to the next unicode codepoint
+ * @brief Safely checks and advances a UTF-8 sequence iterator to the start of the next unicode codepoint
  * @param[in] it iterator to be advanced
  * @param[in] end iterator pointing to the end of the range
- * @return True if the advance operation was successful and the advanced codepoint was valid UTF-8 sequence */
+ * @return True if the advance operation was successful and the advanced codepoint was a valid UTF-8 sequence */
 template <typename Iterator>
 [[nodiscard]] constexpr bool advanceUTF8(Iterator& it, Iterator end) noexcept {
     if (it == end)
@@ -204,7 +204,7 @@ template <typename Iterator>
 
 /**
  * @internal
- * @brief Validates an UTF-8 sequence
+ * @brief Validates a UTF-8 sequence
  * @param[in] text The string to be validated
  * @return nullopt if the sequence is valid otherwise the first index where an invalid UTF-8 character was found */
 [[nodiscard]] constexpr inline std::optional<std::size_t> validateUTF8(std::string_view text) noexcept {
