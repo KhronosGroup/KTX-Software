@@ -58,6 +58,10 @@ class ImageSpec {
   public:
     ImageSpec() : imageWidth(0), imageHeight(0), imageDepth(0) { }
 
+    ImageSpec(uint32_t w, uint32_t h, uint32_t d, FormatDescriptor formatDesc)
+        : formatDesc(std::move(formatDesc)),
+          imageWidth(w), imageHeight(h), imageDepth(d) { }
+
     ImageSpec(uint32_t w, uint32_t h, uint32_t d,
                uint32_t channelCount, uint32_t channelBitCount,
                khr_df_sample_datatype_qualifiers_e dt
@@ -84,7 +88,7 @@ class ImageSpec {
           imageWidth(w), imageHeight(h), imageDepth(d) { }
 
     ImageSpec(uint32_t w, uint32_t h, uint32_t d,
-               uint32_t channelCount, std::vector<uint>& channelBitLengths,
+               uint32_t channelCount, std::vector<uint32_t>& channelBitLengths,
                std::vector<khr_df_model_channels_e>& channelTypes,
                khr_df_sample_datatype_qualifiers_e dt
                   = static_cast<khr_df_sample_datatype_qualifiers_e>(0),
@@ -148,8 +152,8 @@ class ImageInput {
             : spec(is), filepos(pos) { }
     };
     std::vector<imageInfo> images;                                 ///<
-    uint curSubimage = std::numeric_limits<int>::max();
-    uint curMiplevel = std::numeric_limits<int>::max();
+    uint32_t curSubimage = std::numeric_limits<uint32_t>::max();
+    uint32_t curMiplevel = std::numeric_limits<uint32_t>::max();
     WarningCallbackFunction sendWarning = nullptr;
 
   public:
@@ -315,7 +319,7 @@ class ImageInput {
     // If there is no such subimage and miplevel it returns an ImageSpec
     // whose format returns true for isUnknown().
     // This default method assumes no subimages.
-    virtual ImageSpec spec (uint /*subimage*/, uint /*miplevel=0*/) {
+    virtual ImageSpec spec (uint32_t /*subimage*/, uint32_t /*miplevel=0*/) {
         ImageSpec ret;
         if (curSubimage < images.size()) {
             ret = images[curSubimage].spec;
@@ -325,15 +329,15 @@ class ImageInput {
 
     // Return a copy of the ImageSpec but only the dimension and type fields.
     // TODO: Determine if this is necessary.
-    virtual ImageSpec spec_dimensions (uint /*subimage*/, uint /*miplevel=0*/) {
+    virtual ImageSpec spec_dimensions (uint32_t /*subimage*/, uint32_t /*miplevel=0*/) {
         return spec();
     }
 
-    virtual uint currentSubimage(void) const { return curSubimage; }
-    virtual uint currentMiplevel(void) const { return curMiplevel; }
-    virtual uint subimageCount(void) const { return 1; }
-    virtual uint miplevelCount(void) const { return 1; }
-    virtual bool seekSubimage(uint subimage, uint miplevel = 0) {
+    virtual uint32_t currentSubimage(void) const { return curSubimage; }
+    virtual uint32_t currentMiplevel(void) const { return curMiplevel; }
+    virtual uint32_t subimageCount(void) const { return 1; }
+    virtual uint32_t miplevelCount(void) const { return 1; }
+    virtual bool seekSubimage(uint32_t subimage, uint32_t miplevel = 0) {
         // Default implementation assumes no support for subimages or
         // mipmaps, so there is no work to do.
         return subimage == currentSubimage() && miplevel == currentMiplevel();
@@ -359,7 +363,7 @@ class ImageInput {
     //   callers as, for historic reasons, this conversion is provided by
     //   the upper level Image class.
     virtual void readImage(void* buffer, size_t bufferByteCount,
-                           uint subimage = 0, uint miplevel = 0,
+                           uint32_t subimage = 0, uint32_t miplevel = 0,
                            const FormatDescriptor& targetFormat = FormatDescriptor());
 
     /// Read a scanline into contiguous performing conversions to
@@ -367,14 +371,14 @@ class ImageInput {
     ///
     /// @sa See readImage for information about handling of targetFormat.
     virtual void readScanline(void* buffer, size_t bufferByteCount,
-                              uint y, uint z,
-                              uint subimage, uint miplevel,
+                              uint32_t y, uint32_t z,
+                              uint32_t subimage, uint32_t miplevel,
                               const FormatDescriptor& targetFormat = FormatDescriptor());
     /// Read a single scanline (all channels) of native data into contiguous
     /// memory.
     virtual void readNativeScanline(void* buffer, size_t bufferByteCount,
-                                    uint y, uint z = 0,
-                                    uint subimage = 0, uint miplevel = 0) = 0;
+                                    uint32_t y, uint32_t z = 0,
+                                    uint32_t subimage = 0, uint32_t miplevel = 0) = 0;
 
     template<class Tr, class Tw>
     inline static void

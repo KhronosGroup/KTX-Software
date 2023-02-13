@@ -2,11 +2,11 @@
 // Copyright 2022-2023 RasterGrid Kft.
 // SPDX-License-Identifier: Apache-2.0
 
-
 #pragma once
 
 #include "vkformat_enum.h"
 #include <fmt/format.h>
+#include "ktx.h"
 #define LIBKTX // To stop dfdutils including vulkan_core.h.
 #include "dfdutils/dfd.h"
 
@@ -68,6 +68,11 @@ namespace ktx {
 [[nodiscard]] inline std::string toString(khr_df_model_e model) noexcept {
     const auto str = dfdToStringColorModel(model);
     return str ? std::string(str) : fmt::format("(0x{:02X})", static_cast<uint32_t>(model));
+}
+
+[[nodiscard]] inline std::string toString(khr_df_primaries_e primaries) noexcept {
+    const auto str = dfdToStringColorPrimaries(primaries);
+    return str ? std::string(str) : fmt::format("(0x{:02X})", static_cast<uint32_t>(primaries));
 }
 
 [[nodiscard]] inline std::string toString(khr_df_transfer_e transfer) noexcept {
@@ -500,7 +505,6 @@ namespace ktx {
     case VK_FORMAT_R8_SSCALED: [[fallthrough]];
     case VK_FORMAT_R8_UINT: [[fallthrough]];
     case VK_FORMAT_R8_SINT: [[fallthrough]];
-    case VK_FORMAT_R8_SRGB: [[fallthrough]];
 
     //   VK_FORMAT_R8G8_SRGB
     case VK_FORMAT_R8G8_UNORM: [[fallthrough]];

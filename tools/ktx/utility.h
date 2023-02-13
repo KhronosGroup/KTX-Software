@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "ktx.h"
 #include "stdafx.h"
 #include <fmt/ostream.h>
 #include <fmt/printf.h>
@@ -17,7 +18,6 @@
 
 namespace ktx {
 
-
 template <typename T>
 [[nodiscard]] constexpr inline T align(const T value, const T alignment) noexcept {
     return (alignment - 1 + value) / alignment * alignment;
@@ -26,6 +26,11 @@ template <typename T>
 template <typename T>
 [[nodiscard]] constexpr inline T* align(T* ptr, std::uintptr_t alignment) noexcept {
     return reinterpret_cast<T*>(align(reinterpret_cast<std::uintptr_t>(ptr), alignment));
+}
+
+template <typename T>
+[[nodiscard]] constexpr inline T ceil_div(const T x, const T y) noexcept {
+	return (x + y - 1) / y;
 }
 
 // C++20 - std::popcount
@@ -78,6 +83,18 @@ constexpr inline void sort(Range& range, Comp&& comp = {}, Proj&& proj = {}) {
     return std::sort(std::begin(range), std::end(range), [&](const auto& lhs, const auto& rhs) {
         return comp(std::invoke(proj, lhs), std::invoke(proj, rhs));
     });
+}
+
+[[nodiscard]] inline std::string to_lower_copy(std::string string) {
+    for (auto& c : string)
+        c = static_cast<char>(std::tolower(c));
+    return string;
+}
+
+[[nodiscard]] inline std::string to_upper_copy(std::string string) {
+    for (auto& c : string)
+        c = static_cast<char>(std::toupper(c));
+    return string;
 }
 
 inline void replace_all_inplace(std::string& string, std::string_view search, std::string_view replace) {
@@ -237,5 +254,58 @@ public:
 [[nodiscard]] inline std::string errnoMessage() {
     return std::make_error_code(static_cast<std::errc>(errno)).message();
 }
+
+// -------------------------------------------------------------------------------------------------
+
+/// RAII Handler for ktxTexture
+class KTXTexture2 final {
+private:
+    ktxTexture2* handle_ = nullptr;
+
+public:
+    explicit KTXTexture2(std::nullptr_t) : handle_{nullptr} { }
+    explicit KTXTexture2(ktxTexture2* handle) : handle_{handle} { }
+
+    KTXTexture2(const KTXTexture2&) = delete;
+    KTXTexture2& operator=(const KTXTexture2&) = delete;
+
+    KTXTexture2(KTXTexture2&& other) noexcept :
+        handle_{other.handle_} {
+        other.handle_ = nullptr;
+    }
+
+    KTXTexture2& operator=(KTXTexture2&& other) & {
+        handle_ = other.handle_;
+        other.handle_ = nullptr;
+        return *this;
+    }
+
+    ~KTXTexture2() {
+        if (handle_ != nullptr) {
+            ktxTexture_Destroy(ktxTexture(handle_));
+            handle_ = nullptr;
+        }
+    }
+
+    inline ktxTexture2* handle() const {
+        return handle_;
+    }
+
+    inline ktxTexture2** pHandle() {
+        return &handle_;
+    }
+
+    /*implicit*/ inline operator ktxTexture*() {
+        return ktxTexture(handle_);
+    }
+
+    /*implicit*/ inline operator ktxTexture2*() {
+        return handle_;
+    }
+
+    inline ktxTexture2* operator->() const {
+        return handle_;
+    }
+};
 
 } // namespace ktx

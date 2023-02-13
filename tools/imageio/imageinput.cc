@@ -52,7 +52,7 @@ ImageInput::open(const _tstring& filename,
         // Check file exists, before looking for a suitable plugin.
         // MS's STL has `open` overloads that accept wchar_t to handle
         // Window's Unicode file names.
-        ifs.open(filename);
+        ifs.open(filename, std::ios::binary | std::ios::in);
         if (ifs.fail()) {
             throw std::runtime_error(
                 fmt::format("Open of \"{}\" failed. {}",
@@ -109,7 +109,7 @@ ImageInput::open(const _tstring& filename,
             ImageSpec tmpspec;
             in->open(*fn, ifs, buffer, tmpspec, *config);
             return in;
-        } catch (std::runtime_error e) {
+        } catch (const std::runtime_error& e) {
             // Oops, it failed.  Apparently, this file can't be
             // opened with this II.
             if (in) {
@@ -158,7 +158,6 @@ ImageInput::open(const _tstring& filename,
     return in;
 }
 
-
 // Default implementation
 void ImageInput::open(const _tstring& filename, ImageSpec& newspec)
 {
@@ -203,8 +202,8 @@ void ImageInput::open(const _tstring& filename, ImageSpec& newspec)
 // TODO: Consider making ImageSpec param a pointer with nullptr for unknown.
 void
 ImageInput::readScanline(void* pBuffer, size_t bufferByteCount,
-                         uint y, uint z,
-                         uint subimage, uint miplevel,
+                         uint32_t y, uint32_t z,
+                         uint32_t subimage, uint32_t miplevel,
                          const FormatDescriptor& format)
 {
     const FormatDescriptor* targetFormat;
@@ -273,11 +272,11 @@ ImageInput::readScanline(void* pBuffer, size_t bufferByteCount,
 // Default implementation
 void
 ImageInput::readImage(void* pBuffer, size_t bufferByteCount,
-                     uint subimage, uint miplevel,
+                     uint32_t subimage, uint32_t miplevel,
                      const FormatDescriptor& format)
 {
     uint8_t* pDst = static_cast<uint8_t*>(pBuffer);
-    for (uint y = 0; y < spec().height(); y++) {
+    for (uint32_t y = 0; y < spec().height(); y++) {
         readScanline(pDst, bufferByteCount,
                      y, 0, subimage, miplevel, format);
         pDst += spec().scanlineByteCount();

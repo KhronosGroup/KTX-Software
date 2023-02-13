@@ -182,6 +182,8 @@ typedef enum ktx_error_code_e {
     KTX_UNSUPPORTED_TEXTURE_TYPE, /*!< The KTX file specifies an unsupported texture type. */
     KTX_UNSUPPORTED_FEATURE,  /*!< Feature not included in in-use library or not yet implemented. */
     KTX_LIBRARY_NOT_LINKED,  /*!< Library dependency (OpenGL or Vulkan) not linked into application. */
+    KTX_DECOMPRESS_LENGTH_ERROR, /*!< Decompressed byte count does not match expected byte size */
+    KTX_DECOMPRESS_CHECKSUM_ERROR, /*!< Checksum mismatch when decompressing */
     KTX_ERROR_MAX_ENUM = KTX_LIBRARY_NOT_LINKED /*!< For safety checks. */
 } ktx_error_code_e;
 /**
@@ -765,9 +767,12 @@ enum ktxTextureCreateFlagBits {
     KTX_TEXTURE_CREATE_RAW_KVDATA_BIT = 0x02,
                                    /*!< Load the raw key-value data instead of
                                         creating a @c ktxHashList from it. */
-    KTX_TEXTURE_CREATE_SKIP_KVDATA_BIT = 0x04
+    KTX_TEXTURE_CREATE_SKIP_KVDATA_BIT = 0x04,
                                    /*!< Skip any key-value data. This overrides
                                         the RAW_KVDATA_BIT. */
+    KTX_TEXTURE_CREATE_CHECK_GLTF_BASISU_BIT = 0x08
+                                   /*!< Load texture compatible with the rules
+                                        of KHR_texture_basisu glTF extension */
 };
 /**
  * @memberof ktxTexture
@@ -1051,6 +1056,9 @@ ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality);
 
 KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture2_DeflateZstd(ktxTexture2* This, ktx_uint32_t level);
+
+KTX_API KTX_error_code KTX_APIENTRY
+ktxTexture2_DeflateZLIB(ktxTexture2* This, ktx_uint32_t level);
 
 KTX_API void KTX_APIENTRY
 ktxTexture2_GetComponentInfo(ktxTexture2* This, ktx_uint32_t* numComponents,

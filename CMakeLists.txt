@@ -189,6 +189,7 @@ set(KTX_MAIN_SRC
     include/ktx.h
     lib/basis_sgd.h
     lib/basis_transcode.cpp
+    lib/miniz_wrapper.cpp
     lib/basisu/transcoder/basisu_containers.h
     lib/basisu/transcoder/basisu_containers_impl.h
     lib/basisu/transcoder/basisu_file_headers.h
@@ -883,8 +884,9 @@ else()
     target_link_libraries(ktx PRIVATE ${ASTC_LIB_TARGET})
 endif()
 
-# FMT
+# Other external projects
 add_subdirectory(other_projects/fmt)
+add_subdirectory(other_projects/cxxopts)
 
 # Tools
 if(KTX_FEATURE_TOOLS)

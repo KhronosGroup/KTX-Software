@@ -85,6 +85,7 @@ function( CreateDocLibKTX )
         lib/astc_encode.cpp
         lib/basis_encode.cpp
         lib/basis_transcode.cpp
+        lib/miniz_wrapper.cpp
         lib/strings.c
         lib/glloader.c
         lib/hashlist.c

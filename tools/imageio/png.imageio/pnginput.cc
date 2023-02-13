@@ -35,14 +35,14 @@ class PngInput final : public ImageInput {
     }
 
     virtual void readImage(void* buffer,  size_t bufferByteCount,
-                           uint subimage, uint miplevel,
+                           uint32_t subimage, uint32_t miplevel,
                            const FormatDescriptor& targetFormat) override;
 
     /// Read a single scanline (all channels) of native data into contiguous
     /// memory.
     virtual void readNativeScanline(void* /*buffer*/,  size_t /*bufferByteCount*/,
-                                    uint /*y*/, uint /*z*/,
-                                    uint /*subimage*/, uint /*miplevel*/) override { };
+                                    uint32_t /*y*/, uint32_t /*z*/,
+                                    uint32_t /*subimage*/, uint32_t /*miplevel*/) override { };
 
   protected:
     void readHeader();
@@ -257,7 +257,7 @@ PngInput::readHeader()
 
 void
 PngInput::readImage(void* buffer,  size_t bufferByteCount,
-                    uint /*subimage*/, uint /*miplevel*/,
+                    uint32_t /*subimage*/, uint32_t /*miplevel*/,
                     const FormatDescriptor& format)
 {
     const FormatDescriptor* targetFormat;

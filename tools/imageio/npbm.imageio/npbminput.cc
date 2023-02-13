@@ -38,21 +38,21 @@ public:
     NpbmInput() : ImageInput("npbm") { }
     virtual void open(ImageSpec& newspec) override;
     virtual void close() override;
-    //virtual bool read_native_scanline(uint subimage, uint miplevel, int y, int z,
+    //virtual bool read_native_scanline(uint32_t subimage, uint32_t miplevel, int y, int z,
     //                                  void* data) override;
     virtual void readImage(void* buffer, size_t bufferByteCount,
-                           uint subimage, uint miplevel,
+                           uint32_t subimage, uint32_t miplevel,
                            const FormatDescriptor& targetFormat) override;
     /// Read a single scanline (all channels) of native data into contiguous
     /// memory.
     virtual void readNativeScanline(void* buffer, size_t bufferByteCount,
-                                    uint y, uint z,
-                                    uint subimage, uint miplevel) override;
+                                    uint32_t y, uint32_t z,
+                                    uint32_t subimage, uint32_t miplevel) override;
 
-    virtual uint subimageCount(void) const override {
-        return static_cast<uint>(images.size());
+    virtual uint32_t subimageCount(void) const override {
+        return static_cast<uint32_t>(images.size());
     }
-    virtual bool seekSubimage(uint subimage, uint miplevel = 0) override;
+    virtual bool seekSubimage(uint32_t subimage, uint32_t miplevel = 0) override;
 
     virtual const ImageSpec& spec(void) const override {
         return images[curSubimage].spec;
@@ -190,13 +190,13 @@ NpbmInput::readImageHeaders()
             // We've only read the header. Seek to the expected end
             // of the image.
             isp->seekg(images.back().spec.imageByteCount(), isp->cur);
-        } catch (std::istream::failure e) {
+        } catch (const std::istream::failure& e) {
             throwOnReadFailure();
         }
         // Check if there is any more data in the file.
         try {
             isp->peek();
-        } catch (std::istream::failure e) {
+        } catch (const std::istream::failure& e) {
             if (isp->eof()) {
                 return;
             } else {
@@ -243,8 +243,8 @@ NpbmInput::swap(void* pBuffer, size_t nvals)
 
 void
 NpbmInput::readNativeScanline(void* buffer, size_t bufferByteCount,
-                              uint y, uint z,
-                              uint subimage, uint miplevel)
+                              uint32_t y, uint32_t z,
+                              uint32_t subimage, uint32_t miplevel)
 {
     if (isp == nullptr)
         throw std::runtime_error("istream not initialized");
@@ -264,7 +264,7 @@ NpbmInput::readNativeScanline(void* buffer, size_t bufferByteCount,
 
 
 bool
-NpbmInput::seekSubimage(uint subimage, uint miplevel)
+NpbmInput::seekSubimage(uint32_t subimage, uint32_t miplevel)
 {
     if (subimage == currentSubimage() && miplevel == currentMiplevel())
         return true;
@@ -415,7 +415,7 @@ void NpbmInput::parseGPHeader(filetype ftype)
 
 void
 NpbmInput::readImage(void* pBuffer, size_t bufferByteCount,
-                     uint subimage, uint miplevel,
+                     uint32_t subimage, uint32_t miplevel,
                      const FormatDescriptor& format)
 {
     const FormatDescriptor* targetFormat;
@@ -445,7 +445,7 @@ NpbmInput::readImage(void* pBuffer, size_t bufferByteCount,
         isp->read((char*)pBuffer, spec().imageByteCount());
         curImageScanline = spec().height();
         swap(pBuffer, spec().imageChannelCount());
-    } catch (std::istream::failure e) {
+    } catch (const std::istream::failure& e) {
         throwOnReadFailure();
     }
 }

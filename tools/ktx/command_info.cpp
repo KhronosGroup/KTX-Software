@@ -2,21 +2,19 @@
 // Copyright 2022-2023 RasterGrid Kft.
 // SPDX-License-Identifier: Apache-2.0
 
-
 #include "command.h"
-
-#include <ktx.h>
-#include <fmt/os.h> // For std::error_code
-#include <fmt/printf.h>
+#include "sbufstream.h"
+#include "stdafx.h"
+#include "utility.h"
+#include "validate.h"
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <utility>
 
-#include "sbufstream.h"
-#include "stdafx.h"
-#include "utility.h"
-#include "validate.h"
+#include <cxxopts.hpp>
+#include <fmt/printf.h>
+#include <ktx.h>
 
 
 // -------------------------------------------------------------------------------------------------
@@ -52,9 +50,9 @@ Prints information about a KTX2 file.
 
 @section ktxtools_info_exitstatus EXIT STATUS
     @b ktx @b info exits
-        0 on success,
-        1 on command line errors and
-        2 if the input file parsing failed.
+        0 - Success
+        1 - Command line error
+        2 - IO error
 
 @section ktxtools_info_history HISTORY
 
@@ -65,135 +63,85 @@ Prints information about a KTX2 file.
     - Mátyás Császár [Vader], RasterGrid www.rastergrid.com
     - Daniel Rákos, RasterGrid www.rastergrid.com
 */
-
-class CommandInfo : public Command {
-    struct Options {
-        enum class OutputFormat {
-            text,
-            json,
-            json_mini,
-        };
-
-        OutputFormat format = OutputFormat::text;
-        _tstring inputFilepath;
-    };
-
-    Options options;
-
+class CommandInfo : public CommandWithFormat {
 public:
-    // TODO Tools P5: Support --version
-    // TODO Tools P5: Support --help with proper usage
-    void initializeOptions();
-    virtual bool processOption(argparser& parser, int opt) override;
-    void processPositional(const std::vector<_tstring>& infiles, const _tstring& outfile);
-    virtual int main(int argc, _TCHAR* argv[]) override;
-
-    using Command::Command;
+    using CommandWithFormat::CommandWithFormat;
     virtual ~CommandInfo() {};
 
+    virtual int main(int argc, _TCHAR* argv[]) override;
+
+protected:
+    virtual void initOptions(cxxopts::Options& options) override;
+    virtual void processOptions(cxxopts::Options& options, cxxopts::ParseResult& args) override;
+
 private:
-    int printInfo(const _tstring& infile, Options::OutputFormat format);
+    void executeInfo();
     KTX_error_code printInfoText(std::istream& file);
     KTX_error_code printInfoJSON(std::istream& file, bool minified);
 };
 
 // -------------------------------------------------------------------------------------------------
 
-void CommandInfo::initializeOptions() {
-    option_list.emplace(option_list.begin(), "format", argparser::option::required_argument, nullptr, 'f');
-    short_opts += "f:";
-}
-
-bool CommandInfo::processOption(argparser& parser, int opt) {
-    switch (opt) {
-    case 'f':
-        if (parser.optarg == "text") {
-            options.format = Options::OutputFormat::text;
-        } else if (parser.optarg == "json") {
-            options.format = Options::OutputFormat::json;
-        } else if (parser.optarg == "mini-json") {
-            options.format = Options::OutputFormat::json_mini;
-        } else {
-            // TODO Tools P5: Print usage, Failure: unsupported format
-            std::cerr << "Print usage, Failure: unsupported format" << std::endl;
-            return false;
-        }
-        break;
-    default:
-        return false;
-    }
-
-    return true;
-}
-
-void CommandInfo::processPositional(const std::vector<_tstring>& infiles, const _tstring& outfile) {
-    if (infiles.size() > 1) {
-        // TODO Tools P5: Print usage, Failure: infiles.size() > 1
-        std::cerr << "Print usage, Failure: infiles.size() > 1" << std::endl;
-        // TODO Tools P1: Instead of std::exit handle argument parsing failures and stop execution
-        std::exit(1);
-        // return false;
-    }
-
-    options.inputFilepath = infiles[0];
-    (void) outfile;
-}
-
 int CommandInfo::main(int argc, _TCHAR* argv[]) {
-    initializeOptions();
-    processCommandLine(argc, argv, StdinUse::eDisallowStdin, OutfilePos::eNone);
-    processPositional(genericOptions.infiles, genericOptions.outfile);
-
-    return printInfo(options.inputFilepath, options.format);
+    try {
+        parseCommandLine("ktx info",
+                "Prints information about the KTX2 file provided as argument to the stdout.\n",
+                argc, argv);
+        executeInfo();
+        return RETURN_CODE_SUCCESS;
+    } catch (const FatalError& error) {
+        return error.return_code;
+    }
 }
 
-int CommandInfo::printInfo(const _tstring& infile, Options::OutputFormat format) {
-    std::ifstream file(infile, std::ios::binary | std::ios::in);
+void CommandInfo::initOptions(cxxopts::Options& options) {
+    CommandWithFormat::initOptions(options);
+}
+
+void CommandInfo::processOptions(cxxopts::Options& options, cxxopts::ParseResult& args) {
+    CommandWithFormat::processOptions(options, args);
+}
+
+void CommandInfo::executeInfo() {
+    std::ifstream file(inputFile, std::ios::binary | std::ios::in);
 
     if (!file) {
-        fmt::print(stderr, "{}: Could not open input file \"{}\": {}\n", processName, infile, errnoMessage());
-        return 2;
+        fmt::print(stderr, "{}: Could not open input file \"{}\": {}\n", processName, inputFile, errnoMessage());
+        throw FatalError(RETURN_CODE_IO_FAILURE);
     }
 
     KTX_error_code result;
 
     switch (format) {
-    case Options::OutputFormat::text:
+    case OutputFormat::text:
         result = printInfoText(file);
         break;
-
-    case Options::OutputFormat::json:
+    case OutputFormat::json:
         result = printInfoJSON(file, false);
         break;
-
-    case Options::OutputFormat::json_mini:
+    case OutputFormat::json_mini:
         result = printInfoJSON(file, true);
         break;
-
     default:
         assert(false && "Internal error");
-        return EXIT_FAILURE;
+        return;
     }
 
     if (result ==  KTX_FILE_UNEXPECTED_EOF) {
-        fmt::print(stderr, "{}: Unexpected end of file reading \"{}\".\n", processName, infile);
-        return 2;
-
+        fmt::print(stderr, "{}: Unexpected end of file reading \"{}\".\n", processName, inputFile);
+        throw FatalError(RETURN_CODE_IO_FAILURE);
     } else if (result == KTX_UNKNOWN_FILE_FORMAT) {
-        fmt::print(stderr, "{}: \"{}\" is not a KTX2 file.\n", processName, infile);
-        return 2;
-
+        fmt::print(stderr, "{}: \"{}\" is not a KTX2 file.\n", processName, inputFile);
+        throw FatalError(RETURN_CODE_IO_FAILURE);
     } else if (result != KTX_SUCCESS) {
-        fmt::print(stderr, "{}: {} failed to process KTX2 file: ERROR_CODE {}\n", processName, infile, static_cast<int>(result));
-        return 2;
+        fmt::print(stderr, "{}: {} failed to process KTX2 file: ERROR_CODE {}\n", processName, inputFile, static_cast<int>(result));
+        throw FatalError(RETURN_CODE_IO_FAILURE);
     }
-
-    return EXIT_SUCCESS;
 }
 
 KTX_error_code CommandInfo::printInfoText(std::istream& file) {
     std::ostringstream messagesOS;
-    const auto validationResult = validateIOStream(file, false, [&](const ValidationReport& issue) {
+    const auto validationResult = validateIOStream(file, false, false, [&](const ValidationReport& issue) {
         fmt::print(messagesOS, "{}-{:04}: {}\n", toString(issue.type), issue.id, issue.message);
         fmt::print(messagesOS, "    {}\n", issue.details);
     });
@@ -219,14 +167,14 @@ KTX_error_code CommandInfo::printInfoText(std::istream& file) {
 KTX_error_code CommandInfo::printInfoJSON(std::istream& file, bool minified) {
     const auto base_indent = minified ? 0 : +0;
     const auto indent_width = minified ? 0 : 4;
-    const char* space = minified ? "" : " ";
-    const char* nl = minified ? "" : "\n";
+    const auto space = minified ? "" : " ";
+    const auto nl = minified ? "" : "\n";
 
     std::ostringstream messagesOS;
     PrintIndent pi{messagesOS, base_indent, indent_width};
 
     bool first = true;
-    const auto validationResult = validateIOStream(file, false, [&](const ValidationReport& issue) {
+    const auto validationResult = validateIOStream(file, false, false, [&](const ValidationReport& issue) {
         if (!std::exchange(first, false)) {
             pi(2, "}},{}", nl);
         }

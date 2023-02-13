@@ -29,13 +29,13 @@ public:
     virtual void open(ImageSpec&) override;
 
     virtual void readImage(void* /*buffer*/, size_t /*bufferByteCount*/,
-                           uint /*subimage = 0*/, uint /*miplevel = 0*/,
+                           uint32_t /*subimage = 0*/, uint32_t /*miplevel = 0*/,
                            const FormatDescriptor& /*targetFormat = FormatDescriptor()*/) override { };
     /// Read a single scanline (all channels) of native data into contiguous
     /// memory.
     virtual void readNativeScanline(void* /*buffer*/, size_t /*bufferByteCount*/,
-                                    uint /*y*/, uint /*z*/,
-                                    uint /*subimage*/, uint /*miplevel*/) override { };
+                                    uint32_t /*y*/, uint32_t /*z*/,
+                                    uint32_t /*subimage*/, uint32_t /*miplevel*/) override { };
 
 private:
     std::streampos m_header_end_pos;  // file position after the header

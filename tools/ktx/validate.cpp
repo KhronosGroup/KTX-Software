@@ -4,13 +4,18 @@
 
 #include "validate.h"
 
-#include <fmt/format.h>
-#include <fmt/printf.h>
-#include <KHR/khr_df.h>
 #include <ktx.h>
 #include "ktxint.h"
+#include "basis_sgd.h"
+#define LIBKTX // To stop dfdutils including vulkan_core.h.
+#include "dfdutils/dfd.h"
+#include <KHR/khr_df.h>
+#include <fmt/format.h>
+#include <fmt/printf.h>
+
 #include <algorithm>
 #include <array>
+#include <numeric>
 #include <stdexcept>
 #include <unordered_map>
 #include <unordered_set>
@@ -21,8 +26,6 @@
 #include "validation_messages.h"
 #include "formats.h"
 #include "sbufstream.h"
-#define LIBKTX // To stop dfdutils including vulkan_core.h.
-#include "dfdutils/dfd.h"
 
 
 // -------------------------------------------------------------------------------------------------
@@ -85,51 +88,6 @@ struct SampleType {
 };
 static_assert(sizeof(SampleType) == 16);
 
-/// RAII Handler for ktxTexture
-template <typename T>
-class KTXTexture final {
-private:
-    T* _handle;
-
-public:
-    explicit KTXTexture(std::nullptr_t) : _handle{nullptr} { }
-    explicit KTXTexture(T* handle) : _handle{handle} { }
-
-    KTXTexture(const KTXTexture&) = delete;
-    KTXTexture& operator=(const KTXTexture&) = delete;
-
-    KTXTexture(KTXTexture&& other) noexcept : _handle{other._handle} {
-        other._handle = nullptr;
-    }
-
-    KTXTexture& operator=(KTXTexture&& toMove) & {
-        _handle = toMove._handle;
-        toMove._handle = nullptr;
-        return *this;
-    }
-
-    ~KTXTexture() {
-        if (_handle) {
-            ktxTexture_Destroy(handle<ktxTexture>());
-            _handle = nullptr;
-        }
-    }
-
-    template <typename U = T>
-    inline U* handle() const {
-        return reinterpret_cast<U*>(_handle);
-    }
-
-    template <typename U = T>
-    inline U** pHandle() {
-        return reinterpret_cast<U**>(&_handle);
-    }
-
-    inline operator T*() const {
-        return _handle;
-    }
-};
-
 class FatalValidationError : public std::runtime_error {
 public:
     ValidationReport report;
@@ -140,10 +98,10 @@ public:
         report(std::move(report)) {}
 };
 
-static constexpr int RETURN_CODE_VALIDATION_FAILURE = 3;
 static constexpr int RETURN_CODE_VALIDATION_SUCCESS = 0;
-static constexpr int MAX_NUM_KV_ENTRY = 100;
-static constexpr int MAX_NUM_DFD_BLOCK = 10;
+static constexpr int RETURN_CODE_VALIDATION_FAILURE = 3;
+static constexpr int MAX_NUM_KV_ENTRIES = 100;
+static constexpr int MAX_NUM_DFD_BLOCKS = 10;
 
 // -------------------------------------------------------------------------------------------------
 
@@ -152,28 +110,32 @@ private:
     std::function<void(const ValidationReport&)> callback;
 
     bool treatWarningsAsError = false;
-    // bool checkGLTFBasisu = false; // TODO Tools P2: implement checkGLTFBasisu
+    bool checkGLTFBasisU = false;
 
+    int returnCode = RETURN_CODE_VALIDATION_SUCCESS;
     uint32_t numError = 0;
     uint32_t numWarning = 0;
 
 private:
     KTX_header2 header{};
 
-    uint32_t layerCount = 0;
-    uint32_t levelCount = 0;
+    uint32_t numLayers = 0; // The actual number of layers, After header parsing always at least one
+    uint32_t numLevels = 0; // The actual number of levels, After header parsing always at least one
     uint32_t dimensionCount = 0;
+    uint32_t numSamples = 0;
+
+    std::vector<ktxLevelIndexEntry> levelIndices;
 
 private:
     /// Expected data members are calculated solely from the VkFormat in the header.
     /// Based on parsing and support any of these member can be empty.
     std::optional<khr_df_model_e> expectedColorModel;
-    std::optional<std::array<uint32_t, 8>> expectedBytePlanes;
-    std::optional<uint32_t> expectedBlockDimension0;
-    std::optional<uint32_t> expectedBlockDimension1;
-    std::optional<uint32_t> expectedBlockDimension2;
-    std::optional<uint32_t> expectedBlockDimension3;
-    std::optional<bool> expectedBlockCompressedColorModel;
+    std::optional<std::array<uint8_t, 8>> expectedBytePlanes;
+    std::optional<uint8_t> expectedBlockDimension0;
+    std::optional<uint8_t> expectedBlockDimension1;
+    std::optional<uint8_t> expectedBlockDimension2;
+    std::optional<uint8_t> expectedBlockDimension3;
+    std::optional<bool> expectedColorModelIsBlockCompressed;
     std::optional<uint32_t> expectedTypeSize;
     std::optional<std::vector<SampleType>> expectedSamples;
 
@@ -182,6 +144,10 @@ private:
     /// Based on parsing and support any of these member can be empty.
     std::optional<khr_df_model_e> parsedColorModel;
     std::optional<khr_df_transfer_e> parsedTransferFunction;
+    std::optional<uint8_t> parsedBlockByteLength;
+    std::optional<uint8_t> parsedBlockDimension0; /// X
+    std::optional<uint8_t> parsedBlockDimension1; /// Y
+    std::optional<uint8_t> parsedBlockDimension2; /// Z
 
 private:
     bool foundKTXanimData = false;
@@ -196,23 +162,24 @@ private:
     bool foundKTXwriterScParams = false;
 
 public:
-    ValidationContext(bool warningsAsErrors, std::function<void(const ValidationReport&)> callback) :
+    ValidationContext(bool warningsAsErrors, bool GLTFBasisU, std::function<void(const ValidationReport&)> callback) :
         callback(std::move(callback)),
-        treatWarningsAsError(warningsAsErrors) {
+        treatWarningsAsError(warningsAsErrors),
+        checkGLTFBasisU(GLTFBasisU) {
         std::memset(&header, 0, sizeof(header));
     }
     virtual ~ValidationContext() = default;
 
 protected:
-    // warning, error and fatal functions are only used for validation readability
+    // warning, error and fatal member functions are only used for validation readability
     template <typename... Args>
     void warning(const IssueWarning& issue, Args&&... args) {
+        ++numWarning;
         if (treatWarningsAsError) {
-            ++numError;
+            returnCode = RETURN_CODE_VALIDATION_FAILURE;
             callback(ValidationReport{IssueType::error, issue.id, std::string{issue.message}, fmt::format(issue.detailsFmt, std::forward<Args>(args)...)});
 
         } else {
-            ++numWarning;
             callback(ValidationReport{issue.type, issue.id, std::string{issue.message}, fmt::format(issue.detailsFmt, std::forward<Args>(args)...)});
         }
     }
@@ -220,12 +187,14 @@ protected:
     template <typename... Args>
     void error(const IssueError& issue, Args&&... args) {
         ++numError;
+        returnCode = RETURN_CODE_VALIDATION_FAILURE;
         callback(ValidationReport{issue.type, issue.id, std::string{issue.message}, fmt::format(issue.detailsFmt, std::forward<Args>(args)...)});
     }
 
     template <typename... Args>
     void fatal(const IssueFatal& issue, Args&&... args) {
         ++numError;
+        returnCode = RETURN_CODE_VALIDATION_FAILURE;
         const auto report = ValidationReport{issue.type, issue.id, std::string{issue.message}, fmt::format(issue.detailsFmt, std::forward<Args>(args)...)};
         callback(report);
 
@@ -254,11 +223,11 @@ private:
     void validateHeader();
     void validateIndices();
     void calculateExpectedDFD(VkFormat format);
-    // void validateLevelIndex();
+    void validateLevelIndex();
     void validateDFD();
     void validateKVD();
-    // void validateSGD();
-    // void validateCreateAndTranscode();
+    void validateSGD();
+    void validateCreateAndTranscode();
 
     void validateDFDBasic(uint32_t blockIndex, const uint32_t* dfd, const BDFD& block, const std::vector<SampleType>& samples);
 
@@ -272,6 +241,12 @@ private:
     void validateKTXwriterScParams(const uint8_t* data, uint32_t size);
     void validateKTXastcDecodeMode(const uint8_t* data, uint32_t size);
     void validateKTXanimData(const uint8_t* data, uint32_t size);
+
+private:
+    size_t calcImageSize(uint32_t level);
+    size_t calcLayerSize(uint32_t level);
+    size_t calcLevelSize(uint32_t level);
+    size_t calcLevelOffset(size_t firstLevelOffset, size_t alignment, uint32_t level);
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -280,18 +255,19 @@ class ValidationContextIOStream : public ValidationContext {
 private:
     std::ifstream file; /// Only used if the file is owned by the validation context
     std::istream& stream;
+    std::optional<StreambufStream<std::streambuf*>> ktx2Stream;
 
 public:
-    ValidationContextIOStream(bool warningsAsErrors, std::function<void(const ValidationReport&)> callback, std::istream& stream) :
-        ValidationContext(warningsAsErrors, std::move(callback)),
+    ValidationContextIOStream(bool warningsAsErrors, bool GLTFBasisU, std::function<void(const ValidationReport&)> callback, std::istream& stream) :
+        ValidationContext(warningsAsErrors, GLTFBasisU, std::move(callback)),
         stream(stream) {
 
         if (!stream)
             fatal(IOError::FileOpen, "?", errnoMessage());
     }
 
-    ValidationContextIOStream(bool warningsAsErrors, std::function<void(const ValidationReport&)> callback, const _tstring& filepath) :
-        ValidationContext(warningsAsErrors, std::move(callback)),
+    ValidationContextIOStream(bool warningsAsErrors, bool GLTFBasisU, std::function<void(const ValidationReport&)> callback, const _tstring& filepath) :
+        ValidationContext(warningsAsErrors, GLTFBasisU, std::move(callback)),
         file(filepath, std::ios::in | std::ios::binary),
         stream(file) {
 
@@ -320,8 +296,8 @@ private:
         if (!stream)
             fatal(IOError::RewindFailure, errnoMessage());
 
-        StreambufStream<std::streambuf*> ktx2Stream{stream.rdbuf(), std::ios::in | std::ios::binary};
-        return ktxTexture2_CreateFromStream(ktx2Stream.stream(), createFlags, newTex);
+        ktx2Stream.emplace(stream.rdbuf(), std::ios::in | std::ios::binary);
+        return ktxTexture2_CreateFromStream(ktx2Stream->stream(), createFlags, newTex);
     }
 };
 
@@ -330,8 +306,8 @@ private:
     FILE* file;
 
 public:
-    ValidationContextStdioStream(bool warningsAsErrors, std::function<void(const ValidationReport&)> callback, FILE* file) :
-        ValidationContext(warningsAsErrors, std::move(callback)),
+    ValidationContextStdioStream(bool warningsAsErrors, bool GLTFBasisU, std::function<void(const ValidationReport&)> callback, FILE* file) :
+        ValidationContext(warningsAsErrors, GLTFBasisU, std::move(callback)),
         file(file) {
     }
 
@@ -367,10 +343,11 @@ private:
 public:
     ValidationContextMemory(
             bool warningsAsErrors,
+            bool GLTFBasisU,
             std::function<void(const ValidationReport&)> callback,
             const char* memoryData,
             std::size_t memorySize) :
-        ValidationContext(warningsAsErrors, std::move(callback)),
+        ValidationContext(warningsAsErrors, GLTFBasisU, std::move(callback)),
         memoryData(memoryData),
         memorySize(memorySize) {}
 
@@ -391,36 +368,36 @@ private:
 
 // -------------------------------------------------------------------------------------------------
 
-int validateIOStream(std::istream& stream, bool warningsAsErrors, std::function<void(const ValidationReport&)> callback) {
+int validateIOStream(std::istream& stream, bool warningsAsErrors, bool GLTFBasisU, std::function<void(const ValidationReport&)> callback) {
     try {
-        ValidationContextIOStream ctx{warningsAsErrors, std::move(callback), stream};
+        ValidationContextIOStream ctx{warningsAsErrors, GLTFBasisU, std::move(callback), stream};
         return ctx.validate();
     } catch (const FatalValidationError&) {
         return RETURN_CODE_VALIDATION_FAILURE;
     }
 }
 
-int validateMemory(const char* data, std::size_t size, bool warningsAsErrors, std::function<void(const ValidationReport&)> callback) {
+int validateMemory(const char* data, std::size_t size, bool warningsAsErrors, bool GLTFBasisU, std::function<void(const ValidationReport&)> callback) {
     try {
-        ValidationContextMemory ctx{warningsAsErrors, std::move(callback), data, size};
+        ValidationContextMemory ctx{warningsAsErrors, GLTFBasisU, std::move(callback), data, size};
         return ctx.validate();
     } catch (const FatalValidationError&) {
         return RETURN_CODE_VALIDATION_FAILURE;
     }
 }
 
-int validateNamedFile(const _tstring& filepath, bool warningsAsErrors, std::function<void(const ValidationReport&)> callback) {
+int validateNamedFile(const _tstring& filepath, bool warningsAsErrors, bool GLTFBasisU, std::function<void(const ValidationReport&)> callback) {
     try {
-        ValidationContextIOStream ctx{warningsAsErrors, std::move(callback), filepath};
+        ValidationContextIOStream ctx{warningsAsErrors, GLTFBasisU, std::move(callback), filepath};
         return ctx.validate();
     } catch (const FatalValidationError&) {
         return RETURN_CODE_VALIDATION_FAILURE;
     }
 }
 
-int validateStdioStream(FILE* file, bool warningsAsErrors, std::function<void(const ValidationReport&)> callback) {
+int validateStdioStream(FILE* file, bool warningsAsErrors, bool GLTFBasisU, std::function<void(const ValidationReport&)> callback) {
     try {
-        ValidationContextStdioStream ctx{warningsAsErrors, std::move(callback), file};
+        ValidationContextStdioStream ctx{warningsAsErrors, GLTFBasisU, std::move(callback), file};
         return ctx.validate();
     } catch (const FatalValidationError&) {
         return RETURN_CODE_VALIDATION_FAILURE;
@@ -432,20 +409,20 @@ int validateStdioStream(FILE* file, bool warningsAsErrors, std::function<void(co
 int ValidationContext::validate() {
     validateHeader();
     validateIndices();
-    // validateLevelIndex();
     calculateExpectedDFD(VkFormat(header.vkFormat));
     validateDFD();
+    validateLevelIndex(); // Requires DFD parsed
     validateKVD();
-    // validateSGD();
-    // validateCreateAndTranscode();
+    validateSGD();
+    validateCreateAndTranscode();
 
-    // TODO Tools P3: Verify alignment (4) padding zeros between levelIndex and DFD
-    // TODO Tools P3: Verify alignment (4) padding zeros between DFD and KVD
-    // TODO Tools P3: Verify alignment (8) padding zeros between KVD and SGD
-    // TODO Tools P3: Verify alignment (?) padding zeros between SGD and image levels
-    // TODO Tools P3: Verify alignment (?) padding zeros between image levels
+    // TODO Tools P3: Verify validation of padding zeros between levelIndex and DFD
+    // TODO Tools P3: Verify validation of padding zeros between DFD and KVD
+    // TODO Tools P3: Verify validation of padding zeros between KVD and SGD
+    // TODO Tools P3: Verify validation of padding zeros between SGD and image levels
+    // TODO Tools P3: Verify validation of padding zeros between image levels
 
-    return numError == 0 ? RETURN_CODE_VALIDATION_SUCCESS : RETURN_CODE_VALIDATION_FAILURE;
+    return returnCode;
 }
 
 void ValidationContext::validateHeader() {
@@ -524,16 +501,14 @@ void ValidationContext::validateHeader() {
         dimensionCount = 3;
         if (header.layerCount != 0)
             warning(HeaderData::ThreeDArray); // Warning on 3D Array textures
-
     } else if (header.pixelHeight != 0) {
         dimensionCount = 2;
-
     } else {
         dimensionCount = 1;
     }
 
     // Validate layerCount to actual number of layers.
-    layerCount = std::max(header.layerCount, 1u);
+    numLayers = std::max(header.layerCount, 1u);
 
     // Validate faceCount
     if (header.faceCount != 6 && header.faceCount != 1)
@@ -550,14 +525,13 @@ void ValidationContext::validateHeader() {
             error(HeaderData::BlockCompressedNoLevel, toString(supercompressionScheme));
     // Additional block-compressed formats (like UASTC) are detected after the DFD is parsed to validate levelCount
 
-    levelCount = std::max(header.levelCount, 1u);
+    numLevels = std::max(header.levelCount, 1u);
 
     // This test works for arrays too because height or depth will be 0.
     const auto max_dim = std::max(std::max(header.pixelWidth, header.pixelHeight), header.pixelDepth);
-    // TODO Tools P4: Verify 'log2'
-    if (max_dim < ((uint32_t) 1 << (levelCount - 1))) {
+    if (max_dim < (1u << (numLevels - 1u))) {
         // Can't have more mip levels than 1 + log2(max(width, height, depth))
-        error(HeaderData::TooManyMipLevels, levelCount, max_dim);
+        error(HeaderData::TooManyMipLevels, numLevels, max_dim);
     }
 
     // Validate supercompressionScheme
@@ -565,6 +539,40 @@ void ValidationContext::validateHeader() {
         warning(HeaderData::VendorSupercompression, toString(supercompressionScheme));
     else if (header.supercompressionScheme < KTX_SS_BEGIN_RANGE || KTX_SS_END_RANGE < header.supercompressionScheme)
         error(HeaderData::InvalidSupercompression, toString(supercompressionScheme));
+
+    // Validate GLTF KHR_texture_basisu compatibility, if needed
+    if (checkGLTFBasisU) {
+        // Check for allowed supercompression schemes
+        switch (header.supercompressionScheme) {
+        case KTX_SS_NONE: [[fallthrough]];
+        case KTX_SS_BASIS_LZ: [[fallthrough]];
+        case KTX_SS_ZSTD:
+            break;
+        default:
+            error(HeaderData::InvalidSupercompressionGLTFBU, toString(supercompressionScheme));
+            break;
+        }
+
+        // Check that texture type is 2D
+        // NOTE: pixelHeight == 0 already covered by other error codes
+        if (header.pixelDepth != 0)
+            error(HeaderData::InvalidTextureTypeGLTFBU, "pixelDepth", header.pixelDepth, 0);
+        if (header.layerCount != 0)
+            error(HeaderData::InvalidTextureTypeGLTFBU, "layerCount", header.layerCount, 0);
+        if (header.faceCount != 1)
+            error(HeaderData::InvalidTextureTypeGLTFBU, "faceCount", header.faceCount, 1);
+
+        // Check that width and height are multiples of 4
+        if (header.pixelWidth % 4 != 0)
+            error(HeaderData::InvalidPixelWidthHeightGLTFBU, "pixelWidth", header.pixelWidth);
+        if (header.pixelHeight % 4 != 0)
+            error(HeaderData::InvalidPixelWidthHeightGLTFBU, "pixelHeight", header.pixelHeight);
+
+        // Check that levelCount is 1 or that the full mip pyramid is present
+        uint32_t fullMipPyramidLevelCount = 1 + (uint32_t)log2(max_dim);
+        if (header.levelCount != 1 && header.levelCount != fullMipPyramidLevelCount)
+            error(HeaderData::InvalidLevelCountGLTFBU, header.levelCount, fullMipPyramidLevelCount);
+    }
 }
 
 void ValidationContext::validateIndices() {
@@ -574,12 +582,17 @@ void ValidationContext::validateIndices() {
     if (header.dataFormatDescriptor.byteOffset == 0 || header.dataFormatDescriptor.byteLength == 0)
         error(HeaderData::IndexDFDMissing, header.dataFormatDescriptor.byteOffset, header.dataFormatDescriptor.byteLength);
 
-    const auto levelIndexSize = sizeof(ktxLevelIndexEntry) * levelCount;
+    const auto levelIndexSize = sizeof(ktxLevelIndexEntry) * numLevels;
     std::size_t expectedOffset = KTX2_HEADER_SIZE + levelIndexSize;
     expectedOffset = align(expectedOffset, std::size_t{4});
     if (expectedOffset != header.dataFormatDescriptor.byteOffset)
         error(HeaderData::IndexDFDInvalidOffset, header.dataFormatDescriptor.byteOffset, expectedOffset);
     expectedOffset += header.dataFormatDescriptor.byteLength;
+
+    if (header.dataFormatDescriptor.byteOffset != 0 && header.dataFormatDescriptor.byteLength != 0)
+        if (header.keyValueData.byteOffset != 0)
+            if (header.dataFormatDescriptor.byteLength != header.keyValueData.byteOffset - header.dataFormatDescriptor.byteOffset)
+                error(HeaderData::IndexDFDInvalidLength, header.dataFormatDescriptor.byteLength, header.keyValueData.byteOffset - header.dataFormatDescriptor.byteOffset);
 
     // Validate keyValueData index
     if (header.keyValueData.byteLength != 0) {
@@ -612,139 +625,176 @@ void ValidationContext::validateIndices() {
     }
 }
 
-// =================================================================================================
-// TODO Tools P2: Validate Level Index
-//
-// void ValidationContext::validateLevelIndex() {
-//     std::vector<ktxLevelIndexEntry> levelIndices(levelCount);
-//
-//     const auto levelIndexSize = sizeof(ktxLevelIndexEntry) * levelCount;
-//     read(levelIndices.data(), levelIndexSize, "the level index");
-//
-//     validateDfd(ctx);
-//     if (!ctx.pDfd4Format) {
-//         // VK_FORMAT_UNDEFINED so we have to get info from the actual DFD.
-//         // Not hugely robust but validateDfd does check known undefineds such
-//         // as UASTC.
-//         if (!ctx.extractFormatInfo(ctx.pActualDfd)) {
-//             addIssue(logger::eError, ValidatorError.DfdValidationFailure);
-//         }
-//     }
-//
-//     uint32_t requiredLevelAlignment = ctx.requiredLevelAlignment();
-//     // size_t expectedOffset = 0;
-//     // size_t lastByteLength = 0;
-//     //
-//     // switch (ctx.header.supercompressionScheme) {
-//     //   case KTX_SS_NONE:
-//     //   case KTX_SS_ZSTD:
-//     //     expectedOffset = padn(requiredLevelAlignment, ctx.kvDataEndOffset());
-//     //     break;
-//     //   case KTX_SS_BASIS_LZ:
-//     //     ktxIndexEntry64 sgdIndex = ctx.header.supercompressionGlobalData;
-//     //     // No padding here.
-//     //     expectedOffset = sgdIndex.byteOffset + sgdIndex.byteLength;
-//     //     break;
-//     // }
-//     //
-//     // expectedOffset = padn(requiredLevelAlignment, expectedOffset);
-//
-//     // Last mip level is first in the file. Count down, so we can check the
-//     // distance between levels for the UNDEFINED and SUPERCOMPRESSION cases.
-//     for (int32_t levelIt = static_cast<int32_t>(levelCount) - 1; levelIt >= 0; --levelIt) {
-//         const auto& level = levelIndices[static_cast<std::size_t>(levelIt)];
-//
-//         const auto knownLevelSizes =
-//                 header.vkFormat != VK_FORMAT_UNDEFINED &&
-//                 header.supercompressionScheme == KTX_SS_NONE;
-//
-//         if (knownLevelSizes) {
-//             ktx_size_t expectedUBL = ctx.calcLevelSize(level);
-//             if (level.uncompressedByteLength != expectedUBL)
-//                 error(LevelIndex::IncorrectUncompressedByteLength, level, level.uncompressedByteLength, expectedUBL);
-//
-//             if (level.byteLength != level.uncompressedByteLength)
-//                 error(LevelIndex::UnequalByteLengths, level);
-//
-//             ktx_size_t expectedOffset = ctx.calcLevelOffset(level);
-//             if (level.byteOffset != expectedOffset) {
-//                 if (level.byteOffset % requiredLevelAlignment != 0)
-//                     error(LevelIndex::UnalignedOffset, level, requiredLevelAlignment);
-//
-//                 if (level.byteOffset > expectedOffset)
-//                     error(LevelIndex::ExtraPadding, level);
-//
-//                 else
-//                     error(LevelIndex::ByteOffsetTooSmall, level, level.byteOffset, expectedOffset);
-//             }
-//
-//         } else {
-//             // Can only do minimal validation as we have no idea what the
-//             // level sizes are, so we have to trust the byteLengths. We do
-//             // at least know where the first level must be in the file, and
-//             // we can calculate how much padding, if any, there must be
-//             // between levels.
-//             // if (level.byteLength == 0 || level.byteOffset == 0) {
-//             //      error(LevelIndex::ZeroOffsetOrLength, level);
-//             //      continue;
-//             // }
-//             //
-//             // if (level.byteOffset != expectedOffset) {
-//             //     error(LevelIndex::IncorrectByteOffset, level, level.byteOffset, expectedOffset);
-//             // }
-//             //
-//             // if (header.supercompressionScheme == KTX_SS_NONE) {
-//             //     if (level.byteLength < lastByteLength)
-//             //         addIssue(logger.eError, LevelIndex::IncorrectLevelOrder);
-//             //     if (level.byteOffset % requiredLevelAlignment != 0)
-//             //         error(LevelIndex::UnalignedOffset, level, requiredLevelAlignment);
-//             //     if (level.uncompressedByteLength == 0) {
-//             //         error(LevelIndex::ZeroUncompressedLength, level);
-//             //     }
-//             //     lastByteLength = level.byteLength;
-//             // }
-//             //
-//             // expectedOffset += padn(requiredLevelAlignment, level.byteLength);
-//             // if (header.vkFormat != VK_FORMAT_UNDEFINED) {
-//             //     // We can validate the uncompressedByteLength.
-//             //     ktx_size_t level.uncompressedByteLength = level.uncompressedByteLength;
-//             //     ktx_size_t expectedUBL = ctx.calcLevelSize(level);
-//             //
-//             //     if (level.uncompressedByteLength != expectedUBL)
-//             //         error(LevelIndex::IncorrectUncompressedByteLength, level, level.uncompressedByteLength, expectedUBL);
-//             // }
-//         }
-//
-//         // ctx.dataSizeFromLevelIndex += padn(ctx.requiredLevelAlignment(), level.byteLength);
-//     }
-// }
-// =================================================================================================
+inline uint32_t calcLevelAlignment(ktxSupercmpScheme scheme, uint8_t blockByteLength) {
+    if (scheme != KTX_SS_NONE)
+        return 1;
+    else
+        return std::lcm(blockByteLength, 4);
+}
+
+size_t ValidationContext::calcImageSize(uint32_t level) {
+    const auto levelWidth = std::max(1u, header.pixelWidth >> level);
+    const auto levelHeight = std::max(1u, header.pixelHeight >> level);
+    const auto blockDimensionX = 1u + expectedBlockDimension0.value_or(parsedBlockDimension0.value_or(0u));
+    const auto blockDimensionY = 1u + expectedBlockDimension1.value_or(parsedBlockDimension1.value_or(0u));
+    const auto blockCountX = ceil_div(levelWidth, blockDimensionX);
+    const auto blockCountY = ceil_div(levelHeight, blockDimensionY);
+    const auto blockSize = expectedBytePlanes ?
+            expectedBytePlanes->at(0) :
+            parsedBlockByteLength.value_or(0u);
+
+    return blockCountX * blockCountY * blockSize;
+}
+
+size_t ValidationContext::calcLayerSize(uint32_t level) {
+    const auto levelDepth = std::max(1u, header.pixelDepth >> level);
+    const auto blockDimensionZ = 1u + expectedBlockDimension2.value_or(parsedBlockDimension2.value_or(0u));
+    const auto blockCountZ = ceil_div(levelDepth, blockDimensionZ);
+
+    const auto imageSize = calcImageSize(level);
+    // As there are no 3D cubemaps, the image's z block count will always be 1 for
+    // cubemaps and numFaces will always be 1 for 3D textures so the multiplication is safe.
+    // 3D cubemaps, if they existed, would require imageSize * (blockCount.z + This->numFaces);
+    return imageSize * blockCountZ * header.faceCount;
+}
+
+size_t ValidationContext::calcLevelSize(uint32_t level) {
+    return calcLayerSize(level) * numLayers;
+}
+
+size_t ValidationContext::calcLevelOffset(size_t firstLevelOffset, size_t alignment, uint32_t level) {
+    // This function is only useful when the following 2 conditions are met
+    // as otherwise we have no idea what the size of a level ought to be.
+    assert(header.vkFormat != VK_FORMAT_UNDEFINED);
+    assert(header.supercompressionScheme == KTX_SS_NONE);
+
+    assert(level < numLevels);
+    // Calculate the expected base offset in the file
+    size_t levelOffset = align(firstLevelOffset, alignment);
+    for (uint32_t i = numLevels - 1; i > level; --i) {
+        levelOffset += calcLevelSize(i);
+        levelOffset = align(levelOffset, alignment);
+    }
+    return levelOffset;
+}
+
+void ValidationContext::validateLevelIndex() {
+    levelIndices.resize(numLevels);
+
+    const auto levelIndexOffset = sizeof(KTX_header2);
+    const auto levelIndexSize = sizeof(ktxLevelIndexEntry) * numLevels;
+    read(levelIndexOffset, levelIndices.data(), levelIndexSize, "the level index");
+
+    const auto blockByteLength = (expectedBytePlanes ? expectedBytePlanes->at(0) : (parsedBlockByteLength == 0 ? uint8_t(1) : parsedBlockByteLength.value_or(0)));
+    std::size_t requiredLevelAlignment = calcLevelAlignment(ktxSupercmpScheme(header.supercompressionScheme), blockByteLength);
+
+    std::size_t expectedFirstLevelOffset = 0;
+    if (header.supercompressionGlobalData.byteLength != 0)
+        expectedFirstLevelOffset = header.supercompressionGlobalData.byteLength + header.supercompressionGlobalData.byteOffset;
+    else if (header.keyValueData.byteLength != 0)
+        expectedFirstLevelOffset = header.keyValueData.byteLength + header.keyValueData.byteOffset;
+    else if (header.dataFormatDescriptor.byteLength != 0)
+        expectedFirstLevelOffset = header.dataFormatDescriptor.byteLength + header.dataFormatDescriptor.byteOffset;
+    else
+        expectedFirstLevelOffset = levelIndexOffset + levelIndexSize;
+    expectedFirstLevelOffset = align(expectedFirstLevelOffset, requiredLevelAlignment);
+
+    // The first (largest) mip level is the first in the index and the last in the file.
+    for (std::size_t i = 1; i < levelIndices.size(); ++i) {
+        if (levelIndices[i].byteLength > levelIndices[i - 1].byteLength)
+            error(LevelIndex::IncorrectIndexOrder, i - 1, levelIndices[i - 1].byteLength, i, levelIndices[i].byteLength);
+
+        if (levelIndices[i].byteOffset > levelIndices[i - 1].byteOffset)
+            error(LevelIndex::IncorrectLevelOrder, i - 1, levelIndices[i - 1].byteOffset, i, levelIndices[i].byteOffset);
+    }
+
+    std::size_t lastByteOffset = expectedFirstLevelOffset; // Reuse lastByteOffset to inject first offset to expectedOffset
+    std::size_t lastByteLength = 0;
+
+    // Count down, so we can check the distance between levels for the UNDEFINED and SUPERCOMPRESSION cases.
+    for (auto it = static_cast<uint32_t>(levelIndices.size()); it != 0; --it) {
+        const auto index = it - 1;
+        const auto& level = levelIndices[index];
+
+        // Validate byteOffset
+        const auto knownLevelOffset = header.vkFormat != VK_FORMAT_UNDEFINED &&
+                header.supercompressionScheme == KTX_SS_NONE;
+        // If the exact level sizes are unknown we have to trust the byteLengths.
+        // In that case we know where the first level must be in the file, and we can calculate
+        // the offsets by progressively summing the lengths and paddings so far.
+        const auto expectedOffset = knownLevelOffset ?
+                calcLevelOffset(expectedFirstLevelOffset, requiredLevelAlignment, index) :
+                align(lastByteOffset + lastByteLength, requiredLevelAlignment);
+
+        if (level.byteOffset % requiredLevelAlignment != 0)
+            error(LevelIndex::IncorrectByteOffsetUnaligned, index, level.byteOffset, requiredLevelAlignment, expectedOffset);
+        else if (level.byteOffset != expectedOffset)
+            error(LevelIndex::IncorrectByteOffset, index, level.byteOffset, expectedOffset);
+
+        // Workaround: Disable ByteLength validations for the 3D ASTC encoder which currently ignores partial Z blocks in our test files
+        const auto disableByteLengthValidation = isFormat3DBlockCompressed(VkFormat(header.vkFormat))
+                && header.pixelDepth % (expectedBlockDimension2.value_or(0) + 1) != 0;
+
+        if (!disableByteLengthValidation) {
+            // Validate byteLength
+            if (header.vkFormat != VK_FORMAT_UNDEFINED && header.supercompressionScheme == KTX_SS_NONE) {
+                const auto expectedLength = calcLevelSize(index);
+                if (level.byteLength != expectedLength)
+                    error(LevelIndex::IncorrectByteLength, index, level.byteLength, expectedLength);
+            }
+
+            // Validate uncompressedByteLength
+            if (header.supercompressionScheme == KTX_SS_BASIS_LZ) {
+                if (level.uncompressedByteLength != 0)
+                    error(LevelIndex::NonZeroUBLForBLZE, index, level.uncompressedByteLength);
+            } else if (header.vkFormat != VK_FORMAT_UNDEFINED) {
+                if (header.supercompressionScheme == KTX_SS_NONE) {
+                    const auto expectedUncompressedLength = calcLevelSize(index);
+                    if (level.uncompressedByteLength != expectedUncompressedLength)
+                        error(LevelIndex::IncorrectUncompressedByteLength, index, level.uncompressedByteLength, expectedUncompressedLength);
+                }
+            } else {
+                if (level.uncompressedByteLength == 0)
+                    error(LevelIndex::ZeroUncompressedLength, index);
+                else if (level.uncompressedByteLength % std::max(header.faceCount * numLayers, 1u) != 0)
+                    // On the other branches uncompressedByteLength is always checked exactly,
+                    // so this is the only branch where this checks yields useful information
+                    error(LevelIndex::InvalidUncompressedLength, index, level.uncompressedByteLength);
+            }
+        }
+
+        lastByteOffset = level.byteOffset;
+        lastByteLength = level.byteLength;
+
+        // dataSizeFromLevelIndex += align(level.byteLength, requiredLevelAlignment);
+    }
+}
 
 void ValidationContext::calculateExpectedDFD(VkFormat format) {
     if (format == VK_FORMAT_UNDEFINED || !isFormatValid(format) || isProhibitedFormat(format))
         return;
 
-    std::unique_ptr<uint32_t[]> dfd;
+    std::unique_ptr<uint32_t, decltype(&free)> dfd{ nullptr, &free };
 
     switch (header.vkFormat) {
     case VK_FORMAT_D16_UNORM_S8_UINT:
         // 2 16-bit words. D16 in the first. S8 in the 8 LSBs of the second.
-        dfd = std::unique_ptr<uint32_t[]>(createDFDDepthStencil(16, 8, 4));
+        dfd = std::unique_ptr<uint32_t, decltype(&free)>(createDFDDepthStencil(16, 8, 4), &free);
         break;
     case VK_FORMAT_D24_UNORM_S8_UINT:
         // 1 32-bit word. D24 in the MSBs. S8 in the LSBs.
-        dfd = std::unique_ptr<uint32_t[]>(createDFDDepthStencil(24, 8, 4));
+        dfd = std::unique_ptr<uint32_t, decltype(&free)>(createDFDDepthStencil(24, 8, 4), &free);
         break;
     case VK_FORMAT_D32_SFLOAT_S8_UINT:
         // 2 32-bit words. D32 float in the first word. S8 in LSBs of the second.
-        dfd = std::unique_ptr<uint32_t[]>(createDFDDepthStencil(32, 8, 8));
+        dfd = std::unique_ptr<uint32_t, decltype(&free)>(createDFDDepthStencil(32, 8, 8), &free);
         break;
     default:
-        dfd = std::unique_ptr<uint32_t[]>(vk2dfd(format));
+        dfd = std::unique_ptr<uint32_t, decltype(&free)>(vk2dfd(format), &free);
     }
 
     if (dfd == nullptr) {
-        error(ValidatorError::CreateExpectedDFDFailure, toString(format));
+        error(Validator::CreateExpectedDFDFailure, toString(format));
         return;
     }
 
@@ -755,6 +805,7 @@ void ValidationContext::calculateExpectedDFD(VkFormat format) {
     std::memcpy(expectedSamples->data(), reinterpret_cast<const char*>(bdfd) + sizeof(BDFD), expectedSampleCount * sizeof(SampleType));
 
     expectedColorModel = khr_df_model_e(KHR_DFDVAL(bdfd, MODEL));
+    expectedColorModelIsBlockCompressed = isColorModelBlockCompressed(*expectedColorModel);
     expectedBytePlanes.emplace();
     expectedBytePlanes.value()[0] = KHR_DFDVAL(bdfd, BYTESPLANE0);
     expectedBytePlanes.value()[1] = KHR_DFDVAL(bdfd, BYTESPLANE1);
@@ -764,46 +815,71 @@ void ValidationContext::calculateExpectedDFD(VkFormat format) {
     expectedBytePlanes.value()[5] = KHR_DFDVAL(bdfd, BYTESPLANE5);
     expectedBytePlanes.value()[6] = KHR_DFDVAL(bdfd, BYTESPLANE6);
     expectedBytePlanes.value()[7] = KHR_DFDVAL(bdfd, BYTESPLANE7);
-    expectedBlockDimension0 = KHR_DFDVAL(bdfd, TEXELBLOCKDIMENSION0);
-    expectedBlockDimension1 = KHR_DFDVAL(bdfd, TEXELBLOCKDIMENSION1);
-    expectedBlockDimension2 = KHR_DFDVAL(bdfd, TEXELBLOCKDIMENSION2);
-    expectedBlockDimension3 = KHR_DFDVAL(bdfd, TEXELBLOCKDIMENSION3);
-    expectedBlockCompressedColorModel = *expectedColorModel >= KHR_DF_MODEL_DXT1A;
+    expectedBlockDimension0 = static_cast<uint8_t>(KHR_DFDVAL(bdfd, TEXELBLOCKDIMENSION0));
+    expectedBlockDimension1 = static_cast<uint8_t>(KHR_DFDVAL(bdfd, TEXELBLOCKDIMENSION1));
+    expectedBlockDimension2 = static_cast<uint8_t>(KHR_DFDVAL(bdfd, TEXELBLOCKDIMENSION2));
+    expectedBlockDimension3 = static_cast<uint8_t>(KHR_DFDVAL(bdfd, TEXELBLOCKDIMENSION3));
 
-    if (!*expectedBlockCompressedColorModel) {
+    if (!*expectedColorModelIsBlockCompressed) {
         InterpretedDFDChannel r, g, b, a;
         InterpretDFDResult result;
-        uint32_t componentByteLength;
+        uint32_t componentByteLength = 0;
 
         result = interpretDFD(dfd.get(), &r, &g, &b, &a, &componentByteLength);
 
-        if (format == VK_FORMAT_D32_SFLOAT_S8_UINT)
-            // Reset the "false" positive error in interpretDFD with VK_FORMAT_D32_SFLOAT_S8_UINT
-            result = InterpretDFDResult(result & ~i_UNSUPPORTED_MIXED_CHANNELS);
+        // TODO Tools P5: Add interpretDFD support for depth, stencil and packed exponent formats
+        // Workaround for missing interpretDFD support for depth/stencil formats
+        switch (format) {
+        case VK_FORMAT_S8_UINT:
+            componentByteLength = 1;
+            break;
+        case VK_FORMAT_D16_UNORM: [[fallthrough]];
+        case VK_FORMAT_D16_UNORM_S8_UINT:
+            componentByteLength = 2;
+            break;
+        case VK_FORMAT_X8_D24_UNORM_PACK32: [[fallthrough]];
+        case VK_FORMAT_D24_UNORM_S8_UINT: [[fallthrough]];
+        case VK_FORMAT_D32_SFLOAT: [[fallthrough]];
+        case VK_FORMAT_D32_SFLOAT_S8_UINT:
+            componentByteLength = 4;
+            break;
+        default:
+            break;
+        }
 
-        if (result > i_UNSUPPORTED_ERROR_BIT)
-            error(ValidatorError::CreateDFDRoundtripFailed, toString(format));
+        // Reset the "false" positive error in interpretDFD with VK_FORMAT_D32_SFLOAT_S8_UINT
+        if (header.vkFormat == VK_FORMAT_D32_SFLOAT_S8_UINT && result == i_UNSUPPORTED_MIXED_CHANNELS)
+            result = InterpretDFDResult(0);
+        // Reset the "false" positive error in interpretDFD with VK_FORMAT_E5B9G9R9_UFLOAT_PACK32
+        if (header.vkFormat == VK_FORMAT_E5B9G9R9_UFLOAT_PACK32 && result == i_UNSUPPORTED_NONTRIVIAL_ENDIANNESS)
+            result = InterpretDFDResult(0);
+
+        if (result >= i_UNSUPPORTED_ERROR_BIT)
+            error(Validator::CreateDFDRoundtripFailed, toString(format));
         else
             expectedTypeSize = componentByteLength;
     }
 }
 
 void ValidationContext::validateDFD() {
-    if (header.dataFormatDescriptor.byteOffset == 0 || header.dataFormatDescriptor.byteLength == 0)
+    const auto dfdByteOffset = header.dataFormatDescriptor.byteOffset;
+    const auto dfdByteLength = header.dataFormatDescriptor.byteLength;
+
+    if (dfdByteOffset == 0 || dfdByteLength == 0)
         return; // There is no DFD block
 
-    const auto buffer = std::make_unique<uint8_t[]>(header.dataFormatDescriptor.byteLength);
-    read(header.dataFormatDescriptor.byteOffset, buffer.get(), header.dataFormatDescriptor.byteLength, "the DFD");
+    const auto buffer = std::make_unique<uint8_t[]>(dfdByteLength);
+    read(dfdByteOffset, buffer.get(), dfdByteLength, "the DFD");
     const auto* ptrDFD = buffer.get();
-    const auto* ptrDFDEnd = ptrDFD + header.dataFormatDescriptor.byteLength;
+    const auto* ptrDFDEnd = ptrDFD + dfdByteLength;
     const auto* ptrDFDIt = ptrDFD;
 
     uint32_t dfdTotalSize;
     std::memcpy(&dfdTotalSize, ptrDFDIt, sizeof(uint32_t));
     ptrDFDIt += sizeof(uint32_t);
 
-    if (header.dataFormatDescriptor.byteLength != dfdTotalSize)
-        error(DFD::SizeMismatch, header.dataFormatDescriptor.byteLength, dfdTotalSize);
+    if (dfdByteLength != dfdTotalSize)
+        error(DFD::SizeMismatch, dfdByteLength, dfdTotalSize);
 
     int numBlocks = 0;
     bool foundBDFD = false;
@@ -811,7 +887,7 @@ void ValidationContext::validateDFD() {
     while (ptrDFDIt < ptrDFDEnd) {
         const auto remainingDFDBytes = static_cast<std::size_t>(ptrDFDEnd - ptrDFDIt);
 
-        if (++numBlocks > MAX_NUM_DFD_BLOCK) {
+        if (++numBlocks > MAX_NUM_DFD_BLOCKS) {
             warning(DFD::TooManyDFDBlocks, numBlocks, remainingDFDBytes);
             break;
         }
@@ -883,8 +959,14 @@ void ValidationContext::validateDFD() {
 
 void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* dfd, const BDFD& block, const std::vector<SampleType>& samples) {
 
+    numSamples = static_cast<uint32_t>(samples.size());
+
     parsedColorModel = khr_df_model_e(block.model);
     parsedTransferFunction = khr_df_transfer_e(block.transfer);
+    parsedBlockByteLength = block.bytesPlanes[0];
+    parsedBlockDimension0 = static_cast<uint8_t>(block.texelBlockDimension0);
+    parsedBlockDimension1 = static_cast<uint8_t>(block.texelBlockDimension1);
+    parsedBlockDimension2 = static_cast<uint8_t>(block.texelBlockDimension2);
 
     // Validate versionNumber
     if (block.versionNumber != KHR_DF_VERSIONNUMBER_1_3)
@@ -919,6 +1001,65 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
     if (header.supercompressionScheme == KTX_SS_BASIS_LZ)
         if (block.model != KHR_DF_MODEL_ETC1S)
             error(DFD::IncorrectModelForBLZE, blockIndex, toString(khr_df_model_e(block.model)));
+
+    // Check GLTF KHR_texture_basisu specific errors
+    if (checkGLTFBasisU) {
+        switch (block.model) {
+        case KHR_DF_MODEL_ETC1S:
+            // Supercompression already verified above, only need to check samples.
+            if (samples.size() > 0) {
+                switch (samples[0].channelType) {
+                case KHR_DF_CHANNEL_ETC1S_RGB:
+                    if (samples.size() > 1 && samples[1].channelType != KHR_DF_CHANNEL_ETC1S_AAA)
+                        error(DFD::InvalidChannelGLTFBU, blockIndex, "KHR_DF_MODEL_ETC1S", 2,
+                                toString(KHR_DF_MODEL_ETC1S, khr_df_model_channels_e(samples[1].channelType)),
+                                "KHR_DF_CHANNEL_ETC1S_AAA when sample #0 channelType is KHR_DF_CHANNEL_ETC1S_RGB");
+                    break;
+                case KHR_DF_CHANNEL_ETC1S_RRR:
+                    if (samples.size() > 1 && samples[1].channelType != KHR_DF_CHANNEL_ETC1S_GGG)
+                        error(DFD::InvalidChannelGLTFBU, blockIndex, "KHR_DF_MODEL_ETC1S", 2,
+                                toString(KHR_DF_MODEL_ETC1S, khr_df_model_channels_e(samples[1].channelType)),
+                                "KHR_DF_CHANNEL_ETC1S_GGG when sample #0 channelType is KHR_DF_CHANNEL_ETC1S_RRR");
+                    break;
+                default:
+                    error(DFD::InvalidChannelGLTFBU, blockIndex, "KHR_DF_MODEL_ETC1S", 1,
+                            toString(KHR_DF_MODEL_ETC1S, khr_df_model_channels_e(samples[0].channelType)),
+                            "KHR_DF_CHANNEL_ETC1S_RGB or KHR_DF_CHANNEL_ETC1S_RRR");
+                    break;
+                }
+            }
+            break;
+        case KHR_DF_MODEL_UASTC:
+            if (header.supercompressionScheme != KTX_SS_NONE && header.supercompressionScheme != KTX_SS_ZSTD)
+                error(DFD::IncompatibleModelGLTFBU, blockIndex, "KHR_DF_MODEL_UASTC",
+                        toString(ktxSupercmpScheme(header.supercompressionScheme)),
+                        "KTX_SS_NONE or KTX_SS_ZSTD");
+
+            if (samples.size() > 0) {
+                switch (samples[0].channelType) {
+                case KHR_DF_CHANNEL_UASTC_RGB: [[fallthrough]];
+                case KHR_DF_CHANNEL_UASTC_RGBA: [[fallthrough]];
+                case KHR_DF_CHANNEL_UASTC_RRR: [[fallthrough]];
+                case KHR_DF_CHANNEL_UASTC_RG:
+                    break;
+                default:
+                    error(DFD::InvalidChannelGLTFBU, blockIndex, "KHR_DF_MODEL_UASTC", 0,
+                            toString(KHR_DF_MODEL_UASTC, khr_df_model_channels_e(samples[0].channelType)),
+                            "KHR_DF_CHANNEL_UASTC_RGB, KHR_DF_CHANNEL_UASTC_RGBA, KHR_DF_CHANNEL_UASTC_RRR, or KHR_DF_CHANNEL_UASTC_RG");
+                    break;
+                }
+            }
+            break;
+        default:
+            error(DFD::IncorrectModelGLTFBU, blockIndex, toString(khr_df_model_e(block.model)));
+            break;
+        }
+
+        if ((block.primaries != KHR_DF_PRIMARIES_BT709 || block.transfer != KHR_DF_TRANSFER_SRGB) &&
+            (block.primaries != KHR_DF_PRIMARIES_UNSPECIFIED || block.transfer != KHR_DF_TRANSFER_LINEAR))
+            error(DFD::InvalidColorSpaceGLTFBU, blockIndex,
+                    toString(khr_df_primaries_e(block.primaries)), toString(khr_df_transfer_e(block.transfer)));
+    }
 
     // Validate colorPrimaries
     if (!isColorPrimariesValid(khr_df_primaries_e(block.primaries)))
@@ -1016,13 +1157,16 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
 
                 InterpretDFDResult result;
                 InterpretedDFDChannel r, g, b, a;
-                uint32_t componentByteLength;
+                uint32_t componentByteLength = 0;
 
                 result = interpretDFD(dfd, &r, &g, &b, &a, &componentByteLength);
 
-                if (header.vkFormat == VK_FORMAT_D32_SFLOAT_S8_UINT)
-                    // Reset the "false" positive error in interpretDFD with VK_FORMAT_D32_SFLOAT_S8_UINT
-                    result = InterpretDFDResult(result & ~i_UNSUPPORTED_MIXED_CHANNELS);
+                // Reset the "false" positive error in interpretDFD with VK_FORMAT_D32_SFLOAT_S8_UINT
+                if (header.vkFormat == VK_FORMAT_D32_SFLOAT_S8_UINT && result == i_UNSUPPORTED_MIXED_CHANNELS)
+                    result = InterpretDFDResult(0);
+                // Reset the "false" positive error in interpretDFD with VK_FORMAT_E5B9G9R9_UFLOAT_PACK32
+                if (header.vkFormat == VK_FORMAT_E5B9G9R9_UFLOAT_PACK32 && result == i_UNSUPPORTED_NONTRIVIAL_ENDIANNESS)
+                    result = InterpretDFDResult(0);
 
                 if (result >= i_UNSUPPORTED_ERROR_BIT) {
                     switch (result) {
@@ -1185,26 +1329,30 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
         }
     }
 
-    // TODO Tools P4: Verify these error condition
-    // if (header.supercompressionScheme != KTX_SS_BASIS_LZ) {
-    //     if (isColorModelBlockCompressed(khr_df_model_e(block.model))) {
-    //         if (header.typeSize != 1)
-    //             error(HeaderData::TypeSizeNotOne);
-    //     } else {
-    //         if (expectedTypeSize && header.typeSize != expectedTypeSize)
-    //             error(HeaderData::TypeSizeMismatch, header.typeSize);
-    //     }
-    // }
+    if (header.vkFormat != VK_FORMAT_UNDEFINED && !isFormatBlockCompressed(static_cast<VkFormat>(header.vkFormat))) {
+        // VK_FORMAT_UNDEFINED and BlockCompressed VkFormats were already checked before
+
+        if (isColorModelBlockCompressed(khr_df_model_e(block.model))) {
+            if (header.typeSize != 1)
+                error(HeaderData::TypeSizeNotOne, toString(khr_df_model_e(block.model)));
+        } else {
+            if (expectedTypeSize && header.typeSize != expectedTypeSize)
+                error(HeaderData::TypeSizeMismatch, header.typeSize, toString(VkFormat(header.vkFormat)), *expectedTypeSize);
+        }
+    }
 }
 
 void ValidationContext::validateKVD() {
-    if (header.keyValueData.byteOffset == 0 || header.keyValueData.byteLength == 0)
+    const auto kvdByteOffset = header.keyValueData.byteOffset;
+    const auto kvdByteLength = header.keyValueData.byteLength;
+
+    if (kvdByteOffset == 0 || kvdByteLength == 0)
         return; // There is no KVD block
 
-    const auto buffer = std::make_unique<uint8_t[]>(header.keyValueData.byteLength);
-    read(header.keyValueData.byteOffset, buffer.get(), header.keyValueData.byteLength, "the Key/Value Data");
+    const auto buffer = std::make_unique<uint8_t[]>(kvdByteLength);
+    read(kvdByteOffset, buffer.get(), kvdByteLength, "the Key/Value Data");
     const auto* ptrKVD = buffer.get();
-    const auto* ptrKVDEnd = ptrKVD + header.keyValueData.byteLength;
+    const auto* ptrKVDEnd = ptrKVD + kvdByteLength;
 
     struct KeyValueEntry {
         std::string key;
@@ -1224,7 +1372,7 @@ void ValidationContext::validateKVD() {
     while (ptrEntry < ptrKVDEnd) {
         const auto remainingKVDBytes = ptrKVDEnd - ptrEntry;
 
-        if (++numKVEntry > MAX_NUM_KV_ENTRY) {
+        if (++numKVEntry > MAX_NUM_KV_ENTRIES) {
             warning(Metadata::TooManyEntries, numKVEntry - 1, remainingKVDBytes);
             ptrEntry = ptrKVDEnd;
             break;
@@ -1293,7 +1441,7 @@ void ValidationContext::validateKVD() {
 
     if (ptrEntry != ptrKVDEnd)
         // Being super explicit about the specs. This check might be overkill as other checks often cover this case
-        error(Metadata::SizesDontAddUp, ptrEntry - ptrKVD, header.keyValueData.byteLength);
+        error(Metadata::SizesDontAddUp, ptrEntry - ptrKVD, kvdByteLength);
 
     if (header.supercompressionGlobalData.byteLength != 0)
         validatePaddingZeros(ptrEntry, ptrKVDEnd, 8, Metadata::PaddingNotZero, "between KVD and SGD");
@@ -1395,6 +1543,9 @@ void ValidationContext::validateKTXorientation(const uint8_t* data, uint32_t siz
 
     if (value.size() > 2 && dimensionCount > 2 && value[2] != 'o' && value[2] != 'i')
         error(Metadata::KTXorientationInvalidValue, 2, value[2], 'o', 'i');
+
+    if (checkGLTFBasisU && value != "rd")
+        error(Metadata::KTXorientationInvalidGLTFBU, value);
 }
 
 void ValidationContext::validateKTXglFormat(const uint8_t* data, uint32_t size) {
@@ -1467,6 +1618,9 @@ void ValidationContext::validateKTXswizzle(const uint8_t* data, uint32_t size) {
 
     if (isFormatStencil(VkFormat(header.vkFormat)) || isFormatDepth(VkFormat(header.vkFormat)))
         warning(Metadata::KTXswizzleWithDepthOrStencil, toString(VkFormat(header.vkFormat)));
+
+    if (checkGLTFBasisU && value != "rgba")
+        error(Metadata::KTXswizzleInvalidGLTFBU, value);
 }
 
 void ValidationContext::validateKTXwriter(const uint8_t* data, uint32_t size) {
@@ -1525,75 +1679,94 @@ void ValidationContext::validateKTXanimData(const uint8_t* data, uint32_t size) 
         error(Metadata::KTXanimDataNotArray, header.layerCount);
 }
 
+void ValidationContext::validateSGD() {
+    const auto sgdByteOffset = header.supercompressionGlobalData.byteOffset;
+    const auto sgdByteLength = header.supercompressionGlobalData.byteLength;
+
+    if (sgdByteOffset == 0 || sgdByteLength == 0)
+        return; // There is no SGD block
+
+    const auto buffer = std::make_unique<uint8_t[]>(sgdByteLength);
+    read(sgdByteOffset, buffer.get(), sgdByteLength, "the SGD");
+
+    if (header.supercompressionScheme != KTX_SS_BASIS_LZ)
+        return;
+
+    // Validate BASIS_LZ SGD
+
+    uint32_t imageCount = 0;
+    // uint32_t layersFaces = numLayers * header.faceCount;
+    for (uint32_t level = 0; level < numLevels; ++level)
+        // numFaces * depth is only reasonable because they can't both be > 1. There are no 3D cubemaps
+        imageCount += numLayers * header.faceCount * std::max(header.pixelDepth >> level, 1u);
+
+    // Validate GlobalHeader
+    if (sgdByteLength < sizeof(ktxBasisLzGlobalHeader)) {
+        error(SGD::BLZESizeTooSmallHeader, sgdByteLength);
+        return;
+    }
+
+    const ktxBasisLzGlobalHeader& bgh = *reinterpret_cast<const ktxBasisLzGlobalHeader*>(buffer.get());
+
+    const uint64_t expectedBgdByteLength =
+            sizeof(ktxBasisLzGlobalHeader) +
+            sizeof(ktxBasisLzEtc1sImageDesc) * imageCount +
+            bgh.endpointsByteLength +
+            bgh.selectorsByteLength +
+            bgh.tablesByteLength +
+            bgh.extendedByteLength;
+    if (sgdByteLength != expectedBgdByteLength)
+        error(SGD::BLZESizeIncorrect, sgdByteLength, imageCount, expectedBgdByteLength);
+
+    if (parsedColorModel && *parsedColorModel == KHR_DF_MODEL_ETC1S && bgh.extendedByteLength != 0)
+        error(SGD::BLZEExtendedByteLengthNotZero, bgh.extendedByteLength);
+
+    // Validate ImageDesc
+    if (sgdByteLength < sizeof(ktxBasisLzGlobalHeader) + sizeof(ktxBasisLzEtc1sImageDesc) * imageCount)
+        return;
+
+    const ktxBasisLzEtc1sImageDesc* imageDescs = BGD_ETC1S_IMAGE_DESCS(buffer.get());
+
+    bool foundPFrame = false;
+    uint32_t i = 0;
+    for (uint32_t level = 0; level < numLevels; ++level) {
+        for (uint32_t layer = 0; layer < numLayers; ++layer) {
+            for (uint32_t face = 0; face < header.faceCount; ++face) {
+                for (uint32_t zSlice = 0; zSlice < std::max(header.pixelDepth >> level, 1u); ++zSlice) {
+                    const auto imageIndex = i++;
+                    const auto& image = imageDescs[imageIndex];
+
+                    if (image.imageFlags & ETC1S_P_FRAME)
+                        foundPFrame = true;
+
+                    if (image.imageFlags & ~ETC1S_P_FRAME)
+                        error(SGD::BLZEInvalidImageFlagBit, level, layer, face, zSlice, image.imageFlags);
+
+                    if (image.rgbSliceByteLength == 0)
+                        error(SGD::BLZEZeroRGBLength, level, layer, face, zSlice, image.rgbSliceByteLength);
+
+                    if (image.rgbSliceByteOffset + image.rgbSliceByteLength > levelIndices[level].byteLength)
+                        error(SGD::BLZEInvalidRGBSlice, level, layer, face, zSlice, image.rgbSliceByteOffset, image.rgbSliceByteLength, levelIndices[level].byteLength);
+                    if (image.alphaSliceByteOffset + image.alphaSliceByteLength > levelIndices[level].byteLength)
+                        error(SGD::BLZEInvalidAlphaSlice, level, layer, face, zSlice, image.alphaSliceByteOffset, image.alphaSliceByteLength, levelIndices[level].byteLength);
+
+                    // Crosscheck with the DFD numSamples
+                    if (image.alphaSliceByteLength == 0 && numSamples == 2)
+                        error(SGD::BLZEDFDMismatchAlpha, level, layer, face, zSlice);
+                    if (image.alphaSliceByteLength != 0 && numSamples == 1)
+                        error(SGD::BLZEDFDMismatchNoAlpha, level, layer, face, zSlice, image.alphaSliceByteLength);
+                }
+            }
+        }
+    }
+
+    if (foundPFrame)
+        if (!foundKTXanimData)
+            error(SGD::BLZENoAnimationSequencesPFrame);
+}
+
 // =================================================================================================
-// TODO Tools P2: Validate SGD
-//
-// void ktxValidator::validateSgd(validationContext& ctx) {
-//     uint64_t sgdByteLength = ctx.header.supercompressionGlobalData.byteLength;
-//     if (ctx.header.supercompressionScheme == KTX_SS_BASIS_LZ) {
-//         if (sgdByteLength == 0) {
-//             addIssue(logger::eError, SGD.MissingSupercompressionGlobalData);
-//             return;
-//         }
-//     } else {
-//         if (sgdByteLength > 0)
-//             addIssue(logger::eError, SGD.UnexpectedSupercompressionGlobalData);
-//         return;
-//     }
-//
-//     uint8_t* sgd = new uint8_t[sgdByteLength];
-//     ctx.inp->read((char*) sgd, sgdByteLength);
-//     if (ctx.inp->fail())
-//         addIssue(logger::eFatal, IOError.FileRead, strerror(errno));
-//     else if (ctx.inp->eof())
-//         addIssue(logger::eFatal, IOError.UnexpectedEOF);
-//
-//     // firstImages contains the indices of the first images for each level.
-//     // The last array entry contains the total number of images which is what
-//     // we need here.
-//     uint32_t* firstImages = new uint32_t[ctx.levelCount + 1];
-//     // Temporary invariant value
-//     uint32_t layersFaces = ctx.layerCount * ctx.header.faceCount;
-//     firstImages[0] = 0;
-//     for (uint32_t level = 1; level <= ctx.levelCount; level++) {
-//         // NOTA BENE: numFaces * depth is only reasonable because they can't
-//         // both be > 1. I.e there are no 3d cubemaps.
-//         firstImages[level] = firstImages[level - 1]
-//                 + layersFaces * MAX(ctx.header.pixelDepth >> (level - 1), 1);
-//     }
-//     uint32_t& imageCount = firstImages[ctx.levelCount];
-//
-//     ktxBasisLzGlobalHeader& bgdh = *reinterpret_cast<ktxBasisLzGlobalHeader*>(sgd);
-//     uint32_t numSamples = KHR_DFDSAMPLECOUNT(ctx.pActualDfd + 1);
-//
-//     uint64_t expectedBgdByteLength = sizeof(ktxBasisLzGlobalHeader)
-//             + sizeof(ktxBasisLzEtc1sImageDesc) * imageCount
-//             + bgdh.endpointsByteLength
-//             + bgdh.selectorsByteLength
-//             + bgdh.tablesByteLength;
-//
-//     ktxBasisLzEtc1sImageDesc* imageDescs = BGD_ETC1S_IMAGE_DESCS(sgd);
-//     ktxBasisLzEtc1sImageDesc* image = imageDescs;
-//     for (; image < imageDescs + imageCount; image++) {
-//         if (image->imageFlags & ~ETC1S_P_FRAME)
-//             addIssue(logger::eError, SGD.InvalidImageFlagBit);
-//         // Crosscheck the DFD.
-//         if (image->alphaSliceByteOffset == 0 && numSamples == 2)
-//             addIssue(logger::eError, SGD.DfdMismatchAlpha);
-//         if (image->alphaSliceByteOffset > 0 && numSamples == 1)
-//             addIssue(logger::eError, SGD.DfdMismatchNoAlpha);
-//     }
-//
-//     if (sgdByteLength != expectedBgdByteLength)
-//         addIssue(logger::eError, SGD.IncorrectGlobalDataSize);
-//
-//     if (bgdh.extendedByteLength != 0)
-//         addIssue(logger::eError, SGD.ExtendedByteLengthNotZero);
-//
-//     // Can't do anymore as we have no idea how many endpoints, etc there
-//     // should be.
-//     // TODO: attempt transcode
-// }
+// TODO Tools P2: validate DataSize
 //
 // void ktxValidator::validateDataSize(validationContext& ctx) {
 //     // Expects to be called after validateSgd so current file offset is at
@@ -1611,27 +1784,51 @@ void ValidationContext::validateKTXanimData(const uint8_t* data, uint32_t size) 
 //     if (dataSizeInFile != ctx.dataSizeFromLevelIndex)
 //         addIssue(logger::eError, FileError.IncorrectDataSize);
 // }
-
-// void ValidationContext::validateCreateAndTranscode() {
-//     KTXTexture<ktxTexture2> texture{nullptr};
-//     ktx_error_code_e result = createKTXTexture(KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, texture.pHandle());
 //
-//     if (result != KTX_SUCCESS)
-//         fatal(ValidatorError::CreateFailure, ktxErrorString(result));
-//
-//     if (parsedColorModel == KHR_DF_MODEL_UASTC || parsedColorModel == KHR_DF_MODEL_ETC1S) {
-//         ktx_error_code_e result = KTX_SUCCESS;
-//
-//         if (parsedColorModel == KHR_DF_MODEL_ETC1S)
-//             result = ktxTexture2_TranscodeBasis(texture.handle(), KTX_TTF_ETC2_RGBA, 0);
-//         else if (parsedColorModel == KHR_DF_MODEL_UASTC)
-//             result = ktxTexture2_TranscodeBasis(texture.handle(), KTX_TTF_ASTC_4x4_RGBA, 0);
-//
-//         if (result != KTX_SUCCESS)
-//             error(ValidatorError::TranscodeFailure, ktxErrorString(result));
-//     }
-// }
-
 // =================================================================================================
+
+void ValidationContext::validateCreateAndTranscode() {
+    KTXTexture2 texture{nullptr};
+    ktxTextureCreateFlags flags = KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT;
+
+    if (checkGLTFBasisU)
+        flags |= KTX_TEXTURE_CREATE_CHECK_GLTF_BASISU_BIT;
+
+    ktx_error_code_e result = createKTXTexture(flags, texture.pHandle());
+
+    if (numError == 0 && numWarning == 0) {
+        switch (result) {
+        case KTX_UNSUPPORTED_FEATURE:
+            warning(Validator::UnsupportedFeature);
+            break;
+
+        case KTX_DECOMPRESS_LENGTH_ERROR:
+            error(LevelIndex::UncompressedByteLengthMismatch,
+                    toString(ktxSupercmpScheme(header.supercompressionScheme)));
+            break;
+
+        case KTX_DECOMPRESS_CHECKSUM_ERROR:
+            error(Validator::DecompressChecksumError,
+                    toString(ktxSupercmpScheme(header.supercompressionScheme)));
+            break;
+
+        case KTX_SUCCESS:
+            if (parsedColorModel == KHR_DF_MODEL_ETC1S)
+                result = ktxTexture2_TranscodeBasis(texture.handle(), KTX_TTF_ETC2_RGBA, 0);
+            else if (parsedColorModel == KHR_DF_MODEL_UASTC)
+                result = ktxTexture2_TranscodeBasis(texture.handle(), KTX_TTF_ASTC_4x4_RGBA, 0);
+
+            if (result != KTX_SUCCESS)
+                error(Validator::TranscodeFailure, toString(*parsedColorModel), ktxErrorString(result));
+            break;
+
+        default:
+            fatal(Validator::CreateFailure, ktxErrorString(result));
+            break;
+        }
+    } else if (result == KTX_SUCCESS && numError != 0) {
+        warning(Validator::SupportedNonConformantFile);
+    }
+}
 
 } // namespace ktx
