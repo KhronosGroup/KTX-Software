@@ -96,8 +96,9 @@ class ktxApp {
         std::vector<_tstring> infiles;
         _tstring outfile;
         int test;
+        int warn;
 
-        commandOptions() : test(false) { }
+        commandOptions() : test(false), warn(1) { }
     };
 
     ktxApp(std::string& version, std::string& defaultVersion,
@@ -113,6 +114,31 @@ class ktxApp {
         vfprintf(stderr, pFmt, args);
         va_end(args);
         cerr << "\n";
+    }
+
+    void warning(const char *pFmt, va_list args) {
+        if (options.warn) {
+            cerr << name << " warning! ";
+            vfprintf(stderr, pFmt, args);
+            cerr << endl;
+        }
+    }
+
+    void warning(const char *pFmt, ...) {
+        if (options.warn) {
+            va_list args;
+            va_start(args, pFmt);
+
+            warning(pFmt, args);
+            cerr << endl;
+        }
+    }
+
+    void warning(const string& msg) {
+        if (options.warn) {
+            cerr << name << " warning! ";
+            cerr << msg << endl;
+        }
     }
 
     /** @internal

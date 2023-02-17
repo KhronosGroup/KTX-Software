@@ -15,14 +15,16 @@
 #include <vector>
 #if defined(_WIN32)
   #include <tchar.h>
-#else
+#elif !defined(_TCHAR)
   #define _TCHAR char
   #define _T(x) x
 #endif
-#if defined(_UNICODE)
-  #define _tstring std::wstring
-#else
-  #define _tstring std::string
+#if !defined(_tstring)
+  #if defined(_UNICODE)
+    #define _tstring std::wstring
+  #else
+    #define _tstring std::string
+  #endif
 #endif
 
 
