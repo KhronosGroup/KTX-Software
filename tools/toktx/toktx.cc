@@ -16,6 +16,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <string>
 #include <sstream>
 #include <vector>
 #include <inttypes.h>
@@ -27,6 +28,7 @@
 #include "argparser.h"
 #include "version.h"
 #include "image.hpp"
+#include "imageio.h"
 #if (IMAGE_DEBUG) && defined(_DEBUG) && defined(_WIN32) && !defined(_WIN32_WCE)
 #  include "imdebug.h"
 #elif defined(IMAGE_DEBUG) && IMAGE_DEBUG
@@ -331,14 +333,47 @@ class toktxApp : public scApp {
     virtual int main(int argc, _TCHAR* argv[]);
     virtual void usage();
 
-    void warning(const char *pFmt, va_list args);
-    void warning(const char *pFmt, ...);
-    void warning(const string&);
+    friend void warning(const char *pFmt, va_list args);
+    friend void warning(const char *pFmt, ...);
+    friend void warning(const string& msg);
 
   protected:
+    struct targetImageSpec : public ImageSpec {
+        OETFFunc decodeFunc = nullptr;  // To be applied to the source image!
+        OETFFunc encodeFunc = nullptr;
+        targetImageSpec& operator=(const ImageSpec& s) {
+            *static_cast<ImageSpec*>(this) = s;
+            encodeFunc = nullptr;
+            decodeFunc = nullptr;
+            return *this;
+        }
+    };
+
     virtual bool processOption(argparser& parser, int opt);
     void processEnvOptions();
     void validateOptions();
+
+    Image* createImage(const targetImageSpec& target, ImageInput& in);
+    void convertImageType(Image*& pImage);
+    void scaleImage(Image*& pImage, ktx_uint32_t width, ktx_uint32_t height);
+    void genMipmap(Image*& pImage,
+                   uint32_t layer, uint32_t faceSlice,
+                   ktxTexture* texture);
+
+    ktxTexture* createTexture(const targetImageSpec& target);
+
+    void determineTargetColorSpace(const ImageInput& in,
+                                   targetImageSpec& target);
+    void determineTargetTypeBitLengthScale(const ImageInput& in,
+                                           targetImageSpec& target,
+                                           string& defaultSwizzle);
+
+    void determineTargetImageSpec(const ImageInput& in,
+                                  targetImageSpec& target,
+                                  string& defaultSwizzle);
+    void checkSpecsMatch(const ImageInput& current, const ImageSpec& firstSpec);
+
+    void setAstcMode(const targetImageSpec& target);
 
     struct commandOptions : public scApp::commandOptions {
         struct mipgenOptions {
@@ -361,7 +396,6 @@ class toktxApp : public scApp {
         khr_df_primaries_e assign_primaries;
         int          useStdin;
         int          lower_left_maps_to_s0t0;
-        int          warn;
         struct mipgenOptions gmopts;
         unsigned int depth;
         unsigned int layers;
@@ -397,13 +431,20 @@ class toktxApp : public scApp {
             // As required by spec. Opposite of OpenGL {,ES}, same as
             // Vulkan, et al.
             lower_left_maps_to_s0t0 = 0;
-            warn = 1;
             scale = 1.0f;
             resize = 0;
             newGeom.width = newGeom.height = 0;
             targetType = eUnspecified;
-       }
+        }
     } options;
+
+    class cant_create_image : public runtime_error {
+        using runtime_error::runtime_error;
+    };
+
+    class cant_create_texture : public runtime_error {
+        using runtime_error::runtime_error;
+    };
 };
 
 toktxApp::toktxApp() : scApp(myversion, mydefversion, options)
@@ -618,21 +659,6 @@ toktxApp::usage()
         "the logical image origin to match the GL convention.\n";
 }
 
-static uint32_t
-imageCount(uint32_t levelCount, uint32_t layerCount,
-           uint32_t faceCount, uint32_t baseDepth)
-{
-    assert((faceCount == 1 && baseDepth >= 1)
-           || (faceCount > 1 && baseDepth == 1));
-
-    uint32_t levelPixelDepth = baseDepth;
-    for(uint32_t level = 1; level < levelCount; level++)
-        levelPixelDepth += maximum(baseDepth >> level, 1U);
-    // NOTA BENE: faceCount * layerPixelDepth is only reasonable because
-    // faceCount and depth can't both be > 1. I.e there are no 3d cubemaps.
-    return layerCount * faceCount * levelPixelDepth;
-}
-
 int _tmain(int argc, _TCHAR* argv[])
 {
     return theApp.main(argc, argv);
@@ -642,587 +668,212 @@ int
 toktxApp::main(int argc, _TCHAR *argv[])
 {
     KTX_error_code ret;
-    ktxTextureCreateInfo createInfo;
+    //ktxTextureCreateInfo createInfo;
     ktxTexture* texture = 0;
     int exitCode = 0;
-    unsigned int componentCount = 1, faceSlice, level, layer, levelCount = 1;
+    unsigned int faceSlice, level, layer, levelCount = 1;
     unsigned int levelWidth=0, levelHeight=0, levelDepth=0;
-    struct _imageAttribs {
-        khr_df_transfer_e oetf;
-        khr_df_primaries_e primaries;
-        uint32_t componentCount;
-        bool oetfWarned;
-        bool primariesWarned;
-        bool componentCountWarned;
-    } expectedAttribs = {
-        KHR_DF_TRANSFER_UNSPECIFIED,
-        KHR_DF_PRIMARIES_UNSPECIFIED,
-        3,
-        false,
-        false,
-        false
-    };
     string defaultSwizzle;
 
     processEnvOptions();
-    processCommandLine(argc, argv, eDisallowStdin, eFirst);
+    processCommandLine(argc, argv, eAllowStdin, eFirst);
     validateOptions();
 
-    memset(&createInfo, 0, sizeof(createInfo));
-    if (options.cubemap)
-      createInfo.numFaces = 6;
-    else
-      createInfo.numFaces = 1;
-
-    if (options.layers) {
-        createInfo.numLayers = options.layers;
-        createInfo.isArray = KTX_TRUE;
-    } else {
-        createInfo.numLayers = 1;
-    }
-
     faceSlice = layer = level = 0;
-    std::vector<_tstring>::const_iterator it;
-    uint32_t i;
-    for (it = options.infiles.begin(), i = 0;
-         it < options.infiles.end();
-         it++, i++)
-    {
+    vector<_tstring>::const_iterator it;
+    bool firstImage = true;
+    ImageSpec firstImageSpec;
+    targetImageSpec target;
+
+    for (it = options.infiles.begin(); it < options.infiles.end(); it++) {
         const _tstring& infile = *it;
+        Image* image = nullptr;
+        uint32_t subimage=0, miplevel=0;
 
-        Image* image;
         try {
-            Image::rescale_e rescale = Image::eNoRescale;
-            if (options.etc1s || options.bopts.uastc)
-                rescale = Image::rescale_e::eAlwaysRescaleTo8Bits;
-            else if (options.astc)
-                rescale = Image::rescale_e::eRescaleTo8BitsIfLess;
+            ImageSpec config;
+            auto in = ImageInput::open(infile, &config,
+                          // This lambda provides the trampoline to the
+                          // warning method.
+                          [this](const std::string& w) { this->warning(w); });
 
-            image =
-              Image::CreateFromFile(infile,
-                                    options.assign_oetf == KHR_DF_TRANSFER_UNSPECIFIED,
-                                    rescale);
-
-            // If input is > 8bit and user wants LDR issue quality loss warning
-            if (options.astc && image->getComponentSize() > 1
-                && options.astcopts.mode == KTX_PACK_ASTC_ENCODER_MODE_LDR) {
-                stringstream msg;
-                msg << "Input file is 16-bit but LDR option is specified. "
-                    << "Expect quality loss in the output."
-                    << endl;
-                warning(msg.str());
-            }
-
-            // If input is < 8bit and user wants HDR issue warning
-            if (options.astc && image->getComponentSize() <= 1 &&
-                options.astcopts.mode == KTX_PACK_ASTC_ENCODER_MODE_HDR) {
-                stringstream msg;
-                msg << "Input file is not 16-bit but HDR option is specified."
-                    << endl;
-                warning(msg.str());
-            }
-
-            // If no astc mode option is specified and
-            // if input is <= 8bit default to LDR otherwise default to HDR
-            if (options.astc && options.astcopts.mode == KTX_PACK_ASTC_ENCODER_MODE_DEFAULT) {
-                if (image->getComponentSize() <= 1)
-                    options.astcopts.mode = KTX_PACK_ASTC_ENCODER_MODE_LDR;
-                else
-                    options.astcopts.mode = KTX_PACK_ASTC_ENCODER_MODE_HDR;
-            }
-
-            // Check that all input files have matching oetf, primaries and
-            // component count. Raise error or warning depending on attribute
-            // and assign or convert options.
-            if (i == 0) {
-                // First file.
-                expectedAttribs.oetf = image->getOetf();
-                expectedAttribs.primaries = image->getPrimaries();
-                expectedAttribs.componentCount = image->getComponentCount();
-            } else {
-                // Subsequent files.
-                if (image->getOetf() != expectedAttribs.oetf
-                    && options.convert_oetf == KHR_DF_TRANSFER_UNSPECIFIED)
-                {
-                    stringstream msg;
-                    msg << "\"" << infile << "\" is encoded with a "
-                        "different transfer function (OETF) than preceding "
-                        "file(s)." << endl;
-                    if (options.assign_oetf == KHR_DF_TRANSFER_UNSPECIFIED) {
-                        cerr << name << ": " << msg.str();
-                        exitCode = 1;
-                        goto cleanup;
-                    } else if (!expectedAttribs.oetfWarned) {
-                        warning(msg.str());
-                        expectedAttribs.oetfWarned = true;
-                    }
-                    // Don't warn when convert_oetf is set as proper conversions
-                    // will be done so all images will be in the same space.
-                }
-                if (image->getPrimaries() != expectedAttribs.primaries) {
-                    stringstream msg;
-                    msg << "\"" << infile << "\" has different color "
-                         "primaries than preceding file(s)." << endl;
-                    if (options.assign_primaries == KHR_DF_PRIMARIES_UNSPECIFIED) {
-                        cerr << name << ": " << msg.str();
-                        exitCode = 1;
-                        goto cleanup;
-                    } else if (!expectedAttribs.primariesWarned) {
-                        warning(msg.str());
-                        expectedAttribs.primariesWarned = true;
-                    }
-                    // There is no convert_primaries option.
-                }
-                if (image->getComponentCount() != expectedAttribs.componentCount) {
-                    stringstream msg;
-                    msg << "\"" << infile
-                        << "\" has a different colortype_e"
-                        << " (component count) than preceding file(s)."
-                        << endl;
-                    if (options.targetType == commandOptions::eUnspecified) {
-                        cerr << name << ": " << msg.str();
-                        exitCode = 1;
-                        goto cleanup;
-                    } else if (!expectedAttribs.componentCountWarned) {
-                        msg << "The components of the level or layer derived "
-                            << "from this file will likely be significantly "
-                            << "different"
-                            << endl
-                            << "from those in other levels or layers."
-                            << endl;
-                        warning(msg.str());
-                        expectedAttribs.componentCountWarned = true;
-                    }
-                }
-            }
-
-            if (options.assign_oetf != KHR_DF_TRANSFER_UNSPECIFIED) {
-                image->setOetf(options.assign_oetf);
-            }
-
-            if (options.convert_oetf != KHR_DF_TRANSFER_UNSPECIFIED &&
-                options.convert_oetf != image->getOetf()) {
-                OETFFunc decode, encode;
-                if (image->getOetf() == KHR_DF_TRANSFER_SRGB)
-                    decode = decode_sRGB;
-                else
-                    decode = decode_linear;
-                if (options.convert_oetf == KHR_DF_TRANSFER_SRGB)
-                    encode = encode_sRGB;
-                else
-                    encode = encode_linear;
-                image->transformOETF(decode, encode);
-                image->setOetf(options.convert_oetf);
-            }
-            if (options.assign_primaries != KHR_DF_PRIMARIES_MAX) {
-                image->setPrimaries(options.assign_primaries);
-            }
-        } catch (exception& e) {
-            cerr << name << ": failed to create image from "
-                      << infile << ". " << e.what() << endl;
-            exit(2);
-        }
-
-        /* Sanity check. */
-        assert(image->getWidth() * image->getHeight() * image->getPixelSize()
-                  == image->getByteCount());
-
-        if (options.scale != 1.0f || options.resize) {
-            Image* scaledImage;
-            if (options.scale != 1.0f) {
-                scaledImage = image->createImage(
-                              (uint32_t)(image->getWidth() * options.scale),
-                              (uint32_t)(image->getHeight() * options.scale));
-
-            } else {
-                scaledImage = image->createImage(options.newGeom.width,
-                                                 options.newGeom.height);
-            }
-
-            try {
-                image->resample(*scaledImage,
-                                image->getOetf() == KHR_DF_TRANSFER_SRGB,
-                                options.gmopts.filter.c_str(),
-                                options.gmopts.filterScale,
-                                basisu::Resampler::Boundary_Op::BOUNDARY_CLAMP);
-            } catch (runtime_error& e) {
-                cerr << name << ": Image::resample() failed! "
-                          << e.what() << endl;
-                exitCode = 1;
-                goto cleanup;
-            }
-            scaledImage->setOetf(image->getOetf());
-            scaledImage->setColortype(image->getColortype());
-            scaledImage->setPrimaries(image->getPrimaries());
-            delete image;
-            image = scaledImage;
-        }
-
-        if (image->getHeight() > 1 && options.lower_left_maps_to_s0t0) {
-            image->yflip();
-        }
-
-        if (options.normalize) {
-            image->normalize();
-        }
-
-        if (options.targetType != commandOptions::eUnspecified) {
-            if (options.targetType != (int)image->getComponentCount()) {
-                Image* newImage = nullptr;
-                // The casts in the following copyTo* definitions only work
-                // because, thanks to the switch, at runtime we always pass
-                // the image type being cast to.
-                if (image->getComponentSize() == 2) {
-                    switch (options.targetType) {
-                      case commandOptions::eR:
-                        newImage = new r16image(image->getWidth(), image->getHeight());
-                        image->copyToR(*newImage);
-                        break;
-                      case commandOptions::eRG:
-                        newImage = new rg16image(image->getWidth(), image->getHeight());
-                        image->copyToRG(*newImage);
-                        break;
-                      case commandOptions::eRGB:
-                        newImage = new rgb16image(image->getWidth(), image->getHeight());
-                        image->copyToRGB(*newImage);
-                        break;
-                      case commandOptions::eRGBA:
-                        newImage = new rgba16image(image->getWidth(), image->getHeight());
-                        image->copyToRGBA(*newImage);
-                        break;
-                      case commandOptions::eUnspecified:
-                        assert(false);
-                    }
-                } else {
-                    switch (options.targetType) {
-                      case commandOptions::eR:
-                        newImage = new r8image(image->getWidth(), image->getHeight());
-                        image->copyToR(*newImage);
-                        break;
-                      case commandOptions::eRG:
-                        newImage = new rg8image(image->getWidth(), image->getHeight());
-                        image->copyToRG(*newImage);
-                        break;
-                      case commandOptions::eRGB:
-                        newImage = new rgb8image(image->getWidth(), image->getHeight());
-                        image->copyToRGB(*newImage);
-                        break;
-                      case commandOptions::eRGBA:
-                        newImage = new rgba8image(image->getWidth(), image->getHeight());
-                        image->copyToRGBA(*newImage);
-                        break;
-                      case commandOptions::eUnspecified:
-                        assert(false);
-                    }
-                }
-                if (newImage) {
-                     delete image;
-                     image = newImage;
-                } else {
-                    cerr << name << ": creation of image for new target type"
-                                    " failed. Out of memory." << endl;
-                    exitCode = 1;
-                    goto cleanup;
-                }
-            } else {
-                if (image->getColortype() < Image::colortype_e::eR) {
-                    // Color type is currently set to luminance. Override.
-                    assert(image->getComponentCount() < 3);
-                    if (options.targetType == commandOptions::eR)
-                        image->setColortype(Image::colortype_e::eR);
-                    else
-                        image->setColortype(Image::colortype_e::eRG);
-                }
-            }
-        }
-
-        if (options.inputSwizzle.size() > 0
-            // inputSwizzle is handled during BasisU and astc encoding
-            && !options.etc1s && !options.bopts.uastc && !options.astc) {
-            image->swizzle(options.inputSwizzle);
-        }
-
-        if (i == 0) {
-            // First file.
-
-            if (image->getColortype() < Image::colortype_e::eR) {  // Luminance type?
-                if (image->getColortype() == Image::colortype_e::eLuminance) {
-                    defaultSwizzle = "rrr1";
-                } else if (image->getColortype() == Image::colortype_e::eLuminanceAlpha) {
-                    defaultSwizzle = "rrrg";
-                }
-            }
-
-            bool srgb = (image->getOetf() == KHR_DF_TRANSFER_SRGB);
-            componentCount = image->getComponentCount();
-            switch (componentCount) {
-              case 1:
-                switch (image->getComponentSize()) {
-                  case 1:
-                    createInfo.glInternalformat
-                                    = srgb ? GL_SR8 : GL_R8;
-                    createInfo.vkFormat
-                                    = srgb ? VK_FORMAT_R8_SRGB
-                                           : VK_FORMAT_R8_UNORM;
-                    break;
-                  case 2:
-                    createInfo.glInternalformat = GL_R16;
-                    createInfo.vkFormat = VK_FORMAT_R16_UNORM;
-                    break;
-                  case 4:
-                    createInfo.glInternalformat = GL_R32F;
-                    createInfo.vkFormat = VK_FORMAT_R32_SFLOAT;
-                    break;
-                }
-                break;
-
-              case 2:
-                 switch (image->getComponentSize()) {
-                  case 1:
-                    createInfo.glInternalformat
-                                    = srgb ? GL_SRG8 : GL_RG8;
-                    createInfo.vkFormat
-                                    = srgb ? VK_FORMAT_R8G8_SRGB
-                                           : VK_FORMAT_R8G8_UNORM;
-                    break;
-                  case 2:
-                    createInfo.glInternalformat = GL_RG16;
-                    createInfo.vkFormat = VK_FORMAT_R16G16_UNORM;
-                    break;
-                  case 4:
-                    createInfo.glInternalformat = GL_RG32F;
-                    createInfo.vkFormat = VK_FORMAT_R32G32_SFLOAT;
-                    break;
-                }
-                break;
-
-              case 3:
-                 switch (image->getComponentSize()) {
-                  case 1:
-                    createInfo.glInternalformat
-                                    = srgb ? GL_SRGB8 : GL_RGB8;
-                    createInfo.vkFormat
-                                    = srgb ? VK_FORMAT_R8G8B8_SRGB
-                                           : VK_FORMAT_R8G8B8_UNORM;
-                    break;
-                  case 2:
-                    createInfo.glInternalformat = GL_RGB16;
-                    createInfo.vkFormat = VK_FORMAT_R16G16B16_UNORM;
-                    break;
-                  case 4:
-                    createInfo.glInternalformat = GL_RGB32F;
-                    createInfo.vkFormat = VK_FORMAT_R32G32B32_SFLOAT;
-                    break;
-                }
-                break;
-
-              case 4:
-                 switch (image->getComponentSize()) {
-                  case 1:
-                    createInfo.glInternalformat
-                                    = srgb ? GL_SRGB8_ALPHA8 : GL_RGBA8;
-                    createInfo.vkFormat
-                                    = srgb ? VK_FORMAT_R8G8B8A8_SRGB
-                                           : VK_FORMAT_R8G8B8A8_UNORM;
-                    break;
-                  case 2:
-                    createInfo.glInternalformat = GL_RGBA16;
-                    createInfo.vkFormat = VK_FORMAT_R16G16B16A16_UNORM;
-                    break;
-                  case 4:
-                    createInfo.glInternalformat = GL_RGBA32F;
-                    createInfo.vkFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
-                    break;
-                }
-                break;
-
-              default:
-                /* If we get here there's a bug. */
-                assert(0);
-            }
-            if (createInfo.vkFormat == VK_FORMAT_R8_SRGB
-                || createInfo.vkFormat == VK_FORMAT_R8G8_SRGB) {
-                warning("GPU support of sRGB variants of R & RG formats is"
-                        " limited.\nConsider using '--convert_oetf linear'"
-                        " to avoid these formats.");
-            }
-            createInfo.baseWidth = levelWidth = image->getWidth();
-            createInfo.baseHeight = levelHeight = image->getHeight();
-            createInfo.baseDepth = levelDepth = options.depth ? options.depth : 1;
-            if (options.depth > 0) {
-                // In this case, don't care about image->getHeight(). Images are
-                // always considered to be 2d. No need to set options.two_d.
-                createInfo.numDimensions = 3;
-            } else if (image->getHeight() == 1 && !options.two_d)
-                createInfo.numDimensions = 1;
-            else
-                createInfo.numDimensions = 2;
-            if (options.automipmap) {
-                createInfo.numLevels = 1;
-                createInfo.generateMipmaps = KTX_TRUE;
-            } else {
-                createInfo.generateMipmaps = KTX_FALSE;
-                if (options.mipmap || options.genmipmap) {
-                    // Calculate number of miplevels
-                    GLuint max_dim = image->getWidth() > image->getHeight() ?
-                                     image->getWidth() : image->getHeight();
-                    createInfo.numLevels = log2(max_dim) + 1;
-                    if (options.levels > 1) {
-                        if (options.levels > createInfo.numLevels) {
-                            cerr << name << "--levels value is greater than "
-                                 << "the maximum levels for the image size."
-                                 << endl;
-                            exitCode = 1;
-                            goto cleanup;
-                        }
-                        // Override the above.
-                        createInfo.numLevels = options.levels;
-                    }
-                } else {
-                    createInfo.numLevels = 1;
-                }
-                // Figure out how many levels we'll read from files.
-                if (options.mipmap) {
-                    levelCount = createInfo.numLevels;
-                } else {
-                    levelCount = 1;
-                }
-            }
-            // Check we have enough files.
-            uint32_t requiredFileCount = imageCount(options.genmipmap ? 1 : levelCount,
-                                             createInfo.numLayers,
-                                             createInfo.numFaces,
-                                             createInfo.baseDepth);
-            if (requiredFileCount > options.infiles.size()) {
-                cerr << name << ": too few files for " << levelCount
-                     << " levels, " << createInfo.numLayers
-                     << " layers and " << createInfo.numFaces
-                     << " faces." << endl;
-                exitCode = 1;
-                goto cleanup;
-            } else if (requiredFileCount < options.infiles.size()) {
-                cerr << name << ": too many files for " << levelCount
-                     << " levels, " << createInfo.numLayers
-                     << " layers and " << createInfo.numFaces
-                     << " faces. Extras will be ignored." << endl;
-                options.infiles.erase(options.infiles.begin() + requiredFileCount,
-                                          options.infiles.end());
-            }
-            if (options.ktx2) {
-                ret = ktxTexture2_Create(&createInfo,
-                                         KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                         (ktxTexture2**)&texture);
-            } else {
-                ret = ktxTexture1_Create(&createInfo,
-                                         KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                         (ktxTexture1**)&texture);
-            }
-            if (KTX_SUCCESS != ret) {
-                fprintf(stderr, "%s failed to create ktxTexture; KTX error: %s\n",
-                        name.c_str(), ktxErrorString(ret));
-                exitCode = 2;
-                goto cleanup;
-            }
-        } else {
             // Input file order is layer, faceSlice, level. This seems easier
             // for a human to manage than the order in a KTX file. It keeps the
-            // base level images and their mip levels together.
-            level++;
-            levelWidth >>= 1;
-            levelHeight >>= 1;
-            levelDepth >>= 1;
-            if (level == levelCount) {
-                faceSlice++;
-                level = 0;
-                levelWidth = createInfo.baseWidth;
-                levelHeight = createInfo.baseHeight;
-                levelDepth = createInfo.baseDepth;
-                if (faceSlice == (options.cubemap ? 6 : levelDepth)) {
-                    faceSlice = 0;
-                    layer++;
-                    if (layer == createInfo.numLayers) {
-                        // We're done.
-                        break;
+            // base level images and their mip levels together. It also works
+            // better with subimages and miplevels.
+
+            // TODO: figure out how to handle 3d input files. slice,level
+            // order does not work. Such files will have slices(level0),
+            // slices(level1) ...
+            if (in->spec().depth() > 1) {
+                stringstream message;
+                throw cant_create_image(
+                    "Input of volumetric images is not (yet) supported."
+                );
+            }
+
+            do { // subimages
+                do {  // miplevels
+                    if (in->miplevelCount() > 1 && !options.mipmap) {
+                         warning("Ignoring miplevels in %s(%d) because --mipmap not set.",
+                                 infile.c_str(), subimage);
+                    }
+                    in->seekSubimage(subimage, miplevel);
+                    const ImageSpec& spec = in->spec();
+                    if (!spec.format().sameUnitAllChannels()) {
+                        throw cant_create_image(
+                            "Components of differing size or type not yet supported.");
+                    }
+                    if (firstImage) {
+                        if (options.cubemap && spec.width() != spec.height())
+                        {
+                            throw cant_create_image(
+                              "--cubemap specified but image is not square."
+                            );
+                        }
+                        firstImageSpec = spec;
+                        determineTargetImageSpec(*in, target, defaultSwizzle);
+                        texture = createTexture(target);
+                        levelWidth = texture->baseWidth;
+                        levelHeight = texture->baseHeight;
+                        levelDepth = texture->baseDepth;
+                        // Figure out how many levels we'll read from files.
+                        if (options.mipmap) {
+                            levelCount = texture->numLevels;
+                        } else {
+                            // texture->numLevels will be > 1 for --genmipmap.
+                            levelCount = 1;
+                        }
+                        if (options.astc) {
+                            setAstcMode(target);
+                        }
+                        firstImage = false;
+                    } else {
+                        // Subsequent images
+                        checkSpecsMatch(*in, firstImageSpec);
+                        // If cubemap we must have passed square test to get
+                        // here so expected sizes will be square so it is
+                        // sufficient to test against expected sizes.
+                    }
+                    image = createImage(target, *in);
+                    // Because of potential scale or resize, this test is best
+                    // done after the image has been created as they will have
+                    // been applied.
+                    if (!(image->getWidth() == levelWidth
+                        && image->getHeight() == levelHeight))
+                        // TODO: Figure out 3d input images.
+                    {
+                        throw cant_create_image(
+                            "Image has incorrect size for next layer, face or mip level."
+                        );
+                    }
+
+                    //Check astcopts.mode here?
+
+                    if (image->getHeight() > 1 && options.lower_left_maps_to_s0t0) {
+                        image->yflip();
+                    }
+                    if (options.normalize) {
+                        image->normalize();
+                    }
+                    if (options.inputSwizzle.size() > 0
+                        // inputSwizzle is handled during BasisU and astc encoding
+                        && !options.etc1s && !options.bopts.uastc && !options.astc) {
+                        image->swizzle(options.inputSwizzle);
+                    }
+
+                    ret = ktxTexture_SetImageFromMemory(texture,
+                                                        level,
+                                                        layer,
+                                                        faceSlice,
+                                                        *image,
+                                                        image->getByteCount());
+                    // Only an error in this program could lead to
+                    // ret != SUCCESS hence no user message.
+                    assert(ret == KTX_SUCCESS);
+
+                    if (options.genmipmap) {
+                        genMipmap(image, layer, faceSlice, texture);
+                    }
+#if IMAGE_DEBUG
+                    {
+                        ktx_size_t offset;
+                        ktxTexture_GetImageOffset(texture, level, 0, faceSlice,
+                                                  &offset);
+                        dumpImage(infile, image->getWidth(), image->getHeight(),
+                                  image->getComponentCount(),
+                                  image->getComponentSize(),
+                                  texture.pData + offset);
+                    }
+#endif
+                    delete image;
+                    image = nullptr;
+
+                    miplevel++;
+                    level++;
+                    levelWidth = maximum(levelWidth >> 1, 1U);
+                    levelHeight = maximum(levelHeight >> 1, 1U);
+                    levelDepth = maximum(levelDepth >> 1, 1U);
+                } while (miplevel < levelCount && miplevel < in->miplevelCount());
+                subimage++;
+                if (level == levelCount) {
+                    faceSlice++;
+                    level = 0;
+                    levelWidth = texture->baseWidth;
+                    levelHeight = texture->baseHeight;
+                    levelDepth = texture->baseDepth;
+                    if (faceSlice == (options.cubemap ? 6 : levelDepth)) {
+                        faceSlice = 0;
+                        layer++;
+                        if (layer == texture->numLayers) {
+                            // We're done.
+                            break;
+                        }
                     }
                 }
+            } while (subimage < in->subimageCount());
+            if (subimage < in->subimageCount()) {
+                ; // warn unused
             }
-        }
-
-        if (options.cubemap && image->getWidth() != image->getHeight()
-            && image->getWidth() != levelWidth) {
-            cerr << name << ": \"" << infile << "\" intended for a cubemap "
-                            << "face, is not square or has incorrect" << endl
-                            << "size for current mipmap level" << endl;
+            if (layer == texture->numLayers) {
+                // We're done.
+                break;
+            }
+        } catch (cant_create_texture e) {
+            cerr << name << ": failed to create ktxTexture. "
+                 << e.what() << endl;
+            exit(2);
+        } catch (cant_create_image e) {
+            cerr << name << ": could not create image from "
+                 << infile << "(" << subimage << "," << miplevel
+                 << ")." << endl << e.what() << endl;
+            // Some of these exceptions are thrown after the image has
+            // been created despite its name. We want the same message
+            // to the user hence not creating a different exception.
+            if (image != nullptr)
+                delete image;
             exitCode = 1;
             goto cleanup;
+        } catch (runtime_error e) {
+            cerr << name << ": failed to create image from "
+                 << infile << "(" << subimage << "," << miplevel
+                 << ")." << endl << e.what() << endl;
+            exitCode = 2;
+            goto cleanup;
         }
-#if TRAVIS_DEBUG
-        if (options.etc1s) {
-            cout << "level = " << level << ", faceSlice = " << faceSlice;
-            cout << ", srcImg = " << hex  << (void *)srcImg << dec;
-            cout << ", imageSize = " << imageSize << endl;
-        }
-#endif
-        ret = ktxTexture_SetImageFromMemory(ktxTexture(texture),
-                                            level,
-                                            layer,
-                                            faceSlice,
-                                            *image,
-                                            image->getByteCount());
-        // Only an error in this program could lead to ret != SUCCESS
-        // hence no user message.
-        assert(ret == KTX_SUCCESS);
-
-        // This does not work for mipmaps for 3d textures. For those it is
-        // necessary to present the base images for each slice to a
-        // resampler that can sample across images.
-        if (options.genmipmap) {
-            for (uint32_t glevel = 1; glevel < createInfo.numLevels; glevel++)
-            {
-                Image *levelImage = image->createImage(
-                    maximum<uint32_t>(1, image->getWidth() >> glevel),
-                    maximum<uint32_t>(1, image->getHeight() >> glevel));
-                levelImage->setOetf(image->getOetf());
-                levelImage->setColortype(image->getColortype());
-                levelImage->setPrimaries(image->getPrimaries());
-                try {
-                    image->resample(*levelImage,
-                                    image->getOetf() == KHR_DF_TRANSFER_SRGB,
-                                    options.gmopts.filter.c_str(),
-                                    options.gmopts.filterScale,
-                                    options.gmopts.wrapMode);
-                } catch (runtime_error& e) {
-                    cerr << name << ": Image::resample() failed! "
-                              << e.what() << endl;
-                    exitCode = 1;
-                    goto cleanup;
-                }
-
-                if (options.normalize)
-                    levelImage->normalize();
-
-                ret = ktxTexture_SetImageFromMemory(ktxTexture(texture),
-                                              glevel,
-                                              layer,
-                                              faceSlice,
-                                              *levelImage,
-                                              levelImage->getByteCount());
-                assert(ret == KTX_SUCCESS);
-                delete levelImage;
-            }
-        }
-
-#if IMAGE_DEBUG
-        {
-            ktx_size_t offset;
-            ktxTexture_GetImageOffset(texture, level, 0, faceSlice, &offset);
-            dumpImage(infile, image->getWidth(), image->getHeight(),
-                      image->getComponentCount(), image->getComponentSize(),
-                      texture.pData + offset);
-        }
-#endif
-
-        delete image;
+    }
+    if (layer != texture->numLayers) {
+        cerr << name << ": too few input images for " << levelCount
+             << " levels, " << texture->numLayers
+             << " layers and " << texture->numFaces
+             << " faces." << endl;
+        exitCode = 1;
+        goto cleanup;
+    }
+    // We break out of the loop when done so final iterator increment
+    // never happens hence -1 here.
+    if (it != options.infiles.end() - 1) {
+        warning("Ignoring excess input images.");
     }
 
     /*
@@ -1233,9 +884,9 @@ toktxApp::main(int argc, _TCHAR *argv[])
         char orientation[20];
         if (options.ktx2) {
             orientation[0] = 'r';
-            if (createInfo.numDimensions > 1) {
+            if (texture->numDimensions > 1) {
                 orientation[1] = options.lower_left_maps_to_s0t0 ? 'u' : 'd';
-                if (createInfo.numDimensions > 2) {
+                if (texture->numDimensions > 2) {
                     orientation[2] = options.lower_left_maps_to_s0t0
                                    ? 'o'  : 'i';
                     orientation[3] = 0;
@@ -1247,10 +898,10 @@ toktxApp::main(int argc, _TCHAR *argv[])
             }
         } else {
             assert(strlen(KTX_ORIENTATION3_FMT) < sizeof(orientation));
-            if (createInfo.numDimensions == 1) {
+            if (texture->numDimensions == 1) {
                 snprintf(orientation, sizeof(orientation), KTX_ORIENTATION1_FMT,
                          'r');
-            } else if (createInfo.numDimensions == 2) {
+            } else if (texture->numDimensions == 2) {
                 snprintf(orientation, sizeof(orientation), KTX_ORIENTATION2_FMT,
                          'r', options.lower_left_maps_to_s0t0 ? 'u' : 'd');
             } else
@@ -1283,11 +934,6 @@ toktxApp::main(int argc, _TCHAR *argv[])
                                   (uint32_t)swizzle.size()+1,
                                   // +1 is for the NUL on the c_str
                                   swizzle.c_str());
-        }
-
-        if (options.ktx2 && expectedAttribs.primaries != KHR_DF_PRIMARIES_BT709) {
-            KHR_DFDSETVAL(((ktxTexture2*)texture)->pDfd + 1, PRIMARIES,
-                          expectedAttribs.primaries);
         }
     }
 
@@ -1335,6 +981,707 @@ cleanup:
     return exitCode;
 }
 
+Image*
+toktxApp::createImage(const targetImageSpec& target, ImageInput& in)
+{
+    const ImageSpec& inSpec = in.spec();
+
+    Image* image = nullptr;
+    if (target.format().channelBitLength() == 16) {
+        switch (inSpec.format().channelCount()) {
+          case 1: {
+            image = new r16image(inSpec.width(), inSpec.height());
+            break;
+          } case 2: {
+            image = new rg16image(inSpec.width(), inSpec.height());
+            break;
+          } case 3: {
+            image = new rgb16image(inSpec.width(), inSpec.height());
+            break;
+          } case 4: {
+            image = new rgba16image(inSpec.width(), inSpec.height());
+            break;
+          }
+        }
+    } else if (target.format().channelBitLength() == 8) {
+        switch (inSpec.format().channelCount()) {
+          case 1: {
+            image = new r8image(inSpec.width(), inSpec.height());
+            break;
+          } case 2: {
+            image = new rg8image(inSpec.width(), inSpec.height());
+            break;
+          } case 3: {
+            image = new rgb8image(inSpec.width(), inSpec.height());
+            break;
+          } case 4: {
+            image = new rgba8image(inSpec.width(), inSpec.height());
+            break;
+          }
+        }
+    } else {
+        stringstream message;
+        uint32_t ct = inSpec.format().samples[0].channelType;
+        khr_df_sample_datatype_qualifiers_e dtq;
+        dtq = static_cast<khr_df_sample_datatype_qualifiers_e>(ct);
+        message << "Unsupported format "
+                << inSpec.format().channelBitLength()
+                << "-bit " << dtq << " needed.";
+        throw runtime_error(message.str());
+        // TODO: uint32, uint64, float etc.
+    }
+
+    in.readImage(static_cast<uint8_t*>(*image), image->getByteCount(),
+                  0, inSpec.format().channelCount(), target.format());
+    /* Sanity check. */
+    assert(image->getWidth() * image->getHeight() * image->getPixelSize()
+           == image->getByteCount());
+
+    // TODO: Convert primaries?
+    image->setPrimaries((khr_df_primaries_e)target.format().primaries());
+    if (target.encodeFunc != nullptr) {
+        assert(target.decodeFunc != nullptr);
+        image->transformOETF(target.decodeFunc, target.encodeFunc,
+                            inSpec.format().oeGamma());
+        if (target.encodeFunc == encode_sRGB) {
+            image->setOetf(KHR_DF_TRANSFER_SRGB);
+        } else {
+            image->setOetf(KHR_DF_TRANSFER_LINEAR);
+        }
+    } else {
+        image->setOetf((khr_df_transfer_e)target.format().transfer());
+    }
+
+    if (options.scale != 1.0f) {
+        scaleImage(image,
+                   image->getWidth() * options.scale,
+                   image->getHeight() * options.scale);
+    } else if (options.resize
+               && (image->getWidth() != target.width()
+                   || image->getHeight() != target.height()))
+    {
+        // --resize is not allowed with --mipmap so createImage will never be
+        // called for other than the base level when set. This would be
+        // incorrect otherwise. target reflects the resize value, if any.
+        scaleImage(image, target.width(), target.height());
+    }
+    if (options.targetType != commandOptions::eUnspecified) {
+        convertImageType(image);
+    }
+    return image;
+}
+
+void
+toktxApp::convertImageType(Image*& pImage)
+{
+    // TODO: These copyTo's should be reversed. The image should have
+    // a copy constructor for each componentCount src image.
+    if (options.targetType != (int)pImage->getComponentCount()) {
+        Image* newImage = nullptr;
+        // The casts in the following copyTo* definitions only work
+        // because, thanks to the switch, at runtime we always pass
+        // the image type being cast to.
+        if (pImage->getComponentSize() == 2) {
+            switch (options.targetType) {
+              case commandOptions::eR:
+                newImage = new r16image(pImage->getWidth(), pImage->getHeight());
+                pImage->copyToR(*newImage);
+                break;
+              case commandOptions::eRG:
+                newImage = new rg16image(pImage->getWidth(), pImage->getHeight());
+                pImage->copyToRG(*newImage);
+                break;
+              case commandOptions::eRGB:
+                newImage = new rgb16image(pImage->getWidth(), pImage->getHeight());
+                pImage->copyToRGB(*newImage);
+                break;
+              case commandOptions::eRGBA:
+                newImage = new rgba16image(pImage->getWidth(), pImage->getHeight());
+                pImage->copyToRGBA(*newImage);
+                break;
+              case commandOptions::eUnspecified:
+                assert(false);
+            }
+        } else {
+            switch (options.targetType) {
+              case commandOptions::eR:
+                newImage = new r8image(pImage->getWidth(), pImage->getHeight());
+                pImage->copyToR(*newImage);
+                break;
+              case commandOptions::eRG:
+                newImage = new rg8image(pImage->getWidth(), pImage->getHeight());
+                pImage->copyToRG(*newImage);
+                break;
+              case commandOptions::eRGB:
+                newImage = new rgb8image(pImage->getWidth(), pImage->getHeight());
+                pImage->copyToRGB(*newImage);
+                break;
+              case commandOptions::eRGBA:
+                newImage = new rgba8image(pImage->getWidth(), pImage->getHeight());
+                pImage->copyToRGBA(*newImage);
+                break;
+              case commandOptions::eUnspecified:
+                assert(false);
+            }
+        }
+        if (newImage) {
+             delete pImage;
+             pImage = newImage;
+        } else {
+            throw runtime_error(
+                "Out of memory for image with new target type."
+            );
+        }
+    }
+}
+
+// TODO: This should probably be a method on Image.
+void
+toktxApp::scaleImage(Image*& pImage, ktx_uint32_t width, ktx_uint32_t height)
+{
+    Image* pScaledImage = pImage->createImage(width, height);
+
+    try {
+        pImage->resample(*pScaledImage,
+                        pImage->getOetf() == KHR_DF_TRANSFER_SRGB,
+                        options.gmopts.filter.c_str(),
+                        options.gmopts.filterScale,
+                        basisu::Resampler::Boundary_Op::BOUNDARY_CLAMP);
+    } catch (runtime_error& e) {
+        stringstream message;
+        message << "Image::resample() failed! " << e.what();
+        // A couple of the exceptions have to do with memory but the
+        // others are "too large an image" and "unknown filter." The
+        // latter are much more likely to occur hence choice of exception.
+        throw cant_create_image(message.str());
+    }
+    pScaledImage->setOetf(pImage->getOetf());
+    pScaledImage->setPrimaries(pImage->getPrimaries());
+    delete pImage;
+    pImage = pScaledImage;
+}
+
+void
+toktxApp::genMipmap(Image*& pImage,
+                    uint32_t layer, uint32_t faceSlice,
+                    ktxTexture* texture)
+{
+    for (uint32_t glevel = 1; glevel < texture->numLevels; glevel++) {
+        Image *levelImage = pImage->createImage(
+            maximum<uint32_t>(1, pImage->getWidth() >> glevel),
+            maximum<uint32_t>(1, pImage->getHeight() >> glevel));
+        levelImage->setOetf(pImage->getOetf());
+        levelImage->setPrimaries(pImage->getPrimaries());
+        try {
+            pImage->resample(*levelImage,
+                            pImage->getOetf() == KHR_DF_TRANSFER_SRGB,
+                            options.gmopts.filter.c_str(),
+                            options.gmopts.filterScale,
+                            options.gmopts.wrapMode);
+        } catch (runtime_error& e) {
+            stringstream message;
+            message << "Image::resample() failed! " << e.what();
+            cant_create_image(message.str());
+        }
+
+        if (options.normalize)
+            levelImage->normalize();
+
+        ktx_error_code_e MAYBE_UNUSED ret;
+        ret = ktxTexture_SetImageFromMemory(texture,
+                                      glevel,
+                                      layer,
+                                      faceSlice,
+                                      *levelImage,
+                                      levelImage->getByteCount());
+        assert(ret == KTX_SUCCESS);
+        delete levelImage;
+    }
+}
+
+ktxTexture*
+toktxApp::createTexture(const targetImageSpec& target)
+{
+    ktxTextureCreateInfo createInfo;
+    ktxTexture* texture = 0;
+
+    memset(&createInfo, 0, sizeof(createInfo));
+
+    if (options.cubemap)
+      createInfo.numFaces = 6;
+    else
+      createInfo.numFaces = 1;
+
+    if (options.layers) {
+        createInfo.numLayers = options.layers;
+        createInfo.isArray = KTX_TRUE;
+    } else {
+        createInfo.numLayers = 1;
+        createInfo.isArray = KTX_FALSE;
+    }
+
+    bool srgb = (target.format().transfer() == KHR_DF_TRANSFER_SRGB);
+    uint32_t componentCount = target.format().channelCount();
+    switch (componentCount) {
+      case 1:
+        switch (target.format().channelBitLength()) {
+          case 8:
+            createInfo.glInternalformat
+                            = srgb ? GL_SR8 : GL_R8;
+            createInfo.vkFormat
+                            = srgb ? VK_FORMAT_R8_SRGB
+                                   : VK_FORMAT_R8_UNORM;
+            break;
+          case 16:
+            createInfo.glInternalformat = GL_R16;
+            createInfo.vkFormat = VK_FORMAT_R16_UNORM;
+            break;
+          case 32:
+            createInfo.glInternalformat = GL_R32F;
+            createInfo.vkFormat = VK_FORMAT_R32_SFLOAT;
+            break;
+        }
+        break;
+
+      case 2:
+         switch (target.format().channelBitLength()) {
+          case 8:
+            createInfo.glInternalformat
+                            = srgb ? GL_SRG8 : GL_RG8;
+            createInfo.vkFormat
+                            = srgb ? VK_FORMAT_R8G8_SRGB
+                                   : VK_FORMAT_R8G8_UNORM;
+            break;
+          case 16:
+            createInfo.glInternalformat = GL_RG16;
+            createInfo.vkFormat = VK_FORMAT_R16G16_UNORM;
+            break;
+          case 32:
+            createInfo.glInternalformat = GL_RG32F;
+            createInfo.vkFormat = VK_FORMAT_R32G32_SFLOAT;
+            break;
+        }
+        break;
+
+      case 3:
+         switch (target.format().channelBitLength()) {
+          case 8:
+            createInfo.glInternalformat
+                            = srgb ? GL_SRGB8 : GL_RGB8;
+            createInfo.vkFormat
+                            = srgb ? VK_FORMAT_R8G8B8_SRGB
+                                   : VK_FORMAT_R8G8B8_UNORM;
+            break;
+          case 16:
+            createInfo.glInternalformat = GL_RGB16;
+            createInfo.vkFormat = VK_FORMAT_R16G16B16_UNORM;
+            break;
+          case 32:
+            createInfo.glInternalformat = GL_RGB32F;
+            createInfo.vkFormat = VK_FORMAT_R32G32B32_SFLOAT;
+            break;
+        }
+        break;
+
+      case 4:
+         switch (target.format().channelBitLength()) {
+          case 8:
+            createInfo.glInternalformat
+                            = srgb ? GL_SRGB8_ALPHA8 : GL_RGBA8;
+            createInfo.vkFormat
+                            = srgb ? VK_FORMAT_R8G8B8A8_SRGB
+                                   : VK_FORMAT_R8G8B8A8_UNORM;
+            break;
+          case 16:
+            createInfo.glInternalformat = GL_RGBA16;
+            createInfo.vkFormat = VK_FORMAT_R16G16B16A16_UNORM;
+            break;
+          case 32:
+            createInfo.glInternalformat = GL_RGBA32F;
+            createInfo.vkFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
+            break;
+        }
+        break;
+
+      default:
+        /* If we get here there's a bug. */
+        assert(0);
+    }
+    if ((createInfo.vkFormat == VK_FORMAT_R8_SRGB
+        || createInfo.vkFormat == VK_FORMAT_R8G8_SRGB)
+        && !(options.astc || options.etc1s || options.bopts.uastc)) {
+        // Encoding to BasisU or ASTC will cause conversion to RGB.
+        warning("GPU support of sRGB variants of R & RG formats is"
+                " limited.\nConsider using '--target_type' or"
+                " '--convert_oetf linear' to avoid these formats.");
+    }
+    createInfo.baseWidth = target.width();
+    createInfo.baseHeight = target.height();
+    createInfo.baseDepth = options.depth ? options.depth : 1;
+    if (options.depth > 0) {
+        // In this case, don't care about image->getHeight(). Images are
+        // always considered to be 2d. No need to set options.two_d.
+        createInfo.numDimensions = 3;
+    } else if (target.height() == 1 && !options.two_d)
+        createInfo.numDimensions = 1;
+    else
+        createInfo.numDimensions = 2;
+    if (options.automipmap) {
+        createInfo.numLevels = 1;
+        createInfo.generateMipmaps = KTX_TRUE;
+    } else {
+        createInfo.generateMipmaps = KTX_FALSE;
+        if (options.mipmap || options.genmipmap) {
+            // Calculate number of miplevels
+            GLuint max_dim = maximum(target.width(), target.height());
+            createInfo.numLevels = log2(max_dim) + 1;
+            if (options.levels > 1) {
+                if (options.levels > createInfo.numLevels) {
+                    stringstream message;
+                    message <<  "--levels value " << options.levels
+                            << " is greater than the maximum"
+                            << " levels possible for the image size "
+                            << createInfo.numLevels << ".";
+                    throw cant_create_image(message.str());
+                }
+                // Override the above.
+                createInfo.numLevels = options.levels;
+            }
+        } else {
+            createInfo.numLevels = 1;
+        }
+    }
+
+    ktx_error_code_e ret;
+    if (options.ktx2) {
+        ret = ktxTexture2_Create(&createInfo,
+                                 KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                 (ktxTexture2**)&texture);
+    } else {
+        ret = ktxTexture1_Create(&createInfo,
+                                 KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                 (ktxTexture1**)&texture);
+    }
+    if (KTX_SUCCESS != ret) {
+        stringstream message;
+        message << "libktx error: " << ktxErrorString(ret);
+        throw cant_create_texture(message.str());
+    }
+
+    // BT709 is the default for DFDs.
+    if (options.ktx2 && target.format().primaries() != KHR_DF_PRIMARIES_BT709) {
+        KHR_DFDSETVAL(((ktxTexture2*)texture)->pDfd + 1, PRIMARIES,
+                      target.format().primaries());
+    }
+
+    return texture;
+}
+
+void
+toktxApp::determineTargetColorSpace(const ImageInput& in, targetImageSpec& target)
+{
+    // Primaries handling:
+    //
+    // 1. Use assign_primaries option value, if set.
+    // 2. Use primaries info given by plugin.
+    // 3. If no primaries info and input is PNG use PNG spec.
+    //    recommendation of BT709/sRGB otherwise leave as
+    //    UNSPECIFIED.
+    const ImageSpec& spec = in.spec();
+    // Set Primaries
+    if (options.assign_primaries != KHR_DF_PRIMARIES_MAX) {
+        target.format().setPrimaries(options.assign_primaries);
+    } else if (spec.format().primaries() != KHR_DF_PRIMARIES_UNSPECIFIED) {
+        target.format().setPrimaries(spec.format().primaries());
+    } else {
+           // Leave as unspecified.
+           target.format().setPrimaries(spec.format().primaries());
+    }
+
+    // OETF / Transfer function handling in priority order:
+    //
+    // 1. Use assign_oetf option value, if set.
+    // 2. Use OETF signalled by plugin, if LINEAR or SRGB. If ITU signalled,
+    //    set up conversion to SRGB. For all others, throw error.
+    // 3. If ICC profile signalled, throw error.
+    // 4. If gamma of 1.0 signalled use LINEAR. If gamma of .45454 signalled,
+    //    set up for conversion to SRGB. If gamma of 0.0 is signalled,
+    //    set SRGB. For any other gamma value, throw error.
+    // 5. If no color info is signalled, and input is PNG follow W3C
+    //    recommendation of sRGB. For other input formats throw error.
+    // 6. Convert OETF based on convert_oetf option value or as described
+    //    above.
+    //
+    if (options.assign_oetf != KHR_DF_TRANSFER_UNSPECIFIED) {
+        target.format().setTransfer(options.assign_oetf);
+    } else {
+        // Set image's OETF as indicated by metadata.
+        if (spec.format().transfer() != KHR_DF_TRANSFER_UNSPECIFIED) {
+            target.format().setTransfer(spec.format().transfer());
+            switch (spec.format().transfer()) {
+              case KHR_DF_TRANSFER_LINEAR:
+                target.decodeFunc = decode_linear;
+                break;
+              case KHR_DF_TRANSFER_SRGB:
+                target.decodeFunc = decode_sRGB;
+                break;
+              case KHR_DF_TRANSFER_ITU:
+                target.format().setTransfer(KHR_DF_TRANSFER_SRGB);
+                target.decodeFunc = decode_bt709;
+                target.encodeFunc = encode_sRGB;
+                break;
+              default:
+                throw cant_create_image(
+                              "Transfer function not supported by KTX."
+                              " Use --assign_oetf to specify a different one.");
+            }
+        } else if (spec.format().iccProfileName().size()) {
+            throw cant_create_image(
+                        "It has an ICC profile. These are not supported."
+                        " Use --assign_oetf to specify handling.");
+        } else if (spec.format().oeGamma() >= 0.0f) {
+            target.decodeFunc = decode_gamma;
+            if (spec.format().oeGamma() > .45450f
+                && spec.format().oeGamma() < .45460f) {
+                // N.B The previous loader matched oeGamma .45455 to the sRGB
+                // OETF and did not do an OETF transformation. In this loader
+                // we decode and reencode. Previous behavior can be obtained
+                // with the --assign_oetf option to toktx.
+                //
+                // This change results in 1 bit differences in the LSB of
+                // some color values noticeable only when directly comparing
+                // images produced before and after this change of loader.
+                target.format().setTransfer(KHR_DF_TRANSFER_SRGB);
+                target.encodeFunc = encode_sRGB;
+            } else if (spec.format().oeGamma() == 1.0) {
+                target.format().setTransfer(KHR_DF_TRANSFER_LINEAR);
+            } else if (spec.format().oeGamma() == 0.0f) {
+                if (!in.formatName().compare("png")) {
+                    warning("Ignoring reported gamma of 0.0f in %s."
+                            "Handling as sRGB.", in.filename().c_str());
+                    target.format().setTransfer(KHR_DF_TRANSFER_SRGB);
+                    target.decodeFunc = decode_sRGB;
+                } else {
+                    throw cant_create_image("Its reported gamma is 0.0f."
+                            " Use --assign_oetf to specify handling.");
+                }
+            } else {
+                if (options.convert_oetf == KHR_DF_TRANSFER_UNSPECIFIED) {
+                    stringstream message;
+                    message << "Its encoding gamma, "
+                        << spec.format().oeGamma()
+                        << ", is not automatically supported by KTX." << endl
+                        << "Specify handling with --convert_oetf or"
+                        << " --assign_oetf.";
+                    throw cant_create_image(message.str());
+                }
+            }
+        } else {
+            if (!in.formatName().compare("png")) {
+                // Follow W3C. Treat unspecified as sRGB.
+                target.format().setTransfer(KHR_DF_TRANSFER_SRGB);
+                target.decodeFunc = decode_sRGB;
+            } else {
+                throw cant_create_image(
+                    "It has no color space information."
+                    " Use --assign_oetf to specify handling.");
+            }
+        }
+    }
+
+    if (options.convert_oetf != KHR_DF_TRANSFER_UNSPECIFIED &&
+        options.convert_oetf != spec.format().transfer()) {
+        if (options.convert_oetf == KHR_DF_TRANSFER_SRGB) {
+            target.encodeFunc = encode_sRGB;
+            target.format().setTransfer(KHR_DF_TRANSFER_SRGB);
+        } else {
+            target.encodeFunc = encode_linear;
+            target.format().setTransfer(KHR_DF_TRANSFER_LINEAR);
+        }
+    }
+}
+
+void
+toktxApp::determineTargetTypeBitLengthScale(const ImageInput& in,
+                                            targetImageSpec& target,
+                                            string& defaultSwizzle)
+{
+    const FormatDescriptor& format = in.spec().format();
+    FormatDescriptor& targetFormat = target.format();
+    uint32_t bitLength = format.channelBitLength();
+    uint32_t maxValue;
+
+    if (format.channelBitLength() > 8
+        && (options.etc1s || options.bopts.uastc)) {
+        bitLength = 8;
+    } else if (format.channelBitLength() < 8) {
+        bitLength = 8;
+    }
+
+    // Currently we only support unsigned normalized input formats.
+    maxValue = ((1U << bitLength) - 1U);
+
+    // TODO: Support < 8 bit channels for non-block-compressed?
+
+    if (targetFormat.channelBitLength()
+        != format.channelBitLength()) {
+        warning("Rescaling %d-bit image in %s to %d bits.",
+                format.channelBitLength(),
+                in.filename().c_str(),
+                targetFormat.channelBitLength());
+    }
+
+    uint32_t channelCount = format.channelCount();
+    if (options.targetType != commandOptions::eUnspecified) {
+        channelCount = options.targetType;
+        targetFormat.setModel(KHR_DF_MODEL_RGBSDA);
+    } else if (format.model() == KHR_DF_MODEL_YUVSDA) {
+        // It's a luminance image. Override.
+        assert(format.channelCount() < 3);
+        targetFormat.setModel(KHR_DF_MODEL_RGBSDA);
+        if (format.channelCount() == 1) {
+            defaultSwizzle = "rrr1";
+        } else {
+            defaultSwizzle = "rrrg";
+        }
+    }
+
+    // Must be after setting of model.
+    if (bitLength != targetFormat.channelBitLength()
+        || maxValue != targetFormat.channelUpper()
+        || channelCount != targetFormat.channelCount())
+    {
+        targetFormat.updateSampleInfo(channelCount, bitLength, 0, maxValue,
+                                      targetFormat.channelDataType());
+    }
+}
+
+void
+toktxApp::determineTargetImageSpec(const ImageInput& in,
+                                   targetImageSpec& target,
+                                   string& defaultSwizzle)
+{
+    target = in.spec();
+    if (options.scale != 1.0f) {
+        target.setWidth(target.width() * options.scale);
+        target.setHeight(target.height() * options.scale);
+        target.setDepth(target.depth() * options.scale);
+    } else if (options.resize) {
+        target.setWidth(options.newGeom.width);
+        target.setHeight(options.newGeom.height);
+        // Current CLI does not allow for setting depth.
+    }
+    determineTargetTypeBitLengthScale(in, target, defaultSwizzle);
+    determineTargetColorSpace(in, target);
+}
+
+void
+toktxApp::checkSpecsMatch(const ImageInput& currentFile,
+                          const ImageSpec& firstSpec)
+{
+    const FormatDescriptor firstFormat = firstSpec.format();
+    const FormatDescriptor& currentFormat = currentFile.spec().format();
+    if (currentFormat.transfer() != firstFormat.transfer()
+        && options.convert_oetf == KHR_DF_TRANSFER_UNSPECIFIED)
+    {
+        stringstream msg;
+        if (options.assign_oetf == KHR_DF_TRANSFER_UNSPECIFIED) {
+            msg << "Image";
+        } else {
+            msg << "Image in " << currentFile.filename() << "("
+            << currentFile.currentSubimage() << ","
+            << currentFile.currentMiplevel() << ")";
+        }
+        msg << " has a different transfer function (OETF)"
+            << " than preceding image(s).";
+        if (options.assign_oetf == KHR_DF_TRANSFER_UNSPECIFIED) {
+            msg << endl
+                << "Use --assign_oetf (not recommended) or --convert_oetf to"
+                << " stop this error.";
+            throw cant_create_image(msg.str());
+        } else {
+            warning(msg.str());
+        }
+        // Don't warn when convert_oetf is set as proper conversions
+        // will be done so all images will be in the same space.
+    }
+    if (currentFormat.primaries() != firstFormat.primaries()) {
+        stringstream msg;
+        if (options.assign_primaries == KHR_DF_PRIMARIES_UNSPECIFIED) {
+            msg << "Image";
+        } else{
+            msg << "Image in " << currentFile.filename() << "("
+            << currentFile.currentSubimage() << ","
+            << currentFile.currentMiplevel() << ")";
+        }
+        msg << " has different primaries than preceding images(s).";
+        if (options.assign_primaries == KHR_DF_PRIMARIES_UNSPECIFIED) {
+            msg << endl
+                << "Use --assign_primaries (not recommended) to"
+                << " stop this error.";
+            throw cant_create_image(msg.str());
+        } else
+            warning(msg.str());
+        // There is no convert_primaries option.
+    }
+    if (currentFormat.channelCount() != firstFormat.channelCount()) {
+        stringstream msg;
+        if (options.targetType == commandOptions::eUnspecified) {
+            msg << "Image";
+        } else{
+            msg << "Image in " << currentFile.filename() << "("
+            << currentFile.currentSubimage() << ","
+            << currentFile.currentMiplevel() << ")";
+        }
+        msg << " has a different component count than"
+            << " preceding images(s).";
+        if (options.targetType == commandOptions::eUnspecified) {
+            msg << endl
+                << "Use --target_type to stop this error (not recommended).";
+            throw cant_create_image(msg.str());
+        } else  {
+            msg << endl
+                << "The components of the level or layer derived "
+                << "from this file will likely be significantly "
+                << "different"
+                << endl
+                << "from those in other levels or layers.";
+            warning(msg.str());
+        }
+    }
+}
+
+void
+toktxApp::setAstcMode(const targetImageSpec& target)
+{
+    // If no astc mode option is specified and if input is <= 8bit
+    // default to LDR otherwise default to HDR
+    if (options.astcopts.mode == KTX_PACK_ASTC_ENCODER_MODE_DEFAULT) {
+        if (target.format().channelBitLength() <= 8)
+            options.astcopts.mode = KTX_PACK_ASTC_ENCODER_MODE_LDR;
+        else
+            options.astcopts.mode = KTX_PACK_ASTC_ENCODER_MODE_HDR;
+    } else {
+        if (target.format().channelBitLength() > 8
+            && options.astcopts.mode == KTX_PACK_ASTC_ENCODER_MODE_LDR)
+        {
+            // Input is > 8-bit and user wants LDR, issue quality loss warning.
+            stringstream msg;
+            msg << "Input file is 16-bit but ASTC LDR option is specified."
+                << " Expect quality loss in the output."
+                << endl;
+            warning(msg.str());
+        } else if (target.format().channelBitLength() < 16
+                   && options.astcopts.mode == KTX_PACK_ASTC_ENCODER_MODE_HDR)
+        {
+            // Input is < 8bit and user wants HDR, issue warning.
+            stringstream msg;
+            msg << "Input file is not 16-bit but HDR option is specified."
+                << endl;
+            warning(msg.str());
+        }
+    }
+}
 
 void
 toktxApp::validateOptions()
@@ -1517,7 +1864,7 @@ toktxApp::processOption(argparser& parser, int opt)
         options.swizzle = parser.optarg;
         break;
       case 1102:
-        std::for_each(parser.optarg.begin(), parser.optarg.end(), [](char & c) {
+        for_each(parser.optarg.begin(), parser.optarg.end(), [](char & c) {
             c = (char)::toupper(c);
         });
         if (parser.optarg.compare("R") == 0)
@@ -1536,7 +1883,7 @@ toktxApp::processOption(argparser& parser, int opt)
         }
         break;
       case 1103:
-        std::for_each(parser.optarg.begin(), parser.optarg.end(), [](char & c) {
+        for_each(parser.optarg.begin(), parser.optarg.end(), [](char & c) {
             c = (char)::tolower(c);
         });
         if (parser.optarg.compare("linear") == 0)
@@ -1545,7 +1892,7 @@ toktxApp::processOption(argparser& parser, int opt)
             options.convert_oetf = KHR_DF_TRANSFER_SRGB;
         break;
       case 1104:
-        std::for_each(parser.optarg.begin(), parser.optarg.end(), [](char & c) {
+        for_each(parser.optarg.begin(), parser.optarg.end(), [](char & c) {
             c = (char)::tolower(c);
         });
         if (parser.optarg.compare("linear") == 0)
@@ -1554,7 +1901,7 @@ toktxApp::processOption(argparser& parser, int opt)
             options.assign_oetf = KHR_DF_TRANSFER_SRGB;
         break;
       case 1105:
-        std::for_each(parser.optarg.begin(), parser.optarg.end(), [](char & c) {
+        for_each(parser.optarg.begin(), parser.optarg.end(), [](char & c) {
             c = (char)::tolower(c);
         });
         if (parser.optarg.compare("bt709") == 0)
@@ -1571,29 +1918,8 @@ toktxApp::processOption(argparser& parser, int opt)
     return true;
 }
 
-void toktxApp::warning(const char *pFmt, va_list args) {
-    if (options.warn) {
-        cerr << name << " warning! ";
-        vfprintf(stderr, pFmt, args);
-        cerr << endl;
-    }
-}
-
-void toktxApp::warning(const char *pFmt, ...) {
-    if (options.warn) {
-        va_list args;
-        va_start(args, pFmt);
-
-        warning(pFmt, args);
-        cerr << endl;
-    }
-}
-
-void toktxApp::warning(const string& msg) {
-    if (options.warn) {
-        cerr << name << " warning! ";
-        cerr << msg;
-    }
+void warning(const char *pFmt, va_list args) {
+    theApp.warning(pFmt, args);
 }
 
 void warning(const char *pFmt, ...) {
