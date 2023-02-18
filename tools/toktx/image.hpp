@@ -23,7 +23,6 @@
 
 #include "argparser.h"
 #include "unused.h"
-#include "imageio.h"
 #include "encoder/basisu_resampler.h"
 #include "encoder/basisu_resampler_filters.h"
 
