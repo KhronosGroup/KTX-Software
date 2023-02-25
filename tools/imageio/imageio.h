@@ -29,6 +29,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <functional>
 #include <limits>
 #include <map>
 #include <string>
