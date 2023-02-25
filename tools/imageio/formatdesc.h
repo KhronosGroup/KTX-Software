@@ -23,6 +23,8 @@
 
 #include <KHR/khr_df.h>
 
+typedef unsigned int uint;
+
 /// @brief Image format descriptor
 ///
 /// Based on Khronos Data Format specification. Omits the parts needed for
