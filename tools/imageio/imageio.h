@@ -27,6 +27,8 @@
 
 #include "stdafx.h"
 
+#include <algorithm>
+#include <cctype>
 #include <iostream>
 #include <fstream>
 #include <functional>

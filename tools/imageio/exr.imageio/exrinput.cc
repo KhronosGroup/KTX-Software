@@ -8,6 +8,7 @@
 // assert. The version in astc-encoder must be old.
 #define TEXR_ASSERT(x) assert(x)
 #define TINYEXR_IMPLEMENTATION
+#include <cassert>
 #include "tinyexr.h"
 #include "imageio.h"
 
