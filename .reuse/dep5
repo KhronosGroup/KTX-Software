@@ -205,6 +205,10 @@ Files: other_projects/fmt/*
 Copyright: 2012 - present Victor Zverovich
 License: MIT
 
+Files: other_projects/cxxopts/*
+Copyright: 2014-2022 Jarryd Beck
+License: MIT
+
 # Golden files for text based cli test outputs
 Files: tests/clitests/golden/*
 Copyright: 2022-2023 The Khronos Group Inc.
