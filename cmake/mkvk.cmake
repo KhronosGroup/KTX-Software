@@ -44,7 +44,7 @@ list(APPEND mkvkformatfiles_output
 if(CMAKE_HOST_WIN32)
     add_custom_command(OUTPUT ${mkvkformatfiles_output}
         COMMAND ${CMAKE_COMMAND} -E make_directory lib
-        COMMAND "${BASH_EXECUTABLE}" -c "Vulkan_INCLUDE_DIR=${Vulkan_INCLUDE_DIR} lib/mkvkformatfiles lib"
+        COMMAND "${BASH_EXECUTABLE}" -c "Vulkan_INCLUDE_DIR=\"${Vulkan_INCLUDE_DIR}\" lib/mkvkformatfiles lib"
         COMMAND "${BASH_EXECUTABLE}" -c "unix2dos ${PROJECT_SOURCE_DIR}/lib/vkformat_enum.h"
         COMMAND "${BASH_EXECUTABLE}" -c "unix2dos ${PROJECT_SOURCE_DIR}/lib/vkformat_check.c"
         COMMAND "${BASH_EXECUTABLE}" -c "unix2dos ${PROJECT_SOURCE_DIR}/lib/vkformat_str.c"
@@ -56,7 +56,7 @@ if(CMAKE_HOST_WIN32)
 else()
     add_custom_command(OUTPUT ${mkvkformatfiles_output}
         COMMAND ${CMAKE_COMMAND} -E make_directory lib
-        COMMAND Vulkan_INCLUDE_DIR=${Vulkan_INCLUDE_DIR} lib/mkvkformatfiles lib
+        COMMAND Vulkan_INCLUDE_DIR=\"${Vulkan_INCLUDE_DIR}\" lib/mkvkformatfiles lib
         DEPENDS ${mkvkformatfiles_input}
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
         COMMENT "Generating VkFormat-related source files"
