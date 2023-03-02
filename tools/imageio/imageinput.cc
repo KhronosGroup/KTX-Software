@@ -52,7 +52,7 @@ ImageInput::open(const _tstring& filename,
         // Check file exists, before looking for a suitable plugin.
         // MS's STL has `open` overloads that accept wchar_t to handle
         // Window's Unicode file names.
-        ifs.open(filename);
+        ifs.open(filename, std::ios::binary | std::ios::in);
         if (ifs.fail()) {
             throw std::runtime_error(
                 fmt::format("Open of \"{}\" failed. {}",
@@ -75,9 +75,9 @@ ImageInput::open(const _tstring& filename,
         }
         fn = &filename;
     } else {
-        // stdin
+        // cin (stdin)
 #if defined(_WIN32)
-        /* Set "stdin" to have binary mode */
+        // Set "stdin" to have binary mode. There is no way to this via cin.
         (void)_setmode( _fileno( stdin ), _O_BINARY );
 #endif
         // Can we seek in this cin?
