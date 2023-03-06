@@ -6,27 +6,20 @@
 #pragma once
 
 #include "argparser.h"
+#include "stdafx.h"
 
 #include <iostream>
 #include <vector>
 
 
 #if defined(_WIN32)
-    #include <tchar.h>
     #define KTX_COMMAND_EXPORT extern "C" __declspec(dllexport)
     #define KTX_COMMAND_CALL __stdcall
     #define KTX_COMMAND_PTR KTX_COMMAND_CALL
 #else
-    #define _TCHAR char
-    #define _T(x) x
     #define KTX_COMMAND_EXPORT extern "C" __attribute__((visibility="default"))
     #define KTX_COMMAND_CALL
     #define KTX_COMMAND_PTR
-#endif
-#if defined(_UNICODE)
-    #define _tstring std::wstring
-#else
-    #define _tstring std::string
 #endif
 
 #define KTX_COMMAND_ENTRY_POINT_DEF(CMDCLASS) \
@@ -59,15 +52,14 @@ typedef int (KTX_COMMAND_PTR *pfnImportedCommand)(int argc, _TCHAR* argv[]);
 
 /**
 //! [command options]
-    <dl>
-        <dt>-h, --help</dt>
-        <dd>Print this usage message and exit.</dd>
-        <dt>-v, --version</dt>
-        <dd>Print the version number of this program and exit.</dd>
-    </dl>
+<dl>
+    <dt>-h, --help</dt>
+    <dd>Print this usage message and exit.</dd>
+    <dt>-v, --version</dt>
+    <dd>Print the version number of this program and exit.</dd>
+</dl>
 //! [command options]
 */
-
 class Command {
 protected:
     _tstring processName;

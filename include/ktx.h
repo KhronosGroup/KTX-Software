@@ -670,8 +670,9 @@ typedef enum ktxSupercmpScheme {
     KTX_SS_NONE = 0,            /*!< No supercompression. */
     KTX_SS_BASIS_LZ = 1,        /*!< Basis LZ supercompression. */
     KTX_SS_ZSTD = 2,            /*!< ZStd supercompression. */
+    KTX_SS_ZLIB = 3,            /*!< ZLIB supercompression. */
     KTX_SS_BEGIN_RANGE = KTX_SS_NONE,
-    KTX_SS_END_RANGE = KTX_SS_ZSTD,
+    KTX_SS_END_RANGE = KTX_SS_ZLIB,
     KTX_SS_BEGIN_VENDOR_RANGE = 0x10000,
     KTX_SS_END_VENDOR_RANGE = 0x1ffff,
     KTX_SS_BEGIN_RESERVED = 0x20000,
@@ -1677,12 +1678,14 @@ KTX_API KTX_error_code KTX_APIENTRY ktxPrintInfoForMemory(const ktx_uint8_t* byt
  * Utilities for printing info about a KTX2 file.            *
  *===========================================================*/
 
-KTX_API KTX_error_code KTX_APIENTRY ktxPrintKTX2InfoJSONForStdioStream(FILE* stdioStream, ktx_uint32_t base_indent, ktx_uint32_t indent_width, bool minified);
-KTX_API KTX_error_code KTX_APIENTRY ktxPrintKTX2InfoJSONForNamedFile(const char* const filename, ktx_uint32_t base_indent, ktx_uint32_t indent_width, bool minified);
-KTX_API KTX_error_code KTX_APIENTRY ktxPrintKTX2InfoJSONForMemory(const ktx_uint8_t* bytes, ktx_size_t size, ktx_uint32_t base_indent, ktx_uint32_t indent_width, bool minified);
-KTX_API KTX_error_code KTX_APIENTRY ktxPrintKTX2InfoTextForStdioStream(FILE* stdioStream);
-KTX_API KTX_error_code KTX_APIENTRY ktxPrintKTX2InfoTextForNamedFile(const char* const filename);
 KTX_API KTX_error_code KTX_APIENTRY ktxPrintKTX2InfoTextForMemory(const ktx_uint8_t* bytes, ktx_size_t size);
+KTX_API KTX_error_code KTX_APIENTRY ktxPrintKTX2InfoTextForNamedFile(const char* const filename);
+KTX_API KTX_error_code KTX_APIENTRY ktxPrintKTX2InfoTextForStdioStream(FILE* stdioStream);
+KTX_API KTX_error_code KTX_APIENTRY ktxPrintKTX2InfoTextForStream(ktxStream* stream);
+KTX_API KTX_error_code KTX_APIENTRY ktxPrintKTX2InfoJSONForMemory(const ktx_uint8_t* bytes, ktx_size_t size, ktx_uint32_t base_indent, ktx_uint32_t indent_width, bool minified);
+KTX_API KTX_error_code KTX_APIENTRY ktxPrintKTX2InfoJSONForNamedFile(const char* const filename, ktx_uint32_t base_indent, ktx_uint32_t indent_width, bool minified);
+KTX_API KTX_error_code KTX_APIENTRY ktxPrintKTX2InfoJSONForStdioStream(FILE* stdioStream, ktx_uint32_t base_indent, ktx_uint32_t indent_width, bool minified);
+KTX_API KTX_error_code KTX_APIENTRY ktxPrintKTX2InfoJSONForStream(ktxStream* stream, ktx_uint32_t base_indent, ktx_uint32_t indent_width, bool minified);
 
 #ifdef __cplusplus
 }

@@ -473,6 +473,7 @@ EMSCRIPTEN_BINDINGS(ktx)
         .value("NONE", KTX_SS_NONE)
         .value("BASIS_LZ", KTX_SS_BASIS_LZ)
         .value("ZSTD", KTX_SS_ZSTD)
+        .value("ZLIB", KTX_SS_ZLIB)
     ;
 
     value_object<ktxOrientation>("Orientation")

@@ -143,8 +143,10 @@ jobs:
       run: git fetch -f origin ${{ github.ref }}:${{ github.ref }}
     - name: Pull test images from Git LFS
       run: git lfs pull --include=tests/srcimages,tests/testimages
+    - name: Fetch CTS Submodule
+      run: git submodule update --init --recursive tests/cts
     - name: Configure Mingw x64
-      run: cmake -B build -G "Ninja Multi-Config" -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++
+      run: cmake -B build -G "Ninja Multi-Config" -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DFEATURE_TESTS=ON -DKTX_FEATURE_TOOLS=ON -DKTX_FEATURE_TOOLS_CTS=ON
     - name: Build Mingw x64 Debug
       run: cmake --build build --config Debug
     - name: Build Mingw x64 Release

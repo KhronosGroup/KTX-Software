@@ -44,6 +44,7 @@ human readable form. [`tools/ktxinfo`](https://github.com/KhronosGroup/KTX-Softw
 contains uncompressed images.[`tools/ktxsc`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/ktxsc)
 - *toktx* - a tool to create KTX files from PNG, Netpbm or JPEG format images. It supports mipmap generation, encoding to
 Basis Universal formats and Zstd supercompression.[`tools/toktx`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/toktx)
+- *ktx* - a generic command line tool for managing KTX2 files with create, validate, info, transcode, encode, extract and help subcommands.[`tools/ktx`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/ktx)
 
 See [CONTRIBUTING](CONTRIBUTING.md) for information about contributing.
 
@@ -106,3 +107,9 @@ local git config file `.git/config`, i.e. the one in your clone of the repo.
 commands force a new checkout of the affected files to smudge them with the
 date. These two are unnecessary if you plan to edit these files.
 
+#### KTX-Software-CTS - Conformance Test Suite
+
+The tests and test files for the generic command line `ktx` tool can be found in a separate
+[CTS Repository](https://github.com/KhronosGroup/KTX-Software-CTS/). To save space and bandwidth this repository
+is included with git submodule and by default it is not required for building the libraries or the tools.
+For more information about running the CTS tests see [BUILDING](BUILDING.md).

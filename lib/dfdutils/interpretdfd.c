@@ -25,8 +25,8 @@
               described as 32-bit words in native endianness.
               Note that this is the whole descriptor, not just
               the basic descriptor block.
- * @param R Information about the decoded red channel, if any.
- * @param G Information about the decoded green channel, if any.
+ * @param R Information about the decoded red channel or the depth channel, if any.
+ * @param G Information about the decoded green channel or the stencil channel, if any.
  * @param B Information about the decoded blue channel, if any.
  * @param A Information about the decoded alpha channel, if any.
  * @param wordBytes Byte size of the channels (unpacked) or total size (packed).
@@ -99,8 +99,8 @@ enum InterpretDFDResult interpretDFD(const uint32_t *DFD,
             if (KHR_DFDSVAL(BDFDB, sampleCounter, QUALIFIERS)
                  & KHR_DF_SAMPLE_DATATYPE_FLOAT) {
                 result |= i_FLOAT_FORMAT_BIT;
-                determinedFloatness = 1;
             }
+            determinedFloatness = 1;
         } else {
             /* Check whether we disagree with our predetermined floatness. */
             /* Note that this could justifiably happen with (say) D24S8. */
@@ -115,8 +115,8 @@ enum InterpretDFDResult interpretDFD(const uint32_t *DFD,
             if (KHR_DFDSVAL(BDFDB, sampleCounter, QUALIFIERS)
                  & KHR_DF_SAMPLE_DATATYPE_SIGNED) {
                 result |= i_SIGNED_FORMAT_BIT;
-                determinedSignedness = 1;
             }
+            determinedSignedness = 1;
         } else {
             /* Check whether we disagree with our predetermined signedness. */
             if (KHR_DFDSVAL(BDFDB, sampleCounter, QUALIFIERS)
@@ -207,6 +207,12 @@ enum InterpretDFDResult interpretDFD(const uint32_t *DFD,
             case KHR_DF_CHANNEL_RGBSDA_BLUE:
                 sampleChannelPtr = B;
                 break;
+            case KHR_DF_CHANNEL_RGBSDA_DEPTH:
+                sampleChannelPtr = R;
+                break;
+            case KHR_DF_CHANNEL_RGBSDA_STENCIL:
+                sampleChannelPtr = G;
+                break;
             case KHR_DF_CHANNEL_RGBSDA_ALPHA:
                 sampleChannelPtr = A;
                 break;
@@ -285,6 +291,12 @@ enum InterpretDFDResult interpretDFD(const uint32_t *DFD,
                 break;
             case KHR_DF_CHANNEL_RGBSDA_BLUE:
                 sampleChannelPtr = B;
+                break;
+            case KHR_DF_CHANNEL_RGBSDA_DEPTH:
+                sampleChannelPtr = R;
+                break;
+            case KHR_DF_CHANNEL_RGBSDA_STENCIL:
+                sampleChannelPtr = G;
                 break;
             case KHR_DF_CHANNEL_RGBSDA_ALPHA:
                 sampleChannelPtr = A;
