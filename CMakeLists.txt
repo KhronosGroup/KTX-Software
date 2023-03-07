@@ -321,7 +321,13 @@ macro(common_libktx_settings target enable_write library_type)
         )
     endif()
 
-    set_code_sign(${target} "NOPPS")
+    if( NOT ${library_type} STREQUAL STATIC )
+        # Must not call this macro for static libs on Windows. To keep
+        # the if test simple, never call it for static libs. On macOS
+        # and iOS Xcode knows libs aren't signed so it would ignore the
+        # settings made by this macro.
+        set_code_sign(${target} "NOPPS")
+    endif()
 
     target_compile_definitions(
         ${target}
