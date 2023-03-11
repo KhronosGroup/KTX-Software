@@ -97,16 +97,17 @@ if ($need_gles_emulator) {
 }
 
 $config_display = "Configure KTX-Software: "
-$config_display += ($cmake_args -join ',')
-$default_pattern = '\,([\w ]+)(\,|$)'
-$config_display = $config_display -replace "-A$default_pattern", 'Arch=$1, '
-$dir_pattern = '\,([\w-/\\ ]+)(\,|$)'
-$config_display = $config_display -replace "-B$dir_pattern", 'Build Dir=$1, '
-$define_pattern = '\,([\w =]+?)(\,|$)'
-$config_display = $config_display -replace "-D$define_pattern", '$1, '
-#Select-String "-D$define_pattern" -input $config_display -AllMatches | Foreach {$_.matches}
-$config_display = $config_display -replace "-G$default_pattern", 'Generator=$1, '
-$config_display = $config_display -replace "-T$default_pattern", 'Toolset='
+foreach ($item in $cmake_args) {
+  switch ($item) {
+       "-A" { $config_display += 'Arch=' }
+       "-B" { $config_display += 'Build Dir=' }
+       "-D" { }
+       "-G" { $config_display += 'Generator=' }
+       "-T" { $config_display += 'Toolset=' }
+         "" { }
+    default { $config_display += "$item, " }
+  }
+}
 $config_display = $config_display -replace ', $', ''
 echo $config_display
 
