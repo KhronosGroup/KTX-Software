@@ -89,18 +89,18 @@ jobs:
           appveyor-tools\secure-file -decrypt "${cert_file}.enc" -secret $env:CERT_DC_SECRET -salt $env:CERT_DC_SALT
           certutil -p $env:CERT_PK_PASS -importpfx My $cert_file NoExport
           rm $cert_file
-          echo "::set-output name=win_code_sign_identity::'The Khronos Group Inc'"
-          echo "::set-output name=win_cs_cert_search_machine_store::'ON'"
+          echo "::set-output name=code_sign_key_vault::'Machine'"
+          echo "::set-output name=code_sign_identity::'The Khronos Group Inc'"
         } else {
-          echo "::set-output name=win_code_sign_identity::''"
-          echo "::set-output name=win_cs_cert_search_machine_store::'OFF'"
+          echo "::set-output name=code_sign_key_vault::''"
+          echo "::set-output name=code_sign_identity::''"
         }
 
     - name: Build arm64 Windows
       run: powershell ./ci_scripts/build_win.ps1
       env:
-        WIN_CODE_SIGN_IDENTITY: ${{ steps.cert-import.outputs.win_code_sign_identity }}
-        WIN_CS_CERT_SEARCH_MACHINE_STORE: ${{ steps.cert-import.outputs.win_cs_cert_search_machine_store }}
+        CODE_SIGN_KEY_VAULT: ${{ steps.cert-import.outputs.code_sign_key_vault }}
+        CODE_SIGN_IDENTITY: ${{ steps.cert-import.outputs.code_sign_identity }}
 
     - name: Get KTX version
       if: matrix.options.package == 'YES'
