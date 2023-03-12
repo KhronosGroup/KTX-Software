@@ -18,7 +18,6 @@ include(CTest)
 
 include(GNUInstallDirs)
 include(CMakeDependentOption)
-include(KtxDependentVariable)
 
 include(cmake/codesign.cmake)
 include(cmake/cputypetest.cmake)
@@ -115,62 +114,68 @@ if(APPLE)
 endif()
 
 if(WIN32)
-    # Signing
-    set(CODE_SIGN_KEY_VAULT "" CACHE STRING "Name of the vault to search for signing certificate. Enables related code signing variables when set.")
-    set_property(CACHE CODE_SIGN_KEY_VAULT
-        PROPERTY STRINGS "" Azure Machine User)
+    if (${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.18.0")
+        include(KtxDependentVariable)
+        # Signing
+        set(CODE_SIGN_KEY_VAULT "" CACHE STRING "Name of the vault to search for signing certificate. Enables related code signing variables when set.")
+        set_property(CACHE CODE_SIGN_KEY_VAULT
+            PROPERTY STRINGS "" Azure Machine User)
 
-    # Variables for signing with local certificate.
-    KTX_DEPENDENT_VARIABLE( CODE_SIGN_IDENTITY STRING
-        "Subject Name of Windows code signing certificate. Displayed in 'Issued To' field of cert{lm,mgr}. Overriden by CODE_SIGN_THUMBPRINT."
-        ""
-        "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Machine OR ${CODE_SIGN_KEY_VAULT} MATCHES User"
-        ""
-    )
-    KTX_DEPENDENT_VARIABLE( CODE_SIGN_THUMBPRINT STRING
-        "Thumbprint of the certificate to use. Use this instead of CODE_SIGN_IDENTITY when you have multiple certificates with the same identity. Overrides CODE_SIGN_IDENTITY."
-        ""
-        "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Machine OR ${CODE_SIGN_KEY_VAULT} MATCHES User"
-        ""
-    )
+        # Variables for signing with local certificate.
+        KTX_DEPENDENT_VARIABLE( CODE_SIGN_IDENTITY STRING
+            "Subject Name of Windows code signing certificate. Displayed in 'Issued To' field of cert{lm,mgr}. Overriden by CODE_SIGN_THUMBPRINT."
+            ""
+            "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Machine OR ${CODE_SIGN_KEY_VAULT} MATCHES User"
+            ""
+        )
+        KTX_DEPENDENT_VARIABLE( CODE_SIGN_THUMBPRINT STRING
+            "Thumbprint of the certificate to use. Use this instead of CODE_SIGN_IDENTITY when you have multiple certificates with the same identity. Overrides CODE_SIGN_IDENTITY."
+            ""
+            "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Machine OR ${CODE_SIGN_KEY_VAULT} MATCHES User"
+            ""
+        )
 
-    # Variables for signing with certificate from Azure
-    KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_URL STRING
-        "The URL of your Azure key vault."
-        ""
-        "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Azure"
-        ""
-    )
-    KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_CERTIFICATE STRING
-        "The name of the certificate in Azure Key Vault."
-        ""
-        "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Azure"
-        ""
-    )
-    KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_CLIENT_ID STRING
-        "The Client ID to authenticate to the Azure Key Vault."
-        ""
-        "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Azure"
-        ""
-    )
-    KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_CLIENT_SECRET STRING
-        "The Client Secret to authenticate to the Azure Key Vault."
-        ""
-        "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Azure"
-        ""
-    )
-    KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_TENANT_ID STRING
-        "The Tenant Id to authenticate to the Azure Key Vault."
-        ""
-        "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Azure"
-        ""
-    )
-    KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_ACCESSTOKEN STRING
-        "The Access Token to authenticate to the Azure Key Vault."
-        ""
-        "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Azure"
-        ""
-    )
+        # Variables for signing with certificate from Azure
+        KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_URL STRING
+            "The URL of your Azure key vault."
+            ""
+            "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Azure"
+            ""
+        )
+        KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_CERTIFICATE STRING
+            "The name of the certificate in Azure Key Vault."
+            ""
+            "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Azure"
+            ""
+        )
+        KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_CLIENT_ID STRING
+            "The Client ID to authenticate to the Azure Key Vault."
+            ""
+            "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Azure"
+            ""
+        )
+        KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_CLIENT_SECRET STRING
+            "The Client Secret to authenticate to the Azure Key Vault."
+            ""
+            "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Azure"
+            ""
+        )
+        KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_TENANT_ID STRING
+            "The Tenant Id to authenticate to the Azure Key Vault."
+            ""
+            "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Azure"
+            ""
+        )
+        KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_ACCESSTOKEN STRING
+            "The Access Token to authenticate to the Azure Key Vault."
+            ""
+            "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Azure"
+            ""
+        )
+    else()
+        # KTX_DEPENDENT_VARIABLE won't work. Force disable signing.
+        unset(CODE_SIGN_KEY_VAULT CACHE)
+    endif()
 
     # Windows Store Compatibility
     if (${CMAKE_SYSTEM_NAME} STREQUAL "WindowsStore")

@@ -118,6 +118,7 @@ function(configure_signtool_params)
     set(SIGN_PARAMS ${store} /fd sha256 ${certopt} ${certid}
         /tr http://ts.ssl.com /td sha256
         /d KTX-Software /du https://github.com/KhronosGroup/KTX-Software
+        /debug
         PARENT_SCOPE)
   endif()
 endfunction()
