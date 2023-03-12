@@ -78,16 +78,19 @@ if [ -n "$MACOS_CERTIFICATES_P12" ]; then
   )
 fi
 config_display="Configure KTX-Software (macOS): "
-for arg in ${cmake_args[@]}; do
-  case $arg in
+# for arg in ${cmake_args[@]};
+# The preceding line trips up when there are spaces in the elements so
+# access via array indices.
+for ((i = 0; i < ${#cmake_args[@]}; i++)); do
+  case ${cmake_args[$i]} in
     "-G") config_display+="Generator=" ;;
     "-B") config_display+="Build Dir=" ;;
     "-D") ;;
-    *) config_display+="$arg, " ;;
+    *) config_display+="${cmake_args[$i]}, " ;;
   esac
 done
 
-echo $config_display
+echo ${config_display%??}
 cmake . ${cmake_args[@]}
 
 # Cause the build pipes below to set the exit to the exit code of the
