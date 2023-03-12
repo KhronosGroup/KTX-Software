@@ -29,6 +29,11 @@ macro (set_code_sign target)
 
   if(WIN32 AND CODE_SIGN_KEY_VAULT)
     configure_windows_sign_params()
+      add_custom_command( TARGET ${target}
+        POST_BUILD
+        COMMAND echo ${signtool_EXECUTABLE} sign ${SIGN_PARAMS} $<TARGET_FILE:${target}>
+        VERBATIM
+      )
     if(SIGN_PARAMS)
       add_custom_command( TARGET ${target}
         POST_BUILD
@@ -111,14 +116,14 @@ function(configure_signtool_params)
       set(certid ${CODE_SIGN_THUMBPRINT})
     elseif(CODE_SIGN_IDENTITY)
       set(certopt /n)
-      set(certid \"${CODE_SIGN_IDENTITY}\")
+      set(certid ${CODE_SIGN_IDENTITY})
     else()
       message(FATAL_ERROR "CODE_SIGN_KEY_VAULT set to ${CODE_SIGN_KEY_VAULT} but neither CODE_SIGN_IDENTITY nor CODE_SIGN_THUMBPRINT is set.")
     endif()
     set(SIGN_PARAMS ${store} /fd sha256 ${certopt} ${certid}
         /tr http://ts.ssl.com /td sha256
         /d KTX-Software /du https://github.com/KhronosGroup/KTX-Software
-        /debug
+        #/debug
         PARENT_SCOPE)
   endif()
 endfunction()
