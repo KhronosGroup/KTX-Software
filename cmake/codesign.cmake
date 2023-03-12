@@ -29,11 +29,6 @@ macro (set_code_sign target)
 
   if(WIN32 AND CODE_SIGN_KEY_VAULT)
     configure_windows_sign_params()
-      add_custom_command( TARGET ${target}
-        POST_BUILD
-        COMMAND echo ${signtool_EXECUTABLE} sign ${SIGN_PARAMS} $<TARGET_FILE:${target}>
-        VERBATIM
-      )
     if(SIGN_PARAMS)
       add_custom_command( TARGET ${target}
         POST_BUILD
