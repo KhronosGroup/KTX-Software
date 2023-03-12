@@ -114,8 +114,10 @@ for:
 build:
   verbosity: detailed
 
-on_failure:
-  - ps: $env:APPVEYOR_BUILD_FOLDER/ci_scripts/on_failure.ps1 $env:APPVEYOR_BUILD_FOLDER $env:BUILD_DIR
+# This persistently hangs without, as far as I can tell, even calling
+# on_failure.ps1.
+#on_failure:
+#  - ps: $env:APPVEYOR_BUILD_FOLDER/ci_scripts/on_failure.ps1 $env:APPVEYOR_BUILD_FOLDER $env:BUILD_DIR
 # Following is for GIT_TRACE: 1 above.
 #  - ps: Get-ChildItem .\.git\lfs\objects\logs\*.log | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
 
