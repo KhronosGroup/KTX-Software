@@ -68,7 +68,6 @@ cmake_args=("-G" "Xcode" \
   "-D" "KTX_FEATURE_TOOLS=$FEATURE_TOOLS" \
   "-D" "BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL" \
   "-D" "BASISU_SUPPORT_SSE=$SUPPORT_SSE"
-  "-D" "XCODE_CODE_SIGN_IDENTITY=Apple Development: Mark Callow (3668SYX9G5)"
 )
 if [ "$ARCHS" = "x86_64" ]; then cmake_args+=("-D" "ISA_SSE41=ON"); fi
 if [ -n "$MACOS_CERTIFICATES_P12" ]; then
