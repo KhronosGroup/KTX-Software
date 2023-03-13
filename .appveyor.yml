@@ -167,7 +167,9 @@ install:
 # - ps: |
 #     Invoke-WebRequest -Uri https://raw.githubusercontent.com/horta/zlib.install/master/install.bat -OutFile install.bat
 #     ./install.bat
-- ps: if ($env:CERT_PK_PASS) { iex ((New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/appveyor/secure-file/master/install.ps1')) }
+- ps: if ($env:PACKAGE -eq "YES" -and $env:CERT_PK_PASS) {
+        iex ((New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/appveyor/secure-file/master/install.ps1'))
+      }
 
 
 #cache:
@@ -193,7 +195,7 @@ before_build:
 #   the interactive `certmgr` for the user store can import the same
 #   certificate I don't understand the reason.
 - ps: |
-    if ($env:CERT_PK_PASS) {
+    if ($env:PACKAGE -eq "YES" -and $env:CERT_PK_PASS) {
       $cert_file = "the_khronos_group_inc.p12"
       appveyor-tools\secure-file -decrypt "${cert_file}.enc" -secret $env:CERT_DC_SECRET -salt $env:CERT_DC_SALT
       certutil -p $env:CERT_PK_PASS -importpfx My $cert_file NoExport
