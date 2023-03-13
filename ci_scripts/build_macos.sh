@@ -68,6 +68,7 @@ cmake_args=("-G" "Xcode" \
   "-D" "KTX_FEATURE_TOOLS=$FEATURE_TOOLS" \
   "-D" "BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL" \
   "-D" "BASISU_SUPPORT_SSE=$SUPPORT_SSE"
+  "-D" "XCODE_CODE_SIGN_IDENTITY=Apple Development: Mark Callow (3668SYX9G5)"
 )
 if [ "$ARCHS" = "x86_64" ]; then cmake_args+=("-D" "ISA_SSE41=ON"); fi
 if [ -n "$MACOS_CERTIFICATES_P12" ]; then
@@ -78,20 +79,18 @@ if [ -n "$MACOS_CERTIFICATES_P12" ]; then
   )
 fi
 config_display="Configure KTX-Software (macOS): "
-# for arg in ${cmake_args[@]};
-# The preceding line trips up when there are spaces in the elements so
-# access via array indices.
-for ((i = 0; i < ${#cmake_args[@]}; i++)); do
-  case ${cmake_args[$i]} in
+for arg in "${cmake_args[@]}"; do
+  echo $arg
+  case $arg in
     "-G") config_display+="Generator=" ;;
     "-B") config_display+="Build Dir=" ;;
     "-D") ;;
-    *) config_display+="${cmake_args[$i]}, " ;;
+    *) config_display+="$arg, " ;;
   esac
 done
 
 echo ${config_display%??}
-cmake . ${cmake_args[@]}
+cmake . "${cmake_args[@]}"
 
 # Cause the build pipes below to set the exit to the exit code of the
 # last program to exit non-zero.
