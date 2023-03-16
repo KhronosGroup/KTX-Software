@@ -1870,7 +1870,7 @@ ktxTexture2_GetImageSize(ktxTexture2* This, ktx_uint32_t level)
 }
 
 /**
- * @memberof ktxTexture
+ * @memberof ktxTexture2
  * @~English
  * @brief Iterate over the mip levels in a ktxTexture2 object.
  *

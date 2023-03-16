@@ -40,11 +40,23 @@
  * @{
  */
 
+/*
+ * N.B. As of Doxygen 1.9.6 non-class members must use fully qualified
+ * names with @ref and @copy* references to classes. This means prefixing
+ * a reference with the name of the (pseudo-)class of which it is a member.
+ * We use @memberof to improve the index and toc for the doc for our
+ * pseudo classes so we need to prefix. Since we don't want, e.g.,
+ * ktxTexture1::ktxTexture1_GLUpload appearing in the documentation we have
+ * to explicitly provide the link text making references very long-winded.
+ * Sigh!
+ */
+
 /**
  * @example glloader.c
  * This is an example of using the low-level ktxTexture API to create and load
  * an OpenGL texture. It is a fragment of the code used by
- * @ref ktxTexture1_GLUpload and @ref ktxTexture2_GLUpload functions.
+ * @ref ktxTexture1.ktxTexture1\_GLUpload "ktxTexture1_GLUpload" and
+ * @ref ktxTexture2.ktxTexture2\_GLUpload "ktxTexture2_GLUpload".
  *
  * @code
  * #include <ktx.h>
@@ -54,10 +66,12 @@
  * across all images.
  * @snippet this cbdata
  *
- * One of these callbacks, selected by @ref ktxTexture1_GLUpload or
- * @ref ktxTexture2_GLUpload based on the dimensionality and arrayness of the
- * texture, is called from @ref ktxTexture_IterateLevelFaces to upload the
- * texture data to OpenGL.
+ * One of these callbacks, selected by @ref
+ * ktxTexture1.ktxTexture1\_GLUpload "ktxTexture1_GLUpload" or
+ * @ref ktxTexture2.ktxTexture2\_GLUpload "ktxTexture2_GLUpload" based on the
+ * dimensionality and arrayness of the texture, is called from
+ * @ref ktxTexture.ktxTexture_IterateLevelFaces
+ * "ktxTexture_IterateLevelFaces" to upload the texture data to OpenGL.
  * @snippet this imageCallbacks
  *
  * This function creates the GL texture object and sets up the callbacks to
