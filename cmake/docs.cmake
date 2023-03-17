@@ -18,7 +18,6 @@ set( DOXYGEN_HTML_TIMESTAMP YES )
 set( DOXYGEN_DISABLE_INDEX YES )
 set( DOXYGEN_GENERATE_TREEVIEW YES )
 set( DOXYGEN_GENERATE_LATEX NO )
-# set( DOXYGEN_PAPER_TYPE a4wide ) # note: invalid value!
 set( DOXYGEN_GENERATE_MAN YES )
 
 
@@ -40,7 +39,13 @@ function( CreateDocLibKTX )
     set( DOXYGEN_EXCLUDE lib/uthash.h )
     set( DOXYGEN_EXCLUDE_PATTERNS ktxint.h )
     set( DOXYGEN_EXAMPLE_PATH examples lib )
+    # This does not hide the scope (class) names in the Modules list
+    # in the ToC. See https://github.com/doxygen/doxygen/issues/9921.
+    set( DOXYGEN_HIDE_SCOPE_NAMES YES )
     set( DOXYGEN_HTML_OUTPUT html/libktx )
+    # Order is important here. '_' suffixed prefices must come first
+    # otherwise the non-suffixed is stripped first leaving just '_'.
+    set( DOXYGEN_IGNORE_PREFIX KTX_;ktx_;KTX;ktx )
     set( DOXYGEN_MAN_LINKS YES )
     set( DOXYGEN_MACRO_EXPANSION YES )
     set( DOXYGEN_EXPAND_ONLY_PREDEF YES )
