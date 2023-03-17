@@ -247,7 +247,7 @@ macro(commom_lib_settings lib write)
     endif()
 
     set_target_properties(${lib} PROPERTIES
-        PUBLIC_HEADER ${CMAKE_SOURCE_DIR}/include/ktx.h
+        PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/include/ktx.h
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}
         XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
@@ -447,7 +447,7 @@ macro(commom_lib_settings lib write)
         )
 
         get_target_property( KTX_PUBLIC_HEADER ${lib} PUBLIC_HEADER )
-        list(APPEND KTX_PUBLIC_HEADER ${CMAKE_SOURCE_DIR}/include/ktxvulkan.h)
+        list(APPEND KTX_PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/include/ktxvulkan.h)
         set_target_properties(${lib} PROPERTIES
             PUBLIC_HEADER "${KTX_PUBLIC_HEADER}"
         )
