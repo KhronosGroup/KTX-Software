@@ -58,15 +58,16 @@ if (($PACKAGE -eq "YES") -and ($FEATURE_TOOLS -eq "OFF")) {
   exit 2
 }
 
-$TOOLSET_OPTION = ""
-if($CMAKE_TOOLSET){
-  $TOOLSET_OPTION = "-T $CMAKE_TOOLSET"
-}
-
 $cmake_args = @(
   "-G", "$CMAKE_GEN"
   "-A", "$PLATFORM"
-  "$TOOLSET_OPTION"
+)
+if($CMAKE_TOOLSET) {
+  $cmake_args += @(
+    "-T", "$CMAKE_TOOLSET"
+  )
+}
+$cmake_args += @(
   "-B", "$BUILD_DIR"
   "-D", "KTX_FEATURE_DOC=$FEATURE_DOC"
   "-D", "KTX_FEATURE_JNI=$FEATURE_JNI"
@@ -76,8 +77,13 @@ $cmake_args = @(
   "-D", "BASISU_SUPPORT_SSE=$SUPPORT_SSE"
   "-D", "BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL"
   "-D", "CODE_SIGN_KEY_VAULT=$CODE_SIGN_KEY_VAULT"
-  "-D", "CODE_SIGN_TIMESTAMP_URL=$CODE_SIGN_TIMESTAMP_URL"
 )
+if ($CODE_SIGN_KEY_VAULT) {
+  # To avoid CMake warning, only specify this when actually signing.
+  $cmake_args += @(
+    "-D", "CODE_SIGN_TIMESTAMP_URL=$CODE_SIGN_TIMESTAMP_URL"
+  )
+}
 if ($CODE_SIGN_KEY_VAULT -eq "Azure") {
   $cmake_args += @(
     "-D", "AZURE_KEY_VAULT_URL=$AZURE_KEY_VAULT_URL"
