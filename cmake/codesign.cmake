@@ -40,53 +40,40 @@ macro (set_code_sign target)
 endmacro (set_code_sign)
 
 function(configure_windows_sign_params)
-  if(CODE_SIGN_KEY_VAULT STREQUAL "Azure")
-    # Use EV certificate in Azure key vault
-    find_program(signtool_EXCUTABLE azuresigntool REQUIRED)
-    if(signtool_EXECUTABLE)
-      configure_azuresigntool_params()
+  if(NOT SIGN_PARAMS)
+    if(CODE_SIGN_KEY_VAULT STREQUAL "Azure")
+      # Use EV certificate in Azure key vault
+      find_program(signtool_EXECUTABLE azuresigntool REQUIRED)
+      if(signtool_EXECUTABLE)
+        configure_azuresigntool_params()
+      endif()
+    else()
+      # Use standard OV certificate in local certificate store.
+      find_package(signtool REQUIRED)
+      if(signtool_EXECUTABLE)
+        configure_signtool_params()
+      endif()
     endif()
-  else()
-    # Use standard OV certificate in local certificate store.
-    find_package(signtool REQUIRED)
-    if(signtool_EXECUTABLE)
-      configure_signtool_params()
-    endif()
+    set(SIGN_PARAMS ${SIGN_PARAMS} PARENT_SCOPE)
   endif()
-  set(SIGN_PARAMS ${SIGN_PARAMS} PARENT_SCOPE)
 endfunction()
 
 function(configure_azuresigntool_params)
   if(NOT SIGN_PARAMS)
-    foreach(param AZURE_KEY_VAULT_CERTIFICATE AZURE_KEY_VAULT_URL AZURE_KEY_VAULT_CLIENT_ID AZURE_KEY_VAULT_CLIENT_SECRET AZURE_KEY_VAULT_TENANT_ID AZURE_KEY_VAULT_ACCESSTOKEN)
-      if(NOT $param)
+    foreach(param AZURE_KEY_VAULT_CERTIFICATE AZURE_KEY_VAULT_URL AZURE_KEY_VAULT_CLIENT_ID AZURE_KEY_VAULT_CLIENT_SECRET AZURE_KEY_VAULT_TENANT_ID)
+      if(NOT ${param})
         message(SEND_ERROR "CODE_SIGN_KEY_VAULT set to \"Azure\" but necessary parameter ${param} is not set.")
       endif()
     endforeach()
-    set(SIGN_PARAMS
+    configure_common_params()
+    set(SIGN_PARAMS ${SIGN_PARAMS}
         --azure-key-vault-url ${AZURE_KEY_VAULT_URL}
         --azure-key-vault-client-id ${AZURE_KEY_VAULT_CLIENT_ID}
         --azure-key-vault-client-secret ${AZURE_KEY_VAULT_CLIENT_SECRET}
         --azure-key-vault-tenant-id ${AZURE_KEY_VAULT_TENANT_ID}
         --azure-key-vault-certificate ${AZURE_KEY_VAULT_CERTIFICATE}
-        --azure-key-vault-accesstoken ${AZURE_KEY_VAULT_ACCESSTOKEN}
-        #--azure-key-vault-managed-identity   # Use Managed Identity ?
-        --description KTX-Software
-        --description-url https://github.com/KhronosGroup/KTX-Software
-        --timestamp-rfc3161 <timestamp server URL>
-        --timestamp-digest sha256
-        --file-digest sha256
-        #--timestamp-authenticode # Specify the timestamp server's URL. If this option is not present, the signed file will not be timestamped.
-        #--additional-certificates # Specify one or more certificates to include in the public certificate chain.
         --verbose # Include additional output.
         #--quiet   # Do not print any output to the console.
-        # --page-hashing     Generate page hashes for executable files if supported.
-        # --no-page-hashing  Suppress page hashes for executable files if supported.
-        # --continue-on-error Continue signing multiple files if an error occurs.
-        #--input-file-list A path to a file that contains a list of files, one per line, to sign.
-        #--max-degree-of-parallelism  The maximum number of concurrent signing operations.
-        #--colors Enable color output on the command line.
-        #--skip-signed Skip files that are already signed.
         PARENT_SCOPE)
   endif()
 endfunction()
@@ -106,20 +93,31 @@ function(configure_signtool_params)
     else()
       message(FATAL_ERROR "Unrecognized CODE_SIGN_KEY_VAULT value \"${CODE_SIGN_KEY_VAULT}\"")
     endif()
-    if(CODE_SIGN_THUMBPRINT)
+    if(LOCAL_KEY_VAULT_CERTIFICATE_THUMBPRINT)
       set(certopt /sha1)
-      set(certid ${CODE_SIGN_THUMBPRINT})
-    elseif(CODE_SIGN_IDENTITY)
+      set(certid ${LOCAL_KEY_VAULT_CERTIFICATE_THUMBPRINT})
+    elseif(LOCAL_KEY_VAULT_SIGNING_IDENTITY)
       set(certopt /n)
-      set(certid ${CODE_SIGN_IDENTITY})
+      set(certid ${LOCAL_KEY_VAULT_SIGNING_IDENTITY})
     else()
-      message(FATAL_ERROR "CODE_SIGN_KEY_VAULT set to ${CODE_SIGN_KEY_VAULT} but neither CODE_SIGN_IDENTITY nor CODE_SIGN_THUMBPRINT is set.")
+      message(FATAL_ERROR "CODE_SIGN_KEY_VAULT set to ${CODE_SIGN_KEY_VAULT} but neither LOCAL_KEY_VAULT_CERTIFICATE_THUMBPRINT nor LOCAL_KEY_VAULT_SIGNING_IDENTITY is set.")
     endif()
-    set(SIGN_PARAMS ${store} /fd sha256 ${certopt} ${certid}
-        /tr http://ts.ssl.com /td sha256
-        /d KTX-Software /du https://github.com/KhronosGroup/KTX-Software
+    configure_common_params()
+    set(SIGN_PARAMS ${SIGN_PARAMS} ${store} ${certopt} ${certid}
         #/debug
         PARENT_SCOPE)
+  endif()
+endfunction()
+
+function(configure_common_params)
+  if (CODE_SIGN_TIMESTAMP_URL)
+    set(SIGN_PARAMS ${SIGN_PARAMS}
+        -fd sha256
+        -td sha256 -tr ${CODE_SIGN_TIMESTAMP_URL}
+        -d KTX-Software -du https://github.com/KhronosGroup/KTX-Software
+        PARENT_SCOPE)
+  else()
+    message(FATAL_ERROR "CODE_SIGN_KEY_VAULT is set but CODE_SIGN_TIMESTAMP_URL is not set.")
   endif()
 endfunction()
 

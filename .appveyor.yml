@@ -167,8 +167,8 @@ install:
 # - ps: |
 #     Invoke-WebRequest -Uri https://raw.githubusercontent.com/horta/zlib.install/master/install.bat -OutFile install.bat
 #     ./install.bat
-- ps: if ($env:PACKAGE -eq "YES" -and $env:CERT_PK_PASS) {
-        iex ((New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/appveyor/secure-file/master/install.ps1'))
+- ps: if ($env:PACKAGE -eq "YES" -and $env:AZURE_KEY_VAULT_URL) {
+        dotnet tool install --global AzureSignTool
       }
 
 
@@ -186,24 +186,10 @@ before_build:
     git checkout -q TODO.md lib/mainpage.md pkgdoc/pages.md
     git status
 
-# Import signing certificate into local machine store.
-#   This is because `certutil -user`, to install in user's store,
-#   produces a pop-up dialog that stalls CI while waiting for an answer.
-#   The dialog warns that the trusted root CA of the cert can't be verified.
-#   This happens on the development machine too. Since the root CA
-#   certificates of both user and machine stores appear to be identical and
-#   the interactive `certmgr` for the user store can import the same
-#   certificate I don't understand the reason.
+# Enable signing, when secret variables are available.
 - ps: |
-    if ($env:PACKAGE -eq "YES" -and $env:CERT_PK_PASS) {
-      $cert_file = "the_khronos_group_inc.p12"
-      appveyor-tools\secure-file -decrypt "${cert_file}.enc" -secret $env:CERT_DC_SECRET -salt $env:CERT_DC_SALT
-      certutil -p $env:CERT_PK_PASS -importpfx My $cert_file NoExport
-      rm $cert_file
-      $env:CODE_SIGN_KEY_VAULT = 'Machine'
-      $env:CODE_SIGN_IDENTITY = 'The Khronos Group Inc'
-    } else {
-      $env:CODE_SIGN_KEY_VAULT = ''
+    if ($env:PACKAGE -eq "YES" -and $env:AZURE_KEY_VAULT_URL) {
+      $env:CODE_SIGN_KEY_VAULT = 'Azure'
     }
 
 build_script:

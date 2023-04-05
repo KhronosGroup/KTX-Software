@@ -121,15 +121,22 @@ if(WIN32)
         set_property(CACHE CODE_SIGN_KEY_VAULT
             PROPERTY STRINGS "" Azure Machine User)
 
+        # Common signing variables
+        KTX_DEPENDENT_VARIABLE( CODE_SIGN_TIMESTAMP_URL STRING
+          "URL of timestamp server for code signing. Signed code should be timestamped so the signature will remain valid even after the certificate expires."
+          ""
+          "CODE_SIGN_KEY_VAULT"
+          ""
+        )
         # Variables for signing with local certificate.
-        KTX_DEPENDENT_VARIABLE( CODE_SIGN_IDENTITY STRING
-            "Subject Name of Windows code signing certificate. Displayed in 'Issued To' field of cert{lm,mgr}. Overriden by CODE_SIGN_THUMBPRINT."
+        KTX_DEPENDENT_VARIABLE( LOCAL_KEY_VAULT_SIGNING_IDENTITY STRING
+            "Subject Name of Windows code signing certificate. Displayed in 'Issued To' field of cert{lm,mgr}. Overriden by LOCAL_KEY_VAULT_CERTIFICATE_THUMBPRINT."
             ""
             "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Machine OR ${CODE_SIGN_KEY_VAULT} MATCHES User"
             ""
         )
-        KTX_DEPENDENT_VARIABLE( CODE_SIGN_THUMBPRINT STRING
-            "Thumbprint of the certificate to use. Use this instead of CODE_SIGN_IDENTITY when you have multiple certificates with the same identity. Overrides CODE_SIGN_IDENTITY."
+        KTX_DEPENDENT_VARIABLE( LOCAL_KEY_VAULT_CERTIFICATE_THUMBPRINT STRING
+            "Thumbprint of the certificate to use. Use this instead of LOCAL_KEY_VAULT_SIGNING_IDENTITY when you have multiple certificates with the same identity. Overrides LOCAL_KEY_VAULT_SIGNING_IDENTITY."
             ""
             "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Machine OR ${CODE_SIGN_KEY_VAULT} MATCHES User"
             ""
@@ -149,25 +156,19 @@ if(WIN32)
             ""
         )
         KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_CLIENT_ID STRING
-            "The Client ID to authenticate to the Azure Key Vault."
-            ""
-            "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Azure"
-            ""
-        )
-        KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_CLIENT_SECRET STRING
-            "The Client Secret to authenticate to the Azure Key Vault."
+            "The id of an Azure application (Client) with permission to access the certificate."
             ""
             "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Azure"
             ""
         )
         KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_TENANT_ID STRING
-            "The Tenant Id to authenticate to the Azure Key Vault."
+            "The id of the Azure Active Directory (Tenant) holding the Client."
             ""
             "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Azure"
             ""
         )
-        KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_ACCESSTOKEN STRING
-            "The Access Token to authenticate to the Azure Key Vault."
+        KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_CLIENT_SECRET STRING
+            "The secret to authenticate access to the Client."
             ""
             "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Azure"
             ""
@@ -1092,7 +1093,7 @@ elseif(WIN32)
     endif()
     ## Alternative: add major version at end
     #set(CPACK_PACKAGE_INSTALL_DIRECTORY "KTX-Software-${PROJECT_VERSION_MAJOR}")
-    if (WIN_CODE_SIGN_IDENTITY)
+    if (CODE_SIGN_KEY_VAULT)
         set_nsis_installer_codesign_cmd()
     else()
         # We're not signing the package so provide a checksum file.
