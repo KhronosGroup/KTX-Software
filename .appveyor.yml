@@ -23,24 +23,33 @@ environment:
   VULKAN_SDK_VER: 1.2.176.1
 
   matrix:
-    - FEATURE_DOC: OFF
-      FEATURE_JNI: OFF
-      FEATURE_LOADTESTS: ON
-      FEATURE_TOOLS: ON
-      SUPPORT_SSE: ON
-      SUPPORT_OPENCL: OFF
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-      CMAKE_GEN: Visual Studio 14 2015
-      CONFIGURATION: Debug,Release
-    - FEATURE_DOC: OFF
-      FEATURE_JNI: OFF
-      FEATURE_LOADTESTS: ON
-      FEATURE_TOOLS: ON
-      SUPPORT_SSE: ON
-      SUPPORT_OPENCL: OFF
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-      CMAKE_GEN: Visual Studio 15 2017
-      CONFIGURATION: Debug,Release
+#    - FEATURE_DOC: OFF
+#      FEATURE_JNI: OFF
+#      FEATURE_LOADTESTS: ON
+#      FEATURE_TOOLS: ON
+#      SUPPORT_SSE: ON
+#      SUPPORT_OPENCL: OFF
+#      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+#      CMAKE_GEN: Visual Studio 14 2015
+#      CONFIGURATION: Debug,Release
+#    - FEATURE_DOC: OFF
+#      FEATURE_JNI: OFF
+#      FEATURE_LOADTESTS: ON
+#      FEATURE_TOOLS: ON
+#      SUPPORT_SSE: ON
+#      SUPPORT_OPENCL: OFF
+#      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+#      CMAKE_GEN: Visual Studio 15 2017
+#      CONFIGURATION: Debug,Release
+#    - FEATURE_DOC: OFF
+#      FEATURE_JNI: OFF
+#      FEATURE_LOADTESTS: ON
+#      FEATURE_TOOLS: ON
+#      SUPPORT_SSE: ON
+#      SUPPORT_OPENCL: OFF
+#      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+#      CMAKE_GEN: Visual Studio 16 2019
+#      CONFIGURATION: Debug,Release
       # This is the configuration used for the release.
     - FEATURE_DOC: ON
       FEATURE_JNI: ON
@@ -49,36 +58,36 @@ environment:
       PACKAGE: YES
       SUPPORT_SSE: ON
       SUPPORT_OPENCL: OFF
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-      CMAKE_GEN: Visual Studio 16 2019
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+      CMAKE_GEN: Visual Studio 17 2022
       CONFIGURATION: Debug,Release
       JAVA_HOME: C:\Program Files\Java\jdk17
-    - FEATURE_DOC: OFF
-      FEATURE_JNI: OFF
-      FEATURE_LOADTESTS: OFF
-      FEATURE_TOOLS: OFF
-      SUPPORT_SSE: ON
-      SUPPORT_OPENCL: ON
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-      CMAKE_GEN: Visual Studio 16 2019
-      CONFIGURATION: Release
-    - FEATURE_DOC: OFF
-      FEATURE_JNI: OFF
-      FEATURE_LOADTESTS: OFF
-      FEATURE_TOOLS: OFF
-      SUPPORT_SSE: OFF
-      SUPPORT_OPENCL: ON
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-      CMAKE_GEN: Visual Studio 16 2019
-      CONFIGURATION: Release
-    - FEATURE_DOC: OFF
-      FEATURE_JNI: OFF
-      FEATURE_LOADTESTS: OFF
-      SUPPORT_SSE: OFF
-      SUPPORT_OPENCL: OFF
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-      CMAKE_GEN: Visual Studio 16 2019
-      CONFIGURATION: Release
+#    - FEATURE_DOC: OFF
+#      FEATURE_JNI: OFF
+#      FEATURE_LOADTESTS: OFF
+#      FEATURE_TOOLS: OFF
+#      SUPPORT_SSE: ON
+#      SUPPORT_OPENCL: ON
+#      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+#      CMAKE_GEN: Visual Studio 17 2022
+#      CONFIGURATION: Release
+#    - FEATURE_DOC: OFF
+#      FEATURE_JNI: OFF
+#      FEATURE_LOADTESTS: OFF
+#      FEATURE_TOOLS: OFF
+#      SUPPORT_SSE: OFF
+#      SUPPORT_OPENCL: ON
+#      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+#      CMAKE_GEN: Visual Studio 17 2022
+#      CONFIGURATION: Release
+#    - FEATURE_DOC: OFF
+#      FEATURE_JNI: OFF
+#      FEATURE_LOADTESTS: OFF
+#      SUPPORT_SSE: OFF
+#      SUPPORT_OPENCL: OFF
+#      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+#      CMAKE_GEN: Visual Studio 17 2022
+#      CONFIGURATION: Release
 
 #matrix:
 
