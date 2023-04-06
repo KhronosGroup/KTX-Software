@@ -134,7 +134,7 @@ void CommandInfo::executeInfo() {
         fmt::print(stderr, "{}: \"{}\" is not a KTX2 file.\n", processName, inputFile);
         throw FatalError(RETURN_CODE_IO_FAILURE);
     } else if (result != KTX_SUCCESS) {
-        fmt::print(stderr, "{}: {} failed to process KTX2 file: ERROR_CODE {}\n", processName, inputFile, static_cast<int>(result));
+        fmt::print(stderr, "{}: {} failed to process KTX2 file: {} - {}\n", processName, inputFile, static_cast<int>(result), ktxErrorString(result));
         throw FatalError(RETURN_CODE_IO_FAILURE);
     }
 }

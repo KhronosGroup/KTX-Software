@@ -384,7 +384,7 @@ struct FormatDescriptor {
     /// @brief Constructor for non-compressed textures with varying bit lengths
     ///        or channel types and custom sampleLower and sampleUpper.
     ///
-    /// Each channle has the same basic data type.  Use this for unnormalized
+    /// Each channel has the same basic data type.  Use this for unnormalized
     /// integer data or normalized data that does not use the full bit range.
     FormatDescriptor(uint32_t channelCount,
                std::vector<uint32_t>& channelBitLengths,

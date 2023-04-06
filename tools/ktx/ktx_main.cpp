@@ -168,6 +168,8 @@ std::unordered_map<std::string, ktx::pfnBuiltinCommand> builtinCommands = {
 
 int _tmain(int argc, _TCHAR* argv[]) {
     // If -NSDocumentRevisionsDebugMode YES ever causes any problem it should be discarded here
+    // by creating a new argc and argv pair and excluding the problematic arguments from them.
+    // This way downstream tools with not have to deal with this issue
     //      // -NSDocumentRevisionsDebugMode YES is appended to the end
     //      // of the command by Xcode when debugging and "Allow debugging when
     //      // using document Versions Browser" is checked in the scheme. It

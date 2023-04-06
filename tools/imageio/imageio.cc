@@ -7,9 +7,9 @@
 //!
 //! @internal
 //! @~English
-//! @file imageinput.cc
+//! @file imageio.cc
 //!
-//! @brief ImageInput:open function
+//! @brief Create plugin maps.
 //!
 
 #include <algorithm>

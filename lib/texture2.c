@@ -1709,7 +1709,7 @@ ktxTexture2_calcPostInflationLevelAlignment(ktxTexture2* This)
 
     // Should actually work for none supercompressed but don't want to
     // encourage use of it.
-    assert(This->supercompressionScheme >= KTX_SS_ZSTD || This->supercompressionScheme >= KTX_SS_ZLIB);
+    assert(This->supercompressionScheme != KTX_SS_NONE && This->supercompressionScheme != KTX_SS_BASIS_LZ);
 
     if (This->vkFormat != VK_FORMAT_UNDEFINED)
         alignment = lcm4(This->_protected->_formatSize.blockSizeInBits / 8);
