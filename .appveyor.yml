@@ -14,7 +14,7 @@ environment:
   GIT_TRACE: 0
   GIT_LFS_SKIP_SMUDGE: 1
   BUILD_DIR: build
-  CODE_SIGN_TIME_STAMP_URL: http://timestamp.digicert.com
+  CODE_SIGN_TIMESTAMP_URL: http://timestamp.digicert.com
   OPENCL_SDK_HOME: https://github.com/intel/llvm/releases/download/2021-09
   OPENCL_SDK_NAME: win-oclcpuexp-2021.12.9.0.24_rel
   OPENGL_ES_EMULATOR: C:/Imagination/Windows_x86_64
