@@ -72,7 +72,7 @@ function(configure_azuresigntool_params)
         --azure-key-vault-client-secret ${AZURE_KEY_VAULT_CLIENT_SECRET}
         --azure-key-vault-tenant-id ${AZURE_KEY_VAULT_TENANT_ID}
         --azure-key-vault-certificate ${AZURE_KEY_VAULT_CERTIFICATE}
-        --verbose # Include additional output.
+        #--verbose # Include additional output.
         #--quiet   # Do not print any output to the console.
         PARENT_SCOPE)
   endif()

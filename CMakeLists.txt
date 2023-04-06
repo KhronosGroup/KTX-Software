@@ -156,7 +156,7 @@ if(WIN32)
             ""
         )
         KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_CLIENT_ID STRING
-            "The id of an Azure application (Client) with permission to access the certificate."
+            "The id of an application (Client) registered with Azure that has permission to access the certificate."
             ""
             "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Azure"
             ""
