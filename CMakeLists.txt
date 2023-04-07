@@ -113,16 +113,72 @@ if(APPLE)
     endif()
 endif()
 
-if (WIN32)
-    # Signing
-    set(WIN_CODE_SIGN_IDENTITY "" CACHE STRING "Subject Name of Windows code signing certificate. Displayed in 'Issued To' field of cert{lm,mgr}.")
-    CMAKE_DEPENDENT_OPTION( WIN_CS_CERT_SEARCH_MACHINE_STORE
-        "When set, machine store will be searched for signing certificate instead of user store."
-        OFF
-        WIN_CODE_SIGN_IDENTITY
-        OFF
-    )
+if(WIN32)
+    if (${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.18.0")
+        include(KtxDependentVariable)
+        # Signing
+        set(CODE_SIGN_KEY_VAULT "" CACHE STRING "Name of the vault to search for signing certificate. Enables related code signing variables when set.")
+        set_property(CACHE CODE_SIGN_KEY_VAULT
+            PROPERTY STRINGS "" Azure Machine User)
 
+        # Common signing variables
+        KTX_DEPENDENT_VARIABLE( CODE_SIGN_TIMESTAMP_URL STRING
+          "URL of timestamp server for code signing. Signed code should be timestamped so the signature will remain valid even after the certificate expires."
+          ""
+          "CODE_SIGN_KEY_VAULT"
+          ""
+        )
+        # Variables for signing with local certificate.
+        KTX_DEPENDENT_VARIABLE( LOCAL_KEY_VAULT_SIGNING_IDENTITY STRING
+            "Subject Name of Windows code signing certificate. Displayed in 'Issued To' field of cert{lm,mgr}. Overriden by LOCAL_KEY_VAULT_CERTIFICATE_THUMBPRINT."
+            ""
+            "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Machine OR ${CODE_SIGN_KEY_VAULT} MATCHES User"
+            ""
+        )
+        KTX_DEPENDENT_VARIABLE( LOCAL_KEY_VAULT_CERTIFICATE_THUMBPRINT STRING
+            "Thumbprint of the certificate to use. Use this instead of LOCAL_KEY_VAULT_SIGNING_IDENTITY when you have multiple certificates with the same identity. Overrides LOCAL_KEY_VAULT_SIGNING_IDENTITY."
+            ""
+            "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Machine OR ${CODE_SIGN_KEY_VAULT} MATCHES User"
+            ""
+        )
+
+        # Variables for signing with certificate from Azure
+        KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_URL STRING
+            "The URL of your Azure key vault."
+            ""
+            "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Azure"
+            ""
+        )
+        KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_CERTIFICATE STRING
+            "The name of the certificate in Azure Key Vault."
+            ""
+            "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Azure"
+            ""
+        )
+        KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_CLIENT_ID STRING
+            "The id of an application (Client) registered with Azure that has permission to access the certificate."
+            ""
+            "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Azure"
+            ""
+        )
+        KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_TENANT_ID STRING
+            "The id of the Azure Active Directory (Tenant) holding the Client."
+            ""
+            "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Azure"
+            ""
+        )
+        KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_CLIENT_SECRET STRING
+            "The secret to authenticate access to the Client."
+            ""
+            "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Azure"
+            ""
+        )
+    else()
+        # KTX_DEPENDENT_VARIABLE won't work. Force disable signing.
+        unset(CODE_SIGN_KEY_VAULT CACHE)
+    endif()
+
+    # Windows Store Compatibility
     if (${CMAKE_SYSTEM_NAME} STREQUAL "WindowsStore")
         # Disable OpenGL upload on Universal Windows Platform
         set(KTX_FEATURE_GL_UPLOAD OFF)
@@ -170,7 +226,7 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"
         add_link_options( $<IF:$<CONFIG:Debug>,-g,-O3> )
     endif()
 else()
-    message(ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")
+    message(FATAL_ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")
 endif()
 
 set(KTX_MAIN_SRC
@@ -570,7 +626,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         elseif (${CMAKE_CXX_COMPILER_VERSION} VERSION_EQUAL "12.0.0")
             set( clang_version "10.0.0")
         else()
-            message(FATAL "Unsupported AppleClang version")
+            message(FATAL_ERROR "Unsupported AppleClang version")
         endif()
     else()
         set( clang_version ${CMAKE_CXX_COMPILER_VERSION} )
@@ -617,7 +673,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         )
     endif()
 else()
-    message(ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")
+    message(FATAL_ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")
 endif()
 
 target_include_directories(
@@ -1037,7 +1093,7 @@ elseif(WIN32)
     endif()
     ## Alternative: add major version at end
     #set(CPACK_PACKAGE_INSTALL_DIRECTORY "KTX-Software-${PROJECT_VERSION_MAJOR}")
-    if (WIN_CODE_SIGN_IDENTITY)
+    if (CODE_SIGN_KEY_VAULT)
         set_nsis_installer_codesign_cmd()
     else()
         # We're not signing the package so provide a checksum file.

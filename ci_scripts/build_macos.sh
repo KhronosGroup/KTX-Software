@@ -58,34 +58,38 @@ else
   }
 fi
 
-echo "Configure KTX-Software (macOS $ARCHS) dir=$BUILD_DIR FEATURE_DOC=$FEATURE_DOC FEATURE_JNI=$FEATURE_JNI FEATURE_LOADTESTS=$FEATURE_LOADTESTS FEATURE_TESTS=$FEATURE_TESTS FEATURE_TOOLS=$FEATURE_TOOLS SUPPORT_SSE=$SUPPORT_SSE SUPPORT_OPENCL=$SUPPORT_OPENCL"
+cmake_args=("-G" "Xcode" \
+  "-B" $BUILD_DIR \
+  "-D" "CMAKE_OSX_ARCHITECTURES=$ARCHS" \
+  "-D" "KTX_FEATURE_DOC=$FEATURE_DOC" \
+  "-D" "KTX_FEATURE_JNI=$FEATURE_JNI" \
+  "-D" "KTX_FEATURE_LOADTEST_APPS=$FEATURE_LOADTESTS" \
+  "-D" "KTX_FEATURE_TESTS=$FEATURE_TESTS" \
+  "-D" "KTX_FEATURE_TOOLS=$FEATURE_TOOLS" \
+  "-D" "BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL" \
+  "-D" "BASISU_SUPPORT_SSE=$SUPPORT_SSE"
+)
+if [ "$ARCHS" = "x86_64" ]; then cmake_args+=("-D" "ISA_SSE41=ON"); fi
 if [ -n "$MACOS_CERTIFICATES_P12" ]; then
-  cmake -GXcode -B$BUILD_DIR . \
-  -D CMAKE_OSX_ARCHITECTURES="$ARCHS" \
-  -D KTX_FEATURE_DOC=$FEATURE_DOC \
-  -D KTX_FEATURE_JNI=$FEATURE_JNI \
-  -D KTX_FEATURE_LOADTEST_APPS=$FEATURE_LOADTESTS \
-  -D KTX_FEATURE_TESTS=$FEATURE_TESTS \
-  -D KTX_FEATURE_TOOLS=$FEATURE_TOOLS \
-  -D BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL \
-  -D BASISU_SUPPORT_SSE=$SUPPORT_SSE \
-  $(if [ "$ARCHS" = "x86_64" ]; then echo -D ISA_SSE41=ON; fi) \
-  -D XCODE_CODE_SIGN_IDENTITY="${CODE_SIGN_IDENTITY}" \
-  -D XCODE_DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
-  -D PRODUCTBUILD_IDENTITY_NAME="${PKG_SIGN_IDENTITY}"
-else # No secure variables means a PR or fork build.
-  echo "************* No Secure variables. ******************"
-  cmake -GXcode -B$BUILD_DIR . \
-  -D CMAKE_OSX_ARCHITECTURES="$ARCHS" \
-  -D KTX_FEATURE_DOC=$FEATURE_DOC \
-  -D KTX_FEATURE_JNI=$FEATURE_JNI \
-  -D KTX_FEATURE_LOADTEST_APPS=$FEATURE_LOADTESTS \
-  -D KTX_FEATURE_TESTS=$FEATURE_TESTS \
-  -D KTX_FEATURE_TOOLS=$FEATURE_TOOLS \
-  -D BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL \
-  -D BASISU_SUPPORT_SSE=$SUPPORT_SSE \
-  $(if [ "$ARCHS" = "x86_64" ]; then echo -D ISA_SSE41=ON; fi)
+  cmake_args+=( \
+    "-D" "XCODE_CODE_SIGN_IDENTITY=${CODE_SIGN_IDENTITY}" \
+    "-D" "XCODE_DEVELOPMENT_TEAM=${DEVELOPMENT_TEAM}" \
+    "-D" "PRODUCTBUILD_IDENTITY_NAME=${PKG_SIGN_IDENTITY}"
+  )
 fi
+config_display="Configure KTX-Software (macOS): "
+for arg in "${cmake_args[@]}"; do
+  echo $arg
+  case $arg in
+    "-G") config_display+="Generator=" ;;
+    "-B") config_display+="Build Dir=" ;;
+    "-D") ;;
+    *) config_display+="$arg, " ;;
+  esac
+done
+
+echo ${config_display%??}
+cmake . "${cmake_args[@]}"
 
 # Cause the build pipes below to set the exit to the exit code of the
 # last program to exit non-zero.

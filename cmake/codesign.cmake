@@ -27,42 +27,107 @@ macro (set_code_sign target)
     endif()
   endif()
 
-  if (WIN32 AND WIN_CODE_SIGN_IDENTITY)
-    find_package(signtool REQUIRED)
-
-    if (signtool_EXECUTABLE)
-      configure_sign_params()
+  if(WIN32 AND CODE_SIGN_KEY_VAULT)
+    configure_windows_sign_params()
+    if(SIGN_PARAMS)
       add_custom_command( TARGET ${target}
-       POST_BUILD
-       COMMAND ${signtool_EXECUTABLE} sign ${SIGN_PARAMS} $<TARGET_FILE:${target}>
-       VERBATIM
+        POST_BUILD
+        COMMAND ${signtool_EXECUTABLE} sign ${SIGN_PARAMS} $<TARGET_FILE:${target}>
+        VERBATIM
       )
     endif()
   endif()
 endmacro (set_code_sign)
 
-function(configure_sign_params)
-  if (NOT SIGN_PARAMS)
-    # Default to looking for cert. in user's store but let user tell us
-    # to look in Local Computer store. See comment at begin_build phase
-    # in .appveyor.yml for the reason. User store is preferred because
-    # importing the cert. does not need admin elevation.
-    if (WIN_CS_CERT_SEARCH_MACHINE_STORE)
-      set(store "/sm")
+function(configure_windows_sign_params)
+  if(NOT SIGN_PARAMS)
+    if(CODE_SIGN_KEY_VAULT STREQUAL "Azure")
+      # Use EV certificate in Azure key vault
+      find_program(signtool_EXECUTABLE azuresigntool REQUIRED)
+      if(signtool_EXECUTABLE)
+        configure_azuresigntool_params()
+      endif()
+    else()
+      # Use standard OV certificate in local certificate store.
+      find_package(signtool REQUIRED)
+      if(signtool_EXECUTABLE)
+        configure_signtool_params()
+      endif()
     endif()
-    set(SIGN_PARAMS ${store} /fd sha256 /n "${WIN_CODE_SIGN_IDENTITY}"
-        /tr http://ts.ssl.com /td sha256
-        /d KTX-Software /du https://github.com/KhronosGroup/KTX-Software
+    set(SIGN_PARAMS ${SIGN_PARAMS} PARENT_SCOPE)
+  endif()
+endfunction()
+
+function(configure_azuresigntool_params)
+  if(NOT SIGN_PARAMS)
+    foreach(param AZURE_KEY_VAULT_CERTIFICATE AZURE_KEY_VAULT_URL AZURE_KEY_VAULT_CLIENT_ID AZURE_KEY_VAULT_CLIENT_SECRET AZURE_KEY_VAULT_TENANT_ID)
+      if(NOT ${param})
+        message(SEND_ERROR "CODE_SIGN_KEY_VAULT set to \"Azure\" but necessary parameter ${param} is not set.")
+      endif()
+    endforeach()
+    configure_common_params()
+    set(SIGN_PARAMS ${SIGN_PARAMS}
+        --azure-key-vault-url ${AZURE_KEY_VAULT_URL}
+        --azure-key-vault-client-id ${AZURE_KEY_VAULT_CLIENT_ID}
+        --azure-key-vault-client-secret ${AZURE_KEY_VAULT_CLIENT_SECRET}
+        --azure-key-vault-tenant-id ${AZURE_KEY_VAULT_TENANT_ID}
+        --azure-key-vault-certificate ${AZURE_KEY_VAULT_CERTIFICATE}
+        #--verbose # Include additional output.
+        #--quiet   # Do not print any output to the console.
         PARENT_SCOPE)
   endif()
 endfunction()
 
+function(configure_signtool_params)
+  if(NOT SIGN_PARAMS)
+    # User store is preferred because importing the cert. does not need
+    # admin elevation. However problems were encountered on Appveyor,
+    # see comment at begin_build phase in .appveyor.yml, so use of local
+    # machine store is also supported.
+    if(CODE_SIGN_KEY_VAULT STREQUAL Machine)
+      # Search in local machine certificate store
+      set(store "/sm")
+    elseif(CODE_SIGN_KEY_VAULT STREQUAL User)
+      # Search in user's certificate store.
+      unset(store)
+    else()
+      message(FATAL_ERROR "Unrecognized CODE_SIGN_KEY_VAULT value \"${CODE_SIGN_KEY_VAULT}\"")
+    endif()
+    if(LOCAL_KEY_VAULT_CERTIFICATE_THUMBPRINT)
+      set(certopt /sha1)
+      set(certid ${LOCAL_KEY_VAULT_CERTIFICATE_THUMBPRINT})
+    elseif(LOCAL_KEY_VAULT_SIGNING_IDENTITY)
+      set(certopt /n)
+      set(certid ${LOCAL_KEY_VAULT_SIGNING_IDENTITY})
+    else()
+      message(FATAL_ERROR "CODE_SIGN_KEY_VAULT set to ${CODE_SIGN_KEY_VAULT} but neither LOCAL_KEY_VAULT_CERTIFICATE_THUMBPRINT nor LOCAL_KEY_VAULT_SIGNING_IDENTITY is set.")
+    endif()
+    configure_common_params()
+    set(SIGN_PARAMS ${SIGN_PARAMS} ${store} ${certopt} ${certid}
+        #/debug
+        PARENT_SCOPE)
+  endif()
+endfunction()
+
+function(configure_common_params)
+  if (CODE_SIGN_TIMESTAMP_URL)
+    set(SIGN_PARAMS ${SIGN_PARAMS}
+        -fd sha256
+        -td sha256 -tr ${CODE_SIGN_TIMESTAMP_URL}
+        -d KTX-Software -du https://github.com/KhronosGroup/KTX-Software
+        PARENT_SCOPE)
+  else()
+    message(FATAL_ERROR "CODE_SIGN_KEY_VAULT is set but CODE_SIGN_TIMESTAMP_URL is not set.")
+  endif()
+endfunction()
+
 function(set_nsis_installer_codesign_cmd)
-  if (WIN32 AND WIN_CODE_SIGN_IDENTITY)
-    # To make calls to the above macro and this order independent ...
-    find_package(signtool REQUIRED)
-    if (signtool_EXECUTABLE)
-      configure_sign_params()
+  # To make calls to the above macro and this order independent ...
+  if(WIN32 AND CODE_SIGN_KEY_VAULT)
+    if(NOT SIGN_PARAMS)
+      configure_windows_sign_params()
+    endif()
+    if(SIGN_PARAMS)
       # CPACK_NSIS_FINALIZE_CMD is a variable whose value is to be substituted
       # into the !finalize and !uninstfinalize commands in
       # cmake/modules/NSIS.template.in. This variable is ours. It is not a
