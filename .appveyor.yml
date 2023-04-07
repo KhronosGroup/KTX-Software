@@ -220,6 +220,7 @@ build_script:
 test_script:
 - ps: |
     $Env:Phase = "test"
+    $ErrorActionPreference = 'Stop' # Make sure build fails if tests fail.
     pushd $env:BUILD_DIR
     $configArray = $env:CONFIGURATION.split(",")
     foreach ($config in $configArray) {

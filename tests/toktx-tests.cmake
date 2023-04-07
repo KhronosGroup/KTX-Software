@@ -173,7 +173,10 @@ endif()
 
 gencmpktx( luminance_reference_u luminance_reference_u.ktx2 ../srcimages/luminance.pgm "--t2 --convert_oetf linear" "" "" )
 gencmpktx( luminance_reference_uastc luminance_reference_uastc.ktx2 ../srcimages/luminance.pgm "--t2 --uastc --" "" "" )
+if(APPLE)
+# Before VS2022 version 17.5 Windows got the same result as Mac.
 gencmpktx( luminance_reference_basis luminance_reference_basis.ktx2 ../srcimages/luminance.pgm "--t2 --bcmp" "" "" )
+endif()
 gencmpktx( luminance_alpha_reference_u luminance_alpha_reference_u.ktx2 ../srcimages/basn4a08.png "--t2" "" "" )
 gencmpktx( luminance_alpha_reference_uastc luminance_alpha_reference_uastc.ktx2 ../srcimages/basn4a08.png "--t2 --uastc --" "" "" )
 if(APPLE)
@@ -181,8 +184,10 @@ gencmpktx( luminance_alpha_reference_basis luminance_alpha_reference_basis.ktx2 
 endif()
 gencmpktx( r_reference_u r_reference_u.ktx2 ../srcimages/luminance.pgm "--t2 --convert_oetf linear --target_type R" "" "" )
 gencmpktx( r_reference_uastc r_reference_uastc.ktx2 ../srcimages/luminance.pgm "--t2 --uastc --target_type R --swizzle r001 --" "" "" )
-# This one seems to be okay.
+if(APPLE)
+# Before VS2022 version 17.5 Windows got the same result as Mac.
 gencmpktx( r_reference_basis r_reference_basis.ktx2 ../srcimages/luminance.pgm "--t2 --bcmp --target_type R --swizzle r001" "" "" )
+endif()
 gencmpktx( rg_reference_u rg_reference_u.ktx2 ../srcimages/basn4a08.png "--t2 --convert_oetf linear --target_type RG" "" "" )
 gencmpktx( rg_reference_uastc rg_reference_uastc.ktx2 ../srcimages/basn4a08.png "--t2 --uastc --target_type RG --swizzle rg01 --" "" "" )
 if(APPLE)
