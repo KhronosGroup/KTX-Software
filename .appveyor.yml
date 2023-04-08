@@ -257,5 +257,5 @@ deploy:
     prerelease: true
     on:
       APPVEYOR_REPO_TAG: true       # deploy on tag push only
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
       PACKAGE: YES
