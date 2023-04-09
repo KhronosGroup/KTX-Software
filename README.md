@@ -6,15 +6,13 @@
 The Official Khronos KTX Software Repository
 ---
 
-**NOTE: The default branch will be renamed from `master` to `main` on Feb 1st, 2023. If you have a clone you will probably want to rename your clone's 'master' branch, following the popup instructions that will be seen when browsing the github repository after the change, or just delete 'master' and pull the new 'main', if it's purely a tracker with no local content.**
-
 | GNU/Linux, iOS, macOS & wasm | Windows | Android, Mingw & Windows-arm64 | Documentation |
 |------------------------------| :-----: | :----------------------------: | :-----------: |
 | [![Build Status](https://travis-ci.com/KhronosGroup/KTX-Software.svg?branch=master)](https://travis-ci.com/KhronosGroup/KTX-Software) | [![Build status](https://ci.appveyor.com/api/projects/status/rj9bg8g2jphg3rc0/branch/master?svg=true)](https://ci.appveyor.com/project/msc-/ktx/branch/master) | [![KTX-Software CI](https://github.com/KhronosGroup/KTX-Software/actions/workflows/main.yml/badge.svg)](https://github.com/KhronosGroup/KTX-Software/actions/workflows/main.yml) | [![Build status](https://codedocs.xyz/KhronosGroup/KTX-Software.svg)](https://codedocs.xyz/KhronosGroup/KTX-Software/) |
 
 This is the official home of the source code for the Khronos KTX library and tools.
 
-KTX (Khronos Texture) is a lightweight container for textures for OpenGL<sup>®</sup>, Vulkan<sup>®</sup> and other GPU APIs. KTX files contain all the parameters needed for texture loading. A single file can contain anything from a simple base-level 2D texture through to a cubemap array texture with mipmaps. Contained textures can be in a Basis Universal format, in any of the block-compressed formats supported by OpenGL family and Vulkan APIs and extensions or in an uncompressed single-plane format. Basis Universal currently encompasses two formats that can be quickly transcoded to any GPU-supported format: LZ/ETC1S, which combines block-compression and supercompression, and UASTC, a block-compressed format. Formats other than LZ/ETC1S can be supercompressed with Zstd.
+KTX (Khronos Texture) is a lightweight container for textures for OpenGL<sup>®</sup>, Vulkan<sup>®</sup> and other GPU APIs. KTX files contain all the parameters needed for texture loading. A single file can contain anything from a simple base-level 2D texture through to a cubemap array texture with mipmaps. Contained textures can be in a Basis Universal format, in any of the block-compressed formats supported by OpenGL family and Vulkan APIs and extensions or in an uncompressed single-plane format. Basis Universal currently encompasses two formats that can be quickly transcoded to any GPU-supported format: LZ/ETC1S, which combines block-compression and supercompression, and UASTC, a block-compressed format. Formats other than LZ/ETC1S can be supercompressed with Zstd and ZLIB.
 
 Download [KTX Software Releases](https://github.com/KhronosGroup/KTX-Software/releases)
 to get binary packages of the tools, library and development headers

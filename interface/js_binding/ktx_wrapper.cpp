@@ -284,6 +284,7 @@ enum SupercmpScheme {
     "NONE",
     "BASIS_LZ",
     "ZSTD"
+    "ZLIB"
 };
 
 @endcode

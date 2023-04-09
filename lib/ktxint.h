@@ -212,6 +212,37 @@ KTX_error_code _ktxUnpackETC(const GLubyte* srcETC, const GLenum srcFormat,
                              GLint R16Formats, GLboolean supportsSRGB);
 
 /*
+ * @internal
+ * ktxCompressZLIBBounds
+ *
+ * Returns upper bound for compresses data using miniz (ZLIB)
+ */
+ktx_size_t ktxCompressZLIBBounds(ktx_size_t srcLength);
+
+/*
+ * @internal
+ * ktxCompressZLIBInt
+ *
+ * Compresses data using miniz (ZLIB)
+ */
+KTX_error_code ktxCompressZLIBInt(unsigned char* pDest,
+                                  ktx_size_t* pDestLength,
+                                  const unsigned char* pSrc,
+                                  ktx_size_t srcLength,
+                                  ktx_uint32_t level);
+
+/*
+ * @internal
+ * ktxUncompressZLIBInt
+ *
+ * Uncompresses data using miniz (ZLIB)
+ */
+KTX_error_code ktxUncompressZLIBInt(unsigned char* pDest,
+                                    ktx_size_t* pDestLength,
+                                    const unsigned char* pSrc,
+                                    ktx_size_t srcLength);
+
+/*
  * Pad nbytes to next multiple of n
  */
 #define _KTX_PADN(n, nbytes) (ktx_uint32_t)(n * ceilf((float)(nbytes) / n))

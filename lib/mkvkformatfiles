@@ -30,7 +30,8 @@ BEGIN {
     prohibited = prohibited "bool\nisProhibitedFormat(VkFormat format)\n{\n"
     prohibited = prohibited "    switch (format) {\n";
     valid = "bool\nisValidFormat(VkFormat format)\n{\n"
-    valid = valid "    if (format <= VK_FORMAT_MAX_STANDARD_ENUM)\n"
+    valid = valid "    // On MSVC VkFormat can be a signed integer\n"
+    valid = valid "    if ((uint32_t) format <= VK_FORMAT_MAX_STANDARD_ENUM)\n"
     valid = valid "        return true;\n    else switch(format) {\n"
     if (ARGC == 2) {
         output_dir = ARGV[1] "/";
@@ -89,7 +90,7 @@ $2 == "VK_HEADER_VERSION" {
 /.*SCALED|A8B8G8R8_.*_PACK32/  { prohibited = prohibited "      case " $1 ":\n"; }
 #/A8B8G8R8_.*_PACK32/  { prohibited = prohibited "      case " $1 ":\n"; }
 # Multiplane formats.
-/VK_FORMAT_[^F]/ && (/PLANE/ || /422/ || /420/) {
+/VK_FORMAT_[^F]/ && (/PLANE/ || /420/) {
   # Avoid values defined as existing values and avoid the MAX_ENUM value.
   if ($3 !~ /VK_FORMAT_.*/ && $1 !~ /.*MAX_ENUM/) {
     prohibited = prohibited "      case " $1 ":\n";

@@ -5,11 +5,13 @@
 
 #include "command.h"
 #include "stdafx.h"
-
 #include <iostream>
-#include <unordered_map>
 #include <string>
-#include <string_view>
+#include <unordered_map>
+
+#include <cxxopts.hpp>
+#include <fmt/ostream.h>
+#include <fmt/printf.h>
 
 // -------------------------------------------------------------------------------------------------
 
@@ -64,9 +66,9 @@ Unified CLI frontend for the KTX-Software library.
 
 @section ktxtools_exitstatus EXIT STATUS
     @b ktx @b info exits
-        0 on success,
-        1 on command line errors and
-        2 if the input file parsing failed.
+        0 - Success
+        1 - Command line error
+        2 - IO error
 
 @section ktxtools_history HISTORY
 
@@ -80,47 +82,101 @@ Unified CLI frontend for the KTX-Software library.
 
 class Tools : public Command {
 public:
-    Tools() {}
+    using Command::Command;
     virtual ~Tools() {};
 
 public:
-    virtual bool processOption(argparser& parser, int opt) override {
-        (void) parser;
-        (void) opt;
-        // TODO Tools P5: Parse --version
-        // TODO Tools P5: Parse --help
-        return true;
-    }
     virtual int main(int argc, _TCHAR* argv[]) override;
+    void printUsage(std::ostream& os, const cxxopts::Options& options);
 };
 
-int Tools::main(int argc, _TCHAR* argv[]) {
-    (void) argv;
+// -------------------------------------------------------------------------------------------------
 
-    if (argc < 2) {
-        // TODO Tools P5: Print usage, Failure: missing sub command
-        std::cerr << "Print usage, Failure: missing sub command" << std::endl;
-        return EXIT_FAILURE;
+int Tools::main(int argc, _TCHAR* argv[]) {
+    // Tools behaves differently so, it does not reuse the 'execute' options parsing in the base Command
+    cxxopts::Options options(
+            "ktx",
+            "Unified CLI frontend for the KTX-Software library with sub-commands for specific operations.\n");
+    options.custom_help("[-v | --version] [-h | --help] <command> <command-args>");
+    options.set_width(CONSOLE_USAGE_WIDTH);
+    options.add_options()
+        ("h,help", "Print this usage message and exit")
+        ("v,version", "Print the version number of this program and exit")
+    ;
+
+    options.allow_unrecognised_options();
+
+    cxxopts::ParseResult args;
+    try {
+        args = options.parse(argc, argv);
+    } catch (const std::exception& ex) {
+        fmt::print(std::cerr, "Failed to parse command line arguments: {}\n", ex.what());
+        printUsage(std::cerr, options);
+        return RETURN_CODE_INVALID_ARGUMENTS;
     }
 
-    // TODO Tools P5: Print usage, Failure: incorrect sub command {commandName}
-    std::cerr << "Print usage, Failure: incorrect sub command {commandName}" << std::endl;
-    return EXIT_FAILURE;
+    if (args.count("help")) {
+        printUsage(std::cout, options);
+        return RETURN_CODE_SUCCESS;
+    }
+
+    if (args.count("version")) {
+        fmt::print("{} version: {}\n", options.program(), version());
+        return RETURN_CODE_SUCCESS;
+    }
+
+    if (args.unmatched().empty()) {
+        fmt::print(std::cerr, "Missing command.\n");
+        printUsage(std::cerr, options);
+    } else {
+        fmt::print(std::cerr, "Unrecognized command: \"{}\"\n", args.unmatched()[0]);
+        printUsage(std::cerr, options);
+    }
+
+    return RETURN_CODE_INVALID_ARGUMENTS;
+}
+
+void Tools::printUsage(std::ostream& os, const cxxopts::Options& options) {
+    fmt::print(os, "{}", options.help());
+
+    fmt::print(os, "\n");
+    fmt::print(os, "Available commands:\n");
+    fmt::print(os, "  create - Create a KTX2 file from various source files\n");
+    fmt::print(os, "  encode - \n");
+    fmt::print(os, "  extract - Export a selected image from a KTX2 file\n");
+    fmt::print(os, "  info - Prints information about a KTX2 file\n");
+    fmt::print(os, "  transcode - \n");
+    fmt::print(os, "  validate - Validates a KTX2 file\n");
+    fmt::print(os, "  help - \n");
 }
 
 } // namespace ktx ---------------------------------------------------------------------------------
 
+KTX_COMMAND_BUILTIN(ktxCreate)
+KTX_COMMAND_BUILTIN(ktxExtract)
 KTX_COMMAND_BUILTIN(ktxInfo)
 KTX_COMMAND_BUILTIN(ktxValidate)
 // KTX_COMMAND_BUILTIN(ktxHelp)
 
 std::unordered_map<std::string, ktx::pfnBuiltinCommand> builtinCommands = {
+    { "create",     ktxCreate },
+    { "extract",    ktxExtract },
     { "info",       ktxInfo },
-    { "validate",   ktxValidate }
+    { "validate",   ktxValidate },
     // { "help",       ktxHelp }
 };
 
 int _tmain(int argc, _TCHAR* argv[]) {
+    // If -NSDocumentRevisionsDebugMode YES ever causes any problem it should be discarded here
+    // by creating a new argc and argv pair and excluding the problematic arguments from them.
+    // This way downstream tools with not have to deal with this issue
+    //      // -NSDocumentRevisionsDebugMode YES is appended to the end
+    //      // of the command by Xcode when debugging and "Allow debugging when
+    //      // using document Versions Browser" is checked in the scheme. It
+    //      // defaults to checked and is saved in a user-specific file not the
+    //      // pbxproj file, so it can't be disabled in a generated project.
+    //      // Remove these from the arguments under consideration.
+
     if (argc >= 2) {
         // Has a subcommand, attempt to lookup
 

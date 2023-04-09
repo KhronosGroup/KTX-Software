@@ -126,9 +126,6 @@ struct HeaderData {
         3005, "Invalid typeSize. typeSize must be 1 for block-compressed or supercompressed formats.",
         "typeSize is {} but for block-compressed or supercompressed format {} it must be 1."
     };
-    // static constexpr IssueError TypeSizeMismatch{
-    //     30, "typeSize, {}, does not match data described by the DFD."
-    // };
 
     static constexpr IssueError WidthZero{
         3006, "Invalid pixelWidth. pixelWidth must not be 0.",
@@ -155,8 +152,11 @@ struct HeaderData {
         "pixelDepth is {} but for depth or stencil format {} it must be 0."
     };
 
-    // 3012 Unused
-   static constexpr IssueError CubeWithDepth{
+    static constexpr IssueError TypeSizeMismatch{
+        3012, "Invalid typeSize. The value must match the expected typeSize of the VkFormat.",
+        "typeSize is {} but for VkFormat {} it must be {}."
+    };
+    static constexpr IssueError CubeWithDepth{
         3013, "Invalid pixelDepth. pixelDepth must be 0 for cube maps.",
         "pixelDepth is {} but for cube maps it must be 0 (cube map faces must be 2D)."
     };
@@ -219,42 +219,78 @@ struct HeaderData {
         3027, "sgdByteLength must be 0 for supercompression schemes with no global data.",
         "sgdByteLength is {} but for supercompression scheme {} (which does not have global data) it must be 0."
     };
+    static constexpr IssueError IndexDFDInvalidLength{
+        3028, "Invalid dfdByteLength. If there is Key/Value Data the dfdByteLength/dfdTotalSize must be equal to kvdByteOffset - dfdByteOffset.",
+        "dfdByteLength is {} but it must be equal to kvdByteOffset - dfdByteOffset which is {}."
+    };
+
+    // 31xx - GLTF KHR_texture_basisu compatibility
+
+    static constexpr IssueError InvalidSupercompressionGLTFBU{
+        3101, "Invalid supercompressionScheme for KHR_texture_basisu compatibility.",
+        "supercompressionScheme is {} but it must either be BASIS_LZ for ETC1S or either NONE or ZSTD for UASTC textures for KHR_texture_basisu compatibility."
+    };
+    static constexpr IssueError InvalidTextureTypeGLTFBU{
+        3102, "Texture type must be 2D for KHR_texture_basisu compatibility.",
+        "Texture type is not 2D as {} is {} instead of {} which is incompatible with KHR_texture_basisu requirements."
+    };
+    static constexpr IssueError InvalidPixelWidthHeightGLTFBU{
+        3103, "pixelWidth and pixelHeight must be multiples of 4 for KHR_texture_basisu compatibility.",
+        "{} is {} which is not an integer multiple of 4 as required for KHR_texture_basisu compatibility."
+    };
+    static constexpr IssueError InvalidLevelCountGLTFBU{
+        3104, "When multiple mip levels are present KHR_texture_basisu requires a full mip pyramid.",
+        "levelCount is {} but it must be 1 (single level) or {} (full mip pyramid) for KHR_texture_basisu compatibility."
+    };
 };
 
 struct LevelIndex {
-    // static constexpr IssueError IncorrectByteLength{
-    //     40, "Level {} byteLength 0x{:X} does not match expected value 0x{:X}."
-    // };
-    // static constexpr IssueError ByteOffsetTooSmall{
-    //     40, "Level {} byteOffset 0x{:X} is smaller than expected value 0x{:X}."
-    // };
-    // static constexpr IssueError IncorrectByteOffset{
-    //     40, "Level {} byteOffset 0x{:X} does not match expected value 0x{:X}."
-    // };
-    // static constexpr IssueError IncorrectUncompressedByteLength{
-    //     40, "Level {} uncompressedByteLength 0x{:X} does not match expected value 0x{:X}."
-    // };
-    // static constexpr IssueError UnequalByteLengths{
-    //     40, "Level {} uncompressedByteLength does not match byteLength."
-    // };
-    // static constexpr IssueError UnalignedOffset{
-    //     40, "Level {} byteOffset is not aligned to required {} byte alignment."
-    // };
-    // static constexpr IssueError ExtraPadding{
-    //     40, "Level {} has disallowed extra padding."
-    // };
-    // static constexpr IssueError ZeroOffsetOrLength{
-    //     40, "Level {}'s byteOffset or byteLength is 0."
-    // };
-    // static constexpr IssueError ZeroUncompressedLength{
-    //     40, "Level {}'s uncompressedByteLength is 0."
-    // };
-    // static constexpr IssueError IncorrectLevelOrder{
-    //     40, "Larger mip levels are before smaller."
-    // };
+    static constexpr IssueError IncorrectIndexOrder{
+        4001, "Invalid Level Index. Indices must be sorted from the largest level to the smallest level.",
+        "Indexes for level {} with byteLength {} and level {} with byteLength {} are incorrectly ordered."
+    };
+    static constexpr IssueError IncorrectLevelOrder{
+        4002, "Invalid Level Index. Level images must be sorted from the smallest level to the largest level in the file.",
+        "Level Image for level {} with byteOffset {} and level {} with byteOffset {} are incorrectly ordered."
+    };
+
+    static constexpr IssueError IncorrectByteOffsetUnaligned{
+        4003, "Invalid byteOffset in Level Index. byteOffset has to be aligned to lcm(texel_block_size, 4) and must match expected value.",
+        "Level {} byteOffset is {} but based on the vkFormat, DFD and image sizes the required alignment is {} and the expected value is {}."
+    };
+    static constexpr IssueError IncorrectByteOffset{
+        4004, "Invalid byteOffset in Level Index. byteOffset must match the expected value.",
+        "Level {} byteOffset is {} but based on the vkFormat, DFD and image sizes the expected value is {}."
+    };
+
+    static constexpr IssueError IncorrectByteLength{
+        4005, "Invalid byteLength in Level Index. byteLength must match the expected value.",
+        "Level {} byteLength is {} but based on the vkFormat, DFD and image sizes the expected value is {}."
+    };
+
+    static constexpr IssueError IncorrectUncompressedByteLength{
+        4006, "Invalid uncompressedByteLength in Level Index. For non-supercompressed files the uncompressedByteLength must match the expected value of byteLength.",
+        "Level {} uncompressedByteLength is {} but based on the vkFormat, DFD and image sizes the expected value is {}."
+    };
+    static constexpr IssueError NonZeroUBLForBLZE{
+        4007, "Invalid uncompressedByteLength in Level Index. For BasisLZ supercompression uncompressedByteLength must be 0.",
+        "Level {} uncompressedByteLength is {} but for BasisLZ supercompression it must be 0."
+    };
+    static constexpr IssueError UncompressedByteLengthMismatch{
+        4008, "Mismatch between uncompresedByteLength in Level Index and actually decompressed bytes.",
+        "Decompressing supercompression {} resulted in a different number of bytes than expected according to uncompressedByteLength."
+    };
+    static constexpr IssueError ZeroUncompressedLength{
+        4009, "Invalid uncompressedByteLength in Level Index. For non-BasisLZ files with VK_FORMAT_UNDEFINED uncompressedByteLength must not be 0.",
+        "Level {} uncompressedByteLength is 0 but for non-BasisLZ files with VK_FORMAT_UNDEFINED uncompressedByteLength must not be 0."
+    };
+    static constexpr IssueError InvalidUncompressedLength{
+        4010, "Invalid uncompressedByteLength in Level Index. uncompressedByteLength must be equally divisible between every face and layer.",
+        "Level {} uncompressedByteLength is {} but it must be divisible with faceCount * max(1, layerCount)."
+    };
 };
 
-struct ValidatorError {
+struct Validator {
     static constexpr IssueError CreateExpectedDFDFailure{
         5001, "Failed to create expected DFD for the given VkFormat.",
         "Failed to create expected DFD for the given VkFormat {}."
@@ -263,20 +299,31 @@ struct ValidatorError {
         5002, "Failed to re-interpret expected DFD.",
         "DFD created for VkFormat {} confused interpretDFD()."
     };
-    // static constexpr IssueFatal DFDValidationFailure{
-    //     50, "DFD validation passed a DFD which extactFormatInfo() could not handle."
-    // };
-    // static constexpr IssueFatal CreateFailure{
-    //     50, "",
-    //     "ktxTexture2 creation failed: {}."
-    // };
-    // static constexpr IssueError TranscodeFailure{
-    //     90, "",
-    //     "Transcode of BasisU payload failed: {}"
-    // };
+    static constexpr IssueWarning UnsupportedFeature{
+        5003, "Feature not supported by libktx.",
+        "KTX 2.0 file is valid but it is not currently supported by libktx."
+    };
+    static constexpr IssueWarning SupportedNonConformantFile{
+        5004, "Non-conformant texture file accepted by libktx.",
+        "KTX 2.0 file does not conform to the specification but it is currently accepted by libktx."
+    };
+    static constexpr IssueFatal CreateFailure{
+        5005, "Failed to load texture using libktx.",
+        "KTX 2.0 file is valid but libktx loading returned error: {}"
+    };
+    static constexpr IssueError DecompressChecksumError{
+        5006, "Checksum error during decompression.",
+        "Decompressing supercompression {} resulted in a checksum error."
+    };
+    static constexpr IssueError TranscodeFailure{
+        5007, "Failed to transcode texture.",
+        "Transcoding of texture with color model {} failed with the error: {}"
+    };
 };
 
 struct DFD {
+    // 60xx - Generic DFD related issues:
+
     static constexpr IssueError SizeMismatch{
         6001, "Mismatching dfdTotalSize and dfdByteLength. dfdTotalSize must match dfdByteLength.",
         "dfdTotalSize is {} but dfdByteLength is {} and they must match."
@@ -291,7 +338,7 @@ struct DFD {
     };
     static constexpr IssueError NotEnoughDataForBlockHeader{
         6004, "Invalid DFD data. Not enough data left to process another DFD block header.",
-        "DFD has {} byte(s) unprocessed but for a key value entry at least 8 bytes are required."
+        "DFD has {} byte(s) unprocessed but for a valid DFD at least 8 bytes are required."
     };
     static constexpr IssueWarning MultipleBDFD{
         6005, "Multiple basic DFD blocks.",
@@ -393,6 +440,8 @@ struct DFD {
         "DFD block #{} sample #{} {} in basic DFD block is {} but the expected value is {} for {}."
     };
 
+    // 61xx - Basic Data Format Descriptor Block sample related issues:
+
     static constexpr IssueError InvalidChannelForModel{
         6101, "Invalid sample channelType for colorModel in the basic DFD block.",
         "DFD block #{} sample #{} channelType in basic DFD block is {} which is not valid for colorModel {}."
@@ -422,6 +471,8 @@ struct DFD {
         "DFD block #{} sample #{} upper in basic DFD block is {} but for {} textures it must be {}."
     };
 
+    // 62xx - InterpretDFD related issues:
+
     static constexpr IssueError InterpretDFDMixedChannels{
         6203, "Mixed sample types. The Signed/Unsigned and Float/Integer flags of Basic DFD samples must be the consistent.",
         "DFD block #{} has mixed Signed/Unsigned or Float/Integer samples but they must be consistent."
@@ -434,9 +485,30 @@ struct DFD {
         6205, "Non-trivial endianness detected in the basic DFD block.",
         "DFD block #{} describes non little-endian or not supported format."
     };
+
+    // 63xx - GLTF KHR_texture_basisu compatibility
+
+    static constexpr IssueError IncorrectModelGLTFBU{
+        6301, "Invalid colorModel in basic DFD block for KHR_texture_basisu compatibility.",
+        "DFD block #{} colorModel in basic DFD block is {} but for KHR_texture_basisu compatibility it must be either ETC1S or UASTC."
+    };
+    static constexpr IssueError IncompatibleModelGLTFBU{
+        6302, "Incompatible supercompressionScheme and colorModel for KHR_texture_basisu compatibility.",
+        "DFD block #{} colorModel is {} while supercompressionScheme is {} but KHR_texture_basisu requires supercompressionScheme {} for this colorModel."
+    };
+    static constexpr IssueError InvalidChannelGLTFBU{
+        6303, "Invalid sample channelType for colorModel for KHR_texture_basisu compatibility.",
+        "DFD block #{} colorModel is {} but sample #{} channelType is {} while KHR_texture_basisu requires {}."
+    };
+    static constexpr IssueError InvalidColorSpaceGLTFBU{
+        6304, "Color space information is incompatible with KHR_texture_basisu.",
+        "DFD block #{} primaries is {} and transfer is {} but KHR_texture_basisu requires either KHR_DF_PRIMARIES_BT709 with KHR_DF_TRANSFER_SRGB or KHR_DF_PRIMARIES_UNSPECIFIED with KHR_DF_TRANSFER_LINEAR."
+    };
 };
 
 struct Metadata {
+    // 70xx - Generic Key-Value related issues:
+
     static constexpr IssueWarning TooManyEntries{
         7001, "Too many Key/Value entries. The number of key-value entries exceeds the validator limit.",
         "The number of key-value entries exceeds the validator limit of {}. Skipping validation of the remaining {} byte(s)."
@@ -532,6 +604,8 @@ struct Metadata {
         7109, "Invalid KTXorientation value. The value must match /^[rl]$/ for 1D, /^[rl][du]$/ for 2D and /^[rl][du][oi]$/ for 3D texture types.",
         "Dimension {} is \"{}\" but it must be either \"{}\" or \"{}\"."
     };
+
+    // 71xx - Known Key-Value related issues:
 
     static constexpr IssueError KTXglFormatInvalidSize{
         7110, "Invalid KTXglFormat metadata. The size of the value must be 12 bytes.",
@@ -641,32 +715,67 @@ struct Metadata {
         7135, "KTXastcDecodeMode has no effect on and should not be present in KTX files that use the sRGB transfer function.",
         "KTXastcDecodeMode is present but for transferFunction {} it has no effect."
     };
+
+    // 72xx - GLTF KHR_texture_basisu compatibility
+
+    static constexpr IssueError KTXswizzleInvalidGLTFBU{
+        7201, "Invalid KTXswizzle metadata for KHR_texture_basisu compatibility.",
+        "KTXswizzle is \"{}\" but must be \"rgba\", if present, for KHR_texture_basisu compatibility."
+    };
+    static constexpr IssueError KTXorientationInvalidGLTFBU{
+        7202, "Invalid KTXorientation metadata for KHR_texture_basisu compatibility.",
+        "KTXorientation is \"{}\" but must be \"rd\", if present, for KHR_texture_basis compatibility."
+    };
 };
 
-// struct SGD {
-//     static constexpr IssueError UnexpectedSupercompressionGlobalData{
-//         80, "Supercompression global data found scheme that is not Basis."
-//     };
-//     static constexpr IssueError MissingSupercompressionGlobalData{
-//         80, "Basis supercompression global data missing."
-//     };
-//     static constexpr IssueError InvalidImageFlagBit{
-//         80, "Basis supercompression global data imageDesc.imageFlags has an invalid bit set."
-//     };
-//     static constexpr IssueError IncorrectGlobalDataSize{
-//         80, "Basis supercompression global data has incorrect size."
-//     };
-//     static constexpr IssueError ExtendedByteLengthNotZero{
-//         80, "extendedByteLength != 0 in Basis supercompression global data."
-//     };
-//     static constexpr IssueError DFDMismatchAlpha{
-//         80, "supercompressionGlobalData indicates no alpha but DFD indicates alpha channel."
-//     };
-//     static constexpr IssueError DFDMismatchNoAlpha{
-//         80, "supercompressionGlobalData indicates an alpha channel but DFD indicates no alpha channel."
-//     };
-// };
-//
+struct SGD {
+    // 80xx - Generic SGD issues:
+    // Currently none
+
+    // 81xx - BASIS_LZ related issues:
+
+    static constexpr IssueError BLZESizeTooSmallHeader{
+        8101, "Invalid sgdByteLength for BasisLZ/ETC1S. sgdByteLength must be at least 20 bytes (sizeof ktxBasisLzGlobalHeader).",
+        "sgdByteLength is {} but for BasisLZ/ETC1S textures it must be at least 20 bytes (sizeof ktxBasisLzGlobalHeader)."
+    };
+    static constexpr IssueError BLZESizeIncorrect{
+        8102, "Invalid sgdByteLength for BasisLZ/ETC1S. sgdByteLength must be consistent with image count and BasisLzGlobalHeader.",
+        "sgdByteLength is {} but based on image count of {} and the BasisLzGlobalHeader the expected value is {} (20 + 20 * imageCount + endpointsByteLength + selectorsByteLength + tablesByteLength + extendedByteLength)."
+    };
+    static constexpr IssueError BLZEExtendedByteLengthNotZero{
+        8103, "Invalid extendedByteLength in BasisLzGlobalHeader. For BasisLZ/ETC1S the extendedByteLength must be 0.",
+        "extendedByteLength is {} but for BasisLZ/ETC1S it must be 0."
+    };
+    static constexpr IssueError BLZEInvalidImageFlagBit{
+        8104, "Invalid imageFlags in BasisLzEtc1sImageDesc.",
+        "For Level {} Layer {} Face {} zSlice {} the imageFlags is 0x{:08X} which has an invalid bit set."
+    };
+    static constexpr IssueError BLZENoAnimationSequencesPFrame{
+        8105, "Incompatible PFrame with missing KTXanimData. Only animation sequences can have PFrames.",
+        "There is a PFrame in a BasisLzEtc1sImageDesc but the KTXanimData is missing."
+    };
+    static constexpr IssueError BLZEZeroRGBLength{
+        8106, "Invalid rgbSliceByteLength in BasisLzEtc1sImageDesc. rgbSliceByteLength must not be 0.",
+        "For Level {} Layer {} Face {} zSlice {} the rgbSliceByteLength is {} but it must not be 0."
+    };
+    static constexpr IssueError BLZEInvalidRGBSlice{
+        8107, "Invalid rgbSliceByteOffset or rgbSliceByteLength. The defined byte region must be within the corresponding mip level.",
+        "For Level {} Layer {} Face {} zSlice {} the rgbSliceByteOffset is {} and the rgbSliceByteLength is {} but the defined region must fit in the level's byteLength of {}."
+    };
+    static constexpr IssueError BLZEInvalidAlphaSlice{
+        8108, "Invalid alphaSliceByteOffset or alphaSliceByteLength. The defined byte region must be within the corresponding mip level.",
+        "For Level {} Layer {} Face {} zSlice {} the alphaSliceByteOffset is {} and the alphaSliceByteLength is {} but the defined region must fit in the level's byteLength of {}."
+    };
+    static constexpr IssueError BLZEDFDMismatchAlpha{
+        8109, "Incompatible alphaSliceByteLength and DFD sampleCount. If DFD indicates an alpha slice the alphaSliceByteLength in BasisLzEtc1sImageDesc must not be 0.",
+        "For Level {} Layer {} Face {} zSlice {} the alphaSliceByteLength is 0 but DFD indicates an alpha slice so it must not be 0."
+    };
+    static constexpr IssueError BLZEDFDMismatchNoAlpha{
+        8110, "Incompatible alphaSliceByteLength and DFD sampleCount. If DFD indicates no alpha slice the alphaSliceByteLength in BasisLzEtc1sImageDesc must be 0.",
+        "For Level {} Layer {} Face {} zSlice {} the alphaSliceByteLength is {} but DFD indicates no alpha slice so it must be 0."
+    };
+};
+
 // struct System {
 //     static constexpr IssueError OutOfMemory{
 //         100, "System out of memory."

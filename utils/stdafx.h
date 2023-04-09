@@ -19,7 +19,6 @@
 
   #define _setmode(x, y) 0
   #define _tmain main
-  #define _TCHAR char
   #define _tcsncmp strncmp
   #define _tcscmp strcmp
   #define _tgetenv getenv
@@ -34,7 +33,17 @@
   #define _tfopen fopen
   #define _trename rename
   #define _tunlink unlink
-  #define _T(x) x
+  #if !defined(_TCHAR)
+    #define _TCHAR char
+    #define _T(x) x
+  #endif
+#endif
+#if !defined(_tstring)
+  #if defined(_UNICODE)
+    #define _tstring std::wstring
+  #else
+    #define _tstring std::string
+  #endif
 #endif
 #include <fcntl.h>
 #include <errno.h>
