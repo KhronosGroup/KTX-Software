@@ -4,6 +4,7 @@
 add_executable( streamtests
     streamtests.cc
 )
+set_code_sign(streamtests)
 
 target_include_directories(
     streamtests

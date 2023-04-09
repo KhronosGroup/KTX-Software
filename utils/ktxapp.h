@@ -245,7 +245,6 @@ class ktxApp {
             return false;
         }
 
-        uint32_t totalFilenames = 0;
         _tstring dirname;
 
         if (relativize) {
@@ -294,7 +293,6 @@ class ktxApp {
                     filenames.push_back(dirname + readFilename);
                 else
                     filenames.push_back(readFilename);
-                totalFilenames++;
             }
         }
 
