@@ -1,6 +1,14 @@
 # Copyright 2017-2020 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
+function(set_test_properties test_target)
+    if(APPLE)
+        set_target_properties(${test_target} PROPERTIES
+            INSTALL_RPATH "@executable_path;/usr/local/lib"
+        )
+    endif()
+endfunction()
+
 if(KTX_FEATURE_LOADTEST_APPS)
     # Test apps that load and display various KTX textures
     add_subdirectory(loadtests)

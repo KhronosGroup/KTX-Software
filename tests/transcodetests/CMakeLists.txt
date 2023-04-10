@@ -4,6 +4,7 @@
 add_executable( transcodetests
     transcodetests.cc
 )
+set_test_properties(transcodetests)
 set_code_sign(transcodetests)
 
 target_include_directories(

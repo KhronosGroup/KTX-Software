@@ -32,6 +32,7 @@ add_executable( unittests
     unittests/wthelper.h
     tests.cmake
 )
+set_test_properties(unittests)
 set_code_sign(unittests)
 
 target_include_directories(
@@ -54,6 +55,7 @@ add_executable( texturetests
     texturetests/texturetests.cc
     unittests/wthelper.h
 )
+set_test_properties(texturetests)
 set_code_sign(texturetests)
 
 target_include_directories(
