@@ -987,7 +987,7 @@ TEST_F(ktxTexture1_LoadImageDataTest, InvalidOpWhenDataAlreadyLoaded) {
                   KTX_INVALID_OPERATION);
         if (texture)
             ktxTexture_Destroy(texture);
-        delete buf;
+        delete[] buf;
     }
 }
 
@@ -1011,7 +1011,7 @@ TEST_F(ktxTexture1_LoadImageDataTest, InvalidOpWhenDataAlreadyLoadedToExternal) 
                   KTX_INVALID_OPERATION);
         if (texture)
             ktxTexture_Destroy(texture);
-        delete buf;
+        delete[] buf;
     }
 }
 
@@ -1053,7 +1053,7 @@ TEST_F(ktxTexture1_LoadImageDataTest, LoadImageDataExternal) {
         EXPECT_EQ(helper.compareTexture1Images(buf), true);
         if (texture)
             ktxTexture_Destroy(texture);
-        delete buf;
+        delete[] buf;
     }
 }
 
@@ -1075,7 +1075,7 @@ TEST_F(ktxTexture2_LoadImageDataTest, InvalidOpWhenDataAlreadyLoaded) {
                   KTX_INVALID_OPERATION);
         if (texture)
             ktxTexture_Destroy(texture);
-        delete buf;
+        delete[] buf;
     }
 }
 
@@ -1099,7 +1099,7 @@ TEST_F(ktxTexture2_LoadImageDataTest, InvalidOpWhenDataAlreadyLoadedToExternal) 
                   KTX_INVALID_OPERATION);
         if (texture)
             ktxTexture_Destroy(texture);
-        delete buf;
+        delete[] buf;
     }
 }
 
@@ -1141,7 +1141,7 @@ TEST_F(ktxTexture2_LoadImageDataTest, LoadImageDataExternal) {
         EXPECT_EQ(helper.compareTexture2Images(buf), true);
         if (texture)
             ktxTexture_Destroy(texture);
-        delete buf;
+        delete[] buf;
     }
 }
 
