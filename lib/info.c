@@ -228,7 +228,7 @@ printKTXInfo2(ktxStream* stream, KTX_header* pHeader)
         nonArrayCubemap = true;
     else
         nonArrayCubemap = false;
-    ktx_size_t dataSize = 0;
+    ktx_uint64_t dataSize = 0;
     // A note about padding: Since KTX requires a row alignment of 4 for
     // uncompressed and all block-compressed formats have block sizes that
     // are a multiple of 4, all levels and faces will also be a multiple
@@ -250,7 +250,7 @@ printKTXInfo2(ktxStream* stream, KTX_header* pHeader)
         dataSize += lodSize;
         fprintf(stdout, "Level %d: %d\n", level, lodSize);
     }
-    fprintf(stdout, "\nTotal: %zu\n", dataSize);
+    fprintf(stdout, "\nTotal: %"PRIu64"\n", dataSize);
 }
 
 /**
