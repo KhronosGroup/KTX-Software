@@ -76,7 +76,7 @@ env:
 jobs:
   include:
     - os: linux
-      dist: focal
+      dist: jammy
       env:
         - CHECK_REUSE: ONLY
     - os: linux
@@ -89,7 +89,7 @@ jobs:
           FEATURE_DOC=OFF FEATURE_JNI=ON FEATURE_LOADTESTS=ON FEATURE_TOOLS=ON
           SUPPORT_SSE=ON SUPPORT_OPENCL=OFF
     - os: linux
-      dist: focal
+      dist: jammy
       compiler: gcc
       env:
         # NB: This must not have the fourth component of the version number.
@@ -98,7 +98,7 @@ jobs:
           FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=ON FEATURE_TOOLS=ON
           SUPPORT_SSE=ON SUPPORT_OPENCL=OFF PACKAGE=YES
     - os: linux
-      dist: focal
+      dist: jammy
       compiler: gcc
       env:
         - CONFIGURATION=Release
@@ -106,7 +106,7 @@ jobs:
           FEATURE_TOOLS=OFF
           SUPPORT_SSE=ON SUPPORT_OPENCL=ON PACKAGE=NO
     - os: linux
-      dist: focal
+      dist: jammy
       compiler: gcc
       env:
         - CONFIGURATION=Release
@@ -114,7 +114,7 @@ jobs:
           FEATURE_TOOLS=OFF
           SUPPORT_SSE=OFF SUPPORT_OPENCL=ON PACKAGE=NO
     - os: linux
-      dist: focal
+      dist: jammy
       compiler: gcc
       env:
         - CONFIGURATION=Release
@@ -122,7 +122,7 @@ jobs:
           FEATURE_TOOLS=OFF
           SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF PACKAGE=NO
     - os: linux
-      dist: focal
+      dist: jammy
       compiler: clang
       services: docker
       env:
@@ -131,7 +131,7 @@ jobs:
           FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=ON
           SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF
     - os: linux
-      dist: focal
+      dist: jammy
       compiler: clang
       services: docker
       env:
