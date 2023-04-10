@@ -182,7 +182,7 @@ jobs:
         CODE_SIGN_KEY_VAULT: ${{ steps.install-ast.outputs.code_sign_key_vault }}
 
     - name: Test Windows build
-      if: matrix.platform == "x64"
+      if: matrix.platform == x64
       run: ctest --test-dir $env:BUILD_DIR -C Release
 
     - name: Get KTX version
