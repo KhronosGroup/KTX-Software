@@ -610,11 +610,14 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     )
     if (${CMAKE_CXX_COMPILER_VERSION} VERSION_EQUAL "11.0")
         # Version 11 raises several of these warnings in some very hard to
-        # decipher code. They appear to be bogus based on the facts that we
-        # have never seen a crash and Version 12 no longer raises the
-        # warnings in this code.
+        # decipher code in basisu_comp.cpp. They appear to be bogus based
+        # on the facts that we have never seen a crash and version 12 no
+        # longer raises the warnings. Unfortunately version 12 newly raises
+        # the warning on basisu_uastc_enc.cpp. This time the code is simpler
+        # and there is no way for it to be overwriting the end of the buffer.
         set_source_files_properties(
             lib/basisu/encoder/basisu_comp.cpp
+            lib/basisu/encoder/basisu_uastc_enc.cpp
             PROPERTIES COMPILE_OPTIONS "-Wno-stringop-overflow"
         )
     endif()
