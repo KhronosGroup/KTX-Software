@@ -80,7 +80,7 @@ jobs:
       env:
         - CHECK_REUSE: ONLY
     - os: linux
-      dist: focal
+      dist: jammy
       compiler: gcc # clang is tested by macOS build
       env:
         # NB: This must not have the fourth component of the version number.
