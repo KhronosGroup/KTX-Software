@@ -608,12 +608,22 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         lib/basisu/transcoder/basisu_transcoder.cpp
         PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable;-Wno-class-memaccess;-Wno-maybe-uninitialized"
     )
-    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "11.0")
+    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_EQUAL "11.0")
+        # Version 11 raises several of these warnings in some very hard to
+        # decipher code. They appear to be bogus based on the facts that we
+        # have never seen a crash and Version 12 no longer raises the
+        # warnings in this code.
         set_source_files_properties(
-            lib/basisu/zstd/zstd.c
-            PROPERTIES COMPILE_OPTIONS "-Wno-unused-but-set-variable"
+            lib/basisu/encoder/basisu_comp.cpp
+            PROPERTIES COMPILE_OPTIONS "-Wno-stringop-overflow"
         )
     endif()
+    #if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "11.0")
+    #    set_source_files_properties(
+    #        lib/basisu/zstd/zstd.c
+    #        PROPERTIES COMPILE_OPTIONS "-Wno-unused-but-set-variable"
+    #    )
+    #endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     if (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
         # Versions equivalency from https://en.wikipedia.org/wiki/Xcode#Xcode_11.x_-_14.x_(since_SwiftUI_framework)_2
@@ -638,32 +648,9 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter;-Wno-deprecated-copy;-Wno-uninitialized-const-reference"
         )
-        # Primarily an issue on windows using clang/clangcl
-        # Lowest tested clang version was 12.0.0 and highest was 14.0.5
-        set_source_files_properties(
-            # We haven't fixed zstd.c because the fix would have to be applied
-            # every time the upstream script is used to create an updated
-            # single file decoder.
-            lib/basisu/zstd/zstd.c
-            PROPERTIES COMPILE_OPTIONS "-Wno-unused-function"
-        )
     else()
         set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter"
-        )
-    endif()
-    if (${clang_version} VERSION_GREATER_EQUAL "13.0.0")
-        get_source_file_property(zstd_options lib/basisu/zstd/zstd.c COMPILE_OPTIONS)
-        set_source_files_properties(
-            lib/basisu/zstd/zstd.c
-            PROPERTIES COMPILE_OPTIONS "${zstd_options};-Wno-unused-but-set-variable"
-        )
-    endif()
-    if (${clang_version} VERSION_GREATER_EQUAL "14.0.5")
-        get_source_file_property(zstd_options lib/basisu/zstd/zstd.c COMPILE_OPTIONS)
-        set_source_files_properties(
-            lib/basisu/zstd/zstd.c
-            PROPERTIES COMPILE_OPTIONS "${zstd_options};-Wno-bitwise-instead-of-logical"
         )
     endif()
     if (${clang_version} VERSION_GREATER_EQUAL "15.0")

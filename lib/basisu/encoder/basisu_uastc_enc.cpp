@@ -250,7 +250,12 @@ namespace basisu
 		uint8_t weights[32];
 		memcpy(weights, result.m_astc.m_weights, 16 * total_planes);
 
-		uint8_t endpoints[18];
+        // GCC 12 raises a stringop-overflow warning at line 331 saying
+        // a write of 2 bytes is attempted to a region with 0 bytes,
+        // presumably this means a write at &endpoints[18]. It looks
+        // like a bogus warning as c can't be more than 4. Nevertheless
+        // add 2 bytes to the original size of 18.
+		uint8_t endpoints[20];
 		memcpy(endpoints, result.m_astc.m_endpoints, sizeof(endpoints));
 
 		const uint32_t total_comps = g_uastc_mode_comps[result.m_uastc_mode];

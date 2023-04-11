@@ -29,7 +29,7 @@ if [ "$FEATURE_LOADTESTS" = "ON" ]; then
 
   echo "Download Vulkan SDK"
   wget -O - https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
-  sudo wget -O /etc/apt/sources.list.d/lunarg-vulkan-$VULKAN_SDK_VER-focal.list https://packages.lunarg.com/vulkan/$VULKAN_SDK_VER/lunarg-vulkan-$VULKAN_SDK_VER-focal.list
+  sudo wget -O /etc/apt/sources.list.d/lunarg-vulkan-$VULKAN_SDK_VER-jammy.list https://packages.lunarg.com/vulkan/$VULKAN_SDK_VER/lunarg-vulkan-$VULKAN_SDK_VER-jammy.list
   echo "Install Vulkan SDK"
   sudo apt update
   sudo apt install vulkan-sdk
