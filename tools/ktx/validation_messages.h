@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cassert>
 #include <cstdint>
 #include <string_view>
 
@@ -483,7 +484,7 @@ struct DFD {
     };
     static constexpr IssueError InterpretDFDNonTrivialEndianness{
         6205, "Non-trivial endianness detected in the basic DFD block.",
-        "DFD block #{} describes non little-endian or not supported format."
+        "DFD block #{} describes non little-endian or unsupported format."
     };
 
     // 63xx - GLTF KHR_texture_basisu compatibility

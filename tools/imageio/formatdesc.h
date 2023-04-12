@@ -114,9 +114,9 @@ struct FormatDescriptor {
     struct extendedDescriptor {
         uint32_t channelCount; /// Saved channel count to avoid having to loop
                                /// over samples to figure out the count.
-        bool sameUnitAllChannels; /// All samples have same types and sizes.
-        float oeGamma; /// Power function exponent used when the image was
-                       /// encoded, if one was used. -1 otherwise.
+        bool sameUnitAllChannels = false; /// All samples have same types and sizes.
+        float oeGamma = -1; /// Power function exponent used when the image was
+                            /// encoded, if one was used. -1 otherwise.
         /// @internal
         /// @brief ICC profile descriptor.
         struct iccProfileDescriptor {
@@ -140,9 +140,7 @@ struct FormatDescriptor {
         } iccProfile;
 
         extendedDescriptor(uint32_t cc = 0) :
-            channelCount(cc),
-            sameUnitAllChannels(false),
-            oeGamma(-1.0f) { }
+            channelCount(cc) { }
 
         bool operator==(const extendedDescriptor& rhs) const {
             if (this->channelCount != rhs.channelCount) return false;
@@ -180,6 +178,9 @@ struct FormatDescriptor {
             return true;
         }
 
+        /// @brief Constructs an uninitialized sample object
+        sample() = default;
+
         /// @brief Construct a sample with default sampleUpper and sampleLower.
         ///
         /// For uncompressed formats. Handle integer data as normalized. For
@@ -199,10 +200,10 @@ struct FormatDescriptor {
                 /// value for all other 4-channel-capable uncompressed models.
                 channelType = KHR_DF_CHANNEL_RGBSDA_ALPHA;
             }
-            qualifierFloat = dataType & KHR_DF_SAMPLE_DATATYPE_FLOAT;
-            qualifierSigned = dataType & KHR_DF_SAMPLE_DATATYPE_SIGNED;
-            qualifierExponent = dataType & KHR_DF_SAMPLE_DATATYPE_EXPONENT;
-            qualifierLinear = dataType & KHR_DF_SAMPLE_DATATYPE_LINEAR;
+            qualifierFloat = (dataType & KHR_DF_SAMPLE_DATATYPE_FLOAT) != 0;
+            qualifierSigned = (dataType & KHR_DF_SAMPLE_DATATYPE_SIGNED) != 0;
+            qualifierExponent = (dataType & KHR_DF_SAMPLE_DATATYPE_EXPONENT) != 0;
+            qualifierLinear = (dataType & KHR_DF_SAMPLE_DATATYPE_LINEAR) != 0;
             if (oetf > KHR_DF_TRANSFER_LINEAR
                 && channelType == KHR_DF_CHANNEL_RGBSDA_ALPHA) {
                 channelType |= KHR_DF_SAMPLE_DATATYPE_LINEAR;
@@ -481,11 +482,36 @@ struct FormatDescriptor {
         extended.sameUnitAllChannels = true;
     }
 
+    /// @brief Constructor from pre-constructed basic and sample descriptors
+    FormatDescriptor(
+            FormatDescriptor::basicDescriptor basic,
+            std::vector<FormatDescriptor::sample> samples_)
+          : basic(basic),
+            extended(samples_.size()),
+            samples(std::move(samples_))
+    {
+        extended.sameUnitAllChannels = true;
+
+        if (!samples.empty()) {
+            for (uint32_t i = 1; i < static_cast<uint32_t>(samples.size()); ++i) {
+                if (samples[0].bitLength != samples[i].bitLength
+                        || samples[0].qualifierLinear != samples[i].qualifierLinear
+                        || samples[0].qualifierExponent != samples[i].qualifierExponent
+                        || samples[0].qualifierSigned != samples[i].qualifierSigned
+                        || samples[0].qualifierFloat != samples[i].qualifierFloat) {
+                    extended.sameUnitAllChannels = false;
+                    break;
+                }
+            }
+        }
+    }
+
     bool isUnknown() const noexcept {
         return samples.size() == 0;
     }
     bool sameUnitAllChannels() const noexcept {
-        return extended.sameUnitAllChannels; }
+        return extended.sameUnitAllChannels;
+    }
 
     bool operator==(const FormatDescriptor& rhs) const {
         if (this->basic != rhs.basic) return false;
@@ -577,6 +603,19 @@ struct FormatDescriptor {
         }
         return channelBitLength(KHR_DF_CHANNEL_RGBSDA_R);
     }
+    uint32_t largestChannelBitLength() const {
+        uint32_t maxBitLength = 0;
+        for (int i = 0; i < 16; ++i) {
+            uint32_t bitLength = 0;
+            for (const auto& sample : samples)
+                if (sample.channelType == i)
+                    bitLength += sample.bitLength + 1;
+
+            if (bitLength > maxBitLength)
+                maxBitLength = bitLength;
+        }
+        return maxBitLength;
+    }
     khr_df_sample_datatype_qualifiers_e
     channelDataType(khr_df_model_channels_e c) const {
         // TODO: Fix for shared exponent case...
@@ -664,6 +703,13 @@ struct FormatDescriptor {
             sit->bitOffset = offset;
             offset += (sit->bitLength + 1);
         }
+    }
+
+    [[nodiscard]] const sample* find(khr_df_model_channels_e channel) const {
+        for (const auto& sample : samples)
+            if (sample.channelType == channel)
+                return &sample;
+        return nullptr;
     }
 
     friend std::ostream& operator<< (std::ostream& o, khr_df_sample_datatype_qualifiers_e q) {

@@ -228,7 +228,7 @@ int main()
     uint32_t *d = createDFDUnpacked(0, 3, 1, 0, s_UNORM);
 #endif
 
-    printDFD(d);
+    printDFD(d, *d);
     t = interpretDFD(d, &R, &G, &B, &A, &wordSize);
 #endif
 

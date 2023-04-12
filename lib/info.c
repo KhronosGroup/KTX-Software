@@ -56,17 +56,22 @@
 
 /** @internal */
 static void printFlagBitsJSON(uint32_t indent, const char* nl, uint32_t flags, const char*(*toStringFn)(uint32_t, bool)) {
+    bool first = true;
     for (uint32_t bit_index = 0; bit_index < 32; ++bit_index) {
         uint32_t bit_mask = 1u << bit_index;
         bool bit_value = (bit_mask & (uint32_t) flags) != 0;
 
-        const char* comma = (uint32_t) flags >= (bit_mask << 1u) ? ", " : "";
         const char* str = toStringFn(bit_index, bit_value);
-        if (str)
-            printf("%*s\"%s\"%s%s", indent, "", str, comma, nl);
-        else if (bit_value)
-            printf("%*s%d%s%s", indent, "", bit_mask, comma, nl);
+        if (str) {
+            printf("%s%s%*s\"%s\"", first ? "" : ",", first ? "" : nl, indent, "", str);
+            first = false;
+        } else if (bit_value) {
+            printf("%s%s%*s%u", first ? "" : ",", first ? "" : nl, indent, "", bit_mask);
+            first = false;
+        }
     }
+    if (!first)
+        printf("%s", nl);
 }
 
 /** @internal */
@@ -92,6 +97,21 @@ bool isKnownKeyValueString(const char* key) {
     if (strcmp(key, "KTXastcDecodeMode") == 0)
         return true;
 
+    return false;
+}
+
+/** @internal */
+bool isKnownKeyValue(const char* key) {
+    if (isKnownKeyValueUINT32(key))
+        return true;
+    if (isKnownKeyValueString(key))
+        return true;
+    if (strcmp(key, "KTXglFormat") == 0)
+        return true;
+    if (strcmp(key, "KTXanimData") == 0)
+        return true;
+    if (strcmp(key, "KTXcubemapIncomplete") == 0)
+        return true;
     return false;
 }
 
@@ -135,44 +155,49 @@ printKVData(ktx_uint8_t* pKvd, ktx_uint32_t kvdLen)
 
         } else {
             if (strcmp(key, "KTXglFormat") == 0) {
-                assert(valueLen == 3 * sizeof(ktx_uint32_t));
-                ktx_uint32_t glInternalformat = *(const ktx_uint32_t*) (value + 0);
-                ktx_uint32_t glFormat = *(const ktx_uint32_t*) (value + 4);
-                ktx_uint32_t glType = *(const ktx_uint32_t*) (value + 8);
-                fprintf(stdout, "\n");
-                fprintf(stdout, "    glInternalformat: %d\n", glInternalformat);
-                fprintf(stdout, "    glFormat: %d\n", glFormat);
-                fprintf(stdout, "    glType: %d\n", glType);
+                if (valueLen == 3 * sizeof(ktx_uint32_t)) {
+                    ktx_uint32_t glInternalformat = *(const ktx_uint32_t*) (value + 0);
+                    ktx_uint32_t glFormat = *(const ktx_uint32_t*) (value + 4);
+                    ktx_uint32_t glType = *(const ktx_uint32_t*) (value + 8);
+                    fprintf(stdout, "\n");
+                    fprintf(stdout, "    glInternalformat: %u\n", glInternalformat);
+                    fprintf(stdout, "    glFormat: %u\n", glFormat);
+                    fprintf(stdout, "    glType: %u\n", glType);
+                }
 
             } else if (strcmp(key, "KTXanimData") == 0) {
-                assert(valueLen == 3 * sizeof(ktx_uint32_t));
-                ktx_uint32_t duration = *(const ktx_uint32_t*) (value + 0);
-                ktx_uint32_t timescale = *(const ktx_uint32_t*) (value + 4);
-                ktx_uint32_t loopCount = *(const ktx_uint32_t*) (value + 8);
-                fprintf(stdout, "\n");
-                fprintf(stdout, "    duration: %d\n", duration);
-                fprintf(stdout, "    timescale: %d\n", timescale);
-                fprintf(stdout, "    loopCount: %d%s\n", loopCount, loopCount == 0 ? " (infinite)" : "");
+                if (valueLen == 3 * sizeof(ktx_uint32_t)) {
+                    ktx_uint32_t duration = *(const ktx_uint32_t*) (value + 0);
+                    ktx_uint32_t timescale = *(const ktx_uint32_t*) (value + 4);
+                    ktx_uint32_t loopCount = *(const ktx_uint32_t*) (value + 8);
+                    fprintf(stdout, "\n");
+                    fprintf(stdout, "    duration: %u\n", duration);
+                    fprintf(stdout, "    timescale: %u\n", timescale);
+                    fprintf(stdout, "    loopCount: %u%s\n", loopCount, loopCount == 0 ? " (infinite)" : "");
+                }
 
             } else if (strcmp(key, "KTXcubemapIncomplete") == 0) {
-                assert(valueLen == sizeof(ktx_uint8_t));
-                ktx_uint8_t faces = *value;
-                fprintf(stdout, "\n");
-                fprintf(stdout, "    positiveX: %s\n", faces & 1u << 0u ? "true" : "false");
-                fprintf(stdout, "    negativeX: %s\n", faces & 1u << 1u ? "true" : "false");
-                fprintf(stdout, "    positiveY: %s\n", faces & 1u << 2u ? "true" : "false");
-                fprintf(stdout, "    negativeY: %s\n", faces & 1u << 3u ? "true" : "false");
-                fprintf(stdout, "    positiveZ: %s\n", faces & 1u << 4u ? "true" : "false");
-                fprintf(stdout, "    negativeZ: %s\n", faces & 1u << 5u ? "true" : "false");
+                if (valueLen == sizeof(ktx_uint8_t)) {
+                    ktx_uint8_t faces = *value;
+                    fprintf(stdout, "\n");
+                    fprintf(stdout, "    positiveX: %s\n", faces & 1u << 0u ? "true" : "false");
+                    fprintf(stdout, "    negativeX: %s\n", faces & 1u << 1u ? "true" : "false");
+                    fprintf(stdout, "    positiveY: %s\n", faces & 1u << 2u ? "true" : "false");
+                    fprintf(stdout, "    negativeY: %s\n", faces & 1u << 3u ? "true" : "false");
+                    fprintf(stdout, "    positiveZ: %s\n", faces & 1u << 4u ? "true" : "false");
+                    fprintf(stdout, "    negativeZ: %s\n", faces & 1u << 5u ? "true" : "false");
+                }
 
             } else if (isKnownKeyValueUINT32(key)) {
-                assert(valueLen == sizeof(ktx_uint32_t));
-                ktx_uint32_t number = *(const ktx_uint32_t*) value;
-                fprintf(stdout, " %d\n", number);
+                if (valueLen == sizeof(ktx_uint32_t)) {
+                    ktx_uint32_t number = *(const ktx_uint32_t*) value;
+                    fprintf(stdout, " %u\n", number);
+                }
 
             } else if (isKnownKeyValueString(key)) {
-                assert(value[valueLen-1] == '\0');
-                fprintf(stdout, " %s\n", value);
+                if (value[valueLen-1] == '\0') {
+                    fprintf(stdout, " %s\n", value);
+                }
 
             } else {
                 fprintf(stdout, " [");
@@ -219,70 +244,87 @@ printKVDataJSON(ktx_uint8_t* pKvd, ktx_uint32_t kvdLen, ktx_uint32_t base_indent
         return;
 
     ktxHashListEntry* entry;
-    bool first = true;
+    bool first = true; //
     for (entry = kvDataHead; entry != NULL; entry = ktxHashList_Next(entry)) {
         char* key;
         char* value;
         ktx_uint32_t keyLen, valueLen;
 
-        if (!first)
-            fprintf(stdout, ",%s", nl);
-        first = false;
-
         ktxHashListEntry_GetKey(entry, &keyLen, &key);
         ktxHashListEntry_GetValue(entry, &valueLen, (void**)&value);
         // Keys must be NUL terminated.
-        PRINT_INDENT(0, "\"%s\":%s", key, space)
         if (!value) {
-            fprintf(stdout, "null");
-
+            if (!isKnownKeyValue(key)) {
+                // Known keys are not be printed with null
+                if (!first)
+                    fprintf(stdout, ",%s", nl);
+                first = false;
+                PRINT_INDENT(0, "\"%s\":%snull", key, space)
+            }
         } else {
             if (strcmp(key, "KTXglFormat") == 0) {
-                assert(valueLen == 3 * sizeof(ktx_uint32_t));
-                ktx_uint32_t glInternalformat = *(const ktx_uint32_t*) (value + 0);
-                ktx_uint32_t glFormat = *(const ktx_uint32_t*) (value + 4);
-                ktx_uint32_t glType = *(const ktx_uint32_t*) (value + 8);
-                fprintf(stdout, "{%s", nl);
-                PRINT_INDENT(1, "\"glInternalformat\":%s%d,%s", space, glInternalformat, nl)
-                PRINT_INDENT(1, "\"glFormat\":%s%d,%s", space, glFormat, nl)
-                PRINT_INDENT(1, "\"glType\":%s%d%s", space, glType, nl)
-                PRINT_INDENT_NOARG(0, "}")
-
+                if (valueLen == 3 * sizeof(ktx_uint32_t)) {
+                    if (!first)
+                        fprintf(stdout, ",%s", nl);
+                    first = false;
+                    ktx_uint32_t glInternalformat = *(const ktx_uint32_t*) (value + 0);
+                    ktx_uint32_t glFormat = *(const ktx_uint32_t*) (value + 4);
+                    ktx_uint32_t glType = *(const ktx_uint32_t*) (value + 8);
+                    PRINT_INDENT(0, "\"%s\":%s{%s", key, space, nl)
+                    PRINT_INDENT(1, "\"glInternalformat\":%s%u,%s", space, glInternalformat, nl)
+                    PRINT_INDENT(1, "\"glFormat\":%s%u,%s", space, glFormat, nl)
+                    PRINT_INDENT(1, "\"glType\":%s%u%s", space, glType, nl)
+                    PRINT_INDENT_NOARG(0, "}")
+                }
             } else if (strcmp(key, "KTXanimData") == 0) {
-                assert(valueLen == 3 * sizeof(ktx_uint32_t));
-                ktx_uint32_t duration = *(const ktx_uint32_t*) (value + 0);
-                ktx_uint32_t timescale = *(const ktx_uint32_t*) (value + 4);
-                ktx_uint32_t loopCount = *(const ktx_uint32_t*) (value + 8);
-                fprintf(stdout, "{%s", nl);
-                PRINT_INDENT(1, "\"duration\":%s%d,%s", space, duration, nl)
-                PRINT_INDENT(1, "\"timescale\":%s%d,%s", space, timescale, nl)
-                PRINT_INDENT(1, "\"loopCount\":%s%d%s", space, loopCount, nl)
-                PRINT_INDENT_NOARG(0, "}")
-
+                if (valueLen == 3 * sizeof(ktx_uint32_t)) {
+                    if (!first)
+                        fprintf(stdout, ",%s", nl);
+                    first = false;
+                    ktx_uint32_t duration = *(const ktx_uint32_t*) (value + 0);
+                    ktx_uint32_t timescale = *(const ktx_uint32_t*) (value + 4);
+                    ktx_uint32_t loopCount = *(const ktx_uint32_t*) (value + 8);
+                    PRINT_INDENT(0, "\"%s\":%s{%s", key, space, nl)
+                    PRINT_INDENT(1, "\"duration\":%s%u,%s", space, duration, nl)
+                    PRINT_INDENT(1, "\"timescale\":%s%u,%s", space, timescale, nl)
+                    PRINT_INDENT(1, "\"loopCount\":%s%u%s", space, loopCount, nl)
+                    PRINT_INDENT_NOARG(0, "}")
+                }
             } else if (strcmp(key, "KTXcubemapIncomplete") == 0) {
-                assert(valueLen == sizeof(ktx_uint8_t));
-                ktx_uint8_t faces = *value;
-
-                fprintf(stdout, "{%s", nl);
-                PRINT_INDENT(1, "\"positiveX\":%s%s,%s", space, faces & 1u << 0u ? "true" : "false", nl)
-                PRINT_INDENT(1, "\"negativeX\":%s%s,%s", space, faces & 1u << 1u ? "true" : "false", nl)
-                PRINT_INDENT(1, "\"positiveY\":%s%s,%s", space, faces & 1u << 2u ? "true" : "false", nl)
-                PRINT_INDENT(1, "\"negativeY\":%s%s,%s", space, faces & 1u << 3u ? "true" : "false", nl)
-                PRINT_INDENT(1, "\"positiveZ\":%s%s,%s", space, faces & 1u << 4u ? "true" : "false", nl)
-                PRINT_INDENT(1, "\"negativeZ\":%s%s%s", space, faces & 1u << 5u ? "true" : "false", nl)
-                PRINT_INDENT_NOARG(0, "}")
-
+                if (valueLen == sizeof(ktx_uint8_t)) {
+                    if (!first)
+                        fprintf(stdout, ",%s", nl);
+                    first = false;
+                    ktx_uint8_t faces = *value;
+                    PRINT_INDENT(0, "\"%s\":%s{%s", key, space, nl)
+                    PRINT_INDENT(1, "\"positiveX\":%s%s,%s", space, faces & 1u << 0u ? "true" : "false", nl)
+                    PRINT_INDENT(1, "\"negativeX\":%s%s,%s", space, faces & 1u << 1u ? "true" : "false", nl)
+                    PRINT_INDENT(1, "\"positiveY\":%s%s,%s", space, faces & 1u << 2u ? "true" : "false", nl)
+                    PRINT_INDENT(1, "\"negativeY\":%s%s,%s", space, faces & 1u << 3u ? "true" : "false", nl)
+                    PRINT_INDENT(1, "\"positiveZ\":%s%s,%s", space, faces & 1u << 4u ? "true" : "false", nl)
+                    PRINT_INDENT(1, "\"negativeZ\":%s%s%s", space, faces & 1u << 5u ? "true" : "false", nl)
+                    PRINT_INDENT_NOARG(0, "}")
+                }
             } else if (isKnownKeyValueUINT32(key)) {
-                assert(valueLen == sizeof(ktx_uint32_t));
-                ktx_uint32_t number = *(const ktx_uint32_t*) value;
-                fprintf(stdout, "%d", number);
-
+                if (valueLen == sizeof(ktx_uint32_t)) {
+                    if (!first)
+                        fprintf(stdout, ",%s", nl);
+                    first = false;
+                    ktx_uint32_t number = *(const ktx_uint32_t*) value;
+                    PRINT_INDENT(0, "\"%s\":%s%u", key, space, number)
+                }
             } else if (isKnownKeyValueString(key)) {
-                assert(value[valueLen-1] == '\0');
-                fprintf(stdout, "\"%s\"", value);
-
+                if (value[valueLen-1] == '\0') {
+                    if (!first)
+                        fprintf(stdout, ",%s", nl);
+                    first = false;
+                    PRINT_INDENT(0, "\"%s\":%s\"%s\"", key, space, value)
+                }
             } else {
-                fprintf(stdout, "[");
+                if (!first)
+                    fprintf(stdout, ",%s", nl);
+                first = false;
+                PRINT_INDENT(0, "\"%s\":%s[", key, space)
                 for (ktx_uint32_t i = 0; i < valueLen; i++)
                     fprintf(stdout, "%d%s", (int) value[i], i + 1 == valueLen ? "" : ", ");
                 fprintf(stdout, "]");
@@ -365,19 +407,19 @@ printKTXHeader(KTX_header* pHeader)
     fprintf(stdout, "\n");
     fprintf(stdout, "endianness: %#x\n", pHeader->endianness);
     fprintf(stdout, "glType: %#x\n", pHeader->glType);
-    fprintf(stdout, "glTypeSize: %d\n", pHeader->glTypeSize);
+    fprintf(stdout, "glTypeSize: %u\n", pHeader->glTypeSize);
     fprintf(stdout, "glFormat: %#x\n", pHeader->glFormat);
     fprintf(stdout, "glInternalformat: %#x\n", pHeader->glInternalformat);
     fprintf(stdout, "glBaseInternalformat: %#x\n",
             pHeader->glBaseInternalformat);
-    fprintf(stdout, "pixelWidth: %d\n", pHeader->pixelWidth);
-    fprintf(stdout, "pixelHeight: %d\n", pHeader->pixelHeight);
-    fprintf(stdout, "pixelDepth: %d\n", pHeader->pixelDepth);
-    fprintf(stdout, "numberOfArrayElements: %d\n",
+    fprintf(stdout, "pixelWidth: %u\n", pHeader->pixelWidth);
+    fprintf(stdout, "pixelHeight: %u\n", pHeader->pixelHeight);
+    fprintf(stdout, "pixelDepth: %u\n", pHeader->pixelDepth);
+    fprintf(stdout, "numberOfArrayElements: %u\n",
             pHeader->numberOfArrayElements);
-    fprintf(stdout, "numberOfFaces: %d\n", pHeader->numberOfFaces);
-    fprintf(stdout, "numberOfMipLevels: %d\n", pHeader->numberOfMipLevels);
-    fprintf(stdout, "bytesOfKeyValueData: %d\n", pHeader->bytesOfKeyValueData);
+    fprintf(stdout, "numberOfFaces: %u\n", pHeader->numberOfFaces);
+    fprintf(stdout, "numberOfMipLevels: %u\n", pHeader->numberOfMipLevels);
+    fprintf(stdout, "bytesOfKeyValueData: %u\n", pHeader->bytesOfKeyValueData);
 }
 
 /**
@@ -459,9 +501,9 @@ printKTXInfo2(ktxStream* stream, KTX_header* pHeader)
         }
         result = stream->skip(stream, lodSize);
         dataSize += lodSize;
-        fprintf(stdout, "Level %d: %d\n", level, lodSize);
+        fprintf(stdout, "Level %u: %u\n", level, lodSize);
     }
-    fprintf(stdout, "\nTotal: %llu\n", dataSize);
+    fprintf(stdout, "\nTotal: %" PRId64 "\n", dataSize);
 }
 
 /**
@@ -506,23 +548,32 @@ printKTX2Header(KTX_header2* pHeader)
     fprintf(stdout, "identifier: ");
     printIdentifier(pHeader->identifier, false);
     fprintf(stdout, "\n");
-	fprintf(stdout, "vkFormat: %s\n", vkFormatString(pHeader->vkFormat));
-    fprintf(stdout, "typeSize: %d\n", pHeader->typeSize);
-    fprintf(stdout, "pixelWidth: %d\n", pHeader->pixelWidth);
-    fprintf(stdout, "pixelHeight: %d\n", pHeader->pixelHeight);
-    fprintf(stdout, "pixelDepth: %d\n", pHeader->pixelDepth);
-    fprintf(stdout, "layerCount: %d\n",
+    const char* vkFormatStr = vkFormatString(pHeader->vkFormat);
+    if (strcmp(vkFormatStr, "VK_UNKNOWN_FORMAT") == 0)
+        fprintf(stdout, "vkFormat: 0x%08X\n", (uint32_t) pHeader->vkFormat);
+    else
+        fprintf(stdout, "vkFormat: %s\n", vkFormatStr);
+    fprintf(stdout, "typeSize: %u\n", pHeader->typeSize);
+    fprintf(stdout, "pixelWidth: %u\n", pHeader->pixelWidth);
+    fprintf(stdout, "pixelHeight: %u\n", pHeader->pixelHeight);
+    fprintf(stdout, "pixelDepth: %u\n", pHeader->pixelDepth);
+    fprintf(stdout, "layerCount: %u\n",
             pHeader->layerCount);
-    fprintf(stdout, "faceCount: %d\n", pHeader->faceCount);
-    fprintf(stdout, "levelCount: %d\n", pHeader->levelCount);
-    fprintf(stdout, "supercompressionScheme: %s\n",
-            ktxSupercompressionSchemeString(pHeader->supercompressionScheme));
+    fprintf(stdout, "faceCount: %u\n", pHeader->faceCount);
+    fprintf(stdout, "levelCount: %u\n", pHeader->levelCount);
+    const char* scSchemeStr = ktxSupercompressionSchemeString(pHeader->supercompressionScheme);
+    if (strcmp(scSchemeStr, "Invalid scheme value") == 0)
+        fprintf(stdout, "supercompressionScheme: Invalid scheme (0x%X)\n", (uint32_t) pHeader->supercompressionScheme);
+    else if (strcmp(scSchemeStr, "Vendor scheme") == 0)
+        fprintf(stdout, "supercompressionScheme: Vendor scheme (0x%X)\n", (uint32_t) pHeader->supercompressionScheme);
+    else
+        fprintf(stdout, "supercompressionScheme: %s\n", scSchemeStr);
     fprintf(stdout, "dataFormatDescriptor.byteOffset: %#x\n",
             pHeader->dataFormatDescriptor.byteOffset);
-    fprintf(stdout, "dataFormatDescriptor.byteLength: %d\n",
+    fprintf(stdout, "dataFormatDescriptor.byteLength: %u\n",
             pHeader->dataFormatDescriptor.byteLength);
     fprintf(stdout, "keyValueData.byteOffset: %#x\n", pHeader->keyValueData.byteOffset);
-    fprintf(stdout, "keyValueData.byteLength: %d\n", pHeader->keyValueData.byteLength);
+    fprintf(stdout, "keyValueData.byteLength: %u\n", pHeader->keyValueData.byteLength);
     fprintf(stdout, "supercompressionGlobalData.byteOffset: %#" PRIx64 "\n",
             pHeader->supercompressionGlobalData.byteOffset);
     fprintf(stdout, "supercompressionGlobalData.byteLength: %" PRId64 "\n",
@@ -541,11 +592,11 @@ void
 printLevelIndex(ktxLevelIndexEntry levelIndex[], ktx_uint32_t numLevels)
 {
     for (ktx_uint32_t level = 0; level < numLevels; level++) {
-    fprintf(stdout, "Level%d.byteOffset: %#" PRIx64 "\n", level,
+    fprintf(stdout, "Level%u.byteOffset: %#" PRIx64 "\n", level,
             levelIndex[level].byteOffset);
-    fprintf(stdout, "Level%d.byteLength: %" PRId64 "\n", level,
+    fprintf(stdout, "Level%u.byteLength: %" PRId64 "\n", level,
             levelIndex[level].byteLength);
-    fprintf(stdout, "Level%d.uncompressedByteLength: %" PRId64 "\n", level,
+    fprintf(stdout, "Level%u.uncompressedByteLength: %" PRId64 "\n", level,
             levelIndex[level].uncompressedByteLength);
     }
 }
@@ -563,21 +614,25 @@ printBasisSGDInfo(ktx_uint8_t* bgd, ktx_uint64_t byteLength,
                 ktx_uint32_t numImages)
 {
     ktxBasisLzGlobalHeader* bgdh = (ktxBasisLzGlobalHeader*)(bgd);
-    UNUSED(byteLength);
+    if (byteLength < sizeof(ktxBasisLzGlobalHeader))
+        return;
 
-    fprintf(stdout, "endpointCount: %d\n", bgdh->endpointCount);
-    fprintf(stdout, "selectorCount: %d\n", bgdh->selectorCount);
-    fprintf(stdout, "endpointsByteLength: %d\n", bgdh->endpointsByteLength);
-    fprintf(stdout, "selectorsByteLength: %d\n", bgdh->selectorsByteLength);
-    fprintf(stdout, "tablesByteLength: %d\n", bgdh->tablesByteLength);
-    fprintf(stdout, "extendedByteLength: %d\n", bgdh->extendedByteLength);
+    fprintf(stdout, "endpointCount: %u\n", bgdh->endpointCount);
+    fprintf(stdout, "selectorCount: %u\n", bgdh->selectorCount);
+    fprintf(stdout, "endpointsByteLength: %u\n", bgdh->endpointsByteLength);
+    fprintf(stdout, "selectorsByteLength: %u\n", bgdh->selectorsByteLength);
+    fprintf(stdout, "tablesByteLength: %u\n", bgdh->tablesByteLength);
+    fprintf(stdout, "extendedByteLength: %u\n", bgdh->extendedByteLength);
 
     ktxBasisLzEtc1sImageDesc* slices = (ktxBasisLzEtc1sImageDesc*)(bgd + sizeof(ktxBasisLzGlobalHeader));
     for (ktx_uint32_t i = 0; i < numImages; i++) {
+        if (byteLength < (i + 1) * sizeof(ktxBasisLzEtc1sImageDesc) + sizeof(ktxBasisLzGlobalHeader))
+            break;
+
         fprintf(stdout, "\nimageFlags: %#x\n", slices[i].imageFlags);
-        fprintf(stdout, "rgbSliceByteLength: %d\n", slices[i].rgbSliceByteLength);
+        fprintf(stdout, "rgbSliceByteLength: %u\n", slices[i].rgbSliceByteLength);
         fprintf(stdout, "rgbSliceByteOffset: %#x\n", slices[i].rgbSliceByteOffset);
-        fprintf(stdout, "alphaSliceByteLength: %d\n", slices[i].alphaSliceByteLength);
+        fprintf(stdout, "alphaSliceByteLength: %u\n", slices[i].alphaSliceByteLength);
         fprintf(stdout, "alphaSliceByteOffset: %#x\n", slices[i].alphaSliceByteOffset);
     }
 }
@@ -592,14 +647,21 @@ printBasisSGDInfo(ktx_uint8_t* bgd, ktx_uint64_t byteLength,
  * @param [in]     stream  pointer to the ktxStream reading the file.
  * @param [in]     pHeader pointer to the header to print.
  */
-void
+KTX_error_code
 printKTX2Info2(ktxStream* stream, KTX_header2* pHeader)
 {
+    const bool hasDFD = pHeader->dataFormatDescriptor.byteLength;
+    const bool hasKVD = pHeader->keyValueData.byteLength;
+    const bool hasSGD =
+            pHeader->supercompressionGlobalData.byteOffset != 0 &&
+            pHeader->supercompressionGlobalData.byteLength != 0;
+
     ktx_uint32_t numLevels;
     ktxLevelIndexEntry* levelIndex;
     ktx_uint32_t levelIndexSize;
     ktx_uint32_t* DFD;
     ktx_uint8_t* metadata;
+    KTX_error_code ec = KTX_SUCCESS;
 
     fprintf(stdout, "Header\n\n");
     printKTX2Header(pHeader);
@@ -608,32 +670,57 @@ printKTX2Info2(ktxStream* stream, KTX_header2* pHeader)
     numLevels = MAX(1, pHeader->levelCount);
     levelIndexSize = sizeof(ktxLevelIndexEntry) * numLevels;
     levelIndex = (ktxLevelIndexEntry*)malloc(levelIndexSize);
-    stream->read(stream, levelIndex, levelIndexSize);
+    ec = stream->read(stream, levelIndex, levelIndexSize);
+    if (ec != KTX_SUCCESS) {
+        free(levelIndex);
+        return ec;
+    }
     printLevelIndex(levelIndex, numLevels);
     free(levelIndex);
 
-    fprintf(stdout, "\nData Format Descriptor\n\n");
-    DFD = (ktx_uint32_t*)malloc(pHeader->dataFormatDescriptor.byteLength);
-    stream->read(stream, DFD, pHeader->dataFormatDescriptor.byteLength);
-    printDFD(DFD);
-    free(DFD);
+    if (hasDFD) {
+        fprintf(stdout, "\nData Format Descriptor\n\n");
+        DFD = (ktx_uint32_t*)malloc(pHeader->dataFormatDescriptor.byteLength);
+        ec = stream->read(stream, DFD, pHeader->dataFormatDescriptor.byteLength);
+        if (ec != KTX_SUCCESS) {
+            free(DFD);
+            return ec;
+        }
+        if (*DFD != pHeader->dataFormatDescriptor.byteLength) {
+            free(DFD);
+            return KTX_FILE_DATA_ERROR;
+        }
+        printDFD(DFD, pHeader->dataFormatDescriptor.byteLength);
+        free(DFD);
+    }
 
-    if (pHeader->keyValueData.byteLength) {
+    if (hasKVD) {
         fprintf(stdout, "\nKey/Value Data\n\n");
         metadata = malloc(pHeader->keyValueData.byteLength);
-        stream->read(stream, metadata, pHeader->keyValueData.byteLength);
+        ec = stream->read(stream, metadata, pHeader->keyValueData.byteLength);
+        if (ec != KTX_SUCCESS) {
+            free(metadata);
+            return ec;
+        }
         printKVData(metadata, pHeader->keyValueData.byteLength);
         free(metadata);
     } else {
         fprintf(stdout, "\nNo Key/Value data.\n");
     }
 
-    if (pHeader->supercompressionGlobalData.byteOffset != 0
-        && pHeader->supercompressionGlobalData.byteLength != 0) {
+    if (hasSGD) {
         if (pHeader->supercompressionScheme == KTX_SS_BASIS_LZ) {
             ktx_uint8_t* sgd = malloc(pHeader->supercompressionGlobalData.byteLength);
-            stream->setpos(stream, pHeader->supercompressionGlobalData.byteOffset);
-            stream->read(stream, sgd, pHeader->supercompressionGlobalData.byteLength);
+            ec = stream->setpos(stream, pHeader->supercompressionGlobalData.byteOffset);
+            if (ec != KTX_SUCCESS) {
+                free(sgd);
+                return ec;
+            }
+            ec = stream->read(stream, sgd, pHeader->supercompressionGlobalData.byteLength);
+            if (ec != KTX_SUCCESS) {
+                free(sgd);
+                return ec;
+            }
             //
             // Calculate number of images
             //
@@ -646,10 +733,13 @@ printKTX2Info2(ktxStream* stream, KTX_header2* pHeader)
             uint32_t numImages = layersFaces * layerPixelDepth;
             fprintf(stdout, "\nBasis Supercompression Global Data\n\n");
             printBasisSGDInfo(sgd, pHeader->supercompressionGlobalData.byteLength, numImages);
+            free(sgd);
         } else {
-            fprintf(stdout, "\nUnrecognized supercompressionScheme.");
+            fprintf(stdout, "\nUnrecognized supercompressionScheme.\n");
         }
     }
+
+    return ec;
 }
 
 /**
@@ -665,7 +755,7 @@ printKTX2Info2(ktxStream* stream, KTX_header2* pHeader)
  * @param [in]     indent_width The number of spaces to add with each nested scope
  * @param [in]     minified     Specifies whether the JSON output should be minified
  */
-void
+KTX_error_code
 printKTX2Info2JSON(ktxStream* stream, KTX_header2* pHeader, ktx_uint32_t base_indent, ktx_uint32_t indent_width, bool minified)
 {
     if (minified) {
@@ -675,10 +765,11 @@ printKTX2Info2JSON(ktxStream* stream, KTX_header2* pHeader, ktx_uint32_t base_in
     const char* space = minified ? "" : " ";
     const char* nl = minified ? "" : "\n";
 
-    const bool hasSupercompression =
+    const bool hasDFD = pHeader->dataFormatDescriptor.byteLength;
+    const bool hasKVD = pHeader->keyValueData.byteLength;
+    const bool hasSGD =
             pHeader->supercompressionGlobalData.byteOffset != 0 &&
             pHeader->supercompressionGlobalData.byteLength != 0;
-    const bool hasKeyValue = pHeader->keyValueData.byteLength;
 
     ktx_uint32_t numLevels;
     ktxLevelIndexEntry* levelIndex;
@@ -686,34 +777,51 @@ printKTX2Info2JSON(ktxStream* stream, KTX_header2* pHeader, ktx_uint32_t base_in
     ktx_uint32_t* DFD;
     ktx_uint8_t* metadata;
 
+    KTX_error_code ec = KTX_SUCCESS;
+
     PRINT_INDENT(0, "\"header\":%s{%s", space, nl)
     PRINT_INDENT(1, "\"identifier\":%s\"", space)
     printIdentifier(pHeader->identifier, true);
     printf("\",%s", nl);
-    PRINT_INDENT(1, "\"vkFormat\":%s\"%s\",%s", space, vkFormatString(pHeader->vkFormat), nl);
-    PRINT_INDENT(1, "\"typeSize\":%s%d,%s", space, pHeader->typeSize, nl);
-    PRINT_INDENT(1, "\"pixelWidth\":%s%d,%s", space, pHeader->pixelWidth, nl);
-    PRINT_INDENT(1, "\"pixelHeight\":%s%d,%s", space, pHeader->pixelHeight, nl);
-    PRINT_INDENT(1, "\"pixelDepth\":%s%d,%s", space, pHeader->pixelDepth, nl);
-    PRINT_INDENT(1, "\"layerCount\":%s%d,%s", space, pHeader->layerCount, nl);
-    PRINT_INDENT(1, "\"faceCount\":%s%d,%s", space, pHeader->faceCount, nl);
-    PRINT_INDENT(1, "\"levelCount\":%s%d,%s", space, pHeader->levelCount, nl);
-    PRINT_INDENT(1, "\"supercompressionScheme\":%s\"%s\"%s", space, ktxSupercompressionSchemeString(pHeader->supercompressionScheme), nl);
-    PRINT_INDENT(0, "},%s", nl)
+    const char* vkFormatStr = vkFormatString(pHeader->vkFormat);
+    if (strcmp(vkFormatStr, "VK_UNKNOWN_FORMAT") == 0)
+        PRINT_INDENT(1, "\"vkFormat\":%s%u,%s", space, (uint32_t) pHeader->vkFormat, nl)
+    else
+        PRINT_INDENT(1, "\"vkFormat\":%s\"%s\",%s", space, vkFormatStr, nl)
+    PRINT_INDENT(1, "\"typeSize\":%s%u,%s", space, pHeader->typeSize, nl);
+    PRINT_INDENT(1, "\"pixelWidth\":%s%u,%s", space, pHeader->pixelWidth, nl);
+    PRINT_INDENT(1, "\"pixelHeight\":%s%u,%s", space, pHeader->pixelHeight, nl);
+    PRINT_INDENT(1, "\"pixelDepth\":%s%u,%s", space, pHeader->pixelDepth, nl);
+    PRINT_INDENT(1, "\"layerCount\":%s%u,%s", space, pHeader->layerCount, nl);
+    PRINT_INDENT(1, "\"faceCount\":%s%u,%s", space, pHeader->faceCount, nl);
+    PRINT_INDENT(1, "\"levelCount\":%s%u,%s", space, pHeader->levelCount, nl);
+    const char* scSchemeStr = ktxSupercompressionSchemeString(pHeader->supercompressionScheme);
+    if (strcmp(scSchemeStr, "Invalid scheme value") == 0 || strcmp(scSchemeStr, "Vendor scheme") == 0)
+        PRINT_INDENT(1, "\"supercompressionScheme\":%s%u%s", space, (uint32_t) pHeader->supercompressionScheme, nl)
+    else
+        PRINT_INDENT(1, "\"supercompressionScheme\":%s\"%s\"%s", space, scSchemeStr, nl)
+    PRINT_INDENT_NOARG(0, "}")
 
-    PRINT_INDENT(0, "\"index\":%s{%s", space, nl)
     numLevels = MAX(1, pHeader->levelCount);
     levelIndexSize = sizeof(ktxLevelIndexEntry) * numLevels;
     levelIndex = (ktxLevelIndexEntry*)malloc(levelIndexSize);
-    stream->read(stream, levelIndex, levelIndexSize);
+    ec = stream->read(stream, levelIndex, levelIndexSize);
+    if (ec != KTX_SUCCESS) {
+        printf("%s", nl);
+        free(levelIndex);
+        return ec;
+    }
+
+    printf(",%s", nl);
+    PRINT_INDENT(0, "\"index\":%s{%s", space, nl)
 
     PRINT_INDENT(1, "\"dataFormatDescriptor\":%s{%s", space, nl)
-    PRINT_INDENT(2, "\"byteOffset\":%s%d,%s", space, pHeader->dataFormatDescriptor.byteOffset, nl);
-    PRINT_INDENT(2, "\"byteLength\":%s%d%s", space, pHeader->dataFormatDescriptor.byteLength, nl);
+    PRINT_INDENT(2, "\"byteOffset\":%s%u,%s", space, pHeader->dataFormatDescriptor.byteOffset, nl);
+    PRINT_INDENT(2, "\"byteLength\":%s%u%s", space, pHeader->dataFormatDescriptor.byteLength, nl);
     PRINT_INDENT(1, "},%s", nl)
     PRINT_INDENT(1, "\"keyValueData\":%s{%s", space, nl)
-    PRINT_INDENT(2, "\"byteOffset\":%s%d,%s", space, pHeader->keyValueData.byteOffset, nl);
-    PRINT_INDENT(2, "\"byteLength\":%s%d%s", space, pHeader->keyValueData.byteLength, nl);
+    PRINT_INDENT(2, "\"byteOffset\":%s%u,%s", space, pHeader->keyValueData.byteOffset, nl);
+    PRINT_INDENT(2, "\"byteLength\":%s%u%s", space, pHeader->keyValueData.byteLength, nl);
     PRINT_INDENT(1, "},%s", nl)
     PRINT_INDENT(1, "\"supercompressionGlobalData\":%s{%s", space, nl)
     PRINT_INDENT(2, "\"byteOffset\":%s%" PRId64 ",%s", space, pHeader->supercompressionGlobalData.byteOffset, nl);
@@ -731,25 +839,40 @@ printKTX2Info2JSON(ktxStream* stream, KTX_header2* pHeader, ktx_uint32_t base_in
     PRINT_INDENT(1, "]%s", nl) // End of levels
 
     free(levelIndex);
-    PRINT_INDENT(0, "},%s", nl) // End of index
+    PRINT_INDENT_NOARG(0, "}") // End of index
 
-    PRINT_INDENT(0, "\"dataFormatDescriptor\":%s{%s", space, nl)
-    DFD = (ktx_uint32_t*)malloc(pHeader->dataFormatDescriptor.byteLength);
-    stream->read(stream, DFD, pHeader->dataFormatDescriptor.byteLength);
-    printDFDJSON(DFD, base_indent + 1, indent_width, minified);
-    free(DFD);
-    PRINT_INDENT(0, "}%s%s", hasKeyValue || hasSupercompression ? "," : "", nl)
-
-    if (hasKeyValue) {
-        PRINT_INDENT(0, "\"keyValueData\":%s{%s", space, nl)
-        metadata = malloc(pHeader->keyValueData.byteLength);
-        stream->read(stream, metadata, pHeader->keyValueData.byteLength);
-        printKVDataJSON(metadata, pHeader->keyValueData.byteLength, base_indent + 1, indent_width, minified);
-        free(metadata);
-        PRINT_INDENT(0, "}%s%s", hasSupercompression ? "," : "", nl)
+    if (hasDFD) {
+        DFD = (ktx_uint32_t*)malloc(pHeader->dataFormatDescriptor.byteLength);
+        ec = stream->read(stream, DFD, pHeader->dataFormatDescriptor.byteLength);
+        if (ec != KTX_SUCCESS) {
+            printf("%s", nl);
+            free(DFD);
+            return ec;
+        }
+        printf(",%s", nl);
+        PRINT_INDENT(0, "\"dataFormatDescriptor\":%s{%s", space, nl)
+        printDFDJSON(DFD, pHeader->dataFormatDescriptor.byteLength, base_indent + 1, indent_width, minified);
+        free(DFD);
+        PRINT_INDENT_NOARG(0, "}")
     }
 
-    if (hasSupercompression) {
+    if (hasKVD) {
+        metadata = malloc(pHeader->keyValueData.byteLength);
+        ec = stream->read(stream, metadata, pHeader->keyValueData.byteLength);
+        if (ec != KTX_SUCCESS) {
+            printf("%s", nl);
+            free(metadata);
+            return ec;
+        }
+        printf(",%s", nl);
+        PRINT_INDENT(0, "\"keyValueData\":%s{%s", space, nl)
+        printKVDataJSON(metadata, pHeader->keyValueData.byteLength, base_indent + 1, indent_width, minified);
+        free(metadata);
+        PRINT_INDENT_NOARG(0, "}")
+    }
+
+    if (hasSGD) {
+        printf(",%s", nl);
         PRINT_INDENT(0, "\"supercompressionGlobalData\":%s{%s", space, nl)
 
         switch (pHeader->supercompressionScheme) {
@@ -757,13 +880,24 @@ printKTX2Info2JSON(ktxStream* stream, KTX_header2* pHeader, ktx_uint32_t base_in
             PRINT_INDENT(1, "\"type\":%s\"%s\"%s", space, "KTX_SS_NONE", nl)
             break;
         }
-
         case KTX_SS_BASIS_LZ: {
-            PRINT_INDENT(1, "\"type\":%s\"%s\",%s", space, "KTX_SS_BASIS_LZ", nl)
-
-            ktx_uint8_t* sgd = malloc(pHeader->supercompressionGlobalData.byteLength);
-            stream->setpos(stream, pHeader->supercompressionGlobalData.byteOffset);
-            stream->read(stream, sgd, pHeader->supercompressionGlobalData.byteLength);
+            PRINT_INDENT(1, "\"type\":%s\"%s\"", space, "KTX_SS_BASIS_LZ")
+            ktx_size_t sgdByteLength = pHeader->supercompressionGlobalData.byteLength;
+            ktx_uint8_t* sgd = malloc(sgdByteLength);
+            ec = stream->setpos(stream, pHeader->supercompressionGlobalData.byteOffset);
+            if (ec != KTX_SUCCESS) {
+                printf("%s", nl);
+                PRINT_INDENT(0, "}%s", nl)
+                free(sgd);
+                return ec;
+            }
+            ec = stream->read(stream, sgd, sgdByteLength);
+            if (ec != KTX_SUCCESS) {
+                printf("%s", nl);
+                PRINT_INDENT(0, "}%s", nl)
+                free(sgd);
+                return ec;
+            }
 
             // Calculate number of images
             uint32_t layersFaces = MAX(pHeader->layerCount, 1) * pHeader->faceCount;
@@ -775,55 +909,71 @@ printKTX2Info2JSON(ktxStream* stream, KTX_header2* pHeader, ktx_uint32_t base_in
             uint32_t numImages = layersFaces * layerPixelDepth;
             ktxBasisLzGlobalHeader* bgdh = (ktxBasisLzGlobalHeader*)(sgd);
 
-            PRINT_INDENT(1, "\"endpointCount\":%s%d,%s", space, bgdh->endpointCount, nl)
-            PRINT_INDENT(1, "\"selectorCount\":%s%d,%s", space, bgdh->selectorCount, nl)
-            PRINT_INDENT(1, "\"endpointsByteLength\":%s%d,%s", space, bgdh->endpointsByteLength, nl)
-            PRINT_INDENT(1, "\"selectorsByteLength\":%s%d,%s", space, bgdh->selectorsByteLength, nl)
-            PRINT_INDENT(1, "\"tablesByteLength\":%s%d,%s", space, bgdh->tablesByteLength, nl)
-            PRINT_INDENT(1, "\"extendedByteLength\":%s%d,%s", space, bgdh->extendedByteLength, nl)
-            PRINT_INDENT(1, "\"images\":%s[%s", space, nl)
+            if (sgdByteLength < sizeof(ktxBasisLzGlobalHeader)) {
+                printf("%s", nl);
+                PRINT_INDENT(0, "}%s", nl)
+                free(sgd);
+                return ec;
+            }
+            printf(",%s", nl);
+            PRINT_INDENT(1, "\"endpointCount\":%s%u,%s", space, bgdh->endpointCount, nl)
+            PRINT_INDENT(1, "\"selectorCount\":%s%u,%s", space, bgdh->selectorCount, nl)
+            PRINT_INDENT(1, "\"endpointsByteLength\":%s%u,%s", space, bgdh->endpointsByteLength, nl)
+            PRINT_INDENT(1, "\"selectorsByteLength\":%s%u,%s", space, bgdh->selectorsByteLength, nl)
+            PRINT_INDENT(1, "\"tablesByteLength\":%s%u,%s", space, bgdh->tablesByteLength, nl)
+            PRINT_INDENT(1, "\"extendedByteLength\":%s%u,%s", space, bgdh->extendedByteLength, nl)
+            PRINT_INDENT(1, "\"images\":%s[", space)
 
             ktxBasisLzEtc1sImageDesc* slices = (ktxBasisLzEtc1sImageDesc*)(sgd + sizeof(ktxBasisLzGlobalHeader));
             for (ktx_uint32_t i = 0; i < numImages; i++) {
+                if (sgdByteLength < (i + 1) * sizeof(ktxBasisLzEtc1sImageDesc) + sizeof(ktxBasisLzGlobalHeader))
+                    break;
+
+                if (i == 0)
+                    printf("%s", nl);
+                else
+                    printf(",%s", nl);
+
                 PRINT_INDENT(2, "{%s", nl)
 
                 buFlags imageFlags = slices[i].imageFlags;
                 if (imageFlags == 0) {
                     PRINT_INDENT(3, "\"imageFlags\":%s[],%s", space, nl)
-
                 } else {
                     PRINT_INDENT(3, "\"imageFlags\":%s[%s", space, nl)
                     printFlagBitsJSON(LENGTH_OF_INDENT(4), nl, imageFlags, ktxBUImageFlagsBitString);
                     PRINT_INDENT(3, "],%s", nl)
                 }
 
-                PRINT_INDENT(3, "\"rgbSliceByteLength\":%s%d,%s", space, slices[i].rgbSliceByteLength, nl)
-                PRINT_INDENT(3, "\"rgbSliceByteOffset\":%s%d,%s", space, slices[i].rgbSliceByteOffset, nl)
-                PRINT_INDENT(3, "\"alphaSliceByteLength\":%s%d,%s", space, slices[i].alphaSliceByteLength, nl)
-                PRINT_INDENT(3, "\"alphaSliceByteOffset\":%s%d%s", space, slices[i].alphaSliceByteOffset, nl)
-                PRINT_INDENT(2, "}%s%s", i + 1 == numImages ? "" : ",", nl)
+                PRINT_INDENT(3, "\"rgbSliceByteLength\":%s%u,%s", space, slices[i].rgbSliceByteLength, nl)
+                PRINT_INDENT(3, "\"rgbSliceByteOffset\":%s%u,%s", space, slices[i].rgbSliceByteOffset, nl)
+                PRINT_INDENT(3, "\"alphaSliceByteLength\":%s%u,%s", space, slices[i].alphaSliceByteLength, nl)
+                PRINT_INDENT(3, "\"alphaSliceByteOffset\":%s%u%s", space, slices[i].alphaSliceByteOffset, nl)
+                PRINT_INDENT_NOARG(2, "}")
             }
+            printf("%s", nl);
             PRINT_INDENT(1, "]%s", nl)
+
+            free(sgd);
             break;
         }
-
         case KTX_SS_ZSTD: {
             PRINT_INDENT(1, "\"type\":%s\"%s\"%s", space, "KTX_SS_ZSTD", nl)
             break;
         }
-
         case KTX_SS_ZLIB: {
             PRINT_INDENT(1, "\"type\":%s\"%s\"%s", space, "KTX_SS_ZLIB", nl)
             break;
         }
-
         default:
-            PRINT_INDENT(1, "\"type\":%s%d%s", space, pHeader->supercompressionScheme, nl)
+            PRINT_INDENT(1, "\"type\":%s%u%s", space, pHeader->supercompressionScheme, nl)
             break;
         }
-
-        PRINT_INDENT(0, "}%s", nl)
+        PRINT_INDENT_NOARG(0, "}")
     }
+    printf("%s", nl);
+
+    return ec;
 }
 
 /**
@@ -888,10 +1038,12 @@ ktxPrintInfoForStream(ktxStream* stream)
                                   KTX_HEADER_SIZE - sizeof(ktx_ident_ref));
             printKTXInfo2(stream, &header.ktx);
         } else {
-           // Read rest of header.
-           result = stream->read(stream, &header.ktx2.vkFormat,
+            // Read rest of header.
+            result = stream->read(stream, &header.ktx2.vkFormat,
                                  KTX2_HEADER_SIZE - sizeof(ktx2_ident_ref));
-           printKTX2Info2(stream, &header.ktx2);
+            if (result != KTX_SUCCESS)
+                return result;
+            result = printKTX2Info2(stream, &header.ktx2);
         }
     }
     return result;
@@ -928,7 +1080,7 @@ ktxPrintKTX2InfoJSONForStream(ktxStream* stream, ktx_uint32_t base_indent, ktx_u
     if (result != KTX_SUCCESS)
         return result;
 
-    printKTX2Info2JSON(stream, &header, base_indent, indent_width, minified);
+    result = printKTX2Info2JSON(stream, &header, base_indent, indent_width, minified);
     return result;
 }
 
@@ -963,7 +1115,7 @@ ktxPrintKTX2InfoTextForStream(ktxStream* stream)
     if (result != KTX_SUCCESS)
         return result;
 
-    printKTX2Info2(stream, &header);
+    result = printKTX2Info2(stream, &header);
     return result;
 }
 

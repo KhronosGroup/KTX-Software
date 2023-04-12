@@ -8,8 +8,12 @@
 #include "stdafx.h"
 #include <string>
 #include <vector>
+#include <iostream>
+#include "utility.h"
 
 #include <cxxopts.hpp>
+#include <fmt/ostream.h>
+#include <fmt/printf.h>
 
 
 #if defined(_WIN32)
@@ -54,8 +58,44 @@ static constexpr int RETURN_CODE_SUCCESS = 0;
 static constexpr int RETURN_CODE_INVALID_ARGUMENTS = 1;
 static constexpr int RETURN_CODE_IO_FAILURE = 2;
 static constexpr int RETURN_CODE_INVALID_FILE = 3;
+static constexpr int RETURN_CODE_RUNTIME_ERROR = 4;
+static constexpr int RETURN_CODE_KTX_FAILURE = RETURN_CODE_RUNTIME_ERROR;
+static constexpr int RETURN_CODE_UNSUPPORTED = 5;
 
 static constexpr int CONSOLE_USAGE_WIDTH = 100;
+
+struct FatalError : public std::exception {
+    int return_code; /// Desired process return code
+    explicit FatalError(int returnCode) : return_code(returnCode) {}
+};
+
+struct Reporter {
+    std::string processName;
+
+    template <typename... Args>
+    void warning(Args&&... args) {
+        fmt::print(std::cerr, "{} warning: ", processName);
+        fmt::print(std::cerr, std::forward<Args>(args)...);
+        fmt::print(std::cerr, "\n");
+    }
+
+    template <typename... Args>
+    void error(Args&&... args) {
+        fmt::print(std::cerr, "{} error: ", processName);
+        fmt::print(std::cerr, std::forward<Args>(args)...);
+        fmt::print(std::cerr, "\n");
+    }
+
+    template <typename... Args>
+    void fatal(int return_code, Args&&... args) {
+        fmt::print(std::cerr, "{} fatal: ", processName);
+        fmt::print(std::cerr, std::forward<Args>(args)...);
+        fmt::print(std::cerr, "\n");
+        throw FatalError(return_code);
+    }
+};
+
+[[nodiscard]] std::string version(bool testrun);
 
 /**
 //! [command options]
@@ -67,12 +107,7 @@ static constexpr int CONSOLE_USAGE_WIDTH = 100;
 </dl>
 //! [command options]
 */
-class Command {
-protected:
-    std::string processName;
-    std::string inputFile;
-    bool testrun = false; /// Indicates test run. If enabled ktx tools will only include the default version information in any output
-
+class Command : public Reporter {
 public:
     Command() = default;
     virtual ~Command() = default;
@@ -83,30 +118,176 @@ public:
 protected:
     void parseCommandLine(const std::string& name, const std::string& desc, int argc, _TCHAR* argv[]);
 
-    virtual void initOptions(cxxopts::Options& options);
-    virtual void processOptions(cxxopts::Options& options, cxxopts::ParseResult& args);
-
-    [[nodiscard]] std::string version() const;
-
-protected:
-    struct FatalError : public std::exception {
-        int return_code; /// Desired process return code
-        explicit FatalError(int returnCode) : return_code(returnCode) {}
-    };
+    virtual void initOptions(cxxopts::Options& /*opts*/) { }
+    virtual void processOptions(cxxopts::Options& /*opts*/, cxxopts::ParseResult& /*args*/) { };
 };
 
-class CommandWithFormat : public Command {
-protected:
-    enum class OutputFormat {
-        text,
-        json,
-        json_mini,
-    };
+// -------------------------------------------------------------------------------------------------
+
+struct OptionsGeneric {
+    // --help
+    // --version
+    bool testrun = false; /// Indicates test run. If enabled ktx tools will only include the default version information in any output
+
+    void init(cxxopts::Options& opts) {
+        opts.add_options()
+                ("h,help", "Print this usage message and exit")
+                ("v,version", "Print the version number of this program and exit")
+                ("testrun", "Indicates test run. If enabled ktx tools will only include the default version information in any output");
+    }
+
+    void process(cxxopts::Options& opts, cxxopts::ParseResult& args, Reporter&) {
+        testrun = args["testrun"].as<bool>();
+
+        if (args.count("help")) {
+            fmt::print("{}", opts.help());
+            throw FatalError(RETURN_CODE_SUCCESS);
+        }
+
+        if (args.count("version")) {
+            fmt::print("{} version: {}\n", opts.program(), version(testrun));
+            throw FatalError(RETURN_CODE_SUCCESS);
+        }
+    }
+};
+
+enum class OutputFormat {
+    text,
+    json,
+    json_mini,
+};
+
+struct OptionsFormat {
     OutputFormat format;
 
-protected:
-    virtual void initOptions(cxxopts::Options& options) override;
-    virtual void processOptions(cxxopts::Options& options, cxxopts::ParseResult& args) override;
+    void init(cxxopts::Options& opts) {
+        opts.add_options()
+                ("f,format", "Specifies the output format. The default format is 'text'.\n"
+                        "  text: Human readable text based format\n"
+                        "  json: Formatted JSON\n"
+                        "  mini-json: Minified JSON",
+                        cxxopts::value<std::string>()->default_value("text"),
+                        "text|json|mini-json");
+    }
+
+    void process(cxxopts::Options& opts, cxxopts::ParseResult& args, Reporter&) {
+        const auto& formatStr = to_lower_copy(args["format"].as<std::string>());
+        if (formatStr == "text") {
+            format = OutputFormat::text;
+        } else if (formatStr == "json") {
+            format = OutputFormat::json;
+        } else if (formatStr == "mini-json") {
+            format = OutputFormat::json_mini;
+        } else {
+            fmt::print(std::cerr, "Failed to parse command line arguments: Unsupported format: \"{}\"\n", formatStr);
+            fmt::print(std::cerr, "{}", opts.help());
+            throw FatalError(RETURN_CODE_INVALID_ARGUMENTS);
+        }
+    }
+};
+
+struct OptionsSingleIn {
+    std::string inputFilepath;
+
+    void init(cxxopts::Options& opts) {
+        opts.add_options()
+                ("s,stdin", "Use stdin as the input file")
+                ("i,input-file", "The input file", cxxopts::value<std::string>(), "filepath");
+        opts.parse_positional("input-file");
+        opts.positional_help("<input-file>");
+    }
+
+    void process(cxxopts::Options& opts, cxxopts::ParseResult& args, Reporter&) {
+        if (args.count("stdin") + args.count("input-file") == 0) {
+            fmt::print(std::cerr, "Missing input file. Either <input-file> or <stdin> must be specified.\n");
+            fmt::print(std::cerr, "{}", opts.help());
+            throw FatalError(RETURN_CODE_INVALID_ARGUMENTS);
+        }
+
+        if (args.count("stdin") + args.count("input-file") > 1) {
+            fmt::print(std::cerr, "Failed to parse command line arguments: Only one can be specified from <input-file> and <stdin>.\n");
+            fmt::print(std::cerr, "{}", opts.help());
+            throw FatalError(RETURN_CODE_INVALID_ARGUMENTS);
+        }
+
+        // TODO Tools P4: Add support for stdin (To support '-' alias argv has to be scanned as cxxopts has no direct support for it)
+        if (args.count("stdin"))
+            inputFilepath = "-";
+        else
+            inputFilepath = args["input-file"].as<std::string>();
+    }
+};
+
+struct OptionsSingleInSingleOut {
+    std::string inputFilepath;
+    std::string outputFilepath;
+
+    void init(cxxopts::Options& opts) {
+        opts.add_options()
+                ("s,stdin", "Use stdin as the input file")
+                ("i,input-file", "The input file", cxxopts::value<std::string>(), "filepath")
+                ("o,output-file", "The output file", cxxopts::value<std::string>(), "filepath");
+        opts.parse_positional("input-file", "output-file");
+        opts.positional_help("<input-file> <output-file>");
+    }
+
+    void process(cxxopts::Options& opts, cxxopts::ParseResult& args, Reporter&) {
+        if (args.count("stdin") + args.count("input-file") == 0) {
+            fmt::print(std::cerr, "Missing input file. Either <input-file> or <stdin> must be specified.\n");
+            fmt::print(std::cerr, "{}", opts.help());
+            throw FatalError(RETURN_CODE_INVALID_ARGUMENTS);
+        }
+
+        if (args.count("stdin") + args.count("input-file") > 1) {
+            fmt::print(std::cerr, "Failed to parse command line arguments: Only one can be specified from <input-file> and <stdin>.\n");
+            fmt::print(std::cerr, "{}", opts.help());
+            throw FatalError(RETURN_CODE_INVALID_ARGUMENTS);
+        }
+
+        // TODO Tools P4: Add support for stdin (To support '-' alias argv has to be scanned as cxxopts has no direct support for it)
+        if (args.count("stdin"))
+            inputFilepath = "-";
+        else
+            inputFilepath = args["input-file"].as<std::string>();
+
+        outputFilepath = args["output-file"].as<std::string>();
+    }
+};
+
+struct OptionsMultiInSingleOut {
+    std::vector<std::string> inputFilepaths;
+    std::string outputFilepath;
+
+    void init(cxxopts::Options& opts) {
+        opts.add_options()
+                ("files", "Input/output files. Last file specified will be used as output", cxxopts::value<std::vector<std::string>>(), "<filepath>");
+        opts.parse_positional("files");
+        opts.positional_help("<input-file...> <output-file>");
+    }
+
+    void process(cxxopts::Options& opts, cxxopts::ParseResult& args, Reporter& report) {
+        std::vector<std::string> files;
+        if (args.count("files"))
+            files = args["files"].as<std::vector<std::string>>();
+        if (files.size() < 2)
+            report.fatal(RETURN_CODE_INVALID_ARGUMENTS, "Inputs and output file must be specified.\n{}", opts.help());
+
+        outputFilepath = std::move(files.back());
+        files.pop_back();
+        inputFilepaths = std::move(files);
+    }
+};
+
+/// Convenience helper to combine multiple options struct together
+template <typename... Args>
+struct Combine : Args... {
+    void init(cxxopts::Options& opts) {
+        (Args::init(opts), ...);
+    }
+    void process(cxxopts::Options& opts, cxxopts::ParseResult& args, Reporter& report) {
+        int dummy; // Reverse fold via operator= on a dummy int
+        (dummy = ... = (Args::process(opts, args, report), 0));
+    }
 };
 
 } // namespace ktx

@@ -23,6 +23,7 @@ EXPORTS
     createDFDUnpacked
     createDFDPacked
     findMapping
+    getPrimaries
     interpretDFD
     isProhibitedFormat
     isValidFormat

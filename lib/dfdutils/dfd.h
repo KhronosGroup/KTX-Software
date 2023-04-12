@@ -164,10 +164,10 @@ const char* dfdToStringSampleDatatypeQualifiersBit(uint32_t bit_index, bool bit_
 const char* dfdToStringChannelId(khr_df_model_e model, khr_df_model_channels_e value);
 
 /* Print a human-readable interpretation of a data format descriptor. */
-void printDFD(uint32_t *DFD);
+void printDFD(uint32_t *DFD, uint32_t dataSize);
 
 /* Print a JSON interpretation of a data format descriptor. */
-void printDFDJSON(uint32_t *DFD, uint32_t base_indent, uint32_t indent_width, bool minified);
+void printDFDJSON(uint32_t *DFD, uint32_t dataSize, uint32_t base_indent, uint32_t indent_width, bool minified);
 
 /* Get the number of components & component size from a DFD for an
  * unpacked format.
@@ -201,7 +201,8 @@ typedef struct _Primaries {
     float Wy; /*!< White y. */
 } Primaries;
 
-khr_df_primaries_e findMapping(Primaries *p, float latitude);
+khr_df_primaries_e findMapping(const Primaries *p, float latitude);
+bool getPrimaries(khr_df_primaries_e primaries, Primaries *p);
 
 #ifdef __cplusplus
 }

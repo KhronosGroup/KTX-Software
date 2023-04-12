@@ -121,7 +121,7 @@ int Tools::main(int argc, _TCHAR* argv[]) {
     }
 
     if (args.count("version")) {
-        fmt::print("{} version: {}\n", options.program(), version());
+        fmt::print("{} version: {}\n", options.program(), version(false));
         return RETURN_CODE_SUCCESS;
     }
 
@@ -141,11 +141,11 @@ void Tools::printUsage(std::ostream& os, const cxxopts::Options& options) {
 
     fmt::print(os, "\n");
     fmt::print(os, "Available commands:\n");
-    fmt::print(os, "  create - Create a KTX2 file from various source files\n");
-    fmt::print(os, "  encode - \n");
-    fmt::print(os, "  extract - Export a selected image from a KTX2 file\n");
+    fmt::print(os, "  create - Create a KTX2 file from various input files\n");
+    fmt::print(os, "  extract - Export selected images from a KTX2 file\n");
+    fmt::print(os, "  encode - Encode a KTX2 file\n");
+    fmt::print(os, "  transcode - Transcode a KTX2 file\n");
     fmt::print(os, "  info - Prints information about a KTX2 file\n");
-    fmt::print(os, "  transcode - \n");
     fmt::print(os, "  validate - Validates a KTX2 file\n");
     fmt::print(os, "  help - \n");
 }
@@ -154,6 +154,8 @@ void Tools::printUsage(std::ostream& os, const cxxopts::Options& options) {
 
 KTX_COMMAND_BUILTIN(ktxCreate)
 KTX_COMMAND_BUILTIN(ktxExtract)
+KTX_COMMAND_BUILTIN(ktxEncode)
+KTX_COMMAND_BUILTIN(ktxTranscode)
 KTX_COMMAND_BUILTIN(ktxInfo)
 KTX_COMMAND_BUILTIN(ktxValidate)
 // KTX_COMMAND_BUILTIN(ktxHelp)
@@ -161,6 +163,8 @@ KTX_COMMAND_BUILTIN(ktxValidate)
 std::unordered_map<std::string, ktx::pfnBuiltinCommand> builtinCommands = {
     { "create",     ktxCreate },
     { "extract",    ktxExtract },
+    { "encode",     ktxEncode },
+    { "transcode",  ktxTranscode },
     { "info",       ktxInfo },
     { "validate",   ktxValidate },
     // { "help",       ktxHelp }

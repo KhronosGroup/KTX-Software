@@ -15,6 +15,7 @@
 #include <cxxopts.hpp>
 #include <fmt/printf.h>
 #include <ktx.h>
+#include <ktxint.h>
 
 
 // -------------------------------------------------------------------------------------------------
@@ -63,16 +64,13 @@ Prints information about a KTX2 file.
     - Mátyás Császár [Vader], RasterGrid www.rastergrid.com
     - Daniel Rákos, RasterGrid www.rastergrid.com
 */
-class CommandInfo : public CommandWithFormat {
+class CommandInfo : public Command {
+    Combine<OptionsFormat, OptionsSingleIn, OptionsGeneric> options;
+
 public:
-    using CommandWithFormat::CommandWithFormat;
-    virtual ~CommandInfo() {};
-
     virtual int main(int argc, _TCHAR* argv[]) override;
-
-protected:
-    virtual void initOptions(cxxopts::Options& options) override;
-    virtual void processOptions(cxxopts::Options& options, cxxopts::ParseResult& args) override;
+    virtual void initOptions(cxxopts::Options& opts) override;
+    virtual void processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) override;
 
 private:
     void executeInfo();
@@ -91,28 +89,28 @@ int CommandInfo::main(int argc, _TCHAR* argv[]) {
         return RETURN_CODE_SUCCESS;
     } catch (const FatalError& error) {
         return error.return_code;
+    } catch (const std::exception& e) {
+        fmt::print(std::cerr, "{} fatal: {}\n", processName, e.what());
+        return RETURN_CODE_RUNTIME_ERROR;
     }
 }
 
-void CommandInfo::initOptions(cxxopts::Options& options) {
-    CommandWithFormat::initOptions(options);
+void CommandInfo::initOptions(cxxopts::Options& opts) {
+    options.init(opts);
 }
 
-void CommandInfo::processOptions(cxxopts::Options& options, cxxopts::ParseResult& args) {
-    CommandWithFormat::processOptions(options, args);
+void CommandInfo::processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) {
+    options.process(opts, args, *this);
 }
 
 void CommandInfo::executeInfo() {
-    std::ifstream file(inputFile, std::ios::binary | std::ios::in);
-
-    if (!file) {
-        fmt::print(stderr, "{}: Could not open input file \"{}\": {}\n", processName, inputFile, errnoMessage());
-        throw FatalError(RETURN_CODE_IO_FAILURE);
-    }
+    std::ifstream file(options.inputFilepath, std::ios::binary | std::ios::in);
+    if (!file)
+        fatal(RETURN_CODE_IO_FAILURE, "Could not open input file \"{}\": {}", options.inputFilepath, errnoMessage());
 
     KTX_error_code result;
 
-    switch (format) {
+    switch (options.format) {
     case OutputFormat::text:
         result = printInfoText(file);
         break;
@@ -127,21 +125,13 @@ void CommandInfo::executeInfo() {
         return;
     }
 
-    if (result ==  KTX_FILE_UNEXPECTED_EOF) {
-        fmt::print(stderr, "{}: Unexpected end of file reading \"{}\".\n", processName, inputFile);
-        throw FatalError(RETURN_CODE_IO_FAILURE);
-    } else if (result == KTX_UNKNOWN_FILE_FORMAT) {
-        fmt::print(stderr, "{}: \"{}\" is not a KTX2 file.\n", processName, inputFile);
-        throw FatalError(RETURN_CODE_IO_FAILURE);
-    } else if (result != KTX_SUCCESS) {
-        fmt::print(stderr, "{}: {} failed to process KTX2 file: {} - {}\n", processName, inputFile, static_cast<int>(result), ktxErrorString(result));
-        throw FatalError(RETURN_CODE_IO_FAILURE);
-    }
+    if (result != KTX_SUCCESS)
+        fatal(RETURN_CODE_INVALID_FILE, "Failed to process KTX2 file \"{}\": {}", options.inputFilepath, ktxErrorString(result));
 }
 
 KTX_error_code CommandInfo::printInfoText(std::istream& file) {
     std::ostringstream messagesOS;
-    const auto validationResult = validateIOStream(file, false, false, [&](const ValidationReport& issue) {
+    const auto validationResult = validateIOStream(file, options.inputFilepath, false, false, [&](const ValidationReport& issue) {
         fmt::print(messagesOS, "{}-{:04}: {}\n", toString(issue.type), issue.id, issue.message);
         fmt::print(messagesOS, "    {}\n", issue.details);
     });
@@ -154,14 +144,15 @@ KTX_error_code CommandInfo::printInfoText(std::istream& file) {
     }
     fmt::print("\n");
 
+    file.clear(); // Clear any unexpected EOF from validation
     file.seekg(0);
-    if (!file) {
-        fmt::print(stderr, "{}: Could not rewind the input file: {}\n", processName, errnoMessage());
-        return KTX_FILE_SEEK_ERROR;
-    }
+    if (!file)
+        return validationResult == 0 ? KTX_FILE_SEEK_ERROR : KTX_SUCCESS;
 
     StreambufStream<std::streambuf*> ktx2Stream{file.rdbuf(), std::ios::in | std::ios::binary};
-    return ktxPrintKTX2InfoTextForStream(ktx2Stream.stream());
+    const auto result = ktxPrintKTX2InfoTextForStream(ktx2Stream.stream());
+
+    return validationResult == 0 ? result : KTX_SUCCESS;
 }
 
 KTX_error_code CommandInfo::printInfoJSON(std::istream& file, bool minified) {
@@ -174,7 +165,7 @@ KTX_error_code CommandInfo::printInfoJSON(std::istream& file, bool minified) {
     PrintIndent pi{messagesOS, base_indent, indent_width};
 
     bool first = true;
-    const auto validationResult = validateIOStream(file, false, false, [&](const ValidationReport& issue) {
+    const auto validationResult = validateIOStream(file, options.inputFilepath, false, false, [&](const ValidationReport& issue) {
         if (!std::exchange(first, false)) {
             pi(2, "}},{}", nl);
         }
@@ -185,6 +176,22 @@ KTX_error_code CommandInfo::printInfoJSON(std::istream& file, bool minified) {
         pi(3, "\"details\":{}\"{}\"{}", space, escape_json_copy(issue.details), nl);
     });
 
+    file.clear(); // Clear any unexpected EOF from validation
+
+    // Workaround detection to decide if ktx will produce any output into the json
+    // to eliminate a trailing comma
+    file.seekg(0, std::ios_base::end);
+    const auto fileSize = file.tellg();
+    bool fileIdentifierIsCorrect = false;
+    if (fileSize >= 12) {
+        static constexpr uint8_t ktx2_identifier_reference[12] = KTX2_IDENTIFIER_REF;
+        ktx_uint8_t identifier[12];
+        file.seekg(0, std::ios_base::beg);
+        file.read(reinterpret_cast<char*>(identifier), 12);
+        fileIdentifierIsCorrect = std::memcmp(identifier, ktx2_identifier_reference, 12) == 0;
+    }
+    const auto ktxWillPrintOutput = fileIdentifierIsCorrect && fileSize >= KTX2_HEADER_SIZE;
+
     PrintIndent out{std::cout, base_indent, indent_width};
     out(0, "{{{}", nl);
     out(1, "\"$schema\":{}\"https://schema.khronos.org/ktx/info_v0.json\",{}", space, nl);
@@ -193,23 +200,22 @@ KTX_error_code CommandInfo::printInfoJSON(std::istream& file, bool minified) {
         out(1, "\"messages\":{}[{}", space, nl);
         fmt::print("{}", std::move(messagesOS).str());
         out(2, "}}{}", nl);
-        out(1, "],{}", nl);
+        out(1, "]{}{}", ktxWillPrintOutput ? "," : "", nl);
     } else {
-        out(1, "\"messages\":{}[],{}", space, nl);
+        out(1, "\"messages\":{}[]{}{}", space, ktxWillPrintOutput ? "," : "", nl);
     }
 
-    file.seekg(0);
+    file.seekg(0, std::ios_base::beg);
     if (!file) {
         out(0, "}}{}", nl);
-        fmt::print(stderr, "{}: Could not rewind the input file: {}\n", processName, errnoMessage());
-        return KTX_FILE_SEEK_ERROR;
+        return validationResult == 0 ? KTX_FILE_SEEK_ERROR : KTX_SUCCESS;
     }
 
     StreambufStream<std::streambuf*> ktx2Stream{file.rdbuf(), std::ios::in | std::ios::binary};
-    const auto ktx_ec = ktxPrintKTX2InfoJSONForStream(ktx2Stream.stream(), base_indent + 1, indent_width, minified);
+    const auto result = ktxPrintKTX2InfoJSONForStream(ktx2Stream.stream(), base_indent + 1, indent_width, minified);
     out(0, "}}{}", nl);
 
-    return ktx_ec;
+    return validationResult == 0 ? result : KTX_SUCCESS;
 }
 
 } // namespace ktx

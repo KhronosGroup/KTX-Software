@@ -16,6 +16,7 @@
 
 #include "stdafx.h"
 
+#include <array>
 #include <iterator>
 #include <sstream>
 #include <stdexcept>
@@ -27,7 +28,7 @@
 
 class PngInput final : public ImageInput {
   public:
-    PngInput() : ImageInput("Png") {}
+    PngInput() : ImageInput("png") {}
     virtual ~PngInput() { close(); }
     virtual void open(ImageSpec& newspec) override;
     virtual void close() override {
@@ -52,6 +53,7 @@ class PngInput final : public ImageInput {
     size_t pngByteLength;
     lodepng::State state;
     void* pIdat;
+    size_t idatsize;
     bool colorConvert = false;
     uint32_t nextScanline = 0;
     bool decodingBegun = false;
@@ -121,7 +123,7 @@ PngInput::readHeader()
 
     unsigned int lodepngError;
     uint32_t w, h;
-    lodepngError = lodepng_decode_chunks(&pIdat, &w, &h, &state,
+    lodepngError = lodepng_decode_chunks(&pIdat, &idatsize, &w, &h, &state,
                                          (const uint8_t*)pngBuffer.data(),
                                          pngBuffer.size());
     if (lodepngError) {
@@ -204,25 +206,40 @@ PngInput::readHeader()
         ;
     }
 
-    images.push_back(ImageSpec(w, h, 1, componentCount,
+    ImageInputFormatType formatType;
+    switch (state.info_png.color.colortype) {
+    case LCT_GREY:
+        formatType = ImageInputFormatType::png_l;
+        break;
+    case LCT_GREY_ALPHA:
+        formatType = ImageInputFormatType::png_la;
+        break;
+    case LCT_RGB:
+        formatType = ImageInputFormatType::png_rgb;
+        break;
+    case LCT_RGBA:
+        formatType = ImageInputFormatType::png_rgba;
+        break;
+    case LCT_PALETTE:
+        formatType = ImageInputFormatType::png_rgba;
+        break;
+    case LCT_MAX_OCTET_VALUE:
+        break;
+    }
+
+    images.emplace_back(ImageSpec(w, h, 1, componentCount,
                             bitDepth,
                             static_cast<khr_df_sample_datatype_qualifiers_e>(0),
                             KHR_DF_TRANSFER_UNSPECIFIED,
                             // PNG spec. says BT.709 primaries are a
                             // reasonable default.
                             KHR_DF_PRIMARIES_BT709,
-                            colorModel));
+                            colorModel),
+                        formatType);
 
     // This is ugly. FIXME:
     FormatDescriptor& format = const_cast<FormatDescriptor&>(spec().format());
-    if (state.info_png.srgb_defined) {
-        // srgb_intent is a guide for the user/application when applying
-        // a color transform during rendering, especially when
-        // gamut mapping. It does not affect the meaning or value
-        // of the image pixels so there is nothing to do here.
-        format.setTransfer(KHR_DF_TRANSFER_SRGB);
-        format.setPrimaries(KHR_DF_PRIMARIES_SRGB);
-    } else if (state.info_png.iccp_defined) {
+    if (state.info_png.iccp_defined) {
         format.setPrimaries(KHR_DF_PRIMARIES_UNSPECIFIED);
         format.setTransfer(KHR_DF_TRANSFER_UNSPECIFIED);
         format.extended.iccProfile.name =  state.info_png.iccp_name;
@@ -231,13 +248,24 @@ PngInput::readHeader()
                format.extended.iccProfile.profile.begin(),
                state.info_png.iccp_profile,
                &state.info_png.iccp_profile[state.info_png.iccp_profile_size]);
+        if (format.extended.iccProfile.name == "ITUR_2100_PQ_FULL") {
+            format.setPrimaries(KHR_DF_PRIMARIES_BT2020);
+            format.setTransfer(KHR_DF_TRANSFER_PQ_EOTF);
+        }
+    } else if (state.info_png.srgb_defined) {
+        // srgb_intent is a guide for the user/application when applying
+        // a color transform during rendering, especially when
+        // gamut mapping. It does not affect the meaning or value
+        // of the image pixels so there is nothing to do here.
+        format.setTransfer(KHR_DF_TRANSFER_SRGB);
+        format.setPrimaries(KHR_DF_PRIMARIES_SRGB);
     } else if (state.info_png.gama_defined) {
         format.setTransfer(KHR_DF_TRANSFER_UNSPECIFIED);
         // The value in the gAMA chunk is the exponent of the power curve
         // used for encoding the image, i.e. the OETF, * 100000.
         format.extended.oeGamma = (float)state.info_png.gama_gamma / 100000;
     } else {
-        format.setTransfer(KHR_DF_TRANSFER_SRGB);
+        format.setTransfer(KHR_DF_TRANSFER_UNSPECIFIED);
     }
 
     if (state.info_png.chrm_defined
@@ -255,34 +283,136 @@ PngInput::readHeader()
     }
 }
 
+// TODO Tools P5: Lift bit_ceil function into a common header where both ktx tools and imageio can access it
+// C++20 - std::bit_ceil
+template <typename T>
+[[nodiscard]] static constexpr inline T bit_ceil(T x) noexcept {
+    x -= 1;
+    for (uint32_t i = 0; i < sizeof(x) * 8; ++i)
+        if (1u << i > x)
+            return 1u << i;
+    return 0;
+}
+
+// TODO Tools P5: Lift convertUNORM function into a common header where both ktx tools and imageio can access it
+[[nodiscard]] constexpr inline uint32_t convertUNORM(uint32_t value, uint32_t sourceBits, uint32_t targetBits) noexcept {
+    assert(sourceBits != 0);
+    assert(targetBits != 0);
+
+    value &= (1u << sourceBits) - 1u;
+    if (targetBits == sourceBits) {
+        return value;
+    } else if (targetBits >= sourceBits) {
+        // Upscale with "left bit replication" to fill in the least significant bits
+        uint64_t result = 0;
+        for (uint32_t i = 0; i < targetBits; i += sourceBits)
+            result |= static_cast<uint64_t>(value) << (targetBits - i) >> sourceBits;
+
+        return static_cast<uint32_t>(result);
+    } else {
+        // Downscale with rounding: Check the most significant bit that was dropped: 1 -> up, 0 -> down
+        const auto msDroppedBitIndex = sourceBits - targetBits - 1u;
+        const auto msDroppedBitValue = value & (1u << msDroppedBitIndex);
+        if (msDroppedBitValue)
+            // Min stops the 'overflow' if every targetBit is saturated and we would round up
+            return std::min((value >> (sourceBits - targetBits)) + 1u, (1u << targetBits) - 1u);
+        else
+            return value >> (sourceBits - targetBits);
+    }
+}
+
 void
 PngInput::readImage(void* buffer,  size_t bufferByteCount,
                     uint32_t /*subimage*/, uint32_t /*miplevel*/,
                     const FormatDescriptor& format)
 {
-    const FormatDescriptor* targetFormat;
+    const auto& targetFormat = format.isUnknown() ? spec().format() : format;
 
-    if (format.isUnknown())
-        targetFormat = &spec().format();
-    else
-        targetFormat = &format;
+    const auto channelCount = targetFormat.channelCount();
+    const auto height = spec().height();
+    const auto width = spec().width();
+    const auto targetBitLength = targetFormat.largestChannelBitLength();
+    const auto requestBits = std::max(bit_ceil(targetBitLength), 8u);
 
-    // TODO: check for unsupported conversions.
-    uint32_t requestBits
-               = targetFormat->channelBitLength(KHR_DF_CHANNEL_RGBSDA_R);
+    if (requestBits != 8 && requestBits != 16)
+        throw std::runtime_error(fmt::format(
+                "PNG decode error: Requested decode into {} bit format is not supported.", requestBits));
+
+    const bool targetL = targetFormat.samples[0].qualifierLinear;
+    const bool targetE = targetFormat.samples[0].qualifierExponent;
+    const bool targetS = targetFormat.samples[0].qualifierSigned;
+    const bool targetF = targetFormat.samples[0].qualifierFloat;
+
+    // Only UNORM requests are allowed for PNG inputs
+    if (targetE || targetL || targetS || targetF)
+        throw std::runtime_error(fmt::format(
+                "PNG decode error: Requested format conversion to {}-bit{}{}{}{} is not supported.",
+                requestBits,
+                targetL ? " Linear" : "",
+                targetE ? " Exponent" : "",
+                targetS ? " Signed" : "",
+                targetF ? " Float" : ""));
+
     state.info_raw.bitdepth = requestBits;
-    unsigned int lodepngError = lodepng_finish_decode(
+    state.info_raw.colortype = [&]{
+        switch (targetFormat.channelCount()) {
+        case 1:
+            return LCT_GREY;
+        case 2:
+            return LCT_GREY_ALPHA;
+        case 3:
+            return LCT_RGB;
+        case 4:
+            return LCT_RGBA;
+        }
+        throw std::runtime_error(fmt::format(
+                "PNG decode error: Requested decode into {} channel is not supported.", targetFormat.channelCount()));
+    }();
+    auto lodepngError = lodepng_finish_decode(
                                           (unsigned char*)buffer,
                                           bufferByteCount,
-                                          spec().width(),
-                                          spec().height(),
+                                          width,
+                                          height,
                                           &state,
-                                          pIdat);
+                                          pIdat,
+                                          idatsize);
 
-    if (lodepngError) {
-        throw std::runtime_error(
-            fmt::format("PNG decode error: {}.",
-                        lodepng_error_text(lodepngError))
-        );
+    if (lodepngError)
+        throw std::runtime_error(fmt::format(
+                "PNG decode error: {}.", lodepng_error_text(lodepngError)));
+
+    // TODO Tools P5: Detect endianness
+    // if constexpr (std::endian::native == std::endian::little)
+    if (requestBits == 16) {
+        // LodePNG loads 16 bit channels in big endian order
+        auto* data = (unsigned char*) buffer;
+        for (size_t i = 0; i < bufferByteCount; i += 2)
+            std::swap(*(data + i), *(data + i + 1));
+    }
+
+    if (state.info_png.sbit_defined) {
+        // Recalculate the UNORM values based on sBit information to ensure best loading/rounding
+        // result regardless of what the png file's writer saved
+        std::array<uint32_t, 4> sBits{
+            state.info_png.sbit_r,
+            state.info_png.sbit_g,
+            state.info_png.sbit_b,
+            state.info_png.sbit_a,
+        };
+
+        for (uint32_t y = 0; y < height; ++y) {
+            for (uint32_t x = 0; x < width; ++x) {
+                for (uint32_t c = 0; c < channelCount; ++c) {
+                    const auto index = y * width * channelCount + x * channelCount + c;
+                    if (requestBits == 8) {
+                        auto& value = *(reinterpret_cast<uint8_t*>(buffer) + index);
+                        value = static_cast<uint8_t>(convertUNORM(value >> (8 - sBits[c]), sBits[c], 8));
+                    } else { // requestBits == 16
+                        auto& value = *(reinterpret_cast<uint16_t*>(buffer) + index);
+                        value = static_cast<uint16_t>(convertUNORM(value >> (16 - sBits[c]), sBits[c], 16));
+                    }
+                }
+            }
+        }
     }
 }

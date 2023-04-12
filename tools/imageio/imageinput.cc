@@ -31,7 +31,7 @@
 // and open the file.
 std::unique_ptr<ImageInput>
 ImageInput::open(const _tstring& filename,
-                 const ImageSpec* config,
+                 const ImageSpec* /*config*/,
                  WarningCallbackFunction wcb)
                  //Filesystem::IOProxy* ioproxy, string_view plugin_searchpath)
 {
@@ -107,7 +107,7 @@ ImageInput::open(const _tstring& filename,
             in = std::unique_ptr<ImageInput>(createFunction());
             in->connectCallback(wcb);
             ImageSpec tmpspec;
-            in->open(*fn, ifs, buffer, tmpspec, *config);
+            in->open(*fn, ifs, buffer, tmpspec);
             return in;
         } catch (const std::runtime_error& e) {
             // Oops, it failed.  Apparently, this file can't be
@@ -134,7 +134,7 @@ ImageInput::open(const _tstring& filename,
             in = std::unique_ptr<ImageInput>(createFunction());
             in->connectCallback(wcb);
             ImageSpec tmpspec;
-            in->open(*fn, ifs, buffer, tmpspec, *config);
+            in->open(*fn, ifs, buffer, tmpspec);
             return in;
         } catch (...) {
             if (in.get()) in.reset();

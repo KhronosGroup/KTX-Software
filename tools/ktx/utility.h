@@ -9,6 +9,8 @@
 #include "stdafx.h"
 #include <fmt/ostream.h>
 #include <fmt/printf.h>
+#include <algorithm>
+#include <array>
 #include <functional>
 #include <optional>
 #include <type_traits>
@@ -18,8 +20,13 @@
 
 namespace ktx {
 
+// TODO Tools P5: Detect endianness
+// C++20: std::endian::native == std::endian::little
+constexpr bool is_big_endian = false;
+
 template <typename T>
 [[nodiscard]] constexpr inline T align(const T value, const T alignment) noexcept {
+    assert(alignment != 0);
     return (alignment - 1 + value) / alignment * alignment;
 }
 
@@ -30,7 +37,38 @@ template <typename T>
 
 template <typename T>
 [[nodiscard]] constexpr inline T ceil_div(const T x, const T y) noexcept {
+    assert(y != 0);
 	return (x + y - 1) / y;
+}
+
+[[nodiscard]] constexpr inline uint32_t log2(uint32_t v) noexcept {
+    uint32_t e = 0;
+
+    // http://aggregate.org/MAGIC/
+    v |= (v >> 1);
+    v |= (v >> 2);
+    v |= (v >> 4);
+    v |= (v >> 8);
+    v |= (v >> 16);
+    v = v & ~(v >> 1);
+
+    e = (v & 0xAAAAAAAA) ? 1 : 0;
+    e |= (v & 0xCCCCCCCC) ? 2 : 0;
+    e |= (v & 0xF0F0F0F0) ? 4 : 0;
+    e |= (v & 0xFF00FF00) ? 8 : 0;
+    e |= (v & 0xFFFF0000) ? 16 : 0;
+
+    return e;
+}
+
+// C++20 - std::bit_ceil
+template <typename T>
+[[nodiscard]] constexpr inline T bit_ceil(T x) noexcept {
+    x -= 1;
+    for (uint32_t i = 1; i < sizeof(x) * 8; ++i)
+        if (1u << i > x)
+            return 1u << i;
+    return 0;
 }
 
 // C++20 - std::popcount
@@ -48,6 +86,28 @@ template <typename E>
 [[nodiscard]] constexpr inline auto to_underlying(E e) noexcept {
     static_assert(std::is_enum_v<E>, "E has to be an enum type");
     return static_cast<std::underlying_type_t<E>>(e);
+}
+
+// C++20 - std::bit_cast
+template <class To, class From>
+[[nodiscard]] constexpr inline To bit_cast(const From& src) noexcept {
+    static_assert(sizeof(To) == sizeof(From));
+    static_assert(std::is_trivially_copyable_v<From>);
+    static_assert(std::is_trivially_copyable_v<To>);
+    static_assert(std::is_trivially_constructible_v<To>);
+    To dst;
+    std::memcpy(&dst, &src, sizeof(To));
+    return dst;
+}
+
+// C++20 - std::byteswap
+template <typename T>
+[[nodiscard]] constexpr inline T byteswap(T value) noexcept {
+    static_assert(std::has_unique_object_representations_v<T>, "T may have padding bits");
+    auto representation = bit_cast<std::array<std::byte, sizeof(T)>>(value);
+    for (uint32_t i = 0; i < representation.size() / 2u; ++i)
+        std::swap(representation[i], representation[representation.size() - 1 - i]);
+    return bit_cast<T>(representation);
 }
 
 // C++20 - string.starts_with(prefix)
@@ -70,6 +130,8 @@ struct identity {
         return std::forward<T>(arg);
     }
 };
+
+// -------------------------------------------------------------------------------------------------
 
 template <typename Range, typename Comp = std::less<>, typename Proj = identity>
 [[nodiscard]] constexpr inline bool is_sorted(const Range& range, Comp&& comp = {}, Proj&& proj = {}) {
@@ -115,6 +177,192 @@ inline void replace_all_inplace(std::string& string, std::string_view search, st
     replace_all_inplace(string, "\"", "\\\"");
     replace_all_inplace(string, "\n", "\\n");
     return string;
+}
+
+// --- Half utilities ------------------------------------------------------------------------------
+// Based on https://gist.github.com/rygorous/eb3a019b99fdaa9c3064
+
+union FP32 {
+    uint32_t u;
+    float f;
+    struct P {
+        uint32_t Mantissa : 23;
+        uint32_t Exponent : 8;
+        uint32_t Sign : 1;
+    } p;
+};
+
+union FP16 {
+    uint16_t u;
+    struct P {
+        uint16_t Mantissa : 10;
+        uint16_t Exponent : 5;
+        uint16_t Sign : 1;
+    } p;
+};
+
+inline float half_to_float(uint16_t value) {
+    FP16 h;
+    h.u = value;
+    static const FP32 magic = {113 << 23};
+    static const uint32_t shifted_exp = 0x7c00 << 13; // exponent mask after shift
+    FP32 o;
+
+    o.u = (h.u & 0x7fff) << 13;     // exponent/mantissa bits
+    uint32_t exp = shifted_exp & o.u;   // just the exponent
+    o.u += (127 - 15) << 23;        // exponent adjust
+
+    // handle exponent special cases
+    if (exp == shifted_exp) // Inf/NaN?
+        o.u += (128 - 16) << 23;    // extra exp adjust
+    else if (exp == 0) { // Zero/Denormal?
+        o.u += 1 << 23;             // extra exp adjust
+        o.f -= magic.f;             // renormalize
+    }
+
+    o.u |= (h.u & 0x8000) << 16;    // sign bit
+    return o.f;
+}
+
+inline uint16_t float_to_half(float value) {
+    FP32 f;
+    f.f = value;
+    FP16 o = {0};
+
+    // Based on ISPC reference code (with minor modifications)
+    if (f.p.Exponent == 0) // Signed zero/denormal (which will underflow)
+        o.p.Exponent = 0;
+    else if (f.p.Exponent == 255) { // Inf or NaN (all exponent bits set)
+        o.p.Exponent = 31;
+        o.p.Mantissa = f.p.Mantissa ? 0x200 : 0; // NaN->qNaN and Inf->Inf
+    } else { // Normalized number
+        // Exponent unbias the single, then bias the halfp
+        int newexp = f.p.Exponent - 127 + 15;
+        if (newexp >= 31) // Overflow, return signed infinity
+            o.p.Exponent = 31;
+        else if (newexp <= 0) { // Underflow
+            if ((14 - newexp) <= 24) { // Mantissa might be non-zero
+                uint32_t mant = f.p.Mantissa | 0x800000; // Hidden 1 bit
+                o.p.Mantissa = mant >> (14 - newexp);
+                if ((mant >> (13 - newexp)) & 1) // Check for rounding
+                    o.u++; // Round, might overflow into exp bit, but this is OK
+            }
+        } else {
+            o.p.Exponent = newexp;
+            o.p.Mantissa = f.p.Mantissa >> 13;
+            if (f.p.Mantissa & 0x1000) // Check for rounding
+                o.u++; // Round, might overflow to inf, this is OK
+        }
+    }
+
+    o.p.Sign = f.p.Sign;
+    return o.u;
+}
+
+// -------------------------------------------------------------------------------------------------
+
+template <typename T>
+[[nodiscard]] constexpr inline T extract_bits(const void* data, uint32_t offset, uint32_t numBits) {
+    assert(numBits <= sizeof(T) * 8);
+
+    const auto* source = static_cast<const uint8_t*>(data);
+    std::array<uint8_t, sizeof(T)> target{0};
+
+    for (uint32_t i = 0; i < numBits; ++i) {
+        const auto sourceBitIndex = offset + i;
+        const auto sourceByteIndex = sourceBitIndex / 8;
+        const auto sourceBitSubByteIndex = sourceBitIndex % 8;
+        const auto sourceBitSubByteMask = 1u << sourceBitSubByteIndex;
+        const auto sourceBitValue = (source[sourceByteIndex] & sourceBitSubByteMask) != 0;
+        const auto targetBitIndex = i;
+        const auto targetByteIndex = targetBitIndex / 8;
+        const auto targetBitSubByteIndex = targetBitIndex % 8;
+        target[targetByteIndex] |= sourceBitValue ? 1u << targetBitSubByteIndex : 0u;
+    }
+
+    return bit_cast<T>(target);
+}
+
+[[nodiscard]] inline float covertSFloatToFloat(uint32_t rawBits, uint32_t numBits) {
+    assert(numBits == 16 || numBits == 32);
+    if (numBits == 16)
+        return half_to_float(static_cast<uint16_t>(rawBits));
+    if (numBits == 32)
+        return bit_cast<float>(rawBits);
+    return 0;
+}
+[[nodiscard]] inline float covertUFloatToFloat(uint32_t rawBits, uint32_t numBits) {
+    assert(numBits == 10 || numBits == 11 || numBits == 14);
+    // TODO Tools P4: covertUFloatToFloat for 10, 11 and "14"
+    (void) rawBits;
+    (void) numBits;
+    assert(false && "Not yet implemented");
+    return 0;
+}
+[[nodiscard]] inline float covertSIntToFloat(uint32_t rawBits, uint32_t numBits) {
+    assert(numBits > 0 && numBits <= 32);
+    const auto signBit = (rawBits & 1u << (numBits - 1)) != 0;
+    const auto valueBits = rawBits & ~(1u << (numBits - 1));
+    const auto signedValue = static_cast<int32_t>(valueBits) * (signBit ? -1 : 1);
+    return static_cast<float>(signedValue);
+}
+[[nodiscard]] inline float covertUIntToFloat(uint32_t rawBits, uint32_t numBits) {
+    assert(numBits > 0 && numBits <= 32);
+    (void) numBits;
+    return static_cast<float>(rawBits);
+}
+[[nodiscard]] inline uint32_t covertSFloatToUInt(uint32_t rawBits, uint32_t numBits) {
+    assert(numBits == 16 || numBits == 32);
+    if (numBits == 16)
+        return static_cast<uint32_t>(half_to_float(static_cast<uint16_t>(rawBits)));
+    if (numBits == 32)
+        return static_cast<uint32_t>(bit_cast<float>(rawBits));
+    return 0;
+}
+[[nodiscard]] inline uint32_t covertUFloatToUInt(uint32_t rawBits, uint32_t numBits) {
+    assert(numBits == 10 || numBits == 11 || numBits == 14);
+    (void) rawBits;
+    (void) numBits;
+    assert(false && "Not yet implemented");
+    return 0;
+}
+[[nodiscard]] inline uint32_t covertSIntToUInt(uint32_t rawBits, uint32_t numBits) {
+    assert(numBits > 0 && numBits <= 32);
+    (void) rawBits;
+    (void) numBits;
+    assert(false && "Not yet implemented");
+    return 0;
+}
+[[nodiscard]] inline uint32_t covertUIntToUInt(uint32_t rawBits, uint32_t numBits) {
+    assert(numBits > 0 && numBits <= 32);
+    (void) numBits;
+    return rawBits;
+}
+
+[[nodiscard]] constexpr inline uint32_t convertUNORM(uint32_t value, uint32_t sourceBits, uint32_t targetBits) noexcept {
+    assert(sourceBits != 0);
+    assert(targetBits != 0);
+
+    value &= (1u << sourceBits) - 1u;
+    if (targetBits == sourceBits) {
+        return value;
+    } else if (targetBits >= sourceBits) {
+        // Upscale with "left bit replication" to fill in the least significant bits
+        uint64_t result = 0;
+        for (uint32_t i = 0; i < targetBits; i += sourceBits)
+            result |= static_cast<uint64_t>(value) << (targetBits - i) >> sourceBits;
+
+        return static_cast<uint32_t>(result);
+    } else {
+        // Downscale with rounding: Check the most significant bit that was dropped: 1 -> up, 0 -> down
+        const auto msDroppedBitIndex = sourceBits - targetBits - 1u;
+        const auto msDroppedBitValue = value & (1u << msDroppedBitIndex);
+        if (msDroppedBitValue)
+            // Min stops the 'overflow' if every targetBit is saturated and we would round up
+            return std::min((value >> (sourceBits - targetBits)) + 1u, (1u << targetBits) - 1u);
+        else
+            return value >> (sourceBits - targetBits);
+    }
 }
 
 // --- UTF-8 ---------------------------------------------------------------------------------------
@@ -306,6 +554,29 @@ public:
     inline ktxTexture2* operator->() const {
         return handle_;
     }
+};
+
+
+template <typename T>
+struct ClampedOption {
+    ClampedOption(T& option, T min_v, T max_v) : option(option), min(min_v), max(max_v) {}
+
+    void clear() {
+        option = 0;
+    }
+
+    operator T() const {
+        return option;
+    }
+
+    T operator=(T v) {
+        option = std::clamp<T>(v, min, max);
+        return option;
+    }
+
+    T& option;
+    T min;
+    T max;
 };
 
 } // namespace ktx
