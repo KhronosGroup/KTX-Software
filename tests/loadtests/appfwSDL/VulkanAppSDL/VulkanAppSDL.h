@@ -49,9 +49,13 @@ class VulkanAppSDL : public AppBaseSDL {
     virtual void windowResized();
 
     static void* operator new(size_t size) {
-        void* storage = new char[size];
+        void* storage = ::operator new(size);
         memset(storage, 0, size);
         return storage;
+    }
+
+    static void operator delete(void* storage, size_t) {
+        ::operator delete(storage);
     }
 
     void updateTextOverlay();
