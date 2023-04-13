@@ -608,14 +608,25 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         lib/basisu/transcoder/basisu_transcoder.cpp
         PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable;-Wno-class-memaccess;-Wno-maybe-uninitialized"
     )
-    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "11.0")
-        # Version 11 raises several of these warnings in some very hard to
-        # decipher code. They appear to be bogus based on the facts that
-        # we have never seen a crash and version 12 no longer raises the
-        # warnings.
+    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_EQUAL "11")
+        # Version 11 raises several stringop-overflow warnings in some
+        # very hard to decipher code. They appear to be bogus based on
+        # the facts that we have never seen a crash and version 12 no
+        # longer raises the warnings.
         set_source_files_properties(
             lib/basisu/encoder/basisu_comp.cpp
             PROPERTIES COMPILE_OPTIONS "-Wno-stringop-overflow"
+        )
+    endif()
+    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "11")
+        # class-memaccess warnings n basisu_comp.cpp have been
+        # fixed. Fixing those in the included basisu_miniz.h is
+        # more intrusive than I want to attempt.
+        #
+        # The extra warnings are raised in basisu_miniz.h.
+        set_source_files_properties(
+            lib/basisu/encoder/basisu_comp.cpp
+            PROPERTIES COMPILE_OPTIONS "-Wno-class-memaccess;-Wno-extra"
         )
     endif()
     if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "12.0")
