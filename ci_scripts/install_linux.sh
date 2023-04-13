@@ -13,6 +13,7 @@ for i in $@; do
 done
 
 FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-ON}
+VULKAN_SDK_VER=${VULKAN_SDK_VER:-1.3.243}
 
 sudo apt-get -qq update
 sudo apt-get -qq install ninja-build
@@ -27,9 +28,12 @@ if [ "$FEATURE_LOADTESTS" = "ON" ]; then
   sudo apt-get -qq install libvulkan1 libvulkan-dev
   sudo apt-get -qq install libassimp5 libassimp-dev
 
+  os_codename=$(grep -E 'VERSION_CODENAME=[a-zA-Z]+$' /etc/os-release)
+  os_codename=${os_codename#VERSION_CODENAME=}
+
   echo "Download Vulkan SDK"
   wget -O - https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
-  sudo wget -O /etc/apt/sources.list.d/lunarg-vulkan-$VULKAN_SDK_VER-jammy.list https://packages.lunarg.com/vulkan/$VULKAN_SDK_VER/lunarg-vulkan-$VULKAN_SDK_VER-jammy.list
+  sudo wget -O /etc/apt/sources.list.d/lunarg-vulkan-$VULKAN_SDK_VER-$os_codename.list https://packages.lunarg.com/vulkan/$VULKAN_SDK_VER/lunarg-vulkan-$VULKAN_SDK_VER-$os_codename.list
   echo "Install Vulkan SDK"
   sudo apt update
   sudo apt install vulkan-sdk
