@@ -2573,8 +2573,7 @@ namespace basisu
 		unpacked_uastc_block temp_ublock_unpacked;
 		unpack_uastc(temp_ublock, temp_ublock_unpacked, false);
 										
-		unpacked_uastc_block ublock;
-		memset(&ublock, 0, sizeof(ublock));
+		unpacked_uastc_block ublock = {};
 		ublock.m_mode = best_results.m_uastc_mode;
 		ublock.m_common_pattern = best_results.m_common_pattern;
 		ublock.m_astc = temp_ublock_unpacked.m_astc;
@@ -3388,8 +3387,7 @@ namespace basisu
 			}
 		}
 				
-		unpacked_uastc_block unpacked_ublock;
-		memset(&unpacked_ublock, 0, sizeof(unpacked_ublock));
+		unpacked_uastc_block unpacked_ublock = {};
 
 		uint64_t total_overall_err[MAX_ENCODE_RESULTS];
 		float uastc_err_f[MAX_ENCODE_RESULTS];
