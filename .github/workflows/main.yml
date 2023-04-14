@@ -175,7 +175,6 @@ jobs:
         Import-Module "$env:ChocolateyInstall/helpers/chocolateyInstaller.psm1"
         refreshenv
         $env:JAVA_HOME=$step_java_home
-        echo "CODE_SIGN_KEY_VAULT = $env:CODE_SIGN_KEY_VAULT"
         ci_scripts/build_win.ps1
 
     - name: Test Windows build
@@ -187,13 +186,13 @@ jobs:
       id: ktx-version
       run: |
         $KTX_VERSION = Get-Content $env:BUILD_DIR/ktx.version
-        echo "KTX_VERSION=$KTX_VERSION" >> $GITHUB_ENV
+        echo "KTX_VERSION=$KTX_VERSION" >> $env:GITHUB_ENV
 
     - name: Upload Artifact
       if: matrix.options.package == 'YES'
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
-        name: KTX-Software-$KTX_VERSION-Windows-arm64
+        name: KTX-Software-${KTX_VERSION}-Windows-arm64
         path: ${{env.BUILD_DIR}}/KTX-Software-*.exe*
 
     - name: Upload To Release
@@ -215,7 +214,6 @@ jobs:
         # Fetch all history to make sure tags are
         # included (used for version creation)
         fetch-depth: 0
-    - uses: seanmiddleditch/gha-setup-ninja@v3
     - uses: Honeybunch/setup-mingw@v3
     - name: Force update provoking tag
       # Work around https://github.com/actions/checkout/issues/290.
@@ -223,6 +221,8 @@ jobs:
       run: git fetch -f origin ${{ github.ref }}:${{ github.ref }}
     - name: Pull test images from Git LFS
       run: git lfs pull --include=tests/srcimages,tests/testimages
+    - name: Install Ninja
+      run: brew install ninja
     - name: Configure Mingw x64
       run: cmake -B build -G "Ninja Multi-Config" -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++
     - name: Build Mingw x64 Debug
@@ -245,7 +245,6 @@ jobs:
         # Fetch all history to make sure tags are
         # included (used for version creation)
         fetch-depth: 0
-    - uses: seanmiddleditch/gha-setup-ninja@v3
 
     - uses: nttld/setup-ndk@v1
       id: setup-ndk
@@ -257,6 +256,9 @@ jobs:
       # Work around https://github.com/actions/checkout/issues/290.
       if: github.ref_type == 'tag'
       run: git fetch -f origin ${{ github.ref }}:${{ github.ref }}
+
+    - name: Install Ninja
+      run: brew install ninja
 
     - name: android_Debug_arm64-v8a
       run: ./ci_scripts/build_android_debug.sh
@@ -299,7 +301,7 @@ jobs:
     # by the preceding steps and uploads the zip.
     - name: upload artifact
       id: upload-artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: KTX-Software-${KTX_VERSION}-Android
         path: install-android
