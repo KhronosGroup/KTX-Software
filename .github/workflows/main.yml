@@ -258,7 +258,7 @@ jobs:
       run: git fetch -f origin ${{ github.ref }}:${{ github.ref }}
 
     - name: Install Ninja
-      run: sudo apt-get install -y ninja
+      run: sudo apt-get install -y ninja-build
 
     - name: android_Debug_arm64-v8a
       run: ./ci_scripts/build_android_debug.sh
