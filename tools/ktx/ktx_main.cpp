@@ -93,11 +93,8 @@ public:
 // -------------------------------------------------------------------------------------------------
 
 int Tools::main(int argc, _TCHAR* argv[]) {
-    // Tools behaves differently so, it does not reuse the 'execute' options parsing in the base Command
-    cxxopts::Options options(
-            "ktx",
-            "Unified CLI frontend for the KTX-Software library with sub-commands for specific operations.\n");
-    options.custom_help("[-v | --version] [-h | --help] <command> <command-args>");
+    cxxopts::Options options("ktx", "");
+    options.custom_help("[--version] [--help] <command> <command-args>");
     options.set_width(CONSOLE_USAGE_WIDTH);
     options.add_options()
         ("h,help", "Print this usage message and exit")
@@ -110,12 +107,13 @@ int Tools::main(int argc, _TCHAR* argv[]) {
     try {
         args = options.parse(argc, argv);
     } catch (const std::exception& ex) {
-        fmt::print(std::cerr, "Failed to parse command line arguments: {}\n", ex.what());
+        fmt::print(std::cerr, "{}: {}\n", options.program(), ex.what());
         printUsage(std::cerr, options);
         return RETURN_CODE_INVALID_ARGUMENTS;
     }
 
     if (args.count("help")) {
+        fmt::print(std::cout, "{}: Unified CLI frontend for the KTX-Software library with sub-commands for specific operations.\n", options.program());
         printUsage(std::cout, options);
         return RETURN_CODE_SUCCESS;
     }
@@ -126,10 +124,10 @@ int Tools::main(int argc, _TCHAR* argv[]) {
     }
 
     if (args.unmatched().empty()) {
-        fmt::print(std::cerr, "Missing command.\n");
+        fmt::print(std::cerr, "{}: Missing command.\n", options.program());
         printUsage(std::cerr, options);
     } else {
-        fmt::print(std::cerr, "Unrecognized command: \"{}\"\n", args.unmatched()[0]);
+        fmt::print(std::cerr, "{}: Unrecognized command: \"{}\"\n", options.program(), args.unmatched()[0]);
         printUsage(std::cerr, options);
     }
 
@@ -141,13 +139,16 @@ void Tools::printUsage(std::ostream& os, const cxxopts::Options& options) {
 
     fmt::print(os, "\n");
     fmt::print(os, "Available commands:\n");
-    fmt::print(os, "  create - Create a KTX2 file from various input files\n");
-    fmt::print(os, "  extract - Export selected images from a KTX2 file\n");
-    fmt::print(os, "  encode - Encode a KTX2 file\n");
-    fmt::print(os, "  transcode - Transcode a KTX2 file\n");
-    fmt::print(os, "  info - Prints information about a KTX2 file\n");
-    fmt::print(os, "  validate - Validates a KTX2 file\n");
-    fmt::print(os, "  help - \n");
+    fmt::print(os, "  create     Create a KTX2 file from various input files\n");
+    fmt::print(os, "  extract    Export selected images from a KTX2 file\n");
+    fmt::print(os, "  encode     Encode a KTX2 file\n");
+    fmt::print(os, "  transcode  Transcode a KTX2 file\n");
+    fmt::print(os, "  info       Prints information about a KTX2 file\n");
+    fmt::print(os, "  validate   Validate a KTX2 file\n");
+    fmt::print(os, "  help       \n");
+    fmt::print(os, "\n");
+    fmt::print(os, "For detailed usage and description of each subcommand use 'ktx help <command>'\n"
+                   "or 'ktx <command> --help'\n");
 }
 
 } // namespace ktx ---------------------------------------------------------------------------------

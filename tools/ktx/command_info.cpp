@@ -83,14 +83,14 @@ private:
 int CommandInfo::main(int argc, _TCHAR* argv[]) {
     try {
         parseCommandLine("ktx info",
-                "Prints information about the KTX2 file provided as argument to the stdout.\n",
+                "Prints information about the KTX2 file provided as argument to the stdout.",
                 argc, argv);
         executeInfo();
         return RETURN_CODE_SUCCESS;
     } catch (const FatalError& error) {
         return error.return_code;
     } catch (const std::exception& e) {
-        fmt::print(std::cerr, "{} fatal: {}\n", processName, e.what());
+        fmt::print(std::cerr, "{} fatal: {}\n", commandName, e.what());
         return RETURN_CODE_RUNTIME_ERROR;
     }
 }
@@ -106,7 +106,7 @@ void CommandInfo::processOptions(cxxopts::Options& opts, cxxopts::ParseResult& a
 void CommandInfo::executeInfo() {
     std::ifstream file(options.inputFilepath, std::ios::binary | std::ios::in);
     if (!file)
-        fatal(RETURN_CODE_IO_FAILURE, "Could not open input file \"{}\": {}", options.inputFilepath, errnoMessage());
+        fatal(rc::IO_FAILURE, "Could not open input file \"{}\": {}", options.inputFilepath, errnoMessage());
 
     KTX_error_code result;
 
@@ -126,7 +126,7 @@ void CommandInfo::executeInfo() {
     }
 
     if (result != KTX_SUCCESS)
-        fatal(RETURN_CODE_INVALID_FILE, "Failed to process KTX2 file \"{}\": {}", options.inputFilepath, ktxErrorString(result));
+        fatal(rc::INVALID_FILE, "Failed to process KTX2 file \"{}\": {}", options.inputFilepath, ktxErrorString(result));
 }
 
 KTX_error_code CommandInfo::printInfoText(std::istream& file) {

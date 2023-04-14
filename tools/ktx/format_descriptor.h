@@ -57,7 +57,7 @@ namespace ktx {
 [[nodiscard]] inline FormatDescriptor createFormatDescriptor(VkFormat vkFormat, Reporter& report) {
     const auto dfd = std::unique_ptr<uint32_t[], decltype(std::free)*>(vk2dfd(vkFormat), std::free);
     if (!dfd)
-        report.fatal(RETURN_CODE_INVALID_ARGUMENTS, "Failed to create format descriptor for: {}", toString(vkFormat));
+        report.fatal(rc::DFD_FAILURE, "Failed to create format descriptor for: {}", toString(vkFormat));
 
     return createFormatDescriptor(dfd.get());
 }

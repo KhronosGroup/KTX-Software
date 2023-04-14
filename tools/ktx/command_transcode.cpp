@@ -88,13 +88,13 @@ private:
 
 int CommandTranscode::main(int argc, _TCHAR* argv[]) {
     try {
-        parseCommandLine("ktx transcode", "Transcode a KTX2 file.\n", argc, argv);
+        parseCommandLine("ktx transcode", "Transcode a KTX2 file.", argc, argv);
         executeTranscode();
         return RETURN_CODE_SUCCESS;
     } catch (const FatalError& error) {
         return error.return_code;
     } catch (const std::exception& e) {
-        fmt::print(std::cerr, "{} fatal: {}\n", processName, e.what());
+        fmt::print(std::cerr, "{} fatal: {}\n", commandName, e.what());
         return RETURN_CODE_RUNTIME_ERROR;
     }
 }
@@ -126,16 +126,16 @@ void CommandTranscode::executeTranscode() {
     StreambufStream<std::streambuf*> ktx2Stream{file.rdbuf(), std::ios::in | std::ios::binary};
     auto ret = ktxTexture2_CreateFromStream(ktx2Stream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, texture.pHandle());
     if (ret != KTX_SUCCESS)
-        fatal(RETURN_CODE_INVALID_FILE, "Failed to create KTX2 texture: {}", ktxErrorString(ret));
+        fatal(rc::INVALID_FILE, "Failed to create KTX2 texture: {}", ktxErrorString(ret));
 
     if (!ktxTexture2_NeedsTranscoding(texture))
-        fatal(RETURN_CODE_INVALID_FILE, "KTX file is not transcodable.");
+        fatal(rc::INVALID_FILE, "KTX file is not transcodable.");
 
     options.validateTextureTranscode(texture, *this);
 
     ret = ktxTexture2_TranscodeBasis(texture, options.transcodeTarget.value(), 0);
     if (ret != KTX_SUCCESS)
-        fatal(RETURN_CODE_INVALID_FILE, "Failed to transcode KTX2 texture: {}", ktxErrorString(ret));
+        fatal(rc::INVALID_FILE, "Failed to transcode KTX2 texture: {}", ktxErrorString(ret));
 
     // Need to perform format conversion and swizzling if needed
     bool needFormatConversion = false;
@@ -241,17 +241,17 @@ void CommandTranscode::executeTranscode() {
     if (options.zstd) {
         ret = ktxTexture2_DeflateZstd((ktxTexture2*)outputTexture, *options.zstd);
         if (ret != KTX_SUCCESS)
-            fatal(RETURN_CODE_KTX_FAILURE, "Zstd deflation failed. KTX Error: {}", ktxErrorString(ret));
+            fatal(rc::KTX_FAILURE, "Zstd deflation failed. KTX Error: {}", ktxErrorString(ret));
     }
 
     if (options.zlib) {
         ret = ktxTexture2_DeflateZLIB((ktxTexture2*)outputTexture, *options.zlib);
         if (ret != KTX_SUCCESS)
-            fatal(RETURN_CODE_KTX_FAILURE, "ZLIB deflation failed. KTX Error: {}", ktxErrorString(ret));
+            fatal(rc::KTX_FAILURE, "ZLIB deflation failed. KTX Error: {}", ktxErrorString(ret));
     }
 
     // Modify KTXwriter metadata
-    const auto writer = fmt::format("{} {}", processName, version(options.testrun));
+    const auto writer = fmt::format("{} {}", commandName, version(options.testrun));
     ktxHashList_DeleteKVPair(&outputTexture->kvDataHead, KTX_WRITER_KEY);
     ktxHashList_AddKVPair(&outputTexture->kvDataHead, KTX_WRITER_KEY,
             static_cast<uint32_t>(writer.size() + 1), // +1 to include the \0
@@ -270,7 +270,7 @@ void CommandTranscode::executeTranscode() {
     if (KTX_SUCCESS != ret) {
         if (f != stdout)
             std::filesystem::remove(options.outputFilepath);
-        fatal(RETURN_CODE_IO_FAILURE, "Failed to write KTX file \"{}\": KTX error: {}",
+        fatal(rc::IO_FAILURE, "Failed to write KTX file \"{}\": KTX error: {}",
             options.outputFilepath, ktxErrorString(ret));
     }
 }

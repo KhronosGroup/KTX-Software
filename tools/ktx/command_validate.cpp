@@ -99,14 +99,14 @@ private:
 int CommandValidate::main(int argc, _TCHAR* argv[]) {
     try {
         parseCommandLine("ktx validate",
-                "Validates a KTX2 file and prints any issues to the stdout.\n",
+                "Validates a KTX2 file and prints any issues to the stdout.",
                 argc, argv);
         executeValidate();
         return RETURN_CODE_SUCCESS;
     } catch (const FatalError& error) {
         return error.return_code;
     } catch (const std::exception& e) {
-        fmt::print(std::cerr, "{} fatal: {}\n", processName, e.what());
+        fmt::print(std::cerr, "{} fatal: {}\n", commandName, e.what());
         return RETURN_CODE_RUNTIME_ERROR;
     }
 }

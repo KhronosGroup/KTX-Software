@@ -87,13 +87,13 @@ private:
 
 int CommandEncode::main(int argc, _TCHAR* argv[]) {
     try {
-        parseCommandLine("ktx encode", "Encode a KTX2 file.\n", argc, argv);
+        parseCommandLine("ktx encode", "Encode a KTX2 file.", argc, argv);
         executeEncode();
         return RETURN_CODE_SUCCESS;
     } catch (const FatalError& error) {
         return error.return_code;
     } catch (const std::exception& e) {
-        fmt::print(std::cerr, "{} fatal: {}\n", processName, e.what());
+        fmt::print(std::cerr, "{} fatal: {}\n", commandName, e.what());
         return RETURN_CODE_RUNTIME_ERROR;
     }
 }
@@ -116,10 +116,10 @@ void CommandEncode::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
 
     if (options.codec == EncodeCodec::BasisLZ) {
         if (options.zstd.has_value())
-            fatal(RETURN_CODE_INVALID_ARGUMENTS, "Cannot encode to BasisLZ and supercompress with Zstd.");
+            fatal_usage("Cannot encode to BasisLZ and supercompress with Zstd.");
 
         if (options.zlib.has_value())
-            fatal(RETURN_CODE_INVALID_ARGUMENTS, "Cannot encode to BasisLZ and supercompress with ZLIB.");
+            fatal_usage("Cannot encode to BasisLZ and supercompress with ZLIB.");
     }
 }
 
@@ -131,10 +131,10 @@ void CommandEncode::executeEncode() {
     StreambufStream<std::streambuf*> ktx2Stream{file.rdbuf(), std::ios::in | std::ios::binary};
     auto ret = ktxTexture2_CreateFromStream(ktx2Stream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, texture.pHandle());
     if (ret != KTX_SUCCESS)
-        fatal(RETURN_CODE_INVALID_FILE, "Failed to create KTX2 texture: {}", ktxErrorString(ret));
+        fatal(rc::INVALID_FILE, "Failed to create KTX2 texture: {}", ktxErrorString(ret));
 
     if (texture->supercompressionScheme != KTX_SS_NONE)
-        fatal(RETURN_CODE_INVALID_FILE, "Cannot encode KTX2 file with {} supercompression.",
+        fatal(rc::INVALID_FILE, "Cannot encode KTX2 file with {} supercompression.",
             toString(ktxSupercmpScheme(texture->supercompressionScheme)));
 
     switch (texture->vkFormat) {
@@ -149,13 +149,13 @@ void CommandEncode::executeEncode() {
         // Allowed formats
         break;
     default:
-        fatal(RETURN_CODE_INVALID_ARGUMENTS, "Only R8, RG8, RGB8, or RGBA8 UNORM and SRGB formats can be encoded, "
+        fatal_usage("Only R8, RG8, RGB8, or RGBA8 UNORM and SRGB formats can be encoded, "
             "but format is {}.", toString(VkFormat(texture->vkFormat)));
         break;
     }
 
     // Modify KTXwriter metadata
-    const auto writer = fmt::format("{} {}", processName, version(options.testrun));
+    const auto writer = fmt::format("{} {}", commandName, version(options.testrun));
     ktxHashList_DeleteKVPair(&texture->kvDataHead, KTX_WRITER_KEY);
     ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
             static_cast<uint32_t>(writer.size() + 1), // +1 to include the \0
@@ -163,24 +163,24 @@ void CommandEncode::executeEncode() {
 
     ktx_uint32_t oetf = ktxTexture2_GetOETF(texture);
     if (options.basisOpts.normalMap && oetf != KHR_DF_TRANSFER_LINEAR)
-        fatal(RETURN_CODE_INVALID_FILE,
+        fatal(rc::INVALID_FILE,
             "--normal-mode specified but the input file uses non-linear transfer function {}.",
             toString(khr_df_transfer_e(oetf)));
 
     ret = ktxTexture2_CompressBasisEx(texture, &options.basisOpts);
     if (ret != KTX_SUCCESS)
-        fatal(RETURN_CODE_IO_FAILURE, "Failed to encode KTX2 file with codec \"{}\". KTX Error: {}", ktxErrorString(ret));
+        fatal(rc::IO_FAILURE, "Failed to encode KTX2 file with codec \"{}\". KTX Error: {}", ktxErrorString(ret));
 
     if (options.zstd) {
         ret = ktxTexture2_DeflateZstd((ktxTexture2*)texture, *options.zstd);
         if (ret != KTX_SUCCESS)
-            fatal(RETURN_CODE_IO_FAILURE, "Zstd deflation failed. KTX Error: {}", ktxErrorString(ret));
+            fatal(rc::IO_FAILURE, "Zstd deflation failed. KTX Error: {}", ktxErrorString(ret));
     }
 
     if (options.zlib) {
         ret = ktxTexture2_DeflateZLIB((ktxTexture2*)texture, *options.zlib);
         if (ret != KTX_SUCCESS)
-            fatal(RETURN_CODE_IO_FAILURE, "ZLIB deflation failed. KTX Error: {}", ktxErrorString(ret));
+            fatal(rc::IO_FAILURE, "ZLIB deflation failed. KTX Error: {}", ktxErrorString(ret));
     }
 
     // Save output file
@@ -196,7 +196,7 @@ void CommandEncode::executeEncode() {
     if (KTX_SUCCESS != ret) {
         if (f != stdout)
             std::filesystem::remove(options.outputFilepath);
-        fatal(RETURN_CODE_IO_FAILURE, "Failed to write KTX file \"{}\": KTX error: {}",
+        fatal(rc::IO_FAILURE, "Failed to write KTX file \"{}\": KTX error: {}",
             options.outputFilepath, ktxErrorString(ret));
     }
 }

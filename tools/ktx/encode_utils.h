@@ -198,40 +198,40 @@ struct OptionsCodec {
 
     void validateCommonEncodeArg(Reporter& report, const char* name) {
         if (codec == EncodeCodec::NONE)
-            report.fatal(RETURN_CODE_INVALID_ARGUMENTS,
+            report.fatal(rc::INVALID_ARGUMENTS,
                 "Invalid use of argument --{} that only applies to encoding.", name);
     }
 
     void validateBasisLZArg(Reporter& report, const char* name) {
         if (codec != EncodeCodec::BasisLZ)
-            report.fatal(RETURN_CODE_INVALID_ARGUMENTS,
+            report.fatal(rc::INVALID_ARGUMENTS,
                 "Invalid use of argument --{} that only applies when the used codec is BasisLZ.", name);
     }
 
     void validateBasisLZEndpointRDOArg(Reporter& report, const char* name) {
         validateBasisLZArg(report, name);
         if (basisOpts.noEndpointRDO)
-            report.fatal(RETURN_CODE_INVALID_ARGUMENTS,
+            report.fatal(rc::INVALID_ARGUMENTS,
                 "Invalid use of argument --{} when endpoint RDO is disabled.", name);
     }
 
     void validateBasisLZSelectorRDOArg(Reporter& report, const char* name) {
         validateBasisLZArg(report, name);
         if (basisOpts.noSelectorRDO)
-            report.fatal(RETURN_CODE_INVALID_ARGUMENTS,
+            report.fatal(rc::INVALID_ARGUMENTS,
                 "Invalid use of argument --{} when selector RDO is disabled.", name);
     }
 
     void validateUASTCArg(Reporter& report, const char* name) {
         if (codec != EncodeCodec::UASTC)
-            report.fatal(RETURN_CODE_INVALID_ARGUMENTS,
+            report.fatal(rc::INVALID_ARGUMENTS,
                 "Invalid use of argument --{} that only applies when the used codec is UASTC.", name);
     }
 
     void validateUASTCRDOArg(Reporter& report, const char* name) {
         validateUASTCArg(report, name);
         if (!basisOpts.uastcRDO)
-            report.fatal(RETURN_CODE_INVALID_ARGUMENTS,
+            report.fatal(rc::INVALID_ARGUMENTS,
                 "Invalid use of argument --{} when UASTC RDO post-processing was not enabled.", name);
     }
 
@@ -241,7 +241,7 @@ struct OptionsCodec {
             codec = validateEncodeCodec(args["codec"]);
             switch (codec) {
             case EncodeCodec::NONE:
-                report.fatal(RETURN_CODE_INVALID_ARGUMENTS, "Missing codec argument.");
+                report.fatal(rc::INVALID_ARGUMENTS, "Missing codec argument.");
                 break;
 
             case EncodeCodec::BasisLZ:
@@ -250,7 +250,7 @@ struct OptionsCodec {
                 break;
 
             default:
-                report.fatal(RETURN_CODE_INVALID_ARGUMENTS,
+                report.fatal(rc::INVALID_ARGUMENTS,
                     "Invalid codec: \"{}\".", args["codec"].as<std::string>());
                 break;
             }
@@ -268,8 +268,7 @@ struct OptionsCodec {
                 break;
 
             default:
-                report.fatal(RETURN_CODE_INVALID_ARGUMENTS,
-                    "Invalid encode codec: \"{}\".", args["encode"].as<std::string>());
+                report.fatal_usage("Invalid encode codec: \"{}\".", args["encode"].as<std::string>());
                 break;
             }
         }

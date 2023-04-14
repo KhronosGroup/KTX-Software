@@ -77,6 +77,7 @@ class CommandExtract : public Command {
         std::optional<int32_t> layer = 0; /// -1 indicates all
         std::optional<int32_t> face = 0; /// -1 indicates all
         std::optional<int32_t> depth = 0; /// -1 indicates all
+        bool globalAll = false;
         bool raw = false;
 
         void init(cxxopts::Options& opts);
@@ -104,13 +105,13 @@ private:
 
 int CommandExtract::main(int argc, _TCHAR* argv[]) {
     try {
-        parseCommandLine("ktx extract", "Export selected images from a KTX2 file.\n", argc, argv);
+        parseCommandLine("ktx extract", "Export selected images from a KTX2 file.", argc, argv);
         executeExtract();
         return RETURN_CODE_SUCCESS;
     } catch (const FatalError& error) {
         return error.return_code;
     } catch (const std::exception& e) {
-        fmt::print(std::cerr, "{} fatal: {}\n", processName, e.what());
+        fmt::print(std::cerr, "{} fatal: {}\n", commandName, e.what());
         return RETURN_CODE_RUNTIME_ERROR;
     }
 }
@@ -123,16 +124,19 @@ void CommandExtract::OptionsExtract::init(cxxopts::Options& opts) {
                           "etc-rgb | etc-rgba | eac-r11 | eac-rg11 | bc1 | bc3 | bc4 | bc5 | bc7 | astc | r8 | rg8 | rgb8 | rgba8",
                           cxxopts::value<std::string>(), "<target>")
             ("uri", "KTX Fragment URI.", cxxopts::value<std::string>(), "<uri>")
-            ("level", "Level to extract. Defaults to 0. Case-insensitive.", cxxopts::value<std::string>(), "[0-9]+ | all")
-            ("layer", "Layer to extract. Defaults to 0. Case-insensitive.", cxxopts::value<std::string>(), "[0-9]+ | all")
-            ("face", "Face to extract. Defaults to 0. Case-insensitive.", cxxopts::value<std::string>(), "[0-5] | all")
-            ("depth", "Depth slice to extract. Defaults to 0. Case-insensitive.", cxxopts::value<std::string>(), "[0-9]+ | all")
+            ("level", "Level to extract. Defaults to 0.", cxxopts::value<std::string>(), "[0-9]+ | all")
+            ("layer", "Layer to extract. Defaults to 0.", cxxopts::value<std::string>(), "[0-9]+ | all")
+            ("face", "Face to extract. Defaults to 0.", cxxopts::value<std::string>(), "[0-5] | all")
+            ("depth", "Depth slice to extract. Defaults to 0.", cxxopts::value<std::string>(), "[0-9]+ | all")
             ("all", "Extract all image slices.")
             ("raw", "Extract raw image data.");
 }
 
 void CommandExtract::OptionsExtract::process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
-    outputPath = args["output"].as<std::string>();
+    if (args.count("output"))
+        outputPath = args["output"].as<std::string>();
+    else
+        report.fatal_usage("Missing output file or directory path.");
 
     if (args["uri"].count())
         // TODO Tools P4: Validate and parse fragment URI, Handle error conditions
@@ -144,10 +148,10 @@ void CommandExtract::OptionsExtract::process(cxxopts::Options&, cxxopts::ParseRe
         const auto str = to_lower_copy(args[name].as<std::string>());
         try {
             return str == "all" ? all : std::stoi(str);
-        } catch (const std::invalid_argument& e) {
-            report.fatal(RETURN_CODE_INVALID_ARGUMENTS, "Invalid {} value \"{}\": {}.", name, str, e.what());
+        } catch (const std::invalid_argument&) {
+            report.fatal_usage("Invalid {} value \"{}\". The value must be a either a number or \"all\".", name, str);
         } catch (const std::out_of_range& e) {
-            report.fatal(RETURN_CODE_INVALID_ARGUMENTS, "Out of range {} value \"{}\": {}.", name, str, e.what());
+            report.fatal_usage("Out of range {} value \"{}\": {}.", name, str, e.what());
         }
         return std::nullopt;
     };
@@ -156,16 +160,17 @@ void CommandExtract::OptionsExtract::process(cxxopts::Options&, cxxopts::ParseRe
     face = parseSelector("face");
     depth = parseSelector("depth");
     raw = args["raw"].as<bool>();
+    globalAll = args["all"].as<bool>();
 
-    if (args["all"].as<bool>()) {
+    if (globalAll) {
         if (level)
-            report.fatal(RETURN_CODE_INVALID_ARGUMENTS, "Conflicting arguments 'level' and 'all'. The level cannot be specified if the 'all' flag is set.");
+            report.fatal_usage("Conflicting options: --level cannot be used with --all.");
         if (layer)
-            report.fatal(RETURN_CODE_INVALID_ARGUMENTS, "Conflicting arguments 'layer' and 'all'. The layer cannot be specified if the 'all' flag is set.");
+            report.fatal_usage("Conflicting options: --layer cannot be used with --all.");
         if (face)
-            report.fatal(RETURN_CODE_INVALID_ARGUMENTS, "Conflicting arguments 'face' and 'all'. The face cannot be specified if the 'all' flag is set.");
+            report.fatal_usage("Conflicting options: --face cannot be used with --all.");
         if (depth)
-            report.fatal(RETURN_CODE_INVALID_ARGUMENTS, "Conflicting arguments 'depth' and 'all'. The depth cannot be specified if the 'all' flag is set.");
+            report.fatal_usage("Conflicting options: --depth cannot be used with --all.");
 
         level = all;
         layer = all;
@@ -185,8 +190,8 @@ void CommandExtract::processOptions(cxxopts::Options& opts, cxxopts::ParseResult
 
     if (!options.raw && options.transcodeTarget) {
         if (options.transcodeTarget != KTX_TTF_RGBA32)
-            fatal(RETURN_CODE_INVALID_ARGUMENTS, "Transcode to \"{}\" for non-raw extract is not supported. "
-                    "For PNG/EXR output only r8, rg8, rgb8 and rgba8 are supported", options.transcodeTargetName);
+            fatal_usage("Transcode to \"{}\" for non-raw extract is not supported. "
+                    "For PNG/EXR output only r8, rg8, rgb8 and rgba8 are supported.", options.transcodeTargetName);
     }
 }
 
@@ -233,55 +238,80 @@ void CommandExtract::executeExtract() {
     StreambufStream<std::streambuf*> ktx2Stream{file.rdbuf(), std::ios::in | std::ios::binary};
     auto ret = ktxTexture2_CreateFromStream(ktx2Stream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, texture.pHandle());
     if (ret != KTX_SUCCESS)
-        fatal(RETURN_CODE_INVALID_FILE, "Failed to create KTX2 texture: {}", ktxErrorString(ret));
+        fatal(rc::INVALID_FILE, "Failed to create KTX2 texture: {}", ktxErrorString(ret));
 
-    // TODO Tools P4: Command line argument validation
-    // if (options.level.value_or(0) > texture->numLevels)
-    //     ■ If the "level" option is greater than the maximum level index, generate an error end
-    //             exit.
-    //     fatal(RETURN_CODE_INVALID_ARGUMENTS, )
-    // if (options.layer && !texture->isArray)
-    //     ■ If the texture type is not one of Array types and the "layer" option is set,
-    //             generate an error and exit.
-    // if (...)
-    //     ■ If the texture type is one of Array types and the "layer" option is not set or
-    //             is out of [0, layerCount) range, generate an error and exit.
-    // if (...)
-    //     ■ If the texture type is not Cubemap or Cubemap Array and the "face"
-    //             option is set, generate an error and exit.
-    // if (texture->isCubemap ...)
-    //     ■ If the texture type is Cubemap or Cubemap Array and the "face" option is
-    //             not set or out of [0-5] range, generate an error and exit.
-    // if (...)
-    //     ■ If the texture type is not 3D or 3D Array and the "depth" option is set,
-    //             generate an error and exit.
+    // CLI request validation
+    if (options.level && options.level != all && options.level >= static_cast<int32_t>(texture->numLevels))
+        fatal(rc::INVALID_FILE, "Requested level index {} is missing. The input file only has {} level(s).",
+                *options.level, texture->numLevels);
 
+    if (!options.globalAll && options.layer && !texture->isArray) {
+        if (options.layer == all)
+            fatal(rc::INVALID_FILE, "Requested all layers from a non-array texture.");
+        else
+            fatal(rc::INVALID_FILE, "Requested layer index {} from a non-array texture.", *options.layer);
+    }
+
+    if (options.layer && options.layer != all && options.layer >= static_cast<int32_t>(texture->numLayers))
+        fatal(rc::INVALID_FILE, "Requested layer index {} is missing. The input file only has {} layer(s).",
+                *options.layer, texture->numLayers);
+
+    if (!options.globalAll && options.face && !texture->isCubemap) {
+        if (options.face == all)
+            fatal(rc::INVALID_FILE, "Requested all faces from a non-cubemap texture.");
+        else
+            fatal(rc::INVALID_FILE, "Requested face index {} from a non-cubemap texture.", *options.face);
+    }
+
+    if (options.face && options.face != all && options.face >= static_cast<int32_t>(texture->numFaces))
+        fatal(rc::INVALID_FILE, "Requested face index {} is missing. The input file only has {} face(s).",
+                *options.face, texture->numFaces);
+
+    if (!options.globalAll && options.depth && texture->numDimensions != 3) {
+        if (options.depth == all)
+            fatal(rc::INVALID_FILE, "Requested all depths from a non-3D texture.");
+        else
+            fatal(rc::INVALID_FILE, "Requested depth index {} from a non-3D texture.", *options.depth);
+    }
+
+    const auto lastExportedLevel = options.level == all ? texture->numLevels - 1 : options.level.value_or(0);
+    const auto lastExportedLevelDepthCount = std::max(1u, texture->baseDepth >> lastExportedLevel);
+    if (options.depth && options.depth != all && options.depth >= static_cast<int32_t>(lastExportedLevelDepthCount))
+        fatal(rc::INVALID_FILE, "Requested depth index {} is missing. The input file only has {} depth(s) in level {}.",
+                *options.depth, lastExportedLevelDepthCount, lastExportedLevel);
+
+    // Transcoding
     if (ktxTexture2_NeedsTranscoding(texture)) {
         options.validateTextureTranscode(texture, *this);
 
         ret = ktxTexture2_TranscodeBasis(texture, options.transcodeTarget.value(), 0);
         if (ret != KTX_SUCCESS)
-            fatal(RETURN_CODE_INVALID_FILE, "Failed to transcode KTX2 texture: {}", ktxErrorString(ret));
+            fatal(rc::INVALID_FILE, "Failed to transcode KTX2 texture: {}", ktxErrorString(ret));
+    } else if (options.transcodeTarget) {
+        fatal(rc::INVALID_FILE, "Requested transcode \"{}\" but the KTX file is not transcodable.",
+                options.transcodeTargetName);
     }
 
+    // Setup output directory
     const auto isMultiOutput =
             options.level == all ||
             options.face == all ||
             options.layer == all ||
             options.depth == all;
-
     try {
         if (isMultiOutput) {
             if (std::filesystem::exists(options.outputPath) && !std::filesystem::is_directory(options.outputPath))
-                fatal(RETURN_CODE_INVALID_ARGUMENTS, "Specified output path must be a directory for multi-output extract: \"{}\".", options.outputPath);
+                fatal_usage("Specified output path must be a directory for multi-output extract: \"{}\".", options.outputPath);
             std::filesystem::create_directories(options.outputPath);
         } else {
-            std::filesystem::create_directories(std::filesystem::path(options.outputPath).parent_path());
+            if (std::filesystem::path(options.outputPath).has_parent_path())
+                std::filesystem::create_directories(std::filesystem::path(options.outputPath).parent_path());
         }
     } catch (const std::filesystem::filesystem_error& e) {
-        fatal(RETURN_CODE_IO_FAILURE, "Failed to create the output directory \"{}\": {}.", e.path1().generic_string(), e.what());
+        fatal(rc::IO_FAILURE, "Failed to create the output directory \"{}\": {}.", e.path1().generic_string(), e.what());
     }
 
+    // Iterate
     for (uint32_t levelIndex = 0; levelIndex < texture->numLevels; ++levelIndex) {
         if (options.level != all && options.level.value_or(0) != static_cast<int32_t>(levelIndex))
             continue; // Skip
@@ -290,10 +320,6 @@ void CommandExtract::executeExtract() {
         const auto imageWidth = std::max(1u, texture->baseWidth >> levelIndex);
         const auto imageHeight = std::max(1u, texture->baseHeight >> levelIndex);
         const auto imageDepth = std::max(1u, texture->baseDepth >> levelIndex);
-
-        if (options.depth != all && options.depth.value_or(0) >= static_cast<int32_t>(imageDepth))
-            fatal(RETURN_CODE_INVALID_ARGUMENTS, "Requested depth slice {} on level {} is not available. The last depth slice on this level is {}.",
-                    options.depth.value_or(0), levelIndex, imageDepth - 1);
 
         for (uint32_t faceIndex = 0; faceIndex < texture->numFaces; ++faceIndex) {
             if (options.face != all && options.face.value_or(0) != static_cast<int32_t>(faceIndex))
@@ -319,7 +345,7 @@ void CommandExtract::executeExtract() {
 
                     std::ofstream rawFile(outputFilepath, std::ios::out | std::ios::binary);
                     if (!rawFile)
-                        fatal(RETURN_CODE_IO_FAILURE, "Failed to open output file \"{}\": {}", outputFilepath, errnoMessage());
+                        fatal(rc::IO_FAILURE, "Failed to open output file \"{}\": {}", outputFilepath, errnoMessage());
 
                     for (uint32_t depthIndex = 0; depthIndex < imageDepth; ++depthIndex) {
                         ktx_size_t imageOffset;
@@ -332,7 +358,7 @@ void CommandExtract::executeExtract() {
                     }
 
                     if (!rawFile)
-                        fatal(RETURN_CODE_IO_FAILURE, "Failed to write output file \"{}\": {}", outputFilepath, errnoMessage());
+                        fatal(rc::IO_FAILURE, "Failed to write output file \"{}\": {}", outputFilepath, errnoMessage());
 
                     continue;
                 }
@@ -370,18 +396,18 @@ void CommandExtract::executeExtract() {
     }
 
     if (ret != KTX_SUCCESS)
-        fatal(RETURN_CODE_INVALID_FILE, "Failed to iterate KTX2 texture: {}", ktxErrorString(ret));
+        fatal(rc::INVALID_FILE, "Failed to iterate KTX2 texture: {}", ktxErrorString(ret));
 }
 
 void CommandExtract::saveRawFile(const std::string& filepath, const char* data, std::size_t size) {
     std::ofstream file(filepath, std::ios::out | std::ios::binary);
     if (!file)
-        fatal(RETURN_CODE_IO_FAILURE, "Failed to open output file \"{}\": {}.", filepath, errnoMessage());
+        fatal(rc::IO_FAILURE, "Failed to open output file \"{}\": {}.", filepath, errnoMessage());
 
     file.write(data, size);
 
     if (!file)
-        fatal(RETURN_CODE_IO_FAILURE, "Failed to write output file \"{}\": {}.", filepath, errnoMessage());
+        fatal(rc::IO_FAILURE, "Failed to write output file \"{}\": {}.", filepath, errnoMessage());
 }
 
 void CommandExtract::savePNG(const std::string& filepath,
@@ -423,7 +449,7 @@ void CommandExtract::savePNG(const std::string& filepath,
     // } else if (formatDescriptor.model() == KHR_DF_MODEL_YUVSDA) {
     // TODO Tools P5: Add support for KHR_DF_MODEL_YUVSDA formats
     } else {
-        fatal(RETURN_CODE_UNSUPPORTED, "PNG saving is unsupported for {} with {}.", toString(format.model()), toString(vkFormat));
+        fatal(rc::NOT_SUPPORTED, "PNG saving is unsupported for {} with {}.", toString(format.model()), toString(vkFormat));
     }
 
     const auto largestBits = std::max(std::max(rBits, gBits), std::max(bBits, aBits));
@@ -526,11 +552,11 @@ void CommandExtract::savePNG(const std::string& filepath,
     std::vector<unsigned char> png;
     auto error = lodepng::encode(png, unpackedImage, width, height, state);
     if (error) {
-        fatal(RETURN_CODE_INVALID_FILE, "PNG Encoder error {}: {}.", error, lodepng_error_text(error));
+        fatal(rc::INVALID_FILE, "PNG Encoder error {}: {}.", error, lodepng_error_text(error));
     } else {
         error = lodepng::save_file(png, filepath);
         if (error)
-            fatal(RETURN_CODE_IO_FAILURE, "PNG Encoder error {}: {}.", error, lodepng_error_text(error));
+            fatal(rc::IO_FAILURE, "PNG Encoder error {}: {}.", error, lodepng_error_text(error));
     }
 }
 
@@ -581,7 +607,7 @@ void CommandExtract::saveEXR(const std::string& filepath,
     // } else if (formatDescriptor.model() == KHR_DF_MODEL_YUVSDA) {
     // TODO Tools P5: Add support for KHR_DF_MODEL_YUVSDA formats
     } else {
-        fatal(RETURN_CODE_UNSUPPORTED, "PNG saving is unsupported for {} with {}.", toString(format.model()), toString(vkFormat));
+        fatal(rc::NOT_SUPPORTED, "EXR saving is unsupported for {} with {}.", toString(format.model()), toString(vkFormat));
     }
 
     const auto largestBits = std::max(std::max(rBits, gBits), std::max(bBits, aBits));
@@ -591,7 +617,7 @@ void CommandExtract::saveEXR(const std::string& filepath,
     const auto numChannels = (rBits > 0 ? 1u : 0u) + (gBits > 0 ? 1u : 0u) + (bBits > 0 ? 1u : 0u) + (aBits > 0 ? 1u : 0u);
     assert(bitDepth == 8 || bitDepth == 16 || bitDepth == 32); (void) bitDepth;
     assert(pixelBits % 8 == 0);
-    assert(size == width * height * pixelBytes);
+    assert(size == width * height * pixelBytes); (void) size;
 
     // Either filled with floats or uint32 (half output is filled with float and converted during save)
     std::vector<std::vector<uint32_t>> images(numChannels);
@@ -662,8 +688,7 @@ void CommandExtract::saveEXR(const std::string& filepath,
             FreeEXRErrorMessage(err);
         }
         void AddAttributesToHeader() {
-            // Add attributes to the header
-            header.num_custom_attributes = attributes.size();
+            header.num_custom_attributes = static_cast<int>(attributes.size());
             header.custom_attributes = (EXRAttribute*)malloc(sizeof(EXRAttribute) * attributes.size());
             for (size_t i = 0; i < attributes.size(); ++i) {
                 header.custom_attributes[i] = attributes[i];
@@ -678,7 +703,7 @@ void CommandExtract::saveEXR(const std::string& filepath,
 
     exr.header.num_channels = static_cast<int>(numChannels);
     exr.header.channels = (EXRChannelInfo*) malloc(sizeof(EXRChannelInfo) * exr.header.num_channels);
-    // TODO Tools P5: TINYEXR_COMPRESSIONTYPE_NONE
+    // TODO Tools P5: Question: Should we use a compression for exr out?
     exr.header.compression_type = TINYEXR_COMPRESSIONTYPE_NONE;
     {
         // Must be ABGR order, since most of EXR viewers expect this channel order.
@@ -730,7 +755,7 @@ void CommandExtract::saveEXR(const std::string& filepath,
     exr.AddAttributesToHeader();
     int ret = SaveEXRImageToFile(&exr.image, &exr.header, filepath.c_str(), &exr.err);
     if (ret != TINYEXR_SUCCESS)
-        fatal(RETURN_CODE_IO_FAILURE, "EXR Encoder error {}: {}.", ret, exr.err);
+        fatal(rc::IO_FAILURE, "EXR Encoder error {}: {}.", ret, exr.err);
 }
 
 void CommandExtract::savePNGorEXRFile(
@@ -948,7 +973,7 @@ void CommandExtract::savePNGorEXRFile(
     //     break;
 
     default:
-        fatal(RETURN_CODE_INVALID_ARGUMENTS, "Requested format conversion is not yet implemented for: {}.", toString(vkFormat));
+        fatal(rc::INVALID_FILE, "Requested format conversion from {} is not supported.", toString(vkFormat));
     }
 }
 

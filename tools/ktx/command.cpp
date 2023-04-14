@@ -19,23 +19,22 @@
 namespace ktx {
 
 void Command::parseCommandLine(const std::string& name, const std::string& desc, int argc, _TCHAR* argv[]) {
-    processName = name;
+    commandName = name;
+    commandDescription = desc;
 
-    cxxopts::Options opts(name, desc);
-    opts.custom_help("[OPTION...]");
-    opts.set_width(CONSOLE_USAGE_WIDTH);
-    initOptions(opts); // virtual customization point
+    cxxopts::Options commandOpts(name, "");
+    commandOpts.custom_help("[OPTION...]");
+    commandOpts.set_width(CONSOLE_USAGE_WIDTH);
+    initOptions(commandOpts); // virtual customization point
 
     cxxopts::ParseResult args;
     try {
-        args = opts.parse(argc, argv);
-    } catch (const std::exception& ex) {
-        fmt::print(std::cerr, "Failed to parse command line arguments: {}\n", ex.what());
-        fmt::print(std::cerr, "{}", opts.help());
-        throw FatalError(RETURN_CODE_INVALID_ARGUMENTS);
-    }
+        args = commandOpts.parse(argc, argv);
+        processOptions(commandOpts, args); // virtual customization point
 
-    processOptions(opts, args); // virtual customization point
+    } catch (const cxxopts::exceptions::parsing& ex) {
+        fatal_usage("{}.", ex.what());
+    }
 }
 
 std::string version(bool testrun) {

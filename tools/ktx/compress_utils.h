@@ -27,15 +27,15 @@ struct OptionsCompress {
         if (args["zstd"].count()) {
             zstd = args["zstd"].as<uint32_t>();
             if (zstd < 1u || zstd > 22u)
-                report.fatal(RETURN_CODE_INVALID_ARGUMENTS, "Invalid zstd level: \"{}\".", zstd.value());
+                report.fatal_usage("Invalid zstd level: \"{}\". Value must be between 1 and 22 inclusive.", zstd.value());
         }
         if (args["zlib"].count()) {
             zlib = args["zlib"].as<uint32_t>();
             if (zlib < 1u || zlib > 9u)
-                report.fatal(RETURN_CODE_INVALID_ARGUMENTS, "Invalid zlib level: \"{}\".", zlib.value());
+                report.fatal_usage("Invalid zlib level: \"{}\". Value must be between 1 and 9 inclusive.", zlib.value());
         }
         if (zstd.has_value() && zlib.has_value())
-            report.fatal(RETURN_CODE_INVALID_ARGUMENTS, "Invalid use of both zstd and zlib arguments.");
+            report.fatal_usage("Conflicting options: zstd and zlib cannot be used at the same time.");
     }
 };
 

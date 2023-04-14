@@ -58,7 +58,7 @@ struct OptionsTranscodeTarget {
             const auto argStr = to_lower_copy(args[argName].as<std::string>());
             const auto it = targets.find(argStr);
             if (it == targets.end())
-                report.fatal(RETURN_CODE_INVALID_ARGUMENTS, "Invalid transcode target: \"{}\".", argStr);
+                report.fatal_usage("Invalid transcode target: \"{}\".", argStr);
 
             transcodeTarget = it->second.first;
             transcodeTargetName = argStr;
@@ -95,7 +95,7 @@ struct OptionsTranscodeTarget {
                 defaultComponents = 1;
                 transcodeSwizzle = "r001";
             } else {
-                report.fatal(RETURN_CODE_INVALID_FILE, "Unsupported channel types for Basis-LZ transcoding: {}, {}",
+                report.fatal(rc::INVALID_FILE, "Unsupported channel types for Basis-LZ transcoding: {}, {}",
                     sample0 ? toString(KHR_DF_MODEL_ETC1S, *sample0) : "-",
                     sample1 ? toString(KHR_DF_MODEL_ETC1S, *sample1) : "-");
             }
@@ -121,7 +121,7 @@ struct OptionsTranscodeTarget {
                 break;
             default:
                 // Unsupported transcode target for BasisLZ
-                report.fatal(RETURN_CODE_INVALID_ARGUMENTS, "Invalid BasisLZ transcode target: \"{}\"", transcodeTargetName);
+                report.fatal(rc::INVALID_ARGUMENTS, "Invalid BasisLZ transcode target: \"{}\"", transcodeTargetName);
             }
         } else if (khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_UASTC) {
             uint32_t defaultComponents = 0;
@@ -141,7 +141,7 @@ struct OptionsTranscodeTarget {
                 defaultComponents = 1;
                 transcodeSwizzle = "r001";
             } else {
-                report.fatal(RETURN_CODE_INVALID_FILE, "Unsupported channel type for UASTC transcoding: {}",
+                report.fatal(rc::INVALID_FILE, "Unsupported channel type for UASTC transcoding: {}",
                     sample0 ? toString(KHR_DF_MODEL_UASTC, *sample0) : "-");
             }
 
@@ -166,12 +166,12 @@ struct OptionsTranscodeTarget {
                 break;
             default:
                 // Unsupported transcode target for BasisLZ
-                report.fatal(RETURN_CODE_INVALID_ARGUMENTS, "Invalid UASTC transcode target: \"{}\"", transcodeTargetName);
+                report.fatal(rc::INVALID_ARGUMENTS, "Invalid UASTC transcode target: \"{}\"", transcodeTargetName);
             }
         } else if (transcodeTarget.has_value()) {
             // If neither the supercompression is BasisLZ, nor the DFD color model is UASTC,
             // generate an error and exit.
-            report.fatal(RETURN_CODE_INVALID_FILE, "Requested transcoding but input file is neither BasisLZ, nor UASTC");
+            report.fatal(rc::INVALID_FILE, "Requested transcoding but input file is neither BasisLZ, nor UASTC");
         }
     }
 };

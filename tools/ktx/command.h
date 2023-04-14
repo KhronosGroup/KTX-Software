@@ -60,38 +60,66 @@ static constexpr int RETURN_CODE_IO_FAILURE = 2;
 static constexpr int RETURN_CODE_INVALID_FILE = 3;
 static constexpr int RETURN_CODE_RUNTIME_ERROR = 4;
 static constexpr int RETURN_CODE_KTX_FAILURE = RETURN_CODE_RUNTIME_ERROR;
-static constexpr int RETURN_CODE_UNSUPPORTED = 5;
+static constexpr int RETURN_CODE_DFD_FAILURE = RETURN_CODE_RUNTIME_ERROR;
+static constexpr int RETURN_CODE_NOT_SUPPORTED = 5;
+
+enum class ReturnCode {
+    SUCCESS = RETURN_CODE_SUCCESS,
+    INVALID_ARGUMENTS = RETURN_CODE_INVALID_ARGUMENTS,
+    IO_FAILURE = RETURN_CODE_IO_FAILURE,
+    INVALID_FILE = RETURN_CODE_INVALID_FILE,
+    RUNTIME_ERROR = RETURN_CODE_RUNTIME_ERROR,
+    KTX_FAILURE = RETURN_CODE_KTX_FAILURE,
+    DFD_FAILURE = RETURN_CODE_DFD_FAILURE,
+    NOT_SUPPORTED = RETURN_CODE_NOT_SUPPORTED,
+};
+using rc = ReturnCode;
 
 static constexpr int CONSOLE_USAGE_WIDTH = 100;
 
 struct FatalError : public std::exception {
     int return_code; /// Desired process return code
     explicit FatalError(int returnCode) : return_code(returnCode) {}
+    explicit FatalError(ReturnCode returnCode) : FatalError(to_underlying(returnCode)) {}
 };
 
 struct Reporter {
-    std::string processName;
+    std::string commandName;
+    std::string commandDescription;
 
     template <typename... Args>
     void warning(Args&&... args) {
-        fmt::print(std::cerr, "{} warning: ", processName);
+        fmt::print(std::cerr, "{} warning: ", commandName);
         fmt::print(std::cerr, std::forward<Args>(args)...);
         fmt::print(std::cerr, "\n");
     }
 
     template <typename... Args>
     void error(Args&&... args) {
-        fmt::print(std::cerr, "{} error: ", processName);
+        fmt::print(std::cerr, "{} error: ", commandName);
         fmt::print(std::cerr, std::forward<Args>(args)...);
         fmt::print(std::cerr, "\n");
     }
 
     template <typename... Args>
     void fatal(int return_code, Args&&... args) {
-        fmt::print(std::cerr, "{} fatal: ", processName);
+        fmt::print(std::cerr, "{} fatal: ", commandName);
         fmt::print(std::cerr, std::forward<Args>(args)...);
         fmt::print(std::cerr, "\n");
         throw FatalError(return_code);
+    }
+
+    template <typename... Args>
+    void fatal(ReturnCode return_code, Args&&... args) {
+        fatal(to_underlying(return_code), std::forward<Args>(args)...);
+    }
+
+    template <typename... Args>
+    void fatal_usage(Args&&... args) {
+        fmt::print(std::cerr, "{} fatal: ", commandName);
+        fmt::print(std::cerr, std::forward<Args>(args)...);
+        fmt::print(std::cerr, " See '{} --help'.\n", commandName);
+        throw FatalError(rc::INVALID_ARGUMENTS);
     }
 };
 
@@ -136,17 +164,18 @@ struct OptionsGeneric {
                 ("testrun", "Indicates test run. If enabled ktx tools will only include the default version information in any output");
     }
 
-    void process(cxxopts::Options& opts, cxxopts::ParseResult& args, Reporter&) {
+    void process(cxxopts::Options& opts, cxxopts::ParseResult& args, Reporter& report) {
         testrun = args["testrun"].as<bool>();
 
         if (args.count("help")) {
+            fmt::print("{}: {}\n", report.commandName, report.commandDescription);
             fmt::print("{}", opts.help());
-            throw FatalError(RETURN_CODE_SUCCESS);
+            throw FatalError(rc::SUCCESS);
         }
 
         if (args.count("version")) {
             fmt::print("{} version: {}\n", opts.program(), version(testrun));
-            throw FatalError(RETURN_CODE_SUCCESS);
+            throw FatalError(rc::SUCCESS);
         }
     }
 };
@@ -170,7 +199,7 @@ struct OptionsFormat {
                         "text|json|mini-json");
     }
 
-    void process(cxxopts::Options& opts, cxxopts::ParseResult& args, Reporter&) {
+    void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
         const auto& formatStr = to_lower_copy(args["format"].as<std::string>());
         if (formatStr == "text") {
             format = OutputFormat::text;
@@ -179,9 +208,7 @@ struct OptionsFormat {
         } else if (formatStr == "mini-json") {
             format = OutputFormat::json_mini;
         } else {
-            fmt::print(std::cerr, "Failed to parse command line arguments: Unsupported format: \"{}\"\n", formatStr);
-            fmt::print(std::cerr, "{}", opts.help());
-            throw FatalError(RETURN_CODE_INVALID_ARGUMENTS);
+            report.fatal_usage("Unsupported format: \"{}\"", formatStr);
         }
     }
 };
@@ -197,18 +224,11 @@ struct OptionsSingleIn {
         opts.positional_help("<input-file>");
     }
 
-    void process(cxxopts::Options& opts, cxxopts::ParseResult& args, Reporter&) {
-        if (args.count("stdin") + args.count("input-file") == 0) {
-            fmt::print(std::cerr, "Missing input file. Either <input-file> or <stdin> must be specified.\n");
-            fmt::print(std::cerr, "{}", opts.help());
-            throw FatalError(RETURN_CODE_INVALID_ARGUMENTS);
-        }
-
-        if (args.count("stdin") + args.count("input-file") > 1) {
-            fmt::print(std::cerr, "Failed to parse command line arguments: Only one can be specified from <input-file> and <stdin>.\n");
-            fmt::print(std::cerr, "{}", opts.help());
-            throw FatalError(RETURN_CODE_INVALID_ARGUMENTS);
-        }
+    void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
+        if (args.count("stdin") + args.count("input-file") == 0)
+            report.fatal_usage("Missing input file. Either <input-file> or <stdin> must be specified.");
+        if (args.count("stdin") + args.count("input-file") > 1)
+            report.fatal_usage("Conflicting options: Only one can be specified from <input-file> and <stdin>.");
 
         // TODO Tools P4: Add support for stdin (To support '-' alias argv has to be scanned as cxxopts has no direct support for it)
         if (args.count("stdin"))
@@ -231,18 +251,11 @@ struct OptionsSingleInSingleOut {
         opts.positional_help("<input-file> <output-file>");
     }
 
-    void process(cxxopts::Options& opts, cxxopts::ParseResult& args, Reporter&) {
-        if (args.count("stdin") + args.count("input-file") == 0) {
-            fmt::print(std::cerr, "Missing input file. Either <input-file> or <stdin> must be specified.\n");
-            fmt::print(std::cerr, "{}", opts.help());
-            throw FatalError(RETURN_CODE_INVALID_ARGUMENTS);
-        }
-
-        if (args.count("stdin") + args.count("input-file") > 1) {
-            fmt::print(std::cerr, "Failed to parse command line arguments: Only one can be specified from <input-file> and <stdin>.\n");
-            fmt::print(std::cerr, "{}", opts.help());
-            throw FatalError(RETURN_CODE_INVALID_ARGUMENTS);
-        }
+    void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
+        if (args.count("stdin") + args.count("input-file") == 0)
+            report.fatal_usage("Missing input file. Either <input-file> or <stdin> must be specified.");
+        if (args.count("stdin") + args.count("input-file") > 1)
+            report.fatal_usage("Conflicting options: Only one can be specified from <input-file> and <stdin>.");
 
         // TODO Tools P4: Add support for stdin (To support '-' alias argv has to be scanned as cxxopts has no direct support for it)
         if (args.count("stdin"))
@@ -265,12 +278,14 @@ struct OptionsMultiInSingleOut {
         opts.positional_help("<input-file...> <output-file>");
     }
 
-    void process(cxxopts::Options& opts, cxxopts::ParseResult& args, Reporter& report) {
+    void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
         std::vector<std::string> files;
         if (args.count("files"))
             files = args["files"].as<std::vector<std::string>>();
+        if (files.size() < 1)
+            report.fatal_usage("Input and output files must be specified.");
         if (files.size() < 2)
-            report.fatal(RETURN_CODE_INVALID_ARGUMENTS, "Inputs and output file must be specified.\n{}", opts.help());
+            report.fatal_usage("Output file must be specified.");
 
         outputFilepath = std::move(files.back());
         files.pop_back();
@@ -278,7 +293,8 @@ struct OptionsMultiInSingleOut {
     }
 };
 
-/// Convenience helper to combine multiple options struct together
+/// Convenience helper to combine multiple options struct together.
+/// Init functions are called left to right and process functions are called in reverse order from right to left.
 template <typename... Args>
 struct Combine : Args... {
     void init(cxxopts::Options& opts) {

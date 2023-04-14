@@ -137,7 +137,7 @@ PngInput::readHeader()
     // to this are made later.
     lodepng_color_mode_copy(&state.info_raw, &state.info_png.color);
 
-    uint32_t componentCount;
+    uint32_t componentCount = 0;
     uint32_t bitDepth = state.info_png.color.bitdepth;
     khr_df_model_e colorModel;
 
@@ -202,8 +202,8 @@ PngInput::readHeader()
         colorModel = KHR_DF_MODEL_RGBSDA;
         componentCount = 4;
         break;
-      default:
-        ;
+      case LCT_MAX_OCTET_VALUE:
+        break;
     }
 
     ImageInputFormatType formatType;

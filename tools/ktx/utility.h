@@ -41,6 +41,7 @@ template <typename T>
 	return (x + y - 1) / y;
 }
 
+/// log2 floor
 [[nodiscard]] constexpr inline uint32_t log2(uint32_t v) noexcept {
     uint32_t e = 0;
 

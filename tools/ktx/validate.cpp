@@ -373,7 +373,7 @@ private:
 
 void validateToolInput(std::istream& stream, const std::string& filepath, Reporter& report) {
     if (!stream)
-        report.fatal(RETURN_CODE_IO_FAILURE, "Could not open input file \"{}\": {}", filepath, errnoMessage());
+        report.fatal(rc::IO_FAILURE, "Could not open input file \"{}\": {}", filepath, errnoMessage());
 
     auto callback = [&](const ValidationReport& issue) {
         fmt::print(std::cerr, "{}-{:04}: {}\n", toString(issue.type), issue.id, issue.message);
@@ -386,7 +386,7 @@ void validateToolInput(std::istream& stream, const std::string& filepath, Report
 
     stream.seekg(0);
     if (!stream)
-        report.fatal(RETURN_CODE_IO_FAILURE, "Could not rewind the input file \"{}\": {}", filepath, errnoMessage());
+        report.fatal(rc::IO_FAILURE, "Could not rewind the input file \"{}\": {}", filepath, errnoMessage());
 }
 
 int validateIOStream(std::istream& stream, const std::string& filepath, bool warningsAsErrors, bool GLTFBasisU, std::function<void(const ValidationReport&)> callback) {
