@@ -192,7 +192,7 @@ jobs:
       if: matrix.options.package == 'YES'
       uses: actions/upload-artifact@v3
       with:
-        name: KTX-Software-${KTX_VERSION}-Windows-arm64
+        name: KTX-Software-${{env.KTX_VERSION}}-Windows-arm64
         path: ${{env.BUILD_DIR}}/KTX-Software-*.exe*
 
     - name: Upload To Release
@@ -306,7 +306,7 @@ jobs:
       id: upload-artifact
       uses: actions/upload-artifact@v3
       with:
-        name: KTX-Software-${KTX_VERSION}-Android
+        name: KTX-Software-${{env.KTX_VERSION}}-Android
         path: install-android
 
     # Make an archive to be deployed.
@@ -326,7 +326,7 @@ jobs:
       with:
         draft: true
         prerelease: true
-        files:  KTX-Software-${KTX_VERSION}-Android.zip*
+        files:  KTX-Software-${{env.KTX_VERSION}}-Android.zip*
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
