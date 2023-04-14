@@ -142,9 +142,7 @@ jobs:
       run: |
         if ($env:PACKAGE -eq "YES" -and $env:AZURE_KEY_VAULT_URL) {
           dotnet tool install --global AzureSignTool
-          echo "::set-output name=code_sign_key_vault::Azure"
-        } else {
-          echo "::set-output name=code_sign_key_vault::"
+          echo "CODE_SIGN_KEY_VAULT=Azure" >> $GITHUB_ENV
         }
 
     - name: Install Dependencies
@@ -178,8 +176,6 @@ jobs:
         refreshenv
         $env:JAVA_HOME=$step_java_home
         ci_scripts/build_win.ps1
-      env:
-        CODE_SIGN_KEY_VAULT: ${{ steps.install-ast.outputs.code_sign_key_vault }}
 
     - name: Test Windows build
       if: matrix.platform == 'x64' && matrix.options.tests == 'ON'
@@ -189,14 +185,14 @@ jobs:
       if: matrix.options.package == 'YES'
       id: ktx-version
       run: |
-        $env:KTX_VERSION = Get-Content $env:BUILD_DIR/ktx.version
-        echo "::set-output name=ktx-version::$env:KTX_VERSION"
+        $KTX_VERSION = Get-Content $env:BUILD_DIR/ktx.version
+        echo "KTX_VERSION=$KTX_VERSION" >> $GITHUB_ENV
 
     - name: Upload Artifact
       if: matrix.options.package == 'YES'
       uses: actions/upload-artifact@v2
       with:
-        name: KTX-Software-${{ steps.ktx-version.outputs.ktx-version }}-Windows-arm64
+        name: KTX-Software-$KTX_VERSION-Windows-arm64
         path: ${{env.BUILD_DIR}}/KTX-Software-*.exe*
 
     - name: Upload To Release
@@ -295,7 +291,7 @@ jobs:
       id: ktx-version
       run: |
         KTX_VERSION=$(cat build-android-arm64-v8a/ktx.version)
-        echo "::set-output name=ktx-version::$KTX_VERSION"
+        echo "KTX_VERSION=$KTX_VERSION" >> $GITHUB_ENV
 
     # Android artifact
     # Zips the include and lib dirs installed for each architecture
@@ -304,7 +300,7 @@ jobs:
       id: upload-artifact
       uses: actions/upload-artifact@v2
       with:
-        name: KTX-Software-${{ steps.ktx-version.outputs.ktx-version }}-Android
+        name: KTX-Software-${KTX_VERSION}-Android
         path: install-android
 
     # Make an archive to be deployed.
@@ -313,7 +309,7 @@ jobs:
     - name: Create zip for deployment.
       if: github.event_name == 'push' && github.ref_type == 'tag'
       run: |
-        zip_basename=KTX-Software-${{ steps.ktx-version.outputs.ktx-version }}-Android
+        zip_basename=KTX-Software-${KTX_VERSION}-Android
         ln -s install-android $zip_basename
         zip -r $zip_basename.zip $zip_basename
         sha1sum $zip_basename.zip > $zip_basename.zip.sha1
@@ -324,7 +320,7 @@ jobs:
       with:
         draft: true
         prerelease: true
-        files:  KTX-Software-${{ steps.ktx-version.outputs.ktx-version }}-Android.zip*
+        files:  KTX-Software-${KTX_VERSION}-Android.zip*
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
