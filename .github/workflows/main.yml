@@ -142,7 +142,7 @@ jobs:
       run: |
         if ($env:PACKAGE -eq "YES" -and $env:AZURE_KEY_VAULT_URL) {
           dotnet tool install --global AzureSignTool
-          echo "CODE_SIGN_KEY_VAULT=Azure" >> $GITHUB_ENV
+          echo "CODE_SIGN_KEY_VAULT=Azure" >> $env:GITHUB_ENV
         }
 
     - name: Install Dependencies
@@ -175,6 +175,7 @@ jobs:
         Import-Module "$env:ChocolateyInstall/helpers/chocolateyInstaller.psm1"
         refreshenv
         $env:JAVA_HOME=$step_java_home
+        echo "CODE_SIGN_KEY_VAULT = $env:CODE_SIGN_KEY_VAULT
         ci_scripts/build_win.ps1
 
     - name: Test Windows build
