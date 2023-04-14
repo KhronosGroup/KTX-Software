@@ -214,7 +214,9 @@ jobs:
         # Fetch all history to make sure tags are
         # included (used for version creation)
         fetch-depth: 0
-    - uses: Honeybunch/setup-mingw@v3
+    #- uses: Honeybunch/setup-mingw@v3
+    - uses: egor-tensin/setup-mingw@v2
+      with: x64
     - name: Force update provoking tag
       # Work around https://github.com/actions/checkout/issues/290.
       if: github.ref_type == 'tag'
