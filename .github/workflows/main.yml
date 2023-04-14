@@ -175,7 +175,7 @@ jobs:
         Import-Module "$env:ChocolateyInstall/helpers/chocolateyInstaller.psm1"
         refreshenv
         $env:JAVA_HOME=$step_java_home
-        echo "CODE_SIGN_KEY_VAULT = $env:CODE_SIGN_KEY_VAULT
+        echo "CODE_SIGN_KEY_VAULT = $env:CODE_SIGN_KEY_VAULT"
         ci_scripts/build_win.ps1
 
     - name: Test Windows build
