@@ -1206,7 +1206,7 @@ struct spmd_kernel
 	CPPSPMD_FORCE_INLINE vint load_all(const vint_vref& src)
 	{
 		// TODO: There's surely a better way
-		__m128i k;
+		__m128i k = {};
 
 		k = insert_x(k, ((int*)(&src.m_pValue[extract_x(src.m_vindex)]))[0]);
 		k = insert_y(k, ((int*)(&src.m_pValue[extract_y(src.m_vindex)]))[1]);

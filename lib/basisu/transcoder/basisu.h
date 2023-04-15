@@ -306,7 +306,17 @@ namespace basisu
 			memcpy(m_bytes, rhs.m_bytes, sizeof(m_bytes)); 
 			return *this;
 		}
-
+// The casts for > 4 bytes are strange. Has been reported to basis_universal.
+// See https://github.com/BinomialLLC/basis_universal/issues/306.
+// Since I don't know the intention or correct fix, suppress the associated
+// warning. We get this only in CI when it is compiling for iOS build-only
+// device.
+#if __clang__
+  #pragma clang diagnostic push
+  #if __has_warning("-Wshorten-64-to-32")
+    #pragma clang diagnostic ignored "-Wshorten-64-to-32"
+  #endif
+#endif
 		inline operator uint32_t() const
 		{
 			switch (NumBytes)
@@ -365,6 +375,9 @@ namespace basisu
 			}
 		}
 	};
+#if __clang__
+  #pragma clang diagnostic pop
+#endif
 
 	enum eZero { cZero };
 	enum eNoClamp { cNoClamp };

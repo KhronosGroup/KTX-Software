@@ -120,7 +120,7 @@ static constexpr uint32_t some_res16_2[3]={9541, 9654, 32768};
 static constexpr uint32_t some_res32_2[3]={628983424, 628983424, 2147483648};
 
 static constexpr uint32_t min_res1[3]={0, 0, 0};
-static constexpr uint32_t max_res1[3]={255, 65535, 0}; // Last is not 4294967295 becuase of overflow
+static constexpr uint32_t max_res1[3]={255, 65535, 0}; // Last is not 4294967295 because of overflow
 static constexpr uint32_t some_res8_1[3]={0, 198, 128};
 static constexpr uint32_t some_res16_1[3]={0, 32768, 32768};
 static constexpr uint32_t some_res32_1[3]={0, 2147483648, 2147483648};

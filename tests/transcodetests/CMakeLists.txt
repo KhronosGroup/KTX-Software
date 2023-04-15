@@ -4,6 +4,8 @@
 add_executable( transcodetests
     transcodetests.cc
 )
+set_test_properties(transcodetests)
+set_code_sign(transcodetests)
 
 target_include_directories(
     transcodetests
@@ -33,6 +35,8 @@ target_compile_features(transcodetests PUBLIC cxx_std_11)
 
 gtest_discover_tests( transcodetests
     TEST_PREFIX transcodetest
+    # With the 5s default we get periodic timeouts on Travis & GitHub CI.
+    DISCOVERY_TIMEOUT 15
     EXTRA_ARGS "${PROJECT_SOURCE_DIR}/tests/testimages/"
 )
 
@@ -43,11 +47,18 @@ if(WIN32)
         $<$<STREQUAL:"${BASISU_CBIND_LIBTYPE}","STATIC">:KHRONOS_STATIC>
     )
 
-    # Disable some known warnings in the transcoder
-    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    # Retrieve and set warning settings for the 2 files from the ktx target.
+    # See comment in ../../CMakeLists.txt around line 625.
+    if (transcoder_options)
         set_source_files_properties(
             ${PROJECT_SOURCE_DIR}/lib/basisu/transcoder/basisu_transcoder.cpp
-            PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable;-Wno-class-memaccess;-Wno-maybe-uninitialized"
+            PROPERTIES COMPILE_OPTIONS "${transcoder_options}"
+        )
+    endif()
+    if (zstd_options)
+        set_source_files_properties(
+            ${PROJECT_SOURCE_DIR}/lib/basisu/zstd/zstd.c
+            PROPERTIES COMPILE_OPTIONS "${zstd_options}"
         )
     endif()
 

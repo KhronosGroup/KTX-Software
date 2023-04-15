@@ -9,10 +9,10 @@
 # to build
 for ($i=0; $i -lt $args.length; $i++)
 {
- Invoke-Expression $($args[$i])
+  Invoke-Expression $($args[$i])
 }
 
-function Set-Config-Variable {
+function Set-ConfigVariable {
   param ( $VariableName, $DefaultValue )
   $res = get-variable $VariableName -ValueOnly -ErrorAction 'SilentlyContinue'
   if ($res -eq $null) {
@@ -24,32 +24,34 @@ function Set-Config-Variable {
   return $res
 }
 
-# Setting env vars here sets them in environment for parent as well so
-# use local variables to avoid pollution.
-$BUILD_DIR = Set-Config-Variable BUILD_DIR "build/build-batch-vs2019"
-$CONFIGURATION = Set-Config-Variable CONFIGURATION "Release"
-$CMAKE_GEN = Set-Config-Variable CMAKE_GEN "Visual Studio 16 2019"
-$CMAKE_TOOLSET = Set-Config-Variable CMAKE_TOOLSET ""
-$FEATURE_DOC = Set-Config-Variable FEATURE_DOC "OFF"
-$FEATURE_JNI = Set-Config-Variable FEATURE_JNI "OFF"
-$FEATURE_LOADTESTS = Set-Config-Variable FEATURE_LOADTESTS "OFF"
-$FEATURE_TOOLS = Set-Config-Variable FEATURE_TOOLS "ON"
-$FEATURE_TESTS = Set-Config-Variable FEATURE_TESTS "ON"
-$PLATFORM = Set-Config-Variable PLATFORM "x64"
-$PACKAGE = Set-Config-Variable PACKAGE "NO"
-$SUPPORT_SSE = Set-Config-Variable SUPPORT_SSE "ON"
-$SUPPORT_OPENCL = Set-Config-Variable SUPPORT_OPENCL "OFF"
-$OPENGL_ES_EMULATOR = Set-Config-Variable OPENGL_ES_EMULATOR `
+# These defaults are here to permit easy running of the script locally
+# when debugging is needed. Use local variables to avoid polluting the
+# environment. Some case have been observed where setting env. var's here
+# sets them for the parent as well.
+$BUILD_DIR = Set-ConfigVariable BUILD_DIR "build/build-batch-vs2022"
+$CONFIGURATION = Set-ConfigVariable CONFIGURATION "Release"
+$CMAKE_GEN = Set-ConfigVariable CMAKE_GEN "Visual Studio 17 2022"
+$CMAKE_TOOLSET = Set-ConfigVariable CMAKE_TOOLSET ""
+$FEATURE_DOC = Set-ConfigVariable FEATURE_DOC "OFF"
+$FEATURE_JNI = Set-ConfigVariable FEATURE_JNI "OFF"
+$FEATURE_LOADTESTS = Set-ConfigVariable FEATURE_LOADTESTS "OFF"
+$FEATURE_TOOLS = Set-ConfigVariable FEATURE_TOOLS "ON"
+$FEATURE_TESTS = Set-ConfigVariable FEATURE_TESTS "ON"
+$PLATFORM = Set-ConfigVariable PLATFORM "x64"
+$PACKAGE = Set-ConfigVariable PACKAGE "NO"
+$SUPPORT_SSE = Set-ConfigVariable SUPPORT_SSE "ON"
+$SUPPORT_OPENCL = Set-ConfigVariable SUPPORT_OPENCL "OFF"
+$OPENGL_ES_EMULATOR = Set-ConfigVariable OPENGL_ES_EMULATOR `
   "c:/Imagination` Technologies/PowerVR_Graphics/PowerVR_Tools/PVRVFrame/Library/Windows_x86_64"
-$CODE_SIGN_KEY_VAULT = Set-Config-Variable CODE_SIGN_KEY_VAULT ""
-$CODE_SIGN_TIMESTAMP_URL = Set-Config-Variable CODE_SIGN_TIMESTAMP_URL ""
-$LOCAL_KEY_VAULT_SIGNING_IDENTITY = Set-Config-Variable LOCAL_KEY_VAULT_SIGNING_IDENTITY ""
-$LOCAL_KEY_VAULT_CERTIFICATE_THUMBPRINT  = Set-Config-Variable LOCAL_KEY_VAULT_CERTIFICATE_THUMBPRINT ""
-$AZURE_KEY_VAULT_URL = Set-Config-Variable AZURE_KEY_VAULT_URL ""
-$AZURE_KEY_VAULT_CERTIFICATE = Set-Config-Variable AZURE_KEY_VAULT_CERTIFICATE ""
-$AZURE_KEY_VAULT_CLIENT_ID = Set-Config-Variable AZURE_KEY_VAULT_CLIENT_ID ""
-$AZURE_KEY_VAULT_CLIENT_SECRET = Set-Config-Variable AZURE_KEY_VAULT_CLIENT_SECRET ""
-$AZURE_KEY_VAULT_TENANT_ID = Set-Config-Variable AZURE_KEY_VAULT_TENANT_ID ""
+$CODE_SIGN_KEY_VAULT = Set-ConfigVariable CODE_SIGN_KEY_VAULT ""
+$CODE_SIGN_TIMESTAMP_URL = Set-ConfigVariable CODE_SIGN_TIMESTAMP_URL ""
+$LOCAL_KEY_VAULT_SIGNING_IDENTITY = Set-ConfigVariable LOCAL_KEY_VAULT_SIGNING_IDENTITY ""
+$LOCAL_KEY_VAULT_CERTIFICATE_THUMBPRINT  = Set-ConfigVariable LOCAL_KEY_VAULT_CERTIFICATE_THUMBPRINT ""
+$AZURE_KEY_VAULT_URL = Set-ConfigVariable AZURE_KEY_VAULT_URL ""
+$AZURE_KEY_VAULT_CERTIFICATE = Set-ConfigVariable AZURE_KEY_VAULT_CERTIFICATE ""
+$AZURE_KEY_VAULT_CLIENT_ID = Set-ConfigVariable AZURE_KEY_VAULT_CLIENT_ID ""
+$AZURE_KEY_VAULT_CLIENT_SECRET = Set-ConfigVariable AZURE_KEY_VAULT_CLIENT_SECRET ""
+$AZURE_KEY_VAULT_TENANT_ID = Set-ConfigVariable AZURE_KEY_VAULT_TENANT_ID ""
 
 if ($FEATURE_LOADTESTS -eq "ON")  { $need_gles_emulator=1 }
 
@@ -118,6 +120,11 @@ $config_display = $config_display -replace ', $', ''
 echo $config_display
 
 cmake . $cmake_args
+
+# Return an error code if cmake config fails.
+if(!$?){
+  exit 1
+}
 
 $configArray = $CONFIGURATION.split(",")
 foreach ($config in $configArray) {

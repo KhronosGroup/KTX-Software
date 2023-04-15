@@ -22,8 +22,6 @@ include(CMakeDependentOption)
 include(cmake/codesign.cmake)
 include(cmake/cputypetest.cmake)
 
-find_package(OpenCL)
-
 # OPTIONS
 
 if( IOS OR EMSCRIPTEN )
@@ -63,6 +61,10 @@ CMAKE_DEPENDENT_OPTION( BASISU_SUPPORT_OPENCL
     "OpenCL_FOUND OR WIN32"
     OFF
 )
+
+if(BASISU_SUPPORT_OPENCL)
+    find_package(OpenCL)
+endif()
 
 if(BASISU_SUPPORT_OPENCL AND WIN32 AND NOT OpenCL_FOUND)
     # To avoid fiddly setting up of OpenCL on Windows CI VMs, use copy in repo.
@@ -212,13 +214,11 @@ include(cmake/mkvk.cmake)
 
 # Global compile & link options including optimization flags
 if(MSVC)
-    # With /W4 VS2015 (V19.0) issues many warnings that VS2017 & 2019 don't
-    # so only increase warning level for recent versions.
-    add_compile_options($<$<VERSION_GREATER_EQUAL:${CMAKE_CXX_COMPILER_VERSION},19.16>:/W4>)
+    add_compile_options( /W4;/WX )
     add_compile_options( $<IF:$<CONFIG:Debug>,/Gz,/O2> )
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"
        OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-    add_compile_options(-Wall -Wextra)
+    add_compile_options(-Wall -Wextra -Werror)
     add_compile_options( $<IF:$<CONFIG:Debug>,-O0,-O3> )
     if(EMSCRIPTEN)
         add_link_options( $<IF:$<CONFIG:Debug>,-gsource-map,-O3> )
@@ -606,10 +606,39 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         lib/basisu/transcoder/basisu_transcoder.cpp
         PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable;-Wno-class-memaccess;-Wno-maybe-uninitialized"
     )
-    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "11.0")
+    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "11")
+        # class-memaccess warnings n basisu_comp.cpp have been
+        # fixed. Fixing those in the included basisu_miniz.h is
+        # more intrusive than I want to attempt.
+        #
+        # The extra warnings are raised in basisu_miniz.h.
         set_source_files_properties(
-            lib/basisu/zstd/zstd.c
-            PROPERTIES COMPILE_OPTIONS "-Wno-unused-but-set-variable"
+            lib/basisu/encoder/basisu_comp.cpp
+            PROPERTIES COMPILE_OPTIONS "-Wno-class-memaccess;-Wno-extra"
+        )
+        if (${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS "12" )
+        # Version 11 raises several stringop-overflow warnings in some
+        # very hard to decipher code. They appear to be bogus based on
+        # the facts that we have never seen a crash and version 12 no
+        # longer raises the warnings.
+        get_source_file_property(cur_options
+        lib/basisu/encoder/basisu_comp.cpp
+        COMPILE_OPTIONS
+        )
+        set_source_files_properties(
+        lib/basisu/encoder/basisu_comp.cpp
+        PROPERTIES COMPILE_OPTIONS "${cur_options};-Wno-stringop-overflow"
+        )
+        endif()
+    endif()
+    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "12.0")
+        # Version 12 newly raises this warning on basisu_uastc_enc.cpp.
+        # There seems no way for the index calculated by the code at
+        # line 326, where the error is raised, to be > the array length.
+        # Also we have never seen any crashes.
+        set_source_files_properties(
+            lib/basisu/encoder/basisu_uastc_enc.cpp
+            PROPERTIES COMPILE_OPTIONS "-Wno-stringop-overflow"
         )
     endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -631,29 +660,14 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     else()
         set( clang_version ${CMAKE_CXX_COMPILER_VERSION} )
     endif()
+    # BEWARE: set_source_files_properties is not additive; it replaces.
     if (${clang_version} VERSION_GREATER_EQUAL "12.0.0")
         set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter;-Wno-deprecated-copy;-Wno-uninitialized-const-reference"
         )
-        # Primarily an issue on windows using clang/clangcl
-        # Lowest tested clang version was 12.0.0 and highest was 14.0.4
-        set_source_files_properties(
-            lib/basisu/zstd/zstd.c
-            PROPERTIES COMPILE_OPTIONS "-Wno-unused-function"
-        )
     else()
         set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter"
-        )
-    endif()
-    if (${clang_version} VERSION_GREATER_EQUAL "13.0.0")
-        get_source_file_property(zstd_options lib/basisu/zstd/zstd.c COMPILE_OPTIONS)
-        set_source_files_properties(
-            # We haven't fixed zstd.c because the fix would have to be applied
-            # every time the upstream script is used to create an updated
-            # single file decoder.
-            lib/basisu/zstd/zstd.c
-            PROPERTIES COMPILE_OPTIONS "${zstd_options};-Wno-unused-but-set-variable"
         )
     endif()
     if (${clang_version} VERSION_GREATER_EQUAL "15.0")
@@ -669,12 +683,22 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         )
         set_source_files_properties(
             lib/basisu/zstd/zstd.c
-            PROPERTIES COMPILE_OPTIONS "-Wno-unused-but-set-variable;-Wno-bitwise-instead-of-logical"
+            PROPERTIES COMPILE_OPTIONS "-Wno-unused-function"
         )
     endif()
 else()
     message(FATAL_ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")
 endif()
+
+# Retrieve the final set of properties for use by the transcodetests.
+# We do this because the CMake feature that would allow the transcodetests
+# target to retrieve these from the ktx target are not available until
+# v18 and we still need to work with v16 in the Emscripten Docker image.
+get_source_file_property(transcoder_options
+    lib/basisu/transcoder/basisu_transcoder.cpp
+    COMPILE_OPTIONS
+)
+get_source_file_property(zstd_options lib/basisu/zstd/zstd.c COMPILE_OPTIONS)
 
 target_include_directories(
     ktx
