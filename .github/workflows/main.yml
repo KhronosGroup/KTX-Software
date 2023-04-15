@@ -26,6 +26,7 @@ jobs:
     strategy:
       matrix:
         os: [ windows-latest ]
+        toolset: [v143, CLangCL]
         platform: [ x64 ]
         options: [
           {config: 'Debug,Release',
@@ -46,9 +47,9 @@ jobs:
            sse: ON, opencl: ON}
         ]
         include:
-          - os: windows-latest
-            generator: 'Visual Studio 17 2022'
-            toolset: v143
+#          - os: windows-latest
+#            generator: 'Visual Studio 17 2022'
+#            toolset: v143
           - os: windows-2019
             generator: 'Visual Studio 16 2019'
             toolset: v142
@@ -59,15 +60,15 @@ jobs:
               package: NO,
               sse: ON, opencl: OFF
             }
-          - os: windows-latest
-            generator: 'Visual Studio 17 2022'
-            toolset: CLangCL
-            platform: x64
-            options: {
-              config: 'Release',
-              doc: ON, jni: OFF, loadtests: OFF, tests: ON, tools: ON,
-              package: YES
-            }
+#          - os: windows-latest
+#            generator: 'Visual Studio 17 2022'
+#            toolset: CLangCL
+#            platform: x64
+#            options: {
+#              config: 'Release',
+#              doc: ON, jni: OFF, loadtests: OFF, tests: ON, tools: ON,
+#              package: YES
+#            }
           - os: windows-latest
             generator: 'Visual Studio 17 2022'
             toolset: CLangCL
@@ -189,15 +190,15 @@ jobs:
         echo "KTX_VERSION=$KTX_VERSION" >> $env:GITHUB_ENV
 
     - name: Upload Artifact
-      if: matrix.options.package == 'YES'
+      if: matrix.options.package == 'YES' && matrix.options.toolset == 'CLangCL'
       uses: actions/upload-artifact@v3
       with:
-        name: KTX-Software-${{env.KTX_VERSION}}-Windows-arm64
+        name: KTX-Software-${{env.KTX_VERSION}}-Windows-${{matrix.options.platform}}
         path: ${{env.BUILD_DIR}}/KTX-Software-*.exe*
 
     - name: Upload To Release
       uses: softprops/action-gh-release@v1
-      if: matrix.options.package == 'YES' && github.event_name == 'push' && github.ref_type == 'tag'
+      if: matrix.options.package == 'YES' && matrix.options.toolset == 'CLangCL' && github.event_name == 'push' && github.ref_type == 'tag'
       with:
         draft: true
         prerelease: true
