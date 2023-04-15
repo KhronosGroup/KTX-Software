@@ -54,7 +54,7 @@ if ($FEATURE_LOADTESTS -eq "ON") {
   curl.exe -s -S -L -O $PVR_SDK_HOME/libGLES_CM.lib
   curl.exe -s -S -L -O $PVR_SDK_HOME/libGLESv2.dll
   curl.exe -s -S -L -O $PVR_SDK_HOME/libGLESv2.lib
-  curl.exe -s -S -L -O $PVR_SDK_HOME/libEGL.dl C:
+  curl.exe -s -S -L -O $PVR_SDK_HOME/libEGL.dll
   curl.exe -s -S -L -O $PVR_SDK_HOME/libEGL.lib
   popd
   echo "Install VulkanSDK."
