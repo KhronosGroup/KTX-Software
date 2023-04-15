@@ -156,7 +156,7 @@ namespace vkMeshLoader
 
 // Because this file is included in multiple .cpp files, via
 // VulkanLoadTestSample.h, and not all of those samples call this function...
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(__clang__)
   #pragma warning(push)
   #pragma warning(disable: 4505)
 #else
