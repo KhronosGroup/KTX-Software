@@ -190,15 +190,15 @@ jobs:
         echo "KTX_VERSION=$KTX_VERSION" >> $env:GITHUB_ENV
 
     - name: Upload Artifact
-      if: matrix.options.package == 'YES' && matrix.options.toolset == 'CLangCL'
+      if: matrix.options.package == 'YES' && matrix.toolset == 'CLangCL'
       uses: actions/upload-artifact@v3
       with:
-        name: KTX-Software-${{env.KTX_VERSION}}-Windows-${{matrix.options.platform}}
+        name: KTX-Software-${{env.KTX_VERSION}}-Windows-${{matrix.platform}}
         path: ${{env.BUILD_DIR}}/KTX-Software-*.exe*
 
     - name: Upload To Release
       uses: softprops/action-gh-release@v1
-      if: matrix.options.package == 'YES' && matrix.options.toolset == 'CLangCL' && github.event_name == 'push' && github.ref_type == 'tag'
+      if: matrix.options.package == 'YES' && matrix.toolset == 'CLangCL' && github.event_name == 'push' && github.ref_type == 'tag'
       with:
         draft: true
         prerelease: true
