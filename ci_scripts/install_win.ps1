@@ -60,7 +60,7 @@ if ($FEATURE_LOADTESTS -eq "ON") {
   echo "Install VulkanSDK."
   pushd $env:TEMP
   curl.exe -s -S -o VulkanSDK-Installer.exe "https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/windows/VulkanSDK-$VULKAN_SDK_VER-Installer.exe?Human=true"
-  Start-Process .\VulkanSDK-Installer.exe -ArgumentList "--verbose --accept-licenses --default-answer --confirm-command install" -NoNewWindow -Wait
+  Start-Process .\VulkanSDK-Installer.exe -ArgumentList "--accept-licenses --default-answer --confirm-command install" -NoNewWindow -Wait
   echo "Return to cloned repo."
   popd
   $key='HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment'
