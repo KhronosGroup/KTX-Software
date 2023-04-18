@@ -1758,7 +1758,24 @@ ktxTexture2_GetImageOffset(ktxTexture2* This, ktx_uint32_t level,
  *
  * @param[in]     This      pointer to the ktxTexture2 object of interest.
  *
- * @return A KHR_DF enum value specifying the OETF.
+ * @return A @c khr_df_transfer enum value specifying the OETF.
+ */
+khr_df_transfer_e
+ktxTexture2_GetOETF_e(ktxTexture2* This)
+{
+    return KHR_DFDVAL(This->pDfd+1, TRANSFER);
+}
+
+/**
+ * @memberof ktxTexture2
+ * @~English
+ * @brief Retrieve the opto-electrical transfer function of the images.
+ * @deprecated Retained for backward compatibility. Use ktxTexture2\_GetOETF\_e()
+ *
+ * @param[in]     This      pointer to the ktxTexture2 object of interest.
+ *
+ * @return A @c khr_df_transfer enum value specifying the OETF, returned as
+ *         @c ktx_uint32_t.
  */
 ktx_uint32_t
 ktxTexture2_GetOETF(ktxTexture2* This)
@@ -1769,11 +1786,26 @@ ktxTexture2_GetOETF(ktxTexture2* This)
 /**
  * @memberof ktxTexture2
  * @~English
+ * @brief Retrieve the DFD color model of the images.
+ *
+ * @param[in]     This      pointer to the ktxTexture2 object of interest.
+ *
+ * @return A @c khr_df_transfer enum value specifying the color model.
+ */
+khr_df_model_e
+ktxTexture2_GetColorModel_e(ktxTexture2* This)
+{
+    return KHR_DFDVAL(This->pDfd+1, MODEL);
+}
+
+/**
+ * @memberof ktxTexture2
+ * @~English
  * @brief Retrieve whether the RGB components have been premultiplied by the alpha component.
  *
  * @param[in]     This      pointer to the ktxTexture2 object of interest.
  *
- * @return KTX_TRUE if the components are premultiplied, KTX_FALSE otherwise.
+ * @return KTX\_TRUE if the components are premultiplied, KTX_FALSE otherwise.
  */
 ktx_bool_t
 ktxTexture2_GetPremultipliedAlpha(ktxTexture2* This)
@@ -1784,14 +1816,14 @@ ktxTexture2_GetPremultipliedAlpha(ktxTexture2* This)
 /**
  * @memberof ktxTexture2
  * @~English
- * @brief Query if the texture is in a transcodable format.
+ * @brief Query if the images are in a transcodable format.
  *
  * @param[in]     This     pointer to the ktxTexture2 object of interest.
  */
 ktx_bool_t
 ktxTexture2_NeedsTranscoding(ktxTexture2* This)
 {
-    if (This->supercompressionScheme == KTX_SS_BASIS_LZ)
+    if (KHR_DFDVAL(This->pDfd + 1, MODEL) == KHR_DF_MODEL_ETC1S)
         return true;
     else if (KHR_DFDVAL(This->pDfd + 1, MODEL) == KHR_DF_MODEL_UASTC)
         return true;

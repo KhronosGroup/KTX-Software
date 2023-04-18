@@ -29,6 +29,8 @@
 #include <stdbool.h>
 #include <sys/types.h>
 
+#include <KHR/khr_df.h>
+
 /*
  * Don't use khrplatform.h in order not to break apps existing
  * before these definitions were needed.
@@ -1058,8 +1060,15 @@ ktxTexture2_GetComponentInfo(ktxTexture2* This, ktx_uint32_t* numComponents,
 KTX_API ktx_uint32_t KTX_APIENTRY
 ktxTexture2_GetNumComponents(ktxTexture2* This);
 
+KTX_API khr_df_transfer_e KTX_APIENTRY
+ktxTexture2_GetOETF_e(ktxTexture2* This);
+
+// For backward compatibility
 KTX_API ktx_uint32_t KTX_APIENTRY
 ktxTexture2_GetOETF(ktxTexture2* This);
+
+KTX_API khr_df_model_e KTX_APIENTRY
+ktxTexture2_GetColorModel_e(ktxTexture2* This);
 
 KTX_API ktx_bool_t KTX_APIENTRY
 ktxTexture2_GetPremultipliedAlpha(ktxTexture2* This);

@@ -28,19 +28,17 @@
 class TextureTranscoder {
   public:
     TextureTranscoder() {
-        compressedTexFeatures features;
-
-        determineCompressedTexFeatures(features);
-        if (features.astc_ldr)
-            tf = KTX_TTF_ASTC_4x4_RGBA;
-        else if (features.bc3)
-            tf = KTX_TTF_BC1_OR_3;
-        else if (features.etc2)
-            tf = KTX_TTF_ETC; // Let transcoder decide between RGB or RGBA
-        else if (features.pvrtc1)
-            tf = KTX_TTF_PVRTC1_4_RGBA;
-        else if (features.etc1)
-            tf = KTX_TTF_ETC1_RGB;
+        determineCompressedTexFeatures(deviceFeatures);
+        if (deviceFeatures.astc_ldr)
+            defaultTf = KTX_TTF_ASTC_4x4_RGBA;
+        else if (deviceFeatures.bc3)
+            defaultTf = KTX_TTF_BC1_OR_3;
+        else if (deviceFeatures.etc2)
+            defaultTf = KTX_TTF_ETC; // Let transcoder decide RGB or RGBA
+        else if (deviceFeatures.pvrtc1)
+            defaultTf = KTX_TTF_PVRTC1_4_RGBA;
+        else if (deviceFeatures.etc1)
+            defaultTf = KTX_TTF_ETC1_RGB;
         else {
             std::stringstream message;
 
@@ -52,8 +50,19 @@ class TextureTranscoder {
     void transcode(ktxTexture2* kTexture,
                    ktx_transcode_fmt_e otf = KTX_TTF_NOSELECTION) {
         KTX_error_code ktxresult;
-        if (otf != KTX_TTF_NOSELECTION)
+        ktx_transcode_fmt_e tf;
+        if (otf != KTX_TTF_NOSELECTION) {
             tf = otf;
+        } else {
+            khr_df_model_e colorModel = ktxTexture2_GetColorModel_e(kTexture);
+            if (colorModel == KHR_DF_MODEL_UASTC && deviceFeatures.astc_ldr) {
+                tf = KTX_TTF_ASTC_4x4_RGBA;
+            } else if (colorModel == KHR_DF_MODEL_ETC1S && deviceFeatures.etc2) {
+                tf = KTX_TTF_ETC;
+            } else {
+                tf = defaultTf;
+            }
+        }
         ktxresult = ktxTexture2_TranscodeBasis(kTexture, tf, 0);
         if (KTX_SUCCESS != ktxresult) {
             std::stringstream message;
@@ -65,11 +74,8 @@ class TextureTranscoder {
         }
     }
 
-    ktx_transcode_fmt_e getFormat() { return tf; }
-    
-
   protected:
-    ktx_transcode_fmt_e tf;
+    ktx_transcode_fmt_e defaultTf;
 
     struct compressedTexFeatures {
         bool astc_ldr;
@@ -83,7 +89,7 @@ class TextureTranscoder {
         bool pvrtc_srgb;
         bool pvrtc2;
         bool rgtc;
-    };
+    } deviceFeatures;
 
     void determineCompressedTexFeatures(compressedTexFeatures& features) {
         ktx_int32_t numCompressedFormats;

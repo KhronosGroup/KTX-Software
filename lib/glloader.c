@@ -925,8 +925,7 @@ ktxTexture1_GLUpload(ktxTexture1* This, GLuint* pTexture, GLenum* pTarget,
     formatInfo.glInternalformat = This->glInternalformat;
     formatInfo.glBaseInternalformat = This->glBaseInternalformat;
     formatInfo.glType = This->glType;
-    formatInfo.glFormat = This->glFormat;
-
+ 
     result = ktxTexture_GLUploadPrivate(ktxTexture(This), &formatInfo,
                                         pTexture, pTarget, pGlerror);
 
