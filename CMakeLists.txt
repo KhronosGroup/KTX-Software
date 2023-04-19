@@ -304,8 +304,11 @@ macro(commom_lib_settings lib write)
     endif()
 
     set_target_properties(${lib} PROPERTIES
-#        PUBLIC_HEADER
+        PUBLIC_HEADER
 #          "${CMAKE_CURRENT_SOURCE_DIR}/include/ktx.h;${CMAKE_CURRENT_SOURCE_DIR}/include/KHR/khr_df.h"
+          # Omit khr_df.h. Its installation has to be handled separately to
+          # workaround CMake's failure to preserve the directory hierarchy.
+          "${CMAKE_CURRENT_SOURCE_DIR}/include/ktx.h"
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}
         XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
@@ -313,14 +316,6 @@ macro(commom_lib_settings lib write)
     if(IOS)
         set_target_properties(${lib} PROPERTIES
             FRAMEWORK TRUE
-            # Omit khr_df.h. Its installation is handled separately to get
-            # it into the subdirectory.
-            PUBLIC_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/include/ktx.h"
-        )
-    else()
-        set_target_properties(${lib} PROPERTIES
-            PUBLIC_HEADER
-              "${CMAKE_CURRENT_SOURCE_DIR}/include/ktx.h;${CMAKE_CURRENT_SOURCE_DIR}/include/KHR/khr_df.h"
         )
     endif()
 
@@ -972,9 +967,9 @@ if(APPLE OR LINUX)
             DESTINATION ${CMAKE_INSTALL_LIBDIR}
             COMPONENT library
             NAMELINK_SKIP
-#        PUBLIC_HEADER
-#            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-#            COMPONENT dev
+        PUBLIC_HEADER
+            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+            COMPONENT dev
     )
     install(TARGETS ${KTX_INSTALL_TARGETS}
         LIBRARY
@@ -996,27 +991,25 @@ else()
         RUNTIME
             DESTINATION ${CMAKE_INSTALL_BINDIR}
             COMPONENT library
-#        PUBLIC_HEADER
-#            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-#            COMPONENT dev
+        PUBLIC_HEADER
+            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+            COMPONENT dev
     )
 endif()
 
-# Use of this instead of PUBLIC_HEADER in install(TARGETS ...) is due
-# to CMake's failure to preserve the include source folder hiearchy.
+# Use of this to install KHR/khr_df.h is due to CMake's failure to
+# preserve the include source folder hierarchy.
 # See https://gitlab.kitware.com/cmake/cmake/-/issues/16739.
-# N.B. this always installs ktxvulkan.h. There is no way to prevent it.
-if (NOT IOS)
-    install(DIRECTORY include/
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-        COMPONENT dev
-        USE_SOURCE_PERMISSIONS
-        FILES_MATCHING PATTERN "*.h"
-    )
-else()
+if (IOS)
     set_source_files_properties(
           include/KHR/khr_df.h
           PROPERTIES MACOSX_PACKAGE_LOCATION Headers/KHR
+    )
+else()
+    include(GNUInstallDirs)
+    install(FILES include/KHR/khr_df.h
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/KHR
+        COMPONENT dev
     )
 endif()
 

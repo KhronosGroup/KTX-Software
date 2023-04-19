@@ -323,7 +323,16 @@ if (ktxTexture2_NeedsTranscoding(texture)) {
     // supported and pick a format. For example
     vk::PhysicalDeviceFeatures deviceFeatures;
     vkctx.gpu.getFeatures(&deviceFeatures);
-    if (deviceFeatures.textureCompressionETC2)
+    khr_df_model_e colorModel = ktxTexture2_GetColorModel_e(texture);
+    if (colorModel == KHR_DF_MODEL_UASTC
+        && deviceFeatures.textureCompressionASTC_LDR) {
+        tf = KTX_TTF_ASTC_4x4_RGBA;
+    } else if (colorModel == KHR_DF_MODEL_ETC1S
+               && deviceFeatures.textureCompressionETC2) {
+        tf = KTX_TTF_ETC;
+    } else if (deviceFeatures.textureCompressionASTC_LDR) {
+        tf = KTX_TTF_ASTC_4x4_RGBA;
+    } else if (deviceFeatures.textureCompressionETC2)
         tf = KTX_TTF_ETC2_RGBA;
     else if (deviceFeatures.textureCompressionBC)
         tf = KTX_TTF_BC3_RGBA;
