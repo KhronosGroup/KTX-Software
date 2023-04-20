@@ -46,7 +46,7 @@ export PATH="${VULKAN_SDK}/bin:$PATH"
 # destination args can be expanded to a single word.
 OSX_XCODE_OPTIONS=(-alltargets -destination "platform=OS X,arch=x86_64")
 IOS_XCODE_OPTIONS=(-alltargets -destination "generic/platform=iOS" -destination "platform=iOS Simulator,OS=latest")
-XCODE_CODESIGN_ENV='CODE_SIGN_IDENTITY= CODE_SIGN_ENTITLEMENTS= CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO'
+XCODE_NO_CODESIGN_ENV='CODE_SIGN_IDENTITY= CODE_SIGN_ENTITLEMENTS= CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO'
 
 if which -s xcpretty ; then
   function handle_compiler_output() {
@@ -107,7 +107,7 @@ do
   if [ -n "$MACOS_CERTIFICATES_P12" -a "$config" = "Release" ]; then
     cmake --build . --config $config | handle_compiler_output
   else
-    cmake --build . --config $config -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | handle_compiler_output
+    cmake --build . --config $config -- $XCODE_NO_CODESIGN_ENV | handle_compiler_output
   fi
 
   # Rosetta 2 should let x86_64 tests run on an Apple Silicon Mac hence the -o.
