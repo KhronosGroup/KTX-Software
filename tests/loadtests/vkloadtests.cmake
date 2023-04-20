@@ -201,6 +201,7 @@ if(APPLE)
             ${CoreHaptics_LIBRARY}
             ${Foundation_LIBRARY}
             ${GameController_LIBRARY}
+            ${IOSurface_LIBRARY}
             ${Metal_LIBRARY}
             ${MOLTENVK_FRAMEWORK}
             ${OpenGLES_LIBRARY}

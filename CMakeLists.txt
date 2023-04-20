@@ -230,6 +230,7 @@ else()
 endif()
 
 set(KTX_MAIN_SRC
+    include/KHR/khr_df.h
     include/ktx.h
     lib/basis_sgd.h
     lib/basis_transcode.cpp
@@ -303,7 +304,11 @@ macro(commom_lib_settings lib write)
     endif()
 
     set_target_properties(${lib} PROPERTIES
-        PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/include/ktx.h
+        PUBLIC_HEADER
+#          "${CMAKE_CURRENT_SOURCE_DIR}/include/ktx.h;${CMAKE_CURRENT_SOURCE_DIR}/include/KHR/khr_df.h"
+          # Omit khr_df.h. Its installation has to be handled separately to
+          # workaround CMake's failure to preserve the directory hierarchy.
+          "${CMAKE_CURRENT_SOURCE_DIR}/include/ktx.h"
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}
         XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
@@ -989,6 +994,22 @@ else()
         PUBLIC_HEADER
             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
             COMPONENT dev
+    )
+endif()
+
+# Use of this to install KHR/khr_df.h is due to CMake's failure to
+# preserve the include source folder hierarchy.
+# See https://gitlab.kitware.com/cmake/cmake/-/issues/16739.
+if (IOS)
+    set_source_files_properties(
+          include/KHR/khr_df.h
+          PROPERTIES MACOSX_PACKAGE_LOCATION Headers/KHR
+    )
+else()
+    include(GNUInstallDirs)
+    install(FILES include/KHR/khr_df.h
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/KHR
+        COMPONENT dev
     )
 endif()
 
