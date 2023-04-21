@@ -1,0 +1,122 @@
+# Copyright 2015-2020 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+name: KTX-Software Android CI
+
+# Seems no way to avoid duplicating this on logic in each .yml file.
+# See https://github.com/actions/starter-workflows/issues/245.
+on:
+  # Trigger the workflow on pull request,
+  pull_request:
+    branches:
+      - main
+
+  # And on pushes to main, which will occur when a PR is merged.
+  push:
+    branches:
+      - main
+
+  # Also trigger on push of release tags to any branch. Useful
+  # for testing release builds before merging to main.
+  push:
+    tags:
+      - "v*.*.*"
+
+  paths-ignore:
+    - .appveyor.yml
+    - .travis.yml
+
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        # Fetch all history to make sure tags are
+        # included (used for version creation)
+        fetch-depth: 0
+
+    - uses: nttld/setup-ndk@v1
+      id: setup-ndk
+      with:
+        ndk-version: r21e
+        add-to-path: false
+
+    - name: Force fetch provoking tag's annotation.
+      # Work around https://github.com/actions/checkout/issues/290.
+      if: github.ref_type == 'tag'
+      run: git fetch -f origin ${{ github.ref }}:${{ github.ref }}
+
+    - name: Install Ninja
+      run: sudo apt-get install -y ninja-build
+
+    - name: android_Debug_arm64-v8a
+      run: ./ci_scripts/build_android_debug.sh
+      env:
+        ANDROID_ABI: arm64-v8a
+        ANDROID_NDK: ${{ steps.setup-ndk.outputs.ndk-path }}
+        ASTC_ISA: "ISA_NEON=ON"
+        CONFIGURATION: Debug
+
+    - name: android_arm64-v8a
+      run: ./ci_scripts/build_android.sh
+      env:
+        ANDROID_ABI: arm64-v8a
+        ANDROID_NDK: ${{ steps.setup-ndk.outputs.ndk-path }}
+        ASTC_ISA: "ISA_NEON=ON"
+
+    # Android ABI x86 is obsolete
+    # and not supported by ARM ASTC encoder
+
+    # - name: android_x86
+    #   run: ./ci_scripts/build_android.sh
+    #   env:
+    #     ANDROID_ABI: x86
+    #     ANDROID_NDK: ${{ steps.setup-ndk.outputs.ndk-path }}
+
+    - name: android_x86_64
+      run: ./ci_scripts/build_android.sh
+      env:
+        ANDROID_ABI: x86_64
+        ANDROID_NDK: ${{ steps.setup-ndk.outputs.ndk-path }}
+
+    - name: get-version
+      id: ktx-version
+      run: |
+        KTX_VERSION=$(cat build-android-arm64-v8a/ktx.version)
+        echo "KTX_VERSION=$KTX_VERSION" >> $GITHUB_ENV
+
+    # Android artifact
+    # Zips the include and lib dirs installed for each architecture
+    # by the preceding steps and uploads the zip.
+    - name: upload artifact
+      id: upload-artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: KTX-Software-${{env.KTX_VERSION}}-Android
+        path: install-android
+
+    # Make an archive to be deployed.
+    # Although the preceding step made an archive, Actions helpfully :-(
+    # unarchives the files on download.
+    - name: Create zip for deployment.
+      if: github.event_name == 'push' && github.ref_type == 'tag'
+      run: |
+        zip_basename=KTX-Software-${KTX_VERSION}-Android
+        ln -s install-android $zip_basename
+        zip -r $zip_basename.zip $zip_basename
+        sha1sum $zip_basename.zip > $zip_basename.zip.sha1
+
+    - name: Upload To Release
+      uses: softprops/action-gh-release@v1
+      if: github.event_name == 'push' && github.ref_type == 'tag'
+      with:
+        draft: true
+        prerelease: true
+        files:  KTX-Software-${{env.KTX_VERSION}}-Android.zip*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
