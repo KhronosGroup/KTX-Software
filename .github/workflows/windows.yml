@@ -146,7 +146,7 @@ jobs:
             exit 1
         }
 
-      - name: Install AzureSignTool
+    - name: Install AzureSignTool
       id: install-ast
       run: |
         if ($env:PACKAGE -eq "YES" -and $env:AZURE_KEY_VAULT_URL) {
