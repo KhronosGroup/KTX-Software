@@ -128,25 +128,25 @@ jobs:
       if: matrix.options.doc == 'ON'
       #run: choco install doxygen.install
       run: |
-      $retryCount = 3
-      $success = $false
-      for ($i = 1; $i -le $retryCount; $i++) {
-          Write-Host "Attempt no: $i"
-          choco install doxygen.install
-          if ($LASTEXITCODE -eq 0) {
-              $success = $true
-              Write-Host "Installation successful."
-              break
-          } else {
-              Write-Host "Installation failed. Retrying..."
-          }
-      }
-      if (-not $success) {
-          Write-Host "Installation failed after $retryCount attempts."
-          exit 1
-      }
+        $retryCount = 3
+        $success = $false
+        for ($i = 1; $i -le $retryCount; $i++) {
+            Write-Host "Attempt no: $i"
+            choco install doxygen.install
+            if ($LASTEXITCODE -eq 0) {
+                $success = $true
+                Write-Host "Installation successful."
+                break
+            } else {
+                Write-Host "Installation failed. Retrying..."
+            }
+        }
+        if (-not $success) {
+            Write-Host "Installation failed after $retryCount attempts."
+            exit 1
+        }
 
-    - name: Install AzureSignTool
+      - name: Install AzureSignTool
       id: install-ast
       run: |
         if ($env:PACKAGE -eq "YES" -and $env:AZURE_KEY_VAULT_URL) {
