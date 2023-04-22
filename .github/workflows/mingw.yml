@@ -7,9 +7,6 @@ name: KTX-Software MingW CI
 on:
   # Trigger the workflow on a pull request,
   pull_request:
-    paths-ignore:
-      - .appveyor.yml
-      - .travis.yml
 
   push:
     # And on pushes to main, which will occur when a PR is merged.
