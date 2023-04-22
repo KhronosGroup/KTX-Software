@@ -120,14 +120,31 @@ jobs:
       if: github.ref_type == 'tag'
       run: git fetch -f origin ${{ github.ref }}:${{ github.ref }}
 
-    # Need doxygen if docs are supposed to be built
-    # Use the pre-installed `choco`. Although it's v1 it works. Do not
-    # do `uses: crazy-max/ghaction-chocolatey@v2` because it suffers
-    # frequent failures due to Chocolatey attempts to blackmail you
-    # into purchasing a license. If this does fail, re-run the build.
+    # Need doxygen if docs are supposed to be built.
+    # Note this suffers frequent failures due to Chocolatey attempts
+    # to blackmail you into purchasing a license. Hence we retry a
+    # few times. If this still fails, re-run the build.
     - name: Install Doxygen
       if: matrix.options.doc == 'ON'
-      run: choco install doxygen.install
+      #run: choco install doxygen.install
+      run: |
+      $retryCount = 3
+      $success = $false
+      for ($i = 1; $i -le $retryCount; $i++) {
+          Write-Host "Attempt no: $i"
+          choco install doxygen.install
+          if ($LASTEXITCODE -eq 0) {
+              $success = $true
+              Write-Host "Installation successful."
+              break
+          } else {
+              Write-Host "Installation failed. Retrying..."
+          }
+      }
+      if (-not $success) {
+          Write-Host "Installation failed after $retryCount attempts."
+          exit 1
+      }
 
     - name: Install AzureSignTool
       id: install-ast
