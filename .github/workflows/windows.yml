@@ -139,7 +139,7 @@ jobs:
                 break
             } else {
                 Write-Host "Installation failed. Retrying..."
-                Start-Sleep -Seconds (2*i)
+                Start-Sleep -Seconds (2*$i)
             }
         }
         if (-not $success) {
