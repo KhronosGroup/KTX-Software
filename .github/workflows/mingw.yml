@@ -44,7 +44,7 @@ jobs:
     - name: Pull test images from Git LFS
       run: git lfs pull --include=tests/srcimages,tests/testimages
     - name: Install Ninja
-      run: choco install ninja
+      run: choco install ninja --no-progress
     - name: Configure Mingw x64
       run: cmake -B build -G "Ninja Multi-Config" -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++
     - name: Build Mingw x64 Debug

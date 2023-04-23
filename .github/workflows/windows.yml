@@ -128,17 +128,18 @@ jobs:
       if: matrix.options.doc == 'ON'
       #run: choco install doxygen.install
       run: |
-        $retryCount = 3
+        $retryCount = 4
         $success = $false
         for ($i = 1; $i -le $retryCount; $i++) {
             Write-Host "Attempt no: $i"
-            choco install doxygen.install
+            choco install doxygen.install --no-progress
             if ($LASTEXITCODE -eq 0) {
                 $success = $true
                 Write-Host "Installation successful."
                 break
             } else {
                 Write-Host "Installation failed. Retrying..."
+                Start-Sleep -Seconds (2*i)
             }
         }
         if (-not $success) {
