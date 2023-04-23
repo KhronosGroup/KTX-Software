@@ -11,8 +11,7 @@ on:
   push:
     # And on pushes to main, which will occur when a PR is merged.
     branches:
-      - split-workflow
-    #  - main
+      - main
     # Also trigger on push of release tags to any branch. Useful
     # for testing release builds before merging to main.
     tags:
