@@ -29,7 +29,7 @@ jobs:
       matrix:
         os: [ windows-latest ]
         toolset: [v143, CLangCL]
-        platform: [ x64 ]
+        arch: [ x64 ]
         options: [
           {config: 'Debug,Release',
            doc: ON, jni: ON, loadtests: ON, tests: ON, tools: ON,
@@ -52,7 +52,7 @@ jobs:
           - os: windows-2019
             generator: 'Visual Studio 16 2019'
             toolset: v142
-            platform: x64
+            arch: x64
             options: {
               config: 'Debug,Release',
               doc: ON, jni: ON, loadtests: ON, tests: ON, tools: ON,
@@ -62,7 +62,7 @@ jobs:
           - os: windows-latest
             generator: 'Visual Studio 17 2022'
             toolset: CLangCL
-            platform: arm64
+            arch: arm64
             # No tests on arm64 since the host is x64 and can't run the
             # built tests
             options: {
@@ -80,9 +80,9 @@ jobs:
       BUILD_DIR: "build"
 
       CMAKE_GEN: ${{ matrix.generator }}
-      PLATFORM: ${{ matrix.platform }}
       CMAKE_TOOLSET: ${{ matrix.toolset }}
 
+      ARCH: ${{ matrix.arch }}
       CONFIGURATION: ${{ matrix.options.config }}
       FEATURE_DOC: ${{ matrix.options.doc }}
       FEATURE_JNI: ${{ matrix.options.jni }}
@@ -187,7 +187,7 @@ jobs:
         ci_scripts/build_win.ps1
 
     - name: Test Windows build
-      if: matrix.platform == 'x64' && matrix.options.tests == 'ON'
+      if: matrix.arch == 'x64' && matrix.options.tests == 'ON'
       run: ctest --test-dir $env:BUILD_DIR -C Release
 
     - name: Get KTX version
@@ -201,7 +201,7 @@ jobs:
       if: matrix.options.package == 'YES' && matrix.toolset == 'CLangCL'
       uses: actions/upload-artifact@v3
       with:
-        name: KTX-Software-${{env.KTX_VERSION}}-Windows-${{matrix.platform}}
+        name: KTX-Software-${{env.KTX_VERSION}}-Windows-${{matrix.arch}}
         path: ${{env.BUILD_DIR}}/KTX-Software-*.exe*
 
     - name: Upload To Release

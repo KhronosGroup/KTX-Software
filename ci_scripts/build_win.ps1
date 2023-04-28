@@ -28,6 +28,7 @@ function Set-ConfigVariable {
 # when debugging is needed. Use local variables to avoid polluting the
 # environment. Some case have been observed where setting env. var's here
 # sets them for the parent as well.
+$ARCH = Set-ConfigVariable ARCH "x64"
 $BUILD_DIR = Set-ConfigVariable BUILD_DIR "build/build-batch-vs2022"
 $CONFIGURATION = Set-ConfigVariable CONFIGURATION "Release"
 $CMAKE_GEN = Set-ConfigVariable CMAKE_GEN "Visual Studio 17 2022"
@@ -37,7 +38,6 @@ $FEATURE_JNI = Set-ConfigVariable FEATURE_JNI "OFF"
 $FEATURE_LOADTESTS = Set-ConfigVariable FEATURE_LOADTESTS "OFF"
 $FEATURE_TOOLS = Set-ConfigVariable FEATURE_TOOLS "ON"
 $FEATURE_TESTS = Set-ConfigVariable FEATURE_TESTS "ON"
-$PLATFORM = Set-ConfigVariable PLATFORM "x64"
 $PACKAGE = Set-ConfigVariable PACKAGE "NO"
 $SUPPORT_SSE = Set-ConfigVariable SUPPORT_SSE "ON"
 $SUPPORT_OPENCL = Set-ConfigVariable SUPPORT_OPENCL "OFF"
@@ -62,7 +62,7 @@ if (($PACKAGE -eq "YES") -and ($FEATURE_TOOLS -eq "OFF")) {
 
 $cmake_args = @(
   "-G", "$CMAKE_GEN"
-  "-A", "$PLATFORM"
+  "-A", "$ARCH"
 )
 if($CMAKE_TOOLSET) {
   $cmake_args += @(
@@ -131,7 +131,7 @@ foreach ($config in $configArray) {
   pushd $BUILD_DIR
   try {
     #git status
-    echo "Build KTX-Software (Windows $PLATFORM $config)"
+    echo "Build KTX-Software (Windows $ARCH $config)"
     cmake --build . --config $config
     # Return an error code if cmake fails
     if(!$?){
@@ -141,7 +141,7 @@ foreach ($config in $configArray) {
 
     #git status
     if ($PACKAGE -eq "YES" -and $config -eq "Release") {
-    echo "Pack KTX-Software (Windows $PLATFORM $config)"
+    echo "Pack KTX-Software (Windows $ARCH $config)"
       cmake --build . --config $config --target PACKAGE
       # Return an error code if cmake fails
       if(!$?){
