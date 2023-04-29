@@ -32,7 +32,7 @@ if [ "$FEATURE_LOADTESTS" = "ON" ]; then
   os_codename=${os_codename#VERSION_CODENAME=}
 
   echo "Download Vulkan SDK"
-  wget -qO- https://packages.lunarg.com/lunarg-signing-key-pub.asc > /etc/apt/trusted.gpg.d/lunarg.asc
+  sudo wget -qO- https://packages.lunarg.com/lunarg-signing-key-pub.asc > /etc/apt/trusted.gpg.d/lunarg.asc
   sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-$VULKAN_SDK_VER-$os_codename.list https://packages.lunarg.com/vulkan/$VULKAN_SDK_VER/lunarg-vulkan-$VULKAN_SDK_VER-$os_codename.list
 
   echo "Install Vulkan SDK"
