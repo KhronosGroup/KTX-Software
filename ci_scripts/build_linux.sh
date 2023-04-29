@@ -41,7 +41,6 @@ cmake_args=("-G" "$CMAKE_GEN" \
 )
 config_display="Configure KTX-Software (Linux): "
 for arg in "${cmake_args[@]}"; do
-  echo $arg
   case $arg in
     "-A") config_display+="Arch=" ;;
     "-G") config_display+="Generator=" ;;

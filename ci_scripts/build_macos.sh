@@ -79,7 +79,6 @@ if [ -n "$MACOS_CERTIFICATES_P12" ]; then
 fi
 config_display="Configure KTX-Software (macOS): "
 for arg in "${cmake_args[@]}"; do
-  echo $arg
   case $arg in
     "-G") config_display+="Generator=" ;;
     "-B") config_display+="Build Dir=" ;;
