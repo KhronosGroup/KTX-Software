@@ -1,6 +1,6 @@
 #  SPDX-License-Identifier: Apache-2.0
 #  ----------------------------------------------------------------------------
-#  Copyright 2020-2021 Arm Limited
+#  Copyright 2020-2022 Arm Limited
 #
 #  Licensed under the Apache License, Version 2.0 (the "License"); you may not
 #  use this file except in compliance with the License. You may obtain a copy
@@ -25,16 +25,16 @@ if(${UNIVERSAL_BUILD})
     endif()
     include(cmake_core.cmake)
 else()
-    set(ARTEFACTS native none neon avx2 sse4.1 sse2)
+    set(ARTIFACTS native none neon avx2 sse4.1 sse2)
     set(CONFIGS ${ISA_NATIVE} ${ISA_NONE} ${ISA_NEON} ${ISA_AVX2} ${ISA_SSE41} ${ISA_SSE2})
-    list(LENGTH ARTEFACTS ARTEFACTS_LEN)
-    math(EXPR ARTEFACTS_LEN "${ARTEFACTS_LEN} - 1")
+    list(LENGTH ARTIFACTS ARTIFACTS_LEN)
+    math(EXPR ARTIFACTS_LEN "${ARTIFACTS_LEN} - 1")
 
-    foreach(INDEX RANGE ${ARTEFACTS_LEN})
-        list(GET ARTEFACTS ${INDEX} ARTEFACT)
+    foreach(INDEX RANGE ${ARTIFACTS_LEN})
+        list(GET ARTIFACTS ${INDEX} ARTIFACT)
         list(GET CONFIGS ${INDEX} CONFIG)
         if(${CONFIG})
-            set(ISA_SIMD ${ARTEFACT})
+            set(ISA_SIMD ${ARTIFACT})
             include(cmake_core.cmake)
         endif()
     endforeach()

@@ -1,6 +1,6 @@
 #  SPDX-License-Identifier: Apache-2.0
 #  ----------------------------------------------------------------------------
-#  Copyright 2020-2021 Arm Limited
+#  Copyright 2020-2022 Arm Limited
 #
 #  Licensed under the Apache License, Version 2.0 (the "License"); you may not
 #  use this file except in compliance with the License. You may obtain a copy
@@ -47,7 +47,16 @@ target_compile_options(${ASTC_TEST}
         $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wpedantic>
         $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Werror>
         $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wshadow>
-        $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wdouble-promotion>)
+        $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-c++98-compat-pedantic>
+        $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-c++98-c++11-compat-pedantic>
+        $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-float-equal>
+
+        # Ignore things that the googletest build triggers
+        $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-unknown-warning-option>
+        $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-double-promotion>
+        $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-undef>
+        $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-reserved-identifier>
+        $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-global-constructors>)
 
 # Set up configuration for SIMD ISA builds
 if(${ISA_SIMD} MATCHES "none")
@@ -85,7 +94,7 @@ elseif(${ISA_SIMD} MATCHES "sse2")
 
     target_compile_options(${ASTC_TEST}
         PRIVATE
-        $<$<CXX_COMPILER_ID:${GNU_LIKE}>:-mfpmath=sse -msse2>)
+        $<$<CXX_COMPILER_ID:${GNU_LIKE}>:-msse2>)
 
 elseif(${ISA_SIMD} MATCHES "sse4.1")
     if(NOT ${UNIVERSAL_BUILD})
@@ -100,7 +109,7 @@ elseif(${ISA_SIMD} MATCHES "sse4.1")
 
     target_compile_options(${ASTC_TEST}
         PRIVATE
-            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-mfpmath=sse -msse4.1 -mpopcnt>)
+            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-msse4.1 -mpopcnt>)
 
 elseif(${ISA_SIMD} MATCHES "avx2")
     if(NOT ${UNIVERSAL_BUILD})
@@ -115,18 +124,10 @@ elseif(${ISA_SIMD} MATCHES "avx2")
 
     target_compile_options(${ASTC_TEST}
         PRIVATE
-            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-mfpmath=sse -mavx2 -mpopcnt -mf16c>
+            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-mavx2 -mpopcnt -mf16c>
             $<$<CXX_COMPILER_ID:MSVC>:/arch:AVX2>)
 
 endif()
-
-target_compile_options(${ASTC_TEST}
-    PRIVATE
-        $<$<CXX_COMPILER_ID:${CLANG_LIKE}>:-fsanitize=undefined>)
-
-target_link_options(${ASTC_TEST}
-    PRIVATE
-        $<$<CXX_COMPILER_ID:${CLANG_LIKE}>:-fsanitize=undefined>)
 
 target_link_libraries(${ASTC_TEST}
     PRIVATE

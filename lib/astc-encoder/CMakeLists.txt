@@ -1,6 +1,6 @@
 #  SPDX-License-Identifier: Apache-2.0
 #  ----------------------------------------------------------------------------
-#  Copyright 2020-2022 Arm Limited
+#  Copyright 2020-2023 Arm Limited
 #
 #  Licensed under the Apache License, Version 2.0 (the "License"); you may not
 #  use this file except in compliance with the License. You may obtain a copy
@@ -24,13 +24,12 @@ if(MSVC)
     add_compile_options("/wd4324") # Disable structure was padded due to alignment specifier
 endif()
 
-project(astcencoder VERSION 4.0.0)
+project(astcencoder VERSION 4.4.0)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
-set(PACKAGE_ROOT astcenc)
 
 include(CTest)
 
@@ -41,6 +40,7 @@ option(ISA_NEON "Enable builds for NEON SIMD")
 option(ISA_NONE "Enable builds for no SIMD")
 option(ISA_NATIVE "Enable builds for native SIMD")
 option(DECOMPRESSOR "Enable builds for decompression only")
+option(SHAREDLIB "Enable builds of core library shared objects")
 option(DIAGNOSTICS "Enable builds for diagnostic trace")
 option(ASAN "Enable builds width address sanitizer")
 option(UNITTEST "Enable builds for unit tests")
@@ -204,6 +204,7 @@ if("${MACOS_BUILD}")
     printopt("Universal bin  " ${UNIVERSAL_BUILD})
 endif()
 printopt("Decompressor   " ${DECOMPRESSOR})
+printopt("Shared libs    " ${SHAREDLIB})
 printopt("No invariance  " ${NO_INVARIANCE})
 printopt("Diagnostics    " ${DIAGNOSTICS})
 printopt("ASAN           " ${ASAN})
@@ -220,9 +221,7 @@ if(PACKAGE)
         string(TOLOWER ${CMAKE_SYSTEM_NAME} PKG_OS)
     endif()
 
-    set(PKG_VER ${CMAKE_PROJECT_VERSION_MAJOR}.${CMAKE_PROJECT_VERSION_MINOR})
-
-    set(CPACK_PACKAGE_FILE_NAME "astcenc-${PKG_VER}-${PKG_OS}-${PACKAGE}")
+    set(CPACK_PACKAGE_FILE_NAME "astcenc-${CMAKE_PROJECT_VERSION}-${PKG_OS}-${PACKAGE}")
     set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY FALSE)
     set(CPACK_PACKAGE_CHECKSUM SHA256)
     set(CPACK_GENERATOR ZIP)

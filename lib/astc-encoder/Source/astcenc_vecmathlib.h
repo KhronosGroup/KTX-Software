@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2019-2021 Arm Limited
+// Copyright 2019-2022 Arm Limited
 // Copyright 2008 Jose Fonseca
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -26,7 +26,7 @@
  * with that is available at compile time. The current vector width is
  * accessible for e.g. loop strides via the ASTCENC_SIMD_WIDTH constant.
  *
- * Explicit scalar types are acessible via the vint1, vfloat1, vmask1 types.
+ * Explicit scalar types are accessible via the vint1, vfloat1, vmask1 types.
  * These are provided primarily for prototyping and algorithm debug of VLA
  * implementations.
  *
@@ -60,10 +60,13 @@
 
 #if !defined(__clang__) && defined(_MSC_VER)
 	#define ASTCENC_SIMD_INLINE __forceinline
+	#define ASTCENC_NO_INLINE
 #elif defined(__GNUC__) && !defined(__clang__)
 	#define ASTCENC_SIMD_INLINE __attribute__((always_inline)) inline
+	#define ASTCENC_NO_INLINE __attribute__ ((noinline))
 #else
 	#define ASTCENC_SIMD_INLINE __attribute__((always_inline, nodebug)) inline
+	#define ASTCENC_NO_INLINE __attribute__ ((noinline))
 #endif
 
 #if ASTCENC_AVX >= 2
@@ -160,7 +163,7 @@
  */
 ASTCENC_SIMD_INLINE unsigned int round_down_to_simd_multiple_8(unsigned int count)
 {
-	return count & ~(8 - 1);
+	return count & static_cast<unsigned int>(~(8 - 1));
 }
 
 /**
@@ -172,7 +175,7 @@ ASTCENC_SIMD_INLINE unsigned int round_down_to_simd_multiple_8(unsigned int coun
  */
 ASTCENC_SIMD_INLINE unsigned int round_down_to_simd_multiple_4(unsigned int count)
 {
-	return count & ~(4 - 1);
+	return count & static_cast<unsigned int>(~(4 - 1));
 }
 
 /**
@@ -186,7 +189,7 @@ ASTCENC_SIMD_INLINE unsigned int round_down_to_simd_multiple_4(unsigned int coun
  */
 ASTCENC_SIMD_INLINE unsigned int round_down_to_simd_multiple_vla(unsigned int count)
 {
-	return count & ~(ASTCENC_SIMD_WIDTH - 1);
+	return count & static_cast<unsigned int>(~(ASTCENC_SIMD_WIDTH - 1));
 }
 
 /**
@@ -200,7 +203,7 @@ ASTCENC_SIMD_INLINE unsigned int round_down_to_simd_multiple_vla(unsigned int co
  */
 ASTCENC_SIMD_INLINE unsigned int round_up_to_simd_multiple_vla(unsigned int count)
 {
-	int multiples = (count + ASTCENC_SIMD_WIDTH - 1) / ASTCENC_SIMD_WIDTH;
+	unsigned int multiples = (count + ASTCENC_SIMD_WIDTH - 1) / ASTCENC_SIMD_WIDTH;
 	return multiples * ASTCENC_SIMD_WIDTH;
 }
 
@@ -219,7 +222,7 @@ ASTCENC_SIMD_INLINE vfloat change_sign(vfloat a, vfloat b)
 /**
  * @brief Return fast, but approximate, vector atan(x).
  *
- * Max error of this implementaiton is 0.004883.
+ * Max error of this implementation is 0.004883.
  */
 ASTCENC_SIMD_INLINE vfloat atan(vfloat x)
 {
@@ -399,7 +402,7 @@ static ASTCENC_SIMD_INLINE vint4 clz(vint4 a)
 	// the original integer value into a 2^N encoding we can recover easily.
 
 	// Convert to float without risk of rounding up by keeping only top 8 bits.
-	// This trick is is guranteed to keep top 8 bits and clear the 9th.
+	// This trick is is guaranteed to keep top 8 bits and clear the 9th.
 	a = (~lsr<8>(a)) & a;
 	a = float_as_int(int_to_float(a));
 
@@ -413,7 +416,7 @@ static ASTCENC_SIMD_INLINE vint4 clz(vint4 a)
 /**
  * @brief Return lanewise 2^a for each lane in @c a.
  *
- * Use of signed int mean that this is only valid for values in range [0, 31].
+ * Use of signed int means that this is only valid for values in range [0, 31].
  */
 static ASTCENC_SIMD_INLINE vint4 two_to_the_n(vint4 a)
 {
@@ -507,7 +510,7 @@ static ASTCENC_SIMD_INLINE vfloat4 frexp(vfloat4 a, vint4& exp)
 	exp = (lsr<23>(ai) & 0xFF) - 126;
 
 	// Extract and unbias the mantissa
-	vint4 manti = (ai & 0x807FFFFF) | 0x3F000000;
+	vint4 manti = (ai &  static_cast<int>(0x807FFFFF)) | 0x3F000000;
 	return int_as_float(manti);
 }
 

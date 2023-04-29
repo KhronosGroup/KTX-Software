@@ -49,7 +49,7 @@ Once you have configured the build you can use NMake to compile the project
 from your build dir, and install to your target install directory.
 
 ```shell
-# Run a build and install build outputs in `${CMAKE_INSTALL_PREFIX}/astcenc/`
+# Run a build and install build outputs in `${CMAKE_INSTALL_PREFIX}/bin/`
 cd build
 nmake install
 ```
@@ -109,7 +109,8 @@ Once you have configured the build you can use Make to compile the project from
 your build dir, and install to your target install directory.
 
 ```shell
-# Run a build and install build outputs in `${CMAKE_INSTALL_PREFIX}/astcenc/`
+# Run a build and install build outputs in `${CMAKE_INSTALL_PREFIX}/bin/`
+# for executable binaries and `${CMAKE_INSTALL_PREFIX}/lib/` for libraries
 cd build
 make install -j16
 ```
@@ -131,6 +132,14 @@ We support and test the following `CMAKE_BUILD_TYPE` options.
 
 Note that optimized release builds are compiled with link-time optimization,
 which can make profiling more challenging ...
+
+### Shared Libraries
+
+We support building the core library as a shared object by setting the CMake
+option `-DSHAREDLIB=ON` at configure time.
+
+Note that the command line tool is always statically linked; the shared objects
+are an extra build output that are not currently used by the command line tool.
 
 ### Constrained block size builds
 
@@ -189,10 +198,52 @@ We support building with ASAN on Linux and macOS when using a compiler that
 supports it. To build binaries with ASAN checking enabled add `-DASAN=ON` to
 the CMake command line when configuring.
 
+### Android builds
+
+Builds of the command line utility for Android are not officially supported, but can be a useful
+development build for testing on e.g. different Arm CPU microarchitectures.
+
+The build script below shows one possible route to building the command line tool for Android. Once
+built the application can be pushed to e.g. `/data/local/tmp` and executed from an Android shell
+terminal over `adb`.
+
+```shell
+ANDROID_ABI=arm64-v8a
+ANDROID_NDK=/work/tools/android/ndk/22.1.7171670
+
+BUILD_TYPE=RelWithDebInfo
+
+BUILD_DIR=build
+
+mkdir -p ${BUILD_DIR}
+cd ${BUILD_DIR}
+
+cmake \
+    -DCMAKE_INSTALL_PREFIX=./ \
+    -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
+    -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK}/build/cmake/android.toolchain.cmake \
+    -DANDROID_ABI=${ANDROID_ABI} \
+    -DANDROID_ARM_NEON=ON \
+    -DANDROID_PLATFORM=android-21 \
+    -DCMAKE_ANDROID_NDK_TOOLCHAIN_VERSION=clang \
+    -DANDROID_TOOLCHAIN=clang \
+    -DANDROID_STL=c++_static \
+    -DARCH=aarch64 \
+    -DISA_NEON=ON \
+    ..
+
+make -j16
+```
+
 ## Packaging a release bundle
 
 We support building a release bundle of all enabled binary configurations in
 the current CMake configuration using the `package` build target
+
+Configure CMake with:
+
+* `-DPACAKGE=<arch>` to set the package architecture/variant name used to name
+  the package archive (not set by default).
 
 ```shell
 # Run a build and package build outputs in `./astcenc-<ver>-<os>-<arch>.<fmt>`
@@ -213,4 +264,4 @@ details.
 
 - - -
 
-_Copyright © 2019-2022, Arm Limited and contributors. All rights reserved._
+_Copyright © 2019-2023, Arm Limited and contributors. All rights reserved._

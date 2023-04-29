@@ -101,6 +101,7 @@ pipeline {
                   python3 ./Test/astc_test_functional.py --encoder=sse2
                   python3 ./Test/astc_test_functional.py --encoder=sse4.1
                   python3 ./Test/astc_test_functional.py --encoder=avx2
+                  python3 ./Test/astc_test_image.py --encoder=none --test-set Small --test-quality medium
                   python3 ./Test/astc_test_image.py --encoder=all-x86 --test-set Small --test-quality medium
                 '''
                 dir('build_rel') {
@@ -215,7 +216,7 @@ pipeline {
         /* Build for macOS on x86-64 using Clang */
         stage('macOS') {
           agent {
-            label 'mac'
+            label 'mac && x86_64'
           }
           stages {
             stage('Clean') {

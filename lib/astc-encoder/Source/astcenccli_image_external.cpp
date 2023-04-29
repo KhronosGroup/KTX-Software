@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2011-2022 Arm Limited
+// Copyright 2011-2023 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -26,7 +26,7 @@
 
 #include "astcenccli_internal.h"
 
-// Configure the STB image imagewrite library build.
+// Configure the STB image write library build.
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #define STBI_NO_GIF
@@ -61,7 +61,7 @@ static void astcenc_runtime_assert(bool condition)
 {
     if (!condition)
     {
-        printf("ERROR: Corrupt input image\n");
+        print_error("ERROR: Corrupt input image\n");
         exit(1);
     }
 }
@@ -92,7 +92,7 @@ astcenc_image* load_png_with_wuffs(
 	std::ifstream file(filename, std::ios::binary | std::ios::ate);
 	if (!file)
 	{
-		printf("ERROR: Failed to load image %s (can't fopen)\n", filename);
+		print_error("ERROR: Failed to load image %s (can't fopen)\n", filename);
 		return nullptr;
 	}
 

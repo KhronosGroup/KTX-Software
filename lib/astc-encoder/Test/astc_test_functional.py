@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # -----------------------------------------------------------------------------
-# Copyright 2020-2022 Arm Limited
+# Copyright 2020-2023 Arm Limited
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy
@@ -649,7 +649,8 @@ class CLIPTest(CLITestBase):
         """
         Test all valid presets are accepted
         """
-        presets = ["-fastest", "-fast", "-medium", "-thorough", "-exhaustive"]
+        presets = ["-fastest", "-fast", "-medium",
+                   "-thorough", "-verythorough", "-exhaustive"]
 
         imIn = self.get_ref_image_path("LDR", "input", "A")
         imOut = self.get_tmp_image_path("LDR", "decomp")
@@ -680,6 +681,19 @@ class CLIPTest(CLITestBase):
                 if tli.Image.is_format_supported(imgFormat):
                     colIn = tli.Image(imIn).get_colors((7, 7))
                     colOut = tli.Image(imOut).get_colors((7, 7))
+
+                    # Catch exception and add fallback for tga handling
+                    # having unstable origin in ImageMagick
+                    try:
+                        self.assertColorSame(colIn, colOut)
+                        continue
+                    except AssertionError as ex:
+                        if imgFormat != "tga":
+                            raise ex
+
+                    # Try yflipped TGA image
+                    colIn = tli.Image(imIn).get_colors((7, 7))
+                    colOut = tli.Image(imOut).get_colors((7, 1))
                     self.assertColorSame(colIn, colOut)
 
     def test_valid_uncomp_ldr_output_formats(self):
@@ -789,27 +803,6 @@ class CLIPTest(CLITestBase):
                     colIn = tli.Image(imIn).get_colors((7, 7))
                     colOut = tli.Image(imOut2).get_colors((7, 7))
                     self.assertColorSame(colIn, colOut2)
-
-    def test_compress_mask(self):
-        """
-        Test compression of mask textures.
-        """
-        decompFile = self.get_tmp_image_path("LDR", "decomp")
-
-        command = [
-            self.binary, "-tl",
-            "./Test/Images/Small/LDR-RGB/ldr-rgb-10.png",
-            decompFile, "4x4", "-medium"]
-
-        noMaskdB = float(self.exec(command, LDR_RGB_PSNR_PATTERN))
-
-        command.append("-mask")
-        maskdB = float(self.exec(command, LDR_RGB_PSNR_PATTERN))
-
-        # Note that this test simply asserts that the "-mask" is connected and
-        # affects the output. We don't test it does something useful; that it
-        # outside the scope of this test case.
-        self.assertNotEqual(noMaskdB, maskdB)
 
     def test_compress_normal_psnr(self):
         """
@@ -1064,7 +1057,7 @@ class CLIPTest(CLITestBase):
         # RMSE should get worse (higher) if we reduce search space
         self.assertGreater(testRMSE, refRMSE)
 
-    def test_partition_index_limit(self):
+    def test_2partition_index_limit(self):
         """
         Test partition index limit.
         """
@@ -1079,7 +1072,51 @@ class CLIPTest(CLITestBase):
         self.exec(command)
         refRMSE = sum(self.get_channel_rmse(inputFile, decompFile))
 
-        command += ["-partitionindexlimit", "1"]
+        command += ["-2partitionindexlimit", "1"]
+        self.exec(command)
+        testRMSE = sum(self.get_channel_rmse(inputFile, decompFile))
+
+        # RMSE should get worse (higher) if we reduce search space
+        self.assertGreater(testRMSE, refRMSE)
+
+    def test_3partition_index_limit(self):
+        """
+        Test partition index limit.
+        """
+        inputFile = "./Test/Images/Small/LDR-RGBA/ldr-rgba-00.png"
+        decompFile = self.get_tmp_image_path("LDR", "decomp")
+
+        # Compute the basic image without any channel weights
+        command = [
+            self.binary, "-tl",
+            inputFile, decompFile, "4x4", "-medium"]
+
+        self.exec(command)
+        refRMSE = sum(self.get_channel_rmse(inputFile, decompFile))
+
+        command += ["-3partitionindexlimit", "1"]
+        self.exec(command)
+        testRMSE = sum(self.get_channel_rmse(inputFile, decompFile))
+
+        # RMSE should get worse (higher) if we reduce search space
+        self.assertGreater(testRMSE, refRMSE)
+
+    def test_4partition_index_limit(self):
+        """
+        Test partition index limit.
+        """
+        inputFile = "./Test/Images/Small/LDR-RGBA/ldr-rgba-00.png"
+        decompFile = self.get_tmp_image_path("LDR", "decomp")
+
+        # Compute the basic image without any channel weights
+        command = [
+            self.binary, "-tl",
+            inputFile, decompFile, "4x4", "-medium"]
+
+        self.exec(command)
+        refRMSE = sum(self.get_channel_rmse(inputFile, decompFile))
+
+        command += ["-4partitionindexlimit", "1"]
         self.exec(command)
         testRMSE = sum(self.get_channel_rmse(inputFile, decompFile))
 
@@ -1238,6 +1275,74 @@ class CLIPTest(CLITestBase):
         # RMSE should get worse (higher) if we reduce search space
         self.assertGreater(testRMSE, refRMSE)
 
+    def test_2partition_candidate_limit(self):
+        """
+        Test 2 partition partitioning candidate limit.
+        """
+        inputFile = "./Test/Images/Small/LDR-RGBA/ldr-rgba-00.png"
+        decompFile = self.get_tmp_image_path("LDR", "decomp")
+
+        # Compute the basic image without any channel weights
+        command = [
+            self.binary, "-tl",
+            inputFile, decompFile, "4x4", "-medium"]
+
+        self.exec(command)
+        refRMSE = sum(self.get_channel_rmse(inputFile, decompFile))
+
+        command += ["-2partitioncandidatelimit", "1"]
+        self.exec(command)
+        testRMSE = sum(self.get_channel_rmse(inputFile, decompFile))
+
+        # RMSE should get worse (higher) if we reduce search space
+        self.assertGreater(testRMSE, refRMSE)
+
+    def test_3partition_candidate_limit(self):
+        """
+        Test 3 partition partitioning candidate limit.
+        """
+        inputFile = "./Test/Images/Small/LDR-RGBA/ldr-rgba-00.png"
+        decompFile = self.get_tmp_image_path("LDR", "decomp")
+
+        # Compute the basic image without any channel weights
+        command = [
+            self.binary, "-tl",
+            inputFile, decompFile, "4x4", "-medium"]
+
+        self.exec(command)
+        refRMSE = sum(self.get_channel_rmse(inputFile, decompFile))
+
+        command += ["-3partitioncandidatelimit", "1"]
+        self.exec(command)
+        testRMSE = sum(self.get_channel_rmse(inputFile, decompFile))
+
+        # RMSE should get worse (higher) if we reduce search space
+        self.assertGreater(testRMSE, refRMSE)
+
+    def test_4partition_candidate_limit(self):
+        """
+        Test 4 partition partitioning candidate limit.
+        """
+        inputFile = "./Test/Images/Small/LDR-RGBA/ldr-rgba-00.png"
+        decompFile = self.get_tmp_image_path("LDR", "decomp")
+
+        # Compute the basic image without any channel weights
+        command = [
+            self.binary, "-tl",
+            inputFile, decompFile, "4x4", "-medium"]
+
+        self.exec(command)
+        refRMSE = sum(self.get_channel_rmse(inputFile, decompFile))
+
+        command += ["-4partitioncandidatelimit", "1"]
+        self.exec(command)
+
+        # RMSE should get worse (higher) if we reduce search space
+        # Don't check this here, as 4 partitions not used in any Small image
+        # even for -exhaustive, BUT command line option must be accepted and
+        # not error ...
+        # self.assertGreater(testRMSE, refRMSE)
+
     @unittest.skipIf(os.cpu_count() == 1, "Cannot test on single core host")
     def test_thread_count(self):
         """
@@ -1366,7 +1471,7 @@ class CLINTest(CLITestBase):
         # If we expected a pass, then rcode == 0
         if expectPass:
             self.assertEqual(rcode, 0, "Exec did not pass as expected")
-            self.assertNotIn("ERROR", result.stdout)
+            self.assertNotIn("ERROR", result.stderr)
             return
 
         # If we got a negative that's always bad (signal of some kind)
@@ -1376,7 +1481,7 @@ class CLINTest(CLITestBase):
 
         # Otherwise just assert that we got an error log, and some positive
         # return code value was returned
-        self.assertIn("ERROR", result.stdout)
+        self.assertIn("ERROR", result.stderr)
         self.assertGreater(rcode, 0, "Exec did not fail as expected")
 
     def exec_with_omit(self, command, startOmit):
@@ -1437,7 +1542,7 @@ class CLINTest(CLITestBase):
             self.binary, "-cl",
             "./Test/Data/Tiles/ldr.png",
             self.get_tmp_image_path("LDR", "comp"),
-            "3x3x3", "-fast", "-array", "3"]
+            "3x3x3", "-fast", "-zdim", "3"]
 
         self.exec(command)
 
@@ -1550,7 +1655,7 @@ class CLINTest(CLITestBase):
             self.binary, "-cl",
             "./Test/Data/Tiles/ldr.png",
             self.get_tmp_image_path("LDR", "comp"),
-            "4x4", "-fast", "-array", "2"]
+            "4x4", "-fast", "-zdim", "2"]
 
         self.exec(command)
 
@@ -1563,7 +1668,7 @@ class CLINTest(CLITestBase):
             self.binary, "-cl",
             "./Test/Data/Tiles/ldr.png",
             self.get_tmp_image_path("LDR", "comp"),
-            "4x4x4", "-fast", "-array", "2"]
+            "4x4x4", "-fast", "-zdim", "2"]
 
         # Run the command, incrementally omitting arguments
         self.exec_with_omit(command, 7)
@@ -1733,9 +1838,9 @@ class CLINTest(CLITestBase):
         # Run the command, incrementally omitting arguments
         self.exec_with_omit(command, 7)
 
-    def test_cl_partitionlimit_missing_args(self):
+    def test_cl_2partitionindexlimit_missing_args(self):
         """
-        Test -cl with -partitionindexlimit and missing arguments.
+        Test -cl with -2partitionindexlimit and missing arguments.
         """
         # Build a valid command
         command = [
@@ -1743,7 +1848,83 @@ class CLINTest(CLITestBase):
             self.get_ref_image_path("LDR", "input", "A"),
             self.get_tmp_image_path("LDR", "comp"),
             "4x4", "-fast",
-            "-partitionindexlimit", "3"]
+            "-2partitionindexlimit", "3"]
+
+        # Run the command, incrementally omitting arguments
+        self.exec_with_omit(command, 7)
+
+    def test_cl_3partitionindexlimit_missing_args(self):
+        """
+        Test -cl with -3partitionindexlimit and missing arguments.
+        """
+        # Build a valid command
+        command = [
+            self.binary, "-cl",
+            self.get_ref_image_path("LDR", "input", "A"),
+            self.get_tmp_image_path("LDR", "comp"),
+            "4x4", "-fast",
+            "-3partitionindexlimit", "3"]
+
+        # Run the command, incrementally omitting arguments
+        self.exec_with_omit(command, 7)
+
+    def test_cl_4partitionindexlimit_missing_args(self):
+        """
+        Test -cl with -4partitionindexlimit and missing arguments.
+        """
+        # Build a valid command
+        command = [
+            self.binary, "-cl",
+            self.get_ref_image_path("LDR", "input", "A"),
+            self.get_tmp_image_path("LDR", "comp"),
+            "4x4", "-fast",
+            "-4partitionindexlimit", "3"]
+
+        # Run the command, incrementally omitting arguments
+        self.exec_with_omit(command, 7)
+
+    def test_cl_2partitioncandidatelimit_missing_args(self):
+        """
+        Test -cl with -2partitioncandidatelimit and missing arguments.
+        """
+        # Build a valid command
+        command = [
+            self.binary, "-cl",
+            self.get_ref_image_path("LDR", "input", "A"),
+            self.get_tmp_image_path("LDR", "comp"),
+            "4x4", "-fast",
+            "-2partitioncandidatelimit", "1"]
+
+        # Run the command, incrementally omitting arguments
+        self.exec_with_omit(command, 7)
+
+    def test_cl_3partitioncandidatelimit_missing_args(self):
+        """
+        Test -cl with -3partitioncandidatelimit and missing arguments.
+        """
+        # Build a valid command
+        command = [
+            self.binary, "-cl",
+            self.get_ref_image_path("LDR", "input", "A"),
+            self.get_tmp_image_path("LDR", "comp"),
+            "4x4", "-fast",
+            "-3partitioncandidatelimit", "3"]
+
+        # Run the command, incrementally omitting arguments
+        self.exec_with_omit(command, 7)
+
+
+    def test_cl_4partitioncandidatelimit_missing_args(self):
+        """
+        Test -cl with -4partitioncandidatelimit and missing arguments.
+        """
+        # Build a valid command
+        command = [
+            self.binary, "-cl",
+            self.get_ref_image_path("LDR", "input", "A"),
+            self.get_tmp_image_path("LDR", "comp"),
+            "4x4", "-fast",
+            "-4partitioncandidatelimit", "3"]
 
         # Run the command, incrementally omitting arguments
         self.exec_with_omit(command, 7)
@@ -1878,6 +2059,50 @@ class CLINTest(CLITestBase):
             self.get_tmp_image_path("LDR", "comp"),
             "4x4", "-fast",
             "-esw", "rgba"]
+
+        blockIndex = command.index("rgba")
+        for badSwizzle in badSwizzles:
+            with self.subTest(swizzle=badSwizzle):
+                command[blockIndex] = badSwizzle
+                self.exec(command)
+
+    def test_cl_ssw_missing_args(self):
+        """
+        Test -cl with -ssw and missing arguments.
+        """
+        # Build a valid command
+        command = [
+            self.binary, "-cl",
+            self.get_ref_image_path("LDR", "input", "A"),
+            self.get_tmp_image_path("LDR", "comp"),
+            "4x4", "-fast",
+            "-ssw", "rgba"]
+
+        # Run the command, incrementally omitting arguments
+        self.exec_with_omit(command, 7)
+
+    def test_cl_ssw_invalid_swizzle(self):
+        """
+        Test -cl with -ssw and invalid swizzles.
+        """
+        badSwizzles = [
+            "",  # Short swizzles
+            "rrrrr",  # Long swizzles
+        ]
+
+        # Create swizzles with all invalid printable ascii codes
+        good = ["r", "g", "b", "a"]
+        for channel in string.printable:
+            if channel not in good:
+                badSwizzles.append(channel * 4)
+
+        # Build a valid base command
+        command = [
+            self.binary, "-cl",
+            self.get_ref_image_path("LDR", "input", "A"),
+            self.get_tmp_image_path("LDR", "comp"),
+            "4x4", "-fast",
+            "-ssw", "rgba"]
 
         blockIndex = command.index("rgba")
         for badSwizzle in badSwizzles:

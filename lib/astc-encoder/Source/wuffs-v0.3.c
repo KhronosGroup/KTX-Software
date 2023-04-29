@@ -21987,15 +21987,25 @@ wuffs_adler32__hasher__up_arm_neon(
       }
       v_p.len = 0;
     }
+
+    static const uint16x4_t table_0 {32, 31, 30, 29};
+    static const uint16x4_t table_1 {28, 27, 26, 25};
+    static const uint16x4_t table_2 {24, 23, 22, 21};
+    static const uint16x4_t table_3 {20, 19, 18, 17};
+    static const uint16x4_t table_4 {16, 15, 14, 13};
+    static const uint16x4_t table_5 {12, 11, 10,  9};
+    static const uint16x4_t table_6 { 8,  7,  6,  5};
+    static const uint16x4_t table_7 { 4,  3,  2,  1};
+
     v_v2 = vshlq_n_u32(v_v2, 5);
-    v_v2 = vmlal_u16(v_v2, vget_low_u16(v_col0), ((uint16x4_t){32, 31, 30, 29}));
-    v_v2 = vmlal_u16(v_v2, vget_high_u16(v_col0), ((uint16x4_t){28, 27, 26, 25}));
-    v_v2 = vmlal_u16(v_v2, vget_low_u16(v_col1), ((uint16x4_t){24, 23, 22, 21}));
-    v_v2 = vmlal_u16(v_v2, vget_high_u16(v_col1), ((uint16x4_t){20, 19, 18, 17}));
-    v_v2 = vmlal_u16(v_v2, vget_low_u16(v_col2), ((uint16x4_t){16, 15, 14, 13}));
-    v_v2 = vmlal_u16(v_v2, vget_high_u16(v_col2), ((uint16x4_t){12, 11, 10, 9}));
-    v_v2 = vmlal_u16(v_v2, vget_low_u16(v_col3), ((uint16x4_t){8, 7, 6, 5}));
-    v_v2 = vmlal_u16(v_v2, vget_high_u16(v_col3), ((uint16x4_t){4, 3, 2, 1}));
+    v_v2 = vmlal_u16(v_v2, vget_low_u16(v_col0),  table_0);
+    v_v2 = vmlal_u16(v_v2, vget_high_u16(v_col0), table_1);
+    v_v2 = vmlal_u16(v_v2, vget_low_u16(v_col1),  table_2);
+    v_v2 = vmlal_u16(v_v2, vget_high_u16(v_col1), table_3);
+    v_v2 = vmlal_u16(v_v2, vget_low_u16(v_col2),  table_4);
+    v_v2 = vmlal_u16(v_v2, vget_high_u16(v_col2), table_5);
+    v_v2 = vmlal_u16(v_v2, vget_low_u16(v_col3),  table_6);
+    v_v2 = vmlal_u16(v_v2, vget_high_u16(v_col3), table_7);
     v_sum1 = vpadd_u32(vget_low_u32(v_v1), vget_high_u32(v_v1));
     v_sum2 = vpadd_u32(vget_low_u32(v_v2), vget_high_u32(v_v2));
     v_sum12 = vpadd_u32(v_sum1, v_sum2);

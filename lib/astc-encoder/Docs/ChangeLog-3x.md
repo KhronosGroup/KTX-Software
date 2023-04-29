@@ -299,10 +299,6 @@ Key for charts:
 * Color = block size (see legend).
 * Letter = image format (N = normal map, G = grayscale, L = LDR, H = HDR).
 
-**Absolute performance vs 2.5 release:**
-
-![Absolute scores 3.0 vs 2.5](./ChangeLogImg/absolute-2.5-to-3.0.png)
-
 **Relative performance vs 2.5 release:**
 
 ![Relative scores 3.0 vs 2.5](./ChangeLogImg/relative-2.5-to-3.0.png)
