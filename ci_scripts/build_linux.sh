@@ -13,6 +13,7 @@ for i in $@; do
 done
 
 # Set some defaults
+ARCH=${ARCH:-$(uname -m)}
 CMAKE_GEN=${CMAKE_GEN:-Ninja Multi-Config}
 CONFIGURATION=${CONFIGURATION:-Release}
 FEATURE_DOC=${FEATURE_DOC:-OFF}
@@ -20,6 +21,7 @@ FEATURE_JNI=${FEATURE_JNI:-OFF}
 FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-ON}
 FEATURE_TESTS=${FEATURE_TESTS:-ON}
 FEATURE_TOOLS=${FEATURE_TOOLS:-ON}
+FEATURE_VULKAN=${FEATURE_VULKAN:-ON}
 PACKAGE=${PACKAGE:-NO}
 SUPPORT_SSE=${SUPPORT_SSE:-ON}
 SUPPORT_OPENCL=${SUPPORT_OPENCL:-OFF}
@@ -36,6 +38,7 @@ cmake_args=("-G" "$CMAKE_GEN" \
   "-D" "KTX_FEATURE_LOADTEST_APPS=$FEATURE_LOADTESTS" \
   "-D" "KTX_FEATURE_TESTS=$FEATURE_TESTS" \
   "-D" "KTX_FEATURE_TOOLS=$FEATURE_TOOLS" \
+  "-D" "KTX_FEATURE_VULKAN=$FEATURE_VULKAN" \
   "-D" "BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL" \
   "-D" "BASISU_SUPPORT_SSE=$SUPPORT_SSE"
 )
@@ -63,7 +66,7 @@ do
   # Build and test
   echo "Build KTX-Software (Linux $ARCH $config)"
   cmake --build . --config $config
-  if [ "$ARCHS" = "$(uname -m)"]; then
+  if [ "$ARCH" = "$(uname -m)" ]; then
     echo "Test KTX-Software (Linux $ARCH $config)"
     ctest -C $config #--verbose
   fi
