@@ -26,7 +26,6 @@ cmake_args=("-G" "Ninja" \
 
 config_display="Configure KTX-Software (Android $ANDROID_ABI Debug): "
 for arg in "${cmake_args[@]}"; do
-  echo $arg
   case $arg in
     "-G") config_display+="Generator=" ;;
     "-B") config_display+="Build Dir=" ;;
