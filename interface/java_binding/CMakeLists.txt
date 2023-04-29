@@ -79,7 +79,7 @@ add_custom_command(
         ${CMAKE_SOURCE_DIR}/interface/java_binding/target/libktx-${PROJECT_VERSION}-sources.jar
         ${CMAKE_SOURCE_DIR}/interface/java_binding/target/libktx-${PROJECT_VERSION}.jar
     COMMAND
-        ${MAVEN_EXECUTABLE} -Drevision=${PROJECT_VERSION} -Dmaven.test.skip=true package
+        ${MAVEN_EXECUTABLE} --quiet -Drevision=${PROJECT_VERSION} -Dmaven.test.skip=true package
     DEPENDS
         ktx-jni
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/interface/java_binding
@@ -102,7 +102,7 @@ install(FILES
 )
 
 add_test( NAME Java-wrapper
-    COMMAND ${MAVEN_EXECUTABLE} -Drevision=${PROJECT_VERSION} test
+    COMMAND ${MAVEN_EXECUTABLE} --quiet -Drevision=${PROJECT_VERSION} test
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/interface/java_binding
 )
 
