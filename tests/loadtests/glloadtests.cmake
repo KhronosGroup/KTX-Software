@@ -3,12 +3,12 @@
 
 set(OPENGL_ES_EMULATOR "" CACHE PATH "Path to OpenGL ES emulation libraries")
 
-function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_MAJOR_VERSION KTX_GL_CONTEXT_MINOR_VERSION EMULATE_GLES )
+function( create_gl_target target sources resources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_MAJOR_VERSION KTX_GL_CONTEXT_MINOR_VERSION EMULATE_GLES)
 
     add_executable( ${target}
         ${EXE_FLAG}
         ${sources}
-        ${LOAD_TEST_COMMON_RESOURCE_FILES}
+        ${resources}
         glloadtests.cmake
     )
 
@@ -61,12 +61,15 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
     if(APPLE)
         if(IOS)
             set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/glloadtests/resources/ios/Info.plist" )
-            set( KTX_RESOURCES
-                ${PROJECT_SOURCE_DIR}/icons/ios/CommonIcons.xcassets
-                glloadtests/resources/ios/LaunchImages.xcassets
-                glloadtests/resources/ios/LaunchScreen.storyboard
+            # Don't add these to ${resources}. If they're flagged as resources
+            # the resource installer in `install(TARGETS` will be confused by
+            # xcassets being directories.
+            target_sources( ${target}
+                PRIVATE
+                    ${PROJECT_SOURCE_DIR}/icons/ios/CommonIcons.xcassets
+                    glloadtests/resources/ios/LaunchImages.xcassets
+                    glloadtests/resources/ios/LaunchScreen.storyboard
             )
-            target_sources( ${target} PRIVATE ${KTX_RESOURCES} )
             target_link_libraries(
                 ${target}
                 ${AudioToolbox_LIBRARY}
@@ -84,7 +87,6 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
                 ${UIKit_LIBRARY}
             )
         else()
-            set( KTX_RESOURCES ${KTX_ICON} )
             set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/glloadtests/resources/mac/Info.plist" )
         endif()
     elseif(EMSCRIPTEN)
@@ -142,15 +144,27 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
             GL_CONTEXT_MAJOR_VERSION=${KTX_GL_CONTEXT_MAJOR_VERSION}
             GL_CONTEXT_MINOR_VERSION=${KTX_GL_CONTEXT_MINOR_VERSION}
         )
-     else()
+    else()
         target_compile_definitions(
             ${target}
         PRIVATE
             $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
         )
-     endif()
+    endif()
 
-    if(APPLE)
+    set_target_properties( ${target} PROPERTIES RESOURCE "${resources}" )
+      
+    install(TARGETS ${target}
+        BUNDLE
+            DESTINATION .
+            COMPONENT GlLoadTestApps
+        RESOURCE
+            # DESTINATION ignored on macOS & iOS. Standard locations are used.
+            DESTINATION Resources
+            COMPONENT GlLoadTestApps
+     )
+
+     if(APPLE)
         set(PRODUCT_NAME "${target}")
         set(EXECUTABLE_NAME ${PRODUCT_NAME})
         # How amazingly irritating. We have to set both of these to the same
@@ -173,9 +187,22 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
         unset(PRODUCT_NAME)
         unset(EXECUTABLE_NAME)
         unset(PRODUCT_BUNDLE_IDENTIFIER)
-        if(KTX_RESOURCES)
-            set_target_properties( ${target} PROPERTIES RESOURCE "${KTX_RESOURCES}" )
-        endif()
+
+#        install(DIRECTORY
+#            ${CMAKE_CURRENT_SOURCE_DIR}/common/models
+#            DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Resource"
+#            COMPONENT GlLoadTestApps
+#        )
+#        install(FILES
+#            ${TEST_IMAGES}
+#            DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Resource/testimages"
+#            COMPONENT GlLoadTestApps
+#        )
+#        install(TARGETS loadtest_models
+#            RESOURCE
+#                DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Resources/models"
+#                COMPONENT GlloadTestApps
+#        )
 
         if(NOT IOS)
             set_target_properties( ${target} PROPERTIES
@@ -188,27 +215,66 @@ function( create_gl_target target sources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_
                 COMMENT "Copy libraries/frameworks to build destination"
             )
             install(TARGETS ktx
-                LIBRARY
+                FRAMEWORK
                     DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Frameworks"
                     COMPONENT GlLoadTestApps
+#                LIBRARY
+#                    DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Frameworks"
+#                    COMPONENT GlLoadTestApps
                 PUBLIC_HEADER
                     DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Headers"
             )
-            install(TARGETS ${target}
-                BUNDLE
-                    DESTINATION .
-                    COMPONENT GlLoadTestApps
-                RESOURCE
-                    DESTINATION Resources
-                    COMPONENT GlLoadTestApps
-            )
         endif()
 
-    elseif(EMSCRIPTEN)
-        set_target_properties(${target} PROPERTIES SUFFIX ".html")
+    else()
+        if(EMSCRIPTEN)
+            set_target_properties(${target} PROPERTIES SUFFIX ".html")
+        endif()
+        if(NOT ${target} STREQUAL "es1loadtests")
+            add_custom_command( TARGET ${target} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_directory
+                  ${CMAKE_CURRENT_SOURCE_DIR}/common/models
+                  $<TARGET_FILE_DIR:${target}>/models
+            )
+        endif()
+        add_custom_command( TARGET ${target} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E make_directory
+              $<TARGET_FILE_DIR:${target}>/testimages
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+              ${test_images}
+              $<TARGET_FILE_DIR:${target}>/testimages
+        )
+        # TODO: Figure out where to install when we include
+        # these test commands in an installer.
+        #install(FILES ${MODELS}
+        #    DESTINATION $<TARGET_FILE_DIR:${target}>/models
+        #)
+        #install(FILES ${TEST_IMAGES}
+        #    DESTINATION $<TARGET_FILE_DIR:${target}>testimages
+        #)
     endif()
 endfunction( create_gl_target target )
 
+
+set( ES1_TEST_IMAGES
+    hi_mark.ktx
+    luminance-reference-metadata.ktx
+    orient-up-metadata.ktx
+    orient-down-metadata.ktx
+    etc1.ktx
+    etc2-rgb.ktx
+    etc2-rgba1.ktx
+    etc2-rgba8.ktx
+    rgba-reference.ktx
+    rgb-reference.ktx
+    rgb-amg-reference.ktx
+    rgb-mipmap-reference.ktx
+    hi_mark_sq.ktx
+)
+list( TRANSFORM ES1_TEST_IMAGES
+    PREPEND "${PROJECT_SOURCE_DIR}/tests/testimages/"
+)
+set( ES1_RESOURCE_FILES ${KTX_ICON} ${ES1_TEST_IMAGES} )
 
 set( ES1_SOURCES
     glloadtests/gles1/ES1LoadTests.cpp
@@ -217,6 +283,57 @@ set( ES1_SOURCES
     glloadtests/gles1/TexturedCube.cpp
     glloadtests/gles1/TexturedCube.h
 )
+
+set( GL3_TEST_IMAGES
+    etc1s_Iron_Bars_001_normal.ktx2
+    uastc_Iron_Bars_001_normal.ktx2
+    color_grid_uastc_zstd.ktx2
+    color_grid_zstd.ktx2
+    color_grid_uastc.ktx2
+    color_grid_basis.ktx2
+    kodim17_basis.ktx2
+    kodim17_basis.ktx2
+    FlightHelmet_baseColor_basis.ktx2
+    rgba-reference-u.ktx2
+    rgba-reference-u.ktx2
+    rgba-reference-u.ktx2
+    cubemap_goldengate_uastc_rdo4_zstd5_rd.ktx2
+    cubemap_yokohama_basis_rd.ktx2
+    orient-down-metadata-u.ktx2
+    orient-down-metadata-u.ktx2
+    texturearray_bc3_unorm.ktx2
+    texturearray_astc_8x8_unorm.ktx2
+    texturearray_etc2_unorm.ktx2
+    3dtex_7_reference_u.ktx2
+    rgb-mipmap-reference-u.ktx2
+    hi_mark.ktx
+    orient-up-metadata.ktx
+    orient-down-metadata.ktx
+    not4_rgb888_srgb.ktx
+    etc1.ktx
+    etc2-rgb.ktx
+    etc2-rgba1.ktx
+    etc2-rgba8.ktx
+    etc2-sRGB.ktx
+    etc2-sRGBa1.ktx
+    etc2-sRGBa8.ktx
+    rgba-reference.ktx
+    rgb-reference.ktx
+    conftestimage_R11_EAC.ktx
+    conftestimage_SIGNED_R11_EAC.ktx
+    conftestimage_RG11_EAC.ktx
+    conftestimage_SIGNED_RG11_EAC.ktx
+    texturearray_bc3_unorm.ktx
+    texturearray_astc_8x8_unorm.ktx
+    texturearray_etc2_unorm.ktx
+    rgb-amg-reference.ktx
+    rgb-mipmap-reference.ktx
+    hi_mark_sq.ktx
+)
+list( TRANSFORM GL3_TEST_IMAGES
+    PREPEND "${PROJECT_SOURCE_DIR}/tests/testimages/"
+)
+set( GL3_RESOURCE_FILES ${LOAD_TEST_COMMON_MODELS} ${GL3_TEST_IMAGES} )
 
 set( GL3_SOURCES
     common/TranscodeTargetStrToFmt.cpp
@@ -259,15 +376,15 @@ endif()
 
 if(IOS OR EMULATE_GLES)
     # OpenGL ES 1.0
-    create_gl_target( es1loadtests "${ES1_SOURCES}" SDL_GL_CONTEXT_PROFILE_ES 1 0 ON )
+    create_gl_target( es1loadtests "${ES1_SOURCES}" "${ES1_RESOURCE_FILES}" SDL_GL_CONTEXT_PROFILE_ES 1 0 ON)
 endif()
 
 if(IOS OR EMSCRIPTEN OR EMULATE_GLES)
     # OpenGL ES 3.0
-    create_gl_target( es3loadtests "${GL3_SOURCES}" SDL_GL_CONTEXT_PROFILE_ES 3 0 ON )
+    create_gl_target( es3loadtests "${GL3_SOURCES}" "${GL3_RESOURCE_FILES}" SDL_GL_CONTEXT_PROFILE_ES 3 0 ON YES)
 endif()
 
 if( (APPLE AND NOT IOS) OR LINUX OR WIN32 )
     # OpenGL 3.3
-    create_gl_target( gl3loadtests "${GL3_SOURCES}" SDL_GL_CONTEXT_PROFILE_CORE 3 3 OFF )
+    create_gl_target( gl3loadtests "${GL3_SOURCES}" "${GL3_RESOURCE_FILES}" SDL_GL_CONTEXT_PROFILE_CORE 3 3 OFF YES)
 endif()

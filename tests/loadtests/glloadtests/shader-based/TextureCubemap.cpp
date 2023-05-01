@@ -431,7 +431,7 @@ TextureCubemap::cleanup()
 void
 TextureCubemap::loadMeshes()
 {
-    std::string filepath = getAssetPath() + "models/";
+    std::string filepath = getAssetPath();
 
     // Skybox
     loadMesh(filepath + "cube.obj", meshes.skybox, vertexLayout, 0.05f);

@@ -26,7 +26,11 @@ PACKAGE=${PACKAGE:-NO}
 SUPPORT_SSE=${SUPPORT_SSE:-ON}
 SUPPORT_OPENCL=${SUPPORT_OPENCL:-OFF}
 
-BUILD_DIR=${BUILD_DIR:-build/linux-$CONFIGURATION}
+if [ "$CMAKE_GEN" = "Ninja" -o "$CMAKE_GEN" = "Unix Makefiles" ]; then
+  BUILD_DIR=${BUILD_DIR:-build/linux-$CONFIGURATION}
+else
+  BUILD_DIR=${BUILD_DIR:-build/linux}
+fi
 
 mkdir -p $BUILD_DIR
 

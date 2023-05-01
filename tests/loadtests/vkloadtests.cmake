@@ -82,6 +82,46 @@ add_custom_target(
     shader_texturemipmap
 )
 
+set( VK_TEST_IMAGES
+    etc1s_Iron_Bars_001_normal.ktx2
+    uastc_Iron_Bars_001_normal.ktx2
+    ktx_document_uastc_rdo4_zstd5.ktx2
+    color_grid_uastc_zstd.ktx2
+    color_grid_zstd.ktx2
+    color_grid_uastc.ktx2
+    color_grid_basis.ktx2
+    kodim17_basis.ktx2
+    pattern_02_bc2.ktx2
+    ktx_document_basis.ktx2
+    rgba-mipmap-reference-basis.ktx2
+    3dtex_7_reference_u.ktx2
+    arraytex_7_mipmap_reference_u.ktx2
+    cubemap_goldengate_uastc_rdo4_zstd5_rd.ktx2
+    cubemap_yokohama_basis_rd.ktx2
+    skybox_zstd.ktx2
+    orient-down-metadata.ktx
+    orient-up-metadata.ktx
+    rgba-reference.ktx
+    etc2-rgb.ktx
+    etc2-rgba8.ktx
+    etc2-sRGB.ktx
+    etc2-sRGBa8.ktx
+    pattern_02_bc2.ktx
+    rgb-amg-reference.ktx
+    metalplate-amg-rgba8.ktx
+    not4_rgb888_srgb.ktx
+    texturearray_bc3_unorm.ktx
+    texturearray_astc_8x8_unorm.ktx
+    texturearray_etc2_unorm.ktx
+    rgb-amg-reference.ktx
+    rgb-amg-reference.ktx
+)
+list( TRANSFORM VK_TEST_IMAGES
+    PREPEND "${PROJECT_SOURCE_DIR}/tests/testimages/"
+)
+
+set( KTX_RESOURCES ${VK_TEST_IMAGES} ${LOAD_TEST_COMMON_RESOURCE_FILES} )
+
 add_executable( vkloadtests
     ${EXE_FLAG}
     appfwSDL/VulkanAppSDL/VulkanAppSDL.cpp
@@ -121,6 +161,7 @@ add_executable( vkloadtests
     ${LOAD_TEST_COMMON_RESOURCE_FILES}
     ${SHADER_SOURCES}
     vkloadtests.cmake
+    ${KTX_RESOURCES}
 )
 
 set_code_sign(vkloadtests)
@@ -184,12 +225,15 @@ target_sources(vkloadtests PUBLIC ${MOLTENVK_ICD} ${VK_LAYER})
 if(APPLE)
     if(IOS)
         set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/ios/Info.plist" )
-        set( KTX_RESOURCES
-            ${PROJECT_SOURCE_DIR}/icons/ios/CommonIcons.xcassets
-            vkloadtests/resources/ios/LaunchImages.xcassets
-            vkloadtests/resources/ios/LaunchScreen.storyboard
+        # Don't add these to ${KTX_RESOURCES}. If they're flagged as resources
+        # the resource installer in `install(TARGETS` will be confused by
+        # xcassets being directories.
+        target_sources( vkloadtests
+            PRIVATE
+                ${PROJECT_SOURCE_DIR}/icons/ios/CommonIcons.xcassets
+                vkloadtests/resources/ios/LaunchImages.xcassets
+                vkloadtests/resources/ios/LaunchScreen.storyboard
         )
-        target_sources( vkloadtests PRIVATE ${KTX_RESOURCES} )
         target_link_libraries(
             vkloadtests
             ${AudioToolbox_LIBRARY}
@@ -209,7 +253,6 @@ if(APPLE)
             ${UIKit_LIBRARY}
         )
     else()
-        set( KTX_RESOURCES ${KTX_ICON} )
         set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/mac/Info.plist" )
     endif()
 
@@ -225,6 +268,18 @@ target_compile_definitions(
     vkloadtests
 PRIVATE
     $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
+)
+
+set_target_properties( vkloadtests PROPERTIES RESOURCE "${KTX_RESOURCES}" )
+
+install(TARGETS vkloadtests
+    BUNDLE
+        DESTINATION .
+        COMPONENT VkLoadTestApp
+    RESOURCE
+        # DESTINATION ignored on macOS & iOS. Standard locations are used.
+        DESTINATION Resources
+        COMPONENT VkLoadTestApp
 )
 
 if(APPLE)
@@ -250,9 +305,6 @@ if(APPLE)
     unset(PRODUCT_NAME)
     unset(EXECUTABLE_NAME)
     unset(PRODUCT_BUNDLE_IDENTIFIER)
-    if(KTX_RESOURCES)
-        set_target_properties( vkloadtests PROPERTIES RESOURCE "${KTX_RESOURCES}" )
-    endif()
 
     if(NOT IOS)
         set_target_properties( vkloadtests PROPERTIES
@@ -270,19 +322,14 @@ if(APPLE)
         )
 
         install(TARGETS ktx
-            LIBRARY
+            FRAMEWORK
                 DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks"
                 COMPONENT VkLoadTestApp
+            #LIBRARY
+            #    DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks"
+            #    COMPONENT VkLoadTestApp
             PUBLIC_HEADER
                 DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Headers"
-        )
-        install(TARGETS vkloadtests
-            BUNDLE
-                DESTINATION .
-                COMPONENT VkLoadTestApp
-            RESOURCE
-                DESTINATION Resources
-                COMPONENT VkLoadTestApp
         )
 
         ## Uncomment for Bundle analysis
