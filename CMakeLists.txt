@@ -313,11 +313,11 @@ macro(commom_lib_settings lib write)
         SOVERSION ${PROJECT_VERSION_MAJOR}
         XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
     )
-#    if(IOS)
+    if(IOS)
         set_target_properties(${lib} PROPERTIES
             FRAMEWORK TRUE
         )
-#    endif()
+    endif()
 
     set_code_sign(${lib} "NOPPS")
 

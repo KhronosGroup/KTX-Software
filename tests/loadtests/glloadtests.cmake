@@ -154,16 +154,6 @@ function( create_gl_target target sources resources KTX_GL_CONTEXT_PROFILE KTX_G
 
     set_target_properties( ${target} PROPERTIES RESOURCE "${resources}" )
       
-    install(TARGETS ${target}
-        BUNDLE
-            DESTINATION .
-            COMPONENT GlLoadTestApps
-        RESOURCE
-            # DESTINATION ignored on macOS & iOS. Standard locations are used.
-            DESTINATION Resources
-            COMPONENT GlLoadTestApps
-     )
-
      if(APPLE)
         set(PRODUCT_NAME "${target}")
         set(EXECUTABLE_NAME ${PRODUCT_NAME})
@@ -204,32 +194,44 @@ function( create_gl_target target sources resources KTX_GL_CONTEXT_PROFILE KTX_G
 #                COMPONENT GlloadTestApps
 #        )
 
+        # The generated project code for building an Apple bundle automatically
+        # copies the executable and all files with the RESOURCE property to the
+        # bundle adjusting for the difference in bundle layout between iOS &
+        # macOS.
+
         if(NOT IOS)
             set_target_properties( ${target} PROPERTIES
                 INSTALL_RPATH "@executable_path/../Frameworks"
             )
+            
             add_custom_command( TARGET ${target} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Frameworks/$<TARGET_FILE_NAME:ktx>"
                 COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE_NAME:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Frameworks/$<TARGET_SONAME_FILE_NAME:ktx>"
                 COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/other_lib/mac/$<CONFIG>/libSDL2.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Frameworks/libSDL2.dylib"
-                COMMENT "Copy libraries/frameworks to build destination"
+                COMMENT "Copy libraries & frameworks to build destination"
             )
-            install(TARGETS ktx
-                FRAMEWORK
-                    DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Frameworks"
+
+            # Specify destination for cmake --install.
+            install(TARGETS ${target}
+                BUNDLE
+                    DESTINATION /Applications
                     COMPONENT GlLoadTestApps
-#                LIBRARY
-#                    DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Frameworks"
-#                    COMPONENT GlLoadTestApps
-                PUBLIC_HEADER
-                    DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Headers"
             )
+
         endif()
 
     else()
         if(EMSCRIPTEN)
             set_target_properties(${target} PROPERTIES SUFFIX ".html")
         endif()
+
+        # This is for other platforms.
+        install(TARGETS ${target}
+            RESOURCE
+                DESTINATION Resources
+                COMPONENT GlLoadTestApps
+        )
+
         if(NOT ${target} STREQUAL "es1loadtests")
             add_custom_command( TARGET ${target} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -333,7 +335,7 @@ set( GL3_TEST_IMAGES
 list( TRANSFORM GL3_TEST_IMAGES
     PREPEND "${PROJECT_SOURCE_DIR}/tests/testimages/"
 )
-set( GL3_RESOURCE_FILES ${LOAD_TEST_COMMON_MODELS} ${GL3_TEST_IMAGES} )
+set( GL3_RESOURCE_FILES ${LOAD_TEST_COMMON_RESOURCE_FILES} ${GL3_TEST_IMAGES} )
 
 set( GL3_SOURCES
     common/TranscodeTargetStrToFmt.cpp

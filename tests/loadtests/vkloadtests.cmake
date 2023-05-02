@@ -272,16 +272,6 @@ PRIVATE
 
 set_target_properties( vkloadtests PROPERTIES RESOURCE "${KTX_RESOURCES}" )
 
-install(TARGETS vkloadtests
-    BUNDLE
-        DESTINATION .
-        COMPONENT VkLoadTestApp
-    RESOURCE
-        # DESTINATION ignored on macOS & iOS. Standard locations are used.
-        DESTINATION Resources
-        COMPONENT VkLoadTestApp
-)
-
 if(APPLE)
     set_source_files_properties(${SHADER_SOURCES} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/shaders")
     set(PRODUCT_NAME "vkloadtests")
@@ -306,10 +296,17 @@ if(APPLE)
     unset(EXECUTABLE_NAME)
     unset(PRODUCT_BUNDLE_IDENTIFIER)
 
+    # The generated project code for building an Apple bundle automatically
+    # copies the executable and all files with the RESOURCE property to the
+    # bundle adjusting for the difference in bundle layout between iOS &
+    # macOS.
+
     if(NOT IOS)
+        # Set RPATH to find libktx dylib
         set_target_properties( vkloadtests PROPERTIES
             INSTALL_RPATH "@executable_path/../Frameworks"
         )
+
         add_custom_command( TARGET vkloadtests POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/$<TARGET_FILE_NAME:ktx>"
             COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE_NAME:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/$<TARGET_SONAME_FILE_NAME:ktx>"
@@ -318,18 +315,14 @@ if(APPLE)
             COMMAND ${CMAKE_COMMAND} -E copy "${Vulkan_LIBRARY_REAL_PATH_NAME}" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/"
             COMMAND ${CMAKE_COMMAND} -E create_symlink "${Vulkan_LIBRARY_REAL_FILE_NAME}" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/${Vulkan_LIBRARY_SONAME_FILE_NAME}"
             COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/other_lib/mac/$<CONFIG>/libSDL2.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/libSDL2.dylib"
-            COMMENT "Copy libraries/frameworks to build destination"
+            COMMENT "Copy libraries & frameworks to build destination"
         )
 
-        install(TARGETS ktx
-            FRAMEWORK
-                DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks"
+        # Specify destination for cmake --install.
+        install(TARGETS vkloadtests
+            BUNDLE
+                DESTINATION /Applications
                 COMPONENT VkLoadTestApp
-            #LIBRARY
-            #    DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks"
-            #    COMPONENT VkLoadTestApp
-            PUBLIC_HEADER
-                DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Headers"
         )
 
         ## Uncomment for Bundle analysis
@@ -339,6 +332,13 @@ if(APPLE)
         #     #fixup_bundle($<TARGET_BUNDLE_DIR:vkloadtests> \"\" \"\")"
         # )
     endif()
+else()
+    # This is for other platforms.
+#    install(TARGETS vkloadtests
+#        RESOURCE
+#            DESTINATION Resources
+#            COMPONENT VkLoadTestApp
+#    )
 endif()
 
 add_dependencies(

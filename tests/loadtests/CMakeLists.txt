@@ -187,11 +187,6 @@ elseif(WIN32)
     )
 endif()
 
-
-#Get a list of all of the files in the testimages
-file(GLOB TEST_IMAGES "${PROJECT_SOURCE_DIR}/tests/testimages/*.ktx" "${PROJECT_SOURCE_DIR}/tests/testimages/*.ktx2")
-#Get a list of all of the files in the models
-file(GLOB_RECURSE MODELS "common/models/*")
 set( LOAD_TEST_COMMON_MODELS
      "cube.obj"
      "sphere.obj"
@@ -223,12 +218,4 @@ endif()
 if(KTX_FEATURE_VULKAN AND NOT EMSCRIPTEN)
     include(vkloadtests.cmake)
 endif()
-
-#if(APPLE)
-#    set_source_files_properties(${TEST_IMAGES} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/testimages")
-#    set_source_files_properties(${MODELS} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/models")
-#elseif(LINUX)
-#    file(COPY "${PROJECT_SOURCE_DIR}/tests/testimages" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
-#    file(COPY common/models DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
-#endif()
 
