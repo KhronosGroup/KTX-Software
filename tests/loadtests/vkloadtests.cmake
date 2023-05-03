@@ -113,8 +113,6 @@ set( VK_TEST_IMAGES
     texturearray_bc3_unorm.ktx
     texturearray_astc_8x8_unorm.ktx
     texturearray_etc2_unorm.ktx
-    rgb-amg-reference.ktx
-    rgb-amg-reference.ktx
 )
 list( TRANSFORM VK_TEST_IMAGES
     PREPEND "${PROJECT_SOURCE_DIR}/tests/testimages/"
@@ -261,9 +259,9 @@ elseif(WIN32)
     ensure_runtime_dependencies_windows(vkloadtests)
 elseif(LINUX)
         target_sources(
-              ${target}
-          PRIVATE
-             vkloadtests/resources/linux/vkloadtests.desktop
+            vkloadtests
+        PRIVATE
+            vkloadtests/resources/linux/vkloadtests.desktop
         )
 
 endif()
@@ -276,10 +274,10 @@ PRIVATE
     $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
 )
 
-set_target_properties( vkloadtests PROPERTIES RESOURCE "${KTX_RESOURCES}" )
+set_target_properties( vkloadtests PROPERTIES RESOURCE "${KTX_RESOURCES};${SHADER_SOURCES}" )
 
 if(APPLE)
-    set_source_files_properties(${SHADER_SOURCES} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/shaders")
+#    set_source_files_properties(${SHADER_SOURCES} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/shaders")
     set(PRODUCT_NAME "vkloadtests")
     set(EXECUTABLE_NAME ${PRODUCT_NAME})
     # How amazingly irritating. We have to set both of these to the same value.
@@ -346,7 +344,7 @@ else()
         COMMAND ${CMAKE_COMMAND} -E make_directory
           $<TARGET_FILE_DIR:vkloadtests>/../resources
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-          ${resources}
+          ${KTX_RESOURCES} ${SHADER_SOURCES}
           $<TARGET_FILE_DIR:vkloadtests>/../resources
     )
 
@@ -388,7 +386,7 @@ else()
            COMPONENT VkLoadTestApp
         )
         install(FILES
-            ${CMAKE_CURRENT_BINARY_DIR}/vkloadtests.desktop
+            vkloadtests/resources/linux/vkloadtests.desktop
             DESTINATION /usr/share/applications
             COMPONENT VkLoadTestApp
         )
