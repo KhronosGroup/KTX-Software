@@ -4,7 +4,7 @@
 Icon Notes
 ==========
 
-These are application and document icons for each platform. They were created from the [KTX logo](https://github.com/KhronosGroup/KTX-Specification/images/ktx.svg) found in the [KTX specification repo](https://github.com/KhronosGroup/KTX-Specification).
+These are application and document icons for each platform. They were created from the [KTX logo](https://github.com/KhronosGroup/KTX-Specification/blob/main/images/ktx.svg) found in the [KTX specification repo](https://github.com/KhronosGroup/KTX-Specification).
 
 The iOS icon images found in, `ios/Icons.xcassets/ktx_app.appiconset`, were
 created using

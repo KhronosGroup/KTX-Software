@@ -161,7 +161,6 @@ add_executable( vkloadtests
     ${LOAD_TEST_COMMON_RESOURCE_FILES}
     ${SHADER_SOURCES}
     vkloadtests.cmake
-    ${KTX_RESOURCES}
 )
 
 set_code_sign(vkloadtests)
@@ -225,7 +224,7 @@ target_sources(vkloadtests PUBLIC ${MOLTENVK_ICD} ${VK_LAYER})
 if(APPLE)
     if(IOS)
         set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/ios/Info.plist" )
-        # Don't add these to ${KTX_RESOURCES}. If they're flagged as resources
+        # Don't add these KTX_RESOURCES. If they're tagged as resources
         # the resource installer in `install(TARGETS` will be confused by
         # xcassets being directories.
         target_sources( vkloadtests
@@ -260,6 +259,13 @@ if(APPLE)
     set_source_files_properties(${VK_LAYER} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/vulkan/explicit_layer.d")
 elseif(WIN32)
     ensure_runtime_dependencies_windows(vkloadtests)
+elseif(LINUX)
+        target_sources(
+              ${target}
+          PRIVATE
+             vkloadtests/resources/linux/vkloadtests.desktop
+        )
+
 endif()
 
 target_link_libraries( vkloadtests ${LOAD_TEST_COMMON_LIBS} )
@@ -277,8 +283,8 @@ if(APPLE)
     set(PRODUCT_NAME "vkloadtests")
     set(EXECUTABLE_NAME ${PRODUCT_NAME})
     # How amazingly irritating. We have to set both of these to the same value.
-    # The first must be set otherwise the app cannot be installed on iOS. The second
-    # has to be set to avoid an Xcode warning.
+    # The first must be set otherwise the app cannot be installed on iOS. The
+    # second has to be set to avoid an Xcode warning.
     set(PRODUCT_BUNDLE_IDENTIFIER "org.khronos.ktx.${PRODUCT_NAME}")
     set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.ktx.${PRODUCT_NAME}")
     configure_file( ${INFO_PLIST} vkloadtests/Info.plist )
@@ -334,11 +340,59 @@ if(APPLE)
     endif()
 else()
     # This is for other platforms.
-#    install(TARGETS vkloadtests
-#        RESOURCE
-#            DESTINATION Resources
-#            COMPONENT VkLoadTestApp
-#    )
+    # This copies the resources next to the executable for ease
+    # of use during debugging and testing.
+    add_custom_command( TARGET vkloadtests POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+          $<TARGET_FILE_DIR:vkloadtests>/../resources
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          ${resources}
+          $<TARGET_FILE_DIR:vkloadtests>/../resources
+    )
+
+    # To keep the resources (test images and models) close to the
+    # executable and to be compliant with the Filesystem Hierarchy
+    # Standard https://refspecs.linuxfoundation.org/FHS_3.0/fhs/index.html
+    # we have chosen to install the apps and data in /opt/<target>.
+    # Each target has a `bin` directory with the executable and a
+    # `resources` directory with the resources. We install a symbolic
+    # link to the executable in ${CMAKE_INSTALL_LIBDIR}, usually
+    # /usr/local/bin.
+    include(GNUInstallDirs)
+
+    set_target_properties( vkloadtests PROPERTIES
+        INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}"
+    )
+
+    ######### IMPORTANT ######
+    # When installing via `cmake --install` ALSO install the
+    # library component. There seems no way to make a dependency.
+    ##########################
+
+    set( destroot "${LOAD_TEST_DESTROOT}/$<TARGET_FILE_NAME:vkloadtests>")
+    # NOTE: WHEN RUNNING MANUAL INSTALLS INSTALL library COMPONENT TOO.
+    install(TARGETS vkloadtests
+        RUNTIME
+            DESTINATION ${destroot}/bin
+            COMPONENT VkLoadTestApp
+        RESOURCE
+            DESTINATION ${destroot}/resources
+            COMPONENT VkLoadTestApp
+    )
+    if(LINUX)
+        # Add a link from the regular bin directory to put command
+        # on PATH.
+        install(CODE "
+           EXECUTE_PROCESS(COMMAND ln -s ${destroot}/bin/$<TARGET_FILE_NAME:vkloadtests> ${CMAKE_INSTALL_FULL_BINDIR}
+           )"
+           COMPONENT VkLoadTestApp
+        )
+        install(FILES
+            ${CMAKE_CURRENT_BINARY_DIR}/vkloadtests.desktop
+            DESTINATION /usr/share/applications
+            COMPONENT VkLoadTestApp
+        )
+
 endif()
 
 add_dependencies(

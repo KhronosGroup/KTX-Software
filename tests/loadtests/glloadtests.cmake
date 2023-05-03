@@ -3,13 +3,13 @@
 
 set(OPENGL_ES_EMULATOR "" CACHE PATH "Path to OpenGL ES emulation libraries")
 
-function( create_gl_target target sources resources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_MAJOR_VERSION KTX_GL_CONTEXT_MINOR_VERSION EMULATE_GLES)
+function( create_gl_target target version sources resources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_MAJOR_VERSION KTX_GL_CONTEXT_MINOR_VERSION EMULATE_GLES)
 
     add_executable( ${target}
         ${EXE_FLAG}
+        glloadtests.cmake
         ${sources}
         ${resources}
-        glloadtests.cmake
     )
 
     set_code_sign(${target})
@@ -61,7 +61,7 @@ function( create_gl_target target sources resources KTX_GL_CONTEXT_PROFILE KTX_G
     if(APPLE)
         if(IOS)
             set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/glloadtests/resources/ios/Info.plist" )
-            # Don't add these to ${resources}. If they're flagged as resources
+            # Don't add these to ${resources}. If they're tagged as resources
             # the resource installer in `install(TARGETS` will be confused by
             # xcassets being directories.
             target_sources( ${target}
@@ -131,6 +131,18 @@ function( create_gl_target target sources resources KTX_GL_CONTEXT_PROFILE KTX_G
             )
         endif()
         ensure_runtime_dependencies_windows(${target})
+    elseif(LINUX)
+        # The output file is configured at CMake config time.
+        configure_file(glloadtests/resources/linux/glloadtests.desktop.in
+                  ${CMAKE_CURRENT_BINARY_DIR}/${target}.desktop
+        )
+        target_sources(
+              ${target}
+          PRIVATE
+              # Put the input file in sources as that is what must be edited.
+              glloadtests/resources/linux/glloadtests.desktop.in
+             #${CMAKE_CURRENT_BINARY_DIR}/${target}.desktop
+        )
     endif()
 
     target_link_libraries( ${target} ${LOAD_TEST_COMMON_LIBS} )
@@ -153,8 +165,8 @@ function( create_gl_target target sources resources KTX_GL_CONTEXT_PROFILE KTX_G
     endif()
 
     set_target_properties( ${target} PROPERTIES RESOURCE "${resources}" )
-      
-     if(APPLE)
+
+    if(APPLE)
         set(PRODUCT_NAME "${target}")
         set(EXECUTABLE_NAME ${PRODUCT_NAME})
         # How amazingly irritating. We have to set both of these to the same
@@ -178,22 +190,6 @@ function( create_gl_target target sources resources KTX_GL_CONTEXT_PROFILE KTX_G
         unset(EXECUTABLE_NAME)
         unset(PRODUCT_BUNDLE_IDENTIFIER)
 
-#        install(DIRECTORY
-#            ${CMAKE_CURRENT_SOURCE_DIR}/common/models
-#            DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Resource"
-#            COMPONENT GlLoadTestApps
-#        )
-#        install(FILES
-#            ${TEST_IMAGES}
-#            DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Resource/testimages"
-#            COMPONENT GlLoadTestApps
-#        )
-#        install(TARGETS loadtest_models
-#            RESOURCE
-#                DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Resources/models"
-#                COMPONENT GlloadTestApps
-#        )
-
         # The generated project code for building an Apple bundle automatically
         # copies the executable and all files with the RESOURCE property to the
         # bundle adjusting for the difference in bundle layout between iOS &
@@ -203,7 +199,7 @@ function( create_gl_target target sources resources KTX_GL_CONTEXT_PROFILE KTX_G
             set_target_properties( ${target} PROPERTIES
                 INSTALL_RPATH "@executable_path/../Frameworks"
             )
-            
+
             add_custom_command( TARGET ${target} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Frameworks/$<TARGET_FILE_NAME:ktx>"
                 COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE_NAME:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Frameworks/$<TARGET_SONAME_FILE_NAME:ktx>"
@@ -225,35 +221,69 @@ function( create_gl_target target sources resources KTX_GL_CONTEXT_PROFILE KTX_G
             set_target_properties(${target} PROPERTIES SUFFIX ".html")
         endif()
 
-        # This is for other platforms.
-        install(TARGETS ${target}
-            RESOURCE
-                DESTINATION Resources
-                COMPONENT GlLoadTestApps
-        )
-
-        if(NOT ${target} STREQUAL "es1loadtests")
-            add_custom_command( TARGET ${target} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_directory
-                  ${CMAKE_CURRENT_SOURCE_DIR}/common/models
-                  $<TARGET_FILE_DIR:${target}>/models
-            )
-        endif()
+        # This copies the resources next to the executable for ease
+        # of use during debugging and testing.
         add_custom_command( TARGET ${target} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E make_directory
-              $<TARGET_FILE_DIR:${target}>/testimages
+              $<TARGET_FILE_DIR:${target}>/../resources
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
-              ${test_images}
-              $<TARGET_FILE_DIR:${target}>/testimages
+              ${resources}
+              $<TARGET_FILE_DIR:${target}>/../resources
         )
-        # TODO: Figure out where to install when we include
-        # these test commands in an installer.
-        #install(FILES ${MODELS}
-        #    DESTINATION $<TARGET_FILE_DIR:${target}>/models
-        #)
-        #install(FILES ${TEST_IMAGES}
-        #    DESTINATION $<TARGET_FILE_DIR:${target}>testimages
-        #)
+
+        # To keep the resources (test images and models) close to the
+        # executable and to be compliant with the Filesystem Hierarchy
+        # Standard https://refspecs.linuxfoundation.org/FHS_3.0/fhs/index.html
+        # we have chosen to install the apps and data in /opt/<target>.
+        # Each target has a `bin` directory with the executable and a
+        # `resources` directory with the resources. We install a symbolic
+        # link to the executable in ${CMAKE_INSTALL_LIBDIR}, usually
+        # /usr/local/bin.
+        include(GNUInstallDirs)
+
+        set_target_properties( ${target} PROPERTIES
+            INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}"
+        )
+
+        ######### IMPORTANT ######
+        # When installing via `cmake --install` ALSO install the
+        # library component. There seems no way to make a dependency.
+        ##########################
+        set( destroot "${LOAD_TEST_DESTROOT}/$<TARGET_FILE_NAME:${target}>")
+        # NOTE: WHEN RUNNING MANUAL INSTALLS INSTALL library COMPONENT TOO.
+        install(TARGETS ${target}
+            RUNTIME
+                DESTINATION ${destroot}/bin
+                COMPONENT GlLoadTestApps
+#            LIBRARY
+#                DESTINATION ${CMAKE_INSTALL_LIBDIR}
+#                COMPONENT GlLoadTestApps
+            RESOURCE
+                DESTINATION ${destroot}/resources
+                COMPONENT GlLoadTestApps
+        )
+#        install(TARGETS ktx
+#            RUNTIME
+#                DESTINATION ${destroot}/bin
+#                COMPONENT GlLoadTestApps
+#            LIBRARY
+#                DESTINATION ${destroot}/lib
+#                COMPONENT GlLoadTestApps
+#        )
+        if(LINUX)
+            # Add a link from the regular bin directory to put command
+            # on PATH.
+            install(CODE "
+               EXECUTE_PROCESS(COMMAND ln -s ${destroot}/bin/$<TARGET_FILE_NAME:${target}> ${CMAKE_INSTALL_FULL_BINDIR}
+               )"
+               COMPONENT GlLoadTestApps
+            )
+            install(FILES
+                ${CMAKE_CURRENT_BINARY_DIR}/${target}.desktop
+                DESTINATION /usr/share/applications
+                COMPONENT GlLoadTestApps
+            )
+        endif(LINUX)
     endif()
 endfunction( create_gl_target target )
 
@@ -378,15 +408,15 @@ endif()
 
 if(IOS OR EMULATE_GLES)
     # OpenGL ES 1.0
-    create_gl_target( es1loadtests "${ES1_SOURCES}" "${ES1_RESOURCE_FILES}" SDL_GL_CONTEXT_PROFILE_ES 1 0 ON)
+    create_gl_target( es1loadtests "ES1" "${ES1_SOURCES}" "${ES1_RESOURCE_FILES}" SDL_GL_CONTEXT_PROFILE_ES 1 0 ON)
 endif()
 
 if(IOS OR EMSCRIPTEN OR EMULATE_GLES)
     # OpenGL ES 3.0
-    create_gl_target( es3loadtests "${GL3_SOURCES}" "${GL3_RESOURCE_FILES}" SDL_GL_CONTEXT_PROFILE_ES 3 0 ON YES)
+    create_gl_target( es3loadtests "ES3" "${GL3_SOURCES}" "${GL3_RESOURCE_FILES}" SDL_GL_CONTEXT_PROFILE_ES 3 0 ON YES)
 endif()
 
 if( (APPLE AND NOT IOS) OR LINUX OR WIN32 )
     # OpenGL 3.3
-    create_gl_target( gl3loadtests "${GL3_SOURCES}" "${GL3_RESOURCE_FILES}" SDL_GL_CONTEXT_PROFILE_CORE 3 3 OFF YES)
+    create_gl_target( gl3loadtests "GL3" "${GL3_SOURCES}" "${GL3_RESOURCE_FILES}" SDL_GL_CONTEXT_PROFILE_CORE 3 3 OFF YES)
 endif()

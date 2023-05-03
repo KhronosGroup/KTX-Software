@@ -169,10 +169,7 @@ if(APPLE)
         )
     endif()
 elseif(LINUX)
-    set( LINUX_LIB_DIR Release )
-    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-        set( LINUX_LIB_DIR Debug )
-    endif()
+    set( KTX_ICON ${PROJECT_SOURCE_DIR}/icons/linux/ktx_app.svg )
     set( LOAD_TEST_COMMON_LIBS
         ${assimp_LIBRARIES}
         ${SDL2_LIBRARIES}
@@ -193,9 +190,9 @@ set( LOAD_TEST_COMMON_MODELS
      "teapot.dae"
      "torusknot.obj"
 )
-list(TRANSFORM LOAD_TEST_COMMON_MODELS PREPEND "common/models/")
+list(TRANSFORM LOAD_TEST_COMMON_MODELS PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/common/models/")
 # Hack to prevent *.obj 3D files being mistaken as linkable obj files
-set_source_files_properties( LOAD_TEST_COMMON_MODELS
+set_source_files_properties( ${LOAD_TEST_COMMON_MODELS}
     PROPERTIES HEADER_FILE_ONLY TRUE
 )
 
@@ -210,6 +207,10 @@ set( LOAD_TEST_COMMON_RESOURCE_FILES
     ${KTX_ICON}
     ${LOAD_TEST_COMMON_MODELS}
 )
+
+if(LINUX)
+    set( LOAD_TEST_DESTROOT "/opt" )
+endif()
 
 if(KTX_FEATURE_GL_UPLOAD)
     include(glloadtests.cmake)
