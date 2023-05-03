@@ -392,7 +392,7 @@ else()
             DESTINATION /usr/share/applications
             COMPONENT VkLoadTestApp
         )
-
+    endif()
 endif()
 
 add_dependencies(
