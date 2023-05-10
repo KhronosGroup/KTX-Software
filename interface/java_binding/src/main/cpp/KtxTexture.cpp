@@ -13,83 +13,6 @@
 #include "ktx.h"
 #include "libktx-jni.h"
 
-struct pinned_image_buf
-{
-    jbyteArray handle;
-    jbyte *data;
-};
-
-// The buffer list is a vector of memory buffers pinned by KTXTexture. These buffers are pinned
-// when setImageFromMemory is used. They are freed when KTXTexture.destroy is invoked.
-
-static std::vector<pinned_image_buf> *get_or_create_buffer_list(JNIEnv *env, jobject thiz)
-{
-    jclass ktx_texture_class = env->GetObjectClass(thiz);
-    jfieldID ktx_buffers_field = env->GetFieldID(ktx_texture_class, "buffers", "J");
-
-    std::vector<pinned_image_buf> *buffers =
-        reinterpret_cast<std::vector<pinned_image_buf>*>(env->GetLongField(thiz, ktx_buffers_field));
-
-    // Lazy init
-    if (buffers == NULL) {
-        buffers = new std::vector<pinned_image_buf>();
-        env->SetLongField(thiz, ktx_buffers_field, reinterpret_cast<jlong>(buffers));
-    }
-
-    return buffers;
-}
-
-static void push_buffer_list(JNIEnv *env, jobject thiz, jbyteArray handle, jbyte *data)
-{
-    std::vector<pinned_image_buf> *buffers = get_or_create_buffer_list(env, thiz);
-
-    pinned_image_buf buf;
-
-    buf.handle = handle;
-    buf.data = data;
-
-    buffers->push_back(buf);
-}
-
-static void free_buffer_list(JNIEnv *env, jobject thiz)
-{
-    jclass ktx_texture_class = env->GetObjectClass(thiz);
-    jfieldID ktx_buffers_field = env->GetFieldID(ktx_texture_class, "buffers", "J");
-
-    std::vector<pinned_image_buf> *buffers =
-        reinterpret_cast<std::vector<pinned_image_buf>*>(env->GetLongField(thiz, ktx_buffers_field));
-
-    // Nothing to free
-    if (buffers == NULL) {
-        return;
-    }
-
-    std::vector<pinned_image_buf> l_buffers = *buffers;
-
-    for (std::vector<pinned_image_buf>::iterator it = std::begin(l_buffers);
-        it != std::end(l_buffers);
-        ++it)
-    {
-        pinned_image_buf buffer = *it;
-
-        env->ReleaseByteArrayElements(buffer.handle, buffer.data, JNI_ABORT);
-    }
-
-    env->SetLongField(thiz, ktx_buffers_field, 0);
-    delete buffers;
-}
-
-extern "C" JNIEXPORT jsize JNICALL Java_org_khronos_ktx_KtxTexture_getBufferListSize(JNIEnv *env, jobject thiz)
-{
-    jclass ktx_texture_class = env->GetObjectClass(thiz);
-    jfieldID ktx_buffers_field = env->GetFieldID(ktx_texture_class, "buffers", "J");
-
-    std::vector<pinned_image_buf> *buffers =
-        reinterpret_cast<std::vector<pinned_image_buf>*>(env->GetLongField(thiz, ktx_buffers_field));
-
-    return static_cast<jsize>(buffers ? buffers->size() : 0);
-}
-
 extern "C" JNIEXPORT jboolean JNICALL Java_org_khronos_ktx_KtxTexture_isArray(JNIEnv *env, jobject thiz)
 {
     return get_ktx_texture(env, thiz)->isArray;
@@ -228,7 +151,6 @@ extern "C" JNIEXPORT void JNICALL Java_org_khronos_ktx_KtxTexture_destroy(JNIEnv
 {
     ktxTexture_Destroy(get_ktx_texture(env, thiz));
     set_ktx_texture(env, thiz, NULL);
-    free_buffer_list(env, thiz);
 }
 
 extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture_setImageFromMemory(JNIEnv *env,
@@ -248,8 +170,7 @@ extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture_setImageFromMe
                                 src,
                                 srcSize);
 
-    push_buffer_list(env, thiz, srcArray, reinterpret_cast<jbyte*>(src));
-    /* DO NOT FREE SRC BUFFER NOW (see destroy()) */
+    env->ReleaseByteArrayElements(srcArray, reinterpret_cast<jbyte*>(src), JNI_ABORT);
 
     return result;
 }

@@ -7,18 +7,15 @@ package org.khronos.ktx;
 
 public abstract class KtxTexture {
     private final long instance;
-    private long buffers;
 
     protected KtxTexture(long instance) {
         this.instance = instance;
-        this.buffers = 0;
     }
 
     /* DEBUG */
     public boolean isDestroyed() {
         return this.instance == 0;
     }
-    public native int getBufferListSize();
     /* DEBUG */
 
     public native boolean isArray();
