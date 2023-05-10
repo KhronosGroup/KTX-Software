@@ -282,21 +282,24 @@ if(KTX_FEATURE_GL_UPLOAD)
     )
 endif()
 
+if(WIN32)
+    # By wrapping in generator expression we force multi configuration
+    # generators (like Visual Studio) to take the exact path and not
+    # change it.
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
+elseif(APPLE)
+    if(NOT IOS)
+        # Set a common RUNTIME_OUTPUT_DIR for all targets, so that
+        # INSTALL RPATH is functional in build directory as well.
+        # BUILD_WITH_INSTALL_RPATH is necessary for working code signing.
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${KTX_BUILD_DIR}/$<CONFIG>)
+    endif()
+endif()
+
 # Main library
 add_library( ktx ${LIB_TYPE}
     ${KTX_MAIN_SRC}
     )
-
-if(${LIB_TYPE} STREQUAL "STATIC")
-    set(KTX_TARGET_NAME_STATIC_LIB ktx)
-
-elseif(KTX_FEATURE_TOOLS)
-    # KTX Tools requires a static library version from ktx, build a separate one if needed
-    set(KTX_TARGET_NAME_STATIC_LIB ktx_static)
-    add_library( ktx_static STATIC
-        ${KTX_MAIN_SRC}
-        )
-endif()
 
 # Read-only library
 add_library( ktx_read ${LIB_TYPE}
@@ -465,11 +468,6 @@ macro(common_libktx_settings target enable_write library_type)
     endif()
 
     if(WIN32)
-        # By wrapping in generator expression we force multi configuration
-        # generators (like Visual Studio) to take the exact path and not
-        # change it.
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
-
         if(MINGW)
             # Check if the Threads package is provided; if using Mingw it MIGHT be
             find_package(Threads)
@@ -482,12 +480,6 @@ macro(common_libktx_settings target enable_write library_type)
     elseif(APPLE)
         if(KTX_EMBED_BITCODE)
             target_compile_options(${target} PRIVATE "-fembed-bitcode")
-        endif()
-        if(NOT IOS)
-            # Set a common RUNTIME_OUTPUT_DIR for all targets, so that
-            # INSTALL RPATH is functional in build directory as well.
-            # BUILD_WITH_INSTALL_RPATH is necessary for working code signing.
-            set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${KTX_BUILD_DIR}/$<CONFIG>)
         endif()
 
     elseif(LINUX)
@@ -581,18 +573,12 @@ endmacro(common_libktx_settings)
 
 common_libktx_settings(ktx 1 ${LIB_TYPE})
 common_libktx_settings(ktx_read 0 ${LIB_TYPE})
-if(TARGET ktx_static)
-    common_libktx_settings(ktx_static 1 "STATIC")
-endif()
 
 if(KTX_FEATURE_JNI)
     add_subdirectory(interface/java_binding)
 endif()
 
 create_version_header(lib ktx)
-if(TARGET ktx_static)
-    add_dependencies(ktx_static ktx_version)
-endif()
 create_version_file()
 
 target_compile_definitions(

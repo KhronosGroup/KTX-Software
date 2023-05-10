@@ -22,40 +22,35 @@ namespace ktx {
 
 Validates a KTX2 file.
 
-@warning TODO Tools P5: This page is incomplete
-
 @section ktxtools_validate_synopsis SYNOPSIS
-    ktx validate [options] @e input_file
+    ktx validate [option...] @e input_file
 
 @section ktxtools_validate_description DESCRIPTION
-    @b ktx @b validate validates a Khronos texture format version 2 (KTX2) file given as argument.
-    Prints any found error and warning to the stdout.
+    @b ktx @b validate validates the Khronos texture format version 2 (KTX2) file specified
+    as the @e input_file argument. Prints any found error and warning to the stdout.
+
+    The validation rules and checks are based on the official specification:
+    KTX File Format Specification - https://registry.khronos.org/KTX/specs/2.0/ktxspec.v2.html
+
+    The JSON output formats are confirming to the https://schema.khronos.org/ktx/validate_v0.json
+    schema.
 
     @note @b ktx @b validate prints using UTF-8 encoding. If your console is not
     set for UTF-8 you will see incorrect characters in output of the file
     identifier on each side of the "KTX nn".
 
     The following options are available:
+    @snippet{doc} ktx/command.h command options_format
     <dl>
-        <dt>--format &lt;text|json|mini-json&gt;</dt>
-        <dd>Specifies the output format.
-            @b text - Human readable text based format.
-            @b json - Formatted JSON.
-            @b mini-json - Minified JSON (Every optional formatting is skipped).
-            The default format is @b text.
-        </dd>
         <dt>-g, --gltf-basisu</dt>
         <dd>Check compatibility with KHR_texture_basisu glTF extension.</dd>
         <dt>-e, --warnings-as-errors</dt>
         <dd>Treat warnings as errors.</dd>
     </dl>
-    @snippet{doc} ktx/command.h command options
+    @snippet{doc} ktx/command.h command options_generic
 
 @section ktxtools_validate_exitstatus EXIT STATUS
-    @b ktx @b validate exits
-        0 - Success
-        1 - Command line error
-        2 - IO error
+    @snippet{doc} ktx/command.h command exitstatus
 
 @section ktxtools_validate_history HISTORY
 
@@ -102,12 +97,12 @@ int CommandValidate::main(int argc, _TCHAR* argv[]) {
                 "Validates a KTX2 file and prints any issues to the stdout.",
                 argc, argv);
         executeValidate();
-        return RETURN_CODE_SUCCESS;
+        return +rc::SUCCESS;
     } catch (const FatalError& error) {
-        return error.return_code;
+        return +error.returnCode;
     } catch (const std::exception& e) {
         fmt::print(std::cerr, "{} fatal: {}\n", commandName, e.what());
-        return RETURN_CODE_RUNTIME_ERROR;
+        return +rc::RUNTIME_ERROR;
     }
 }
 
@@ -140,7 +135,7 @@ void CommandValidate::executeValidate() {
         }
 
         if (validationResult != 0)
-            throw FatalError(RETURN_CODE_INVALID_FILE);
+            throw FatalError(rc::INVALID_FILE);
         break;
     }
     case OutputFormat::json: [[fallthrough]];
@@ -184,7 +179,7 @@ void CommandValidate::executeValidate() {
         out(0, "}}{}", nl);
 
         if (validationResult != 0)
-            throw FatalError(RETURN_CODE_INVALID_FILE);
+            throw FatalError(rc::INVALID_FILE);
         break;
     }
     }

@@ -41,6 +41,12 @@
  * Common Utilities for version 1 and 2.                     *
  *===========================================================*/
 
+enum {
+    // These constraints are not mandated by the spec and only used as a
+    // reasonable upper limit to stop parsing garbage data during print
+    MAX_NUM_KVD_ENTRIES = 100,
+};
+
 /** @internal */
 #define LENGTH_OF_INDENT(INDENT) ((base_indent + INDENT) * indent_width)
 
@@ -140,8 +146,9 @@ printKVData(ktx_uint8_t* pKvd, ktx_uint32_t kvdLen)
     if (kvDataHead == NULL)
         return;
 
-    ktxHashListEntry* entry;
-    for (entry = kvDataHead; entry != NULL; entry = ktxHashList_Next(entry)) {
+    int entryIndex = 0;
+    ktxHashListEntry* entry = kvDataHead;
+    for (; entry != NULL && entryIndex < MAX_NUM_KVD_ENTRIES; entry = ktxHashList_Next(entry), ++entryIndex) {
         char* key;
         char* value;
         ktx_uint32_t keyLen, valueLen;
@@ -160,9 +167,9 @@ printKVData(ktx_uint8_t* pKvd, ktx_uint32_t kvdLen)
                     ktx_uint32_t glFormat = *(const ktx_uint32_t*) (value + 4);
                     ktx_uint32_t glType = *(const ktx_uint32_t*) (value + 8);
                     fprintf(stdout, "\n");
-                    fprintf(stdout, "    glInternalformat: %u\n", glInternalformat);
-                    fprintf(stdout, "    glFormat: %u\n", glFormat);
-                    fprintf(stdout, "    glType: %u\n", glType);
+                    fprintf(stdout, "    glInternalformat: 0x%08X\n", glInternalformat);
+                    fprintf(stdout, "    glFormat: 0x%08X\n", glFormat);
+                    fprintf(stdout, "    glType: 0x%08X\n", glType);
                 }
 
             } else if (strcmp(key, "KTXanimData") == 0) {
@@ -243,9 +250,10 @@ printKVDataJSON(ktx_uint8_t* pKvd, ktx_uint32_t kvdLen, ktx_uint32_t base_indent
     if (kvDataHead == NULL)
         return;
 
-    ktxHashListEntry* entry;
-    bool first = true; //
-    for (entry = kvDataHead; entry != NULL; entry = ktxHashList_Next(entry)) {
+    int entryIndex = 0;
+    ktxHashListEntry* entry = kvDataHead;
+    bool firstPrint = true; // Marks if the first print did not occur yet (first print != first entry)
+    for (; entry != NULL && entryIndex < MAX_NUM_KVD_ENTRIES; entry = ktxHashList_Next(entry), ++entryIndex) {
         char* key;
         char* value;
         ktx_uint32_t keyLen, valueLen;
@@ -256,17 +264,17 @@ printKVDataJSON(ktx_uint8_t* pKvd, ktx_uint32_t kvdLen, ktx_uint32_t base_indent
         if (!value) {
             if (!isKnownKeyValue(key)) {
                 // Known keys are not be printed with null
-                if (!first)
+                if (!firstPrint)
                     fprintf(stdout, ",%s", nl);
-                first = false;
+                firstPrint = false;
                 PRINT_INDENT(0, "\"%s\":%snull", key, space)
             }
         } else {
             if (strcmp(key, "KTXglFormat") == 0) {
                 if (valueLen == 3 * sizeof(ktx_uint32_t)) {
-                    if (!first)
+                    if (!firstPrint)
                         fprintf(stdout, ",%s", nl);
-                    first = false;
+                    firstPrint = false;
                     ktx_uint32_t glInternalformat = *(const ktx_uint32_t*) (value + 0);
                     ktx_uint32_t glFormat = *(const ktx_uint32_t*) (value + 4);
                     ktx_uint32_t glType = *(const ktx_uint32_t*) (value + 8);
@@ -278,9 +286,9 @@ printKVDataJSON(ktx_uint8_t* pKvd, ktx_uint32_t kvdLen, ktx_uint32_t base_indent
                 }
             } else if (strcmp(key, "KTXanimData") == 0) {
                 if (valueLen == 3 * sizeof(ktx_uint32_t)) {
-                    if (!first)
+                    if (!firstPrint)
                         fprintf(stdout, ",%s", nl);
-                    first = false;
+                    firstPrint = false;
                     ktx_uint32_t duration = *(const ktx_uint32_t*) (value + 0);
                     ktx_uint32_t timescale = *(const ktx_uint32_t*) (value + 4);
                     ktx_uint32_t loopCount = *(const ktx_uint32_t*) (value + 8);
@@ -292,9 +300,9 @@ printKVDataJSON(ktx_uint8_t* pKvd, ktx_uint32_t kvdLen, ktx_uint32_t base_indent
                 }
             } else if (strcmp(key, "KTXcubemapIncomplete") == 0) {
                 if (valueLen == sizeof(ktx_uint8_t)) {
-                    if (!first)
+                    if (!firstPrint)
                         fprintf(stdout, ",%s", nl);
-                    first = false;
+                    firstPrint = false;
                     ktx_uint8_t faces = *value;
                     PRINT_INDENT(0, "\"%s\":%s{%s", key, space, nl)
                     PRINT_INDENT(1, "\"positiveX\":%s%s,%s", space, faces & 1u << 0u ? "true" : "false", nl)
@@ -307,23 +315,23 @@ printKVDataJSON(ktx_uint8_t* pKvd, ktx_uint32_t kvdLen, ktx_uint32_t base_indent
                 }
             } else if (isKnownKeyValueUINT32(key)) {
                 if (valueLen == sizeof(ktx_uint32_t)) {
-                    if (!first)
+                    if (!firstPrint)
                         fprintf(stdout, ",%s", nl);
-                    first = false;
+                    firstPrint = false;
                     ktx_uint32_t number = *(const ktx_uint32_t*) value;
                     PRINT_INDENT(0, "\"%s\":%s%u", key, space, number)
                 }
             } else if (isKnownKeyValueString(key)) {
                 if (value[valueLen-1] == '\0') {
-                    if (!first)
+                    if (!firstPrint)
                         fprintf(stdout, ",%s", nl);
-                    first = false;
+                    firstPrint = false;
                     PRINT_INDENT(0, "\"%s\":%s\"%s\"", key, space, value)
                 }
             } else {
-                if (!first)
+                if (!firstPrint)
                     fprintf(stdout, ",%s", nl);
-                first = false;
+                firstPrint = false;
                 PRINT_INDENT(0, "\"%s\":%s[", key, space)
                 for (ktx_uint32_t i = 0; i < valueLen; i++)
                     fprintf(stdout, "%d%s", (int) value[i], i + 1 == valueLen ? "" : ", ");
@@ -591,6 +599,7 @@ printKTX2Header(KTX_header2* pHeader)
 void
 printLevelIndex(ktxLevelIndexEntry levelIndex[], ktx_uint32_t numLevels)
 {
+    numLevels = MIN(64, numLevels); // Print at most 64 levels to stop parsing garbage
     for (ktx_uint32_t level = 0; level < numLevels; level++) {
     fprintf(stdout, "Level%u.byteOffset: %#" PRIx64 "\n", level,
             levelIndex[level].byteOffset);
@@ -650,8 +659,8 @@ printBasisSGDInfo(ktx_uint8_t* bgd, ktx_uint64_t byteLength,
 KTX_error_code
 printKTX2Info2(ktxStream* stream, KTX_header2* pHeader)
 {
-    const bool hasDFD = pHeader->dataFormatDescriptor.byteLength;
-    const bool hasKVD = pHeader->keyValueData.byteLength;
+    const bool hasDFD = pHeader->dataFormatDescriptor.byteLength != 0;
+    const bool hasKVD = pHeader->keyValueData.byteLength != 0;
     const bool hasSGD =
             pHeader->supercompressionGlobalData.byteOffset != 0 &&
             pHeader->supercompressionGlobalData.byteLength != 0;
@@ -659,8 +668,6 @@ printKTX2Info2(ktxStream* stream, KTX_header2* pHeader)
     ktx_uint32_t numLevels;
     ktxLevelIndexEntry* levelIndex;
     ktx_uint32_t levelIndexSize;
-    ktx_uint32_t* DFD;
-    ktx_uint8_t* metadata;
     KTX_error_code ec = KTX_SUCCESS;
 
     fprintf(stdout, "Header\n\n");
@@ -670,6 +677,8 @@ printKTX2Info2(ktxStream* stream, KTX_header2* pHeader)
     numLevels = MAX(1, pHeader->levelCount);
     levelIndexSize = sizeof(ktxLevelIndexEntry) * numLevels;
     levelIndex = (ktxLevelIndexEntry*)malloc(levelIndexSize);
+    if (levelIndex == NULL)
+        return KTX_OUT_OF_MEMORY;
     ec = stream->read(stream, levelIndex, levelIndexSize);
     if (ec != KTX_SUCCESS) {
         free(levelIndex);
@@ -680,30 +689,34 @@ printKTX2Info2(ktxStream* stream, KTX_header2* pHeader)
 
     if (hasDFD) {
         fprintf(stdout, "\nData Format Descriptor\n\n");
-        DFD = (ktx_uint32_t*)malloc(pHeader->dataFormatDescriptor.byteLength);
-        ec = stream->read(stream, DFD, pHeader->dataFormatDescriptor.byteLength);
+        ktx_uint32_t* dfd = (ktx_uint32_t*)malloc(pHeader->dataFormatDescriptor.byteLength);
+        if (dfd == NULL)
+            return KTX_OUT_OF_MEMORY;
+        ec = stream->read(stream, dfd, pHeader->dataFormatDescriptor.byteLength);
         if (ec != KTX_SUCCESS) {
-            free(DFD);
+            free(dfd);
             return ec;
         }
-        if (*DFD != pHeader->dataFormatDescriptor.byteLength) {
-            free(DFD);
+        if (*dfd != pHeader->dataFormatDescriptor.byteLength) {
+            free(dfd);
             return KTX_FILE_DATA_ERROR;
         }
-        printDFD(DFD, pHeader->dataFormatDescriptor.byteLength);
-        free(DFD);
+        printDFD(dfd, pHeader->dataFormatDescriptor.byteLength);
+        free(dfd);
     }
 
     if (hasKVD) {
         fprintf(stdout, "\nKey/Value Data\n\n");
-        metadata = malloc(pHeader->keyValueData.byteLength);
-        ec = stream->read(stream, metadata, pHeader->keyValueData.byteLength);
+        ktx_uint8_t* kvd = malloc(pHeader->keyValueData.byteLength);
+        if (kvd == NULL)
+            return KTX_OUT_OF_MEMORY;
+        ec = stream->read(stream, kvd, pHeader->keyValueData.byteLength);
         if (ec != KTX_SUCCESS) {
-            free(metadata);
+            free(kvd);
             return ec;
         }
-        printKVData(metadata, pHeader->keyValueData.byteLength);
-        free(metadata);
+        printKVData(kvd, pHeader->keyValueData.byteLength);
+        free(kvd);
     } else {
         fprintf(stdout, "\nNo Key/Value data.\n");
     }
@@ -711,6 +724,8 @@ printKTX2Info2(ktxStream* stream, KTX_header2* pHeader)
     if (hasSGD) {
         if (pHeader->supercompressionScheme == KTX_SS_BASIS_LZ) {
             ktx_uint8_t* sgd = malloc(pHeader->supercompressionGlobalData.byteLength);
+            if (sgd == NULL)
+                return KTX_OUT_OF_MEMORY;
             ec = stream->setpos(stream, pHeader->supercompressionGlobalData.byteOffset);
             if (ec != KTX_SUCCESS) {
                 free(sgd);
@@ -765,8 +780,8 @@ printKTX2Info2JSON(ktxStream* stream, KTX_header2* pHeader, ktx_uint32_t base_in
     const char* space = minified ? "" : " ";
     const char* nl = minified ? "" : "\n";
 
-    const bool hasDFD = pHeader->dataFormatDescriptor.byteLength;
-    const bool hasKVD = pHeader->keyValueData.byteLength;
+    const bool hasDFD = pHeader->dataFormatDescriptor.byteLength != 0;
+    const bool hasKVD = pHeader->keyValueData.byteLength != 0;
     const bool hasSGD =
             pHeader->supercompressionGlobalData.byteOffset != 0 &&
             pHeader->supercompressionGlobalData.byteLength != 0;
@@ -774,8 +789,6 @@ printKTX2Info2JSON(ktxStream* stream, KTX_header2* pHeader, ktx_uint32_t base_in
     ktx_uint32_t numLevels;
     ktxLevelIndexEntry* levelIndex;
     ktx_uint32_t levelIndexSize;
-    ktx_uint32_t* DFD;
-    ktx_uint8_t* metadata;
 
     KTX_error_code ec = KTX_SUCCESS;
 
@@ -805,6 +818,8 @@ printKTX2Info2JSON(ktxStream* stream, KTX_header2* pHeader, ktx_uint32_t base_in
     numLevels = MAX(1, pHeader->levelCount);
     levelIndexSize = sizeof(ktxLevelIndexEntry) * numLevels;
     levelIndex = (ktxLevelIndexEntry*)malloc(levelIndexSize);
+    if (levelIndex == NULL)
+        return KTX_OUT_OF_MEMORY;
     ec = stream->read(stream, levelIndex, levelIndexSize);
     if (ec != KTX_SUCCESS) {
         printf("%s", nl);
@@ -829,6 +844,7 @@ printKTX2Info2JSON(ktxStream* stream, KTX_header2* pHeader, ktx_uint32_t base_in
     PRINT_INDENT(1, "},%s", nl)
 
     PRINT_INDENT(1, "\"levels\":%s[%s", space, nl)
+    numLevels = MIN(64, numLevels); // Print at most 64 levels to stop parsing garbage
     for (ktx_uint32_t level = 0; level < numLevels; level++) {
         PRINT_INDENT(2, "{%s", nl);
         PRINT_INDENT(3, "\"byteOffset\":%s%" PRId64 ",%s", space, levelIndex[level].byteOffset, nl);
@@ -842,32 +858,36 @@ printKTX2Info2JSON(ktxStream* stream, KTX_header2* pHeader, ktx_uint32_t base_in
     PRINT_INDENT_NOARG(0, "}") // End of index
 
     if (hasDFD) {
-        DFD = (ktx_uint32_t*)malloc(pHeader->dataFormatDescriptor.byteLength);
-        ec = stream->read(stream, DFD, pHeader->dataFormatDescriptor.byteLength);
+        ktx_uint32_t* dfd = (ktx_uint32_t*)malloc(pHeader->dataFormatDescriptor.byteLength);
+        if (dfd == NULL)
+            return KTX_OUT_OF_MEMORY;
+        ec = stream->read(stream, dfd, pHeader->dataFormatDescriptor.byteLength);
         if (ec != KTX_SUCCESS) {
             printf("%s", nl);
-            free(DFD);
+            free(dfd);
             return ec;
         }
         printf(",%s", nl);
         PRINT_INDENT(0, "\"dataFormatDescriptor\":%s{%s", space, nl)
-        printDFDJSON(DFD, pHeader->dataFormatDescriptor.byteLength, base_indent + 1, indent_width, minified);
-        free(DFD);
+        printDFDJSON(dfd, pHeader->dataFormatDescriptor.byteLength, base_indent + 1, indent_width, minified);
+        free(dfd);
         PRINT_INDENT_NOARG(0, "}")
     }
 
     if (hasKVD) {
-        metadata = malloc(pHeader->keyValueData.byteLength);
-        ec = stream->read(stream, metadata, pHeader->keyValueData.byteLength);
+        ktx_uint8_t* kvd = malloc(pHeader->keyValueData.byteLength);
+        if (kvd == NULL)
+            return KTX_OUT_OF_MEMORY;
+        ec = stream->read(stream, kvd, pHeader->keyValueData.byteLength);
         if (ec != KTX_SUCCESS) {
             printf("%s", nl);
-            free(metadata);
+            free(kvd);
             return ec;
         }
         printf(",%s", nl);
         PRINT_INDENT(0, "\"keyValueData\":%s{%s", space, nl)
-        printKVDataJSON(metadata, pHeader->keyValueData.byteLength, base_indent + 1, indent_width, minified);
-        free(metadata);
+        printKVDataJSON(kvd, pHeader->keyValueData.byteLength, base_indent + 1, indent_width, minified);
+        free(kvd);
         PRINT_INDENT_NOARG(0, "}")
     }
 
@@ -884,6 +904,8 @@ printKTX2Info2JSON(ktxStream* stream, KTX_header2* pHeader, ktx_uint32_t base_in
             PRINT_INDENT(1, "\"type\":%s\"%s\"", space, "KTX_SS_BASIS_LZ")
             ktx_size_t sgdByteLength = pHeader->supercompressionGlobalData.byteLength;
             ktx_uint8_t* sgd = malloc(sgdByteLength);
+            if (sgd == NULL)
+                return KTX_OUT_OF_MEMORY;
             ec = stream->setpos(stream, pHeader->supercompressionGlobalData.byteOffset);
             if (ec != KTX_SUCCESS) {
                 printf("%s", nl);

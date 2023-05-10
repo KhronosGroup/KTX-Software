@@ -28,32 +28,32 @@ namespace ktx {
 Prints information about a KTX2 file.
 
 @section ktxtools_info_synopsis SYNOPSIS
-    ktx info [options] @e input_file
+    ktx info [option...] @e input_file
 
 @section ktxtools_info_description DESCRIPTION
-    @b ktx @b info prints information about the KTX2 file provided as argument.
+    @b ktx @b info prints information about the KTX2 file specified as the @e input_file argument.
+    The command implicitly calls @ref ktxtools_validate "validate" and prints any found error and
+    warning to the stdout.
+    If the specified input file is invalid the information is displayed based on best effort and
+    may be incomplete.
+
+    The JSON output formats are confirming to the https://schema.khronos.org/ktx/info_v0.json
+    schema even if the input file is invalid and certain information cannot be parsed or
+    displayed.
+    Additionally, for JSON outputs the KTX file identifier is printed using "\u001A" instead of
+    "\x1A" as an unescaped "\x1A" sequence inside a JSON string breaks nearly every JSON tool.
+    Note that this does not changes the value of the string only its representation.
 
     @note @b ktx @b info prints using UTF-8 encoding. If your console is not
     set for UTF-8 you will see incorrect characters in output of the file
     identifier on each side of the "KTX nn".
 
     The following options are available:
-    <dl>
-        <dt>--format &lt;text|json|mini-json&gt;</dt>
-        <dd>Specifies the output format.
-            @b text - Human readable text based format.
-            @b json - Formatted JSON.
-            @b mini-json - Minified JSON (Every optional formatting is skipped).
-            The default format is @b text.
-        </dd>
-    </dl>
-    @snippet{doc} ktx/command.h command options
+    @snippet{doc} ktx/command.h command options_format
+    @snippet{doc} ktx/command.h command options_generic
 
 @section ktxtools_info_exitstatus EXIT STATUS
-    @b ktx @b info exits
-        0 - Success
-        1 - Command line error
-        2 - IO error
+    @snippet{doc} ktx/command.h command exitstatus
 
 @section ktxtools_info_history HISTORY
 
@@ -86,12 +86,12 @@ int CommandInfo::main(int argc, _TCHAR* argv[]) {
                 "Prints information about the KTX2 file provided as argument to the stdout.",
                 argc, argv);
         executeInfo();
-        return RETURN_CODE_SUCCESS;
+        return to_underlying(rc::SUCCESS);
     } catch (const FatalError& error) {
-        return error.return_code;
+        return +error.returnCode;
     } catch (const std::exception& e) {
         fmt::print(std::cerr, "{} fatal: {}\n", commandName, e.what());
-        return RETURN_CODE_RUNTIME_ERROR;
+        return +rc::RUNTIME_ERROR;
     }
 }
 

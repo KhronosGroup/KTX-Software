@@ -6,7 +6,6 @@
 #pragma once
 
 #include "ktx.h"
-#include "stdafx.h"
 #include <fmt/ostream.h>
 #include <fmt/printf.h>
 #include <algorithm>
@@ -148,15 +147,23 @@ constexpr inline void sort(Range& range, Comp&& comp = {}, Proj&& proj = {}) {
     });
 }
 
-[[nodiscard]] inline std::string to_lower_copy(std::string string) {
+inline void to_lower_inplace(std::string& string) {
     for (auto& c : string)
         c = static_cast<char>(std::tolower(c));
+}
+
+[[nodiscard]] inline std::string to_lower_copy(std::string string) {
+    to_lower_inplace(string);
     return string;
 }
 
-[[nodiscard]] inline std::string to_upper_copy(std::string string) {
+inline void to_upper_inplace(std::string& string) {
     for (auto& c : string)
         c = static_cast<char>(std::toupper(c));
+}
+
+[[nodiscard]] inline std::string to_upper_copy(std::string string) {
+    to_upper_inplace(string);
     return string;
 }
 
@@ -308,8 +315,7 @@ template <typename T>
     return static_cast<float>(signedValue);
 }
 [[nodiscard]] inline float covertUIntToFloat(uint32_t rawBits, uint32_t numBits) {
-    assert(numBits > 0 && numBits <= 32);
-    (void) numBits;
+    assert(numBits > 0 && numBits <= 32); (void) numBits;
     return static_cast<float>(rawBits);
 }
 [[nodiscard]] inline uint32_t covertSFloatToUInt(uint32_t rawBits, uint32_t numBits) {
@@ -340,30 +346,69 @@ template <typename T>
     return rawBits;
 }
 
-[[nodiscard]] constexpr inline uint32_t convertUNORM(uint32_t value, uint32_t sourceBits, uint32_t targetBits) noexcept {
-    assert(sourceBits != 0);
-    assert(targetBits != 0);
+[[nodiscard]] constexpr inline uint32_t convertUNORM(uint32_t rawBits, uint32_t sourceBits, uint32_t targetBits) noexcept {
+    assert(sourceBits > 0 && sourceBits <= 32);
+    assert(targetBits > 0 && targetBits <= 32);
 
-    value &= (1u << sourceBits) - 1u;
+    rawBits &= (1u << sourceBits) - 1u;
     if (targetBits == sourceBits) {
-        return value;
+        return rawBits;
     } else if (targetBits >= sourceBits) {
         // Upscale with "left bit replication" to fill in the least significant bits
         uint64_t result = 0;
         for (uint32_t i = 0; i < targetBits; i += sourceBits)
-            result |= static_cast<uint64_t>(value) << (targetBits - i) >> sourceBits;
+            result |= static_cast<uint64_t>(rawBits) << (targetBits - i) >> sourceBits;
 
         return static_cast<uint32_t>(result);
     } else {
         // Downscale with rounding: Check the most significant bit that was dropped: 1 -> up, 0 -> down
         const auto msDroppedBitIndex = sourceBits - targetBits - 1u;
-        const auto msDroppedBitValue = value & (1u << msDroppedBitIndex);
+        const auto msDroppedBitValue = rawBits & (1u << msDroppedBitIndex);
         if (msDroppedBitValue)
             // Min stops the 'overflow' if every targetBit is saturated and we would round up
-            return std::min((value >> (sourceBits - targetBits)) + 1u, (1u << targetBits) - 1u);
+            return std::min((rawBits >> (sourceBits - targetBits)) + 1u, (1u << targetBits) - 1u);
         else
-            return value >> (sourceBits - targetBits);
+            return rawBits >> (sourceBits - targetBits);
     }
+}
+
+[[nodiscard]] constexpr inline uint32_t convertUINT(uint32_t rawBits, uint32_t sourceBits, uint32_t targetBits) noexcept {
+    assert(sourceBits > 0 && sourceBits <= 32);
+    assert(targetBits > 0 && targetBits <= 32);
+
+    const auto targetValueMask = targetBits == 32 ? std::numeric_limits<uint32_t>::max() : (1u << targetBits) - 1u;
+    const auto sourceValueMask = sourceBits == 32 ? std::numeric_limits<uint32_t>::max() : (1u << sourceBits) - 1u;
+
+    rawBits &= sourceValueMask;
+    if (targetBits < sourceBits)
+        rawBits &= targetValueMask;
+
+    return rawBits;
+}
+
+[[nodiscard]] constexpr inline uint32_t convertSINT(uint32_t rawBits, uint32_t sourceBits, uint32_t targetBits) noexcept {
+    assert(sourceBits > 1 && sourceBits <= 32);
+    assert(targetBits > 1 && targetBits <= 32);
+
+    const auto sourceSignBitIndex = sourceBits - 1u;
+    const auto sourceSignMask = 1u << sourceSignBitIndex;
+    const auto sign = (rawBits & sourceSignMask) != 0;
+    const auto sourceValueBits = sourceBits - 1u;
+    const auto sourceValueMask = (1u << sourceValueBits) - 1u;
+    const auto sourceValue = rawBits & sourceValueMask;
+    const auto targetSignBitIndex = targetBits - 1u;
+    const auto targetValueBits = targetBits - 1u;
+    const auto targetValueMask = (1u << targetValueBits) - 1u;
+
+    uint32_t result = 0;
+    result |= (sign ? 1u : 0u) << targetSignBitIndex;
+
+    if (targetBits < sourceBits)
+        result |= sourceValue & targetValueMask;
+    else
+        result |= sourceValue;
+
+    return result;
 }
 
 // --- UTF-8 ---------------------------------------------------------------------------------------

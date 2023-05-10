@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "command.h"
+#include "metrics_utils.h"
 #include "compress_utils.h"
 #include "encode_utils.h"
 #include "format_descriptor.h"
@@ -10,7 +11,6 @@
 #include "utility.h"
 #include <filesystem>
 #include <iostream>
-#include <deque>
 #include <sstream>
 #include <cxxopts.hpp>
 #include <fmt/ostream.h>
@@ -50,7 +50,13 @@ struct OptionsCreate {
     std::optional<uint32_t> levels;
 
     bool mipmapRuntime = false;
-    std::optional<std::string> mipmapGenerate;
+    bool mipmapGenerate = false;
+    std::optional<std::string> mipmapFilter;
+    std::string defaultMipmapFilter = "lanczos4";
+    std::optional<float> mipmapFilterScale;
+    float defaultMipmapFilterScale = 1.0f;
+    std::optional<basisu::Resampler::Boundary_Op> mipmapWrap;
+    basisu::Resampler::Boundary_Op defaultMipmapWrap = basisu::Resampler::Boundary_Op::BOUNDARY_WRAP;
     std::optional<std::string> swizzle; /// Sets KTXswizzle
     std::optional<std::string> swizzleInput; /// Used to swizzle the input image data
 
@@ -63,41 +69,58 @@ struct OptionsCreate {
 
     void init(cxxopts::Options& opts) {
         opts.add_options()
-                ("format", "KTX format enum. Required. Case insensitive.", cxxopts::value<std::string>(), "<enum>")
-                ("1d", "Create a 1D texture.")
-                ("cubemap", "Create a cubemap texture.")
+                ("format", "KTX format enum. The enum names are matching the VkFormats without the VK_FORMAT_ prefix."
+                           " If the format is an ASTC formats the ASTC encoder specific options become valid,"
+                           " otherwise they are ignored. Required. The VK_FORMAT_ prefix is ignored if present. Case insensitive.", cxxopts::value<std::string>(), "<enum>")
+                ("1d", "Create a 1D texture. If not set the texture will be a 2D or 3D texture.")
+                ("cubemap", "Create a cubemap texture. If not set the texture will be a 2D or 3D texture.")
                 ("raw", "Create from raw image data.")
                 ("width", "Base level width in pixels.", cxxopts::value<uint32_t>(), "[0-9]+")
                 ("height", "Base level height in pixels.", cxxopts::value<uint32_t>(), "[0-9]+")
-                ("depth", "Base level depth in pixels.", cxxopts::value<uint32_t>(), "[0-9]+")
-                ("layers", "Number of layers.", cxxopts::value<uint32_t>(), "[0-9]+")
+                ("depth", "Base level depth in pixels. If it is greater than 1 the texture will be a 3D texture. Defaults to 1.", cxxopts::value<uint32_t>(), "[0-9]+")
+                ("layers", "Number of layers. If it is greater than 1 the texture will be an Array texture. Defaults to 1.", cxxopts::value<uint32_t>(), "[0-9]+")
                 ("levels", "Number of mip levels.", cxxopts::value<uint32_t>(), "[0-9]+")
                 ("mipmap-runtime", "Runtime mipmap generation mode.")
-                ("mipmap-generate", "Mipmap generation mode followed by filtering options.", cxxopts::value<std::string>(), "<filtering-options>")
-                ("encode", "Encode the created KTX file.\n"
-                    "Possible options are: basis-lz | uastc", cxxopts::value<std::string>(), "<codec>")
+                ("mipmap-generate", "Causes mipmaps to be generated during texture creation."
+                    " It enables the use of \'Generate Mipmap\' options."
+                    " If the --levels is not specified the maximum possible mip level will be generated."
+                    " This option is mutually exclusive with --mipmap-runtime and cannot be used with UINT or 3D textures.")
+                ("encode", "Encode the created KTX file. Case insensitive."
+                    "\nPossible options are: basis-lz | uastc", cxxopts::value<std::string>(), "<codec>")
                 ("swizzle", "KTX swizzle metadata.", cxxopts::value<std::string>(), "[rgba01]{4}")
                 ("input-swizzle", "Pre-swizzle input channels.", cxxopts::value<std::string>(), "[rgba01]{4}")
-                ("assign-oetf", "Force the created texture to have the specified transfer function, ignoring "
-                    "the transfer function of the input file(s). Case insensitive.\n"
-                    "Possible options are: linear | srgb", cxxopts::value<std::string>(), "<oetf>")
-                ("assign-primaries", "Force the created texture to have the specified color primaries, ignoring "
-                    "the color primaries of the input file(s). Case insensitive.\n"
-                    "Possible options are: "
-                    "bt709 | srgb | bt601-ebu | bt601-smpte | bt2020 | ciexyz | aces | acescc | ntsc1953 | pal525 | displayp3 | adobergb",
+                ("assign-oetf", "Force the created texture to have the specified transfer function, ignoring"
+                    " the transfer function of the input file(s). Case insensitive."
+                    "\nPossible options are: linear | srgb", cxxopts::value<std::string>(), "<oetf>")
+                ("assign-primaries", "Force the created texture to have the specified color primaries, ignoring"
+                    " the color primaries of the input file(s). Case insensitive."
+                    "\nPossible options are:"
+                    " bt709 | srgb | bt601-ebu | bt601-smpte | bt2020 | ciexyz | aces | acescc | ntsc1953 | pal525 | displayp3 | adobergb.",
                     cxxopts::value<std::string>(), "<primaries>")
-                ("convert-oetf", "Convert the input image(s) to the specified transfer function, if different "
-                    "from the transfer function of the input file(s). If both this and --assign-oetf are specified, "
-                    "convertion will be performed from the assigned transfer function to the transfer function "
-                    "specified by this option, if different. Case insensitive.\n"
-                    "Possible options are: linear | srgb", cxxopts::value<std::string>(), "<oetf>")
-                ("convert-primaries", "Convert the image image(s) to the specified color primaries, if different "
-                    "from the color primaries of the input file(s) or the one specified by --assign-primaries. Case insensitive.\n"
-                    "Possible options are: "
-                    "bt709 | srgb | bt601-ebu | bt601-smpte | bt2020 | ciexyz | aces | acescc | ntsc1953 | pal525 | displayp3 | adobergb",
+                ("convert-oetf", "Convert the input image(s) to the specified transfer function, if different"
+                    " from the transfer function of the input file(s). If both this and --assign-oetf are specified,"
+                    " conversion will be performed from the assigned transfer function to the transfer function"
+                    " specified by this option, if different. Case insensitive."
+                    "\nPossible options are: linear | srgb", cxxopts::value<std::string>(), "<oetf>")
+                ("convert-primaries", "Convert the image image(s) to the specified color primaries, if different"
+                    " from the color primaries of the input file(s) or the one specified by --assign-primaries. Case insensitive."
+                    "\nPossible options are:"
+                    " bt709 | srgb | bt601-ebu | bt601-smpte | bt2020 | ciexyz | aces | acescc | ntsc1953 | pal525 | displayp3 | adobergb.",
                     cxxopts::value<std::string>(), "<primaries>")
                 ("fail-on-color-conversions", "Generates an error if any of the input images would need to be color converted.")
                 ("warn-on-color-conversions", "Generates a warning if any of the input images are color converted.");
+
+        opts.add_options("Generate Mipmap")
+                ("mipmap-filter", "Specifies the filter to use when generating the mipmaps. Case insensitive."
+                    "\nPossible options are:"
+                    " box | tent | bell | b-spline | mitchell | blackman | lanczos3 | lanczos4 | lanczos6 | lanczos12 | kaiser | gaussian | catmullrom | quadratic_interp | quadratic_approx | quadratic_mix."
+                    " Defaults to lanczos4.",
+                    cxxopts::value<std::string>(), "<filter>")
+                ("mipmap-filter-scale", "The filter scale to use. Defaults to 1.0.", cxxopts::value<float>(), "<float>")
+                ("mipmap-wrap", "Specify how to sample pixels near the image boundaries. Case insensitive."
+                    "\nPossible options are:"
+                    " wrap | reflect | clamp."
+                    " Defaults to clamp.", cxxopts::value<std::string>(), "<mode>");
     }
 
     khr_df_transfer_e parseTransferFunction(cxxopts::ParseResult& args, const char* argName, Reporter& report) const {
@@ -165,158 +188,205 @@ struct OptionsCreate {
             levels = args["levels"].as<uint32_t>();
 
         mipmapRuntime = args["mipmap-runtime"].as<bool>();
-        if (args["mipmap-generate"].count())
-            mipmapGenerate = to_lower_copy(args["mipmap-generate"].as<std::string>());
+        mipmapGenerate = args["mipmap-generate"].as<bool>();
+
+        if (args["mipmap-filter"].count()) {
+            static const std::unordered_set<std::string> filter_table{
+                "box",
+                "tent",
+                "bell",
+                "b-spline",
+                "mitchell",
+                "blackman",
+                "lanczos3",
+                "lanczos4",
+                "lanczos6",
+                "lanczos12",
+                "kaiser",
+                "gaussian",
+                "catmullrom",
+                "quadratic_interp",
+                "quadratic_approx",
+                "quadratic_mix",
+            };
+
+            mipmapFilter = to_lower_copy(args["mipmap-filter"].as<std::string>());
+            if (filter_table.count(*mipmapFilter) == 0)
+                report.fatal_usage("Invalid or unsupported mipmap filter specified as --mipmap-filter argument: \"{}\".", *mipmapFilter);
+        }
+
+        if (args["mipmap-filter-scale"].count())
+            mipmapFilterScale = args["mipmap-filter-scale"].as<float>();
+
+        if (args["mipmap-wrap"].count()) {
+            static const std::unordered_map<std::string, basisu::Resampler::Boundary_Op> wrap_table{
+                { "clamp", basisu::Resampler::Boundary_Op::BOUNDARY_CLAMP },
+                { "wrap", basisu::Resampler::Boundary_Op::BOUNDARY_WRAP },
+                { "reflect", basisu::Resampler::Boundary_Op::BOUNDARY_REFLECT },
+            };
+
+            const auto wrapStr = to_lower_copy(args["mipmap-wrap"].as<std::string>());
+            const auto it = wrap_table.find(wrapStr);
+            if (it == wrap_table.end())
+                report.fatal_usage("Invalid or unsupported mipmap wrap mode specified as --mipmap-wrap argument: \"{}\".", wrapStr);
+            else
+                mipmapWrap = it->second;
+        }
 
         if (args["swizzle"].count()) {
             swizzle = to_lower_copy(args["swizzle"].as<std::string>());
+            const auto errorFmt = "Invalid --swizzle value: \"{}\". The value must match the \"[rgba01]{{4}}\" regex.";
             if (swizzle->size() != 4)
-                report.fatal_usage("Invalid --swizzle value: \"{}\". The value must match the \"[rgba01]{{4}}\" regex.", *swizzle);
+                report.fatal_usage(errorFmt, *swizzle);
             for (const auto c : *swizzle)
                 if (!contains("rgba01", c))
-                    report.fatal_usage("Invalid --swizzle value: \"{}\". The value must match the \"[rgba01]{{4}}\" regex.", *swizzle);
+                    report.fatal_usage(errorFmt, *swizzle);
         }
         if (args["input-swizzle"].count()) {
             swizzleInput = to_lower_copy(args["input-swizzle"].as<std::string>());
+            const auto errorFmt = "Invalid --input-swizzle value: \"{}\". The value must match the \"[rgba01]{{4}}\" regex.";
             if (swizzleInput->size() != 4)
-                report.fatal_usage("Invalid --input-swizzle value: \"{}\". The value must match the \"[rgba01]{{4}}\" regex.", *swizzleInput);
+                report.fatal_usage(errorFmt, *swizzleInput);
             for (const auto c : *swizzleInput)
                 if (!contains("rgba01", c))
-                    report.fatal_usage("Invalid --input-swizzle value: \"{}\". The value must match the \"[rgba01]{{4}}\" regex.", *swizzleInput);
+                    report.fatal_usage(errorFmt, *swizzleInput);
         }
 
-        static const std::unordered_map<std::string, VkFormat> values{
-                { "R8_UNORM", VK_FORMAT_R8_UNORM },
-                { "R8_SRGB", VK_FORMAT_R8_SRGB },
-                { "R8G8_UNORM", VK_FORMAT_R8G8_UNORM },
-                { "R8G8_SRGB", VK_FORMAT_R8G8_SRGB },
-                { "R8G8B8_UNORM", VK_FORMAT_R8G8B8_UNORM },
-                { "R8G8B8_SRGB", VK_FORMAT_R8G8B8_SRGB },
-                { "B8G8R8_UNORM", VK_FORMAT_B8G8R8_UNORM },
-                { "B8G8R8_SRGB", VK_FORMAT_B8G8R8_SRGB },
-                { "R8G8B8A8_UNORM", VK_FORMAT_R8G8B8A8_UNORM },
-                { "R8G8B8A8_SRGB", VK_FORMAT_R8G8B8A8_SRGB },
-                { "B8G8R8A8_UNORM", VK_FORMAT_B8G8R8A8_UNORM },
-                { "B8G8R8A8_SRGB", VK_FORMAT_B8G8R8A8_SRGB },
-                { "ASTC_4X4_UNORM_BLOCK", VK_FORMAT_ASTC_4x4_UNORM_BLOCK },
-                { "ASTC_4X4_SRGB_BLOCK", VK_FORMAT_ASTC_4x4_SRGB_BLOCK },
-                { "ASTC_5X4_UNORM_BLOCK", VK_FORMAT_ASTC_5x4_UNORM_BLOCK },
-                { "ASTC_5X4_SRGB_BLOCK", VK_FORMAT_ASTC_5x4_SRGB_BLOCK },
-                { "ASTC_5X5_UNORM_BLOCK", VK_FORMAT_ASTC_5x5_UNORM_BLOCK },
-                { "ASTC_5X5_SRGB_BLOCK", VK_FORMAT_ASTC_5x5_SRGB_BLOCK },
-                { "ASTC_6X5_UNORM_BLOCK", VK_FORMAT_ASTC_6x5_UNORM_BLOCK },
-                { "ASTC_6X5_SRGB_BLOCK", VK_FORMAT_ASTC_6x5_SRGB_BLOCK },
-                { "ASTC_6X6_UNORM_BLOCK", VK_FORMAT_ASTC_6x6_UNORM_BLOCK },
-                { "ASTC_6X6_SRGB_BLOCK", VK_FORMAT_ASTC_6x6_SRGB_BLOCK },
-                { "ASTC_8X5_UNORM_BLOCK", VK_FORMAT_ASTC_8x5_UNORM_BLOCK },
-                { "ASTC_8X5_SRGB_BLOCK", VK_FORMAT_ASTC_8x5_SRGB_BLOCK },
-                { "ASTC_8X6_UNORM_BLOCK", VK_FORMAT_ASTC_8x6_UNORM_BLOCK },
-                { "ASTC_8X6_SRGB_BLOCK", VK_FORMAT_ASTC_8x6_SRGB_BLOCK },
-                { "ASTC_8X8_UNORM_BLOCK", VK_FORMAT_ASTC_8x8_UNORM_BLOCK },
-                { "ASTC_8X8_SRGB_BLOCK", VK_FORMAT_ASTC_8x8_SRGB_BLOCK },
-                { "ASTC_10X5_UNORM_BLOCK", VK_FORMAT_ASTC_10x5_UNORM_BLOCK },
-                { "ASTC_10X5_SRGB_BLOCK", VK_FORMAT_ASTC_10x5_SRGB_BLOCK },
-                { "ASTC_10X6_UNORM_BLOCK", VK_FORMAT_ASTC_10x6_UNORM_BLOCK },
-                { "ASTC_10X6_SRGB_BLOCK", VK_FORMAT_ASTC_10x6_SRGB_BLOCK },
-                { "ASTC_10X8_UNORM_BLOCK", VK_FORMAT_ASTC_10x8_UNORM_BLOCK },
-                { "ASTC_10X8_SRGB_BLOCK", VK_FORMAT_ASTC_10x8_SRGB_BLOCK },
-                { "ASTC_10X10_UNORM_BLOCK", VK_FORMAT_ASTC_10x10_UNORM_BLOCK },
-                { "ASTC_10X10_SRGB_BLOCK", VK_FORMAT_ASTC_10x10_SRGB_BLOCK },
-                { "ASTC_12X10_UNORM_BLOCK", VK_FORMAT_ASTC_12x10_UNORM_BLOCK },
-                { "ASTC_12X10_SRGB_BLOCK", VK_FORMAT_ASTC_12x10_SRGB_BLOCK },
-                { "ASTC_12X12_UNORM_BLOCK", VK_FORMAT_ASTC_12x12_UNORM_BLOCK },
-                { "ASTC_12X12_SRGB_BLOCK", VK_FORMAT_ASTC_12x12_SRGB_BLOCK },
-                { "R4G4_UNORM_PACK8", VK_FORMAT_R4G4_UNORM_PACK8 },
-                { "R5G6B5_UNORM_PACK16", VK_FORMAT_R5G6B5_UNORM_PACK16 },
-                { "B5G6R5_UNORM_PACK16", VK_FORMAT_B5G6R5_UNORM_PACK16 },
-                { "R4G4B4A4_UNORM_PACK16", VK_FORMAT_R4G4B4A4_UNORM_PACK16 },
-                { "B4G4R4A4_UNORM_PACK16", VK_FORMAT_B4G4R4A4_UNORM_PACK16 },
-                { "R5G5B5A1_UNORM_PACK16", VK_FORMAT_R5G5B5A1_UNORM_PACK16 },
-                { "B5G5R5A1_UNORM_PACK16", VK_FORMAT_B5G5R5A1_UNORM_PACK16 },
-                { "A1R5G5B5_UNORM_PACK16", VK_FORMAT_A1R5G5B5_UNORM_PACK16 },
-                { "A4R4G4B4_UNORM_PACK16_EXT", VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT },
-                { "A4B4G4R4_UNORM_PACK16_EXT", VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT },
-                { "R10X6_UNORM_PACK16", VK_FORMAT_R10X6_UNORM_PACK16 },
-                { "R10X6G10X6_UNORM_2PACK16", VK_FORMAT_R10X6G10X6_UNORM_2PACK16 },
-                { "R10X6G10X6B10X6A10X6_UNORM_4PACK16", VK_FORMAT_R10X6G10X6B10X6A10X6_UNORM_4PACK16 },
-                { "R12X4_UNORM_PACK16", VK_FORMAT_R12X4_UNORM_PACK16 },
-                { "R12X4G12X4_UNORM_2PACK16", VK_FORMAT_R12X4G12X4_UNORM_2PACK16 },
-                { "R12X4G12X4B12X4A12X4_UNORM_4PACK16", VK_FORMAT_R12X4G12X4B12X4A12X4_UNORM_4PACK16 },
-                { "R16_UNORM", VK_FORMAT_R16_UNORM },
-                { "R16G16_UNORM", VK_FORMAT_R16G16_UNORM },
-                { "R16G16B16_UNORM", VK_FORMAT_R16G16B16_UNORM },
-                { "R16G16B16A16_UNORM", VK_FORMAT_R16G16B16A16_UNORM },
-                { "A2R10G10B10_UNORM_PACK32", VK_FORMAT_A2R10G10B10_UNORM_PACK32 },
-                { "A2B10G10R10_UNORM_PACK32", VK_FORMAT_A2B10G10R10_UNORM_PACK32 },
-                { "G8B8G8R8_422_UNORM", VK_FORMAT_G8B8G8R8_422_UNORM },
-                { "B8G8R8G8_422_UNORM", VK_FORMAT_B8G8R8G8_422_UNORM },
-                { "G10X6B10X6G10X6R10X6_422_UNORM_4PACK16", VK_FORMAT_G10X6B10X6G10X6R10X6_422_UNORM_4PACK16 },
-                { "B10X6G10X6R10X6G10X6_422_UNORM_4PACK16", VK_FORMAT_B10X6G10X6R10X6G10X6_422_UNORM_4PACK16 },
-                { "G12X4B12X4G12X4R12X4_422_UNORM_4PACK16", VK_FORMAT_G12X4B12X4G12X4R12X4_422_UNORM_4PACK16 },
-                { "B12X4G12X4R12X4G12X4_422_UNORM_4PACK16", VK_FORMAT_B12X4G12X4R12X4G12X4_422_UNORM_4PACK16 },
-                { "G16B16G16R16_422_UNORM", VK_FORMAT_G16B16G16R16_422_UNORM },
-                { "B16G16R16G16_422_UNORM", VK_FORMAT_B16G16R16G16_422_UNORM },
-                { "R8_UINT", VK_FORMAT_R8_UINT },
-                { "R8_SINT", VK_FORMAT_R8_SINT },
-                { "R16_UINT", VK_FORMAT_R16_UINT },
-                { "R16_SINT", VK_FORMAT_R16_SINT },
-                { "R32_UINT", VK_FORMAT_R32_UINT },
-                { "R8G8_UINT", VK_FORMAT_R8G8_UINT },
-                { "R8G8_SINT", VK_FORMAT_R8G8_SINT },
-                { "R16G16_UINT", VK_FORMAT_R16G16_UINT },
-                { "R16G16_SINT", VK_FORMAT_R16G16_SINT },
-                { "R32G32_UINT", VK_FORMAT_R32G32_UINT },
-                { "R8G8B8_UINT", VK_FORMAT_R8G8B8_UINT },
-                { "R8G8B8_SINT", VK_FORMAT_R8G8B8_SINT },
-                { "B8G8R8_UINT", VK_FORMAT_B8G8R8_UINT },
-                { "B8G8R8_SINT", VK_FORMAT_B8G8R8_SINT },
-                { "R16G16B16_UINT", VK_FORMAT_R16G16B16_UINT },
-                { "R16G16B16_SINT", VK_FORMAT_R16G16B16_SINT },
-                { "R32G32B32_UINT", VK_FORMAT_R32G32B32_UINT },
-                { "R8G8B8A8_UINT", VK_FORMAT_R8G8B8A8_UINT },
-                { "R8G8B8A8_SINT", VK_FORMAT_R8G8B8A8_SINT },
-                { "B8G8R8A8_UINT", VK_FORMAT_B8G8R8A8_UINT },
-                { "B8G8R8A8_SINT", VK_FORMAT_B8G8R8A8_SINT },
-                { "R16G16B16A16_UINT", VK_FORMAT_R16G16B16A16_UINT },
-                { "R16G16B16A16_SINT", VK_FORMAT_R16G16B16A16_SINT },
-                { "R32G32B32A32_UINT", VK_FORMAT_R32G32B32A32_UINT },
-                { "A2R10G10B10_UINT_PACK32", VK_FORMAT_A2R10G10B10_UINT_PACK32 },
-                { "A2R10G10B10_SINT_PACK32", VK_FORMAT_A2R10G10B10_SINT_PACK32 },
-                { "A2B10G10R10_SINT_PACK32", VK_FORMAT_A2B10G10R10_SINT_PACK32 },
-                { "A2B10G10R10_UINT_PACK32", VK_FORMAT_A2B10G10R10_UINT_PACK32 },
-                { "R16_SFLOAT", VK_FORMAT_R16_SFLOAT },
-                { "R16G16_SFLOAT", VK_FORMAT_R16G16_SFLOAT },
-                { "R16G16B16_SFLOAT", VK_FORMAT_R16G16B16_SFLOAT },
-                { "R16G16B16A16_SFLOAT", VK_FORMAT_R16G16B16A16_SFLOAT },
-                { "R32_SFLOAT", VK_FORMAT_R32_SFLOAT },
-                { "R32G32_SFLOAT", VK_FORMAT_R32G32_SFLOAT },
-                { "R32G32B32_SFLOAT", VK_FORMAT_R32G32B32_SFLOAT },
-                { "R32G32B32A32_SFLOAT", VK_FORMAT_R32G32B32A32_SFLOAT },
-                { "B10G11R11_UFLOAT_PACK32", VK_FORMAT_B10G11R11_UFLOAT_PACK32 },
-                { "E5B9G9R9_UFLOAT_PACK32", VK_FORMAT_E5B9G9R9_UFLOAT_PACK32 },
-                { "D16_UNORM", VK_FORMAT_D16_UNORM },
-                { "X8_D24_UNORM_PACK32", VK_FORMAT_X8_D24_UNORM_PACK32 },
-                { "D32_SFLOAT", VK_FORMAT_D32_SFLOAT },
-                { "S8_UINT", VK_FORMAT_S8_UINT },
-                { "D16_UNORM_S8_UINT", VK_FORMAT_D16_UNORM_S8_UINT },
-                { "D24_UNORM_S8_UINT", VK_FORMAT_D24_UNORM_S8_UINT },
-                { "D32_SFLOAT_S8_UINT", VK_FORMAT_D32_SFLOAT_S8_UINT },
-        };
-
         if (args["format"].count()) {
-            // TODO Tools P4: Include every VkFormat in this lookup table (--raw supports everything except prohibited)
-            //          If non-raw the format must be in the current version of the lookup table
-            //          If --raw format can be anything but the prohibited ones
-
-            const auto formatStr = to_upper_copy(args["format"].as<std::string>());
-            const auto it = values.find(formatStr);
-            if (it == values.end())
+            const auto formatStr = args["format"].as<std::string>();
+            const auto parsedVkFormat = parseVkFormat(formatStr);
+            if (!parsedVkFormat)
                 report.fatal_usage("The requested format is invalid or unsupported: \"{}\".", formatStr);
-            else
-                vkFormat = it->second;
+
+            vkFormat = *parsedVkFormat;
         } else {
             report.fatal_usage("Required option 'format' is missing.");
         }
+
+        // List of formats that have supported format conversions
+        static const std::unordered_set<VkFormat> convertableFormats{
+                VK_FORMAT_R8_UNORM,
+                VK_FORMAT_R8_SRGB,
+                VK_FORMAT_R8G8_UNORM,
+                VK_FORMAT_R8G8_SRGB,
+                VK_FORMAT_R8G8B8_UNORM,
+                VK_FORMAT_R8G8B8_SRGB,
+                VK_FORMAT_B8G8R8_UNORM,
+                VK_FORMAT_B8G8R8_SRGB,
+                VK_FORMAT_R8G8B8A8_UNORM,
+                VK_FORMAT_R8G8B8A8_SRGB,
+                VK_FORMAT_B8G8R8A8_UNORM,
+                VK_FORMAT_B8G8R8A8_SRGB,
+                VK_FORMAT_ASTC_4x4_UNORM_BLOCK,
+                VK_FORMAT_ASTC_4x4_SRGB_BLOCK,
+                VK_FORMAT_ASTC_5x4_UNORM_BLOCK,
+                VK_FORMAT_ASTC_5x4_SRGB_BLOCK,
+                VK_FORMAT_ASTC_5x5_UNORM_BLOCK,
+                VK_FORMAT_ASTC_5x5_SRGB_BLOCK,
+                VK_FORMAT_ASTC_6x5_UNORM_BLOCK,
+                VK_FORMAT_ASTC_6x5_SRGB_BLOCK,
+                VK_FORMAT_ASTC_6x6_UNORM_BLOCK,
+                VK_FORMAT_ASTC_6x6_SRGB_BLOCK,
+                VK_FORMAT_ASTC_8x5_UNORM_BLOCK,
+                VK_FORMAT_ASTC_8x5_SRGB_BLOCK,
+                VK_FORMAT_ASTC_8x6_UNORM_BLOCK,
+                VK_FORMAT_ASTC_8x6_SRGB_BLOCK,
+                VK_FORMAT_ASTC_8x8_UNORM_BLOCK,
+                VK_FORMAT_ASTC_8x8_SRGB_BLOCK,
+                VK_FORMAT_ASTC_10x5_UNORM_BLOCK,
+                VK_FORMAT_ASTC_10x5_SRGB_BLOCK,
+                VK_FORMAT_ASTC_10x6_UNORM_BLOCK,
+                VK_FORMAT_ASTC_10x6_SRGB_BLOCK,
+                VK_FORMAT_ASTC_10x8_UNORM_BLOCK,
+                VK_FORMAT_ASTC_10x8_SRGB_BLOCK,
+                VK_FORMAT_ASTC_10x10_UNORM_BLOCK,
+                VK_FORMAT_ASTC_10x10_SRGB_BLOCK,
+                VK_FORMAT_ASTC_12x10_UNORM_BLOCK,
+                VK_FORMAT_ASTC_12x10_SRGB_BLOCK,
+                VK_FORMAT_ASTC_12x12_UNORM_BLOCK,
+                VK_FORMAT_ASTC_12x12_SRGB_BLOCK,
+                VK_FORMAT_R4G4_UNORM_PACK8,
+                VK_FORMAT_R5G6B5_UNORM_PACK16,
+                VK_FORMAT_B5G6R5_UNORM_PACK16,
+                VK_FORMAT_R4G4B4A4_UNORM_PACK16,
+                VK_FORMAT_B4G4R4A4_UNORM_PACK16,
+                VK_FORMAT_R5G5B5A1_UNORM_PACK16,
+                VK_FORMAT_B5G5R5A1_UNORM_PACK16,
+                VK_FORMAT_A1R5G5B5_UNORM_PACK16,
+                VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT,
+                VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT,
+                VK_FORMAT_R10X6_UNORM_PACK16,
+                VK_FORMAT_R10X6G10X6_UNORM_2PACK16,
+                VK_FORMAT_R10X6G10X6B10X6A10X6_UNORM_4PACK16,
+                VK_FORMAT_R12X4_UNORM_PACK16,
+                VK_FORMAT_R12X4G12X4_UNORM_2PACK16,
+                VK_FORMAT_R12X4G12X4B12X4A12X4_UNORM_4PACK16,
+                VK_FORMAT_R16_UNORM,
+                VK_FORMAT_R16G16_UNORM,
+                VK_FORMAT_R16G16B16_UNORM,
+                VK_FORMAT_R16G16B16A16_UNORM,
+                VK_FORMAT_A2R10G10B10_UNORM_PACK32,
+                VK_FORMAT_A2B10G10R10_UNORM_PACK32,
+                VK_FORMAT_G8B8G8R8_422_UNORM,
+                VK_FORMAT_B8G8R8G8_422_UNORM,
+                VK_FORMAT_G10X6B10X6G10X6R10X6_422_UNORM_4PACK16,
+                VK_FORMAT_B10X6G10X6R10X6G10X6_422_UNORM_4PACK16,
+                VK_FORMAT_G12X4B12X4G12X4R12X4_422_UNORM_4PACK16,
+                VK_FORMAT_B12X4G12X4R12X4G12X4_422_UNORM_4PACK16,
+                VK_FORMAT_G16B16G16R16_422_UNORM,
+                VK_FORMAT_B16G16R16G16_422_UNORM,
+                VK_FORMAT_R8_UINT,
+                VK_FORMAT_R8_SINT,
+                VK_FORMAT_R16_UINT,
+                VK_FORMAT_R16_SINT,
+                VK_FORMAT_R32_UINT,
+                VK_FORMAT_R8G8_UINT,
+                VK_FORMAT_R8G8_SINT,
+                VK_FORMAT_R16G16_UINT,
+                VK_FORMAT_R16G16_SINT,
+                VK_FORMAT_R32G32_UINT,
+                VK_FORMAT_R8G8B8_UINT,
+                VK_FORMAT_R8G8B8_SINT,
+                VK_FORMAT_B8G8R8_UINT,
+                VK_FORMAT_B8G8R8_SINT,
+                VK_FORMAT_R16G16B16_UINT,
+                VK_FORMAT_R16G16B16_SINT,
+                VK_FORMAT_R32G32B32_UINT,
+                VK_FORMAT_R8G8B8A8_UINT,
+                VK_FORMAT_R8G8B8A8_SINT,
+                VK_FORMAT_B8G8R8A8_UINT,
+                VK_FORMAT_B8G8R8A8_SINT,
+                VK_FORMAT_R16G16B16A16_UINT,
+                VK_FORMAT_R16G16B16A16_SINT,
+                VK_FORMAT_R32G32B32A32_UINT,
+                VK_FORMAT_A2R10G10B10_UINT_PACK32,
+                VK_FORMAT_A2R10G10B10_SINT_PACK32,
+                VK_FORMAT_A2B10G10R10_SINT_PACK32,
+                VK_FORMAT_A2B10G10R10_UINT_PACK32,
+                VK_FORMAT_R16_SFLOAT,
+                VK_FORMAT_R16G16_SFLOAT,
+                VK_FORMAT_R16G16B16_SFLOAT,
+                VK_FORMAT_R16G16B16A16_SFLOAT,
+                VK_FORMAT_R32_SFLOAT,
+                VK_FORMAT_R32G32_SFLOAT,
+                VK_FORMAT_R32G32B32_SFLOAT,
+                VK_FORMAT_R32G32B32A32_SFLOAT,
+                VK_FORMAT_B10G11R11_UFLOAT_PACK32,
+                VK_FORMAT_E5B9G9R9_UFLOAT_PACK32,
+                VK_FORMAT_D16_UNORM,
+                VK_FORMAT_X8_D24_UNORM_PACK32,
+                VK_FORMAT_D32_SFLOAT,
+                VK_FORMAT_S8_UINT,
+                VK_FORMAT_D16_UNORM_S8_UINT,
+                VK_FORMAT_D24_UNORM_S8_UINT,
+                VK_FORMAT_D32_SFLOAT_S8_UINT,
+        };
+
+        if (isProhibitedFormat(vkFormat))
+            report.fatal_usage("The requested {} format is prohibited in KTX files.", toString(vkFormat));
+
+        if (!raw && !convertableFormats.count(vkFormat))
+            report.fatal_usage("Unsupported format for non-raw create: {}.", toString(vkFormat));
 
         if (raw) {
             if (!width)
@@ -368,6 +438,18 @@ struct OptionsCreate {
 
         if (mipmapGenerate && raw)
             report.fatal_usage("Conflicting options: --mipmap-generate cannot be used with --raw.");
+
+        if (mipmapGenerate && depth > 1u)
+            report.fatal_usage("Mipmap generation for 3D textures are not supported: --mipmap-generate cannot be used with --depth.");
+
+        if (mipmapFilter && !mipmapGenerate)
+            report.fatal_usage("Option --mipmap-filter can only be used if --mipmap-generate is set.");
+
+        if (mipmapFilterScale && !mipmapGenerate)
+            report.fatal_usage("Option --mipmap-filter-scale can only be used if --mipmap-generate is set.");
+
+        if (mipmapWrap && !mipmapGenerate)
+            report.fatal_usage("Option --mipmap-wrap can only be used if --mipmap-generate is set.");
 
         formatDesc = createFormatDescriptor(vkFormat, report);
 
@@ -435,11 +517,10 @@ struct OptionsASTC : public ktxAstcParams {
 
     void init(cxxopts::Options& opts) {
         opts.add_options("Encode ASTC")
-                // Currently choosing HDR / LDR has no purpose as the encoder can only handles 8 bit inputs
-                // ("astc-mode",
-                //         "Specify which encoding mode to use. LDR is the default unless the "
-                //         "input image is 16-bit in which case the default is HDR.",
-                //         cxxopts::value<std::string>(), "ldr | hdr")
+                ("astc-mode",
+                        "Specify which encoding mode to use. LDR is the default unless the "
+                        "input image is 16-bit in which case the default is HDR.",
+                        cxxopts::value<std::string>(), "ldr | hdr")
                 ("astc-quality",
                         "The quality level configures the quality-performance tradeoff for "
                         "the compressor; more complete searches of the search space "
@@ -462,18 +543,17 @@ struct OptionsASTC : public ktxAstcParams {
     }
 
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
-        // Currently choosing HDR / LDR has no purpose as the encoder can only handles 8 bit inputs
-        // if (args["astc-mode"].count()) {
-        //     const auto modeStr = args["astc-mode"].as<std::string>();
-        //     if (modeStr == "ldr")
-        //         mode = KTX_PACK_ASTC_ENCODER_MODE_LDR;
-        //     else if (modeStr == "hdr")
-        //         mode = KTX_PACK_ASTC_ENCODER_MODE_HDR;
-        //     else
-        //         report.fatal_usage("Invalid astc-mode: \"{}\"", modeStr);
-        // } else {
-        //     mode = KTX_PACK_ASTC_ENCODER_MODE_DEFAULT;
-        // }
+        if (args["astc-mode"].count()) {
+            const auto modeStr = args["astc-mode"].as<std::string>();
+            if (modeStr == "ldr")
+                mode = KTX_PACK_ASTC_ENCODER_MODE_LDR;
+            else if (modeStr == "hdr")
+                mode = KTX_PACK_ASTC_ENCODER_MODE_HDR;
+            else
+                report.fatal_usage("Invalid astc-mode: \"{}\"", modeStr);
+        } else {
+            mode = KTX_PACK_ASTC_ENCODER_MODE_DEFAULT;
+        }
 
         if (args["astc-quality"].count()) {
             static std::unordered_map<std::string, ktx_pack_astc_quality_levels_e> astc_quality_mapping{
@@ -501,27 +581,159 @@ struct OptionsASTC : public ktxAstcParams {
 /** @page ktxtools_create ktx create
 @~English
 
-Creates a KTX2 file.
-
-@warning TODO Tools P5: This page is incomplete
+Create a KTX2 file from various input files.
 
 @section ktxtools_create_synopsis SYNOPSIS
-    ktx create [options] @e input_file
+    ktx create [option...] @e input_file... @e output_file
 
 @section ktxtools_create_description DESCRIPTION
+    @b ktx @b create can create, encode and supercompress a the KTX2 file from the
+    input images specified as the @e input_file... arguments and save as the
+    @e output_file. The last positional argument is treated as the output_file.
+
+    Each @e input_file must be a valid EXR (.exr), PNG (.png) or RAW (.raw) file.
+    PNG files with luminance (L) or luminance + alpha (LA) data will be converted
+    to RGB as LLL and RGBA as LLLA before processing further.
+    The input file formats must be compatible with the requested KTX format enum and
+    must have at least the same level of precision and number of channels.
+    Any unused channel will be discarded silently.
+
+    The number of input_files specified must match the expected number of input images
+    based on the used options.
 
     The following options are available:
     <dl>
-        <dt>-f, --fff</dt>
-        <dd>FFF Description</dd>
+        <dt>--format &lt;enum&gt;</dt>
+        <dd>KTX format enum. The enum names are matching the VkFormats without the VK_FORMAT_ prefix.
+            If the format is an ASTC format the ASTC encoder specific options become valid,
+            otherwise they are ignored. Required. The VK_FORMAT_ prefix is ignored if present.
+            Case insensitive.</dd>
+        <dl>
+            <dt>--astc-mode &lt;ldr | hdr&gt;</dt>
+            <dd>Specify which encoding mode to use. LDR is the default
+                unless the input image is 16-bit in which case the default is
+                HDR.</dd>
+            <dt>--astc-quality &lt;level&gt;</dt>
+            <dd>The quality level configures the quality-performance
+                tradeoff for the compressor; more complete searches of the
+                search space improve image quality at the expense of
+                compression time. Default is 'medium'. The quality level can be
+                set between fastest (0) and exhaustive (100) via the
+                following fixed quality presets:
+                <table>
+                    <tr><th>Level      </th> <th> Quality                      </th></tr>
+                    <tr><td>fastest    </td> <td>(equivalent to quality =   0) </td></tr>
+                    <tr><td>fast       </td> <td>(equivalent to quality =  10) </td></tr>
+                    <tr><td>medium     </td> <td>(equivalent to quality =  60) </td></tr>
+                    <tr><td>thorough   </td> <td>(equivalent to quality =  98) </td></tr>
+                    <tr><td>exhaustive </td> <td>(equivalent to quality = 100) </td></tr>
+                </table>
+            </dd>
+            <dt>--astc-perceptual</dt>
+            <dd>The codec should optimize for perceptual error, instead of
+                direct RMS error. This aims to improve perceived image quality,
+                but typically lowers the measured PSNR score. Perceptual
+                methods are currently only available for normal maps and RGB
+                color data.</dd>
+        </dl>
+        <dt>--1d</dt>
+        <dd>Create a 1D texture. If not set the texture will be a 2D or 3D texture.</dd>
+        <dt>--cubemap</dt>
+        <dd>Create a cubemap texture. If not set the texture will be a 2D or 3D texture.</dd>
+        <dt>--raw</dt>
+        <dd>Create from raw image data.</dd>
+        <dt>--width</dt>
+        <dd>Base level width in pixels.</dd>
+        <dt>--height</dt>
+        <dd>Base level height in pixels.</dd>
+        <dt>--depth</dt>
+        <dd>Base level depth in pixels.
+            If it is greater than 1 the texture will be a 3D texture. Defaults to 1.</dd>
+        <dt>--layers</dt>
+        <dd>Number of layers.
+            If it is greater than 1 the texture will be an Array texture. Defaults to 1.</dd>
+        <dt>--mipmap-runtime</dt>
+        <dd>Runtime mipmap generation mode.
+            Sets up the texture to request the mipmaps to be generated by the client application at
+            runtime.</dd>
+        <dt>--mipmap-generate</dt>
+        <dd>Causes mipmaps to be generated during texture creation.
+            If the --levels is not specified the maximum possible mip level will be generated.
+            This option is mutually exclusive with --mipmap-runtime and cannot be used with SINT,
+            UINT or 3D textures.</dd>
+            When set it enables the use of the following \'Generate Mipmap\' options.
+        <dl>
+            <dt>--mipmap-filter &lt;filter&gt;</dt>
+            <dd>Specifies the filter to use when generating the mipmaps. Case insensitive.<br />
+                Possible options are:
+                box | tent | bell | b-spline | mitchell | blackman | lanczos3 | lanczos4 | lanczos6 |
+                lanczos12 | kaiser | gaussian | catmullrom | quadratic_interp | quadratic_approx |
+                quadratic_mix.
+                Defaults to lanczos4.</dd>
+            <dt>--mipmap-filter-scale &lt;float&gt;</dt>
+            <dd>The filter scale to use.
+                Defaults to 1.0.</dd>
+            <dt>--mipmap-wrap &lt;mode&gt;</dt>
+            <dd>Specify how to sample pixels near the image boundaries. Case insensitive.<br />
+                Possible options are:
+                wrap | reflect | clamp.
+                Defaults to clamp.</dd>
+        </dl>
     </dl>
-    @snippet{doc} ktx/command.h command options
+    <dl>
+        <dt>--encode basis-lz | uastc<</dt>
+        <dd>Encode the texture with the specified codec before saving it.
+            This option matches the functionality of the @ref ktxtools_encode "ktx encode" command.
+            With each encoding option the following encoder specific options become valid,
+            otherwise they are ignored. Case-insensitive.</dd>
+
+        @snippet{doc} ktx/encode_utils.h command options_codec
+        @snippet{doc} ktx/metrics_utils.h command options_metrics
+    </dl>
+    <dl>
+        <dt>--swizzle [rgba01]{4}</dt>
+        <dd>KTX swizzle metadata.</dd>
+        <dt>--input-swizzle [rgba01]{4}</dt>
+        <dd>Pre-swizzle input channels.</dd>
+        <dt>--assign-oetf &lt;oetf&gt;</dt>
+        <dd>Force the created texture to have the specified transfer function, ignoring
+            the transfer function of the input file(s). Case insensitive.
+            Possible options are:
+            linear | srgb
+            </dd>
+        <dt>--assign-primaries &lt;primaries&gt;</dt>
+        <dd>Force the created texture to have the specified color primaries, ignoring
+            the color primaries of the input file(s). Case insensitive.
+            Possible options are:
+            bt709 | srgb | bt601-ebu | bt601-smpte | bt2020 | ciexyz | aces | acescc | ntsc1953 |
+            pal525 | displayp3 | adobergb
+            </dd>
+        <dt>--convert-oetf &lt;oetf&gt;</dt>
+        <dd>Convert the input image(s) to the specified transfer function, if different
+            from the transfer function of the input file(s). If both this and --assign-oetf are
+            specified, conversion will be performed from the assigned transfer function to the
+            transfer function specified by this option, if different. Case insensitive.
+            Possible options are:
+            linear | srgb
+            </dd>
+        <dt>--convert-primaries &lt;primaries&gt;</dt>
+        <dd>Convert the image image(s) to the specified color primaries, if different
+            from the color primaries of the input file(s) or the one specified by --assign-primaries.
+            Case insensitive.
+            Possible options are:
+            bt709 | srgb | bt601-ebu | bt601-smpte | bt2020 | ciexyz | aces | acescc | ntsc1953 |
+            pal525 | displayp3 | adobergb
+            </dd>
+        <dt>--fail-on-color-conversions</dt>
+        <dd>Generates an error if any of the input images would need to be color converted.</dd>
+        <dt>--warn-on-color-conversions</dt>
+        <dd>Generates a warning if any of the input images are color converted.</dd>
+    </dl>
+    @snippet{doc} ktx/compress_utils.h command options_compress
+    @snippet{doc} ktx/command.h command options_generic
 
 @section ktxtools_create_exitstatus EXIT STATUS
-    @b ktx @b create exits
-        0 - Success
-        1 - Command line error
-        2 - IO error
+    @snippet{doc} ktx/command.h command exitstatus
 
 @section ktxtools_create_history HISTORY
 
@@ -534,7 +746,7 @@ Creates a KTX2 file.
 */
 class CommandCreate : public Command {
 private:
-    Combine<OptionsCreate, OptionsASTC, OptionsCompress, OptionsCodec<false>, OptionsMultiInSingleOut, OptionsGeneric> options;
+    Combine<OptionsCreate, OptionsASTC, OptionsCodec<false>, OptionsMetrics, OptionsCompress, OptionsMultiInSingleOut, OptionsGeneric> options;
 
     uint32_t targetChannelCount = 0; // Derived from VkFormat
 
@@ -559,11 +771,12 @@ private:
     void foreachImage(const FormatDescriptor& format, F&& func);
 
     [[nodiscard]] KTXTexture2 createTexture(const ImageSpec& target);
+    void generateMipLevels(KTXTexture2& texture, std::unique_ptr<Image> image, ImageInput& inputFile,
+            uint32_t numMipLevels, uint32_t layerIndex, uint32_t faceIndex, uint32_t depthSliceIndex);
 
     [[nodiscard]] std::string readRawFile(const std::filesystem::path& filepath);
     [[nodiscard]] std::unique_ptr<Image> loadInputImage(ImageInput& inputImageFile);
-    std::vector<uint8_t> convert(const std::unique_ptr<Image>& image, VkFormat format,
-            ImageInput& inputFile);
+    std::vector<uint8_t> convert(const std::unique_ptr<Image>& image, VkFormat format, ImageInput& inputFile);
 
     std::unique_ptr<const ColorPrimaries> createColorPrimaries(khr_df_primaries_e primaries) const;
 
@@ -579,12 +792,12 @@ int CommandCreate::main(int argc, _TCHAR* argv[]) {
     try {
         parseCommandLine("ktx create", "Creates a KTX2 file from the given input file(s).", argc, argv);
         executeCreate();
-        return RETURN_CODE_SUCCESS;
+        return +rc::SUCCESS;
     } catch (const FatalError& error) {
-        return error.return_code;
+        return +error.returnCode;
     } catch (const std::exception& e) {
         fmt::print(std::cerr, "{} fatal: {}\n", commandName, e.what());
-        return RETURN_CODE_RUNTIME_ERROR;
+        return +rc::RUNTIME_ERROR;
     }
 }
 
@@ -643,6 +856,12 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
             break;
         }
     }
+
+    const auto canCompare = options.codec == EncodeCodec::BasisLZ || options.codec == EncodeCodec::UASTC;
+    if (options.compare_ssim && !canCompare)
+        fatal_usage("--compare-ssim can only be used with BasisLZ or UASTC encoding.");
+    if (options.compare_psnr && !canCompare)
+        fatal_usage("--compare-psnr can only be used with BasisLZ or UASTC encoding.");
 
     if (isFormatAstc(options.vkFormat) && !options.raw) {
         options.astc = true;
@@ -721,25 +940,22 @@ void CommandCreate::foreachImage(const FormatDescriptor& format, F&& func) {
     //      level > layer > face > image (z_slice_of_blocks)
     //      aka foreach level, foreach layer, foreach face, foreach image (z_slice_of_blocks)
 
-    std::deque<std::string> inputFilepaths{options.inputFilepaths.begin(), options.inputFilepaths.end()};
+    auto inputFileIt = options.inputFilepaths.begin();
 
-    // TODO Tools P5: mipmapGenerate
     for (uint32_t levelIndex = 0; levelIndex < (options.mipmapGenerate ? 1 : numLevels); ++levelIndex) {
         // TODO Tools P5: 3D BC formats currently discard the last partial z block slice
         //          This should be: ceil_div instead of div
-        const auto numLevelDepths = std::max(numBaseDepths >> levelIndex, 1u) / (format.basic.texelBlockDimension2 + 1);
+        const auto numimageDepth = std::max(numBaseDepths >> levelIndex, 1u) / (format.basic.texelBlockDimension2 + 1);
         for (uint32_t layerIndex = 0; layerIndex < numLayers; ++layerIndex) {
             for (uint32_t faceIndex = 0; faceIndex < numFaces; ++faceIndex) {
-                for (uint32_t depthSliceIndex = 0; depthSliceIndex < numLevelDepths; ++depthSliceIndex) {
-                    assert(!inputFilepaths.empty()); // inputFilepaths were already validated during arg parsing
-                    const auto inputFilepath = inputFilepaths.front();
-                    inputFilepaths.pop_front();
-                    func(inputFilepath, levelIndex, layerIndex, faceIndex, depthSliceIndex);
+                for (uint32_t depthSliceIndex = 0; depthSliceIndex < numimageDepth; ++depthSliceIndex) {
+                    assert(inputFileIt != options.inputFilepaths.end() && "Internal error"); // inputFilepaths size was already validated during arg parsing
+                    func(*inputFileIt++, levelIndex, layerIndex, faceIndex, depthSliceIndex);
                 }
             }
         }
     }
-    assert(inputFilepaths.empty() && "Internal error");
+    assert(inputFileIt == options.inputFilepaths.end() && "Internal error"); // inputFilepaths size was already validated during arg parsing
 }
 
 std::string CommandCreate::readRawFile(const std::filesystem::path& filepath) {
@@ -845,18 +1061,19 @@ void CommandCreate::executeCreate() {
                 checkSpecsMatch(*inputImageFile, firstImageSpec);
             }
 
-            const uint32_t levelWidth = std::max(target.width() >> levelIndex, 1u);
-            const uint32_t levelHeight = std::max(target.height() >> levelIndex, 1u);
+            const uint32_t imageWidth = std::max(target.width() >> levelIndex, 1u);
+            const uint32_t imageHeight = std::max(target.height() >> levelIndex, 1u);
 
-            if (inputImageFile->spec().width() != levelWidth || inputImageFile->spec().height() != levelHeight)
-                fatal(rc::INVALID_FILE, "Input image \"{}\" with size {}x{} does not match expected size {}x{} for level {}.", inputFilepath, inputImageFile->spec().width(), inputImageFile->spec().height(), levelWidth, levelHeight, levelIndex);
+            if (inputImageFile->spec().width() != imageWidth || inputImageFile->spec().height() != imageHeight)
+                fatal(rc::INVALID_FILE, "Input image \"{}\" with size {}x{} does not match expected size {}x{} for level {}.",
+                        inputFilepath, inputImageFile->spec().width(), inputImageFile->spec().height(), imageWidth, imageHeight, levelIndex);
 
-            const auto image = loadInputImage(*inputImageFile);
+            auto image = loadInputImage(*inputImageFile);
 
             if (colorSpaceInfo.dstTransferFunction != nullptr) {
                 assert(colorSpaceInfo.srcTransferFunction != nullptr);
                 if (colorSpaceInfo.dstColorPrimaries != nullptr) {
-                    assert(colorSpaceInfo.srcColorPrimaries);
+                    assert(colorSpaceInfo.srcColorPrimaries != nullptr);
                     auto primaryTransform = colorSpaceInfo.srcColorPrimaries->transformTo(*colorSpaceInfo.dstColorPrimaries);
 
                     if (options.failOnColorConversions)
@@ -902,6 +1119,13 @@ void CommandCreate::executeCreate() {
                     imageData.data(),
                     imageData.size());
             assert(ret == KTX_SUCCESS && "Internal error"); (void) ret;
+
+            if (options.mipmapGenerate) {
+                const auto maxDimension = std::max(target.width(), std::max(target.height(), numBaseDepths));
+                const auto maxLevels = log2(maxDimension) + 1;
+                uint32_t numMipLevels = options.levels.value_or(maxLevels);
+                generateMipLevels(texture, std::move(image), *inputImageFile, numMipLevels, layerIndex, faceIndex, depthSliceIndex);
+            }
         }
     });
 
@@ -918,10 +1142,9 @@ void CommandCreate::executeCreate() {
                 options.swizzle->c_str());
     }
 
-    // Apply compressions
+    // Encode and apply compression
     encode(texture, options);
-    if (options.astc)
-        encodeASTC(texture, options);
+    encodeASTC(texture, options);
     compress(texture, options);
 
     // Save output file
@@ -929,7 +1152,7 @@ void CommandCreate::executeCreate() {
         std::filesystem::create_directories(std::filesystem::path(options.outputFilepath).parent_path());
     FILE* f = _tfopen(options.outputFilepath.c_str(), "wb");
     if (!f)
-        fatal(2, "Could not open output file \"{}\": {}.", options.outputFilepath, errnoMessage());
+        fatal(rc::IO_FAILURE, "Could not open output file \"{}\": {}.", options.outputFilepath, errnoMessage());
 
     // #if defined(_WIN32)
     //     if (f == stdout) {
@@ -944,37 +1167,43 @@ void CommandCreate::executeCreate() {
     if (KTX_SUCCESS != ret) {
         if (f != stdout)
             std::filesystem::remove(options.outputFilepath);
-        fatal(2, "Failed to write KTX file \"{}\": KTX error: {}", options.outputFilepath, ktxErrorString(ret));
+        fatal(rc::IO_FAILURE, "Failed to write KTX file \"{}\": KTX error: {}", options.outputFilepath, ktxErrorString(ret));
     }
 }
 
 // -------------------------------------------------------------------------------------------------
 
 void CommandCreate::encode(KTXTexture2& texture, OptionsCodec<false>& opts) {
+    MetricsCalculator metrics;
+    metrics.saveReferenceImages(texture, options, *this);
+
     if (opts.codec != EncodeCodec::NONE) {
         auto ret = ktxTexture2_CompressBasisEx(texture, &opts.basisOpts);
         if (ret != KTX_SUCCESS)
             fatal(rc::KTX_FAILURE, "Failed to encode KTX2 file with codec \"{}\". KTX Error: {}",
                     to_underlying(opts.codec), ktxErrorString(ret));
     }
+
+    metrics.decodeAndCalculateMetrics(texture, options, *this);
 }
 
 void CommandCreate::encodeASTC(KTXTexture2& texture, OptionsASTC& opts) {
-    const auto ret = ktxTexture2_CompressAstcEx(texture, &opts);
-    if (ret != KTX_SUCCESS)
-        fatal(rc::KTX_FAILURE,
-            "Failed to encode KTX2 file with codec \"{}\". KTX Error: {}", "ASTC", ktxErrorString(ret));
+    if (opts.astc) {
+        const auto ret = ktxTexture2_CompressAstcEx(texture, &opts);
+        if (ret != KTX_SUCCESS)
+            fatal(rc::KTX_FAILURE, "Failed to encode KTX2 file with codec ASTC. KTX Error: {}", ktxErrorString(ret));
+    }
 }
 
 void CommandCreate::compress(KTXTexture2& texture, const OptionsCompress& opts) {
     if (opts.zstd) {
-        const auto ret = ktxTexture2_DeflateZstd((ktxTexture2*)texture, *opts.zstd);
+        const auto ret = ktxTexture2_DeflateZstd(texture, *opts.zstd);
         if (ret != KTX_SUCCESS)
             fatal(rc::KTX_FAILURE, "Zstd deflation failed. KTX Error: {}", ktxErrorString(ret));
     }
 
     if (opts.zlib) {
-        const auto ret = ktxTexture2_DeflateZLIB((ktxTexture2*)texture, *opts.zlib);
+        const auto ret = ktxTexture2_DeflateZLIB(texture, *opts.zlib);
         if (ret != KTX_SUCCESS)
             fatal(rc::KTX_FAILURE, "ZLIB deflation failed. KTX Error: {}", ktxErrorString(ret));
     }
@@ -1082,9 +1311,6 @@ std::unique_ptr<Image> CommandCreate::loadInputImage(ImageInput& inputImageFile)
             break;
         }
     } else {
-        // const uint32_t ct = inSpec.format().samples[0].channelType;
-        // const auto dtq = static_cast<khr_df_sample_datatype_qualifiers_e>(ct);
-
         fatal(rc::INVALID_FILE, "Unsupported format with {}-bit and {} channel.",
                 requestBitLength, requestChannelCount);
     }
@@ -1147,6 +1373,26 @@ std::vector<uint8_t> convertUINT(const std::unique_ptr<Image>& image, std::strin
     return image->getUINT(componentCount, bits);
 }
 
+std::vector<uint8_t> convertUINTPacked(const std::unique_ptr<Image>& image,
+        uint32_t c0 = 0, uint32_t c1 = 0, uint32_t c2 = 0, uint32_t c3 = 0,
+        std::string_view swizzle = "") {
+
+    if (!swizzle.empty())
+        image->swizzle(swizzle);
+
+    return image->getUINTPacked(c0, c1, c2, c3);
+}
+
+std::vector<uint8_t> convertSINTPacked(const std::unique_ptr<Image>& image,
+        uint32_t c0 = 0, uint32_t c1 = 0, uint32_t c2 = 0, uint32_t c3 = 0,
+        std::string_view swizzle = "") {
+
+    if (!swizzle.empty())
+        image->swizzle(swizzle);
+
+    return image->getSINTPacked(c0, c1, c2, c3);
+}
+
 template <typename T>
 std::vector<uint8_t> convertSINT(const std::unique_ptr<Image>& image, std::string_view swizzle = "") {
     using ComponentT = typename T::Color::value_type;
@@ -1172,10 +1418,10 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
                     inputFile.filename(), inputChannelCount, channelCount, toString(vkFormat));
 
         if (inputBitDepth < bitDepth)
-            fatal(rc::INVALID_FILE, "{}: Not enough precision with {} bits which is less than the required {} bits for {}.",
+            fatal(rc::INVALID_FILE, "{}: Not enough precision to convert {} bit input to {} bit output for {}.",
                     inputFile.filename(), inputBitDepth, bitDepth, toString(vkFormat));
         if (inputBitDepth > bit_ceil(bitDepth))
-            warning("{}: Possible loss of precision with conversion from {} bits to {} bits for {}.",
+            warning("{}: Possible loss of precision with converting {} bit input to {} bit output for {}.",
                     inputFile.filename(), inputBitDepth, bitDepth, toString(vkFormat));
     };
     const auto requireUNORM = [&](uint32_t channelCount, uint32_t bitDepth) {
@@ -1189,8 +1435,8 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
             break; // Accept
         case ImageInputFormatType::exr_uint: [[fallthrough]];
         case ImageInputFormatType::exr_float:
-            fatal(rc::INVALID_FILE, "{}: Input file data type \"{}\" does not match the expected input data type \"{}\" for {}.",
-                    inputFile.filename(), toString(inputFile.formatType()), "UNORM", toString(vkFormat));
+            fatal(rc::INVALID_FILE, "{}: Input file data type \"{}\" does not match the expected input data type of {} bit \"{}\" for {}.",
+                    inputFile.filename(), toString(inputFile.formatType()), bitDepth, "UNORM", toString(vkFormat));
         }
         require(channelCount, bitDepth);
     };
@@ -1205,8 +1451,8 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
         case ImageInputFormatType::npbm: [[fallthrough]];
         case ImageInputFormatType::jpg: [[fallthrough]];
         case ImageInputFormatType::exr_uint:
-            fatal(rc::INVALID_FILE, "{}: Input file data type \"{}\" does not match the expected input data type \"{}\" for {}.",
-                    inputFile.filename(), toString(inputFile.formatType()), "SFLOAT", toString(vkFormat));
+            fatal(rc::INVALID_FILE, "{}: Input file data type \"{}\" does not match the expected input data type of {} bit \"{}\" for {}.",
+                    inputFile.filename(), toString(inputFile.formatType()), bitDepth, "SFLOAT", toString(vkFormat));
         }
         require(channelCount, bitDepth);
     };
@@ -1221,8 +1467,8 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
         case ImageInputFormatType::npbm: [[fallthrough]];
         case ImageInputFormatType::jpg: [[fallthrough]];
         case ImageInputFormatType::exr_float:
-            fatal(rc::INVALID_FILE, "{}: Input file data type \"{}\" does not match the expected input data type \"{}\" for {}.",
-                    inputFile.filename(), toString(inputFile.formatType()), "UINT", toString(vkFormat));
+            fatal(rc::INVALID_FILE, "{}: Input file data type \"{}\" does not match the expected input data type of {} bit \"{}\" for {}.",
+                    inputFile.filename(), toString(inputFile.formatType()), bitDepth, "UINT", toString(vkFormat));
         }
         require(channelCount, bitDepth);
     };
@@ -1474,10 +1720,18 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
         requireUINT(4, 32);
         return convertUINT<rgba32image>(image);
 
-    // case VK_FORMAT_A2R10G10B10_UINT_PACK32:
-    // case VK_FORMAT_A2R10G10B10_SINT_PACK32:
-    // case VK_FORMAT_A2B10G10R10_UINT_PACK32:
-    // case VK_FORMAT_A2B10G10R10_SINT_PACK32:
+    case VK_FORMAT_A2R10G10B10_UINT_PACK32:
+        requireSFloat(4, 16);
+        return convertUINTPacked(image, 2, 10, 10, 10, "argb");
+    case VK_FORMAT_A2R10G10B10_SINT_PACK32:
+        requireSFloat(4, 16);
+        return convertSINTPacked(image, 2, 10, 10, 10, "argb");
+    case VK_FORMAT_A2B10G10R10_UINT_PACK32:
+        requireSFloat(4, 16);
+        return convertUINTPacked(image, 2, 10, 10, 10, "abgr");
+    case VK_FORMAT_A2B10G10R10_SINT_PACK32:
+        requireSFloat(4, 16);
+        return convertSINTPacked(image, 2, 10, 10, 10, "abgr");
 
         // The same EXR pixel types as for the decoding must be enforced.
         // Extra channels must be dropped.
@@ -1559,9 +1813,9 @@ KTXTexture2 CommandCreate::createTexture(const ImageSpec& target) {
     } else {
         createInfo.generateMipmaps = false;
         if (options.mipmapGenerate) {
-            // TODO Tools P2: Implement mipmap generate filters
             const auto maxDimension = std::max(target.width(), std::max(target.height(), target.depth()));
-            createInfo.numLevels = log2(maxDimension) + 1;
+            const auto maxLevels = log2(maxDimension) + 1;
+            createInfo.numLevels = options.levels.value_or(maxLevels);
         } else {
             createInfo.numLevels = numLevels;
         }
@@ -1570,7 +1824,7 @@ KTXTexture2 CommandCreate::createTexture(const ImageSpec& target) {
     KTXTexture2 texture{nullptr};
     ktx_error_code_e ret = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE, texture.pHandle());
     if (KTX_SUCCESS != ret)
-        fatal(2, "Failed to create ktxTexture: libktx error: {}", ktxErrorString(ret));
+        fatal(rc::KTX_FAILURE, "Failed to create ktxTexture: libktx error: {}", ktxErrorString(ret));
 
     // BT709 is the default for DFDs.
     if (target.format().primaries() != KHR_DF_PRIMARIES_BT709)
@@ -1579,20 +1833,52 @@ KTXTexture2 CommandCreate::createTexture(const ImageSpec& target) {
     return texture;
 }
 
+void CommandCreate::generateMipLevels(KTXTexture2& texture, std::unique_ptr<Image> image, ImageInput& inputFile,
+        uint32_t numMipLevels, uint32_t layerIndex, uint32_t faceIndex, uint32_t depthSliceIndex) {
+
+    if (isFormatINT(static_cast<VkFormat>(texture->vkFormat)))
+        fatal(rc::NOT_SUPPORTED, "Mipmap generation for SINT or UINT format {} is not supported.", toString(static_cast<VkFormat>(texture->vkFormat)));
+
+    const auto baseWidth = image->getWidth();
+    const auto baseHeight = image->getHeight();
+
+    for (uint32_t mipLevelIndex = 1; mipLevelIndex < numMipLevels; ++mipLevelIndex) {
+        const auto mipImageWidth = std::max(1u, baseWidth >> (mipLevelIndex));
+        const auto mipImageHeight = std::max(1u, baseHeight >> (mipLevelIndex));
+
+        try {
+            image = image->resample(mipImageWidth, mipImageHeight,
+                    options.mipmapFilter.value_or(options.defaultMipmapFilter).c_str(),
+                    options.mipmapFilterScale.value_or(options.defaultMipmapFilterScale),
+                    options.mipmapWrap.value_or(options.defaultMipmapWrap));
+        } catch (const std::exception& e) {
+            fatal(rc::RUNTIME_ERROR, "Mipmap generation failed: {}", e.what());
+        }
+
+        const auto imageData = convert(image, options.vkFormat, inputFile);
+
+        const auto ret = ktxTexture_SetImageFromMemory(
+                texture,
+                mipLevelIndex,
+                layerIndex,
+                faceIndex + depthSliceIndex, // Faces and Depths are mutually exclusive, Addition is acceptable
+                imageData.data(),
+                imageData.size());
+        assert(ret == KTX_SUCCESS && "Internal error"); (void) ret;
+    }
+}
+
 void CommandCreate::selectASTCMode(uint32_t bitLength) {
     if (options.mode == KTX_PACK_ASTC_ENCODER_MODE_DEFAULT) {
         // If no astc mode option is specified and if input is <= 8bit
         // default to LDR otherwise default to HDR
-        if (bitLength <= 8)
-            options.mode = KTX_PACK_ASTC_ENCODER_MODE_LDR;
-        else
-            options.mode = KTX_PACK_ASTC_ENCODER_MODE_HDR;
+        options.mode = bitLength <= 8 ? KTX_PACK_ASTC_ENCODER_MODE_LDR : KTX_PACK_ASTC_ENCODER_MODE_HDR;
     } else {
         if (bitLength > 8 && options.mode == KTX_PACK_ASTC_ENCODER_MODE_LDR)
             // Input is > 8-bit and user wants LDR, issue quality loss warning.
             warning("Input file is 16-bit but ASTC LDR option is specified. Expect quality loss in the output.");
         else if (bitLength < 16 && options.mode == KTX_PACK_ASTC_ENCODER_MODE_HDR)
-            // Input is < 8bit and user wants HDR, issue warning.
+            // Input is < 16-bit and user wants HDR, issue warning.
             warning("Input file is not 16-bit but HDR option is specified.");
     }
 
@@ -1781,7 +2067,7 @@ void CommandCreate::determineTargetColorSpace(const ImageInput& in, ImageSpec& t
                 colorSpaceInfo.usedInputTransferFunction = KHR_DF_TRANSFER_LINEAR;
                 colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionLinear>();
             }
-            warning("No transfer function can be determined from {}-bit PNG input file \"{}\", defaulting to {}.",
+            warning("No transfer function can be determined from {}-bit PNG input file \"{}\", defaulting to {}. Use --assign-oetf to override one.",
                 spec.format().channelBitLength(), in.filename(), toString(colorSpaceInfo.usedInputTransferFunction));
         }
     }

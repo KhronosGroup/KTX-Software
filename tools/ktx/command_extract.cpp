@@ -23,8 +23,69 @@
 
 #include "png.imageio/lodepng.h"
 #include "astc-encoder/Source/tinyexr.h"
+#include "astc-encoder/Source/astcenc.h"
 
 // -------------------------------------------------------------------------------------------------
+
+namespace ktx {
+
+struct All_t {};
+static constexpr All_t all{};
+
+// Small utility class for selecting one specific uint or all (used for image selection via indices)
+struct Selector {
+    bool all = false;
+    uint32_t value = 0;
+
+    explicit Selector(All_t) : all(true) {}
+    explicit Selector(uint32_t value) : value(value) {}
+
+    Selector& operator=(All_t) & {
+        all = true;
+        value = 0;
+        return *this;
+    }
+
+    Selector& operator=(uint32_t v) & {
+        all = false;
+        value = v;
+        return *this;
+    }
+
+    friend bool operator==(All_t, const Selector& var) {
+        return var.all;
+    }
+    friend bool operator==(const Selector& var, All_t) {
+        return var.all;
+    }
+    friend bool operator!=(All_t, const Selector& var) {
+        return !var.all;
+    }
+    friend bool operator!=(const Selector& var, All_t) {
+        return !var.all;
+    }
+    friend bool operator>=(const Selector& var, uint32_t value) {
+        return !var.all && var.value >= value;
+    }
+    friend bool operator>=(uint32_t value, const Selector& var) {
+        return !var.all && value >= var.value;
+    }
+};
+
+static uint32_t value_or(const std::optional<Selector> opt, uint32_t fallback) {
+    return opt ? opt->value : fallback;
+}
+
+} // namespace ktx
+
+template<> struct fmt::formatter<ktx::Selector> : fmt::formatter<uint32_t> {
+    template <typename FormatContext>
+    auto format(const ktx::Selector& var, FormatContext& ctx) const -> decltype(ctx.out()) {
+        return var.all ?
+            formatter<std::string_view>{}.format("all", ctx) :
+            formatter<uint32_t>::format(var.value, ctx);
+    }
+};
 
 namespace ktx {
 
@@ -33,28 +94,79 @@ namespace ktx {
 /** @page ktxtools_extract ktx extract
 @~English
 
-Extracts a KTX2 file.
-
-@warning TODO Tools P5: This page is incomplete
+Extract selected images from a KTX2 file.
 
 @section ktxtools_extract_synopsis SYNOPSIS
-    ktx extract [options] @e input_file
+    ktx extract [option...] @e input_file @e output_path
 
 @section ktxtools_extract_description DESCRIPTION
+    @b ktx @b extract can extract one or multiple images from the KTX2 file specified as the
+    @e input_file argument and based on the format save them as RAW, EXR or PNG image files
+    to the @e output_path.
+    If the input file is invalid the first encountered validation error is displayed
+    to the stderr and the command exits with the relevant non-zero status code.
+
+    The @e output_path is interpreted as output filepath for single and output directory for
+    multi-image extracts.
+    When extracting multiple images with either '--all' or any of the 'all' args the
+    following naming is used for each output file:
+    <pre>output_path/output_level{}_face{}_layer{}_depth{}.extension</pre>
+    - Where the @e _level{} part is only present if the source texture has more than 1 level
+    - Where the @e _face{} part is only present if the source texture is cubemap or cubemap array (Cubemap)
+    - Where the @e _layer{} part is only present if the source texture is an array texture (Array)
+    - Where the @e _depth{} part is only present if the source texture baseDepth is more than 1 (3D)
+    - Where the @e {} is replaced with the numeric index of the given component starting from 0
+    - Where the @e extension part is "raw", "png" or "exr" based on the export format<br />
+    Note: The inclusion of the optional parts are determined by the source texture regardless of
+    which images are requested.
+
+    For non-raw exports the output image format is chosen to be the smallest related lossless
+    format:
+    - _UNORM formats exported as PNG 8 or 16 bit (except for Depth/Stencil)
+    - _SINT/_UINT formats exported as EXR with Half/Float/UInt
+    - _SFLOAT/_UFLOAT formats exported as EXR with Half/Float
 
     The following options are available:
     <dl>
-        <dt>-f, --flag</dt>
-        <dd>Flag description</dd>
+        <dt>--transcode &lt;target&gt;</dt>
+        <dd>Transcode the texture to the target format before executing the extract.
+            Requires the input file to be transcodable (it must be either BasisLZ
+            supercompressed or has UASTC color model in the DFD). This option matches the
+            functionality of the @ref ktxtools_transcode "ktx transcode" command.
+            If the target option is not set the r8, rg8, rgb8 or rgba8 target will be selected
+            based on the number of channels in the input texture.
+            Case-insensitive. Possible options are:
+            etc-rgb | etc-rgba | eac-r11 | eac-rg11 | bc1 | bc3 | bc4 | bc5 | bc7 | astc |
+            r8 | rg8 | rgb8 | rgba8
+        </dd>
     </dl>
-    @snippet{doc} ktx/command.h command options
+    <dl>
+        <dt>--uri &lt;uri&gt;</dt>
+        <dd>KTX Fragment URI. https://registry.khronos.org/KTX/specs/2.0/ktx-frag.html
+        </dd>
+        <dt>--level [0-9]+ | all</dt>
+        <dd>Level to extract. When 'all' is used every level is exported. Defaults to 0.
+        </dd>
+        <dt>--layer [0-9]+ | all</dt>
+        <dd>Layer to extract. When 'all' is used every layer is exported. Defaults to 0.
+        </dd>
+        <dt>--face [0-9]+ | all</dt>
+        <dd>Face to extract. When 'all' is used every face is exported. Defaults to 0.
+        </dd>
+        <dt>--depth [0-9]+ | all</dt>
+        <dd>Depth slice to extract. When 'all' is used every depth is exported. Defaults to 0.
+        </dd>
+        <dt>--all</dt>
+        <dd>Extract every image slice from the texture.
+        </dd>
+        <dt>--raw</dt>
+        <dd>Extract the raw image data without any conversion.
+        </dd>
+    </dl>
+    @snippet{doc} ktx/command.h command options_generic
 
 @section ktxtools_extract_exitstatus EXIT STATUS
-    @b ktx @b extract exits
-        0 - Success
-        1 - Command line error
-        2 - IO error
-        3 - Invalid input or state
+    @snippet{doc} ktx/command.h command exitstatus
 
 @section ktxtools_extract_history HISTORY
 
@@ -66,17 +178,13 @@ Extracts a KTX2 file.
     - Daniel Rákos, RasterGrid www.rastergrid.com
 */
 class CommandExtract : public Command {
-    enum {
-        all = -1,
-    };
-
     struct OptionsExtract {
         std::string outputPath;
         std::string uri;
-        std::optional<int32_t> level = 0; /// -1 indicates all
-        std::optional<int32_t> layer = 0; /// -1 indicates all
-        std::optional<int32_t> face = 0; /// -1 indicates all
-        std::optional<int32_t> depth = 0; /// -1 indicates all
+        std::optional<Selector> level;
+        std::optional<Selector> layer;
+        std::optional<Selector> face;
+        std::optional<Selector> depth;
         bool globalAll = false;
         bool raw = false;
 
@@ -94,42 +202,43 @@ public:
 private:
     std::size_t transcodeSwizzle(uint32_t width, uint32_t height, char* imageData, std::size_t imageSize);
     void executeExtract();
-    void saveRawFile(const std::string& filepath, const char* data, std::size_t size);
-    void savePNGorEXRFile(const std::string& filepath, const char* data, std::size_t size, VkFormat format, const uint32_t* dfd, uint32_t width, uint32_t height);
+    void saveRawFile(std::string filepath, bool appendExtension, const char* data, std::size_t size);
+    void saveImageFile(std::string filepath, bool appendExtension, const char* data, std::size_t size, VkFormat vkFormat, const FormatDescriptor& format, uint32_t width, uint32_t height);
 
-    void savePNG(const std::string& filepath, VkFormat vkFormat, const FormatDescriptor& format, uint32_t width, uint32_t height, LodePNGColorType colorType, const char* data, std::size_t size);
-    void saveEXR(const std::string& filepath, VkFormat vkFormat, const FormatDescriptor& format, uint32_t width, uint32_t height, int pixelType, const char* data, std::size_t size);
+    void savePNG(std::string filepath, bool appendExtension, VkFormat vkFormat, const FormatDescriptor& format, uint32_t width, uint32_t height, LodePNGColorType colorType, const char* data, std::size_t size);
+    void saveEXR(std::string filepath, bool appendExtension, VkFormat vkFormat, const FormatDescriptor& format, uint32_t width, uint32_t height, int pixelType, const char* data, std::size_t size);
+    void decodeAndSaveASTC(std::string filepath, bool appendExtension, VkFormat vkFormat, const FormatDescriptor& format, uint32_t width, uint32_t height, const char* data, std::size_t size);
 };
 
 // -------------------------------------------------------------------------------------------------
 
 int CommandExtract::main(int argc, _TCHAR* argv[]) {
     try {
-        parseCommandLine("ktx extract", "Export selected images from a KTX2 file.", argc, argv);
+        parseCommandLine("ktx extract", "Extract selected images from a KTX2 file.", argc, argv);
         executeExtract();
-        return RETURN_CODE_SUCCESS;
+        return +rc::SUCCESS;
     } catch (const FatalError& error) {
-        return error.return_code;
+        return +error.returnCode;
     } catch (const std::exception& e) {
         fmt::print(std::cerr, "{} fatal: {}\n", commandName, e.what());
-        return RETURN_CODE_RUNTIME_ERROR;
+        return +rc::RUNTIME_ERROR;
     }
 }
 
 void CommandExtract::OptionsExtract::init(cxxopts::Options& opts) {
     opts.add_options()
             ("output", "Output filepath for single, output directory for multiple image export.", cxxopts::value<std::string>(), "<filepath>")
-            ("transcode", "Target transcode format. Case-insensitive.\n"
+            ("transcode", "Transcode the texture to the target format before executing the extract steps. Requires the input file to be transcodable. Case-insensitive.\n"
                           "Possible options are: "
                           "etc-rgb | etc-rgba | eac-r11 | eac-rg11 | bc1 | bc3 | bc4 | bc5 | bc7 | astc | r8 | rg8 | rgb8 | rgba8",
                           cxxopts::value<std::string>(), "<target>")
             ("uri", "KTX Fragment URI.", cxxopts::value<std::string>(), "<uri>")
-            ("level", "Level to extract. Defaults to 0.", cxxopts::value<std::string>(), "[0-9]+ | all")
-            ("layer", "Layer to extract. Defaults to 0.", cxxopts::value<std::string>(), "[0-9]+ | all")
-            ("face", "Face to extract. Defaults to 0.", cxxopts::value<std::string>(), "[0-5] | all")
-            ("depth", "Depth slice to extract. Defaults to 0.", cxxopts::value<std::string>(), "[0-9]+ | all")
-            ("all", "Extract all image slices.")
-            ("raw", "Extract raw image data.");
+            ("level", "Level to extract. When 'all' is used every level is exported. Defaults to 0.", cxxopts::value<std::string>(), "[0-9]+ | all")
+            ("layer", "Layer to extract. When 'all' is used every layer is exported. Defaults to 0.", cxxopts::value<std::string>(), "[0-9]+ | all")
+            ("face", "Face to extract. When 'all' is used every face is exported. Defaults to 0.", cxxopts::value<std::string>(), "[0-5] | all")
+            ("depth", "Depth slice to extract. When 'all' is used every depth is exported. Defaults to 0.", cxxopts::value<std::string>(), "[0-9]+ | all")
+            ("all", "Extract every image slice from the texture.")
+            ("raw", "Extract the raw image data without any conversion.");
 }
 
 void CommandExtract::OptionsExtract::process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
@@ -138,16 +247,18 @@ void CommandExtract::OptionsExtract::process(cxxopts::Options&, cxxopts::ParseRe
     else
         report.fatal_usage("Missing output file or directory path.");
 
-    if (args["uri"].count())
+    if (args["uri"].count()) {
         // TODO Tools P4: Validate and parse fragment URI, Handle error conditions
+        report.fatal(rc::NOT_IMPLEMENTED, "Fragment URI support is not yet implemented.");
         uri = args["uri"].as<std::string>();
+    }
 
-    const auto parseSelector = [&](const std::string& name) -> std::optional<int32_t> {
+    const auto parseSelector = [&](const std::string& name) -> std::optional<Selector> {
         if (!args[name].count())
             return std::nullopt;
         const auto str = to_lower_copy(args[name].as<std::string>());
         try {
-            return str == "all" ? all : std::stoi(str);
+            return str == "all" ? Selector(all) : Selector(std::stoi(str));
         } catch (const std::invalid_argument&) {
             report.fatal_usage("Invalid {} value \"{}\". The value must be a either a number or \"all\".", name, str);
         } catch (const std::out_of_range& e) {
@@ -241,7 +352,7 @@ void CommandExtract::executeExtract() {
         fatal(rc::INVALID_FILE, "Failed to create KTX2 texture: {}", ktxErrorString(ret));
 
     // CLI request validation
-    if (options.level && options.level != all && options.level >= static_cast<int32_t>(texture->numLevels))
+    if (options.level && options.level >= texture->numLevels)
         fatal(rc::INVALID_FILE, "Requested level index {} is missing. The input file only has {} level(s).",
                 *options.level, texture->numLevels);
 
@@ -252,7 +363,7 @@ void CommandExtract::executeExtract() {
             fatal(rc::INVALID_FILE, "Requested layer index {} from a non-array texture.", *options.layer);
     }
 
-    if (options.layer && options.layer != all && options.layer >= static_cast<int32_t>(texture->numLayers))
+    if (options.layer && options.layer >= texture->numLayers)
         fatal(rc::INVALID_FILE, "Requested layer index {} is missing. The input file only has {} layer(s).",
                 *options.layer, texture->numLayers);
 
@@ -263,7 +374,7 @@ void CommandExtract::executeExtract() {
             fatal(rc::INVALID_FILE, "Requested face index {} from a non-cubemap texture.", *options.face);
     }
 
-    if (options.face && options.face != all && options.face >= static_cast<int32_t>(texture->numFaces))
+    if (options.face && options.face >= texture->numFaces)
         fatal(rc::INVALID_FILE, "Requested face index {} is missing. The input file only has {} face(s).",
                 *options.face, texture->numFaces);
 
@@ -274,9 +385,9 @@ void CommandExtract::executeExtract() {
             fatal(rc::INVALID_FILE, "Requested depth index {} from a non-3D texture.", *options.depth);
     }
 
-    const auto lastExportedLevel = options.level == all ? texture->numLevels - 1 : options.level.value_or(0);
+    const auto lastExportedLevel = options.level == all ? texture->numLevels - 1 : value_or(options.level, 0);
     const auto lastExportedLevelDepthCount = std::max(1u, texture->baseDepth >> lastExportedLevel);
-    if (options.depth && options.depth != all && options.depth >= static_cast<int32_t>(lastExportedLevelDepthCount))
+    if (options.depth && options.depth >= lastExportedLevelDepthCount)
         fatal(rc::INVALID_FILE, "Requested depth index {} is missing. The input file only has {} depth(s) in level {}.",
                 *options.depth, lastExportedLevelDepthCount, lastExportedLevel);
 
@@ -295,8 +406,8 @@ void CommandExtract::executeExtract() {
     // Setup output directory
     const auto isMultiOutput =
             options.level == all ||
-            options.face == all ||
             options.layer == all ||
+            options.face == all ||
             options.depth == all;
     try {
         if (isMultiOutput) {
@@ -313,7 +424,7 @@ void CommandExtract::executeExtract() {
 
     // Iterate
     for (uint32_t levelIndex = 0; levelIndex < texture->numLevels; ++levelIndex) {
-        if (options.level != all && options.level.value_or(0) != static_cast<int32_t>(levelIndex))
+        if (options.level != all && value_or(options.level, 0) != levelIndex)
             continue; // Skip
 
         std::size_t imageSize = ktxTexture_GetImageSize(texture, levelIndex);
@@ -322,11 +433,11 @@ void CommandExtract::executeExtract() {
         const auto imageDepth = std::max(1u, texture->baseDepth >> levelIndex);
 
         for (uint32_t faceIndex = 0; faceIndex < texture->numFaces; ++faceIndex) {
-            if (options.face != all && options.face.value_or(0) != static_cast<int32_t>(faceIndex))
+            if (options.face != all && value_or(options.face, 0) != faceIndex)
                 continue; // Skip
 
             for (uint32_t layerIndex = 0; layerIndex < texture->numLayers; ++layerIndex) {
-                if (options.layer != all && options.layer.value_or(0) != static_cast<int32_t>(layerIndex))
+                if (options.layer != all && value_or(options.layer, 0) != layerIndex)
                     continue; // Skip
 
                 if (imageDepth > 1 && !options.depth && options.raw) {
@@ -366,7 +477,7 @@ void CommandExtract::executeExtract() {
                 // Iterate z_slice_of_blocks (The code currently assumes block z size is 1)
                 // TODO Tools P5: 3D-Block Compressed formats are not supported
                 for (uint32_t depthIndex = 0; depthIndex < imageDepth; ++depthIndex) {
-                    if (options.depth != all && static_cast<uint32_t>(options.depth.value_or(0)) != depthIndex)
+                    if (options.depth != all && value_or(options.depth, 0) != depthIndex)
                         continue; // Skip
 
                     ktx_size_t imageOffset;
@@ -374,7 +485,7 @@ void CommandExtract::executeExtract() {
                     char* depthSliceData = reinterpret_cast<char*>(texture->pData) + imageOffset;
 
                     const auto outputFilepath = !isMultiOutput ? options.outputPath :
-                            fmt::format("{}/output{}{}{}{}.raw",
+                            fmt::format("{}/output{}{}{}{}",
                             options.outputPath,
                             texture->numLevels > 1 ? fmt::format("_level{}", levelIndex) : "",
                             texture->isCubemap ? fmt::format("_face{}", faceIndex) : "",
@@ -385,10 +496,10 @@ void CommandExtract::executeExtract() {
                     imageSize = transcodeSwizzle(imageWidth, imageHeight, depthSliceData, imageSize);
 
                     if (options.raw) {
-                        saveRawFile(outputFilepath, depthSliceData, imageSize);
+                        saveRawFile(outputFilepath, isMultiOutput, depthSliceData, imageSize);
                     } else {
-                        savePNGorEXRFile(outputFilepath, depthSliceData, imageSize,
-                                static_cast<VkFormat>(texture->vkFormat), texture->pDfd, imageWidth, imageHeight);
+                        saveImageFile(outputFilepath, isMultiOutput, depthSliceData, imageSize,
+                                static_cast<VkFormat>(texture->vkFormat), createFormatDescriptor(texture->pDfd), imageWidth, imageHeight);
                     }
                 }
             }
@@ -399,7 +510,67 @@ void CommandExtract::executeExtract() {
         fatal(rc::INVALID_FILE, "Failed to iterate KTX2 texture: {}", ktxErrorString(ret));
 }
 
-void CommandExtract::saveRawFile(const std::string& filepath, const char* data, std::size_t size) {
+void CommandExtract::decodeAndSaveASTC(std::string filepath, bool appendExtension, VkFormat vkFormat, const FormatDescriptor& format,
+        uint32_t width, uint32_t height, const char* compressedData, std::size_t compressedSize) {
+
+    const auto threadCount = 1u;
+    const auto blockSizeX = format.basic.texelBlockDimension0 + 1u;
+    const auto blockSizeY = format.basic.texelBlockDimension1 + 1u;
+    const auto blockSizeZ = format.basic.texelBlockDimension2 + 1u;
+    static constexpr astcenc_swizzle swizzle{ASTCENC_SWZ_R, ASTCENC_SWZ_G, ASTCENC_SWZ_B, ASTCENC_SWZ_A};
+
+    astcenc_error ec;
+
+    const astcenc_profile profile = isFormatSRGB(vkFormat) ? ASTCENC_PRF_LDR_SRGB : ASTCENC_PRF_LDR;
+    astcenc_config config;
+    ec = astcenc_config_init(profile, blockSizeX, blockSizeY, blockSizeZ, ASTCENC_PRE_MEDIUM, ASTCENC_FLG_DECOMPRESS_ONLY, &config);
+    if (ec != ASTCENC_SUCCESS)
+        fatal(rc::RUNTIME_ERROR, "ASTC Codec config init failed: {}", astcenc_get_error_string(ec));
+
+    struct ASTCencStruct {
+        astcenc_context* context = nullptr;
+        ~ASTCencStruct() {
+            astcenc_context_free(context);
+        }
+    } astcenc;
+    astcenc_context* context = astcenc.context;
+
+    ec = astcenc_context_alloc(&config, threadCount, &context);
+    if (ec != ASTCENC_SUCCESS)
+        fatal(rc::RUNTIME_ERROR, "ASTC Codec context alloc failed: {}", astcenc_get_error_string(ec));
+
+    astcenc_image image;
+    image.dim_x = width;
+    image.dim_y = height;
+    image.dim_z = 1; // 3D ASTC formats are currently not supported
+    const auto uncompressedSize = width * height * 4 * sizeof(uint8_t);
+    const auto uncompressedBuffer = std::make_unique<uint8_t[]>(uncompressedSize);
+    auto* bufferPtr = uncompressedBuffer.get();
+    image.data = reinterpret_cast<void**>(&bufferPtr);
+    image.data_type = ASTCENC_TYPE_U8;
+
+    ec = astcenc_decompress_image(context, reinterpret_cast<const uint8_t*>(compressedData), compressedSize, &image, &swizzle, 0);
+    if (ec != ASTCENC_SUCCESS)
+        fatal(rc::RUNTIME_ERROR, "ASTC Codec decompress failed: {}", astcenc_get_error_string(ec));
+    astcenc_decompress_reset(context);
+
+    const auto uncompressedVkFormat = isFormatSRGB(vkFormat) ?
+            VK_FORMAT_R8G8B8A8_SRGB :
+            VK_FORMAT_R8G8B8A8_UNORM;
+    saveImageFile(
+            std::move(filepath),
+            appendExtension,
+            reinterpret_cast<const char*>(uncompressedBuffer.get()),
+            uncompressedSize,
+            uncompressedVkFormat,
+            createFormatDescriptor(uncompressedVkFormat, *this),
+            width,
+            height);
+}
+
+void CommandExtract::saveRawFile(std::string filepath, bool appendExtension, const char* data, std::size_t size) {
+    if (appendExtension)
+        filepath += ".raw";
     std::ofstream file(filepath, std::ios::out | std::ios::binary);
     if (!file)
         fatal(rc::IO_FAILURE, "Failed to open output file \"{}\": {}.", filepath, errnoMessage());
@@ -410,10 +581,12 @@ void CommandExtract::saveRawFile(const std::string& filepath, const char* data, 
         fatal(rc::IO_FAILURE, "Failed to write output file \"{}\": {}.", filepath, errnoMessage());
 }
 
-void CommandExtract::savePNG(const std::string& filepath,
+void CommandExtract::savePNG(std::string filepath, bool appendExtension,
         VkFormat vkFormat, const FormatDescriptor& format, uint32_t width, uint32_t height,
         LodePNGColorType colorType,
         const char* data, std::size_t size) {
+    if (appendExtension)
+        filepath += ".png";
 
     uint32_t rOffset = 0;
     uint32_t rBits = 0;
@@ -560,9 +733,11 @@ void CommandExtract::savePNG(const std::string& filepath,
     }
 }
 
-void CommandExtract::saveEXR(const std::string& filepath,
+void CommandExtract::saveEXR(std::string filepath, bool appendExtension,
         VkFormat vkFormat, const FormatDescriptor& format, uint32_t width, uint32_t height,
         int pixelType, const char* data, std::size_t size) {
+    if (appendExtension)
+        filepath += ".exr";
 
     uint32_t rOffset = 0;
     uint32_t rBits = 0;
@@ -621,8 +796,7 @@ void CommandExtract::saveEXR(const std::string& filepath,
 
     // Either filled with floats or uint32 (half output is filled with float and converted during save)
     std::vector<std::vector<uint32_t>> images(numChannels);
-    std::array<uint32_t*, 4> imagePtrs;
-    imagePtrs.fill(nullptr);
+    std::array<uint32_t*, 4> imagePtrs{};
     for (uint32_t i = 0; i < numChannels; ++i)
         images[i].resize(width * height);
 
@@ -758,11 +932,10 @@ void CommandExtract::saveEXR(const std::string& filepath,
         fatal(rc::IO_FAILURE, "EXR Encoder error {}: {}.", ret, exr.err);
 }
 
-void CommandExtract::savePNGorEXRFile(
-        const std::string& filepath, const char* data, std::size_t size,
-        VkFormat vkFormat, const uint32_t* dfd, uint32_t width, uint32_t height) {
-
-    const auto format = createFormatDescriptor(dfd);
+void CommandExtract::saveImageFile(
+        std::string filepath, bool appendExtension,
+        const char* data, std::size_t size,
+        VkFormat vkFormat, const FormatDescriptor& format, uint32_t width, uint32_t height) {
 
     switch (vkFormat) {
     case VK_FORMAT_R8_UNORM: [[fallthrough]];
@@ -773,57 +946,52 @@ void CommandExtract::savePNGorEXRFile(
     case VK_FORMAT_R8G8B8_SRGB: [[fallthrough]];
     case VK_FORMAT_B8G8R8_UNORM: [[fallthrough]];
     case VK_FORMAT_B8G8R8_SRGB:
-        savePNG(filepath, vkFormat, format, width, height, LCT_RGB, data, size);
+        savePNG(std::move(filepath), appendExtension, vkFormat, format, width, height, LCT_RGB, data, size);
         break;
 
     case VK_FORMAT_R8G8B8A8_UNORM: [[fallthrough]];
     case VK_FORMAT_R8G8B8A8_SRGB: [[fallthrough]];
     case VK_FORMAT_B8G8R8A8_UNORM: [[fallthrough]];
     case VK_FORMAT_B8G8R8A8_SRGB:
-        savePNG(filepath, vkFormat, format, width, height, LCT_RGBA, data, size);
+        savePNG(std::move(filepath), appendExtension, vkFormat, format, width, height, LCT_RGBA, data, size);
         break;
 
-    // TODO Tools P4: Extract ASTC Formats (astc decode)
-    // case VK_FORMAT_ASTC_4x4_UNORM_BLOCK: [[fallthrough]];
-    // case VK_FORMAT_ASTC_4x4_SRGB_BLOCK: [[fallthrough]];
-    // case VK_FORMAT_ASTC_5x4_UNORM_BLOCK: [[fallthrough]];
-    // case VK_FORMAT_ASTC_5x4_SRGB_BLOCK: [[fallthrough]];
-    // case VK_FORMAT_ASTC_5x5_UNORM_BLOCK: [[fallthrough]];
-    // case VK_FORMAT_ASTC_5x5_SRGB_BLOCK: [[fallthrough]];
-    // case VK_FORMAT_ASTC_6x5_UNORM_BLOCK: [[fallthrough]];
-    // case VK_FORMAT_ASTC_6x5_SRGB_BLOCK: [[fallthrough]];
-    // case VK_FORMAT_ASTC_6x6_UNORM_BLOCK: [[fallthrough]];
-    // case VK_FORMAT_ASTC_6x6_SRGB_BLOCK: [[fallthrough]];
-    // case VK_FORMAT_ASTC_8x5_UNORM_BLOCK: [[fallthrough]];
-    // case VK_FORMAT_ASTC_8x5_SRGB_BLOCK: [[fallthrough]];
-    // case VK_FORMAT_ASTC_8x6_UNORM_BLOCK: [[fallthrough]];
-    // case VK_FORMAT_ASTC_8x6_SRGB_BLOCK: [[fallthrough]];
-    // case VK_FORMAT_ASTC_8x8_UNORM_BLOCK: [[fallthrough]];
-    // case VK_FORMAT_ASTC_8x8_SRGB_BLOCK: [[fallthrough]];
-    // case VK_FORMAT_ASTC_10x5_UNORM_BLOCK: [[fallthrough]];
-    // case VK_FORMAT_ASTC_10x5_SRGB_BLOCK: [[fallthrough]];
-    // case VK_FORMAT_ASTC_10x6_UNORM_BLOCK: [[fallthrough]];
-    // case VK_FORMAT_ASTC_10x6_SRGB_BLOCK: [[fallthrough]];
-    // case VK_FORMAT_ASTC_10x8_UNORM_BLOCK: [[fallthrough]];
-    // case VK_FORMAT_ASTC_10x8_SRGB_BLOCK: [[fallthrough]];
-    // case VK_FORMAT_ASTC_10x10_UNORM_BLOCK: [[fallthrough]];
-    // case VK_FORMAT_ASTC_10x10_SRGB_BLOCK: [[fallthrough]];
-    // case VK_FORMAT_ASTC_12x10_UNORM_BLOCK: [[fallthrough]];
-    // case VK_FORMAT_ASTC_12x10_SRGB_BLOCK: [[fallthrough]];
-    // case VK_FORMAT_ASTC_12x12_UNORM_BLOCK: [[fallthrough]];
-    // case VK_FORMAT_ASTC_12x12_SRGB_BLOCK:
-    //     if (isFormatSRGB(vkFormat)) {
-    //         // astc decode sRGB mode()
-    //     } else {
-    //         // astc decode_unorm8()
-    //     }
-    //     savePNG(filepath, vkFormat, format, width, height, LCT_RGBA, data, size);
-    //     break;
+    case VK_FORMAT_ASTC_4x4_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x4_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x4_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x5_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x5_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x5_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x5_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x6_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x6_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x8_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x8_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x5_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x5_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x6_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x6_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x8_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x8_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x10_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x10_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_12x10_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_12x10_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_12x12_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_12x12_SRGB_BLOCK:
+        // ASTC decode will recurse into this function with the uncompressed data and format
+        decodeAndSaveASTC(std::move(filepath), appendExtension, vkFormat, format, width, height, data, size);
+        break;
 
     case VK_FORMAT_R4G4_UNORM_PACK8: [[fallthrough]];
     case VK_FORMAT_R5G6B5_UNORM_PACK16: [[fallthrough]];
     case VK_FORMAT_B5G6R5_UNORM_PACK16:
-        savePNG(filepath, vkFormat, format, width, height, LCT_RGB, data, size);
+        savePNG(std::move(filepath), appendExtension, vkFormat, format, width, height, LCT_RGB, data, size);
         break;
 
     case VK_FORMAT_R4G4B4A4_UNORM_PACK16: [[fallthrough]];
@@ -833,38 +1001,38 @@ void CommandExtract::savePNGorEXRFile(
     case VK_FORMAT_A1R5G5B5_UNORM_PACK16: [[fallthrough]];
     case VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT: [[fallthrough]];
     case VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT:
-        savePNG(filepath, vkFormat, format, width, height, LCT_RGBA, data, size);
+        savePNG(std::move(filepath), appendExtension, vkFormat, format, width, height, LCT_RGBA, data, size);
         break;
 
     case VK_FORMAT_R10X6_UNORM_PACK16: [[fallthrough]];
     case VK_FORMAT_R10X6G10X6_UNORM_2PACK16:
-        savePNG(filepath, vkFormat, format, width, height, LCT_RGB, data, size);
+        savePNG(std::move(filepath), appendExtension, vkFormat, format, width, height, LCT_RGB, data, size);
         break;
     case VK_FORMAT_R10X6G10X6B10X6A10X6_UNORM_4PACK16:
-        savePNG(filepath, vkFormat, format, width, height, LCT_RGBA, data, size);
+        savePNG(std::move(filepath), appendExtension, vkFormat, format, width, height, LCT_RGBA, data, size);
         break;
 
     case VK_FORMAT_R12X4_UNORM_PACK16: [[fallthrough]];
     case VK_FORMAT_R12X4G12X4_UNORM_2PACK16:
-        savePNG(filepath, vkFormat, format, width, height, LCT_RGB, data, size);
+        savePNG(std::move(filepath), appendExtension, vkFormat, format, width, height, LCT_RGB, data, size);
         break;
     case VK_FORMAT_R12X4G12X4B12X4A12X4_UNORM_4PACK16:
-        savePNG(filepath, vkFormat, format, width, height, LCT_RGBA, data, size);
+        savePNG(std::move(filepath), appendExtension, vkFormat, format, width, height, LCT_RGBA, data, size);
         break;
 
     case VK_FORMAT_R16_UNORM: [[fallthrough]];
     case VK_FORMAT_R16G16_UNORM: [[fallthrough]];
     case VK_FORMAT_R16G16B16_UNORM:
-        savePNG(filepath, vkFormat, format, width, height, LCT_RGB, data, size);
+        savePNG(std::move(filepath), appendExtension, vkFormat, format, width, height, LCT_RGB, data, size);
         break;
 
     case VK_FORMAT_R16G16B16A16_UNORM:
-        savePNG(filepath, vkFormat, format, width, height, LCT_RGBA, data, size);
+        savePNG(std::move(filepath), appendExtension, vkFormat, format, width, height, LCT_RGBA, data, size);
         break;
 
     case VK_FORMAT_A2R10G10B10_UNORM_PACK32: [[fallthrough]];
     case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
-        savePNG(filepath, vkFormat, format, width, height, LCT_RGBA, data, size);
+        savePNG(std::move(filepath), appendExtension, vkFormat, format, width, height, LCT_RGBA, data, size);
         break;
 
     // TODO Tools P4: Extract 422 Formats
@@ -883,71 +1051,71 @@ void CommandExtract::savePNGorEXRFile(
 
     case VK_FORMAT_R8_UINT: [[fallthrough]];
     case VK_FORMAT_R8_SINT:
-        saveEXR(filepath, vkFormat, format, width, height, TINYEXR_PIXELTYPE_HALF, data, size);
+        saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height, TINYEXR_PIXELTYPE_HALF, data, size);
         break;
     case VK_FORMAT_R16_UINT: [[fallthrough]];
     case VK_FORMAT_R16_SINT:
-        saveEXR(filepath, vkFormat, format, width, height, TINYEXR_PIXELTYPE_FLOAT, data, size);
+        saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height, TINYEXR_PIXELTYPE_FLOAT, data, size);
         break;
     case VK_FORMAT_R32_UINT:
-        saveEXR(filepath, vkFormat, format, width, height, TINYEXR_PIXELTYPE_UINT, data, size);
+        saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height, TINYEXR_PIXELTYPE_UINT, data, size);
         break;
     case VK_FORMAT_R8G8_UINT: [[fallthrough]];
     case VK_FORMAT_R8G8_SINT:
-        saveEXR(filepath, vkFormat, format, width, height, TINYEXR_PIXELTYPE_HALF, data, size);
+        saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height, TINYEXR_PIXELTYPE_HALF, data, size);
         break;
     case VK_FORMAT_R16G16_UINT: [[fallthrough]];
     case VK_FORMAT_R16G16_SINT:
-        saveEXR(filepath, vkFormat, format, width, height, TINYEXR_PIXELTYPE_FLOAT, data, size);
+        saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height, TINYEXR_PIXELTYPE_FLOAT, data, size);
         break;
     case VK_FORMAT_R32G32_UINT:
-        saveEXR(filepath, vkFormat, format, width, height, TINYEXR_PIXELTYPE_UINT, data, size);
+        saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height, TINYEXR_PIXELTYPE_UINT, data, size);
         break;
     case VK_FORMAT_R8G8B8_UINT: [[fallthrough]];
     case VK_FORMAT_R8G8B8_SINT: [[fallthrough]];
     case VK_FORMAT_B8G8R8_UINT: [[fallthrough]];
     case VK_FORMAT_B8G8R8_SINT:
-        saveEXR(filepath, vkFormat, format, width, height, TINYEXR_PIXELTYPE_HALF, data, size);
+        saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height, TINYEXR_PIXELTYPE_HALF, data, size);
         break;
     case VK_FORMAT_R16G16B16_UINT: [[fallthrough]];
     case VK_FORMAT_R16G16B16_SINT:
-        saveEXR(filepath, vkFormat, format, width, height, TINYEXR_PIXELTYPE_FLOAT, data, size);
+        saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height, TINYEXR_PIXELTYPE_FLOAT, data, size);
         break;
     case VK_FORMAT_R32G32B32_UINT:
-        saveEXR(filepath, vkFormat, format, width, height, TINYEXR_PIXELTYPE_UINT, data, size);
+        saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height, TINYEXR_PIXELTYPE_UINT, data, size);
         break;
     case VK_FORMAT_R8G8B8A8_UINT: [[fallthrough]];
     case VK_FORMAT_R8G8B8A8_SINT: [[fallthrough]];
     case VK_FORMAT_B8G8R8A8_UINT: [[fallthrough]];
     case VK_FORMAT_B8G8R8A8_SINT:
-        saveEXR(filepath, vkFormat, format, width, height, TINYEXR_PIXELTYPE_HALF, data, size);
+        saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height, TINYEXR_PIXELTYPE_HALF, data, size);
         break;
     case VK_FORMAT_R16G16B16A16_UINT: [[fallthrough]];
     case VK_FORMAT_R16G16B16A16_SINT:
-        saveEXR(filepath, vkFormat, format, width, height, TINYEXR_PIXELTYPE_FLOAT, data, size);
+        saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height, TINYEXR_PIXELTYPE_FLOAT, data, size);
         break;
     case VK_FORMAT_R32G32B32A32_UINT:
-        saveEXR(filepath, vkFormat, format, width, height, TINYEXR_PIXELTYPE_UINT, data, size);
+        saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height, TINYEXR_PIXELTYPE_UINT, data, size);
         break;
 
     case VK_FORMAT_A2R10G10B10_UINT_PACK32: [[fallthrough]];
     case VK_FORMAT_A2R10G10B10_SINT_PACK32: [[fallthrough]];
     case VK_FORMAT_A2B10G10R10_UINT_PACK32: [[fallthrough]];
     case VK_FORMAT_A2B10G10R10_SINT_PACK32:
-        saveEXR(filepath, vkFormat, format, width, height, TINYEXR_PIXELTYPE_HALF, data, size);
+        saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height, TINYEXR_PIXELTYPE_HALF, data, size);
         break;
 
     case VK_FORMAT_R16_SFLOAT: [[fallthrough]];
     case VK_FORMAT_R16G16_SFLOAT: [[fallthrough]];
     case VK_FORMAT_R16G16B16_SFLOAT: [[fallthrough]];
     case VK_FORMAT_R16G16B16A16_SFLOAT:
-        saveEXR(filepath, vkFormat, format, width, height, TINYEXR_PIXELTYPE_HALF, data, size);
+        saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height, TINYEXR_PIXELTYPE_HALF, data, size);
         break;
     case VK_FORMAT_R32_SFLOAT: [[fallthrough]];
     case VK_FORMAT_R32G32_SFLOAT: [[fallthrough]];
     case VK_FORMAT_R32G32B32_SFLOAT: [[fallthrough]];
     case VK_FORMAT_R32G32B32A32_SFLOAT:
-        saveEXR(filepath, vkFormat, format, width, height, TINYEXR_PIXELTYPE_FLOAT, data, size);
+        saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height, TINYEXR_PIXELTYPE_FLOAT, data, size);
         break;
 
     // case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
@@ -956,20 +1124,20 @@ void CommandExtract::savePNGorEXRFile(
     // TODO Tools P4: Extract E5B9G9R9_UFLOAT_PACK32
 
     case VK_FORMAT_D16_UNORM:
-        savePNG(filepath, vkFormat, format, width, height, LCT_GREY, data, size);
+        savePNG(std::move(filepath), appendExtension, vkFormat, format, width, height, LCT_GREY, data, size);
         break;
 
     // case VK_FORMAT_X8_D24_UNORM_PACK32: [[fallthrough]];
     // case VK_FORMAT_D32_SFLOAT:
-    //     saveEXR(filepath, vkFormat, format, width, height, TINYEXR_PIXELTYPE_FLOAT, data, size);
+    //     saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height, TINYEXR_PIXELTYPE_FLOAT, data, size);
     //     break;
     // case VK_FORMAT_S8_UINT:
-    //     saveEXR(filepath, vkFormat, format, width, height, TINYEXR_PIXELTYPE_HALF, data, size);
+    //     saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height, TINYEXR_PIXELTYPE_HALF, data, size);
     //     break;
     // case VK_FORMAT_D16_UNORM_S8_UINT: [[fallthrough]];
     // case VK_FORMAT_D24_UNORM_S8_UINT: [[fallthrough]];
     // case VK_FORMAT_D32_SFLOAT_S8_UINT:
-    //     saveEXR(filepath, vkFormat, format, width, height, TINYEXR_PIXELTYPE_FLOAT, TINYEXR_PIXELTYPE_HALF, data, size);
+    //     saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height, TINYEXR_PIXELTYPE_FLOAT, TINYEXR_PIXELTYPE_HALF, data, size);
     //     break;
 
     default:

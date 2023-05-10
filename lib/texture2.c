@@ -420,7 +420,7 @@ ktxTexture2_construct(ktxTexture2* This, ktxTextureCreateInfo* createInfo,
         if (!This->pDfd)
             return KTX_OUT_OF_MEMORY;
         memcpy(This->pDfd, createInfo->pDfd, *createInfo->pDfd);
-        if (ktxFormatSize_initFromDfd(&formatSize, This->pDfd)) {
+        if (!ktxFormatSize_initFromDfd(&formatSize, This->pDfd)) {
             result = KTX_UNSUPPORTED_TEXTURE_TYPE;
             goto cleanup;
         }
@@ -515,7 +515,7 @@ cleanup:
  *
  * @exception KTX_OUT_OF_MEMORY Not enough memory for the texture data.
  */
-static KTX_error_code
+KTX_error_code
 ktxTexture2_constructCopy(ktxTexture2* This, ktxTexture2* orig)
 {
     KTX_error_code result;

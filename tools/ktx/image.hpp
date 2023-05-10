@@ -22,6 +22,7 @@
 #include <string_view>
 #include <vector>
 #include <KHR/khr_df.h>
+#include <fmt/format.h>
 
 #include "utility.h"
 #include "unused.h"
@@ -56,6 +57,9 @@ struct ColorPrimaryTransform {
 
     float matrix[3][3];
 };
+
+// The detailed description of the TransferFunctions can be found at:
+// https://registry.khronos.org/DataFormat/specs/1.3/dataformat.1.3.html#TRANSFER_CONVERSION
 
 struct TransferFunction {
     virtual float encode(const float intensity) const = 0;
@@ -182,6 +186,9 @@ private:
     const float c2_{18.8515625f};
     const float c3_{18.6875};
 };
+
+// The detailed description of the ColorPrimaries can be found at:
+// https://registry.khronos.org/DataFormat/specs/1.3/dataformat.1.3.html#PRIMARY_CONVERSION
 
 struct ColorPrimaries {
     ColorPrimaries(const ColorPrimaryTransform& inToXYZ, const ColorPrimaryTransform& inFromXYZ)
@@ -486,11 +493,11 @@ class color<componentType, 4> : public color_base<componentType, 4> {
     color() {}
     color(componentType _r, componentType _g, componentType _b,
           componentType _a) : r(_r), g(_g), b(_b), a(_a) {}
-    componentType operator [](unsigned int i) const {
+    const componentType& operator [](unsigned int i) const {
         if (i > 3) i = 3;
         return comps[i];
     }
-    componentType operator [](unsigned int i) {
+    componentType& operator [](unsigned int i) {
         if (i > 3) i = 3;
         return comps[i];
     }
@@ -533,11 +540,11 @@ class color<componentType, 3> : public color_base<componentType, 3> {
         r(_r), g(_g), b(_b) {}
     color(componentType _r, componentType _g, componentType _b, componentType) :
        r(_r), g(_g), b(_b) {}
-    componentType operator [](unsigned int i) const {
+    const componentType& operator [](unsigned int i) const {
         if (i > 2) i = 2;
         return comps[i];
     }
-    componentType operator [](unsigned int i) {
+    componentType& operator [](unsigned int i) {
         if (i > 2) i = 2;
         return comps[i];
     }
@@ -579,11 +586,11 @@ class color<componentType, 2> : public color_base<componentType, 2> {
        r(_r), g(_g) {}
     color(componentType _r, componentType _g, componentType, componentType) :
       r(_r), g(_g) {}
-    componentType operator [](unsigned int i) const {
+    const componentType& operator [](unsigned int i) const {
         if (i > 1) i = 1;
         return comps[i];
     }
-    componentType operator [](unsigned int i) {
+    componentType& operator [](unsigned int i) {
         if (i > 1) i = 1;
         return comps[i];
     }
@@ -624,11 +631,11 @@ class color<componentType, 1> : public color_base<componentType, 1> {
        r(_r) {}
     color(componentType _r, componentType, componentType, componentType) :
        r(_r) {}
-    componentType operator [](unsigned int i) const {
+    const componentType& operator [](unsigned int i) const {
         if (i > 0) i = 0;
         return comps[i];
     }
-    componentType operator [](unsigned int i) {
+    componentType& operator [](unsigned int i) {
         if (i > 0) i = 0;
         return comps[i];
     }
@@ -684,23 +691,24 @@ class Image {
     virtual uint32_t getComponentCount() const = 0;
     virtual uint32_t getComponentSize() const = 0;
     virtual Image* createImage(uint32_t width, uint32_t height) = 0;
-    /// Should only be used if the stored image data is UNORM
+    /// Should only be used if the stored image data is UNORM convertable
     virtual std::vector<uint8_t> getUNORM(uint32_t numChannels, uint32_t targetBits) const = 0;
-    /// Should only be used if the stored image data is UNORM
+    /// Should only be used if the stored image data is UNORM convertable
     virtual std::vector<uint8_t> getUNORMPackedPadded(
             uint32_t c0, uint32_t c0Pad, uint32_t c1, uint32_t c1Pad,
             uint32_t c2, uint32_t c2Pad, uint32_t c3, uint32_t c3Pad) const = 0;
-    /// Should only be used if the stored image data is SFloat
+    /// Should only be used if the stored image data is SFloat convertable
     virtual std::vector<uint8_t> getSFloat(uint32_t numChannels, uint32_t targetBits) const = 0;
-    /// Should only be used if the stored image data is UINT
+    /// Should only be used if the stored image data is UINT convertable
     virtual std::vector<uint8_t> getUINT(uint32_t numChannels, uint32_t targetBits) const = 0;
-    /// Should only be used if the stored image data is SINT
+    /// Should only be used if the stored image data is SINT convertable
     virtual std::vector<uint8_t> getSINT(uint32_t numChannels, uint32_t targetBits) const = 0;
-    virtual void resample(Image& dst, bool srgb = false,
-                          const char *pFilter = "lanczos4",
-                          float filter_scale = 1.0f,
-                          basisu::Resampler::Boundary_Op wrapMode
-                          = basisu::Resampler::Boundary_Op::BOUNDARY_CLAMP) = 0;
+    /// Should only be used if the stored image data is UINT convertable
+    virtual std::vector<uint8_t> getUINTPacked(uint32_t c0, uint32_t c1, uint32_t c2, uint32_t c3) const = 0;
+    /// Should only be used if the stored image data is SINT convertable
+    virtual std::vector<uint8_t> getSINTPacked(uint32_t c0, uint32_t c1, uint32_t c2, uint32_t c3) const = 0;
+    virtual std::unique_ptr<Image> resample(uint32_t targetWidth, uint32_t targetHeight,
+            const char* filter, float filterScale, basisu::Resampler::Boundary_Op wrapMode) = 0;
     virtual Image& yflip() = 0;
     virtual Image& transformColorSpace(const TransferFunction& decode, const TransferFunction& encode,
                                        const ColorPrimaryTransform* transformPrimaries = nullptr) = 0;
@@ -844,22 +852,22 @@ class ImageT : public Image {
 
                     if (packC0) {
                         const auto sourceValue = hasC0 ? pixel[0] : componentType{0};
-                        const auto value = ktx::convertUNORM(sourceValue, sourceBits, c0);
+                        const auto value = ktx::convertUNORM(static_cast<uint32_t>(sourceValue), sourceBits, c0);
                         pack |= static_cast<PackType>(value) << (c0Pad + c1 + c1Pad + c2 + c2Pad + c3 + c3Pad);
                     }
                     if (packC1) {
                         const auto sourceValue = hasC1 ? pixel[1] : componentType{0};
-                        const auto value = ktx::convertUNORM(sourceValue, sourceBits, c1);
+                        const auto value = ktx::convertUNORM(static_cast<uint32_t>(sourceValue), sourceBits, c1);
                         pack |= static_cast<PackType>(value) << (c1Pad + c2 + c2Pad + c3 + c3Pad);
                     }
                     if (packC2) {
                         const auto sourceValue = hasC2 ? pixel[2] : componentType{0};
-                        const auto value = ktx::convertUNORM(sourceValue, sourceBits, c2);
+                        const auto value = ktx::convertUNORM(static_cast<uint32_t>(sourceValue), sourceBits, c2);
                         pack |= static_cast<PackType>(value) << (c2Pad + c3 + c3Pad);
                     }
                     if (packC3) {
                         const auto sourceValue = hasC3 ? pixel[3] : Color::one();
-                        const auto value = ktx::convertUNORM(sourceValue, sourceBits, c3);
+                        const auto value = ktx::convertUNORM(static_cast<uint32_t>(sourceValue), sourceBits, c3);
                         pack |= static_cast<PackType>(value) << (c3Pad);
                     }
                 };
@@ -982,164 +990,167 @@ class ImageT : public Image {
         return data;
     }
 
-    static void checkResamplerStatus(basisu::Resampler& resampler,
-                                     const char* pFilter)
-    {
-        using namespace basisu;
+    virtual std::vector<uint8_t> getUINTPacked(uint32_t c0, uint32_t c1, uint32_t c2, uint32_t c3) const override {
+        assert(c0 + c1 + c2 + c3 == 32);
+        assert(c0 != 0 && c1 != 0 && c2 != 0 && c3 != 0);
+        assert(componentCount == 4);
+
+        std::vector<uint8_t> data(height * width * sizeof(uint32_t));
+        for (uint32_t y = 0; y < height; ++y) {
+            for (uint32_t x = 0; x < width; ++x) {
+                const auto& pixel = pixels[y * width + x];
+                auto* target = data.data() + (y * height + x) * sizeof(uint32_t);
+
+                uint32_t pack = 0;
+                pack |= ktx::convertUINT(static_cast<uint32_t>(pixel[0]), sizeof(uint32_t) * 8, c0) << (c1 + c2 + c3);
+                pack |= ktx::convertUINT(static_cast<uint32_t>(pixel[1]), sizeof(uint32_t) * 8, c1) << (c2 + c3);
+                pack |= ktx::convertUINT(static_cast<uint32_t>(pixel[2]), sizeof(uint32_t) * 8, c2) << c3;
+                pack |= ktx::convertUINT(static_cast<uint32_t>(pixel[3]), sizeof(uint32_t) * 8, c3);
+
+                std::memcpy(target, &pack, sizeof(pack));
+            }
+        }
+
+        return data;
+    }
+
+    virtual std::vector<uint8_t> getSINTPacked(uint32_t c0, uint32_t c1, uint32_t c2, uint32_t c3) const override {
+        assert(c0 + c1 + c2 + c3 == 32);
+        assert(c0 != 0 && c1 != 0 && c2 != 0 && c3 != 0);
+        assert(componentCount == 4);
+
+        std::vector<uint8_t> data(height * width * sizeof(uint32_t));
+        for (uint32_t y = 0; y < height; ++y) {
+            for (uint32_t x = 0; x < width; ++x) {
+                const auto& pixel = pixels[y * width + x];
+                auto* target = data.data() + (y * height + x) * sizeof(uint32_t);
+
+                uint32_t pack = 0;
+                pack |= ktx::convertSINT(ktx::bit_cast<uint32_t>(static_cast<int32_t>(pixel[0])), sizeof(uint32_t) * 8, c0) << (c1 + c2 + c3);
+                pack |= ktx::convertSINT(ktx::bit_cast<uint32_t>(static_cast<int32_t>(pixel[1])), sizeof(uint32_t) * 8, c1) << (c2 + c3);
+                pack |= ktx::convertSINT(ktx::bit_cast<uint32_t>(static_cast<int32_t>(pixel[2])), sizeof(uint32_t) * 8, c2) << c3;
+                pack |= ktx::convertSINT(ktx::bit_cast<uint32_t>(static_cast<int32_t>(pixel[3])), sizeof(uint32_t) * 8, c3);
+
+                std::memcpy(target, &pack, sizeof(pack));
+            }
+        }
+
+        return data;
+    }
+
+    static void checkResamplerStatus(basisu::Resampler& resampler, const char* pFilter) {
+        using Status = basisu::Resampler::Status;
 
         switch (resampler.status()) {
-          case Resampler::Status::STATUS_OKAY:
+        case Status::STATUS_OKAY:
             break;
-          case Resampler::Status::STATUS_OUT_OF_MEMORY:
+        case Status::STATUS_OUT_OF_MEMORY:
             throw std::runtime_error("Resampler or Resampler::put_line out of memory.");
-            break;
-          case Resampler::Status::STATUS_BAD_FILTER_NAME:
-          {
-            std::string msg("Unknown filter: ");
-            msg += pFilter;
-            throw std::runtime_error(msg);
-            break;
-          }
-          case Resampler::Status::STATUS_SCAN_BUFFER_FULL:
+        case Status::STATUS_BAD_FILTER_NAME:
+            throw std::runtime_error(fmt::format("Unknown filter: {}", pFilter));
+        case Status::STATUS_SCAN_BUFFER_FULL:
             throw std::runtime_error("Resampler::put_line scan buffer full.");
-            break;
         }
     }
 
-    virtual void resample(Image& abstract_dst, bool srgb, const char *pFilter,
-                          float filter_scale,
-                          basisu::Resampler::Boundary_Op wrapMode)
-    {
+    virtual std::unique_ptr<Image> resample(uint32_t targetWidth, uint32_t targetHeight,
+            const char* filter, float filterScale, basisu::Resampler::Boundary_Op wrapMode) override {
         using namespace basisu;
 
-        TransferFunctionSRGB tfSRGB;
-        ImageT& dst = static_cast<ImageT&>(abstract_dst);
+        auto target = std::make_unique<ImageT<componentType, componentCount>>(targetWidth, targetHeight);
+        target->setOetf(oetf);
+        target->setPrimaries(primaries);
 
-        const uint32_t src_w = width, src_h = height;
-        const uint32_t dst_w = dst.getWidth(), dst_h = dst.getHeight();
-        assert(src_w && src_h && dst_w && dst_h);
+        const auto sourceWidth = width;
+        const auto sourceHeight = height;
+        assert(sourceWidth && sourceHeight && targetWidth && targetHeight);
 
-        if (::maximum(src_w, src_h) > BASISU_RESAMPLER_MAX_DIMENSION
-            || ::maximum(dst_w, dst_h) > BASISU_RESAMPLER_MAX_DIMENSION)
-        {
-            std::stringstream message;
-            message << "Image larger than max supported size of "
-                    << BASISU_RESAMPLER_MAX_DIMENSION;
-            throw std::runtime_error(message.str());
+        if (std::max(sourceWidth, sourceHeight) > BASISU_RESAMPLER_MAX_DIMENSION ||
+                std::max(targetWidth, targetHeight) > BASISU_RESAMPLER_MAX_DIMENSION) {
+            throw std::runtime_error(fmt::format(
+                    "Image larger than max supported size of {}", BASISU_RESAMPLER_MAX_DIMENSION));
         }
 
-        // TODO: Consider just using {decode,encode}_sRGB directly.
-        float srgb_to_linear_table[256];
-        if (srgb) {
-          for (int i = 0; i < 256; ++i)
-            srgb_to_linear_table[i] = tfSRGB.decode((float)i * (1.0f/255.0f));
+        std::array<std::vector<float>, componentCount> samples;
+        std::array<std::unique_ptr<Resampler>, componentCount> resamplers;
+
+        // Float types handled as SFloat HDR otherwise UNROM LDR is assumed
+        const auto isHDR = std::is_floating_point_v<componentType>;
+
+        for (uint32_t i = 0; i < componentCount; ++i) {
+            resamplers[i] = std::make_unique<Resampler>(
+                    sourceWidth, sourceHeight,
+                    targetWidth, targetHeight,
+                    wrapMode,
+                    0.0f, isHDR ? 0.0f : 1.0f,
+                    filter,
+                    i == 0 ? nullptr : resamplers[0]->get_clist_x(),
+                    i == 0 ? nullptr : resamplers[0]->get_clist_y(),
+                    filterScale, filterScale,
+                    0.f, 0.f);
+            checkResamplerStatus(*resamplers[i], filter);
+            samples[i].resize(sourceWidth);
         }
 
-        const int LINEAR_TO_SRGB_TABLE_SIZE = 8192;
-        uint8_t linear_to_srgb_table[LINEAR_TO_SRGB_TABLE_SIZE];
+        const TransferFunctionSRGB tfSRGB;
+        const TransferFunctionLinear tfLinear;
+        const TransferFunction& tf = oetf == KHR_DF_TRANSFER_SRGB ?
+                static_cast<const TransferFunction&>(tfSRGB) :
+                static_cast<const TransferFunction&>(tfLinear);
 
-        if (srgb)
-        {
-            for (int i = 0; i < LINEAR_TO_SRGB_TABLE_SIZE; ++i)
-              linear_to_srgb_table[i] = (uint8_t)cclamp<int>((int)(255.0f * tfSRGB.encode((float)i * (1.0f / (LINEAR_TO_SRGB_TABLE_SIZE - 1))) + .5f), 0, 255);
-        }
-
-        // Sadly the compiler doesn't realize that getComponentCount() is a
-        // constant value for each template so size the arrays to the max.
-        // number of components.
-        std::vector<float> samples[4];
-        Resampler *resamplers[4];
-
-        resamplers[0] = new Resampler(src_w, src_h, dst_w, dst_h,
-                                      wrapMode,
-                                      0.0f, 1.0f,
-                                      pFilter, nullptr, nullptr,
-                                      filter_scale, filter_scale,
-                                      0, 0);
-        checkResamplerStatus(*resamplers[0], pFilter);
-        samples[0].resize(src_w);
-
-        for (uint32_t i = 1; i < getComponentCount(); ++i)
-        {
-            resamplers[i] = new Resampler(src_w, src_h, dst_w, dst_h,
-                                          wrapMode,
-                                          0.0f, 1.0f,
-                                          pFilter,
-                                          resamplers[0]->get_clist_x(),
-                                          resamplers[0]->get_clist_y(),
-                                          filter_scale, filter_scale,
-                                          0, 0);
-            checkResamplerStatus(*resamplers[i], pFilter);
-            samples[i].resize(src_w);
-        }
-
-        uint32_t dst_y = 0;
-
-        for (uint32_t src_y = 0; src_y < src_h; ++src_y)
-        {
-            //const Color *pSrc = &(this(0, src_y));
-            Color* pSrc = &((*this)(0, src_y));
-
+        uint32_t targetY = 0;
+        for (uint32_t sourceY = 0; sourceY < sourceHeight; ++sourceY) {
             // Put source lines into resampler(s)
-            for (uint32_t x = 0; x < src_w; ++x)
-            {
-                for (uint32_t ci = 0; ci < getComponentCount(); ++ci)
-                {
-                  const uint32_t v = (*pSrc)[ci];
+            for (uint32_t sourceX = 0; sourceX < sourceWidth; ++sourceX) {
+                const auto& sourcePixel = pixels[sourceY * sourceWidth + sourceX];
+                for (uint32_t c = 0; c < componentCount; ++c) {
+                    const float value = std::is_floating_point_v<componentType> ?
+                            sourcePixel[c] :
+                            static_cast<float>(sourcePixel[c]) * (1.f / static_cast<float>(Color::one()));
 
-                  if (!srgb || (ci == 3))
-                      samples[ci][x] = v * (1.0f / 255.0f);
-                  else
-                      samples[ci][x] = srgb_to_linear_table[v];
+                    // c == 3: Alpha channel always uses tfLinear
+                    samples[c][sourceX] = (c == 3 ? tfLinear : tf).decode(value);
                 }
-
-                pSrc++;
             }
 
-          for (uint32_t ci = 0; ci < getComponentCount(); ++ci)
-          {
-              if (!resamplers[ci]->put_line(&samples[ci][0]))
-              {
-                  checkResamplerStatus(*resamplers[ci], pFilter);
-              }
-          }
+            for (uint32_t c = 0; c < componentCount; ++c)
+                if (!resamplers[c]->put_line(&samples[c][0]))
+                    checkResamplerStatus(*resamplers[c], filter);
 
-          // Now retrieve any output lines
-          for (;;)
-          {
-            uint32_t ci;
-            for (ci = 0; ci < getComponentCount(); ++ci)
-            {
-                const float *pOutput_samples = resamplers[ci]->get_line();
-                if (!pOutput_samples)
-                    break;
+            // Retrieve any output lines
+            while (true) {
+                std::array<const float*, componentCount> outputLine{nullptr};
+                for (uint32_t c = 0; c < componentCount; ++c)
+                    outputLine[c] = resamplers[c]->get_line();
 
-                const bool linear_flag = !srgb || (ci == 3);
+                if (outputLine[0] == nullptr)
+                    break; // No new output line, break from retrieve and place in a new source line
 
-                Color* pDst = &dst(0, dst_y);
+                for (uint32_t targetX = 0; targetX < targetWidth; ++targetX) {
+                    Color& targetPixel = target->pixels[targetY * targetWidth + targetX];
+                    for (uint32_t c = 0; c < componentCount; ++c) {
+                        const auto linearValue = outputLine[c][targetX];
 
-                for (uint32_t x = 0; x < dst_w; x++)
-                {
-                    // TODO: Add dithering
-                    if (linear_flag) {
-                        pDst->set(ci, pOutput_samples[x] * Color::one() + Color::halfUnit());
-                    } else {
-                        int j = (int)((LINEAR_TO_SRGB_TABLE_SIZE - 1) * pOutput_samples[x] + .5f);
-                        pDst->set(ci, (componentType)linear_to_srgb_table[cclamp<int>(j, 0, LINEAR_TO_SRGB_TABLE_SIZE - 1)]);
+                        // c == 3: Alpha channel always uses tfLinear
+                        const float outValue = (c == 3 ? tfLinear : tf).encode(linearValue);
+                        if constexpr (std::is_floating_point_v<componentType>) {
+                            targetPixel[c] = outValue;
+                        } else {
+                            const auto unormValue =
+                                std::isnan(outValue) ? componentType{0} :
+                                outValue < 0.f ? componentType{0} :
+                                outValue > 1.f ? Color::one() :
+                                static_cast<componentType>(outValue * static_cast<float>(Color::one()) + 0.5f);
+                            targetPixel[c] = unormValue;
+                        }
                     }
+                }
 
-                    pDst++;
-                  }
-              }
-              if (ci < getComponentCount())
-                  break;
+                ++targetY;
+            }
+        }
 
-              ++dst_y;
-          }
-      }
-
-      for (uint32_t i = 0; i < getComponentCount(); ++i)
-          delete resamplers[i];
+        return target;
     }
 
     virtual ImageT& yflip() {

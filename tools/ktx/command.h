@@ -54,33 +54,39 @@ namespace ktx {
 using pfnBuiltinCommand = int (*)(int argc, _TCHAR* argv[]);
 using pfnImportedCommand = int (KTX_COMMAND_PTR *)(int argc, _TCHAR* argv[]);
 
-static constexpr int RETURN_CODE_SUCCESS = 0;
-static constexpr int RETURN_CODE_INVALID_ARGUMENTS = 1;
-static constexpr int RETURN_CODE_IO_FAILURE = 2;
-static constexpr int RETURN_CODE_INVALID_FILE = 3;
-static constexpr int RETURN_CODE_RUNTIME_ERROR = 4;
-static constexpr int RETURN_CODE_KTX_FAILURE = RETURN_CODE_RUNTIME_ERROR;
-static constexpr int RETURN_CODE_DFD_FAILURE = RETURN_CODE_RUNTIME_ERROR;
-static constexpr int RETURN_CODE_NOT_SUPPORTED = 5;
+static constexpr int CONSOLE_USAGE_WIDTH = 100;
 
+/**
+//! [command exitstatus]
+- 0 - Success
+- 1 - Command line error
+- 2 - IO failure
+- 3 - Invalid input file
+- 4 - Runtime or library error
+- 5 - Not supported state or operation
+- 6 - Requested feature is not yet implemented
+//! [command exitstatus]
+*/
 enum class ReturnCode {
-    SUCCESS = RETURN_CODE_SUCCESS,
-    INVALID_ARGUMENTS = RETURN_CODE_INVALID_ARGUMENTS,
-    IO_FAILURE = RETURN_CODE_IO_FAILURE,
-    INVALID_FILE = RETURN_CODE_INVALID_FILE,
-    RUNTIME_ERROR = RETURN_CODE_RUNTIME_ERROR,
-    KTX_FAILURE = RETURN_CODE_KTX_FAILURE,
-    DFD_FAILURE = RETURN_CODE_DFD_FAILURE,
-    NOT_SUPPORTED = RETURN_CODE_NOT_SUPPORTED,
+    SUCCESS = 0,
+    INVALID_ARGUMENTS = 1,
+    IO_FAILURE = 2,
+    INVALID_FILE = 3,
+    RUNTIME_ERROR = 4,
+    KTX_FAILURE = RUNTIME_ERROR,
+    DFD_FAILURE = RUNTIME_ERROR,
+    NOT_SUPPORTED = 5,
+    NOT_IMPLEMENTED = 6,
 };
 using rc = ReturnCode;
 
-static constexpr int CONSOLE_USAGE_WIDTH = 100;
+[[nodiscard]] constexpr inline auto operator+(ReturnCode value) noexcept {
+	return to_underlying(value);
+}
 
 struct FatalError : public std::exception {
-    int return_code; /// Desired process return code
-    explicit FatalError(int returnCode) : return_code(returnCode) {}
-    explicit FatalError(ReturnCode returnCode) : FatalError(to_underlying(returnCode)) {}
+    ReturnCode returnCode; /// Desired process exit code
+    explicit FatalError(ReturnCode returnCode) : returnCode(returnCode) {}
 };
 
 struct Reporter {
@@ -102,16 +108,11 @@ struct Reporter {
     }
 
     template <typename... Args>
-    void fatal(int return_code, Args&&... args) {
+    void fatal(ReturnCode return_code, Args&&... args) {
         fmt::print(std::cerr, "{} fatal: ", commandName);
         fmt::print(std::cerr, std::forward<Args>(args)...);
         fmt::print(std::cerr, "\n");
         throw FatalError(return_code);
-    }
-
-    template <typename... Args>
-    void fatal(ReturnCode return_code, Args&&... args) {
-        fatal(to_underlying(return_code), std::forward<Args>(args)...);
     }
 
     template <typename... Args>
@@ -125,16 +126,6 @@ struct Reporter {
 
 [[nodiscard]] std::string version(bool testrun);
 
-/**
-//! [command options]
-<dl>
-    <dt>-h, --help</dt>
-    <dd>Print this usage message and exit.</dd>
-    <dt>-v, --version</dt>
-    <dd>Print the version number of this program and exit.</dd>
-</dl>
-//! [command options]
-*/
 class Command : public Reporter {
 public:
     Command() = default;
@@ -152,6 +143,16 @@ protected:
 
 // -------------------------------------------------------------------------------------------------
 
+/**
+//! [command options_generic]
+<dl>
+    <dt>-h, --help</dt>
+    <dd>Print this usage message and exit.</dd>
+    <dt>-v, --version</dt>
+    <dd>Print the version number of this program and exit.</dd>
+</dl>
+//! [command options_generic]
+*/
 struct OptionsGeneric {
     // --help
     // --version
@@ -161,7 +162,7 @@ struct OptionsGeneric {
         opts.add_options()
                 ("h,help", "Print this usage message and exit")
                 ("v,version", "Print the version number of this program and exit")
-                ("testrun", "Indicates test run. If enabled ktx tools will only include the default version information in any output");
+                ("testrun", "Indicates test run. If enabled the tool will produce deterministic output whenever possible");
     }
 
     void process(cxxopts::Options& opts, cxxopts::ParseResult& args, Reporter& report) {
@@ -186,15 +187,28 @@ enum class OutputFormat {
     json_mini,
 };
 
+/**
+//! [command options_format]
+<dl>
+    <dt>--format text | json | mini-json</dt>
+    <dd>Specifies the output format. Possible options are: <br />
+        @b text - Human readable text based format. <br />
+        @b json - Formatted JSON. <br />
+        @b mini-json - Minified JSON. <br />
+        The default format is @b text.
+    </dd>
+</dl>
+//! [command options_format]
+*/
 struct OptionsFormat {
     OutputFormat format;
 
     void init(cxxopts::Options& opts) {
         opts.add_options()
-                ("f,format", "Specifies the output format. The default format is 'text'.\n"
+                ("f,format", "Specifies the output format. Possible options are:\n"
                         "  text: Human readable text based format\n"
                         "  json: Formatted JSON\n"
-                        "  mini-json: Minified JSON",
+                        "  mini-json: Minified JSON\n",
                         cxxopts::value<std::string>()->default_value("text"),
                         "text|json|mini-json");
     }
@@ -208,7 +222,7 @@ struct OptionsFormat {
         } else if (formatStr == "mini-json") {
             format = OutputFormat::json_mini;
         } else {
-            report.fatal_usage("Unsupported format: \"{}\"", formatStr);
+            report.fatal_usage("Unsupported format: \"{}\".", formatStr);
         }
     }
 };
@@ -226,14 +240,15 @@ struct OptionsSingleIn {
 
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
         if (args.count("stdin") + args.count("input-file") == 0)
-            report.fatal_usage("Missing input file. Either <input-file> or <stdin> must be specified.");
+            report.fatal_usage("Missing input file. Either <input-file> or --stdin must be specified.");
         if (args.count("stdin") + args.count("input-file") > 1)
-            report.fatal_usage("Conflicting options: Only one can be specified from <input-file> and <stdin>.");
+            report.fatal_usage("Conflicting options: Only one can be specified from <input-file> and --stdin.");
 
-        // TODO Tools P4: Add support for stdin (To support '-' alias argv has to be scanned as cxxopts has no direct support for it)
-        if (args.count("stdin"))
+        if (args.count("stdin")) {
+            // TODO Tools P4: Add support for stdin (To support '-' alias argv has to be scanned as cxxopts has no direct support for it)
+            report.fatal(rc::NOT_IMPLEMENTED, "stdin support is not yet implemented.");
             inputFilepath = "-";
-        else
+        } else
             inputFilepath = args["input-file"].as<std::string>();
     }
 };
@@ -253,14 +268,15 @@ struct OptionsSingleInSingleOut {
 
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
         if (args.count("stdin") + args.count("input-file") == 0)
-            report.fatal_usage("Missing input file. Either <input-file> or <stdin> must be specified.");
+            report.fatal_usage("Missing input file. Either <input-file> or --stdin must be specified.");
         if (args.count("stdin") + args.count("input-file") > 1)
-            report.fatal_usage("Conflicting options: Only one can be specified from <input-file> and <stdin>.");
+            report.fatal_usage("Conflicting options: Only one can be specified from <input-file> and --stdin.");
 
-        // TODO Tools P4: Add support for stdin (To support '-' alias argv has to be scanned as cxxopts has no direct support for it)
-        if (args.count("stdin"))
+        if (args.count("stdin")) {
+            // TODO Tools P4: Add support for stdin (To support '-' alias argv has to be scanned as cxxopts has no direct support for it)
+            report.fatal(rc::NOT_IMPLEMENTED, "stdin support is not yet implemented.");
             inputFilepath = "-";
-        else
+        } else
             inputFilepath = args["input-file"].as<std::string>();
 
         outputFilepath = args["output-file"].as<std::string>();
@@ -294,7 +310,8 @@ struct OptionsMultiInSingleOut {
 };
 
 /// Convenience helper to combine multiple options struct together.
-/// Init functions are called left to right and process functions are called in reverse order from right to left.
+/// Init functions are called left to right.
+/// Process functions are called in reverse order from right to left.
 template <typename... Args>
 struct Combine : Args... {
     void init(cxxopts::Options& opts) {
@@ -303,6 +320,7 @@ struct Combine : Args... {
     void process(cxxopts::Options& opts, cxxopts::ParseResult& args, Reporter& report) {
         int dummy; // Reverse fold via operator= on a dummy int
         (dummy = ... = (Args::process(opts, args, report), 0));
+        (void) dummy;
     }
 };
 

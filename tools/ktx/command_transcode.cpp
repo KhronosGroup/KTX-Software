@@ -31,28 +31,35 @@ namespace ktx {
 /** @page ktxtools_transcode ktx transcode
 @~English
 
-Transcodes a KTX2 file.
-
-@warning TODO Tools P5: This page is incomplete
+Transcode a KTX2 file.
 
 @section ktxtools_transcode_synopsis SYNOPSIS
-    ktx transcode [options] @e input_file
+    ktx transcode [option...] @e input_file @e output_file
 
 @section ktxtools_transcode_description DESCRIPTION
+    @b ktx @b transcode can transcode and supercompress the KTX2 file specified as the
+    @e input_file argument and save it as the @e output_file.
+    The input file must be transcodable (it must be either BasisLZ supercompressed or has UASTC
+    color model in the DFD).
+    If the input file is invalid the first encountered validation error is displayed
+    to the stderr and the command exits with the relevant non-zero status code.
 
     The following options are available:
     <dl>
-        <dt>-f, --flag</dt>
-        <dd>Flag description</dd>
+        <dt>--target &lt;target&gt;</dt>
+        <dd>Target transcode format.
+            If the target option is not set the r8, rg8, rgb8 or rgba8 target will be
+            selected based on the number of channels in the input texture.
+            Case-insensitive. Possible options are:
+            etc-rgb | etc-rgba | eac-r11 | eac-rg11 | bc1 | bc3 | bc4 | bc5 | bc7 | astc |
+            r8 | rg8 | rgb8 | rgba8
+        </dd>
     </dl>
-    @snippet{doc} ktx/command.h command options
+    @snippet{doc} ktx/compress_utils.h command options_compress
+    @snippet{doc} ktx/command.h command options_generic
 
 @section ktxtools_transcode_exitstatus EXIT STATUS
-    @b ktx @b encode exits
-        0 - Success
-        1 - Command line error
-        2 - IO error
-        3 - Invalid input or state
+    @snippet{doc} ktx/command.h command exitstatus
 
 @section ktxtools_transcode_history HISTORY
 
@@ -90,12 +97,12 @@ int CommandTranscode::main(int argc, _TCHAR* argv[]) {
     try {
         parseCommandLine("ktx transcode", "Transcode a KTX2 file.", argc, argv);
         executeTranscode();
-        return RETURN_CODE_SUCCESS;
+        return +rc::SUCCESS;
     } catch (const FatalError& error) {
-        return error.return_code;
+        return +error.returnCode;
     } catch (const std::exception& e) {
         fmt::print(std::cerr, "{} fatal: {}\n", commandName, e.what());
-        return RETURN_CODE_RUNTIME_ERROR;
+        return +rc::RUNTIME_ERROR;
     }
 }
 
@@ -184,7 +191,7 @@ void CommandTranscode::executeTranscode() {
 
         ret = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE, convertedTexture.pHandle());
         if (KTX_SUCCESS != ret)
-            fatal(2, "Failed to create output texture: {}", ktxErrorString(ret));
+            fatal(rc::IO_FAILURE, "Failed to create output texture: {}", ktxErrorString(ret));
     }
 
     KTXTexture2& outputTexture = (convertedTexture.handle() != nullptr) ? convertedTexture : texture;
@@ -239,13 +246,13 @@ void CommandTranscode::executeTranscode() {
     }
 
     if (options.zstd) {
-        ret = ktxTexture2_DeflateZstd((ktxTexture2*)outputTexture, *options.zstd);
+        ret = ktxTexture2_DeflateZstd(outputTexture, *options.zstd);
         if (ret != KTX_SUCCESS)
             fatal(rc::KTX_FAILURE, "Zstd deflation failed. KTX Error: {}", ktxErrorString(ret));
     }
 
     if (options.zlib) {
-        ret = ktxTexture2_DeflateZLIB((ktxTexture2*)outputTexture, *options.zlib);
+        ret = ktxTexture2_DeflateZLIB(outputTexture, *options.zlib);
         if (ret != KTX_SUCCESS)
             fatal(rc::KTX_FAILURE, "ZLIB deflation failed. KTX Error: {}", ktxErrorString(ret));
     }
@@ -262,7 +269,7 @@ void CommandTranscode::executeTranscode() {
         std::filesystem::create_directories(std::filesystem::path(options.outputFilepath).parent_path());
     FILE* f = _tfopen(options.outputFilepath.c_str(), "wb");
     if (!f)
-        fatal(2, "Could not open output file \"{}\": ", options.outputFilepath, errnoMessage());
+        fatal(rc::IO_FAILURE, "Could not open output file \"{}\": ", options.outputFilepath, errnoMessage());
 
     ret = ktxTexture_WriteToStdioStream(outputTexture, f);
     fclose(f);

@@ -22,6 +22,12 @@
 #include <KHR/khr_df.h>
 #include "dfd.h"
 
+enum {
+    // These constraints are not mandated by the spec and only used as a
+    // reasonable upper limit to stop parsing garbage data during print
+    MAX_NUM_BDFD_SAMPLES = 16,
+    MAX_NUM_DFD_BLOCKS = 10,
+};
 
 const char* dfdToStringVendorID(khr_df_vendorid_e value) {
     switch (value) {
@@ -714,7 +720,7 @@ void printDFD(uint32_t *DFD, uint32_t dataSize)
 
     printf("DFD total bytes: %u\n", dfdTotalSize);
 
-    while (true) {
+    for (int i = 0; i < MAX_NUM_DFD_BLOCKS; ++i) { // At most only iterate MAX_NUM_DFD_BLOCKS block
         if (remainingSize < sizeof_DFDBHeader)
             break; // Invalid DFD: Missing or partial block header
 
@@ -764,7 +770,9 @@ void printDFD(uint32_t *DFD, uint32_t dataSize)
                    KHR_DFDVAL(block, BYTESPLANE6),
                    KHR_DFDVAL(block, BYTESPLANE7));
 
-            const int samples = (blockSize - sizeof_BDFD) / sizeof_BDFDSample;
+            int samples = (blockSize - sizeof_BDFD) / sizeof_BDFDSample;
+            if (samples > MAX_NUM_BDFD_SAMPLES)
+                samples = MAX_NUM_BDFD_SAMPLES; // Too many BDFD samples
             for (int sample = 0; sample < samples; ++sample) {
                 if (remainingSize < sizeof_BDFD + (sample + 1) * sizeof_BDFDSample)
                     break; // Invalid DFD: Missing or partial basic DFD sample
@@ -880,8 +888,7 @@ void printDFDJSON(uint32_t* DFD, uint32_t dataSize, uint32_t base_indent, uint32
     remainingSize -= sizeof_dfdTotalSize;
     PRINT_INDENT(0, "\"blocks\":%s[", space)
 
-    bool firstBlock = true;
-    while (true) {
+    for (int i = 0; i < MAX_NUM_DFD_BLOCKS; ++i) { // At most only iterate MAX_NUM_DFD_BLOCKS block
         if (remainingSize < sizeof_DFDBHeader)
             break; // Invalid DFD: Missing or partial block header
 
@@ -892,8 +899,7 @@ void printDFDJSON(uint32_t* DFD, uint32_t dataSize, uint32_t base_indent, uint32
 
         const int model = KHR_DFDVAL(block, MODEL);
 
-        if (firstBlock) {
-            firstBlock = false;
+        if (i == 0) {
             printf("%s", nl);
         } else {
             printf(",%s", nl);
@@ -937,7 +943,9 @@ void printDFDJSON(uint32_t* DFD, uint32_t dataSize, uint32_t base_indent, uint32
                     KHR_DFDVAL(block, BYTESPLANE7), nl)
 
             PRINT_INDENT(2, "\"samples\":%s[%s", space, nl)
-            const int samples = (blockSize - sizeof_BDFD) / sizeof_BDFDSample;
+            int samples = (blockSize - sizeof_BDFD) / sizeof_BDFDSample;
+            if (samples > MAX_NUM_BDFD_SAMPLES)
+                samples = MAX_NUM_BDFD_SAMPLES;
             for (int sample = 0; sample < samples; ++sample) {
                 if (remainingSize < sizeof_BDFD + (sample + 1) * sizeof_BDFDSample)
                     break; // Invalid DFD: Missing or partial basic DFD sample

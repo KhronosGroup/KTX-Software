@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "command.h"
+#include "metrics_utils.h"
 #include "compress_utils.h"
 #include "encode_utils.h"
 #include "formats.h"
@@ -32,26 +33,31 @@ namespace ktx {
 
 Encodes a KTX2 file.
 
-@warning TODO Tools P5: This page is incomplete
-
 @section ktxtools_encode_synopsis SYNOPSIS
-    ktx encode [options] @e input_file
+    ktx encode [option...] @e input_file @e output_file
 
 @section ktxtools_encode_description DESCRIPTION
+    @b ktx @b encode can encode and supercompress the KTX2 file specified as the @e input_file
+    argument and save it as the @e output_file.
+    The input file must be R8, RG8, RGB8 or RGBA8 (or their sRGB variant).
+    If the input file is invalid the first encountered validation error is displayed
+    to the stderr and the command exits with the relevant non-zero status code.
 
     The following options are available:
     <dl>
-        <dt>-f, --flag</dt>
-        <dd>Flag description</dd>
+        <dt>--codec basis-lz | uastc</dt>
+        <dd>Target codec followed by the codec specific options.
+            With each encoding option the following encoder specific options become valid,
+            otherwise they are ignored. Case-insensitive.</dd>
+
+        @snippet{doc} ktx/encode_utils.h command options_codec
+        @snippet{doc} ktx/metrics_utils.h command options_metrics
     </dl>
-    @snippet{doc} ktx/command.h command options
+    @snippet{doc} ktx/compress_utils.h command options_compress
+    @snippet{doc} ktx/command.h command options_generic
 
 @section ktxtools_encode_exitstatus EXIT STATUS
-    @b ktx @b encode exits
-        0 - Success
-        1 - Command line error
-        2 - IO error
-        3 - Invalid input or state
+    @snippet{doc} ktx/command.h command exitstatus
 
 @section ktxtools_encode_history HISTORY
 
@@ -72,7 +78,7 @@ class CommandEncode : public Command {
         void process(cxxopts::Options& opts, cxxopts::ParseResult& args, Reporter& report);
     };
 
-    Combine<OptionsEncode, OptionsCodec<true>, OptionsCompress, OptionsSingleInSingleOut, OptionsGeneric> options;
+    Combine<OptionsEncode, OptionsCodec<true>, OptionsMetrics, OptionsCompress, OptionsSingleInSingleOut, OptionsGeneric> options;
 
 public:
     virtual int main(int argc, _TCHAR* argv[]) override;
@@ -89,19 +95,21 @@ int CommandEncode::main(int argc, _TCHAR* argv[]) {
     try {
         parseCommandLine("ktx encode", "Encode a KTX2 file.", argc, argv);
         executeEncode();
-        return RETURN_CODE_SUCCESS;
+        return +rc::SUCCESS;
     } catch (const FatalError& error) {
-        return error.return_code;
+        return +error.returnCode;
     } catch (const std::exception& e) {
         fmt::print(std::cerr, "{} fatal: {}\n", commandName, e.what());
-        return RETURN_CODE_RUNTIME_ERROR;
+        return +rc::RUNTIME_ERROR;
     }
 }
 
 void CommandEncode::OptionsEncode::init(cxxopts::Options& opts) {
     opts.add_options()
-        ("codec", "Target codec.\n"
-                  "Possible options are: basis-lz | uastc", cxxopts::value<std::string>(), "<target>");
+        ("codec", "Target codec."
+                  " With each encoding option the encoder specific options become valid,"
+                  " otherwise they are ignored. Case-insensitive."
+                  "\nPossible options are: basis-lz | uastc", cxxopts::value<std::string>(), "<target>");
 }
 
 void CommandEncode::OptionsEncode::process(cxxopts::Options&, cxxopts::ParseResult&, Reporter&) {
@@ -121,6 +129,12 @@ void CommandEncode::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
         if (options.zlib.has_value())
             fatal_usage("Cannot encode to BasisLZ and supercompress with ZLIB.");
     }
+
+    const auto canCompare = options.codec == EncodeCodec::BasisLZ || options.codec == EncodeCodec::UASTC;
+    if (options.compare_ssim && !canCompare)
+        fatal_usage("--compare-ssim can only be used with BasisLZ or UASTC encoding.");
+    if (options.compare_psnr && !canCompare)
+        fatal_usage("--compare-psnr can only be used with BasisLZ or UASTC encoding.");
 }
 
 void CommandEncode::executeEncode() {
@@ -167,18 +181,21 @@ void CommandEncode::executeEncode() {
             "--normal-mode specified but the input file uses non-linear transfer function {}.",
             toString(khr_df_transfer_e(oetf)));
 
+    MetricsCalculator metrics;
+    metrics.saveReferenceImages(texture, options, *this);
     ret = ktxTexture2_CompressBasisEx(texture, &options.basisOpts);
     if (ret != KTX_SUCCESS)
         fatal(rc::IO_FAILURE, "Failed to encode KTX2 file with codec \"{}\". KTX Error: {}", ktxErrorString(ret));
+    metrics.decodeAndCalculateMetrics(texture, options, *this);
 
     if (options.zstd) {
-        ret = ktxTexture2_DeflateZstd((ktxTexture2*)texture, *options.zstd);
+        ret = ktxTexture2_DeflateZstd(texture, *options.zstd);
         if (ret != KTX_SUCCESS)
             fatal(rc::IO_FAILURE, "Zstd deflation failed. KTX Error: {}", ktxErrorString(ret));
     }
 
     if (options.zlib) {
-        ret = ktxTexture2_DeflateZLIB((ktxTexture2*)texture, *options.zlib);
+        ret = ktxTexture2_DeflateZLIB(texture, *options.zlib);
         if (ret != KTX_SUCCESS)
             fatal(rc::IO_FAILURE, "ZLIB deflation failed. KTX Error: {}", ktxErrorString(ret));
     }
@@ -188,7 +205,7 @@ void CommandEncode::executeEncode() {
         std::filesystem::create_directories(std::filesystem::path(options.outputFilepath).parent_path());
     FILE* f = _tfopen(options.outputFilepath.c_str(), "wb");
     if (!f)
-        fatal(2, "Could not open output file \"{}\": ", options.outputFilepath, errnoMessage());
+        fatal(rc::IO_FAILURE, "Could not open output file \"{}\": ", options.outputFilepath, errnoMessage());
 
     ret = ktxTexture_WriteToStdioStream(texture, f);
     fclose(f);

@@ -7,17 +7,20 @@ add_executable(ktxtools
         command.cpp
         command.h
         command_create.cpp
-        command_extract.cpp
         command_encode.cpp
-        command_transcode.cpp
+        command_extract.cpp
+        command_help.cpp
         command_info.cpp
+        command_transcode.cpp
         command_validate.cpp
         compress_utils.h
         encode_utils.h
-        transcode_utils.h
         format_descriptor.h
         formats.h
         ktx_main.cpp
+        metrics_utils.h
+        transcode_utils.cpp
+        transcode_utils.h
         utility.h
         validate.cpp
         validate.h
@@ -39,7 +42,7 @@ target_include_directories(
 PRIVATE
     .
     $<TARGET_PROPERTY:imageio,INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:${KTX_TARGET_NAME_STATIC_LIB},INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:ktx,INCLUDE_DIRECTORIES>
     ${PROJECT_SOURCE_DIR}/lib
 )
 
@@ -48,8 +51,9 @@ target_link_libraries(
 PRIVATE
     imageio
     objUtil
-    ${KTX_TARGET_NAME_STATIC_LIB}
+    ktx
     ${ASTC_LIB_TARGET}
+    $<IF:$<BOOL:${WIN32}>,Pathcch,> # For PathCchRemoveFileSpec on Windows
     fmt::fmt
     cxxopts::cxxopts
 )
@@ -57,7 +61,7 @@ PRIVATE
 target_compile_definitions(
     ktxtools
 PRIVATE
-    $<TARGET_PROPERTY:${KTX_TARGET_NAME_STATIC_LIB},INTERFACE_COMPILE_DEFINITIONS>
+    $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
 )
 
 set_tool_properties(ktxtools)

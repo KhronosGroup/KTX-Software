@@ -23,52 +23,50 @@ namespace ktx {
 Unified CLI frontend for the KTX-Software library.
 
 @section ktxtools_synopsis SYNOPSIS
-    ktx @e command @e command_args...<br>
-    ktx [options]
+    ktx <command> [command-option...]<br>
+    ktx [option...]
 
 @section ktxtools_description DESCRIPTION
-    Unified CLI frontend for the KTX-Software library with sub-commands for specific operations.
+    Unified CLI frontend for the KTX-Software library with sub-commands for specific operations<br/>
+    for the KTX File Format Specification https://registry.khronos.org/KTX/specs/2.0/ktxspec.v2.html.
 
     The following commands are available:
     <dl>
-        <dt>validate</dt>
+        <dt>@ref ktxtools_create "create"</dt>
         <dd>
-            Prints information about KTX2 file.
+            Create a KTX2 file from various input files.
         </dd>
-        <dt>info</dt>
+        <dt>@ref ktxtools_extract "extract"</dt>
+        <dd>
+            Extract selected images from a KTX2 file.
+        </dd>
+        <dt>@ref ktxtools_encode "encode"</dt>
+        <dd>
+            Encode a KTX2 file.
+        </dd>
+        <dt>@ref ktxtools_transcode "transcode"</dt>
+        <dd>
+            Transcode a KTX2 file.
+        </dd>
+        <dt>@ref ktxtools_info "info"</dt>
         <dd>
             Validates a KTX2 file.
         </dd>
-        <dt>transcode</dt>
+        <dt>@ref ktxtools_validate "validate"</dt>
         <dd>
-            @warning TODO Tools P5: This section is incomplete
+            Prints information about KTX2 file.
         </dd>
-        <dt>encode</dt>
+        <dt>@ref ktxtools_help "help"</dt>
         <dd>
-            @warning TODO Tools P5: This section is incomplete
-        </dd>
-        <dt>extract</dt>
-        <dd>
-            @warning TODO Tools P5: This section is incomplete
-        </dd>
-        <dt>create</dt>
-        <dd>
-            @warning TODO Tools P5: This section is incomplete
-        </dd>
-        <dt>help</dt>
-        <dd>
-            @warning TODO Tools P5: This section is incomplete
+            Display help information about the ktx tools.
         </dd>
     </dl>
 
     The following options are also available without a command:
-    @snippet{doc} ktx/command.h command options
+    @snippet{doc} ktx/command.h command options_generic
 
 @section ktxtools_exitstatus EXIT STATUS
-    @b ktx @b info exits
-        0 - Success
-        1 - Command line error
-        2 - IO error
+    @snippet{doc} ktx/command.h command exitstatus
 
 @section ktxtools_history HISTORY
 
@@ -81,6 +79,8 @@ Unified CLI frontend for the KTX-Software library.
 */
 
 class Tools : public Command {
+    bool testrun = false; /// Indicates test run. If enabled ktx tools will only include the default version information in any output
+
 public:
     using Command::Command;
     virtual ~Tools() {};
@@ -97,9 +97,9 @@ int Tools::main(int argc, _TCHAR* argv[]) {
     options.custom_help("[--version] [--help] <command> <command-args>");
     options.set_width(CONSOLE_USAGE_WIDTH);
     options.add_options()
-        ("h,help", "Print this usage message and exit")
-        ("v,version", "Print the version number of this program and exit")
-    ;
+            ("h,help", "Print this usage message and exit")
+            ("v,version", "Print the version number of this program and exit")
+            ("testrun", "Indicates test run. If enabled the tool will produce deterministic output whenever possible");
 
     options.allow_unrecognised_options();
 
@@ -109,18 +109,20 @@ int Tools::main(int argc, _TCHAR* argv[]) {
     } catch (const std::exception& ex) {
         fmt::print(std::cerr, "{}: {}\n", options.program(), ex.what());
         printUsage(std::cerr, options);
-        return RETURN_CODE_INVALID_ARGUMENTS;
+        return +rc::INVALID_ARGUMENTS;
     }
+
+    testrun = args["testrun"].as<bool>();
 
     if (args.count("help")) {
         fmt::print(std::cout, "{}: Unified CLI frontend for the KTX-Software library with sub-commands for specific operations.\n", options.program());
         printUsage(std::cout, options);
-        return RETURN_CODE_SUCCESS;
+        return +rc::SUCCESS;
     }
 
     if (args.count("version")) {
-        fmt::print("{} version: {}\n", options.program(), version(false));
-        return RETURN_CODE_SUCCESS;
+        fmt::print("{} version: {}\n", options.program(), version(testrun));
+        return +rc::SUCCESS;
     }
 
     if (args.unmatched().empty()) {
@@ -131,7 +133,7 @@ int Tools::main(int argc, _TCHAR* argv[]) {
         printUsage(std::cerr, options);
     }
 
-    return RETURN_CODE_INVALID_ARGUMENTS;
+    return +rc::INVALID_ARGUMENTS;
 }
 
 void Tools::printUsage(std::ostream& os, const cxxopts::Options& options) {
@@ -145,7 +147,7 @@ void Tools::printUsage(std::ostream& os, const cxxopts::Options& options) {
     fmt::print(os, "  transcode  Transcode a KTX2 file\n");
     fmt::print(os, "  info       Prints information about a KTX2 file\n");
     fmt::print(os, "  validate   Validate a KTX2 file\n");
-    fmt::print(os, "  help       \n");
+    fmt::print(os, "  help       Display help information about the ktx tools\n");
     fmt::print(os, "\n");
     fmt::print(os, "For detailed usage and description of each subcommand use 'ktx help <command>'\n"
                    "or 'ktx <command> --help'\n");
@@ -159,7 +161,7 @@ KTX_COMMAND_BUILTIN(ktxEncode)
 KTX_COMMAND_BUILTIN(ktxTranscode)
 KTX_COMMAND_BUILTIN(ktxInfo)
 KTX_COMMAND_BUILTIN(ktxValidate)
-// KTX_COMMAND_BUILTIN(ktxHelp)
+KTX_COMMAND_BUILTIN(ktxHelp)
 
 std::unordered_map<std::string, ktx::pfnBuiltinCommand> builtinCommands = {
     { "create",     ktxCreate },
@@ -168,13 +170,13 @@ std::unordered_map<std::string, ktx::pfnBuiltinCommand> builtinCommands = {
     { "transcode",  ktxTranscode },
     { "info",       ktxInfo },
     { "validate",   ktxValidate },
-    // { "help",       ktxHelp }
+    { "help",       ktxHelp }
 };
 
 int _tmain(int argc, _TCHAR* argv[]) {
     // If -NSDocumentRevisionsDebugMode YES ever causes any problem it should be discarded here
     // by creating a new argc and argv pair and excluding the problematic arguments from them.
-    // This way downstream tools with not have to deal with this issue
+    // This way downstream tools will not have to deal with this issue
     //      // -NSDocumentRevisionsDebugMode YES is appended to the end
     //      // of the command by Xcode when debugging and "Allow debugging when
     //      // using document Versions Browser" is checked in the scheme. It

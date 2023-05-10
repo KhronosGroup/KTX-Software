@@ -11,15 +11,25 @@
 
 namespace ktx {
 
+/**
+//! [command options_compress]
+<dl>
+    <dt>--zstd &lt;level&gt;</dt>
+    <dd>Supercompress the data with Zstandard. Cannot be used with ETC1S / BasisLZ format. Level range is [1,22].</dd>
+    <dt>--zlib &lt;level&gt;</dt>
+    <dd>Supercompress the data with ZLIB. Cannot be used with ETC1S / BasisLZ format. Level range is [1,9].</dd>
+</dl>
+//! [command options_compress]
+*/
 struct OptionsCompress {
     std::optional<uint32_t> zstd;
     std::optional<uint32_t> zlib;
 
     void init(cxxopts::Options& opts) {
         opts.add_options()
-            ("zstd", "Supercompress the data with Zstandard. Level range is [1,22]. Default level is 3.",
+            ("zstd", "Supercompress the data with Zstandard. Cannot be used with ETC1S / BasisLZ format. Level range is [1,22].",
                 cxxopts::value<uint32_t>(), "<level>")
-            ("zlib", "Supercompress the data with ZLIB. Level range is [1,9]. Default level is 2.",
+            ("zlib", "Supercompress the data with ZLIB. Cannot be used with ETC1S / BasisLZ format. Level range is [1,9].",
                 cxxopts::value<uint32_t>(), "<level>");
     }
 

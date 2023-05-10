@@ -33,6 +33,14 @@ Javascript wrapper. [`interface/js_binding`](https://github.com/KhronosGroup/KTX
 Javascript wrapper for Basis Universal formats. For use with KTX parsers written in Javascript. [`interface/js_binding`](https://github.com/KhronosGroup/KTX-Software/tree/master/interface/js_binding)
 - *libktx.jar, libktx-jni* - Java wrapper and native interface library.
 [`interface/java_binding`](https://github.com/KhronosGroup/KTX-Software/tree/master/interface/java_binding)
+- *ktx* - a generic command line tool for managing KTX2 files with subcommands.[`tools/ktx`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/ktx)
+  - *ktx create* - Create a KTX2 file from various input files
+  - *ktx extract* - Export selected images from a KTX2 file
+  - *ktx encode* - Encode a KTX2 file
+  - *ktx transcode* - Transcode a KTX2 file
+  - *ktx info* - Prints information about a KTX2 file
+  - *ktx validate* - Validate a KTX2 file
+  - *ktx help* - Display help information about the ktx tools
 - *ktx2check* - a tool for validating KTX Version 2 format files. [`tools/ktx2check`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/ktx2check)
 - *ktx2ktx2* - a tool for converting a KTX Version 1 file to a KTX
 Version 2 file. [`tools/ktx2ktx2`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/ktx2ktx2)
@@ -42,7 +50,6 @@ human readable form. [`tools/ktxinfo`](https://github.com/KhronosGroup/KTX-Softw
 contains uncompressed images.[`tools/ktxsc`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/ktxsc)
 - *toktx* - a tool to create KTX files from PNG, Netpbm or JPEG format images. It supports mipmap generation, encoding to
 Basis Universal formats and Zstd supercompression.[`tools/toktx`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/toktx)
-- *ktx* - a generic command line tool for managing KTX2 files with create, validate, info, transcode, encode, extract and help subcommands.[`tools/ktx`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/ktx)
 
 See [CONTRIBUTING](CONTRIBUTING.md) for information about contributing.
 
@@ -75,6 +82,14 @@ A few files have `$Date$` keywords. If you care about having the proper
 dates shown or will be generating the documentation or preparing
 distribution archives, you **must** follow the instructions below.
 
+#### KTX-Software-CTS - Conformance Test Suite
+
+The tests and test files for the generic command line `ktx` tool can be found in a separate
+[CTS Repository](https://github.com/KhronosGroup/KTX-Software-CTS/). To save space and bandwidth this repository
+is included with git submodule and by default it is not required for building the libraries or the tools.
+For more information about building, running and extending the CTS tests see [BUILDING](BUILDING.md#Conformance-Test-Suite) 
+and [CTS README](https://github.com/KhronosGroup/KTX-Software-CTS/blob/main/README.md).
+
 #### <a id="kwexpansion"></a>$Date$ keyword expansion
 
 $Date$ keywords are expanded via smudge & clean filters. To install
@@ -104,10 +119,3 @@ local git config file `.git/config`, i.e. the one in your clone of the repo.
 `.gitconfig` contains the config of the "keyworder" filter. The remaining
 commands force a new checkout of the affected files to smudge them with the
 date. These two are unnecessary if you plan to edit these files.
-
-#### KTX-Software-CTS - Conformance Test Suite
-
-The tests and test files for the generic command line `ktx` tool can be found in a separate
-[CTS Repository](https://github.com/KhronosGroup/KTX-Software-CTS/). To save space and bandwidth this repository
-is included with git submodule and by default it is not required for building the libraries or the tools.
-For more information about running the CTS tests see [BUILDING](BUILDING.md).

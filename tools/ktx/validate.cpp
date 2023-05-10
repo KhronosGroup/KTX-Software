@@ -101,8 +101,9 @@ public:
         report(std::move(report)) {}
 };
 
-static constexpr int MAX_NUM_KV_ENTRIES = 100;
-static constexpr int MAX_NUM_DFD_BLOCKS = 10;
+static constexpr uint32_t MAX_NUM_DFD_BLOCKS = 10;
+static constexpr uint32_t MAX_NUM_BDFD_SAMPLES = 16;
+static constexpr uint32_t MAX_NUM_KV_ENTRIES = 100;
 
 // -------------------------------------------------------------------------------------------------
 
@@ -113,7 +114,7 @@ private:
     bool treatWarningsAsError = false;
     bool checkGLTFBasisU = false;
 
-    int returnCode = RETURN_CODE_SUCCESS;
+    int returnCode = +rc::SUCCESS;;
     uint32_t numError = 0;
     uint32_t numWarning = 0;
 
@@ -177,7 +178,7 @@ protected:
     void warning(const IssueWarning& issue, Args&&... args) {
         ++numWarning;
         if (treatWarningsAsError) {
-            returnCode = RETURN_CODE_INVALID_FILE;
+            returnCode = +rc::INVALID_FILE;
             callback(ValidationReport{IssueType::error, issue.id, std::string{issue.message}, fmt::format(issue.detailsFmt, std::forward<Args>(args)...)});
 
         } else {
@@ -188,14 +189,14 @@ protected:
     template <typename... Args>
     void error(const IssueError& issue, Args&&... args) {
         ++numError;
-        returnCode = RETURN_CODE_INVALID_FILE;
+        returnCode = +rc::INVALID_FILE;
         callback(ValidationReport{issue.type, issue.id, std::string{issue.message}, fmt::format(issue.detailsFmt, std::forward<Args>(args)...)});
     }
 
     template <typename... Args>
     void fatal(const IssueFatal& issue, Args&&... args) {
         ++numError;
-        returnCode = RETURN_CODE_INVALID_FILE;
+        returnCode = +rc::INVALID_FILE;
         const auto report = ValidationReport{issue.type, issue.id, std::string{issue.message}, fmt::format(issue.detailsFmt, std::forward<Args>(args)...)};
         callback(report);
 
@@ -381,8 +382,8 @@ void validateToolInput(std::istream& stream, const std::string& filepath, Report
     };
     const auto validationResult = validateIOStream(stream, filepath, false, false, callback);
 
-    if (validationResult != RETURN_CODE_SUCCESS)
-        throw FatalError(validationResult);
+    if (validationResult != +rc::SUCCESS)
+        throw FatalError(ReturnCode{validationResult});
 
     stream.seekg(0);
     if (!stream)
@@ -394,7 +395,7 @@ int validateIOStream(std::istream& stream, const std::string& filepath, bool war
         ValidationContextIOStream ctx{warningsAsErrors, GLTFBasisU, std::move(callback), stream, filepath};
         return ctx.validate();
     } catch (const FatalValidationError&) {
-        return RETURN_CODE_INVALID_FILE;
+        return +rc::INVALID_FILE;
     }
 }
 
@@ -403,7 +404,7 @@ int validateMemory(const char* data, std::size_t size, bool warningsAsErrors, bo
         ValidationContextMemory ctx{warningsAsErrors, GLTFBasisU, std::move(callback), data, size};
         return ctx.validate();
     } catch (const FatalValidationError&) {
-        return RETURN_CODE_INVALID_FILE;
+        return +rc::INVALID_FILE;
     }
 }
 
@@ -412,7 +413,7 @@ int validateNamedFile(const std::string& filepath, bool warningsAsErrors, bool G
         ValidationContextIOStream ctx{warningsAsErrors, GLTFBasisU, std::move(callback), filepath};
         return ctx.validate();
     } catch (const FatalValidationError&) {
-        return RETURN_CODE_INVALID_FILE;
+        return +rc::INVALID_FILE;
     }
 }
 
@@ -421,23 +422,30 @@ int validateStdioStream(FILE* file, const std::string& filepath, bool warningsAs
         ValidationContextStdioStream ctx{warningsAsErrors, GLTFBasisU, std::move(callback), file, filepath};
         return ctx.validate();
     } catch (const FatalValidationError&) {
-        return RETURN_CODE_INVALID_FILE;
+        return +rc::INVALID_FILE;
     }
 }
 
 // -------------------------------------------------------------------------------------------------
 
 int ValidationContext::validate(bool doCreateAndTranscodeChecks) {
-    validateHeader();
-    validateIndices();
-    calculateExpectedDFD(VkFormat(header.vkFormat));
-    validateDFD();
-    validateLevelIndex(); // Requires DFD parsed
-    validateKVD();
-    validateSGD();
+    const auto call = [&](const auto& fn, std::string_view name, auto&&... args) {
+        try {
+            (this->*fn)(std::forward<decltype(args)>(args)...);
+        } catch (const std::bad_alloc& ex) {
+            error(System::OutOfMemory, name, ex.what());
+        }
+    };
 
+    call(&ValidationContext::validateHeader, "Header");
+    call(&ValidationContext::validateIndices, "Index");
+    call(&ValidationContext::calculateExpectedDFD, "Expected DFD", VkFormat(header.vkFormat));
+    call(&ValidationContext::validateDFD, "DFD");
+    call(&ValidationContext::validateLevelIndex, "Level Index"); // Must come after the DFD parsed
+    call(&ValidationContext::validateKVD, "KVD");
+    call(&ValidationContext::validateSGD, "SGD");
     if (doCreateAndTranscodeChecks)
-        validateCreateAndTranscode();
+        call(&ValidationContext::validateCreateAndTranscode, "Create and Transcode");
 
     // TODO Tools P3: Verify validation of padding zeros between levelIndex and DFD
     // TODO Tools P3: Verify validation of padding zeros between DFD and KVD
@@ -904,7 +912,7 @@ void ValidationContext::validateDFD() {
     if (dfdByteLength != dfdTotalSize)
         error(DFD::SizeMismatch, dfdByteLength, dfdTotalSize);
 
-    int numBlocks = 0;
+    uint32_t numBlocks = 0;
     bool foundBDFD = false;
 
     while (ptrDFDIt < ptrDFDEnd) {
@@ -948,11 +956,17 @@ void ValidationContext::validateDFD() {
                     if ((block.descriptorBlockSize - 24) % 16 != 0)
                          error(DFD::BasicDescriptorBlockSizeInvalid, numBlocks, +block.descriptorBlockSize);
 
-                    const auto numSample = (block.descriptorBlockSize - 24) / 16;
+                    const auto numSamplesStored = (block.descriptorBlockSize - 24u) / 16u;
+                    const auto numSamplesValidating = std::min(MAX_NUM_BDFD_SAMPLES, numSamplesStored);
+
+                    if (numSamplesStored > MAX_NUM_BDFD_SAMPLES)
+                        warning(DFD::TooManySample, numBlocks, numSamplesStored, MAX_NUM_BDFD_SAMPLES,
+                                numSamplesStored - numSamplesValidating,
+                                block.descriptorBlockSize - sizeof(BDFD) - numSamplesValidating * sizeof(SampleType));
 
                     // Samples are located at the end of the block
-                    std::vector<SampleType> samples(numSample);
-                    std::memcpy(samples.data(), ptrDFDIt + sizeof(BDFD), numSample * sizeof(SampleType));
+                    std::vector<SampleType> samples(numSamplesValidating);
+                    std::memcpy(samples.data(), ptrDFDIt + sizeof(BDFD), numSamplesValidating * sizeof(SampleType));
 
                     validateDFDBasic(numBlocks, reinterpret_cast<uint32_t*>(buffer.get()), block, samples);
                 }
@@ -1388,7 +1402,7 @@ void ValidationContext::validateKVD() {
     std::vector<KeyValueEntry> entries;
     std::unordered_set<std::string_view> keys;
 
-    int numKVEntry = 0;
+    uint32_t numKVEntry = 0;
     // Process Key-Value entries {size, key, \0, value} until the end of the KVD block
     // Where size is an uint32_t, and it equals to: sizeof(key) + 1 + sizeof(value)
     const auto* ptrEntry = ptrKVD;
