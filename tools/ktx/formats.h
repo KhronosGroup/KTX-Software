@@ -284,6 +284,10 @@ namespace ktx {
     }
 }
 
+[[nodiscard]] constexpr inline bool isFormatDepthStencil(VkFormat format) noexcept {
+    return isFormatDepth(format) || isFormatStencil(format);
+}
+
 [[nodiscard]] constexpr inline bool isSupercompressionBlockCompressed(ktxSupercmpScheme scheme) noexcept {
     switch (scheme) {
     case KTX_SS_BASIS_LZ:
@@ -695,6 +699,86 @@ namespace ktx {
     case VK_FORMAT_B16G16R16G16_422_UNORM: [[fallthrough]];
     case VK_FORMAT_G16_B16_R16_3PLANE_422_UNORM: [[fallthrough]];
     case VK_FORMAT_G16_B16R16_2PLANE_422_UNORM:
+        return true;
+    default:
+        return false;
+    }
+}
+
+[[nodiscard]] constexpr inline bool isFormatAstc(VkFormat format) noexcept {
+    switch (format) {
+    case VK_FORMAT_ASTC_4x4_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x4_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x4_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x5_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x5_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x5_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x5_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x6_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x6_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x8_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x8_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x5_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x5_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x6_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x6_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x8_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x8_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x10_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x10_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_12x10_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_12x10_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_12x12_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_12x12_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_3x3x3_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_3x3x3_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_3x3x3_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x3x3_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x3x3_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x3x3_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4x3_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4x3_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4x3_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4x4_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4x4_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4x4_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x4x4_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x4x4_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x4x4_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5x4_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5x4_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5x4_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5x5_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5x5_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5x5_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x5x5_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x5x5_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x5x5_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6x5_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6x5_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6x5_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT:
         return true;
     default:
         return false;

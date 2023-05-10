@@ -135,6 +135,41 @@ class ImageSpec {
 
 typedef std::function<void(const std::string&)> WarningCallbackFunction;
 
+enum class ImageInputFormatType {
+    png_l,
+    png_la,
+    png_rgb,
+    png_rgba,
+    exr_uint,
+    exr_float,
+    npbm,
+    jpg,
+};
+
+inline const char* toString(ImageInputFormatType type) {
+    switch (type) {
+    case ImageInputFormatType::png_l:
+        return "png_l";
+    case ImageInputFormatType::png_la:
+        return "png_la";
+    case ImageInputFormatType::png_rgb:
+        return "png_rgb";
+    case ImageInputFormatType::png_rgba:
+        return "png_rgba";
+    case ImageInputFormatType::exr_uint:
+        return "exr_uint";
+    case ImageInputFormatType::exr_float:
+        return "exr_float";
+    case ImageInputFormatType::npbm:
+        return "npbm";
+    case ImageInputFormatType::jpg:
+        return "jpg";
+    }
+
+    assert(false && "Invalid ImageInputFormatType enum value");
+    return "<<invalid>>";
+}
+
 class ImageInput {
   protected:
     std::ifstream file;
@@ -146,10 +181,11 @@ class ImageInput {
     std::vector<uint8_t> nativeBuffer8;
     struct imageInfo {
         ImageSpec spec;
+        ImageInputFormatType formatType;
         size_t filepos;
 
-        imageInfo(ImageSpec&& is, size_t pos = 0)
-            : spec(is), filepos(pos) { }
+        imageInfo(ImageSpec&& is, ImageInputFormatType formatType, size_t pos = 0)
+            : spec(is), formatType(formatType), filepos(pos) { }
     };
     std::vector<imageInfo> images;                                 ///<
     uint32_t curSubimage = std::numeric_limits<uint32_t>::max();
@@ -297,13 +333,6 @@ class ImageInput {
             }
         }
     }
-    void open(const _tstring& fname,
-              std::ifstream& ifs,
-              std::unique_ptr<std::stringstream>& buffer,
-              ImageSpec& newspec,
-              const ImageSpec& /*config*/) {
-        open(fname, ifs, buffer, newspec);
-    }
 
   public:
     virtual const std::string& formatName(void) const { return name; }
@@ -313,6 +342,12 @@ class ImageInput {
     // This default method assumes no subimages.
     virtual const ImageSpec& spec (void) const {
         return images[0].spec;
+    }
+
+    // Return the FormatType of the current image.
+    // This default method assumes no subimages.
+    virtual ImageInputFormatType formatType (void) const {
+        return images[0].formatType;
     }
 
     // Return a full copy of the ImageSpec of the designated subimage & level.

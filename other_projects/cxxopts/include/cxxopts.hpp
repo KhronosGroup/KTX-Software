@@ -337,13 +337,22 @@ empty(const std::string& s)
 namespace cxxopts {
 
 namespace {
-#ifdef _WIN32
+// Altered source code for KTX Tools:
+// For deterministic and portable behaviour the code is changed to always use ' as quote marks
+//
+// --- Start of original source code:
+// #ifdef _WIN32
+// CXXOPTS_LINKONCE_CONST std::string LQUOTE("\'");
+// CXXOPTS_LINKONCE_CONST std::string RQUOTE("\'");
+// #else
+// CXXOPTS_LINKONCE_CONST std::string LQUOTE("‘");
+// CXXOPTS_LINKONCE_CONST std::string RQUOTE("’");
+// #endif
+// --- End of original source code
+// --- Start of altered source code
 CXXOPTS_LINKONCE_CONST std::string LQUOTE("\'");
 CXXOPTS_LINKONCE_CONST std::string RQUOTE("\'");
-#else
-CXXOPTS_LINKONCE_CONST std::string LQUOTE("‘");
-CXXOPTS_LINKONCE_CONST std::string RQUOTE("’");
-#endif
+// --- End of altered source code
 } // namespace
 
 // GNU GCC with -Weffc++ will issue a warning regarding the upcoming class, we

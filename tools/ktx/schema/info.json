@@ -566,18 +566,6 @@
                 }
             ]
         },
-        "enum_supercompressionType" : {
-            "oneOf": [
-                { "type": "integer" },
-                {
-                    "type": "string",
-                    "enum": [
-                        "KTX_SS_NONE",
-                        "KTX_SS_BASIS_LZ"
-                    ]
-                }
-            ]
-        },
         "enum_imageFlags" : {
             "oneOf": [
                 { "type": "integer" },
@@ -593,8 +581,7 @@
     "type": "object",
     "required": [
         "valid",
-        "messages",
-        "header"
+        "messages"
     ],
     "properties": {
         "valid": { "type": "boolean" },
@@ -730,17 +717,10 @@
                     "items": {
                         "type": "object",
                         "required": [
-                            "descriptorType",
                             "vendorId",
-                            "descriptorBlockSize",
+                            "descriptorType",
                             "versionNumber",
-                            "flags",
-                            "transferFunction",
-                            "colorPrimaries",
-                            "colorModel",
-                            "texelBlockDimension",
-                            "bytesPlane",
-                            "samples"
+                            "descriptorBlockSize"
                         ],
                         "additionalProperties": false,
                         "properties": {
@@ -809,6 +789,7 @@
         },
         "keyValueData": {
             "type": "object",
+            "additionalProperties": true,
             "properties": {
                 "KTXcubemapIncomplete": {
                     "type": "object",
@@ -834,13 +815,13 @@
                 "KTXglFormat": {
                     "type": "object",
                     "required": [
-                        "glInternalFormat",
+                        "glInternalformat",
                         "glFormat",
                         "glType"
                     ],
                     "additionalProperties": false,
                     "properties": {
-                        "glInternalFormat": { "type": "integer" },
+                        "glInternalformat": { "type": "integer" },
                         "glFormat": { "type": "integer" },
                         "glType": { "type": "integer" }
                     }
@@ -850,10 +831,7 @@
                 "KTXswizzle": { "type": "string" },
                 "KTXwriter": { "type": "string" },
                 "KTXwriterScParams": { "type": "string" },
-                "KTXastcDecodeMode": {
-                    "type": "string",
-                    "enum": ["rgb9e5", "unorm8"]
-                },
+                "KTXastcDecodeMode": { "type": "string" },
                 "KTXanimData": {
                     "type": "object",
                     "required": [
@@ -873,7 +851,7 @@
         "supercompressionGlobalData": {
             "type": "object",
             "properties": {
-                "type": { "$ref": "#/definitions/enum_supercompressionType" },
+                "type": { "$ref": "#/definitions/enum_supercompressionScheme" },
                 "endpointCount": { "type": "integer" },
                 "selectorCount": { "type": "integer" },
                 "endpointsByteLength": { "type": "integer" },

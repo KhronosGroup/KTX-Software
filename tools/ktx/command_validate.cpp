@@ -45,9 +45,9 @@ Validates a KTX2 file.
             The default format is @b text.
         </dd>
         <dt>-g, --gltf-basisu</dt>
-        <dd>Check compatibility with KHR_texture_basisu glTF extension. Unset by default.</dd>
+        <dd>Check compatibility with KHR_texture_basisu glTF extension.</dd>
         <dt>-e, --warnings-as-errors</dt>
-        <dd>Treat warnings as errors. Unset by default.</dd>
+        <dd>Treat warnings as errors.</dd>
     </dl>
     @snippet{doc} ktx/command.h command options
 
@@ -66,19 +66,29 @@ Validates a KTX2 file.
     - Mátyás Császár [Vader], RasterGrid www.rastergrid.com
     - Daniel Rákos, RasterGrid www.rastergrid.com
 */
-class CommandValidate : public CommandWithFormat {
-    bool warningsAsErrors = false;
-    bool GLTFBasisU = false;
+class CommandValidate : public Command {
+    struct OptionsValidate {
+        bool warningsAsErrors = false;
+        bool GLTFBasisU = false;
+
+        void init(cxxopts::Options& opts) {
+            opts.add_options()
+                ("e,warnings-as-errors", "Treat warnings as errors.")
+                ("g,gltf-basisu", "Check compatibility with KHR_texture_basisu glTF extension.");
+        }
+
+        void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter&) {
+            warningsAsErrors = args["warnings-as-errors"].as<bool>();
+            GLTFBasisU = args["gltf-basisu"].as<bool>();
+        }
+    };
+
+    Combine<OptionsValidate, OptionsFormat, OptionsSingleIn, OptionsGeneric> options;
 
 public:
-    using CommandWithFormat::CommandWithFormat;
-    virtual ~CommandValidate() {};
-
     virtual int main(int argc, _TCHAR* argv[]) override;
-
-protected:
-    virtual void initOptions(cxxopts::Options& options) override;
-    virtual void processOptions(cxxopts::Options& options, cxxopts::ParseResult& args) override;
+    virtual void initOptions(cxxopts::Options& opts) override;
+    virtual void processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) override;
 
 private:
     void executeValidate();
@@ -89,35 +99,35 @@ private:
 int CommandValidate::main(int argc, _TCHAR* argv[]) {
     try {
         parseCommandLine("ktx validate",
-                "Validates a KTX2 file and prints any issues to the stdout.\n",
+                "Validates a KTX2 file and prints any issues to the stdout.",
                 argc, argv);
         executeValidate();
         return RETURN_CODE_SUCCESS;
     } catch (const FatalError& error) {
         return error.return_code;
+    } catch (const std::exception& e) {
+        fmt::print(std::cerr, "{} fatal: {}\n", commandName, e.what());
+        return RETURN_CODE_RUNTIME_ERROR;
     }
 }
 
-void CommandValidate::initOptions(cxxopts::Options& options) {
-    options.add_options()
-        ("e,warnings-as-errors", "Treat warnings as errors. Unset by default")
-        ("g,gltf-basisu", "Check compatibility with KHR_texture_basisu glTF extension. Unset by default")
-    ;
-    CommandWithFormat::initOptions(options);
+void CommandValidate::initOptions(cxxopts::Options& opts) {
+    options.init(opts);
 }
 
-void CommandValidate::processOptions(cxxopts::Options& options, cxxopts::ParseResult& args) {
-    CommandWithFormat::processOptions(options, args);
-
-    warningsAsErrors = args["warnings-as-errors"].as<bool>();
-    GLTFBasisU = args["gltf-basisu"].as<bool>();
+void CommandValidate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) {
+    options.process(opts, args, *this);
 }
 
 void CommandValidate::executeValidate() {
-    switch (format) {
+    switch (options.format) {
     case OutputFormat::text: {
         std::ostringstream messagesOS;
-        const auto validationResult = validateNamedFile(inputFile, warningsAsErrors, GLTFBasisU, [&](const ValidationReport& issue) {
+        const auto validationResult = validateNamedFile(
+                options.inputFilepath,
+                options.warningsAsErrors,
+                options.GLTFBasisU,
+                [&](const ValidationReport& issue) {
             fmt::print(messagesOS, "{}-{:04}: {}\n", toString(issue.type), issue.id, issue.message);
             fmt::print(messagesOS, "    {}\n", issue.details);
         });
@@ -135,16 +145,20 @@ void CommandValidate::executeValidate() {
     }
     case OutputFormat::json: [[fallthrough]];
     case OutputFormat::json_mini: {
-        const auto base_indent = format == OutputFormat::json ? +0 : 0;
-        const auto indent_width = format == OutputFormat::json ? 4 : 0;
-        const auto space = format == OutputFormat::json ? " " : "";
-        const auto nl = format == OutputFormat::json ? "\n" : "";
+        const auto base_indent = options.format == OutputFormat::json ? +0 : 0;
+        const auto indent_width = options.format == OutputFormat::json ? 4 : 0;
+        const auto space = options.format == OutputFormat::json ? " " : "";
+        const auto nl = options.format == OutputFormat::json ? "\n" : "";
 
         std::ostringstream messagesOS;
         PrintIndent pi{messagesOS, base_indent, indent_width};
 
         bool first = true;
-        const auto validationResult = validateNamedFile(inputFile, warningsAsErrors, GLTFBasisU, [&](const ValidationReport& issue) {
+        const auto validationResult = validateNamedFile(
+                options.inputFilepath,
+                options.warningsAsErrors,
+                options.GLTFBasisU,
+                [&](const ValidationReport& issue) {
             if (!std::exchange(first, false)) {
                 pi(2, "}},{}", nl);
             }

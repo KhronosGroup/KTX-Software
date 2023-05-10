@@ -213,11 +213,12 @@ JpegInput::readHeader()
     // begin_decoding is called. In any case these are not helpful as they
     // return what the decode() method will return not what is in the file.
 
-    images.push_back(ImageSpec(pJd->get_width(), pJd->get_height(), 1,
-                     pJd->get_num_components(), 8, // component bit length
-                     static_cast<khr_df_sample_datatype_qualifiers_e>(0),
-                     KHR_DF_TRANSFER_SRGB,
-                     KHR_DF_PRIMARIES_BT709));
+    images.emplace_back(ImageSpec(pJd->get_width(), pJd->get_height(), 1,
+                                pJd->get_num_components(), 8, // component bit length
+                                static_cast<khr_df_sample_datatype_qualifiers_e>(0),
+                                KHR_DF_TRANSFER_SRGB,
+                                KHR_DF_PRIMARIES_BT709),
+                        ImageInputFormatType::jpg);
 }
 
 

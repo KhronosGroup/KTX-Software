@@ -8,8 +8,14 @@ add_executable(ktxtools
         command.h
         command_create.cpp
         command_extract.cpp
+        command_encode.cpp
+        command_transcode.cpp
         command_info.cpp
         command_validate.cpp
+        compress_utils.h
+        encode_utils.h
+        transcode_utils.h
+        format_descriptor.h
         formats.h
         ktx_main.cpp
         utility.h
@@ -41,8 +47,9 @@ target_link_libraries(
     ktxtools
 PRIVATE
     imageio
-    ${KTX_TARGET_NAME_STATIC_LIB}
     objUtil
+    ${KTX_TARGET_NAME_STATIC_LIB}
+    ${ASTC_LIB_TARGET}
     fmt::fmt
     cxxopts::cxxopts
 )

@@ -8,8 +8,8 @@
 #include <functional>
 #include <string>
 
-#include "stdafx.h"
 #include "validation_messages.h"
+#include "command.h"
 
 
 // -------------------------------------------------------------------------------------------------
@@ -23,9 +23,16 @@ struct ValidationReport {
     std::string details;
 };
 
-int validateIOStream(std::istream& stream, bool warningsAsErrors, bool GLTFBasisU, std::function<void(const ValidationReport&)> callback);
+/// Common function for tools to validates the input file (and rewind the stream)
+/// @param stream the stream to be validated
+/// @param inputFilepath only used for logging
+/// @param report
+/// @throw FatalError if there was any error or the file is considered invalid
+void validateToolInput(std::istream& stream, const std::string& inputFilepath, Reporter& report);
+
+int validateIOStream(std::istream& stream, const std::string& filepath, bool warningsAsErrors, bool GLTFBasisU, std::function<void(const ValidationReport&)> callback);
 int validateMemory(const char* data, std::size_t size, bool warningsAsErrors, bool GLTFBasisU, std::function<void(const ValidationReport&)> callback);
-int validateNamedFile(const _tstring& filepath, bool warningsAsErrors, bool GLTFBasisU, std::function<void(const ValidationReport&)> callback);
-int validateStdioStream(FILE* file, bool warningsAsErrors, bool GLTFBasisU, std::function<void(const ValidationReport&)> callback);
+int validateNamedFile(const std::string& filepath, bool warningsAsErrors, bool GLTFBasisU, std::function<void(const ValidationReport&)> callback);
+int validateStdioStream(FILE* file, const std::string& filepath, bool warningsAsErrors, bool GLTFBasisU, std::function<void(const ValidationReport&)> callback);
 
 } // namespace ktx

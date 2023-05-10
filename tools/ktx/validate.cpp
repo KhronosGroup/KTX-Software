@@ -21,6 +21,9 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
+#include <sstream>
+#include <fmt/ostream.h>
+#include <fmt/printf.h>
 
 #include "utility.h"
 #include "validation_messages.h"
@@ -98,8 +101,6 @@ public:
         report(std::move(report)) {}
 };
 
-static constexpr int RETURN_CODE_VALIDATION_SUCCESS = 0;
-static constexpr int RETURN_CODE_VALIDATION_FAILURE = 3;
 static constexpr int MAX_NUM_KV_ENTRIES = 100;
 static constexpr int MAX_NUM_DFD_BLOCKS = 10;
 
@@ -112,7 +113,7 @@ private:
     bool treatWarningsAsError = false;
     bool checkGLTFBasisU = false;
 
-    int returnCode = RETURN_CODE_VALIDATION_SUCCESS;
+    int returnCode = RETURN_CODE_SUCCESS;
     uint32_t numError = 0;
     uint32_t numWarning = 0;
 
@@ -176,7 +177,7 @@ protected:
     void warning(const IssueWarning& issue, Args&&... args) {
         ++numWarning;
         if (treatWarningsAsError) {
-            returnCode = RETURN_CODE_VALIDATION_FAILURE;
+            returnCode = RETURN_CODE_INVALID_FILE;
             callback(ValidationReport{IssueType::error, issue.id, std::string{issue.message}, fmt::format(issue.detailsFmt, std::forward<Args>(args)...)});
 
         } else {
@@ -187,14 +188,14 @@ protected:
     template <typename... Args>
     void error(const IssueError& issue, Args&&... args) {
         ++numError;
-        returnCode = RETURN_CODE_VALIDATION_FAILURE;
+        returnCode = RETURN_CODE_INVALID_FILE;
         callback(ValidationReport{issue.type, issue.id, std::string{issue.message}, fmt::format(issue.detailsFmt, std::forward<Args>(args)...)});
     }
 
     template <typename... Args>
     void fatal(const IssueFatal& issue, Args&&... args) {
         ++numError;
-        returnCode = RETURN_CODE_VALIDATION_FAILURE;
+        returnCode = RETURN_CODE_INVALID_FILE;
         const auto report = ValidationReport{issue.type, issue.id, std::string{issue.message}, fmt::format(issue.detailsFmt, std::forward<Args>(args)...)};
         callback(report);
 
@@ -217,7 +218,7 @@ private:
     }
 
 public:
-    int validate();
+    int validate(bool doCreateAndTranscodeChecks = true);
 
 private:
     void validateHeader();
@@ -258,22 +259,21 @@ private:
     std::optional<StreambufStream<std::streambuf*>> ktx2Stream;
 
 public:
-    ValidationContextIOStream(bool warningsAsErrors, bool GLTFBasisU, std::function<void(const ValidationReport&)> callback, std::istream& stream) :
+    ValidationContextIOStream(bool warningsAsErrors, bool GLTFBasisU, std::function<void(const ValidationReport&)> callback, std::istream& stream, const std::string& filepath) :
         ValidationContext(warningsAsErrors, GLTFBasisU, std::move(callback)),
         stream(stream) {
 
         if (!stream)
-            fatal(IOError::FileOpen, "?", errnoMessage());
+            fatal(IOError::FileOpen, filepath, errnoMessage());
     }
 
-    ValidationContextIOStream(bool warningsAsErrors, bool GLTFBasisU, std::function<void(const ValidationReport&)> callback, const _tstring& filepath) :
+    ValidationContextIOStream(bool warningsAsErrors, bool GLTFBasisU, std::function<void(const ValidationReport&)> callback, const std::string& filepath) :
         ValidationContext(warningsAsErrors, GLTFBasisU, std::move(callback)),
         file(filepath, std::ios::in | std::ios::binary),
         stream(file) {
 
-        if (!file) {
+        if (!file)
             fatal(IOError::FileOpen, filepath, errnoMessage());
-        }
     }
 
 private:
@@ -306,9 +306,12 @@ private:
     FILE* file;
 
 public:
-    ValidationContextStdioStream(bool warningsAsErrors, bool GLTFBasisU, std::function<void(const ValidationReport&)> callback, FILE* file) :
+    ValidationContextStdioStream(bool warningsAsErrors, bool GLTFBasisU, std::function<void(const ValidationReport&)> callback, FILE* file, const std::string& filepath) :
         ValidationContext(warningsAsErrors, GLTFBasisU, std::move(callback)),
         file(file) {
+
+        if (!file)
+            fatal(IOError::FileOpen, filepath, errnoMessage());
     }
 
 private:
@@ -368,12 +371,30 @@ private:
 
 // -------------------------------------------------------------------------------------------------
 
-int validateIOStream(std::istream& stream, bool warningsAsErrors, bool GLTFBasisU, std::function<void(const ValidationReport&)> callback) {
+void validateToolInput(std::istream& stream, const std::string& filepath, Reporter& report) {
+    if (!stream)
+        report.fatal(rc::IO_FAILURE, "Could not open input file \"{}\": {}", filepath, errnoMessage());
+
+    auto callback = [&](const ValidationReport& issue) {
+        fmt::print(std::cerr, "{}-{:04}: {}\n", toString(issue.type), issue.id, issue.message);
+        fmt::print(std::cerr, "    {}\n", issue.details);
+    };
+    const auto validationResult = validateIOStream(stream, filepath, false, false, callback);
+
+    if (validationResult != RETURN_CODE_SUCCESS)
+        throw FatalError(validationResult);
+
+    stream.seekg(0);
+    if (!stream)
+        report.fatal(rc::IO_FAILURE, "Could not rewind the input file \"{}\": {}", filepath, errnoMessage());
+}
+
+int validateIOStream(std::istream& stream, const std::string& filepath, bool warningsAsErrors, bool GLTFBasisU, std::function<void(const ValidationReport&)> callback) {
     try {
-        ValidationContextIOStream ctx{warningsAsErrors, GLTFBasisU, std::move(callback), stream};
+        ValidationContextIOStream ctx{warningsAsErrors, GLTFBasisU, std::move(callback), stream, filepath};
         return ctx.validate();
     } catch (const FatalValidationError&) {
-        return RETURN_CODE_VALIDATION_FAILURE;
+        return RETURN_CODE_INVALID_FILE;
     }
 }
 
@@ -382,31 +403,31 @@ int validateMemory(const char* data, std::size_t size, bool warningsAsErrors, bo
         ValidationContextMemory ctx{warningsAsErrors, GLTFBasisU, std::move(callback), data, size};
         return ctx.validate();
     } catch (const FatalValidationError&) {
-        return RETURN_CODE_VALIDATION_FAILURE;
+        return RETURN_CODE_INVALID_FILE;
     }
 }
 
-int validateNamedFile(const _tstring& filepath, bool warningsAsErrors, bool GLTFBasisU, std::function<void(const ValidationReport&)> callback) {
+int validateNamedFile(const std::string& filepath, bool warningsAsErrors, bool GLTFBasisU, std::function<void(const ValidationReport&)> callback) {
     try {
         ValidationContextIOStream ctx{warningsAsErrors, GLTFBasisU, std::move(callback), filepath};
         return ctx.validate();
     } catch (const FatalValidationError&) {
-        return RETURN_CODE_VALIDATION_FAILURE;
+        return RETURN_CODE_INVALID_FILE;
     }
 }
 
-int validateStdioStream(FILE* file, bool warningsAsErrors, bool GLTFBasisU, std::function<void(const ValidationReport&)> callback) {
+int validateStdioStream(FILE* file, const std::string& filepath, bool warningsAsErrors, bool GLTFBasisU, std::function<void(const ValidationReport&)> callback) {
     try {
-        ValidationContextStdioStream ctx{warningsAsErrors, GLTFBasisU, std::move(callback), file};
+        ValidationContextStdioStream ctx{warningsAsErrors, GLTFBasisU, std::move(callback), file, filepath};
         return ctx.validate();
     } catch (const FatalValidationError&) {
-        return RETURN_CODE_VALIDATION_FAILURE;
+        return RETURN_CODE_INVALID_FILE;
     }
 }
 
 // -------------------------------------------------------------------------------------------------
 
-int ValidationContext::validate() {
+int ValidationContext::validate(bool doCreateAndTranscodeChecks) {
     validateHeader();
     validateIndices();
     calculateExpectedDFD(VkFormat(header.vkFormat));
@@ -414,7 +435,9 @@ int ValidationContext::validate() {
     validateLevelIndex(); // Requires DFD parsed
     validateKVD();
     validateSGD();
-    validateCreateAndTranscode();
+
+    if (doCreateAndTranscodeChecks)
+        validateCreateAndTranscode();
 
     // TODO Tools P3: Verify validation of padding zeros between levelIndex and DFD
     // TODO Tools P3: Verify validation of padding zeros between DFD and KVD

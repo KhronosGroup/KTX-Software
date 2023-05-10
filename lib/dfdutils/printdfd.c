@@ -642,16 +642,20 @@ const char* dfdToStringChannelId(khr_df_model_e model, khr_df_model_channels_e v
  * @internal
  */
 static void printFlagBits(uint32_t flags, const char*(*toStringFn)(uint32_t, bool)) {
+    bool first = true;
     for (uint32_t bit_index = 0; bit_index < 32; ++bit_index) {
         uint32_t bit_mask = 1u << bit_index;
         bool bit_value = (bit_mask & (uint32_t) flags) != 0;
 
-        const char* comma = (uint32_t) flags >= (bit_mask << 1u) ? ", " : "";
+        const char* comma = first ? "" : ", ";
         const char* str = toStringFn(bit_index, bit_value);
-        if (str)
-            printf("%s%s", str, comma);
-        else if (bit_value)
-            printf("%d%s", bit_mask, comma);
+        if (str) {
+            printf("%s%s", comma, str);
+            first = false;
+        } else if (bit_value) {
+            printf("%s%u", comma, bit_mask);
+            first = false;
+        }
     }
 }
 
@@ -659,17 +663,22 @@ static void printFlagBits(uint32_t flags, const char*(*toStringFn)(uint32_t, boo
  * @internal
  */
 static void printFlagBitsJSON(uint32_t indent, const char* nl, uint32_t flags, const char*(*toStringFn)(uint32_t, bool)) {
+    bool first = true;
     for (uint32_t bit_index = 0; bit_index < 32; ++bit_index) {
         uint32_t bit_mask = 1u << bit_index;
         bool bit_value = (bit_mask & (uint32_t) flags) != 0;
 
-        const char* comma = (uint32_t) flags >= (bit_mask << 1u) ? ", " : "";
         const char* str = toStringFn(bit_index, bit_value);
-        if (str)
-            printf("%*s\"%s\"%s%s", indent, "", str, comma, nl);
-        else if (bit_value)
-            printf("%*s%d%s%s", indent, "", bit_mask, comma, nl);
+        if (str) {
+            printf("%s%s%*s\"%s\"", first ? "" : ",", first ? "" : nl, indent, "", str);
+            first = false;
+        } else if (bit_value) {
+            printf("%s%s%*s%u", first ? "" : ",", first ? "" : nl, indent, "", bit_mask);
+            first = false;
+        }
     }
+    if (!first)
+        printf("%s", nl);
 }
 
 /**
@@ -677,92 +686,130 @@ static void printFlagBitsJSON(uint32_t indent, const char* nl, uint32_t flags, c
  * @brief Print a human-readable interpretation of a data format descriptor.
  *
  * @param DFD Pointer to a data format descriptor.
+ * @param dataSize The maximum size that can be considered as part of the DFD.
  **/
-void printDFD(uint32_t *DFD)
+void printDFD(uint32_t *DFD, uint32_t dataSize)
 {
-    uint32_t *BDB = DFD+1;
-    int samples = (KHR_DFDVAL(BDB, DESCRIPTORBLOCKSIZE) - 4 * KHR_DF_WORD_SAMPLESTART) / (4 * KHR_DF_WORD_SAMPLEWORDS);
-    int sample;
-    int model = KHR_DFDVAL(BDB, MODEL);
-
 #define PRINT_ENUM(VALUE, TO_STRING_FN) {                        \
         int value = VALUE;                                       \
         const char* str = TO_STRING_FN(value);                   \
         if (str)                                                 \
             printf("%s", str);                                   \
         else                                                     \
-            printf("%d", value);                                 \
+            printf("%u", value);                                 \
     }
 
-    printf("DFD total bytes: %d\n", DFD[0]);
+    const uint32_t sizeof_dfdTotalSize = sizeof(uint32_t);
+    const uint32_t sizeof_DFDBHeader = sizeof(uint32_t) * 2;
+    const uint32_t sizeof_BDFD = sizeof(uint32_t) * KHR_DF_WORD_SAMPLESTART;
+    const uint32_t sizeof_BDFDSample = sizeof(uint32_t) * KHR_DF_WORD_SAMPLEWORDS;
 
-    printf("BDB descriptor type: ");
-    PRINT_ENUM(KHR_DFDVAL(BDB, DESCRIPTORTYPE), dfdToStringDescriptorType);
-    printf("\nVendor ID: ");
-    PRINT_ENUM(KHR_DFDVAL(BDB, VENDORID), dfdToStringVendorID);
-    printf("\n");
+    uint32_t dfdTotalSize = dataSize >= sizeof_dfdTotalSize ? DFD[0] : 0;
+    uint32_t remainingSize = dfdTotalSize < dataSize ? dfdTotalSize : dataSize;
+    if (remainingSize < sizeof_dfdTotalSize)
+        return; // Invalid DFD: dfdTotalSize must be present
 
-    printf("Descriptor block size: %d (%d sample%s)\nVersionNumber: ",
-            KHR_DFDVAL(BDB, DESCRIPTORBLOCKSIZE),
-            samples,
-            samples != 1 ? "s" : "");
-    PRINT_ENUM(KHR_DFDVAL(BDB, VERSIONNUMBER), dfdToStringVersionNumber);
-    printf("\n");
+    uint32_t* block = DFD + 1;
+    remainingSize -= sizeof_dfdTotalSize;
 
-    khr_df_flags_e flags = KHR_DFDVAL(BDB, FLAGS);
-    printf("Flags: 0x%x (", flags);
-    printFlagBits(flags, dfdToStringFlagsBit);
-    printf(")\nTransfer: ");
-    PRINT_ENUM(KHR_DFDVAL(BDB, TRANSFER), dfdToStringTransferFunction);
-    printf("\nPrimaries: ");
-    PRINT_ENUM(KHR_DFDVAL(BDB, PRIMARIES), dfdToStringColorPrimaries);
-    printf("\nModel: ");
-    PRINT_ENUM(model, dfdToStringColorModel);
-    printf("\n");
+    printf("DFD total bytes: %u\n", dfdTotalSize);
 
-    printf("Dimensions: %d, %d, %d, %d\n",
-           KHR_DFDVAL(BDB, TEXELBLOCKDIMENSION0) + 1,
-           KHR_DFDVAL(BDB, TEXELBLOCKDIMENSION1) + 1,
-           KHR_DFDVAL(BDB, TEXELBLOCKDIMENSION2) + 1,
-           KHR_DFDVAL(BDB, TEXELBLOCKDIMENSION3) + 1);
-    printf("Plane bytes: %d, %d, %d, %d, %d, %d, %d, %d\n",
-           KHR_DFDVAL(BDB, BYTESPLANE0),
-           KHR_DFDVAL(BDB, BYTESPLANE1),
-           KHR_DFDVAL(BDB, BYTESPLANE2),
-           KHR_DFDVAL(BDB, BYTESPLANE3),
-           KHR_DFDVAL(BDB, BYTESPLANE4),
-           KHR_DFDVAL(BDB, BYTESPLANE5),
-           KHR_DFDVAL(BDB, BYTESPLANE6),
-           KHR_DFDVAL(BDB, BYTESPLANE7));
-    for (sample = 0; sample < samples; ++sample) {
-        khr_df_model_channels_e channelType = KHR_DFDSVAL(BDB, sample, CHANNELID);
-        printf("Sample %d:\n", sample);
+    while (true) {
+        if (remainingSize < sizeof_DFDBHeader)
+            break; // Invalid DFD: Missing or partial block header
 
-        khr_df_sample_datatype_qualifiers_e qualifiers = KHR_DFDSVAL(BDB, sample, QUALIFIERS) >> 4;
-        printf("    Qualifiers: 0x%x (", qualifiers);
-        printFlagBits(qualifiers, dfdToStringSampleDatatypeQualifiers);
-        printf(")\n");
-        printf("    Channel Type: 0x%x", channelType);
-        {
-            const char* str = dfdToStringChannelId(model, channelType);
-            if (str)
-                printf(" (%s)\n", str);
-            else
-                printf(" (%d)\n", channelType);
+        const khr_df_vendorid_e vendorID = KHR_DFDVAL(block, VENDORID);
+        const khr_df_khr_descriptortype_e descriptorType = KHR_DFDVAL(block, DESCRIPTORTYPE);
+        const khr_df_versionnumber_e versionNumber = KHR_DFDVAL(block, VERSIONNUMBER);
+        const uint32_t blockSize = KHR_DFDVAL(block, DESCRIPTORBLOCKSIZE);
+
+        printf("Vendor ID: ");
+        PRINT_ENUM(vendorID, dfdToStringVendorID);
+        printf("\nDescriptor type: ");
+        PRINT_ENUM(descriptorType, dfdToStringDescriptorType);
+        printf("\nVersion: ");
+        PRINT_ENUM(versionNumber, dfdToStringVersionNumber);
+        printf("\nDescriptor block size: %u", blockSize);
+        printf("\n");
+
+        if (vendorID == KHR_DF_VENDORID_KHRONOS && descriptorType == KHR_DF_KHR_DESCRIPTORTYPE_BASICFORMAT) {
+            if (remainingSize < sizeof_BDFD)
+                break; // Invalid DFD: Missing or partial basic DFD block
+
+            const int model = KHR_DFDVAL(block, MODEL);
+
+            khr_df_flags_e flags = KHR_DFDVAL(block, FLAGS);
+            printf("Flags: 0x%X (", flags);
+            printFlagBits(flags, dfdToStringFlagsBit);
+            printf(")\nTransfer: ");
+            PRINT_ENUM(KHR_DFDVAL(block, TRANSFER), dfdToStringTransferFunction);
+            printf("\nPrimaries: ");
+            PRINT_ENUM(KHR_DFDVAL(block, PRIMARIES), dfdToStringColorPrimaries);
+            printf("\nModel: ");
+            PRINT_ENUM(model, dfdToStringColorModel);
+            printf("\n");
+
+            printf("Dimensions: %u, %u, %u, %u\n",
+                   KHR_DFDVAL(block, TEXELBLOCKDIMENSION0) + 1,
+                   KHR_DFDVAL(block, TEXELBLOCKDIMENSION1) + 1,
+                   KHR_DFDVAL(block, TEXELBLOCKDIMENSION2) + 1,
+                   KHR_DFDVAL(block, TEXELBLOCKDIMENSION3) + 1);
+            printf("Plane bytes: %u, %u, %u, %u, %u, %u, %u, %u\n",
+                   KHR_DFDVAL(block, BYTESPLANE0),
+                   KHR_DFDVAL(block, BYTESPLANE1),
+                   KHR_DFDVAL(block, BYTESPLANE2),
+                   KHR_DFDVAL(block, BYTESPLANE3),
+                   KHR_DFDVAL(block, BYTESPLANE4),
+                   KHR_DFDVAL(block, BYTESPLANE5),
+                   KHR_DFDVAL(block, BYTESPLANE6),
+                   KHR_DFDVAL(block, BYTESPLANE7));
+
+            const int samples = (blockSize - sizeof_BDFD) / sizeof_BDFDSample;
+            for (int sample = 0; sample < samples; ++sample) {
+                if (remainingSize < sizeof_BDFD + (sample + 1) * sizeof_BDFDSample)
+                    break; // Invalid DFD: Missing or partial basic DFD sample
+
+                khr_df_model_channels_e channelType = KHR_DFDSVAL(block, sample, CHANNELID);
+                printf("Sample %u:\n", sample);
+
+                khr_df_sample_datatype_qualifiers_e qualifiers = KHR_DFDSVAL(block, sample, QUALIFIERS);
+                printf("    Qualifiers: 0x%X (", qualifiers);
+                printFlagBits(qualifiers, dfdToStringSampleDatatypeQualifiers);
+                printf(")\n");
+                printf("    Channel Type: 0x%X", channelType);
+                {
+                    const char* str = dfdToStringChannelId(model, channelType);
+                    if (str)
+                        printf(" (%s)\n", str);
+                    else
+                        printf(" (%u)\n", channelType);
+                }
+                printf("    Length: %u bits Offset: %u\n",
+                       KHR_DFDSVAL(block, sample, BITLENGTH) + 1,
+                       KHR_DFDSVAL(block, sample, BITOFFSET));
+                printf("    Position: %u, %u, %u, %u\n",
+                       KHR_DFDSVAL(block, sample, SAMPLEPOSITION0),
+                       KHR_DFDSVAL(block, sample, SAMPLEPOSITION1),
+                       KHR_DFDSVAL(block, sample, SAMPLEPOSITION2),
+                       KHR_DFDSVAL(block, sample, SAMPLEPOSITION3));
+                printf("    Lower: 0x%08x\n    Upper: 0x%08x\n",
+                       KHR_DFDSVAL(block, sample, SAMPLELOWER),
+                       KHR_DFDSVAL(block, sample, SAMPLEUPPER));
+            }
+        } else if (vendorID == KHR_DF_VENDORID_KHRONOS && descriptorType == KHR_DF_KHR_DESCRIPTORTYPE_ADDITIONAL_DIMENSIONS) {
+            // TODO Tools P5: Implement DFD print for ADDITIONAL_DIMENSIONS
+        } else if (vendorID == KHR_DF_VENDORID_KHRONOS && descriptorType == KHR_DF_KHR_DESCRIPTORTYPE_ADDITIONAL_PLANES) {
+            // TODO Tools P5: Implement DFD print for ADDITIONAL_PLANES
+        } else {
+            printf("Unknown block\n");
         }
-        printf("    Length: %d bits Offset: %d\n",
-               KHR_DFDSVAL(BDB, sample, BITLENGTH) + 1,
-               KHR_DFDSVAL(BDB, sample, BITOFFSET));
-        printf("    Position: %d, %d, %d, %d\n",
-               KHR_DFDSVAL(BDB, sample, SAMPLEPOSITION0),
-               KHR_DFDSVAL(BDB, sample, SAMPLEPOSITION1),
-               KHR_DFDSVAL(BDB, sample, SAMPLEPOSITION2),
-               KHR_DFDSVAL(BDB, sample, SAMPLEPOSITION3));
-        printf("    Lower: 0x%08x\n    Upper: 0x%08x\n",
-               KHR_DFDSVAL(BDB, sample, SAMPLELOWER),
-               KHR_DFDSVAL(BDB, sample, SAMPLEUPPER));
-    }
 
+        const uint32_t advance = sizeof_DFDBHeader > blockSize ? sizeof_DFDBHeader : blockSize;
+        if (advance > remainingSize)
+            break;
+        remainingSize -= advance;
+        block += advance / 4;
+    }
 #undef PRINT_ENUM
 }
 
@@ -771,11 +818,12 @@ void printDFD(uint32_t *DFD)
  * @brief Print a JSON interpretation of a data format descriptor.
  *
  * @param DFD Pointer to a data format descriptor.
+ * @param dataSize The maximum size that can be considered as part of the DFD.
  * @param base_indent The number of indentations to include at the front of every line
  * @param indent_width The number of spaces to add with each nested scope
  * @param minified Specifies whether the JSON output should be minified
  **/
-void printDFDJSON(uint32_t* DFD, uint32_t base_indent, uint32_t indent_width, bool minified)
+void printDFDJSON(uint32_t* DFD, uint32_t dataSize, uint32_t base_indent, uint32_t indent_width, bool minified)
 {
     if (minified) {
         base_indent = 0;
@@ -784,21 +832,17 @@ void printDFDJSON(uint32_t* DFD, uint32_t base_indent, uint32_t indent_width, bo
     const char* space = minified ? "" : " ";
     const char* nl = minified ? "" : "\n";
 
-    uint32_t dfdTotalSize = DFD[0];
-    uint32_t dfdTotalSizeRemaining = dfdTotalSize - 4;
-    uint32_t* BDB = DFD + 1;
-
 #define LENGTH_OF_INDENT(INDENT) ((base_indent + INDENT) * indent_width)
 
 /** Prints an enum as string or number */
-#define PRINT_ENUM(INDENT, NAME, VALUE, TO_STRING_FN, COMMA) {             \
+#define PRINT_ENUM(INDENT, NAME, VALUE, TO_STRING_FN, COMMA) {          \
         int value = VALUE;                                                 \
         printf("%*s\"" NAME "\":%s", LENGTH_OF_INDENT(INDENT), "", space); \
         const char* str = TO_STRING_FN(value);                             \
         if (str)                                                           \
             printf("\"%s\"", str);                                         \
         else                                                               \
-            printf("%d", value);                                           \
+            printf("%u", value);                                           \
         printf(COMMA "%s", nl);                                            \
     }
 
@@ -814,97 +858,160 @@ void printDFDJSON(uint32_t* DFD, uint32_t base_indent, uint32_t indent_width, bo
         printf("%*s" FMT, LENGTH_OF_INDENT(INDENT), "", __VA_ARGS__); \
     }
 
-    PRINT_INDENT(0, "\"totalSize\":%s%d,%s", space, dfdTotalSize, nl)
-    PRINT_INDENT(0, "\"blocks\":%s[%s", space, nl)
-
-    while (dfdTotalSizeRemaining > 0) {
-        int blockSize = KHR_DFDVAL(BDB, DESCRIPTORBLOCKSIZE);
-        int samples = (blockSize - 4 * KHR_DF_WORD_SAMPLESTART) / (4 * KHR_DF_WORD_SAMPLEWORDS);
-        int model = KHR_DFDVAL(BDB, MODEL);
-
-        PRINT_INDENT(1, "{%s", nl)
-        PRINT_ENUM_C(2, "descriptorType", KHR_DFDVAL(BDB, DESCRIPTORTYPE), dfdToStringDescriptorType);
-        PRINT_ENUM_C(2, "vendorId", KHR_DFDVAL(BDB, VENDORID), dfdToStringVendorID);
-        PRINT_INDENT(2, "\"descriptorBlockSize\":%s%d,%s", space, blockSize, nl)
-        PRINT_ENUM_C(2, "versionNumber", KHR_DFDVAL(BDB, VERSIONNUMBER), dfdToStringVersionNumber);
-
-        PRINT_INDENT(2, "\"flags\":%s[%s", space, nl)
-        khr_df_flags_e flags = KHR_DFDVAL(BDB, FLAGS);
-        printFlagBitsJSON(LENGTH_OF_INDENT(3), nl, flags, dfdToStringFlagsBit);
-        PRINT_INDENT(2, "],%s", nl)
-
-        PRINT_ENUM_C(2, "transferFunction", KHR_DFDVAL(BDB, TRANSFER), dfdToStringTransferFunction);
-        PRINT_ENUM_C(2, "colorPrimaries", KHR_DFDVAL(BDB, PRIMARIES), dfdToStringColorPrimaries);
-        PRINT_ENUM_C(2, "colorModel", model, dfdToStringColorModel);
-        PRINT_INDENT(2, "\"texelBlockDimension\":%s[%d,%s%d,%s%d,%s%d],%s", space,
-                KHR_DFDVAL(BDB, TEXELBLOCKDIMENSION0) + 1, space,
-                KHR_DFDVAL(BDB, TEXELBLOCKDIMENSION1) + 1, space,
-                KHR_DFDVAL(BDB, TEXELBLOCKDIMENSION2) + 1, space,
-                KHR_DFDVAL(BDB, TEXELBLOCKDIMENSION3) + 1, nl)
-        PRINT_INDENT(2, "\"bytesPlane\":%s[%d,%s%d,%s%d,%s%d,%s%d,%s%d,%s%d,%s%d],%s", space,
-                KHR_DFDVAL(BDB, BYTESPLANE0), space,
-                KHR_DFDVAL(BDB, BYTESPLANE1), space,
-                KHR_DFDVAL(BDB, BYTESPLANE2), space,
-                KHR_DFDVAL(BDB, BYTESPLANE3), space,
-                KHR_DFDVAL(BDB, BYTESPLANE4), space,
-                KHR_DFDVAL(BDB, BYTESPLANE5), space,
-                KHR_DFDVAL(BDB, BYTESPLANE6), space,
-                KHR_DFDVAL(BDB, BYTESPLANE7), nl)
-
-        PRINT_INDENT(2, "\"samples\":%s[%s", space, nl)
-        for (int sample = 0; sample < samples; ++sample) {
-            PRINT_INDENT(3, "{%s", nl)
-
-            khr_df_sample_datatype_qualifiers_e qualifiers = KHR_DFDSVAL(BDB, sample, QUALIFIERS) >> 4;
-            if (qualifiers == 0) {
-                PRINT_INDENT(4, "\"qualifiers\":%s[],%s", space, nl)
-
-            } else {
-                PRINT_INDENT(4, "\"qualifiers\":%s[%s", space, nl)
-                printFlagBitsJSON(LENGTH_OF_INDENT(5), nl, qualifiers, dfdToStringSampleDatatypeQualifiers);
-                PRINT_INDENT(4, "],%s", nl)
-            }
-
-            khr_df_model_channels_e channelType = KHR_DFDSVAL(BDB, sample, CHANNELID);
-            const char* channelStr = dfdToStringChannelId(model, channelType);
-            if (channelStr)
-                PRINT_INDENT(4, "\"channelType\":%s\"%s\",%s", space, channelStr, nl)
-            else
-                PRINT_INDENT(4, "\"channelType\":%s%d,%s", space, channelType, nl)
-
-            PRINT_INDENT(4, "\"bitLength\":%s%d,%s", space, KHR_DFDSVAL(BDB, sample, BITLENGTH), nl)
-            PRINT_INDENT(4, "\"bitOffset\":%s%d,%s", space, KHR_DFDSVAL(BDB, sample, BITOFFSET), nl)
-            PRINT_INDENT(4, "\"samplePosition\":%s[%d,%s%d,%s%d,%s%d],%s", space,
-                    KHR_DFDSVAL(BDB, sample, SAMPLEPOSITION0), space,
-                    KHR_DFDSVAL(BDB, sample, SAMPLEPOSITION1), space,
-                    KHR_DFDSVAL(BDB, sample, SAMPLEPOSITION2), space,
-                    KHR_DFDSVAL(BDB, sample, SAMPLEPOSITION3), nl)
-
-            if (qualifiers & KHR_DF_SAMPLE_DATATYPE_SIGNED) {
-                PRINT_INDENT(4, "\"sampleLower\":%s%d,%s", space, KHR_DFDSVAL(BDB, sample, SAMPLELOWER), nl)
-                PRINT_INDENT(4, "\"sampleUpper\":%s%d%s", space, KHR_DFDSVAL(BDB, sample, SAMPLEUPPER), nl)
-            } else {
-                PRINT_INDENT(4, "\"sampleLower\":%s%u,%s", space, (unsigned int) KHR_DFDSVAL(BDB, sample, SAMPLELOWER), nl)
-                PRINT_INDENT(4, "\"sampleUpper\":%s%u%s", space, (unsigned int) KHR_DFDSVAL(BDB, sample, SAMPLEUPPER), nl)
-            }
-
-            if (sample + 1 != samples)
-                PRINT_INDENT(3, "},%s", nl)
-            else
-                PRINT_INDENT(3, "}%s", nl)
-        }
-        PRINT_INDENT(2, "]%s", nl) // End of samples
-
-        PRINT_INDENT(1, "}%s", nl) // End of block
-
-        assert((uint32_t) blockSize <= dfdTotalSizeRemaining);
-        dfdTotalSizeRemaining -= blockSize;
-        BDB += blockSize / 4;
+#define PRINT_INDENT_NOARG(INDENT, FMT) {                \
+        printf("%*s" FMT, LENGTH_OF_INDENT(INDENT), ""); \
     }
+
+    const uint32_t sizeof_dfdTotalSize = sizeof(uint32_t);
+    const uint32_t sizeof_DFDBHeader = sizeof(uint32_t) * 2;
+    const uint32_t sizeof_BDFD = sizeof(uint32_t) * KHR_DF_WORD_SAMPLESTART;
+    const uint32_t sizeof_BDFDSample = sizeof(uint32_t) * KHR_DF_WORD_SAMPLEWORDS;
+
+    uint32_t dfdTotalSize = dataSize >= sizeof_dfdTotalSize ? DFD[0] : 0;
+    PRINT_INDENT(0, "\"totalSize\":%s%u,%s", space, dfdTotalSize, nl)
+
+    uint32_t remainingSize = dfdTotalSize < dataSize ? dfdTotalSize : dataSize;
+    if (remainingSize < sizeof_dfdTotalSize) {
+        PRINT_INDENT(0, "\"blocks\":%s[]%s", space, nl) // Print empty blocks to confirm to the json scheme
+        return; // Invalid DFD: dfdTotalSize must be present
+    }
+
+    uint32_t* block = DFD + 1;
+    remainingSize -= sizeof_dfdTotalSize;
+    PRINT_INDENT(0, "\"blocks\":%s[", space)
+
+    bool firstBlock = true;
+    while (true) {
+        if (remainingSize < sizeof_DFDBHeader)
+            break; // Invalid DFD: Missing or partial block header
+
+        const khr_df_vendorid_e vendorID = KHR_DFDVAL(block, VENDORID);
+        const khr_df_khr_descriptortype_e descriptorType = KHR_DFDVAL(block, DESCRIPTORTYPE);
+        const khr_df_versionnumber_e versionNumber = KHR_DFDVAL(block, VERSIONNUMBER);
+        const uint32_t blockSize = KHR_DFDVAL(block, DESCRIPTORBLOCKSIZE);
+
+        const int model = KHR_DFDVAL(block, MODEL);
+
+        if (firstBlock) {
+            firstBlock = false;
+            printf("%s", nl);
+        } else {
+            printf(",%s", nl);
+        }
+        PRINT_INDENT(1, "{%s", nl)
+        PRINT_ENUM_C(2, "vendorId", vendorID, dfdToStringVendorID);
+        PRINT_ENUM_C(2, "descriptorType", descriptorType, dfdToStringDescriptorType);
+        PRINT_ENUM_C(2, "versionNumber", versionNumber, dfdToStringVersionNumber);
+        PRINT_INDENT(2, "\"descriptorBlockSize\":%s%u", space, blockSize)
+
+        if (vendorID == KHR_DF_VENDORID_KHRONOS && descriptorType == KHR_DF_KHR_DESCRIPTORTYPE_BASICFORMAT) {
+            if (remainingSize < sizeof_BDFD) {
+                // Invalid DFD: Missing or partial basic DFD block
+                printf("%s", nl);
+                PRINT_INDENT(1, "}%s", nl) // End of block
+                break;
+            }
+
+            printf(",%s", nl);
+            PRINT_INDENT(2, "\"flags\":%s[%s", space, nl)
+            khr_df_flags_e flags = KHR_DFDVAL(block, FLAGS);
+            printFlagBitsJSON(LENGTH_OF_INDENT(3), nl, flags, dfdToStringFlagsBit);
+            PRINT_INDENT(2, "],%s", nl)
+
+            PRINT_ENUM_C(2, "transferFunction", KHR_DFDVAL(block, TRANSFER), dfdToStringTransferFunction);
+            PRINT_ENUM_C(2, "colorPrimaries", KHR_DFDVAL(block, PRIMARIES), dfdToStringColorPrimaries);
+            PRINT_ENUM_C(2, "colorModel", model, dfdToStringColorModel);
+            PRINT_INDENT(2, "\"texelBlockDimension\":%s[%u,%s%u,%s%u,%s%u],%s", space,
+                    KHR_DFDVAL(block, TEXELBLOCKDIMENSION0) + 1, space,
+                    KHR_DFDVAL(block, TEXELBLOCKDIMENSION1) + 1, space,
+                    KHR_DFDVAL(block, TEXELBLOCKDIMENSION2) + 1, space,
+                    KHR_DFDVAL(block, TEXELBLOCKDIMENSION3) + 1, nl)
+            PRINT_INDENT(2, "\"bytesPlane\":%s[%u,%s%u,%s%u,%s%u,%s%u,%s%u,%s%u,%s%u],%s", space,
+                    KHR_DFDVAL(block, BYTESPLANE0), space,
+                    KHR_DFDVAL(block, BYTESPLANE1), space,
+                    KHR_DFDVAL(block, BYTESPLANE2), space,
+                    KHR_DFDVAL(block, BYTESPLANE3), space,
+                    KHR_DFDVAL(block, BYTESPLANE4), space,
+                    KHR_DFDVAL(block, BYTESPLANE5), space,
+                    KHR_DFDVAL(block, BYTESPLANE6), space,
+                    KHR_DFDVAL(block, BYTESPLANE7), nl)
+
+            PRINT_INDENT(2, "\"samples\":%s[%s", space, nl)
+            const int samples = (blockSize - sizeof_BDFD) / sizeof_BDFDSample;
+            for (int sample = 0; sample < samples; ++sample) {
+                if (remainingSize < sizeof_BDFD + (sample + 1) * sizeof_BDFDSample)
+                    break; // Invalid DFD: Missing or partial basic DFD sample
+
+                if (sample != 0)
+                    printf(",%s", nl);
+                PRINT_INDENT(3, "{%s", nl)
+
+                khr_df_sample_datatype_qualifiers_e qualifiers = KHR_DFDSVAL(block, sample, QUALIFIERS);
+                if (qualifiers == 0) {
+                    PRINT_INDENT(4, "\"qualifiers\":%s[],%s", space, nl)
+
+                } else {
+                    PRINT_INDENT(4, "\"qualifiers\":%s[%s", space, nl)
+                    printFlagBitsJSON(LENGTH_OF_INDENT(5), nl, qualifiers, dfdToStringSampleDatatypeQualifiers);
+                    PRINT_INDENT(4, "],%s", nl)
+                }
+
+                khr_df_model_channels_e channelType = KHR_DFDSVAL(block, sample, CHANNELID);
+                const char* channelStr = dfdToStringChannelId(model, channelType);
+                if (channelStr)
+                    PRINT_INDENT(4, "\"channelType\":%s\"%s\",%s", space, channelStr, nl)
+                else
+                    PRINT_INDENT(4, "\"channelType\":%s%u,%s", space, channelType, nl)
+
+                PRINT_INDENT(4, "\"bitLength\":%s%u,%s", space, KHR_DFDSVAL(block, sample, BITLENGTH), nl)
+                PRINT_INDENT(4, "\"bitOffset\":%s%u,%s", space, KHR_DFDSVAL(block, sample, BITOFFSET), nl)
+                PRINT_INDENT(4, "\"samplePosition\":%s[%u,%s%u,%s%u,%s%u],%s", space,
+                        KHR_DFDSVAL(block, sample, SAMPLEPOSITION0), space,
+                        KHR_DFDSVAL(block, sample, SAMPLEPOSITION1), space,
+                        KHR_DFDSVAL(block, sample, SAMPLEPOSITION2), space,
+                        KHR_DFDSVAL(block, sample, SAMPLEPOSITION3), nl)
+
+                if (qualifiers & KHR_DF_SAMPLE_DATATYPE_SIGNED) {
+                    PRINT_INDENT(4, "\"sampleLower\":%s%d,%s", space, KHR_DFDSVAL(block, sample, SAMPLELOWER), nl)
+                    PRINT_INDENT(4, "\"sampleUpper\":%s%d%s", space, KHR_DFDSVAL(block, sample, SAMPLEUPPER), nl)
+                } else {
+                    PRINT_INDENT(4, "\"sampleLower\":%s%u,%s", space, (unsigned int) KHR_DFDSVAL(block, sample, SAMPLELOWER), nl)
+                    PRINT_INDENT(4, "\"sampleUpper\":%s%u%s", space, (unsigned int) KHR_DFDSVAL(block, sample, SAMPLEUPPER), nl)
+                }
+
+                PRINT_INDENT_NOARG(3, "}")
+            }
+            printf("%s", nl);
+            PRINT_INDENT(2, "]%s", nl) // End of samples
+        } else if (vendorID == KHR_DF_VENDORID_KHRONOS && descriptorType == KHR_DF_KHR_DESCRIPTORTYPE_ADDITIONAL_DIMENSIONS) {
+            printf("%s", nl);
+            // printf(",%s", nl); // If there is extra member printed
+            // TODO Tools P5: Implement DFD print for ADDITIONAL_DIMENSIONS
+        } else if (vendorID == KHR_DF_VENDORID_KHRONOS && descriptorType == KHR_DF_KHR_DESCRIPTORTYPE_ADDITIONAL_PLANES) {
+            printf("%s", nl);
+            // printf(",%s", nl); // If there is extra member printed
+            // TODO Tools P5: Implement DFD print for ADDITIONAL_PLANES
+        } else {
+            printf("%s", nl);
+            // printf(",%s", nl); // If there is extra member printed
+            // TODO Tools P5: What to do with unknown blocks for json?
+            //      Unknown block data in binary?
+        }
+
+        PRINT_INDENT_NOARG(1, "}") // End of block
+
+        const uint32_t advance = sizeof_DFDBHeader > blockSize ? sizeof_DFDBHeader : blockSize;
+        if (advance > remainingSize)
+            break;
+        remainingSize -= advance;
+        block += advance / 4;
+    }
+    printf("%s", nl);
     PRINT_INDENT(0, "]%s", nl) // End of blocks
 
 #undef PRINT_ENUM
 #undef PRINT_ENUM_C
 #undef PRINT_ENUM_E
 #undef PRINT_INDENT
+#undef PRINT_INDENT_NOARG
 }

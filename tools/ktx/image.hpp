@@ -15,18 +15,18 @@
 #ifndef IMAGE_HPP
 #define IMAGE_HPP
 
-#include <math.h>
+#include <cmath>
+#include <algorithm>
 #include <sstream>
 #include <stdexcept>
+#include <string_view>
 #include <vector>
 #include <KHR/khr_df.h>
 
-#include "argparser.h"
+#include "utility.h"
 #include "unused.h"
 #include "encoder/basisu_resampler.h"
 #include "encoder/basisu_resampler_filters.h"
-
-typedef float (*OETFFunc)(float const, float const);
 
 // cclamp to avoid conflict in toktx.cc with clamp template defined in scApp.
 template <typename T> inline T cclamp(T value, T low, T high) {
@@ -45,124 +45,363 @@ template <typename S> inline S minimum(S a, S b) { return (a < b) ? a : b; }
 #define INLINE __inline__
 #endif
 
-static INLINE float
-encode_bt709(float const intensity, float const) {
+struct ColorPrimaryTransform {
+    ColorPrimaryTransform() {}
+
+    ColorPrimaryTransform(const std::vector<float>& elements) {
+        for (uint32_t i = 0; i < 3; ++i)
+            for (uint32_t j = 0; j < 3; ++j)
+                matrix[i][j] = elements[i * 3 + j];
+    }
+
+    float matrix[3][3];
+};
+
+struct TransferFunction {
+    virtual float encode(const float intensity) const = 0;
+    virtual float decode(const float brightness) const = 0;
+    virtual ~TransferFunction() {}
+};
+
+struct TransferFunctionLinear : public TransferFunction {
+    float encode(const float intensity) const override {
+        return intensity;
+    }
+    float decode(const float brightness) const override {
+        return brightness;
+    }
+};
+
+struct TransferFunctionGamma : public TransferFunction {
+    TransferFunctionGamma(float oeGamma) : oeGamma_{oeGamma}, eoGamma_{1.f / oeGamma} {}
+
+    float encode(const float intensity) const override {
+        return saturate(powf(intensity, oeGamma_));
+    }
+
+    float decode(const float brightness) const override {
+        return saturate(powf(brightness, eoGamma_));
+    }
+
+private:
+    const float oeGamma_;
+    const float eoGamma_;
+};
+
+struct TransferFunctionSRGB : public TransferFunction {
+    float encode(const float intensity) const override {
+        float brightness;
+
+        if (intensity < 0.0031308f)
+            brightness = 12.92f * intensity;
+        else
+            brightness = 1.055f * pow(intensity, 1.0f/2.4f) - 0.055f;
+
+        return brightness;
+    }
+
+    float decode(const float brightness) const override {
+        float intensity;
+
+        if (brightness < .04045f)
+            intensity = saturate(brightness * (1.0f/12.92f));
+        else
+            intensity = saturate(powf((brightness + .055f) * (1.0f/1.055f), 2.4f));
+
+        return intensity;
+    }
+};
+
+struct TransferFunctionITU : public TransferFunction {
+    float encode(const float intensity) const override {
+        float brightness;
+
+        if (intensity < linearCutoff_)
+            brightness = intensity * linearExpansion_;
+        else
+            brightness = 1.099f * pow(intensity, oeGamma_) - 0.099f;
+
+        return brightness;
+    }
+
+    float decode(const float brightness) const override {
+        float intensity;
+
+        if (brightness < linearCutoff_ * linearExpansion_)
+            intensity = brightness / linearExpansion_;
+        else
+            intensity = pow((brightness + 0.099f) / 1.099f, eoGamma_);
+
+        return intensity;
+    }
+
+private:
     /* We're following what Netpbm does. This is their comment and code. */
 
     /* Here are parameters of the gamma transfer function for the Netpbm
-       formats.  This is ITU-R Recommendation BT.709, FKA CIE Rec 709.  It is
-       also ITU-R Recommendation BT.601, FKA CCIR 601.
+    formats.  This is ITU-R Recommendation BT.709, FKA CIE Rec 709.  It is
+    also ITU-R Recommendation BT.601, FKA CCIR 601.
 
-       This transfer function is linear for sample values 0 .. .018
-       and an exponential for larger sample values.
-       The exponential is slightly stretched and translated, though,
-       unlike the popular pure exponential gamma transfer function.
+    This transfer function is linear for sample values 0 .. .018
+    and an exponential for larger sample values.
+    The exponential is slightly stretched and translated, though,
+    unlike the popular pure exponential gamma transfer function.
 
-       The standard actually defines the linear expansion as 4.500, which
-       means there is a discontinuity at linear intensity .018.  We instead
-       use ~4.514 to make a continuous function.  This may have been simply
-       a mistake when this code was written or based on an actual benefit
-       to having a continuous function -- The history is not clear.
+    The standard actually defines the linear expansion as 4.500, which
+    means there is a discontinuity at linear intensity .018.  We instead
+    use ~4.514 to make a continuous function.  This may have been simply
+    a mistake when this code was written or based on an actual benefit
+    to having a continuous function -- The history is not clear.
 
-       Note that the discrepancy is below the precision of a maxval 255
-       image.
+    Note that the discrepancy is below the precision of a maxval 255
+    image.
     */
-    float const eoGamma = 2.2f;
-    float const oeGamma = 1.0f / eoGamma;
-    float const linearCutoff = 0.018f;
-    float const linearExpansion =
-        (1.099f * pow(linearCutoff, oeGamma) - 0.099f) / linearCutoff;
+    const float eoGamma_{2.2f};
+    const float oeGamma_{1.0f / eoGamma_};
+    const float linearCutoff_{0.018f};
+    const float linearExpansion_{(1.099f * pow(linearCutoff_, oeGamma_) - 0.099f) / linearCutoff_};
+};
 
-    float brightness;
+struct TransferFunctionBT2100_PQ_EOTF : public TransferFunction {
+    float decode(const float brightness) const override {
+        float Ym1 = pow(brightness, m1_);
+        return pow((c1_ + c2_ * Ym1) / (1 + c3_ * Ym1), m2_);
+    }
 
-    if (intensity < linearCutoff)
-        brightness = intensity * linearExpansion;
-    else
-        brightness = 1.099f * pow(intensity, oeGamma) - 0.099f;
+    float encode(const float intensity) const override {
+        float Erm2 = pow(intensity, rm2_);
+        return std::pow(std::max(Erm2 - c1_, 0.f) / (c2_ - c3_ * Erm2), m1_);
+    }
 
-    return brightness;
-}
+private:
+    const float m1_{0.1593017578125f};
+    const float rm1_{1.f / m1_};
+    const float m2_{78.84375f};
+    const float rm2_{1.f / m2_};
+    const float c1_{0.8359375f};
+    const float c2_{18.8515625f};
+    const float c3_{18.6875};
+};
 
-static INLINE float
-decode_bt709(float const brightness, float const)
-{
-    float const eoGamma = 2.2f;
-    float const oeGamma = 1.0f / eoGamma;
-    float const linearCutoff = 0.018f;
-    float const linearExpansion =
-        (1.099f * pow(linearCutoff, oeGamma) - 0.099f) / linearCutoff;
+struct ColorPrimaries {
+    ColorPrimaries(const ColorPrimaryTransform& inToXYZ, const ColorPrimaryTransform& inFromXYZ)
+        : toXYZ(inToXYZ), fromXYZ(inFromXYZ) {}
 
-    float intensity;
+    ColorPrimaryTransform transformTo(const ColorPrimaries& targetPrimaries) const {
+        ColorPrimaryTransform result;
+        for (uint32_t i = 0; i < 3; ++i)
+            for (uint32_t j = 0; j < 3; ++j) {
+                result.matrix[i][j] = 0;
+                for (uint32_t k = 0; k < 3; ++k)
+                    result.matrix[i][j] += toXYZ.matrix[i][k] * targetPrimaries.fromXYZ.matrix[k][j];
+            }
+        return result;
+    }
 
-    if (brightness < linearCutoff * linearExpansion)
-        intensity = brightness / linearExpansion;
-    else
-        intensity = pow((brightness + 0.099f) / 1.099f, eoGamma);
+    const ColorPrimaryTransform toXYZ;
+    const ColorPrimaryTransform fromXYZ;
+};
 
-    return intensity;
-}
 
-// These are called from resample as well as decode, hence the default
-// parameter values.
-static INLINE float
-encode_sRGB(float const intensity, float const unused = 1.0f)
-{
-    UNUSED(unused);
-    float brightness;
+struct ColorPrimariesBT709 : public ColorPrimaries {
+    ColorPrimariesBT709() : ColorPrimaries(
+        ColorPrimaryTransform({
+            +0.412391f, +0.357584f, +0.180481f,
+            +0.212639f, +0.715169f, +0.072192f,
+            +0.019331f, +0.119195f, +0.950532f
+        }),
+        ColorPrimaryTransform({
+            +3.240970f, -1.537383f, -0.498611f,
+            -0.969244f, +1.875968f, +0.041555f,
+            +0.055630f, -0.203977f, +1.056972f
+        })
+    ) {}
+};
 
-    if (intensity < 0.0031308f)
-        brightness = 12.92f * intensity;
-    else
-        brightness = 1.055f * pow(intensity, 1.0f/2.4f) - 0.055f;
+struct ColorPrimariesBT601_625_EBU : public ColorPrimaries {
+    ColorPrimariesBT601_625_EBU() : ColorPrimaries(
+        ColorPrimaryTransform({
+            +0.430554f, +0.341550f, +0.178352f,
+            +0.222004f, +0.706655f, +0.071341f,
+            +0.020182f, +0.129553f, +0.939322f
+        }),
+        ColorPrimaryTransform({
+            +3.063361f, -1.393390f, -0.475824f,
+            -0.969244f, +1.875968f, +0.041555f,
+            +0.067861f, -0.228799f, +1.069090f
+        })
+    ) {}
+};
 
-    return brightness;
-}
+struct ColorPrimariesBT601_525_SMPTE : public ColorPrimaries {
+    ColorPrimariesBT601_525_SMPTE() : ColorPrimaries(
+        ColorPrimaryTransform({
+            +0.393521f, +0.365258f, +0.191677f,
+            +0.212376f, +0.701060f, +0.086564f,
+            +0.018739f, +0.111934f, +0.958385f
+        }),
+        ColorPrimaryTransform({
+            +3.506003f, -1.739791f, -0.544058f,
+            -1.069048f, +1.977779f, +0.035171f,
+            +0.056307f, -0.196976f, +1.049952f
+        })
+    ) {}
+};
 
-static INLINE float
-decode_sRGB(float const brightness, float const unused = 1.0f)
-{
-    UNUSED(unused);
-    float intensity;
+struct ColorPrimariesBT2020 : public ColorPrimaries {
+    ColorPrimariesBT2020() : ColorPrimaries(
+        ColorPrimaryTransform({
+            +0.636958f, +0.144617f, +0.168881f,
+            +0.262700f, +0.677998f, +0.059302f,
+            +0.000000f, +0.028073f, +1.060985f
+        }),
+        ColorPrimaryTransform({
+            +1.716651f, -0.355671f, -0.253366f,
+            -0.666684f, +1.616481f, +0.015769f,
+            +0.017640f, -0.042771f, +0.942103f
+        })
+    ) {}
+};
 
-    if (brightness < .04045f)
-        intensity = saturate(brightness * (1.0f/12.92f));
-    else
-        intensity = saturate(powf((brightness + .055f) * (1.0f/1.055f), 2.4f));
+struct ColorPrimariesCIEXYZ : public ColorPrimaries {
+    ColorPrimariesCIEXYZ() : ColorPrimaries(
+        ColorPrimaryTransform({
+            1.f, 0.f, 0.f,
+            0.f, 1.f, 0.f,
+            0.f, 0.f, 1.f
+        }),
+        ColorPrimaryTransform({
+            1.f, 0.f, 0.f,
+            0.f, 1.f, 0.f,
+            0.f, 0.f, 1.f
+        })
+    ) {}
+};
 
-    return intensity;
-}
+struct ColorPrimariesACES : public ColorPrimaries {
+    ColorPrimariesACES() : ColorPrimaries(
+        ColorPrimaryTransform({
+            +0.9525523959f,  0.0000000000f, +0.0000936786f,
+            +0.3439664498f, +0.7281660966f, -0.0721325464f,
+             0.0000000000f,  0.0000000000f, +1.0088251844f
+        }),
+        ColorPrimaryTransform({
+            +1.0498110175f,  0.0000000000f, -0.0000974845f,
+            -0.4959030231f, +1.3733130458f, +0.0982400361f,
+             0.0000000000f,  0.0000000000f, +0.9912520182f
+        })
+    ) {}
+};
 
-static INLINE float
-// gamma must be the inverse of the exponent that was used
-// when encoding to avoid a division per call.
-decode_gamma(float const brightness, float const eoGamma)
-{
-    return saturate(powf(brightness, eoGamma));
-}
+struct ColorPrimariesACEScc : public ColorPrimaries {
+    ColorPrimariesACEScc() : ColorPrimaries(
+        ColorPrimaryTransform({
+            +0.6624541811f, +0.1340042065f, +0.1561876870f,
+            +0.2722287168f, +0.6740817658f, +0.0536895174f,
+            -0.0055746495f, +0.0040607335f, +1.0103391003f
+        }),
+        ColorPrimaryTransform({
+            +1.6410233797f, -0.3248032942f, -0.2464246952f,
+            -0.6636628587f, +1.6153315917f, +0.0167563477f,
+            +0.0117218943f, -0.0082844420f, +0.9883948585f
+        })
+    ) {}
+};
 
-static INLINE float
-decode_linear(float const brightness, float const)
-{
-    return brightness;
-}
+struct ColorPrimariesNTSC1953 : public ColorPrimaries {
+    ColorPrimariesNTSC1953() : ColorPrimaries(
+        ColorPrimaryTransform({
+            +0.606993f, +0.173449f, +0.200571f,
+            +0.298967f, +0.586421f, +0.114612f,
+            +0.000000f, +0.066076f, +1.117469f
+        }),
+        ColorPrimaryTransform({
+            +1.909675f, -0.532365f, -0.288161f,
+            -0.984965f, +1.999777f, -0.028317f,
+            +0.058241f, -0.118246f, +0.896554f
+        })
+    ) {}
+};
 
-static INLINE float
-encode_linear(float const intensity, float const)
-{
-    return intensity;
-}
+struct ColorPrimariesPAL525 : public ColorPrimaries {
+    ColorPrimariesPAL525() : ColorPrimaries(
+        ColorPrimaryTransform({
+            +0.415394f, +0.354637f, +0.210677f,
+            +0.224181f, +0.680675f, +0.095145f,
+            +0.019781f, +0.108679f, +1.053387f
+        }),
+        ColorPrimaryTransform({
+            +3.321392f, -1.648181f, -0.515410f,
+            -1.101064f, +2.037011f, +0.036225f,
+            +0.051228f, -0.179211f, +0.955260f
+        })
+    ) {}
+};
+
+struct ColorPrimariesDisplayP3 : public ColorPrimaries {
+    ColorPrimariesDisplayP3() : ColorPrimaries(
+        ColorPrimaryTransform({
+            +0.4865709486f, +0.2656676932f, +0.1982172852f,
+            +0.2289745641f, +0.6917385218f, +0.0792869141f,
+             0.0000000000f, +0.0451133819f, +1.0439441689f
+        }),
+        ColorPrimaryTransform({
+            +2.4934969119f, -0.9313836179f, -0.4027107845f,
+            -0.8294889696f, +1.7626640603f, +0.0236246858f,
+            +0.0358458302f, -0.0761723893f, +0.9568845240f
+        })
+    ) {}
+};
+
+struct ColorPrimariesAdobeRGB : public ColorPrimaries {
+    ColorPrimariesAdobeRGB() : ColorPrimaries(
+        ColorPrimaryTransform({
+            +0.5766690429f, +0.1855582379f, +0.1882286462f,
+            +0.2973449753f, +0.6273635663f, +0.0752914585f,
+            +0.0270313614f, +0.0706888525f, +0.9913375368f
+        }),
+        ColorPrimaryTransform({
+            +2.0415879038f, -0.5650069743f, -0.3447313508f,
+            -0.9692436363f, +1.8759675015f, +0.0415550574f,
+            +0.0134442806f, -0.1183623922f, +1.0151749944f
+        })
+    ) {}
+};
 
 template <typename componentType, uint32_t componentCount>
 class color_base {
 public:
-    static uint32_t getComponentCount() { return componentCount; }
-    static uint32_t getComponentSize() { return sizeof(componentType); }
-    static uint32_t getPixelSize() {
+    constexpr static uint32_t getComponentCount() { return componentCount; }
+    constexpr static uint32_t getComponentSize() { return sizeof(componentType); }
+    constexpr static uint32_t getPixelSize() {
         return componentCount * sizeof(componentType);
     }
-    static componentType one() {
-        static_assert(std::is_unsigned_v<componentType>);
+    constexpr static componentType one() {
+        if (std::is_floating_point_v<componentType>)
+            return componentType{1};
+        else
+            return std::numeric_limits<componentType>::max();
+    }
+    constexpr static float rcpOne() {
+        if (std::is_floating_point_v<componentType>)
+            return 1.f;
+        else
+            return 1.f / std::numeric_limits<componentType>::max();
+    }
+    constexpr static float halfUnit() {
+        if (std::is_floating_point_v<componentType>)
+            return 0.f;
+        else
+            return 0.5f / std::numeric_limits<componentType>::max();
+    }
+    constexpr static componentType min() {
+        return std::numeric_limits<componentType>::min();
+    }
+    constexpr static componentType max() {
         return std::numeric_limits<componentType>::max();
+    }
+    componentType clamp(componentType value) {
+        return (value < min()) ? min() : ((value > max()) ? max() : value);
     }
 };
 
@@ -247,13 +486,18 @@ class color<componentType, 4> : public color_base<componentType, 4> {
     color() {}
     color(componentType _r, componentType _g, componentType _b,
           componentType _a) : r(_r), g(_g), b(_b), a(_a) {}
+    componentType operator [](unsigned int i) const {
+        if (i > 3) i = 3;
+        return comps[i];
+    }
     componentType operator [](unsigned int i) {
         if (i > 3) i = 3;
         return comps[i];
     }
-    void set(uint32_t i, float val) {
+    template <typename T>
+    void set(uint32_t i, T val) {
         if (i > 3) i = 3;
-        comps[i] = (componentType)val;
+        comps[i] = color_base<componentType, 4>::clamp((componentType)val);
     }
     void set(uint32_t i, componentType val) {
         if (i > 3) i = 3;
@@ -289,13 +533,18 @@ class color<componentType, 3> : public color_base<componentType, 3> {
         r(_r), g(_g), b(_b) {}
     color(componentType _r, componentType _g, componentType _b, componentType) :
        r(_r), g(_g), b(_b) {}
+    componentType operator [](unsigned int i) const {
+        if (i > 2) i = 2;
+        return comps[i];
+    }
     componentType operator [](unsigned int i) {
         if (i > 2) i = 2;
         return comps[i];
     }
-    void set(uint32_t i, float val) {
+    template <typename T>
+    void set(uint32_t i, T val) {
         if (i > 2) i = 2;
-        comps[i] = (componentType)val;
+        comps[i] = color_base<componentType, 3>::clamp((componentType)val);
     }
     void set(uint32_t i, componentType val) {
         if (i > 2) i = 2;
@@ -330,13 +579,18 @@ class color<componentType, 2> : public color_base<componentType, 2> {
        r(_r), g(_g) {}
     color(componentType _r, componentType _g, componentType, componentType) :
       r(_r), g(_g) {}
+    componentType operator [](unsigned int i) const {
+        if (i > 1) i = 1;
+        return comps[i];
+    }
     componentType operator [](unsigned int i) {
         if (i > 1) i = 1;
         return comps[i];
     }
-    void set(uint32_t i, float val) {
+    template <typename T>
+    void set(uint32_t i, T val) {
         if (i > 1) i = 1;
-        comps[i] = (componentType)val;
+        comps[i] = color_base<componentType, 2>::clamp((componentType)val);
     }
     void set(uint32_t i, componentType val) {
         if (i > 1) i = 1;
@@ -370,13 +624,18 @@ class color<componentType, 1> : public color_base<componentType, 1> {
        r(_r) {}
     color(componentType _r, componentType, componentType, componentType) :
        r(_r) {}
+    componentType operator [](unsigned int i) const {
+        if (i > 0) i = 0;
+        return comps[i];
+    }
     componentType operator [](unsigned int i) {
         if (i > 0) i = 0;
         return comps[i];
     }
-    void set(uint32_t i, float val) {
+    template <typename T>
+    void set(uint32_t i, T val) {
         if (i > 0) i = 0;
-        comps[i] = (componentType)val;
+        comps[i] = color_base<componentType, 1>::clamp((componentType)val);
     }
     void set(uint32_t i, componentType val) {
         if (i > 0) i = 0;
@@ -425,20 +684,32 @@ class Image {
     virtual uint32_t getComponentCount() const = 0;
     virtual uint32_t getComponentSize() const = 0;
     virtual Image* createImage(uint32_t width, uint32_t height) = 0;
+    /// Should only be used if the stored image data is UNORM
+    virtual std::vector<uint8_t> getUNORM(uint32_t numChannels, uint32_t targetBits) const = 0;
+    /// Should only be used if the stored image data is UNORM
+    virtual std::vector<uint8_t> getUNORMPackedPadded(
+            uint32_t c0, uint32_t c0Pad, uint32_t c1, uint32_t c1Pad,
+            uint32_t c2, uint32_t c2Pad, uint32_t c3, uint32_t c3Pad) const = 0;
+    /// Should only be used if the stored image data is SFloat
+    virtual std::vector<uint8_t> getSFloat(uint32_t numChannels, uint32_t targetBits) const = 0;
+    /// Should only be used if the stored image data is UINT
+    virtual std::vector<uint8_t> getUINT(uint32_t numChannels, uint32_t targetBits) const = 0;
+    /// Should only be used if the stored image data is SINT
+    virtual std::vector<uint8_t> getSINT(uint32_t numChannels, uint32_t targetBits) const = 0;
     virtual void resample(Image& dst, bool srgb = false,
                           const char *pFilter = "lanczos4",
                           float filter_scale = 1.0f,
                           basisu::Resampler::Boundary_Op wrapMode
                           = basisu::Resampler::Boundary_Op::BOUNDARY_CLAMP) = 0;
     virtual Image& yflip() = 0;
-    virtual Image& transformOETF(OETFFunc decode, OETFFunc encode,
-                                 float gamma = 1.0f) = 0;
+    virtual Image& transformColorSpace(const TransferFunction& decode, const TransferFunction& encode,
+                                       const ColorPrimaryTransform* transformPrimaries = nullptr) = 0;
     virtual Image& normalize() = 0;
-    virtual Image& swizzle(std::string& swizzle) = 0;
-    virtual Image& copyToR(Image&) = 0;
-    virtual Image& copyToRG(Image&) = 0;
-    virtual Image& copyToRGB(Image&) = 0;
-    virtual Image& copyToRGBA(Image&) = 0;
+    virtual Image& swizzle(std::string_view swizzle) = 0;
+    virtual Image& copyToR(Image&, std::string_view swizzle) = 0;
+    virtual Image& copyToRG(Image&, std::string_view swizzle) = 0;
+    virtual Image& copyToRGB(Image&, std::string_view swizzle) = 0;
+    virtual Image& copyToRGBA(Image&, std::string_view swizzle) = 0;
 
   protected:
     Image() : Image(0, 0) { }
@@ -467,18 +738,21 @@ class ImageT : public Image {
         if (!pixels)
             throw std::bad_alloc();
 
+        freePixels = true;
+
         for (uint32_t p = 0; p < w * h; ++p)
             for(uint32_t c = 0; c < componentCount; ++c)
-                memset(&pixels[p].comps[c], 0, sizeof(componentType));
+                pixels[p].comps[c] = componentType{0};
     }
 
-    ImageT(uint32_t w, uint32_t h, Color* pixels) : Image(w, h), pixels(pixels)
+    ImageT(uint32_t w, uint32_t h, Color* pixels) : Image(w, h), pixels(pixels), freePixels(false)
     {
     }
 
     ~ImageT()
     {
-        free(pixels);
+        if (freePixels)
+            free(pixels);
     }
 
     virtual const Color &operator() (uint32_t x, uint32_t y) const {
@@ -506,6 +780,206 @@ class ImageT : public Image {
     virtual Image* createImage(uint32_t w, uint32_t h) {
         ImageT* image = new ImageT(w, h);
         return image;
+    }
+
+    virtual std::vector<uint8_t> getUNORM(uint32_t numChannels, uint32_t targetBits) const override {
+        assert(numChannels <= componentCount);
+        assert(targetBits == 8 || targetBits == 16 || targetBits == 32);
+
+        const uint32_t sourceBits = sizeof(componentType) * 8;
+        const uint32_t targetBytes = targetBits / 8;
+        std::vector<uint8_t> data(height * width * numChannels * targetBytes);
+
+        for (uint32_t y = 0; y < height; ++y) {
+            for (uint32_t x = 0; x < width; ++x) {
+                for (uint32_t c = 0; c < numChannels; ++c) {
+                    const auto sourceValue = c < componentCount ? pixels[y * width + x][c] : (c != 3 ? componentType{0} : Color::one());
+                    const auto value = ktx::convertUNORM(static_cast<uint32_t>(sourceValue), sourceBits, targetBits);
+                    auto* target = data.data() + (y * height * numChannels + x * numChannels + c) * targetBytes;
+
+                    if (targetBytes == 1) {
+                        const auto outValue = static_cast<uint8_t>(value);
+                        std::memcpy(target, &outValue, sizeof(outValue));
+                    } else if (targetBytes == 2) {
+                        const auto outValue = static_cast<uint16_t>(value);
+                        std::memcpy(target, &outValue, sizeof(outValue));
+                    } else if (targetBytes == 4) {
+                        const auto outValue = static_cast<uint32_t>(value);
+                        std::memcpy(target, &outValue, sizeof(outValue));
+                    }
+                }
+            }
+        }
+
+        return data;
+    }
+
+    virtual std::vector<uint8_t> getUNORMPackedPadded(
+            uint32_t c0, uint32_t c0Pad, uint32_t c1, uint32_t c1Pad,
+            uint32_t c2, uint32_t c2Pad, uint32_t c3, uint32_t c3Pad) const override {
+        assert((c0 + c0Pad + c1 + c1Pad + c2 + c2Pad + c3 + c3Pad) % 8 == 0);
+        const auto targetPackBytes = (c0 + c0Pad + c1 + c1Pad + c2 + c2Pad + c3 + c3Pad) / 8;
+        assert(targetPackBytes == 1 || targetPackBytes == 2 || targetPackBytes == 4 || targetPackBytes == 8);
+        const auto packC0 = c0 > 0;
+        const auto packC1 = c1 > 0;
+        const auto packC2 = c2 > 0;
+        const auto packC3 = c3 > 0;
+        const auto numChannels = (packC0 ? 1u : 0) + (packC1 ? 1u : 0) + (packC2 ? 1u : 0) + (packC3 ? 1u : 0);
+        assert(numChannels <= componentCount); (void) numChannels;
+        const uint32_t sourceBits = sizeof(componentType) * 8;
+        static constexpr auto hasC0 = componentCount > 0;
+        static constexpr auto hasC1 = componentCount > 1;
+        static constexpr auto hasC2 = componentCount > 2;
+        static constexpr auto hasC3 = componentCount > 3;
+
+        std::vector<uint8_t> data(height * width * targetPackBytes);
+
+        for (uint32_t y = 0; y < height; ++y) {
+            for (uint32_t x = 0; x < width; ++x) {
+                const auto& pixel = pixels[y * width + x];
+                auto* target = data.data() + (y * height + x) * targetPackBytes;
+
+                const auto copy = [&](auto& pack) {
+                    using PackType = std::remove_reference_t<decltype(pack)>;
+
+                    if (packC0) {
+                        const auto sourceValue = hasC0 ? pixel[0] : componentType{0};
+                        const auto value = ktx::convertUNORM(sourceValue, sourceBits, c0);
+                        pack |= static_cast<PackType>(value) << (c0Pad + c1 + c1Pad + c2 + c2Pad + c3 + c3Pad);
+                    }
+                    if (packC1) {
+                        const auto sourceValue = hasC1 ? pixel[1] : componentType{0};
+                        const auto value = ktx::convertUNORM(sourceValue, sourceBits, c1);
+                        pack |= static_cast<PackType>(value) << (c1Pad + c2 + c2Pad + c3 + c3Pad);
+                    }
+                    if (packC2) {
+                        const auto sourceValue = hasC2 ? pixel[2] : componentType{0};
+                        const auto value = ktx::convertUNORM(sourceValue, sourceBits, c2);
+                        pack |= static_cast<PackType>(value) << (c2Pad + c3 + c3Pad);
+                    }
+                    if (packC3) {
+                        const auto sourceValue = hasC3 ? pixel[3] : Color::one();
+                        const auto value = ktx::convertUNORM(sourceValue, sourceBits, c3);
+                        pack |= static_cast<PackType>(value) << (c3Pad);
+                    }
+                };
+
+                if (targetPackBytes == 1) {
+                    uint8_t pack = 0;
+                    copy(pack);
+                    std::memcpy(target, &pack, sizeof(pack));
+                } else if (targetPackBytes == 2) {
+                    uint16_t pack = 0;
+                    copy(pack);
+                    std::memcpy(target, &pack, sizeof(pack));
+                } else if (targetPackBytes == 4) {
+                    uint32_t pack = 0;
+                    copy(pack);
+                    std::memcpy(target, &pack, sizeof(pack));
+                } else if (targetPackBytes == 8) {
+                    uint64_t pack = 0;
+                    copy(pack);
+                    std::memcpy(target, &pack, sizeof(pack));
+                }
+            }
+        }
+
+        return data;
+    }
+
+    virtual std::vector<uint8_t> getSFloat(uint32_t numChannels, uint32_t targetBits) const override {
+        assert(numChannels <= componentCount);
+        assert(targetBits == 16 || targetBits == 32);
+
+        const uint32_t targetBytes = targetBits / 8;
+        std::vector<uint8_t> data(height * width * numChannels * targetBytes);
+
+        for (uint32_t y = 0; y < height; ++y) {
+            for (uint32_t x = 0; x < width; ++x) {
+                for (uint32_t c = 0; c < numChannels; ++c) {
+                    const auto value = c < componentCount ? pixels[y * width + x][c] : (c != 3 ? componentType{0} : componentType{1});
+                    auto* target = data.data() + (y * height * numChannels + x * numChannels + c) * targetBytes;
+
+                    if (sizeof(componentType) == targetBytes) {
+                        *reinterpret_cast<componentType*>(target) = value;
+                    } else if (targetBytes == 2) {
+                        const auto outValue = ktx::float_to_half(static_cast<float>(value));
+                        std::memcpy(target, &outValue, targetBytes);
+                    } else if (targetBytes == 4) {
+                        const auto outValue = static_cast<float>(value);
+                        std::memcpy(target, &outValue, targetBytes);
+                    }
+                }
+            }
+        }
+
+        return data;
+    }
+
+    virtual std::vector<uint8_t> getUINT(uint32_t numChannels, uint32_t targetBits) const override {
+        assert(numChannels <= componentCount);
+        assert(targetBits == 8 || targetBits == 16 || targetBits == 32 || targetBits == 64);
+
+        const uint32_t targetBytes = targetBits / 8;
+        std::vector<uint8_t> data(height * width * numChannels * targetBytes);
+
+        for (uint32_t y = 0; y < height; ++y) {
+            for (uint32_t x = 0; x < width; ++x) {
+                for (uint32_t c = 0; c < numChannels; ++c) {
+                    const auto value = c < componentCount ? pixels[y * width + x][c] : c != 3 ? 0 : componentType{1};
+                    auto* target = data.data() + (y * height * numChannels + x * numChannels + c) * targetBytes;
+
+                    if (targetBytes == 1) {
+                        const auto outValue = static_cast<uint8_t>(value);
+                        std::memcpy(target, &outValue, targetBytes);
+                    } else if (targetBytes == 2) {
+                        const auto outValue = static_cast<uint16_t>(value);
+                        std::memcpy(target, &outValue, targetBytes);
+                    } else if (targetBytes == 4) {
+                        const auto outValue = static_cast<uint32_t>(value);
+                        std::memcpy(target, &outValue, targetBytes);
+                    } else if (targetBytes == 8) {
+                        const auto outValue = static_cast<uint64_t>(value);
+                        std::memcpy(target, &outValue, targetBytes);
+                    }
+                }
+            }
+        }
+
+        return data;
+    }
+
+    virtual std::vector<uint8_t> getSINT(uint32_t numChannels, uint32_t targetBits) const override {
+        assert(numChannels <= componentCount);
+        assert(targetBits == 8 || targetBits == 16 || targetBits == 32 || targetBits == 64);
+
+        const uint32_t targetBytes = targetBits / 8;
+        std::vector<uint8_t> data(height * width * numChannels * targetBytes);
+
+        for (uint32_t y = 0; y < height; ++y) {
+            for (uint32_t x = 0; x < width; ++x) {
+                for (uint32_t c = 0; c < numChannels; ++c) {
+                    const auto value = c < componentCount ? pixels[y * width + x][c] : c != 3 ? 0 : componentType{1};
+                    auto* target = data.data() + (y * height * numChannels + x * numChannels + c) * targetBytes;
+
+                    if (targetBytes == 1) {
+                        const auto outValue = static_cast<int8_t>(value);
+                        std::memcpy(target, &outValue, targetBytes);
+                    } else if (targetBytes == 2) {
+                        const auto outValue = static_cast<int16_t>(value);
+                        std::memcpy(target, &outValue, targetBytes);
+                    } else if (targetBytes == 4) {
+                        const auto outValue = static_cast<int32_t>(value);
+                        std::memcpy(target, &outValue, targetBytes);
+                    } else if (targetBytes == 8) {
+                        const auto outValue = static_cast<int64_t>(value);
+                        std::memcpy(target, &outValue, targetBytes);
+                    }
+                }
+            }
+        }
+
+        return data;
     }
 
     static void checkResamplerStatus(basisu::Resampler& resampler,
@@ -538,6 +1012,7 @@ class ImageT : public Image {
     {
         using namespace basisu;
 
+        TransferFunctionSRGB tfSRGB;
         ImageT& dst = static_cast<ImageT&>(abstract_dst);
 
         const uint32_t src_w = width, src_h = height;
@@ -557,7 +1032,7 @@ class ImageT : public Image {
         float srgb_to_linear_table[256];
         if (srgb) {
           for (int i = 0; i < 256; ++i)
-            srgb_to_linear_table[i] = decode_sRGB((float)i * (1.0f/255.0f));
+            srgb_to_linear_table[i] = tfSRGB.decode((float)i * (1.0f/255.0f));
         }
 
         const int LINEAR_TO_SRGB_TABLE_SIZE = 8192;
@@ -566,7 +1041,7 @@ class ImageT : public Image {
         if (srgb)
         {
             for (int i = 0; i < LINEAR_TO_SRGB_TABLE_SIZE; ++i)
-              linear_to_srgb_table[i] = (uint8_t)cclamp<int>((int)(255.0f * encode_sRGB((float)i * (1.0f / (LINEAR_TO_SRGB_TABLE_SIZE - 1))) + .5f), 0, 255);
+              linear_to_srgb_table[i] = (uint8_t)cclamp<int>((int)(255.0f * tfSRGB.encode((float)i * (1.0f / (LINEAR_TO_SRGB_TABLE_SIZE - 1))) + .5f), 0, 255);
         }
 
         // Sadly the compiler doesn't realize that getComponentCount() is a
@@ -647,8 +1122,7 @@ class ImageT : public Image {
                 {
                     // TODO: Add dithering
                     if (linear_flag) {
-                        int j = (int)(255.0f * pOutput_samples[x] + .5f);
-                        pDst->set(ci, (componentType)cclamp<int>(j, 0, Color::one()));
+                        pDst->set(ci, pOutput_samples[x] * Color::one() + Color::halfUnit());
                     } else {
                         int j = (int)((LINEAR_TO_SRGB_TABLE_SIZE - 1) * pOutput_samples[x] + .5f);
                         pDst->set(ci, (componentType)linear_to_srgb_table[cclamp<int>(j, 0, LINEAR_TO_SRGB_TABLE_SIZE - 1)]);
@@ -685,23 +1159,36 @@ class ImageT : public Image {
         return *this;
     }
 
-    // oeGamma is the exponent used when the image was encoded
-    // or the value to be used when re-encoding the image.
-    virtual ImageT& transformOETF(OETFFunc decode, OETFFunc encode,
-                                  float oeGamma = 1.0f) {
+    virtual ImageT& transformColorSpace(const TransferFunction& decode, const TransferFunction& encode,
+                                        const ColorPrimaryTransform* transformPrimaries) {
         uint32_t pixelCount = getPixelCount();
-        // eoGamma is the exponent for decoding the image.
-        float eoGamma = 1.0f / oeGamma;
         for (uint32_t i = 0; i < pixelCount; ++i) {
             Color& c = pixels[i];
-            // Don't transform the alpha component. --------  v
-            for (uint32_t comp = 0; comp < getComponentCount() && comp < 3; comp++) {
-                float brightness = (float)(c[comp]) / Color::one();
-                // gamma is only used by decode_gamma. Currently there is no
-                // encode_gamma.
-                float intensity = decode(brightness, eoGamma);
-                brightness = cclamp(encode(intensity, oeGamma), 0.0f, 1.0f);
-                c.set(comp, roundf(brightness * Color::one()));
+            // Don't transform the alpha component.
+            uint32_t components = cclamp(getComponentCount(), 0u, 3u);
+            float intensity[3];
+            float brightness[3];
+
+            // Decode source transfer function
+            for (uint32_t comp = 0; comp < components; comp++) {
+                brightness[comp] = (float)(c[comp]) * Color::rcpOne();
+                intensity[comp] = decode.decode(brightness[comp]);
+            }
+
+            // If needed, transform primaries
+            if (transformPrimaries != nullptr) {
+                float origIntensity[3] = { intensity[0], intensity[1], intensity[2] };
+                for (uint32_t j = 0; j < components; ++j) {
+                    intensity[j] = 0.f;
+                    for (uint32_t k = 0; k < components; ++k)
+                        intensity[j] += transformPrimaries->matrix[j][k] * origIntensity[k];
+                }
+            }
+
+            // Encode destination transfer function
+            for (uint32_t comp = 0; comp < components; comp++) {
+                brightness[comp] = encode.encode(intensity[comp]);
+                c.set(comp, roundf(brightness[comp] * Color::one()));
             }
         }
         return *this;
@@ -716,40 +1203,19 @@ class ImageT : public Image {
         return *this;
     }
 
-    virtual ImageT& swizzle(std::string& swizzle) {
+    virtual ImageT& swizzle(std::string_view swizzle) {
         assert(swizzle.size() == 4);
         for (size_t i = 0; i < getPixelCount(); i++) {
             Color srcPixel = pixels[i];
             for (uint32_t c = 0; c < getComponentCount(); c++) {
-                switch (swizzle[c]) {
-                  case 'r':
-                    pixels[i].set(c, srcPixel[0]);
-                    break;
-                  case 'g':
-                    pixels[i].set(c, srcPixel[1]);
-                    break;
-                  case 'b':
-                    pixels[i].set(c, srcPixel[2]);
-                    break;
-                  case 'a':
-                    pixels[i].set(c, srcPixel[3]);
-                    break;
-                  case '0':
-                    pixels[i].set(c, (componentType)0x00);
-                    break;
-                  case '1':
-                    pixels[i].set(c, (componentType)Color::one());
-                    break;
-                  default:
-                    assert(false);
-                }
+                pixels[i].set(c, swizzlePixel(srcPixel, swizzle[c]));
             }
         }
         return *this;
     }
 
     template<class DstImage>
-    ImageT& copyTo(DstImage& dst) {
+    ImageT& copyTo(DstImage& dst, std::string_view swizzle) {
         assert(getComponentSize() == dst.getComponentSize());
         assert(width == dst.getWidth() && height == dst.getHeight());
 
@@ -759,26 +1225,47 @@ class ImageT : public Image {
             uint32_t c;
             for (c = 0; c < dst.getComponentCount(); c++) {
                 if (c < getComponentCount())
-                    dst.pixels[i].set(c, pixels[i][c]);
+                    dst.pixels[i].set(c, swizzlePixel(pixels[i], swizzle[c]));
                 else
                     break;
             }
             for (; c < dst.getComponentCount(); c++)
                 if (c < 3)
-                    dst.pixels[i].set(c, (componentType)0);
+                    dst.pixels[i].set(c, componentType{0});
                 else
-                    dst.pixels[i].set(c, (componentType)Color::one());
+                    dst.pixels[i].set(c, Color::one());
         }
         return *this;
     }
 
-    virtual ImageT& copyToR(Image& dst) { return copyTo((ImageT<componentType, 1>&)dst); }
-    virtual ImageT& copyToRG(Image& dst) { return copyTo((ImageT<componentType, 2>&)dst); }
-    virtual ImageT& copyToRGB(Image& dst){ return copyTo((ImageT<componentType, 3>&)dst); }
-    virtual ImageT& copyToRGBA(Image& dst) { return copyTo((ImageT<componentType, 4>&)dst); }
+    virtual ImageT& copyToR(Image& dst, std::string_view swizzle) { return copyTo((ImageT<componentType, 1>&)dst, swizzle); }
+    virtual ImageT& copyToRG(Image& dst, std::string_view swizzle) { return copyTo((ImageT<componentType, 2>&)dst, swizzle); }
+    virtual ImageT& copyToRGB(Image& dst, std::string_view swizzle){ return copyTo((ImageT<componentType, 3>&)dst, swizzle); }
+    virtual ImageT& copyToRGBA(Image& dst, std::string_view swizzle) { return copyTo((ImageT<componentType, 4>&)dst, swizzle); }
 
   protected:
+    componentType swizzlePixel(const Color& srcPixel, char swizzle) {
+        switch (swizzle) {
+          case 'r':
+            return srcPixel[0];
+          case 'g':
+            return srcPixel[1];
+          case 'b':
+            return srcPixel[2];
+          case 'a':
+            return srcPixel[3];
+          case '0':
+            return componentType{0};
+          case '1':
+            return Color::one();
+          default:
+            assert(false);
+            return componentType{0};
+        }
+    }
+
     Color* pixels;
+    bool freePixels;
 };
 
 using r8color = color<uint8_t, 1>;
@@ -794,6 +1281,24 @@ using rg32color = color<uint32_t, 2>;
 using rgb32color = color<uint32_t, 3>;
 using rgba32color = color<uint32_t, 4>;
 
+using r8scolor = color<int8_t, 1>;
+using rg8scolor = color<int8_t, 2>;
+using rgb8scolor = color<int8_t, 3>;
+using rgba8scolor = color<int8_t, 4>;
+using r16scolor = color<int16_t, 1>;
+using rg16scolor = color<int16_t, 2>;
+using rgb16scolor = color<int16_t, 3>;
+using rgba16scolor = color<int16_t, 4>;
+using r32scolor = color<int32_t, 1>;
+using rg32scolor = color<int32_t, 2>;
+using rgb32scolor = color<int32_t, 3>;
+using rgba32scolor = color<int32_t, 4>;
+
+using r32fcolor = color<float, 1>;
+using rg32fcolor = color<float, 2>;
+using rgb32fcolor = color<float, 3>;
+using rgba32fcolor = color<float, 4>;
+
 using r8image = ImageT<uint8_t, 1>;
 using rg8image = ImageT<uint8_t, 2>;
 using rgb8image = ImageT<uint8_t, 3>;
@@ -807,7 +1312,22 @@ using rg32image = ImageT<uint32_t, 2>;
 using rgb32image = ImageT<uint32_t, 3>;
 using rgba32image = ImageT<uint32_t, 4>;
 
+using r8simage = ImageT<int8_t, 1>;
+using rg8simage = ImageT<int8_t, 2>;
+using rgb8simage = ImageT<int8_t, 3>;
+using rgba8simage = ImageT<int8_t, 4>;
+using r16simage = ImageT<int16_t, 1>;
+using rg16simage = ImageT<int16_t, 2>;
+using rgb16simage = ImageT<int16_t, 3>;
+using rgba16simage = ImageT<int16_t, 4>;
+using r32simage = ImageT<int32_t, 1>;
+using rg32simage = ImageT<int32_t, 2>;
+using rgb32simage = ImageT<int32_t, 3>;
+using rgba32simage = ImageT<int32_t, 4>;
+
+using r32fimage = ImageT<float, 1>;
+using rg32fimage = ImageT<float, 2>;
+using rgb32fimage = ImageT<float, 3>;
+using rgba32fimage = ImageT<float, 4>;
+
 #endif /* IMAGE_HPP */
-
-
-

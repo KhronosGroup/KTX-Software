@@ -288,7 +288,7 @@ KTX_error_code ktxUncompressZLIBInt(unsigned char* pDest,
  ======================================
 */
 
-void printKTX2Info2(ktxStream* src, KTX_header2* header);
+KTX_error_code printKTX2Info2(ktxStream* src, KTX_header2* header);
 
 #ifdef __cplusplus
 }

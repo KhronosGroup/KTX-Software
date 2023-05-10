@@ -349,7 +349,7 @@ NpbmInput::parseAHeader()
         );
     }
 
-    images.push_back(ImageSpec(width, height, 1, componentCount,
+    images.emplace_back(ImageSpec(width, height, 1, componentCount,
                                  maxVal > 255 ? 16 : 8,
                                  0U, maxVal,
                                  static_cast<khr_df_sample_datatype_qualifiers_e>(0),
@@ -357,7 +357,8 @@ NpbmInput::parseAHeader()
                                  KHR_DF_PRIMARIES_BT709,
                                  tCompCount < 3
                                         ? KHR_DF_MODEL_YUVSDA
-                                        : KHR_DF_MODEL_RGBSDA));
+                                        : KHR_DF_MODEL_RGBSDA),
+                        ImageInputFormatType::npbm);
 }
 
 
@@ -401,7 +402,7 @@ void NpbmInput::parseGPHeader(filetype ftype)
         throw invalid_file("Max color component value must be > 0 && < 65536.");
     }
 
-    images.push_back(ImageSpec(width, height, 1,
+    images.emplace_back(ImageSpec(width, height, 1,
                                      ftype == filetype::PPM ? 3 : 1, 8,
                                      0, maxVal,
                                      static_cast<khr_df_sample_datatype_qualifiers_e>(0),
@@ -409,7 +410,8 @@ void NpbmInput::parseGPHeader(filetype ftype)
                                      KHR_DF_PRIMARIES_BT709,
                                      ftype == filetype::PPM
                                           ? KHR_DF_MODEL_RGBSDA
-                                          : KHR_DF_MODEL_YUVSDA));
+                                          : KHR_DF_MODEL_YUVSDA),
+                        ImageInputFormatType::npbm);
 }
 
 
