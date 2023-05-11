@@ -356,7 +356,6 @@ else()
     # `resources` directory with the resources. We install a symbolic
     # link to the executable in ${CMAKE_INSTALL_LIBDIR}, usually
     # /usr/local/bin.
-    include(GNUInstallDirs)
 
     set_target_properties( vkloadtests PROPERTIES
         INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}"
@@ -367,30 +366,30 @@ else()
     # library component. There seems no way to make a dependency.
     ##########################
 
-    set( destroot "${LOAD_TEST_DESTROOT}/$<TARGET_FILE_NAME:vkloadtests>")
-    # NOTE: WHEN RUNNING MANUAL INSTALLS INSTALL library COMPONENT TOO.
-    install(TARGETS vkloadtests
-        RUNTIME
-            DESTINATION ${destroot}/bin
-            COMPONENT VkLoadTestApp
-        RESOURCE
-            DESTINATION ${destroot}/resources
-            COMPONENT VkLoadTestApp
-    )
-    if(LINUX)
-        # Add a link from the regular bin directory to put command
-        # on PATH.
-        install(CODE "
-           EXECUTE_PROCESS(COMMAND ln -s ${destroot}/bin/$<TARGET_FILE_NAME:vkloadtests> ${CMAKE_INSTALL_FULL_BINDIR}
-           )"
-           COMPONENT VkLoadTestApp
-        )
-        install(FILES
-            vkloadtests/resources/linux/vkloadtests.desktop
-            DESTINATION /usr/share/applications
-            COMPONENT VkLoadTestApp
-        )
-    endif()
+#    set( destroot "${LOAD_TEST_DESTROOT}/$<TARGET_FILE_NAME:vkloadtests>")
+#    # NOTE: WHEN RUNNING MANUAL INSTALLS INSTALL library COMPONENT TOO.
+#    install(TARGETS vkloadtests
+#        RUNTIME
+#            DESTINATION ${destroot}/bin
+#            COMPONENT VkLoadTestApp
+#        RESOURCE
+#            DESTINATION ${destroot}/resources
+#            COMPONENT VkLoadTestApp
+#    )
+#    if(LINUX)
+#        # Add a link from the regular bin directory to put command
+#        # on PATH.
+#        install(CODE "
+#           EXECUTE_PROCESS(COMMAND ln -s ${destroot}/bin/$<TARGET_FILE_NAME:vkloadtests> ${CMAKE_INSTALL_FULL_BINDIR}
+#           )"
+#           COMPONENT VkLoadTestApp
+#        )
+#        install(FILES
+#            vkloadtests/resources/linux/vkloadtests.desktop
+#            DESTINATION /usr/share/applications
+#            COMPONENT VkLoadTestApp
+#        )
+#    endif()
 endif()
 
 add_dependencies(

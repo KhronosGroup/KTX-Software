@@ -239,7 +239,6 @@ function( create_gl_target target version sources resources KTX_GL_CONTEXT_PROFI
         # `resources` directory with the resources. We install a symbolic
         # link to the executable in ${CMAKE_INSTALL_LIBDIR}, usually
         # /usr/local/bin.
-        include(GNUInstallDirs)
 
         set_target_properties( ${target} PROPERTIES
             INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}"
@@ -249,19 +248,19 @@ function( create_gl_target target version sources resources KTX_GL_CONTEXT_PROFI
         # When installing via `cmake --install` ALSO install the
         # library component. There seems no way to make a dependency.
         ##########################
-        set( destroot "${LOAD_TEST_DESTROOT}/$<TARGET_FILE_NAME:${target}>")
+#        set( destroot "${LOAD_TEST_DESTROOT}/$<TARGET_FILE_NAME:${target}>")
         # NOTE: WHEN RUNNING MANUAL INSTALLS INSTALL library COMPONENT TOO.
-        install(TARGETS ${target}
-            RUNTIME
-                DESTINATION ${destroot}/bin
-                COMPONENT GlLoadTestApps
+#        install(TARGETS ${target}
+#            RUNTIME
+#                DESTINATION ${destroot}/bin
+#                COMPONENT GlLoadTestApps
 #            LIBRARY
 #                DESTINATION ${CMAKE_INSTALL_LIBDIR}
 #                COMPONENT GlLoadTestApps
-            RESOURCE
-                DESTINATION ${destroot}/resources
-                COMPONENT GlLoadTestApps
-        )
+#            RESOURCE
+#                DESTINATION ${destroot}/resources
+#                COMPONENT GlLoadTestApps
+#        )
 #        install(TARGETS ktx
 #            RUNTIME
 #                DESTINATION ${destroot}/bin
@@ -270,20 +269,20 @@ function( create_gl_target target version sources resources KTX_GL_CONTEXT_PROFI
 #                DESTINATION ${destroot}/lib
 #                COMPONENT GlLoadTestApps
 #        )
-        if(LINUX)
-            # Add a link from the regular bin directory to put command
-            # on PATH.
-            install(CODE "
-               EXECUTE_PROCESS(COMMAND ln -s ${destroot}/bin/$<TARGET_FILE_NAME:${target}> ${CMAKE_INSTALL_FULL_BINDIR}
-               )"
-               COMPONENT GlLoadTestApps
-            )
-            install(FILES
-                ${CMAKE_CURRENT_BINARY_DIR}/${target}.desktop
-                DESTINATION /usr/share/applications
-                COMPONENT GlLoadTestApps
-            )
-        endif(LINUX)
+#        if(LINUX)
+#            # Add a link from the regular bin directory to put command
+#            # on PATH.
+#            install(CODE "
+#               EXECUTE_PROCESS(COMMAND ln -s ${destroot}/bin/$<TARGET_FILE_NAME:${target}> ${CMAKE_INSTALL_FULL_BINDIR}
+#               )"
+#               COMPONENT GlLoadTestApps
+#            )
+#            install(FILES
+#                ${CMAKE_CURRENT_BINARY_DIR}/${target}.desktop
+#                DESTINATION /usr/share/applications
+#                COMPONENT GlLoadTestApps
+#            )
+#        endif(LINUX)
     endif()
 endfunction( create_gl_target target )
 
