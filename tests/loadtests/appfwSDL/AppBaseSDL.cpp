@@ -19,14 +19,22 @@
 #include "AppBaseSDL.h"
 #include <iomanip>
 #include <sstream>
+#include <iostream>
 
 bool
 AppBaseSDL::initialize(Args& /*args*/)
 {
     const char* basePath = SDL_GetBasePath();
+    // SDL_GetBasePath returns directory of the app, except for
+    // iOS & macOS app bundles where it returns the Resources
+    // directory.
     if (basePath == NULL)
         basePath = SDL_strdup("./");
     sBasePath = basePath;
+#if __LINUX__
+    // TODO figure out best way to handle these resources
+    sBasePath += "../resources/";
+#endif
     SDL_free((void *)basePath);
     return true;
 }

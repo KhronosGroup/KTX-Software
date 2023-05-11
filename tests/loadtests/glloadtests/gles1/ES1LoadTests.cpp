@@ -51,7 +51,7 @@ const GLLoadTests::sampleInvocation siSamples[] = {
       "RGB8 NPOT HI Logo"
     },
     { DrawTexture::create,
-      "--npot testimages/luminance_reference.ktx",
+      "--npot testimages/luminance-reference-metadata.ktx",
       "LUMINANCE8 NPOT"
     },
     { DrawTexture::create,

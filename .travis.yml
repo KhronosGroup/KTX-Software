@@ -85,6 +85,7 @@ jobs:
       env:
         # NB: This must not have the fourth component of the version number.
         - VULKAN_SDK_VER: "1.3.243"
+        - CMAKE_GEN: Ninja
         - CONFIGURATION=Debug
           FEATURE_DOC=OFF FEATURE_JNI=ON FEATURE_LOADTESTS=ON FEATURE_TOOLS=ON
           SUPPORT_SSE=ON SUPPORT_OPENCL=OFF
@@ -94,6 +95,7 @@ jobs:
       env:
         # NB: This must not have the fourth component of the version number.
         - VULKAN_SDK_VER: "1.3.243"
+        - CMAKE_GEN: Ninja
         - CONFIGURATION=Release
           FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=ON FEATURE_TOOLS=ON
           SUPPORT_SSE=ON SUPPORT_OPENCL=OFF PACKAGE=YES
@@ -101,6 +103,7 @@ jobs:
       dist: jammy
       compiler: gcc
       env:
+        - CMAKE_GEN: Ninja
         - CONFIGURATION=Release
           FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF
           FEATURE_TOOLS=OFF
@@ -109,6 +112,7 @@ jobs:
       dist: jammy
       compiler: gcc
       env:
+        - CMAKE_GEN: Ninja
         - CONFIGURATION=Release
           FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF
           FEATURE_TOOLS=OFF
@@ -117,6 +121,7 @@ jobs:
       dist: jammy
       compiler: gcc
       env:
+        - CMAKE_GEN: Ninja
         - CONFIGURATION=Release
           FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF
           FEATURE_TOOLS=OFF
@@ -179,7 +184,7 @@ install:
     fi
     if [ "$CHECK_REUSE" != "ONLY" -a "$WASM_BUILD" != "YES" ]; then
       ./ci_scripts/install_linux.sh
-   fi
+    fi
     ;;
   osx)
     ./ci_scripts/install_macos.sh

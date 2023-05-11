@@ -20,7 +20,7 @@ CONFIGURATION=${CONFIGURATION:-Release}
 FEATURE_DOC=${FEATURE_DOC:-OFF}
 FEATURE_JNI=${FEATURE_JNI:-OFF}
 FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-ON}
-FEATURE_TOOLS=${FEATURE_TESTS:-OFF}
+FEATURE_TESTS=${FEATURE_TESTS:-OFF}
 FEATURE_TOOLS=${FEATURE_TOOLS:-OFF}
 PACKAGE=${PACKAGE:-NO}
 SUPPORT_OPENCL=${SUPPORT_OPENCL:-OFF}
@@ -71,7 +71,6 @@ cmake_args=("-G" "Xcode" \
 )
 config_display="Configure KTX-Software (iOS): "
 for arg in "${cmake_args[@]}"; do
-  echo $arg
   case $arg in
     "-G") config_display+="Generator=" ;;
     "-B") config_display+="Build Dir=" ;;
@@ -106,3 +105,6 @@ do
 done
 
 popd
+
+# vim:ai:ts=4:sts=2:sw=2:expandtab
+

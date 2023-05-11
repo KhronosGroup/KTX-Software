@@ -1,0 +1,28 @@
+# Copyright 2023 Khronos Group, Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+# Feel free to edit this file. After editing you MUST run cmake project
+# configuration again to generate updated output files before building.
+[Desktop Entry]
+Version=1.0
+Name=Vulkan Load Tests
+Name[ja]=Vulkan Load Tests
+Name[fr]=Vulkan Load Tests
+GenericName=KTX loader tests and file viewer
+GenericName[ja]=KTXローダーテストとファイルビューア
+GenericName[fr]=Tests de chargeur KTX et visionneuse de fichiers
+Comment=View KTX files using Vulkan or run VkUpload functionality tests.
+Comment[fr]=Affichez les fichiers KTX à l'aide d'Vulkan ou exécutez des tests de fonctionnalité VkUpload.
+Comment[ja]=Vulkanを使用してKTXファイルを表示するか、VkUpload機能テストを実行します。
+TryExec=vkloadtests
+Exec=vkloadtests %F
+Terminal=false
+Type=Application
+Keywords=Ktx;Texture;Viewer
+Keywords[ja]=Ktx;Texture;Viewer
+Keywords[fr]=Ktx;Texture;Viewer
+Icon=/opt/vkloadtests/resources/ktx_app.svg
+Categories=Utility;
+StartupNotify=true
+MimeType=image/ktx;image/ktx2;
+

@@ -581,7 +581,7 @@ InstancedSampleBase::preparePipelines(const char* const fragShaderName,
 
     // Load shaders
     std::array<vk::PipelineShaderStageCreateInfo,2> shaderStages;
-    std::string filepath = getAssetPath() + "shaders/";
+    std::string filepath = getAssetPath();
     // What a lot of code to set a single constant value.
     vk::SpecializationInfo specializationInfo;
     vk::SpecializationMapEntry mapEntries[1];

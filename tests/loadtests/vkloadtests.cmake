@@ -82,6 +82,44 @@ add_custom_target(
     shader_texturemipmap
 )
 
+set( VK_TEST_IMAGES
+    etc1s_Iron_Bars_001_normal.ktx2
+    uastc_Iron_Bars_001_normal.ktx2
+    ktx_document_uastc_rdo4_zstd5.ktx2
+    color_grid_uastc_zstd.ktx2
+    color_grid_zstd.ktx2
+    color_grid_uastc.ktx2
+    color_grid_basis.ktx2
+    kodim17_basis.ktx2
+    pattern_02_bc2.ktx2
+    ktx_document_basis.ktx2
+    rgba-mipmap-reference-basis.ktx2
+    3dtex_7_reference_u.ktx2
+    arraytex_7_mipmap_reference_u.ktx2
+    cubemap_goldengate_uastc_rdo4_zstd5_rd.ktx2
+    cubemap_yokohama_basis_rd.ktx2
+    skybox_zstd.ktx2
+    orient-down-metadata.ktx
+    orient-up-metadata.ktx
+    rgba-reference.ktx
+    etc2-rgb.ktx
+    etc2-rgba8.ktx
+    etc2-sRGB.ktx
+    etc2-sRGBa8.ktx
+    pattern_02_bc2.ktx
+    rgb-amg-reference.ktx
+    metalplate-amg-rgba8.ktx
+    not4_rgb888_srgb.ktx
+    texturearray_bc3_unorm.ktx
+    texturearray_astc_8x8_unorm.ktx
+    texturearray_etc2_unorm.ktx
+)
+list( TRANSFORM VK_TEST_IMAGES
+    PREPEND "${PROJECT_SOURCE_DIR}/tests/testimages/"
+)
+
+set( KTX_RESOURCES ${VK_TEST_IMAGES} ${LOAD_TEST_COMMON_RESOURCE_FILES} )
+
 add_executable( vkloadtests
     ${EXE_FLAG}
     appfwSDL/VulkanAppSDL/VulkanAppSDL.cpp
@@ -184,12 +222,15 @@ target_sources(vkloadtests PUBLIC ${MOLTENVK_ICD} ${VK_LAYER})
 if(APPLE)
     if(IOS)
         set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/ios/Info.plist" )
-        set( KTX_RESOURCES
-            ${PROJECT_SOURCE_DIR}/icons/ios/CommonIcons.xcassets
-            vkloadtests/resources/ios/LaunchImages.xcassets
-            vkloadtests/resources/ios/LaunchScreen.storyboard
+        # Don't add these KTX_RESOURCES. If they're tagged as resources
+        # the resource installer in `install(TARGETS` will be confused by
+        # xcassets being directories.
+        target_sources( vkloadtests
+            PRIVATE
+                ${PROJECT_SOURCE_DIR}/icons/ios/CommonIcons.xcassets
+                vkloadtests/resources/ios/LaunchImages.xcassets
+                vkloadtests/resources/ios/LaunchScreen.storyboard
         )
-        target_sources( vkloadtests PRIVATE ${KTX_RESOURCES} )
         target_link_libraries(
             vkloadtests
             ${AudioToolbox_LIBRARY}
@@ -209,7 +250,6 @@ if(APPLE)
             ${UIKit_LIBRARY}
         )
     else()
-        set( KTX_RESOURCES ${KTX_ICON} )
         set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/mac/Info.plist" )
     endif()
 
@@ -217,6 +257,13 @@ if(APPLE)
     set_source_files_properties(${VK_LAYER} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/vulkan/explicit_layer.d")
 elseif(WIN32)
     ensure_runtime_dependencies_windows(vkloadtests)
+elseif(LINUX)
+        target_sources(
+            vkloadtests
+        PRIVATE
+            vkloadtests/resources/linux/vkloadtests.desktop
+        )
+
 endif()
 
 target_link_libraries( vkloadtests ${LOAD_TEST_COMMON_LIBS} )
@@ -227,13 +274,15 @@ PRIVATE
     $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
 )
 
+set_target_properties( vkloadtests PROPERTIES RESOURCE "${KTX_RESOURCES};${SHADER_SOURCES}" )
+
 if(APPLE)
-    set_source_files_properties(${SHADER_SOURCES} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/shaders")
+#    set_source_files_properties(${SHADER_SOURCES} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/shaders")
     set(PRODUCT_NAME "vkloadtests")
     set(EXECUTABLE_NAME ${PRODUCT_NAME})
     # How amazingly irritating. We have to set both of these to the same value.
-    # The first must be set otherwise the app cannot be installed on iOS. The second
-    # has to be set to avoid an Xcode warning.
+    # The first must be set otherwise the app cannot be installed on iOS. The
+    # second has to be set to avoid an Xcode warning.
     set(PRODUCT_BUNDLE_IDENTIFIER "org.khronos.ktx.${PRODUCT_NAME}")
     set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.ktx.${PRODUCT_NAME}")
     configure_file( ${INFO_PLIST} vkloadtests/Info.plist )
@@ -250,14 +299,18 @@ if(APPLE)
     unset(PRODUCT_NAME)
     unset(EXECUTABLE_NAME)
     unset(PRODUCT_BUNDLE_IDENTIFIER)
-    if(KTX_RESOURCES)
-        set_target_properties( vkloadtests PROPERTIES RESOURCE "${KTX_RESOURCES}" )
-    endif()
+
+    # The generated project code for building an Apple bundle automatically
+    # copies the executable and all files with the RESOURCE property to the
+    # bundle adjusting for the difference in bundle layout between iOS &
+    # macOS.
 
     if(NOT IOS)
+        # Set RPATH to find libktx dylib
         set_target_properties( vkloadtests PROPERTIES
             INSTALL_RPATH "@executable_path/../Frameworks"
         )
+
         add_custom_command( TARGET vkloadtests POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/$<TARGET_FILE_NAME:ktx>"
             COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE_NAME:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/$<TARGET_SONAME_FILE_NAME:ktx>"
@@ -266,22 +319,13 @@ if(APPLE)
             COMMAND ${CMAKE_COMMAND} -E copy "${Vulkan_LIBRARY_REAL_PATH_NAME}" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/"
             COMMAND ${CMAKE_COMMAND} -E create_symlink "${Vulkan_LIBRARY_REAL_FILE_NAME}" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/${Vulkan_LIBRARY_SONAME_FILE_NAME}"
             COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/other_lib/mac/$<CONFIG>/libSDL2.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/libSDL2.dylib"
-            COMMENT "Copy libraries/frameworks to build destination"
+            COMMENT "Copy libraries & frameworks to build destination"
         )
 
-        install(TARGETS ktx
-            LIBRARY
-                DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks"
-                COMPONENT VkLoadTestApp
-            PUBLIC_HEADER
-                DESTINATION "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Headers"
-        )
+        # Specify destination for cmake --install.
         install(TARGETS vkloadtests
             BUNDLE
-                DESTINATION .
-                COMPONENT VkLoadTestApp
-            RESOURCE
-                DESTINATION Resources
+                DESTINATION /Applications
                 COMPONENT VkLoadTestApp
         )
 
@@ -292,6 +336,60 @@ if(APPLE)
         #     #fixup_bundle($<TARGET_BUNDLE_DIR:vkloadtests> \"\" \"\")"
         # )
     endif()
+else()
+    # This is for other platforms.
+    # This copies the resources next to the executable for ease
+    # of use during debugging and testing.
+    add_custom_command( TARGET vkloadtests POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+          $<TARGET_FILE_DIR:vkloadtests>/../resources
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          ${KTX_RESOURCES} ${SHADER_SOURCES}
+          $<TARGET_FILE_DIR:vkloadtests>/../resources
+    )
+
+    # To keep the resources (test images and models) close to the
+    # executable and to be compliant with the Filesystem Hierarchy
+    # Standard https://refspecs.linuxfoundation.org/FHS_3.0/fhs/index.html
+    # we have chosen to install the apps and data in /opt/<target>.
+    # Each target has a `bin` directory with the executable and a
+    # `resources` directory with the resources. We install a symbolic
+    # link to the executable in ${CMAKE_INSTALL_LIBDIR}, usually
+    # /usr/local/bin.
+
+    set_target_properties( vkloadtests PROPERTIES
+        INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}"
+    )
+
+    ######### IMPORTANT ######
+    # When installing via `cmake --install` ALSO install the
+    # library component. There seems no way to make a dependency.
+    ##########################
+
+#    set( destroot "${LOAD_TEST_DESTROOT}/$<TARGET_FILE_NAME:vkloadtests>")
+#    # NOTE: WHEN RUNNING MANUAL INSTALLS INSTALL library COMPONENT TOO.
+#    install(TARGETS vkloadtests
+#        RUNTIME
+#            DESTINATION ${destroot}/bin
+#            COMPONENT VkLoadTestApp
+#        RESOURCE
+#            DESTINATION ${destroot}/resources
+#            COMPONENT VkLoadTestApp
+#    )
+#    if(LINUX)
+#        # Add a link from the regular bin directory to put command
+#        # on PATH.
+#        install(CODE "
+#           EXECUTE_PROCESS(COMMAND ln -s ${destroot}/bin/$<TARGET_FILE_NAME:vkloadtests> ${CMAKE_INSTALL_FULL_BINDIR}
+#           )"
+#           COMPONENT VkLoadTestApp
+#        )
+#        install(FILES
+#            vkloadtests/resources/linux/vkloadtests.desktop
+#            DESTINATION /usr/share/applications
+#            COMPONENT VkLoadTestApp
+#        )
+#    endif()
 endif()
 
 add_dependencies(
