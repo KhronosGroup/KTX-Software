@@ -1,3 +1,6 @@
+# Copyright 2023 Khronos Group, Inc.
+# SPDX-License-Identifier: Apache-2.0
+
 # If this file's extension is .desktop DO NOT edit it. It is generated from
 # glloadtests.desktop.in.
 #
@@ -21,7 +24,7 @@ Type=Application
 Keywords=Ktx;Texture;Viewer
 Keywords[ja]=Ktx;Texture;Viewer
 Keywords[fr]=Ktx;Texture;Viewer
-Icon=/opt/${target}/resources/ktx_app.svg
+Icon=${TARGET_INSTALL_RESOURCES_FULL_DIR}/ktx_app.svg
 Categories=Utility;
 StartupNotify=true
 MimeType=image/ktx;image/ktx2;

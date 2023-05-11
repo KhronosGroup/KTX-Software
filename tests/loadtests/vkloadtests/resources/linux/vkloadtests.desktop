@@ -1,3 +1,6 @@
+# Copyright 2023 Khronos Group, Inc.
+# SPDX-License-Identifier: Apache-2.0
+
 # Feel free to edit this file. After editing you MUST run cmake project
 # configuration again to generate updated output files before building.
 [Desktop Entry]
@@ -22,3 +25,4 @@ Icon=/opt/vkloadtests/resources/ktx_app.svg
 Categories=Utility;
 StartupNotify=true
 MimeType=image/ktx;image/ktx2;
+
