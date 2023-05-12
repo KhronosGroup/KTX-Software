@@ -384,7 +384,7 @@ class color<componentType, 1> : public color_base<componentType, 1> {
 		// Normalizing single channel image doesn't make much sense
 		// Here I assume single channel color is (X, 0, 0, 0)
 		if (r != 0)
-			r = gc_s[sizeof(componentType)];
+			r = (componentType)gc_s[sizeof(componentType)];
     }
 };
 
