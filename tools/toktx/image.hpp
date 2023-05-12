@@ -185,7 +185,7 @@ struct vec3_base {
 };
 
 static constexpr float gc_m[5]={0.0f, 128.0f, 32768.0f, 0.0f, 2147483648.0f};
-static constexpr float gc_s[5]={0.0f, 255.0f, 65535.0f, 0.0f, 4294967295.0f};
+static constexpr uint32_t gc_s[5]={0, 255, 65535, 0, 4294967295};
 
 template <typename componentType>
 struct vec3 : public vec3_base {
@@ -381,10 +381,10 @@ class color<componentType, 1> : public color_base<componentType, 1> {
         return 1;
     }
     void normalize() {
-        vec3<componentType> v((float)r, gc_s[sizeof(componentType)] * 0.5f,
-                              gc_s[sizeof(componentType)] * 0.5f);
-        v.normalize();
-        r = (componentType)v.r;
+		// Normalizing single channel image doesn't make much sense
+		// Here I assume single channel color is (X, 0, 0, 0)
+		if (r != 0)
+			r = gc_s[sizeof(componentType)];
     }
 };
 
