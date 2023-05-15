@@ -207,7 +207,7 @@ struct vec3 : public vec3_base {
             r = (std::floor((r + 1.0f) * gc_s[i] * 0.5f + 0.5f));
             g = (std::floor((g + 1.0f) * gc_s[i] * 0.5f + 0.5f));
             b = (std::floor((b + 1.0f) * gc_s[i] * 0.5f + 0.5f));
-            clamp(0, gc_s[i]);
+            clamp(0, (componentType)gc_s[i]);
         }
     }
 };
