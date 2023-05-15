@@ -839,11 +839,11 @@ toktxApp::main(int argc, _TCHAR *argv[])
                 // We're done.
                 break;
             }
-        } catch (cant_create_texture e) {
+        } catch (cant_create_texture& e) {
             cerr << name << ": failed to create ktxTexture. "
                  << e.what() << endl;
             exit(2);
-        } catch (cant_create_image e) {
+        } catch (cant_create_image& e) {
             cerr << name << ": could not create image from "
                  << infile << "(" << subimage << "," << miplevel
                  << ")." << endl << e.what() << endl;
@@ -854,7 +854,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
                 delete image;
             exitCode = 1;
             goto cleanup;
-        } catch (runtime_error e) {
+        } catch (runtime_error& e) {
             cerr << name << ": failed to create image from "
                  << infile << "(" << subimage << "," << miplevel
                  << ")." << endl << e.what() << endl;
