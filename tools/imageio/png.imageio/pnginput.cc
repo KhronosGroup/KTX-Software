@@ -35,7 +35,7 @@ class PngInput final : public ImageInput {
         decodingBegun = false;
     }
 
-    virtual void readImage(void* buffer,  size_t bufferByteCount,
+    virtual void readImage(void* bufferOut, size_t bufferByteCount,
                            uint32_t subimage, uint32_t miplevel,
                            const FormatDescriptor& targetFormat) override;
 
@@ -50,7 +50,6 @@ class PngInput final : public ImageInput {
     void slurp();
 
     std::vector<char> pngBuffer;
-    size_t pngByteLength;
     lodepng::State state;
     void* pIdat;
     size_t idatsize;
@@ -323,7 +322,7 @@ template <typename T>
 }
 
 void
-PngInput::readImage(void* buffer,  size_t bufferByteCount,
+PngInput::readImage(void* bufferOut,  size_t bufferOutByteCount,
                     uint32_t /*subimage*/, uint32_t /*miplevel*/,
                     const FormatDescriptor& format)
 {
@@ -370,8 +369,8 @@ PngInput::readImage(void* buffer,  size_t bufferByteCount,
                 "PNG decode error: Requested decode into {} channel is not supported.", targetFormat.channelCount()));
     }();
     auto lodepngError = lodepng_finish_decode(
-                                          (unsigned char*)buffer,
-                                          bufferByteCount,
+                                          (unsigned char*)bufferOut,
+                                          bufferOutByteCount,
                                           width,
                                           height,
                                           &state,
@@ -386,8 +385,8 @@ PngInput::readImage(void* buffer,  size_t bufferByteCount,
     // if constexpr (std::endian::native == std::endian::little)
     if (requestBits == 16) {
         // LodePNG loads 16 bit channels in big endian order
-        auto* data = (unsigned char*) buffer;
-        for (size_t i = 0; i < bufferByteCount; i += 2)
+        auto* data = (unsigned char*) bufferOut;
+        for (size_t i = 0; i < bufferOutByteCount; i += 2)
             std::swap(*(data + i), *(data + i + 1));
     }
 
@@ -406,10 +405,10 @@ PngInput::readImage(void* buffer,  size_t bufferByteCount,
                 for (uint32_t c = 0; c < channelCount; ++c) {
                     const auto index = y * width * channelCount + x * channelCount + c;
                     if (requestBits == 8) {
-                        auto& value = *(reinterpret_cast<uint8_t*>(buffer) + index);
+                        auto& value = *(reinterpret_cast<uint8_t*>(bufferOut) + index);
                         value = static_cast<uint8_t>(convertUNORM(value >> (8 - sBits[c]), sBits[c], 8));
                     } else { // requestBits == 16
-                        auto& value = *(reinterpret_cast<uint16_t*>(buffer) + index);
+                        auto& value = *(reinterpret_cast<uint16_t*>(bufferOut) + index);
                         value = static_cast<uint16_t>(convertUNORM(value >> (16 - sBits[c]), sBits[c], 16));
                     }
                 }

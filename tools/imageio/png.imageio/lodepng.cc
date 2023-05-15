@@ -35,6 +35,9 @@ public lodepng_finish_decode has been added. With the new public functions
 a user can separate decode of all the chunks, so as to learn all the details
 of the file, from decompression, and possible conversion, of the image data.
 Search for msc to see the changes.
+
+Also additional warning disables have been added. 4267 for MS VC++ and the
+equivalent -Wshorten-64-to-32 for clang.
 */
 
 #include "lodepng.h"
@@ -50,6 +53,7 @@ Search for msc to see the changes.
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1310) /*Visual Studio: A few warning types are not desired here.*/
 #pragma warning( disable : 4244 ) /*implicit conversions: not warned by gcc -Wall -Wextra and requires too much casts*/
+#pragma warning( disable : 4267 ) /*size_t specific conversions to smaller type. Requires too much casts*/
 #pragma warning( disable : 4996 ) /*VS does not like fopen, but fopen_s is not standard C so unusable here*/
 #endif /*_MSC_VER */
 #if __clang__
@@ -715,7 +719,7 @@ static unsigned HuffmanTree_makeTable(HuffmanTree* tree) {
     if(l <= FIRSTBITS) continue;
     tree->table_len[i] = l;
     tree->table_value[i] = pointer;
-    pointer += (1u << (l - FIRSTBITS));
+    pointer += (1ull << (l - FIRSTBITS));
   }
   lodepng_free(maxlens);
 
@@ -5648,7 +5652,7 @@ static size_t ilog2i(size_t i) {
   l = ilog2(i);
   /* approximate i*log2(i): l is integer logarithm, ((i - (1u << l)) << 1u)
   linearly approximates the missing fractional part multiplied by i */
-  return i * l + ((i - (1u << l)) << 1u);
+  return i * l + ((i - (1ull << l)) << 1u);
 }
 
 static unsigned filter(unsigned char* out, const unsigned char* in, unsigned w, unsigned h,

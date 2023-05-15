@@ -305,7 +305,7 @@ class ImageInput {
      * clauses std::move the stream info back to the caller so it can keep searching for a plugin.
      */
     void open(const _tstring& filename, std::ifstream& ifs,
-              std::unique_ptr<std::stringstream>& buffer,
+              std::unique_ptr<std::stringstream>& bufferIn,
               ImageSpec& newspec) {
         _filename = filename;    // Purely so warnings can include the file name.
         if (ifs.is_open()) {
@@ -316,12 +316,12 @@ class ImageInput {
                 ifs.seekg(0);
                 throw;
             }
-        } else if (buffer.get() != nullptr) {
+        } else if (bufferIn.get() != nullptr) {
             try {
-                open(std::move(buffer), newspec);
+                open(std::move(bufferIn), newspec);
             } catch (...) {
-                buffer = std::move(getBuffer());
-                buffer.get()->seekg(0);
+                bufferIn = std::move(getBuffer());
+                bufferIn.get()->seekg(0);
                 throw;
             }
         } else {
@@ -565,7 +565,9 @@ class string : public std::string {
     using std::string::string;
     string tolower() {
         std::transform(begin(), end(), begin(),
-                       [](unsigned char c){ return std::tolower(c); });
+                       [](unsigned char c) {
+                           return static_cast<char>(std::tolower(c));
+                         });
         return *this;
     }
 

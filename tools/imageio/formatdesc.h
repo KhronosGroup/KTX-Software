@@ -586,7 +586,7 @@ struct FormatDescriptor {
         std::vector<sample>::const_iterator it = samples.begin();
         uint32_t bitLength = 0;
         for (; it < samples.end(); it++) {
-            if (it->channelType == c) {
+            if (it->channelType == static_cast<uint32_t>(c)) {
                 bitLength += it->bitLength + 1;
             }
         }
@@ -605,7 +605,7 @@ struct FormatDescriptor {
     }
     uint32_t largestChannelBitLength() const {
         uint32_t maxBitLength = 0;
-        for (int i = 0; i < 16; ++i) {
+        for (uint i = 0; i < 16; ++i) {
             uint32_t bitLength = 0;
             for (const auto& sample : samples)
                 if (sample.channelType == i)
@@ -621,7 +621,7 @@ struct FormatDescriptor {
         // TODO: Fix for shared exponent case...
         std::vector<sample>::const_iterator it = samples.begin();
         for (; it < samples.end(); it++) {
-            if (it->channelType == c) {
+            if (it->channelType == static_cast<uint32_t>(c)) {
                 return static_cast<khr_df_sample_datatype_qualifiers_e>
                    (it->channelType & KHR_DF_SAMPLEMASK_QUALIFIERS);
             }
@@ -707,7 +707,7 @@ struct FormatDescriptor {
 
     [[nodiscard]] const sample* find(khr_df_model_channels_e channel) const {
         for (const auto& sample : samples)
-            if (sample.channelType == channel)
+            if (sample.channelType == static_cast<uint32_t>(channel))
                 return &sample;
         return nullptr;
     }
