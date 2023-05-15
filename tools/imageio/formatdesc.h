@@ -605,7 +605,7 @@ struct FormatDescriptor {
     }
     uint32_t largestChannelBitLength() const {
         uint32_t maxBitLength = 0;
-        for (uint i = 0; i < 16; ++i) {
+        for (uint32_t i = 0; i < 16; ++i) {
             uint32_t bitLength = 0;
             for (const auto& sample : samples)
                 if (sample.channelType == i)
