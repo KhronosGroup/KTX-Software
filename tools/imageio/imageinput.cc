@@ -12,23 +12,12 @@
 //! @brief ImageInput:open function
 //!
 
-#if defined(_WIN32)
-  #define _CRT_SECURE_NO_WARNINGS 1  // Because of strerror.
-#endif
-
-#include <algorithm>
-#include <cctype>
-#include <iomanip>
-#include <iostream>
-#include <map>
-#include <string>
-#include <sstream>
-#include <stdexcept>
-#include <vector>
-
-#include <stdarg.h>
-
 #include "imageio.h"
+
+#include <iomanip>
+#include <map>
+#include <stdarg.h>
+#include <stdexcept>
 
 
 // Search for and instantiate a plugin that can read the format

@@ -139,7 +139,8 @@ PngInput::readHeader()
 
     uint32_t componentCount = 0;
     uint32_t bitDepth = state.info_png.color.bitdepth;
-    khr_df_model_e colorModel;
+    // Initialisation here keeps compilers happy in the LCT_MAX_OCTET cases.
+    khr_df_model_e colorModel = KHR_DF_MODEL_RGBSDA;
 
     switch (state.info_png.color.colortype) {
       case LCT_GREY:

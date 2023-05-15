@@ -487,7 +487,7 @@ struct FormatDescriptor {
             FormatDescriptor::basicDescriptor basic,
             std::vector<FormatDescriptor::sample> samples_)
           : basic(basic),
-            extended(samples_.size()),
+            extended(static_cast<uint32_t>(samples_.size())),
             samples(std::move(samples_))
     {
         extended.sameUnitAllChannels = true;
