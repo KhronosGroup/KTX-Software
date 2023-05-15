@@ -7,9 +7,9 @@
 //!
 //! @internal
 //! @~English
-//! @file imageinput.cc
+//! @file imageio.cc
 //!
-//! @brief ImageInput:open function
+//! @brief Create plugin maps.
 //!
 
 #include <algorithm>
@@ -111,6 +111,7 @@ catalogBuiltinPlugins()
 #if !defined(DISABLE_PNG)
     DECLAREPLUG (png);
 #endif
+    // 'Raw' format is not in the catalog as an explicit API is a better fit
 }
 
 } // namespace Imageio
