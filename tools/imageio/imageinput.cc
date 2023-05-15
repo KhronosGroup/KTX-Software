@@ -12,6 +12,10 @@
 //! @brief ImageInput:open function
 //!
 
+#if defined(_WIN32)
+  #define _CRT_SECURE_NO_WARNINGS 1  // Because of strerror.
+#endif
+
 #include <algorithm>
 #include <cctype>
 #include <iomanip>
