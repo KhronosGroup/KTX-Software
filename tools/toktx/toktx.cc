@@ -1187,7 +1187,7 @@ toktxApp::genMipmap(Image*& pImage,
         if (options.normalize)
             levelImage->normalize();
 
-        ktx_error_code_e MAYBE_UNUSED ret;
+        MAYBE_UNUSED ktx_error_code_e ret;
         ret = ktxTexture_SetImageFromMemory(texture,
                                       glevel,
                                       layer,
