@@ -32,7 +32,8 @@ environment:
       SUPPORT_OPENCL: OFF
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       CMAKE_GEN: Visual Studio 15 2017
-      CONFIGURATION: Debug,Release
+#      CONFIGURATION: Debug,Release
+      CONFIGURATION: Release
 
 #matrix:
 
