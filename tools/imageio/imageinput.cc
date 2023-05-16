@@ -147,8 +147,6 @@ ImageInput::open(const _tstring& filename,
                 filename.compare("-") ? filename : "the data on stdin")
             );
     }
-    assert(!in.get());
-    return in;
 }
 
 // Default implementation
