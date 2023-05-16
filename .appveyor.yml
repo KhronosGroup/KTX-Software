@@ -32,8 +32,7 @@ environment:
       SUPPORT_OPENCL: OFF
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       CMAKE_GEN: Visual Studio 15 2017
-#      CONFIGURATION: Debug,Release
-      CONFIGURATION: Release
+      CONFIGURATION: Debug,Release
 
 #matrix:
 
@@ -137,7 +136,7 @@ build_script:
     Import-Module "$env:ChocolateyInstall/helpers/chocolateyInstaller.psm1"
     refreshenv
     $env:JAVA_HOME=$JOB_JAVA_HOME
-    #$ErrorActionPreference = 'Stop'
+    $ErrorActionPreference = 'Stop'
     ci_scripts/build_win.ps1
 
     #echo "***** toktx version.h *****"
