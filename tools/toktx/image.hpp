@@ -199,15 +199,15 @@ struct vec3 : public vec3_base {
         if (gc_m[i] == r && gc_m[i] == g && gc_m[i] == b) {
             return;
         } else {
-            r = (r / (double)gc_s[i]) * 2.0f - 1.0f;
-            g = (g / (double)gc_s[i]) * 2.0f - 1.0f;
-            b = (b / (double)gc_s[i]) * 2.0f - 1.0f;
+            r = (float)(r / (double)gc_s[i]) * 2.0f - 1.0f;
+            g = (float)(g / (double)gc_s[i]) * 2.0f - 1.0f;
+            b = (float)(b / (double)gc_s[i]) * 2.0f - 1.0f;
             clamp(-1.0f, 1.0f);
             base_normalize();
             r = (std::floor((r + 1.0f) * gc_s[i] * 0.5f + 0.5f));
             g = (std::floor((g + 1.0f) * gc_s[i] * 0.5f + 0.5f));
             b = (std::floor((b + 1.0f) * gc_s[i] * 0.5f + 0.5f));
-            clamp(0, (componentType)gc_s[i]);
+            clamp(0.0f, (float)gc_s[i]);
         }
     }
 };
