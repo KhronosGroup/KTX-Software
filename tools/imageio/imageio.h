@@ -420,7 +420,7 @@ class ImageInput {
     rescale(Tw* write, const Tr* read, size_t nvals, Tr max)
     {
         if (max) {
-            float multiplier = std::numeric_limits<Tw>::max() / max;
+            float multiplier = static_cast<float>(std::numeric_limits<Tw>::max()) / max;
             for (size_t i = 0; i < nvals; i++) {
                 write[i] = static_cast<Tw>(roundf(read[i] * multiplier));
             }
@@ -432,7 +432,7 @@ class ImageInput {
     rescale(Tw* write, Tw maxw, const Tr* read, Tr maxr, size_t nvals)
     {
         if (maxr) {
-            float multiplier = maxw / maxr;
+            float multiplier = static_cast<float>(maxw) / maxr;
             for (size_t i = 0; i < nvals; i++) {
                 write[i] = static_cast<Tw>(roundf(read[i] * multiplier));
             }

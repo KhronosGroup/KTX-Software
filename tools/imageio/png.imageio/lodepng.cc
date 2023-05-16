@@ -36,8 +36,9 @@ a user can separate decode of all the chunks, so as to learn all the details
 of the file, from decompression, and possible conversion, of the image data.
 Search for msc to see the changes.
 
-Also additional warning disables have been added. 4267 for MS VC++ and the
-equivalent -Wshorten-64-to-32 for clang.
+Additional warning disables have been added. 4267 for MS VC++ and the
+equivalent -Wshorten-64-to-32 for clang. "32-bit shift implicitly converted
+to 64 bits" warnings have been fixed by changing 1u constants to 1ull.
 */
 
 #include "lodepng.h"
@@ -700,7 +701,7 @@ static unsigned HuffmanTree_makeTable(HuffmanTree* tree) {
   size = headsize;
   for(i = 0; i < headsize; ++i) {
     unsigned l = maxlens[i];
-    if(l > FIRSTBITS) size += (1u << (l - FIRSTBITS));
+    if(l > FIRSTBITS) size += (1ull << (l - FIRSTBITS));
   }
   tree->table_len = (unsigned char*)lodepng_malloc(size * sizeof(*tree->table_len));
   tree->table_value = (unsigned short*)lodepng_malloc(size * sizeof(*tree->table_value));

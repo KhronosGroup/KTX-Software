@@ -223,7 +223,7 @@ JpegInput::readHeader()
 
 
 void
-JpegInput::readScanline(void* buffer, size_t bufferByteCount, uint y, uint,
+JpegInput::readScanline(void* bufferOut, size_t bufferByteCount, uint y, uint,
                         uint, uint,
                         const FormatDescriptor& format)
 {
@@ -264,15 +264,15 @@ JpegInput::readScanline(void* buffer, size_t bufferByteCount, uint y, uint,
 
     uint32_t targetChannelCount = targetFormat->extended.channelCount;
 
-    // decode() returns a buffer of 1 (for grayscale) or 4 components.
-    uint8_t* pDst = static_cast<uint8_t*>(buffer);
+    // decode() returns a bufferOut of 1 (for grayscale) or 4 components.
+    uint8_t* pDst = static_cast<uint8_t*>(bufferOut);
     uint32_t imageChannelCount = spec().format().extended.channelCount;
     if ((targetChannelCount == 1 && imageChannelCount == 1)
         || (targetChannelCount == 4 && imageChannelCount == 4))
     {
         if (bufferByteCount < scanlineByteCount)
             throw buffer_too_small();
-        memcpy(buffer, pScanline, scanlineByteCount);
+        memcpy(bufferOut, pScanline, scanlineByteCount);
     } else if (imageChannelCount == 1) {
         if (targetChannelCount == 3) {
             if (bufferByteCount < scanlineByteCount * 3)
@@ -324,7 +324,7 @@ JpegInput::readScanline(void* buffer, size_t bufferByteCount, uint y, uint,
 }
 
 
-void JpegInput::readImage(void* buffer, size_t bufferByteCount,
+void JpegInput::readImage(void* bufferOut, size_t bufferByteCount,
                           uint subimage, uint miplevel,
                           const FormatDescriptor& format)
 {
@@ -333,7 +333,7 @@ void JpegInput::readImage(void* buffer, size_t bufferByteCount,
 
     pJd->begin_decoding();
     decodingBegun = true;
-    ImageInput::readImage(buffer, bufferByteCount,
+    ImageInput::readImage(bufferOut, bufferByteCount,
                           subimage, miplevel,
                           format);
 }

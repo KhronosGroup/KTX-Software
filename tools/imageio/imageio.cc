@@ -45,8 +45,8 @@ PLUGENTRY(png)
 
 namespace Imageio {
 
-InputPluginMap inputFormats, inputExtensions;
-OutputPluginMap outputFormats, outputExtensions;
+InputPluginMap inputFormats;
+OutputPluginMap outputFormats;
 
 void
 declareImageioFormat(const std::string& formatname,

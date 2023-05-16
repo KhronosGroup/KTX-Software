@@ -4,12 +4,12 @@
 // Copyright 2022 The Khronos Group Inc.
 // SPDX-License-Identifier: Apache-2.0
 
+#include "imageio.h"
+
 #include <cstdlib>
 #include <fstream>
 #include <iterator>
 #include <string>
-
-#include "imageio.h"
 
 /** @internal
  * @~English
@@ -190,13 +190,13 @@ NpbmInput::readImageHeaders()
             // We've only read the header. Seek to the expected end
             // of the image.
             isp->seekg(images.back().spec.imageByteCount(), isp->cur);
-        } catch (const std::istream::failure& e) {
+        } catch (const std::istream::failure&) {
             throwOnReadFailure();
         }
         // Check if there is any more data in the file.
         try {
             isp->peek();
-        } catch (const std::istream::failure& e) {
+        } catch (const std::istream::failure&) {
             if (isp->eof()) {
                 return;
             } else {
@@ -242,7 +242,7 @@ NpbmInput::swap(void* pBuffer, size_t nvals)
 
 
 void
-NpbmInput::readNativeScanline(void* buffer, size_t bufferByteCount,
+NpbmInput::readNativeScanline(void* bufferOut, size_t bufferByteCount,
                               uint32_t y, uint32_t z,
                               uint32_t subimage, uint32_t miplevel)
 {
@@ -258,8 +258,8 @@ NpbmInput::readNativeScanline(void* buffer, size_t bufferByteCount,
     if (y != curImageScanline)
         isp->seekg(images[currentSubimage()].filepos + (spec().scanlineByteCount() * y),
                    isp->beg);
-    isp->read((char*)buffer, spec().scanlineByteCount());
-    swap(buffer, spec().scanlineByteCount());
+    isp->read((char*)bufferOut, spec().scanlineByteCount());
+    swap(bufferOut, spec().scanlineByteCount());
 }
 
 
@@ -447,7 +447,7 @@ NpbmInput::readImage(void* pBuffer, size_t bufferByteCount,
         isp->read((char*)pBuffer, spec().imageByteCount());
         curImageScanline = spec().height();
         swap(pBuffer, spec().imageChannelCount());
-    } catch (const std::istream::failure& e) {
+    } catch (const std::istream::failure&) {
         throwOnReadFailure();
     }
 }
