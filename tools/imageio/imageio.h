@@ -273,13 +273,13 @@ class ImageInput {
         return open(std::move(iss), newspec);
     }
 
-    virtual void open (std::istream& cin, ImageSpec& newspec) {
-        isp = &cin;
+    virtual void open (std::istream& cin_, ImageSpec& newspec) {
+        isp = &cin_;
         open(newspec);
     }
-    virtual void open (std::istream& cin, ImageSpec& newspec,
+    virtual void open (std::istream& cin_, ImageSpec& newspec,
                        const ImageSpec& /*config*/) {
-        return open(cin, newspec);
+        return open(cin_, newspec);
     }
 
     virtual void open(ImageSpec& newspec) = 0;
@@ -576,11 +576,9 @@ class string : public std::string {
 
 typedef std::map<std::string, ImageInput::Creator> InputPluginMap;
 extern InputPluginMap inputFormats;
-extern InputPluginMap inputExtensions;
 
 typedef std::map<std::string, ImageOutput::Creator> OutputPluginMap;
 extern OutputPluginMap outputFormats;
-extern OutputPluginMap outputExtensions;
 
 void catalogBuiltinPlugins();
 }

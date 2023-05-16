@@ -1054,8 +1054,8 @@ toktxApp::createImage(const targetImageSpec& target, ImageInput& in)
 
     if (options.scale != 1.0f) {
         scaleImage(image,
-                   image->getWidth() * options.scale,
-                   image->getHeight() * options.scale);
+               static_cast<ktx_uint32_t>(image->getWidth() * options.scale),
+               static_cast<ktx_uint32_t>(image->getHeight() * options.scale));
     } else if (options.resize
                && (image->getWidth() != target.width()
                    || image->getHeight() != target.height()))
@@ -1563,9 +1563,12 @@ toktxApp::determineTargetImageSpec(const ImageInput& in,
 {
     target = in.spec();
     if (options.scale != 1.0f) {
-        target.setWidth(target.width() * options.scale);
-        target.setHeight(target.height() * options.scale);
-        target.setDepth(target.depth() * options.scale);
+        target.setWidth(
+                static_cast<ktx_uint32_t>(target.width() * options.scale));
+        target.setHeight(
+                static_cast<ktx_uint32_t>(target.height() * options.scale));
+        target.setDepth(
+                static_cast<ktx_uint32_t>(target.depth() * options.scale));
     } else if (options.resize) {
         target.setWidth(options.newGeom.width);
         target.setHeight(options.newGeom.height);

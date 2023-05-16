@@ -300,10 +300,10 @@ NpbmInput::parseAHeader()
 #define xtupletype_sscanf_fmt(ms) tupletype_sscanf_fmt(ms)
 #define tupletype_sscanf_fmt(ms) "TUPLTYPE %"#ms"s"
     char tupleType[MAX_TUPLETYPE_SIZE+1];   // +1 for terminating NUL.
-    uint32_t width, height;
+    uint32_t width = 0, height = 0;
     unsigned int numFieldsFound = 0;
-    uint32_t componentCount, tCompCount;
-    uint32_t maxVal;
+    uint32_t componentCount = 0, tCompCount;
+    uint32_t maxVal = 0;
 
     for (;;) {
         nextLine();

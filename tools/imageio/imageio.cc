@@ -45,6 +45,7 @@ PLUGENTRY(png)
 
 namespace Imageio {
 
+// These combine extensions and format names into a single map.
 InputPluginMap inputFormats;
 OutputPluginMap outputFormats;
 
