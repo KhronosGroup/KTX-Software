@@ -342,7 +342,7 @@ class color<componentType, 2> : public color_base<componentType, 2> {
     }
     void normalize() {
         vec3<componentType> v((float)r, (float)g,
-                              gc_s[sizeof(componentType)] * 0.5f);
+                              (float)gc_s[sizeof(componentType)] * 0.5f);
         v.normalize();
         r = (componentType)v.r;
         g = (componentType)v.g;
