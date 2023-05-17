@@ -863,9 +863,9 @@ endif()
 add_subdirectory(interface/basisu_c_binding)
 
 # Only one architecture is supported at once, if neither of
-# ISA_SSE41 and ISA_SSE2  are defined ISA_AVX2 is chosen.
-# If ISA_AVX2 fails to compile user must chose other x86 options.
-# On arm based systems ISA_NEON is default
+# ASTC_SSE41 and ASTC_SSE2  are defined ASTC_AVX2 is chosen.
+# If ASTC_AVX2 fails to compile user must chose other x86 options.
+# On arm based systems ASTC_NEON is default
 
 list(FIND CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" ASTC_BUILD_UNIVERSAL)
 list(LENGTH CMAKE_OSX_ARCHITECTURES ARCHITECTURE_COUNT)
@@ -875,27 +875,27 @@ if(${ASTC_BUILD_UNIVERSAL} EQUAL -1 AND ARCHITECTURE_COUNT LESS_EQUAL 1)
         set(ASTC_LIB_TARGET astcenc-none-static)
     else()
         if(CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86)
-            if (${ISA_SSE41})
+            if (${ASTCENC_ISA_SSE41})
                 set(ASTC_LIB_TARGET astcenc-sse4.1-static)
-            elseif (${ISA_SSE2})
+            elseif (${ASTCENC_ISA_SSE2})
                 set(ASTC_LIB_TARGET astcenc-sse2-static)
             else()
-                set(ISA_AVX2 ON)
+                set(ASTCENC_ISA_AVX2 ON)
                 set(ASTC_LIB_TARGET astcenc-avx2-static)
             endif()
             if(CPU_ARCHITECTURE STREQUAL x86)
-                set(ISA_NONE ON)
-                set(ISA_AVX2 OFF)
+                set(ASTCENC_ISA_NONE ON)
+                set(ASTCENC_ISA_AVX2 OFF)
                 set(ASTCENC_POPCNT 0)
                 set(ASTC_LIB_TARGET astcenc-none-static)
             endif()
         elseif(CPU_ARCHITECTURE STREQUAL armv8 OR CPU_ARCHITECTURE STREQUAL arm64)
             set(ASTC_LIB_TARGET astcenc-neon-static)
-            set(ISA_NEON ON)
+            set(ASTCENC_ISA_NEON ON)
         else()
-            message(STATUS "Unsupported ISA for ${CPU_ARCHITECTURE} arch, using ISA_NONE.")
+            message(STATUS "Unsupported ISA for ASTC on ${CPU_ARCHITECTURE} arch, using ASTCENC_ISA_NONE.")
             set(ASTC_LIB_TARGET astcenc-none-static)
-            set(ISA_NONE ON)
+            set(ASTCENC_ISA_NONE ON)
         endif()
     endif()
 else()
