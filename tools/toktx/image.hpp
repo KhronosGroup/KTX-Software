@@ -185,7 +185,7 @@ struct vec3_base {
 };
 
 static constexpr float gc_m[5]={0.0f, 128.0f, 32768.0f, 0.0f, 2147483648.0f};
-static constexpr float gc_s[5]={0.0f, 255.0f, 65535.0f, 0.0f, 4294967295.0f};
+static constexpr uint32_t gc_s[5]={0, 255, 65535, 0, 4294967295};
 
 template <typename componentType>
 struct vec3 : public vec3_base {
@@ -199,15 +199,15 @@ struct vec3 : public vec3_base {
         if (gc_m[i] == r && gc_m[i] == g && gc_m[i] == b) {
             return;
         } else {
-            r = r / gc_s[i] * 2.0f - 1.0f;
-            g = g / gc_s[i] * 2.0f - 1.0f;
-            b = b / gc_s[i] * 2.0f - 1.0f;
+            r = (float)(r / (double)gc_s[i]) * 2.0f - 1.0f;
+            g = (float)(g / (double)gc_s[i]) * 2.0f - 1.0f;
+            b = (float)(b / (double)gc_s[i]) * 2.0f - 1.0f;
             clamp(-1.0f, 1.0f);
             base_normalize();
-            r = (std::floor((r + 1.0f) * gc_s[i] * 0.5f + 0.5f));
-            g = (std::floor((g + 1.0f) * gc_s[i] * 0.5f + 0.5f));
-            b = (std::floor((b + 1.0f) * gc_s[i] * 0.5f + 0.5f));
-            clamp(0, gc_s[i]);
+            r = (std::floor((r + 1.0f) * (float)gc_s[i] * 0.5f + 0.5f));
+            g = (std::floor((g + 1.0f) * (float)gc_s[i] * 0.5f + 0.5f));
+            b = (std::floor((b + 1.0f) * (float)gc_s[i] * 0.5f + 0.5f));
+            clamp(0.0f, (float)gc_s[i]);
         }
     }
 };
@@ -342,7 +342,7 @@ class color<componentType, 2> : public color_base<componentType, 2> {
     }
     void normalize() {
         vec3<componentType> v((float)r, (float)g,
-                              gc_s[sizeof(componentType)] * 0.5f);
+                              (float)gc_s[sizeof(componentType)] * 0.5f);
         v.normalize();
         r = (componentType)v.r;
         g = (componentType)v.g;
@@ -381,10 +381,10 @@ class color<componentType, 1> : public color_base<componentType, 1> {
         return 1;
     }
     void normalize() {
-        vec3<componentType> v((float)r, gc_s[sizeof(componentType)] * 0.5f,
-                              gc_s[sizeof(componentType)] * 0.5f);
-        v.normalize();
-        r = (componentType)v.r;
+		// Normalizing single channel image doesn't make much sense
+		// Here I assume single channel color is (X, 0, 0, 0)
+		if (r != 0)
+			r = (componentType)gc_s[sizeof(componentType)];
     }
 };
 
