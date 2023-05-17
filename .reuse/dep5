@@ -103,7 +103,7 @@ Files: lib/basisu/basisu_astc_decomp.*
 Copyright: 2016 The Android Open Source Project
 License: Apache-2.0
 
-Files: tools/toktx/lodepng.*
+Files: tools/imageio/png.imageio/lodepng.*
 Copyright: 2005-2019 Lode Vandevenne
 License: Zlib
 
@@ -200,3 +200,7 @@ License: MIT
 Files: the_khronos_group_inc.p12.enc
 Copyright: 2022 The Khronos Group Inc.
 License: Apache-2.0
+
+Files: other_projects/fmt/*
+Copyright: 2012 - present Victor Zverovich
+License: MIT

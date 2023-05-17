@@ -83,10 +83,6 @@ add_test( NAME toktx-different-colortype-second-file-warning
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
 )
 
-add_test( NAME toktx-depth-lt-two
-    COMMAND toktx --depth 1 a b
-)
-
 add_test( NAME toktx-depth-layers
     COMMAND toktx --depth 4 --layers 4 a b c d e
 )
@@ -115,7 +111,6 @@ set_tests_properties(
     toktx-invalid-target-type
     toktx-different-colortype-second-file-error
     toktx-depth-layers
-    toktx-depth-lt-two
     toktx-depth-genmipmap
     toktx-layers-lt-one
 PROPERTIES
@@ -125,7 +120,7 @@ PROPERTIES
 set_tests_properties(
     toktx-different-colortype-second-file-warning
 PROPERTIES
-    PASS_REGULAR_EXPRESSION "toktx warning! \"../srcimages/level1-alpha.pam\" has a different colortype_e"
+    PASS_REGULAR_EXPRESSION "^toktx warning! Image in ../srcimages/level1-alpha.pam\\(0,0\\) has a different component count"
 )
 
 function( gencmpktx test_name reference source args env files )
@@ -206,7 +201,7 @@ if(APPLE)
 gencmpktx( etc1s_Iron_Bars_001_normal      etc1s_Iron_Bars_001_normal.ktx2     ../srcimages/Iron_Bars/Iron_Bars_001_normal_unnormalized.png "--assign_oetf linear --genmipmap --normalize --normal_mode --encode etc1s" "" "")
 endif()
 
-gencmpktx( gAMA_chunk_png g03n2c08.ktx2 ../srcimages/g03n2c08.png "--t2" "" "" )
+gencmpktx( gAMA_chunk_png g03n2c08.ktx2 ../srcimages/g03n2c08.png "--t2 --convert_oetf srgb" "" "" )
 gencmpktx( cHRM_chunk_png ccwn2c08.ktx2 ../srcimages/ccwn2c08.png "--t2" "" "" )
 gencmpktx( tRNS_chunk_rgb_png tbrn2c08.ktx2 ../srcimages/tbrn2c08.png "--t2" "" "" )
 gencmpktx( tRNS_chunk_palette_8-bit_png tbyn3p08.ktx2 ../srcimages/tbyn3p08.png "--t2" "" "" )

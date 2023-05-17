@@ -16,11 +16,12 @@ function(set_tool_properties tool_target)
         set_target_properties(${tool_target} PROPERTIES
             XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
             INSTALL_RPATH "@executable_path;/usr/local/lib"
+            CXX_VISIBILITY_PRESET ${STATIC_APP_LIB_SYMBOL_VISIBILITY}
         )
     endif()
 endfunction()
 
-
+add_subdirectory(imageio)
 add_subdirectory(ktx2check)
 add_subdirectory(ktx2ktx2)
 add_subdirectory(ktxinfo)
