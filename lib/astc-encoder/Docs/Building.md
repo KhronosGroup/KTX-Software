@@ -27,11 +27,11 @@ cd build
 
 # x86-64 using NMake
 cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=..\ ^
-    -DISA_AVX2=ON -DISA_SSE41=ON -DISA_SSE2=ON ..
+    -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON ..
 
 # x86-64 using Visual Studio solution
 cmake -G "Visual Studio 16 2019" -T ClangCL -DCMAKE_INSTALL_PREFIX=..\ ^
-    -DISA_AVX2=ON -DISA_SSE41=ON -DISA_SSE2=ON ..
+    -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON ..
 ```
 
 A single CMake configure can build multiple binaries for a single target CPU
@@ -78,15 +78,15 @@ cd build
 
 # Arm arch64
 cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ \
-    -DISA_NEON=ON ..
+    -DASTCENC_ISA_NEON=ON ..
 
 # x86-64
 cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ \
-    -DISA_AVX2=ON -DISA_SSE41=ON -DISA_SSE2=ON ..
+    -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON ..
 
 # macOS universal binary build
 cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ \
-    -DISA_AVX2=ON -DISA_NEON=ON ..
+    -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_NEON=ON ..
 ```
 
 A single CMake configure can build multiple binaries for a single target CPU
@@ -136,7 +136,7 @@ which can make profiling more challenging ...
 ### Shared Libraries
 
 We support building the core library as a shared object by setting the CMake
-option `-DSHAREDLIB=ON` at configure time.
+option `-DASTCENC_SHAREDLIB=ON` at configure time.
 
 Note that the command line tool is always statically linked; the shared objects
 are an extra build output that are not currently used by the command line tool.
@@ -146,16 +146,16 @@ are an extra build output that are not currently used by the command line tool.
 All normal builds will support all ASTC block sizes, including the worst case
 6x6x6 3D block size (216 texels per block). Compressor memory footprint and
 performance can be improved by limiting the block sizes supported in the build
-by adding `-DBLOCK_MAX_TEXELS=<texel_count>` to to CMake command line when
-configuring. Legal block sizes that are unavailable in a restricted build will
-return the error `ASTCENC_ERR_NOT_IMPLEMENTED` during context creation.
+by adding `-DASTCENC_BLOCK_MAX_TEXELS=<texel_count>` to to CMake command line
+when configuring. Legal block sizes that are unavailable in a restricted build
+will return the error `ASTCENC_ERR_NOT_IMPLEMENTED` during context creation.
 
 ### Non-invariant builds
 
 All normal builds are designed to be invariant, so any build from the same git
 revision will produce bit-identical results for all compilers and CPU
 architectures. To achieve this we sacrifice some performance, so if this is
-not required you can specify `-DNO_INVARIANCE=ON` to enable additional
+not required you can specify `-DASTCENC_NO_INVARIANCE=ON` to enable additional
 optimizations. This has most benefit for AVX2 builds where we are able to
 enable use of the FMA instruction set extensions.
 
@@ -166,8 +166,8 @@ supported target architectures (x86 and arm64) guarantee SIMD availability. For
 development purposes it is possible to build an intrinsic-free build which uses
 no explicit SIMD acceleration (the compiler may still auto-vectorize).
 
-To enable this binary variant add `-DISA_NONE=ON` to the CMake command line
-when configuring. It is NOT recommended to use this for production; it is
+To enable this binary variant add `-DASTCENC_ISA_NONE=ON` to the CMake command
+line when configuring. It is NOT recommended to use this for production; it is
 significantly slower than the vectorized SIMD builds.
 
 ### Test builds
@@ -181,7 +181,7 @@ git submodule init
 git submodule update
 ```
 
-To build unit tests add `-DUNITTEST=ON` to the CMake command line when
+To build unit tests add `-DASTCENC_UNITTEST=ON` to the CMake command line when
 configuring.
 
 To run unit tests use the CMake `ctest` utility from your build directory after
@@ -195,8 +195,8 @@ ctest --verbose
 ### Address sanitizer builds
 
 We support building with ASAN on Linux and macOS when using a compiler that
-supports it. To build binaries with ASAN checking enabled add `-DASAN=ON` to
-the CMake command line when configuring.
+supports it. To build binaries with ASAN checking enabled add `-DASTCENC_ASAN=ON`
+to the CMake command line when configuring.
 
 ### Android builds
 
@@ -242,8 +242,8 @@ the current CMake configuration using the `package` build target
 
 Configure CMake with:
 
-* `-DPACAKGE=<arch>` to set the package architecture/variant name used to name
-  the package archive (not set by default).
+* `-DASTCENC_PACAKGE=<arch>` to set the package architecture/variant name used
+to name the package archive (not set by default).
 
 ```shell
 # Run a build and package build outputs in `./astcenc-<ver>-<os>-<arch>.<fmt>`

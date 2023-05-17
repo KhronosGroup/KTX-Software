@@ -199,6 +199,9 @@ It covers:
 * How to efficiently encode normal maps, sRGB data, and HDR data.
 * Coding equivalents to other compression formats.
 
+The [ASTC Developer Guide][5] document (external link) provides a more detailed
+guide for developers using the `astcenc` compressor.
+
 The [.astc File Format](./Docs/FileFormat.md) page provides a light-weight
 specification for the `.astc` file format and how to read or write it.
 
@@ -225,3 +228,4 @@ _Copyright © 2013-2023, Arm Limited and contributors. All rights reserved._
 [2]: https://www.khronos.org/registry/DataFormat/specs/1.3/dataformat.1.3.html#ASTC
 [3]: https://github.com/ARM-software/astc-encoder/releases
 [4]: https://community.arm.com/support-forums/f/graphics-gaming-and-vr-forum/
+[5]: https://developer.arm.com/documentation/102162/latest/?lang=en

@@ -7,6 +7,22 @@ All performance data on this page is measured on an Intel Core i5-9600K
 clocked at 4.2 GHz, running `astcenc` using AVX2 and 6 threads.
 
 <!-- ---------------------------------------------------------------------- -->
+## 4.5.0
+
+**Status:** In development
+
+The 4.5.0 release is a maintenance release with minor fixes and improvements.
+
+* **General:**
+  * **Bug-fix:** Invariant Clang and GCC builds now force `-ffp-model=strict`,
+    which is needed due to recent changes in compiler defaults. These builds
+    will be slower than the previous release, which was not guaranteed to be
+    invariant. Use a non-invariant build to recover lost performance if needed.
+  * **Bug-fix:** Non-invariant Clang and GCC builds now force
+    `-ffp-model=precise`, which is needed due to recent changes in compiler
+    defaults.
+
+<!-- ---------------------------------------------------------------------- -->
 ## 4.4.0
 
 **Status:** March 2023
