@@ -6,7 +6,7 @@ set -e
 
 # Fallback to arm64-v8a
 ANDROID_ABI=${ANDROID_ABI:-'arm64-v8a'}
-ASTC_ISA=${ASTC_ISA:-'ISA_NONE=ON'}
+ASTCENC_ISA=${ASTCENC_ISA:-'ASTCENC_ISA_NONE=ON'}
 
 BUILD_DIR="build-android-$ANDROID_ABI-debug"
 
@@ -21,7 +21,7 @@ cmake_args=("-G" "Ninja" \
   "-D" "CMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake" \
   "-D" "CMAKE_BUILD_TYPE=Debug" \
   "-D" "BASISU_SUPPORT_SSE=OFF" \
-  "-D" "${ASTC_ISA}"
+  "-D" "${ASTCENC_ISA}"
 )
 
 config_display="Configure KTX-Software (Android $ANDROID_ABI Debug): "
