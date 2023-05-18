@@ -155,7 +155,7 @@ will return the error `ASTCENC_ERR_NOT_IMPLEMENTED` during context creation.
 All normal builds are designed to be invariant, so any build from the same git
 revision will produce bit-identical results for all compilers and CPU
 architectures. To achieve this we sacrifice some performance, so if this is
-not required you can specify `-DASTCENC_NO_INVARIANCE=ON` to enable additional
+not required you can specify `-DASTCENC_INVARIANCE=OFF` to enable additional
 optimizations. This has most benefit for AVX2 builds where we are able to
 enable use of the FMA instruction set extensions.
 
