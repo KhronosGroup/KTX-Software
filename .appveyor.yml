@@ -209,7 +209,7 @@ test_script:
     $configArray = $env:CONFIGURATION.split(",")
     foreach ($config in $configArray) {
       echo "Testing KTX-Software ($config)"
-      ctest -C $config
+      ctest --output-on-failure -C $config
     }
     popd
 

@@ -117,7 +117,7 @@ do
   # Rosetta 2 should let x86_64 tests run on an Apple Silicon Mac hence the -o.
   if [ "$ARCHS" = "$(uname -m)" -o "$ARCHS" = "x64_64" ]; then
     echo "Test KTX-Software (macOS $ARCHS $config)"
-    ctest -C $config # --verbose
+    ctest --output-on-failure -C $config # --verbose
   fi
 
   if [ "$config" = "Release" -a "$PACKAGE" = "YES" ]; then
