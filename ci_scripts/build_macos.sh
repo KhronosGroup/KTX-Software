@@ -69,7 +69,7 @@ cmake_args=("-G" "Xcode" \
   "-D" "BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL" \
   "-D" "BASISU_SUPPORT_SSE=$SUPPORT_SSE"
 )
-if [ "$ARCHS" = "x86_64" ]; then cmake_args+=("-D" "ISA_SSE41=ON"); fi
+if [ "$ARCHS" = "x86_64" ]; then cmake_args+=("-D" "ASTCENC_ISA_SSE41=ON"); fi
 if [ -n "$MACOS_CERTIFICATES_P12" ]; then
   cmake_args+=( \
     "-D" "XCODE_CODE_SIGN_IDENTITY=${CODE_SIGN_IDENTITY}" \
