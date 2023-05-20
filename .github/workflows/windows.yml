@@ -15,7 +15,8 @@ on:
     # Also trigger on push of release tags to any branch. Useful
     # for testing release builds before merging to main.
     tags:
-      - "v*.*.*"
+      - 'v[0-9]+\.[0-9]+\.[0-9]+'
+      - 'v[0-9]+\.[0-9]+\.[0-9]+-*'
     paths-ignore:
       - .appveyor.yml
       - .travis.yml

@@ -341,7 +341,7 @@ deploy:
     on:
       tags: true
       #branch: master
-      condition: $PACKAGE = YES
+      condition: $PACKAGE = "YES" && $TRAVIS_TAG =~ ^v[0-9].*
 
   - provider: script
     edge: true
@@ -349,7 +349,7 @@ deploy:
     on:
       tags: true
       #branch: master
-      condition: $PACKAGE = YES
+      condition: $PACKAGE = "YES" && $TRAVIS_TAG =~ ^v[0-9].*
 # ---------------------------------------------------------
 
 # vim:ai:ts=4:sts=2:sw=2:expandtab
