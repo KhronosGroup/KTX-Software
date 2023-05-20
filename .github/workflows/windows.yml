@@ -28,7 +28,7 @@ jobs:
     strategy:
       matrix:
         os: [ windows-latest ]
-        toolset: [v143, CLangCL]
+        toolset: [CLangCL, v143]
         arch: [ x64 ]
         options: [
           {config: 'Debug,Release',
@@ -49,16 +49,16 @@ jobs:
            sse: ON, opencl: ON}
         ]
         include:
-          - os: windows-2019
-            generator: 'Visual Studio 16 2019'
-            toolset: v142
-            arch: x64
-            options: {
-              config: 'Debug,Release',
-              doc: ON, jni: ON, loadtests: ON, tests: ON, tools: ON,
-              package: NO,
-              sse: ON, opencl: OFF
-            }
+#          - os: windows-2019
+#            generator: 'Visual Studio 16 2019'
+#            toolset: v142
+#            arch: x64
+#            options: {
+#              config: 'Debug,Release',
+#              doc: ON, jni: ON, loadtests: ON, tests: ON, tools: ON,
+#              package: NO,
+#              sse: ON, opencl: OFF
+#            }
           - os: windows-latest
             generator: 'Visual Studio 17 2022'
             toolset: CLangCL
