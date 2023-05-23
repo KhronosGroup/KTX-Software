@@ -20,19 +20,19 @@ namespace ktx {
 /** @page ktxtools_validate ktx validate
 @~English
 
-Validates a KTX2 file.
+Validate a KTX2 file.
 
 @section ktxtools_validate_synopsis SYNOPSIS
-    ktx validate [option...] @e input_file
+    ktx validate [option...] @e input-file
 
 @section ktxtools_validate_description DESCRIPTION
     @b ktx @b validate validates the Khronos texture format version 2 (KTX2) file specified
-    as the @e input_file argument. Prints any found error and warning to the stdout.
+    as the @e input-file argument. It prints any found errors and warnings to stdout.
 
     The validation rules and checks are based on the official specification:
     KTX File Format Specification - https://registry.khronos.org/KTX/specs/2.0/ktxspec.v2.html
 
-    The JSON output formats are confirming to the https://schema.khronos.org/ktx/validate_v0.json
+    The JSON output formats conform to the https://schema.khronos.org/ktx/validate_v0.json
     schema.
 
     @note @b ktx @b validate prints using UTF-8 encoding. If your console is not
@@ -94,7 +94,8 @@ private:
 int CommandValidate::main(int argc, _TCHAR* argv[]) {
     try {
         parseCommandLine("ktx validate",
-                "Validates a KTX2 file and prints any issues to the stdout.",
+                "Validates the Khronos texture format version 2 (KTX2) file specified\n"
+                "    as the input-file argument. It prints any found errors and warnings to stdout.",
                 argc, argv);
         executeValidate();
         return +rc::SUCCESS;

@@ -37,7 +37,7 @@
   <scm>
     <connection>scm:git:git://github.com/KhronosGroup/KTX-Software.git</connection>
     <developerConnection>scm:git:ssh://github.com:KhronosGroup/KTX-Software.git</developerConnection>
-    <url>https://github.com/KhronosGroup/KTX-Software/tree/master</url>
+    <url>https://github.com/KhronosGroup/KTX-Software/tree/main</url>
   </scm>
 
   <dependencies>

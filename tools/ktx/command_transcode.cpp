@@ -34,11 +34,11 @@ namespace ktx {
 Transcode a KTX2 file.
 
 @section ktxtools_transcode_synopsis SYNOPSIS
-    ktx transcode [option...] @e input_file @e output_file
+    ktx transcode [option...] @e input-file @e output-file
 
 @section ktxtools_transcode_description DESCRIPTION
-    @b ktx @b transcode can transcode and supercompress the KTX2 file specified as the
-    @e input_file argument and save it as the @e output_file.
+    @b ktx @b transcode can transcode the KTX file specified as the @e input-file argument,
+    optionally supercompress the result, and save it as the @e output-file.
     The input file must be transcodable (it must be either BasisLZ supercompressed or has UASTC
     color model in the DFD).
     If the input file is invalid the first encountered validation error is displayed
@@ -50,6 +50,7 @@ Transcode a KTX2 file.
         <dd>Target transcode format.
             If the target option is not set the r8, rg8, rgb8 or rgba8 target will be
             selected based on the number of channels in the input texture.
+            Block compressed transcode targets can only be saved in raw format.
             Case-insensitive. Possible options are:
             etc-rgb | etc-rgba | eac-r11 | eac-rg11 | bc1 | bc3 | bc4 | bc5 | bc7 | astc |
             r8 | rg8 | rgb8 | rgba8
@@ -95,7 +96,10 @@ private:
 
 int CommandTranscode::main(int argc, _TCHAR* argv[]) {
     try {
-        parseCommandLine("ktx transcode", "Transcode a KTX2 file.", argc, argv);
+        parseCommandLine("ktx transcode",
+                "Transcode the KTX file specified as the input-file argument,\n"
+                "    optionally supercompress the result, and save it as the output-file.",
+                argc, argv);
         executeTranscode();
         return +rc::SUCCESS;
     } catch (const FatalError& error) {
@@ -108,9 +112,12 @@ int CommandTranscode::main(int argc, _TCHAR* argv[]) {
 
 void CommandTranscode::OptionsTranscode::init(cxxopts::Options& opts) {
     opts.add_options()
-        ("target", "Target transcode format. Case-insensitive.\n"
-                   "Possible options are: "
-                   "etc-rgb | etc-rgba | eac-r11 | eac-rg11 | bc1 | bc3 | bc4 | bc5 | bc7 | astc | r8 | rg8 | rgb8 | rgba8",
+        ("target", "Target transcode format."
+                   " Block compressed transcode targets can only be saved in raw format."
+                   " Case-insensitive."
+                   "\nPossible options are:"
+                   " etc-rgb | etc-rgba | eac-r11 | eac-rg11 | bc1 | bc3 | bc4 | bc5 | bc7 | astc |"
+                   " r8 | rg8 | rgb8 | rgba8",
                    cxxopts::value<std::string>(), "<target>");
 }
 

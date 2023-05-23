@@ -447,11 +447,11 @@ int ValidationContext::validate(bool doCreateAndTranscodeChecks) {
     if (doCreateAndTranscodeChecks)
         call(&ValidationContext::validateCreateAndTranscode, "Create and Transcode");
 
-    // TODO Tools P3: Verify validation of padding zeros between levelIndex and DFD
-    // TODO Tools P3: Verify validation of padding zeros between DFD and KVD
-    // TODO Tools P3: Verify validation of padding zeros between KVD and SGD
-    // TODO Tools P3: Verify validation of padding zeros between SGD and image levels
-    // TODO Tools P3: Verify validation of padding zeros between image levels
+    // TODO: Tools P3: Verify validation of padding zeros between levelIndex and DFD
+    // TODO: Tools P3: Verify validation of padding zeros between DFD and KVD
+    // TODO: Tools P3: Verify validation of padding zeros between KVD and SGD
+    // TODO: Tools P3: Verify validation of padding zeros between SGD and image levels
+    // TODO: Tools P3: Verify validation of padding zeros between image levels
 
     return returnCode;
 }
@@ -858,7 +858,7 @@ void ValidationContext::calculateExpectedDFD(VkFormat format) {
 
         result = interpretDFD(dfd.get(), &r, &g, &b, &a, &componentByteLength);
 
-        // TODO Tools P5: Add interpretDFD support for depth, stencil and packed exponent formats
+        // TODO: Tools P5: Add interpretDFD support for depth, stencil and packed exponent formats
         // Workaround for missing interpretDFD support for depth/stencil formats
         switch (format) {
         case VK_FORMAT_S8_UINT:
@@ -972,10 +972,10 @@ void ValidationContext::validateDFD() {
                 }
 
             } else if (blockHeader.vendorId == KHR_DF_VENDORID_KHRONOS && blockHeader.descriptorType == KHR_DF_KHR_DESCRIPTORTYPE_ADDITIONAL_DIMENSIONS) {
-                // TODO Tools P5: Implement DFD validation for ADDITIONAL_DIMENSIONS
+                // TODO: Tools P5: Implement DFD validation for ADDITIONAL_DIMENSIONS
 
             } else if (blockHeader.vendorId == KHR_DF_VENDORID_KHRONOS && blockHeader.descriptorType == KHR_DF_KHR_DESCRIPTORTYPE_ADDITIONAL_PLANES) {
-                // TODO Tools P5: Implement DFD validation for ADDITIONAL_PLANES
+                // TODO: Tools P5: Implement DFD validation for ADDITIONAL_PLANES
 
             } else {
                 warning(DFD::UnknownDFDBlock,
@@ -1208,7 +1208,7 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
                 if (result >= i_UNSUPPORTED_ERROR_BIT) {
                     switch (result) {
                     case i_UNSUPPORTED_CHANNEL_TYPES:
-                        // TODO Tools P4: We intentionally ignore this error from interpretDFD().
+                        // TODO: Tools P4: We intentionally ignore this error from interpretDFD().
                         // We already check channel types elsewhere and interpretDFD() currently doesn't
                         // handle anything else but the RGBSDA color model which is insufficient to handle
                         // cases like the allowed 422 YCbCr formats.
@@ -1803,7 +1803,7 @@ void ValidationContext::validateSGD() {
 }
 
 // =================================================================================================
-// TODO Tools P2: validate DataSize
+// TODO: Tools P2: validate DataSize
 //
 // void ktxValidator::validateDataSize(validationContext& ctx) {
 //     // Expects to be called after validateSgd so current file offset is at

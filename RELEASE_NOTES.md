@@ -17,7 +17,7 @@ Thanks to @wasimabbas-arm.
 
 * An install package for Windows Arm-64 has been added. Thanks to @Honeybunch.
 
-* The formerly internal `ktxStream` class has been exposed enabling possibilities such as wrapping a ktxStream around a C++ stream so that textures can be created from the C++ stream's content. See [sbufstream.h](https://github.com/KhronosGroup/KTX-Software/blob/master/utils/sbufstream.h). Thanks to @UberLambda.
+* The formerly internal `ktxStream` class has been exposed enabling possibilities such as wrapping a ktxStream around a C++ stream so that textures can be created from the C++ stream's content. See [sbufstream.h](https://github.com/KhronosGroup/KTX-Software/blob/main/utils/sbufstream.h). Thanks to @UberLambda.
 
 * `ktx2check` now verifies BasisLZ supercompression data by performing a transcode.
 

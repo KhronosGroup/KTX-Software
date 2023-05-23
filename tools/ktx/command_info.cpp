@@ -25,24 +25,24 @@ namespace ktx {
 /** @page ktxtools_info ktx info
 @~English
 
-Prints information about a KTX2 file.
+Print information about a KTX2 file.
 
 @section ktxtools_info_synopsis SYNOPSIS
-    ktx info [option...] @e input_file
+    ktx info [option...] @e input-file
 
 @section ktxtools_info_description DESCRIPTION
-    @b ktx @b info prints information about the KTX2 file specified as the @e input_file argument.
-    The command implicitly calls @ref ktxtools_validate "validate" and prints any found error and
-    warning to the stdout.
+    @b ktx @b info prints information about the KTX2 file specified as the @e input-file argument.
+    The command implicitly calls @ref ktxtools_validate "validate" and prints any found errors
+    and warnings to stdout.
     If the specified input file is invalid the information is displayed based on best effort and
     may be incomplete.
 
-    The JSON output formats are confirming to the https://schema.khronos.org/ktx/info_v0.json
+    The JSON output formats conform to the https://schema.khronos.org/ktx/info_v0.json
     schema even if the input file is invalid and certain information cannot be parsed or
     displayed.
     Additionally, for JSON outputs the KTX file identifier is printed using "\u001A" instead of
     "\x1A" as an unescaped "\x1A" sequence inside a JSON string breaks nearly every JSON tool.
-    Note that this does not changes the value of the string only its representation.
+    Note that this does not change the value of the string only its representation.
 
     @note @b ktx @b info prints using UTF-8 encoding. If your console is not
     set for UTF-8 you will see incorrect characters in output of the file
@@ -83,7 +83,9 @@ private:
 int CommandInfo::main(int argc, _TCHAR* argv[]) {
     try {
         parseCommandLine("ktx info",
-                "Prints information about the KTX2 file provided as argument to the stdout.",
+                "Prints information about the KTX2 file specified as the input-file argument.\n"
+                "    The command implicitly calls validate and prints any found errors\n"
+                "    and warnings to stdout.",
                 argc, argv);
         executeInfo();
         return to_underlying(rc::SUCCESS);

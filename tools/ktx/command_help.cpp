@@ -27,7 +27,7 @@ struct OptionsHelp {
 
     void init(cxxopts::Options& opts) {
         opts.add_options()
-                ("command", "The command to be usage", cxxopts::value<std::string>());
+                ("command", "The command which usage should be displayed.", cxxopts::value<std::string>());
         opts.parse_positional("command");
         opts.positional_help("<command>");
     }
@@ -54,7 +54,7 @@ struct OptionsHelp {
 /** @page ktxtools_help ktx help
 @~English
 
-Displays the man page of the specified ktx command.
+Display help information about the ktx tool.
 
 @section ktxtools_help_synopsis SYNOPSIS
     ktx help [option...] @e [command]
@@ -63,7 +63,7 @@ Displays the man page of the specified ktx command.
     @b ktx @b help displays the man page of a specific ktx command specified as the @e command
     argument.
     On windows systems the man pages are opened with the system default browser in html format.
-    On linux based system the man pages are opened with the help of the man command.
+    On systems derived from Unix the man pages are opened with the man command.
 
     To support custom install locations the tool first tries to use the man files relative to
     the executable and falls back to the system man pages.
@@ -113,7 +113,7 @@ private:
 int CommandHelp::main(int argc, _TCHAR* argv[]) {
     try {
         parseCommandLine("ktx help",
-                "Displays the man page of the specified ktx command in html or man format.",
+                "Displays the man page of a specific ktx command specified as the command argument.",
                 argc, argv);
         executeHelp();
         return +rc::SUCCESS;
@@ -163,7 +163,7 @@ void CommandHelp::executeHelp() {
 #   if defined(__APPLE__)
     char buf[PATH_MAX];
     uint32_t bufsize = PATH_MAX;
-    if (const auto ec = _NSGetExecutablePath(buf, &bufsize); ec)
+    if (const auto ec = _NSGetExecutablePath(buf, &bufsize))
         fatal(rc::RUNTIME_ERROR, "Failed to determine executable path: ERROR {}", ec);
     const auto executablePath = std::filesystem::canonical(buf);
 #   else // Linux

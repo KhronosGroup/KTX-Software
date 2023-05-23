@@ -48,7 +48,7 @@ enum class EncodeCodec {
              @b --max-selectors, @b --endpoint_rdo_threshold and
              @b --selector_rdo_threshold for the target quality level.
              Setting these options overrides the values determined by
-             -qlevel which defaults to 128 if neither it nor both of
+             -qlevel which defaults to 128 if neither it nor
              @b --max_endpoints and @b --max_selectors have been set.
 
              Note that both of @b --max_endpoints and @b --max_selectors
@@ -184,8 +184,8 @@ enum class EncodeCodec {
             thread::hardware_concurrency or 1 if value returned is 0.</dd>
         <dt>--no-sse</dt>
         <dd>Forbid use of the SSE instruction set. Ignored if CPU does
-            not support SSE. Only the Basis Universal compressor uses
-            SSE.</dd>
+            not support SSE. SSE can only be disabled on the basis-lz and
+            uastc compressors.</dd>
     </dl>
 </dl>
 //! [command options_codec]
@@ -264,7 +264,7 @@ struct OptionsCodec {
                 "automatically determines values for --max_endpoints, --max-selectors, "
                 "--endpoint_rdo_threshold and --selector_rdo_threshold for the target quality level. "
                 "Setting these options overrides the values determined by --qlevel which defaults to "
-                "128 if neither it nor both of --max_endpoints and --max_selectors have been set.",
+                "128 if neither it nor --max_endpoints and --max_selectors have been set.",
                 cxxopts::value<uint32_t>(), "<level>")
             ("max-endpoints", "Manually set the maximum number of color endpoint clusters. Range "
                 "is [1,16128]. Default is 0, unset.",
@@ -317,7 +317,9 @@ struct OptionsCodec {
             ("threads", "Sets the number of threads to use during encoding. By default, encoding "
                 "will use the number of threads reported by thread::hardware_concurrency or 1 if "
                 "value returned is 0.", cxxopts::value<uint32_t>(), "<count>")
-            ("no-sse", "Forbit use of the SSE instruction set. Ignored if CPU does not support SSE.");
+            ("no-sse", "Forbid use of the SSE instruction set. Ignored if CPU does "
+               "not support SSE. SSE can only be disabled on the basis-lz and "
+               "uastc compressors.");
     }
 
     EncodeCodec validateEncodeCodec(const cxxopts::OptionValue& codecOpt) const {

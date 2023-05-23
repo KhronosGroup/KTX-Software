@@ -31,14 +31,14 @@ namespace ktx {
 /** @page ktxtools_encode ktx encode
 @~English
 
-Encodes a KTX2 file.
+Encode a KTX2 file.
 
 @section ktxtools_encode_synopsis SYNOPSIS
-    ktx encode [option...] @e input_file @e output_file
+    ktx encode [option...] @e input-file @e output-file
 
 @section ktxtools_encode_description DESCRIPTION
-    @b ktx @b encode can encode and supercompress the KTX2 file specified as the @e input_file
-    argument and save it as the @e output_file.
+    @b ktx @b encode can encode the KTX file specified as the @e input-file argument,
+    optionally supercompress the result, and save it as the @e output-file.
     The input file must be R8, RG8, RGB8 or RGBA8 (or their sRGB variant).
     If the input file is invalid the first encountered validation error is displayed
     to the stderr and the command exits with the relevant non-zero status code.
@@ -93,7 +93,10 @@ private:
 
 int CommandEncode::main(int argc, _TCHAR* argv[]) {
     try {
-        parseCommandLine("ktx encode", "Encode a KTX2 file.", argc, argv);
+        parseCommandLine("ktx encode",
+                "Encode the KTX file specified as the input-file argument,\n"
+                "    optionally supercompress the result, and save it as the output-file.",
+                argc, argv);
         executeEncode();
         return +rc::SUCCESS;
     } catch (const FatalError& error) {

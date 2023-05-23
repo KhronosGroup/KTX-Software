@@ -97,20 +97,20 @@ namespace ktx {
 Extract selected images from a KTX2 file.
 
 @section ktxtools_extract_synopsis SYNOPSIS
-    ktx extract [option...] @e input_file @e output_path
+    ktx extract [option...] @e input-file @e output-path
 
 @section ktxtools_extract_description DESCRIPTION
     @b ktx @b extract can extract one or multiple images from the KTX2 file specified as the
-    @e input_file argument and based on the format save them as RAW, EXR or PNG image files
-    to the @e output_path.
+    @e input-file argument and, based on the format, save them as Raw, EXR or PNG image files
+    to the @e output-path.
     If the input file is invalid the first encountered validation error is displayed
     to the stderr and the command exits with the relevant non-zero status code.
 
-    The @e output_path is interpreted as output filepath for single and output directory for
+    The @e output-path is interpreted as output filepath for single and output directory for
     multi-image extracts.
     When extracting multiple images with either '--all' or any of the 'all' args the
     following naming is used for each output file:
-    <pre>output_path/output_level{}_face{}_layer{}_depth{}.extension</pre>
+    <pre>output-path/output_level{}_face{}_layer{}_depth{}.extension</pre>
     - Where the @e _level{} part is only present if the source texture has more than 1 level
     - Where the @e _face{} part is only present if the source texture is cubemap or cubemap array (Cubemap)
     - Where the @e _layer{} part is only present if the source texture is an array texture (Array)
@@ -122,9 +122,11 @@ Extract selected images from a KTX2 file.
 
     For non-raw exports the output image format is chosen to be the smallest related lossless
     format:
-    - _UNORM formats exported as PNG 8 or 16 bit (except for Depth/Stencil)
-    - _SINT/_UINT formats exported as EXR with Half/Float/UInt
-    - _SFLOAT/_UFLOAT formats exported as EXR with Half/Float
+    - _UNORM formats exported as PNG with RGB/RGBA 8/16 bit
+    - _SINT/_UINT formats exported as EXR with R/RG/RGB/RGBA Half/Float/UInt
+    - _SFLOAT/_UFLOAT formats exported as EXR with R/RG/RGB/RGBA Half/Float/UInt
+    - D16_UNORM exported as PNG with luminance (Gray) 16 bit
+    - Other Depth/Stencil formats exported as EXR with D/S/DS Half/Float
 
     The following options are available:
     <dl>
@@ -135,6 +137,7 @@ Extract selected images from a KTX2 file.
             functionality of the @ref ktxtools_transcode "ktx transcode" command.
             If the target option is not set the r8, rg8, rgb8 or rgba8 target will be selected
             based on the number of channels in the input texture.
+            Block compressed transcode targets can only be saved in raw format.
             Case-insensitive. Possible options are:
             etc-rgb | etc-rgba | eac-r11 | eac-rg11 | bc1 | bc3 | bc4 | bc5 | bc7 | astc |
             r8 | rg8 | rgb8 | rgba8
@@ -214,7 +217,10 @@ private:
 
 int CommandExtract::main(int argc, _TCHAR* argv[]) {
     try {
-        parseCommandLine("ktx extract", "Extract selected images from a KTX2 file.", argc, argv);
+        parseCommandLine("ktx extract",
+                "Extract one or multiple images from the KTX2 file specified as the input-file argument\n"
+                "    and, based on the format, save them as Raw, EXR or PNG image files to the output-path.",
+                argc, argv);
         executeExtract();
         return +rc::SUCCESS;
     } catch (const FatalError& error) {
@@ -228,9 +234,13 @@ int CommandExtract::main(int argc, _TCHAR* argv[]) {
 void CommandExtract::OptionsExtract::init(cxxopts::Options& opts) {
     opts.add_options()
             ("output", "Output filepath for single, output directory for multiple image export.", cxxopts::value<std::string>(), "<filepath>")
-            ("transcode", "Transcode the texture to the target format before executing the extract steps. Requires the input file to be transcodable. Case-insensitive.\n"
-                          "Possible options are: "
-                          "etc-rgb | etc-rgba | eac-r11 | eac-rg11 | bc1 | bc3 | bc4 | bc5 | bc7 | astc | r8 | rg8 | rgb8 | rgba8",
+            ("transcode", "Transcode the texture to the target format before executing the extract steps."
+                          " Requires the input file to be transcodable."
+                          " Block compressed transcode targets can only be saved in raw format."
+                          " Case-insensitive."
+                          "\nPossible options are:"
+                          " etc-rgb | etc-rgba | eac-r11 | eac-rg11 | bc1 | bc3 | bc4 | bc5 | bc7 | astc |"
+                          " r8 | rg8 | rgb8 | rgba8",
                           cxxopts::value<std::string>(), "<target>")
             ("uri", "KTX Fragment URI.", cxxopts::value<std::string>(), "<uri>")
             ("level", "Level to extract. When 'all' is used every level is exported. Defaults to 0.", cxxopts::value<std::string>(), "[0-9]+ | all")
@@ -248,7 +258,7 @@ void CommandExtract::OptionsExtract::process(cxxopts::Options&, cxxopts::ParseRe
         report.fatal_usage("Missing output file or directory path.");
 
     if (args["uri"].count()) {
-        // TODO Tools P4: Validate and parse fragment URI, Handle error conditions
+        // TODO: Tools P4: Validate and parse fragment URI, Handle error conditions
         report.fatal(rc::NOT_IMPLEMENTED, "Fragment URI support is not yet implemented.");
         uri = args["uri"].as<std::string>();
     }
@@ -475,7 +485,7 @@ void CommandExtract::executeExtract() {
                 }
 
                 // Iterate z_slice_of_blocks (The code currently assumes block z size is 1)
-                // TODO Tools P5: 3D-Block Compressed formats are not supported
+                // TODO: Tools P5: 3D-Block Compressed formats are not supported
                 for (uint32_t depthIndex = 0; depthIndex < imageDepth; ++depthIndex) {
                     if (options.depth != all && value_or(options.depth, 0) != depthIndex)
                         continue; // Skip
@@ -620,7 +630,7 @@ void CommandExtract::savePNG(std::string filepath, bool appendExtension,
             rBits = sample->bitLength + 1;
         }
     // } else if (formatDescriptor.model() == KHR_DF_MODEL_YUVSDA) {
-    // TODO Tools P5: Add support for KHR_DF_MODEL_YUVSDA formats
+    // TODO: Tools P5: Add support for KHR_DF_MODEL_YUVSDA formats
     } else {
         fatal(rc::NOT_SUPPORTED, "PNG saving is unsupported for {} with {}.", toString(format.model()), toString(vkFormat));
     }
@@ -780,7 +790,7 @@ void CommandExtract::saveEXR(std::string filepath, bool appendExtension,
             gBits = sample->bitLength + 1;
         }
     // } else if (formatDescriptor.model() == KHR_DF_MODEL_YUVSDA) {
-    // TODO Tools P5: Add support for KHR_DF_MODEL_YUVSDA formats
+    // TODO: Tools P5: Add support for KHR_DF_MODEL_YUVSDA formats
     } else {
         fatal(rc::NOT_SUPPORTED, "EXR saving is unsupported for {} with {}.", toString(format.model()), toString(vkFormat));
     }
@@ -877,7 +887,7 @@ void CommandExtract::saveEXR(std::string filepath, bool appendExtension,
 
     exr.header.num_channels = static_cast<int>(numChannels);
     exr.header.channels = (EXRChannelInfo*) malloc(sizeof(EXRChannelInfo) * exr.header.num_channels);
-    // TODO Tools P5: Question: Should we use a compression for exr out?
+    // TODO: Tools P5: Question: Should we use a compression for exr out?
     exr.header.compression_type = TINYEXR_COMPRESSIONTYPE_NONE;
     {
         // Must be ABGR order, since most of EXR viewers expect this channel order.
@@ -1035,7 +1045,7 @@ void CommandExtract::saveImageFile(
         savePNG(std::move(filepath), appendExtension, vkFormat, format, width, height, LCT_RGBA, data, size);
         break;
 
-    // TODO Tools P4: Extract 422 Formats
+    // TODO: Tools P4: Extract 422 Formats
     // case VK_FORMAT_G8B8G8R8_422_UNORM: [[fallthrough]];
     // case VK_FORMAT_B8G8R8G8_422_UNORM: [[fallthrough]];
     // case VK_FORMAT_G10X6B10X6G10X6R10X6_422_UNORM_4PACK16: [[fallthrough]];
@@ -1119,9 +1129,9 @@ void CommandExtract::saveImageFile(
         break;
 
     // case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
-    // TODO Tools P4: Extract B10G11R11_UFLOAT_PACK32
+    // TODO: Tools P4: Extract B10G11R11_UFLOAT_PACK32
     // case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
-    // TODO Tools P4: Extract E5B9G9R9_UFLOAT_PACK32
+    // TODO: Tools P4: Extract E5B9G9R9_UFLOAT_PACK32
 
     case VK_FORMAT_D16_UNORM:
         savePNG(std::move(filepath), appendExtension, vkFormat, format, width, height, LCT_GREY, data, size);

@@ -19,7 +19,7 @@
 
 namespace ktx {
 
-// TODO Tools P5: Detect endianness
+// TODO: Tools P5: Detect endianness
 // C++20: std::endian::native == std::endian::little
 constexpr bool is_big_endian = false;
 
@@ -301,7 +301,7 @@ template <typename T>
 }
 [[nodiscard]] inline float covertUFloatToFloat(uint32_t rawBits, uint32_t numBits) {
     assert(numBits == 10 || numBits == 11 || numBits == 14);
-    // TODO Tools P4: covertUFloatToFloat for 10, 11 and "14"
+    // TODO: Tools P4: covertUFloatToFloat for 10, 11 and "14"
     (void) rawBits;
     (void) numBits;
     assert(false && "Not yet implemented");

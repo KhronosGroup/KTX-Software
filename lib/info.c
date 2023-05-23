@@ -45,6 +45,7 @@ enum {
     // These constraints are not mandated by the spec and only used as a
     // reasonable upper limit to stop parsing garbage data during print
     MAX_NUM_KVD_ENTRIES = 100,
+    MAX_NUM_LEVELS = 64,
 };
 
 /** @internal */
@@ -599,7 +600,7 @@ printKTX2Header(KTX_header2* pHeader)
 void
 printLevelIndex(ktxLevelIndexEntry levelIndex[], ktx_uint32_t numLevels)
 {
-    numLevels = MIN(64, numLevels); // Print at most 64 levels to stop parsing garbage
+    numLevels = MIN(MAX_NUM_LEVELS, numLevels); // Print at most 64 levels to stop parsing garbage
     for (ktx_uint32_t level = 0; level < numLevels; level++) {
     fprintf(stdout, "Level%u.byteOffset: %#" PRIx64 "\n", level,
             levelIndex[level].byteOffset);
@@ -844,7 +845,7 @@ printKTX2Info2JSON(ktxStream* stream, KTX_header2* pHeader, ktx_uint32_t base_in
     PRINT_INDENT(1, "},%s", nl)
 
     PRINT_INDENT(1, "\"levels\":%s[%s", space, nl)
-    numLevels = MIN(64, numLevels); // Print at most 64 levels to stop parsing garbage
+    numLevels = MIN(MAX_NUM_LEVELS, numLevels); // Print at most 64 levels to stop parsing garbage
     for (ktx_uint32_t level = 0; level < numLevels; level++) {
         PRINT_INDENT(2, "{%s", nl);
         PRINT_INDENT(3, "\"byteOffset\":%s%" PRId64 ",%s", space, levelIndex[level].byteOffset, nl);

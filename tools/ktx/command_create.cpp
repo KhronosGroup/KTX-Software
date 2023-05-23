@@ -113,7 +113,9 @@ struct OptionsCreate {
         opts.add_options("Generate Mipmap")
                 ("mipmap-filter", "Specifies the filter to use when generating the mipmaps. Case insensitive."
                     "\nPossible options are:"
-                    " box | tent | bell | b-spline | mitchell | blackman | lanczos3 | lanczos4 | lanczos6 | lanczos12 | kaiser | gaussian | catmullrom | quadratic_interp | quadratic_approx | quadratic_mix."
+                    " box | tent | bell | b-spline | mitchell | blackman | lanczos3 | lanczos4 | lanczos6 |"
+                    " lanczos12 | kaiser | gaussian | catmullrom | quadratic_interp | quadratic_approx | "
+                    " quadratic_mix."
                     " Defaults to lanczos4.",
                     cxxopts::value<std::string>(), "<filter>")
                 ("mipmap-filter-scale", "The filter scale to use. Defaults to 1.0.", cxxopts::value<float>(), "<float>")
@@ -440,7 +442,7 @@ struct OptionsCreate {
             report.fatal_usage("Conflicting options: --mipmap-generate cannot be used with --raw.");
 
         if (mipmapGenerate && depth > 1u)
-            report.fatal_usage("Mipmap generation for 3D textures are not supported: --mipmap-generate cannot be used with --depth.");
+            report.fatal_usage("Mipmap generation for 3D textures is not supported: --mipmap-generate cannot be used with --depth.");
 
         if (mipmapFilter && !mipmapGenerate)
             report.fatal_usage("Option --mipmap-filter can only be used if --mipmap-generate is set.");
@@ -584,21 +586,21 @@ struct OptionsASTC : public ktxAstcParams {
 Create a KTX2 file from various input files.
 
 @section ktxtools_create_synopsis SYNOPSIS
-    ktx create [option...] @e input_file... @e output_file
+    ktx create [option...] @e input-file... @e output-file
 
 @section ktxtools_create_description DESCRIPTION
-    @b ktx @b create can create, encode and supercompress a the KTX2 file from the
-    input images specified as the @e input_file... arguments and save as the
-    @e output_file. The last positional argument is treated as the output_file.
+    @b ktx @b create can create, encode and supercompress a KTX2 file from the
+    input images specified as the @e input-file... arguments and save it as the
+    @e output-file. The last positional argument is treated as the output-file.
 
-    Each @e input_file must be a valid EXR (.exr), PNG (.png) or RAW (.raw) file.
+    Each @e input-file must be a valid EXR (.exr), PNG (.png) or Raw (.raw) file.
     PNG files with luminance (L) or luminance + alpha (LA) data will be converted
     to RGB as LLL and RGBA as LLLA before processing further.
     The input file formats must be compatible with the requested KTX format enum and
     must have at least the same level of precision and number of channels.
     Any unused channel will be discarded silently.
 
-    The number of input_files specified must match the expected number of input images
+    The number of input-files specified must match the expected number of input images
     based on the used options.
 
     The following options are available:
@@ -790,7 +792,10 @@ private:
 
 int CommandCreate::main(int argc, _TCHAR* argv[]) {
     try {
-        parseCommandLine("ktx create", "Creates a KTX2 file from the given input file(s).", argc, argv);
+        parseCommandLine("ktx create",
+                "Create, encode and supercompress a KTX2 file from the input images specified as the\n"
+                "    input-file... arguments and save it as the output-file.",
+                argc, argv);
         executeCreate();
         return +rc::SUCCESS;
     } catch (const FatalError& error) {
@@ -948,7 +953,7 @@ void CommandCreate::foreachImage(const FormatDescriptor& format, F&& func) {
     auto inputFileIt = options.inputFilepaths.begin();
 
     for (uint32_t levelIndex = 0; levelIndex < (options.mipmapGenerate ? 1 : numLevels); ++levelIndex) {
-        // TODO Tools P5: 3D BC formats currently discard the last partial z block slice
+        // TODO: Tools P5: 3D BC formats currently discard the last partial z block slice
         //          This should be: ceil_div instead of div
         const auto numimageDepth = std::max(numBaseDepths >> levelIndex, 1u) / (format.basic.texelBlockDimension2 + 1);
         for (uint32_t layerIndex = 0; layerIndex < numLayers; ++layerIndex) {
@@ -1771,9 +1776,9 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
         // Extra channels must be dropped.
 
     // case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
-    // TODO Tools P4: Create B10G11R11_UFLOAT_PACK32
+    // TODO: Tools P4: Create B10G11R11_UFLOAT_PACK32
     // case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
-    // TODO Tools P4: Create E5B9G9R9_UFLOAT_PACK32
+    // TODO: Tools P4: Create E5B9G9R9_UFLOAT_PACK32
 
         // Input data must be rounded to the target precision.
 
@@ -2072,7 +2077,7 @@ void CommandCreate::determineTargetColorSpace(const ImageInput& in, ImageSpec& t
                 colorSpaceInfo.usedInputTransferFunction = KHR_DF_TRANSFER_LINEAR;
                 colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionLinear>();
             }
-            warning("No transfer function can be determined from {}-bit PNG input file \"{}\", defaulting to {}. Use --assign-oetf to override one.",
+            warning("No transfer function can be determined from {}-bit PNG input file \"{}\", defaulting to {}. Use --assign-oetf to override.",
                 spec.format().channelBitLength(), in.filename(), toString(colorSpaceInfo.usedInputTransferFunction));
         }
     }
@@ -2106,7 +2111,7 @@ void CommandCreate::checkSpecsMatch(const ImageInput& currentFile, const ImageSp
     const FormatDescriptor& firstFormat = firstSpec.format();
     const FormatDescriptor& currentFormat = currentFile.spec().format();
 
-    // TODO Tools P5: Question: Should we allow these with warnings? Spec says fatal, but if a conversion is possible this would just stop valid usecases
+    // TODO: Tools P5: Question: Should we allow these with warnings? Spec says fatal, but if a conversion is possible this would just stop valid usecases
     if (currentFormat.transfer() != firstFormat.transfer()) {
         fatal(rc::INVALID_FILE, "Input image \"{}\" has different transfer function ({}) than preceding image(s) ({}).",
             currentFile.filename(), toString(currentFormat.transfer()), toString(firstFormat.transfer()));

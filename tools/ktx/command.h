@@ -191,7 +191,7 @@ enum class OutputFormat {
 //! [command options_format]
 <dl>
     <dt>--format text | json | mini-json</dt>
-    <dd>Specifies the output format. Possible options are: <br />
+    <dd>Specifies the report output format. Possible options are: <br />
         @b text - Human readable text based format. <br />
         @b json - Formatted JSON. <br />
         @b mini-json - Minified JSON. <br />
@@ -205,7 +205,7 @@ struct OptionsFormat {
 
     void init(cxxopts::Options& opts) {
         opts.add_options()
-                ("f,format", "Specifies the output format. Possible options are:\n"
+                ("f,format", "Specifies the report output format. Possible options are:\n"
                         "  text: Human readable text based format\n"
                         "  json: Formatted JSON\n"
                         "  mini-json: Minified JSON\n",
@@ -245,7 +245,7 @@ struct OptionsSingleIn {
             report.fatal_usage("Conflicting options: Only one can be specified from <input-file> and --stdin.");
 
         if (args.count("stdin")) {
-            // TODO Tools P4: Add support for stdin (To support '-' alias argv has to be scanned as cxxopts has no direct support for it)
+            // TODO: Tools P4: Add support for stdin (To support '-' alias argv has to be scanned as cxxopts has no direct support for it)
             report.fatal(rc::NOT_IMPLEMENTED, "stdin support is not yet implemented.");
             inputFilepath = "-";
         } else
@@ -273,7 +273,7 @@ struct OptionsSingleInSingleOut {
             report.fatal_usage("Conflicting options: Only one can be specified from <input-file> and --stdin.");
 
         if (args.count("stdin")) {
-            // TODO Tools P4: Add support for stdin (To support '-' alias argv has to be scanned as cxxopts has no direct support for it)
+            // TODO: Tools P4: Add support for stdin (To support '-' alias argv has to be scanned as cxxopts has no direct support for it)
             report.fatal(rc::NOT_IMPLEMENTED, "stdin support is not yet implemented.");
             inputFilepath = "-";
         } else

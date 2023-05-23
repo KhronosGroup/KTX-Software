@@ -50,15 +50,15 @@ Unified CLI frontend for the KTX-Software library.
         </dd>
         <dt>@ref ktxtools_info "info"</dt>
         <dd>
-            Validates a KTX2 file.
+            Print information about a KTX2 file.
         </dd>
         <dt>@ref ktxtools_validate "validate"</dt>
         <dd>
-            Prints information about KTX2 file.
+            Validate a KTX2 file.
         </dd>
         <dt>@ref ktxtools_help "help"</dt>
         <dd>
-            Display help information about the ktx tools.
+            Display help information about the ktx tool.
         </dd>
     </dl>
 
@@ -142,12 +142,12 @@ void Tools::printUsage(std::ostream& os, const cxxopts::Options& options) {
     fmt::print(os, "\n");
     fmt::print(os, "Available commands:\n");
     fmt::print(os, "  create     Create a KTX2 file from various input files\n");
-    fmt::print(os, "  extract    Export selected images from a KTX2 file\n");
+    fmt::print(os, "  extract    Extract selected images from a KTX2 file\n");
     fmt::print(os, "  encode     Encode a KTX2 file\n");
     fmt::print(os, "  transcode  Transcode a KTX2 file\n");
-    fmt::print(os, "  info       Prints information about a KTX2 file\n");
+    fmt::print(os, "  info       Print information about a KTX2 file\n");
     fmt::print(os, "  validate   Validate a KTX2 file\n");
-    fmt::print(os, "  help       Display help information about the ktx tools\n");
+    fmt::print(os, "  help       Display help information about the ktx tool\n");
     fmt::print(os, "\n");
     fmt::print(os, "For detailed usage and description of each subcommand use 'ktx help <command>'\n"
                    "or 'ktx <command> --help'\n");
