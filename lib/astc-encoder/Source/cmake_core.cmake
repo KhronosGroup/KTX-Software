@@ -205,7 +205,7 @@ macro(astcenc_set_properties ASTCENC_TARGET_NAME ASTCENC_IS_VENEER)
         target_compile_options(${ASTCENC_TARGET_NAME}
             PRIVATE
                 $<$<CXX_COMPILER_ID:MSVC>:/fp:precise>
-                $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,17>>:/fp:contract>
+                $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.30>>:/fp:contract>
                 $<$<AND:$<PLATFORM_ID:Linux,Darwin>,$<CXX_COMPILER_ID:${CLANG_LIKE}>>:-ffp-model=precise>
                 $<$<PLATFORM_ID:Linux,Darwin>:-ffp-contract=fast>)
     else()
@@ -213,8 +213,8 @@ macro(astcenc_set_properties ASTCENC_TARGET_NAME ASTCENC_IS_VENEER)
         # For Visual Studio 2022 (compiler >= 17.0) /fp:precise
         target_compile_options(${ASTCENC_TARGET_NAME}
             PRIVATE
-                $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,17>>:/fp:strict>
-                $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,17>>:/fp:precise>
+                $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,19.30>>:/fp:strict>
+                $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.30>>:/fp:precise>
                 $<$<AND:$<PLATFORM_ID:Linux,Darwin>,$<CXX_COMPILER_ID:${CLANG_LIKE}>>:-ffp-model=precise>
                 $<$<PLATFORM_ID:Linux,Darwin>:-ffp-contract=off>)
     endif()
