@@ -170,10 +170,8 @@ enum class EncodeCodec {
     nml.xy = nml.xy * 2.0 - 1.0;           // Unpack to [-1,1]
     nml.z = sqrt(1 - dot(nml.xy, nml.xy)); // Compute Z
             </pre>
-            For ASTC encoding, '@b --encode astc', encoder parameters are
-            tuned for better quality on normal maps. For ETC1S encoding,
-            @b '--encode etc1s', RDO is disabled (no selector RDO, no
-            endpoint RDO) to provide better quality.</dd>
+            For ETC1S encoding, @b '--encode etc1s', RDO is disabled
+            (no selector RDO, no endpoint RDO) to provide better quality.</dd>
 
             In @em toktx you can prevent conversion of the normal map to
             two components by specifying '@b --input_swizzle rgb1'.

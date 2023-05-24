@@ -140,7 +140,8 @@ Extract selected images from a KTX2 file.
             Block compressed transcode targets can only be saved in raw format.
             Case-insensitive. Possible options are:
             etc-rgb | etc-rgba | eac-r11 | eac-rg11 | bc1 | bc3 | bc4 | bc5 | bc7 | astc |
-            r8 | rg8 | rgb8 | rgba8
+            r8 | rg8 | rgb8 | rgba8.
+            etc-rgb is ETC1; etc-rgba, eac-r11 and eac-rg11 are ETC2.
         </dd>
     </dl>
     <dl>
@@ -240,7 +241,8 @@ void CommandExtract::OptionsExtract::init(cxxopts::Options& opts) {
                           " Case-insensitive."
                           "\nPossible options are:"
                           " etc-rgb | etc-rgba | eac-r11 | eac-rg11 | bc1 | bc3 | bc4 | bc5 | bc7 | astc |"
-                          " r8 | rg8 | rgb8 | rgba8",
+                          " r8 | rg8 | rgb8 | rgba8."
+                          "\netc-rgb is ETC1; etc-rgba, eac-r11 and eac-rg11 are ETC2.",
                           cxxopts::value<std::string>(), "<target>")
             ("uri", "KTX Fragment URI.", cxxopts::value<std::string>(), "<uri>")
             ("level", "Level to extract. When 'all' is used every level is exported. Defaults to 0.", cxxopts::value<std::string>(), "[0-9]+ | all")
