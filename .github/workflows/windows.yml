@@ -68,7 +68,7 @@ jobs:
             # built tests
             options: {
               config: 'Debug,Release',
-              doc: ON, jni: OFF, loadtests: OFF, tests: OFF, tools: ON,
+              doc: ON, jni: ON, loadtests: OFF, tests: ON, tools: ON,
               package: YES
             }
     runs-on: ${{ matrix.os }}

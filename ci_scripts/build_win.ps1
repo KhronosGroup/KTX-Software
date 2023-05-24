@@ -24,11 +24,21 @@ function Set-ConfigVariable {
   return $res
 }
 
+# Build for the local machine by default.
+$defaultArch = $env:processor_architecture.toLower()
+if ($defaultArch -eq "amd64") {
+  $defaultArch = "x64"
+} elseif ($defaultArch -ne "arm64") {
+  echo "KTX build for Windows does not support $defaultArch architecture."
+  echo "Only amd64 and arm64 are supported."
+  exit 1
+}
+
 # These defaults are here to permit easy running of the script locally
 # when debugging is needed. Use local variables to avoid polluting the
 # environment. Some case have been observed where setting env. var's here
 # sets them for the parent as well.
-$ARCH = Set-ConfigVariable ARCH "x64"
+$ARCH = Set-ConfigVariable ARCH $defaultArch
 $BUILD_DIR = Set-ConfigVariable BUILD_DIR "build/build-batch-vs2022"
 $CONFIGURATION = Set-ConfigVariable CONFIGURATION "Release"
 $CMAKE_GEN = Set-ConfigVariable CMAKE_GEN "Visual Studio 17 2022"
