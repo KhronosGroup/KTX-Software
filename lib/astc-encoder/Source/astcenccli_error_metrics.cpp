@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2011-2021 Arm Limited
+// Copyright 2011-2022 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -25,44 +25,39 @@
 #include "astcenccli_internal.h"
 
 /**
- * @brief An accumulator using Kahan compensated floating-point summation.
- *
- * This method keeps higher precision than direct summation by keeping track of
- * the error compensation factor @c comp which can be added into the next
- * calculation. This allows single precision floats to be used in places that
- * would otherwise need double precision, which is useful when vectorizing.
+ * @brief An accumulator for errors.
  */
-class kahan_accum4
+class error_accum4
 {
 public:
 	/** @brief The running sum. */
-	vfloat4 sum { vfloat4::zero() };
-
-	/** @brief The current compensation factor. */
-	vfloat4 comp { vfloat4::zero() };
+	double sum_r { 0.0 };
+	double sum_g { 0.0 };
+	double sum_b { 0.0 };
+	double sum_a { 0.0 };
 };
 
 /**
- * @brief The incremental addition operator for Kahan summation.
+ * @brief Incremental addition operator for error accumulators.
  *
- * @param val The Kahan accumulator to increment
+ * @param val The accumulator to increment
  * @param inc The increment to apply
  *
  * @return The updated accumulator
  */
-static kahan_accum4& operator+=(
-	kahan_accum4 &val,
+static error_accum4& operator+=(
+	error_accum4 &val,
 	vfloat4 inc
 ) {
-	vfloat4 y = inc - val.comp;
-	vfloat4 t = val.sum + y;
-	val.comp = (t - val.sum) - y;
-	val.sum = t;
+	val.sum_r += static_cast<double>(inc.lane<0>());
+	val.sum_g += static_cast<double>(inc.lane<1>());
+	val.sum_b += static_cast<double>(inc.lane<2>());
+	val.sum_a += static_cast<double>(inc.lane<3>());
 	return val;
 }
 
 /**
- * @brief mPSNR tonemapping operator for HDR images.
+ * @brief mPSNR tone-mapping operator for HDR images.
  *
  * @param val     The color value to tone map
  * @param fstop   The exposure fstop; should be in range [-125, 125]
@@ -124,10 +119,10 @@ void compute_error_metrics(
 	static const int componentmasks[5] { 0x00, 0x07, 0x0C, 0x07, 0x0F };
 	int componentmask = componentmasks[input_components];
 
-	kahan_accum4 errorsum;
-	kahan_accum4 alpha_scaled_errorsum;
-	kahan_accum4 log_errorsum;
-	kahan_accum4 mpsnr_errorsum;
+	error_accum4 errorsum;
+	error_accum4 alpha_scaled_errorsum;
+	error_accum4 log_errorsum;
+	error_accum4 mpsnr_errorsum;
 	double mean_angular_errorsum = 0.0;
 	double worst_angular_errorsum = 0.0;
 
@@ -146,7 +141,7 @@ void compute_error_metrics(
 		       img2->dim_x, img2->dim_y, img2->dim_z);
 	}
 
-	float rgb_peak = 0.0f;
+	double rgb_peak = 0.0;
 	unsigned int xsize1 = img1->dim_x;
 	unsigned int xsize2 = img2->dim_x;
 
@@ -237,7 +232,10 @@ void compute_error_metrics(
 					color2 = clamp(0, 65504.0f, color2);
 				}
 
-				rgb_peak = astc::max(color1.lane<0>(), color1.lane<1>(), color1.lane<2>(), rgb_peak);
+				rgb_peak = astc::max(static_cast<double>(color1.lane<0>()),
+				                     static_cast<double>(color1.lane<1>()),
+				                     static_cast<double>(color1.lane<2>()),
+				                     rgb_peak);
 
 				vfloat4 diffcolor = color1 - color2;
 				vfloat4 diffcolor_sq = diffcolor * diffcolor;
@@ -291,106 +289,118 @@ void compute_error_metrics(
 		}
 	}
 
-	float pixels = static_cast<float>(dim_x * dim_y * dim_z);
-	float num = 0.0f;
-	float alpha_num = 0.0f;
-	float log_num = 0.0f;
-	float mpsnr_num = 0.0f;
-	float samples = 0.0f;
+	double pixels = static_cast<double>(dim_x * dim_y * dim_z);
+	double samples = 0.0;
+
+	double num = 0.0;
+	double alpha_num = 0.0;
+	double log_num = 0.0;
+	double mpsnr_num = 0.0;
 
 	if (componentmask & 1)
 	{
-		num += errorsum.sum.lane<0>();
-		alpha_num += alpha_scaled_errorsum.sum.lane<0>();
-		log_num += log_errorsum.sum.lane<0>();
-		mpsnr_num += mpsnr_errorsum.sum.lane<0>();
+		num += errorsum.sum_r;
+		alpha_num += alpha_scaled_errorsum.sum_r;
+		log_num += log_errorsum.sum_r;
+		mpsnr_num += mpsnr_errorsum.sum_r;
 		samples += pixels;
 	}
 
 	if (componentmask & 2)
 	{
-		num += errorsum.sum.lane<1>();
-		alpha_num += alpha_scaled_errorsum.sum.lane<1>();
-		log_num += log_errorsum.sum.lane<1>();
-		mpsnr_num += mpsnr_errorsum.sum.lane<1>();
+		num += errorsum.sum_g;
+		alpha_num += alpha_scaled_errorsum.sum_g;
+		log_num += log_errorsum.sum_g;
+		mpsnr_num += mpsnr_errorsum.sum_g;
 		samples += pixels;
 	}
 
 	if (componentmask & 4)
 	{
-		num += errorsum.sum.lane<2>();
-		alpha_num += alpha_scaled_errorsum.sum.lane<2>();
-		log_num += log_errorsum.sum.lane<2>();
-		mpsnr_num += mpsnr_errorsum.sum.lane<2>();
+		num += errorsum.sum_b;
+		alpha_num += alpha_scaled_errorsum.sum_b;
+		log_num += log_errorsum.sum_b;
+		mpsnr_num += mpsnr_errorsum.sum_b;
 		samples += pixels;
 	}
 
 	if (componentmask & 8)
 	{
-		num += errorsum.sum.lane<3>();
-		alpha_num += alpha_scaled_errorsum.sum.lane<3>();
+		num += errorsum.sum_a;
+		alpha_num += alpha_scaled_errorsum.sum_a;
 		samples += pixels;
 	}
 
-	float denom = samples;
-	float stopcount = static_cast<float>(fstop_hi - fstop_lo + 1);
-	float mpsnr_denom = pixels * 3.0f * stopcount * 255.0f * 255.0f;
+	double denom = samples;
+	double stopcount = static_cast<double>(fstop_hi - fstop_lo + 1);
+	double mpsnr_denom = pixels * 3.0 * stopcount * 255.0 * 255.0;
 
-	float psnr;
-	if (num == 0.0f)
-		psnr = 999.0f;
+	double psnr;
+	if (num == 0.0)
+	{
+		psnr = 999.0;
+	}
 	else
-		psnr = 10.0f * log10f(denom / num);
+	{
+		psnr = 10.0 * log10(denom / num);
+	}
 
-	float rgb_psnr = psnr;
+	double rgb_psnr = psnr;
 
 	printf("Quality metrics\n");
 	printf("===============\n\n");
 
 	if (componentmask & 8)
 	{
-		printf("    PSNR (LDR-RGBA):          %9.4f dB\n", static_cast<double>(psnr));
+		printf("    PSNR (LDR-RGBA):          %9.4f dB\n", psnr);
 
-		float alpha_psnr;
-		if (alpha_num == 0.0f)
-			alpha_psnr = 999.0f;
+		double alpha_psnr;
+		if (alpha_num == 0.0)
+		{
+			alpha_psnr = 999.0;
+		}
 		else
-			alpha_psnr = 10.0f * log10f(denom / alpha_num);
-		printf("    Alpha-weighted PSNR:      %9.4f dB\n", static_cast<double>(alpha_psnr));
+		{
+			alpha_psnr = 10.0 * log10(denom / alpha_num);
+		}
+		printf("    Alpha-weighted PSNR:      %9.4f dB\n", alpha_psnr);
 
-		float rgb_num = hadd_rgb_s(errorsum.sum);
-		if (rgb_num == 0.0f)
-			rgb_psnr = 999.0f;
+		double rgb_num = errorsum.sum_r + errorsum.sum_g + errorsum.sum_b;
+		if (rgb_num == 0.0)
+		{
+			rgb_psnr = 999.0;
+		}
 		else
-			rgb_psnr = 10.0f * log10f(pixels * 3.0f / rgb_num);
-		printf("    PSNR (LDR-RGB):           %9.4f dB\n", static_cast<double>(rgb_psnr));
+		{
+			rgb_psnr = 10.0 * log10(pixels * 3.0 / rgb_num);
+		}
+		printf("    PSNR (LDR-RGB):           %9.4f dB\n", rgb_psnr);
 	}
 	else
 	{
-		printf("    PSNR (LDR-RGB):           %9.4f dB\n", static_cast<double>(psnr));
+		printf("    PSNR (LDR-RGB):           %9.4f dB\n", psnr);
 	}
 
 	if (compute_hdr_metrics)
 	{
 		printf("    PSNR (RGB norm to peak):  %9.4f dB (peak %f)\n",
-		       static_cast<double>(rgb_psnr + 20.0f * log10f(rgb_peak)),
-		       static_cast<double>(rgb_peak));
+		       rgb_psnr + 20.0 * log10(rgb_peak), rgb_peak);
 
-		float mpsnr;
-		if (mpsnr_num == 0.0f)
+		double mpsnr;
+		if (mpsnr_num == 0.0)
 		{
-			mpsnr = 999.0f;
+			mpsnr = 999.0;
 		}
 		else
 		{
-			mpsnr = 10.0f * log10f(mpsnr_denom / mpsnr_num);
+			mpsnr = 10.0 * log10(mpsnr_denom / mpsnr_num);
 		}
 
 		printf("    mPSNR (RGB):              %9.4f dB (fstops %+d to %+d)\n",
-		       static_cast<double>(mpsnr), fstop_lo, fstop_hi);
+		       mpsnr, fstop_lo, fstop_hi);
 
-		float logrmse = astc::sqrt(log_num / pixels);
-		printf("    LogRMSE (RGB):            %9.4f\n", static_cast<double>(logrmse));
+		double logrmse = sqrt(log_num / pixels);
+		printf("    LogRMSE (RGB):            %9.4f\n", logrmse);
 	}
 
 	if (compute_normal_metrics)

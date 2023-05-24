@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2011-2022 Arm Limited
+// Copyright 2011-2023 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -25,6 +25,76 @@
 
 #include "astcenc_internal.h"
 #include "astcenc_vecmathlib.h"
+
+/**
+ * @brief Compute the infilled weight for N texel indices in a decimated grid.
+ *
+ * @param di        The weight grid decimation to use.
+ * @param weights   The decimated weight values to use.
+ * @param index     The first texel index to interpolate.
+ *
+ * @return The interpolated weight for the given set of SIMD_WIDTH texels.
+ */
+static vfloat bilinear_infill_vla(
+	const decimation_info& di,
+	const float* weights,
+	unsigned int index
+) {
+	// Load the bilinear filter texel weight indexes in the decimated grid
+	vint weight_idx0 = vint(di.texel_weights_tr[0] + index);
+	vint weight_idx1 = vint(di.texel_weights_tr[1] + index);
+	vint weight_idx2 = vint(di.texel_weights_tr[2] + index);
+	vint weight_idx3 = vint(di.texel_weights_tr[3] + index);
+
+	// Load the bilinear filter weights from the decimated grid
+	vfloat weight_val0 = gatherf(weights, weight_idx0);
+	vfloat weight_val1 = gatherf(weights, weight_idx1);
+	vfloat weight_val2 = gatherf(weights, weight_idx2);
+	vfloat weight_val3 = gatherf(weights, weight_idx3);
+
+	// Load the weight contribution factors for each decimated weight
+	vfloat tex_weight_float0 = loada(di.texel_weight_contribs_float_tr[0] + index);
+	vfloat tex_weight_float1 = loada(di.texel_weight_contribs_float_tr[1] + index);
+	vfloat tex_weight_float2 = loada(di.texel_weight_contribs_float_tr[2] + index);
+	vfloat tex_weight_float3 = loada(di.texel_weight_contribs_float_tr[3] + index);
+
+	// Compute the bilinear interpolation to generate the per-texel weight
+	return (weight_val0 * tex_weight_float0 + weight_val1 * tex_weight_float1) +
+	       (weight_val2 * tex_weight_float2 + weight_val3 * tex_weight_float3);
+}
+
+/**
+ * @brief Compute the infilled weight for N texel indices in a decimated grid.
+ *
+ * This is specialized version which computes only two weights per texel for
+ * encodings that are only decimated in a single axis.
+ *
+ * @param di        The weight grid decimation to use.
+ * @param weights   The decimated weight values to use.
+ * @param index     The first texel index to interpolate.
+ *
+ * @return The interpolated weight for the given set of SIMD_WIDTH texels.
+ */
+static vfloat bilinear_infill_vla_2(
+	const decimation_info& di,
+	const float* weights,
+	unsigned int index
+) {
+	// Load the bilinear filter texel weight indexes in the decimated grid
+	vint weight_idx0 = vint(di.texel_weights_tr[0] + index);
+	vint weight_idx1 = vint(di.texel_weights_tr[1] + index);
+
+	// Load the bilinear filter weights from the decimated grid
+	vfloat weight_val0 = gatherf(weights, weight_idx0);
+	vfloat weight_val1 = gatherf(weights, weight_idx1);
+
+	// Load the weight contribution factors for each decimated weight
+	vfloat tex_weight_float0 = loada(di.texel_weight_contribs_float_tr[0] + index);
+	vfloat tex_weight_float1 = loada(di.texel_weight_contribs_float_tr[1] + index);
+
+	// Compute the bilinear interpolation to generate the per-texel weight
+	return (weight_val0 * tex_weight_float0 + weight_val1 * tex_weight_float1);
+}
 
 /**
  * @brief Compute the ideal endpoints and weights for 1 color component.
@@ -90,7 +160,7 @@ static void compute_ideal_colors_and_weights_1_comp(
 			highvalue = astc::max(value, highvalue);
 		}
 
-		if (highvalue < lowvalue)
+		if (highvalue <= lowvalue)
 		{
 			lowvalue = 0.0f;
 			highvalue = 1e-7f;
@@ -198,13 +268,13 @@ static void compute_ideal_colors_and_weights_2_comp(
 
 	for (unsigned int i = 0; i < partition_count; i++)
 	{
-		vfloat4 dir = pms[i].dir.swz<0, 1>();
+		vfloat4 dir = pms[i].dir;
 		if (hadd_s(dir) < 0.0f)
 		{
 			dir = vfloat4::zero() - dir;
 		}
 
-		line2 line { pms[i].avg.swz<0, 1>(), normalize_safe(dir, unit2()) };
+		line2 line { pms[i].avg, normalize_safe(dir, unit2()) };
 		float lowparam { 1e10f };
 		float highparam { -1e10f };
 
@@ -222,7 +292,7 @@ static void compute_ideal_colors_and_weights_2_comp(
 
 		// It is possible for a uniform-color partition to produce length=0;
 		// this causes NaN issues so set to small value to avoid this problem
-		if (highparam < lowparam)
+		if (highparam <= lowparam)
 		{
 			lowparam = 0.0f;
 			highparam = 1e-7f;
@@ -371,7 +441,7 @@ static void compute_ideal_colors_and_weights_3_comp(
 
 		// It is possible for a uniform-color partition to produce length=0;
 		// this causes NaN issues so set to small value to avoid this problem
-		if (highparam < lowparam)
+		if (highparam <= lowparam)
 		{
 			lowparam = 0.0f;
 			highparam = 1e-7f;
@@ -493,7 +563,7 @@ static void compute_ideal_colors_and_weights_4_comp(
 
 		// It is possible for a uniform-color partition to produce length=0;
 		// this causes NaN issues so set to small value to avoid this problem
-		if (highparam < lowparam)
+		if (highparam <= lowparam)
 		{
 			lowparam = 0.0f;
 			highparam = 1e-7f;
@@ -621,8 +691,8 @@ float compute_error_of_weight_set_1plane(
 	const float* dec_weight_quant_uvalue
 ) {
 	vfloatacc error_summav = vfloatacc::zero();
-	float error_summa = 0.0f;
 	unsigned int texel_count = di.texel_count;
+	promise(texel_count > 0);
 
 	// Process SIMD-width chunks, safe to over-fetch - the extra space is zero initialized
 	if (di.max_texel_weight_count > 2)
@@ -675,7 +745,7 @@ float compute_error_of_weight_set_1plane(
 	}
 
 	// Resolve the final scalar accumulator sum
-	return error_summa = hadd_s(error_summav);
+	return hadd_s(error_summav);
 }
 
 /* See header for documentation. */
@@ -688,6 +758,7 @@ float compute_error_of_weight_set_2planes(
 ) {
 	vfloatacc error_summav = vfloatacc::zero();
 	unsigned int texel_count = di.texel_count;
+	promise(texel_count > 0);
 
 	// Process SIMD-width chunks, safe to over-fetch - the extra space is zero initialized
 	if (di.max_texel_weight_count > 2)
@@ -792,8 +863,7 @@ void compute_ideal_weights_for_decimation(
 	// zero-initialized SIMD over-fetch region
 	if (is_direct)
 	{
-		unsigned int texel_count_simd = round_up_to_simd_multiple_vla(texel_count);
-		for (unsigned int i = 0; i < texel_count_simd; i += ASTCENC_SIMD_WIDTH)
+		for (unsigned int i = 0; i < texel_count; i += ASTCENC_SIMD_WIDTH)
 		{
 			vfloat weight(ei.weights + i);
 			storea(weight, dec_weight_ideal_value + i);
@@ -824,8 +894,8 @@ void compute_ideal_weights_for_decimation(
 
 		for (unsigned int j = 0; j < max_texel_count; j++)
 		{
-			vint texel(di.weight_texel[j] + i);
-			vfloat weight = loada(di.weights_flt[j] + i);
+			vint texel(di.weight_texels_tr[j] + i);
+			vfloat weight = loada(di.weights_texel_contribs_tr[j] + i);
 
 			if (!constant_wes)
 			{
@@ -882,8 +952,8 @@ void compute_ideal_weights_for_decimation(
 
 		for (unsigned int j = 0; j < max_texel_count; j++)
 		{
-			vint texel(di.weight_texel[j] + i);
-			vfloat contrib_weight = loada(di.weights_flt[j] + i);
+			vint texel(di.weight_texels_tr[j] + i);
+			vfloat contrib_weight = loada(di.weights_texel_contribs_tr[j] + i);
 
 			if (!constant_wes)
 			{
@@ -901,7 +971,7 @@ void compute_ideal_weights_for_decimation(
 		vfloat step = (error_change1 * chd_scale) / error_change0;
 		step = clamp(-stepsize, stepsize, step);
 
-		// Update the weight; note this can store negative values.
+		// Update the weight; note this can store negative values
 		storea(weight_val + step, dec_weight_ideal_value + i);
 	}
 }
@@ -931,7 +1001,7 @@ void compute_quantized_weights_for_decimation(
 	// Quantize the weight set using both the specified low/high bounds and standard 0..1 bounds
 
 	// TODO: Oddity to investigate; triggered by test in issue #265.
-	if (high_bound < low_bound)
+	if (high_bound <= low_bound)
 	{
 		low_bound = 0.0f;
 		high_bound = 1.0f;
@@ -1146,7 +1216,7 @@ void recompute_ideal_colors_1plane(
 		// Only compute a partition mean if more than one partition
 		if (partition_count > 1)
 		{
-			rgba_sum = vfloat4(1e-17f);
+			rgba_sum = vfloat4::zero();
 			promise(texel_count > 0);
 			for (unsigned int j = 0; j < texel_count; j++)
 			{
@@ -1182,7 +1252,6 @@ void recompute_ideal_colors_1plane(
 		for (unsigned int j = 0; j < texel_count; j++)
 		{
 			unsigned int tix = texel_indexes[j];
-
 			vfloat4 rgba = blk.texel(tix);
 
 			float idx0 = undec_weight_ref[tix];
@@ -1215,14 +1284,11 @@ void recompute_ideal_colors_1plane(
 		vfloat4 right_sum  = vfloat4(right_sum_s) * color_weight;
 		vfloat4 lmrs_sum   = vfloat3(left_sum_s, middle_sum_s, right_sum_s) * ls_weight;
 
-		vfloat4 weight_weight_sum = vfloat4(weight_weight_sum_s) * color_weight;
-		float psum = right_sum_s * hadd_rgb_s(color_weight);
-
 		color_vec_x = color_vec_x * color_weight;
 		color_vec_y = color_vec_y * color_weight;
 
 		// Initialize the luminance and scale vectors with a reasonable default
-		float scalediv = scale_min * (1.0f / astc::max(scale_max, 1e-10f));
+		float scalediv = scale_min / astc::max(scale_max, 1e-10f);
 		scalediv = astc::clamp1f(scalediv);
 
 		vfloat4 sds = scale_dir * scale_max;
@@ -1274,32 +1340,38 @@ void recompute_ideal_colors_1plane(
 
 			if (fabsf(ls_det1) > (ls_mss1 * 1e-4f) && scale_ep0 == scale_ep0 && scale_ep1 == scale_ep1 && scale_ep0 < scale_ep1)
 			{
-				float scalediv2 = scale_ep0 * (1.0f / scale_ep1);
+				float scalediv2 = scale_ep0 / scale_ep1;
 				vfloat4 sdsm = scale_dir * scale_ep1;
 				rgbs_vectors[i] = vfloat4(sdsm.lane<0>(), sdsm.lane<1>(), sdsm.lane<2>(), scalediv2);
 			}
 		}
 
-		// Calculations specific to mode #7, the HDR RGB-scale mode
-		vfloat4 rgbq_sum = color_vec_x + color_vec_y;
-		rgbq_sum.set_lane<3>(hadd_rgb_s(color_vec_y));
-
-		vfloat4 rgbovec = compute_rgbo_vector(rgba_weight_sum, weight_weight_sum, rgbq_sum, psum);
-		rgbo_vectors[i] = rgbovec;
-
-		// We can get a failure due to the use of a singular (non-invertible) matrix
-		// If it failed, compute rgbo_vectors[] with a different method ...
-		if (astc::isnan(dot_s(rgbovec, rgbovec)))
+		// Calculations specific to mode #7, the HDR RGB-scale mode - skip if known LDR
+		if (blk.rgb_lns[0] || blk.alpha_lns[0])
 		{
-			vfloat4 v0 = ep.endpt0[i];
-			vfloat4 v1 = ep.endpt1[i];
+			vfloat4 weight_weight_sum = vfloat4(weight_weight_sum_s) * color_weight;
+			float psum = right_sum_s * hadd_rgb_s(color_weight);
 
-			float avgdif = hadd_rgb_s(v1 - v0) * (1.0f / 3.0f);
-			avgdif = astc::max(avgdif, 0.0f);
+			vfloat4 rgbq_sum = color_vec_x + color_vec_y;
+			rgbq_sum.set_lane<3>(hadd_rgb_s(color_vec_y));
 
-			vfloat4 avg = (v0 + v1) * 0.5f;
-			vfloat4 ep0 = avg - vfloat4(avgdif) * 0.5f;
-			rgbo_vectors[i] = vfloat4(ep0.lane<0>(), ep0.lane<1>(), ep0.lane<2>(), avgdif);
+			vfloat4 rgbovec = compute_rgbo_vector(rgba_weight_sum, weight_weight_sum, rgbq_sum, psum);
+			rgbo_vectors[i] = rgbovec;
+
+			// We can get a failure due to the use of a singular (non-invertible) matrix
+			// If it failed, compute rgbo_vectors[] with a different method ...
+			if (astc::isnan(dot_s(rgbovec, rgbovec)))
+			{
+				vfloat4 v0 = ep.endpt0[i];
+				vfloat4 v1 = ep.endpt1[i];
+
+				float avgdif = hadd_rgb_s(v1 - v0) * (1.0f / 3.0f);
+				avgdif = astc::max(avgdif, 0.0f);
+
+				vfloat4 avg = (v0 + v1) * 0.5f;
+				vfloat4 ep0 = avg - vfloat4(avgdif) * 0.5f;
+				rgbo_vectors[i] = vfloat4(ep0.lane<0>(), ep0.lane<1>(), ep0.lane<2>(), avgdif);
+			}
 		}
 	}
 }
@@ -1447,7 +1519,7 @@ void recompute_ideal_colors_2planes(
 		color_vec_x += cwprod - cwiprod;
 
 		scale_vec += vfloat2(om_idx0, idx0) * (ls_weight * scale);
-		weight_weight_sum += (color_weight * color_idx);
+		weight_weight_sum += color_idx;
 	}
 
 	vfloat4 left1_sum   = vfloat4(left1_sum_s) * color_weight;
@@ -1459,13 +1531,11 @@ void recompute_ideal_colors_2planes(
 	vfloat4 middle2_sum = vfloat4(middle2_sum_s) * color_weight;
 	vfloat4 right2_sum  = vfloat4(right2_sum_s) * color_weight;
 
-	float psum = dot3_s(select(right1_sum, right2_sum, p2_mask), color_weight);
-
 	color_vec_x = color_vec_x * color_weight;
 	color_vec_y = color_vec_y * color_weight;
 
 	// Initialize the luminance and scale vectors with a reasonable default
-	float scalediv = scale_min * (1.0f / astc::max(scale_max, 1e-10f));
+	float scalediv = scale_min / astc::max(scale_max, 1e-10f);
 	scalediv = astc::clamp1f(scalediv);
 
 	vfloat4 sds = scale_dir * scale_max;
@@ -1521,7 +1591,7 @@ void recompute_ideal_colors_2planes(
 
 		if (fabsf(ls_det1) > (ls_mss1 * 1e-4f) && scale_ep0 == scale_ep0 && scale_ep1 == scale_ep1 && scale_ep0 < scale_ep1)
 		{
-			float scalediv2 = scale_ep0 * (1.0f / scale_ep1);
+			float scalediv2 = scale_ep0 / scale_ep1;
 			vfloat4 sdsm = scale_dir * scale_ep1;
 			rgbs_vector = vfloat4(sdsm.lane<0>(), sdsm.lane<1>(), sdsm.lane<2>(), scalediv2);
 		}
@@ -1561,26 +1631,32 @@ void recompute_ideal_colors_2planes(
 		ep.endpt1[0] = select(ep.endpt1[0], ep1, full_mask);
 	}
 
-	// Calculations specific to mode #7, the HDR RGB-scale mode
-	vfloat4 rgbq_sum = color_vec_x + color_vec_y;
-	rgbq_sum.set_lane<3>(hadd_rgb_s(color_vec_y));
-
-	rgbo_vector = compute_rgbo_vector(rgba_weight_sum, weight_weight_sum, rgbq_sum, psum);
-
-	// We can get a failure due to the use of a singular (non-invertible) matrix
-	// If it failed, compute rgbo_vectors[] with a different method ...
-	if (astc::isnan(dot_s(rgbo_vector, rgbo_vector)))
+	// Calculations specific to mode #7, the HDR RGB-scale mode - skip if known LDR
+	if (blk.rgb_lns[0] || blk.alpha_lns[0])
 	{
-		vfloat4 v0 = ep.endpt0[0];
-		vfloat4 v1 = ep.endpt1[0];
+		weight_weight_sum = weight_weight_sum * color_weight;
+		float psum = dot3_s(select(right1_sum, right2_sum, p2_mask), color_weight);
 
-		float avgdif = hadd_rgb_s(v1 - v0) * (1.0f / 3.0f);
-		avgdif = astc::max(avgdif, 0.0f);
+		vfloat4 rgbq_sum = color_vec_x + color_vec_y;
+		rgbq_sum.set_lane<3>(hadd_rgb_s(color_vec_y));
 
-		vfloat4 avg = (v0 + v1) * 0.5f;
-		vfloat4 ep0 = avg - vfloat4(avgdif) * 0.5f;
+		rgbo_vector = compute_rgbo_vector(rgba_weight_sum, weight_weight_sum, rgbq_sum, psum);
 
-		rgbo_vector = vfloat4(ep0.lane<0>(), ep0.lane<1>(), ep0.lane<2>(), avgdif);
+		// We can get a failure due to the use of a singular (non-invertible) matrix
+		// If it failed, compute rgbo_vectors[] with a different method ...
+		if (astc::isnan(dot_s(rgbo_vector, rgbo_vector)))
+		{
+			vfloat4 v0 = ep.endpt0[0];
+			vfloat4 v1 = ep.endpt1[0];
+
+			float avgdif = hadd_rgb_s(v1 - v0) * (1.0f / 3.0f);
+			avgdif = astc::max(avgdif, 0.0f);
+
+			vfloat4 avg = (v0 + v1) * 0.5f;
+			vfloat4 ep0 = avg - vfloat4(avgdif) * 0.5f;
+
+			rgbo_vector = vfloat4(ep0.lane<0>(), ep0.lane<1>(), ep0.lane<2>(), avgdif);
+		}
 	}
 }
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # -----------------------------------------------------------------------------
-# Copyright 2021 Arm Limited
+# Copyright 2021-2022 Arm Limited
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy
@@ -100,7 +100,7 @@ def main():
 
             for _ in range(0, repeats):
                 command = [
-                    "./astcenc/astcenc-avx2",
+                    "./bin/astcenc-avx2",
                     "-tl",
                     "./Test/Images/Kodak/LDR-RGB/ldr-rgb-kodak23.png",
                     "/dev/null",

@@ -60,7 +60,7 @@ set -o pipefail
 cmake_args=("-G" "Xcode" \
   "-B" $BUILD_DIR \
   "-D" "CMAKE_SYSTEM_NAME=iOS" \
-  "-D" "ISA_NEON=ON" \
+  "-D" "ASTCENC_ISA_NEON=ON" \
   "-D" "KTX_FEATURE_DOC=$FEATURE_DOC" \
   "-D" "KTX_FEATURE_JNI=$FEATURE_JNI" \
   "-D" "KTX_FEATURE_LOADTEST_APPS=$FEATURE_LOADTESTS" \

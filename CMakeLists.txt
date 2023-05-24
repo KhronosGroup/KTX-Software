@@ -863,64 +863,64 @@ endif()
 add_subdirectory(interface/basisu_c_binding)
 
 # Only one architecture is supported at once, if neither of
-# ISA_SSE41 and ISA_SSE2  are defined ISA_AVX2 is chosen.
-# If ISA_AVX2 fails to compile user must chose other x86 options.
-# On arm based systems ISA_NEON is default
+# ASTC_SSE41 and ASTC_SSE2  are defined ASTC_AVX2 is chosen.
+# If ASTC_AVX2 fails to compile user must chose other x86 options.
+# On arm based systems ASTC_NEON is default
 
 list(FIND CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" ASTC_BUILD_UNIVERSAL)
 list(LENGTH CMAKE_OSX_ARCHITECTURES ARCHITECTURE_COUNT)
 
 if(${ASTC_BUILD_UNIVERSAL} EQUAL -1 AND ARCHITECTURE_COUNT LESS_EQUAL 1)
-    if (${ISA_NONE})
-        set(ASTC_LIB_TARGET astcenc-none-static)
+    if (${ASTCENC_ISA_NONE})
+        set(ASTCENC_LIB_TARGET astcenc-none-static)
     else()
         if(CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86)
-            if (${ISA_SSE41})
-                set(ASTC_LIB_TARGET astcenc-sse4.1-static)
-            elseif (${ISA_SSE2})
-                set(ASTC_LIB_TARGET astcenc-sse2-static)
+            if (${ASTCENC_ISA_SSE41})
+                set(ASTCENC_LIB_TARGET astcenc-sse4.1-static)
+            elseif (${ASTCENC_ISA_SSE2})
+                set(ASTCENC_LIB_TARGET astcenc-sse2-static)
             else()
-                set(ISA_AVX2 ON)
-                set(ASTC_LIB_TARGET astcenc-avx2-static)
+                set(ASTCENC_ISA_AVX2 ON)
+                set(ASTCENC_LIB_TARGET astcenc-avx2-static)
             endif()
             if(CPU_ARCHITECTURE STREQUAL x86)
-                set(ISA_NONE ON)
-                set(ISA_AVX2 OFF)
+                set(ASTCENC_ISA_NONE ON)
+                set(ASTCENC_ISA_AVX2 OFF)
                 set(ASTCENC_POPCNT 0)
-                set(ASTC_LIB_TARGET astcenc-none-static)
+                set(ASTCENC_LIB_TARGET astcenc-none-static)
             endif()
         elseif(CPU_ARCHITECTURE STREQUAL armv8 OR CPU_ARCHITECTURE STREQUAL arm64)
-            set(ASTC_LIB_TARGET astcenc-neon-static)
-            set(ISA_NEON ON)
+            set(ASTCENC_LIB_TARGET astcenc-neon-static)
+            set(ASTCENC_ISA_NEON ON)
         else()
-            message(STATUS "Unsupported ISA for ${CPU_ARCHITECTURE} arch, using ISA_NONE.")
-            set(ASTC_LIB_TARGET astcenc-none-static)
-            set(ISA_NONE ON)
+            message(STATUS "Unsupported ISA for ASTC on ${CPU_ARCHITECTURE} arch, using ASTCENC_ISA_NONE.")
+            set(ASTCENC_LIB_TARGET astcenc-none-static)
+            set(ASTCENC_ISA_NONE ON)
         endif()
     endif()
 else()
-    set(ASTC_LIB_TARGET astcenc-static)
+    set(ASTCENC_LIB_TARGET astcenc-static)
 endif()
 
 # astcenc
-set(CLI OFF) # Only build as library not the CLI astcencoder
+set(ASTCENC_CLI OFF) # Only build as library not the CLI astcencoder
 add_subdirectory(lib/astc-encoder)
-set_property(TARGET ${ASTC_LIB_TARGET} PROPERTY POSITION_INDEPENDENT_CODE ON)
+set_property(TARGET ${ASTCENC_LIB_TARGET} PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 if(KTX_FEATURE_STATIC_LIBRARY AND APPLE)
     # Make a single static library to simplify linking.
-    add_dependencies(ktx ${ASTC_LIB_TARGET})
+    add_dependencies(ktx ${ASTCENC_LIB_TARGET})
     add_custom_command( TARGET ktx
         POST_BUILD
-        COMMAND libtool -static -o $<TARGET_FILE:ktx> $<TARGET_FILE:ktx> $<TARGET_FILE:${ASTC_LIB_TARGET}>
+        COMMAND libtool -static -o $<TARGET_FILE:ktx> $<TARGET_FILE:ktx> $<TARGET_FILE:${ASTCENC_LIB_TARGET}>
     )
 
     # Don't know libtool equivalent on Windows or Emscripten. Applications
-    # will have to link with  both ktx and ${ASTC_LIB_TARGET}. Static libs
+    # will have to link with  both ktx and ${ASTCENC_LIB_TARGET}. Static libs
     # are unlikely to be used on Windows so not a problem there. For Emscripten
     # everything is built into the JS module so not an issue there either.
 else()
-    target_link_libraries(ktx PRIVATE ${ASTC_LIB_TARGET})
+    target_link_libraries(ktx PRIVATE ${ASTCENC_LIB_TARGET})
 endif()
 
 # FMT
@@ -941,7 +941,7 @@ endif()
 
 set(KTX_INSTALL_TARGETS ktx)
 if(KTX_FEATURE_STATIC_LIBRARY AND NOT APPLE)
-    list(APPEND KTX_INSTALL_TARGETS ${ASTC_LIB_TARGET})
+    list(APPEND KTX_INSTALL_TARGETS ${ASTCENC_LIB_TARGET})
 endif()
 
 # Install

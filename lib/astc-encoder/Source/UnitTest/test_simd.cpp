@@ -31,15 +31,15 @@ namespace astcenc
 
 // Misc utility tests - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-static int round_down(int x)
+static unsigned int round_down(unsigned int x)
 {
-	int remainder = x % ASTCENC_SIMD_WIDTH;
+	unsigned int remainder = x % ASTCENC_SIMD_WIDTH;
 	return x - remainder;
 }
 
-static int round_up(int x)
+static unsigned int round_up(unsigned int x)
 {
-	int remainder = x % ASTCENC_SIMD_WIDTH;
+	unsigned int remainder = x % ASTCENC_SIMD_WIDTH;
 	if (!remainder)
 	{
 		return x;
@@ -52,9 +52,9 @@ static int round_up(int x)
 TEST(misc, RoundDownVLA)
 {
 	// Static ones which are valid for all VLA widths
-	EXPECT_EQ(round_down_to_simd_multiple_vla(0),  0);
-	EXPECT_EQ(round_down_to_simd_multiple_vla(8),  8);
-	EXPECT_EQ(round_down_to_simd_multiple_vla(16), 16);
+	EXPECT_EQ(round_down_to_simd_multiple_vla(0),  0u);
+	EXPECT_EQ(round_down_to_simd_multiple_vla(8),  8u);
+	EXPECT_EQ(round_down_to_simd_multiple_vla(16), 16u);
 
 	// Variable ones which depend on VLA width
 	EXPECT_EQ(round_down_to_simd_multiple_vla(3),   round_down(3));
@@ -67,9 +67,9 @@ TEST(misc, RoundDownVLA)
 TEST(misc, RoundUpVLA)
 {
 	// Static ones which are valid for all VLA widths
-	EXPECT_EQ(round_up_to_simd_multiple_vla(0),  0);
-	EXPECT_EQ(round_up_to_simd_multiple_vla(8),  8);
-	EXPECT_EQ(round_up_to_simd_multiple_vla(16), 16);
+	EXPECT_EQ(round_up_to_simd_multiple_vla(0),  0u);
+	EXPECT_EQ(round_up_to_simd_multiple_vla(8),  8u);
+	EXPECT_EQ(round_up_to_simd_multiple_vla(16), 16u);
 
 	// Variable ones which depend on VLA width
 	EXPECT_EQ(round_up_to_simd_multiple_vla(3),   round_up(3));
@@ -540,27 +540,27 @@ TEST(vfloat4, ceq)
 	vfloat4 a1(1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat4 b1(0.1f, 0.2f, 0.3f, 0.4f);
 	vmask4 r1 = a1 == b1;
-	EXPECT_EQ(0, mask(r1));
+	EXPECT_EQ(0u, mask(r1));
 	EXPECT_EQ(false, any(r1));
 	EXPECT_EQ(false, all(r1));
 
 	vfloat4 a2(1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat4 b2(1.0f, 0.2f, 0.3f, 0.4f);
 	vmask4 r2 = a2 == b2;
-	EXPECT_EQ(0x1, mask(r2));
+	EXPECT_EQ(0x1u, mask(r2));
 	EXPECT_EQ(true, any(r2));
 	EXPECT_EQ(false, all(r2));
 
 	vfloat4 a3(1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat4 b3(1.0f, 0.2f, 3.0f, 0.4f);
 	vmask4 r3 = a3 == b3;
-	EXPECT_EQ(0x5, mask(r3));
+	EXPECT_EQ(0x5u, mask(r3));
 	EXPECT_EQ(true, any(r3));
 	EXPECT_EQ(false, all(r3));
 
 	vfloat4 a4(1.0f, 2.0f, 3.0f, 4.0f);
 	vmask4 r4 = a4 == a4;
-	EXPECT_EQ(0xF, mask(r4));
+	EXPECT_EQ(0xFu, mask(r4));
 	EXPECT_EQ(true, any(r4));
 	EXPECT_EQ(true, all(r4));
 }
@@ -571,27 +571,27 @@ TEST(vfloat4, cne)
 	vfloat4 a1(1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat4 b1(0.1f, 0.2f, 0.3f, 0.4f);
 	vmask4 r1 = a1 != b1;
-	EXPECT_EQ(0xF, mask(r1));
+	EXPECT_EQ(0xFu, mask(r1));
 	EXPECT_EQ(true, any(r1));
 	EXPECT_EQ(true, all(r1));
 
 	vfloat4 a2(1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat4 b2(1.0f, 0.2f, 0.3f, 0.4f);
 	vmask4 r2 = a2 != b2;
-	EXPECT_EQ(0xE, mask(r2));
+	EXPECT_EQ(0xEu, mask(r2));
 	EXPECT_EQ(true, any(r2));
 	EXPECT_EQ(false, all(r2));
 
 	vfloat4 a3(1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat4 b3(1.0f, 0.2f, 3.0f, 0.4f);
 	vmask4 r3 = a3 != b3;
-	EXPECT_EQ(0xA, mask(r3));
+	EXPECT_EQ(0xAu, mask(r3));
 	EXPECT_EQ(true, any(r3));
 	EXPECT_EQ(false, all(r3));
 
 	vfloat4 a4(1.0f, 2.0f, 3.0f, 4.0f);
 	vmask4 r4 = a4 != a4;
-	EXPECT_EQ(0, mask(r4));
+	EXPECT_EQ(0u, mask(r4));
 	EXPECT_EQ(false, any(r4));
 	EXPECT_EQ(false, all(r4));
 }
@@ -602,7 +602,7 @@ TEST(vfloat4, clt)
 	vfloat4 a(1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat4 b(0.9f, 2.1f, 3.0f, 4.1f);
 	vmask4 r = a < b;
-	EXPECT_EQ(0xA, mask(r));
+	EXPECT_EQ(0xAu, mask(r));
 }
 
 /** @brief Test vfloat4 cle. */
@@ -611,7 +611,7 @@ TEST(vfloat4, cle)
 	vfloat4 a(1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat4 b(0.9f, 2.1f, 3.0f, 4.1f);
 	vmask4 r = a <= b;
-	EXPECT_EQ(0xE, mask(r));
+	EXPECT_EQ(0xEu, mask(r));
 }
 
 /** @brief Test vfloat4 cgt. */
@@ -620,7 +620,7 @@ TEST(vfloat4, cgt)
 	vfloat4 a(1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat4 b(0.9f, 2.1f, 3.0f, 4.1f);
 	vmask4 r = a > b;
-	EXPECT_EQ(0x1, mask(r));
+	EXPECT_EQ(0x1u, mask(r));
 }
 
 /** @brief Test vfloat4 cge. */
@@ -629,7 +629,7 @@ TEST(vfloat4, cge)
 	vfloat4 a(1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat4 b(0.9f, 2.1f, 3.0f, 4.1f);
 	vmask4 r = a >= b;
-	EXPECT_EQ(0x5, mask(r));
+	EXPECT_EQ(0x5u, mask(r));
 }
 
 /** @brief Test vfloat4 min. */
@@ -894,7 +894,8 @@ TEST(vfloat4, select)
 /** @brief Test vfloat4 select MSB only. */
 TEST(vfloat4, select_msb)
 {
-	vint4 msb(0x80000000, 0, 0x80000000, 0);
+	int msb_set = static_cast<int>(0x80000000);
+	vint4 msb(msb_set, 0, msb_set, 0);
 	vmask4 cond(msb.m);
 
 	vfloat4 a(1.0f, 3.0f, 3.0f, 1.0f);
@@ -1439,27 +1440,27 @@ TEST(vint4, ceq)
 	vint4 a1(1, 2, 3, 4);
 	vint4 b1(0, 1, 2, 3);
 	vmask4 r1 = a1 == b1;
-	EXPECT_EQ(0, mask(r1));
+	EXPECT_EQ(0u, mask(r1));
 	EXPECT_EQ(false, any(r1));
 	EXPECT_EQ(false, all(r1));
 
 	vint4 a2(1, 2, 3, 4);
 	vint4 b2(1, 0, 0, 0);
 	vmask4 r2 = a2 == b2;
-	EXPECT_EQ(0x1, mask(r2));
+	EXPECT_EQ(0x1u, mask(r2));
 	EXPECT_EQ(true, any(r2));
 	EXPECT_EQ(false, all(r2));
 
 	vint4 a3(1, 2, 3, 4);
 	vint4 b3(1, 0, 3, 0);
 	vmask4 r3 = a3 == b3;
-	EXPECT_EQ(0x5, mask(r3));
+	EXPECT_EQ(0x5u, mask(r3));
 	EXPECT_EQ(true, any(r3));
 	EXPECT_EQ(false, all(r3));
 
 	vint4 a4(1, 2, 3, 4);
 	vmask4 r4 = a4 == a4;
-	EXPECT_EQ(0xF, mask(r4));
+	EXPECT_EQ(0xFu, mask(r4));
 	EXPECT_EQ(true, any(r4));
 	EXPECT_EQ(true, all(r4));
 }
@@ -1470,27 +1471,27 @@ TEST(vint4, cne)
 	vint4 a1(1, 2, 3, 4);
 	vint4 b1(0, 1, 2, 3);
 	vmask4 r1 = a1 != b1;
-	EXPECT_EQ(0xF, mask(r1));
+	EXPECT_EQ(0xFu, mask(r1));
 	EXPECT_EQ(true, any(r1));
 	EXPECT_EQ(true, all(r1));
 
 	vint4 a2(1, 2, 3, 4);
 	vint4 b2(1, 0, 0, 0);
 	vmask4 r2 = a2 != b2;
-	EXPECT_EQ(0xE, mask(r2));
+	EXPECT_EQ(0xEu, mask(r2));
 	EXPECT_EQ(true, any(r2));
 	EXPECT_EQ(false, all(r2));
 
 	vint4 a3(1, 2, 3, 4);
 	vint4 b3(1, 0, 3, 0);
 	vmask4 r3 = a3 != b3;
-	EXPECT_EQ(0xA, mask(r3));
+	EXPECT_EQ(0xAu, mask(r3));
 	EXPECT_EQ(true, any(r3));
 	EXPECT_EQ(false, all(r3));
 
 	vint4 a4(1, 2, 3, 4);
 	vmask4 r4 = a4 != a4;
-	EXPECT_EQ(0, mask(r4));
+	EXPECT_EQ(0u, mask(r4));
 	EXPECT_EQ(false, any(r4));
 	EXPECT_EQ(false, all(r4));
 }
@@ -1501,7 +1502,7 @@ TEST(vint4, clt)
 	vint4 a(1, 2, 3, 4);
 	vint4 b(0, 3, 3, 5);
 	vmask4 r = a < b;
-	EXPECT_EQ(0xA, mask(r));
+	EXPECT_EQ(0xAu, mask(r));
 }
 
 /** @brief Test vint4 cgt. */
@@ -1510,7 +1511,7 @@ TEST(vint4, cle)
 	vint4 a(1, 2, 3, 4);
 	vint4 b(0, 3, 3, 5);
 	vmask4 r = a > b;
-	EXPECT_EQ(0x1, mask(r));
+	EXPECT_EQ(0x1u, mask(r));
 }
 
 /** @brief Test vint4 lsl. */
@@ -1544,7 +1545,7 @@ TEST(vint4, lsr)
 	EXPECT_EQ(a.lane<0>(),  1);
 	EXPECT_EQ(a.lane<1>(),  2);
 	EXPECT_EQ(a.lane<2>(),  4);
-	EXPECT_EQ(a.lane<3>(),  0xFFFFFFFC);
+	EXPECT_EQ(a.lane<3>(),  static_cast<int>(0xFFFFFFFC));
 
 	a = lsr<1>(a);
 	EXPECT_EQ(a.lane<0>(),  0);
@@ -1681,7 +1682,8 @@ TEST(vint4, hadd_rgb_s)
 /** @brief Test vint4 clz. */
 TEST(vint4, clz)
 {
-	vint4 a1(0x80000000, 0x40000000, 0x20000000, 0x10000000);
+	int msb_set = static_cast<int>(0x80000000);
+	vint4 a1(msb_set, 0x40000000, 0x20000000, 0x10000000);
 	vint4 r1 = clz(a1);
 	EXPECT_EQ(r1.lane<0>(), 0);
 	EXPECT_EQ(r1.lane<1>(), 1);
@@ -1749,7 +1751,7 @@ TEST(vint4, store_nbytes)
 {
 	alignas(16) int out;
 	vint4 a(42, 314, 75, 90);
-	store_nbytes(a, (uint8_t*)&out);
+	store_nbytes(a, reinterpret_cast<uint8_t*>(&out));
 	EXPECT_EQ(out, 42);
 }
 
@@ -1865,38 +1867,38 @@ TEST(vint4, select)
 /** @brief Test vmask4 scalar literal constructor. */
 TEST(vmask4, scalar_literal_construct)
 {
-	vfloat4 m1a(0, 0, 0, 0);
-	vfloat4 m1b(1, 1, 1, 1);
+	vfloat4 m1a(0.0f, 0.0f, 0.0f, 0.0f);
+	vfloat4 m1b(1.0f, 1.0f, 1.0f, 1.0f);
 	vmask4 m1(true);
 
 	vfloat4 r = select(m1a, m1b, m1);
 
-	EXPECT_EQ(r.lane<0>(), 1);
-	EXPECT_EQ(r.lane<1>(), 1);
-	EXPECT_EQ(r.lane<2>(), 1);
-	EXPECT_EQ(r.lane<3>(), 1);
+	EXPECT_EQ(r.lane<0>(), 1.0f);
+	EXPECT_EQ(r.lane<1>(), 1.0f);
+	EXPECT_EQ(r.lane<2>(), 1.0f);
+	EXPECT_EQ(r.lane<3>(), 1.0f);
 
 	r = select(m1b, m1a, m1);
 
-	EXPECT_EQ(r.lane<0>(), 0);
-	EXPECT_EQ(r.lane<1>(), 0);
-	EXPECT_EQ(r.lane<2>(), 0);
-	EXPECT_EQ(r.lane<3>(), 0);
+	EXPECT_EQ(r.lane<0>(), 0.0f);
+	EXPECT_EQ(r.lane<1>(), 0.0f);
+	EXPECT_EQ(r.lane<2>(), 0.0f);
+	EXPECT_EQ(r.lane<3>(), 0.0f);
 }
 
 /** @brief Test vmask4 literal constructor. */
 TEST(vmask4, literal_construct)
 {
-	vfloat4 m1a(0, 0, 0, 0);
-	vfloat4 m1b(1, 1, 1, 1);
+	vfloat4 m1a(0.0f, 0.0f, 0.0f, 0.0f);
+	vfloat4 m1b(1.0f, 1.0f, 1.0f, 1.0f);
 	vmask4 m1(true, false, true, false);
 
 	vfloat4 r = select(m1a, m1b, m1);
 
-	EXPECT_EQ(r.lane<0>(), 1);
-	EXPECT_EQ(r.lane<1>(), 0);
-	EXPECT_EQ(r.lane<2>(), 1);
-	EXPECT_EQ(r.lane<3>(), 0);
+	EXPECT_EQ(r.lane<0>(), 1.0f);
+	EXPECT_EQ(r.lane<1>(), 0.0f);
+	EXPECT_EQ(r.lane<2>(), 1.0f);
+	EXPECT_EQ(r.lane<3>(), 0.0f);
 }
 
 /** @brief Test vmask4 or. */
@@ -1911,7 +1913,7 @@ TEST(vmask4, or)
 	vmask4 m2 = m2a == m2b;
 
 	vmask4 r = m1 | m2;
-	EXPECT_EQ(mask(r), 0xB);
+	EXPECT_EQ(mask(r), 0xBu);
 }
 
 /** @brief Test vmask4 and. */
@@ -1926,7 +1928,7 @@ TEST(vmask4, and)
 	vmask4 m2 = m2a == m2b;
 
 	vmask4 r = m1 & m2;
-	EXPECT_EQ(mask(r), 0x2);
+	EXPECT_EQ(mask(r), 0x2u);
 }
 
 /** @brief Test vmask4 xor. */
@@ -1941,7 +1943,7 @@ TEST(vmask4, xor)
 	vmask4 m2 = m2a == m2b;
 
 	vmask4 r = m1 ^ m2;
-	EXPECT_EQ(mask(r), 0x9);
+	EXPECT_EQ(mask(r), 0x9u);
 }
 
 /** @brief Test vmask4 not. */
@@ -1951,7 +1953,7 @@ TEST(vmask4, not)
 	vfloat4 m1b(1, 1, 1, 1);
 	vmask4 m1 = m1a == m1b;
 	vmask4 r = ~m1;
-	EXPECT_EQ(mask(r), 0x5);
+	EXPECT_EQ(mask(r), 0x5u);
 }
 
 /** @brief Test vint4 table permute. */
@@ -2264,27 +2266,27 @@ TEST(vfloat8, ceq)
 	vfloat8 a1(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f);
 	vfloat8 b1(0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f);
 	vmask8 r1 = a1 == b1;
-	EXPECT_EQ(0, mask(r1));
+	EXPECT_EQ(0u, mask(r1));
 	EXPECT_EQ(false, any(r1));
 	EXPECT_EQ(false, all(r1));
 
 	vfloat8 a2(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f);
 	vfloat8 b2(1.0f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f);
 	vmask8 r2 = a2 == b2;
-	EXPECT_EQ(0x1, mask(r2));
+	EXPECT_EQ(0x1u, mask(r2));
 	EXPECT_EQ(true, any(r2));
 	EXPECT_EQ(false, all(r2));
 
 	vfloat8 a3(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f);
 	vfloat8 b3(1.0f, 0.2f, 3.0f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f);
 	vmask8 r3 = a3 == b3;
-	EXPECT_EQ(0x5, mask(r3));
+	EXPECT_EQ(0x5u, mask(r3));
 	EXPECT_EQ(true, any(r3));
 	EXPECT_EQ(false, all(r3));
 
 	vfloat8 a4(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f);
 	vmask8 r4 = a4 == a4;
-	EXPECT_EQ(0xFF, mask(r4));
+	EXPECT_EQ(0xFFu, mask(r4));
 	EXPECT_EQ(true, any(r4));
 	EXPECT_EQ(true, all(r4));
 }
@@ -2295,27 +2297,27 @@ TEST(vfloat8, cne)
 	vfloat8 a1(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f);
 	vfloat8 b1(0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f);
 	vmask8 r1 = a1 != b1;
-	EXPECT_EQ(0xFF, mask(r1));
+	EXPECT_EQ(0xFFu, mask(r1));
 	EXPECT_EQ(true, any(r1));
 	EXPECT_EQ(true, all(r1));
 
 	vfloat8 a2(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f);
 	vfloat8 b2(1.0f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f);
 	vmask8 r2 = a2 != b2;
-	EXPECT_EQ(0xFE, mask(r2));
+	EXPECT_EQ(0xFEu, mask(r2));
 	EXPECT_EQ(true, any(r2));
 	EXPECT_EQ(false, all(r2));
 
 	vfloat8 a3(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f);
 	vfloat8 b3(1.0f, 0.2f, 3.0f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f);
 	vmask8 r3 = a3 != b3;
-	EXPECT_EQ(0xFA, mask(r3));
+	EXPECT_EQ(0xFAu, mask(r3));
 	EXPECT_EQ(true, any(r3));
 	EXPECT_EQ(false, all(r3));
 
 	vfloat8 a4(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f);
 	vmask8 r4 = a4 != a4;
-	EXPECT_EQ(0, mask(r4));
+	EXPECT_EQ(0u, mask(r4));
 	EXPECT_EQ(false, any(r4));
 	EXPECT_EQ(false, all(r4));
 }
@@ -2326,7 +2328,7 @@ TEST(vfloat8, clt)
 	vfloat8 a(1.0f, 2.0f, 3.0f, 4.0f, 1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat8 b(0.9f, 2.1f, 3.0f, 4.1f, 0.9f, 2.1f, 3.0f, 4.1f);
 	vmask8 r = a < b;
-	EXPECT_EQ(0xAA, mask(r));
+	EXPECT_EQ(0xAAu, mask(r));
 }
 
 /** @brief Test vfloat8 cle. */
@@ -2335,7 +2337,7 @@ TEST(vfloat8, cle)
 	vfloat8 a(1.0f, 2.0f, 3.0f, 4.0f, 1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat8 b(0.9f, 2.1f, 3.0f, 4.1f, 0.9f, 2.1f, 3.0f, 4.1f);
 	vmask8 r = a <= b;
-	EXPECT_EQ(0xEE, mask(r));
+	EXPECT_EQ(0xEEu, mask(r));
 }
 
 /** @brief Test vfloat8 cgt. */
@@ -2344,7 +2346,7 @@ TEST(vfloat8, cgt)
 	vfloat8 a(1.0f, 2.0f, 3.0f, 4.0f, 1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat8 b(0.9f, 2.1f, 3.0f, 4.1f, 0.9f, 2.1f, 3.0f, 4.1f);
 	vmask8 r = a > b;
-	EXPECT_EQ(0x11, mask(r));
+	EXPECT_EQ(0x11u, mask(r));
 }
 
 /** @brief Test vfloat8 cge. */
@@ -2353,7 +2355,7 @@ TEST(vfloat8, cge)
 	vfloat8 a(1.0f, 2.0f, 3.0f, 4.0f, 1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat8 b(0.9f, 2.1f, 3.0f, 4.1f, 0.9f, 2.1f, 3.0f, 4.1f);
 	vmask8 r = a >= b;
-	EXPECT_EQ(0x55, mask(r));
+	EXPECT_EQ(0x55u, mask(r));
 }
 
 /** @brief Test vfloat8 min. */
@@ -2632,7 +2634,8 @@ TEST(vfloat8, select)
 /** @brief Test vfloat8 select MSB only. */
 TEST(vfloat8, select_msb)
 {
-	vint8 msb(0x80000000, 0, 0x80000000, 0, 0x80000000, 0, 0x80000000, 0);
+	int msb_set = static_cast<int>(0x80000000);
+	vint8 msb(msb_set, 0, msb_set, 0, msb_set, 0, msb_set, 0);
 	vmask8 cond(msb.m);
 
 	vfloat8 a(1.0f, 3.0f, 3.0f, 1.0f, 1.0f, 3.0f, 3.0f, 1.0f);
@@ -2648,7 +2651,6 @@ TEST(vfloat8, select_msb)
 	EXPECT_EQ(r1.lane<5>(), 3.0f);
 	EXPECT_EQ(r1.lane<6>(), 2.0f);
 	EXPECT_EQ(r1.lane<7>(), 1.0f);
-
 
 	// Select in the other
 	vfloat8 r2 = select(b, a, cond);
@@ -2989,27 +2991,27 @@ TEST(vint8, ceq)
 	vint8 a1(1, 2, 3, 4, 1, 2, 3, 4);
 	vint8 b1(0, 1, 2, 3, 0, 1, 2, 3);
 	vmask8 r1 = a1 == b1;
-	EXPECT_EQ(0, mask(r1));
+	EXPECT_EQ(0u, mask(r1));
 	EXPECT_EQ(false, any(r1));
 	EXPECT_EQ(false, all(r1));
 
 	vint8 a2(1, 2, 3, 4, 1, 2, 3, 4);
 	vint8 b2(1, 0, 0, 0, 1, 0, 0, 0);
 	vmask8 r2 = a2 == b2;
-	EXPECT_EQ(0x11, mask(r2));
+	EXPECT_EQ(0x11u, mask(r2));
 	EXPECT_EQ(true, any(r2));
 	EXPECT_EQ(false, all(r2));
 
 	vint8 a3(1, 2, 3, 4, 1, 2, 3, 4);
 	vint8 b3(1, 0, 3, 0, 1, 0, 3, 0);
 	vmask8 r3 = a3 == b3;
-	EXPECT_EQ(0x55, mask(r3));
+	EXPECT_EQ(0x55u, mask(r3));
 	EXPECT_EQ(true, any(r3));
 	EXPECT_EQ(false, all(r3));
 
 	vint8 a4(1, 2, 3, 4, 1, 2, 3, 4);
 	vmask8 r4 = a4 == a4;
-	EXPECT_EQ(0xFF, mask(r4));
+	EXPECT_EQ(0xFFu, mask(r4));
 	EXPECT_EQ(true, any(r4));
 	EXPECT_EQ(true, all(r4));
 }
@@ -3020,27 +3022,27 @@ TEST(vint8, cne)
 	vint8 a1(1, 2, 3, 4, 1, 2, 3, 4);
 	vint8 b1(0, 1, 2, 3, 0, 1, 2, 3);
 	vmask8 r1 = a1 != b1;
-	EXPECT_EQ(0xFF, mask(r1));
+	EXPECT_EQ(0xFFu, mask(r1));
 	EXPECT_EQ(true, any(r1));
 	EXPECT_EQ(true, all(r1));
 
 	vint8 a2(1, 2, 3, 4, 1, 2, 3, 4);
 	vint8 b2(1, 0, 0, 0, 1, 0, 0, 0);
 	vmask8 r2 = a2 != b2;
-	EXPECT_EQ(0xEE, mask(r2));
+	EXPECT_EQ(0xEEu, mask(r2));
 	EXPECT_EQ(true, any(r2));
 	EXPECT_EQ(false, all(r2));
 
 	vint8 a3(1, 2, 3, 4, 1, 2, 3, 4);
 	vint8 b3(1, 0, 3, 0, 1, 0, 3, 0);
 	vmask8 r3 = a3 != b3;
-	EXPECT_EQ(0xAA, mask(r3));
+	EXPECT_EQ(0xAAu, mask(r3));
 	EXPECT_EQ(true, any(r3));
 	EXPECT_EQ(false, all(r3));
 
 	vint8 a4(1, 2, 3, 4, 1, 2, 3, 4);
 	vmask8 r4 = a4 != a4;
-	EXPECT_EQ(0, mask(r4));
+	EXPECT_EQ(0u, mask(r4));
 	EXPECT_EQ(false, any(r4));
 	EXPECT_EQ(false, all(r4));
 }
@@ -3051,7 +3053,7 @@ TEST(vint8, clt)
 	vint8 a(1, 2, 3, 4, 1, 2, 3, 4);
 	vint8 b(0, 3, 3, 5, 0, 3, 3, 5);
 	vmask8 r = a < b;
-	EXPECT_EQ(0xAA, mask(r));
+	EXPECT_EQ(0xAAu, mask(r));
 }
 
 /** @brief Test vint8 cgt. */
@@ -3060,7 +3062,7 @@ TEST(vint8, cgt)
 	vint8 a(1, 2, 3, 4, 1, 2, 3, 4);
 	vint8 b(0, 3, 3, 5, 0, 3, 3, 5);
 	vmask8 r = a > b;
-	EXPECT_EQ(0x11, mask(r));
+	EXPECT_EQ(0x11u, mask(r));
 }
 
 /** @brief Test vint8 min. */
@@ -3103,32 +3105,32 @@ TEST(vint8, lsl)
 	EXPECT_EQ(a.lane<0>(), 1);
 	EXPECT_EQ(a.lane<1>(), 2);
 	EXPECT_EQ(a.lane<2>(), 4);
-	EXPECT_EQ(a.lane<3>(), 0xFFFFFFFC);
+	EXPECT_EQ(a.lane<3>(), static_cast<int>(0xFFFFFFFC));
 	EXPECT_EQ(a.lane<4>(), 1);
 	EXPECT_EQ(a.lane<5>(), 2);
 	EXPECT_EQ(a.lane<6>(), 4);
-	EXPECT_EQ(a.lane<7>(), 0xFFFFFFFC);
+	EXPECT_EQ(a.lane<7>(), static_cast<int>(0xFFFFFFFC));
 
 
 	a = lsl<1>(a);
 	EXPECT_EQ(a.lane<0>(), 2);
 	EXPECT_EQ(a.lane<1>(), 4);
 	EXPECT_EQ(a.lane<2>(), 8);
-	EXPECT_EQ(a.lane<3>(), 0xFFFFFFF8);
+	EXPECT_EQ(a.lane<3>(), static_cast<int>(0xFFFFFFF8));
 	EXPECT_EQ(a.lane<4>(), 2);
 	EXPECT_EQ(a.lane<5>(), 4);
 	EXPECT_EQ(a.lane<6>(), 8);
-	EXPECT_EQ(a.lane<7>(), 0xFFFFFFF8);
+	EXPECT_EQ(a.lane<7>(), static_cast<int>(0xFFFFFFF8));
 
 	a = lsl<2>(a);
 	EXPECT_EQ(a.lane<0>(), 8);
 	EXPECT_EQ(a.lane<1>(), 16);
 	EXPECT_EQ(a.lane<2>(), 32);
-	EXPECT_EQ(a.lane<3>(), 0xFFFFFFE0);
+	EXPECT_EQ(a.lane<3>(), static_cast<int>(0xFFFFFFE0));
 	EXPECT_EQ(a.lane<4>(), 8);
 	EXPECT_EQ(a.lane<5>(), 16);
 	EXPECT_EQ(a.lane<6>(), 32);
-	EXPECT_EQ(a.lane<7>(), 0xFFFFFFE0);
+	EXPECT_EQ(a.lane<7>(), static_cast<int>(0xFFFFFFE0));
 }
 
 /** @brief Test vint8 lsr. */
@@ -3136,25 +3138,25 @@ TEST(vint8, lsr)
 {
 	vint8 a(1, 2, 4, -4, 1, 2, 4, -4);
 	a = lsr<0>(a);
-	EXPECT_EQ(a.lane<0>(),  1);
-	EXPECT_EQ(a.lane<1>(),  2);
-	EXPECT_EQ(a.lane<2>(),  4);
-	EXPECT_EQ(a.lane<3>(),  0xFFFFFFFC);
-	EXPECT_EQ(a.lane<4>(),  1);
-	EXPECT_EQ(a.lane<5>(),  2);
-	EXPECT_EQ(a.lane<6>(),  4);
-	EXPECT_EQ(a.lane<7>(),  0xFFFFFFFC);
+	EXPECT_EQ(a.lane<0>(), 1);
+	EXPECT_EQ(a.lane<1>(), 2);
+	EXPECT_EQ(a.lane<2>(), 4);
+	EXPECT_EQ(a.lane<3>(), static_cast<int>(0xFFFFFFFC));
+	EXPECT_EQ(a.lane<4>(), 1);
+	EXPECT_EQ(a.lane<5>(), 2);
+	EXPECT_EQ(a.lane<6>(), 4);
+	EXPECT_EQ(a.lane<7>(), static_cast<int>(0xFFFFFFFC));
 
 
 	a = lsr<1>(a);
-	EXPECT_EQ(a.lane<0>(),  0);
-	EXPECT_EQ(a.lane<1>(),  1);
-	EXPECT_EQ(a.lane<2>(),  2);
-	EXPECT_EQ(a.lane<3>(),  0x7FFFFFFE);
-	EXPECT_EQ(a.lane<4>(),  0);
-	EXPECT_EQ(a.lane<5>(),  1);
-	EXPECT_EQ(a.lane<6>(),  2);
-	EXPECT_EQ(a.lane<7>(),  0x7FFFFFFE);
+	EXPECT_EQ(a.lane<0>(), 0);
+	EXPECT_EQ(a.lane<1>(), 1);
+	EXPECT_EQ(a.lane<2>(), 2);
+	EXPECT_EQ(a.lane<3>(), 0x7FFFFFFE);
+	EXPECT_EQ(a.lane<4>(), 0);
+	EXPECT_EQ(a.lane<5>(), 1);
+	EXPECT_EQ(a.lane<6>(), 2);
+	EXPECT_EQ(a.lane<7>(), 0x7FFFFFFE);
 
 	a = lsr<2>(a);
 	EXPECT_EQ(a.lane<0>(),  0);
@@ -3292,7 +3294,7 @@ TEST(vint8, store_nbytes)
 {
 	alignas(32) int out[2];
 	vint8 a(42, 314, 75, 90, 42, 314, 75, 90);
-	store_nbytes(a, (uint8_t*)&out);
+	store_nbytes(a, reinterpret_cast<uint8_t*>(&out));
 	EXPECT_EQ(out[0], 42);
 	EXPECT_EQ(out[1], 314);
 }
@@ -3449,7 +3451,7 @@ TEST(vmask8, or)
 	vmask8 m2 = m2a == m2b;
 
 	vmask8 r = m1 | m2;
-	EXPECT_EQ(mask(r), 0xBB);
+	EXPECT_EQ(mask(r), 0xBBu);
 }
 
 /** @brief Test vmask8 and. */
@@ -3464,7 +3466,7 @@ TEST(vmask8, and)
 	vmask8 m2 = m2a == m2b;
 
 	vmask8 r = m1 & m2;
-	EXPECT_EQ(mask(r), 0x22);
+	EXPECT_EQ(mask(r), 0x22u);
 }
 
 /** @brief Test vmask8 xor. */
@@ -3479,7 +3481,7 @@ TEST(vmask8, xor)
 	vmask8 m2 = m2a == m2b;
 
 	vmask8 r = m1 ^ m2;
-	EXPECT_EQ(mask(r), 0x99);
+	EXPECT_EQ(mask(r), 0x99u);
 }
 
 /** @brief Test vmask8 not. */
@@ -3489,7 +3491,7 @@ TEST(vmask8, not)
 	vfloat8 m1b(1, 1, 1, 1, 1, 1, 1, 1);
 	vmask8 m1 = m1a == m1b;
 	vmask8 r = ~m1;
-	EXPECT_EQ(mask(r), 0x55);
+	EXPECT_EQ(mask(r), 0x55u);
 }
 
 /** @brief Test vint8 table permute. */

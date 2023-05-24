@@ -253,9 +253,9 @@ class Encoder2x(EncoderBase):
         name = "astcenc-%s-%s" % (variant, self.VERSION)
         if binary is None:
             if os.name == 'nt':
-                binary = "./astcenc/astcenc-%s.exe" % variant
+                binary = "./bin/astcenc-%s.exe" % variant
             else:
-                binary = "./astcenc/astcenc-%s" % variant
+                binary = "./bin/astcenc-%s" % variant
 
         super().__init__(name, variant, binary)
 
@@ -284,9 +284,6 @@ class Encoder2x(EncoderBase):
 
         if image.colorFormat == "xy":
             command.append("-normal")
-
-        if image.isMask:
-            command.append("-mask")
 
         if image.isAlphaScaled:
             command.append("-a")
@@ -388,9 +385,6 @@ class Encoder1_7(EncoderBase):
 
         if image.colorProfile == "hdr":
             command.append("-hdr")
-
-        if image.isMask:
-            command.append("-mask")
 
         if image.isAlphaScaled:
             command.append("-alphablend")

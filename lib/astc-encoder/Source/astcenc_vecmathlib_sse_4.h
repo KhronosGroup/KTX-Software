@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2019-2021 Arm Limited
+// Copyright 2019-2022 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -420,7 +420,7 @@ ASTCENC_SIMD_INLINE vmask4 operator~(vmask4 a)
  */
 ASTCENC_SIMD_INLINE unsigned int mask(vmask4 a)
 {
-	return _mm_movemask_ps(a.m);
+	return static_cast<unsigned int>(_mm_movemask_ps(a.m));
 }
 
 // ============================================================================
@@ -809,7 +809,7 @@ ASTCENC_SIMD_INLINE vfloat4 round(vfloat4 a)
 	return vfloat4(_mm_round_ps(a.m, flags));
 #else
 	__m128 v = a.m;
-	__m128 neg_zero = _mm_castsi128_ps(_mm_set1_epi32(0x80000000));
+	__m128 neg_zero = _mm_castsi128_ps(_mm_set1_epi32(static_cast<int>(0x80000000)));
 	__m128 no_fraction = _mm_set1_ps(8388608.0f);
 	__m128 abs_mask = _mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFF));
 	__m128 sign = _mm_and_ps(v, neg_zero);
@@ -1001,7 +1001,7 @@ ASTCENC_SIMD_INLINE vfloat4 float16_to_float(vint4 a)
 ASTCENC_SIMD_INLINE float float16_to_float(uint16_t a)
 {
 #if ASTCENC_F16C >= 1
-	__m128i packed = _mm_set1_epi16(a);
+	__m128i packed = _mm_set1_epi16(static_cast<short>(a));
 	__m128 f32 = _mm_cvtph_ps(packed);
 	return _mm_cvtss_f32(f32);
 #else
@@ -1046,7 +1046,7 @@ ASTCENC_SIMD_INLINE void vtable_prepare(vint4 t0, vint4& t0p)
  */
 ASTCENC_SIMD_INLINE void vtable_prepare(vint4 t0, vint4 t1, vint4& t0p, vint4& t1p)
 {
-#if ASTCENC_SSE >= 30
+#if ASTCENC_SSE >= 41
 	t0p = t0;
 	t1p = t0 ^ t1;
 #else
@@ -1062,7 +1062,7 @@ ASTCENC_SIMD_INLINE void vtable_prepare(
 	vint4 t0, vint4 t1, vint4 t2, vint4 t3,
 	vint4& t0p, vint4& t1p, vint4& t2p, vint4& t3p)
 {
-#if ASTCENC_SSE >= 30
+#if ASTCENC_SSE >= 41
 	t0p = t0;
 	t1p = t0 ^ t1;
 	t2p = t1 ^ t2;
@@ -1080,9 +1080,9 @@ ASTCENC_SIMD_INLINE void vtable_prepare(
  */
 ASTCENC_SIMD_INLINE vint4 vtable_8bt_32bi(vint4 t0, vint4 idx)
 {
-#if ASTCENC_SSE >= 30
+#if ASTCENC_SSE >= 41
 	// Set index byte MSB to 1 for unused bytes so shuffle returns zero
-	__m128i idxx = _mm_or_si128(idx.m, _mm_set1_epi32(0xFFFFFF00));
+	__m128i idxx = _mm_or_si128(idx.m, _mm_set1_epi32(static_cast<int>(0xFFFFFF00)));
 
 	__m128i result = _mm_shuffle_epi8(t0.m, idxx);
 	return vint4(result);
@@ -1102,9 +1102,9 @@ ASTCENC_SIMD_INLINE vint4 vtable_8bt_32bi(vint4 t0, vint4 idx)
  */
 ASTCENC_SIMD_INLINE vint4 vtable_8bt_32bi(vint4 t0, vint4 t1, vint4 idx)
 {
-#if ASTCENC_SSE >= 30
+#if ASTCENC_SSE >= 41
 	// Set index byte MSB to 1 for unused bytes so shuffle returns zero
-	__m128i idxx = _mm_or_si128(idx.m, _mm_set1_epi32(0xFFFFFF00));
+	__m128i idxx = _mm_or_si128(idx.m, _mm_set1_epi32(static_cast<int>(0xFFFFFF00)));
 
 	__m128i result = _mm_shuffle_epi8(t0.m, idxx);
 	idxx = _mm_sub_epi8(idxx, _mm_set1_epi8(16));
@@ -1130,9 +1130,9 @@ ASTCENC_SIMD_INLINE vint4 vtable_8bt_32bi(vint4 t0, vint4 t1, vint4 idx)
  */
 ASTCENC_SIMD_INLINE vint4 vtable_8bt_32bi(vint4 t0, vint4 t1, vint4 t2, vint4 t3, vint4 idx)
 {
-#if ASTCENC_SSE >= 30
+#if ASTCENC_SSE >= 41
 	// Set index byte MSB to 1 for unused bytes so shuffle returns zero
-	__m128i idxx = _mm_or_si128(idx.m, _mm_set1_epi32(0xFFFFFF00));
+	__m128i idxx = _mm_or_si128(idx.m, _mm_set1_epi32(static_cast<int>(0xFFFFFF00)));
 
 	__m128i result = _mm_shuffle_epi8(t0.m, idxx);
 	idxx = _mm_sub_epi8(idxx, _mm_set1_epi8(16));
@@ -1206,18 +1206,18 @@ ASTCENC_SIMD_INLINE void store_lanes_masked(int* base, vint4 data, vmask4 mask)
 	{
 		store(data, base);
 	}
-	else if(mask.lane<2>() != 0.0f)
+	else if (mask.lane<2>() != 0.0f)
 	{
 		base[0] = data.lane<0>();
 		base[1] = data.lane<1>();
 		base[2] = data.lane<2>();
 	}
-	else if(mask.lane<1>() != 0.0f)
+	else if (mask.lane<1>() != 0.0f)
 	{
 		base[0] = data.lane<0>();
 		base[1] = data.lane<1>();
 	}
-	else if(mask.lane<0>() != 0.0f)
+	else if (mask.lane<0>() != 0.0f)
 	{
 		base[0] = data.lane<0>();
 	}

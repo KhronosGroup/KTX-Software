@@ -1,6 +1,6 @@
 #  SPDX-License-Identifier: Apache-2.0
 #  ----------------------------------------------------------------------------
-#  Copyright 2020-2021 Arm Limited
+#  Copyright 2020-2023 Arm Limited
 #
 #  Licensed under the Apache License, Version 2.0 (the "License"); you may not
 #  use this file except in compliance with the License. You may obtain a copy
@@ -15,25 +15,25 @@
 #  under the License.
 #  ----------------------------------------------------------------------------
 
-if(${UNIVERSAL_BUILD})
-    set(ASTC_TEST test-unit)
+if(${ASTCENC_UNIVERSAL_BUILD})
+    set(ASTCENC_TEST test-unit)
 else()
-    set(ASTC_TEST test-unit-${ISA_SIMD})
+    set(ASTCENC_TEST test-unit-${ASTCENC_ISA_SIMD})
 endif()
 
-add_executable(${ASTC_TEST})
+add_executable(${ASTCENC_TEST})
 
-target_sources(${ASTC_TEST}
+target_sources(${ASTCENC_TEST}
     PRIVATE
         test_simd.cpp
         test_softfloat.cpp
         ../astcenc_mathlib_softfloat.cpp)
 
-target_include_directories(${ASTC_TEST}
+target_include_directories(${ASTCENC_TEST}
     PRIVATE
         ${gtest_SOURCE_DIR}/include)
 
-target_compile_options(${ASTC_TEST}
+target_compile_options(${ASTCENC_TEST}
     PRIVATE
         # Use pthreads on Linux/macOS
         $<$<PLATFORM_ID:Linux,Darwin>:-pthread>
@@ -47,12 +47,21 @@ target_compile_options(${ASTC_TEST}
         $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wpedantic>
         $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Werror>
         $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wshadow>
-        $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wdouble-promotion>)
+        $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-c++98-compat-pedantic>
+        $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-c++98-c++11-compat-pedantic>
+        $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-float-equal>
+
+        # Ignore things that the googletest build triggers
+        $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-unknown-warning-option>
+        $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-double-promotion>
+        $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-undef>
+        $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-reserved-identifier>
+        $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-global-constructors>)
 
 # Set up configuration for SIMD ISA builds
-if(${ISA_SIMD} MATCHES "none")
-    if(NOT ${UNIVERSAL_BUILD})
-        target_compile_definitions(${ASTC_TEST}
+if(${ASTCENC_ISA_SIMD} MATCHES "none")
+    if(NOT ${ASTCENC_UNIVERSAL_BUILD})
+        target_compile_definitions(${ASTCENC_TEST}
             PRIVATE
                 ASTCENC_NEON=0
                 ASTCENC_SSE=0
@@ -61,9 +70,9 @@ if(${ISA_SIMD} MATCHES "none")
                 ASTCENC_F16C=0)
     endif()
 
-elseif(${ISA_SIMD} MATCHES "neon")
-    if(NOT ${UNIVERSAL_BUILD})
-        target_compile_definitions(${ASTC_TEST}
+elseif(${ASTCENC_ISA_SIMD} MATCHES "neon")
+    if(NOT ${ASTCENC_UNIVERSAL_BUILD})
+        target_compile_definitions(${ASTCENC_TEST}
             PRIVATE
                 ASTCENC_NEON=1
                 ASTCENC_SSE=0
@@ -72,9 +81,9 @@ elseif(${ISA_SIMD} MATCHES "neon")
                 ASTCENC_F16C=0)
     endif()
 
-elseif(${ISA_SIMD} MATCHES "sse2")
-    if(NOT ${UNIVERSAL_BUILD})
-        target_compile_definitions(${ASTC_TEST}
+elseif(${ASTCENC_ISA_SIMD} MATCHES "sse2")
+    if(NOT ${ASTCENC_UNIVERSAL_BUILD})
+        target_compile_definitions(${ASTCENC_TEST}
             PRIVATE
                 ASTCENC_NEON=0
                 ASTCENC_SSE=20
@@ -83,13 +92,13 @@ elseif(${ISA_SIMD} MATCHES "sse2")
                 ASTCENC_F16C=0)
     endif()
 
-    target_compile_options(${ASTC_TEST}
+    target_compile_options(${ASTCENC_TEST}
         PRIVATE
-        $<$<CXX_COMPILER_ID:${GNU_LIKE}>:-mfpmath=sse -msse2>)
+        $<$<CXX_COMPILER_ID:${GNU_LIKE}>:-msse2>)
 
-elseif(${ISA_SIMD} MATCHES "sse4.1")
-    if(NOT ${UNIVERSAL_BUILD})
-        target_compile_definitions(${ASTC_TEST}
+elseif(${ASTCENC_ISA_SIMD} MATCHES "sse4.1")
+    if(NOT ${ASTCENC_UNIVERSAL_BUILD})
+        target_compile_definitions(${ASTCENC_TEST}
             PRIVATE
                 ASTCENC_NEON=0
                 ASTCENC_SSE=41
@@ -98,13 +107,13 @@ elseif(${ISA_SIMD} MATCHES "sse4.1")
                 ASTCENC_F16C=0)
     endif()
 
-    target_compile_options(${ASTC_TEST}
+    target_compile_options(${ASTCENC_TEST}
         PRIVATE
-            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-mfpmath=sse -msse4.1 -mpopcnt>)
+            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-msse4.1 -mpopcnt>)
 
-elseif(${ISA_SIMD} MATCHES "avx2")
-    if(NOT ${UNIVERSAL_BUILD})
-        target_compile_definitions(${ASTC_TEST}
+elseif(${ASTCENC_ISA_SIMD} MATCHES "avx2")
+    if(NOT ${ASTCENC_UNIVERSAL_BUILD})
+        target_compile_definitions(${ASTCENC_TEST}
             PRIVATE
                 ASTCENC_NEON=0
                 ASTCENC_SSE=41
@@ -113,26 +122,18 @@ elseif(${ISA_SIMD} MATCHES "avx2")
                 ASTCENC_F16C=1)
     endif()
 
-    target_compile_options(${ASTC_TEST}
+    target_compile_options(${ASTCENC_TEST}
         PRIVATE
-            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-mfpmath=sse -mavx2 -mpopcnt -mf16c>
+            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-mavx2 -mpopcnt -mf16c>
             $<$<CXX_COMPILER_ID:MSVC>:/arch:AVX2>)
 
 endif()
 
-target_compile_options(${ASTC_TEST}
-    PRIVATE
-        $<$<CXX_COMPILER_ID:${CLANG_LIKE}>:-fsanitize=undefined>)
-
-target_link_options(${ASTC_TEST}
-    PRIVATE
-        $<$<CXX_COMPILER_ID:${CLANG_LIKE}>:-fsanitize=undefined>)
-
-target_link_libraries(${ASTC_TEST}
+target_link_libraries(${ASTCENC_TEST}
     PRIVATE
         gtest_main)
 
-add_test(NAME ${ASTC_TEST}
-         COMMAND ${ASTC_TEST})
+add_test(NAME ${ASTCENC_TEST}
+         COMMAND ${ASTCENC_TEST})
 
-install(TARGETS ${ASTC_TEST} DESTINATION ${PACKAGE_ROOT})
+install(TARGETS ${ASTCENC_TEST} DESTINATION ${PACKAGE_ROOT})

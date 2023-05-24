@@ -455,7 +455,7 @@ struct FormatDescriptor {
             // set to indicate the representation of 1.0 and 0.0 (for unsigned
             // formats) or -1.0 (for signed formats) respectively when the
             // exponent is in a 0 position after any bias has been corrected.
-            // If there is an implicit “1” bit, these values for the mantissa
+            // If there is an implicit 1 bit, these values for the mantissa
             // will exceed what can be represented in the number of available
             // mantissa bits.
             sampleUpper = 1U << mantissaBitLength;
