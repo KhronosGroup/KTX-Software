@@ -8,18 +8,19 @@ include(GoogleTest)
 add_subdirectory(gtest)
 find_package(Threads)
 
-# This setting is critical when using the Xcode generator on
-# an Apple Silicon Mac. On Apple Silicon all executables must
-# be signed. The Xcode generator sets up signing as a post
-# build operation. Default test discovery mode, POST_BUILD,
-# is also a post build operation. It runs before the signing
-# post build so the test executable won't run on Apple
-# Silicon when instantiated to discover the tests. This setting
-# delays test discovery until a test is run by which time the
-# test executable will be signed.
-if (CMAKE_GENERATOR STREQUAL Xcode)
-  set(CMAKE_GTEST_DISCOVER_TESTS_DISCOVERY_MODE PRE_TEST)
-endif()
+# This setting is critical on an Apple Silicon Mac and when
+# cross compiling. On Apple Silicon all executables must
+# be signed. The generators (Xcode certainly) set up signing
+# as a post build operation. Default test discovery mode,
+# POST_BUILD, is also a post build operation. It runs before
+# the signing post build so the test executable won't run on
+# Apple Silicon when instantiated to discover the tests. When
+# cross compiling tests built for the target obviously won't
+# run on the host so test discovery fails there too. This
+# setting delays test discovery until a test is run by which
+# time the test executable will be signed and will be on the
+# target.
+set(CMAKE_GTEST_DISCOVER_TESTS_DISCOVERY_MODE PRE_TEST)
 
 enable_testing()
 
