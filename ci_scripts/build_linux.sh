@@ -26,6 +26,14 @@ PACKAGE=${PACKAGE:-NO}
 SUPPORT_SSE=${SUPPORT_SSE:-ON}
 SUPPORT_OPENCL=${SUPPORT_OPENCL:-OFF}
 
+if [ ! "$ARCH" = "x86_64" ]; then
+  # TODO: Provide variable to turn off just vkloadtests.
+  if [ "$FEATURE_LOADTESTS" = "ON" ]; then
+    FEATURE_LOADTESTS="OFF"
+    echo "Disabling FEATURE_LOADTESTS as Vulkan SDK only supports x86_64 architecture. "
+  fi
+fi
+
 if [ "$CMAKE_GEN" = "Ninja" -o "$CMAKE_GEN" = "Unix Makefiles" ]; then
   BUILD_DIR=${BUILD_DIR:-build/linux-$CONFIGURATION}
 else
