@@ -16,6 +16,8 @@ FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-ON}
 VULKAN_SDK_VER=${VULKAN_SDK_VER:-1.3.243}
 
 sudo apt-get -qq update
+# LFS not installed on arm64 runner.
+sudo apt-get -qq install git-lfs
 sudo apt-get -qq install ninja-build
 sudo apt-get -qq install doxygen
 sudo apt-get -qq install rpm

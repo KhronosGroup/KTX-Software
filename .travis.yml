@@ -161,10 +161,8 @@ jobs:
 # Phase 3: Install cache components - Currently not using a cache
 # then the following phases:
 before_install:
-  - echo "Running on the following travis CI runner"
-  - uname -a
-  - echo "CMake version on the runner is"
-  - cmake --version
+  - echo "Running on the following travis CI runner: $(uname -a)"
+  - echo "CMake version on the runner is $(cmake --version)"
   #- eval "${MATRIX_EVAL}"
   - echo -e "machine github.com\n  login $GITHUB_TOKEN" >> ~/.netrc # Prevent rate limiting on Git LFS.
   - cat ~/.netrc
