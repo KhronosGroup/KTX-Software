@@ -17,6 +17,8 @@ FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-ON}
 VULKAN_SDK_VER=${VULKAN_SDK_VER:-1.3.243}
 
 sudo apt-get -qq update
+# LFS is not preinstalled in the arm64 image.
+sudo apt-get -qq install git-lfs:native
 sudo apt-get -qq install ninja-build:native
 sudo apt-get -qq install doxygen:native
 sudo apt-get -qq install rpm:native
