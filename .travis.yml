@@ -199,7 +199,7 @@ install:
         # LFS not installed on arm64 runners.
         sudo apt-get -qq install git-lfs
         # Nor is a JDK
-        sudo apt-get -qq install openjdk-11-jre-headless
+        sudo apt-get -qq install openjdk-11-jdk
       fi
       ./ci_scripts/install_linux.sh
     fi
