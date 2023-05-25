@@ -101,7 +101,7 @@ jobs:
           SUPPORT_SSE=ON SUPPORT_OPENCL=OFF PACKAGE=YES
     - os: linux
       arch: arm64
-      jdk: openjdk17
+      jdk: openjdk11
       dist: jammy
       compiler: gcc
       env:
@@ -195,6 +195,10 @@ install:
       set +e
     fi
     if [ "$CHECK_REUSE" != "ONLY" -a "$WASM_BUILD" != "YES" ]; then
+      if [ "$TRAVIS_CPU_ARCH" = "arm64" ]; then
+        # LFS not installed on arm64 runners.
+        sudo apt-get -qq install git-lfs
+      fi
       ./ci_scripts/install_linux.sh
     fi
     ;;
