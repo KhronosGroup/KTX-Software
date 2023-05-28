@@ -198,8 +198,8 @@ install:
       if [ "$TRAVIS_CPU_ARCH" = "arm64" ]; then
         # LFS not installed on arm64 runners.
         sudo apt-get -qq install git-lfs
-        # Nor is a JDK
-        sudo apt-get -qq install openjdk-11-jdk
+        # Nor is a JDK. JDK 11 appears to be flaky.
+        sudo apt-get -qq install openjdk-17-jdk
       fi
       ./ci_scripts/install_linux.sh
     fi
