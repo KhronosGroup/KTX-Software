@@ -200,6 +200,7 @@ install:
         sudo apt-get -qq install git-lfs
         # Nor is a JDK. JDK 11 appears to be flaky.
         sudo apt-get -qq install openjdk-17-jdk
+        ls -l /usr/lib/jvm
       fi
       ./ci_scripts/install_linux.sh
     fi
