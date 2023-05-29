@@ -198,9 +198,11 @@ install:
       if [ "$TRAVIS_CPU_ARCH" = "arm64" ]; then
         # LFS not installed on arm64 runners.
         sudo apt-get -qq install git-lfs
-        # Nor is a JDK. JDK 11 appears to be flaky.
+        # Nor is a JDK.
+        # "default-jdk" (JDK 11) appears to be flaky. Use 17.
         sudo apt-get -qq install openjdk-17-jdk default-jre-headless
-        ls -l /usr/lib/jvm
+        # Must be manually set. Setting JAVA_HOME might be an alternative.
+        sudo ln -s /usr/lib/jvm/java-1.17.0-openjdk-arm64 /usr/lib/jvm/default-java
       fi
       ./ci_scripts/install_linux.sh
     fi
