@@ -162,7 +162,7 @@ if(APPLE)
     gencmpktx( kodim17_basis kodim17_basis.ktx2 ../srcimages/kodim17.png "--bcmp" "" "" )
     gencmpktx( 16bit_png_basis camera_camera_BaseColor_basis.ktx2 ../srcimages/camera_camera_BaseColor_16bit.png "--bcmp --nowarn" "" "" )
     gencmpktx( paletted_png CesiumLogoFlat.ktx2 ../srcimages/CesiumLogoFlat_palette.png "--bcmp --nowarn" "" "" )
-  endif
+  endif()
 endif()
 if (NOT ${CPU_ARCHITECTURE} STREQUAL "arm64" )
   gencmpktx( cimg5293_uastc cimg5293_uastc.ktx2 ../srcimages/CIMG5293.jpg "--uastc --genmipmap --test" "" "" )
