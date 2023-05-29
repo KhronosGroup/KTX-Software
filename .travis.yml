@@ -101,7 +101,6 @@ jobs:
           SUPPORT_SSE=ON SUPPORT_OPENCL=OFF PACKAGE=YES
     - os: linux
       arch: arm64
-      jdk: openjdk11
       dist: jammy
       compiler: gcc
       env:
