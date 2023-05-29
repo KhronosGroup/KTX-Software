@@ -203,6 +203,7 @@ install:
         sudo apt-get -qq install openjdk-17-jdk default-jre-headless
         # Must be manually set. Setting JAVA_HOME might be an alternative.
         sudo ln -s /usr/lib/jvm/java-1.17.0-openjdk-arm64 /usr/lib/jvm/default-java
+        ls -l /usr/lib/jvm
       fi
       ./ci_scripts/install_linux.sh
     fi
