@@ -92,6 +92,7 @@ jobs:
     - os: linux
       dist: jammy
       compiler: gcc
+      #jdk: openjdk17 # Reminder to find correct way to select jdk 17
       env:
         # NB: This must not have the fourth component of the version number.
         - VULKAN_SDK_VER: "1.3.243"
@@ -99,6 +100,18 @@ jobs:
         - CONFIGURATION=Release
           FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=ON FEATURE_TOOLS=ON
           SUPPORT_SSE=ON SUPPORT_OPENCL=OFF PACKAGE=YES
+    - os: linux
+      arch: arm64
+      dist: jammy
+      compiler: gcc
+      #jdk: openjdk17
+      env:
+        # NB: This must not have the fourth component of the version number.
+        - VULKAN_SDK_VER: "1.3.243"
+        - CMAKE_GEN: Ninja
+        - CONFIGURATION=Release
+          FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=OFF FEATURE_TOOLS=ON
+          SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF PACKAGE=YES
     - os: linux
       dist: jammy
       compiler: gcc
@@ -150,10 +163,10 @@ jobs:
 # Phase 3: Install cache components - Currently not using a cache
 # then the following phases:
 before_install:
-  - echo "Running on the following travis CI runner"
-  - uname -a
-  - echo "CMake version on the runner is"
-  - cmake --version
+  - |
+    echo -n "Running on the following travis CI runner: " && uname -a
+  - |
+    echo -n "CMake version on the runner is " && cmake --version
   #- eval "${MATRIX_EVAL}"
   - echo -e "machine github.com\n  login $GITHUB_TOKEN" >> ~/.netrc # Prevent rate limiting on Git LFS.
   - cat ~/.netrc
@@ -183,6 +196,20 @@ install:
       set +e
     fi
     if [ "$CHECK_REUSE" != "ONLY" -a "$WASM_BUILD" != "YES" ]; then
+      if [ "$TRAVIS_CPU_ARCH" = "arm64" ]; then
+        # JDK was not installed on arm64 runner. Kept for reference.
+        #sudo apt-get -qq install openjdk-17-jdk
+        # Must be manually set. Setting JAVA_HOME might be an alternative.
+        #sudo ln -s -f /usr/lib/jvm/java-1.17.0-openjdk-arm64 /usr/lib/jvm/default-java
+        # Runner now has JDK but is not setting JAVA_HOME or default-java.
+        # Delete this when fixed.
+        export JAVA_HOME=/usr/lib/jvm/temurin-11-jdk-arm64
+      fi
+      echo "JAVA_HOME = $JAVA_HOME"
+      echo "/usr/lib/jvm"
+      ls -l /usr/lib/jvm
+      echo "/usr/local/lib/jvm"
+      ls -l /usr/local/lib/jvm
       ./ci_scripts/install_linux.sh
     fi
     ;;

@@ -4,8 +4,21 @@
 
 # Build on Linux.
 
+######################################################################
+#  Nota Bene
+#
+# Contains untested cross-compilation support that was under
+# development when Travis-CI made arm64 Ubuntu runners available
+# rendering it unneeded. Kept here to preserve the learning and in
+# case it becomes useful.
+######################################################################
+
 # Exit if any command fails.
 set -e
+
+# cd repo root so script will work whereever the current directory
+path_to_repo_root=..
+cd -- "$(dirname -- "${BASH_SOURCE[0]}")/$path_to_repo_root"
 
 # Set parameters from command-line arguments, if any.
 for i in $@; do
@@ -18,7 +31,11 @@ CMAKE_GEN=${CMAKE_GEN:-Ninja Multi-Config}
 CONFIGURATION=${CONFIGURATION:-Release}
 FEATURE_DOC=${FEATURE_DOC:-OFF}
 FEATURE_JNI=${FEATURE_JNI:-OFF}
-FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-ON}
+if [ "$ARCH" = "x86_64" ]; then
+  FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-ON}
+else
+  FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-OFF}
+fi
 FEATURE_TESTS=${FEATURE_TESTS:-ON}
 FEATURE_TOOLS=${FEATURE_TOOLS:-ON}
 FEATURE_VULKAN=${FEATURE_VULKAN:-ON}
@@ -26,15 +43,24 @@ PACKAGE=${PACKAGE:-NO}
 SUPPORT_SSE=${SUPPORT_SSE:-ON}
 SUPPORT_OPENCL=${SUPPORT_OPENCL:-OFF}
 
+if [ "$ARCH" = "aarch64" -a "$FEATURE_LOADTESTS" = "ON" ]; then
+  # TODO: Provide variable to turn off just vkloadtests.
+  FEATURE_LOADTESTS="OFF"
+  echo "Forcing FEATURE_LOADTESTS OFF as no Vulkan SDK yet for Linux/arm64."
+fi
+
+BUILD_DIR=${BUILD_DIR:-build/linux}
+if [ "$ARCH" != $(uname -m) ]; then
+  BUILD_DIR+="-$ARCH-"
+fi
 if [ "$CMAKE_GEN" = "Ninja" -o "$CMAKE_GEN" = "Unix Makefiles" ]; then
-  BUILD_DIR=${BUILD_DIR:-build/linux-$CONFIGURATION}
-else
-  BUILD_DIR=${BUILD_DIR:-build/linux}
+  # Single configuration generators.
+  BUILD_DIR+="-$CONFIGURATION"
 fi
 
 mkdir -p $BUILD_DIR
 
-cmake_args=("-G" "$CMAKE_GEN" \
+cmake_args=("-G" "$CMAKE_GEN"
   "-B" $BUILD_DIR \
   "-D" "CMAKE_BUILD_TYPE=$CONFIGURATION" \
   "-D" "KTX_FEATURE_DOC=$FEATURE_DOC" \
@@ -46,17 +72,20 @@ cmake_args=("-G" "$CMAKE_GEN" \
   "-D" "BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL" \
   "-D" "BASISU_SUPPORT_SSE=$SUPPORT_SSE"
 )
-config_display="Configure KTX-Software (Linux): "
+if [ "$ARCH" != $(uname -m) ]; then
+  cmake_args+=("--toolchain", "cmake/linux-$ARCH-toolchain.cmake")
+fi
+config_display="Configure KTX-Software (Linux on $ARCH): "
 for arg in "${cmake_args[@]}"; do
   case $arg in
     "-A") config_display+="Arch=" ;;
     "-G") config_display+="Generator=" ;;
     "-B") config_display+="Build Dir=" ;;
     "-D") ;;
+    "--toolchain") config_display+="Toolchain File=" ;;
     *) config_display+="$arg, " ;;
   esac
 done
-
 echo ${config_display%??}
 cmake . "${cmake_args[@]}"
 
