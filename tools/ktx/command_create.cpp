@@ -876,10 +876,6 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
     if (isFormatAstc(options.vkFormat) && !options.raw) {
         options.astc = true;
 
-        if (options.testrun)
-            // Attempted workaround for suspected non-deterministic outputs on macOS x86_64.
-            options.OptionsASTC::threadCount = 1;
-
         switch (options.vkFormat) {
         case VK_FORMAT_ASTC_4x4_UNORM_BLOCK: [[fallthrough]];
         case VK_FORMAT_ASTC_4x4_SRGB_BLOCK:

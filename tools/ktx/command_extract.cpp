@@ -531,10 +531,10 @@ void CommandExtract::decodeAndSaveASTC(std::string filepath, bool appendExtensio
     const auto blockSizeZ = format.basic.texelBlockDimension2 + 1u;
     static constexpr astcenc_swizzle swizzle{ASTCENC_SWZ_R, ASTCENC_SWZ_G, ASTCENC_SWZ_B, ASTCENC_SWZ_A};
 
-    astcenc_error ec;
+    astcenc_error ec = ASTCENC_SUCCESS;
 
     const astcenc_profile profile = isFormatSRGB(vkFormat) ? ASTCENC_PRF_LDR_SRGB : ASTCENC_PRF_LDR;
-    astcenc_config config;
+    astcenc_config config{};
     ec = astcenc_config_init(profile, blockSizeX, blockSizeY, blockSizeZ, ASTCENC_PRE_MEDIUM, ASTCENC_FLG_DECOMPRESS_ONLY, &config);
     if (ec != ASTCENC_SUCCESS)
         fatal(rc::RUNTIME_ERROR, "ASTC Codec config init failed: {}", astcenc_get_error_string(ec));
@@ -545,13 +545,13 @@ void CommandExtract::decodeAndSaveASTC(std::string filepath, bool appendExtensio
             astcenc_context_free(context);
         }
     } astcenc;
-    astcenc_context* context = astcenc.context;
+    astcenc_context*& context = astcenc.context;
 
     ec = astcenc_context_alloc(&config, threadCount, &context);
     if (ec != ASTCENC_SUCCESS)
         fatal(rc::RUNTIME_ERROR, "ASTC Codec context alloc failed: {}", astcenc_get_error_string(ec));
 
-    astcenc_image image;
+    astcenc_image image{};
     image.dim_x = width;
     image.dim_y = height;
     image.dim_z = 1; // 3D ASTC formats are currently not supported
