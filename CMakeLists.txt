@@ -862,15 +862,16 @@ endif()
 
 add_subdirectory(interface/basisu_c_binding)
 
-# Only one architecture is supported at once, if neither of
-# ASTC_SSE41 and ASTC_SSE2  are defined ASTC_AVX2 is chosen.
-# If ASTC_AVX2 fails to compile user must chose other x86 options.
-# On arm based systems ASTC_NEON is default
+# Only one architecture is supported at once, if neither ASTCENC_ISA_SSE41
+# nor ASTCENC_ISA_SSE2 are defined, ASTCENC_ISA_AVX2 is chosen. If
+# ASTCENC_ISA_AVX2 fails to compile user must chose other x86 options.
+# On arm based systems ASTCENC_ISA_NEON is the default. If we detect
+# the user is doing a universal build then SIMD is disabled.
 
-list(FIND CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" ASTC_BUILD_UNIVERSAL)
+list(FIND CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" ASTCENC_BUILD_UNIVERSAL)
 list(LENGTH CMAKE_OSX_ARCHITECTURES ARCHITECTURE_COUNT)
 
-if(${ASTC_BUILD_UNIVERSAL} EQUAL -1 AND ARCHITECTURE_COUNT LESS_EQUAL 1)
+if(${ASTCENC_BUILD_UNIVERSAL} EQUAL -1 AND ARCHITECTURE_COUNT LESS_EQUAL 1)
     if (${ASTCENC_ISA_NONE})
         set(ASTCENC_LIB_TARGET astcenc-none-static)
     else()
