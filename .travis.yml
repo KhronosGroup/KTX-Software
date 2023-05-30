@@ -13,6 +13,8 @@
 os: osx
 osx_image: xcode14.2
 
+group: edge
+
 language: cpp
 
 addons:
