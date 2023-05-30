@@ -27,7 +27,7 @@ struct OptionsHelp {
 
     void init(cxxopts::Options& opts) {
         opts.add_options()
-                ("command", "The command which usage should be displayed.", cxxopts::value<std::string>());
+                ("command", "The command for which usage should be displayed.", cxxopts::value<std::string>());
         opts.parse_positional("command");
         opts.positional_help("<command>");
     }
@@ -35,12 +35,12 @@ struct OptionsHelp {
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
         if (args.count("command")) {
             static const std::unordered_set<std::string> command_table{
-                "validate",
-                "info",
-                "transcode",
-                "encode",
-                "extract",
                 "create",
+                "extract",
+                "encode",
+                "transcode",
+                "info",
+                "validate",
                 "help",
             };
 
@@ -113,7 +113,8 @@ private:
 int CommandHelp::main(int argc, _TCHAR* argv[]) {
     try {
         parseCommandLine("ktx help",
-                "Displays the man page of a specific ktx command specified as the command argument.",
+                "Displays the man page of a specific ktx command specified as the command argument."
+                "\nIf the command option is missing the main ktx tool man page will be displayed.",
                 argc, argv);
         executeHelp();
         return +rc::SUCCESS;

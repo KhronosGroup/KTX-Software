@@ -44,20 +44,20 @@ enum class EncodeCodec {
              <dd>ETC1S / BasisLZ quality level. Range is [1,255]. Lower
              gives better compression/lower quality/faster. Higher gives
              less compression/higher quality/slower. @b --qlevel
-             automatically determines values for @b --max_endpoints,
-             @b --max-selectors, @b --endpoint_rdo_threshold and
-             @b --selector_rdo_threshold for the target quality level.
+             automatically determines values for @b --max-endpoints,
+             @b --max-selectors, @b --endpoint-rdo-threshold and
+             @b --selector-rdo-threshold for the target quality level.
              Setting these options overrides the values determined by
              -qlevel which defaults to 128 if neither it nor
-             @b --max_endpoints and @b --max_selectors have been set.
+             @b --max-endpoints and @b --max-selectors have been set.
 
-             Note that both of @b --max_endpoints and @b --max_selectors
+             Note that both of @b --max-endpoints and @b --max-selectors
              must be set for them to have any effect. If all three options
              are set, a warning will be issued that @b --qlevel will be
              ignored.
 
              Note also that @b --qlevel will only determine values for
-             @b --endpoint_rdo_threshold and @b --selector_rdo_threshold
+             @b --endpoint-rdo-threshold and @b --selector-rdo-threshold
              when its value exceeds 128, otherwise their defaults will be
              used.</dd>
         <dt>--max-endpoints &lt;arg&gt;</dt>
@@ -122,7 +122,7 @@ enum class EncodeCodec {
             is [.25,10]. For normal maps a good range is [.25,.75]. The
             full range is [.001,10.0]. Default is 1.0.
 
-            Note that previous versions used the @b --uastc_rdo_q option
+            Note that previous versions used the @b --uastc-rdo-q option
             which was removed because the RDO algorithm changed.</dd>
         <dt>--uastc-rdo-d &lt;dictsize&gt;</dt>
         <dd>Set UASTC RDO dictionary size in bytes. Default is 4096.
@@ -170,16 +170,13 @@ enum class EncodeCodec {
     nml.xy = nml.xy * 2.0 - 1.0;           // Unpack to [-1,1]
     nml.z = sqrt(1 - dot(nml.xy, nml.xy)); // Compute Z
             </pre>
-            For ETC1S encoding, @b '--encode etc1s', RDO is disabled
+            For ETC1S / BasisLZ encoding, @b '--encode basis-lz', RDO is disabled
             (no selector RDO, no endpoint RDO) to provide better quality.</dd>
-
-            In @em toktx you can prevent conversion of the normal map to
-            two components by specifying '@b --input_swizzle rgb1'.
         <dt>--threads &lt;count&gt;</dt>
         <dd>Explicitly set the number of threads to use during
-            compression. By default, ETC1S / BasisLZ and ASTC compression
-            will use the number of threads reported by
-            thread::hardware_concurrency or 1 if value returned is 0.</dd>
+            compression. By default, ETC1S / BasisLZ will use the number of
+            threads reported by thread::hardware_concurrency or 1 if value
+            returned is 0.</dd>
         <dt>--no-sse</dt>
         <dd>Forbid use of the SSE instruction set. Ignored if CPU does
             not support SSE. SSE can only be disabled on the basis-lz and
@@ -259,10 +256,10 @@ struct OptionsCodec {
                 cxxopts::value<uint32_t>(), "<level>")
             ("qlevel", "BasisLZ quality level. Range is [1,255]. Lower gives better compression/lower "
                 "quality/faster. Higher gives less compression/higher quality/slower. --qlevel "
-                "automatically determines values for --max_endpoints, --max-selectors, "
-                "--endpoint_rdo_threshold and --selector_rdo_threshold for the target quality level. "
+                "automatically determines values for --max-endpoints, --max-selectors, "
+                "--endpoint-rdo-threshold and --selector-rdo-threshold for the target quality level. "
                 "Setting these options overrides the values determined by --qlevel which defaults to "
-                "128 if neither it nor --max_endpoints and --max_selectors have been set.",
+                "128 if neither it nor --max-endpoints and --max-selectors have been set.",
                 cxxopts::value<uint32_t>(), "<level>")
             ("max-endpoints", "Manually set the maximum number of color endpoint clusters. Range "
                 "is [1,16128]. Default is 0, unset.",
@@ -311,7 +308,7 @@ struct OptionsCodec {
                 "    nml.xy = texture(...).ga;              // Load in [0,1]\n"
                 "    nml.xy = nml.xy * 2.0 - 1.0;           // Unpack to [-1,1]\n"
                 "    nml.z = sqrt(1 - dot(nml.xy, nml.xy)); // Compute Z\n"
-                "ETC1S encoding, RDO is disabled (no selector RDO, no endpoint RDO) to provide better quality.")
+                "ETC1S / BasisLZ encoding, RDO is disabled (no selector RDO, no endpoint RDO) to provide better quality.")
             ("threads", "Sets the number of threads to use during encoding. By default, encoding "
                 "will use the number of threads reported by thread::hardware_concurrency or 1 if "
                 "value returned is 0.", cxxopts::value<uint32_t>(), "<count>")

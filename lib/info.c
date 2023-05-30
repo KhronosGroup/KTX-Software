@@ -140,7 +140,7 @@ printKVData(ktx_uint8_t* pKvd, ktx_uint32_t kvdLen)
 
     result = ktxHashList_Deserialize(&kvDataHead, kvdLen, pKvd);
     if (result != KTX_SUCCESS) {
-        fprintf(stdout, "Not enough memory to build list of key/value pairs.\n");
+        fprintf(stdout, "Failed to parse or not enough memory to build list of key/value pairs.\n");
         return;
     }
 
@@ -243,8 +243,8 @@ printKVDataJSON(ktx_uint8_t* pKvd, ktx_uint32_t kvdLen, ktx_uint32_t base_indent
 
     result = ktxHashList_Deserialize(&kvDataHead, kvdLen, pKvd);
     if (result != KTX_SUCCESS) {
-        // TODO KTX Tools P3: Log error
-        // fprintf(stdout, "Not enough memory to build list of key/value pairs.\n");
+        // Logging while printing JSON is not possible, we rely on the validation step to provide meaningful errors
+        // fprintf(stdout, "Failed to parse or not enough memory to build list of key/value pairs.\n");
         return;
     }
 
@@ -660,8 +660,12 @@ printBasisSGDInfo(ktx_uint8_t* bgd, ktx_uint64_t byteLength,
 KTX_error_code
 printKTX2Info2(ktxStream* stream, KTX_header2* pHeader)
 {
-    const bool hasDFD = pHeader->dataFormatDescriptor.byteLength != 0;
-    const bool hasKVD = pHeader->keyValueData.byteLength != 0;
+    const bool hasDFD =
+            pHeader->dataFormatDescriptor.byteOffset != 0 &&
+            pHeader->dataFormatDescriptor.byteLength != 0;
+    const bool hasKVD =
+            pHeader->keyValueData.byteOffset != 0 &&
+            pHeader->keyValueData.byteLength != 0;
     const bool hasSGD =
             pHeader->supercompressionGlobalData.byteOffset != 0 &&
             pHeader->supercompressionGlobalData.byteLength != 0;
@@ -781,8 +785,12 @@ printKTX2Info2JSON(ktxStream* stream, KTX_header2* pHeader, ktx_uint32_t base_in
     const char* space = minified ? "" : " ";
     const char* nl = minified ? "" : "\n";
 
-    const bool hasDFD = pHeader->dataFormatDescriptor.byteLength != 0;
-    const bool hasKVD = pHeader->keyValueData.byteLength != 0;
+    const bool hasDFD =
+            pHeader->dataFormatDescriptor.byteOffset != 0 &&
+            pHeader->dataFormatDescriptor.byteLength != 0;
+    const bool hasKVD =
+            pHeader->keyValueData.byteOffset != 0 &&
+            pHeader->keyValueData.byteLength != 0;
     const bool hasSGD =
             pHeader->supercompressionGlobalData.byteOffset != 0 &&
             pHeader->supercompressionGlobalData.byteLength != 0;
