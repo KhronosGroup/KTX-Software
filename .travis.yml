@@ -206,9 +206,13 @@ install:
         #sudo apt-get -qq install openjdk-17-jdk
         # Must be manually set. Setting JAVA_HOME might be an alternative.
         #sudo ln -s -f /usr/lib/jvm/java-1.17.0-openjdk-arm64 /usr/lib/jvm/default-java
+        export JAVA_HOME=/usr/local/lib/jvm/temurin-11-jdk-arm64
       fi
       echo "JAVA_HOME = $JAVA_HOME"
+      echo "/usr/lib/jvm"
       ls -l /usr/lib/jvm
+      echo "/usr/local/lib/jvm"
+      ls -l /usr/local/lib/jvm
       ./ci_scripts/install_linux.sh
     fi
     ;;
