@@ -13,8 +13,6 @@
 os: osx
 osx_image: xcode14.2
 
-group: edge
-
 language: cpp
 
 addons:
@@ -199,9 +197,7 @@ install:
     fi
     if [ "$CHECK_REUSE" != "ONLY" -a "$WASM_BUILD" != "YES" ]; then
       if [ "$TRAVIS_CPU_ARCH" = "arm64" ]; then
-        # LFS not yet installed on arm64 runners. Delete when fixed.
-        #sudo apt-get -qq install git-lfs
-        # Nor was a JDK. Kept for reference.
+        # JDK was not installed on arm64 runner. Kept for reference.
         #sudo apt-get -qq install openjdk-17-jdk
         # Must be manually set. Setting JAVA_HOME might be an alternative.
         #sudo ln -s -f /usr/lib/jvm/java-1.17.0-openjdk-arm64 /usr/lib/jvm/default-java
