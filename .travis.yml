@@ -94,7 +94,7 @@ jobs:
     - os: linux
       dist: jammy
       compiler: gcc
-      jdk: openjdk17
+      #jdk: openjdk17 # Reminder to find correct way to select jdk 17
       env:
         # NB: This must not have the fourth component of the version number.
         - VULKAN_SDK_VER: "1.3.243"
@@ -106,7 +106,7 @@ jobs:
       arch: arm64
       dist: jammy
       compiler: gcc
-      jdk: openjdk17
+      #jdk: openjdk17
       env:
         # NB: This must not have the fourth component of the version number.
         - VULKAN_SDK_VER: "1.3.243"
@@ -199,13 +199,13 @@ install:
     fi
     if [ "$CHECK_REUSE" != "ONLY" -a "$WASM_BUILD" != "YES" ]; then
       if [ "$TRAVIS_CPU_ARCH" = "arm64" ]; then
-        # LFS not installed on arm64 runners.
-        sudo apt-get -qq install git-lfs
-        # Nor is a JDK.
-        # "default-jdk" (JDK 11) appears to be flaky. Use 17.
+        # LFS not yet installed on arm64 runners. Delete when fixed.
+        #sudo apt-get -qq install git-lfs
+        # Nor was a JDK. Kept for reference.
         #sudo apt-get -qq install openjdk-17-jdk
         # Must be manually set. Setting JAVA_HOME might be an alternative.
         #sudo ln -s -f /usr/lib/jvm/java-1.17.0-openjdk-arm64 /usr/lib/jvm/default-java
+        # Runner now has jvm but is not setting JAVA_HOMe. Delete when fixed.
         export JAVA_HOME=/usr/lib/jvm/temurin-11-jdk-arm64
       fi
       echo "JAVA_HOME = $JAVA_HOME"
