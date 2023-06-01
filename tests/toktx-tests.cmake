@@ -231,9 +231,6 @@ PROPERTIES
     ENVIRONMENT TOKTX_OPTIONS=--lower_left_maps_to_s0t0
 )
 
-message("CMAKE_HOST_SYSTEM_PROCESSOR is ${CMAKE_HOST_SYSTEM_PROCESSOR}")
-message("CMAKE_SYSTEM_PROCESSOR is ${CMAKE_SYSTEM_PROCESSOR}")
-message("CPU_ARCHITECTURE is ${CPU_ARCHITECTURE}")
 if (NOT ${CPU_ARCHITECTURE} STREQUAL "arm64" )
   gencmpktx( astc_mipmap_ldr_cubemap_6x6 astc_mipmap_ldr_cubemap_6x6.ktx2 "../srcimages/Yokohama3/posx.jpg ../srcimages/Yokohama3/negx.jpg ../srcimages/Yokohama3/posy.jpg ../srcimages/Yokohama3/negy.jpg ../srcimages/Yokohama3/posz.jpg ../srcimages/Yokohama3/negz.jpg" "--test --encode astc --astc_blk_d 6x6 --genmipmap --cubemap" "" "" )
 endif()
