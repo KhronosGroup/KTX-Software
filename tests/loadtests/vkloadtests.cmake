@@ -118,7 +118,7 @@ list( TRANSFORM VK_TEST_IMAGES
     PREPEND "${PROJECT_SOURCE_DIR}/tests/testimages/"
 )
 
-set( KTX_RESOURCES ${VK_TEST_IMAGES} ${LOAD_TEST_COMMON_RESOURCE_FILES} )
+set( KTX_RESOURCES ${LOAD_TEST_COMMON_RESOURCE_FILES} ${VK_TEST_IMAGES} )
 
 add_executable( vkloadtests
     ${EXE_FLAG}
@@ -158,6 +158,7 @@ add_executable( vkloadtests
     vkloadtests/VulkanLoadTestSample.h
     ${LOAD_TEST_COMMON_RESOURCE_FILES}
     ${SHADER_SOURCES}
+    ${VK_TEST_IMAGES}
     vkloadtests.cmake
 )
 
@@ -277,7 +278,6 @@ PRIVATE
 set_target_properties( vkloadtests PROPERTIES RESOURCE "${KTX_RESOURCES};${SHADER_SOURCES}" )
 
 if(APPLE)
-#    set_source_files_properties(${SHADER_SOURCES} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/shaders")
     set(PRODUCT_NAME "vkloadtests")
     set(EXECUTABLE_NAME ${PRODUCT_NAME})
     # How amazingly irritating. We have to set both of these to the same value.
@@ -396,3 +396,4 @@ add_dependencies(
     vkloadtests
     spirv_shaders
 )
+
