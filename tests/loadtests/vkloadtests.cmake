@@ -223,15 +223,17 @@ target_sources(vkloadtests PUBLIC ${MOLTENVK_ICD} ${VK_LAYER})
 if(APPLE)
     if(IOS)
         set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/ios/Info.plist" )
-        # Don't add these KTX_RESOURCES. If they're tagged as resources
-        # the resource installer in `install(TARGETS` will be confused by
-        # xcassets being directories.
+        set( icon_launch_assets
+            ${PROJECT_SOURCE_DIR}/icons/ios/CommonIcons.xcassets
+            vkloadtests/resources/ios/LaunchImages.xcassets
+            vkloadtests/resources/ios/LaunchScreen.storyboard
+        )
         target_sources( vkloadtests
             PRIVATE
-                ${PROJECT_SOURCE_DIR}/icons/ios/CommonIcons.xcassets
-                vkloadtests/resources/ios/LaunchImages.xcassets
-                vkloadtests/resources/ios/LaunchScreen.storyboard
+                ${icon_launch_assets}
         )
+        # Add to resources so they'll be copied to the bundle.
+        list( APPEND KTX_RESOURCES ${icon_launch_assets} )
         target_link_libraries(
             vkloadtests
             ${AudioToolbox_LIBRARY}
