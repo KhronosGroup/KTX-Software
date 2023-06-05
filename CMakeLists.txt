@@ -44,7 +44,6 @@ option( KTX_FEATURE_STATIC_LIBRARY "Create static libraries (shared otherwise)" 
 option( KTX_FEATURE_TESTS "Create unit tests" ON )
 option( KTX_FEATURE_JNI "Create Java bindings for libktx" OFF )
 option( KTX_FEATURE_PY "Create Python source distribution" OFF )
-option( KTX_FEATURE_PY_BDIST "Create Python binary distribution" ${KTX_FEATURE_PY} )
 
 if(POLICY CMP0127)
     # cmake_dependent_option() supports full Condition Syntax. Introduced in
@@ -466,12 +465,6 @@ commom_lib_settings(ktx_read 0)
 
 if(KTX_FEATURE_JNI)
     add_subdirectory(interface/java_binding)
-endif()
-
-# This is put here so CMake doesn't warn that "PYTHON" is unused if KTX_FEATURE_PY=OFF
-# PYTHON_EXECUTABLE is resolved in python_binding/CMakeLists.txt
-if(DEFINED PYTHON)
-    set(PYTHON_EXECUTABLE ${PYTHON})
 endif()
 
 if(KTX_FEATURE_PY)
