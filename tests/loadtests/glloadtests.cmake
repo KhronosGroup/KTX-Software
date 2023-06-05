@@ -97,11 +97,19 @@ function( create_gl_target target version sources common_resources test_images
             set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/glloadtests/resources/mac/Info.plist" )
         endif()
     elseif(EMSCRIPTEN)
+        # Beware of de-duplication in list expansion for commands and options.
+        # SHELL: prevents it but if they are separate items in the list they
+        # be de-duplicated.
+        list( TRANSFORM test_images REPLACE
+            "(${PROJECT_SOURCE_DIR}/tests/testimages/([a-zA-Z0-9_].*$))"
+            "SHELL:--preload-file \\1@\\2"
+            OUTPUT_VARIABLE preloads
+        )
         target_link_options(
             ${target}
         PRIVATE
             "SHELL:--source-map-base ./"
-            "SHELL:--preload-file '${test_images}'"
+            ${preloads}
             "SHELL:--exclude-file '${PROJECT_SOURCE_DIR}/tests/testimages/genref'"
             "SHELL:--exclude-file '${PROJECT_SOURCE_DIR}/tests/testimages/genktx2'"
             "SHELL:--exclude-file '${PROJECT_SOURCE_DIR}/tests/testimages/cubemap*'"
@@ -207,11 +215,16 @@ function( create_gl_target target version sources common_resources test_images
                 INSTALL_RPATH "@executable_path/../Frameworks"
             )
 
+            if(NOT KTX_FEATURE_STATIC_LIBRARY)
+              add_custom_command( TARGET ${target} POST_BUILD
+                  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Frameworks/$<TARGET_FILE_NAME:ktx>"
+                  COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE_NAME:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Frameworks/$<TARGET_SONAME_FILE_NAME:ktx>"
+                  COMMENT "Copy KTX library to build destination"
+              )
+            endif()
             add_custom_command( TARGET ${target} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Frameworks/$<TARGET_FILE_NAME:ktx>"
-                COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE_NAME:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Frameworks/$<TARGET_SONAME_FILE_NAME:ktx>"
                 COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/other_lib/mac/$<CONFIG>/libSDL2.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Frameworks/libSDL2.dylib"
-                COMMENT "Copy libraries & frameworks to build destination"
+                COMMENT "Copy SDL2 library to build destination"
             )
 
             # Specify destination for cmake --install.

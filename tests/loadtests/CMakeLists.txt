@@ -27,7 +27,7 @@ if(APPLE AND IOS)
         list(GET CMAKE_OSX_ARCHITECTURES 0 arch0)
         if( ${archs_len} GREATER 1 OR (NOT ${arch0} STREQUAL "arm64") )
             message(FATAL_ERROR "iOS loadtests only supported on arm64."
-                    " Please disable KTX_FEATURE_GL_LOADTEST_APPS and KTX_FEATURE_VK_LOADTEST_APP"
+                    " Please disable KTX_FEATURE_LOADTEST_APPS"
                     " or change CMAKE_OSX_ARCHITECTURES.")
         endif()
     endif()

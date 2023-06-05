@@ -33,7 +33,7 @@ jobs:
         arch: [ x64 ]
         options: [
           {config: 'Debug,Release',
-           doc: ON, jni: ON, loadtests: ON, tests: ON, tools: ON,
+           doc: ON, jni: ON, loadtests: OpenGL+Vulkan, tests: ON, tools: ON,
            package: YES,
            sse: ON, opencl: OFF},
           {config: Release,
@@ -56,7 +56,7 @@ jobs:
             arch: x64
             options: {
               config: 'Debug,Release',
-              doc: ON, jni: ON, loadtests: ON, tests: ON, tools: ON,
+              doc: ON, jni: ON, loadtests: OpenGL+Vulkan, tests: ON, tools: ON,
               package: NO,
               sse: ON, opencl: OFF
             }

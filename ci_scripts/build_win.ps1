@@ -36,8 +36,8 @@ if ($defaultArch -eq "amd64") {
 
 # These defaults are here to permit easy running of the script locally
 # when debugging is needed. Use local variables to avoid polluting the
-# environment. Some case have been observed where setting env. var's here
-# sets them for the parent as well.
+# environment. Some cases have been observed where setting env. var's
+# here sets them for the parent as well.
 $ARCH = Set-ConfigVariable ARCH $defaultArch
 $BUILD_DIR = Set-ConfigVariable BUILD_DIR "build/build-batch-vs2022"
 $CONFIGURATION = Set-ConfigVariable CONFIGURATION "Release"
@@ -45,7 +45,7 @@ $CMAKE_GEN = Set-ConfigVariable CMAKE_GEN "Visual Studio 17 2022"
 $CMAKE_TOOLSET = Set-ConfigVariable CMAKE_TOOLSET ""
 $FEATURE_DOC = Set-ConfigVariable FEATURE_DOC "OFF"
 $FEATURE_JNI = Set-ConfigVariable FEATURE_JNI "OFF"
-$FEATURE_LOADTESTS = Set-ConfigVariable FEATURE_LOADTESTS "OFF"
+$FEATURE_LOADTESTS = Set-ConfigVariable FEATURE_LOADTESTS "OpenGL+Vulkan"
 $FEATURE_TOOLS = Set-ConfigVariable FEATURE_TOOLS "ON"
 $FEATURE_TESTS = Set-ConfigVariable FEATURE_TESTS "ON"
 $PACKAGE = Set-ConfigVariable PACKAGE "NO"
@@ -63,7 +63,7 @@ $AZURE_KEY_VAULT_CLIENT_ID = Set-ConfigVariable AZURE_KEY_VAULT_CLIENT_ID ""
 $AZURE_KEY_VAULT_CLIENT_SECRET = Set-ConfigVariable AZURE_KEY_VAULT_CLIENT_SECRET ""
 $AZURE_KEY_VAULT_TENANT_ID = Set-ConfigVariable AZURE_KEY_VAULT_TENANT_ID ""
 
-if ($FEATURE_LOADTESTS -eq "ON")  { $need_gles_emulator=1 }
+if ($FEATURE_LOADTESTS -match 'OpenGL')  { $need_gles_emulator=1 }
 
 if (($PACKAGE -eq "YES") -and ($FEATURE_TOOLS -eq "OFF")) {
   echo "Error: Cannot package a configuration that does not build tools. Set FEATURE_TOOLS to ON or PACKAGE to NO"

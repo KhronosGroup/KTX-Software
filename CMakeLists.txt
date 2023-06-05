@@ -101,7 +101,7 @@ set( KTX_FEATURE_LOADTEST_APPS
      "Load test apps test the upload feature by displaying various KTX textures. Select which to create. \"OpenGL\" includes OpenGL ES."
 )
 set_property( CACHE KTX_FEATURE_LOADTEST_APPS
-              PROPERTY STRINGS "" OpenGL Vulkan "OpenGL & Vulkan"
+              PROPERTY STRINGS OFF OpenGL Vulkan OpenGL+Vulkan
 )
 
 # Platform specific settings

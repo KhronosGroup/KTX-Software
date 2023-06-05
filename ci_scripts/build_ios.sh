@@ -19,7 +19,7 @@ ARCH=${ARCH:-$(uname -m)}
 CONFIGURATION=${CONFIGURATION:-Release}
 FEATURE_DOC=${FEATURE_DOC:-OFF}
 FEATURE_JNI=${FEATURE_JNI:-OFF}
-FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-ON}
+FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-OpenGL+Vulkan}
 FEATURE_TESTS=${FEATURE_TESTS:-OFF}
 FEATURE_TOOLS=${FEATURE_TOOLS:-OFF}
 PACKAGE=${PACKAGE:-NO}
@@ -92,8 +92,8 @@ do
   echo "Build KTX-Software (iOS $config)"
   cmake --build . --config $config -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO | handle_compiler_output
 
-  #echo "Build KTX-Software (iOS Simulator $config) FEATURE_DOC=$FEATURE_DOC FEATURE_JNI=$FEATURE_JNI FEATURE_LOADTESTS=$FEATURE_LOADTESTS SUPPORT_SSE=OFF SUPPORT_OPENCL=$SUPPORT_OPENCL"
-  # cmake --build . --config $config -- -sdk iphonesimulator
+  #echo "Build KTX-Software (iOS Simulator $config)"
+  #cmake --build . --config $config -- -sdk iphonesimulator
 
   if [ "$config" = "Release" -a "$PACKAGE" = "YES" ]; then
     echo "Pack KTX-Software (iOS $config)"

@@ -32,9 +32,10 @@ CONFIGURATION=${CONFIGURATION:-Release}
 FEATURE_DOC=${FEATURE_DOC:-OFF}
 FEATURE_JNI=${FEATURE_JNI:-OFF}
 if [ "$ARCH" = "x86_64" ]; then
-  FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-ON}
+  FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-OpenGL+Vulkan}
 else
-  FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-OFF}
+  # No Vulkan SDK yet for Linux/arm64.
+  FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-OpenGL}
 fi
 FEATURE_TESTS=${FEATURE_TESTS:-ON}
 FEATURE_TOOLS=${FEATURE_TOOLS:-ON}
@@ -43,10 +44,13 @@ PACKAGE=${PACKAGE:-NO}
 SUPPORT_SSE=${SUPPORT_SSE:-ON}
 SUPPORT_OPENCL=${SUPPORT_OPENCL:-OFF}
 
-if [ "$ARCH" = "aarch64" -a "$FEATURE_LOADTESTS" = "ON" ]; then
-  # TODO: Provide variable to turn off just vkloadtests.
-  FEATURE_LOADTESTS="OFF"
-  echo "Forcing FEATURE_LOADTESTS OFF as no Vulkan SDK yet for Linux/arm64."
+if [[ "$ARCH" = "aarch64" && "$FEATURE_LOADTESTS" =~ "Vulkan" ]]; then
+  if [[ "$FEATURE_LOADTESTS" = "Vulkan" ]]; then
+    FEATURE_LOADTESTS=OFF
+  else
+    FEATURE_LOADTESTS=OpenGL
+  fi
+  echo "Forcing FEATURE_LOADTESTS to \"$FEATURE_LOADTESTS\" as no Vulkan SDK yet for Linux/arm64."
 fi
 
 BUILD_DIR=${BUILD_DIR:-build/linux}
