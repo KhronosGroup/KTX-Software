@@ -33,19 +33,19 @@ jobs:
         arch: [ x64 ]
         options: [
           {config: 'Debug,Release',
-           doc: ON, jni: ON, loadtests: ON, tests: ON, tools: ON,
+           doc: ON, jni: ON, loadtests: ON, py: ON, tests: ON, tools: ON,
            package: YES,
            sse: ON, opencl: OFF},
           {config: Release,
-           doc: OFF, loadtests: OFF, tests: OFF, tools: OFF,
+           doc: OFF, loadtests: OFF, py: OFF, tests: OFF, tools: OFF,
            package: NO,
            sse: OFF, opencl: OFF},
           {config: Release,
-           doc: OFF, loadtests: OFF, tests: OFF, tools: OFF,
+           doc: OFF, loadtests: OFF, py: OFF, tests: OFF, tools: OFF,
            package: NO,
            sse: OFF, opencl: ON},
           {config: Release,
-           doc: OFF, loadtests: OFF, tests: OFF, tools: OFF,
+           doc: OFF, loadtests: OFF, py: OFF, tests: OFF, tools: OFF,
            package: NO,
            sse: ON, opencl: ON}
         ]
@@ -56,7 +56,7 @@ jobs:
             arch: x64
             options: {
               config: 'Debug,Release',
-              doc: ON, jni: ON, loadtests: ON, tests: ON, tools: ON,
+              doc: ON, jni: ON, loadtests: ON, py: ON, tests: ON, tools: ON,
               package: NO,
               sse: ON, opencl: OFF
             }
@@ -68,7 +68,7 @@ jobs:
             # built tests
             options: {
               config: 'Debug,Release',
-              doc: ON, jni: ON, loadtests: OFF, tests: ON, tools: ON,
+              doc: ON, jni: ON, loadtests: OFF, py: OFF, tests: ON, tools: ON,
               package: YES
             }
     runs-on: ${{ matrix.os }}
@@ -88,6 +88,7 @@ jobs:
       FEATURE_DOC: ${{ matrix.options.doc }}
       FEATURE_JNI: ${{ matrix.options.jni }}
       FEATURE_LOADTESTS: ${{ matrix.options.loadtests }}
+      FEATURE_PY: ${{ matrix.options.py }}
       FEATURE_TESTS: ${{ matrix.options.tests }}
       FEATURE_TOOLS: ${{ matrix.options.tools }}
       PACKAGE: ${{ matrix.options.package }}
