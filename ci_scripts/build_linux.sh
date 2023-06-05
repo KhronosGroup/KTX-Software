@@ -25,8 +25,6 @@ for i in $@; do
   eval $i
 done
 
-echo which python $(which python) and path is $PATH
-
 # Set some defaults
 ARCH=${ARCH:-$(uname -m)}
 CMAKE_GEN=${CMAKE_GEN:-Ninja Multi-Config}
