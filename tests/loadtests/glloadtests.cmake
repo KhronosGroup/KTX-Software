@@ -110,8 +110,6 @@ function( create_gl_target target version sources common_resources test_images
         PRIVATE
             "SHELL:--source-map-base ./"
             ${preloads}
-            "SHELL:--exclude-file '${PROJECT_SOURCE_DIR}/tests/testimages/genref'"
-            "SHELL:--exclude-file '${PROJECT_SOURCE_DIR}/tests/testimages/genktx2'"
             "SHELL:--exclude-file '${PROJECT_SOURCE_DIR}/tests/testimages/cubemap*'"
             "SHELL:-s ALLOW_MEMORY_GROWTH=1"
             "SHELL:-s DISABLE_EXCEPTION_CATCHING=0"
