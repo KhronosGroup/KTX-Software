@@ -22,8 +22,6 @@ include(CMakeDependentOption)
 include(cmake/codesign.cmake)
 include(cmake/cputypetest.cmake)
 
-find_package(OpenCL)
-
 # OPTIONS
 
 if( IOS OR EMSCRIPTEN )
@@ -64,6 +62,10 @@ CMAKE_DEPENDENT_OPTION( BASISU_SUPPORT_OPENCL
     "OpenCL_FOUND OR WIN32"
     OFF
 )
+
+if(BASISU_SUPPORT_OPENCL)
+    find_package(OpenCL)
+endif()
 
 if(BASISU_SUPPORT_OPENCL AND WIN32 AND NOT OpenCL_FOUND)
     # To avoid fiddly setting up of OpenCL on Windows CI VMs, use copy in repo.
@@ -114,16 +116,72 @@ if(APPLE)
     endif()
 endif()
 
-if (WIN32)
-    # Signing
-    set(WIN_CODE_SIGN_IDENTITY "" CACHE STRING "Subject Name of Windows code signing certificate. Displayed in 'Issued To' field of cert{lm,mgr}.")
-    CMAKE_DEPENDENT_OPTION( WIN_CS_CERT_SEARCH_MACHINE_STORE
-        "When set, machine store will be searched for signing certificate instead of user store."
-        OFF
-        WIN_CODE_SIGN_IDENTITY
-        OFF
-    )
+if(WIN32)
+    if (${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.18.0")
+        include(KtxDependentVariable)
+        # Signing
+        set(CODE_SIGN_KEY_VAULT "" CACHE STRING "Name of the vault to search for signing certificate. Enables related code signing variables when set.")
+        set_property(CACHE CODE_SIGN_KEY_VAULT
+            PROPERTY STRINGS "" Azure Machine User)
 
+        # Common signing variables
+        KTX_DEPENDENT_VARIABLE( CODE_SIGN_TIMESTAMP_URL STRING
+          "URL of timestamp server for code signing. Signed code should be timestamped so the signature will remain valid even after the certificate expires."
+          ""
+          "CODE_SIGN_KEY_VAULT"
+          ""
+        )
+        # Variables for signing with local certificate.
+        KTX_DEPENDENT_VARIABLE( LOCAL_KEY_VAULT_SIGNING_IDENTITY STRING
+            "Subject Name of Windows code signing certificate. Displayed in 'Issued To' field of cert{lm,mgr}. Overriden by LOCAL_KEY_VAULT_CERTIFICATE_THUMBPRINT."
+            ""
+            "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Machine OR ${CODE_SIGN_KEY_VAULT} MATCHES User"
+            ""
+        )
+        KTX_DEPENDENT_VARIABLE( LOCAL_KEY_VAULT_CERTIFICATE_THUMBPRINT STRING
+            "Thumbprint of the certificate to use. Use this instead of LOCAL_KEY_VAULT_SIGNING_IDENTITY when you have multiple certificates with the same identity. Overrides LOCAL_KEY_VAULT_SIGNING_IDENTITY."
+            ""
+            "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Machine OR ${CODE_SIGN_KEY_VAULT} MATCHES User"
+            ""
+        )
+
+        # Variables for signing with certificate from Azure
+        KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_URL STRING
+            "The URL of your Azure key vault."
+            ""
+            "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Azure"
+            ""
+        )
+        KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_CERTIFICATE STRING
+            "The name of the certificate in Azure Key Vault."
+            ""
+            "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Azure"
+            ""
+        )
+        KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_CLIENT_ID STRING
+            "The id of an application (Client) registered with Azure that has permission to access the certificate."
+            ""
+            "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Azure"
+            ""
+        )
+        KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_TENANT_ID STRING
+            "The id of the Azure Active Directory (Tenant) holding the Client."
+            ""
+            "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Azure"
+            ""
+        )
+        KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_CLIENT_SECRET STRING
+            "The secret to authenticate access to the Client."
+            ""
+            "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Azure"
+            ""
+        )
+    else()
+        # KTX_DEPENDENT_VARIABLE won't work. Force disable signing.
+        unset(CODE_SIGN_KEY_VAULT CACHE)
+    endif()
+
+    # Windows Store Compatibility
     if (${CMAKE_SYSTEM_NAME} STREQUAL "WindowsStore")
         # Disable OpenGL upload on Universal Windows Platform
         set(KTX_FEATURE_GL_UPLOAD OFF)
@@ -157,13 +215,11 @@ include(cmake/mkvk.cmake)
 
 # Global compile & link options including optimization flags
 if(MSVC)
-    # With /W4 VS2015 (V19.0) issues many warnings that VS2017 & 2019 don't
-    # so only increase warning level for recent versions.
-    add_compile_options($<$<VERSION_GREATER_EQUAL:${CMAKE_CXX_COMPILER_VERSION},19.16>:/W4>)
+    add_compile_options( /W4;/WX )
     add_compile_options( $<IF:$<CONFIG:Debug>,/Gz,/O2> )
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"
        OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-    add_compile_options(-Wall -Wextra)
+    add_compile_options(-Wall -Wextra -Werror)
     add_compile_options( $<IF:$<CONFIG:Debug>,-O0,-O3> )
     if(EMSCRIPTEN)
         add_link_options( $<IF:$<CONFIG:Debug>,-gsource-map,-O3> )
@@ -171,10 +227,11 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"
         add_link_options( $<IF:$<CONFIG:Debug>,-g,-O3> )
     endif()
 else()
-    message(ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")
+    message(FATAL_ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")
 endif()
 
 set(KTX_MAIN_SRC
+    include/KHR/khr_df.h
     include/ktx.h
     lib/basis_sgd.h
     lib/basis_transcode.cpp
@@ -248,7 +305,11 @@ macro(commom_lib_settings lib write)
     endif()
 
     set_target_properties(${lib} PROPERTIES
-        PUBLIC_HEADER ${CMAKE_SOURCE_DIR}/include/ktx.h
+        PUBLIC_HEADER
+#          "${CMAKE_CURRENT_SOURCE_DIR}/include/ktx.h;${CMAKE_CURRENT_SOURCE_DIR}/include/KHR/khr_df.h"
+          # Omit khr_df.h. Its installation has to be handled separately to
+          # workaround CMake's failure to preserve the directory hierarchy.
+          "${CMAKE_CURRENT_SOURCE_DIR}/include/ktx.h"
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}
         XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
@@ -448,7 +509,7 @@ macro(commom_lib_settings lib write)
         )
 
         get_target_property( KTX_PUBLIC_HEADER ${lib} PUBLIC_HEADER )
-        list(APPEND KTX_PUBLIC_HEADER ${CMAKE_SOURCE_DIR}/include/ktxvulkan.h)
+        list(APPEND KTX_PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/include/ktxvulkan.h)
         set_target_properties(${lib} PROPERTIES
             PUBLIC_HEADER "${KTX_PUBLIC_HEADER}"
         )
@@ -555,10 +616,30 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         lib/basisu/transcoder/basisu_transcoder.cpp
         PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable;-Wno-class-memaccess;-Wno-maybe-uninitialized"
     )
-    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "11.0")
+    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "11")
+        if (${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS "12" )
+        # Version 11 raises several stringop-overflow warnings in some
+        # very hard to decipher code. They appear to be bogus based on
+        # the facts that we have never seen a crash and version 12 no
+        # longer raises the warnings.
+        get_source_file_property(cur_options
+            lib/basisu/encoder/basisu_comp.cpp
+            COMPILE_OPTIONS
+        )
         set_source_files_properties(
-            lib/basisu/zstd/zstd.c
-            PROPERTIES COMPILE_OPTIONS "-Wno-unused-but-set-variable"
+            lib/basisu/encoder/basisu_comp.cpp
+            PROPERTIES COMPILE_OPTIONS "${cur_options};-Wno-stringop-overflow"
+        )
+        endif()
+    endif()
+    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "12.0")
+        # Version 12 newly raises this warning on basisu_uastc_enc.cpp.
+        # There seems no way for the index calculated by the code at
+        # line 326, where the error is raised, to be > the array length.
+        # Also we have never seen any crashes.
+        set_source_files_properties(
+            lib/basisu/encoder/basisu_uastc_enc.cpp
+            PROPERTIES COMPILE_OPTIONS "-Wno-stringop-overflow"
         )
     endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -575,34 +656,19 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         elseif (${CMAKE_CXX_COMPILER_VERSION} VERSION_EQUAL "12.0.0")
             set( clang_version "10.0.0")
         else()
-            message(FATAL "Unsupported AppleClang version")
+            message(FATAL_ERROR "Unsupported AppleClang version")
         endif()
     else()
         set( clang_version ${CMAKE_CXX_COMPILER_VERSION} )
     endif()
+    # BEWARE: set_source_files_properties is not additive; it replaces.
     if (${clang_version} VERSION_GREATER_EQUAL "12.0.0")
         set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter;-Wno-deprecated-copy;-Wno-uninitialized-const-reference"
         )
-        # Primarily an issue on windows using clang/clangcl
-        # Lowest tested clang version was 12.0.0 and highest was 14.0.4
-        set_source_files_properties(
-            lib/basisu/zstd/zstd.c
-            PROPERTIES COMPILE_OPTIONS "-Wno-unused-function"
-        )
     else()
         set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter"
-        )
-    endif()
-    if (${clang_version} VERSION_GREATER_EQUAL "13.0.0")
-        get_source_file_property(zstd_options lib/basisu/zstd/zstd.c COMPILE_OPTIONS)
-        set_source_files_properties(
-            # We haven't fixed zstd.c because the fix would have to be applied
-            # every time the upstream script is used to create an updated
-            # single file decoder.
-            lib/basisu/zstd/zstd.c
-            PROPERTIES COMPILE_OPTIONS "${zstd_options};-Wno-unused-but-set-variable"
         )
     endif()
     if (${clang_version} VERSION_GREATER_EQUAL "15.0")
@@ -618,12 +684,22 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         )
         set_source_files_properties(
             lib/basisu/zstd/zstd.c
-            PROPERTIES COMPILE_OPTIONS "-Wno-unused-but-set-variable;-Wno-bitwise-instead-of-logical"
+            PROPERTIES COMPILE_OPTIONS "-Wno-unused-function"
         )
     endif()
 else()
-    message(ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")
+    message(FATAL_ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")
 endif()
+
+# Retrieve the final set of properties for use by the transcodetests.
+# We do this because the CMake feature that would allow the transcodetests
+# target to retrieve these from the ktx target are not available until
+# v18 and we still need to work with v16 in the Emscripten Docker image.
+get_source_file_property(transcoder_options
+    lib/basisu/transcoder/basisu_transcoder.cpp
+    COMPILE_OPTIONS
+)
+get_source_file_property(zstd_options lib/basisu/zstd/zstd.c COMPILE_OPTIONS)
 
 target_include_directories(
     ktx
@@ -791,72 +867,70 @@ endif()
 
 add_subdirectory(interface/basisu_c_binding)
 
-# Only one architecture is supported at once, if neither of
-# ISA_SSE41 and ISA_SSE2  are defined ISA_AVX2 is chosen.
-# If ISA_AVX2 fails to compile user must chose other x86 options.
-# On arm based systems ISA_NEON is default
+# Only one architecture is supported at once, if neither ASTCENC_ISA_SSE41
+# nor ASTCENC_ISA_SSE2 are defined, ASTCENC_ISA_AVX2 is chosen. If
+# ASTCENC_ISA_AVX2 fails to compile user must chose other x86 options.
+# On arm based systems ASTCENC_ISA_NEON is the default. If we detect
+# the user is doing a universal build then SIMD is disabled.
 
-list(FIND CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" ASTC_BUILD_UNIVERSAL)
+list(FIND CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" ASTCENC_BUILD_UNIVERSAL)
 list(LENGTH CMAKE_OSX_ARCHITECTURES ARCHITECTURE_COUNT)
 
-if(${ASTC_BUILD_UNIVERSAL} EQUAL -1 AND ARCHITECTURE_COUNT LESS_EQUAL 1)
-    if (${ISA_NONE})
-        set(ASTC_LIB_TARGET astcenc-none-static)
+if(${ASTCENC_BUILD_UNIVERSAL} EQUAL -1 AND ARCHITECTURE_COUNT LESS_EQUAL 1)
+    if (${ASTCENC_ISA_NONE})
+        set(ASTCENC_LIB_TARGET astcenc-none-static)
     else()
         if(CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86)
-            if (${ISA_SSE41})
-                set(ASTC_LIB_TARGET astcenc-sse4.1-static)
-            elseif (${ISA_SSE2})
-                set(ASTC_LIB_TARGET astcenc-sse2-static)
+            if (${ASTCENC_ISA_SSE41})
+                set(ASTCENC_LIB_TARGET astcenc-sse4.1-static)
+            elseif (${ASTCENC_ISA_SSE2})
+                set(ASTCENC_LIB_TARGET astcenc-sse2-static)
             else()
-                set(ISA_AVX2 ON)
-                set(ASTC_LIB_TARGET astcenc-avx2-static)
+                set(ASTCENC_ISA_AVX2 ON)
+                set(ASTCENC_LIB_TARGET astcenc-avx2-static)
             endif()
             if(CPU_ARCHITECTURE STREQUAL x86)
-                set(ISA_NONE ON)
-                set(ISA_AVX2 OFF)
+                set(ASTCENC_ISA_NONE ON)
+                set(ASTCENC_ISA_AVX2 OFF)
                 set(ASTCENC_POPCNT 0)
-                set(ASTC_LIB_TARGET astcenc-none-static)
+                set(ASTCENC_LIB_TARGET astcenc-none-static)
             endif()
         elseif(CPU_ARCHITECTURE STREQUAL armv8 OR CPU_ARCHITECTURE STREQUAL arm64)
-            set(ASTC_LIB_TARGET astcenc-neon-static)
-            set(ISA_NEON ON)
+            set(ASTCENC_LIB_TARGET astcenc-neon-static)
+            set(ASTCENC_ISA_NEON ON)
         else()
-            message(STATUS "Unsupported ISA for ${CPU_ARCHITECTURE} arch, using ISA_NONE.")
-            set(ASTC_LIB_TARGET astcenc-none-static)
-            set(ISA_NONE ON)
+            message(STATUS "Unsupported ISA for ASTC on ${CPU_ARCHITECTURE} arch, using ASTCENC_ISA_NONE.")
+            set(ASTCENC_LIB_TARGET astcenc-none-static)
+            set(ASTCENC_ISA_NONE ON)
         endif()
     endif()
 else()
-    set(ASTC_LIB_TARGET astcenc-static)
+    set(ASTCENC_LIB_TARGET astcenc-static)
 endif()
 
 # astcenc
-set(CLI OFF) # Only build as library not the CLI astcencoder
+set(ASTCENC_CLI OFF) # Only build as library not the CLI astcencoder
 add_subdirectory(lib/astc-encoder)
-set_property(TARGET ${ASTC_LIB_TARGET} PROPERTY POSITION_INDEPENDENT_CODE ON)
+set_property(TARGET ${ASTCENC_LIB_TARGET} PROPERTY POSITION_INDEPENDENT_CODE ON)
 
-if(KTX_FEATURE_STATIC_LIBRARY AND NOT WIN32 AND NOT EMSCRIPTEN)
+if(KTX_FEATURE_STATIC_LIBRARY AND APPLE)
     # Make a single static library to simplify linking.
-    add_dependencies(ktx ${ASTC_LIB_TARGET})
-    set(LIBTOOL_ARGS)
-    if(LINUX)
-        set(LIBTOOL_ARGS ${LIBTOOL_ARGS} --mode=link --tag=CC cc)
-    endif()
-    set(LIBTOOL_ARGS ${LIBTOOL_ARGS} -static -o
-        $<TARGET_FILE:ktx> $<TARGET_FILE:ktx> $<TARGET_FILE:${ASTC_LIB_TARGET}>)
+    add_dependencies(ktx ${ASTCENC_LIB_TARGET})
     add_custom_command( TARGET ktx
         POST_BUILD
-        COMMAND libtool ${LIBTOOL_ARGS}
+        COMMAND libtool -static -o $<TARGET_FILE:ktx> $<TARGET_FILE:ktx> $<TARGET_FILE:${ASTCENC_LIB_TARGET}>
     )
 
     # Don't know libtool equivalent on Windows or Emscripten. Applications
-    # will have to link with  both ktx and ${ASTC_LIB_TARGET}. Static libs
+    # will have to link with  both ktx and ${ASTCENC_LIB_TARGET}. Static libs
     # are unlikely to be used on Windows so not a problem there. For Emscripten
     # everything is built into the JS module so not an issue there either.
 else()
-    target_link_libraries(ktx PRIVATE ${ASTC_LIB_TARGET})
+    target_link_libraries(ktx PRIVATE ${ASTCENC_LIB_TARGET})
 endif()
+
+# FMT
+add_subdirectory(other_projects/fmt)
 
 # Tools
 if(KTX_FEATURE_TOOLS)
@@ -872,8 +946,8 @@ if(KTX_FEATURE_DOC)
 endif()
 
 set(KTX_INSTALL_TARGETS ktx)
-if(KTX_FEATURE_STATIC_LIBRARY AND (WIN32 OR EMSCRIPTEN))
-    list(APPEND KTX_INSTALL_TARGETS ${ASTC_LIB_TARGET})
+if(KTX_FEATURE_STATIC_LIBRARY AND NOT APPLE)
+    list(APPEND KTX_INSTALL_TARGETS ${ASTCENC_LIB_TARGET})
 endif()
 
 # Install
@@ -920,6 +994,22 @@ else()
         PUBLIC_HEADER
             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
             COMPONENT dev
+    )
+endif()
+
+# Use of this to install KHR/khr_df.h is due to CMake's failure to
+# preserve the include source folder hierarchy.
+# See https://gitlab.kitware.com/cmake/cmake/-/issues/16739.
+if (IOS)
+    set_source_files_properties(
+          include/KHR/khr_df.h
+          PROPERTIES MACOSX_PACKAGE_LOCATION Headers/KHR
+    )
+else()
+    include(GNUInstallDirs)
+    install(FILES include/KHR/khr_df.h
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/KHR
+        COMPONENT dev
     )
 endif()
 
@@ -1048,7 +1138,7 @@ elseif(WIN32)
     endif()
     ## Alternative: add major version at end
     #set(CPACK_PACKAGE_INSTALL_DIRECTORY "KTX-Software-${PROJECT_VERSION_MAJOR}")
-    if (WIN_CODE_SIGN_IDENTITY)
+    if (CODE_SIGN_KEY_VAULT)
         set_nsis_installer_codesign_cmd()
     else()
         # We're not signing the package so provide a checksum file.
@@ -1139,3 +1229,5 @@ endif()
 # endif()
 
 include(CPack)
+
+# vim:ai:ts=4:sts=2:sw=2:expandtab

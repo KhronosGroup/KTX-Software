@@ -1,4 +1,4 @@
-<!-- Copyright 2022, The Khronos Group Inc. -->
+<!-- Copyright 2023, The Khronos Group Inc. -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 Release Notes
 =============
@@ -27,7 +27,7 @@ Thanks to @wasimabbas-arm.
     * The ETC1S encoder performance is now approximately 30% faster.
     * Optional OpenCL support has been added to the ETC1S encoder. Add `-D SUPPORT_OPENCL` when configuring the CMake build to enable it. As OpenCL may not be any faster when encoding individual files - it highly depends on your hardware - it is disabled in the default build and release packages.
 
-* Windows install packages are now signed.
+* Windows install packages are now signed with an Extended Validation certificate eliminating scary warnings when starting installation.
 
 * Textures with Depth-stencil formats are now created with DFDs and alignments matching the KTX v2 specification.
 
@@ -53,10 +53,34 @@ Thanks to @wasimabbas-arm.
 
 ### Notice
 
-* This is the last release for which building with Visual Studio 2015 is supported. You may still be able to build with it for a while but don't rely on it.
+* Following this release Visual Studio 2015 and 2017 will no longer be supported. The CI builds with these will be disabled. You may still be able to build with these for a while but don't rely on it.
 
 ### Changes since v4.0.0 (by part)
 ### libktx
+
+* Fix warnings newly raised by Doxygen 1.9.6. (#676) (c5c24a44) (@MarkCallow)
+
+* Fix new warnings from Xcode 14.2 building for macOS. (#659) (a5bbfe75) (@MarkCallow)
+
+* fix typo in lib/info.c (#657) (784ed9ac) (@simi)
+
+* Fix mingw-w64:llvm-mingw error: unknown type name 'pthread\_t' (#653) (7d576397) (@FuXiii)
+
+* Include padding in inflatedByteLength (#647) (a64ebd4f) (@MarkCallow)
+
+* Fixing support for mingw toolchains that target the newer ucrt (#642) (02513772) (@Honeybunch)
+
+* Document required queue properties. Fixes #627. (#639) (f4feff2a) (@MarkCallow)
+
+* Fix ktxTexture\_VkUpload documentation. (691e9ca3) (@MarkCallow)
+
+* Fix: Use time.h not timex.h for \_\_GNUC\_\_ (a0b18062) (@MarkCallow)
+
+* Fix gcc warnings in appendLibId. (#626) (895799d6) (@MarkCallow)
+
+* Fix warnings in appendLibId. (#625) (9bd2f9bb) (@MarkCallow)
+
+* Cherry-pick change from astcenc 4.1.0 (#623) (f8dc35f0) (@solidpixel)
 
 * Check for existing libktx version string (#620) (a2f1ac25) (@MarkCallow)
 
@@ -192,6 +216,10 @@ Thanks to @wasimabbas-arm.
 
 ### Tools
 
+* Fix ktx2check handling of supercompressed files. (#646) (0057c761) (@MarkCallow)
+
+* Fix: Remove incorrect stdin-use documentation. (b67688ee) (@MarkCallow)
+
 * Allow creation of 3d textures with --depth 1. (#610) (3a5d09ac) (@MarkCallow)
 
 * Fix newly emerged warning from clang (#608) (cd394d6d) (@MarkCallow)
@@ -265,6 +293,8 @@ Thanks to @wasimabbas-arm.
 * Raise warning levels to /W4 & -Wall -Wextra (#418) (ca6f6e7d) (@MarkCallow)
 
 ### Java Wrapper
+
+* When finding JNI don't request non-existent component. (48b455cc) (@MarkCallow)
 
 * [FIX] Fix jni package names in KtxTexture2.cpp (#621) (758fc864) (@Illithidek)
 

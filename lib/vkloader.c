@@ -190,8 +190,10 @@ ktxVulkanDeviceInfo_Construct(ktxVulkanDeviceInfo* This,
 }
 
 /**
+ * @memberof ktxVulkanDeviceInfo
  * @copydoc ktxVulkanDeviceInfo_Construct
  *
+ * @~English
  * @param  instance       handle of the Vulkan instance. If @c VK_NULL_HANDLE,
  *                        which is not recommended, the function will attempt
  *                        to initialize the instance-level functions via the

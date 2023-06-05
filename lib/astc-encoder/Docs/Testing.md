@@ -20,8 +20,8 @@ We support a small (but growing) number of C++ unit tests, which are written
 using the `googletest` framework and integrated in the CMake "CTest" test
 framework.
 
-To build unit tests pull the `googletest` git submodule and add `-DUNITTEST=ON`
-to the CMake command line when configuring.
+To build unit tests pull the `googletest` git submodule and add
+`-DASTCENC_UNITTEST=ON` to the CMake command line when configuring.
 
 To run unit tests use the CMake `ctest` utility from your build directory after
 you have built the tests.

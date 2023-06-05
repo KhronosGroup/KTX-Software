@@ -12,27 +12,77 @@ for i in $@; do
   eval $i
 done
 
-FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-ON}
+ARCH=${ARCH:-$(uname -m)}  # Architecture to install tools for.
+if [ "$ARCH" = "x86_64" ]; then
+  FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-ON}
+else
+  FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-OFF}
+fi
+VULKAN_SDK_VER=${VULKAN_SDK_VER:-1.3.243}
 
 sudo apt-get -qq update
-sudo apt-get -qq install ninja-build
-sudo apt-get -qq install doxygen
-sudo apt-get -qq install rpm
-sudo apt-get -qq install opencl-c-headers
-sudo apt-get -qq install mesa-opencl-icd
 
+# Packages can be specified as 'package:architecture' pretty-much
+# anywhere. Use :native to request a package for the build machine.
+# See https://wiki.debian.org/Multiarch/HOWTO for information on
+# multi-architecture package installs.
+
+# Tools to run on the build host.
+# LFS is not preinstalled in the arm64 image.
+sudo apt-get -qq install git-lfs:native
+sudo apt-get -qq install ninja-build:native
+sudo apt-get -qq install doxygen:native
+sudo apt-get -qq install rpm:native
+
+if [ "$ARCH" = "$(uname -m)" ]; then
+  dpkg_arch=native
+  # gcc, g++ and binutils for native builds should already be installed
+  # on CI platforms together with cmake.
+  # sudo apt-get -qq install gcc g++ binutils make
+else
+  # Adjust for dpkg/apt architecture naming. How irritating that
+  # it differs from what uname -m reports.
+  if [ "$ARCH" = "x86_64" ]; then
+    dpkg_arch=amd64
+    gcc_pkg_arch=x86-64
+  elif [ "$ARCH" = "aarch64" ]; then
+    dpkg_arch=arm64
+    gcc_pkg_arch=$ARCH
+  fi
+  sudo dpkg --add-architecture $dpkg_arch
+  sudo apt-get update
+  # Don't think this is right to install cross-compiler. apt reports
+  # package not available.
+  #sudo apt-get -qq install gcc:$dpkg_arch g++:$dpkg_arch binutils:$dpkg_arch
+  # Try this where `arch` is x86-64 or arm64.
+  sudo apt-get -qq install gcc-$gcc_pkg_arch-linux-gnu:native g++-$gcc_pkg_arch-linux-gnu:native binutils-$gcc_pkg_arch-linux-gnu:native
+fi
+sudo apt-get -qq install opencl-c-headers:$dpkg_arch
+sudo apt-get -qq install mesa-opencl-icd:$dpkg_arch
 if [ "$FEATURE_LOADTESTS" = "ON" ]; then
-  sudo apt-get -qq install libsdl2-dev
-  sudo apt-get -qq install libgl1-mesa-glx libgl1-mesa-dev
-  sudo apt-get -qq install libvulkan1 libvulkan-dev
-  sudo apt-get -qq install libassimp5 libassimp-dev
+  sudo apt-get -qq install libsdl2-dev:$dpkg_arch
+  sudo apt-get -qq install libgl1-mesa-glx:$dpkg_arch libgl1-mesa-dev:$dpkg_arch
+  sudo apt-get -qq install libvulkan1 libvulkan-dev:$dpkg_arch
+  sudo apt-get -qq install libassimp5 libassimp-dev:$dpkg_arch
 
-  echo "Download Vulkan SDK"
-  wget -O - https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
-  sudo wget -O /etc/apt/sources.list.d/lunarg-vulkan-$VULKAN_SDK_VER-focal.list https://packages.lunarg.com/vulkan/$VULKAN_SDK_VER/lunarg-vulkan-$VULKAN_SDK_VER-focal.list
-  echo "Install Vulkan SDK"
-  sudo apt update
-  sudo apt install vulkan-sdk
+  # No Vulkan SDK for Linux/arm64 yet.
+  if [ "$dpkg_arch" = "arm64" ]; then
+    # TODO: Augment CMakeLists.txt with way to disable just vkloadtests.
+    echo "No Vulkan SDK for Linux/arm64 yet. Please set FEATURE_LOADTESTS OFF."
+  else
+    os_codename=$(grep -E 'VERSION_CODENAME=[a-zA-Z]+$' /etc/os-release)
+    os_codename=${os_codename#VERSION_CODENAME=}
+
+    echo "Download Vulkan SDK"
+    # tee is used (and elevated with sudo) so we can write to the destination.
+    wget -qO- https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo tee /etc/apt/trusted.gpg.d/lunarg.asc > /dev/null
+    sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-$VULKAN_SDK_VER-$os_codename.list https://packages.lunarg.com/vulkan/$VULKAN_SDK_VER/lunarg-vulkan-$VULKAN_SDK_VER-$os_codename.list
+    echo "Install Vulkan SDK"
+    sudo apt update
+    sudo apt install vulkan-sdk
+  fi
 fi
 
 git lfs pull --include=tests/srcimages,tests/testimages
+
+# vim:ai:ts=4:sts=2:sw=2:expandtab

@@ -1,6 +1,6 @@
 #  SPDX-License-Identifier: Apache-2.0
 #  ----------------------------------------------------------------------------
-#  Copyright 2020-2022 Arm Limited
+#  Copyright 2020-2023 Arm Limited
 #
 #  Licensed under the Apache License, Version 2.0 (the "License"); you may not
 #  use this file except in compliance with the License. You may obtain a copy
@@ -24,146 +24,146 @@ if(MSVC)
     add_compile_options("/wd4324") # Disable structure was padded due to alignment specifier
 endif()
 
-project(astcencoder VERSION 4.0.0)
+project(astcencoder VERSION 4.4.0)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
-set(PACKAGE_ROOT astcenc)
 
 include(CTest)
 
-option(ISA_AVX2 "Enable builds for AVX2 SIMD")
-option(ISA_SSE41 "Enable builds for SSE4.1 SIMD")
-option(ISA_SSE2 "Enable builds for SSE2 SIMD")
-option(ISA_NEON "Enable builds for NEON SIMD")
-option(ISA_NONE "Enable builds for no SIMD")
-option(ISA_NATIVE "Enable builds for native SIMD")
-option(DECOMPRESSOR "Enable builds for decompression only")
-option(DIAGNOSTICS "Enable builds for diagnostic trace")
-option(ASAN "Enable builds width address sanitizer")
-option(UNITTEST "Enable builds for unit tests")
-option(NO_INVARIANCE "Enable builds without invariance")
-option(CLI "Enable build of CLI" ON)
+option(ASTCENC_ISA_AVX2 "Enable astcenc builds for AVX2 SIMD")
+option(ASTCENC_ISA_SSE41 "Enable astcenc builds for SSE4.1 SIMD")
+option(ASTCENC_ISA_SSE2 "Enable astcenc builds for SSE2 SIMD")
+option(ASTCENC_ISA_NEON "Enable astcenc builds for NEON SIMD")
+option(ASTCENC_ISA_NONE "Enable astcenc builds for no SIMD")
+option(ASTCENC_ISA_NATIVE "Enable astcenc builds for native SIMD")
+option(ASTCENC_DECOMPRESSOR "Enable astcenc builds for decompression only")
+option(ASTCENC_SHAREDLIB "Enable astcenc builds with core library shared objects")
+option(ASTCENC_DIAGNOSTICS "Enable astcenc builds with diagnostic trace")
+option(ASTCENC_ASAN "Enable astcenc builds with address sanitizer")
+option(ASTCENC_UNITTEST "Enable astcenc builds with unit tests")
+option(ASTCENC_INVARIANCE "Enable astcenc floating point invariance" ON)
+option(ASTCENC_CLI "Enable build of astcenc command line tools" ON)
 
-set(UNIVERSAL_BUILD OFF)
-set(MACOS_BUILD OFF)
-set(MACOS_ARCH_LEN 0)
+set(ASTCENC_UNIVERSAL_BUILD OFF)
+set(ASTCENC_MACOS_BUILD OFF)
+set(ASTCENC_MACOS_ARCH_LEN 0)
 
 # Preflight for some macOS-specific build options
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
-    set(MACOS_BUILD ON)
-    list(LENGTH CMAKE_OSX_ARCHITECTURES MACOS_ARCH_LEN)
+    set(ASTCENC_MACOS_BUILD ON)
+    list(LENGTH CMAKE_OSX_ARCHITECTURES ASTCENC_MACOS_ARCH_LEN)
 endif()
 
 # Count options which MUST be x64
-set(X64_ISA_COUNT 0)
-set(CONFIGS ${ISA_AVX2} ${ISA_SSE41} ${ISA_SSE2})
-foreach(CONFIG ${CONFIGS})
-    if(${CONFIG})
-        math(EXPR X64_ISA_COUNT "${X64_ISA_COUNT} + 1")
+set(ASTCENC_X64_ISA_COUNT 0)
+set(ASTCENC_CONFIGS ${ASTCENC_ISA_AVX2} ${ASTCENC_ISA_SSE41} ${ASTCENC_ISA_SSE2})
+foreach(ASTCENC_CONFIG ${ASTCENC_CONFIGS})
+    if(${ASTCENC_CONFIG})
+        math(EXPR ASTCENC_X64_ISA_COUNT "${ASTCENC_X64_ISA_COUNT} + 1")
     endif()
 endforeach()
 
 # Count options which MUST be arm64
-set(ARM64_ISA_COUNT 0)
-set(CONFIGS ${ISA_NEON})
-foreach(CONFIG ${CONFIGS})
-    if(${CONFIG})
-        math(EXPR ARM64_ISA_COUNT "${ARM64_ISA_COUNT} + 1")
+set(ASTCENC_ARM64_ISA_COUNT 0)
+set(ASTCENC_CONFIGS ${ASTCENC_ISA_NEON})
+foreach(ASTCENC_CONFIG ${ASTCENC_CONFIGS})
+    if(${ASTCENC_CONFIG})
+        math(EXPR ASTCENC_ARM64_ISA_COUNT "${ASTCENC_ARM64_ISA_COUNT} + 1")
     endif()
 endforeach()
 
 # macOS builds
-if("${MACOS_BUILD}")
-    list(FIND CMAKE_OSX_ARCHITECTURES "x86_64" IS_X64)
-    list(FIND CMAKE_OSX_ARCHITECTURES "arm64" IS_ARM64)
-    list(FIND CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" IS_AUTO)
+if("${ASTCENC_MACOS_BUILD}")
+    list(FIND CMAKE_OSX_ARCHITECTURES "x86_64" ASTCENC_IS_X64)
+    list(FIND CMAKE_OSX_ARCHITECTURES "arm64" ASTCENC_IS_ARM64)
+    list(FIND CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" ASTCENC_IS_AUTO)
 
     # Turn list index into boolean
-    if(${IS_X64} EQUAL -1)
-        set(IS_X64 OFF)
+    if(${ASTCENC_IS_X64} EQUAL -1)
+        set(ASTCENC_IS_X64 OFF)
     else()
-        set(IS_X64 ON)
+        set(ASTCENC_IS_X64 ON)
     endif()
 
-    if(${IS_ARM64} EQUAL -1)
-        set(IS_ARM64 OFF)
+    if(${ASTCENC_IS_ARM64} EQUAL -1)
+        set(ASTCENC_IS_ARM64 OFF)
     else()
-        set(IS_ARM64 ON)
+        set(ASTCENC_IS_ARM64 ON)
     endif()
 
-    if(${IS_AUTO} EQUAL -1)
-        set(IS_AUTO OFF)
+    if(${ASTCENC_IS_AUTO} EQUAL -1)
+        set(ASTCENC_IS_AUTO OFF)
     else()
-        set(IS_AUTO ON)
+        set(ASTCENC_IS_AUTO ON)
     endif()
 
     # Set up defaults if no more specific ISA set - use XCode's own defaults
-    if((IS_ARM64 OR IS_AUTO) AND ("${ARM64_ISA_COUNT}" EQUAL 0) AND (NOT "${ISA_NONE}"))
-        set(ARM64_ISA_COUNT 1)
-        set(ISA_NEON ON)
+    if((ASTCENC_IS_ARM64 OR ASTCENC_IS_AUTO) AND ("${ASTCENC_ARM64_ISA_COUNT}" EQUAL 0) AND (NOT "${ASTCENC_ISA_NONE}"))
+        set(ASTCENC_ARM64_ISA_COUNT 1)
+        set(ASTCENC_ISA_NEON ON)
     endif()
 
-    if((IS_X64 OR IS_AUTO) AND ("${X64_ISA_COUNT}" EQUAL 0) AND (NOT "${ISA_NONE}"))
-        set(X64_ISA_COUNT 1)
-        set(ISA_SSE41 ON)
+    if((ASTCENC_IS_X64 OR ASTCENC_IS_AUTO) AND ("${ASTCENC_X64_ISA_COUNT}" EQUAL 0) AND (NOT "${ASTCENC_ISA_NONE}"))
+        set(ASTCENC_X64_ISA_COUNT 1)
+        set(ASTCENC_ISA_SSE41 ON)
     endif()
 
     # User might be doing multi-architecture - XCode sets this at runtime
-    if("${IS_AUTO}")
-        if(("${ARM64_ISA_COUNT}" GREATER 1) OR ("${X64_ISA_COUNT}" GREATER 1))
+    if("${ASTCENC_IS_AUTO}")
+        if(("${ASTCENC_ARM64_ISA_COUNT}" GREATER 1) OR ("${ASTCENC_X64_ISA_COUNT}" GREATER 1))
             message(FATAL_ERROR "For macOS universal binaries only one backend per architecture is allowed.")
         endif()
 
-        set(UNIVERSAL_BUILD ON)
+        set(ASTCENC_UNIVERSAL_BUILD ON)
 
     # User requested explicit multi-architecture universal build
-    elseif("${MACOS_ARCH_LEN}" GREATER 2)
+    elseif("${ASTCENC_MACOS_ARCH_LEN}" GREATER 2)
         message(FATAL_ERROR "For macOS universal binaries only x86_64 and arm64 builds are allowed.")
 
-    elseif("${MACOS_ARCH_LEN}" EQUAL 2)
-        if(NOT (${IS_X64} AND ${IS_ARM64}))
+    elseif("${ASTCENC_MACOS_ARCH_LEN}" EQUAL 2)
+        if(NOT (${ASTCENC_IS_X64} AND ${ASTCENC_IS_ARM64}))
             message(FATAL_ERROR "For macOS universal binaries only x86_64 and arm64 builds are allowed.")
         endif()
 
-        if(("${ARM64_ISA_COUNT}" GREATER 1) OR ("${X64_ISA_COUNT}" GREATER 1))
+        if(("${ASTCENC_ARM64_ISA_COUNT}" GREATER 1) OR ("${ASTCENC_X64_ISA_COUNT}" GREATER 1))
             message(FATAL_ERROR "For macOS universal binaries only one backend per architecture is allowed.")
         endif()
 
-        set(UNIVERSAL_BUILD ON)
+        set(ASTCENC_UNIVERSAL_BUILD ON)
 
     # User requested explicit single architecture build
-    elseif("${MACOS_ARCH_LEN}" EQUAL 1)
-        if("${IS_X64}" AND "${ARM64_ISA_COUNT}")
+    elseif("${ASTCENC_MACOS_ARCH_LEN}" EQUAL 1)
+        if("${ASTCENC_IS_X64}" AND "${ASTCENC_ARM64_ISA_COUNT}")
             message(FATAL_ERROR "For macOS x86_64 builds an arm64 backend cannot be specified.")
         endif()
 
-        if("${IS_ARM64}" AND "${X64_ISA_COUNT}")
+        if("${ASTCENC_IS_ARM64}" AND "${ASTCENC_X64_ISA_COUNT}")
             message(FATAL_ERROR "For macOS arm64 builds an x86_64 backend cannot be specified.")
         endif()
 
     # Else is this a implicit multi-architecture universal build?
-    elseif(("${ARM64_ISA_COUNT}" EQUAL 1) AND ("${X64_ISA_COUNT}" GREATER 1))
+    elseif(("${ASTCENC_ARM64_ISA_COUNT}" EQUAL 1) AND ("${ASTCENC_X64_ISA_COUNT}" GREATER 1))
         string(CONCAT MSG "For macOS setting multiple architecture backends builds a universal binary. "
                           "For universal binaries only one backend per architecture is allowed.")
         message(FATAL_ERROR "${MSG}")
 
-    elseif(("${X64_ISA_COUNT}" EQUAL 1) AND ("${ARM64_ISA_COUNT}" GREATER 1))
+    elseif(("${ASTCENC_X64_ISA_COUNT}" EQUAL 1) AND ("${ASTCENC_ARM64_ISA_COUNT}" GREATER 1))
         string(CONCAT MSG "For macOS setting multiple architecture backends builds a universal binary. "
                           "For universal binaries only one backend per architecture is allowed.")
         message(FATAL_ERROR "${MSG}")
 
-    elseif(("${ARM64_ISA_COUNT}" EQUAL 1) AND ("${X64_ISA_COUNT}" EQUAL 1))
-        set(UNIVERSAL_BUILD ON)
+    elseif(("${ASTCENC_ARM64_ISA_COUNT}" EQUAL 1) AND ("${ASTCENC_X64_ISA_COUNT}" EQUAL 1))
+        set(ASTCENC_UNIVERSAL_BUILD ON)
         set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
 
     # Else is this an implicit single architecture build?
-    elseif("${ARM64_ISA_COUNT}" EQUAL 1)
+    elseif("${ASTCENC_ARM64_ISA_COUNT}" EQUAL 1)
         set(CMAKE_OSX_ARCHITECTURES "arm64")
 
-    elseif("${X64_ISA_COUNT}" EQUAL 1)
+    elseif("${ASTCENC_X64_ISA_COUNT}" EQUAL 1)
         set(CMAKE_OSX_ARCHITECTURES "x86_64")
 
     else()
@@ -173,14 +173,14 @@ if("${MACOS_BUILD}")
 
 # Non-macOS builds
 else()
-    if(("${ARM64_ISA_COUNT}" GREATER 0) AND ("${X64_ISA_COUNT}" GREATER 0))
+    if(("${ASTCENC_ARM64_ISA_COUNT}" GREATER 0) AND ("${ASTCENC_X64_ISA_COUNT}" GREATER 0))
         message(FATAL_ERROR "Builds can only support a single architecture per configure.")
     endif()
 endif()
 
 # If nothing more specific is set then fall back on the compiler's defaults
-if(("${ARM64_ISA_COUNT}" EQUAL 0) AND ("${X64_ISA_COUNT}" EQUAL 0) AND (NOT "${ISA_NONE}"))
-    set(ISA_NATIVE ON)
+if(("${ASTCENC_ARM64_ISA_COUNT}" EQUAL 0) AND ("${ASTCENC_X64_ISA_COUNT}" EQUAL 0) AND (NOT "${ASTCENC_ISA_NONE}"))
+    set(ASTCENC_ISA_NATIVE ON)
 endif()
 
 function(printopt optName optVal)
@@ -191,38 +191,38 @@ function(printopt optName optVal)
     endif()
 endfunction()
 
-if("${BLOCK_MAX_TEXELS}")
-     message(STATUS "  Max block texels - ${BLOCK_MAX_TEXELS}")
+if("${ASTCENC_BLOCK_MAX_TEXELS}")
+     message(STATUS "  Max block texels - ${ASTCENC_BLOCK_MAX_TEXELS}")
 endif()
-printopt("AVX2 backend   " ${ISA_AVX2})
-printopt("SSE4.1 backend " ${ISA_SSE41})
-printopt("SSE2 backend   " ${ISA_SSE2})
-printopt("NEON backend   " ${ISA_NEON})
-printopt("NONE backend   " ${ISA_NONE})
-printopt("NATIVE backend " ${ISA_NATIVE})
-if("${MACOS_BUILD}")
-    printopt("Universal bin  " ${UNIVERSAL_BUILD})
+
+printopt("AVX2 backend   " ${ASTCENC_ISA_AVX2})
+printopt("SSE4.1 backend " ${ASTCENC_ISA_SSE41})
+printopt("SSE2 backend   " ${ASTCENC_ISA_SSE2})
+printopt("NEON backend   " ${ASTCENC_ISA_NEON})
+printopt("NONE backend   " ${ASTCENC_ISA_NONE})
+printopt("NATIVE backend " ${ASTCENC_ISA_NATIVE})
+if("${ASTCENC_MACOS_BUILD}")
+    printopt("Universal bin  " ${ASTCENC_UNIVERSAL_BUILD})
 endif()
-printopt("Decompressor   " ${DECOMPRESSOR})
-printopt("No invariance  " ${NO_INVARIANCE})
-printopt("Diagnostics    " ${DIAGNOSTICS})
-printopt("ASAN           " ${ASAN})
-printopt("Unit tests     " ${UNITTEST})
+printopt("Invariance     " ${ASTCENC_INVARIANCE})
+printopt("Shared libs    " ${ASTCENC_SHAREDLIB})
+printopt("Decompressor   " ${ASTCENC_DECOMPRESSOR})
+printopt("Diagnostics    " ${ASTCENC_DIAGNOSTICS})
+printopt("ASAN           " ${ASTCENC_ASAN})
+printopt("Unit tests     " ${ASTCENC_UNITTEST})
 
 # Subcomponents
 add_subdirectory(Source)
 
 # Configure package archive
-if(PACKAGE)
-    if("${MACOS_BUILD}")
-        string(TOLOWER "macOS" PKG_OS)
+if(ASTCENC_PACKAGE)
+    if("${ASTCENC_MACOS_BUILD}")
+        string(TOLOWER "macOS" ASTCENC_PKG_OS)
     else()
-        string(TOLOWER ${CMAKE_SYSTEM_NAME} PKG_OS)
+        string(TOLOWER ${CMAKE_SYSTEM_NAME} ASTCENC_PKG_OS)
     endif()
 
-    set(PKG_VER ${CMAKE_PROJECT_VERSION_MAJOR}.${CMAKE_PROJECT_VERSION_MINOR})
-
-    set(CPACK_PACKAGE_FILE_NAME "astcenc-${PKG_VER}-${PKG_OS}-${PACKAGE}")
+    set(CPACK_PACKAGE_FILE_NAME "astcenc-${CMAKE_PROJECT_VERSION}-${ASTCENC_PKG_OS}-${ASTCENC_PACKAGE}")
     set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY FALSE)
     set(CPACK_PACKAGE_CHECKSUM SHA256)
     set(CPACK_GENERATOR ZIP)

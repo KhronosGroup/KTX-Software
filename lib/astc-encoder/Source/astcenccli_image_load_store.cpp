@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2011-2022 Arm Limited
+// Copyright 2011-2023 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -25,6 +25,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
+#include <iomanip>
+#include <sstream>
 
 #include "astcenccli_internal.h"
 
@@ -32,8 +34,39 @@
 #include "stb_image_write.h"
 #include "tinyexr.h"
 
+/**
+ * @brief Determine the output file name to use for a sliced image write.
+ *
+ * @param img        The source data for the image.
+ * @param filename   The base name of the file to save.
+ * @param index      The slice index to write.
+ *
+ * @return The file name to use when saving the file.
+ */
+static std::string get_output_filename(
+	const astcenc_image* img,
+	const char* filename,
+	unsigned int index
+) {
+	if (img->dim_z <= 1)
+	{
+		return filename;
+	}
+
+	std::string fnmod(filename);
+	std::string fnext = fnmod.substr(fnmod.find_last_of("."));
+
+	// Remove the extension
+	fnmod = fnmod.erase(fnmod.length() - fnext.size());
+
+	// Insert the file index into the base name, then append the extension
+	std::stringstream ss;
+	ss << fnmod << "_" << std::setw(3) << std::setfill('0') << index << fnext;
+	return ss.str();
+}
+
 /* ============================================================================
-  Image load and store through the stb_iamge and tinyexr libraries
+  Image load and store through the stb_image and tinyexr libraries
 ============================================================================ */
 
 /**
@@ -59,7 +92,7 @@ static astcenc_image* load_image_with_tinyexr(
 	int load_res = LoadEXR(&image, &dim_x, &dim_y, filename, &err);
 	if (load_res != TINYEXR_SUCCESS)
 	{
-		printf("ERROR: Failed to load image %s (%s)\n", filename, err);
+		print_error("ERROR: Failed to load image %s (%s)\n", filename, err);
 		free(reinterpret_cast<void*>(const_cast<char*>(err)));
 		return nullptr;
 	}
@@ -115,7 +148,7 @@ static astcenc_image* load_image_with_stb(
 		}
 	}
 
-	printf("ERROR: Failed to load image %s (%s)\n", filename, stbi_failure_reason());
+	print_error("ERROR: Failed to load image %s (%s)\n", filename, stbi_failure_reason());
 	return nullptr;
 }
 
@@ -133,9 +166,21 @@ static bool store_exr_image_with_tinyexr(
 	const char* filename,
 	int y_flip
 ) {
-	float *buf = floatx4_array_from_astc_img(img, y_flip);
-	int res = SaveEXR(buf, img->dim_x, img->dim_y, 4, 1, filename, nullptr);
-	delete[] buf;
+	int res { 0 };
+
+	for (unsigned int i = 0; i < img->dim_z; i++)
+	{
+		std::string fnmod = get_output_filename(img, filename, i);
+		float* buf = floatx4_array_from_astc_img(img, y_flip, i);
+
+		res = SaveEXR(buf, img->dim_x, img->dim_y, 4, 1, fnmod.c_str(), nullptr);
+		delete[] buf;
+		if (res < 0)
+		{
+			break;
+		}
+	}
+
 	return res >= 0;
 }
 
@@ -153,11 +198,23 @@ static bool store_png_image_with_stb(
 	const char* filename,
 	int y_flip
 ) {
-	assert(img->data_type == ASTCENC_TYPE_U8);
-	uint8_t* buf = reinterpret_cast<uint8_t*>(img->data[0]);
+	int res { 0 };
 
-	stbi_flip_vertically_on_write(y_flip);
-	int res = stbi_write_png(filename, img->dim_x, img->dim_y, 4, buf, img->dim_x * 4);
+	assert(img->data_type == ASTCENC_TYPE_U8);
+
+	for (unsigned int i = 0; i < img->dim_z; i++)
+	{
+		std::string fnmod = get_output_filename(img, filename, i);
+		uint8_t* buf = reinterpret_cast<uint8_t*>(img->data[i]);
+
+		stbi_flip_vertically_on_write(y_flip);
+		res = stbi_write_png(fnmod.c_str(), img->dim_x, img->dim_y, 4, buf, img->dim_x * 4);
+		if (res == 0)
+		{
+			break;
+		}
+	}
+
 	return res != 0;
 }
 
@@ -175,11 +232,23 @@ static bool store_tga_image_with_stb(
 	const char* filename,
 	int y_flip
 ) {
-	assert(img->data_type == ASTCENC_TYPE_U8);
-	uint8_t* buf = reinterpret_cast<uint8_t*>(img->data[0]);
+	int res { 0 };
 
-	stbi_flip_vertically_on_write(y_flip);
-	int res = stbi_write_tga(filename, img->dim_x, img->dim_y, 4, buf);
+	assert(img->data_type == ASTCENC_TYPE_U8);
+
+	for (unsigned int i = 0; i < img->dim_z; i++)
+	{
+		std::string fnmod = get_output_filename(img, filename, i);
+		uint8_t* buf = reinterpret_cast<uint8_t*>(img->data[i]);
+
+		stbi_flip_vertically_on_write(y_flip);
+		res = stbi_write_tga(fnmod.c_str(), img->dim_x, img->dim_y, 4, buf);
+		if (res == 0)
+		{
+			break;
+		}
+	}
+
 	return res != 0;
 }
 
@@ -197,11 +266,23 @@ static bool store_bmp_image_with_stb(
 	const char* filename,
 	int y_flip
 ) {
-	assert(img->data_type == ASTCENC_TYPE_U8);
-	uint8_t* buf = reinterpret_cast<uint8_t*>(img->data[0]);
+	int res { 0 };
 
-	stbi_flip_vertically_on_write(y_flip);
-	int res = stbi_write_bmp(filename, img->dim_x, img->dim_y, 4, buf);
+	assert(img->data_type == ASTCENC_TYPE_U8);
+
+	for (unsigned int i = 0; i < img->dim_z; i++)
+	{
+		std::string fnmod = get_output_filename(img, filename, i);
+		uint8_t* buf = reinterpret_cast<uint8_t*>(img->data[i]);
+
+		stbi_flip_vertically_on_write(y_flip);
+		res = stbi_write_bmp(fnmod.c_str(), img->dim_x, img->dim_y, 4, buf);
+		if (res == 0)
+		{
+			break;
+		}
+	}
+
 	return res != 0;
 }
 
@@ -219,9 +300,21 @@ static bool store_hdr_image_with_stb(
 	const char* filename,
 	int y_flip
 ) {
-	float* buf = floatx4_array_from_astc_img(img, y_flip);
-	int res = stbi_write_hdr(filename, img->dim_x, img->dim_y, 4, buf);
-	delete[] buf;
+	int res { 0 };
+
+	for (unsigned int i = 0; i < img->dim_z; i++)
+	{
+		std::string fnmod = get_output_filename(img, filename, i);
+		float* buf = floatx4_array_from_astc_img(img, y_flip, i);
+
+		res = stbi_write_hdr(fnmod.c_str(), img->dim_x, img->dim_y, 4, buf);
+		delete[] buf;
+		if (res == 0)
+		{
+			break;
+		}
+	}
+
 	return res != 0;
 }
 
@@ -625,6 +718,16 @@ static uint32_t u32_byterev(uint32_t v)
 #define GL_LUMINANCE                                0x1909
 #define GL_LUMINANCE_ALPHA                          0x190A
 
+#define GL_R8                                       0x8229
+#define GL_RG8                                      0x822B
+#define GL_RGB8                                     0x8051
+#define GL_RGBA8                                    0x8058
+
+#define GL_R16F                                     0x822D
+#define GL_RG16F                                    0x822F
+#define GL_RGB16F                                   0x881B
+#define GL_RGBA16F                                  0x881A
+
 #define GL_UNSIGNED_BYTE                            0x1401
 #define GL_UNSIGNED_SHORT                           0x1403
 #define GL_HALF_FLOAT                               0x140B
@@ -794,7 +897,7 @@ struct ktx_header
 	uint32_t bytes_of_key_value_data;	// size in bytes of the key-and-value area immediately following the header.
 };
 
-// magic 12-byte sequence that must appear at the beginning of every KTX file.
+// Magic 12-byte sequence that must appear at the beginning of every KTX file.
 static uint8_t ktx_magic[12] {
 	0xAB, 0x4B, 0x54, 0x58, 0x20, 0x31, 0x31, 0xBB, 0x0D, 0x0A, 0x1A, 0x0A
 };
@@ -909,9 +1012,9 @@ static astcenc_image* load_ktx_uncompressed_image(
 		return nullptr;
 	}
 
-	// Although these are set up later, we include a default initializer to remove warnings
-	int bytes_per_component = 1;	// bytes per component in the KTX file.
-	int bitness = 8;			// internal precision we will use in the codec.
+	// Although these are set up later, use default initializer to remove warnings
+	int bitness = 8;              // Internal precision after conversion
+	int bytes_per_component = 1;  // Bytes per component in the KTX file
 	scanline_transfer copy_method = R8_TO_RGBA8;
 
 	switch (hdr.gl_type)
@@ -1017,7 +1120,7 @@ static astcenc_image* load_ktx_uncompressed_image(
 		}
 	case GL_FLOAT:
 		{
-			bitness = 32;
+			bitness = 16;
 			bytes_per_component = 4;
 			switch (hdr.gl_format)
 			{
@@ -1126,7 +1229,7 @@ static astcenc_image* load_ktx_uncompressed_image(
 		}
 	}
 
-	// then transfer data from the surface to our own image-data-structure.
+	// Transfer data from the surface to our own image data structure
 	astcenc_image *astc_img = alloc_image(bitness, dim_x, dim_y, dim_z);
 
 	for (unsigned int z = 0; z < dim_z; z++)
@@ -1155,7 +1258,7 @@ static astcenc_image* load_ktx_uncompressed_image(
 	}
 
 	delete[] buf;
-	is_hdr = bitness == 32;
+	is_hdr = bitness >= 16;
 	component_count = components;
 	return astc_img;
 }
@@ -1352,7 +1455,15 @@ static bool store_ktx_uncompressed_image(
 	ktx_header hdr;
 
 	static const int gl_format_of_components[4] {
-		GL_LUMINANCE, GL_LUMINANCE_ALPHA, GL_RGB, GL_RGBA
+		GL_RED, GL_RG, GL_RGB, GL_RGBA
+	};
+
+	static const int gl_sized_format_of_components_ldr[4] {
+		GL_R8, GL_RG8, GL_RGB8, GL_RGBA8
+	};
+
+	static const int gl_sized_format_of_components_hdr[4] {
+		GL_R16F, GL_RG16F, GL_RGB16F, GL_RGBA16F
 	};
 
 	memcpy(hdr.magic, ktx_magic, 12);
@@ -1360,8 +1471,15 @@ static bool store_ktx_uncompressed_image(
 	hdr.gl_type = (bitness == 16) ? GL_HALF_FLOAT : GL_UNSIGNED_BYTE;
 	hdr.gl_type_size = bitness / 8;
 	hdr.gl_format = gl_format_of_components[image_components - 1];
-	hdr.gl_internal_format = gl_format_of_components[image_components - 1];
-	hdr.gl_base_internal_format = gl_format_of_components[image_components - 1];
+	if (bitness == 16)
+	{
+		hdr.gl_internal_format = gl_sized_format_of_components_hdr[image_components - 1];
+	}
+	else
+	{
+		hdr.gl_internal_format = gl_sized_format_of_components_ldr[image_components - 1];
+	}
+	hdr.gl_base_internal_format = hdr.gl_format;
 	hdr.pixel_width = dim_x;
 	hdr.pixel_height = dim_y;
 	hdr.pixel_depth = (dim_z == 1) ? 0 : dim_z;
@@ -1915,7 +2033,7 @@ static astcenc_image* load_dds_uncompressed_image(
 	}
 
 	delete[] buf;
-	is_hdr = bitness == 16;
+	is_hdr = bitness >= 16;
 	component_count = components;
 	return astc_img;
 }
@@ -2338,7 +2456,6 @@ static unsigned int unpack_bytes(
 }
 
 /* See header for documentation. */
-// TODO: Return a bool?
 int load_cimage(
 	const char* filename,
 	astc_compressed_image& img
@@ -2346,7 +2463,7 @@ int load_cimage(
 	std::ifstream file(filename, std::ios::in | std::ios::binary);
 	if (!file)
 	{
-		printf("ERROR: File open failed '%s'\n", filename);
+		print_error("ERROR: File open failed '%s'\n", filename);
 		return 1;
 	}
 
@@ -2354,14 +2471,14 @@ int load_cimage(
 	file.read(reinterpret_cast<char*>(&hdr), sizeof(astc_header));
 	if (!file)
 	{
-		printf("ERROR: File read failed '%s'\n", filename);
+		print_error("ERROR: File read failed '%s'\n", filename);
 		return 1;
 	}
 
 	unsigned int magicval = unpack_bytes(hdr.magic[0], hdr.magic[1], hdr.magic[2], hdr.magic[3]);
 	if (magicval != ASTC_MAGIC_ID)
 	{
-		printf("ERROR: File not recognized '%s'\n", filename);
+		print_error("ERROR: File not recognized '%s'\n", filename);
 		return 1;
 	}
 
@@ -2376,7 +2493,7 @@ int load_cimage(
 
 	if (dim_x == 0 || dim_y == 0 || dim_z == 0)
 	{
-		printf("ERROR: File corrupt '%s'\n", filename);
+		print_error("ERROR: File corrupt '%s'\n", filename);
 		return 1;
 	}
 
@@ -2390,7 +2507,7 @@ int load_cimage(
 	file.read(reinterpret_cast<char*>(buffer), data_size);
 	if (!file)
 	{
-		printf("ERROR: File read failed '%s'\n", filename);
+		print_error("ERROR: File read failed '%s'\n", filename);
 		return 1;
 	}
 
@@ -2406,7 +2523,6 @@ int load_cimage(
 }
 
 /* See header for documentation. */
-// TODO: Return a bool?
 int store_cimage(
 	const astc_compressed_image& img,
 	const char* filename
@@ -2436,7 +2552,7 @@ int store_cimage(
 	std::ofstream file(filename, std::ios::out | std::ios::binary);
 	if (!file)
 	{
-		printf("ERROR: File open failed '%s'\n", filename);
+		print_error("ERROR: File open failed '%s'\n", filename);
 		return 1;
 	}
 

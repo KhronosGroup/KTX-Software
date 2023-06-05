@@ -343,16 +343,32 @@ install the former. The latter is included in this repo.
 
 ##### Windows signing
 
-To sign applications and the NSIS installer you need to import your certificate to either the Current User or Local Machine certificate store. This can be done
-interactively with Windows' commands `certmgr` and `certlm` respectively. Then you need to set the following CMake variables:
+To sign applications and the NSIS installer you need to import your certificate to an Azure Key Vault or to the Current User or Local Machine certificate store.
+The latter can be done interactively with Windows' commands `certmgr` and
+`certlm` respectively. You need to set the following CMake variables to
+turn on signing:
 
 | Name  | Value |
-| :---: | ----- |
-| WIN\_CODE\_SIGN\_IDENTITY | Owner* of the _Developer ID Application_ certificate to use for signing. |
-| WIN\_CS\_CERT\_SEARCH\_MACHINE\_STORE | Check this option if your certificate is in the Local Machine store.
+| ---: | ----- |
+| CODE\_SIGN\_KEY\_VAULT | Where the signing certificate is stored. One of _Azure_, _Machine_, _User_. |
+| CODE\_SIGN\_TIMESTAMP\_URL | URL of the timestamp server to use. Usually provided by the issuer of your certificate. Timestamping is required as it keeps the signatures valid even after certificate expiration.
 
-\* Owner is what is formally known as the _Subject Name_ of a certificate. It is
-displayed in the _Issued To_ column of `certmgr` and `certlm`.
+The following additional variables must be set if using Azure:
+
+| Name  | Value |
+| ---: | ----- |
+| AZURE\_KEY\_VAULT\_CERTIFICATE | Name of the certificate in Azure Key Vault.
+| AZURE\_KEY\_VAULT\_CLIENT\_ID | Id of an application (Client) registered with Azure that has permission to access the certificate.
+| AZURE\_KEY\_VAULT\_CLIENT\_SECRET | Secret to authenticate access to the Client.
+| AZURE\_KEY\_VAULT\_TENANT\_ID | Id of the Azure Active Directory (Tenant) holding the Client.
+| AZURE\_KEY\_VAULT\_URL | URL of the key vault
+
+If using a local certificate store the following variables must be set instead:
+
+| Name  | Value |
+| ---: | ----- |
+| LOCAL\_KEY\_VAULT\_SIGNING\_IDENTITY | Subject Name of code signing certificate. Displayed in 'Issued To' field of cert{lm,mgr}. Overriden by LOCAL\_KEY\_VAULT\_CERTIFICATE\_THUMBPRINT.
+| LOCAL\_KEY\_VAULT\_CERTIFICATE\_THUMBPRINT | Thumbprint of the certificate to use. Use this instead of LOCAL\_KEY\_VAULT\_SIGNING\_IDENTITY when you have multiple certificates with the same identity.
 
 #### OpenGL ES Emulator for Windows
 

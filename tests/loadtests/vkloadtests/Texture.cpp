@@ -612,7 +612,7 @@ Texture::preparePipelines()
 
     // Load shaders
     std::array<vk::PipelineShaderStageCreateInfo,2> shaderStages;
-    std::string filepath = getAssetPath() + "shaders/";
+    std::string filepath = getAssetPath();
     shaderStages[0] = loadShader(filepath + "texture.vert.spv",
                                 vk::ShaderStageFlagBits::eVertex);
     std::string fragShader = filepath;

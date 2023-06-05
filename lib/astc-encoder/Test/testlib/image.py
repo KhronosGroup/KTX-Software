@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # -----------------------------------------------------------------------------
-# Copyright 2019-2020 Arm Limited
+# Copyright 2019-2022 Arm Limited
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy
@@ -39,36 +39,6 @@ import testlib.misc as misc
 CONVERT_BINARY = ["convert"]
 
 
-g_ConvertVersion = None
-
-
-def get_convert_version():
-    """
-    Get the major/minor version of ImageMagick on the system.
-    """
-    global g_ConvertVersion
-
-    if g_ConvertVersion is None:
-        command = list(CONVERT_BINARY)
-        command += ["--version"]
-        result = sp.run(command, stdout=sp.PIPE, stderr=sp.PIPE,
-                        check=True, encoding="utf-8")
-
-        # Version is top row
-        version = result.stdout.splitlines()[0]
-        # ... third token
-        version = re.split(" ", version)[2]
-        # ... major/minor/patch/subpatch
-        version = re.split("\\.|-", version)
-
-        numericVersion = float(version[0])
-        numericVersion += float(version[1]) / 10.0
-
-        g_ConvertVersion = numericVersion
-
-    return g_ConvertVersion
-
-
 class ImageException(Exception):
     """
     Exception thrown for bad image specification.
@@ -89,14 +59,13 @@ class TestImage():
         colorFormat: The image color format.
         name: The image human name.
         is3D: True if the image is 3D, else False.
-        isMask: True if the image is a non-correlated mask texture, else False.
         isAlphaScaled: True if the image wants alpha scaling, else False.
         TEST_EXTS: Expected test image extensions.
         PROFILES: Tuple of valid color profile values.
         FORMATS: Tuple of valid color format values.
         FLAGS: Map of valid flags (key) and their meaning (value).
     """
-    TEST_EXTS = (".jpg", ".png", ".tga", ".dds", ".hdr")
+    TEST_EXTS = (".jpg", ".png", ".tga", ".dds", ".hdr", ".ktx")
 
     PROFILES = ("ldr", "ldrs", "hdr")
 
@@ -180,7 +149,6 @@ class TestImage():
 
         # Set default values for the optional fields
         self.is3D = False
-        self.isMask = False
         self.isAlphaScaled = False
 
         # Decode the flags field if present
@@ -195,7 +163,6 @@ class TestImage():
                 seenFlags.add(flag)
 
             self.is3D = "3" in seenFlags
-            self.isMask = "m" in seenFlags
             self.isAlphaScaled = "a" in seenFlags
 
     def get_size(self):
@@ -262,14 +229,6 @@ class Image():
         Args:
             filePath (str): The path to the image on disk.
         """
-        convert = get_convert_version()
-
-        # ImageMagick 7 started to use .tga file origin information. By default
-        # TGA files store data from bottom up, and define the origin as bottom
-        # left. We want our color samples to always use a top left origin, even
-        # if the data is stored in alternative layout.
-        self.invertYCoords = (convert >= 7.0) and filePath.endswith(".tga")
-
         self.filePath = filePath
         self.proxyPath = None
 
@@ -301,9 +260,8 @@ class Image():
             command = list(CONVERT_BINARY)
             command += [self.filePath]
 
-            # Invert coordinates if the format needs it
-            if self.invertYCoords:
-                command += ["-flip"]
+            # Ensure convert factors in format origin if needed
+            command += ["-auto-orient"]
 
             command += [
                 "-format", "%%[pixel:p{%u,%u}]" % (x, y),

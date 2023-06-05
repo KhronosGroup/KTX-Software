@@ -47,7 +47,7 @@ export PATH="${VULKAN_SDK}/bin:$PATH"
 # destination args can be expanded to a single word.
 OSX_XCODE_OPTIONS=(-alltargets -destination "platform=OS X,arch=x86_64")
 IOS_XCODE_OPTIONS=(-alltargets -destination "generic/platform=iOS" -destination "platform=iOS Simulator,OS=latest")
-XCODE_CODESIGN_ENV='CODE_SIGN_IDENTITY= CODE_SIGN_ENTITLEMENTS= CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO'
+XCODE_NO_CODESIGN_ENV='CODE_SIGN_IDENTITY= CODE_SIGN_ENTITLEMENTS= CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO'
 
 if which -s xcpretty ; then
   function handle_compiler_output() {
@@ -59,36 +59,38 @@ else
   }
 fi
 
-echo "Configure KTX-Software (macOS $ARCHS) dir=$BUILD_DIR FEATURE_DOC=$FEATURE_DOC FEATURE_JNI=$FEATURE_JNI FEATURE_PY=$FEATURE_PY FEATURE_LOADTESTS=$FEATURE_LOADTESTS FEATURE_TESTS=$FEATURE_TESTS FEATURE_TOOLS=$FEATURE_TOOLS SUPPORT_SSE=$SUPPORT_SSE SUPPORT_OPENCL=$SUPPORT_OPENCL"
+cmake_args=("-G" "Xcode" \
+  "-B" $BUILD_DIR \
+  "-D" "CMAKE_OSX_ARCHITECTURES=$ARCHS" \
+  "-D" "KTX_FEATURE_DOC=$FEATURE_DOC" \
+  "-D" "KTX_FEATURE_JNI=$FEATURE_JNI" \
+  "-D" "KTX_FEATURE_LOADTEST_APPS=$FEATURE_LOADTESTS" \
+  "-D" "KTX_FEATURE_PY=$FEATURE_PY" \
+  "-D" "KTX_FEATURE_TESTS=$FEATURE_TESTS" \
+  "-D" "KTX_FEATURE_TOOLS=$FEATURE_TOOLS" \
+  "-D" "BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL" \
+  "-D" "BASISU_SUPPORT_SSE=$SUPPORT_SSE"
+)
+if [ "$ARCHS" = "x86_64" ]; then cmake_args+=("-D" "ASTCENC_ISA_SSE41=ON"); fi
 if [ -n "$MACOS_CERTIFICATES_P12" ]; then
-  cmake -GXcode -B$BUILD_DIR . \
-  -D CMAKE_OSX_ARCHITECTURES="$ARCHS" \
-  -D KTX_FEATURE_DOC=$FEATURE_DOC \
-  -D KTX_FEATURE_JNI=$FEATURE_JNI \
-  -D KTX_FEATURE_PY=$FEATURE_PY \
-  -D KTX_FEATURE_LOADTEST_APPS=$FEATURE_LOADTESTS \
-  -D KTX_FEATURE_TESTS=$FEATURE_TESTS \
-  -D KTX_FEATURE_TOOLS=$FEATURE_TOOLS \
-  -D BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL \
-  -D BASISU_SUPPORT_SSE=$SUPPORT_SSE \
-  $(if [ "$ARCHS" = "x86_64" ]; then echo -D ISA_SSE41=ON; fi) \
-  -D XCODE_CODE_SIGN_IDENTITY="${CODE_SIGN_IDENTITY}" \
-  -D XCODE_DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
-  -D PRODUCTBUILD_IDENTITY_NAME="${PKG_SIGN_IDENTITY}"
-else # No secure variables means a PR or fork build.
-  echo "************* No Secure variables. ******************"
-  cmake -GXcode -B$BUILD_DIR . \
-  -D CMAKE_OSX_ARCHITECTURES="$ARCHS" \
-  -D KTX_FEATURE_DOC=$FEATURE_DOC \
-  -D KTX_FEATURE_JNI=$FEATURE_JNI \
-  -D KTX_FEATURE_PY=$FEATURE_PY \
-  -D KTX_FEATURE_LOADTEST_APPS=$FEATURE_LOADTESTS \
-  -D KTX_FEATURE_TESTS=$FEATURE_TESTS \
-  -D KTX_FEATURE_TOOLS=$FEATURE_TOOLS \
-  -D BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL \
-  -D BASISU_SUPPORT_SSE=$SUPPORT_SSE \
-  $(if [ "$ARCHS" = "x86_64" ]; then echo -D ISA_SSE41=ON; fi)
+  cmake_args+=( \
+    "-D" "XCODE_CODE_SIGN_IDENTITY=${CODE_SIGN_IDENTITY}" \
+    "-D" "XCODE_DEVELOPMENT_TEAM=${DEVELOPMENT_TEAM}" \
+    "-D" "PRODUCTBUILD_IDENTITY_NAME=${PKG_SIGN_IDENTITY}"
+  )
 fi
+config_display="Configure KTX-Software (macOS): "
+for arg in "${cmake_args[@]}"; do
+  case $arg in
+    "-G") config_display+="Generator=" ;;
+    "-B") config_display+="Build Dir=" ;;
+    "-D") ;;
+    *) config_display+="$arg, " ;;
+  esac
+done
+
+echo ${config_display%??}
+cmake . "${cmake_args[@]}"
 
 # Cause the build pipes below to set the exit to the exit code of the
 # last program to exit non-zero.
@@ -106,7 +108,7 @@ do
   if [ -n "$MACOS_CERTIFICATES_P12" -a "$config" = "Release" ]; then
     cmake --build . --config $config | handle_compiler_output
   else
-    cmake --build . --config $config -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | handle_compiler_output
+    cmake --build . --config $config -- $XCODE_NO_CODESIGN_ENV | handle_compiler_output
   fi
 
   # Rosetta 2 should let x86_64 tests run on an Apple Silicon Mac hence the -o.

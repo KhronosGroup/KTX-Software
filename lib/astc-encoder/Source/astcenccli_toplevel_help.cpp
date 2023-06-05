@@ -25,7 +25,7 @@
 /** @brief The version header. */
 static const char *astcenc_copyright_string =
 R"(astcenc v%s, %u-bit %s%s%s
-Copyright 2011-%s Arm Limited, all rights reserved
+Copyright (c) 2011-%s Arm Limited. All rights reserved.
 )";
 
 /** @brief The short-form help text. */
@@ -138,14 +138,15 @@ COMPRESSION
        The quality level configures the quality-performance tradeoff for
        the compressor; more complete searches of the search space improve
        image quality at the expense of compression time. The quality level
-       can be set to any value between 0 (fastest) and 100 (thorough), or
-       to a fixed quality preset:
+       can be set to any value between 0 (fastest) and 100 (exhaustive),
+       or to a fixed quality preset:
 
-           -fastest       (equivalent to quality =   0)
-           -fast          (equivalent to quality =  10)
-           -medium        (equivalent to quality =  60)
-           -thorough      (equivalent to quality =  98)
-           -exhaustive    (equivalent to quality = 100)
+           -fastest      (equivalent to quality =   0)
+           -fast         (equivalent to quality =  10)
+           -medium       (equivalent to quality =  60)
+           -thorough     (equivalent to quality =  98)
+           -verythorough (equivalent to quality =  99)
+           -exhaustive   (equivalent to quality = 100)
 
        For compression of production content we recommend using a quality
        level equivalent to -medium or higher.
@@ -158,12 +159,6 @@ COMPRESSION
        to consider for common usage, based on the type of image data being
        compressed.
 
-       -mask
-           The input texture is a mask texture with unrelated data stored
-           in the various color components, so enable error heuristics that
-           aim to improve quality by minimizing the effect of error
-           cross-talk across the color components.
-
        -normal
            The input texture is a three component linear LDR normal map
            storing unit length normals as (R=X, G=Y, B=Z). The output will
@@ -174,6 +169,9 @@ COMPRESSION
                nml.xy = texture(...).ga;              // Load in [0,1]
                nml.xy = nml.xy * 2.0 - 1.0;           // Unpack to [-1,1]
                nml.z = sqrt(1 - dot(nml.xy, nml.xy)); // Compute Z
+
+           Alternative component swizzles can be set with -esw and -dsw
+           parameters.
 
        -rgbm <max>
            The input texture is an RGBM encoded texture, storing values HDR
@@ -193,8 +191,8 @@ COMPRESSION
            typically lowers the measured PSNR score. Perceptual methods are
            currently only available for normal maps and RGB color data.
 
-       -array <size>
-           Loads an array of <size> 2D image slices to use as a 3D image.
+       -zdim <zdim>
+           Load a sequence of <zdim> 2D image slices to use as a 3D image.
            The input filename given is used is decorated with the postfix
            "_<slice>" to find the file to load. For example, an input named
            "input.png" would load as input_0.png, input_1.png, etc.
@@ -270,53 +268,71 @@ ADVANCED COMPRESSION
            Higher numbers give better quality, as more complex blocks can
            be encoded, but will increase search time. Preset defaults are:
 
-               -fastest    : 2
-               -fast       : 3
-               -medium     : 4
-               -thorough   : 4
-               -exhaustive : 4
+               -fastest      : 2
+               -fast         : 3
+               -medium       : 4
+               -thorough     : 4
+               -verythorough : 4
+               -exhaustive   : 4
 
-       -partitionindexlimit <number>
-           Test <number> block partition indices for each partition count.
-           Higher numbers give better quality, however large values give
-           diminishing returns especially for smaller block sizes. Preset
-           defaults are:
+       -[2|3|4]partitionindexlimit <number>
+           Estimate errors for <number> block partition indices for this
+           partition count. Higher numbers give better quality, however
+           large values give diminishing returns especially for smaller
+           block sizes. Preset defaults are:
 
-               -fastest    :    8
-               -fast       :   12
-               -medium     :   26
-               -thorough   :   76
-               -exhaustive : 1024
+               -fastest      :   10 |   6 |   4
+               -fast         :   18 |  10 |   8
+               -medium       :   34 |  28 |  16
+               -thorough     :   82 |  60 |  30
+               -verythorough :  256 | 128 |  64
+               -exhaustive   :  512 | 512 | 512
+
+       -[2|3|4]partitioncandidatelimit <number>
+           Calculate errors for <number> block partition indices for this
+           partition count. Higher numbers give better quality, however
+           large values give diminishing returns especially for smaller
+           block sizes. Preset defaults are:
+
+               -fastest      :   2 |  2 |  2
+               -fast         :   2 |  2 |  2
+               -medium       :   2 |  2 |  2
+               -thorough     :   3 |  2 |  2
+               -verythorough :  20 | 14 |  8
+               -exhaustive   :  32 | 32 | 32
 
        -blockmodelimit <number>
            Test block modes below <number> usage centile in an empirically
            determined distribution of block mode frequency. This option is
            ineffective for 3D textures. Preset defaults are:
 
-               -fastest    :  40
-               -fast       :  55
-               -medium     :  76
-               -thorough   :  93
-               -exhaustive : 100
+               -fastest      :  43
+               -fast         :  55
+               -medium       :  77
+               -thorough     :  94
+               -verythorough :  98
+               -exhaustive   : 100
 
-       -refinementlimit <value>
-           Iterate only <value> refinement iterations on colors and
+       -refinementlimit <number>
+           Iterate <number> refinement iterations on colors and
            weights. Minimum value is 1. Preset defaults are:
 
-               -fastest    : 2
-               -fast       : 3
-               -medium     : 3
-               -thorough   : 4
-               -exhaustive : 4
+               -fastest      : 2
+               -fast         : 3
+               -medium       : 3
+               -thorough     : 4
+               -verythorough : 4
+               -exhaustive   : 4
 
-       -candidatelimit <value>
-           Trial only <value> candidate encodings for each block mode:
+       -candidatelimit <number>
+           Trial <number> candidate encodings for each block mode:
 
-               -fastest    : 2
-               -fast       : 3
-               -medium     : 3
-               -thorough   : 4
-               -exhaustive : 4
+               -fastest      : 2
+               -fast         : 3
+               -medium       : 3
+               -thorough     : 4
+               -verythorough : 6
+               -exhaustive   : 8
 
        -dblimit <number>
            Stop compression work on a block as soon as the PSNR of the
@@ -324,37 +340,26 @@ ADVANCED COMPRESSION
            ineffective for HDR textures. Preset defaults, where N is the
            number of texels in a block, are:
 
-               -fastest    : MAX(63-19*log10(N),  85-35*log10(N))
-               -fast       : MAX(63-19*log10(N),  85-35*log10(N))
-               -medium     : MAX(70-19*log10(N),  95-35*log10(N))
-               -thorough   : MAX(77-19*log10(N), 105-35*log10(N))
-               -exhaustive : 999
+               -fastest      : MAX(63-19*log10(N),  85-35*log10(N))
+               -fast         : MAX(63-19*log10(N),  85-35*log10(N))
+               -medium       : MAX(70-19*log10(N),  95-35*log10(N))
+               -thorough     : MAX(77-19*log10(N), 105-35*log10(N))
+               -verythorough : 999
+               -exhaustive   : 999
 
-       -2partitionlimitfactor <factor>
+       -[2|3]partitionlimitfactor <factor>
            Stop compression work on a block after only testing blocks with
-           up to two partitions and one plane of weights, unless the two
+           up to 2/3 partitions and one plane of weights, unless the 2/3
            partition error term is lower than the error term from encoding
-           with one partition by more than the specified factor. Preset
+           with 1/2 partitions by more than the specified factor. Preset
            defaults are:
 
-               -fastest    :  1.0
-               -fast       :  1.0
-               -medium     :  1.2
-               -thorough   :  2.5
-               -exhaustive : 10.0
-
-       -3partitionlimitfactor <factor>
-           Stop compression work on a block after only testing blocks with
-           up to three partitions and one plane of weights, unless the three
-           partition error term is lower than the error term from encoding
-           with two partitions by more than the specified factor. Preset
-           defaults are:
-
-               -fastest    :  1.00
-               -fast       :  1.10
-               -medium     :  1.25
-               -thorough   :  1.25
-               -exhaustive : 10.00
+               -fastest       : 1.00 | 1.00
+               -fast          : 1.00 | 1.00
+               -medium        : 1.10 | 1.05
+               -thorough      : 1.35 | 1.15
+               -verythrorough : 1.60 | 1.40
+               -exhaustive    : 2.00 | 2.00
 
        -2planelimitcorrelation <factor>
            Stop compression after testing only one plane of weights, unless
@@ -362,53 +367,57 @@ ADVANCED COMPRESSION
            components is below this factor. This option is ineffective for
            normal maps. Preset defaults are:
 
-               -fastest    : 0.50
-               -fast       : 0.65
-               -medium     : 0.85
-               -thorough   : 0.95
-               -exhaustive : 0.99
-
-       -lowweightmodelimit <weight count>
-           Use a simpler weight search for weight counts less than or
-           equal to this threshold. Preset defaults are bitrate dependent:
-
-               -fastest    : 25
-               -fast       : 20
-               -medium     : 16
-               -thorough   : 12
-               -exhaustive : 0
-
+               -fastest      : 0.50
+               -fast         : 0.65
+               -medium       : 0.85
+               -thorough     : 0.95
+               -verythorough : 0.98
+               -exhaustive   : 0.99
+)"
+// This split in the literals is needed for Visual Studio; the compiler
+// will concatenate these two strings together ...
+R"(
        Other options
        -------------
 
        -esw <swizzle>
-           Swizzle the color components before compression. The swizzle is
-           specified using a 4-character string, which defines the output
-           format ordering. The characters may be taken from the set
-           [rgba01], selecting either input color components or a literal
-           zero or one. For example to swap the RG components, and replace
-           alpha with 1, the swizzle 'grb1' should be used.
+           Specify an encoding swizzle to reorder the color components
+           before compression. The swizzle is specified using a four
+           character string, which defines the format ordering used by
+           the compressor.
 
-           The input swizzle takes place before any compression, and all
-           error weighting applied using the -cw option is applied to the
-           post-swizzle component ordering.
+           The characters may be taken from the set [rgba01], selecting
+           either input color components or a literal zero or one. For
+           example to swap the RG components, and replace alpha with 1,
+           the swizzle 'grb1' should be used.
 
            By default all 4 post-swizzle components are included in the
-           error metrics during compression. When using -esw to map two
+           compression error metrics. When using -esw to map two
            component data to the L+A endpoint (e.g. -esw rrrg) the
            luminance data stored in the RGB components will be weighted 3
            times more strongly than the alpha component. This can be
-           corrected using the -cw option to zero the weights of unused
-           components; e.g. using -cw 1 0 0 1.
+           corrected using the -ssw option to specify which components
+           will be sampled at runtime e.g. -ssw ra.
+
+       -ssw <swizzle>
+           Specify a sampling swizzle to identify which color components
+           are actually read by the application shader program. For example,
+           using -ssw ra tells the compressor that the green and blue error
+           does not matter because the data is not actually read.
+
+           The sampling swizzle is based on the channel ordering after the
+           -esw transform has been applied. Note -ssw exposes the same
+           functionality as -cw, but in a more user-friendly form.
 
        -dsw <swizzle>
-           Swizzle the color components after decompression. The swizzle is
-           specified using the same method as the -esw option, with support
-           for an additional "z" character. This is used to specify that
-           the compressed data stores an X+Y normal map, and that the Z
-           output component should be reconstructed from the two components
-           stored in the data. For the typical ASTC normal encoding, which
-           uses an 'rrrg' compression swizzle, you should specify an 'raz1'
+           Specify a decompression swizzle used to reorder the color
+           components after decompression. The swizzle is specified using
+           the same method as the -esw option, with support for an extra
+           "z" character. This is used to specify that the compressed data
+           stores an X+Y normal map, and that the Z output component
+           should be reconstructed from the two components stored in the
+           data. For the typical ASTC normal encoding, which uses an
+           'rrrg' compression swizzle, you should specify an 'raz1'
            swizzle for decompression.
 
        -yflip
@@ -527,7 +536,7 @@ QUICK REFERENCE
            astcenc {-tl|-ts|-th|-tH} <in> <out> <blockdim> <quality> [options]
 
        Mode -*l = linear LDR, -*s = sRGB LDR, -*h = HDR RGB/LDR A, -*H = HDR.
-       Quality = -fastest/-fast/-medium/-thorough/-exhaustive/a float [0-100].
+       Quality = -fastest/-fast/-medium/-thorough/-verythorough/-exhaustive/a float [0-100].
 )";
 
 /* See header for documentation. */

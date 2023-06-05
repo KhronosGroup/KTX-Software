@@ -1,0 +1,59 @@
+# Copyright 2015-2020 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+name: KTX-Software MingW CI
+
+# Seems no way to avoid duplicating this on logic in each .yml file.
+# See https://github.com/actions/starter-workflows/issues/245.
+on:
+  # Trigger the workflow on a pull request,
+  pull_request:
+
+  push:
+    # And on pushes to main, which will occur when a PR is merged.
+    branches:
+      - main
+    # Also trigger on push of release tags to any branch. Useful
+    # for testing release builds before merging to main.
+    tags:
+      - 'v[0-9]+\.[0-9]+\.[0-9]+'
+      - 'v[0-9]+\.[0-9]+\.[0-9]+-*'
+    paths-ignore:
+      - .appveyor.yml
+      - .travis.yml
+
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  mingw:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        # Fetch all history to make sure tags are
+        # included (used for version creation)
+        fetch-depth: 0
+    - uses: egor-tensin/setup-mingw@v2
+      with:
+        platform: x64
+    - name: Force update provoking tag
+      # Work around https://github.com/actions/checkout/issues/290.
+      if: github.ref_type == 'tag'
+      run: git fetch -f origin ${{ github.ref }}:${{ github.ref }}
+    - name: Pull test images from Git LFS
+      run: git lfs pull --include=tests/srcimages,tests/testimages
+    - name: Install Ninja
+      run: choco install ninja --no-progress
+    - name: Configure Mingw x64
+      run: cmake -B build -G "Ninja Multi-Config" -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++
+    - name: Build Mingw x64 Debug
+      run: cmake --build build --config Debug
+    - name: Build Mingw x64 Release
+      run: cmake --build build --config Release
+    - name: Test Mingw build
+      run: ctest --test-dir build -C Release
+    - name: Upload test log
+      if: ${{ failure() }}
+      run: ci_scripts/on_failure.ps1
+

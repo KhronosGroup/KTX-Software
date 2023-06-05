@@ -67,18 +67,18 @@ encode_bt709(float const intensity, float const) {
        Note that the discrepancy is below the precision of a maxval 255
        image.
     */
-    float const gamma = 2.2f;
-    float const oneOverGamma = 1.0f / gamma;
+    float const eoGamma = 2.2f;
+    float const oeGamma = 1.0f / eoGamma;
     float const linearCutoff = 0.018f;
     float const linearExpansion =
-        (1.099f * pow(linearCutoff, oneOverGamma) - 0.099f) / linearCutoff;
+        (1.099f * pow(linearCutoff, oeGamma) - 0.099f) / linearCutoff;
 
     float brightness;
 
     if (intensity < linearCutoff)
         brightness = intensity * linearExpansion;
     else
-        brightness = 1.099f * pow(intensity, oneOverGamma) - 0.099f;
+        brightness = 1.099f * pow(intensity, oeGamma) - 0.099f;
 
     return brightness;
 }
@@ -86,18 +86,18 @@ encode_bt709(float const intensity, float const) {
 static INLINE float
 decode_bt709(float const brightness, float const)
 {
-    float const gamma = 2.2f;
-    float const oneOverGamma = 1.0f / gamma;
+    float const eoGamma = 2.2f;
+    float const oeGamma = 1.0f / eoGamma;
     float const linearCutoff = 0.018f;
     float const linearExpansion =
-        (1.099f * pow(linearCutoff, oneOverGamma) - 0.099f) / linearCutoff;
+        (1.099f * pow(linearCutoff, oeGamma) - 0.099f) / linearCutoff;
 
     float intensity;
 
     if (brightness < linearCutoff * linearExpansion)
         intensity = brightness / linearExpansion;
     else
-        intensity = pow((brightness + 0.099f) / 1.099f, gamma);
+        intensity = pow((brightness + 0.099f) / 1.099f, eoGamma);
 
     return intensity;
 }
@@ -133,9 +133,11 @@ decode_sRGB(float const brightness, float const unused = 1.0f)
 }
 
 static INLINE float
-decode_gamma(float const brightness, float const gamma)
+// gamma must be the inverse of the exponent that was used
+// when encoding to avoid a division per call.
+decode_gamma(float const brightness, float const eoGamma)
 {
-    return saturate(powf(brightness, gamma));
+    return saturate(powf(brightness, eoGamma));
 }
 
 static INLINE float
@@ -185,7 +187,7 @@ struct vec3_base {
 };
 
 static constexpr float gc_m[5]={0.0f, 128.0f, 32768.0f, 0.0f, 2147483648.0f};
-static constexpr float gc_s[5]={0.0f, 255.0f, 65535.0f, 0.0f, 4294967295.0f};
+static constexpr uint32_t gc_s[5]={0, 255, 65535, 0, 4294967295};
 
 template <typename componentType>
 struct vec3 : public vec3_base {
@@ -199,15 +201,15 @@ struct vec3 : public vec3_base {
         if (gc_m[i] == r && gc_m[i] == g && gc_m[i] == b) {
             return;
         } else {
-            r = r / gc_s[i] * 2.0f - 1.0f;
-            g = g / gc_s[i] * 2.0f - 1.0f;
-            b = b / gc_s[i] * 2.0f - 1.0f;
+            r = (float)(r / (double)gc_s[i]) * 2.0f - 1.0f;
+            g = (float)(g / (double)gc_s[i]) * 2.0f - 1.0f;
+            b = (float)(b / (double)gc_s[i]) * 2.0f - 1.0f;
             clamp(-1.0f, 1.0f);
             base_normalize();
-            r = (std::floor((r + 1.0f) * gc_s[i] * 0.5f + 0.5f));
-            g = (std::floor((g + 1.0f) * gc_s[i] * 0.5f + 0.5f));
-            b = (std::floor((b + 1.0f) * gc_s[i] * 0.5f + 0.5f));
-            clamp(0, gc_s[i]);
+            r = (std::floor((r + 1.0f) * (float)gc_s[i] * 0.5f + 0.5f));
+            g = (std::floor((g + 1.0f) * (float)gc_s[i] * 0.5f + 0.5f));
+            b = (std::floor((b + 1.0f) * (float)gc_s[i] * 0.5f + 0.5f));
+            clamp(0.0f, (float)gc_s[i]);
         }
     }
 };
@@ -342,7 +344,7 @@ class color<componentType, 2> : public color_base<componentType, 2> {
     }
     void normalize() {
         vec3<componentType> v((float)r, (float)g,
-                              gc_s[sizeof(componentType)] * 0.5f);
+                              (float)gc_s[sizeof(componentType)] * 0.5f);
         v.normalize();
         r = (componentType)v.r;
         g = (componentType)v.g;
@@ -381,10 +383,10 @@ class color<componentType, 1> : public color_base<componentType, 1> {
         return 1;
     }
     void normalize() {
-        vec3<componentType> v((float)r, gc_s[sizeof(componentType)] * 0.5f,
-                              gc_s[sizeof(componentType)] * 0.5f);
-        v.normalize();
-        r = (componentType)v.r;
+		// Normalizing single channel image doesn't make much sense
+		// Here I assume single channel color is (X, 0, 0, 0)
+		if (r != 0)
+			r = (componentType)gc_s[sizeof(componentType)];
     }
 };
 
@@ -400,40 +402,18 @@ class Image {
         invalid_file(std::string error)
             : std::runtime_error("Invalid file: " + error) { }
     };
-    enum colortype_e {
-        eLuminance=0, eLuminanceAlpha=1, eR=2, eRG, eRGB, eRGBA
-    };
-    enum rescale_e {
-      eNoRescale, eAlwaysRescaleTo8Bits, eRescaleTo8BitsIfLess
-    };
 
     virtual ~Image() { };
 
     uint32_t getWidth() const { return width; }
     uint32_t getHeight() const { return height; }
     uint32_t getPixelCount() const { return width * height; }
-    colortype_e getColortype() { return this->colortype; }
-    void setColortype(colortype_e t) { colortype = t; }
     khr_df_transfer_e getOetf() const { return oetf; }
     void setOetf(khr_df_transfer_e noetf) { this->oetf = noetf; }
     khr_df_primaries_e getPrimaries() const { return primaries; }
     void setPrimaries(khr_df_primaries_e nprimaries) {
         this->primaries = nprimaries;
     }
-
-    typedef Image* (*CreateFunction)(FILE* f, bool transformOETF,
-                                     rescale_e rescale);
-    static const std::vector<CreateFunction> CreateFunctions;
-
-    static Image* CreateFromNPBM(FILE*, bool transformOETF = true,
-                                 rescale_e rescale = eNoRescale);
-    static Image* CreateFromJPG(FILE* f, bool transformOETF = true,
-                                rescale_e rescale = eNoRescale);
-    static Image* CreateFromPNG(FILE* f, bool transformOETF = true,
-                                rescale_e rescale = eNoRescale);
-    static Image* CreateFromFile(const _tstring& name,
-                                 bool transformOETF = true,
-                                 rescale_e rescale = eNoRescale);
 
     virtual operator uint8_t*() = 0;
 
@@ -464,7 +444,6 @@ class Image {
               primaries(KHR_DF_PRIMARIES_BT709) { }
 
     uint32_t width, height;  // In pixels
-    colortype_e colortype;
     khr_df_transfer_e oetf;
     khr_df_primaries_e primaries;
 };
@@ -703,9 +682,13 @@ class ImageT : public Image {
         return *this;
     }
 
+    // oeGamma is the exponent used when the image was encoded
+    // or the value to be used when re-encoding the image.
     virtual ImageT& transformOETF(OETFFunc decode, OETFFunc encode,
-                                  float gamma = 1.0f) {
+                                  float oeGamma = 1.0f) {
         uint32_t pixelCount = getPixelCount();
+        // eoGamma is the exponent for decoding the image.
+        float eoGamma = 1.0f / oeGamma;
         for (uint32_t i = 0; i < pixelCount; ++i) {
             Color& c = pixels[i];
             // Don't transform the alpha component. --------  v
@@ -713,8 +696,8 @@ class ImageT : public Image {
                 float brightness = (float)(c[comp]) / Color::one();
                 // gamma is only used by decode_gamma. Currently there is no
                 // encode_gamma.
-                float intensity = decode(brightness, gamma);
-                brightness = cclamp(encode(intensity, gamma), 0.0f, 1.0f);
+                float intensity = decode(brightness, eoGamma);
+                brightness = cclamp(encode(intensity, oeGamma), 0.0f, 1.0f);
                 c.set(comp, roundf(brightness * Color::one()));
             }
         }
@@ -769,7 +752,6 @@ class ImageT : public Image {
 
         dst.setOetf(oetf);
         dst.setPrimaries(primaries);
-        dst.setColortype((colortype_e)(dst.getComponentCount() + Image::eLuminanceAlpha));
         for (size_t i = 0; i < getPixelCount(); i++) {
             uint32_t c;
             for (c = 0; c < dst.getComponentCount(); c++) {

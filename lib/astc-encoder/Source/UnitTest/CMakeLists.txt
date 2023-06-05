@@ -1,6 +1,6 @@
 #  SPDX-License-Identifier: Apache-2.0
 #  ----------------------------------------------------------------------------
-#  Copyright 2020-2021 Arm Limited
+#  Copyright 2020-2023 Arm Limited
 #
 #  Licensed under the Apache License, Version 2.0 (the "License"); you may not
 #  use this file except in compliance with the License. You may obtain a copy
@@ -15,26 +15,26 @@
 #  under the License.
 #  ----------------------------------------------------------------------------
 
-if(${UNIVERSAL_BUILD})
-    if(${ISA_AVX2})
-        set(ISA_SIMD "avx2")
-    elseif(${ISA_SSE41})
-        set(ISA_SIMD "sse4.1")
-    elseif(${ISA_SSE2})
-        set(ISA_SIMD "sse2")
+if(${ASTCENC_UNIVERSAL_BUILD})
+    if(${ASTCENC_ISA_AVX2})
+        set(ASTCENC_ISA_SIMD "avx2")
+    elseif(${ASTCENC_ISA_SSE41})
+        set(ASTCENC_ISA_SIMD "sse4.1")
+    elseif(${ASTCENC_ISA_SSE2})
+        set(ASTCENC_ISA_SIMD "sse2")
     endif()
     include(cmake_core.cmake)
 else()
-    set(ARTEFACTS native none neon avx2 sse4.1 sse2)
-    set(CONFIGS ${ISA_NATIVE} ${ISA_NONE} ${ISA_NEON} ${ISA_AVX2} ${ISA_SSE41} ${ISA_SSE2})
-    list(LENGTH ARTEFACTS ARTEFACTS_LEN)
-    math(EXPR ARTEFACTS_LEN "${ARTEFACTS_LEN} - 1")
+    set(ASTCENC_ARTIFACTS native none neon avx2 sse4.1 sse2)
+    set(ASTCENC_CONFIGS ${ASTCENC_ISA_NATIVE} ${ASTCENC_ISA_NONE} ${ASTCENC_ISA_NEON} ${ASTCENC_ISA_AVX2} ${ASTCENC_ISA_SSE41} ${ASTCENC_ISA_SSE2})
+    list(LENGTH ASTCENC_ARTIFACTS ASTCENC_ARTIFACTS_LEN)
+    math(EXPR ASTCENC_ARTIFACTS_LEN "${ASTCENC_ARTIFACTS_LEN} - 1")
 
-    foreach(INDEX RANGE ${ARTEFACTS_LEN})
-        list(GET ARTEFACTS ${INDEX} ARTEFACT)
-        list(GET CONFIGS ${INDEX} CONFIG)
-        if(${CONFIG})
-            set(ISA_SIMD ${ARTEFACT})
+    foreach(INDEX RANGE ${ASTCENC_ARTIFACTS_LEN})
+        list(GET ASTCENC_ARTIFACTS ${INDEX} ASTCENC_ARTIFACT)
+        list(GET ASTCENC_CONFIGS ${INDEX} ASTCENC_CONFIG)
+        if(${ASTCENC_CONFIG})
+            set(ASTCENC_ISA_SIMD ${ASTCENC_ARTIFACT})
             include(cmake_core.cmake)
         endif()
     endforeach()

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # -----------------------------------------------------------------------------
-# Copyright 2021 Arm Limited
+# Copyright 2021-2022 Arm Limited
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy
@@ -16,7 +16,7 @@
 # under the License.
 # -----------------------------------------------------------------------------
 """
-A benchmarking sweep helper, which can genrate a performance-vs-quality sweep
+A benchmarking sweep helper, which can generate a performance-vs-quality sweep
 for a single input images. Like other test functionality, this uses structured
 image directory layouts for determining image settings to pass to the codec.
 """

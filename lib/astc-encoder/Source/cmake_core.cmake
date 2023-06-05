@@ -1,6 +1,6 @@
 #  SPDX-License-Identifier: Apache-2.0
 #  ----------------------------------------------------------------------------
-#  Copyright 2020-2022 Arm Limited
+#  Copyright 2020-2023 Arm Limited
 #
 #  Licensed under the Apache License, Version 2.0 (the "License"); you may not
 #  use this file except in compliance with the License. You may obtain a copy
@@ -15,18 +15,18 @@
 #  under the License.
 #  ----------------------------------------------------------------------------
 
-if(${UNIVERSAL_BUILD})
-    set(ASTC_TARGET astc${CODEC})
+if(${ASTCENC_UNIVERSAL_BUILD})
+    set(ASTCENC_TARGET astc${ASTCENC_CODEC})
 else()
-    set(ASTC_TARGET astc${CODEC}-${ISA_SIMD})
+    set(ASTCENC_TARGET astc${ASTCENC_CODEC}-${ASTCENC_ISA_SIMD})
 endif()
 
-project(${ASTC_TARGET})
+project(${ASTCENC_TARGET})
 
 set(GNU_LIKE "GNU,Clang,AppleClang")
 set(CLANG_LIKE "Clang,AppleClang")
 
-add_library(${ASTC_TARGET}-static
+add_library(${ASTCENC_TARGET}-static
     STATIC
         astcenc_averages_and_directions.cpp
         astcenc_block_sizes.cpp
@@ -46,19 +46,55 @@ add_library(${ASTC_TARGET}-static
         astcenc_partition_tables.cpp
         astcenc_percentile_tables.cpp
         astcenc_pick_best_endpoint_format.cpp
-        astcenc_platform_isa_detection.cpp
         astcenc_quantization.cpp
         astcenc_symbolic_physical.cpp
         astcenc_weight_align.cpp
         astcenc_weight_quant_xfer_tables.cpp)
 
-target_include_directories(${ASTC_TARGET}-static
+target_include_directories(${ASTCENC_TARGET}-static
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<INSTALL_INTERFACE:.>)
 
-if(${CLI})
-    add_executable(${ASTC_TARGET}
+if(${ASTCENC_SHAREDLIB})
+    add_library(${ASTCENC_TARGET}-shared
+        SHARED
+            astcenc_averages_and_directions.cpp
+            astcenc_block_sizes.cpp
+            astcenc_color_quantize.cpp
+            astcenc_color_unquantize.cpp
+            astcenc_compress_symbolic.cpp
+            astcenc_compute_variance.cpp
+            astcenc_decompress_symbolic.cpp
+            astcenc_diagnostic_trace.cpp
+            astcenc_entry.cpp
+            astcenc_find_best_partitioning.cpp
+            astcenc_ideal_endpoints_and_weights.cpp
+            astcenc_image.cpp
+            astcenc_integer_sequence.cpp
+            astcenc_mathlib.cpp
+            astcenc_mathlib_softfloat.cpp
+            astcenc_partition_tables.cpp
+            astcenc_percentile_tables.cpp
+            astcenc_pick_best_endpoint_format.cpp
+            astcenc_quantization.cpp
+            astcenc_symbolic_physical.cpp
+            astcenc_weight_align.cpp
+            astcenc_weight_quant_xfer_tables.cpp)
+
+    target_include_directories(${ASTCENC_TARGET}-shared
+        PUBLIC
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+            $<INSTALL_INTERFACE:.>)
+endif()
+
+if(${ASTCENC_CLI})
+    # Veneer is compiled without any extended ISA so we can safely do
+    # ISA compatability checks without triggering a SIGILL
+    add_library(${ASTCENC_TARGET}-veneer
+        astcenccli_entry.cpp)
+
+    add_executable(${ASTCENC_TARGET}
         astcenccli_error_metrics.cpp
         astcenccli_image.cpp
         astcenccli_image_external.cpp
@@ -67,58 +103,48 @@ if(${CLI})
         astcenccli_toplevel.cpp
         astcenccli_toplevel_help.cpp)
 
-    target_link_libraries(${ASTC_TARGET}
+    target_link_libraries(${ASTCENC_TARGET}
         PRIVATE
-            ${ASTC_TARGET}-static)
+            ${ASTCENC_TARGET}-veneer
+            ${ASTCENC_TARGET}-static)
 endif()
 
-macro(astcenc_set_properties NAME)
+macro(astcenc_set_properties ASTCENC_TARGET_NAME ASTCENC_IS_VENEER)
 
-    target_compile_features(${NAME}
+    target_compile_features(${ASTCENC_TARGET_NAME}
         PRIVATE
             cxx_std_14)
 
-    target_compile_definitions(${NAME}
+    target_compile_definitions(${ASTCENC_TARGET_NAME}
         PRIVATE
             # MSVC defines
             $<$<CXX_COMPILER_ID:MSVC>:_CRT_SECURE_NO_WARNINGS>)
 
-    # Work around compiler bug in MSVC when targeting arm64
-    # https://developercommunity.visualstudio.com/t/inlining-turns-constant-into-register-operand-for/1394798
-    # https://github.com/microsoft/vcpkg/pull/24869
-    if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-        if(CPU_ARCHITECTURE STREQUAL armv8 OR CPU_ARCHITECTURE STREQUAL arm64)
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /d2ssa-cfg-sink-")
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /d2ssa-cfg-sink-")
-        endif()
-    endif()
-
-    if(${DECOMPRESSOR})
-        target_compile_definitions(${NAME}
+    if(${ASTCENC_DECOMPRESSOR})
+        target_compile_definitions(${ASTCENC_TARGET_NAME}
             PRIVATE
                 ASTCENC_DECOMPRESS_ONLY)
     endif()
 
-    if(${BLOCK_MAX_TEXELS})
-        target_compile_definitions(${NAME}
+    if(${ASTCENC_BLOCK_MAX_TEXELS})
+        target_compile_definitions(${ASTCENC_TARGET_NAME}
             PRIVATE
-                ASTCENC_BLOCK_MAX_TEXELS=${BLOCK_MAX_TEXELS})
+                ASTCENC_BLOCK_MAX_TEXELS=${ASTCENC_BLOCK_MAX_TEXELS})
     endif()
 
-    if(${DIAGNOSTICS})
-        target_compile_definitions(${NAME}
+    if(${ASTCENC_DIAGNOSTICS})
+        target_compile_definitions(${ASTCENC_TARGET_NAME}
             PUBLIC
                 ASTCENC_DIAGNOSTICS)
     endif()
 
-    target_compile_options(${NAME}
+    target_compile_options(${ASTCENC_TARGET_NAME}
         PRIVATE
             # Use pthreads on Linux/macOS
             $<$<PLATFORM_ID:Linux,Darwin>:-pthread>
 
             # MSVC compiler defines
             $<$<CXX_COMPILER_ID:MSVC>:/EHsc>
-            $<$<CXX_COMPILER_ID:MSVC>:/fp:strict>
             $<$<CXX_COMPILER_ID:MSVC>:/wd4324>
 
             # G++ and Clang++ compiler defines
@@ -146,45 +172,69 @@ macro(astcenc_set_properties NAME)
             $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-reserved-identifier>
             $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-cast-function-type>
 
+            # Force DWARF4 for Valgrind profiling
+            $<$<AND:$<PLATFORM_ID:Linux,Darwin>,$<CXX_COMPILER_ID:Clang>>:-gdwarf-4>
+
+            # Disable non-portable Windows.h warning (fixing it fails builds on MinGW)
+            $<$<AND:$<PLATFORM_ID:Windows>,$<CXX_COMPILER_ID:Clang>>:-Wno-nonportable-system-include-path>
+
             $<$<CXX_COMPILER_ID:Clang>:-Wdocumentation>)
 
-    target_link_options(${NAME}
+    target_link_options(${ASTCENC_TARGET_NAME}
         PRIVATE
             # Use pthreads on Linux/macOS
             $<$<PLATFORM_ID:Linux,Darwin>:-pthread>)
 
-    if(${ASAN})
-        target_compile_options(${NAME}
+    if(${ASTCENC_ASAN})
+        target_compile_options(${ASTCENC_TARGET_NAME}
             PRIVATE
                 $<$<CXX_COMPILER_ID:${CLANG_LIKE}>:-fsanitize=address>)
 
-        target_link_options(${NAME}
+        target_link_options(${ASTCENC_TARGET_NAME}
             PRIVATE
                 $<$<CXX_COMPILER_ID:${CLANG_LIKE}>:-fsanitize=address>)
     endif()
 
-    if(${NO_INVARIANCE})
-            target_compile_definitions(${NAME}
-                PRIVATE
-                    ASTCENC_NO_INVARIANCE=1)
+    if(NOT ${ASTCENC_INVARIANCE})
+        target_compile_definitions(${ASTCENC_TARGET_NAME}
+            PRIVATE
+                ASTCENC_NO_INVARIANCE=1)
+
+        # For Visual Studio prior to 2022 (compiler < 19.30) /fp:precise
+        # For Visual Studio 2022 (compiler >= 19.30) /fp:precise and /fp:contract
+        target_compile_options(${ASTCENC_TARGET_NAME}
+            PRIVATE
+                $<$<CXX_COMPILER_ID:MSVC>:/fp:precise>
+                $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.30>>:/fp:contract>
+                $<$<AND:$<PLATFORM_ID:Linux,Darwin>,$<CXX_COMPILER_ID:${CLANG_LIKE}>>:-ffp-model=precise>
+                $<$<PLATFORM_ID:Linux,Darwin>:-ffp-contract=fast>)
+    else()
+        # For Visual Studio prior to 2022 (compiler < 19.30) /fp:strict
+        # For Visual Studio 2022 (compiler >= 19.30) /fp:precise
+        target_compile_options(${ASTCENC_TARGET_NAME}
+            PRIVATE
+                $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,19.30>>:/fp:strict>
+                $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.30>>:/fp:precise>
+                $<$<AND:$<PLATFORM_ID:Linux,Darwin>,$<CXX_COMPILER_ID:${CLANG_LIKE}>>:-ffp-model=precise>
+                $<$<PLATFORM_ID:Linux,Darwin>:-ffp-contract=off>)
     endif()
 
-    if(${CLI})
+    if(${ASTCENC_CLI})
         # Enable LTO on release builds
-        set_property(TARGET ${NAME}
+        set_property(TARGET ${ASTCENC_TARGET_NAME}
             PROPERTY
                 INTERPROCEDURAL_OPTIMIZATION_RELEASE True)
 
         # Use a static runtime on MSVC builds (ignored on non-MSVC compilers)
-        set_property(TARGET ${NAME}
+        set_property(TARGET ${ASTCENC_TARGET_NAME}
             PROPERTY
                 MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
     endif()
 
     # Set up configuration for SIMD ISA builds
-    if(${ISA_SIMD} MATCHES "none")
-        if(NOT ${UNIVERSAL_BUILD})
-            target_compile_definitions(${NAME}
+    if(${ASTCENC_ISA_SIMD} MATCHES "none")
+        if(NOT ${ASTCENC_UNIVERSAL_BUILD})
+            target_compile_definitions(${ASTCENC_TARGET_NAME}
                 PRIVATE
                     ASTCENC_NEON=0
                     ASTCENC_SSE=0
@@ -193,9 +243,9 @@ macro(astcenc_set_properties NAME)
                     ASTCENC_F16C=0)
         endif()
 
-    elseif(${ISA_SIMD} MATCHES "neon")
-        if(NOT ${UNIVERSAL_BUILD})
-            target_compile_definitions(${NAME}
+    elseif(${ASTCENC_ISA_SIMD} MATCHES "neon")
+        if(NOT ${ASTCENC_UNIVERSAL_BUILD})
+            target_compile_definitions(${ASTCENC_TARGET_NAME}
                 PRIVATE
                     ASTCENC_NEON=1
                     ASTCENC_SSE=0
@@ -204,15 +254,17 @@ macro(astcenc_set_properties NAME)
                     ASTCENC_F16C=0)
         endif()
 
-        # Workaround MSVC codegen bug for NEON builds see:
+        # Workaround MSVC codegen bug for NEON builds on VS 2022 17.2 or older
         # https://developercommunity.visualstudio.com/t/inlining-turns-constant-into-register-operand-for/1394798
-        target_compile_options(${NAME}
-            PRIVATE
-            $<$<CXX_COMPILER_ID:MSVC>:/d2ssa-cfg-sink->)
+        if((CMAKE_CXX_COMPILER_ID MATCHES "MSVC") AND (MSVC_VERSION LESS 1933))
+            target_compile_options(${ASTCENC_TARGET_NAME}
+                PRIVATE
+                    $<$<CXX_COMPILER_ID:MSVC>:/d2ssa-cfg-sink->)
+        endif()
 
-    elseif((${ISA_SIMD} MATCHES "sse2") OR (${UNIVERSAL_BUILD} AND ${ISA_SSE2}))
-        if(NOT ${UNIVERSAL_BUILD})
-            target_compile_definitions(${NAME}
+    elseif((${ASTCENC_ISA_SIMD} MATCHES "sse2") OR (${ASTCENC_UNIVERSAL_BUILD} AND ${ASTCENC_ISA_SSE2}))
+        if(NOT ${ASTCENC_UNIVERSAL_BUILD})
+            target_compile_definitions(${ASTCENC_TARGET_NAME}
                 PRIVATE
                     ASTCENC_NEON=0
                     ASTCENC_SSE=20
@@ -221,17 +273,16 @@ macro(astcenc_set_properties NAME)
                     ASTCENC_F16C=0)
         endif()
 
-        # These settings are needed on AppleClang as SSE4.1 is on by default
-        # Suppress unused argument for macOS universal build behavior
-        target_compile_options(${NAME}
+        # Force SSE2 on AppleClang (normally SSE4.1 is the default)
+        target_compile_options(${ASTCENC_TARGET_NAME}
             PRIVATE
                 $<$<CXX_COMPILER_ID:AppleClang>:-msse2>
                 $<$<CXX_COMPILER_ID:AppleClang>:-mno-sse4.1>
                 $<$<CXX_COMPILER_ID:AppleClang>:-Wno-unused-command-line-argument>)
 
-    elseif((${ISA_SIMD} MATCHES "sse4.1") OR (${UNIVERSAL_BUILD} AND ${ISA_SSE41}))
-        if(NOT ${UNIVERSAL_BUILD})
-            target_compile_definitions(${NAME}
+    elseif((${ASTCENC_ISA_SIMD} MATCHES "sse4.1") OR (${ASTCENC_UNIVERSAL_BUILD} AND ${ASTCENC_ISA_SSE41}))
+        if(NOT ${ASTCENC_UNIVERSAL_BUILD})
+            target_compile_definitions(${ASTCENC_TARGET_NAME}
                 PRIVATE
                     ASTCENC_NEON=0
                     ASTCENC_SSE=41
@@ -240,15 +291,23 @@ macro(astcenc_set_properties NAME)
                     ASTCENC_F16C=0)
         endif()
 
-        # Suppress unused argument for macOS universal build behavior
-        target_compile_options(${NAME}
-            PRIVATE
-                $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-msse4.1 -mpopcnt>
-                $<$<CXX_COMPILER_ID:AppleClang>:-Wno-unused-command-line-argument>)
+        if (${ASTCENC_IS_VENEER})
+            # Force SSE2 on AppleClang (normally SSE4.1 is the default)
+            target_compile_options(${ASTCENC_TARGET_NAME}
+                PRIVATE
+                    $<$<CXX_COMPILER_ID:AppleClang>:-msse2>
+                    $<$<CXX_COMPILER_ID:AppleClang>:-mno-sse4.1>
+                    $<$<CXX_COMPILER_ID:AppleClang>:-Wno-unused-command-line-argument>)
+        else()
+            target_compile_options(${ASTCENC_TARGET_NAME}
+                PRIVATE
+                    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-msse4.1 -mpopcnt>
+                    $<$<CXX_COMPILER_ID:AppleClang>:-Wno-unused-command-line-argument>)
+        endif()
 
-    elseif((${ISA_SIMD} MATCHES "avx2") OR (${UNIVERSAL_BUILD} AND ${ISA_AVX2}))
-        if(NOT ${UNIVERSAL_BUILD})
-            target_compile_definitions(${NAME}
+    elseif((${ASTCENC_ISA_SIMD} MATCHES "avx2") OR (${ASTCENC_UNIVERSAL_BUILD} AND ${ASTCENC_ISA_AVX2}))
+        if(NOT ${ASTCENC_UNIVERSAL_BUILD})
+            target_compile_definitions(${ASTCENC_TARGET_NAME}
                 PRIVATE
                     ASTCENC_NEON=0
                     ASTCENC_SSE=41
@@ -257,12 +316,20 @@ macro(astcenc_set_properties NAME)
                     ASTCENC_F16C=1)
         endif()
 
-        # Suppress unused argument for macOS universal build behavior
-        target_compile_options(${NAME}
-            PRIVATE
-                $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-mavx2 -mpopcnt -mf16c>
-                $<$<CXX_COMPILER_ID:MSVC>:/arch:AVX2>
-                $<$<CXX_COMPILER_ID:AppleClang>:-Wno-unused-command-line-argument>)
+        if (${ASTCENC_IS_VENEER})
+            # Force SSE2 on AppleClang (normally SSE4.1 is the default)
+            target_compile_options(${ASTCENC_TARGET_NAME}
+                PRIVATE
+                    $<$<CXX_COMPILER_ID:AppleClang>:-msse2>
+                    $<$<CXX_COMPILER_ID:AppleClang>:-mno-sse4.1>
+                    $<$<CXX_COMPILER_ID:AppleClang>:-Wno-unused-command-line-argument>)
+        else()
+            target_compile_options(${ASTCENC_TARGET_NAME}
+                PRIVATE
+                    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-mavx2 -mpopcnt -mf16c>
+                    $<$<CXX_COMPILER_ID:MSVC>:/arch:AVX2>
+                    $<$<CXX_COMPILER_ID:AppleClang>:-Wno-unused-command-line-argument>)
+        endif()
 
         # Non-invariant builds enable us to loosen the compiler constraints on
         # floating point, but this is only worth doing on CPUs with AVX2 because
@@ -270,11 +337,10 @@ macro(astcenc_set_properties NAME)
         # which significantly improve performance. Note that this DOES reduce
         # image quality by up to 0.2 dB (normally much less), but buys an
         # average of 10-15% performance improvement ...
-        if(${NO_INVARIANCE})
-            target_compile_options(${NAME}
+        if((NOT ${ASTCENC_INVARIANCE}) AND (NOT ${ASTCENC_IS_VENEER}))
+            target_compile_options(${ASTCENC_TARGET_NAME}
                 PRIVATE
-                    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-mfma>
-                    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-ffp-contract=fast>)
+                    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-mfma>)
         endif()
 
     endif()
@@ -295,7 +361,8 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
             " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-tautological-type-limit-compare>"
             " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-cast-qual>"
             " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-reserved-identifier>"
-            " $<$<CXX_COMPILER_ID:Clang>: -Wno-missing-prototypes>"
+            " $<$<CXX_COMPILER_ID:${CLANG_LIKE}>: -Wno-missing-prototypes>"
+            " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-missing-field-initializers>"
             " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-suggest-override>"
             " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-used-but-marked-unused>"
             " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-noexcept-type>"
@@ -307,16 +374,34 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
             COMPILE_FLAGS ${EXTERNAL_CXX_FLAGS})
 endif()
 
-astcenc_set_properties(${ASTC_TARGET}-static)
+astcenc_set_properties(${ASTCENC_TARGET}-static OFF)
 
-    target_compile_options(${ASTC_TARGET}-static
+target_compile_options(${ASTCENC_TARGET}-static
+    PRIVATE
+        $<$<CXX_COMPILER_ID:MSVC>:/W4>)
+
+if(${ASTCENC_SHAREDLIB})
+    astcenc_set_properties(${ASTCENC_TARGET}-shared OFF)
+
+    target_compile_definitions(${ASTCENC_TARGET}-shared
         PRIVATE
+            ASTCENC_DYNAMIC_LIBRARY=1)
+
+    target_compile_options(${ASTCENC_TARGET}-shared
+        PRIVATE
+            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-fvisibility=hidden>
             $<$<CXX_COMPILER_ID:MSVC>:/W4>)
+endif()
 
-if(${CLI})
-    astcenc_set_properties(${ASTC_TARGET})
+if(${ASTCENC_CLI})
+    astcenc_set_properties(${ASTCENC_TARGET}-veneer ON)
+    astcenc_set_properties(${ASTCENC_TARGET} OFF)
 
-    target_compile_options(${ASTC_TARGET}
+    target_compile_options(${ASTCENC_TARGET}
+        PRIVATE
+            $<$<CXX_COMPILER_ID:MSVC>:/W3>)
+
+    target_compile_options(${ASTCENC_TARGET}-veneer
         PRIVATE
             $<$<CXX_COMPILER_ID:MSVC>:/W3>)
 
@@ -327,9 +412,13 @@ if(${CLI})
         astcenccli_version.h
         ESCAPE_QUOTES @ONLY)
 
-    target_include_directories(${ASTC_TARGET}
+    target_include_directories(${ASTCENC_TARGET}
         PRIVATE
             ${CMAKE_CURRENT_BINARY_DIR})
 
-    install(TARGETS ${ASTC_TARGET} DESTINATION ${PACKAGE_ROOT})
+    install(TARGETS ${ASTCENC_TARGET} DESTINATION ${PACKAGE_ROOT})
+endif()
+
+if(${ASTCENC_SHAREDLIB})
+    install(TARGETS ${ASTCENC_TARGET}-shared DESTINATION ${PACKAGE_ROOT})
 endif()

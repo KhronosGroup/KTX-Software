@@ -39,6 +39,7 @@ if(APPLE AND IOS)
     find_library(CoreMotion_LIBRARY CoreMotion)
     find_library(Foundation_LIBRARY Foundation)
     find_library(GameController_LIBRARY GameController)
+    find_library(IOSurface_LIBRARY IOSurface)
     find_library(Metal_LIBRARY Metal)
     find_library(OpenGLES_LIBRARY OpenGLES)
     find_library(QuartzCore_LIBRARY QuartzCore)
@@ -151,14 +152,16 @@ set( LOAD_TEST_COMMON_LIBS )
 
 if(APPLE)
     set( EXE_FLAG MACOSX_BUNDLE )
-    set( KTX_ICON ${PROJECT_SOURCE_DIR}/icons/mac/ktx_app.icns )
     set( SDL2_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
     if(IOS)
+        # Do not set KTX_ICON here. On iOS the icon is not a single file.
+        # Icon setup must be handled when creating a target.
         set( LOAD_TEST_COMMON_LIBS
             ${CMAKE_SOURCE_DIR}/other_lib/ios/$<CONFIG>-iphoneos/libSDL2.a
             ${CMAKE_SOURCE_DIR}/other_lib/ios/Release-iphoneos/libassimp.a
         )
     else()
+        set( KTX_ICON ${PROJECT_SOURCE_DIR}/icons/mac/ktx_app.icns )
         set( LOAD_TEST_COMMON_LIBS
             ${CMAKE_SOURCE_DIR}/other_lib/mac/$<CONFIG>/libSDL2.dylib
             ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libassimp.a
@@ -166,10 +169,7 @@ if(APPLE)
         )
     endif()
 elseif(LINUX)
-    set( LINUX_LIB_DIR Release )
-    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-        set( LINUX_LIB_DIR Debug )
-    endif()
+    set( KTX_ICON ${PROJECT_SOURCE_DIR}/icons/linux/ktx_app.svg )
     set( LOAD_TEST_COMMON_LIBS
         ${assimp_LIBRARIES}
         ${SDL2_LIBRARIES}
@@ -184,17 +184,33 @@ elseif(WIN32)
     )
 endif()
 
+set( LOAD_TEST_COMMON_MODELS
+     "cube.obj"
+     "sphere.obj"
+     "teapot.dae"
+     "torusknot.obj"
+)
+list(TRANSFORM LOAD_TEST_COMMON_MODELS PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/common/models/")
+# Hack to prevent *.obj 3D files being mistaken as linkable obj files
+set_source_files_properties( ${LOAD_TEST_COMMON_MODELS}
+    PROPERTIES HEADER_FILE_ONLY TRUE
+)
 
-#Get a list of all of the files in the testimages
-file(GLOB TEST_IMAGES "${PROJECT_SOURCE_DIR}/tests/testimages/*.ktx" "${PROJECT_SOURCE_DIR}/tests/testimages/*.ktx2")
-#Get a list of all of the files in the models
-file(GLOB_RECURSE MODELS "common/models/*")
+# A custom loadtest_models target does not work as configure fails at
+# an install_targets that uses this with an error "the target is not
+# an executable, library or module."
+#add_custom_target( loadtest_models
+#    SOURCES ${LOAD_TEST_COMMON_MODELS}
+#)
 
 set( LOAD_TEST_COMMON_RESOURCE_FILES
     ${KTX_ICON}
-    ${TEST_IMAGES}
-    ${MODELS}
+    ${LOAD_TEST_COMMON_MODELS}
 )
+
+if(LINUX)
+    set( LOAD_TEST_DESTROOT "/opt" )
+endif()
 
 if(KTX_FEATURE_GL_UPLOAD)
     include(glloadtests.cmake)
@@ -202,16 +218,5 @@ endif()
 
 if(KTX_FEATURE_VULKAN AND NOT EMSCRIPTEN)
     include(vkloadtests.cmake)
-endif()
-
-# Hack to prevent *.obj 3D files to be mistaken as linkable obj files
-set_source_files_properties(${MODELS} PROPERTIES HEADER_FILE_ONLY TRUE )
-
-if(APPLE)
-    set_source_files_properties(${TEST_IMAGES} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/testimages")
-    set_source_files_properties(${MODELS} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/models")
-elseif(LINUX)
-    file(COPY "${PROJECT_SOURCE_DIR}/tests/testimages" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
-    file(COPY common/models DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 endif()
 

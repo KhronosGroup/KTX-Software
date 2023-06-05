@@ -8,6 +8,23 @@ include(GoogleTest)
 add_subdirectory(gtest)
 find_package(Threads)
 
+# This setting is critical when cross compiling and on Apple
+# Silicon Macs. By default (MODE POST_BUILD) test discovery
+# is done as a post build operation which runs the test
+# executable to discover the list of tests as soon as it is
+# built. This unsurprisngly fails when cross compiling as
+# tests built for the target won't run on the host. It fails
+# on Apple Silicon as all executables must be signed. Because
+# most generators (Xcode certainly) set up signing as a post
+# build operation which runs after the test discovery post
+# build the test executable will not be signed.
+#
+# This setting delays test discovery until a test is run by
+# which time the test executable will be signed and will most
+# likely be on the intended target. For simplicity use this
+# setting on all platforms.
+set(CMAKE_GTEST_DISCOVER_TESTS_DISCOVERY_MODE PRE_TEST)
+
 enable_testing()
 
 add_subdirectory(transcodetests)
@@ -19,6 +36,8 @@ add_executable( unittests
     unittests/wthelper.h
     tests.cmake
 )
+set_test_properties(unittests)
+set_code_sign(unittests)
 
 target_include_directories(
     unittests
@@ -40,6 +59,8 @@ add_executable( texturetests
     texturetests/texturetests.cc
     unittests/wthelper.h
 )
+set_test_properties(texturetests)
+set_code_sign(texturetests)
 
 target_include_directories(
     texturetests
@@ -57,8 +78,11 @@ target_link_libraries(
     ${CMAKE_THREAD_LIBS_INIT}
 )
 
-gtest_discover_tests(unittests TEST_PREFIX unittest )
-# For some reason on Travis, 5s was not long enough for Release config.
+gtest_discover_tests(unittests
+    TEST_PREFIX unittest
+    # With the 5s default we get periodic timeouts on Travis & GitHub CI.
+    DISCOVERY_TIMEOUT 20
+)
 gtest_discover_tests(texturetests
     TEST_PREFIX texturetest
     DISCOVERY_TIMEOUT 20

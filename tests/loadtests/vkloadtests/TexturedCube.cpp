@@ -548,7 +548,7 @@ TexturedCube::preparePipeline()
     shaderStages[1].pName = "main";
     //shaderStages[1].pSpecializationInfo = nullptr;
 #else
-    std::string filepath = getAssetPath() + "shaders/";
+    std::string filepath = getAssetPath();
     shaderStages[0] = static_cast<VkPipelineShaderStageCreateInfo>(loadShader(filepath + "cube.vert.spv",
                                 vk::ShaderStageFlagBits::eVertex));
     shaderStages[1] = static_cast<VkPipelineShaderStageCreateInfo>(loadShader(filepath + "cube.frag.spv",

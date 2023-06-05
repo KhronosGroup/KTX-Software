@@ -256,7 +256,9 @@ def main():
     last1x = "1.7"
     last2x = "2.5"
     last3x = "3.7"
-    last4x = "main"
+    prev4x = "4.3"
+    last4x = "4.4"
+    lastMain = "main"
 
     charts = [
         # --------------------------------------------------------
@@ -269,17 +271,17 @@ def main():
             True,
             f"ref-{last1x}",
             None,
-            "relative-stable-series.png",
+            "results-relative-stable-series.png",
             (None, None)
         ], [
             # Absolute scores
             ["thorough", "medium", "fast"],
-            [f"ref-{last1x}", f"ref-{last2x}-avx2", f"ref-{last3x}-avx2"],
+            [f"ref-{last1x}", f"ref-{last2x}-avx2", f"ref-{last3x}-avx2", f"ref-{last4x}-avx2"],
             ["4x4", "6x6", "8x8"],
             False,
             None,
             None,
-            "absolute-stable-series.png",
+            "results-absolute-stable-series.png",
             (absXLimits, None)
         ],
         # --------------------------------------------------------
@@ -292,7 +294,7 @@ def main():
             True,
             f"ref-{last1x}",
             None,
-            "relative-2.x-vs-1.x.png",
+            "results-relative-2.x-vs-1.x.png",
             (None, None)
         ],
         # --------------------------------------------------------
@@ -305,7 +307,7 @@ def main():
             True,
             f"ref-{last1x}",
             None,
-            "relative-3.x-vs-1.x.png",
+            "results-relative-3.x-vs-1.x.png",
             (None, None)
         ],
         # --------------------------------------------------------
@@ -318,7 +320,7 @@ def main():
             True,
             f"ref-{last1x}",
             None,
-            "relative-4.x-vs-1.x.png",
+            "results-relative-4.x-vs-1.x.png",
             (None, None)
         ],
         # --------------------------------------------------------
@@ -331,7 +333,7 @@ def main():
             True,
             f"ref-{last2x}-avx2",
             None,
-            "relative-3.x-vs-2.x.png",
+            "results-relative-3.x-vs-2.x.png",
             (None, None)
         ],
         # --------------------------------------------------------
@@ -344,7 +346,7 @@ def main():
             True,
             f"ref-{last3x}-avx2",
             None,
-            "relative-4.x-vs-3.x.png",
+            "results-relative-4.x-vs-3.x.png",
             (relXLimits, None),
         ], [
             # Relative ISAs of latest
@@ -354,7 +356,7 @@ def main():
             True,
             f"ref-{last4x}-sse2",
             None,
-            "relative-4.x-isa.png",
+            "results-relative-4.x-isa.png",
             (None, None)
         ], [
             # Relative quality of latest
@@ -364,8 +366,34 @@ def main():
             True,
             None,
             "thorough",
-            "relative-4.x-quality.png",
+            "results-relative-4.x-quality.png",
             (None, None)
+        ],
+        # --------------------------------------------------------
+        # Latest 4.x vs previous 4.x release charts
+        [
+            # Relative scores
+            ["thorough", "medium", "fast", "fastest"],
+            [f"ref-{last4x}-avx2"],
+            ["4x4", "6x6", "8x8"],
+            True,
+            f"ref-{prev4x}-avx2",
+            None,
+            "results-relative-4.x-vs-4.x.png",
+            (relXLimits, None)
+        ],
+        # --------------------------------------------------------
+        # Latest 4.x vs previous 4.x release charts
+        [
+            # Relative scores
+            ["thorough", "medium", "fast", "fastest"],
+            [f"ref-{lastMain}-avx2"],
+            ["4x4", "6x6", "8x8"],
+            True,
+            f"ref-{last4x}-avx2",
+            None,
+            "results-relative-main-vs-4.x.png",
+            (relXLimits, None)
         ]
     ]
 

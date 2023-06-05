@@ -1,0 +1,30 @@
+# Copyright 2023 Khronos Group, Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+# If this file's extension is .desktop DO NOT edit it. It is generated from
+# glloadtests.desktop.in.
+#
+# If the extension is .in feel free to edit it. After editing you MUST
+# run cmake project configuration again to generate updated output files.
+[Desktop Entry]
+Version=1.0
+Name=${version} Load Tests
+Name[ja]=${version} Load Tests
+Name[fr]=${version} Load Tests
+GenericName=KTX loader tests and file viewer
+GenericName[ja]=KTXローダーテストとファイルビューア
+GenericName[fr]=Tests de chargeur KTX et visionneuse de fichiers
+Comment=View KTX files using OpenGL or run GLUpload functionality tests.
+Comment[fr]=Affichez les fichiers KTX à l'aide d'OpenGL ou exécutez des tests de fonctionnalité GLUpload.
+Comment[ja]=OpenGLを使用してKTXファイルを表示するか、GLUpload機能テストを実行します。
+TryExec=${target}
+Exec=${target} %F
+Terminal=false
+Type=Application
+Keywords=Ktx;Texture;Viewer
+Keywords[ja]=Ktx;Texture;Viewer
+Keywords[fr]=Ktx;Texture;Viewer
+Icon=${TARGET_INSTALL_RESOURCES_FULL_DIR}/ktx_app.svg
+Categories=Utility;
+StartupNotify=true
+MimeType=image/ktx;image/ktx2;

@@ -29,6 +29,8 @@
 #include <stdbool.h>
 #include <sys/types.h>
 
+#include <KHR/khr_df.h>
+
 /*
  * Don't use khrplatform.h in order not to break apps existing
  * before these definitions were needed.
@@ -519,7 +521,7 @@ typedef KTX_error_code
 /**
  * @~English
  * @brief Helper for calling the Destroy virtual method of a ktxTexture.
- * @copydoc ktxTexture2_Destroy
+ * @copydoc ktxTexture2.ktxTexture2_Destroy
  */
 #define ktxTexture_Destroy(This) (This)->vtbl->Destroy(This)
 
@@ -527,7 +529,7 @@ typedef KTX_error_code
  * @~English
  * @brief Helper for calling the GetImageOffset virtual method of a
  *        ktxTexture.
- * @copydoc ktxTexture2_GetImageOffset
+ * @copydoc ktxTexture2.ktxTexture2_GetImageOffset
  */
 #define ktxTexture_GetImageOffset(This, level, layer, faceSlice, pOffset) \
             (This)->vtbl->GetImageOffset(This, level, layer, faceSlice, pOffset)
@@ -538,7 +540,7 @@ typedef KTX_error_code
  *
  * For a ktxTexture1 this will always return the value of This->dataSize.
  *
- * @copydetails ktxTexture2_GetDataSizeUncompressed
+ * @copydetails ktxTexture2.ktxTexture2_GetDataSizeUncompressed
  */
 #define ktxTexture_GetDataSizeUncompressed(This) \
                                 (This)->vtbl->GetDataSizeUncompressed(This)
@@ -546,7 +548,7 @@ typedef KTX_error_code
 /**
  * @~English
  * @brief Helper for calling the GetImageSize virtual method of a ktxTexture.
- * @copydoc ktxTexture2_GetImageSize
+ * @copydoc ktxTexture2.ktxTexture2_GetImageSize
  */
 #define ktxTexture_GetImageSize(This, level) \
             (This)->vtbl->GetImageSize(This, level)
@@ -554,7 +556,7 @@ typedef KTX_error_code
 /**
  * @~English
  * @brief Helper for calling the IterateLevels virtual method of a ktxTexture.
- * @copydoc ktxTexture2_IterateLevels
+ * @copydoc ktxTexture2.ktxTexture2_IterateLevels
  */
 #define ktxTexture_IterateLevels(This, iterCb, userdata) \
                             (This)->vtbl->IterateLevels(This, iterCb, userdata)
@@ -563,7 +565,7 @@ typedef KTX_error_code
  * @~English
  * @brief Helper for calling the IterateLoadLevelFaces virtual method of a
  * ktxTexture.
- * @copydoc ktxTexture2_IterateLoadLevelFaces
+ * @copydoc ktxTexture2.ktxTexture2_IterateLoadLevelFaces
  */
  #define ktxTexture_IterateLoadLevelFaces(This, iterCb, userdata) \
                     (This)->vtbl->IterateLoadLevelFaces(This, iterCb, userdata)
@@ -571,7 +573,7 @@ typedef KTX_error_code
 /**
  * @~English
  * @brief Helper for calling the LoadImageData virtual method of a ktxTexture.
- * @copydoc ktxTexture2_LoadImageData
+ * @copydoc ktxTexture2.ktxTexture2_LoadImageData
  */
 #define ktxTexture_LoadImageData(This, pBuffer, bufSize) \
                     (This)->vtbl->LoadImageData(This, pBuffer, bufSize)
@@ -579,7 +581,7 @@ typedef KTX_error_code
 /**
  * @~English
  * @brief Helper for calling the NeedsTranscoding virtual method of a ktxTexture.
- * @copydoc ktxTexture2_NeedsTranscoding
+ * @copydoc ktxTexture2.ktxTexture2_NeedsTranscoding
  */
 #define ktxTexture_NeedsTranscoding(This) (This)->vtbl->NeedsTranscoding(This)
 
@@ -587,7 +589,7 @@ typedef KTX_error_code
  * @~English
  * @brief Helper for calling the SetImageFromMemory virtual method of a
  *        ktxTexture.
- * @copydoc ktxTexture2_SetImageFromMemory
+ * @copydoc ktxTexture2.ktxTexture2_SetImageFromMemory
  */
 #define ktxTexture_SetImageFromMemory(This, level, layer, faceSlice, \
                                       src, srcSize)                  \
@@ -597,7 +599,7 @@ typedef KTX_error_code
  * @~English
  * @brief Helper for calling the SetImageFromStdioStream virtual method of a
  *        ktxTexture.
- * @copydoc ktxTexture2_SetImageFromStdioStream
+ * @copydoc ktxTexture2.ktxTexture2_SetImageFromStdioStream
  */
 #define ktxTexture_SetImageFromStdioStream(This, level, layer, faceSlice, \
                                            src, srcSize)                  \
@@ -608,7 +610,7 @@ typedef KTX_error_code
  * @~English
  * @brief Helper for calling the WriteToStdioStream virtual method of a
  *        ktxTexture.
- * @copydoc ktxTexture2_WriteToStdioStream
+ * @copydoc ktxTexture2.ktxTexture2_WriteToStdioStream
  */
 #define ktxTexture_WriteToStdioStream(This, dstsstr) \
                                 (This)->vtbl->WriteToStdioStream(This, dstsstr)
@@ -617,7 +619,7 @@ typedef KTX_error_code
  * @~English
  * @brief Helper for calling the WriteToNamedfile virtual method of a
  *        ktxTexture.
- * @copydoc ktxTexture2_WriteToNamedFile
+ * @copydoc ktxTexture2.ktxTexture2_WriteToNamedFile
  */
 #define ktxTexture_WriteToNamedFile(This, dstname) \
                                 (This)->vtbl->WriteToNamedFile(This, dstname)
@@ -625,7 +627,7 @@ typedef KTX_error_code
 /**
  * @~English
  * @brief Helper for calling the WriteToMemory virtual method of a ktxTexture.
- * @copydoc ktxTexture2_WriteToMemory
+ * @copydoc ktxTexture2.ktxTexture2_WriteToMemory
  */
 #define ktxTexture_WriteToMemory(This, ppDstBytes, pSize) \
                   (This)->vtbl->WriteToMemory(This, ppDstBytes, pSize)
@@ -633,7 +635,7 @@ typedef KTX_error_code
 /**
  * @~English
  * @brief Helper for calling the WriteToStream virtual method of a ktxTexture.
- * @copydoc ktxTexture2_WriteToStream
+ * @copydoc ktxTexture2.ktxTexture2_WriteToStream
  */
 #define ktxTexture_WriteToStream(This, dststr) \
                   (This)->vtbl->WriteToStream(This, dststr)
@@ -1058,8 +1060,15 @@ ktxTexture2_GetComponentInfo(ktxTexture2* This, ktx_uint32_t* numComponents,
 KTX_API ktx_uint32_t KTX_APIENTRY
 ktxTexture2_GetNumComponents(ktxTexture2* This);
 
+KTX_API khr_df_transfer_e KTX_APIENTRY
+ktxTexture2_GetOETF_e(ktxTexture2* This);
+
+// For backward compatibility
 KTX_API ktx_uint32_t KTX_APIENTRY
 ktxTexture2_GetOETF(ktxTexture2* This);
+
+KTX_API khr_df_model_e KTX_APIENTRY
+ktxTexture2_GetColorModel_e(ktxTexture2* This);
 
 KTX_API ktx_bool_t KTX_APIENTRY
 ktxTexture2_GetPremultipliedAlpha(ktxTexture2* This);

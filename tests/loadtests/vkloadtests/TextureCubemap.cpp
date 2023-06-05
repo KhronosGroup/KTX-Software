@@ -315,7 +315,7 @@ TextureCubemap::buildCommandBuffers()
 void
 TextureCubemap::loadMeshes()
 {
-    std::string filepath = getAssetPath() + "models/";
+    std::string filepath = getAssetPath();
 
     // Skybox
     loadMesh(filepath + "cube.obj", &meshes.skybox, vertexLayout, 0.05f);
@@ -582,7 +582,7 @@ TextureCubemap::preparePipelines()
 
     // Load shaders
     std::array<vk::PipelineShaderStageCreateInfo,2> shaderStages;
-    std::string filepath = getAssetPath() + "shaders/";
+    std::string filepath = getAssetPath();
     shaderStages[0] = loadShader(filepath + "skybox.vert.spv",
                                 vk::ShaderStageFlagBits::eVertex);
     shaderStages[1] = loadShader(filepath + "skybox.frag.spv",
