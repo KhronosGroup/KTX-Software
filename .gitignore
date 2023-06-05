@@ -9,7 +9,6 @@
 /CMakeUserPresets.json
 /build*/
 /install*/
-/out/
 
 # /include/
 /include/imdebug.h
