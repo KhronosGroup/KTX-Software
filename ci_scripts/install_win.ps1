@@ -39,7 +39,7 @@ if ($FEATURE_TESTS -eq "ON") {
   git lfs pull --include=tests/srcimages,tests/testimages
 }
 
-if ($FEATURE_LOADTESTS -a $FEATURE_LOADTESTS -ne "OFF") {
+if ($FEATURE_LOADTESTS -and $FEATURE_LOADTESTS -ne "OFF") {
   # Must be in repo root for this lfs pull.
   git lfs pull --include=other_lib/win
   if ($FEATURE_LOADTESTS -match "OpenGL") {
