@@ -1810,11 +1810,11 @@ KTXTexture2 CommandCreate::createTexture(const ImageSpec& target) {
     createInfo.vkFormat = options.vkFormat;
     createInfo.numFaces = numFaces;
     createInfo.numLayers = numLayers;
-    createInfo.isArray = options.layers > 0;
+    createInfo.isArray = options.layers > 0u;
     createInfo.baseWidth = target.width();
     createInfo.baseHeight = target.height();
     createInfo.baseDepth = target.depth();
-    createInfo.numDimensions = options._1d ? 1 : (options.depth > 0 ? 3 : 2);
+    createInfo.numDimensions = options._1d ? 1 : (options.depth > 0u ? 3 : 2);
 
     if (options.mipmapRuntime) {
         createInfo.generateMipmaps = true;

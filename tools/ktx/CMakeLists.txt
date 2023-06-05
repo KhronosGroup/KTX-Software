@@ -52,7 +52,7 @@ PRIVATE
     imageio
     objUtil
     ktx
-    ${ASTC_LIB_TARGET}
+    ${ASTCENC_LIB_TARGET}
     $<IF:$<BOOL:${WIN32}>,Pathcch,> # For PathCchRemoveFileSpec on Windows
     fmt::fmt
     cxxopts::cxxopts

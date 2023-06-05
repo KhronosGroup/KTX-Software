@@ -23,7 +23,7 @@ namespace ktx {
 Unified CLI frontend for the KTX-Software library.
 
 @section ktxtools_synopsis SYNOPSIS
-    ktx <command> [command-option...]<br>
+    ktx &lt;command&gt; [command-option...]<br>
     ktx [option...]
 
 @section ktxtools_description DESCRIPTION

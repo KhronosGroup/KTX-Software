@@ -179,7 +179,7 @@ struct TransferFunctionBT2100_PQ_EOTF : public TransferFunction {
 
 private:
     const float m1_{0.1593017578125f};
-    const float rm1_{1.f / m1_};
+    // const float rm1_{1.f / m1_}; // Commented to stop unused warning
     const float m2_{78.84375f};
     const float rm2_{1.f / m2_};
     const float c1_{0.8359375f};
@@ -393,13 +393,13 @@ public:
         if (std::is_floating_point_v<componentType>)
             return 1.f;
         else
-            return 1.f / std::numeric_limits<componentType>::max();
+            return 1.f / static_cast<float>(std::numeric_limits<componentType>::max());
     }
     constexpr static float halfUnit() {
         if (std::is_floating_point_v<componentType>)
             return 0.f;
         else
-            return 0.5f / std::numeric_limits<componentType>::max();
+            return 0.5f / static_cast<float>(std::numeric_limits<componentType>::max());
     }
     constexpr static componentType min() {
         return std::numeric_limits<componentType>::min();
@@ -436,7 +436,7 @@ struct vec3_base {
 };
 
 static constexpr float gc_m[5]={0.0f, 128.0f, 32768.0f, 0.0f, 2147483648.0f};
-static constexpr float gc_s[5]={0.0f, 255.0f, 65535.0f, 0.0f, 4294967295.0f};
+static constexpr uint32_t gc_s[5]={0, 255, 65535, 0, 4294967295};
 
 template <typename componentType>
 struct vec3 : public vec3_base {
@@ -450,15 +450,15 @@ struct vec3 : public vec3_base {
         if (gc_m[i] == r && gc_m[i] == g && gc_m[i] == b) {
             return;
         } else {
-            r = r / gc_s[i] * 2.0f - 1.0f;
-            g = g / gc_s[i] * 2.0f - 1.0f;
-            b = b / gc_s[i] * 2.0f - 1.0f;
+            r = (float)(r / (double)gc_s[i]) * 2.0f - 1.0f;
+            g = (float)(g / (double)gc_s[i]) * 2.0f - 1.0f;
+            b = (float)(b / (double)gc_s[i]) * 2.0f - 1.0f;
             clamp(-1.0f, 1.0f);
             base_normalize();
-            r = (std::floor((r + 1.0f) * gc_s[i] * 0.5f + 0.5f));
-            g = (std::floor((g + 1.0f) * gc_s[i] * 0.5f + 0.5f));
-            b = (std::floor((b + 1.0f) * gc_s[i] * 0.5f + 0.5f));
-            clamp(0, gc_s[i]);
+            r = (std::floor((r + 1.0f) * (float)gc_s[i] * 0.5f + 0.5f));
+            g = (std::floor((g + 1.0f) * (float)gc_s[i] * 0.5f + 0.5f));
+            b = (std::floor((b + 1.0f) * (float)gc_s[i] * 0.5f + 0.5f));
+            clamp(0.0f, (float)gc_s[i]);
         }
     }
 };
@@ -608,7 +608,7 @@ class color<componentType, 2> : public color_base<componentType, 2> {
     }
     void normalize() {
         vec3<componentType> v((float)r, (float)g,
-                              gc_s[sizeof(componentType)] * 0.5f);
+                              (float)gc_s[sizeof(componentType)] * 0.5f);
         v.normalize();
         r = (componentType)v.r;
         g = (componentType)v.g;
@@ -652,10 +652,10 @@ class color<componentType, 1> : public color_base<componentType, 1> {
         return 1;
     }
     void normalize() {
-        vec3<componentType> v((float)r, gc_s[sizeof(componentType)] * 0.5f,
-                              gc_s[sizeof(componentType)] * 0.5f);
-        v.normalize();
-        r = (componentType)v.r;
+        // Normalizing single channel image doesn't make much sense
+        // Here I assume single channel color is (X, 0, 0, 0)
+        if (r != 0)
+            r = (componentType)gc_s[sizeof(componentType)];
     }
 };
 
@@ -763,29 +763,29 @@ class ImageT : public Image {
             free(pixels);
     }
 
-    virtual const Color &operator() (uint32_t x, uint32_t y) const {
+    const Color& operator() (uint32_t x, uint32_t y) const {
        assert(x < width && y < height); return pixels[x + y * width];
     }
-    virtual Color &operator() (uint32_t x, uint32_t y) {
+    Color& operator() (uint32_t x, uint32_t y) {
         assert(x < width && y < height); return pixels[x + y * width];
     }
-    virtual operator uint8_t*() { return (uint8_t*)pixels; }
+    virtual operator uint8_t*() override { return (uint8_t*)pixels; }
 
-    virtual size_t getByteCount() const {
+    virtual size_t getByteCount() const override {
         return getPixelCount() * sizeof(Color);
     }
 
-    virtual uint32_t getPixelSize() const {
+    virtual uint32_t getPixelSize() const override {
         return Color::getPixelSize();
     }
-    virtual uint32_t getComponentCount() const {
+    virtual uint32_t getComponentCount() const override {
         return Color::getComponentCount();
     }
-    virtual uint32_t getComponentSize() const {
+    virtual uint32_t getComponentSize() const override {
         return Color::getComponentSize();
     }
 
-    virtual Image* createImage(uint32_t w, uint32_t h) {
+    virtual Image* createImage(uint32_t w, uint32_t h) override {
         ImageT* image = new ImageT(w, h);
         return image;
     }
@@ -1153,7 +1153,7 @@ class ImageT : public Image {
         return target;
     }
 
-    virtual ImageT& yflip() {
+    virtual ImageT& yflip() override {
         uint32_t rowSize = width * sizeof(Color);
         // Minimize memory use by only buffering a single row.
         Color* rowBuffer = new Color[width];
@@ -1171,7 +1171,7 @@ class ImageT : public Image {
     }
 
     virtual ImageT& transformColorSpace(const TransferFunction& decode, const TransferFunction& encode,
-                                        const ColorPrimaryTransform* transformPrimaries) {
+                                        const ColorPrimaryTransform* transformPrimaries) override {
         uint32_t pixelCount = getPixelCount();
         for (uint32_t i = 0; i < pixelCount; ++i) {
             Color& c = pixels[i];
@@ -1199,13 +1199,13 @@ class ImageT : public Image {
             // Encode destination transfer function
             for (uint32_t comp = 0; comp < components; comp++) {
                 brightness[comp] = encode.encode(intensity[comp]);
-                c.set(comp, roundf(brightness[comp] * Color::one()));
+                c.set(comp, roundf(brightness[comp] * static_cast<float>(Color::one())));
             }
         }
         return *this;
     }
 
-    virtual ImageT& normalize() {
+    virtual ImageT& normalize() override {
         uint32_t pixelCount = getPixelCount();
         for (uint32_t i = 0; i < pixelCount; ++i) {
             Color& c = pixels[i];
@@ -1214,7 +1214,7 @@ class ImageT : public Image {
         return *this;
     }
 
-    virtual ImageT& swizzle(std::string_view swizzle) {
+    virtual ImageT& swizzle(std::string_view swizzle) override {
         assert(swizzle.size() == 4);
         for (size_t i = 0; i < getPixelCount(); i++) {
             Color srcPixel = pixels[i];
@@ -1249,10 +1249,10 @@ class ImageT : public Image {
         return *this;
     }
 
-    virtual ImageT& copyToR(Image& dst, std::string_view swizzle) { return copyTo((ImageT<componentType, 1>&)dst, swizzle); }
-    virtual ImageT& copyToRG(Image& dst, std::string_view swizzle) { return copyTo((ImageT<componentType, 2>&)dst, swizzle); }
-    virtual ImageT& copyToRGB(Image& dst, std::string_view swizzle){ return copyTo((ImageT<componentType, 3>&)dst, swizzle); }
-    virtual ImageT& copyToRGBA(Image& dst, std::string_view swizzle) { return copyTo((ImageT<componentType, 4>&)dst, swizzle); }
+    virtual ImageT& copyToR(Image& dst, std::string_view swizzle) override { return copyTo((ImageT<componentType, 1>&)dst, swizzle); }
+    virtual ImageT& copyToRG(Image& dst, std::string_view swizzle) override { return copyTo((ImageT<componentType, 2>&)dst, swizzle); }
+    virtual ImageT& copyToRGB(Image& dst, std::string_view swizzle) override { return copyTo((ImageT<componentType, 3>&)dst, swizzle); }
+    virtual ImageT& copyToRGBA(Image& dst, std::string_view swizzle) override { return copyTo((ImageT<componentType, 4>&)dst, swizzle); }
 
   protected:
     componentType swizzlePixel(const Color& srcPixel, char swizzle) {

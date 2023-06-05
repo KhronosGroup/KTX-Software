@@ -179,12 +179,14 @@ void CommandHelp::executeHelp() {
     if (std::filesystem::exists(manFile)) {
         // We have relative access to the man file, prioritze opening it that way to support custom install locations
         const auto systemCommand = fmt::format("man \"{}\"", manFile);
-        std::system(systemCommand.c_str());
+        const auto result = std::system(systemCommand.c_str());
+        (void) result;
     } else {
         const auto systemCommand = fmt::format("man ktxtools{}{}",
                 options.command ? "_" : "",
                 options.command.value_or(""));
-        std::system(systemCommand.c_str());
+        const auto result = std::system(systemCommand.c_str());
+        (void) result;
     }
 #endif
 }

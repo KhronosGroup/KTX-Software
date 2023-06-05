@@ -640,44 +640,6 @@ macro(common_libktx_settings target enable_write library_type)
             $<$<BOOL:${BASISU_SUPPORT_OPENCL}>:${OpenCL_LIBRARIES}>
         )
     endif()
-    # Setup ktx target
-    if(${enable_write})
-        target_include_directories(
-            ${target}
-        PRIVATE
-            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu>
-            $<INSTALL_INTERFACE:lib/basisu>
-            $<$<BOOL:${BASISU_SUPPORT_OPENCL}>:${OpenCL_INCLUDE_DIRS}>
-        )
-        target_compile_definitions(
-            ${target}
-        PUBLIC
-            KTX_FEATURE_WRITE
-        PRIVATE
-            # BASISD_SUPPORT_KTX2 has to be 1 to compile the encoder. We
-            # don't use it. Hopefully it doesn't add too much code. We're using
-            # the zstd encoder in basisu by explicitly including the file in our
-            # source list. We don't need the related code in the encoder.
-            BASISD_SUPPORT_KTX2_ZSTD=0
-            BASISD_SUPPORT_KTX2=1
-            $<$<BOOL:${BASISU_SUPPORT_SSE}>:BASISU_SUPPORT_SSE=1>
-            $<$<NOT:$<BOOL:${BASISU_SUPPORT_SSE}>>:BASISU_SUPPORT_SSE=0>
-            $<$<BOOL:${BASISU_SUPPORT_OPENCL}>:BASISU_SUPPORT_OPENCL=1>
-            $<$<NOT:$<BOOL:${BASISU_SUPPORT_OPENCL}>>:BASISU_SUPPORT_OPENCL=0>
-        )
-        target_compile_options(
-            ${target}
-        PRIVATE
-            $<$<AND:$<BOOL:${BASISU_SUPPORT_SSE}>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:
-                -msse4.1
-            >
-        )
-        target_link_libraries(
-            ${target}
-        PRIVATE
-            $<$<BOOL:${BASISU_SUPPORT_OPENCL}>:${OpenCL_LIBRARIES}>
-        )
-    endif()
 endmacro(common_libktx_settings)
 
 common_libktx_settings(ktx 1 ${LIB_TYPE})
@@ -773,7 +735,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter"
         )
     endif()
-    if (${clang_version} VERSION_GREATER_EQUAL "15.0")
+    if (${clang_version} VERSION_GREATER_EQUAL "14.0")
         # These are for Emscripten which is ahead of xcode in its clang
         # version. Also future proofing for when xcode catches up.
         set_source_files_properties(

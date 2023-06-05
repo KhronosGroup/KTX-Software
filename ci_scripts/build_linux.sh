@@ -115,7 +115,7 @@ do
   cmake --build . --config $config
   if [ "$ARCH" = "$(uname -m)" ]; then
     echo "Test KTX-Software (Linux $ARCH $config)"
-    ctest -C $config --output-on-failure #--verbose
+    ctest --output-on-failure -C $config #--verbose
   fi
   if [ "$config" = "Release" -a "$PACKAGE" = "YES" ]; then
     echo "Pack KTX-Software (Linux $ARCH $config)"

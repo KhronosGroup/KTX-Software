@@ -25,7 +25,14 @@
 #if !KTX_FEATURE_WRITE
 // The reader does not link with the basisu components that already include a
 // definition of miniz so we include it here explicitly.
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wextra"
+#endif
 #include "basisu/encoder/basisu_miniz.h"
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 #else
 // Otherwise we only declare the interfaces and link with the basisu version.
 // This is needed because while miniz is defined as a header in basisu it's

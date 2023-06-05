@@ -78,7 +78,9 @@ static uint32_t value_or(const std::optional<Selector> opt, uint32_t fallback) {
 
 } // namespace ktx
 
-template<> struct fmt::formatter<ktx::Selector> : fmt::formatter<uint32_t> {
+namespace fmt {
+
+template<> struct formatter<ktx::Selector> : fmt::formatter<uint32_t> {
     template <typename FormatContext>
     auto format(const ktx::Selector& var, FormatContext& ctx) const -> decltype(ctx.out()) {
         return var.all ?
@@ -86,6 +88,8 @@ template<> struct fmt::formatter<ktx::Selector> : fmt::formatter<uint32_t> {
             formatter<uint32_t>::format(var.value, ctx);
     }
 };
+
+} // namespace fmt
 
 namespace ktx {
 

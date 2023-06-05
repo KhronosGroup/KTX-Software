@@ -43,16 +43,18 @@ jobs:
       run: git fetch -f origin ${{ github.ref }}:${{ github.ref }}
     - name: Pull test images from Git LFS
       run: git lfs pull --include=tests/srcimages,tests/testimages
+    - name: Fetch CTS Submodule
+      run: git submodule update --init --recursive tests/cts
     - name: Install Ninja
       run: choco install ninja --no-progress
     - name: Configure Mingw x64
-      run: cmake -B build -G "Ninja Multi-Config" -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++
+      run: cmake -B build -G "Ninja Multi-Config" -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DKTX_FEATURE_TOOLS=TRUE -DKTX_FEATURE_TOOLS_CTS=TRUE
     - name: Build Mingw x64 Debug
       run: cmake --build build --config Debug
     - name: Build Mingw x64 Release
       run: cmake --build build --config Release
     - name: Test Mingw build
-      run: ctest --test-dir build -C Release
+      run: ctest --output-on-failure --test-dir build -C Release
     - name: Upload test log
       if: ${{ failure() }}
       run: ci_scripts/on_failure.ps1
