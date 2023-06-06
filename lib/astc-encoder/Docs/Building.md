@@ -229,7 +229,7 @@ cmake \
     -DANDROID_TOOLCHAIN=clang \
     -DANDROID_STL=c++_static \
     -DARCH=aarch64 \
-    -DISA_NEON=ON \
+    -DASTCENC_ISA_NEON=ON \
     ..
 
 make -j16
