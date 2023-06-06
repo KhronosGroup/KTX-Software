@@ -1,7 +1,9 @@
 # Copyright 2017-2020 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-find_package(OpenGL)
+if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
+  find_package(OpenGL)
+endif()
 
 if(NOT WIN32 AND NOT APPLE AND NOT EMSCRIPTEN)
     find_package(SDL2 REQUIRED)
@@ -25,8 +27,8 @@ if(APPLE AND IOS)
         list(GET CMAKE_OSX_ARCHITECTURES 0 arch0)
         if( ${archs_len} GREATER 1 OR (NOT ${arch0} STREQUAL "arm64") )
             message(FATAL_ERROR "iOS loadtests only supported on arm64."
-                    " Please disable KTX_FEATURE_LOADTEST_APPS or change "
-                    "CMAKE_OSX_ARCHITECTURES.")
+                    " Please disable KTX_FEATURE_LOADTEST_APPS"
+                    " or change CMAKE_OSX_ARCHITECTURES.")
         endif()
     endif()
     # Find Frameworks
@@ -40,8 +42,12 @@ if(APPLE AND IOS)
     find_library(Foundation_LIBRARY Foundation)
     find_library(GameController_LIBRARY GameController)
     find_library(IOSurface_LIBRARY IOSurface)
-    find_library(Metal_LIBRARY Metal)
-    find_library(OpenGLES_LIBRARY OpenGLES)
+    if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "Vulkan")
+      find_library(Metal_LIBRARY Metal)
+    endif()
+    if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
+      find_library(OpenGLES_LIBRARY OpenGLES)
+    endif()
     find_library(QuartzCore_LIBRARY QuartzCore)
     find_library(UIKit_LIBRARY UIKit)
 endif()
@@ -111,42 +117,44 @@ PUBLIC
     geom
 )
 
-add_library( GLAppSDL STATIC
-    appfwSDL/GLAppSDL.cpp
-    appfwSDL/GLAppSDL.h
-    glloadtests/GLLoadTests.cpp
-    glloadtests/GLLoadTests.h
-)
+if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
+  add_library( GLAppSDL STATIC
+      appfwSDL/GLAppSDL.cpp
+      appfwSDL/GLAppSDL.h
+      glloadtests/GLLoadTests.cpp
+      glloadtests/GLLoadTests.h
+  )
 
-if(EMSCRIPTEN)
-    target_compile_options( GLAppSDL PUBLIC
-        "SHELL:-s DISABLE_EXCEPTION_CATCHING=0"
-        "SHELL:-s USE_SDL=2"
-    )
+  if(EMSCRIPTEN)
+      target_compile_options( GLAppSDL PUBLIC
+          "SHELL:-s DISABLE_EXCEPTION_CATCHING=0"
+          "SHELL:-s USE_SDL=2"
+      )
+  endif()
+
+  target_link_libraries(GLAppSDL appfwSDL)
+  target_include_directories(
+      GLAppSDL
+  PUBLIC
+      ${PROJECT_SOURCE_DIR}/other_include
+      appfwSDL
+      common
+      glloadtests
+      glloadtests/utils
+  )
+
+  if(OPENGL_FOUND)
+      target_include_directories(
+          GLAppSDL
+      PUBLIC
+          ${OPENGL_INCLUDE_DIR}
+      )
+  endif()
+
+  set_target_properties(GLAppSDL PROPERTIES
+      CXX_VISIBILITY_PRESET ${STATIC_APP_LIB_SYMBOL_VISIBILITY}
+  )
 endif()
-
-target_link_libraries(GLAppSDL appfwSDL)
-target_include_directories(
-    GLAppSDL
-PUBLIC
-    ${PROJECT_SOURCE_DIR}/other_include
-    appfwSDL
-    common
-    glloadtests
-    glloadtests/utils
-)
-
-if(OPENGL_FOUND)
-    target_include_directories(
-        GLAppSDL
-    PUBLIC
-        ${OPENGL_INCLUDE_DIR}
-    )
-endif()
-
-set_target_properties(GLAppSDL PROPERTIES
-    CXX_VISIBILITY_PRESET ${STATIC_APP_LIB_SYMBOL_VISIBILITY}
-)
 
 set( LOAD_TEST_COMMON_LIBS )
 
@@ -212,11 +220,11 @@ if(LINUX)
     set( LOAD_TEST_DESTROOT "/opt" )
 endif()
 
-if(KTX_FEATURE_GL_UPLOAD)
+if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
     include(glloadtests.cmake)
 endif()
 
-if(KTX_FEATURE_VULKAN AND NOT EMSCRIPTEN)
+if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "Vulkan")
     include(vkloadtests.cmake)
 endif()
 

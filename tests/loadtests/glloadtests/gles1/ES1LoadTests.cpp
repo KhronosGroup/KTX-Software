@@ -47,55 +47,55 @@ GLLoadTests::showFile(std::string& filename)
 
 const GLLoadTests::sampleInvocation siSamples[] = {
     { DrawTexture::create,
-      "--npot testimages/hi_mark.ktx",
+      "--npot hi_mark.ktx",
       "RGB8 NPOT HI Logo"
     },
     { DrawTexture::create,
-      "--npot testimages/luminance-reference-metadata.ktx",
+      "--npot luminance-reference-metadata.ktx",
       "LUMINANCE8 NPOT"
     },
     { DrawTexture::create,
-      "testimages/orient-up-metadata.ktx",
+      "orient-up-metadata.ktx",
       "RGB8 + KTXOrientation up"
     },
     { DrawTexture::create,
-      "testimages/orient-down-metadata.ktx",
+      "orient-down-metadata.ktx",
       "RGB8 + KTXOrientation down"
     },
     { DrawTexture::create,
-      "testimages/etc1.ktx",
+      "etc1.ktx",
       "ETC1 RGB8"
     },
     { DrawTexture::create,
-      "testimages/etc2-rgb.ktx",
+      "etc2-rgb.ktx",
       "ETC2 RGB8"
     },
     { DrawTexture::create,
-      "testimages/etc2-rgba1.ktx",
+      "etc2-rgba1.ktx",
       "ETC2 RGB8A1"
     },
     { DrawTexture::create,
-      "testimages/etc2-rgba8.ktx",
+      "etc2-rgba8.ktx",
       "ETC2 RGB8A8"
     },
     { DrawTexture::create,
-      "testimages/rgba-reference.ktx",
+      "rgba-reference.ktx",
       "RGBA8"
     },
     { TexturedCube::create,
-      "testimages/rgb-reference.ktx",
+      "rgb-reference.ktx",
       "RGB8"
     },
     { TexturedCube::create,
-      "testimages/rgb-amg-reference.ktx",
+      "rgb-amg-reference.ktx",
       "RGB8 + Auto Mipmap"
     },
     { TexturedCube::create,
-      "testimages/rgb-mipmap-reference.ktx",
+      "rgb-mipmap-reference.ktx",
       "RGB8 Color/level mipmap"
     },
     { TexturedCube::create,
-      "--npot testimages/hi_mark_sq.ktx",
+      "--npot hi_mark_sq.ktx",
       "RGB8 NPOT HI Logo"
     },
 };

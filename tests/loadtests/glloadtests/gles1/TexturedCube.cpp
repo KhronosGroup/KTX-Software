@@ -80,7 +80,7 @@ TexturedCube::TexturedCube(uint32_t width, uint32_t height,
     
     if (npotTexture  && !npotSupported) {
         /* Load error texture. */
-        filename = "testimages/no-npot.ktx";
+        filename = "no-npot.ktx";
     }
     pathname = getAssetPath() + filename;
 

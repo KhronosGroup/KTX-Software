@@ -37,7 +37,6 @@ CMAKE_DEPENDENT_OPTION( KTX_FEATURE_TOOLS
                         OFF
 )
 option( KTX_FEATURE_DOC "Create KTX documentation" OFF )
-option( KTX_FEATURE_LOADTEST_APPS "Create load tests apps that load and display various KTX textures" OFF )
 option( KTX_FEATURE_STATIC_LIBRARY "Create static libraries (shared otherwise)" ${LIB_TYPE_DEFAULT} )
 option( KTX_FEATURE_TESTS "Create unit tests" ON )
 option( KTX_FEATURE_JNI "Create Java bindings for libktx" OFF )
@@ -91,8 +90,19 @@ CMAKE_DEPENDENT_OPTION( KTX_EMBED_BITCODE
 
 option( KTX_FEATURE_KTX1 "Enable KTX 1 support" ON )
 option( KTX_FEATURE_KTX2 "Enable KTX 2 support" ON )
-option( KTX_FEATURE_VULKAN "Enable Vulkan texture upload" ON )
+option( KTX_FEATURE_VK_UPLOAD "Enable Vulkan texture upload" ON )
 option( KTX_FEATURE_GL_UPLOAD "Enable OpenGL texture upload" ON )
+# When a variable like this is set via CMakeUserPresets.json, it no longer
+# shows the selectable options provided by the STRINGS property.
+set( KTX_FEATURE_LOADTEST_APPS
+     ""
+     CACHE
+     STRING
+     "Load test apps test the upload feature by displaying various KTX textures. Select which to create. \"OpenGL\" includes OpenGL ES."
+)
+set_property( CACHE KTX_FEATURE_LOADTEST_APPS
+              PROPERTY STRINGS OFF OpenGL Vulkan OpenGL+Vulkan
+)
 
 # Platform specific settings
 
@@ -192,7 +202,7 @@ if(UNIX AND NOT APPLE AND NOT EMSCRIPTEN AND NOT ANDROID)
 endif()
 
 if(EMSCRIPTEN)
-    set( KTX_FEATURE_VULKAN OFF )
+    set( KTX_FEATURE_VK_UPLOAD OFF )
 endif()
 
 set(bitness 64)
@@ -415,10 +425,10 @@ macro(commom_lib_settings lib write)
                 lib/internalexport_mingw.def
                 $<${write}:lib/internalexport_write_mingw.def>
             )
-            # Need these flags if mingw happens to target the ucrt (new) rather 
+            # Need these flags if mingw happens to target the ucrt (new) rather
             # than the legacy msvcrt. Otherwise tests will fail to run because
-            # the necessary dlls will be missing. If we statically link 
-            # them instead it's fine. This does not cause any abberations if 
+            # the necessary dlls will be missing. If we statically link
+            # them instead it's fine. This does not cause any abberations if
             # the mingw toolchain targets msvcrt instead.
             target_link_options(${lib} PUBLIC -static-libgcc -static-libstdc++)
         else()
@@ -460,7 +470,7 @@ macro(commom_lib_settings lib write)
         # generators (like Visual Studio) to take the exact path and not
         # change it.
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
-        
+
         if(MINGW)
             # Check if the Threads package is provided; if using Mingw it MIGHT be
             find_package(Threads)
@@ -491,7 +501,7 @@ macro(commom_lib_settings lib write)
         )
     endif()
 
-    if(KTX_FEATURE_VULKAN)
+    if(KTX_FEATURE_VK_UPLOAD)
         target_sources(
             ${lib}
         PRIVATE
@@ -1059,7 +1069,7 @@ if( APPLE AND CMAKE_OSX_ARCHITECTURES )
         set(processor_name ${arch0})
     endif()
 elseif(CMAKE_CXX_COMPILER_ARCHITECTURE_ID)
-    # When targeting Windows arm64 CMAKE_SYSTEM_PROCESSOR will incorrectly 
+    # When targeting Windows arm64 CMAKE_SYSTEM_PROCESSOR will incorrectly
     # return AMD64.
     # See: https://gitlab.kitware.com/cmake/cmake/-/issues/15170
     # We assume that when building for Windows arm64 that we are using MSVC
@@ -1210,9 +1220,13 @@ else()
             jni
         )
     endif()
-#    if(KTX_FEATURE_LOADTEST_APPS)
+#    if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
 #        list(APPEND CPACK_COMPONENTS_ALL
 #            GLLoadTestApps
+#        )
+#    endif()
+#    if(${KTX_FEATURE_LOADTEST_APP} MATCHES "Vulkan")
+#        list(APPEND CPACK_COMPONENTS_ALL
 #            VkLoadTestApp
 #        )
 #    endif()

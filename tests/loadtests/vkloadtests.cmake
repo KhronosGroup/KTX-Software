@@ -118,7 +118,7 @@ list( TRANSFORM VK_TEST_IMAGES
     PREPEND "${PROJECT_SOURCE_DIR}/tests/testimages/"
 )
 
-set( KTX_RESOURCES ${VK_TEST_IMAGES} ${LOAD_TEST_COMMON_RESOURCE_FILES} )
+set( KTX_RESOURCES ${LOAD_TEST_COMMON_RESOURCE_FILES} ${VK_TEST_IMAGES} )
 
 add_executable( vkloadtests
     ${EXE_FLAG}
@@ -158,6 +158,7 @@ add_executable( vkloadtests
     vkloadtests/VulkanLoadTestSample.h
     ${LOAD_TEST_COMMON_RESOURCE_FILES}
     ${SHADER_SOURCES}
+    ${VK_TEST_IMAGES}
     vkloadtests.cmake
 )
 
@@ -222,15 +223,17 @@ target_sources(vkloadtests PUBLIC ${MOLTENVK_ICD} ${VK_LAYER})
 if(APPLE)
     if(IOS)
         set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/ios/Info.plist" )
-        # Don't add these KTX_RESOURCES. If they're tagged as resources
-        # the resource installer in `install(TARGETS` will be confused by
-        # xcassets being directories.
+        set( icon_launch_assets
+            ${PROJECT_SOURCE_DIR}/icons/ios/CommonIcons.xcassets
+            vkloadtests/resources/ios/LaunchImages.xcassets
+            vkloadtests/resources/ios/LaunchScreen.storyboard
+        )
         target_sources( vkloadtests
             PRIVATE
-                ${PROJECT_SOURCE_DIR}/icons/ios/CommonIcons.xcassets
-                vkloadtests/resources/ios/LaunchImages.xcassets
-                vkloadtests/resources/ios/LaunchScreen.storyboard
+                ${icon_launch_assets}
         )
+        # Add to resources so they'll be copied to the bundle.
+        list( APPEND KTX_RESOURCES ${icon_launch_assets} )
         target_link_libraries(
             vkloadtests
             ${AudioToolbox_LIBRARY}
@@ -277,7 +280,6 @@ PRIVATE
 set_target_properties( vkloadtests PROPERTIES RESOURCE "${KTX_RESOURCES};${SHADER_SOURCES}" )
 
 if(APPLE)
-#    set_source_files_properties(${SHADER_SOURCES} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/shaders")
     set(PRODUCT_NAME "vkloadtests")
     set(EXECUTABLE_NAME ${PRODUCT_NAME})
     # How amazingly irritating. We have to set both of these to the same value.
@@ -311,9 +313,14 @@ if(APPLE)
             INSTALL_RPATH "@executable_path/../Frameworks"
         )
 
+        if(NOT KTX_FEATURE_STATIC_LIBRARY)
+          add_custom_command( TARGET vkloadtests POST_BUILD
+              COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/$<TARGET_FILE_NAME:ktx>"
+              COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE_NAME:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/$<TARGET_SONAME_FILE_NAME:ktx>"
+              COMMENT "Copy KTX library to build destination"
+          )
+        endif()
         add_custom_command( TARGET vkloadtests POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/$<TARGET_FILE_NAME:ktx>"
-            COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE_NAME:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/$<TARGET_SONAME_FILE_NAME:ktx>"
             COMMAND ${CMAKE_COMMAND} -E copy "${Vulkan_LIBRARY_DIR}/libMoltenVK.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/libMoltenVK.dylib"
             COMMAND ${CMAKE_COMMAND} -E copy "${Vulkan_LIBRARY_DIR}/libVkLayer*.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/"
             COMMAND ${CMAKE_COMMAND} -E copy "${Vulkan_LIBRARY_REAL_PATH_NAME}" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/"
@@ -396,3 +403,4 @@ add_dependencies(
     vkloadtests
     spirv_shaders
 )
+
