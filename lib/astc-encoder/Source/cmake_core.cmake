@@ -23,8 +23,26 @@ endif()
 
 project(${ASTCENC_TARGET})
 
-set(GNU_LIKE "GNU,Clang,AppleClang")
-set(CLANG_LIKE "Clang,AppleClang")
+# On CMake 3.25 or older CXX_COMPILER_FRONTEND_VARIANT is not always set
+if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "")
+    set(CMAKE_CXX_COMPILER_FRONTEND_VARIANT "${CMAKE_CXX_COMPILER_ID}")
+endif()
+
+# Compiler accepts MSVC-style command line options
+set(is_msvc_fe "$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},MSVC>")
+# Compiler accepts GNU-style command line options
+set(is_gnu_fe1 "$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},GNU>")
+# Compiler accepts AppleClang-style command line options, which is also GNU-style
+set(is_gnu_fe2 "$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},AppleClang>")
+# Compiler accepts GNU-style command line options
+set(is_gnu_fe "$<OR:${is_gnu_fe1},${is_gnu_fe2}>")
+
+# Compiler is Visual Studio cl.exe
+set(is_msvccl "$<AND:${is_msvc_fe},$<CXX_COMPILER_ID:MSVC>>")
+# Compiler is Visual Studio clangcl.exe
+set(is_clangcl "$<AND:${is_msvc_fe},$<CXX_COMPILER_ID:Clang>>")
+# Compiler is upstream clang with the standard frontend
+set(is_clang "$<AND:${is_gnu_fe},$<CXX_COMPILER_ID:Clang,AppleClang>>")
 
 add_library(${ASTCENC_TARGET}-static
     STATIC
@@ -117,8 +135,7 @@ macro(astcenc_set_properties ASTCENC_TARGET_NAME ASTCENC_IS_VENEER)
 
     target_compile_definitions(${ASTCENC_TARGET_NAME}
         PRIVATE
-            # MSVC defines
-            $<$<CXX_COMPILER_ID:MSVC>:_CRT_SECURE_NO_WARNINGS>)
+            $<${is_msvc_fe}:_CRT_SECURE_NO_WARNINGS>)
 
     if(${ASTCENC_DECOMPRESSOR})
         target_compile_definitions(${ASTCENC_TARGET_NAME}
@@ -144,41 +161,40 @@ macro(astcenc_set_properties ASTCENC_TARGET_NAME ASTCENC_IS_VENEER)
             $<$<PLATFORM_ID:Linux,Darwin>:-pthread>
 
             # MSVC compiler defines
-            $<$<CXX_COMPILER_ID:MSVC>:/EHsc>
-            $<$<CXX_COMPILER_ID:MSVC>:/wd4324>
+            $<${is_msvc_fe}:/EHsc>
+            $<${is_msvccl}:/wd4324>
 
             # G++ and Clang++ compiler defines
-            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall>
-            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wextra>
-            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wpedantic>
-            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Werror>
-            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wshadow>
-            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wdouble-promotion>
+            $<${is_gnu_fe}:-Wall>
+            $<${is_gnu_fe}:-Wextra>
+            $<${is_gnu_fe}:-Wpedantic>
+            $<${is_gnu_fe}:-Werror>
+            $<${is_gnu_fe}:-Wshadow>
+            $<${is_gnu_fe}:-Wdouble-promotion>
+            $<${is_clang}:-Wdocumentation>
 
             # Hide noise thrown up by Clang 10 and clang-cl
-            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-unknown-warning-option>
-            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-c++98-compat-pedantic>
-            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-c++98-c++11-compat-pedantic>
-            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-float-equal>
-            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-deprecated-declarations>
-            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-atomic-implicit-seq-cst>
+            $<${is_gnu_fe}:-Wno-unknown-warning-option>
+            $<${is_gnu_fe}:-Wno-c++98-compat-pedantic>
+            $<${is_gnu_fe}:-Wno-c++98-c++11-compat-pedantic>
+            $<${is_gnu_fe}:-Wno-float-equal>
+            $<${is_gnu_fe}:-Wno-deprecated-declarations>
+            $<${is_gnu_fe}:-Wno-atomic-implicit-seq-cst>
 
             # Clang 10 also throws up warnings we need to investigate (ours)
-            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-cast-align>
-            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-sign-conversion>
-            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-implicit-int-conversion>
-            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-shift-sign-overflow>
-            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-format-nonliteral>
-            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-reserved-identifier>
-            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-cast-function-type>
+            $<${is_gnu_fe}:-Wno-cast-align>
+            $<${is_gnu_fe}:-Wno-sign-conversion>
+            $<${is_gnu_fe}:-Wno-implicit-int-conversion>
+            $<${is_gnu_fe}:-Wno-shift-sign-overflow>
+            $<${is_gnu_fe}:-Wno-format-nonliteral>
+            $<${is_gnu_fe}:-Wno-reserved-identifier>
+            $<${is_gnu_fe}:-Wno-cast-function-type>
 
             # Force DWARF4 for Valgrind profiling
-            $<$<AND:$<PLATFORM_ID:Linux,Darwin>,$<CXX_COMPILER_ID:Clang>>:-gdwarf-4>
+            $<$<AND:$<PLATFORM_ID:Linux,Darwin>,${is_clang}>:-gdwarf-4>
 
             # Disable non-portable Windows.h warning (fixing it fails builds on MinGW)
-            $<$<AND:$<PLATFORM_ID:Windows>,$<CXX_COMPILER_ID:Clang>>:-Wno-nonportable-system-include-path>
-
-            $<$<CXX_COMPILER_ID:Clang>:-Wdocumentation>)
+            $<$<AND:$<PLATFORM_ID:Windows>,${is_clang}>:-Wno-nonportable-system-include-path>)
 
     target_link_options(${ASTCENC_TARGET_NAME}
         PRIVATE
@@ -188,11 +204,11 @@ macro(astcenc_set_properties ASTCENC_TARGET_NAME ASTCENC_IS_VENEER)
     if(${ASTCENC_ASAN})
         target_compile_options(${ASTCENC_TARGET_NAME}
             PRIVATE
-                $<$<CXX_COMPILER_ID:${CLANG_LIKE}>:-fsanitize=address>)
+                $<${is_clang}:-fsanitize=address>)
 
         target_link_options(${ASTCENC_TARGET_NAME}
             PRIVATE
-                $<$<CXX_COMPILER_ID:${CLANG_LIKE}>:-fsanitize=address>)
+                $<${is_clang}:-fsanitize=address>)
     endif()
 
     if(NOT ${ASTCENC_INVARIANCE})
@@ -202,21 +218,34 @@ macro(astcenc_set_properties ASTCENC_TARGET_NAME ASTCENC_IS_VENEER)
 
         # For Visual Studio prior to 2022 (compiler < 19.30) /fp:precise
         # For Visual Studio 2022 (compiler >= 19.30) /fp:precise and /fp:contract
+
+        # For Visual Studio 2022 ClangCL seems to have accidentially enabled contraction by default,
+        # so behaves differently to CL.exe. Use the -Xclang argument to workaround and allow access
+        # GNU-style switch to control contraction on the assumption this gets fixed and disabled.
+        # Note ClangCL does not accept /fp:contract as an argument as of v15.0.7.
         target_compile_options(${ASTCENC_TARGET_NAME}
             PRIVATE
-                $<$<CXX_COMPILER_ID:MSVC>:/fp:precise>
-                $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.30>>:/fp:contract>
-                $<$<AND:$<PLATFORM_ID:Linux,Darwin>,$<CXX_COMPILER_ID:${CLANG_LIKE}>>:-ffp-model=precise>
-                $<$<PLATFORM_ID:Linux,Darwin>:-ffp-contract=fast>)
+                $<${is_msvccl}:/fp:precise>
+                $<${is_clangcl}:/fp:precise>
+                $<$<AND:${is_msvccl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.30>>:/fp:contract>
+                $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,14.0.0>>:-Xclang -ffp-contract=fast>
+                $<${is_clang}:-ffp-model=precise>
+                $<${is_gnu_fe}:-ffp-contract=fast>)
     else()
         # For Visual Studio prior to 2022 (compiler < 19.30) /fp:strict
         # For Visual Studio 2022 (compiler >= 19.30) /fp:precise
+
+        # For Visual Studio 2022 ClangCL seems to have accidentially enabled contraction by default,
+        # so behaves differently to CL.exe. Use the -Xclang argument to workaround and allow access
+        # GNU-style switch to control contraction and force disable.
         target_compile_options(${ASTCENC_TARGET_NAME}
             PRIVATE
-                $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,19.30>>:/fp:strict>
-                $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.30>>:/fp:precise>
-                $<$<AND:$<PLATFORM_ID:Linux,Darwin>,$<CXX_COMPILER_ID:${CLANG_LIKE}>>:-ffp-model=precise>
-                $<$<PLATFORM_ID:Linux,Darwin>:-ffp-contract=off>)
+                $<$<AND:${is_msvccl},$<VERSION_LESS:$<CXX_COMPILER_VERSION>,19.30>>:/fp:strict>
+                $<$<AND:${is_msvccl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.30>>:/fp:precise>
+                $<${is_clangcl}:/fp:precise>
+                $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,14.0.0>>:-Xclang -ffp-contract=off>
+                $<${is_clang}:-ffp-model=precise>
+                $<${is_gnu_fe}:-ffp-contract=off>)
     endif()
 
     if(${ASTCENC_CLI})
@@ -259,7 +288,7 @@ macro(astcenc_set_properties ASTCENC_TARGET_NAME ASTCENC_IS_VENEER)
         if((CMAKE_CXX_COMPILER_ID MATCHES "MSVC") AND (MSVC_VERSION LESS 1933))
             target_compile_options(${ASTCENC_TARGET_NAME}
                 PRIVATE
-                    $<$<CXX_COMPILER_ID:MSVC>:/d2ssa-cfg-sink->)
+                    $<${is_msvccl}:/d2ssa-cfg-sink->)
         endif()
 
     elseif((${ASTCENC_ISA_SIMD} MATCHES "sse2") OR (${ASTCENC_UNIVERSAL_BUILD} AND ${ASTCENC_ISA_SSE2}))
@@ -276,9 +305,10 @@ macro(astcenc_set_properties ASTCENC_TARGET_NAME ASTCENC_IS_VENEER)
         # Force SSE2 on AppleClang (normally SSE4.1 is the default)
         target_compile_options(${ASTCENC_TARGET_NAME}
             PRIVATE
-                $<$<CXX_COMPILER_ID:AppleClang>:-msse2>
-                $<$<CXX_COMPILER_ID:AppleClang>:-mno-sse4.1>
-                $<$<CXX_COMPILER_ID:AppleClang>:-Wno-unused-command-line-argument>)
+                $<${is_clangcl}:-msse2>
+                $<${is_gnu_fe}:-msse2>
+                $<${is_gnu_fe}:-mno-sse4.1>
+                $<${is_gnu_fe}:-Wno-unused-command-line-argument>)
 
     elseif((${ASTCENC_ISA_SIMD} MATCHES "sse4.1") OR (${ASTCENC_UNIVERSAL_BUILD} AND ${ASTCENC_ISA_SSE41}))
         if(NOT ${ASTCENC_UNIVERSAL_BUILD})
@@ -295,14 +325,15 @@ macro(astcenc_set_properties ASTCENC_TARGET_NAME ASTCENC_IS_VENEER)
             # Force SSE2 on AppleClang (normally SSE4.1 is the default)
             target_compile_options(${ASTCENC_TARGET_NAME}
                 PRIVATE
-                    $<$<CXX_COMPILER_ID:AppleClang>:-msse2>
-                    $<$<CXX_COMPILER_ID:AppleClang>:-mno-sse4.1>
-                    $<$<CXX_COMPILER_ID:AppleClang>:-Wno-unused-command-line-argument>)
+                    $<${is_gnu_fe}:-msse2>
+                    $<${is_gnu_fe}:-mno-sse4.1>
+                    $<${is_gnu_fe}:-Wno-unused-command-line-argument>)
         else()
             target_compile_options(${ASTCENC_TARGET_NAME}
                 PRIVATE
-                    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-msse4.1 -mpopcnt>
-                    $<$<CXX_COMPILER_ID:AppleClang>:-Wno-unused-command-line-argument>)
+                    $<${is_clangcl}:-msse4.1 -mpopcnt>
+                    $<${is_gnu_fe}:-msse4.1 -mpopcnt>
+                    $<${is_gnu_fe}:-Wno-unused-command-line-argument>)
         endif()
 
     elseif((${ASTCENC_ISA_SIMD} MATCHES "avx2") OR (${ASTCENC_UNIVERSAL_BUILD} AND ${ASTCENC_ISA_AVX2}))
@@ -320,15 +351,16 @@ macro(astcenc_set_properties ASTCENC_TARGET_NAME ASTCENC_IS_VENEER)
             # Force SSE2 on AppleClang (normally SSE4.1 is the default)
             target_compile_options(${ASTCENC_TARGET_NAME}
                 PRIVATE
-                    $<$<CXX_COMPILER_ID:AppleClang>:-msse2>
-                    $<$<CXX_COMPILER_ID:AppleClang>:-mno-sse4.1>
-                    $<$<CXX_COMPILER_ID:AppleClang>:-Wno-unused-command-line-argument>)
+                    $<${is_gnu_fe}:-msse2>
+                    $<${is_gnu_fe}:-mno-sse4.1>
+                    $<${is_gnu_fe}:-Wno-unused-command-line-argument>)
         else()
             target_compile_options(${ASTCENC_TARGET_NAME}
                 PRIVATE
-                    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-mavx2 -mpopcnt -mf16c>
-                    $<$<CXX_COMPILER_ID:MSVC>:/arch:AVX2>
-                    $<$<CXX_COMPILER_ID:AppleClang>:-Wno-unused-command-line-argument>)
+                    $<${is_msvc_fe}:/arch:AVX2>
+                    $<${is_clangcl}:-mavx2 -mpopcnt -mf16c>
+                    $<${is_gnu_fe}:-mavx2 -mpopcnt -mf16c>
+                    $<${is_gnu_fe}:-Wno-unused-command-line-argument>)
         endif()
 
         # Non-invariant builds enable us to loosen the compiler constraints on
@@ -340,45 +372,43 @@ macro(astcenc_set_properties ASTCENC_TARGET_NAME ASTCENC_IS_VENEER)
         if((NOT ${ASTCENC_INVARIANCE}) AND (NOT ${ASTCENC_IS_VENEER}))
             target_compile_options(${ASTCENC_TARGET_NAME}
                 PRIVATE
-                    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-mfma>)
+                    $<${is_gnu_fe}:-mfma>)
         endif()
 
     endif()
 
 endmacro()
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    string(CONCAT EXTERNAL_CXX_FLAGS
-            " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -fno-strict-aliasing>"
-            " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-unused-parameter>"
-            " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-old-style-cast>"
-            " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-double-promotion>"
-            " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-zero-as-null-pointer-constant>"
-            " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-disabled-macro-expansion>"
-            " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-reserved-id-macro>"
-            " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-extra-semi-stmt>"
-            " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-implicit-fallthrough>"
-            " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-tautological-type-limit-compare>"
-            " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-cast-qual>"
-            " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-reserved-identifier>"
-            " $<$<CXX_COMPILER_ID:${CLANG_LIKE}>: -Wno-missing-prototypes>"
-            " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-missing-field-initializers>"
-            " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-suggest-override>"
-            " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-used-but-marked-unused>"
-            " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-noexcept-type>"
-            " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-comma>"
-            " $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wno-c99-extensions>")
+string(CONCAT EXTERNAL_CXX_FLAGS
+       " $<${is_gnu_fe}: -fno-strict-aliasing>"
+       " $<${is_gnu_fe}: -Wno-unused-parameter>"
+       " $<${is_gnu_fe}: -Wno-old-style-cast>"
+       " $<${is_gnu_fe}: -Wno-double-promotion>"
+       " $<${is_gnu_fe}: -Wno-zero-as-null-pointer-constant>"
+       " $<${is_gnu_fe}: -Wno-disabled-macro-expansion>"
+       " $<${is_gnu_fe}: -Wno-reserved-id-macro>"
+       " $<${is_gnu_fe}: -Wno-extra-semi-stmt>"
+       " $<${is_gnu_fe}: -Wno-implicit-fallthrough>"
+       " $<${is_gnu_fe}: -Wno-tautological-type-limit-compare>"
+       " $<${is_gnu_fe}: -Wno-cast-qual>"
+       " $<${is_gnu_fe}: -Wno-reserved-identifier>"
+       " $<${is_clang}: -Wno-missing-prototypes>"
+       " $<${is_gnu_fe}: -Wno-missing-field-initializers>"
+       " $<${is_gnu_fe}: -Wno-suggest-override>"
+       " $<${is_gnu_fe}: -Wno-used-but-marked-unused>"
+       " $<${is_gnu_fe}: -Wno-noexcept-type>"
+       " $<${is_gnu_fe}: -Wno-comma>"
+       " $<${is_gnu_fe}: -Wno-c99-extensions>")
 
-    set_source_files_properties(astcenccli_image_external.cpp
-        PROPERTIES
-            COMPILE_FLAGS ${EXTERNAL_CXX_FLAGS})
-endif()
+set_source_files_properties(astcenccli_image_external.cpp
+    PROPERTIES
+        COMPILE_FLAGS ${EXTERNAL_CXX_FLAGS})
 
 astcenc_set_properties(${ASTCENC_TARGET}-static OFF)
 
 target_compile_options(${ASTCENC_TARGET}-static
     PRIVATE
-        $<$<CXX_COMPILER_ID:MSVC>:/W4>)
+        $<${is_msvc_fe}:/W4>)
 
 if(${ASTCENC_SHAREDLIB})
     astcenc_set_properties(${ASTCENC_TARGET}-shared OFF)
@@ -389,8 +419,8 @@ if(${ASTCENC_SHAREDLIB})
 
     target_compile_options(${ASTCENC_TARGET}-shared
         PRIVATE
-            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-fvisibility=hidden>
-            $<$<CXX_COMPILER_ID:MSVC>:/W4>)
+            $<${is_gnu_fe}:-fvisibility=hidden>
+            $<${is_msvc_fe}:/W4>)
 endif()
 
 if(${ASTCENC_CLI})
@@ -399,11 +429,11 @@ if(${ASTCENC_CLI})
 
     target_compile_options(${ASTCENC_TARGET}
         PRIVATE
-            $<$<CXX_COMPILER_ID:MSVC>:/W3>)
+            $<${is_msvc_fe}:/W3>)
 
     target_compile_options(${ASTCENC_TARGET}-veneer
         PRIVATE
-            $<$<CXX_COMPILER_ID:MSVC>:/W3>)
+            $<${is_msvc_fe}:/W3>)
 
     string(TIMESTAMP astcencoder_YEAR "%Y")
 

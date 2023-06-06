@@ -14,6 +14,8 @@ clocked at 4.2 GHz, running `astcenc` using AVX2 and 6 threads.
 The 4.5.0 release is a maintenance release with minor fixes and improvements.
 
 * **General:**
+  * **Bug-fix:** Improved handling compiler arguments in CMake, including
+    consistent use of MSVC-style command line arguments for ClangCL.
   * **Bug-fix:** Invariant Clang builds now use `-ffp-model=precise` with
     `-ffp-contract=off` which is needed to restore invariance due to recent
     changes in compiler defaults.
