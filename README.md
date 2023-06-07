@@ -8,7 +8,7 @@ The Official Khronos KTX Software Repository
 
 | GNU/Linux, iOS, macOS & wasm | Windows | Android | Mingw | Documentation |
 | :--------------------------: | :-----: | :-----: | :---: | :-----------: | 
-| ![Build Status](https://travis-ci.com/KhronosGroup/KTX-Software.svg?branch=master) | ![Build status](https://github.com/KhronosGroup/KTX-Software/actions/workflows/windows.yml/badge.svg) | ![KTX-Software CI](https://github.com/KhronosGroup/KTX-Software/actions/workflows/android.yml/badge.svg) | ![KTX-Software CI](https://github.com/KhronosGroup/KTX-Software/actions/workflows/mingw.yml/badge.svg) | ![Build status](https://codedocs.xyz/KhronosGroup/KTX-Software.svg)|
+| ![Build Status](https://travis-ci.com/KhronosGroup/KTX-Software.svg?branch=main) | ![Build status](https://github.com/KhronosGroup/KTX-Software/actions/workflows/windows.yml/badge.svg) | ![KTX-Software CI](https://github.com/KhronosGroup/KTX-Software/actions/workflows/android.yml/badge.svg) | ![KTX-Software CI](https://github.com/KhronosGroup/KTX-Software/actions/workflows/mingw.yml/badge.svg) | ![Build status](https://codedocs.xyz/KhronosGroup/KTX-Software.svg)|
 
 This is the official home of the source code for the Khronos KTX library and tools.
 
@@ -26,22 +26,22 @@ The software consists of: (links are to source folders in the KhronosGroup repo)
 
 - *libktx* - a small library of functions for writing and reading KTX
 files, and instantiating OpenGL®, OpenGL ES™️ and Vulkan® textures
-from them. [`lib`](https://github.com/KhronosGroup/KTX-Software/tree/master/lib)
+from them. [`lib`](https://github.com/KhronosGroup/KTX-Software/tree/main/lib)
 - *libktx.{js,wasm}* - Web assembly version of libktx and
-Javascript wrapper. [`interface/js_binding`](https://github.com/KhronosGroup/KTX-Software/tree/master/interface/js_binding)
+Javascript wrapper. [`interface/js_binding`](https://github.com/KhronosGroup/KTX-Software/tree/main/interface/js_binding)
 - *msc\_basis\_transcoder.{js,wasm}* - Web assembly transcoder and
-Javascript wrapper for Basis Universal formats. For use with KTX parsers written in Javascript. [`interface/js_binding`](https://github.com/KhronosGroup/KTX-Software/tree/master/interface/js_binding)
+Javascript wrapper for Basis Universal formats. For use with KTX parsers written in Javascript. [`interface/js_binding`](https://github.com/KhronosGroup/KTX-Software/tree/main/interface/js_binding)
 - *libktx.jar, libktx-jni* - Java wrapper and native interface library.
-[`interface/java_binding`](https://github.com/KhronosGroup/KTX-Software/tree/master/interface/java_binding)
-- *ktx2check* - a tool for validating KTX Version 2 format files. [`tools/ktx2check`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/ktx2check)
+[`interface/java_binding`](https://github.com/KhronosGroup/KTX-Software/tree/main/interface/java_binding)
+- *ktx2check* - a tool for validating KTX Version 2 format files. [`tools/ktx2check`](https://github.com/KhronosGroup/KTX-Software/tree/main/tools/ktx2check)
 - *ktx2ktx2* - a tool for converting a KTX Version 1 file to a KTX
-Version 2 file. [`tools/ktx2ktx2`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/ktx2ktx2)
+Version 2 file. [`tools/ktx2ktx2`](https://github.com/KhronosGroup/KTX-Software/tree/main/tools/ktx2ktx2)
 - *ktxinfo* - a tool to display information about a KTX file in
-human readable form. [`tools/ktxinfo`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/ktxinfo)
+human readable form. [`tools/ktxinfo`](https://github.com/KhronosGroup/KTX-Software/tree/main/tools/ktxinfo)
 - *ktxsc* - a tool to supercompress a KTX Version 2 file that
-contains uncompressed images.[`tools/ktxsc`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/ktxsc)
+contains uncompressed images.[`tools/ktxsc`](https://github.com/KhronosGroup/KTX-Software/tree/main/tools/ktxsc)
 - *toktx* - a tool to create KTX files from PNG, Netpbm or JPEG format images. It supports mipmap generation, encoding to
-Basis Universal formats and Zstd supercompression.[`tools/toktx`](https://github.com/KhronosGroup/KTX-Software/tree/master/tools/toktx)
+Basis Universal formats and Zstd supercompression.[`tools/toktx`](https://github.com/KhronosGroup/KTX-Software/tree/main/tools/toktx)
 
 See [CONTRIBUTING](CONTRIBUTING.md) for information about contributing.
 
