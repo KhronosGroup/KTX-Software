@@ -41,8 +41,8 @@ namespace ktx {
     if (str == "Invalid scheme value")
         str = fmt::format("(0x{:08X})", static_cast<uint32_t>(scheme));
 
-    else if (str == "Vendor scheme")
-        str = fmt::format("Vendor (0x{:08X})", static_cast<uint32_t>(scheme));
+    else if (str == "Vendor or reserved scheme")
+        str = fmt::format("Vendor or reserved scheme (0x{:08X})", static_cast<uint32_t>(scheme));
 
     return str;
 }

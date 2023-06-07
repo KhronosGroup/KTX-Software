@@ -573,8 +573,8 @@ printKTX2Header(KTX_header2* pHeader)
     const char* scSchemeStr = ktxSupercompressionSchemeString(pHeader->supercompressionScheme);
     if (strcmp(scSchemeStr, "Invalid scheme value") == 0)
         fprintf(stdout, "supercompressionScheme: Invalid scheme (0x%X)\n", (uint32_t) pHeader->supercompressionScheme);
-    else if (strcmp(scSchemeStr, "Vendor scheme") == 0)
-        fprintf(stdout, "supercompressionScheme: Vendor scheme (0x%X)\n", (uint32_t) pHeader->supercompressionScheme);
+    else if (strcmp(scSchemeStr, "Vendor or reserved scheme") == 0)
+        fprintf(stdout, "supercompressionScheme: Vendor or reserved scheme (0x%X)\n", (uint32_t) pHeader->supercompressionScheme);
     else
         fprintf(stdout, "supercompressionScheme: %s\n", scSchemeStr);
     fprintf(stdout, "dataFormatDescriptor.byteOffset: %#x\n",
@@ -818,7 +818,7 @@ printKTX2Info2JSON(ktxStream* stream, KTX_header2* pHeader, ktx_uint32_t base_in
     PRINT_INDENT(1, "\"faceCount\":%s%u,%s", space, pHeader->faceCount, nl);
     PRINT_INDENT(1, "\"levelCount\":%s%u,%s", space, pHeader->levelCount, nl);
     const char* scSchemeStr = ktxSupercompressionSchemeString(pHeader->supercompressionScheme);
-    if (strcmp(scSchemeStr, "Invalid scheme value") == 0 || strcmp(scSchemeStr, "Vendor scheme") == 0)
+    if (strcmp(scSchemeStr, "Invalid scheme value") == 0 || strcmp(scSchemeStr, "Vendor or reserved scheme") == 0)
         PRINT_INDENT(1, "\"supercompressionScheme\":%s%u%s", space, (uint32_t) pHeader->supercompressionScheme, nl)
     else
         PRINT_INDENT(1, "\"supercompressionScheme\":%s\"%s\"%s", space, scSchemeStr, nl)

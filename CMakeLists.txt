@@ -600,10 +600,7 @@ macro(common_libktx_settings target enable_write library_type)
             lib/writer1.c
             lib/writer2.c
         )
-    endif()
 
-    # Setup ktx target
-    if(${enable_write})
         target_include_directories(
             ${target}
         PRIVATE
@@ -740,7 +737,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         # version. Also future proofing for when xcode catches up.
         set_source_files_properties(
             ${BASISU_ENCODER_CXX_SRC}
-            PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-variable;-Wno-unused-parameter"
+            PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-variable;-Wno-unused-parameter;-Wno-deprecated-copy-with-user-provided-copy"
         )
         set_source_files_properties(
             lib/basisu/transcoder/basisu_transcoder.cpp

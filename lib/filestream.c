@@ -314,8 +314,10 @@ KTX_error_code ktxFileStream_getsize(ktxStream* str, ktx_size_t* size)
     // Bug in VS2013 msvcrt. fflush on FILE open for READ changes file offset
     // to 4096.
     if (str->data.file->_flag & _IOWRT)
-#endif
+        (void)fflush(str->data.file);
+#else
     (void)fflush(str->data.file);
+#endif
     statret = fstat(fileno(str->data.file), &statbuf);
     if (statret < 0) {
         switch (errno) {

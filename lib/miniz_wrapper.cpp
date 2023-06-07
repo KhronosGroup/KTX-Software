@@ -28,6 +28,7 @@
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wextra"
+#pragma GCC diagnostic ignored "-Wmisleading-indentation"
 #endif
 #include "basisu/encoder/basisu_miniz.h"
 #ifdef __GNUC__

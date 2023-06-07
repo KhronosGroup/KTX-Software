@@ -127,7 +127,7 @@ ktxSupercompressionSchemeString(ktxSupercmpScheme scheme)
             || scheme >= KTX_SS_BEGIN_RESERVED)
             return "Invalid scheme value";
         else
-            return "Vendor scheme";
+            return "Vendor or reserved scheme";
     }
 }
 
