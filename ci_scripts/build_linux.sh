@@ -54,13 +54,15 @@ if [[ "$ARCH" = "aarch64" && "$FEATURE_LOADTESTS" =~ "Vulkan" ]]; then
   echo "Forcing FEATURE_LOADTESTS to \"$FEATURE_LOADTESTS\" as no Vulkan SDK yet for Linux/arm64."
 fi
 
-BUILD_DIR=${BUILD_DIR:-build/linux}
-if [ "$ARCH" != $(uname -m) ]; then
-  BUILD_DIR+="-$ARCH-"
-fi
-if [ "$CMAKE_GEN" = "Ninja" -o "$CMAKE_GEN" = "Unix Makefiles" ]; then
-  # Single configuration generators.
-  BUILD_DIR+="-$CONFIGURATION"
+if [[ -z $BUILD_DIR ]]; then
+  BUILD_DIR=build/linux}
+  if [ "$ARCH" != $(uname -m) ]; then
+    BUILD_DIR+="-$ARCH-"
+  fi
+  if [ "$CMAKE_GEN" = "Ninja" -o "$CMAKE_GEN" = "Unix Makefiles" ]; then
+    # Single configuration generators.
+    BUILD_DIR+="-$CONFIGURATION"
+  fi
 fi
 
 mkdir -p $BUILD_DIR
