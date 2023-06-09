@@ -89,7 +89,7 @@ end
 ARGV.each { |file| upload_file(file) }
 
 def upload_file(path)
-  #puts "uploading asset #{file} to #{our_release.url}"
+  puts "uploading asset #{file} to #{our_release.url}"
   file = normalize_filename(path)
   asset = asset(file)
   return info :skip_existing, file if asset && !overwrite?
