@@ -55,7 +55,7 @@ if [[ "$ARCH" = "aarch64" && "$FEATURE_LOADTESTS" =~ "Vulkan" ]]; then
 fi
 
 if [[ -z $BUILD_DIR ]]; then
-  BUILD_DIR=build/linux}
+  BUILD_DIR=build/linux
   if [ "$ARCH" != $(uname -m) ]; then
     BUILD_DIR+="-$ARCH-"
   fi

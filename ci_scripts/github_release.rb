@@ -84,7 +84,7 @@ else
     })
 end
 
-def asset(name)
+def asset(client, name, url)
   client.release_assets(url).detect { |asset| asset.name == name }
 end
 
@@ -94,8 +94,8 @@ def content_type(file)
   type.to_s
 end
 
-def delete(asset, file)
-  info :overwrite, file
+def delete(client, asset, file)
+  #info :overwrite, file
   client.delete_release_asset(asset.url)
 end
 
@@ -111,11 +111,11 @@ end
 def upload_file(path, release, client)
   puts "uploading asset #{path} to #{release.url}"
   file = normalize_filename(path)
-  asset = asset(file)
+  asset = asset(client, file, release.url)
   return info :skip_existing, file if asset && !overwrite?
   delete(asset, file) if asset
-  info :upload_file, file
-  client.upload_asset(release.url, file,
+  #info :upload_file, file
+  client.upload_asset(release.url, path,
     {:name => file, :content_type => content_type(file)})
 end
 
