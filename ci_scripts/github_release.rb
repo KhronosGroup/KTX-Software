@@ -108,7 +108,7 @@ def normalize_filename(str)
   str.gsub(/[^\w@+\-_]/, '.')
 end
 
-def upload_file(path, release)
+def upload_file(path, release, client)
   puts "uploading asset #{path} to #{release.url}"
   file = normalize_filename(path)
   asset = asset(file)
@@ -121,4 +121,4 @@ end
 
 # We're not using this so it isn't thoroughly tested. Asset uploads
 # are done using the Travis CI "releases" provider.
-ARGV.each { |file| upload_file(file, our_release) }
+ARGV.each { |file| upload_file(file, our_release, client) }
