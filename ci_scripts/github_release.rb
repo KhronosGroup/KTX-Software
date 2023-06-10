@@ -95,7 +95,7 @@ def content_type(file)
 end
 
 def delete(asset, file)
-  info :overwrite_existing, file
+  info :overwrite, file
   client.delete_release_asset(asset.url)
 end
 
@@ -108,17 +108,17 @@ def normalize_filename(str)
   str.gsub(/[^\w@+\-_]/, '.')
 end
 
-def upload_file(path)
-  puts "uploading asset #{path} to #{our_release.url}"
+def upload_file(path, release)
+  puts "uploading asset #{path} to #{release.url}"
   file = normalize_filename(path)
   asset = asset(file)
   return info :skip_existing, file if asset && !overwrite?
   delete(asset, file) if asset
   info :upload_file, file
-  client.upload_asset(our_release.url, file,
+  client.upload_asset(release.url, file,
     {:name => file, :content_type => content_type(file)})
 end
 
 # We're not using this so it isn't thoroughly tested. Asset uploads
 # are done using the Travis CI "releases" provider.
-ARGV.each { |file| upload_file(file) }
+ARGV.each { |file| upload_file(file, our_release) }
