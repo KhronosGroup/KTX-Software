@@ -278,7 +278,6 @@ after_success:
 before_deploy:
   - |
     gem install octokit:'~> 4.15.0' mime-types
-    gem install faraday:'~> 1.0.0'
     case "${TRAVIS_OS_NAME:-linux}" in
     linux)
       ;;
