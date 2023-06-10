@@ -53,7 +53,7 @@ releases = client.releases(options[:repo_slug])
 releases.each do |release|
   puts "Release tag_name = #{release.tag_name}"
   if release.tag_name == options[:tag_name]
-    tag_matched= true
+    tag_matched = true
     our_release = release
     break
   end
@@ -108,17 +108,18 @@ def normalize_filename(str)
   str.gsub(/[^\w@+\-_]/, '.')
 end
 
-def upload_file(path, release, client)
-  puts "uploading asset #{path} to #{release.url}"
+def upload_file(path, overwrite, release, client)
   file = normalize_filename(path)
   asset = asset(client, file, release.url)
-  return info :skip_existing, file if asset && !overwrite?
-  delete(asset, file) if asset
+  #return info :skip_existing, file if asset && !overwrite
+  return if asset && !overwrite
+  puts "uploading asset #{path} to #{release.url}"
+  delete(client, asset, file) if asset
   #info :upload_file, file
   client.upload_asset(release.url, path,
     {:name => file, :content_type => content_type(file)})
 end
 
-# We're not using this so it isn't thoroughly tested. Asset uploads
-# are done using the Travis CI "releases" provider.
-ARGV.each { |file| upload_file(file, our_release, client) }
+# This is not thoroughly tested. Asset uploads are normally
+# done using the Travis CI "releases" provider.
+ARGV.each { |file| upload_file(file, options[:overwrite], our_release, client) }
