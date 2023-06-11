@@ -3,7 +3,12 @@
 
 set(OPENGL_ES_EMULATOR "" CACHE PATH "Path to OpenGL ES emulation libraries")
 
-function( create_gl_target target version sources resources KTX_GL_CONTEXT_PROFILE KTX_GL_CONTEXT_MAJOR_VERSION KTX_GL_CONTEXT_MINOR_VERSION EMULATE_GLES)
+function( create_gl_target target version sources common_resources test_images
+          KTX_GL_CONTEXT_PROFILE
+          KTX_GL_CONTEXT_MAJOR_VERSION KTX_GL_CONTEXT_MINOR_VERSION
+          EMULATE_GLES)
+
+    set( resources ${common_resources};${test_images} )
 
     add_executable( ${target}
         ${EXE_FLAG}
@@ -61,15 +66,17 @@ function( create_gl_target target version sources resources KTX_GL_CONTEXT_PROFI
     if(APPLE)
         if(IOS)
             set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/glloadtests/resources/ios/Info.plist" )
-            # Don't add these to ${resources}. If they're tagged as resources
-            # the resource installer in `install(TARGETS` will be confused by
-            # xcassets being directories.
+            set( icon_launch_assets
+                ${PROJECT_SOURCE_DIR}/icons/ios/CommonIcons.xcassets
+                glloadtests/resources/ios/LaunchImages.xcassets
+                glloadtests/resources/ios/LaunchScreen.storyboard
+            )
             target_sources( ${target}
                 PRIVATE
-                    ${PROJECT_SOURCE_DIR}/icons/ios/CommonIcons.xcassets
-                    glloadtests/resources/ios/LaunchImages.xcassets
-                    glloadtests/resources/ios/LaunchScreen.storyboard
+                    ${icon_launch_assets}
             )
+            # Add to resources so they'll be copied to the bundle.
+            list( APPEND resources ${icon_launch_assets} )
             target_link_libraries(
                 ${target}
                 ${AudioToolbox_LIBRARY}
@@ -90,13 +97,19 @@ function( create_gl_target target version sources resources KTX_GL_CONTEXT_PROFI
             set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/glloadtests/resources/mac/Info.plist" )
         endif()
     elseif(EMSCRIPTEN)
+        # Beware of de-duplication in list expansion for commands and options.
+        # SHELL: prevents it but if they are separate items in the list they
+        # be de-duplicated.
+        list( TRANSFORM test_images REPLACE
+            "(${PROJECT_SOURCE_DIR}/tests/testimages/([a-zA-Z0-9_].*$))"
+            "SHELL:--preload-file \\1@\\2"
+            OUTPUT_VARIABLE preloads
+        )
         target_link_options(
             ${target}
         PRIVATE
             "SHELL:--source-map-base ./"
-            "SHELL:--preload-file '${PROJECT_SOURCE_DIR}/tests/testimages@testimages'"
-            "SHELL:--exclude-file '${PROJECT_SOURCE_DIR}/tests/testimages/genref'"
-            "SHELL:--exclude-file '${PROJECT_SOURCE_DIR}/tests/testimages/genktx2'"
+            ${preloads}
             "SHELL:--exclude-file '${PROJECT_SOURCE_DIR}/tests/testimages/cubemap*'"
             "SHELL:-s ALLOW_MEMORY_GROWTH=1"
             "SHELL:-s DISABLE_EXCEPTION_CATCHING=0"
@@ -200,11 +213,16 @@ function( create_gl_target target version sources resources KTX_GL_CONTEXT_PROFI
                 INSTALL_RPATH "@executable_path/../Frameworks"
             )
 
+            if(NOT KTX_FEATURE_STATIC_LIBRARY)
+              add_custom_command( TARGET ${target} POST_BUILD
+                  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Frameworks/$<TARGET_FILE_NAME:ktx>"
+                  COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE_NAME:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Frameworks/$<TARGET_SONAME_FILE_NAME:ktx>"
+                  COMMENT "Copy KTX library to build destination"
+              )
+            endif()
             add_custom_command( TARGET ${target} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Frameworks/$<TARGET_FILE_NAME:ktx>"
-                COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE_NAME:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Frameworks/$<TARGET_SONAME_FILE_NAME:ktx>"
                 COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/other_lib/mac/$<CONFIG>/libSDL2.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Frameworks/libSDL2.dylib"
-                COMMENT "Copy libraries & frameworks to build destination"
+                COMMENT "Copy SDL2 library to build destination"
             )
 
             # Specify destination for cmake --install.
@@ -288,6 +306,7 @@ endfunction( create_gl_target target )
 
 
 set( ES1_TEST_IMAGES
+    no-npot.ktx
     hi_mark.ktx
     luminance-reference-metadata.ktx
     orient-up-metadata.ktx
@@ -305,7 +324,6 @@ set( ES1_TEST_IMAGES
 list( TRANSFORM ES1_TEST_IMAGES
     PREPEND "${PROJECT_SOURCE_DIR}/tests/testimages/"
 )
-set( ES1_RESOURCE_FILES ${KTX_ICON} ${ES1_TEST_IMAGES} )
 
 set( ES1_SOURCES
     glloadtests/gles1/ES1LoadTests.cpp
@@ -407,15 +425,15 @@ endif()
 
 if(IOS OR EMULATE_GLES)
     # OpenGL ES 1.0
-    create_gl_target( es1loadtests "ES1" "${ES1_SOURCES}" "${ES1_RESOURCE_FILES}" SDL_GL_CONTEXT_PROFILE_ES 1 0 ON)
+    create_gl_target( es1loadtests "ES1" "${ES1_SOURCES}" "${KTX_ICON}" "${ES1_TEST_IMAGES}" SDL_GL_CONTEXT_PROFILE_ES 1 0 ON)
 endif()
 
 if(IOS OR EMSCRIPTEN OR EMULATE_GLES)
     # OpenGL ES 3.0
-    create_gl_target( es3loadtests "ES3" "${GL3_SOURCES}" "${GL3_RESOURCE_FILES}" SDL_GL_CONTEXT_PROFILE_ES 3 0 ON YES)
+    create_gl_target( es3loadtests "ES3" "${GL3_SOURCES}" "${LOAD_TEST_COMMON_RESOURCE_FILES}" "${GL3_TEST_IMAGES}" SDL_GL_CONTEXT_PROFILE_ES 3 0 ON YES)
 endif()
 
 if( (APPLE AND NOT IOS) OR LINUX OR WIN32 )
     # OpenGL 3.3
-    create_gl_target( gl3loadtests "GL3" "${GL3_SOURCES}" "${GL3_RESOURCE_FILES}" SDL_GL_CONTEXT_PROFILE_CORE 3 3 OFF YES)
+    create_gl_target( gl3loadtests "GL3" "${GL3_SOURCES}" "${LOAD_TEST_COMMON_RESOURCE_FILES}" "${GL3_TEST_IMAGES}" SDL_GL_CONTEXT_PROFILE_CORE 3 3 OFF YES)
 endif()

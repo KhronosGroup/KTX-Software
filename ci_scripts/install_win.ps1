@@ -25,7 +25,7 @@ function Set-ConfigVariable {
 # when debugging is needed. Use local variables to avoid polluting the
 # environment. Some case have been observed where setting env. var's here
 # sets them for the parent as well.
-$FEATURE_LOADTESTS = Set-ConfigVariable FEATURE_LOADTESTS "ON"
+$FEATURE_LOADTESTS = Set-ConfigVariable FEATURE_LOADTESTS "OpenGL+Vulkan"
 $FEATURE_TESTS = Set-ConfigVariable FEATURE_TESTS "ON"
 $SUPPORT_OPENCL = Set-ConfigVariable SUPPORT_OPENCL "OFF"
 $OPENCL_SDK_HOME = Set-ConfigVariable OPENCL_SDK_HOME "https://github.com/intel/llvm/releases/download/2021-09"
@@ -39,33 +39,37 @@ if ($FEATURE_TESTS -eq "ON") {
   git lfs pull --include=tests/srcimages,tests/testimages
 }
 
-if ($FEATURE_LOADTESTS -eq "ON") {
+if ($FEATURE_LOADTESTS -and $FEATURE_LOADTESTS -ne "OFF") {
   # Must be in repo root for this lfs pull.
   git lfs pull --include=other_lib/win
-  echo "Download PowerVR OpenGL ES Emulator libraries (latest version)."
-  $null = md $OPENGL_ES_EMULATOR_WIN
-  pushd $OPENGL_ES_EMULATOR_WIN
-  # Must use `curl.exe` as `curl` is an alias for the totally different
-  # Invoke-WebRequest command which is difficult to use for downloads.
-  # curl writes its progress meter to stderr which means PS prints the
-  # output with a bright red background so sadly we turn off the meter
-  # (-s, --silent) then turn actual error messages back on (-S --show-error).
-  curl.exe -s -S -L -O $PVR_SDK_HOME/libGLES_CM.dll
-  curl.exe -s -S -L -O $PVR_SDK_HOME/libGLES_CM.lib
-  curl.exe -s -S -L -O $PVR_SDK_HOME/libGLESv2.dll
-  curl.exe -s -S -L -O $PVR_SDK_HOME/libGLESv2.lib
-  curl.exe -s -S -L -O $PVR_SDK_HOME/libEGL.dll
-  curl.exe -s -S -L -O $PVR_SDK_HOME/libEGL.lib
-  popd
-  echo "Install VulkanSDK."
-  pushd $env:TEMP
-  curl.exe -s -S -o VulkanSDK-Installer.exe "https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/windows/VulkanSDK-$VULKAN_SDK_VER-Installer.exe?Human=true"
-  Start-Process .\VulkanSDK-Installer.exe -ArgumentList "--accept-licenses --default-answer --confirm-command install" -NoNewWindow -Wait
-  echo "Return to cloned repo."
-  popd
-  $key='HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment'
-  $VULKAN_SDK=(Get-ItemProperty -Path $key -Name VULKAN_SDK).VULKAN_SDK
-  echo "VULKAN_SDK=$VULKAN_SDK"
+  if ($FEATURE_LOADTESTS -match "OpenGL") {
+    echo "Download PowerVR OpenGL ES Emulator libraries (latest version)."
+    $null = md $OPENGL_ES_EMULATOR_WIN
+    pushd $OPENGL_ES_EMULATOR_WIN
+    # Must use `curl.exe` as `curl` is an alias for the totally different
+    # Invoke-WebRequest command which is difficult to use for downloads.
+    # curl writes its progress meter to stderr which means PS prints the
+    # output with a bright red background so sadly we turn off the meter
+    # (-s, --silent) then turn actual error messages back on (-S --show-error).
+    curl.exe -s -S -L -O $PVR_SDK_HOME/libGLES_CM.dll
+    curl.exe -s -S -L -O $PVR_SDK_HOME/libGLES_CM.lib
+    curl.exe -s -S -L -O $PVR_SDK_HOME/libGLESv2.dll
+    curl.exe -s -S -L -O $PVR_SDK_HOME/libGLESv2.lib
+    curl.exe -s -S -L -O $PVR_SDK_HOME/libEGL.dll
+    curl.exe -s -S -L -O $PVR_SDK_HOME/libEGL.lib
+    popd
+  }
+  if ($FEATURE_LOADTESTS -match "Vulkan") {
+    echo "Install VulkanSDK."
+    pushd $env:TEMP
+    curl.exe -s -S -o VulkanSDK-Installer.exe "https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/windows/VulkanSDK-$VULKAN_SDK_VER-Installer.exe?Human=true"
+    Start-Process .\VulkanSDK-Installer.exe -ArgumentList "--accept-licenses --default-answer --confirm-command install" -NoNewWindow -Wait
+    echo "Return to cloned repo."
+    popd
+    $key='HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment'
+    $VULKAN_SDK=(Get-ItemProperty -Path $key -Name VULKAN_SDK).VULKAN_SDK
+    echo "VULKAN_SDK=$VULKAN_SDK"
+  }
 }
 
 function Augment-UserPath {

@@ -871,7 +871,7 @@ static unsigned int get_format(
 ) {
 	for (auto& it : ASTC_FORMATS)
 	{
-		if ((it.x == x) && (it.y == y) && (it.z == z)  && (it.is_srgb == is_srgb))
+		if ((it.x == x) && (it.y == y) && (it.z == z) && (it.is_srgb == is_srgb))
 		{
 			return it.format;
 		}

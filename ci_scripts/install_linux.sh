@@ -13,10 +13,13 @@ for i in $@; do
 done
 
 ARCH=${ARCH:-$(uname -m)}  # Architecture to install tools for.
+FEATURE_GL_UPLOAD=${FEATURE_GL_UPLOAD:-ON}
+FEATURE_VK_UPLOAD=${FEATURE_VK_UPLOAD:-ON}
 if [ "$ARCH" = "x86_64" ]; then
-  FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-ON}
+  FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-OpenGL+Vulkan}
 else
-  FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-OFF}
+  # No Vulkan SDK yet for Linux/arm64.
+  FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-OpenGL}
 fi
 VULKAN_SDK_VER=${VULKAN_SDK_VER:-1.3.243}
 
@@ -59,16 +62,21 @@ else
 fi
 sudo apt-get -qq install opencl-c-headers:$dpkg_arch
 sudo apt-get -qq install mesa-opencl-icd:$dpkg_arch
-if [ "$FEATURE_LOADTESTS" = "ON" ]; then
-  sudo apt-get -qq install libsdl2-dev:$dpkg_arch
+if [[ "$FEATURE_GL_UPLOAD" = "ON" || "$FEATURE_LOADTESTS" =~ "OpenGL" ]]; then
   sudo apt-get -qq install libgl1-mesa-glx:$dpkg_arch libgl1-mesa-dev:$dpkg_arch
+fi
+if [[ "$FEATURE_VK_UPLOAD" = "ON" || "$FEATURE_LOADTESTS" =~ "Vulkan" ]]; then
   sudo apt-get -qq install libvulkan1 libvulkan-dev:$dpkg_arch
+fi
+if [[ -n "$FEATURE_LOADTESTS" && "$FEATURE_LOADTESTS" != "OFF" ]]; then
+  sudo apt-get -qq install libsdl2-dev:$dpkg_arch
   sudo apt-get -qq install libassimp5 libassimp-dev:$dpkg_arch
+fi
 
+if [[ "$FEATURE_LOADTESTS" =~ "Vulkan" ]]; then
   # No Vulkan SDK for Linux/arm64 yet.
-  if [ "$dpkg_arch" = "arm64" ]; then
-    # TODO: Augment CMakeLists.txt with way to disable just vkloadtests.
-    echo "No Vulkan SDK for Linux/arm64 yet. Please set FEATURE_LOADTESTS OFF."
+  if [[ "$dpkg_arch" = "arm64" ]]; then
+    echo "No Vulkan SDK for Linux/arm64 yet. Please set FEATURE_LOADTESTS to OpenGL or OFF."
   else
     os_codename=$(grep -E 'VERSION_CODENAME=[a-zA-Z]+$' /etc/os-release)
     os_codename=${os_codename#VERSION_CODENAME=}
