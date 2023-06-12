@@ -19,7 +19,8 @@ v4.2.0 has few user-facing changes. Most of the work has been behind the scenes 
 
     * If the input PNG file has a gAMA chunk with a value 45460 the image data is now converted to the sRGB transfer function intead of just assigning sRGB as the transfer function of the output file.
     * If the gAMA chunk has a value other than 45640 or 100000 `toktx` will now exit with an error. Previously it used heuristics to decide whether to transform the input to linear or sRGB. Use `--convert_oetf` or `--assign_oetf` to specified the desired behavior.
-    * The Khronos Data Format header file `KHR/khr_df.h` has been added to the install packages and is included in `ktx.h`. A new transfer function query `ktxTexture2_GetOETF_e` that returns a `khr_df_transfer_e` replaces `ktxTexture2_GetOETF` that returned a `ktx_uint32_t`. The latter is still available for backward compatibility, A new `ktxTexture2_GetColorModel_e` query has been added returning a `khr_df_model_e`.
+
+* The Khronos Data Format header file `KHR/khr_df.h` has been added to the install packages and is included in `ktx.h`. A new transfer function query `ktxTexture2_GetOETF_e` that returns a `khr_df_transfer_e` replaces `ktxTexture2_GetOETF` that returned a `ktx_uint32_t`. The latter is still available for backward compatibility, A new `ktxTexture2_GetColorModel_e` query has been added returning a `khr_df_model_e`.
 
 ### Known Issues in v4.2.0.
 
