@@ -1068,15 +1068,20 @@ if( APPLE AND CMAKE_OSX_ARCHITECTURES )
     else()
         set(processor_name ${arch0})
     endif()
-elseif(CMAKE_CXX_COMPILER_ARCHITECTURE_ID)
+elseif( CMAKE_CXX_COMPILER_ARCHITECTURE_ID )
     # When targeting Windows arm64 CMAKE_SYSTEM_PROCESSOR will incorrectly
-    # return AMD64.
-    # See: https://gitlab.kitware.com/cmake/cmake/-/issues/15170
+    # return AMD64. See: https://gitlab.kitware.com/cmake/cmake/-/issues/15170.
     # We assume that when building for Windows arm64 that we are using MSVC
-    # so we can detect the processor arch name with CMAKE_CXX_COMPILER_ARCHITECTURE_ID
+    # or ClangCL so we can detect the processor arch name with
+    # CMAKE_CXX_COMPILER_ARCHITECTURE_ID
     set(processor_name ${CMAKE_CXX_COMPILER_ARCHITECTURE_ID})
 elseif( CMAKE_SYSTEM_PROCESSOR )
-    set(processor_name ${CMAKE_SYSTEM_PROCESSOR})
+    if( ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64" )
+        # Use consistent package name for all platforms.
+        set(processor_name "arm64")
+    else()
+        set(processor_name ${CMAKE_SYSTEM_PROCESSOR})
+    endif()
 elseif( IOS )
     # CMAKE_SYSTEM_PROCESSOR not set when building for iOS.
     set(processor_name "arm64")

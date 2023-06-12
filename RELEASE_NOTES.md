@@ -2,42 +2,29 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 Release Notes
 =============
-## Version 4.1.0
-### New Features in v4.1.0
+## Version 4.2.0
+### Overview
 
-* ARM's ASTC encoder has been added to `libktx`. As a result you can now use `toktx` to create KTX files with ASTC encoded payloads. Thanks to @wasimabbas-arm.
+v4.2.0 has few user-facing changes. Most of the work has been behind the scenes improving the build system and fixing warnings across the many supported compilers. User-facing changes are detailed below.
 
-* Full normal map handling has been added. 3-component normal maps can be
-converted to 2-component and the components separated into the RGB and alpha channels of ASTC, ETC1S or UASTC compressed textures. A `--normalize` option has been added to `toktx` to convert an input normal map to unit normals which are needed to allow the third component to be recreated in a shader.
-Thanks to @wasimabbas-arm.
+### New Features in v4.2.0
 
-* A Java wrapper and JNI module for `libktx` has been added. Thanks to @ShukantPal.
+* Install packages for GNU/Linux on Arm64 have been added.
 
-* An install package for Apple Silicon has been added.
+* The Java wrapper is now included in the Windows Arm64 install package.
 
-* An install package for Windows Arm-64 has been added. Thanks to @Honeybunch.
+### Significant Changes since v4.1.0
 
-* The formerly internal `ktxStream` class has been exposed enabling possibilities such as wrapping a ktxStream around a C++ stream so that textures can be created from the C++ stream's content. See [sbufstream.h](https://github.com/KhronosGroup/KTX-Software/blob/master/utils/sbufstream.h). Thanks to @UberLambda.
+* The following behavioral changes have been made to `toktx`:
 
-* `ktx2check` now verifies BasisLZ supercompression data by performing a transcode.
+    * If the input PNG file has a gAMA chunk with a value 45460 the image data is now converted to the sRGB transfer function intead of just assigning sRGB as the transfer function of the output file.
+    * If the gAMA chunk has a value other than 45640 or 100000 `toktx` will now exit with an error. Previously it used heuristics to decide whether to transform the input to linear or sRGB. Use `--convert_oetf` or `--assign_oetf` to specified the desired behavior.
 
-### Significant Changes since v4.0.0
+* The Khronos Data Format header file `KHR/khr_df.h` has been added to the install packages and is included in `ktx.h`. A new transfer function query `ktxTexture2_GetOETF_e` that returns a `khr_df_transfer_e` replaces `ktxTexture2_GetOETF` that returned a `ktx_uint32_t`. The latter is still available for backward compatibility, A new `ktxTexture2_GetColorModel_e` query has been added returning a `khr_df_model_e`.
 
-* Basis Universal has been updated to version 1.16.3.
-    * The ETC1S encoder performance is now approximately 30% faster.
-    * Optional OpenCL support has been added to the ETC1S encoder. Add `-D SUPPORT_OPENCL` when configuring the CMake build to enable it. As OpenCL may not be any faster when encoding individual files - it highly depends on your hardware - it is disabled in the default build and release packages.
+### Known Issues in v4.2.0.
 
-* Windows install packages are now signed with an Extended Validation certificate eliminating scary warnings when starting installation.
-
-* Textures with Depth-stencil formats are now created with DFDs and alignments matching the KTX v2 specification.
-
-* Specifying `--layers 1` to `toktx` now creates an array texture with 1 layer. Previously it created a non-array texture.
-
-* Specifying `--depth 1` to `toktx` now creates a 3d texture with depth of 1. Previously it created a 2d texture.
-
-* `--normal_map` in `ktxsc` and `toktx` has been replaced by `--normal_mode` which converts 3-component maps to 2-component as well as optimizing the encoding. To prevent the conversion, also specify `--input_swizzle rgb1`.
-
-### Known Issues in v4.1.0.
+* Some image bits in output files encoded to ASTC, ETC1S/Basis-LZ or UASTC on arm64 devices may differ from those encoded from the same input images on x86_64 devices. The differences will not be human visible and will only show up in bit-exact comparisons. 
 
 * `toktx` will not read JPEG files with a width or height > 32768 pixels.
 
@@ -53,265 +40,37 @@ Thanks to @wasimabbas-arm.
 
 ### Notice
 
-* Following this release Visual Studio 2015 and 2017 will no longer be supported. The CI builds with these will be disabled. You may still be able to build with these for a while but don't rely on it.
+* Building with Visual Studio 2015 and 2017 is no longer supported.
 
-### Changes since v4.0.0 (by part)
+### Changes since v4.1.0 (by part)
 ### libktx
 
-* Fix warnings newly raised by Doxygen 1.9.6. (#676) (c5c24a44) (@MarkCallow)
+* Pull upstream ASTC encoder for FP option setting fixes. (#713) (8e68fe04) (@MarkCallow)
 
-* Fix new warnings from Xcode 14.2 building for macOS. (#659) (a5bbfe75) (@MarkCallow)
+* Pull upstream ASTC for fixes building with GCC 11 for arm64, (#700) (514051ca) (@MarkCallow)
 
-* fix typo in lib/info.c (#657) (784ed9ac) (@simi)
+* Update Vulkan SDK for macOS CI. (#688) (f57dc8fa) (@MarkCallow)
 
-* Fix mingw-w64:llvm-mingw error: unknown type name 'pthread\_t' (#653) (7d576397) (@FuXiii)
-
-* Include padding in inflatedByteLength (#647) (a64ebd4f) (@MarkCallow)
-
-* Fixing support for mingw toolchains that target the newer ucrt (#642) (02513772) (@Honeybunch)
-
-* Document required queue properties. Fixes #627. (#639) (f4feff2a) (@MarkCallow)
-
-* Fix ktxTexture\_VkUpload documentation. (691e9ca3) (@MarkCallow)
-
-* Fix: Use time.h not timex.h for \_\_GNUC\_\_ (a0b18062) (@MarkCallow)
-
-* Fix gcc warnings in appendLibId. (#626) (895799d6) (@MarkCallow)
-
-* Fix warnings in appendLibId. (#625) (9bd2f9bb) (@MarkCallow)
-
-* Cherry-pick change from astcenc 4.1.0 (#623) (f8dc35f0) (@solidpixel)
-
-* Check for existing libktx version string (#620) (a2f1ac25) (@MarkCallow)
-
-* Set isCompressed at end of CompressBasisEx. (#618) (c63b4c9d) (@MarkCallow)
-
-* Allow creation of 3d textures with --depth 1. (#610) (3a5d09ac) (@MarkCallow)
-
-* Fix newly emerged warning from clang (#608) (cd394d6d) (@MarkCallow)
-
-* Update for UASTC and ASTC. (727de5e8) (@MarkCallow)
-
-* git subrepo push lib/dfdutils (dd799a9b) (@MarkCallow)
-
-* Remove incorrect use of ktxTexture2\_WriteTo... (7d91d62e) (@MarkCallow)
-
-* Regularize Tools (#594) (870b9fff) (@MarkCallow)
-
-* Fixing build for arm64 Windows (#582) (b995ac33) (@Honeybunch)
-
-* Update astc-encoder (#592) (a6bcd33d) (@MarkCallow)
-
-* Fix missing documentation and compile warning. (#591) (ed9e7253) (@MarkCallow)
-
-* Update astc encoder (#586) (1cb97511) (@MarkCallow)
-
-* Release memory before early exit. (#584) (a4fddf6b) (@kacprzak)
-
-* Introduce proper vulkan initialization (#570) (bb9babcb) (@rHermes)
-
-* Using cmake's MINGW variable to detect proper ABI (#579) (a70e831e) (@Honeybunch)
-
-* Fix handling of combined depth-stencil textures (#575) (e4bf1aaa) (@MarkCallow)
-
-* Fix build on Mingw (#574) (1f07cb07) (@Honeybunch)
-
-* Prepare Release 4.1. (#571) (4a52fe45) (@MarkCallow)
-
-* git subrepo pull (merge) lib/astc-encoder (51f47631) (@MarkCallow)
-
-* git subrepo pull (merge) lib/dfdutils (7c24a986) (@MarkCallow)
-
-* git subrepo pull (merge) lib/dfdutils (c5abc161) (@MarkCallow)
-
-* Farewell GYP. :-( (f1f04a7e) (@MarkCallow)
-
-* Miscellaneous fixes (#558) (66f6d750) (@MarkCallow)
-
-* Fix new in clang 13.1 (Xcode13.3) warnings (#553) (b8d462b0) (@MarkCallow)
-
-* Fix non-clang warnings (#549) (4e7e40a0) (@MarkCallow)
-
-* Split each build configuration into a separate CI job.  (#546) (9d1204cc) (@MarkCallow)
-
-* Update to Basis1.16.3 (#543) (c65cfd0d) (@MarkCallow)
-
-* Remove image.hpp dependency (#542) (9fde96b9) (@wasimabbas-arm)
-
-* Update to Basis 1.16.1 (#541) (cb45eadc) (@MarkCallow)
-
-* git subrepo pull (merge) lib/astc-encoder (#540) (d98aa680) (@wasimabbas-arm)
-
-* git subrepo pull (merge) lib/astc-encoder (#537) (dbfeb82a) (@wasimabbas-arm)
-
-* Add astc perceptual mode support (#534) (57e62de1) (@wasimabbas-arm)
-
-* Improve Astc & BasisU normal map support (#493) (2d6ff949) (@wasimabbas-arm)
-
-* git subrepo pull lib/dfdutils (5ff4811c) (@MarkCallow)
-
-* git subrepo push lib/dfdutils (ce2a4619) (@MarkCallow)
-
-* Calculate dst buffer size with ZSTD\_compressBound. (#527) (81d2be5c) (@MarkCallow)
-
-* Remove extraneous token concatenation operator. (a8f4a71d) (@MarkCallow)
-
-* Fix malloc/delete pair. (0a3fe5b1) (@sergeyext)
-
-* Manually update git-subrepo parent (929c75c3) (@wasimabbas-arm)
-
-* git subrepo pull (merge) lib/astc-encoder (f5daffea) (@wasimabbas-arm)
-
-* Fix parent commit pointer. (1a356d0e) (@MarkCallow)
-
-* git subrepo pull (merge) lib/basisu (24c9f7bb) (@MarkCallow)
-
-* Move common params out from ETC1S case. (a2ccc90e) (@MarkCallow)
-
-* Remove transferFunction from astc options (#482) (1f085d30) (@wasimabbas-arm)
-
-* Fix leak in zstd inflation. Fixes #465. (720b6cf3) (@MarkCallow)
-
-* Support array and 3d textures. (#468) (b0532530) (@MarkCallow)
-
-* Add more astc tests (#460) (14284e7d) (@wasimabbas-arm)
-
-* Add astc support (#433) (da435dee) (@wasimabbas-arm)
-
-* Actually byte swap keyAndValueByteSize values. Fix issue #447. (00118086) (@MarkCallow)
-
-* Add KTXmetalPixelFormat to valid list used by ktxTexture2\_WriteToStream. (871f111d) (@MarkCallow)
-
-* Fix astc-encoder/.gitrepo parent after latest pull. (f99221eb) (@MarkCallow)
-
-* git subrepo pull (merge) lib/astc-encoder (66692454) (@MarkCallow)
-
-* Fix astc-encoder/.gitrepo parent pointer. (f39b13b1) (@MarkCallow)
-
-* Fix memory leak in VkUpload (#448) (2b2b48fa) (@bin)
-
-* Fix: if ("GL\_EXT\_texture\_sRGB") is supported,then srgb should be supported (#446) (13f17410) (@dusthand)
-
-* git subrepo commit (merge) lib/astc-encoder (1264f867) (@MarkCallow)
-
-* git subrepo pull (merge) lib/astc-encoder (15369663) (@MarkCallow)
-
-* Make `ktxStream` public (#438) (78929f80) (@UberLambda)
-
-* git subrepo pull (merge) lib/astc-encoder (535c883b) (@MarkCallow)
-
-* Fix mismatched malloc and delete (#440) (9d42b86f) (@cperthuisoc)
-
-* Cleanup Vulkan SDK environment variables. (354f640e) (@MarkCallow)
-
-* git subrepo pull (merge) lib/astc-encoder (3e75b6a3) (@MarkCallow)
-
-* Remove unneeded parts of astc-encoder. (360d10bb) (@MarkCallow)
-
-* git subrepo clone https://github.com/ARM-software/astc-encoder.git lib/astc-encoder (db359593) (@MarkCallow)
-
-* Raise warning levels to /W4 & -Wall -Wextra (#418) (ca6f6e7d) (@MarkCallow)
-
-* Minor build tweaks (#407) (6a38a069) (@MarkCallow)
+* CI and Build Improvements (#687) (38f48586) (@MarkCallow)
 
 ### Tools
 
-* Fix ktx2check handling of supercompressed files. (#646) (0057c761) (@MarkCallow)
+* Pull upstream ASTC for fixes building with GCC 11 for arm64, (#700) (514051ca) (@MarkCallow)
 
-* Fix: Remove incorrect stdin-use documentation. (b67688ee) (@MarkCallow)
+* Reimplement image input handling for toktx. (#702) (1646c4d0) (@MarkCallow)
 
-* Allow creation of 3d textures with --depth 1. (#610) (3a5d09ac) (@MarkCallow)
-
-* Fix newly emerged warning from clang (#608) (cd394d6d) (@MarkCallow)
-
-* Build-system fixes (#606) (48bb42b0) (@pierremoreau)
-
-* Allow creation of single layer array textures. (#602) (de93656b) (@MarkCallow)
-
-* Close file after successful load (#597) (32d26662) (@AndrewChan2022)
-
-* Regularize Tools (#594) (870b9fff) (@MarkCallow)
-
-* Fix cross-device rename failure (#593) (f020c1ba) (@MarkCallow)
-
-* Fix wrong alignment used when checking VK\_FORMAT\_UNDEFINED files (#585) (c7e4edc7) (@MarkCallow)
-
-* Sign Windows executables, dlls and NSIS installers. (#583) (dc231b32) (@MarkCallow)
-
-* Fix broken bytesPlane0 test. Add extra analysis. (#578) (243ba439) (@MarkCallow)
-
-* Fix handling of combined depth-stencil textures (#575) (e4bf1aaa) (@MarkCallow)
-
-* Farewell GYP. :-( (f1f04a7e) (@MarkCallow)
-
-* Miscellaneous fixes (#558) (66f6d750) (@MarkCallow)
-
-* Add JNI component and integrate Java build & test with CMake (#556) (e29e0996) (@MarkCallow)
-
-* Fix non-clang warnings (#549) (4e7e40a0) (@MarkCallow)
-
-* Fix VS warnings (#544) (8c6b3571) (@wasimabbas-arm)
-
-* Remove image.hpp dependency (#542) (9fde96b9) (@wasimabbas-arm)
-
-* Update to Basis 1.16.1 (#541) (cb45eadc) (@MarkCallow)
-
-* Improve Astc & BasisU normal map support (#493) (2d6ff949) (@wasimabbas-arm)
-
-* Validate BasisU Transcode (#532) (39e2d96e) (@MarkCallow)
-
-* Fix mismatched errors for required and optional index entries. (b8786496) (@MarkCallow)
-
-* fix missing -w flag for ktx2check (eade072d) (@sidsethupathi)
-
-* Remove transferFunction from astc options (#482) (1f085d30) (@wasimabbas-arm)
-
-* Ensure NUL on end of 3d orientation. (74501ef3) (@MarkCallow)
-
-* Support array and 3d textures. (#468) (b0532530) (@MarkCallow)
-
-* Fix checks for mismatched image attributes. (#466) (4eca0ef3) (@MarkCallow)
-
-* Add more astc tests (#460) (14284e7d) (@wasimabbas-arm)
-
-* Add astc support (#433) (da435dee) (@wasimabbas-arm)
-
-* macOS Apple Silicon support (#415) (ebab2ea8) (@atteneder)
-
-* Raise warning levels to /W4 & -Wall -Wextra (#418) (ca6f6e7d) (@MarkCallow)
-
-* Fix validation errors (#417) (78cd2b01) (@MarkCallow)
+* Fix normalization when the result overflows (#701) (f81330b5) (@wasimabbas-arm)
 
 
 
-### JS Wrappers
 
-* Farewell GYP. :-( (f1f04a7e) (@MarkCallow)
-
-* Update to Basis 1.16.1 (#541) (cb45eadc) (@MarkCallow)
-
-* Raise warning levels to /W4 & -Wall -Wextra (#418) (ca6f6e7d) (@MarkCallow)
 
 ### Java Wrapper
 
-* When finding JNI don't request non-existent component. (48b455cc) (@MarkCallow)
+* Fix outdated references to `master`. (e724f180) (@MarkCallow)
 
-* [FIX] Fix jni package names in KtxTexture2.cpp (#621) (758fc864) (@Illithidek)
+* Miscellaneous CI script and build fixes (#692) (fefd4a65) (@MarkCallow)
 
-* Set isCompressed at end of CompressBasisEx. (#618) (c63b4c9d) (@MarkCallow)
-
-* Sign Windows executables, dlls and NSIS installers. (#583) (dc231b32) (@MarkCallow)
-
-* Workaround FindJNI searching for framework when JAVA\_HOME not set. (#566) (957a198b) (@MarkCallow)
-
-* Miscellaneous fixes (#558) (66f6d750) (@MarkCallow)
-
-* Add JNI component and integrate Java build & test with CMake (#556) (e29e0996) (@MarkCallow)
-
-* Fix warnings in JNI library and update to latest libktx API. (#548) (6f98b3c4) (@ShukantPal)
-
-* Update to Basis 1.16.1 (#541) (cb45eadc) (@MarkCallow)
-
-* Feature: Java bindings for libktx (#481) (a7159924) (@ShukantPal)
+* Remove pinned buffer list in JNI wrapper to avoid segmentation faults (#697) (9b084d50) (@ShukantPal)
 
 

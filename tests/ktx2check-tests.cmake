@@ -95,10 +95,12 @@ add_test( NAME ktx2check-test-stdin-read
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
 )
 
-add_test( NAME ktx2check-test-pipe-read
-    COMMAND ${BASH_EXECUTABLE} -c "cat color_grid_uastc_zstd.ktx2 | $<TARGET_FILE:ktx2check>"
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
-)
+if(NOT WIN32) # Disable due to bug in Git for Windows 2.41.0.windows.1 pipe.
+  add_test( NAME ktx2check-test-pipe-read
+      COMMAND ${BASH_EXECUTABLE} -c "cat color_grid_uastc_zstd.ktx2 | $<TARGET_FILE:ktx2check>"
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
+  )
+endif()
 
 add_test( NAME ktx2check-test-invalid-face-count-and-padding
     COMMAND ktx2check invalid_face_count_and_padding.ktx2

@@ -340,38 +340,39 @@ deploy:
 #      #branch: master
 #      condition: $PACKAGE = YES
 # ----------------------- dpl v1 -------------------------
-  - provider: releases
-    token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
-    name: $TRAVIS_TAG
-    skip_cleanup: true
-    # We can't use
-    #body: $RELNOTES
-    # because a bug in v1's backing Ruby code does not allow passing it
-    # command line option arguments that contain newlines leading to an
-    # error on Travis when we try.
-    # See https://github.com/travis-ci/dpl/issues/155.
-    #
-    # The obvious workarounds of literal "\n" or "<br />" do not work.
-    # The text is passed to GitHub but "\n" is shown literally. While "<br />"
-    # causes a newline in the rendering, the markdown interpreter does not
-    # recognize it as an actual newline so never changes the format from
-    # the initial heading format.
-    #
-    # Since we can't use either this or v2 to deply the release notes, we've
-    # rolled our own provider script for the body.
-    file_glob: true
-    file:
-      - $BUILD_DIR/KTX-Software-*-*
-    draft: true
-    prerelease: true
-    on:
-      tags: true
-      #branch: master
-      condition: $PACKAGE = "YES" && $TRAVIS_TAG =~ ^v[0-9].*
+##### Not working on jammy runners at present. Do everything via our script.
+#  - provider: releases
+#    token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
+#    name: $TRAVIS_TAG
+#    skip_cleanup: true
+#    # We can't use
+#    #body: $RELNOTES
+#    # because a bug in v1's backing Ruby code does not allow passing it
+#    # command line option arguments that contain newlines leading to an
+#    # error on Travis when we try.
+#    # See https://github.com/travis-ci/dpl/issues/155.
+#    #
+#    # The obvious workarounds of literal "\n" or "<br />" do not work.
+#    # The text is passed to GitHub but "\n" is shown literally. While "<br />"
+#    # causes a newline in the rendering, the markdown interpreter does not
+#    # recognize it as an actual newline so never changes the format from
+#    # the initial heading format.
+#    #
+#    # Since we can't use either this or v2 to deply the release notes, we've
+#    # rolled our own provider script for the body.
+#    file_glob: true
+#    file:
+#      - $BUILD_DIR/KTX-Software-*-*
+#    draft: true
+#    prerelease: true
+#    on:
+#      tags: true
+#      #branch: master
+#      condition: $PACKAGE = "YES" && $TRAVIS_TAG =~ ^v[0-9].*
 
   - provider: script
     edge: true
-    script: ruby ci_scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -c $REL_DESC_FILE -t ${TRAVIS_TAG} --draft true --prerelease true
+    script: ruby ci_scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -c $REL_DESC_FILE -t ${TRAVIS_TAG} --overwrite true --draft true --prerelease true $BUILD_DIR/KTX-Software-*-*
     on:
       tags: true
       #branch: master
