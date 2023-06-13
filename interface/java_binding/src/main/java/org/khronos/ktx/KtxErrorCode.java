@@ -26,5 +26,7 @@ public class KtxErrorCode {
     public static final int UNSUPPORTED_TEXTURE_TYPE = 16;
     public static final int UNSUPPORTED_FEATURE = 17;
     public static final int LIBRARY_NOT_LINKED = 18;
-    public static final int ERROR_MAX_ENUM = LIBRARY_NOT_LINKED;
+    public static final int DECOMPRESS_LENGTH_ERROR = 19;
+    public static final int DECOMPRESS_CHECKSUM_ERROR = 20;
+    public static final int ERROR_MAX_ENUM = DECOMPRESS_CHECKSUM_ERROR;
 }

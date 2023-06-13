@@ -49,4 +49,8 @@
 #include <errno.h>
 #include <string.h>
 
-
+#if defined(_UNICODE)
+    #define _tstring std::wstring
+#else
+    #define _tstring std::string
+#endif

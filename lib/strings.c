@@ -16,6 +16,7 @@
  */
 
 #include "ktx.h"
+#include "basis_sgd.h"
 
 static const char* const errorStrings[] = {
     "Operation succeeded.",                           /* KTX_SUCCESS */
@@ -34,9 +35,11 @@ static const char* const errorStrings[] = {
     "Out of memory.",                                 /* KTX_OUT_OF_MEMORY */
     "Transcoding of block compressed texture failed.",/* KTX_TRANSCODE_FAILED */
     "Not a KTX file.",                                /* KTX_UNKNOWN_FILE_FORMAT */
-    "Texture type not supported.",      /* KTX_UNSUPPORTED_TEXTURE_TYPE */
+    "Texture type not supported.",                    /* KTX_UNSUPPORTED_TEXTURE_TYPE */
     "Feature not included in in-use library or not yet implemented.", /* KTX_UNSUPPORTED_FEATURE */
-    "Library dependency (OpenGL or Vulkan) not linked into application." /* KTX_LIBRARY_NOT_LINKED */
+    "Library dependency (OpenGL or Vulkan) not linked into application.", /* KTX_LIBRARY_NOT_LINKED */
+    "Decompressed byte count does not match expected byte size", /* KTX_DECOMPRESS_LENGTH_ERROR */
+    "Checksum mismatch when decompressing"            /* KTX_DECOMPRESS_CHECKSUM_ERROR */
 };
 /* This will cause compilation to fail if number of messages and codes doesn't match */
 typedef int errorStrings_SIZE_ASSERT[sizeof(errorStrings) / sizeof(char*) - 1 == KTX_ERROR_MAX_ENUM];
@@ -118,11 +121,34 @@ ktxSupercompressionSchemeString(ktxSupercmpScheme scheme)
       case KTX_SS_NONE: return "KTX_SS_NONE";
       case KTX_SS_BASIS_LZ: return "KTX_SS_BASIS_LZ";
       case KTX_SS_ZSTD: return "KTX_SS_ZSTD";
+      case KTX_SS_ZLIB: return "KTX_SS_ZLIB";
       default:
         if (scheme < KTX_SS_BEGIN_VENDOR_RANGE
             || scheme >= KTX_SS_BEGIN_RESERVED)
             return "Invalid scheme value";
         else
-            return "Vendor scheme";
+            return "Vendor or reserved scheme";
+    }
+}
+
+/**
+* @~English
+* @brief Return a string corresponding to a bu_image_flags bit.
+*
+* @param bit_index the bu_image_flag bit to test.
+* @param bit_value the bu_image_flag bit value.
+*
+* @return pointer to the message string or NULL otherwise.
+*
+* @internal Use UTF-8 for translated message strings.
+*/
+const char* ktxBUImageFlagsBitString(ktx_uint32_t bit_index, bool bit_value)
+{
+    if (!bit_value)
+        return NULL;
+
+    switch (1u << bit_index) {
+        case ETC1S_P_FRAME: return "ETC1S_P_FRAME";
+        default: return NULL;
     }
 }

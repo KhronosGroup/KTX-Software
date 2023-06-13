@@ -12,6 +12,16 @@ EXPORTS
     ??0Resampler@basisu@@QEAA@HHHHW4Boundary_Op@01@MMPEBDPEAUContrib_List@01@2MMMM@Z
     ?put_line@Resampler@basisu@@QEAA_NPEBM@Z
     ?get_line@Resampler@basisu@@QEAAPEBMXZ
+    ?calc@image_metrics@basisu@@QEAAXAEBVimage@2@0II_N1@Z
+    ?compute_ssim@basisu@@YA?AV?$vec@$03M@1@AEBVimage@1@0_N1@Z
+    ?increase_capacity@elemental_vector@basisu@@QEAA_NI_NIP6AXPEAX1I@Z0@Z
     ?swizzle_to_rgba@@YAXPEAE0I_KQEAW4swizzle_e@@@Z
     appendLibId
-
+    dfdToStringChannelId
+    dfdToStringColorModel
+    dfdToStringColorPrimaries
+    dfdToStringDescriptorType
+    dfdToStringTransferFunction
+    dfdToStringVendorID
+    dfdToStringVersionNumber
+    ktxTexture2_constructCopy

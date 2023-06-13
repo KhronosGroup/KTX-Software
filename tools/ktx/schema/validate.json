@@ -1,0 +1,38 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://schema.khronos.org/ktx/validate_v0.json",
+    "type": "object",
+    "required": [
+        "valid",
+        "messages"
+    ],
+    "properties": {
+        "valid": { "type": "boolean" },
+        "messages": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "type",
+                    "message",
+                    "details"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                    "id": { "type": "integer" },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "fatal",
+                            "error",
+                            "warning"
+                        ]
+                    },
+                    "message": { "type": "string" },
+                    "details": { "type": "string" }
+                }
+            }
+        }
+    }
+}

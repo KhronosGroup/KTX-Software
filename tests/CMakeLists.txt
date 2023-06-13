@@ -25,4 +25,10 @@ if(KTX_FEATURE_TOOLS)
     include( ktx2ktx2-tests.cmake )
     include( ktxsc-tests.cmake )
     include( toktx-tests.cmake )
+
+    # ktx cli tool tests
+    if(KTX_FEATURE_TOOLS_CTS)
+        set(KTX_TOOLS_PATH $<TARGET_FILE:ktxtools>)
+        add_subdirectory(cts/clitests)
+    endif()
 endif()

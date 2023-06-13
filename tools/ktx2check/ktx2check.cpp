@@ -2124,7 +2124,7 @@ ktxValidator::validateSgd(validationContext& ctx)
     ktxBasisLzEtc1sImageDesc* imageDescs = BGD_ETC1S_IMAGE_DESCS(sgd);
     ktxBasisLzEtc1sImageDesc* image = imageDescs;
     for (; image < imageDescs + imageCount; image++) {
-      if (image->imageFlags & ~eBUImageIsPframe)
+      if (image->imageFlags & ~ETC1S_P_FRAME)
             addIssue(logger::eError, SGD.InvalidImageFlagBit);
         // Crosscheck the DFD.
         if (image->alphaSliceByteOffset == 0 && numSamples == 2)
