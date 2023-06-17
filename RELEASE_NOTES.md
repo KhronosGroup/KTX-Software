@@ -2,35 +2,59 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 Release Notes
 =============
-## Version 4.2.0
-### Overview
+## Version 4.3.0-alpha1
+### New Features
 
-v4.2.0 has few user-facing changes. Most of the work has been behind the scenes improving the build system and fixing warnings across the many supported compilers. User-facing changes are detailed below.
+v4.3.0 contains a new suite of command line tools accessed via an umbrella `ktx` command.
 
-### New Features in v4.2.0
+| Tool | Description | Equivalent old tool |
+| :--- | ----------- | ------------------- |
+| `ktx create` | Create a KTX2 file from various input files | `toktx` |
+| `ktx extract` | Export selected images from a KTX2 file | - |
+| `ktx encode` | Encode a KTX2 file | `ktxsc` |
+| `ktx transcode` | Transcode a KTX2 file | - |
+| `ktx info` | Prints information about a KTX2 file | `ktxinfo` |
+| `ktx validate` | Validate a KTX2 file | `ktx2check` |
+| `ktx help` | Display help information about the ktx tools | - |
 
-* Install packages for GNU/Linux on Arm64 have been added.
+Equivalent old tools will be removed in the next release.
 
-* The Java wrapper is now included in the Windows Arm64 install package.
+Some features of the old tools are not currently available in the new equivalent.
 
-### Significant Changes since v4.1.0
+| Old Tool | New Tool | Missing Features |
+| :------: | :------: | ---------------- |
+| `toktx`  | `create` | JPEG and NBPM input and scaling/resizing. |
+| `ktxsc`  | `encode` | ASTC encoding. This can be done in `create`. |
 
-* The following behavioral changes have been made to `toktx`:
+The command-line syntax and semantics differ from the old tools including, but not limited to:
 
-    * If the input PNG file has a gAMA chunk with a value 45460 the image data is now converted to the sRGB transfer function intead of just assigning sRGB as the transfer function of the output file.
-    * If the gAMA chunk has a value other than 45640 or 100000 `toktx` will now exit with an error. Previously it used heuristics to decide whether to transform the input to linear or sRGB. Use `--convert_oetf` or `--assign_oetf` to specified the desired behavior.
+* KTX 1.0 files are not supported by the new tools.
 
-* The Khronos Data Format header file `KHR/khr_df.h` has been added to the install packages and is included in `ktx.h`. A new transfer function query `ktxTexture2_GetOETF_e` that returns a `khr_df_transfer_e` replaces `ktxTexture2_GetOETF` that returned a `ktx_uint32_t`. The latter is still available for backward compatibility, A new `ktxTexture2_GetColorModel_e` query has been added returning a `khr_df_model_e`.
+* Words in multi-word option names are connected with `-` instead of `_`.
+* Individual option names may differ between the old and new tools.
+* The `ktx validate` tool may be stricter than `ktx2check` or otherwise differ in behavior, as the new tool enforces all rules of the KTX 2.0 specification. In addition, all new tools that accept KTX 2.0 files as input will be validated in a similar fashion as they would be with the `ktx validate` tool and will fail on the first specification rule violation, if there is one. It also has the option to output the validation results in human readable text format or in JSON format (both formatted and minified options are available), as controlled by the `--format` command-line option.
+* The `ktx validate` tool also supports validating KTX 2.0 files against the additional restrictions defined by the _KHR\_texture\_basisu_ extension. Use the `--gltf-basisu` command-line option to verify glTF and WebGL compatibility.
+* The new `ktx info` tool produces a unified and complete output of all metadata in KTX 2.0 files and can provide output in human readable text format or in JSON format (both formatted and minified options are available), as controlled by the `--format` command-line option.
+* The source repository also includes the JSON schemas that the JSON outputs of the `ktx info` and `ktx validate` tools comply to.
+* The `ktx create` tool takes an explicit Vulkan format argument (`--format`) instead of inferring the format based on the provided input files as `toktx`, and thus doesn't perform any implicit color-space conversions except gamma 2.2 to sRGB. Use the `--assign-oetf`, `--convert-oetf`, `--assign-primaries`, and the new `--convert-primaries` for fine grained control over color-space interpretation and conversion.
+* The `ktx create` tool does not support resizing or scaling like `toktx`, and, in general, does not perform any image transformations except the optional color-space conversion and mipmap generation options. Users should resize input images to the appropriate resolution before converting them to KTX 2.0 files.
+* The `ktx create` and `ktx extract` tools consume and produce, respectively, image file formats that best suit the used Vulkan format. In general, barring special cases, 8-bit and 16-bit normalized integer formats are imported from and exported to PNG files, while integer and floating point formats are imported from and exported to EXR files based on predefined rules. This may be extended in the future using additional command line options and in response to support for other image file formats.
+* The new tools and updated `libktx` support ZLIB supercompression besides the BasisLZ and Zstd supercompression schemes supported previously.
 
-### Known Issues in v4.2.0.
+Please refer to the manual pages or use the `--help` command-line option for further details on the options available and associated semantics for each individual command.
+
+### Changes
+
+* `libktx` has been made much more robust to errors KTX files.
+
+* `libktx` now validates checksums when present in a Zstd data stream.
+* `libktx` has two new error codes it can return: `KTX_DECOMPRESS_LENGTH_ERROR` and `KTX_DECOMPRESS_CHECKSUM_ERROR`.
+
+### Known Issues
 
 * Some image bits in output files encoded to ASTC, ETC1S/Basis-LZ or UASTC on arm64 devices may differ from those encoded from the same input images on x86_64 devices. The differences will not be human visible and will only show up in bit-exact comparisons. 
 
-* `toktx` will not read JPEG files with a width or height > 32768 pixels.
-
-* `toktx` will not read 4-component JPEG files such as those sometimes created by Adobe software where the 4th component can be used to re-create a CMYK image.
-
-* Users making Basisu encoded or block compressed textures for WebGL must be aware of WebGL restrictions with regard to texture size and may need to resize images appropriately using the --resize feature of `toktx`.  In general the dimensions of block compressed textures must be a multiple of the block size and for WebGL 1.0 must be a power of 2. For portability glTF's _KHR\_texture\_basisu_ extension requires texture dimensions to be a multiple of 4, the block size of the Universal texture formats.
+* Users making Basis Universal encoded or GPU block compressed textures for WebGL must be aware of WebGL restrictions with regard to texture size and may need to resize input images appropriately before using the `ktx create` tool, or use the `--resize` feature of the old `toktx` tool to produce an appropriately sized texture. In general, the dimensions of block compressed textures must be a multiple of the block size in WebGL and for WebGL 1.0 textures must have power-of-two dimensions. Additional portability restrictions apply for glTF per the _KHR\_texture\_basisu_ extension which can be verified using the `--gltf-basisu` command-line option of the new `ktx validate` tool.
 
 * Basis Universal encoding results (both ETC1S/LZ and UASTC) are non-deterministic across platforms. Results are valid but level sizes and data will differ slightly.  See [issue #60](https://github.com/BinomialLLC/basis_universal/issues/60) in the basis_universal repository.
 
@@ -38,39 +62,24 @@ v4.2.0 has few user-facing changes. Most of the work has been behind the scenes 
 
 * Neither the Vulkan nor GL loaders support depth/stencil textures.
 
-### Notice
 
-* Building with Visual Studio 2015 and 2017 is no longer supported.
-
-### Changes since v4.1.0 (by part)
+### Changes since v4.2.0 (by part)
 ### libktx
 
-* Pull upstream ASTC encoder for FP option setting fixes. (#713) (8e68fe04) (@MarkCallow)
-
-* Pull upstream ASTC for fixes building with GCC 11 for arm64, (#700) (514051ca) (@MarkCallow)
-
-* Update Vulkan SDK for macOS CI. (#688) (f57dc8fa) (@MarkCallow)
-
-* CI and Build Improvements (#687) (38f48586) (@MarkCallow)
+* Merge ktxtools into main (#714) (a6abf2ff) (@VaderY)
 
 ### Tools
 
-* Pull upstream ASTC for fixes building with GCC 11 for arm64, (#700) (514051ca) (@MarkCallow)
-
-* Reimplement image input handling for toktx. (#702) (1646c4d0) (@MarkCallow)
-
-* Fix normalization when the result overflows (#701) (f81330b5) (@wasimabbas-arm)
+* Merge ktxtools into main (#714) (a6abf2ff) (@VaderY)
 
 
 
+### JS Wrappers
 
+* Merge ktxtools into main (#714) (a6abf2ff) (@VaderY)
 
 ### Java Wrapper
 
-* Fix outdated references to `master`. (e724f180) (@MarkCallow)
-
-* Miscellaneous CI script and build fixes (#692) (fefd4a65) (@MarkCallow)
-
-* Remove pinned buffer list in JNI wrapper to avoid segmentation faults (#697) (9b084d50) (@ShukantPal)
+* Merge ktxtools into main (#714) (a6abf2ff) (@VaderY)
 
 
