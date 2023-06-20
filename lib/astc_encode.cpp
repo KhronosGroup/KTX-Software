@@ -694,7 +694,7 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
             astcenc_compress_reset(astc_context);
             offset += levelImageSizeIn;
 
-			imageFree(input_image);
+            imageFree(input_image);
 
             if (work.error != ASTCENC_SUCCESS) {
                 std::cout << "ASTC compressor failed\n" <<
