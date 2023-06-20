@@ -2,6 +2,25 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 Release Notes
 =============
+## Version 4.3.0-alpha2
+
+
+### Changes since v4.3.0-alpha1 (by part)
+### libktx
+
+* Fix alignment, removes tabs (8e4ee5d5) (@abbaswasim)
+
+* Fix memory leak of input\_image in ktxTexture2\_CompressAstcEx (04bdffe0) (@abbaswasim)
+
+
+
+
+
+
+
+
+
+
 ## Version 4.3.0-alpha1
 ### New Features
 
