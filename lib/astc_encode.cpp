@@ -688,21 +688,21 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
 
             launchThreads(threadCount, compressionWorkloadRunner, &work);
 
-            if (work.error != ASTCENC_SUCCESS) {
-                std::cout << "ASTC compressor failed\n" <<
-                             astcenc_get_error_string(work.error) << std::endl;
-
-                imageFree(input_image);
-
-                astcenc_context_free(astc_context);
-                return KTX_INVALID_OPERATION;
-            }
-
             buffer_out += levelImageSizeOut;
 
             // Reset ASTC context for next image
             astcenc_compress_reset(astc_context);
             offset += levelImageSizeIn;
+
+            imageFree(input_image);
+
+            if (work.error != ASTCENC_SUCCESS) {
+                std::cout << "ASTC compressor failed\n" <<
+                             astcenc_get_error_string(work.error) << std::endl;
+
+                astcenc_context_free(astc_context);
+                return KTX_INVALID_OPERATION;
+            }
         }
     }
 
