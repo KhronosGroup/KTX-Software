@@ -2,6 +2,23 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 Release Notes
 =============
+## Version 4.2.1
+
+
+### Changes since v4.2.0 (by part)
+### libktx
+
+* Fix memory leak of input\_image in ktxTexture2\_CompressAstcEx (fa1fe4d7) (@null)
+
+
+
+
+
+
+
+
+
+
 ## Version 4.2.0
 ### Overview
 
