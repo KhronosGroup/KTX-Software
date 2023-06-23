@@ -399,7 +399,8 @@ uint32_t *createDFD422(int bigEndian, int numSamples,
         totalBits += bits[i] + paddings[i];
     assert(totalBits % 8 == 0);
 
-    uint32_t DFDSize = sizeof(uint32_t) * (1 + KHR_DF_WORD_SAMPLESTART + numSamples * KHR_DF_WORD_SAMPLEWORDS);
+    uint32_t BDFDSize = sizeof(uint32_t) * (KHR_DF_WORD_SAMPLESTART + numSamples * KHR_DF_WORD_SAMPLEWORDS);
+    uint32_t DFDSize = sizeof(uint32_t) + BDFDSize;
     uint32_t *DFD = (uint32_t *) malloc(DFDSize);
     memset(DFD, 0, DFDSize);
     DFD[0] = DFDSize;
@@ -407,7 +408,7 @@ uint32_t *createDFD422(int bigEndian, int numSamples,
     KHR_DFDSETVAL(BDFD, VENDORID, KHR_DF_VENDORID_KHRONOS);
     KHR_DFDSETVAL(BDFD, DESCRIPTORTYPE, KHR_DF_KHR_DESCRIPTORTYPE_BASICFORMAT);
     KHR_DFDSETVAL(BDFD, VERSIONNUMBER, KHR_DF_VERSIONNUMBER_LATEST);
-    KHR_DFDSETVAL(BDFD, DESCRIPTORBLOCKSIZE, sizeof(uint32_t) * (KHR_DF_WORD_SAMPLESTART + numSamples * KHR_DF_WORD_SAMPLEWORDS));
+    KHR_DFDSETVAL(BDFD, DESCRIPTORBLOCKSIZE, BDFDSize);
     KHR_DFDSETVAL(BDFD, MODEL, KHR_DF_MODEL_YUVSDA);
     KHR_DFDSETVAL(BDFD, PRIMARIES, KHR_DF_PRIMARIES_UNSPECIFIED);
     KHR_DFDSETVAL(BDFD, TRANSFER, KHR_DF_TRANSFER_LINEAR);

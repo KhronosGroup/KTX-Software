@@ -713,11 +713,11 @@ struct FormatDescriptor {
     }
 
     void removeLastChannel() {
-        const auto numChannels = samples.size();
+        const auto numChannels = static_cast<uint32_t>(samples.size());
         assert(numChannels > 1);
         assert(basic.bytesPlane0 % numChannels == 0);
         samples.pop_back();
-        basic.bytesPlane0 = basic.bytesPlane0 / numChannels * (numChannels - 1);
+        basic.bytesPlane0 = basic.bytesPlane0 / numChannels * (numChannels - 1u);
         if (extended.channelCount != 0)
             --extended.channelCount;
     }
