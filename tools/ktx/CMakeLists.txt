@@ -17,6 +17,7 @@ add_executable(ktxtools
         encode_utils.h
         format_descriptor.h
         formats.h
+        fragment_uri.h
         ktx_main.cpp
         metrics_utils.h
         transcode_utils.cpp
@@ -43,7 +44,14 @@ PRIVATE
     .
     $<TARGET_PROPERTY:imageio,INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:ktx,INCLUDE_DIRECTORIES>
+)
+
+target_include_directories(
+    ktxtools
+    SYSTEM
+PRIVATE
     ${PROJECT_SOURCE_DIR}/lib
+    ${PROJECT_SOURCE_DIR}/other_include
 )
 
 target_link_libraries(

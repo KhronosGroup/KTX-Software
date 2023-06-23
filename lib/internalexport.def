@@ -45,3 +45,4 @@ EXPORTS
     ktxTexture2_destruct
     vk2dfd
     vkFormatString
+    stringToVkFormat

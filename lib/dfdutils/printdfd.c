@@ -805,9 +805,9 @@ void printDFD(uint32_t *DFD, uint32_t dataSize)
                        KHR_DFDSVAL(block, sample, SAMPLEUPPER));
             }
         } else if (vendorID == KHR_DF_VENDORID_KHRONOS && descriptorType == KHR_DF_KHR_DESCRIPTORTYPE_ADDITIONAL_DIMENSIONS) {
-            // TODO Tools P5: Implement DFD print for ADDITIONAL_DIMENSIONS
+            // TODO: Implement DFD print for ADDITIONAL_DIMENSIONS
         } else if (vendorID == KHR_DF_VENDORID_KHRONOS && descriptorType == KHR_DF_KHR_DESCRIPTORTYPE_ADDITIONAL_PLANES) {
-            // TODO Tools P5: Implement DFD print for ADDITIONAL_PLANES
+            // TODO: Implement DFD print for ADDITIONAL_PLANES
         } else {
             printf("Unknown block\n");
         }
@@ -994,15 +994,15 @@ void printDFDJSON(uint32_t* DFD, uint32_t dataSize, uint32_t base_indent, uint32
         } else if (vendorID == KHR_DF_VENDORID_KHRONOS && descriptorType == KHR_DF_KHR_DESCRIPTORTYPE_ADDITIONAL_DIMENSIONS) {
             printf("%s", nl);
             // printf(",%s", nl); // If there is extra member printed
-            // TODO Tools P5: Implement DFD print for ADDITIONAL_DIMENSIONS
+            // TODO: Implement DFD print for ADDITIONAL_DIMENSIONS
         } else if (vendorID == KHR_DF_VENDORID_KHRONOS && descriptorType == KHR_DF_KHR_DESCRIPTORTYPE_ADDITIONAL_PLANES) {
             printf("%s", nl);
             // printf(",%s", nl); // If there is extra member printed
-            // TODO Tools P5: Implement DFD print for ADDITIONAL_PLANES
+            // TODO: Implement DFD print for ADDITIONAL_PLANES
         } else {
             printf("%s", nl);
             // printf(",%s", nl); // If there is extra member printed
-            // TODO Tools P5: What to do with unknown blocks for json?
+            // TODO: What to do with unknown blocks for json?
             //      Unknown block data in binary?
         }
 

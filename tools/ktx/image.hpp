@@ -23,6 +23,7 @@
 #include <vector>
 #include <KHR/khr_df.h>
 #include <fmt/format.h>
+#include <glm/gtc/packing.hpp>
 
 #include "utility.h"
 #include "unused.h"
@@ -699,6 +700,10 @@ class Image {
             uint32_t c2, uint32_t c2Pad, uint32_t c3, uint32_t c3Pad) const = 0;
     /// Should only be used if the stored image data is SFloat convertable
     virtual std::vector<uint8_t> getSFloat(uint32_t numChannels, uint32_t targetBits) const = 0;
+    /// Should only be used if the stored image data is UFloat convertable
+    virtual std::vector<uint8_t> getB10G11R11() const = 0;
+    /// Should only be used if the stored image data is UFloat convertable
+    virtual std::vector<uint8_t> getE5B9G9R9() const = 0;
     /// Should only be used if the stored image data is UINT convertable
     virtual std::vector<uint8_t> getUINT(uint32_t numChannels, uint32_t targetBits) const = 0;
     /// Should only be used if the stored image data is SINT convertable
@@ -918,6 +923,50 @@ class ImageT : public Image {
                         std::memcpy(target, &outValue, targetBytes);
                     }
                 }
+            }
+        }
+
+        return data;
+    }
+
+    virtual std::vector<uint8_t> getB10G11R11() const override {
+        assert(3 <= componentCount);
+        assert(std::is_floating_point_v<componentType>);
+
+        std::vector<uint8_t> data(height * width * 4);
+
+        for (uint32_t y = 0; y < height; ++y) {
+            for (uint32_t x = 0; x < width; ++x) {
+                auto* target = data.data() + (y * height + x) * 4;
+
+                const auto pixel = (*this)(x, y);
+                const auto r = pixel[0];
+                const auto g = pixel[1];
+                const auto b = pixel[2];
+                const auto outValue = glm::packF2x11_1x10(glm::vec3(r, g, b));
+                std::memcpy(target, &outValue, sizeof(outValue));
+            }
+        }
+
+        return data;
+    }
+
+    virtual std::vector<uint8_t> getE5B9G9R9() const override {
+        assert(3 <= componentCount);
+        assert(std::is_floating_point_v<componentType>);
+
+        std::vector<uint8_t> data(height * width * 4);
+
+        for (uint32_t y = 0; y < height; ++y) {
+            for (uint32_t x = 0; x < width; ++x) {
+                auto* target = data.data() + (y * height + x) * 4;
+
+                const auto pixel = (*this)(x, y);
+                const auto r = pixel[0];
+                const auto g = pixel[1];
+                const auto b = pixel[2];
+                const auto outValue = glm::packF3x9_E1x5(glm::vec3(r, g, b));
+                std::memcpy(target, &outValue, sizeof(outValue));
             }
         }
 

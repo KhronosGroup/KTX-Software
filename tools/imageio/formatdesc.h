@@ -712,6 +712,16 @@ struct FormatDescriptor {
         return nullptr;
     }
 
+    void removeLastChannel() {
+        const auto numChannels = samples.size();
+        assert(numChannels > 1);
+        assert(basic.bytesPlane0 % numChannels == 0);
+        samples.pop_back();
+        basic.bytesPlane0 = basic.bytesPlane0 / numChannels * (numChannels - 1);
+        if (extended.channelCount != 0)
+            --extended.channelCount;
+    }
+
     friend std::ostream& operator<< (std::ostream& o, khr_df_sample_datatype_qualifiers_e q) {
         if (q & KHR_DF_SAMPLE_DATATYPE_SIGNED)
             o << " signed ";

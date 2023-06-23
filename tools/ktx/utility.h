@@ -8,6 +8,14 @@
 #include "ktx.h"
 #include <fmt/ostream.h>
 #include <fmt/printf.h>
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4201)
+#endif
+#include <glm/gtc/packing.hpp>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 #include <algorithm>
 #include <array>
 #include <functional>
@@ -19,7 +27,7 @@
 
 namespace ktx {
 
-// TODO: Tools P5: Detect endianness
+// TODO: Detect endianness
 // C++20: std::endian::native == std::endian::little
 constexpr bool is_big_endian = false;
 
@@ -65,7 +73,7 @@ template <typename T>
 template <typename T>
 [[nodiscard]] constexpr inline T bit_ceil(T x) noexcept {
     x -= 1;
-    for (uint32_t i = 1; i < sizeof(x) * 8; ++i)
+    for (uint32_t i = 0; i < sizeof(x) * 8; ++i)
         if (1u << i > x)
             return 1u << i;
     return 0;
@@ -187,6 +195,14 @@ inline void replace_all_inplace(std::string& string, std::string_view search, st
     return string;
 }
 
+// -------------------------------------------------------------------------------------------------
+
+/// Remaps the value from [from_lo..from_hi] to [to_lo..to_hi] with extrapolation
+template <typename T>
+[[nodiscard]] constexpr inline T remap(T value, T from_lo, T from_hi, T to_lo, T to_hi) noexcept {
+	return to_lo + (value - from_lo) * (to_hi - to_lo) / (from_hi - from_lo);
+}
+
 // --- Half utilities ------------------------------------------------------------------------------
 // Based on https://gist.github.com/rygorous/eb3a019b99fdaa9c3064
 
@@ -291,6 +307,17 @@ template <typename T>
     return bit_cast<T>(target);
 }
 
+[[nodiscard]] inline uint32_t covertFloatToUNORM(float value, uint32_t numBits) {
+    assert(numBits > 0 && numBits <= 32);
+    if (std::isnan(value))
+        return 0;
+    if (value < 0.f)
+        return 0;
+    if (value > 1.f)
+        return (1u << numBits) - 1u;
+    return static_cast<uint32_t>(value * static_cast<float>((1u << numBits) - 1u) + 0.5f);
+}
+
 [[nodiscard]] inline float covertSFloatToFloat(uint32_t rawBits, uint32_t numBits) {
     assert(numBits == 16 || numBits == 32);
     if (numBits == 16)
@@ -300,11 +327,11 @@ template <typename T>
     return 0;
 }
 [[nodiscard]] inline float covertUFloatToFloat(uint32_t rawBits, uint32_t numBits) {
-    assert(numBits == 10 || numBits == 11 || numBits == 14);
-    // TODO: Tools P4: covertUFloatToFloat for 10, 11 and "14"
-    (void) rawBits;
-    (void) numBits;
-    assert(false && "Not yet implemented");
+    assert(numBits == 10 || numBits == 11);
+    if (numBits == 10)
+        return glm::detail::packed10bitToFloat(rawBits);
+    else if (numBits == 11)
+        return glm::detail::packed11bitToFloat(rawBits);
     return 0;
 }
 [[nodiscard]] inline float covertSIntToFloat(uint32_t rawBits, uint32_t numBits) {
@@ -317,6 +344,18 @@ template <typename T>
 [[nodiscard]] inline float covertUIntToFloat(uint32_t rawBits, uint32_t numBits) {
     assert(numBits > 0 && numBits <= 32); (void) numBits;
     return static_cast<float>(rawBits);
+}
+[[nodiscard]] inline float covertSNORMToFloat(uint32_t rawBits, uint32_t numBits) {
+    assert(numBits > 0 && numBits <= 32);
+    (void) rawBits;
+    (void) numBits;
+    assert(false && "Not yet implemented");
+    return 0;
+}
+[[nodiscard]] inline float covertUNORMToFloat(uint32_t rawBits, uint32_t numBits) {
+    assert(numBits > 0 && numBits <= 32);
+    const auto upper = static_cast<float>((1u << numBits) - 1u);
+    return static_cast<float>(rawBits) / upper;
 }
 [[nodiscard]] inline uint32_t covertSFloatToUInt(uint32_t rawBits, uint32_t numBits) {
     assert(numBits == 16 || numBits == 32);
@@ -528,6 +567,16 @@ template <typename Iterator>
     }
 
     return std::nullopt;
+}
+
+// -------------------------------------------------------------------------------------------------
+
+[[nodiscard]] inline std::string fmtInFile(std::string_view filepath) {
+    return filepath == "-" ? std::string("stdin") : std::string(filepath);
+}
+
+[[nodiscard]] inline std::string fmtOutFile(std::string_view filepath) {
+    return filepath == "-" ? std::string("stdout") : std::string(filepath);
 }
 
 // -------------------------------------------------------------------------------------------------

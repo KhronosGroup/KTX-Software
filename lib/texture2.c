@@ -294,6 +294,10 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
                 return false;
             if (result & i_PACKED_FORMAT_BIT)
                 This->flags |= KTX_FORMAT_SIZE_PACKED_BIT;
+            if (result & i_COMPRESSED_FORMAT_BIT)
+                This->flags |= KTX_FORMAT_SIZE_COMPRESSED_BIT;
+            if (result & i_YUVSDA_FORMAT_BIT)
+                This->flags |= KTX_FORMAT_SIZE_YUVSDA_BIT;
         }
     }
     if (This->blockSizeInBits == 0) {
@@ -326,20 +330,7 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
 static uint32_t*
 ktxVk2dfd(ktx_uint32_t vkFormat)
 {
-    switch(vkFormat) {
-      case VK_FORMAT_D16_UNORM_S8_UINT:
-        // 2 16-bit words. D16 in the first. S8 in the 8 LSBs of the second.
-        return createDFDDepthStencil(16, 8, 4);
-      case VK_FORMAT_D24_UNORM_S8_UINT:
-        // 1 32-bit word. D24 in the MSBs. S8 in the LSBs.
-        return createDFDDepthStencil(24, 8, 4);
-      case VK_FORMAT_D32_SFLOAT_S8_UINT:
-        // 2 32-bit words. D32 float in the first word. S8 in LSBs of the
-        // second.
-        return createDFDDepthStencil(32, 8, 8);
-      default:
-        return vk2dfd(vkFormat);
-    }
+    return vk2dfd(vkFormat);
 }
 
 /**
@@ -438,7 +429,7 @@ ktxTexture2_construct(ktxTexture2* This, ktxTextureCreateInfo* createInfo,
 
     // Ideally we'd set all these things in ktxFormatSize_initFromDfd
     // but This->_protected is not allocated until ktxTexture_construct;
-    if (This->isCompressed) {
+    if (This->isCompressed && (formatSize.flags & KTX_FORMAT_SIZE_YUVSDA_BIT) == 0) {
         This->_protected->_typeSize = 1;
     } else if (formatSize.flags & (KTX_FORMAT_SIZE_DEPTH_BIT | KTX_FORMAT_SIZE_STENCIL_BIT)) {
         switch (createInfo->vkFormat) {

@@ -567,7 +567,7 @@ ktxTexture_calcImageSize(ktxTexture* This, ktx_uint32_t level,
     blockCount.y
         = (ktx_uint32_t)ceilf(levelHeight / prtctd->_formatSize.blockHeight);
     blockCount.x = MAX(prtctd->_formatSize.minBlocksX, blockCount.x);
-    blockCount.y = MAX(prtctd->_formatSize.minBlocksX, blockCount.y);
+    blockCount.y = MAX(prtctd->_formatSize.minBlocksY, blockCount.y);
 
     blockSizeInBytes = prtctd->_formatSize.blockSizeInBits / 8;
 
@@ -726,8 +726,10 @@ ktxTexture_layerSize(ktxTexture* This, ktx_uint32_t level,
     ktx_size_t imageSize, layerSize;
 
     assert (This != NULL);
+    assert (prtctd->_formatSize.blockDepth != 0);
 
-    blockCountZ = MAX(1, (This->baseDepth / prtctd->_formatSize.blockDepth)  >> level);
+    blockCountZ = ((This->baseDepth >> level) + prtctd->_formatSize.blockDepth - 1) / prtctd->_formatSize.blockDepth;
+    blockCountZ = MAX(1, blockCountZ);
     imageSize = ktxTexture_calcImageSize(This, level, fv);
     layerSize = imageSize * blockCountZ;
     if (fv == KTX_FORMAT_VERSION_ONE && KTX_GL_UNPACK_ALIGNMENT != 4) {

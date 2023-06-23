@@ -232,7 +232,7 @@ struct OptionsSingleIn {
 
     void init(cxxopts::Options& opts) {
         opts.add_options()
-                ("s,stdin", "Use stdin as the input file")
+                ("stdin", "Use stdin as the input file. (Using a single dash '-' as the input file has the same effect)")
                 ("i,input-file", "The input file", cxxopts::value<std::string>(), "filepath");
         opts.parse_positional("input-file");
         opts.positional_help("<input-file>");
@@ -244,11 +244,9 @@ struct OptionsSingleIn {
         if (args.count("stdin") + args.count("input-file") > 1)
             report.fatal_usage("Conflicting options: Only one can be specified from <input-file> and --stdin.");
 
-        if (args.count("stdin")) {
-            // TODO: Tools P4: Add support for stdin (To support '-' alias argv has to be scanned as cxxopts has no direct support for it)
-            report.fatal(rc::NOT_IMPLEMENTED, "stdin support is not yet implemented.");
+        if (args.count("stdin"))
             inputFilepath = "-";
-        } else
+        else
             inputFilepath = args["input-file"].as<std::string>();
     }
 };
@@ -259,7 +257,8 @@ struct OptionsSingleInSingleOut {
 
     void init(cxxopts::Options& opts) {
         opts.add_options()
-                ("s,stdin", "Use stdin as the input file")
+                ("stdin", "Use stdin as the input file. (Using a single dash '-' as the input file has the same effect)")
+                ("stdout", "Use stdout as the output file. (Using a single dash '-' as the output file has the same effect)")
                 ("i,input-file", "The input file", cxxopts::value<std::string>(), "filepath")
                 ("o,output-file", "The output file", cxxopts::value<std::string>(), "filepath");
         opts.parse_positional("input-file", "output-file");
@@ -272,14 +271,20 @@ struct OptionsSingleInSingleOut {
         if (args.count("stdin") + args.count("input-file") > 1)
             report.fatal_usage("Conflicting options: Only one can be specified from <input-file> and --stdin.");
 
-        if (args.count("stdin")) {
-            // TODO: Tools P4: Add support for stdin (To support '-' alias argv has to be scanned as cxxopts has no direct support for it)
-            report.fatal(rc::NOT_IMPLEMENTED, "stdin support is not yet implemented.");
+        if (args.count("stdout") + args.count("output-file") == 0)
+            report.fatal_usage("Missing output file. Either <output-file> or --stdout must be specified.");
+        if (args.count("stdout") + args.count("output-file") > 1)
+            report.fatal_usage("Conflicting options: Only one can be specified from <output-file> and --stdout.");
+
+        if (args.count("stdin"))
             inputFilepath = "-";
-        } else
+        else
             inputFilepath = args["input-file"].as<std::string>();
 
-        outputFilepath = args["output-file"].as<std::string>();
+        if (args.count("stdout"))
+            outputFilepath = "-";
+        else
+            outputFilepath = args["output-file"].as<std::string>();
     }
 };
 
@@ -289,6 +294,8 @@ struct OptionsMultiInSingleOut {
 
     void init(cxxopts::Options& opts) {
         opts.add_options()
+                ("stdin", "Use stdin as the input file. (Using a single dash '-' as the input file has the same effect)")
+                ("stdout", "Use stdout as the output file. (Using a single dash '-' as the output file has the same effect)")
                 ("files", "Input/output files. Last file specified will be used as output", cxxopts::value<std::vector<std::string>>(), "<filepath>");
         opts.parse_positional("files");
         opts.positional_help("<input-file...> <output-file>");
@@ -296,16 +303,25 @@ struct OptionsMultiInSingleOut {
 
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
         std::vector<std::string> files;
-        if (args.count("files"))
-            files = args["files"].as<std::vector<std::string>>();
+        if (args.count("stdin"))
+            files.emplace_back("-");
+        if (args.count("stdout"))
+            files.emplace_back("-");
+        if (args.count("files")) {
+            const auto& argFiles = args["files"].as<std::vector<std::string>>();
+            files.insert(files.end(), argFiles.begin(), argFiles.end());
+        }
         if (files.size() < 1)
             report.fatal_usage("Input and output files must be specified.");
         if (files.size() < 2)
-            report.fatal_usage("Output file must be specified.");
+            report.fatal_usage("{} file must be specified.", args.count("stdout") == 0 ? "Output" : "Input");
 
         outputFilepath = std::move(files.back());
         files.pop_back();
         inputFilepaths = std::move(files);
+
+        if (std::count(inputFilepaths.begin(), inputFilepaths.end(), "-") > 1)
+            report.fatal_usage("'-' or --stdin as input file was specified more than once.");
     }
 };
 
@@ -322,6 +338,42 @@ struct Combine : Args... {
         (dummy = ... = (Args::process(opts, args, report), 0));
         (void) dummy;
     }
+};
+
+/// Helper to handle stdin and fstream uniformly
+class InputStream {
+    std::string filepath;
+    std::istream* activeStream = nullptr;
+    std::ifstream file; // Unused for stdin/stdout
+    std::stringstream stdinBuffer;
+
+public:
+    InputStream(const std::string& filepath, Reporter& report);
+
+    /*explicit(false)*/ operator std::istream&() {
+        return *activeStream;
+    }
+
+    std::istream* operator->() {
+        return activeStream;
+    }
+    std::istream& operator*() {
+        return *activeStream;
+    }
+};
+
+/// Helper to handle stdout and fstream uniformly
+class OutputStream {
+    std::string filepath;
+    FILE* file;
+    // std::ostream* activeStream = nullptr;
+    // std::ofstream file; // Unused for stdin/stdout
+
+public:
+    OutputStream(const std::string& filepath, Reporter& report);
+    ~OutputStream();
+    void writeKTX2(ktxTexture* texture, Reporter& report);
+    void write(const char* data, std::size_t size, Reporter& report);
 };
 
 } // namespace ktx

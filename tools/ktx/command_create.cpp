@@ -594,7 +594,9 @@ Create a KTX2 file from various input files.
 @section ktxtools_create_description DESCRIPTION
     @b ktx @b create can create, encode and supercompress a KTX2 file from the
     input images specified as the @e input-file... arguments and save it as the
-    @e output-file. The last positional argument is treated as the output-file.
+    @e output-file. The last positional argument is treated as the @e output-file.
+    If the @e input-file is '-' the file will be read from the stdin.
+    If the @e output-path is '-' the output file will be written to the stdout.
 
     Each @e input-file must be a valid EXR (.exr), PNG (.png) or Raw (.raw) file.
     PNG files with luminance (L) or luminance + alpha (LA) data will be converted
@@ -822,13 +824,13 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
     numLayers = options.layers.value_or(1);
     numFaces = options.cubemap ? 6 : 1;
     numBaseDepths = options.depth.value_or(1u);
-    // baseDepth is determined by the --depth option. As the loaded images are
-    // 2D "z_slice_of_blocks" their depth is always 1 and not relevant for any kind of deduction
 
+    const auto blockSizeZ = isFormat3DBlockCompressed(options.vkFormat) ?
+            createFormatDescriptor(options.vkFormat, *this).basic.texelBlockDimension2 + 1u : 1u;
     uint32_t expectedInputImages = 0;
     for (uint32_t i = 0; i < (options.mipmapGenerate ? 1 : numLevels); ++i)
         // If --generate-mipmap is set the input only contains the base level images
-        expectedInputImages += numLayers * numFaces * std::max(numBaseDepths >> i, 1u);
+        expectedInputImages += numLayers * numFaces * ceil_div(std::max(numBaseDepths >> i, 1u), blockSizeZ);
     if (options.inputFilepaths.size() != expectedInputImages) {
         fatal_usage("Too {} input image for {} level{}, {} layer, {} face and {} depth. Provided {} but expected {}.",
                 options.inputFilepaths.size() > expectedInputImages ? "many" : "few",
@@ -954,12 +956,10 @@ void CommandCreate::foreachImage(const FormatDescriptor& format, F&& func) {
     auto inputFileIt = options.inputFilepaths.begin();
 
     for (uint32_t levelIndex = 0; levelIndex < (options.mipmapGenerate ? 1 : numLevels); ++levelIndex) {
-        // TODO: Tools P5: 3D BC formats currently discard the last partial z block slice
-        //          This should be: ceil_div instead of div
-        const auto numimageDepth = std::max(numBaseDepths >> levelIndex, 1u) / (format.basic.texelBlockDimension2 + 1);
+        const auto numDepthSlices = ceil_div(std::max(numBaseDepths >> levelIndex, 1u), format.basic.texelBlockDimension2 + 1u);
         for (uint32_t layerIndex = 0; layerIndex < numLayers; ++layerIndex) {
             for (uint32_t faceIndex = 0; faceIndex < numFaces; ++faceIndex) {
-                for (uint32_t depthSliceIndex = 0; depthSliceIndex < numimageDepth; ++depthSliceIndex) {
+                for (uint32_t depthSliceIndex = 0; depthSliceIndex < numDepthSlices; ++depthSliceIndex) {
                     assert(inputFileIt != options.inputFilepaths.end() && "Internal error"); // inputFilepaths size was already validated during arg parsing
                     func(*inputFileIt++, levelIndex, layerIndex, faceIndex, depthSliceIndex);
                 }
@@ -971,18 +971,20 @@ void CommandCreate::foreachImage(const FormatDescriptor& format, F&& func) {
 
 std::string CommandCreate::readRawFile(const std::filesystem::path& filepath) {
     std::string result;
-    std::ifstream file(filepath, std::ios::binary | std::ios::in | std::ios::ate);
-    if (!file)
-        fatal(rc::IO_FAILURE, "Failed to open file \"{}\": {}.", filepath.generic_string(), errnoMessage());
+    InputStream inputStream(filepath.string(), *this);
 
-    const auto size = file.tellg();
-    file.seekg(0);
-    if (file.fail())
+    inputStream->seekg(0, std::ios::end);
+    if (inputStream->fail())
+        fatal(rc::IO_FAILURE, "Failed to seek file \"{}\": {}.", filepath.generic_string(), errnoMessage());
+
+    const auto size = inputStream->tellg();
+    inputStream->seekg(0);
+    if (inputStream->fail())
         fatal(rc::IO_FAILURE, "Failed to seek file \"{}\": {}.", filepath.generic_string(), errnoMessage());
 
     result.resize(size);
-    file.read(result.data(), size);
-    if (file.fail())
+    inputStream->read(result.data(), size);
+    if (inputStream->fail())
         fatal(rc::IO_FAILURE, "Failed to read file \"{}\": {}.", filepath.generic_string(), errnoMessage());
 
     return result;
@@ -1017,7 +1019,7 @@ void CommandCreate::executeCreate() {
 
                 if (options.cubemap && target.width() != target.height())
                     fatal(rc::INVALID_FILE, "--cubemap specified but the input image \"{}\" with size {}x{} is not square.",
-                            inputFilepath, target.width(), target.height());
+                            fmtInFile(inputFilepath), target.width(), target.height());
 
                 texture = createTexture(target);
             }
@@ -1027,7 +1029,7 @@ void CommandCreate::executeCreate() {
             const auto expectedFileSize = ktxTexture_GetImageSize(texture, levelIndex);
             if (rawData.size() != expectedFileSize)
                 fatal(rc::INVALID_FILE, "Raw input file \"{}\" with {} bytes for level {} does not match the expected size of {} bytes.",
-                        inputFilepath, rawData.size(), levelIndex, expectedFileSize);
+                        fmtInFile(inputFilepath), rawData.size(), levelIndex, expectedFileSize);
 
             const auto ret = ktxTexture_SetImageFromMemory(
                     texture,
@@ -1050,17 +1052,17 @@ void CommandCreate::executeCreate() {
 
                 if (options.cubemap && target.width() != target.height())
                     fatal(rc::INVALID_FILE, "--cubemap specified but the input image \"{}\" with size {}x{} is not square.",
-                            inputFilepath, target.width(), target.height());
+                            fmtInFile(inputFilepath), target.width(), target.height());
 
                 if (options._1d && target.height() != 1)
                     fatal(rc::INVALID_FILE, "For --1d textures the input image height must be 1, but for \"{}\" it was {}.",
-                            inputFilepath, target.height());
+                            fmtInFile(inputFilepath), target.height());
 
                 const auto maxDimension = std::max(target.width(), std::max(target.height(), numBaseDepths));
                 const auto maxLevels = log2(maxDimension) + 1;
                 if (options.levels.value_or(1) > maxLevels)
                     fatal_usage("Requested {} levels is too many. With input image \"{}\" sized {}x{} and depth {} the texture can only have {} levels at most.",
-                            options.levels.value_or(1), inputFilepath, target.width(), target.height(), numBaseDepths, maxLevels);
+                            options.levels.value_or(1), fmtInFile(inputFilepath), target.width(), target.height(), numBaseDepths, maxLevels);
 
                 if (options.astc)
                     selectASTCMode(inputImageFile->spec().format().largestChannelBitLength());
@@ -1077,7 +1079,7 @@ void CommandCreate::executeCreate() {
 
             if (inputImageFile->spec().width() != imageWidth || inputImageFile->spec().height() != imageHeight)
                 fatal(rc::INVALID_FILE, "Input image \"{}\" with size {}x{} does not match expected size {}x{} for level {}.",
-                        inputFilepath, inputImageFile->spec().width(), inputImageFile->spec().height(), imageWidth, imageHeight, levelIndex);
+                        fmtInFile(inputFilepath), inputImageFile->spec().width(), inputImageFile->spec().height(), imageWidth, imageHeight, levelIndex);
 
             auto image = loadInputImage(*inputImageFile);
 
@@ -1091,12 +1093,12 @@ void CommandCreate::executeCreate() {
                         fatal(rc::INVALID_FILE,
                             "Input file \"{}\" would need color conversion as input and output primaries are different. "
                             "Use --assign-primaries and do not use --convert-primaries to avoid unwanted color conversions.",
-                            inputFilepath);
+                            fmtInFile(inputFilepath));
 
                     if (options.warnOnColorConversions)
                         warning("Input file \"{}\" is color converted as input and output primaries are different. "
                             "Use --assign-primaries and do not use --convert-primaries to avoid unwanted color conversions.",
-                            inputFilepath);
+                            fmtInFile(inputFilepath));
 
                     // Transform OETF with primary transform
                     image->transformColorSpace(*colorSpaceInfo.srcTransferFunction, *colorSpaceInfo.dstTransferFunction, &primaryTransform);
@@ -1105,12 +1107,12 @@ void CommandCreate::executeCreate() {
                         fatal(rc::INVALID_FILE,
                             "Input file \"{}\" would need color conversion as input and output transfer functions are different. "
                             "Use --assign-oetf and do not use --convert-oetf to avoid unwanted color conversions.",
-                            inputFilepath);
+                            fmtInFile(inputFilepath));
 
                     if (options.warnOnColorConversions)
                         warning("Input file \"{}\" is color converted as input and output transfer functions are different. "
                             "Use --assign-oetf and do not use --convert-oetf to avoid unwanted color conversions.",
-                            inputFilepath);
+                            fmtInFile(inputFilepath));
 
                     // Transform OETF without primary transform
                     image->transformColorSpace(*colorSpaceInfo.srcTransferFunction, *colorSpaceInfo.dstTransferFunction);
@@ -1161,25 +1163,9 @@ void CommandCreate::executeCreate() {
     // Save output file
     if (std::filesystem::path(options.outputFilepath).has_parent_path())
         std::filesystem::create_directories(std::filesystem::path(options.outputFilepath).parent_path());
-    FILE* f = _tfopen(options.outputFilepath.c_str(), "wb");
-    if (!f)
-        fatal(rc::IO_FAILURE, "Could not open output file \"{}\": {}.", options.outputFilepath, errnoMessage());
 
-    // #if defined(_WIN32)
-    //     if (f == stdout) {
-    //         /* Set "stdout" to have binary mode */
-    //         (void) _setmode(_fileno(stdout), _O_BINARY);
-    //     }
-    // #endif
-
-    const auto ret = ktxTexture_WriteToStdioStream(texture, f);
-    fclose(f);
-
-    if (KTX_SUCCESS != ret) {
-        if (f != stdout)
-            std::filesystem::remove(options.outputFilepath);
-        fatal(rc::IO_FAILURE, "Failed to write KTX file \"{}\": KTX error: {}", options.outputFilepath, ktxErrorString(ret));
-    }
+    OutputStream outputFile(options.outputFilepath, *this);
+    outputFile.writeKTX2(texture, *this);
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -1369,6 +1355,14 @@ std::vector<uint8_t> convertSFLOAT(const std::unique_ptr<Image>& image, std::str
         image->swizzle(swizzle);
 
     return image->getSFloat(componentCount, bits);
+}
+
+std::vector<uint8_t> convertB10G11R11(const std::unique_ptr<Image>& image) {
+    return image->getB10G11R11();
+}
+
+std::vector<uint8_t> convertE5B9G9R9(const std::unique_ptr<Image>& image) {
+    return image->getE5B9G9R9();
 }
 
 template <typename T>
@@ -1776,10 +1770,10 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
         // The same EXR pixel types as for the decoding must be enforced.
         // Extra channels must be dropped.
 
-    // case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
-    // TODO: Tools P4: Create B10G11R11_UFLOAT_PACK32
-    // case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
-    // TODO: Tools P4: Create E5B9G9R9_UFLOAT_PACK32
+    case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
+        return convertB10G11R11(image);
+    case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
+        return convertE5B9G9R9(image);
 
         // Input data must be rounded to the target precision.
 
@@ -1837,7 +1831,7 @@ KTXTexture2 CommandCreate::createTexture(const ImageSpec& target) {
 
     // BT709 is the default for DFDs.
     if (target.format().primaries() != KHR_DF_PRIMARIES_BT709)
-        KHR_DFDSETVAL(((ktxTexture2*) texture)->pDfd + 1, PRIMARIES, target.format().primaries());
+        KHR_DFDSETVAL(texture->pDfd + 1, PRIMARIES, target.format().primaries());
 
     return texture;
 }
@@ -2110,7 +2104,6 @@ void CommandCreate::checkSpecsMatch(const ImageInput& currentFile, const ImageSp
     const FormatDescriptor& firstFormat = firstSpec.format();
     const FormatDescriptor& currentFormat = currentFile.spec().format();
 
-    // TODO: Tools P5: Question: Should we allow these with warnings? Spec says fatal, but if a conversion is possible this would just stop valid usecases
     if (currentFormat.transfer() != firstFormat.transfer()) {
         fatal(rc::INVALID_FILE, "Input image \"{}\" has different transfer function ({}) than preceding image(s) ({}).",
             currentFile.filename(), toString(currentFormat.transfer()), toString(firstFormat.transfer()));

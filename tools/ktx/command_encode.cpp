@@ -39,6 +39,8 @@ Encode a KTX2 file.
 @section ktxtools_encode_description DESCRIPTION
     @b ktx @b encode can encode the KTX file specified as the @e input-file argument,
     optionally supercompress the result, and save it as the @e output-file.
+    If the @e input-file is '-' the file will be read from the stdin.
+    If the @e output-path is '-' the output file will be written to the stdout.
     The input file must be R8, RG8, RGB8 or RGBA8 (or their sRGB variant).
     If the input file is invalid the first encountered validation error is displayed
     to the stderr and the command exits with the relevant non-zero status code.
@@ -141,11 +143,11 @@ void CommandEncode::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
 }
 
 void CommandEncode::executeEncode() {
-    std::ifstream file(options.inputFilepath, std::ios::in | std::ios::binary);
-    validateToolInput(file, options.inputFilepath, *this);
+    InputStream inputStream(options.inputFilepath, *this);
+    validateToolInput(inputStream, fmtInFile(options.inputFilepath), *this);
 
     KTXTexture2 texture{nullptr};
-    StreambufStream<std::streambuf*> ktx2Stream{file.rdbuf(), std::ios::in | std::ios::binary};
+    StreambufStream<std::streambuf*> ktx2Stream{inputStream->rdbuf(), std::ios::in | std::ios::binary};
     auto ret = ktxTexture2_CreateFromStream(ktx2Stream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, texture.pHandle());
     if (ret != KTX_SUCCESS)
         fatal(rc::INVALID_FILE, "Failed to create KTX2 texture: {}", ktxErrorString(ret));
@@ -170,6 +172,9 @@ void CommandEncode::executeEncode() {
             "but format is {}.", toString(VkFormat(texture->vkFormat)));
         break;
     }
+
+    // Convert 1D textures to 2D (we could consider 1D as an invalid input)
+    texture->numDimensions = std::max(2u, texture->numDimensions);
 
     // Modify KTXwriter metadata
     const auto writer = fmt::format("{} {}", commandName, version(options.testrun));
@@ -206,19 +211,9 @@ void CommandEncode::executeEncode() {
     // Save output file
     if (std::filesystem::path(options.outputFilepath).has_parent_path())
         std::filesystem::create_directories(std::filesystem::path(options.outputFilepath).parent_path());
-    FILE* f = _tfopen(options.outputFilepath.c_str(), "wb");
-    if (!f)
-        fatal(rc::IO_FAILURE, "Could not open output file \"{}\": ", options.outputFilepath, errnoMessage());
 
-    ret = ktxTexture_WriteToStdioStream(texture, f);
-    fclose(f);
-
-    if (KTX_SUCCESS != ret) {
-        if (f != stdout)
-            std::filesystem::remove(options.outputFilepath);
-        fatal(rc::IO_FAILURE, "Failed to write KTX file \"{}\": KTX error: {}",
-            options.outputFilepath, ktxErrorString(ret));
-    }
+    OutputStream outputFile(options.outputFilepath, *this);
+    outputFile.writeKTX2(texture, *this);
 }
 
 } // namespace ktx

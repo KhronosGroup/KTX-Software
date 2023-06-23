@@ -209,11 +209,11 @@ private:
 
 private:
     template <typename... Args>
-    void validatePaddingZeros(const void* ptr, const void* bufferEnd, std::size_t alignment, const IssueError& issue, Args&&... args) {
+    void validateAlignmentPaddingZeros(const void* ptr, const void* bufferEnd, std::size_t alignment, const IssueError& issue, Args&&... args) {
         const auto* begin = static_cast<const char*>(ptr);
         const auto* end = std::min(bufferEnd, align(ptr, alignment));
 
-        for (auto it = begin; it != end; ++it)
+        for (auto it = begin; it < end; ++it)
             if (*it != 0)
                 error(issue, static_cast<uint8_t>(*it), std::forward<Args>(args)...);
     }
@@ -229,6 +229,7 @@ private:
     void validateDFD();
     void validateKVD();
     void validateSGD();
+    void validatePaddings();
     void validateCreateAndTranscode();
 
     void validateDFDBasic(uint32_t blockIndex, const uint32_t* dfd, const BDFD& block, const std::vector<SampleType>& samples);
@@ -444,14 +445,9 @@ int ValidationContext::validate(bool doCreateAndTranscodeChecks) {
     call(&ValidationContext::validateLevelIndex, "Level Index"); // Must come after the DFD parsed
     call(&ValidationContext::validateKVD, "KVD");
     call(&ValidationContext::validateSGD, "SGD");
+    call(&ValidationContext::validatePaddings, "padding");
     if (doCreateAndTranscodeChecks)
         call(&ValidationContext::validateCreateAndTranscode, "Create and Transcode");
-
-    // TODO: Tools P3: Verify validation of padding zeros between levelIndex and DFD
-    // TODO: Tools P3: Verify validation of padding zeros between DFD and KVD
-    // TODO: Tools P3: Verify validation of padding zeros between KVD and SGD
-    // TODO: Tools P3: Verify validation of padding zeros between SGD and image levels
-    // TODO: Tools P3: Verify validation of padding zeros between image levels
 
     return returnCode;
 }
@@ -476,7 +472,7 @@ void ValidationContext::validateHeader() {
             error(HeaderData::InvalidFormat, toString(vkFormat));
         if (VK_FORMAT_MAX_STANDARD_ENUM < vkFormat && vkFormat < 1000001000)
             error(HeaderData::InvalidFormat, toString(vkFormat));
-        if (1000001000 <= vkFormat)
+        if (1000001000 <= vkFormat && !isFormatKnown(vkFormat))
             warning(HeaderData::UnknownFormat, toString(vkFormat));
     }
 
@@ -796,8 +792,6 @@ void ValidationContext::validateLevelIndex() {
 
         lastByteOffset = level.byteOffset;
         lastByteLength = level.byteLength;
-
-        // dataSizeFromLevelIndex += align(level.byteLength, requiredLevelAlignment);
     }
 }
 
@@ -805,25 +799,7 @@ void ValidationContext::calculateExpectedDFD(VkFormat format) {
     if (format == VK_FORMAT_UNDEFINED || !isFormatValid(format) || isProhibitedFormat(format))
         return;
 
-    std::unique_ptr<uint32_t, decltype(&free)> dfd{ nullptr, &free };
-
-    switch (header.vkFormat) {
-    case VK_FORMAT_D16_UNORM_S8_UINT:
-        // 2 16-bit words. D16 in the first. S8 in the 8 LSBs of the second.
-        dfd = std::unique_ptr<uint32_t, decltype(&free)>(createDFDDepthStencil(16, 8, 4), &free);
-        break;
-    case VK_FORMAT_D24_UNORM_S8_UINT:
-        // 1 32-bit word. D24 in the MSBs. S8 in the LSBs.
-        dfd = std::unique_ptr<uint32_t, decltype(&free)>(createDFDDepthStencil(24, 8, 4), &free);
-        break;
-    case VK_FORMAT_D32_SFLOAT_S8_UINT:
-        // 2 32-bit words. D32 float in the first word. S8 in LSBs of the second.
-        dfd = std::unique_ptr<uint32_t, decltype(&free)>(createDFDDepthStencil(32, 8, 8), &free);
-        break;
-    default:
-        dfd = std::unique_ptr<uint32_t, decltype(&free)>(vk2dfd(format), &free);
-    }
-
+    const auto dfd = std::unique_ptr<uint32_t, decltype(&free)>(vk2dfd(format), &free);
     if (dfd == nullptr) {
         error(Validator::CreateExpectedDFDFailure, toString(format));
         return;
@@ -858,30 +834,8 @@ void ValidationContext::calculateExpectedDFD(VkFormat format) {
 
         result = interpretDFD(dfd.get(), &r, &g, &b, &a, &componentByteLength);
 
-        // TODO: Tools P5: Add interpretDFD support for depth, stencil and packed exponent formats
-        // Workaround for missing interpretDFD support for depth/stencil formats
-        switch (format) {
-        case VK_FORMAT_S8_UINT:
-            componentByteLength = 1;
-            break;
-        case VK_FORMAT_D16_UNORM: [[fallthrough]];
-        case VK_FORMAT_D16_UNORM_S8_UINT:
-            componentByteLength = 2;
-            break;
-        case VK_FORMAT_X8_D24_UNORM_PACK32: [[fallthrough]];
-        case VK_FORMAT_D24_UNORM_S8_UINT: [[fallthrough]];
-        case VK_FORMAT_D32_SFLOAT: [[fallthrough]];
-        case VK_FORMAT_D32_SFLOAT_S8_UINT:
-            componentByteLength = 4;
-            break;
-        default:
-            break;
-        }
-
-        // Reset the "false" positive error in interpretDFD with VK_FORMAT_D32_SFLOAT_S8_UINT
-        if (header.vkFormat == VK_FORMAT_D32_SFLOAT_S8_UINT && result == i_UNSUPPORTED_MIXED_CHANNELS)
-            result = InterpretDFDResult(0);
-        // Reset the "false" positive error in interpretDFD with VK_FORMAT_E5B9G9R9_UFLOAT_PACK32
+        // Reset the false positive error in interpretDFD with VK_FORMAT_E5B9G9R9_UFLOAT_PACK32
+        // interpretDFD by design doesn't support this format
         if (header.vkFormat == VK_FORMAT_E5B9G9R9_UFLOAT_PACK32 && result == i_UNSUPPORTED_NONTRIVIAL_ENDIANNESS)
             result = InterpretDFDResult(0);
 
@@ -972,10 +926,10 @@ void ValidationContext::validateDFD() {
                 }
 
             } else if (blockHeader.vendorId == KHR_DF_VENDORID_KHRONOS && blockHeader.descriptorType == KHR_DF_KHR_DESCRIPTORTYPE_ADDITIONAL_DIMENSIONS) {
-                // TODO: Tools P5: Implement DFD validation for ADDITIONAL_DIMENSIONS
+                // TODO: Implement DFD validation for ADDITIONAL_DIMENSIONS
 
             } else if (blockHeader.vendorId == KHR_DF_VENDORID_KHRONOS && blockHeader.descriptorType == KHR_DF_KHR_DESCRIPTORTYPE_ADDITIONAL_PLANES) {
-                // TODO: Tools P5: Implement DFD validation for ADDITIONAL_PLANES
+                // TODO: Implement DFD validation for ADDITIONAL_PLANES
 
             } else {
                 warning(DFD::UnknownDFDBlock,
@@ -987,8 +941,6 @@ void ValidationContext::validateDFD() {
 
         ptrDFDIt += std::max(blockHeader.descriptorBlockSize, 8u);
     }
-
-    // validatePaddingZeros(ptrDFDIt, ptrDFDEnd, 4, Metadata::PaddingNotZero, "after the last DFD block");
 
     if (!foundBDFD)
         error(DFD::MissingBDFD);
@@ -1150,7 +1102,8 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
                     if (parsed.qualifierFloat != expected.qualifierFloat)
                         error(DFD::FormatMismatch, blockIndex, i + 1, "qualifierFloat", parsed.qualifierFloat,
                                 expected.qualifierFloat, toString(VkFormat(header.vkFormat)));
-                    if (parsed.samplePosition0 != expected.samplePosition0)
+                    // For 4:2:2 formats the X sample positions can vary
+                    if (!isFormat422(VkFormat(header.vkFormat)) && parsed.samplePosition0 != expected.samplePosition0)
                         error(DFD::FormatMismatch, blockIndex, i + 1, "samplePosition0", parsed.samplePosition0,
                                 expected.samplePosition0, toString(VkFormat(header.vkFormat)));
                     if (parsed.samplePosition1 != expected.samplePosition1)
@@ -1198,9 +1151,6 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
 
                 result = interpretDFD(dfd, &r, &g, &b, &a, &componentByteLength);
 
-                // Reset the "false" positive error in interpretDFD with VK_FORMAT_D32_SFLOAT_S8_UINT
-                if (header.vkFormat == VK_FORMAT_D32_SFLOAT_S8_UINT && result == i_UNSUPPORTED_MIXED_CHANNELS)
-                    result = InterpretDFDResult(0);
                 // Reset the "false" positive error in interpretDFD with VK_FORMAT_E5B9G9R9_UFLOAT_PACK32
                 if (header.vkFormat == VK_FORMAT_E5B9G9R9_UFLOAT_PACK32 && result == i_UNSUPPORTED_NONTRIVIAL_ENDIANNESS)
                     result = InterpretDFDResult(0);
@@ -1208,10 +1158,7 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
                 if (result >= i_UNSUPPORTED_ERROR_BIT) {
                     switch (result) {
                     case i_UNSUPPORTED_CHANNEL_TYPES:
-                        // TODO: Tools P4: We intentionally ignore this error from interpretDFD().
-                        // We already check channel types elsewhere and interpretDFD() currently doesn't
-                        // handle anything else but the RGBSDA color model which is insufficient to handle
-                        // cases like the allowed 422 YCbCr formats.
+                        // We already checked channel types elsewhere with more detailed error message
                         break;
                     case i_UNSUPPORTED_MULTIPLE_PLANES:
                         error(DFD::MultiplaneFormatsNotSupported, blockIndex,
@@ -1472,7 +1419,7 @@ void ValidationContext::validateKVD() {
 
         // Finish entry
         ptrEntry += sizeof(uint32_t) + sizeKeyValuePair;
-        validatePaddingZeros(ptrEntry, ptrKVDEnd, 4, Metadata::PaddingNotZero, "after a Key-Value entry");
+        validateAlignmentPaddingZeros(ptrEntry, ptrKVDEnd, 4, Metadata::PaddingNotZero, "after a Key-Value entry");
         ptrEntry = align(ptrEntry, 4);
     }
 
@@ -1481,7 +1428,7 @@ void ValidationContext::validateKVD() {
         error(Metadata::SizesDontAddUp, ptrEntry - ptrKVD, kvdByteLength);
 
     if (header.supercompressionGlobalData.byteLength != 0)
-        validatePaddingZeros(ptrEntry, ptrKVDEnd, 8, Metadata::PaddingNotZero, "between KVD and SGD");
+        validateAlignmentPaddingZeros(ptrEntry, ptrKVDEnd, 8, Metadata::PaddingNotZero, "after the last KVD entry");
 
     if (!is_sorted(entries, std::less<>{}, &KeyValueEntry::key)) {
         error(Metadata::OutOfOrder);
@@ -1802,27 +1749,46 @@ void ValidationContext::validateSGD() {
             error(SGD::BLZENoAnimationSequencesPFrame);
 }
 
-// =================================================================================================
-// TODO: Tools P2: validate DataSize
-//
-// void ktxValidator::validateDataSize(validationContext& ctx) {
-//     // Expects to be called after validateSgd so current file offset is at
-//     // the start of the data.
-//     uint64_t dataSizeInFile;
-//     off_t dataStart = (off_t) (ctx.inp->tellg());
-//
-//     ctx.inp->seekg(0, ios_base::end);
-//     if (ctx.inp->fail())
-//         addIssue(logger::eFatal, IOError.FileSeekEndFailure, strerror(errno));
-//     off_t dataEnd = (off_t) (ctx.inp->tellg());
-//     if (dataEnd < 0)
-//         addIssue(logger::eFatal, IOError.FileTellFailure, strerror(errno));
-//     dataSizeInFile = dataEnd - dataStart;
-//     if (dataSizeInFile != ctx.dataSizeFromLevelIndex)
-//         addIssue(logger::eError, FileError.IncorrectDataSize);
-// }
-//
-// =================================================================================================
+void ValidationContext::validatePaddings() {
+    const auto levelIndexOffset = sizeof(KTX_header2);
+    const auto levelIndexSize = sizeof(ktxLevelIndexEntry) * numLevels;
+    const auto dfdByteOffset = header.dataFormatDescriptor.byteOffset;
+    const auto dfdByteLength = header.dataFormatDescriptor.byteLength;
+    const auto kvdByteOffset = header.keyValueData.byteOffset;
+    const auto kvdByteLength = header.keyValueData.byteLength;
+    const auto sgdByteOffset = header.supercompressionGlobalData.byteOffset;
+    const auto sgdByteLength = header.supercompressionGlobalData.byteLength;
+
+    size_t position = levelIndexOffset + levelIndexSize;
+    const auto check = [&](size_t offset, size_t size, std::string name) {
+        if (offset == 0 || size == 0)
+            return; // Block is missing, skip
+
+        if (offset < position) {
+            position = std::max(position, offset + size);
+            return; // Just ignore invalid block placements regarding padding checks
+        }
+
+        const auto paddingSize = offset - position;
+        const auto buffer = std::make_unique<uint8_t[]>(paddingSize);
+        read(position, buffer.get(), paddingSize, "the padding before " + name);
+
+        for (size_t i = 0; i < paddingSize; ++i)
+            if (buffer[i] != 0) {
+                error(Metadata::PaddingNotZero, buffer[i], fmt::format("before {} at offset {}", name, position + i));
+                break; // Only report the first non-zero byte per padding, no need to spam
+            }
+
+        position = offset + size;
+    };
+
+    check(dfdByteOffset, dfdByteLength, "DFD");
+    check(kvdByteOffset, kvdByteLength, "KVD");
+    check(sgdByteOffset, sgdByteLength, "SGD");
+    size_t i = levelIndices.size() - 1;
+    for (auto it = levelIndices.rbegin(); it != levelIndices.rend(); ++it)
+        check(it->byteOffset, it->byteLength, "image level " + std::to_string(i--));
+}
 
 void ValidationContext::validateCreateAndTranscode() {
     KTXTexture2 texture{nullptr};
