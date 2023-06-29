@@ -90,6 +90,8 @@ OutputStream::OutputStream(const std::string& filepath, Reporter& report) :
             report.fatal(rc::IO_FAILURE, "Could not open output file \"{}\": {}.", filepath, errnoMessage());
     }
 
+    // TODO: Investigate and resolve the portability issue with the C++ streams. The issue will most likely
+    //       be in StreambufStream's position reporting and seeking. Currently a fallback is implemented in C above.
     // if (filepath == "-") {
     //     #if defined(_WIN32)
     //     // Set "stdout" to binary mode
@@ -127,6 +129,8 @@ void OutputStream::writeKTX2(ktxTexture* texture, Reporter& report) {
         report.fatal(rc::IO_FAILURE, "Failed to write KTX file \"{}\": KTX error: {}.", filepath, ktxErrorString(ret));
     }
 
+    // TODO: Investigate and resolve the portability issue with the C++ streams. The issue will most likely
+    //       be in StreambufStream's position reporting and seeking. Currently a fallback is implemented in C above.
     // StreambufStream<std::streambuf*> stream(activeStream->rdbuf(), std::ios::in | std::ios::binary);
     // const auto ret = ktxTexture_WriteToStream(texture, stream.stream());
     //

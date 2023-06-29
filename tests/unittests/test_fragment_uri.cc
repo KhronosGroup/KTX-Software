@@ -7,19 +7,7 @@
  */
 
 #include <ktx/fragment_uri.h>
-
-// #include <string.h>
-// #include "GL/glcorearb.h"
-// #include "gl_format.h"
-// #include "ktx.h"
-// extern "C" {
-//   #include "ktxint.h"
-//   #include "filestream.h"
-//   #include "memstream.h"
-// }
 #include "gtest/gtest.h"
-// #include "wthelper.h"
-// #include "ltexceptions.h"
 
 
 namespace {

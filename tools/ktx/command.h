@@ -233,7 +233,7 @@ struct OptionsSingleIn {
     void init(cxxopts::Options& opts) {
         opts.add_options()
                 ("stdin", "Use stdin as the input file. (Using a single dash '-' as the input file has the same effect)")
-                ("i,input-file", "The input file", cxxopts::value<std::string>(), "filepath");
+                ("i,input-file", "The input file. Using a single dash '-' as the input file will use stdin.", cxxopts::value<std::string>(), "filepath");
         opts.parse_positional("input-file");
         opts.positional_help("<input-file>");
     }
@@ -259,8 +259,8 @@ struct OptionsSingleInSingleOut {
         opts.add_options()
                 ("stdin", "Use stdin as the input file. (Using a single dash '-' as the input file has the same effect)")
                 ("stdout", "Use stdout as the output file. (Using a single dash '-' as the output file has the same effect)")
-                ("i,input-file", "The input file", cxxopts::value<std::string>(), "filepath")
-                ("o,output-file", "The output file", cxxopts::value<std::string>(), "filepath");
+                ("i,input-file", "The input file. Using a single dash '-' as the input file will use stdin.", cxxopts::value<std::string>(), "filepath")
+                ("o,output-file", "The output file. Using a single dash '-' as the output file will use stdout.", cxxopts::value<std::string>(), "filepath");
         opts.parse_positional("input-file", "output-file");
         opts.positional_help("<input-file> <output-file>");
     }
@@ -294,9 +294,10 @@ struct OptionsMultiInSingleOut {
 
     void init(cxxopts::Options& opts) {
         opts.add_options()
-                ("stdin", "Use stdin as the input file. (Using a single dash '-' as the input file has the same effect)")
+                ("stdin", "Use stdin as the first input file. (Using a single dash '-' as the first input file has the same effect)")
                 ("stdout", "Use stdout as the output file. (Using a single dash '-' as the output file has the same effect)")
-                ("files", "Input/output files. Last file specified will be used as output", cxxopts::value<std::vector<std::string>>(), "<filepath>");
+                ("files", "Input/output files. Last file specified will be used as output."
+                          " Using a single dash '-' as an input or output file will use stdin/stdout.", cxxopts::value<std::vector<std::string>>(), "<filepath>");
         opts.parse_positional("files");
         opts.positional_help("<input-file...> <output-file>");
     }
@@ -305,12 +306,12 @@ struct OptionsMultiInSingleOut {
         std::vector<std::string> files;
         if (args.count("stdin"))
             files.emplace_back("-");
-        if (args.count("stdout"))
-            files.emplace_back("-");
         if (args.count("files")) {
             const auto& argFiles = args["files"].as<std::vector<std::string>>();
             files.insert(files.end(), argFiles.begin(), argFiles.end());
         }
+        if (args.count("stdout"))
+            files.emplace_back("-");
         if (files.size() < 1)
             report.fatal_usage("Input and output files must be specified.");
         if (files.size() < 2)

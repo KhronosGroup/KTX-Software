@@ -257,11 +257,7 @@ void CommandExtract::OptionsExtract::process(cxxopts::Options&, cxxopts::ParseRe
 
     if (args["uri"].count()) {
         uriFlagUsed = true;
-        try {
-            fragmentURI = parseFragmentURI(args["uri"].as<std::string>());
-        } catch (const std::exception& e) {
-            report.fatal_usage("Failed to parse Fragment URI: {}", e.what());
-        }
+
         if (globalAll)
             report.fatal_usage("Conflicting options: --all cannot be used with --uri.");
         if (levelFlagUsed)
@@ -270,6 +266,12 @@ void CommandExtract::OptionsExtract::process(cxxopts::Options&, cxxopts::ParseRe
             report.fatal_usage("Conflicting options: --layer cannot be used with --uri.");
         if (faceFlagUsed)
             report.fatal_usage("Conflicting options: --face cannot be used with --uri.");
+
+        try {
+            fragmentURI = parseFragmentURI(args["uri"].as<std::string>());
+        } catch (const std::exception& e) {
+            report.fatal_usage("Failed to parse Fragment URI: {}", e.what());
+        }
 
         const auto isMultiOutputFragmentURI =
                 (!fragmentURI.mip.is_undefined() && fragmentURI.mip.is_multi()) ||
