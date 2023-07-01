@@ -73,10 +73,21 @@ uint32_t* vk2dfd(enum VkFormat format);
 uint32_t *createDFDUnpacked(int bigEndian, int numChannels, int bytes,
                             int redBlueSwap, enum VkSuffix suffix);
 
+/* Create a Data Format Descriptor for a packed padded format. */
+uint32_t *createDFDPackedPadded(int bigEndian, int numChannels,
+                                int bits[], int paddings[], int channels[],
+                                enum VkSuffix suffix);
+
 /* Create a Data Format Descriptor for a packed format. */
 uint32_t *createDFDPacked(int bigEndian, int numChannels,
                           int bits[], int channels[],
                           enum VkSuffix suffix);
+
+/* Create a Data Format Descriptor for a 4:2:2 format. */
+uint32_t *createDFD422(int bigEndian, int numChannels,
+                       int bits[], int paddings[], int channels[],
+                       int position_xs[], int position_ys[],
+                       enum VkSuffix suffix);
 
 /* Create a Data Format Descriptor for a compressed format. */
 uint32_t *createDFDCompressed(enum VkCompScheme compScheme,
@@ -91,13 +102,15 @@ uint32_t *createDFDDepthStencil(int depthBits,
 /** @brief Result of interpreting the data format descriptor. */
 enum InterpretDFDResult {
     i_LITTLE_ENDIAN_FORMAT_BIT = 0, /*!< Confirmed little-endian (default for 8bpc). */
-    i_BIG_ENDIAN_FORMAT_BIT = 1,    /*!< Confirmed big-endian. */
-    i_PACKED_FORMAT_BIT = 2,        /*!< Packed format. */
-    i_SRGB_FORMAT_BIT = 4,          /*!< sRGB transfer function. */
-    i_NORMALIZED_FORMAT_BIT = 8,    /*!< Normalized (UNORM or SNORM). */
-    i_SIGNED_FORMAT_BIT = 16,       /*!< Format is signed. */
-    i_FLOAT_FORMAT_BIT = 32,        /*!< Format is floating point. */
-    i_UNSUPPORTED_ERROR_BIT = 64,   /*!< Format not successfully interpreted. */
+    i_BIG_ENDIAN_FORMAT_BIT    = 1u << 0u, /*!< Confirmed big-endian. */
+    i_PACKED_FORMAT_BIT        = 1u << 1u, /*!< Packed format. */
+    i_SRGB_FORMAT_BIT          = 1u << 2u, /*!< sRGB transfer function. */
+    i_NORMALIZED_FORMAT_BIT    = 1u << 3u, /*!< Normalized (UNORM or SNORM). */
+    i_SIGNED_FORMAT_BIT        = 1u << 4u, /*!< Format is signed. */
+    i_FLOAT_FORMAT_BIT         = 1u << 5u, /*!< Format is floating point. */
+    i_COMPRESSED_FORMAT_BIT    = 1u << 6u, /*!< Format is block compressed (422). */
+    i_YUVSDA_FORMAT_BIT        = 1u << 7u, /*!< Color model is YUVSDA. */
+    i_UNSUPPORTED_ERROR_BIT    = 1u << 8u, /*!< Format not successfully interpreted. */
     /** "NONTRIVIAL_ENDIANNESS" means not big-endian, not little-endian
      * (a channel has bits that are not consecutive in either order). **/
     i_UNSUPPORTED_NONTRIVIAL_ENDIANNESS     = i_UNSUPPORTED_ERROR_BIT,
@@ -110,7 +123,9 @@ enum InterpretDFDResult {
     i_UNSUPPORTED_CHANNEL_TYPES             = i_UNSUPPORTED_ERROR_BIT + 3,
     /** Only channels with the same flags are supported
      * (e.g. we don't support float red with integer green). */
-    i_UNSUPPORTED_MIXED_CHANNELS            = i_UNSUPPORTED_ERROR_BIT + 4
+    i_UNSUPPORTED_MIXED_CHANNELS            = i_UNSUPPORTED_ERROR_BIT + 4,
+    /** Only 2x1 block is supported for YUVSDA model. */
+    i_UNSUPPORTED_BLOCK_DIMENSIONS          = i_UNSUPPORTED_ERROR_BIT + 5,
 };
 
 /** @brief Interpretation of a channel from the data format descriptor. */

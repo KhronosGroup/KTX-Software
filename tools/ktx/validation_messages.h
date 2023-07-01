@@ -106,6 +106,8 @@ struct FileError {
 };
 
 struct HeaderData {
+    // 30xx - KTX Header related issues
+
     static constexpr IssueError ProhibitedFormat{
         3001, "Prohibited VkFormat.",
         "VkFormat {} is prohibited in a KTX2 file."
@@ -246,6 +248,8 @@ struct HeaderData {
 };
 
 struct LevelIndex {
+    // 40xx - Level index related issues
+
     static constexpr IssueError IncorrectIndexOrder{
         4001, "Invalid Level Index. Indices must be sorted from the largest level to the smallest level.",
         "Indexes for level {} with byteLength {} and level {} with byteLength {} are incorrectly ordered."
@@ -292,6 +296,8 @@ struct LevelIndex {
 };
 
 struct Validator {
+    // 50xx - Validator or KTX Library related issues
+
     static constexpr IssueError CreateExpectedDFDFailure{
         5001, "Failed to create expected DFD for the given VkFormat.",
         "Failed to create expected DFD for the given VkFormat {}."
@@ -782,6 +788,7 @@ struct SGD {
 };
 
 struct System {
+    // 90xx - Generic System issues
     static constexpr IssueError OutOfMemory{
         9001, "System ran out of memory during a validation step.",
         "An allocation failed during {} validation: {}."

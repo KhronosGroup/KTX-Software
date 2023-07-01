@@ -359,7 +359,7 @@ elseif(APPLE)
         # Set a common RUNTIME_OUTPUT_DIR for all targets, so that
         # INSTALL RPATH is functional in build directory as well.
         # BUILD_WITH_INSTALL_RPATH is necessary for working code signing.
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${KTX_BUILD_DIR}/$<CONFIG>)
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
     endif()
 endif()
 

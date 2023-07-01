@@ -5,6 +5,7 @@
 #include "command.h"
 #include "format_descriptor.h"
 #include "formats.h"
+#include "fragment_uri.h"
 #include "sbufstream.h"
 #include "utility.h"
 #include "validate.h"
@@ -29,70 +30,6 @@
 
 namespace ktx {
 
-struct All_t {};
-static constexpr All_t all{};
-
-// Small utility class for selecting one specific uint or all (used for image selection via indices)
-struct Selector {
-    bool all = false;
-    uint32_t value = 0;
-
-    explicit Selector(All_t) : all(true) {}
-    explicit Selector(uint32_t value) : value(value) {}
-
-    Selector& operator=(All_t) & {
-        all = true;
-        value = 0;
-        return *this;
-    }
-
-    Selector& operator=(uint32_t v) & {
-        all = false;
-        value = v;
-        return *this;
-    }
-
-    friend bool operator==(All_t, const Selector& var) {
-        return var.all;
-    }
-    friend bool operator==(const Selector& var, All_t) {
-        return var.all;
-    }
-    friend bool operator!=(All_t, const Selector& var) {
-        return !var.all;
-    }
-    friend bool operator!=(const Selector& var, All_t) {
-        return !var.all;
-    }
-    friend bool operator>=(const Selector& var, uint32_t value) {
-        return !var.all && var.value >= value;
-    }
-    friend bool operator>=(uint32_t value, const Selector& var) {
-        return !var.all && value >= var.value;
-    }
-};
-
-static uint32_t value_or(const std::optional<Selector> opt, uint32_t fallback) {
-    return opt ? opt->value : fallback;
-}
-
-} // namespace ktx
-
-namespace fmt {
-
-template<> struct formatter<ktx::Selector> : fmt::formatter<uint32_t> {
-    template <typename FormatContext>
-    auto format(const ktx::Selector& var, FormatContext& ctx) const -> decltype(ctx.out()) {
-        return var.all ?
-            formatter<std::string_view>{}.format("all", ctx) :
-            formatter<uint32_t>::format(var.value, ctx);
-    }
-};
-
-} // namespace fmt
-
-namespace ktx {
-
 // -------------------------------------------------------------------------------------------------
 
 /** @page ktxtools_extract ktx extract
@@ -107,6 +44,8 @@ Extract selected images from a KTX2 file.
     @b ktx @b extract can extract one or multiple images from the KTX2 file specified as the
     @e input-file argument and, based on the format, save them as Raw, EXR or PNG image files
     to the @e output-path.
+    If the @e input-file is '-' the file will be read from the stdin.
+    If the @e output-path is '-' the output file will be written to the stdout.
     If the input file is invalid the first encountered validation error is displayed
     to the stderr and the command exits with the relevant non-zero status code.
 
@@ -188,11 +127,13 @@ Extract selected images from a KTX2 file.
 class CommandExtract : public Command {
     struct OptionsExtract {
         std::string outputPath;
-        std::string uri;
-        std::optional<Selector> level;
-        std::optional<Selector> layer;
-        std::optional<Selector> face;
-        std::optional<Selector> depth;
+        FragmentURI fragmentURI;
+        SelectorRange depth;
+        bool levelFlagUsed = false;
+        bool layerFlagUsed = false;
+        bool faceFlagUsed = false;
+        bool depthFlagUsed = false;
+        bool uriFlagUsed = false;
         bool globalAll = false;
         bool raw = false;
 
@@ -208,14 +149,15 @@ public:
     virtual void processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) override;
 
 private:
-    std::size_t transcodeSwizzle(uint32_t width, uint32_t height, char* imageData, std::size_t imageSize);
     void executeExtract();
     void saveRawFile(std::string filepath, bool appendExtension, const char* data, std::size_t size);
     void saveImageFile(std::string filepath, bool appendExtension, const char* data, std::size_t size, VkFormat vkFormat, const FormatDescriptor& format, uint32_t width, uint32_t height);
 
-    void savePNG(std::string filepath, bool appendExtension, VkFormat vkFormat, const FormatDescriptor& format, uint32_t width, uint32_t height, LodePNGColorType colorType, const char* data, std::size_t size);
+    void savePNG(std::string filepath, bool appendExtension, VkFormat vkFormat, const FormatDescriptor& format, uint32_t width, uint32_t height, const char* data, std::size_t size);
     void saveEXR(std::string filepath, bool appendExtension, VkFormat vkFormat, const FormatDescriptor& format, uint32_t width, uint32_t height, int pixelType, const char* data, std::size_t size);
+    void saveEXR(std::string filepath, bool appendExtension, VkFormat vkFormat, const FormatDescriptor& format, uint32_t width, uint32_t height, const std::vector<int>& pixelTypes, const char* data, std::size_t size);
     void decodeAndSaveASTC(std::string filepath, bool appendExtension, VkFormat vkFormat, const FormatDescriptor& format, uint32_t width, uint32_t height, const char* data, std::size_t size);
+    void unpackAndSave422(std::string filepath, bool appendExtension, VkFormat vkFormat, const FormatDescriptor& format, uint32_t width, uint32_t height, const char* data, std::size_t size);
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -239,6 +181,7 @@ int CommandExtract::main(int argc, _TCHAR* argv[]) {
 void CommandExtract::OptionsExtract::init(cxxopts::Options& opts) {
     opts.add_options()
             ("output", "Output filepath for single, output directory for multiple image export.", cxxopts::value<std::string>(), "<filepath>")
+            ("stdout", "Use stdout as the output file. (Using a single dash '-' as the output file has the same effect)")
             ("transcode", "Transcode the texture to the target format before executing the extract steps."
                           " Requires the input file to be transcodable."
                           " Block compressed transcode targets can only be saved in raw format."
@@ -263,18 +206,13 @@ void CommandExtract::OptionsExtract::process(cxxopts::Options&, cxxopts::ParseRe
     else
         report.fatal_usage("Missing output file or directory path.");
 
-    if (args["uri"].count()) {
-        // TODO: Tools P4: Validate and parse fragment URI, Handle error conditions
-        report.fatal(rc::NOT_IMPLEMENTED, "Fragment URI support is not yet implemented.");
-        uri = args["uri"].as<std::string>();
-    }
-
-    const auto parseSelector = [&](const std::string& name) -> std::optional<Selector> {
+    const auto parseSelector = [&](const std::string& name, bool& found) -> std::optional<SelectorRange> {
         if (!args[name].count())
             return std::nullopt;
         const auto str = to_lower_copy(args[name].as<std::string>());
         try {
-            return str == "all" ? Selector(all) : Selector(std::stoi(str));
+            found = true;
+            return str == "all" ? SelectorRange(all) : SelectorRange(std::stoi(str));
         } catch (const std::invalid_argument&) {
             report.fatal_usage("Invalid {} value \"{}\". The value must be a either a number or \"all\".", name, str);
         } catch (const std::out_of_range& e) {
@@ -282,10 +220,11 @@ void CommandExtract::OptionsExtract::process(cxxopts::Options&, cxxopts::ParseRe
         }
         return std::nullopt;
     };
-    level = parseSelector("level");
-    layer = parseSelector("layer");
-    face = parseSelector("face");
-    depth = parseSelector("depth");
+
+    auto level = parseSelector("level", levelFlagUsed);
+    auto layer = parseSelector("layer", layerFlagUsed);
+    auto face = parseSelector("face", faceFlagUsed);
+    auto depth_ = parseSelector("depth", depthFlagUsed);
     raw = args["raw"].as<bool>();
     globalAll = args["all"].as<bool>();
 
@@ -296,14 +235,59 @@ void CommandExtract::OptionsExtract::process(cxxopts::Options&, cxxopts::ParseRe
             report.fatal_usage("Conflicting options: --layer cannot be used with --all.");
         if (face)
             report.fatal_usage("Conflicting options: --face cannot be used with --all.");
-        if (depth)
+        if (depth_)
             report.fatal_usage("Conflicting options: --depth cannot be used with --all.");
 
         level = all;
         layer = all;
         face = all;
-        depth = all;
+        depth_ = all;
     }
+
+    if (globalAll && outputPath == "-")
+        report.fatal_usage("stdout cannot be used with multi-output '--all' extract.");
+    if (level == all && outputPath == "-")
+        report.fatal_usage("stdout cannot be used with multi-output '--level all' extract.");
+    if (layer == all && outputPath == "-")
+        report.fatal_usage("stdout cannot be used with multi-output '--layer all' extract.");
+    if (face == all && outputPath == "-")
+        report.fatal_usage("stdout cannot be used with multi-output '--face all' extract.");
+    if (depth_ == all && outputPath == "-")
+        report.fatal_usage("stdout cannot be used with multi-output '--depth all' extract.");
+
+    if (args["uri"].count()) {
+        uriFlagUsed = true;
+
+        if (globalAll)
+            report.fatal_usage("Conflicting options: --all cannot be used with --uri.");
+        if (levelFlagUsed)
+            report.fatal_usage("Conflicting options: --level cannot be used with --uri.");
+        if (layerFlagUsed)
+            report.fatal_usage("Conflicting options: --layer cannot be used with --uri.");
+        if (faceFlagUsed)
+            report.fatal_usage("Conflicting options: --face cannot be used with --uri.");
+
+        try {
+            fragmentURI = parseFragmentURI(args["uri"].as<std::string>());
+        } catch (const std::exception& e) {
+            report.fatal_usage("Failed to parse Fragment URI: {}", e.what());
+        }
+
+        const auto isMultiOutputFragmentURI =
+                (!fragmentURI.mip.is_undefined() && fragmentURI.mip.is_multi()) ||
+                (!fragmentURI.stratal.is_undefined() && fragmentURI.stratal.is_multi()) ||
+                (!fragmentURI.facial.is_undefined() && fragmentURI.facial.is_multi());
+        if (isMultiOutputFragmentURI && outputPath == "-")
+            report.fatal_usage("stdout cannot be used with multi-output '--uri' extract.");
+
+    } else {
+        // Merge every other selection method into the fragmentURI
+        fragmentURI.mip = level.value_or(SelectorRange(0));
+        fragmentURI.stratal = layer.value_or(SelectorRange(0));
+        fragmentURI.facial = face.value_or(SelectorRange(0));
+    }
+
+    this->depth = depth_.value_or(SelectorRange(0));
 }
 
 void CommandExtract::initOptions(cxxopts::Options& opts) {
@@ -322,109 +306,74 @@ void CommandExtract::processOptions(cxxopts::Options& opts, cxxopts::ParseResult
     }
 }
 
-std::size_t CommandExtract::transcodeSwizzle(uint32_t width, uint32_t height, char* imageData, std::size_t imageSize) {
-    rgba8image srcImage(width, height, reinterpret_cast<rgba8color*>(imageData));
-
-    switch (options.transcodeSwizzleComponents) {
-    case 1: {
-        // Copy in-place from RGBA8 to R8 with swizzle
-        r8image dstImage(width, height, reinterpret_cast<r8color*>(imageData));
-        srcImage.copyToR(dstImage, options.transcodeSwizzle);
-        return imageSize / 4;
-    }
-    case 2: {
-        // Copy in-place from RGBA8 to RG8 with swizzle
-        rg8image dstImage(width, height, reinterpret_cast<rg8color*>(imageData));
-        srcImage.copyToRG(dstImage, options.transcodeSwizzle);
-        return imageSize / 2;
-    }
-    case 3: {
-        // Copy in-place from RGBA8 to RGB8 with swizzle
-        rgb8image dstImage(width, height, reinterpret_cast<rgb8color*>(imageData));
-        srcImage.copyToRGB(dstImage, options.transcodeSwizzle);
-        return imageSize * 3 / 4;
-    }
-    case 4: {
-        // Swizzle in-place if needed
-        if (options.transcodeSwizzle != "rgba") {
-            srcImage.swizzle(options.transcodeSwizzle);
-        }
-        return imageSize;
-    }
-    default:
-        // Nothing to do
-        return imageSize;
-    }
-}
-
 void CommandExtract::executeExtract() {
-    std::ifstream file(options.inputFilepath, std::ios::in | std::ios::binary);
-    validateToolInput(file, options.inputFilepath, *this);
+    InputStream inputStream(options.inputFilepath, *this);
+    validateToolInput(inputStream, fmtInFile(options.inputFilepath), *this);
 
     KTXTexture2 texture{nullptr};
-    StreambufStream<std::streambuf*> ktx2Stream{file.rdbuf(), std::ios::in | std::ios::binary};
+    StreambufStream<std::streambuf*> ktx2Stream{inputStream->rdbuf(), std::ios::in | std::ios::binary};
     auto ret = ktxTexture2_CreateFromStream(ktx2Stream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, texture.pHandle());
     if (ret != KTX_SUCCESS)
         fatal(rc::INVALID_FILE, "Failed to create KTX2 texture: {}", ktxErrorString(ret));
 
     // CLI request validation
-    if (options.level && options.level >= texture->numLevels)
+    if (!options.fragmentURI.mip.validate(texture->numLevels))
         fatal(rc::INVALID_FILE, "Requested level index {} is missing. The input file only has {} level(s).",
-                *options.level, texture->numLevels);
+                options.fragmentURI.mip, texture->numLevels);
 
-    if (!options.globalAll && options.layer && !texture->isArray) {
-        if (options.layer == all)
+    if (((options.uriFlagUsed && !options.fragmentURI.stratal.is_undefined()) || options.layerFlagUsed) && !texture->isArray) {
+        if (options.fragmentURI.stratal == all)
             fatal(rc::INVALID_FILE, "Requested all layers from a non-array texture.");
         else
-            fatal(rc::INVALID_FILE, "Requested layer index {} from a non-array texture.", *options.layer);
+            fatal(rc::INVALID_FILE, "Requested layer index {} from a non-array texture.", options.fragmentURI.stratal);
     }
 
-    if (options.layer && options.layer >= texture->numLayers)
+    if (!options.fragmentURI.stratal.validate(texture->numLayers))
         fatal(rc::INVALID_FILE, "Requested layer index {} is missing. The input file only has {} layer(s).",
-                *options.layer, texture->numLayers);
+                options.fragmentURI.stratal, texture->numLayers);
 
-    if (!options.globalAll && options.face && !texture->isCubemap) {
-        if (options.face == all)
+    if (((options.uriFlagUsed && !options.fragmentURI.facial.is_undefined()) || options.faceFlagUsed) && !texture->isCubemap) {
+        if (options.fragmentURI.facial == all)
             fatal(rc::INVALID_FILE, "Requested all faces from a non-cubemap texture.");
         else
-            fatal(rc::INVALID_FILE, "Requested face index {} from a non-cubemap texture.", *options.face);
+            fatal(rc::INVALID_FILE, "Requested face index {} from a non-cubemap texture.", options.fragmentURI.facial);
     }
 
-    if (options.face && options.face >= texture->numFaces)
+    if (!options.fragmentURI.facial.validate(texture->numFaces))
         fatal(rc::INVALID_FILE, "Requested face index {} is missing. The input file only has {} face(s).",
-                *options.face, texture->numFaces);
+                options.fragmentURI.facial, texture->numFaces);
 
-    if (!options.globalAll && options.depth && texture->numDimensions != 3) {
+    if (!options.globalAll && options.depthFlagUsed && texture->numDimensions != 3) {
         if (options.depth == all)
-            fatal(rc::INVALID_FILE, "Requested all depths from a non-3D texture.");
+            fatal(rc::INVALID_FILE, "Requested all depth slices from a non-3D texture.");
         else
-            fatal(rc::INVALID_FILE, "Requested depth index {} from a non-3D texture.", *options.depth);
+            fatal(rc::INVALID_FILE, "Requested depth slice index {} from a non-3D texture.", options.depth);
     }
-
-    const auto lastExportedLevel = options.level == all ? texture->numLevels - 1 : value_or(options.level, 0);
-    const auto lastExportedLevelDepthCount = std::max(1u, texture->baseDepth >> lastExportedLevel);
-    if (options.depth && options.depth >= lastExportedLevelDepthCount)
-        fatal(rc::INVALID_FILE, "Requested depth index {} is missing. The input file only has {} depth(s) in level {}.",
-                *options.depth, lastExportedLevelDepthCount, lastExportedLevel);
 
     // Transcoding
     if (ktxTexture2_NeedsTranscoding(texture)) {
-        options.validateTextureTranscode(texture, *this);
+        texture = transcode(std::move(texture), options, *this);
 
-        ret = ktxTexture2_TranscodeBasis(texture, options.transcodeTarget.value(), 0);
-        if (ret != KTX_SUCCESS)
-            fatal(rc::INVALID_FILE, "Failed to transcode KTX2 texture: {}", ktxErrorString(ret));
     } else if (options.transcodeTarget) {
         fatal(rc::INVALID_FILE, "Requested transcode \"{}\" but the KTX file is not transcodable.",
                 options.transcodeTargetName);
     }
 
+    const auto format = createFormatDescriptor(texture->pDfd);
+    const auto blockSizeZ = format.basic.texelBlockDimension2 + 1u;
+
+    const auto lastExportedLevel = options.fragmentURI.mip == all ? texture->numLevels - 1 : options.fragmentURI.mip.last();
+    const auto lastExportedLevelDepthCount = std::max(1u, ceil_div(texture->baseDepth, blockSizeZ) >> lastExportedLevel);
+    if (options.depthFlagUsed && options.depth != all && options.depth.last() > lastExportedLevelDepthCount)
+        fatal(rc::INVALID_FILE, "Requested depth slice index {} is missing. The input file only has {} depth slice(s) in level {}.",
+                options.depth, lastExportedLevelDepthCount, lastExportedLevel);
+
     // Setup output directory
     const auto isMultiOutput =
-            options.level == all ||
-            options.layer == all ||
-            options.face == all ||
-            options.depth == all;
+            (!options.fragmentURI.mip.is_undefined() && options.fragmentURI.mip.is_multi()) ||
+            (!options.fragmentURI.stratal.is_undefined() && options.fragmentURI.stratal.is_multi()) ||
+            (!options.fragmentURI.facial.is_undefined() && options.fragmentURI.facial.is_multi()) ||
+            ((options.globalAll || options.depthFlagUsed) && options.depth.is_multi());
     try {
         if (isMultiOutput) {
             if (std::filesystem::exists(options.outputPath) && !std::filesystem::is_directory(options.outputPath))
@@ -440,8 +389,10 @@ void CommandExtract::executeExtract() {
 
     // Iterate
     for (uint32_t levelIndex = 0; levelIndex < texture->numLevels; ++levelIndex) {
-        if (options.level != all && value_or(options.level, 0) != levelIndex)
-            continue; // Skip
+        if (options.fragmentURI.mip.is_undefined() ?
+                levelIndex != 0 :
+                !options.fragmentURI.mip.contains(levelIndex))
+            continue;
 
         std::size_t imageSize = ktxTexture_GetImageSize(texture, levelIndex);
         const auto imageWidth = std::max(1u, texture->baseWidth >> levelIndex);
@@ -449,20 +400,24 @@ void CommandExtract::executeExtract() {
         const auto imageDepth = std::max(1u, texture->baseDepth >> levelIndex);
 
         for (uint32_t faceIndex = 0; faceIndex < texture->numFaces; ++faceIndex) {
-            if (options.face != all && value_or(options.face, 0) != faceIndex)
-                continue; // Skip
+            if (options.fragmentURI.facial.is_undefined() ?
+                    faceIndex != 0 :
+                    !options.fragmentURI.facial.contains(faceIndex))
+                continue;
 
             for (uint32_t layerIndex = 0; layerIndex < texture->numLayers; ++layerIndex) {
-                if (options.layer != all && value_or(options.layer, 0) != layerIndex)
-                    continue; // Skip
+                if (options.fragmentURI.stratal.is_undefined() ?
+                        layerIndex != 0 :
+                        !options.fragmentURI.stratal.contains(layerIndex))
+                    continue;
 
-                if (imageDepth > 1 && !options.depth && options.raw) {
-                    // If the texture type is 3D / 3D Array and the "depth" option is not set,
+                if (imageDepth > 1 && !options.globalAll && !options.depthFlagUsed && options.raw) {
+                    // If the texture type is 3D / 3D Array and the "all" or "depth" option is not set,
                     // the whole 3D block of pixel data is selected according to the "level" and "layer"
                     // option. This extraction path requires the "raw" option to be enabled.
 
                     const auto outputFilepath = !isMultiOutput ? options.outputPath :
-                            fmt::format("{}/output{}{}{}{}.raw",
+                            fmt::format("{}/output{}{}{}.raw",
                             options.outputPath,
                             texture->numLevels > 1 ? fmt::format("_level{}", levelIndex) : "",
                             texture->isCubemap ? fmt::format("_face{}", faceIndex) : "",
@@ -470,30 +425,20 @@ void CommandExtract::executeExtract() {
                             // Depth is not part of the name as the whole 3D image is raw exported
                     );
 
-                    std::ofstream rawFile(outputFilepath, std::ios::out | std::ios::binary);
-                    if (!rawFile)
-                        fatal(rc::IO_FAILURE, "Failed to open output file \"{}\": {}", outputFilepath, errnoMessage());
-
+                    OutputStream file(outputFilepath, *this);
                     for (uint32_t depthIndex = 0; depthIndex < imageDepth; ++depthIndex) {
                         ktx_size_t imageOffset;
                         ktxTexture_GetImageOffset(texture, levelIndex, layerIndex, faceIndex + depthIndex, &imageOffset);
                         const char* imageData = reinterpret_cast<const char*>(texture->pData) + imageOffset;
-
-                        // transcodeSwizzle on this branch is not required as there are no transcodable 3D formats
-
-                        rawFile.write(imageData, imageSize);
+                        file.write(imageData, imageSize, *this);
                     }
-
-                    if (!rawFile)
-                        fatal(rc::IO_FAILURE, "Failed to write output file \"{}\": {}", outputFilepath, errnoMessage());
 
                     continue;
                 }
 
-                // Iterate z_slice_of_blocks (The code currently assumes block z size is 1)
-                // TODO: Tools P5: 3D-Block Compressed formats are not supported
-                for (uint32_t depthIndex = 0; depthIndex < imageDepth; ++depthIndex) {
-                    if (options.depth != all && value_or(options.depth, 0) != depthIndex)
+                // Iterate z_slice_of_blocks
+                for (uint32_t depthIndex = 0; depthIndex < ceil_div(imageDepth, blockSizeZ); ++depthIndex) {
+                    if (!options.depth.contains(depthIndex))
                         continue; // Skip
 
                     ktx_size_t imageOffset;
@@ -509,13 +454,11 @@ void CommandExtract::executeExtract() {
                             texture->baseDepth > 1 ? fmt::format("_depth{}", depthIndex) : ""
                     );
 
-                    imageSize = transcodeSwizzle(imageWidth, imageHeight, depthSliceData, imageSize);
-
                     if (options.raw) {
                         saveRawFile(outputFilepath, isMultiOutput, depthSliceData, imageSize);
                     } else {
                         saveImageFile(outputFilepath, isMultiOutput, depthSliceData, imageSize,
-                                static_cast<VkFormat>(texture->vkFormat), createFormatDescriptor(texture->pDfd), imageWidth, imageHeight);
+                                static_cast<VkFormat>(texture->vkFormat), format, imageWidth, imageHeight);
                     }
                 }
             }
@@ -584,24 +527,180 @@ void CommandExtract::decodeAndSaveASTC(std::string filepath, bool appendExtensio
             height);
 }
 
+void CommandExtract::unpackAndSave422(std::string filepath, bool appendExtension,
+        VkFormat vkFormat, const FormatDescriptor& format, uint32_t width, uint32_t height,
+        const char* data, std::size_t size) {
+    (void) vkFormat;
+
+    assert(format.basic.model == KHR_DF_MODEL_YUVSDA);
+    assert(format.find(KHR_DF_CHANNEL_YUVSDA_Y));
+    // Create a custom format with the same precision but with only 3 channels
+    // Reuse similar 4 channel VkFormats and drop the last channel (There is no RGB variant of 10X6 and 12X4)
+    const auto precision = format.find(KHR_DF_CHANNEL_YUVSDA_Y)->bitLength + 1u;
+    auto unpackedFormat = createFormatDescriptor(
+            precision == 8 ? VK_FORMAT_R8G8B8A8_UNORM :
+            precision == 10 ? VK_FORMAT_R10X6G10X6B10X6A10X6_UNORM_4PACK16 :
+            precision == 12 ? VK_FORMAT_R12X4G12X4B12X4A12X4_UNORM_4PACK16 :
+            precision == 16 ? VK_FORMAT_R16G16B16A16_UNORM :
+            VK_FORMAT_UNDEFINED, *this);
+    unpackedFormat.removeLastChannel();
+
+    // 1 pixel (block) with 4 channel is unpacked to 2 pixel with 3 channels: Y0,Y1,U,V -> R0,G0,B0,R1,G1,B1
+    const auto blockYUVBytes = format.pixelByteCount();
+    const auto blockDimensionX = format.basic.texelBlockDimension0 + 1;
+    const auto blockDimensionY = format.basic.texelBlockDimension1 + 1;
+    const auto pixelBytes = unpackedFormat.pixelByteCount();
+    const auto channelBytes = pixelBytes / 3;
+    assert(format.sampleCount() == 4);
+    assert(format.basic.texelBlockDimension0 + 1 == 2);
+    assert(format.basic.texelBlockDimension1 + 1 == 1);
+    assert(format.basic.texelBlockDimension2 + 1 == 1);
+    assert(format.basic.texelBlockDimension3 + 1 == 1);
+    assert(size == width * height * blockYUVBytes / blockDimensionX / blockDimensionY);
+    (void) size;
+    (void) blockDimensionY;
+
+    uint32_t y0Offset = 0;
+    uint32_t y0Bits = 0;
+    uint32_t y0PositionX = 0;
+    uint32_t y1Offset = 0;
+    uint32_t y1Bits = 0;
+    uint32_t y1PositionX = 0;
+    uint32_t uOffset = 0;
+    uint32_t uBits = 0;
+    uint32_t uPositionX = 0;
+    uint32_t vOffset = 0;
+    uint32_t vBits = 0;
+    uint32_t vPositionX = 0;
+
+    for (const auto& sample : format.samples) {
+        switch (sample.channelType) {
+        case KHR_DF_CHANNEL_YUVSDA_Y:
+            if (y0Bits != 0) {
+                y1Offset = sample.bitOffset;
+                y1Bits = sample.bitLength + 1;
+                y1PositionX = sample.samplePosition0;
+            } else {
+                y0Offset = sample.bitOffset;
+                y0Bits = sample.bitLength + 1;
+                y0PositionX = sample.samplePosition0;
+            }
+            break;
+        case KHR_DF_CHANNEL_YUVSDA_U:
+            uOffset = sample.bitOffset;
+            uBits = sample.bitLength + 1;
+            uPositionX = sample.samplePosition0;
+            break;
+        case KHR_DF_CHANNEL_YUVSDA_V:
+            vOffset = sample.bitOffset;
+            vBits = sample.bitLength + 1;
+            vPositionX = sample.samplePosition0;
+            break;
+        default:
+            assert(false && "Unsupported channel type");
+        }
+    }
+    if (y0PositionX > y1PositionX) {
+        // Ensure that y0 (as we refer to) is the left sample
+        std::swap(y0Offset, y1Offset);
+        std::swap(y0Bits, y1Bits);
+        std::swap(y0PositionX, y1PositionX);
+    }
+
+    assert(precision == y0Bits);
+    assert(precision == y1Bits);
+    assert(precision == uBits);
+    assert(precision == vBits);
+
+    const float positionY0 = static_cast<float>(y0PositionX * blockDimensionX) / 256.f;
+    const float positionY1 = static_cast<float>(y1PositionX * blockDimensionX) / 256.f;
+    const float positionU = static_cast<float>(uPositionX * blockDimensionX) / 256.f;
+    const float positionV = static_cast<float>(vPositionX * blockDimensionX) / 256.f;
+    const float blockSize = static_cast<float>(blockDimensionX);
+
+    std::vector<char> unpackedData(width * height * pixelBytes);
+
+    const auto blockCountX = width / blockDimensionX;
+    for (uint32_t y = 0; y < height; y++) {
+        for (uint32_t x = 0; x < blockCountX; x++) {
+            const char* rawYUVBlockLeft = data + (y * blockCountX + (x == 0 ? 0 : x - 1)) * blockYUVBytes;
+            const char* rawYUVBlock = data + (y * blockCountX + x) * blockYUVBytes;
+            const char* rawYUVBlockRight = data + (y * blockCountX + (x == blockCountX - 1 ? blockCountX - 1 : x + 1)) * blockYUVBytes;
+
+            char* pixel0 = unpackedData.data() + (y * width + x * 2) * pixelBytes;
+            char* pixel1 = unpackedData.data() + (y * width + x * 2 + 1) * pixelBytes;
+
+            const float valueLeftY1 = covertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlockLeft, y1Offset, y1Bits), y1Bits);
+            const float valueLeftU = covertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlockLeft, uOffset, uBits), uBits);
+            const float valueLeftV = covertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlockLeft, vOffset, vBits), vBits);
+            const float valueY0 = covertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlock, y0Offset, y0Bits), y0Bits);
+            const float valueY1 = covertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlock, y1Offset, y1Bits), y1Bits);
+            const float valueU = covertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlock, uOffset, uBits), uBits);
+            const float valueV = covertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlock, vOffset, vBits), vBits);
+            const float valueRightY0 = covertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlockRight, y0Offset, y0Bits), y0Bits);
+            const float valueRightU = covertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlockRight, uOffset, uBits), uBits);
+            const float valueRightV = covertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlockRight, vOffset, vBits), vBits);
+
+            const auto interpolateY = [](float pos, float pos0, float value0, float pos1, float value1, float pos2, float value2, float pos3, float value3) {
+                if (pos < pos1)
+                    return remap(pos, pos0, pos1, value0, value1);
+                else if (pos < pos2)
+                    return remap(pos, pos1, pos2, value1, value2);
+                else
+                    return remap(pos, pos2, pos3, value2, value3);
+            };
+
+            const auto interpolateUV = [](float pos, float pos0, float value0, float pos1, float value1, float pos2, float value2) {
+                if (pos < pos1)
+                    return remap(pos, pos0, pos1, value0, value1);
+                else
+                    return remap(pos, pos1, pos2, value1, value2);
+            };
+
+            const auto setPixel = [&](auto* pixel, float pos) {
+                const auto r = covertFloatToUNORM(interpolateUV(pos,
+                        positionV - blockSize, valueLeftV,
+                        positionV, valueV,
+                        positionV + blockSize, valueRightV), uBits);
+                const auto g = covertFloatToUNORM(interpolateY(
+                        pos,
+                        positionY1 - blockSize, valueLeftY1,
+                        positionY0, valueY0,
+                        positionY1, valueY1,
+                        positionY0 + blockSize, valueRightY0), y0Bits);
+                const auto b = covertFloatToUNORM(interpolateUV(pos,
+                        positionU - blockSize, valueLeftU,
+                        positionU, valueU,
+                        positionU + blockSize, valueRightU), uBits);
+
+                const auto offsetToUsedBytes = is_big_endian ? sizeof(r) - channelBytes : 0u;
+                std::memcpy(pixel + 0 * channelBytes, &r + offsetToUsedBytes, channelBytes);
+                std::memcpy(pixel + 1 * channelBytes, &g + offsetToUsedBytes, channelBytes);
+                std::memcpy(pixel + 2 * channelBytes, &b + offsetToUsedBytes, channelBytes);
+            };
+
+            setPixel(pixel0, 0.5f);
+            setPixel(pixel1, 1.5f);
+        }
+    }
+
+    // Save unpacked data as RGBSDA with the custom format
+    savePNG(filepath, appendExtension, VK_FORMAT_UNDEFINED, unpackedFormat, width, height,
+            reinterpret_cast<const char*>(unpackedData.data()),
+            unpackedData.size() * sizeof(decltype(unpackedData)::value_type));
+}
+
 void CommandExtract::saveRawFile(std::string filepath, bool appendExtension, const char* data, std::size_t size) {
-    if (appendExtension)
+    if (appendExtension && filepath != "-")
         filepath += ".raw";
-    std::ofstream file(filepath, std::ios::out | std::ios::binary);
-    if (!file)
-        fatal(rc::IO_FAILURE, "Failed to open output file \"{}\": {}.", filepath, errnoMessage());
-
-    file.write(data, size);
-
-    if (!file)
-        fatal(rc::IO_FAILURE, "Failed to write output file \"{}\": {}.", filepath, errnoMessage());
+    OutputStream file(filepath, *this);
+    file.write(data, size, *this);
 }
 
 void CommandExtract::savePNG(std::string filepath, bool appendExtension,
         VkFormat vkFormat, const FormatDescriptor& format, uint32_t width, uint32_t height,
-        LodePNGColorType colorType,
         const char* data, std::size_t size) {
-    if (appendExtension)
+    if (appendExtension && filepath != "-")
         filepath += ".png";
 
     uint32_t rOffset = 0;
@@ -613,59 +712,46 @@ void CommandExtract::savePNG(std::string filepath, bool appendExtension,
     uint32_t aOffset = 0;
     uint32_t aBits = 0;
 
-    if (format.model() == KHR_DF_MODEL_RGBSDA) {
-        if (const auto sample = format.find(KHR_DF_CHANNEL_RGBSDA_R)) {
-            rOffset = sample->bitOffset;
-            rBits = sample->bitLength + 1;
-        }
-        if (const auto sample = format.find(KHR_DF_CHANNEL_RGBSDA_G)) {
-            gOffset = sample->bitOffset;
-            gBits = sample->bitLength + 1;
-        }
-        if (const auto sample = format.find(KHR_DF_CHANNEL_RGBSDA_B)) {
-            bOffset = sample->bitOffset;
-            bBits = sample->bitLength + 1;
-        }
-        if (const auto sample = format.find(KHR_DF_CHANNEL_RGBSDA_A)) {
-            aOffset = sample->bitOffset;
-            aBits = sample->bitLength + 1;
-        }
-        if (const auto sample = format.find(KHR_DF_CHANNEL_RGBSDA_D)) {
-            // Use red for depth too (depth channels are exclusive for depth/stencil formats)
-            rOffset = sample->bitOffset;
-            rBits = sample->bitLength + 1;
-        }
-    // } else if (formatDescriptor.model() == KHR_DF_MODEL_YUVSDA) {
-    // TODO: Tools P5: Add support for KHR_DF_MODEL_YUVSDA formats
-    } else {
+    if (format.model() != KHR_DF_MODEL_RGBSDA)
         fatal(rc::NOT_SUPPORTED, "PNG saving is unsupported for {} with {}.", toString(format.model()), toString(vkFormat));
+
+    if (const auto sample = format.find(KHR_DF_CHANNEL_RGBSDA_R)) {
+        rOffset = sample->bitOffset;
+        rBits = sample->bitLength + 1;
+    }
+    if (const auto sample = format.find(KHR_DF_CHANNEL_RGBSDA_G)) {
+        gOffset = sample->bitOffset;
+        gBits = sample->bitLength + 1;
+    }
+    if (const auto sample = format.find(KHR_DF_CHANNEL_RGBSDA_B)) {
+        bOffset = sample->bitOffset;
+        bBits = sample->bitLength + 1;
+    }
+    if (const auto sample = format.find(KHR_DF_CHANNEL_RGBSDA_A)) {
+        aOffset = sample->bitOffset;
+        aBits = sample->bitLength + 1;
+    }
+    if (const auto sample = format.find(KHR_DF_CHANNEL_RGBSDA_D)) {
+        // Use red for depth too (depth channels are exclusive for depth/stencil formats)
+        rOffset = sample->bitOffset;
+        rBits = sample->bitLength + 1;
     }
 
     const auto largestBits = std::max(std::max(rBits, gBits), std::max(bBits, aBits));
     const auto bitDepth = std::max(bit_ceil(largestBits), 8u);
     const auto byteDepth = bitDepth / 8u;
-    const auto pixelBits = rBits + gBits + bBits + aBits;
-    const auto pixelBytes = pixelBits / 8u;
+    const auto pixelBytes = format.pixelByteCount();
     const auto packedChannelCount = (rBits > 0 ? 1u : 0u) + (gBits > 0 ? 1u : 0u) + (bBits > 0 ? 1u : 0u) + (aBits > 0 ? 1u : 0u);
-    const auto unpackedChannelCount = [&]{
-        switch (colorType) {
-        case LCT_GREY:
-            return 1u;
-        case LCT_GREY_ALPHA:
-            return 2u;
-        case LCT_RGB:
-            return 3u;
-        case LCT_RGBA:
-            return 4u;
-        case LCT_PALETTE: [[fallthrough]];
-        case LCT_MAX_OCTET_VALUE:
-            break;
-        }
-        assert(false);
-        return 0u;
-    }();
+    const auto unpackedChannelCount =
+            vkFormat == VK_FORMAT_D16_UNORM ? 1 :
+            std::max(packedChannelCount, 3u); // Every R or RG format is saved as RGB
+    const auto colorType =
+            unpackedChannelCount == 1 ? LCT_GREY :
+            unpackedChannelCount == 3 ? LCT_RGB :
+            unpackedChannelCount == 4 ? LCT_RGBA :
+            LCT_MAX_OCTET_VALUE;
+    assert(colorType != LCT_MAX_OCTET_VALUE);
     assert(bitDepth == 8 || bitDepth == 16);
-    assert(pixelBits % 8 == 0 && pixelBits <= 64);
     assert(size == width * height * pixelBytes); (void) size;
 
     lodepng::State state{};
@@ -740,77 +826,72 @@ void CommandExtract::savePNG(std::string filepath, bool appendExtension,
 
     std::vector<unsigned char> png;
     auto error = lodepng::encode(png, unpackedImage, width, height, state);
-    if (error) {
+    if (error)
         fatal(rc::INVALID_FILE, "PNG Encoder error {}: {}.", error, lodepng_error_text(error));
-    } else {
-        error = lodepng::save_file(png, filepath);
-        if (error)
-            fatal(rc::IO_FAILURE, "PNG Encoder error {}: {}.", error, lodepng_error_text(error));
-    }
+
+    OutputStream file(filepath, *this);
+    file.write(reinterpret_cast<const char*>(png.data()), png.size(), *this);
 }
 
 void CommandExtract::saveEXR(std::string filepath, bool appendExtension,
         VkFormat vkFormat, const FormatDescriptor& format, uint32_t width, uint32_t height,
         int pixelType, const char* data, std::size_t size) {
-    if (appendExtension)
+    saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height,
+            std::vector<int>(vkFormat == VK_FORMAT_E5B9G9R9_UFLOAT_PACK32 ? 3 : format.channelCount(), pixelType),
+            data, size);
+}
+
+void CommandExtract::saveEXR(std::string filepath, bool appendExtension,
+        VkFormat vkFormat, const FormatDescriptor& format, uint32_t width, uint32_t height,
+        const std::vector<int>& pixelTypes, const char* data, std::size_t size) {
+    assert(!format.samples.empty());
+
+    if (appendExtension && filepath != "-")
         filepath += ".exr";
 
-    uint32_t rOffset = 0;
-    uint32_t rBits = 0;
-    uint32_t gOffset = 0;
-    uint32_t gBits = 0;
-    uint32_t bOffset = 0;
-    uint32_t bBits = 0;
-    uint32_t aOffset = 0;
-    uint32_t aBits = 0;
-
-    assert(!format.samples.empty());
-    bool isFloat = format.samples.front().qualifierFloat;
-    bool isSigned = format.samples.front().qualifierSigned;
+    struct Channel {
+        uint32_t offset;
+        uint32_t bits;
+        const char* name;
+        bool isFloat;
+        bool isSigned;
+        bool isNormalized;
+    };
+    std::vector<Channel> channels;
 
     if (format.model() == KHR_DF_MODEL_RGBSDA) {
-        if (const auto sample = format.find(KHR_DF_CHANNEL_RGBSDA_R)) {
-            rOffset = sample->bitOffset;
-            rBits = sample->bitLength + 1;
-        }
-        if (const auto sample = format.find(KHR_DF_CHANNEL_RGBSDA_G)) {
-            gOffset = sample->bitOffset;
-            gBits = sample->bitLength + 1;
-        }
-        if (const auto sample = format.find(KHR_DF_CHANNEL_RGBSDA_B)) {
-            bOffset = sample->bitOffset;
-            bBits = sample->bitLength + 1;
-        }
-        if (const auto sample = format.find(KHR_DF_CHANNEL_RGBSDA_A)) {
-            aOffset = sample->bitOffset;
-            aBits = sample->bitLength + 1;
-        }
-        if (const auto sample = format.find(KHR_DF_CHANNEL_RGBSDA_D)) {
-            // (Re)Use red for depth too (depth channels are exclusive for depth/stencil formats)
-            rOffset = sample->bitOffset;
-            rBits = sample->bitLength + 1;
-        }
-        if (const auto sample = format.find(KHR_DF_CHANNEL_RGBSDA_S)) {
-            // (Re)Use green for stencil too (stencil channels are exclusive for depth/stencil formats)
-            gOffset = sample->bitOffset;
-            gBits = sample->bitLength + 1;
-        }
+        const auto addChannel = [&](auto channelType, const char* channelName) {
+            if (const auto sample = format.find(channelType))
+                channels.push_back({
+                        sample->bitOffset,
+                        sample->bitLength + 1u,
+                        channelName,
+                        sample->qualifierFloat != 0,
+                        sample->qualifierSigned != 0,
+                        sample->upper != (sample->qualifierFloat != 0 ? bit_cast<uint32_t>(1.0f) : 1u)
+                });
+        };
+
+        // Must be ABGR order, since most of EXR viewers expect this channel order by convention.
+        addChannel(KHR_DF_CHANNEL_RGBSDA_A, "A");
+        addChannel(KHR_DF_CHANNEL_RGBSDA_D, "D");
+        addChannel(KHR_DF_CHANNEL_RGBSDA_S, "S");
+        addChannel(KHR_DF_CHANNEL_RGBSDA_B, "B");
+        addChannel(KHR_DF_CHANNEL_RGBSDA_G, "G");
+        addChannel(KHR_DF_CHANNEL_RGBSDA_R, "R");
     // } else if (formatDescriptor.model() == KHR_DF_MODEL_YUVSDA) {
-    // TODO: Tools P5: Add support for KHR_DF_MODEL_YUVSDA formats
+    // Other color model support would come here
     } else {
         fatal(rc::NOT_SUPPORTED, "EXR saving is unsupported for {} with {}.", toString(format.model()), toString(vkFormat));
     }
 
-    const auto largestBits = std::max(std::max(rBits, gBits), std::max(bBits, aBits));
-    const auto bitDepth = std::max(bit_ceil(largestBits), 8u);
-    const auto pixelBits = rBits + gBits + bBits + aBits;
-    const auto pixelBytes = pixelBits / 8u;
-    const auto numChannels = (rBits > 0 ? 1u : 0u) + (gBits > 0 ? 1u : 0u) + (bBits > 0 ? 1u : 0u) + (aBits > 0 ? 1u : 0u);
-    assert(bitDepth == 8 || bitDepth == 16 || bitDepth == 32); (void) bitDepth;
-    assert(pixelBits % 8 == 0);
+    const auto pixelBytes = format.pixelByteCount();
+    const auto numChannels = vkFormat == VK_FORMAT_E5B9G9R9_UFLOAT_PACK32 ? 3 : format.channelCount();
     assert(size == width * height * pixelBytes); (void) size;
+    assert(numChannels == pixelTypes.size());
 
-    // Either filled with floats or uint32 (half output is filled with float and converted during save)
+    // Image data is prepared with either floats or uint32
+    // (half output is will be converted from float by TinyEXR during save)
     std::vector<std::vector<uint32_t>> images(numChannels);
     std::array<uint32_t*, 4> imagePtrs{};
     for (uint32_t i = 0; i < numChannels; ++i)
@@ -820,40 +901,58 @@ void CommandExtract::saveEXR(std::string filepath, bool appendExtension,
         for (uint32_t x = 0; x < width; x++) {
             const char* rawPixel = data + (y * width + x) * pixelBytes;
 
-            const auto copy = [&](uint32_t c, uint32_t offset, uint32_t bits) {
-                if (numChannels > c) {
+            if (vkFormat == VK_FORMAT_E5B9G9R9_UFLOAT_PACK32) {
+                // Special case for VK_FORMAT_E5B9G9R9_UFLOAT_PACK32
+                assert(numChannels == 3);
+                assert(pixelTypes[0] == TINYEXR_PIXELTYPE_HALF);
+                uint32_t pixel;
+                std::memcpy(&pixel, rawPixel, sizeof(uint32_t));
+                const auto values = glm::unpackF3x9_E1x5(pixel);
+                images[2][y * width + x] = bit_cast<uint32_t>(values.r);
+                images[1][y * width + x] = bit_cast<uint32_t>(values.g);
+                images[0][y * width + x] = bit_cast<uint32_t>(values.b);
+            } else {
+                for (uint32_t c = 0; c < numChannels; c++) {
+                    const auto& channel = channels[c];
+                    const auto offset = channel.offset;
+                    const auto bits = channel.bits;
+
                     const auto value = extract_bits<uint32_t>(rawPixel, offset, bits);
                     auto& target = images[c][y * width + x];
 
-                    if (pixelType == TINYEXR_PIXELTYPE_FLOAT || pixelType == TINYEXR_PIXELTYPE_HALF) {
-                        if (isFloat && isSigned) {
-                            target = bit_cast<uint32_t>(covertSFloatToFloat(value, bits));
-                        } else if (isFloat && !isSigned) {
-                            target = bit_cast<uint32_t>(covertUFloatToFloat(value, bits));
-                        } else if (!isFloat && isSigned) {
-                            target = bit_cast<uint32_t>(covertSIntToFloat(value, bits));
-                        } else if (!isFloat && !isSigned) {
-                            target = bit_cast<uint32_t>(covertUIntToFloat(value, bits));
+                    if (pixelTypes[c] == TINYEXR_PIXELTYPE_FLOAT || pixelTypes[c] == TINYEXR_PIXELTYPE_HALF) {
+                        if (channel.isFloat) {
+                            if (channel.isSigned)
+                                target = bit_cast<uint32_t>(covertSFloatToFloat(value, bits));
+                            else
+                                target = bit_cast<uint32_t>(covertUFloatToFloat(value, bits));
+                        } else {
+                            if (channel.isNormalized) {
+                                if (channel.isSigned)
+                                    target = bit_cast<uint32_t>(covertSNORMToFloat(value, bits));
+                                else
+                                    target = bit_cast<uint32_t>(covertUNORMToFloat(value, bits));
+                            } else {
+                                if (channel.isSigned)
+                                    target = bit_cast<uint32_t>(covertSIntToFloat(value, bits));
+                                else
+                                    target = bit_cast<uint32_t>(covertUIntToFloat(value, bits));
+                            }
                         }
-                    } else if (pixelType == TINYEXR_PIXELTYPE_UINT) {
-                        if (isFloat && isSigned) {
+                    } else if (pixelTypes[c] == TINYEXR_PIXELTYPE_UINT) {
+                        if (channel.isFloat && channel.isSigned) {
                             target = covertSFloatToUInt(value, bits);
-                        } else if (isFloat && !isSigned) {
+                        } else if (channel.isFloat && !channel.isSigned) {
                             target = covertUFloatToUInt(value, bits);
-                        } else if (!isFloat && isSigned) {
+                        } else if (!channel.isFloat && channel.isSigned) {
                             target = covertSIntToUInt(value, bits);
-                        } else if (!isFloat && !isSigned) {
+                        } else if (!channel.isFloat && !channel.isSigned) {
                             target = covertUIntToUInt(value, bits);
                         }
                     } else
                         assert(false && "Internal error");
                 }
-            };
-
-            copy(0, rOffset, rBits);
-            copy(1, gOffset, gBits);
-            copy(2, bOffset, bBits);
-            copy(3, aOffset, aBits);
+            }
         }
     }
 
@@ -862,6 +961,7 @@ void CommandExtract::saveEXR(std::string filepath, bool appendExtension,
         EXRImage image;
         std::vector<EXRAttribute> attributes;
         const char* err = nullptr;
+        unsigned char* fileData = nullptr;
         EXRStruct() {
             InitEXRHeader(&header);
             InitEXRImage(&image);
@@ -876,8 +976,9 @@ void CommandExtract::saveEXR(std::string filepath, bool appendExtension,
             FreeEXRImage(&image);
             FreeEXRHeader(&header);
             FreeEXRErrorMessage(err);
+            free(fileData);
         }
-        void AddAttributesToHeader() {
+        void addAttributesToHeader() {
             header.num_custom_attributes = static_cast<int>(attributes.size());
             header.custom_attributes = (EXRAttribute*)malloc(sizeof(EXRAttribute) * attributes.size());
             for (size_t i = 0; i < attributes.size(); ++i) {
@@ -893,40 +994,22 @@ void CommandExtract::saveEXR(std::string filepath, bool appendExtension,
 
     exr.header.num_channels = static_cast<int>(numChannels);
     exr.header.channels = (EXRChannelInfo*) malloc(sizeof(EXRChannelInfo) * exr.header.num_channels);
-    // TODO: Tools P5: Question: Should we use a compression for exr out?
+    // TODO: Question: Should we use a compression for exr outputs?
     exr.header.compression_type = TINYEXR_COMPRESSIONTYPE_NONE;
-    {
-        // Must be ABGR order, since most of EXR viewers expect this channel order.
-        int c = 0;
-        if (numChannels > 3) {
-            strncpy(exr.header.channels[c].name, "A", 255);
-            imagePtrs[c] = images[3].data();
-            ++c;
-        }
-        if (numChannels > 2) {
-            strncpy(exr.header.channels[c].name, "B", 255);
-            imagePtrs[c] = images[2].data();
-            ++c;
-        }
-        if (numChannels > 1) {
-            strncpy(exr.header.channels[c].name, isFormatDepthStencil(vkFormat) ? "S" : "G", 255);
-            imagePtrs[c] = images[1].data();
-            ++c;
-        }
-        if (numChannels > 0) {
-            strncpy(exr.header.channels[c].name, isFormatDepthStencil(vkFormat) ? "D" : "R", 255);
-            imagePtrs[c] = images[0].data();
-            ++c;
-        }
+
+    for (uint32_t c = 0; c < numChannels; c++) {
+        const auto& channel = channels[c];
+        strncpy(exr.header.channels[c].name, channel.name, 255);
+        imagePtrs[c] = images[c].data();
     }
 
     exr.header.pixel_types = (int *)malloc(sizeof(int) * exr.header.num_channels);
     exr.header.requested_pixel_types = (int *)malloc(sizeof(int) * exr.header.num_channels);
     for (int i = 0; i < exr.header.num_channels; i++) {
         // pixel type of the input image
-        exr.header.pixel_types[i] = (pixelType == TINYEXR_PIXELTYPE_UINT) ? TINYEXR_PIXELTYPE_UINT : TINYEXR_PIXELTYPE_FLOAT;
+        exr.header.pixel_types[i] = (pixelTypes[i] == TINYEXR_PIXELTYPE_UINT) ? TINYEXR_PIXELTYPE_UINT : TINYEXR_PIXELTYPE_FLOAT;
         // pixel type of the output image to be stored in .EXR file
-        exr.header.requested_pixel_types[i] = pixelType;
+        exr.header.requested_pixel_types[i] = pixelTypes[i];
     }
 
     // Output primaries as chromaticities
@@ -942,10 +1025,13 @@ void CommandExtract::saveEXR(std::string filepath, bool appendExtension,
         exr.attributes.push_back(chromaticities);
     }
 
-    exr.AddAttributesToHeader();
-    int ret = SaveEXRImageToFile(&exr.image, &exr.header, filepath.c_str(), &exr.err);
-    if (ret != TINYEXR_SUCCESS)
-        fatal(rc::IO_FAILURE, "EXR Encoder error {}: {}.", ret, exr.err);
+    exr.addAttributesToHeader();
+    std::size_t fileDataSize = SaveEXRImageToMemory(&exr.image, &exr.header, &exr.fileData, &exr.err);
+    if (fileDataSize == 0)
+        fatal(rc::IO_FAILURE, "EXR Encoder error: {}.", exr.err);
+
+    OutputStream file(filepath, *this);
+    file.write(reinterpret_cast<const char*>(exr.fileData), fileDataSize, *this);
 }
 
 void CommandExtract::saveImageFile(
@@ -961,15 +1047,12 @@ void CommandExtract::saveImageFile(
     case VK_FORMAT_R8G8B8_UNORM: [[fallthrough]];
     case VK_FORMAT_R8G8B8_SRGB: [[fallthrough]];
     case VK_FORMAT_B8G8R8_UNORM: [[fallthrough]];
-    case VK_FORMAT_B8G8R8_SRGB:
-        savePNG(std::move(filepath), appendExtension, vkFormat, format, width, height, LCT_RGB, data, size);
-        break;
-
+    case VK_FORMAT_B8G8R8_SRGB: [[fallthrough]];
     case VK_FORMAT_R8G8B8A8_UNORM: [[fallthrough]];
     case VK_FORMAT_R8G8B8A8_SRGB: [[fallthrough]];
     case VK_FORMAT_B8G8R8A8_UNORM: [[fallthrough]];
     case VK_FORMAT_B8G8R8A8_SRGB:
-        savePNG(std::move(filepath), appendExtension, vkFormat, format, width, height, LCT_RGBA, data, size);
+        savePNG(std::move(filepath), appendExtension, vkFormat, format, width, height, data, size);
         break;
 
     case VK_FORMAT_ASTC_4x4_UNORM_BLOCK: [[fallthrough]];
@@ -1006,62 +1089,40 @@ void CommandExtract::saveImageFile(
 
     case VK_FORMAT_R4G4_UNORM_PACK8: [[fallthrough]];
     case VK_FORMAT_R5G6B5_UNORM_PACK16: [[fallthrough]];
-    case VK_FORMAT_B5G6R5_UNORM_PACK16:
-        savePNG(std::move(filepath), appendExtension, vkFormat, format, width, height, LCT_RGB, data, size);
-        break;
-
+    case VK_FORMAT_B5G6R5_UNORM_PACK16: [[fallthrough]];
     case VK_FORMAT_R4G4B4A4_UNORM_PACK16: [[fallthrough]];
     case VK_FORMAT_B4G4R4A4_UNORM_PACK16: [[fallthrough]];
     case VK_FORMAT_R5G5B5A1_UNORM_PACK16: [[fallthrough]];
     case VK_FORMAT_B5G5R5A1_UNORM_PACK16: [[fallthrough]];
     case VK_FORMAT_A1R5G5B5_UNORM_PACK16: [[fallthrough]];
     case VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT: [[fallthrough]];
-    case VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT:
-        savePNG(std::move(filepath), appendExtension, vkFormat, format, width, height, LCT_RGBA, data, size);
-        break;
-
+    case VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT: [[fallthrough]];
     case VK_FORMAT_R10X6_UNORM_PACK16: [[fallthrough]];
-    case VK_FORMAT_R10X6G10X6_UNORM_2PACK16:
-        savePNG(std::move(filepath), appendExtension, vkFormat, format, width, height, LCT_RGB, data, size);
-        break;
-    case VK_FORMAT_R10X6G10X6B10X6A10X6_UNORM_4PACK16:
-        savePNG(std::move(filepath), appendExtension, vkFormat, format, width, height, LCT_RGBA, data, size);
-        break;
-
+    case VK_FORMAT_R10X6G10X6_UNORM_2PACK16: [[fallthrough]];
+    case VK_FORMAT_R10X6G10X6B10X6A10X6_UNORM_4PACK16: [[fallthrough]];
     case VK_FORMAT_R12X4_UNORM_PACK16: [[fallthrough]];
-    case VK_FORMAT_R12X4G12X4_UNORM_2PACK16:
-        savePNG(std::move(filepath), appendExtension, vkFormat, format, width, height, LCT_RGB, data, size);
-        break;
-    case VK_FORMAT_R12X4G12X4B12X4A12X4_UNORM_4PACK16:
-        savePNG(std::move(filepath), appendExtension, vkFormat, format, width, height, LCT_RGBA, data, size);
-        break;
-
+    case VK_FORMAT_R12X4G12X4_UNORM_2PACK16: [[fallthrough]];
+    case VK_FORMAT_R12X4G12X4B12X4A12X4_UNORM_4PACK16: [[fallthrough]];
     case VK_FORMAT_R16_UNORM: [[fallthrough]];
     case VK_FORMAT_R16G16_UNORM: [[fallthrough]];
-    case VK_FORMAT_R16G16B16_UNORM:
-        savePNG(std::move(filepath), appendExtension, vkFormat, format, width, height, LCT_RGB, data, size);
-        break;
-
-    case VK_FORMAT_R16G16B16A16_UNORM:
-        savePNG(std::move(filepath), appendExtension, vkFormat, format, width, height, LCT_RGBA, data, size);
-        break;
-
+    case VK_FORMAT_R16G16B16_UNORM: [[fallthrough]];
+    case VK_FORMAT_R16G16B16A16_UNORM: [[fallthrough]];
     case VK_FORMAT_A2R10G10B10_UNORM_PACK32: [[fallthrough]];
     case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
-        savePNG(std::move(filepath), appendExtension, vkFormat, format, width, height, LCT_RGBA, data, size);
+        savePNG(std::move(filepath), appendExtension, vkFormat, format, width, height, data, size);
         break;
 
-    // TODO: Tools P4: Extract 422 Formats
-    // case VK_FORMAT_G8B8G8R8_422_UNORM: [[fallthrough]];
-    // case VK_FORMAT_B8G8R8G8_422_UNORM: [[fallthrough]];
-    // case VK_FORMAT_G10X6B10X6G10X6R10X6_422_UNORM_4PACK16: [[fallthrough]];
-    // case VK_FORMAT_B10X6G10X6R10X6G10X6_422_UNORM_4PACK16: [[fallthrough]];
-    // case VK_FORMAT_G12X4B12X4G12X4R12X4_422_UNORM_4PACK16: [[fallthrough]];
-    // case VK_FORMAT_B12X4G12X4R12X4G12X4_422_UNORM_4PACK16: [[fallthrough]];
-    // case VK_FORMAT_G16B16G16R16_422_UNORM: [[fallthrough]];
-    // case VK_FORMAT_B16G16R16G16_422_UNORM:
-    // save
-    //     break;
+    case VK_FORMAT_G8B8G8R8_422_UNORM: [[fallthrough]];
+    case VK_FORMAT_B8G8R8G8_422_UNORM: [[fallthrough]];
+    case VK_FORMAT_G10X6B10X6G10X6R10X6_422_UNORM_4PACK16: [[fallthrough]];
+    case VK_FORMAT_B10X6G10X6R10X6G10X6_422_UNORM_4PACK16: [[fallthrough]];
+    case VK_FORMAT_G12X4B12X4G12X4R12X4_422_UNORM_4PACK16: [[fallthrough]];
+    case VK_FORMAT_B12X4G12X4R12X4G12X4_422_UNORM_4PACK16: [[fallthrough]];
+    case VK_FORMAT_G16B16G16R16_422_UNORM: [[fallthrough]];
+    case VK_FORMAT_B16G16R16G16_422_UNORM:
+        // Unpack and save 4:2:2 formats as UNORM8, UNORM10X6, UNORM12X4 or UNORM16 formats
+        unpackAndSave422(std::move(filepath), appendExtension, vkFormat, format, width, height, data, size);
+        break;
 
     // EXR
 
@@ -1134,27 +1195,27 @@ void CommandExtract::saveImageFile(
         saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height, TINYEXR_PIXELTYPE_FLOAT, data, size);
         break;
 
-    // case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
-    // TODO: Tools P4: Extract B10G11R11_UFLOAT_PACK32
-    // case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
-    // TODO: Tools P4: Extract E5B9G9R9_UFLOAT_PACK32
-
-    case VK_FORMAT_D16_UNORM:
-        savePNG(std::move(filepath), appendExtension, vkFormat, format, width, height, LCT_GREY, data, size);
+    case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
+    case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
+        saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height, TINYEXR_PIXELTYPE_HALF, data, size);
         break;
 
-    // case VK_FORMAT_X8_D24_UNORM_PACK32: [[fallthrough]];
-    // case VK_FORMAT_D32_SFLOAT:
-    //     saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height, TINYEXR_PIXELTYPE_FLOAT, data, size);
-    //     break;
-    // case VK_FORMAT_S8_UINT:
-    //     saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height, TINYEXR_PIXELTYPE_HALF, data, size);
-    //     break;
-    // case VK_FORMAT_D16_UNORM_S8_UINT: [[fallthrough]];
-    // case VK_FORMAT_D24_UNORM_S8_UINT: [[fallthrough]];
-    // case VK_FORMAT_D32_SFLOAT_S8_UINT:
-    //     saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height, TINYEXR_PIXELTYPE_FLOAT, TINYEXR_PIXELTYPE_HALF, data, size);
-    //     break;
+    case VK_FORMAT_D16_UNORM:
+        savePNG(std::move(filepath), appendExtension, vkFormat, format, width, height, data, size);
+        break;
+
+    case VK_FORMAT_X8_D24_UNORM_PACK32: [[fallthrough]];
+    case VK_FORMAT_D32_SFLOAT:
+        saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height, TINYEXR_PIXELTYPE_FLOAT, data, size);
+        break;
+    case VK_FORMAT_S8_UINT:
+        saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height, TINYEXR_PIXELTYPE_HALF, data, size);
+        break;
+    case VK_FORMAT_D16_UNORM_S8_UINT: [[fallthrough]];
+    case VK_FORMAT_D24_UNORM_S8_UINT: [[fallthrough]];
+    case VK_FORMAT_D32_SFLOAT_S8_UINT:
+        saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height, {TINYEXR_PIXELTYPE_FLOAT, TINYEXR_PIXELTYPE_HALF}, data, size);
+        break;
 
     default:
         fatal(rc::INVALID_FILE, "Requested format conversion from {} is not supported.", toString(vkFormat));

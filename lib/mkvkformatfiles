@@ -98,15 +98,21 @@ $2 == "VK_HEADER_VERSION" {
 }
 
 # Extract valid formats with values > VK_FORMAT_END_RANGE.
-/VK_FORMAT_[^F].* = 1000/ && ! /PLANE/ && ! /422/ && !/420/ {
+/VK_FORMAT_[^F].* = 1000/ && ! /PLANE/ && !/420/ {
   valid = valid "        case " $1 ":\n";
+}
+
+function removePrefix(string, prefix) {
+  sub("^" prefix, "", string)
+  return string
 }
 
 # Extract VK_FORMAT token names. [^F] avoids the VK_FORMAT_FEATURE* tokens.
 /    VK_FORMAT_[^F]/ {
   # Avoid values defined as existing values and avoid the MAX_ENUM value.
   if ($3 !~ /VK_FORMAT_.*/ && $1 !~ /.*MAX_ENUM/) {
-    switch_body = switch_body "      case " $1 ":\n        return \"" $1 "\";\n"
+    switch_body_vk2str = switch_body_vk2str "      case " $1 ":\n        return \"" $1 "\";\n"
+    switch_body_str2vk = switch_body_str2vk "    if (ktx_strcasecmp(str, \"" removePrefix($1, "VK_FORMAT_") "\") == 0)\n        return " $1 ";\n"
   }
 }
 
@@ -142,14 +148,54 @@ END {
 
     # vkformat_str.c
     prelude = "\n";
-    prelude = prelude "#include <stdint.h>\n\n";
-    prelude = prelude "#include \"vkformat_enum.h\"\n\n";
+    prelude = prelude "#include <stdint.h>\n";
+    prelude = prelude "#include <ctype.h>\n";
+    prelude = prelude "\n";
+    prelude = prelude "#include \"vkformat_enum.h\"\n";
+    prelude = prelude "\n";
     prelude = prelude "const char*\nvkFormatString(VkFormat format)\n{\n";
     prelude = prelude "    switch (format) {\n";
     postscript = "      default:\n        return \"VK_UNKNOWN_FORMAT\";\n";
     postscript = postscript "    }\n";
     postscript = postscript "}\n";
-    write_source_file(prelude switch_body postscript, format_strings);
+    begin_str2vk = "\n"
+    begin_str2vk = begin_str2vk "static int ktx_strcasecmp(const char* s1, const char* s2) {\n"
+    begin_str2vk = begin_str2vk "    const unsigned char* us1 = (const unsigned char*) s1;\n"
+    begin_str2vk = begin_str2vk "    const unsigned char* us2 = (const unsigned char*) s2;\n"
+    begin_str2vk = begin_str2vk "\n"
+    begin_str2vk = begin_str2vk "    while (tolower(*us1) == tolower(*us2)) {\n"
+    begin_str2vk = begin_str2vk "        if (*us1 == '\\0')\n"
+    begin_str2vk = begin_str2vk "            return 0;\n"
+    begin_str2vk = begin_str2vk "        ++us1;\n"
+    begin_str2vk = begin_str2vk "        ++us2;\n"
+    begin_str2vk = begin_str2vk "    }\n"
+    begin_str2vk = begin_str2vk "    return tolower(*us1) - tolower(*us2);\n"
+    begin_str2vk = begin_str2vk "}\n"
+    begin_str2vk = begin_str2vk "\n"
+    begin_str2vk = begin_str2vk "static int ktx_strncasecmp(const char* s1, const char* s2, int length) {\n"
+    begin_str2vk = begin_str2vk "    const unsigned char* us1 = (const unsigned char*) s1;\n"
+    begin_str2vk = begin_str2vk "    const unsigned char* us2 = (const unsigned char*) s2;\n"
+    begin_str2vk = begin_str2vk "\n"
+    begin_str2vk = begin_str2vk "    while (length > 0 && tolower(*us1) == tolower(*us2)) {\n"
+    begin_str2vk = begin_str2vk "        if (*us1 == '\\0')\n"
+    begin_str2vk = begin_str2vk "            return 0;\n"
+    begin_str2vk = begin_str2vk "        ++us1;\n"
+    begin_str2vk = begin_str2vk "        ++us2;\n"
+    begin_str2vk = begin_str2vk "        --length;\n"
+    begin_str2vk = begin_str2vk "    }\n"
+    begin_str2vk = begin_str2vk "    return tolower(*us1) - tolower(*us2);\n"
+    begin_str2vk = begin_str2vk "}\n"
+    begin_str2vk = begin_str2vk "\n"
+    begin_str2vk = begin_str2vk "/// Parses a VkFormat. VK_FORMAT_ prefix is optional. Case insensitive.\n"
+    begin_str2vk = begin_str2vk "VkFormat\n"
+    begin_str2vk = begin_str2vk "stringToVkFormat(const char* str)\n"
+    begin_str2vk = begin_str2vk "{\n"
+    begin_str2vk = begin_str2vk "    if (ktx_strncasecmp(str, \"VK_FORMAT_\", sizeof(\"VK_FORMAT_\") - 1) == 0)\n"
+    begin_str2vk = begin_str2vk "        str += sizeof(\"VK_FORMAT_\") - 1;\n"
+    begin_str2vk = begin_str2vk "\n"
+    end_str2vk = "    return VK_FORMAT_UNDEFINED;\n";
+    end_str2vk = end_str2vk "}"
+    write_source_file(prelude switch_body_vk2str postscript begin_str2vk switch_body_str2vk end_str2vk, format_strings);
 }
 
 # vim:ai:ts=4:sts=4:sw=2:expandtab:textwidth=70

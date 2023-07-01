@@ -21,7 +21,7 @@ std::optional<khr_df_model_channels_e> getChannelType(const KTXTexture2& texture
 TranscodeSwizzleInfo determineTranscodeSwizzle(const KTXTexture2& texture, Reporter& report) {
     TranscodeSwizzleInfo result;
 
-    const auto* bdfd = (texture->pDfd + 1);
+    const auto* bdfd = texture->pDfd + 1;
     const auto sample0 = getChannelType(texture, 0);
     const auto sample1 = getChannelType(texture, 1);
 

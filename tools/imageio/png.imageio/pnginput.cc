@@ -283,7 +283,7 @@ PngInput::readHeader()
     }
 }
 
-// TODO Tools P5: Lift bit_ceil function into a common header where both ktx tools and imageio can access it
+// TODO: Lift bit_ceil function into a common header where both ktx tools and imageio can access it
 // C++20 - std::bit_ceil
 template <typename T>
 [[nodiscard]] static constexpr inline T bit_ceil(T x) noexcept {
@@ -294,7 +294,7 @@ template <typename T>
     return 0;
 }
 
-// TODO Tools P5: Lift convertUNORM function into a common header where both ktx tools and imageio can access it
+// TODO: Lift convertUNORM function into a common header where both ktx tools and imageio can access it
 [[nodiscard]] constexpr inline uint32_t convertUNORM(uint32_t value, uint32_t sourceBits, uint32_t targetBits) noexcept {
     assert(sourceBits != 0);
     assert(targetBits != 0);
@@ -381,7 +381,7 @@ PngInput::readImage(void* bufferOut,  size_t bufferOutByteCount,
         throw std::runtime_error(fmt::format(
                 "PNG decode error: {}.", lodepng_error_text(lodepngError)));
 
-    // TODO Tools P5: Detect endianness
+    // TODO: Detect endianness
     // if constexpr (std::endian::native == std::endian::little)
     if (requestBits == 16) {
         // LodePNG loads 16 bit channels in big endian order

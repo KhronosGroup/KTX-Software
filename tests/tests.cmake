@@ -31,8 +31,9 @@ add_subdirectory(transcodetests)
 add_subdirectory(streamtests)
 
 add_executable( unittests
-    unittests/unittests.cc
     unittests/image_unittests.cc
+    unittests/test_fragment_uri.cc
+    unittests/unittests.cc
     unittests/wthelper.h
     tests.cmake
 )
@@ -52,7 +53,15 @@ target_link_libraries(
     unittests
     gtest
     ktx
+    fmt::fmt
     ${CMAKE_THREAD_LIBS_INIT}
+)
+
+set_target_properties(
+    unittests
+    PROPERTIES
+        CXX_STANDARD 17
+        CXX_STANDARD_REQUIRED YES
 )
 
 add_executable( texturetests

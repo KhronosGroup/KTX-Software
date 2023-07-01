@@ -28,6 +28,7 @@ Validate a KTX2 file.
 @section ktxtools_validate_description DESCRIPTION
     @b ktx @b validate validates the Khronos texture format version 2 (KTX2) file specified
     as the @e input-file argument. It prints any found errors and warnings to stdout.
+    If the @e input-file is '-' the file will be read from the stdin.
 
     The validation rules and checks are based on the official specification:
     KTX File Format Specification - https://registry.khronos.org/KTX/specs/2.0/ktxspec.v2.html
@@ -116,11 +117,14 @@ void CommandValidate::processOptions(cxxopts::Options& opts, cxxopts::ParseResul
 }
 
 void CommandValidate::executeValidate() {
+    InputStream inputStream(options.inputFilepath, *this);
+
     switch (options.format) {
     case OutputFormat::text: {
         std::ostringstream messagesOS;
-        const auto validationResult = validateNamedFile(
-                options.inputFilepath,
+        const auto validationResult = validateIOStream(
+                inputStream,
+                fmtInFile(options.inputFilepath),
                 options.warningsAsErrors,
                 options.GLTFBasisU,
                 [&](const ValidationReport& issue) {
@@ -150,8 +154,9 @@ void CommandValidate::executeValidate() {
         PrintIndent pi{messagesOS, base_indent, indent_width};
 
         bool first = true;
-        const auto validationResult = validateNamedFile(
-                options.inputFilepath,
+        const auto validationResult = validateIOStream(
+                inputStream,
+                fmtInFile(options.inputFilepath),
                 options.warningsAsErrors,
                 options.GLTFBasisU,
                 [&](const ValidationReport& issue) {
