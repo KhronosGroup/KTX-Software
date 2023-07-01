@@ -17,46 +17,46 @@
 
 namespace ktx {
 
-/** @page ktxtools ktx
+/** @page ktx ktx
 @~English
 
 Unified CLI frontend for the KTX-Software library.
 
-@section ktxtools_synopsis SYNOPSIS
+@section ktx_synopsis SYNOPSIS
     ktx &lt;command&gt; [command-option...]<br>
     ktx [option...]
 
-@section ktxtools_description DESCRIPTION
+@section ktx_description DESCRIPTION
     Unified CLI frontend for the KTX-Software library with sub-commands for specific operations<br/>
     for the KTX File Format Specification https://registry.khronos.org/KTX/specs/2.0/ktxspec.v2.html.
 
     The following commands are available:
     <dl>
-        <dt>@ref ktxtools_create "create"</dt>
+        <dt>@ref ktx_create "create"</dt>
         <dd>
             Create a KTX2 file from various input files.
         </dd>
-        <dt>@ref ktxtools_extract "extract"</dt>
+        <dt>@ref ktx_extract "extract"</dt>
         <dd>
             Extract selected images from a KTX2 file.
         </dd>
-        <dt>@ref ktxtools_encode "encode"</dt>
+        <dt>@ref ktx_encode "encode"</dt>
         <dd>
             Encode a KTX2 file.
         </dd>
-        <dt>@ref ktxtools_transcode "transcode"</dt>
+        <dt>@ref ktx_transcode "transcode"</dt>
         <dd>
             Transcode a KTX2 file.
         </dd>
-        <dt>@ref ktxtools_info "info"</dt>
+        <dt>@ref ktx_info "info"</dt>
         <dd>
             Print information about a KTX2 file.
         </dd>
-        <dt>@ref ktxtools_validate "validate"</dt>
+        <dt>@ref ktx_validate "validate"</dt>
         <dd>
             Validate a KTX2 file.
         </dd>
-        <dt>@ref ktxtools_help "help"</dt>
+        <dt>@ref ktx_help "help"</dt>
         <dd>
             Display help information about the ktx tool.
         </dd>
@@ -65,15 +65,15 @@ Unified CLI frontend for the KTX-Software library.
     The following options are also available without a command:
     @snippet{doc} ktx/command.h command options_generic
 
-@section ktxtools_exitstatus EXIT STATUS
+@section ktx_exitstatus EXIT STATUS
     @snippet{doc} ktx/command.h command exitstatus
 
-@section ktxtools_history HISTORY
+@section ktx_history HISTORY
 
 @par Version 4.0
  - Initial version
 
-@section ktxtools_author AUTHOR
+@section ktx_author AUTHOR
     - Mátyás Császár [Vader], RasterGrid www.rastergrid.com
     - Daniel Rákos, RasterGrid www.rastergrid.com
 */

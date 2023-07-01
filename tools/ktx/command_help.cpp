@@ -51,15 +51,15 @@ struct OptionsHelp {
     }
 };
 
-/** @page ktxtools_help ktx help
+/** @page ktx_help ktx help
 @~English
 
 Display help information about the ktx tool.
 
-@section ktxtools_help_synopsis SYNOPSIS
+@section ktx_help_synopsis SYNOPSIS
     ktx help [option...] @e [command]
 
-@section ktxtools_help_description DESCRIPTION
+@section ktx_help_description DESCRIPTION
     @b ktx @b help displays the man page of a specific ktx command specified as the @e command
     argument.
     On windows systems the man pages are opened with the system default browser in html format.
@@ -73,26 +73,26 @@ Display help information about the ktx tool.
         <dt>command</dt>
         <dd>Specifies which command's man page will be displayed. If the command option is missing
         the main ktx tool man page will be displayed. Possible options are: <br />
-            @ref ktxtools_create "create" <br />
-            @ref ktxtools_extract "extract" <br />
-            @ref ktxtools_encode "encode" <br />
-            @ref ktxtools_transcode "transcode" <br />
-            @ref ktxtools_info "info" <br />
-            @ref ktxtools_validate "validate" <br />
-            @ref ktxtools_help "help"
+            @ref ktx_create "create" <br />
+            @ref ktx_extract "extract" <br />
+            @ref ktx_encode "encode" <br />
+            @ref ktx_transcode "transcode" <br />
+            @ref ktx_info "info" <br />
+            @ref ktx_validate "validate" <br />
+            @ref ktx_help "help"
         </dd>
     </dl>
     @snippet{doc} ktx/command.h command options_generic
 
-@section ktxtools_help_exitstatus EXIT STATUS
+@section ktx_help_exitstatus EXIT STATUS
     @snippet{doc} ktx/command.h command exitstatus
 
-@section ktxtools_help_history HISTORY
+@section ktx_help_history HISTORY
 
 @par Version 4.0
  - Initial version
 
-@section ktxtools_help_author AUTHOR
+@section ktx_help_author AUTHOR
     - Mátyás Császár [Vader], RasterGrid www.rastergrid.com
     - Daniel Rákos, RasterGrid www.rastergrid.com
 */

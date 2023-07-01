@@ -32,15 +32,15 @@ namespace ktx {
 
 // -------------------------------------------------------------------------------------------------
 
-/** @page ktxtools_extract ktx extract
+/** @page ktx_extract ktx extract
 @~English
 
 Extract selected images from a KTX2 file.
 
-@section ktxtools_extract_synopsis SYNOPSIS
+@section ktx_extract_synopsis SYNOPSIS
     ktx extract [option...] @e input-file @e output-path
 
-@section ktxtools_extract_description DESCRIPTION
+@section ktx_extract_description DESCRIPTION
     @b ktx @b extract can extract one or multiple images from the KTX2 file specified as the
     @e input-file argument and, based on the format, save them as Raw, EXR or PNG image files
     to the @e output-path.
@@ -77,7 +77,7 @@ Extract selected images from a KTX2 file.
         <dd>Transcode the texture to the target format before executing the extract.
             Requires the input file to be transcodable (it must be either BasisLZ
             supercompressed or has UASTC color model in the DFD). This option matches the
-            functionality of the @ref ktxtools_transcode "ktx transcode" command.
+            functionality of the @ref ktx_transcode "ktx transcode" command.
             If the target option is not set the r8, rg8, rgb8 or rgba8 target will be selected
             based on the number of channels in the input texture.
             Block compressed transcode targets can only be saved in raw format.
@@ -112,15 +112,15 @@ Extract selected images from a KTX2 file.
     </dl>
     @snippet{doc} ktx/command.h command options_generic
 
-@section ktxtools_extract_exitstatus EXIT STATUS
+@section ktx_extract_exitstatus EXIT STATUS
     @snippet{doc} ktx/command.h command exitstatus
 
-@section ktxtools_extract_history HISTORY
+@section ktx_extract_history HISTORY
 
 @par Version 4.0
  - Initial version
 
-@section ktxtools_extract_author AUTHOR
+@section ktx_extract_author AUTHOR
     - Mátyás Császár [Vader], RasterGrid www.rastergrid.com
     - Daniel Rákos, RasterGrid www.rastergrid.com
 */

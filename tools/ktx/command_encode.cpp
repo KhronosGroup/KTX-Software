@@ -28,15 +28,15 @@ namespace ktx {
 
 // -------------------------------------------------------------------------------------------------
 
-/** @page ktxtools_encode ktx encode
+/** @page ktx_encode ktx encode
 @~English
 
 Encode a KTX2 file.
 
-@section ktxtools_encode_synopsis SYNOPSIS
+@section ktx_encode_synopsis SYNOPSIS
     ktx encode [option...] @e input-file @e output-file
 
-@section ktxtools_encode_description DESCRIPTION
+@section ktx_encode_description DESCRIPTION
     @b ktx @b encode can encode the KTX file specified as the @e input-file argument,
     optionally supercompress the result, and save it as the @e output-file.
     If the @e input-file is '-' the file will be read from the stdin.
@@ -58,15 +58,15 @@ Encode a KTX2 file.
     @snippet{doc} ktx/compress_utils.h command options_compress
     @snippet{doc} ktx/command.h command options_generic
 
-@section ktxtools_encode_exitstatus EXIT STATUS
+@section ktx_encode_exitstatus EXIT STATUS
     @snippet{doc} ktx/command.h command exitstatus
 
-@section ktxtools_encode_history HISTORY
+@section ktx_encode_history HISTORY
 
 @par Version 4.0
  - Initial version
 
-@section ktxtools_encode_author AUTHOR
+@section ktx_encode_author AUTHOR
     - Mátyás Császár [Vader], RasterGrid www.rastergrid.com
     - Daniel Rákos, RasterGrid www.rastergrid.com
 */
