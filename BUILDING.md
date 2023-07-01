@@ -303,7 +303,7 @@ The CMake generators for Visual Studio 2017 and earlier generate projects whose 
 ```bash
 # -G shown for completeness. Not needed if you are happy
 # with the CMake's default selection.
-cmake -G "Visual Studio 15 2017" -B build -A x64 .
+cmake -G "Visual Studio 17 2022" -B build -A x64 .
 ```
 
 When using a more recent Visual Studio you simply need
@@ -431,14 +431,18 @@ Conformance Test Suite
 The submodule of [CTS Repository](https://github.com/KhronosGroup/KTX-Software-CTS/) is optional and
 only required for running the CTS tests during KTX development. If the CTS test suit is desired it
 can be fetched during cloning with the additional `--recurse-submodules` git clone flag:
+
 ```bash
 git clone --recurse-submodules git@github.com:KhronosGroup/KTX-Software.git
 ```
+
 If the repository was already cloned or whenever the submodule ref changes the submodule has to be
 updated with:
+
 ```bash
 git submodule update --init --recursive tests/cts
 ```
+
 (For more information on submodules see the [git documentation](https://git-scm.com/book/en/v2/Git-Tools-Submodules).)
 
 Once the submodule is fetched the CTS tests can be enabled with the `KTX_FEATURE_TOOLS_CTS`
@@ -448,6 +452,7 @@ The CTS integrates into `ctest` so running `ctest` will also execute the CTS tes
 The test cases can be limited to the CTS tests with `ctest -R ktxToolTests`.
 
 Example for development workflow with CTS testing:
+
 ```bash
 # Git clone and submodule fetch 
 git clone git@github.com:KhronosGroup/KTX-Software.git
