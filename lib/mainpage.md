@@ -10,9 +10,9 @@ Introduction             {#mainpage}
 libktx is a small library of functions for creating and reading KTX (Khronos
 TeXture) files, version 1 and 2 and instantiating OpenGL&reg; and OpenGL&reg; ES
 textures and Vulkan images from them. KTX version 2 files can contain images
-supercompressed with ZStd. They can also contain images in the Basis Universal
-formats. libktx can deflate and inflate ZStd compressed images and can encode
-and transcode the Basis Universal formats.
+supercompressed with ZStd or ZLIB. They can also contain images in the Basis
+Universal formats. libktx can deflate and inflate ZStd and ZLIB compressed
+images and can encode and transcode the Basis Universal formats.
 
 For information about the KTX format see the
 <a href="http://github.khronos.org/KTX-Specification/">

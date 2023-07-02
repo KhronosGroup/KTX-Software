@@ -1,0 +1,890 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://schema.khronos.org/ktx/info_v0.json",
+    "definitions": {
+        "enum_vkFormat": {
+            "oneOf": [
+                { "type": "integer" },
+                {
+                    "type": "string",
+                    "enum": [
+                        "VK_FORMAT_UNDEFINED",
+                        "VK_FORMAT_R4G4_UNORM_PACK8",
+                        "VK_FORMAT_R4G4B4A4_UNORM_PACK16",
+                        "VK_FORMAT_B4G4R4A4_UNORM_PACK16",
+                        "VK_FORMAT_R5G6B5_UNORM_PACK16",
+                        "VK_FORMAT_B5G6R5_UNORM_PACK16",
+                        "VK_FORMAT_R5G5B5A1_UNORM_PACK16",
+                        "VK_FORMAT_B5G5R5A1_UNORM_PACK16",
+                        "VK_FORMAT_A1R5G5B5_UNORM_PACK16",
+                        "VK_FORMAT_R8_UNORM",
+                        "VK_FORMAT_R8_SNORM",
+                        "VK_FORMAT_R8_USCALED",
+                        "VK_FORMAT_R8_SSCALED",
+                        "VK_FORMAT_R8_UINT",
+                        "VK_FORMAT_R8_SINT",
+                        "VK_FORMAT_R8_SRGB",
+                        "VK_FORMAT_R8G8_UNORM",
+                        "VK_FORMAT_R8G8_SNORM",
+                        "VK_FORMAT_R8G8_USCALED",
+                        "VK_FORMAT_R8G8_SSCALED",
+                        "VK_FORMAT_R8G8_UINT",
+                        "VK_FORMAT_R8G8_SINT",
+                        "VK_FORMAT_R8G8_SRGB",
+                        "VK_FORMAT_R8G8B8_UNORM",
+                        "VK_FORMAT_R8G8B8_SNORM",
+                        "VK_FORMAT_R8G8B8_USCALED",
+                        "VK_FORMAT_R8G8B8_SSCALED",
+                        "VK_FORMAT_R8G8B8_UINT",
+                        "VK_FORMAT_R8G8B8_SINT",
+                        "VK_FORMAT_R8G8B8_SRGB",
+                        "VK_FORMAT_B8G8R8_UNORM",
+                        "VK_FORMAT_B8G8R8_SNORM",
+                        "VK_FORMAT_B8G8R8_USCALED",
+                        "VK_FORMAT_B8G8R8_SSCALED",
+                        "VK_FORMAT_B8G8R8_UINT",
+                        "VK_FORMAT_B8G8R8_SINT",
+                        "VK_FORMAT_B8G8R8_SRGB",
+                        "VK_FORMAT_R8G8B8A8_UNORM",
+                        "VK_FORMAT_R8G8B8A8_SNORM",
+                        "VK_FORMAT_R8G8B8A8_USCALED",
+                        "VK_FORMAT_R8G8B8A8_SSCALED",
+                        "VK_FORMAT_R8G8B8A8_UINT",
+                        "VK_FORMAT_R8G8B8A8_SINT",
+                        "VK_FORMAT_R8G8B8A8_SRGB",
+                        "VK_FORMAT_B8G8R8A8_UNORM",
+                        "VK_FORMAT_B8G8R8A8_SNORM",
+                        "VK_FORMAT_B8G8R8A8_USCALED",
+                        "VK_FORMAT_B8G8R8A8_SSCALED",
+                        "VK_FORMAT_B8G8R8A8_UINT",
+                        "VK_FORMAT_B8G8R8A8_SINT",
+                        "VK_FORMAT_B8G8R8A8_SRGB",
+                        "VK_FORMAT_A8B8G8R8_UNORM_PACK32",
+                        "VK_FORMAT_A8B8G8R8_SNORM_PACK32",
+                        "VK_FORMAT_A8B8G8R8_USCALED_PACK32",
+                        "VK_FORMAT_A8B8G8R8_SSCALED_PACK32",
+                        "VK_FORMAT_A8B8G8R8_UINT_PACK32",
+                        "VK_FORMAT_A8B8G8R8_SINT_PACK32",
+                        "VK_FORMAT_A8B8G8R8_SRGB_PACK32",
+                        "VK_FORMAT_A2R10G10B10_UNORM_PACK32",
+                        "VK_FORMAT_A2R10G10B10_SNORM_PACK32",
+                        "VK_FORMAT_A2R10G10B10_USCALED_PACK32",
+                        "VK_FORMAT_A2R10G10B10_SSCALED_PACK32",
+                        "VK_FORMAT_A2R10G10B10_UINT_PACK32",
+                        "VK_FORMAT_A2R10G10B10_SINT_PACK32",
+                        "VK_FORMAT_A2B10G10R10_UNORM_PACK32",
+                        "VK_FORMAT_A2B10G10R10_SNORM_PACK32",
+                        "VK_FORMAT_A2B10G10R10_USCALED_PACK32",
+                        "VK_FORMAT_A2B10G10R10_SSCALED_PACK32",
+                        "VK_FORMAT_A2B10G10R10_UINT_PACK32",
+                        "VK_FORMAT_A2B10G10R10_SINT_PACK32",
+                        "VK_FORMAT_R16_UNORM",
+                        "VK_FORMAT_R16_SNORM",
+                        "VK_FORMAT_R16_USCALED",
+                        "VK_FORMAT_R16_SSCALED",
+                        "VK_FORMAT_R16_UINT",
+                        "VK_FORMAT_R16_SINT",
+                        "VK_FORMAT_R16_SFLOAT",
+                        "VK_FORMAT_R16G16_UNORM",
+                        "VK_FORMAT_R16G16_SNORM",
+                        "VK_FORMAT_R16G16_USCALED",
+                        "VK_FORMAT_R16G16_SSCALED",
+                        "VK_FORMAT_R16G16_UINT",
+                        "VK_FORMAT_R16G16_SINT",
+                        "VK_FORMAT_R16G16_SFLOAT",
+                        "VK_FORMAT_R16G16B16_UNORM",
+                        "VK_FORMAT_R16G16B16_SNORM",
+                        "VK_FORMAT_R16G16B16_USCALED",
+                        "VK_FORMAT_R16G16B16_SSCALED",
+                        "VK_FORMAT_R16G16B16_UINT",
+                        "VK_FORMAT_R16G16B16_SINT",
+                        "VK_FORMAT_R16G16B16_SFLOAT",
+                        "VK_FORMAT_R16G16B16A16_UNORM",
+                        "VK_FORMAT_R16G16B16A16_SNORM",
+                        "VK_FORMAT_R16G16B16A16_USCALED",
+                        "VK_FORMAT_R16G16B16A16_SSCALED",
+                        "VK_FORMAT_R16G16B16A16_UINT",
+                        "VK_FORMAT_R16G16B16A16_SINT",
+                        "VK_FORMAT_R16G16B16A16_SFLOAT",
+                        "VK_FORMAT_R32_UINT",
+                        "VK_FORMAT_R32_SINT",
+                        "VK_FORMAT_R32_SFLOAT",
+                        "VK_FORMAT_R32G32_UINT",
+                        "VK_FORMAT_R32G32_SINT",
+                        "VK_FORMAT_R32G32_SFLOAT",
+                        "VK_FORMAT_R32G32B32_UINT",
+                        "VK_FORMAT_R32G32B32_SINT",
+                        "VK_FORMAT_R32G32B32_SFLOAT",
+                        "VK_FORMAT_R32G32B32A32_UINT",
+                        "VK_FORMAT_R32G32B32A32_SINT",
+                        "VK_FORMAT_R32G32B32A32_SFLOAT",
+                        "VK_FORMAT_R64_UINT",
+                        "VK_FORMAT_R64_SINT",
+                        "VK_FORMAT_R64_SFLOAT",
+                        "VK_FORMAT_R64G64_UINT",
+                        "VK_FORMAT_R64G64_SINT",
+                        "VK_FORMAT_R64G64_SFLOAT",
+                        "VK_FORMAT_R64G64B64_UINT",
+                        "VK_FORMAT_R64G64B64_SINT",
+                        "VK_FORMAT_R64G64B64_SFLOAT",
+                        "VK_FORMAT_R64G64B64A64_UINT",
+                        "VK_FORMAT_R64G64B64A64_SINT",
+                        "VK_FORMAT_R64G64B64A64_SFLOAT",
+                        "VK_FORMAT_B10G11R11_UFLOAT_PACK32",
+                        "VK_FORMAT_E5B9G9R9_UFLOAT_PACK32",
+                        "VK_FORMAT_D16_UNORM",
+                        "VK_FORMAT_X8_D24_UNORM_PACK32",
+                        "VK_FORMAT_D32_SFLOAT",
+                        "VK_FORMAT_S8_UINT",
+                        "VK_FORMAT_D16_UNORM_S8_UINT",
+                        "VK_FORMAT_D24_UNORM_S8_UINT",
+                        "VK_FORMAT_D32_SFLOAT_S8_UINT",
+                        "VK_FORMAT_BC1_RGB_UNORM_BLOCK",
+                        "VK_FORMAT_BC1_RGB_SRGB_BLOCK",
+                        "VK_FORMAT_BC1_RGBA_UNORM_BLOCK",
+                        "VK_FORMAT_BC1_RGBA_SRGB_BLOCK",
+                        "VK_FORMAT_BC2_UNORM_BLOCK",
+                        "VK_FORMAT_BC2_SRGB_BLOCK",
+                        "VK_FORMAT_BC3_UNORM_BLOCK",
+                        "VK_FORMAT_BC3_SRGB_BLOCK",
+                        "VK_FORMAT_BC4_UNORM_BLOCK",
+                        "VK_FORMAT_BC4_SNORM_BLOCK",
+                        "VK_FORMAT_BC5_UNORM_BLOCK",
+                        "VK_FORMAT_BC5_SNORM_BLOCK",
+                        "VK_FORMAT_BC6H_UFLOAT_BLOCK",
+                        "VK_FORMAT_BC6H_SFLOAT_BLOCK",
+                        "VK_FORMAT_BC7_UNORM_BLOCK",
+                        "VK_FORMAT_BC7_SRGB_BLOCK",
+                        "VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK",
+                        "VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK",
+                        "VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK",
+                        "VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK",
+                        "VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK",
+                        "VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK",
+                        "VK_FORMAT_EAC_R11_UNORM_BLOCK",
+                        "VK_FORMAT_EAC_R11_SNORM_BLOCK",
+                        "VK_FORMAT_EAC_R11G11_UNORM_BLOCK",
+                        "VK_FORMAT_EAC_R11G11_SNORM_BLOCK",
+                        "VK_FORMAT_ASTC_4x4_UNORM_BLOCK",
+                        "VK_FORMAT_ASTC_4x4_SRGB_BLOCK",
+                        "VK_FORMAT_ASTC_5x4_UNORM_BLOCK",
+                        "VK_FORMAT_ASTC_5x4_SRGB_BLOCK",
+                        "VK_FORMAT_ASTC_5x5_UNORM_BLOCK",
+                        "VK_FORMAT_ASTC_5x5_SRGB_BLOCK",
+                        "VK_FORMAT_ASTC_6x5_UNORM_BLOCK",
+                        "VK_FORMAT_ASTC_6x5_SRGB_BLOCK",
+                        "VK_FORMAT_ASTC_6x6_UNORM_BLOCK",
+                        "VK_FORMAT_ASTC_6x6_SRGB_BLOCK",
+                        "VK_FORMAT_ASTC_8x5_UNORM_BLOCK",
+                        "VK_FORMAT_ASTC_8x5_SRGB_BLOCK",
+                        "VK_FORMAT_ASTC_8x6_UNORM_BLOCK",
+                        "VK_FORMAT_ASTC_8x6_SRGB_BLOCK",
+                        "VK_FORMAT_ASTC_8x8_UNORM_BLOCK",
+                        "VK_FORMAT_ASTC_8x8_SRGB_BLOCK",
+                        "VK_FORMAT_ASTC_10x5_UNORM_BLOCK",
+                        "VK_FORMAT_ASTC_10x5_SRGB_BLOCK",
+                        "VK_FORMAT_ASTC_10x6_UNORM_BLOCK",
+                        "VK_FORMAT_ASTC_10x6_SRGB_BLOCK",
+                        "VK_FORMAT_ASTC_10x8_UNORM_BLOCK",
+                        "VK_FORMAT_ASTC_10x8_SRGB_BLOCK",
+                        "VK_FORMAT_ASTC_10x10_UNORM_BLOCK",
+                        "VK_FORMAT_ASTC_10x10_SRGB_BLOCK",
+                        "VK_FORMAT_ASTC_12x10_UNORM_BLOCK",
+                        "VK_FORMAT_ASTC_12x10_SRGB_BLOCK",
+                        "VK_FORMAT_ASTC_12x12_UNORM_BLOCK",
+                        "VK_FORMAT_ASTC_12x12_SRGB_BLOCK",
+                        "VK_FORMAT_G8B8G8R8_422_UNORM",
+                        "VK_FORMAT_B8G8R8G8_422_UNORM",
+                        "VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM",
+                        "VK_FORMAT_G8_B8R8_2PLANE_420_UNORM",
+                        "VK_FORMAT_G8_B8_R8_3PLANE_422_UNORM",
+                        "VK_FORMAT_G8_B8R8_2PLANE_422_UNORM",
+                        "VK_FORMAT_G8_B8_R8_3PLANE_444_UNORM",
+                        "VK_FORMAT_R10X6_UNORM_PACK16",
+                        "VK_FORMAT_R10X6G10X6_UNORM_2PACK16",
+                        "VK_FORMAT_R10X6G10X6B10X6A10X6_UNORM_4PACK16",
+                        "VK_FORMAT_G10X6B10X6G10X6R10X6_422_UNORM_4PACK16",
+                        "VK_FORMAT_B10X6G10X6R10X6G10X6_422_UNORM_4PACK16",
+                        "VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_420_UNORM_3PACK16",
+                        "VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16",
+                        "VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_422_UNORM_3PACK16",
+                        "VK_FORMAT_G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16",
+                        "VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_444_UNORM_3PACK16",
+                        "VK_FORMAT_R12X4_UNORM_PACK16",
+                        "VK_FORMAT_R12X4G12X4_UNORM_2PACK16",
+                        "VK_FORMAT_R12X4G12X4B12X4A12X4_UNORM_4PACK16",
+                        "VK_FORMAT_G12X4B12X4G12X4R12X4_422_UNORM_4PACK16",
+                        "VK_FORMAT_B12X4G12X4R12X4G12X4_422_UNORM_4PACK16",
+                        "VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_420_UNORM_3PACK16",
+                        "VK_FORMAT_G12X4_B12X4R12X4_2PLANE_420_UNORM_3PACK16",
+                        "VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_422_UNORM_3PACK16",
+                        "VK_FORMAT_G12X4_B12X4R12X4_2PLANE_422_UNORM_3PACK16",
+                        "VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_444_UNORM_3PACK16",
+                        "VK_FORMAT_G16B16G16R16_422_UNORM",
+                        "VK_FORMAT_B16G16R16G16_422_UNORM",
+                        "VK_FORMAT_G16_B16_R16_3PLANE_420_UNORM",
+                        "VK_FORMAT_G16_B16R16_2PLANE_420_UNORM",
+                        "VK_FORMAT_G16_B16_R16_3PLANE_422_UNORM",
+                        "VK_FORMAT_G16_B16R16_2PLANE_422_UNORM",
+                        "VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM",
+                        "VK_FORMAT_PVRTC1_2BPP_UNORM_BLOCK_IMG",
+                        "VK_FORMAT_PVRTC1_4BPP_UNORM_BLOCK_IMG",
+                        "VK_FORMAT_PVRTC2_2BPP_UNORM_BLOCK_IMG",
+                        "VK_FORMAT_PVRTC2_4BPP_UNORM_BLOCK_IMG",
+                        "VK_FORMAT_PVRTC1_2BPP_SRGB_BLOCK_IMG",
+                        "VK_FORMAT_PVRTC1_4BPP_SRGB_BLOCK_IMG",
+                        "VK_FORMAT_PVRTC2_2BPP_SRGB_BLOCK_IMG",
+                        "VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG",
+                        "VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_3x3x3_UNORM_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_3x3x3_SRGB_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_3x3x3_SFLOAT_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_4x3x3_UNORM_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_4x3x3_SRGB_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_4x3x3_SFLOAT_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_4x4x3_UNORM_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_4x4x3_SRGB_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_4x4x3_SFLOAT_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_4x4x4_UNORM_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_4x4x4_SRGB_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_4x4x4_SFLOAT_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_5x4x4_UNORM_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_5x4x4_SRGB_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_5x4x4_SFLOAT_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_5x5x4_UNORM_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_5x5x4_SRGB_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_5x5x4_SFLOAT_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_5x5x5_UNORM_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_5x5x5_SRGB_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_5x5x5_SFLOAT_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_6x5x5_UNORM_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_6x5x5_SRGB_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_6x5x5_SFLOAT_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_6x6x5_UNORM_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_6x6x5_SRGB_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_6x6x5_SFLOAT_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT",
+                        "VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT",
+                        "VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT"
+                    ]
+                }
+            ]
+        },
+        "enum_supercompressionScheme": {
+            "oneOf": [
+                { "type": "integer" },
+                {
+                    "type": "string",
+                    "enum": [
+                        "KTX_SS_NONE",
+                        "KTX_SS_BASIS_LZ",
+                        "KTX_SS_ZSTD",
+                        "KTX_SS_ZLIB"
+                    ]
+                }
+            ]
+        },
+        "enum_descriptorType": {
+            "oneOf": [
+                { "type": "integer" },
+                {
+                    "type": "string",
+                    "enum": [
+                        "KHR_DF_KHR_DESCRIPTORTYPE_BASICFORMAT",
+                        "KHR_DF_KHR_DESCRIPTORTYPE_ADDITIONAL_PLANES",
+                        "KHR_DF_KHR_DESCRIPTORTYPE_ADDITIONAL_DIMENSIONS"
+                    ]
+                }
+            ]
+        },
+        "enum_vendorId": {
+            "oneOf": [
+                { "type": "integer" },
+                {
+                    "type": "string",
+                    "enum": [
+                        "KHR_DF_VENDORID_KHRONOS"
+                    ]
+                }
+            ]
+        },
+        "enum_versionNumber": {
+            "oneOf": [
+                { "type": "integer" },
+                {
+                    "type": "string",
+                    "enum": [
+                        "KHR_DF_VERSIONNUMBER_1_1",
+                        "KHR_DF_VERSIONNUMBER_1_2",
+                        "KHR_DF_VERSIONNUMBER_1_3"
+                    ]
+                }
+            ]
+        },
+        "enum_flags": {
+            "oneOf": [
+                { "type": "integer" },
+                {
+                    "type": "string",
+                    "enum": [
+                        "KHR_DF_FLAG_ALPHA_PREMULTIPLIED",
+                        "KHR_DF_FLAG_ALPHA_STRAIGHT"
+                    ]
+                }
+            ]
+        },
+        "enum_transferFunction": {
+            "oneOf": [
+                { "type": "integer" },
+                {
+                    "type": "string",
+                    "enum": [
+                        "KHR_DF_TRANSFER_UNSPECIFIED",
+                        "KHR_DF_TRANSFER_LINEAR",
+                        "KHR_DF_TRANSFER_SRGB",
+                        "KHR_DF_TRANSFER_ITU",
+                        "KHR_DF_TRANSFER_NTSC",
+                        "KHR_DF_TRANSFER_SLOG",
+                        "KHR_DF_TRANSFER_SLOG2",
+                        "KHR_DF_TRANSFER_BT1886",
+                        "KHR_DF_TRANSFER_HLG_OETF",
+                        "KHR_DF_TRANSFER_HLG_EOTF",
+                        "KHR_DF_TRANSFER_PQ_EOTF",
+                        "KHR_DF_TRANSFER_PQ_OETF",
+                        "KHR_DF_TRANSFER_DCIP3",
+                        "KHR_DF_TRANSFER_PAL_OETF",
+                        "KHR_DF_TRANSFER_PAL625_EOTF",
+                        "KHR_DF_TRANSFER_ST240",
+                        "KHR_DF_TRANSFER_ACESCC",
+                        "KHR_DF_TRANSFER_ACESCCT",
+                        "KHR_DF_TRANSFER_ADOBERGB"
+                    ]
+                }
+            ]
+        },
+        "enum_colorPrimaries": {
+            "oneOf": [
+                { "type": "integer" },
+                {
+                    "type": "string",
+                    "enum": [
+                        "KHR_DF_PRIMARIES_UNSPECIFIED",
+                        "KHR_DF_PRIMARIES_BT709",
+                        "KHR_DF_PRIMARIES_BT601_EBU",
+                        "KHR_DF_PRIMARIES_BT601_SMPTE",
+                        "KHR_DF_PRIMARIES_BT2020",
+                        "KHR_DF_PRIMARIES_CIEXYZ",
+                        "KHR_DF_PRIMARIES_ACES",
+                        "KHR_DF_PRIMARIES_ACESCC",
+                        "KHR_DF_PRIMARIES_NTSC1953",
+                        "KHR_DF_PRIMARIES_PAL525",
+                        "KHR_DF_PRIMARIES_DISPLAYP3",
+                        "KHR_DF_PRIMARIES_ADOBERGB"
+                    ]
+                }
+            ]
+        },
+        "enum_colorModel": {
+            "oneOf": [
+                { "type": "integer" },
+                {
+                    "type": "string",
+                    "enum": [
+                        "KHR_DF_MODEL_UNSPECIFIED",
+                        "KHR_DF_MODEL_RGBSDA",
+                        "KHR_DF_MODEL_YUVSDA",
+                        "KHR_DF_MODEL_YIQSDA",
+                        "KHR_DF_MODEL_LABSDA",
+                        "KHR_DF_MODEL_CMYKA",
+                        "KHR_DF_MODEL_XYZW",
+                        "KHR_DF_MODEL_HSVA_ANG",
+                        "KHR_DF_MODEL_HSLA_ANG",
+                        "KHR_DF_MODEL_HSVA_HEX",
+                        "KHR_DF_MODEL_HSLA_HEX",
+                        "KHR_DF_MODEL_YCGCOA",
+                        "KHR_DF_MODEL_YCCBCCRC",
+                        "KHR_DF_MODEL_ICTCP",
+                        "KHR_DF_MODEL_CIEXYZ",
+                        "KHR_DF_MODEL_CIEXYY",
+                        "KHR_DF_MODEL_BC1A",
+                        "KHR_DF_MODEL_BC2",
+                        "KHR_DF_MODEL_BC3",
+                        "KHR_DF_MODEL_BC4",
+                        "KHR_DF_MODEL_BC5",
+                        "KHR_DF_MODEL_BC6H",
+                        "KHR_DF_MODEL_BC7",
+                        "KHR_DF_MODEL_ETC1",
+                        "KHR_DF_MODEL_ETC2",
+                        "KHR_DF_MODEL_ASTC",
+                        "KHR_DF_MODEL_ETC1S",
+                        "KHR_DF_MODEL_PVRTC",
+                        "KHR_DF_MODEL_PVRTC2",
+                        "KHR_DF_MODEL_UASTC"
+                    ]
+                }
+            ]
+        },
+        "enum_qualifier": {
+            "oneOf": [
+                { "type": "integer" },
+                {
+                    "type": "string",
+                    "enum": [
+                        "KHR_DF_SAMPLE_DATATYPE_LINEAR",
+                        "KHR_DF_SAMPLE_DATATYPE_EXPONENT",
+                        "KHR_DF_SAMPLE_DATATYPE_SIGNED",
+                        "KHR_DF_SAMPLE_DATATYPE_FLOAT"
+                    ]
+                }
+            ]
+        },
+        "enum_channelType": {
+            "oneOf": [
+                { "type": "integer" },
+                {
+                    "type": "string",
+                    "enum": [
+                        "KHR_DF_CHANNEL_RGBSDA_RED",
+                        "KHR_DF_CHANNEL_RGBSDA_GREEN",
+                        "KHR_DF_CHANNEL_RGBSDA_BLUE",
+                        "KHR_DF_CHANNEL_RGBSDA_STENCIL",
+                        "KHR_DF_CHANNEL_RGBSDA_DEPTH",
+                        "KHR_DF_CHANNEL_RGBSDA_ALPHA",
+                        "KHR_DF_CHANNEL_YUVSDA_Y",
+                        "KHR_DF_CHANNEL_YUVSDA_U",
+                        "KHR_DF_CHANNEL_YUVSDA_V",
+                        "KHR_DF_CHANNEL_YUVSDA_STENCIL",
+                        "KHR_DF_CHANNEL_YUVSDA_DEPTH",
+                        "KHR_DF_CHANNEL_YUVSDA_ALPHA",
+                        "KHR_DF_CHANNEL_YIQSDA_Y",
+                        "KHR_DF_CHANNEL_YIQSDA_I",
+                        "KHR_DF_CHANNEL_YIQSDA_Q",
+                        "KHR_DF_CHANNEL_YIQSDA_STENCIL",
+                        "KHR_DF_CHANNEL_YIQSDA_DEPTH",
+                        "KHR_DF_CHANNEL_YIQSDA_ALPHA",
+                        "KHR_DF_CHANNEL_LABSDA_L",
+                        "KHR_DF_CHANNEL_LABSDA_A",
+                        "KHR_DF_CHANNEL_LABSDA_B",
+                        "KHR_DF_CHANNEL_LABSDA_STENCIL",
+                        "KHR_DF_CHANNEL_LABSDA_DEPTH",
+                        "KHR_DF_CHANNEL_LABSDA_ALPHA",
+                        "KHR_DF_CHANNEL_CMYKSDA_CYAN",
+                        "KHR_DF_CHANNEL_CMYKSDA_MAGENTA",
+                        "KHR_DF_CHANNEL_CMYKSDA_YELLOW",
+                        "KHR_DF_CHANNEL_CMYKSDA_BLACK",
+                        "KHR_DF_CHANNEL_CMYKSDA_ALPHA",
+                        "KHR_DF_CHANNEL_XYZW_X",
+                        "KHR_DF_CHANNEL_XYZW_Y",
+                        "KHR_DF_CHANNEL_XYZW_Z",
+                        "KHR_DF_CHANNEL_XYZW_W",
+                        "KHR_DF_CHANNEL_HSVA_ANG_VALUE",
+                        "KHR_DF_CHANNEL_HSVA_ANG_SATURATION",
+                        "KHR_DF_CHANNEL_HSVA_ANG_HUE",
+                        "KHR_DF_CHANNEL_HSVA_ANG_ALPHA",
+                        "KHR_DF_CHANNEL_HSLA_ANG_LIGHTNESS",
+                        "KHR_DF_CHANNEL_HSLA_ANG_SATURATION",
+                        "KHR_DF_CHANNEL_HSLA_ANG_HUE",
+                        "KHR_DF_CHANNEL_HSLA_ANG_ALPHA",
+                        "KHR_DF_CHANNEL_HSVA_HEX_VALUE",
+                        "KHR_DF_CHANNEL_HSVA_HEX_SATURATION",
+                        "KHR_DF_CHANNEL_HSVA_HEX_HUE",
+                        "KHR_DF_CHANNEL_HSVA_HEX_ALPHA",
+                        "KHR_DF_CHANNEL_HSLA_HEX_LIGHTNESS",
+                        "KHR_DF_CHANNEL_HSLA_HEX_SATURATION",
+                        "KHR_DF_CHANNEL_HSLA_HEX_HUE",
+                        "KHR_DF_CHANNEL_HSLA_HEX_ALPHA",
+                        "KHR_DF_CHANNEL_YCGCOA_Y",
+                        "KHR_DF_CHANNEL_YCGCOA_CG",
+                        "KHR_DF_CHANNEL_YCGCOA_CO",
+                        "KHR_DF_CHANNEL_YCGCOA_ALPHA",
+                        "KHR_DF_CHANNEL_CIEXYZ_X",
+                        "KHR_DF_CHANNEL_CIEXYZ_Y",
+                        "KHR_DF_CHANNEL_CIEXYZ_Z",
+                        "KHR_DF_CHANNEL_CIEXYY_X",
+                        "KHR_DF_CHANNEL_CIEXYY_YCHROMA",
+                        "KHR_DF_CHANNEL_CIEXYY_YLUMA",
+                        "KHR_DF_CHANNEL_BC1A_COLOR",
+                        "KHR_DF_CHANNEL_BC1A_ALPHA",
+                        "KHR_DF_CHANNEL_BC2_COLOR",
+                        "KHR_DF_CHANNEL_BC2_ALPHA",
+                        "KHR_DF_CHANNEL_BC3_COLOR",
+                        "KHR_DF_CHANNEL_BC3_ALPHA",
+                        "KHR_DF_CHANNEL_BC4_DATA",
+                        "KHR_DF_CHANNEL_BC5_RED",
+                        "KHR_DF_CHANNEL_BC5_GREEN",
+                        "KHR_DF_CHANNEL_BC6H_COLOR",
+                        "KHR_DF_CHANNEL_BC7_COLOR",
+                        "KHR_DF_CHANNEL_ETC1_COLOR",
+                        "KHR_DF_CHANNEL_ETC2_RED",
+                        "KHR_DF_CHANNEL_ETC2_GREEN",
+                        "KHR_DF_CHANNEL_ETC2_COLOR",
+                        "KHR_DF_CHANNEL_ETC2_ALPHA",
+                        "KHR_DF_CHANNEL_ASTC_DATA",
+                        "KHR_DF_CHANNEL_ETC1S_RGB",
+                        "KHR_DF_CHANNEL_ETC1S_RRR",
+                        "KHR_DF_CHANNEL_ETC1S_GGG",
+                        "KHR_DF_CHANNEL_ETC1S_AAA",
+                        "KHR_DF_CHANNEL_PVRTC_COLOR",
+                        "KHR_DF_CHANNEL_PVRTC2_COLOR",
+                        "KHR_DF_CHANNEL_UASTC_RGB",
+                        "KHR_DF_CHANNEL_UASTC_RGBA",
+                        "KHR_DF_CHANNEL_UASTC_RRR",
+                        "KHR_DF_CHANNEL_UASTC_RRRG",
+                        "KHR_DF_CHANNEL_UASTC_RG",
+                        "KHR_DF_CHANNEL_UNSPECIFIED_0",
+                        "KHR_DF_CHANNEL_UNSPECIFIED_1",
+                        "KHR_DF_CHANNEL_UNSPECIFIED_2",
+                        "KHR_DF_CHANNEL_UNSPECIFIED_3",
+                        "KHR_DF_CHANNEL_UNSPECIFIED_4",
+                        "KHR_DF_CHANNEL_UNSPECIFIED_5",
+                        "KHR_DF_CHANNEL_UNSPECIFIED_6",
+                        "KHR_DF_CHANNEL_UNSPECIFIED_7",
+                        "KHR_DF_CHANNEL_UNSPECIFIED_8",
+                        "KHR_DF_CHANNEL_UNSPECIFIED_9",
+                        "KHR_DF_CHANNEL_UNSPECIFIED_10",
+                        "KHR_DF_CHANNEL_UNSPECIFIED_11",
+                        "KHR_DF_CHANNEL_UNSPECIFIED_12",
+                        "KHR_DF_CHANNEL_UNSPECIFIED_13",
+                        "KHR_DF_CHANNEL_UNSPECIFIED_14",
+                        "KHR_DF_CHANNEL_UNSPECIFIED_15"
+                    ]
+                }
+            ]
+        },
+        "enum_imageFlags" : {
+            "oneOf": [
+                { "type": "integer" },
+                {
+                    "type": "string",
+                    "enum": [
+                        "ETC1S_P_FRAME"
+                    ]
+                }
+            ]
+        }
+    },
+    "type": "object",
+    "required": [
+        "valid",
+        "messages"
+    ],
+    "properties": {
+        "valid": { "type": "boolean" },
+        "messages": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "type",
+                    "message",
+                    "details"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                    "id": { "type": "integer" },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "fatal",
+                            "error",
+                            "warning"
+                        ]
+                    },
+                    "message": { "type": "string" },
+                    "details": { "type": "string" }
+                }
+            }
+        },
+        "header": {
+            "type": "object",
+            "required": [
+                "identifier",
+                "vkFormat",
+                "typeSize",
+                "pixelWidth",
+                "pixelHeight",
+                "pixelDepth",
+                "layerCount",
+                "faceCount",
+                "levelCount",
+                "supercompressionScheme"
+            ],
+            "additionalProperties": false,
+            "properties": {
+                "identifier": { "type": "string" },
+                "vkFormat": { "$ref": "#/definitions/enum_vkFormat" },
+                "typeSize": { "type": "integer" },
+                "pixelWidth": { "type": "integer" },
+                "pixelHeight": { "type": "integer" },
+                "pixelDepth": { "type": "integer" },
+                "layerCount": { "type": "integer" },
+                "faceCount": { "type": "integer" },
+                "levelCount": { "type": "integer" },
+                "supercompressionScheme": { "$ref": "#/definitions/enum_supercompressionScheme" }
+            }
+        },
+        "index": {
+            "type": "object",
+            "required": [
+                "dataFormatDescriptor",
+                "keyValueData",
+                "supercompressionGlobalData",
+                "levels"
+            ],
+            "properties": {
+                "dataFormatDescriptor": {
+                    "type": "object",
+                    "required": [
+                        "byteOffset",
+                        "byteLength"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                        "byteOffset": { "type": "integer" },
+                        "byteLength": { "type": "integer" }
+                    }
+                },
+                "keyValueData": {
+                    "type": "object",
+                    "required": [
+                        "byteOffset",
+                        "byteLength"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                        "byteOffset": { "type": "integer" },
+                        "byteLength": { "type": "integer" }
+                    }
+                },
+                "supercompressionGlobalData": {
+                    "type": "object",
+                    "required": [
+                        "byteOffset",
+                        "byteLength"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                        "byteOffset": { "type": "integer" },
+                        "byteLength": { "type": "integer" }
+                    }
+                },
+                "levels": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "byteOffset",
+                            "byteLength",
+                            "uncompressedByteLength"
+                        ],
+                        "additionalProperties": false,
+                        "properties": {
+                            "byteOffset": { "type": "integer" },
+                            "byteLength": { "type": "integer" },
+                            "uncompressedByteLength": { "type": "integer" }
+                        }
+                    }
+                }
+            }
+        },
+        "dataFormatDescriptor": {
+            "type": "object",
+            "required": [
+                "totalSize",
+                "blocks"
+            ],
+            "additionalProperties": false,
+            "properties": {
+                "totalSize": { "type": "integer" },
+                "blocks": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "vendorId",
+                            "descriptorType",
+                            "versionNumber",
+                            "descriptorBlockSize"
+                        ],
+                        "additionalProperties": false,
+                        "properties": {
+                            "descriptorType": { "$ref": "#/definitions/enum_descriptorType" },
+                            "vendorId": { "$ref": "#/definitions/enum_vendorId" },
+                            "descriptorBlockSize": { "type": "integer" },
+                            "versionNumber": { "$ref": "#/definitions/enum_versionNumber" },
+                            "flags": {
+                                "type": "array",
+                                "items": { "$ref": "#/definitions/enum_flags" },
+                                "uniqueItems": true
+                            },
+                            "transferFunction": { "$ref": "#/definitions/enum_transferFunction" },
+                            "colorPrimaries": { "$ref": "#/definitions/enum_colorPrimaries" },
+                            "colorModel": { "$ref": "#/definitions/enum_colorModel" },
+                            "texelBlockDimension": {
+                                "type": "array",
+                                "items": { "type": "integer" },
+                                "minItems": 4,
+                                "maxItems": 4
+                            },
+                            "bytesPlane": {
+                                "type": "array",
+                                "items": { "type": "integer" },
+                                "minItems": 8,
+                                "maxItems": 8
+                            },
+                            "samples": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "required": [
+                                        "qualifiers",
+                                        "channelType",
+                                        "bitLength",
+                                        "bitOffset",
+                                        "samplePosition",
+                                        "sampleLower",
+                                        "sampleUpper"
+                                    ],
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "qualifiers": {
+                                            "type": "array",
+                                            "items": { "$ref": "#/definitions/enum_qualifier" },
+                                            "uniqueItems": true
+                                        },
+                                        "channelType": { "$ref": "#/definitions/enum_channelType" },
+                                        "bitLength": { "type": "integer" },
+                                        "bitOffset": { "type": "integer" },
+                                        "samplePosition": {
+                                            "type": "array",
+                                            "items": { "type": "integer" },
+                                            "minItems": 4,
+                                            "maxItems": 4
+                                        },
+                                        "sampleLower": { "type": "integer" },
+                                        "sampleUpper": { "type": "integer" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "keyValueData": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "KTXcubemapIncomplete": {
+                    "type": "object",
+                    "required": [
+                        "positiveX",
+                        "negativeX",
+                        "positiveY",
+                        "negativeY",
+                        "positiveZ",
+                        "negativeZ"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                        "positiveX": { "type": "boolean" },
+                        "negativeX": { "type": "boolean" },
+                        "positiveY": { "type": "boolean" },
+                        "negativeY": { "type": "boolean" },
+                        "positiveZ": { "type": "boolean" },
+                        "negativeZ": { "type": "boolean" }
+                    }
+                },
+                "KTXorientation": { "type": "string" },
+                "KTXglFormat": {
+                    "type": "object",
+                    "required": [
+                        "glInternalformat",
+                        "glFormat",
+                        "glType"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                        "glInternalformat": { "type": "integer" },
+                        "glFormat": { "type": "integer" },
+                        "glType": { "type": "integer" }
+                    }
+                },
+                "KTXdxgiFormat__": { "type": "integer" },
+                "KTXmetalPixelFormat": { "type": "integer" },
+                "KTXswizzle": { "type": "string" },
+                "KTXwriter": { "type": "string" },
+                "KTXwriterScParams": { "type": "string" },
+                "KTXastcDecodeMode": { "type": "string" },
+                "KTXanimData": {
+                    "type": "object",
+                    "required": [
+                        "duration",
+                        "timescale",
+                        "loopCount"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                        "duration": { "type": "integer" },
+                        "timescale": { "type": "integer" },
+                        "loopCount": { "type": "integer" }
+                    }
+                }
+            }
+        },
+        "supercompressionGlobalData": {
+            "type": "object",
+            "properties": {
+                "type": { "$ref": "#/definitions/enum_supercompressionScheme" },
+                "endpointCount": { "type": "integer" },
+                "selectorCount": { "type": "integer" },
+                "endpointsByteLength": { "type": "integer" },
+                "selectorsByteLength": { "type": "integer" },
+                "tablesByteLength": { "type": "integer" },
+                "extendedByteLength": { "type": "integer" },
+                "images": {
+                    "type": "array",
+                    "items": [
+                        {
+                            "type": "object",
+                            "required": [
+                                "imageFlags",
+                                "rgbSliceByteLength",
+                                "rgbSliceByteOffset",
+                                "alphaSliceByteLength",
+                                "alphaSliceByteOffset"
+                            ],
+                            "properties": {
+                                "imageFlags": {
+                                    "type": "array",
+                                    "items": { "$ref": "#/definitions/enum_imageFlags" },
+                                    "uniqueItems": true
+                                },
+                                "rgbSliceByteLength": { "type": "integer" },
+                                "rgbSliceByteOffset": { "type": "integer" },
+                                "alphaSliceByteLength": { "type": "integer" },
+                                "alphaSliceByteOffset": { "type": "integer" }
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    }
+}

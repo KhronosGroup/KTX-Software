@@ -313,6 +313,7 @@ class ImageInput {
                 open(std::move(ifs), newspec);
             } catch (...) {
                 ifs = std::move(getFile());
+                ifs.clear();
                 ifs.seekg(0);
                 throw;
             }
@@ -321,6 +322,7 @@ class ImageInput {
                 open(std::move(bufferIn), newspec);
             } catch (...) {
                 bufferIn = std::move(getBuffer());
+                bufferIn->clear();
                 bufferIn.get()->seekg(0);
                 throw;
             }
@@ -328,6 +330,7 @@ class ImageInput {
             try {
                 open(std::cin, newspec);
             } catch (...) {
+                std::cin.clear();
                 std::cin.seekg(0);
                 throw;
             }

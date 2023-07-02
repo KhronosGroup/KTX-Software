@@ -47,35 +47,36 @@ env:
     # runs on x86_64)
     - CONFIGURATION=Debug,Release PLATFORM=macOS ARCHS=x86_64
       FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_PY=ON FEATURE_LOADTESTS=OpenGL+Vulkan FEATURE_TOOLS=ON
-      SUPPORT_SSE=ON SUPPORT_OPENCL=OFF DEPLOY_DOCS=YES PACKAGE=YES
+      FEATURE_TOOLS_CTS=ON SUPPORT_SSE=ON SUPPORT_OPENCL=OFF DEPLOY_DOCS=YES PACKAGE=YES
     - CONFIGURATION=Release PLATFORM=macOS ARCHS=arm64
       FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_PY=OFF FEATURE_LOADTESTS=OpenGL+Vulkan FEATURE_TESTS=OFF
-      FEATURE_TOOLS=ON SUPPORT_SSE=ON SUPPORT_OPENCL=OFF PACKAGE=YES
+      FEATURE_TOOLS=ON FEATURE_TOOLS_CTS=OFF SUPPORT_SSE=ON SUPPORT_OPENCL=OFF PACKAGE=YES
 
     - CONFIGURATION=Release PLATFORM=macOS ARCHS=x86_64
-      FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_PY=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
-      SUPPORT_SSE=ON SUPPORT_OPENCL=ON
+      FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_PY=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
+      FEATURE_TOOLS_CTS=OFF SUPPORT_SSE=ON SUPPORT_OPENCL=ON
     - CONFIGURATION=Release PLATFORM=macOS ARCHS=arm64
-      FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_PY=OFF FEATURE_LOADTESTS=OFF FEATURE_TESTS=OFF
-      FEATURE_TOOLS=OFF SUPPORT_SSE=ON SUPPORT_OPENCL=ON
+      FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_PY=OFF FEATURE_LOADTESTS=OFF FEATURE_TESTS=OFF
+      FEATURE_TOOLS=OFF FEATURE_TOOLS_CTS=OFF SUPPORT_SSE=ON SUPPORT_OPENCL=ON
 
     - CONFIGURATION=Release PLATFORM=macOS ARCHS=x86_64
-      FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_PY=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
-      SUPPORT_SSE=OFF SUPPORT_OPENCL=ON
+      FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_PY=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
+      FEATURE_TOOLS_CTS=OFF SUPPORT_SSE=OFF SUPPORT_OPENCL=ON
     - CONFIGURATION=Release PLATFORM=macOS ARCHS=arm64
-      FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_PY=OFF FEATURE_LOADTESTS=OFF FEATURE_TESTS=OFF
-      FEATURE_TOOLS=OFF SUPPORT_SSE=OFF SUPPORT_OPENCL=ON
+      FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_PY=OFF FEATURE_LOADTESTS=OFF FEATURE_TESTS=OFF
+      FEATURE_TOOLS=OFF FEATURE_TOOLS_CTS=OFF SUPPORT_SSE=OFF SUPPORT_OPENCL=ON
 
     - CONFIGURATION=Release PLATFORM=macOS ARCHS=x86_64
-      FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_PY=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
-      SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF
+      FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_PY=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
+      FEATURE_TOOLS_CTS=OFF SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF
     - CONFIGURATION=Release PLATFORM=macOS ARCHS=arm64
-      FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_PY=OFF FEATURE_LOADTESTS=OFF FEATURE_TESTS=OFF
-      FEATURE_TOOLS=OFF SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF
+      FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_PY=OFF FEATURE_LOADTESTS=OFF FEATURE_TESTS=OFF
+      FEATURE_TOOLS=OFF FEATURE_TOOLS_CTS=OFF SUPPORT_SSE=OFF
+      SUPPORT_OPENCL=OFF
 
     - CONFIGURATION=Debug,Release PLATFORM=iOS
       FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_PY=OFF FEATURE_LOADTESTS=OpenGL+Vulkan FEATURE_TOOLS=OFF
-      SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF PACKAGE=YES
+      FEATURE_TOOLS_CTS=OFF SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF PACKAGE=YES
 
 jobs:
   include:
@@ -122,7 +123,8 @@ jobs:
         - VULKAN_SDK_VER: "1.3.243"
         - CMAKE_GEN: Ninja
         - CONFIGURATION=Release
-          FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=OpenGL FEATURE_TOOLS=ON
+          FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=OpenGL
+          FEATURE_TOOLS=ON FEATURE_TOOLS_CTS=OFF
           SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF PACKAGE=YES
     - os: linux
       dist: jammy
@@ -130,7 +132,8 @@ jobs:
       env:
         - CMAKE_GEN: Ninja
         - CONFIGURATION=Release
-          FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_PY=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
+          FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_PY=OFF FEATURE_LOADTESTS=OFF
+          FEATURE_TOOLS=OFF FEATURE_TOOLS_CTS=OFF
           SUPPORT_SSE=ON SUPPORT_OPENCL=ON PACKAGE=NO
     - os: linux
       dist: jammy
@@ -139,7 +142,7 @@ jobs:
         - CMAKE_GEN: Ninja
         - CONFIGURATION=Release
           FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_PY=OFF FEATURE_LOADTESTS=OFF
-          FEATURE_TOOLS=OFF
+          FEATURE_TOOLS=OFF FEATURE_TOOLS_CTS=OFF
           SUPPORT_SSE=OFF SUPPORT_OPENCL=ON PACKAGE=NO
     - os: linux
       dist: jammy
@@ -148,7 +151,7 @@ jobs:
         - CMAKE_GEN: Ninja
         - CONFIGURATION=Release
           FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_PY=OFF FEATURE_LOADTESTS=OFF
-          FEATURE_TOOLS=OFF
+          FEATURE_TOOLS=OFF FEATURE_TOOLS_CTS=OFF
           SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF PACKAGE=NO
     - os: linux
       dist: jammy
@@ -352,38 +355,39 @@ deploy:
 #      #branch: master
 #      condition: $PACKAGE = YES
 # ----------------------- dpl v1 -------------------------
-  - provider: releases
-    token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
-    name: $TRAVIS_TAG
-    skip_cleanup: true
-    # We can't use
-    #body: $RELNOTES
-    # because a bug in v1's backing Ruby code does not allow passing it
-    # command line option arguments that contain newlines leading to an
-    # error on Travis when we try.
-    # See https://github.com/travis-ci/dpl/issues/155.
-    #
-    # The obvious workarounds of literal "\n" or "<br />" do not work.
-    # The text is passed to GitHub but "\n" is shown literally. While "<br />"
-    # causes a newline in the rendering, the markdown interpreter does not
-    # recognize it as an actual newline so never changes the format from
-    # the initial heading format.
-    #
-    # Since we can't use either this or v2 to deply the release notes, we've
-    # rolled our own provider script for the body.
-    file_glob: true
-    file:
-      - $BUILD_DIR/KTX-Software-*-*
-    draft: true
-    prerelease: true
-    on:
-      tags: true
-      #branch: master
-      condition: $PACKAGE = "YES" && $TRAVIS_TAG =~ ^v[0-9].*
+##### Not working on jammy runners at present. Do everything via our script.
+#  - provider: releases
+#    token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
+#    name: $TRAVIS_TAG
+#    skip_cleanup: true
+#    # We can't use
+#    #body: $RELNOTES
+#    # because a bug in v1's backing Ruby code does not allow passing it
+#    # command line option arguments that contain newlines leading to an
+#    # error on Travis when we try.
+#    # See https://github.com/travis-ci/dpl/issues/155.
+#    #
+#    # The obvious workarounds of literal "\n" or "<br />" do not work.
+#    # The text is passed to GitHub but "\n" is shown literally. While "<br />"
+#    # causes a newline in the rendering, the markdown interpreter does not
+#    # recognize it as an actual newline so never changes the format from
+#    # the initial heading format.
+#    #
+#    # Since we can't use either this or v2 to deply the release notes, we've
+#    # rolled our own provider script for the body.
+#    file_glob: true
+#    file:
+#      - $BUILD_DIR/KTX-Software-*-*
+#    draft: true
+#    prerelease: true
+#    on:
+#      tags: true
+#      #branch: master
+#      condition: $PACKAGE = "YES" && $TRAVIS_TAG =~ ^v[0-9].*
 
   - provider: script
     edge: true
-    script: ruby ci_scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -c $REL_DESC_FILE -t ${TRAVIS_TAG} --draft true --prerelease true
+    script: ruby ci_scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -c $REL_DESC_FILE -t ${TRAVIS_TAG} --overwrite true --draft true --prerelease true $BUILD_DIR/KTX-Software-*-*
     on:
       tags: true
       #branch: master

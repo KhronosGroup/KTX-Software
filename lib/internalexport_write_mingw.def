@@ -12,6 +12,16 @@ EXPORTS
     _ZN6basisu9ResamplerC1EiiiiNS0_11Boundary_OpEffPKcPNS0_12Contrib_ListES5_ffff
     _ZN6basisu9Resampler8put_lineEPKf
     _ZN6basisu9Resampler8get_lineEv
+    _ZN6basisu13image_metrics4calcERKNS_5imageES3_jjbb
+    _ZN6basisu12compute_ssimERKNS_5imageES2_bb
+    _ZN6basisu16elemental_vector17increase_capacityEjbjPFvPvS1_jEb
     _Z15swizzle_to_rgbaPhS_jyP9swizzle_e
     appendLibId
-
+    dfdToStringChannelId
+    dfdToStringColorModel
+    dfdToStringColorPrimaries
+    dfdToStringDescriptorType
+    dfdToStringTransferFunction
+    dfdToStringVendorID
+    dfdToStringVersionNumber
+    ktxTexture2_constructCopy

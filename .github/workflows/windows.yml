@@ -33,19 +33,19 @@ jobs:
         arch: [ x64 ]
         options: [
           {config: 'Debug,Release',
-           doc: ON, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tests: ON, tools: ON,
+           doc: ON, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tests: ON, tools: ON, tools_cts: ON,
            package: YES,
            sse: ON, opencl: OFF},
           {config: Release,
-           doc: OFF, loadtests: OFF, py: OFF, tests: OFF, tools: OFF,
+           doc: OFF, loadtests: OFF, py: OFF, tests: OFF, tools: OFF, tools_cts: OFF,
            package: NO,
            sse: OFF, opencl: OFF},
           {config: Release,
-           doc: OFF, loadtests: OFF, py: OFF, tests: OFF, tools: OFF,
+           doc: OFF, loadtests: OFF, py: OFF, tests: OFF, tools: OFF, tools_cts: OFF,
            package: NO,
            sse: OFF, opencl: ON},
           {config: Release,
-           doc: OFF, loadtests: OFF, py: OFF, tests: OFF, tools: OFF,
+           doc: OFF, loadtests: OFF, py: OFF, tests: OFF, tools: OFF, tools_cts: OFF,
            package: NO,
            sse: ON, opencl: ON}
         ]
@@ -56,7 +56,7 @@ jobs:
             arch: x64
             options: {
               config: 'Debug,Release',
-              doc: ON, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tests: ON, tools: ON,
+              doc: ON, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tests: ON, tools: ON, tools_cts: ON,
               package: NO,
               sse: ON, opencl: OFF
             }
@@ -68,7 +68,7 @@ jobs:
             # built tests
             options: {
               config: 'Debug,Release',
-              doc: ON, jni: ON, loadtests: OFF, py: OFF, tests: ON, tools: ON,
+              doc: ON, jni: ON, loadtests: OFF, py: OFF, tests: ON, tools: ON, tools_cts: ON,
               package: YES
             }
     runs-on: ${{ matrix.os }}
@@ -91,6 +91,7 @@ jobs:
       FEATURE_PY: ${{ matrix.options.py }}
       FEATURE_TESTS: ${{ matrix.options.tests }}
       FEATURE_TOOLS: ${{ matrix.options.tools }}
+      FEATURE_TOOLS_CTS: ${{ matrix.options.tools_cts }}
       PACKAGE: ${{ matrix.options.package }}
       SUPPORT_OPENCL: ${{ matrix.options.opencl }}
       SUPPORT_SSE: ${{ matrix.options.sse }}
@@ -197,7 +198,7 @@ jobs:
 
     - name: Test Windows build
       if: matrix.arch == 'x64' && matrix.options.tests == 'ON'
-      run: ctest --test-dir $env:BUILD_DIR -C Release
+      run: ctest --output-on-failure --test-dir $env:BUILD_DIR -C Release
 
     - name: Upload test log
       if: ${{ failure() }}

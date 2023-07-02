@@ -47,8 +47,9 @@ $FEATURE_DOC = Set-ConfigVariable FEATURE_DOC "OFF"
 $FEATURE_JNI = Set-ConfigVariable FEATURE_JNI "OFF"
 $FEATURE_LOADTESTS = Set-ConfigVariable FEATURE_LOADTESTS "OpenGL+Vulkan"
 $FEATURE_PY = Set-ConfigVariable FEATURE_PY "OFF"
-$FEATURE_TOOLS = Set-ConfigVariable FEATURE_TOOLS "ON"
 $FEATURE_TESTS = Set-ConfigVariable FEATURE_TESTS "ON"
+$FEATURE_TOOLS = Set-ConfigVariable FEATURE_TOOLS "ON"
+$FEATURE_TOOLS_CTS = Set-ConfigVariable FEATURE_TOOLS_CTS "ON"
 $PACKAGE = Set-ConfigVariable PACKAGE "NO"
 $PYTHON = Set-ConfigVariable PYTHON ""
 $SUPPORT_SSE = Set-ConfigVariable SUPPORT_SSE "ON"
@@ -72,6 +73,10 @@ if (($PACKAGE -eq "YES") -and ($FEATURE_TOOLS -eq "OFF")) {
   exit 2
 }
 
+if (($FEATURE_TOOLS_CTS -eq "ON")) {
+  git submodule update --init --recursive tests/cts
+}
+
 $cmake_args = @(
   "-G", "$CMAKE_GEN"
   "-A", "$ARCH"
@@ -87,8 +92,9 @@ $cmake_args += @(
   "-D", "KTX_FEATURE_JNI=$FEATURE_JNI"
   "-D", "KTX_FEATURE_LOADTEST_APPS=$FEATURE_LOADTESTS"
   "-D", "KTX_FEATURE_PY=$FEATURE_PY"
-  "-D", "KTX_FEATURE_TOOLS=$FEATURE_TOOLS"
   "-D", "KTX_FEATURE_TESTS=$FEATURE_TESTS"
+  "-D", "KTX_FEATURE_TOOLS=$FEATURE_TOOLS"
+  "-D", "KTX_FEATURE_TOOLS_CTS=$FEATURE_TOOLS_CTS"
   "-D", "BASISU_SUPPORT_SSE=$SUPPORT_SSE"
   "-D", "BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL"
   "-D", "CODE_SIGN_KEY_VAULT=$CODE_SIGN_KEY_VAULT"

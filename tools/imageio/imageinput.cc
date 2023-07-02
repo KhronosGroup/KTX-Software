@@ -83,7 +83,7 @@ ImageInput::open(const _tstring& filename,
             buffer =
                 std::unique_ptr<std::stringstream>(new std::stringstream);
             *buffer << std::cin.rdbuf();
-            buffer->seekg(0, buffer->beg);
+            buffer->seekg(0, std::ios::beg);
         }
         fn = &sn;
     }

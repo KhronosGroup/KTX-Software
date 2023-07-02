@@ -4,13 +4,13 @@
 // Copyright 2022 The Khronos Group Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-// TEXR is not defined in tinyexr.h. Current GitHub tinyexr master uses
-// assert. The version in astc-encoder must be old.
 #include <array>
 #include <cassert>
 #include <optional>
 #include <string_view>
 #include <vector>
+// TEXR is not defined in tinyexr.h. Current GitHub tinyexr master uses
+// assert. The version in astc-encoder must be old.
 #define TEXR_ASSERT(x) assert(x)
 #define TINYEXR_IMPLEMENTATION
 #include "tinyexr.h"

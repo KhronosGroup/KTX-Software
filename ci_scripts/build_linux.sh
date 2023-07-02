@@ -41,6 +41,7 @@ FEATURE_PY=${FEATURE_PY:-OFF}
 FEATURE_TESTS=${FEATURE_TESTS:-ON}
 FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-ON}
 FEATURE_TOOLS=${FEATURE_TOOLS:-ON}
+FEATURE_TOOLS_CTS=${FEATURE_TOOLS_CTS:-ON}
 FEATURE_GL_UPLOAD=${FEATURE_GL_UPLOAD:-ON}
 FEATURE_VK_UPLOAD=${FEATURE_VK_UPLOAD:-ON}
 PACKAGE=${PACKAGE:-NO}
@@ -56,16 +57,22 @@ if [[ "$ARCH" = "aarch64" && "$FEATURE_LOADTESTS" =~ "Vulkan" ]]; then
   echo "Forcing FEATURE_LOADTESTS to \"$FEATURE_LOADTESTS\" as no Vulkan SDK yet for Linux/arm64."
 fi
 
-BUILD_DIR=${BUILD_DIR:-build/linux}
-if [ "$ARCH" != $(uname -m) ]; then
-  BUILD_DIR+="-$ARCH-"
-fi
-if [ "$CMAKE_GEN" = "Ninja" -o "$CMAKE_GEN" = "Unix Makefiles" ]; then
-  # Single configuration generators.
-  BUILD_DIR+="-$CONFIGURATION"
+if [[ -z $BUILD_DIR ]]; then
+  BUILD_DIR=build/linux
+  if [ "$ARCH" != $(uname -m) ]; then
+    BUILD_DIR+="-$ARCH-"
+  fi
+  if [ "$CMAKE_GEN" = "Ninja" -o "$CMAKE_GEN" = "Unix Makefiles" ]; then
+    # Single configuration generators.
+    BUILD_DIR+="-$CONFIGURATION"
+  fi
 fi
 
 mkdir -p $BUILD_DIR
+
+if [ "$FEATURE_TOOLS_CTS" = "ON" ]; then
+  git submodule update --init --recursive tests/cts
+fi
 
 cmake_args=("-G" "$CMAKE_GEN"
   "-B" $BUILD_DIR \
@@ -76,6 +83,7 @@ cmake_args=("-G" "$CMAKE_GEN"
   "-D" "KTX_FEATURE_PY=$FEATURE_PY" \
   "-D" "KTX_FEATURE_TESTS=$FEATURE_TESTS" \
   "-D" "KTX_FEATURE_TOOLS=$FEATURE_TOOLS" \
+  "-D" "KTX_FEATURE_TOOLS_CTS=$FEATURE_TOOLS_CTS" \
   "-D" "KTX_FEATURE_GL_UPLOAD=$FEATURE_GL_UPLOAD" \
   "-D" "KTX_FEATURE_VK_UPLOAD=$FEATURE_VK_UPLOAD" \
   "-D" "BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL" \
@@ -110,7 +118,7 @@ do
   cmake --build . --config $config
   if [ "$ARCH" = "$(uname -m)" ]; then
     echo "Test KTX-Software (Linux $ARCH $config)"
-    ctest -C $config #--verbose
+    ctest --output-on-failure -C $config #--verbose
   fi
   if [ "$config" = "Release" -a "$PACKAGE" = "YES" ]; then
     echo "Pack KTX-Software (Linux $ARCH $config)"

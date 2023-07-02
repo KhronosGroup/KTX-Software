@@ -302,7 +302,8 @@ NpbmInput::parseAHeader()
     char tupleType[MAX_TUPLETYPE_SIZE+1];   // +1 for terminating NUL.
     uint32_t width = 0, height = 0;
     unsigned int numFieldsFound = 0;
-    uint32_t componentCount = 0, tCompCount;
+    uint32_t componentCount = 0;
+    uint32_t tCompCount = 0;
     uint32_t maxVal = 0;
 
     for (;;) {
