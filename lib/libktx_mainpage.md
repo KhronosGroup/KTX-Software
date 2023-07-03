@@ -9,24 +9,27 @@
 libktx is a small library of functions for creating and reading KTX (Khronos
 TeXture) files, version 1 and 2 and instantiating OpenGL&reg; and OpenGL&reg; ES
 textures and Vulkan images from them. KTX version 2 files can contain images
-supercompressed with ZStd or ZLIB. They can also contain images in the Basis
-Universal formats. libktx can deflate and inflate ZStd and ZLIB compressed
-images and can encode and transcode the Basis Universal formats.
+supercompressed with _zstd_ or _zlib_. They can also contain images in the Basis
+Universal formats. libktx can deflate and inflate zstd and zlib compressed
+images, can encode and transcode the Basis Universal formats and can
+encode ASTC formats.
 
 For information about the KTX format see the
-<a href="http://github.khronos.org/KTX-Specification/">
+<a href="https://registry.khronos.org/KTX/specs/2.0/ktxspec.v2.html">
 formal specification.</a>
 
 @authors
 Mark Callow, <a href="http://www.edgewise-consulting.com">Edgewise Consulting</a>,
              formerly at <a href="http://www.hicorp.co.jp">HI Corporation</a>\n
-Andreas Atteneder, Independent.\n
+Mátyás Császár and Daniel Rákos, <a href="https://www.rastergrid.com/">RasterGrid</a>\n
+Wasim Abbas, <a href="https://www.arm.com/">Arm</a>\n
+Andreas Atteneder, Independent\n
 Georg Kolling, <a href="http://www.imgtec.com">Imagination Technology</a>\n
 Jacob Str&ouml;m, <a href="http://www.ericsson.com">Ericsson AB</a>
 
 @snippet{doc} version.h API version
 
-$Date: Thu Apr 20 21:16:14 2023 +0900 $
+$Date$
 
 # Usage Overview                              {#overview}
 

@@ -44,14 +44,17 @@ there are some rough edges including, but not limited, to:
 
 libKTX is the work of Mark Callow based on work by Georg Kolling and Jacob
 Ström with contributions borrowed from Troy Hanson, Johannes van Waveren,
-Lode Vandevenne and Rich Geldreich. ASTC encoding was added by Wasim Abbas.
-zlib supercompression, HDR, 422 and depth/stencil format support were added by  Mátyás Császár and Daniel Rákos of RasterGrid who also greatly improved the robustness of the library.
+Lode Vandevenne and Rich Geldreich. ASTC encoding was added by Wasim Abbas
+of ARM. zlib supercompression, HDR, 422 and depth/stencil format support
+were added by Mátyás Császár and Daniel Rákos of RasterGrid who also greatly
+improved the robustness of the library.
 
 The libKTX tests are also the work of Mark Callow with some contributions
 borrowed from Sascha Willems' Vulkan examples and use Sam Lantinga's libSDL
 for portability.
 
-`ktx` and all its commands and the CTS for it were developed by Mátyás Császár and Daniel Rákos of RasterGrid under contract from The Khronos Group, Inc.
+`ktx` and all its commands and the CTS for it were developed by Mátyás Császár
+and Daniel Rákos of RasterGrid under contract from The Khronos Group, Inc.
 
 The CLI for `ktx` and its commands was designed by Alexey Knyazev.
 

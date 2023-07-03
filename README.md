@@ -100,22 +100,21 @@ Windows' Git Bash or Cygwin's bash terminal:
 
 ```bash
 ./install-gitconfig.sh
-rm TODO.md lib/mainpage.md pkgdoc/pages.md tools/toktx/toktx.cc
-git checkout TODO.md lib/mainpage.md pkgdoc/pages.md tools/toktx/toktx.cc
+./ci_scripts/smudge_date.sh
 
 ```
 
-On Windows with the Command Prompt (requires `git.exe` in a directory
+On Windows PowerShell (requires `git.exe` in a directory
 on your %PATH%):
 
-```cmd
+```ps1
 install-gitconfig.bat
-del TODO.md TODO.md lib\mainpage.md pkgdoc\pages.md tools\toktx\toktx.cc
-git checkout TODO.md lib\mainpage.md pkgdoc\pages.md tools\toktx\toktx.cc
+./ci_scripts/smudge_date.ps1
 ```
 
 The first command adds an [include] of the repo's `.gitconfig` to the
 local git config file `.git/config`, i.e. the one in your clone of the repo.
-`.gitconfig` contains the config of the "keyworder" filter. The remaining
-commands force a new checkout of the affected files to smudge them with the
-date. These two are unnecessary if you plan to edit these files.
+`.gitconfig` contains the config of the "keyworder" filter. The script in
+the second command forces a new checkout of the affected files to smudge them
+with their last modified date. This is unnecessary if you plan to edit
+these files.

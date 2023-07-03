@@ -182,7 +182,7 @@ namespace ktx
 
 
  ---
- @par This page last modified $Date: Sat Mar 21 15:50:49 2020 -0700 $
+ @par This page last modified $Date$
 */
 
 /** @page libktx_js libktx Binding

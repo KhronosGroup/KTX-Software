@@ -23,8 +23,6 @@
  * alternative is duplicating unattractively large parts of it.
  *
  * @author Mark Callow, Edgewise Consulting
- *
- * $Date$
  */
 
 #include <ktx.h>
