@@ -179,6 +179,10 @@ namespace ktx
 
  @li @subpage libktx_js "libktx (in libktx.js)"
  @li @subpage msc_basis_transcoder "Basis Universal Transcoder (in msc_basis_transcoder.js)
+
+
+ ---
+ @par This page last modified $Date: Sat Mar 21 15:50:49 2020 -0700 $
 */
 
 /** @page libktx_js libktx Binding
