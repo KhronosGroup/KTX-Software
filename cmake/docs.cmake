@@ -179,7 +179,7 @@ endfunction()
 
 # ktxjswrappers.doc
 function( CreateDocKTXJSWrappers )
-    set( DOXYGEN_PROJECT_NAME "Khronos Texture Software" )
+    set( DOXYGEN_PROJECT_NAME "KTX Javascript Wrappers Reference" )
     set( DOXYGEN_FULL_PATH_NAMES NO )
     set( DOXYGEN_ALIASES author=\"\\section AUTHOR\\n\" )
     set( DOXYGEN_LAYOUT_FILE pkgdoc/ktxjswrappersDoxyLayout.xml )
