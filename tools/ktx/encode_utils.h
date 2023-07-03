@@ -5,6 +5,7 @@
 #pragma once
 
 #include "command.h"
+#include "formats.h"
 #include "utility.h"
 
 #include <thread>
@@ -16,10 +17,13 @@ namespace ktx {
 
 enum class EncodeCodec {
     NONE = 0,
+    ASTC,
     BasisLZ,
     UASTC,
     INVALID = 0x7FFFFFFF
 };
+
+// TODO: Add astc doxy docs
 
 /**
 //! [command options_codec]
@@ -187,69 +191,121 @@ enum class EncodeCodec {
 */
 template <bool ENCODE_CMD>
 struct OptionsCodec {
-    struct BasisOptions : public ktxBasisParams {
-        // The remaining numeric fields are clamped within the Basis
-        // library.
-        ClampedOption<ktx_uint32_t> threadCount;
-        ClampedOption<ktx_uint32_t> qualityLevel;
-        ClampedOption<ktx_uint32_t> maxEndpoints;
-        ClampedOption<ktx_uint32_t> maxSelectors;
-        ClampedOption<ktx_uint32_t> uastcRDODictSize;
-        ClampedOption<float> uastcRDOQualityScalar;
-        ClampedOption<float> uastcRDOMaxSmoothBlockErrorScale;
-        ClampedOption<float> uastcRDOMaxSmoothBlockStdDev;
+  struct AstcOptions : public ktxAstcParams {
+	ClampedOption<ktx_uint32_t> threadCount;
+	ClampedOption<ktx_uint32_t> blockDimension;
+	ClampedOption<ktx_uint32_t> mode;
+	ClampedOption<ktx_uint32_t> qualityLevel;
 
-        BasisOptions() :
-            threadCount(ktxBasisParams::threadCount, 1, 10000),
-            qualityLevel(ktxBasisParams::qualityLevel, 1, 255),
-            maxEndpoints(ktxBasisParams::maxEndpoints, 1, 16128),
-            maxSelectors(ktxBasisParams::maxSelectors, 1, 16128),
-            uastcRDODictSize(ktxBasisParams::uastcRDODictSize, 256, 65536),
-            uastcRDOQualityScalar(ktxBasisParams::uastcRDOQualityScalar,
-                                    0.001f, 50.0f),
-            uastcRDOMaxSmoothBlockErrorScale(
-                            ktxBasisParams::uastcRDOMaxSmoothBlockErrorScale,
-                            1.0f, 300.0f),
-            uastcRDOMaxSmoothBlockStdDev(
-                            ktxBasisParams::uastcRDOMaxSmoothBlockStdDev,
-                            0.01f, 65536.0f)
-        {
-            uint32_t tc = std::thread::hardware_concurrency();
-            if (tc == 0) tc = 1;
-            threadCount.max = tc;
-            threadCount = tc;
+       AstcOptions()
+            : threadCount(ktxAstcParams::threadCount, 1, 10000),
+              blockDimension(ktxAstcParams::blockDimension, 0,
+                             KTX_PACK_ASTC_BLOCK_DIMENSION_MAX),
+              mode(ktxAstcParams::mode, 0, KTX_PACK_ASTC_ENCODER_MODE_MAX),
+			  qualityLevel(ktxAstcParams::qualityLevel, 0,
+						   KTX_PACK_ASTC_QUALITY_LEVEL_MAX) {
+		  uint32_t tc = std::thread::hardware_concurrency();
+		  if (tc == 0)
+			tc = 1;
+		  threadCount.max = tc;
+		  threadCount = tc;
 
-            structSize = sizeof(ktxBasisParams);
-            // - 1 is to match what basisu_tool does (since 1.13).
-            compressionLevel = KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL - 1;
-            qualityLevel.clear();
-            maxEndpoints.clear();
-            endpointRDOThreshold = 0.0f;
-            maxSelectors.clear();
-            selectorRDOThreshold = 0.0f;
-            normalMap = false;
-            separateRGToRGB_A = false;
-            preSwizzle = false;
-            noEndpointRDO = false;
-            noSelectorRDO = false;
-            uastc = false; // Default to ETC1S.
-            uastcRDO = false;
-            uastcFlags = KTX_PACK_UASTC_LEVEL_DEFAULT;
-            uastcRDODictSize.clear();
-            uastcRDOQualityScalar.clear();
-            uastcRDODontFavorSimplerModes = false;
-            uastcRDONoMultithreading = false;
-            noSSE = false;
-            verbose = false; // Default to quiet operation.
-            for (int i = 0; i < 4; i++) inputSwizzle[i] = 0;
+          structSize = sizeof(ktxAstcParams);
+          blockDimension.clear();
+          blockDimension = KTX_PACK_ASTC_BLOCK_DIMENSION_6x6;
+          mode.clear();
+          qualityLevel.clear();
+          normalMap = false;
+          for (int i = 0; i < 4; i++)
+            inputSwizzle[i] = 0;
         }
-    };
+  };
+
+  struct BasisOptions : public ktxBasisParams {
+    // The remaining numeric fields are clamped within the Basis
+    // library.
+    ClampedOption<ktx_uint32_t> threadCount;
+    ClampedOption<ktx_uint32_t> qualityLevel;
+    ClampedOption<ktx_uint32_t> maxEndpoints;
+    ClampedOption<ktx_uint32_t> maxSelectors;
+    ClampedOption<ktx_uint32_t> uastcRDODictSize;
+    ClampedOption<float> uastcRDOQualityScalar;
+    ClampedOption<float> uastcRDOMaxSmoothBlockErrorScale;
+    ClampedOption<float> uastcRDOMaxSmoothBlockStdDev;
+
+    BasisOptions() :
+		threadCount(ktxBasisParams::threadCount, 1, 10000),
+          qualityLevel(ktxBasisParams::qualityLevel, 1, 255),
+          maxEndpoints(ktxBasisParams::maxEndpoints, 1, 16128),
+          maxSelectors(ktxBasisParams::maxSelectors, 1, 16128),
+          uastcRDODictSize(ktxBasisParams::uastcRDODictSize, 256, 65536),
+           uastcRDOQualityScalar(ktxBasisParams::uastcRDOQualityScalar,
+								 0.001f, 50.0f),
+          uastcRDOMaxSmoothBlockErrorScale(
+                            ktxBasisParams::uastcRDOMaxSmoothBlockErrorScale,
+							1.0f, 300.0f),
+          uastcRDOMaxSmoothBlockStdDev(
+                            ktxBasisParams::uastcRDOMaxSmoothBlockStdDev,
+							0.01f, 65536.0f)
+		  {
+      uint32_t tc = std::thread::hardware_concurrency();
+            if (tc == 0) tc = 1;
+      threadCount.max = tc;
+      threadCount = tc;
+
+      structSize = sizeof(ktxBasisParams);
+      // - 1 is to match what basisu_tool does (since 1.13).
+      compressionLevel = KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL - 1;
+      qualityLevel.clear();
+      maxEndpoints.clear();
+      endpointRDOThreshold = 0.0f;
+      maxSelectors.clear();
+      selectorRDOThreshold = 0.0f;
+      normalMap = false;
+      separateRGToRGB_A = false;
+      preSwizzle = false;
+      noEndpointRDO = false;
+      noSelectorRDO = false;
+      uastc = false; // Default to ETC1S.
+      uastcRDO = false;
+      uastcFlags = KTX_PACK_UASTC_LEVEL_DEFAULT;
+      uastcRDODictSize.clear();
+      uastcRDOQualityScalar.clear();
+      uastcRDODontFavorSimplerModes = false;
+      uastcRDONoMultithreading = false;
+      noSSE = false;
+      verbose = false; // Default to quiet operation.
+            for (int i = 0; i < 4; i++) inputSwizzle[i] = 0;
+    }
+  };
 
     std::string codecName;
     EncodeCodec codec;
     BasisOptions basisOpts;
+    AstcOptions astcOpts;
 
     void init(cxxopts::Options& opts) {
+        opts.add_options("Encode astc")
+            ("astc-mode", "Specify which encoding mode to use. LDR is the default unless the"
+                "input image is 16-bit in which case the default is HDR.",
+			   cxxopts::value<std::string>(), "ldr | hdr")
+            ("astc-quality", "The quality level configures the quality-performance tradeoff for the"
+                              "compressor; more complete searches of the search space improve image"
+                              "quality at the expense of compression time. Default is 'medium'. The"
+                              "quality level can be set between fastest (0) and exhaustive (100) via"
+                              "the following fixed quality presets:"
+                                  "Level      |  Quality"
+                                  "---------- | -----------------------------"
+                                  "fastest    | (equivalent to quality =   0)"
+                                  "fast       | (equivalent to quality =  10)"
+                                  "medium     | (equivalent to quality =  60)"
+                                  "thorough   | (equivalent to quality =  98)"
+			                      "exhaustive | (equivalent to quality = 100)",
+			    cxxopts::value<std::string>(), "<level>")
+            ("astc-perceptual", "The codec should optimize for perceptual error, instead of direct RMS"
+                              "error. This aims to improve perceived image quality, but typically"
+                              "lowers the measured PSNR score. Perceptual methods are currently only"
+			                  "available for normal maps and RGB color data.");
         opts.add_options("Encode BasisLZ")
             ("clevel", "BasisLZ compression level, an encoding speed vs. quality level tradeoff. "
                 "Range is [0,5], default is 1. Higher values are slower but give higher quality.",
@@ -319,6 +375,7 @@ struct OptionsCodec {
 
     EncodeCodec validateEncodeCodec(const cxxopts::OptionValue& codecOpt) const {
         static const std::unordered_map<std::string, EncodeCodec> codecs = {
+            { "astc", EncodeCodec::ASTC },
             { "basis-lz", EncodeCodec::BasisLZ },
             { "uastc", EncodeCodec::UASTC }
         };
@@ -338,6 +395,24 @@ struct OptionsCodec {
         if (codec == EncodeCodec::NONE)
             report.fatal(rc::INVALID_ARGUMENTS,
                 "Invalid use of argument --{} that only applies to encoding.", name);
+    }
+
+    void validateAstcModeArg(Reporter& report, const char* name) {
+        if (codec != EncodeCodec::ASTC)
+            report.fatal(rc::INVALID_ARGUMENTS,
+				"Invalid use of argument --{} that only applies when the used codec is ASTC.", name); // I think this doesn't make much sense, because this is implied codec ASTC
+    }
+
+    void validateAstcQualityArg(Reporter& report, const char* name) {
+        if (codec != EncodeCodec::ASTC)
+            report.fatal(rc::INVALID_ARGUMENTS,
+				"Invalid use of argument --{} that only applies when the used codec is ASTC.", name); // I think this doesn't make much sense, because this is implied codec ASTC and it could confuse users
+    }
+
+    void validateAstcPerceptualArg(Reporter& report, const char* name) {
+        if (codec != EncodeCodec::ASTC)
+            report.fatal(rc::INVALID_ARGUMENTS,
+				"Invalid use of argument --{} that only applies when the used codec is ASTC.", name); // I think this doesn't make much sense, because this is implied codec ASTC
     }
 
     void validateBasisLZArg(Reporter& report, const char* name) {
@@ -375,22 +450,31 @@ struct OptionsCodec {
 
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
         if (ENCODE_CMD) {
-            // "encode" command - required "codec" argument
-            codec = validateEncodeCodec(args["codec"]);
-            switch (codec) {
-            case EncodeCodec::NONE:
-                report.fatal(rc::INVALID_ARGUMENTS, "Missing codec argument.");
-                break;
-
-            case EncodeCodec::BasisLZ:
-            case EncodeCodec::UASTC:
-                codecName = to_lower_copy(args["codec"].as<std::string>());
-                break;
-
-            default:
-                report.fatal_usage("Invalid encode codec: \"{}\".", args["codec"].as<std::string>());
-                break;
-            }
+			if (args["format"].count()) {
+				const auto formatStr = args["format"].as<std::string>();
+				const auto parsedVkFormat = parseVkFormat(formatStr);
+				assert(parsedVkFormat.has_value() && "Output format is invalid");
+				const auto outputFormat =  parsedVkFormat.value();
+				if (isFormatAstc(outputFormat)) {
+					codec = EncodeCodec::ASTC;
+				}
+			}
+			else {
+				// "encode" command - required "codec" argument
+				codec = validateEncodeCodec(args["codec"]);
+				switch (codec) {
+				case EncodeCodec::NONE:
+					report.fatal(rc::INVALID_ARGUMENTS, "Missing codec argument.");
+					break;
+				case EncodeCodec::BasisLZ:
+				case EncodeCodec::UASTC:
+					codecName = to_lower_copy(args["codec"].as<std::string>());
+					break;
+				default:
+					report.fatal_usage("Invalid encode codec: \"{}\".", args["codec"].as<std::string>());
+					break;
+				}
+			}
         } else {
             // "create" command - optional "encode" argument
             codec = validateEncodeCodec(args["encode"]);
@@ -415,6 +499,21 @@ struct OptionsCodec {
         }
 
         // NOTE: The order of the validation below matters
+
+        if (args["astc-mode"].count()) {
+            validateAstcModeArg(report, "astc-mode");
+			astcOpts.mode = args["astc-mode"].as<uint32_t>();
+        }
+
+        if (args["astc-quality"].count()) {
+            validateAstcQualityArg(report, "astc-quality");
+			astcOpts.qualityLevel = args["astc-quality"].as<uint32_t>();
+        }
+
+        if (args["astc-perceptual"].count()) {
+            validateAstcPerceptualArg(report, "astc-perceptual");
+			astcOpts.perceptual = true;
+        }
 
         if (args["clevel"].count()) {
             validateBasisLZArg(report, "clevel");

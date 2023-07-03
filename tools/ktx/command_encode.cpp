@@ -111,6 +111,9 @@ int CommandEncode::main(int argc, _TCHAR* argv[]) {
 
 void CommandEncode::OptionsEncode::init(cxxopts::Options& opts) {
     opts.add_options()
+		("format", "KTX format enum. The enum names are matching the VkFormats without the VK_FORMAT_ prefix."
+		          " If the format is an ASTC formats the ASTC encoder specific options become valid,"
+		          " otherwise they are ignored. Required. The VK_FORMAT_ prefix is ignored if present. Case insensitive.", cxxopts::value<std::string>(), "<enum>")
         ("codec", "Target codec."
                   " With each encoding option the encoder specific options become valid,"
                   " otherwise they are ignored. Case-insensitive."
@@ -188,6 +191,8 @@ void CommandEncode::executeEncode() {
         fatal(rc::INVALID_FILE,
             "--normal-mode specified but the input file uses non-linear transfer function {}.",
             toString(khr_df_transfer_e(oetf)));
+
+	// TODO: This class MetricsCalculator { seems to be basisu specific, this needs updating and then calling ktxTexture2_CompressAstcEx here
 
     MetricsCalculator metrics;
     metrics.saveReferenceImages(texture, options, *this);
