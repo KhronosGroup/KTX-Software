@@ -173,7 +173,7 @@ namespace ktx
     };
 }
 
-/** @mainpage KTX Javascript Wrappers Reference
+/** @mainpage
 
  Javascript bindings are provided to:
 
