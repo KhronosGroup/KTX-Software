@@ -173,14 +173,13 @@ namespace ktx
     };
 }
 
-/** @page js_bindings Javascript Bindings
+/** @mainpage KTX Javascript Wrappers Reference
 
  Javascript bindings are provided to:
 
- @li @subpage libktx_js libktx.js
- @li @subpage msc_basis_transcoder msc_basis_transcoder.js
-
- */
+ @li @subpage libktx_js "libktx (in libktx.js)"
+ @li @subpage msc_basis_transcoder "Basis Universal Transcoder (in msc_basis_transcoder.js)
+*/
 
 /** @page libktx_js libktx Binding
 

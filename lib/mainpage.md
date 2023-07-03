@@ -18,15 +18,6 @@ For information about the KTX format see the
 <a href="http://github.khronos.org/KTX-Specification/">
 formal specification.</a>
 
-The library is open source software. Source code is available at
-<a href="https://github.com/KhronosGroup/KTX">GitHub</a>. Most of the source
-code and the documentation is licensed under the Apache 2.0 license. See @ref license
-for details. When distributing the library, whether in source or binary form, this
-documentation must be included in the distribution or otherwise made available to
-recipients.
-
-See @ref libktx_history for the list of changes.
-
 @authors
 Mark Callow, <a href="http://www.edgewise-consulting.com">Edgewise Consulting</a>,
              formerly at <a href="http://www.hicorp.co.jp">HI Corporation</a>\n
