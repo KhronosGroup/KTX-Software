@@ -24,6 +24,19 @@ and helpful tools for implementers.
 
 The software is open source software. See @ref license for details.
 
+#### Note on Navigating the Documentation
+
+This GUI provides a unified way to access the four separate KTX document
+projects. Due to lack of support in Doxygen for navigating such a collection,
+there are some rough edges including, but not limited, to:
+
+* The tab ordering changes. A varying number of tabs related to the currently
+  open project are displayed on the left. Tabs for accessing other projects
+  follow to the right.
+* In the left  pane _treeview_ the entries for accessing other projects have
+  the same indentation under the project's title as all the current project's
+  pages.
+
 ---
 @par This page last modified $Date$
 

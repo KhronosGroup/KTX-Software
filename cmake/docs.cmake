@@ -60,19 +60,10 @@ endfunction()
 # These projects and accompanying DOXYGEN_LAYOUT_FILES are carefully crafted
 # to provide the illusion of a consistent GUI across all the projects.
 # Likely this will be fragile in the face of Doxygen changes.
-# Important points:
-# - All Projects have the same name so the name of the top level item in
-#   the treeview does not change.
-# - A "sub" project's name must be repeated as both the title of the `mainpage`
-#   tab in the layout file and as the text string on the @mainpage command.
-#   The first is so the sub-project doesn't disappear from the tab bar. The
-#   second is so the mainpage is displayed in the treeview with the expected
-#   name. If there is no name, the subpages are placed under the top-level
-#   item in the tree view, which has the global name not sub-project's name.
 
 # ktx.doc
 function( CreateDocLibKTX )
-    set( DOXYGEN_PROJECT_NAME "libktx - The KTX Library" )
+    set( DOXYGEN_PROJECT_NAME "libktx Reference" )
     set( DOXYGEN_ALIASES error=\"\\par Errors\\n\" )
     set( DOXYGEN_LAYOUT_FILE pkgdoc/libktxDoxyLayout.xml )
     set( DOXYGEN_TYPEDEF_HIDES_STRUCT YES )
@@ -106,7 +97,7 @@ function( CreateDocLibKTX )
         ktx_uint32_t numLevels\;                   \\
         ktx_uint32_t numLayers\;                   \\
         ktx_uint32_t numFaces\;                    \\
-        struct {                                  \\
+        struct {                                   \\
             ktxOrientationX x\;                    \\
             ktxOrientationY y\;                    \\
             ktxOrientationZ z\;                    \\
@@ -121,7 +112,7 @@ function( CreateDocLibKTX )
 
     doxygen_add_docs(
         libktx.doc
-        lib/mainpage.md
+        lib/libktx_mainpage.md
         include
         lib/astc_encode.cpp
         lib/basis_encode.cpp
@@ -207,8 +198,6 @@ function( CreateDocKTX )
     set( DOXYGEN_HTML_HEADER pkgdoc/header.html )
     set( DOXYGEN_HTML_OUTPUT . )
     set( DOXYGEN_MAN_LINKS YES )
-    #set( DOXYGEN_DISABLE_INDEX NO )
-    #set( DOXYGEN_GENERATE_TREEVIEW YES )
     #set( DOXYGEN_TAGFILES ${docdest}/libktx.tag=libktx ${docdest}/ktxtools.tag=ktxtools )
 
     doxygen_add_docs(

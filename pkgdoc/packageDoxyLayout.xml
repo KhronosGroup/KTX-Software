@@ -8,7 +8,7 @@
     <tab type="user"  url="libktx/index.html" title="libktx Reference"/>
     <tab type="user"  url="ktxjswrappers/index.html"
          title="KTX Javascript Wrappers Reference"/>
-    <tab type="user"  url="@ref license" title="License"/>
+    <tab type="user"  url="@ref license" title=""/>
     <tab type="namespaces" visible="no" title="">
       <tab type="namespacelist" visible="no" title="" intro=""/>
       <tab type="namespacemembers" visible="no" title="" intro=""/>

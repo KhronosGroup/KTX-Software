@@ -1,5 +1,4 @@
-Introduction             {#mainpage}
-============
+@mainpage
 
 <!--
  Can't put at start. Doxygen requires page title on first line.
@@ -27,7 +26,7 @@ Jacob Str&ouml;m, <a href="http://www.ericsson.com">Ericsson AB</a>
 
 @snippet{doc} version.h API version
 
-$Date$
+$Date: Thu Apr 20 21:16:14 2023 +0900 $
 
 # Usage Overview                              {#overview}
 

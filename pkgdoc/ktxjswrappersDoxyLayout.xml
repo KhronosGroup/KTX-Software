@@ -38,8 +38,8 @@
     <tab type="examples" visible="no" title="" intro=""/>
     <tab type="user" url="../index.html" title="Package"/>
     <tab type="user" url="../ktxtools/index.html" title="KTX Tools Reference"/>
-    <tab type="user"  url="../libktx/index.html" title="libktx Reference"/>
-    <tab type="user"  url="@ref license" title="License"/>
+    <tab type="user" url="../libktx/index.html" title="libktx Reference"/>
+    <tab type="user" url="@ref license" title="License"/>
   </navindex>
 
   <!-- Layout definition for a class page -->
