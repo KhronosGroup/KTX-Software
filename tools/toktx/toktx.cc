@@ -1,8 +1,6 @@
 // -*- tab-width: 4; -*-
 // vi: set sw=2 ts=4 sts=4 expandtab:
 
-// $Id: aaf1dc131758d6a2a60a7ad1e797c02451aecd32 $
-
 // Copyright 2010-2020 The Khronos Group Inc.
 // SPDX-License-Identifier: Apache-2.0
 
