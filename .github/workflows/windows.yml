@@ -167,6 +167,12 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
+    - name: Smudge embedded dates
+      if: matrix.options.doc == 'ON'
+      run: |
+        ./install_gitconfig.bat
+        ci_scripts/smudge_date.ps1
+
     - name: Build Windows
       #   The installers run as part of "Install Dependencies" add
       # environment variables to the registry and augment $Path there.
