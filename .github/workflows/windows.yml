@@ -170,7 +170,7 @@ jobs:
     - name: Smudge embedded dates
       if: matrix.options.doc == 'ON'
       run: |
-        ./install_gitconfig.ps1
+        ./install-gitconfig.ps1
         ci_scripts/smudge_date.ps1
 
     - name: Build Windows
