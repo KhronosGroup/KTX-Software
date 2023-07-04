@@ -1,5 +1,11 @@
 @mainpage
 
+<!--
+ Can't put at start. Doxygen requires page title on first line.
+ Copyright 2023 The Khronos Group Inc. 
+ SPDX-License-Identifier: Apache-2.0
+-->
+
 There are two sets of tools: a new set with a unified front end, @ref ktx, and an older set of individual tools. Both are documented here.
 
 ktx Overview
