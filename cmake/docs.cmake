@@ -134,11 +134,11 @@ function( CreateDocLibKTX )
 endfunction()
 
 # ktxtools.doc
-function( CreateDocKTXTools )
+function( CreateDocTools )
     set( DOXYGEN_PROJECT_NAME "KTX Tools Reference" )
     set( DOXYGEN_FULL_PATH_NAMES NO )
     set( DOXYGEN_ALIASES author=\"\\section AUTHOR\\n\" )
-    set( DOXYGEN_LAYOUT_FILE pkgdoc/ktxtoolsDoxyLayout.xml )
+    set( DOXYGEN_LAYOUT_FILE pkgdoc/toolsDoxyLayout.xml )
     set( DOXYGEN_SHOW_FILES NO )
     set( DOXYGEN_FILE_PATTERNS *.cpp )
     set( DOXYGEN_RECURSIVE YES )
@@ -165,15 +165,15 @@ function( CreateDocKTXTools )
         tools/ktxtools_mainpage.md
         tools/toktx/toktx.cc
     )
-    add_docs_cmake_plus( ktxtools.doc pkgdoc/ktxtoolsDoxyLayout.xml )
+    add_docs_cmake_plus( ktxtools.doc pkgdoc/toolsDoxyLayout.xml )
 endfunction()
 
 # ktxjswrappers.doc
-function( CreateDocKTXJSWrappers )
+function( CreateDocJSWrappers )
     set( DOXYGEN_PROJECT_NAME "KTX Javascript Wrappers Reference" )
     set( DOXYGEN_FULL_PATH_NAMES NO )
     set( DOXYGEN_ALIASES author=\"\\section AUTHOR\\n\" )
-    set( DOXYGEN_LAYOUT_FILE pkgdoc/ktxjswrappersDoxyLayout.xml )
+    set( DOXYGEN_LAYOUT_FILE pkgdoc/jswrappersDoxyLayout.xml )
     set( DOXYGEN_SHOW_FILES NO )
     set( DOXYGEN_HTML_OUTPUT ktxjswrappers )
     #set( DOXYGEN_GENERATE_TAGFILE ${docdest}/ktxjswrappers.tag )
@@ -183,7 +183,7 @@ function( CreateDocKTXJSWrappers )
         ktxjswrappers.doc
         interface/js_binding
     )
-    add_docs_cmake_plus( ktxjswrappers.doc pkgdoc/ktxjswrappersDoxyLayout.xml )
+    add_docs_cmake_plus( ktxjswrappers.doc pkgdoc/jswrappersDoxyLayout.xml )
 endfunction()
 
 # ktxpkg.doc
@@ -210,24 +210,23 @@ function( CreateDocKTX )
 endfunction()
 
 CreateDocLibKTX()
-CreateDocKTXTools()
-CreateDocKTXJSWrappers()
+CreateDocTools()
+CreateDocJSWrappers()
 CreateDocKTX()
 
 add_dependencies( libktx.doc ktxpkg.doc ktx_version )
-add_dependencies( ktxjswrappers.doc ktxpkg.doc )
+add_dependencies( jswrappers.doc ktxpkg.doc )
 add_dependencies( ktxtools.doc ktxpkg.doc )
 
-# The only way I can think of to avoid always building the docs is to add a
-# dependency on the "package" built-in target. Unfortunately CMake does not
-# support adding dependencies to built-in targets. See
-# https://gitlab.kitware.com/cmake/cmake/-/issues/8438.
+# I want to add a dependency on the "package" built-in target.
+# Unfortunately CMake does not support adding dependencies to
+# built-in targets. See https://gitlab.kitware.com/cmake/cmake/-/issues/8438.
 #
 # There also seems to be no way to add a dependency for the install commands
 # below. Presumably "install(TARGETS ...)" adds a dependency on each target
-# but the rest of the command is simply not appropriate for this case.
+# but the rest of that command is simply not appropriate for this case.
 add_custom_target( all.doc ALL
-    DEPENDS ktxtools.doc libktx.doc ktxjswrappers.doc
+    DEPENDS tools.doc libktx.doc jswrappers.doc
 )
 
 install(
