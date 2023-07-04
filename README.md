@@ -108,7 +108,7 @@ On Windows PowerShell (requires `git.exe` in a directory
 on your %PATH%):
 
 ```ps1
-install-gitconfig.bat
+install-gitconfig.ps1
 ./ci_scripts/smudge_date.ps1
 ```
 
