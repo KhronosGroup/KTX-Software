@@ -6,9 +6,9 @@
 The Official Khronos KTX Software Repository
 ---
 
-| GNU/Linux, iOS, macOS & wasm | Windows | Android | Mingw | Documentation |
-| :--------------------------: | :-----: | :-----: | :---: | :-----------: | 
-| ![Build Status](https://travis-ci.com/KhronosGroup/KTX-Software.svg?branch=main) | ![Build status](https://github.com/KhronosGroup/KTX-Software/actions/workflows/windows.yml/badge.svg) | ![KTX-Software CI](https://github.com/KhronosGroup/KTX-Software/actions/workflows/android.yml/badge.svg) | ![KTX-Software CI](https://github.com/KhronosGroup/KTX-Software/actions/workflows/mingw.yml/badge.svg) | ![Build status](https://codedocs.xyz/KhronosGroup/KTX-Software.svg)|
+| GNU/Linux, iOS, macOS & wasm | Windows | Android | Mingw |
+| :--------------------------: | :-----: | :-----: | :---: |
+| ![Build Status](https://travis-ci.com/KhronosGroup/KTX-Software.svg?branch=main) | ![Build status](https://github.com/KhronosGroup/KTX-Software/actions/workflows/windows.yml/badge.svg) | ![KTX-Software CI](https://github.com/KhronosGroup/KTX-Software/actions/workflows/android.yml/badge.svg) | ![KTX-Software CI](https://github.com/KhronosGroup/KTX-Software/actions/workflows/mingw.yml/badge.svg) |
 
 This is the official home of the source code for the Khronos KTX library and tools.
 
