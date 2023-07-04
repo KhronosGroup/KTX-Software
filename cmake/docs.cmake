@@ -149,7 +149,7 @@ function( CreateDocTools )
     set( DOXYGEN_TAGFILES ${docdest}/ktxpkg.tag=.. )
 
     doxygen_add_docs(
-        ktxtools.doc
+        tools.doc
         tools/ktx/ktx_main.cpp
         tools/ktx/command_create.cpp
         tools/ktx/command_encode.cpp
@@ -165,7 +165,7 @@ function( CreateDocTools )
         tools/ktxtools_mainpage.md
         tools/toktx/toktx.cc
     )
-    add_docs_cmake_plus( ktxtools.doc pkgdoc/toolsDoxyLayout.xml )
+    add_docs_cmake_plus( tools.doc pkgdoc/toolsDoxyLayout.xml )
 endfunction()
 
 # ktxjswrappers.doc
@@ -180,10 +180,10 @@ function( CreateDocJSWrappers )
     set( DOXYGEN_TAGFILES ${docdest}/ktxpkg.tag=.. )
 
     doxygen_add_docs(
-        ktxjswrappers.doc
+        jswrappers.doc
         interface/js_binding
     )
-    add_docs_cmake_plus( ktxjswrappers.doc pkgdoc/jswrappersDoxyLayout.xml )
+    add_docs_cmake_plus( jswrappers.doc pkgdoc/jswrappersDoxyLayout.xml )
 endfunction()
 
 # ktxpkg.doc
@@ -216,7 +216,7 @@ CreateDocKTX()
 
 add_dependencies( libktx.doc ktxpkg.doc ktx_version )
 add_dependencies( jswrappers.doc ktxpkg.doc )
-add_dependencies( ktxtools.doc ktxpkg.doc )
+add_dependencies( tools.doc ktxpkg.doc )
 
 # I want to add a dependency on the "package" built-in target.
 # Unfortunately CMake does not support adding dependencies to
