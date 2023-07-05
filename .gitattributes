@@ -41,19 +41,14 @@ mkversion eol=lf
 GNUmakefile eol=lf
 
 # Keyword expansion
-GNUmakefile ident
-TODO.md filter=keyworder
-lib/*.[ch] ident
-lib/*.cxx ident
-lib/mainpage.md filter=keyworder
+interface/js_binding/ktx_wrapper.cpp filter=keyworder
+lib/libktx_mainpage.md filter=keyworder
 pkgdoc/pages.md filter=keyworder
+tools/ktxtools_mainpage.md filter=keyworder
 tests/loadtests/common/at.[ch] ident
 tests/loadtests/common/egltowgl.c ident
 tests/loadtests/gles1/*.c ident
 tests/loadtests/shader-based/*.c ident
-tools/ktx2ktx2/ktx2ktx2.cpp ident
-tools/ktxinfo/ktxinfo.cpp ident
-tools/toktx/toktx.cpp filter=keyworder ident
 
 # LFS attributes
 *.a filter=lfs -text
