@@ -2,26 +2,7 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 Release Notes
 =============
-## Version 4.3.0-alpha2
-
-
-### Changes since v4.3.0-alpha1 (by part)
-### libktx
-
-* Fix alignment, removes tabs (8e4ee5d5) (@abbaswasim)
-
-* Fix memory leak of input\_image in ktxTexture2\_CompressAstcEx (04bdffe0) (@abbaswasim)
-
-
-
-
-
-
-
-
-
-
-## Version 4.3.0-alpha1
+## Version 4.3.0-alpha3
 ### New Features
 
 v4.3.0 contains a new suite of command line tools accessed via an umbrella `ktx` command.
@@ -82,7 +63,130 @@ Please refer to the manual pages or use the `--help` command-line option for fur
 * Neither the Vulkan nor GL loaders support depth/stencil textures.
 
 
-### Changes since v4.2.0 (by part)
+### Changes since v4.3.0-alpha2 (by part)
+### libktx
+
+* Improve documentation (#730) (69b1685a) (@MarkCallow)
+
+  - Rework navigation among the multiple Doxygen projects for much easier use.
+  - Rename new ktx tool man pages from `ktxtools\_*` to `ktx\_*`
+  - Add `ktx` tool mainpage based on RELEASE\_NOTES info.
+  - Make minor formatting fix in `ktx` man page.
+  - Update acknowledgements.
+  - Remove outdated TODO.md.
+  - Add script to do `$Date$` keyword smudging. Use it in CI and reference it from
+    README.md to avoid repetition of list of files needing smudging.
+  - Add `$Date$` keywords to some docs.
+  - Remove `$Date$` and #ident keywords that are no longer needed or used.
+  - Document the parts of `khr\_df.h` relevant to the libktx API.
+
+* Implement the extended scope and further improvements for ktxtools (#722) (2189c54e) (@VaderY)
+
+  - tools: Implement stdout support
+  - tools: Implement stdin support
+  - tools: Implement 4:2:2 support
+  - tools: Implement support for 10X6 and 10X4 formats
+  - tools: Implement support for B10G11R11\_UFLOAT and E5B9G9R9\_UFLOAT formats
+  - tools: Complete support for Depth-Stencil formats
+  - tools: Improvements, cleanup and bug fixes
+  - extract: Implement fragment URI support
+  - extract: Implement 4:2:2 sub-sampling
+  - validate: Fix and extend padding byte validation checks
+  - cts: Add support for stdin/stdout test cases (including binary IO)
+  - cts: Add tests to cover new features and capabilities
+  - cts: Extend existing tests to improve coverage
+  - cts: Test runner now deletes matching output files (this enables easy packaging of mismatching files)
+  - cts: Added a new cli arg to the runner script: --keep-matching-outputs to prevent the deletion of matching output files
+  - dfdUtils: Implement 4:2:2 support
+  - dfdUtils: Implement support for 10X6 and 10X4 formats
+  - imageio: Fix stdin support
+  - ktx: Add stringToVkFormat to mkvkformatfiles
+  - ktx: Implement 3D BC support (ASTC 3D Blocks)
+  - ktx: Implement 4:2:2 support
+  - ktx: Complete support for Depth-Stencil formats
+  - ktx: Improve interpretDFD
+  - ktx: Improvements, cleanup and bug fixes
+  - cmake: Add CMake generator expression for output directory on Mac
+
+### Tools
+
+* Improve documentation (#730) (69b1685a) (@MarkCallow)
+
+  - Rework navigation among the multiple Doxygen projects for much easier use.
+  - Rename new ktx tool man pages from `ktxtools\_*` to `ktx\_*`
+  - Add `ktx` tool mainpage based on RELEASE\_NOTES info.
+  - Make minor formatting fix in `ktx` man page.
+  - Update acknowledgements.
+  - Remove outdated TODO.md.
+  - Add script to do `$Date$` keyword smudging. Use it in CI and reference it from
+    README.md to avoid repetition of list of files needing smudging.
+  - Add `$Date$` keywords to some docs.
+  - Remove `$Date$` and #ident keywords that are no longer needed or used.
+  - Document the parts of `khr\_df.h` relevant to the libktx API.
+
+* Implement the extended scope and further improvements for ktxtools (#722) (2189c54e) (@VaderY)
+
+  - tools: Implement stdout support
+  - tools: Implement stdin support
+  - tools: Implement 4:2:2 support
+  - tools: Implement support for 10X6 and 10X4 formats
+  - tools: Implement support for B10G11R11\_UFLOAT and E5B9G9R9\_UFLOAT formats
+  - tools: Complete support for Depth-Stencil formats
+  - tools: Improvements, cleanup and bug fixes
+  - extract: Implement fragment URI support
+  - extract: Implement 4:2:2 sub-sampling
+  - validate: Fix and extend padding byte validation checks
+  - cts: Add support for stdin/stdout test cases (including binary IO)
+  - cts: Add tests to cover new features and capabilities
+  - cts: Extend existing tests to improve coverage
+  - cts: Test runner now deletes matching output files (this enables easy packaging of mismatching files)
+  - cts: Added a new cli arg to the runner script: --keep-matching-outputs to prevent the deletion of matching output files
+  - dfdUtils: Implement 4:2:2 support
+  - dfdUtils: Implement support for 10X6 and 10X4 formats
+  - imageio: Fix stdin support
+  - ktx: Add stringToVkFormat to mkvkformatfiles
+  - ktx: Implement 3D BC support (ASTC 3D Blocks)
+  - ktx: Implement 4:2:2 support
+  - ktx: Complete support for Depth-Stencil formats
+  - ktx: Improve interpretDFD
+  - ktx: Improvements, cleanup and bug fixes
+  - cmake: Add CMake generator expression for output directory on Mac
+
+
+
+### JS Wrappers
+
+* Improve documentation (#730) (69b1685a) (@MarkCallow)
+
+  - Rework navigation among the multiple Doxygen projects for much easier use.
+  - Rename new ktx tool man pages from `ktxtools\_*` to `ktx\_*`
+  - Add `ktx` tool mainpage based on RELEASE\_NOTES info.
+  - Make minor formatting fix in `ktx` man page.
+  - Update acknowledgements.
+  - Remove outdated TODO.md.
+  - Add script to do `$Date$` keyword smudging. Use it in CI and reference it from
+    README.md to avoid repetition of list of files needing smudging.
+  - Add `$Date$` keywords to some docs.
+  - Remove `$Date$` and #ident keywords that are no longer needed or used.
+  - Document the parts of `khr\_df.h` relevant to the libktx API.
+
+
+
+
+## Version 4.3.0-alpha2
+
+
+### Changes since v4.3.0-alpha1 (by part)
+### libktx
+
+* Fix alignment, removes tabs (8e4ee5d5) (@abbaswasim)
+
+* Fix memory leak of input\_image in ktxTexture2\_CompressAstcEx (04bdffe0) (@abbaswasim)
+
+
+## Version 4.3.0-alpha1
+
+### Changes since v4.2.1 (by part)
 ### libktx
 
 * Merge ktxtools into main (#714) (a6abf2ff) (@VaderY)
