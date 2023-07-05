@@ -150,7 +150,7 @@ void CommandHelp::executeHelp() {
     executablePath.resize(wcslen(executablePath.c_str()));
 
     const auto commandStr = options.command.value_or("");
-    const auto systemCommand = fmt::format(L"{}\\..\\share\\doc\\KTX-Software\\html\\ktxtools\\ktxtools{}{}.html",
+    const auto systemCommand = fmt::format(L"{}\\..\\share\\doc\\KTX-Software\\html\\ktxtools\\ktx{}{}.html",
             executablePath,
             options.command ? L"_" : L"",
             std::wstring(commandStr.begin(), commandStr.end()));
@@ -172,17 +172,18 @@ void CommandHelp::executeHelp() {
 #   endif
 
     const auto executableDir = std::filesystem::path(executablePath).remove_filename();
-    const auto manFile = fmt::format("{}/../share/man/man1/ktxtools{}{}.1",
+    const auto manFile = fmt::format("{}/../share/man/man1/ktx{}{}.1",
                 executableDir.string(),
                 options.command ? "_" : "",
                 options.command.value_or(""));
     if (std::filesystem::exists(manFile)) {
-        // We have relative access to the man file, prioritze opening it that way to support custom install locations
+        // We have relative access to the man file, prioritze opening it
+        // that way to support custom install locations
         const auto systemCommand = fmt::format("man \"{}\"", manFile);
         const auto result = std::system(systemCommand.c_str());
         (void) result;
     } else {
-        const auto systemCommand = fmt::format("man ktxtools{}{}",
+        const auto systemCommand = fmt::format("man ktx{}{}",
                 options.command ? "_" : "",
                 options.command.value_or(""));
         const auto result = std::system(systemCommand.c_str());
