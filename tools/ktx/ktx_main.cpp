@@ -27,8 +27,9 @@ Unified CLI frontend for the KTX-Software library.
     ktx [option...]
 
 @section ktx_description DESCRIPTION
-    Unified CLI frontend for the KTX-Software library with sub-commands for specific operations<br/>
-    for the KTX File Format Specification https://registry.khronos.org/KTX/specs/2.0/ktxspec.v2.html.
+    Unified CLI frontend for the KTX-Software library with sub-commands for specific operations
+    for the KTX File Format Specification
+    https://registry.khronos.org/KTX/specs/2.0/ktxspec.v2.html.
 
     The following commands are available:
     <dl>
