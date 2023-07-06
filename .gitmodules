@@ -5,4 +5,4 @@
 [submodule "tests/cts"]
 	path = tests/cts
 	url = https://github.com/KhronosGroup/KTX-Software-CTS.git
-	branch = main
+	branch = b881ca6ff438b663b98952d3361e5e3fce14938c
