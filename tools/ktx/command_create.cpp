@@ -72,10 +72,19 @@ struct OptionsCreate {
                 ("format", "KTX format enum that specifies the image data format."
                     " The enum names are matching the VkFormats without the VK_FORMAT_ prefix."
                     " The VK_FORMAT_ prefix is ignored if present."
-                    " If the --encode option is used it specifies the format created from the"
-                    " the input files before the encoding step."
-                    " If the format is an ASTC format the ASTC encoder specific options become valid,"
+                    "\nWhen used with --encode it specifies the format of the input files before the encoding step."
+                    " In this case it must be one of:"
+                    "\n    R8_UNORM"
+                    "\n    R8_SRGB"
+                    "\n    R8G8_UNORM"
+                    "\n    R8G8_SRGB"
+                    "\n    R8G8B8_UNORM"
+                    "\n    R8G8B8_SRGB"
+                    "\n    R8G8B8A8_UNORM"
+                    "\n    R8G8B8A8_SRGB"
+                    "\nIf the format is an ASTC format the ASTC encoder specific options become valid,"
                     " otherwise they are ignored."
+                    "\nThe format will be used to verify and load all input files into a texture before encoding."
                     " Case insensitive. Required.", cxxopts::value<std::string>(), "<enum>")
                 ("1d", "Create a 1D texture. If not set the texture will be a 2D or 3D texture.")
                 ("cubemap", "Create a cubemap texture. If not set the texture will be a 2D or 3D texture.")
@@ -623,11 +632,22 @@ Create a KTX2 file from various input files.
         <dt>--format &lt;enum&gt;</dt>
         <dd>KTX format enum that specifies the image data format.
             The enum names are matching the VkFormats without the VK_FORMAT_ prefix.
-            The VK_FORMAT_ prefix is ignored if present.
-            If the --encode option is used it specifies the format created from the
-            the input files before the encoding step.
+            The VK_FORMAT_ prefix is ignored if present.<br />
+            When used with --encode it specifies the format of the input files before the encoding step.
+            In this case it must be one of:
+            <ul>
+                <li>R8_UNORM</li>
+                <li>R8_SRGB</li>
+                <li>R8G8_UNORM</li>
+                <li>R8G8_SRGB</li>
+                <li>R8G8B8_UNORM</li>
+                <li>R8G8B8_SRGB</li>
+                <li>R8G8B8A8_UNORM</li>
+                <li>R8G8B8A8_SRGB</li>
+            </ul>
             If the format is an ASTC format the ASTC encoder specific options become valid,
-            otherwise they are ignored.
+            otherwise they are ignored.<br />
+            The format will be used to verify and load all input files into a texture before encoding.<br />
             Case insensitive. Required.</dd>
         <dl>
             <dt>--astc-mode &lt;ldr | hdr&gt;</dt>
@@ -2129,7 +2149,7 @@ void CommandCreate::checkSpecsMatch(const ImageInput& currentFile, const ImageSp
     if (currentFormat.transfer() != firstFormat.transfer()) {
         if (options.assignOETF.has_value()) {
             warning("Input image \"{}\" has different transfer function ({}) than the first image ({})"
-                " but will be threaded identically as specified by the --assign-oetf option.",
+                " but will be treated identically as specified by the --assign-oetf option.",
                 currentFile.filename(), toString(currentFormat.transfer()), toString(firstFormat.transfer()));
         } else if (options.convertOETF.has_value()) {
             warning("Input image \"{}\" has different transfer function ({}) than the first image ({})"
@@ -2137,7 +2157,8 @@ void CommandCreate::checkSpecsMatch(const ImageInput& currentFile, const ImageSp
                 " function specified by the --convert-oetf option.",
                 currentFile.filename(), toString(currentFormat.transfer()), toString(firstFormat.transfer()));
         } else {
-            fatal(rc::INVALID_FILE, "Input image \"{}\" has different transfer function ({}) than the first image ({}).",
+            fatal(rc::INVALID_FILE, "Input image \"{}\" has different transfer function ({}) than the first image ({})."
+                " Use --assign-oetf or --convert-oetf to specify handling and stop this error.",
                 currentFile.filename(), toString(currentFormat.transfer()), toString(firstFormat.transfer()));
         }
     }
@@ -2147,7 +2168,7 @@ void CommandCreate::checkSpecsMatch(const ImageInput& currentFile, const ImageSp
         auto firstGamma = firstFormat.oeGamma() != -1 ? std::to_string(firstFormat.oeGamma()) : "no gamma";
         if (options.assignOETF.has_value()) {
             warning("Input image \"{}\" has different gamma ({}) than the first image ({})"
-                " but will be threaded identically as specified by the --assign-oetf option.",
+                " but will be treated identically as specified by the --assign-oetf option.",
                 currentFile.filename(), currentGamma, firstGamma);
         } else if (options.convertOETF.has_value()) {
             warning("Input image \"{}\" has different gamma ({}) than the first image ({})"
@@ -2155,7 +2176,8 @@ void CommandCreate::checkSpecsMatch(const ImageInput& currentFile, const ImageSp
                 " function specified by the --convert-oetf option.",
                 currentFile.filename(), currentGamma, firstGamma);
         } else {
-            fatal(rc::INVALID_FILE, "Input image \"{}\" has different gamma ({}) than the first image ({}).",
+            fatal(rc::INVALID_FILE, "Input image \"{}\" has different gamma ({}) than the first image ({})."
+                " Use --assign-oetf or --convert-oetf to specify handling and stop this error.",
                 currentFile.filename(), currentGamma, firstGamma);
         }
     }
@@ -2163,7 +2185,7 @@ void CommandCreate::checkSpecsMatch(const ImageInput& currentFile, const ImageSp
     if (currentFormat.primaries() != firstFormat.primaries()) {
         if (options.assignPrimaries.has_value()) {
             warning("Input image \"{}\" has different primaries ({}) than the first image ({})"
-                " but will be threaded identically as specified by the --assign-primaries option.",
+                " but will be treated identically as specified by the --assign-primaries option.",
                 currentFile.filename(), toString(currentFormat.primaries()), toString(firstFormat.primaries()));
         } else if (options.convertPrimaries.has_value()) {
             warning("Input image \"{}\" has different primaries ({}) than the first image ({})"
@@ -2171,7 +2193,8 @@ void CommandCreate::checkSpecsMatch(const ImageInput& currentFile, const ImageSp
                 " specified by the --convert-primaries option.",
                 currentFile.filename(), toString(currentFormat.primaries()), toString(firstFormat.primaries()));
         } else {
-            fatal(rc::INVALID_FILE, "Input image \"{}\" has different primaries ({}) than the first image ({}).",
+            fatal(rc::INVALID_FILE, "Input image \"{}\" has different primaries ({}) than the first image ({})."
+                " Use --assign-primaries or --convert-primaries to specify handling and stop this error.",
                 currentFile.filename(), toString(currentFormat.primaries()), toString(firstFormat.primaries()));
         }
     }
