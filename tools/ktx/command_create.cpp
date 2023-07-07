@@ -583,15 +583,15 @@ struct OptionsASTC : public ktxAstcParams {
 
 // -------------------------------------------------------------------------------------------------
 
-/** @page ktxtools_create ktx create
+/** @page ktx_create ktx create
 @~English
 
 Create a KTX2 file from various input files.
 
-@section ktxtools_create_synopsis SYNOPSIS
+@section ktx_create_synopsis SYNOPSIS
     ktx create [option...] @e input-file... @e output-file
 
-@section ktxtools_create_description DESCRIPTION
+@section ktx_create_description DESCRIPTION
     @b ktx @b create can create, encode and supercompress a KTX2 file from the
     input images specified as the @e input-file... arguments and save it as the
     @e output-file. The last positional argument is treated as the @e output-file.
@@ -690,7 +690,7 @@ Create a KTX2 file from various input files.
     <dl>
         <dt>--encode basis-lz | uastc<</dt>
         <dd>Encode the texture with the specified codec before saving it.
-            This option matches the functionality of the @ref ktxtools_encode "ktx encode" command.
+            This option matches the functionality of the @ref ktx_encode "ktx encode" command.
             With each encoding option the following encoder specific options become valid,
             otherwise they are ignored. Case-insensitive.</dd>
 
@@ -741,15 +741,15 @@ Create a KTX2 file from various input files.
     @snippet{doc} ktx/compress_utils.h command options_compress
     @snippet{doc} ktx/command.h command options_generic
 
-@section ktxtools_create_exitstatus EXIT STATUS
+@section ktx_create_exitstatus EXIT STATUS
     @snippet{doc} ktx/command.h command exitstatus
 
-@section ktxtools_create_history HISTORY
+@section ktx_create_history HISTORY
 
 @par Version 4.0
  - Initial version
 
-@section ktxtools_create_author AUTHOR
+@section ktx_create_author AUTHOR
     - Mátyás Császár [Vader], RasterGrid www.rastergrid.com
     - Daniel Rákos, RasterGrid www.rastergrid.com
 */

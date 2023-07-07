@@ -22,18 +22,18 @@
 
 namespace ktx {
 
-/** @page ktxtools_info ktx info
+/** @page ktx_info ktx info
 @~English
 
 Print information about a KTX2 file.
 
-@section ktxtools_info_synopsis SYNOPSIS
+@section ktx_info_synopsis SYNOPSIS
     ktx info [option...] @e input-file
 
-@section ktxtools_info_description DESCRIPTION
+@section ktx_info_description DESCRIPTION
     @b ktx @b info prints information about the KTX2 file specified as the @e input-file argument.
     If the @e input-file is '-' the file will be read from the stdin.
-    The command implicitly calls @ref ktxtools_validate "validate" and prints any found errors
+    The command implicitly calls @ref ktx_validate "validate" and prints any found errors
     and warnings to stdout.
     If the specified input file is invalid the information is displayed based on best effort and
     may be incomplete.
@@ -53,15 +53,15 @@ Print information about a KTX2 file.
     @snippet{doc} ktx/command.h command options_format
     @snippet{doc} ktx/command.h command options_generic
 
-@section ktxtools_info_exitstatus EXIT STATUS
+@section ktx_info_exitstatus EXIT STATUS
     @snippet{doc} ktx/command.h command exitstatus
 
-@section ktxtools_info_history HISTORY
+@section ktx_info_history HISTORY
 
 @par Version 4.0
  - Initial version
 
-@section ktxtools_info_author AUTHOR
+@section ktx_info_author AUTHOR
     - Mátyás Császár [Vader], RasterGrid www.rastergrid.com
     - Daniel Rákos, RasterGrid www.rastergrid.com
 */

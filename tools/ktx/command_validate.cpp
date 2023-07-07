@@ -17,15 +17,15 @@
 
 namespace ktx {
 
-/** @page ktxtools_validate ktx validate
+/** @page ktx_validate ktx validate
 @~English
 
 Validate a KTX2 file.
 
-@section ktxtools_validate_synopsis SYNOPSIS
+@section ktx_validate_synopsis SYNOPSIS
     ktx validate [option...] @e input-file
 
-@section ktxtools_validate_description DESCRIPTION
+@section ktx_validate_description DESCRIPTION
     @b ktx @b validate validates the Khronos texture format version 2 (KTX2) file specified
     as the @e input-file argument. It prints any found errors and warnings to stdout.
     If the @e input-file is '-' the file will be read from the stdin.
@@ -50,15 +50,15 @@ Validate a KTX2 file.
     </dl>
     @snippet{doc} ktx/command.h command options_generic
 
-@section ktxtools_validate_exitstatus EXIT STATUS
+@section ktx_validate_exitstatus EXIT STATUS
     @snippet{doc} ktx/command.h command exitstatus
 
-@section ktxtools_validate_history HISTORY
+@section ktx_validate_history HISTORY
 
 @par Version 4.0
  - Initial version
 
-@section ktxtools_validate_author AUTHOR
+@section ktx_validate_author AUTHOR
     - Mátyás Császár [Vader], RasterGrid www.rastergrid.com
     - Daniel Rákos, RasterGrid www.rastergrid.com
 */

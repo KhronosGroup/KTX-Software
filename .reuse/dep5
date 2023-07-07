@@ -151,7 +151,7 @@ Copyright: 2020 Andreas Atteneder
 License: Apache-2.0
 
 Files: pkgdoc/*
-Copyright: 2018-2020 The Khronos Group Inc.
+Copyright: 2018-2023 The Khronos Group Inc.
 License: Apache-2.0
 
 Files: tests/webgl/libktx-gltf/*

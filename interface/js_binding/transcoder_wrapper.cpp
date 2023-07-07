@@ -366,7 +366,7 @@ namespace msc {
     };
 }
 
-/** @page msc_basis_transcoder Basis Image Transcoder binding
+/** @page msc_basis_transcoder Basis Universal Image Transcoder binding
 
  @warning Deprecated. Use the container independent transcoder from
  the Binomial LLC repo instead:

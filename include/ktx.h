@@ -1731,6 +1731,9 @@ KTX_API KTX_error_code KTX_APIENTRY ktxPrintKTX2InfoJSONForStream(ktxStream* str
 @~English
 @page libktx_history Revision History
 
+No longer updated. Kept to preserve ancient history. For more recent history see the repo log at
+https://github.com/KhronosGroup/KTX-Software. See also the Release Notes in the repo.
+
 @section v8 Version 4.0
 Added:
 @li Support for KTX Version 2.
