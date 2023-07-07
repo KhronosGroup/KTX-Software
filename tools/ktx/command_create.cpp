@@ -60,18 +60,23 @@ struct OptionsCreate {
     std::optional<std::string> swizzle; /// Sets KTXswizzle
     std::optional<std::string> swizzleInput; /// Used to swizzle the input image data
 
-    khr_df_transfer_e convertOETF = KHR_DF_TRANSFER_UNSPECIFIED;
-    khr_df_transfer_e assignOETF = KHR_DF_TRANSFER_UNSPECIFIED;
-    khr_df_primaries_e assignPrimaries = KHR_DF_PRIMARIES_UNSPECIFIED;
-    khr_df_primaries_e convertPrimaries = KHR_DF_PRIMARIES_UNSPECIFIED;
+    std::optional<khr_df_transfer_e> convertOETF = {};
+    std::optional<khr_df_transfer_e> assignOETF = {};
+    std::optional<khr_df_primaries_e> assignPrimaries = {};
+    std::optional<khr_df_primaries_e> convertPrimaries = {};
     bool failOnColorConversions = false;
     bool warnOnColorConversions = false;
 
     void init(cxxopts::Options& opts) {
         opts.add_options()
-                ("format", "KTX format enum. The enum names are matching the VkFormats without the VK_FORMAT_ prefix."
-                           " If the format is an ASTC formats the ASTC encoder specific options become valid,"
-                           " otherwise they are ignored. Required. The VK_FORMAT_ prefix is ignored if present. Case insensitive.", cxxopts::value<std::string>(), "<enum>")
+                ("format", "KTX format enum that specifies the image data format."
+                    " The enum names are matching the VkFormats without the VK_FORMAT_ prefix."
+                    " The VK_FORMAT_ prefix is ignored if present."
+                    " If the --encode option is used it specifies the format created from the"
+                    " the input files before the encoding step."
+                    " If the format is an ASTC format the ASTC encoder specific options become valid,"
+                    " otherwise they are ignored."
+                    " Case insensitive. Required.", cxxopts::value<std::string>(), "<enum>")
                 ("1d", "Create a 1D texture. If not set the texture will be a 2D or 3D texture.")
                 ("cubemap", "Create a cubemap texture. If not set the texture will be a 2D or 3D texture.")
                 ("raw", "Create from raw image data.")
@@ -95,7 +100,7 @@ struct OptionsCreate {
                 ("assign-primaries", "Force the created texture to have the specified color primaries, ignoring"
                     " the color primaries of the input file(s). Case insensitive."
                     "\nPossible options are:"
-                    " bt709 | srgb | bt601-ebu | bt601-smpte | bt2020 | ciexyz | aces | acescc | ntsc1953 | pal525 | displayp3 | adobergb.",
+                    " none | bt709 | srgb | bt601-ebu | bt601-smpte | bt2020 | ciexyz | aces | acescc | ntsc1953 | pal525 | displayp3 | adobergb.",
                     cxxopts::value<std::string>(), "<primaries>")
                 ("convert-oetf", "Convert the input image(s) to the specified transfer function, if different"
                     " from the transfer function of the input file(s). If both this and --assign-oetf are specified,"
@@ -106,6 +111,7 @@ struct OptionsCreate {
                     " from the color primaries of the input file(s) or the one specified by --assign-primaries."
                     " If both this and --assign-primaries are specified, conversion will be performed from "
                     " the assigned primaries to the primaries specified by this option, if different."
+                    " This option is not allowed to be specified when --assign-primaries is set to 'none'."
                     " Case insensitive."
                     "\nPossible options are:"
                     " bt709 | srgb | bt601-ebu | bt601-smpte | bt2020 | ciexyz | aces | acescc | ntsc1953 | pal525 | displayp3 | adobergb.",
@@ -128,27 +134,30 @@ struct OptionsCreate {
                     " Defaults to clamp.", cxxopts::value<std::string>(), "<mode>");
     }
 
-    khr_df_transfer_e parseTransferFunction(cxxopts::ParseResult& args, const char* argName, Reporter& report) const {
+    std::optional<khr_df_transfer_e> parseTransferFunction(cxxopts::ParseResult& args, const char* argName, Reporter& report) const {
         static const std::unordered_map<std::string, khr_df_transfer_e> values{
             { "LINEAR", KHR_DF_TRANSFER_LINEAR },
             { "SRGB", KHR_DF_TRANSFER_SRGB }
         };
 
+        std::optional<khr_df_transfer_e> result = {};
+
         if (args[argName].count()) {
             const auto oetfStr = to_upper_copy(args[argName].as<std::string>());
             const auto it = values.find(oetfStr);
             if (it != values.end()) {
-                return it->second;
+                result = it->second;
             } else {
                 report.fatal_usage("Invalid or unsupported transfer function specified as --{} argument: \"{}\".", argName, oetfStr);
             }
         }
 
-        return KHR_DF_TRANSFER_UNSPECIFIED;
+        return result;
     }
 
-    khr_df_primaries_e parseColorPrimaries(cxxopts::ParseResult& args, const char* argName, Reporter& report) const {
+    std::optional<khr_df_primaries_e> parseColorPrimaries(cxxopts::ParseResult& args, const char* argName, Reporter& report) const {
         static const std::unordered_map<std::string, khr_df_primaries_e> values{
+            { "NONE", KHR_DF_PRIMARIES_UNSPECIFIED },
             { "BT709", KHR_DF_PRIMARIES_BT709 },
             { "SRGB", KHR_DF_PRIMARIES_SRGB },
             { "BT601-EBU", KHR_DF_PRIMARIES_BT601_EBU },
@@ -163,17 +172,19 @@ struct OptionsCreate {
             { "ADOBERGB", KHR_DF_PRIMARIES_ADOBERGB },
         };
 
+        std::optional<khr_df_primaries_e> result = {};
+
         if (args[argName].count()) {
             const auto primariesStr = to_upper_copy(args[argName].as<std::string>());
             const auto it = values.find(primariesStr);
             if (it != values.end()) {
-                return it->second;
+                result = it->second;
             } else {
                 report.fatal_usage("Invalid or unsupported transfer function specified as --{} argument: \"{}\".", argName, primariesStr);
             }
         }
 
-        return KHR_DF_PRIMARIES_UNSPECIFIED;
+        return result;
     }
 
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
@@ -464,20 +475,19 @@ struct OptionsCreate {
         convertPrimaries = parseColorPrimaries(args, "convert-primaries", report);
         assignPrimaries = parseColorPrimaries(args, "assign-primaries", report);
 
+        if (convertPrimaries.has_value() && assignPrimaries == KHR_DF_PRIMARIES_UNSPECIFIED)
+            report.fatal_usage("Option --convert-primaries cannot be used when --assign-primaries is set to 'none'.");
+
         if (raw) {
-            if (convertOETF != KHR_DF_TRANSFER_UNSPECIFIED)
+            if (convertOETF.has_value())
                 report.fatal_usage("Option --convert-oetf cannot be used with --raw.");
-            if (assignOETF != KHR_DF_TRANSFER_UNSPECIFIED)
-                report.fatal_usage("Option --assign-oetf cannot be used with --raw.");
-            if (convertPrimaries != KHR_DF_PRIMARIES_UNSPECIFIED)
+            if (convertPrimaries.has_value())
                 report.fatal_usage("Option --convert-primaries cannot be used with --raw.");
-            if (assignPrimaries != KHR_DF_PRIMARIES_UNSPECIFIED)
-                report.fatal_usage("Option --assign-primaries cannot be used with --raw.");
         }
 
         if (formatDesc.transfer() == KHR_DF_TRANSFER_SRGB) {
-            if (convertOETF == KHR_DF_TRANSFER_UNSPECIFIED) {
-                switch (assignOETF) {
+            if (!convertOETF.has_value() && assignOETF.has_value()) {
+                switch (assignOETF.value()) {
                 case KHR_DF_TRANSFER_UNSPECIFIED:
                 case KHR_DF_TRANSFER_SRGB:
                     // assign-oetf must either not be specified or must be sRGB for an sRGB format
@@ -487,7 +497,7 @@ struct OptionsCreate {
                             "Invalid value to --assign-oetf \"{}\" for format \"{}\". Transfer function must be sRGB for sRGB formats.",
                             args["assign-oetf"].as<std::string>(), args["format"].as<std::string>());
                 }
-            } else if (convertOETF != KHR_DF_TRANSFER_SRGB) {
+            } else if (convertOETF.has_value() && convertOETF != KHR_DF_TRANSFER_SRGB) {
                 report.fatal_usage(
                         "Invalid value to --convert-oetf \"{}\" for format \"{}\". Transfer function must be sRGB for sRGB formats.",
                         args["convert-oetf"].as<std::string>(), args["format"].as<std::string>());
@@ -611,10 +621,14 @@ Create a KTX2 file from various input files.
     The following options are available:
     <dl>
         <dt>--format &lt;enum&gt;</dt>
-        <dd>KTX format enum. The enum names are matching the VkFormats without the VK_FORMAT_ prefix.
+        <dd>KTX format enum that specifies the image data format.
+            The enum names are matching the VkFormats without the VK_FORMAT_ prefix.
+            The VK_FORMAT_ prefix is ignored if present.
+            If the --encode option is used it specifies the format created from the
+            the input files before the encoding step.
             If the format is an ASTC format the ASTC encoder specific options become valid,
-            otherwise they are ignored. Required. The VK_FORMAT_ prefix is ignored if present.
-            Case insensitive.</dd>
+            otherwise they are ignored.
+            Case insensitive. Required.</dd>
         <dl>
             <dt>--astc-mode &lt;ldr | hdr&gt;</dt>
             <dd>Specify which encoding mode to use. LDR is the default
@@ -712,8 +726,8 @@ Create a KTX2 file from various input files.
         <dd>Force the created texture to have the specified color primaries, ignoring
             the color primaries of the input file(s). Case insensitive.
             Possible options are:
-            bt709 | srgb | bt601-ebu | bt601-smpte | bt2020 | ciexyz | aces | acescc | ntsc1953 |
-            pal525 | displayp3 | adobergb
+            none | bt709 | srgb | bt601-ebu | bt601-smpte | bt2020 | ciexyz | aces | acescc |
+            ntsc1953 | pal525 | displayp3 | adobergb
             </dd>
         <dt>--convert-oetf &lt;oetf&gt;</dt>
         <dd>Convert the input image(s) to the specified transfer function, if different
@@ -728,6 +742,7 @@ Create a KTX2 file from various input files.
             from the color primaries of the input file(s) or the one specified by --assign-primaries.
             If both this and --assign-primaries are specified, conversion will be performed from
             the assigned primaries to the primaries specified by this option, if different.
+            This option is not allowed to be specified when --assign-primaries is set to 'none'.
             Case insensitive.
             Possible options are:
             bt709 | srgb | bt601-ebu | bt601-smpte | bt2020 | ciexyz | aces | acescc | ntsc1953 |
@@ -1000,7 +1015,6 @@ void CommandCreate::executeCreate() {
 
     bool firstImage = true;
     ImageSpec firstImageSpec{};
-    ColorSpaceInfo colorSpaceInfo{};
 
     foreachImage(options.formatDesc, [&](
             const auto& inputFilepath,
@@ -1020,6 +1034,12 @@ void CommandCreate::executeCreate() {
                 if (options.cubemap && target.width() != target.height())
                     fatal(rc::INVALID_FILE, "--cubemap specified but the input image \"{}\" with size {}x{} is not square.",
                             fmtInFile(inputFilepath), target.width(), target.height());
+
+                if (options.assignOETF.has_value())
+                    target.format().setTransfer(options.assignOETF.value());
+
+                if (options.assignPrimaries.has_value())
+                    target.format().setPrimaries(options.assignPrimaries.value());
 
                 texture = createTexture(target);
             }
@@ -1043,13 +1063,16 @@ void CommandCreate::executeCreate() {
             const auto inputImageFile = ImageInput::open(inputFilepath, nullptr, warningFn);
             inputImageFile->seekSubimage(0, 0); // Loading multiple subimage from the same input is not supported
 
-            if (std::exchange(firstImage, false)) {
-                target = ImageSpec{
-                        inputImageFile->spec().width(),
-                        inputImageFile->spec().height(),
-                        inputImageFile->spec().depth(),
-                        options.formatDesc};
+            target = ImageSpec{
+                    inputImageFile->spec().width(),
+                    inputImageFile->spec().height(),
+                    inputImageFile->spec().depth(),
+                    options.formatDesc};
 
+            ColorSpaceInfo colorSpaceInfo{};
+            determineTargetColorSpace(*inputImageFile, target, colorSpaceInfo);
+
+            if (std::exchange(firstImage, false)) {
                 if (options.cubemap && target.width() != target.height())
                     fatal(rc::INVALID_FILE, "--cubemap specified but the input image \"{}\" with size {}x{} is not square.",
                             fmtInFile(inputFilepath), target.width(), target.height());
@@ -1068,14 +1091,13 @@ void CommandCreate::executeCreate() {
                     selectASTCMode(inputImageFile->spec().format().largestChannelBitLength());
 
                 firstImageSpec = inputImageFile->spec();
-                determineTargetColorSpace(*inputImageFile, target, colorSpaceInfo);
                 texture = createTexture(target);
             } else {
                 checkSpecsMatch(*inputImageFile, firstImageSpec);
             }
 
-            const uint32_t imageWidth = std::max(target.width() >> levelIndex, 1u);
-            const uint32_t imageHeight = std::max(target.height() >> levelIndex, 1u);
+            const uint32_t imageWidth = std::max(firstImageSpec.width() >> levelIndex, 1u);
+            const uint32_t imageHeight = std::max(firstImageSpec.height() >> levelIndex, 1u);
 
             if (inputImageFile->spec().width() != imageWidth || inputImageFile->spec().height() != imageHeight)
                 fatal(rc::INVALID_FILE, "Input image \"{}\" with size {}x{} does not match expected size {}x{} for level {}.",
@@ -1829,9 +1851,8 @@ KTXTexture2 CommandCreate::createTexture(const ImageSpec& target) {
     if (KTX_SUCCESS != ret)
         fatal(rc::KTX_FAILURE, "Failed to create ktxTexture: libktx error: {}", ktxErrorString(ret));
 
-    // BT709 is the default for DFDs.
-    if (target.format().primaries() != KHR_DF_PRIMARIES_BT709)
-        KHR_DFDSETVAL(texture->pDfd + 1, PRIMARIES, target.format().primaries());
+    KHR_DFDSETVAL(texture->pDfd + 1, PRIMARIES, target.format().primaries());
+    KHR_DFDSETVAL(texture->pDfd + 1, TRANSFER, target.format().transfer());
 
     return texture;
 }
@@ -1942,9 +1963,9 @@ void CommandCreate::determineTargetColorSpace(const ImageInput& in, ImageSpec& t
 
     // Set Primaries
     colorSpaceInfo.usedInputPrimaries = spec.format().primaries();
-    if (options.assignPrimaries != KHR_DF_PRIMARIES_UNSPECIFIED) {
-        colorSpaceInfo.usedInputPrimaries = options.assignPrimaries;
-        target.format().setPrimaries(options.assignPrimaries);
+    if (options.assignPrimaries.has_value()) {
+        colorSpaceInfo.usedInputPrimaries = options.assignPrimaries.value();
+        target.format().setPrimaries(options.assignPrimaries.value());
     } else if (spec.format().primaries() != KHR_DF_PRIMARIES_UNSPECIFIED) {
         target.format().setPrimaries(spec.format().primaries());
     } else {
@@ -1958,19 +1979,19 @@ void CommandCreate::determineTargetColorSpace(const ImageInput& in, ImageSpec& t
         }
     }
 
-    if (options.convertPrimaries != KHR_DF_PRIMARIES_UNSPECIFIED) {
+    if (options.convertPrimaries.has_value()) {
         if (colorSpaceInfo.usedInputPrimaries == KHR_DF_PRIMARIES_UNSPECIFIED) {
             fatal(rc::INVALID_FILE, "Cannot convert primaries as no information about the color primaries "
                 "is available in the input file \"{}\". Use --assign-primaries to specify one.", in.filename());
-        } else if (options.convertPrimaries != colorSpaceInfo.usedInputPrimaries) {
+        } else if (options.convertPrimaries.value() != colorSpaceInfo.usedInputPrimaries) {
             colorSpaceInfo.srcColorPrimaries = createColorPrimaries(colorSpaceInfo.usedInputPrimaries);
-            colorSpaceInfo.dstColorPrimaries = createColorPrimaries(options.convertPrimaries);
+            colorSpaceInfo.dstColorPrimaries = createColorPrimaries(options.convertPrimaries.value());
         }
     }
 
     // OETF / Transfer function handling in priority order:
     //
-    // 1. Use assign_oetf option value, if set.
+    // 1. Use assign-oetf option value, if set.
     // 2. Use OETF signalled by plugin as the input transfer function if
     //    linear, sRGB, ITU, or PQ EOTF. For all others, throw error.
     // 3. If ICC profile signalled, throw error. Known ICC profiles are
@@ -1987,14 +2008,15 @@ void CommandCreate::determineTargetColorSpace(const ImageInput& in, ImageSpec& t
     //    above.
 
     colorSpaceInfo.usedInputTransferFunction = KHR_DF_TRANSFER_UNSPECIFIED;
-    if (options.assignOETF != KHR_DF_TRANSFER_UNSPECIFIED) {
+    if (options.assignOETF.has_value()) {
         if (options.assignOETF == KHR_DF_TRANSFER_SRGB) {
             colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionSRGB>();
         } else {
+            assert(options.assignOETF == KHR_DF_TRANSFER_LINEAR);
             colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionLinear>();
         }
-        colorSpaceInfo.usedInputTransferFunction = options.assignOETF;
-        target.format().setTransfer(options.assignOETF);
+        colorSpaceInfo.usedInputTransferFunction = options.assignOETF.value();
+        target.format().setTransfer(options.assignOETF.value());
     } else {
         // Set image's OETF as indicated by metadata.
         if (spec.format().transfer() != KHR_DF_TRANSFER_UNSPECIFIED) {
@@ -2056,7 +2078,7 @@ void CommandCreate::determineTargetColorSpace(const ImageInput& in, ImageSpec& t
                         "Input file \"{}\" has gamma 0.0f. Use --assign-oetf to specify transfer function.");
                 }
             } else {
-                if (options.convertOETF == KHR_DF_TRANSFER_UNSPECIFIED) {
+                if (!options.convertOETF.has_value()) {
                     fatal(rc::INVALID_FILE, "Gamma {} not automatically supported by KTX. Specify handing with "
                         "--convert-oetf or --assign-oetf.");
                 }
@@ -2075,8 +2097,8 @@ void CommandCreate::determineTargetColorSpace(const ImageInput& in, ImageSpec& t
         }
     }
 
-    if (options.convertOETF != KHR_DF_TRANSFER_UNSPECIFIED) {
-        target.format().setTransfer(options.convertOETF);
+    if (options.convertOETF.has_value()) {
+        target.format().setTransfer(options.convertOETF.value());
     }
 
     // Need to do color conversion if either the transfer functions don't match or the primaries
@@ -2105,22 +2127,57 @@ void CommandCreate::checkSpecsMatch(const ImageInput& currentFile, const ImageSp
     const FormatDescriptor& currentFormat = currentFile.spec().format();
 
     if (currentFormat.transfer() != firstFormat.transfer()) {
-        fatal(rc::INVALID_FILE, "Input image \"{}\" has different transfer function ({}) than preceding image(s) ({}).",
-            currentFile.filename(), toString(currentFormat.transfer()), toString(firstFormat.transfer()));
-    }
-
-    if (currentFormat.primaries() != firstFormat.primaries()) {
-        fatal(rc::INVALID_FILE, "Input image \"{}\" has different primaries ({}) than preceding image(s) ({}).",
-            currentFile.filename(), toString(currentFormat.primaries()), toString(firstFormat.primaries()));
+        if (options.assignOETF.has_value()) {
+            warning("Input image \"{}\" has different transfer function ({}) than the first image ({})"
+                " but will be threaded identically as specified by the --assign-oetf option.",
+                currentFile.filename(), toString(currentFormat.transfer()), toString(firstFormat.transfer()));
+        } else if (options.convertOETF.has_value()) {
+            warning("Input image \"{}\" has different transfer function ({}) than the first image ({})"
+                " and thus will go through different transfer function conversion to the target transfer"
+                " function specified by the --convert-oetf option.",
+                currentFile.filename(), toString(currentFormat.transfer()), toString(firstFormat.transfer()));
+        } else {
+            fatal(rc::INVALID_FILE, "Input image \"{}\" has different transfer function ({}) than the first image ({}).",
+                currentFile.filename(), toString(currentFormat.transfer()), toString(firstFormat.transfer()));
+        }
     }
 
     if (currentFormat.oeGamma() != firstFormat.oeGamma()) {
-        fatal(rc::INVALID_FILE, "Input image \"{}\" has different gamma ({:.4}f) than preceding image(s) ({:.4}f).",
-            currentFile.filename(), currentFormat.oeGamma(), firstFormat.oeGamma());
+        auto currentGamma = currentFormat.oeGamma() != -1 ? std::to_string(currentFormat.oeGamma()) : "no gamma";
+        auto firstGamma = firstFormat.oeGamma() != -1 ? std::to_string(firstFormat.oeGamma()) : "no gamma";
+        if (options.assignOETF.has_value()) {
+            warning("Input image \"{}\" has different gamma ({}) than the first image ({})"
+                " but will be threaded identically as specified by the --assign-oetf option.",
+                currentFile.filename(), currentGamma, firstGamma);
+        } else if (options.convertOETF.has_value()) {
+            warning("Input image \"{}\" has different gamma ({}) than the first image ({})"
+                " and thus will go through different transfer function conversion to the target transfer"
+                " function specified by the --convert-oetf option.",
+                currentFile.filename(), currentGamma, firstGamma);
+        } else {
+            fatal(rc::INVALID_FILE, "Input image \"{}\" has different gamma ({}) than the first image ({}).",
+                currentFile.filename(), currentGamma, firstGamma);
+        }
+    }
+
+    if (currentFormat.primaries() != firstFormat.primaries()) {
+        if (options.assignPrimaries.has_value()) {
+            warning("Input image \"{}\" has different primaries ({}) than the first image ({})"
+                " but will be threaded identically as specified by the --assign-primaries option.",
+                currentFile.filename(), toString(currentFormat.primaries()), toString(firstFormat.primaries()));
+        } else if (options.convertPrimaries.has_value()) {
+            warning("Input image \"{}\" has different primaries ({}) than the first image ({})"
+                " and thus will go through different primaries conversion to the target primaries"
+                " specified by the --convert-primaries option.",
+                currentFile.filename(), toString(currentFormat.primaries()), toString(firstFormat.primaries()));
+        } else {
+            fatal(rc::INVALID_FILE, "Input image \"{}\" has different primaries ({}) than the first image ({}).",
+                currentFile.filename(), toString(currentFormat.primaries()), toString(firstFormat.primaries()));
+        }
     }
 
     if (currentFormat.channelCount() != firstFormat.channelCount()) {
-        warning("Input image \"{}\" has a different component count than preceding image(s).", currentFile.filename());
+        warning("Input image \"{}\" has a different component count than the first image.", currentFile.filename());
     }
 }
 
