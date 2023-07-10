@@ -259,12 +259,12 @@ void ExrInput::readImage(void* outputBuffer, size_t bufferByteCount,
     // Copy the data
     const auto copyData = [&](unsigned char* ptr, uint32_t dataSize) {
         const auto sourcePtr = [&](uint32_t channel, uint32_t x, uint32_t y) {
-            return reinterpret_cast<const unsigned char*>(image.images[channel] + (y * height + x) * dataSize);
+            return reinterpret_cast<const unsigned char*>(image.images[channel] + (y * width + x) * dataSize);
         };
 
         for (uint32_t y = 0; y < height; ++y) {
             for (uint32_t x = 0; x < width; ++x) {
-                auto* targetPixel = ptr + (y * height * numTargetChannels + x * numTargetChannels) * dataSize;
+                auto* targetPixel = ptr + (y * width * numTargetChannels + x * numTargetChannels) * dataSize;
                 for (uint32_t c = 0; c < numTargetChannels; ++c)
                     std::memcpy(targetPixel + c * dataSize, sourcePtr(*channels[c], x, y), dataSize);
             }

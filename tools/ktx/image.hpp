@@ -808,7 +808,7 @@ class ImageT : public Image {
                 for (uint32_t c = 0; c < numChannels; ++c) {
                     const auto sourceValue = c < componentCount ? pixels[y * width + x][c] : (c != 3 ? componentType{0} : Color::one());
                     const auto value = ktx::convertUNORM(static_cast<uint32_t>(sourceValue), sourceBits, targetBits);
-                    auto* target = data.data() + (y * height * numChannels + x * numChannels + c) * targetBytes;
+                    auto* target = data.data() + (y * width * numChannels + x * numChannels + c) * targetBytes;
 
                     if (targetBytes == 1) {
                         const auto outValue = static_cast<uint8_t>(value);
@@ -850,7 +850,7 @@ class ImageT : public Image {
         for (uint32_t y = 0; y < height; ++y) {
             for (uint32_t x = 0; x < width; ++x) {
                 const auto& pixel = pixels[y * width + x];
-                auto* target = data.data() + (y * height + x) * targetPackBytes;
+                auto* target = data.data() + (y * width + x) * targetPackBytes;
 
                 const auto copy = [&](auto& pack) {
                     using PackType = std::remove_reference_t<decltype(pack)>;
@@ -911,7 +911,7 @@ class ImageT : public Image {
             for (uint32_t x = 0; x < width; ++x) {
                 for (uint32_t c = 0; c < numChannels; ++c) {
                     const auto value = c < componentCount ? pixels[y * width + x][c] : (c != 3 ? componentType{0} : componentType{1});
-                    auto* target = data.data() + (y * height * numChannels + x * numChannels + c) * targetBytes;
+                    auto* target = data.data() + (y * width * numChannels + x * numChannels + c) * targetBytes;
 
                     if (sizeof(componentType) == targetBytes) {
                         *reinterpret_cast<componentType*>(target) = value;
@@ -937,7 +937,7 @@ class ImageT : public Image {
 
         for (uint32_t y = 0; y < height; ++y) {
             for (uint32_t x = 0; x < width; ++x) {
-                auto* target = data.data() + (y * height + x) * 4;
+                auto* target = data.data() + (y * width + x) * 4;
 
                 const auto pixel = (*this)(x, y);
                 const auto r = pixel[0];
@@ -959,7 +959,7 @@ class ImageT : public Image {
 
         for (uint32_t y = 0; y < height; ++y) {
             for (uint32_t x = 0; x < width; ++x) {
-                auto* target = data.data() + (y * height + x) * 4;
+                auto* target = data.data() + (y * width + x) * 4;
 
                 const auto pixel = (*this)(x, y);
                 const auto r = pixel[0];
@@ -984,7 +984,7 @@ class ImageT : public Image {
             for (uint32_t x = 0; x < width; ++x) {
                 for (uint32_t c = 0; c < numChannels; ++c) {
                     const auto value = c < componentCount ? pixels[y * width + x][c] : c != 3 ? 0 : componentType{1};
-                    auto* target = data.data() + (y * height * numChannels + x * numChannels + c) * targetBytes;
+                    auto* target = data.data() + (y * width * numChannels + x * numChannels + c) * targetBytes;
 
                     if (targetBytes == 1) {
                         const auto outValue = static_cast<uint8_t>(value);
@@ -1017,7 +1017,7 @@ class ImageT : public Image {
             for (uint32_t x = 0; x < width; ++x) {
                 for (uint32_t c = 0; c < numChannels; ++c) {
                     const auto value = c < componentCount ? pixels[y * width + x][c] : c != 3 ? 0 : componentType{1};
-                    auto* target = data.data() + (y * height * numChannels + x * numChannels + c) * targetBytes;
+                    auto* target = data.data() + (y * width * numChannels + x * numChannels + c) * targetBytes;
 
                     if (targetBytes == 1) {
                         const auto outValue = static_cast<int8_t>(value);
@@ -1048,7 +1048,7 @@ class ImageT : public Image {
         for (uint32_t y = 0; y < height; ++y) {
             for (uint32_t x = 0; x < width; ++x) {
                 const auto& pixel = pixels[y * width + x];
-                auto* target = data.data() + (y * height + x) * sizeof(uint32_t);
+                auto* target = data.data() + (y * width + x) * sizeof(uint32_t);
 
                 uint32_t pack = 0;
                 pack |= ktx::convertUINT(static_cast<uint32_t>(pixel[0]), sizeof(uint32_t) * 8, c0) << (c1 + c2 + c3);
@@ -1072,7 +1072,7 @@ class ImageT : public Image {
         for (uint32_t y = 0; y < height; ++y) {
             for (uint32_t x = 0; x < width; ++x) {
                 const auto& pixel = pixels[y * width + x];
-                auto* target = data.data() + (y * height + x) * sizeof(uint32_t);
+                auto* target = data.data() + (y * width + x) * sizeof(uint32_t);
 
                 uint32_t pack = 0;
                 pack |= ktx::convertSINT(ktx::bit_cast<uint32_t>(static_cast<int32_t>(pixel[0])), sizeof(uint32_t) * 8, c0) << (c1 + c2 + c3);
