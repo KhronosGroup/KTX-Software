@@ -292,7 +292,7 @@ before_deploy:
       # run twice. https://github.com/travis-ci/travis-ci/issues/2570 about
       # this has been open for years. What a crock!
       if [ -n "$MACOS_CERTIFICATES_P12" -a -n "$TRAVIS_TAG" -a -z "$NOTARIZED" ]; then
-        ./ci_scripts/notarize.sh $BUILD_DIR/KTX-Software-*.pkg $APPLE_ID $DEVELOPMENT_TEAM $ALTOOL_PASSWORD; export NOTARIZED="true"
+        ./ci_scripts/notarize.sh $BUILD_DIR/KTX-Software-*.pkg $APPLE_ID $DEVELOPMENT_TEAM $ALTOOL_PASSWORD && export NOTARIZED="true"
       fi
       ;;
     esac

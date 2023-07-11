@@ -5,21 +5,25 @@
 # notarize.sh
 
 # Checks pkg for a valid signature. If valid, uploads the pkg for
-# notarization and monitors the notarization status
+# notarization and waits for the notarization status
 
-# Usage: notarize.sh <path/to/pkg> <appleid> <devteam> <password-label>
+# Usage: notarize.sh <path/to/pkg> <appleid> <devteam> <password>
 #    path/to/pkg - path a signed .pkg file to be notarized.
 #    appleid - Apple developer login.
-#    devteam - 10 character development team identifier.
-#    password - app-specific password for altool to use when logging in to
-#               <applieid>. If the password is stored in the keychain then
-#               this argument should be of the form @keychain:<pw_label>
-#               where <pw_label> is the label of the password in the keychain.
+#    devteam - 10 character development team identifier. Use Khronos dev
+#              team id when notarizing apps signed with Khronos cert.
+#    password - app-specific password for to use when logging in to
+#               <appleid>. The same app-specific password can be used
+#               for both altool and notarytool. If the password is stored
+#               in the keychain then this argument should be of the form
+#               @keychain:<pw_label> where <pw_label> is the label of the
+#               password in the keychain.
 #
-# Retrieving this password from the keychain during a Travis-CI build is not
-# working for reasons that are not clear. altool is hanging. Clearly macOS
-# security is asking for permission for altool to access the keychain, even
-# though this was set up.
+# Retrieving this password from the keychain during a Travis-CI build was
+# not working for altool for reasons that are not clear. altool would hang.
+# Likely macOS security is asking for permission for altool to access the
+# keychain, even though this was set up. This has not been tried with
+# notarytool.
 
 # Thanks to Armin Briegel for the script that inspired this one.
 
@@ -56,9 +60,9 @@ notarizefile() { # $1: path to file to notarize
         # messages - "In" is a particular problem - use entire status response
         # words in this RE.
         #
-        # A big thanks to Apple for failing to document in the command help
-        # or even the TechNotes about notarization, the output from notarytool
-        # during --wait or to give any example of use. NOT.
+        # A big thank to Apples, NOT :-(, for failing to document in the
+        # command help or even the TechNotes about notarization, the output
+        # from notarytool during --wait or to give any example of use.
         if [[ "$nt_out" =~ "status: (Accepted|Invalid|Rejected)" ]]; then
             ntz_status=$match[1]
             # There are many "id:" lines in the output. Fortunately they
