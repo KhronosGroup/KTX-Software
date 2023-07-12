@@ -4,11 +4,21 @@ name: Publish to PyPI
 
 on:
   workflow_dispatch:
+  push:
+    # Trigger on push of release tags. There is no way to limit the trigger
+    # to a specific branch. A later build step checks for the main branch.
+    tags:
+      - 'v[0-9]+\.[0-9]+\.[0-9]+'
+      - 'v[0-9]+\.[0-9]+\.[0-9]+-*'
 
 jobs:
   pypi:
     runs-on: ubuntu-latest
     steps:
+      # Hack to workaround "on:" not supporting AND condition.
+      - name: Exit if not on main branch
+        if: endsWith(github.event.base_ref, 'main') == false
+        run: exit 1
       - name: Download latest release metadata
         run: |
            curl \
