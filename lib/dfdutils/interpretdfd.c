@@ -127,7 +127,7 @@ enum InterpretDFDResult interpretDFD(const uint32_t *DFD,
         hasFloat |= isFloat;
         // By our definition the normalizedness of a single bit channel (like in RGBA 5:5:5:1)
         // is ambiguous. Ignore these during normalized checks.
-        if (KHR_DFDSVAL(BDFDB, sampleCounter, BITLENGTH) > 0)
+        if (KHR_DFDSVAL(BDFDB, i, BITLENGTH) > 0)
             hasNormalized |= isNormalized;
     }
     result |= hasSigned ? i_SIGNED_FORMAT_BIT : 0;
