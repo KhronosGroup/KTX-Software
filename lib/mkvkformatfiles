@@ -183,6 +183,8 @@ END {
     begin_str2vk = begin_str2vk "        ++us2;\n"
     begin_str2vk = begin_str2vk "        --length;\n"
     begin_str2vk = begin_str2vk "    }\n"
+    begin_str2vk = begin_str2vk "    if (length == 0)\n"
+    begin_str2vk = begin_str2vk "        return 0;\n"
     begin_str2vk = begin_str2vk "    return tolower(*us1) - tolower(*us2);\n"
     begin_str2vk = begin_str2vk "}\n"
     begin_str2vk = begin_str2vk "\n"

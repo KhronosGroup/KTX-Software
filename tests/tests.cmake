@@ -33,6 +33,7 @@ add_subdirectory(streamtests)
 add_executable( unittests
     unittests/image_unittests.cc
     unittests/test_fragment_uri.cc
+    unittests/test_string_to_vkformat.cc
     unittests/unittests.cc
     unittests/wthelper.h
     tests.cmake

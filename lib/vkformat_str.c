@@ -594,6 +594,8 @@ static int ktx_strncasecmp(const char* s1, const char* s2, int length) {
         ++us2;
         --length;
     }
+    if (length == 0)
+        return 0;
     return tolower(*us1) - tolower(*us2);
 }
 
