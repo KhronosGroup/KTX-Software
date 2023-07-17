@@ -1,10 +1,8 @@
 /* -*- tab-width: 4; -*- */
 /* vi: set sw=2 ts=4 expandtab: */
-
-/*
- * Copyright 2010-2020 Mark Callow.
- * SPDX-License-Identifier: Apache-2.0
- */
+// Copyright 2022-2023 The Khronos Group Inc.
+// Copyright 2022-2023 RasterGrid Kft.
+// SPDX-License-Identifier: Apache-2.0
 
 #include <ktx/fragment_uri.h>
 #include "gtest/gtest.h"
