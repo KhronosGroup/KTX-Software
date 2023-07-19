@@ -983,10 +983,37 @@ Image*
 toktxApp::createImage(const targetImageSpec& target, ImageInput& in)
 {
     const ImageSpec& inSpec = in.spec();
-
+    FormatDescriptor inputFormat;
     Image* image = nullptr;
-    if (target.format().channelBitLength() == 16) {
-        switch (inSpec.format().channelCount()) {
+
+    if (target.format().channelBitLength() != inSpec.format().channelBitLength()) {
+        if (!in.getConversionFeatures().rescaleUnorm)
+            throw runtime_error("Unsupported bit rescaling requested.");
+    }
+
+    // input plugins that support channel reduction and addition do so
+    // in a way which differs from the documented behaviour for --target_type
+    // so alway do channel adjustments in this program.
+    if (target.format().channelCount() != inSpec.format().channelCount()) {
+        // Have plugin deliver all channels.
+        inputFormat = inSpec.format();
+        if (target.format().channelBitLength() != inSpec.format().channelBitLength()) {
+            // As channelBitLength() worked we know all channels are the
+            // same size.
+            std::vector<uint32_t> bits;
+            bits.resize(1);
+            bits[0] = target.format().channelBitLength();
+            // TODO: Consider making a function for channelBitCounts.
+            // Currently supported input formats all have
+            // numChannels = numSamples so this works but is fragile.
+            inputFormat.updateSampleBitCounts(bits);
+        }
+    } else {
+        inputFormat = target.format();
+    }
+    //if (target.format().channelBitLength() == 16) {
+    if (inputFormat.channelBitLength() == 16) {
+        switch (inputFormat.channelCount()) {
           case 1: {
             image = new r16image(inSpec.width(), inSpec.height());
             break;
@@ -1002,7 +1029,7 @@ toktxApp::createImage(const targetImageSpec& target, ImageInput& in)
           }
         }
     } else if (target.format().channelBitLength() == 8) {
-        switch (inSpec.format().channelCount()) {
+        switch (inputFormat.channelCount()) {
           case 1: {
             image = new r8image(inSpec.width(), inSpec.height());
             break;
@@ -1030,7 +1057,7 @@ toktxApp::createImage(const targetImageSpec& target, ImageInput& in)
     }
 
     in.readImage(static_cast<uint8_t*>(*image), image->getByteCount(),
-                  0, inSpec.format().channelCount(), target.format());
+                  0/*subimage*/, 0/*miplevel*/, inputFormat);
     /* Sanity check. */
     assert(image->getWidth() * image->getHeight() * image->getPixelSize()
            == image->getByteCount());
