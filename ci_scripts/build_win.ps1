@@ -52,6 +52,7 @@ $FEATURE_TOOLS_CTS = Set-ConfigVariable FEATURE_TOOLS_CTS "ON"
 $PACKAGE = Set-ConfigVariable PACKAGE "NO"
 $SUPPORT_SSE = Set-ConfigVariable SUPPORT_SSE "ON"
 $SUPPORT_OPENCL = Set-ConfigVariable SUPPORT_OPENCL "OFF"
+$WERROR = Set-ConfigVariable WERROR "OFF"
 $OPENGL_ES_EMULATOR = Set-ConfigVariable OPENGL_ES_EMULATOR `
   "c:/Imagination` Technologies/PowerVR_Graphics/PowerVR_Tools/PVRVFrame/Library/Windows_x86_64"
 $CODE_SIGN_KEY_VAULT = Set-ConfigVariable CODE_SIGN_KEY_VAULT ""
@@ -94,6 +95,7 @@ $cmake_args += @(
   "-D", "KTX_FEATURE_TOOLS_CTS=$FEATURE_TOOLS_CTS"
   "-D", "BASISU_SUPPORT_SSE=$SUPPORT_SSE"
   "-D", "BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL"
+  "-D", "KTX_WERROR=$WERROR"
   "-D", "CODE_SIGN_KEY_VAULT=$CODE_SIGN_KEY_VAULT"
 )
 if ($CODE_SIGN_KEY_VAULT) {
