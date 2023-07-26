@@ -71,6 +71,16 @@ CMAKE_DEPENDENT_OPTION( BASISU_SUPPORT_OPENCL
     OFF
 )
 
+# To improve deterministic outputs enable precise floating point operations
+if(MSVC)
+    add_compile_options(/fp:precise)
+else()
+    add_compile_options(-ffp-contract=off)
+    if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+        add_compile_options(-ffp-model=precise)
+    endif()
+endif()
+
 if(BASISU_SUPPORT_OPENCL)
     find_package(OpenCL)
 endif()
@@ -356,10 +366,11 @@ if(WIN32)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
 elseif(APPLE)
     if(NOT IOS)
-        # Set a common RUNTIME_OUTPUT_DIR for all targets, so that
-        # INSTALL RPATH is functional in build directory as well.
+        # Set a common RUNTIME_OUTPUT_DIR and LIBRARY_OUTPUT_DIR for all targets,
+        # so that INSTALL RPATH is functional in build directory as well.
         # BUILD_WITH_INSTALL_RPATH is necessary for working code signing.
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
+        set(CMAKE_LIBRARY_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
     endif()
 endif()
 
@@ -955,6 +966,7 @@ else()
 endif()
 
 # Other external projects
+set(FMT_SYSTEM_HEADERS ON)
 add_subdirectory(other_projects/fmt)
 add_subdirectory(other_projects/cxxopts)
 
