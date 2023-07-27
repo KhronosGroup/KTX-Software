@@ -27,6 +27,8 @@ on:
 jobs:
   mingw:
     runs-on: windows-latest
+    env:
+      WERROR: ON
 
     steps:
     - uses: actions/checkout@v3

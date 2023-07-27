@@ -28,8 +28,8 @@ jobs:
   linux:
     runs-on: ubuntu-latest
 
-    #env:
-    #  WERROR: ON
+    env:
+      WERROR: ON
 
     steps:
     - uses: actions/checkout@v3
