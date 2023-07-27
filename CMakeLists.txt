@@ -237,7 +237,9 @@ include(cmake/mkvk.cmake)
 option( KTX_WERROR "Make all warnings in KTX code into errors." OFF)
 
 if(MSVC)
-    add_compile_options( $<IF:$<BOOL:${KTX_WERROR}>,/W4;/WX,/W4> )
+    # ";" argument separator is problematic. Can't use a GenEx `$<IF:`
+    # because `/W4;/WX` is returned as a single string.
+    add_compile_options( /W4;$<$<BOOL:${KTX_WERROR}>:/WX> )
     add_compile_options( $<IF:$<CONFIG:Debug>,/Gz,/O2> )
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"
        OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
