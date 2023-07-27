@@ -258,6 +258,11 @@ endif()
 # so behaves differently to CL.exe. Use the -Xclang argument to workaround and allow access
 # GNU-style switch to control contraction and force disable.
 
+# On CMake 3.25 or older CXX_COMPILER_FRONTEND_VARIANT is not always set
+if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "")
+    set(CMAKE_CXX_COMPILER_FRONTEND_VARIANT "${CMAKE_CXX_COMPILER_ID}")
+endif()
+
 # Compiler accepts MSVC-style command line options
 set(is_msvc_fe "$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},MSVC>")
 # Compiler accepts GNU-style command line options
