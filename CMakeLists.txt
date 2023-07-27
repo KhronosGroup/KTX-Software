@@ -960,6 +960,7 @@ else()
 endif()
 
 # Other external projects
+set(FMT_SYSTEM_HEADERS ON)
 add_subdirectory(other_projects/fmt)
 add_subdirectory(other_projects/cxxopts)
 
