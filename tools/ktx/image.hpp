@@ -1248,8 +1248,8 @@ class ImageT : public Image {
             // Encode destination transfer function
             for (uint32_t comp = 0; comp < components; comp++) {
                 brightness[comp] = encode.encode(intensity[comp]);
-                // max(0, value) is required as static_cast from negative float to integrals has platform-specific behaviors
-                // and on certian platforms it can incorrectly wrap around
+                // max(0, value) is required as static_cast from negative float to integrals has platform-specific
+                // behaviors and on certain platforms it can incorrectly wrap around
                 c.set(comp, std::max(0.f, roundf(brightness[comp] * static_cast<float>(Color::one()))));
             }
         }
