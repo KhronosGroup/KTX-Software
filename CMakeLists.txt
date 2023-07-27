@@ -236,13 +236,8 @@ include(cmake/mkvk.cmake)
 
 option( KTX_WERROR "Make all warnings in KTX code into errors." OFF)
 
-add_custom_target(genexdebug COMMAND ${CMAKE_COMMAND} -E echo "Generator expression result is $<$<BOOL:${KTX_WERROR}>:-Werror>")
 if(MSVC)
-    # Reminder: separate multiple options with ";".
-    add_compile_options( /W4 )
-    # Not sure how to conditionally provide the ; separator if gen ex is
-    # included above. Will try later after getting this onto Windows.
-    add_compile_options( $<$<BOOL:${KTX_WERROR}>:/WX> )
+    add_compile_options( $<IF:$<BOOL:${KTX_WERROR}>,/W4;/WX,/W4> )
     add_compile_options( $<IF:$<CONFIG:Debug>,/Gz,/O2> )
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"
        OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
