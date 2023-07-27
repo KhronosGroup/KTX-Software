@@ -50,7 +50,7 @@ jobs:
     - name: Install Ninja
       run: choco install ninja --no-progress
     - name: Configure Mingw x64
-      run: cmake -B build -G "Ninja Multi-Config" -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DKTX_FEATURE_TOOLS=TRUE -DKTX_FEATURE_TOOLS_CTS=TRUE
+      run: cmake -B build -G "Ninja Multi-Config" -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DKTX_FEATURE_TOOLS=TRUE -DKTX_FEATURE_TOOLS_CTS=TRUE -DKTX_WERROR=$WERROR
     - name: Build Mingw x64 Debug
       run: cmake --build build --config Debug
     - name: Build Mingw x64 Release
