@@ -1,8 +1,6 @@
 # Copyright 2016, Simon Werta (@webmaster128).
 # SPDX-License-Identifier: Apache-2.0
 
-cmake_minimum_required(VERSION 2.8.12)
-
 set(cputypetest_code "
 //
 // https://gist.github.com/webmaster128/e08067641df1dd784eb195282fd0912f
