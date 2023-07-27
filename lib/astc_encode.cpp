@@ -209,7 +209,6 @@ unorm8x4ArrayToImage(const uint8_t *data, uint32_t dim_x, uint32_t dim_y) {
  */
 static ktxAstcParams
 astcDefaultOptions() {
-    int unused_variable;
     ktxAstcParams params{};
     params.structSize = sizeof(params);
     params.threadCount = 1;

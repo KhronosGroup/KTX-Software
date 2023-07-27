@@ -19,10 +19,6 @@ function(set_tool_properties tool_target)
             CXX_VISIBILITY_PRESET ${STATIC_APP_LIB_SYMBOL_VISIBILITY}
         )
     endif()
-    set_target_properties(${tool_target} PROPERTIES
-        CXX_STANDARD 17
-        CXX_STANDARD_REQUIRED YES
-    )
 endfunction()
 
 add_subdirectory(imageio)
