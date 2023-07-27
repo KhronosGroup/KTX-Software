@@ -14,7 +14,6 @@
 #include <iostream>
 #include <string_view>
 #include <vector>
-// #include <unordered_map>
 
 #include <fmt/os.h>
 #include <fmt/ostream.h>
@@ -234,28 +233,41 @@ void Texture::loadMetadata() {
 
 // -------------------------------------------------------------------------------------------------
 
-bool compareUnorm8(const char* rawLhs, const char* rawRhs, std::size_t rawSize, float tolerance) {
+struct CompareResult {
+    bool match = true;
+    float difference = 0.f;
+    std::size_t elementIndex = 0;
+    std::size_t byteOffset = 0;
+};
+
+CompareResult compareUnorm8(const char* rawLhs, const char* rawRhs, std::size_t rawSize, float tolerance) {
     const auto* lhs = reinterpret_cast<const uint8_t*>(rawLhs);
     const auto* rhs = reinterpret_cast<const uint8_t*>(rawRhs);
-    const auto count = rawSize / sizeof(float);
+    const auto element_size = sizeof(uint8_t);
+    const auto count = rawSize / element_size;
 
-    for (std::size_t i = 0; i < count; ++i)
-        if (std::abs(static_cast<float>(lhs[i]) / 255.f - static_cast<float>(rhs[i]) / 255.f) > tolerance)
-            return false;
+    for (std::size_t i = 0; i < count; ++i) {
+        const auto diff = std::abs(static_cast<float>(lhs[i]) / 255.f - static_cast<float>(rhs[i]) / 255.f);
+        if (diff > tolerance)
+            return CompareResult{false, diff, i, i * element_size};
+    }
 
-    return true;
+    return CompareResult{};
 }
 
-bool compareSFloat32(const char* rawLhs, const char* rawRhs, std::size_t rawSize, float tolerance) {
+CompareResult compareSFloat32(const char* rawLhs, const char* rawRhs, std::size_t rawSize, float tolerance) {
     const auto* lhs = reinterpret_cast<const float*>(rawLhs);
     const auto* rhs = reinterpret_cast<const float*>(rawRhs);
-    const auto count = rawSize / sizeof(float);
+    const auto element_size = sizeof(float);
+    const auto count = rawSize / element_size;
 
-    for (std::size_t i = 0; i < count; ++i)
-        if (std::abs(lhs[i] - rhs[i]) > tolerance)
-            return false;
+    for (std::size_t i = 0; i < count; ++i) {
+        const auto diff = std::abs(lhs[i] - rhs[i]);
+        if (diff > tolerance)
+            return CompareResult{false, diff, i, i * element_size};
+    }
 
-    return true;
+    return CompareResult{};
 }
 
 auto decodeASTC(const char* compressedData, std::size_t compressedSize, uint32_t width, uint32_t height,
@@ -307,7 +319,7 @@ auto decodeASTC(const char* compressedData, std::size_t compressedSize, uint32_t
     return Result{std::move(uncompressedBuffer), uncompressedSize};
 }
 
-bool compareAstc(const char* lhs, const char* rhs, std::size_t size, uint32_t width, uint32_t height,
+CompareResult compareAstc(const char* lhs, const char* rhs, std::size_t size, uint32_t width, uint32_t height,
         const std::string& filepathLhs, const std::string& filepathRhs,
         bool isFormatSRGB, uint32_t blockSizeX, uint32_t blockSizeY, uint32_t blockSizeZ,
         float tolerance) {
@@ -324,6 +336,7 @@ bool compareAstc(const char* lhs, const char* rhs, std::size_t size, uint32_t wi
 bool compare(Texture& lhs, Texture& rhs, float tolerance) {
     const auto vkFormat = static_cast<VkFormat>(lhs.header.vkFormat);
     const auto* bdfd = reinterpret_cast<const uint32_t*>(lhs.dfdData) + 1;
+    const auto componentCount = KHR_DFDSAMPLECOUNT(bdfd);
     const auto texelBlockDimension0 = static_cast<uint8_t>(KHR_DFDVAL(bdfd, TEXELBLOCKDIMENSION0));
     const auto texelBlockDimension1 = static_cast<uint8_t>(KHR_DFDVAL(bdfd, TEXELBLOCKDIMENSION1));
     const auto texelBlockDimension2 = static_cast<uint8_t>(KHR_DFDVAL(bdfd, TEXELBLOCKDIMENSION2));
@@ -393,21 +406,28 @@ bool compare(Texture& lhs, Texture& rhs, float tolerance) {
                     const char* imageDataLhs = reinterpret_cast<const char*>(lhs->pData) + imageOffset;
                     const char* imageDataRhs = reinterpret_cast<const char*>(rhs->pData) + imageOffset;
 
+                    CompareResult result;
                     if (lhs.transcoded || isFormatUNORM8) {
-                        if (!compareUnorm8(imageDataLhs, imageDataRhs, imageSize, tolerance))
-                            return mismatch("Mismatching image data: level {}, face {}, layer {}, depth {}", levelIndex, faceIndex, layerIndex, depthIndex);
+                        result = compareUnorm8(imageDataLhs, imageDataRhs, imageSize, tolerance);
                     } else if (isFormatAstc(vkFormat)) {
-                        if (!compareAstc(imageDataLhs, imageDataRhs, imageSize, imageWidth, imageHeight,
+                        result = compareAstc(imageDataLhs, imageDataRhs, imageSize, imageWidth, imageHeight,
                                 lhs.filepath, rhs.filepath,
                                 isFormatSRGB, blockSizeX, blockSizeY, blockSizeZ,
-                                tolerance))
-                            return mismatch("Mismatching image data: level {}, face {}, layer {}, depth {}", levelIndex, faceIndex, layerIndex, depthIndex);
+                                tolerance);
                     } else if (isFormatSFloat32) {
-                        if (!compareSFloat32(imageDataLhs, imageDataRhs, imageSize, tolerance))
-                            return mismatch("Mismatching image data: level {}, face {}, layer {}, depth {}", levelIndex, faceIndex, layerIndex, depthIndex);
+                        result = compareSFloat32(imageDataLhs, imageDataRhs, imageSize, tolerance);
                     } else {
-                        if (std::memcmp(imageDataLhs, imageDataRhs, imageSize) != 0)
-                            return mismatch("Mismatching image data: level {}, face {}, layer {}, depth {}", levelIndex, faceIndex, layerIndex, depthIndex);
+                        for (std::size_t i = 0; i < imageSize; ++i) {
+                            if (imageDataLhs[i] != imageDataRhs[i])
+                                return mismatch("Mismatching image data: level {}, face {}, layer {}, depth {}, image byte {}",
+                                        levelIndex, faceIndex, layerIndex, depthIndex, i);
+                        }
+                    }
+
+                    if (!result.match) {
+                        return mismatch("Mismatching image data (diff: {}): level {}, face {}, layer {}, depth {}, pixel {}, component {}",
+                                result.difference, levelIndex, faceIndex, layerIndex, depthIndex,
+                                result.elementIndex / componentCount, result.elementIndex % componentCount);
                     }
                 }
             }
