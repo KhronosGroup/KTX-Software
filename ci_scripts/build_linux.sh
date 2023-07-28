@@ -45,6 +45,7 @@ FEATURE_VK_UPLOAD=${FEATURE_VK_UPLOAD:-ON}
 PACKAGE=${PACKAGE:-NO}
 SUPPORT_SSE=${SUPPORT_SSE:-ON}
 SUPPORT_OPENCL=${SUPPORT_OPENCL:-OFF}
+WERROR=${WERROR:-OFF}
 
 if [[ "$ARCH" = "aarch64" && "$FEATURE_LOADTESTS" =~ "Vulkan" ]]; then
   if [[ "$FEATURE_LOADTESTS" = "Vulkan" ]]; then
@@ -84,7 +85,8 @@ cmake_args=("-G" "$CMAKE_GEN"
   "-D" "KTX_FEATURE_GL_UPLOAD=$FEATURE_GL_UPLOAD" \
   "-D" "KTX_FEATURE_VK_UPLOAD=$FEATURE_VK_UPLOAD" \
   "-D" "BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL" \
-  "-D" "BASISU_SUPPORT_SSE=$SUPPORT_SSE"
+  "-D" "BASISU_SUPPORT_SSE=$SUPPORT_SSE" \
+  "-D" "KTX_WERROR=$WERROR"
 )
 if [ "$ARCH" != $(uname -m) ]; then
   cmake_args+=("--toolchain", "cmake/linux-$ARCH-toolchain.cmake")

@@ -37,17 +37,17 @@ CMAKE_DEPENDENT_OPTION( KTX_FEATURE_TOOLS
                         "NOT IOS;NOT ANDROID;NOT EMSCRIPTEN"
                         OFF
 )
-option( KTX_FEATURE_DOC "Create KTX documentation" OFF )
-option( KTX_FEATURE_STATIC_LIBRARY "Create static libraries (shared otherwise)" ${LIB_TYPE_DEFAULT} )
-option( KTX_FEATURE_JNI "Create Java bindings for libktx" OFF )
-option( KTX_FEATURE_TESTS "Create unit tests" ON )
-option( KTX_FEATURE_TOOLS_CTS "Enable KTX CLI Tools CTS tests (requires CTS submodule)" OFF )
+option( KTX_FEATURE_DOC "Create KTX documentation." OFF )
+option( KTX_FEATURE_STATIC_LIBRARY "Create static libraries (shared otherwise)." ${LIB_TYPE_DEFAULT} )
+option( KTX_FEATURE_JNI "Create Java bindings for libktx." OFF )
+option( KTX_FEATURE_TESTS "Create unit tests." ON )
+option( KTX_FEATURE_TOOLS_CTS "Enable KTX CLI Tools CTS tests (requires CTS submodule)." OFF )
 
 if(KTX_FEATURE_TOOLS_CTS AND NOT KTX_FEATURE_TOOLS)
-    message(WARNING "KTX_FEATURE_TOOLS is not set -> disabling KTX_FEATURE_TOOLS_CTS")
+    message(WARNING "KTX_FEATURE_TOOLS is not set -> disabling KTX_FEATURE_TOOLS_CTS.")
     set(KTX_FEATURE_TOOLS_CTS "OFF")
 elseif(KTX_FEATURE_TOOLS_CTS AND NOT KTX_FEATURE_TESTS)
-    message(WARNING "KTX_FEATURE_TESTS is not set -> disabling KTX_FEATURE_TOOLS_CTS")
+    message(WARNING "KTX_FEATURE_TESTS is not set -> disabling KTX_FEATURE_TOOLS_CTS.")
     set(KTX_FEATURE_TOOLS_CTS "OFF")
 endif()
 
@@ -92,16 +92,16 @@ endif()
 
 
 CMAKE_DEPENDENT_OPTION( KTX_EMBED_BITCODE
-    "Embed bitcode in binaries"
+    "Embed bitcode in binaries."
     OFF
     "APPLE AND IOS"
     OFF
 )
 
-option( KTX_FEATURE_KTX1 "Enable KTX 1 support" ON )
-option( KTX_FEATURE_KTX2 "Enable KTX 2 support" ON )
-option( KTX_FEATURE_VK_UPLOAD "Enable Vulkan texture upload" ON )
-option( KTX_FEATURE_GL_UPLOAD "Enable OpenGL texture upload" ON )
+option( KTX_FEATURE_KTX1 "Enable KTX 1 support." ON )
+option( KTX_FEATURE_KTX2 "Enable KTX 2 support." ON )
+option( KTX_FEATURE_VK_UPLOAD "Enable Vulkan texture upload." ON )
+option( KTX_FEATURE_GL_UPLOAD "Enable OpenGL texture upload." ON )
 # When a variable like this is set via CMakeUserPresets.json, it no longer
 # shows the selectable options provided by the STRINGS property.
 set( KTX_FEATURE_LOADTEST_APPS
@@ -233,12 +233,17 @@ endif()
 include(cmake/mkvk.cmake)
 
 # Global compile & link options including optimization flags
+
+option( KTX_WERROR "Make all warnings in KTX code into errors." OFF)
+
 if(MSVC)
-    add_compile_options( /W4;/WX )
+    # ";" argument separator is problematic. Can't use a GenEx `$<IF:`
+    # because `/W4;/WX` is returned as a single string.
+    add_compile_options( /W4;$<$<BOOL:${KTX_WERROR}>:/WX> )
     add_compile_options( $<IF:$<CONFIG:Debug>,/Gz,/O2> )
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"
        OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-    add_compile_options(-Wall -Wextra -Werror)
+    add_compile_options( -Wall -Wextra $<$<BOOL:${KTX_WERROR}>:-Werror>)
     add_compile_options( $<IF:$<CONFIG:Debug>,-O0,-O3> )
     if(EMSCRIPTEN)
         add_link_options( $<IF:$<CONFIG:Debug>,-gsource-map,-O3> )
@@ -955,6 +960,7 @@ else()
 endif()
 
 # Other external projects
+set(FMT_SYSTEM_HEADERS ON)
 add_subdirectory(other_projects/fmt)
 add_subdirectory(other_projects/cxxopts)
 

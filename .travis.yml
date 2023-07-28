@@ -36,6 +36,7 @@ env:
     - VULKAN_INSTALL_DIR: "$HOME/VulkanSDK/$VULKAN_SDK_VER"
     - VULKAN_SDK: "$VULKAN_INSTALL_DIR/macOS"
     - WASM_BUILD: NO
+    - WERROR: ON
   jobs:
     # FEATURE_TESTS is off for arm64 macOS because we can't even build
     # them during CI. CI runs on x86_64 and there is a PostBuild command
@@ -89,7 +90,7 @@ jobs:
         - CMAKE_GEN: Ninja
         - CONFIGURATION=Debug
           FEATURE_DOC=OFF FEATURE_JNI=ON FEATURE_LOADTESTS=OpenGL+Vulkan FEATURE_TOOLS=ON
-          SUPPORT_SSE=ON SUPPORT_OPENCL=OFF
+          SUPPORT_SSE=ON SUPPORT_OPENCL=OFF WERROR=ON
     - os: linux
       dist: jammy
       compiler: gcc
@@ -100,7 +101,7 @@ jobs:
         - CMAKE_GEN: Ninja
         - CONFIGURATION=Release
           FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=OpenGL+Vulkan FEATURE_TOOLS=ON
-          SUPPORT_SSE=ON SUPPORT_OPENCL=OFF PACKAGE=YES
+          SUPPORT_SSE=ON SUPPORT_OPENCL=OFF WERROR=ON PACKAGE=YES
     - os: linux
       arch: arm64
       dist: jammy
@@ -113,7 +114,7 @@ jobs:
         - CONFIGURATION=Release
           FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=OpenGL
           FEATURE_TOOLS=ON FEATURE_TOOLS_CTS=OFF
-          SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF PACKAGE=YES
+          SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF WERROR=ON PACKAGE=YES
     - os: linux
       dist: jammy
       compiler: gcc
@@ -122,7 +123,7 @@ jobs:
         - CONFIGURATION=Release
           FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF
           FEATURE_TOOLS=OFF FEATURE_TOOLS_CTS=OFF
-          SUPPORT_SSE=ON SUPPORT_OPENCL=ON PACKAGE=NO
+          SUPPORT_SSE=ON SUPPORT_OPENCL=ON WERROR=ON PACKAGE=NO
     - os: linux
       dist: jammy
       compiler: gcc
@@ -131,7 +132,7 @@ jobs:
         - CONFIGURATION=Release
           FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF
           FEATURE_TOOLS=OFF FEATURE_TOOLS_CTS=OFF
-          SUPPORT_SSE=OFF SUPPORT_OPENCL=ON PACKAGE=NO
+          SUPPORT_SSE=OFF SUPPORT_OPENCL=ON WERROR=ON PACKAGE=NO
     - os: linux
       dist: jammy
       compiler: gcc
@@ -140,7 +141,7 @@ jobs:
         - CONFIGURATION=Release
           FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF
           FEATURE_TOOLS=OFF FEATURE_TOOLS_CTS=OFF
-          SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF PACKAGE=NO
+          SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF WERROR=ON PACKAGE=NO
     - os: linux
       dist: jammy
       compiler: clang
@@ -149,7 +150,7 @@ jobs:
         - WASM_BUILD=YES
         - CONFIGURATION=Debug
           FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=OpenGL
-          SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF
+          SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF WERROR=ON
     - os: linux
       dist: jammy
       compiler: clang
@@ -158,7 +159,7 @@ jobs:
         - WASM_BUILD=YES
         - CONFIGURATION=Release
           FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=OpenGL
-          SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF PACKAGE=YES
+          SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF WERROR=ON PACKAGE=YES
 
 # Phase 1: Git clone - done automatically.
 # Phase 2: Install apt addons.
