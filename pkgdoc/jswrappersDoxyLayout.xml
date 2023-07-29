@@ -9,8 +9,6 @@
       <tab type="namespacelist" visible="yes" title="" intro=""/>
       <tab type="namespacemembers" visible="yes" title="" intro=""/>
     </tab>
-    <tab type="concepts" visible="no" title="">
-    </tab>
     <tab type="interfaces" visible="no" title="">
       <tab type="interfacelist" visible="yes" title="" intro=""/>
       <tab type="interfaceindex" visible="$ALPHABETICAL_INDEX" title=""/>
