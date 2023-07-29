@@ -65,7 +65,6 @@ enum InterpretDFDResult interpretDFD(const uint32_t *DFD,
     if (numSamples == 0)
         return i_UNSUPPORTED_CHANNEL_TYPES;
 
-    uint32_t sampleCounter;
     int determinedEndianness = 0;
     enum InterpretDFDResult result = 0; /* Build this up incrementally. */
 
@@ -91,7 +90,7 @@ enum InterpretDFDResult interpretDFD(const uint32_t *DFD,
     /* we have the RGBA/ABGR ambiguity; we *probably* don't want the packed */
     /* version in this case, and if hardware has to pack it and swizzle, */
     /* that's up to the hardware to special-case. */
-    for (sampleCounter = 0; sampleCounter < numSamples; ++sampleCounter) {
+    for (uint32_t sampleCounter = 0; sampleCounter < numSamples; ++sampleCounter) {
         uint32_t offset = KHR_DFDSVAL(BDFDB, sampleCounter, BITOFFSET);
         uint32_t length = KHR_DFDSVAL(BDFDB, sampleCounter, BITLENGTH) + 1;
         if ((offset & 0x7U) || ((offset + length) & 0x7U)) {
@@ -119,7 +118,7 @@ enum InterpretDFDResult interpretDFD(const uint32_t *DFD,
         // an API we can support.
         const bool isNormalized = isFloat ?
                 *(float*) (void*) &BDFDB[KHR_DF_WORD_SAMPLESTART +
-                    KHR_DF_WORD_SAMPLEWORDS * sampleCounter +
+                    KHR_DF_WORD_SAMPLEWORDS * i +
                     KHR_DF_SAMPLEWORD_SAMPLEUPPER] != 1.0f :
                 KHR_DFDSVAL(BDFDB, i, SAMPLEUPPER) != 1U;
 
@@ -127,7 +126,7 @@ enum InterpretDFDResult interpretDFD(const uint32_t *DFD,
         hasFloat |= isFloat;
         // By our definition the normalizedness of a single bit channel (like in RGBA 5:5:5:1)
         // is ambiguous. Ignore these during normalized checks.
-        if (KHR_DFDSVAL(BDFDB, sampleCounter, BITLENGTH) > 0)
+        if (KHR_DFDSVAL(BDFDB, i, BITLENGTH) > 0)
             hasNormalized |= isNormalized;
     }
     result |= hasSigned ? i_SIGNED_FORMAT_BIT : 0;
@@ -172,13 +171,13 @@ enum InterpretDFDResult interpretDFD(const uint32_t *DFD,
         /* We only support samples at coordinate 0,0,0,0. */
         /* (We could confirm this from texel_block_dimensions in 1.2, but */
         /* the interpretation might change in later versions.) */
-        for (sampleCounter = 0; sampleCounter < numSamples; ++sampleCounter) {
+        for (uint32_t sampleCounter = 0; sampleCounter < numSamples; ++sampleCounter) {
             if (KHR_DFDSVAL(BDFDB, sampleCounter, SAMPLEPOSITION_ALL))
                 return i_UNSUPPORTED_MULTIPLE_SAMPLE_LOCATIONS;
         }
 
         /* For Depth/Stencil formats mixed channels are allowed */
-        for (sampleCounter = 0; sampleCounter < numSamples; ++sampleCounter) {
+        for (uint32_t sampleCounter = 0; sampleCounter < numSamples; ++sampleCounter) {
             switch (KHR_DFDSVAL(BDFDB, sampleCounter, CHANNELID)) {
             case KHR_DF_CHANNEL_RGBSDA_DEPTH:
             case KHR_DF_CHANNEL_RGBSDA_STENCIL:
@@ -228,7 +227,7 @@ enum InterpretDFDResult interpretDFD(const uint32_t *DFD,
             uint32_t currentByteOffset = 0;
             uint32_t currentBitLength = 0;
             *wordBytes = (BDFDB[KHR_DF_WORD_BYTESPLANE0] & 0xFFU);
-            for (sampleCounter = 0; sampleCounter < numSamples; ++sampleCounter) {
+            for (uint32_t sampleCounter = 0; sampleCounter < numSamples; ++sampleCounter) {
                 uint32_t sampleBitOffset = KHR_DFDSVAL(BDFDB, sampleCounter, BITOFFSET);
                 uint32_t sampleByteOffset = sampleBitOffset >> 3U;
                 /* The sample bitLength field stores the bit length - 1. */
@@ -315,7 +314,7 @@ enum InterpretDFDResult interpretDFD(const uint32_t *DFD,
             uint32_t currentChannel = ~0U; /* Don't start matched. */
             uint32_t currentByteOffset = 0;
             uint32_t currentByteLength = 0;
-            for (sampleCounter = 0; sampleCounter < numSamples; ++sampleCounter) {
+            for (uint32_t sampleCounter = 0; sampleCounter < numSamples; ++sampleCounter) {
                 uint32_t sampleByteOffset = KHR_DFDSVAL(BDFDB, sampleCounter, BITOFFSET) >> 3U;
                 uint32_t sampleByteLength = (KHR_DFDSVAL(BDFDB, sampleCounter, BITLENGTH) + 1) >> 3U;
                 uint32_t sampleChannel = KHR_DFDSVAL(BDFDB, sampleCounter, CHANNELID);

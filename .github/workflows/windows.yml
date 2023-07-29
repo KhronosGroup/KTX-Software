@@ -95,6 +95,7 @@ jobs:
       PACKAGE: ${{ matrix.options.package }}
       SUPPORT_OPENCL: ${{ matrix.options.opencl }}
       SUPPORT_SSE: ${{ matrix.options.sse }}
+      WERROR: ON
 
       CODE_SIGN_TIMESTAMP_URL: "http://timestamp.digicert.com"
       AZURE_KEY_VAULT_URL: ${{ secrets.AZURE_KEY_VAULT_URL }}

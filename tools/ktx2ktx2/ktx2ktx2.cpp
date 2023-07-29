@@ -187,7 +187,7 @@ ktxUpgrader::main(int argc, _TCHAR* argv[])
     processCommandLine(argc, argv);
     validateOptions();
 
-    std::vector<_tstring>::const_iterator it, s, e;
+    std::vector<_tstring>::const_iterator it;
     for (it = options.infiles.begin(); it < options.infiles.end(); it++) {
         _tstring infile = *it;
         _tstring outfile;
