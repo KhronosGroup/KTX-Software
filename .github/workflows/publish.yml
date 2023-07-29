@@ -12,19 +12,9 @@ on:
       - 'v[0-9]+\.[0-9]+\.[0-9]+-*'
 
 jobs:
-  check:
-    runs-on: ubuntu-latest
-    outputs:
-      status: ${{ steps.early.conclusion }}
-    steps:
-      - id: early
-        name: Early exit
-        run: exit 0
-        if: endsWith(github.event.base_ref, 'main')
   pypi:
     runs-on: ubuntu-latest
-    needs: check
-    if: needs.check.outputs.status == 'success'
+    if: endsWith(github.event.base_ref, 'main')
     steps:
       # Hack to workaround "on:" not supporting AND condition.
       - name: Exit if not on main branch
