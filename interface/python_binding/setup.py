@@ -1,10 +1,13 @@
 # Copyright (c) 2023, Shukant Pal and Contributors
 # SPDX-License-Identifier: Apache-2.0
 
+import os
 from setuptools import setup
 
 __name__    = 'pyktx'
-__version__ = '4.0.0rc20'
+__version__ = os.environ['LIBKTX_VERSION']
+
+assert __version__ is not None
 
 setup(
     name=__name__,
