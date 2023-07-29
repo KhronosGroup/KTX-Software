@@ -5,6 +5,12 @@ from enum import IntEnum
 
 
 class KtxPackAstcEncoderMode(IntEnum):
+    """
+    Options specifying ASTC encoder profile mode.
+    
+    This and function is used later to derive the profile.
+    """
+
     DEFAULT = 0
     LDR = 1
     HDR = 2

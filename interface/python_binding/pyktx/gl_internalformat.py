@@ -5,6 +5,8 @@ from enum import IntEnum
 
 
 class GlInternalformat(IntEnum):
+    """OpenGL internalformat constants."""
+
     R3_G3_B2 = 0x2A10
     RGB4 = 0x804F
     RGB5 = 0x8050

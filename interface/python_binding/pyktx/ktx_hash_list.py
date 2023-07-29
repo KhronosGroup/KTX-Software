@@ -8,22 +8,30 @@ from typing import Dict, Optional
 
 
 class KtxHashList:
+    """Opaque handle to a ktxHashList implemented in C."""
+
     def __init__(self, ptr):
         self._ptr = ptr
 
     def add_kv_pair(self, key: str, value: bytes) -> None:
+        """Add a key value pair to a hash list."""
+
         error = lib.ktxHashList_AddKVPair(self._ptr, key.encode('ascii'), len(value), value)
 
         if int(error) != KtxErrorCode.SUCCESS:
             raise KtxError('ktxHashList_AddKVPair', KtxErrorCode(error))
 
     def delete_kv_pair(self, key: str) -> None:
+        """Delete a key value pair in a hash list."""
+
         error = lib.ktxHashList_DeleteKVPair(self._ptr, key.encode('ascii'))
 
         if int(error) != KtxErrorCode.SUCCESS:
             raise KtxError('ktxHashList_DeleteKVPair', KtxErrorCode(error))
 
     def find_value(self, key: str) -> Optional[c_buffer]:
+        """Looks up a key in a hash list and returns the value."""
+
         data = lib.PY_ktxHashList_FindValue(self._ptr, key.encode('ascii'))
 
         if data.error == KtxErrorCode.NOT_FOUND:
@@ -34,6 +42,8 @@ class KtxHashList:
         return ffi.buffer(data.bytes, data.size)
 
     def copy(self) -> Dict[str, bytes]:
+        """Copy the hash list into a dict. This is recommended if you reading the hash list."""
+
         kv_data = {}
         entry = lib.PY_ktxHashList_get_listHead(self._ptr)
 

@@ -5,6 +5,13 @@ from enum import IntEnum
 
 
 class KtxSupercmpScheme(IntEnum):
+    """Enumerators identifying the supercompression scheme."""
+
     NONE = 0
+    """No supercompression."""
+
     BASIS_LZ = 1
+    """Basis LZ supercompression."""
+
     ZSTD = 2
+    """ZStd supercompression."""

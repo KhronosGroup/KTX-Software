@@ -5,6 +5,8 @@ from enum import IntEnum
 
 
 class KtxTranscodeFmt(IntEnum):
+    """Enumerators for specifying the transcode target format."""
+
     ETC1_RGB = 0
     ETC2_RGBA = 1
     BC1_RGB = 2
