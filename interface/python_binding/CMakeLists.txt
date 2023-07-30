@@ -76,7 +76,6 @@ add_custom_command(
         "Install dependencies for pyktx build"
 )
 
-if (NOT WIN32) # Heap corruption on Windows somehow
 add_custom_command(
     TARGET pyktx
     PRE_BUILD
@@ -100,4 +99,3 @@ add_test(NAME pyktx
     WORKING_DIRECTORY
         ${CMAKE_SOURCE_DIR}/interface/python_binding
 )
-endif()
