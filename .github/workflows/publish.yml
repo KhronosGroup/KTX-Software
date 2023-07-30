@@ -16,10 +16,6 @@ jobs:
     runs-on: ubuntu-latest
     if: endsWith(github.event.base_ref, 'main')
     steps:
-      # Hack to workaround "on:" not supporting AND condition.
-      - name: Exit if not on main branch
-        if: endsWith(github.event.base_ref, 'main') == false
-        run: exit 1
       - name: Download latest release metadata
         run: |
            curl \
