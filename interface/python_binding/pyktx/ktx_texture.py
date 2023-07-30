@@ -142,7 +142,7 @@ class KtxTexture:
 
     def row_pitch(self, level: int) -> int:
         """
-        Return pitch betweeb rows of a texture image level in bytes.
+        Return pitch between rows of a texture image level in bytes.
 
         For uncompressed textures the pitch is the number of bytes between
         rows of texels. For compressed textures it is the number of bytes
