@@ -15,3 +15,6 @@ class KtxSupercmpScheme(IntEnum):
 
     ZSTD = 2
     """ZStd supercompression."""
+
+    ZLIB = 3
+    """ZLIB supercompression."""
