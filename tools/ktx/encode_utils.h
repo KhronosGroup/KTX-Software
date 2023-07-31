@@ -107,7 +107,7 @@ enum class EncodeCodec {
             <tr><td>4   </td><td> Very slow </td><td> 48.24dB</td></tr>
             </table>
 
-            You are strongly encouraged to also specify @b --zcmp to
+            You are strongly encouraged to also specify @b --zstd to
             losslessly compress the UASTC data. This and any LZ-style
             compression can be made more effective by conditioning the
             UASTC texture data using the Rate Distortion Optimization (RDO)

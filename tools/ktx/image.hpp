@@ -1248,7 +1248,12 @@ class ImageT : public Image {
             // Encode destination transfer function
             for (uint32_t comp = 0; comp < components; comp++) {
                 brightness[comp] = encode.encode(intensity[comp]);
-                c.set(comp, roundf(brightness[comp] * static_cast<float>(Color::one())));
+                // clamp(value, color::min, color::max) is required as static_cast has platform-specific behaviors
+                // and on certain platforms can over or underflow
+                c.set(comp, cclamp(
+                        roundf(brightness[comp] * static_cast<float>(Color::one())),
+                        static_cast<float>(Color::min()),
+                        static_cast<float>(Color::max())));
             }
         }
         return *this;
