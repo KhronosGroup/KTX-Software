@@ -10,3 +10,10 @@ venv
 __pycache__
 Release
 Debug
+
+# Sphinx
+docs
+doctrees
+html
+_static
+_templates

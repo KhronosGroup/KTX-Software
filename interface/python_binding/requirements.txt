@@ -4,3 +4,5 @@
 cffi==1.15.1
 setuptools==65.6.3
 wheel>=0.38.4
+sphinx==7.1.1
+sphinx-rtd-theme==1.2.2
