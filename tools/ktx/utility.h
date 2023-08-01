@@ -307,7 +307,7 @@ template <typename T>
     return bit_cast<T>(target);
 }
 
-[[nodiscard]] inline uint32_t covertFloatToUNORM(float value, uint32_t numBits) {
+[[nodiscard]] inline uint32_t convertFloatToUNORM(float value, uint32_t numBits) {
     assert(numBits > 0 && numBits <= 32);
     if (std::isnan(value))
         return 0;
@@ -318,7 +318,7 @@ template <typename T>
     return static_cast<uint32_t>(value * static_cast<float>((1u << numBits) - 1u) + 0.5f);
 }
 
-[[nodiscard]] inline float covertSFloatToFloat(uint32_t rawBits, uint32_t numBits) {
+[[nodiscard]] inline float convertSFloatToFloat(uint32_t rawBits, uint32_t numBits) {
     assert(numBits == 16 || numBits == 32);
     if (numBits == 16)
         return half_to_float(static_cast<uint16_t>(rawBits));
@@ -326,7 +326,7 @@ template <typename T>
         return bit_cast<float>(rawBits);
     return 0;
 }
-[[nodiscard]] inline float covertUFloatToFloat(uint32_t rawBits, uint32_t numBits) {
+[[nodiscard]] inline float convertUFloatToFloat(uint32_t rawBits, uint32_t numBits) {
     assert(numBits == 10 || numBits == 11);
     if (numBits == 10)
         return glm::detail::packed10bitToFloat(rawBits);
@@ -334,30 +334,30 @@ template <typename T>
         return glm::detail::packed11bitToFloat(rawBits);
     return 0;
 }
-[[nodiscard]] inline float covertSIntToFloat(uint32_t rawBits, uint32_t numBits) {
+[[nodiscard]] inline float convertSIntToFloat(uint32_t rawBits, uint32_t numBits) {
     assert(numBits > 0 && numBits <= 32);
     const auto signBit = (rawBits & 1u << (numBits - 1)) != 0;
     const auto valueBits = rawBits & ~(1u << (numBits - 1));
     const auto signedValue = static_cast<int32_t>(valueBits) * (signBit ? -1 : 1);
     return static_cast<float>(signedValue);
 }
-[[nodiscard]] inline float covertUIntToFloat(uint32_t rawBits, uint32_t numBits) {
+[[nodiscard]] inline float convertUIntToFloat(uint32_t rawBits, uint32_t numBits) {
     assert(numBits > 0 && numBits <= 32); (void) numBits;
     return static_cast<float>(rawBits);
 }
-[[nodiscard]] inline float covertSNORMToFloat(uint32_t rawBits, uint32_t numBits) {
+[[nodiscard]] inline float convertSNORMToFloat(uint32_t rawBits, uint32_t numBits) {
     assert(numBits > 0 && numBits <= 32);
     (void) rawBits;
     (void) numBits;
     assert(false && "Not yet implemented");
     return 0;
 }
-[[nodiscard]] inline float covertUNORMToFloat(uint32_t rawBits, uint32_t numBits) {
+[[nodiscard]] inline float convertUNORMToFloat(uint32_t rawBits, uint32_t numBits) {
     assert(numBits > 0 && numBits <= 32);
     const auto upper = static_cast<float>((1u << numBits) - 1u);
     return static_cast<float>(rawBits) / upper;
 }
-[[nodiscard]] inline uint32_t covertSFloatToUInt(uint32_t rawBits, uint32_t numBits) {
+[[nodiscard]] inline uint32_t convertSFloatToUInt(uint32_t rawBits, uint32_t numBits) {
     assert(numBits == 16 || numBits == 32);
     if (numBits == 16)
         return static_cast<uint32_t>(half_to_float(static_cast<uint16_t>(rawBits)));
@@ -365,21 +365,21 @@ template <typename T>
         return static_cast<uint32_t>(bit_cast<float>(rawBits));
     return 0;
 }
-[[nodiscard]] inline uint32_t covertUFloatToUInt(uint32_t rawBits, uint32_t numBits) {
+[[nodiscard]] inline uint32_t convertUFloatToUInt(uint32_t rawBits, uint32_t numBits) {
     assert(numBits == 10 || numBits == 11 || numBits == 14);
     (void) rawBits;
     (void) numBits;
     assert(false && "Not yet implemented");
     return 0;
 }
-[[nodiscard]] inline uint32_t covertSIntToUInt(uint32_t rawBits, uint32_t numBits) {
+[[nodiscard]] inline uint32_t convertSIntToUInt(uint32_t rawBits, uint32_t numBits) {
     assert(numBits > 0 && numBits <= 32);
     (void) rawBits;
     (void) numBits;
     assert(false && "Not yet implemented");
     return 0;
 }
-[[nodiscard]] inline uint32_t covertUIntToUInt(uint32_t rawBits, uint32_t numBits) {
+[[nodiscard]] inline uint32_t convertUIntToUInt(uint32_t rawBits, uint32_t numBits) {
     assert(numBits > 0 && numBits <= 32);
     (void) numBits;
     return rawBits;

@@ -630,16 +630,16 @@ void CommandExtract::unpackAndSave422(std::string filepath, bool appendExtension
             char* pixel0 = unpackedData.data() + (y * width + x * 2) * pixelBytes;
             char* pixel1 = unpackedData.data() + (y * width + x * 2 + 1) * pixelBytes;
 
-            const float valueLeftY1 = covertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlockLeft, y1Offset, y1Bits), y1Bits);
-            const float valueLeftU = covertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlockLeft, uOffset, uBits), uBits);
-            const float valueLeftV = covertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlockLeft, vOffset, vBits), vBits);
-            const float valueY0 = covertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlock, y0Offset, y0Bits), y0Bits);
-            const float valueY1 = covertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlock, y1Offset, y1Bits), y1Bits);
-            const float valueU = covertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlock, uOffset, uBits), uBits);
-            const float valueV = covertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlock, vOffset, vBits), vBits);
-            const float valueRightY0 = covertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlockRight, y0Offset, y0Bits), y0Bits);
-            const float valueRightU = covertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlockRight, uOffset, uBits), uBits);
-            const float valueRightV = covertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlockRight, vOffset, vBits), vBits);
+            const float valueLeftY1 = convertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlockLeft, y1Offset, y1Bits), y1Bits);
+            const float valueLeftU = convertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlockLeft, uOffset, uBits), uBits);
+            const float valueLeftV = convertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlockLeft, vOffset, vBits), vBits);
+            const float valueY0 = convertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlock, y0Offset, y0Bits), y0Bits);
+            const float valueY1 = convertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlock, y1Offset, y1Bits), y1Bits);
+            const float valueU = convertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlock, uOffset, uBits), uBits);
+            const float valueV = convertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlock, vOffset, vBits), vBits);
+            const float valueRightY0 = convertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlockRight, y0Offset, y0Bits), y0Bits);
+            const float valueRightU = convertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlockRight, uOffset, uBits), uBits);
+            const float valueRightV = convertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlockRight, vOffset, vBits), vBits);
 
             const auto interpolateY = [](float pos, float pos0, float value0, float pos1, float value1, float pos2, float value2, float pos3, float value3) {
                 if (pos < pos1)
@@ -658,17 +658,17 @@ void CommandExtract::unpackAndSave422(std::string filepath, bool appendExtension
             };
 
             const auto setPixel = [&](auto* pixel, float pos) {
-                const auto r = covertFloatToUNORM(interpolateUV(pos,
+                const auto r = convertFloatToUNORM(interpolateUV(pos,
                         positionV - blockSize, valueLeftV,
                         positionV, valueV,
                         positionV + blockSize, valueRightV), uBits);
-                const auto g = covertFloatToUNORM(interpolateY(
+                const auto g = convertFloatToUNORM(interpolateY(
                         pos,
                         positionY1 - blockSize, valueLeftY1,
                         positionY0, valueY0,
                         positionY1, valueY1,
                         positionY0 + blockSize, valueRightY0), y0Bits);
-                const auto b = covertFloatToUNORM(interpolateUV(pos,
+                const auto b = convertFloatToUNORM(interpolateUV(pos,
                         positionU - blockSize, valueLeftU,
                         positionU, valueU,
                         positionU + blockSize, valueRightU), uBits);
@@ -923,31 +923,31 @@ void CommandExtract::saveEXR(std::string filepath, bool appendExtension,
                     if (pixelTypes[c] == TINYEXR_PIXELTYPE_FLOAT || pixelTypes[c] == TINYEXR_PIXELTYPE_HALF) {
                         if (channel.isFloat) {
                             if (channel.isSigned)
-                                target = bit_cast<uint32_t>(covertSFloatToFloat(value, bits));
+                                target = bit_cast<uint32_t>(convertSFloatToFloat(value, bits));
                             else
-                                target = bit_cast<uint32_t>(covertUFloatToFloat(value, bits));
+                                target = bit_cast<uint32_t>(convertUFloatToFloat(value, bits));
                         } else {
                             if (channel.isNormalized) {
                                 if (channel.isSigned)
-                                    target = bit_cast<uint32_t>(covertSNORMToFloat(value, bits));
+                                    target = bit_cast<uint32_t>(convertSNORMToFloat(value, bits));
                                 else
-                                    target = bit_cast<uint32_t>(covertUNORMToFloat(value, bits));
+                                    target = bit_cast<uint32_t>(convertUNORMToFloat(value, bits));
                             } else {
                                 if (channel.isSigned)
-                                    target = bit_cast<uint32_t>(covertSIntToFloat(value, bits));
+                                    target = bit_cast<uint32_t>(convertSIntToFloat(value, bits));
                                 else
-                                    target = bit_cast<uint32_t>(covertUIntToFloat(value, bits));
+                                    target = bit_cast<uint32_t>(convertUIntToFloat(value, bits));
                             }
                         }
                     } else if (pixelTypes[c] == TINYEXR_PIXELTYPE_UINT) {
                         if (channel.isFloat && channel.isSigned) {
-                            target = covertSFloatToUInt(value, bits);
+                            target = convertSFloatToUInt(value, bits);
                         } else if (channel.isFloat && !channel.isSigned) {
-                            target = covertUFloatToUInt(value, bits);
+                            target = convertUFloatToUInt(value, bits);
                         } else if (!channel.isFloat && channel.isSigned) {
-                            target = covertSIntToUInt(value, bits);
+                            target = convertSIntToUInt(value, bits);
                         } else if (!channel.isFloat && !channel.isSigned) {
-                            target = covertUIntToUInt(value, bits);
+                            target = convertUIntToUInt(value, bits);
                         }
                     } else
                         assert(false && "Internal error");
