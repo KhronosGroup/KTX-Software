@@ -14,6 +14,9 @@ if (LINUX AND NOT Python3_FOUND)
     message(STATUS "CMake failed to find python3. Will continue assuming it's on PATH")
 endif()
 
+# Convert Windows path to CMake path
+cmake_path(SET PYTHON_PATH ${PYTHON_EXECUTABLE})
+
 if(LINUX)
     set(LIBKTX_LIB_DIR ${KTX_BUILD_DIR})
 else()
@@ -114,7 +117,7 @@ add_custom_command(
         ${PYTHON_EXECUTABLE} -m sphinx.ext.apidoc -o docs ./pyktx --separate
     COMMAND
         ${CMAKE_COMMAND} -E env
-            SPHINXBUILD=$<IF:$<PLATFORM_ID:Windows>,"${PYTHON_EXECUTABLE} -m sphinx","">
+            SPHINXBUILD=$<IF:$<PLATFORM_ID:Windows>,"${PYTHON_PATH} -m sphinx","">
         make html
     WORKING_DIRECTORY
         ${CMAKE_SOURCE_DIR}/interface/python_binding
