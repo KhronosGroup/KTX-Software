@@ -986,11 +986,6 @@ toktxApp::createImage(const targetImageSpec& target, ImageInput& in)
     FormatDescriptor inputFormat;
     Image* image = nullptr;
 
-    if (target.format().channelBitLength() != inSpec.format().channelBitLength()) {
-        if (!in.getConversionFeatures().rescaleUnorm)
-            throw runtime_error("Unsupported bit rescaling requested.");
-    }
-
     // input plugins that support channel reduction and addition do so
     // in a way which differs from the documented behaviour for --target_type
     // so alway do channel adjustments in this program.
