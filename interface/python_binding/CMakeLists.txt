@@ -113,6 +113,8 @@ add_custom_command(
     COMMAND
         ${PYTHON_EXECUTABLE} -m sphinx.ext.apidoc -o docs ./pyktx --separate
     COMMAND
+        ${CMAKE_COMMAND} -E env
+            SPHINXBUILD=$<IF:$<PLATFORM_ID:Windows>,"${PYTHON_EXECUTABLE} -m sphinx","">
         make html
     WORKING_DIRECTORY
         ${CMAKE_SOURCE_DIR}/interface/python_binding
