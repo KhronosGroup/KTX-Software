@@ -111,7 +111,7 @@ add_custom_command(
             LD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{LD_LIBRARY_PATH}
         ${PYTHON_EXECUTABLE} build.py
     COMMAND
-        sphinx-apidoc -o docs ./pyktx --separate
+        ${PYTHON_EXECUTABLE} sphinx.ext.apidoc -o docs ./pyktx --separate
     COMMAND
         make html
     WORKING_DIRECTORY
