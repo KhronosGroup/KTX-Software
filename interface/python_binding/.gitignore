@@ -13,7 +13,6 @@ Debug
 
 # Sphinx
 docs
-doctrees
-html
+_build
 _static
 _templates
