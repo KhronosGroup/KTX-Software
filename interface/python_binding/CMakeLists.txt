@@ -114,9 +114,14 @@ add_custom_command(
             LD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{LD_LIBRARY_PATH}
         ${PYTHON_EXECUTABLE} build.py
     COMMAND
+        ${CMAKE_COMMAND} -E env
+            LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
+            LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
         ${PYTHON_EXECUTABLE} -m sphinx.ext.apidoc -o docs ./pyktx --separate
     COMMAND
         ${CMAKE_COMMAND} -E env
+            LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
+            LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
             SPHINXBUILD=$<IF:$<PLATFORM_ID:Windows>,"${PYTHON_PATH} -m sphinx","">
         make html
     WORKING_DIRECTORY
