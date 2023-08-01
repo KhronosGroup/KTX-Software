@@ -13,6 +13,7 @@
 //!
 
 #include "imageio.h"
+#include "imageio_utility.h"
 
 #include <iomanip>
 #include <map>

@@ -15,9 +15,11 @@ set( PLUGIN_HEADERS
 
 add_library( imageio STATIC
     formatdesc.h
+    image.hpp
     imageinput.cc
     imageio.cc
     imageio.h
+    imageio_utility.h
     imageoutput.cc
     ${PROJECT_SOURCE_DIR}/lib/astc-encoder/Source/tinyexr.h
     ${PROJECT_SOURCE_DIR}/lib/basisu/encoder/jpgd.cpp
