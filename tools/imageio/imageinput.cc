@@ -39,6 +39,7 @@ ImageInput::open(const _tstring& filename,
     ImageInput::Creator createFunction = nullptr;
     const _tstring* fn;
     const _tstring sn("stdin");
+    bool doBuffer = true;
 
     if (filename.compare("-")) {
         // Regular file.
@@ -72,10 +73,16 @@ ImageInput::open(const _tstring& filename,
 #if defined(_WIN32)
         // Set "stdin" to have binary mode. There is no way to this via cin.
         (void)_setmode( _fileno( stdin ), _O_BINARY );
-#endif
+        // cin.seekg(0) erroneously succeeds for pipes on Windows, including
+        // in Cygwin since 3.4.x and anything dependent on Cygwin, e.g. Git
+        // for Windows (since 2.41.0) and MSYS2. Always buffer.
+        doBuffer = true;
+#else
         // Can we seek in this cin?
         std::cin.seekg(0);
-        if (std::cin.fail()) {
+        doBuffer = std::cin.fail();
+#endif
+        if (doBuffer) {
             // Can't seek. Buffer stdin. This is a potentially large buffer.
             // Must avoid copy. If use stack variable for ss, it's streambuf
             // will also be on the stack and lost after this function exits

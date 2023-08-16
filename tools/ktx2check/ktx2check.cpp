@@ -1104,6 +1104,45 @@ ktxValidator::usage()
     ktxApp::usage();
 }
 
+#if defined(DEBUG) && defined(NEED_TO_DEBUG_STDIN_WITH_VISUAL_STUDIO)
+#include <windows.h>
+
+bool launchDebugger()
+{
+    // Get System directory, typically c:\windows\system32
+    std::wstring systemDir(MAX_PATH + 1, '\0');
+    UINT nChars = GetSystemDirectoryW(&systemDir[0], systemDir.length());
+    if (nChars == 0) return false; // failed to get system directory
+    systemDir.resize(nChars);
+
+    // Get process ID and create the command line
+    DWORD pid = GetCurrentProcessId();
+    std::wostringstream s;
+    s << systemDir << L"\\vsjitdebugger.exe -p " << pid;
+    std::wstring cmdLine = s.str();
+
+    // Start debugger process
+    STARTUPINFOW si;
+    ZeroMemory(&si, sizeof(si));
+    si.cb = sizeof(si);
+
+    PROCESS_INFORMATION pi;
+    ZeroMemory(&pi, sizeof(pi));
+
+    if (!CreateProcessW(NULL, &cmdLine[0], NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) return false;
+
+    // Close debugger process handles to eliminate resource leak
+    CloseHandle(pi.hThread);
+    CloseHandle(pi.hProcess);
+
+    // Wait for the debugger to attach
+    while (!IsDebuggerPresent()) Sleep(100);
+
+    // Stop execution so the debugger can take over
+    DebugBreak();
+    return true;
+}
+#endif
 
 int _tmain(int argc, _TCHAR* argv[])
 {
@@ -1120,6 +1159,10 @@ ktxValidator::main(int argc, _TCHAR *argv[])
 
     logger.quiet = options.quiet;
     logger.maxIssues = options.maxIssues;
+
+#if defined(DEBUG) && defined(NEED_TO_DEBUG_STDIN_WITH_VISUAL_STUDIO)
+    launchDebugger();
+#endif
 
     vector<_tstring>::const_iterator it;
     for (it = options.infiles.begin(); it < options.infiles.end(); it++) {
@@ -1147,17 +1190,25 @@ ktxValidator::validateFile(const _tstring& filename)
     // of this method.
     ifstream ifs;
     stringstream buffer;
+    bool doBuffer;
 
     if (filename.compare(_T("-")) == 0) {
 #if defined(_WIN32)
         /* Set "stdin" to have binary mode */
         (void)_setmode( _fileno( stdin ), _O_BINARY );
-#endif
+        // cin.seekg(0) erroneously succeeds for pipes on Windows, including
+        // in Cygwin since 3.4.x and anything dependent on Cygwin, e.g. Git
+        // for Windows (since 2.41.0) and MSYS2. Always buffer.
+        doBuffer = true;
+#else
         // Can we seek in this cin?
         cin.seekg(0);
-        if (cin.fail()) {
+        doBuffer = cin.fail();
+#endif
+        if (doBuffer) {
             // Read entire file into a stringstream so we can seek.
             buffer << std::cin.rdbuf();
+            buffer.seekg(0, std::ios::beg);
             isp = &buffer;
         } else {
             isp = &cin;
