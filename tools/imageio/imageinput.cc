@@ -73,9 +73,11 @@ ImageInput::open(const _tstring& filename,
 #if defined(_WIN32)
         // Set "stdin" to have binary mode. There is no way to this via cin.
         (void)_setmode( _fileno( stdin ), _O_BINARY );
-        // cin.seekg(0) erroneously succeeds for pipes on Windows, including
-        // in Cygwin since 3.4.x and anything dependent on Cygwin, e.g. Git
-        // for Windows (since 2.41.0) and MSYS2. Always buffer.
+        // Windows shells set the FILE_SYNCHRONOUS_IO_NONALERT option when
+        // creating pipes. Cygwin since 3.4.x does the same thing, a change
+        // which affects anything dependent on it, e.g. Git for Windows
+        // (since 2.41.0) and MSYS2. When this option is set, cin.seekg(0)
+        // erroneously returns success. Always buffer.
         doBuffer = true;
 #else
         // Can we seek in this cin?
