@@ -29,6 +29,16 @@ template <class To, class From>
     return dst;
 }
 
+// C++20 - std::bit_ceil
+template <typename T>
+[[nodiscard]] constexpr inline T bit_ceil(T x) noexcept {
+    x -= 1;
+    for (uint32_t i = 0; i < sizeof(x) * 8; ++i)
+        if (1u << i > x)
+            return 1u << i;
+    return 0;
+}
+
 // --- Half utilities ----------------------------------------------------------
 // Based on https://gist.github.com/rygorous/eb3a019b99fdaa9c3064
 

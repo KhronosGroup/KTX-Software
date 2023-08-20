@@ -70,16 +70,6 @@ template <typename T>
     return e;
 }
 
-// C++20 - std::bit_ceil
-template <typename T>
-[[nodiscard]] constexpr inline T bit_ceil(T x) noexcept {
-    x -= 1;
-    for (uint32_t i = 0; i < sizeof(x) * 8; ++i)
-        if (1u << i > x)
-            return 1u << i;
-    return 0;
-}
-
 // C++20 - std::popcount
 template <typename T>
 [[nodiscard]] constexpr inline int popcount(T value) noexcept {

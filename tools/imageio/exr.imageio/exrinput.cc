@@ -176,6 +176,10 @@ void ExrInput::open(ImageSpec& newspec) {
     newspec = spec();
 }
 
+/// @brief Read an entire image into contiguous memory performing conversions
+/// to @a requestFormat.
+///
+/// Supported conversions are half->[half,float,uint], float->float, and uint->uint.
 void ExrInput::readImage(void* outputBuffer, size_t bufferByteCount,
         uint32_t subimage, uint32_t miplevel,
         const FormatDescriptor& requestFormat) {

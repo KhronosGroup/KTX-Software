@@ -1259,7 +1259,7 @@ std::unique_ptr<Image> CommandCreate::loadInputImage(ImageInput& inputImageFile,
 
     const uint32_t channelCount = std::min(4u, std::max(target.format().channelCount(), inputFormat.channelCount()));
     const auto inputBitLength = inputFormat.largestChannelBitLength();
-    const auto requestBitLength = std::max(bit_ceil(inputBitLength), 8u);
+    const auto requestBitLength = std::max(imageio::bit_ceil(inputBitLength), 8u);
     FormatDescriptor loadFormat;
 
     assert(channelCount >= 1 && channelCount <= 4);
@@ -1452,7 +1452,7 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
         if (inputBitDepth < bitDepth)
             fatal(rc::INVALID_FILE, "{}: Not enough precision to convert {} bit input to {} bit output for {}.",
                     inputFile.filename(), inputBitDepth, bitDepth, toString(vkFormat));
-        if (inputBitDepth > bit_ceil(bitDepth))
+      if (inputBitDepth > imageio::bit_ceil(bitDepth))
             warning("{}: Possible loss of precision with converting {} bit input to {} bit output for {}.",
                     inputFile.filename(), inputBitDepth, bitDepth, toString(vkFormat));
     };
