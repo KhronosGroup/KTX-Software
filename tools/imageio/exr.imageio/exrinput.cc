@@ -4,6 +4,8 @@
 // Copyright 2022 The Khronos Group Inc.
 // SPDX-License-Identifier: Apache-2.0
 
+#include "imageio.h"
+
 #include <array>
 #include <cassert>
 #include <optional>
@@ -14,7 +16,6 @@
 #define TEXR_ASSERT(x) assert(x)
 #define TINYEXR_IMPLEMENTATION
 #include "tinyexr.h"
-#include "imageio.h"
 #include <KHR/khr_df.h>
 #include "dfd.h"
 
