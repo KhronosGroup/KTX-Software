@@ -95,7 +95,7 @@ class ktxApp {
         cerr <<
             "  -h, --help    Print this usage message and exit.\n"
             "  -v, --version Print the version number of this program and exit.\n"
-#if 0 //defined(_WIN32) && defined(DEBUG)
+#if defined(_WIN32) && defined(DEBUG)
             "      --ld      Launch Visual Studio deugger at start up.\n"
 #endif
             ;
@@ -363,8 +363,10 @@ class ktxApp {
                 }
             }
         }
+#if defined(_WIN32) && defined(DEBUG)
         if (options.launchDebugger)
             launchDebugger();
+#endif
     }
 
     virtual bool processOption(argparser& parser, int opt) = 0;
@@ -386,7 +388,7 @@ class ktxApp {
     {
         // Get System directory, typically c:\windows\system32
         std::wstring systemDir(MAX_PATH + 1, '\0');
-        UINT nChars = GetSystemDirectoryW(&systemDir[0], systemDir.length());
+        size_t nChars = GetSystemDirectoryW(&systemDir[0], systemDir.length());
         if (nChars == 0) return false; // failed to get system directory
         systemDir.resize(nChars);
 
