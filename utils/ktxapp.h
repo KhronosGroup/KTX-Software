@@ -381,14 +381,15 @@ class ktxApp {
         cerr << endl;
     }
 
-#if defined(_WIN32) && defined(DEBUG)
+#if 1//defined(_WIN32) && defined(DEBUG)
     // For use when debugging stdin with Visual Studio which does not have a
     // "wait for executable to be launched" choice in its debugger settings.
     bool launchDebugger()
     {
         // Get System directory, typically c:\windows\system32
         std::wstring systemDir(MAX_PATH + 1, '\0');
-        size_t nChars = GetSystemDirectoryW(&systemDir[0], systemDir.length());
+        UINT nChars = GetSystemDirectoryW(&systemDir[0],
+                                static_cast<UINT>(systemDir.length()));
         if (nChars == 0) return false; // failed to get system directory
         systemDir.resize(nChars);
 
