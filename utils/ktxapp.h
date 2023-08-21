@@ -381,7 +381,7 @@ class ktxApp {
         cerr << endl;
     }
 
-#if 1//defined(_WIN32) && defined(DEBUG)
+#if defined(_WIN32) && defined(DEBUG)
     // For use when debugging stdin with Visual Studio which does not have a
     // "wait for executable to be launched" choice in its debugger settings.
     bool launchDebugger()
