@@ -229,10 +229,6 @@ void ExrInput::readImage(void* outputBuffer, size_t bufferByteCount,
     const auto numSourceChannels = static_cast<uint32_t>(image.num_channels);
     const auto numTargetChannels = targetFormat.channelCount();
 
-    if (numTargetChannels > numSourceChannels)
-        throw std::runtime_error(fmt::format("EXR load error: "
-                "Requested {} channels but the input file only has {}.", numTargetChannels, numSourceChannels));
-
     const auto expectedBufferByteCount = height * width * numTargetChannels * targetBitDepth / 8;
     if (bufferByteCount != expectedBufferByteCount)
         throw std::runtime_error(fmt::format("EXR load error: "
@@ -253,12 +249,8 @@ void ExrInput::readImage(void* outputBuffer, size_t bufferByteCount,
             warning(fmt::format("EXR load warning: Unrecognized channel \"{}\" is ignored.", header.channels[i].name));
     }
 
-    for (uint32_t i = 0; i < numTargetChannels; ++i)
-        if (!channels[i])
-            throw std::runtime_error(fmt::format("EXR load error: Requested channel {} is not present in the input file.", i));
-
     // Copy the data
-    const auto copyData = [&](unsigned char* ptr, uint32_t dataSize) {
+    const auto copyData = [&](unsigned char* ptr, uint32_t dataSize, const void* defaultColor) {
         const auto sourcePtr = [&](uint32_t channel, uint32_t x, uint32_t y) {
             return reinterpret_cast<const unsigned char*>(image.images[channel] + (y * width + x) * dataSize);
         };
@@ -266,22 +258,33 @@ void ExrInput::readImage(void* outputBuffer, size_t bufferByteCount,
         for (uint32_t y = 0; y < height; ++y) {
             for (uint32_t x = 0; x < width; ++x) {
                 auto* targetPixel = ptr + (y * width * numTargetChannels + x * numTargetChannels) * dataSize;
-                for (uint32_t c = 0; c < numTargetChannels; ++c)
-                    std::memcpy(targetPixel + c * dataSize, sourcePtr(*channels[c], x, y), dataSize);
+                for (uint32_t c = 0; c < numTargetChannels; ++c) {
+                    if (channels[c].has_value()) {
+                        std::memcpy(targetPixel + c * dataSize, sourcePtr(*channels[c], x, y), dataSize);
+                    } else {
+                        std::memcpy(targetPixel + c * dataSize, static_cast<const uint8_t*>(defaultColor) + c * dataSize, dataSize);
+                    }
+                }
             }
         }
     };
 
     switch (requestedType) {
-    case TINYEXR_PIXELTYPE_HALF:
-        copyData(reinterpret_cast<unsigned char*>(outputBuffer), 2); // sizeof(half)
+    case TINYEXR_PIXELTYPE_HALF: {
+        uint16_t defaultColor[] = { 0x0000, 0x0000, 0x0000, 0x3C00 }; // { 0.h, 0.h, 0.h,1.h }
+        copyData(reinterpret_cast<unsigned char*>(outputBuffer), sizeof(defaultColor[0]), &defaultColor[0]);
         break;
-    case TINYEXR_PIXELTYPE_FLOAT:
-        copyData(reinterpret_cast<unsigned char*>(outputBuffer), sizeof(float));
+    }
+    case TINYEXR_PIXELTYPE_FLOAT: {
+        float defaultColor[] = { 0.f, 0.f, 0.f, 1.f };
+        copyData(reinterpret_cast<unsigned char*>(outputBuffer), sizeof(defaultColor[0]), &defaultColor[0]);
         break;
-    case TINYEXR_PIXELTYPE_UINT:
-        copyData(reinterpret_cast<unsigned char*>(outputBuffer), sizeof(uint32_t));
+    }
+    case TINYEXR_PIXELTYPE_UINT: {
+        uint32_t defaultColor[] = { 0, 0, 0, 1 };
+        copyData(reinterpret_cast<unsigned char*>(outputBuffer), sizeof(defaultColor[0]), &defaultColor[0]);
         break;
+    }
     default:
         assert(false && "Internal error");
         break;
