@@ -14,14 +14,13 @@
  * @author Mark Callow
  */
 
-#include "stdafx.h"
+#include "imageio.h"
 
 #include <array>
 #include <iterator>
 #include <sstream>
 #include <stdexcept>
 
-#include "imageio.h"
 #include "lodepng.h"
 #include <KHR/khr_df.h>
 #include "dfd.h"

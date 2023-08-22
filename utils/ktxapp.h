@@ -6,6 +6,12 @@
 
 #include "stdafx.h"
 
+#if defined (_WIN32)
+  #define _CRT_SECURE_NO_WARNINGS
+  #define WINDOWS_LEAN_AND_MEAN
+  #include <windows.h>
+#endif
+
 #include <stdarg.h>
 #if (_MSVC_LANG >= 201703L || __cplusplus >= 201703L)
 #include <algorithm>
@@ -87,8 +93,12 @@ class ktxApp {
     virtual int main(int argc, _TCHAR* argv[]) = 0;
     virtual void usage() {
         cerr <<
-          "  -h, --help    Print this usage message and exit.\n"
-          "  -v, --version Print the version number of this program and exit.\n";
+            "  -h, --help    Print this usage message and exit.\n"
+            "  -v, --version Print the version number of this program and exit.\n"
+#if defined(_WIN32) && defined(DEBUG)
+            "      --ld      Launch Visual Studio deugger at start up.\n"
+#endif
+            ;
     };
 
   protected:
@@ -97,8 +107,9 @@ class ktxApp {
         _tstring outfile;
         int test;
         int warn;
+        int launchDebugger;
 
-        commandOptions() : test(false), warn(1) { }
+        commandOptions() : test(false), warn(1), launchDebugger(0) { }
     };
 
     ktxApp(std::string& version, std::string& defaultVersion,
@@ -259,7 +270,7 @@ class ktxApp {
         listName.erase(0, relativize ? 2 : 1);
 
         FILE *lf = nullptr;
-#ifdef _WIN32
+#if defined(_WIN32)
         _tfopen_s(&lf, listName.c_str(), "r");
 #else
         lf = _tfopen(listName.c_str(), "r");
@@ -352,6 +363,10 @@ class ktxApp {
                 }
             }
         }
+#if defined(_WIN32) && defined(DEBUG)
+        if (options.launchDebugger)
+            launchDebugger();
+#endif
     }
 
     virtual bool processOption(argparser& parser, int opt) = 0;
@@ -366,6 +381,47 @@ class ktxApp {
         cerr << endl;
     }
 
+#if defined(_WIN32) && defined(DEBUG)
+    // For use when debugging stdin with Visual Studio which does not have a
+    // "wait for executable to be launched" choice in its debugger settings.
+    bool launchDebugger()
+    {
+        // Get System directory, typically c:\windows\system32
+        std::wstring systemDir(MAX_PATH + 1, '\0');
+        UINT nChars = GetSystemDirectoryW(&systemDir[0],
+                                static_cast<UINT>(systemDir.length()));
+        if (nChars == 0) return false; // failed to get system directory
+        systemDir.resize(nChars);
+
+        // Get process ID and create the command line
+        DWORD pid = GetCurrentProcessId();
+        std::wostringstream s;
+        s << systemDir << L"\\vsjitdebugger.exe -p " << pid;
+        std::wstring cmdLine = s.str();
+
+        // Start debugger process
+        STARTUPINFOW si;
+        ZeroMemory(&si, sizeof(si));
+        si.cb = sizeof(si);
+
+        PROCESS_INFORMATION pi;
+        ZeroMemory(&pi, sizeof(pi));
+
+        if (!CreateProcessW(NULL, &cmdLine[0], NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) return false;
+
+        // Close debugger process handles to eliminate resource leak
+        CloseHandle(pi.hThread);
+        CloseHandle(pi.hProcess);
+
+        // Wait for the debugger to attach
+        while (!IsDebuggerPresent()) Sleep(100);
+
+        // Stop execution so the debugger can take over
+        DebugBreak();
+        return true;
+    }
+#endif
+
     _tstring        name;
     _tstring&       version;
     _tstring&       defaultVersion;
@@ -378,6 +434,9 @@ class ktxApp {
         { "help", argparser::option::no_argument, NULL, 'h' },
         { "version", argparser::option::no_argument, NULL, 'v' },
         { "test", argparser::option::no_argument, &options.test, 1},
+#if defined(_WIN32) && defined(DEBUG)
+        { "ld", argparser::option::no_argument, &options.launchDebugger, 1},
+#endif
         // -NSDocumentRevisionsDebugMode YES is appended to the end
         // of the command by Xcode when debugging and "Allow debugging when
         // using document Versions Browser" is checked in the scheme. It

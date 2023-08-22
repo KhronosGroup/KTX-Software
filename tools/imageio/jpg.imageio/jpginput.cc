@@ -20,13 +20,12 @@
  * @author Mark Callow.
  */
 
-#include "stdafx.h"
+#include "imageio.h"
 
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
 
-#include "imageio.h"
 #include "encoder/jpgd.h"
 
 using namespace jpgd;
