@@ -139,6 +139,9 @@ protected:
 
     virtual void initOptions(cxxopts::Options& /*opts*/) { }
     virtual void processOptions(cxxopts::Options& /*opts*/, cxxopts::ParseResult& /*args*/) { };
+#if defined(_WIN32) && defined(DEBUG)
+    bool launchDebugger();
+#endif
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -162,7 +165,11 @@ struct OptionsGeneric {
         opts.add_options()
                 ("h,help", "Print this usage message and exit")
                 ("v,version", "Print the version number of this program and exit")
-                ("testrun", "Indicates test run. If enabled the tool will produce deterministic output whenever possible");
+                ("testrun", "Indicates test run. If enabled the tool will produce deterministic output whenever possible")
+#if defined(_WIN32) && defined(DEBUG)
+                ("ld", "Launch debugger on startup.")
+#endif
+                ;
     }
 
     void process(cxxopts::Options& opts, cxxopts::ParseResult& args, Reporter& report) {
