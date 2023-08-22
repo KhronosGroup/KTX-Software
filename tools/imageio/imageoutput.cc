@@ -12,6 +12,8 @@
 //! @brief ImageOutput class implementation
 //!
 
+#include "imageio.h"
+
 #include <algorithm>
 #include <cctype>
 #include <iomanip>
@@ -23,8 +25,6 @@
 #include <vector>
 
 #include <stdarg.h>
-
-#include "imageio.h"
 
 std::unique_ptr<ImageOutput>
 ImageOutput::create(const _tstring& filename)
