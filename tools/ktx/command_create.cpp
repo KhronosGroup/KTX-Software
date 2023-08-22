@@ -2006,6 +2006,7 @@ void CommandCreate::determineTargetColorSpace(const ImageInput& in, ImageSpec& t
         } else if (options.convertPrimaries.value() != colorSpaceInfo.usedInputPrimaries) {
             colorSpaceInfo.srcColorPrimaries = createColorPrimaries(colorSpaceInfo.usedInputPrimaries);
             colorSpaceInfo.dstColorPrimaries = createColorPrimaries(options.convertPrimaries.value());
+            target.format().setPrimaries(options.convertPrimaries.value());
         }
     }
 
