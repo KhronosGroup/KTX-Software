@@ -819,7 +819,7 @@ private:
             uint32_t numMipLevels, uint32_t layerIndex, uint32_t faceIndex, uint32_t depthSliceIndex);
 
     [[nodiscard]] std::string readRawFile(const std::filesystem::path& filepath);
-    [[nodiscard]] std::unique_ptr<Image> loadInputImage(ImageInput& inputImageFile);
+    [[nodiscard]] std::unique_ptr<Image> loadInputImage(ImageInput& inputImageFile, const ImageSpec& target);
     std::vector<uint8_t> convert(const std::unique_ptr<Image>& image, VkFormat format, ImageInput& inputFile);
 
     std::unique_ptr<const ColorPrimaries> createColorPrimaries(khr_df_primaries_e primaries) const;
@@ -1123,7 +1123,7 @@ void CommandCreate::executeCreate() {
                 fatal(rc::INVALID_FILE, "Input image \"{}\" with size {}x{} does not match expected size {}x{} for level {}.",
                         fmtInFile(inputFilepath), inputImageFile->spec().width(), inputImageFile->spec().height(), imageWidth, imageHeight, levelIndex);
 
-            auto image = loadInputImage(*inputImageFile);
+            auto image = loadInputImage(*inputImageFile, target);
 
             if (colorSpaceInfo.dstTransferFunction != nullptr) {
                 assert(colorSpaceInfo.srcTransferFunction != nullptr);
@@ -1250,31 +1250,22 @@ void CommandCreate::compress(KTXTexture2& texture, const OptionsCompress& opts) 
 
 // -------------------------------------------------------------------------------------------------
 
-std::unique_ptr<Image> CommandCreate::loadInputImage(ImageInput& inputImageFile) {
+std::unique_ptr<Image> CommandCreate::loadInputImage(ImageInput& inputImageFile, const ImageSpec& target) {
     std::unique_ptr<Image> image = nullptr;
 
     const auto& inputFormat = inputImageFile.spec().format();
     const auto width = inputImageFile.spec().width();
     const auto height = inputImageFile.spec().height();
 
+    const uint32_t channelCount = std::min(4u, std::max(target.format().channelCount(), inputFormat.channelCount()));
     const auto inputBitLength = inputFormat.largestChannelBitLength();
     const auto requestBitLength = std::max(bit_ceil(inputBitLength), 8u);
-    const auto requestChannelCount = [&]() -> uint32_t {
-        switch (inputImageFile.formatType()) {
-        case ImageInputFormatType::png_l:
-            // Load luminance images as RGB for processing as: L -> LLL1
-            return 3;
-        case ImageInputFormatType::png_la:
-            // Load luminance-alpha images as RGBA for processing as: L -> LLLA
-            return 4;
-        default:
-            return inputFormat.channelCount();
-        }
-    }();
     FormatDescriptor loadFormat;
 
+    assert(channelCount >= 1 && channelCount <= 4);
+
     if (inputImageFile.formatType() == ImageInputFormatType::exr_float) {
-        switch (requestChannelCount) {
+        switch (channelCount) {
         case 1:
             image = std::make_unique<r32fimage>(width, height);
             loadFormat = createFormatDescriptor(VK_FORMAT_R32_SFLOAT, *this);
@@ -1293,7 +1284,7 @@ std::unique_ptr<Image> CommandCreate::loadInputImage(ImageInput& inputImageFile)
             break;
         }
     } else if (requestBitLength == 8) {
-        switch (requestChannelCount) {
+        switch (channelCount) {
         case 1:
             image = std::make_unique<r8image>(width, height);
             loadFormat = createFormatDescriptor(VK_FORMAT_R8_UNORM, *this);
@@ -1312,7 +1303,7 @@ std::unique_ptr<Image> CommandCreate::loadInputImage(ImageInput& inputImageFile)
             break;
         }
     } else if (requestBitLength == 16) {
-        switch (requestChannelCount) {
+        switch (channelCount) {
         case 1:
             image = std::make_unique<r16image>(width, height);
             loadFormat = createFormatDescriptor(VK_FORMAT_R16_UNORM, *this);
@@ -1331,7 +1322,7 @@ std::unique_ptr<Image> CommandCreate::loadInputImage(ImageInput& inputImageFile)
             break;
         }
     } else if (requestBitLength == 32) {
-        switch (requestChannelCount) {
+        switch (channelCount) {
         case 1:
             image = std::make_unique<r32image>(width, height);
             loadFormat = createFormatDescriptor(VK_FORMAT_R32_UINT, *this);
@@ -1350,8 +1341,7 @@ std::unique_ptr<Image> CommandCreate::loadInputImage(ImageInput& inputImageFile)
             break;
         }
     } else {
-        fatal(rc::INVALID_FILE, "Unsupported format with {}-bit and {} channel.",
-                requestBitLength, requestChannelCount);
+        fatal(rc::INVALID_FILE, "Unsupported format with {}-bit channels.", requestBitLength);
     }
 
     inputImageFile.readImage(static_cast<uint8_t*>(*image), image->getByteCount(), 0, 0, loadFormat);
@@ -1456,14 +1446,9 @@ std::vector<uint8_t> convertSINT(const std::unique_ptr<Image>& image, std::strin
 std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image, VkFormat vkFormat,
         ImageInput& inputFile) {
 
-    const uint32_t inputChannelCount = image->getComponentCount();
     const uint32_t inputBitDepth = std::max(8u, inputFile.spec().format().largestChannelBitLength());
 
-    const auto require = [&](uint32_t channelCount, uint32_t bitDepth) {
-        if (inputChannelCount < channelCount)
-            fatal(rc::INVALID_FILE, "{}: Input file channel count {} is less than the required {} for {}.",
-                    inputFile.filename(), inputChannelCount, channelCount, toString(vkFormat));
-
+    const auto require = [&](uint32_t bitDepth) {
         if (inputBitDepth < bitDepth)
             fatal(rc::INVALID_FILE, "{}: Not enough precision to convert {} bit input to {} bit output for {}.",
                     inputFile.filename(), inputBitDepth, bitDepth, toString(vkFormat));
@@ -1471,7 +1456,7 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
             warning("{}: Possible loss of precision with converting {} bit input to {} bit output for {}.",
                     inputFile.filename(), inputBitDepth, bitDepth, toString(vkFormat));
     };
-    const auto requireUNORM = [&](uint32_t channelCount, uint32_t bitDepth) {
+    const auto requireUNORM = [&](uint32_t bitDepth) {
         switch (inputFile.formatType()) {
         case ImageInputFormatType::png_l: [[fallthrough]];
         case ImageInputFormatType::png_la: [[fallthrough]];
@@ -1485,9 +1470,9 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
             fatal(rc::INVALID_FILE, "{}: Input file data type \"{}\" does not match the expected input data type of {} bit \"{}\" for {}.",
                     inputFile.filename(), toString(inputFile.formatType()), bitDepth, "UNORM", toString(vkFormat));
         }
-        require(channelCount, bitDepth);
+        require(bitDepth);
     };
-    const auto requireSFloat = [&](uint32_t channelCount, uint32_t bitDepth) {
+    const auto requireSFloat = [&](uint32_t bitDepth) {
         switch (inputFile.formatType()) {
         case ImageInputFormatType::exr_float:
             break; // Accept
@@ -1501,9 +1486,9 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
             fatal(rc::INVALID_FILE, "{}: Input file data type \"{}\" does not match the expected input data type of {} bit \"{}\" for {}.",
                     inputFile.filename(), toString(inputFile.formatType()), bitDepth, "SFLOAT", toString(vkFormat));
         }
-        require(channelCount, bitDepth);
+        require(bitDepth);
     };
-    const auto requireUINT = [&](uint32_t channelCount, uint32_t bitDepth) {
+    const auto requireUINT = [&](uint32_t bitDepth) {
         switch (inputFile.formatType()) {
         case ImageInputFormatType::exr_uint:
             break; // Accept
@@ -1517,7 +1502,7 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
             fatal(rc::INVALID_FILE, "{}: Input file data type \"{}\" does not match the expected input data type of {} bit \"{}\" for {}.",
                     inputFile.filename(), toString(inputFile.formatType()), bitDepth, "UINT", toString(vkFormat));
         }
-        require(channelCount, bitDepth);
+        require(bitDepth);
     };
 
     // ------------
@@ -1527,19 +1512,19 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
 
     case VK_FORMAT_R8_UNORM: [[fallthrough]];
     case VK_FORMAT_R8_SRGB:
-        requireUNORM(1, 8);
+        requireUNORM(8);
         return convertUNORM<r8image>(image);
     case VK_FORMAT_R8G8_UNORM: [[fallthrough]];
     case VK_FORMAT_R8G8_SRGB:
-        requireUNORM(2, 8);
+        requireUNORM(8);
         return convertUNORM<rg8image>(image);
     case VK_FORMAT_R8G8B8_UNORM: [[fallthrough]];
     case VK_FORMAT_R8G8B8_SRGB:
-        requireUNORM(3, 8);
+        requireUNORM(8);
         return convertUNORM<rgb8image>(image);
     case VK_FORMAT_B8G8R8_UNORM: [[fallthrough]];
     case VK_FORMAT_B8G8R8_SRGB:
-        requireUNORM(3, 8);
+        requireUNORM(8);
         return convertUNORM<rgb8image>(image, "bgr1");
 
         // Verbatim copy with component reordering if needed, extra channels must be dropped.
@@ -1549,11 +1534,11 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
 
     case VK_FORMAT_R8G8B8A8_UNORM: [[fallthrough]];
     case VK_FORMAT_R8G8B8A8_SRGB:
-        requireUNORM(4, 8);
+        requireUNORM(8);
         return convertUNORM<rgba8image>(image);
     case VK_FORMAT_B8G8R8A8_UNORM: [[fallthrough]];
     case VK_FORMAT_B8G8R8A8_SRGB:
-        requireUNORM(4, 8);
+        requireUNORM(8);
         return convertUNORM<rgba8image>(image, "bgra");
 
         // Verbatim copy with component reordering if needed, extra channels must be dropped.
@@ -1591,91 +1576,91 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
     case VK_FORMAT_ASTC_12x12_SRGB_BLOCK:
         // ASTC texture data composition is performed via
         // R8G8B8A8_UNORM followed by the ASTC encoding
-        requireUNORM(4, 8);
+        requireUNORM(8);
         assert(false && "Internal error");
         return {};
 
         // Passthrough CLI options to the ASTC encoder.
 
     case VK_FORMAT_R4G4_UNORM_PACK8:
-        requireUNORM(2, 8);
+        requireUNORM(8);
         return convertUNORMPacked(image, 4, 4, 0, 0);
     case VK_FORMAT_R5G6B5_UNORM_PACK16:
-        requireUNORM(3, 8);
+        requireUNORM(8);
         return convertUNORMPacked(image, 5, 6, 5, 0);
     case VK_FORMAT_B5G6R5_UNORM_PACK16:
-        requireUNORM(3, 8);
+        requireUNORM(8);
         return convertUNORMPacked(image, 5, 6, 5, 0, "bgr1");
 
     case VK_FORMAT_R4G4B4A4_UNORM_PACK16:
-        requireUNORM(4, 8);
+        requireUNORM(8);
         return convertUNORMPacked(image, 4, 4, 4, 4);
     case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
-        requireUNORM(4, 8);
+        requireUNORM(8);
         return convertUNORMPacked(image, 4, 4, 4, 4, "bgra");
     case VK_FORMAT_R5G5B5A1_UNORM_PACK16:
-        requireUNORM(4, 8);
+        requireUNORM(8);
         return convertUNORMPacked(image, 5, 5, 5, 1);
     case VK_FORMAT_B5G5R5A1_UNORM_PACK16:
-        requireUNORM(4, 8);
+        requireUNORM(8);
         return convertUNORMPacked(image, 5, 5, 5, 1, "bgra");
     case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
-        requireUNORM(4, 8);
+        requireUNORM(8);
         return convertUNORMPacked(image, 1, 5, 5, 5, "argb");
     case VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT:
-        requireUNORM(4, 8);
+        requireUNORM(8);
         return convertUNORMPacked(image, 4, 4, 4, 4, "argb");
     case VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT:
-        requireUNORM(4, 8);
+        requireUNORM(8);
         return convertUNORMPacked(image, 4, 4, 4, 4, "abgr");
 
         // Input values must be rounded to the target precision.
         // When the input file contains an sBIT chunk, its values must be taken into account.
 
     case VK_FORMAT_R10X6_UNORM_PACK16:
-        requireUNORM(1, 10);
+        requireUNORM(10);
         return convertUNORMPackedPadded(image, 10, 6);
     case VK_FORMAT_R10X6G10X6_UNORM_2PACK16:
-        requireUNORM(2, 10);
+        requireUNORM(10);
         return convertUNORMPackedPadded(image, 10, 6, 10, 6);
     case VK_FORMAT_R10X6G10X6B10X6A10X6_UNORM_4PACK16:
-        requireUNORM(4, 10);
+        requireUNORM(10);
         return convertUNORMPackedPadded(image, 10, 6, 10, 6, 10, 6, 10, 6);
 
     case VK_FORMAT_R12X4_UNORM_PACK16:
-        requireUNORM(1, 12);
+        requireUNORM(12);
         return convertUNORMPackedPadded(image, 12, 4);
     case VK_FORMAT_R12X4G12X4_UNORM_2PACK16:
-        requireUNORM(2, 12);
+        requireUNORM(12);
         return convertUNORMPackedPadded(image, 12, 4, 12, 4);
     case VK_FORMAT_R12X4G12X4B12X4A12X4_UNORM_4PACK16:
-        requireUNORM(4, 12);
+        requireUNORM(12);
         return convertUNORMPackedPadded(image, 12, 4, 12, 4, 12, 4, 12, 4);
 
         // Input values must be rounded to the target precision.
         // When the input file contains an sBIT chunk, its values must be taken into account.
 
     case VK_FORMAT_R16_UNORM:
-        requireUNORM(1, 16);
+        requireUNORM(16);
         return convertUNORM<r16image>(image);
     case VK_FORMAT_R16G16_UNORM:
-        requireUNORM(2, 16);
+        requireUNORM(16);
         return convertUNORM<rg16image>(image);
     case VK_FORMAT_R16G16B16_UNORM:
-        requireUNORM(3, 16);
+        requireUNORM(16);
         return convertUNORM<rgb16image>(image);
     case VK_FORMAT_R16G16B16A16_UNORM:
-        requireUNORM(4, 16);
+        requireUNORM(16);
         return convertUNORM<rgba16image>(image);
 
         // Verbatim copy, extra channels must be dropped.
         // Input PNG file must be 16-bit with sBIT chunk missing or signaling 16 bits.
 
     case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
-        requireUNORM(4, 10);
+        requireUNORM(10);
         return convertUNORMPacked(image, 2, 10, 10, 10, "argb");
     case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
-        requireUNORM(4, 10);
+        requireUNORM(10);
         return convertUNORMPacked(image, 2, 10, 10, 10, "abgr");
 
         // Input values must be rounded to the target precision.
@@ -1695,126 +1680,128 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
     // EXR:
 
     case VK_FORMAT_R8_UINT:
-        requireSFloat(1, 16);
+        requireSFloat(16);
         return convertUINT<r8image>(image);
     case VK_FORMAT_R8_SINT:
-        requireSFloat(1, 16);
+        requireSFloat(16);
         return convertSINT<r8image>(image);
     case VK_FORMAT_R16_UINT:
-        requireSFloat(1, 32);
+        requireSFloat(32);
         return convertUINT<r16image>(image);
     case VK_FORMAT_R16_SINT:
-        requireSFloat(1, 32);
+        requireSFloat(32);
         return convertSINT<r16image>(image);
     case VK_FORMAT_R32_UINT:
-        requireUINT(1, 32);
+        requireUINT(32);
         return convertUINT<r32image>(image);
     case VK_FORMAT_R8G8_UINT:
-        requireSFloat(2, 16);
+        requireSFloat(16);
         return convertUINT<rg8image>(image);
     case VK_FORMAT_R8G8_SINT:
-        requireSFloat(2, 16);
+        requireSFloat(16);
         return convertSINT<rg8image>(image);
     case VK_FORMAT_R16G16_UINT:
-        requireSFloat(2, 32);
+        requireSFloat(32);
         return convertUINT<rg16image>(image);
     case VK_FORMAT_R16G16_SINT:
-        requireSFloat(2, 32);
+        requireSFloat(32);
         return convertSINT<rg16image>(image);
     case VK_FORMAT_R32G32_UINT:
-        requireUINT(2, 32);
+        requireUINT(32);
         return convertUINT<rg32image>(image);
     case VK_FORMAT_R8G8B8_UINT:
-        requireSFloat(3, 16);
+        requireSFloat(16);
         return convertUINT<rgb8image>(image);
     case VK_FORMAT_R8G8B8_SINT:
-        requireSFloat(3, 16);
+        requireSFloat(16);
         return convertSINT<rgb8image>(image);
     case VK_FORMAT_B8G8R8_UINT:
-        requireSFloat(3, 16);
+        requireSFloat(16);
         return convertUINT<rgb8image>(image, "bgr1");
     case VK_FORMAT_B8G8R8_SINT:
-        requireSFloat(3, 16);
+        requireSFloat(16);
         return convertSINT<rgb8image>(image, "bgr1");
     case VK_FORMAT_R16G16B16_UINT:
-        requireSFloat(3, 32);
+        requireSFloat(32);
         return convertUINT<rgb16image>(image);
     case VK_FORMAT_R16G16B16_SINT:
-        requireSFloat(3, 32);
+        requireSFloat(32);
         return convertSINT<rgb16image>(image);
     case VK_FORMAT_R32G32B32_UINT:
-        requireUINT(3, 32);
+        requireUINT(32);
         return convertUINT<rgb32image>(image);
     case VK_FORMAT_R8G8B8A8_UINT:
-        requireSFloat(4, 16);
+        requireSFloat(16);
         return convertUINT<rgba8image>(image);
     case VK_FORMAT_R8G8B8A8_SINT:
-        requireSFloat(4, 16);
+        requireSFloat(16);
         return convertSINT<rgba8image>(image);
     case VK_FORMAT_B8G8R8A8_UINT:
-        requireSFloat(4, 16);
+        requireSFloat(16);
         return convertUINT<rgba8image>(image, "bgra");
     case VK_FORMAT_B8G8R8A8_SINT:
-        requireSFloat(4, 16);
+        requireSFloat(16);
         return convertSINT<rgba8image>(image, "bgra");
     case VK_FORMAT_R16G16B16A16_UINT:
-        requireSFloat(4, 32);
+        requireSFloat(32);
         return convertUINT<rgba16image>(image);
     case VK_FORMAT_R16G16B16A16_SINT:
-        requireSFloat(4, 32);
+        requireSFloat(32);
         return convertSINT<rgba16image>(image);
     case VK_FORMAT_R32G32B32A32_UINT:
-        requireUINT(4, 32);
+        requireUINT(32);
         return convertUINT<rgba32image>(image);
 
     case VK_FORMAT_A2R10G10B10_UINT_PACK32:
-        requireSFloat(4, 16);
+        requireSFloat(16);
         return convertUINTPacked(image, 2, 10, 10, 10, "argb");
     case VK_FORMAT_A2R10G10B10_SINT_PACK32:
-        requireSFloat(4, 16);
+        requireSFloat(16);
         return convertSINTPacked(image, 2, 10, 10, 10, "argb");
     case VK_FORMAT_A2B10G10R10_UINT_PACK32:
-        requireSFloat(4, 16);
+        requireSFloat(16);
         return convertUINTPacked(image, 2, 10, 10, 10, "abgr");
     case VK_FORMAT_A2B10G10R10_SINT_PACK32:
-        requireSFloat(4, 16);
+        requireSFloat(16);
         return convertSINTPacked(image, 2, 10, 10, 10, "abgr");
 
         // The same EXR pixel types as for the decoding must be enforced.
         // Extra channels must be dropped.
 
     case VK_FORMAT_R16_SFLOAT:
-        requireSFloat(1, 16);
+        requireSFloat(16);
         return convertSFLOAT<r16image>(image);
     case VK_FORMAT_R16G16_SFLOAT:
-        requireSFloat(2, 16);
+        requireSFloat(16);
         return convertSFLOAT<rg16image>(image);
     case VK_FORMAT_R16G16B16_SFLOAT:
-        requireSFloat(3, 16);
+        requireSFloat(16);
         return convertSFLOAT<rgb16image>(image);
     case VK_FORMAT_R16G16B16A16_SFLOAT:
-        requireSFloat(4, 16);
+        requireSFloat(16);
         return convertSFLOAT<rgba16image>(image);
 
     case VK_FORMAT_R32_SFLOAT:
-        requireSFloat(1, 32);
+        requireSFloat(32);
         return convertSFLOAT<r32image>(image);
     case VK_FORMAT_R32G32_SFLOAT:
-        requireSFloat(2, 32);
+        requireSFloat(32);
         return convertSFLOAT<rg32image>(image);
     case VK_FORMAT_R32G32B32_SFLOAT:
-        requireSFloat(3, 32);
+        requireSFloat(32);
         return convertSFLOAT<rgb32image>(image);
     case VK_FORMAT_R32G32B32A32_SFLOAT:
-        requireSFloat(4, 32);
+        requireSFloat(32);
         return convertSFLOAT<rgba32image>(image);
 
         // The same EXR pixel types as for the decoding must be enforced.
         // Extra channels must be dropped.
 
     case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
+        requireSFloat(16);
         return convertB10G11R11(image);
     case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
+        requireSFloat(16);
         return convertE5B9G9R9(image);
 
         // Input data must be rounded to the target precision.
