@@ -124,7 +124,21 @@ typedef struct ktxVulkanTexture
     uint32_t depth; /*!< The depth of the image. */
     uint32_t levelCount; /*!< The number of MIP levels in the image. */
     uint32_t layerCount; /*!< The number of array layers in the image. */
+    uint64_t devMemoryOffset;
+    uint64_t allocationId;
 } ktxVulkanTexture;
+
+typedef uint64_t(*subAllocatorAllocMemFuncPtr)(VkMemoryAllocateInfo* allocInfo, VkMemoryRequirements* memReq, VkDeviceMemory* devMemory, uint64_t* devMemoryOffset);
+typedef VkResult(*subAllocatorBindBufferFuncPtr)(VkBuffer buffer, uint64_t allocId);
+typedef VkResult(*subAllocatorBindImageFuncPtr)(VkImage image, uint64_t allocId);
+typedef VkResult(*subAllocatorMemoryMapFuncPtr)(uint64_t allocId, VkDeviceSize offsetFromOffset, VkDeviceSize len, void** dataPtr);
+typedef void (*subAllocatorMemoryUnmapFuncPtr)(uint64_t allocId);
+typedef void (*subAllocatorFreeMemFuncPtr)(uint64_t allocId);
+
+KTX_API void KTX_APIENTRY
+ktxVulkanTexture_Destruct_WithPotentialSuballocator(ktxVulkanTexture* This, VkDevice device,
+                                                    const VkAllocationCallbacks* pAllocator,
+                                                    subAllocatorFreeMemFuncPtr freeMemFuncPtr);
 
 KTX_API void KTX_APIENTRY
 ktxVulkanTexture_Destruct(ktxVulkanTexture* This, VkDevice device,
@@ -207,6 +221,18 @@ KTX_API void KTX_APIENTRY
 ktxVulkanDeviceInfo_Destruct(ktxVulkanDeviceInfo* This);
 KTX_API void KTX_APIENTRY
 ktxVulkanDeviceInfo_Destroy(ktxVulkanDeviceInfo* This);
+KTX_API KTX_error_code KTX_APIENTRY
+ktxTexture_VkUploadEx_WithPotentialSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
+                                                ktxVulkanTexture* vkTexture,
+                                                VkImageTiling tiling,
+                                                VkImageUsageFlags usageFlags,
+                                                VkImageLayout finalLayout,
+                                                subAllocatorAllocMemFuncPtr allocMemFuncPtr,
+                                                subAllocatorBindBufferFuncPtr bindBufferFuncPtr,
+                                                subAllocatorBindImageFuncPtr bindImageFuncPtr,
+                                                subAllocatorMemoryMapFuncPtr memoryMapFuncPtr,
+                                                subAllocatorMemoryUnmapFuncPtr memoryUnmapFuncPtr,
+                                                subAllocatorFreeMemFuncPtr freeMemFuncPtr);
 KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
                       ktxVulkanTexture* vkTexture,
