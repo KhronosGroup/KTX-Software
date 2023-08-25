@@ -1081,9 +1081,11 @@ toktxApp::createImage(const targetImageSpec& target, ImageInput& in)
     image->setOetf((khr_df_transfer_e)target.format().transfer());
 
     if (options.scale != 1.0f) {
+        auto scaledWidth = image->getWidth() * options.scale;
+        auto scaledHeight = image->getHeight() * options.scale;
         image = scaleImage(std::move(image),
-               static_cast<ktx_uint32_t>(image->getWidth() * options.scale),
-               static_cast<ktx_uint32_t>(image->getHeight() * options.scale));
+               static_cast<ktx_uint32_t>(scaledWidth),
+               static_cast<ktx_uint32_t>(scaledHeight));
     } else if (options.resize
                && (image->getWidth() != target.width()
                    || image->getHeight() != target.height()))
