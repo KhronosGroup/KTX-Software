@@ -997,9 +997,8 @@ toktxApp::createImage(const targetImageSpec& target, ImageInput& in)
     if (target.format().channelCount() != inSpec.format().channelCount()) {
         // Have plugin deliver all channels.
         inputFormat = inSpec.format();
-        if (target.format().channelBitLength() != inSpec.format().channelBitLength()) {
-            // As channelBitLength() worked we know all channels are the
-            // same size.
+        if (inSpec.format().anyChannelBitLengthNotEqual(target.format().channelBitLength())) {
+            // target.format() is set so all channels have same bit length.
             std::vector<uint32_t> bits;
             bits.resize(1);
             bits[0] = target.format().channelBitLength();
@@ -1635,10 +1634,10 @@ toktxApp::determineTargetTypeBitLengthScale(const ImageInput& in,
     uint32_t bitLength = format.channelBitLength();
     uint32_t maxValue;
 
-    if (format.channelBitLength() > 8
+    if (format.largestChannelBitLength() > 8
         && (options.etc1s || options.bopts.uastc)) {
         bitLength = 8;
-    } else if (format.channelBitLength() < 8) {
+    } else if (format.largestChannelBitLength() < 8) {
         bitLength = 8;
     }
 
@@ -1647,8 +1646,7 @@ toktxApp::determineTargetTypeBitLengthScale(const ImageInput& in,
 
     // TODO: Support < 8 bit channels for non-block-compressed?
 
-    if (targetFormat.channelBitLength()
-        != format.channelBitLength()) {
+    if (bitLength != format.largestChannelBitLength()) {
         warning("Rescaling %d-bit image in %s to %d bits.",
                 format.channelBitLength(),
                 in.filename().c_str(),
@@ -1671,7 +1669,7 @@ toktxApp::determineTargetTypeBitLengthScale(const ImageInput& in,
     }
 
     // Must be after setting of model.
-    if (bitLength != targetFormat.channelBitLength()
+    if (targetFormat.anyChannelBitLengthNotEqual(bitLength)
         || maxValue != targetFormat.channelUpper()
         || channelCount != targetFormat.channelCount())
     {
