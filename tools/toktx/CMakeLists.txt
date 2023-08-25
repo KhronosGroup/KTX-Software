@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 add_executable( toktx
-    image.hpp
     toktx.cc
 )
 
@@ -25,6 +24,13 @@ target_link_libraries(
     imageio
     ktx
     objUtil
+)
+
+set_target_properties(
+    toktx
+    PROPERTIES
+        CXX_STANDARD 17
+        CXX_STANDARD_REQUIRED YES
 )
 
 target_compile_definitions(
