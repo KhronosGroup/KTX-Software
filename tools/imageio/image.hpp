@@ -15,8 +15,9 @@
 #ifndef IMAGE_HPP
 #define IMAGE_HPP
 
-#include <cmath>
 #include <algorithm>
+#include <array>
+#include <cmath>
 #include <sstream>
 #include <stdexcept>
 #include <string_view>
