@@ -9,14 +9,6 @@
 #include "imageio_utility.h"
 #include <fmt/ostream.h>
 #include <fmt/printf.h>
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4201)
-#endif
-#include <glm/gtc/packing.hpp>
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 #include <algorithm>
 #include <array>
 #include <functional>

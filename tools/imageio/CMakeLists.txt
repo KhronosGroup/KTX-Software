@@ -45,11 +45,18 @@ target_include_directories(
 PUBLIC
     .
 PRIVATE
-    ${PROJECT_SOURCE_DIR}/lib/astc-encoder/Source
     $<TARGET_PROPERTY:objUtil,INTERFACE_INCLUDE_DIRECTORIES>
+)
+
+target_include_directories(
+    imageio
+    SYSTEM
+PUBLIC
+    ${PROJECT_SOURCE_DIR}/other_include
+PRIVATE
+    ${PROJECT_SOURCE_DIR}/lib/astc-encoder/Source
     ${PROJECT_SOURCE_DIR}/lib/basisu
     ${PROJECT_SOURCE_DIR}/lib/dfdutils
-    ${PROJECT_SOURCE_DIR}/other_include
 )
 
 target_compile_definitions(

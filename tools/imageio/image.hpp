@@ -24,8 +24,14 @@
 #include <vector>
 #include <KHR/khr_df.h>
 #include <fmt/format.h>
+#ifdef _MSC_VER
+  #pragma warning(push)
+  #pragma warning(disable : 4201)
+#endif
 #include <glm/gtc/packing.hpp>
-
+#ifdef _MSC_VER
+  #pragma warning(pop)
+#endif
 #include "imageio_utility.h"
 #include "unused.h"
 #include "encoder/basisu_resampler.h"

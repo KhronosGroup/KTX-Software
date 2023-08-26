@@ -45,9 +45,17 @@ target_include_directories(
     unittests
 PRIVATE
     $<TARGET_PROPERTY:ktx,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:imageio,INTERFACE_INCLUDE_DIRECTORIES>
     ${PROJECT_SOURCE_DIR}/lib
     ${PROJECT_SOURCE_DIR}/tools
     loadtests/common
+)
+
+target_include_directories(
+    unittests
+    SYSTEM
+PRIVATE
+    $<TARGET_PROPERTY:imageio,INTERFACE_SYSTEM_INCLUDE_DIRECTORIES>
 )
 
 target_link_libraries(

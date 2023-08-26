@@ -505,11 +505,16 @@ macro(common_libktx_settings target enable_write library_type)
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu/zstd>
         $<INSTALL_INTERFACE:lib/basisu/zstd>
 
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/other_include>
-        $<INSTALL_INTERFACE:other_include>
-
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/utils>
         $<INSTALL_INTERFACE:utils>
+    )
+
+    target_include_directories(
+        ${target}
+        SYSTEM
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/other_include>
+        $<INSTALL_INTERFACE:other_include>
     )
 
     if( ${library_type} STREQUAL STATIC )

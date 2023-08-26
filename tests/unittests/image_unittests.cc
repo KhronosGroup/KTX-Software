@@ -24,7 +24,7 @@
 #endif
 
 #include "gtest/gtest.h"
-#include "imageio/image.hpp"
+#include "image.hpp"
 
 namespace {
 
