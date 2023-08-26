@@ -749,6 +749,10 @@ linearTilingPadCallback(int miplevel, int face,
  * limited number of formats and features. Generally @c VK_IMAGE_TILING_OPTIMAL
  * is preferred. The latter requires a staging buffer so will use more memory
  * during loading.
+ * 
+ * If a pointer to a thread-safe set of suballocator callbacks is provided, they
+ * will be used instead of manual allocation of a VkDeviceMemory. A 64 bit uint
+ * is returned on memory procurement that references the suballocated page(s).
  *
  * @param[in] This                        pointer to the ktxTexture from which to upload.
  * @param [in] vdi                        pointer to a ktxVulkanDeviceInfo structure providing
@@ -789,12 +793,12 @@ linearTilingPadCallback(int miplevel, int face,
  * @sa ktxVulkanDeviceInfo_construct()
  */
 KTX_error_code
-ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
-                      ktxVulkanTexture* vkTexture,
-                      VkImageTiling tiling,
-                      VkImageUsageFlags usageFlags,
-                      VkImageLayout finalLayout,
-                      subAllocatorCallbacks* subAllocatorCallbacks)
+ktxTexture_VkUploadEx_WithPotentialSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
+                                                ktxVulkanTexture* vkTexture,
+                                                VkImageTiling tiling,
+                                                VkImageUsageFlags usageFlags,
+                                                VkImageLayout finalLayout,
+                                                ktxVulkanTexture_subAllocatorCallbacks* subAllocatorCallbacks)
 {
     KTX_error_code           kResult;
     VkFilter                 blitFilter = VK_FILTER_LINEAR;
@@ -984,7 +988,6 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         // Create a host-visible staging buffer that contains the raw image data
         VkBuffer stagingBuffer;
         VkDeviceMemory stagingMemory;
-        uint64_t stagingMemoryOffset;
         VkBufferImageCopy* copyRegions;
         VkDeviceSize textureSize;
         VkBufferCreateInfo bufferCreateInfo = {
@@ -1076,14 +1079,17 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
                         (void**)&pMappedStagingBuffer));
         }
         else {
-            stagingAllocId = subAllocatorCallbacks->allocMemFuncPtr(&memAllocInfo, &memReqs, &stagingMemory, &stagingMemoryOffset);
+            uint64_t numPages = 0ull;
+            stagingAllocId = subAllocatorCallbacks->allocMemFuncPtr(&memAllocInfo, &memReqs, &numPages);
             if (stagingAllocId == 0ull) {
                 return KTX_OUT_OF_MEMORY;
             }
+            assert(numPages == 1ull); // We do NOT support sparse bindings yet.
             VK_CHECK_RESULT(
                 subAllocatorCallbacks->bindBufferFuncPtr(stagingBuffer, stagingAllocId));
             VK_CHECK_RESULT(
-                subAllocatorCallbacks->memoryMapFuncPtr(stagingAllocId, 0ull, memReqs.size,
+                subAllocatorCallbacks->memoryMapFuncPtr(stagingAllocId, 0ull, 
+                &memReqs.size,
                 (void**)&pMappedStagingBuffer));
         }
 
@@ -1145,7 +1151,7 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         if (!useSuballocator)
             vdi->vkFuncs.vkUnmapMemory(vdi->device, stagingMemory);
         else
-            subAllocatorCallbacks->memoryUnmapFuncPtr(stagingAllocId);
+            subAllocatorCallbacks->memoryUnmapFuncPtr(stagingAllocId, 0ull);
 
         // Create optimal tiled target image
         imageCreateInfo.imageType = imageType;
@@ -1184,10 +1190,12 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
                     vkTexture->deviceMemory, 0));
         }
         else {
-            vkTexture->allocationId = subAllocatorCallbacks->allocMemFuncPtr(&memAllocInfo, &memReqs, &vkTexture->deviceMemory, &vkTexture->devMemoryOffset);
+            uint64_t numPages = 0ull;
+            vkTexture->allocationId = subAllocatorCallbacks->allocMemFuncPtr(&memAllocInfo, &memReqs, &numPages);
             if (vkTexture->allocationId == 0ull) {
                 return KTX_OUT_OF_MEMORY;
             }
+            assert(numPages == 1ull); // We do NOT support sparse bindings yet.
             VK_CHECK_RESULT(
                 subAllocatorCallbacks->bindImageFuncPtr(vkTexture->image, vkTexture->allocationId));
         }
@@ -1320,10 +1328,12 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
                     mappableMemory, 0));
         }
         else {
-            vkTexture->allocationId = subAllocatorCallbacks->allocMemFuncPtr(&memAllocInfo, &memReqs, &mappableMemory, &vkTexture->devMemoryOffset);
+            uint64_t numPages = 0ull;
+            vkTexture->allocationId = subAllocatorCallbacks->allocMemFuncPtr(&memAllocInfo, &memReqs, &numPages);
             if (vkTexture->allocationId == 0ull) {
                 return KTX_OUT_OF_MEMORY;
             }
+            assert(numPages == 1ull); // We do NOT support sparse bindings yet.
             VK_CHECK_RESULT(
                 subAllocatorCallbacks->bindImageFuncPtr(mappableImage, vkTexture->allocationId));
         }
@@ -1344,7 +1354,7 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         else {
             VK_CHECK_RESULT(
                 subAllocatorCallbacks->memoryMapFuncPtr(vkTexture->allocationId, 0ull,
-                    memReqs.size, (void**)&cbData.dest));
+                    &memReqs.size, (void**)&cbData.dest));
         }
 
         // Iterate over images to copy texture data into mapped image memory.
@@ -1361,7 +1371,7 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
         if (!useSuballocator)
             vdi->vkFuncs.vkUnmapMemory(vdi->device, mappableMemory);
         else
-            subAllocatorCallbacks->memoryUnmapFuncPtr(vkTexture->allocationId);
+            subAllocatorCallbacks->memoryUnmapFuncPtr(vkTexture->allocationId, 0ull);
 
         // Linear tiled images can be directly used as textures.
         vkTexture->image = mappableImage;
@@ -1410,6 +1420,28 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
  * VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT and
  * VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL.
  *
+ * @sa ktxTexture_VkUploadEx_WithPotentialSuballocator() for details and use that for complete
+ *     control.
+ */
+KTX_error_code
+ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
+    ktxVulkanTexture* vkTexture,
+    VkImageTiling tiling,
+    VkImageUsageFlags usageFlags,
+    VkImageLayout finalLayout)
+{
+    return ktxTexture_VkUploadEx_WithPotentialSuballocator(This, vdi, vkTexture,
+                                                           tiling, usageFlags, finalLayout, NULL);
+}
+
+/** @memberof ktxTexture
+ * @~English
+ * @brief Create a Vulkan image object from a ktxTexture object.
+ *
+ * Calls ktxTexture_VkUploadEx() with the most commonly used options:
+ * VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT and
+ * VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL.
+ *
  * @sa ktxTexture_VkUploadEx() for details and use that for complete
  *     control.
  */
@@ -1420,8 +1452,7 @@ ktxTexture_VkUpload(ktxTexture* texture, ktxVulkanDeviceInfo* vdi,
     return ktxTexture_VkUploadEx(ktxTexture(texture), vdi, vkTexture,
                                  VK_IMAGE_TILING_OPTIMAL,
                                  VK_IMAGE_USAGE_SAMPLED_BIT,
-                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                 NULL);
+                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
 /** @memberof ktxTexture1
@@ -1440,7 +1471,7 @@ ktxTexture1_VkUploadEx(ktxTexture1* This, ktxVulkanDeviceInfo* vdi,
                        VkImageLayout finalLayout)
 {
     return ktxTexture_VkUploadEx(ktxTexture(This), vdi, vkTexture,
-                                 tiling, usageFlags, finalLayout, NULL);
+                                 tiling, usageFlags, finalLayout);
 }
 
 /** @memberof ktxTexture1
@@ -1461,7 +1492,7 @@ ktxTexture1_VkUpload(ktxTexture1* texture, ktxVulkanDeviceInfo* vdi,
     return ktxTexture_VkUploadEx(ktxTexture(texture), vdi, vkTexture,
                                  VK_IMAGE_TILING_OPTIMAL,
                                  VK_IMAGE_USAGE_SAMPLED_BIT,
-                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, NULL);
+                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
 /** @memberof ktxTexture2
@@ -1480,7 +1511,7 @@ ktxTexture2_VkUploadEx(ktxTexture2* This, ktxVulkanDeviceInfo* vdi,
                        VkImageLayout finalLayout)
 {
     return ktxTexture_VkUploadEx(ktxTexture(This), vdi, vkTexture,
-                                 tiling, usageFlags, finalLayout, NULL);
+                                 tiling, usageFlags, finalLayout);
 }
 
 /** @memberof ktxTexture2
@@ -1501,7 +1532,7 @@ ktxTexture2_VkUpload(ktxTexture2* This, ktxVulkanDeviceInfo* vdi,
     return ktxTexture_VkUploadEx(ktxTexture(This), vdi, vkTexture,
                                  VK_IMAGE_TILING_OPTIMAL,
                                  VK_IMAGE_USAGE_SAMPLED_BIT,
-                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, NULL);
+                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
 /** @memberof ktxTexture1
@@ -1827,18 +1858,20 @@ generateMipmaps(ktxVulkanTexture* vkTexture, ktxVulkanDeviceInfo* vdi,
  * @brief Destructor for the object returned when loading a texture image.
  *
  * Frees the Vulkan resources created when the texture image was loaded.
+ * If a complete set of (hopefully thread-safe) suballocator callbacks
+ * are provided, it will use the free call from those instead.
  *
  * @param vkTexture                pointer to the ktxVulkanTexture to be destructed.
  * @param device                   handle to the Vulkan logical device to which the texture was
  *                                 loaded.
  * @param pAllocator               pointer to the allocator used during loading.
- * @param subAllocatorCallbacks    potential function pointer for a suballocator's guarded free callback.
+ * @param subAllocatorCallbacks    potential function pointer for guarded suballocator callbacks.
  *                                 Pass NULL if a suballocator was not used.
  */
 void
-ktxVulkanTexture_Destruct(ktxVulkanTexture* vkTexture, VkDevice device,
-                          const VkAllocationCallbacks* pAllocator,
-                          subAllocatorCallbacks* subAllocatorCallbacks)
+ktxVulkanTexture_Destruct_WithPotentialSuballocator(ktxVulkanTexture* vkTexture, VkDevice device,
+                                                    const VkAllocationCallbacks* pAllocator,
+                                                    ktxVulkanTexture_subAllocatorCallbacks* subAllocatorCallbacks)
 {
     ktx_bool_t useSuballocator = (subAllocatorCallbacks &&
                                   subAllocatorCallbacks->allocMemFuncPtr &&
@@ -1854,5 +1887,24 @@ ktxVulkanTexture_Destruct(ktxVulkanTexture* vkTexture, VkDevice device,
     else
         vkTexture->vkFreeMemory(device, vkTexture->deviceMemory, pAllocator);
 }
+
+/**
+ * @memberof ktxVulkanTexture
+ * @~English
+ * @brief Destructor for the object returned when loading a texture image.
+ *
+ * Calls ktxVulkanTexture_Destruct_WithPotentialSuballocator() without a
+ * set of (hopefully thread-safe) suballocator callbacks.
+ *
+ * @sa ktxVulkanTexture_Destruct_WithPotentialSuballocator() for details and use that for complete
+ *     control.
+ */
+void
+ktxVulkanTexture_Destruct(ktxVulkanTexture* vkTexture, VkDevice device,
+                          const VkAllocationCallbacks* pAllocator)
+{
+    ktxVulkanTexture_Destruct_WithPotentialSuballocator(vkTexture, device, pAllocator, NULL);
+}
+
 
 /** @} */
