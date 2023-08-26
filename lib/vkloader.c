@@ -1375,7 +1375,7 @@ ktxTexture_VkUploadEx_WithPotentialSuballocator(ktxTexture* This, ktxVulkanDevic
 
         // Linear tiled images can be directly used as textures.
         vkTexture->image = mappableImage;
-        vkTexture->deviceMemory = mappableMemory;
+        if (!useSuballocator) vkTexture->deviceMemory = mappableMemory;
 
         if (This->generateMipmaps) {
             generateMipmaps(vkTexture, vdi,
