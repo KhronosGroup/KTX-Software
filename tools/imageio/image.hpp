@@ -15,17 +15,24 @@
 #ifndef IMAGE_HPP
 #define IMAGE_HPP
 
-#include <cmath>
 #include <algorithm>
+#include <array>
+#include <cmath>
 #include <sstream>
 #include <stdexcept>
 #include <string_view>
 #include <vector>
 #include <KHR/khr_df.h>
 #include <fmt/format.h>
+#ifdef _MSC_VER
+  #pragma warning(push)
+  #pragma warning(disable : 4201)
+#endif
 #include <glm/gtc/packing.hpp>
-
-#include "utility.h"
+#ifdef _MSC_VER
+  #pragma warning(pop)
+#endif
+#include "imageio_utility.h"
 #include "unused.h"
 #include "encoder/basisu_resampler.h"
 #include "encoder/basisu_resampler_filters.h"
@@ -807,7 +814,7 @@ class ImageT : public Image {
             for (uint32_t x = 0; x < width; ++x) {
                 for (uint32_t c = 0; c < numChannels; ++c) {
                     const auto sourceValue = c < componentCount ? pixels[y * width + x][c] : (c != 3 ? componentType{0} : Color::one());
-                    const auto value = ktx::convertUNORM(static_cast<uint32_t>(sourceValue), sourceBits, targetBits);
+                    const auto value = imageio::convertUNORM(static_cast<uint32_t>(sourceValue), sourceBits, targetBits);
                     auto* target = data.data() + (y * width * numChannels + x * numChannels + c) * targetBytes;
 
                     if (targetBytes == 1) {
@@ -857,22 +864,22 @@ class ImageT : public Image {
 
                     if (packC0) {
                         const auto sourceValue = hasC0 ? pixel[0] : componentType{0};
-                        const auto value = ktx::convertUNORM(static_cast<uint32_t>(sourceValue), sourceBits, c0);
+                        const auto value = imageio::convertUNORM(static_cast<uint32_t>(sourceValue), sourceBits, c0);
                         pack |= static_cast<PackType>(value) << (c0Pad + c1 + c1Pad + c2 + c2Pad + c3 + c3Pad);
                     }
                     if (packC1) {
                         const auto sourceValue = hasC1 ? pixel[1] : componentType{0};
-                        const auto value = ktx::convertUNORM(static_cast<uint32_t>(sourceValue), sourceBits, c1);
+                        const auto value = imageio::convertUNORM(static_cast<uint32_t>(sourceValue), sourceBits, c1);
                         pack |= static_cast<PackType>(value) << (c1Pad + c2 + c2Pad + c3 + c3Pad);
                     }
                     if (packC2) {
                         const auto sourceValue = hasC2 ? pixel[2] : componentType{0};
-                        const auto value = ktx::convertUNORM(static_cast<uint32_t>(sourceValue), sourceBits, c2);
+                        const auto value = imageio::convertUNORM(static_cast<uint32_t>(sourceValue), sourceBits, c2);
                         pack |= static_cast<PackType>(value) << (c2Pad + c3 + c3Pad);
                     }
                     if (packC3) {
                         const auto sourceValue = hasC3 ? pixel[3] : Color::one();
-                        const auto value = ktx::convertUNORM(static_cast<uint32_t>(sourceValue), sourceBits, c3);
+                        const auto value = imageio::convertUNORM(static_cast<uint32_t>(sourceValue), sourceBits, c3);
                         pack |= static_cast<PackType>(value) << (c3Pad);
                     }
                 };
@@ -916,7 +923,7 @@ class ImageT : public Image {
                     if (sizeof(componentType) == targetBytes) {
                         *reinterpret_cast<componentType*>(target) = value;
                     } else if (targetBytes == 2) {
-                        const auto outValue = ktx::float_to_half(static_cast<float>(value));
+                        const auto outValue = imageio::float_to_half(static_cast<float>(value));
                         std::memcpy(target, &outValue, targetBytes);
                     } else if (targetBytes == 4) {
                         const auto outValue = static_cast<float>(value);
@@ -1051,10 +1058,10 @@ class ImageT : public Image {
                 auto* target = data.data() + (y * width + x) * sizeof(uint32_t);
 
                 uint32_t pack = 0;
-                pack |= ktx::convertUINT(static_cast<uint32_t>(pixel[0]), sizeof(uint32_t) * 8, c0) << (c1 + c2 + c3);
-                pack |= ktx::convertUINT(static_cast<uint32_t>(pixel[1]), sizeof(uint32_t) * 8, c1) << (c2 + c3);
-                pack |= ktx::convertUINT(static_cast<uint32_t>(pixel[2]), sizeof(uint32_t) * 8, c2) << c3;
-                pack |= ktx::convertUINT(static_cast<uint32_t>(pixel[3]), sizeof(uint32_t) * 8, c3);
+                pack |= imageio::convertUINT(static_cast<uint32_t>(pixel[0]), sizeof(uint32_t) * 8, c0) << (c1 + c2 + c3);
+                pack |= imageio::convertUINT(static_cast<uint32_t>(pixel[1]), sizeof(uint32_t) * 8, c1) << (c2 + c3);
+                pack |= imageio::convertUINT(static_cast<uint32_t>(pixel[2]), sizeof(uint32_t) * 8, c2) << c3;
+                pack |= imageio::convertUINT(static_cast<uint32_t>(pixel[3]), sizeof(uint32_t) * 8, c3);
 
                 std::memcpy(target, &pack, sizeof(pack));
             }
@@ -1075,10 +1082,10 @@ class ImageT : public Image {
                 auto* target = data.data() + (y * width + x) * sizeof(uint32_t);
 
                 uint32_t pack = 0;
-                pack |= ktx::convertSINT(ktx::bit_cast<uint32_t>(static_cast<int32_t>(pixel[0])), sizeof(uint32_t) * 8, c0) << (c1 + c2 + c3);
-                pack |= ktx::convertSINT(ktx::bit_cast<uint32_t>(static_cast<int32_t>(pixel[1])), sizeof(uint32_t) * 8, c1) << (c2 + c3);
-                pack |= ktx::convertSINT(ktx::bit_cast<uint32_t>(static_cast<int32_t>(pixel[2])), sizeof(uint32_t) * 8, c2) << c3;
-                pack |= ktx::convertSINT(ktx::bit_cast<uint32_t>(static_cast<int32_t>(pixel[3])), sizeof(uint32_t) * 8, c3);
+                pack |= imageio::convertSINT(imageio::bit_cast<uint32_t>(static_cast<int32_t>(pixel[0])), sizeof(uint32_t) * 8, c0) << (c1 + c2 + c3);
+                pack |= imageio::convertSINT(imageio::bit_cast<uint32_t>(static_cast<int32_t>(pixel[1])), sizeof(uint32_t) * 8, c1) << (c2 + c3);
+                pack |= imageio::convertSINT(imageio::bit_cast<uint32_t>(static_cast<int32_t>(pixel[2])), sizeof(uint32_t) * 8, c2) << c3;
+                pack |= imageio::convertSINT(imageio::bit_cast<uint32_t>(static_cast<int32_t>(pixel[3])), sizeof(uint32_t) * 8, c3);
 
                 std::memcpy(target, &pack, sizeof(pack));
             }
