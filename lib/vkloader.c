@@ -997,7 +997,7 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
     {
         // Create a host-visible staging buffer that contains the raw image data
         VkBuffer stagingBuffer;
-        VkDeviceMemory stagingMemory;
+        VkDeviceMemory stagingMemory = VK_NULL_HANDLE;
         VkBufferImageCopy* copyRegions;
         VkDeviceSize textureSize;
         VkBufferCreateInfo bufferCreateInfo = {
@@ -1289,7 +1289,7 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
     else
     {
         VkImage mappableImage;
-        VkDeviceMemory mappableMemory;
+        VkDeviceMemory mappableMemory = VK_NULL_HANDLE;
         VkFence nullFence = { VK_NULL_HANDLE };
         VkSubmitInfo submitInfo = {
             .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
