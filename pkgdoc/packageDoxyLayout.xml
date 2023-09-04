@@ -8,6 +8,7 @@
     <tab type="user"  url="libktx/index.html" title="libktx Reference"/>
     <tab type="user"  url="ktxjswrappers/index.html"
          title="KTX Javascript Wrappers Reference"/>
+    <tab type="user"  url="pyktx/index.html" title="pyktx Reference"/>
     <tab type="user"  url="@ref license" title=""/>
     <tab type="namespaces" visible="no" title="">
       <tab type="namespacelist" visible="no" title="" intro=""/>
@@ -15,7 +16,7 @@
     </tab>
     <tab type="classes" visible="no" title="">
       <tab type="classlist" visible="no" title="" intro=""/>
-      <tab type="classindex" visible="$ALPHABETICAL_INDEX" title=""/> 
+      <tab type="classindex" visible="$ALPHABETICAL_INDEX" title=""/>
       <tab type="hierarchy" visible="no" title="" intro=""/>
       <tab type="classmembers" visible="no" title="" intro=""/>
     </tab>
@@ -23,7 +24,7 @@
       <tab type="filelist" visible="no" title="" intro=""/>
       <tab type="globals" visible="no" title="" intro=""/>
     </tab>
-    <tab type="examples" visible="no" title="" intro=""/>  
+    <tab type="examples" visible="no" title="" intro=""/>
   </navindex>
 
   <!-- Layout definition for a class page -->

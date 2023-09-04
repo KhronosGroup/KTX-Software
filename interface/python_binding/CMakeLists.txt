@@ -103,27 +103,29 @@ add_test(NAME pyktx
         ${CMAKE_SOURCE_DIR}/interface/python_binding
 )
 
-add_custom_command(
-    TARGET pyktx
-    POST_BUILD
-    COMMAND
-        ${CMAKE_COMMAND} -E env
-            LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
-            LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
-            DYLD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{DYLD_LIBRARY_PATH}
-            LD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{LD_LIBRARY_PATH}
-        ${PYTHON_EXECUTABLE} build.py
-    COMMAND
-        ${CMAKE_COMMAND} -E env
-            LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
-            LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
-        ${PYTHON_EXECUTABLE} -m sphinx.ext.apidoc -o docs ./pyktx --separate
-    COMMAND
-        ${CMAKE_COMMAND} -E env
-            LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
-            LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
-            SPHINXBUILD=$<IF:$<PLATFORM_ID:Windows>,"${PYTHON_PATH} -m sphinx","">
-        make html
-    WORKING_DIRECTORY
-        ${CMAKE_SOURCE_DIR}/interface/python_binding
-)
+if(KTX_FEATURE_DOC)
+    add_custom_command(
+        TARGET pyktx
+        POST_BUILD
+        COMMAND
+            ${CMAKE_COMMAND} -E env
+                LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
+                LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
+                DYLD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{DYLD_LIBRARY_PATH}
+                LD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{LD_LIBRARY_PATH}
+            ${PYTHON_EXECUTABLE} build.py
+        COMMAND
+            ${CMAKE_COMMAND} -E env
+                LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
+                LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
+            ${PYTHON_EXECUTABLE} -m sphinx.ext.apidoc -o docs ./pyktx --separate
+        COMMAND
+            ${CMAKE_COMMAND} -E env
+                LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
+                LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
+                SPHINXBUILD=$<IF:$<PLATFORM_ID:Windows>,"${PYTHON_PATH} -m sphinx","sphinx-build">
+            make BUILDDIR="${CMAKE_CURRENT_BINARY_DIR}/docs/html/pyktx" html
+        WORKING_DIRECTORY
+            ${CMAKE_SOURCE_DIR}/interface/python_binding
+    )
+endif()
