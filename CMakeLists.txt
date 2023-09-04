@@ -686,7 +686,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         # version. Also future proofing for when xcode catches up.
         set_source_files_properties(
             ${BASISU_ENCODER_CXX_SRC}
-            PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-variable;-Wno-unused-parameter"
+            PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-variable;-Wno-unused-parameter;-Wno-deprecated-copy-with-user-provided-copy"
         )
         set_source_files_properties(
             lib/basisu/transcoder/basisu_transcoder.cpp
