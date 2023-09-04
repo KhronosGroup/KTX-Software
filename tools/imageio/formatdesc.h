@@ -616,6 +616,18 @@ struct FormatDescriptor {
         }
         return maxBitLength;
     }
+    bool anyChannelBitLengthNotEqual(uint32_t bitLength) const {
+        for (uint32_t i = 0; i < 16; ++i) {
+            uint32_t channelBitLength = 0;
+            for (const auto& sample : samples)
+                if (sample.channelType == i)
+                    channelBitLength += sample.bitLength + 1;
+
+            if (bitLength != channelBitLength)
+                return true;
+        }
+        return false;
+    }
     khr_df_sample_datatype_qualifiers_e
     channelDataType(khr_df_model_channels_e c) const {
         // TODO: Fix for shared exponent case...

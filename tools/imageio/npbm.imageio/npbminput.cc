@@ -415,6 +415,10 @@ void NpbmInput::parseGPHeader(filetype ftype)
 }
 
 
+/// @brief Read an entire image into contiguous memory performing conversions
+/// to @a requestFormat.
+///
+/// @sa ImageInput::readScanline() for supported conversions.
 void
 NpbmInput::readImage(void* pBuffer, size_t bufferByteCount,
                      uint32_t subimage, uint32_t miplevel,
