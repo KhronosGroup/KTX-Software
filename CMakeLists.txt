@@ -940,6 +940,7 @@ else()
 endif()
 
 # FMT
+set(FMT_SYSTEM_HEADERS ON)
 add_subdirectory(other_projects/fmt)
 
 # Tools
