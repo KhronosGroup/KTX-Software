@@ -125,7 +125,7 @@ typedef struct ktxVulkanTexture
     uint32_t depth; /*!< The depth of the image. */
     uint32_t levelCount; /*!< The number of MIP levels in the image. */
     uint32_t layerCount; /*!< The number of array layers in the image. */
-    uint64_t allocationId; /*!< An allocationId referencing suballocation(s). */
+    uint64_t allocationId; /*!< An id referencing suballocation(s). */
 } ktxVulkanTexture;
 
 typedef uint64_t(*ktxVulkanTexture_subAllocatorAllocMemFuncPtr)(VkMemoryAllocateInfo* allocInfo, VkMemoryRequirements* memReq, uint64_t* pageCount);
@@ -143,10 +143,10 @@ typedef struct {
     ktxVulkanTexture_subAllocatorFreeMemFuncPtr freeMemFuncPtr;
 } ktxVulkanTexture_subAllocatorCallbacks;
 
-KTX_API void KTX_APIENTRY
-ktxVulkanTexture_Destruct_WithPotentialSuballocator(ktxVulkanTexture* This, VkDevice device,
-                                                    const VkAllocationCallbacks* pAllocator,
-                                                    ktxVulkanTexture_subAllocatorCallbacks* subAllocatorCallbacks);
+KTX_API ktx_error_code_e KTX_APIENTRY
+ktxVulkanTexture_Destruct_WithSuballocator(ktxVulkanTexture* This, VkDevice device,
+                                           const VkAllocationCallbacks* pAllocator,
+                                           ktxVulkanTexture_subAllocatorCallbacks* subAllocatorCallbacks);
 
 KTX_API void KTX_APIENTRY
 ktxVulkanTexture_Destruct(ktxVulkanTexture* This, VkDevice device,
@@ -228,12 +228,12 @@ ktxVulkanDeviceInfo_Destruct(ktxVulkanDeviceInfo* This);
 KTX_API void KTX_APIENTRY
 ktxVulkanDeviceInfo_Destroy(ktxVulkanDeviceInfo* This);
 KTX_API KTX_error_code KTX_APIENTRY
-ktxTexture_VkUploadEx_WithPotentialSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
-                                                ktxVulkanTexture* vkTexture,
-                                                VkImageTiling tiling,
-                                                VkImageUsageFlags usageFlags,
-                                                VkImageLayout finalLayout,
-                                                ktxVulkanTexture_subAllocatorCallbacks* subAllocatorCallbacks);
+ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
+                                       ktxVulkanTexture* vkTexture,
+                                       VkImageTiling tiling,
+                                       VkImageUsageFlags usageFlags,
+                                       VkImageLayout finalLayout,
+                                       ktxVulkanTexture_subAllocatorCallbacks* subAllocatorCallbacks);
 KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
                       ktxVulkanTexture* vkTexture,
