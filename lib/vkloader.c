@@ -753,7 +753,7 @@ linearTilingPadCallback(int miplevel, int face,
  * If a pointer to a set of suballocator callbacks is provided, they
  * will be used instead of manual allocation of VkDeviceMemory. A 64 bit uint
  * that references the suballocated page(s) is returned on memory procurement 
- * and saved in the @c allocationId field of the structure pointed to by @A vkTexture.
+ * and saved in the @c allocationId field of the structure pointed to by @a vkTexture.
  *
  * @param[in] This                        pointer to the ktxTexture from which to upload.
  * @param [in] vdi                        pointer to a ktxVulkanDeviceInfo structure providing
@@ -772,12 +772,12 @@ linearTilingPadCallback(int miplevel, int face,
  *                                        that wrap around suballocator calls: alloc, 
  *                                        bindbuffer, bindimage, map, unmap and free.
  *                                        They use a uint64_t stored in the @c allocationId
- *                                        field of the structure pointed at by @A vkTexture
+ *                                        field of the structure pointed at by @a vkTexture
  *                                        to reference allocated page(s).
  *
  * @return  KTX_SUCCESS on success, other KTX_* enum values on error.
  *
- * @exception KTX_INVALID_OPERATION     An incomplete set of callbacks are provided in 
+ * @exception KTX_INVALID_VALUE         An incomplete set of callbacks are provided in 
  *                                      subAllocatorCallbacks.
  * @exception KTX_INVALID_VALUE         @p This, @p vdi or @p vkTexture is @c NULL.
  * @exception KTX_INVALID_OPERATION     The ktxTexture contains neither images nor
@@ -842,7 +842,7 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
             subAllocatorCallbacks->freeMemFuncPtr)
             useSuballocator = true;
         else
-            return KTX_INVALID_OPERATION;
+            return KTX_INVALID_VALUE;
     }
 
     if (!vdi || !This || !vkTexture) {
@@ -1880,9 +1880,9 @@ generateMipmaps(ktxVulkanTexture* vkTexture, ktxVulkanDeviceInfo* vdi,
  * @param device                   handle to the Vulkan logical device to which the texture was
  *                                 loaded.
  * @param pAllocator               pointer to the allocator used during loading.
- * @param subAllocatorCallbacks    potential function pointer for guarded suballocator callbacks.
+ * @param subAllocatorCallbacks    pointer to a structure of suballocator callbacks.
  *                                 Pass NULL if a suballocator was not used.
- * @return                         KTX_SUCCESS on success, KTX_INVALID_OPERATION if the
+ * @return                         KTX_SUCCESS on success, KTX_INVALID_VALUE if the
  *                                 supplied subAllocatorCallbacks structure is incomplete.
  */
 ktx_error_code_e
@@ -1900,7 +1900,7 @@ ktxVulkanTexture_Destruct_WithSuballocator(ktxVulkanTexture* vkTexture, VkDevice
             subAllocatorCallbacks->freeMemFuncPtr)
             useSuballocator = true;
         else
-            return KTX_INVALID_OPERATION;
+            return KTX_INVALID_VALUE;
     }
 
     vkTexture->vkDestroyImage(device, vkTexture->image, pAllocator);
@@ -1927,7 +1927,7 @@ void
 ktxVulkanTexture_Destruct(ktxVulkanTexture* vkTexture, VkDevice device,
                           const VkAllocationCallbacks* pAllocator)
 {
-    ktxVulkanTexture_Destruct_WithSuballocator(vkTexture, device, pAllocator, NULL);
+    (void)ktxVulkanTexture_Destruct_WithSuballocator(vkTexture, device, pAllocator, NULL);
 }
 
 
