@@ -111,10 +111,15 @@ PUBLIC
     appfwSDL
     $<TARGET_PROPERTY:ktx,INCLUDE_DIRECTORIES>
     ${PROJECT_SOURCE_DIR}/lib
-    ${PROJECT_SOURCE_DIR}/other_include
     ${PROJECT_SOURCE_DIR}/utils
     common
     geom
+)
+
+target_include_directories(
+    appfwSDL
+SYSTEM PUBLIC
+    ${PROJECT_SOURCE_DIR}/other_include
 )
 
 if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
@@ -136,11 +141,16 @@ if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
   target_include_directories(
       GLAppSDL
   PUBLIC
-      ${PROJECT_SOURCE_DIR}/other_include
-      appfwSDL
+      $<TARGET_PROPERTY:appfwSDL,INCLUDE_DIRECTORIES>
       common
       glloadtests
       glloadtests/utils
+  )
+
+  target_include_directories(
+      GLAppSDL
+  SYSTEM PRIVATE
+      $<TARGET_PROPERTY:appfwSDL,INTERFACE_SYSTEM_INCLUDE_DIRECTORIES>
   )
 
   if(OPENGL_FOUND)
