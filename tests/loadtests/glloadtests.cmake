@@ -22,10 +22,15 @@ function( create_gl_target target version sources common_resources test_images
     target_include_directories(
         ${target}
     PRIVATE
-        $<TARGET_PROPERTY:appfwSDL,INTERFACE_INCLUDE_DIRECTORIES>
         $<TARGET_PROPERTY:GLAppSDL,INTERFACE_INCLUDE_DIRECTORIES>
         $<TARGET_PROPERTY:ktx,INCLUDE_DIRECTORIES>
         $<TARGET_PROPERTY:objUtil,INTERFACE_INCLUDE_DIRECTORIES>
+    )
+
+    target_include_directories(
+        ${target}
+    SYSTEM PRIVATE
+          ${PROJECT_SOURCE_DIR}/other_include
     )
 
     set_target_properties(${target} PROPERTIES
