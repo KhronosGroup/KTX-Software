@@ -379,36 +379,37 @@ class ImageInput {
     }
 
     /// Read an entire image into contiguous memory performing conversions to
-    /// @a targetFormat.
+    /// @a requestFormat.
     ///
-    // @TODO @a targetFormat allows callers to request almost unlimited
-    // possible conversions compared to the original format. The current
-    // plug-ins only provide a handful of conversions and those available
-    // vary by plug-in. As a work in progress this is okay but we need to
-    // rationalize all this such as
-    //
-    //   1. a subset of all possible conversions supported by every plug-in
-    //   2. a way to query the available conversions and specify one or more.
-    //
-    // Currently supported transformations are:
-    //   @b Npbm can do bits/pixel rescaling, including 16- to 8-bit
-    //   conversions.
-    //   @b png can also do bits/pixel rescaling, including 16- to 8-bit.
-    //   @b Jpeg can convert the number of components. This is not used by
-    //   callers as, for historic reasons, this conversion is provided by
-    //   the upper level Image class.
+    /// @TODO @a requestFormat allows callers to request almost unlimited
+    /// possible conversions compared to the original format. The current
+    /// plug-ins only provide a handful of conversions and those available
+    /// vary by plug-in. Plug-ins must throw an exception when an
+    /// unsupported conversion is requested. As a work in progress this is
+    /// okay but we need to rationalize all this such as
+    ///
+    ///   1. a subset of all possible conversions supported by every plug-in
+    ///   2. conversion-specific exceptions so caller can tell what didn't work.
+    ///
+    /// Commonly supported transformations are bit scaling and changing the
+    /// channel count, both adding and removing channels. See the derived
+    /// classes for the specific coversions supported.
+    ///
     virtual void readImage(void* buffer, size_t bufferByteCount,
                            uint32_t subimage = 0, uint32_t miplevel = 0,
-                           const FormatDescriptor& targetFormat = FormatDescriptor());
+                           const FormatDescriptor& requestFormat = FormatDescriptor());
 
-    /// Read a scanline into contiguous performing conversions to
-    /// @a targetFormat.
+    /// @brief Read a scanline into contiguous memory performing conversions to
+    /// @a requestFormat.
     ///
-    /// @sa See readImage for information about handling of targetFormat.
+    /// Supported conversions in the default implementation are uint->uint for
+    /// 8- & 16-bit values.
+    ///
+    /// @sa See readImage for information about handling of requestFormat.
     virtual void readScanline(void* buffer, size_t bufferByteCount,
                               uint32_t y, uint32_t z,
                               uint32_t subimage, uint32_t miplevel,
-                              const FormatDescriptor& targetFormat = FormatDescriptor());
+                              const FormatDescriptor& requestFormat = FormatDescriptor());
     /// Read a single scanline (all channels) of native data into contiguous
     /// memory.
     virtual void readNativeScanline(void* buffer, size_t bufferByteCount,

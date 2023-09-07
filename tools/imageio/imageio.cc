@@ -12,6 +12,8 @@
 //! @brief Create plugin maps.
 //!
 
+#include "imageio.h"
+
 #include <algorithm>
 #include <cctype>
 #include <iomanip>
@@ -23,8 +25,6 @@
 #include <vector>
 
 #include <stdarg.h>
-
-#include "imageio.h"
 
 #define PLUGENTRY(name)                          \
     ImageInput* name##InputCreate();             \

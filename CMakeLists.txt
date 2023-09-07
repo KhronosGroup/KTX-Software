@@ -377,11 +377,16 @@ macro(commom_lib_settings lib write)
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu/zstd>
         $<INSTALL_INTERFACE:lib/basisu/zstd>
 
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/other_include>
-        $<INSTALL_INTERFACE:other_include>
-
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/utils>
         $<INSTALL_INTERFACE:utils>
+    )
+
+    target_include_directories(
+        ${lib}
+        SYSTEM
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/other_include>
+        $<INSTALL_INTERFACE:other_include>
     )
 
     if( LIB_TYPE STREQUAL STATIC )
@@ -681,7 +686,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         # version. Also future proofing for when xcode catches up.
         set_source_files_properties(
             ${BASISU_ENCODER_CXX_SRC}
-            PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-variable;-Wno-unused-parameter"
+            PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-variable;-Wno-unused-parameter;-Wno-deprecated-copy-with-user-provided-copy"
         )
         set_source_files_properties(
             lib/basisu/transcoder/basisu_transcoder.cpp
@@ -935,6 +940,7 @@ else()
 endif()
 
 # FMT
+set(FMT_SYSTEM_HEADERS ON)
 add_subdirectory(other_projects/fmt)
 
 # Tools

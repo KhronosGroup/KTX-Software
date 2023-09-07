@@ -13,6 +13,7 @@
 //!
 
 #include "imageio.h"
+#include "imageio_utility.h"
 
 #include <iomanip>
 #include <map>
@@ -39,6 +40,7 @@ ImageInput::open(const _tstring& filename,
     ImageInput::Creator createFunction = nullptr;
     const _tstring* fn;
     const _tstring sn("stdin");
+    bool doBuffer = true;
 
     if (filename.compare("-")) {
         // Regular file.
@@ -72,10 +74,18 @@ ImageInput::open(const _tstring& filename,
 #if defined(_WIN32)
         // Set "stdin" to have binary mode. There is no way to this via cin.
         (void)_setmode( _fileno( stdin ), _O_BINARY );
-#endif
+        // Windows shells set the FILE_SYNCHRONOUS_IO_NONALERT option when
+        // creating pipes. Cygwin since 3.4.x does the same thing, a change
+        // which affects anything dependent on it, e.g. Git for Windows
+        // (since 2.41.0) and MSYS2. When this option is set, cin.seekg(0)
+        // erroneously returns success. Always buffer.
+        doBuffer = true;
+#else
         // Can we seek in this cin?
         std::cin.seekg(0);
-        if (std::cin.fail()) {
+        doBuffer = std::cin.fail();
+#endif
+        if (doBuffer) {
             // Can't seek. Buffer stdin. This is a potentially large buffer.
             // Must avoid copy. If use stack variable for ss, it's streambuf
             // will also be on the stack and lost after this function exits
@@ -149,7 +159,9 @@ ImageInput::open(const _tstring& filename,
     }
 }
 
-// Default implementation
+/// @brief Open a file for image input.
+///
+/// Default implementation for derived classes.
 void ImageInput::open(const _tstring& filename, ImageSpec& newspec)
 {
     close(); // previously opened file.
@@ -189,30 +201,57 @@ void ImageInput::open(const _tstring& filename, ImageSpec& newspec)
     }
 }
 
-// Default implementation.
-// TODO: Consider making ImageSpec param a pointer with nullptr for unknown.
+/// @brief Read an entire image into contiguous memory performing conversions
+/// to @a format.
+///
+/// Default implementation for derived classes. Input channel values are scaled
+/// from the input's channelUpper value to the max representable value of the
+/// output format (unorm8 or unorm16).
+///
+/// Supported conversions are
+/// - bit scaling
+///   - unorm8<->unorm16
 void
-ImageInput::readScanline(void* pBuffer, size_t bufferByteCount,
+ImageInput::readScanline(void* pBufferOut, size_t bufferByteCount,
                          uint32_t y, uint32_t z,
                          uint32_t subimage, uint32_t miplevel,
                          const FormatDescriptor& format)
 {
-    const FormatDescriptor* targetFormat;
-    if (format.isUnknown())
-        targetFormat = &spec().format();
-    else
-        targetFormat = &format;
+    const auto& targetFormat = format.isUnknown() ? spec().format() : format;
+
+    const auto targetBitLength = targetFormat.largestChannelBitLength();
+    const auto requestBits = std::max(imageio::bit_ceil(targetBitLength), 8u);
+
+    if (requestBits != 8 && requestBits != 16)
+        throw std::runtime_error(fmt::format(
+                "Requested decode into {}-bit format is not supported.",
+                requestBits)
+              );
+
+    const bool targetL = targetFormat.samples[0].qualifierLinear;
+    const bool targetE = targetFormat.samples[0].qualifierExponent;
+    const bool targetS = targetFormat.samples[0].qualifierSigned;
+    const bool targetF = targetFormat.samples[0].qualifierFloat;
+
+    // Only UNORM requests are supported here.
+    if (targetE || targetL || targetS || targetF)
+        throw std::runtime_error(fmt::format(
+                "Requested format conversion to {}-bit{}{}{}{} is not supported.",
+                requestBits,
+                targetL ? " Linear" : "",
+                targetE ? " Exponent" : "",
+                targetS ? " Signed" : "",
+                targetF ? " Float" : "")
+              );
 
     seekSubimage(subimage, miplevel);
 
-    size_t imageByteCount = (targetFormat->channelBitLength()
-                            * spec().imageChannelCount()) / 8;
+    size_t imageByteCount = (requestBits * spec().imageChannelCount()) / 8;
     if (imageByteCount < bufferByteCount)
         throw buffer_too_small();
 
     uint8_t* pNativeBuffer;
-    // TODO: Check for unsupported conversions. Only rescaling is supported
-    if (targetFormat->channelBitLength() != spec().format().channelBitLength()) {
+    if (targetFormat.channelBitLength() != spec().format().channelBitLength()) {
         if (spec().format().channelBitLength() == 16) {
             if (nativeBuffer16.size() < spec().imageChannelCount())
                 nativeBuffer16.resize(spec().imageChannelCount());
@@ -225,34 +264,34 @@ ImageInput::readScanline(void* pBuffer, size_t bufferByteCount,
             bufferByteCount = nativeBuffer16.size() * sizeof(uint8_t);
         }
     } else {
-        pNativeBuffer = static_cast<uint8_t*>(pBuffer);
+        pNativeBuffer = static_cast<uint8_t*>(pBufferOut);
     }
 
     readNativeScanline(pNativeBuffer, bufferByteCount, y, z, subimage, miplevel);
 
     if (reinterpret_cast<uint16_t*>(pNativeBuffer) == nativeBuffer16.data()) {
-         rescale((uint8_t*)pBuffer,
-                 static_cast<uint8_t>(targetFormat->channelUpper()),
+         rescale(static_cast<uint8_t*>(pBufferOut),
+                 static_cast<uint8_t>(targetFormat.channelUpper()),
                  nativeBuffer16.data(),
                  static_cast<uint16_t>(spec().format().channelUpper()),
                  spec().imageChannelCount());
     } else if (pNativeBuffer == nativeBuffer8.data()) {
-         rescale((uint16_t*)pBuffer,
-                 static_cast<uint16_t>(targetFormat->channelUpper()),
+         rescale(static_cast<uint16_t*>(pBufferOut),
+                 static_cast<uint16_t>(targetFormat.channelUpper()),
                  nativeBuffer8.data(),
                  static_cast<uint8_t>(spec().format().channelUpper()),
                  spec().imageChannelCount());
-    } else if (targetFormat->channelUpper() != spec().format().channelUpper()) {
+    } else if (targetFormat.channelUpper() != spec().format().channelUpper()) {
         if (spec().format().channelBitLength() == 16) {
-            rescale(static_cast<uint16_t*>(pBuffer),
-                    static_cast<uint16_t>(targetFormat->channelUpper()),
-                    static_cast<uint16_t*>(pBuffer),
+            rescale(static_cast<uint16_t*>(pBufferOut),
+                    static_cast<uint16_t>(targetFormat.channelUpper()),
+                    static_cast<uint16_t*>(pBufferOut),
                     static_cast<uint16_t>(spec().format().channelUpper()),
                     spec().imageChannelCount());
         } else {
-            rescale(static_cast<uint8_t*>(pBuffer),
-                    static_cast<uint8_t>(targetFormat->channelUpper()),
-                    static_cast<uint8_t*>(pBuffer),
+            rescale(static_cast<uint8_t*>(pBufferOut),
+                    static_cast<uint8_t>(targetFormat.channelUpper()),
+                    static_cast<uint8_t*>(pBufferOut),
                     static_cast<uint8_t>(spec().format().channelUpper()),
                     spec().imageChannelCount());
         }
@@ -260,7 +299,12 @@ ImageInput::readScanline(void* pBuffer, size_t bufferByteCount,
 }
 
 
-// Default implementation
+/// @brief Read an entire image into contiguous memory performing conversions
+/// to @a format.
+///
+/// Default implementation for derived classes.
+///
+/// @sa readScanline() for support conversions.
 void
 ImageInput::readImage(void* pBuffer, size_t bufferByteCount,
                      uint32_t subimage, uint32_t miplevel,

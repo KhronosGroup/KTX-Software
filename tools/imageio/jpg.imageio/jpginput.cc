@@ -20,13 +20,12 @@
  * @author Mark Callow.
  */
 
-#include "stdafx.h"
+#include "imageio.h"
 
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
 
-#include "imageio.h"
 #include "encoder/jpgd.h"
 
 using namespace jpgd;
@@ -222,20 +221,43 @@ JpegInput::readHeader()
 }
 
 
+/// @brief Read an image scanline into contiguous memory performing conversions
+/// to @a format.
+///
+/// Supported conversions are
+/// - changing channel count
+///   - [GREY,RGB]->[GREY,RGB,RGBA]
+///   When reducing to 1 channel it calculates luma for GREY from R,G & B.
+///   When increasing from 1 it makes a luminance texture, R=G=B=GREY.
+///   ALPHA  is set to 1.0 when converting to 4 channels.
+///   2- and 4-channel inputs are not supported.
 void
 JpegInput::readScanline(void* bufferOut, size_t bufferByteCount, uint y, uint,
                         uint, uint,
                         const FormatDescriptor& format)
 {
-    const FormatDescriptor* targetFormat;
+    const auto& targetFormat = format.isUnknown() ? spec().format() : format;
+    const auto requestBits = targetFormat.largestChannelBitLength();
 
-    if (format.isUnknown())
-        targetFormat = &spec().format();
-    else
-        targetFormat = &format;
+    if (requestBits != 8)
+        throw std::runtime_error(fmt::format(
+            "Requested decode into {}-bit format is not supported.",
+            requestBits));
 
-    if (targetFormat->channelBitLength(KHR_DF_CHANNEL_RGBSDA_R) != 8)
-        throw std::runtime_error("Unsupported format conversion requested.");
+    const bool targetL = targetFormat.samples[0].qualifierLinear;
+    const bool targetE = targetFormat.samples[0].qualifierExponent;
+    const bool targetS = targetFormat.samples[0].qualifierSigned;
+    const bool targetF = targetFormat.samples[0].qualifierFloat;
+
+    // Only UNORM requests are allowed for JPEG inputs
+    if (targetE || targetL || targetS || targetF)
+        throw std::runtime_error(fmt::format(
+                "Requested format conversion to {}-bit{}{}{}{} is not supported.",
+                requestBits,
+                targetL ? " Linear" : "",
+                targetE ? " Exponent" : "",
+                targetS ? " Signed" : "",
+                targetF ? " Float" : ""));
 
     if (y >= spec().height())
         y = spec().height() - 1;
@@ -262,18 +284,26 @@ JpegInput::readScanline(void* bufferOut, size_t bufferByteCount, uint y, uint,
         );
     }
 
-    uint32_t targetChannelCount = targetFormat->extended.channelCount;
+    const auto targetChannelCount = targetFormat.extended.channelCount;
 
-    // decode() returns a bufferOut of 1 (for grayscale) or 4 components.
+    if (targetChannelCount == 2)
+        throw std::runtime_error(fmt::format(
+                "Requested decode into 2 channels is not supported.")
+              );
+
     uint8_t* pDst = static_cast<uint8_t*>(bufferOut);
-    uint32_t imageChannelCount = spec().format().extended.channelCount;
-    if ((targetChannelCount == 1 && imageChannelCount == 1)
-        || (targetChannelCount == 4 && imageChannelCount == 4))
+    uint32_t inputChannelCount = spec().format().extended.channelCount;
+    // decode() returns a bufferOut of 1 channel (for grayscale input)
+    // or 4 channels. Despite this decode() does not support 4 channel
+    // inputs. Nor does it support 2 channel inputs.
+    // TODO: Extend the following when decode supports 2- and 4-channel inputs.
+    if ((targetChannelCount == 1 && inputChannelCount == 1)
+        || (targetChannelCount == 4 && inputChannelCount == 3))
     {
         if (bufferByteCount < scanlineByteCount)
             throw buffer_too_small();
         memcpy(bufferOut, pScanline, scanlineByteCount);
-    } else if (imageChannelCount == 1) {
+    } else if (inputChannelCount == 1) {
         if (targetChannelCount == 3) {
             if (bufferByteCount < scanlineByteCount * 3)
             throw buffer_too_small();
@@ -284,7 +314,7 @@ JpegInput::readScanline(void* bufferOut, size_t bufferByteCount, uint y, uint,
                 pDst[2] = luma;
                 pDst += 3;
             }
-        } else {
+        } else { // targetChannelCount = 4
             if (bufferByteCount < scanlineByteCount * 4)
             throw buffer_too_small();
             for (uint x = 0; x < spec().width(); x++)
@@ -297,7 +327,7 @@ JpegInput::readScanline(void* bufferOut, size_t bufferByteCount, uint y, uint,
                 pDst += 4;
             }
         }
-    } else if (imageChannelCount == 3) {
+    } else if (inputChannelCount == 3) {
         if (targetChannelCount == 1) {
             if (bufferByteCount < spec().width())
             throw buffer_too_small();
@@ -308,7 +338,7 @@ JpegInput::readScanline(void* bufferOut, size_t bufferByteCount, uint y, uint,
                 int b = pScanline[x * 4 + 2];
                 *pDst++ = static_cast<uint8>((r * YR + g * YG + b * YB + 32768) >> 16);
             }
-        } else {
+        } else { //targetChannelCount = 3
             if (bufferByteCount < spec().width() * 3)
             throw buffer_too_small();
             for (uint x = 0; x < spec().width(); x++) {
@@ -324,6 +354,10 @@ JpegInput::readScanline(void* bufferOut, size_t bufferByteCount, uint y, uint,
 }
 
 
+/// @brief Read an entire image into contiguous memory performing conversions
+/// to @a format.
+///
+/// @sa readScanline() for supported conversions
 void JpegInput::readImage(void* bufferOut, size_t bufferByteCount,
                           uint subimage, uint miplevel,
                           const FormatDescriptor& format)

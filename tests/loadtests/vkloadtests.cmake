@@ -175,6 +175,11 @@ PRIVATE
     vkloadtests/utils
 )
 
+target_include_directories(vkloadtests
+  SYSTEM PRIVATE
+      ${PROJECT_SOURCE_DIR}/other_include
+)
+
 target_link_libraries(vkloadtests
     ktx
     ${KTX_ZLIB_LIBRARIES}

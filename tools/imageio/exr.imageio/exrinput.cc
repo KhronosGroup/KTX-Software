@@ -4,17 +4,18 @@
 // Copyright 2022 The Khronos Group Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-// TEXR is not defined in tinyexr.h. Current GitHub tinyexr master uses
-// assert. The version in astc-encoder must be old.
+#include "imageio.h"
+
 #include <array>
 #include <cassert>
 #include <optional>
 #include <string_view>
 #include <vector>
+// TEXR_ASSERT is not defined in tinyexr.h. Current GitHub tinyexr master
+// uses assert. The version in astc-encoder must be old.
 #define TEXR_ASSERT(x) assert(x)
 #define TINYEXR_IMPLEMENTATION
 #include "tinyexr.h"
-#include "imageio.h"
 #include <KHR/khr_df.h>
 #include "dfd.h"
 
@@ -175,6 +176,10 @@ void ExrInput::open(ImageSpec& newspec) {
     newspec = spec();
 }
 
+/// @brief Read an entire image into contiguous memory performing conversions
+/// to @a requestFormat.
+///
+/// Supported conversions are half->[half,float,uint], float->float, and uint->uint.
 void ExrInput::readImage(void* outputBuffer, size_t bufferByteCount,
         uint32_t subimage, uint32_t miplevel,
         const FormatDescriptor& requestFormat) {
