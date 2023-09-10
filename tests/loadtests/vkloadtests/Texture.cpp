@@ -42,7 +42,29 @@
 #define VMA_VULKAN_VERSION 1000000
 #define VMA_STATIC_VULKAN_FUNCTIONS 0
 #define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
+
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Weverything"
+#elif defined(__GNUC__) || defined(__GNUG__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wall"
+#pragma GCC diagnostic ignored "-Wextra"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#elif defined(_MSC_VER)
+#pragma warning(push, 0)
+#endif
+
 #include "vma/vk_mem_alloc.h"
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__) || defined(__GNUG__)
+#pragma GCC diagnostic pop
+#elif defined(_MSC_VER)
+#pragma warning(pop)
+#endif
 
 #define VERTEX_BUFFER_BIND_ID 0
 #define ENABLE_VALIDATION false
@@ -118,13 +140,13 @@ namespace VMA_CALLBACKS
         return vmaBindImageMemory(vmaAllocator, AllocMemCWrapperDirectory[allocId].allocation, image);
     }
 
-    VkResult MapMemoryCWrapper(uint64_t allocId, uint64_t pageNumber, VkDeviceSize* mapLength, void** dataPtr)
+    VkResult MapMemoryCWrapper(uint64_t allocId, uint64_t, VkDeviceSize* mapLength, void** dataPtr)
     {
         *mapLength = AllocMemCWrapperDirectory[allocId].mapSize;
         return vmaMapMemory(vmaAllocator, AllocMemCWrapperDirectory[allocId].allocation, dataPtr);
     }
 
-    void UnmapMemoryCWrapper(uint64_t allocId, uint64_t pageNumber)
+    void UnmapMemoryCWrapper(uint64_t allocId, uint64_t)
     {
         vmaUnmapMemory(vmaAllocator, AllocMemCWrapperDirectory[allocId].allocation);
     }
