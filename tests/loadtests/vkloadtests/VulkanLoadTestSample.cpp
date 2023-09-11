@@ -18,6 +18,105 @@
 
 #include "VulkanLoadTestSample.h"
 
+#include <random>
+#include <unordered_map>
+
+#define VMA_IMPLEMENTATION
+#define VMA_VULKAN_VERSION 1000000
+#define VMA_STATIC_VULKAN_FUNCTIONS 0
+#define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
+
+#include "vma/vk_mem_alloc.h"
+
+namespace VMA_CALLBACKS
+{
+    VmaAllocator vmaAllocator;
+    std::mt19937_64 mt64;
+
+    void InitVMA(VkPhysicalDevice& physicalDevice, VkDevice& device, VkInstance& instance)
+    {
+        VmaVulkanFunctions vulkanFunctions = {};
+        vulkanFunctions.vkGetInstanceProcAddr = &vkGetInstanceProcAddr;
+        vulkanFunctions.vkGetDeviceProcAddr = &vkGetDeviceProcAddr;
+
+        VmaAllocatorCreateInfo allocatorCreateInfo = {};
+        allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_0;
+        allocatorCreateInfo.physicalDevice = physicalDevice;
+        allocatorCreateInfo.device = device;
+        allocatorCreateInfo.instance = instance;
+        allocatorCreateInfo.pVulkanFunctions = &vulkanFunctions;
+
+        vmaCreateAllocator(&allocatorCreateInfo, &vmaAllocator);
+    }
+
+    void DestroyVMA()
+    {
+        vmaDestroyAllocator(vmaAllocator);
+    }
+
+    struct AllocationInfo
+    {
+        VmaAllocation allocation;
+        VkDeviceSize mapSize;
+    };
+    std::unordered_map<uint64_t, AllocationInfo> AllocMemCWrapperDirectory;
+    uint64_t AllocMemCWrapper(VkMemoryAllocateInfo* allocInfo, VkMemoryRequirements* memReq, uint64_t* numPages)
+    {
+        uint64_t allocId = mt64();
+        VmaAllocationCreateInfo pCreateInfo = {};
+        if (allocInfo->memoryTypeIndex == 8)
+        {
+            pCreateInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
+            pCreateInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+        }
+        else
+        {
+            pCreateInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+        }
+        pCreateInfo.memoryTypeBits = memReq->memoryTypeBits;
+
+        VmaAllocation allocation;
+        VkResult result = vmaAllocateMemory(vmaAllocator, memReq, &pCreateInfo, &allocation, VMA_NULL);
+        if (result != VK_SUCCESS)
+        {
+            return 0ull;
+        }
+
+        AllocMemCWrapperDirectory[allocId].allocation = allocation;
+        AllocMemCWrapperDirectory[allocId].mapSize = memReq->size;
+        *numPages = 1ull;
+
+        return allocId;
+    }
+
+    VkResult BindBufferMemoryCWrapper(VkBuffer buffer, uint64_t allocId)
+    {
+        return vmaBindBufferMemory(vmaAllocator, AllocMemCWrapperDirectory[allocId].allocation, buffer);
+    }
+
+    VkResult BindImageMemoryCWrapper(VkImage image, uint64_t allocId)
+    {
+        return vmaBindImageMemory(vmaAllocator, AllocMemCWrapperDirectory[allocId].allocation, image);
+    }
+
+    VkResult MapMemoryCWrapper(uint64_t allocId, uint64_t, VkDeviceSize* mapLength, void** dataPtr)
+    {
+        *mapLength = AllocMemCWrapperDirectory[allocId].mapSize;
+        return vmaMapMemory(vmaAllocator, AllocMemCWrapperDirectory[allocId].allocation, dataPtr);
+    }
+
+    void UnmapMemoryCWrapper(uint64_t allocId, uint64_t)
+    {
+        vmaUnmapMemory(vmaAllocator, AllocMemCWrapperDirectory[allocId].allocation);
+    }
+
+    void FreeMemCWrapper(uint64_t allocId)
+    {
+        vmaFreeMemory(vmaAllocator, AllocMemCWrapperDirectory[allocId].allocation);
+        AllocMemCWrapperDirectory.erase(allocId);
+    }
+}
+
 VulkanLoadTestSample::~VulkanLoadTestSample()
 {
     for (auto& shaderModule : shaderModules)
