@@ -66,7 +66,7 @@ class VulkanLoadTestSample : public LoadTestSample {
 
   protected:
 
-    ktxVulkanTexture_subAllocatorCallbacks callbacks = {
+    ktxVulkanTexture_subAllocatorCallbacks subAllocatorCallbacks = {
         VMA_CALLBACKS::AllocMemCWrapper,
         VMA_CALLBACKS::BindBufferMemoryCWrapper,
         VMA_CALLBACKS::BindImageMemoryCWrapper,

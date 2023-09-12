@@ -127,7 +127,7 @@ Texture::Texture(VulkanContext& vkctx,
         ktxresult = ktxTexture_VkUploadEx_WithSuballocator(kTexture, &vdi, &texture,
                                                            static_cast<VkImageTiling>(tiling),
                                                            VK_IMAGE_USAGE_SAMPLED_BIT,
-                                                           VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, &callbacks);
+                                                           VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, &subAllocatorCallbacks);
     }
     else // Keep separate call so ktxTexture_VkUploadEx is also tested.
         ktxresult = ktxTexture_VkUploadEx(kTexture, &vdi, &texture,
@@ -296,7 +296,7 @@ Texture::cleanup()
     if (useSubAlloc == UseSuballocator::Yes)
     {
         VkDevice vkDev = vkctx.device;
-        (void)ktxVulkanTexture_Destruct_WithSuballocator(&texture, vkDev, VK_NULL_HANDLE, &callbacks);
+        (void)ktxVulkanTexture_Destruct_WithSuballocator(&texture, vkDev, VK_NULL_HANDLE, &subAllocatorCallbacks);
         VMA_CALLBACKS::DestroyVMA();
     }
     else // Keep separate call so ktxVulkanTexture_Destruct is also tested.
