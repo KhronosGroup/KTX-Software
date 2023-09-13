@@ -254,6 +254,17 @@ Create a KTX file from JPEG, PNG or netpbm format files.
         @b --assign_oetf are specified, conversion will be performed from the
         assigned transfer function to the transfer function specified by this
         option, if different.
+    <dt>--convert_primaries &lt;primaries&gt;</dt>
+    <dd>Convert the image images to the specified color primaries, if
+        different from the color primaries of the input file(s) or the one
+        specified by --assign-primaries. If both this and --assign-primaries
+        are specified, conversion will be performed from the assigned primaries
+        to the primaries specified by this option, if different. This option is
+        not allowed to be specified when --assign-primaries is set to 'none'.
+        Case insensitive.
+        Possible options are:
+        bt709 | srgb | bt601-ebu | bt601-smpte | bt2020 | ciexyz | aces |
+        acescc | ntsc1953 | pal525 | displayp3 | adobergb</dd>
     <dt>--linear</dt>
     <dd>Deprecated. Use @b --assign_oetf linear.</dd>
     <dt>--srgb</dt>
@@ -634,6 +645,17 @@ toktxApp::usage()
         "               --assign_oetf are specified, conversion will be performed from\n"
         "               the assigned transfer function to the transfer function specified\n"
         "               by this option, if different.\n"
+        "  --convert_primaries <primaries> \n"
+        "               Convert the image image(s) to the specified color primaries,\n"
+        "               if different from the color primaries of the input file(s) or the\n"
+        "               one specified by --assign-primaries. If both this and\n"
+        "               --assign-primaries are specified, conversion will be performed\n"
+        "               from the assigned primaries to the primaries specified by this\n"
+        "               option, if different. This option is not allowed to be specified\n"
+        "               when --assign-primaries is set to 'none'. Case insensitive.\n"
+        "               Possible options are: bt709 | srgb | bt601-ebu | bt601-smpte |\n"
+        "               bt2020 | ciexyz | aces | acescc | ntsc1953 | pal525 |\n"
+        "               displayp3 | adobergb.\n"
         "  --linear     Deprecated. Use --assign_oetf linear.\n"
         "  --srgb       Deprecated. Use --assign_oetf srgb.\n"
         "  --swizzle <swizzle>\n"
