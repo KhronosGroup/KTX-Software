@@ -79,9 +79,9 @@ struct clamped
 /**
 //! [ktxApp options]
   <dl>
-  <dt>-h, --help</dt>
+  <dt>-h, \--help</dt>
   <dd>Print this usage message and exit.</dd>
-  <dt>-v, --version</dt>
+  <dt>-v, \--version</dt>
   <dd>Print the version number of this program and exit.</dd>
   </dl>
 

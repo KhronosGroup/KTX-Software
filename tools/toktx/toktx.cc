@@ -149,14 +149,14 @@ Create a KTX file from JPEG, PNG or netpbm format files.
 
     The following options are always available:
     <dl>
-    <dt>--2d</dt>
+    <dt>\--2d</dt>
     <dd>If the image height is 1, by default a KTX file for a 1D texture is
         created. With this option one for a 2D texture is created instead.</dd>
-    <dt>--automipmap</dt>
+    <dt>\--automipmap</dt>
     <dd>Causes the KTX file to be marked to request generation of a mipmap
         pyramid when the file is loaded. This option is mutually exclusive
         with @b --genmipmap, @b --levels and @b --mipmap.</dd>
-    <dt>--cubemap</dt>
+    <dt>\--cubemap</dt>
     <dd>KTX file is for a cubemap. At least 6 @e infiles must be provided,
         more if @b --mipmap or @b --layers is also specified. Provide the
         images in the order +X, -X, +Y, -Y, +Z, -Z where the arrangement is a
@@ -165,43 +165,43 @@ Create a KTX file from JPEG, PNG or netpbm format files.
         specified, provide the faces for layer 0 first then for layer 1, etc.
         Images must have an upper left origin so --lower_left_maps_to_s0t0
         is ignored with this option.</dd>
-    <dt>--depth &lt;number&gt;</dt>
+    <dt>\--depth &lt;number&gt;</dt>
     <dd>KTX file is for a 3D texture with a depth of @e number where
         @e number &gt; 0. Provide the file(s) for z=0 first then those for
         z=1, etc. It is an error to specify this together with
         @b --layers or @b --cubemap.</dd>
-    <dt>--genmipmap</dt>
+    <dt>\--genmipmap</dt>
     <dd>Causes mipmaps to be generated for each input file. This option is
         mutually exclusive with @b --automipmap and @b --mipmap. When set,
         the following mipmap-generation related options become valid,
         otherwise they are ignored.
         <dl>
-        <dt>--filter &lt;name&gt;</dt>
+        <dt>\--filter &lt;name&gt;</dt>
         <dd>Specifies the filter to use when generating the mipmaps. @e name
             is a string. The default is @e lanczos4. The following names are
             recognized: @e box, @e tent, @e bell, @e b-spline, @e mitchell,
             @e lanczos3, @e lanczos4, @e lanczos6, @e lanczos12, @e blackman,
             @e kaiser, @e gaussian, @e catmullrom, @e quadratic_interp,
             @e quadratic_approx and @e quadratic_mix.</dd>
-        <dt>--fscale &lt;floatVal&gt;</dt>
+        <dt>\--fscale &lt;floatVal&gt;</dt>
         <dd>The filter scale to use. The default is 1.0.</dd>
-        <dt>--wmode &lt;mode&gt;</dt>
+        <dt>\--wmode &lt;mode&gt;</dt>
         <dd>Specify how to sample pixels near the image boundaries. Values
             are @e wrap, @e reflect and @e clamp. The default is @e clamp.</dd>
         </dl>
     </dd>
-    <dt>--layers &lt;number&gt;</dt>
+    <dt>\--layers &lt;number&gt;</dt>
     <dd>KTX file is for an array texture with @e number of layers where
         @e number &gt; 0. Provide the file(s) for layer 0 first then those
         for layer 1, etc. It is an error to specify this together with
         @b --depth.</dd>
-    <dt>--levels &lt;number&gt;</dt>
+    <dt>\--levels &lt;number&gt;</dt>
     <dd>KTX file is for a mipmap pyramid with @e number of levels rather than
         a full pyramid. @e number must be &gt; 1 and  &lt;= the maximum number
         of levels determined from the size of the base level image. Provide the
         base level image first, if using @b --mipmap. This option is mutually
         exclusive with @b --automipmap.</dd>
-    <dt>--mipmap</dt>
+    <dt>\--mipmap</dt>
     <dd>KTX file is for a mipmap pyramid with one @b infile being explicitly
         provided for each level. Provide the images in the order of layer
         then face or depth slice then level with the base-level image first
@@ -211,13 +211,13 @@ Create a KTX file from JPEG, PNG or netpbm format files.
 
         This option is mutually exclusive with @b --automipmap and
         @b --genmipmap.</dd>
-    <dt>--nometadata</dt>
+    <dt>\--nometadata</dt>
     <dd>Do not write KTXorientation metadata into the output file. Metadata
         is written by default. Use of this option is not recommended.</dd>
-    <dt>--nowarn</dt>
+    <dt>\--nowarn</dt>
     <dd>Silence warnings which are issued when certain transformations are
         performed on input images.</dd>
-    <dt>--upper_left_maps_to_s0t0</dt>
+    <dt>\--upper_left_maps_to_s0t0</dt>
     <dd>Map the logical upper left corner of the image to s0,t0.
         Although opposite to the OpenGL convention, this is the DEFAULT
         BEHAVIOUR. netpbm and PNG files have an upper left origin so this
@@ -226,7 +226,7 @@ Create a KTX file from JPEG, PNG or netpbm format files.
         to inform loaders of the logical orientation. If an OpenGL {,ES}
         loader ignores the orientation value, the image will appear upside
         down.</dd>
-    <dt>--lower_left_maps_to_s0t0</dt>
+    <dt>\--lower_left_maps_to_s0t0</dt>
     <dd>Map the logical lower left corner of the image to s0,t0.
         This causes the input netpbm and PNG images to be flipped vertically
         to a lower-left origin. When this option is in effect, toktx
@@ -234,25 +234,25 @@ Create a KTX file from JPEG, PNG or netpbm format files.
         to inform loaders of the logical orientation. If a Vulkan loader
         ignores the orientation value, the image will appear upside down.
         This option is ignored with @b --cubemap. </dd>
-    <dt>--assign_oetf &lt;linear|srgb&gt;</dt>
+    <dt>\--assign_oetf &lt;linear|srgb&gt;</dt>
     <dd>Force the created texture to have the specified transfer function. If
         this is specified, implicit or explicit color space information from the
         input file(s) will be ignored and no color transformation will be
         performed. USE WITH CAUTION preferably only when you know the file
         format information is wrong.</dd>
-    <dt>--assign_primaries &lt;bt709|none|srgb&gt;</dt>
+    <dt>\--assign_primaries &lt;bt709|none|srgb&gt;</dt>
     <dd>Force the created texture to have the specified primaries. If this is
         specified, implicit or explicit color space information from the input
         file(s) will be ignored and no color transformation will be performed.
         USE WITH CAUTION preferably only when you know the file format
         information is wrong.</dd>
-    <dt>--convert_oetf &lt;linear|srgb&gt;</dt>
+    <dt>\--convert_oetf &lt;linear|srgb&gt;</dt>
     <dd>Convert the input images to the specified transfer function, if the
         current transfer function is different. If both this and
         @b --assign_oetf are specified, conversion will be performed from the
         assigned transfer function to the transfer function specified by this
         option, if different.
-    <dt>--convert_primaries &lt;primaries&gt;</dt>
+    <dt>\--convert_primaries &lt;primaries&gt;</dt>
     <dd>Convert the image images to the specified color primaries, if
         different from the color primaries of the input file(s) or the one
         specified by --assign-primaries. If both this and --assign-primaries
@@ -263,30 +263,30 @@ Create a KTX file from JPEG, PNG or netpbm format files.
         Possible options are:
         bt709 | srgb | bt601-ebu | bt601-smpte | bt2020 | ciexyz | aces |
         acescc | ntsc1953 | pal525 | displayp3 | adobergb</dd>
-    <dt>--linear</dt>
+    <dt>\--linear</dt>
     <dd>Deprecated. Use @b --assign_oetf linear.</dd>
-    <dt>--srgb</dt>
+    <dt>\--srgb</dt>
     <dd>Deprecated. Use @b --assign_oetf srgb.</dd>
-    <dt>--resize &lt;width&gt;x&lt;height&gt;
+    <dt>\--resize &lt;width&gt;x&lt;height&gt;
     <dd>Resize images to @e width X @e height. This should not be used with
         @b --mipmap as it would resize all the images to the same size.
         Resampler options can be set via @b --filter and  @b --fscale. </dd>
-    <dt>--scale &lt;value&gt;</dt>
+    <dt>\--scale &lt;value&gt;</dt>
     <dd>Scale images by @e value as they are read. Resampler options can
         be set via @b --filter and  @b --fscale. </dd>.
-    <dt>--swizzle &lt;swizzle&gt;
+    <dt>\--swizzle &lt;swizzle&gt;
     <dd>Add swizzle metadata to the file being created. @e swizzle
         has the same syntax as the parameter for @b --input_swizzle.
         Not recommended for use with block-cmpressed textures, including
         Basis Universal formats, because something like @c rabb may
         yield drastically different error metrics if done after compression.
-    <dt>--target_type &lt;type&gt;
+    <dt>\--target_type &lt;type&gt;
     <dd>Specify the number of components in the created texture. @e type
         is one of the following strings: @c R, @c RG, @c RGB or @c RGBA.
         Excess input components will be dropped. Output components with
         no mapping from the input will be set to 0 or, if the alpha component,
         1.0.
-    <dt>--t2</dt>
+    <dt>\--t2</dt>
     <dd>Output in KTX2 format. Default is KTX.</dd>
     </dl>
     @snippet{doc} scapp.h scApp options

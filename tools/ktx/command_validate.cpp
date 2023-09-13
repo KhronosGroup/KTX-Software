@@ -43,9 +43,9 @@ Validate a KTX2 file.
     The following options are available:
     @snippet{doc} ktx/command.h command options_format
     <dl>
-        <dt>-g, --gltf-basisu</dt>
+        <dt>-g, \--gltf-basisu</dt>
         <dd>Check compatibility with KHR_texture_basisu glTF extension.</dd>
-        <dt>-e, --warnings-as-errors</dt>
+        <dt>-e, \--warnings-as-errors</dt>
         <dd>Treat warnings as errors.</dd>
     </dl>
     @snippet{doc} ktx/command.h command options_generic

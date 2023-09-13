@@ -36,11 +36,11 @@ enum class EncodeCodec {
     </dd>
 
     <dl>
-        <dt>--clevel &lt;level&gt;</dt>
+        <dt>\--clevel &lt;level&gt;</dt>
              <dd>ETC1S / BasisLZ compression level, an encoding speed vs.
              quality tradeoff. Range is [0,5], default is 1. Higher values
              are slower but give higher quality.</dd>
-        <dt>--qlevel &lt;level&gt;</dt>
+        <dt>\--qlevel &lt;level&gt;</dt>
              <dd>ETC1S / BasisLZ quality level. Range is [1,255]. Lower
              gives better compression/lower quality/faster. Higher gives
              less compression/higher quality/slower. @b --qlevel
@@ -60,27 +60,27 @@ enum class EncodeCodec {
              @b --endpoint-rdo-threshold and @b --selector-rdo-threshold
              when its value exceeds 128, otherwise their defaults will be
              used.</dd>
-        <dt>--max-endpoints &lt;arg&gt;</dt>
+        <dt>\--max-endpoints &lt;arg&gt;</dt>
              <dd>Manually set the maximum number of color endpoint clusters.
              Range is [1,16128]. Default is 0, unset.</dd>
-        <dt>--endpoint-rdo-threshold &lt;arg&gt;</dt>
+        <dt>\--endpoint-rdo-threshold &lt;arg&gt;</dt>
              <dd>Set endpoint RDO quality threshold. The default is 1.25.
              Lower is higher quality but less quality per output bit (try
              [1.0,3.0]). This will override the value chosen by
              @b --qlevel.</dd>
-        <dt>--max-selectors &lt;arg&gt;</dt>
+        <dt>\--max-selectors &lt;arg&gt;</dt>
              <dd>Manually set the maximum number of color selector clusters
              from [1,16128]. Default is 0, unset.</dd>
-        <dt>--selector-rdo-threshold &lt;arg&gt;</dt>
+        <dt>\--selector-rdo-threshold &lt;arg&gt;</dt>
              <dd>Set selector RDO quality threshold. The default is 1.25.
              Lower is higher quality but less quality per output bit (try
              [1.0,3.0]). This will override the value chosen by
              @b --qlevel.</dd>
-        <dt>--no-endpoint-rdo</dt>
+        <dt>\--no-endpoint-rdo</dt>
              <dd>Disable endpoint rate distortion optimizations. Slightly
              faster, less noisy output, but lower quality per output bit.
              Default is to do endpoint RDO.</dd>
-        <dt>--no-selector-rdo</dt>
+        <dt>\--no-selector-rdo</dt>
              <dd>Disable selector rate distortion optimizations. Slightly
              faster, less noisy output, but lower quality per output bit.
              Default is to do selector RDO.</dd>
@@ -94,7 +94,7 @@ enum class EncodeCodec {
     </dd>
 
     <dl>
-        <dt>--uastc-quality &lt;level&gt;</dt>
+        <dt>\--uastc-quality &lt;level&gt;</dt>
         <dd>This optional parameter selects a speed vs quality
             tradeoff as shown in the following table:
 
@@ -113,9 +113,9 @@ enum class EncodeCodec {
             UASTC texture data using the Rate Distortion Optimization (RDO)
             post-process stage. When uastc encoding is set the following
             options become available for controlling RDO:</dd>
-        <dt>--uastc-rdo</dt>
+        <dt>\--uastc-rdo</dt>
         <dd>Enable UASTC RDO post-processing.</dd>
-        <dt>--uastc-rdo-l &lt;lambda&gt;</dt>
+        <dt>\--uastc-rdo-l &lt;lambda&gt;</dt>
         <dd>Set UASTC RDO quality scalar (lambda) to @e lambda. Lower values yield
             higher quality/larger LZ compressed files, higher values yield
             lower quality/smaller LZ compressed files. A good range to try
@@ -124,22 +124,22 @@ enum class EncodeCodec {
 
             Note that previous versions used the @b --uastc-rdo-q option
             which was removed because the RDO algorithm changed.</dd>
-        <dt>--uastc-rdo-d &lt;dictsize&gt;</dt>
+        <dt>\--uastc-rdo-d &lt;dictsize&gt;</dt>
         <dd>Set UASTC RDO dictionary size in bytes. Default is 4096.
             Lower values=faster, but give less compression. Range is
             [64,65536].</dd>
-        <dt>--uastc-rdo-b &lt;scale&gt;</dt>
+        <dt>\--uastc-rdo-b &lt;scale&gt;</dt>
         <dd>Set UASTC RDO max smooth block error scale. Range is
             [1.0,300.0]. Default is 10.0, 1.0 is disabled. Larger values
             suppress more artifacts (and allocate more bits) on smooth
             blocks.</dd>
-        <dt>--uastc-rdo-s &lt;deviation&gt;</dt>
+        <dt>\--uastc-rdo-s &lt;deviation&gt;</dt>
         <dd>Set UASTC RDO max smooth block standard deviation. Range is
             [.01,65536.0]. Default is 18.0. Larger values expand the range
             of blocks considered smooth.</dd>
-        <dt>--uastc-rdo-f</dt>
+        <dt>\--uastc-rdo-f</dt>
         <dd>Do not favor simpler UASTC modes in RDO mode.</dd>
-        <dt>--uastc-rdo-m</dt>
+        <dt>\--uastc-rdo-m</dt>
         <dd>Disable RDO multithreading (slightly higher compression,
             deterministic).</dd>
     </dl>
@@ -152,7 +152,7 @@ enum class EncodeCodec {
     </dd>
 
     <dl>
-        <dt>--normal-mode</dt>
+        <dt>\--normal-mode</dt>
         <dd>Only valid for linear textures with two or more components.
             If the input texture has three or four linear components it is
             assumed to be a three component linear normal map storing unit
@@ -172,12 +172,12 @@ enum class EncodeCodec {
             </pre>
             For ETC1S / BasisLZ encoding, @b '--encode basis-lz', RDO is disabled
             (no selector RDO, no endpoint RDO) to provide better quality.</dd>
-        <dt>--threads &lt;count&gt;</dt>
+        <dt>\--threads &lt;count&gt;</dt>
         <dd>Explicitly set the number of threads to use during
             compression. By default, ETC1S / BasisLZ will use the number of
             threads reported by thread::hardware_concurrency or 1 if value
             returned is 0.</dd>
-        <dt>--no-sse</dt>
+        <dt>\--no-sse</dt>
         <dd>Forbid use of the SSE instruction set. Ignored if CPU does
             not support SSE. SSE can only be disabled on the basis-lz and
             uastc compressors.</dd>

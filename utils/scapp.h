@@ -139,7 +139,7 @@ astcEncoderMode(const char* mode) {
 // so the table below has to be laboriously done in html.
 //! [scApp options]
   <dl>
-    <dt>--encode &lt;astc | etc1s | uastc&gt;</dt>
+    <dt>\--encode &lt;astc | etc1s | uastc&gt;</dt>
                  <dd>Compress the image data to ASTC, transcodable
                  ETC1S / BasisLZ or high-quality transcodable UASTC format.
                  Implies @b --t2. With each encoding option the following
@@ -148,7 +148,7 @@ astcEncoderMode(const char* mode) {
       <dl>
       <dt>astc:</dt>
                  <dd>Create a texture in high-quality ASTC format.</dd>
-        <dt>--astc_blk_d &lt;XxY | XxYxZ&gt;</dt>
+        <dt>\--astc_blk_d &lt;XxY | XxYxZ&gt;</dt>
                  <dd>Specify which block dimension to use for compressing the
                  textures. e.g. @b --astc_blk_d 6x5 for 2D or
                  @b --astc_blk_d 6x6x6 for 3D. 6x6 is the default for 2D.
@@ -180,11 +180,11 @@ astcEncoderMode(const char* mode) {
                          <tr><td>6x6x5</td> <td>0.71 bpp</td></tr>
                          <tr><td>6x6x6</td> <td>0.59 bpp</td></tr>
                  </table></dd>
-        <dt>--astc_mode &lt;ldr | hdr&gt;</dt>
+        <dt>\--astc_mode &lt;ldr | hdr&gt;</dt>
                  <dd>Specify which encoding mode to use. LDR is the default
                  unless the input image is 16-bit in which case the default is
                  HDR.</dd>
-        <dt>--astc_quality &lt;level&gt;</dt>
+        <dt>\--astc_quality &lt;level&gt;</dt>
                  <dd>The quality level configures the quality-performance
                  tradeoff for the compressor; more complete searches of the
                  search space improve image quality at the expense of
@@ -200,7 +200,7 @@ astcEncoderMode(const char* mode) {
                      <tr><td>exhaustive </td> <td>(equivalent to quality = 100) </td></tr>
                  </table>
                  </dd>
-        <dt>--astc_perceptual</dt>
+        <dt>\--astc_perceptual</dt>
                  <dd>The codec should optimize for perceptual error, instead of
                  direct RMS error. This aims to improve perceived image quality,
                  but typically lowers the measured PSNR score. Perceptual
@@ -214,14 +214,14 @@ astcEncoderMode(const char* mode) {
                  images will have R in the RGB part and G in the alpha part of
                  the compressed texture. When set, the following BasisLZ-related
                  options become valid, otherwise they are ignored.</dd>
-        <dt>--no_multithreading</dt>
+        <dt>\--no_multithreading</dt>
                  <dd>Disable multithreading. Deprecated. For backward
                  compatibility. Use @b --threads 1 instead.</dd>
-        <dt>--clevel &lt;level&gt;</dt>
+        <dt>\--clevel &lt;level&gt;</dt>
                  <dd>ETC1S / BasisLZ compression level, an encoding speed vs.
                  quality tradeoff. Range is [0,5], default is 1. Higher values
                  are slower but give higher quality.</dd>
-        <dt>--qlevel &lt;level&gt;</dt>
+        <dt>\--qlevel &lt;level&gt;</dt>
                  <dd>ETC1S / BasisLZ quality level. Range is [1,255]. Lower
                  gives better compression/lower quality/faster. Higher gives
                  less compression/higher quality/slower. @b --qlevel
@@ -241,27 +241,27 @@ astcEncoderMode(const char* mode) {
                  @b --endpoint_rdo_threshold and @b --selector_rdo_threshold
                  when its value exceeds 128, otherwise their defaults will be
                  used.</dd>
-        <dt>--max_endpoints &lt;arg&gt;</dt>
+        <dt>\--max_endpoints &lt;arg&gt;</dt>
                  <dd>Manually set the maximum number of color endpoint clusters.
                  Range is [1,16128]. Default is 0, unset.</dd>
-        <dt>--endpoint_rdo_threshold &lt;arg&gt;</dt>
+        <dt>\--endpoint_rdo_threshold &lt;arg&gt;</dt>
                  <dd>Set endpoint RDO quality threshold. The default is 1.25.
                  Lower is higher quality but less quality per output bit (try
                  [1.0,3.0]). This will override the value chosen by
                  @b --qlevel.</dd>
-        <dt>--max_selectors &lt;arg&gt;</dt>
+        <dt>\--max_selectors &lt;arg&gt;</dt>
                  <dd>Manually set the maximum number of color selector clusters
                  from [1,16128]. Default is 0, unset.</dd>
-        <dt>--selector_rdo_threshold &lt;arg&gt;</dt>
+        <dt>\--selector_rdo_threshold &lt;arg&gt;</dt>
                  <dd>Set selector RDO quality threshold. The default is 1.25.
                  Lower is higher quality but less quality per output bit (try
                  [1.0,3.0]). This will override the value chosen by
                  @b --qlevel.</dd>
-        <dt>--no_endpoint_rdo</dt>
+        <dt>\--no_endpoint_rdo</dt>
                  <dd>Disable endpoint rate distortion optimizations. Slightly
                  faster, less noisy output, but lower quality per output bit.
                  Default is to do endpoint RDO.</dd>
-        <dt>--no_selector_rdo</dt>
+        <dt>\--no_selector_rdo</dt>
                  <dd>Disable selector rate distortion optimizations. Slightly
                  faster, less noisy output, but lower quality per output bit.
                  Default is to do selector RDO.</dd>
@@ -270,7 +270,7 @@ astcEncoderMode(const char* mode) {
       <dt>uastc:</dt>
                  <dd>Create a texture in high-quality transcodable UASTC
                  format.</dd>
-        <dt>--uastc_quality &lt;level&gt;</dt>
+        <dt>\--uastc_quality &lt;level&gt;</dt>
                  <dd>This optional parameter selects a speed vs quality
                  tradeoff as shown in the following table:
 
@@ -289,7 +289,7 @@ astcEncoderMode(const char* mode) {
                  UASTC texture data using the Rate Distortion Optimization (RDO)
                  post-process stage. When uastc encoding is set the following
                  options become available for controlling RDO:</dd>
-        <dt>--uastc_rdo_l [&lt;lambda&gt;]</dt>
+        <dt>\--uastc_rdo_l [&lt;lambda&gt;]</dt>
                  <dd>Enable UASTC RDO post-processing and optionally set UASTC
                  RDO quality scalar (lambda) to @e lambda.  Lower values yield
                  higher quality/larger LZ compressed files, higher values yield
@@ -299,30 +299,30 @@ astcEncoderMode(const char* mode) {
 
                  Note that previous versions used the @b --uastc_rdo_q option
                  which was removed because the RDO algorithm changed.</dd>
-        <dt>--uastc_rdo_d &lt;dictsize&gt;</dt>
+        <dt>\--uastc_rdo_d &lt;dictsize&gt;</dt>
                  <dd>Set UASTC RDO dictionary size in bytes. Default is 4096.
                  Lower values=faster, but give less compression. Range is
                  [64,65536].</dd>
-        <dt>--uastc_rdo_b &lt;scale&gt;</dt>
+        <dt>\--uastc_rdo_b &lt;scale&gt;</dt>
                  <dd>Set UASTC RDO max smooth block error scale. Range is
                  [1.0,300.0]. Default is 10.0, 1.0 is disabled. Larger values
                  suppress more artifacts (and allocate more bits) on smooth
                  blocks.</dd>
-        <dt>--uastc_rdo_s &lt;deviation&gt;</dt>
+        <dt>\--uastc_rdo_s &lt;deviation&gt;</dt>
                  <dd>Set UASTC RDO max smooth block standard deviation. Range is
                  [.01,65536.0]. Default is 18.0. Larger values expand the range
                  of blocks considered smooth.</dd>
-        <dt>--uastc_rdo_f</dt>
+        <dt>\--uastc_rdo_f</dt>
                  <dd>Do not favor simpler UASTC modes in RDO mode.</dd>
-        <dt>--uastc_rdo_m</dt>
+        <dt>\--uastc_rdo_m</dt>
                  <dd>Disable RDO multithreading (slightly higher compression,
                  deterministic).</dd>
       </dl>
-    <dt>--input_swizzle &lt;swizzle&gt;
+    <dt>\--input_swizzle &lt;swizzle&gt;
                  <dd>Swizzle the input components according to @e swizzle which
                  is an alhpanumeric sequence matching the regular expression
                  @c ^[rgba01]{4}$.
-    <dt>--normal_mode</dt>
+    <dt>\--normal_mode</dt>
                  <dd>Only valid for linear textures with two or more components.
                  If the input texture has three or four linear components it is
                  assumed to be a three component linear normal map storing unit
@@ -347,22 +347,22 @@ astcEncoderMode(const char* mode) {
 
                  In @em toktx you can prevent conversion of the normal map to
                  two components by specifying '@b --input_swizzle rgb1'.
-    <dt>--normalize</dt>
+    <dt>\--normalize</dt>
                  <dd>Normalize input normals to have a unit length. Only valid
                  for linear textures with 2 or more components. For 2-component
                  inputs 2D unit normals are calculated. Do not use these 2D unit
                  normals to generate X+Y normals for --normal_mode. For
                  4-component inputs a 3D unit normal is calculated. 1.0 is used
                  for the value of the 4th component.</dd>
-    <dt>--no_sse</dt>
+    <dt>\--no_sse</dt>
                  <dd>Forbid use of the SSE instruction set. Ignored if CPU does
                  not support SSE. Only the Basis Universal compressor uses
                  SSE.</dd>
-    <dt>--bcmp</dt>
+    <dt>\--bcmp</dt>
                  <dd>Deprecated. Use '@b --encode etc1s' instead.</dd>
-    <dt>--uastc [&lt;level&gt;]</dt>
+    <dt>\--uastc [&lt;level&gt;]</dt>
                  <dd>Deprecated. Use '@b --encode uastc' instead.</dd>
-    <dt>--zcmp [&lt;compressionLevel&gt;]</dt>
+    <dt>\--zcmp [&lt;compressionLevel&gt;]</dt>
                  <dd>Supercompress the data with Zstandard. Implies @b --t2. Can
                  be used with data in any format except ETC1S / BasisLZ. Most
                  effective with RDO-conditioned UASTC or uncompressed formats.
@@ -370,12 +370,12 @@ astcEncoderMode(const char* mode) {
                  is 3. Lower values=faster but give less compression. Values
                  above 20 should be used with caution as they require more
                  memory.</dd>
-    <dt>--threads &lt;count&gt;</dt>
+    <dt>\--threads &lt;count&gt;</dt>
                  <dd>Explicitly set the number of threads to use during
                  compression. By default, ETC1S / BasisLZ and ASTC compression
                  will use the number of threads reported by
                  thread::hardware_concurrency or 1 if value returned is 0.</dd>
-    <dt>--verbose</dt>
+    <dt>\--verbose</dt>
                  <dd>Print encoder/compressor activity status to stdout.
                  Currently only the astc, etc1s and uastc encoders emit
                  status.</dd>

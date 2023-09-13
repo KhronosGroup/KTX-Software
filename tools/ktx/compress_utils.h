@@ -14,7 +14,7 @@ namespace ktx {
 /**
 //! [command options_compress]
 <dl>
-    <dt>--zstd &lt;level&gt;</dt>
+    <dt>\--zstd &lt;level&gt;</dt>
     <dd>
         Supercompress the data with Zstandard.
         Cannot be used with ETC1S / BasisLZ format.
@@ -22,7 +22,7 @@ namespace ktx {
         Lower levels give faster but worse compression.
         Values above 20 should be used with caution as they require more memory.
     </dd>
-    <dt>--zlib &lt;level&gt;</dt>
+    <dt>\--zlib &lt;level&gt;</dt>
     <dd>
         Supercompress the data with ZLIB.
         Cannot be used with ETC1S / BasisLZ format.

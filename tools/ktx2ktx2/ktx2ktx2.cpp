@@ -63,7 +63,7 @@ Create a KTX 2 file from a KTX file.
 
     The following options are available:
     <dl>
-    <dt>-b, --rewritebado</dt>
+    <dt>-b, \--rewritebado</dt>
     <dd>Rewrite bad orientation metadata. Some in-the-wild KTX files
         have orientation metadata with the key "KTXOrientation"
         instead of KTXorientaion. This option will rewrite such
@@ -72,7 +72,7 @@ Create a KTX 2 file from a KTX file.
     <dd>Name the output file @e outfile. If @e outfile is 'stdout', output will
         be written to stdout. If there is more than 1 input file, the command
         prints its usage message and exits.</dd>
-    <dt>-f, --force</dt>
+    <dt>-f, \--force</dt>
     <dd>If the destination file already exists, remove it and create a
         new file, without prompting for confirmation regardless of its
         permissions.</dd>

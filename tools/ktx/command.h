@@ -149,9 +149,9 @@ protected:
 /**
 //! [command options_generic]
 <dl>
-    <dt>-h, --help</dt>
+    <dt>-h, \--help</dt>
     <dd>Print this usage message and exit.</dd>
-    <dt>-v, --version</dt>
+    <dt>-v, \--version</dt>
     <dd>Print the version number of this program and exit.</dd>
 </dl>
 //! [command options_generic]
@@ -197,7 +197,7 @@ enum class OutputFormat {
 /**
 //! [command options_format]
 <dl>
-    <dt>--format text | json | mini-json</dt>
+    <dt>\--format text | json | mini-json</dt>
     <dd>Specifies the report output format. Possible options are: <br />
         @b text - Human readable text based format. <br />
         @b json - Formatted JSON. <br />

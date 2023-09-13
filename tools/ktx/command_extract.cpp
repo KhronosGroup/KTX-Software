@@ -73,7 +73,7 @@ Extract selected images from a KTX2 file.
 
     The following options are available:
     <dl>
-        <dt>--transcode &lt;target&gt;</dt>
+        <dt>\--transcode &lt;target&gt;</dt>
         <dd>Transcode the texture to the target format before executing the extract.
             Requires the input file to be transcodable (it must be either BasisLZ
             supercompressed or has UASTC color model in the DFD). This option matches the
@@ -88,25 +88,25 @@ Extract selected images from a KTX2 file.
         </dd>
     </dl>
     <dl>
-        <dt>--uri &lt;uri&gt;</dt>
+        <dt>\--uri &lt;uri&gt;</dt>
         <dd>KTX Fragment URI. https://registry.khronos.org/KTX/specs/2.0/ktx-frag.html
         </dd>
-        <dt>--level [0-9]+ | all</dt>
+        <dt>\--level [0-9]+ | all</dt>
         <dd>Level to extract. When 'all' is used every level is exported. Defaults to 0.
         </dd>
-        <dt>--layer [0-9]+ | all</dt>
+        <dt>\--layer [0-9]+ | all</dt>
         <dd>Layer to extract. When 'all' is used every layer is exported. Defaults to 0.
         </dd>
-        <dt>--face [0-9]+ | all</dt>
+        <dt>\--face [0-9]+ | all</dt>
         <dd>Face to extract. When 'all' is used every face is exported. Defaults to 0.
         </dd>
-        <dt>--depth [0-9]+ | all</dt>
+        <dt>\--depth [0-9]+ | all</dt>
         <dd>Depth slice to extract. When 'all' is used every depth is exported. Defaults to 0.
         </dd>
-        <dt>--all</dt>
+        <dt>\--all</dt>
         <dd>Extract every image slice from the texture.
         </dd>
-        <dt>--raw</dt>
+        <dt>\--raw</dt>
         <dd>Extract the raw image data without any conversion.
         </dd>
     </dl>
