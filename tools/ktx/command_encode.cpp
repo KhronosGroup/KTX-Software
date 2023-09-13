@@ -47,7 +47,7 @@ Encode a KTX2 file.
 
     The following options are available:
     <dl>
-        <dt>--codec basis-lz | uastc</dt>
+        <dt>\--codec basis-lz | uastc</dt>
         <dd>Target codec followed by the codec specific options.
             With each encoding option the following encoder specific options become valid,
             otherwise they are ignored. Case-insensitive.</dd>

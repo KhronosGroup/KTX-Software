@@ -61,11 +61,11 @@ Supercompress the images in a KTX2 file.
     <dd>Write the output to @e outfile. If @e outfile is 'stdout', output will
         be written to stdout. If there is more than 1 @e infile the command
         prints its usage message and exits.</dd>
-    <dt>-f, --force</dt>
+    <dt>-f, \--force</dt>
     <dd>If the destination file cannot be opened, remove it and create a
         new file, without prompting for confirmation regardless of its
         permissions.</dd>
-    <dt>--t2</dt>
+    <dt>\--t2</dt>
     <dd>Output a KTX version2 file. Always true.</dd>
     </dl>
     @snippet{doc} scapp.h scApp options

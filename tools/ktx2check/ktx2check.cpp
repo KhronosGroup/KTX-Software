@@ -98,12 +98,12 @@ Check the validity of a KTX 2 file.
 
     The following options are available:
     <dl>
-    <dt>-q, --quiet</dt>
+    <dt>-q, \--quiet</dt>
     <dd>Validate silently. Indicate valid or invalid via exit code.</dd>
     <dt>-m &lt;num&gt;, --max-issues &lt;num&gt;</dt>
     <dd>Set the maximum number of issues to be reported per file
         provided -q is not set.</dd>
-    <dt>-w, --warn-as-error</dt>
+    <dt>-w, \--warn-as-error</dt>
     <dd>Treat warnings as errors. Changes exit code from success to error.
     </dl>
     @snippetdoc ktxapp.h ktxApp options
