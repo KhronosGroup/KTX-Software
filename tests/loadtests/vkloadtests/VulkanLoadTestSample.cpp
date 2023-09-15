@@ -26,7 +26,17 @@
 #define VMA_STATIC_VULKAN_FUNCTIONS 0
 #define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
 
+#if defined(_MSC_VER)
+    #pragma warning(push)
+    #pragma warning(disable: 4100)
+    #pragma warning(disable: 4234)
+#endif
+
 #include "vma/vk_mem_alloc.h"
+
+#if defined(_MSC_VER)
+    #pragma warning(pop)
+#endif
 
 namespace VMA_CALLBACKS
 {
