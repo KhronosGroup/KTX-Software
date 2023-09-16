@@ -134,13 +134,20 @@ typedef VkResult(*ktxVulkanTexture_subAllocatorBindImageFuncPtr)(VkImage image, 
 typedef VkResult(*ktxVulkanTexture_subAllocatorMemoryMapFuncPtr)(uint64_t allocId, uint64_t pageNumber, VkDeviceSize *mapLength, void** dataPtr);
 typedef void (*ktxVulkanTexture_subAllocatorMemoryUnmapFuncPtr)(uint64_t allocId, uint64_t pageNumber);
 typedef void (*ktxVulkanTexture_subAllocatorFreeMemFuncPtr)(uint64_t allocId);
+/**
+ * @class ktxVulkanTexture_subAllocatorCallbacks
+ * @~English
+ * @brief Struct that contains all callbacks necessary for suballocation.
+ *
+ * These pointers must all be provided for upload or destroy to occur using suballocator callbacks.
+ */
 typedef struct {
-    ktxVulkanTexture_subAllocatorAllocMemFuncPtr allocMemFuncPtr;
-    ktxVulkanTexture_subAllocatorBindBufferFuncPtr bindBufferFuncPtr;
-    ktxVulkanTexture_subAllocatorBindImageFuncPtr bindImageFuncPtr;
-    ktxVulkanTexture_subAllocatorMemoryMapFuncPtr memoryMapFuncPtr;
-    ktxVulkanTexture_subAllocatorMemoryUnmapFuncPtr memoryUnmapFuncPtr;
-    ktxVulkanTexture_subAllocatorFreeMemFuncPtr freeMemFuncPtr;
+    ktxVulkanTexture_subAllocatorAllocMemFuncPtr allocMemFuncPtr; /*!< Pointer to the memory procurement function. Can suballocate one or more pages. */
+    ktxVulkanTexture_subAllocatorBindBufferFuncPtr bindBufferFuncPtr; /*!< Pointer to bind-buffer-to-suballocation(s) function. */
+    ktxVulkanTexture_subAllocatorBindImageFuncPtr bindImageFuncPtr; /*!< Pointer to bind-image-to-suballocation(s) function. */
+    ktxVulkanTexture_subAllocatorMemoryMapFuncPtr memoryMapFuncPtr; /*!< Pointer to function for mapping the memory of a specific page. */
+    ktxVulkanTexture_subAllocatorMemoryUnmapFuncPtr memoryUnmapFuncPtr; /*!< Pointer to function for unmapping the memory of a specific page. */
+    ktxVulkanTexture_subAllocatorFreeMemFuncPtr freeMemFuncPtr; /*!< Pointer to the free procurement function. */
 } ktxVulkanTexture_subAllocatorCallbacks;
 
 KTX_API ktx_error_code_e KTX_APIENTRY

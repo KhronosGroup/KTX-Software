@@ -29,7 +29,8 @@
 #if defined(_MSC_VER)
     #pragma warning(push)
     #pragma warning(disable: 4100)
-    #pragma warning(disable: 4234)
+    #pragma warning(disable: 4189)
+    #pragma warning(disable: 4324)
 #endif
 
 #include "vma/vk_mem_alloc.h"
