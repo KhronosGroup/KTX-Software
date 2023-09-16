@@ -43,9 +43,12 @@ namespace VMA_CALLBACKS
 {
     VmaAllocator vmaAllocator;
     std::mt19937_64 mt64;
+    VkPhysicalDeviceMemoryProperties cachedDevMemProps;
 
-    void InitVMA(VkPhysicalDevice& physicalDevice, VkDevice& device, VkInstance& instance)
+    void InitVMA(VkPhysicalDevice& physicalDevice, VkDevice& device, VkInstance& instance, VkPhysicalDeviceMemoryProperties& devMemProps)
     {
+        cachedDevMemProps = devMemProps;
+
         VmaVulkanFunctions vulkanFunctions = {};
         vulkanFunctions.vkGetInstanceProcAddr = &vkGetInstanceProcAddr;
         vulkanFunctions.vkGetDeviceProcAddr = &vkGetDeviceProcAddr;
@@ -75,7 +78,8 @@ namespace VMA_CALLBACKS
     {
         uint64_t allocId = mt64();
         VmaAllocationCreateInfo pCreateInfo = {};
-        if (allocInfo->memoryTypeIndex == 8)
+        if ((cachedDevMemProps.memoryTypes[allocInfo->memoryTypeIndex].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) ||
+            (cachedDevMemProps.memoryTypes[allocInfo->memoryTypeIndex].propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT))
         {
             pCreateInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
             pCreateInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;

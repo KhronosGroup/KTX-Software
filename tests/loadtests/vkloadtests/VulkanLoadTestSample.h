@@ -21,7 +21,7 @@
 
 namespace VMA_CALLBACKS
 {
-    void InitVMA(VkPhysicalDevice& physicalDevice, VkDevice& device, VkInstance& instance);
+    void InitVMA(VkPhysicalDevice& physicalDevice, VkDevice& device, VkInstance& instance, VkPhysicalDeviceMemoryProperties& devMemProps);
     void DestroyVMA();
     uint64_t AllocMemCWrapper(VkMemoryAllocateInfo* allocInfo, VkMemoryRequirements* memReq, uint64_t* numPages);
     VkResult BindBufferMemoryCWrapper(VkBuffer buffer, uint64_t allocId);
