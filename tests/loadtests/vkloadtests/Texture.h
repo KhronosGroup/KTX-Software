@@ -10,7 +10,6 @@
 
 #include "VulkanLoadTestSample.h"
 
-#include <ktxvulkan.h>
 #include <glm/gtc/matrix_transform.hpp>
 
 class Texture : public VulkanLoadTestSample
@@ -34,11 +33,18 @@ class Texture : public VulkanLoadTestSample
            const char* const szArgs, const std::string sBasePath);
 
   protected:
+    enum class UseSuballocator
+    {
+        No = 0,
+        Yes
+    };
+
     std::string filename;
     ktxVulkanTexture texture;
     vk::Sampler sampler;
     vk::ImageView imageView;
     vk::ImageTiling tiling;
+    UseSuballocator useSubAlloc;
     vk::ComponentMapping swizzle;
 
     struct {
