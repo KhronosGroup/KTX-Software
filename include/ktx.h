@@ -177,7 +177,7 @@ typedef enum ktx_error_code_e {
     KTX_GL_ERROR,            /*!< GL operations resulted in an error. */
     KTX_INVALID_OPERATION,   /*!< The operation is not allowed in the current state. */
     KTX_INVALID_VALUE,       /*!< A parameter value was not valid */
-    KTX_NOT_FOUND,           /*!< Requested key was not found */
+    KTX_NOT_FOUND,           /*!< Requested metadata key or required dynamically loaded GPU function was not found. */
     KTX_OUT_OF_MEMORY,       /*!< Not enough memory to complete the operation. */
     KTX_TRANSCODE_FAILED,    /*!< Transcoding of block compressed texture failed. */
     KTX_UNKNOWN_FILE_FORMAT, /*!< The file not a KTX file */

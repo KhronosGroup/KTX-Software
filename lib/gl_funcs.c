@@ -102,7 +102,7 @@ struct glFuncPtrs gl;
     *(void **)(&gl.func) = LoadProcAddr(ktxOpenGLModuleHandle, #func);     \
   if ( !gl.func && required ) {                                            \
         fprintf(stderr, noloadmsg, #func);                                 \
-        return KTX_FALSE;                                                  \
+        return KTX_NOT_FOUND;                                                  \
   }
 #else
 #define GL_FUNCTION(type, func, required)                                  \
@@ -112,7 +112,7 @@ struct glFuncPtrs gl;
     gl.func = (type)LoadProcAddr(ktxOpenGLModuleHandle, #func);            \
   if ( !gl.func && required) {                                             \
     fprintf(stderr, noloadmsg, #func);                                     \
-    return KTX_FALSE;                                                      \
+    return KTX_NOT_FOUND;                                                      \
   }
 #endif
 

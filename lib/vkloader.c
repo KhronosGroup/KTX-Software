@@ -89,12 +89,12 @@ generateMipmaps(ktxVulkanTexture* vkTexture, ktxVulkanDeviceInfo* vdi,
  * @brief Create a ktxVulkanDeviceInfo object.
  *
  * Allocates CPU memory for a ktxVulkanDeviceInfo object then calls
- * ktxVulkanDeviceInfo_construct(). See it for documentation of the
+ * ktxVulkanDeviceInfo\_Construct(). See it for documentation of the
  * parameters.
  *
  * @return a pointer to the constructed ktxVulkanDeviceInfo.
  *
- * @sa ktxVulkanDeviceInfo_construct(), ktxVulkanDeviceInfo_destroy()
+ * @sa ktxVulkanDeviceInfo\_Construct(), ktxVulkanDeviceInfo\_Destroy()
  */
 ktxVulkanDeviceInfo*
 ktxVulkanDeviceInfo_Create(VkPhysicalDevice physicalDevice, VkDevice device,
@@ -111,12 +111,12 @@ ktxVulkanDeviceInfo_Create(VkPhysicalDevice physicalDevice, VkDevice device,
  * @brief Create a ktxVulkanDeviceInfo object.
  *
  * Allocates CPU memory for a ktxVulkanDeviceInfo object then calls
- * ktxVulkanDeviceInfo_construct(). See it for documentation of the
+ * ktxVulkanDeviceInfo\_Construct(). See it for documentation of the
  * parameters.
  *
  * @return a pointer to the constructed ktxVulkanDeviceInfo.
  *
- * @sa ktxVulkanDeviceInfo_construct(), ktxVulkanDeviceInfo_destroy()
+ * @sa ktxVulkanDeviceInfo\_Construct(), ktxVulkanDeviceInfo\_Destroy()
  */
 ktxVulkanDeviceInfo*
 ktxVulkanDeviceInfo_CreateEx(VkInstance instance,
@@ -164,10 +164,14 @@ ktxVulkanDeviceInfo_CreateEx(VkInstance instance,
  * Pass a valid ktxVulkanDeviceInfo* to any Vulkan KTX image loading
  * function to provide it with the information.
  *
- * @returns KTX_SUCCESS on success, KTX_OUT_OF_MEMORY if a command buffer could
- *          not be allocated.
+ * @returns KTX\_SUCCESS on success, other  KTX\_\* enum values on error.
  *
- * @sa ktxVulkanDeviceInfo_destruct()
+ * @exception KTX_NOT_FOUND   A dynamically loaded Vulkan function
+ *                            required by the loader was not found.
+ *
+ * @exception KTX_OUT_OF_MEMORY A command buffer could not be allocated.
+ *
+ * @sa ktxVulkanDeviceInfo\_Destruct()
  *
  * @param  This            pointer to the ktxVulkanDeviceInfo object to
  *                        initialize.
@@ -217,7 +221,7 @@ do {                             \
   if ((member).fun == NULL) {            \
     (member).fun = (PFN_##fun)ktxLoadVulkanFunction(#fun); \
     if ((member).fun == NULL) {          \
-        return KTX_FALSE;                               \
+        return KTX_NOT_FOUND;                               \
     }\
   } \
 } while (0)
@@ -227,7 +231,7 @@ do {                             \
   if ((member).fun == NULL) {            \
     (member).fun = (PFN_##fun)((member).vkGetInstanceProcAddr)((instance), #fun); \
     if ((member).fun == NULL) {          \
-        return KTX_FALSE;                               \
+        return KTX_NOT_FOUND;                               \
     }\
   } \
 } while (0)
@@ -237,7 +241,7 @@ do {                             \
   if ((member).fun == NULL) {            \
     (member).fun = (PFN_##fun)((member).vkGetDeviceProcAddr)((device), #fun); \
     if ((member).fun == NULL) {          \
-        return KTX_FALSE;                               \
+        return KTX_NOT_FOUND;                               \
     }\
   } \
 } while (0)
@@ -369,7 +373,7 @@ ktxVulkanDeviceInfo_Destruct(ktxVulkanDeviceInfo* This)
  * @~English
  * @brief Destroy a ktxVulkanDeviceInfo object.
  *
- * Calls ktxVulkanDeviceInfo_destruct() then frees the ktxVulkanDeviceInfo.
+ * Calls ktxVulkanDeviceInfo\_Destruct() then frees the ktxVulkanDeviceInfo.
  *
  * @param This pointer to the ktxVulkanDeviceInfo to destroy.
  */
