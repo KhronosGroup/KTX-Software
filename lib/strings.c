@@ -31,7 +31,7 @@ static const char* const errorStrings[] = {
     "GL error occurred.",                             /* KTX_GL_ERROR */
     "Operation not allowed in the current state.",    /* KTX_INVALID_OPERATION */
     "Invalid parameter value.",                       /* KTX_INVALID_VALUE */
-    "Key not found.",                                 /* KTX_NOT_FOUND */
+    "Metadata key or loader-required GPU function not found.", /* KTX_NOT_FOUND */
     "Out of memory.",                                 /* KTX_OUT_OF_MEMORY */
     "Transcoding of block compressed texture failed.",/* KTX_TRANSCODE_FAILED */
     "Not a KTX file.",                                /* KTX_UNKNOWN_FILE_FORMAT */

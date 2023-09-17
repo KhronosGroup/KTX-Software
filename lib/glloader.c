@@ -890,6 +890,8 @@ ktxTexture_GLUploadPrivate(ktxTexture* This, ktx_glformatinfo* formatInfo,
  *                              glGenTextures or gl*TexImage*. The GL error
  *                              will be returned in @p *glerror, if glerror
  *                              is not @c NULL.
+ * @exception KTX_NOT_FOUND   A dynamically loaded OpenGL {,ES} function
+ *                            required by the loader was not found.
  * @exception KTX_UNSUPPORTED_TEXTURE_TYPE The type of texture is not supported
  *                                         by the current OpenGL context.
  */
@@ -974,6 +976,8 @@ ktxTexture1_GLUpload(ktxTexture1* This, GLuint* pTexture, GLenum* pTarget,
  *                              glGenTextures or gl*TexImage*. The GL error
  *                              will be returned in @p *glerror, if glerror
  *                              is not @c NULL.
+ * @exception KTX_NOT_FOUND   A dynamically loaded OpenGL {,ES} function
+ *                            required by the loader was not found.
  * @exception KTX_UNSUPPORTED_TEXTURE_TYPE The type of texture is not supported
  *                                         by the current OpenGL context.
  */
@@ -1041,7 +1045,7 @@ ktxTexture2_GLUpload(ktxTexture2* This, GLuint* pTexture, GLenum* pTarget,
  * @~English
  * @brief Create a GL texture object from a ktxTexture1 object.
  *
- * In ordert to ensure that the GL uploader is not linked into an application unless explicitly called,
+ * In order to ensure that the GL uploader is not linked into an application unless explicitly called,
  * this is not a virtual function. It determines the texture type then dispatches to the correct function.
  *
  * @copydetails ktxTexture1::ktxTexture1_GLUpload
