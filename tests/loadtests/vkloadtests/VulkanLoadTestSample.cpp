@@ -45,7 +45,8 @@ namespace VMA_CALLBACKS
     std::mt19937_64 mt64;
     VkPhysicalDeviceMemoryProperties cachedDevMemProps;
 
-    void InitVMA(VkPhysicalDevice& physicalDevice, VkDevice& device, VkInstance& instance, VkPhysicalDeviceMemoryProperties& devMemProps)
+    void InitVMA(VkPhysicalDevice& physicalDevice, VkDevice& device, VkInstance& instance, 
+                 VkPhysicalDeviceMemoryProperties& devMemProps)
     {
         cachedDevMemProps = devMemProps;
 
