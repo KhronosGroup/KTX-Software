@@ -1478,6 +1478,27 @@ ktxTexture_VkUpload(ktxTexture* texture, ktxVulkanDeviceInfo* vdi,
  * @~English
  * @brief Create a Vulkan image object from a ktxTexture1 object.
  *
+ * This simplly calls ktxTexture_VkUploadEx_WithSuballocator.
+ *
+ * @copydetails ktxTexture::ktxTexture_VkUploadEx_WithSuballocator
+ */
+KTX_error_code
+ktxTexture1_VkUploadEx_WithSuballocator(ktxTexture1* This, ktxVulkanDeviceInfo* vdi,
+                                        ktxVulkanTexture* vkTexture,
+                                        VkImageTiling tiling,
+                                        VkImageUsageFlags usageFlags,
+                                        VkImageLayout finalLayout,
+                                        ktxVulkanTexture_subAllocatorCallbacks* subAllocatorCallbacks)
+{
+    return ktxTexture_VkUploadEx_WithSuballocator(ktxTexture(This), vdi, vkTexture,
+                                                  tiling, usageFlags, finalLayout,
+                                                  subAllocatorCallbacks);
+}
+
+/** @memberof ktxTexture1
+ * @~English
+ * @brief Create a Vulkan image object from a ktxTexture1 object.
+ *
  * This simplly calls ktxTexture_VkUploadEx.
  *
  * @copydetails ktxTexture::ktxTexture_VkUploadEx
@@ -1512,6 +1533,27 @@ ktxTexture1_VkUpload(ktxTexture1* texture, ktxVulkanDeviceInfo* vdi,
                                  VK_IMAGE_TILING_OPTIMAL,
                                  VK_IMAGE_USAGE_SAMPLED_BIT,
                                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+}
+
+/** @memberof ktxTexture2
+ * @~English
+ * @brief Create a Vulkan image object from a ktxTexture2 object.
+ *
+ * This simplly calls ktxTexture_VkUploadEx_WithSuballocator.
+ *
+ * @copydetails ktxTexture::ktxTexture_VkUploadEx_WithSuballocator
+ */
+KTX_error_code
+ktxTexture2_VkUploadEx_WithSuballocator(ktxTexture2* This, ktxVulkanDeviceInfo* vdi,
+                                        ktxVulkanTexture* vkTexture,
+                                        VkImageTiling tiling,
+                                        VkImageUsageFlags usageFlags,
+                                        VkImageLayout finalLayout,
+                                        ktxVulkanTexture_subAllocatorCallbacks* subAllocatorCallbacks)
+{
+    return ktxTexture_VkUploadEx_WithSuballocator(ktxTexture(This), vdi, vkTexture,
+                                                  tiling, usageFlags, finalLayout,
+                                                  subAllocatorCallbacks);
 }
 
 /** @memberof ktxTexture2

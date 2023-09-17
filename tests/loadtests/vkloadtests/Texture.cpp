@@ -122,7 +122,7 @@ Texture::Texture(VulkanContext& vkctx,
     if (useSubAlloc == UseSuballocator::Yes)
     {
         VkInstance vkInst = vkctx.instance;
-        VMA_CALLBACKS::InitVMA(vdi.physicalDevice, vdi.device, vkInst);
+        VMA_CALLBACKS::InitVMA(vdi.physicalDevice, vdi.device, vkInst, vdi.deviceMemoryProperties);
 
         ktxresult = ktxTexture_VkUploadEx_WithSuballocator(kTexture, &vdi, &texture,
                                                            static_cast<VkImageTiling>(tiling),

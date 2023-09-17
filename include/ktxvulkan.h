@@ -251,6 +251,13 @@ KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture_VkUpload(ktxTexture* texture, ktxVulkanDeviceInfo* vdi,
                     ktxVulkanTexture *vkTexture);
 KTX_API KTX_error_code KTX_APIENTRY
+ktxTexture1_VkUploadEx_WithSuballocator(ktxTexture1* This, ktxVulkanDeviceInfo* vdi,
+                                        ktxVulkanTexture* vkTexture,
+                                        VkImageTiling tiling,
+                                        VkImageUsageFlags usageFlags,
+                                        VkImageLayout finalLayout,
+                                        ktxVulkanTexture_subAllocatorCallbacks* subAllocatorCallbacks);
+KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture1_VkUploadEx(ktxTexture1* This, ktxVulkanDeviceInfo* vdi,
                        ktxVulkanTexture* vkTexture,
                        VkImageTiling tiling,
@@ -259,6 +266,13 @@ ktxTexture1_VkUploadEx(ktxTexture1* This, ktxVulkanDeviceInfo* vdi,
 KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture1_VkUpload(ktxTexture1* texture, ktxVulkanDeviceInfo* vdi,
                     ktxVulkanTexture *vkTexture);
+KTX_API KTX_error_code KTX_APIENTRY
+ktxTexture2_VkUploadEx_WithSuballocator(ktxTexture2* This, ktxVulkanDeviceInfo* vdi,
+                                        ktxVulkanTexture* vkTexture,
+                                        VkImageTiling tiling,
+                                        VkImageUsageFlags usageFlags,
+                                        VkImageLayout finalLayout,
+                                        ktxVulkanTexture_subAllocatorCallbacks* subAllocatorCallbacks);
 KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture2_VkUploadEx(ktxTexture2* This, ktxVulkanDeviceInfo* vdi,
                        ktxVulkanTexture* vkTexture,
