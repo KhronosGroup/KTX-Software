@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file writer.c
+ * @file texture.c
  * @~English
  *
  * @brief ktxTexture implementation.
@@ -305,10 +305,13 @@ ktxDetermineFileType_(ktxStream* pStream, ktxFileType_* pFileType,
 /**
  * @memberof ktxTexture
  * @~English
- * @brief Construct (initialize) a ktx1 or ktx2 texture according to the stream
+ * @brief Create a ktx1 or ktx2 texture according to the stream
  *        data.
  *
- * @copydetails ktxTexture_CreateFromStdioStream
+ * See @ref ktxTexture1::ktxTexture1_CreateFromStream
+ * "ktxTexture1_CreateFromStream" or
+ * @ref ktxTexture2::ktxTexture2_CreateFromStream
+ * "ktxTexture2_CreateFromStream" for details.
  */
 KTX_error_code
 ktxTexture_CreateFromStream(ktxStream* pStream,
@@ -359,7 +362,10 @@ ktxTexture_CreateFromStream(ktxStream* pStream,
  * @brief Create a ktxTexture1 or ktxTexture2 from a stdio stream according
  *        to the stream data.
  *
- * @copydetails ktxTexture1_CreateFromStdioStream()
+ * See @ref ktxTexture1::ktxTexture1_CreateFromStdioStream
+ * "ktxTexture1_CreateFromStdioStream" or
+ * @ref ktxTexture2::ktxTexture2_CreateFromStdioStream
+ * "ktxTexture2_CreateFromStdioStream" for details.
  */
 KTX_error_code
 ktxTexture_CreateFromStdioStream(FILE* stdioStream,
@@ -385,29 +391,10 @@ ktxTexture_CreateFromStdioStream(FILE* stdioStream,
  * @brief Create a ktxTexture1 or ktxTexture2 from a named KTX file according
  *        to the file contents.
  *
- * The address of a newly created ktxTexture reflecting the contents of the
- * file is written to the location pointed at by @p newTex.
- *
- * The create flag KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT should not be set,
- * if the ktxTexture is ultimately to be uploaded to OpenGL or Vulkan. This
- * will minimize memory usage by allowing, for example, loading the images
- * directly from the source into a Vulkan staging buffer.
- *
- * The create flag KTX_TEXTURE_CREATE_RAW_KVDATA_BIT should not be used. It is
- * provided solely to enable implementation of the @e libktx v1 API on top of
- * ktxTexture.
- *
- * @param[in] filename    pointer to a char array containing the file name.
- * @param[in] createFlags bitmask requesting specific actions during creation.
- * @param[in,out] newTex  pointer to a location in which store the address of
- *                        the newly created texture.
- *
- * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
-
- * @exception KTX_FILE_OPEN_FAILED The file could not be opened.
- * @exception KTX_INVALID_VALUE @p filename is @c NULL.
- *
- * For other exceptions, see ktxTexture_CreateFromStdioStream().
+ * See @ref ktxTexture1::ktxTexture1_CreateFromNamedFile
+ * "ktxTexture1_CreateFromNamedFile" or
+ * @ref ktxTexture2::ktxTexture2_CreateFromNamedFile
+ * "ktxTexture2_CreateFromNamedFile" for details.
  */
 KTX_error_code
 ktxTexture_CreateFromNamedFile(const char* const filename,
@@ -438,29 +425,10 @@ ktxTexture_CreateFromNamedFile(const char* const filename,
  * @brief Create a ktxTexture1 or ktxTexture2 from KTX-formatted data in memory
  *        according to the data contents.
  *
- * The address of a newly created ktxTexture reflecting the contents of the
- * serialized KTX data is written to the location pointed at by @p newTex.
- *
- * The create flag KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT should not be set,
- * if the ktxTexture is ultimately to be uploaded to OpenGL or Vulkan. This
- * will minimize memory usage by allowing, for example, loading the images
- * directly from the source into a Vulkan staging buffer.
- *
- * The create flag KTX_TEXTURE_CREATE_RAW_KVDATA_BIT should not be used. It is
- * provided solely to enable implementation of the @e libktx v1 API on top of
- * ktxTexture.
- *
- * @param[in] bytes pointer to the memory containing the serialized KTX data.
- * @param[in] size  length of the KTX data in bytes.
- * @param[in] createFlags bitmask requesting specific actions during creation.
- * @param[in,out] newTex  pointer to a location in which store the address of
- *                        the newly created texture.
- *
- * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
- *
- * @exception KTX_INVALID_VALUE Either @p bytes is NULL or @p size is 0.
- *
- * For other exceptions, see ktxTexture_CreateFromStdioStream().
+ * See @ref ktxTexture1::ktxTexture1_CreateFromMemory
+ * "ktxTexture1_CreateFromMemory" or
+ * @ref ktxTexture2::ktxTexture2_CreateFromMemory
+ * "ktxTexture2_CreateFromMemory" for details.
  */
 KTX_error_code
 ktxTexture_CreateFromMemory(const ktx_uint8_t* bytes, ktx_size_t size,

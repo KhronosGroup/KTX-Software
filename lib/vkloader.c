@@ -34,6 +34,11 @@
 #include "texture2.h"
 #include "vk_format.h"
 
+/*
+ * N.B. See comment at top of ./glloader.c regarding references to
+ * "non0class" members in Doxygen comments.
+ */
+
 // Macro to check and display Vulkan return results.
 // Use when the only possible errors are caused by invalid usage by this loader.
 #if defined(_DEBUG)
@@ -94,7 +99,8 @@ generateMipmaps(ktxVulkanTexture* vkTexture, ktxVulkanDeviceInfo* vdi,
  *
  * @return a pointer to the constructed ktxVulkanDeviceInfo.
  *
- * @sa ktxVulkanDeviceInfo\_Construct(), ktxVulkanDeviceInfo\_Destroy()
+ * @sa ktxVulkanDeviceInfo\_Construct()
+ * @sa ktxVulkanDeviceInfo\_Destroy()
  */
 ktxVulkanDeviceInfo*
 ktxVulkanDeviceInfo_Create(VkPhysicalDevice physicalDevice, VkDevice device,
@@ -116,7 +122,8 @@ ktxVulkanDeviceInfo_Create(VkPhysicalDevice physicalDevice, VkDevice device,
  *
  * @return a pointer to the constructed ktxVulkanDeviceInfo.
  *
- * @sa ktxVulkanDeviceInfo\_Construct(), ktxVulkanDeviceInfo\_Destroy()
+ * @sa ktxVulkanDeviceInfo\_Construct()
+ * @sa ktxVulkanDeviceInfo\_Destroy()
  */
 ktxVulkanDeviceInfo*
 ktxVulkanDeviceInfo_CreateEx(VkInstance instance,
@@ -149,19 +156,20 @@ ktxVulkanDeviceInfo_CreateEx(VkInstance instance,
  * device memory properties for ease of use when allocating device memory for
  * the images.
  *
- * If @c VK_IMAGE_TILING_OPTIMAL will be passed to ktxTexture_VkUploadEx(), the
+ * If @c VK_IMAGE_TILING_OPTIMAL will be passed to ktxTexture\_VkUploadEx(), the
  * family of the @a queue parameter must support transfers. This is true if
  * any of @c VK_QUEUE_GRAPHICS_BIT, @c VK_QUEUE_COMPUTE_BIT or
  * @c VK_QUEUE_TRANSFER_BIT is set in the @c queueFlags property of the queue's
  * @c VkQueueFamilyProperties. If protected memory is being used, i.e
  * @c queueFlags has the @c VK_QUEUE_PROTECTED_BIT set, then
- * @c VK_IMAGE_TILING_OPTIMAL must be passed to ktxTexture_VkUploadEx().
+ * @c VK_IMAGE_TILING_OPTIMAL must be passed to ktxTexture\_VkUploadEx().
  *
- * VkImages created in VkUploadEx() will have @c VK_SHARING_MODE_EXCLUSIVE set.
+ * VkImages created in @ref ktxTexture::ktxTexture\_VkUploadEx()
+ * "ktxTexture_VkUploadEx()" will have @c VK_SHARING_MODE_EXCLUSIVE set.
  * Thus the resulting image will be usable only with queues of the same family
  * as @a queue.
  *
- * Pass a valid ktxVulkanDeviceInfo* to any Vulkan KTX image loading
+ * Pass a valid ktxVulkanDeviceInfo\* to any Vulkan KTX image loading
  * function to provide it with the information.
  *
  * @returns KTX\_SUCCESS on success, other  KTX\_\* enum values on error.
@@ -221,7 +229,7 @@ do {                             \
   if ((member).fun == NULL) {            \
     (member).fun = (PFN_##fun)ktxLoadVulkanFunction(#fun); \
     if ((member).fun == NULL) {          \
-        return KTX_NOT_FOUND;                               \
+        return KTX_NOT_FOUND;                         \
     }\
   } \
 } while (0)
@@ -231,7 +239,7 @@ do {                             \
   if ((member).fun == NULL) {            \
     (member).fun = (PFN_##fun)((member).vkGetInstanceProcAddr)((instance), #fun); \
     if ((member).fun == NULL) {          \
-        return KTX_NOT_FOUND;                               \
+        return KTX_NOT_FOUND;                         \
     }\
   } \
 } while (0)
@@ -241,7 +249,7 @@ do {                             \
   if ((member).fun == NULL) {            \
     (member).fun = (PFN_##fun)((member).vkGetDeviceProcAddr)((device), #fun); \
     if ((member).fun == NULL) {          \
-        return KTX_NOT_FOUND;                               \
+        return KTX_NOT_FOUND;                         \
     }\
   } \
 } while (0)
@@ -800,7 +808,7 @@ linearTilingPadCallback(int miplevel, int face,
  * @exception KTX_UNSUPPORTED_FEATURE   Attempting to sparsely bind KTX textures
  *                                      for the time being will report this error.
  *
- * @sa ktxVulkanDeviceInfo_construct()
+ * @sa @ref ktxVulkanDeviceInfo::ktxVulkanDeviceInfo\_Construct "ktxVulkanDeviceInfo_Construct()"
  */
 KTX_error_code
 ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
@@ -1436,11 +1444,9 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
  * @~English
  * @brief Create a Vulkan image object from a ktxTexture object.
  *
- * Calls ktxTexture_VkUploadEx_WithSuballocator() with no supplied suballocator
- * callbacks.
- *
- * @sa ktxTexture_VkUploadEx_WithSuballocator() for details and use that for complete
- *     control.
+ * Calls @ref ktxTexture::ktxTexture\_VkUploadEx_WithSuballocator
+ * "ktxTexture_VkUploadEx_WithSuballocator()" with no supplied suballocator
+ * callbacks. Use that for complete control.
  */
 KTX_error_code
 ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
@@ -1453,16 +1459,16 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
                                                   tiling, usageFlags, finalLayout, NULL);
 }
 
-/** @memberof ktxTexture
+/**
+ * @memberof ktxTexture
  * @~English
  * @brief Create a Vulkan image object from a ktxTexture object.
  *
- * Calls ktxTexture_VkUploadEx() with the most commonly used options:
- * VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT and
- * VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL.
- *
- * @sa ktxTexture_VkUploadEx() for details and use that for complete
- *     control.
+ * Calls @ref ktxTexture::ktxTexture\_VkUploadEx "ktxTexture_VkUploadEx()" with
+ * the most commonly used options: @c VK_IMAGE_TILING_OPTIMAL,
+ * @c VK_IMAGE_USAGE_SAMPLED_BIT and
+ * @c VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL. Use that for complete
+ * control.
  */
 KTX_error_code
 ktxTexture_VkUpload(ktxTexture* texture, ktxVulkanDeviceInfo* vdi,
@@ -1478,7 +1484,8 @@ ktxTexture_VkUpload(ktxTexture* texture, ktxVulkanDeviceInfo* vdi,
  * @~English
  * @brief Create a Vulkan image object from a ktxTexture1 object.
  *
- * This simplly calls ktxTexture_VkUploadEx_WithSuballocator.
+ * This simply calls @ref ktxTexture::ktxTexture\_VkUploadEx_WithSuballocator
+ * "ktxTexture_VkUploadEx_WithSuballocator()"
  *
  * @copydetails ktxTexture::ktxTexture_VkUploadEx_WithSuballocator
  */
@@ -1499,8 +1506,6 @@ ktxTexture1_VkUploadEx_WithSuballocator(ktxTexture1* This, ktxVulkanDeviceInfo* 
  * @~English
  * @brief Create a Vulkan image object from a ktxTexture1 object.
  *
- * This simplly calls ktxTexture_VkUploadEx.
- *
  * @copydetails ktxTexture::ktxTexture_VkUploadEx
  */
 KTX_error_code
@@ -1518,12 +1523,10 @@ ktxTexture1_VkUploadEx(ktxTexture1* This, ktxVulkanDeviceInfo* vdi,
  * @~English
  * @brief Create a Vulkan image object from a ktxTexture1 object.
  *
- * Calls ktxTexture_VkUploadEx() with the most commonly used options:
- * VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT and
- * VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL.
- *
- * @sa ktxTexture_VkUploadEx() for details and use that for complete
- *     control.
+ * Calls @ref ktxTexture::ktxTexture\_VkUploadEx "ktxTexture_VkUploadEx()" with
+ * the most commonly used options: @c VK_IMAGE_TILING_OPTIMAL,
+ * @c VK_IMAGE_USAGE_SAMPLED_BIT and
+ * @c VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL. Use that for complete control.
  */
 KTX_error_code
 ktxTexture1_VkUpload(ktxTexture1* texture, ktxVulkanDeviceInfo* vdi,
@@ -1539,7 +1542,8 @@ ktxTexture1_VkUpload(ktxTexture1* texture, ktxVulkanDeviceInfo* vdi,
  * @~English
  * @brief Create a Vulkan image object from a ktxTexture2 object.
  *
- * This simplly calls ktxTexture_VkUploadEx_WithSuballocator.
+ * This simplly calls @ref ktxTexture::ktxTexture_VkUploadEx_WithSuballocator
+ * "ktxTexture_VkUploadEx_WithSuballocator()".
  *
  * @copydetails ktxTexture::ktxTexture_VkUploadEx_WithSuballocator
  */
@@ -1560,7 +1564,7 @@ ktxTexture2_VkUploadEx_WithSuballocator(ktxTexture2* This, ktxVulkanDeviceInfo* 
  * @~English
  * @brief Create a Vulkan image object from a ktxTexture2 object.
  *
- * This simplly calls ktxTexture_VkUploadEx.
+ * This simply calls @ref ktxTexture::ktxTexture\_VkUploadEx "ktxTexture_VkUploadEx()".
  *
  * @copydetails ktxTexture::ktxTexture_VkUploadEx
  */
@@ -1579,12 +1583,10 @@ ktxTexture2_VkUploadEx(ktxTexture2* This, ktxVulkanDeviceInfo* vdi,
  * @~English
  * @brief Create a Vulkan image object from a ktxTexture2 object.
  *
- * Calls ktxTexture_VkUploadEx() with the most commonly used options:
- * VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT and
- * VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL.
- *
- * @sa ktxTexture2_VkUploadEx() for details and use that for complete
- *     control.
+ * Calls @ref ktxTexture::ktxTexture\_VkUploadEx "ktxTexture_VkUploadEx()" with
+ * the most commonly used options: @c VK_IMAGE_TILING_OPTIMAL,
+ * @c VK_IMAGE_USAGE_SAMPLED_BIT and
+ * @c VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL. Use that for complete control.
  */
 KTX_error_code
 ktxTexture2_VkUpload(ktxTexture2* This, ktxVulkanDeviceInfo* vdi,
@@ -1600,7 +1602,7 @@ ktxTexture2_VkUpload(ktxTexture2* This, ktxVulkanDeviceInfo* vdi,
  * @~English
  * @brief Return the VkFormat enum of a ktxTexture1 object.
  *
- * @return The VkFormat of the ktxTexture. May return VK_FORMAT_UNDEFINED if
+ * @return The VkFormat of the texture object. May return VK_FORMAT_UNDEFINED if
  *         there is no mapping from the GL internalformat and format.
  */
 VkFormat
@@ -1620,7 +1622,7 @@ ktxTexture1_GetVkFormat(ktxTexture1* This)
  * @~English
  * @brief Return the VkFormat enum of a ktxTexture2 object.
  *
- * @copydetails ktxTexture1::ktxTexture1_GetVkFormat
+ * @return The VkFormat of the texture object.
  */
 VkFormat
 ktxTexture2_GetVkFormat(ktxTexture2* This)
@@ -1634,7 +1636,8 @@ ktxTexture2_GetVkFormat(ktxTexture2* This)
  *
  * In ordert to ensure that the Vulkan uploader is not linked into an application unless explicitly called,
  * this is not a virtual function. It determines the texture type then dispatches to the correct function.
- * @copydetails ktxTexture1::ktxTexture1_GetVkFormat
+ * @sa @ref ktxTexture1::ktxTexture1_GetVkFormat "ktxTexture1_GetVkFormat()"
+ * @sa @ref ktxTexture2::ktxTexture2_GetVkFormat "ktxTexture2_GetVkFormat()"
  */
 VkFormat
 ktxTexture_GetVkFormat(ktxTexture* This)
