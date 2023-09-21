@@ -176,7 +176,7 @@ typedef enum ktx_error_code_e {
     KTX_FILE_WRITE_ERROR,    /*!< An error occurred while writing to the file. */
     KTX_GL_ERROR,            /*!< GL operations resulted in an error. */
     KTX_INVALID_OPERATION,   /*!< The operation is not allowed in the current state. */
-    KTX_INVALID_VALUE,       /*!< A parameter value was not valid */
+    KTX_INVALID_VALUE,       /*!< A parameter value was not valid. */
     KTX_NOT_FOUND,           /*!< Requested metadata key or required dynamically loaded GPU function was not found. */
     KTX_OUT_OF_MEMORY,       /*!< Not enough memory to complete the operation. */
     KTX_TRANSCODE_FAILED,    /*!< Transcoding of block compressed texture failed. */
@@ -706,15 +706,21 @@ typedef struct ktxTexture2 {
     struct ktxTexture2_private* _private;  /*!< Private data. */
 } ktxTexture2;
 
+/**
+ * @brief Helper for casting ktxTexture1 and ktxTexture2 to ktxTexture.
+ *
+ * Use with caution.
+ */
 #define ktxTexture(t) ((ktxTexture*)t)
 
 /**
  * @memberof ktxTexture
  * @~English
- * @brief Structure for passing texture information to ktxTexture1_Create() and
- *        ktxTexture2_Create().
+ * @brief Structure for passing texture information to ktxTexture1\_Create() and
+ *        ktxTexture2\_Create().
  *
- * @sa ktxTexture1_Create() and ktxTexture2_Create().
+ * @sa @ref ktxTexture1::ktxTexture1\_Create() "ktxTexture1_Create()"
+ * @sa @ref ktxTexture2::ktxTexture2\_Create() "ktxTexture2_Create()"
  */
 typedef struct
 {

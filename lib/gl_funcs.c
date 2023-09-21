@@ -102,7 +102,7 @@ struct glFuncPtrs gl;
     *(void **)(&gl.func) = LoadProcAddr(ktxOpenGLModuleHandle, #func);     \
   if ( !gl.func && required ) {                                            \
         fprintf(stderr, noloadmsg, #func);                                 \
-        return KTX_NOT_FOUND;                                                  \
+        return KTX_NOT_FOUND;                                              \
   }
 #else
 #define GL_FUNCTION(type, func, required)                                  \
@@ -112,55 +112,55 @@ struct glFuncPtrs gl;
     gl.func = (type)LoadProcAddr(ktxOpenGLModuleHandle, #func);            \
   if ( !gl.func && required) {                                             \
     fprintf(stderr, noloadmsg, #func);                                     \
-    return KTX_NOT_FOUND;                                                      \
+    return KTX_NOT_FOUND;                                                  \
   }
 #endif
 
 #if WINDOWS
 static HMODULE
 ktxFindOpenGL() {
-	HMODULE module = 0;
+    HMODULE module = 0;
     BOOL found;
     // Use GetModule not LoadLibrary so we only succeed if the process
     // has already loaded some OpenGL library.
-	// Check current module to see if we are statically linked to GL.
-	found = GetModuleHandleExA(
-		GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
-		(LPCSTR)ktxFindOpenGL,
-		&module
-	);
-	if (found) {
-		if (LoadProcAddr(module, "glGetError") != NULL)
-			return module;
-	}
-	// Not statically linked. See what dll the process has loaded.
-	// Emulators probably also have opengl32.lib loaded so check that last.
-	found = GetModuleHandleExA(
-		0,
-		"libGLESv2.dll",
-		&module
-	);
-	if (found) return module;
-	found = GetModuleHandleExA(
-		0,
-		"libGLES_CM.dll",
-		&module
-	);
-	if (found) return module;
-	found = GetModuleHandleExA(
-		0,
-		"opengl32.dll",
-		&module
-	);
-	if (found) {
-		// Need wglGetProcAddr for non-OpenGL-2 functions.
-		wglGetProcAddressPtr =
-			(PFNWGLGETPROCADDRESS)LoadProcAddr(module,
-				                               "wglGetProcAddress");
-		if (wglGetProcAddressPtr != NULL)
+    // Check current module to see if we are statically linked to GL.
+    found = GetModuleHandleExA(
+        GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+        (LPCSTR)ktxFindOpenGL,
+        &module
+    );
+    if (found) {
+        if (LoadProcAddr(module, "glGetError") != NULL)
             return module;
-	}
-	return module; // Keep the compiler happy!
+    }
+    // Not statically linked. See what dll the process has loaded.
+    // Emulators probably also have opengl32.lib loaded so check that last.
+    found = GetModuleHandleExA(
+        0,
+        "libGLESv2.dll",
+        &module
+    );
+    if (found) return module;
+    found = GetModuleHandleExA(
+        0,
+        "libGLES_CM.dll",
+        &module
+    );
+    if (found) return module;
+    found = GetModuleHandleExA(
+        0,
+        "opengl32.dll",
+        &module
+    );
+    if (found) {
+        // Need wglGetProcAddr for non-OpenGL-2 functions.
+        wglGetProcAddressPtr =
+            (PFNWGLGETPROCADDRESS)LoadProcAddr(module,
+                                               "wglGetProcAddress");
+        if (wglGetProcAddressPtr != NULL)
+            return module;
+    }
+    return module; // Keep the compiler happy!
 }
 #endif
 
@@ -171,7 +171,7 @@ ktxLoadOpenGLLibrary(void)
         return KTX_SUCCESS;
 
     ktxOpenGLModuleHandle = GetOpenGLModuleHandle(RTLD_LAZY);
-	if (ktxOpenGLModuleHandle == NULL) {
+    if (ktxOpenGLModuleHandle == NULL) {
         fprintf(stderr, "OpenGL lib not linked or loaded by application.\n");
         // Normal use is for this constructor to be called by an
         // application that has completed OpenGL initialization. In that

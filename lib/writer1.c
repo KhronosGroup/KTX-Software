@@ -146,7 +146,7 @@ ktxTexture1_setImageFromStream(ktxTexture1* This, ktx_uint32_t level,
 }
 
 /**
- * @memberof ktxTexture
+ * @memberof ktxTexture1
  * @~English
  * @brief Set image for level, layer, faceSlice from a stdio stream source.
  *
@@ -192,7 +192,7 @@ ktxTexture1_SetImageFromStdioStream(ktxTexture1* This, ktx_uint32_t level,
 }
 
 /**
- * @memberof ktxTexture
+ * @memberof ktxTexture1
  * @~English
  * @brief Set image for level, layer, faceSlice from an image in memory.
  *
@@ -240,7 +240,7 @@ ktxTexture1_SetImageFromMemory(ktxTexture1* This, ktx_uint32_t level,
 }
 
 /**
- * @memberof ktxTexture
+ * @memberof ktxTexture1
  * @~English
  * @brief Write a ktxTexture object to a ktxStream in KTX format.
  *
@@ -356,7 +356,7 @@ cleanup:
 }
 
 /**
- * @memberof ktxTexture
+ * @memberof ktxTexture1
  * @~English
  * @brief Write a ktxTexture object to a stdio stream in KTX format.
  *
@@ -393,7 +393,7 @@ ktxTexture1_WriteToStdioStream(ktxTexture1* This, FILE* dstsstr)
 }
 
 /**
- * @memberof ktxTexture
+ * @memberof ktxTexture1
  * @~English
  * @brief Write a ktxTexture object to a named file in KTX format.
  *
@@ -433,7 +433,7 @@ ktxTexture1_WriteToNamedFile(ktxTexture1* This, const char* const dstname)
 }
 
 /**
- * @memberof ktxTexture
+ * @memberof ktxTexture1
  * @~English
  * @brief Write a ktxTexture object to block of memory in KTX format.
  *
