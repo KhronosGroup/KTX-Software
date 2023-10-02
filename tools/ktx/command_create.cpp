@@ -525,10 +525,11 @@ struct OptionsCreate {
 };
 
 struct OptionsASTC : public ktxAstcParams {
-    bool astc = false;
+    std::string astcOptions{};
+    bool encodeASTC = false;
     ClampedOption<ktx_uint32_t> qualityLevel{ktxAstcParams::qualityLevel, 0, KTX_PACK_ASTC_QUALITY_LEVEL_MAX};
 
-    OptionsASTC() {
+    OptionsASTC() : ktxAstcParams() {
         threadCount = std::thread::hardware_concurrency();
         if (threadCount == 0)
             threadCount = 1;
@@ -566,9 +567,20 @@ struct OptionsASTC : public ktxAstcParams {
                         "currently only available for normal maps and RGB color data.");
     }
 
+    void captureASTCOption(const char* name) {
+        astcOptions += fmt::format(" --{}", name);
+    }
+
+    template <typename T>
+    T captureASTCOption(cxxopts::ParseResult& args, const char* name) {
+        const T value = args[name].as<T>();
+        astcOptions += fmt::format(" --{} {}", name, value);
+        return value;
+    }
+
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
         if (args["astc-mode"].count()) {
-            const auto modeStr = args["astc-mode"].as<std::string>();
+            const auto modeStr = to_lower_copy(captureASTCOption<std::string>(args, "astc-mode"));
             if (modeStr == "ldr")
                 mode = KTX_PACK_ASTC_ENCODER_MODE_LDR;
             else if (modeStr == "hdr")
@@ -587,7 +599,7 @@ struct OptionsASTC : public ktxAstcParams {
                     {"thorough", KTX_PACK_ASTC_QUALITY_LEVEL_THOROUGH},
                     {"exhaustive", KTX_PACK_ASTC_QUALITY_LEVEL_EXHAUSTIVE}
             };
-            const auto qualityLevelStr = to_lower_copy(args["astc-quality"].as<std::string>());
+            const auto qualityLevelStr = to_lower_copy(captureASTCOption<std::string>(args, "astc-quality"));
             const auto it = astc_quality_mapping.find(qualityLevelStr);
             if (it == astc_quality_mapping.end())
                 report.fatal_usage("Invalid astc-quality: \"{}\"", qualityLevelStr);
@@ -596,7 +608,10 @@ struct OptionsASTC : public ktxAstcParams {
             qualityLevel = KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM;
         }
 
-        perceptual = args["astc-perceptual"].as<bool>();
+        if (args["astc-perceptual"].count()) {
+            captureASTCOption("astc-perceptual");
+            perceptual = KTX_TRUE;
+        }
     }
 };
 
@@ -911,7 +926,7 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
         fatal_usage("--compare-psnr can only be used with BasisLZ or UASTC encoding.");
 
     if (isFormatAstc(options.vkFormat) && !options.raw) {
-        options.astc = true;
+        options.encodeASTC = true;
 
         switch (options.vkFormat) {
         case VK_FORMAT_ASTC_4x4_UNORM_BLOCK: [[fallthrough]];
@@ -976,7 +991,7 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
         }
     }
 
-    if (options._1d && options.astc)
+    if (options._1d && options.encodeASTC)
         fatal_usage("ASTC format {} cannot be used for 1 dimensional textures (indicated by --1d).",
                 toString(options.vkFormat));
 }
@@ -1107,7 +1122,7 @@ void CommandCreate::executeCreate() {
                     fatal_usage("Requested {} levels is too many. With input image \"{}\" sized {}x{} and depth {} the texture can only have {} levels at most.",
                             options.levels.value_or(1), fmtInFile(inputFilepath), target.width(), target.height(), numBaseDepths, maxLevels);
 
-                if (options.astc)
+                if (options.encodeASTC)
                     selectASTCMode(inputImageFile->spec().format().largestChannelBitLength());
 
                 firstImageSpec = inputImageFile->spec();
@@ -1202,6 +1217,16 @@ void CommandCreate::executeCreate() {
     encodeASTC(texture, options);
     compress(texture, options);
 
+    // Add KTXwriterScParams metadata if ASTC encoding, BasisU encoding, or other supercompression was used
+    const auto writerScParams = fmt::format("{}{}{}", options.astcOptions, options.codecOptions, options.compressOptions);
+    if (writerScParams.size() > 0) {
+        // Options always contain a leading space
+        assert(writerScParams[0] == ' ');
+        ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_SCPARAMS_KEY,
+            static_cast<uint32_t>(writerScParams.size()),
+            writerScParams.c_str() + 1); // +1 to exclude leading space
+    }
+
     // Save output file
     if (std::filesystem::path(options.outputFilepath).has_parent_path())
         std::filesystem::create_directories(std::filesystem::path(options.outputFilepath).parent_path());
@@ -1227,7 +1252,7 @@ void CommandCreate::encode(KTXTexture2& texture, OptionsCodec<false>& opts) {
 }
 
 void CommandCreate::encodeASTC(KTXTexture2& texture, OptionsASTC& opts) {
-    if (opts.astc) {
+    if (opts.encodeASTC) {
         const auto ret = ktxTexture2_CompressAstcEx(texture, &opts);
         if (ret != KTX_SUCCESS)
             fatal(rc::KTX_FAILURE, "Failed to encode KTX2 file with codec ASTC. KTX Error: {}", ktxErrorString(ret));

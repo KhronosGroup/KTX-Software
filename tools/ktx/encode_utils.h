@@ -245,6 +245,7 @@ struct OptionsCodec {
         }
     };
 
+    std::string codecOptions{};
     std::string codecName;
     EncodeCodec codec;
     BasisOptions basisOpts;
@@ -334,6 +335,17 @@ struct OptionsCodec {
         }
     }
 
+    void captureCodecOption(const char* name) {
+        codecOptions += fmt::format(" --{}", name);
+    }
+
+    template <typename T>
+    T captureCodecOption(cxxopts::ParseResult& args, const char* name) {
+        const T value = args[name].as<T>();
+        codecOptions += fmt::format(" --{} {}", name, value);
+        return value;
+    }
+
     void validateCommonEncodeArg(Reporter& report, const char* name) {
         if (codec == EncodeCodec::NONE)
             report.fatal(rc::INVALID_ARGUMENTS,
@@ -418,47 +430,49 @@ struct OptionsCodec {
 
         if (args["clevel"].count()) {
             validateBasisLZArg(report, "clevel");
-            basisOpts.compressionLevel = args["clevel"].as<uint32_t>();
+            basisOpts.compressionLevel = captureCodecOption<uint32_t>(args, "clevel");;
         }
 
         if (args["qlevel"].count()) {
             validateBasisLZArg(report, "qlevel");
-            basisOpts.qualityLevel = args["qlevel"].as<uint32_t>();
+            basisOpts.qualityLevel = captureCodecOption<uint32_t>(args, "qlevel");
         }
 
         if (args["no-endpoint-rdo"].count()) {
             validateBasisLZArg(report, "no-endpoint-rdo");
+            captureCodecOption("no-endpoint-rdo");
             basisOpts.noEndpointRDO = 1;
         }
 
         if (args["no-selector-rdo"].count()) {
             validateBasisLZArg(report, "no-selector-rdo");
+            captureCodecOption("no-selector-rdo");
             basisOpts.noSelectorRDO = 1;
         }
 
         if (args["max-endpoints"].count()) {
             validateBasisLZEndpointRDOArg(report, "max-endpoints");
-            basisOpts.maxEndpoints = args["max-endpoints"].as<uint32_t>();
+            basisOpts.maxEndpoints = captureCodecOption<uint32_t>(args, "max-endpoints");
         }
 
         if (args["endpoint-rdo-threshold"].count()) {
             validateBasisLZEndpointRDOArg(report, "endpoint-rdo-threshold");
-            basisOpts.endpointRDOThreshold = args["endpoint-rdo-threshold"].as<float>();
+            basisOpts.endpointRDOThreshold = captureCodecOption<float>(args, "endpoint-rdo-threshold");
         }
 
         if (args["max-selectors"].count()) {
             validateBasisLZSelectorRDOArg(report, "max-selectors");
-            basisOpts.maxSelectors = args["max-selectors"].as<uint32_t>();
+            basisOpts.maxSelectors = captureCodecOption<uint32_t>(args, "max-selectors");
         }
 
         if (args["selector-rdo-threshold"].count()) {
             validateBasisLZSelectorRDOArg(report, "selector-rdo-threshold");
-            basisOpts.selectorRDOThreshold = args["selector-rdo-threshold"].as<float>();
+            basisOpts.selectorRDOThreshold = captureCodecOption<float>(args, "selector-rdo-threshold");
         }
 
         if (args["uastc-quality"].count()) {
             validateUASTCArg(report, "uastc-quality");
-            uint32_t level = args["uastc-quality"].as<uint32_t>();
+            uint32_t level = captureCodecOption<uint32_t>(args, "uastc-quality");
             level = std::clamp<uint32_t>(level, 0, KTX_PACK_UASTC_MAX_LEVEL);
             basisOpts.uastcFlags = (unsigned int)~KTX_PACK_UASTC_LEVEL_MASK;
             basisOpts.uastcFlags |= level;
@@ -466,53 +480,58 @@ struct OptionsCodec {
 
         if (args["uastc-rdo"].count()) {
             validateUASTCArg(report, "uastc-rdo");
+            captureCodecOption("uastc-rdo");
             basisOpts.uastcRDO = 1;
         }
 
         if (args["uastc-rdo-l"].count()) {
             validateUASTCRDOArg(report, "uastc-rdo-l");
-            basisOpts.uastcRDOQualityScalar = args["uastc-rdo-l"].as<float>();
+            basisOpts.uastcRDOQualityScalar = captureCodecOption<float>(args, "uastc-rdo-l");
         }
 
         if (args["uastc-rdo-d"].count()) {
             validateUASTCRDOArg(report, "uastc-rdo-d");
-            basisOpts.uastcRDODictSize = args["uastc-rdo-d"].as<uint32_t>();
+            basisOpts.uastcRDODictSize = captureCodecOption<uint32_t>(args, "uastc-rdo-d");
         }
 
         if (args["uastc-rdo-b"].count()) {
             validateUASTCRDOArg(report, "uastc-rdo-b");
-            basisOpts.uastcRDOMaxSmoothBlockErrorScale = args["uastc-rdo-b"].as<float>();
+            basisOpts.uastcRDOMaxSmoothBlockErrorScale = captureCodecOption<float>(args, "uastc-rdo-b");
         }
 
         if (args["uastc-rdo-s"].count()) {
             validateUASTCRDOArg(report, "uastc-rdo-s");
-            basisOpts.uastcRDOMaxSmoothBlockStdDev = args["uastc-rdo-s"].as<float>();
+            basisOpts.uastcRDOMaxSmoothBlockStdDev = captureCodecOption<float>(args, "uastc-rdo-s");
         }
 
         if (args["uastc-rdo-f"].count()) {
             validateUASTCRDOArg(report, "uastc-rdo-f");
+            captureCodecOption("uastc-rdo-f");
             basisOpts.uastcRDODontFavorSimplerModes = 1;
         }
 
         if (args["uastc-rdo-m"].count()) {
             validateUASTCRDOArg(report, "uastc-rdo-m");
+            captureCodecOption("uastc-rdo-m");
             basisOpts.uastcRDONoMultithreading = 1;
         }
 
         if (args["normal-mode"].count()) {
             validateCommonEncodeArg(report, "normal-mode");
+            captureCodecOption("normal-mode");
             basisOpts.normalMap = true;
         }
 
         if (args["threads"].count()) {
             validateCommonEncodeArg(report, "threads");
-            basisOpts.threadCount = args["threads"].as<uint32_t>();
+            basisOpts.threadCount = captureCodecOption<uint32_t>(args, "threads");
         } else {
             basisOpts.threadCount = std::thread::hardware_concurrency();
         }
 
         if (args["no-sse"].count()) {
             validateCommonEncodeArg(report, "no-sse");
+            captureCodecOption("no-sse");
             basisOpts.noSSE = true;
         }
     }

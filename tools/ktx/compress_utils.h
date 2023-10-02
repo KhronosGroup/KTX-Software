@@ -33,6 +33,7 @@ namespace ktx {
 //! [command options_compress]
 */
 struct OptionsCompress {
+    std::string compressOptions{};
     std::optional<uint32_t> zstd;
     std::optional<uint32_t> zlib;
 
@@ -51,14 +52,21 @@ struct OptionsCompress {
                 cxxopts::value<uint32_t>(), "<level>");
     }
 
+    template <typename T>
+    T captureCompressOption(cxxopts::ParseResult& args, const char* name) {
+        const T value = args[name].as<T>();
+        compressOptions += fmt::format(" --{} {}", name, value);
+        return value;
+    }
+
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
         if (args["zstd"].count()) {
-            zstd = args["zstd"].as<uint32_t>();
+            zstd = captureCompressOption<uint32_t>(args, "zstd");
             if (zstd < 1u || zstd > 22u)
                 report.fatal_usage("Invalid zstd level: \"{}\". Value must be between 1 and 22 inclusive.", zstd.value());
         }
         if (args["zlib"].count()) {
-            zlib = args["zlib"].as<uint32_t>();
+            zlib = captureCompressOption<uint32_t>(args, "zlib");
             if (zlib < 1u || zlib > 9u)
                 report.fatal_usage("Invalid zlib level: \"{}\". Value must be between 1 and 9 inclusive.", zlib.value());
         }
