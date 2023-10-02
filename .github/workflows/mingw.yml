@@ -27,6 +27,9 @@ on:
 jobs:
   mingw:
     runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
     env:
       WERROR: ON
 
@@ -36,9 +39,8 @@ jobs:
         # Fetch all history to make sure tags are
         # included (used for version creation)
         fetch-depth: 0
-    - uses: egor-tensin/setup-mingw@v2
-      with:
-        platform: x64
+    - name: GCC Version
+      run: gcc --version # If this fails MINGW is not setup correctly
     - name: Force update provoking tag
       # Work around https://github.com/actions/checkout/issues/290.
       if: github.ref_type == 'tag'
@@ -58,6 +60,6 @@ jobs:
     - name: Test Mingw build
       run: ctest --output-on-failure --test-dir build -C Release
     - name: Upload test log
+      shell: pwsh
       if: ${{ failure() }}
       run: ci_scripts/on_failure.ps1
-
