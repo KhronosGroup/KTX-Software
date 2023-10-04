@@ -126,6 +126,17 @@ Extract selected images from a KTX2 file.
 */
 class CommandExtract : public Command {
     struct OptionsExtract {
+        inline static const char* kOutput = "output";
+        inline static const char* kStdout = "stdout";
+        inline static const char* kTranscode = "transcode";
+        inline static const char* kUri = "uri";
+        inline static const char* kLevel = "level";
+        inline static const char* kLayer = "layer";
+        inline static const char* kFace = "face";
+        inline static const char* kDepth = "depth";
+        inline static const char* kAll = "all";
+        inline static const char* kRaw = "raw";
+
         std::string outputPath;
         FragmentURI fragmentURI;
         SelectorRange depth;
@@ -180,9 +191,9 @@ int CommandExtract::main(int argc, _TCHAR* argv[]) {
 
 void CommandExtract::OptionsExtract::init(cxxopts::Options& opts) {
     opts.add_options()
-            ("output", "Output filepath for single, output directory for multiple image export.", cxxopts::value<std::string>(), "<filepath>")
-            ("stdout", "Use stdout as the output file. (Using a single dash '-' as the output file has the same effect)")
-            ("transcode", "Transcode the texture to the target format before executing the extract steps."
+            (kOutput, "Output filepath for single, output directory for multiple image export.", cxxopts::value<std::string>(), "<filepath>")
+            (kStdout, "Use stdout as the output file. (Using a single dash '-' as the output file has the same effect)")
+            (kTranscode, "Transcode the texture to the target format before executing the extract steps."
                           " Requires the input file to be transcodable."
                           " Block compressed transcode targets can only be saved in raw format."
                           " Case-insensitive."
@@ -191,18 +202,18 @@ void CommandExtract::OptionsExtract::init(cxxopts::Options& opts) {
                           " r8 | rg8 | rgb8 | rgba8."
                           "\netc-rgb is ETC1; etc-rgba, eac-r11 and eac-rg11 are ETC2.",
                           cxxopts::value<std::string>(), "<target>")
-            ("uri", "KTX Fragment URI.", cxxopts::value<std::string>(), "<uri>")
-            ("level", "Level to extract. When 'all' is used every level is exported. Defaults to 0.", cxxopts::value<std::string>(), "[0-9]+ | all")
-            ("layer", "Layer to extract. When 'all' is used every layer is exported. Defaults to 0.", cxxopts::value<std::string>(), "[0-9]+ | all")
-            ("face", "Face to extract. When 'all' is used every face is exported. Defaults to 0.", cxxopts::value<std::string>(), "[0-5] | all")
-            ("depth", "Depth slice to extract. When 'all' is used every depth is exported. Defaults to 0.", cxxopts::value<std::string>(), "[0-9]+ | all")
-            ("all", "Extract every image slice from the texture.")
-            ("raw", "Extract the raw image data without any conversion.");
+            (kUri, "KTX Fragment URI.", cxxopts::value<std::string>(), "<uri>")
+            (kLevel, "Level to extract. When 'all' is used every level is exported. Defaults to 0.", cxxopts::value<std::string>(), "[0-9]+ | all")
+            (kLayer, "Layer to extract. When 'all' is used every layer is exported. Defaults to 0.", cxxopts::value<std::string>(), "[0-9]+ | all")
+            (kFace, "Face to extract. When 'all' is used every face is exported. Defaults to 0.", cxxopts::value<std::string>(), "[0-5] | all")
+            (kDepth, "Depth slice to extract. When 'all' is used every depth is exported. Defaults to 0.", cxxopts::value<std::string>(), "[0-9]+ | all")
+            (kAll, "Extract every image slice from the texture.")
+            (kRaw, "Extract the raw image data without any conversion.");
 }
 
 void CommandExtract::OptionsExtract::process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
-    if (args.count("output"))
-        outputPath = args["output"].as<std::string>();
+    if (args.count(kOutput))
+        outputPath = args[kOutput].as<std::string>();
     else
         report.fatal_usage("Missing output file or directory path.");
 
@@ -212,7 +223,7 @@ void CommandExtract::OptionsExtract::process(cxxopts::Options&, cxxopts::ParseRe
         const auto str = to_lower_copy(args[name].as<std::string>());
         try {
             found = true;
-            return str == "all" ? SelectorRange(all) : SelectorRange(std::stoi(str));
+            return str == kAll ? SelectorRange(all) : SelectorRange(std::stoi(str));
         } catch (const std::invalid_argument&) {
             report.fatal_usage("Invalid {} value \"{}\". The value must be a either a number or \"all\".", name, str);
         } catch (const std::out_of_range& e) {
@@ -221,12 +232,12 @@ void CommandExtract::OptionsExtract::process(cxxopts::Options&, cxxopts::ParseRe
         return std::nullopt;
     };
 
-    auto level = parseSelector("level", levelFlagUsed);
-    auto layer = parseSelector("layer", layerFlagUsed);
-    auto face = parseSelector("face", faceFlagUsed);
-    auto depth_ = parseSelector("depth", depthFlagUsed);
-    raw = args["raw"].as<bool>();
-    globalAll = args["all"].as<bool>();
+    auto level = parseSelector(kLevel, levelFlagUsed);
+    auto layer = parseSelector(kLayer, layerFlagUsed);
+    auto face = parseSelector(kFace, faceFlagUsed);
+    auto depth_ = parseSelector(kDepth, depthFlagUsed);
+    raw = args[kRaw].as<bool>();
+    globalAll = args[kAll].as<bool>();
 
     if (globalAll) {
         if (level)
@@ -255,7 +266,7 @@ void CommandExtract::OptionsExtract::process(cxxopts::Options&, cxxopts::ParseRe
     if (depth_ == all && outputPath == "-")
         report.fatal_usage("stdout cannot be used with multi-output '--depth all' extract.");
 
-    if (args["uri"].count()) {
+    if (args[kUri].count()) {
         uriFlagUsed = true;
 
         if (globalAll)
@@ -268,7 +279,7 @@ void CommandExtract::OptionsExtract::process(cxxopts::Options&, cxxopts::ParseRe
             report.fatal_usage("Conflicting options: --face cannot be used with --uri.");
 
         try {
-            fragmentURI = parseFragmentURI(args["uri"].as<std::string>());
+            fragmentURI = parseFragmentURI(args[kUri].as<std::string>());
         } catch (const std::exception& e) {
             report.fatal_usage("Failed to parse Fragment URI: {}", e.what());
         }
@@ -292,7 +303,7 @@ void CommandExtract::OptionsExtract::process(cxxopts::Options&, cxxopts::ParseRe
 
 void CommandExtract::initOptions(cxxopts::Options& opts) {
     options.init(opts);
-    opts.parse_positional({"input-file", "output"});
+    opts.parse_positional({"input-file", OptionsExtract::kOutput});
     opts.positional_help("<input-file> <output>");
 }
 

@@ -33,19 +33,22 @@ namespace ktx {
 //! [command options_compress]
 */
 struct OptionsCompress {
+    inline static const char* kZStd = "zstd";
+    inline static const char* kZLib = "zlib";
+
     std::string compressOptions{};
     std::optional<uint32_t> zstd;
     std::optional<uint32_t> zlib;
 
     void init(cxxopts::Options& opts) {
         opts.add_options()
-            ("zstd", "Supercompress the data with Zstandard."
+            (kZStd, "Supercompress the data with Zstandard."
                      " Cannot be used with ETC1S / BasisLZ format."
                      " Level range is [1,22]."
                      " Lower levels give faster but worse compression."
                      " Values above 20 should be used with caution as they require more memory.",
                 cxxopts::value<uint32_t>(), "<level>")
-            ("zlib", "Supercompress the data with ZLIB."
+            (kZLib, "Supercompress the data with ZLIB."
                      " Cannot be used with ETC1S / BasisLZ format."
                      " Level range is [1,9]."
                      " Lower levels give faster but worse compression.",
@@ -60,13 +63,13 @@ struct OptionsCompress {
     }
 
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
-        if (args["zstd"].count()) {
-            zstd = captureCompressOption<uint32_t>(args, "zstd");
+        if (args[kZStd].count()) {
+            zstd = captureCompressOption<uint32_t>(args, kZStd);
             if (zstd < 1u || zstd > 22u)
                 report.fatal_usage("Invalid zstd level: \"{}\". Value must be between 1 and 22 inclusive.", zstd.value());
         }
-        if (args["zlib"].count()) {
-            zlib = captureCompressOption<uint32_t>(args, "zlib");
+        if (args[kZLib].count()) {
+            zlib = captureCompressOption<uint32_t>(args, kZLib);
             if (zlib < 1u || zlib > 9u)
                 report.fatal_usage("Invalid zlib level: \"{}\". Value must be between 1 and 9 inclusive.", zlib.value());
         }
