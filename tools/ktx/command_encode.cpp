@@ -208,6 +208,16 @@ void CommandEncode::executeEncode() {
             fatal(rc::IO_FAILURE, "ZLIB deflation failed. KTX Error: {}", ktxErrorString(ret));
     }
 
+    // Add KTXwriterScParams metadata
+    const auto writerScParams = fmt::format("{}{}", options.codecOptions, options.compressOptions);
+    if (writerScParams.size() > 0) {
+        // Options always contain a leading space
+        assert(writerScParams[0] == ' ');
+        ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_SCPARAMS_KEY,
+            static_cast<uint32_t>(writerScParams.size()),
+            writerScParams.c_str() + 1); // +1 to exclude leading space
+    }
+
     // Save output file
     if (std::filesystem::path(options.outputFilepath).has_parent_path())
         std::filesystem::create_directories(std::filesystem::path(options.outputFilepath).parent_path());

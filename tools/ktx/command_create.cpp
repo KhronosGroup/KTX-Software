@@ -36,6 +36,30 @@ struct ColorSpaceInfo {
 // -------------------------------------------------------------------------------------------------
 
 struct OptionsCreate {
+    inline static const char* kFormat = "format";
+    inline static const char* k1D = "1d";
+    inline static const char* kCubemap = "cubemap";
+    inline static const char* kRaw = "raw";
+    inline static const char* kWidth = "width";
+    inline static const char* kHeight = "height";
+    inline static const char* kDepth = "depth";
+    inline static const char* kLayers = "layers";
+    inline static const char* kLevels = "levels";
+    inline static const char* kRuntimeMipmap = "runtime-mipmap";
+    inline static const char* kGenerateMipmap = "generate-mipmap";
+    inline static const char* kEncode = "encode";
+    inline static const char* kSwizzle = "swizzle";
+    inline static const char* kInputSwizzle = "input-swizzle";
+    inline static const char* kAssignOetf = "assign-oetf";
+    inline static const char* kAssignPrimaries = "assign-primaries";
+    inline static const char* kConvertOetf = "convert-oetf";
+    inline static const char* kConvertPrimaries = "convert-primaries";
+    inline static const char* kFailOnColorConversions = "fail-on-color-conversions";
+    inline static const char* kWarnOnColorConversions = "warn-on-color-conversions";
+    inline static const char* kMipmapFilter = "mipmap-filter";
+    inline static const char* kMipmapFilterScale = "mipmap-filter-scale";
+    inline static const char* kMipmapWrap = "mipmap-wrap";
+
     bool _1d = false;
     bool cubemap = false;
 
@@ -69,7 +93,7 @@ struct OptionsCreate {
 
     void init(cxxopts::Options& opts) {
         opts.add_options()
-                ("format", "KTX format enum that specifies the image data format."
+                (kFormat, "KTX format enum that specifies the image data format."
                     " The enum names are matching the VkFormats without the VK_FORMAT_ prefix."
                     " The VK_FORMAT_ prefix is ignored if present."
                     "\nWhen used with --encode it specifies the format of the input files before the encoding step."
@@ -86,37 +110,37 @@ struct OptionsCreate {
                     " otherwise they are ignored."
                     "\nThe format will be used to verify and load all input files into a texture before encoding."
                     " Case insensitive. Required.", cxxopts::value<std::string>(), "<enum>")
-                ("1d", "Create a 1D texture. If not set the texture will be a 2D or 3D texture.")
-                ("cubemap", "Create a cubemap texture. If not set the texture will be a 2D or 3D texture.")
-                ("raw", "Create from raw image data.")
-                ("width", "Base level width in pixels.", cxxopts::value<uint32_t>(), "[0-9]+")
-                ("height", "Base level height in pixels.", cxxopts::value<uint32_t>(), "[0-9]+")
-                ("depth", "Base level depth in pixels. If set the texture will be a 3D texture.", cxxopts::value<uint32_t>(), "[0-9]+")
-                ("layers", "Number of layers. If set the texture will be an array texture.", cxxopts::value<uint32_t>(), "[0-9]+")
-                ("levels", "Number of mip levels.", cxxopts::value<uint32_t>(), "[0-9]+")
-                ("runtime-mipmap", "Runtime mipmap generation mode.")
-                ("generate-mipmap", "Causes mipmaps to be generated during texture creation."
+                (k1D, "Create a 1D texture. If not set the texture will be a 2D or 3D texture.")
+                (kCubemap, "Create a cubemap texture. If not set the texture will be a 2D or 3D texture.")
+                (kRaw, "Create from raw image data.")
+                (kWidth, "Base level width in pixels.", cxxopts::value<uint32_t>(), "[0-9]+")
+                (kHeight, "Base level height in pixels.", cxxopts::value<uint32_t>(), "[0-9]+")
+                (kDepth, "Base level depth in pixels. If set the texture will be a 3D texture.", cxxopts::value<uint32_t>(), "[0-9]+")
+                (kLayers, "Number of layers. If set the texture will be an array texture.", cxxopts::value<uint32_t>(), "[0-9]+")
+                (kLevels, "Number of mip levels.", cxxopts::value<uint32_t>(), "[0-9]+")
+                (kRuntimeMipmap, "Runtime mipmap generation mode.")
+                (kGenerateMipmap, "Causes mipmaps to be generated during texture creation."
                     " It enables the use of \'Generate Mipmap\' options."
                     " If the --levels is not specified the maximum possible mip level will be generated."
                     " This option is mutually exclusive with --runtime-mipmap and cannot be used with UINT or 3D textures.")
-                ("encode", "Encode the created KTX file. Case insensitive."
+                (kEncode, "Encode the created KTX file. Case insensitive."
                     "\nPossible options are: basis-lz | uastc", cxxopts::value<std::string>(), "<codec>")
-                ("swizzle", "KTX swizzle metadata.", cxxopts::value<std::string>(), "[rgba01]{4}")
-                ("input-swizzle", "Pre-swizzle input channels.", cxxopts::value<std::string>(), "[rgba01]{4}")
-                ("assign-oetf", "Force the created texture to have the specified transfer function, ignoring"
+                (kSwizzle, "KTX swizzle metadata.", cxxopts::value<std::string>(), "[rgba01]{4}")
+                (kInputSwizzle, "Pre-swizzle input channels.", cxxopts::value<std::string>(), "[rgba01]{4}")
+                (kAssignOetf, "Force the created texture to have the specified transfer function, ignoring"
                     " the transfer function of the input file(s). Case insensitive."
                     "\nPossible options are: linear | srgb", cxxopts::value<std::string>(), "<oetf>")
-                ("assign-primaries", "Force the created texture to have the specified color primaries, ignoring"
+                (kAssignPrimaries, "Force the created texture to have the specified color primaries, ignoring"
                     " the color primaries of the input file(s). Case insensitive."
                     "\nPossible options are:"
                     " none | bt709 | srgb | bt601-ebu | bt601-smpte | bt2020 | ciexyz | aces | acescc | ntsc1953 | pal525 | displayp3 | adobergb.",
                     cxxopts::value<std::string>(), "<primaries>")
-                ("convert-oetf", "Convert the input image(s) to the specified transfer function, if different"
+                (kConvertOetf, "Convert the input image(s) to the specified transfer function, if different"
                     " from the transfer function of the input file(s). If both this and --assign-oetf are specified,"
                     " conversion will be performed from the assigned transfer function to the transfer function"
                     " specified by this option, if different. Case insensitive."
                     "\nPossible options are: linear | srgb", cxxopts::value<std::string>(), "<oetf>")
-                ("convert-primaries", "Convert the image image(s) to the specified color primaries, if different"
+                (kConvertPrimaries, "Convert the image image(s) to the specified color primaries, if different"
                     " from the color primaries of the input file(s) or the one specified by --assign-primaries."
                     " If both this and --assign-primaries are specified, conversion will be performed from "
                     " the assigned primaries to the primaries specified by this option, if different."
@@ -125,19 +149,19 @@ struct OptionsCreate {
                     "\nPossible options are:"
                     " bt709 | srgb | bt601-ebu | bt601-smpte | bt2020 | ciexyz | aces | acescc | ntsc1953 | pal525 | displayp3 | adobergb.",
                     cxxopts::value<std::string>(), "<primaries>")
-                ("fail-on-color-conversions", "Generates an error if any of the input images would need to be color converted.")
-                ("warn-on-color-conversions", "Generates a warning if any of the input images are color converted.");
+                (kFailOnColorConversions, "Generates an error if any of the input images would need to be color converted.")
+                (kWarnOnColorConversions, "Generates a warning if any of the input images are color converted.");
 
         opts.add_options("Generate Mipmap")
-                ("mipmap-filter", "Specifies the filter to use when generating the mipmaps. Case insensitive."
+                (kMipmapFilter, "Specifies the filter to use when generating the mipmaps. Case insensitive."
                     "\nPossible options are:"
                     " box | tent | bell | b-spline | mitchell | blackman | lanczos3 | lanczos4 | lanczos6 |"
                     " lanczos12 | kaiser | gaussian | catmullrom | quadratic_interp | quadratic_approx | "
                     " quadratic_mix."
                     " Defaults to lanczos4.",
                     cxxopts::value<std::string>(), "<filter>")
-                ("mipmap-filter-scale", "The filter scale to use. Defaults to 1.0.", cxxopts::value<float>(), "<float>")
-                ("mipmap-wrap", "Specify how to sample pixels near the image boundaries. Case insensitive."
+                (kMipmapFilterScale, "The filter scale to use. Defaults to 1.0.", cxxopts::value<float>(), "<float>")
+                (kMipmapWrap, "Specify how to sample pixels near the image boundaries. Case insensitive."
                     "\nPossible options are:"
                     " wrap | reflect | clamp."
                     " Defaults to clamp.", cxxopts::value<std::string>(), "<mode>");
@@ -197,25 +221,25 @@ struct OptionsCreate {
     }
 
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
-        _1d = args["1d"].as<bool>();
-        cubemap = args["cubemap"].as<bool>();
-        raw = args["raw"].as<bool>();
+        _1d = args[k1D].as<bool>();
+        cubemap = args[kCubemap].as<bool>();
+        raw = args[kRaw].as<bool>();
 
-        if (args["width"].count())
-            width = args["width"].as<uint32_t>();
-        if (args["height"].count())
-            height = args["height"].as<uint32_t>();
-        if (args["depth"].count())
-            depth = args["depth"].as<uint32_t>();
-        if (args["layers"].count())
-            layers = args["layers"].as<uint32_t>();
-        if (args["levels"].count())
-            levels = args["levels"].as<uint32_t>();
+        if (args[kWidth].count())
+            width = args[kWidth].as<uint32_t>();
+        if (args[kHeight].count())
+            height = args[kHeight].as<uint32_t>();
+        if (args[kDepth].count())
+            depth = args[kDepth].as<uint32_t>();
+        if (args[kLayers].count())
+            layers = args[kLayers].as<uint32_t>();
+        if (args[kLevels].count())
+            levels = args[kLevels].as<uint32_t>();
 
-        mipmapRuntime = args["runtime-mipmap"].as<bool>();
-        mipmapGenerate = args["generate-mipmap"].as<bool>();
+        mipmapRuntime = args[kRuntimeMipmap].as<bool>();
+        mipmapGenerate = args[kGenerateMipmap].as<bool>();
 
-        if (args["mipmap-filter"].count()) {
+        if (args[kMipmapFilter].count()) {
             static const std::unordered_set<std::string> filter_table{
                 "box",
                 "tent",
@@ -235,22 +259,22 @@ struct OptionsCreate {
                 "quadratic_mix",
             };
 
-            mipmapFilter = to_lower_copy(args["mipmap-filter"].as<std::string>());
+            mipmapFilter = to_lower_copy(args[kMipmapFilter].as<std::string>());
             if (filter_table.count(*mipmapFilter) == 0)
                 report.fatal_usage("Invalid or unsupported mipmap filter specified as --mipmap-filter argument: \"{}\".", *mipmapFilter);
         }
 
-        if (args["mipmap-filter-scale"].count())
-            mipmapFilterScale = args["mipmap-filter-scale"].as<float>();
+        if (args[kMipmapFilterScale].count())
+            mipmapFilterScale = args[kMipmapFilterScale].as<float>();
 
-        if (args["mipmap-wrap"].count()) {
+        if (args[kMipmapWrap].count()) {
             static const std::unordered_map<std::string, basisu::Resampler::Boundary_Op> wrap_table{
                 { "clamp", basisu::Resampler::Boundary_Op::BOUNDARY_CLAMP },
                 { "wrap", basisu::Resampler::Boundary_Op::BOUNDARY_WRAP },
                 { "reflect", basisu::Resampler::Boundary_Op::BOUNDARY_REFLECT },
             };
 
-            const auto wrapStr = to_lower_copy(args["mipmap-wrap"].as<std::string>());
+            const auto wrapStr = to_lower_copy(args[kMipmapWrap].as<std::string>());
             const auto it = wrap_table.find(wrapStr);
             if (it == wrap_table.end())
                 report.fatal_usage("Invalid or unsupported mipmap wrap mode specified as --mipmap-wrap argument: \"{}\".", wrapStr);
@@ -258,8 +282,8 @@ struct OptionsCreate {
                 mipmapWrap = it->second;
         }
 
-        if (args["swizzle"].count()) {
-            swizzle = to_lower_copy(args["swizzle"].as<std::string>());
+        if (args[kSwizzle].count()) {
+            swizzle = to_lower_copy(args[kSwizzle].as<std::string>());
             const auto errorFmt = "Invalid --swizzle value: \"{}\". The value must match the \"[rgba01]{{4}}\" regex.";
             if (swizzle->size() != 4)
                 report.fatal_usage(errorFmt, *swizzle);
@@ -267,8 +291,8 @@ struct OptionsCreate {
                 if (!contains("rgba01", c))
                     report.fatal_usage(errorFmt, *swizzle);
         }
-        if (args["input-swizzle"].count()) {
-            swizzleInput = to_lower_copy(args["input-swizzle"].as<std::string>());
+        if (args[kInputSwizzle].count()) {
+            swizzleInput = to_lower_copy(args[kInputSwizzle].as<std::string>());
             const auto errorFmt = "Invalid --input-swizzle value: \"{}\". The value must match the \"[rgba01]{{4}}\" regex.";
             if (swizzleInput->size() != 4)
                 report.fatal_usage(errorFmt, *swizzleInput);
@@ -277,8 +301,8 @@ struct OptionsCreate {
                     report.fatal_usage(errorFmt, *swizzleInput);
         }
 
-        if (args["format"].count()) {
-            const auto formatStr = args["format"].as<std::string>();
+        if (args[kFormat].count()) {
+            const auto formatStr = args[kFormat].as<std::string>();
             const auto parsedVkFormat = parseVkFormat(formatStr);
             if (!parsedVkFormat)
                 report.fatal_usage("The requested format is invalid or unsupported: \"{}\".", formatStr);
@@ -478,11 +502,11 @@ struct OptionsCreate {
 
         formatDesc = createFormatDescriptor(vkFormat, report);
 
-        convertOETF = parseTransferFunction(args, "convert-oetf", report);
-        assignOETF = parseTransferFunction(args, "assign-oetf", report);
+        convertOETF = parseTransferFunction(args, kConvertOetf, report);
+        assignOETF = parseTransferFunction(args, kAssignOetf, report);
 
-        convertPrimaries = parseColorPrimaries(args, "convert-primaries", report);
-        assignPrimaries = parseColorPrimaries(args, "assign-primaries", report);
+        convertPrimaries = parseColorPrimaries(args, kConvertPrimaries, report);
+        assignPrimaries = parseColorPrimaries(args, kAssignPrimaries, report);
 
         if (convertPrimaries.has_value() && assignPrimaries == KHR_DF_PRIMARIES_UNSPECIFIED)
             report.fatal_usage("Option --convert-primaries cannot be used when --assign-primaries is set to 'none'.");
@@ -504,19 +528,19 @@ struct OptionsCreate {
                 default:
                     report.fatal_usage(
                             "Invalid value to --assign-oetf \"{}\" for format \"{}\". Transfer function must be sRGB for sRGB formats.",
-                            args["assign-oetf"].as<std::string>(), args["format"].as<std::string>());
+                            args[kAssignOetf].as<std::string>(), args[kFormat].as<std::string>());
                 }
             } else if (convertOETF.has_value() && convertOETF != KHR_DF_TRANSFER_SRGB) {
                 report.fatal_usage(
                         "Invalid value to --convert-oetf \"{}\" for format \"{}\". Transfer function must be sRGB for sRGB formats.",
-                        args["convert-oetf"].as<std::string>(), args["format"].as<std::string>());
+                        args[kConvertOetf].as<std::string>(), args[kFormat].as<std::string>());
             }
         }
 
-        if (args["fail-on-color-conversions"].count())
+        if (args[kFailOnColorConversions].count())
             failOnColorConversions = true;
 
-        if (args["warn-on-color-conversions"].count()) {
+        if (args[kWarnOnColorConversions].count()) {
             if (failOnColorConversions)
                 report.fatal_usage("The options --fail-on-color-conversions and warn-on-color-conversions are mutually exclusive.");
             warnOnColorConversions = true;
@@ -525,10 +549,14 @@ struct OptionsCreate {
 };
 
 struct OptionsASTC : public ktxAstcParams {
-    bool astc = false;
+    inline static const char* kAstcQuality = "astc-quality";
+    inline static const char* kAstcPerceptual = "astc-perceptual";
+
+    std::string astcOptions{};
+    bool encodeASTC = false;
     ClampedOption<ktx_uint32_t> qualityLevel{ktxAstcParams::qualityLevel, 0, KTX_PACK_ASTC_QUALITY_LEVEL_MAX};
 
-    OptionsASTC() {
+    OptionsASTC() : ktxAstcParams() {
         threadCount = std::thread::hardware_concurrency();
         if (threadCount == 0)
             threadCount = 1;
@@ -541,11 +569,7 @@ struct OptionsASTC : public ktxAstcParams {
 
     void init(cxxopts::Options& opts) {
         opts.add_options("Encode ASTC")
-                ("astc-mode",
-                        "Specify which encoding mode to use. LDR is the default unless the "
-                        "input image is 16-bit in which case the default is HDR.",
-                        cxxopts::value<std::string>(), "ldr | hdr")
-                ("astc-quality",
+                (kAstcQuality,
                         "The quality level configures the quality-performance tradeoff for "
                         "the compressor; more complete searches of the search space "
                         "improve image quality at the expense of compression time. Default "
@@ -559,27 +583,26 @@ struct OptionsASTC : public ktxAstcParams {
                         "    thorough   | (equivalent to quality =  98)\n"
                         "    exhaustive | (equivalent to quality = 100)",
                         cxxopts::value<std::string>(), "<level>")
-                ("astc-perceptual",
+                (kAstcPerceptual,
                         "The codec should optimize for perceptual error, instead of direct "
                         "RMS error. This aims to improve perceived image quality, but "
                         "typically lowers the measured PSNR score. Perceptual methods are "
                         "currently only available for normal maps and RGB color data.");
     }
 
-    void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
-        if (args["astc-mode"].count()) {
-            const auto modeStr = args["astc-mode"].as<std::string>();
-            if (modeStr == "ldr")
-                mode = KTX_PACK_ASTC_ENCODER_MODE_LDR;
-            else if (modeStr == "hdr")
-                mode = KTX_PACK_ASTC_ENCODER_MODE_HDR;
-            else
-                report.fatal_usage("Invalid astc-mode: \"{}\"", modeStr);
-        } else {
-            mode = KTX_PACK_ASTC_ENCODER_MODE_DEFAULT;
-        }
+    void captureASTCOption(const char* name) {
+        astcOptions += fmt::format(" --{}", name);
+    }
 
-        if (args["astc-quality"].count()) {
+    template <typename T>
+    T captureASTCOption(cxxopts::ParseResult& args, const char* name) {
+        const T value = args[name].as<T>();
+        astcOptions += fmt::format(" --{} {}", name, value);
+        return value;
+    }
+
+    void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
+        if (args[kAstcQuality].count()) {
             static std::unordered_map<std::string, ktx_pack_astc_quality_levels_e> astc_quality_mapping{
                     {"fastest", KTX_PACK_ASTC_QUALITY_LEVEL_FASTEST},
                     {"fast", KTX_PACK_ASTC_QUALITY_LEVEL_FAST},
@@ -587,7 +610,7 @@ struct OptionsASTC : public ktxAstcParams {
                     {"thorough", KTX_PACK_ASTC_QUALITY_LEVEL_THOROUGH},
                     {"exhaustive", KTX_PACK_ASTC_QUALITY_LEVEL_EXHAUSTIVE}
             };
-            const auto qualityLevelStr = to_lower_copy(args["astc-quality"].as<std::string>());
+            const auto qualityLevelStr = to_lower_copy(captureASTCOption<std::string>(args, kAstcQuality));
             const auto it = astc_quality_mapping.find(qualityLevelStr);
             if (it == astc_quality_mapping.end())
                 report.fatal_usage("Invalid astc-quality: \"{}\"", qualityLevelStr);
@@ -596,7 +619,10 @@ struct OptionsASTC : public ktxAstcParams {
             qualityLevel = KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM;
         }
 
-        perceptual = args["astc-perceptual"].as<bool>();
+        if (args[kAstcPerceptual].count()) {
+            captureASTCOption(kAstcPerceptual);
+            perceptual = KTX_TRUE;
+        }
     }
 };
 
@@ -650,10 +676,6 @@ Create a KTX2 file from various input files.
             The format will be used to verify and load all input files into a texture before encoding.<br />
             Case insensitive. Required.</dd>
         <dl>
-            <dt>\--astc-mode &lt;ldr | hdr&gt;</dt>
-            <dd>Specify which encoding mode to use. LDR is the default
-                unless the input image is 16-bit in which case the default is
-                HDR.</dd>
             <dt>\--astc-quality &lt;level&gt;</dt>
             <dd>The quality level configures the quality-performance
                 tradeoff for the compressor; more complete searches of the
@@ -911,63 +933,77 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
         fatal_usage("--compare-psnr can only be used with BasisLZ or UASTC encoding.");
 
     if (isFormatAstc(options.vkFormat) && !options.raw) {
-        options.astc = true;
+        options.encodeASTC = true;
 
         switch (options.vkFormat) {
         case VK_FORMAT_ASTC_4x4_UNORM_BLOCK: [[fallthrough]];
         case VK_FORMAT_ASTC_4x4_SRGB_BLOCK:
+            options.mode = KTX_PACK_ASTC_ENCODER_MODE_LDR;
             options.blockDimension = KTX_PACK_ASTC_BLOCK_DIMENSION_4x4;
             break;
         case VK_FORMAT_ASTC_5x4_UNORM_BLOCK: [[fallthrough]];
         case VK_FORMAT_ASTC_5x4_SRGB_BLOCK:
+            options.mode = KTX_PACK_ASTC_ENCODER_MODE_LDR;
             options.blockDimension = KTX_PACK_ASTC_BLOCK_DIMENSION_5x4;
             break;
         case VK_FORMAT_ASTC_5x5_UNORM_BLOCK: [[fallthrough]];
         case VK_FORMAT_ASTC_5x5_SRGB_BLOCK:
+            options.mode = KTX_PACK_ASTC_ENCODER_MODE_LDR;
             options.blockDimension = KTX_PACK_ASTC_BLOCK_DIMENSION_5x5;
             break;
         case VK_FORMAT_ASTC_6x5_UNORM_BLOCK: [[fallthrough]];
         case VK_FORMAT_ASTC_6x5_SRGB_BLOCK:
+            options.mode = KTX_PACK_ASTC_ENCODER_MODE_LDR;
             options.blockDimension = KTX_PACK_ASTC_BLOCK_DIMENSION_6x5;
             break;
         case VK_FORMAT_ASTC_6x6_UNORM_BLOCK: [[fallthrough]];
         case VK_FORMAT_ASTC_6x6_SRGB_BLOCK:
+            options.mode = KTX_PACK_ASTC_ENCODER_MODE_LDR;
             options.blockDimension = KTX_PACK_ASTC_BLOCK_DIMENSION_6x6;
             break;
         case VK_FORMAT_ASTC_8x5_UNORM_BLOCK: [[fallthrough]];
         case VK_FORMAT_ASTC_8x5_SRGB_BLOCK:
+            options.mode = KTX_PACK_ASTC_ENCODER_MODE_LDR;
             options.blockDimension = KTX_PACK_ASTC_BLOCK_DIMENSION_8x5;
             break;
         case VK_FORMAT_ASTC_8x6_UNORM_BLOCK: [[fallthrough]];
         case VK_FORMAT_ASTC_8x6_SRGB_BLOCK:
+            options.mode = KTX_PACK_ASTC_ENCODER_MODE_LDR;
             options.blockDimension = KTX_PACK_ASTC_BLOCK_DIMENSION_8x6;
             break;
         case VK_FORMAT_ASTC_8x8_UNORM_BLOCK: [[fallthrough]];
         case VK_FORMAT_ASTC_8x8_SRGB_BLOCK:
+            options.mode = KTX_PACK_ASTC_ENCODER_MODE_LDR;
             options.blockDimension = KTX_PACK_ASTC_BLOCK_DIMENSION_8x8;
             break;
         case VK_FORMAT_ASTC_10x5_UNORM_BLOCK: [[fallthrough]];
         case VK_FORMAT_ASTC_10x5_SRGB_BLOCK:
+            options.mode = KTX_PACK_ASTC_ENCODER_MODE_LDR;
             options.blockDimension = KTX_PACK_ASTC_BLOCK_DIMENSION_10x5;
             break;
         case VK_FORMAT_ASTC_10x6_UNORM_BLOCK: [[fallthrough]];
         case VK_FORMAT_ASTC_10x6_SRGB_BLOCK:
+            options.mode = KTX_PACK_ASTC_ENCODER_MODE_LDR;
             options.blockDimension = KTX_PACK_ASTC_BLOCK_DIMENSION_10x6;
             break;
         case VK_FORMAT_ASTC_10x8_UNORM_BLOCK: [[fallthrough]];
         case VK_FORMAT_ASTC_10x8_SRGB_BLOCK:
+            options.mode = KTX_PACK_ASTC_ENCODER_MODE_LDR;
             options.blockDimension = KTX_PACK_ASTC_BLOCK_DIMENSION_10x8;
             break;
         case VK_FORMAT_ASTC_10x10_UNORM_BLOCK: [[fallthrough]];
         case VK_FORMAT_ASTC_10x10_SRGB_BLOCK:
+            options.mode = KTX_PACK_ASTC_ENCODER_MODE_LDR;
             options.blockDimension = KTX_PACK_ASTC_BLOCK_DIMENSION_10x10;
             break;
         case VK_FORMAT_ASTC_12x10_UNORM_BLOCK: [[fallthrough]];
         case VK_FORMAT_ASTC_12x10_SRGB_BLOCK:
+            options.mode = KTX_PACK_ASTC_ENCODER_MODE_LDR;
             options.blockDimension = KTX_PACK_ASTC_BLOCK_DIMENSION_12x10;
             break;
         case VK_FORMAT_ASTC_12x12_UNORM_BLOCK: [[fallthrough]];
         case VK_FORMAT_ASTC_12x12_SRGB_BLOCK:
+            options.mode = KTX_PACK_ASTC_ENCODER_MODE_LDR;
             options.blockDimension = KTX_PACK_ASTC_BLOCK_DIMENSION_12x12;
             break;
         default:
@@ -976,7 +1012,7 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
         }
     }
 
-    if (options._1d && options.astc)
+    if (options._1d && options.encodeASTC)
         fatal_usage("ASTC format {} cannot be used for 1 dimensional textures (indicated by --1d).",
                 toString(options.vkFormat));
 }
@@ -1107,7 +1143,7 @@ void CommandCreate::executeCreate() {
                     fatal_usage("Requested {} levels is too many. With input image \"{}\" sized {}x{} and depth {} the texture can only have {} levels at most.",
                             options.levels.value_or(1), fmtInFile(inputFilepath), target.width(), target.height(), numBaseDepths, maxLevels);
 
-                if (options.astc)
+                if (options.encodeASTC)
                     selectASTCMode(inputImageFile->spec().format().largestChannelBitLength());
 
                 firstImageSpec = inputImageFile->spec();
@@ -1202,6 +1238,16 @@ void CommandCreate::executeCreate() {
     encodeASTC(texture, options);
     compress(texture, options);
 
+    // Add KTXwriterScParams metadata if ASTC encoding, BasisU encoding, or other supercompression was used
+    const auto writerScParams = fmt::format("{}{}{}", options.astcOptions, options.codecOptions, options.compressOptions);
+    if (writerScParams.size() > 0) {
+        // Options always contain a leading space
+        assert(writerScParams[0] == ' ');
+        ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_SCPARAMS_KEY,
+            static_cast<uint32_t>(writerScParams.size()),
+            writerScParams.c_str() + 1); // +1 to exclude leading space
+    }
+
     // Save output file
     if (std::filesystem::path(options.outputFilepath).has_parent_path())
         std::filesystem::create_directories(std::filesystem::path(options.outputFilepath).parent_path());
@@ -1227,7 +1273,7 @@ void CommandCreate::encode(KTXTexture2& texture, OptionsCodec<false>& opts) {
 }
 
 void CommandCreate::encodeASTC(KTXTexture2& texture, OptionsASTC& opts) {
-    if (opts.astc) {
+    if (opts.encodeASTC) {
         const auto ret = ktxTexture2_CompressAstcEx(texture, &opts);
         if (ret != KTX_SUCCESS)
             fatal(rc::KTX_FAILURE, "Failed to encode KTX2 file with codec ASTC. KTX Error: {}", ktxErrorString(ret));
