@@ -1,143 +1,143 @@
 # Copyright 2020 Andreas Atteneder
 # SPDX-License-Identifier: Apache-2.0
 
-add_test( NAME toktx-test-help
+add_test( NAME toktx-test.help
     COMMAND toktx --help
 )
 
-add_test( NAME toktx-test-version
+add_test( NAME toktx-test.version
     COMMAND toktx --version
 )
 set_tests_properties(
-    toktx-test-version
+    toktx-test.version
 PROPERTIES
     PASS_REGULAR_EXPRESSION "^toktx v[0-9\\.]+"
 )
 
-add_test( NAME toktx-test-foobar
+add_test( NAME toktx-test.foobar
     COMMAND toktx --foobar
 )
 
-add_test( NAME toktx-automipmap-mipmaps
+add_test( NAME toktx-test.automipmap-mipmaps
     COMMAND toktx --automipmap --mipmaps a b
 )
-add_test( NAME toktx-alpha
+add_test( NAME toktx-test.alpha
     COMMAND toktx --alpha a b
 )
-add_test( NAME toktx-luminance
+add_test( NAME toktx-test.luminance
     COMMAND toktx --luminance a b
 )
-add_test( NAME toktx-zcmp-bcmp
+add_test( NAME toktx-test.zcmp-bcmp
     COMMAND toktx --zcmp --bcmp a b
 )
-add_test( NAME toktx-bcmp-uastc
+add_test( NAME toktx-test.bcmp-uastc
     COMMAND toktx --bcmp --uastc a b
 )
-add_test( NAME toktx-scale-resize
+add_test( NAME toktx-test.scale-resize
     COMMAND toktx --scale 0.5 --resize 10x40 a b
 )
-add_test( NAME toktx-mipmap-resize
+add_test( NAME toktx-test.mipmap-resize
     COMMAND toktx --mipmap --resize 10x40 a b c
 )
-add_test( NAME toktx-only-max-endpoints
+add_test( NAME toktx-test.only-max-endpoints
     COMMAND toktx --max_endpoints 5000 a b
 )
-add_test( NAME toktx-only-max-selectors
+add_test( NAME toktx-test.only-max-selectors
     COMMAND toktx --max_selectors 6000 a b
 )
 
-add_test( NAME toktx-swizzle-gt-4
+add_test( NAME toktx-test.swizzle-gt-4
     COMMAND toktx --swizzle rgbargba a b
 )
 
-add_test( NAME toktx-invalid-swizzle-char
+add_test( NAME toktx-test.invalid-swizzle-char
     COMMAND toktx --swizzle rrrh a b
 )
 
-add_test( NAME toktx-invalid-target-type
+add_test( NAME toktx-test.invalid-target-type
     COMMAND toktx --target_type RGBH a b
 )
 
-add_test( NAME toktx-set-oetf-second-file-no-error
+add_test( NAME toktx-test.set-oetf-second-file-no-error
     COMMAND toktx --lower_left_maps_to_s0t0 --mipmap --nometadata --assign_oetf linear -- - ../srcimages/level0.ppm ../srcimages/level1.ppm ../srcimages/level2.ppm ../srcimages/level3.ppm ../srcimages/level4.ppm ../srcimages/level5.ppm ../srcimages/level6.ppm
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
 )
 
-add_test( NAME toktx-convert-oetf-second-file-no-error
+add_test( NAME toktx-test.convert-oetf-second-file-no-error
     COMMAND toktx --lower_left_maps_to_s0t0 --mipmap --nometadata --convert_oetf linear -- - ../srcimages/level0.ppm ../srcimages/level1.ppm ../srcimages/level2.ppm ../srcimages/level3.ppm ../srcimages/level4.ppm ../srcimages/level5.ppm ../srcimages/level6.ppm
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
 )
 
-add_test( NAME toktx-change-target-type-second-file-no-error
+add_test( NAME toktx-test.change-target-type-second-file-no-error
     COMMAND toktx --lower_left_maps_to_s0t0 --mipmap --nometadata --target_type RGBA -- - ../srcimages/level0.ppm ../srcimages/level1.ppm ../srcimages/level2.ppm ../srcimages/level3.ppm ../srcimages/level4.ppm ../srcimages/level5.ppm ../srcimages/level6.ppm
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
 )
 
-add_test( NAME toktx-different-colortype-second-file-error
+add_test( NAME toktx-test.different-colortype-second-file-error
     COMMAND toktx --lower_left_maps_to_s0t0 --mipmap --nometadata -- - ../srcimages/level0.ppm ../srcimages/level1-alpha.pam ../srcimages/level2.ppm ../srcimages/level3.ppm ../srcimages/level4.ppm ../srcimages/level5.ppm ../srcimages/level6.ppm
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
 )
 
-add_test( NAME toktx-different-colortype-second-file-warning
+add_test( NAME toktx-test.different-colortype-second-file-warning
     COMMAND toktx --lower_left_maps_to_s0t0 --mipmap --nometadata --target_type RGBA -- - ../srcimages/level0.ppm ../srcimages/level1-alpha.pam ../srcimages/level2.ppm ../srcimages/level3.ppm ../srcimages/level4.ppm ../srcimages/level5.ppm ../srcimages/level6.ppm
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
 )
 
-add_test( NAME toktx-depth-layers
+add_test( NAME toktx-test.depth-layers
     COMMAND toktx --depth 4 --layers 4 a b c d e
 )
 
-add_test( NAME toktx-depth-genmipmap
+add_test( NAME toktx-test.depth-genmipmap
     COMMAND toktx --test --depth 7 --genmipmap --t2 3dtex_7_mipmap_reference_u.ktx2 ../srcimages/red16.png ../srcimages/orange16.png ../srcimages/yellow16.png ../srcimages/green16.png ../srcimages/blue16.png ../srcimages/indigo16.png ../srcimages/violet16.png
 )
 
-add_test( NAME toktx-layers-lt-one
+add_test( NAME toktx-test.layers-lt-one
     COMMAND toktx --layers 0 a b
 )
 
 set_tests_properties(
-    toktx-test-foobar
-    toktx-automipmap-mipmaps
-    toktx-alpha
-    toktx-luminance
-    toktx-zcmp-bcmp
-    toktx-bcmp-uastc
-    toktx-scale-resize
-    toktx-mipmap-resize
-    toktx-only-max-endpoints
-    toktx-only-max-selectors
-    toktx-swizzle-gt-4
-    toktx-invalid-swizzle-char
-    toktx-invalid-target-type
-    toktx-different-colortype-second-file-error
-    toktx-depth-layers
-    toktx-depth-genmipmap
-    toktx-layers-lt-one
+    toktx-test.foobar
+    toktx-test.automipmap-mipmaps
+    toktx-test.alpha
+    toktx-test.luminance
+    toktx-test.zcmp-bcmp
+    toktx-test.bcmp-uastc
+    toktx-test.scale-resize
+    toktx-test.mipmap-resize
+    toktx-test.only-max-endpoints
+    toktx-test.only-max-selectors
+    toktx-test.swizzle-gt-4
+    toktx-test.invalid-swizzle-char
+    toktx-test.invalid-target-type
+    toktx-test.different-colortype-second-file-error
+    toktx-test.depth-layers
+    toktx-test.depth-genmipmap
+    toktx-test.layers-lt-one
 PROPERTIES
     WILL_FAIL TRUE
 )
 
 set_tests_properties(
-    toktx-different-colortype-second-file-warning
+    toktx-test.different-colortype-second-file-warning
 PROPERTIES
     PASS_REGULAR_EXPRESSION "^toktx warning! Image in ../srcimages/level1-alpha.pam\\(0,0\\) has a different component count"
 )
 
 function( gencmpktx test_name reference source args env files )
     if(files)
-        add_test( NAME toktx-cmp-${test_name}
+        add_test( NAME toktx-test.cmp-${test_name}
             COMMAND ${BASH_EXECUTABLE} -c "printf \"${files}\" > ${source} && $<TARGET_FILE:toktx> --test ${args} toktx.${reference} @${source} && diff ${reference} toktx.${reference} && rm toktx.${reference}; rm ${source}"
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
         )
     else()
-        add_test( NAME toktx-cmp-${test_name}
+        add_test( NAME toktx-test.cmp-${test_name}
             COMMAND ${BASH_EXECUTABLE} -c "$<TARGET_FILE:toktx> --test ${args} toktx.${reference} ${source} && diff ${reference} toktx.${reference} && rm toktx.${reference}"
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
         )
     endif()
 
     set_tests_properties(
-        toktx-cmp-${test_name}
+        toktx-test.cmp-${test_name}
     PROPERTIES
         ENVIRONMENT TOKTX_OPTIONS=${env}
     )
@@ -221,12 +221,12 @@ gencmpktx(
     "../srcimages/level0.ppm\\n../srcimages/level1.ppm\\n../srcimages/level2.ppm\\n../srcimages/level3.ppm\\n../srcimages/level4.ppm\\n../srcimages/level5.ppm\\n../srcimages/level6.ppm"
 )
 
-add_test( NAME toktx-cmp-rgb-reference-2
-    COMMAND ${BASH_EXECUTABLE} -c "$<TARGET_FILE:toktx> --nometadata - ../srcimages/rgb.ppm > toktx-cmp-rgb-reference-2.ktx && diff rgb-reference.ktx toktx-cmp-rgb-reference-2.ktx; rm toktx-cmp-rgb-reference-2.ktx"
+add_test( NAME toktx-test.cmp-rgb-reference-2
+    COMMAND ${BASH_EXECUTABLE} -c "$<TARGET_FILE:toktx> --nometadata - ../srcimages/rgb.ppm > toktx-test.cmp-rgb-reference-2.ktx && diff rgb-reference.ktx toktx-test.cmp-rgb-reference-2.ktx; rm toktx-test.cmp-rgb-reference-2.ktx"
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testimages
 )
 set_tests_properties(
-    toktx-cmp-rgb-reference-2
+    toktx-test.cmp-rgb-reference-2
 PROPERTIES
     ENVIRONMENT TOKTX_OPTIONS=--lower_left_maps_to_s0t0
 )

@@ -4,20 +4,20 @@
 # Copyright 2022 Mark Callow
 # SPDX-License-Identifier: Apache-2.0
 
-add_test( NAME ktx2ktx2-test-help
+add_test( NAME ktx2ktx2-test.help
     COMMAND ktx2ktx2 --help
 )
 set_tests_properties(
-    ktx2ktx2-test-help
+    ktx2ktx2-test.help
 PROPERTIES
     PASS_REGULAR_EXPRESSION "^Usage: ktx2ktx2"
 )
 
-add_test( NAME ktx2ktx2-test-version
+add_test( NAME ktx2ktx2-test.version
     COMMAND ktx2ktx2 --version
 )
 set_tests_properties(
-    ktx2ktx2-test-version
+    ktx2ktx2-test.version
 PROPERTIES
     PASS_REGULAR_EXPRESSION "^ktx2ktx2 v[0-9][0-9\\.]+"
 )
@@ -26,65 +26,65 @@ PROPERTIES
 #
 # See comment under the same title in ./ktx2check-tests.cmake.
 
-add_test( NAME ktx2ktx2-test-foobar
+add_test( NAME ktx2ktx2-test.foobar
     COMMAND ktx2ktx2 --foobar
 )
 set_tests_properties(
-    ktx2ktx2-test-foobar
+    ktx2ktx2-test.foobar
 PROPERTIES
     PASS_REGULAR_EXPRESSION "^Usage: ktx2ktx2"
 )
-add_test( NAME ktx2ktx2-test-foobar-exit-code
+add_test( NAME ktx2ktx2-test.foobar-exit-code
     COMMAND ktx2ktx2 --foobar
 )
 set_tests_properties(
-    ktx2ktx2-test-foobar-exit-code
+    ktx2ktx2-test.foobar-exit-code
 PROPERTIES
     WILL_FAIL TRUE
 )
 
-add_test( NAME ktx2ktx2-test-many-in-one-out
+add_test( NAME ktx2ktx2-test.many-in-one-out
     COMMAND ktx2ktx2 -o foo a.ktx b.ktx c.ktx
 )
 set_tests_properties(
-    ktx2ktx2-test-many-in-one-out
+    ktx2ktx2-test.many-in-one-out
 PROPERTIES
     PASS_REGULAR_EXPRESSION "^Can't use -o when there are multiple infiles."
 )
 
-add_test( NAME ktx2ktx2-test-many-in-one-out-exit-code
+add_test( NAME ktx2ktx2-test.many-in-one-out-exit-code
     COMMAND ktx2ktx2 -o foo a.ktx b.ktx c.ktx
 )
 set_tests_properties(
-    ktx2ktx2-test-many-in-one-out-exit-code
+    ktx2ktx2-test.many-in-one-out-exit-code
 PROPERTIES
     WILL_FAIL TRUE
 )
 
 set( IMG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/testimages" )
 
-add_test( NAME ktx2ktx2-test-ktx2-in
+add_test( NAME ktx2ktx2-test.ktx2-in
     COMMAND ktx2ktx2 -o foo CesiumLogoFlat.ktx2
     WORKING_DIRECTORY ${IMG_DIR}
 )
 set_tests_properties(
-    ktx2ktx2-test-ktx2-in
+    ktx2ktx2-test.ktx2-in
 PROPERTIES
     PASS_REGULAR_EXPRESSION ".* is not a KTX v1 file."
 )
-add_test( NAME ktx2ktx2-test-ktx2-in-exit-code
+add_test( NAME ktx2ktx2-test.ktx2-in-exit-code
     COMMAND ktx2ktx2 -o foo CesiumLogoFlat.ktx2
     WORKING_DIRECTORY ${IMG_DIR}
 )
 set_tests_properties(
-    ktx2ktx2-test-ktx2-in-exit-code
+    ktx2ktx2-test.ktx2-in-exit-code
 PROPERTIES
     WILL_FAIL TRUE
 )
 
 function( cnvrtcmpktx test_name reference source args )
     set( workfile ktx2ktx2.${reference} )
-    add_test( NAME ktx2ktx2-cnvrt-${test_name}
+    add_test( NAME ktx2ktx2-test.cnvrt-${test_name}
         COMMAND ${BASH_EXECUTABLE} -c "$<TARGET_FILE:ktx2ktx2> --test ${args} -o ${workfile} ${source} && diff ${reference} ${workfile} && rm ${workfile}"
         WORKING_DIRECTORY ${IMG_DIR}
     )
@@ -95,7 +95,7 @@ function( cnvrtcmpktx_implied_out test_name base_source args )
     set( reference ${base_source}.ktx2 )
     set( worksource ktx2ktx2.ip.${source} )
     set( workfile ktx2ktx2.ip.${reference} )
-    add_test( NAME ktx2ktx2-cnvrt-implied-out-${test_name}
+    add_test( NAME ktx2ktx2-test.cnvrt-implied-out-${test_name}
         COMMAND ${BASH_EXECUTABLE} -c "cp ${source} ${worksource} && $<TARGET_FILE:ktx2ktx2> --test ${args} ${worksource} && rm ${worksource} && diff ${reference} ${workfile} && rm ${workfile}"
         WORKING_DIRECTORY ${IMG_DIR}
     )

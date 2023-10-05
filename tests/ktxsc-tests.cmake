@@ -7,20 +7,20 @@
 # toktx shares a common scapp class with ktxsc so the toktx tests suffice
 # for testing actual compression.
 
-add_test( NAME ktxsc-test-help
+add_test( NAME ktxsc-test.help
     COMMAND ktxsc --help
 )
 set_tests_properties(
-    ktxsc-test-help
+    ktxsc-test.help
 PROPERTIES
     PASS_REGULAR_EXPRESSION "^Usage: ktxsc"
 )
 
-add_test( NAME ktxsc-test-version
+add_test( NAME ktxsc-test.version
     COMMAND ktxsc --version
 )
 set_tests_properties(
-    ktxsc-test-version
+    ktxsc-test.version
 PROPERTIES
     PASS_REGULAR_EXPRESSION "^ktxsc v[0-9][0-9\\.]+"
 )
@@ -29,65 +29,65 @@ PROPERTIES
 #
 # See comment under the same title in ./ktx2check-tests.cmake.
 
-add_test( NAME ktxsc-test-foobar
+add_test( NAME ktxsc-test.foobar
     COMMAND ktxsc --foobar
 )
 set_tests_properties(
-    ktxsc-test-foobar
+    ktxsc-test.foobar
 PROPERTIES
     PASS_REGULAR_EXPRESSION "^Usage: ktxsc"
 )
-add_test( NAME ktxsc-test-foobar-exit-code
+add_test( NAME ktxsc-test.foobar-exit-code
     COMMAND ktxsc --foobar
 )
 set_tests_properties(
-    ktxsc-test-foobar-exit-code
+    ktxsc-test.foobar-exit-code
 PROPERTIES
     WILL_FAIL TRUE
 )
 
-add_test( NAME ktxsc-test-many-in-one-out
+add_test( NAME ktxsc-test.many-in-one-out
     COMMAND ktxsc -o foo a.ktx2 b.ktx2 c.ktx2
 )
 set_tests_properties(
-    ktxsc-test-many-in-one-out
+    ktxsc-test.many-in-one-out
 PROPERTIES
     PASS_REGULAR_EXPRESSION "^Can't use -o when there are multiple infiles."
 )
 
-add_test( NAME ktxsc-test-many-in-one-out-exit-code
+add_test( NAME ktxsc-test.many-in-one-out-exit-code
     COMMAND ktxsc -o foo a.ktx2 b.ktx2 c.ktx2
 )
 set_tests_properties(
-    ktxsc-test-many-in-one-out-exit-code
+    ktxsc-test.many-in-one-out-exit-code
 PROPERTIES
     WILL_FAIL TRUE
 )
 
 set( IMG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/testimages" )
 
-add_test( NAME ktxsc-test-ktx1-in
+add_test( NAME ktxsc-test.ktx1-in
     COMMAND ktxsc --zcmp 5 -o foo orient-up-metadata.ktx
     WORKING_DIRECTORY "${IMG_DIR}"
 )
 set_tests_properties(
-    ktxsc-test-ktx1-in
+    ktxsc-test.ktx1-in
 PROPERTIES
     PASS_REGULAR_EXPRESSION ".* is not a KTX v2 file."
 )
-add_test( NAME ktxsc-test-ktx1-in-exit-code
+add_test( NAME ktxsc-test.ktx1-in-exit-code
     COMMAND ktxsc --zcmp 5 -o foo orient-up-metadata.ktx
     WORKING_DIRECTORY ${IMG_DIR}
 )
 set_tests_properties(
-    ktxsc-test-ktx1-in-exit-code
+    ktxsc-test.ktx1-in-exit-code
 PROPERTIES
     WILL_FAIL TRUE
 )
 
 function( sccmpktx test_name reference source args )
     set( workfile ktxsc.${reference} )
-    add_test( NAME ktxsc-${test_name}
+    add_test( NAME ktxsc-test.${test_name}
         COMMAND ${BASH_EXECUTABLE} -c "$<TARGET_FILE:ktxsc> --test ${args} -o ${workfile} ${source} && diff ${reference} ${workfile} && rm ${workfile}"
         WORKING_DIRECTORY ${IMG_DIR}
     )
@@ -95,7 +95,7 @@ endfunction()
 
 function( sccmpktxinplacecurdir test_name reference source args )
     set( workfile ktxsc.ip1.${reference} )
-    add_test( NAME ktxsc-inplace-curdir-${test_name}
+    add_test( NAME ktxsc-test.inplace-curdir-${test_name}
         COMMAND ${BASH_EXECUTABLE} -c "cp ${source} ${workfile} && $<TARGET_FILE:ktxsc> --test ${args} ${workfile} && diff ${reference} ${workfile} && rm ${workfile}"
         WORKING_DIRECTORY ${IMG_DIR}
     )
@@ -103,7 +103,7 @@ endfunction()
 
 function( sccmpktxinplacediffdir test_name reference source args )
     set( workfile ktxsc.ip2.${reference} )
-    add_test( NAME ktxsc-inplace-diffdir-${test_name}
+    add_test( NAME ktxsc-test.inplace-diffdir-${test_name}
         COMMAND ${BASH_EXECUTABLE} -c "cp ${source} ${workfile} && pushd ../.. && $<TARGET_FILE:ktxsc> --test ${args} ${IMG_DIR}/${workfile} && popd && diff ${reference} ${workfile} && rm ${workfile}"
         WORKING_DIRECTORY ${IMG_DIR}
     )
