@@ -14,14 +14,14 @@
  * @author Mark Callow
  */
 
-#include "stdafx.h"
+#include "imageio.h"
 
 #include <array>
 #include <iterator>
 #include <sstream>
 #include <stdexcept>
 
-#include "imageio.h"
+#include "imageio_utility.h"
 #include "lodepng.h"
 #include <KHR/khr_df.h>
 #include "dfd.h"
@@ -93,8 +93,8 @@ void PngInput::slurp()
 void
 PngInput::readHeader()
 {
-    // Unfortunately LoadPNG doesn't believe in stdio. The functions we
-    // need either read from memory or take a file name. To avoid
+    // Unfortunately LoadPNG doesn't believe in stdio. The functions
+    // we need either read from memory or take a file name. To avoid
     // a potentially unnecessary slurp of the whole file check the
     // signature ourselves.
     uint8_t pngsig[8] = {
@@ -283,46 +283,25 @@ PngInput::readHeader()
     }
 }
 
-// TODO: Lift bit_ceil function into a common header where both ktx tools and imageio can access it
-// C++20 - std::bit_ceil
-template <typename T>
-[[nodiscard]] static constexpr inline T bit_ceil(T x) noexcept {
-    x -= 1;
-    for (uint32_t i = 0; i < sizeof(x) * 8; ++i)
-        if (1u << i > x)
-            return 1u << i;
-    return 0;
-}
 
-// TODO: Lift convertUNORM function into a common header where both ktx tools and imageio can access it
-[[nodiscard]] constexpr inline uint32_t convertUNORM(uint32_t value, uint32_t sourceBits, uint32_t targetBits) noexcept {
-    assert(sourceBits != 0);
-    assert(targetBits != 0);
-
-    value &= (1u << sourceBits) - 1u;
-    if (targetBits == sourceBits) {
-        return value;
-    } else if (targetBits >= sourceBits) {
-        // Upscale with "left bit replication" to fill in the least significant bits
-        uint64_t result = 0;
-        for (uint32_t i = 0; i < targetBits; i += sourceBits)
-            result |= static_cast<uint64_t>(value) << (targetBits - i) >> sourceBits;
-
-        return static_cast<uint32_t>(result);
-    } else {
-        // Downscale with rounding: Check the most significant bit that was dropped: 1 -> up, 0 -> down
-        const auto msDroppedBitIndex = sourceBits - targetBits - 1u;
-        const auto msDroppedBitValue = value & (1u << msDroppedBitIndex);
-        if (msDroppedBitValue)
-            // Min stops the 'overflow' if every targetBit is saturated and we would round up
-            return std::min((value >> (sourceBits - targetBits)) + 1u, (1u << targetBits) - 1u);
-        else
-            return value >> (sourceBits - targetBits);
-    }
-}
-
+/// @brief Read an entire image into contiguous memory performing conversions
+/// to @a format.
+///
+/// Supported conversions are
+/// - bit scaling
+///   - unorm\<=8->[unorm8,unorm16]
+///   - unorm8<->unorm16
+/// - changing channel count
+///   - [GREY,GREY_ALPHA,RGB,RGBA]->[GREY,GREY_ALPHA,RGB,RGBA]
+///   When reducing to 1 or 2 channels it takes the R channel for GREY.
+///   When increasing from 1 or 2 channels it makes a luminance texture,
+///   R=G=B=GREY. ALPHA goes to A and vice versa. If none in the source,
+///   1.0 is used.
+///
+/// If the PNG file has an sBit chunk the normalized results are adjusted
+/// accordingly.
 void
-PngInput::readImage(void* bufferOut,  size_t bufferOutByteCount,
+PngInput::readImage(void* bufferOut, size_t bufferOutByteCount,
                     uint32_t /*subimage*/, uint32_t /*miplevel*/,
                     const FormatDescriptor& format)
 {
@@ -332,11 +311,13 @@ PngInput::readImage(void* bufferOut,  size_t bufferOutByteCount,
     const auto height = spec().height();
     const auto width = spec().width();
     const auto targetBitLength = targetFormat.largestChannelBitLength();
-    const auto requestBits = std::max(bit_ceil(targetBitLength), 8u);
+    const auto requestBits = std::max(imageio::bit_ceil(targetBitLength), 8u);
 
     if (requestBits != 8 && requestBits != 16)
         throw std::runtime_error(fmt::format(
-                "PNG decode error: Requested decode into {} bit format is not supported.", requestBits));
+                "PNG decode error: Requested decode into {}-bit format is not supported.",
+                requestBits)
+              );
 
     const bool targetL = targetFormat.samples[0].qualifierLinear;
     const bool targetE = targetFormat.samples[0].qualifierExponent;
@@ -351,7 +332,8 @@ PngInput::readImage(void* bufferOut,  size_t bufferOutByteCount,
                 targetL ? " Linear" : "",
                 targetE ? " Exponent" : "",
                 targetS ? " Signed" : "",
-                targetF ? " Float" : ""));
+                targetF ? " Float" : "")
+              );
 
     state.info_raw.bitdepth = requestBits;
     state.info_raw.colortype = [&]{
@@ -366,7 +348,9 @@ PngInput::readImage(void* bufferOut,  size_t bufferOutByteCount,
             return LCT_RGBA;
         }
         throw std::runtime_error(fmt::format(
-                "PNG decode error: Requested decode into {} channel is not supported.", targetFormat.channelCount()));
+                "PNG decode error: Requested decode into {} channels is not supported.",
+                targetFormat.channelCount())
+              );
     }();
     auto lodepngError = lodepng_finish_decode(
                                           (unsigned char*)bufferOut,
@@ -406,10 +390,10 @@ PngInput::readImage(void* bufferOut,  size_t bufferOutByteCount,
                     const auto index = y * width * channelCount + x * channelCount + c;
                     if (requestBits == 8) {
                         auto& value = *(reinterpret_cast<uint8_t*>(bufferOut) + index);
-                        value = static_cast<uint8_t>(convertUNORM(value >> (8 - sBits[c]), sBits[c], 8));
+                        value = static_cast<uint8_t>(imageio::convertUNORM(value >> (8 - sBits[c]), sBits[c], 8));
                     } else { // requestBits == 16
                         auto& value = *(reinterpret_cast<uint16_t*>(bufferOut) + index);
-                        value = static_cast<uint16_t>(convertUNORM(value >> (16 - sBits[c]), sBits[c], 16));
+                        value = static_cast<uint16_t>(imageio::convertUNORM(value >> (16 - sBits[c]), sBits[c], 16));
                     }
                 }
             }

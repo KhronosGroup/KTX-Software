@@ -355,6 +355,10 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
       "Transcode of UASTC+zstd Compressed KTX2 XY normal map mipmapped"
     },
     { Texture::create,
+      "--use-vma uastc_Iron_Bars_001_normal.ktx2",
+      "Transcode of UASTC+zstd Compressed KTX2 XY normal map mipmapped, using VMA"
+    },
+    { Texture::create,
       "ktx_document_uastc_rdo4_zstd5.ktx2",
       "UASTC+rdo+zstd compressed KTX2 RGBA8 mipmapped"
     },

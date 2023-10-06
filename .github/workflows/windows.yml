@@ -119,6 +119,13 @@ jobs:
         # included (used for version creation)
         fetch-depth: 0
 
+    - name: Install NSIS with large string support
+      shell: bash
+      run: |
+        stack exec -- wget -O nsis-3.08-strlen_8192.zip https://downloads.sourceforge.net/nsis/NSIS%203/3.08/nsis-3.08-strlen_8192.zip
+        7z x -aoa -o"/c/Program Files (x86)/NSIS" nsis-3.08-strlen_8192.zip
+        rm nsis-3.08-strlen_8192.zip
+
     - name: Force fetch provoking tag's annotation.
       # Work around https://github.com/actions/checkout/issues/290.
       if: github.ref_type == 'tag'

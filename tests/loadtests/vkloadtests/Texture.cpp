@@ -65,6 +65,7 @@ Texture::Texture(VulkanContext& vkctx,
     zoom = -2.5f;
     rotation = { 0.0f, 15.0f, 0.0f };
     tiling = vk::ImageTiling::eOptimal;
+    useSubAlloc = UseSuballocator::No;
     rgbcolor upperLeftColor{ 0.7f, 0.1f, 0.2f };
     rgbcolor lowerLeftColor{ 0.8f, 0.9f, 0.3f };
     rgbcolor upperRightColor{ 0.4f, 1.0f, 0.5f };
@@ -118,10 +119,21 @@ Texture::Texture(VulkanContext& vkctx,
         throw unsupported_ttype();
     }
 
-    ktxresult = ktxTexture_VkUploadEx(kTexture, &vdi, &texture,
-                                      static_cast<VkImageTiling>(tiling),
-                                      VK_IMAGE_USAGE_SAMPLED_BIT,
-                                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    if (useSubAlloc == UseSuballocator::Yes)
+    {
+        VkInstance vkInst = vkctx.instance;
+        VMA_CALLBACKS::InitVMA(vdi.physicalDevice, vdi.device, vkInst, vdi.deviceMemoryProperties);
+
+        ktxresult = ktxTexture_VkUploadEx_WithSuballocator(kTexture, &vdi, &texture,
+                                                           static_cast<VkImageTiling>(tiling),
+                                                           VK_IMAGE_USAGE_SAMPLED_BIT,
+                                                           VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, &subAllocatorCallbacks);
+    }
+    else // Keep separate call so ktxTexture_VkUploadEx is also tested.
+        ktxresult = ktxTexture_VkUploadEx(kTexture, &vdi, &texture,
+                                          static_cast<VkImageTiling>(tiling),
+                                          VK_IMAGE_USAGE_SAMPLED_BIT,
+                                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     
     if (KTX_SUCCESS != ktxresult) {
         std::stringstream message;
@@ -182,7 +194,7 @@ Texture::Texture(VulkanContext& vkctx,
 
     ktxTexture_Destroy(kTexture);
     ktxVulkanDeviceInfo_Destruct(&vdi);
-    
+
     try {
         prepare();
     } catch (std::exception& e) {
@@ -222,10 +234,11 @@ Texture::processArgs(std::string sArgs)
 {
     // Options descriptor
     struct argparser::option longopts[] = {
-      {"external",      argparser::option::no_argument,       &externalFile, 1},
-      {"linear-tiling", argparser::option::no_argument,       (int*)&tiling, (int)vk::ImageTiling::eLinear},
-      {"qcolor",        argparser::option::required_argument, NULL,          1},
-      {NULL,            argparser::option::no_argument,       NULL,          0}
+      {"external",      argparser::option::no_argument,       &externalFile,        1},
+      {"linear-tiling", argparser::option::no_argument,       (int*)&tiling,        (int)vk::ImageTiling::eLinear},
+      {"use-vma",       argparser::option::no_argument,       (int*)&useSubAlloc,   (int)UseSuballocator::Yes},
+      {"qcolor",        argparser::option::required_argument, NULL,                 1},
+      {NULL,            argparser::option::no_argument,       NULL,                 0}
     };
 
     argvector argv(sArgs);
@@ -279,7 +292,15 @@ Texture::cleanup()
     if (imageView)
         vkctx.device.destroyImageView(imageView);
 
-    ktxVulkanTexture_Destruct(&texture, vkctx.device, nullptr);
+
+    if (useSubAlloc == UseSuballocator::Yes)
+    {
+        VkDevice vkDev = vkctx.device;
+        (void)ktxVulkanTexture_Destruct_WithSuballocator(&texture, vkDev, VK_NULL_HANDLE, &subAllocatorCallbacks);
+        VMA_CALLBACKS::DestroyVMA();
+    }
+    else // Keep separate call so ktxVulkanTexture_Destruct is also tested.
+        ktxVulkanTexture_Destruct(&texture, vkctx.device, nullptr);
 
     if (pipelines.solid)
         vkctx.device.destroyPipeline(pipelines.solid);

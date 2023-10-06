@@ -139,6 +139,9 @@ protected:
 
     virtual void initOptions(cxxopts::Options& /*opts*/) { }
     virtual void processOptions(cxxopts::Options& /*opts*/, cxxopts::ParseResult& /*args*/) { };
+#if defined(_WIN32) && defined(DEBUG)
+    bool launchDebugger();
+#endif
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -146,9 +149,9 @@ protected:
 /**
 //! [command options_generic]
 <dl>
-    <dt>-h, --help</dt>
+    <dt>-h, \--help</dt>
     <dd>Print this usage message and exit.</dd>
-    <dt>-v, --version</dt>
+    <dt>-v, \--version</dt>
     <dd>Print the version number of this program and exit.</dd>
 </dl>
 //! [command options_generic]
@@ -162,7 +165,11 @@ struct OptionsGeneric {
         opts.add_options()
                 ("h,help", "Print this usage message and exit")
                 ("v,version", "Print the version number of this program and exit")
-                ("testrun", "Indicates test run. If enabled the tool will produce deterministic output whenever possible");
+                ("testrun", "Indicates test run. If enabled the tool will produce deterministic output whenever possible")
+#if defined(_WIN32) && defined(DEBUG)
+                ("ld", "Launch debugger on startup.")
+#endif
+                ;
     }
 
     void process(cxxopts::Options& opts, cxxopts::ParseResult& args, Reporter& report) {
@@ -190,7 +197,7 @@ enum class OutputFormat {
 /**
 //! [command options_format]
 <dl>
-    <dt>--format text | json | mini-json</dt>
+    <dt>\--format text | json | mini-json</dt>
     <dd>Specifies the report output format. Possible options are: <br />
         @b text - Human readable text based format. <br />
         @b json - Formatted JSON. <br />

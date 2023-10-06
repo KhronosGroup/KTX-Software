@@ -1953,15 +1953,17 @@ ktxTexture2_NeedsTranscoding(ktxTexture2* This)
 /**
  * @memberof ktxTexture2
  * @~English
- * @brief Return the total size in bytes of the uncompressed data of a ktxTexture2.
+ * @brief Return the total size in bytes of the uncompressed data of a
+ *        ktxTexture2.
  *
- * If supercompressionScheme == KTX_SS_NONE or
- * KTX_SS_BASIS_LZ, returns the value of @c This->dataSize
- * else if supercompressionScheme == KTX_SS_ZSTD or KTX_SS_ZLIB, it returns the
- * sum of the uncompressed sizes of each mip level plus space for the level padding. With no
- * supercompression the data size and uncompressed data size are the same. For Basis
- * supercompression the uncompressed size cannot be known until the data is transcoded
- * so the compressed size is returned.
+ * If supercompressionScheme == @c KTX_SS_NONE or
+ * @c KTX_SS_BASIS_LZ, returns the value of @c This->dataSize
+ * else if supercompressionScheme == @c KTX_SS_ZSTD or @c KTX_SS_ZLIB, it
+ * returns the sum of the uncompressed sizes of each mip level plus space for
+ * the level padding. With no supercompression the data size and uncompressed
+ * data size are the same. For Basis supercompression the uncompressed size
+ * cannot be known until the data is transcoded so the compressed size is
+ * returned.
  *
  * @param[in]     This     pointer to the ktxTexture1 object of interest.
  */
@@ -2336,12 +2338,12 @@ ktxTexture2_inflateZLIBInt(ktxTexture2* This, ktx_uint8_t* pDeflatedData,
  * @~English
  * @brief Load all the image data from the ktxTexture2's source.
  *
- * The data will be inflated if supercompressionScheme == KTX_SS_ZSTD or
- * KTX_SS_ZLIB.
+ * The data will be inflated if supercompressionScheme == @c KTX_SS_ZSTD or
+ * @c KTX_SS_ZLIB.
  * The data is loaded into the provided buffer or to an internally allocated
  * buffer, if @p pBuffer is @c NULL. Callers providing their own buffer must
  * ensure the buffer large enough to hold the inflated data for files deflated
- * with Zstd or ZLIB. See ktxTexture2_GetDataSizeUncompressed().
+ * with Zstd or ZLIB. See ktxTexture2\_GetDataSizeUncompressed().
  *
  * The texture's levelIndex, dataSize, DFD  and supercompressionScheme will
  * all be updated after successful inflation to reflect the inflated data.

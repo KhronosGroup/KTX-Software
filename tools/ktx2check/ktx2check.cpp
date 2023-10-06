@@ -98,12 +98,12 @@ Check the validity of a KTX 2 file.
 
     The following options are available:
     <dl>
-    <dt>-q, --quiet</dt>
+    <dt>-q, \--quiet</dt>
     <dd>Validate silently. Indicate valid or invalid via exit code.</dd>
     <dt>-m &lt;num&gt;, --max-issues &lt;num&gt;</dt>
     <dd>Set the maximum number of issues to be reported per file
         provided -q is not set.</dd>
-    <dt>-w, --warn-as-error</dt>
+    <dt>-w, \--warn-as-error</dt>
     <dd>Treat warnings as errors. Changes exit code from success to error.
     </dl>
     @snippetdoc ktxapp.h ktxApp options
@@ -132,6 +132,9 @@ struct issue {
 };
 
 #define WARNING 0x00010000
+#if defined(ERROR) // windows.h defines this and is included by ktxapp.h.
+  #undef ERROR
+#endif
 #define ERROR 0x00100000
 #define FATAL 0x01000000
 
@@ -1104,7 +1107,6 @@ ktxValidator::usage()
     ktxApp::usage();
 }
 
-
 int _tmain(int argc, _TCHAR* argv[])
 {
 
@@ -1147,17 +1149,27 @@ ktxValidator::validateFile(const _tstring& filename)
     // of this method.
     ifstream ifs;
     stringstream buffer;
+    bool doBuffer;
 
     if (filename.compare(_T("-")) == 0) {
 #if defined(_WIN32)
         /* Set "stdin" to have binary mode */
         (void)_setmode( _fileno( stdin ), _O_BINARY );
-#endif
+        // Windows shells set the FILE_SYNCHRONOUS_IO_NONALERT option when
+        // creating pipes. Cygwin since 3.4.x does the same thing, a change
+        // which affects anything dependent on it, e.g. Git for Windows
+        // (since 2.41.0) and MSYS2. When this option is set, cin.seekg(0)
+        // erroneously returns success. Always buffer.
+        doBuffer = true;
+#else
         // Can we seek in this cin?
         cin.seekg(0);
-        if (cin.fail()) {
+        doBuffer = cin.fail();
+#endif
+        if (doBuffer) {
             // Read entire file into a stringstream so we can seek.
-            buffer << std::cin.rdbuf();
+            buffer << cin.rdbuf();
+            buffer.seekg(0, ios::beg);
             isp = &buffer;
         } else {
             isp = &cin;

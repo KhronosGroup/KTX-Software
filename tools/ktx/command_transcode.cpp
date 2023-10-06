@@ -48,7 +48,7 @@ Transcode a KTX2 file.
 
     The following options are available:
     <dl>
-        <dt>--target &lt;target&gt;</dt>
+        <dt>\--target &lt;target&gt;</dt>
         <dd>Target transcode format.
             If the target option is not set the r8, rg8, rgb8 or rgba8 target will be
             selected based on the number of channels in the input texture.

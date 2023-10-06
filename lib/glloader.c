@@ -55,8 +55,8 @@
  * @example glloader.c
  * This is an example of using the low-level ktxTexture API to create and load
  * an OpenGL texture. It is a fragment of the code used by
- * @ref ktxTexture1.ktxTexture1\_GLUpload "ktxTexture1_GLUpload" and
- * @ref ktxTexture2.ktxTexture2\_GLUpload "ktxTexture2_GLUpload".
+ * @ref ktxTexture1::ktxTexture1\_GLUpload "ktxTexture1_GLUpload" and
+ * @ref ktxTexture2::ktxTexture2\_GLUpload "ktxTexture2_GLUpload".
  *
  * @code
  * #include <ktx.h>
@@ -70,7 +70,7 @@
  * ktxTexture1.ktxTexture1\_GLUpload "ktxTexture1_GLUpload" or
  * @ref ktxTexture2.ktxTexture2\_GLUpload "ktxTexture2_GLUpload" based on the
  * dimensionality and arrayness of the texture, is called from
- * @ref ktxTexture.ktxTexture_IterateLevelFaces
+ * @ref ktxTexture::ktxTexture_IterateLevelFaces
  * "ktxTexture_IterateLevelFaces" to upload the texture data to OpenGL.
  * @snippet this imageCallbacks
  *
@@ -854,17 +854,17 @@ ktxTexture_GLUploadPrivate(ktxTexture* This, ktx_glformatinfo* formatInfo,
  * @~English
  * @brief Create a GL texture object from a ktxTexture1 object.
  *
- * Sets the texture object's GL_TEXTURE_MAX_LEVEL parameter according to the
+ * Sets the texture object's GL\_TEXTURE\_MAX\_LEVEL parameter according to the
  * number of levels in the KTX data, provided the context supports this feature.
  *
- * Unpacks compressed GL_ETC1_RGB8_OES and GL_ETC2_* format
+ * Unpacks compressed GL\_ETC1\_RGB8\_OES and GL\_ETC2\_\* format
  * textures in software when the format is not supported by the GL context,
- * provided the library has been compiled with SUPPORT_SOFTWARE_ETC_UNPACK
+ * provided the library has been compiled with @c SUPPORT_SOFTWARE_ETC_UNPACK
  * defined as 1.
  *
  * It will also convert textures with legacy formats to their modern equivalents
  * when the format is not supported by the GL context, provided the library
- * has been compiled with SUPPORT_LEGACY_FORMAT_CONVERSION defined as 1.
+ * has been compiled with @c SUPPORT_LEGACY_FORMAT_CONVERSION defined as 1.
  *
  * @param[in] This          handle of the ktxTexture to upload.
  * @param[in,out] pTexture  name of the GL texture object to load. If NULL or if
@@ -881,15 +881,17 @@ ktxTexture_GLUploadPrivate(ktxTexture* This, ktx_glformatinfo* formatInfo,
  *                          glGetError when this function returns the error
  *                          KTX_GL_ERROR. pGlerror can be NULL.
  *
- * @return  KTX_SUCCESS on success, other KTX_* enum values on error.
+ * @return  KTX\_SUCCESS on success, other KTX\_\* enum values on error.
  *
+ * @exception KTX_GL_ERROR    A GL error was raised by glBindTexture,
+ *                            glGenTextures or gl*TexImage*. The GL error
+ *                            will be returned in @p *glerror, if glerror
+ *                            is not @c NULL.
  * @exception KTX_INVALID_VALUE @p This or @p target is @c NULL or the size of
  *                              a mip level is greater than the size of the
  *                              preceding level.
- * @exception KTX_GL_ERROR      A GL error was raised by glBindTexture,
- *                              glGenTextures or gl*TexImage*. The GL error
- *                              will be returned in @p *glerror, if glerror
- *                              is not @c NULL.
+ * @exception KTX_NOT_FOUND   A dynamically loaded OpenGL {,ES} function
+ *                            required by the loader was not found.
  * @exception KTX_UNSUPPORTED_TEXTURE_TYPE The type of texture is not supported
  *                                         by the current OpenGL context.
  */
@@ -942,12 +944,12 @@ ktxTexture1_GLUpload(ktxTexture1* This, GLuint* pTexture, GLenum* pTarget,
  * @~English
  * @brief Create a GL texture object from a ktxTexture2 object.
  *
- * Sets the texture object's GL_TEXTURE_MAX_LEVEL parameter according to the
+ * Sets the texture object's GL\_TEXTURE\_MAX\_LEVEL parameter according to the
  * number of levels in the KTX data, provided the context supports this feature.
  *
- * Unpacks compressed GL_ETC1_RGB8_OES and GL_ETC2_* format
+ * Unpacks compressed GL\_ETC1\_RGB8\_OES and GL\_ETC2\_\* format
  * textures in software when the format is not supported by the GL context,
- * provided the library has been compiled with SUPPORT_SOFTWARE_ETC_UNPACK
+ * provided the library has been compiled with @c SUPPORT_SOFTWARE_ETC_UNPACK
  * defined as 1.
  *
  * @param[in] This          handle of the ktxTexture to upload.
@@ -965,15 +967,17 @@ ktxTexture1_GLUpload(ktxTexture1* This, GLuint* pTexture, GLenum* pTarget,
  *                          glGetError when this function returns the error
  *                          KTX_GL_ERROR. pGlerror can be NULL.
  *
- * @return  KTX_SUCCESS on success, other KTX_* enum values on error.
+ * @return  KTX\_SUCCESS on success, other KTX\_\* enum values on error.
  *
+ * @exception KTX_GL_ERROR    A GL error was raised by glBindTexture,
+ *                            glGenTextures or gl*TexImage*. The GL error
+ *                            will be returned in @p *glerror, if glerror
+ *                            is not @c NULL.
  * @exception KTX_INVALID_VALUE @p This or @p target is @c NULL or the size of
  *                              a mip level is greater than the size of the
  *                              preceding level.
- * @exception KTX_GL_ERROR      A GL error was raised by glBindTexture,
- *                              glGenTextures or gl*TexImage*. The GL error
- *                              will be returned in @p *glerror, if glerror
- *                              is not @c NULL.
+ * @exception KTX_NOT_FOUND   A dynamically loaded OpenGL {,ES} function
+ *                            required by the loader was not found.
  * @exception KTX_UNSUPPORTED_TEXTURE_TYPE The type of texture is not supported
  *                                         by the current OpenGL context.
  */
@@ -1041,7 +1045,7 @@ ktxTexture2_GLUpload(ktxTexture2* This, GLuint* pTexture, GLenum* pTarget,
  * @~English
  * @brief Create a GL texture object from a ktxTexture1 object.
  *
- * In ordert to ensure that the GL uploader is not linked into an application unless explicitly called,
+ * In order to ensure that the GL uploader is not linked into an application unless explicitly called,
  * this is not a virtual function. It determines the texture type then dispatches to the correct function.
  *
  * @copydetails ktxTexture1::ktxTexture1_GLUpload

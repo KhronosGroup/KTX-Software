@@ -4,14 +4,7 @@
 // Copyright 2019-2020 Mark Callow
 // SPDX-License-Identifier: Apache-2.0
 
-#if defined(_WIN32)
-  // <windows.h> must appear before "scapp.h" for error-free mingw/gcc11 build.
-  // _CRT_SECURE_NO_WARNINGS must be defined before <windows.h> and <iostream>
-  // so we can't rely on the definition included by "scapp.h".
-  #define _CRT_SECURE_NO_WARNINGS
-  #define WINDOWS_LEAN_AND_MEAN
-  #include <windows.h>
-#endif
+#include "scapp.h"
 
 #include <cstdlib>
 #include <errno.h>
@@ -22,7 +15,6 @@
 #include <ktx.h>
 
 #include "argparser.h"
-#include "scapp.h"
 #include "version.h"
 
 #if defined(_MSC_VER)
@@ -69,11 +61,11 @@ Supercompress the images in a KTX2 file.
     <dd>Write the output to @e outfile. If @e outfile is 'stdout', output will
         be written to stdout. If there is more than 1 @e infile the command
         prints its usage message and exits.</dd>
-    <dt>-f, --force</dt>
+    <dt>-f, \--force</dt>
     <dd>If the destination file cannot be opened, remove it and create a
         new file, without prompting for confirmation regardless of its
         permissions.</dd>
-    <dt>--t2</dt>
+    <dt>\--t2</dt>
     <dd>Output a KTX version2 file. Always true.</dd>
     </dl>
     @snippet{doc} scapp.h scApp options

@@ -17,6 +17,21 @@
 // vulkantextoverlay.hpp via VulkanAppSDL.h.
 #include "utils/VulkanMeshLoader.hpp"
 
+#include <ktxvulkan.h>
+
+namespace VMA_CALLBACKS
+{
+    void InitVMA(VkPhysicalDevice& physicalDevice, VkDevice& device, VkInstance& instance, 
+                 VkPhysicalDeviceMemoryProperties& devMemProps);
+    void DestroyVMA();
+    uint64_t AllocMemCWrapper(VkMemoryAllocateInfo* allocInfo, VkMemoryRequirements* memReq, uint64_t* numPages);
+    VkResult BindBufferMemoryCWrapper(VkBuffer buffer, uint64_t allocId);
+    VkResult BindImageMemoryCWrapper(VkImage image, uint64_t allocId);
+    VkResult MapMemoryCWrapper(uint64_t allocId, uint64_t, VkDeviceSize* mapLength, void** dataPtr);
+    void UnmapMemoryCWrapper(uint64_t allocId, uint64_t);
+    void FreeMemCWrapper(uint64_t allocId);
+}
+
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
 
 extern "C" const char* vkFormatString(VkFormat format);
@@ -51,6 +66,16 @@ class VulkanLoadTestSample : public LoadTestSample {
                                     const std::string sBasePath);
 
   protected:
+
+    ktxVulkanTexture_subAllocatorCallbacks subAllocatorCallbacks = {
+        VMA_CALLBACKS::AllocMemCWrapper,
+        VMA_CALLBACKS::BindBufferMemoryCWrapper,
+        VMA_CALLBACKS::BindImageMemoryCWrapper,
+        VMA_CALLBACKS::MapMemoryCWrapper,
+        VMA_CALLBACKS::UnmapMemoryCWrapper,
+        VMA_CALLBACKS::FreeMemCWrapper
+    };
+
     virtual void keyPressed(uint32_t /*keyCode*/) { }
     virtual void viewChanged() { }
     bool gpuSupportsSwizzle() {

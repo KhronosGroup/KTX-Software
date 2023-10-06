@@ -73,7 +73,7 @@ Extract selected images from a KTX2 file.
 
     The following options are available:
     <dl>
-        <dt>--transcode &lt;target&gt;</dt>
+        <dt>\--transcode &lt;target&gt;</dt>
         <dd>Transcode the texture to the target format before executing the extract.
             Requires the input file to be transcodable (it must be either BasisLZ
             supercompressed or has UASTC color model in the DFD). This option matches the
@@ -88,25 +88,25 @@ Extract selected images from a KTX2 file.
         </dd>
     </dl>
     <dl>
-        <dt>--uri &lt;uri&gt;</dt>
+        <dt>\--uri &lt;uri&gt;</dt>
         <dd>KTX Fragment URI. https://registry.khronos.org/KTX/specs/2.0/ktx-frag.html
         </dd>
-        <dt>--level [0-9]+ | all</dt>
+        <dt>\--level [0-9]+ | all</dt>
         <dd>Level to extract. When 'all' is used every level is exported. Defaults to 0.
         </dd>
-        <dt>--layer [0-9]+ | all</dt>
+        <dt>\--layer [0-9]+ | all</dt>
         <dd>Layer to extract. When 'all' is used every layer is exported. Defaults to 0.
         </dd>
-        <dt>--face [0-9]+ | all</dt>
+        <dt>\--face [0-9]+ | all</dt>
         <dd>Face to extract. When 'all' is used every face is exported. Defaults to 0.
         </dd>
-        <dt>--depth [0-9]+ | all</dt>
+        <dt>\--depth [0-9]+ | all</dt>
         <dd>Depth slice to extract. When 'all' is used every depth is exported. Defaults to 0.
         </dd>
-        <dt>--all</dt>
+        <dt>\--all</dt>
         <dd>Extract every image slice from the texture.
         </dd>
-        <dt>--raw</dt>
+        <dt>\--raw</dt>
         <dd>Extract the raw image data without any conversion.
         </dd>
     </dl>
@@ -126,6 +126,17 @@ Extract selected images from a KTX2 file.
 */
 class CommandExtract : public Command {
     struct OptionsExtract {
+        inline static const char* kOutput = "output";
+        inline static const char* kStdout = "stdout";
+        inline static const char* kTranscode = "transcode";
+        inline static const char* kUri = "uri";
+        inline static const char* kLevel = "level";
+        inline static const char* kLayer = "layer";
+        inline static const char* kFace = "face";
+        inline static const char* kDepth = "depth";
+        inline static const char* kAll = "all";
+        inline static const char* kRaw = "raw";
+
         std::string outputPath;
         FragmentURI fragmentURI;
         SelectorRange depth;
@@ -180,9 +191,9 @@ int CommandExtract::main(int argc, _TCHAR* argv[]) {
 
 void CommandExtract::OptionsExtract::init(cxxopts::Options& opts) {
     opts.add_options()
-            ("output", "Output filepath for single, output directory for multiple image export.", cxxopts::value<std::string>(), "<filepath>")
-            ("stdout", "Use stdout as the output file. (Using a single dash '-' as the output file has the same effect)")
-            ("transcode", "Transcode the texture to the target format before executing the extract steps."
+            (kOutput, "Output filepath for single, output directory for multiple image export.", cxxopts::value<std::string>(), "<filepath>")
+            (kStdout, "Use stdout as the output file. (Using a single dash '-' as the output file has the same effect)")
+            (kTranscode, "Transcode the texture to the target format before executing the extract steps."
                           " Requires the input file to be transcodable."
                           " Block compressed transcode targets can only be saved in raw format."
                           " Case-insensitive."
@@ -191,18 +202,18 @@ void CommandExtract::OptionsExtract::init(cxxopts::Options& opts) {
                           " r8 | rg8 | rgb8 | rgba8."
                           "\netc-rgb is ETC1; etc-rgba, eac-r11 and eac-rg11 are ETC2.",
                           cxxopts::value<std::string>(), "<target>")
-            ("uri", "KTX Fragment URI.", cxxopts::value<std::string>(), "<uri>")
-            ("level", "Level to extract. When 'all' is used every level is exported. Defaults to 0.", cxxopts::value<std::string>(), "[0-9]+ | all")
-            ("layer", "Layer to extract. When 'all' is used every layer is exported. Defaults to 0.", cxxopts::value<std::string>(), "[0-9]+ | all")
-            ("face", "Face to extract. When 'all' is used every face is exported. Defaults to 0.", cxxopts::value<std::string>(), "[0-5] | all")
-            ("depth", "Depth slice to extract. When 'all' is used every depth is exported. Defaults to 0.", cxxopts::value<std::string>(), "[0-9]+ | all")
-            ("all", "Extract every image slice from the texture.")
-            ("raw", "Extract the raw image data without any conversion.");
+            (kUri, "KTX Fragment URI.", cxxopts::value<std::string>(), "<uri>")
+            (kLevel, "Level to extract. When 'all' is used every level is exported. Defaults to 0.", cxxopts::value<std::string>(), "[0-9]+ | all")
+            (kLayer, "Layer to extract. When 'all' is used every layer is exported. Defaults to 0.", cxxopts::value<std::string>(), "[0-9]+ | all")
+            (kFace, "Face to extract. When 'all' is used every face is exported. Defaults to 0.", cxxopts::value<std::string>(), "[0-5] | all")
+            (kDepth, "Depth slice to extract. When 'all' is used every depth is exported. Defaults to 0.", cxxopts::value<std::string>(), "[0-9]+ | all")
+            (kAll, "Extract every image slice from the texture.")
+            (kRaw, "Extract the raw image data without any conversion.");
 }
 
 void CommandExtract::OptionsExtract::process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
-    if (args.count("output"))
-        outputPath = args["output"].as<std::string>();
+    if (args.count(kOutput))
+        outputPath = args[kOutput].as<std::string>();
     else
         report.fatal_usage("Missing output file or directory path.");
 
@@ -212,7 +223,7 @@ void CommandExtract::OptionsExtract::process(cxxopts::Options&, cxxopts::ParseRe
         const auto str = to_lower_copy(args[name].as<std::string>());
         try {
             found = true;
-            return str == "all" ? SelectorRange(all) : SelectorRange(std::stoi(str));
+            return str == kAll ? SelectorRange(all) : SelectorRange(std::stoi(str));
         } catch (const std::invalid_argument&) {
             report.fatal_usage("Invalid {} value \"{}\". The value must be a either a number or \"all\".", name, str);
         } catch (const std::out_of_range& e) {
@@ -221,12 +232,12 @@ void CommandExtract::OptionsExtract::process(cxxopts::Options&, cxxopts::ParseRe
         return std::nullopt;
     };
 
-    auto level = parseSelector("level", levelFlagUsed);
-    auto layer = parseSelector("layer", layerFlagUsed);
-    auto face = parseSelector("face", faceFlagUsed);
-    auto depth_ = parseSelector("depth", depthFlagUsed);
-    raw = args["raw"].as<bool>();
-    globalAll = args["all"].as<bool>();
+    auto level = parseSelector(kLevel, levelFlagUsed);
+    auto layer = parseSelector(kLayer, layerFlagUsed);
+    auto face = parseSelector(kFace, faceFlagUsed);
+    auto depth_ = parseSelector(kDepth, depthFlagUsed);
+    raw = args[kRaw].as<bool>();
+    globalAll = args[kAll].as<bool>();
 
     if (globalAll) {
         if (level)
@@ -255,7 +266,7 @@ void CommandExtract::OptionsExtract::process(cxxopts::Options&, cxxopts::ParseRe
     if (depth_ == all && outputPath == "-")
         report.fatal_usage("stdout cannot be used with multi-output '--depth all' extract.");
 
-    if (args["uri"].count()) {
+    if (args[kUri].count()) {
         uriFlagUsed = true;
 
         if (globalAll)
@@ -268,7 +279,7 @@ void CommandExtract::OptionsExtract::process(cxxopts::Options&, cxxopts::ParseRe
             report.fatal_usage("Conflicting options: --face cannot be used with --uri.");
 
         try {
-            fragmentURI = parseFragmentURI(args["uri"].as<std::string>());
+            fragmentURI = parseFragmentURI(args[kUri].as<std::string>());
         } catch (const std::exception& e) {
             report.fatal_usage("Failed to parse Fragment URI: {}", e.what());
         }
@@ -292,7 +303,7 @@ void CommandExtract::OptionsExtract::process(cxxopts::Options&, cxxopts::ParseRe
 
 void CommandExtract::initOptions(cxxopts::Options& opts) {
     options.init(opts);
-    opts.parse_positional({"input-file", "output"});
+    opts.parse_positional({"input-file", OptionsExtract::kOutput});
     opts.positional_help("<input-file> <output>");
 }
 
@@ -527,6 +538,8 @@ void CommandExtract::decodeAndSaveASTC(std::string filepath, bool appendExtensio
             height);
 }
 
+using namespace imageio;
+
 void CommandExtract::unpackAndSave422(std::string filepath, bool appendExtension,
         VkFormat vkFormat, const FormatDescriptor& format, uint32_t width, uint32_t height,
         const char* data, std::size_t size) {
@@ -630,16 +643,16 @@ void CommandExtract::unpackAndSave422(std::string filepath, bool appendExtension
             char* pixel0 = unpackedData.data() + (y * width + x * 2) * pixelBytes;
             char* pixel1 = unpackedData.data() + (y * width + x * 2 + 1) * pixelBytes;
 
-            const float valueLeftY1 = covertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlockLeft, y1Offset, y1Bits), y1Bits);
-            const float valueLeftU = covertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlockLeft, uOffset, uBits), uBits);
-            const float valueLeftV = covertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlockLeft, vOffset, vBits), vBits);
-            const float valueY0 = covertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlock, y0Offset, y0Bits), y0Bits);
-            const float valueY1 = covertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlock, y1Offset, y1Bits), y1Bits);
-            const float valueU = covertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlock, uOffset, uBits), uBits);
-            const float valueV = covertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlock, vOffset, vBits), vBits);
-            const float valueRightY0 = covertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlockRight, y0Offset, y0Bits), y0Bits);
-            const float valueRightU = covertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlockRight, uOffset, uBits), uBits);
-            const float valueRightV = covertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlockRight, vOffset, vBits), vBits);
+            const float valueLeftY1 = convertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlockLeft, y1Offset, y1Bits), y1Bits);
+            const float valueLeftU = convertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlockLeft, uOffset, uBits), uBits);
+            const float valueLeftV = convertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlockLeft, vOffset, vBits), vBits);
+            const float valueY0 = convertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlock, y0Offset, y0Bits), y0Bits);
+            const float valueY1 = convertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlock, y1Offset, y1Bits), y1Bits);
+            const float valueU = convertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlock, uOffset, uBits), uBits);
+            const float valueV = convertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlock, vOffset, vBits), vBits);
+            const float valueRightY0 = convertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlockRight, y0Offset, y0Bits), y0Bits);
+            const float valueRightU = convertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlockRight, uOffset, uBits), uBits);
+            const float valueRightV = convertUNORMToFloat(extract_bits<uint32_t>(rawYUVBlockRight, vOffset, vBits), vBits);
 
             const auto interpolateY = [](float pos, float pos0, float value0, float pos1, float value1, float pos2, float value2, float pos3, float value3) {
                 if (pos < pos1)
@@ -658,17 +671,17 @@ void CommandExtract::unpackAndSave422(std::string filepath, bool appendExtension
             };
 
             const auto setPixel = [&](auto* pixel, float pos) {
-                const auto r = covertFloatToUNORM(interpolateUV(pos,
+                const auto r = convertFloatToUNORM(interpolateUV(pos,
                         positionV - blockSize, valueLeftV,
                         positionV, valueV,
                         positionV + blockSize, valueRightV), uBits);
-                const auto g = covertFloatToUNORM(interpolateY(
+                const auto g = convertFloatToUNORM(interpolateY(
                         pos,
                         positionY1 - blockSize, valueLeftY1,
                         positionY0, valueY0,
                         positionY1, valueY1,
                         positionY0 + blockSize, valueRightY0), y0Bits);
-                const auto b = covertFloatToUNORM(interpolateUV(pos,
+                const auto b = convertFloatToUNORM(interpolateUV(pos,
                         positionU - blockSize, valueLeftU,
                         positionU, valueU,
                         positionU + blockSize, valueRightU), uBits);
@@ -923,31 +936,31 @@ void CommandExtract::saveEXR(std::string filepath, bool appendExtension,
                     if (pixelTypes[c] == TINYEXR_PIXELTYPE_FLOAT || pixelTypes[c] == TINYEXR_PIXELTYPE_HALF) {
                         if (channel.isFloat) {
                             if (channel.isSigned)
-                                target = bit_cast<uint32_t>(covertSFloatToFloat(value, bits));
+                                target = bit_cast<uint32_t>(convertSFloatToFloat(value, bits));
                             else
-                                target = bit_cast<uint32_t>(covertUFloatToFloat(value, bits));
+                                target = bit_cast<uint32_t>(convertUFloatToFloat(value, bits));
                         } else {
                             if (channel.isNormalized) {
                                 if (channel.isSigned)
-                                    target = bit_cast<uint32_t>(covertSNORMToFloat(value, bits));
+                                    target = bit_cast<uint32_t>(convertSNORMToFloat(value, bits));
                                 else
-                                    target = bit_cast<uint32_t>(covertUNORMToFloat(value, bits));
+                                    target = bit_cast<uint32_t>(convertUNORMToFloat(value, bits));
                             } else {
                                 if (channel.isSigned)
-                                    target = bit_cast<uint32_t>(covertSIntToFloat(value, bits));
+                                    target = bit_cast<uint32_t>(convertSIntToFloat(value, bits));
                                 else
-                                    target = bit_cast<uint32_t>(covertUIntToFloat(value, bits));
+                                    target = bit_cast<uint32_t>(convertUIntToFloat(value, bits));
                             }
                         }
                     } else if (pixelTypes[c] == TINYEXR_PIXELTYPE_UINT) {
                         if (channel.isFloat && channel.isSigned) {
-                            target = covertSFloatToUInt(value, bits);
+                            target = convertSFloatToUInt(value, bits);
                         } else if (channel.isFloat && !channel.isSigned) {
-                            target = covertUFloatToUInt(value, bits);
+                            target = convertUFloatToUInt(value, bits);
                         } else if (!channel.isFloat && channel.isSigned) {
-                            target = covertSIntToUInt(value, bits);
+                            target = convertSIntToUInt(value, bits);
                         } else if (!channel.isFloat && !channel.isSigned) {
-                            target = covertUIntToUInt(value, bits);
+                            target = convertUIntToUInt(value, bits);
                         }
                     } else
                         assert(false && "Internal error");

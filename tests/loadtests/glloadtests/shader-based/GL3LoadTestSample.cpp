@@ -63,7 +63,7 @@ GL3LoadTestSample::makeShader(GLenum type,
         glGetShaderInfoLog(sh, logLength, &charsWritten, infoLog);
 
         message << "makeShader compilation error" << std::endl << infoLog;
-        delete infoLog;
+        delete[] infoLog;
         glDeleteShader(sh);
         throw std::runtime_error(message.str());
     } else {
@@ -107,7 +107,7 @@ GL3LoadTestSample::makeProgram(GLuint vs, GLuint fs, GLuint* program)
             glGetProgramInfoLog(prog, logLength, &charsWritten, infoLog);
             
             message << "makeProgram link error" << std::endl << infoLog;
-            delete infoLog;
+            delete[] infoLog;
             glDeleteProgram(prog);
             throw std::runtime_error(message.str());
         }
