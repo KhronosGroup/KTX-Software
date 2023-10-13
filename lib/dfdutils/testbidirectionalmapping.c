@@ -573,7 +573,7 @@ enum VkFormat unmap(uint32_t *dfd)
 #include "dfd2vk.inl"
 }
 
-int main()
+int main(int argc, char** argv)
 {
     unsigned int i;
     for (i = 1; i <= 184; ++i) {

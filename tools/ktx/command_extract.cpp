@@ -1120,8 +1120,8 @@ void CommandExtract::saveImageFile(
     case VK_FORMAT_B5G5R5A1_UNORM_PACK16: [[fallthrough]];
     case VK_FORMAT_A1R5G5B5_UNORM_PACK16: [[fallthrough]];
     case VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR: [[fallthrough]];
-    case VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT: [[fallthrough]];
-    case VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT: [[fallthrough]];
+    case VK_FORMAT_A4R4G4B4_UNORM_PACK16: [[fallthrough]];
+    case VK_FORMAT_A4B4G4R4_UNORM_PACK16: [[fallthrough]];
     case VK_FORMAT_R10X6_UNORM_PACK16: [[fallthrough]];
     case VK_FORMAT_R10X6G10X6_UNORM_2PACK16: [[fallthrough]];
     case VK_FORMAT_R10X6G10X6B10X6A10X6_UNORM_4PACK16: [[fallthrough]];

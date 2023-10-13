@@ -1,10 +1,10 @@
 
 /***************************** Do not edit.  *****************************
- Automatically generated from vulkan_core.h version 151 by mkvkformatfiles.
+ Automatically generated from vulkan_core.h version 267 by mkvkformatfiles.
  *************************************************************************/
 
 /*
-** Copyright (c) 2015-2020 The Khronos Group Inc.
+** Copyright 2015-2023 The Khronos Group Inc.
 **
 ** SPDX-License-Identifier: Apache-2.0
 */
@@ -69,6 +69,10 @@ isProhibitedFormat(VkFormat format)
       case VK_FORMAT_G16_B16_R16_3PLANE_422_UNORM:
       case VK_FORMAT_G16_B16R16_2PLANE_422_UNORM:
       case VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM:
+      case VK_FORMAT_G8_B8R8_2PLANE_444_UNORM:
+      case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16:
+      case VK_FORMAT_G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16:
+      case VK_FORMAT_G16_B16R16_2PLANE_444_UNORM:
         return true;
       default:
         return false;
@@ -96,6 +100,22 @@ isValidFormat(VkFormat format)
         case VK_FORMAT_B12X4G12X4R12X4G12X4_422_UNORM_4PACK16:
         case VK_FORMAT_G16B16G16R16_422_UNORM:
         case VK_FORMAT_B16G16R16G16_422_UNORM:
+        case VK_FORMAT_A4R4G4B4_UNORM_PACK16:
+        case VK_FORMAT_A4B4G4R4_UNORM_PACK16:
+        case VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK:
+        case VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK:
+        case VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK:
+        case VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK:
+        case VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK:
+        case VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK:
+        case VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK:
+        case VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK:
+        case VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK:
+        case VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK:
+        case VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK:
+        case VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK:
+        case VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK:
+        case VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK:
         case VK_FORMAT_PVRTC1_2BPP_UNORM_BLOCK_IMG:
         case VK_FORMAT_PVRTC1_4BPP_UNORM_BLOCK_IMG:
         case VK_FORMAT_PVRTC2_2BPP_UNORM_BLOCK_IMG:
@@ -104,20 +124,6 @@ isValidFormat(VkFormat format)
         case VK_FORMAT_PVRTC1_4BPP_SRGB_BLOCK_IMG:
         case VK_FORMAT_PVRTC2_2BPP_SRGB_BLOCK_IMG:
         case VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG:
-        case VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK_EXT:
-        case VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK_EXT:
-        case VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK_EXT:
-        case VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK_EXT:
-        case VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK_EXT:
-        case VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK_EXT:
-        case VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK_EXT:
-        case VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK_EXT:
-        case VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK_EXT:
-        case VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK_EXT:
-        case VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK_EXT:
-        case VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK_EXT:
-        case VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK_EXT:
-        case VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK_EXT:
         case VK_FORMAT_ASTC_3x3x3_UNORM_BLOCK_EXT:
         case VK_FORMAT_ASTC_3x3x3_SRGB_BLOCK_EXT:
         case VK_FORMAT_ASTC_3x3x3_SFLOAT_BLOCK_EXT:
@@ -148,8 +154,7 @@ isValidFormat(VkFormat format)
         case VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT:
         case VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT:
         case VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT:
-        case VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT:
-        case VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT:
+        case VK_FORMAT_R16G16_S10_5_NV:
         case VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR:
         case VK_FORMAT_A8_UNORM_KHR:
         return true;
