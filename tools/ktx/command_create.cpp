@@ -429,6 +429,8 @@ struct OptionsCreate {
                 VK_FORMAT_D16_UNORM_S8_UINT,
                 VK_FORMAT_D24_UNORM_S8_UINT,
                 VK_FORMAT_D32_SFLOAT_S8_UINT,
+                VK_FORMAT_A8_UNORM_KHR,
+                VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR,
         };
 
         if (isProhibitedFormat(vkFormat))
@@ -841,7 +843,7 @@ private:
             uint32_t numMipLevels, uint32_t layerIndex, uint32_t faceIndex, uint32_t depthSliceIndex);
 
     [[nodiscard]] std::string readRawFile(const std::filesystem::path& filepath);
-    [[nodiscard]] std::unique_ptr<Image> loadInputImage(ImageInput& inputImageFile, const ImageSpec& target);
+    [[nodiscard]] std::unique_ptr<Image> loadInputImage(ImageInput& inputImageFile);
     std::vector<uint8_t> convert(const std::unique_ptr<Image>& image, VkFormat format, ImageInput& inputFile);
 
     std::unique_ptr<const ColorPrimaries> createColorPrimaries(khr_df_primaries_e primaries) const;
@@ -1159,7 +1161,7 @@ void CommandCreate::executeCreate() {
                 fatal(rc::INVALID_FILE, "Input image \"{}\" with size {}x{} does not match expected size {}x{} for level {}.",
                         fmtInFile(inputFilepath), inputImageFile->spec().width(), inputImageFile->spec().height(), imageWidth, imageHeight, levelIndex);
 
-            auto image = loadInputImage(*inputImageFile, target);
+            auto image = loadInputImage(*inputImageFile);
 
             if (colorSpaceInfo.dstTransferFunction != nullptr) {
                 assert(colorSpaceInfo.srcTransferFunction != nullptr);
@@ -1296,98 +1298,46 @@ void CommandCreate::compress(KTXTexture2& texture, const OptionsCompress& opts) 
 
 // -------------------------------------------------------------------------------------------------
 
-std::unique_ptr<Image> CommandCreate::loadInputImage(ImageInput& inputImageFile, const ImageSpec& target) {
+std::unique_ptr<Image> CommandCreate::loadInputImage(ImageInput& inputImageFile) {
     std::unique_ptr<Image> image = nullptr;
 
     const auto& inputFormat = inputImageFile.spec().format();
     const auto width = inputImageFile.spec().width();
     const auto height = inputImageFile.spec().height();
 
-    const uint32_t channelCount = std::min(4u, std::max(target.format().channelCount(), inputFormat.channelCount()));
     const auto inputBitLength = inputFormat.largestChannelBitLength();
     const auto requestBitLength = std::max(imageio::bit_ceil(inputBitLength), 8u);
     FormatDescriptor loadFormat;
 
-    assert(channelCount >= 1 && channelCount <= 4);
+    switch (inputImageFile.formatType()) {
+    case ImageInputFormatType::exr_uint:
+        image = std::make_unique<rgba32image>(width, height);
+        loadFormat = createFormatDescriptor(VK_FORMAT_R32G32B32A32_UINT, *this);
+        break;
 
-    if (inputImageFile.formatType() == ImageInputFormatType::exr_float) {
-        switch (channelCount) {
-        case 1:
-            image = std::make_unique<r32fimage>(width, height);
-            loadFormat = createFormatDescriptor(VK_FORMAT_R32_SFLOAT, *this);
-            break;
-        case 2:
-            image = std::make_unique<rg32fimage>(width, height);
-            loadFormat = createFormatDescriptor(VK_FORMAT_R32G32_SFLOAT, *this);
-            break;
-        case 3:
-            image = std::make_unique<rgb32fimage>(width, height);
-            loadFormat = createFormatDescriptor(VK_FORMAT_R32G32B32_SFLOAT, *this);
-            break;
-        case 4:
-            image = std::make_unique<rgba32fimage>(width, height);
-            loadFormat = createFormatDescriptor(VK_FORMAT_R32G32B32A32_SFLOAT, *this);
-            break;
-        }
-    } else if (requestBitLength == 8) {
-        switch (channelCount) {
-        case 1:
-            image = std::make_unique<r8image>(width, height);
-            loadFormat = createFormatDescriptor(VK_FORMAT_R8_UNORM, *this);
-            break;
-        case 2:
-            image = std::make_unique<rg8image>(width, height);
-            loadFormat = createFormatDescriptor(VK_FORMAT_R8G8_UNORM, *this);
-            break;
-        case 3:
-            image = std::make_unique<rgb8image>(width, height);
-            loadFormat = createFormatDescriptor(VK_FORMAT_R8G8B8_UNORM, *this);
-            break;
-        case 4:
+    case ImageInputFormatType::exr_float:
+        image = std::make_unique<rgba32fimage>(width, height);
+        loadFormat = createFormatDescriptor(VK_FORMAT_R32G32B32A32_SFLOAT, *this);
+        break;
+
+    case ImageInputFormatType::npbm: [[fallthrough]];
+    case ImageInputFormatType::jpg: [[fallthrough]];
+    case ImageInputFormatType::png_l: [[fallthrough]];
+    case ImageInputFormatType::png_la: [[fallthrough]];
+    case ImageInputFormatType::png_rgb: [[fallthrough]];
+    case ImageInputFormatType::png_rgba:
+        if (requestBitLength == 8) {
             image = std::make_unique<rgba8image>(width, height);
             loadFormat = createFormatDescriptor(VK_FORMAT_R8G8B8A8_UNORM, *this);
             break;
-        }
-    } else if (requestBitLength == 16) {
-        switch (channelCount) {
-        case 1:
-            image = std::make_unique<r16image>(width, height);
-            loadFormat = createFormatDescriptor(VK_FORMAT_R16_UNORM, *this);
-            break;
-        case 2:
-            image = std::make_unique<rg16image>(width, height);
-            loadFormat = createFormatDescriptor(VK_FORMAT_R16G16_UNORM, *this);
-            break;
-        case 3:
-            image = std::make_unique<rgb16image>(width, height);
-            loadFormat = createFormatDescriptor(VK_FORMAT_R16G16B16_UNORM, *this);
-            break;
-        case 4:
+        } else if (requestBitLength == 16) {
             image = std::make_unique<rgba16image>(width, height);
             loadFormat = createFormatDescriptor(VK_FORMAT_R16G16B16A16_UNORM, *this);
             break;
+        } else {
+            fatal(rc::INVALID_FILE, "Unsupported format with {}-bit channels.", requestBitLength);
         }
-    } else if (requestBitLength == 32) {
-        switch (channelCount) {
-        case 1:
-            image = std::make_unique<r32image>(width, height);
-            loadFormat = createFormatDescriptor(VK_FORMAT_R32_UINT, *this);
-            break;
-        case 2:
-            image = std::make_unique<rg32image>(width, height);
-            loadFormat = createFormatDescriptor(VK_FORMAT_R32G32_UINT, *this);
-            break;
-        case 3:
-            image = std::make_unique<rgb32image>(width, height);
-            loadFormat = createFormatDescriptor(VK_FORMAT_R32G32B32_UINT, *this);
-            break;
-        case 4:
-            image = std::make_unique<rgba32image>(width, height);
-            loadFormat = createFormatDescriptor(VK_FORMAT_R32G32B32A32_UINT, *this);
-            break;
-        }
-    } else {
-        fatal(rc::INVALID_FILE, "Unsupported format with {}-bit channels.", requestBitLength);
+        break;
     }
 
     inputImageFile.readImage(static_cast<uint8_t*>(*image), image->getByteCount(), 0, 0, loadFormat);
@@ -1653,6 +1603,9 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
     case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
         requireUNORM(8);
         return convertUNORMPacked(image, 1, 5, 5, 5, "argb");
+    case VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR:
+        requireUNORM(8);
+        return convertUNORMPacked(image, 1, 5, 5, 5, "abgr");
     case VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT:
         requireUNORM(8);
         return convertUNORMPacked(image, 4, 4, 4, 4, "argb");
@@ -1860,6 +1813,12 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
     case VK_FORMAT_D24_UNORM_S8_UINT: [[fallthrough]];
     case VK_FORMAT_D32_SFLOAT_S8_UINT:
         fatal(rc::INVALID_ARGUMENTS, "Unsupported format for non-raw create: {}.", toString(options.vkFormat));
+        break;
+
+    case VK_FORMAT_A8_UNORM_KHR:
+        // Special case for alpha-only
+        requireUNORM(8);
+        return convertUNORM<r8image>(image, "a000");
         break;
 
         // Not supported

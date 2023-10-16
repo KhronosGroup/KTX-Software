@@ -150,6 +150,8 @@ isValidFormat(VkFormat format)
         case VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT:
         case VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT:
         case VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT:
+        case VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR:
+        case VK_FORMAT_A8_UNORM_KHR:
         return true;
       default:
         return false;
