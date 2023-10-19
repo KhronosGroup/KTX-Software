@@ -10,7 +10,14 @@
 #include <fmt/format.h>
 
 #if defined(_WIN32)
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #include <windows.h> // For GetModuleFileNameW
+#include <shellapi.h> // For ShellExecuteW
 #include <pathcch.h> // For PathCchRemoveFileSpec
 #include <fmt/xchar.h> // For wchat_t format
 #endif
@@ -161,15 +168,15 @@ void CommandHelp::executeHelp() {
         fatal(rc::RUNTIME_ERROR, "Failed to open the html documentation: ERROR {}", r);
 
 #else
-#   if defined(__APPLE__)
+#if defined(__APPLE__)
     char buf[PATH_MAX];
     uint32_t bufsize = PATH_MAX;
     if (const auto ec = _NSGetExecutablePath(buf, &bufsize))
         fatal(rc::RUNTIME_ERROR, "Failed to determine executable path: ERROR {}", ec);
     const auto executablePath = std::filesystem::canonical(buf);
-#   else // Linux
+#else // Linux
     const auto executablePath = std::filesystem::canonical("/proc/self/exe");
-#   endif
+#endif
 
     const auto executableDir = std::filesystem::path(executablePath).remove_filename();
     const auto manFile = fmt::format("{}/../share/man/man1/ktx{}{}.1",

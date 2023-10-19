@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "command.h"
+#include "platform_utils.h"
 #include "format_descriptor.h"
 #include "formats.h"
 #include "fragment_uri.h"
@@ -386,13 +387,14 @@ void CommandExtract::executeExtract() {
             (!options.fragmentURI.facial.is_undefined() && options.fragmentURI.facial.is_multi()) ||
             ((options.globalAll || options.depthFlagUsed) && options.depth.is_multi());
     try {
+        const auto outputPath = std::filesystem::path(DecodeUTF8Path(options.outputPath));
         if (isMultiOutput) {
-            if (std::filesystem::exists(options.outputPath) && !std::filesystem::is_directory(options.outputPath))
+            if (std::filesystem::exists(outputPath) && !std::filesystem::is_directory(outputPath))
                 fatal_usage("Specified output path must be a directory for multi-output extract: \"{}\".", options.outputPath);
-            std::filesystem::create_directories(options.outputPath);
+            std::filesystem::create_directories(outputPath);
         } else {
-            if (std::filesystem::path(options.outputPath).has_parent_path())
-                std::filesystem::create_directories(std::filesystem::path(options.outputPath).parent_path());
+            if (outputPath.has_parent_path())
+                std::filesystem::create_directories(outputPath.parent_path());
         }
     } catch (const std::filesystem::filesystem_error& e) {
         fatal(rc::IO_FAILURE, "Failed to create the output directory \"{}\": {}.", e.path1().generic_string(), e.what());
