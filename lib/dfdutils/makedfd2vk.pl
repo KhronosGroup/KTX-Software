@@ -294,6 +294,7 @@ $packedDecode = << 'END_PACKED';
       } else { /* Four channels, one-bit alpha */
         if (B.offset == 0) return VK_FORMAT_A1R5G5B5_UNORM_PACK16;
         if (B.offset == 1) return VK_FORMAT_R5G5B5A1_UNORM_PACK16;
+        if (B.offset == 10) return VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR;
         return VK_FORMAT_B5G5R5A1_UNORM_PACK16;
       }
     } else if (wordBytes == 4) { /* PACK32 */
@@ -315,6 +316,11 @@ print "  } else { /* Not a packed format */\n";
 for ($byteSize = 1; $byteSize <= 8; $byteSize <<= 1) {
     if ($byteSize == 1) {
         print "    if (wordBytes == $byteSize) {\n";
+
+        # Handle the single alpha-only format (unfortunately, the rest of the script could not handle this)
+        print "      if (A.size > 8 && R.size == 0 && G.size == 0 && B.size == 0 && (r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) {\n";
+        print "          return VK_FORMAT_A8_UNORM_KHR;\n";
+        print "      }\n";
     } else {
         print "    } else if (wordBytes == $byteSize) {\n";
     }

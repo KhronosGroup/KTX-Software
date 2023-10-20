@@ -747,3 +747,39 @@ uint32_t *createDFDDepthStencil(int depthBits,
     }
     return DFD;
 }
+
+/**
+ * @~English
+ * @brief Create a Data Format Descriptor for an alpha-only format.
+ *
+ * @param bigEndian Set to 1 for big-endian byte ordering and
+                    0 for little-endian byte ordering.
+ * @param bytes     The number of bytes per channel.
+ * @param suffix    Indicates the format suffix for the type.
+ *
+ * @return A data format descriptor in malloc'd data. The caller is responsible
+ *         for freeing the descriptor.
+ **/
+uint32_t *createDFDAlpha(int bigEndian, int bytes,
+                         enum VkSuffix suffix) {
+    uint32_t *DFD;
+    int channel = 3; /* alpha channel */
+    if (bigEndian) {
+        int channelByte;
+        /* Number of samples = number of channels * bytes per channel */
+        DFD = writeHeader(bytes, bytes, suffix, i_COLOR);
+        /* Loop over the bytes that constitute a channel */
+        for (channelByte = 0; channelByte < bytes; ++channelByte) {
+            writeSample(DFD, channelByte, channel,
+                        8, 8 * (bytes - channelByte - 1),
+                        channelByte == bytes-1, channelByte == 0, suffix);
+        }
+    } else { /* Little-endian */
+        /* One sample per channel */
+        DFD = writeHeader(1, bytes, suffix, i_COLOR);
+        writeSample(DFD, 0, channel,
+                    8 * bytes, 0,
+                    1, 1, suffix);
+    }
+    return DFD;
+}

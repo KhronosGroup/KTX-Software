@@ -565,6 +565,10 @@ vkFormatString(VkFormat format)
         return "VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT";
       case VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT:
         return "VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT";
+      case VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR:
+        return "VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR";
+      case VK_FORMAT_A8_UNORM_KHR:
+        return "VK_FORMAT_A8_UNORM_KHR";
       default:
         return "VK_UNKNOWN_FORMAT";
     }
@@ -1152,5 +1156,9 @@ stringToVkFormat(const char* str)
         return VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT;
     if (ktx_strcasecmp(str, "A4B4G4R4_UNORM_PACK16_EXT") == 0)
         return VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT;
+    if (ktx_strcasecmp(str, "A1B5G5R5_UNORM_PACK16_KHR") == 0)
+        return VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR;
+    if (ktx_strcasecmp(str, "A8_UNORM_KHR") == 0)
+        return VK_FORMAT_A8_UNORM_KHR;
     return VK_FORMAT_UNDEFINED;
 }

@@ -716,58 +716,70 @@ void CommandExtract::savePNG(std::string filepath, bool appendExtension,
     if (appendExtension && filepath != "-")
         filepath += ".png";
 
-    uint32_t rOffset = 0;
-    uint32_t rBits = 0;
-    uint32_t gOffset = 0;
-    uint32_t gBits = 0;
-    uint32_t bOffset = 0;
-    uint32_t bBits = 0;
-    uint32_t aOffset = 0;
-    uint32_t aBits = 0;
+    const auto depthFormat = (vkFormat == VK_FORMAT_D16_UNORM);
+    const auto alphaFormat = (vkFormat == VK_FORMAT_A8_UNORM_KHR);
 
-    if (format.model() != KHR_DF_MODEL_RGBSDA)
-        fatal(rc::NOT_SUPPORTED, "PNG saving is unsupported for {} with {}.", toString(format.model()), toString(vkFormat));
+    uint32_t packedChannelCount = 0;
+    uint32_t unpackedChannelCount = 3;
+    LodePNGColorType colorType = LCT_RGB;
 
-    if (const auto sample = format.find(KHR_DF_CHANNEL_RGBSDA_R)) {
-        rOffset = sample->bitOffset;
-        rBits = sample->bitLength + 1;
-    }
-    if (const auto sample = format.find(KHR_DF_CHANNEL_RGBSDA_G)) {
-        gOffset = sample->bitOffset;
-        gBits = sample->bitLength + 1;
-    }
-    if (const auto sample = format.find(KHR_DF_CHANNEL_RGBSDA_B)) {
-        bOffset = sample->bitOffset;
-        bBits = sample->bitLength + 1;
-    }
-    if (const auto sample = format.find(KHR_DF_CHANNEL_RGBSDA_A)) {
-        aOffset = sample->bitOffset;
-        aBits = sample->bitLength + 1;
-    }
-    if (const auto sample = format.find(KHR_DF_CHANNEL_RGBSDA_D)) {
-        // Use red for depth too (depth channels are exclusive for depth/stencil formats)
-        rOffset = sample->bitOffset;
-        rBits = sample->bitLength + 1;
-    }
+    uint32_t bitDepth = 8;
 
-    const auto largestBits = std::max(std::max(rBits, gBits), std::max(bBits, aBits));
-    const auto bitDepth = std::max(bit_ceil(largestBits), 8u);
-    const auto byteDepth = bitDepth / 8u;
-    const auto pixelBytes = format.pixelByteCount();
-    const auto packedChannelCount = (rBits > 0 ? 1u : 0u) + (gBits > 0 ? 1u : 0u) + (bBits > 0 ? 1u : 0u) + (aBits > 0 ? 1u : 0u);
-    const auto unpackedChannelCount =
-            vkFormat == VK_FORMAT_D16_UNORM ? 1 :
-            std::max(packedChannelCount, 3u); // Every R or RG format is saved as RGB
-    const auto colorType =
-            unpackedChannelCount == 1 ? LCT_GREY :
-            unpackedChannelCount == 3 ? LCT_RGB :
-            unpackedChannelCount == 4 ? LCT_RGBA :
-            LCT_MAX_OCTET_VALUE;
-    assert(colorType != LCT_MAX_OCTET_VALUE);
-    assert(bitDepth == 8 || bitDepth == 16);
-    assert(size == width * height * pixelBytes); (void) size;
+    uint32_t srcOffsets[4] = {};
+    uint32_t srcBits[4] = {};
+    uint32_t dstChannels[4] = {};
+
+    auto addChannel = [&](uint32_t dstChannel, const FormatDescriptor::sample* sample) {
+        srcOffsets[packedChannelCount] = sample->bitOffset;
+        srcBits[packedChannelCount] = sample->bitLength + 1;
+        dstChannels[packedChannelCount] = dstChannel;
+        packedChannelCount++;
+
+        if (sample->bitLength >= 8) {
+            bitDepth = 16;
+        }
+    };
 
     lodepng::State state{};
+
+    if (format.model() != KHR_DF_MODEL_RGBSDA)
+        fatal(rc::NOT_SUPPORTED, "PNG saving is not supported for {} with {}.", toString(format.model()), toString(vkFormat));
+
+    if (const auto sample = format.find(KHR_DF_CHANNEL_RGBSDA_R)) {
+        addChannel(0, sample);
+    }
+    if (const auto sample = format.find(KHR_DF_CHANNEL_RGBSDA_G)) {
+        addChannel(1, sample);
+    }
+    if (const auto sample = format.find(KHR_DF_CHANNEL_RGBSDA_B)) {
+        addChannel(2, sample);
+    }
+    if (const auto sample = format.find(KHR_DF_CHANNEL_RGBSDA_A)) {
+        if (alphaFormat) {
+            // For alpha-only formats we use grey-alpha
+            unpackedChannelCount = 2;
+            colorType = LCT_GREY_ALPHA;
+            addChannel(1, sample);
+        } else {
+            unpackedChannelCount = 4;
+            colorType = LCT_RGBA;
+            addChannel(3, sample);
+        }
+    }
+    if (const auto sample = format.find(KHR_DF_CHANNEL_RGBSDA_D)) {
+        if (!depthFormat)
+            fatal(rc::NOT_SUPPORTED, "PNG saving encountered unexpected depth channel in non-depth format {}.", toString(vkFormat));
+
+        // For depth-only formats we use grey
+        unpackedChannelCount = 1;
+        colorType = LCT_GREY;
+        addChannel(0, sample);
+    }
+
+    const auto byteDepth = bitDepth / 8u;
+    const auto pixelBytes = format.pixelByteCount();
+    assert(bitDepth == 8 || bitDepth == 16);
+    assert(size == width * height * pixelBytes); (void) size;
 
     state.info_raw.bitdepth = bitDepth;
     state.info_png.color.colortype = colorType;
@@ -776,16 +788,16 @@ void CommandExtract::savePNG(std::string filepath, bool appendExtension,
 
     // Include sBit chunk if needed
     const auto includeSBits =
-            (rBits != 0 && rBits != bitDepth) ||
-            (gBits != 0 && gBits != bitDepth) ||
-            (bBits != 0 && bBits != bitDepth) ||
-            (aBits != 0 && aBits != bitDepth);
+            (srcBits[0] != 0 && srcBits[0] != bitDepth) ||
+            (srcBits[1] != 0 && srcBits[1] != bitDepth) ||
+            (srcBits[2] != 0 && srcBits[2] != bitDepth) ||
+            (srcBits[3] != 0 && srcBits[3] != bitDepth);
     if (includeSBits) {
         state.info_png.sbit_defined = true;
-        state.info_png.sbit_r = rBits == 0 ? bitDepth : rBits;
-        state.info_png.sbit_g = gBits == 0 ? bitDepth : gBits;
-        state.info_png.sbit_b = bBits == 0 ? bitDepth : bBits;
-        state.info_png.sbit_a = aBits == 0 ? bitDepth : aBits;
+        state.info_png.sbit_r = srcBits[0] == 0 ? bitDepth : srcBits[0];
+        state.info_png.sbit_g = srcBits[1] == 0 ? bitDepth : srcBits[1];
+        state.info_png.sbit_b = srcBits[2] == 0 ? bitDepth : srcBits[2];
+        state.info_png.sbit_a = srcBits[3] == 0 ? bitDepth : srcBits[3];
     }
 
     std::vector<unsigned char> unpackedImage(width * height * unpackedChannelCount * byteDepth);
@@ -794,25 +806,21 @@ void CommandExtract::savePNG(std::string filepath, bool appendExtension,
         for (uint32_t x = 0; x < width; x++) {
             const char* rawPixel = data + (y * width + x) * pixelBytes;
 
-            const auto copy = [&](uint32_t c, uint32_t offset, uint32_t bits) {
-                if (unpackedChannelCount > c && packedChannelCount > c) {
-                    const uint32_t value = convertUNORM(extract_bits<uint32_t>(rawPixel, offset, bits), bits, bitDepth);
-                    if (byteDepth == 1) {
-                        uint8_t temp = static_cast<uint8_t>(value);
-                        std::memcpy(unpackedImage.data() + (y * width * unpackedChannelCount + x * unpackedChannelCount + c) * byteDepth, &temp, byteDepth);
-                    } else if (byteDepth == 2) {
-                        uint16_t temp = static_cast<uint16_t>(value);
-                        if (!is_big_endian)
-                            temp = byteswap(temp); // LodePNG Uses big endian input
-                        std::memcpy(unpackedImage.data() + (y * width * unpackedChannelCount + x * unpackedChannelCount + c) * byteDepth, &temp, byteDepth);
-                    }
+            for (uint32_t packedChannelIndex = 0; packedChannelIndex < packedChannelCount; ++packedChannelIndex) {
+                uint32_t offset = srcOffsets[packedChannelIndex];
+                uint32_t bits = srcBits[packedChannelIndex];
+                uint32_t dstChannel = dstChannels[packedChannelIndex];
+                const uint32_t value = convertUNORM(extract_bits<uint32_t>(rawPixel, offset, bits), bits, bitDepth);
+                if (byteDepth == 1) {
+                    uint8_t temp = static_cast<uint8_t>(value);
+                    std::memcpy(unpackedImage.data() + (y * width * unpackedChannelCount + x * unpackedChannelCount + dstChannel) * byteDepth, &temp, byteDepth);
+                } else if (byteDepth == 2) {
+                    uint16_t temp = static_cast<uint16_t>(value);
+                    if (!is_big_endian)
+                        temp = byteswap(temp); // LodePNG Uses big endian input
+                    std::memcpy(unpackedImage.data() + (y * width * unpackedChannelCount + x * unpackedChannelCount + dstChannel) * byteDepth, &temp, byteDepth);
                 }
-            };
-
-            copy(0, rOffset, rBits);
-            copy(1, gOffset, gBits);
-            copy(2, bOffset, bBits);
-            copy(3, aOffset, aBits);
+            }
         }
     }
 
@@ -1053,6 +1061,7 @@ void CommandExtract::saveImageFile(
         VkFormat vkFormat, const FormatDescriptor& format, uint32_t width, uint32_t height) {
 
     switch (vkFormat) {
+    case VK_FORMAT_A8_UNORM_KHR: [[fallthrough]];
     case VK_FORMAT_R8_UNORM: [[fallthrough]];
     case VK_FORMAT_R8_SRGB: [[fallthrough]];
     case VK_FORMAT_R8G8_UNORM: [[fallthrough]];
@@ -1108,6 +1117,7 @@ void CommandExtract::saveImageFile(
     case VK_FORMAT_R5G5B5A1_UNORM_PACK16: [[fallthrough]];
     case VK_FORMAT_B5G5R5A1_UNORM_PACK16: [[fallthrough]];
     case VK_FORMAT_A1R5G5B5_UNORM_PACK16: [[fallthrough]];
+    case VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR: [[fallthrough]];
     case VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT: [[fallthrough]];
     case VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT: [[fallthrough]];
     case VK_FORMAT_R10X6_UNORM_PACK16: [[fallthrough]];

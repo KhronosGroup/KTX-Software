@@ -205,6 +205,15 @@ while ($line = <>) {
                 # If we're not packed, do we have a simple RGBA channel size list with a suffix?
                 # N.B. We don't want to pick up downsampled or planar formats, which have more _-separated fields
                 # - "$" matches the end of the format identifier
+            } elsif ($format =~ m/VK_FORMAT_A([0-9]+)_([^_]+)(_[^_]+)?$/) {
+                # Special case for alpha-only formats
+
+                # Extract our "suffix" (e.g. "UNORM") and bytes per channel
+                $suffix = $2;
+                $bytesPerChannel = $1 / 8;
+
+                # Output the case entry
+                print "case $format: return createDFDAlpha($bigEndian, $bytesPerChannel, s_$suffix);\n";
             } elsif ($format =~ m/VK_FORMAT_([RGBA0-9]+)_([^_]+)$/) {
 
                 # Extract our "channels" (e.g. "B8G8R8") and "suffix" (e.g. "UNORM")
