@@ -22,7 +22,6 @@ add_executable(ktxtools
         metrics_utils.h
         transcode_utils.cpp
         transcode_utils.h
-        platform_utils.h
         utility.h
         validate.cpp
         validate.h

@@ -918,6 +918,7 @@ add_library( objUtil STATIC
     utils/sbufstream.h
     utils/scapp.h
     utils/stdafx.h
+    utils/platform_utils.h
     utils/unused.h
     )
 target_include_directories(

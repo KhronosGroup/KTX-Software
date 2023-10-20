@@ -4,26 +4,15 @@
 
 
 #include "command.h"
+#include "platform_utils.h"
 #include "stdafx.h"
 #include <iostream>
 #include <string>
-#include <memory>
 #include <unordered_map>
 
 #include <cxxopts.hpp>
 #include <fmt/ostream.h>
 #include <fmt/printf.h>
-
-#if defined(_WIN32)
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
-#include <windows.h>
-#include <shellapi.h>
-#endif
 
 // -------------------------------------------------------------------------------------------------
 
@@ -197,23 +186,7 @@ int _tmain(int argc, _TCHAR* argv[]) {
     //      // pbxproj file, so it can't be disabled in a generated project.
     //      // Remove these from the arguments under consideration.
 
-#if defined(_WIN32)
-    // Windows does not support UTF-8 argv so we have to manually acquire it
-    LPWSTR commandLine = GetCommandLineW();
-    LPWSTR* wideArgv = CommandLineToArgvW(commandLine, &argc);
-    std::vector<std::unique_ptr<_TCHAR[]>> utf8Argv(argc);
-    for (int i = 0; i < argc; ++i) {
-        int byteSize = WideCharToMultiByte(CP_UTF8, 0, wideArgv[i], -1, nullptr, 0, nullptr, nullptr);
-        utf8Argv[i] = std::make_unique<_TCHAR[]>(byteSize);
-        WideCharToMultiByte(CP_UTF8, 0, wideArgv[i], -1, utf8Argv[i].get(), byteSize, nullptr, nullptr);
-        argv[i] = utf8Argv[i].get();
-    }
-
-    // Set UTF-8 codepage for the console
-    if (!SetConsoleOutputCP(CP_UTF8)) {
-        fmt::print(std::cerr, "{} warning: failed to set UTF-8 code page for console output.\n", argv[0]);
-    }
-#endif
+    InitUTF8CLI(argc, argv);
 
     if (argc >= 2) {
         // Has a subcommand, attempt to lookup
