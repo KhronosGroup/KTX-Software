@@ -404,8 +404,4 @@ case VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR: {
     int channels[] = {0,1,2,3}; int bits[] = {5,5,5,1};
     return createDFDPacked(0, 4, bits, channels, s_UNORM);
 }
-case VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR: {
-    int channels[] = {0,1,2,3}; int bits[] = {5,5,5,1};
-    return createDFDPacked(0, 4, bits, channels, s_UNORM);
-}
 case VK_FORMAT_A8_UNORM_KHR: return createDFDAlpha(0, 1, s_UNORM);
