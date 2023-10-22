@@ -242,7 +242,7 @@ script:
     if [ "$CHECK_REUSE" = "YES" -o "$CHECK_REUSE" = "ONLY" ]; then
       echo "Calling reuse lint."
       set -e  # because the if below swallows a bad exit status.
-      reuse lint
+      reuse --suppress-deprecation lint
       set +e
     fi
     if [ "$CHECK_REUSE" != "ONLY" ]; then
