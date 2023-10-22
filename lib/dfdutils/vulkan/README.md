@@ -1,3 +1,6 @@
+<!-- Copyright 2023 The Khronos Group Inc. -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
 # Why Vulkan Header Files Here?
 
 The `vulkan_core.h` included here is custom generated from the Vulkan
