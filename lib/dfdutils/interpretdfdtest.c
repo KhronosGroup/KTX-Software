@@ -198,7 +198,7 @@ uint32_t dfd6[] = { /* Little-endian unpacked extended (N.B. could be done in tw
     0xFFFFFFFFU
 };
 
-int main()
+int main(int argc, char** argv)
 {
     const char *errorText[] = {
         "UNSUPPORTED_NONTRIVIAL_ENDIANNESS",
