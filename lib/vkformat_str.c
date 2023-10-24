@@ -1180,5 +1180,113 @@ stringToVkFormat(const char* str)
         return VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR;
     if (ktx_strcasecmp(str, "A8_UNORM_KHR") == 0)
         return VK_FORMAT_A8_UNORM_KHR;
+    if (ktx_strcasecmp(str, "ASTC_4x4_SFLOAT_BLOCK_EXT") == 0)
+        return VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK;
+    if (ktx_strcasecmp(str, "ASTC_5x4_SFLOAT_BLOCK_EXT") == 0)
+        return VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK;
+    if (ktx_strcasecmp(str, "ASTC_5x5_SFLOAT_BLOCK_EXT") == 0)
+        return VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK;
+    if (ktx_strcasecmp(str, "ASTC_6x5_SFLOAT_BLOCK_EXT") == 0)
+        return VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK;
+    if (ktx_strcasecmp(str, "ASTC_6x6_SFLOAT_BLOCK_EXT") == 0)
+        return VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK;
+    if (ktx_strcasecmp(str, "ASTC_8x5_SFLOAT_BLOCK_EXT") == 0)
+        return VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK;
+    if (ktx_strcasecmp(str, "ASTC_8x6_SFLOAT_BLOCK_EXT") == 0)
+        return VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK;
+    if (ktx_strcasecmp(str, "ASTC_8x8_SFLOAT_BLOCK_EXT") == 0)
+        return VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK;
+    if (ktx_strcasecmp(str, "ASTC_10x5_SFLOAT_BLOCK_EXT") == 0)
+        return VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK;
+    if (ktx_strcasecmp(str, "ASTC_10x6_SFLOAT_BLOCK_EXT") == 0)
+        return VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK;
+    if (ktx_strcasecmp(str, "ASTC_10x8_SFLOAT_BLOCK_EXT") == 0)
+        return VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK;
+    if (ktx_strcasecmp(str, "ASTC_10x10_SFLOAT_BLOCK_EXT") == 0)
+        return VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK;
+    if (ktx_strcasecmp(str, "ASTC_12x10_SFLOAT_BLOCK_EXT") == 0)
+        return VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK;
+    if (ktx_strcasecmp(str, "ASTC_12x12_SFLOAT_BLOCK_EXT") == 0)
+        return VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK;
+    if (ktx_strcasecmp(str, "G8B8G8R8_422_UNORM_KHR") == 0)
+        return VK_FORMAT_G8B8G8R8_422_UNORM;
+    if (ktx_strcasecmp(str, "B8G8R8G8_422_UNORM_KHR") == 0)
+        return VK_FORMAT_B8G8R8G8_422_UNORM;
+    if (ktx_strcasecmp(str, "G8_B8_R8_3PLANE_420_UNORM_KHR") == 0)
+        return VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM;
+    if (ktx_strcasecmp(str, "G8_B8R8_2PLANE_420_UNORM_KHR") == 0)
+        return VK_FORMAT_G8_B8R8_2PLANE_420_UNORM;
+    if (ktx_strcasecmp(str, "G8_B8_R8_3PLANE_422_UNORM_KHR") == 0)
+        return VK_FORMAT_G8_B8_R8_3PLANE_422_UNORM;
+    if (ktx_strcasecmp(str, "G8_B8R8_2PLANE_422_UNORM_KHR") == 0)
+        return VK_FORMAT_G8_B8R8_2PLANE_422_UNORM;
+    if (ktx_strcasecmp(str, "G8_B8_R8_3PLANE_444_UNORM_KHR") == 0)
+        return VK_FORMAT_G8_B8_R8_3PLANE_444_UNORM;
+    if (ktx_strcasecmp(str, "R10X6_UNORM_PACK16_KHR") == 0)
+        return VK_FORMAT_R10X6_UNORM_PACK16;
+    if (ktx_strcasecmp(str, "R10X6G10X6_UNORM_2PACK16_KHR") == 0)
+        return VK_FORMAT_R10X6G10X6_UNORM_2PACK16;
+    if (ktx_strcasecmp(str, "R10X6G10X6B10X6A10X6_UNORM_4PACK16_KHR") == 0)
+        return VK_FORMAT_R10X6G10X6B10X6A10X6_UNORM_4PACK16;
+    if (ktx_strcasecmp(str, "G10X6B10X6G10X6R10X6_422_UNORM_4PACK16_KHR") == 0)
+        return VK_FORMAT_G10X6B10X6G10X6R10X6_422_UNORM_4PACK16;
+    if (ktx_strcasecmp(str, "B10X6G10X6R10X6G10X6_422_UNORM_4PACK16_KHR") == 0)
+        return VK_FORMAT_B10X6G10X6R10X6G10X6_422_UNORM_4PACK16;
+    if (ktx_strcasecmp(str, "G10X6_B10X6_R10X6_3PLANE_420_UNORM_3PACK16_KHR") == 0)
+        return VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_420_UNORM_3PACK16;
+    if (ktx_strcasecmp(str, "G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16_KHR") == 0)
+        return VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16;
+    if (ktx_strcasecmp(str, "G10X6_B10X6_R10X6_3PLANE_422_UNORM_3PACK16_KHR") == 0)
+        return VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_422_UNORM_3PACK16;
+    if (ktx_strcasecmp(str, "G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16_KHR") == 0)
+        return VK_FORMAT_G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16;
+    if (ktx_strcasecmp(str, "G10X6_B10X6_R10X6_3PLANE_444_UNORM_3PACK16_KHR") == 0)
+        return VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_444_UNORM_3PACK16;
+    if (ktx_strcasecmp(str, "R12X4_UNORM_PACK16_KHR") == 0)
+        return VK_FORMAT_R12X4_UNORM_PACK16;
+    if (ktx_strcasecmp(str, "R12X4G12X4_UNORM_2PACK16_KHR") == 0)
+        return VK_FORMAT_R12X4G12X4_UNORM_2PACK16;
+    if (ktx_strcasecmp(str, "R12X4G12X4B12X4A12X4_UNORM_4PACK16_KHR") == 0)
+        return VK_FORMAT_R12X4G12X4B12X4A12X4_UNORM_4PACK16;
+    if (ktx_strcasecmp(str, "G12X4B12X4G12X4R12X4_422_UNORM_4PACK16_KHR") == 0)
+        return VK_FORMAT_G12X4B12X4G12X4R12X4_422_UNORM_4PACK16;
+    if (ktx_strcasecmp(str, "B12X4G12X4R12X4G12X4_422_UNORM_4PACK16_KHR") == 0)
+        return VK_FORMAT_B12X4G12X4R12X4G12X4_422_UNORM_4PACK16;
+    if (ktx_strcasecmp(str, "G12X4_B12X4_R12X4_3PLANE_420_UNORM_3PACK16_KHR") == 0)
+        return VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_420_UNORM_3PACK16;
+    if (ktx_strcasecmp(str, "G12X4_B12X4R12X4_2PLANE_420_UNORM_3PACK16_KHR") == 0)
+        return VK_FORMAT_G12X4_B12X4R12X4_2PLANE_420_UNORM_3PACK16;
+    if (ktx_strcasecmp(str, "G12X4_B12X4_R12X4_3PLANE_422_UNORM_3PACK16_KHR") == 0)
+        return VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_422_UNORM_3PACK16;
+    if (ktx_strcasecmp(str, "G12X4_B12X4R12X4_2PLANE_422_UNORM_3PACK16_KHR") == 0)
+        return VK_FORMAT_G12X4_B12X4R12X4_2PLANE_422_UNORM_3PACK16;
+    if (ktx_strcasecmp(str, "G12X4_B12X4_R12X4_3PLANE_444_UNORM_3PACK16_KHR") == 0)
+        return VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_444_UNORM_3PACK16;
+    if (ktx_strcasecmp(str, "G16B16G16R16_422_UNORM_KHR") == 0)
+        return VK_FORMAT_G16B16G16R16_422_UNORM;
+    if (ktx_strcasecmp(str, "B16G16R16G16_422_UNORM_KHR") == 0)
+        return VK_FORMAT_B16G16R16G16_422_UNORM;
+    if (ktx_strcasecmp(str, "G16_B16_R16_3PLANE_420_UNORM_KHR") == 0)
+        return VK_FORMAT_G16_B16_R16_3PLANE_420_UNORM;
+    if (ktx_strcasecmp(str, "G16_B16R16_2PLANE_420_UNORM_KHR") == 0)
+        return VK_FORMAT_G16_B16R16_2PLANE_420_UNORM;
+    if (ktx_strcasecmp(str, "G16_B16_R16_3PLANE_422_UNORM_KHR") == 0)
+        return VK_FORMAT_G16_B16_R16_3PLANE_422_UNORM;
+    if (ktx_strcasecmp(str, "G16_B16R16_2PLANE_422_UNORM_KHR") == 0)
+        return VK_FORMAT_G16_B16R16_2PLANE_422_UNORM;
+    if (ktx_strcasecmp(str, "G16_B16_R16_3PLANE_444_UNORM_KHR") == 0)
+        return VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM;
+    if (ktx_strcasecmp(str, "G8_B8R8_2PLANE_444_UNORM_EXT") == 0)
+        return VK_FORMAT_G8_B8R8_2PLANE_444_UNORM;
+    if (ktx_strcasecmp(str, "G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16_EXT") == 0)
+        return VK_FORMAT_G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16;
+    if (ktx_strcasecmp(str, "G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16_EXT") == 0)
+        return VK_FORMAT_G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16;
+    if (ktx_strcasecmp(str, "G16_B16R16_2PLANE_444_UNORM_EXT") == 0)
+        return VK_FORMAT_G16_B16R16_2PLANE_444_UNORM;
+    if (ktx_strcasecmp(str, "A4R4G4B4_UNORM_PACK16_EXT") == 0)
+        return VK_FORMAT_A4R4G4B4_UNORM_PACK16;
+    if (ktx_strcasecmp(str, "A4B4G4R4_UNORM_PACK16_EXT") == 0)
+        return VK_FORMAT_A4B4G4R4_UNORM_PACK16;
     return VK_FORMAT_UNDEFINED;
 }
