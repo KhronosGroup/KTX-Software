@@ -50,7 +50,7 @@ scripts/genvk.py -extension VK_EXT_extension_289 -removeExtensions '(VK_KHR_vide
 #      $ cd <your clone of the GitLab vulkan repo>
 #      $ scripts/runDocker
 #   3. At the prompt in the shell started by Docker
-#      $ <paste the above scripts/genvk command with $dst replace with '.'>
+#      $ <paste the above scripts/genvk command with $dst replaced with '.'>
 #      $ ^d
 #   4. Back at the prompt in no. 2
 #      $ mv vulkan_core.h <path to your dfdutils repo clone/vulkan/

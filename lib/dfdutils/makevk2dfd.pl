@@ -127,9 +127,7 @@ while ($line = <>) {
         # Skip a format if we've already processed it
         $format_noext = $format;
         $format_noext =~ s/_EXT$//;
-        #if (!exists($foundFormats{$format})) {
         if (!exists($foundFormats{$format}) && !exists($foundFormats{$format_noext})) {
-        #if (!exists($foundFormats{$format})) {
 
             if ($format =~ m/_E5B9G9R9/) {
                 # Special case (assumed little-endian).
