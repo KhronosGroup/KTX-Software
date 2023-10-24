@@ -74,7 +74,7 @@ add_custom_command(
     TARGET pyktx
     PRE_BUILD
     COMMAND
-        ${PYTHON_EXECUTABLE} -m pip install -r ${CMAKE_SOURCE_DIR}/interface/python_binding/requirements.txt
+        ${PYTHON_EXECUTABLE} -m pip install --no-warn-script-location -r ${CMAKE_SOURCE_DIR}/interface/python_binding/requirements.txt
     COMMENT
         "Install dependencies for pyktx build"
 )
