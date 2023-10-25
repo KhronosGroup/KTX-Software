@@ -25,6 +25,7 @@ target_include_directories(
     ktxdiff
     SYSTEM
 PRIVATE
+    $<TARGET_PROPERTY:objUtil,INTERFACE_INCLUDE_DIRECTORIES>
     ${PROJECT_SOURCE_DIR}/lib
     ${PROJECT_SOURCE_DIR}/other_include
 )
@@ -35,6 +36,7 @@ PRIVATE
     ktx
     ${ASTCENC_LIB_TARGET}
     fmt::fmt
+    objUtil
 )
 
 target_compile_definitions(
