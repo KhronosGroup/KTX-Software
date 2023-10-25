@@ -21,8 +21,9 @@ $bigEndian = 0;
 %foundFormats = ();
 
 # Check if we've processed a format. Returns true for extension formats
-# that have been promoted to core. These are by far most likely to be
-# _KHR or _EXT extensions so only those are checked.
+# that have been promoted to core when the core format has been processed.
+# Usually only _KHR and _EXT extensions are promoted so only those are
+# checked.
 sub formatProcessed {
     $format =$_[0];
     $format_noext = $format;
@@ -137,9 +138,6 @@ while ($line = <>) {
         $format = $1;
 
         # Skip a format if we've already processed it
-        #$format_noext = $format;
-        #$format_noext =~ s/_EXT$//;
-        #if (!exists($foundFormats{$format}) && !exists($foundFormats{$format_noext})) {
         if (!formatProcessed($format)) {
 
             if ($format =~ m/_E5B9G9R9/) {
@@ -344,7 +342,7 @@ while ($line = <>) {
         $format = $1;
 
         # Skip a format if we've already processed it
-        if (!exists($foundFormats{$format})) {
+        if (!formatProcessed($format)) {
 
             # Special-case BC1_RGB to separate it from BC1_RGBA
             if ($line =~ m/VK_FORMAT_BC1_RGB_([A-Z]+)_BLOCK/) {
@@ -385,22 +383,11 @@ while ($line = <>) {
                 $foundFormats{$format} = 1;
 
                 # Finally, ASTC and PVRTC, the only cases where the block size is a parameter
-            } elsif ($line =~ m/VK_FORMAT_ASTC_([0-9]+)x([0-9]+)_([A-Z]+)_BLOCK /) {
-                # ASTC 2D. Now in core. Don't want to pull in _EXT duplicates.
+            } elsif ($line =~ m/VK_FORMAT_ASTC_([0-9]+)x([0-9]+)(x([0-9]+))?_([A-Z]+)_BLOCK(_EXT)?/) {
                 $w = $1;
                 $h = $2;
-                $d = '1';
-                $suffix = $3;
-                print "case $format: return createDFDCompressed(c_ASTC, $w, $h, $d, s_$suffix);\n";
-
-                # Add the format we've processed to our "done" hash
-                $foundFormats{$format} = 1;
-            } elsif ($line =~ m/VK_FORMAT_ASTC_([0-9]+)x([0-9]+)x([0-9]+)_([A-Z]+)_BLOCK(_EXT)/) {
-                # ASTC 3D.
-                $w = $1;
-                $h = $2;
-                $d = $3;
-                $suffix = $4;
+                $d = $4 ? $4 : '1';
+                $suffix = $5;
                 print "case $format: return createDFDCompressed(c_ASTC, $w, $h, $d, s_$suffix);\n";
 
                 # Add the format we've processed to our "done" hash
