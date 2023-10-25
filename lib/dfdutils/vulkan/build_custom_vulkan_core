@@ -12,6 +12,10 @@
 # You need python3 installed to use this script. You also need
 # the pyparsing module. Install with `pip install pyparsing`.
 
+# Note that genvk.py explicitly calls for /usr/bin/python3. If you are
+# on macOS, the only way to get this is to install the Xcode command
+# line tools. If this is not possible, use Docker.
+
 # If you do not have python but have Docker and the Vulkan docker image
 # installed you  can do the work with that but you will have to manually
 # run the command and copy the resulting file here.
@@ -51,10 +55,10 @@ scripts/genvk.py -extension VK_EXT_extension_289 -removeExtensions '(VK_KHR_vide
 #      $ scripts/runDocker
 #   3. At the prompt in the shell started by Docker
 #      $ <paste the above scripts/genvk command with $dst replaced with '.'>
-#      $ ^d
+#      $ ^d   # to exit the Docker shell.
 #   4. Back at the prompt in no. 2
 #      $ mv vulkan_core.h <path to your dfdutils repo clone/vulkan/
 #      $ cd <path to your dfdutils repo>
-# The multiple copying steps are needed because programs cannot reach
+# The pasting and copying steps are needed because programs cannot reach
 # outside docker to the host file system.
 
