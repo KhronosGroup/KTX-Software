@@ -20,6 +20,18 @@ $bigEndian = 0;
 # Keep track of formats we've seen to avoid duplicates
 %foundFormats = ();
 
+# Check if we've processed a format. Returns true for extension formats
+# that have been promoted to core. These are by far most likely to be
+# _KHR or _EXT extensions so only those are checked.
+sub formatProcessed {
+    $format =$_[0];
+    $format_noext = $format;
+    $format_noext =~ s/(_EXT|KHR)$//;
+
+    return (exists($foundFormats{$format})
+            || exists($foundFormats{$format_noext}));
+}
+
 print "/* Copyright 2019-2020 The Khronos Group Inc. */\n";
 print "/* SPDX-", "License-Identifier: Apache-2.0 */\n\n";
 print "/***************************** Do not edit.  *****************************\n";
@@ -125,9 +137,10 @@ while ($line = <>) {
         $format = $1;
 
         # Skip a format if we've already processed it
-        $format_noext = $format;
-        $format_noext =~ s/_EXT$//;
-        if (!exists($foundFormats{$format}) && !exists($foundFormats{$format_noext})) {
+        #$format_noext = $format;
+        #$format_noext =~ s/_EXT$//;
+        #if (!exists($foundFormats{$format}) && !exists($foundFormats{$format_noext})) {
+        if (!formatProcessed($format)) {
 
             if ($format =~ m/_E5B9G9R9/) {
                 # Special case (assumed little-endian).
