@@ -23,7 +23,7 @@
 #include <shellapi.h>
 #endif
 
-#if defined(_WIN32)
+#if defined(_WIN32) && !defined(_UNICODE)
 // For Windows, we convert the UTF-8 path to a UTF-16 path to force using the APIs
 // that correctly handle unicode characters
 inline std::wstring DecodeUTF8Path(std::string path) {
@@ -44,7 +44,7 @@ inline std::string DecodeUTF8Path(std::string path) {
 #endif
 
 inline void InitUTF8CLI(int& argc, _TCHAR* argv[]) {
-#if defined(_WIN32)
+#if defined(_WIN32) && !defined(_UNICODE)
     // Windows does not support UTF-8 argv so we have to manually acquire it
     static std::vector<std::unique_ptr<_TCHAR[]>> utf8Argv(argc);
     LPWSTR commandLine = GetCommandLineW();
