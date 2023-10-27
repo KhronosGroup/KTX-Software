@@ -363,8 +363,8 @@ struct OptionsCreate {
                 VK_FORMAT_R5G5B5A1_UNORM_PACK16,
                 VK_FORMAT_B5G5R5A1_UNORM_PACK16,
                 VK_FORMAT_A1R5G5B5_UNORM_PACK16,
-                VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT,
-                VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT,
+                VK_FORMAT_A4R4G4B4_UNORM_PACK16,
+                VK_FORMAT_A4B4G4R4_UNORM_PACK16,
                 VK_FORMAT_R10X6_UNORM_PACK16,
                 VK_FORMAT_R10X6G10X6_UNORM_2PACK16,
                 VK_FORMAT_R10X6G10X6B10X6A10X6_UNORM_4PACK16,
@@ -1608,10 +1608,10 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
     case VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR:
         requireUNORM(8);
         return convertUNORMPacked(image, 1, 5, 5, 5, "abgr");
-    case VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT:
+    case VK_FORMAT_A4R4G4B4_UNORM_PACK16:
         requireUNORM(8);
         return convertUNORMPacked(image, 4, 4, 4, 4, "argb");
-    case VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT:
+    case VK_FORMAT_A4B4G4R4_UNORM_PACK16:
         requireUNORM(8);
         return convertUNORMPacked(image, 4, 4, 4, 4, "abgr");
 

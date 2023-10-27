@@ -8,7 +8,7 @@
 
 #define TESTRGB565 1
 
-int main()
+int main(int argc, char** argv)
 {
 #ifdef TESTRGBA8888
     uint32_t *DFD = createDFDUnpacked(0, 4, 1, 1, s_UNORM);

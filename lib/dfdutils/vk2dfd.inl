@@ -340,6 +340,28 @@ case VK_FORMAT_B16G16R16G16_422_UNORM: {
     int position_xs[] = {64, 64, 64, 192}; int position_ys[] = {128, 128, 128, 128};
     return createDFD422(0, 4, bits, paddings, channels, position_xs, position_ys, s_UNORM);
 }
+case VK_FORMAT_A4R4G4B4_UNORM_PACK16: {
+    int channels[] = {2,1,0,3}; int bits[] = {4,4,4,4};
+    return createDFDPacked(0, 4, bits, channels, s_UNORM);
+}
+case VK_FORMAT_A4B4G4R4_UNORM_PACK16: {
+    int channels[] = {0,1,2,3}; int bits[] = {4,4,4,4};
+    return createDFDPacked(0, 4, bits, channels, s_UNORM);
+}
+case VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK: return createDFDCompressed(c_ASTC, 4, 4, 1, s_SFLOAT);
+case VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK: return createDFDCompressed(c_ASTC, 5, 4, 1, s_SFLOAT);
+case VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK: return createDFDCompressed(c_ASTC, 5, 5, 1, s_SFLOAT);
+case VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK: return createDFDCompressed(c_ASTC, 6, 5, 1, s_SFLOAT);
+case VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK: return createDFDCompressed(c_ASTC, 6, 6, 1, s_SFLOAT);
+case VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK: return createDFDCompressed(c_ASTC, 8, 5, 1, s_SFLOAT);
+case VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK: return createDFDCompressed(c_ASTC, 8, 6, 1, s_SFLOAT);
+case VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK: return createDFDCompressed(c_ASTC, 8, 8, 1, s_SFLOAT);
+case VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK: return createDFDCompressed(c_ASTC, 10, 5, 1, s_SFLOAT);
+case VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK: return createDFDCompressed(c_ASTC, 10, 6, 1, s_SFLOAT);
+case VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK: return createDFDCompressed(c_ASTC, 10, 8, 1, s_SFLOAT);
+case VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK: return createDFDCompressed(c_ASTC, 10, 10, 1, s_SFLOAT);
+case VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK: return createDFDCompressed(c_ASTC, 12, 10, 1, s_SFLOAT);
+case VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK: return createDFDCompressed(c_ASTC, 12, 12, 1, s_SFLOAT);
 case VK_FORMAT_PVRTC1_2BPP_UNORM_BLOCK_IMG: return createDFDCompressed(c_PVRTC, 8, 4, 1, s_UNORM);
 case VK_FORMAT_PVRTC1_4BPP_UNORM_BLOCK_IMG: return createDFDCompressed(c_PVRTC, 4, 4, 1, s_UNORM);
 case VK_FORMAT_PVRTC2_2BPP_UNORM_BLOCK_IMG: return createDFDCompressed(c_PVRTC2, 8, 4, 1, s_UNORM);
@@ -348,20 +370,6 @@ case VK_FORMAT_PVRTC1_2BPP_SRGB_BLOCK_IMG: return createDFDCompressed(c_PVRTC, 8
 case VK_FORMAT_PVRTC1_4BPP_SRGB_BLOCK_IMG: return createDFDCompressed(c_PVRTC, 4, 4, 1, s_SRGB);
 case VK_FORMAT_PVRTC2_2BPP_SRGB_BLOCK_IMG: return createDFDCompressed(c_PVRTC2, 8, 4, 1, s_SRGB);
 case VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG: return createDFDCompressed(c_PVRTC2, 4, 4, 1, s_SRGB);
-case VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK_EXT: return createDFDCompressed(c_ASTC, 4, 4, 1, s_SFLOAT);
-case VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK_EXT: return createDFDCompressed(c_ASTC, 5, 4, 1, s_SFLOAT);
-case VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK_EXT: return createDFDCompressed(c_ASTC, 5, 5, 1, s_SFLOAT);
-case VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK_EXT: return createDFDCompressed(c_ASTC, 6, 5, 1, s_SFLOAT);
-case VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK_EXT: return createDFDCompressed(c_ASTC, 6, 6, 1, s_SFLOAT);
-case VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK_EXT: return createDFDCompressed(c_ASTC, 8, 5, 1, s_SFLOAT);
-case VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK_EXT: return createDFDCompressed(c_ASTC, 8, 6, 1, s_SFLOAT);
-case VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK_EXT: return createDFDCompressed(c_ASTC, 8, 8, 1, s_SFLOAT);
-case VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK_EXT: return createDFDCompressed(c_ASTC, 10, 5, 1, s_SFLOAT);
-case VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK_EXT: return createDFDCompressed(c_ASTC, 10, 6, 1, s_SFLOAT);
-case VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK_EXT: return createDFDCompressed(c_ASTC, 10, 8, 1, s_SFLOAT);
-case VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK_EXT: return createDFDCompressed(c_ASTC, 10, 10, 1, s_SFLOAT);
-case VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK_EXT: return createDFDCompressed(c_ASTC, 12, 10, 1, s_SFLOAT);
-case VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK_EXT: return createDFDCompressed(c_ASTC, 12, 12, 1, s_SFLOAT);
 case VK_FORMAT_ASTC_3x3x3_UNORM_BLOCK_EXT: return createDFDCompressed(c_ASTC, 3, 3, 3, s_UNORM);
 case VK_FORMAT_ASTC_3x3x3_SRGB_BLOCK_EXT: return createDFDCompressed(c_ASTC, 3, 3, 3, s_SRGB);
 case VK_FORMAT_ASTC_3x3x3_SFLOAT_BLOCK_EXT: return createDFDCompressed(c_ASTC, 3, 3, 3, s_SFLOAT);
@@ -392,14 +400,6 @@ case VK_FORMAT_ASTC_6x6x5_SFLOAT_BLOCK_EXT: return createDFDCompressed(c_ASTC, 6
 case VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT: return createDFDCompressed(c_ASTC, 6, 6, 6, s_UNORM);
 case VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT: return createDFDCompressed(c_ASTC, 6, 6, 6, s_SRGB);
 case VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT: return createDFDCompressed(c_ASTC, 6, 6, 6, s_SFLOAT);
-case VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT: {
-    int channels[] = {2,1,0,3}; int bits[] = {4,4,4,4};
-    return createDFDPacked(0, 4, bits, channels, s_UNORM);
-}
-case VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT: {
-    int channels[] = {0,1,2,3}; int bits[] = {4,4,4,4};
-    return createDFDPacked(0, 4, bits, channels, s_UNORM);
-}
 case VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR: {
     int channels[] = {0,1,2,3}; int bits[] = {5,5,5,1};
     return createDFDPacked(0, 4, bits, channels, s_UNORM);
