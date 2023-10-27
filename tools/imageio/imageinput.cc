@@ -14,11 +14,13 @@
 
 #include "imageio.h"
 #include "imageio_utility.h"
+#include "platform_utils.h"
 
 #include <iomanip>
 #include <map>
 #include <stdarg.h>
 #include <stdexcept>
+#include <filesystem>
 
 
 // Search for and instantiate a plugin that can read the format
@@ -47,7 +49,7 @@ ImageInput::open(const _tstring& filename,
         // Check file exists, before looking for a suitable plugin.
         // MS's STL has `open` overloads that accept wchar_t to handle
         // Window's Unicode file names.
-        ifs.open(filename, std::ios::binary | std::ios::in);
+        ifs.open(std::filesystem::path(DecodeUTF8Path(filename)), std::ios::binary | std::ios::in);
         if (ifs.fail()) {
             throw std::runtime_error(
                 fmt::format("Open of \"{}\" failed. {}",

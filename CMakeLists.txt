@@ -241,6 +241,9 @@ if(MSVC)
     # because `/W4;/WX` is returned as a single string.
     add_compile_options( /W4;$<$<BOOL:${KTX_WERROR}>:/WX> )
     add_compile_options( $<IF:$<CONFIG:Debug>,/Gz,/O2> )
+    # Enable UTF-8 support
+    add_compile_options( $<$<C_COMPILER_ID:MSVC>:/utf-8> )
+    add_compile_options( $<$<CXX_COMPILER_ID:MSVC>:/utf-8> )
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"
        OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
     add_compile_options( -Wall -Wextra $<$<BOOL:${KTX_WERROR}>:-Werror>)
@@ -915,6 +918,7 @@ add_library( objUtil STATIC
     utils/sbufstream.h
     utils/scapp.h
     utils/stdafx.h
+    utils/platform_utils.h
     utils/unused.h
     )
 target_include_directories(

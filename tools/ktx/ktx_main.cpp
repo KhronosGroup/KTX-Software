@@ -4,6 +4,7 @@
 
 
 #include "command.h"
+#include "platform_utils.h"
 #include "stdafx.h"
 #include <iostream>
 #include <string>
@@ -184,6 +185,8 @@ int _tmain(int argc, _TCHAR* argv[]) {
     //      // defaults to checked and is saved in a user-specific file not the
     //      // pbxproj file, so it can't be disabled in a generated project.
     //      // Remove these from the arguments under consideration.
+
+    InitUTF8CLI(argc, argv);
 
     if (argc >= 2) {
         // Has a subcommand, attempt to lookup

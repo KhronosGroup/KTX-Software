@@ -4,18 +4,16 @@
 
 
 #include "command.h"
+#include "platform_utils.h"
 #include "version.h"
 #include "ktx.h"
 #include "sbufstream.h"
+#include <stdio.h>
 #include <filesystem>
 #include <iostream>
 
 #include <fmt/ostream.h>
 #include <fmt/printf.h>
-
-#if defined(_WIN32) && defined(DEBUG)
-#include <windows.h> // For functions used by launchDebugger 
-#endif
 
 // -------------------------------------------------------------------------------------------------
 
@@ -111,7 +109,7 @@ InputStream::InputStream(const std::string& filepath, Reporter& report) :
         stdinBuffer << std::cin.rdbuf();
         activeStream = &stdinBuffer;
     } else {
-        file.open(filepath, std::ios::binary | std::ios::in);
+        file.open(DecodeUTF8Path(filepath).c_str(), std::ios::binary | std::ios::in);
         if (!file)
             report.fatal(rc::IO_FAILURE, "Could not open input file \"{}\": {}.", filepath, errnoMessage());
         activeStream = &file;
@@ -134,7 +132,11 @@ OutputStream::OutputStream(const std::string& filepath, Reporter& report) :
         #endif
         file = stdout;
     } else {
-        file = std::fopen(filepath.c_str(), "wb");
+#if defined(_WIN32)
+        file = _wfopen(DecodeUTF8Path(filepath).c_str(), L"wb");
+#else
+        file = fopen(DecodeUTF8Path(filepath).c_str(), "wb");
+#endif
         if (!file)
             report.fatal(rc::IO_FAILURE, "Could not open output file \"{}\": {}.", filepath, errnoMessage());
     }
@@ -152,7 +154,7 @@ OutputStream::OutputStream(const std::string& filepath, Reporter& report) :
     //     #endif
     //     activeStream = &std::cout;
     // } else {
-    //     file.open(filepath, std::ios::binary | std::ios::out);
+    //     file.open(DecodeUTF8Path(filepath).c_str(), std::ios::binary | std::ios::out);
     //     if (!file)
     //         report.fatal(rc::IO_FAILURE, "Could not open output file \"{}\": {}", filepath, errnoMessage());
     //     activeStream = &file;
@@ -161,7 +163,7 @@ OutputStream::OutputStream(const std::string& filepath, Reporter& report) :
 
 OutputStream::~OutputStream() {
     if (file != stdout)
-        std::fclose(file);
+        fclose(file);
 }
 
 void OutputStream::write(const char* data, std::size_t size, Reporter& report) {
@@ -174,7 +176,7 @@ void OutputStream::writeKTX2(ktxTexture* texture, Reporter& report) {
     const auto ret = ktxTexture_WriteToStdioStream(texture, file);
     if (KTX_SUCCESS != ret) {
         if (file != stdout)
-            std::filesystem::remove(filepath);
+            std::filesystem::remove(DecodeUTF8Path(filepath).c_str());
         report.fatal(rc::IO_FAILURE, "Failed to write KTX file \"{}\": KTX error: {}.", filepath, ktxErrorString(ret));
     }
 
@@ -185,7 +187,7 @@ void OutputStream::writeKTX2(ktxTexture* texture, Reporter& report) {
     //
     // if (KTX_SUCCESS != ret) {
     //     if (activeStream != &std::cout)
-    //         std::filesystem::remove(filepath);
+    //         std::filesystem::remove(DecodeUTF8Path(filepath).c_str());
     //     report.fatal(rc::IO_FAILURE, "Failed to write KTX file \"{}\": {}.", fmtOutFile(filepath), ktxErrorString(ret));
     // }
 }

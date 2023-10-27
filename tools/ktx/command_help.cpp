@@ -10,7 +10,14 @@
 #include <fmt/format.h>
 
 #if defined(_WIN32)
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #include <windows.h> // For GetModuleFileNameW
+#include <shellapi.h> // For ShellExecuteW
 #include <pathcch.h> // For PathCchRemoveFileSpec
 #include <fmt/xchar.h> // For wchat_t format
 #endif
