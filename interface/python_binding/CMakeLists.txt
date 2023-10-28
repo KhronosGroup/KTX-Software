@@ -39,7 +39,7 @@ add_custom_command(
             LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
             LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
             LIBKTX_VERSION=${PROJECT_VERSION}
-        ${PYTHON_EXECUTABLE} ./setup.py sdist
+        ${PYTHON_EXECUTABLE} -m build --sdist
     WORKING_DIRECTORY
         ${CMAKE_SOURCE_DIR}/interface/python_binding
 )
@@ -54,7 +54,7 @@ add_custom_command(
             LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
             LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
             LIBKTX_VERSION=${PROJECT_VERSION}
-        ${PYTHON_EXECUTABLE} ./setup.py bdist_wheel
+        ${PYTHON_EXECUTABLE} -m build --wheel
     WORKING_DIRECTORY
         ${CMAKE_SOURCE_DIR}/interface/python_binding
 )
