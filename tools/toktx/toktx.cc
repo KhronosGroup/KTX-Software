@@ -500,7 +500,8 @@ toktxApp::toktxApp() : scApp(myversion, mydefversion, options)
     short_opts += "f:F:w:d:a:l:r:s:";
 }
 
-toktxApp theApp;
+static toktxApp toktx;
+ktxApp& theApp = toktx;
 
 // I really HATE this duplication of text but I cannot find a simple way to
 // avoid it that works on all platforms (e.g running man toktx) even if I was
@@ -684,11 +685,6 @@ toktxApp::usage()
         "--mipmap are seen, it is always flagged as an error. You can, for example,\n"
         "set TOKTX_OPTIONS=--lower_left_maps_to_s0t0 to change the default mapping of\n"
         "the logical image origin to match the GL convention.\n";
-}
-
-int _tmain(int argc, _TCHAR* argv[])
-{
-    return theApp.main(argc, argv);
 }
 
 int
@@ -970,7 +966,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
         (void)_setmode( _fileno( stdout ), _O_BINARY );
 #endif
     } else
-        f = _tfopen(options.outfile.c_str(), "wb");
+        f = fopenUTF8(options.outfile, "wb");
 
     if (f) {
         if (options.astc || options.etc1s || options.bopts.uastc || options.zcmp) {
@@ -992,7 +988,11 @@ toktxApp::main(int argc, _TCHAR *argv[])
 closefileandcleanup:
         fclose(f);
         if (exitCode && (f != stdout)) {
-            _tunlink(options.outfile.c_str());
+#if defined(_WIN32)
+            _wunlink(DecodeUTF8Path(options.outfile).c_str());
+#else
+            unlink(options.outfile.c_str());
+#endif
         }
     } else {
         cerr << name << ": "
@@ -2103,19 +2103,19 @@ toktxApp::processOption(argparser& parser, int opt)
 }
 
 void warning(const char *pFmt, va_list args) {
-    theApp.warning(pFmt, args);
+    toktx.warning(pFmt, args);
 }
 
 void warning(const char *pFmt, ...) {
     va_list args;
     va_start(args, pFmt);
 
-    theApp.warning(pFmt, args);
+    toktx.warning(pFmt, args);
     va_end(args);
 }
 
 void warning(const string& msg) {
-   theApp.warning(msg);
+   toktx.warning(msg);
 }
 
 static ktx_uint32_t

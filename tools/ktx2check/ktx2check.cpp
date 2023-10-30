@@ -1107,13 +1107,8 @@ ktxValidator::usage()
     ktxApp::usage();
 }
 
-int _tmain(int argc, _TCHAR* argv[])
-{
-
-    ktxValidator ktxcheck;
-
-    return ktxcheck.main(argc, argv);
-}
+static ktxValidator ktxcheck;
+ktxApp& theApp = ktxcheck;
 
 int
 ktxValidator::main(int argc, _TCHAR *argv[])
@@ -1123,7 +1118,7 @@ ktxValidator::main(int argc, _TCHAR *argv[])
     logger.quiet = options.quiet;
     logger.maxIssues = options.maxIssues;
 
-    vector<_tstring>::const_iterator it;
+    vector<string>::const_iterator it;
     for (it = options.infiles.begin(); it < options.infiles.end(); it++) {
         try {
             validateFile(*it);
@@ -1177,7 +1172,7 @@ ktxValidator::validateFile(const _tstring& filename)
     } else {
         // MS's STL has `open` overloads that accept wchar_t to handle
         // Window's Unicode file names.
-        ifs.open(filename, ios_base::in | ios_base::binary);
+        ifs.open(DecodeUTF8Path(filename), ios_base::in | ios_base::binary);
         isp = &ifs;
     }
 

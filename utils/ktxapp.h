@@ -22,6 +22,7 @@
 #include <ktx.h>
 
 #include "argparser.h"
+#include "platform_utils.h"
 
 #define QUOTE(x) #x
 #define STR(x) QUOTE(x)
@@ -100,6 +101,7 @@ class ktxApp {
 #endif
             ;
     };
+    _tstring& getName() { return name;  }
 
   protected:
     struct commandOptions {
@@ -168,16 +170,16 @@ class ktxApp {
      * @return A stdio FILE* for the created file. If the file already exists
      *         returns nullptr and sets errno to EEXIST.
      */
-    static FILE* fopen_write_if_not_exists(const _tstring& path) {
-        FILE* file = ::_tfopen(path.c_str(), "wxb");
+    static FILE* fopen_write_if_not_exists(const string& path) {
+        FILE* file = ::fopenUTF8(path, "wxb");
         if (!file && errno == EINVAL) {
-            file = ::_tfopen(path.c_str(), "r");
+            file = ::fopenUTF8(path, "r");
             if (file) {
                 fclose(file);
                 file = nullptr;
                 errno = EEXIST;
             } else {
-                file = ::_tfopen(path.c_str(), "wb");
+                file = ::fopenUTF8(path, "wb");
             }
         }
         return file;
@@ -449,5 +451,27 @@ class ktxApp {
 
     _tstring short_opts = _T("hv");
 };
+
+extern ktxApp& theApp;
+
+/** @internal
+ * @~English
+ * @brief Common main for all derived classes.
+ * 
+ * Handles rewriting of argv to UTF-8 on Windows.
+ * Each app needs to initialize @c theApp to
+ * point to an instance of itself.
+ */
+int main(int argc, _TCHAR* argv[])
+{
+    InitUTF8CLI(argc, argv);
+#if 0
+    if (!SetConsoleOutputCP(CP_UTF8)) {
+        cerr << theApp.getName() << "warning: failed to set UTF-8 code page for console output."
+             << endl;
+    }
+#endif
+    return theApp.main(argc, argv);
+}
 
 

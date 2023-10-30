@@ -168,12 +168,8 @@ ktxUpgrader::usage()
 }
 
 
-int _tmain(int argc, _TCHAR* argv[])
-{
-    ktxUpgrader ktx2ktx2;
-
-    return ktx2ktx2.main(argc, argv);
-}
+static ktxUpgrader ktx2ktx2;
+ktxApp& theApp = ktx2ktx2;
 
 
 int
@@ -199,7 +195,7 @@ ktxUpgrader::main(int argc, _TCHAR* argv[])
             (void)_setmode( _fileno( stdin ), _O_BINARY );
 #endif
         } else {
-            inf = _tfopen(infile.c_str(), "rb");
+            inf = fopenUTF8(infile, "rb");
         }
 
         if (inf) {
@@ -242,7 +238,7 @@ ktxUpgrader::main(int argc, _TCHAR* argv[])
                     }
                 }
                 if (force) {
-                    outf = _tfopen(outfile.c_str(), "wb");
+                    outf = fopenUTF8(outfile, "wb");
                 }
             }
 

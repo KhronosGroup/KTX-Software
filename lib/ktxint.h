@@ -293,6 +293,54 @@ KTX_error_code ktxUncompressZLIBInt(unsigned char* pDest,
 
 KTX_error_code printKTX2Info2(ktxStream* src, KTX_header2* header);
 
+/*
+ * fopen a file identified by a UTF-8 path.
+ */
+#if defined(_WIN32)
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <assert.h>
+#include <windows.h>
+#include <shellapi.h>
+#include <stdlib.h>
+
+// For Windows, we convert the UTF-8 path and mode to UTF-16 path and use _wfopen
+// which correctly handles unicode characters.
+inline FILE* ktxFOpenUTF8(char const* path, char const* mode) {
+    int pathLen = strnlen_s(path, 32767);
+    int modeLen = strnlen_s(mode, 64);
+    int wpLen = MultiByteToWideChar(CP_UTF8, 0, path, pathLen, NULL, 0);
+    int wmLen = MultiByteToWideChar(CP_UTF8, 0, mode, modeLen, NULL, 0);
+    FILE* result = NULL;
+    if (wpLen > 0 && wmLen > 0)
+    {
+        wchar_t* wpath = (wchar_t*)malloc(wpLen);
+        wchar_t* wmode = (wchar_t*)malloc(wmLen);
+        MultiByteToWideChar(CP_UTF8, 0, path, pathLen, wpath, wpLen);
+        MultiByteToWideChar(CP_UTF8, 0, mode, modeLen, wmode, wmLen);
+        // Returns an errno_t whose value is also set in the global
+        // errno. Apps use that for error detail as libktx only
+        // returns KTX_FILE_OPEN_FAILED.
+        (void)_wfopen_s(&result, wpath, wmode);
+        free(wpath);
+        free(wmode);
+        return result;
+    } else {
+        assert(KTX_FALSE && "ktxFOpenUTF8 called with zero length path or mode.");
+        return NULL;
+    }
+}
+#else
+// For other platforms there is no need for any conversion, they support UTF-8 natively
+inline FILE* ktxFOpenUTF8(char const* path, char const* mode) {
+    return fopen(path, mode);
+}
+#endif
+
 #ifdef __cplusplus
 }
 #endif

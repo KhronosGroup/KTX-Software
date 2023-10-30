@@ -484,7 +484,7 @@ ktxTexture1_constructFromNamedFile(ktxTexture1* This,
     if (This == NULL || filename == NULL)
         return KTX_INVALID_VALUE;
 
-    file = fopen(filename, "rb");
+    file = ktxFOpenUTF8(filename, "rb");
     if (!file)
        return KTX_FILE_OPEN_FAILED;
 

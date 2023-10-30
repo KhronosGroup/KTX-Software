@@ -408,7 +408,7 @@ ktxTexture_CreateFromNamedFile(const char* const filename,
     if (filename == NULL || newTex == NULL)
         return KTX_INVALID_VALUE;
 
-    file = fopen(filename, "rb");
+    file = ktxFOpenUTF8(filename, "rb");
     if (!file)
        return KTX_FILE_OPEN_FAILED;
 

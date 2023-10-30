@@ -9,8 +9,6 @@
 #include <iostream>
 #include <memory>
 #include <vector>
-#include <fmt/ostream.h>
-#include <fmt/printf.h>
 
 #if defined(_WIN32)
 #ifndef WIN32_LEAN_AND_MEAN
@@ -60,4 +58,14 @@ inline void InitUTF8CLI(int& argc, _TCHAR* argv[]) {
     (void)argc;
     (void)argv;
 #endif
+}
+
+inline FILE* fopenUTF8(const std::string& path, const std::string& mode) {
+    FILE* file;
+#if defined(_WIN32)
+    file = _wfopen(DecodeUTF8Path(path).c_str(), DecodeUTF8Path(mode).c_str());
+#else
+    file = fopen(path.c_str(), mode.c_str());
+#endif
+    return file;
 }

@@ -422,7 +422,7 @@ ktxTexture1_WriteToNamedFile(ktxTexture1* This, const char* const dstname)
     if (!This)
         return KTX_INVALID_VALUE;
 
-    dst = fopen(dstname, "wb");
+    dst = ktxFOpenUTF8(dstname, "wb");
     if (dst) {
         result = ktxTexture1_WriteToStdioStream(This, dst);
         fclose(dst);
@@ -878,7 +878,7 @@ ktxTexture1_WriteKTX2ToNamedFile(ktxTexture1* This, const char* const dstname)
     if (!This)
         return KTX_INVALID_VALUE;
 
-    dst = fopen(dstname, "wb");
+    dst = ktxFOpenUTF8(dstname, "wb");
     if (dst) {
         result = ktxTexture1_WriteKTX2ToStdioStream(This, dst);
         fclose(dst);

@@ -147,7 +147,7 @@ ktxSupercompressor::usage()
 }
 
 
-static _tstring dir_name(_tstring& path)
+static string dir_name(const string& path)
 {
     // Supports both Unix-style and Windows-style.
     size_t last_separator = path.find_last_of("/\\");
@@ -158,12 +158,8 @@ static _tstring dir_name(_tstring& path)
     }
 }
 
-int _tmain(int argc, _TCHAR* argv[])
-{
-    ktxSupercompressor ktxsc;
-
-    return ktxsc.main(argc, argv);
-}
+static ktxSupercompressor ktxsc;
+ktxApp& theApp = ktxsc;
 
 int
 ktxSupercompressor::main(int argc, _TCHAR* argv[])
@@ -188,7 +184,7 @@ ktxSupercompressor::main(int argc, _TCHAR* argv[])
             (void)_setmode( _fileno( stdin ), _O_BINARY );
 #endif
         } else {
-            inf = _tfopen(infile.c_str(), "rb");
+            inf = fopenUTF8(infile, "rb");
         }
 
         if (inf) {
@@ -209,7 +205,7 @@ ktxSupercompressor::main(int argc, _TCHAR* argv[])
                 // asserts that the string template is NUL terminated.
                 tmpfile.push_back(_T('\0'));
                 if (_tmktemp_s(&tmpfile[0], tmpfile.size()) == 0)
-                    outf = _tfopen(tmpfile.c_str(), "wb");
+                    outf = fopenUTF8(tmpfile, "wb");
 #else
                 int fd_tmp = mkstemp(&tmpfile[0]);
                 outf = fdopen(fd_tmp, "wb");
@@ -230,7 +226,7 @@ ktxSupercompressor::main(int argc, _TCHAR* argv[])
                     }
                 }
                 if (force) {
-                    outf = _tfopen(options.outfile.c_str(), "wb");
+                    outf = fopenUTF8(options.outfile, "wb");
                 }
             }
 

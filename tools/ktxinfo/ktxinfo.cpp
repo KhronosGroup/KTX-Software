@@ -125,13 +125,8 @@ ktxInfo::usage()
         ktxApp::usage();
 }
 
-
-int _tmain(int argc, _TCHAR* argv[])
-{
-    ktxInfo ktxinfo;
-
-    return ktxinfo.main(argc, argv);
-}
+static ktxInfo ktxinfo;
+ktxApp& theApp = ktxinfo;
 
 int
 ktxInfo::main(int argc, _TCHAR* argv[])
@@ -152,7 +147,7 @@ ktxInfo::main(int argc, _TCHAR* argv[])
             (void)_setmode( _fileno( stdin ), _O_BINARY );
 #endif
         } else {
-            inf = _tfopen(infile.c_str(), "rb");
+            inf = fopenUTF8(infile, "rb");
         }
 
         if (inf) {
@@ -164,15 +159,24 @@ ktxInfo::main(int argc, _TCHAR* argv[])
                      << ": Unexpected end of file reading \""
                      << (infile.compare(_T("-")) ? infile : "stdin" ) << "\"."
                      << endl;
-                     exit(2);
+                exitCode = 2;
+                goto cleanup;
             }
             if (result == KTX_UNKNOWN_FILE_FORMAT) {
                 cerr << name
                      << ": " << (infile.compare(_T("-")) ? infile : "stdin")
                      << " is not a KTX or KTX2 file."
                      << endl;
-                     exitCode = 2;
-                     goto cleanup;
+                exitCode = 2;
+                goto cleanup;
+            }
+            if (result == KTX_FILE_READ_ERROR) {
+                cerr << name
+                    << ": Error reading \""
+                    << (infile.compare(_T("-")) ? infile : "stdin") << "\"."
+                    << strerror(errno) << endl;
+                exitCode = 2;
+                goto cleanup;
             }
         } else {
             cerr << name
