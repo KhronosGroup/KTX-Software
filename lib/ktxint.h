@@ -308,8 +308,8 @@ KTX_error_code printKTX2Info2(ktxStream* src, KTX_header2* header);
 #include <shellapi.h>
 #include <stdlib.h>
 
-// For Windows, we convert the UTF-8 path and mode to UTF-16 path and use _wfopen
-// which correctly handles unicode characters.
+// For Windows, we convert the UTF-8 path and mode to UTF-16 path and use
+// _wfopen which correctly handles unicode characters.
 static inline FILE* ktxFOpenUTF8(char const* path, char const* mode) {
     int wpLen = MultiByteToWideChar(CP_UTF8, 0, path, -1, NULL, 0);
     int wmLen = MultiByteToWideChar(CP_UTF8, 0, mode, -1, NULL, 0);
@@ -320,7 +320,7 @@ static inline FILE* ktxFOpenUTF8(char const* path, char const* mode) {
         wchar_t* wmode = (wchar_t*)malloc(wmLen * sizeof(wchar_t));
         MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, wpLen);
         MultiByteToWideChar(CP_UTF8, 0, mode, -1, wmode, wmLen);
-        // Returned errmo_t value is also set in the global errno.
+        // Returned errno_t value is also set in the global errno.
         // Apps use that for error detail as libktx only returns
         // KTX_FILE_OPEN_FAILED.
         (void)_wfopen_s(&fp, wpath, wmode);
@@ -328,12 +328,14 @@ static inline FILE* ktxFOpenUTF8(char const* path, char const* mode) {
         free(wmode);
         return fp;
     } else {
-        assert(KTX_FALSE && "ktxFOpenUTF8 called with zero length path or mode.");
+        assert(KTX_FALSE
+               && "ktxFOpenUTF8 called with zero length path or mode.");
         return NULL;
     }
 }
 #else
-// For other platforms there is no need for any conversion, they support UTF-8 natively
+// For other platforms there is no need for any conversion, they
+// support UTF-8 natively.
 static inline FILE* ktxFOpenUTF8(char const* path, char const* mode) {
     return fopen(path, mode);
 }
