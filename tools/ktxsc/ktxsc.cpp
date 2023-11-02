@@ -8,6 +8,7 @@
 
 #include <cstdlib>
 #include <errno.h>
+#include <filesystem>
 #include <iostream>
 #include <sstream>
 #include <thread>
@@ -59,8 +60,9 @@ Supercompress the images in a KTX2 file.
     <dl>
     <dt>-o outfile, --output=outfile</dt>
     <dd>Write the output to @e outfile. If @e outfile is 'stdout', output will
-        be written to stdout. If there is more than 1 @e infile the command
-        prints its usage message and exits.</dd>
+        be written to stdout. Parent directories will be created, if
+        necessary. If there is more than 1 @e infile the command prints its
+        usage message and exits.</dd>
     <dt>-f, \--force</dt>
     <dd>If the destination file cannot be opened, remove it and create a
         new file, without prompting for confirmation regardless of its
@@ -138,7 +140,8 @@ ktxSupercompressor::usage()
         "\n"
         "  -o outfile, --output=outfile\n"
         "               Writes the output to outfile. If outfile is 'stdout', output\n"
-        "               will be written to stdout. If there is more than 1 input file\n"
+        "               will be written to stdout. Parent directories will be\n"
+        "               created if necessary. If there is more than 1 input file\n"
         "               the command prints its usage message and exits.\n"
         "  -f, --force  If the output file cannot be opened, remove it and create a\n"
         "               new file, without prompting for confirmation regardless of\n"
@@ -195,6 +198,9 @@ ktxSupercompressor::main(int argc, _TCHAR* argv[])
                 (void)_setmode( _fileno( stdout ), _O_BINARY );
 #endif
             } else if (options.outfile.length()) {
+                const auto outputPath = filesystem::path(DecodeUTF8Path(options.outfile));
+                if (outputPath.has_parent_path())
+                    filesystem::create_directories(outputPath.parent_path());
                 outf = fopen_write_if_not_exists(options.outfile);
             } else {
                 // Make a temporary file in the same directory as the source
@@ -234,7 +240,6 @@ ktxSupercompressor::main(int argc, _TCHAR* argv[])
                 result = ktxTexture2_CreateFromStdioStream(inf,
                                         KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                         &texture);
-
                 if (result == KTX_UNKNOWN_FILE_FORMAT) {
                     cerr << infile << " is not a KTX v2 file." << endl;
                     exitCode = 2;
@@ -330,9 +335,16 @@ ktxSupercompressor::main(int argc, _TCHAR* argv[])
     return 0;
 
 cleanup:
-    (void)fclose(outf); // N.B Windows refuses to unlink an open file.
-    if (tmpfile.size() > 0) (void)_tunlink(tmpfile.c_str());
-    if (options.outfile.length()) (void)_tunlink(options.outfile.c_str());
+    if (outf) { // Windows debug CRT fclose asserts that outf != nullptr...
+        (void)fclose(outf); // N.B Windows refuses to unlink an open file.
+    }
+#if defined(_WIN32)
+    if (tmpfile.size() > 0) (void)_wunlink(DecodeUTF8Path(tmpfile).c_str());
+    if (options.outfile.length()) (void)_wunlink(DecodeUTF8Path(options.outfile).c_str());
+#else
+    if (tmpfile.size() > 0) (void)unlink(tmpfile.c_str());
+    if (options.outfile.length()) (void)unlink(options.outfile.c_str());
+#endif
     return exitCode;
 }
 

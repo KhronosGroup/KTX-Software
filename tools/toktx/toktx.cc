@@ -14,6 +14,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <filesystem>
 #include <string>
 #include <sstream>
 #include <vector>
@@ -84,8 +85,9 @@ Create a KTX file from JPEG, PNG or netpbm format files.
 @section toktx_description DESCRIPTION
     Create a Khronos format texture file (KTX) from a set of JPEG (.jpg),
     PNG (.png) or Netpbm format (.pam, .pgm, .ppm) images. It writes the
-    destination ktx file to @e outfile, appending ".ktx{,2}" if necessary. If
-    @e outfile is '-' the output will be written to stdout.
+    destination ktx file to @e outfile, creating parent directories and
+    appending ".ktx{,2}" if necessary. If @e outfile is '-' the output will
+    be written to stdout.
 
     @b toktx reads each named @e infile. which must be in .jpg, .png, .pam,
     .ppm or .pgm format. @e infiles prefixed with '@' are read as text files
@@ -512,8 +514,9 @@ toktxApp::usage()
     cerr <<
         "Usage: " << name << " [options] <outfile> [<infile>.{jpg,png,pam,pgm,ppm} ...]\n"
         "\n"
-        "  <outfile>    The destination ktx file. \".ktx\" will appended if necessary.\n"
-        "               If it is '-' the output will be written to stdout.\n"
+        "  <outfile>    The destination ktx file. Parent directories will be created\n"
+        "               and \".ktx\" will appended if necessary. If it is '-' the\n"
+        "               output will be written to stdout.\n"
         "  <infile>     One or more image files in .jpg, .png, .pam, .ppm, or .pgm\n"
         "               format. Other formats can be readily converted to these formats\n"
         "               using tools such as ImageMagick and XnView. infiles prefixed\n"
@@ -965,8 +968,13 @@ toktxApp::main(int argc, _TCHAR *argv[])
         /* Set "stdout" to have binary mode */
         (void)_setmode( _fileno( stdout ), _O_BINARY );
 #endif
-    } else
+    }
+    else {
+        const auto outputPath = filesystem::path(DecodeUTF8Path(options.outfile));
+        if (outputPath.has_parent_path())
+            filesystem::create_directories(outputPath.parent_path());
         f = fopenUTF8(options.outfile, "wb");
+    }
 
     if (f) {
         if (options.astc || options.etc1s || options.bopts.uastc || options.zcmp) {
