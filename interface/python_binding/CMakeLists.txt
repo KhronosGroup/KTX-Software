@@ -102,6 +102,7 @@ add_custom_target(pyktx-dev
 
 add_dependencies(pyktx-dev ktx pyktx-deps pyktx)
 
+# Build non-distribution for development test
 add_custom_command(
     TARGET pyktx-dev
     COMMAND
