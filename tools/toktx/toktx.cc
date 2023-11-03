@@ -68,7 +68,7 @@ enum oetf_e {
 
 static ktx_uint32_t log2(ktx_uint32_t v);
 #if IMAGE_DEBUG
-static void dumpImage(_TCHAR* name, int width, int height, int components,
+static void dumpImage(char* name, int width, int height, int components,
                       int componentSize, unsigned char* srcImage);
 #endif
 
@@ -94,7 +94,7 @@ Create a KTX file from JPEG, PNG or netpbm format files.
     listing actual file names to process with one file path per line. Paths
     must be absolute or relative to the current directory when @b toktx is run.
     If '\@@' is used instead, paths must be absolute or relative to the location
-    of the list file.
+    of the list file. File paths must be encoded in UTF-8.
 
     The target texture type (number of components in the output texture) is
     chosen via @b --target_type. Swizzling of the components of the input
@@ -341,7 +341,7 @@ class toktxApp : public scApp {
     toktxApp();
     virtual ~toktxApp() { };
 
-    virtual int main(int argc, _TCHAR* argv[]);
+    virtual int main(int argc, char* argv[]);
     virtual void usage();
 
     friend void warning(const char *pFmt, va_list args);
@@ -524,7 +524,7 @@ toktxApp::usage()
         "               process with one file path per line. Paths must be absolute or\n"
         "               relative to the current directory when toktx is run. If '@@'\n"
         "               is used instead, paths must be absolute or relative to the\n"
-        "               location of the list file.\n"
+        "               location of the list file. File paths must be encoded in UTF-8.\n"
         "\n"
         "  The target texture type (number of components in the output texture) is chosen\n"
         "  via --target_type. Swizzling of the components of the input file is specified\n"
@@ -691,7 +691,7 @@ toktxApp::usage()
 }
 
 int
-toktxApp::main(int argc, _TCHAR *argv[])
+toktxApp::main(int argc, char *argv[])
 {
     KTX_error_code ret;
     ktxTexture* texture = 0;
@@ -705,13 +705,13 @@ toktxApp::main(int argc, _TCHAR *argv[])
     validateOptions();
 
     faceSlice = layer = level = 0;
-    vector<_tstring>::const_iterator it;
+    vector<string>::const_iterator it;
     bool firstImage = true;
     ImageSpec firstImageSpec;
     targetImageSpec target;
 
     for (it = options.infiles.begin(); it < options.infiles.end(); it++) {
-        const _tstring& infile = *it;
+        const string& infile = *it;
         unique_ptr<Image> image;
         uint32_t subimage=0, miplevel=0;
 
@@ -996,11 +996,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
 closefileandcleanup:
         fclose(f);
         if (exitCode && (f != stdout)) {
-#if defined(_WIN32)
-            _wunlink(DecodeUTF8Path(options.outfile).c_str());
-#else
-            unlink(options.outfile.c_str());
-#endif
+            unlinkUTF8(options.outfile);
         }
     } else {
         cerr << name << ": "
@@ -1887,9 +1883,9 @@ toktxApp::validateOptions()
     }
 
     if (options.outfile.compare(_T("-")) != 0
-            && options.outfile.find_last_of('.') == _tstring::npos)
+            && options.outfile.find_last_of('.') == string::npos)
     {
-        options.outfile.append(options.ktx2 ? _T(".ktx2") : _T(".ktx"));
+        options.outfile.append(options.ktx2 ? ".ktx2" : ".ktx");
     }
 
     ktx_uint32_t requiredInputFiles = options.cubemap ? 6 : 1 * options.levels;
@@ -1905,8 +1901,8 @@ toktxApp::validateOptions()
 
 void
 toktxApp::processEnvOptions() {
-    _tstring toktx_options;
-    _TCHAR* env_options = _tgetenv(_T("TOKTX_OPTIONS"));
+    string toktx_options;
+    char* env_options = getenv("TOKTX_OPTIONS");
 
     if (env_options != nullptr)
         toktx_options = env_options;
@@ -1916,7 +1912,7 @@ toktxApp::processEnvOptions() {
     if (!toktx_options.empty()) {
         istringstream iss(toktx_options);
         argvector arglist;
-        for (_tstring w; iss >> w; )
+        for (string w; iss >> w; )
             arglist.push_back(w);
 
         argparser optparser(arglist, 0);
@@ -2150,7 +2146,7 @@ log2(ktx_uint32_t v)
 
 #if IMAGE_DEBUG
 static void
-dumpImage(_TCHAR* name, int width, int height, int components, int componentSize,
+dumpImage(char* name, int width, int height, int components, int componentSize,
           unsigned char* srcImage)
 {
     char formatstr[2048];

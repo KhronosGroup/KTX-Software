@@ -91,7 +91,7 @@ struct clamped
 
 class ktxApp {
   public:
-    virtual int main(int argc, _TCHAR* argv[]) = 0;
+    virtual int main(int argc, char* argv[]) = 0;
     virtual void usage() {
         cerr <<
             "  -h, --help    Print this usage message and exit.\n"
@@ -101,12 +101,12 @@ class ktxApp {
 #endif
             ;
     };
-    _tstring& getName() { return name;  }
+    string& getName() { return name;  }
 
   protected:
     struct commandOptions {
-        std::vector<_tstring> infiles;
-        _tstring outfile;
+        std::vector<string> infiles;
+        string outfile;
         int test;
         int warn;
         int launchDebugger;
@@ -200,7 +200,7 @@ class ktxApp {
 
     enum StdinUse { eDisallowStdin, eAllowStdin };
     enum OutfilePos { eNone, eFirst, eLast };
-    void processCommandLine(int argc, _TCHAR* argv[],
+    void processCommandLine(int argc, char* argv[],
                             StdinUse stdinStat = eAllowStdin,
                             OutfilePos outfilePos = eNone)
     {
@@ -209,14 +209,14 @@ class ktxApp {
 
         name = argv[0];
         // For consistent Id, only use the stem of name;
-        slash = name.find_last_of(_T('\\'));
-        if (slash == _tstring::npos)
-            slash = name.find_last_of(_T('/'));
-        if (slash != _tstring::npos)
+        slash = name.find_last_of('\\');
+        if (slash == string::npos)
+            slash = name.find_last_of('/');
+        if (slash != string::npos)
             name.erase(0, slash+1);  // Remove directory name.
-        dot = name.find_last_of(_T('.'));
-            if (dot != _tstring::npos)
-                name.erase(dot, _tstring::npos); // Remove extension.
+        dot = name.find_last_of('.');
+            if (dot != string::npos)
+                name.erase(dot, string::npos); // Remove extension.
 
         argparser parser(argc, argv);
         processOptions(parser);
@@ -227,9 +227,9 @@ class ktxApp {
                 options.outfile = parser.argv[i++];
             uint32_t infileCount = outfilePos == eLast ? argc - 1 : argc;
             for (; i < infileCount; i++) {
-                if (parser.argv[i][0] == _T('@')) {
+                if (parser.argv[i][0] == '@') {
                     if (!loadFileList(parser.argv[i],
-                                      parser.argv[i][1] == _T('@'),
+                                      parser.argv[i][1] == '@',
                                       options.infiles)) {
                         exit(1);
                     }
@@ -238,9 +238,9 @@ class ktxApp {
                 }
             }
             if (options.infiles.size() > 1) {
-                std::vector<_tstring>::const_iterator it;
+                std::vector<string>::const_iterator it;
                 for (it = options.infiles.begin(); it < options.infiles.end(); it++) {
-                    if (it->compare(_T("-")) == 0) {
+                    if (it->compare("-") == 0) {
                         error("cannot use stdin as one among many inputs.");
                         usage();
                         exit(1);
@@ -253,7 +253,7 @@ class ktxApp {
 
         if (options.infiles.size() == 0) {
             if (stdinStat == eAllowStdin) {
-                options.infiles.push_back(_T("-")); // Use stdin as 0 files.
+                options.infiles.push_back("-"); // Use stdin as 0 files.
             } else {
                 error("need some input files.");
                 usage();
@@ -265,26 +265,21 @@ class ktxApp {
         }
     }
 
-    bool loadFileList(const _tstring &f, bool relativize,
-                      vector<_tstring>& filenames)
+    bool loadFileList(const string &f, bool relativize,
+                      vector<string>& filenames)
     {
-        _tstring listName(f);
+        string listName(f);
         listName.erase(0, relativize ? 2 : 1);
 
         FILE *lf = nullptr;
-#if defined(_WIN32)
-        _tfopen_s(&lf, listName.c_str(), "r");
-#else
-        lf = _tfopen(listName.c_str(), "r");
-#endif
-
+        lf = fopenUTF8(listName, "r");
         if (!lf) {
             error("failed opening filename list: \"%s\": %s\n",
                   listName.c_str(), strerror(errno));
             return false;
         }
 
-        _tstring dirname;
+        string dirname;
 
         if (relativize) {
             size_t dirnameEnd = listName.find_last_of('/');
@@ -313,7 +308,7 @@ class ktxApp {
 
             string readFilename(p);
             while (readFilename.size()) {
-                if (readFilename[0] == _T(' '))
+                if (readFilename[0] == ' ')
                   readFilename.erase(0, 1);
                 else
                   break;
@@ -321,7 +316,7 @@ class ktxApp {
 
             while (readFilename.size()) {
                 const char c = readFilename.back();
-                if ((c == _T(' ')) || (c == _T('\n')) || (c == _T('\r')))
+                if ((c == ' ') || (c == '\n') || (c == '\r'))
                   readFilename.erase(readFilename.size() - 1, 1);
                 else
                   break;
@@ -424,9 +419,9 @@ class ktxApp {
     }
 #endif
 
-    _tstring        name;
-    _tstring&       version;
-    _tstring&       defaultVersion;
+    string        name;
+    string&       version;
+    string&       defaultVersion;
 
     commandOptions& options;
 
@@ -449,7 +444,7 @@ class ktxApp {
         { nullptr, argparser::option::no_argument, nullptr, 0 }
     };
 
-    _tstring short_opts = _T("hv");
+    string short_opts = "hv";
 };
 
 extern ktxApp& theApp;
@@ -462,7 +457,7 @@ extern ktxApp& theApp;
  * Each app needs to initialize @c theApp to
  * point to an instance of itself.
  */
-int main(int argc, _TCHAR* argv[])
+int main(int argc, char* argv[])
 {
     InitUTF8CLI(argc, argv);
 #if 0

@@ -31,9 +31,9 @@
 #endif
 
 struct commandOptions {
-    _tstring      outfile;
-    _tstring      outdir;
-    bool         force;
+    string      outfile;
+    string      outdir;
+    bool        force;
     std::vector<_tstring> infiles;
 
     commandOptions() {
@@ -42,7 +42,7 @@ struct commandOptions {
 };
 
 #if IMAGE_DEBUG
-static void dumpImage(_TCHAR* name, int width, int height, int components,
+static void dumpImage(char* name, int width, int height, int components,
                       int componentSize, bool isLuminance,
                       unsigned char* srcImage);
 #endif
@@ -92,7 +92,7 @@ class ktxInfo : public ktxApp {
   public:
     ktxInfo();
 
-    virtual int main(int argc, _TCHAR* argv[]);
+    virtual int main(int argc, char* argv[]);
     virtual void usage();
 
   protected:
@@ -129,7 +129,7 @@ static ktxInfo ktxinfo;
 ktxApp& theApp = ktxinfo;
 
 int
-ktxInfo::main(int argc, _TCHAR* argv[])
+ktxInfo::main(int argc, char* argv[])
 {
     FILE *inf;
     int exitCode = 0;
@@ -138,9 +138,9 @@ ktxInfo::main(int argc, _TCHAR* argv[])
 
     std::vector<_tstring>::const_iterator it;
     for (it = options.infiles.begin(); it < options.infiles.end(); it++) {
-        _tstring infile = *it;
+       string infile = *it;
 
-        if (!infile.compare(_T("-"))) {
+        if (!infile.compare("-")) {
             inf = stdin;
 #if defined(_WIN32)
             /* Set "stdin" to have binary mode */
@@ -157,14 +157,14 @@ ktxInfo::main(int argc, _TCHAR* argv[])
             if (result ==  KTX_FILE_UNEXPECTED_EOF) {
                 cerr << name
                      << ": Unexpected end of file reading \""
-                     << (infile.compare(_T("-")) ? infile : "stdin" ) << "\"."
+                     << (infile.compare("-") ? infile : "stdin" ) << "\"."
                      << endl;
                 exitCode = 2;
                 goto cleanup;
             }
             if (result == KTX_UNKNOWN_FILE_FORMAT) {
                 cerr << name
-                     << ": " << (infile.compare(_T("-")) ? infile : "stdin")
+                     << ": " << (infile.compare("-") ? infile : "stdin")
                      << " is not a KTX or KTX2 file."
                      << endl;
                 exitCode = 2;
@@ -173,7 +173,7 @@ ktxInfo::main(int argc, _TCHAR* argv[])
             if (result == KTX_FILE_READ_ERROR) {
                 cerr << name
                     << ": Error reading \""
-                    << (infile.compare(_T("-")) ? infile : "stdin") << "\"."
+                    << (infile.compare("-") ? infile : "stdin") << "\"."
                     << strerror(errno) << endl;
                 exitCode = 2;
                 goto cleanup;
@@ -181,7 +181,7 @@ ktxInfo::main(int argc, _TCHAR* argv[])
         } else {
             cerr << name
                  << " could not open input file \""
-                 << (infile.compare(_T("-")) ? infile : "stdin") << "\". "
+                 << (infile.compare("-") ? infile : "stdin") << "\". "
                  << strerror(errno) << endl;
             exitCode = 2;
             goto cleanup;
@@ -202,7 +202,7 @@ ktxInfo::processOption(argparser&, int)
 
 #if IMAGE_DEBUG
 static void
-dumpImage(_TCHAR* name, int width, int height, int components, int componentSize,
+dumpImage(char* name, int width, int height, int components, int componentSize,
           bool isLuminance, unsigned char* srcImage)
 {
     char formatstr[2048];

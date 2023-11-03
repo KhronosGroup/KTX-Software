@@ -581,7 +581,7 @@ class ktxValidator : public ktxApp {
   public:
     ktxValidator();
 
-    virtual int main(int argc, _TCHAR* argv[]);
+    virtual int main(int argc, char* argv[]);
     virtual void usage();
 
   protected:
@@ -1111,7 +1111,7 @@ static ktxValidator ktxcheck;
 ktxApp& theApp = ktxcheck;
 
 int
-ktxValidator::main(int argc, _TCHAR *argv[])
+ktxValidator::main(int argc, char *argv[])
 {
     processCommandLine(argc, argv, eAllowStdin);
 
@@ -1136,7 +1136,7 @@ ktxValidator::main(int argc, _TCHAR *argv[])
 }
 
 void
-ktxValidator::validateFile(const _tstring& filename)
+ktxValidator::validateFile(const string& filename)
 {
     validationContext context;
     istream* isp;
@@ -1146,7 +1146,7 @@ ktxValidator::validateFile(const _tstring& filename)
     stringstream buffer;
     bool doBuffer;
 
-    if (filename.compare(_T("-")) == 0) {
+    if (filename.compare("-") == 0) {
 #if defined(_WIN32)
         /* Set "stdin" to have binary mode */
         (void)_setmode( _fileno( stdin ), _O_BINARY );
