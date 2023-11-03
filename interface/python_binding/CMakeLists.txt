@@ -23,6 +23,16 @@ else()
     set(LIBKTX_LIB_DIR ${KTX_BUILD_DIR}/$<CONFIG>)
 endif()
 
+add_custom_target(pyktx-deps
+    COMMENT "pip dependencies")
+add_custom_command(
+    TARGET pyktx-deps
+    PRE_BUILD
+    COMMAND
+        ${PYTHON_EXECUTABLE} -m pip install --no-warn-script-location -r ${CMAKE_SOURCE_DIR}/interface/python_binding/requirements.txt
+    COMMENT
+        "Install dependencies for pyktx build"
+)
 
 add_custom_target( pyktx ALL
     DEPENDS
@@ -39,16 +49,7 @@ add_custom_target( pyktx ALL
     COMMENT
         "Python distributions"
 )
-add_dependencies(pyktx ktx)
-
-add_custom_command(
-    TARGET pyktx
-    PRE_BUILD
-    COMMAND
-        ${PYTHON_EXECUTABLE} -m pip install --no-warn-script-location -r ${CMAKE_SOURCE_DIR}/interface/python_binding/requirements.txt
-    COMMENT
-        "Install dependencies for pyktx build"
-)
+add_dependencies(pyktx ktx pyktx-deps)
 
 add_custom_command(
     TARGET pyktx
@@ -64,8 +65,6 @@ add_custom_command(
 add_custom_command(
     TARGET pyktx
     POST_BUILD
-    BYPRODUCTS
-        ${CMAKE_SOURCE_DIR}/interface/python_binding/dist/libktx-${PROJECT_VERSION}.tgz
     COMMAND
         ${CMAKE_COMMAND} -E env
         LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
@@ -79,8 +78,6 @@ add_custom_command(
 add_custom_command(
     TARGET pyktx
     POST_BUILD
-    BYPRODUCTS
-        ${CMAKE_SOURCE_DIR}/interface/python_binding/dist
     COMMAND
         ${CMAKE_COMMAND} -E env
         LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
@@ -101,8 +98,6 @@ add_custom_target(pyktx-dev
         pyktx/ktx_texture1.c
         pyktx/ktx_texture2.c
         pyktx/ktx_texture1.o
-        pyktx/ktx_texture2.o
-        pyktx/ktx_texture.o
     WORKING_DIRECTORY
         ${CMAKE_SOURCE_DIR}/interface/python_binding
     COMMENT
@@ -126,7 +121,7 @@ add_custom_command(
     WORKING_DIRECTORY
         ${CMAKE_SOURCE_DIR}/interface/python_binding
 )
-add_dependencies(pyktx-dev ktx)
+add_dependencies(pyktx-dev ktx pyktx-deps)
 
 if(KTX_FEATURE_DOC)
     add_custom_command(
