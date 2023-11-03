@@ -106,3 +106,15 @@ cnvrtcmpktx( 2d-bc2 pattern_02_bc2.ktx2 pattern_02_bc2.ktx "-f" )
 cnvrtcmpktx( 2d-array-astc texturearray_astc_8x8_unorm.ktx2 texturearray_astc_8x8_unorm.ktx "-f" )
 
 cnvrtcmpktx_implied_out( 2d-bc2 pattern_02_bc2 "-f" )
+
+cnvrtcmpktx( unicode-file-hu hűtő.ktx2 hűtő.ktx "-f" )
+cnvrtcmpktx( unicode-file-jp テクスチャ.ktx2 テクスチャ.ktx "-f" )
+cnvrtcmpktx( unicode-file-ar نَسِيج.ktx2 نَسِيج.ktx "-f" )
+cnvrtcmpktx( unicode-file-zh 质地.ktx2 质地.ktx "-f" )
+cnvrtcmpktx( unicode-file-ko 조직.ktx2 조직.ktx "-f" )
+
+cnvrtcmpktx_implied_out( unicode-file-hu hűtő "-f" )
+cnvrtcmpktx_implied_out( unicode-file-jp テクスチャ "-f" )
+cnvrtcmpktx_implied_out( unicode-file-ar نَسِيج "-f" )
+cnvrtcmpktx_implied_out( unicode-file-zh 质地 "-f" )
+cnvrtcmpktx_implied_out( unicode-file-ko 조직 "-f" )
