@@ -185,7 +185,7 @@ ffibuilder.set_source(
     sources=['pyktx/ktx_texture.c', 'pyktx/ktx_texture1.c', 'pyktx/ktx_texture2.c'],
     libraries=['ktx'],
     library_dirs=([LIBKTX_LIB_DIR] if LIBKTX_LIB_DIR is not None else []),
-    runtime_library_dirs=([LIBKTX_LIB_DIR] if LIBKTX_LIB_DIR is not None else []))
+    runtime_library_dirs=(([LIBKTX_LIB_DIR] if LIBKTX_LIB_DIR is not None else [])) if os.name == 'nt' else None)
 
 if __name__ == "__main__":
     ffibuilder.compile(verbose=True)
