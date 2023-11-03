@@ -38,6 +38,7 @@ add_custom_target( pyktx ALL
     COMMENT
         "Python distributions"
 )
+add_dependencies(pyktx ktx)
 
 add_custom_command(
     TARGET pyktx
@@ -89,22 +90,46 @@ add_custom_command(
         ${CMAKE_SOURCE_DIR}/interface/python_binding
 )
 
-add_test(NAME pyktx
+add_custom_target(pyktx-dev
+    DEPENDS
+        ${pyktx_py_src}
+        pyktx/ktx_texture.h
+        pyktx/ktx_texture1.h
+        pyktx/ktx_texture2.h
+        pyktx/ktx_texture.c
+        pyktx/ktx_texture1.c
+        pyktx/ktx_texture2.c
+        pyktx/ktx_texture1.o
+        pyktx/ktx_texture2.o
+        pyktx/ktx_texture.o
+    WORKING_DIRECTORY
+        ${CMAKE_SOURCE_DIR}/interface/python_binding
+    COMMENT
+        "Unbundled Python object files"
+)
+
+add_custom_command(
+    TARGET pyktx-dev
+    BYPRODUCTS
+        pyktx/ktx_texture1.o
+        pyktx/ktx_texture2.o
+        pyktx/ktx_texture.o
     COMMAND
         ${CMAKE_COMMAND} -E env
-            LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
-            LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
-            KTX_RUN_TESTS=ON
-            DYLD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{DYLD_LIBRARY_PATH}
-            LD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{LD_LIBRARY_PATH}
+        LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
+        LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
+        KTX_RUN_TESTS=ON
+        DYLD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{DYLD_LIBRARY_PATH}
+        LD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{LD_LIBRARY_PATH}
         ${PYTHON_EXECUTABLE} build.py
     WORKING_DIRECTORY
         ${CMAKE_SOURCE_DIR}/interface/python_binding
 )
+add_dependencies(ktx pyktx-dev)
 
 if(KTX_FEATURE_DOC)
     add_custom_command(
-        TARGET pyktx
+        TARGET pyktx-dev
         POST_BUILD
         COMMAND
             ${CMAKE_COMMAND} -E env
@@ -112,11 +137,6 @@ if(KTX_FEATURE_DOC)
                 LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
                 DYLD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{DYLD_LIBRARY_PATH}
                 LD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{LD_LIBRARY_PATH}
-            ${PYTHON_EXECUTABLE} build.py
-        COMMAND
-            ${CMAKE_COMMAND} -E env
-                LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
-                LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
             ${PYTHON_EXECUTABLE} -m sphinx.ext.apidoc -o docs ./pyktx --separate
         COMMAND
             ${CMAKE_COMMAND} -E env
