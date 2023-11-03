@@ -104,10 +104,6 @@ add_dependencies(pyktx-dev ktx pyktx-deps pyktx)
 
 add_custom_command(
     TARGET pyktx-dev
-    BYPRODUCTS
-        pyktx/ktx_texture1.o
-        pyktx/ktx_texture2.o
-        pyktx/ktx_texture.o
     COMMAND
         ${CMAKE_COMMAND} -E env
         LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
