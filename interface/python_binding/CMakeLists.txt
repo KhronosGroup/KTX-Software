@@ -115,7 +115,7 @@ add_custom_command(
         KTX_RUN_TESTS=${KTX_FEATURE_TESTS}
         DYLD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{DYLD_LIBRARY_PATH}
         LD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{LD_LIBRARY_PATH}
-        PATH=${LIBKTX_LIB_DIR}:$ENV{PATH}
+        PATH=${LIBKTX_LIB_DIR}$<IF:$<PLATFORM_ID:Windows>,";",":">$ENV{PATH}
         ${PYTHON_EXECUTABLE} buildscript.py
     WORKING_DIRECTORY
         ${CMAKE_SOURCE_DIR}/interface/python_binding
