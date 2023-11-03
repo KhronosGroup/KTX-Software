@@ -27,11 +27,19 @@ add_custom_target(pyktx-deps
     COMMENT "pip dependencies")
 add_custom_command(
     TARGET pyktx-deps
-    PRE_BUILD
     COMMAND
         ${PYTHON_EXECUTABLE} -m pip install --no-warn-script-location -r ${CMAKE_SOURCE_DIR}/interface/python_binding/requirements.txt
     COMMENT
         "Install dependencies for pyktx build"
+)
+add_custom_command(
+    TARGET pyktx-deps
+    COMMAND
+        ${PYTHON_EXECUTABLE} clean.py
+    COMMENT
+        "Clean up pyktx build artifacts"
+    WORKING_DIRECTORY
+        ${CMAKE_SOURCE_DIR}/interface/python_binding
 )
 
 add_custom_target( pyktx ALL
@@ -50,17 +58,6 @@ add_custom_target( pyktx ALL
         "Python distributions"
 )
 add_dependencies(pyktx ktx pyktx-deps)
-
-add_custom_command(
-    TARGET pyktx
-    PRE_BUILD
-    COMMAND
-        ${PYTHON_EXECUTABLE} clean.py
-    COMMENT
-        "Clean up pyktx build artifacts"
-    WORKING_DIRECTORY
-        ${CMAKE_SOURCE_DIR}/interface/python_binding
-)
 
 add_custom_command(
     TARGET pyktx
@@ -97,12 +94,13 @@ add_custom_target(pyktx-dev
         pyktx/ktx_texture.c
         pyktx/ktx_texture1.c
         pyktx/ktx_texture2.c
-        pyktx/ktx_texture1.o
     WORKING_DIRECTORY
         ${CMAKE_SOURCE_DIR}/interface/python_binding
     COMMENT
         "Unbundled Python object files"
 )
+
+add_dependencies(pyktx-dev ktx pyktx-deps pyktx)
 
 add_custom_command(
     TARGET pyktx-dev
@@ -114,14 +112,13 @@ add_custom_command(
         ${CMAKE_COMMAND} -E env
         LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
         LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
-        KTX_RUN_TESTS=ON
+        KTX_RUN_TESTS=${KTX_FEATURE_TESTS}
         DYLD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{DYLD_LIBRARY_PATH}
         LD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{LD_LIBRARY_PATH}
-        ${PYTHON_EXECUTABLE} build.py
+        ${PYTHON_EXECUTABLE} buildscript.py
     WORKING_DIRECTORY
         ${CMAKE_SOURCE_DIR}/interface/python_binding
 )
-add_dependencies(pyktx-dev ktx pyktx-deps)
 
 if(KTX_FEATURE_DOC)
     add_custom_command(

@@ -12,4 +12,6 @@ for root, directories, files in os.walk('pyktx'):
                 file.endswith('.dylib') or
                 file.endswith('.dll') or
                 file.startswith('native')):
-            os.remove(os.path.join('pyktx', file))
+            path = os.path.join('pyktx', file)
+            print(f"Deleting {path}")
+            os.remove(path)
