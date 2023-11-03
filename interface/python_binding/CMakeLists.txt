@@ -23,7 +23,8 @@ else()
     set(LIBKTX_LIB_DIR ${KTX_BUILD_DIR}/$<CONFIG>)
 endif()
 
-add_custom_command(
+
+add_custom_target( pyktx ALL
     DEPENDS
         ${pyktx_py_src}
         pyktx/ktx_texture.h
@@ -32,38 +33,6 @@ add_custom_command(
         pyktx/ktx_texture.c
         pyktx/ktx_texture1.c
         pyktx/ktx_texture2.c
-    OUTPUT
-        ${CMAKE_SOURCE_DIR}/interface/python_binding/dist/libktx-${PROJECT_VERSION}.tgz
-    COMMAND
-        ${CMAKE_COMMAND} -E env
-            LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
-            LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
-            LIBKTX_VERSION=${PROJECT_VERSION}
-        ${PYTHON_EXECUTABLE} -m build --sdist
-    WORKING_DIRECTORY
-        ${CMAKE_SOURCE_DIR}/interface/python_binding
-)
-
-add_custom_command(
-    DEPENDS
-        ${CMAKE_SOURCE_DIR}/interface/python_binding/dist/libktx-${PROJECT_VERSION}.tgz
-    OUTPUT
-        ${CMAKE_SOURCE_DIR}/interface/python_binding/dist
-    COMMAND
-        ${CMAKE_COMMAND} -E env
-            LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
-            LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
-            LIBKTX_VERSION=${PROJECT_VERSION}
-        ${PYTHON_EXECUTABLE} -m build --wheel
-    WORKING_DIRECTORY
-        ${CMAKE_SOURCE_DIR}/interface/python_binding
-)
-
-
-add_custom_target( pyktx ALL
-    DEPENDS
-        ${CMAKE_SOURCE_DIR}/interface/python_binding/dist
-        ktx
     WORKING_DIRECTORY
         ${CMAKE_SOURCE_DIR}/interface/python_binding
     COMMENT
@@ -86,6 +55,36 @@ add_custom_command(
         ${PYTHON_EXECUTABLE} clean.py
     COMMENT
         "Clean up pyktx build artifacts"
+    WORKING_DIRECTORY
+        ${CMAKE_SOURCE_DIR}/interface/python_binding
+)
+
+add_custom_command(
+    TARGET pyktx
+    POST_BUILD
+    BYPRODUCTS
+        ${CMAKE_SOURCE_DIR}/interface/python_binding/dist/libktx-${PROJECT_VERSION}.tgz
+    COMMAND
+        ${CMAKE_COMMAND} -E env
+        LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
+        LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
+        LIBKTX_VERSION=${PROJECT_VERSION}
+        ${PYTHON_EXECUTABLE} -m build --sdist
+    WORKING_DIRECTORY
+        ${CMAKE_SOURCE_DIR}/interface/python_binding
+)
+
+add_custom_command(
+    TARGET pyktx
+    POST_BUILD
+    BYPRODUCTS
+        ${CMAKE_SOURCE_DIR}/interface/python_binding/dist
+    COMMAND
+        ${CMAKE_COMMAND} -E env
+        LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
+        LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
+        LIBKTX_VERSION=${PROJECT_VERSION}
+        ${PYTHON_EXECUTABLE} -m build --wheel
     WORKING_DIRECTORY
         ${CMAKE_SOURCE_DIR}/interface/python_binding
 )
