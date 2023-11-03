@@ -33,6 +33,7 @@ add_custom_target( pyktx ALL
         pyktx/ktx_texture.c
         pyktx/ktx_texture1.c
         pyktx/ktx_texture2.c
+        ${LIBKTX_LIB_DIR}
     WORKING_DIRECTORY
         ${CMAKE_SOURCE_DIR}/interface/python_binding
     COMMENT
@@ -125,7 +126,7 @@ add_custom_command(
     WORKING_DIRECTORY
         ${CMAKE_SOURCE_DIR}/interface/python_binding
 )
-add_dependencies(ktx pyktx-dev)
+add_dependencies(pyktx-dev ktx)
 
 if(KTX_FEATURE_DOC)
     add_custom_command(
