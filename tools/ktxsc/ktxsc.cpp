@@ -301,10 +301,10 @@ ktxSupercompressor::main(int argc, _TCHAR* argv[])
                     assert(tmpfile.size() > 0 && infile.length());
 #if defined(_WIN32)
                     // Windows' rename() fails if the destination file exists!
-                    if (!MoveFileEx(tmpfile.c_str(), infile.c_str(),
-                                    MOVEFILE_REPLACE_EXISTING))
+                    if (!MoveFileExW(DecodeUTF8Path(tmpfile).c_str(), DecodeUTF8Path(infile).c_str(),
+                                     MOVEFILE_REPLACE_EXISTING))
 #else
-                    if (_trename(tmpfile.c_str(), infile.c_str()))
+                    if (rename(tmpfile.c_str(), infile.c_str()))
 #endif
                     {
                         cerr << name

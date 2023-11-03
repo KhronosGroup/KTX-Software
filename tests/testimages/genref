@@ -128,3 +128,8 @@ $toktx --test --depth 7 --t2 3dtex_7_reference_u.ktx2 ../srcimages/red16.png ../
 $toktx --test --layers 7 --genmipmap --t2 arraytex_7_mipmap_reference_u.ktx2 ../srcimages/red16.png ../srcimages/orange16.png ../srcimages/yellow16.png ../srcimages/green16.png ../srcimages/blue16.png ../srcimages/indigo16.png ../srcimages/violet16.png
 
 $ktxsc -o skybox_zstd.ktx2 --force --test --zcmp 5 skybox.ktx2
+$ktxsc -o hűtő_zstd.ktx2 --force --test --zcmp 5 hűtő.ktx2
+$ktxsc -o نَسِيج_zstd.ktx2 --force --test --zcmp 5 نَسِيج.ktx2
+$ktxsc -o テクスチャ_zstd.ktx2 --force --test --zcmp 5 テクスチャ.ktx2
+$ktxsc -o 质地_zstd.ktx2 --force --test --zcmp 5 质地.ktx2
+$ktxsc -o 조직_zstd.ktx2 --force --test --zcmp 5 조직.ktx2
