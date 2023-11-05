@@ -34,6 +34,7 @@ set_target_properties(
     ktxtools
     PROPERTIES
         OUTPUT_NAME ktx
+        PDB_NAME ktxtools # Avoid conflict with libktx's .pdb.
         CXX_STANDARD 17
         CXX_STANDARD_REQUIRED YES
 )
