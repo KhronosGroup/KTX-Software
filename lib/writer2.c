@@ -180,7 +180,8 @@ appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
  * @param[in] This      pointer to the target ktxTexture object.
  * @param[in] level     mip level of the image to set.
  * @param[in] layer     array layer of the image to set.
- * @param[in] faceSlice cube map face or depth slice of the image to set.
+ * @param[in] faceSlice cube map face or depth slice of the image to set or
+ *                      KTX_FACESLICE_WHOLE_LEVEL to set the entire level.
  * @param[in] src       ktxStream pointer to the source.
  * @param[in] srcSize   size of the source image in bytes.
  *
@@ -208,13 +209,19 @@ ktxTexture2_setImageFromStream(ktxTexture2* This, ktx_uint32_t level,
     if (!This->pData)
         return KTX_INVALID_OPERATION;
 
-    result = ktxTexture_GetImageOffset(ktxTexture(This),
-                                       level, layer, faceSlice,
-                                       &imageByteOffset);
-    if (result != KTX_SUCCESS)
-       return result;
-
-    imageByteLength = ktxTexture_GetImageSize(ktxTexture(This), level);
+    if (faceSlice == KTX_FACESLICE_WHOLE_LEVEL) {
+        result = ktxTexture_GetImageOffset(ktxTexture(This), level, layer, 0, &imageByteOffset);
+        if (result != KTX_SUCCESS) {
+            return result;
+        }
+        imageByteLength = ktxTexture_calcLevelSize(ktxTexture(This), level, KTX_FORMAT_VERSION_TWO);
+    } else {
+        result = ktxTexture_GetImageOffset(ktxTexture(This), level, layer, faceSlice, &imageByteOffset);
+        if (result != KTX_SUCCESS) {
+            return result;
+        }
+        imageByteLength = ktxTexture_GetImageSize(ktxTexture(This), level);
+    }
 
     if (srcSize != imageByteLength)
         return KTX_INVALID_OPERATION;
@@ -242,7 +249,8 @@ ktxTexture2_setImageFromStream(ktxTexture2* This, ktx_uint32_t level,
  * @param[in] This      pointer to the target ktxTexture object.
  * @param[in] level     mip level of the image to set.
  * @param[in] layer     array layer of the image to set.
- * @param[in] faceSlice cube map face or depth slice of the image to set.
+ * @param[in] faceSlice cube map face or depth slice of the image to set or
+ *                      KTX_FACESLICE_WHOLE_LEVEL to set the entire level.
  * @param[in] src       stdio stream pointer to the source.
  * @param[in] srcSize   size of the source image in bytes.
  *
@@ -287,7 +295,8 @@ ktxTexture2_SetImageFromStdioStream(ktxTexture2* This, ktx_uint32_t level,
  * @param[in] This      pointer to the target ktxTexture object.
  * @param[in] level     mip level of the image to set.
  * @param[in] layer     array layer of the image to set.
- * @param[in] faceSlice cube map face or depth slice of the image to set.
+ * @param[in] faceSlice cube map face or depth slice of the image to set or
+ *                      KTX_FACESLICE_WHOLE_LEVEL to set the entire level.
  * @param[in] src       pointer to the image source in memory.
  * @param[in] srcSize   size of the source image in bytes.
  *
@@ -941,4 +950,3 @@ ktxTexture2_DeflateZLIB(ktxTexture2* This, ktx_uint32_t compressionLevel)
 }
 
 /** @} */
-
