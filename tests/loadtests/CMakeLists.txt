@@ -16,23 +16,24 @@ if(NOT EMSCRIPTEN)
     endif()
     set( CMAKE_FIND_PACKAGE_PREFER_CONFIG ${fp_pref} )
 
+	message("GLEW_FOUND = ${SDL2_FOUND}")
     if(NOT SDL2_FOUND)
         if(APPLE)
             if(IOS)
-                set( SDL2_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_lib )
+                set( SDL2_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
                 set( SDL2_LIBRARIES
                     ${CMAKE_SOURCE_DIR}/other_lib/ios/$<CONFIG>-iphoneos/libSDL2.a
                 )
             else()
                 # These are universal binaries
-                set( SDL2_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_lib )
+                set( SDL2_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
                 set( SDL2_LIBRARIES
                     ${CMAKE_SOURCE_DIR}/other_lib/mac/$<CONFIG>/libSDL2.dylib
                 )
             endif()
         elseif(WIN32 AND ${CPU_ARCHITECTURE} STREQUAL "x86_64")
+            set( SDL2_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
             set( SDL2_LIBRARIES
-                set( SDL2_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_lib )
                 ${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2main.lib
                 ${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2.lib
             )
@@ -43,19 +44,19 @@ if(NOT EMSCRIPTEN)
     if(NOT assimp_FOUND)
         if(APPLE)
             if(IOS)
-                set( ASSIMP_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_lib )
+                set( ASSIMP_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
                 set( ASSIMP_LIBRARIES
                     ${CMAKE_SOURCE_DIR}/other_lib/ios/Release-iphoneos/libassimp.a
                 )
             else()
                 # These are universal binaries
-                set( ASSIMP_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_lib )
+                set( ASSIMP_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
                 set( ASSIMP
                     ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libassimp.a
                 )
             endif()
         elseif(WIN32 AND ${CPU_ARCHITECTURE} STREQUAL "x86_64" )
-            set( ASSIMP_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_lib )
+            set( ASSIMP_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
             set( ASSIMP_LIBRARIES
                 ${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/assimp.lib
             )
@@ -63,17 +64,27 @@ if(NOT EMSCRIPTEN)
             message( FATAL_ERROR "Assimp not found. Can't build loadtest apps." )
         endif()
     endif()
-    if(WIN32 AND ${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL" AND NOT GLEW_FOUND)
-        if(${CPU_ARCHITECTURE} STREQUAL "x86_64")
-            set( GLEW_LIBRARIES
-                ${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/glew32.lib
-            )
+    if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
+        if(WIN32)
+            if(NOT GLEW_FOUND)
+message("Inside NOT GLEW_FOUND")
+                if(${CPU_ARCHITECTURE} STREQUAL "x86_64")
+message("Inside x86_64 NOT SDL2_FOUND")
+		            set( GLEW_INCLUDE_DIR  ${CMAKE_SOURCE_DIR}/other_include )
+                    set( GLEW_LIBRARIES
+                        ${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/glew32.lib
+                    )
+                else()
+                    message( FATAL_ERROR "GLEW not found. Can't build gl3loadtests app." )
+                endif()
+            endif()
         else()
-            message( FATAL_ERROR "GLEW not found. Can't build gl3loadtests app." )
+            # In this case it is really the GL include directory.
+		    set( GLEW_INCLUDE_DIR  ${CMAKE_SOURCE_DIR}/other_include )
         endif()
     endif()
 endif()
-
+message("GLEW_INCLUDE_DIR = ${GLEW_INCLUDE_DIR}")
 if(NOT EMSCRIPTEN AND NOT WIN32)
     # libassimp needs zlib. On Windows we use a dll which has zlib embedded.
     # There is no official libassimp for Emscripten yet and we've had no
@@ -127,18 +138,18 @@ function( ensure_runtime_dependencies_windows target )
     # of an entire command so we use the long-winded way.
     if (NOT TARGET SDL2::SDL2)
         add_custom_command( TARGET ${target} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2.dll" "$<TARGET_FILE_DIR:${target}>" >
+            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2.dll" "$<TARGET_FILE_DIR:${target}>"
             COMMENT "Copy SDL2 DLLs to build destination"
         )
     endif()
     if (NOT TARGET assimp::assimp)
-        add_custom_command( TARGET ${target}
-            COMMAND ${CMAKE_COMMAND}-E copy "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/assimp.dll" "$<TARGET_FILE_DIR:${target}>"
+        add_custom_command( TARGET ${target} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/assimp.dll" "$<TARGET_FILE_DIR:${target}>"
             COMMENT "Copy assimp DLL to build destination"
         )
-    endif()
+   endif()
     if (NOT TARGET GLEW::GLEW)
-        add_custom_command( TARGET ${target}
+        add_custom_command( TARGET ${target} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E;copy "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/glew32.dll" "$<TARGET_FILE_DIR:${target}>"
             COMMENT "Copy GLEW DLL to build destination"
         )
@@ -191,7 +202,6 @@ set_target_properties(appfwSDL PROPERTIES
 target_include_directories(
     appfwSDL
 PUBLIC
-    $<$<BOOL:SDL2_FOUND>:${SDL2_INCLUDE_DIRS}>
     appfwSDL
     $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
     ${PROJECT_SOURCE_DIR}/utils
@@ -202,7 +212,8 @@ PUBLIC
 target_include_directories(
     appfwSDL
 SYSTEM AFTER PUBLIC
-    ${PROJECT_SOURCE_DIR}/other_include # For glm & SDL2 when !SDL2_FOUND
+    ${SDL2_INCLUDE_DIRS}
+    ${PROJECT_SOURCE_DIR}/other_include # For glm
 )
 
 if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
@@ -231,10 +242,10 @@ if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
 #      )
 #  endif()
 
+message("GLEW_INCLUDE_DIR = ${GLEW_INCLUDE_DIR}")
   target_include_directories(
       GLAppSDL
   PUBLIC
-      $<$<BOOL:GLEW_FOUND>:${GLEW_INCLUDE_DIRS}>
       $<TARGET_PROPERTY:appfwSDL,INCLUDE_DIRECTORIES>
       glloadtests
       glloadtests/utils
@@ -243,13 +254,27 @@ if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
 # XXX The above appfwSDL include is bringing with it the
 # INTERFACE_SYSTEM_INCLUDE_DIRECTORIES, maybe because they're public.
 # Keep this in case needed with other generators.
-#  target_include_directories(
-#      GLAppSDL
-#  SYSTEM AFTER PUBLIC
-#      # For glm, SDL2 (when !SDL2_FOUND) and GL (when GLEW not used).
-#      $<TARGET_PROPERTY:appfwSDL,INTERFACE_SYSTEM_INCLUDE_DIRECTORIES>
-#  )
+  target_include_directories(
+      GLAppSDL
+  SYSTEM BEFORE PUBLIC
+      ${GLEW_INCLUDE_DIR}
+      # For glm, SDL2
+ #     $<TARGET_PROPERTY:appfwSDL,INTERFACE_SYSTEM_INCLUDE_DIRECTORIES>
+ )
 
+  get_target_property(afssiincludes appfwSDL INTERFACE_SYSTEM_INCLUDE_DIRECTORIES)
+  get_target_property(afsiincludes appfwSDL INTERFACE_INCLUDE_DIRECTORIES)
+  get_target_property(afsincludes appfwSDL INCLUDE_DIRECTORIES)
+  get_target_property(gfasiincludes GLAppSDL INTERFACE_SYSTEM_INCLUDE_DIRECTORIES)
+  get_target_property(gfaiincludes GLAppSDL INTERFACE_INCLUDE_DIRECTORIES)
+  get_target_property(gfaincludes GLAppSDL INCLUDE_DIRECTORIES)
+
+  message("afssiincludes is ${afssiincludes}")
+  message("afsiincludes is ${afsiincludes}")
+  message("afsincludes is ${afsincludes}")
+  message("gfasiincludes is ${gfasiincludes}")
+  message("gfaiincludes is ${gfaiincludes}")
+  message("gfaincludes is ${gfaincludes}")
   set_target_properties(GLAppSDL PROPERTIES
       CXX_VISIBILITY_PRESET ${STATIC_APP_LIB_SYMBOL_VISIBILITY}
   )

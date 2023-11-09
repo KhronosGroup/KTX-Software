@@ -168,7 +168,7 @@ jobs:
       if: matrix.arch == 'arm64'
       run: |
         . $env:VCPKG_INSTALLATION_ROOT/vcpkg install SDL2:arm64-windows assimp:arm64-windows glew:arm64-windows
-        echo "CMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" >> $env:$GITHUB_ENV
+        echo "CMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" >> $env:GITHUB_ENV
 
     - name: Install Dependencies
       # This script only installs what's needed by ON FEATUREs.

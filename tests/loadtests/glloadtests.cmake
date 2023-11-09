@@ -24,7 +24,8 @@ function( create_gl_target target version sources common_resources test_images
     # 1. With the Visual Studio generator, at least, The SDL and GLEW
     #    includes coming from GLAppSDL are being converted to system
     #    includes. To see them in VS, view the whole command line in
-    #    the compile section of the project properties.
+    #    the compile section of the project properties and look at the
+    #    Additional Options pane at the bottom.
     # 2. GL_APP_SDL's INTERFACE_INCLUDE_DIRECTORIES includes the SYSTEM
     #    include from appfwSDL.
     #
