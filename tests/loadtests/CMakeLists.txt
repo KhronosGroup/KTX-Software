@@ -9,8 +9,8 @@ if(NOT EMSCRIPTEN)
     set( fp_pref ${CMAKE_FIND_PACKAGE_PREFER_CONFIG} )
     # Prefer CONFIG for vcpkg
     set( CMAKE_FIND_PACKAGE_PREFER_CONFIG TRUE )
-    find_package(SDL2 QUIET)
-    find_package(assimp QUIET)
+#    find_package(SDL2 QUIET)
+#    find_package(assimp QUIET)
     if(WIN32)
         find_package(GLEW QUIET)
     endif()
@@ -51,7 +51,7 @@ if(NOT EMSCRIPTEN)
             else()
                 # These are universal binaries
                 set( ASSIMP_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
-                set( ASSIMP
+                set( ASSIMP_LIBRARIES
                     ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libassimp.a
                 )
             endif()
