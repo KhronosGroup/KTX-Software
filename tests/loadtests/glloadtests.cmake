@@ -19,31 +19,37 @@ function( create_gl_target target version sources common_resources test_images
 
     set_code_sign(${target})
 
+    # Nota Bene.
+    #
+    # 1. With the Visual Studio generator, at least, The SDL and GLEW
+    #    includes coming from GLAppSDL are being converted to system
+    #    includes. To see them in VS, view the whole command line in
+    #    the compile section of the project properties.
+    # 2. GL_APP_SDL's INTERFACE_INCLUDE_DIRECTORIES includes the SYSTEM
+    #    include from appfwSDL.
+    #
+    # I do not understand the reasons for either of these.
     target_include_directories(
         ${target}
     PRIVATE
         $<TARGET_PROPERTY:GLAppSDL,INTERFACE_INCLUDE_DIRECTORIES>
-        $<TARGET_PROPERTY:ktx,INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
         $<TARGET_PROPERTY:objUtil,INTERFACE_INCLUDE_DIRECTORIES>
     )
 
-    target_include_directories(
-        ${target}
-    SYSTEM PRIVATE
-          ${PROJECT_SOURCE_DIR}/other_include
-    )
+#    if(OPENGL_FOUND)
+#        target_include_directories(
+#            ${target}
+#        PRIVATE
+#            $<IF:$<BOOL:${WIN32}>,${GLEW_INCLUDE_DIRS},${OPENGL_INCLUDE_DIR}>
+##            ${OPENGL_INCLUDE_DIR}
+#        )
+#    endif()
 
     set_target_properties(${target} PROPERTIES
         CXX_VISIBILITY_PRESET ${STATIC_APP_LIB_SYMBOL_VISIBILITY}
     )
 
-    if(OPENGL_FOUND)
-        target_include_directories(
-            ${target}
-        PRIVATE
-            ${OPENGL_INCLUDE_DIR}
-        )
-    endif()
 
     target_link_libraries(
         ${target}
@@ -145,7 +151,7 @@ function( create_gl_target target version sources common_resources test_images
         else()
             target_link_libraries(
                 ${target}
-                "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/glew32.lib"
+                ${GLEW_LIBRARIES}
             )
         endif()
         ensure_runtime_dependencies_windows(${target})
