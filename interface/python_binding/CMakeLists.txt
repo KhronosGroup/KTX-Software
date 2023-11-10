@@ -103,35 +103,22 @@ add_custom_target(pyktx-dev
 add_dependencies(pyktx-dev ktx pyktx-deps pyktx)
 
 # Build non-distribution for development test
-if (WIN32)
-    add_custom_command(
-        TARGET pyktx-dev
-        COMMAND
-            set "PATH=${LIBKTX_LIB_DIR};%PATH%"
-        COMMAND
-            ${CMAKE_COMMAND} -E env
+if(WIN32)
+    set(CMAKE_MSVCIDE_RUN_PATH ${LIBKTX_LIB_DIR})
+endif()
+add_custom_command(
+    TARGET pyktx-dev
+    COMMAND
+        ${CMAKE_COMMAND} -E env
             LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
             LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
             KTX_RUN_TESTS=${KTX_FEATURE_TESTS}
-            ${PYTHON_EXECUTABLE} buildscript.py
-        WORKING_DIRECTORY
-            ${CMAKE_SOURCE_DIR}/interface/python_binding
-    )
-else()
-    add_custom_command(
-        TARGET pyktx-dev
-        COMMAND
-            ${CMAKE_COMMAND} -E env
-                LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
-                LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
-                KTX_RUN_TESTS=${KTX_FEATURE_TESTS}
-                DYLD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{DYLD_LIBRARY_PATH}
-                LD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{LD_LIBRARY_PATH}
-            ${PYTHON_EXECUTABLE} buildscript.py
-        WORKING_DIRECTORY
-            ${CMAKE_SOURCE_DIR}/interface/python_binding
-    )
-endif ()
+            DYLD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{DYLD_LIBRARY_PATH}
+            LD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{LD_LIBRARY_PATH}
+        ${PYTHON_EXECUTABLE} buildscript.py
+    WORKING_DIRECTORY
+        ${CMAKE_SOURCE_DIR}/interface/python_binding
+)
 
 if(KTX_FEATURE_DOC)
     add_custom_command(
