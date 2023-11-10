@@ -167,7 +167,12 @@ jobs:
     - name: Install Dependencies for load tests on arm64
       if: matrix.arch == 'arm64' && matrix.options.loadtests
       run: |
-        . $env:VCPKG_INSTALLATION_ROOT/vcpkg install SDL2:arm64-windows assimp:arm64-windows glew:arm64-windows
+        pushd $env:VCPKG_INSTALLATION_ROOT
+        git pull
+        ./vcpkg update
+        ./vcpkg install SDL2:arm64-windows assimp:arm64-windows glew:arm64-windows
+        cat buildtrees\glew\install-arm64-windows-rel-out.log
+        popd
         echo "CMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" >> $env:GITHUB_ENV
 
     - name: Install Dependencies
