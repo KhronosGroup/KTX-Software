@@ -3,14 +3,11 @@
 
 include(CMakePrintHelpers)
 
-message("GLEW_FOUND = ${GLEW_FOUND}")
 set( fp_pref ${CMAKE_FIND_PACKAGE_PREFER_CONFIG} )
 # Prefer CONFIG for vcpkg
 set( CMAKE_FIND_PACKAGE_PREFER_CONFIG TRUE )
-if(NOT EMSCRIPTEN)
-    find_package(SDL2 QUIET)
-    find_package(assimp QUIET)
-endif()
+find_package(SDL2 QUIET)
+find_package(assimp QUIET)
 if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
     find_package(OpenGL)
     if(WIN32)
@@ -19,100 +16,94 @@ if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
 endif()
 set( CMAKE_FIND_PACKAGE_PREFER_CONFIG ${fp_pref} )
 
-message("OpenGL_FOUND = ${OpenGL_FOUND}")
-message("OPENGL_INCLUDE_DIR = ${OPENGL_INCLUDE_DIR}")
+cmake_print_variables(OPENGL_FOUND OPENGL_INCLUDE_DIR)
 # We use our own local copy of GL headers to ensure we have glcorearb.h.
 set( OPENGL_INCLUDE_DIR  ${CMAKE_SOURCE_DIR}/other_include )
-message("OPENGL_INCLUDE_DIR = ${OPENGL_INCLUDE_DIR}")
+cmake_print_variables(OPENGL_INCLUDE_DIR)
+cmake_print_variables(SDL2_FOUND SDL2_INCLUDE_DIRS)
+cmake_print_variables(assimp_FOUND ASSIMP_FOUND ASSIMP_INCLUDE_DIRS)
 
-if(NOT EMSCRIPTEN)
-    set( CMAKE_FIND_PACKAGE_PREFER_CONFIG ${fp_pref} )
 
-	message("GLEW_FOUND = ${GLEW_FOUND}")
-	message("SDL2_FOUND = ${SDL2_FOUND}")
-if(SDL2_FOUND)
-    message("SDL2_INCLUDE_DIRS = ${SDL2_INCLUDE_DIRS}")
-endif()
+message("GLEW_FOUND = ${GLEW_FOUND}")
 message("assimp_FOUND = ${assimp_FOUND}")
+
 cmake_print_variables(CPU_ARCHITECTURE CMAKE_HOST_SYSTEM_PROCESSOR)
-    string(TOLOWER ${CMAKE_HOST_SYSTEM_PROCESSOR} host_lower)
-    cmake_print_variables(host_lower)
-    if(NOT (SDL2_FOUND AND ${CPU_ARCHITECTURE} STREQUAL ${host_lower}))
-        message("In SDL NOT FOUND block")
-        # Use binary from repo.
-        if(APPLE)
-            if(IOS)
-                # There is a check elsewhere that errors when not building
-                # for iOS/arm64.
-                set( SDL2_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
-                set( SDL2_LIBRARIES
-                    ${CMAKE_SOURCE_DIR}/other_lib/ios/$<CONFIG>-iphoneos/libSDL2.a
-                )
-            else()
-                # These are universal binaries
-                set( SDL2_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
-                set( SDL2_LIBRARIES
-                    ${CMAKE_SOURCE_DIR}/other_lib/mac/$<CONFIG>/libSDL2.dylib
-                )
-            endif()
-        elseif(WIN32 AND ${CPU_ARCHITECTURE} STREQUAL "x86_64")
+if(NOT (SDL2_FOUND)
+    message("In SDL NOT FOUND block")
+    # Use binary from repo.
+    if(APPLE)
+        if(IOS)
+            # There is a check elsewhere that errors when not building
+            # for iOS/arm64.
             set( SDL2_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
             set( SDL2_LIBRARIES
-                ${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2main.lib
-                ${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2.lib
+                ${CMAKE_SOURCE_DIR}/other_lib/ios/$<CONFIG>-iphoneos/libSDL2.a
             )
         else()
-            message( FATAL_ERROR "SDL2 not found. Can't build loadtest apps." )
+            # These are universal binaries
+            set( SDL2_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
+            set( SDL2_LIBRARIES
+                ${CMAKE_SOURCE_DIR}/other_lib/mac/$<CONFIG>/libSDL2.dylib
+            )
         endif()
+    elseif(WIN32 AND ${CPU_ARCHITECTURE} STREQUAL "x86_64")
+        set( SDL2_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
+        set( SDL2_LIBRARIES
+            ${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2main.lib
+            ${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2.lib
+        )
+    else()
+        message( FATAL_ERROR "SDL2 not found. Can't build loadtest apps." )
     endif()
+endif()
 message("SDL2_INCLUDE_DIRS = ${SDL2_INCLUDE_DIRS}")
-    if(NOT assimp_FOUND)
-        if(APPLE)
-            if(IOS)
-                set( ASSIMP_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
-                set( ASSIMP_LIBRARIES
-                    ${CMAKE_SOURCE_DIR}/other_lib/ios/Release-iphoneos/libassimp.a
-                )
-            else()
-                # These are universal binaries
-                set( ASSIMP_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
-                set( ASSIMP_LIBRARIES
-                    ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libassimp.a
-                )
-            endif()
-        elseif(WIN32 AND ${CPU_ARCHITECTURE} STREQUAL "x86_64" )
+if(NOT assimp_FOUND)
+    if(APPLE)
+        if(IOS)
             set( ASSIMP_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
             set( ASSIMP_LIBRARIES
-                ${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/assimp.lib
+                ${CMAKE_SOURCE_DIR}/other_lib/ios/Release-iphoneos/libassimp.a
             )
         else()
-            message( FATAL_ERROR "Assimp not found. Can't build loadtest apps." )
+            # These are universal binaries
+            set( ASSIMP_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
+            set( ASSIMP_LIBRARIES
+                ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libassimp.a
+            )
         endif()
+    elseif(WIN32 AND ${CPU_ARCHITECTURE} STREQUAL "x86_64" )
+        set( ASSIMP_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
+        set( ASSIMP_LIBRARIES
+            ${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/assimp.lib
+        )
+    elseif(NOT EMSCRIPTEN)
+        # There is no official libassimp for Emscripten yet and we've had
+        # no time to experiment so tests that use assimp are not included
+        # in the Emscripten build.
+        message( FATAL_ERROR "Assimp not found. Can't build loadtest apps." )
     endif()
-    if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL" AND WIN32)
-        if(NOT GLEW_FOUND)
+endif()
+if(NOT EMSCRIPTEN AND NOT WIN32)
+    # libassimp needs zlib. On Windows we use a dll which has zlib embedded.
+    find_package( ZLIB REQUIRED )
+    set( KTX_ZLIB_LIBRARIES ZLIB::ZLIB )
+endif()
+
+if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL" AND WIN32)
+    if(NOT GLEW_FOUND)
 message("Inside NOT GLEW_FOUND")
-            if(${CPU_ARCHITECTURE} STREQUAL "x86_64")
+        if(${CPU_ARCHITECTURE} STREQUAL "x86_64")
 message("Inside x86_64 NOT SDL2_FOUND")
-                set( GLEW_INCLUDE_DIR  ${CMAKE_SOURCE_DIR}/other_include )
-                set( GLEW_LIBRARIES
-                    ${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/glew32.lib
-                )
-            else()
-                message( FATAL_ERROR "GLEW not found. Can't build gl3loadtests app." )
-            endif()
+            set( GLEW_INCLUDE_DIR  ${CMAKE_SOURCE_DIR}/other_include )
+            set( GLEW_LIBRARIES
+                ${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/glew32.lib
+            )
+        else()
+            message( FATAL_ERROR "GLEW not found. Can't build gl3loadtests app." )
         endif()
     endif()
 endif()
 message("GLEW_INCLUDE_DIR = ${GLEW_INCLUDE_DIR}")
-if(NOT EMSCRIPTEN AND NOT WIN32)
-    # libassimp needs zlib. On Windows we use a dll which has zlib embedded.
-    # There is no official libassimp for Emscripten yet and we've had no
-    # time to experiment so tests that use assimp are not included in the
-    # Emscripten build.
-    find_package( ZLIB REQUIRED )
-    set( KTX_ZLIB_LIBRARIES ZLIB::ZLIB )
-endif()
 
 if(APPLE AND IOS)
     if( CMAKE_OSX_ARCHITECTURES )
