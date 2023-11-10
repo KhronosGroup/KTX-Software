@@ -165,7 +165,7 @@ jobs:
         }
 
     - name: Install Dependencies for load tests on arm64
-      if: matrix.arch == 'arm64'
+      if: matrix.arch == 'arm64' && matrix.options.loadtests
       run: |
         . $env:VCPKG_INSTALLATION_ROOT/vcpkg install SDL2:arm64-windows assimp:arm64-windows glew:arm64-windows
         echo "CMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" >> $env:GITHUB_ENV
@@ -206,6 +206,7 @@ jobs:
         Import-Module "$env:ChocolateyInstall/helpers/chocolateyInstaller.psm1"
         refreshenv
         $env:JAVA_HOME=$step_java_home
+        ls "C:\Program Files (x86)\Windows Kits\10\lib\10.0.22621.0\um\arm64"
         ci_scripts/build_win.ps1
 
     - name: Test Windows build
