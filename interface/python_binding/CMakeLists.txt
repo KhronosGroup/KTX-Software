@@ -105,15 +105,16 @@ add_dependencies(pyktx-dev ktx pyktx-deps pyktx)
 # Build non-distribution for development test
 if (WIN32)
     add_custom_command(
-            TARGET pyktx-dev
-            COMMAND
+        TARGET pyktx-dev
+        COMMAND
+            set "PATH=${LIBKTX_LIB_DIR};%PATH%"
+        COMMAND
             ${CMAKE_COMMAND} -E env
             LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
             LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
             KTX_RUN_TESTS=${KTX_FEATURE_TESTS}
-            PATH="${LIBKTX_LIB_DIR};$ENV{PATH}"
             ${PYTHON_EXECUTABLE} buildscript.py
-            WORKING_DIRECTORY
+        WORKING_DIRECTORY
             ${CMAKE_SOURCE_DIR}/interface/python_binding
     )
 else()
