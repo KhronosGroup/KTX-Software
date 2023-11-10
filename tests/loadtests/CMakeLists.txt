@@ -28,7 +28,7 @@ message("GLEW_FOUND = ${GLEW_FOUND}")
 message("assimp_FOUND = ${assimp_FOUND}")
 
 cmake_print_variables(CPU_ARCHITECTURE CMAKE_HOST_SYSTEM_PROCESSOR)
-if(NOT (SDL2_FOUND)
+if(NOT SDL2_FOUND)
     message("In SDL NOT FOUND block")
     # Use binary from repo.
     if(APPLE)
