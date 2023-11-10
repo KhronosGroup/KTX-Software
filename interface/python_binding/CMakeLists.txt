@@ -104,7 +104,7 @@ add_dependencies(pyktx-dev ktx pyktx-deps pyktx)
 
 if (WIN32)
     message(WARN "KTX BUILDING ON WINDOWS")
-    set(PATH_WITH_KTX_DLLS "${LIBKTX_LIB_DIR};$ENV{PATH}")
+    set(PATH_WITH_KTX_DLLS "$ENV{PATH};${LIBKTX_LIB_DIR}")
 else()
     message(WARN "KTX BUILDING NOT ON WINDOWS")
     set(PATH_WITH_KTX_DLLS ${LIBKTX_LIB_DIR}:$ENV{PATH})
