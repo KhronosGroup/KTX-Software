@@ -1,10 +1,24 @@
 # Copyright 2017-2020 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
+include(CMakePrintHelpers)
+
 message("GLEW_FOUND = ${GLEW_FOUND}")
-if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
-  find_package(OpenGL)
+set( fp_pref ${CMAKE_FIND_PACKAGE_PREFER_CONFIG} )
+# Prefer CONFIG for vcpkg
+set( CMAKE_FIND_PACKAGE_PREFER_CONFIG TRUE )
+if(NOT EMSCRIPTEN)
+    find_package(SDL2 QUIET)
+    find_package(assimp QUIET)
 endif()
+if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
+    find_package(OpenGL)
+    if(WIN32)
+        find_package(GLEW QUIET)
+    endif()
+endif()
+set( CMAKE_FIND_PACKAGE_PREFER_CONFIG ${fp_pref} )
+
 message("OpenGL_FOUND = ${OpenGL_FOUND}")
 message("OPENGL_INCLUDE_DIR = ${OPENGL_INCLUDE_DIR}")
 # We use our own local copy of GL headers to ensure we have glcorearb.h.
@@ -12,25 +26,22 @@ set( OPENGL_INCLUDE_DIR  ${CMAKE_SOURCE_DIR}/other_include )
 message("OPENGL_INCLUDE_DIR = ${OPENGL_INCLUDE_DIR}")
 
 if(NOT EMSCRIPTEN)
-    set( fp_pref ${CMAKE_FIND_PACKAGE_PREFER_CONFIG} )
-    # Prefer CONFIG for vcpkg
-    set( CMAKE_FIND_PACKAGE_PREFER_CONFIG TRUE )
-    find_package(SDL2 QUIET)
-    find_package(assimp QUIET)
-    if(WIN32)
-        find_package(GLEW QUIET)
-    endif()
     set( CMAKE_FIND_PACKAGE_PREFER_CONFIG ${fp_pref} )
 
 	message("GLEW_FOUND = ${GLEW_FOUND}")
 	message("SDL2_FOUND = ${SDL2_FOUND}")
 if(SDL2_FOUND)
-     message("SDL2_INCLUDE_DIRS = ${SDL2_INCLUDE_DIRS}")
+    message("SDL2_INCLUDE_DIRS = ${SDL2_INCLUDE_DIRS}")
 endif()
-	message("assimp_FOUND = ${assimp_FOUND}")
-    if(NOT (SDL2_FOUND OR ${CPU_ARCHITECTURE} STREQUAL ${CMAKE_HOST_SYSTEM_PROCESSOR}))
+message("assimp_FOUND = ${assimp_FOUND}")
+cmake_print_variables(CPU_ARCHITECTURE CMAKE_HOST_SYSTEM_PROCESSOR)
+    if(NOT (SDL2_FOUND AND ${CPU_ARCHITECTURE} STREQUAL ${CMAKE_HOST_SYSTEM_PROCESSOR}))
+        message("In SDL NOT FOUND block")
+        # Use binary from repo.
         if(APPLE)
             if(IOS)
+                # There is a check elsewhere that errors when not building
+                # for iOS/arm64.
                 set( SDL2_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
                 set( SDL2_LIBRARIES
                     ${CMAKE_SOURCE_DIR}/other_lib/ios/$<CONFIG>-iphoneos/libSDL2.a
