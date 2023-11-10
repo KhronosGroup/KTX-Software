@@ -168,8 +168,6 @@ jobs:
       if: matrix.arch == 'arm64' && matrix.options.loadtests
       run: |
         pushd $env:VCPKG_INSTALLATION_ROOT
-        git pull
-        ./vcpkg update
         ./vcpkg install SDL2:arm64-windows assimp:arm64-windows glew:arm64-windows
         cat buildtrees\glew\install-arm64-windows-rel-out.log
         popd
