@@ -102,11 +102,15 @@ add_custom_target(pyktx-dev
 
 add_dependencies(pyktx-dev ktx pyktx-deps pyktx)
 
-if ($<PLATFORM_ID:Windows>)
+if (WIN32)
+    message(WARN "KTX BUILDING ON WINDOWS")
     set(PATH_WITH_KTX_DLLS "${LIBKTX_LIB_DIR};$ENV{PATH}")
 else()
+    message(WARN "KTX BUILDING NOT ON WINDOWS")
     set(PATH_WITH_KTX_DLLS ${LIBKTX_LIB_DIR}:$ENV{PATH})
 endif ()
+
+message(WARN "PATH_WITH_KTX_DLLS ${PATH_WITH_KTX_DLLS}")
 
 # Build non-distribution for development test
 add_custom_command(
