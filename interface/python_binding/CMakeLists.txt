@@ -103,7 +103,7 @@ add_custom_target(pyktx-dev
 add_dependencies(pyktx-dev ktx pyktx-deps pyktx)
 
 if (WIN32)
-    set(PATH_WITH_KTX_DLLS ${LIBKTX_LIB_DIR};$ENV{PATH})
+    set(PATH_WITH_KTX_DLLS "${LIBKTX_LIB_DIR};$ENV{PATH}")
 else()
     set(PATH_WITH_KTX_DLLS ${LIBKTX_LIB_DIR}:$ENV{PATH})
 endif ()
