@@ -219,7 +219,7 @@ install:
     if [ "$PLATFORM" = "macOS" -a "$ARCHS" = $(uname -m) ]; then
         # We're building for the host processor type. Safe to use
         # brew installed libraries instead of repo included ones.
-        brew install sdl1
+        brew install sdl2
         brew install assimp
     fi
     ./ci_scripts/install_macos.sh
