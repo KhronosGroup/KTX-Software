@@ -23,7 +23,7 @@ elif os.name == 'osx':
     if LIBKTX_LIB_DIR is None:
         LIBKTX_LIB_DIR = '/usr/local/lib'
 
-print(f"TEST LIBDIR IS {os.getenv('LIBKTX_LIB_DIR')}")
+print(f"TEST PATH IS {os.getenv('PATH')}")
 
 ffibuilder = FFI()
 
