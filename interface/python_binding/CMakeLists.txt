@@ -104,6 +104,7 @@ add_dependencies(pyktx-dev ktx pyktx-deps pyktx)
 
 # Build non-distribution for development test
 if(WIN32)
+    set(MSVC_IDE 1)
     set(CMAKE_MSVCIDE_RUN_PATH ${LIBKTX_LIB_DIR})
 endif()
 add_custom_command(
