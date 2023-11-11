@@ -145,10 +145,14 @@ if(!$?){
 }
 
 # Find SDK version and ls it
-$m = select-string -Pattern "<WindowsTargetPlatformVersion>(?<version>[0-9\.]*)</.*" -Path $BUILD_DIR/tests/loadtests/gl3loadtests.vcxproj
-$sdk_ver = $m.matches[0].groups["version"].value
-echo "sdk_ver = $sdk_ver"
-ls "C:\Program Files (x86)\Windows Kits\10\lib\$sdk_ver\um\arm64"
+if ($FEATURE_LOADTESTS -ne "OFF) {
+  $m = select-string -Pattern "<WindowsTargetPlatformVersion>(?<version>(?<major>[0-9][0-9])[0-9\.]*)</.*" -Path $BUILD_DIR/tests/loadtests/gl3loadtests.vcxproj
+  $sdk_ver = $m.matches[0].groups["version"].value
+  $sdk_major = $m.matches[0].groups["major"].value
+  echo "sdk_ver = $sdk_ver"
+  echo "sdk_major = $sdk_major"
+  ls "C:\Program Files (x86)\Windows Kits\$sdk_major\lib\$sdk_ver\um\arm64"
+}
 
 $configArray = $CONFIGURATION.split(",")
 foreach ($config in $configArray) {

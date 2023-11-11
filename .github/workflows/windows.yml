@@ -120,9 +120,26 @@ jobs:
     - name: Install NSIS with large string support
       shell: bash
       run: |
-        stack exec -- wget -O nsis-3.08-strlen_8192.zip https://downloads.sourceforge.net/nsis/NSIS%203/3.08/nsis-3.08-strlen_8192.zip
-        7z x -aoa -o"/c/Program Files (x86)/NSIS" nsis-3.08-strlen_8192.zip
-        rm nsis-3.08-strlen_8192.zip
+        $retryCount = 4
+        $success = $false
+        for ($i = 1; $i -le $retryCount; $i++) {
+            Write-Host "Attempt no: $i"
+            stack exec -- wget -O nsis-3.08-strlen_8192.zip https://downloads.sourceforge.net/nsis/NSIS%203/3.08/nsis-3.08-strlen_8192.zip
+            if ($LASTEXITCODE -eq 0) {
+                $success = $true
+                7z x -aoa -o"/c/Program Files (x86)/NSIS" nsis-3.08-strlen_8192.zip
+                rm nsis-3.08-strlen_8192.zip
+                Write-Host "Installation successful."
+                break
+            } else {
+                Write-Host "Installation failed. Retrying..."
+                Start-Sleep -Seconds (2*$i)
+            }
+        }
+        if (-not $success) {
+            Write-Host "Installation failed after $retryCount attempts."
+            exit 1
+        }
 
     - name: Force fetch provoking tag's annotation.
       # Work around https://github.com/actions/checkout/issues/290.
