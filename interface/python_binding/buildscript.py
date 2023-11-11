@@ -10,6 +10,8 @@ LIBKTX_INSTALL_DIR = os.getenv("LIBKTX_INSTALL_DIR")
 LIBKTX_INCLUDE_DIR = os.getenv("LIBKTX_INCLUDE_DIR")
 LIBKTX_LIB_DIR = os.getenv("LIBKTX_LIB_DIR")
 
+print(f"HERERER {os.name}")
+
 if os.name == 'nt':
     if LIBKTX_INSTALL_DIR is None:
         LIBKTX_INSTALL_DIR = 'C:\\Program Files\\KTX-Software'
