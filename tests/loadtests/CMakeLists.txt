@@ -16,7 +16,8 @@ if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
 endif()
 set( CMAKE_FIND_PACKAGE_PREFER_CONFIG ${fp_pref} )
 
-cmake_print_variables(OPENGL_FOUND OPENGL_INCLUDE_DIR)
+cmake_print_variables(OPENGL_FOUND OPENGL_INCLUDE_DIR OPENGL_INCLUDE_DIRS OPENGL_LIBRARIES)
+cmake_print_variables(GLEW_FOUND GLEW_INCLUDE_DIR GLEW_INCLUDE_DIRS GLEW_LIBRARIES)
 # We use our own local copy of GL headers to ensure we have glcorearb.h.
 set( OPENGL_INCLUDE_DIR  ${CMAKE_SOURCE_DIR}/other_include )
 cmake_print_variables(OPENGL_INCLUDE_DIR)
@@ -244,15 +245,6 @@ if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
 
   target_link_libraries(GLAppSDL appfwSDL)
 
-#  if(OPENGL_FOUND)
-#      target_include_directories(
-#          GLAppSDL
-#      PUBLIC
-#          $<IF:$<BOOL:${WIN32}>,${GLEW_INCLUDE_DIRS},${OPENGL_INCLUDE_DIR}>
-#          #${GLEW_INCLUDE_DIRS}
-#      )
-#  endif()
-
 message("GLEW_INCLUDE_DIR = ${GLEW_INCLUDE_DIR}")
   target_include_directories(
       GLAppSDL
@@ -262,15 +254,13 @@ message("GLEW_INCLUDE_DIR = ${GLEW_INCLUDE_DIR}")
       glloadtests/utils
   )
 
-# XXX The above appfwSDL include is bringing with it the
-# INTERFACE_SYSTEM_INCLUDE_DIRECTORIES, maybe because they're public.
-# Keep this in case needed with other generators.
+  # The above appfwSDL include brings with it the
+  # INTERFACE_SYSTEM_INCLUDE_DIRECTORIES.
   target_include_directories(
       GLAppSDL
   SYSTEM BEFORE PUBLIC
-      ${GLEW_INCLUDE_DIR}
-      # For glm, SDL2
- #     $<TARGET_PROPERTY:appfwSDL,INTERFACE_SYSTEM_INCLUDE_DIRECTORIES>
+      $<IF:$<BOOL:${WIN32}>,${GLEW_INCLUDE_DIRS},${OPENGL_INCLUDE_DIR}>
+      #$<TARGET_PROPERTY:appfwSDL,INTERFACE_SYSTEM_INCLUDE_DIRECTORIES>
  )
 
   get_target_property(afssiincludes appfwSDL INTERFACE_SYSTEM_INCLUDE_DIRECTORIES)

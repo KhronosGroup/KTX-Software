@@ -38,15 +38,6 @@ function( create_gl_target target version sources common_resources test_images
         $<TARGET_PROPERTY:objUtil,INTERFACE_INCLUDE_DIRECTORIES>
     )
 
-#    if(OPENGL_FOUND)
-#        target_include_directories(
-#            ${target}
-#        PRIVATE
-#            $<IF:$<BOOL:${WIN32}>,${GLEW_INCLUDE_DIRS},${OPENGL_INCLUDE_DIR}>
-##            ${OPENGL_INCLUDE_DIR}
-#        )
-#    endif()
-
     set_target_properties(${target} PROPERTIES
         CXX_VISIBILITY_PRESET ${STATIC_APP_LIB_SYMBOL_VISIBILITY}
     )
@@ -65,6 +56,7 @@ function( create_gl_target target version sources common_resources test_images
         target_link_libraries(
             ${target}
             ${OPENGL_LIBRARIES}
+            $<$<BOOL:WIN32>:${GLEW_LIBRARIES}>
         )
     endif()
 
