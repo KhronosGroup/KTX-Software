@@ -152,8 +152,8 @@ if ($FEATURE_LOADTESTS -ne "OFF") {
   echo "sdk_ver = $sdk_ver"
   echo "sdk_major = $sdk_major"
   ls "C:\Program Files (x86)\Windows Kits\$sdk_major\lib"
-  ls "C:\Program Files (x86)\Windows Kits\$sdk_major\lib\$sdk_ver\um\arm64\glu32.lib"
-  ls "C:\Program Files (x86)\Windows Kits\$sdk_major\lib\$sdk_ver\um\x64\glu32.lib"
+  ls "C:\Program Files (x86)\Windows Kits\$sdk_major\lib\$sdk_ver\um\arm64\glu32.lib" -ErrorAction 'SilentlyContinue'
+  ls "C:\Program Files (x86)\Windows Kits\$sdk_major\lib\$sdk_ver\um\x64\glu32.lib" -ErrorAction 'SilentlyContinue'
 }
 
 $configArray = $CONFIGURATION.split(",")

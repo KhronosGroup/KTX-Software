@@ -52,11 +52,16 @@ function( create_gl_target target version sources common_resources test_images
         ${KTX_ZLIB_LIBRARIES}
     )
 
-    if(OPENGL_FOUND AND NOT EMSCRIPTEN AND NOT EMULATE_GLES)
+    if(NOT EMSCRIPTEN AND NOT EMULATE_GLES)
+        if(WIN32)
+          target_link_libraries(
+              ${target}
+              ${GLEW_LIBRARIES}
+          )
+        endif()
         target_link_libraries(
             ${target}
             ${OPENGL_LIBRARIES}
-            $<$<BOOL:WIN32>:${GLEW_LIBRARIES}>
         )
     endif()
 
