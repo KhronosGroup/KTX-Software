@@ -193,7 +193,10 @@ ffibuilder.set_source(
     runtime_library_dirs=(([LIBKTX_LIB_DIR] if LIBKTX_LIB_DIR is not None else []) if os.name != 'nt' else None))
 
 if __name__ == "__main__":
+    print("FFIBUILD")
     ffibuilder.compile(verbose=True)
+
+    print(os.listdir(os.path.join(os.getcwd(), 'pyktx')))
 
     if 'KTX_RUN_TESTS' in os.environ and os.environ['KTX_RUN_TESTS'] == 'ON':
         suite = unittest.TestLoader().discover(os.path.join(os.path.dirname(__file__), 'tests'))
