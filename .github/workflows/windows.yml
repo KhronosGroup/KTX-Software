@@ -209,7 +209,11 @@ jobs:
         Import-Module "$env:ChocolateyInstall/helpers/chocolateyInstaller.psm1"
         refreshenv
         $env:JAVA_HOME=$step_java_home
-        ls "C:\Program Files (x86)\Windows Kits\10\lib\10.0.22621.0\um\arm64"
+        # Find SDK version and ls it
+        $m = select-string -Pattern "<WindowsTargetPlatformVersion>(?<version>[0-9\.]*)</.*" -Path $BUILD_DIR/tests/loadtests/gl3loadtests.vcxproj
+        $sdk_ver = $m.matches[0].groups["version"].value
+        echo "sdk_ver = $sdk_ver"
+        ls "C:\Program Files (x86)\Windows Kits\10\lib\$sdk_ver\um\arm64"
         ci_scripts/build_win.ps1
 
     - name: Test Windows build
