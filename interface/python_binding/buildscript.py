@@ -17,6 +17,7 @@ if os.name == 'nt':
         LIBKTX_INCLUDE_DIR = LIBKTX_INSTALL_DIR + '\\include'
     if LIBKTX_LIB_DIR is None:
         LIBKTX_LIB_DIR = LIBKTX_INSTALL_DIR + '\\lib'
+    os.add_dll_directory(LIBKTX_LIB_DIR)
 elif os.name == 'osx':
     if LIBKTX_INCLUDE_DIR is None:
         LIBKTX_INCLUDE_DIR = '/usr/local/include'
