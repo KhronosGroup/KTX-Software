@@ -1,9 +1,10 @@
 # Copyright 2017-2020 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-include(CMakePrintHelpers)
+#include(CMakePrintHelpers)
 
-cmake_print_variables(CMAKE_GENERATOR_PLATFORM CMAKE_SYSTEM_VERSION CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION)
+#cmake_print_variables(CMAKE_GENERATOR_PLATFORM CMAKE_SYSTEM_VERSION CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION)
+
 set( fp_pref ${CMAKE_FIND_PACKAGE_PREFER_CONFIG} )
 # Prefer CONFIG for vcpkg
 set( CMAKE_FIND_PACKAGE_PREFER_CONFIG TRUE )
@@ -19,21 +20,10 @@ if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
 endif()
 set( CMAKE_FIND_PACKAGE_PREFER_CONFIG ${fp_pref} )
 
-cmake_print_variables(OPENGL_FOUND OPENGL_INCLUDE_DIR OPENGL_INCLUDE_DIRS OPENGL_LIBRARIES)
-cmake_print_variables(GLEW_FOUND GLEW_INCLUDE_DIR GLEW_INCLUDE_DIRS GLEW_LIBRARIES)
 # We use our own local copy of GL headers to ensure we have glcorearb.h.
 set( OPENGL_INCLUDE_DIR  ${CMAKE_SOURCE_DIR}/other_include )
-cmake_print_variables(OPENGL_INCLUDE_DIR)
-cmake_print_variables(SDL2_FOUND SDL2_INCLUDE_DIRS)
-cmake_print_variables(assimp_FOUND ASSIMP_FOUND ASSIMP_INCLUDE_DIRS)
 
-
-message("GLEW_FOUND = ${GLEW_FOUND}")
-message("assimp_FOUND = ${assimp_FOUND}")
-
-cmake_print_variables(CPU_ARCHITECTURE CMAKE_HOST_SYSTEM_PROCESSOR)
 if(NOT SDL2_FOUND)
-    message("In SDL NOT FOUND block")
     # Use binary from repo.
     if(APPLE)
         if(IOS)
@@ -60,7 +50,6 @@ if(NOT SDL2_FOUND)
         message( FATAL_ERROR "SDL2 not found. Can't build loadtest apps." )
     endif()
 endif()
-message("SDL2_INCLUDE_DIRS = ${SDL2_INCLUDE_DIRS}")
 if(NOT assimp_FOUND)
     if(APPLE)
         if(IOS)
@@ -95,9 +84,7 @@ endif()
 
 if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL" AND WIN32)
     if(NOT GLEW_FOUND)
-message("Inside NOT GLEW_FOUND")
         if(${CPU_ARCHITECTURE} STREQUAL "x86_64")
-message("Inside x86_64 NOT SDL2_FOUND")
             set( GLEW_INCLUDE_DIR  ${CMAKE_SOURCE_DIR}/other_include )
             set( GLEW_LIBRARIES
                 ${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/glew32.lib
@@ -107,7 +94,6 @@ message("Inside x86_64 NOT SDL2_FOUND")
         endif()
     endif()
 endif()
-message("GLEW_INCLUDE_DIR = ${GLEW_INCLUDE_DIR}")
 
 if(APPLE AND IOS)
     if( CMAKE_OSX_ARCHITECTURES )
@@ -248,7 +234,6 @@ if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
 
   target_link_libraries(GLAppSDL appfwSDL)
 
-message("GLEW_INCLUDE_DIR = ${GLEW_INCLUDE_DIR}")
   target_include_directories(
       GLAppSDL
   PUBLIC
@@ -264,21 +249,8 @@ message("GLEW_INCLUDE_DIR = ${GLEW_INCLUDE_DIR}")
   SYSTEM BEFORE PUBLIC
       $<IF:$<BOOL:${WIN32}>,${GLEW_INCLUDE_DIR},${OPENGL_INCLUDE_DIR}>
       #$<TARGET_PROPERTY:appfwSDL,INTERFACE_SYSTEM_INCLUDE_DIRECTORIES>
- )
+  )
 
-  get_target_property(afssiincludes appfwSDL INTERFACE_SYSTEM_INCLUDE_DIRECTORIES)
-  get_target_property(afsiincludes appfwSDL INTERFACE_INCLUDE_DIRECTORIES)
-  get_target_property(afsincludes appfwSDL INCLUDE_DIRECTORIES)
-  get_target_property(gfasiincludes GLAppSDL INTERFACE_SYSTEM_INCLUDE_DIRECTORIES)
-  get_target_property(gfaiincludes GLAppSDL INTERFACE_INCLUDE_DIRECTORIES)
-  get_target_property(gfaincludes GLAppSDL INCLUDE_DIRECTORIES)
-
-  message("afssiincludes is ${afssiincludes}")
-  message("afsiincludes is ${afsiincludes}")
-  message("afsincludes is ${afsincludes}")
-  message("gfasiincludes is ${gfasiincludes}")
-  message("gfaiincludes is ${gfaiincludes}")
-  message("gfaincludes is ${gfaincludes}")
   set_target_properties(GLAppSDL PROPERTIES
       CXX_VISIBILITY_PRESET ${STATIC_APP_LIB_SYMBOL_VISIBILITY}
   )

@@ -51,16 +51,6 @@ elseif(KTX_FEATURE_TOOLS_CTS AND NOT KTX_FEATURE_TESTS)
     set(KTX_FEATURE_TOOLS_CTS "OFF")
 endif()
 
-if(POLICY CMP0149)
-  message("CMP0149 exists")
-    # VS generator looks for most recent Windows SDK, ignoring
-    # CMAKE_SYSTEM_VERSION and allowing override by WindowsSDKVersion
-    # environment variable. New in 3.27. This is to allow override
-    # in the Windows CI builds. For further information see
-    # .github/workflows/windows.yml.
-    cmake_policy(SET CMP0149 NEW)
-endif()
-
 if(POLICY CMP0127)
     # cmake_dependent_option() supports full Condition Syntax. Introduced in
     # 3.22. Not all build environments have 3.22+. Set policy to avoid warning.
