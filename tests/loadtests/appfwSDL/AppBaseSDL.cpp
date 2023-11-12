@@ -35,6 +35,10 @@ AppBaseSDL::initialize(Args& /*args*/)
     // TODO figure out best way to handle these resources
     sBasePath += "../resources/";
 #endif
+#if __WINDOWS__
+    // Ditto
+    sBasePath += "resources/";
+#endif
     SDL_free((void *)basePath);
     return true;
 }

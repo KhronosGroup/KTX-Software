@@ -20,7 +20,6 @@ addons:
     packages:
     - git-lfs
     - doxygen
-    - sdl2
     #update: true
 
 env:
@@ -217,6 +216,12 @@ install:
     fi
     ;;
   osx)
+    if [ "$PLATFORM" = "macOS" -a "$ARCHS" = $(uname -m) ]; then
+        # We're building for the host processor type. Safe to use
+        # brew installed libraries instead of repo included ones.
+        brew install sdl2
+        brew install assimp
+    fi
     ./ci_scripts/install_macos.sh
     ;;
   esac
