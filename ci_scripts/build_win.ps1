@@ -145,16 +145,16 @@ if(!$?){
 }
 
 # Find SDK version and ls it
-if ($FEATURE_LOADTESTS -ne "OFF") {
-  $m = select-string -Pattern "<WindowsTargetPlatformVersion>(?<version>(?<major>[0-9][0-9])[0-9\.]*)</.*" -Path $BUILD_DIR/tests/loadtests/gl3loadtests.vcxproj
-  $sdk_ver = $m.matches[0].groups["version"].value
-  $sdk_major = $m.matches[0].groups["major"].value
-  echo "sdk_ver = $sdk_ver"
-  echo "sdk_major = $sdk_major"
-  ls "C:\Program Files (x86)\Windows Kits\$sdk_major\lib"
-  ls "C:\Program Files (x86)\Windows Kits\$sdk_major\lib\$sdk_ver\um\arm64\glu32.lib" -ErrorAction 'Continue'
-  ls "C:\Program Files (x86)\Windows Kits\$sdk_major\lib\$sdk_ver\um\x64\glu32.lib" -ErrorAction 'Continue'
-}
+#if ($FEATURE_LOADTESTS -ne "OFF") {
+#  $m = select-string -Pattern "<WindowsTargetPlatformVersion>(?<version>(?<major>[0-9][0-9])[0-9\.]*)</.*" -Path $BUILD_DIR/tests/loadtests/gl3loadtests.vcxproj
+#  $sdk_ver = $m.matches[0].groups["version"].value
+#  $sdk_major = $m.matches[0].groups["major"].value
+#  echo "sdk_ver = $sdk_ver"
+#  echo "sdk_major = $sdk_major"
+#  ls "C:\Program Files (x86)\Windows Kits\$sdk_major\lib"
+#  ls "C:\Program Files (x86)\Windows Kits\$sdk_major\lib\$sdk_ver\um\arm64\glu32.lib" -ErrorAction 'Continue'
+#  ls "C:\Program Files (x86)\Windows Kits\$sdk_major\lib\$sdk_ver\um\x64\glu32.lib" -ErrorAction 'Continue'
+#}
 
 $configArray = $CONFIGURATION.split(",")
 foreach ($config in $configArray) {
