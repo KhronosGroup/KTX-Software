@@ -184,7 +184,7 @@ jobs:
         }
 
     - name: Install Dependencies for load tests on arm64
-      if: matrix.arch == 'arm64' && matrix.options.loadtests
+      if: matrix.arch == 'arm64' && matrix.options.loadtests == 'OFF'
       run: |
         pushd $env:VCPKG_INSTALLATION_ROOT
         ./vcpkg install SDL2:arm64-windows assimp:arm64-windows glew:arm64-windows
