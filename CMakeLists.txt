@@ -52,6 +52,7 @@ elseif(KTX_FEATURE_TOOLS_CTS AND NOT KTX_FEATURE_TESTS)
 endif()
 
 if(POLICY CMP0149)
+  message("CMP0149 exists")
     # VS generator looks for most recent Windows SDK, ignoring
     # CMAKE_SYSTEM_VERSION and allowing override by WindowsSDKVersion
     # environment variable. New in 3.27. This is to allow override

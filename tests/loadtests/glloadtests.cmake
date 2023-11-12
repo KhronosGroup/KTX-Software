@@ -53,6 +53,8 @@ function( create_gl_target target version sources common_resources test_images
     )
 
     if(NOT EMSCRIPTEN AND NOT EMULATE_GLES)
+        # Warning. Genexes don't work with LIBRARIES values like
+        # `optimized: foo.lib debug: bar.lib` hence the long-hand.
         if(WIN32)
           target_link_libraries(
               ${target}
