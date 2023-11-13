@@ -69,8 +69,6 @@ add_custom_command(
         pyktx/ktx_texture.c
         pyktx/ktx_texture1.c
         pyktx/ktx_texture2.c
-    OUTPUT
-        ${CMAKE_SOURCE_DIR}/interface/python_binding/dist/libktx-${PROJECT_VERSION}.tgz
     COMMAND
         ${CMAKE_COMMAND} -E env
             LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
@@ -81,19 +79,11 @@ add_custom_command(
         ${CMAKE_SOURCE_DIR}/interface/python_binding
 )
 
-if(WIN32)
-    set(PYKTX_SRC_DIST ${CMAKE_SOURCE_DIR}/interface/python_binding/dist/libktx-${PROJECT_VERSION}.tar)
-else()
-    set(PYKTX_SRC_DIST ${CMAKE_SOURCE_DIR}/interface/python_binding/dist/libktx-${PROJECT_VERSION}.tgz)
-endif()
-
 add_custom_command(
     TARGET
         pyktx
     DEPENDS
         ${PYKTX_SRC_DIST}
-    OUTPUT
-        ${CMAKE_SOURCE_DIR}/interface/python_binding/dist
     COMMAND
         ${CMAKE_COMMAND} -E env
             LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
