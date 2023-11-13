@@ -334,7 +334,7 @@ inline FILE* ktxFOpenUTF8(char const* path, char const* mode) {
 }
 #else
 // For other platforms there is no need for any conversion, they support UTF-8 natively
-inline FILE* ktxFOpenUTF8(char const* path, char const* mode) {
+static inline FILE* ktxFOpenUTF8(char const* path, char const* mode) {
     return fopen(path, mode);
 }
 #endif
