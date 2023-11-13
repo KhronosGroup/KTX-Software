@@ -1170,9 +1170,11 @@ ktxValidator::validateFile(const string& filename)
             isp = &cin;
         }
     } else {
-        // MS's STL has `open` overloads that accept wchar_t to handle
-        // Window's Unicode file names.
-        ifs.open(DecodeUTF8Path(filename), ios_base::in | ios_base::binary);
+        // MS's STL has `open` overloads that accept wchar_t* and wstring to
+        // handle Window's Unicode file names. Unfortunately non-MS STL has
+        // only wchar_t*.
+        ifs.open(DecodeUTF8Path(filename).c_str(),
+                 ios_base::in | ios_base::binary);
         isp = &ifs;
     }
 
