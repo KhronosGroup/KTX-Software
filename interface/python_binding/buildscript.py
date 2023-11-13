@@ -172,8 +172,6 @@ ffibuilder.cdef(
     """
 )
 
-print(f"STATIC LIB DIR is {LIBKTX_STATIC_LIB_DIR}")
-
 ffibuilder.set_source(
     "pyktx.native",
     """
