@@ -1307,10 +1307,32 @@ build CMakeFiles\ktx_version: phony ..\..\..\lib\version.h
 
 
 #############################################
+# Utility command for edit_cache
+
+build interface\python_binding\CMakeFiles\edit_cache.util: CUSTOM_COMMAND
+  COMMAND = cmd.exe /C "cd /D C:\Users\Shuka\source\repos\KhronosGroup\KTX-Software\out\build\x64-Debug\interface\python_binding && "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E echo "No interactive CMake dialog available.""
+  DESC = No interactive CMake dialog available...
+  restat = 1
+
+build interface\python_binding\edit_cache: phony interface\python_binding\CMakeFiles\edit_cache.util
+
+
+#############################################
+# Utility command for pyktx-deps
+
+build interface\python_binding\CMakeFiles\pyktx-deps.util: CUSTOM_COMMAND
+  COMMAND = cmd.exe /C "cd /D C:\Users\Shuka\source\repos\KhronosGroup\KTX-Software\out\build\x64-Debug\interface\python_binding && C:\Users\Shuka\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\python.exe -m pip install --no-warn-script-location -r C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/interface/python_binding/requirements.txt"
+  DESC = Running utility command for pyktx-deps
+  restat = 1
+
+build interface\python_binding\pyktx-deps: phony interface\python_binding\CMakeFiles\pyktx-deps.util
+
+
+#############################################
 # Utility command for pyktx
 
-build interface\python_binding\CMakeFiles\pyktx.util: CUSTOM_COMMAND interface\python_binding\CMakeFiles\pyktx ..\..\..\interface\python_binding\dist ..\..\..\interface\python_binding\dist\libktx-0.0.0.tgz ktx.lib
-  COMMAND = cmd.exe /C "cd /D C:\Users\Shuka\source\repos\KhronosGroup\KTX-Software\out\build\x64-Debug\interface\python_binding && C:\Users\Shuka\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\python.exe -m pip install --no-warn-script-location -r C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/interface/python_binding/requirements.txt && cd /D C:\Users\Shuka\source\repos\KhronosGroup\KTX-Software\interface\python_binding && C:\Users\Shuka\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\python.exe clean.py"
+build interface\python_binding\CMakeFiles\pyktx.util: CUSTOM_COMMAND interface\python_binding\CMakeFiles\pyktx interface\python_binding\pyktx-deps ktx.lib
+  COMMAND = cmd.exe /C "cd /D C:\Users\Shuka\source\repos\KhronosGroup\KTX-Software\interface\python_binding && C:\Users\Shuka\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\python.exe clean.py && cd /D C:\Users\Shuka\source\repos\KhronosGroup\KTX-Software\interface\python_binding && "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E env LIBKTX_INCLUDE_DIR=C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/include LIBKTX_LIB_DIR=C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/out/build/x64-Debug/Debug LIBKTX_VERSION=0.0.0 C:\Users\Shuka\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\python.exe -m build --sdist && cd /D C:\Users\Shuka\source\repos\KhronosGroup\KTX-Software\interface\python_binding && "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E env LIBKTX_INCLUDE_DIR=C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/include LIBKTX_LIB_DIR=C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/out/build/x64-Debug/Debug LIBKTX_VERSION=0.0.0 C:\Users\Shuka\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\python.exe -m build --wheel"
   DESC = Running utility command for pyktx
   restat = 1
 
@@ -1366,6 +1388,12 @@ build interface\python_binding\test: phony interface\python_binding\CMakeFiles\t
 
 
 #############################################
+# Utility command for list_install_components
+
+build interface\python_binding\list_install_components: phony
+
+
+#############################################
 # Utility command for install/local
 
 build interface\python_binding\CMakeFiles\install\local.util: CUSTOM_COMMAND interface\python_binding\all
@@ -1390,44 +1418,9 @@ build interface\python_binding\install: phony interface\python_binding\CMakeFile
 
 
 #############################################
-# Utility command for edit_cache
-
-build interface\python_binding\CMakeFiles\edit_cache.util: CUSTOM_COMMAND
-  COMMAND = cmd.exe /C "cd /D C:\Users\Shuka\source\repos\KhronosGroup\KTX-Software\out\build\x64-Debug\interface\python_binding && "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E echo "No interactive CMake dialog available.""
-  DESC = No interactive CMake dialog available...
-  restat = 1
-
-build interface\python_binding\edit_cache: phony interface\python_binding\CMakeFiles\edit_cache.util
-
-
-#############################################
-# Utility command for list_install_components
-
-build interface\python_binding\list_install_components: phony
-
-
-#############################################
 # Phony custom command for interface\python_binding\CMakeFiles\pyktx
 
-build interface\python_binding\CMakeFiles\pyktx: phony ..\..\..\interface\python_binding\dist ktx.lib || ktx.lib ktx_version lib\astc-encoder\Source\astcenc-avx2-static.lib
-
-
-#############################################
-# Custom command for ..\..\..\interface\python_binding\dist
-
-build ..\..\..\interface\python_binding\dist: CUSTOM_COMMAND ..\..\..\interface\python_binding\dist\libktx-0.0.0.tgz || ktx.lib ktx_version lib\astc-encoder\Source\astcenc-avx2-static.lib
-  COMMAND = cmd.exe /C "cd /D C:\Users\Shuka\source\repos\KhronosGroup\KTX-Software\interface\python_binding && "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E env LIBKTX_INCLUDE_DIR=C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/include LIBKTX_LIB_DIR=C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/out/build/x64-Debug/Debug LIBKTX_VERSION=0.0.0 C:\Users\Shuka\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\python.exe -m build --wheel"
-  DESC = Generating ../../../../../interface/python_binding/dist
-  restat = 1
-
-
-#############################################
-# Custom command for ..\..\..\interface\python_binding\dist\libktx-0.0.0.tgz
-
-build ..\..\..\interface\python_binding\dist\libktx-0.0.0.tgz: CUSTOM_COMMAND ..\..\..\interface\python_binding\pyktx\__init__.py ..\..\..\interface\python_binding\pyktx\gl_internalformat.py ..\..\..\interface\python_binding\pyktx\ktx_astc_params.py ..\..\..\interface\python_binding\pyktx\ktx_basis_params.py ..\..\..\interface\python_binding\pyktx\ktx_error_code.py ..\..\..\interface\python_binding\pyktx\ktx_hash_list.py ..\..\..\interface\python_binding\pyktx\ktx_pack_astc_block_dimension.py ..\..\..\interface\python_binding\pyktx\ktx_pack_astc_encoder_mode.py ..\..\..\interface\python_binding\pyktx\ktx_pack_astc_quality_levels.py ..\..\..\interface\python_binding\pyktx\ktx_pack_uastc_flag_bits.py ..\..\..\interface\python_binding\pyktx\ktx_supercmp_scheme.py ..\..\..\interface\python_binding\pyktx\ktx_texture.py ..\..\..\interface\python_binding\pyktx\ktx_texture1.py ..\..\..\interface\python_binding\pyktx\ktx_texture2.py ..\..\..\interface\python_binding\pyktx\ktx_texture_create_flag_bits.py ..\..\..\interface\python_binding\pyktx\ktx_texture_create_info.py ..\..\..\interface\python_binding\pyktx\ktx_texture_create_storage.py ..\..\..\interface\python_binding\pyktx\ktx_transcode_flag_bits.py ..\..\..\interface\python_binding\pyktx\ktx_transcode_fmt.py ..\..\..\interface\python_binding\pyktx\vk_format.py ..\..\..\interface\python_binding\pyktx\ktx_texture.h ..\..\..\interface\python_binding\pyktx\ktx_texture1.h ..\..\..\interface\python_binding\pyktx\ktx_texture2.h ..\..\..\interface\python_binding\pyktx\ktx_texture.c ..\..\..\interface\python_binding\pyktx\ktx_texture1.c ..\..\..\interface\python_binding\pyktx\ktx_texture2.c || ktx.lib ktx_version lib\astc-encoder\Source\astcenc-avx2-static.lib
-  COMMAND = cmd.exe /C "cd /D C:\Users\Shuka\source\repos\KhronosGroup\KTX-Software\interface\python_binding && "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E env LIBKTX_INCLUDE_DIR=C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/include LIBKTX_LIB_DIR=C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/out/build/x64-Debug/Debug LIBKTX_VERSION=0.0.0 C:\Users\Shuka\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\python.exe -m build --sdist"
-  DESC = Generating ../../../../../interface/python_binding/dist/libktx-0.0.0.tgz
-  restat = 1
+build interface\python_binding\CMakeFiles\pyktx: phony ..\..\..\interface\python_binding\dist ktx.lib || interface\python_binding\pyktx-deps ktx.lib ktx_version lib\astc-encoder\Source\astcenc-avx2-static.lib
 
 # =============================================================================
 # Write statements declared in CMakeLists.txt:
@@ -4295,6 +4288,8 @@ build obj_tmp_basisu: phony tests\transcodetests\obj_tmp_basisu
 
 build pyktx: phony interface\python_binding\pyktx
 
+build pyktx-deps: phony interface\python_binding\pyktx-deps
+
 build streamtests: phony Debug\streamtests.exe
 
 build streamtests.exe: phony Debug\streamtests.exe
@@ -4339,7 +4334,7 @@ build interface\basisu_c_binding\all: phony interface\basisu_c_binding\obj_basis
 #############################################
 # Folder: C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/out/build/x64-Debug/interface/python_binding
 
-build interface\python_binding\all: phony interface\python_binding\pyktx
+build interface\python_binding\all: phony interface\python_binding\pyktx-deps interface\python_binding\pyktx
 
 # =============================================================================
 
