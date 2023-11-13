@@ -2873,7 +2873,7 @@ TEST(UnicodeFileNames, CreateFrom) {
         EXPECT_NE(texture, (ktxTexture*)0);
         ktxTexture_Destroy(texture);
 
-        uint32_t dotIndex = path.find_last_of('.');
+        size_t dotIndex = path.find_last_of('.');
         if (path.substr(dotIndex + 1).compare("ktx") == 0) {
             result = ktxTexture1_CreateFromNamedFile(
                 path.c_str(),

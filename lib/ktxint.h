@@ -310,7 +310,7 @@ KTX_error_code printKTX2Info2(ktxStream* src, KTX_header2* header);
 
 // For Windows, we convert the UTF-8 path and mode to UTF-16 path and use _wfopen
 // which correctly handles unicode characters.
-inline FILE* ktxFOpenUTF8(char const* path, char const* mode) {
+static inline FILE* ktxFOpenUTF8(char const* path, char const* mode) {
     int wpLen = MultiByteToWideChar(CP_UTF8, 0, path, -1, NULL, 0);
     int wmLen = MultiByteToWideChar(CP_UTF8, 0, mode, -1, NULL, 0);
     FILE* fp = NULL;
