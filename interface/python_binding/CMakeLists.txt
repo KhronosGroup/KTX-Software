@@ -23,17 +23,33 @@ else()
     set(LIBKTX_LIB_DIR ${KTX_BUILD_DIR}/$<CONFIG>)
 endif()
 
-add_custom_target(pyktx-deps
-    COMMENT "pip dependencies")
+add_custom_target( pyktx-deps ALL
+    COMMENT
+        "Python deps")
+
 add_custom_command(
     TARGET pyktx-deps
+    PREBUILD
     COMMAND
         ${PYTHON_EXECUTABLE} -m pip install --no-warn-script-location -r ${CMAKE_SOURCE_DIR}/interface/python_binding/requirements.txt
     COMMENT
         "Install dependencies for pyktx build"
 )
+
+add_custom_target( pyktx ALL
+    DEPENDS
+        ${CMAKE_SOURCE_DIR}/interface/python_binding/dist
+        ktx
+    WORKING_DIRECTORY
+        ${CMAKE_SOURCE_DIR}/interface/python_binding
+    COMMENT
+        "Python distributions"
+)
+add_dependencies(pyktx pyktx-deps)
+
 add_custom_command(
-    TARGET pyktx-deps
+    TARGET pyktx
+    PRE_BUILD
     COMMAND
         ${PYTHON_EXECUTABLE} clean.py
     COMMENT
@@ -42,7 +58,9 @@ add_custom_command(
         ${CMAKE_SOURCE_DIR}/interface/python_binding
 )
 
-add_custom_target(pyktx-dev
+add_custom_command(
+    TARGET
+        pyktx
     DEPENDS
         ${pyktx_py_src}
         pyktx/ktx_texture.h
@@ -51,35 +69,57 @@ add_custom_target(pyktx-dev
         pyktx/ktx_texture.c
         pyktx/ktx_texture1.c
         pyktx/ktx_texture2.c
-    WORKING_DIRECTORY
-        ${CMAKE_SOURCE_DIR}/interface/python_binding
-    COMMENT
-        "Unbundled Python object files"
-)
-
-add_dependencies(pyktx-dev ktx pyktx-deps)
-
-# Build non-distribution for development test
-add_custom_command(
-    TARGET pyktx-dev
+    OUTPUT
+        ${CMAKE_SOURCE_DIR}/interface/python_binding/dist/libktx-${PROJECT_VERSION}.tgz
     COMMAND
         ${CMAKE_COMMAND} -E env
             LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
             LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
-            LIBKTX_STATIC_LIB_DIR=${KTX_BUILD_DIR}
-            KTX_RUN_TESTS=${KTX_FEATURE_TESTS}
+            LIBKTX_VERSION=${PROJECT_VERSION}
+        ${PYTHON_EXECUTABLE} -m build --sdist
+    WORKING_DIRECTORY
+        ${CMAKE_SOURCE_DIR}/interface/python_binding
+)
+
+if(WIN32)
+    set(PYKTX_SRC_DIST ${CMAKE_SOURCE_DIR}/interface/python_binding/dist/libktx-${PROJECT_VERSION}.tar)
+else()
+    set(PYKTX_SRC_DIST ${CMAKE_SOURCE_DIR}/interface/python_binding/dist/libktx-${PROJECT_VERSION}.tgz)
+endif()
+
+add_custom_command(
+    TARGET
+        pyktx
+    DEPENDS
+        ${PYKTX_SRC_DIST}
+    OUTPUT
+        ${CMAKE_SOURCE_DIR}/interface/python_binding/dist
+    COMMAND
+        ${CMAKE_COMMAND} -E env
+            LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
+            LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
+            LIBKTX_VERSION=${PROJECT_VERSION}
+        ${PYTHON_EXECUTABLE} -m build --wheel
+    WORKING_DIRECTORY
+        ${CMAKE_SOURCE_DIR}/interface/python_binding
+)
+
+add_test(NAME pyktx
+    COMMAND
+        ${CMAKE_COMMAND} -E env
+            LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
+            LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
+            KTX_RUN_TESTS=ON
             DYLD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{DYLD_LIBRARY_PATH}
             LD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{LD_LIBRARY_PATH}
         ${PYTHON_EXECUTABLE} buildscript.py
     WORKING_DIRECTORY
         ${CMAKE_SOURCE_DIR}/interface/python_binding
-    COMMENT
-        "Build unbundled Python object files & run tests"
 )
 
 if(KTX_FEATURE_DOC)
     add_custom_command(
-        TARGET pyktx-dev
+        TARGET pyktx
         POST_BUILD
         COMMAND
             ${CMAKE_COMMAND} -E env
@@ -87,6 +127,11 @@ if(KTX_FEATURE_DOC)
                 LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
                 DYLD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{DYLD_LIBRARY_PATH}
                 LD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{LD_LIBRARY_PATH}
+            ${PYTHON_EXECUTABLE} buildscript.py
+        COMMAND
+            ${CMAKE_COMMAND} -E env
+                LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
+                LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
             ${PYTHON_EXECUTABLE} -m sphinx.ext.apidoc -o docs ./pyktx --separate
         COMMAND
             ${CMAKE_COMMAND} -E env
@@ -98,46 +143,3 @@ if(KTX_FEATURE_DOC)
             ${CMAKE_SOURCE_DIR}/interface/python_binding
     )
 endif()
-
-add_custom_target( pyktx ALL
-        DEPENDS
-        ${pyktx_py_src}
-        pyktx/ktx_texture.h
-        pyktx/ktx_texture1.h
-        pyktx/ktx_texture2.h
-        pyktx/ktx_texture.c
-        pyktx/ktx_texture1.c
-        pyktx/ktx_texture2.c
-        ${LIBKTX_LIB_DIR}
-        WORKING_DIRECTORY
-        ${CMAKE_SOURCE_DIR}/interface/python_binding
-        COMMENT
-        "Python distributions"
-)
-add_dependencies(pyktx ktx pyktx-deps pyktx-dev)
-
-add_custom_command(
-        TARGET pyktx
-        POST_BUILD
-        COMMAND
-        ${CMAKE_COMMAND} -E env
-        LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
-        LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
-        LIBKTX_VERSION=${PROJECT_VERSION}
-        ${PYTHON_EXECUTABLE} -m build --sdist
-        WORKING_DIRECTORY
-        ${CMAKE_SOURCE_DIR}/interface/python_binding
-)
-
-add_custom_command(
-        TARGET pyktx
-        POST_BUILD
-        COMMAND
-        ${CMAKE_COMMAND} -E env
-        LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
-        LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
-        LIBKTX_VERSION=${PROJECT_VERSION}
-        ${PYTHON_EXECUTABLE} -m build --wheel
-        WORKING_DIRECTORY
-        ${CMAKE_SOURCE_DIR}/interface/python_binding
-)

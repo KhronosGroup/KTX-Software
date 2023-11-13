@@ -9,7 +9,6 @@ import unittest
 LIBKTX_INSTALL_DIR = os.getenv("LIBKTX_INSTALL_DIR")
 LIBKTX_INCLUDE_DIR = os.getenv("LIBKTX_INCLUDE_DIR")
 LIBKTX_LIB_DIR = os.getenv("LIBKTX_LIB_DIR")
-LIBKTX_STATIC_LIB_DIR = os.getenv("LIBKTX_STATIC_LIB_DIR")
 
 if os.name == 'nt':
     if LIBKTX_INSTALL_DIR is None:
@@ -18,8 +17,6 @@ if os.name == 'nt':
         LIBKTX_INCLUDE_DIR = LIBKTX_INSTALL_DIR + '\\include'
     if LIBKTX_LIB_DIR is None:
         LIBKTX_LIB_DIR = LIBKTX_INSTALL_DIR + '\\lib'
-    os.environ["PATH"] += os.pathsep + os.path.normpath(LIBKTX_LIB_DIR)
-    print(f"PATH IS {os.getenv('PATH')}")
 elif os.name == 'osx':
     if LIBKTX_INCLUDE_DIR is None:
         LIBKTX_INCLUDE_DIR = '/usr/local/include'
@@ -189,7 +186,7 @@ ffibuilder.set_source(
                  + ([LIBKTX_INCLUDE_DIR] if LIBKTX_INCLUDE_DIR is not None else []),
     sources=['pyktx/ktx_texture.c', 'pyktx/ktx_texture1.c', 'pyktx/ktx_texture2.c'],
     libraries=['ktx'],
-    library_dirs=([LIBKTX_STATIC_LIB_DIR] if LIBKTX_STATIC_LIB_DIR is not None else []) + ([LIBKTX_LIB_DIR] if LIBKTX_LIB_DIR is not None else []),
+    library_dirs=([LIBKTX_LIB_DIR] if LIBKTX_LIB_DIR is not None else []),
     runtime_library_dirs=(([LIBKTX_LIB_DIR] if LIBKTX_LIB_DIR is not None else []) if os.name != 'nt' else None))
 
 if __name__ == "__main__":
