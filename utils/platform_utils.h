@@ -62,7 +62,10 @@ inline void InitUTF8CLI(int& argc, _TCHAR* argv[]) {
 
 inline FILE* fopenUTF8(const std::string& path, const std::string& mode) {
 #if defined(_WIN32)
-    return _wfopen(DecodeUTF8Path(path).c_str(), DecodeUTF8Path(mode).c_str());
+    FILE* fp;
+    // Returned errmo_t value is also set in the global errno.
+    (void)_wfopen_s(&fp, DecodeUTF8Path(path).c_str(), DecodeUTF8Path(mode).c_str());
+    return fp;
 #else
     return fopen(path.c_str(), mode.c_str());
 #endif

@@ -311,24 +311,22 @@ KTX_error_code printKTX2Info2(ktxStream* src, KTX_header2* header);
 // For Windows, we convert the UTF-8 path and mode to UTF-16 path and use _wfopen
 // which correctly handles unicode characters.
 inline FILE* ktxFOpenUTF8(char const* path, char const* mode) {
-    int pathLen = strnlen_s(path, 32767);
-    int modeLen = strnlen_s(mode, 64);
-    int wpLen = MultiByteToWideChar(CP_UTF8, 0, path, pathLen, NULL, 0);
-    int wmLen = MultiByteToWideChar(CP_UTF8, 0, mode, modeLen, NULL, 0);
-    FILE* result = NULL;
+    int wpLen = MultiByteToWideChar(CP_UTF8, 0, path, -1, NULL, 0);
+    int wmLen = MultiByteToWideChar(CP_UTF8, 0, mode, -1, NULL, 0);
+    FILE* fp = NULL;
     if (wpLen > 0 && wmLen > 0)
     {
-        wchar_t* wpath = (wchar_t*)malloc(wpLen);
-        wchar_t* wmode = (wchar_t*)malloc(wmLen);
-        MultiByteToWideChar(CP_UTF8, 0, path, pathLen, wpath, wpLen);
-        MultiByteToWideChar(CP_UTF8, 0, mode, modeLen, wmode, wmLen);
-        // Returns an errno_t whose value is also set in the global
-        // errno. Apps use that for error detail as libktx only
-        // returns KTX_FILE_OPEN_FAILED.
-        (void)_wfopen_s(&result, wpath, wmode);
+        wchar_t* wpath = (wchar_t*)malloc(wpLen * sizeof(wchar_t));
+        wchar_t* wmode = (wchar_t*)malloc(wmLen * sizeof(wchar_t));
+        MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, wpLen);
+        MultiByteToWideChar(CP_UTF8, 0, mode, -1, wmode, wmLen);
+        // Returned errmo_t value is also set in the global errno.
+        // Apps use that for error detail as libktx only returns
+        // KTX_FILE_OPEN_FAILED.
+        (void)_wfopen_s(&fp, wpath, wmode);
         free(wpath);
         free(wmode);
-        return result;
+        return fp;
     } else {
         assert(KTX_FALSE && "ktxFOpenUTF8 called with zero length path or mode.");
         return NULL;
