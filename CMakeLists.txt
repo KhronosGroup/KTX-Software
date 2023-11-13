@@ -411,7 +411,7 @@ if(WIN32)
     # generators (like Visual Studio) to take the exact path and not
     # change it.
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
-elseif(APPLE)
+elseif(APPLE OR LINUX)
     if(NOT IOS)
         # Set a common RUNTIME_OUTPUT_DIR and LIBRARY_OUTPUT_DIR for all targets,
         # so that INSTALL RPATH is functional in build directory as well.
