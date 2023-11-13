@@ -1,0 +1,1 @@
+include("C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/out/build/x64-Debug/tests/transcodetests/transcodetests[1]_include.cmake")

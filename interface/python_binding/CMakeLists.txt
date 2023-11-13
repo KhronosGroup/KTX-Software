@@ -29,7 +29,6 @@ add_custom_target( pyktx-deps ALL
 
 add_custom_command(
     TARGET pyktx-deps
-    PREBUILD
     COMMAND
         ${PYTHON_EXECUTABLE} -m pip install --no-warn-script-location -r ${CMAKE_SOURCE_DIR}/interface/python_binding/requirements.txt
     COMMENT

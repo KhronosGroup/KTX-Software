@@ -1,0 +1,112 @@
+[
+{
+  "directory": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/out/build/x64-Debug",
+  "command": "C:\\PROGRA~2\\MICROS~2\\2019\\COMMUN~1\\VC\\Tools\\MSVC\\1429~1.301\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DASTCENC_AVX=2 -DASTCENC_F16C=1 -DASTCENC_NEON=0 -DASTCENC_POPCNT=1 -DASTCENC_SSE=41 -D_CRT_SECURE_NO_WARNINGS -I..\\..\\..\\lib\\astc-encoder\\Source /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -MDd /W4 /Gz /wd4324 /EHsc /fp:strict /arch:AVX2 -std:c++14 /Folib\\astc-encoder\\Source\\CMakeFiles\\astcenc-avx2-static.dir\\astcenc_averages_and_directions.cpp.obj /FdTARGET_COMPILE_PDB /FS -c C:\\Users\\Shuka\\source\\repos\\KhronosGroup\\KTX-Software\\lib\\astc-encoder\\Source\\astcenc_averages_and_directions.cpp",
+  "file": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/lib/astc-encoder/Source/astcenc_averages_and_directions.cpp"
+},
+{
+  "directory": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/out/build/x64-Debug",
+  "command": "C:\\PROGRA~2\\MICROS~2\\2019\\COMMUN~1\\VC\\Tools\\MSVC\\1429~1.301\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DASTCENC_AVX=2 -DASTCENC_F16C=1 -DASTCENC_NEON=0 -DASTCENC_POPCNT=1 -DASTCENC_SSE=41 -D_CRT_SECURE_NO_WARNINGS -I..\\..\\..\\lib\\astc-encoder\\Source /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -MDd /W4 /Gz /wd4324 /EHsc /fp:strict /arch:AVX2 -std:c++14 /Folib\\astc-encoder\\Source\\CMakeFiles\\astcenc-avx2-static.dir\\astcenc_block_sizes.cpp.obj /FdTARGET_COMPILE_PDB /FS -c C:\\Users\\Shuka\\source\\repos\\KhronosGroup\\KTX-Software\\lib\\astc-encoder\\Source\\astcenc_block_sizes.cpp",
+  "file": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/lib/astc-encoder/Source/astcenc_block_sizes.cpp"
+},
+{
+  "directory": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/out/build/x64-Debug",
+  "command": "C:\\PROGRA~2\\MICROS~2\\2019\\COMMUN~1\\VC\\Tools\\MSVC\\1429~1.301\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DASTCENC_AVX=2 -DASTCENC_F16C=1 -DASTCENC_NEON=0 -DASTCENC_POPCNT=1 -DASTCENC_SSE=41 -D_CRT_SECURE_NO_WARNINGS -I..\\..\\..\\lib\\astc-encoder\\Source /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -MDd /W4 /Gz /wd4324 /EHsc /fp:strict /arch:AVX2 -std:c++14 /Folib\\astc-encoder\\Source\\CMakeFiles\\astcenc-avx2-static.dir\\astcenc_color_quantize.cpp.obj /FdTARGET_COMPILE_PDB /FS -c C:\\Users\\Shuka\\source\\repos\\KhronosGroup\\KTX-Software\\lib\\astc-encoder\\Source\\astcenc_color_quantize.cpp",
+  "file": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/lib/astc-encoder/Source/astcenc_color_quantize.cpp"
+},
+{
+  "directory": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/out/build/x64-Debug",
+  "command": "C:\\PROGRA~2\\MICROS~2\\2019\\COMMUN~1\\VC\\Tools\\MSVC\\1429~1.301\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DASTCENC_AVX=2 -DASTCENC_F16C=1 -DASTCENC_NEON=0 -DASTCENC_POPCNT=1 -DASTCENC_SSE=41 -D_CRT_SECURE_NO_WARNINGS -I..\\..\\..\\lib\\astc-encoder\\Source /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -MDd /W4 /Gz /wd4324 /EHsc /fp:strict /arch:AVX2 -std:c++14 /Folib\\astc-encoder\\Source\\CMakeFiles\\astcenc-avx2-static.dir\\astcenc_color_unquantize.cpp.obj /FdTARGET_COMPILE_PDB /FS -c C:\\Users\\Shuka\\source\\repos\\KhronosGroup\\KTX-Software\\lib\\astc-encoder\\Source\\astcenc_color_unquantize.cpp",
+  "file": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/lib/astc-encoder/Source/astcenc_color_unquantize.cpp"
+},
+{
+  "directory": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/out/build/x64-Debug",
+  "command": "C:\\PROGRA~2\\MICROS~2\\2019\\COMMUN~1\\VC\\Tools\\MSVC\\1429~1.301\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DASTCENC_AVX=2 -DASTCENC_F16C=1 -DASTCENC_NEON=0 -DASTCENC_POPCNT=1 -DASTCENC_SSE=41 -D_CRT_SECURE_NO_WARNINGS -I..\\..\\..\\lib\\astc-encoder\\Source /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -MDd /W4 /Gz /wd4324 /EHsc /fp:strict /arch:AVX2 -std:c++14 /Folib\\astc-encoder\\Source\\CMakeFiles\\astcenc-avx2-static.dir\\astcenc_compress_symbolic.cpp.obj /FdTARGET_COMPILE_PDB /FS -c C:\\Users\\Shuka\\source\\repos\\KhronosGroup\\KTX-Software\\lib\\astc-encoder\\Source\\astcenc_compress_symbolic.cpp",
+  "file": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/lib/astc-encoder/Source/astcenc_compress_symbolic.cpp"
+},
+{
+  "directory": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/out/build/x64-Debug",
+  "command": "C:\\PROGRA~2\\MICROS~2\\2019\\COMMUN~1\\VC\\Tools\\MSVC\\1429~1.301\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DASTCENC_AVX=2 -DASTCENC_F16C=1 -DASTCENC_NEON=0 -DASTCENC_POPCNT=1 -DASTCENC_SSE=41 -D_CRT_SECURE_NO_WARNINGS -I..\\..\\..\\lib\\astc-encoder\\Source /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -MDd /W4 /Gz /wd4324 /EHsc /fp:strict /arch:AVX2 -std:c++14 /Folib\\astc-encoder\\Source\\CMakeFiles\\astcenc-avx2-static.dir\\astcenc_compute_variance.cpp.obj /FdTARGET_COMPILE_PDB /FS -c C:\\Users\\Shuka\\source\\repos\\KhronosGroup\\KTX-Software\\lib\\astc-encoder\\Source\\astcenc_compute_variance.cpp",
+  "file": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/lib/astc-encoder/Source/astcenc_compute_variance.cpp"
+},
+{
+  "directory": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/out/build/x64-Debug",
+  "command": "C:\\PROGRA~2\\MICROS~2\\2019\\COMMUN~1\\VC\\Tools\\MSVC\\1429~1.301\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DASTCENC_AVX=2 -DASTCENC_F16C=1 -DASTCENC_NEON=0 -DASTCENC_POPCNT=1 -DASTCENC_SSE=41 -D_CRT_SECURE_NO_WARNINGS -I..\\..\\..\\lib\\astc-encoder\\Source /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -MDd /W4 /Gz /wd4324 /EHsc /fp:strict /arch:AVX2 -std:c++14 /Folib\\astc-encoder\\Source\\CMakeFiles\\astcenc-avx2-static.dir\\astcenc_decompress_symbolic.cpp.obj /FdTARGET_COMPILE_PDB /FS -c C:\\Users\\Shuka\\source\\repos\\KhronosGroup\\KTX-Software\\lib\\astc-encoder\\Source\\astcenc_decompress_symbolic.cpp",
+  "file": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/lib/astc-encoder/Source/astcenc_decompress_symbolic.cpp"
+},
+{
+  "directory": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/out/build/x64-Debug",
+  "command": "C:\\PROGRA~2\\MICROS~2\\2019\\COMMUN~1\\VC\\Tools\\MSVC\\1429~1.301\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DASTCENC_AVX=2 -DASTCENC_F16C=1 -DASTCENC_NEON=0 -DASTCENC_POPCNT=1 -DASTCENC_SSE=41 -D_CRT_SECURE_NO_WARNINGS -I..\\..\\..\\lib\\astc-encoder\\Source /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -MDd /W4 /Gz /wd4324 /EHsc /fp:strict /arch:AVX2 -std:c++14 /Folib\\astc-encoder\\Source\\CMakeFiles\\astcenc-avx2-static.dir\\astcenc_diagnostic_trace.cpp.obj /FdTARGET_COMPILE_PDB /FS -c C:\\Users\\Shuka\\source\\repos\\KhronosGroup\\KTX-Software\\lib\\astc-encoder\\Source\\astcenc_diagnostic_trace.cpp",
+  "file": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/lib/astc-encoder/Source/astcenc_diagnostic_trace.cpp"
+},
+{
+  "directory": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/out/build/x64-Debug",
+  "command": "C:\\PROGRA~2\\MICROS~2\\2019\\COMMUN~1\\VC\\Tools\\MSVC\\1429~1.301\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DASTCENC_AVX=2 -DASTCENC_F16C=1 -DASTCENC_NEON=0 -DASTCENC_POPCNT=1 -DASTCENC_SSE=41 -D_CRT_SECURE_NO_WARNINGS -I..\\..\\..\\lib\\astc-encoder\\Source /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -MDd /W4 /Gz /wd4324 /EHsc /fp:strict /arch:AVX2 -std:c++14 /Folib\\astc-encoder\\Source\\CMakeFiles\\astcenc-avx2-static.dir\\astcenc_entry.cpp.obj /FdTARGET_COMPILE_PDB /FS -c C:\\Users\\Shuka\\source\\repos\\KhronosGroup\\KTX-Software\\lib\\astc-encoder\\Source\\astcenc_entry.cpp",
+  "file": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/lib/astc-encoder/Source/astcenc_entry.cpp"
+},
+{
+  "directory": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/out/build/x64-Debug",
+  "command": "C:\\PROGRA~2\\MICROS~2\\2019\\COMMUN~1\\VC\\Tools\\MSVC\\1429~1.301\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DASTCENC_AVX=2 -DASTCENC_F16C=1 -DASTCENC_NEON=0 -DASTCENC_POPCNT=1 -DASTCENC_SSE=41 -D_CRT_SECURE_NO_WARNINGS -I..\\..\\..\\lib\\astc-encoder\\Source /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -MDd /W4 /Gz /wd4324 /EHsc /fp:strict /arch:AVX2 -std:c++14 /Folib\\astc-encoder\\Source\\CMakeFiles\\astcenc-avx2-static.dir\\astcenc_find_best_partitioning.cpp.obj /FdTARGET_COMPILE_PDB /FS -c C:\\Users\\Shuka\\source\\repos\\KhronosGroup\\KTX-Software\\lib\\astc-encoder\\Source\\astcenc_find_best_partitioning.cpp",
+  "file": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/lib/astc-encoder/Source/astcenc_find_best_partitioning.cpp"
+},
+{
+  "directory": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/out/build/x64-Debug",
+  "command": "C:\\PROGRA~2\\MICROS~2\\2019\\COMMUN~1\\VC\\Tools\\MSVC\\1429~1.301\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DASTCENC_AVX=2 -DASTCENC_F16C=1 -DASTCENC_NEON=0 -DASTCENC_POPCNT=1 -DASTCENC_SSE=41 -D_CRT_SECURE_NO_WARNINGS -I..\\..\\..\\lib\\astc-encoder\\Source /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -MDd /W4 /Gz /wd4324 /EHsc /fp:strict /arch:AVX2 -std:c++14 /Folib\\astc-encoder\\Source\\CMakeFiles\\astcenc-avx2-static.dir\\astcenc_ideal_endpoints_and_weights.cpp.obj /FdTARGET_COMPILE_PDB /FS -c C:\\Users\\Shuka\\source\\repos\\KhronosGroup\\KTX-Software\\lib\\astc-encoder\\Source\\astcenc_ideal_endpoints_and_weights.cpp",
+  "file": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/lib/astc-encoder/Source/astcenc_ideal_endpoints_and_weights.cpp"
+},
+{
+  "directory": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/out/build/x64-Debug",
+  "command": "C:\\PROGRA~2\\MICROS~2\\2019\\COMMUN~1\\VC\\Tools\\MSVC\\1429~1.301\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DASTCENC_AVX=2 -DASTCENC_F16C=1 -DASTCENC_NEON=0 -DASTCENC_POPCNT=1 -DASTCENC_SSE=41 -D_CRT_SECURE_NO_WARNINGS -I..\\..\\..\\lib\\astc-encoder\\Source /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -MDd /W4 /Gz /wd4324 /EHsc /fp:strict /arch:AVX2 -std:c++14 /Folib\\astc-encoder\\Source\\CMakeFiles\\astcenc-avx2-static.dir\\astcenc_image.cpp.obj /FdTARGET_COMPILE_PDB /FS -c C:\\Users\\Shuka\\source\\repos\\KhronosGroup\\KTX-Software\\lib\\astc-encoder\\Source\\astcenc_image.cpp",
+  "file": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/lib/astc-encoder/Source/astcenc_image.cpp"
+},
+{
+  "directory": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/out/build/x64-Debug",
+  "command": "C:\\PROGRA~2\\MICROS~2\\2019\\COMMUN~1\\VC\\Tools\\MSVC\\1429~1.301\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DASTCENC_AVX=2 -DASTCENC_F16C=1 -DASTCENC_NEON=0 -DASTCENC_POPCNT=1 -DASTCENC_SSE=41 -D_CRT_SECURE_NO_WARNINGS -I..\\..\\..\\lib\\astc-encoder\\Source /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -MDd /W4 /Gz /wd4324 /EHsc /fp:strict /arch:AVX2 -std:c++14 /Folib\\astc-encoder\\Source\\CMakeFiles\\astcenc-avx2-static.dir\\astcenc_integer_sequence.cpp.obj /FdTARGET_COMPILE_PDB /FS -c C:\\Users\\Shuka\\source\\repos\\KhronosGroup\\KTX-Software\\lib\\astc-encoder\\Source\\astcenc_integer_sequence.cpp",
+  "file": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/lib/astc-encoder/Source/astcenc_integer_sequence.cpp"
+},
+{
+  "directory": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/out/build/x64-Debug",
+  "command": "C:\\PROGRA~2\\MICROS~2\\2019\\COMMUN~1\\VC\\Tools\\MSVC\\1429~1.301\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DASTCENC_AVX=2 -DASTCENC_F16C=1 -DASTCENC_NEON=0 -DASTCENC_POPCNT=1 -DASTCENC_SSE=41 -D_CRT_SECURE_NO_WARNINGS -I..\\..\\..\\lib\\astc-encoder\\Source /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -MDd /W4 /Gz /wd4324 /EHsc /fp:strict /arch:AVX2 -std:c++14 /Folib\\astc-encoder\\Source\\CMakeFiles\\astcenc-avx2-static.dir\\astcenc_mathlib.cpp.obj /FdTARGET_COMPILE_PDB /FS -c C:\\Users\\Shuka\\source\\repos\\KhronosGroup\\KTX-Software\\lib\\astc-encoder\\Source\\astcenc_mathlib.cpp",
+  "file": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/lib/astc-encoder/Source/astcenc_mathlib.cpp"
+},
+{
+  "directory": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/out/build/x64-Debug",
+  "command": "C:\\PROGRA~2\\MICROS~2\\2019\\COMMUN~1\\VC\\Tools\\MSVC\\1429~1.301\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DASTCENC_AVX=2 -DASTCENC_F16C=1 -DASTCENC_NEON=0 -DASTCENC_POPCNT=1 -DASTCENC_SSE=41 -D_CRT_SECURE_NO_WARNINGS -I..\\..\\..\\lib\\astc-encoder\\Source /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -MDd /W4 /Gz /wd4324 /EHsc /fp:strict /arch:AVX2 -std:c++14 /Folib\\astc-encoder\\Source\\CMakeFiles\\astcenc-avx2-static.dir\\astcenc_mathlib_softfloat.cpp.obj /FdTARGET_COMPILE_PDB /FS -c C:\\Users\\Shuka\\source\\repos\\KhronosGroup\\KTX-Software\\lib\\astc-encoder\\Source\\astcenc_mathlib_softfloat.cpp",
+  "file": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/lib/astc-encoder/Source/astcenc_mathlib_softfloat.cpp"
+},
+{
+  "directory": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/out/build/x64-Debug",
+  "command": "C:\\PROGRA~2\\MICROS~2\\2019\\COMMUN~1\\VC\\Tools\\MSVC\\1429~1.301\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DASTCENC_AVX=2 -DASTCENC_F16C=1 -DASTCENC_NEON=0 -DASTCENC_POPCNT=1 -DASTCENC_SSE=41 -D_CRT_SECURE_NO_WARNINGS -I..\\..\\..\\lib\\astc-encoder\\Source /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -MDd /W4 /Gz /wd4324 /EHsc /fp:strict /arch:AVX2 -std:c++14 /Folib\\astc-encoder\\Source\\CMakeFiles\\astcenc-avx2-static.dir\\astcenc_partition_tables.cpp.obj /FdTARGET_COMPILE_PDB /FS -c C:\\Users\\Shuka\\source\\repos\\KhronosGroup\\KTX-Software\\lib\\astc-encoder\\Source\\astcenc_partition_tables.cpp",
+  "file": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/lib/astc-encoder/Source/astcenc_partition_tables.cpp"
+},
+{
+  "directory": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/out/build/x64-Debug",
+  "command": "C:\\PROGRA~2\\MICROS~2\\2019\\COMMUN~1\\VC\\Tools\\MSVC\\1429~1.301\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DASTCENC_AVX=2 -DASTCENC_F16C=1 -DASTCENC_NEON=0 -DASTCENC_POPCNT=1 -DASTCENC_SSE=41 -D_CRT_SECURE_NO_WARNINGS -I..\\..\\..\\lib\\astc-encoder\\Source /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -MDd /W4 /Gz /wd4324 /EHsc /fp:strict /arch:AVX2 -std:c++14 /Folib\\astc-encoder\\Source\\CMakeFiles\\astcenc-avx2-static.dir\\astcenc_percentile_tables.cpp.obj /FdTARGET_COMPILE_PDB /FS -c C:\\Users\\Shuka\\source\\repos\\KhronosGroup\\KTX-Software\\lib\\astc-encoder\\Source\\astcenc_percentile_tables.cpp",
+  "file": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/lib/astc-encoder/Source/astcenc_percentile_tables.cpp"
+},
+{
+  "directory": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/out/build/x64-Debug",
+  "command": "C:\\PROGRA~2\\MICROS~2\\2019\\COMMUN~1\\VC\\Tools\\MSVC\\1429~1.301\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DASTCENC_AVX=2 -DASTCENC_F16C=1 -DASTCENC_NEON=0 -DASTCENC_POPCNT=1 -DASTCENC_SSE=41 -D_CRT_SECURE_NO_WARNINGS -I..\\..\\..\\lib\\astc-encoder\\Source /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -MDd /W4 /Gz /wd4324 /EHsc /fp:strict /arch:AVX2 -std:c++14 /Folib\\astc-encoder\\Source\\CMakeFiles\\astcenc-avx2-static.dir\\astcenc_pick_best_endpoint_format.cpp.obj /FdTARGET_COMPILE_PDB /FS -c C:\\Users\\Shuka\\source\\repos\\KhronosGroup\\KTX-Software\\lib\\astc-encoder\\Source\\astcenc_pick_best_endpoint_format.cpp",
+  "file": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/lib/astc-encoder/Source/astcenc_pick_best_endpoint_format.cpp"
+},
+{
+  "directory": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/out/build/x64-Debug",
+  "command": "C:\\PROGRA~2\\MICROS~2\\2019\\COMMUN~1\\VC\\Tools\\MSVC\\1429~1.301\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DASTCENC_AVX=2 -DASTCENC_F16C=1 -DASTCENC_NEON=0 -DASTCENC_POPCNT=1 -DASTCENC_SSE=41 -D_CRT_SECURE_NO_WARNINGS -I..\\..\\..\\lib\\astc-encoder\\Source /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -MDd /W4 /Gz /wd4324 /EHsc /fp:strict /arch:AVX2 -std:c++14 /Folib\\astc-encoder\\Source\\CMakeFiles\\astcenc-avx2-static.dir\\astcenc_quantization.cpp.obj /FdTARGET_COMPILE_PDB /FS -c C:\\Users\\Shuka\\source\\repos\\KhronosGroup\\KTX-Software\\lib\\astc-encoder\\Source\\astcenc_quantization.cpp",
+  "file": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/lib/astc-encoder/Source/astcenc_quantization.cpp"
+},
+{
+  "directory": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/out/build/x64-Debug",
+  "command": "C:\\PROGRA~2\\MICROS~2\\2019\\COMMUN~1\\VC\\Tools\\MSVC\\1429~1.301\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DASTCENC_AVX=2 -DASTCENC_F16C=1 -DASTCENC_NEON=0 -DASTCENC_POPCNT=1 -DASTCENC_SSE=41 -D_CRT_SECURE_NO_WARNINGS -I..\\..\\..\\lib\\astc-encoder\\Source /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -MDd /W4 /Gz /wd4324 /EHsc /fp:strict /arch:AVX2 -std:c++14 /Folib\\astc-encoder\\Source\\CMakeFiles\\astcenc-avx2-static.dir\\astcenc_symbolic_physical.cpp.obj /FdTARGET_COMPILE_PDB /FS -c C:\\Users\\Shuka\\source\\repos\\KhronosGroup\\KTX-Software\\lib\\astc-encoder\\Source\\astcenc_symbolic_physical.cpp",
+  "file": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/lib/astc-encoder/Source/astcenc_symbolic_physical.cpp"
+},
+{
+  "directory": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/out/build/x64-Debug",
+  "command": "C:\\PROGRA~2\\MICROS~2\\2019\\COMMUN~1\\VC\\Tools\\MSVC\\1429~1.301\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DASTCENC_AVX=2 -DASTCENC_F16C=1 -DASTCENC_NEON=0 -DASTCENC_POPCNT=1 -DASTCENC_SSE=41 -D_CRT_SECURE_NO_WARNINGS -I..\\..\\..\\lib\\astc-encoder\\Source /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -MDd /W4 /Gz /wd4324 /EHsc /fp:strict /arch:AVX2 -std:c++14 /Folib\\astc-encoder\\Source\\CMakeFiles\\astcenc-avx2-static.dir\\astcenc_weight_align.cpp.obj /FdTARGET_COMPILE_PDB /FS -c C:\\Users\\Shuka\\source\\repos\\KhronosGroup\\KTX-Software\\lib\\astc-encoder\\Source\\astcenc_weight_align.cpp",
+  "file": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/lib/astc-encoder/Source/astcenc_weight_align.cpp"
+},
+{
+  "directory": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/out/build/x64-Debug",
+  "command": "C:\\PROGRA~2\\MICROS~2\\2019\\COMMUN~1\\VC\\Tools\\MSVC\\1429~1.301\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DASTCENC_AVX=2 -DASTCENC_F16C=1 -DASTCENC_NEON=0 -DASTCENC_POPCNT=1 -DASTCENC_SSE=41 -D_CRT_SECURE_NO_WARNINGS -I..\\..\\..\\lib\\astc-encoder\\Source /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -MDd /W4 /Gz /wd4324 /EHsc /fp:strict /arch:AVX2 -std:c++14 /Folib\\astc-encoder\\Source\\CMakeFiles\\astcenc-avx2-static.dir\\astcenc_weight_quant_xfer_tables.cpp.obj /FdTARGET_COMPILE_PDB /FS -c C:\\Users\\Shuka\\source\\repos\\KhronosGroup\\KTX-Software\\lib\\astc-encoder\\Source\\astcenc_weight_quant_xfer_tables.cpp",
+  "file": "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/lib/astc-encoder/Source/astcenc_weight_quant_xfer_tables.cpp"
+}
+]

@@ -1,0 +1,879 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						2,
+						3,
+						5,
+						6,
+						8,
+						16
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.15"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18,
+						19,
+						20,
+						21,
+						22,
+						23,
+						24,
+						25,
+						26,
+						27,
+						32,
+						37,
+						38,
+						45
+					]
+				},
+				{
+					"build" : "interface/python_binding",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.15"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "interface/python_binding",
+					"targetIndexes" : 
+					[
+						48
+					]
+				},
+				{
+					"build" : "interface/basisu_c_binding",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.15"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "interface/basisu_c_binding",
+					"targetIndexes" : 
+					[
+						46
+					]
+				},
+				{
+					"build" : "lib/astc-encoder",
+					"childIndexes" : 
+					[
+						4
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.15"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 1,
+					"source" : "lib/astc-encoder"
+				},
+				{
+					"build" : "lib/astc-encoder/Source",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.15"
+					},
+					"parentIndex" : 3,
+					"projectIndex" : 2,
+					"source" : "lib/astc-encoder/Source",
+					"targetIndexes" : 
+					[
+						28
+					]
+				},
+				{
+					"build" : "other_projects/fmt",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.1"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 3,
+					"source" : "other_projects/fmt",
+					"targetIndexes" : 
+					[
+						29
+					]
+				},
+				{
+					"build" : "other_projects/cxxopts",
+					"childIndexes" : 
+					[
+						7
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.1"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 4,
+					"source" : "other_projects/cxxopts"
+				},
+				{
+					"build" : "other_projects/cxxopts/include",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.1"
+					},
+					"parentIndex" : 6,
+					"projectIndex" : 4,
+					"source" : "other_projects/cxxopts/include"
+				},
+				{
+					"build" : "tools",
+					"childIndexes" : 
+					[
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.15"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "tools"
+				},
+				{
+					"build" : "tools/imageio",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.15"
+					},
+					"parentIndex" : 8,
+					"projectIndex" : 0,
+					"source" : "tools/imageio",
+					"targetIndexes" : 
+					[
+						31
+					]
+				},
+				{
+					"build" : "tools/ktx",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.15"
+					},
+					"parentIndex" : 8,
+					"projectIndex" : 0,
+					"source" : "tools/ktx",
+					"targetIndexes" : 
+					[
+						43,
+						44
+					]
+				},
+				{
+					"build" : "tools/ktx2check",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.15"
+					},
+					"parentIndex" : 8,
+					"projectIndex" : 0,
+					"source" : "tools/ktx2check",
+					"targetIndexes" : 
+					[
+						33,
+						34
+					]
+				},
+				{
+					"build" : "tools/ktx2ktx2",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.15"
+					},
+					"parentIndex" : 8,
+					"projectIndex" : 0,
+					"source" : "tools/ktx2ktx2",
+					"targetIndexes" : 
+					[
+						35,
+						36
+					]
+				},
+				{
+					"build" : "tools/ktxinfo",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.15"
+					},
+					"parentIndex" : 8,
+					"projectIndex" : 0,
+					"source" : "tools/ktxinfo",
+					"targetIndexes" : 
+					[
+						39,
+						40
+					]
+				},
+				{
+					"build" : "tools/ktxsc",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.15"
+					},
+					"parentIndex" : 8,
+					"projectIndex" : 0,
+					"source" : "tools/ktxsc",
+					"targetIndexes" : 
+					[
+						41,
+						42
+					]
+				},
+				{
+					"build" : "tools/toktx",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.15"
+					},
+					"parentIndex" : 8,
+					"projectIndex" : 0,
+					"source" : "tools/toktx",
+					"targetIndexes" : 
+					[
+						51,
+						52
+					]
+				},
+				{
+					"build" : "tests",
+					"childIndexes" : 
+					[
+						17,
+						18,
+						19
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.15"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "tests",
+					"targetIndexes" : 
+					[
+						50,
+						54
+					]
+				},
+				{
+					"build" : "tests/gtest",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.15"
+					},
+					"parentIndex" : 16,
+					"projectIndex" : 0,
+					"source" : "tests/gtest",
+					"targetIndexes" : 
+					[
+						30
+					]
+				},
+				{
+					"build" : "tests/transcodetests",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.15"
+					},
+					"parentIndex" : 16,
+					"projectIndex" : 0,
+					"source" : "tests/transcodetests",
+					"targetIndexes" : 
+					[
+						47,
+						53
+					]
+				},
+				{
+					"build" : "tests/streamtests",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.15"
+					},
+					"parentIndex" : 16,
+					"projectIndex" : 0,
+					"source" : "tests/streamtests",
+					"targetIndexes" : 
+					[
+						49
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1,
+						3,
+						4
+					],
+					"directoryIndexes" : 
+					[
+						0,
+						1,
+						2,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18,
+						19
+					],
+					"name" : "KTX-Software",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18,
+						19,
+						20,
+						21,
+						22,
+						23,
+						24,
+						25,
+						26,
+						27,
+						30,
+						31,
+						32,
+						33,
+						34,
+						35,
+						36,
+						37,
+						38,
+						39,
+						40,
+						41,
+						42,
+						43,
+						44,
+						45,
+						46,
+						47,
+						48,
+						49,
+						50,
+						51,
+						52,
+						53,
+						54
+					]
+				},
+				{
+					"childIndexes" : 
+					[
+						2
+					],
+					"directoryIndexes" : 
+					[
+						3
+					],
+					"name" : "astcencoder",
+					"parentIndex" : 0
+				},
+				{
+					"directoryIndexes" : 
+					[
+						4
+					],
+					"name" : "astcenc-avx2",
+					"parentIndex" : 1,
+					"targetIndexes" : 
+					[
+						28
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						5
+					],
+					"name" : "FMT",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						29
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						6,
+						7
+					],
+					"name" : "cxxopts",
+					"parentIndex" : 0
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "Continuous::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-Continuous-Debug-a54ebad07b32be44591b.json",
+					"name" : "Continuous",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ContinuousBuild::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ContinuousBuild-Debug-3075389064f55ee41034.json",
+					"name" : "ContinuousBuild",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ContinuousConfigure::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ContinuousConfigure-Debug-850ed205cad6daf9ce13.json",
+					"name" : "ContinuousConfigure",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ContinuousCoverage::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ContinuousCoverage-Debug-6a13796e96998b8db3e8.json",
+					"name" : "ContinuousCoverage",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ContinuousMemCheck::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ContinuousMemCheck-Debug-c6a413c2cb937b92aa05.json",
+					"name" : "ContinuousMemCheck",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ContinuousStart::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ContinuousStart-Debug-f80b472bf9e867a8087b.json",
+					"name" : "ContinuousStart",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ContinuousSubmit::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ContinuousSubmit-Debug-a0d1430decd17e3c50cb.json",
+					"name" : "ContinuousSubmit",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ContinuousTest::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ContinuousTest-Debug-527dee763cf9366a0d04.json",
+					"name" : "ContinuousTest",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ContinuousUpdate::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ContinuousUpdate-Debug-5dfea3348beaf6a7a4e8.json",
+					"name" : "ContinuousUpdate",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "Experimental::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-Experimental-Debug-0c0d36c33173afc8d5ce.json",
+					"name" : "Experimental",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ExperimentalBuild::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ExperimentalBuild-Debug-818a23be8505d2c61991.json",
+					"name" : "ExperimentalBuild",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ExperimentalConfigure::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ExperimentalConfigure-Debug-fb584397a9e744b11247.json",
+					"name" : "ExperimentalConfigure",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ExperimentalCoverage::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ExperimentalCoverage-Debug-adf83adc120fd76315c3.json",
+					"name" : "ExperimentalCoverage",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ExperimentalMemCheck::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ExperimentalMemCheck-Debug-3096a6ed6b045ada7142.json",
+					"name" : "ExperimentalMemCheck",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ExperimentalStart::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ExperimentalStart-Debug-2784da1d0108061f9465.json",
+					"name" : "ExperimentalStart",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ExperimentalSubmit::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ExperimentalSubmit-Debug-96b23442bbf8087b62cf.json",
+					"name" : "ExperimentalSubmit",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ExperimentalTest::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ExperimentalTest-Debug-b6587a65ca42e5566af6.json",
+					"name" : "ExperimentalTest",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ExperimentalUpdate::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ExperimentalUpdate-Debug-3404a44f16c2ccbda6cf.json",
+					"name" : "ExperimentalUpdate",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "Nightly::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-Nightly-Debug-f98b101753ace64c3e4d.json",
+					"name" : "Nightly",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NightlyBuild::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NightlyBuild-Debug-5b4ef8c1a52d5003380d.json",
+					"name" : "NightlyBuild",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NightlyConfigure::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NightlyConfigure-Debug-adea50f83f085433f798.json",
+					"name" : "NightlyConfigure",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NightlyCoverage::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NightlyCoverage-Debug-8aedf0a1bd85974108d2.json",
+					"name" : "NightlyCoverage",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NightlyMemCheck::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NightlyMemCheck-Debug-0b05152df955ac0e41ab.json",
+					"name" : "NightlyMemCheck",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NightlyMemoryCheck::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NightlyMemoryCheck-Debug-a519c143f11f4c83f9ba.json",
+					"name" : "NightlyMemoryCheck",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NightlyStart::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NightlyStart-Debug-0f76d5f4c2e9fea8999b.json",
+					"name" : "NightlyStart",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NightlySubmit::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NightlySubmit-Debug-234b1b4df33d83af7978.json",
+					"name" : "NightlySubmit",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NightlyTest::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NightlyTest-Debug-7ee965c083a698f0455f.json",
+					"name" : "NightlyTest",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NightlyUpdate::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NightlyUpdate-Debug-7b5bb76b9c8d4d2017ac.json",
+					"name" : "NightlyUpdate",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "astcenc-avx2-static::@df820ea472f547a4031e",
+					"jsonFile" : "target-astcenc-avx2-static-Debug-2e7055361c2876ebad59.json",
+					"name" : "astcenc-avx2-static",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "fmt::@2ed2923eb91c8892d66c",
+					"jsonFile" : "target-fmt-Debug-ff9bd593af2281ae7e43.json",
+					"name" : "fmt",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 17,
+					"id" : "gtest::@a55dd99806186840b5c2",
+					"jsonFile" : "target-gtest-Debug-0315e86f58f4cf8f6614.json",
+					"name" : "gtest",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 9,
+					"id" : "imageio::@63f8b1546eecdca51769",
+					"jsonFile" : "target-imageio-Debug-d7c6eae08d2ba9624a10.json",
+					"name" : "imageio",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ktx::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ktx-Debug-f990f6af38dd5cffd167.json",
+					"name" : "ktx",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 11,
+					"id" : "ktx2check::@d0c09f843fe211a75ef4",
+					"jsonFile" : "target-ktx2check-Debug-dfcd6bd986668f95f9e2.json",
+					"name" : "ktx2check",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 11,
+					"id" : "ktx2check_version::@d0c09f843fe211a75ef4",
+					"jsonFile" : "target-ktx2check_version-Debug-af6169ed017160bc98f7.json",
+					"name" : "ktx2check_version",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 12,
+					"id" : "ktx2ktx2::@31da46b66507c2de1633",
+					"jsonFile" : "target-ktx2ktx2-Debug-04f3c4a13ff192893653.json",
+					"name" : "ktx2ktx2",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 12,
+					"id" : "ktx2ktx2_version::@31da46b66507c2de1633",
+					"jsonFile" : "target-ktx2ktx2_version-Debug-2fdb2edc2a3cccbdad5f.json",
+					"name" : "ktx2ktx2_version",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ktx_read::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ktx_read-Debug-3462b7f429ed70fb3074.json",
+					"name" : "ktx_read",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ktx_version::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ktx_version-Debug-52d00c5921a28434141d.json",
+					"name" : "ktx_version",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 13,
+					"id" : "ktxinfo::@261a3c5402ffa5ad3402",
+					"jsonFile" : "target-ktxinfo-Debug-78b560e42ca677b7b8ba.json",
+					"name" : "ktxinfo",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 13,
+					"id" : "ktxinfo_version::@261a3c5402ffa5ad3402",
+					"jsonFile" : "target-ktxinfo_version-Debug-95508354198f77604c12.json",
+					"name" : "ktxinfo_version",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 14,
+					"id" : "ktxsc::@914cc9f6eca78120c0c6",
+					"jsonFile" : "target-ktxsc-Debug-9366030fa4d01da6f208.json",
+					"name" : "ktxsc",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 14,
+					"id" : "ktxsc_version::@914cc9f6eca78120c0c6",
+					"jsonFile" : "target-ktxsc_version-Debug-3648e64d0d591340b65b.json",
+					"name" : "ktxsc_version",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 10,
+					"id" : "ktxtools::@da7616ddea41af77d81e",
+					"jsonFile" : "target-ktxtools-Debug-f5ff1f4b2f2af0e90d8b.json",
+					"name" : "ktxtools",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 10,
+					"id" : "ktxtools_version::@da7616ddea41af77d81e",
+					"jsonFile" : "target-ktxtools_version-Debug-e26e97e9fb9ba3817c8e.json",
+					"name" : "ktxtools_version",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "objUtil::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-objUtil-Debug-899e676bf53c7516c15c.json",
+					"name" : "objUtil",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "obj_basisu_cbind::@6388a14e322a8243e394",
+					"jsonFile" : "target-obj_basisu_cbind-Debug-4f165ad7d6cba117fdef.json",
+					"name" : "obj_basisu_cbind",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 18,
+					"id" : "obj_tmp_basisu::@07942419ade696634fb4",
+					"jsonFile" : "target-obj_tmp_basisu-Debug-f791f7bb4caa1c02782c.json",
+					"name" : "obj_tmp_basisu",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "pyktx::@7895d8aaf5a05734afb4",
+					"jsonFile" : "target-pyktx-Debug-91af2b2907722a0a18aa.json",
+					"name" : "pyktx",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 19,
+					"id" : "streamtests::@7dea4999482bb0c42dc6",
+					"jsonFile" : "target-streamtests-Debug-a053aa54aa6b5fc6be8e.json",
+					"name" : "streamtests",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 16,
+					"id" : "texturetests::@a44f0ac069e85531cdee",
+					"jsonFile" : "target-texturetests-Debug-be9b7c9c9441602bf652.json",
+					"name" : "texturetests",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 15,
+					"id" : "toktx::@9a0e353fb58b8a128f48",
+					"jsonFile" : "target-toktx-Debug-09b0bfc247a072a21677.json",
+					"name" : "toktx",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 15,
+					"id" : "toktx_version::@9a0e353fb58b8a128f48",
+					"jsonFile" : "target-toktx_version-Debug-1e6b71f04aab7b9305cf.json",
+					"name" : "toktx_version",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 18,
+					"id" : "transcodetests::@07942419ade696634fb4",
+					"jsonFile" : "target-transcodetests-Debug-da54bfd94729b8218771.json",
+					"name" : "transcodetests",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 16,
+					"id" : "unittests::@a44f0ac069e85531cdee",
+					"jsonFile" : "target-unittests-Debug-5b05bda0d39044eff8d6.json",
+					"name" : "unittests",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software/out/build/x64-Debug",
+		"source" : "C:/Users/Shuka/source/repos/KhronosGroup/KTX-Software"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 2
+	}
+}
