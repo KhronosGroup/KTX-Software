@@ -26,7 +26,7 @@
 // Search for and instantiate a plugin that can read the format
 // and open the file.
 std::unique_ptr<ImageInput>
-ImageInput::open(const _tstring& filename,
+ImageInput::open(const std::string& filename,
                  const ImageSpec* /*config*/,
                  WarningCallbackFunction wcb)
                  //Filesystem::IOProxy* ioproxy, string_view plugin_searchpath)
@@ -40,8 +40,8 @@ ImageInput::open(const _tstring& filename,
     std::ifstream ifs;
     std::unique_ptr<std::stringstream> buffer;
     ImageInput::Creator createFunction = nullptr;
-    const _tstring* fn;
-    const _tstring sn("stdin");
+    const std::string* fn;
+    const std::string sn("stdin");
     bool doBuffer = true;
 
     if (filename.compare("-")) {
@@ -164,7 +164,7 @@ ImageInput::open(const _tstring& filename,
 /// @brief Open a file for image input.
 ///
 /// Default implementation for derived classes.
-void ImageInput::open(const _tstring& filename, ImageSpec& newspec)
+void ImageInput::open(const std::string& filename, ImageSpec& newspec)
 {
     close(); // previously opened file.
     if (filename.compare("-")) {

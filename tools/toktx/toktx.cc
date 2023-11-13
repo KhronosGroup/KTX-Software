@@ -1882,7 +1882,7 @@ toktxApp::validateOptions()
         exit(1);
     }
 
-    if (options.outfile.compare(_T("-")) != 0
+    if (options.outfile.compare("-") != 0
             && options.outfile.find_last_of('.') == string::npos)
     {
         options.outfile.append(options.ktx2 ? ".ktx2" : ".ktx");

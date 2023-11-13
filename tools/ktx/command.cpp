@@ -22,7 +22,7 @@
 
 namespace ktx {
 
-void Command::parseCommandLine(const std::string& name, const std::string& desc, int argc, _TCHAR* argv[]) {
+void Command::parseCommandLine(const std::string& name, const std::string& desc, int argc, char* argv[]) {
     commandName = name;
     commandDescription = desc;
 

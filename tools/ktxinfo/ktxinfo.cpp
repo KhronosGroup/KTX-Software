@@ -34,7 +34,7 @@ struct commandOptions {
     string      outfile;
     string      outdir;
     bool        force;
-    std::vector<_tstring> infiles;
+    std::vector<string> infiles;
 
     commandOptions() {
         force = false;
@@ -136,7 +136,7 @@ ktxInfo::main(int argc, char* argv[])
 
     processCommandLine(argc, argv);
 
-    std::vector<_tstring>::const_iterator it;
+    std::vector<string>::const_iterator it;
     for (it = options.infiles.begin(); it < options.infiles.end(); it++) {
        string infile = *it;
 

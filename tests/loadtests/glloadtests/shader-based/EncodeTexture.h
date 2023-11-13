@@ -50,11 +50,11 @@ class EncodeTexture : public GL3LoadTestSample {
     bool bInitialized;
     ktx_transcode_fmt_e transcodeTarget;
     enum encode_fmt_e { EF_ASTC = 1, EF_ETC1S = 2, EF_UASTC = 3 };
-    friend ostream& operator<<(ostream& os, encode_fmt_e format);
+    friend std::ostream& operator<<(std::ostream& os, encode_fmt_e format);
     encode_fmt_e encodeTarget;
 };
 
-inline ostream& operator<<(ostream& os, EncodeTexture::encode_fmt_e format)
+inline std::ostream& operator<<(std::ostream& os, EncodeTexture::encode_fmt_e format)
 {
     switch (format) {
       case EncodeTexture::EF_ASTC:

@@ -176,7 +176,7 @@ class ImageInput {
     std::unique_ptr<std::stringstream> buffer;
     std::istream* isp = nullptr;
     std::string name;
-    _tstring _filename;
+    std::string _filename;
     std::vector<uint16_t> nativeBuffer16;
     std::vector<uint8_t> nativeBuffer8;
     struct imageInfo {
@@ -220,7 +220,7 @@ class ImageInput {
     ///        required writer was not able to be created. If the open fails,
     ///        the `unique_ptr` will be empty. An error can be retrieved by
     ///        ImageInput::geterror().
-    static unique_ptr open(const _tstring& filename,
+    static unique_ptr open(const std::string& filename,
                            const ImageSpec *config=nullptr,
                            WarningCallbackFunction wcb=nullptr);
                            //Filesystem::IOProxy* ioproxy = nullptr,
@@ -229,8 +229,8 @@ class ImageInput {
     virtual ~ImageInput() { close(); }
 
     // TODO: is config necessary?
-    virtual void open (const _tstring& filename, ImageSpec& newspec);
-    virtual void open (const _tstring& filename, ImageSpec& newspec,
+    virtual void open (const std::string& filename, ImageSpec& newspec);
+    virtual void open (const std::string& filename, ImageSpec& newspec,
                        const ImageSpec& /*config*/) {
         return open(filename, newspec);
     }
@@ -304,7 +304,7 @@ class ImageInput {
      * fstream or stringstream that would otherwise disappear when open() exits. The catch
      * clauses std::move the stream info back to the caller so it can keep searching for a plugin.
      */
-    void open(const _tstring& filename, std::ifstream& ifs,
+    void open(const std::string& filename, std::ifstream& ifs,
               std::unique_ptr<std::stringstream>& bufferIn,
               ImageSpec& newspec) {
         _filename = filename;    // Purely so warnings can include the file name.
@@ -339,7 +339,7 @@ class ImageInput {
 
   public:
     virtual const std::string& formatName(void) const { return name; }
-    virtual const _tstring& filename(void) const { return _filename; }
+    virtual const std::string& filename(void) const { return _filename; }
 
     // Return a reference to the ImageSpec of the current image.
     // This default method assumes no subimages.
@@ -466,7 +466,7 @@ public:
     /// unique_ptr to an ImageOutput.
     using unique_ptr = std::unique_ptr<ImageOutput>;
 
-    static unique_ptr create (const _tstring& name);
+    static unique_ptr create (const std::string& name);
 
 protected:
     ImageOutput(std::string&& name) : name(name) { }
@@ -494,7 +494,7 @@ public:
     ///                     append another subimage (`AppendSubimage`), or
     ///                     append another MIP level (`AppendMIPLevel`).
     /// @returns            `true` upon success, or `false` upon failure.
-    virtual void open (const _tstring& name, const ImageSpec& newspec,
+    virtual void open (const std::string& name, const ImageSpec& newspec,
                        OpenMode mode=Create) = 0;
 
     /// Return a reference to the image format specification of the current

@@ -825,7 +825,7 @@ private:
     uint32_t numBaseDepths = 0;
 
 public:
-    virtual int main(int argc, _TCHAR* argv[]) override;
+    virtual int main(int argc, char* argv[]) override;
     virtual void initOptions(cxxopts::Options& opts) override;
     virtual void processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) override;
 
@@ -857,7 +857,7 @@ private:
 
 // -------------------------------------------------------------------------------------------------
 
-int CommandCreate::main(int argc, _TCHAR* argv[]) {
+int CommandCreate::main(int argc, char* argv[]) {
     try {
         parseCommandLine("ktx create",
                 "Create, encode and supercompress a KTX2 file from the input images specified as the\n"

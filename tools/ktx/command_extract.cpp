@@ -156,7 +156,7 @@ class CommandExtract : public Command {
     Combine<OptionsExtract, OptionsTranscodeTarget<false>, OptionsSingleIn, OptionsGeneric> options;
 
 public:
-    virtual int main(int argc, _TCHAR* argv[]) override;
+    virtual int main(int argc, char* argv[]) override;
     virtual void initOptions(cxxopts::Options& opts) override;
     virtual void processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) override;
 
@@ -174,7 +174,7 @@ private:
 
 // -------------------------------------------------------------------------------------------------
 
-int CommandExtract::main(int argc, _TCHAR* argv[]) {
+int CommandExtract::main(int argc, char* argv[]) {
     try {
         parseCommandLine("ktx extract",
                 "Extract one or multiple images from the KTX2 file specified as the input-file argument\n"

@@ -27,7 +27,7 @@
 #endif
 
 #define KTX_COMMAND_ENTRY_POINT_DEF(CMDCLASS) \
-    (int argc, _TCHAR* argv[]) { CMDCLASS cmd{}; return cmd.main(argc, argv); }
+    (int argc, char* argv[]) { CMDCLASS cmd{}; return cmd.main(argc, argv); }
 
 #if defined(KTX_COMMAND_EXECUTABLE)
     // Command is built as a separate executable
@@ -45,14 +45,14 @@
         int NAME KTX_COMMAND_ENTRY_POINT_DEF(CMDCLASS)
 #endif
 
-#define KTX_COMMAND_BUILTIN(NAME) int NAME(int argc, _TCHAR* argv[]);
+#define KTX_COMMAND_BUILTIN(NAME) int NAME(int argc, char* argv[]);
 
 // -------------------------------------------------------------------------------------------------
 
 namespace ktx {
 
-using pfnBuiltinCommand = int (*)(int argc, _TCHAR* argv[]);
-using pfnImportedCommand = int (KTX_COMMAND_PTR *)(int argc, _TCHAR* argv[]);
+using pfnBuiltinCommand = int (*)(int argc, char* argv[]);
+using pfnImportedCommand = int (KTX_COMMAND_PTR *)(int argc, char* argv[]);
 
 static constexpr int CONSOLE_USAGE_WIDTH = 100;
 
@@ -132,10 +132,10 @@ public:
     virtual ~Command() = default;
 
 public:
-    virtual int main(int argc, _TCHAR* argv[]) = 0;
+    virtual int main(int argc, char* argv[]) = 0;
 
 protected:
-    void parseCommandLine(const std::string& name, const std::string& desc, int argc, _TCHAR* argv[]);
+    void parseCommandLine(const std::string& name, const std::string& desc, int argc, char* argv[]);
 
     virtual void initOptions(cxxopts::Options& /*opts*/) { }
     virtual void processOptions(cxxopts::Options& /*opts*/, cxxopts::ParseResult& /*args*/) { };
