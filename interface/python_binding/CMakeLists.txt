@@ -126,7 +126,7 @@ if(KTX_FEATURE_DOC)
             ${CMAKE_COMMAND} -E env
                 LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
                 LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
-                SPHINXBUILD=$<IF:$<PLATFORM_ID:Windows>,"${PYTHON_PATH} -m sphinx","sphinx-build">
+                SPHINXBUILD=${PYTHON_PATH}\ -m\ sphinx
             make BUILDDIR="${CMAKE_CURRENT_BINARY_DIR}/docs/html/pyktx" html
         WORKING_DIRECTORY
             ${CMAKE_SOURCE_DIR}/interface/python_binding
