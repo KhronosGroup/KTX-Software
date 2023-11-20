@@ -1,9 +1,9 @@
 # Copyright 2017-2020 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-#include(CMakePrintHelpers)
+include(CMakePrintHelpers)
 
-#cmake_print_variables(CMAKE_GENERATOR_PLATFORM CMAKE_SYSTEM_VERSION CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION)
+cmake_print_variables(CMAKE_GENERATOR_PLATFORM CMAKE_SYSTEM_VERSION CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION)
 
 set( fp_pref ${CMAKE_FIND_PACKAGE_PREFER_CONFIG} )
 # Prefer CONFIG for vcpkg

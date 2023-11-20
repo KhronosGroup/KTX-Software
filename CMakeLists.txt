@@ -10,6 +10,14 @@ find_package(Bash REQUIRED)
 
 include(cmake/version.cmake)
 
+if(POLICY CMP0149)
+    # Ignore CMAKE_SYSTEM_VERSION and select Windows SDK specified in
+    # WindowsSDKVersion environment variable or latest available, if
+    # unset. See comment in .github/workflows/windows.yml for reason
+    # needed.
+    cmake_policy(SET CMP0149 NEW)
+endif()
+
 project(KTX-Software
     VERSION ${KTX_VERSION}
     DESCRIPTION "Libraries and tools to create and read KTX image texture files."
