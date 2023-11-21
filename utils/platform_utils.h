@@ -41,15 +41,15 @@ inline std::string DecodeUTF8Path(std::string path) {
 }
 #endif
 
-inline void InitUTF8CLI(int& argc, _TCHAR* argv[]) {
-#if defined(_WIN32) && !defined(_UNICODE)
+inline void InitUTF8CLI(int& argc, char* argv[]) {
+#if defined(_WIN32)
     // Windows does not support UTF-8 argv so we have to manually acquire it
     static std::vector<std::unique_ptr<_TCHAR[]>> utf8Argv(argc);
     LPWSTR commandLine = GetCommandLineW();
     LPWSTR* wideArgv = CommandLineToArgvW(commandLine, &argc);
     for (int i = 0; i < argc; ++i) {
         int byteSize = WideCharToMultiByte(CP_UTF8, 0, wideArgv[i], -1, nullptr, 0, nullptr, nullptr);
-        utf8Argv[i] = std::make_unique<_TCHAR[]>(byteSize);
+        utf8Argv[i] = std::make_unique<char[]>(byteSize);
         WideCharToMultiByte(CP_UTF8, 0, wideArgv[i], -1, utf8Argv[i].get(), byteSize, nullptr, nullptr);
         argv[i] = utf8Argv[i].get();
     }

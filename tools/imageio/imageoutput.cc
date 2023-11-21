@@ -27,7 +27,7 @@
 #include <stdarg.h>
 
 std::unique_ptr<ImageOutput>
-ImageOutput::create(const _tstring& filename)
+ImageOutput::create(const std::string& filename)
 {
     std::unique_ptr<ImageOutput> out;
     if (filename.empty()) {  // Can't even guess if no name given

@@ -182,12 +182,12 @@ ktxUpgrader::main(int argc, char* argv[])
     processCommandLine(argc, argv);
     validateOptions();
 
-    std::vector<_tstring>::const_iterator it;
+    std::vector<string>::const_iterator it;
     for (it = options.infiles.begin(); it < options.infiles.end(); it++) {
        string infile = *it;
        string outfile;
 
-        if (infile.compare(_T("-")) == 0) {
+        if (infile.compare("-") == 0) {
             inf = stdin;
 #if defined(_WIN32)
             /* Set "stdin" to have binary mode */
@@ -198,13 +198,13 @@ ktxUpgrader::main(int argc, char* argv[])
         }
 
         if (inf) {
-            if (infile.compare(_T("-"))
+            if (infile.compare("-")
                 && !options.useStdout && !options.outfile.length())
             {
                 size_t dot;
 
                 outfile = infile;
-                dot = outfile.find_last_of(_T('.'));
+                dot = outfile.find_last_of('.');
                 if (dot !=string::npos) {
                     outfile.erase(dot,string::npos);
                 }
@@ -311,7 +311,7 @@ ktxUpgrader::main(int argc, char* argv[])
                     cerr << name
                          << " failed to write KTX2 file; "
                          << ktxErrorString(result) << endl;
-                    (void)_tunlink(options.outfile.c_str());
+                    (void)unlinkUTF8(options.outfile.c_str());
                     exitCode = 2;
                     goto cleanup;
                 }
@@ -327,7 +327,7 @@ ktxUpgrader::main(int argc, char* argv[])
         } else {
             cerr << name
                  << " could not open input file \""
-                 << (infile.compare(_T("-")) ? infile : "stdin") << "\". "
+                 << (infile.compare("-") ? infile : "stdin") << "\". "
                  << strerror(errno) << endl;
             exitCode = 2;
             goto cleanup;
@@ -371,7 +371,7 @@ ktxUpgrader::processOption(argparser& parser, int opt)
         break;
      case 'o':
         options.outfile = parser.optarg;
-        if (!options.outfile.compare(_T("stdout"))) {
+        if (!options.outfile.compare("stdout")) {
             options.useStdout = true;
         } else {
             size_t dot;

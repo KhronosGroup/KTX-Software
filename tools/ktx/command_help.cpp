@@ -107,7 +107,7 @@ class CommandHelp : public Command {
     Combine<OptionsHelp, OptionsGeneric> options;
 
 public:
-    virtual int main(int argc, _TCHAR* argv[]) override;
+    virtual int main(int argc, char* argv[]) override;
     virtual void initOptions(cxxopts::Options& opts) override;
     virtual void processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) override;
 
@@ -117,7 +117,7 @@ private:
 
 // -------------------------------------------------------------------------------------------------
 
-int CommandHelp::main(int argc, _TCHAR* argv[]) {
+int CommandHelp::main(int argc, char* argv[]) {
     try {
         parseCommandLine("ktx help",
                 "Displays the man page of a specific ktx command specified as the command argument."

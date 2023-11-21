@@ -88,7 +88,7 @@ class CommandTranscode : public Command {
     Combine<OptionsTranscode, OptionsTranscodeTarget<true>, OptionsCompress, OptionsSingleInSingleOut, OptionsGeneric> options;
 
 public:
-    virtual int main(int argc, _TCHAR* argv[]) override;
+    virtual int main(int argc, char* argv[]) override;
     virtual void initOptions(cxxopts::Options& opts) override;
     virtual void processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) override;
 
@@ -98,7 +98,7 @@ private:
 
 // -------------------------------------------------------------------------------------------------
 
-int CommandTranscode::main(int argc, _TCHAR* argv[]) {
+int CommandTranscode::main(int argc, char* argv[]) {
     try {
         parseCommandLine("ktx transcode",
                 "Transcode the KTX file specified as the input-file argument,\n"

@@ -13,7 +13,6 @@
 #include <map>
 #include <stdexcept>
 #include <vector>
-using namespace std;
 
 #ifdef _WIN32
 #include <windows.h>
@@ -211,7 +210,7 @@ class GLMeshLoader {
             std::stringstream message;
 
             message << "  Import via ASSIMP from\"" << filename << "\" failed. "
-                    << importer.GetErrorString() << endl;
+                    << importer.GetErrorString() << std::endl;
             throw std::runtime_error(message.str());
         }
 
@@ -316,7 +315,7 @@ class GLMeshLoader {
     }
 
     void CreateBuffers(glMeshLoader::MeshBuffer& meshBuffer,
-                       vector<glMeshLoader::VertexLayout> layout,
+                       std::vector<glMeshLoader::VertexLayout> layout,
                        float scale)
     {
         std::vector<float> vertexBuffer;
