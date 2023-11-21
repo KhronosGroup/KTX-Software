@@ -111,16 +111,10 @@ jobs:
       OPENGL_ES_EMULATOR_WIN: C:\Imagination\Windows_x86_64
       PVR_SDK_HOME: https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/
       # This is set to avoid the compiler running out of heap space
-      # when vcpkg is compiling glew.
-      VCPKG_MAX_CONCURRENCY: 1
+      # when vcpkg is compiling glew. Default is logical cores + 1.
+      # Runners have 1 thread per core and 2 cores.
+      VCPKG_MAX_CONCURRENCY: 2
       VULKAN_SDK_VER: 1.3.243.0
-      # On Windows Server, CMake is selecting an older version of the
-      # SDK which is missing the arm64 version of glu32.lib. The
-      # missing lib is a microsoft issue. The reasons for selection
-      # of an older version I do not yet understand. The library is
-      # only needed because the libraries list returned by
-      # find_package(OpenGL) includes it.
-      WindowsSDKVersion: 10.0.22621
 
     steps:
     - uses: actions/checkout@v3
