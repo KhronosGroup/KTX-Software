@@ -16,6 +16,7 @@ if(POLICY CMP0149)
     # variable  Needed because OLD policy picks SDK that matches
     # system version, CI uses Windows Server 2022 and its matching
     # SDK lacks the arm64 glu32.lib which causes builds to fail.
+    # MUST be set before project() command.
     cmake_policy(SET CMP0149 NEW)
 endif()
 

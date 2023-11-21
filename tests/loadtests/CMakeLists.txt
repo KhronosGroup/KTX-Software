@@ -3,7 +3,12 @@
 
 include(CMakePrintHelpers)
 
-cmake_print_variables(CMAKE_GENERATOR_PLATFORM CMAKE_SYSTEM_VERSION CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION)
+if(WIN32)
+    cmake_print_variables(
+        CMAKE_SYSTEM_VERSION
+        CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION
+    )
+endif()
 
 set( fp_pref ${CMAKE_FIND_PACKAGE_PREFER_CONFIG} )
 # Prefer CONFIG for vcpkg
