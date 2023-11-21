@@ -195,6 +195,7 @@ jobs:
         cat buildtrees\glew\install-arm64-windows-rel-out.log
         popd
         echo "CMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" >> $env:GITHUB_ENV
+        echo "KTX_LOADTEST_APPS_USE_LOCAL_DEPENDENCIES=ON" >> $env:GITHUB_ENV
 
     - name: Install Dependencies
       # This script only installs what's needed by ON FEATUREs.
