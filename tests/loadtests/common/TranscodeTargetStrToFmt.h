@@ -11,14 +11,6 @@
 
 #include <string>
 
-#if !defined(_tstring)
-  #if defined(_UNICODE)
-    #define _tstring std::wstring
-  #else
-    #define _tstring std::string
-  #endif
-#endif
-
-ktx_transcode_fmt_e TranscodeTargetStrToFmt(_tstring format);
+ktx_transcode_fmt_e TranscodeTargetStrToFmt(std::string format);
 
 #endif /* _TRANSCODE_TARGET_STR_TO_FMT_ */

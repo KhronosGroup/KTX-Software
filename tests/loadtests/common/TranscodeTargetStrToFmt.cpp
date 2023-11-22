@@ -11,7 +11,7 @@
 #include "TranscodeTargetStrToFmt.h"
 
 ktx_transcode_fmt_e
-TranscodeTargetStrToFmt(_tstring format)
+TranscodeTargetStrToFmt(std::string format)
 {
     if (!format.compare("ETC1_RGB"))
         return KTX_TTF_ETC1_RGB;

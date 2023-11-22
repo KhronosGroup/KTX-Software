@@ -20,18 +20,60 @@ cd $(dirname $0)
 # Ensure generation is not polluted by user environment
 unset TOKTX_OPTIONS
 
-if [ -n "$1" -a -x "$1" ]; then
-  toktx="$1"
-elif which toktx >/dev/null; then
-  toktx=toktx
-else
-  echo $0: toktx not found along $PATH.
-  echo $0: Aborting generation
+function usage() {
+  echo "Usage: $0 [--bindir <path/to/tools/bindir>]"
   exit 1
+}
+
+if [ "$1" = "--bindir" ]; then
+  shift
+  if [ $# -eq 1 ]; then
+    bindir=$1
+    toktx=$bindir/toktx
+    shift
+  else
+    usage
+  fi
 fi
 
-#  these too but these commands will only work with my arrangement
-# of workareas, so keep commented out.
+if [ $# -gt 0 ]; then
+  usage
+fi
+
+if [ -z "$toktx" ]; then
+  if which toktx >/dev/null; then
+    toktx=toktx
+  fi
+fi
+
+if [ -z "$ktxsc" ]; then
+  if which ktxsc >/dev/null; then
+    ktxsc=ktxsc
+  fi
+fi
+
+if [ -z "$ktx2ktx2" ]; then
+  if which ktx2ktx2 >/dev/null; then
+    ktx2ktx2=ktx2ktx2
+  fi
+fi
+
+function check_exec() {
+  if [ -z "${!1}" -o ! -x "${!1}" ]; then
+    echo -n "$0: $1 not found "
+    if [ -n "$bindir" ]; then
+      echo -n "in $bindir or "
+    fi
+    echo "along $PATH."
+    echo $0: Aborting generation
+    exit 1
+  fi
+}
+
+check_exec toktx
+
+# Generate ktx2 files of KTX icons.
+# These commands will only work with my arrangement of workareas.
 $toktx --test --genmipmap --bcmp -scale 0.5 ../webgl/libktx-webgl/ktx_app_basis.ktx2 $ktxspec_dir/icons/png/ktx_app.png
 $toktx --test --uastc --uastc_rdo_l 5.0 --resize 1000x1392 ../webgl/libktx-webgl/ktx_document_uastc_rdo5.ktx2 $ktxspec_dir/icons/png/ktx_document.png
 $toktx --test --genmipmap -bcmp ktx_document_basis.ktx2 $ktxspec_dir/icons/png/ktx_document.png

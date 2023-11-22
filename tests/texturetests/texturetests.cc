@@ -1,4 +1,4 @@
-/* -*- tab-width: 4; -*- */
+﻿/* -*- tab-width: 4; -*- */
 /* vi: set sw=2 ts=4 expandtab: */
 
 /**
@@ -24,6 +24,8 @@
 #endif
 
 #include <string>
+//#include <sys/types.h>
+#include <sys/stat.h>
 #include <limits.h>
 #include <stdint.h>
 #include <string.h>
@@ -2814,4 +2816,106 @@ TEST_F(ktxTexture2_MetadataTest, LibVersionUpdatedCorrectly) {
     }
 }
 
+////////////////////////////////////////////
+// Unicode file name tests
+///////////////////////////////////////////
+
+#if defined(_WIN32)
+#define _CRT_SECURE_NO_WARNINGS
+#define OS_SEP '\\'
+#define UNIX_SEP '/'
+#else
+#define OS_SEP '/'
+#endif
+
+std::string imagePath;
+
+std::string combinePaths(std::string const a, std::string const b) {
+    if (a.back() == OS_SEP) {
+        return a + b;
+#if defined(_WIN32)
+    }
+    else if (a.back() == UNIX_SEP) {
+        return a + b;
+#endif
+    }
+    else {
+        return a + OS_SEP + b;
+    }
+}
+
+TEST(UnicodeFileNames, CreateFrom) {
+    std::vector<std::string> fileSet = {
+        "hűtő.ktx",
+        "hűtő.ktx2",
+        "نَسِيج.ktx",
+        "نَسِيج.ktx2",
+        "テクスチャ.ktx",
+        "テクスチャ.ktx2",
+        "质地.ktx",
+        "质地.ktx2",
+        "조직.ktx",
+        "조직.ktx2"
+    };
+
+    std::vector<std::string>::const_iterator it;
+
+    for (it = fileSet.begin(); it < fileSet.end(); it++) {
+        ktx_error_code_e result;
+        ktxTexture* texture;
+
+        std::string path = combinePaths(imagePath, *it);
+        result = ktxTexture_CreateFromNamedFile(
+            path.c_str(),
+            KTX_TEXTURE_CREATE_NO_FLAGS,
+            &texture);
+        EXPECT_EQ(result, KTX_SUCCESS);
+        EXPECT_NE(texture, (ktxTexture*)0);
+        ktxTexture_Destroy(texture);
+
+        size_t dotIndex = path.find_last_of('.');
+        if (path.substr(dotIndex + 1).compare("ktx") == 0) {
+            result = ktxTexture1_CreateFromNamedFile(
+                path.c_str(),
+                KTX_TEXTURE_CREATE_NO_FLAGS,
+                (ktxTexture1**)&texture);
+        } else {
+            result = ktxTexture2_CreateFromNamedFile(
+                path.c_str(),
+                KTX_TEXTURE_CREATE_NO_FLAGS,
+                (ktxTexture2**)&texture);
+        }
+        EXPECT_EQ(result, KTX_SUCCESS);
+        EXPECT_NE(texture, (ktxTexture*)0);
+        ktxTexture_Destroy(texture);
+    }
+}
+
 }  // namespace
+
+GTEST_API_ int main(int argc, char** argv) {
+    testing::InitGoogleTest(&argc, argv);
+
+    if (!::testing::FLAGS_gtest_list_tests) {
+        if (argc != 2) {
+            std::cerr << "Usage: " << argv[0] << " <test images path>\n";
+            return -1;
+        }
+
+        imagePath = std::string(argv[1]);
+
+        struct stat info;
+
+        if (stat(imagePath.data(), &info) != 0) {
+            std::cerr << "Cannot access " << imagePath << std::endl;
+            return -2;
+        }
+        else if (!(info.st_mode & S_IFDIR)) {
+            std::cerr << imagePath << "is not a valid directory\n";
+            return -3;
+        }
+    }
+
+    return RUN_ALL_TESTS();
+}
+

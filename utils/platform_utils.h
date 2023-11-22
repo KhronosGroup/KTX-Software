@@ -9,8 +9,6 @@
 #include <iostream>
 #include <memory>
 #include <vector>
-#include <fmt/ostream.h>
-#include <fmt/printf.h>
 
 #if defined(_WIN32)
 #ifndef WIN32_LEAN_AND_MEAN
@@ -43,15 +41,15 @@ inline std::string DecodeUTF8Path(std::string path) {
 }
 #endif
 
-inline void InitUTF8CLI(int& argc, _TCHAR* argv[]) {
-#if defined(_WIN32) && !defined(_UNICODE)
+inline void InitUTF8CLI(int& argc, char* argv[]) {
+#if defined(_WIN32)
     // Windows does not support UTF-8 argv so we have to manually acquire it
-    static std::vector<std::unique_ptr<_TCHAR[]>> utf8Argv(argc);
+    static std::vector<std::unique_ptr<char[]>> utf8Argv(argc);
     LPWSTR commandLine = GetCommandLineW();
     LPWSTR* wideArgv = CommandLineToArgvW(commandLine, &argc);
     for (int i = 0; i < argc; ++i) {
         int byteSize = WideCharToMultiByte(CP_UTF8, 0, wideArgv[i], -1, nullptr, 0, nullptr, nullptr);
-        utf8Argv[i] = std::make_unique<_TCHAR[]>(byteSize);
+        utf8Argv[i] = std::make_unique<char[]>(byteSize);
         WideCharToMultiByte(CP_UTF8, 0, wideArgv[i], -1, utf8Argv[i].get(), byteSize, nullptr, nullptr);
         argv[i] = utf8Argv[i].get();
     }
@@ -59,5 +57,24 @@ inline void InitUTF8CLI(int& argc, _TCHAR* argv[]) {
     // Nothing to do for other platforms
     (void)argc;
     (void)argv;
+#endif
+}
+
+inline FILE* fopenUTF8(const std::string& path, const std::string& mode) {
+#if defined(_WIN32)
+    FILE* fp;
+    // Returned errmo_t value is also set in the global errno.
+    (void)_wfopen_s(&fp, DecodeUTF8Path(path).c_str(), DecodeUTF8Path(mode).c_str());
+    return fp;
+#else
+    return fopen(path.c_str(), mode.c_str());
+#endif
+}
+
+inline int unlinkUTF8(const std::string& path) {
+#if defined(_WIN32)
+    return _wunlink(DecodeUTF8Path(path).c_str());
+#else
+    return unlink(path.c_str());
 #endif
 }

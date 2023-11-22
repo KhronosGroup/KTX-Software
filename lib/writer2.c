@@ -632,6 +632,9 @@ ktxTexture2_WriteToStdioStream(ktxTexture2* This, FILE* dstsstr)
  * @~English
  * @brief Write a ktxTexture object to a named file in KTX format.
  *
+ * The file name must be encoded in utf-8. On Windows convert unicode names
+ * to utf-8 with @c WideCharToMultiByte(CP_UTF8, ...) before calling.
+ *
  * Callers are strongly urged to include a KTXwriter item in the texture's metadata.
  * It can be added by code, similar to the following, prior to calling this
  * function.
@@ -668,7 +671,7 @@ ktxTexture2_WriteToNamedFile(ktxTexture2* This, const char* const dstname)
     if (!This)
         return KTX_INVALID_VALUE;
 
-    dst = fopen(dstname, "wb");
+    dst = ktxFOpenUTF8(dstname, "wb");
     if (dst) {
         result = ktxTexture2_WriteToStdioStream(This, dst);
         fclose(dst);

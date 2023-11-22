@@ -458,6 +458,9 @@ ktxTexture1_constructFromStdioStream(ktxTexture1* This, FILE* stdioStream,
  * @memberof ktxTexture1 @private
  * @brief Construct a ktxTexture1 from a named KTX file.
  *
+ * The file name must be encoded in utf-8. On Windows convert unicode names
+ * to utf-8 with @c WideCharToMultiByte(CP_UTF8, ...) before calling.
+ *
  * See ktxTextureInt_constructFromStream for details.
  *
  * @param[in] This pointer to a ktxTextureInt-sized block of memory to
@@ -484,7 +487,7 @@ ktxTexture1_constructFromNamedFile(ktxTexture1* This,
     if (This == NULL || filename == NULL)
         return KTX_INVALID_VALUE;
 
-    file = fopen(filename, "rb");
+    file = ktxFOpenUTF8(filename, "rb");
     if (!file)
        return KTX_FILE_OPEN_FAILED;
 
@@ -680,6 +683,9 @@ ktxTexture1_CreateFromStdioStream(FILE* stdioStream,
  *
  * The address of a newly created texture reflecting the contents of the
  * file is written to the location pointed at by @p newTex.
+ *
+ * The file name must be encoded in utf-8. On Windows convert unicode names
+ * to utf-8 with @c WideCharToMultiByte(CP_UTF8, ...) before calling.
  *
  * The create flag KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT should not be set,
  * if the ktxTexture1 is ultimately to be uploaded to OpenGL or Vulkan. This

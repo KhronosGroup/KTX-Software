@@ -581,7 +581,7 @@ class ktxValidator : public ktxApp {
   public:
     ktxValidator();
 
-    virtual int main(int argc, _TCHAR* argv[]);
+    virtual int main(int argc, char* argv[]);
     virtual void usage();
 
   protected:
@@ -1107,23 +1107,18 @@ ktxValidator::usage()
     ktxApp::usage();
 }
 
-int _tmain(int argc, _TCHAR* argv[])
-{
-
-    ktxValidator ktxcheck;
-
-    return ktxcheck.main(argc, argv);
-}
+static ktxValidator ktxcheck;
+ktxApp& theApp = ktxcheck;
 
 int
-ktxValidator::main(int argc, _TCHAR *argv[])
+ktxValidator::main(int argc, char *argv[])
 {
     processCommandLine(argc, argv, eAllowStdin);
 
     logger.quiet = options.quiet;
     logger.maxIssues = options.maxIssues;
 
-    vector<_tstring>::const_iterator it;
+    vector<string>::const_iterator it;
     for (it = options.infiles.begin(); it < options.infiles.end(); it++) {
         try {
             validateFile(*it);
@@ -1141,7 +1136,7 @@ ktxValidator::main(int argc, _TCHAR *argv[])
 }
 
 void
-ktxValidator::validateFile(const _tstring& filename)
+ktxValidator::validateFile(const string& filename)
 {
     validationContext context;
     istream* isp;
@@ -1151,7 +1146,7 @@ ktxValidator::validateFile(const _tstring& filename)
     stringstream buffer;
     bool doBuffer;
 
-    if (filename.compare(_T("-")) == 0) {
+    if (filename.compare("-") == 0) {
 #if defined(_WIN32)
         /* Set "stdin" to have binary mode */
         (void)_setmode( _fileno( stdin ), _O_BINARY );
@@ -1175,9 +1170,11 @@ ktxValidator::validateFile(const _tstring& filename)
             isp = &cin;
         }
     } else {
-        // MS's STL has `open` overloads that accept wchar_t to handle
-        // Window's Unicode file names.
-        ifs.open(filename, ios_base::in | ios_base::binary);
+        // MS's STL has `open` overloads that accept wchar_t* and wstring to
+        // handle Window's Unicode file names. Unfortunately non-MS STL has
+        // only wchar_t*.
+        ifs.open(DecodeUTF8Path(filename).c_str(),
+                 ios_base::in | ios_base::binary);
         isp = &ifs;
     }
 

@@ -104,4 +104,5 @@ gtest_discover_tests(unittests
 gtest_discover_tests(texturetests
     TEST_PREFIX texturetest.
     DISCOVERY_TIMEOUT 20
+    EXTRA_ARGS "${PROJECT_SOURCE_DIR}/tests/testimages/"
 )

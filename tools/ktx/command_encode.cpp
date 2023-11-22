@@ -84,7 +84,7 @@ class CommandEncode : public Command {
     Combine<OptionsEncode, OptionsCodec<true>, OptionsMetrics, OptionsCompress, OptionsSingleInSingleOut, OptionsGeneric> options;
 
 public:
-    virtual int main(int argc, _TCHAR* argv[]) override;
+    virtual int main(int argc, char* argv[]) override;
     virtual void initOptions(cxxopts::Options& opts) override;
     virtual void processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) override;
 
@@ -94,7 +94,7 @@ private:
 
 // -------------------------------------------------------------------------------------------------
 
-int CommandEncode::main(int argc, _TCHAR* argv[]) {
+int CommandEncode::main(int argc, char* argv[]) {
     try {
         parseCommandLine("ktx encode",
                 "Encode the KTX file specified as the input-file argument,\n"

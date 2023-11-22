@@ -8,6 +8,7 @@
 
 #include <cstdlib>
 #include <errno.h>
+#include <filesystem>
 #include <iostream>
 #include <sstream>
 #include <thread>
@@ -22,7 +23,6 @@
   #define fileno _fileno
   #define mktemp _mkstemp
   #define isatty _isatty
-  #define unlink _unlink
 #endif
 
 #if defined(_MSC_VER)
@@ -59,8 +59,9 @@ Supercompress the images in a KTX2 file.
     <dl>
     <dt>-o outfile, --output=outfile</dt>
     <dd>Write the output to @e outfile. If @e outfile is 'stdout', output will
-        be written to stdout. If there is more than 1 @e infile the command
-        prints its usage message and exits.</dd>
+        be written to stdout. Parent directories will be created, if
+        necessary. If there is more than 1 @e infile the command prints its
+        usage message and exits.</dd>
     <dt>-f, \--force</dt>
     <dd>If the destination file cannot be opened, remove it and create a
         new file, without prompting for confirmation regardless of its
@@ -93,7 +94,7 @@ class ktxSupercompressor : public scApp {
   public:
     ktxSupercompressor();
 
-    virtual int main(int argc, _TCHAR* argv[]);
+    virtual int main(int argc, char* argv[]);
     virtual void usage();
 
   protected:
@@ -138,7 +139,8 @@ ktxSupercompressor::usage()
         "\n"
         "  -o outfile, --output=outfile\n"
         "               Writes the output to outfile. If outfile is 'stdout', output\n"
-        "               will be written to stdout. If there is more than 1 input file\n"
+        "               will be written to stdout. Parent directories will be\n"
+        "               created if necessary. If there is more than 1 input file\n"
         "               the command prints its usage message and exits.\n"
         "  -f, --force  If the output file cannot be opened, remove it and create a\n"
         "               new file, without prompting for confirmation regardless of\n"
@@ -147,48 +149,44 @@ ktxSupercompressor::usage()
 }
 
 
-static _tstring dir_name(_tstring& path)
+static string dir_name(const string& path)
 {
     // Supports both Unix-style and Windows-style.
     size_t last_separator = path.find_last_of("/\\");
     if (last_separator != string::npos) {
         return path.substr(0, last_separator + 1);
     } else {
-        return std::basic_string<_TCHAR>();
+        return std::basic_string<char>();
     }
 }
 
-int _tmain(int argc, _TCHAR* argv[])
-{
-    ktxSupercompressor ktxsc;
-
-    return ktxsc.main(argc, argv);
-}
+static ktxSupercompressor ktxsc;
+ktxApp& theApp = ktxsc;
 
 int
-ktxSupercompressor::main(int argc, _TCHAR* argv[])
+ktxSupercompressor::main(int argc, char* argv[])
 {
     FILE *inf, *outf = nullptr;
     KTX_error_code result;
     ktxTexture2* texture = 0;
     int exitCode = 0;
-    _tstring tmpfile;
+    string tmpfile;
 
     processCommandLine(argc, argv, eAllowStdin);
     validateOptions();
 
-    std::vector<_tstring>::const_iterator it;
+    std::vector<string>::const_iterator it;
     for (it = options.infiles.begin(); it < options.infiles.end(); it++) {
-        _tstring infile = *it;
+        string infile = *it;
 
-        if (infile.compare(_T("-")) == 0) {
+        if (infile.compare("-") == 0) {
             inf = stdin;
 #if defined(_WIN32)
             /* Set "stdin" to have binary mode */
             (void)_setmode( _fileno( stdin ), _O_BINARY );
 #endif
         } else {
-            inf = _tfopen(infile.c_str(), "rb");
+            inf = fopenUTF8(infile, "rb");
         }
 
         if (inf) {
@@ -199,17 +197,20 @@ ktxSupercompressor::main(int argc, _TCHAR* argv[])
                 (void)_setmode( _fileno( stdout ), _O_BINARY );
 #endif
             } else if (options.outfile.length()) {
+                const auto outputPath = filesystem::path(DecodeUTF8Path(options.outfile));
+                if (outputPath.has_parent_path())
+                    filesystem::create_directories(outputPath.parent_path());
                 outf = fopen_write_if_not_exists(options.outfile);
             } else {
                 // Make a temporary file in the same directory as the source
                 // file to avoid cross-device rename issues later.
-                tmpfile = dir_name(infile) + _T("ktxsc.tmp.XXXXXX");
+                tmpfile = dir_name(infile) + "ktxsc.tmp.XXXXXX";
 #if defined(_WIN32)
                 // Despite receiving size() the debug CRT version of mktemp_s
                 // asserts that the string template is NUL terminated.
-                tmpfile.push_back(_T('\0'));
-                if (_tmktemp_s(&tmpfile[0], tmpfile.size()) == 0)
-                    outf = _tfopen(tmpfile.c_str(), "wb");
+                tmpfile.push_back('\0');
+                if (_wmktemp_s(&DecodeUTF8Path(tmpfile)[0], tmpfile.size()) == 0)
+                    outf = fopenUTF8(tmpfile, "wb");
 #else
                 int fd_tmp = mkstemp(&tmpfile[0]);
                 outf = fdopen(fd_tmp, "wb");
@@ -230,7 +231,7 @@ ktxSupercompressor::main(int argc, _TCHAR* argv[])
                     }
                 }
                 if (force) {
-                    outf = _tfopen(options.outfile.c_str(), "wb");
+                    outf = fopenUTF8(options.outfile, "wb");
                 }
             }
 
@@ -238,7 +239,6 @@ ktxSupercompressor::main(int argc, _TCHAR* argv[])
                 result = ktxTexture2_CreateFromStdioStream(inf,
                                         KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                         &texture);
-
                 if (result == KTX_UNKNOWN_FILE_FORMAT) {
                     cerr << infile << " is not a KTX v2 file." << endl;
                     exitCode = 2;
@@ -300,10 +300,10 @@ ktxSupercompressor::main(int argc, _TCHAR* argv[])
                     assert(tmpfile.size() > 0 && infile.length());
 #if defined(_WIN32)
                     // Windows' rename() fails if the destination file exists!
-                    if (!MoveFileEx(tmpfile.c_str(), infile.c_str(),
-                                    MOVEFILE_REPLACE_EXISTING))
+                    if (!MoveFileExW(DecodeUTF8Path(tmpfile).c_str(), DecodeUTF8Path(infile).c_str(),
+                                     MOVEFILE_REPLACE_EXISTING))
 #else
-                    if (_trename(tmpfile.c_str(), infile.c_str()))
+                    if (rename(tmpfile.c_str(), infile.c_str()))
 #endif
                     {
                         cerr << name
@@ -325,7 +325,7 @@ ktxSupercompressor::main(int argc, _TCHAR* argv[])
         } else {
             cerr << name
                  << " could not open input file \""
-                 << (infile.compare(_T("-")) == 0 ? "stdin" : infile) << "\". "
+                 << (infile.compare("-") == 0 ? "stdin" : infile) << "\". "
                  << strerror(errno) << endl;
             exitCode = 2;
             goto cleanup;
@@ -334,9 +334,11 @@ ktxSupercompressor::main(int argc, _TCHAR* argv[])
     return 0;
 
 cleanup:
-    (void)fclose(outf); // N.B Windows refuses to unlink an open file.
-    if (tmpfile.size() > 0) (void)_tunlink(tmpfile.c_str());
-    if (options.outfile.length()) (void)_tunlink(options.outfile.c_str());
+    if (outf) { // Windows debug CRT fclose asserts that outf != nullptr...
+        (void)fclose(outf); // N.B Windows refuses to unlink an open file.
+    }
+    if (tmpfile.size() > 0) (void)unlinkUTF8(tmpfile);
+    if (options.outfile.length()) (void)unlinkUTF8(options.outfile);
     return exitCode;
 }
 
@@ -379,21 +381,21 @@ ktxSupercompressor::processOption(argparser& parser, int opt)
         break;
       case 'o':
         options.outfile = parser.optarg;
-        if (!options.outfile.compare(_T("stdout"))) {
+        if (!options.outfile.compare("stdout")) {
             options.useStdout = true;
         } else {
             size_t dot;
             size_t slash;
             dot = options.outfile.find_last_of('.');
             slash = options.outfile.find_last_of('/');
-            if (slash == _tstring::npos) {
+            if (slash == string::npos) {
                 slash = options.outfile.find_last_of('\\');
             }
             // dot < slash means there's a dot but it is not prefixing
             // a file extension.
-            if (dot == _tstring::npos
-                || (slash != _tstring::npos && dot < slash)) {
-                options.outfile += _T(".ktx2");
+            if (dot == string::npos
+                || (slash != string::npos && dot < slash)) {
+                options.outfile += ".ktx2";
             }
         }
         break;

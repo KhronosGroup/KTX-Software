@@ -88,13 +88,13 @@ public:
     virtual ~Tools() {};
 
 public:
-    virtual int main(int argc, _TCHAR* argv[]) override;
+    virtual int main(int argc, char* argv[]) override;
     void printUsage(std::ostream& os, const cxxopts::Options& options);
 };
 
 // -------------------------------------------------------------------------------------------------
 
-int Tools::main(int argc, _TCHAR* argv[]) {
+int Tools::main(int argc, char* argv[]) {
     cxxopts::Options options("ktx", "");
     options.custom_help("[--version] [--help] <command> <command-args>");
     options.set_width(CONSOLE_USAGE_WIDTH);
@@ -175,7 +175,7 @@ std::unordered_map<std::string, ktx::pfnBuiltinCommand> builtinCommands = {
     { "help",       ktxHelp }
 };
 
-int _tmain(int argc, _TCHAR* argv[]) {
+int main(int argc, char* argv[]) {
     // If -NSDocumentRevisionsDebugMode YES ever causes any problem it should be discarded here
     // by creating a new argc and argv pair and excluding the problematic arguments from them.
     // This way downstream tools will not have to deal with this issue

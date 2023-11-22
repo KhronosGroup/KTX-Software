@@ -16,25 +16,61 @@ cd $(dirname $0)
 # Ensure generation is not polluted by user environment
 unset TOKTX_OPTIONS
 
-if [ -n "$1" -a -x "$2" ]; then
-  toktx="$1"
-elif which toktx >/dev/null; then
-  toktx=toktx
-else
-  echo $0: toktx not found along $PATH.
-  echo $0: Aborting generation
+function usage() {
+  echo "Usage: $0 [--bindir <path/to/tools/bindir>]"
   exit 1
+}
+
+if [ "$1" = "--bindir" ]; then
+  shift
+  if [ $# -eq 1 ]; then
+    bindir=$1
+    toktx=$bindir/toktx
+    ktxsc=$bindir/ktxsc
+    ktx2ktx2=$bindir/ktx2ktx2
+    shift
+  else
+    usage
+  fi
 fi
 
-if [ -n "$2" -a -x "$1" ]; then
-  ktxsc="$2"
-elif which ktxsc >/dev/null; then
-  ktxsc=ktxsc
-else
-  echo $0: ktxsc not found along $PATH.
-  echo $0: Aborting generation
-  exit 1
+if [ $# -gt 0 ]; then
+  usage
 fi
+
+if [ -z "$toktx" ]; then
+  if which toktx >/dev/null; then
+    toktx=toktx
+  fi
+fi
+
+if [ -z "$ktxsc" ]; then
+  if which ktxsc >/dev/null; then
+    ktxsc=ktxsc
+  fi
+fi
+
+if [ -z "$ktx2ktx2" ]; then
+  if which ktx2ktx2 >/dev/null; then
+    ktx2ktx2=ktx2ktx2
+  fi
+fi
+
+function check_exec() {
+  if [ -z "${!1}" -o ! -x "${!1}" ]; then
+    echo -n "$0: $1 not found "
+    if [ -n "$bindir" ]; then
+      echo -n "in $bindir or "
+    fi
+    echo "along $PATH."
+    echo $0: Aborting generation
+    exit 1
+  fi
+}
+
+check_exec toktx
+check_exec ktxsc
+check_exec ktx2ktx2
 
 # Generate the reference files for toktx and sctests ...
 
@@ -128,3 +164,9 @@ $toktx --test --depth 7 --t2 3dtex_7_reference_u.ktx2 ../srcimages/red16.png ../
 $toktx --test --layers 7 --genmipmap --t2 arraytex_7_mipmap_reference_u.ktx2 ../srcimages/red16.png ../srcimages/orange16.png ../srcimages/yellow16.png ../srcimages/green16.png ../srcimages/blue16.png ../srcimages/indigo16.png ../srcimages/violet16.png
 
 $ktxsc -o skybox_zstd.ktx2 --force --test --zcmp 5 skybox.ktx2
+
+for name in hűtő نَسِيج テクスチャ 质地 조직; do
+  $toktx --test $name.ktx ../srcimages/$name.png
+  $ktx2ktx2 --test --force -o $name.ktx2 $name.ktx
+  $ktxsc --test -o ${name}_zstd.ktx2 --force --zcmp 5 $name.ktx2
+done

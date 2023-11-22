@@ -20,6 +20,7 @@
 #include <vector>
 #include <stdio.h>
 #include "AppBaseSDL.h"
+#include "platform_utils.h"
 #if defined(EMSCRIPTEN)
 #include <emscripten.h>
 #endif
@@ -55,6 +56,7 @@ main(int argc, char* argv[])
   }
   atexit(SDL_Quit);
 
+  InitUTF8CLI(argc, argv);
   AppBaseSDL::Args args(argv, argv+argc);
 
   if (!theApp->initialize(args))
