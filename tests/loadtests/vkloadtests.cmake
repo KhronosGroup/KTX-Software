@@ -332,8 +332,10 @@ if(APPLE)
             COMMAND ${CMAKE_COMMAND} -E create_symlink "${Vulkan_LIBRARY_REAL_FILE_NAME}" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/${Vulkan_LIBRARY_SONAME_FILE_NAME}"
             COMMENT "Copy libraries & frameworks to build destination"
         )
-        # The BREW SDL library has no LC_RPATH setting so the binary
-        # will only search for it where it was during linking.
+        # No need to copy when there is a TARGET. The BREW SDL
+        # library has no LC_RPATH setting so the binary will
+        # only search for it where it was during linking.
+        # The vcpkg SDL target copies the library.
         if(NOT TARGET SDL2::SDL2)
             add_custom_command( TARGET vkloadtests POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/other_lib/mac/$<CONFIG>/libSDL2.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/libSDL2.dylib"

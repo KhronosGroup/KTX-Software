@@ -123,12 +123,18 @@ set( KTX_FEATURE_LOADTEST_APPS
 set_property( CACHE KTX_FEATURE_LOADTEST_APPS
               PROPERTY STRINGS OFF OpenGL Vulkan OpenGL+Vulkan
 )
-CMAKE_DEPENDENT_OPTION( KTX_LOADTEST_APPS_USE_LOCAL_DEPENDENCIES
-    "Look for locally installed dependencies. Fail build if not found. When OFF use binaries from the KTX-Software repo, if available for the target processor. Useful when building for Windows arm64 using vcpkg packages."
-    OFF
-    KTX_FEATURE_LOADTEST_APPS
-    OFF
-)
+if(WIN32 OR APPLE)
+    if(NOT IOS)
+        CMAKE_DEPENDENT_OPTION( KTX_LOADTEST_APPS_USE_LOCAL_DEPENDENCIES
+            "Look for locally installed dependencies. Fail build if not found. When OFF use binaries from the KTX-Software repo, if available for the target processor. Useful when building for Windows arm64 using vcpkg packages."
+            OFF
+            KTX_FEATURE_LOADTEST_APPS
+            OFF
+        )
+    endif()
+else()
+    set( KTX_LOADTEST_APPS_USE_LOCAL_DEPENDENCIES ON )
+endif()
 
 # Platform specific settings
 
