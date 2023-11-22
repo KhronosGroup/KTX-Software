@@ -342,7 +342,6 @@ if(APPLE)
                 COMMENT "Copy repo's SDL2 library to build destination"
             )
         endif()
- 
 
         # Specify destination for cmake --install.
         install(TARGETS vkloadtests
