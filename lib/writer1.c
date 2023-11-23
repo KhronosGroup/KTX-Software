@@ -848,9 +848,9 @@ ktxTexture1_WriteKTX2ToStdioStream(ktxTexture1* This, FILE* dstsstr)
  * The file name must be encoded in utf-8. On Windows convert unicode names
  * to utf-8 with @c WideCharToMultiByte(CP_UTF8, ...) before calling.
  *
- * Callers are strongly urged to include a KTXwriter item in the texture's metadata.
- * It can be added by code, similar to the following, prior to calling this
- * function.
+ * Callers are strongly urged to include a KTXwriter item in the texture's
+ * metadata. It can be added by code, similar to the following, prior to
+ * calling this function.
  * @code
  *     char writer[100];
  *     snprintf(writer, sizeof(writer), "%s version %s", appName, appVer);

@@ -584,9 +584,9 @@ ktxTexture2_WriteToStream(ktxTexture2* This, ktxStream* dststr)
  * @~English
  * @brief Write a ktxTexture object to a stdio stream in KTX format.
  *
- * Callers are strongly urged to include a KTXwriter item in the texture's metadata.
- * It can be added by code, similar to the following, prior to calling this
- * function.
+ * Callers are strongly urged to include a KTXwriter item in the texture's
+ * metadata. It can be added by code, similar to the following, prior to
+ * calling this function.
  * @code
  *     char writer[100];
  *     snprintf(writer, sizeof(writer), "%s version %s", appName, appVer);
@@ -689,9 +689,9 @@ ktxTexture2_WriteToNamedFile(ktxTexture2* This, const char* const dstname)
  * Memory is allocated by the function and the caller is responsible for
  * freeing it.
  *
- * Callers are strongly urged to include a KTXwriter item in the texture's metadata.
- * It can be added by code, similar to the following, prior to calling this
- * function.
+ * Callers are strongly urged to include a KTXwriter item in the texture's
+ * metadata. It can be added by code, similar to the following, prior to
+ * calling this function.
  * @code
  *     char writer[100];
  *     snprintf(writer, sizeof(writer), "%s version %s", appName, appVer);
