@@ -1,24 +1,35 @@
 # Copyright 2017-2020 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-#include(CMakePrintHelpers)
+include(CMakePrintHelpers)
 
-#cmake_print_variables(CMAKE_GENERATOR_PLATFORM CMAKE_SYSTEM_VERSION CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION)
+if(WIN32)
+    cmake_print_variables(
+        CMAKE_SYSTEM_VERSION
+        CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION
+    )
+endif()
 
-set( fp_pref ${CMAKE_FIND_PACKAGE_PREFER_CONFIG} )
-# Prefer CONFIG for vcpkg
-set( CMAKE_FIND_PACKAGE_PREFER_CONFIG TRUE )
-find_package(SDL2 QUIET)
-find_package(assimp QUIET)
-if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
-    if(NOT IOS)
+if(NOT IOS)
+    set( fp_pref ${CMAKE_FIND_PACKAGE_PREFER_CONFIG} )
+    # Prefer CONFIG for vcpkg
+    set( CMAKE_FIND_PACKAGE_PREFER_CONFIG TRUE )
+    if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
         find_package(OpenGL REQUIRED)
     endif()
-    if(WIN32)
-        find_package(GLEW QUIET)
+    if(KTX_LOADTEST_APPS_USE_LOCAL_DEPENDENCIES)
+        find_package(SDL2 REQUIRED)
+        if(NOT EMSCRIPTEN)
+            # Tests that require assimp are omitted from loadtests
+            # when building for the web.
+            find_package(assimp REQUIRED)
+        endif()
+        if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL" AND WIN32)
+            find_package(GLEW REQUIRED)
+        endif()
     endif()
+    set( CMAKE_FIND_PACKAGE_PREFER_CONFIG ${fp_pref} )
 endif()
-set( CMAKE_FIND_PACKAGE_PREFER_CONFIG ${fp_pref} )
 
 # We use our own local copy of GL headers to ensure we have glcorearb.h.
 set( OPENGL_INCLUDE_DIR  ${CMAKE_SOURCE_DIR}/other_include )

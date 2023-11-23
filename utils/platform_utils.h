@@ -22,8 +22,8 @@
 #endif
 
 #if defined(_WIN32) && !defined(_UNICODE)
-// For Windows, we convert the UTF-8 path to a UTF-16 path to force using the APIs
-// that correctly handle unicode characters
+// For Windows, we convert the UTF-8 path to a UTF-16 path to force using
+// the APIs that correctly handle unicode characters.
 inline std::wstring DecodeUTF8Path(std::string path) {
     std::wstring result;
     int len = MultiByteToWideChar(CP_UTF8, 0, path.c_str(), static_cast<int>(path.length()), NULL, 0);
@@ -35,7 +35,8 @@ inline std::wstring DecodeUTF8Path(std::string path) {
     return result;
 }
 #else
-// For other platforms there is no need for any conversion, they support UTF-8 natively
+// For other platforms there is no need for any conversion, they
+// support UTF-8 natively.
 inline std::string DecodeUTF8Path(std::string path) {
     return path;
 }
@@ -63,7 +64,7 @@ inline void InitUTF8CLI(int& argc, char* argv[]) {
 inline FILE* fopenUTF8(const std::string& path, const std::string& mode) {
 #if defined(_WIN32)
     FILE* fp;
-    // Returned errmo_t value is also set in the global errno.
+    // Returned errno_t value is also set in the global errno.
     (void)_wfopen_s(&fp, DecodeUTF8Path(path).c_str(), DecodeUTF8Path(mode).c_str());
     return fp;
 #else

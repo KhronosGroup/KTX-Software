@@ -223,10 +223,16 @@ function( create_gl_target target version sources common_resources test_images
                   COMMENT "Copy KTX library to build destination"
               )
             endif()
-            add_custom_command( TARGET ${target} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/other_lib/mac/$<CONFIG>/libSDL2.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Frameworks/libSDL2.dylib"
-                COMMENT "Copy SDL2 library to build destination"
-            )
+            # No need to copy when there is a TARGET. The BREW SDL
+            # library has no LC_RPATH setting so the binary will
+            # only search for it where it was during linking.
+            # The vcpkg SDL target copies the library.
+            if(NOT TARGET SDL2::SDL2)
+                add_custom_command( TARGET ${target} POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/other_lib/mac/$<CONFIG>/libSDL2.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Frameworks/libSDL2.dylib"
+                    COMMENT "Copy SDL2 library to build destination"
+                )
+            endif()
 
             # Specify destination for cmake --install.
             install(TARGETS ${target}

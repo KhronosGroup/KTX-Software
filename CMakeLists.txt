@@ -10,6 +10,16 @@ find_package(Bash REQUIRED)
 
 include(cmake/version.cmake)
 
+if(POLICY CMP0149)
+    # Ignore CMAKE_SYSTEM_VERSION and select either latest available
+    # Windows SDK or that specified in WindowsSDKVersion environment
+    # variable  Needed because OLD policy picks SDK that matches
+    # system version, CI uses Windows Server 2022 and its matching
+    # SDK lacks the arm64 glu32.lib which causes builds to fail.
+    # MUST be set before project() command.
+    cmake_policy(SET CMP0149 NEW)
+endif()
+
 project(KTX-Software
     VERSION ${KTX_VERSION}
     DESCRIPTION "Libraries and tools to create and read KTX image texture files."
@@ -113,6 +123,18 @@ set( KTX_FEATURE_LOADTEST_APPS
 set_property( CACHE KTX_FEATURE_LOADTEST_APPS
               PROPERTY STRINGS OFF OpenGL Vulkan OpenGL+Vulkan
 )
+if(WIN32 OR APPLE)
+    if(NOT IOS)
+        CMAKE_DEPENDENT_OPTION( KTX_LOADTEST_APPS_USE_LOCAL_DEPENDENCIES
+            "Look for locally installed dependencies. Fail build if not found. When OFF use binaries from the KTX-Software repo, if available for the target processor. Useful when building for Windows arm64 using vcpkg packages."
+            OFF
+            KTX_FEATURE_LOADTEST_APPS
+            OFF
+        )
+    endif()
+else()
+    set( KTX_LOADTEST_APPS_USE_LOCAL_DEPENDENCIES ON )
+endif()
 
 # Platform specific settings
 

@@ -17,10 +17,10 @@ language: cpp
 
 addons:
   homebrew:
+    update: false
     packages:
     - git-lfs
     - doxygen
-    #update: true
 
 env:
   global:
@@ -43,7 +43,8 @@ env:
     # add the list of tests to the cmake test runner.
     - CONFIGURATION=Debug,Release PLATFORM=macOS ARCHS=x86_64
       FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=OpenGL+Vulkan FEATURE_TOOLS=ON
-      FEATURE_TOOLS_CTS=ON SUPPORT_SSE=ON SUPPORT_OPENCL=OFF DEPLOY_DOCS=YES PACKAGE=YES
+      FEATURE_TOOLS_CTS=ON LOADTESTS_USE_LOCAL_DEPENDENCIES=ON SUPPORT_SSE=ON
+      SUPPORT_OPENCL=OFF DEPLOY_DOCS=YES PACKAGE=YES
     - CONFIGURATION=Release PLATFORM=macOS ARCHS=arm64
       FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=OpenGL+Vulkan FEATURE_TESTS=OFF
       FEATURE_TOOLS=ON FEATURE_TOOLS_CTS=OFF SUPPORT_SSE=ON SUPPORT_OPENCL=OFF PACKAGE=YES
@@ -216,9 +217,7 @@ install:
     fi
     ;;
   osx)
-    if [ "$PLATFORM" = "macOS" -a "$ARCHS" = $(uname -m) ]; then
-        # We're building for the host processor type. Safe to use
-        # brew installed libraries instead of repo included ones.
+    if [ "$LOADTESTS_USE_LOCAL_DEPENDENCIES" = "ON" ]; then
         brew install sdl2
         brew install assimp
     fi
