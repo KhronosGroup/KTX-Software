@@ -17,10 +17,10 @@ language: cpp
 
 addons:
   homebrew:
+    update: false
     packages:
     - git-lfs
     - doxygen
-    #update: true
 
 env:
   global:
@@ -216,11 +216,13 @@ install:
     fi
     ;;
   osx)
-    if [ "$PLATFORM" = "macOS" -a "$ARCHS" = $(uname -m) ]; then
-        # We're building for the host processor type. Safe to use
-        # brew installed libraries instead of repo included ones.
+    if [ "$FEATURE_LOADTESTS" != "OFF" -a "$PLATFORM" = "macOS" -a "$ARCHS" = $(uname -m) ]; then
+        # We're building for the host processor type. Can therefore
+        # test building with brew installed libraries instead of
+        # repo included ones.
         brew install sdl2
         brew install assimp
+        export LOADTESTS_USE_LOCAL_DEPENDENCIES=ON
     fi
     ./ci_scripts/install_macos.sh
     ;;
