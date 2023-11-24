@@ -558,7 +558,7 @@ class scApp : public ktxApp {
     }
 
     int encode(ktxTexture2* texture, const string& swizzle,
-               const _tstring& filename);
+               const string& filename);
 
     void usage()
     {
@@ -1075,7 +1075,7 @@ scApp::processOption(argparser& parser, int opt)
  */
 int
 scApp::encode(ktxTexture2* texture, const string& swizzle,
-              const _tstring& filename)
+              const string& filename)
 {
     ktx_error_code_e result;
 

@@ -16,25 +16,53 @@ cd $(dirname $0)
 # Ensure generation is not polluted by user environment
 unset TOKTX_OPTIONS
 
-if [ -n "$1" -a -x "$1" ]; then
-  toktx="$1"
-elif which toktx >/dev/null; then
-  toktx=toktx
-else
-  echo $0: toktx not found along $PATH.
-  echo $0: Aborting generation
+function usage() {
+  echo "Usage: $0 [--bindir <path/to/tools/bindir>]"
   exit 1
+}
+
+if [ "$1" = "--bindir" ]; then
+  shift
+  if [ $# -eq 1 ]; then
+    bindir=$1
+    toktx=$bindir/toktx
+    ktx2ktx2=$bindir/ktx2ktx2
+    shift
+  else
+    usage
+  fi
 fi
 
-if [ -n "$2" -a -x "$2" ]; then
-  ktx2ktx2="$2"
-elif which ktx2ktx2 >/dev/null; then
-  ktx2ktx2=ktx2ktx2
-else
-  echo $0: ktx2ktx2 not found along $PATH.
-  echo $0: Aborting generation
-  exit 1
+if [ $# -gt 0 ]; then
+  usage
 fi
+
+if [ -z "$toktx" ]; then
+  if which toktx >/dev/null; then
+    toktx=toktx
+  fi
+fi
+
+if [ -z "$ktx2ktx2" ]; then
+  if which ktx2ktx2 >/dev/null; then
+    ktx2ktx2=ktx2ktx2
+  fi
+fi
+
+function check_exec() {
+  if [ -z "${!1}" -o ! -x "${!1}" ]; then
+    echo -n "$0: $1 not found "
+    if [ -n "$bindir" ]; then
+      echo -n "in $bindir or "
+    fi
+    echo "along $PATH."
+    echo $0: Aborting generation
+    exit 1
+  fi
+}
+
+check_exec toktx
+check_exec ktx2ktx2
 
 # Generate some reference files for toktx-tests ...
 

@@ -25,6 +25,7 @@
  * @snippet{doc} version.h API version
  */
 
+#include <limits.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <sys/types.h>
@@ -156,6 +157,7 @@ extern "C" {
  * @brief Required unpack alignment
  */
 #define KTX_GL_UNPACK_ALIGNMENT 4
+#define KTX_FACESLICE_WHOLE_LEVEL UINT_MAX
 
 #define KTX_TRUE  true
 #define KTX_FALSE false

@@ -21,6 +21,7 @@
     #define snprintf _snprintf
   #endif
   #define _CRT_SECURE_NO_WARNINGS
+#include "windows.h"
   #include "GL/glew.h"
   #include "SDL2/SDL_loadso.h"
 #else
@@ -132,7 +133,16 @@ GLAppSDL::initialize(Args& args)
         // So one build of this library can be linked in to applications using GLEW and
         // applications not using GLEW, do not call any GLEW functions directly.
         // Call via queried function pointers.
-        void* glewdll = SDL_LoadObject("glew32.dll");
+        void* glewdll;
+#if defined(_DEBUG)
+        glewdll = SDL_LoadObject("glew32d.dll");
+        // KTX-Software repo only contains non-debug library for x64 hence this.
+        if (glewdll == NULL) {
+            glewdll = SDL_LoadObject("glew32.dll");
+        }
+#else
+        glewdll = SDL_LoadObject("glew32.dll");
+#endif
         if (glewdll == NULL) {
             std::string sName(szName);
 
@@ -176,7 +186,6 @@ GLAppSDL::initialize(Args& args)
                 NULL);
             return false;
         }
-
         int iResult = pGlewInit();
         if (iResult != GLEW_OK) {
             std::string sName(szName);

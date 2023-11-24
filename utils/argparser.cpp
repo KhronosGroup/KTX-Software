@@ -23,29 +23,31 @@
 #include <assert.h>
 #include "argparser.h"
 
+using namespace std;
+
 /*
  * Construct from a string of arguments.
  */
-argvector::argvector(const _tstring& sArgs)
+argvector::argvector(const string& sArgs)
 {
-    const _tstring sep(_T(" \t\n\r\v\f"));
+    const string sep(" \t\n\r\v\f");
     size_t pos;
 
     pos = sArgs.find_first_not_of(sep);
-    assert(pos != _tstring::npos);
+    assert(pos != string::npos);
 
     do {
         size_t epos = sArgs.find_first_of(sep, pos);
-        size_t len = epos == _tstring::npos ? epos : epos - pos;
+        size_t len = epos == string::npos ? epos : epos - pos;
         push_back(sArgs.substr(pos, len));
         pos = sArgs.find_first_not_of(sep, epos);
-    } while (pos != _tstring::npos);
+    } while (pos != string::npos);
 }
 
 /*
  * Construct from an array of C strings
  */
-argvector::argvector(int argc, const _TCHAR* const* argv)
+argvector::argvector(int argc, const char* const* argv)
 {
     for (int i = 0; i < argc; i++) {
         push_back(argv[i]);
@@ -56,24 +58,24 @@ argvector::argvector(int argc, const _TCHAR* const* argv)
  * Functions the same as getopt_long. See `man 3 getopt_long`.
  */
 int
-argparser::getopt(_tstring* shortopts, const struct option* longopts,
+argparser::getopt(string* shortopts, const struct option* longopts,
                   int* /*longindex*/)
 {
     if (optind == argv.size())
         return -1;
 
-    _tstring arg;
+    string arg;
     arg = argv[optind];
-    if (arg[0] != _T('-') || (arg[0] == _T('-') && arg.size() == 1))
+    if (arg[0] != '-' || (arg[0] == '-' && arg.size() == 1))
         return -1;
     optind++;
 
     int retval = '?';
-    if (arg.compare(0, 2, _T("--")) == 0) {
+    if (arg.compare(0, 2, "--") == 0) {
         if (arg.size() == 2) return -1; // " -- " separates options and files
         const struct option* opt = longopts;
         while (opt->name != nullptr) {
-            if (arg.compare(2, _tstring::npos, opt->name) == 0) {
+            if (arg.compare(2, string::npos, opt->name) == 0) {
                 retval = opt->val;
                 if (opt->has_arg != option::no_argument) {
                     if (optind >= argv.size() || (optarg = argv[optind++])[0] == '-') {
@@ -91,9 +93,9 @@ argparser::getopt(_tstring* shortopts, const struct option* longopts,
             }
             opt++;
         }
-    } else if (shortopts != nullptr && arg.compare(0, 1, _T("-")) == 0) {
+    } else if (shortopts != nullptr && arg.compare(0, 1, "-") == 0) {
         size_t pos = shortopts->find(arg.substr(1, 1));
-        if (pos != _tstring::npos) {
+        if (pos != string::npos) {
             retval = (*shortopts)[pos];
             if (pos < shortopts->length()
                 && ((*shortopts)[++pos] == ':' || (*shortopts)[pos] == ';')) {
@@ -118,7 +120,7 @@ std::istream& operator >> (std::istream& stream, const skip& x)
     stream >> std::noskipws;
 
     char c;
-    const _TCHAR* text = x.text;
+    const char* text = x.text;
     while (stream && *text++)
         stream >> c;
 

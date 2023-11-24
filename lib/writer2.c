@@ -180,7 +180,8 @@ appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
  * @param[in] This      pointer to the target ktxTexture object.
  * @param[in] level     mip level of the image to set.
  * @param[in] layer     array layer of the image to set.
- * @param[in] faceSlice cube map face or depth slice of the image to set.
+ * @param[in] faceSlice cube map face or depth slice of the image to set or
+ *                      KTX_FACESLICE_WHOLE_LEVEL to set the entire level.
  * @param[in] src       ktxStream pointer to the source.
  * @param[in] srcSize   size of the source image in bytes.
  *
@@ -208,13 +209,19 @@ ktxTexture2_setImageFromStream(ktxTexture2* This, ktx_uint32_t level,
     if (!This->pData)
         return KTX_INVALID_OPERATION;
 
-    result = ktxTexture_GetImageOffset(ktxTexture(This),
-                                       level, layer, faceSlice,
-                                       &imageByteOffset);
-    if (result != KTX_SUCCESS)
-       return result;
-
-    imageByteLength = ktxTexture_GetImageSize(ktxTexture(This), level);
+    if (faceSlice == KTX_FACESLICE_WHOLE_LEVEL) {
+        result = ktxTexture_GetImageOffset(ktxTexture(This), level, layer, 0, &imageByteOffset);
+        if (result != KTX_SUCCESS) {
+            return result;
+        }
+        imageByteLength = ktxTexture_calcLevelSize(ktxTexture(This), level, KTX_FORMAT_VERSION_TWO);
+    } else {
+        result = ktxTexture_GetImageOffset(ktxTexture(This), level, layer, faceSlice, &imageByteOffset);
+        if (result != KTX_SUCCESS) {
+            return result;
+        }
+        imageByteLength = ktxTexture_GetImageSize(ktxTexture(This), level);
+    }
 
     if (srcSize != imageByteLength)
         return KTX_INVALID_OPERATION;
@@ -242,7 +249,8 @@ ktxTexture2_setImageFromStream(ktxTexture2* This, ktx_uint32_t level,
  * @param[in] This      pointer to the target ktxTexture object.
  * @param[in] level     mip level of the image to set.
  * @param[in] layer     array layer of the image to set.
- * @param[in] faceSlice cube map face or depth slice of the image to set.
+ * @param[in] faceSlice cube map face or depth slice of the image to set or
+ *                      KTX_FACESLICE_WHOLE_LEVEL to set the entire level.
  * @param[in] src       stdio stream pointer to the source.
  * @param[in] srcSize   size of the source image in bytes.
  *
@@ -287,7 +295,8 @@ ktxTexture2_SetImageFromStdioStream(ktxTexture2* This, ktx_uint32_t level,
  * @param[in] This      pointer to the target ktxTexture object.
  * @param[in] level     mip level of the image to set.
  * @param[in] layer     array layer of the image to set.
- * @param[in] faceSlice cube map face or depth slice of the image to set.
+ * @param[in] faceSlice cube map face or depth slice of the image to set or
+ *                      KTX_FACESLICE_WHOLE_LEVEL to set the entire level.
  * @param[in] src       pointer to the image source in memory.
  * @param[in] srcSize   size of the source image in bytes.
  *
@@ -575,9 +584,9 @@ ktxTexture2_WriteToStream(ktxTexture2* This, ktxStream* dststr)
  * @~English
  * @brief Write a ktxTexture object to a stdio stream in KTX format.
  *
- * Callers are strongly urged to include a KTXwriter item in the texture's metadata.
- * It can be added by code, similar to the following, prior to calling this
- * function.
+ * Callers are strongly urged to include a KTXwriter item in the texture's
+ * metadata. It can be added by code, similar to the following, prior to
+ * calling this function.
  * @code
  *     char writer[100];
  *     snprintf(writer, sizeof(writer), "%s version %s", appName, appVer);
@@ -623,9 +632,12 @@ ktxTexture2_WriteToStdioStream(ktxTexture2* This, FILE* dstsstr)
  * @~English
  * @brief Write a ktxTexture object to a named file in KTX format.
  *
- * Callers are strongly urged to include a KTXwriter item in the texture's metadata.
- * It can be added by code, similar to the following, prior to calling this
- * function.
+ * The file name must be encoded in utf-8. On Windows convert unicode names
+ * to utf-8 with @c WideCharToMultiByte(CP_UTF8, ...) before calling.
+ *
+ * Callers are strongly urged to include a KTXwriter item in the texture's
+ * metadata. It can be added by code, similar to the following, prior to
+ * calling this function.
  * @code
  *     char writer[100];
  *     snprintf(writer, sizeof(writer), "%s version %s", appName, appVer);
@@ -659,7 +671,7 @@ ktxTexture2_WriteToNamedFile(ktxTexture2* This, const char* const dstname)
     if (!This)
         return KTX_INVALID_VALUE;
 
-    dst = fopen(dstname, "wb");
+    dst = ktxFOpenUTF8(dstname, "wb");
     if (dst) {
         result = ktxTexture2_WriteToStdioStream(This, dst);
         fclose(dst);
@@ -677,9 +689,9 @@ ktxTexture2_WriteToNamedFile(ktxTexture2* This, const char* const dstname)
  * Memory is allocated by the function and the caller is responsible for
  * freeing it.
  *
- * Callers are strongly urged to include a KTXwriter item in the texture's metadata.
- * It can be added by code, similar to the following, prior to calling this
- * function.
+ * Callers are strongly urged to include a KTXwriter item in the texture's
+ * metadata. It can be added by code, similar to the following, prior to
+ * calling this function.
  * @code
  *     char writer[100];
  *     snprintf(writer, sizeof(writer), "%s version %s", appName, appVer);
@@ -941,4 +953,3 @@ ktxTexture2_DeflateZLIB(ktxTexture2* This, ktx_uint32_t compressionLevel)
 }
 
 /** @} */
-

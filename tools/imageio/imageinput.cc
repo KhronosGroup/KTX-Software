@@ -14,17 +14,19 @@
 
 #include "imageio.h"
 #include "imageio_utility.h"
+#include "platform_utils.h"
 
 #include <iomanip>
 #include <map>
 #include <stdarg.h>
 #include <stdexcept>
+#include <filesystem>
 
 
 // Search for and instantiate a plugin that can read the format
 // and open the file.
 std::unique_ptr<ImageInput>
-ImageInput::open(const _tstring& filename,
+ImageInput::open(const std::string& filename,
                  const ImageSpec* /*config*/,
                  WarningCallbackFunction wcb)
                  //Filesystem::IOProxy* ioproxy, string_view plugin_searchpath)
@@ -38,8 +40,8 @@ ImageInput::open(const _tstring& filename,
     std::ifstream ifs;
     std::unique_ptr<std::stringstream> buffer;
     ImageInput::Creator createFunction = nullptr;
-    const _tstring* fn;
-    const _tstring sn("stdin");
+    const std::string* fn;
+    const std::string sn("stdin");
     bool doBuffer = true;
 
     if (filename.compare("-")) {
@@ -47,7 +49,7 @@ ImageInput::open(const _tstring& filename,
         // Check file exists, before looking for a suitable plugin.
         // MS's STL has `open` overloads that accept wchar_t to handle
         // Window's Unicode file names.
-        ifs.open(filename, std::ios::binary | std::ios::in);
+        ifs.open(std::filesystem::path(DecodeUTF8Path(filename)), std::ios::binary | std::ios::in);
         if (ifs.fail()) {
             throw std::runtime_error(
                 fmt::format("Open of \"{}\" failed. {}",
@@ -162,7 +164,7 @@ ImageInput::open(const _tstring& filename,
 /// @brief Open a file for image input.
 ///
 /// Default implementation for derived classes.
-void ImageInput::open(const _tstring& filename, ImageSpec& newspec)
+void ImageInput::open(const std::string& filename, ImageSpec& newspec)
 {
     close(); // previously opened file.
     if (filename.compare("-")) {

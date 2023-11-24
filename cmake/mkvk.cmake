@@ -3,16 +3,18 @@
 
 # Code generation scripts that require a Vulkan SDK installation
 
-set(skip_mkvk_message "-> skipping mkvk target (this is harmless; only needed when re-generating of vulkan headers and dfdutils is required)")
+#set(skip_mkvk_message "-> skipping mkvk target (this is harmless; only needed when re-generating of vulkan headers and dfdutils is required)")
 
 if (NOT IOS)
-    # find_package doesn't find the Vulkan SDK when building for IOS.
-    # I haven't investigated why.
-    find_package(Vulkan)
-    if(NOT Vulkan_FOUND)
-        message(STATUS "Vulkan SDK not found ${skip_mkvk_message}")
-        return()
-    endif()
+# Not needed as local custom vulkan_core.h is used. Keeping
+# in case we go back to the standard one.
+#    # find_package doesn't find the Vulkan SDK when building for IOS.
+#    # I haven't investigated why.
+#    find_package(Vulkan)
+#    if(NOT Vulkan_FOUND)
+#        message(STATUS "Vulkan SDK not found ${skip_mkvk_message}")
+#        return()
+#    endif()
 else()
     # Skip mkvk. We don't need to run it when building for iOS.
     return()

@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "command.h"
+#include "platform_utils.h"
 #include "metrics_utils.h"
 #include "compress_utils.h"
 #include "encode_utils.h"
@@ -83,7 +84,7 @@ class CommandEncode : public Command {
     Combine<OptionsEncode, OptionsCodec<true>, OptionsMetrics, OptionsCompress, OptionsSingleInSingleOut, OptionsGeneric> options;
 
 public:
-    virtual int main(int argc, _TCHAR* argv[]) override;
+    virtual int main(int argc, char* argv[]) override;
     virtual void initOptions(cxxopts::Options& opts) override;
     virtual void processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) override;
 
@@ -93,7 +94,7 @@ private:
 
 // -------------------------------------------------------------------------------------------------
 
-int CommandEncode::main(int argc, _TCHAR* argv[]) {
+int CommandEncode::main(int argc, char* argv[]) {
     try {
         parseCommandLine("ktx encode",
                 "Encode the KTX file specified as the input-file argument,\n"
@@ -219,8 +220,9 @@ void CommandEncode::executeEncode() {
     }
 
     // Save output file
-    if (std::filesystem::path(options.outputFilepath).has_parent_path())
-        std::filesystem::create_directories(std::filesystem::path(options.outputFilepath).parent_path());
+    const auto outputPath = std::filesystem::path(DecodeUTF8Path(options.outputFilepath));
+    if (outputPath.has_parent_path())
+        std::filesystem::create_directories(outputPath.parent_path());
 
     OutputStream outputFile(options.outputFilepath, *this);
     outputFile.writeKTX2(texture, *this);

@@ -6,6 +6,7 @@
 #include "ktxint.h"
 #include "texture2.h"
 #include "vkformat_enum.h"
+#include "platform_utils.h"
 
 #include "astc-encoder/Source/astcenc.h"
 
@@ -68,20 +69,20 @@ template <class To, class From>
     case VK_FORMAT_ASTC_12x10_SRGB_BLOCK: [[fallthrough]];
     case VK_FORMAT_ASTC_12x12_UNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_ASTC_12x12_SRGB_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK: [[fallthrough]];
     case VK_FORMAT_ASTC_3x3x3_UNORM_BLOCK_EXT: [[fallthrough]];
     case VK_FORMAT_ASTC_3x3x3_SRGB_BLOCK_EXT: [[fallthrough]];
     case VK_FORMAT_ASTC_3x3x3_SFLOAT_BLOCK_EXT: [[fallthrough]];
@@ -173,7 +174,7 @@ public:
 };
 
 void Texture::loadFile() {
-    auto file = std::ifstream(filepath, std::ios::binary | std::ios::in | std::ios::ate);
+    auto file = std::ifstream(DecodeUTF8Path(filepath).c_str(), std::ios::binary | std::ios::in | std::ios::ate);
     if (!file)
         error(EXIT_CODE_ERROR, "ktxdiff error \"{}\": Failed to open file: {}\n", filepath, errnoMessage());
 
@@ -441,7 +442,9 @@ bool compare(Texture& lhs, Texture& rhs, float tolerance) {
 ///     0 - Matching files
 ///     1 - Mismatching files
 ///     2 - Error while loading, decoding or processing an input file
-int main(int argc, const char* argv[]) {
+int main(int argc, char* argv[]) {
+    InitUTF8CLI(argc, argv);
+
     if (argc < 3) {
         fmt::print("Missing input file arguments\n");
         fmt::print("Usage: ktxdiff <expected-ktx2> <received-ktx2> [tolerance]\n");

@@ -14,6 +14,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <filesystem>
 #include <string>
 #include <sstream>
 #include <vector>
@@ -67,7 +68,7 @@ enum oetf_e {
 
 static ktx_uint32_t log2(ktx_uint32_t v);
 #if IMAGE_DEBUG
-static void dumpImage(_TCHAR* name, int width, int height, int components,
+static void dumpImage(char* name, int width, int height, int components,
                       int componentSize, unsigned char* srcImage);
 #endif
 
@@ -84,15 +85,16 @@ Create a KTX file from JPEG, PNG or netpbm format files.
 @section toktx_description DESCRIPTION
     Create a Khronos format texture file (KTX) from a set of JPEG (.jpg),
     PNG (.png) or Netpbm format (.pam, .pgm, .ppm) images. It writes the
-    destination ktx file to @e outfile, appending ".ktx{,2}" if necessary. If
-    @e outfile is '-' the output will be written to stdout.
+    destination ktx file to @e outfile, creating parent directories and
+    appending ".ktx{,2}" if necessary. If @e outfile is '-' the output will
+    be written to stdout.
 
     @b toktx reads each named @e infile. which must be in .jpg, .png, .pam,
     .ppm or .pgm format. @e infiles prefixed with '@' are read as text files
     listing actual file names to process with one file path per line. Paths
     must be absolute or relative to the current directory when @b toktx is run.
     If '\@@' is used instead, paths must be absolute or relative to the location
-    of the list file.
+    of the list file. File paths must be encoded in UTF-8.
 
     The target texture type (number of components in the output texture) is
     chosen via @b --target_type. Swizzling of the components of the input
@@ -339,7 +341,7 @@ class toktxApp : public scApp {
     toktxApp();
     virtual ~toktxApp() { };
 
-    virtual int main(int argc, _TCHAR* argv[]);
+    virtual int main(int argc, char* argv[]);
     virtual void usage();
 
     friend void warning(const char *pFmt, va_list args);
@@ -500,7 +502,8 @@ toktxApp::toktxApp() : scApp(myversion, mydefversion, options)
     short_opts += "f:F:w:d:a:l:r:s:";
 }
 
-toktxApp theApp;
+static toktxApp toktx;
+ktxApp& theApp = toktx;
 
 // I really HATE this duplication of text but I cannot find a simple way to
 // avoid it that works on all platforms (e.g running man toktx) even if I was
@@ -511,8 +514,9 @@ toktxApp::usage()
     cerr <<
         "Usage: " << name << " [options] <outfile> [<infile>.{jpg,png,pam,pgm,ppm} ...]\n"
         "\n"
-        "  <outfile>    The destination ktx file. \".ktx\" will appended if necessary.\n"
-        "               If it is '-' the output will be written to stdout.\n"
+        "  <outfile>    The destination ktx file. Parent directories will be created\n"
+        "               and \".ktx\" will appended if necessary. If it is '-' the\n"
+        "               output will be written to stdout.\n"
         "  <infile>     One or more image files in .jpg, .png, .pam, .ppm, or .pgm\n"
         "               format. Other formats can be readily converted to these formats\n"
         "               using tools such as ImageMagick and XnView. infiles prefixed\n"
@@ -520,7 +524,7 @@ toktxApp::usage()
         "               process with one file path per line. Paths must be absolute or\n"
         "               relative to the current directory when toktx is run. If '@@'\n"
         "               is used instead, paths must be absolute or relative to the\n"
-        "               location of the list file.\n"
+        "               location of the list file. File paths must be encoded in UTF-8.\n"
         "\n"
         "  The target texture type (number of components in the output texture) is chosen\n"
         "  via --target_type. Swizzling of the components of the input file is specified\n"
@@ -686,13 +690,8 @@ toktxApp::usage()
         "the logical image origin to match the GL convention.\n";
 }
 
-int _tmain(int argc, _TCHAR* argv[])
-{
-    return theApp.main(argc, argv);
-}
-
 int
-toktxApp::main(int argc, _TCHAR *argv[])
+toktxApp::main(int argc, char *argv[])
 {
     KTX_error_code ret;
     ktxTexture* texture = 0;
@@ -706,13 +705,13 @@ toktxApp::main(int argc, _TCHAR *argv[])
     validateOptions();
 
     faceSlice = layer = level = 0;
-    vector<_tstring>::const_iterator it;
+    vector<string>::const_iterator it;
     bool firstImage = true;
     ImageSpec firstImageSpec;
     targetImageSpec target;
 
     for (it = options.infiles.begin(); it < options.infiles.end(); it++) {
-        const _tstring& infile = *it;
+        const string& infile = *it;
         unique_ptr<Image> image;
         uint32_t subimage=0, miplevel=0;
 
@@ -969,8 +968,13 @@ toktxApp::main(int argc, _TCHAR *argv[])
         /* Set "stdout" to have binary mode */
         (void)_setmode( _fileno( stdout ), _O_BINARY );
 #endif
-    } else
-        f = _tfopen(options.outfile.c_str(), "wb");
+    }
+    else {
+        const auto outputPath = filesystem::path(DecodeUTF8Path(options.outfile));
+        if (outputPath.has_parent_path())
+            filesystem::create_directories(outputPath.parent_path());
+        f = fopenUTF8(options.outfile, "wb");
+    }
 
     if (f) {
         if (options.astc || options.etc1s || options.bopts.uastc || options.zcmp) {
@@ -992,7 +996,7 @@ toktxApp::main(int argc, _TCHAR *argv[])
 closefileandcleanup:
         fclose(f);
         if (exitCode && (f != stdout)) {
-            _tunlink(options.outfile.c_str());
+            unlinkUTF8(options.outfile);
         }
     } else {
         cerr << name << ": "
@@ -1878,10 +1882,10 @@ toktxApp::validateOptions()
         exit(1);
     }
 
-    if (options.outfile.compare(_T("-")) != 0
-            && options.outfile.find_last_of('.') == _tstring::npos)
+    if (options.outfile.compare("-") != 0
+            && options.outfile.find_last_of('.') == string::npos)
     {
-        options.outfile.append(options.ktx2 ? _T(".ktx2") : _T(".ktx"));
+        options.outfile.append(options.ktx2 ? ".ktx2" : ".ktx");
     }
 
     ktx_uint32_t requiredInputFiles = options.cubemap ? 6 : 1 * options.levels;
@@ -1897,8 +1901,8 @@ toktxApp::validateOptions()
 
 void
 toktxApp::processEnvOptions() {
-    _tstring toktx_options;
-    _TCHAR* env_options = _tgetenv(_T("TOKTX_OPTIONS"));
+    string toktx_options;
+    char* env_options = getenv("TOKTX_OPTIONS");
 
     if (env_options != nullptr)
         toktx_options = env_options;
@@ -1908,7 +1912,7 @@ toktxApp::processEnvOptions() {
     if (!toktx_options.empty()) {
         istringstream iss(toktx_options);
         argvector arglist;
-        for (_tstring w; iss >> w; )
+        for (string w; iss >> w; )
             arglist.push_back(w);
 
         argparser optparser(arglist, 0);
@@ -2103,19 +2107,19 @@ toktxApp::processOption(argparser& parser, int opt)
 }
 
 void warning(const char *pFmt, va_list args) {
-    theApp.warning(pFmt, args);
+    toktx.warning(pFmt, args);
 }
 
 void warning(const char *pFmt, ...) {
     va_list args;
     va_start(args, pFmt);
 
-    theApp.warning(pFmt, args);
+    toktx.warning(pFmt, args);
     va_end(args);
 }
 
 void warning(const string& msg) {
-   theApp.warning(msg);
+   toktx.warning(msg);
 }
 
 static ktx_uint32_t
@@ -2142,7 +2146,7 @@ log2(ktx_uint32_t v)
 
 #if IMAGE_DEBUG
 static void
-dumpImage(_TCHAR* name, int width, int height, int components, int componentSize,
+dumpImage(char* name, int width, int height, int components, int componentSize,
           unsigned char* srcImage)
 {
     char formatstr[2048];

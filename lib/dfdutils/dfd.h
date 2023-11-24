@@ -99,6 +99,10 @@ uint32_t *createDFDDepthStencil(int depthBits,
                                 int stencilBits,
                                 int sizeBytes);
 
+/* Create a Data Format Descriptor for an alpha-only format */
+uint32_t *createDFDAlpha(int bigEndian, int bytes,
+                         enum VkSuffix suffix);
+
 /** @brief Result of interpreting the data format descriptor. */
 enum InterpretDFDResult {
     i_LITTLE_ENDIAN_FORMAT_BIT = 0, /*!< Confirmed little-endian (default for 8bpc). */

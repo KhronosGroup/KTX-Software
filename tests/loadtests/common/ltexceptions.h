@@ -15,6 +15,7 @@
  */
 
 #include <stdexcept>
+#include <string>
 
 #define OUT_OF_HOST_MEMORY -1
 #define OUT_OF_DEVICE_MEMORY -2
@@ -27,7 +28,7 @@ class bad_vulkan_alloc : public std::bad_alloc {
         if (which == FRAGMENTED_POOL) {
             message << "Pool fragmented when allocating for " << _message << ".";
         } else {
-            std::string memtype;
+          std::string memtype;
             switch (which) {
               case OUT_OF_HOST_MEMORY: memtype = "host"; break;
               case OUT_OF_DEVICE_MEMORY: memtype = "device"; break;

@@ -1251,11 +1251,7 @@ ktxPrintKTX2InfoJSONForNamedFile(const char* const filename, ktx_uint32_t base_i
 {
     FILE* file = NULL;
 
-#ifdef _WIN32
-    fopen_s(&file, filename, "rb");
-#else
-    file = fopen(filename, "rb");
-#endif
+    file = ktxFOpenUTF8(filename, "rb");
 
     if (!file)
         return KTX_FILE_OPEN_FAILED;

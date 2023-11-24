@@ -1,24 +1,109 @@
 # Copyright 2017-2020 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
-  find_package(OpenGL)
+include(CMakePrintHelpers)
+
+if(WIN32)
+    cmake_print_variables(
+        CMAKE_SYSTEM_VERSION
+        CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION
+    )
 endif()
 
-if(NOT WIN32 AND NOT APPLE AND NOT EMSCRIPTEN)
-    find_package(SDL2 REQUIRED)
-endif()
-if(LINUX)
-    find_package(assimp REQUIRED)
+if(NOT IOS)
+    set( fp_pref ${CMAKE_FIND_PACKAGE_PREFER_CONFIG} )
+    # Prefer CONFIG for vcpkg
+    set( CMAKE_FIND_PACKAGE_PREFER_CONFIG TRUE )
+    if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
+        find_package(OpenGL REQUIRED)
+    endif()
+    if(KTX_LOADTEST_APPS_USE_LOCAL_DEPENDENCIES)
+        find_package(SDL2 REQUIRED)
+        if(NOT EMSCRIPTEN)
+            # Tests that require assimp are omitted from loadtests
+            # when building for the web.
+            find_package(assimp REQUIRED)
+        endif()
+        if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL" AND WIN32)
+            find_package(GLEW REQUIRED)
+        endif()
+    endif()
+    set( CMAKE_FIND_PACKAGE_PREFER_CONFIG ${fp_pref} )
 endif()
 
+# We use our own local copy of GL headers to ensure we have glcorearb.h.
+set( OPENGL_INCLUDE_DIR  ${CMAKE_SOURCE_DIR}/other_include )
+
+if(NOT SDL2_FOUND)
+    # Use binary from repo.
+    if(APPLE)
+        if(IOS)
+            # There is a check elsewhere that errors when not building
+            # for iOS/arm64.
+            set( SDL2_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
+            set( SDL2_LIBRARIES
+                ${CMAKE_SOURCE_DIR}/other_lib/ios/$<CONFIG>-iphoneos/libSDL2.a
+            )
+        else()
+            # These are universal binaries
+            set( SDL2_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
+            set( SDL2_LIBRARIES
+                ${CMAKE_SOURCE_DIR}/other_lib/mac/$<CONFIG>/libSDL2.dylib
+            )
+        endif()
+    elseif(WIN32 AND ${CPU_ARCHITECTURE} STREQUAL "x86_64")
+        set( SDL2_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
+        set( SDL2_LIBRARIES
+            ${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2main.lib
+            ${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2.lib
+        )
+    else()
+        message( FATAL_ERROR "SDL2 not found. Can't build loadtest apps." )
+    endif()
+endif()
+if(NOT assimp_FOUND)
+    if(APPLE)
+        if(IOS)
+            set( ASSIMP_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
+            set( ASSIMP_LIBRARIES
+                ${CMAKE_SOURCE_DIR}/other_lib/ios/Release-iphoneos/libassimp.a
+            )
+        else()
+            # These are universal binaries
+            set( ASSIMP_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
+            set( ASSIMP_LIBRARIES
+                ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libassimp.a
+            )
+        endif()
+    elseif(WIN32 AND ${CPU_ARCHITECTURE} STREQUAL "x86_64" )
+        set( ASSIMP_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
+        set( ASSIMP_LIBRARIES
+            ${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/assimp.lib
+        )
+    elseif(NOT EMSCRIPTEN)
+        # There is no official libassimp for Emscripten yet and we've had
+        # no time to experiment so tests that use assimp are not included
+        # in the Emscripten build.
+        message( FATAL_ERROR "Assimp not found. Can't build loadtest apps." )
+    endif()
+endif()
 if(NOT EMSCRIPTEN AND NOT WIN32)
     # libassimp needs zlib. On Windows we use a dll which has zlib embedded.
-    # There is no official libassimp for Emscripten yet and we've had no
-    # time to experiment so tests that use assimp are not included in the
-    # Emscripten build.
     find_package( ZLIB REQUIRED )
     set( KTX_ZLIB_LIBRARIES ZLIB::ZLIB )
+endif()
+
+if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL" AND WIN32)
+    if(NOT GLEW_FOUND)
+        if(${CPU_ARCHITECTURE} STREQUAL "x86_64")
+            set( GLEW_INCLUDE_DIR  ${CMAKE_SOURCE_DIR}/other_include )
+            set( GLEW_LIBRARIES
+                ${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/glew32.lib
+            )
+        else()
+            message( FATAL_ERROR "GLEW not found. Can't build gl3loadtests app." )
+        endif()
+    endif()
 endif()
 
 if(APPLE AND IOS)
@@ -53,24 +138,46 @@ if(APPLE AND IOS)
 endif()
 
 function( ensure_runtime_dependencies_windows target )
+
     # Custom copy commands to ensure all dependencies (DLLs, testimages,
     # shaders, models) are in correct location relative to executable.
+
+    # When these packages are imported via vcpkg, something there is
+    # adding a post-build to copy their DLLs. These are for the repo
+    # included DLLs.
+    #
+    # It does not appear possible to use a genex to decide presence
+    # of an entire command so we use the long-winded way.
+    if (NOT TARGET SDL2::SDL2)
+        add_custom_command( TARGET ${target} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2.dll" "$<TARGET_FILE_DIR:${target}>"
+            COMMENT "Copy SDL2 DLLs to build destination"
+        )
+    endif()
+    if (NOT TARGET assimp::assimp)
+        add_custom_command( TARGET ${target} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/assimp.dll" "$<TARGET_FILE_DIR:${target}>"
+            COMMENT "Copy assimp DLL to build destination"
+        )
+   endif()
+    if (NOT TARGET GLEW::GLEW)
+        add_custom_command( TARGET ${target} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E;copy "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/glew32.dll" "$<TARGET_FILE_DIR:${target}>"
+            COMMENT "Copy GLEW DLL to build destination"
+        )
+    endif()
+    if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "Vulkan")
+        add_custom_command( TARGET ${target} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory  "${CMAKE_CURRENT_BINARY_DIR}/shaders" "$<TARGET_FILE_DIR:${target}>/resources"
+            COMMENT "Copy shaders to build destination"
+        )
+    endif()
     add_custom_command( TARGET ${target} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2.dll" "$<TARGET_FILE_DIR:${target}>"
-        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/assimp.dll" "$<TARGET_FILE_DIR:${target}>"
-        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/glew32.dll" "$<TARGET_FILE_DIR:${target}>"
-        COMMENT "Copy DLLs to build destination"
-    )
-    add_custom_command( TARGET ${target} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory  "${CMAKE_CURRENT_BINARY_DIR}/shaders" "$<TARGET_FILE_DIR:${target}>/shaders"
-        COMMENT "Copy shaders to build destination"
-    )
-    add_custom_command( TARGET ${target} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory  "${PROJECT_SOURCE_DIR}/tests/testimages" "$<TARGET_FILE_DIR:${target}>/testimages"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory  "${PROJECT_SOURCE_DIR}/tests/testimages" "$<TARGET_FILE_DIR:${target}>/resources"
         COMMENT "Copy testimages to build destination"
     )
     add_custom_command( TARGET ${target} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory  "${PROJECT_SOURCE_DIR}/tests/loadtests/common/models" "$<TARGET_FILE_DIR:${target}>/models"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory  "${PROJECT_SOURCE_DIR}/tests/loadtests/common/models" "$<TARGET_FILE_DIR:${target}>/resources"
         COMMENT "Copy models to build destination"
     )
 endfunction()
@@ -107,10 +214,8 @@ set_target_properties(appfwSDL PROPERTIES
 target_include_directories(
     appfwSDL
 PUBLIC
-    ${SDL2_INCLUDE_DIRS}
     appfwSDL
-    $<TARGET_PROPERTY:ktx,INCLUDE_DIRECTORIES>
-    ${PROJECT_SOURCE_DIR}/lib
+    $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
     ${PROJECT_SOURCE_DIR}/utils
     common
     geom
@@ -118,8 +223,9 @@ PUBLIC
 
 target_include_directories(
     appfwSDL
-SYSTEM PUBLIC
-    ${PROJECT_SOURCE_DIR}/other_include
+SYSTEM AFTER PUBLIC
+    ${SDL2_INCLUDE_DIRS}
+    ${PROJECT_SOURCE_DIR}/other_include # For glm
 )
 
 if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
@@ -138,28 +244,23 @@ if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
   endif()
 
   target_link_libraries(GLAppSDL appfwSDL)
+
   target_include_directories(
       GLAppSDL
   PUBLIC
       $<TARGET_PROPERTY:appfwSDL,INCLUDE_DIRECTORIES>
-      common
       glloadtests
       glloadtests/utils
   )
 
+  # The above appfwSDL include brings with it the
+  # INTERFACE_SYSTEM_INCLUDE_DIRECTORIES.
   target_include_directories(
       GLAppSDL
-  SYSTEM PRIVATE
-      $<TARGET_PROPERTY:appfwSDL,INTERFACE_SYSTEM_INCLUDE_DIRECTORIES>
+  SYSTEM BEFORE PUBLIC
+      $<IF:$<BOOL:${WIN32}>,${GLEW_INCLUDE_DIR},${OPENGL_INCLUDE_DIR}>
+      #$<TARGET_PROPERTY:appfwSDL,INTERFACE_SYSTEM_INCLUDE_DIRECTORIES>
   )
-
-  if(OPENGL_FOUND)
-      target_include_directories(
-          GLAppSDL
-      PUBLIC
-          ${OPENGL_INCLUDE_DIR}
-      )
-  endif()
 
   set_target_properties(GLAppSDL PROPERTIES
       CXX_VISIBILITY_PRESET ${STATIC_APP_LIB_SYMBOL_VISIBILITY}
@@ -170,35 +271,33 @@ set( LOAD_TEST_COMMON_LIBS )
 
 if(APPLE)
     set( EXE_FLAG MACOSX_BUNDLE )
-    set( SDL2_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
     if(IOS)
         # Do not set KTX_ICON here. On iOS the icon is not a single file.
         # Icon setup must be handled when creating a target.
         set( LOAD_TEST_COMMON_LIBS
-            ${CMAKE_SOURCE_DIR}/other_lib/ios/$<CONFIG>-iphoneos/libSDL2.a
-            ${CMAKE_SOURCE_DIR}/other_lib/ios/Release-iphoneos/libassimp.a
+            ${ASSIMP_LIBRARIES}
+            ${SDL2_LIBRARIES}
         )
     else()
         set( KTX_ICON ${PROJECT_SOURCE_DIR}/icons/mac/ktx_app.icns )
         set( LOAD_TEST_COMMON_LIBS
-            ${CMAKE_SOURCE_DIR}/other_lib/mac/$<CONFIG>/libSDL2.dylib
-            ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libassimp.a
+            ${ASSIMP_LIBRARIES}
+            ${SDL2_LIBRARIES}
             ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libminizip.a
         )
     endif()
 elseif(LINUX)
     set( KTX_ICON ${PROJECT_SOURCE_DIR}/icons/linux/ktx_app.svg )
     set( LOAD_TEST_COMMON_LIBS
-        ${assimp_LIBRARIES}
+        ${ASSIMP_LIBRARIES}
         ${SDL2_LIBRARIES}
     )
 elseif(WIN32)
     set( EXE_FLAG WIN32 )
     set( KTX_ICON ${PROJECT_SOURCE_DIR}/icons/win/ktx_app.ico )
     set( LOAD_TEST_COMMON_LIBS
-        "${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2.lib"
-        "${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2main.lib"
-        "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/assimp.lib"
+        ${ASSIMP_LIBRARIES}
+        ${SDL2_LIBRARIES}
     )
 endif()
 
@@ -237,4 +336,3 @@ endif()
 if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "Vulkan")
     include(vkloadtests.cmake)
 endif()
-

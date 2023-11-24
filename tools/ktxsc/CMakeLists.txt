@@ -22,5 +22,12 @@ target_link_libraries(
     objUtil
 )
 
+set_target_properties(
+    ktxsc
+    PROPERTIES
+        CXX_STANDARD 17
+        CXX_STANDARD_REQUIRED YES
+)
+
 set_tool_properties(ktxsc)
 set_code_sign(ktxsc)

@@ -32,11 +32,10 @@
   #define strncasecmp _strnicmp
   #define fileno _fileno
   #define isatty _isatty
-  #define unlink _unlink
 #endif
 
 #if IMAGE_DEBUG
-static void dumpImage(_TCHAR* name, int width, int height, int components,
+static void dumpImage(char* name, int width, int height, int components,
                       int componentSize, bool isLuminance,
                       unsigned char* srcImage);
 #endif
@@ -103,7 +102,7 @@ class ktxUpgrader : public ktxApp {
   public:
     ktxUpgrader();
 
-    virtual int main(int argc, _TCHAR* argv[]);
+    virtual int main(int argc, char* argv[]);
     virtual void usage();
 
   protected:
@@ -168,16 +167,12 @@ ktxUpgrader::usage()
 }
 
 
-int _tmain(int argc, _TCHAR* argv[])
-{
-    ktxUpgrader ktx2ktx2;
-
-    return ktx2ktx2.main(argc, argv);
-}
+static ktxUpgrader ktx2ktx2;
+ktxApp& theApp = ktx2ktx2;
 
 
 int
-ktxUpgrader::main(int argc, _TCHAR* argv[])
+ktxUpgrader::main(int argc, char* argv[])
 {
     FILE *inf, *outf = nullptr;
     KTX_error_code result;
@@ -187,33 +182,33 @@ ktxUpgrader::main(int argc, _TCHAR* argv[])
     processCommandLine(argc, argv);
     validateOptions();
 
-    std::vector<_tstring>::const_iterator it;
+    std::vector<string>::const_iterator it;
     for (it = options.infiles.begin(); it < options.infiles.end(); it++) {
-        _tstring infile = *it;
-        _tstring outfile;
+       string infile = *it;
+       string outfile;
 
-        if (infile.compare(_T("-")) == 0) {
+        if (infile.compare("-") == 0) {
             inf = stdin;
 #if defined(_WIN32)
             /* Set "stdin" to have binary mode */
             (void)_setmode( _fileno( stdin ), _O_BINARY );
 #endif
         } else {
-            inf = _tfopen(infile.c_str(), "rb");
+            inf = fopenUTF8(infile, "rb");
         }
 
         if (inf) {
-            if (infile.compare(_T("-"))
+            if (infile.compare("-")
                 && !options.useStdout && !options.outfile.length())
             {
                 size_t dot;
 
                 outfile = infile;
-                dot = outfile.find_last_of(_T('.'));
-                if (dot != _tstring::npos) {
-                    outfile.erase(dot, _tstring::npos);
+                dot = outfile.find_last_of('.');
+                if (dot !=string::npos) {
+                    outfile.erase(dot,string::npos);
                 }
-                outfile += _T(".ktx2");
+                outfile += ".ktx2";
             } else if (options.outfile.length()) {
                 outfile = options.outfile;
             }
@@ -242,7 +237,7 @@ ktxUpgrader::main(int argc, _TCHAR* argv[])
                     }
                 }
                 if (force) {
-                    outf = _tfopen(outfile.c_str(), "wb");
+                    outf = fopenUTF8(outfile, "wb");
                 }
             }
 
@@ -260,7 +255,7 @@ ktxUpgrader::main(int argc, _TCHAR* argv[])
                     }
                     (void)fclose(inf);
                     (void)fclose(outf);
-                    (void)_tunlink(options.outfile.c_str());
+                    (void)unlinkUTF8(options.outfile.c_str());
                     exitCode = 2;
                     goto cleanup;
                 }
@@ -316,7 +311,7 @@ ktxUpgrader::main(int argc, _TCHAR* argv[])
                     cerr << name
                          << " failed to write KTX2 file; "
                          << ktxErrorString(result) << endl;
-                    (void)_tunlink(options.outfile.c_str());
+                    (void)unlinkUTF8(options.outfile.c_str());
                     exitCode = 2;
                     goto cleanup;
                 }
@@ -332,7 +327,7 @@ ktxUpgrader::main(int argc, _TCHAR* argv[])
         } else {
             cerr << name
                  << " could not open input file \""
-                 << (infile.compare(_T("-")) ? infile : "stdin") << "\". "
+                 << (infile.compare("-") ? infile : "stdin") << "\". "
                  << strerror(errno) << endl;
             exitCode = 2;
             goto cleanup;
@@ -376,13 +371,13 @@ ktxUpgrader::processOption(argparser& parser, int opt)
         break;
      case 'o':
         options.outfile = parser.optarg;
-        if (!options.outfile.compare(_T("stdout"))) {
+        if (!options.outfile.compare("stdout")) {
             options.useStdout = true;
         } else {
             size_t dot;
             dot = options.outfile.find_last_of('.');
-            if (dot == _tstring::npos) {
-                options.outfile += _T(".ktx2");
+            if (dot ==string::npos) {
+                options.outfile += ".ktx2";
             }
         }
         break;
@@ -395,7 +390,7 @@ ktxUpgrader::processOption(argparser& parser, int opt)
 
 #if IMAGE_DEBUG
 static void
-dumpImage(_TCHAR* name, int width, int height, int components, int componentSize,
+dumpImage(char* name, int width, int height, int components, int componentSize,
           bool isLuminance, unsigned char* srcImage)
 {
     char formatstr[2048];

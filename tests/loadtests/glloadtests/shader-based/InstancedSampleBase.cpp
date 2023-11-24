@@ -16,7 +16,6 @@
  * @author Mark Callow, www.edgewise-consulting.com.
  */
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -33,6 +32,8 @@
 #include "ltexceptions.h"
 
 #define member_size(type, member) sizeof(((type *)0)->member)
+
+using namespace std;
 
 const GLchar* InstancedSampleBase::pszInstancingFsDeclarations =
     "precision mediump float;\n"
@@ -95,7 +96,7 @@ const GLchar* InstancedSampleBase::pszInstancingVsDeclarations =
  */
 InstancedSampleBase::InstancedSampleBase(uint32_t width, uint32_t height,
                            const char* const szArgs,
-                           const std::string sBasePath)
+                           const string sBasePath)
         : GL3LoadTestSample(width, height, szArgs, sBasePath),
           texUnit(GL_TEXTURE0), uniformBufferBindId(0),
           bInitialized(false)
@@ -113,7 +114,7 @@ InstancedSampleBase::InstancedSampleBase(uint32_t width, uint32_t height,
     KTX_error_code ktxresult;
     ktxTexture* kTexture;
     GLenum glerror;
-    std::string ktxfilepath = externalFile ? ktxfilename
+    string ktxfilepath = externalFile ? ktxfilename
                                            : getAssetPath() + ktxfilename;
     ktxresult =
            ktxTexture_CreateFromNamedFile(ktxfilepath.c_str(),
@@ -208,7 +209,7 @@ InstancedSampleBase::run(uint32_t /*msTicks*/)
 //===================================================================
 
 void
-InstancedSampleBase::processArgs(std::string sArgs)
+InstancedSampleBase::processArgs(string sArgs)
 {
     // Options descriptor
     struct argparser::option longopts[] = {
@@ -436,7 +437,7 @@ InstancedSampleBase::prepareProgram(ShaderSource& fs, ShaderSource& vs)
         ssDefine << "#define INSTANCE_COUNT " << instanceCount << "U" << endl;
         // str().c_str() doesn't work because str goes outof scope immediately.
         // Hence this 2 step process.
-        std::string sDefine = ssDefine.str();
+        string sDefine = ssDefine.str();
         vs.insert(vs.begin(), sDefine.c_str());
         makeShader(GL_VERTEX_SHADER, vs, &gnInstancingVs);
         makeShader(GL_FRAGMENT_SHADER, fs, &gnInstancingFs);

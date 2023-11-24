@@ -97,11 +97,12 @@ target_link_libraries(
 )
 
 gtest_discover_tests(unittests
-    TEST_PREFIX unittest
+    TEST_PREFIX unittest.
     # With the 5s default we get periodic timeouts on Travis & GitHub CI.
     DISCOVERY_TIMEOUT 20
 )
 gtest_discover_tests(texturetests
-    TEST_PREFIX texturetest
+    TEST_PREFIX texturetest.
     DISCOVERY_TIMEOUT 20
+    EXTRA_ARGS "${PROJECT_SOURCE_DIR}/tests/testimages/"
 )
