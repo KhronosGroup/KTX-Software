@@ -3,7 +3,7 @@
 
 find_package (Python3 COMPONENTS Interpreter)
 file(GLOB pyktx_py_src ${CMAKE_SOURCE_DIR}/interface/python_binding/pyktx/*.py)
-list(TRANSFORM pyktx_py_src REPLACE "/python_binding/pyktx/" "/python_binding/docs/" OUTPUT_VARIABLE pyktx_py_rst_filenames)
+list(TRANSFORM pyktx_py_src REPLACE "${CMAKE_SOURCE_DIR}/interface/python_binding/pyktx/" "${KTX_BUILD_DIR}/interface/python_binding/docs/pyktx." OUTPUT_VARIABLE pyktx_py_rst_filenames)
 list(TRANSFORM pyktx_py_rst_filenames REPLACE ".py$" ".rst" OUTPUT_VARIABLE pyktx_py_rst)
 
 message(STATUS "pyktx_py_rst is ${pyktx_py_rst}")
@@ -41,7 +41,6 @@ add_custom_command(
 
 add_custom_target( pyktx ALL
     DEPENDS
-        ${CMAKE_SOURCE_DIR}/interface/python_binding/dist
         ktx
     WORKING_DIRECTORY
         ${CMAKE_SOURCE_DIR}/interface/python_binding
@@ -65,8 +64,8 @@ add_custom_command(
     TARGET
         pyktx
     BYPRODUCTS
-        ${CMAKE_SOURCE_DIR}/interface/python_binding/dist/pyktx-${KTX_VERSION}.tar.gz
-        ${CMAKE_SOURCE_DIR}/interface/python_binding/dist/pyktx-${KTX_VERSION}.zip
+        ${KTX_BUILD_DIR}/interface/python_binding/dist/pyktx-${KTX_VERSION}.tar.gz
+        ${KTX_BUILD_DIR}/interface/python_binding/dist/pyktx-${KTX_VERSION}.zip
     DEPENDS
         ${pyktx_py_src}
         pyktx/ktx_texture.h
@@ -80,7 +79,7 @@ add_custom_command(
             LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
             LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
             LIBKTX_VERSION=${PROJECT_VERSION}
-        ${PYTHON_EXECUTABLE} -m build --sdist
+        ${PYTHON_EXECUTABLE} -m build --sdist --outdir ${KTX_BUILD_DIR}/interface/python_binding/dist
     WORKING_DIRECTORY
         ${CMAKE_SOURCE_DIR}/interface/python_binding
 )
@@ -95,10 +94,17 @@ add_custom_command(
             LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
             LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
             LIBKTX_VERSION=${PROJECT_VERSION}
-        ${PYTHON_EXECUTABLE} -m build --wheel
+        ${PYTHON_EXECUTABLE} -m build --wheel --outdir ${KTX_BUILD_DIR}/interface/python_binding/dist
     WORKING_DIRECTORY
         ${CMAKE_SOURCE_DIR}/interface/python_binding
 )
+
+set(pyktx_egg_info
+    ${CMAKE_SOURCE_DIR}/interface/python_binding/pyktx.egg-info/dependency_links.txt
+    ${CMAKE_SOURCE_DIR}/interface/python_binding/pyktx.egg-info/PKG-INFO
+    ${CMAKE_SOURCE_DIR}/interface/python_binding/pyktx.egg-info/requires.txt
+    ${CMAKE_SOURCE_DIR}/interface/python_binding/pyktx.egg-info/SOURCES.txt
+    ${CMAKE_SOURCE_DIR}/interface/python_binding/pyktx.egg-info/top_level.txt)
 
 add_test(NAME pyktx
     COMMAND
@@ -118,9 +124,12 @@ if(KTX_FEATURE_DOC)
         TARGET pyktx
         POST_BUILD
         BYPRODUCTS
+            ${KTX_BUILD_DIR}/interface/python_binding/conf.py
+            ${KTX_BUILD_DIR}/interface/python_binding/index.rst
             ${pyktx_py_rst}
-            ${CMAKE_SOURCE_DIR}/interface/python_binding/docs/modules.rst
-            ${CMAKE_SOURCE_DIR}/interface/python_binding/docs/native.rst
+            ${KTX_BUILD_DIR}/interface/python_binding/docs/pyktx.rst
+            ${KTX_BUILD_DIR}/interface/python_binding/docs/pyktx.native.rst
+            ${pyktx_egg_info}
         COMMAND
             ${CMAKE_COMMAND} -E env
                 LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
@@ -132,13 +141,16 @@ if(KTX_FEATURE_DOC)
             ${CMAKE_COMMAND} -E env
                 LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
                 LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
-            ${PYTHON_EXECUTABLE} -m sphinx.ext.apidoc -o docs ./pyktx --separate
+            ${PYTHON_EXECUTABLE} -m sphinx.ext.apidoc -o ${KTX_BUILD_DIR}/interface/python_binding/docs ./pyktx --separate
+        COMMAND
+            ${CMAKE_COMMAND} -E copy
+            index.rst conf.py ${KTX_BUILD_DIR}/interface/python_binding
         COMMAND
             ${CMAKE_COMMAND} -E env
                 LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
                 LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
                 SPHINXBUILD=${PYTHON_PATH}\ -m\ sphinx
-            make BUILDDIR="${CMAKE_CURRENT_BINARY_DIR}/docs/html/pyktx" html
+            make SOURCEDIR="${KTX_BUILD_DIR}/interface/python_binding" BUILDDIR="${KTX_BUILD_DIR}/interface/python_binding/docs/html/pyktx" html
         WORKING_DIRECTORY
             ${CMAKE_SOURCE_DIR}/interface/python_binding
     )
