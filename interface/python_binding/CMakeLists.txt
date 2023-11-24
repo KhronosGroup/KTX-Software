@@ -2,7 +2,11 @@
 # SPDX-License-Identifier: Apache-2.0
 
 find_package (Python3 COMPONENTS Interpreter)
-file(GLOB pyktx_py_src "pyktx/*.py")
+file(GLOB pyktx_py_src ${CMAKE_SOURCE_DIR}/interface/python_binding/pyktx/*.py)
+list(TRANSFORM pyktx_py_src REPLACE "/python_binding/pyktx/" "/python_binding/docs/" OUTPUT_VARIABLE pyktx_py_rst_filenames)
+list(TRANSFORM pyktx_py_rst_filenames REPLACE ".py$" ".rst" OUTPUT_VARIABLE pyktx_py_rst)
+
+message(STATUS "pyktx_py_rst is ${pyktx_py_rst}")
 
 set(PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
 if(DEFINED PYTHON AND NOT ${PYTHON} STREQUAL "")
@@ -60,6 +64,9 @@ add_custom_command(
 add_custom_command(
     TARGET
         pyktx
+    BYPRODUCTS
+        ${CMAKE_SOURCE_DIR}/interface/python_binding/dist/pyktx-${KTX_VERSION}.tar.gz
+        ${CMAKE_SOURCE_DIR}/interface/python_binding/dist/pyktx-${KTX_VERSION}.zip
     DEPENDS
         ${pyktx_py_src}
         pyktx/ktx_texture.h
@@ -110,6 +117,10 @@ if(KTX_FEATURE_DOC)
     add_custom_command(
         TARGET pyktx
         POST_BUILD
+        BYPRODUCTS
+            ${pyktx_py_rst}
+            ${CMAKE_SOURCE_DIR}/interface/python_binding/docs/modules.rst
+            ${CMAKE_SOURCE_DIR}/interface/python_binding/docs/native.rst
         COMMAND
             ${CMAKE_COMMAND} -E env
                 LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
