@@ -138,14 +138,14 @@ if(KTX_FEATURE_DOC)
                 LD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{LD_LIBRARY_PATH}
             ${PYTHON_EXECUTABLE} buildscript.py
         COMMAND
+            ${CMAKE_COMMAND} -E copy
+                index.rst conf.py ${KTX_BUILD_DIR}/interface/python_binding
+        COMMAND
             ${CMAKE_COMMAND} -E make_directory
             ${KTX_BUILD_DIR}/interface/python_binding/_static
         COMMAND
-            ${CMAKE_COMMAND} -E
-            copy
-                index.rst conf.py ${KTX_BUILD_DIR}/interface/python_binding
-            copy_directory
-                _static ${KTX_BUILD_DIR}/interface/python_binding/_static
+            ${CMAKE_COMMAND} -E copy_directory
+            _static ${KTX_BUILD_DIR}/interface/python_binding/_static
         COMMAND
             ${CMAKE_COMMAND} -E env
                 LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
