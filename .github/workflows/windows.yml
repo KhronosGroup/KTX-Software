@@ -265,6 +265,12 @@ jobs:
         name: KTX-Software-${{env.KTX_VERSION}}-Windows-${{matrix.arch}}
         path: ${{env.BUILD_DIR}}/KTX-Software-*.exe*
 
+    - name: Upload pyktx artifacts
+      if: matrix.options.package == 'YES' && matrix.options.py
+      uses: kittaakos/upload-artifact-as-is@v0
+      with:
+        path: ${{env.BUILD_DIR}}/interface/python_binding/dist/
+
     - name: Upload To Release
       uses: softprops/action-gh-release@v1
       if: matrix.options.package == 'YES' && matrix.toolset == 'CLangCL' && github.event_name == 'push' && github.ref_type == 'tag'
