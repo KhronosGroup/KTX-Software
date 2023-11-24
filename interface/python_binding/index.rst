@@ -9,6 +9,8 @@
 Welcome to pyktx's documentation!
 =================================
 
+Use your browser's back button to return to the other documentation.
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
