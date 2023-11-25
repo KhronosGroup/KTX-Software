@@ -18,6 +18,10 @@ function(set_tool_properties tool_target)
             INSTALL_RPATH "@executable_path;/usr/local/lib"
             CXX_VISIBILITY_PRESET ${STATIC_APP_LIB_SYMBOL_VISIBILITY}
         )
+    elseif(LINUX)
+        set_target_properties(${tool_target} PROPERTIES
+            INSTALL_RPATH "$ORIGIN;$ORIGIN/../lib"
+        )
     endif()
 endfunction()
 

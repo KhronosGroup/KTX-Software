@@ -6,6 +6,10 @@ function(set_test_properties test_target)
         set_target_properties(${test_target} PROPERTIES
             INSTALL_RPATH "@executable_path;/usr/local/lib"
         )
+    elseif(LINUX)
+        set_target_properties(${test_target} PROPERTIES
+            INSTALL_RPATH "$ORIGIN;$ORIGIN/../lib"
+        )
     endif()
 endfunction()
 
