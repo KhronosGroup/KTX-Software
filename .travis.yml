@@ -90,6 +90,7 @@ jobs:
         apt:
           packages:
             - python3
+            - python3-venv
       compiler: gcc # clang is tested by macOS build
       env:
         # NB: This must not have the fourth component of the version number.
@@ -104,6 +105,7 @@ jobs:
         apt:
           packages:
             - python3
+            - python3-venv
       compiler: gcc
       #jdk: openjdk17 # Reminder to find correct way to select jdk 17
       env:
@@ -120,6 +122,7 @@ jobs:
         apt:
           packages:
             - python3
+            - python3-venv
       compiler: gcc
       #jdk: openjdk17
       env:
