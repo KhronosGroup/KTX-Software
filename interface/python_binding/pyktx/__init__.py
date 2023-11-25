@@ -12,7 +12,6 @@ if os.name == 'nt':
     if LIBKTX_LIB_DIR is None:
         LIBKTX_LIB_DIR = LIBKTX_INSTALL_DIR + '\\bin'
     os.add_dll_directory(os.path.normpath(LIBKTX_LIB_DIR))
-    print('ADDING DLL DIR')
 
 from .gl_internalformat import *
 from .ktx_astc_params import *

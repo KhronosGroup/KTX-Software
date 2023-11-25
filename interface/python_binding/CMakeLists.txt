@@ -6,8 +6,6 @@ file(GLOB pyktx_py_src ${CMAKE_SOURCE_DIR}/interface/python_binding/pyktx/*.py)
 list(TRANSFORM pyktx_py_src REPLACE "${CMAKE_SOURCE_DIR}/interface/python_binding/pyktx/" "${KTX_BUILD_DIR}/interface/python_binding/docs/pyktx." OUTPUT_VARIABLE pyktx_py_rst_filenames)
 list(TRANSFORM pyktx_py_rst_filenames REPLACE ".py$" ".rst" OUTPUT_VARIABLE pyktx_py_rst)
 
-message(STATUS "pyktx_py_rst is ${pyktx_py_rst}")
-
 set(PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
 if(DEFINED PYTHON AND NOT ${PYTHON} STREQUAL "")
     set(PYTHON_EXECUTABLE ${PYTHON})
