@@ -64,10 +64,6 @@ jobs:
             generator: 'Visual Studio 17 2022'
             toolset: CLangCL
             arch: arm64
-            # No tests on arm64 since the host is x64 and can't run the
-            # built tests. loadtests is OFF because CMake insists on
-            # choosing an older Windows SDK which is missing glu32.lib.
-            # Can set to OpenGL once issue is resolved.
             options: {
               config: 'Debug,Release',
               doc: ON, jni: ON, loadtests: OpenGL, py: OFF, tests: ON, tools: ON, tools_cts: ON,
@@ -244,6 +240,7 @@ jobs:
         ci_scripts/build_win.ps1
 
     - name: Test Windows build
+      # Tests built for arm64 can't be run as the CI runners are all x64.
       if: matrix.arch == 'x64' && matrix.options.tests == 'ON'
       run: ctest --output-on-failure --test-dir $env:BUILD_DIR -C Release
 
