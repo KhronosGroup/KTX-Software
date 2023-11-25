@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from cffi import FFI
+import platform
 import sys
 import os
 import unittest
@@ -17,11 +18,16 @@ if os.name == 'nt':
         LIBKTX_INCLUDE_DIR = LIBKTX_INSTALL_DIR + '\\include'
     if LIBKTX_LIB_DIR is None:
         LIBKTX_LIB_DIR = LIBKTX_INSTALL_DIR + '\\lib'
-elif os.name == 'posix':
+elif platform.system() == 'Darwin':
     if LIBKTX_INCLUDE_DIR is None:
         LIBKTX_INCLUDE_DIR = '/usr/local/include'
     if LIBKTX_LIB_DIR is None:
         LIBKTX_LIB_DIR = '/usr/local/lib'
+elif os.name == 'posix':
+    if LIBKTX_INCLUDE_DIR is None:
+        LIBKTX_INCLUDE_DIR = '/usr/include'
+    if LIBKTX_LIB_DIR is None:
+        LIBKTX_LIB_DIR = '/usr/lib'
 
 ffibuilder = FFI()
 
