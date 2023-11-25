@@ -1041,9 +1041,16 @@ else()
 endif()
 
 # Other external projects
-set(FMT_SYSTEM_HEADERS ON)
-add_subdirectory(other_projects/fmt)
-add_subdirectory(other_projects/cxxopts)
+# `NOT TARGET`s here are a precaution. They would only be exercised if
+# this CMakeLists is included in another project which is unlikely
+# except for building the ktx library.
+if((KTX_FEATURE_TOOLS OR KTX_FEATURE_TESTS) AND NOT TARGET fmt::fmt)
+    set(FMT_SYSTEM_HEADERS ON)
+    add_subdirectory(other_projects/fmt)
+endif()
+if(KTX_FEATURE_TOOLS AND NOT TARGET cxxopts::cxxopts)
+    add_subdirectory(other_projects/cxxopts)
+endif()
 
 # Tools
 if(KTX_FEATURE_TOOLS)
