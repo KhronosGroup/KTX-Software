@@ -15,5 +15,5 @@ To build and test pyktx,
 # Set LIBKTX_INSTALL_DIR if you've installed libktx at the default system location.
 # Otherwise set LIBKTX_INCLUDE_DIR, LIBKTX_LIB_DIR to wherever you've built libktx.
 cd ${PROJECT_DIR}/interface/python_binding
-KTX_RUN_TESTS=true python3 buildscript.py
+KTX_RUN_TESTS=ON python3 buildscript.py
 ```
