@@ -396,7 +396,7 @@ deploy:
 
   - provider: script
     edge: true
-    script: ruby ci_scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -c $REL_DESC_FILE -t ${TRAVIS_TAG} --overwrite true --draft true --prerelease true $BUILD_DIR/KTX-Software-*-*
+    script: ruby ci_scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -c $REL_DESC_FILE -t ${TRAVIS_TAG} --overwrite true --draft true --prerelease true $BUILD_DIR/KTX-Software-*-* $BUILD_DIR/interface/python_binding/dist/*.whl
     on:
       tags: true
       #branch: master
