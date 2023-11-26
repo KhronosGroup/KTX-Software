@@ -2,9 +2,14 @@
 # SPDX-License-Identifier: Apache-2.0
 
 function(set_test_properties test_target)
+    # See comments in set_tools_properties() in ../tools/CMakeLists.txt.
     if(APPLE)
         set_target_properties(${test_target} PROPERTIES
             INSTALL_RPATH "@executable_path;/usr/local/lib"
+        )
+    elseif(LINUX)
+        set_target_properties(${test_target} PROPERTIES
+            INSTALL_RPATH "$ORIGIN;$ORIGIN/../lib"
         )
     endif()
 endfunction()
