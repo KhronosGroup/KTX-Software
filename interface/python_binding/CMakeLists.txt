@@ -19,11 +19,7 @@ endif()
 # Convert Windows path to CMake path
 cmake_path(SET PYTHON_PATH ${PYTHON_EXECUTABLE})
 
-if(LINUX)
-    set(LIBKTX_LIB_DIR ${KTX_BUILD_DIR})
-else()
-    set(LIBKTX_LIB_DIR ${KTX_BUILD_DIR}/$<CONFIG>)
-endif()
+set(LIBKTX_LIB_DIR ${KTX_BUILD_DIR}/$<CONFIG>)
 
 add_custom_target( pyktx-deps ALL
     COMMENT
