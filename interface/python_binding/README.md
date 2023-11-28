@@ -26,7 +26,7 @@ KTX_RUN_TESTS=ON python3 buildscript.py
 
 If you are on a POSIX system (macOS or Linux), make sure libktx is on your `DYLD_LIBRARY_PATH` and `LD_LIBRARY_PATH`.
 
-> When building on macOS using against a universal CPython binary, such as that installed with the Xcode command-line tools (/usr/bin/python3), ld will issue a warning
+> When building on macOS against a universal CPython binary, such as that installed with the Xcode command-line tools (/usr/bin/python3), ld will issue a warning
 >
 > ```
 > ld: warning: ignoring file '/usr/local/lib/libktx.4.3.0.dylib': found architecture 'arm64', required architecture 'x86_64'
