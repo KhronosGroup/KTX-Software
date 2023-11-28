@@ -1,18 +1,17 @@
-// Formatting library for C++ - the core API
+// Formatting library for C++ - ranges tests
 //
-// Copyright (c) 2012 - present, Victor Zverovich
+// Copyright (c) 2012 - present, Victor Zverovich and {fmt} contributors
 // All rights reserved.
 //
 // For the license information refer to format.h.
-//
-// Copyright (c) 2018 - present, Remotion (Igor Schulz)
-// All Rights Reserved
-// {fmt} support for ranges, containers and types tuple interface.
 
 #include "fmt/ranges.h"
 
 #include <map>
+#include <queue>
+#include <stack>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "gtest/gtest.h"
@@ -50,6 +49,14 @@ TEST(ranges_test, format_vector) {
   EXPECT_EQ(fmt::format("{}", v), "[1, 2, 3, 5, 7, 11]");
   EXPECT_EQ(fmt::format("{::#x}", v), "[0x1, 0x2, 0x3, 0x5, 0x7, 0xb]");
   EXPECT_EQ(fmt::format("{:n:#x}", v), "0x1, 0x2, 0x3, 0x5, 0x7, 0xb");
+
+  auto vc = std::vector<char>{'a', 'b', 'c'};
+  auto vvc = std::vector<std::vector<char>>{vc, vc};
+  EXPECT_EQ(fmt::format("{}", vc), "['a', 'b', 'c']");
+  EXPECT_EQ(fmt::format("{}", vvc), "[['a', 'b', 'c'], ['a', 'b', 'c']]");
+  EXPECT_EQ(fmt::format("{:n}", vvc), "['a', 'b', 'c'], ['a', 'b', 'c']");
+  EXPECT_EQ(fmt::format("{:n:n}", vvc), "'a', 'b', 'c', 'a', 'b', 'c'");
+  EXPECT_EQ(fmt::format("{:n:n:}", vvc), "a, b, c, a, b, c");
 }
 
 TEST(ranges_test, format_vector2) {
@@ -70,13 +77,41 @@ TEST(ranges_test, format_set) {
             "{\"one\", \"two\"}");
 }
 
+// Models std::flat_set close enough to test if no ambiguous lookup of a
+// formatter happens due to the flat_set type matching is_set and
+// is_container_adaptor_like.
+template <typename T> class flat_set {
+ public:
+  using key_type = T;
+  using container_type = std::vector<T>;
+
+  using iterator = typename std::vector<T>::iterator;
+  using const_iterator = typename std::vector<T>::const_iterator;
+
+  template <typename... Ts>
+  explicit flat_set(Ts&&... args) : c{std::forward<Ts>(args)...} {}
+
+  auto begin() -> iterator { return c.begin(); }
+  auto end() -> iterator { return c.end(); }
+
+  auto begin() const -> const_iterator { return c.begin(); }
+  auto end() const -> const_iterator { return c.end(); }
+
+ private:
+  std::vector<T> c;
+};
+
+TEST(ranges_test, format_flat_set) {
+  EXPECT_EQ(fmt::format("{}", flat_set<std::string>{"one", "two"}),
+            "{\"one\", \"two\"}");
+}
+
 namespace adl {
 struct box {
   int value;
 };
 
 auto begin(const box& b) -> const int* { return &b.value; }
-
 auto end(const box& b) -> const int* { return &b.value + 1; }
 }  // namespace adl
 
@@ -96,6 +131,7 @@ TEST(ranges_test, format_tuple) {
   auto t =
       std::tuple<int, float, std::string, char>(42, 1.5f, "this is tuple", 'i');
   EXPECT_EQ(fmt::format("{}", t), "(42, 1.5, \"this is tuple\", 'i')");
+
   EXPECT_EQ(fmt::format("{}", std::tuple<>()), "()");
 
   EXPECT_TRUE((fmt::is_formattable<std::tuple<>>::value));
@@ -108,16 +144,36 @@ TEST(ranges_test, format_tuple) {
   EXPECT_TRUE((fmt::is_formattable<std::tuple<int, float>>::value));
 }
 
+struct not_default_formattable {};
+struct bad_format {};
+
+FMT_BEGIN_NAMESPACE
+template <> struct formatter<not_default_formattable> {
+  auto parse(format_parse_context&) -> const char* { throw bad_format(); }
+  auto format(not_default_formattable, format_context& ctx)
+      -> format_context::iterator {
+    return ctx.out();
+  }
+};
+FMT_END_NAMESPACE
+
+TEST(ranges_test, tuple_parse_calls_element_parse) {
+  auto f = fmt::formatter<std::tuple<not_default_formattable>>();
+  auto ctx = fmt::format_parse_context("");
+  EXPECT_THROW(f.parse(ctx), bad_format);
+}
+
 #ifdef FMT_RANGES_TEST_ENABLE_FORMAT_STRUCT
 struct tuple_like {
   int i;
   std::string str;
 
-  template <size_t N> fmt::enable_if_t<N == 0, int> get() const noexcept {
+  template <size_t N>
+  auto get() const noexcept -> fmt::enable_if_t<N == 0, int> {
     return i;
   }
   template <size_t N>
-  fmt::enable_if_t<N == 1, fmt::string_view> get() const noexcept {
+  auto get() const noexcept -> fmt::enable_if_t<N == 1, fmt::string_view> {
     return str;
   }
 };
@@ -149,32 +205,24 @@ TEST(ranges_test, format_to) {
   EXPECT_STREQ(buf, "[1, 2, 3]");
 }
 
-struct path_like {
-  const path_like* begin() const;
-  const path_like* end() const;
+template <typename Char> struct path_like {
+  auto begin() const -> const path_like*;
+  auto end() const -> const path_like*;
 
-  operator std::string() const;
+  operator std::basic_string<Char>() const;
 };
 
-TEST(ranges_test, path_like) {
-  EXPECT_FALSE((fmt::is_range<path_like, char>::value));
+TEST(ranges_test, disabled_range_formatting_of_path) {
+  // Range formatting of path is disabled because of infinite recursion
+  // (path element is itself a path).
+  EXPECT_EQ((fmt::range_format_kind<path_like<char>, char>::value),
+            fmt::range_format::disabled);
+  EXPECT_EQ((fmt::range_format_kind<path_like<wchar_t>, char>::value),
+            fmt::range_format::disabled);
 }
 
-#ifdef FMT_USE_STRING_VIEW
-struct string_like {
-  const char* begin();
-  const char* end();
-  operator fmt::string_view() const { return "foo"; }
-  operator std::string_view() const { return "foo"; }
-};
-
-TEST(ranges_test, format_string_like) {
-  EXPECT_EQ(fmt::format("{}", string_like()), "foo");
-}
-#endif  // FMT_USE_STRING_VIEW
-
-// A range that provides non-const only begin()/end() to test fmt::join handles
-// that.
+// A range that provides non-const only begin()/end() to test fmt::join
+// handles that.
 //
 // Some ranges (e.g. those produced by range-v3's views::filter()) can cache
 // information during iteration so they only provide non-const begin()/end().
@@ -189,8 +237,8 @@ template <typename T> class non_const_only_range {
   explicit non_const_only_range(Args&&... args)
       : vec(std::forward<Args>(args)...) {}
 
-  const_iterator begin() { return vec.begin(); }
-  const_iterator end() { return vec.end(); }
+  auto begin() -> const_iterator{ return vec.begin(); }
+  auto end() -> const_iterator { return vec.end(); }
 };
 
 template <typename T> class noncopyable_range {
@@ -198,7 +246,7 @@ template <typename T> class noncopyable_range {
   std::vector<T> vec;
 
  public:
-  using const_iterator = typename ::std::vector<T>::const_iterator;
+  using iterator = typename ::std::vector<T>::iterator;
 
   template <typename... Args>
   explicit noncopyable_range(Args&&... args)
@@ -207,16 +255,16 @@ template <typename T> class noncopyable_range {
   noncopyable_range(noncopyable_range const&) = delete;
   noncopyable_range(noncopyable_range&) = delete;
 
-  const_iterator begin() const { return vec.begin(); }
-  const_iterator end() const { return vec.end(); }
+  auto begin() -> iterator { return vec.begin(); }
+  auto end() -> iterator { return vec.end(); }
 };
 
 TEST(ranges_test, range) {
-  noncopyable_range<int> w(3u, 0);
+  auto&& w = noncopyable_range<int>(3u, 0);
   EXPECT_EQ(fmt::format("{}", w), "[0, 0, 0]");
   EXPECT_EQ(fmt::format("{}", noncopyable_range<int>(3u, 0)), "[0, 0, 0]");
 
-  non_const_only_range<int> x(3u, 0);
+  auto x = non_const_only_range<int>(3u, 0);
   EXPECT_EQ(fmt::format("{}", x), "[0, 0, 0]");
   EXPECT_EQ(fmt::format("{}", non_const_only_range<int>(3u, 0)), "[0, 0, 0]");
 
@@ -237,7 +285,6 @@ TEST(ranges_test, enum_range) {
 }
 
 #if !FMT_MSC_VERSION
-
 TEST(ranges_test, unformattable_range) {
   EXPECT_FALSE((fmt::has_formatter<std::vector<unformattable>,
                                    fmt::format_context>::value));
@@ -292,8 +339,8 @@ bool operator!=(const char* p, zstring_sentinel) { return *p != '\0'; }
 
 struct zstring {
   const char* p;
-  const char* begin() const { return p; }
-  zstring_sentinel end() const { return {}; }
+  auto begin() const -> const char* { return p; }
+  auto end() const -> zstring_sentinel { return {}; }
 };
 
 #  ifdef __cpp_lib_ranges
@@ -307,20 +354,22 @@ struct cpp20_only_range {
 
     iterator() = default;
     iterator(int i) : val(i) {}
-    int operator*() const { return val; }
-    iterator& operator++() {
+    auto operator*() const -> int { return val; }
+    auto operator++() -> iterator&{
       ++val;
       return *this;
     }
     void operator++(int) { ++*this; }
-    bool operator==(const iterator& rhs) const { return val == rhs.val; }
+    auto operator==(const iterator& rhs) const -> bool {
+      return val == rhs.val;
+    }
   };
 
   int lo;
   int hi;
 
-  iterator begin() const { return iterator(lo); }
-  iterator end() const { return iterator(hi); }
+  auto begin() const -> iterator { return iterator(lo); }
+  auto end() const -> iterator { return iterator(hi); }
 };
 
 static_assert(std::input_iterator<cpp20_only_range::iterator>);
@@ -334,12 +383,12 @@ TEST(ranges_test, join_sentinel) {
 }
 
 TEST(ranges_test, join_range) {
-  noncopyable_range<int> w(3u, 0);
+  auto&& w = noncopyable_range<int>(3u, 0);
   EXPECT_EQ(fmt::format("{}", fmt::join(w, ",")), "0,0,0");
   EXPECT_EQ(fmt::format("{}", fmt::join(noncopyable_range<int>(3u, 0), ",")),
             "0,0,0");
 
-  non_const_only_range<int> x(3u, 0);
+  auto x = non_const_only_range<int>(3u, 0);
   EXPECT_EQ(fmt::format("{}", fmt::join(x, ",")), "0,0,0");
   EXPECT_EQ(fmt::format("{}", fmt::join(non_const_only_range<int>(3u, 0), ",")),
             "0,0,0");
@@ -369,7 +418,7 @@ TEST(ranges_test, is_printable) {
   EXPECT_FALSE(is_printable(0x110000));
 }
 
-TEST(ranges_test, escape_string) {
+TEST(ranges_test, escape) {
   using vec = std::vector<std::string>;
   EXPECT_EQ(fmt::format("{}", vec{"\n\r\t\"\\"}), "[\"\\n\\r\\t\\\"\\\\\"]");
   EXPECT_EQ(fmt::format("{}", vec{"\x07"}), "[\"\\x07\"]");
@@ -389,20 +438,13 @@ TEST(ranges_test, escape_string) {
               "[\"\\xf0(\\x00\\x00anything\"]");
 
     // Correct utf-8.
-    EXPECT_EQ(fmt::format("{}", vec{"понедельник"}), "[\"понедельник\"]");
+    EXPECT_EQ(fmt::format("{}", vec{"🦄"}), "[\"🦄\"]");
   }
-}
 
-#ifdef FMT_USE_STRING_VIEW
-struct convertible_to_string_view {
-  operator std::string_view() const { return "foo"; }
-};
-
-TEST(ranges_test, escape_convertible_to_string_view) {
-  EXPECT_EQ(fmt::format("{}", std::vector<convertible_to_string_view>(1)),
-            "[\"foo\"]");
+  EXPECT_EQ(fmt::format("{}", std::vector<std::vector<char>>{{'x'}}),
+            "[['x']]");
+  EXPECT_EQ(fmt::format("{}", std::tuple<std::vector<char>>{{'x'}}), "(['x'])");
 }
-#endif  // FMT_USE_STRING_VIEW
 
 template <typename R> struct fmt_ref_view {
   R* r;
@@ -412,13 +454,72 @@ template <typename R> struct fmt_ref_view {
 };
 
 TEST(ranges_test, range_of_range_of_mixed_const) {
-  std::vector<std::vector<int>> v = {{1, 2, 3}, {4, 5}};
+  auto v = std::vector<std::vector<int>>{{1, 2, 3}, {4, 5}};
   EXPECT_EQ(fmt::format("{}", v), "[[1, 2, 3], [4, 5]]");
 
-  fmt_ref_view<decltype(v)> r{&v};
+  auto r = fmt_ref_view<decltype(v)>{&v};
   EXPECT_EQ(fmt::format("{}", r), "[[1, 2, 3], [4, 5]]");
 }
 
 TEST(ranges_test, vector_char) {
   EXPECT_EQ(fmt::format("{}", std::vector<char>{'a', 'b'}), "['a', 'b']");
+}
+
+TEST(ranges_test, container_adaptor) {
+  {
+    using fmt::detail::is_container_adaptor_like;
+    using T = std::nullptr_t;
+    static_assert(is_container_adaptor_like<std::stack<T>>::value, "");
+    static_assert(is_container_adaptor_like<std::queue<T>>::value, "");
+    static_assert(is_container_adaptor_like<std::priority_queue<T>>::value, "");
+    static_assert(!is_container_adaptor_like<std::vector<T>>::value, "");
+  }
+
+  {
+    auto s = std::stack<int>();
+    s.push(1);
+    s.push(2);
+    EXPECT_EQ(fmt::format("{}", s), "[1, 2]");
+    EXPECT_EQ(fmt::format("{}", const_cast<const decltype(s)&>(s)), "[1, 2]");
+  }
+
+  {
+    auto q = std::queue<int>();
+    q.push(1);
+    q.push(2);
+    EXPECT_EQ(fmt::format("{}", q), "[1, 2]");
+  }
+
+  {
+    auto q = std::priority_queue<int>();
+    q.push(3);
+    q.push(1);
+    q.push(2);
+    q.push(4);
+    EXPECT_EQ(fmt::format("{}", q), "[4, 3, 2, 1]");
+  }
+
+  {
+    auto s = std::stack<char, std::string>();
+    s.push('a');
+    s.push('b');
+    // See https://cplusplus.github.io/LWG/issue3881.
+    EXPECT_EQ(fmt::format("{}", s), "['a', 'b']");
+  }
+
+  {
+    struct my_container_adaptor {
+      using value_type = int;
+      using container_type = std::vector<value_type>;
+      void push(const value_type& v) { c.push_back(v); }
+
+     protected:
+      container_type c;
+    };
+
+    auto m = my_container_adaptor();
+    m.push(1);
+    m.push(2);
+    EXPECT_EQ(fmt::format("{}", m), "[1, 2]");
+  }
 }

@@ -8,61 +8,25 @@
 #ifndef FMT_OSTREAM_H_
 #define FMT_OSTREAM_H_
 
-#include <fstream>
-#include <ostream>
+#include <fstream>  // std::filebuf
+
 #if defined(_WIN32) && defined(__GLIBCXX__)
 #  include <ext/stdio_filebuf.h>
 #  include <ext/stdio_sync_filebuf.h>
-#elif defined(_WIN32) && defined(_LIBCPP_VERSION)
-#  include <__std_stream>
 #endif
 
 #include "format.h"
 
 FMT_BEGIN_NAMESPACE
 
-template <typename OutputIt, typename Char> class basic_printf_context;
-
 namespace detail {
-
-// Checks if T has a user-defined operator<<.
-template <typename T, typename Char, typename Enable = void>
-class is_streamable {
- private:
-  template <typename U>
-  static auto test(int)
-      -> bool_constant<sizeof(std::declval<std::basic_ostream<Char>&>()
-                              << std::declval<U>()) != 0>;
-
-  template <typename> static auto test(...) -> std::false_type;
-
-  using result = decltype(test<T>(0));
-
- public:
-  is_streamable() = default;
-
-  static const bool value = result::value;
-};
-
-// Formatting of built-in types and arrays is intentionally disabled because
-// it's handled by standard (non-ostream) formatters.
-template <typename T, typename Char>
-struct is_streamable<
-    T, Char,
-    enable_if_t<
-        std::is_arithmetic<T>::value || std::is_array<T>::value ||
-        std::is_pointer<T>::value || std::is_same<T, char8_type>::value ||
-        std::is_convertible<T, fmt::basic_string_view<Char>>::value ||
-        std::is_same<T, std_string_view<Char>>::value ||
-        (std::is_convertible<T, int>::value && !std::is_enum<T>::value)>>
-    : std::false_type {};
 
 // Generate a unique explicit instantion in every translation unit using a tag
 // type in an anonymous namespace.
 namespace {
 struct file_access_tag {};
 }  // namespace
-template <class Tag, class BufType, FILE* BufType::*FileMemberPtr>
+template <typename Tag, typename BufType, FILE* BufType::*FileMemberPtr>
 class file_access {
   friend auto get_file(BufType& obj) -> FILE* { return obj.*FileMemberPtr; }
 };
@@ -71,10 +35,6 @@ class file_access {
 template class file_access<file_access_tag, std::filebuf,
                            &std::filebuf::_Myfile>;
 auto get_file(std::filebuf&) -> FILE*;
-#elif defined(_WIN32) && defined(_LIBCPP_VERSION)
-template class file_access<file_access_tag, std::__stdoutbuf<char>,
-                           &std::__stdoutbuf<char>::__file_>;
-auto get_file(std::__stdoutbuf<char>&) -> FILE*;
 #endif
 
 inline bool write_ostream_unicode(std::ostream& os, fmt::string_view data) {
@@ -84,16 +44,13 @@ inline bool write_ostream_unicode(std::ostream& os, fmt::string_view data) {
 #elif defined(_WIN32) && defined(__GLIBCXX__)
   auto* rdbuf = os.rdbuf();
   FILE* c_file;
-  if (auto* fbuf = dynamic_cast<__gnu_cxx::stdio_sync_filebuf<char>*>(rdbuf))
-    c_file = fbuf->file();
+  if (auto* sfbuf = dynamic_cast<__gnu_cxx::stdio_sync_filebuf<char>*>(rdbuf))
+    c_file = sfbuf->file();
   else if (auto* fbuf = dynamic_cast<__gnu_cxx::stdio_filebuf<char>*>(rdbuf))
     c_file = fbuf->file();
   else
     return false;
   if (c_file) return write_console(c_file, data);
-#elif defined(_WIN32) && defined(_LIBCPP_VERSION)
-  if (auto* buf = dynamic_cast<std::__stdoutbuf<char>*>(os.rdbuf()))
-    if (FILE* f = get_file(*buf)) return write_console(f, data);
 #else
   ignore_unused(os, data);
 #endif
@@ -145,7 +102,7 @@ struct basic_ostream_formatter : formatter<basic_string_view<Char>, Char> {
   auto format(const T& value, basic_format_context<OutputIt, Char>& ctx) const
       -> OutputIt {
     auto buffer = basic_memory_buffer<Char>();
-    format_value(buffer, value, ctx.locale());
+    detail::format_value(buffer, value, ctx.locale());
     return formatter<basic_string_view<Char>, Char>::format(
         {buffer.data(), buffer.size()}, ctx);
   }
@@ -174,18 +131,11 @@ struct formatter<detail::streamed_view<T>, Char>
   \endrst
  */
 template <typename T>
-auto streamed(const T& value) -> detail::streamed_view<T> {
+constexpr auto streamed(const T& value) -> detail::streamed_view<T> {
   return {value};
 }
 
 namespace detail {
-
-// Formats an object of type T that has an overloaded ostream operator<<.
-template <typename T, typename Char>
-struct fallback_formatter<T, Char, enable_if_t<is_streamable<T, Char>::value>>
-    : basic_ostream_formatter<Char> {
-  using basic_ostream_formatter<Char>::format;
-};
 
 inline void vprint_directly(std::ostream& os, string_view format_str,
                             format_args args) {
@@ -196,7 +146,7 @@ inline void vprint_directly(std::ostream& os, string_view format_str,
 
 }  // namespace detail
 
-FMT_MODULE_EXPORT template <typename Char>
+FMT_EXPORT template <typename Char>
 void vprint(std::basic_ostream<Char>& os,
             basic_string_view<type_identity_t<Char>> format_str,
             basic_format_args<buffer_context<type_identity_t<Char>>> args) {
@@ -215,7 +165,7 @@ void vprint(std::basic_ostream<Char>& os,
     fmt::print(cerr, "Don't {}!", "panic");
   \endrst
  */
-FMT_MODULE_EXPORT template <typename... T>
+FMT_EXPORT template <typename... T>
 void print(std::ostream& os, format_string<T...> fmt, T&&... args) {
   const auto& vargs = fmt::make_format_args(args...);
   if (detail::is_utf8())
@@ -224,12 +174,25 @@ void print(std::ostream& os, format_string<T...> fmt, T&&... args) {
     detail::vprint_directly(os, fmt, vargs);
 }
 
-FMT_MODULE_EXPORT
+FMT_EXPORT
 template <typename... Args>
 void print(std::wostream& os,
            basic_format_string<wchar_t, type_identity_t<Args>...> fmt,
            Args&&... args) {
   vprint(os, fmt, fmt::make_format_args<buffer_context<wchar_t>>(args...));
+}
+
+FMT_EXPORT template <typename... T>
+void println(std::ostream& os, format_string<T...> fmt, T&&... args) {
+  fmt::print(os, "{}\n", fmt::format(fmt, std::forward<T>(args)...));
+}
+
+FMT_EXPORT
+template <typename... Args>
+void println(std::wostream& os,
+             basic_format_string<wchar_t, type_identity_t<Args>...> fmt,
+             Args&&... args) {
+  print(os, L"{}\n", fmt::format(fmt, std::forward<Args>(args)...));
 }
 
 FMT_END_NAMESPACE
