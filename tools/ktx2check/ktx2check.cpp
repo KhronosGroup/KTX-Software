@@ -647,8 +647,8 @@ class ktxValidator : public ktxApp {
         }
 
         ~validationContext() {
-            if (pDfd4Format != nullptr) delete pDfd4Format;
-            if (pActualDfd != nullptr) delete pActualDfd;
+            delete pDfd4Format;
+            delete pActualDfd;
         }
 
         size_t kvDataEndOffset() {
@@ -793,7 +793,7 @@ class ktxValidator : public ktxApp {
         }
 
         void init(istream* is) {
-            if (pDfd4Format != nullptr) delete pDfd4Format;
+            delete pDfd4Format;
             inp = is;
             dataSizeFromLevelIndex = 0;
         }

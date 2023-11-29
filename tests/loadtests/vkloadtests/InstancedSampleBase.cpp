@@ -267,8 +267,7 @@ InstancedSampleBase::cleanup()
     quad.freeResources(vkctx.device);
     uniformDataVS.freeResources(vkctx.device);
 
-    if (uboVS.instance != nullptr)
-        delete[] uboVS.instance;
+    delete[] uboVS.instance;
 }
 
 void
