@@ -470,6 +470,9 @@ macro(common_libktx_settings target enable_write library_type)
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}
         XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
+        CXX_STANDARD 11
+        CXX_STANDARD_REQUIRED YES
+
     )
     if(IOS)
         set_target_properties(${target} PROPERTIES
