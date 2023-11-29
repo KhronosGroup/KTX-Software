@@ -35,9 +35,7 @@ GLLoadTests::GLLoadTests(const sampleInvocation samples[],
 
 GLLoadTests::~GLLoadTests()
 {
-    if (pCurSample != nullptr) {
-        delete pCurSample;
-    }
+    delete pCurSample;
 }
 
 bool
@@ -61,9 +59,7 @@ GLLoadTests::initialize(Args& args)
 void
 GLLoadTests::finalize()
 {
-    if (pCurSample != nullptr) {
-        delete pCurSample;
-    }
+    delete pCurSample;
     GLAppSDL::finalize();
 }
 
@@ -181,13 +177,11 @@ GLLoadTests::invokeSample(Direction dir)
 {
     const sampleInvocation* sampleInv = &siSamples[sampleIndex];
 
-    if (pCurSample != nullptr) {
-        delete pCurSample;
-        // Certain events can be triggered during new sample initialization
-        // while pCurSample is not valid, e.g. FOCUS_LOST. Protect against
-        // problems from this by indicating there is no current sample.
-        pCurSample = nullptr;
-    }
+    delete pCurSample;
+    // Certain events can be triggered during new sample initialization
+    // while pCurSample is not valid, e.g. FOCUS_LOST. Protect against
+    // problems from this by indicating there is no current sample.
+    pCurSample = nullptr;
 
     uint32_t unsupportedTypeExceptions = 0;
     std::string fileTitle;

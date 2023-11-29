@@ -1,4 +1,4 @@
-﻿/* -*- tab-width: 4; -*- */
+/* -*- tab-width: 4; -*- */
 /* vi: set sw=2 ts=4 expandtab: */
 
 /**
@@ -288,7 +288,7 @@ class ktxTextureTestBase : public ::testing::Test {
     }
 
     ~ktxTextureTestBase() {
-        if (ktxMemFile != NULL) delete ktxMemFile;
+        delete ktxMemFile;
     }
 
     KTX_error_code

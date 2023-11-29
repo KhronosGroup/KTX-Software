@@ -48,9 +48,7 @@ VulkanLoadTests::VulkanLoadTests(const sampleInvocation samples[],
 
 VulkanLoadTests::~VulkanLoadTests()
 {
-    if (pCurSample != nullptr) {
-        delete pCurSample;
-    }
+    delete pCurSample;
 }
 
 bool
@@ -73,9 +71,7 @@ VulkanLoadTests::initialize(Args& args)
 void
 VulkanLoadTests::finalize()
 {
-    if (pCurSample != nullptr) {
-        delete pCurSample;
-    }
+    delete pCurSample;
     VulkanAppSDL::finalize();
 }
 
