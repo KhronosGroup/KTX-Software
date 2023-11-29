@@ -544,3 +544,7 @@ On GNU/Linux and Windows you need to install an OpenCL SDK and OpenCL driver. Dr
 
 
 {# vim: set ai ts=4 sts=4 sw=2 expandtab textwidth=75:}
+
+### Python
+
+*If you are building pyktx*, review the requirements in the [pyktx](interface/python_binding/README.md) README.

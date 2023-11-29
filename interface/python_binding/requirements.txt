@@ -1,0 +1,9 @@
+# Copyright (c) 2023, Shukant Pal and Contributors
+# SPDX-License-Identifier: Apache-2.0
+
+build==1.0.3
+cffi==1.15.1
+setuptools==69.0.2
+wheel>=0.38.4
+sphinx==6.2.1
+sphinx-rtd-theme==1.2.2

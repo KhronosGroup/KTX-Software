@@ -1,0 +1,17 @@
+# Copyright (c) 2023, Shukant Pal and Contributors
+# SPDX-License-Identifier: Apache-2.0
+
+build
+dist
+pyktx.egg-info
+venv
+*.iml
+.eggs
+__pycache__
+Release
+Debug
+
+# Sphinx
+docs
+_build
+_templates

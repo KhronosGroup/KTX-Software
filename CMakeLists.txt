@@ -50,6 +50,7 @@ CMAKE_DEPENDENT_OPTION( KTX_FEATURE_TOOLS
 option( KTX_FEATURE_DOC "Create KTX documentation." OFF )
 option( KTX_FEATURE_STATIC_LIBRARY "Create static libraries (shared otherwise)." ${LIB_TYPE_DEFAULT} )
 option( KTX_FEATURE_JNI "Create Java bindings for libktx." OFF )
+option( KTX_FEATURE_PY "Create Python source distribution." OFF )
 option( KTX_FEATURE_TESTS "Create unit tests." ON )
 option( KTX_FEATURE_TOOLS_CTS "Enable KTX CLI Tools CTS tests (requires CTS submodule)." OFF )
 
@@ -729,6 +730,10 @@ common_libktx_settings(ktx_read 0 ${LIB_TYPE})
 
 if(KTX_FEATURE_JNI)
     add_subdirectory(interface/java_binding)
+endif()
+
+if(KTX_FEATURE_PY)
+    add_subdirectory(interface/python_binding)
 endif()
 
 create_version_header(lib ktx)

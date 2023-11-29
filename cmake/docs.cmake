@@ -189,6 +189,17 @@ function( CreateDocJSWrappers )
     add_docs_cmake_plus( jswrappers.doc pkgdoc/jswrappersDoxyLayout.xml )
 endfunction()
 
+# pyktxwrappers.doc
+function( CreateDocPyktxWrappers )
+    add_custom_command(
+        TARGET libktx.doc
+        POST_BUILD
+        COMMAND
+            ${CMAKE_COMMAND} -E copy_directory ${KTX_BUILD_DIR}/interface/python_binding/docs/html/pyktx/html ${KTX_BUILD_DIR}/docs/html/pyktx
+    )
+    add_dependencies( libktx.doc pyktx )
+endfunction()
+
 # ktxpkg.doc
 function( CreateDocKTX )
     set( DOXYGEN_PROJECT_NAME "Khronos Texture Software" )
@@ -215,6 +226,9 @@ endfunction()
 CreateDocLibKTX()
 CreateDocTools()
 CreateDocJSWrappers()
+if (KTX_FEATURE_PY)
+    CreateDocPyktxWrappers()
+endif()
 CreateDocKTX()
 
 add_dependencies( libktx.doc ktxpkg.doc ktx_version )

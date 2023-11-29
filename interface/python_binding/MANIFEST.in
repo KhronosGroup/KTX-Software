@@ -1,0 +1,10 @@
+# Copyright (c) 2023, Shukant Pal and Contributors
+# SPDX-License-Identifier: Apache-2.0
+
+include buildscript.py
+include pyktx/ktx_texture.c
+include pyktx/ktx_texture1.c
+include pyktx/ktx_texture2.c
+include pyktx/ktx_texture.h
+include pyktx/ktx_texture1.h
+include pyktx/ktx_texture2.h

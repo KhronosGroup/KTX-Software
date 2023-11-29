@@ -48,6 +48,7 @@ Version 2 file. [`tools/ktx2ktx2`](https://github.com/KhronosGroup/KTX-Software/
 human readable form. [`tools/ktxinfo`](https://github.com/KhronosGroup/KTX-Software/tree/main/tools/ktxinfo)
 - *ktxsc* - a tool to supercompress a KTX Version 2 file that
 contains uncompressed images.[`tools/ktxsc`](https://github.com/KhronosGroup/KTX-Software/tree/main/tools/ktxsc)
+- *pyktx* - Python wrapper
 - *toktx* - a tool to create KTX files from PNG, Netpbm or JPEG format images. It supports mipmap generation, encoding to
 Basis Universal formats and Zstd supercompression.[`tools/toktx`](https://github.com/KhronosGroup/KTX-Software/tree/main/tools/toktx)
 
