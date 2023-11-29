@@ -250,8 +250,7 @@ InstancedSampleBase::cleanup()
         glDeleteProgram(gnInstancingProg);
         glDeleteBuffers(2, quad.gnVbo);
         glDeleteVertexArrays(1, &quad.gnVao);
-        if (uboVS.instance)
-            delete uboVS.instance;
+        delete uboVS.instance;
     }
     assert(GL_NO_ERROR == glGetError());
 }
