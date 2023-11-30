@@ -555,6 +555,11 @@ struct OptionsASTC : public ktxAstcParams {
     inline static const char* kAstcQuality = "astc-quality";
     inline static const char* kAstcPerceptual = "astc-perceptual";
 
+    inline static const char* kAstcOptions[] = {
+        kAstcQuality,
+        kAstcPerceptual
+    };
+
     std::string astcOptions{};
     bool encodeASTC = false;
     ClampedOption<ktx_uint32_t> qualityLevel{ktxAstcParams::qualityLevel, 0, KTX_PACK_ASTC_QUALITY_LEVEL_MAX};
@@ -900,6 +905,12 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
                 numFaces,
                 numBaseDepths,
                 options.inputFilepaths.size(), expectedInputImages);
+    }
+
+    if (!isFormatAstc(options.vkFormat)) {
+        for (const char* astcOption : OptionsASTC::kAstcOptions)
+            if (args[astcOption].count())
+                fatal_usage("--{} can only be used with ASTC formats.", astcOption);
     }
 
     if (options.codec == EncodeCodec::BasisLZ) {
