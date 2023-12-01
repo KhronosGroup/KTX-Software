@@ -160,19 +160,21 @@ void Tools::printUsage(std::ostream& os, const cxxopts::Options& options) {
 KTX_COMMAND_BUILTIN(ktxCreate)
 KTX_COMMAND_BUILTIN(ktxExtract)
 KTX_COMMAND_BUILTIN(ktxEncode)
+KTX_COMMAND_BUILTIN(ktxEncodeAstc)
 KTX_COMMAND_BUILTIN(ktxTranscode)
 KTX_COMMAND_BUILTIN(ktxInfo)
 KTX_COMMAND_BUILTIN(ktxValidate)
 KTX_COMMAND_BUILTIN(ktxHelp)
 
 std::unordered_map<std::string, ktx::pfnBuiltinCommand> builtinCommands = {
-    { "create",     ktxCreate },
-    { "extract",    ktxExtract },
-    { "encode",     ktxEncode },
-    { "transcode",  ktxTranscode },
-    { "info",       ktxInfo },
-    { "validate",   ktxValidate },
-    { "help",       ktxHelp }
+    { "create",          ktxCreate },
+    { "extract",         ktxExtract },
+    { "encode",          ktxEncode },
+    { "encode-astc",     ktxEncodeAstc },
+    { "transcode",       ktxTranscode },
+    { "info",            ktxInfo },
+    { "validate",        ktxValidate },
+    { "help",            ktxHelp }
 };
 
 int main(int argc, char* argv[]) {
