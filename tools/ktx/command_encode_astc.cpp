@@ -23,7 +23,6 @@
 #include <fmt/ostream.h>
 #include <fmt/printf.h>
 
-
 namespace ktx {
 
 /** @page ktx_encode_astc ktx encode_astc
@@ -45,7 +44,7 @@ Encode a KTX2 file.
 
     The following options are available:
     <dl>
-        @snippet{doc} ktx/encode_utils.h command options_codec
+        @snippet{doc} ktx/astc_utils.h command options_astc
         @snippet{doc} ktx/metrics_utils.h command options_metrics
     </dl>
     @snippet{doc} ktx/compress_utils.h command options_compress

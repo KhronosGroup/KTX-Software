@@ -601,30 +601,7 @@ Create a KTX2 file from various input files.
             otherwise they are ignored.<br />
             The format will be used to verify and load all input files into a texture before encoding.<br />
             Case insensitive. Required.</dd>
-        <dl>
-            <dt>\--astc-quality &lt;level&gt;</dt>
-            <dd>The quality level configures the quality-performance
-                tradeoff for the compressor; more complete searches of the
-                search space improve image quality at the expense of
-                compression time. Default is 'medium'. The quality level can be
-                set between fastest (0) and exhaustive (100) via the
-                following fixed quality presets:
-                <table>
-                    <tr><th>Level      </th> <th> Quality                      </th></tr>
-                    <tr><td>fastest    </td> <td>(equivalent to quality =   0) </td></tr>
-                    <tr><td>fast       </td> <td>(equivalent to quality =  10) </td></tr>
-                    <tr><td>medium     </td> <td>(equivalent to quality =  60) </td></tr>
-                    <tr><td>thorough   </td> <td>(equivalent to quality =  98) </td></tr>
-                    <tr><td>exhaustive </td> <td>(equivalent to quality = 100) </td></tr>
-                </table>
-            </dd>
-            <dt>\--astc-perceptual</dt>
-            <dd>The codec should optimize for perceptual error, instead of
-                direct RMS error. This aims to improve perceived image quality,
-                but typically lowers the measured PSNR score. Perceptual
-                methods are currently only available for normal maps and RGB
-                color data.</dd>
-        </dl>
+			@snippet{doc} ktx/astc_utils.h command options_astc
         <dt>\--1d</dt>
         <dd>Create a 1D texture. If not set the texture will be a 2D or 3D texture.</dd>
         <dt>\--cubemap</dt>
