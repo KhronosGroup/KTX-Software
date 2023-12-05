@@ -17,6 +17,7 @@
 #include <fmt/ostream.h>
 #include <fmt/printf.h>
 #include "ktx.h"
+#include "astc_utils.h"
 #include "image.hpp"
 #include "imageio.h"
 
@@ -94,7 +95,7 @@ struct OptionsCreate {
 
     void init(cxxopts::Options& opts) {
         opts.add_options()
-                (kFormat, "KTX format enum that specifies the image data format."
+                (kFormat, "The data format of the images in the output KTX file."
                     " The enum names are matching the VkFormats without the VK_FORMAT_ prefix."
                     " The VK_FORMAT_ prefix is ignored if present."
                     "\nWhen used with --encode it specifies the format of the input files before the encoding step."
@@ -551,84 +552,6 @@ struct OptionsCreate {
     }
 };
 
-struct OptionsASTC : public ktxAstcParams {
-    inline static const char* kAstcQuality = "astc-quality";
-    inline static const char* kAstcPerceptual = "astc-perceptual";
-
-    std::string astcOptions{};
-    bool encodeASTC = false;
-    ClampedOption<ktx_uint32_t> qualityLevel{ktxAstcParams::qualityLevel, 0, KTX_PACK_ASTC_QUALITY_LEVEL_MAX};
-
-    OptionsASTC() : ktxAstcParams() {
-        threadCount = std::thread::hardware_concurrency();
-        if (threadCount == 0)
-            threadCount = 1;
-        structSize = sizeof(ktxAstcParams);
-        normalMap = false;
-        for (int i = 0; i < 4; i++)
-            inputSwizzle[i] = 0;
-        qualityLevel.clear();
-    }
-
-    void init(cxxopts::Options& opts) {
-        opts.add_options("Encode ASTC")
-                (kAstcQuality,
-                        "The quality level configures the quality-performance tradeoff for "
-                        "the compressor; more complete searches of the search space "
-                        "improve image quality at the expense of compression time. Default "
-                        "is 'medium'. The quality level can be set between fastest (0) and "
-                        "exhaustive (100) via the following fixed quality presets:\n\n"
-                        "    Level      |  Quality\n"
-                        "    ---------- | -----------------------------\n"
-                        "    fastest    | (equivalent to quality =   0)\n"
-                        "    fast       | (equivalent to quality =  10)\n"
-                        "    medium     | (equivalent to quality =  60)\n"
-                        "    thorough   | (equivalent to quality =  98)\n"
-                        "    exhaustive | (equivalent to quality = 100)",
-                        cxxopts::value<std::string>(), "<level>")
-                (kAstcPerceptual,
-                        "The codec should optimize for perceptual error, instead of direct "
-                        "RMS error. This aims to improve perceived image quality, but "
-                        "typically lowers the measured PSNR score. Perceptual methods are "
-                        "currently only available for normal maps and RGB color data.");
-    }
-
-    void captureASTCOption(const char* name) {
-        astcOptions += fmt::format(" --{}", name);
-    }
-
-    template <typename T>
-    T captureASTCOption(cxxopts::ParseResult& args, const char* name) {
-        const T value = args[name].as<T>();
-        astcOptions += fmt::format(" --{} {}", name, value);
-        return value;
-    }
-
-    void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
-        if (args[kAstcQuality].count()) {
-            static std::unordered_map<std::string, ktx_pack_astc_quality_levels_e> astc_quality_mapping{
-                    {"fastest", KTX_PACK_ASTC_QUALITY_LEVEL_FASTEST},
-                    {"fast", KTX_PACK_ASTC_QUALITY_LEVEL_FAST},
-                    {"medium", KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM},
-                    {"thorough", KTX_PACK_ASTC_QUALITY_LEVEL_THOROUGH},
-                    {"exhaustive", KTX_PACK_ASTC_QUALITY_LEVEL_EXHAUSTIVE}
-            };
-            const auto qualityLevelStr = to_lower_copy(captureASTCOption<std::string>(args, kAstcQuality));
-            const auto it = astc_quality_mapping.find(qualityLevelStr);
-            if (it == astc_quality_mapping.end())
-                report.fatal_usage("Invalid astc-quality: \"{}\"", qualityLevelStr);
-            qualityLevel = it->second;
-        } else {
-            qualityLevel = KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM;
-        }
-
-        if (args[kAstcPerceptual].count()) {
-            captureASTCOption(kAstcPerceptual);
-            perceptual = KTX_TRUE;
-        }
-    }
-};
-
 // -------------------------------------------------------------------------------------------------
 
 /** @page ktx_create ktx create
@@ -659,7 +582,7 @@ Create a KTX2 file from various input files.
     The following options are available:
     <dl>
         <dt>\--format &lt;enum&gt;</dt>
-        <dd>KTX format enum that specifies the image data format.
+        <dd>The data format of the images in the output KTX file.
             The enum names are matching the VkFormats without the VK_FORMAT_ prefix.
             The VK_FORMAT_ prefix is ignored if present.<br />
             When used with --encode it specifies the format of the input files before the encoding step.
@@ -678,30 +601,7 @@ Create a KTX2 file from various input files.
             otherwise they are ignored.<br />
             The format will be used to verify and load all input files into a texture before encoding.<br />
             Case insensitive. Required.</dd>
-        <dl>
-            <dt>\--astc-quality &lt;level&gt;</dt>
-            <dd>The quality level configures the quality-performance
-                tradeoff for the compressor; more complete searches of the
-                search space improve image quality at the expense of
-                compression time. Default is 'medium'. The quality level can be
-                set between fastest (0) and exhaustive (100) via the
-                following fixed quality presets:
-                <table>
-                    <tr><th>Level      </th> <th> Quality                      </th></tr>
-                    <tr><td>fastest    </td> <td>(equivalent to quality =   0) </td></tr>
-                    <tr><td>fast       </td> <td>(equivalent to quality =  10) </td></tr>
-                    <tr><td>medium     </td> <td>(equivalent to quality =  60) </td></tr>
-                    <tr><td>thorough   </td> <td>(equivalent to quality =  98) </td></tr>
-                    <tr><td>exhaustive </td> <td>(equivalent to quality = 100) </td></tr>
-                </table>
-            </dd>
-            <dt>\--astc-perceptual</dt>
-            <dd>The codec should optimize for perceptual error, instead of
-                direct RMS error. This aims to improve perceived image quality,
-                but typically lowers the measured PSNR score. Perceptual
-                methods are currently only available for normal maps and RGB
-                color data.</dd>
-        </dl>
+            @snippet{doc} ktx/astc_utils.h command options_astc
         <dt>\--1d</dt>
         <dd>Create a 1D texture. If not set the texture will be a 2D or 3D texture.</dd>
         <dt>\--cubemap</dt>
