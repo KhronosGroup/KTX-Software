@@ -62,10 +62,6 @@ Encode a KTX2 file.
     - Wasim Abbas, Arm Ltd. www.arm.com
 */
 class CommandEncodeAstc : public Command {
-    enum {
-        all = -1,
-    };
-
     struct OptionsEncode {
         void init(cxxopts::Options& opts);
         void process(cxxopts::Options& opts, cxxopts::ParseResult& args, Reporter& report);
@@ -81,8 +77,6 @@ public:
 private:
     void executeEncodeAstc();
 };
-
-// -------------------------------------------------------------------------------------------------
 
 int CommandEncodeAstc::main(int argc, char* argv[]) {
     try {
@@ -124,7 +118,7 @@ void CommandEncodeAstc::executeEncodeAstc() {
     if (ret != KTX_SUCCESS)
         fatal(rc::INVALID_FILE, "Failed to create KTX2 texture: {}", ktxErrorString(ret));
 
-    if (texture->supercompressionScheme != KTX_SS_NONE)
+    if (texture->supercompressionScheme == KTX_SS_BASIS_LZ) // This also means it supports BEGIN_VENDOR_RANGE - END_VENDOR_RANGE and RESERVED
         fatal(rc::INVALID_FILE, "Cannot encode KTX2 file with {} supercompression.",
             toString(ktxSupercmpScheme(texture->supercompressionScheme)));
 
@@ -163,9 +157,12 @@ void CommandEncodeAstc::executeEncodeAstc() {
 
     MetricsCalculator metrics;
     metrics.saveReferenceImages(texture, options, *this);
+
+	options.mode = KTX_PACK_ASTC_ENCODER_MODE_LDR; // TODO: Fix me for HDR textures
     ret = ktxTexture2_CompressAstcEx(texture, &options);
     if (ret != KTX_SUCCESS)
         fatal(rc::IO_FAILURE, "Failed to encode KTX2 file with codec \"{}\". KTX Error: {}", ktxErrorString(ret));
+
     metrics.decodeAndCalculateMetrics(texture, options, *this);
 
     if (options.zstd) {

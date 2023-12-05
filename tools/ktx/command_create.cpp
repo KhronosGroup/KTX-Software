@@ -95,7 +95,7 @@ struct OptionsCreate {
 
     void init(cxxopts::Options& opts) {
         opts.add_options()
-                (kFormat, "KTX format enum that specifies the image data format."
+                (kFormat, "The data format of the images in the output KTX file."
                     " The enum names are matching the VkFormats without the VK_FORMAT_ prefix."
                     " The VK_FORMAT_ prefix is ignored if present."
                     "\nWhen used with --encode it specifies the format of the input files before the encoding step."
@@ -582,7 +582,7 @@ Create a KTX2 file from various input files.
     The following options are available:
     <dl>
         <dt>\--format &lt;enum&gt;</dt>
-        <dd>KTX format enum that specifies the image data format.
+        <dd>The data format of the images in the output KTX file.
             The enum names are matching the VkFormats without the VK_FORMAT_ prefix.
             The VK_FORMAT_ prefix is ignored if present.<br />
             When used with --encode it specifies the format of the input files before the encoding step.
@@ -601,7 +601,7 @@ Create a KTX2 file from various input files.
             otherwise they are ignored.<br />
             The format will be used to verify and load all input files into a texture before encoding.<br />
             Case insensitive. Required.</dd>
-			@snippet{doc} ktx/astc_utils.h command options_astc
+            @snippet{doc} ktx/astc_utils.h command options_astc
         <dt>\--1d</dt>
         <dd>Create a 1D texture. If not set the texture will be a 2D or 3D texture.</dd>
         <dt>\--cubemap</dt>
