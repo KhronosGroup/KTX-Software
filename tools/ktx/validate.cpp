@@ -35,62 +35,6 @@
 
 namespace ktx {
 
-struct DFDHeader {
-    uint32_t vendorId: 17;
-    uint32_t descriptorType: 15;
-    uint32_t versionNumber: 16;
-    uint32_t descriptorBlockSize: 16;
-};
-static_assert(sizeof(DFDHeader) == 8);
-
-struct BDFD {
-    uint32_t vendorId: 17;
-    uint32_t descriptorType: 15;
-    uint32_t versionNumber: 16;
-    uint32_t descriptorBlockSize: 16;
-    uint32_t model: 8;
-    uint32_t primaries: 8;
-    uint32_t transfer: 8;
-    uint32_t flags: 8;
-    uint32_t texelBlockDimension0: 8;
-    uint32_t texelBlockDimension1: 8;
-    uint32_t texelBlockDimension2: 8;
-    uint32_t texelBlockDimension3: 8;
-    std::array<uint8_t, 8> bytesPlanes;
-
-    [[nodiscard]] bool matchTexelBlockDimensions(uint8_t dim0, uint8_t dim1, uint8_t dim2, uint8_t dim3) const {
-        return texelBlockDimension0 == dim0
-                && texelBlockDimension1 == dim1
-                && texelBlockDimension2 == dim2
-                && texelBlockDimension3 == dim3;
-    }
-
-    [[nodiscard]] bool hasNonZeroBytePlane() const {
-        return bytesPlanes[0] != 0 || bytesPlanes[1] != 0
-                || bytesPlanes[2] != 0 || bytesPlanes[3] != 0
-                || bytesPlanes[4] != 0 || bytesPlanes[5] != 0
-                || bytesPlanes[6] != 0 || bytesPlanes[7] != 0;
-    }
-};
-static_assert(sizeof(BDFD) == 24);
-
-struct SampleType {
-    uint32_t bitOffset: 16;
-    uint32_t bitLength: 8;
-    uint32_t channelType: 4;
-    uint32_t qualifierLinear: 1;
-    uint32_t qualifierExponent: 1;
-    uint32_t qualifierSigned: 1;
-    uint32_t qualifierFloat: 1;
-    uint32_t samplePosition0: 8;
-    uint32_t samplePosition1: 8;
-    uint32_t samplePosition2: 8;
-    uint32_t samplePosition3: 8;
-    uint32_t lower;
-    uint32_t upper;
-};
-static_assert(sizeof(SampleType) == 16);
-
 class FatalValidationError : public std::runtime_error {
 public:
     ValidationReport report;
@@ -100,10 +44,6 @@ public:
         std::runtime_error(report.details),
         report(std::move(report)) {}
 };
-
-static constexpr uint32_t MAX_NUM_DFD_BLOCKS = 10;
-static constexpr uint32_t MAX_NUM_BDFD_SAMPLES = 16;
-static constexpr uint32_t MAX_NUM_KV_ENTRIES = 100;
 
 // -------------------------------------------------------------------------------------------------
 

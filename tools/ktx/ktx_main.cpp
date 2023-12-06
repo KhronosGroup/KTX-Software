@@ -163,6 +163,7 @@ KTX_COMMAND_BUILTIN(ktxEncode)
 KTX_COMMAND_BUILTIN(ktxTranscode)
 KTX_COMMAND_BUILTIN(ktxInfo)
 KTX_COMMAND_BUILTIN(ktxValidate)
+KTX_COMMAND_BUILTIN(ktxCompare)
 KTX_COMMAND_BUILTIN(ktxHelp)
 
 std::unordered_map<std::string, ktx::pfnBuiltinCommand> builtinCommands = {
@@ -172,6 +173,7 @@ std::unordered_map<std::string, ktx::pfnBuiltinCommand> builtinCommands = {
     { "transcode",  ktxTranscode },
     { "info",       ktxInfo },
     { "validate",   ktxValidate },
+    { "compare",    ktxCompare },
     { "help",       ktxHelp }
 };
 
