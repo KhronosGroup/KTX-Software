@@ -77,6 +77,7 @@ enum class ReturnCode {
     DFD_FAILURE = RUNTIME_ERROR,
     NOT_SUPPORTED = 5,
     NOT_IMPLEMENTED = 6,
+    DIFFERENCE_FOUND = 7
 };
 using rc = ReturnCode;
 
@@ -358,6 +359,10 @@ class InputStream {
 public:
     InputStream(const std::string& filepath, Reporter& report);
 
+    const std::string& str() {
+        return filepath;
+    }
+
     /*explicit(false)*/ operator std::istream&() {
         return *activeStream;
     }
@@ -380,6 +385,11 @@ class OutputStream {
 public:
     OutputStream(const std::string& filepath, Reporter& report);
     ~OutputStream();
+
+    const std::string& str() {
+        return filepath;
+    }
+
     void writeKTX2(ktxTexture* texture, Reporter& report);
     void write(const char* data, std::size_t size, Reporter& report);
 };

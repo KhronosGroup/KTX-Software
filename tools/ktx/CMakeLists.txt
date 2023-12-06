@@ -6,6 +6,7 @@
 add_executable(ktxtools
         command.cpp
         command.h
+        command_compare.cpp
         command_create.cpp
         command_encode.cpp
         command_extract.cpp
