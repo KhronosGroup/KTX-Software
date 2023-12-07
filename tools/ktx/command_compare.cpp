@@ -128,9 +128,9 @@ struct DiffIdentifier : public DiffBase<std::array<uint8_t, sizeof(KTX_header2::
             }
         }
         if (format == OutputFormat::text) {
-            return u8identifier;
+            return std::string(u8identifier, idlen);
         } else {
-            return fmt::format("\"{}\"", u8identifier);
+            return fmt::format("\"{}\"", std::string(u8identifier, idlen));
         }
     }
 
