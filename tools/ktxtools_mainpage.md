@@ -23,14 +23,14 @@ ktx Overview
 | @ref ktx_validate | Validate a KTX2 file | `ktx2check` |
 | @ref ktx_help | Display help information about the ktx tools | - |
 
-Equivalent old tools are deprecated and will be removed in the near future.
+Equivalent old tools are deprecated and will be removed soon.
 
-Some features of old tools are not currently available in their new equivalent.
+Some features of old tools are not currently available in the new equivalent.
 
 | Old Tool | New Tool | Missing Features |
 | :------: | :------: | ---------------- |
-| @ref toktx  | @ref ktx_create "create" | JPEG and NBPM input and scaling/resizing. |
-| @ref ktxsc  | @ref ktx_encode "encode" | ASTC encoding. This can be done in `create`. |
+| @ref toktx  | @ref ktx_create "create" | JPEG and NBPM input and scaling/resizing of input images. |
+| @ref ktxsc  | @ref ktx_encode "encode" | ASTC encoding. This can be done in `create`.<br>Deflation of a KTX2 file with zlib or zstd.|
 
 The command-line syntax and semantics differ from the old tools including, but not limited to:
 
