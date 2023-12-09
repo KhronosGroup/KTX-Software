@@ -927,7 +927,7 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
                 fatal_usage("--{} can only be used with ASTC formats.", astcOption);
     }
 
-    if (options.codec == EncodeCodec::BasisLZ) {
+    if (options.codec == BasisCodec::BasisLZ) {
         if (options.zstd.has_value())
             fatal_usage("Cannot encode to BasisLZ and supercompress with Zstd.");
 
@@ -935,7 +935,7 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
             fatal_usage("Cannot encode to BasisLZ and supercompress with ZLIB.");
     }
 
-    if (options.codec != EncodeCodec::NONE) {
+    if (options.codec != BasisCodec::NONE) {
         switch (options.vkFormat) {
         case VK_FORMAT_R8_UNORM:
         case VK_FORMAT_R8_SRGB:
@@ -954,7 +954,7 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
         }
     }
 
-    const auto canCompare = options.codec == EncodeCodec::BasisLZ || options.codec == EncodeCodec::UASTC;
+    const auto canCompare = options.codec == BasisCodec::BasisLZ || options.codec == BasisCodec::UASTC;
     if (options.compare_ssim && !canCompare)
         fatal_usage("--compare-ssim can only be used with BasisLZ or UASTC encoding.");
     if (options.compare_psnr && !canCompare)
@@ -1291,7 +1291,7 @@ void CommandCreate::encode(KTXTexture2& texture, OptionsCodec<false>& opts) {
     MetricsCalculator metrics;
     metrics.saveReferenceImages(texture, options, *this);
 
-    if (opts.codec != EncodeCodec::NONE) {
+    if (opts.codec != BasisCodec::NONE) {
         auto ret = ktxTexture2_CompressBasisEx(texture, &opts);
         if (ret != KTX_SUCCESS)
             fatal(rc::KTX_FAILURE, "Failed to encode KTX2 file with codec \"{}\". KTX Error: {}",
