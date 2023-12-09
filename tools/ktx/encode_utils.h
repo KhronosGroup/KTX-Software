@@ -150,7 +150,7 @@ enum class EncodeCodec {
 //! [command options_codec]
 */
 template <bool ENCODE_CMD>
-struct OptionsCodec {
+struct OptionsCodec : public ktxBasisParams {
     inline static const char* kCLevel = "clevel";
     inline static const char* kQLevel = "qlevel";
     inline static const char* kMaxEndpoints = "max-endpoints";
@@ -167,72 +167,57 @@ struct OptionsCodec {
     inline static const char* kUastcRdoS = "uastc-rdo-s";
     inline static const char* kUastcRdoF = "uastc-rdo-f";
     inline static const char* kUastcRdoM = "uastc-rdo-m";
-    inline static const char* kNormalMode = "normal-mode";
-    inline static const char* kThreads = "threads";
-    inline static const char* kNoSse = "no-sse";
 
-    struct BasisOptions : public ktxBasisParams {
-        // The remaining numeric fields are clamped within the Basis
-        // library.
-        ClampedOption<ktx_uint32_t> threadCount;
-        ClampedOption<ktx_uint32_t> qualityLevel;
-        ClampedOption<ktx_uint32_t> maxEndpoints;
-        ClampedOption<ktx_uint32_t> maxSelectors;
-        ClampedOption<ktx_uint32_t> uastcRDODictSize;
-        ClampedOption<float> uastcRDOQualityScalar;
-        ClampedOption<float> uastcRDOMaxSmoothBlockErrorScale;
-        ClampedOption<float> uastcRDOMaxSmoothBlockStdDev;
+    // The remaining numeric fields are clamped within the Basis library
+    ClampedOption<ktx_uint32_t> qualityLevel;
+    ClampedOption<ktx_uint32_t> maxEndpoints;
+    ClampedOption<ktx_uint32_t> maxSelectors;
+    ClampedOption<ktx_uint32_t> uastcRDODictSize;
+    ClampedOption<float> uastcRDOQualityScalar;
+    ClampedOption<float> uastcRDOMaxSmoothBlockErrorScale;
+    ClampedOption<float> uastcRDOMaxSmoothBlockStdDev;
 
-        BasisOptions() :
-            threadCount(ktxBasisParams::threadCount, 1, 10000),
-            qualityLevel(ktxBasisParams::qualityLevel, 1, 255),
-            maxEndpoints(ktxBasisParams::maxEndpoints, 1, 16128),
-            maxSelectors(ktxBasisParams::maxSelectors, 1, 16128),
-            uastcRDODictSize(ktxBasisParams::uastcRDODictSize, 256, 65536),
-            uastcRDOQualityScalar(ktxBasisParams::uastcRDOQualityScalar,
-                                    0.001f, 50.0f),
-            uastcRDOMaxSmoothBlockErrorScale(
-                            ktxBasisParams::uastcRDOMaxSmoothBlockErrorScale,
-                            1.0f, 300.0f),
-            uastcRDOMaxSmoothBlockStdDev(
-                            ktxBasisParams::uastcRDOMaxSmoothBlockStdDev,
-                            0.01f, 65536.0f)
-        {
-            uint32_t tc = std::thread::hardware_concurrency();
-            if (tc == 0) tc = 1;
-            threadCount.max = tc;
-            threadCount = tc;
-
-            structSize = sizeof(ktxBasisParams);
-            // - 1 is to match what basisu_tool does (since 1.13).
-            compressionLevel = KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL - 1;
-            qualityLevel.clear();
-            maxEndpoints.clear();
-            endpointRDOThreshold = 0.0f;
-            maxSelectors.clear();
-            selectorRDOThreshold = 0.0f;
-            normalMap = false;
-            separateRGToRGB_A = false;
-            preSwizzle = false;
-            noEndpointRDO = false;
-            noSelectorRDO = false;
-            uastc = false; // Default to ETC1S.
-            uastcRDO = false;
-            uastcFlags = KTX_PACK_UASTC_LEVEL_DEFAULT;
-            uastcRDODictSize.clear();
-            uastcRDOQualityScalar.clear();
-            uastcRDODontFavorSimplerModes = false;
-            uastcRDONoMultithreading = false;
-            noSSE = false;
-            verbose = false; // Default to quiet operation.
-            for (int i = 0; i < 4; i++) inputSwizzle[i] = 0;
-        }
-    };
+    OptionsCodec() :
+        qualityLevel(ktxBasisParams::qualityLevel, 1, 255),
+        maxEndpoints(ktxBasisParams::maxEndpoints, 1, 16128),
+        maxSelectors(ktxBasisParams::maxSelectors, 1, 16128),
+        uastcRDODictSize(ktxBasisParams::uastcRDODictSize, 256, 65536),
+        uastcRDOQualityScalar(ktxBasisParams::uastcRDOQualityScalar,
+                              0.001f, 50.0f),
+        uastcRDOMaxSmoothBlockErrorScale(
+            ktxBasisParams::uastcRDOMaxSmoothBlockErrorScale,
+            1.0f, 300.0f),
+        uastcRDOMaxSmoothBlockStdDev(
+            ktxBasisParams::uastcRDOMaxSmoothBlockStdDev,
+            0.01f, 65536.0f) {
+        structSize = sizeof(ktxBasisParams);
+        // - 1 is to match what basisu_tool does (since 1.13).
+        compressionLevel = KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL - 1;
+        qualityLevel.clear();
+        maxEndpoints.clear();
+        endpointRDOThreshold = 0.0f;
+        maxSelectors.clear();
+        selectorRDOThreshold = 0.0f;
+        normalMap = false;
+        separateRGToRGB_A = false;
+        preSwizzle = false;
+        noEndpointRDO = false;
+        noSelectorRDO = false;
+        uastc = false; // Default to ETC1S.
+        uastcRDO = false;
+        uastcFlags = KTX_PACK_UASTC_LEVEL_DEFAULT;
+        uastcRDODictSize.clear();
+        uastcRDOQualityScalar.clear();
+        uastcRDODontFavorSimplerModes = false;
+        uastcRDONoMultithreading = false;
+        noSSE = false;
+        verbose = false; // Default to quiet operation.
+        for (int i = 0; i < 4; i++) inputSwizzle[i] = 0;
+    }
 
     std::string codecOptions{};
     std::string codecName;
     EncodeCodec codec;
-    BasisOptions basisOpts;
 
     void init(cxxopts::Options& opts) {
         opts.add_options("Encode BasisLZ")
@@ -326,14 +311,14 @@ struct OptionsCodec {
 
     void validateBasisLZEndpointRDOArg(Reporter& report, const char* name) {
         validateBasisLZArg(report, name);
-        if (basisOpts.noEndpointRDO)
+        if (noEndpointRDO)
             report.fatal(rc::INVALID_ARGUMENTS,
                 "Invalid use of argument --{} when endpoint RDO is disabled.", name);
     }
 
     void validateBasisLZSelectorRDOArg(Reporter& report, const char* name) {
         validateBasisLZArg(report, name);
-        if (basisOpts.noSelectorRDO)
+        if (noSelectorRDO)
             report.fatal(rc::INVALID_ARGUMENTS,
                 "Invalid use of argument --{} when selector RDO is disabled.", name);
     }
@@ -346,7 +331,7 @@ struct OptionsCodec {
 
     void validateUASTCRDOArg(Reporter& report, const char* name) {
         validateUASTCArg(report, name);
-        if (!basisOpts.uastcRDO)
+        if (!uastcRDO)
             report.fatal(rc::INVALID_ARGUMENTS,
                 "Invalid use of argument --{} when UASTC RDO post-processing was not enabled.", name);
     }
@@ -389,97 +374,97 @@ struct OptionsCodec {
         }
 
         if (codec == EncodeCodec::UASTC) {
-            basisOpts.uastc = 1;
+            uastc = 1;
         }
 
         // NOTE: The order of the validation below matters
 
         if (args[kCLevel].count()) {
             validateBasisLZArg(report, kCLevel);
-            basisOpts.compressionLevel = captureCodecOption<uint32_t>(args, kCLevel);;
+            compressionLevel = captureCodecOption<uint32_t>(args, kCLevel);;
         }
 
         if (args[kQLevel].count()) {
             validateBasisLZArg(report, kQLevel);
-            basisOpts.qualityLevel = captureCodecOption<uint32_t>(args, kQLevel);
+            qualityLevel = captureCodecOption<uint32_t>(args, kQLevel);
         }
 
         if (args[kNoEndpointRdo].count()) {
             validateBasisLZArg(report, kNoEndpointRdo);
             captureCodecOption(kNoEndpointRdo);
-            basisOpts.noEndpointRDO = 1;
+            noEndpointRDO = 1;
         }
 
         if (args[kNoSelectorRdo].count()) {
             validateBasisLZArg(report, kNoSelectorRdo);
             captureCodecOption(kNoSelectorRdo);
-            basisOpts.noSelectorRDO = 1;
+            noSelectorRDO = 1;
         }
 
         if (args[kMaxEndpoints].count()) {
             validateBasisLZEndpointRDOArg(report, kMaxEndpoints);
-            basisOpts.maxEndpoints = captureCodecOption<uint32_t>(args, kMaxEndpoints);
+            maxEndpoints = captureCodecOption<uint32_t>(args, kMaxEndpoints);
         }
 
         if (args[kEndpointRdoThreshold].count()) {
             validateBasisLZEndpointRDOArg(report, kEndpointRdoThreshold);
-            basisOpts.endpointRDOThreshold = captureCodecOption<float>(args, kEndpointRdoThreshold);
+            endpointRDOThreshold = captureCodecOption<float>(args, kEndpointRdoThreshold);
         }
 
         if (args[kMaxSelectors].count()) {
             validateBasisLZSelectorRDOArg(report, kMaxSelectors);
-            basisOpts.maxSelectors = captureCodecOption<uint32_t>(args, kMaxSelectors);
+            maxSelectors = captureCodecOption<uint32_t>(args, kMaxSelectors);
         }
 
         if (args[kSelectorRdoThreshold].count()) {
             validateBasisLZSelectorRDOArg(report, kSelectorRdoThreshold);
-            basisOpts.selectorRDOThreshold = captureCodecOption<float>(args, kSelectorRdoThreshold);
+            selectorRDOThreshold = captureCodecOption<float>(args, kSelectorRdoThreshold);
         }
 
         if (args[kUastcQuality].count()) {
             validateUASTCArg(report, kUastcQuality);
             uint32_t level = captureCodecOption<uint32_t>(args, kUastcQuality);
             level = std::clamp<uint32_t>(level, 0, KTX_PACK_UASTC_MAX_LEVEL);
-            basisOpts.uastcFlags = (unsigned int)~KTX_PACK_UASTC_LEVEL_MASK;
-            basisOpts.uastcFlags |= level;
+            uastcFlags = (unsigned int)~KTX_PACK_UASTC_LEVEL_MASK;
+            uastcFlags |= level;
         }
 
         if (args[kUastcRdo].count()) {
             validateUASTCArg(report, kUastcRdo);
             captureCodecOption(kUastcRdo);
-            basisOpts.uastcRDO = 1;
+            uastcRDO = 1;
         }
 
         if (args[kUastcRdoL].count()) {
             validateUASTCRDOArg(report, kUastcRdoL);
-            basisOpts.uastcRDOQualityScalar = captureCodecOption<float>(args, kUastcRdoL);
+            uastcRDOQualityScalar = captureCodecOption<float>(args, kUastcRdoL);
         }
 
         if (args[kUastcRdoD].count()) {
             validateUASTCRDOArg(report, kUastcRdoD);
-            basisOpts.uastcRDODictSize = captureCodecOption<uint32_t>(args, kUastcRdoD);
+            uastcRDODictSize = captureCodecOption<uint32_t>(args, kUastcRdoD);
         }
 
         if (args[kUastcRdoB].count()) {
             validateUASTCRDOArg(report, kUastcRdoB);
-            basisOpts.uastcRDOMaxSmoothBlockErrorScale = captureCodecOption<float>(args, kUastcRdoB);
+            uastcRDOMaxSmoothBlockErrorScale = captureCodecOption<float>(args, kUastcRdoB);
         }
 
         if (args[kUastcRdoS].count()) {
             validateUASTCRDOArg(report, kUastcRdoS);
-            basisOpts.uastcRDOMaxSmoothBlockStdDev = captureCodecOption<float>(args, kUastcRdoS);
+            uastcRDOMaxSmoothBlockStdDev = captureCodecOption<float>(args, kUastcRdoS);
         }
 
         if (args[kUastcRdoF].count()) {
             validateUASTCRDOArg(report, kUastcRdoF);
             captureCodecOption(kUastcRdoF);
-            basisOpts.uastcRDODontFavorSimplerModes = 1;
+            uastcRDODontFavorSimplerModes = 1;
         }
 
         if (args[kUastcRdoM].count()) {
             validateUASTCRDOArg(report, kUastcRdoM);
             captureCodecOption(kUastcRdoM);
-            basisOpts.uastcRDONoMultithreading = 1;
+            uastcRDONoMultithreading = 1;
         }
     }
 };
