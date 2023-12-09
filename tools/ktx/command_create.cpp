@@ -95,10 +95,11 @@ struct OptionsCreate {
 
     void init(cxxopts::Options& opts) {
         opts.add_options()
-                (kFormat, "The data format of the images in the output KTX file."
+                (kFormat, "VkFormat enum that specifies the data format of the images in the output KTX file."
                     " The enum names are matching the VkFormats without the VK_FORMAT_ prefix."
                     " The VK_FORMAT_ prefix is ignored if present."
-                    "\nWhen used with --encode it specifies the format of the input files before the encoding step."
+                    "\nWhen used with --encode it specifies the format of the texture object created as input to "
+                    " the encoding step before the encoding step."
                     " In this case it must be one of:"
                     "\n    R8_UNORM"
                     "\n    R8_SRGB"
@@ -582,10 +583,11 @@ Create a KTX2 file from various input files.
     The following options are available:
     <dl>
         <dt>\--format &lt;enum&gt;</dt>
-        <dd>The data format of the images in the output KTX file.
+        <dd>VkFormat enum that specifies the data format of the images in the output KTX file.
             The enum names are matching the VkFormats without the VK_FORMAT_ prefix.
             The VK_FORMAT_ prefix is ignored if present.<br />
-            When used with --encode it specifies the format of the input files before the encoding step.
+            When used with --encode it specifies the format of the texture object created as input
+            to the encoding step before the encoding step.
             In this case it must be one of:
             <ul>
                 <li>R8_UNORM</li>

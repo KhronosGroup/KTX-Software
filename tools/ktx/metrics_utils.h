@@ -94,22 +94,22 @@ public:
         KTXTexture2 texture{static_cast<ktxTexture2*>(malloc(sizeof(ktxTexture2)))};
         ktxTexture2_constructCopy(texture, encodedTexture);
 
-		// Start with a default swizzle
+        // Start with a default swizzle
         TranscodeSwizzleInfo  tSwizzleInfo{};
-		tSwizzleInfo.defaultNumComponents = 4;
-		tSwizzleInfo.swizzle = "rgba";
+        tSwizzleInfo.defaultNumComponents = 4;
+        tSwizzleInfo.swizzle = "rgba";
 
         ktx_error_code_e ec = KTX_SUCCESS;
         // Decode the encoded texture to observe the compression losses
-		if (isFormatAstc((VkFormat)texture->vkFormat))
-		{
-			ec = ktxTexture2_DecodeAstc(texture, VK_FORMAT_R8G8B8A8_UNORM);
-		}
-		else
-		{
-			ec = ktxTexture2_TranscodeBasis(texture, KTX_TTF_RGBA32, 0);
-			tSwizzleInfo = determineTranscodeSwizzle(texture, report);
-		}
+        if (isFormatAstc((VkFormat)texture->vkFormat))
+        {
+            ec = ktxTexture2_DecodeAstc(texture, VK_FORMAT_R8G8B8A8_UNORM);
+        }
+        else
+        {
+            ec = ktxTexture2_TranscodeBasis(texture, KTX_TTF_RGBA32, 0);
+            tSwizzleInfo = determineTranscodeSwizzle(texture, report);
+        }
         if (ec != KTX_SUCCESS)
             report.fatal(rc::KTX_FAILURE, "Failed to transcode KTX2 texture to calculate error metrics: {}", ktxErrorString(ec));
 

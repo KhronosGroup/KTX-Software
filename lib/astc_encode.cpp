@@ -360,7 +360,7 @@ astcSwizzle(const ktxAstcParams &params) {
 
 static void
 astcBlockDimensions(ktx_uint32_t block_size,
-					uint32_t& block_x, uint32_t& block_y, uint32_t& block_z) {
+                    uint32_t& block_x, uint32_t& block_y, uint32_t& block_z) {
     switch (block_size) {
     case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4 : block_x = 4; block_y = 4; block_z = 1; break;
     case KTX_PACK_ASTC_BLOCK_DIMENSION_5x4 : block_x = 5; block_y = 4; block_z = 1; break;
@@ -393,7 +393,7 @@ astcBlockDimensions(ktx_uint32_t block_size,
 
 static void
 astcBlockDimensions(VkFormat format,
-					uint32_t &x, uint32_t &y, uint32_t &z) noexcept {
+                    uint32_t &x, uint32_t &y, uint32_t &z) noexcept {
     switch (format) {
     case VK_FORMAT_ASTC_4x4_UNORM_BLOCK:     x = 4; y = 4; z = 0; break;
     case VK_FORMAT_ASTC_4x4_SRGB_BLOCK:      x = 4; y = 4; z = 0; break;
@@ -887,12 +887,12 @@ ktxTexture2_CompressAstc(ktxTexture2* This, ktx_uint32_t quality) {
 
 struct decompression_workload
 {
-	astcenc_context* context;
-	uint8_t* data;
-	size_t data_len;
-	astcenc_image* image_out;
-	astcenc_swizzle swizzle;
-	astcenc_error error;
+    astcenc_context* context;
+    uint8_t* data;
+    size_t data_len;
+    astcenc_image* image_out;
+    astcenc_swizzle swizzle;
+    astcenc_error error;
 };
 
 /**
@@ -903,17 +903,17 @@ struct decompression_workload
  * @param payload        The parameters for this thread.
  */
 static void decompression_workload_runner(int thread_count, int thread_id, void* payload) {
-	(void)thread_count;
+    (void)thread_count;
 
-	decompression_workload* work = static_cast<decompression_workload*>(payload);
-	astcenc_error error = astcenc_decompress_image(work->context, work->data, work->data_len,
-												   work->image_out, &work->swizzle, thread_id);
-	// This is a racy update, so which error gets returned is a random, but it
-	// will reliably report an error if an error occurs
-	if (error != ASTCENC_SUCCESS)
-	{
-		work->error = error;
-	}
+    decompression_workload* work = static_cast<decompression_workload*>(payload);
+    astcenc_error error = astcenc_decompress_image(work->context, work->data, work->data_len,
+                                                   work->image_out, &work->swizzle, thread_id);
+    // This is a racy update, so which error gets returned is a random, but it
+    // will reliably report an error if an error occurs
+    if (error != ASTCENC_SUCCESS)
+    {
+        work->error = error;
+    }
 }
 
 /**
@@ -925,7 +925,7 @@ static void decompression_workload_runner(int thread_count, int thread_id, void*
 // will update "This" with the uncompressed copy
 KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture2_DecodeAstc(ktxTexture2 *This, ktx_uint32_t vkformat) {
-	// Decompress This using astc-encoder
+    // Decompress This using astc-encoder
     uint32_t* BDB = This->pDfd + 1;
     khr_df_model_e colorModel = (khr_df_model_e)KHR_DFDVAL(BDB, MODEL);
     if (colorModel != KHR_DF_MODEL_ASTC && This->supercompressionScheme != KTX_SS_NONE) // No supercompression supported yet
@@ -935,12 +935,12 @@ ktxTexture2_DecodeAstc(ktxTexture2 *This, ktx_uint32_t vkformat) {
 
     DECLARE_PRIVATE(priv, This);
 
-	uint32_t channelId = KHR_DFDSVAL(BDB, 0, CHANNELID);
-	if (channelId == KHR_DF_CHANNEL_ASTC_DATA) {
-		// Found astc data
-	}
-	else
-		return KTX_FILE_DATA_ERROR;
+    uint32_t channelId = KHR_DFDSVAL(BDB, 0, CHANNELID);
+    if (channelId == KHR_DF_CHANNEL_ASTC_DATA) {
+        // Found astc data
+    }
+    else
+        return KTX_FILE_DATA_ERROR;
 
     // Create a prototype texture to use for calculating sizes in the target
     // format and, as useful side effects, provide us with a properly sized
@@ -984,7 +984,7 @@ ktxTexture2_DecodeAstc(ktxTexture2 *This, ktx_uint32_t vkformat) {
         }
     }
 
-	// This is where I do the decompression from "This" to prototype target
+    // This is where I do the decompression from "This" to prototype target
     astcenc_profile profile{ASTCENC_PRF_LDR_SRGB};
     astcenc_swizzle swizzle{ASTCENC_SWZ_R, ASTCENC_SWZ_G, ASTCENC_SWZ_B, ASTCENC_SWZ_A};
 
@@ -994,7 +994,7 @@ ktxTexture2_DecodeAstc(ktxTexture2 *This, ktx_uint32_t vkformat) {
     float           quality{ASTCENC_PRE_MEDIUM};
     uint32_t        flags{0}; // TODO: Use normals mode to reconstruct normals params->normalMap ? ASTCENC_FLG_MAP_NORMAL : 0};
 
-	astcBlockDimensions((VkFormat)vkformat, block_size_x, block_size_y, block_size_z);
+    astcBlockDimensions((VkFormat)This->vkFormat, block_size_x, block_size_y, block_size_z);
 
     // quality = astcQuality(params->qualityLevel);
     // profile = astcEncoderAction(*params, BDB);
@@ -1002,7 +1002,7 @@ ktxTexture2_DecodeAstc(ktxTexture2 *This, ktx_uint32_t vkformat) {
 
     // if(params->perceptual) flags |= ASTCENC_FLG_USE_PERCEPTUAL;
 
-	uint32_t threadCount{1}; // Decompression isn't the bottlneck and only used when checking for psnr and ssim
+    uint32_t threadCount{1}; // Decompression isn't the bottlneck and only used when checking for psnr and ssim
     astcenc_config   astc_config;
     astcenc_context *astc_context;
     astcenc_error astc_error = astcenc_config_init(profile,
@@ -1018,69 +1018,69 @@ ktxTexture2_DecodeAstc(ktxTexture2 *This, ktx_uint32_t vkformat) {
     if (astc_error != ASTCENC_SUCCESS)
         return KTX_INVALID_OPERATION;
 
-	decompression_workload work;
-	work.context = astc_context;
-	work.swizzle = swizzle;
-	work.error = ASTCENC_SUCCESS;
+    decompression_workload work;
+    work.context = astc_context;
+    work.swizzle = swizzle;
+    work.error = ASTCENC_SUCCESS;
 
-	for (uint32_t levelIndex = 0; levelIndex < This->numLevels; ++levelIndex) {
-		const uint32_t imageWidth = std::max(This->baseWidth >> levelIndex, 1u);
-		const uint32_t imageHeight = std::max(This->baseHeight >> levelIndex, 1u);
-		const uint32_t imageDepths = std::max(This->baseDepth >> levelIndex, 1u);
+    for (uint32_t levelIndex = 0; levelIndex < This->numLevels; ++levelIndex) {
+        const uint32_t imageWidth = std::max(This->baseWidth >> levelIndex, 1u);
+        const uint32_t imageHeight = std::max(This->baseHeight >> levelIndex, 1u);
+        const uint32_t imageDepths = std::max(This->baseDepth >> levelIndex, 1u);
 
-		for (uint32_t layerIndex = 0; layerIndex < This->numLayers; ++layerIndex) {
-			for (uint32_t faceIndex = 0; faceIndex < This->numFaces; ++faceIndex) {
-				for (uint32_t depthSliceIndex = 0; depthSliceIndex < imageDepths; ++depthSliceIndex) {
+        for (uint32_t layerIndex = 0; layerIndex < This->numLayers; ++layerIndex) {
+            for (uint32_t faceIndex = 0; faceIndex < This->numFaces; ++faceIndex) {
+                for (uint32_t depthSliceIndex = 0; depthSliceIndex < imageDepths; ++depthSliceIndex) {
 
-					ktx_size_t levelImageSizeIn = ktxTexture_calcImageSize(ktxTexture(This), levelIndex, KTX_FORMAT_VERSION_TWO);
+                    ktx_size_t levelImageSizeIn = ktxTexture_calcImageSize(ktxTexture(This), levelIndex, KTX_FORMAT_VERSION_TWO);
 
-					ktx_size_t imageOffsetIn;
-					ktx_size_t imageOffsetOut;
+                    ktx_size_t imageOffsetIn;
+                    ktx_size_t imageOffsetOut;
 
-					ktxTexture2_GetImageOffset(This, levelIndex, layerIndex, faceIndex + depthSliceIndex, &imageOffsetIn);
-					ktxTexture2_GetImageOffset(prototype, levelIndex, layerIndex, faceIndex + depthSliceIndex, &imageOffsetOut);
+                    ktxTexture2_GetImageOffset(This, levelIndex, layerIndex, faceIndex + depthSliceIndex, &imageOffsetIn);
+                    ktxTexture2_GetImageOffset(prototype, levelIndex, layerIndex, faceIndex + depthSliceIndex, &imageOffsetOut);
 
-					auto* imageDataIn = This->pData + imageOffsetIn;
-					auto* imageDataOut = prototype->pData + imageOffsetOut;
+                    auto* imageDataIn = This->pData + imageOffsetIn;
+                    auto* imageDataOut = prototype->pData + imageOffsetOut;
 
-					astcenc_image imageOut;
-					imageOut.dim_x = imageWidth;
-					imageOut.dim_y = imageHeight;
-					imageOut.dim_z = imageDepths;
-					imageOut.data_type = ASTCENC_TYPE_U8; // TODO: Fix for HDR types
-					imageOut.data = (void**)&imageDataOut; // TODO: Fix for HDR types
+                    astcenc_image imageOut;
+                    imageOut.dim_x = imageWidth;
+                    imageOut.dim_y = imageHeight;
+                    imageOut.dim_z = imageDepths;
+                    imageOut.data_type = ASTCENC_TYPE_U8; // TODO: Fix for HDR types
+                    imageOut.data = (void**)&imageDataOut; // TODO: Fix for HDR types
 
-					work.data = imageDataIn;
-					work.data_len = levelImageSizeIn;
-					work.image_out = &imageOut;
+                    work.data = imageDataIn;
+                    work.data_len = levelImageSizeIn;
+                    work.image_out = &imageOut;
 
-					// Only launch worker threads for multi-threaded use - it makes basic
-					// single-threaded profiling and debugging a little less convoluted
-					if (threadCount > 1) {
-						launchThreads(threadCount, decompression_workload_runner, &work);
-					} else {
-						work.error = astcenc_decompress_image(work.context, work.data, work.data_len,
-															  work.image_out, &work.swizzle, 0);
-					}
+                    // Only launch worker threads for multi-threaded use - it makes basic
+                    // single-threaded profiling and debugging a little less convoluted
+                    if (threadCount > 1) {
+                        launchThreads(threadCount, decompression_workload_runner, &work);
+                    } else {
+                        work.error = astcenc_decompress_image(work.context, work.data, work.data_len,
+                                                              work.image_out, &work.swizzle, 0);
+                    }
 
-					// Reset ASTC context for next image
-					astcenc_decompress_reset(astc_context);
+                    // Reset ASTC context for next image
+                    astcenc_decompress_reset(astc_context);
 
-					if (work.error != ASTCENC_SUCCESS) {
-						std::cout << "ASTC decompressor failed\n" << astcenc_get_error_string(work.error) << std::endl;
+                    if (work.error != ASTCENC_SUCCESS) {
+                        std::cout << "ASTC decompressor failed\n" << astcenc_get_error_string(work.error) << std::endl;
 
-						astcenc_context_free(astc_context);
-						return KTX_INVALID_OPERATION;
-					}
-				}
-			}
-		}
-	}
+                        astcenc_context_free(astc_context);
+                        return KTX_INVALID_OPERATION;
+                    }
+                }
+            }
+        }
+    }
 
-    // We are done with astcencoder
+    // We are done with astcdecoder
     astcenc_context_free(astc_context);
 
-	if (result == KTX_SUCCESS) {
+    if (result == KTX_SUCCESS) {
         // Fix up the current texture
         DECLARE_PROTECTED(thisPrtctd, This);
         DECLARE_PRIVATE(protoPriv, prototype);
