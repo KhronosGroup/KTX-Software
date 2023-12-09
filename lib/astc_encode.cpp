@@ -925,7 +925,7 @@ static void decompression_workload_runner(int thread_count, int thread_id, void*
 // will update "This" with the uncompressed copy
 KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture2_DecodeAstc(ktxTexture2 *This, ktx_uint32_t vkformat) {
-    // Decompress This using astc-encoder
+    // Decompress This using astc-decoder
     uint32_t* BDB = This->pDfd + 1;
     khr_df_model_e colorModel = (khr_df_model_e)KHR_DFDVAL(BDB, MODEL);
     if (colorModel != KHR_DF_MODEL_ASTC && This->supercompressionScheme != KTX_SS_NONE) // No supercompression supported yet
