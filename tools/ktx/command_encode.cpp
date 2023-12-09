@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "command.h"
+#include "encode_utils_common.h"
 #include "platform_utils.h"
 #include "metrics_utils.h"
 #include "compress_utils.h"
@@ -54,6 +55,7 @@ Encode a KTX2 file.
             otherwise they are ignored. Case-insensitive.</dd>
 
         @snippet{doc} ktx/encode_utils.h command options_codec
+        @snippet{doc} ktx/encode_utils_common.h command options_codec_common
         @snippet{doc} ktx/metrics_utils.h command options_metrics
     </dl>
     @snippet{doc} ktx/compress_utils.h command options_compress
@@ -72,16 +74,12 @@ Encode a KTX2 file.
     - Daniel Rákos, RasterGrid www.rastergrid.com
 */
 class CommandEncode : public Command {
-    enum {
-        all = -1,
-    };
-
     struct OptionsEncode {
         void init(cxxopts::Options& opts);
         void process(cxxopts::Options& opts, cxxopts::ParseResult& args, Reporter& report);
     };
 
-    Combine<OptionsEncode, OptionsCodec<true>, OptionsMetrics, OptionsCompress, OptionsSingleInSingleOut, OptionsGeneric> options;
+    Combine<OptionsEncode, OptionsCodec<true>, OptionsCodecCommon, OptionsMetrics, OptionsCompress, OptionsSingleInSingleOut, OptionsGeneric> options;
 
 public:
     virtual int main(int argc, char* argv[]) override;
@@ -127,6 +125,8 @@ void CommandEncode::initOptions(cxxopts::Options& opts) {
 
 void CommandEncode::processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) {
     options.process(opts, args, *this);
+
+    fillCodecOptions<decltype(options), ktxBasisParams>(options);
 
     if (options.codec == EncodeCodec::BasisLZ) {
         if (options.zstd.has_value())
@@ -185,14 +185,14 @@ void CommandEncode::executeEncode() {
             writer.c_str());
 
     ktx_uint32_t oetf = ktxTexture2_GetOETF(texture);
-    if (options.basisOpts.normalMap && oetf != KHR_DF_TRANSFER_LINEAR)
+    if (options.ktxBasisParams::normalMap && oetf != KHR_DF_TRANSFER_LINEAR)
         fatal(rc::INVALID_FILE,
             "--normal-mode specified but the input file uses non-linear transfer function {}.",
             toString(khr_df_transfer_e(oetf)));
 
     MetricsCalculator metrics;
     metrics.saveReferenceImages(texture, options, *this);
-    ret = ktxTexture2_CompressBasisEx(texture, &options.basisOpts);
+    ret = ktxTexture2_CompressBasisEx(texture, &options);
     if (ret != KTX_SUCCESS)
         fatal(rc::IO_FAILURE, "Failed to encode KTX2 file with codec \"{}\". KTX Error: {}", ktxErrorString(ret));
     metrics.decodeAndCalculateMetrics(texture, options, *this);
@@ -210,7 +210,7 @@ void CommandEncode::executeEncode() {
     }
 
     // Add KTXwriterScParams metadata
-    const auto writerScParams = fmt::format("{}{}", options.codecOptions, options.compressOptions);
+    const auto writerScParams = fmt::format("{}{}{}", options.codecOptions, options.commonOptions, options.compressOptions);
     ktxHashList_DeleteKVPair(&texture->kvDataHead, KTX_WRITER_SCPARAMS_KEY);
     if (writerScParams.size() > 0) {
         // Options always contain a leading space

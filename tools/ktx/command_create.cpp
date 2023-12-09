@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "command.h"
+#include "encode_utils_common.h"
 #include "platform_utils.h"
 #include "metrics_utils.h"
 #include "compress_utils.h"
@@ -769,6 +770,7 @@ Create a KTX2 file from various input files.
             otherwise they are ignored. Case-insensitive.</dd>
 
         @snippet{doc} ktx/encode_utils.h command options_codec
+        @snippet{doc} ktx/encode_utils_common.h command options_codec_common
         @snippet{doc} ktx/metrics_utils.h command options_metrics
     </dl>
     <dl>
@@ -830,7 +832,7 @@ Create a KTX2 file from various input files.
 */
 class CommandCreate : public Command {
 private:
-    Combine<OptionsCreate, OptionsASTC, OptionsCodec<false>, OptionsMetrics, OptionsCompress, OptionsMultiInSingleOut, OptionsGeneric> options;
+    Combine<OptionsCreate, OptionsASTC, OptionsCodec<false>, OptionsCodecCommon, OptionsMetrics, OptionsCompress, OptionsMultiInSingleOut, OptionsGeneric> options;
 
     uint32_t targetChannelCount = 0; // Derived from VkFormat
 
@@ -894,6 +896,8 @@ void CommandCreate::initOptions(cxxopts::Options& opts) {
 
 void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) {
     options.process(opts, args, *this);
+
+    fillCodecOptions<decltype(options), ktxBasisParams>(options);
 
     numLevels = options.levels.value_or(1);
     numLayers = options.layers.value_or(1);
@@ -1263,7 +1267,7 @@ void CommandCreate::executeCreate() {
     compress(texture, options);
 
     // Add KTXwriterScParams metadata if ASTC encoding, BasisU encoding, or other supercompression was used
-    const auto writerScParams = fmt::format("{}{}{}", options.astcOptions, options.codecOptions, options.compressOptions);
+    const auto writerScParams = fmt::format("{}{}{}{}", options.astcOptions, options.codecOptions, options.commonOptions, options.compressOptions);
     if (writerScParams.size() > 0) {
         // Options always contain a leading space
         assert(writerScParams[0] == ' ');
@@ -1288,7 +1292,7 @@ void CommandCreate::encode(KTXTexture2& texture, OptionsCodec<false>& opts) {
     metrics.saveReferenceImages(texture, options, *this);
 
     if (opts.codec != EncodeCodec::NONE) {
-        auto ret = ktxTexture2_CompressBasisEx(texture, &opts.basisOpts);
+        auto ret = ktxTexture2_CompressBasisEx(texture, &opts);
         if (ret != KTX_SUCCESS)
             fatal(rc::KTX_FAILURE, "Failed to encode KTX2 file with codec \"{}\". KTX Error: {}",
                     to_underlying(opts.codec), ktxErrorString(ret));
