@@ -7,7 +7,7 @@
 #include "platform_utils.h"
 #include "metrics_utils.h"
 #include "compress_utils.h"
-#include "encode_utils.h"
+#include "basis_utils.h"
 #include "format_descriptor.h"
 #include "formats.h"
 #include "utility.h"
