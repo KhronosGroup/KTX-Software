@@ -128,7 +128,7 @@ void CommandEncode::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
 
     fillCodecOptions<decltype(options), ktxBasisParams>(options);
 
-    if (options.codec == EncodeCodec::BasisLZ) {
+    if (options.codec == BasisCodec::BasisLZ) {
         if (options.zstd.has_value())
             fatal_usage("Cannot encode to BasisLZ and supercompress with Zstd.");
 
@@ -136,7 +136,7 @@ void CommandEncode::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
             fatal_usage("Cannot encode to BasisLZ and supercompress with ZLIB.");
     }
 
-    const auto canCompare = options.codec == EncodeCodec::BasisLZ || options.codec == EncodeCodec::UASTC;
+    const auto canCompare = options.codec == BasisCodec::BasisLZ || options.codec == BasisCodec::UASTC;
     if (options.compare_ssim && !canCompare)
         fatal_usage("--compare-ssim can only be used with BasisLZ or UASTC encoding.");
     if (options.compare_psnr && !canCompare)

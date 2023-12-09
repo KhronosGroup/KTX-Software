@@ -14,7 +14,7 @@
 
 namespace ktx {
 
-enum class EncodeCodec {
+enum class BasisCodec {
     NONE = 0,
     BasisLZ,
     UASTC,
@@ -217,7 +217,7 @@ struct OptionsCodec : public ktxBasisParams {
 
     std::string codecOptions{};
     std::string codecName;
-    EncodeCodec codec;
+    BasisCodec codec;
 
     void init(cxxopts::Options& opts) {
         opts.add_options("Encode BasisLZ")
@@ -269,20 +269,20 @@ struct OptionsCodec : public ktxBasisParams {
             (kUastcRdoM, "Disable RDO multithreading (slightly higher compression, deterministic).");
     }
 
-    EncodeCodec validateEncodeCodec(const cxxopts::OptionValue& codecOpt) const {
-        static const std::unordered_map<std::string, EncodeCodec> codecs = {
-            { "basis-lz", EncodeCodec::BasisLZ },
-            { "uastc", EncodeCodec::UASTC }
+    BasisCodec validateEncodeCodec(const cxxopts::OptionValue& codecOpt) const {
+        static const std::unordered_map<std::string, BasisCodec> codecs = {
+            { "basis-lz", BasisCodec::BasisLZ },
+            { "uastc", BasisCodec::UASTC }
         };
         if (codecOpt.count()) {
             auto it = codecs.find(to_lower_copy(codecOpt.as<std::string>()));
             if (it != codecs.end()) {
                 return it->second;
             } else {
-                return EncodeCodec::INVALID;
+                return BasisCodec::INVALID;
             }
         } else {
-            return EncodeCodec::NONE;
+            return BasisCodec::NONE;
         }
     }
 
@@ -298,13 +298,13 @@ struct OptionsCodec : public ktxBasisParams {
     }
 
     void validateCommonEncodeArg(Reporter& report, const char* name) {
-        if (codec == EncodeCodec::NONE)
+        if (codec == BasisCodec::NONE)
             report.fatal(rc::INVALID_ARGUMENTS,
                 "Invalid use of argument --{} that only applies to encoding.", name);
     }
 
     void validateBasisLZArg(Reporter& report, const char* name) {
-        if (codec != EncodeCodec::BasisLZ)
+        if (codec != BasisCodec::BasisLZ)
             report.fatal(rc::INVALID_ARGUMENTS,
                 "Invalid use of argument --{} that only applies when the used codec is BasisLZ.", name);
     }
@@ -324,7 +324,7 @@ struct OptionsCodec : public ktxBasisParams {
     }
 
     void validateUASTCArg(Reporter& report, const char* name) {
-        if (codec != EncodeCodec::UASTC)
+        if (codec != BasisCodec::UASTC)
             report.fatal(rc::INVALID_ARGUMENTS,
                 "Invalid use of argument --{} that only applies when the used codec is UASTC.", name);
     }
@@ -341,12 +341,12 @@ struct OptionsCodec : public ktxBasisParams {
             // "encode" command - required "codec" argument
             codec = validateEncodeCodec(args["codec"]);
             switch (codec) {
-            case EncodeCodec::NONE:
+            case BasisCodec::NONE:
                 report.fatal(rc::INVALID_ARGUMENTS, "Missing codec argument.");
                 break;
 
-            case EncodeCodec::BasisLZ:
-            case EncodeCodec::UASTC:
+            case BasisCodec::BasisLZ:
+            case BasisCodec::UASTC:
                 codecName = to_lower_copy(args["codec"].as<std::string>());
                 break;
 
@@ -358,12 +358,12 @@ struct OptionsCodec : public ktxBasisParams {
             // "create" command - optional "encode" argument
             codec = validateEncodeCodec(args["encode"]);
             switch (codec) {
-            case EncodeCodec::NONE:
+            case BasisCodec::NONE:
                 // Not specified
                 break;
 
-            case EncodeCodec::BasisLZ:
-            case EncodeCodec::UASTC:
+            case BasisCodec::BasisLZ:
+            case BasisCodec::UASTC:
                 codecName = to_lower_copy(args["encode"].as<std::string>());
                 break;
 
@@ -373,7 +373,7 @@ struct OptionsCodec : public ktxBasisParams {
             }
         }
 
-        if (codec == EncodeCodec::UASTC) {
+        if (codec == BasisCodec::UASTC) {
             uastc = 1;
         }
 
