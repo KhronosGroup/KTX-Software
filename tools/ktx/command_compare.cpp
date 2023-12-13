@@ -623,6 +623,9 @@ Compare two KTX2 files.
         </dd>
         <dt>\--allow-invalid-input</dt>
         <dd>Perform best effort comparison even if any of the input files are invalid.</dd>
+        <dt>\--ignore-supercomp</dt>
+        <dd>Ignore supercompression scheme in the file header. <br />
+            Note: use the --ignore-sgd option to also ignore the SGD section, if needed.</dd>
         <dt>\--ignore-index all | level | none</dt>
         <dd>Controls the comparison of index entries in the file headers. Possible options are: <br />
             @b all - Ignore all index entries. <br />
@@ -698,6 +701,7 @@ class CommandCompare : public Command {
     struct OptionsCompare {
         inline static const char* kContent = "content";
         inline static const char* kAllowInvalidInput = "allow-invalid-input";
+        inline static const char* kIgnoreSupercomp = "ignore-supercomp";
         inline static const char* kIgnoreIndex = "ignore-index";
         inline static const char* kIgnoreDFD = "ignore-dfd";
         inline static const char* kIgnoreMetadata = "ignore-metadata";
@@ -706,6 +710,7 @@ class CommandCompare : public Command {
         std::array<std::string, 2> inputFilepaths;
         ContentMode contentMode = ContentMode::raw;
         bool allowInvalidInput = false;
+        bool ignoreSupercomp = false;
         IgnoreIndex ignoreIndex = IgnoreIndex::none;
         IgnoreDFD ignoreDFD = IgnoreDFD::none;
         bool ignoreAllMetadata = false;
@@ -722,6 +727,8 @@ class CommandCompare : public Command {
                         "  ignore: Ignore image contents\n",
                         cxxopts::value<std::string>()->default_value("raw"), "raw|image|ignore")
                     (kAllowInvalidInput, "Perform best effort comparison even if any of the input files are invalid.")
+                    (kIgnoreSupercomp, "Ignore supercompression scheme in the file header.\n"
+                        "Note: use the --ignore-sgd option to also ignore the SGD section, if needed.")
                     (kIgnoreIndex, "Controls the comparison of index entries in the file headers. Possible options are:\n"
                         "  all: Ignore all index entries\n"
                         "  level: Ignore level index entries only\n"
@@ -771,6 +778,8 @@ class CommandCompare : public Command {
             }
 
             allowInvalidInput = args[kAllowInvalidInput].as<bool>();
+
+            ignoreSupercomp = args[kIgnoreSupercomp].as<bool>();
 
             if (args[kIgnoreIndex].count()) {
                 static std::unordered_map<std::string, IgnoreIndex> ignoreIndexMapping{
@@ -1081,8 +1090,10 @@ void CommandCompare::compareHeader(PrintDiff& diff, InputStreams& streams) {
     diff << Diff("layerCount", "/header/layerCount", headers[0].layerCount, headers[1].layerCount);
     diff << Diff("faceCount", "/header/faceCount", headers[0].faceCount, headers[1].faceCount);
     diff << Diff("levelCount", "/header/levelCount", headers[0].levelCount, headers[1].levelCount);
-    diff << DiffEnum<ktxSupercmpScheme>("supercompressionScheme", "/header/supercompressionScheme",
-        headers[0].supercompressionScheme, headers[1].supercompressionScheme);
+
+    if (!options.ignoreSupercomp)
+        diff << DiffEnum<ktxSupercmpScheme>("supercompressionScheme", "/header/supercompressionScheme",
+            headers[0].supercompressionScheme, headers[1].supercompressionScheme);
 
     if (options.ignoreIndex != IgnoreIndex::all) {
         diff << DiffHex("dataFormatDescriptor.byteOffset", "/index/dataFormatDescriptor/byteOffset",
@@ -1216,7 +1227,7 @@ void CommandCompare::compareDFD(PrintDiff& diff, InputStreams& streams) {
                 OPT_BITFIELDS(blockHeaders, vendorId),
                 [&](auto i) { return dfdToStringVendorID(khr_df_vendorid_e(blockHeaders[i]->vendorId)); });
             diff << DiffEnum<khr_df_khr_descriptortype_e>("Descriptor type",
-                fmt::format("/dataFormatDescriptor/blocks/{}/vendorId", blockIndex),
+                fmt::format("/dataFormatDescriptor/blocks/{}/descriptorType", blockIndex),
                 OPT_BITFIELDS(blockHeaders, descriptorType),
                 [&](auto i) {
                     return (blockHeaders[i]->vendorId == KHR_DF_VENDORID_KHRONOS)
@@ -1256,12 +1267,14 @@ void CommandCompare::compareDFD(PrintDiff& diff, InputStreams& streams) {
             if (!dfdKnown[0] || !dfdKnown[1]) {
                 std::optional<std::vector<uint8_t>> rawPayloads[2];
                 for (std::size_t i = 0; i < streams.size(); ++i) {
-                    rawPayloads[i] = std::vector<uint8_t>(blockHeaders[0]->descriptorBlockSize - sizeof(DFDHeader));
-                    std::memcpy(rawPayloads[i]->data(), ptrDFDIt[i], rawPayloads[i]->size());
+                    if (blockHeaders[i].has_value()) {
+                        rawPayloads[i] = std::vector<uint8_t>(blockHeaders[i]->descriptorBlockSize - sizeof(DFDHeader));
+                        std::memcpy(rawPayloads[i]->data(), ptrDFDIt[i], rawPayloads[i]->size());
 
-                    diff << DiffRawBytes("Raw payload",
-                        fmt::format("/dataFormatDescriptor/blocks/{}/rawPayload", blockIndex),
-                        rawPayloads[0], rawPayloads[1]);
+                        diff << DiffRawBytes("Raw payload",
+                            fmt::format("/dataFormatDescriptor/blocks/{}/rawPayload", blockIndex),
+                            rawPayloads[0], rawPayloads[1]);
+                    }
                 }
             }
         }
