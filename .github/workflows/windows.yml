@@ -238,6 +238,8 @@ jobs:
         refreshenv
         $env:JAVA_HOME=$step_java_home
         ci_scripts/build_win.ps1
+        ls ${{env.BUILD_DIR}}/interface/python_binding/dist/
+
 
     - name: Test Windows build
       # Tests built for arm64 can't be run as the CI runners are all x64.
@@ -268,13 +270,13 @@ jobs:
       with:
         path: ${{env.BUILD_DIR}}/interface/python_binding/dist/
 
-    - name: Upload To Release
+    - name: Upload to Release
       uses: softprops/action-gh-release@v1
       if: matrix.options.package == 'YES' && matrix.toolset == 'CLangCL' && github.event_name == 'push' && github.ref_type == 'tag'
       with:
         draft: true
         prerelease: true
-        files: ${{env.BUILD_DIR}}/KTX-Software-*.exe*
+        files: ${{env.BUILD_DIR}}/KTX-Software-*.exe* ${{env.BUILD_DIR}}/interface/python_binding/dist/*.whl
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
