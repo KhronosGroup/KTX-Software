@@ -382,7 +382,7 @@ struct DiffComplex {
         : textHeader(textHeaderIn), jsonPath(jsonPathIn), values(),
           different((value1.has_value() && value2.has_value())
             ? value1->isDifferent(*value2)
-            : (value1.has_value() || !value2.has_value()) ? false : true) {
+            : (!value1.has_value() || !value2.has_value()) ? true : false) {
         values[0] = value1;
         values[1] = value2;
     }
@@ -481,6 +481,11 @@ public:
 
     bool isDifferent() const {
         return different;
+    }
+
+    void setContext(std::string&& ctx) {
+        context.clear();
+        context.emplace_back(std::move(ctx));
     }
 
     void addContext(std::string&& ctx) {
@@ -1076,7 +1081,7 @@ void CommandCompare::executeCompare() {
 #define OPT_UINT4S(structArr, memberPrefix) OPT_UINT4((structArr)[0], memberPrefix), OPT_UINT4((structArr)[1], memberPrefix)
 
 void CommandCompare::compareHeader(PrintDiff& diff, InputStreams& streams) {
-    diff.addContext("Header\n\n");
+    diff.setContext("Header\n\n");
 
     headers = read<KTX_header2>(streams, 0, "header");
 
@@ -1116,7 +1121,7 @@ void CommandCompare::compareHeader(PrintDiff& diff, InputStreams& streams) {
 void CommandCompare::compareLevelIndex(PrintDiff& diff, InputStreams& streams) {
     if (options.ignoreIndex != IgnoreIndex::none) return;
 
-    diff.addContext("Level Index\n\n");
+    diff.setContext("Level Index\n\n");
 
     const uint32_t numLevels[] = {
         std::max(1u, headers[0].levelCount),
@@ -1149,7 +1154,7 @@ void CommandCompare::compareLevelIndex(PrintDiff& diff, InputStreams& streams) {
 void CommandCompare::compareDFD(PrintDiff& diff, InputStreams& streams) {
     if (options.ignoreDFD == IgnoreDFD::all) return;
 
-    diff.addContext("Data Format Descriptor\n\n");
+    diff.setContext("Data Format Descriptor\n\n");
 
     std::unique_ptr<uint8_t[]> buffers[] = {
         std::make_unique<uint8_t[]>(headers[0].dataFormatDescriptor.byteLength),
@@ -1385,7 +1390,7 @@ void CommandCompare::compareDFDBasic(PrintDiff& diff, uint32_t blockIndex,
 void CommandCompare::compareKVD(PrintDiff& diff, InputStreams& streams) {
     if (options.ignoreAllMetadata) return;
 
-    diff.addContext("Key/Value Data\n\n");
+    diff.setContext("Key/Value Data\n\n");
 
     std::vector<uint8_t> keyValueStores[2] = {};
     std::map<std::string_view, ktxHashListEntry*> keys[2] = {};
@@ -1418,13 +1423,16 @@ void CommandCompare::compareKVD(PrintDiff& diff, InputStreams& streams) {
 
     std::map<std::string_view, ktxHashListEntry*>::iterator it[2] = { keys[0].begin(), keys[1].begin() };
     while (it[0] != keys[0].end() || it[1] != keys[1].end()) {
+        bool ignoreKey = false;
         for (std::size_t i = 0; i < streams.size(); ++i)
             if ((it[i] != keys[i].end()) &&
                 (options.ignoreMetadataKeys.find(std::string(it[i]->first)) != options.ignoreMetadataKeys.end())) {
                 // Key is on the ignore list, skip it
                 it[i]++;
-                continue;
+                ignoreKey = true;
+                break;
             }
+        if (ignoreKey) continue;
 
         if ((it[0] != keys[0].end()) && ((it[1] == keys[1].end()) || (it[0]->first < it[1]->first))) {
             // First stream has a key that is not present in the second stream
@@ -1493,11 +1501,6 @@ struct KVEntry {
 
 void CommandCompare::compareKVEntry(PrintDiff& diff, const std::string_view& key,
     ktxHashListEntry* entry1, ktxHashListEntry* entry2) {
-    char* value[2] = {};
-    ktx_uint32_t valueLen[2] = {};
-    if (entry1 != nullptr) ktxHashListEntry_GetValue(entry1, &valueLen[0], reinterpret_cast<void**>(&value[0]));
-    if (entry2 != nullptr) ktxHashListEntry_GetValue(entry2, &valueLen[1], reinterpret_cast<void**>(&value[1]));
-
     const std::unordered_set<std::string_view> keysWithUint32Values = {
         "KTXdxgiFormat__",
         "KTXmetalPixelFormat"
@@ -1601,9 +1604,9 @@ void CommandCompare::compareKVEntry(PrintDiff& diff, const std::string_view& key
             void printText(PrintIndent& out, const char* prefix) const {
                 if (isValid()) {
                     out(0, "\n");
-                    out(0, "{}    duration: 0x{:08X}\n", prefix, extract<ktx_uint32_t>(0));
-                    out(0, "{}    timescale: 0x{:08X}\n", prefix, extract<ktx_uint32_t>(4));
-                    out(0, "{}    loopCount: 0x{:08X}\n", prefix, extract<ktx_uint32_t>(8));
+                    out(0, "{}    duration: {}\n", prefix, extract<ktx_uint32_t>(0));
+                    out(0, "{}    timescale: {}\n", prefix, extract<ktx_uint32_t>(4));
+                    out(0, "{}    loopCount: {}\n", prefix, extract<ktx_uint32_t>(8));
                 } else {
                     out(0, " {}\n", extractRawBytes(true));
                 }
@@ -1797,7 +1800,7 @@ void CommandCompare::compareSGD(PrintDiff& diff, InputStreams& streams) {
     };
 
     if (sgdTypeBasisLZ(0) || sgdTypeBasisLZ(1)) {
-        diff.addContext("Basis Supercompression Global Data\n\n");
+        diff.setContext("Basis Supercompression Global Data\n\n");
 
         // Supercompression global data type is only needed in JSON format
         if (options.format != OutputFormat::text)
@@ -1864,7 +1867,7 @@ void CommandCompare::compareSGD(PrintDiff& diff, InputStreams& streams) {
                 basisLZ[1].extendedByteOffset, basisLZ[1].extendedByteLength);
         }
     } else if (options.ignoreSGD == IgnoreSGD::none) {
-        diff.addContext("Unrecognized Supercompression Global Data\n\n");
+        diff.setContext("Unrecognized Supercompression Global Data\n\n");
 
         // Just compare raw payloads of the SGDs
         compareSGDPayload("SGD", "/supercompressionGlobalData/rawPayload",
