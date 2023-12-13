@@ -238,8 +238,10 @@ jobs:
         refreshenv
         $env:JAVA_HOME=$step_java_home
         ci_scripts/build_win.ps1
-        ls ${{env.BUILD_DIR}}/interface/python_binding/dist/
 
+    - name: Check pyktx Existence
+      if: matrix.options.py
+      run: ls ${{env.BUILD_DIR}}/interface/python_binding/dist/
 
     - name: Test Windows build
       # Tests built for arm64 can't be run as the CI runners are all x64.
