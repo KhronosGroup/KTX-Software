@@ -296,7 +296,9 @@
                         "VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT",
                         "VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT",
                         "VK_FORMAT_A8_UNORM_KHR",
-                        "VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR"
+                        "VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR",
+                        "VK_FORMAT_A4R4G4B4_UNORM_PACK16",
+                        "VK_FORMAT_A4B4G4R4_UNORM_PACK16"
                     ]
                 }
             ]

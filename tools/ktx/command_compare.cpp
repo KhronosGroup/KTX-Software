@@ -240,11 +240,13 @@ struct DiffEnum<ktxSupercmpScheme> : public DiffBase<ktxSupercmpScheme> {
     }
 
     virtual std::string value(std::size_t index, OutputFormat format) const override {
+        bool invalidScheme = (strcmp(enumNames[index], "Invalid scheme value") == 0);
+        bool vendorOrReservedScheme = (strcmp(enumNames[index], "Vendor or reserved scheme") == 0);
         if (format == OutputFormat::text) {
             if (enumNames[index]) {
-                if (strcmp(enumNames[index], "Invalid scheme value") == 0)
+                if (invalidScheme)
                     return fmt::format("Invalid scheme (0x{:x})", uint32_t(rawValue(index)));
-                else if (strcmp(enumNames[index], "Vendor or reserved scheme") == 0)
+                else if (vendorOrReservedScheme)
                     return fmt::format("Vendor or reserved scheme (0x{:x})", uint32_t(rawValue(index)));
                 else
                     return enumNames[index];
@@ -252,7 +254,7 @@ struct DiffEnum<ktxSupercmpScheme> : public DiffBase<ktxSupercmpScheme> {
                 return fmt::format("0x{:x}", uint32_t(rawValue(index)));
             }
         } else {
-            if (enumNames[index]) {
+            if (enumNames[index] && !invalidScheme && !vendorOrReservedScheme) {
                 return fmt::format("\"{}\"", enumNames[index]);
             } else {
                 return fmt::format("{}", int32_t(rawValue(index)));
@@ -280,16 +282,21 @@ struct DiffFlags : DiffBase<uint32_t> {
 
         std::stringstream formattedValue;
         bool first = true;
+        std::string comma = "";
         for (uint32_t bitIndex = 0; bitIndex < 32; ++bitIndex) {
             uint32_t bitMask = 1u << bitIndex;
             bool bitValue = (bitMask & DiffBase<uint32_t>::rawValue(index)) != 0;
 
-            const auto comma = (bitValue && std::exchange(first, false)) ? "" : fmt::format(",{}", space);
             const char* bitStr = toStringFn(bitIndex, bitValue);
             if (bitStr) {
                 fmt::print(formattedValue, "{}{}{}{}", comma, quote, bitStr, quote);
             } else if (bitValue) {
                 fmt::print(formattedValue, "{}{}", comma, bitMask);
+            }
+
+            if (bitValue && first) {
+                first = false;
+                comma = fmt::format(",{}", space);
             }
         }
 

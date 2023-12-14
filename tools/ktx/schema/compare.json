@@ -296,7 +296,9 @@
                         "VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT",
                         "VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT",
                         "VK_FORMAT_A8_UNORM_KHR",
-                        "VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR"
+                        "VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR",
+                        "VK_FORMAT_A4R4G4B4_UNORM_PACK16",
+                        "VK_FORMAT_A4B4G4R4_UNORM_PACK16"
                     ]
                 }
             ]
@@ -1116,11 +1118,7 @@
             "type": "array",
             "items": {
                 "oneOf": [
-                    {
-                        "type": "array",
-                        "items": { "$ref": "#/definitions/enum_channelType" },
-                        "uniqueItems": true
-                    },
+                    { "$ref": "#/definitions/enum_channelType" },
                     { "type": "null" }
                 ]
             }
@@ -1176,16 +1174,7 @@
             }
         },
         "^/keyValueData/[^/]+$": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    {
-                        "type": "array",
-                        "items": { "type": "integer" }
-                    },
-                    { "type": "null" }
-                ]
-            }
+            "type": "array"
         },
         "^/supercompressionGlobalData/images/[0-9]+/imageFlags$": {
             "type": "array",
