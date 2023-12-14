@@ -1777,21 +1777,27 @@ void CommandCompare::compareSGD(PrintDiff& diff, InputStreams& streams) {
     auto compareSGDPayload = [&](const char* textName, const char* jsonPath,
             std::optional<uint64_t> offset1, std::optional<uint64_t> length1,
             std::optional<uint64_t> offset2, std::optional<uint64_t> length2) {
+        bool mismatch = false;
+
+        // If SGD is not present in both files then consider that a mismatch
         if (!offset1.has_value() || !length1.has_value() || !offset2.has_value() || !length2.has_value()) {
-            // No point in comparing if not present in both files
-            return;
-        }
-        if ((*offset1 + *length1 > headers[0].supercompressionGlobalData.byteLength) ||
-            (*offset2 + *length2 > headers[1].supercompressionGlobalData.byteLength)) {
-            // Some of the data is out of bounds, cannot compare
-            return;
+            mismatch = true;
         }
 
-        bool mismatch = false;
-        if (length1 != length2) {
-            mismatch = true;
-        } else {
-            mismatch = (memcmp(buffers[0].get() + *offset1, buffers[1].get() + *offset2, *length1) != 0);
+        if (!mismatch) {
+            // If we have an out of bounds situation then consider that a mismatch
+            if ((*offset1 + *length1 > headers[0].supercompressionGlobalData.byteLength) ||
+                (*offset2 + *length2 > headers[1].supercompressionGlobalData.byteLength)) {
+                mismatch = true;
+            }
+        }
+
+        if (!mismatch) {
+            if (length1 != length2) {
+                mismatch = true;
+            } else {
+                mismatch = (memcmp(buffers[0].get() + *offset1, buffers[1].get() + *offset2, *length1) != 0);
+            }
         }
 
         if (mismatch) {
