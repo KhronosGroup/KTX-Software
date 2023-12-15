@@ -225,7 +225,7 @@ jobs:
       # is spawned from some parent Powershell so it does not pick up
       # the changes from the registry. Use Chocolatey's helper to
       # pull in the changes.
-      #   After import `refreshenv` is an alias for
+      #   After import, `refreshenv` is an alias for
       # Update-SessionEnvironment. Without the import refreshenv will end
       # up calling the cmd.exe version, which won't help Powershell, and
       # Update-SessionEnvironment will not exist.
