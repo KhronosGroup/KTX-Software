@@ -276,7 +276,7 @@ jobs:
         prerelease: true
         files: |
             ${{env.BUILD_DIR}}/KTX-Software-*.exe*
-            ${{env.BUILD_DIR}}/interface/python_binding/dist/*.whl
+            ${{env.BUILD_DIR}}/interface/python_binding/dist/pyktx-*
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
