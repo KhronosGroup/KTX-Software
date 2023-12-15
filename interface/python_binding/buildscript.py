@@ -34,7 +34,7 @@ ffibuilder = FFI()
 ffibuilder.cdef(
     """
     void free(void *ptr);
-    
+
     typedef struct ktxTexture ktxTexture;
     typedef struct ktxTextureCreateInfo ktxTextureCreateInfo;
     typedef struct ktxTexture1 ktxTexture1;
@@ -45,13 +45,13 @@ ffibuilder.cdef(
         uint32_t error;
         ktxTexture* texture;
     } ktxTextureMixed;
-    
+
     typedef struct {
         void *bytes;
         size_t size;
         int error;
     } ktxWriteToMemory;
-    
+
     typedef struct {
         size_t offset;
         int error;
@@ -80,7 +80,7 @@ ffibuilder.cdef(
     int ktxHashList_AddKVPair(ktxHashList *, const char *key, unsigned int valueLen, const void *value);
     int ktxHashList_DeleteKVPair(ktxHashList *, const char *key);
     ktxHashListEntry *ktxHashList_Next(void *entry);
-    
+
     // Glue code
     ktxTextureMixed PY_ktxTexture_CreateFromNamedFile(const char* const filename,
                                                       uint32_t create_flags);
