@@ -877,6 +877,7 @@ if(EMSCRIPTEN)
         "SHELL:-s EXPORT_NAME=LIBKTX"
         "SHELL:-s EXPORTED_RUNTIME_METHODS=[\'GL\']"
         "SHELL:-s GL_PREINITIALIZED_CONTEXT=1"
+        "SHELL:-s GL_ENABLE_GET_PROC_ADDRESS=1" # For Emscripten 3.1.51+
     )
     set_target_properties( ktx_js PROPERTIES OUTPUT_NAME "libktx")
 
