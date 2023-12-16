@@ -58,8 +58,8 @@ add_custom_command(
     TARGET
         pyktx
     BYPRODUCTS
-        ${KTX_BUILD_DIR}/interface/python_binding/dist/pyktx-${KTX_VERSION}.tar.gz
-        ${KTX_BUILD_DIR}/interface/python_binding/dist/pyktx-${KTX_VERSION}.zip
+        ${KTX_BUILD_DIR}/interface/python_binding/dist/pyktx-${KTX_VERSION_FULL}.tar.gz
+        ${KTX_BUILD_DIR}/interface/python_binding/dist/pyktx-${KTX_VERSION_FULL}.zip
     DEPENDS
         ${pyktx_py_src}
         pyktx/ktx_texture.h
@@ -72,7 +72,7 @@ add_custom_command(
         ${CMAKE_COMMAND} -E env
             LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
             LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
-            LIBKTX_VERSION=${PROJECT_VERSION}
+            LIBKTX_VERSION=${KTX_VERSION_FULL}
         ${PYTHON_EXECUTABLE} -m build --sdist --outdir ${KTX_BUILD_DIR}/interface/python_binding/dist
     WORKING_DIRECTORY
         ${CMAKE_SOURCE_DIR}/interface/python_binding
@@ -87,7 +87,7 @@ add_custom_command(
         ${CMAKE_COMMAND} -E env
             LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
             LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
-            LIBKTX_VERSION=${PROJECT_VERSION}
+            LIBKTX_VERSION=${KTX_VERSION_FULL}
         ${PYTHON_EXECUTABLE} -m build --wheel --outdir ${KTX_BUILD_DIR}/interface/python_binding/dist
     WORKING_DIRECTORY
         ${CMAKE_SOURCE_DIR}/interface/python_binding
