@@ -667,6 +667,8 @@ Compare two KTX2 files.
             @b payload - Ignore any unrecognized SGD section and the payload of any known SGD section. <br />
             @b none - Do not ignore the SGD section. <br />
             The default mode is @b none, meaning that SGD sections will be always compared.
+            Note: --ignore-sgd payload can be used to compare BasisLZ SGD headers without
+            expecting an exact match for the individual SGD payload sections.
         </dd>
     </dl>
     @snippet{doc} ktx/command.h command options_generic
@@ -761,7 +763,9 @@ class CommandCompare : public Command {
                         "  all: Ignore the SGD section\n"
                         "  unknown: Ignore any unrecognized SGD section\n"
                         "  payload: Ignore any unrecognized SGD section and the payload of any known SGD section\n"
-                        "  none: Do not ignore the SGD section\n",
+                        "  none: Do not ignore the SGD section\n"
+                        "Note: --ignore-sgd payload can be used to compare BasisLZ SGD headers without "
+                        "expecting an exact match for the individual SGD payload sections.",
                         cxxopts::value<std::string>()->default_value("none"), "all|unknown|payload|none");
             opts.parse_positional("input-file1", "input-file2");
             opts.positional_help("<input-file1> <input-file2>");
