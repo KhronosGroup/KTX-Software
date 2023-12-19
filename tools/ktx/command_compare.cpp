@@ -635,6 +635,9 @@ Compare two KTX2 files.
         </dd>
         <dt>\--allow-invalid-input</dt>
         <dd>Perform best effort comparison even if any of the input files are invalid.</dd>
+        <dt>\--ignore-format-header<dt>
+        <dd>Ignore the vkFormat and typeSize fields in the file header. <br />
+            Note: useful when comparing textures with and without BasisLZ encoding, respectively.</dd>
         <dt>\--ignore-supercomp</dt>
         <dd>Ignore supercompression scheme in the file header. <br />
             Note: use the --ignore-sgd option to also ignore the SGD section, if needed.</dd>
@@ -645,9 +648,11 @@ Compare two KTX2 files.
             @b none - Do not ignore any index entries. <br />
             The default mode is @b none, meaning that all index entries will be compared.
         </dd>
-        <dt>\--ignore-dfd all | unknown | extended | none</dt>
+        <dt>\--ignore-dfd all | all-except-color-space | unknown | extended | none</dt>
         <dd>Controls the comparison of DFD blocks. Possible options are: <br />
             @b all - Ignore all DFD blocks. <br />
+            @b all-except-color-space: Ignore all DFD blocks except the color space information
+                in the basic DFD block. <br />
             @b unknown - Ignore any unrecognized DFD blocks. <br />
             @b extended - Ignore all DFD blocks except the basic DFD block. <br />
             @b none - Do not ignore any DFD blocks. <br />
@@ -700,6 +705,7 @@ class CommandCompare : public Command {
 
     enum class IgnoreDFD {
         all,
+        all_except_color_space,
         unknown,
         extended,
         none
@@ -715,6 +721,7 @@ class CommandCompare : public Command {
     struct OptionsCompare {
         inline static const char* kContent = "content";
         inline static const char* kAllowInvalidInput = "allow-invalid-input";
+        inline static const char* kIgnoreFormatHeader = "ignore-format-header";
         inline static const char* kIgnoreSupercomp = "ignore-supercomp";
         inline static const char* kIgnoreIndex = "ignore-index";
         inline static const char* kIgnoreDFD = "ignore-dfd";
@@ -724,6 +731,7 @@ class CommandCompare : public Command {
         std::array<std::string, 2> inputFilepaths;
         ContentMode contentMode = ContentMode::raw;
         bool allowInvalidInput = false;
+        bool ignoreFormatHeader = false;
         bool ignoreSupercomp = false;
         IgnoreIndex ignoreIndex = IgnoreIndex::none;
         IgnoreDFD ignoreDFD = IgnoreDFD::none;
@@ -741,6 +749,8 @@ class CommandCompare : public Command {
                         "  ignore: Ignore image contents\n",
                         cxxopts::value<std::string>()->default_value("raw"), "raw|image|ignore")
                     (kAllowInvalidInput, "Perform best effort comparison even if any of the input files are invalid.")
+                    (kIgnoreFormatHeader, "Ignore the vkFormat and typeSize fields in the file header.\n"
+                        "Note: useful when comparing textures with and without BasisLZ encoding, respectively.")
                     (kIgnoreSupercomp, "Ignore supercompression scheme in the file header.\n"
                         "Note: use the --ignore-sgd option to also ignore the SGD section, if needed.")
                     (kIgnoreIndex, "Controls the comparison of index entries in the file headers. Possible options are:\n"
@@ -750,10 +760,13 @@ class CommandCompare : public Command {
                         cxxopts::value<std::string>()->default_value("none"), "all|level|none")
                     (kIgnoreDFD, "Controls the comparison of DFD blocks. Possible options are:\n"
                         "  all: Ignore all DFD blocks\n"
+                        "  all-except-color-space: Ignore all DFD blocks except the color space information "
+                        "in the basic DFD block\n"
                         "  unknown: Ignore any unrecognized DFD blocks\n"
                         "  extended: Ignore all DFD blocks except the basic DFD block\n"
                         "  none: Do not ignore any DFD blocks\n",
-                        cxxopts::value<std::string>()->default_value("none"), "all|unknown|extended|none")
+                        cxxopts::value<std::string>()->default_value("none"),
+                        "all|all-except-color-space|unknown|extended|none")
                     (kIgnoreMetadata, "Controls the comparison of metadata (KVD) entries. Possible options are:\n"
                         "  all: Ignore all metadata entries\n"
                         "  <keys>: Ignore the specified comma separated list of metadata keys\n"
@@ -795,6 +808,7 @@ class CommandCompare : public Command {
 
             allowInvalidInput = args[kAllowInvalidInput].as<bool>();
 
+            ignoreFormatHeader = args[kIgnoreFormatHeader].as<bool>();
             ignoreSupercomp = args[kIgnoreSupercomp].as<bool>();
 
             if (args[kIgnoreIndex].count()) {
@@ -813,6 +827,7 @@ class CommandCompare : public Command {
             if (args[kIgnoreDFD].count()) {
                 static std::unordered_map<std::string, IgnoreDFD> ignoreDFDMapping{
                     {"all", IgnoreDFD::all},
+                    {"all-except-color-space", IgnoreDFD::all_except_color_space},
                     {"unknown", IgnoreDFD::unknown},
                     {"extended", IgnoreDFD::extended},
                     {"none", IgnoreDFD::none}
@@ -1097,9 +1112,13 @@ void CommandCompare::compareHeader(PrintDiff& diff, InputStreams& streams) {
     headers = read<KTX_header2>(streams, 0, "header");
 
     diff << DiffIdentifier("identifier", "/header/identifier", headers[0], headers[1]);
-    diff << DiffEnum<VkFormat>("vkFormat", "/header/vkFormat", headers[0].vkFormat, headers[1].vkFormat,
-        [&](auto i) { return vkFormatString(VkFormat(headers[i].vkFormat)); });
-    diff << Diff("typeSize", "/header/typeSize", headers[0].typeSize, headers[1].typeSize);
+
+    if (!options.ignoreFormatHeader) {
+        diff << DiffEnum<VkFormat>("vkFormat", "/header/vkFormat", headers[0].vkFormat, headers[1].vkFormat,
+            [&](auto i) { return vkFormatString(VkFormat(headers[i].vkFormat)); });
+        diff << Diff("typeSize", "/header/typeSize", headers[0].typeSize, headers[1].typeSize);
+    }
+
     diff << Diff("pixelWidth", "/header/pixelWidth", headers[0].pixelWidth, headers[1].pixelWidth);
     diff << Diff("pixelHeight", "/header/pixelHeight", headers[0].pixelHeight, headers[1].pixelHeight);
     diff << Diff("pixelDepth", "/header/pixelDepth", headers[0].pixelDepth, headers[1].pixelDepth);
@@ -1189,8 +1208,9 @@ void CommandCompare::compareDFD(PrintDiff& diff, InputStreams& streams) {
         ptrDFDIt[i] += sizeof(uint32_t);
     }
 
-    if (dfdTotalSize[0] != dfdTotalSize[1])
-        diff << Diff("DFD total bytes", "/dataFormatDescriptor/totalSize", dfdTotalSize[0], dfdTotalSize[1]);
+    if (options.ignoreDFD != IgnoreDFD::all_except_color_space)
+        if (dfdTotalSize[0] != dfdTotalSize[1])
+            diff << Diff("DFD total bytes", "/dataFormatDescriptor/totalSize", dfdTotalSize[0], dfdTotalSize[1]);
 
     uint32_t blockIndex = 0;
     while ((ptrDFDIt[0] < ptrDFDEnd[0]) || (ptrDFDIt[1] < ptrDFDEnd[1])) {
@@ -1228,6 +1248,7 @@ void CommandCompare::compareDFD(PrintDiff& diff, InputStreams& streams) {
                 compareDFDs = dfdKnown[0] || dfdKnown[1];
                 break;
 
+            case IgnoreDFD::all_except_color_space: [[fallthrough]];
             case IgnoreDFD::extended:
                 // Only compare the DFDs if at least one of them is basic
                 compareDFDs = dfdBasic[0] || dfdBasic[1];
@@ -1238,25 +1259,27 @@ void CommandCompare::compareDFD(PrintDiff& diff, InputStreams& streams) {
         }
 
         if (compareDFDs) {
-            diff << DiffEnum<khr_df_vendorid_e>("Vendor ID",
-                fmt::format("/dataFormatDescriptor/blocks/{}/vendorId", blockIndex),
-                OPT_BITFIELDS(blockHeaders, vendorId),
-                [&](auto i) { return dfdToStringVendorID(khr_df_vendorid_e(blockHeaders[i]->vendorId)); });
-            diff << DiffEnum<khr_df_khr_descriptortype_e>("Descriptor type",
-                fmt::format("/dataFormatDescriptor/blocks/{}/descriptorType", blockIndex),
-                OPT_BITFIELDS(blockHeaders, descriptorType),
-                [&](auto i) {
-                    return (blockHeaders[i]->vendorId == KHR_DF_VENDORID_KHRONOS)
-                        ? dfdToStringDescriptorType(khr_df_khr_descriptortype_e(blockHeaders[i]->descriptorType))
-                        : nullptr;
-                });
-            diff << DiffEnum<khr_df_versionnumber_e>("Version",
-                fmt::format("/dataFormatDescriptor/blocks/{}/versionNumber", blockIndex),
-                OPT_BITFIELDS(blockHeaders, versionNumber),
-                [&](auto i) { return dfdToStringVersionNumber(khr_df_versionnumber_e(blockHeaders[i]->versionNumber)); });
-            diff << Diff("Descriptor block size",
-                fmt::format("/dataFormatDescriptor/blocks/{}/descriptorBlockSize", blockIndex),
-                OPT_BITFIELDS(blockHeaders, descriptorBlockSize));
+            if (options.ignoreDFD != IgnoreDFD::all_except_color_space) {
+                diff << DiffEnum<khr_df_vendorid_e>("Vendor ID",
+                    fmt::format("/dataFormatDescriptor/blocks/{}/vendorId", blockIndex),
+                    OPT_BITFIELDS(blockHeaders, vendorId),
+                    [&](auto i) { return dfdToStringVendorID(khr_df_vendorid_e(blockHeaders[i]->vendorId)); });
+                diff << DiffEnum<khr_df_khr_descriptortype_e>("Descriptor type",
+                    fmt::format("/dataFormatDescriptor/blocks/{}/descriptorType", blockIndex),
+                    OPT_BITFIELDS(blockHeaders, descriptorType),
+                    [&](auto i) {
+                        return (blockHeaders[i]->vendorId == KHR_DF_VENDORID_KHRONOS)
+                            ? dfdToStringDescriptorType(khr_df_khr_descriptortype_e(blockHeaders[i]->descriptorType))
+                            : nullptr;
+                    });
+                diff << DiffEnum<khr_df_versionnumber_e>("Version",
+                    fmt::format("/dataFormatDescriptor/blocks/{}/versionNumber", blockIndex),
+                    OPT_BITFIELDS(blockHeaders, versionNumber),
+                    [&](auto i) { return dfdToStringVersionNumber(khr_df_versionnumber_e(blockHeaders[i]->versionNumber)); });
+                diff << Diff("Descriptor block size",
+                    fmt::format("/dataFormatDescriptor/blocks/{}/descriptorBlockSize", blockIndex),
+                    OPT_BITFIELDS(blockHeaders, descriptorBlockSize));
+            }
 
             // Compare basic DFD data if possible
             if (dfdBasic[0] || dfdBasic[1]) {
@@ -1280,19 +1303,20 @@ void CommandCompare::compareDFD(PrintDiff& diff, InputStreams& streams) {
             }
 
             // Compare any unrecognized DFD data as raw payload
-            if (!dfdKnown[0] || !dfdKnown[1]) {
-                std::optional<std::vector<uint8_t>> rawPayloads[2];
-                for (std::size_t i = 0; i < streams.size(); ++i) {
-                    if (blockHeaders[i].has_value()) {
-                        rawPayloads[i] = std::vector<uint8_t>(blockHeaders[i]->descriptorBlockSize - sizeof(DFDHeader));
-                        std::memcpy(rawPayloads[i]->data(), ptrDFDIt[i], rawPayloads[i]->size());
+            if (options.ignoreDFD != IgnoreDFD::all_except_color_space)
+                if (!dfdKnown[0] || !dfdKnown[1]) {
+                    std::optional<std::vector<uint8_t>> rawPayloads[2];
+                    for (std::size_t i = 0; i < streams.size(); ++i) {
+                        if (blockHeaders[i].has_value()) {
+                            rawPayloads[i] = std::vector<uint8_t>(blockHeaders[i]->descriptorBlockSize - sizeof(DFDHeader));
+                            std::memcpy(rawPayloads[i]->data(), ptrDFDIt[i], rawPayloads[i]->size());
 
-                        diff << DiffRawBytes("Raw payload",
-                            fmt::format("/dataFormatDescriptor/blocks/{}/rawPayload", blockIndex),
-                            rawPayloads[0], rawPayloads[1]);
+                            diff << DiffRawBytes("Raw payload",
+                                fmt::format("/dataFormatDescriptor/blocks/{}/rawPayload", blockIndex),
+                                rawPayloads[0], rawPayloads[1]);
+                        }
                     }
                 }
-            }
         }
 
         if (++blockIndex >= MAX_NUM_DFD_BLOCKS)
@@ -1309,9 +1333,11 @@ void CommandCompare::compareDFDBasic(PrintDiff& diff, uint32_t blockIndex,
     for (std::size_t i = 0; i < 2; ++i)
         assert(bdfds[i].has_value() == bdfdSamples[i].has_value());
 
-    diff << DiffFlags("Flags",
-        fmt::format("/dataFormatDescriptor/blocks/{}/flags", blockIndex),
-        OPT_BITFIELDS(bdfds, flags), dfdToStringFlagsBit);
+    if (options.ignoreDFD != IgnoreDFD::all_except_color_space)
+        diff << DiffFlags("Flags",
+            fmt::format("/dataFormatDescriptor/blocks/{}/flags", blockIndex),
+            OPT_BITFIELDS(bdfds, flags), dfdToStringFlagsBit);
+
     diff << DiffEnum<khr_df_transfer_e>("Transfer",
         fmt::format("/dataFormatDescriptor/blocks/{}/transferFunction", blockIndex),
         OPT_BITFIELDS(bdfds, transfer),
@@ -1320,6 +1346,11 @@ void CommandCompare::compareDFDBasic(PrintDiff& diff, uint32_t blockIndex,
         fmt::format("/dataFormatDescriptor/blocks/{}/colorPrimaries", blockIndex),
         OPT_BITFIELDS(bdfds, primaries),
         [&](auto i) { return dfdToStringColorPrimaries(khr_df_primaries_e(bdfds[i]->primaries)); });
+
+    // Do not compare the remainder of the BDFD if everything but color space information is ignored
+    if (options.ignoreDFD == IgnoreDFD::all_except_color_space)
+        return;
+
     diff << DiffEnum<khr_df_model_e>("Model",
         fmt::format("/dataFormatDescriptor/blocks/{}/colorModel", blockIndex),
         OPT_BITFIELDS(bdfds, model),
