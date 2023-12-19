@@ -1,172 +1,172 @@
-# Copyright (c) 2023, Shukant Pal and Contributors
-# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2023, Shukant Pal and Contribu
+# SPDX-License-Identifier: Apache
 
-from dataclasses import dataclass
-from .ktx_pack_uastc_flag_bits import KtxPackUastcFlagBits
+from dataclasses import datac
+from .ktx_pack_uastc_flag_bits import KtxPackUastcFlag
 
 
-@dataclass
-class KtxBasisParams:
-    """Data for passing extended params to KtxTexture2.compressBasis()."""
+@datac
+class KtxBasisPar
+    """Data for passing extended params to KtxTexture2.compressBasis()
 
-    uastc: bool = False
-    """True to use UASTC base, false to use ETC1S base."""
+    uastc: bool = F
+    """True to use UASTC base, false to use ETC1S base
 
-    verbose: bool = False
-    """If true, prints Basis Universal encoder operation details to stdout. Not recommended for GUI apps."""
+    verbose: bool = F
+    """If true, prints Basis Universal encoder operation details to stdout. Not recommended for GUI apps
 
-    no_sse: bool = False
-    """True to forbid use of the SSE instruction set. Ignored if CPU does not support SSE."""
+    no_sse: bool = F
+    """True to forbid use of the SSE instruction set. Ignored if CPU does not support SSE
 
-    thread_count: int = 1
-    """Number of threads used for compression. Default is 1."""
+    thread_count: int
+    """Number of threads used for compression. Default is 1
 
-    compression_level: int = 0
-    """
-    Encoding speed vs. quality tradeoff. Range is [0,5]. 
-    
-    Higher values are slower, but give higher quality. There is no default.
-    Callers must explicitly set this value. Callers can use
-    KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL as a default value. Currently this is 2.
-    """
+    compression_level: int
 
-    quality_level: int = 0
-    """
-    Compression quality. Range is [1,255].
+    Encoding speed vs. quality tradeoff. Range is [0,
 
-    Lower gives better compression/lower quality/faster.
-    Higher gives less compression/higher quality/slower. 
-    This automatically determines values for max_endpoints, max_selectors,
-    endpoint_rdo_threshold, and selector_rdo_threshold for the target quality
-    level. Setting these parameters overrides the values determined by quality_level
-    which defaults to 128 if neither it nor both of max_endpoints and max_selectors
-    have been set.
-    
-    Both of max_endpoints and max_selectors must be set for them to have any effect.
-    quality_level will only determine values for endpoint_rdo_threshold and selector_rdo_threshold
-    when its value exceeds 128, otherwise their defaults will be used.
-    """
+    Higher values are slower, but give higher quality. There is no defa
+    Callers must explicitly set this value. Callers can
+    KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL as a default value. Currently this i
 
-    max_endpoints: int = 0
-    """
-    Manually set the max number of color endpoint clusters.
 
-    Range is [1,16128]. Default is 0, unset. If this is set, max_selectors
-    must also be set, otherwise the value will be ignored.
-    """
+    quality_level: int
 
-    endpoint_rdo_threshold: int = 0
-    """
-    Set endpoint RDO quality threshold. The default is 1.25.
-    
-    Lower is higher quality but less quality per output bit (try [1.0,3.0].
-    This will override the value chosen by quality_level.
-    """
+    Compression quality. Range is [1,2
 
-    max_selectors: int = 0
-    """
-    Manually set the max number of color selector clusters. Range is [1,16128].
-    
-    Default is 0, unset. If this is set, max_endpoints must also be set, otherwise
-    the value will be ignored.
-    """
-    
-    selector_rdo_threshold: int = 0
-    """
-    Set selector RDO quality threshold. The default is 1.5.
-    
-    Lower is higher quality but less quality per output bit (try [1.0,3.0]).
-    This will override the value chosen by @c qualityLevel.
-    """
+    Lower gives better compression/lower quality/fas
+    Higher gives less compression/higher quality/slow
+    This automatically determines values for max_endpoints, max_select
+    endpoint_rdo_threshold, and selector_rdo_threshold for the target qua
+    level. Setting these parameters overrides the values determined by quality_l
+    which defaults to 128 if neither it nor both of max_endpoints and max_selec
+    have been
 
-    input_swizzle: bytes = bytes(4)
-    """
-    A swizzle to apply before encoding.
-    
-    It must match the regular expression /^[rgba01]{4}$/. If both this and
-    pre_swizzle are specified KtxTexture2.compressBasis() will raise INVALID_OPERATION.
-    """
+    Both of max_endpoints and max_selectors must be set for them to have any eff
+    quality_level will only determine values for endpoint_rdo_threshold and selector_rdo_thres
+    when its value exceeds 128, otherwise their defaults will be u
 
-    normal_map: bool = False
-    """
-    Tunes codec parameters for better quality on normal maps (no
-    selector RDO, no endpoint RDO) and sets the texture's DFD appropriately.
 
-    Only valid for linear textures.
-    """
+    max_endpoints: int
 
-    pre_swizzle: bool = False
-    """
-    If the texture has swizzle metadata, apply it before compressing.
-    
-    Swizzling, like rabb may yield drastically different error metrics
-    if done after supercompression.
-    """
+    Manually set the max number of color endpoint clust
 
-    separate_rg_to_rgb_a: bool = False
-    """
-    This was and is a no-op.
-    
-    2-component inputs have always been automatically separated
-    using an "rrrg" input_swizzle.
-    """
+    Range is [1,16128]. Default is 0, unset. If this is set, max_selec
+    must also be set, otherwise the value will be igno
 
-    no_endpoint_rdo: bool = False
-    """
-    Disable endpoint rate distortion optimizations.
-    
-    Slightly faster, less noisy output, but lower quality per output bit.
-    """
 
-    no_selector_rdo: bool = False
-    """
-    Disable selector rate distortion optimizations.
-    
-    Slightly faster, less noisy output, but lower quality per output bit.
-    """
+    endpoint_rdo_threshold: int
 
-    uastc_flags: int = KtxPackUastcFlagBits.FASTEST
-    """
-    A set of KtxPackUastcFlagBits controlling UASTC encoding.
-    
-    The most important value is the level given in the
-    least-significant 4 bits which selects a speed vs quality tradeoff.
-    """
+    Set endpoint RDO quality threshold. The default is 1
 
-    uastc_rdo: bool = False
-    """Enable Rate Distortion Optimization (RDO) post-processing."""
+    Lower is higher quality but less quality per output bit (try [1.0,3
+    This will override the value chosen by quality_le
 
-    uastc_rdo_quality_scalar: float = 0.
-    """
-    UASTC RDO quality scalar (lambda).
-    
-    Lower values yield higher quality/larger LZ compressed files, higher
-    values yield lower quality/smaller LZ compressed files. A good range to
-    try is [.2,4]. Full range is [.001,50.0]. Default is 1.0.
-    """
 
-    uastc_rdo_dict_size: int = 0
-    """
-    UASTC RDO dictionary size in bytes. Default is 4096. Lower
-    values=faster, but give less compression. Range is [64,65536].
-    """
+    max_selectors: int
 
-    uastc_rdo_max_smooth_block_error_scale: float = 10.
-    """
-    UASTC RDO max smooth block error scale. Range is [1,300].
-    Default is 10.0, 1.0 is disabled. Larger values suppress more
-    artifacts (and allocate more bits) on smooth blocks.
-    """
+    Manually set the max number of color selector clusters. Range is [1,161
 
-    uastc_rdo_max_smooth_block_std_dev: float = 18.
-    """
-    UASTC RDO max smooth block standard deviation. Range is
-    [.01,65536.0]. Default is 18.0. Larger values expand the range of
-    blocks considered smooth.
-    """
+    Default is 0, unset. If this is set, max_endpoints must also be set, other
+    the value will be igno
 
-    uastc_rdo_dont_favor_simpler_modes: bool = False
-    """Do not favor simpler UASTC modes in RDO mode."""
 
-    uastc_rdo_no_multithreading: bool = False
-    """Disable RDO multithreading (slightly higher compression, deterministic)."""
+    selector_rdo_threshold: int
+
+    Set selector RDO quality threshold. The default is
+
+    Lower is higher quality but less quality per output bit (try [1.0,3.
+    This will override the value chosen by @c qualityLe
+
+
+    input_swizzle: bytes = byte
+
+    A swizzle to apply before encod
+
+    It must match the regular expression /^[rgba01]{4}$/. If both this
+    pre_swizzle are specified KtxTexture2.compressBasis() will raise INVALID_OPERAT
+
+
+    normal_map: bool = F
+
+    Tunes codec parameters for better quality on normal maps
+    selector RDO, no endpoint RDO) and sets the texture's DFD appropriat
+
+    Only valid for linear textu
+
+
+    pre_swizzle: bool = F
+
+    If the texture has swizzle metadata, apply it before compress
+
+    Swizzling, like rabb may yield drastically different error met
+    if done after supercompress
+
+
+    separate_rg_to_rgb_a: bool = F
+
+    This was and is a no
+
+    2-component inputs have always been automatically separ
+    using an "rrrg" input_swiz
+
+
+    no_endpoint_rdo: bool = F
+
+    Disable endpoint rate distortion optimizati
+
+    Slightly faster, less noisy output, but lower quality per output
+
+
+    no_selector_rdo: bool = F
+
+    Disable selector rate distortion optimizati
+
+    Slightly faster, less noisy output, but lower quality per output
+
+
+    uastc_flags: int = KtxPackUastcFlagBits.FAS
+
+    A set of KtxPackUastcFlagBits controlling UASTC encod
+
+    The most important value is the level given in
+    least-significant 4 bits which selects a speed vs quality trade
+
+
+    uastc_rdo: bool = F
+    """Enable Rate Distortion Optimization (RDO) post-processing
+
+    uastc_rdo_quality_scalar: float
+
+    UASTC RDO quality scalar (lamb
+
+    Lower values yield higher quality/larger LZ compressed files, hi
+    values yield lower quality/smaller LZ compressed files. A good rang
+    try is [.2,4]. Full range is [.001,50.0]. Default is
+
+
+    uastc_rdo_dict_size: int
+
+    UASTC RDO dictionary size in bytes. Default is 4096. L
+    values=faster, but give less compression. Range is [64,655
+
+
+    uastc_rdo_max_smooth_block_error_scale: float =
+
+    UASTC RDO max smooth block error scale. Range is [1,3
+    Default is 10.0, 1.0 is disabled. Larger values suppress
+    artifacts (and allocate more bits) on smooth blo
+
+
+    uastc_rdo_max_smooth_block_std_dev: float =
+
+    UASTC RDO max smooth block standard deviation. Rang
+    [.01,65536.0]. Default is 18.0. Larger values expand the rang
+    blocks considered smo
+
+
+    uastc_rdo_dont_favor_simpler_modes: bool = F
+    """Do not favor simpler UASTC modes in RDO mode
+
+    uastc_rdo_no_multithreading: bool = F
+    """Disable RDO multithreading (slightly higher compression, deterministic)

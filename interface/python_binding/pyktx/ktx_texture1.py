@@ -56,7 +56,7 @@ class KtxTexture1(KtxTexture):
     def gl_format(self) -> int:
         """
         Format of the texture data, e.g. GL_RGB.
-        
+
         You can find all OpenGL formats here: <https://registry.khronos.org/OpenGL/api/GL/glcorearb.h>
         """
         return lib.PY_ktxTexture1_get_glFormat(self._ptr)
@@ -85,7 +85,7 @@ class KtxTexture1(KtxTexture):
     def gl_type(self) -> int:
         """
         Type of the texture data, e.g, GL_UNSIGNED_BYTE.
-        
+
         You can find all OpenGL data types here: <https://registry.khronos.org/OpenGL/api/GL/glcorearb.h>
         """
         return lib.PY_ktxTexture1_get_glType(self._ptr)

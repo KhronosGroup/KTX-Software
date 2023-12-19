@@ -30,7 +30,7 @@ class KtxPackUastcFlagBits(IntEnum):
 
     FAVOR_UASTC_ERROR = 8
     """Optimize for lowest UASTC error."""
-    
+
     FAVOR_BC7_ERROR = 16
     """Optimize for lowest BC7 error."""
 

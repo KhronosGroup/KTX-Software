@@ -25,7 +25,7 @@ class KtxAstcParams:
 
     mode: KtxPackAstcEncoderMode = KtxPackAstcEncoderMode.DEFAULT
     """Can be {ldr/hdr} from astcenc"""
-    
+
     quality_level: int = KtxPackAstcQualityLevels.FASTEST
     """astcenc supports -fastest, -fast, -medium, -thorough, -exhaustive"""
 
@@ -41,16 +41,16 @@ class KtxAstcParams:
     perceptual: bool = False
     """
     The codec should optimize for perceptual error, instead of direct RMS error.
-    
+
     This aims to improves perceived image quality, but
     typically lowers the measured PSNR score. Perceptual methods are
     currently only available for normal maps and RGB color data.
     """
-    
+
     input_swizzle: bytes = bytes([0, 0, 0, 0])
     """
     A swizzle to provide as input to astcenc.
-    
+
     It must match the regular expression /^[rgba01]{4}$/.
     """
 
