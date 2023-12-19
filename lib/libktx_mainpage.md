@@ -86,7 +86,7 @@ result = ktxTexture_CreateFromNamedFile("mytex3d.ktx",
                                         &kTexture);
 glGenTextures(1, &texture); // Optional. GLUpload can generate a texture.
 result = ktxTexture_GLUpload(kTexture, &texture, &target, &glerror);
-ktxTexture_Destroy(texture);
+ktxTexture_Destroy(kTexture);
 // ...
 // GL rendering using the texture
 // ...
