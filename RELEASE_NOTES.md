@@ -46,7 +46,7 @@ The command-line syntax and semantics differ from the old tools including, but n
 Please refer to the manual pages or use the `--help` command-line option for further details on the options available and associated semantics for each individual command.
 
 #### Python Binding
-A Python binding for `libktx` has been added. Applications written in Python can now use `libktx` functions. Huge thanks to @ShukantPal.
+A Python binding for `libktx` has been added. Applications written in Python can now use `libktx` functions. Huge thanks to @ShukantPal. Please download the appropriate `pyktx` package from Releases as publishing to PyPI is not yet established.
 
 ### Changes
 
