@@ -1,0 +1,126 @@
+# Copyright 2023 Shukant Pal
+# SPDX-License-Identifier: Apache-2.0
+
+name: Publish Python 🐍 distribution 📦 to PyPI or TestPyPI
+
+# https://github.com/pypa/gh-action-pypi-publish strongly recommends a
+# separate publishing job when building platform-specific distribution
+# packages, hence this.
+#
+# This should not be run until the release artifacts have been deployed.
+# The only way I can see to trigger this automatically is to have all
+# platform builds in a single workflow file and use on: `workflow_run`
+# so this is triggered when that workflow completes. Once all platform
+# builds are moved to GitHub Actions we can try making each platform
+# workflow reusable and making another workflow that calls each of
+# them via `uses` and use `on: workflow_run` here.
+#
+# We also have to figure out how to determine if the workflow deployed
+# to releases. Maybe can use the GitHub REST API to get an artifact
+# from the triggering workflow that is set only when deploying
+# releases. See https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#using-data-from-the-triggering-workflow.
+# Alternatively maybe there is some way of querying what triggered
+# the workflow that we can test in an `if:` in the job as noted below.
+
+on:
+  workflow_dispatch:
+    inputs:
+#      repository-url:
+#        description: 'destination repository'
+#        required: true
+#        default: 'https://pypi.org'
+#        type: choice
+#        options:
+#          - https://test.pypi.org
+#          - https://pypi.org
+      test-pypi:
+        type: boolean
+        description: 'Deploy to test pypi registry'
+        required: true
+        default: false
+
+# Example to try in future.
+#  workflow_run:
+#    workflows: [KTX-Software Build All]
+#    types:
+#      - completed
+# An unknown is how to limit the trigger to when deploy is run in
+# Windows CI which is happens when that workflow is triggered by
+# a push with the tags below.
+#  push:
+#    # Trigger on push of release tags. There is no way to limit the trigger
+#    # to a specific branch. A later build step checks for the main branch.
+#    tags:
+#      - 'v[0-9]+\.[0-9]+\.[0-9]+'
+#      - 'v[0-9]+\.[0-9]+\.[0-9]+-*'
+
+jobs:
+  publish-to-pypi:
+    name:  Publish Python 🐍 distribution 📦 to PyPI
+    if: test-pypi == false
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url:  https://pypi.org/p/pyktx
+    permissions:
+      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
+    # When using workflow_run it is necessary to check for successful
+    # completion of the workflow with
+    #if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    # Maybe it is possible to test for a release tag here too.
+    steps:
+      - name: Download latest release metadata
+        run: |
+           curl \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              -o latest.json \
+              https://api.github.com/repos/KhronosGroup/KTX-Software/releases/latest
+      - name: Filter out pyktx- assets
+        run: |
+          jq '.assets | map(select(.name | startswith("pyktx-"))) | map(.browser_download_url)' < latest.json > pyktx.json 
+      - name: Create dist directory
+        run: |
+          mkdir dist
+      - name: Download assets
+        run: |
+          cd dist; jq -c '.[]' ../pyktx.json | xargs -L 1 curl -O -J; cd..
+      - name: Publish distribution 📦 to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+
+  publish-to-testpypi:
+    name:  Publish Python 🐍 distribution 📦 to TestPyPI
+    if: test-pypi
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://pypi.org/p/pyktx
+    permissions:
+      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
+    # When using workflow_run it is necessary to check for successful
+    # completion of the workflow with
+    #if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    # Maybe it is possible to test for a release tag here too.
+    steps:
+      - name: Download latest release metadata
+        run: |
+           curl \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              -o latest.json \
+              https://api.github.com/repos/KhronosGroup/KTX-Software/releases/latest
+      - name: Filter out pyktx- assets
+        run: |
+          jq '.assets | map(select(.name | startswith("pyktx-"))) | map(.browser_download_url)' < latest.json > pyktx.json 
+      - name: Create dist directory
+        run: |
+          mkdir dist
+      - name: Download assets
+        run: |
+          cd dist; jq -c '.[]' ../pyktx.json | xargs -L 1 curl -O -J; cd..
+      - name: Publish distribution 📦 to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
