@@ -197,7 +197,7 @@ function( create_version_header dest_path target )
 endfunction()
 
 function( create_version_file )
-    file(WRITE ${PROJECT_BINARY_DIR}/ktx.version "${KTX_VERSION}")
+    file(WRITE ${PROJECT_BINARY_DIR}/ktx.version "${KTX_VERSION_FULL}")
 endfunction()
 
 # vim:ai:ts=4:sts=4:sw=2:expandtab:textwidth=70

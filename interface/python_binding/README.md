@@ -31,5 +31,5 @@ If you are on a POSIX system (macOS or Linux), make sure libktx is on your `DYLD
 > ```
 > ld: warning: ignoring file '/usr/local/lib/libktx.4.3.0.dylib': found architecture 'arm64', required architecture 'x86_64'
 > ```
-> 
+>
 > 'arm64' and 'x86_64' may be reversed depending on the build machine architecture. This happens because libktx is not a universal binary so only supports the current platform architecture. The message can be ignored.

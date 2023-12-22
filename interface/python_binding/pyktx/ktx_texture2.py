@@ -91,7 +91,7 @@ class KtxTexture2(KtxTexture):
     def compress_astc(self, params: Union[int, KtxAstcParams]) -> None:
         """
         Encode and compress a ktx texture with uncompressed images to ASTC.
-        
+
         The images are either encoded to ASTC block-compressed format. The
         encoded images replace the original images and the texture's fields
         including the dfd are modified to reflect the new state.
@@ -197,7 +197,7 @@ class KtxTexture2(KtxTexture):
         PVRTC2_4_RGB, PVRTC2_4_RGBA, ASTC_4x4_RGBA, ETC2_EAC_R11, ETC2_EAC_RG11, ETC and BC1_OR_3.
 
         ETC automatically selects between ETC1_RGB and ETC2_RGBA according to whether an alpha
-        channel is available. BC1_OR_3 does likewise between BC1_RGB and BC3_RGBA. Note that if 
+        channel is available. BC1_OR_3 does likewise between BC1_RGB and BC3_RGBA. Note that if
         PVRTC1_4_RGBA or PVRTC2_4_RGBA is specified and there is no alpha channel PVRTC1_4_RGB
         or PVRTC2_4_RGB respectively will be selected.
 

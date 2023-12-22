@@ -225,7 +225,7 @@ jobs:
       # is spawned from some parent Powershell so it does not pick up
       # the changes from the registry. Use Chocolatey's helper to
       # pull in the changes.
-      #   After import `refreshenv` is an alias for
+      #   After import, `refreshenv` is an alias for
       # Update-SessionEnvironment. Without the import refreshenv will end
       # up calling the cmd.exe version, which won't help Powershell, and
       # Update-SessionEnvironment will not exist.
@@ -263,18 +263,20 @@ jobs:
         path: ${{env.BUILD_DIR}}/KTX-Software-*.exe*
 
     - name: Upload pyktx artifacts
-      if: matrix.options.package == 'YES' && matrix.options.py
+      if: matrix.options.package == 'YES' && matrix.options.py == 'ON'
       uses: kittaakos/upload-artifact-as-is@v0
       with:
         path: ${{env.BUILD_DIR}}/interface/python_binding/dist/
 
-    - name: Upload To Release
+    - name: Upload to Release
       uses: softprops/action-gh-release@v1
       if: matrix.options.package == 'YES' && matrix.toolset == 'CLangCL' && github.event_name == 'push' && github.ref_type == 'tag'
       with:
         draft: true
         prerelease: true
-        files: ${{env.BUILD_DIR}}/KTX-Software-*.exe*
+        files: |
+            ${{env.BUILD_DIR}}/KTX-Software-*.exe*
+            ${{env.BUILD_DIR}}/interface/python_binding/dist/pyktx-*
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

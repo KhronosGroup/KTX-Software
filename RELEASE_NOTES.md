@@ -2,8 +2,9 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 Release Notes
 =============
-## Version 4.3.0-alpha3
-### New Features
+## Version 4.3.0-beta1
+### New Features in Version 4.3.0
+#### Command Line Tools Suite
 
 v4.3.0 contains a new suite of command line tools accessed via an umbrella `ktx` command.
 
@@ -11,20 +12,21 @@ v4.3.0 contains a new suite of command line tools accessed via an umbrella `ktx`
 | :--- | ----------- | ------------------- |
 | `ktx create` | Create a KTX2 file from various input files | `toktx` |
 | `ktx extract` | Export selected images from a KTX2 file | - |
-| `ktx encode` | Encode a KTX2 file | `ktxsc` |
+| `ktx encode` | Encode a KTX2 file to a Basis Universal format | `ktxsc` |
 | `ktx transcode` | Transcode a KTX2 file | - |
 | `ktx info` | Prints information about a KTX2 file | `ktxinfo` |
 | `ktx validate` | Validate a KTX2 file | `ktx2check` |
 | `ktx help` | Display help information about the ktx tools | - |
 
-Equivalent old tools will be removed in the next release.
+Equivalent old tools will be removed in a subsequent release soon.
 
 Some features of the old tools are not currently available in the new equivalent.
 
 | Old Tool | New Tool | Missing Features |
 | :------: | :------: | ---------------- |
-| `toktx`  | `create` | JPEG and NBPM input and scaling/resizing. |
-| `ktxsc`  | `encode` | ASTC encoding. This can be done in `create`. |
+| `toktx`  | `create` | JPEG and NBPM input and scaling/resizing of input images. |
+| `ktxsc`  | `encode` | ASTC encoding of a KTX2 file. This can be done in `create`. <br>Deflation of a KTX2 file with zlib or zstd.|
+
 
 The command-line syntax and semantics differ from the old tools including, but not limited to:
 
@@ -43,12 +45,17 @@ The command-line syntax and semantics differ from the old tools including, but n
 
 Please refer to the manual pages or use the `--help` command-line option for further details on the options available and associated semantics for each individual command.
 
+#### Python Binding
+A Python binding for `libktx` has been added. Applications written in Python can now use `libktx` functions. Huge thanks to @ShukantPal. Please download the appropriate `pyktx` package from Releases as publishing to PyPI is not yet established.
+
 ### Changes
 
 * `libktx` has been made much more robust to errors KTX files.
-
 * `libktx` now validates checksums when present in a Zstd data stream.
 * `libktx` has two new error codes it can return: `KTX_DECOMPRESS_LENGTH_ERROR` and `KTX_DECOMPRESS_CHECKSUM_ERROR`.
+* All tools and `libktx` now correctly process on all platforms utf8 file names
+with multi-byte code-points. Previously such names did not work on Windows.
+* The Vulkan texture uploader can now optionally be used with an extenal memory allocator such as [VulkanMemoryAllocator](https://gpuopen.com/vulkan-memory-allocator/).
 
 ### Known Issues
 
@@ -61,6 +68,89 @@ Please refer to the manual pages or use the `--help` command-line option for fur
 * UASTC RDO results differ from run to run unless multi-threading or RDO multi-threading is disabled. In `toktx` use `--threads 1` for the former or `--uastc_rdo_m` for the latter. As with the preceeding issue results are valid but level sizes will differ slightly. See [issue #151](https://github.com/BinomialLLC/basis_universal/issues/151) in the basis_universal repository.
 
 * Neither the Vulkan nor GL loaders support depth/stencil textures.
+
+
+### Changes since v4.3.0-alpha3 (by part)
+### libktx
+
+* git subrepo push lib/dfdutils (ab9c27707) (@MarkCallow)
+
+* Reenable build of loadtest apps on Windows arm64 CI (#802) (6c131f75f) (@MarkCallow)
+
+* Utf-8/unicode support in legacy tools and lib. (#800) (1c5dc9cf6) (@MarkCallow)
+
+* Do not redefine NOMINMAX (#801) (6dbb24643) (@corporateshark)
+
+* libktx: update ktxTexture2\_setImageFromStream to allow setting the entire level's data in one call (#794) (88fc7a6e9) (@AlexRouSg)
+
+* Update dfdutils-included vulkan\_core.h. (#783) (9c223d950) (@MarkCallow)
+
+* Support for A8 and A1B5G5R5 formats (#785) (eeac6206c) (@aqnuep)
+
+* Major non-content documentation fixes. (#773) (e6a6a3be9) (@MarkCallow)
+
+* Fix vendor-specific/tied memory property flag detection (#771) (a10021758) (@toomuchvoltage)
+
+* Return KTX\_NOT\_FOUND when a GPU proc is not found. (#770) (aeca5e695) (@MarkCallow)
+
+* Support for external allocators: (#748) (6856fdb0d) (@toomuchvoltage)
+
+* Fix ktx\_strncasecmp (#741) (1ae04f897) (@VaderY)
+
+* Use correct counter for indexing sample. (#739) (3153e94e8) (@MarkCallow)
+
+### Tools
+
+* Disallow ASTC options when format is not ASTC (#809) (d3ef5ed8b) (@aqnuep)
+
+* Remove unnecessary nullptr checks. (#807) (072a4eb25) (@MarkCallow)
+
+* Set tools and tests rpath on Linux. (#804) (928612a71) (@MarkCallow)
+
+* Utf-8/unicode support in legacy tools and lib. (#800) (1c5dc9cf6) (@MarkCallow)
+
+* Support building of loadtest apps with locally installed dependencies (#799) (84ee59dd2) (@MarkCallow)
+
+* Update dfdutils-included vulkan\_core.h. (#783) (9c223d950) (@MarkCallow)
+
+* Add UTF-8 filename support on Windows to ktxtools (#788) (7b6eab5dc) (@aqnuep)
+
+* Support for A8 and A1B5G5R5 formats (#785) (eeac6206c) (@aqnuep)
+
+* KTXwriterScParams support (#779) (f8691ff05) (@aqnuep)
+
+* Use \-- in doc. to get -- not n-dash in output. (#767) (724790094) (@MarkCallow)
+
+* Document convert\_primaries option in toktx. (#765) (3049f5b5e) (@MarkCallow)
+
+* Do target\_type changes only in toktx (#757) (2cf053c19) (@MarkCallow)
+
+* Add support for fewer components in input files (#755) (adcccf152) (@aqnuep)
+
+* Fix --convert-primaries (#753) (e437ec45f) (@aqnuep)
+
+* Fix legacy app input from pipes on Windows. (#749) (3e7fd0af6) (@MarkCallow)
+
+* Improve output determinism and add internal ktxdiff tool for comparing test outputs (#745) (7f67af7e0) (@VaderY)
+
+* Add KTX\_WERROR config option (#746) (dab32db90) (@MarkCallow)
+
+* Fix incorrect index calculations in image conversions (#735) (682f456de) (@VaderY)
+
+* Color-space and documentation related improvements for ktx create (#732) (8b12216f7) (@VaderY)
+
+
+
+
+
+### Java Wrapper
+
+* Update dfdutils-included vulkan\_core.h. (#783) (9c223d950) (@MarkCallow)
+
+
+
+
+## Version 4.3.0-alpha3
 
 
 ### Changes since v4.3.0-alpha2 (by part)

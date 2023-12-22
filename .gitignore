@@ -56,3 +56,6 @@ cmake-build-*
 # Temps used for Windows signing on CI
 appveyor-tools
 the_khronos_group_inc.p12
+
+# Place for random developer test files.
+/testground/

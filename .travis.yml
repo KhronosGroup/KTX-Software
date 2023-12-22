@@ -396,11 +396,25 @@ deploy:
 
   - provider: script
     edge: true
-    script: ruby ci_scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -c $REL_DESC_FILE -t ${TRAVIS_TAG} --overwrite true --draft true --prerelease true $BUILD_DIR/KTX-Software-*-* $BUILD_DIR/interface/python_binding/dist/*.whl
+    # nullglob is to force a null string when there are no *.whl files.
+    script: ruby ci_scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -c $REL_DESC_FILE -t ${TRAVIS_TAG} --overwrite true --draft true --prerelease true $BUILD_DIR/KTX-Software-*-*
     on:
       tags: true
       #branch: master
       condition: $PACKAGE = "YES" && $TRAVIS_TAG =~ ^v[0-9].*
+
+  # Separate deploy for pyktx because the linux runners use sh not bash
+  # for the "script" so `shopt -s nullglob; ci_scripts/github_release.rb ...`
+  # does not work to avoid passing `.../*.whl` to github_release when
+  # FEATURE_PY not ON.
+  - provider: script
+    edge: true
+    script: ruby ci_scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -c $REL_DESC_FILE -t ${TRAVIS_TAG} --overwrite true --draft true --prerelease true $BUILD_DIR/interface/python_binding/dist/*.whl
+    on:
+      tags: true
+      #branch: master
+      condition: $PACKAGE = "YES" && $TRAVIS_TAG =~ ^v[0-9].* && $FEATURE_PY = "ON"
+
 # ---------------------------------------------------------
 
 # vim:ai:ts=4:sts=2:sw=2:expandtab
