@@ -283,6 +283,12 @@ script:
     fi
     ;;
   esac
+  if [ "$DEPLOY_DOCS" = "YES" ]; then
+    # Some files in the pyktx docs have an _ prefix so Jekyll will
+    # not copy them from the gh-pages branch to the website. This
+    # file says no Jekyll files here. Treat all as ordinary files.
+    touch $BUILD_DIR/docs/html/.nojekyll
+  fi
 
 # See if this helps with truncated logs.
 #after_script:
