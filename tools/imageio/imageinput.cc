@@ -314,7 +314,9 @@ ImageInput::readImage(void* pBuffer, size_t bufferByteCount,
 {
     const auto& targetFormat = format.isUnknown() ? spec().format() : format;
     size_t outScanlineByteCount
-           = targetFormat.basic.bytesPlane0 * spec().width();
+           = targetFormat.pixelByteCount() * spec().width();
+    if (bufferByteCount < outScanlineByteCount * spec().height())
+        throw buffer_too_small();
 
     uint8_t* pDst = static_cast<uint8_t*>(pBuffer);
     for (uint32_t y = 0; y < spec().height(); y++) {
