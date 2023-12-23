@@ -362,16 +362,10 @@ void JpegInput::readImage(void* bufferOut, size_t bufferByteCount,
                           uint subimage, uint miplevel,
                           const FormatDescriptor& format)
 {
-    const auto& targetFormat = format.isUnknown() ? spec().format() : format;
-    size_t outImageByteCount
-           = targetFormat.basic.bytesPlane0 * spec().width() * spec().height();
-    if (bufferByteCount < outImageByteCount)
-        throw buffer_too_small();
-
     pJd->begin_decoding();
     decodingBegun = true;
     ImageInput::readImage(bufferOut, bufferByteCount,
                           subimage, miplevel,
-                          targetFormat);
+                          format);
 }
 
