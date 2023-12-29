@@ -159,5 +159,14 @@ function(cxxopts_install_logic)
             DESTINATION "${CMAKE_INSTALL_LIBDIR_ARCHIND}/pkgconfig"
     )
 
+    # this should fix directory permission derived from Travis-CI ubuntu ${BUILD_DIR} from 0775 to 0755.
+    # otherwise when installing the RPM, it will conflicting with the base filesystem.rpm that is
+    # setting the directory permission and owns them to 0755
+    # NOTE: Alternatively would be better build the RPM through a docker or RedHat OS in the CI
+    set(CPACK_RPM_DEFAULT_DIR_PERMISSIONS
+    OWNER_READ OWNER_WRITE OWNER_EXECUTE
+    GROUP_READ GROUP_EXECUTE
+    WORLD_READ WORLD_EXECUTE)
+
     include(CPack)
 endfunction()
