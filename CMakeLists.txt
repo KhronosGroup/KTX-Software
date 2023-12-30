@@ -1250,7 +1250,7 @@ elseif(LINUX)
     # This fixes the directory permission derived from Ubuntu ${BUILD_DIR} of 0775 to 0755.
     # otherwise when installing the RPM, it conflicts with the base filesystem.rpm that is
     # setting the directory permissions and owns them to 0755.
-    # See GitHub Issue #287
+    # See GitHub Issue #827.
     # NOTE: Alternatively It would be better build the RPM through a docker or RedHat OS in the CI
     set(CPACK_RPM_DEFAULT_DIR_PERMISSIONS
     OWNER_READ OWNER_WRITE OWNER_EXECUTE
