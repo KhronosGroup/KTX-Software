@@ -1253,9 +1253,9 @@ elseif(LINUX)
     # See GitHub Issue #827.
     # NOTE: Alternatively It would be better build the RPM through a docker or RedHat OS in the CI
     set(CPACK_RPM_DEFAULT_DIR_PERMISSIONS
-    OWNER_READ OWNER_WRITE OWNER_EXECUTE
-    GROUP_READ GROUP_EXECUTE
-    WORLD_READ WORLD_EXECUTE)
+        OWNER_READ OWNER_WRITE OWNER_EXECUTE
+        GROUP_READ GROUP_EXECUTE
+        WORLD_READ WORLD_EXECUTE)
 elseif(WIN32)
     set(CPACK_GENERATOR "NSIS")
     # Add logo to top left of installer pages. Despite the installer-
