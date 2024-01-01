@@ -99,6 +99,11 @@ sudo apt install build-essential cmake libzstd-dev ninja-build doxygen libsdl2-d
 
 `mesa-opencl-icd` should be replaced by the appropriate package for your GPU.
 
+On Fedora and RedHat these can be installed via
+
+```bash
+sudo dnf install make automake gcc gcc-c++ kernel-devel cmake libzstd-devel ninja-build doxygen SDL2-devel mesa-libGL mesa-libGL-devel mesa-vulkan-drivers assimp-devel opencl-headers mesa-libOpenCL
+```
 
 KTX requires `glslc`, which comes with [Vulkan SDK](#vulkan-sdk) (in sub-
 folder `x86_64/bin/glslc`). Make sure the complete path to the tool is in

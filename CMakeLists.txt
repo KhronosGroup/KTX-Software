@@ -1246,6 +1246,16 @@ elseif(LINUX)
     set(CPACK_GENERATOR DEB RPM TBZ2)
     set(CPACK_PACKAGE_CHECKSUM SHA1)
     set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ReadMe.txt")
+
+    # This fixes the directory permission derived from Ubuntu ${BUILD_DIR} of 0775 to 0755.
+    # otherwise when installing the RPM, it conflicts with the base filesystem.rpm that is
+    # setting the directory permissions and owns them to 0755.
+    # See GitHub Issue #827.
+    # NOTE: Alternatively It would be better build the RPM through a docker or RedHat OS in the CI
+    set(CPACK_RPM_DEFAULT_DIR_PERMISSIONS
+        OWNER_READ OWNER_WRITE OWNER_EXECUTE
+        GROUP_READ GROUP_EXECUTE
+        WORLD_READ WORLD_EXECUTE)
 elseif(WIN32)
     set(CPACK_GENERATOR "NSIS")
     # Add logo to top left of installer pages. Despite the installer-
