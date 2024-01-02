@@ -13,6 +13,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <regex>
 #include <unordered_map>
 
 #include <cxxopts.hpp>
@@ -45,7 +46,7 @@ Deflate (supercompress) a KTX2 file.
     error is displayed to the stderr and the command exits with the relevant
     non-zero status code.
 
-    @ktx @b deflate cannot be applied to KTX files that have been
+    @b ktx @b deflate cannot be applied to KTX files that have been
     supercompressed with BasisLZ.
 
     The following options are available:
@@ -84,7 +85,7 @@ class CommandDeflate : public Command {
     Combine<OptionsDeflate, OptionsCompress, OptionsSingleInSingleOut, OptionsGeneric> options;
 
 public:
-    virtual int main(int argc, _TCHAR* argv[]) override;
+    virtual int main(int argc, char* argv[]) override;
     virtual void initOptions(cxxopts::Options& opts) override;
     virtual void processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) override;
 
@@ -94,7 +95,7 @@ private:
 
 // -------------------------------------------------------------------------------------------------
 
-int CommandDeflate::main(int argc, _TCHAR* argv[]) {
+int CommandDeflate::main(int argc, char* argv[]) {
     try {
         parseCommandLine("ktx deflate",
                 "Deflate (supercompress) the KTX file specified as the input-file\n"
@@ -146,20 +147,22 @@ void CommandDeflate::executeDeflate() {
     if (ret != KTX_SUCCESS)
         fatal(rc::INVALID_FILE, "Failed to create KTX2 texture: {}", ktxErrorString(ret));
 
-    if (texture->supercompressionScheme == KTX_SS_BASIS_LZ)
-        fatal(rc::INVALID_FILE, "Cannot deflate a KTX2 file supercompressed with {}.",
-            toString(ktxSupercmpScheme(texture->supercompressionScheme)));
-
-    if (texture->supercompressionScheme != KTX_SS_NONE && !options.quiet) {
-        warning("Modifying existing supercompression of {}.", options.inputFilepath);
+    if (texture->supercompressionScheme != KTX_SS_NONE) {
+        switch (texture->supercompressionScheme) {
+          case KTX_SS_ZLIB:
+          case KTX_SS_ZSTD:
+            if (!options.quiet) {
+                warning("Modifying existing {} supercompression of {}.",
+                        toString(texture->supercompressionScheme),
+                        options.inputFilepath);
+            }
+            break;
+          default:
+            fatal(rc::INVALID_FILE,
+                  "Cannot deflate a KTX2 file supercompressed with {}.",
+                  toString(texture->supercompressionScheme));
+        }
     }
-
-    // Modify KTXwriter metadata
-    const auto writer = fmt::format("{} {}", commandName, version(options.testrun));
-    ktxHashList_DeleteKVPair(&texture->kvDataHead, KTX_WRITER_KEY);
-    ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
-            static_cast<uint32_t>(writer.size() + 1), // +1 to include the \0
-            writer.c_str());
 
     if (options.zstd) {
         ret = ktxTexture2_DeflateZstd(texture, *options.zstd);
@@ -173,15 +176,92 @@ void CommandDeflate::executeDeflate() {
             fatal(rc::IO_FAILURE, "ZLIB deflation failed. KTX Error: {}", ktxErrorString(ret));
     }
 
-    // Add KTXwriterScParams metadata
-    const auto writerScParams = fmt::format("{}{}", options.compressOptions);
-    if (writerScParams.size() > 0) {
+    const auto& findMetadataValue = [&](const char* const key) {
+        const char* value;
+        uint32_t valueLen;
+        std::string result;
+        auto ret = ktxHashList_FindValue(&texture->kvDataHead, key,
+                      &valueLen, (void**)&value);
+        if (ret == KTX_SUCCESS) {
+            // The values we are looking for are required to be NUL terminated.
+            result.assign(value, valueLen - 1);
+        }
+        return result;
+    };
+
+    const auto updateMetadataValue = [&](const char* const key,
+                                 const std::string& value) {
+        ktxHashList_DeleteKVPair(&texture->kvDataHead, key);
+        ktxHashList_AddKVPair(&texture->kvDataHead, key,
+                static_cast<uint32_t>(value.size() + 1), // +1 to include \0
+                value.c_str());
+    };
+
+    std::string writerScParams;
+    if (ktxTexture2_GetColorModel_e(texture) == KHR_DF_MODEL_UASTC
+        || ktxTexture2_GetColorModel_e(texture) == KHR_DF_MODEL_ASTC) {
+        // Preserve the existing writerScParams if the file was written
+        // by a ktx suite tool.
+        std::string writer;
+
+        writer = findMetadataValue(KTX_WRITER_KEY);
+        if (!writer.empty()) {
+            std::regex e("ktx (?:create|encode|transcode)");
+            if (std::regex_search(writer, e)) {
+                // File written by a ktx suite tool. Retrieve writerScParams.
+                writerScParams = findMetadataValue(KTX_WRITER_SCPARAMS_KEY);
+            }
+        }
+    }
+
+    if (!writerScParams.empty()) {
+        // Use original writer as most params will not be valid for ktx deflate.
+        // Cheeky! Spec. for KTXwriter says "only the most recent writer should
+        // be identified." For KTXwriterScParams it says the writer should
+        // "append the (new) options" when "building on operations done
+        // previously." To somewhat resolve the conflict it changes the
+        // previous "only" to "in general."
+        //
+        // To comply as best as possible writerScParams is only captured if
+        // the writer was part of the ktx suite. In that case replace the
+        // original deflate option with, or append as new, that specified here
+        // and use the original writer string in the knowledge that that writer
+        // accepts identical options
+        auto newScParams = fmt::format("{}", options.compressOptions);
+        // Options always contain a leading space
+        assert(newScParams[0] == ' ');
+        std::smatch m;
+        std::regex e("--(?:zlib|zstd) [1-9][0-9]?");
+        (void)std::regex_search(writerScParams, m, e);
+        switch (m.size()) {
+          case 0:
+            writerScParams.append(newScParams);
+            break;
+          case 1:
+             // Erase leading space as a space exists in the original string.
+            newScParams.erase(newScParams.begin());
+            writerScParams.replace(m.position(0), m.length(0), newScParams);
+            break;
+          default:
+            // Unexpected params string with extra zlib/zstd option(s).
+            // Force complete rewrite.
+            writerScParams.clear();
+        }
+    }
+
+    if (writerScParams.empty()) {
+        // Create or modify KTXwriter metadata.
+        const auto writer = fmt::format("{} {}", commandName, version(options.testrun));
+        updateMetadataValue(KTX_WRITER_KEY, writer);
+        // Format new writerScParams.
+        writerScParams = fmt::format("{}", options.compressOptions);
         // Options always contain a leading space
         assert(writerScParams[0] == ' ');
-        ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_SCPARAMS_KEY,
-            static_cast<uint32_t>(writerScParams.size()),
-            writerScParams.c_str() + 1); // +1 to exclude leading space
+        writerScParams.erase(writerScParams.begin()); // Erase leading space.
     }
+
+    // Add KTXwriterScParams metadata
+    updateMetadataValue(KTX_WRITER_SCPARAMS_KEY, writerScParams);
 
     // Save output file
     if (std::filesystem::path(options.outputFilepath).has_parent_path())
