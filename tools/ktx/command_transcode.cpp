@@ -171,6 +171,16 @@ void CommandTranscode::executeTranscode() {
             static_cast<uint32_t>(writer.size() + 1), // +1 to include the \0
             writer.c_str());
 
+    // Add KTXwriterScParams metadata if supercompression was used
+    const auto writerScParams = options.compressOptions;
+    if (writerScParams.size() > 0) {
+        // Options always contain a leading space
+        assert(writerScParams[0] == ' ');
+        ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_SCPARAMS_KEY,
+            static_cast<uint32_t>(writerScParams.size()),
+            writerScParams.c_str() + 1); // +1 to exclude leading space
+    }
+
     // Save output file
     const auto outputPath = std::filesystem::path(DecodeUTF8Path(options.outputFilepath));
     if (outputPath.has_parent_path())

@@ -827,7 +827,7 @@ private:
     uint32_t numLevels = 0;
     uint32_t numLayers = 0;
     uint32_t numFaces = 0;
-    uint32_t numBaseDepths = 0;
+    uint32_t baseDepth = 0;
 
 public:
     virtual int main(int argc, char* argv[]) override;
@@ -888,14 +888,14 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
     numLevels = options.levels.value_or(1);
     numLayers = options.layers.value_or(1);
     numFaces = options.cubemap ? 6 : 1;
-    numBaseDepths = options.depth.value_or(1u);
+    baseDepth = options.depth.value_or(1u);
 
     const auto blockSizeZ = isFormat3DBlockCompressed(options.vkFormat) ?
             createFormatDescriptor(options.vkFormat, *this).basic.texelBlockDimension2 + 1u : 1u;
     uint32_t expectedInputImages = 0;
     for (uint32_t i = 0; i < (options.mipmapGenerate ? 1 : numLevels); ++i)
         // If --generate-mipmap is set the input only contains the base level images
-        expectedInputImages += numLayers * numFaces * ceil_div(std::max(numBaseDepths >> i, 1u), blockSizeZ);
+        expectedInputImages += numLayers * numFaces * ceil_div(std::max(baseDepth >> i, 1u), blockSizeZ);
     if (options.inputFilepaths.size() != expectedInputImages) {
         fatal_usage("Too {} input image for {} level{}, {} layer, {} face and {} depth. Provided {} but expected {}.",
                 options.inputFilepaths.size() > expectedInputImages ? "many" : "few",
@@ -903,7 +903,7 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
                 options.mipmapGenerate ? " (mips generated)" : "",
                 numLayers,
                 numFaces,
-                numBaseDepths,
+                baseDepth,
                 options.inputFilepaths.size(), expectedInputImages);
     }
 
@@ -1041,7 +1041,7 @@ void CommandCreate::foreachImage(const FormatDescriptor& format, F&& func) {
     auto inputFileIt = options.inputFilepaths.begin();
 
     for (uint32_t levelIndex = 0; levelIndex < (options.mipmapGenerate ? 1 : numLevels); ++levelIndex) {
-        const auto numDepthSlices = ceil_div(std::max(numBaseDepths >> levelIndex, 1u), format.basic.texelBlockDimension2 + 1u);
+        const auto numDepthSlices = ceil_div(std::max(baseDepth >> levelIndex, 1u), format.basic.texelBlockDimension2 + 1u);
         for (uint32_t layerIndex = 0; layerIndex < numLayers; ++layerIndex) {
             for (uint32_t faceIndex = 0; faceIndex < numFaces; ++faceIndex) {
                 for (uint32_t depthSliceIndex = 0; depthSliceIndex < numDepthSlices; ++depthSliceIndex) {
@@ -1136,7 +1136,7 @@ void CommandCreate::executeCreate() {
             target = ImageSpec{
                     inputImageFile->spec().width(),
                     inputImageFile->spec().height(),
-                    inputImageFile->spec().depth(),
+                    options.depth.value_or(1u),
                     options.formatDesc};
 
             ColorSpaceInfo colorSpaceInfo{};
@@ -1151,11 +1151,11 @@ void CommandCreate::executeCreate() {
                     fatal(rc::INVALID_FILE, "For --1d textures the input image height must be 1, but for \"{}\" it was {}.",
                             fmtInFile(inputFilepath), target.height());
 
-                const auto maxDimension = std::max(target.width(), std::max(target.height(), numBaseDepths));
+                const auto maxDimension = std::max(target.width(), std::max(target.height(), baseDepth));
                 const auto maxLevels = log2(maxDimension) + 1;
                 if (options.levels.value_or(1) > maxLevels)
                     fatal_usage("Requested {} levels is too many. With input image \"{}\" sized {}x{} and depth {} the texture can only have {} levels at most.",
-                            options.levels.value_or(1), fmtInFile(inputFilepath), target.width(), target.height(), numBaseDepths, maxLevels);
+                            options.levels.value_or(1), fmtInFile(inputFilepath), target.width(), target.height(), baseDepth, maxLevels);
 
                 if (options.encodeASTC)
                     selectASTCMode(inputImageFile->spec().format().largestChannelBitLength());
@@ -1226,7 +1226,7 @@ void CommandCreate::executeCreate() {
             assert(ret == KTX_SUCCESS && "Internal error"); (void) ret;
 
             if (options.mipmapGenerate) {
-                const auto maxDimension = std::max(target.width(), std::max(target.height(), numBaseDepths));
+                const auto maxDimension = std::max(target.width(), std::max(target.height(), baseDepth));
                 const auto maxLevels = log2(maxDimension) + 1;
                 uint32_t numMipLevels = options.levels.value_or(maxLevels);
                 generateMipLevels(texture, std::move(image), *inputImageFile, numMipLevels, layerIndex, faceIndex, depthSliceIndex);
@@ -1847,6 +1847,8 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
 KTXTexture2 CommandCreate::createTexture(const ImageSpec& target) {
     ktxTextureCreateInfo createInfo;
     std::memset(&createInfo, 0, sizeof(createInfo));
+
+    assert(target.depth() == baseDepth);
 
     createInfo.vkFormat = options.vkFormat;
     createInfo.numFaces = numFaces;
