@@ -646,7 +646,7 @@ macro(common_libktx_settings target enable_write library_type)
         find_package(Threads REQUIRED)
         target_link_libraries(
             ${target}
-        PUBLIC
+            PRIVATE
             dl
             Threads::Threads
         )
