@@ -1,5 +1,5 @@
-// Copyright 2023-2023 The Khronos Group Inc.
-// Copyright 2023-2023 RasterGrid Kft.
+// Copyright 2023-2024 The Khronos Group Inc.
+// Copyright 2023-2024 RasterGrid Kft.
 // SPDX-License-Identifier: Apache-2.0
 
 #include "command.h"
@@ -605,7 +605,7 @@ Compare two KTX2 files.
     ktx compare [option...] @e input-file1 @e input-file2
 
 @section ktx_compare_description DESCRIPTION
-    @b ktx @compare compares the two KTX2 files specified as the @e input-file1 and @e input-file2
+    @b ktx @b compare compares the two KTX2 files specified as the @e input-file1 and @e input-file2
     arguments and outputs any mismatch in texture information and/or image data.
     The command implicitly calls @ref ktx_validate "validate" and prints any found errors
     and warnings to stdout.
