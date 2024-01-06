@@ -177,8 +177,8 @@ struct OptionsCreate {
         std::optional<khr_df_transfer_e> result = {};
 
         if (args[argName].count()) {
-            const auto oetfStr = to_upper_copy(args[argName].as<std::string>());
-            const auto it = values.find(oetfStr);
+            const auto oetfStr = args[argName].as<std::string>();
+            const auto it = values.find(to_upper_copy(oetfStr));
             if (it != values.end()) {
                 result = it->second;
             } else {
@@ -209,12 +209,12 @@ struct OptionsCreate {
         std::optional<khr_df_primaries_e> result = {};
 
         if (args[argName].count()) {
-            const auto primariesStr = to_upper_copy(args[argName].as<std::string>());
-            const auto it = values.find(primariesStr);
+            const auto primariesStr = args[argName].as<std::string>();
+            const auto it = values.find(to_upper_copy(primariesStr));
             if (it != values.end()) {
                 result = it->second;
             } else {
-                report.fatal_usage("Invalid or unsupported transfer function specified as --{} argument: \"{}\".", argName, primariesStr);
+                report.fatal_usage("Invalid or unsupported primaries specified as --{} argument: \"{}\".", argName, primariesStr);
             }
         }
 
