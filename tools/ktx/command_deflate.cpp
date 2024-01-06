@@ -206,7 +206,7 @@ void CommandDeflate::executeDeflate() {
 
         writer = findMetadataValue(KTX_WRITER_KEY);
         if (!writer.empty()) {
-            std::regex e("ktx (?:create|encode|transcode)");
+            std::regex e("ktx (?:create|encode)");
             if (std::regex_search(writer, e)) {
                 // File written by a ktx suite tool. Retrieve writerScParams.
                 writerScParams = findMetadataValue(KTX_WRITER_SCPARAMS_KEY);
