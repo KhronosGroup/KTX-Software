@@ -59,11 +59,11 @@ jobs:
     name:  Publish Python 🐍 distribution 📦 to PyPI
     if: test-pypi == false
     runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url:  https://pypi.org/p/pyktx
-    permissions:
-      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
+#    environment:
+#      name: pypi
+#      url:  https://pypi.org/p/pyktx
+#    permissions:
+#      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
     # When using workflow_run it is necessary to check for successful
     # completion of the workflow with
     #if: ${{ github.event.workflow_run.conclusion == 'success' }}
@@ -94,11 +94,11 @@ jobs:
     name:  Publish Python 🐍 distribution 📦 to TestPyPI
     if: test-pypi
     runs-on: ubuntu-latest
-    environment:
-      name: testpypi
-      url: https://pypi.org/p/pyktx
-    permissions:
-      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
+#    environment:
+#      name: testpypi
+#      url: https://pypi.org/p/pyktx
+#    permissions:
+#      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
     # When using workflow_run it is necessary to check for successful
     # completion of the workflow with
     #if: ${{ github.event.workflow_run.conclusion == 'success' }}
@@ -123,4 +123,4 @@ jobs:
       - name: Publish distribution 📦 to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
+          password: ${{ secrets.TESTPYPI_API_TOKEN }}
