@@ -92,7 +92,7 @@ jobs:
 
   publish-to-testpypi:
     name:  Publish Python 🐍 distribution 📦 to TestPyPI
-    if: ${{ input.test-pypi }}
+    if: ${{ inputs.test-pypi }}
     runs-on: ubuntu-latest
 #    environment:
 #      name: testpypi
