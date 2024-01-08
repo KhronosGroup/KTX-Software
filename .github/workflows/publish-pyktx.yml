@@ -57,7 +57,7 @@ on:
 jobs:
   publish-to-pypi:
     name:  Publish Python 🐍 distribution 📦 to PyPI
-    if: {{ ! inputs.test-pypi }}
+    if: {{ ! github.event.inputs.test-pypi }}
     runs-on: ubuntu-latest
 #    environment:
 #      name: pypi
@@ -92,7 +92,7 @@ jobs:
 
   publish-to-testpypi:
     name:  Publish Python 🐍 distribution 📦 to TestPyPI
-    if: ${{ inputs.test-pypi }}
+    if: ${{ github.event.inputs.test-pypi }}
     runs-on: ubuntu-latest
 #    environment:
 #      name: testpypi
