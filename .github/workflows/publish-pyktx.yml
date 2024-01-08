@@ -123,4 +123,5 @@ jobs:
       - name: Publish distribution 📦 to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
+          repository-url: https://test.pypi.org/legacy/
           password: ${{ secrets.TESTPYPI_API_TOKEN }}
