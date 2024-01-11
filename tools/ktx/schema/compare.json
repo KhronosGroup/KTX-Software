@@ -635,594 +635,607 @@
                 }
             }
         },
-        "/header/identifier": {
-            "type": "array",
-            "items": { "type": "string" }
-        },
-        "/header/vkFormat": {
-            "type": "array",
-            "items": { "$ref": "#/definitions/enum_vkFormat" }
-        },
-        "/header/typeSize": {
-            "type": "array",
-            "items": { "type": "integer" }
-        },
-        "/header/pixelWidth": {
-            "type": "array",
-            "items": { "type": "integer" }
-        },
-        "/header/pixelHeight": {
-            "type": "array",
-            "items": { "type": "integer" }
-        },
-        "/header/pixelDepth": {
-            "type": "array",
-            "items": { "type": "integer" }
-        },
-        "/header/layerCount": {
-            "type": "array",
-            "items": { "type": "integer" }
-        },
-        "/header/faceCount": {
-            "type": "array",
-            "items": { "type": "integer" }
-        },
-        "/header/levelCount": {
-            "type": "array",
-            "items": { "type": "integer" }
-        },
-        "/header/supercompressionScheme": {
-            "type": "array",
-            "items": { "$ref": "#/definitions/enum_supercompressionScheme" }
-        },
-        "/index/dataFormatDescriptor/byteOffset": {
-            "type": "array",
-            "items": { "type": "integer" }
-        },
-        "/index/dataFormatDescriptor/byteLength": {
-            "type": "array",
-            "items": { "type": "integer" }
-        },
-        "/index/keyValueData/byteOffset": {
-            "type": "array",
-            "items": { "type": "integer" }
-        },
-        "/index/keyValueData/byteLength": {
-            "type": "array",
-            "items": { "type": "integer" }
-        },
-        "/index/supercompressionGlobalData/byteOffset": {
-            "type": "array",
-            "items": { "type": "integer" }
-        },
-        "/index/supercompressionGlobalData/byteLength": {
-            "type": "array",
-            "items": { "type": "integer" }
-        },
-        "/dataFormatDescriptor/totalSize": {
-            "type": "array",
-            "items": { "type": "integer" }
-        },
-        "/keyValueData/KTXcubemapIncomplete": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    {
-                        "type": "object",
-                        "required": [
-                            "positiveX",
-                            "negativeX",
-                            "positiveY",
-                            "negativeY",
-                            "positiveZ",
-                            "negativeZ"
-                        ],
-                        "additionalProperties": false,
-                        "properties": {
-                            "positiveX": { "type": "boolean" },
-                            "negativeX": { "type": "boolean" },
-                            "positiveY": { "type": "boolean" },
-                            "negativeY": { "type": "boolean" },
-                            "positiveZ": { "type": "boolean" },
-                            "negativeZ": { "type": "boolean" }
-                        }
-                    },
-                    {
-                        "type": "array",
-                        "items": { "type": "integer" }
-                    },
-                    { "type": "null" }
-                ]
+        "info": {
+            "type": "object",
+            "properties": {
+                "/header/identifier": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                },
+                "/header/vkFormat": {
+                    "type": "array",
+                    "items": { "$ref": "#/definitions/enum_vkFormat" }
+                },
+                "/header/typeSize": {
+                    "type": "array",
+                    "items": { "type": "integer" }
+                },
+                "/header/pixelWidth": {
+                    "type": "array",
+                    "items": { "type": "integer" }
+                },
+                "/header/pixelHeight": {
+                    "type": "array",
+                    "items": { "type": "integer" }
+                },
+                "/header/pixelDepth": {
+                    "type": "array",
+                    "items": { "type": "integer" }
+                },
+                "/header/layerCount": {
+                    "type": "array",
+                    "items": { "type": "integer" }
+                },
+                "/header/faceCount": {
+                    "type": "array",
+                    "items": { "type": "integer" }
+                },
+                "/header/levelCount": {
+                    "type": "array",
+                    "items": { "type": "integer" }
+                },
+                "/header/supercompressionScheme": {
+                    "type": "array",
+                    "items": { "$ref": "#/definitions/enum_supercompressionScheme" }
+                },
+                "/index/dataFormatDescriptor/byteOffset": {
+                    "type": "array",
+                    "items": { "type": "integer" }
+                },
+                "/index/dataFormatDescriptor/byteLength": {
+                    "type": "array",
+                    "items": { "type": "integer" }
+                },
+                "/index/keyValueData/byteOffset": {
+                    "type": "array",
+                    "items": { "type": "integer" }
+                },
+                "/index/keyValueData/byteLength": {
+                    "type": "array",
+                    "items": { "type": "integer" }
+                },
+                "/index/supercompressionGlobalData/byteOffset": {
+                    "type": "array",
+                    "items": { "type": "integer" }
+                },
+                "/index/supercompressionGlobalData/byteLength": {
+                    "type": "array",
+                    "items": { "type": "integer" }
+                },
+                "/dataFormatDescriptor/totalSize": {
+                    "type": "array",
+                    "items": { "type": "integer" }
+                },
+                "/keyValueData/KTXcubemapIncomplete": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            {
+                                "type": "object",
+                                "required": [
+                                    "positiveX",
+                                    "negativeX",
+                                    "positiveY",
+                                    "negativeY",
+                                    "positiveZ",
+                                    "negativeZ"
+                                ],
+                                "additionalProperties": false,
+                                "properties": {
+                                    "positiveX": { "type": "boolean" },
+                                    "negativeX": { "type": "boolean" },
+                                    "positiveY": { "type": "boolean" },
+                                    "negativeY": { "type": "boolean" },
+                                    "positiveZ": { "type": "boolean" },
+                                    "negativeZ": { "type": "boolean" }
+                                }
+                            },
+                            {
+                                "type": "array",
+                                "items": { "type": "integer" }
+                            },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "/keyValueData/KTXorientation": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "type": "string" },
+                            {
+                                "type": "array",
+                                "items": { "type": "integer" }
+                            },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "/keyValueData/KTXglFormat": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            {
+                                "type": "object",
+                                "required": [
+                                    "glInternalformat",
+                                    "glFormat",
+                                    "glType"
+                                ],
+                                "additionalProperties": false,
+                                "properties": {
+                                    "glInternalformat": { "type": "integer" },
+                                    "glFormat": { "type": "integer" },
+                                    "glType": { "type": "integer" }
+                                }
+                            },
+                            {
+                                "type": "array",
+                                "items": { "type": "integer" }
+                            },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "/keyValueData/KTXdxgiFormat__": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "type": "integer" },
+                            {
+                                "type": "array",
+                                "items": { "type": "integer" }
+                            },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "/keyValueData/KTXmetalPixelFormat": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "type": "integer" },
+                            {
+                                "type": "array",
+                                "items": { "type": "integer" }
+                            },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "/keyValueData/KTXswizzle": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "type": "string" },
+                            {
+                                "type": "array",
+                                "items": { "type": "integer" }
+                            },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "/keyValueData/KTXwriter": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "type": "string" },
+                            {
+                                "type": "array",
+                                "items": { "type": "integer" }
+                            },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "/keyValueData/KTXwriterScParams": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "type": "string" },
+                            {
+                                "type": "array",
+                                "items": { "type": "integer" }
+                            },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "/keyValueData/KTXastcDecodeMode": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "type": "string" },
+                            {
+                                "type": "array",
+                                "items": { "type": "integer" }
+                            },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "/keyValueData/KTXanimData": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            {
+                                "type": "object",
+                                "required": [
+                                    "duration",
+                                    "timescale",
+                                    "loopCount"
+                                ],
+                                "additionalProperties": false,
+                                "properties": {
+                                    "duration": { "type": "integer" },
+                                    "timescale": { "type": "integer" },
+                                    "loopCount": { "type": "integer" }
+                                }
+                            },
+                            {
+                                "type": "array",
+                                "items": { "type": "integer" }
+                            },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "/supercompressionGlobalData/type": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "$ref": "#/definitions/enum_supercompressionScheme" },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "/supercompressionGlobalData/endpointCount": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "type": "integer" },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "/supercompressionGlobalData/selectorCount": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "type": "integer" },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "/supercompressionGlobalData/endpointsByteLength": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "type": "integer" },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "/supercompressionGlobalData/selectorsByteLength": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "type": "integer" },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "/supercompressionGlobalData/tablesByteLength": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "type": "integer" },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "/supercompressionGlobalData/extendedByteLength": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "type": "integer" },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "/supercompressionGlobalData/endpointsData": {
+                    "type": "array"
+                },
+                "/supercompressionGlobalData/selectorsData": {
+                    "type": "array"
+                },
+                "/supercompressionGlobalData/tablesData": {
+                    "type": "array"
+                },
+                "/supercompressionGlobalData/extendedData": {
+                    "type": "array"
+                },
+                "/supercompressionGlobalData/rawPayload": {
+                    "type": "array"
+                }
+            },
+            "patternProperties": {
+                "^/index/levels/[0-9]+/byteOffset$": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "type": "integer" },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "^/index/levels/[0-9]+/byteLength$": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "type": "integer" },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "^/index/levels/[0-9]+/uncompressedByteLength$": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "type": "integer" },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "^/dataFormatDescriptor/blocks/[0-9]+/descriptorType$": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "$ref": "#/definitions/enum_descriptorType" },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "^/dataFormatDescriptor/blocks/[0-9]+/vendorId$": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "$ref": "#/definitions/enum_vendorId" },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "^/dataFormatDescriptor/blocks/[0-9]+/descriptorBlockSize$": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "type": "integer" },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "^/dataFormatDescriptor/blocks/[0-9]+/versionNumber$": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "$ref": "#/definitions/enum_versionNumber" },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "^/dataFormatDescriptor/blocks/[0-9]+/rawPayload$": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            {
+                                "type": "array",
+                                "items": { "type": "integer" }
+                            },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "^/dataFormatDescriptor/blocks/[0-9]+/flags$": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            {
+                                "type": "array",
+                                "items": { "$ref": "#/definitions/enum_flags" },
+                                "uniqueItems": true
+                            },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "^/dataFormatDescriptor/blocks/[0-9]+/transferFunction$": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "$ref": "#/definitions/enum_transferFunction" },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "^/dataFormatDescriptor/blocks/[0-9]+/colorPrimaries$": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "$ref": "#/definitions/enum_colorPrimaries" },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "^/dataFormatDescriptor/blocks/[0-9]+/colorModel$": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "$ref": "#/definitions/enum_colorModel" },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "^/dataFormatDescriptor/blocks/[0-9]+/texelBlockDimension$": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            {
+                                "type": "array",
+                                "items": { "type": "integer" },
+                                "minItems": 4,
+                                "maxItems": 4
+                            },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "^/dataFormatDescriptor/blocks/[0-9]+/bytesPlane$": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            {
+                                "type": "array",
+                                "items": { "type": "integer" },
+                                "minItems": 8,
+                                "maxItems": 8
+                            },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "^/dataFormatDescriptor/blocks/[0-9]+/samples/[0-9]+/qualifiers$": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            {
+                                "type": "array",
+                                "items": { "$ref": "#/definitions/enum_qualifier" },
+                                "uniqueItems": true
+                            },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "^/dataFormatDescriptor/blocks/[0-9]+/samples/[0-9]+/channelType$": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "$ref": "#/definitions/enum_channelType" },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "^/dataFormatDescriptor/blocks/[0-9]+/samples/[0-9]+/bitLength$": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "type": "integer" },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "^/dataFormatDescriptor/blocks/[0-9]+/samples/[0-9]+/bitOffset$": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "type": "integer" },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "^/dataFormatDescriptor/blocks/[0-9]+/samples/[0-9]+/samplePosition$": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            {
+                                "type": "array",
+                                "items": { "type": "integer" },
+                                "minItems": 4,
+                                "maxItems": 4
+                            },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "^/dataFormatDescriptor/blocks/[0-9]+/samples/[0-9]+/sampleLower$": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "type": "integer" },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "^/dataFormatDescriptor/blocks/[0-9]+/samples/[0-9]+/sampleUpper$": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "type": "integer" },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "^/keyValueData/[^/]+$": {
+                    "type": "array"
+                },
+                "^/supercompressionGlobalData/images/[0-9]+/imageFlags$": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            {
+                                "type": "array",
+                                "items": { "$ref": "#/definitions/enum_imageFlags" },
+                                "uniqueItems": true
+                            },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "^/supercompressionGlobalData/images/[0-9]+/rgbSliceByteLength$": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "type": "integer" },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "^/supercompressionGlobalData/images/[0-9]+/rgbSliceByteOffset$": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "type": "integer" },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "^/supercompressionGlobalData/images/[0-9]+/alphaSliceByteLength$": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "type": "integer" },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "^/supercompressionGlobalData/images/[0-9]+/alphaSliceByteOffset$": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            { "type": "integer" },
+                            { "type": "null" }
+                        ]
+                    }
+                }
             }
         },
-        "/keyValueData/KTXorientation": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "type": "string" },
-                    {
-                        "type": "array",
-                        "items": { "type": "integer" }
-                    },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "/keyValueData/KTXglFormat": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    {
-                        "type": "object",
-                        "required": [
-                            "glInternalformat",
-                            "glFormat",
-                            "glType"
-                        ],
-                        "additionalProperties": false,
-                        "properties": {
-                            "glInternalformat": { "type": "integer" },
-                            "glFormat": { "type": "integer" },
-                            "glType": { "type": "integer" }
-                        }
-                    },
-                    {
-                        "type": "array",
-                        "items": { "type": "integer" }
-                    },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "/keyValueData/KTXdxgiFormat__": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "type": "integer" },
-                    {
-                        "type": "array",
-                        "items": { "type": "integer" }
-                    },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "/keyValueData/KTXmetalPixelFormat": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "type": "integer" },
-                    {
-                        "type": "array",
-                        "items": { "type": "integer" }
-                    },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "/keyValueData/KTXswizzle": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "type": "string" },
-                    {
-                        "type": "array",
-                        "items": { "type": "integer" }
-                    },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "/keyValueData/KTXwriter": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "type": "string" },
-                    {
-                        "type": "array",
-                        "items": { "type": "integer" }
-                    },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "/keyValueData/KTXwriterScParams": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "type": "string" },
-                    {
-                        "type": "array",
-                        "items": { "type": "integer" }
-                    },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "/keyValueData/KTXastcDecodeMode": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "type": "string" },
-                    {
-                        "type": "array",
-                        "items": { "type": "integer" }
-                    },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "/keyValueData/KTXanimData": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    {
-                        "type": "object",
-                        "required": [
-                            "duration",
-                            "timescale",
-                            "loopCount"
-                        ],
-                        "additionalProperties": false,
-                        "properties": {
-                            "duration": { "type": "integer" },
-                            "timescale": { "type": "integer" },
-                            "loopCount": { "type": "integer" }
-                        }
-                    },
-                    {
-                        "type": "array",
-                        "items": { "type": "integer" }
-                    },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "/supercompressionGlobalData/type": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "$ref": "#/definitions/enum_supercompressionScheme" },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "/supercompressionGlobalData/endpointCount": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "type": "integer" },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "/supercompressionGlobalData/selectorCount": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "type": "integer" },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "/supercompressionGlobalData/endpointsByteLength": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "type": "integer" },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "/supercompressionGlobalData/selectorsByteLength": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "type": "integer" },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "/supercompressionGlobalData/tablesByteLength": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "type": "integer" },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "/supercompressionGlobalData/extendedByteLength": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "type": "integer" },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "/supercompressionGlobalData/endpointsData": {
-            "type": "array"
-        },
-        "/supercompressionGlobalData/selectorsData": {
-            "type": "array"
-        },
-        "/supercompressionGlobalData/tablesData": {
-            "type": "array"
-        },
-        "/supercompressionGlobalData/extendedData": {
-            "type": "array"
-        },
-        "/supercompressionGlobalData/rawPayload": {
-            "type": "array"
-        }
-    },
-    "patternProperties": {
-        "^/index/levels/[0-9]+/byteOffset$": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "type": "integer" },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "^/index/levels/[0-9]+/byteLength$": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "type": "integer" },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "^/index/levels/[0-9]+/uncompressedByteLength$": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "type": "integer" },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "^/dataFormatDescriptor/blocks/[0-9]+/descriptorType$": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "$ref": "#/definitions/enum_descriptorType" },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "^/dataFormatDescriptor/blocks/[0-9]+/vendorId$": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "$ref": "#/definitions/enum_vendorId" },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "^/dataFormatDescriptor/blocks/[0-9]+/descriptorBlockSize$": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "type": "integer" },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "^/dataFormatDescriptor/blocks/[0-9]+/versionNumber$": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "$ref": "#/definitions/enum_versionNumber" },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "^/dataFormatDescriptor/blocks/[0-9]+/rawPayload$": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    {
-                        "type": "array",
-                        "items": { "type": "integer" }
-                    },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "^/dataFormatDescriptor/blocks/[0-9]+/flags$": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    {
-                        "type": "array",
-                        "items": { "$ref": "#/definitions/enum_flags" },
-                        "uniqueItems": true
-                    },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "^/dataFormatDescriptor/blocks/[0-9]+/transferFunction$": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "$ref": "#/definitions/enum_transferFunction" },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "^/dataFormatDescriptor/blocks/[0-9]+/colorPrimaries$": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "$ref": "#/definitions/enum_colorPrimaries" },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "^/dataFormatDescriptor/blocks/[0-9]+/colorModel$": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "$ref": "#/definitions/enum_colorModel" },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "^/dataFormatDescriptor/blocks/[0-9]+/texelBlockDimension$": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    {
-                        "type": "array",
-                        "items": { "type": "integer" },
-                        "minItems": 4,
-                        "maxItems": 4
-                    },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "^/dataFormatDescriptor/blocks/[0-9]+/bytesPlane$": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    {
-                        "type": "array",
-                        "items": { "type": "integer" },
-                        "minItems": 8,
-                        "maxItems": 8
-                    },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "^/dataFormatDescriptor/blocks/[0-9]+/samples/[0-9]+/qualifiers$": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    {
-                        "type": "array",
-                        "items": { "$ref": "#/definitions/enum_qualifier" },
-                        "uniqueItems": true
-                    },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "^/dataFormatDescriptor/blocks/[0-9]+/samples/[0-9]+/channelType$": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "$ref": "#/definitions/enum_channelType" },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "^/dataFormatDescriptor/blocks/[0-9]+/samples/[0-9]+/bitLength$": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "type": "integer" },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "^/dataFormatDescriptor/blocks/[0-9]+/samples/[0-9]+/bitOffset$": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "type": "integer" },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "^/dataFormatDescriptor/blocks/[0-9]+/samples/[0-9]+/samplePosition$": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    {
-                        "type": "array",
-                        "items": { "type": "integer" },
-                        "minItems": 4,
-                        "maxItems": 4
-                    },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "^/dataFormatDescriptor/blocks/[0-9]+/samples/[0-9]+/sampleLower$": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "type": "integer" },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "^/dataFormatDescriptor/blocks/[0-9]+/samples/[0-9]+/sampleUpper$": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "type": "integer" },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "^/keyValueData/[^/]+$": {
-            "type": "array"
-        },
-        "^/supercompressionGlobalData/images/[0-9]+/imageFlags$": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    {
-                        "type": "array",
-                        "items": { "$ref": "#/definitions/enum_imageFlags" },
-                        "uniqueItems": true
-                    },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "^/supercompressionGlobalData/images/[0-9]+/rgbSliceByteLength$": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "type": "integer" },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "^/supercompressionGlobalData/images/[0-9]+/rgbSliceByteOffset$": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "type": "integer" },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "^/supercompressionGlobalData/images/[0-9]+/alphaSliceByteLength$": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "type": "integer" },
-                    { "type": "null" }
-                ]
-            }
-        },
-        "^/supercompressionGlobalData/images/[0-9]+/alphaSliceByteOffset$": {
-            "type": "array",
-            "items": {
-                "oneOf": [
-                    { "type": "integer" },
-                    { "type": "null" }
-                ]
+        "image": {
+            "type": "object",
+            "patternProperties": {
+                "^m=[0-9]+,a=[0-9]+,f=[0-9]+$": {
+                    "type": "object"
+                }
             }
         }
     }

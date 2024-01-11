@@ -468,9 +468,11 @@ struct DiffMismatch {
 class PrintDiff {
     PrintIndent& printIndent;
     OutputFormat outputFormat;
-    std::vector<std::string> context;
-    bool firstContext;
-    bool different;
+    std::optional<std::string> jsonSection = {};
+    bool jsonSectionEmpty = false;
+    bool firstContext = true;
+    std::vector<std::string> context = {};
+    bool different = false;
 
     void printContext() {
         if (!context.empty()) {
@@ -482,12 +484,40 @@ class PrintDiff {
         }
     }
 
+    void beginJsonOutput() {
+        assert(jsonSection.has_value());
+
+        const auto space = outputFormat != OutputFormat::json_mini ?  " " : "";
+        const auto nl = outputFormat != OutputFormat::json_mini ?  "\n" : "";
+
+        printIndent(0, ",{}", nl);
+
+        if (std::exchange(jsonSectionEmpty, false))
+            printIndent(1, "\"{}\":{}{{{}", *jsonSection, space, nl);
+    }
+
 public:
     PrintDiff(PrintIndent& output, OutputFormat format)
-        : printIndent(output), outputFormat(format), context(), firstContext(true), different(false) {}
+        : printIndent(output), outputFormat(format) {}
 
     bool isDifferent() const {
         return different;
+    }
+
+    void beginJsonSection(std::string&& section) {
+        jsonSection = section;
+        jsonSectionEmpty = true;
+    }
+
+    void endJsonSection() {
+        if (jsonSection.has_value()) {
+            const auto nl = outputFormat != OutputFormat::json_mini ?  "\n" : "";
+            if (!jsonSectionEmpty) {
+                printIndent(0, "{}", nl);
+                printIndent(1, "}}");
+            }
+            jsonSection.reset();
+        }
     }
 
     void setContext(std::string&& ctx) {
@@ -519,17 +549,17 @@ public:
             if (diff.hasValue(1))
                 printIndent(0, "+{}: {}\n", diff.textHeader, diff.value(1, outputFormat));
         } else {
-            printIndent(0, ",{}", nl);
-            printIndent(1, "\"{}\":{}[{}", diff.jsonPath, space, nl);
+            beginJsonOutput();
+            printIndent(2, "\"{}\":{}[{}", diff.jsonPath, space, nl);
             if (diff.hasValue(0))
-                printIndent(2, "{},{}", diff.value(0, outputFormat), nl);
+                printIndent(3, "{},{}", diff.value(0, outputFormat), nl);
             else
-                printIndent(2, "null,{}", nl);
+                printIndent(3, "null,{}", nl);
             if (diff.hasValue(1))
-                printIndent(2, "{}{}", diff.value(1, outputFormat), nl);
+                printIndent(3, "{}{}", diff.value(1, outputFormat), nl);
             else
-                printIndent(2, "null{}", nl);
-            printIndent(1, "]");
+                printIndent(3, "null{}", nl);
+            printIndent(2, "]");
         }
     }
 
@@ -552,19 +582,19 @@ public:
                 diff.printText(1, printIndent, "+");
             }
         } else {
-            printIndent(0, ",{}", nl);
-            printIndent(1, "\"{}\":{}[{}", diff.jsonPath, space, nl);
+            beginJsonOutput();
+            printIndent(2, "\"{}\":{}[{}", diff.jsonPath, space, nl);
             if (diff.hasValue(0)) {
-                diff.printJson(0, printIndent, 2, space, nl);
+                diff.printJson(0, printIndent, 3, space, nl);
                 printIndent(0, ",{}", nl);
             } else
-                printIndent(2, "null,{}", nl);
+                printIndent(3, "null,{}", nl);
             if (diff.hasValue(1)) {
-                diff.printJson(1, printIndent, 2, space, nl);
+                diff.printJson(1, printIndent, 3, space, nl);
                 printIndent(0, "{}", nl);
             } else
-                printIndent(2, "null{}", nl);
-            printIndent(1, "]");
+                printIndent(3, "null{}", nl);
+            printIndent(2, "]");
         }
     }
 
@@ -583,13 +613,12 @@ public:
         different = true;
 
         const auto space = outputFormat != OutputFormat::json_mini ?  " " : "";
-        const auto nl = outputFormat != OutputFormat::json_mini ?  "\n" : "";
 
         if (outputFormat == OutputFormat::text) {
             printIndent(0, "+{}\n", diff.textMsg);
         } else {
-            printIndent(0, ",{}", nl);
-            printIndent(1, "\"{}\":{}[]", diff.jsonPath, space);
+            beginJsonOutput();
+            printIndent(2, "\"{}\":{}[]", diff.jsonPath, space);
         }
     }
 };
@@ -759,7 +788,7 @@ class CommandCompare : public Command {
 
         std::array<std::string, 2> inputFilepaths;
         ContentMode contentMode = ContentMode::raw;
-        uint64_t perPixelOutputLimit = 0;
+        std::size_t perPixelOutputLimit = 0;
         bool allowInvalidInput = false;
         bool ignoreFormatHeader = false;
         bool ignoreSupercomp = false;
@@ -868,13 +897,13 @@ class CommandCompare : public Command {
                     report.fatal_usage("--per-pixel-output is specified but --content was not set to \"image\".");
                 const auto perPixelOutputStr = to_lower_copy(args[kPerPixelOutput].as<std::string>());
                 if (perPixelOutputStr == "all") {
-                    perPixelOutputLimit = UINT64_MAX;
+                    perPixelOutputLimit = SIZE_MAX;
                 } else if (perPixelOutputStr == "none") {
                     perPixelOutputLimit = 0;
                 } else {
                     std::size_t parsedCharacters = 0;
                     try {
-                        perPixelOutputLimit = std::stoull(perPixelOutputStr, &parsedCharacters);
+                        perPixelOutputLimit = static_cast<std::size_t>(std::stoull(perPixelOutputStr, &parsedCharacters));
                     } catch (std::exception&) {}
                     if (parsedCharacters != perPixelOutputStr.length())
                         report.fatal_usage("Invalid --per-pixel-output arugment: \"{}\".", perPixelOutputStr);
@@ -971,6 +1000,9 @@ private:
     void compareKVEntry(PrintDiff& diff, const std::string_view& key,
         ktxHashListEntry* entry1, ktxHashListEntry* entry2);
     void compareSGD(PrintDiff& diff, InputStreams& streams);
+    void compareImages(PrintDiff& diff, InputStreams& streams);
+    void compareImagesRaw(PrintDiff& diff, InputStreams& streams);
+    void compareImagesPerPixel(PrintDiff& diff, InputStreams& streams);
 
     void read(InputStream& stream, std::size_t offset, void* readDst, std::size_t readSize, std::string_view what) {
         stream->seekg(offset);
@@ -1044,10 +1076,10 @@ void CommandCompare::executeCompare() {
             validationMessages.emplace_back(std::move(messagesOS).str());
         }
 
-        bool hasValidationError = false;
+        bool hasValidationMessages = false;
         for (std::size_t i = 0; i < inputStreams.size(); ++i) {
             if (!validationMessages[i].empty()) {
-                if (std::exchange(hasValidationError, true))
+                if (std::exchange(hasValidationMessages, true))
                     fmt::print("\n");
 
                 fmt::print("Validation {} for '{}'\n", validationResults[i] == 0 ? "successful" : "failed",
@@ -1058,12 +1090,16 @@ void CommandCompare::executeCompare() {
         }
 
         for (std::size_t i = 0; i < inputStreams.size(); ++i) {
-            if (validationResults[i] != 0)
+            if (validationResults[i] != 0) {
                 if (validationResults[i] != +rc::INVALID_FILE || !options.allowInvalidInput)
                     throw FatalError(ReturnCode{validationResults[i]});
+
+                // Image comparison is only supported for valid input files
+                options.contentMode = ContentMode::ignore;
+            }
         }
 
-        if (hasValidationError)
+        if (hasValidationMessages)
             fmt::print("\n");
 
         PrintIndent out{std::cout};
@@ -1073,6 +1109,7 @@ void CommandCompare::executeCompare() {
         compareDFD(diff, inputStreams);
         compareKVD(diff, inputStreams);
         compareSGD(diff, inputStreams);
+        compareImages(diff, inputStreams);
 
         if (diff.isDifferent())
             throw FatalError(rc::DIFFERENCE_FOUND);
@@ -1134,27 +1171,39 @@ void CommandCompare::executeCompare() {
         out(1, "]");
 
         for (std::size_t i = 0; i < inputStreams.size(); ++i) {
-            if (validationResults[i] != 0)
+            if (validationResults[i] != 0) {
                 if (validationResults[i] != +rc::INVALID_FILE || !options.allowInvalidInput) {
                     fatalValidationError = validationResults[i];
                     break;
                 }
+
+                // Image comparison is only supported for valid input files
+                options.contentMode = ContentMode::ignore;
+            }
         }
+
+        PrintDiff diff(out, options.format);
 
         try {
             if (fatalValidationError)
                 throw FatalError(ReturnCode{fatalValidationError});
 
-            PrintDiff diff(out, options.format);
+            diff.beginJsonSection("info");
             compareHeader(diff, inputStreams);
             compareLevelIndex(diff, inputStreams);
             compareDFD(diff, inputStreams);
             compareKVD(diff, inputStreams);
             compareSGD(diff, inputStreams);
+            diff.endJsonSection();
+
+            diff.beginJsonSection("image");
+            compareImages(diff, inputStreams);
+            diff.endJsonSection();
 
             if (diff.isDifferent())
                 throw FatalError(rc::DIFFERENCE_FOUND);
         } catch (...) {
+            diff.endJsonSection();
             fmt::print("{}}}{}", nl, nl);
             throw;
         }
@@ -1897,17 +1946,14 @@ void CommandCompare::compareSGD(PrintDiff& diff, InputStreams& streams) {
         bool mismatch = false;
 
         // If SGD is not present in both files then consider that a mismatch
-        if (!offset1.has_value() || !length1.has_value() || !offset2.has_value() || !length2.has_value()) {
+        if (!offset1.has_value() || !length1.has_value() || !offset2.has_value() || !length2.has_value())
             mismatch = true;
-        }
 
-        if (!mismatch) {
+        if (!mismatch)
             // If we have an out of bounds situation then consider that a mismatch
             if ((*offset1 + *length1 > headers[0].supercompressionGlobalData.byteLength) ||
-                (*offset2 + *length2 > headers[1].supercompressionGlobalData.byteLength)) {
+                (*offset2 + *length2 > headers[1].supercompressionGlobalData.byteLength))
                 mismatch = true;
-            }
-        }
 
         if (!mismatch) {
             if (length1 != length2) {
@@ -1917,9 +1963,8 @@ void CommandCompare::compareSGD(PrintDiff& diff, InputStreams& streams) {
             }
         }
 
-        if (mismatch) {
+        if (mismatch)
             diff << DiffMismatch(fmt::format("{} mismatch", textName), jsonPath);
-        }
     };
 
     if (sgdTypeBasisLZ(0) || sgdTypeBasisLZ(1)) {
@@ -1997,6 +2042,69 @@ void CommandCompare::compareSGD(PrintDiff& diff, InputStreams& streams) {
             0, headers[0].supercompressionGlobalData.byteLength,
             0, headers[1].supercompressionGlobalData.byteLength);
     }
+}
+
+void CommandCompare::compareImages(PrintDiff& diff, InputStreams& streams) {
+    switch (options.contentMode) {
+        case ContentMode::ignore:
+            // Nothing to do
+            break;
+        case ContentMode::raw:
+            compareImagesRaw(diff, streams);
+            break;
+        case ContentMode::image:
+            compareImagesPerPixel(diff, streams);
+            break;
+    }
+}
+
+void CommandCompare::compareImagesRaw(PrintDiff& diff, InputStreams& streams) {
+    (void)diff;
+    (void)streams;
+/*    diff.setContext("Image Data\n\n");
+
+    const uint32_t numLevels[] = {
+        std::max(1u, headers[0].levelCount),
+        std::max(1u, headers[1].levelCount)
+    };
+    const uint32_t maxNumLevels = std::max(numLevels[0], numLevels[1]);
+
+    const uint32_t numLayers[] = {
+        std::max(1u, headers[0].layerCount),
+        std::max(1u, headers[1].layerCount)
+    };
+    const uint32_t maxNumLayers = std::max(numLayers[0], numLayers[1]);
+
+    const uint32_t numFaces[] = {
+        std::max(1u, headers[0].faceCount),
+        std::max(1u, headers[1].faceCount)
+    };
+    const uint32_t maxNumFaces = std::max(numFaces[0], numFaces[1]);
+
+    for (uint32_t level = 0; level < maxNumLevels; ++level) {
+        const auto levelIndexEntryOffset = sizeof(KTX_header2) + level * sizeof(ktxLevelIndexEntry);
+        std::optional<ktxLevelIndexEntry> levelIndexEntry[2];
+        for (std::size_t i = 0; i < streams.size(); ++i)
+            if (level < numLevels[i]) {
+                ktxLevelIndexEntry entry;
+                read(streams[i], levelIndexEntryOffset, &entry, sizeof(entry), "the level index");
+                levelIndexEntry[i] = entry;
+            }
+
+        const char* imageMismatchText = "Mismatch in level {}, layer {}, face {}";
+        const char* imageMismatchJson = ""
+
+        // Missing levels are always considered a mismatch
+        if (!levelIndexEntry[0].has_value() || !levelIndexEntry[1].has_value())
+            for (uint32_t layer = 0; layer < maxNumLayers; ++layer)
+                for (uint32_t face = 0; face < maxNumFaces; ++face)
+                    diff << DiffMismatch(...);
+    }*/
+}
+
+void CommandCompare::compareImagesPerPixel(PrintDiff& diff, InputStreams& streams) {
+    (void)diff;
+    (void)streams;
 }
 
 } // namespace ktx
