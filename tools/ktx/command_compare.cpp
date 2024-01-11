@@ -632,7 +632,35 @@ Compare two KTX2 files.
             @b image - Effective image data is compared per texel block. <br />
             @b ignore - Ignore image contents. <br />
             The default mode is @b raw, meaning that the encoded image data must match exactly.
+            Note: When the mode is set to @b image, the effective image data of individual mip
+            levels, layers, and faces is compared texel block by texel block after applying
+            one or more of the following transformations, if needed: <br />
+            \- If the texture is supercompressed (e.g. using Zstandard or ZLIB), the images
+               are deflated before comparison. <br />
+            \- If the texture is encoded using BasisLZ, the images are transcoded to
+               R8G8B8A_UNORM before comparison. <br />
+            For block compressed textures and textures encoded using UASTC the texel blocks are
+            the individual compressed blocks, while for other formats the texel blocks are the
+            individual pixels of the image. <br />
+            When comparing files that use different supercompression schemes, or otherwise
+            different encoding, additional options may need to be used to avoid unexpected
+            differences to be reported related to the meta information of the files.
+            For example: <br />
+            \- The supercompression scheme can be ignored with --ignore-supercomp. <br />
+            \- Compressed byte length and other index section differences can be ignored
+               with --ignore-index all or --ignore-index level. <br />
+            \- DFD section differences can be ignored with --ignore-dfd all or --ignore-dfd
+               all-except-color-space. <br />
+            \- SGD section differences can be ignored with --ignore-sgd all or --ignore-sgd
+               payload. <br />
         </dd>
+        <dt>\--per-pixel-output all | &lt;number&gt; | none</dt>
+        <dd>Controls whether per pixel / texel block difference output is generated when
+            --content is set to @b image:
+            @b all - Every single difference is output (may result in a very large output). <br />
+            @b &lt;number&gt; - At most the specified number of differences are output. <br />
+            @b none - No per pixel / texel block differences are output. <br />
+            The default mode is @b none to limit the verbosity of the output.
         <dt>\--allow-invalid-input</dt>
         <dd>Perform best effort comparison even if any of the input files are invalid.</dd>
         <dt>\--ignore-format-header<dt>
@@ -720,6 +748,7 @@ class CommandCompare : public Command {
 
     struct OptionsCompare {
         inline static const char* kContent = "content";
+        inline static const char* kPerPixelOutput = "per-pixel-output";
         inline static const char* kAllowInvalidInput = "allow-invalid-input";
         inline static const char* kIgnoreFormatHeader = "ignore-format-header";
         inline static const char* kIgnoreSupercomp = "ignore-supercomp";
@@ -730,6 +759,7 @@ class CommandCompare : public Command {
 
         std::array<std::string, 2> inputFilepaths;
         ContentMode contentMode = ContentMode::raw;
+        uint64_t perPixelOutputLimit = 0;
         bool allowInvalidInput = false;
         bool ignoreFormatHeader = false;
         bool ignoreSupercomp = false;
@@ -746,8 +776,35 @@ class CommandCompare : public Command {
                     (kContent, "Controls how image content is compared. Possible values are:\n"
                         "  raw: Encoded image data is compared verbatim, as it appears in the file\n"
                         "  image: Effective image data is compared per texel block\n"
-                        "  ignore: Ignore image contents\n",
+                        "  ignore: Ignore image contents\n"
+                        "Note: When the mode is set to @b image, the effective image data of individual mip "
+                        "levels, layers, and faces is compared texel block by texel block after applying "
+                        "one or more of the following transformations, if needed:\n"
+                        "- If the texture is supercompressed (e.g. using Zstandard or ZLIB), the images "
+                        "are deflated before comparison.\n"
+                        "- If the texture is encoded using BasisLZ, the images are transcoded to "
+                        "R8G8B8A_UNORM before comparison.\n"
+                        "For block compressed textures and textures encoded using UASTC the texel blocks are "
+                        "the individual compressed blocks, while for other formats the texel blocks are the "
+                        "individual pixels of the image.\n"
+                        "When comparing files that use different supercompression schemes, or otherwise "
+                        "different encoding, additional options may need to be used to avoid unexpected "
+                        "differences to be reported related to the meta information of the files. "
+                        "For example:\n"
+                        "- The supercompression scheme can be ignored with --ignore-supercomp\n"
+                        "- Compressed byte length and other index section differences can be ignored "
+                        "with --ignore-index all or --ignore-index level\n"
+                        "- DFD section differences can be ignored with --ignore-dfd all or --ignore-dfd "
+                        "all-except-color-space\n"
+                        "- SGD section differences can be ignored with --ignore-sgd all or --ignore-sgd "
+                        "payload\n",
                         cxxopts::value<std::string>()->default_value("raw"), "raw|image|ignore")
+                    (kPerPixelOutput, "Controls whether per pixel / texel block difference output is generated when "
+                        "--content is set to image:\n"
+                        "  all - Every single difference is output (may result in a very large output)\n"
+                        "  <number> - At most the specified number of differences are output\n"
+                        "  none - No per pixel / texel block differences are output\n",
+                        cxxopts::value<std::string>()->default_value("none"), "all|<number>|none")
                     (kAllowInvalidInput, "Perform best effort comparison even if any of the input files are invalid.")
                     (kIgnoreFormatHeader, "Ignore the vkFormat and typeSize fields in the file header.\n"
                         "Note: useful when comparing textures with and without BasisLZ encoding, respectively.")
@@ -804,6 +861,24 @@ class CommandCompare : public Command {
                 if (it == contentModeMapping.end())
                     report.fatal_usage("Invalid --content argument: \"{}\".", contentModeStr);
                 contentMode = it->second;
+            }
+
+            if (args[kPerPixelOutput].count()) {
+                if (contentMode != ContentMode::image)
+                    report.fatal_usage("--per-pixel-output is specified but --content was not set to \"image\".");
+                const auto perPixelOutputStr = to_lower_copy(args[kPerPixelOutput].as<std::string>());
+                if (perPixelOutputStr == "all") {
+                    perPixelOutputLimit = UINT64_MAX;
+                } else if (perPixelOutputStr == "none") {
+                    perPixelOutputLimit = 0;
+                } else {
+                    std::size_t parsedCharacters = 0;
+                    try {
+                        perPixelOutputLimit = std::stoull(perPixelOutputStr, &parsedCharacters);
+                    } catch (std::exception&) {}
+                    if (parsedCharacters != perPixelOutputStr.length())
+                        report.fatal_usage("Invalid --per-pixel-output arugment: \"{}\".", perPixelOutputStr);
+                }
             }
 
             allowInvalidInput = args[kAllowInvalidInput].as<bool>();
