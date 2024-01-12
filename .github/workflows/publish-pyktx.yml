@@ -74,9 +74,7 @@ jobs:
     #if: ${{ github.event.workflow_run.conclusion == 'success' }}
     # Maybe it is possible to test for a release tag here too.
     steps:
-      - name: Determine release URL
-        run: |
-     - name: Download latest release metadata
+      - name: Download latest release metadata
         run: |
           echo INPUT_PRE-RELEASE = $INPUT_PRE-RELEASE
           if [ $INPUT_PRE-RELEASE -eq 1 ]; then
