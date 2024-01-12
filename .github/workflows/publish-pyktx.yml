@@ -38,6 +38,11 @@ on:
         description: 'Deploy to test pypi registry'
         required: true
         default: false
+      pre-release:
+        type: boolean
+        description: 'Deploy pre-release'
+        required: false
+        default: false
 
 # Example to try in future.
 #  workflow_run:
@@ -69,13 +74,22 @@ jobs:
     #if: ${{ github.event.workflow_run.conclusion == 'success' }}
     # Maybe it is possible to test for a release tag here too.
     steps:
-      - name: Download latest release metadata
+      - name: Determine release URL
         run: |
-           curl \
-              -H "Accept: application/vnd.github+json" \
-              -H "X-GitHub-Api-Version: 2022-11-28" \
-              -o latest.json \
-              https://api.github.com/repos/KhronosGroup/KTX-Software/releases/latest
+     - name: Download latest release metadata
+        run: |
+          echo INPUT_PRE-RELEASE = $INPUT_PRE-RELEASE
+          if [ $INPUT_PRE-RELEASE -eq 1 ]; then
+            url=$(jq -r 'map(select(.prerelease)) | first | .url' <<< $(curl --silent https://api.github.com/repos/KhronosGroup/KTX-Software/releases))
+          else
+            url=https://api.github.com/repos/KhronosGroup/KTX-Software/releases/latest
+          fi
+          echo URL=$url
+          curl \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            -o latest.json \
+            $url
       - name: Filter out pyktx- assets
         run: |
           jq '.assets | map(select(.name | startswith("pyktx-"))) | map(.browser_download_url)' < latest.json > pyktx.json 
@@ -106,11 +120,19 @@ jobs:
     steps:
       - name: Download latest release metadata
         run: |
-           curl \
-              -H "Accept: application/vnd.github+json" \
-              -H "X-GitHub-Api-Version: 2022-11-28" \
-              -o latest.json \
-              https://api.github.com/repos/KhronosGroup/KTX-Software/releases/latest
+          echo INPUT_PRE-RELEASE = $INPUT_PRE-RELEASE
+          # Download list of releases; get url of firsti (latest) pre-release.
+          if [ $INPUT_PRE-RELEASE -eq 1 ]; then
+            url=$(jq -r 'map(select(.prerelease)) | first | .url' <<< $(curl --silent https://api.github.com/repos/KhronosGroup/KTX-Software/releases))
+          else
+            url=https://api.github.com/repos/KhronosGroup/KTX-Software/releases/latest
+          fi
+          echo URL=$url
+          curl \
+             -H "Accept: application/vnd.github+json" \
+             -H "X-GitHub-Api-Version: 2022-11-28" \
+             -o latest.json \
+             $url
       - name: Filter out pyktx- assets
         run: |
           jq '.assets | map(select(.name | startswith("pyktx-"))) | map(.browser_download_url)' < latest.json > pyktx.json 
