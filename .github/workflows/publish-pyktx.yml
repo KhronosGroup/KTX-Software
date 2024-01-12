@@ -99,7 +99,7 @@ jobs:
           mkdir dist
       - name: Download assets
         run: |
-          cd dist; jq -c '.[]' ../pyktx.json | xargs -L 1 curl -O -J; cd..
+          cd dist; jq -c '.[]' ../pyktx.json | xargs -L 1 curl -O -J; cd ..
       - name: Publish distribution 📦 to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
@@ -144,8 +144,8 @@ jobs:
         run: |
           cd dist; jq -c '.[]' ../pyktx.json
           jq -c '.[]' ../pyktx.json | xargs -L 1 echo -O -J
-          jq -c '.[]' ../pyktx.json | xargs -L 1 curl -O -J; cd..
-          #cd dist; jq -c '.[]' ../pyktx.json | xargs -L 1 curl -O -J; cd..
+          jq -c '.[]' ../pyktx.json | xargs -L 1 curl -O -J; cd ..
+          #cd dist; jq -c '.[]' ../pyktx.json | xargs -L 1 curl -O -J; cd ..
       - name: Publish distribution 📦 to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
