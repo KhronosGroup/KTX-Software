@@ -57,7 +57,7 @@ on:
 jobs:
   publish-to-pypi:
     name:  Publish Python 🐍 distribution 📦 to PyPI
-    if: {{ ! github.event.inputs.test-pypi }}
+    if: ! inputs.test-pypi
     runs-on: ubuntu-latest
 #    environment:
 #      name: pypi
