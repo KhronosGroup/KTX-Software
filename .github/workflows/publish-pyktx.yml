@@ -38,7 +38,7 @@ on:
         description: 'Deploy to test pypi registry'
         required: true
         default: false
-      pre-release:
+      prerelease:
         type: boolean
         description: 'Deploy pre-release'
         required: false
@@ -76,8 +76,8 @@ jobs:
     steps:
       - name: Download latest release metadata
         run: |
-          echo INPUT_PRE-RELEASE = $INPUT_PRE-RELEASE
-          if [ $INPUT_PRE-RELEASE -eq 1 ]; then
+          echo INPUT_PRERELEASE = $INPUT_PRERELEASE
+          if [ $INPUT_PRERELEASE -eq 1 ]; then
             url=$(jq -r 'map(select(.prerelease)) | first | .url' <<< $(curl --silent https://api.github.com/repos/KhronosGroup/KTX-Software/releases))
           else
             url=https://api.github.com/repos/KhronosGroup/KTX-Software/releases/latest
@@ -118,9 +118,9 @@ jobs:
     steps:
       - name: Download latest release metadata
         run: |
-          echo INPUT_PRE-RELEASE = $INPUT_PRE-RELEASE
+          echo INPUT_PRERELEASE = $INPUT_PRERELEASE
           # Download list of releases; get url of firsti (latest) pre-release.
-          if [ $INPUT_PRE-RELEASE -eq 1 ]; then
+          if [ $INPUT_PRERELEASE -eq 1 ]; then
             url=$(jq -r 'map(select(.prerelease)) | first | .url' <<< $(curl --silent https://api.github.com/repos/KhronosGroup/KTX-Software/releases))
           else
             url=https://api.github.com/repos/KhronosGroup/KTX-Software/releases/latest
