@@ -80,7 +80,7 @@ jobs:
       - name: Download latest release metadata
         run: |
           echo INPUT_PRERELEASE = $INPUT_PRERELEASE
-          if [ $INPUT_PRERELEASE -eq 1 ]; then
+          if [ "$INPUT_PRERELEASE" = "false" ]; then
             url=$(jq -r 'map(select(.prerelease)) | first | .url' <<< $(curl --silent https://api.github.com/repos/KhronosGroup/KTX-Software/releases))
           else
             url=https://api.github.com/repos/KhronosGroup/KTX-Software/releases/latest
@@ -123,7 +123,7 @@ jobs:
         run: |
           echo INPUT_PRERELEASE = $INPUT_PRERELEASE
           # Download list of releases; get url of firsti (latest) pre-release.
-          if [ $INPUT_PRERELEASE -eq 1 ]; then
+          if [ "$INPUT_PRERELEASE" = "false" ]; then
             url=$(jq -r 'map(select(.prerelease)) | first | .url' <<< $(curl --silent https://api.github.com/repos/KhronosGroup/KTX-Software/releases))
           else
             url=https://api.github.com/repos/KhronosGroup/KTX-Software/releases/latest
