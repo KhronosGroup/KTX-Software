@@ -81,7 +81,7 @@ jobs:
         run: |
           echo INPUT_PRERELEASE = $INPUT_PRERELEASE
           if [ "$INPUT_PRERELEASE" = "true" ]; then
-            url=$(jq -r 'map(select(.prerelease)) | first | .html_url' <<< $(curl --silent https://api.github.com/repos/KhronosGroup/KTX-Software/releases))
+            url=$(jq -r 'map(select(.prerelease)) | first | .url' <<< $(curl --silent https://api.github.com/repos/KhronosGroup/KTX-Software/releases))
           else
             url=https://api.github.com/repos/KhronosGroup/KTX-Software/releases/latest
           fi
@@ -93,13 +93,13 @@ jobs:
             $url
       - name: Filter out pyktx- assets
         run: |
-          jq '.assets | map(select(.name | startswith("pyktx-"))) | map(.browser_download_url)' < latest.json > pyktx.json 
+          jq '.assets | map(select(.name | startswith("pyktx-"))) | map(.browser_download_url)' < latest.json > pyktx.json
       - name: Create dist directory
         run: |
           mkdir dist
       - name: Download assets
         run: |
-          cd dist; jq -c '.[]' ../pyktx.json | xargs -L 1 curl -O -J; cd ..
+          cd dist; jq -c '.[]' ../pyktx.json | xargs -L 1 curl -O -J -L; cd ..
       - name: Publish distribution 📦 to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
@@ -124,7 +124,7 @@ jobs:
           echo INPUT_PRERELEASE = $INPUT_PRERELEASE
           # Download list of releases; get url of firsti (latest) pre-release.
           if [ "$INPUT_PRERELEASE" = "true" ]; then
-            url=$(jq -r 'map(select(.prerelease)) | first | .html_url' <<< $(curl --silent https://api.github.com/repos/KhronosGroup/KTX-Software/releases))
+            url=$(jq -r 'map(select(.prerelease)) | first | .url' <<< $(curl --silent https://api.github.com/repos/KhronosGroup/KTX-Software/releases))
           else
             url=https://api.github.com/repos/KhronosGroup/KTX-Software/releases/latest
           fi
@@ -136,16 +136,13 @@ jobs:
              $url
       - name: Filter out pyktx- assets
         run: |
-          jq '.assets | map(select(.name | startswith("pyktx-"))) | map(.browser_download_url)' < latest.json > pyktx.json 
+          jq '.assets | map(select(.name | startswith("pyktx-"))) | map(.browser_download_url)' < latest.json > pyktx.json
       - name: Create dist directory
         run: |
           mkdir dist
       - name: Download assets
         run: |
-          cd dist; jq -c '.[]' ../pyktx.json
-          jq -c '.[]' ../pyktx.json | xargs -L 1 echo -O -J
-          jq -c '.[]' ../pyktx.json | xargs -L 1 curl -O -J; cd ..
-          #cd dist; jq -c '.[]' ../pyktx.json | xargs -L 1 curl -O -J; cd ..
+          cd dist; jq -c '.[]' ../pyktx.json | xargs -L 1 curl -O -J -L; cd ..
       - name: Publish distribution 📦 to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
