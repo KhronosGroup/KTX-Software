@@ -81,7 +81,7 @@ jobs:
         run: |
           echo INPUT_PRERELEASE = $INPUT_PRERELEASE
           if [ "$INPUT_PRERELEASE" = "true" ]; then
-            url=$(jq -r 'map(select(.prerelease)) | first | .url' <<< $(curl --silent https://api.github.com/repos/KhronosGroup/KTX-Software/releases))
+            url=$(jq -r 'map(select(.prerelease)) | first | .html_url' <<< $(curl --silent https://api.github.com/repos/KhronosGroup/KTX-Software/releases))
           else
             url=https://api.github.com/repos/KhronosGroup/KTX-Software/releases/latest
           fi
@@ -124,7 +124,7 @@ jobs:
           echo INPUT_PRERELEASE = $INPUT_PRERELEASE
           # Download list of releases; get url of firsti (latest) pre-release.
           if [ "$INPUT_PRERELEASE" = "true" ]; then
-            url=$(jq -r 'map(select(.prerelease)) | first | .url' <<< $(curl --silent https://api.github.com/repos/KhronosGroup/KTX-Software/releases))
+            url=$(jq -r 'map(select(.prerelease)) | first | .html_url' <<< $(curl --silent https://api.github.com/repos/KhronosGroup/KTX-Software/releases))
           else
             url=https://api.github.com/repos/KhronosGroup/KTX-Software/releases/latest
           fi
