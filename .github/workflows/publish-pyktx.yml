@@ -80,7 +80,6 @@ jobs:
       - name: Download pyktx assets from latest (pre-)release
         run: |
           echo INPUT_PRERELEASE = $INPUT_PRERELEASE
-          # Download list of releases; get url of firsti (latest) pre-release.
           if [ "$INPUT_PRERELEASE" = "true" ]; then
             option="-pre-release"
           else
@@ -109,7 +108,8 @@ jobs:
       - name: Download pyktx assets from latest (pre-)release
         run: |
           echo INPUT_PRERELEASE = $INPUT_PRERELEASE
-          # Download list of releases; get url of firsti (latest) pre-release.
+          pwd
+          ls -l ci_scripts
           if [ "$INPUT_PRERELEASE" = "true" ]; then
             option="-pre-release"
           else
