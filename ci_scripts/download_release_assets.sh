@@ -1,7 +1,7 @@
 #! /usr/bin/env bash
 
 function usage() {
-  echo "Usage: $0 [--help] [--pre] [--filter <pattern>]"
+  echo "Usage: $0 [--help] [--pre-release] [--filter <pattern>] [--output-dir <directory>]"
   echo ""
   echo "Download the assets of the latest KTX-Software release from the"
   echo "GitHub repo."
