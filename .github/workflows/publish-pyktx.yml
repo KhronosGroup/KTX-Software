@@ -77,6 +77,8 @@ jobs:
     #if: ${{ github.event.workflow_run.conclusion == 'success' }}
     # Maybe it is possible to test for a release tag here too.
     steps:
+      - uses: actions/checkout@v3
+
       - name: Download pyktx assets from latest (pre-)release
         run: |
           echo INPUT_PRERELEASE = $INPUT_PRERELEASE
@@ -105,6 +107,8 @@ jobs:
     #if: ${{ github.event.workflow_run.conclusion == 'success' }}
     # Maybe it is possible to test for a release tag here too.
     steps:
+      - uses: actions/checkout@v3
+
       - name: Download pyktx assets from latest (pre-)release
         run: |
           echo INPUT_PRERELEASE = $INPUT_PRERELEASE
