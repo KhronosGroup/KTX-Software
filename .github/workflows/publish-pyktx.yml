@@ -112,14 +112,12 @@ jobs:
       - name: Download pyktx assets from latest (pre-)release
         run: |
           echo INPUT_PRERELEASE = $INPUT_PRERELEASE
-          pwd
-          ls -l ci_scripts
           if [ "$INPUT_PRERELEASE" = "true" ]; then
             option="-pre-release"
           else
             option=
           fi
-          ci_scripts/download_release_assets.sh $option --filter "^pyktx" --output_dir dist
+          ci_scripts/download_release_assets.sh $option --filter "^pyktx" --output-dir dist
       - name: Publish distribution 📦 to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
