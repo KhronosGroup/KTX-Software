@@ -86,7 +86,7 @@ jobs:
           else
             option=
           fi
-          ci_scripts/download_release_assets $option --filter "^pyktx" --output_dir dist
+          ci_scripts/download_release_assets.sh $option --filter "^pyktx" --output_dir dist
       - name: Publish distribution 📦 to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
@@ -115,7 +115,7 @@ jobs:
           else
             option=
           fi
-          ci_scripts/download_release_assets $option --filter "^pyktx" --output_dir dist
+          ci_scripts/download_release_assets.sh $option --filter "^pyktx" --output_dir dist
       - name: Publish distribution 📦 to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
