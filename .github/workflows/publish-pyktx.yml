@@ -77,29 +77,16 @@ jobs:
     #if: ${{ github.event.workflow_run.conclusion == 'success' }}
     # Maybe it is possible to test for a release tag here too.
     steps:
-      - name: Download latest release metadata
+      - name: Download pyktx assets from latest (pre-)release
         run: |
           echo INPUT_PRERELEASE = $INPUT_PRERELEASE
+          # Download list of releases; get url of firsti (latest) pre-release.
           if [ "$INPUT_PRERELEASE" = "true" ]; then
-            url=$(jq -r 'map(select(.prerelease)) | first | .url' <<< $(curl --silent https://api.github.com/repos/KhronosGroup/KTX-Software/releases))
+            option="-pre-release"
           else
-            url=https://api.github.com/repos/KhronosGroup/KTX-Software/releases/latest
+            option=
           fi
-          echo URL=$url
-          curl \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            -o latest.json \
-            $url
-      - name: Filter out pyktx- assets
-        run: |
-          jq '.assets | map(select(.name | startswith("pyktx-"))) | map(.browser_download_url)' < latest.json > pyktx.json
-      - name: Create dist directory
-        run: |
-          mkdir dist
-      - name: Download assets
-        run: |
-          cd dist; jq -c '.[]' ../pyktx.json | xargs -L 1 curl -O -J -L; cd ..
+          ci_scripts/download_release_assets $option --filter "^pyktx" --output_dir dist
       - name: Publish distribution 📦 to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
@@ -119,30 +106,16 @@ jobs:
     #if: ${{ github.event.workflow_run.conclusion == 'success' }}
     # Maybe it is possible to test for a release tag here too.
     steps:
-      - name: Download latest release metadata
+      - name: Download pyktx assets from latest (pre-)release
         run: |
           echo INPUT_PRERELEASE = $INPUT_PRERELEASE
           # Download list of releases; get url of firsti (latest) pre-release.
           if [ "$INPUT_PRERELEASE" = "true" ]; then
-            url=$(jq -r 'map(select(.prerelease)) | first | .url' <<< $(curl --silent https://api.github.com/repos/KhronosGroup/KTX-Software/releases))
+            option="-pre-release"
           else
-            url=https://api.github.com/repos/KhronosGroup/KTX-Software/releases/latest
+            option=
           fi
-          echo URL=$url
-          curl \
-             -H "Accept: application/vnd.github+json" \
-             -H "X-GitHub-Api-Version: 2022-11-28" \
-             -o latest.json \
-             $url
-      - name: Filter out pyktx- assets
-        run: |
-          jq '.assets | map(select(.name | startswith("pyktx-"))) | map(.browser_download_url)' < latest.json > pyktx.json
-      - name: Create dist directory
-        run: |
-          mkdir dist
-      - name: Download assets
-        run: |
-          cd dist; jq -c '.[]' ../pyktx.json | xargs -L 1 curl -O -J -L; cd ..
+          ci_scripts/download_release_assets $option --filter "^pyktx" --output_dir dist
       - name: Publish distribution 📦 to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
