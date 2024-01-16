@@ -12,11 +12,13 @@ if (NOT IOS AND NOT ANDROID)
 #    # find_package doesn't find the Vulkan SDK when building for IOS.
 #    # I haven't investigated why.
 #    find_package(Vulkan REQUIRED)
-    set(Vulkan_INCLUDE_DIR lib/dfdutils/vulkan)
+    set(Vulkan_INCLUDE_DIR lib/dfdutils)
 else()
     # Skip mkvk. We don't need to run it when building for iOS or Android.
     return()
 endif()
+
+set(vulkan_header "${Vulkan_INCLUDE_DIR}/vulkan/vulkan_core.h")
 
 if(CMAKE_HOST_WIN32 AND NOT CYGWIN_INSTALL_PATH)
     # Git for Windows comes with Perl
@@ -27,7 +29,7 @@ endif()
 find_package(Perl REQUIRED)
 
 list(APPEND mkvkformatfiles_input
-    "${Vulkan_INCLUDE_DIR}/vulkan_core.h"
+    ${vulkan_header}
     lib/mkvkformatfiles)
 list(APPEND mkvkformatfiles_output
     "${PROJECT_SOURCE_DIR}/lib/vkformat_enum.h"
@@ -55,7 +57,7 @@ add_custom_target(mkvkformatfiles
 )
 
 list(APPEND makevk2dfd_input
-    "${Vulkan_INCLUDE_DIR}/vulkan_core.h"
+    ${vulkan_header}
     lib/dfdutils/makevk2dfd.pl)
 set(makevk2dfd_output
     "${PROJECT_SOURCE_DIR}/lib/dfdutils/vk2dfd.inl")
@@ -63,7 +65,7 @@ set(makevk2dfd_output
 add_custom_command(
     OUTPUT ${makevk2dfd_output}
     COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
-    COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makevk2dfd.pl ${Vulkan_INCLUDE_DIR}/vulkan_core.h lib/dfdutils/vk2dfd.inl
+    COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makevk2dfd.pl ${vulkan_header} lib/dfdutils/vk2dfd.inl
     DEPENDS ${makevk2dfd_input}
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT "Generating VkFormat/DFD switch body"
@@ -77,16 +79,15 @@ add_custom_target(makevk2dfd
 
 
 list(APPEND makedfd2vk_input
-#    "lib/vkformat_enum.h"
-    "${Vulkan_INCLUDE_DIR}/vulkan_core.h"
-    "lib/dfdutils/makedfd2vk.pl")
+    ${vulkan_header}
+    lib/dfdutils/makedfd2vk.pl)
 list(APPEND makedfd2vk_output
     "${PROJECT_SOURCE_DIR}/lib/dfdutils/dfd2vk.inl")
 
 add_custom_command(
     OUTPUT ${makedfd2vk_output}
     COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
-    COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makedfd2vk.pl ${Vulkan_INCLUDE_DIR}/vulkan_core.h lib/dfdutils/dfd2vk.inl
+    COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makedfd2vk.pl ${vulkan_header} lib/dfdutils/dfd2vk.inl
     DEPENDS ${makedfd2vk_input}
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT "Generating DFD/VkFormat switch body"
