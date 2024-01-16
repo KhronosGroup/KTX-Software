@@ -7,7 +7,8 @@
 # registry, vk.xml, in the Vulkan-Docs repo.
 
 # NOTE: Since this must be explicitly included by setting an option,
-# require sought packages.  
+# require sought packages.
+#
 # CAUTION: Outputs of custom commands are deleted during a clean
 # operation so these targets result in clean deleting what are normally
 # considered source files. There appears to be no easy way to avoid
@@ -44,12 +45,25 @@ list(APPEND mkvkformatfiles_output
     "${PROJECT_SOURCE_DIR}/lib/vkformat_enum.h"
     "${PROJECT_SOURCE_DIR}/lib/vkformat_check.c"
     "${PROJECT_SOURCE_DIR}/lib/vkformat_str.c")
-list(APPEND mkvkformatfiles_command
+
+# CAUTION: When a COMMAND contains VAR="Value" CMake messes up the escaping
+# for Bash. With or without VERBATIM, if Value has no spaces CMake changes it
+# to VAR=\"Value\". If it has spaces CMake changes it to "VAR=\"Value\"".
+# The first causes the quotes to leak into the command that is reading VAR
+# breaking, e.g. opening a file that has VAR's value as part of its name.
+# The second causes Bash to look for the command 'VAR="Value"' causing it
+# to exit with error.
+#
+# The only workaround I've found is to put the command in a string and invoke
+# it with bash -c. This is what we'd have to do on Windows anyway as COMMAND
+# defaults to cmd or powershell (not sure which). In this case CMake passes
+# to bash a string of the form '"VAR=\"Value\" command arg ..."' which bash
+# parses successfully.
+
+list(APPEND mvffc_as_list
     Vulkan_INCLUDE_DIR="${Vulkan_INCLUDE_DIR}" lib/mkvkformatfiles lib)
-if(CMAKE_HOST_WIN32)
-    list(JOIN mkvkformatfiles_command " " mffc_string)
-    set(mkvkformatfiles_command "${BASH_EXECUTABLE}" -c "${mffc_string}")
-endif()
+    list(JOIN mvffc_as_list " " mvffc_as_string)
+    set(mkvkformatfiles_command "${BASH_EXECUTABLE}" -c "${mvffc_as_string}")
 
 add_custom_command(OUTPUT ${mkvkformatfiles_output}
     COMMAND ${CMAKE_COMMAND} -E make_directory lib
