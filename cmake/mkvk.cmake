@@ -3,20 +3,18 @@
 
 # Code generation scripts that require a Vulkan SDK installation
 
-#set(skip_mkvk_message "-> skipping mkvk target (this is harmless; only needed when re-generating of vulkan headers and dfdutils is required)")
+# TODO: Rewrite scripts to generate the files from the Vulkan
+# registry, vk.xml, in the Vulkan-Docs repo.
 
-if (NOT IOS)
+if (NOT IOS AND NOT ANDROID)
 # Not needed as local custom vulkan_core.h is used. Keeping
 # in case we go back to the standard one.
 #    # find_package doesn't find the Vulkan SDK when building for IOS.
 #    # I haven't investigated why.
-#    find_package(Vulkan)
-#    if(NOT Vulkan_FOUND)
-#        message(STATUS "Vulkan SDK not found ${skip_mkvk_message}")
-#        return()
-#    endif()
+#    find_package(Vulkan REQUIRED)
+    set(Vulkan_INCLUDE_DIR lib/dfdutils/vulkan)
 else()
-    # Skip mkvk. We don't need to run it when building for iOS.
+    # Skip mkvk. We don't need to run it when building for iOS or Android.
     return()
 endif()
 
@@ -26,15 +24,10 @@ if(CMAKE_HOST_WIN32 AND NOT CYGWIN_INSTALL_PATH)
     set(CYGWIN_INSTALL_PATH "C:\\Program Files\\Git\\usr")
 endif()
 
-find_package(Perl)
-
-if(NOT PERL_FOUND)
-    message(STATUS "Perl not found ${skip_mkvk_message}")
-    return()
-endif()
+find_package(Perl REQUIRED)
 
 list(APPEND mkvkformatfiles_input
-    "lib/dfdutils/vulkan/vulkan_core.h"
+    "${Vulkan_INCLUDE_DIR}/vulkan_core.h"
     "lib/mkvkformatfiles")
 list(APPEND mkvkformatfiles_output
     "${PROJECT_SOURCE_DIR}/lib/vkformat_enum.h"
@@ -47,9 +40,6 @@ if(CMAKE_HOST_WIN32)
     add_custom_command(OUTPUT ${mkvkformatfiles_output}
         COMMAND ${CMAKE_COMMAND} -E make_directory lib
         COMMAND "${BASH_EXECUTABLE}" -c "Vulkan_INCLUDE_DIR=\"${Vulkan_INCLUDE_DIR}\" lib/mkvkformatfiles lib"
-        COMMAND "${BASH_EXECUTABLE}" -c "unix2dos ${PROJECT_SOURCE_DIR}/lib/vkformat_enum.h"
-        COMMAND "${BASH_EXECUTABLE}" -c "unix2dos ${PROJECT_SOURCE_DIR}/lib/vkformat_check.c"
-        COMMAND "${BASH_EXECUTABLE}" -c "unix2dos ${PROJECT_SOURCE_DIR}/lib/vkformat_str.c"
         DEPENDS ${mkvkformatfiles_input}
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
         COMMENT "Generating VkFormat-related source files"
@@ -71,28 +61,27 @@ add_custom_target(mkvkformatfiles
     SOURCES ${mkvkformatfiles_input}
 )
 
-list(APPEND makevkswitch_input
-    "lib/vkformat_enum.h"
+list(APPEND makevk2dfd_input
+    "${Vulkan_INCLUDE_DIR}/vulkan_core.h"
     "lib/dfdutils/makevk2dfd.pl")
-set(makevkswitch_output
+set(makevk2dfd_output
     "${PROJECT_SOURCE_DIR}/lib/dfdutils/vk2dfd.inl")
 if(CMAKE_HOST_WIN32)
     add_custom_command(
-        OUTPUT ${makevkswitch_output}
+        OUTPUT ${makevk2dfd_output}
         COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
-        COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makevk2dfd.pl lib/vkformat_enum.h lib/dfdutils/vk2dfd.inl
-        COMMAND "${BASH_EXECUTABLE}" -c "unix2dos ${PROJECT_SOURCE_DIR}/lib/dfdutils/vk2dfd.inl"
-        DEPENDS ${makevkswitch_input}
+        COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makevk2dfd.pl ${Vulkan_INCLUDE_DIR}/vulkan_core.h lib/dfdutils/vk2dfd.inl
+        DEPENDS ${makevk2dfd_input}
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
         COMMENT "Generating VkFormat/DFD switch body"
         VERBATIM
     )
 else()
     add_custom_command(
-        OUTPUT ${makevkswitch_output}
+        OUTPUT ${makevk2dfd_output}
         COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
-        COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makevk2dfd.pl lib/vkformat_enum.h lib/dfdutils/vk2dfd.inl
-        DEPENDS ${makevkswitch_input}
+        COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makevk2dfd.pl ${Vulkan_INCLUDE_DIR}/vulkan_core.h lib/dfdutils/vk2dfd.inl
+        DEPENDS ${makevk2dfd_input}
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
         COMMENT "Generating VkFormat/DFD switch body"
         VERBATIM
@@ -100,13 +89,14 @@ else()
 endif()
 
 add_custom_target(makevk2dfd
-    DEPENDS ${makevkswitch_output}
-    SOURCES ${makevkswitch_input}
+    DEPENDS ${makevk2dfd_output}
+    SOURCES ${makevk2dfd_input}
 )
 
 
 list(APPEND makedfd2vk_input
-    "lib/vkformat_enum.h"
+#    "lib/vkformat_enum.h"
+    "${Vulkan_INCLUDE_DIR}/vulkan_core.h"
     "lib/dfdutils/makedfd2vk.pl")
 list(APPEND makedfd2vk_output
     "${PROJECT_SOURCE_DIR}/lib/dfdutils/dfd2vk.inl")
@@ -115,8 +105,8 @@ if(CMAKE_HOST_WIN32)
     add_custom_command(
         OUTPUT ${makedfd2vk_output}
         COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
-        COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makedfd2vk.pl lib/vkformat_enum.h lib/dfdutils/dfd2vk.inl
-        COMMAND "${BASH_EXECUTABLE}" -c "unix2dos ${PROJECT_SOURCE_DIR}/lib/dfdutils/dfd2vk.inl"
+        COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makedfd2vk.pl ${Vulkan_INCLUDE_DIR}/vulkan_core.h lib/dfdutils/dfd2vk.inl
+ #       COMMAND "${BASH_EXECUTABLE}" -c "unix2dos ${PROJECT_SOURCE_DIR}/lib/dfdutils/dfd2vk.inl"
         DEPENDS ${makedfd2vk_input}
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
         COMMENT "Generating DFD/VkFormat switch body"
@@ -126,7 +116,7 @@ else()
     add_custom_command(
         OUTPUT ${makedfd2vk_output}
         COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
-        COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makedfd2vk.pl lib/vkformat_enum.h lib/dfdutils/dfd2vk.inl
+        COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makedfd2vk.pl ${Vulkan_INCLUDE_DIR}/vulkan_core.h lib/dfdutils/dfd2vk.inl
         DEPENDS ${makedfd2vk_input}
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
         COMMENT "Generating DFD/VkFormat switch body"

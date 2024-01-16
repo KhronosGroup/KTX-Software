@@ -137,6 +137,12 @@ else()
     set( KTX_LOADTEST_APPS_USE_LOCAL_DEPENDENCIES ON )
 endif()
 
+option( KTX_GENERATE_VK_FILES
+    "Include targets for generating VkFormat related files. For project developers only."
+    OFF
+)
+mark_as_advanced(FORCE KTX_GENERATE_VK_FILES)
+
 # Platform specific settings
 
 if(APPLE)
@@ -253,7 +259,9 @@ else()
 endif()
 
 # Depends on the settings, so it must be included after
-include(cmake/mkvk.cmake)
+if(KTX_GENERATE_VK_FILES)
+    include(cmake/mkvk.cmake)
+endif()
 
 # Global compile & link options including optimization flags
 
@@ -457,7 +465,7 @@ add_library( ktx_read ${LIB_TYPE}
 macro(common_libktx_settings target enable_write library_type)
 
     if(TARGET mkvk)
-        # Creating vulkan headers is only required when Vulkan SDK updates.
+        # Creating vulkan headers only required after Vulkan Spec/SDK updates.
         add_dependencies(${target} mkvk)
     endif()
 
