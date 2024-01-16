@@ -28,33 +28,26 @@ find_package(Perl REQUIRED)
 
 list(APPEND mkvkformatfiles_input
     "${Vulkan_INCLUDE_DIR}/vulkan_core.h"
-    "lib/mkvkformatfiles")
+    lib/mkvkformatfiles)
 list(APPEND mkvkformatfiles_output
     "${PROJECT_SOURCE_DIR}/lib/vkformat_enum.h"
     "${PROJECT_SOURCE_DIR}/lib/vkformat_check.c"
     "${PROJECT_SOURCE_DIR}/lib/vkformat_str.c")
-
-# What a shame! We have to duplicate most of the build commands because
-# if(CMAKE_HOST_WIN32) can't appear inside add_custom_command.
+list(APPEND mkvkformatfiles_command
+    Vulkan_INCLUDE_DIR="${Vulkan_INCLUDE_DIR}" lib/mkvkformatfiles lib)
 if(CMAKE_HOST_WIN32)
-    add_custom_command(OUTPUT ${mkvkformatfiles_output}
-        COMMAND ${CMAKE_COMMAND} -E make_directory lib
-        COMMAND "${BASH_EXECUTABLE}" -c "Vulkan_INCLUDE_DIR=\"${Vulkan_INCLUDE_DIR}\" lib/mkvkformatfiles lib"
-        DEPENDS ${mkvkformatfiles_input}
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-        COMMENT "Generating VkFormat-related source files"
-        VERBATIM
-    )
-else()
-    add_custom_command(OUTPUT ${mkvkformatfiles_output}
-        COMMAND ${CMAKE_COMMAND} -E make_directory lib
-        COMMAND Vulkan_INCLUDE_DIR=\"${Vulkan_INCLUDE_DIR}\" lib/mkvkformatfiles lib
-        DEPENDS ${mkvkformatfiles_input}
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-        COMMENT "Generating VkFormat-related source files"
-        VERBATIM
-    )
+    list(JOIN mkvkformatfiles_command " " mffc_string)
+    set(mkvkformatfiles_command "${BASH_EXECUTABLE}" -c "${mffc_string}")
 endif()
+
+add_custom_command(OUTPUT ${mkvkformatfiles_output}
+    COMMAND ${CMAKE_COMMAND} -E make_directory lib
+    COMMAND ${mkvkformatfiles_command}
+    DEPENDS ${mkvkformatfiles_input}
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    COMMENT "Generating VkFormat-related source files"
+    VERBATIM
+)
 
 add_custom_target(mkvkformatfiles
     DEPENDS ${mkvkformatfiles_output}
@@ -63,30 +56,19 @@ add_custom_target(mkvkformatfiles
 
 list(APPEND makevk2dfd_input
     "${Vulkan_INCLUDE_DIR}/vulkan_core.h"
-    "lib/dfdutils/makevk2dfd.pl")
+    lib/dfdutils/makevk2dfd.pl)
 set(makevk2dfd_output
     "${PROJECT_SOURCE_DIR}/lib/dfdutils/vk2dfd.inl")
-if(CMAKE_HOST_WIN32)
-    add_custom_command(
-        OUTPUT ${makevk2dfd_output}
-        COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
-        COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makevk2dfd.pl ${Vulkan_INCLUDE_DIR}/vulkan_core.h lib/dfdutils/vk2dfd.inl
-        DEPENDS ${makevk2dfd_input}
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-        COMMENT "Generating VkFormat/DFD switch body"
-        VERBATIM
-    )
-else()
-    add_custom_command(
-        OUTPUT ${makevk2dfd_output}
-        COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
-        COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makevk2dfd.pl ${Vulkan_INCLUDE_DIR}/vulkan_core.h lib/dfdutils/vk2dfd.inl
-        DEPENDS ${makevk2dfd_input}
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-        COMMENT "Generating VkFormat/DFD switch body"
-        VERBATIM
-    )
-endif()
+
+add_custom_command(
+    OUTPUT ${makevk2dfd_output}
+    COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
+    COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makevk2dfd.pl ${Vulkan_INCLUDE_DIR}/vulkan_core.h lib/dfdutils/vk2dfd.inl
+    DEPENDS ${makevk2dfd_input}
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    COMMENT "Generating VkFormat/DFD switch body"
+    VERBATIM
+)
 
 add_custom_target(makevk2dfd
     DEPENDS ${makevk2dfd_output}
@@ -101,28 +83,15 @@ list(APPEND makedfd2vk_input
 list(APPEND makedfd2vk_output
     "${PROJECT_SOURCE_DIR}/lib/dfdutils/dfd2vk.inl")
 
-if(CMAKE_HOST_WIN32)
-    add_custom_command(
-        OUTPUT ${makedfd2vk_output}
-        COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
-        COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makedfd2vk.pl ${Vulkan_INCLUDE_DIR}/vulkan_core.h lib/dfdutils/dfd2vk.inl
- #       COMMAND "${BASH_EXECUTABLE}" -c "unix2dos ${PROJECT_SOURCE_DIR}/lib/dfdutils/dfd2vk.inl"
-        DEPENDS ${makedfd2vk_input}
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-        COMMENT "Generating DFD/VkFormat switch body"
-        VERBATIM
-    )
-else()
-    add_custom_command(
-        OUTPUT ${makedfd2vk_output}
-        COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
-        COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makedfd2vk.pl ${Vulkan_INCLUDE_DIR}/vulkan_core.h lib/dfdutils/dfd2vk.inl
-        DEPENDS ${makedfd2vk_input}
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-        COMMENT "Generating DFD/VkFormat switch body"
-        VERBATIM
-    )
-endif()
+add_custom_command(
+    OUTPUT ${makedfd2vk_output}
+    COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
+    COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makedfd2vk.pl ${Vulkan_INCLUDE_DIR}/vulkan_core.h lib/dfdutils/dfd2vk.inl
+    DEPENDS ${makedfd2vk_input}
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    COMMENT "Generating DFD/VkFormat switch body"
+    VERBATIM
+)
 
 add_custom_target(makedfd2vk
     DEPENDS ${makedfd2vk_output}
