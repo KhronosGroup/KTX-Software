@@ -6,6 +6,14 @@
 # TODO: Rewrite scripts to generate the files from the Vulkan
 # registry, vk.xml, in the Vulkan-Docs repo.
 
+# NOTE: Since this must be explicitly included by setting an option,
+# require sought packages.  
+# CAUTION: Outputs of custom commands are deleted during a clean
+# operation so these targets result in clean deleting what are normally
+# considered source files. There appears to be no easy way to avoid
+# this. Since only project developers need to use these targets, and
+# only occasionally, this misfeature can be tolerated.
+
 if (NOT IOS AND NOT ANDROID)
 # Not needed as local custom vulkan_core.h is used. Keeping
 # in case we go back to the standard one.
@@ -14,7 +22,8 @@ if (NOT IOS AND NOT ANDROID)
 #    find_package(Vulkan REQUIRED)
     set(Vulkan_INCLUDE_DIR lib/dfdutils)
 else()
-    # Skip mkvk. We don't need to run it when building for iOS or Android.
+    # Skip mkvk. There is no need to use iOS or Android to regenerate
+    # the files.
     return()
 endif()
 
