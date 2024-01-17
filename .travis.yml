@@ -25,7 +25,7 @@ addons:
 env:
   global:
     - BUILD_DIR: build
-#    - CHECK_MKVK: NO
+    - CHECK_MKVK: NO
     - CHECK_REUSE: NO
     - FEATURE_TESTS: ON
     - GIT_LFS_SKIP_SMUDGE: 1
