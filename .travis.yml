@@ -29,6 +29,7 @@ env:
     - CHECK_REUSE: NO
     - FEATURE_TESTS: ON
     - GIT_LFS_SKIP_SMUDGE: 1
+    - HOMEBREW_NO_AUTO_UPDATE: 1
     - PACKAGE: NO
     - REL_DESC_FILE: "$BUILD_DIR/rel_desc.md"
     - VULKAN_SDK_VER: "1.3.243.0"
