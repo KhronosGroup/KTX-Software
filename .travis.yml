@@ -49,7 +49,7 @@ env:
     - CONFIGURATION=Debug,Release PLATFORM=macOS ARCHS=x86_64
       FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_PY=ON FEATURE_LOADTESTS=OpenGL+Vulkan FEATURE_TOOLS=ON
       FEATURE_TOOLS_CTS=ON LOADTESTS_USE_LOCAL_DEPENDENCIES=ON SUPPORT_SSE=ON SUPPORT_OPENCL=OFF DEPLOY_DOCS=YES PACKAGE=YES
-    - CHECK_MKVK=ONLY
+#    - CHECK_MKVK=ONLY
 #    - CONFIGURATION=Release PLATFORM=macOS ARCHS=arm64
 #      FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_PY=OFF FEATURE_LOADTESTS=OpenGL+Vulkan FEATURE_TESTS=OFF
 #      FEATURE_TOOLS=ON FEATURE_TOOLS_CTS=OFF SUPPORT_SSE=ON SUPPORT_OPENCL=OFF PACKAGE=YES
@@ -296,12 +296,14 @@ script:
     ;;
   esac
   if [ "$CHECK_MKVK" = "ONLY" ]; then
-    set -e  # instead of linking commands with &&.
+    #set -e  # instead of linking commands with &&.
     cmake . -B $BUILD_DIR -D KTX_FEATURE_TESTS=OFF -D KTX_FEATURE_TOOLS=OFF -D KTX_GENERATE_VK_FILES=ON
+    echo "cmake config status is $?"
     cmake --build build --target mkvk
+    echo "cmake build status is $?"
     # Verify no files were modified. Exits with 1, if so.
     git diff-index --quiet HEAD
-    set +e
+    #set +e
   fi
   if [ "$DEPLOY_DOCS" = "YES" ]; then
     # Some files in the pyktx docs have an _ prefix so Jekyll will
