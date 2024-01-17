@@ -244,7 +244,7 @@ install:
     fi
     ;;
   osx)
-    if [ "$CHECK_REUSE" != "ONLY" -a "$CHECK_MKVK" != "ONLY" 
+    if [ "$CHECK_REUSE" != "ONLY" -a "$CHECK_MKVK" != "ONLY" ]; then
       if [ "$LOADTESTS_USE_LOCAL_DEPENDENCIES" = "ON" ]; then
           brew install sdl2
           brew install assimp
