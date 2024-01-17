@@ -39,6 +39,7 @@ env:
     - WERROR: ON
   jobs:
     - CHECK_MKVK=ONLY
+
     # FEATURE_TESTS is off for arm64 macOS because we can't even build
     # them during CI. CI runs on x86_64 and there is a PostBuild command
     # that attempts to execute the compiled-for-m1 tests to have gtest
@@ -296,7 +297,7 @@ script:
     ;;
   esac
   if [ "$CHECK_MKVK" = "ONLY" ]; then
-    cmake . -B $BUILD_DIR -D KTX_FEATURE_TESTS=OFF -D KTX_FEATURE_TOOLS=OFF
+    cmake . -B $BUILD_DIR -D KTX_FEATURE_TESTS=OFF -D KTX_FEATURE_TOOLS=OFF -D KTX_GENERATE_VK_FILES=ON
     cmake --build build --target mkvk
     # Verify no files were modified. Exits with 1, if so.
     git diff-index --quiet HEAD
