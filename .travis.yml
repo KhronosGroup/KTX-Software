@@ -294,14 +294,7 @@ script:
   esac
   if [ "$CHECK_MKVK" = "ONLY" ]; then
     #set -e  # instead of linking commands with &&.
-    cmake . -B $BUILD_DIR -D KTX_FEATURE_TESTS=OFF -D KTX_FEATURE_TOOLS=OFF -D KTX_GENERATE_VK_FILES=ON
-    echo "cmake config status is $?"
-    cmake --build build --target mkvk
-    echo "cmake build status is $?"
-    # Verify no files were modified. Exits with 1, if so.
-    git diff-index --quiet HEAD
-    echo "git diff status is $?"
-    git diff-index HEAD
+    ci_scripts/check_mkvk.sh
     #set +e
   fi
   if [ "$DEPLOY_DOCS" = "YES" ]; then
