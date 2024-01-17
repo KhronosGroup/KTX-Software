@@ -301,7 +301,7 @@ script:
     # Verify no files were modified. Exits with 1, if so.
     git diff-index --quiet HEAD
     echo "git diff status is $?"
-    git diff HEAD
+    git diff-index HEAD
     #set +e
   fi
   if [ "$DEPLOY_DOCS" = "YES" ]; then
