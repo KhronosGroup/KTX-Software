@@ -12,13 +12,7 @@ cmake --build $BUILD_DIR --target mkvk
 echo "cmake build status is $?"
 # Verify no files were modified. Exit with 1, if so.
 if ! git diff --quiet HEAD; then
-echo "Running git status"
     git status
-echo "Running git diff-index"
-    git diff-index HEAD
-echo "Running git diff"
     git diff
     exit 1
 fi
-
-# Some text to modify the file.
