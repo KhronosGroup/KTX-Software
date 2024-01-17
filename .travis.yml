@@ -297,7 +297,7 @@ script:
   esac
   if [ "$CHECK_MKVK" = "ONLY" ]; then
     cmake . -B $BUILD_DIR -D KTX_FEATURE_TESTS=OFF -D KTX_FEATURE_TOOLS=OFF
-    cmake cmake --build build --target mkvk
+    cmake --build build --target mkvk
     # Verify no files were modified. Exits with 1, if so.
     git diff-index --quiet HEAD
   fi
