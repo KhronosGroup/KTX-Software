@@ -30,11 +30,22 @@ endif()
 
 set(vulkan_header "${Vulkan_INCLUDE_DIR}/vulkan/vulkan_core.h")
 
-if(CMAKE_HOST_WIN32 AND NOT CYGWIN_INSTALL_PATH)
-    # Git for Windows comes with Perl
-    # Trick FindPerl into considering default Git location
-    set(CYGWIN_INSTALL_PATH "C:\\Program Files\\Git\\usr")
-endif()
+# CAUTION: On Windows use a version of Perl built for Windows, i.e. not
+# one found in Cygwin or MSYS (Git for Windows). This is needed so the
+# generated files have the correct the correct CRLF line endings. The ones
+# mentioned write LF line endings (possibly related to some Cygwin or MSYS
+# installation setting for handling of text files). The Perl scripts,
+# unlike the Awk scripts, have not been modified to always write CRLF
+# on Windows.
+#
+# Strawberry Perl via Chocolatey is recommended.
+#    choco install strawberryperl
+
+#if(CMAKE_HOST_WIN32 AND NOT CYGWIN_INSTALL_PATH)
+#    # Git for Windows comes with Perl
+#    # Trick FindPerl into considering default Git location
+#    set(CYGWIN_INSTALL_PATH "C:\\Program Files\\Git\\usr")
+#endif()
 
 find_package(Perl REQUIRED)
 
