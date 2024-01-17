@@ -293,9 +293,9 @@ script:
     ;;
   esac
   if [ "$CHECK_MKVK" = "ONLY" ]; then
-    #set -e  # instead of linking commands with &&.
+    set -e  # instead of linking commands with &&.
     ci_scripts/check_mkvk.sh
-    #set +e
+    set +e
   fi
   if [ "$DEPLOY_DOCS" = "YES" ]; then
     # Some files in the pyktx docs have an _ prefix so Jekyll will
