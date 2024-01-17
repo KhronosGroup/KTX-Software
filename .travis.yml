@@ -222,7 +222,10 @@ install:
       pip3 install reuse
       set +e
     fi
-    if [ "$CHECK_REUSE" != "ONLY" -a "$WASM_BUILD" != "YES" ]; then
+    echo "FEATURE_LOADTESTS = $FEATURE_LOADTESTS"
+    if [[ "$FEATURE_LOADTESTS" =~ "Vulkan" ]]; then
+       echo "Found Vulkan in FEATURE_LOADTESTS."
+    if [ "$CHECK_REUSE" != "ONLY" -a "$CHECK_MKVK" != "ONLY" -a "$WASM_BUILD" != "YES" ]; then
       if [ "$TRAVIS_CPU_ARCH" = "arm64" ]; then
         # JDK was not installed on arm64 runner. Kept for reference.
         #sudo apt-get -qq install openjdk-17-jdk
