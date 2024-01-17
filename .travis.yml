@@ -244,11 +244,13 @@ install:
     fi
     ;;
   osx)
-    if [ "$LOADTESTS_USE_LOCAL_DEPENDENCIES" = "ON" ]; then
-        brew install sdl2
-        brew install assimp
+    if [ "$CHECK_REUSE" != "ONLY" -a "$CHECK_MKVK" != "ONLY" 
+      if [ "$LOADTESTS_USE_LOCAL_DEPENDENCIES" = "ON" ]; then
+          brew install sdl2
+          brew install assimp
+      fi
+      ./ci_scripts/install_macos.sh
     fi
-    ./ci_scripts/install_macos.sh
     ;;
   esac
 
