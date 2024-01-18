@@ -31,6 +31,7 @@ jobs:
         os: [ windows-latest ]
         toolset: [v143, CLangCL]
         arch: [ x64 ]
+        check_mkvk: [ NO ]
         options: [
           {config: 'Debug,Release',
            doc: ON, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tests: ON, tools: ON, tools_cts: ON,
@@ -54,9 +55,7 @@ jobs:
             generator: 'Visual Studio 17 2022'
             toolset: CLangCL
             arch: x64
-            options: {
-              check_mkvk: ONLY
-            }
+            check_mkvk: ONLY
           - os: windows-2019
             generator: 'Visual Studio 16 2019'
             toolset: v142
@@ -89,7 +88,7 @@ jobs:
       CMAKE_TOOLSET: ${{ matrix.toolset }}
 
       ARCH: ${{ matrix.arch }}
-      CHECK_MKVK: {{ matrix.options.check_mkvk }}
+      CHECK_MKVK: {{ matrix.check_mkvk }}
       CONFIGURATION: ${{ matrix.options.config }}
       FEATURE_DOC: ${{ matrix.options.doc }}
       FEATURE_JNI: ${{ matrix.options.jni }}
@@ -130,7 +129,7 @@ jobs:
         fetch-depth: 0
 
     - name: Install NSIS with large string support
-      if: matrix.options.check_mkvk != 'ONLY'
+      if: matrix.check_mkvk != 'ONLY'
       shell: bash
       run: |
         retryCount=4
@@ -156,7 +155,7 @@ jobs:
 
     - name: Force fetch provoking tag's annotation.
       # Work around https://github.com/actions/checkout/issues/290.
-      if: github.ref_type == 'tag' && matrix.options.check_mkvk != 'ONLY'
+      if: github.ref_type == 'tag' && matrix.check_mkvk != 'ONLY'
       run: git fetch -f origin ${{ github.ref }}:${{ github.ref }}
 
     # Need doxygen if docs are supposed to be built.
@@ -187,7 +186,7 @@ jobs:
         }
 
     - name: Install AzureSignTool
-      if: matrix.options.check_mkvk != 'ONLY'
+      if: matrix.check_mkvk != 'ONLY'
       id: install-ast
       run: |
         if ($env:PACKAGE -eq "YES" -and $env:AZURE_KEY_VAULT_URL) {
@@ -206,19 +205,19 @@ jobs:
         echo "LOADTESTS_USE_LOCAL_DEPENDENCIES=ON" >> $env:GITHUB_ENV
 
     - name: Install Dependencies
-      if: matrix.options.check_mkvk != 'ONLY'
+      if: matrix.check_mkvk != 'ONLY'
       # This script only installs what's needed by ON FEATUREs.
       run: ci_scripts/install_win.ps1
 
     - name: Set up JDK 17.
-      if: matrix.options.jni == 'ON' && matrix.options.check_mkvk != 'ONLY'
+      if: matrix.options.jni == 'ON' && matrix.check_mkvk != 'ONLY'
       uses: actions/setup-java@v3
       with:
         distribution: 'temurin'
         java-version: '17'
 
     - name: Set up Python 3.11
-      if: matrix.options.py == 'ON' && matrix.options.check_mkvk != 'ONLY'
+      if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
       uses: actions/setup-python@v4
       with:
         python-version: '3.11.4'
@@ -230,7 +229,7 @@ jobs:
         ci_scripts/smudge_date.ps1
 
     - name: Build Windows
-      if: matrix.options.check_mkvk != 'ONLY'
+      if: matrix.check_mkvk != 'ONLY'
       #   The installers run as part of "Install Dependencies" add
       # environment variables to the registry and augment $Path there.
       # Although each step gets a new Powershell instance, that instance
@@ -252,7 +251,7 @@ jobs:
         ci_scripts/build_win.ps1
 
     - name: Test Generation of VkFormat-related files
-      if: matrix.options.check_mkvk == 'ONLY'
+      if: matrix.check_mkvk == 'ONLY'
       run: ci_scripts/check_mkvk.ps1
 
     - name: Test Windows build
