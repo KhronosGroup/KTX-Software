@@ -1,5 +1,5 @@
 #! /usr/bin/awk -f
-# Copyright 2019-2020 Mark Callow
+# Copyright 2019-2024 Mark Callow
 # SPDX-License-Identifier: Apache-2.0
 
 # This script creates 3 files from vulkan/vulkan_core.h:
@@ -13,64 +13,66 @@
 #   KTX2.
 
 BEGIN {
+    if (index(tolower(ENVIRON["OS"]), "windows") > 0) {
+        ORS = "\r\n";
+    }
     vulkan_core = "vulkan_core.h"
     processing_core_formats = 0
     processing_extension_formats = 0
     # Range pattern matches 2nd line to avoid other comments so need
     # comment opening.
-    copyright = "/*\n"
+    copyright = "/*" ORS
     banner = ""
     format_decl = ""
     core_formats = ""
     extension_formats = ""
     end_range = ""
     max_std_format_enum = 0
-    prohibited = "#include <stdint.h>\n#include <stdbool.h>\n\n"
-    prohibited = prohibited "#include \"vkformat_enum.h\"\n\n"
-    prohibited = prohibited "bool\nisProhibitedFormat(VkFormat format)\n{\n"
-    prohibited = prohibited "    switch (format) {\n";
-    valid = "bool\nisValidFormat(VkFormat format)\n{\n"
-    valid = valid "    // On MSVC VkFormat can be a signed integer\n"
-    valid = valid "    if ((uint32_t) format <= VK_FORMAT_MAX_STANDARD_ENUM)\n"
-    valid = valid "        return true;\n    else switch(format) {\n"
+    prohibited = "#include <stdint.h>" ORS "#include <stdbool.h>" ORS ORS
+    prohibited = prohibited "#include \"vkformat_enum.h\"" ORS ORS
+    prohibited = prohibited "bool" ORS "isProhibitedFormat(VkFormat format)" ORS "{" ORS
+    prohibited = prohibited "    switch (format) {" ORS;
+    valid = "bool" ORS "isValidFormat(VkFormat format)" ORS "{" ORS
+    valid = valid "    // On MSVC VkFormat can be a signed integer" ORS
+    valid = valid "    if ((uint32_t) format <= VK_FORMAT_MAX_STANDARD_ENUM)" ORS
+    valid = valid "        return true;" ORS "    else switch(format) {" ORS
     if (ARGC == 2) {
         output_dir = ARGV[1] "/";
     }
     format_hdr = output_dir "vkformat_enum.h"
     format_strings = output_dir "vkformat_str.c"
     format_check = output_dir "vkformat_check.c"
+    if (ENVIRON["Vulkan_INCLUDE_DIR"]) {
+        ARGV[1] = ENVIRON["Vulkan_INCLUDE_DIR"] "/vulkan/vulkan_core.h"; ARGC = 2
+    } else {
 # Use local vulkan_core.h until ASTC 3D texture extension is released.
-#    if (ENVIRON["Vulkan_INCLUDE_DIR"]) {
-#        vulkan_include_dir = ENVIRON["Vulkan_INCLUDE_DIR"];
-#    } else {
-#        vulkan_include_dir = "/usr/include";
-#    }
-#    ARGV[1] = vulkan_include_dir"/vulkan/"vulkan_core; ARGC = 2
-     ARGV[1] = "lib/dfdutils/vulkan/"vulkan_core; ARGC = 2
+#       ARGV[1] = "/usr/include";
+        ARGV[1] = "lib/dfdutils/vulkan/vulkan_core.h"; ARGC = 2
+    }
 }
 
 # A range pattern to extract the copyright message.
-/\*\* Copyright*/,/\*\// { copyright = copyright $0 "\n" }
+/\*\* Copyright*/,/\*\// { copyright = copyright $0 ORS }
 
 $2 == "VK_HEADER_VERSION" {
-  banner = "\n"
-  banner = banner "/***************************** Do not edit.  *****************************\n"
-  banner = banner " Automatically generated from " vulkan_core " version " $3 " by mkvkformatfiles.\n"
-  banner = banner " *************************************************************************/\n"
+  banner = ORS
+  banner = banner "/***************************** Do not edit.  *****************************" ORS
+  banner = banner " Automatically generated from " vulkan_core " version " $3 " by mkvkformatfiles." ORS
+  banner = banner " *************************************************************************/" ORS
 }
 
 # Extract VkFlags definition.
 /typedef .* VkFlags/ {
-  format_decl = format_decl "#if defined(_MSC_VER) && _MSC_VER < 1900 // Older than VS 2015.\n"
-  format_decl = format_decl "typedef unsigned __int32 VkFlags;\n#else\n"
-  format_decl = format_decl "#include <stdint.h>\n"
-  format_decl = format_decl $0 "\n#endif\n\n"
+  format_decl = format_decl "#if defined(_MSC_VER) && _MSC_VER < 1900 // Older than VS 2015." ORS
+  format_decl = format_decl "typedef unsigned __int32 VkFlags;" ORS "#else" ORS
+  format_decl = format_decl "#include <stdint.h>" ORS
+  format_decl = format_decl $0 ORS "#endif" ORS ORS
 }
 
 # A range pattern to extract the VkFormat declaration.
 /^typedef enum VkFormat {/,/^} VkFormat;/ {
   if ($3 !~ /VK_FORMAT_.*/) { # Avoid values defined as existing values.
-    format_decl = format_decl $0 "\n"
+    format_decl = format_decl $0 ORS
     if ($1 ~ /VK_FORMAT/ && $1 !~ /.*MAX_ENUM/ && $3 !~ /1000....../) {
       # I don't understand why but if I apply the sub to $3 here, it
       # breaks extraction of VK_FORMAT token names below. It is like
@@ -83,23 +85,23 @@ $2 == "VK_HEADER_VERSION" {
     }
   }
   if ($1 ~ /}/) {
-    end_range = "#define VK_FORMAT_MAX_STANDARD_ENUM " max_std_format_enum "\n";
+    end_range = "#define VK_FORMAT_MAX_STANDARD_ENUM " max_std_format_enum ORS;
   }
 }
 
-/.*SCALED|A8B8G8R8_.*_PACK32/  { prohibited = prohibited "      case " $1 ":\n"; }
-#/A8B8G8R8_.*_PACK32/  { prohibited = prohibited "      case " $1 ":\n"; }
+/.*SCALED|A8B8G8R8_.*_PACK32/  { prohibited = prohibited "      case " $1 ":" ORS; }
+#/A8B8G8R8_.*_PACK32/  { prohibited = prohibited "      case " $1 ":" ORS; }
 # Multiplane formats.
 /VK_FORMAT_[^F]/ && (/PLANE/ || /420/) {
   # Avoid values defined as existing values and avoid the MAX_ENUM value.
   if ($3 !~ /VK_FORMAT_.*/ && $1 !~ /.*MAX_ENUM/) {
-    prohibited = prohibited "      case " $1 ":\n";
+    prohibited = prohibited "      case " $1 ":" ORS;
   }
 }
 
 # Extract valid formats with values > VK_FORMAT_END_RANGE.
 /VK_FORMAT_[^F].* = 1000/ && ! /PLANE/ && !/420/ {
-  valid = valid "        case " $1 ":\n";
+  valid = valid "        case " $1 ":" ORS;
 }
 
 function removePrefix(string, prefix) {
@@ -112,13 +114,13 @@ function removePrefix(string, prefix) {
   switch_value = ""
   if ($1 !~ /.*MAX_ENUM/) { # Avoid the MAX_ENUM value.
     if ($3 !~ /VK_FORMAT_.*/) { # Avoid values defined as existing values.
-      switch_body_vk2str = switch_body_vk2str "      case " $1 ":\n        return \"" $1 "\";\n"
+      switch_body_vk2str = switch_body_vk2str "      case " $1 ":" ORS "        return \"" $1 "\";" ORS
       switch_value = $1 # Use symbolic not numeric value.
     } else {
       switch_value = $3 # Use symbol for existing value.
       sub(/,.*$/, "", switch_value)
     }
-    switch_body_str2vk = switch_body_str2vk "    if (ktx_strcasecmp(str, \"" removePrefix($1, "VK_FORMAT_") "\") == 0)\n        return " switch_value ";\n"
+    switch_body_str2vk = switch_body_str2vk "    if (ktx_strcasecmp(str, \"" removePrefix($1, "VK_FORMAT_") "\") == 0)" ORS "        return " switch_value ";" ORS
   }
 }
 
@@ -143,65 +145,65 @@ function write_source_file(body, filename) {
 
 END {
     # vkformat_enum.h
-    write_header_file("_VKFORMAT_ENUM_H_", "VULKAN_CORE_H_", format_decl "\n" end_range, format_hdr);
+    write_header_file("_VKFORMAT_ENUM_H_", "VULKAN_CORE_H_", format_decl ORS end_range, format_hdr);
 
     # vkformat_prohibited.c
-    prohibited = prohibited "        return true;\n"
-    prohibited = prohibited "      default:\n        return false;\n    }\n}\n";
-    valid = valid "        return true;\n"
-    valid = valid "      default:\n        return false;\n    }\n}\n";
-    write_source_file(prohibited "\n" valid, format_check)
+    prohibited = prohibited "        return true;" ORS
+    prohibited = prohibited "      default:" ORS "        return false;" ORS "    }" ORS "}" ORS;
+    valid = valid "        return true;" ORS
+    valid = valid "      default:" ORS "        return false;" ORS "    }" ORS "}" ORS;
+    write_source_file(prohibited ORS valid, format_check)
 
     # vkformat_str.c
-    prelude = "\n";
-    prelude = prelude "#include <stdint.h>\n";
-    prelude = prelude "#include <ctype.h>\n";
-    prelude = prelude "\n";
-    prelude = prelude "#include \"vkformat_enum.h\"\n";
-    prelude = prelude "\n";
-    prelude = prelude "const char*\nvkFormatString(VkFormat format)\n{\n";
-    prelude = prelude "    switch (format) {\n";
-    postscript = "      default:\n        return \"VK_UNKNOWN_FORMAT\";\n";
-    postscript = postscript "    }\n";
-    postscript = postscript "}\n";
-    begin_str2vk = "\n"
-    begin_str2vk = begin_str2vk "static int ktx_strcasecmp(const char* s1, const char* s2) {\n"
-    begin_str2vk = begin_str2vk "    const unsigned char* us1 = (const unsigned char*) s1;\n"
-    begin_str2vk = begin_str2vk "    const unsigned char* us2 = (const unsigned char*) s2;\n"
-    begin_str2vk = begin_str2vk "\n"
-    begin_str2vk = begin_str2vk "    while (tolower(*us1) == tolower(*us2)) {\n"
-    begin_str2vk = begin_str2vk "        if (*us1 == '\\0')\n"
-    begin_str2vk = begin_str2vk "            return 0;\n"
-    begin_str2vk = begin_str2vk "        ++us1;\n"
-    begin_str2vk = begin_str2vk "        ++us2;\n"
-    begin_str2vk = begin_str2vk "    }\n"
-    begin_str2vk = begin_str2vk "    return tolower(*us1) - tolower(*us2);\n"
-    begin_str2vk = begin_str2vk "}\n"
-    begin_str2vk = begin_str2vk "\n"
-    begin_str2vk = begin_str2vk "static int ktx_strncasecmp(const char* s1, const char* s2, int length) {\n"
-    begin_str2vk = begin_str2vk "    const unsigned char* us1 = (const unsigned char*) s1;\n"
-    begin_str2vk = begin_str2vk "    const unsigned char* us2 = (const unsigned char*) s2;\n"
-    begin_str2vk = begin_str2vk "\n"
-    begin_str2vk = begin_str2vk "    while (length > 0 && tolower(*us1) == tolower(*us2)) {\n"
-    begin_str2vk = begin_str2vk "        if (*us1 == '\\0')\n"
-    begin_str2vk = begin_str2vk "            return 0;\n"
-    begin_str2vk = begin_str2vk "        ++us1;\n"
-    begin_str2vk = begin_str2vk "        ++us2;\n"
-    begin_str2vk = begin_str2vk "        --length;\n"
-    begin_str2vk = begin_str2vk "    }\n"
-    begin_str2vk = begin_str2vk "    if (length == 0)\n"
-    begin_str2vk = begin_str2vk "        return 0;\n"
-    begin_str2vk = begin_str2vk "    return tolower(*us1) - tolower(*us2);\n"
-    begin_str2vk = begin_str2vk "}\n"
-    begin_str2vk = begin_str2vk "\n"
-    begin_str2vk = begin_str2vk "/// Parses a VkFormat. VK_FORMAT_ prefix is optional. Case insensitive.\n"
-    begin_str2vk = begin_str2vk "VkFormat\n"
-    begin_str2vk = begin_str2vk "stringToVkFormat(const char* str)\n"
-    begin_str2vk = begin_str2vk "{\n"
-    begin_str2vk = begin_str2vk "    if (ktx_strncasecmp(str, \"VK_FORMAT_\", sizeof(\"VK_FORMAT_\") - 1) == 0)\n"
-    begin_str2vk = begin_str2vk "        str += sizeof(\"VK_FORMAT_\") - 1;\n"
-    begin_str2vk = begin_str2vk "\n"
-    end_str2vk = "    return VK_FORMAT_UNDEFINED;\n";
+    prelude = ORS;
+    prelude = prelude "#include <stdint.h>" ORS;
+    prelude = prelude "#include <ctype.h>" ORS;
+    prelude = prelude ORS;
+    prelude = prelude "#include \"vkformat_enum.h\"" ORS;
+    prelude = prelude ORS;
+    prelude = prelude "const char*" ORS "vkFormatString(VkFormat format)" ORS "{" ORS;
+    prelude = prelude "    switch (format) {" ORS;
+    postscript = "      default:" ORS "        return \"VK_UNKNOWN_FORMAT\";" ORS;
+    postscript = postscript "    }" ORS;
+    postscript = postscript "}" ORS;
+    begin_str2vk = ORS
+    begin_str2vk = begin_str2vk "static int ktx_strcasecmp(const char* s1, const char* s2) {" ORS
+    begin_str2vk = begin_str2vk "    const unsigned char* us1 = (const unsigned char*) s1;" ORS
+    begin_str2vk = begin_str2vk "    const unsigned char* us2 = (const unsigned char*) s2;" ORS
+    begin_str2vk = begin_str2vk ORS
+    begin_str2vk = begin_str2vk "    while (tolower(*us1) == tolower(*us2)) {" ORS
+    begin_str2vk = begin_str2vk "        if (*us1 == '\\0')" ORS
+    begin_str2vk = begin_str2vk "            return 0;" ORS
+    begin_str2vk = begin_str2vk "        ++us1;" ORS
+    begin_str2vk = begin_str2vk "        ++us2;" ORS
+    begin_str2vk = begin_str2vk "    }" ORS
+    begin_str2vk = begin_str2vk "    return tolower(*us1) - tolower(*us2);" ORS
+    begin_str2vk = begin_str2vk "}" ORS
+    begin_str2vk = begin_str2vk ORS
+    begin_str2vk = begin_str2vk "static int ktx_strncasecmp(const char* s1, const char* s2, int length) {" ORS
+    begin_str2vk = begin_str2vk "    const unsigned char* us1 = (const unsigned char*) s1;" ORS
+    begin_str2vk = begin_str2vk "    const unsigned char* us2 = (const unsigned char*) s2;" ORS
+    begin_str2vk = begin_str2vk ORS
+    begin_str2vk = begin_str2vk "    while (length > 0 && tolower(*us1) == tolower(*us2)) {" ORS
+    begin_str2vk = begin_str2vk "        if (*us1 == '\\0')" ORS
+    begin_str2vk = begin_str2vk "            return 0;" ORS
+    begin_str2vk = begin_str2vk "        ++us1;" ORS
+    begin_str2vk = begin_str2vk "        ++us2;" ORS
+    begin_str2vk = begin_str2vk "        --length;" ORS
+    begin_str2vk = begin_str2vk "    }" ORS
+    begin_str2vk = begin_str2vk "    if (length == 0)" ORS
+    begin_str2vk = begin_str2vk "        return 0;" ORS
+    begin_str2vk = begin_str2vk "    return tolower(*us1) - tolower(*us2);" ORS
+    begin_str2vk = begin_str2vk "}" ORS
+    begin_str2vk = begin_str2vk ORS
+    begin_str2vk = begin_str2vk "/// Parses a VkFormat. VK_FORMAT_ prefix is optional. Case insensitive." ORS
+    begin_str2vk = begin_str2vk "VkFormat" ORS
+    begin_str2vk = begin_str2vk "stringToVkFormat(const char* str)" ORS
+    begin_str2vk = begin_str2vk "{" ORS
+    begin_str2vk = begin_str2vk "    if (ktx_strncasecmp(str, \"VK_FORMAT_\", sizeof(\"VK_FORMAT_\") - 1) == 0)" ORS
+    begin_str2vk = begin_str2vk "        str += sizeof(\"VK_FORMAT_\") - 1;" ORS
+    begin_str2vk = begin_str2vk ORS
+    end_str2vk = "    return VK_FORMAT_UNDEFINED;" ORS;
     end_str2vk = end_str2vk "}"
     write_source_file(prelude switch_body_vk2str postscript begin_str2vk switch_body_str2vk end_str2vk, format_strings);
 }
