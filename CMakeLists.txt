@@ -4,6 +4,8 @@
 
 cmake_minimum_required(VERSION 3.15)
 
+include(CMakePrintHelpers)
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/modules/")
 
 find_package(Bash REQUIRED)
@@ -1154,7 +1156,7 @@ install(EXPORT KTXTargets
     FILE KtxTargets.cmake
     NAMESPACE KTX::
     DESTINATION lib/cmake/ktx
-    COMPONENT library
+    COMPONENT dev
 )
 
 include(CMakePackageConfigHelpers)
@@ -1167,7 +1169,7 @@ install( FILES
     "cmake/KtxConfig.cmake"
     "${CMAKE_CURRENT_BINARY_DIR}/KtxConfigVersion.cmake"
     DESTINATION lib/cmake/ktx
-    COMPONENT library
+    COMPONENT dev
 )
 
 # CPack
