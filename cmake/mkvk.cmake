@@ -21,14 +21,17 @@ if (NOT IOS AND NOT ANDROID)
 #    # find_package doesn't find the Vulkan SDK when building for IOS.
 #    # I haven't investigated why.
 #    find_package(Vulkan REQUIRED)
-    set(Vulkan_INCLUDE_DIR lib/dfdutils)
+
+# This file is included from so has the same scope as the including file.
+# If we change Vulkan_INCLUDE_DIR, other users will be effected.
+    set(mkvk_vulkan_include_dir lib/dfdutils)
 else()
     # Skip mkvk. There is no need to use iOS or Android to regenerate
     # the files.
     return()
 endif()
 
-set(vulkan_header "${Vulkan_INCLUDE_DIR}/vulkan/vulkan_core.h")
+set(vulkan_header "${mkvk_vulkan_include_dir}/vulkan/vulkan_core.h")
 
 # CAUTION: On Windows use a version of Perl built for Windows, i.e. not
 # one found in Cygwin or MSYS (Git for Windows). This is needed so the
@@ -72,7 +75,7 @@ list(APPEND mkvkformatfiles_output
 # parses successfully.
 
 list(APPEND mvffc_as_list
-    Vulkan_INCLUDE_DIR="${Vulkan_INCLUDE_DIR}" lib/mkvkformatfiles lib)
+    Vulkan_INCLUDE_DIR="${mkvk_vulkan_include_dir}" lib/mkvkformatfiles lib)
     list(JOIN mvffc_as_list " " mvffc_as_string)
     set(mkvkformatfiles_command "${BASH_EXECUTABLE}" -c "${mvffc_as_string}")
 
