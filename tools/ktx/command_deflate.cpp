@@ -197,66 +197,104 @@ void CommandDeflate::executeDeflate() {
                 value.c_str());
     };
 
-    std::string writerScParams;
-    if (ktxTexture2_GetColorModel_e(texture) == KHR_DF_MODEL_UASTC
-        || ktxTexture2_GetColorModel_e(texture) == KHR_DF_MODEL_ASTC) {
-        // Preserve the existing writerScParams if the file was written
-        // by a ktx suite tool.
-        std::string writer;
+    // ======= KTXwriter and KTXwriterScParams metadata handling =======
+    //
+    // In order to preserve encoding parameters applied to the data with
+    // other apps prior to this deflate operation, `deflate` does the
+    // following if KTXwriterScParams data exists in the input file:
+    //
+    // 1. If the writer was one of the ktx suite (i.e. create or encode)
+    //    and KTXwriterScParams contains non-deflate options, use the
+    //    original KTXwriter. Replace an existing deflate option with
+    //    that currently specified or append it as new.
+    //
+    //    The original writer will obviously understand its own
+    //    non-deflate options and, since it is part of the ktx suite
+    //    it will understand the updated or new deflate option that will
+    //    be added.
+    //
+    //    Cheeky! Spec. for KTXwriter says "only the most recent writer
+    //    Should be identified." For KTXwriterScParams it says the writer
+    //    should "append the (new) options" when "building on operations
+    //    done previously." To somewhat resolve the conflict it changes
+    //    the previous "only" to "in general."
+    //
+    // 2. If the writer was another tool, preserve its options in
+    //    KTWwriterScParams labelled with its name and append the
+    //    currently specified deflate option like so
+    //
+    //        --zstd 18 | (from <name>) option1 option2 ...
+    //
+    //    where <name> is the first word of the original KTXwriter metadata,
+    //    e.g, "tokt". Rewrite KTXwriter with the name of this tool.
+    //
+    // 3. If the writer was ktxsc or toktx remove any original deflate
+    //    option from the preserved parameters as we know those option
+    //    names.
 
-        writer = findMetadataValue(KTX_WRITER_KEY);
+    bool changeWriter = true;
+    std::string writerScParams;
+    std::string origWriterName;
+    writerScParams = findMetadataValue(KTX_WRITER_SCPARAMS_KEY);
+    if (!writerScParams.empty()) {
+        std::string writer = findMetadataValue(KTX_WRITER_KEY);
         if (!writer.empty()) {
-            std::regex e("ktx (?:create|encode)");
+            // No need to match "deflate" or "transcode" as the code used
+            // when there are no ScParams handles that case.
+            std::regex e("ktx (?:create|deflate|encode|transcode)");
+            std::smatch deflateOptionMatch;
             if (std::regex_search(writer, e)) {
-                // File written by a ktx suite tool. Retrieve writerScParams.
-                writerScParams = findMetadataValue(KTX_WRITER_SCPARAMS_KEY);
+                // Writer is member of the ktx suite.
+                // Look for existing deflate option
+                e = " ?--(?:zlib|zstd) [1-9][0-9]?";
+                (void)std::regex_search(writerScParams, deflateOptionMatch, e);
+            } else {
+                // Writer is not a member of the ktx suite
+                e = "ktxsc|toktx";
+                if (std::regex_search(writer, e)) {
+                    // Look for toktx/ktxsc deflate option
+                    e = " ?--zcmp ?[1-9]?[0-9]?";
+                    (void)std::regex_search(writerScParams,
+                                            deflateOptionMatch, e);
+                }
+                origWriterName = writer.substr(0, writer.find_first_of(' '));
+            }
+            // Remove existing deflate option since its value will not apply
+            // to the newly deflated data.
+            for (uint32_t i = 0; i < deflateOptionMatch.size(); i++) {
+                 writerScParams.replace(deflateOptionMatch.position(i),
+                                        deflateOptionMatch.length(i),
+                                        "");
+            }
+            // Does ScParams still have data and is the original writer a
+            // member of the ktx suite?
+            if (!writerScParams.empty() && origWriterName.empty()) {
+                changeWriter = false;
             }
         }
     }
 
-    if (!writerScParams.empty()) {
-        // Use original writer as most params will not be valid for ktx deflate.
-        // Cheeky! Spec. for KTXwriter says "only the most recent writer should
-        // be identified." For KTXwriterScParams it says the writer should
-        // "append the (new) options" when "building on operations done
-        // previously." To somewhat resolve the conflict it changes the
-        // previous "only" to "in general."
-        //
-        // To comply as best as possible writerScParams is only captured if
-        // the writer was part of the ktx suite. In that case replace the
-        // original deflate option with, or append as new, that specified here
-        // and use the original writer string in the knowledge that that writer
-        // accepts identical options
-        auto newScParams = fmt::format("{}", options.compressOptions);
-        // Options always contain a leading space
-        assert(newScParams[0] == ' ');
-        std::smatch m;
-        std::regex e("--(?:zlib|zstd) [1-9][0-9]?");
-        (void)std::regex_search(writerScParams, m, e);
-        switch (m.size()) {
-          case 0:
-            writerScParams.append(newScParams);
-            break;
-          case 1:
-             // Erase leading space as a space exists in the original string.
-            newScParams.erase(newScParams.begin());
-            writerScParams.replace(m.position(0), m.length(0), newScParams);
-            break;
-          default:
-            // Unexpected params string with extra zlib/zstd option(s).
-            // Force complete rewrite.
-            writerScParams.clear();
-        }
-    }
-
-    if (writerScParams.empty()) {
+    if (changeWriter) {
         // Create or modify KTXwriter metadata.
         const auto writer = fmt::format("{} {}", commandName, version(options.testrun));
         updateMetadataValue(KTX_WRITER_KEY, writer);
-        // Format new writerScParams.
-        writerScParams = fmt::format("{}", options.compressOptions);
-        // Options always contain a leading space
-        assert(writerScParams[0] == ' ');
+    }
+
+    // Format new writerScParams.
+    auto newScParams = fmt::format("{}", options.compressOptions);
+    // Options always contain a leading space
+    assert(newScParams[0] == ' ');
+    if (!writerScParams.empty()) {
+        if (changeWriter) {
+            // Leading space unneeded as this param will be first.
+            newScParams.erase(newScParams.begin());
+            writerScParams = fmt::format("{} / (from {}) {}", newScParams,
+                                         origWriterName, writerScParams);
+        } else {
+            writerScParams.append(newScParams);
+        }
+    } else {
+        writerScParams = newScParams;
         writerScParams.erase(writerScParams.begin()); // Erase leading space.
     }
 
