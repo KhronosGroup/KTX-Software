@@ -1,4 +1,6 @@
 #! /usr/bin/env bash
+# Copyright 2024 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
 
 function usage() {
   echo "Usage: $0 [--help | --latest | --latest-pre]"
