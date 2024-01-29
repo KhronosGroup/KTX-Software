@@ -9,16 +9,27 @@ function usage() {
   echo "GitHub repo."
   echo ""
   echo "Options:"
-  echo "  --help, -h       Print this usage message."
-  echo "  --latest, -l     Retrieve information about latest release."
-  echo "  --latest-pre, -p Retrieve information about latest pre-release."
+  echo "  --help, -h         Print this usage message."
+  echo "  --latest, -l       Retrieve information about latest release."
+  echo "  --latest-draft, -d Retrieve information about latest draft release."
+  echo "                     Requires suitable GitHub access token in .netrc."
+  echo "  --latest-pre, -p   Retrieve information about latest pre-release."
+  echo "                     Will retrieve latest draft if it is also marked"
+  echo "                     pre-release."
   exit $1
 }
 
 ktx_repo_url=https://api.github.com/repos/KhronosGroup/KTX-Software
 
+# Authorization with a github token with push access is needed to see
+# draft releases. Put a suitable token in ~/.netrc. -n tells curl to
+# look for .netrc.
 function get_release_list() {
-  curl --silent -L $ktx_repo_url/releases
+  curl \
+    --silent -L -n \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    $ktx_repo_url/releases
 }
 
 if [ $# -eq 0 ]; then
@@ -28,6 +39,9 @@ elif [ $# -eq 1 ]; then
   case $1 in
     --help | -h)
       usage 0 ;;
+    --latest-draft | -d)
+      release_url=$(jq -r 'map(select(.draft)) | first | .url' <<< $(get_release_list))
+      ;;
     --latest-pre | -p)
       release_url=$(jq -r 'map(select(.prerelease)) | first | .url' <<< $(get_release_list))
       ;;
@@ -41,7 +55,7 @@ else
 fi
 
 curl \
-  --silent -L\
+  --silent -L -n \
   -H "Accept: application/vnd.github+json" \
   -H "X-GitHub-Api-Version: 2022-11-28" \
   $release_url

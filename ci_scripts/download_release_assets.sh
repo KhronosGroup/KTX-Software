@@ -16,8 +16,12 @@ function usage() {
   echo "  --output-dir <directory>"
   echo "             Save the downloaded files in <directory>. Defaults to"
   echo "             the current directory."
+  echo "  --draft, -d"
+  echo "             Retrieve assets from latest draft. Requires suitable"
+  echo "             GitHub access token in .netrc."
   echo "  --pre-release, -p"
-  echo "             Retrieve assets from latest pre-release."
+  echo "             Retrieve assets from latest pre-release. Will retrieve"
+  echo "             from latest draft if it is also marked pre-release."
   exit $1
 }
 
@@ -48,6 +52,9 @@ while [ $# -ne 0 ]; do
         shift 2
       fi
       ;;
+    --draft | -d)
+      target="--latest-draft"
+      shift;;
     --pre-release | -p)
       target="--latest-pre"
       shift;;
@@ -57,4 +64,4 @@ done
 
 # Retrieve target release metadata, extract and filter assets and extract
 # their browser_download_urls using jq (jquery).
-jq ".assets | map(select(.name | test(\"$pattern\"))) | map(.browser_download_url)" <<< $($get_release $target) | jq -c '.[]' | xargs -L 1 curl -O -J -L --create-dirs --output-dir $output_dir
+jq ".assets | map(select(.name | test(\"$pattern\"))) | map(.browser_download_url)" <<< $($get_release $target) | jq -c '.[]' | xargs -L 1 curl -O -J -L -n --create-dirs --output-dir $output_dir
