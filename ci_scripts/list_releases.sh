@@ -26,7 +26,7 @@ ktx_repo_url=https://api.github.com/repos/KhronosGroup/KTX-Software
 # look for .netrc.
 function get_release_list() {
   curl \
-    --silent -L -n \
+    --silent --show-error -L -n \
     -H "Accept: application/vnd.github+json" \
     -H "X-GitHub-Api-Version: 2022-11-28" \
     $ktx_repo_url/releases
@@ -55,7 +55,7 @@ else
 fi
 
 curl \
-  --silent -L -n \
+  --silent --show-error -L -n \
   -H "Accept: application/vnd.github+json" \
   -H "X-GitHub-Api-Version: 2022-11-28" \
   $release_url

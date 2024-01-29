@@ -126,6 +126,7 @@ jobs:
             option=
           fi
           ci_scripts/download_release_assets.sh $option --filter "^pyktx" --output-dir dist
+          cat dist/pyktx-4.3.0-cp310-cp310-linux_aarch64.whl
       - name: Publish distribution 📦 to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
