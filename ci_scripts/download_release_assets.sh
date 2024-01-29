@@ -63,5 +63,7 @@ while [ $# -ne 0 ]; do
 done
 
 # Retrieve target release metadata, extract and filter assets and extract
-# their browser_download_urls using jq (jquery).
-jq ".assets | map(select(.name | test(\"$pattern\"))) | map(.browser_download_url)" <<< $($get_release $target) | jq -c '.[]' | xargs -L 1 curl -O -J -L -n --create-dirs --output-dir $output_dir
+# their urls using jq (jquery). Must use the url not browser_download_url
+# as we retrieve the asset via api.github.com so we can get assets from
+# drafts when necessary.
+jq ".assets | map(select(.name | test(\"$pattern\"))) | map(.url)" <<< $($get_release $target) | jq -c '.[]' | xargs -L 1 curl -O -J -L -n --create-dirs --output-dir $output_dir  -H "Accept: application/octet-stream" -H "X-GitHub-Api-Version: 2022-11-28"
