@@ -80,7 +80,8 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Set up .netrc
-        env: GH_API_TOKEN: ${{ secrets.GH_API_TOKEN }}
+        env:
+          GH_API_TOKEN: ${{ secrets.GH_API_TOKEN }}
         run: echo -e "machine api.github.com login $GH_API_TOKEN" >> ~/.netrc
       - name: Download pyktx assets from latest (pre-)release
         run: |
@@ -113,7 +114,8 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Set up .netrc
-        env: GH_API_TOKEN: ${{ secrets.GH_API_TOKEN }}
+        env:
+          GH_API_TOKEN: ${{ secrets.GH_API_TOKEN }}
         run: echo -e "machine api.github.com login $GH_API_TOKEN" >> ~/.netrc
       - name: Download pyktx assets from latest (pre-)release
         run: |
