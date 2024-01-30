@@ -211,7 +211,7 @@ jobs:
 
     - name: Set up JDK 17.
       if: matrix.options.jni == 'ON' && matrix.check_mkvk != 'ONLY'
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: '17'
@@ -272,7 +272,7 @@ jobs:
 
     - name: Upload Artifact
       if: matrix.options.package == 'YES' && matrix.toolset == 'CLangCL'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: KTX-Software-${{env.KTX_VERSION}}-Windows-${{matrix.arch}}
         path: ${{env.BUILD_DIR}}/KTX-Software-*.exe*
