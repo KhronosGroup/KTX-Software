@@ -157,6 +157,7 @@ function( CreateDocTools )
         tools/ktx/ktx_main.cpp
         tools/ktx/command_compare.cpp
         tools/ktx/command_create.cpp
+        tools/ktx/command_deflate.cpp
         tools/ktx/command_encode.cpp
         tools/ktx/command_extract.cpp
         tools/ktx/command_help.cpp
