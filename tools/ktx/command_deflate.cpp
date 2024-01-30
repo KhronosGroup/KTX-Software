@@ -68,7 +68,7 @@ Deflate (supercompress) a KTX2 file.
  - Initial version
 
 @section ktx_deflate_author AUTHOR
-    - Mark Callow [@MarkCallow]
+    - Mark Callow [\@MarkCallow]
 */
 class CommandDeflate : public Command {
     enum {
@@ -162,7 +162,7 @@ void CommandDeflate::executeDeflate() {
             break;
           default:
             fatal(rc::INVALID_FILE,
-                  "Cannot deflate a KTX2 file supercompressed with {}.",
+                  "Cannot further deflate a KTX2 file supercompressed with {}.",
                   toString(texture->supercompressionScheme));
         }
     }
