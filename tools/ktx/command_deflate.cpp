@@ -76,6 +76,8 @@ class CommandDeflate : public Command {
     };
 
     struct OptionsDeflate {
+        inline static const char* kQuiet = "quiet";
+        inline static const char* kWarningsAsErrors = "warnings-as-errors";
         bool quiet = false;
         bool warningsAsErrors = false;
         void init(cxxopts::Options& opts);
@@ -113,14 +115,18 @@ int CommandDeflate::main(int argc, char* argv[]) {
 
 void CommandDeflate::OptionsDeflate::init(cxxopts::Options& opts) {
     opts.add_options()
-        ("q,quiet", "Don't print warning when input file is already supercompressed.")
-        ("w, warnings-as-errors", "Exit with error when input file is already supercompressed");
-
+        (kQuiet, "Don't print warning when input file is already supercompressed.")
+        (kWarningsAsErrors, "Exit with error when input file is already supercompressed");
 }
 
-void CommandDeflate::OptionsDeflate::process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter&) {
-    quiet = args["quiet"].as<bool>();
-    warningsAsErrors = args["warnings-as-errors"].as<bool>();
+void CommandDeflate::OptionsDeflate::process(cxxopts::Options&,
+                                             cxxopts::ParseResult& args,
+                                             Reporter& report) {
+    quiet = args[kQuiet].as<bool>();
+    warningsAsErrors = args[kWarningsAsErrors].as<bool>();
+    if (quiet && warningsAsErrors) {
+        report.fatal_usage("Cannot specify both --quiet and --warnings-as-errors");
+    }
 }
 
 void CommandDeflate::initOptions(cxxopts::Options& opts) {
@@ -129,12 +135,9 @@ void CommandDeflate::initOptions(cxxopts::Options& opts) {
 
 void CommandDeflate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) {
     options.process(opts, args, *this);
-    if (options.quiet && options.warningsAsErrors) {
-        fatal_usage("Cannot specify both --quiet and --warnings-as-errors");
-    }
-    if (!options.zstd && !options.zlib) {
-        fatal_usage("Must specifiy one of --zstd or --zlib.");
-    }
+
+    if (!options.zlib.has_value() && !options.zstd.has_value())
+        fatal_usage("Must specify --zlib or --zstd");
 }
 
 void CommandDeflate::executeDeflate() {
