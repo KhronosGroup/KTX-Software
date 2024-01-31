@@ -1,8 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-    Copyright 2017-2020 The Khronos Group Inc.
-    SPDX-License-Identifier: Apache-2.0
--->
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
@@ -26,6 +22,33 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>1.0</string>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>LSIsAppleDefaultForType</key>
+			<false/>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+			<key>CFBundleTypeIconFile</key>
+			<string>ktxapp.icns</string>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>ktx</string>
+				<string>ktx2</string>
+			</array>
+			<key>CFBundleTypeMIMETypes</key>
+			<array>
+				<string>image/ktx</string>
+				<string>image/ktx2</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>KTX texture file</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSTypeIsPackage</key>
+			<false/>
+		</dict>
+	</array>
 	<key>NSMainNibFile</key>
 	<string></string>
 	<key>UISupportedInterfaceOrientations</key>
