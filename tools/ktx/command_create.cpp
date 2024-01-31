@@ -3,10 +3,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "command.h"
+#include "encode_utils_common.h"
 #include "platform_utils.h"
 #include "metrics_utils.h"
 #include "compress_utils.h"
-#include "encode_utils.h"
+#include "basis_utils.h"
 #include "format_descriptor.h"
 #include "formats.h"
 #include "utility.h"
@@ -759,6 +760,7 @@ Create a KTX2 file from various input files.
             otherwise they are ignored. Case-insensitive.</dd>
 
         @snippet{doc} ktx/encode_utils.h command options_codec
+        @snippet{doc} ktx/encode_utils_common.h command options_codec_common
         @snippet{doc} ktx/metrics_utils.h command options_metrics
     </dl>
     <dl>
@@ -820,7 +822,7 @@ Create a KTX2 file from various input files.
 */
 class CommandCreate : public Command {
 private:
-    Combine<OptionsCreate, OptionsASTC, OptionsCodec<false>, OptionsMetrics, OptionsCompress, OptionsMultiInSingleOut, OptionsGeneric> options;
+    Combine<OptionsCreate, OptionsASTC, OptionsCodec<false>, OptionsCodecCommon, OptionsMetrics, OptionsCompress, OptionsMultiInSingleOut, OptionsGeneric> options;
 
     uint32_t targetChannelCount = 0; // Derived from VkFormat
 
@@ -885,6 +887,8 @@ void CommandCreate::initOptions(cxxopts::Options& opts) {
 void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) {
     options.process(opts, args, *this);
 
+    fillCodecOptions<decltype(options), ktxBasisParams>(options);
+
     numLevels = options.levels.value_or(1);
     numLayers = options.layers.value_or(1);
     numFaces = options.cubemap ? 6 : 1;
@@ -913,7 +917,7 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
                 fatal_usage("--{} can only be used with ASTC formats.", astcOption);
     }
 
-    if (options.codec == EncodeCodec::BasisLZ) {
+    if (options.codec == BasisCodec::BasisLZ) {
         if (options.zstd.has_value())
             fatal_usage("Cannot encode to BasisLZ and supercompress with Zstd.");
 
@@ -921,7 +925,7 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
             fatal_usage("Cannot encode to BasisLZ and supercompress with ZLIB.");
     }
 
-    if (options.codec != EncodeCodec::NONE) {
+    if (options.codec != BasisCodec::NONE) {
         switch (options.vkFormat) {
         case VK_FORMAT_R8_UNORM:
         case VK_FORMAT_R8_SRGB:
@@ -940,7 +944,7 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
         }
     }
 
-    const auto canCompare = options.codec == EncodeCodec::BasisLZ || options.codec == EncodeCodec::UASTC;
+    const auto canCompare = options.codec == BasisCodec::BasisLZ || options.codec == BasisCodec::UASTC;
     if (options.compare_ssim && !canCompare)
         fatal_usage("--compare-ssim can only be used with BasisLZ or UASTC encoding.");
     if (options.compare_psnr && !canCompare)
@@ -1253,7 +1257,7 @@ void CommandCreate::executeCreate() {
     compress(texture, options);
 
     // Add KTXwriterScParams metadata if ASTC encoding, BasisU encoding, or other supercompression was used
-    const auto writerScParams = fmt::format("{}{}{}", options.astcOptions, options.codecOptions, options.compressOptions);
+    const auto writerScParams = fmt::format("{}{}{}{}", options.astcOptions, options.codecOptions, options.commonOptions, options.compressOptions);
     if (writerScParams.size() > 0) {
         // Options always contain a leading space
         assert(writerScParams[0] == ' ');
@@ -1277,8 +1281,8 @@ void CommandCreate::encode(KTXTexture2& texture, OptionsCodec<false>& opts) {
     MetricsCalculator metrics;
     metrics.saveReferenceImages(texture, options, *this);
 
-    if (opts.codec != EncodeCodec::NONE) {
-        auto ret = ktxTexture2_CompressBasisEx(texture, &opts.basisOpts);
+    if (opts.codec != BasisCodec::NONE) {
+        auto ret = ktxTexture2_CompressBasisEx(texture, &opts);
         if (ret != KTX_SUCCESS)
             fatal(rc::KTX_FAILURE, "Failed to encode KTX2 file with codec \"{}\". KTX Error: {}",
                     to_underlying(opts.codec), ktxErrorString(ret));
