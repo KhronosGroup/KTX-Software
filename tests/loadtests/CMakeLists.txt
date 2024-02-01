@@ -278,14 +278,15 @@ set( LOAD_TEST_COMMON_LIBS )
 if(APPLE)
     set( EXE_FLAG MACOSX_BUNDLE )
     if(IOS)
-        # Do not set KTX_ICON here. On iOS the icon is not a single file.
+        # Do not set KTX_APP_ICON here. On iOS the icon is not a single file.
         # Icon setup must be handled when creating a target.
         set( LOAD_TEST_COMMON_LIBS
             ${ASSIMP_LIBRARIES}
             ${SDL2_LIBRARIES}
         )
     else()
-        set( KTX_ICON ${PROJECT_SOURCE_DIR}/icons/mac/ktx_app.icns )
+        set( KTX_APP_ICON ${PROJECT_SOURCE_DIR}/icons/mac/ktx_app.icns )
+        set( KTX_DOC_ICON ${PROJECT_SOURCE_DIR}/icons/mac/ktx_document.icns )
         set( LOAD_TEST_COMMON_LIBS
             ${ASSIMP_LIBRARIES}
             ${SDL2_LIBRARIES}
@@ -293,14 +294,14 @@ if(APPLE)
         )
     endif()
 elseif(LINUX)
-    set( KTX_ICON ${PROJECT_SOURCE_DIR}/icons/linux/ktx_app.svg )
+    set( KTX_APP_ICON ${PROJECT_SOURCE_DIR}/icons/linux/ktx_app.svg )
     set( LOAD_TEST_COMMON_LIBS
         ${ASSIMP_LIBRARIES}
         ${SDL2_LIBRARIES}
     )
 elseif(WIN32)
     set( EXE_FLAG WIN32 )
-    set( KTX_ICON ${PROJECT_SOURCE_DIR}/icons/win/ktx_app.ico )
+    set( KTX_APP_ICON ${PROJECT_SOURCE_DIR}/icons/win/ktx_app.ico )
     set( LOAD_TEST_COMMON_LIBS
         ${ASSIMP_LIBRARIES}
         ${SDL2_LIBRARIES}
@@ -327,7 +328,8 @@ set_source_files_properties( ${LOAD_TEST_COMMON_MODELS}
 #)
 
 set( LOAD_TEST_COMMON_RESOURCE_FILES
-    ${KTX_ICON}
+    ${KTX_APP_ICON}
+    ${KTX_DOC_ICON}
     ${LOAD_TEST_COMMON_MODELS}
 )
 
