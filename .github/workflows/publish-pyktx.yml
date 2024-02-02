@@ -94,7 +94,7 @@ jobs:
           ci_scripts/download_release_assets.sh $option --filter "^pyktx" --output_dir dist
       - name: Delete linux wheels
         run: |
-          rm *linux*.whl
+          rm dist/*linux*.whl
       - name: Publish distribution 📦 to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
