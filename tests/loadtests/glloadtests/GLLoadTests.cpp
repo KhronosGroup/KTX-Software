@@ -178,7 +178,8 @@ GLLoadTests::windowResized()
 void
 GLLoadTests::drawFrame(uint32_t msTicks)
 {
-    pCurSample->run(msTicks);
+    if (pCurSample != nullptr)
+        pCurSample->run(msTicks);
 
     GLAppSDL::drawFrame(msTicks);
 }

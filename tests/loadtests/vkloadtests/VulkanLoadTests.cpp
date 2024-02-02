@@ -162,7 +162,8 @@ VulkanLoadTests::windowResized()
 void
 VulkanLoadTests::drawFrame(uint32_t msTicks)
 {
-    if (pCurSample) pCurSample->run(msTicks);
+    if (pCurSample != nullptr)
+        pCurSample->run(msTicks);
 
     VulkanAppSDL::drawFrame(msTicks);
 }
