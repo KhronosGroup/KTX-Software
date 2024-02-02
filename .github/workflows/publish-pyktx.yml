@@ -38,6 +38,11 @@ on:
         description: 'Deploy to test pypi registry'
         required: true
         default: false
+      prerelease:
+        type: boolean
+        description: 'Deploy pre-release'
+        required: false
+        default: false
 
 # Example to try in future.
 #  workflow_run:
@@ -54,37 +59,42 @@ on:
 #      - 'v[0-9]+\.[0-9]+\.[0-9]+'
 #      - 'v[0-9]+\.[0-9]+\.[0-9]+-*'
 
+env:
+  INPUT_PRERELEASE: ${{ inputs.prerelease }}
+
 jobs:
   publish-to-pypi:
     name:  Publish Python 🐍 distribution 📦 to PyPI
-    if: test-pypi == false
+    if: ${{ ! inputs.test-pypi }}
     runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url:  https://pypi.org/p/pyktx
-    permissions:
-      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
+#    environment:
+#      name: pypi
+#      url:  https://pypi.org/p/pyktx
+#    permissions:
+#      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
     # When using workflow_run it is necessary to check for successful
     # completion of the workflow with
     #if: ${{ github.event.workflow_run.conclusion == 'success' }}
     # Maybe it is possible to test for a release tag here too.
     steps:
-      - name: Download latest release metadata
+      - uses: actions/checkout@v4
+
+      - name: Set up .netrc
+        env:
+          GH_API_TOKEN: ${{ secrets.GH_API_TOKEN }}
+        run: echo -e "machine api.github.com login $GH_API_TOKEN" >> ~/.netrc
+      - name: Download pyktx assets from latest (pre-)release
         run: |
-           curl \
-              -H "Accept: application/vnd.github+json" \
-              -H "X-GitHub-Api-Version: 2022-11-28" \
-              -o latest.json \
-              https://api.github.com/repos/KhronosGroup/KTX-Software/releases/latest
-      - name: Filter out pyktx- assets
+          echo INPUT_PRERELEASE = $INPUT_PRERELEASE
+          if [ "$INPUT_PRERELEASE" = "true" ]; then
+            option="--pre-release"
+          else
+            option=
+          fi
+          ci_scripts/download_release_assets.sh $option --filter "^pyktx" --output_dir dist
+      - name: Delete linux wheels
         run: |
-          jq '.assets | map(select(.name | startswith("pyktx-") and (contains("linux") | not))) | map(.browser_download_url)' < latest.json > pyktx.json 
-      - name: Create dist directory
-        run: |
-          mkdir dist
-      - name: Download assets
-        run: |
-          cd dist; jq -c '.[]' ../pyktx.json | xargs -L 1 curl -O -J; cd..
+          rm *linux*.whl
       - name: Publish distribution 📦 to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
@@ -92,35 +102,35 @@ jobs:
 
   publish-to-testpypi:
     name:  Publish Python 🐍 distribution 📦 to TestPyPI
-    if: test-pypi
+    if: ${{ inputs.test-pypi }}
     runs-on: ubuntu-latest
-    environment:
-      name: testpypi
-      url: https://pypi.org/p/pyktx
-    permissions:
-      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
+#    environment:
+#      name: testpypi
+#      url: https://pypi.org/p/pyktx
+#    permissions:
+#      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
     # When using workflow_run it is necessary to check for successful
     # completion of the workflow with
     #if: ${{ github.event.workflow_run.conclusion == 'success' }}
     # Maybe it is possible to test for a release tag here too.
     steps:
-      - name: Download latest release metadata
+      - uses: actions/checkout@v4
+
+      - name: Set up .netrc
+        env:
+          GH_API_TOKEN: ${{ secrets.GH_API_TOKEN }}
+        run: echo -e "machine api.github.com login $GH_API_TOKEN" >> ~/.netrc
+      - name: Download pyktx assets from latest (pre-)release
         run: |
-           curl \
-              -H "Accept: application/vnd.github+json" \
-              -H "X-GitHub-Api-Version: 2022-11-28" \
-              -o latest.json \
-              https://api.github.com/repos/KhronosGroup/KTX-Software/releases/latest
-      - name: Filter out pyktx- assets
-        run: |
-          jq '.assets | map(select(.name | startswith("pyktx-"))) | map(.browser_download_url)' < latest.json > pyktx.json 
-      - name: Create dist directory
-        run: |
-          mkdir dist
-      - name: Download assets
-        run: |
-          cd dist; jq -c '.[]' ../pyktx.json | xargs -L 1 curl -O -J; cd..
+          echo INPUT_PRERELEASE = $INPUT_PRERELEASE
+          if [ "$INPUT_PRERELEASE" = "true" ]; then
+            option="--pre-release"
+          else
+            option=
+          fi
+          ci_scripts/download_release_assets.sh $option --filter "^pyktx" --output-dir dist
       - name: Publish distribution 📦 to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
+          repository-url: https://test.pypi.org/legacy/
+          password: ${{ secrets.TESTPYPI_API_TOKEN }}
