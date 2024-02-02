@@ -99,6 +99,19 @@ VulkanLoadTests::doEvent(SDL_Event* event)
         }
         break;
 
+      // On macOS drop events come also when Launch Pad sends a file open event.
+      case SDL_DROPBEGIN:
+        infiles.clear();
+        break;
+      case SDL_DROPFILE:
+        infiles.push_back(event->drop.file);
+        SDL_free(event->drop.file);
+        break;
+      case SDL_DROPCOMPLETE:
+        sampleIndex.setNumSamples((uint32_t)infiles.size());
+        invokeSample(Direction::eForward);
+        break;
+
       default:
         switch(swipeDetector.doEvent(event)) {
           case SwipeDetector::eSwipeUp:
