@@ -32,7 +32,7 @@ jobs:
       WERROR: ON
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         # Fetch all history to make sure tags are
         # included (used for version creation)
@@ -94,7 +94,7 @@ jobs:
     # by the preceding steps and uploads the zip.
     - name: upload artifact
       id: upload-artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: KTX-Software-${{env.KTX_VERSION}}-Android
         path: install-android
