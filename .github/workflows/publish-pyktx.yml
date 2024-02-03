@@ -78,7 +78,7 @@ jobs:
               https://api.github.com/repos/KhronosGroup/KTX-Software/releases/latest
       - name: Filter out pyktx- assets
         run: |
-          jq '.assets | map(select(.name | startswith("pyktx-") and (contains("linux") | not))) | map(.browser_download_url)' < latest.json > pyktx.json 
+          jq '.assets | map(select(.name | startswith("pyktx-"))) | map(.browser_download_url)' < latest.json > pyktx.json 
       - name: Create dist directory
         run: |
           mkdir dist
