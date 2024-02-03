@@ -95,7 +95,8 @@ jobs:
           # moment, we don't have a workflow to build manylinux wheels, which
           # it will accept. It's non-trivial to implement that. See
           # https://github.com/pypa/manylinux?tab=readme-ov-file#docker-images
-          ci_scripts/download_release_assets.sh $option --filter '(?:^pyktx)(?!.*linux.*)' --output-dir dist     - name: Publish distribution 📦 to PyPI
+          ci_scripts/download_release_assets.sh $option --filter '(?:^pyktx)(?!.*linux.*)' --output-dir dist
+      - name: Publish distribution 📦 to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
