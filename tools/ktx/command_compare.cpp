@@ -8,6 +8,9 @@
 #include "utility.h"
 #include "validate.h"
 #include "formats.h"
+#include "format_descriptor.h"
+#include "imagecodec.hpp"
+#include "imagespan.hpp"
 #include "basis_sgd.h"
 #include <fstream>
 #include <iostream>
@@ -465,6 +468,23 @@ struct DiffMismatch {
     const std::string_view jsonPath;
 };
 
+struct DiffImage {
+    using TexelBlockPairList = std::vector<std::pair<ImageSpan::TexelBlockPtr<>, ImageSpan::TexelBlockPtr<>>>;
+
+    DiffImage(const std::string_view textHeaderIn, const std::string_view fragmentUriIn,
+        const std::optional<std::size_t>& fileOffset1, const std::optional<std::size_t>& fileOffset2,
+        const TexelBlockPairList& texelBlockPairListIn)
+      : textHeader(textHeaderIn), fragmentUri(fragmentUriIn), texelBlockPairList(texelBlockPairListIn) {
+        fileOffsets[0] = fileOffset1;
+        fileOffsets[1] = fileOffset2;
+    }
+
+    const std::string_view textHeader;
+    const std::string_view fragmentUri;
+    const TexelBlockPairList& texelBlockPairList;
+    std::optional<std::size_t> fileOffsets[2];
+};
+
 class PrintDiff {
     PrintIndent& printIndent;
     OutputFormat outputFormat;
@@ -619,6 +639,159 @@ public:
         } else {
             beginJsonOutput();
             printIndent(2, "\"{}\":{}[]", diff.jsonPath, space);
+        }
+    }
+
+    void operator<<(const DiffImage& diff) {
+        different = true;
+
+        const auto space = outputFormat != OutputFormat::json_mini ?  " " : "";
+        const auto nl = outputFormat != OutputFormat::json_mini ?  "\n" : "";
+
+        auto formatOptionalFileOffset = [](const std::optional<std::size_t>& fileOffset, std::size_t imageOffset, const char* noValue) {
+            if (fileOffset.has_value())
+                return fmt::format("0x{:x}", *fileOffset + imageOffset);
+            else
+                return fmt::format(noValue);
+        };
+
+        auto formatPacked = [=](const ImageSpan::TexelBlockPtr<>& texelBlock, bool quoteValues) {
+            const uint32_t hexDigits = texelBlock.getPackedElementByteSize() << 1;
+            const auto quote = quoteValues ? "\"" : "";
+            std::stringstream formattedValue;
+            bool first = true;
+            for (uint32_t elementIdx = 0; elementIdx < texelBlock.getPackedElementCount(); ++elementIdx) {
+                const uint32_t element = texelBlock.getPackedElement(elementIdx);
+                const auto comma = std::exchange(first, false) ? "" : fmt::format(",{}", space);
+                fmt::print(formattedValue, "{}{}0x{:0{}x}{}", comma, quote, element, hexDigits, quote);
+            }
+            return formattedValue.str();
+        };
+
+        auto formatChannels = [=](const ImageSpan::TexelBlockPtr<>& texelBlock, bool quoteSpecial) {
+            // If decodable channels are not available (e.g. block compressed), then this should not be called
+            assert(!texelBlock.getChannelCount() != 0);
+            const auto quote = quoteSpecial ? "\"" : "";
+            std::stringstream formattedValue;
+            bool first = true;
+            // Prefer to decode to integer (e.g. UNORM will be output as list of integer values instead of float values)
+            if (texelBlock.canDecodeUINT()) {
+                // Unsigned integer channels
+                const glm::uvec4 color = texelBlock.decodeUINT();
+                for (uint32_t channelIdx = 0; channelIdx < texelBlock.getChannelCount(); ++channelIdx) {
+                    const auto comma = std::exchange(first, false) ? "" : fmt::format(",{}", space);
+                    fmt::print(formattedValue, "{}{}", comma, color[channelIdx]);
+                }
+            } else if (texelBlock.canDecodeSINT()) {
+                // Signed integer channels
+                const glm::ivec4 color = texelBlock.decodeSINT();
+                for (uint32_t channelIdx = 0; channelIdx < texelBlock.getChannelCount(); ++channelIdx) {
+                    const auto comma = std::exchange(first, false) ? "" : fmt::format(",{}", space);
+                    fmt::print(formattedValue, "{}{}", comma, color[channelIdx]);
+                }
+            } else if (texelBlock.canDecodeFLOAT()) {
+                // Floating point channels
+                const glm::vec4 color = texelBlock.decodeFLOAT();
+                for (uint32_t channelIdx = 0; channelIdx < texelBlock.getChannelCount(); ++channelIdx) {
+                    const auto comma = std::exchange(first, false) ? "" : fmt::format(",{}", space);
+                    float channel = color[channelIdx];
+                    const auto sign = std::signbit(channel) ? "-" : "+";
+                    if (std::isinf(channel)) {
+                        // Output signed infinity (optionally quoted)
+                        fmt::print(formattedValue, "{}{}{}inf{}", comma, quote, sign, quote);
+                    } else if (std::isnan(channel)) {
+                        // Output signed not-a-number (optionally quoted)
+                        fmt::print(formattedValue, "{}{}{}nan{}", comma, quote, sign, quote);
+                    } else {
+                        // Output signed value (explicitly handle sign bit to differentiate between +0.0 and -0.0)
+                        fmt::print(formattedValue, "{}{}{:f}", comma, sign, std::abs(channel));
+                    }
+                }
+            } else {
+                // Unexpected format
+                assert(false);
+                return std::string("");
+            }
+            return formattedValue.str();
+        };
+
+        if (outputFormat == OutputFormat::text) {
+            printIndent(0, "+{}\n", diff.textHeader);
+            for (const auto& texelBlockPair : diff.texelBlockPairList) {
+                const auto pixelCoords = texelBlockPair.first.getPixelLocation();
+                // Currently we only compare texel blocks with the same coordinates
+                assert(pixelCoords == texelBlockPair.second.getPixelLocation());
+                printIndent(0, "  Coordinates: {}, {}, {}\n", pixelCoords.x, pixelCoords.y, pixelCoords.z);
+
+                const auto imageByteOffset = texelBlockPair.first.getTexelBlockByteOffset();
+                // Currently we only compare matching formats, hence image byte offsets should match
+                assert(imageByteOffset == texelBlockPair.second.getTexelBlockByteOffset());
+                printIndent(0, "    Image byte offset: 0x{:x}\n", imageByteOffset);
+
+                auto printDiff = [=](const char* textHeader, const std::string firstValue, const std::string secondValue) {
+                    if (firstValue == secondValue) {
+                        printIndent(0, "    {}: {}\n", textHeader, firstValue);
+                    } else {
+                        printIndent(0, "-    {}: {}\n", textHeader, firstValue);
+                        printIndent(0, "+    {}: {}\n", textHeader, secondValue);
+                    }
+                };
+
+                printDiff("File byte offset",
+                    formatOptionalFileOffset(diff.fileOffsets[0], imageByteOffset, "N/A"),
+                    formatOptionalFileOffset(diff.fileOffsets[1], imageByteOffset, "N/A"));
+
+                printDiff("Packed", formatPacked(texelBlockPair.first, false), formatPacked(texelBlockPair.second, false));
+
+                // Only output chnalles if not block-compressed
+                if (!texelBlockPair.first.isBlockCompressed())
+                    printDiff("Channels", formatChannels(texelBlockPair.first, false), formatChannels(texelBlockPair.second, false));
+            }
+        } else {
+            beginJsonOutput();
+            printIndent(2, "\"{}\":{}[", diff.fragmentUri, space);
+            bool first = true;
+            for (const auto& texelBlockPair : diff.texelBlockPairList) {
+                const auto comma = std::exchange(first, false) ? "" : fmt::format(",{}", space);
+                printIndent(0, "{}{}", comma, nl);
+                printIndent(3, "{{{}", nl);
+
+                const auto pixelCoords = texelBlockPair.first.getPixelLocation();
+                // Currently we only compare texel blocks with the same coordinates
+                assert(pixelCoords == texelBlockPair.second.getPixelLocation());
+                printIndent(4, "\"coordinates\":{}[{}{},{}{},{}{}{}],{}", space, space,
+                    pixelCoords.x, space, pixelCoords.y, space, pixelCoords.z, space, nl);
+
+                const auto imageByteOffset = texelBlockPair.first.getTexelBlockByteOffset();
+                // Currently we only compare matching formats, hence image byte offsets should match
+                assert(imageByteOffset == texelBlockPair.second.getTexelBlockByteOffset());
+                printIndent(4, "\"imageByteOffset\":{}[{}{},{}{}{}],{}", space, space,
+                    imageByteOffset, space, imageByteOffset, space, nl);
+
+                printIndent(4, "\"fileByteOffset\":{}[{}{},{}{}],{}", space, space,
+                    formatOptionalFileOffset(diff.fileOffsets[0], imageByteOffset, "null"), space,
+                    formatOptionalFileOffset(diff.fileOffsets[1], imageByteOffset, "null"), space, nl);
+
+                printIndent(4, "\"packed\":{}[{}", space, nl);
+                printIndent(5, "[{}{}{}],{}", space, formatPacked(texelBlockPair.first, true), space, nl);
+                printIndent(5, "[{}{}{}]{}", space, formatPacked(texelBlockPair.second, true), space, nl);
+                printIndent(4, "]");
+
+                // Only output channels if not block-compressed
+                if (!texelBlockPair.first.isBlockCompressed()) {
+                    printIndent(0, ",{}", nl);
+                    printIndent(4, "\"channels\":{}[{}", space, nl);
+                    printIndent(5, "[{}{}{}],{}", space, formatChannels(texelBlockPair.first, true), space, nl);
+                    printIndent(5, "[{}{}{}]{}", space, formatChannels(texelBlockPair.second, true), space, nl);
+                    printIndent(4, "]");
+                }
+
+                printIndent(0, "{}", nl);
+                printIndent(3, "}}");
+            }
+            if (!diff.texelBlockPairList.empty())
+                printIndent(0, "{}", nl);
+            printIndent(2, "]");
         }
     }
 };
@@ -1024,6 +1197,20 @@ private:
             read(streams[i], offset, &result[i], sizeof(T), what);
         }
         return result;
+    }
+
+    typedef bool (*CompareFunc)(ImageSpan::TexelBlockPtr<> texelBlocks[2]);
+
+    static bool compareTexelBlocksPacked(ImageSpan::TexelBlockPtr<> texelBlocks[2]) {
+        // Expect number of packed elements and byte size to match
+        assert(texelBlocks[0].imageCodec().getPackedElementCount() == texelBlocks[1].imageCodec().getPackedElementCount());
+        assert(texelBlocks[0].imageCodec().getPackedElementByteSize() == texelBlocks[1].imageCodec().getPackedElementByteSize());
+        for (uint32_t elementIdx = 0; elementIdx < texelBlocks[0].imageCodec().getPackedElementCount(); ++elementIdx) {
+            if (texelBlocks[0].getPackedElement(elementIdx) != texelBlocks[1].getPackedElement(elementIdx)){
+                return false;
+            }
+        }
+        return true;
     }
 };
 
@@ -2059,27 +2246,13 @@ void CommandCompare::compareImages(PrintDiff& diff, InputStreams& streams) {
 }
 
 void CommandCompare::compareImagesRaw(PrintDiff& diff, InputStreams& streams) {
-    (void)diff;
-    (void)streams;
-/*    diff.setContext("Image Data\n\n");
+    diff.setContext("Image Data\n\n");
 
     const uint32_t numLevels[] = {
         std::max(1u, headers[0].levelCount),
         std::max(1u, headers[1].levelCount)
     };
     const uint32_t maxNumLevels = std::max(numLevels[0], numLevels[1]);
-
-    const uint32_t numLayers[] = {
-        std::max(1u, headers[0].layerCount),
-        std::max(1u, headers[1].layerCount)
-    };
-    const uint32_t maxNumLayers = std::max(numLayers[0], numLayers[1]);
-
-    const uint32_t numFaces[] = {
-        std::max(1u, headers[0].faceCount),
-        std::max(1u, headers[1].faceCount)
-    };
-    const uint32_t maxNumFaces = std::max(numFaces[0], numFaces[1]);
 
     for (uint32_t level = 0; level < maxNumLevels; ++level) {
         const auto levelIndexEntryOffset = sizeof(KTX_header2) + level * sizeof(ktxLevelIndexEntry);
@@ -2091,20 +2264,177 @@ void CommandCompare::compareImagesRaw(PrintDiff& diff, InputStreams& streams) {
                 levelIndexEntry[i] = entry;
             }
 
-        const char* imageMismatchText = "Mismatch in level {}, layer {}, face {}";
-        const char* imageMismatchJson = ""
+        bool mismatch = false;
 
         // Missing levels are always considered a mismatch
         if (!levelIndexEntry[0].has_value() || !levelIndexEntry[1].has_value())
-            for (uint32_t layer = 0; layer < maxNumLayers; ++layer)
-                for (uint32_t face = 0; face < maxNumFaces; ++face)
-                    diff << DiffMismatch(...);
-    }*/
+            mismatch = true;
+
+        // Mismatching level data sizes are always considered a mismatch
+        if (!mismatch && levelIndexEntry[0]->byteLength != levelIndexEntry[1]->byteLength)
+            mismatch = true;
+
+        if (!mismatch) {
+            // If so far so good then load the level data and compare them
+            std::unique_ptr<uint8_t[]> buffers[] = {
+                std::make_unique<uint8_t[]>(levelIndexEntry[0]->byteLength),
+                std::make_unique<uint8_t[]>(levelIndexEntry[1]->byteLength)
+            };
+
+            for (std::size_t i = 0; i < streams.size(); ++i)
+                read(streams[i], levelIndexEntry[i]->byteOffset, buffers[i].get(),
+                    levelIndexEntry[i]->byteLength, fmt::format("level {} data", level));
+
+            if (std::memcmp(buffers[0].get(), buffers[1].get(), levelIndexEntry[0]->byteLength) != 0)
+                mismatch = true;
+        }
+
+        if (mismatch)
+            diff << DiffMismatch(fmt::format("Mismatch in level {} data", level), fmt::format("m={}", level));
+    }
 }
 
 void CommandCompare::compareImagesPerPixel(PrintDiff& diff, InputStreams& streams) {
-    (void)diff;
-    (void)streams;
+    diff.setContext("Image Data\n\n");
+
+    // Load texture data, setup format descriptors and image codecs
+    KTXTexture2 textures[2] = {KTXTexture2(nullptr), KTXTexture2(nullptr)};
+    StreambufStream<std::streambuf*> ktx2Streams[2] = {
+        StreambufStream<std::streambuf*>(streams[0]->rdbuf(), std::ios::in | std::ios::binary),
+        StreambufStream<std::streambuf*>(streams[1]->rdbuf(), std::ios::in | std::ios::binary)
+    };
+    FormatDescriptor formatDesc[2] = {};
+    ImageCodec imageCodecs[2] = {};
+    bool fileOffsetsValid[2] = {true, true};
+    for (std::size_t i = 0; i < streams.size(); ++i) {
+        auto ret = ktxTexture2_CreateFromStream(ktx2Streams[i].stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, textures[i].pHandle());
+        if (ret != KTX_SUCCESS)
+            fatal(rc::INVALID_FILE, "Failed to create KTX2 texture from file \"{}\": {}", streams[i].str(), ktxErrorString(ret));
+
+        formatDesc[i] = createFormatDescriptor(textures[i]->pDfd);
+        imageCodecs[i] = ImageCodec(static_cast<VkFormat>(headers[i].vkFormat), headers[i].typeSize, textures[i]->pDfd);
+
+        if (formatDesc[i].model() == KHR_DF_MODEL_ETC1S) {
+            // Transcode BasisLZ textures to RGBA8 before comparison
+            ret = ktxTexture2_TranscodeBasis(textures[i], KTX_TTF_RGBA32, 0);
+            if (ret != KTX_SUCCESS)
+                fatal(rc::INVALID_FILE, "Failed to transcode KTX2 texture from file \"{}\": {}", streams[i].str(), ktxErrorString(ret));
+        }
+
+        // If the image data was supercompressed then file offsets of texel blocks cannot be calculated
+        if (headers[i].supercompressionScheme != KTX_SS_NONE)
+            fileOffsetsValid[i] = false;
+    }
+
+    // Currently, we only support comparing images with matching dimensions
+    if (textures[0]->numDimensions != textures[1]->numDimensions ||
+        textures[0]->baseWidth != textures[1]->baseWidth ||
+        textures[0]->baseHeight != textures[1]->baseHeight ||
+        textures[0]->baseDepth != textures[1]->baseDepth ||
+        imageCodecs[0].getTexelBlockDimensions() != imageCodecs[1].getTexelBlockDimensions())
+        fatal(rc::INVALID_ARGUMENTS, "Comparison requires matching texture and texel block dimensions.");
+
+    // Currently, we only support comparing images with matching formats (barring BasisLZ decoding)
+    // which means checking the following parameters
+    //   * Matching vkFormat (already catches everything except Basis Universal cases)
+    //   * Matching color model (to handle Basis Universal cases)
+    if (headers[0].vkFormat != headers[1].vkFormat || formatDesc[0].model() != formatDesc[1].model())
+        fatal(rc::INVALID_ARGUMENTS, "Comparison requires matching texture formats (BasisLZ is treated as R8G8B8A8_UNORM).");
+
+    // Currently, we only support comparing raw packed elements, but this can be extended
+    // in the future with color value comparison (with or without tolerance), for example
+    CompareFunc compareFunc = compareTexelBlocksPacked;
+
+    const uint32_t maxNumLevels = std::max(textures[0]->numLevels, textures[1]->numLevels);
+    const uint32_t maxNumFaces = std::max(textures[0]->numFaces, textures[1]->numFaces);
+    const uint32_t maxNumLayers = std::max(textures[0]->numLayers, textures[1]->numLayers);
+
+    std::size_t texelBlockDifferences = 0;
+
+    for (uint32_t level = 0; level < maxNumLevels; ++level) {
+        // Calculate base file offset of level from level data
+        const auto levelIndexEntryOffset = sizeof(KTX_header2) + level * sizeof(ktxLevelIndexEntry);
+        std::optional<std::size_t> levelFileOffsets[2];
+        for (std::size_t i = 0; i < streams.size(); ++i)
+            if (fileOffsetsValid[i] && level < textures[i]->numLevels) {
+                ktxLevelIndexEntry entry;
+                read(streams[i], levelIndexEntryOffset, &entry, sizeof(entry), "the level index");
+                levelFileOffsets[i] = entry.byteOffset;
+            }
+
+        const auto imageWidth = std::max(1u, textures[0]->baseWidth >> level);
+        const auto imageHeight = std::max(1u, textures[0]->baseHeight >> level);
+        const auto imageDepth = std::max(1u, textures[0]->baseDepth >> level);
+        const auto texelBlockDims = imageCodecs[0].pixelToTexelBlockSize(glm::uvec4(imageWidth, imageHeight, imageDepth, 1));
+
+        // Size returned by libktx is only for a single layer/face/slice
+        const std::size_t imageSizes[2] = {
+            ktxTexture_GetImageSize(textures[0], level) * texelBlockDims.z,
+            ktxTexture_GetImageSize(textures[1], level) * texelBlockDims.z
+        };
+
+        for (uint32_t layer = 0; layer < maxNumLayers; ++layer) {
+            for (uint32_t face = 0; face < maxNumFaces; ++face) {
+                // Handle when image is missing from one of the files
+                bool missingImage = false;
+                for (std::size_t i = 0; i < streams.size(); ++i)
+                    if (level >= textures[i]->numLevels || face >= textures[i]->numFaces || layer >= textures[i]->numLayers)
+                        missingImage = true;
+
+                if (missingImage) {
+                    diff << DiffImage(fmt::format("Mismatch in level {}, layer {}, face {}", level),
+                        fmt::format("m={},a={},f={}", level, layer, face), 0, 0, {});
+                    continue;
+                }
+
+                // Calculate image file offset
+                std::optional<std::size_t> imageFileOffsets[2];
+                for (std::size_t i = 0; i < streams.size(); ++i)
+                    if (levelFileOffsets[i].has_value())
+                        imageFileOffsets[i] = *levelFileOffsets[i] + (face + layer * textures[i]->numFaces) * imageSizes[i];
+
+                // Get image data pointers and create image spans from them
+                char* imageDataPtr[2];
+                for (std::size_t i = 0; i < streams.size(); ++i) {
+                    ktx_size_t imageOffset;
+                    ktxTexture_GetImageOffset(textures[i], level, layer, face, &imageOffset);
+                    imageDataPtr[i] = reinterpret_cast<char*>(textures[i]->pData) + imageOffset;
+                }
+
+                ImageSpan images[2] = {
+                    ImageSpan(imageWidth, imageHeight, imageDepth, imageDataPtr[0], imageCodecs[0]),
+                    ImageSpan(imageWidth, imageHeight, imageDepth, imageDataPtr[1], imageCodecs[1]),
+                };
+
+                // Loop through texel blocks
+                bool imageMismatch = false;
+                std::vector<std::pair<ImageSpan::TexelBlockPtr<>, ImageSpan::TexelBlockPtr<>>> mismatchingBlocks = {};
+                for (uint32_t blockZ = 0; blockZ < texelBlockDims.z; ++blockZ) {
+                    for (uint32_t blockY = 0; blockY < texelBlockDims.y; ++blockY) {
+                        for (uint32_t blockX = 0; blockX < texelBlockDims.x; ++blockX) {
+                            ImageSpan::TexelBlockPtr<> texelBlocks[2] = {
+                                images[0].at(blockX, blockY, blockZ),
+                                images[1].at(blockX, blockY, blockZ)
+                            };
+                            if (!compareFunc(texelBlocks)) {
+                                imageMismatch = true;
+                                texelBlockDifferences += 1;
+                                if (texelBlockDifferences <= options.perPixelOutputLimit) {
+                                    mismatchingBlocks.push_back(std::make_pair(texelBlocks[0], texelBlocks[1]));
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (imageMismatch) {
+                    diff << DiffImage(fmt::format("Mismatch in level {} layer {} face {} data", level, layer, face),
+                        fmt::format("m={},a={},f={}", level, layer, face), imageFileOffsets[0], imageFileOffsets[1],
+                        mismatchingBlocks);
+                }
+            }
+        }
+    }
 }
 
 } // namespace ktx

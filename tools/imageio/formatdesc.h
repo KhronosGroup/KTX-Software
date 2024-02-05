@@ -206,7 +206,7 @@ struct FormatDescriptor {
             qualifierLinear = (dataType & KHR_DF_SAMPLE_DATATYPE_LINEAR) != 0;
             if (oetf > KHR_DF_TRANSFER_LINEAR
                 && channelType == KHR_DF_CHANNEL_RGBSDA_ALPHA) {
-                channelType |= KHR_DF_SAMPLE_DATATYPE_LINEAR;
+                qualifierLinear = 1;
             }
 
             union {
