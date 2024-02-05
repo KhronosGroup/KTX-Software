@@ -5,6 +5,7 @@
 
 #pragma once
 #include <array>
+#include <algorithm>
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4201)
@@ -122,6 +123,19 @@ inline uint16_t float_to_half(float value) {
 
 // -----------------------------------------------------------------------------
 
+inline int32_t sign_extend(uint32_t value, uint32_t numBits) {
+    assert(numBits <= 32);
+    uint32_t signBitMask = 1u << (numBits - 1);
+    if (value & signBitMask) {
+        uint32_t signExtendedValue = value | ~(signBitMask - 1);
+        int32_t result;
+        std::memcpy(&result, &signExtendedValue, sizeof(result));
+        return result;
+    } else {
+        return static_cast<int32_t>(value);
+    }
+}
+
 template <typename T>
 [[nodiscard]] constexpr inline T extract_bits(const void* data, uint32_t offset, uint32_t numBits) {
     assert(numBits <= sizeof(T) * 8);
@@ -184,10 +198,8 @@ template <typename T>
 }
 [[nodiscard]] inline float convertSNORMToFloat(uint32_t rawBits, uint32_t numBits) {
     assert(numBits > 0 && numBits <= 32);
-    (void) rawBits;
-    (void) numBits;
-    assert(false && "Not yet implemented");
-    return 0;
+    const auto upper = static_cast<float>((1u << (numBits - 1u)) - 1u);
+    return std::max(static_cast<float>(rawBits) / upper, -1.f);
 }
 [[nodiscard]] inline float convertUNORMToFloat(uint32_t rawBits, uint32_t numBits) {
     assert(numBits > 0 && numBits <= 32);

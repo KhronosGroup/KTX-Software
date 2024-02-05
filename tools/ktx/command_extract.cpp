@@ -412,16 +412,16 @@ void CommandExtract::executeExtract() {
         const auto imageHeight = std::max(1u, texture->baseHeight >> levelIndex);
         const auto imageDepth = std::max(1u, texture->baseDepth >> levelIndex);
 
-        for (uint32_t faceIndex = 0; faceIndex < texture->numFaces; ++faceIndex) {
-            if (options.fragmentURI.facial.is_undefined() ?
-                    faceIndex != 0 :
-                    !options.fragmentURI.facial.contains(faceIndex))
+        for (uint32_t layerIndex = 0; layerIndex < texture->numLayers; ++layerIndex) {
+            if (options.fragmentURI.stratal.is_undefined() ?
+                    layerIndex != 0 :
+                    !options.fragmentURI.stratal.contains(layerIndex))
                 continue;
 
-            for (uint32_t layerIndex = 0; layerIndex < texture->numLayers; ++layerIndex) {
-                if (options.fragmentURI.stratal.is_undefined() ?
-                        layerIndex != 0 :
-                        !options.fragmentURI.stratal.contains(layerIndex))
+            for (uint32_t faceIndex = 0; faceIndex < texture->numFaces; ++faceIndex) {
+                if (options.fragmentURI.facial.is_undefined() ?
+                        faceIndex != 0 :
+                        !options.fragmentURI.facial.contains(faceIndex))
                     continue;
 
                 if (imageDepth > 1 && !options.globalAll && !options.depthFlagUsed && options.raw) {

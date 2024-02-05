@@ -16,6 +16,8 @@ set( PLUGIN_HEADERS
 add_library( imageio STATIC
     formatdesc.h
     image.hpp
+    imagecodec.hpp
+    imagespan.hpp
     imageinput.cc
     imageio.cc
     imageio.h
