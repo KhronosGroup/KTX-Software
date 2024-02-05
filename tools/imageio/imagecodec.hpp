@@ -142,6 +142,13 @@ public:
                 codec.decodeFLOAT = decodeFLOAT_D16_S8;
                 break;
 
+            case VK_FORMAT_X8_D24_UNORM_PACK32:
+                flags.isNormalized = true;
+                channels = 1;
+                codec.decodeUINT = decodeUINT_D24;
+                codec.decodeFLOAT = decodeFLOAT_D24;
+                break;
+
             case VK_FORMAT_D24_UNORM_S8_UINT:
                 flags.isNormalized = true;
                 channels = 2;
@@ -158,7 +165,7 @@ public:
                 // For other formats we only support cases where the number formats match across the samples
                 const auto sampleCount = KHR_DFDSAMPLECOUNT(bdfd);
                 const auto firstDataType = KHR_DFDSVAL(bdfd, 0, QUALIFIERS);
-                const auto firstBitLength = KHR_DFDSVAL(bdfd, 0, BITLENGTH);
+                const auto firstBitLength = KHR_DFDSVAL(bdfd, 0, BITLENGTH) + 1;
                 const auto sampleUpper = KHR_DFDSVAL(bdfd, 0, SAMPLEUPPER);
                 flags.isFloat = (firstDataType & KHR_DF_SAMPLE_DATATYPE_FLOAT) != 0;
                 flags.isFloatHalf = flags.isFloat && (firstBitLength == 16);
@@ -175,9 +182,9 @@ public:
                 }
                 for (uint32_t i = 0; i < sampleCount; ++i) {
                     const auto dataType = KHR_DFDSVAL(bdfd, i, QUALIFIERS);
-                    const auto bitLength = KHR_DFDSVAL(bdfd, i, BITLENGTH);
+                    const auto bitLength = KHR_DFDSVAL(bdfd, i, BITLENGTH) + 1;
                     // If not all elements match the packed element byte size then this is a packed format
-                    if (bitLength != firstBitLength || bitLength != packedElementByteSize * sizeof(uint8_t)) {
+                    if (bitLength != firstBitLength || bitLength != packedElementByteSize * 8) {
                         flags.isPacked = true;
                     }
                     // We do not support mixed component types here as all special cases are handled outside
@@ -215,7 +222,7 @@ public:
                     // Data is packed so use the more general decoders
                     for (uint32_t i = 0; i < sampleCount; ++i) {
                         const auto bitOffset = KHR_DFDSVAL(bdfd, i, BITOFFSET);
-                        const auto bitLength = KHR_DFDSVAL(bdfd, i, BITLENGTH);
+                        const auto bitLength = KHR_DFDSVAL(bdfd, i, BITLENGTH) + 1;
 
                         SampleInfo sampleInfo{};
                         sampleInfo.elementIndex = (bitOffset >> 3) / packedElementByteSize;
@@ -520,28 +527,38 @@ private:
 
     static glm::uvec4 decodeUINT_D16_S8(const ImageCodec*, const void* ptr) {
         auto data = reinterpret_cast<const uint16_t*>(ptr);
-        return glm::uvec4(data[0], data[1], 0, 0);
+        return glm::uvec4(data[0], data[1] & 0xFF, 0, 0);
     }
 
     static glm::vec4 decodeFLOAT_D16_S8(const ImageCodec*, const void* ptr) {
         auto data = reinterpret_cast<const uint16_t*>(ptr);
-        return glm::vec4(imageio::convertUNORMToFloat(data[0], 16), static_cast<float>(data[1]), 0.f, 1.f);
+        return glm::vec4(imageio::convertUNORMToFloat(data[0], 16), static_cast<float>(data[1] & 0xFF), 0.f, 1.f);
+    }
+
+    static glm::uvec4 decodeUINT_D24(const ImageCodec*, const void* ptr) {
+        auto data = reinterpret_cast<const uint32_t*>(ptr);
+        return glm::uvec4(data[0] & 0xFFFFFF, 0, 0, 0);
+    }
+
+    static glm::vec4 decodeFLOAT_D24(const ImageCodec*, const void* ptr) {
+        auto data = reinterpret_cast<const uint32_t*>(ptr);
+        return glm::vec4(imageio::convertUNORMToFloat(data[0] & 0xFFFFFF, 24), 0.f, 0.f, 1.f);
     }
 
     static glm::uvec4 decodeUINT_D24_S8(const ImageCodec*, const void* ptr) {
         auto data = reinterpret_cast<const uint32_t*>(ptr);
-        return glm::uvec4(data[0] >> 8, data[0] & 0xFF, 0, 0);
+        return glm::uvec4(data[0] & 0xFFFFFF, data[0] >> 24, 0, 0);
     }
 
     static glm::vec4 decodeFLOAT_D24_S8(const ImageCodec*, const void* ptr) {
         auto data = reinterpret_cast<const uint32_t*>(ptr);
-        return glm::vec4(imageio::convertUNORMToFloat(data[0] >> 8, 24), static_cast<float>(data[0] & 0xFF), 0.f, 1.f);
+        return glm::vec4(imageio::convertUNORMToFloat(data[0] & 0xFFFFFF, 24), static_cast<float>(data[0] >> 24), 0.f, 1.f);
     }
 
     static glm::vec4 decodeFLOAT_D32_S8(const ImageCodec*, const void* ptr) {
         auto data_float = reinterpret_cast<const float*>(ptr);
         auto data_uint = reinterpret_cast<const uint32_t*>(ptr);
-        return glm::vec4(data_float[0], static_cast<float>(data_uint[1]), 0.f, 1.f);
+        return glm::vec4(data_float[0], static_cast<float>(data_uint[1] & 0xFF), 0.f, 1.f);
     }
 
     template <int COMPONENTS>
@@ -617,7 +634,7 @@ private:
         glm::uvec4 result(0, 0, 0, 0);
         for (std::size_t i = 0; i < codec->packedSampleInfo.size(); ++i) {
             const auto& info = codec->packedSampleInfo[i];
-            result[i] = (data[info.elementIndex] >> info.bitOffset) && ((1u << info.bitLength) - 1u);
+            result[i] = (data[info.elementIndex] >> info.bitOffset) & ((1u << info.bitLength) - 1u);
         }
         return result;
     }
@@ -630,7 +647,7 @@ private:
         for (std::size_t i = 0; i < codec->packedSampleInfo.size(); ++i) {
             const auto& info = codec->packedSampleInfo[i];
             const auto upper = static_cast<float>((1u << info.bitLength) - 1u);
-            uint32_t rawValue = (data[info.elementIndex] >> info.bitOffset) && ((1u << info.bitLength) - 1u);
+            uint32_t rawValue = (data[info.elementIndex] >> info.bitOffset) & ((1u << info.bitLength) - 1u);
             result[i] = static_cast<float>(rawValue) / upper;
         }
         return result;
@@ -643,7 +660,7 @@ private:
         glm::ivec4 result(0, 0, 0, 0);
         for (std::size_t i = 0; i < codec->packedSampleInfo.size(); ++i) {
             const auto& info = codec->packedSampleInfo[i];
-            uint32_t rawValue = (data[info.elementIndex] >> info.bitOffset) && ((1u << info.bitLength) - 1u);
+            uint32_t rawValue = (data[info.elementIndex] >> info.bitOffset) & ((1u << info.bitLength) - 1u);
             result[i] = imageio::sign_extend(rawValue, info.bitLength);
         }
         return result;
@@ -657,7 +674,7 @@ private:
         for (std::size_t i = 0; i < codec->packedSampleInfo.size(); ++i) {
             const auto& info = codec->packedSampleInfo[i];
             const auto upper = static_cast<float>((1u << (info.bitLength - 1)) - 1u);
-            uint32_t rawValue = (data[info.elementIndex] >> info.bitOffset) && ((1u << info.bitLength) - 1u);
+            uint32_t rawValue = (data[info.elementIndex] >> info.bitOffset) & ((1u << info.bitLength) - 1u);
             result[i] = static_cast<float>(imageio::sign_extend(rawValue, info.bitLength)) / upper;
         }
         return result;

@@ -670,31 +670,31 @@ public:
 
         auto formatChannels = [=](const ImageSpan::TexelBlockPtr<>& texelBlock, bool quoteSpecial) {
             // If decodable channels are not available (e.g. block compressed), then this should not be called
-            assert(!texelBlock.getChannelCount() != 0);
+            assert(texelBlock.getChannelCount() != 0);
             const auto quote = quoteSpecial ? "\"" : "";
             std::stringstream formattedValue;
             bool first = true;
             // Prefer to decode to integer (e.g. UNORM will be output as list of integer values instead of float values)
             if (texelBlock.canDecodeUINT()) {
                 // Unsigned integer channels
-                const glm::uvec4 color = texelBlock.decodeUINT();
+                const glm::uvec4 channels = texelBlock.decodeUINT();
                 for (uint32_t channelIdx = 0; channelIdx < texelBlock.getChannelCount(); ++channelIdx) {
                     const auto comma = std::exchange(first, false) ? "" : fmt::format(",{}", space);
-                    fmt::print(formattedValue, "{}{}", comma, color[channelIdx]);
+                    fmt::print(formattedValue, "{}{}", comma, channels[channelIdx]);
                 }
             } else if (texelBlock.canDecodeSINT()) {
                 // Signed integer channels
-                const glm::ivec4 color = texelBlock.decodeSINT();
+                const glm::ivec4 channels = texelBlock.decodeSINT();
                 for (uint32_t channelIdx = 0; channelIdx < texelBlock.getChannelCount(); ++channelIdx) {
                     const auto comma = std::exchange(first, false) ? "" : fmt::format(",{}", space);
-                    fmt::print(formattedValue, "{}{}", comma, color[channelIdx]);
+                    fmt::print(formattedValue, "{}{}", comma, channels[channelIdx]);
                 }
             } else if (texelBlock.canDecodeFLOAT()) {
                 // Floating point channels
-                const glm::vec4 color = texelBlock.decodeFLOAT();
+                const glm::vec4 channels = texelBlock.decodeFLOAT();
                 for (uint32_t channelIdx = 0; channelIdx < texelBlock.getChannelCount(); ++channelIdx) {
                     const auto comma = std::exchange(first, false) ? "" : fmt::format(",{}", space);
-                    float channel = color[channelIdx];
+                    float channel = channels[channelIdx];
                     const auto sign = std::signbit(channel) ? "-" : "+";
                     if (std::isinf(channel)) {
                         // Output signed infinity (optionally quoted)
@@ -716,6 +716,7 @@ public:
         };
 
         if (outputFormat == OutputFormat::text) {
+            printContext();
             printIndent(0, "+{}\n", diff.textHeader);
             for (const auto& texelBlockPair : diff.texelBlockPairList) {
                 const auto pixelCoords = texelBlockPair.first.getPixelLocation();
@@ -768,7 +769,7 @@ public:
                 printIndent(4, "\"imageByteOffset\":{}[{}{},{}{}{}],{}", space, space,
                     imageByteOffset, space, imageByteOffset, space, nl);
 
-                printIndent(4, "\"fileByteOffset\":{}[{}{},{}{}],{}", space, space,
+                printIndent(4, "\"fileByteOffset\":{}[{}{},{}{}{}],{}", space, space,
                     formatOptionalFileOffset(diff.fileOffsets[0], imageByteOffset, "null"), space,
                     formatOptionalFileOffset(diff.fileOffsets[1], imageByteOffset, "null"), space, nl);
 
@@ -789,9 +790,12 @@ public:
                 printIndent(0, "{}", nl);
                 printIndent(3, "}}");
             }
-            if (!diff.texelBlockPairList.empty())
+            if (diff.texelBlockPairList.empty()) {
+                printIndent(0, "]");
+            } else {
                 printIndent(0, "{}", nl);
-            printIndent(2, "]");
+                printIndent(2, "]");
+            }
         }
     }
 };
@@ -2382,7 +2386,7 @@ void CommandCompare::compareImagesPerPixel(PrintDiff& diff, InputStreams& stream
                         missingImage = true;
 
                 if (missingImage) {
-                    diff << DiffImage(fmt::format("Mismatch in level {}, layer {}, face {}", level),
+                    diff << DiffImage(fmt::format("Mismatch in level {}, layer {}, face {}", level, layer, face),
                         fmt::format("m={},a={},f={}", level, layer, face), 0, 0, {});
                     continue;
                 }
@@ -2428,7 +2432,7 @@ void CommandCompare::compareImagesPerPixel(PrintDiff& diff, InputStreams& stream
                 }
 
                 if (imageMismatch) {
-                    diff << DiffImage(fmt::format("Mismatch in level {} layer {} face {} data", level, layer, face),
+                    diff << DiffImage(fmt::format("Mismatch in level {} layer {} face {}", level, layer, face),
                         fmt::format("m={},a={},f={}", level, layer, face), imageFileOffsets[0], imageFileOffsets[1],
                         mismatchingBlocks);
                 }
