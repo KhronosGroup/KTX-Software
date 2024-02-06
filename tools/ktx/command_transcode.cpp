@@ -173,6 +173,7 @@ void CommandTranscode::executeTranscode() {
 
     // Add KTXwriterScParams metadata if supercompression was used
     const auto writerScParams = options.compressOptions;
+    ktxHashList_DeleteKVPair(&texture->kvDataHead, KTX_WRITER_SCPARAMS_KEY);
     if (writerScParams.size() > 0) {
         // Options always contain a leading space
         assert(writerScParams[0] == ' ');
