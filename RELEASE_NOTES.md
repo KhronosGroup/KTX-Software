@@ -2,8 +2,8 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 Release Notes
 =============
-## Version 4.3.0
-### New Features in Version 4.3.0
+## Version 4.3.1
+### New Features in Version 4.3
 #### Command Line Tools Suite
 
 v4.3.0 contains a new suite of command line tools accessed via an umbrella `ktx` command.
@@ -48,7 +48,7 @@ Please refer to the manual pages or use the `--help` command-line option for fur
 Thanks to @aqnuep and @VaderY of [RasterGrid](https://www.rastergrid.com/) for their excellent work on the new tool suite.
 
 #### Python Binding
-A Python binding for `libktx` has been added. Applications written in Python can now use `libktx` functions. The package can be installed via `pip install pyktx==4.3.0`. Huge thanks to @ShukantPal.
+A Python binding for `libktx` has been added. Applications written in Python can now use `libktx` functions. The package can be installed via `pip install pyktx[==4.3.0]`. Huge thanks to @ShukantPal.
 
 ### Changes
 
@@ -70,6 +70,23 @@ with multi-byte code-points. Previously such names did not work on Windows.
 * UASTC RDO results differ from run to run unless multi-threading or RDO multi-threading is disabled. In `toktx` use `--threads 1` for the former or `--uastc_rdo_m` for the latter. As with the preceeding issue results are valid but level sizes will differ slightly. See [issue #151](https://github.com/BinomialLLC/basis_universal/issues/151) in the basis_universal repository.
 
 * Neither the Vulkan nor GL loaders support depth/stencil textures.
+
+
+### Changes since v4.3.0 (by part)
+
+
+### Tools
+
+* Fix lingering KTXwriterScParams metadata from encode/transcode inputs (#852) (d3010bdc8) (@aqnuep)
+
+
+
+
+
+
+
+
+## Version 4.3.0
 
 
 ### Changes since v4.3.0-beta1 (by part)
