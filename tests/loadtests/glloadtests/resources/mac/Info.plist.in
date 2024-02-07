@@ -1,43 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Copyright 2015-2024 Mark Callow
+    SPDX-License-Identifier: Apache-2.0
+
+    WARNING: Do not attempt to edit the Info.plist you see in the Xcode
+    project. It is unavoidably configured from this by CMake. Edit here.
+-->
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <key>CFBundleName</key>
+    <string>${MACOSX_BUNDLE_BUNDLE_NAME}</string>
+    <key>CFBundleDisplayName</key>
+    <string>${MACOSX_BUNDLE_BUNDLE_NAME}</string>
     <key>CFBundleGetInfoString</key>
-    <string>View KTX textures displayed via Vulkan.</string>
+    <string>${MACOSX_BUNDLE_INFO_STRING}</string>
+    <key>NSHumanReadableCopyright</key>
+    <string>${MACOSX_BUNDLE_COPYRIGHT}</string>
     <key>CFBundleDevelopmentRegion</key>
     <string>en</string>
-    <key>CFBundleDisplayName</key>
-    <string>vkloadtests</string>
     <key>CFBundleExecutable</key>
-    <string>vkloadtests</string>
+    <string>${MACOSX_BUNDLE_EXECUTABLE_NAME}</string>
     <key>CFBundleIconFile</key>
-    <string>ktx_app.icns</string>
+    <string>${MACOSX_BUNDLE_ICON_FILE}</string>
     <key>CFBundleIdentifier</key>
-    <string>org.khronos.ktx.vkloadtests</string>
+    <string>${MACOSX_BUNDLE_GUI_IDENTIFIER}</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
-    <key>CFBundleName</key>
-    <string>vkloadtests</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
+    <key>CFBundleVersion</key>
+    <string>${MACOSX_BUNDLE_BUNDLE_VERSION}</string>
+    <key>CFBundleShortVersionString</key>
+    <string>${MACOSX_BUNDLE_SHORT_VERSION_STRING}</string>
     <key>CFBundleSignature</key>
     <string>????</string>
-    <key>CFBundleVersion</key>
-    <string>1.0</string>
-    <key>CFBundleShortVersionString</key>
-    <string></string>
     <key>CFBundleDocumentTypes</key>
     <array>
         <dict>
             <key>LSIsAppleDefaultForType</key>
-            <!-- A previously installed "Default" handler wins over this
-                 unless this is set to true. Leave it false and let user
-                 choose. -->
             <false/>
             <key>LSHandlerRank</key>
-            <string>Default</string>
+            <string>Secondary</string>
             <key>CFBundleTypeIconFile</key>
-            <string>ktx_document.icns</string>
+            <string>${KTX_DOC_ICON}</string>
             <key>LSItemContentTypes</key>
             <array>
                 <string>public.ktx2</string>
