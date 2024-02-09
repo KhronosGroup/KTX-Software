@@ -41,15 +41,15 @@ getDFDComponentInfoUnpacked(const uint32_t* DFD, uint32_t* numComponents,
 {
     const uint32_t *BDFDB = DFD+1;
     uint32_t numSamples = KHR_DFDSAMPLECOUNT(BDFDB);
-    uint32_t sampleCounter;
+    uint32_t sampleNumber;
     uint32_t currentChannel = ~0U; /* Don't start matched. */
 
     /* This is specifically for unpacked formats which means the size of */
     /* each component is the same. */
     *numComponents = 0;
-    for (sampleCounter = 0; sampleCounter < numSamples; ++sampleCounter) {
-        uint32_t sampleByteLength = (KHR_DFDSVAL(BDFDB, sampleCounter, BITLENGTH) + 1) >> 3U;
-        uint32_t sampleChannel = KHR_DFDSVAL(BDFDB, sampleCounter, CHANNELID);
+    for (sampleNumber = 0; sampleNumber < numSamples; ++sampleNumber) {
+        uint32_t sampleByteLength = (KHR_DFDSVAL(BDFDB, sampleNumber, BITLENGTH) + 1) >> 3U;
+        uint32_t sampleChannel = KHR_DFDSVAL(BDFDB, sampleNumber, CHANNELID);
 
         if (sampleChannel == currentChannel) {
             /* Continuation of the same channel. */
@@ -85,10 +85,10 @@ uint32_t getDFDNumComponents(const uint32_t* DFD)
     uint32_t currentChannel = ~0U; /* Don't start matched. */
     uint32_t numComponents = 0;
     uint32_t numSamples = KHR_DFDSAMPLECOUNT(BDFDB);
-    uint32_t sampleCounter;
+    uint32_t sampleNumber;
 
-    for (sampleCounter = 0; sampleCounter < numSamples; ++sampleCounter) {
-        uint32_t sampleChannel = KHR_DFDSVAL(BDFDB, sampleCounter, CHANNELID);
+    for (sampleNumber = 0; sampleNumber < numSamples; ++sampleNumber) {
+        uint32_t sampleChannel = KHR_DFDSVAL(BDFDB, sampleNumber, CHANNELID);
         if (sampleChannel != currentChannel) {
             numComponents++;
             currentChannel = sampleChannel;
@@ -118,29 +118,24 @@ recreateBytesPlane0FromSampleInfo(const uint32_t* DFD, uint32_t* bytesPlane0)
 {
     const uint32_t *BDFDB = DFD+1;
     uint32_t numSamples = KHR_DFDSAMPLECOUNT(BDFDB);
-    uint32_t sampleCounter;
+    uint32_t sampleNumber;
 
     uint32_t bitsPlane0 = 0;
-    uint32_t* bitOffsets = malloc(sizeof(uint32_t) * numSamples);
-    memset(bitOffsets, -1, sizeof(uint32_t) * numSamples);
-    for (sampleCounter = 0; sampleCounter < numSamples; ++sampleCounter) {
-        uint32_t sampleBitOffset = KHR_DFDSVAL(BDFDB, sampleCounter, BITOFFSET);
-        /* The sample bitLength field stores the bit length - 1. */
-        uint32_t sampleBitLength = KHR_DFDSVAL(BDFDB, sampleCounter, BITLENGTH) + 1;
-        uint32_t i;
-        for (i = 0; i < numSamples; i++) {
-            if (sampleBitOffset == bitOffsets[i]) {
-                // This sample is being repeated as in e.g. RGB9E5.
-                break;
-            }
-        }
-        if (i == numSamples) {
-            // Previously unseen bitOffset. Bump size.
-            bitsPlane0 += sampleBitLength;
-            bitOffsets[sampleCounter] = sampleBitOffset;
-        }
+    uint32_t largestOffset = 0;
+    uint32_t sampleNumberWithLargestOffset = 0;
+
+    for (sampleNumber = 0; sampleNumber < numSamples; ++sampleNumber) {
+        uint32_t sampleBitOffset = KHR_DFDSVAL(BDFDB, sampleNumber, BITOFFSET);
+        if (sampleBitOffset > largestOffset)
+            largestOffset = sampleBitOffset;
+            sampleNumberWithLargestOffset = sampleNumber;
     }
-    free(bitOffsets);
+
+    /* The sample bitLength field stores the bit length - 1. */
+    uint32_t sampleBitLength = KHR_DFDSVAL(BDFDB, sampleNumberWithLargestOffset, BITLENGTH) + 1;
+    bitsPlane0 = largestOffset + sampleBitLength;
+    // Round to next multiple of 8
+    bitsPlane0 = (bitsPlane0 + 7) & ~7;
     *bytesPlane0 = bitsPlane0 >> 3U;
 }
 
