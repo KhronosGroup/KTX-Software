@@ -19,49 +19,6 @@
 #include <KHR/khr_df.h>
 #include "dfd.h"
 
-#if !defined(BITFIELD_ORDER_FROM_MSB)
-// Most compilers, including all those tested so far, including clang, gcc
-// and msvc, order bitfields from the lsb so these struct declarations work.
-// Could this be because I've only tested on little-endian machines?
-// These allow the debugger to print the DFD contents in a human meaningful
-// way making debugging much easier.
-struct sampleType {
-    uint32_t bitOffset: 16;
-    uint32_t bitLength: 8;
-    uint32_t channelType: 8; // Includes qualifiers
-    uint32_t samplePosition0: 8;
-    uint32_t samplePosition1: 8;
-    uint32_t samplePosition2: 8;
-    uint32_t samplePosition3: 8;
-    uint32_t lower;
-    uint32_t upper;
-};
-
-struct BDFD {
-    uint32_t vendorId: 17;
-    uint32_t descriptorType: 15;
-    uint32_t versionNumber: 16;
-    uint32_t descriptorBlockSize: 16;
-    uint32_t model: 8;
-    uint32_t primaries: 8;
-    uint32_t transfer: 8;
-    uint32_t flags: 8;
-    uint32_t texelBlockDimension0: 8;
-    uint32_t texelBlockDimension1: 8;
-    uint32_t texelBlockDimension2: 8;
-    uint32_t texelBlockDimension3: 8;
-    uint32_t bytesPlane0: 8;
-    uint32_t bytesPlane1: 8;
-    uint32_t bytesPlane2: 8;
-    uint32_t bytesPlane3: 8;
-    uint32_t bytesPlane4: 8;
-    uint32_t bytesPlane5: 8;
-    uint32_t bytesPlane6: 8;
-    uint32_t bytesPlane7: 8;
-    struct sampleType samples[6];
-};
-#endif
-
 /**
  * @~English
  * @brief Get the number and size of the image components from a DFD.
