@@ -69,6 +69,7 @@ public:
         // Unfortunately, this is not the case for nPACKxx formats where n is the number of packed elements
         // and no information is available in the KTX 2.0 file, including the DFD, to infer this so we
         // try to handle all known cases here instead
+        // TODO: This should be fixed in the near future
         switch (vkFormat) {
         case VK_FORMAT_R10X6G10X6_UNORM_2PACK16: [[fallthrough]];
         case VK_FORMAT_R12X4G12X4_UNORM_2PACK16: [[fallthrough]];
@@ -425,9 +426,15 @@ public:
         case KHR_DF_MODEL_ETC2: [[fallthrough]];
         case KHR_DF_MODEL_ASTC: [[fallthrough]];
         case KHR_DF_MODEL_PVRTC: [[fallthrough]];
-        case KHR_DF_MODEL_PVRTC2: [[fallthrough]];
-        case KHR_DF_MODEL_UASTC:
+        case KHR_DF_MODEL_PVRTC2:
             // These color models are handled is raw compressed blocks
+            flags.isBlockCompressed = true;
+            break;
+
+        case KHR_DF_MODEL_UASTC:
+            // UASTC needs special handling
+            packedElementByteSize = 1;
+            packedElementCount = 16;
             flags.isBlockCompressed = true;
             break;
 
@@ -442,6 +449,12 @@ public:
         }
 
         texelBlockByteSize = packedElementByteSize * packedElementCount;
+
+        // If we couldn't determine the texel block size then something went wrong.
+        if (texelBlockByteSize == 0) {
+            flags.valid = false;
+            return;
+        }
     }
 
     operator bool() const { return flags.valid; }
@@ -509,7 +522,7 @@ private:
 
     template <typename TYPE>
     static uint32_t getPackedElement(const ImageCodec* codec, const void* ptr, uint32_t index) {
-        assert(std::is_unsigned_v<TYPE>);
+        static_assert(std::is_unsigned_v<TYPE>);
         assert(sizeof(TYPE) == codec->getPackedElementByteSize());
         auto data = reinterpret_cast<const TYPE*>(ptr);
         return data[index];
@@ -563,7 +576,7 @@ private:
 
     template <int COMPONENTS>
     static glm::vec4 decodeFLOAT_FP32Vec(const ImageCodec*, const void* ptr) {
-        assert((COMPONENTS > 0) && (COMPONENTS <= 4));
+        static_assert((COMPONENTS > 0) && (COMPONENTS <= 4));
         auto data = reinterpret_cast<const float*>(ptr);
         glm::vec4 result(0.f, 0.f, 0.f, 1.f);
         for (int i = 0; i < COMPONENTS; ++i)
@@ -573,7 +586,7 @@ private:
 
     template <int COMPONENTS>
     static glm::vec4 decodeFLOAT_FP16Vec(const ImageCodec*, const void* ptr) {
-        assert((COMPONENTS > 0) && (COMPONENTS <= 4));
+        static_assert((COMPONENTS > 0) && (COMPONENTS <= 4));
         auto data = reinterpret_cast<const uint16_t*>(ptr);
         glm::vec4 result(0.f, 0.f, 0.f, 1.f);
         for (int i = 0; i < COMPONENTS; ++i)
@@ -583,8 +596,8 @@ private:
 
     template <typename TYPE, int COMPONENTS>
     static glm::uvec4 decodeUINT_UINTVec(const ImageCodec*, const void* ptr) {
-        assert(std::is_unsigned_v<TYPE>);
-        assert((COMPONENTS > 0) && (COMPONENTS <= 4));
+        static_assert(std::is_unsigned_v<TYPE>);
+        static_assert((COMPONENTS > 0) && (COMPONENTS <= 4));
         auto data = reinterpret_cast<const TYPE*>(ptr);
         glm::uvec4 result(0, 0, 0, 0);
         for (int i = 0; i < COMPONENTS; ++i)
@@ -594,8 +607,8 @@ private:
 
     template <typename TYPE, int COMPONENTS>
     static glm::vec4 decodeFLOAT_UINTVec(const ImageCodec*, const void* ptr) {
-        assert(std::is_unsigned_v<TYPE>);
-        assert((COMPONENTS > 0) && (COMPONENTS <= 4));
+        static_assert(std::is_unsigned_v<TYPE>);
+        static_assert((COMPONENTS > 0) && (COMPONENTS <= 4));
         auto data = reinterpret_cast<const TYPE*>(ptr);
         const auto upper = static_cast<float>((256u << sizeof(TYPE)) - 1u);
         glm::vec4 result(0.f, 0.f, 0.f, 1.f);
@@ -606,8 +619,8 @@ private:
 
     template <typename TYPE, int COMPONENTS>
     static glm::ivec4 decodeSINT_SINTVec(const ImageCodec*, const void* ptr) {
-        assert(std::is_signed_v<TYPE>);
-        assert((COMPONENTS > 0) && (COMPONENTS <= 4));
+        static_assert(std::is_signed_v<TYPE>);
+        static_assert((COMPONENTS > 0) && (COMPONENTS <= 4));
         auto data = reinterpret_cast<const TYPE*>(ptr);
         glm::ivec4 result(0, 0, 0, 0);
         for (int i = 0; i < COMPONENTS; ++i)
@@ -617,8 +630,8 @@ private:
 
     template <typename TYPE, int COMPONENTS>
     static glm::vec4 decodeFLOAT_SINTVec(const ImageCodec*, const void* ptr) {
-        assert(std::is_signed_v<TYPE>);
-        assert((COMPONENTS > 0) && (COMPONENTS <= 4));
+        static_assert(std::is_signed_v<TYPE>);
+        static_assert((COMPONENTS > 0) && (COMPONENTS <= 4));
         auto data = reinterpret_cast<const TYPE*>(ptr);
         const auto upper = static_cast<float>((128u << sizeof(TYPE)) - 1u);
         glm::vec4 result(0.f, 0.f, 0.f, 1.f);
@@ -629,7 +642,7 @@ private:
 
     template <typename TYPE>
     static glm::uvec4 decodeUINT_UINTPacked(const ImageCodec* codec, const void* ptr) {
-        assert(std::is_unsigned_v<TYPE>);
+        static_assert(std::is_unsigned_v<TYPE>);
         auto data = reinterpret_cast<const TYPE*>(ptr);
         glm::uvec4 result(0, 0, 0, 0);
         for (std::size_t i = 0; i < codec->packedSampleInfo.size(); ++i) {
@@ -641,7 +654,7 @@ private:
 
     template <typename TYPE>
     static glm::vec4 decodeFLOAT_UINTPacked(const ImageCodec* codec, const void* ptr) {
-        assert(std::is_unsigned_v<TYPE>);
+        static_assert(std::is_unsigned_v<TYPE>);
         auto data = reinterpret_cast<const TYPE*>(ptr);
         glm::vec4 result(0.f, 0.f, 0.f, 1.f);
         for (std::size_t i = 0; i < codec->packedSampleInfo.size(); ++i) {
@@ -655,7 +668,7 @@ private:
 
     template <typename TYPE>
     static glm::ivec4 decodeSINT_SINTPacked(const ImageCodec* codec, const void* ptr) {
-        assert(std::is_signed_v<TYPE>);
+        static_assert(std::is_signed_v<TYPE>);
         auto data = reinterpret_cast<const std::make_unsigned_t<TYPE>*>(ptr);
         glm::ivec4 result(0, 0, 0, 0);
         for (std::size_t i = 0; i < codec->packedSampleInfo.size(); ++i) {
@@ -668,7 +681,7 @@ private:
 
     template <typename TYPE>
     static glm::vec4 decodeFLOAT_SINTPacked(const ImageCodec* codec, const void* ptr) {
-        assert(std::is_signed_v<TYPE>);
+        static_assert(std::is_signed_v<TYPE>);
         auto data = reinterpret_cast<const std::make_unsigned_t<TYPE>*>(ptr);
         glm::vec4 result(0.f, 0.f, 0.f, 1.f);
         for (std::size_t i = 0; i < codec->packedSampleInfo.size(); ++i) {
