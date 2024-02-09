@@ -936,9 +936,6 @@ protected:
     };
 };
 
-void recreateBytesPlane0FromSampleInfo(const uint32_t* DFD,
-                                       uint32_t* bytesPlane0);
-
 TEST_F(ReconstructBytesPlane0Test, reconstructBytesPlane0) {
 
     for (uint32_t i = 0; i < sizeof(formats) / sizeof(VkFormat); i++) {
