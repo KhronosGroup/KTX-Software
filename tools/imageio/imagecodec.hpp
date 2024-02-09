@@ -469,7 +469,7 @@ public:
     constexpr bool canDecodeSINT() const { return codec.decodeSINT != nullptr; }
     constexpr bool canDecodeFLOAT() const { return codec.decodeFLOAT != nullptr; }
 
-    constexpr glm::uvec4 getTexelBlockDimensions() const { return texelBlockDimensions; }
+    glm::uvec4 getTexelBlockDimensions() const { return texelBlockDimensions; }
     constexpr uint32_t getPackedElementByteSize() const { return packedElementByteSize; }
     constexpr uint32_t getPackedElementCount() const { return packedElementCount; }
     constexpr uint32_t getTexelBlockByteSize() const { return texelBlockByteSize; }
