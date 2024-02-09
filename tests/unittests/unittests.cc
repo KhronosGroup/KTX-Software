@@ -806,8 +806,12 @@ protected:
         VK_FORMAT_B10G11R11_UFLOAT_PACK32,
         VK_FORMAT_E5B9G9R9_UFLOAT_PACK32,
         VK_FORMAT_D16_UNORM,
+        VK_FORMAT_X8_D24_UNORM_PACK32,
         VK_FORMAT_D32_SFLOAT,
         VK_FORMAT_S8_UINT,
+        VK_FORMAT_D16_UNORM_S8_UINT,
+        VK_FORMAT_D24_UNORM_S8_UINT,
+        VK_FORMAT_D32_SFLOAT_S8_UINT,
         VK_FORMAT_BC1_RGB_UNORM_BLOCK,
         VK_FORMAT_BC1_RGB_SRGB_BLOCK,
         VK_FORMAT_BC1_RGBA_UNORM_BLOCK,
@@ -949,7 +953,6 @@ TEST_F(ReconstructBytesPlane0Test, reconstructBytesPlane0) {
         KHR_DFDSETVAL(bdfd, BYTESPLANE0, 0);
         uint32_t reconstructedBytesPlane0;
         recreateBytesPlane0FromSampleInfo(dfd, &reconstructedBytesPlane0);
-        assert(origBytesPlane0 == reconstructedBytesPlane0);
         EXPECT_EQ(origBytesPlane0, reconstructedBytesPlane0);
         free(dfd);
     }

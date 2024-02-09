@@ -19,6 +19,49 @@
 #include <KHR/khr_df.h>
 #include "dfd.h"
 
+#if !defined(BITFIELD_ORDER_FROM_MSB)
+// Most compilers, including all those tested so far, including clang, gcc
+// and msvc, order bitfields from the lsb so these struct declarations work.
+// Could this be because I've only tested on little-endian machines?
+// These allow the debugger to print the DFD contents in a human meaningful
+// way making debugging much easier.
+struct sampleType {
+    uint32_t bitOffset: 16;
+    uint32_t bitLength: 8;
+    uint32_t channelType: 8; // Includes qualifiers
+    uint32_t samplePosition0: 8;
+    uint32_t samplePosition1: 8;
+    uint32_t samplePosition2: 8;
+    uint32_t samplePosition3: 8;
+    uint32_t lower;
+    uint32_t upper;
+};
+
+struct BDFD {
+    uint32_t vendorId: 17;
+    uint32_t descriptorType: 15;
+    uint32_t versionNumber: 16;
+    uint32_t descriptorBlockSize: 16;
+    uint32_t model: 8;
+    uint32_t primaries: 8;
+    uint32_t transfer: 8;
+    uint32_t flags: 8;
+    uint32_t texelBlockDimension0: 8;
+    uint32_t texelBlockDimension1: 8;
+    uint32_t texelBlockDimension2: 8;
+    uint32_t texelBlockDimension3: 8;
+    uint32_t bytesPlane0: 8;
+    uint32_t bytesPlane1: 8;
+    uint32_t bytesPlane2: 8;
+    uint32_t bytesPlane3: 8;
+    uint32_t bytesPlane4: 8;
+    uint32_t bytesPlane5: 8;
+    uint32_t bytesPlane6: 8;
+    uint32_t bytesPlane7: 8;
+    struct sampleType samples[6];
+};
+#endif
+
 /**
  * @~English
  * @brief Get the number and size of the image components from a DFD.
@@ -124,9 +167,33 @@ recreateBytesPlane0FromSampleInfo(const uint32_t* DFD, uint32_t* bytesPlane0)
     uint32_t largestOffset = 0;
     uint32_t sampleNumberWithLargestOffset = 0;
 
+    // Special case these depth{,-stencil} formats. The unused bits are
+    // in the MSBs so have no visibility in the DFD therefore the max offset
+    // algorithm below returns a value that is too small.
+    if (KHR_DFDSVAL(BDFDB, 0, CHANNELID) == KHR_DF_CHANNEL_COMMON_DEPTH) {
+        if (numSamples == 1) {
+            if (KHR_DFDSVAL(BDFDB, 0, BITLENGTH) + 1 == 24) {
+                // X8_D24_UNORM_PACK32,
+                *bytesPlane0 = 4;
+                return;
+            }
+        } else if (numSamples == 2) {
+            if (KHR_DFDSVAL(BDFDB, 0, BITLENGTH) + 1 == 16) {
+                // D16_UNORM_S8_UINT
+                *bytesPlane0 = 4;
+                return;
+            }
+            if (KHR_DFDSVAL(BDFDB, 0, BITLENGTH) + 1 == 32
+                && KHR_DFDSVAL(BDFDB, 1, CHANNELID) == KHR_DF_CHANNEL_COMMON_STENCIL) {
+                // D32_SFLOAT_S8_UINT
+                *bytesPlane0 = 8;
+                return;
+            }
+        }
+    }
     for (sampleNumber = 0; sampleNumber < numSamples; ++sampleNumber) {
         uint32_t sampleBitOffset = KHR_DFDSVAL(BDFDB, sampleNumber, BITOFFSET);
-        if (sampleBitOffset > largestOffset) {
+        if (sampleBitOffset >= largestOffset) {
             largestOffset = sampleBitOffset;
             sampleNumberWithLargestOffset = sampleNumber;
         }
