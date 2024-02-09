@@ -126,9 +126,10 @@ recreateBytesPlane0FromSampleInfo(const uint32_t* DFD, uint32_t* bytesPlane0)
 
     for (sampleNumber = 0; sampleNumber < numSamples; ++sampleNumber) {
         uint32_t sampleBitOffset = KHR_DFDSVAL(BDFDB, sampleNumber, BITOFFSET);
-        if (sampleBitOffset > largestOffset)
+        if (sampleBitOffset > largestOffset) {
             largestOffset = sampleBitOffset;
             sampleNumberWithLargestOffset = sampleNumber;
+        }
     }
 
     /* The sample bitLength field stores the bit length - 1. */
