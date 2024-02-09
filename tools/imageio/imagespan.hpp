@@ -43,7 +43,7 @@ public:
         constexpr bool canDecodeSINT() const { return span.imageCodec().canDecodeSINT(); }
         constexpr bool canDecodeFLOAT() const { return span.imageCodec().canDecodeFLOAT(); }
 
-        constexpr glm::uvec4 getTexelBlockDimensions() const { return span.imageCodec().getTexelBlockDimensions(); }
+        glm::uvec4 getTexelBlockDimensions() const { return span.imageCodec().getTexelBlockDimensions(); }
         constexpr uint32_t getPackedElementByteSize() const { return span.imageCodec().getPackedElementByteSize(); }
         constexpr uint32_t getPackedElementCount() const { return span.imageCodec().getPackedElementCount(); }
         constexpr uint32_t getTexelBlockByteSize() const { return span.imageCodec().getTexelBlockByteSize(); }
