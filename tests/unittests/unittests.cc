@@ -930,16 +930,20 @@ protected:
         VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT,
         VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT,
         VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT,
-//  No DFD is created       VK_FORMAT_R16G16_S10_5_NV,
+// vk2dfd does not return a DFD. VK_FORMAT_R16G16_S10_5_NV,
         VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR,
         VK_FORMAT_A8_UNORM_KHR
     };
 };
 
+extern "C" const char* vkFormatString(VkFormat format);
+
 TEST_F(ReconstructBytesPlane0Test, reconstructBytesPlane0) {
 
     for (uint32_t i = 0; i < sizeof(formats) / sizeof(VkFormat); i++) {
         uint32_t* dfd = vk2dfd(formats[i]);
+        ASSERT_TRUE(dfd != NULL) << "vk2dfd failed to produce DFD for "
+                                 << vkFormatString(formats[i]);
         uint32_t* bdfd = dfd + 1;
         uint32_t origBytesPlane0 = KHR_DFDVAL(bdfd, BYTESPLANE0);
         KHR_DFDSETVAL(bdfd, BYTESPLANE0, 0);
