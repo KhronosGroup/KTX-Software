@@ -121,7 +121,7 @@ recreateBytesPlane0FromSampleInfo(const uint32_t* DFD, uint32_t* bytesPlane0)
     uint32_t sampleNumber;
 
     uint32_t bitsPlane0 = 0;
-    uint32_t largestOffset = 0;
+    int32_t largestOffset = 0;
     uint32_t sampleNumberWithLargestOffset = 0;
 
     // Special case these depth{,-stencil} formats. The unused bits are
@@ -149,8 +149,8 @@ recreateBytesPlane0FromSampleInfo(const uint32_t* DFD, uint32_t* bytesPlane0)
         }
     }
     for (sampleNumber = 0; sampleNumber < numSamples; ++sampleNumber) {
-        uint32_t sampleBitOffset = KHR_DFDSVAL(BDFDB, sampleNumber, BITOFFSET);
-        if (sampleBitOffset >= largestOffset) {
+        int32_t sampleBitOffset = KHR_DFDSVAL(BDFDB, sampleNumber, BITOFFSET);
+        if (sampleBitOffset > largestOffset) {
             largestOffset = sampleBitOffset;
             sampleNumberWithLargestOffset = sampleNumber;
         }
