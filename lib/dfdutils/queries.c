@@ -97,24 +97,22 @@ uint32_t getDFDNumComponents(const uint32_t* DFD)
     return numComponents;
 }
 
+
 /**
  * @~English
- * @brief Recreate the value of bytesPlane0 from sample info.
+ * @brief Reconstruct the value of bytesPlane0 from sample info.
  *
- * This can be use to recreate the value of bytesPlane0 for data that
- * has been variable-rate compressed so has bytesPlane0 = 0.  For DFDs
- * that are valid for KTX files. Little-endian data only and no multi-plane
- * formats.
+ * Reconstruct the value for data that has been variable-rate compressed so
+ * has bytesPlane0 = 0.  For DFDs that are valid for KTX files. Little-endian
+ * data only and no multi-plane formats.
  *
  * @param DFD Pointer to a Data Format Descriptor for which,
  *            described as 32-bit words in native endianness.
  *            Note that this is the whole descriptor, not just
  *            the basic descriptor block.
- * @param bytesPlane0  pointer to a 32-bit word in which the recreated
- *                    value of bytesPlane0 will be written.
  */
-void
-recreateBytesPlane0FromSampleInfo(const uint32_t* DFD, uint32_t* bytesPlane0)
+uint32_t
+reconstructDFDBytesPlane0FromSamples(const uint32_t* DFD)
 {
     const uint32_t *BDFDB = DFD+1;
     uint32_t numSamples = KHR_DFDSAMPLECOUNT(BDFDB);
@@ -131,20 +129,17 @@ recreateBytesPlane0FromSampleInfo(const uint32_t* DFD, uint32_t* bytesPlane0)
         if (numSamples == 1) {
             if (KHR_DFDSVAL(BDFDB, 0, BITLENGTH) + 1 == 24) {
                 // X8_D24_UNORM_PACK32,
-                *bytesPlane0 = 4;
-                return;
+                return 4;
             }
         } else if (numSamples == 2) {
             if (KHR_DFDSVAL(BDFDB, 0, BITLENGTH) + 1 == 16) {
                 // D16_UNORM_S8_UINT
-                *bytesPlane0 = 4;
-                return;
+                return 4;
             }
             if (KHR_DFDSVAL(BDFDB, 0, BITLENGTH) + 1 == 32
                 && KHR_DFDSVAL(BDFDB, 1, CHANNELID) == KHR_DF_CHANNEL_COMMON_STENCIL) {
                 // D32_SFLOAT_S8_UINT
-                *bytesPlane0 = 8;
-                return;
+                return 8;
             }
         }
     }
@@ -161,6 +156,26 @@ recreateBytesPlane0FromSampleInfo(const uint32_t* DFD, uint32_t* bytesPlane0)
     bitsPlane0 = largestOffset + sampleBitLength;
     // Round to next multiple of 8
     bitsPlane0 = (bitsPlane0 + 7) & ~7;
-    *bytesPlane0 = bitsPlane0 >> 3U;
+    return bitsPlane0 >> 3U;
 }
 
+/**
+ * @~English
+ * @brief Reconstruct the value of bytesPlane0 from sample info.
+ *
+ * @see reconstructDFDBytesPlane0FromSamples for details.
+ * @deprecated For backward comparibility only. Use
+ *             reconstructDFDBytesPlane0FromSamples.
+ *
+ * @param DFD Pointer to a Data Format Descriptor for which,
+ *            described as 32-bit words in native endianness.
+ *            Note that this is the whole descriptor, not just
+ *            the basic descriptor block.
+ * @param bytesPlane0  pointer to a 32-bit word in which the recreated
+ *                    value of bytesPlane0 will be written.
+ */
+void
+recreateBytesPlane0FromSampleInfo(const uint32_t* DFD, uint32_t* bytesPlane0)
+{
+    *bytesPlane0 = reconstructDFDBytesPlane0FromSamples(DFD);
+}

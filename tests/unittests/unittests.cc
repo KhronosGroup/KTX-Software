@@ -951,8 +951,7 @@ TEST_F(ReconstructBytesPlane0Test, reconstructBytesPlane0) {
         uint32_t* bdfd = dfd + 1;
         uint32_t origBytesPlane0 = KHR_DFDVAL(bdfd, BYTESPLANE0);
         KHR_DFDSETVAL(bdfd, BYTESPLANE0, 0);
-        uint32_t reconstructedBytesPlane0;
-        recreateBytesPlane0FromSampleInfo(dfd, &reconstructedBytesPlane0);
+        uint32_t reconstructedBytesPlane0 = reconstructDFDBytesPlane0FromSamples(dfd);
         EXPECT_EQ(origBytesPlane0, reconstructedBytesPlane0);
         free(dfd);
     }

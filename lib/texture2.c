@@ -310,9 +310,10 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
         // the following reasons. (1) in v2 files levelIndex is always used to
         // calculate data size and, of course, for the level offsets. (2) Finer
         // grain access to supercompressed data than levels is not possible.
-        uint32_t blockByteLength;
-        recreateBytesPlane0FromSampleInfo(pDfd, &blockByteLength);
-        This->blockSizeInBits = blockByteLength * 8;
+        //
+        // The value set here is applied to the DFD after the data has been
+        // inflated during loading.
+        This->blockSizeInBits = reconstructDFDBytesPlane0FromSamples(pDfd) * 8;
     }
     return true;
 }
