@@ -40,6 +40,7 @@ BEGIN {
         output_dir = ARGV[1] "/";
     }
     format_hdr = output_dir "vkformat_enum.h"
+    format_typesize = output_dir "vkformat_typesize.c"
     format_strings = output_dir "vkformat_str.c"
     format_check = output_dir "vkformat_check.c"
     if (ENVIRON["Vulkan_INCLUDE_DIR"]) {
@@ -109,6 +110,28 @@ function removePrefix(string, prefix) {
   return string
 }
 
+function genTypeSize(format) {
+  size = format
+  if (format ~ /^VK_FORMAT_UNDEFINED$/) {
+      size = 1
+  } else if (format ~ /.*PACK[0-9]+($|_)/) {
+      sub("^.*PACK", "", size)
+      sub("_.*$", "", size)
+      size = size / 8
+  } else if (format ~ /.*BLOCK/) {
+      size = 1
+  } else if (format ~ /D16_UNORM_S8_UINT/) {
+      size = 2
+  } else if (format ~ /D24_UNORM_S8_UINT/) {
+      size = 4
+  } else {
+      sub("^[^0-9]+", "", size)
+      sub("[^0-9].*$", "", size)
+      size = size / 8
+  }
+  return "      case " format ":" ORS "        return " size ";" ORS
+}
+
 # Extract VK_FORMAT token names. [^F] avoids the VK_FORMAT_FEATURE* tokens.
 /    VK_FORMAT_[^F]/ {
   switch_value = ""
@@ -116,6 +139,7 @@ function removePrefix(string, prefix) {
     if ($3 !~ /VK_FORMAT_.*/) { # Avoid values defined as existing values.
       switch_body_vk2str = switch_body_vk2str "      case " $1 ":" ORS "        return \"" $1 "\";" ORS
       switch_value = $1 # Use symbolic not numeric value.
+      switch_body_vktypesize = switch_body_vktypesize genTypeSize($1)
     } else {
       switch_value = $3 # Use symbol for existing value.
       sub(/,.*$/, "", switch_value)
@@ -147,7 +171,21 @@ END {
     # vkformat_enum.h
     write_header_file("_VKFORMAT_ENUM_H_", "VULKAN_CORE_H_", format_decl ORS end_range, format_hdr);
 
-    # vkformat_prohibited.c
+    # vkformat_typesize.c
+    begin_vktypesize = ORS
+    begin_vktypesize = begin_vktypesize "#include <stdint.h>" ORS;
+    begin_vktypesize = begin_vktypesize ORS;
+    begin_vktypesize = begin_vktypesize "#include \"vkformat_enum.h\"" ORS;
+    begin_vktypesize = begin_vktypesize ORS;
+    begin_vktypesize = begin_vktypesize "uint32_t" ORS "vkFormatTypeSize(VkFormat format)" ORS "{" ORS;
+    begin_vktypesize = begin_vktypesize "    switch (format) {" ORS;
+    end_vktypesize = "      default:" ORS
+    end_vktypesize = end_vktypesize "        return 0;" ORS;
+    end_vktypesize = end_vktypesize "    }" ORS
+    end_vktypesize = end_vktypesize "}"
+    write_source_file(begin_vktypesize switch_body_vktypesize end_vktypesize, format_typesize);
+
+    # vkformat_check.c
     prohibited = prohibited "        return true;" ORS
     prohibited = prohibited "      default:" ORS "        return false;" ORS "    }" ORS "}" ORS;
     valid = valid "        return true;" ORS

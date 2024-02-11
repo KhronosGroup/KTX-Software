@@ -82,6 +82,8 @@ MODIFICATIONS for use in libktx
 
 #include "gl_format.h"
 
+uint32_t vkFormatTypeSize(VkFormat format);
+
 static inline VkFormat vkGetFormatFromOpenGLFormat( const GLenum format, const GLenum type )
 {
 	switch ( type )

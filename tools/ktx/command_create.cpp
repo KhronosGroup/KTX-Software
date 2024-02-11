@@ -1357,19 +1357,11 @@ std::unique_ptr<Image> CommandCreate::loadInputImage(ImageInput& inputImageFile)
     return image;
 }
 
-std::vector<uint8_t> convertUNORMPackedPadded(const std::unique_ptr<Image>& image,
-        uint32_t c0 = 0, uint32_t c0Pad = 0, uint32_t c1 = 0, uint32_t c1Pad = 0,
-        uint32_t c2 = 0, uint32_t c2Pad = 0, uint32_t c3 = 0, uint32_t c3Pad = 0,
-        std::string_view swizzle = "") {
-
+std::vector<uint8_t> convertUNORMPacked(const std::unique_ptr<Image>& image, uint32_t C0, uint32_t C1, uint32_t C2, uint32_t C3, std::string_view swizzle = "") {
     if (!swizzle.empty())
         image->swizzle(swizzle);
 
-    return image->getUNORMPackedPadded(c0, c0Pad, c1, c1Pad, c2, c2Pad, c3, c3Pad);
-}
-
-std::vector<uint8_t> convertUNORMPacked(const std::unique_ptr<Image>& image, uint32_t C0, uint32_t C1, uint32_t C2, uint32_t C3, std::string_view swizzle = "") {
-    return convertUNORMPackedPadded(image, C0, 0, C1, 0, C2, 0, C3, 0, swizzle);
+    return image->getUNORMPacked(C0, C1, C2, C3);
 }
 
 template <typename T>
@@ -1383,6 +1375,19 @@ std::vector<uint8_t> convertUNORM(const std::unique_ptr<Image>& image, std::stri
         image->swizzle(swizzle);
 
     return image->getUNORM(componentCount, bits);
+}
+
+template <typename T>
+std::vector<uint8_t> convertUNORMSBits(const std::unique_ptr<Image>& image, uint32_t sBits, std::string_view swizzle = "") {
+    using ComponentT = typename T::Color::value_type;
+    static constexpr auto componentCount = T::Color::getComponentCount();
+    static constexpr auto bytesPerComponent = sizeof(ComponentT);
+    static constexpr auto bits = bytesPerComponent * 8;
+
+    if (!swizzle.empty())
+        image->swizzle(swizzle);
+
+    return image->getUNORM(componentCount, bits, sBits);
 }
 
 template <typename T>
@@ -1631,23 +1636,23 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
 
     case VK_FORMAT_R10X6_UNORM_PACK16:
         requireUNORM(10);
-        return convertUNORMPackedPadded(image, 10, 6);
+        return convertUNORMSBits<r16image>(image, 10);
     case VK_FORMAT_R10X6G10X6_UNORM_2PACK16:
         requireUNORM(10);
-        return convertUNORMPackedPadded(image, 10, 6, 10, 6);
+        return convertUNORMSBits<rg16image>(image, 10);
     case VK_FORMAT_R10X6G10X6B10X6A10X6_UNORM_4PACK16:
         requireUNORM(10);
-        return convertUNORMPackedPadded(image, 10, 6, 10, 6, 10, 6, 10, 6);
+        return convertUNORMSBits<rgba16image>(image, 10);
 
     case VK_FORMAT_R12X4_UNORM_PACK16:
         requireUNORM(12);
-        return convertUNORMPackedPadded(image, 12, 4);
+        return convertUNORMSBits<r16image>(image, 12);
     case VK_FORMAT_R12X4G12X4_UNORM_2PACK16:
         requireUNORM(12);
-        return convertUNORMPackedPadded(image, 12, 4, 12, 4);
+        return convertUNORMSBits<rg16image>(image, 12);
     case VK_FORMAT_R12X4G12X4B12X4A12X4_UNORM_4PACK16:
         requireUNORM(12);
-        return convertUNORMPackedPadded(image, 12, 4, 12, 4, 12, 4, 12, 4);
+        return convertUNORMSBits<rgba16image>(image, 12);
 
         // Input values must be rounded to the target precision.
         // When the input file contains an sBIT chunk, its values must be taken into account.

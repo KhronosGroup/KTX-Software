@@ -700,11 +700,10 @@ class Image {
     virtual uint32_t getComponentSize() const = 0;
     virtual Image* createImage(uint32_t width, uint32_t height) = 0;
     /// Should only be used if the stored image data is UNORM convertable
-    virtual std::vector<uint8_t> getUNORM(uint32_t numChannels, uint32_t targetBits) const = 0;
+    virtual std::vector<uint8_t> getUNORM(uint32_t numChannels, uint32_t targetBits, uint32_t sBits = 0) const = 0;
     /// Should only be used if the stored image data is UNORM convertable
-    virtual std::vector<uint8_t> getUNORMPackedPadded(
-            uint32_t c0, uint32_t c0Pad, uint32_t c1, uint32_t c1Pad,
-            uint32_t c2, uint32_t c2Pad, uint32_t c3, uint32_t c3Pad) const = 0;
+    virtual std::vector<uint8_t> getUNORMPacked(
+            uint32_t c0, uint32_t c1, uint32_t c2, uint32_t c3) const = 0;
     /// Should only be used if the stored image data is SFloat convertable
     virtual std::vector<uint8_t> getSFloat(uint32_t numChannels, uint32_t targetBits) const = 0;
     /// Should only be used if the stored image data is UFloat convertable
@@ -802,12 +801,13 @@ class ImageT : public Image {
         return image;
     }
 
-    virtual std::vector<uint8_t> getUNORM(uint32_t numChannels, uint32_t targetBits) const override {
+    virtual std::vector<uint8_t> getUNORM(uint32_t numChannels, uint32_t targetBits, uint32_t sBits) const override {
         assert(numChannels <= componentCount);
         assert(targetBits == 8 || targetBits == 16 || targetBits == 32);
 
         const uint32_t sourceBits = sizeof(componentType) * 8;
         const uint32_t targetBytes = targetBits / 8;
+        const uint32_t mask = (sBits == 0) ? 0xFFFFFFFF : ((1u << sBits) - 1u) << (targetBits - sBits);
         std::vector<uint8_t> data(height * width * numChannels * targetBytes);
 
         for (uint32_t y = 0; y < height; ++y) {
@@ -818,13 +818,13 @@ class ImageT : public Image {
                     auto* target = data.data() + (y * width * numChannels + x * numChannels + c) * targetBytes;
 
                     if (targetBytes == 1) {
-                        const auto outValue = static_cast<uint8_t>(value);
+                        const auto outValue = static_cast<uint8_t>(value & mask);
                         std::memcpy(target, &outValue, sizeof(outValue));
                     } else if (targetBytes == 2) {
-                        const auto outValue = static_cast<uint16_t>(value);
+                        const auto outValue = static_cast<uint16_t>(value & mask);
                         std::memcpy(target, &outValue, sizeof(outValue));
                     } else if (targetBytes == 4) {
-                        const auto outValue = static_cast<uint32_t>(value);
+                        const auto outValue = static_cast<uint32_t>(value & mask);
                         std::memcpy(target, &outValue, sizeof(outValue));
                     }
                 }
@@ -834,11 +834,10 @@ class ImageT : public Image {
         return data;
     }
 
-    virtual std::vector<uint8_t> getUNORMPackedPadded(
-            uint32_t c0, uint32_t c0Pad, uint32_t c1, uint32_t c1Pad,
-            uint32_t c2, uint32_t c2Pad, uint32_t c3, uint32_t c3Pad) const override {
-        assert((c0 + c0Pad + c1 + c1Pad + c2 + c2Pad + c3 + c3Pad) % 8 == 0);
-        const auto targetPackBytes = (c0 + c0Pad + c1 + c1Pad + c2 + c2Pad + c3 + c3Pad) / 8;
+    virtual std::vector<uint8_t> getUNORMPacked(
+            uint32_t c0, uint32_t c1, uint32_t c2, uint32_t c3) const override {
+        assert((c0 + c1 + c2 + c3) % 8 == 0);
+        const auto targetPackBytes = (c0 + c1 + c2 + c3) / 8;
         assert(targetPackBytes == 1 || targetPackBytes == 2 || targetPackBytes == 4 || targetPackBytes == 8);
         const auto packC0 = c0 > 0;
         const auto packC1 = c1 > 0;
@@ -865,22 +864,22 @@ class ImageT : public Image {
                     if (packC0) {
                         const auto sourceValue = hasC0 ? pixel[0] : componentType{0};
                         const auto value = imageio::convertUNORM(static_cast<uint32_t>(sourceValue), sourceBits, c0);
-                        pack |= static_cast<PackType>(value) << (c0Pad + c1 + c1Pad + c2 + c2Pad + c3 + c3Pad);
+                        pack |= static_cast<PackType>(value) << (c1 + c2 + c3);
                     }
                     if (packC1) {
                         const auto sourceValue = hasC1 ? pixel[1] : componentType{0};
                         const auto value = imageio::convertUNORM(static_cast<uint32_t>(sourceValue), sourceBits, c1);
-                        pack |= static_cast<PackType>(value) << (c1Pad + c2 + c2Pad + c3 + c3Pad);
+                        pack |= static_cast<PackType>(value) << (c2 + c3);
                     }
                     if (packC2) {
                         const auto sourceValue = hasC2 ? pixel[2] : componentType{0};
                         const auto value = imageio::convertUNORM(static_cast<uint32_t>(sourceValue), sourceBits, c2);
-                        pack |= static_cast<PackType>(value) << (c2Pad + c3 + c3Pad);
+                        pack |= static_cast<PackType>(value) << c3;
                     }
                     if (packC3) {
                         const auto sourceValue = hasC3 ? pixel[3] : Color::one();
                         const auto value = imageio::convertUNORM(static_cast<uint32_t>(sourceValue), sourceBits, c3);
-                        pack |= static_cast<PackType>(value) << (c3Pad);
+                        pack |= static_cast<PackType>(value);
                     }
                 };
 
