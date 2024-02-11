@@ -64,26 +64,7 @@ public:
         texelBlockDimensions[2] = KHR_DFDVAL(bdfd, TEXELBLOCKDIMENSION2) + 1;
         texelBlockDimensions[3] = KHR_DFDVAL(bdfd, TEXELBLOCKDIMENSION3) + 1;
 
-        // By default we assume that the packing granularity matches the typeSize
         packedElementByteSize = typeSize;
-        // Unfortunately, this is not the case for nPACKxx formats where n is the number of packed elements
-        // and no information is available in the KTX 2.0 file, including the DFD, to infer this so we
-        // try to handle all known cases here instead
-        // TODO: This should be fixed in the near future
-        switch (vkFormat) {
-        case VK_FORMAT_R10X6G10X6_UNORM_2PACK16: [[fallthrough]];
-        case VK_FORMAT_R12X4G12X4_UNORM_2PACK16: [[fallthrough]];
-        case VK_FORMAT_R10X6G10X6B10X6A10X6_UNORM_4PACK16: [[fallthrough]];
-        case VK_FORMAT_G10X6B10X6G10X6R10X6_422_UNORM_4PACK16: [[fallthrough]];
-        case VK_FORMAT_B10X6G10X6R10X6G10X6_422_UNORM_4PACK16: [[fallthrough]];
-        case VK_FORMAT_R12X4G12X4B12X4A12X4_UNORM_4PACK16: [[fallthrough]];
-        case VK_FORMAT_G12X4B12X4G12X4R12X4_422_UNORM_4PACK16: [[fallthrough]];
-        case VK_FORMAT_B12X4G12X4R12X4G12X4_422_UNORM_4PACK16:
-            packedElementByteSize = 2;
-            break;
-        default:
-            break;
-        }
 
         // Packed element size must always be 1, 2, or 4 currently
         // (for block compressed formats the element size is considered 1 by convention)
