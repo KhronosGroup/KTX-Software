@@ -1720,13 +1720,13 @@ void CommandCompare::compareDFDBasic(PrintDiff& diff, uint32_t blockIndex,
             for (std::size_t i = 0; i < 2; ++i)
                 if (samples[i].has_value())
                     lengthAndOffset[i] = fmt::format("    Length: {} bits Offset: {}",
-                        static_cast<uint32_t>(samples[i]->bitLength),
+                        static_cast<uint32_t>(samples[i]->bitLength + 1),
                         static_cast<uint32_t>(samples[i]->bitOffset));
             diff << DiffTextCustom(lengthAndOffset[0], lengthAndOffset[1]);
         } else {
             diff << Diff({},
                 fmt::format("/dataFormatDescriptor/blocks/{}/samples/{}/bitLength", blockIndex, sampleIndex),
-                OPT_BITFIELDS(samples, bitLength));
+                OPT_BITFIELDS(samples, bitLength + 1));
             diff << Diff({},
                 fmt::format("/dataFormatDescriptor/blocks/{}/samples/{}/bitOffset", blockIndex, sampleIndex),
                 OPT_BITFIELDS(samples, bitOffset));
