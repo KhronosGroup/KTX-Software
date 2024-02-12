@@ -22,8 +22,9 @@ if (NOT IOS AND NOT ANDROID)
 #    # I haven't investigated why.
 #    find_package(Vulkan REQUIRED)
 
-# This file is included from so has the same scope as the including file.
-# If we change Vulkan_INCLUDE_DIR, other users will be effected.
+# This file is included from its parent so has the same scope as the
+# including file. If we change Vulkan_INCLUDE_DIR, other users will
+# be affected.
     set(mkvk_vulkan_include_dir lib/dfdutils)
 else()
     # Skip mkvk. There is no need to use iOS or Android to regenerate
@@ -59,6 +60,7 @@ list(APPEND mkvkformatfiles_output
     "${PROJECT_SOURCE_DIR}/lib/vkformat_enum.h"
     "${PROJECT_SOURCE_DIR}/lib/vkformat_typesize.c"
     "${PROJECT_SOURCE_DIR}/lib/vkformat_check.c"
+    "${PROJECT_SOURCE_DIR}/lib/vkformat_list.c"
     "${PROJECT_SOURCE_DIR}/lib/vkformat_str.c")
 
 # CAUTION: When a COMMAND contains VAR="Value" CMake messes up the escaping
