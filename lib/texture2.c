@@ -40,6 +40,8 @@
 //#define IS_BIG_ENDIAN (1 == *(unsigned char *)&(const int){0x01000000ul})
 #define IS_BIG_ENDIAN 0
 
+extern uint32_t vkFormatTypeSize(VkFormat format);
+
 struct ktxTexture_vtbl ktxTexture2_vtbl;
 struct ktxTexture_vtblInt ktxTexture2_vtblInt;
 

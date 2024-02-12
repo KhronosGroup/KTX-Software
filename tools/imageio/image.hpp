@@ -699,9 +699,9 @@ class Image {
     virtual uint32_t getComponentCount() const = 0;
     virtual uint32_t getComponentSize() const = 0;
     virtual Image* createImage(uint32_t width, uint32_t height) = 0;
-    /// Should only be used if the stored image data is UNORM convertable
+    /// Should only be used if the stored image data is UNORM convertable (with optional significant bit count)
     virtual std::vector<uint8_t> getUNORM(uint32_t numChannels, uint32_t targetBits, uint32_t sBits = 0) const = 0;
-    /// Should only be used if the stored image data is UNORM convertable
+    /// Should only be used if the stored image data is UNORM convertable (packed into a single word)
     virtual std::vector<uint8_t> getUNORMPacked(
             uint32_t c0, uint32_t c1, uint32_t c2, uint32_t c3) const = 0;
     /// Should only be used if the stored image data is SFloat convertable
