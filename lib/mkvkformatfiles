@@ -2,12 +2,16 @@
 # Copyright 2019-2024 Mark Callow
 # SPDX-License-Identifier: Apache-2.0
 
-# This script creates 3 files from vulkan/vulkan_core.h:
+# This script creates 5 files from vulkan/vulkan_core.h:
 #
 # - vkformat_enum.h, the VkFormat enum declaration for those who don't
 #   want to include vulkan_core.h.
+# - vkformat_list.inl, a list of VkFormat enum names for use in
+#   initializing tables, etc.
 # - vkformat_str.c, a switch statement for converting VkFormat enums to
 #   to strings corresponding to the format names.
+# - vkformat_typesize.c, function to return the type-size for each
+#   format.
 # - vkformat_check.c, 2 functions: 1 to checking if a format is prohibited in
 #   KTX2 and the other to see if a format is valid.
 #   KTX2.
@@ -24,6 +28,7 @@ BEGIN {
     copyright = "/*" ORS
     banner = ""
     format_decl = ""
+    format_name_list = ""
     core_formats = ""
     extension_formats = ""
     end_range = ""
@@ -41,6 +46,7 @@ BEGIN {
     }
     format_hdr = output_dir "vkformat_enum.h"
     format_typesize = output_dir "vkformat_typesize.c"
+    format_inl = output_dir "vkformat_list.inl"
     format_strings = output_dir "vkformat_str.c"
     format_check = output_dir "vkformat_check.c"
     if (ENVIRON["Vulkan_INCLUDE_DIR"]) {
@@ -83,6 +89,9 @@ $2 == "VK_HEADER_VERSION" {
       if (enum_val+0 > max_std_format_enum) {
         max_std_format_enum = enum_val+0;
       }
+      if ($1 !~ /UNDEFINED/) {
+        format_name_list = format_name_list $1 "," ORS
+      }
     }
   }
   if ($1 ~ /}/) {
@@ -103,6 +112,7 @@ $2 == "VK_HEADER_VERSION" {
 # Extract valid formats with values > VK_FORMAT_END_RANGE.
 /VK_FORMAT_[^F].* = 1000/ && ! /PLANE/ && !/420/ {
   valid = valid "        case " $1 ":" ORS;
+  format_name_list = format_name_list $1 "," ORS
 }
 
 function removePrefix(string, prefix) {
@@ -170,6 +180,7 @@ function write_source_file(body, filename) {
 END {
     # vkformat_enum.h
     write_header_file("_VKFORMAT_ENUM_H_", "VULKAN_CORE_H_", format_decl ORS end_range, format_hdr);
+    write_source_file(format_name_list ORS, format_inl)
 
     # vkformat_typesize.c
     begin_vktypesize = ORS
