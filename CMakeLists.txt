@@ -389,6 +389,7 @@ set(KTX_MAIN_SRC
     lib/vkformat_check.c
     lib/vkformat_enum.h
     lib/vkformat_str.c
+    lib/vkformat_typesize.c
     )
 
 set(BASISU_ENCODER_CXX_SRC

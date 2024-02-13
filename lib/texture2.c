@@ -40,6 +40,8 @@
 //#define IS_BIG_ENDIAN (1 == *(unsigned char *)&(const int){0x01000000ul})
 #define IS_BIG_ENDIAN 0
 
+extern uint32_t vkFormatTypeSize(VkFormat format);
+
 struct ktxTexture_vtbl ktxTexture2_vtbl;
 struct ktxTexture_vtblInt ktxTexture2_vtblInt;
 
@@ -427,34 +429,11 @@ ktxTexture2_construct(ktxTexture2* This, ktxTextureCreateInfo* createInfo,
 
     This->vkFormat = createInfo->vkFormat;
 
-    // Ideally we'd set all these things in ktxFormatSize_initFromDfd
-    // but This->_protected is not allocated until ktxTexture_construct;
-    if (This->isCompressed && (formatSize.flags & KTX_FORMAT_SIZE_YUVSDA_BIT) == 0) {
-        This->_protected->_typeSize = 1;
-    } else if (formatSize.flags & (KTX_FORMAT_SIZE_DEPTH_BIT | KTX_FORMAT_SIZE_STENCIL_BIT)) {
-        switch (createInfo->vkFormat) {
-        case VK_FORMAT_S8_UINT:
-            This->_protected->_typeSize = 1;
-            break;
-        case VK_FORMAT_D16_UNORM: // [[fallthrough]];
-        case VK_FORMAT_D16_UNORM_S8_UINT:
-            This->_protected->_typeSize = 2;
-            break;
-        case VK_FORMAT_X8_D24_UNORM_PACK32: // [[fallthrough]];
-        case VK_FORMAT_D24_UNORM_S8_UINT: // [[fallthrough]];
-        case VK_FORMAT_D32_SFLOAT: // [[fallthrough]];
-        case VK_FORMAT_D32_SFLOAT_S8_UINT:
-            This->_protected->_typeSize = 4;
-            break;
-        }
-    } else if (formatSize.flags & KTX_FORMAT_SIZE_PACKED_BIT) {
-        This->_protected->_typeSize = formatSize.blockSizeInBits / 8;
-    } else {
-        // Unpacked and uncompressed
-        uint32_t numComponents;
-        getDFDComponentInfoUnpacked(This->pDfd, &numComponents,
-                                    &This->_protected->_typeSize);
-    }
+    // The typeSize cannot be reconstructed just from the DFD as the BDFD
+    // does not capture the packing expressed by the [m]PACK[n] layout
+    // information in the VkFormat, so we calculate the typeSize directly
+    // from the vkFormat
+    This->_protected->_typeSize = vkFormatTypeSize(createInfo->vkFormat);
 
     This->supercompressionScheme = KTX_SS_NONE;
 

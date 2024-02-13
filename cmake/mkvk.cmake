@@ -57,6 +57,7 @@ list(APPEND mkvkformatfiles_input
     lib/mkvkformatfiles)
 list(APPEND mkvkformatfiles_output
     "${PROJECT_SOURCE_DIR}/lib/vkformat_enum.h"
+    "${PROJECT_SOURCE_DIR}/lib/vkformat_typesize.c"
     "${PROJECT_SOURCE_DIR}/lib/vkformat_check.c"
     "${PROJECT_SOURCE_DIR}/lib/vkformat_str.c")
 

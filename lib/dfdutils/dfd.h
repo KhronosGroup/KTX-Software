@@ -74,9 +74,9 @@ uint32_t *createDFDUnpacked(int bigEndian, int numChannels, int bytes,
                             int redBlueSwap, enum VkSuffix suffix);
 
 /* Create a Data Format Descriptor for a packed padded format. */
-uint32_t *createDFDPackedPadded(int bigEndian, int numChannels,
-                                int bits[], int paddings[], int channels[],
-                                enum VkSuffix suffix);
+uint32_t *createDFDPackedShifted(int bigEndian, int numChannels,
+                                 int bits[], int shiftBits[],
+                                 int channels[], enum VkSuffix suffix);
 
 /* Create a Data Format Descriptor for a packed format. */
 uint32_t *createDFDPacked(int bigEndian, int numChannels,
@@ -85,7 +85,7 @@ uint32_t *createDFDPacked(int bigEndian, int numChannels,
 
 /* Create a Data Format Descriptor for a 4:2:2 format. */
 uint32_t *createDFD422(int bigEndian, int numChannels,
-                       int bits[], int paddings[], int channels[],
+                       int bits[], int shiftBits[], int channels[],
                        int position_xs[], int position_ys[],
                        enum VkSuffix suffix);
 

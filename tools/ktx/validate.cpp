@@ -827,23 +827,7 @@ void ValidationContext::calculateExpectedDFD(VkFormat format) {
     expectedBlockDimension2 = static_cast<uint8_t>(KHR_DFDVAL(bdfd, TEXELBLOCKDIMENSION2));
     expectedBlockDimension3 = static_cast<uint8_t>(KHR_DFDVAL(bdfd, TEXELBLOCKDIMENSION3));
 
-    if (!*expectedColorModelIsBlockCompressed) {
-        InterpretedDFDChannel r, g, b, a;
-        InterpretDFDResult result;
-        uint32_t componentByteLength = 0;
-
-        result = interpretDFD(dfd.get(), &r, &g, &b, &a, &componentByteLength);
-
-        // Reset the false positive error in interpretDFD with VK_FORMAT_E5B9G9R9_UFLOAT_PACK32
-        // interpretDFD by design doesn't support this format
-        if (header.vkFormat == VK_FORMAT_E5B9G9R9_UFLOAT_PACK32 && result == i_UNSUPPORTED_NONTRIVIAL_ENDIANNESS)
-            result = InterpretDFDResult(0);
-
-        if (result >= i_UNSUPPORTED_ERROR_BIT)
-            error(Validator::CreateDFDRoundtripFailed, toString(format));
-        else
-            expectedTypeSize = componentByteLength;
-    }
+    expectedTypeSize = vkFormatTypeSize(format);
 }
 
 void ValidationContext::validateDFD() {
