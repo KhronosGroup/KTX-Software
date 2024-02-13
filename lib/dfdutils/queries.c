@@ -154,8 +154,6 @@ reconstructDFDBytesPlane0FromSamples(const uint32_t* DFD)
     /* The sample bitLength field stores the bit length - 1. */
     uint32_t sampleBitLength = KHR_DFDSVAL(BDFDB, sampleNumberWithLargestOffset, BITLENGTH) + 1;
     bitsPlane0 = largestOffset + sampleBitLength;
-    // Round to next multiple of 8
-    bitsPlane0 = (bitsPlane0 + 7) & ~7;
     return bitsPlane0 >> 3U;
 }
 
