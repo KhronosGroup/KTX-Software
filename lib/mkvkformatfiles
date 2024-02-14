@@ -99,7 +99,7 @@ $2 == "VK_HEADER_VERSION" {
   }
 }
 
-/.*SCALED|A8B8G8R8_.*_PACK32/  { prohibited = prohibited "      case " $1 ":" ORS; }
+/.*SCALED/  { prohibited = prohibited "      case " $1 ":" ORS; }
 #/A8B8G8R8_.*_PACK32/  { prohibited = prohibited "      case " $1 ":" ORS; }
 # Multiplane formats.
 /VK_FORMAT_[^F]/ && (/PLANE/ || /420/) {
