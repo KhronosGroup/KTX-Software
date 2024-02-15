@@ -691,9 +691,6 @@ extern "C" const char* vkFormatString(VkFormat format);
 TEST_F(ReconstructBytesPlane0Test, reconstructBytesPlane0) {
 
     for (uint32_t i = 0; i < sizeof(formats) / sizeof(VkFormat); i++) {
-        if (formats[i] == VK_FORMAT_R16G16_S10_5_NV) {
-            continue; // Temporary until vk2dfd produces a DFD.
-        }
         uint32_t* dfd = vk2dfd(formats[i]);
         ASSERT_TRUE(dfd != NULL) << "vk2dfd failed to produce DFD for "
                                  << vkFormatString(formats[i]);
