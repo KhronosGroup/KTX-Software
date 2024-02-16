@@ -857,6 +857,7 @@ Compare two KTX2 files.
                with --ignore-index all or --ignore-index level. <br />
             \- DFD section differences can be ignored with --ignore-dfd all or --ignore-dfd
                all-except-color-space. <br />
+            \- BDFD bytesPlane value differences can be ignored with --ignore-bdfd-bytesplane. <br />
             \- SGD section differences can be ignored with --ignore-sgd all or --ignore-sgd
                payload. <br />
         </dd>
@@ -892,6 +893,9 @@ Compare two KTX2 files.
             @b none - Do not ignore any DFD blocks. <br />
             The default mode is @b none, meaning that all DFD entries will be compared.
         </dd>
+        <dt>\--ignore-bdfd-bytesplane</dt>
+        <dd>Ignore BDFD bytesPlane values. Useful when comparing supercompressed files with
+            non-supercompressed ones, as bytesPlane is set to zero for supercompressed files.</dd>
         <dt>\--ignore-metadata all | &lt;keys&gt; | none</dt>
         <dd>Controls the comparison of metadata (KVD) entries. Possible options are: <br />
             @b all - Ignore all metadata entries. <br />
@@ -960,6 +964,7 @@ class CommandCompare : public Command {
         inline static const char* kIgnoreSupercomp = "ignore-supercomp";
         inline static const char* kIgnoreIndex = "ignore-index";
         inline static const char* kIgnoreDFD = "ignore-dfd";
+        inline static const char* kIgnoreBDFDBytesPlane = "ignore-bdfd-bytesplane";
         inline static const char* kIgnoreMetadata = "ignore-metadata";
         inline static const char* kIgnoreSGD = "ignore-sgd";
 
@@ -971,6 +976,7 @@ class CommandCompare : public Command {
         bool ignoreSupercomp = false;
         IgnoreIndex ignoreIndex = IgnoreIndex::none;
         IgnoreDFD ignoreDFD = IgnoreDFD::none;
+        bool ignoreBDFDBytesPlane = false;
         bool ignoreAllMetadata = false;
         std::unordered_set<std::string> ignoreMetadataKeys = {};
         IgnoreSGD ignoreSGD = IgnoreSGD::none;
@@ -1030,6 +1036,8 @@ class CommandCompare : public Command {
                         "  none: Do not ignore any DFD blocks\n",
                         cxxopts::value<std::string>()->default_value("none"),
                         "all|all-except-color-space|unknown|extended|none")
+                    (kIgnoreBDFDBytesPlane, "Ignore BDFD bytesPlane values. Useful when comparing supercompressed "
+                        "files with non-supercompressed ones, as bytesPlane is set to zero for supercompressed files.")
                     (kIgnoreMetadata, "Controls the comparison of metadata (KVD) entries. Possible options are:\n"
                         "  all: Ignore all metadata entries\n"
                         "  <keys>: Ignore the specified comma separated list of metadata keys\n"
@@ -1119,6 +1127,8 @@ class CommandCompare : public Command {
                     report.fatal_usage("Invalid --ignore-dfd argument: \"{}\".", ignoreDFDStr);
                 ignoreDFD = it->second;
             }
+
+            ignoreBDFDBytesPlane = args[kIgnoreBDFDBytesPlane].as<bool>();
 
             if (args[kIgnoreMetadata].count()) {
                 static std::unordered_map<std::string, bool> ignoreMetadataMapping{
@@ -1673,9 +1683,11 @@ void CommandCompare::compareDFDBasic(PrintDiff& diff, uint32_t blockIndex,
     diff << DiffArray("Dimensions",
         fmt::format("/dataFormatDescriptor/blocks/{}/texelBlockDimension", blockIndex),
         OPT_UINT4S(bdfds, texelBlockDimension));
-    diff << DiffArray("Plane bytes",
-        fmt::format("/dataFormatDescriptor/blocks/{}/bytesPlane", blockIndex),
-        OPT_FIELDS(bdfds, bytesPlanes));
+
+    if (!options.ignoreBDFDBytesPlane)
+        diff << DiffArray("Plane bytes",
+            fmt::format("/dataFormatDescriptor/blocks/{}/bytesPlane", blockIndex),
+            OPT_FIELDS(bdfds, bytesPlanes));
 
     diff.addContext("Sample <i>:\n");
 
