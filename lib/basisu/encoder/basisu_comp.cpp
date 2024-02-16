@@ -1820,6 +1820,7 @@ namespace basisu
 		}
 
 		basist::ktx2_header header = {};
+		memset(&header, 0, sizeof(header));
 
 		memcpy(header.m_identifier, basist::g_ktx2_file_identifier, sizeof(basist::g_ktx2_file_identifier));
 		header.m_pixel_width = base_width;

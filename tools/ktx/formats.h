@@ -21,6 +21,7 @@
 extern "C" {
     bool isProhibitedFormat(VkFormat format);
     bool isValidFormat(VkFormat format);
+    uint32_t vkFormatTypeSize(VkFormat format);
     const char* vkFormatString(VkFormat format);
     VkFormat stringToVkFormat(const char* str);
 }

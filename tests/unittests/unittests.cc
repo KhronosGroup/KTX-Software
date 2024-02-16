@@ -677,8 +677,34 @@ TEST_F(createDFDCompressedTest1, FormatBC1) {
     free(dfd);
 }
 
+class ReconstructBytesPlane0Test : public ::testing::Test {
+protected:
+    ReconstructBytesPlane0Test() {}
 
+    static constexpr VkFormat formats[] = {
+        #include "vkformat_list.inl"
+    };
+};
 
+extern "C" const char* vkFormatString(VkFormat format);
+
+TEST_F(ReconstructBytesPlane0Test, reconstructBytesPlane0) {
+
+    for (uint32_t i = 0; i < sizeof(formats) / sizeof(VkFormat); i++) {
+        if (formats[i] == VK_FORMAT_R16G16_S10_5_NV) {
+            continue; // Temporary until vk2dfd produces a DFD.
+        }
+        uint32_t* dfd = vk2dfd(formats[i]);
+        ASSERT_TRUE(dfd != NULL) << "vk2dfd failed to produce DFD for "
+                                 << vkFormatString(formats[i]);
+        uint32_t* bdfd = dfd + 1;
+        uint32_t origBytesPlane0 = KHR_DFDVAL(bdfd, BYTESPLANE0);
+        KHR_DFDSETVAL(bdfd, BYTESPLANE0, 0);
+        uint32_t reconstructedBytesPlane0 = reconstructDFDBytesPlane0FromSamples(dfd);
+        EXPECT_EQ(origBytesPlane0, reconstructedBytesPlane0);
+        free(dfd);
+    }
+}
 
 //////////////////////////////
 // HashListTest Fixture

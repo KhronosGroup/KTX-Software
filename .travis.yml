@@ -25,9 +25,11 @@ addons:
 env:
   global:
     - BUILD_DIR: build
+    - CHECK_MKVK: NO
     - CHECK_REUSE: NO
     - FEATURE_TESTS: ON
     - GIT_LFS_SKIP_SMUDGE: 1
+    - HOMEBREW_NO_AUTO_UPDATE: 1
     - PACKAGE: NO
     - REL_DESC_FILE: "$BUILD_DIR/rel_desc.md"
     - VULKAN_SDK_VER: "1.3.243.0"
@@ -37,6 +39,7 @@ env:
     - WASM_BUILD: NO
     - WERROR: ON
   jobs:
+    # NOTE: As least 2 configurations must be present or no macOS job is run.
     # FEATURE_TESTS is off for arm64 macOS because we can't even build
     # them during CI. CI runs on x86_64 and there is a PostBuild command
     # that attempts to execute the compiled-for-m1 tests to have gtest
@@ -45,6 +48,8 @@ env:
     # FEATURE_PY is off for arm64 macOS because we'd need a cross-compiled version
     # of Python for it to correctly build the Python extensions (the CI
     # runs on x86_64)
+    - CHECK_MKVK=ONLY
+
     - CONFIGURATION=Debug,Release PLATFORM=macOS ARCHS=x86_64
       FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_PY=ON FEATURE_LOADTESTS=OpenGL+Vulkan FEATURE_TOOLS=ON
       FEATURE_TOOLS_CTS=ON LOADTESTS_USE_LOCAL_DEPENDENCIES=ON SUPPORT_SSE=ON SUPPORT_OPENCL=OFF DEPLOY_DOCS=YES PACKAGE=YES
@@ -84,6 +89,10 @@ jobs:
       dist: jammy
       env:
         - CHECK_REUSE: ONLY
+    - os: linux
+      dist: jammy
+      env:
+        - CHECK_MKVK: ONLY
     - os: linux
       dist: jammy
       addons:
@@ -201,7 +210,7 @@ before_install:
         # when the repo owner differs from the user. For details see
         # https://github.blog/2022-04-12-git-security-vulnerability-announced/
         docker run -dit --name emscripten --user "$(id -u):$(id -g)" -v $(pwd):/src emscripten/emsdk bash
-      elif [ "$CHECK_REUSE" != "ONLY" ]; then
+      elif [ "$CHECK_REUSE" != "ONLY" -a "$CHECK_MKVK" != "ONLY" ]; then
         sudo apt-get update
       fi
       ;;
@@ -216,7 +225,7 @@ install:
       pip3 install reuse
       set +e
     fi
-    if [ "$CHECK_REUSE" != "ONLY" -a "$WASM_BUILD" != "YES" ]; then
+    if [ "$CHECK_REUSE" != "ONLY" -a "$CHECK_MKVK" != "ONLY" -a "$WASM_BUILD" != "YES" ]; then
       if [ "$TRAVIS_CPU_ARCH" = "arm64" ]; then
         # JDK was not installed on arm64 runner. Kept for reference.
         #sudo apt-get -qq install openjdk-17-jdk
@@ -235,11 +244,13 @@ install:
     fi
     ;;
   osx)
-    if [ "$LOADTESTS_USE_LOCAL_DEPENDENCIES" = "ON" ]; then
-        brew install sdl2
-        brew install assimp
+    if [ "$CHECK_REUSE" != "ONLY" -a "$CHECK_MKVK" != "ONLY" ]; then
+      if [ "$LOADTESTS_USE_LOCAL_DEPENDENCIES" = "ON" ]; then
+          brew install sdl2
+          brew install assimp
+      fi
+      ./ci_scripts/install_macos.sh
     fi
-    ./ci_scripts/install_macos.sh
     ;;
   esac
 
@@ -259,15 +270,15 @@ before_script:
 
 script:
 - |
+  set -e # Instead of trying to chain everything together with &&
+         # otherwise subsequent commands will swallow bad exit status.
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
     if [ "$CHECK_REUSE" = "YES" -o "$CHECK_REUSE" = "ONLY" ]; then
       echo "Calling reuse lint."
-      set -e  # because the if below swallows a bad exit status.
       reuse --suppress-deprecation lint
-      set +e
     fi
-    if [ "$CHECK_REUSE" != "ONLY" ]; then
+    if [ "$CHECK_REUSE" != "ONLY" -a "$CHECK_MKVK" != "ONLY" ]; then
       if [ "$WASM_BUILD" = "YES" ]; then
         ./ci_scripts/build_wasm_docker.sh
       else
@@ -276,19 +287,25 @@ script:
     fi
     ;;
   osx)
-    if [ "$PLATFORM" = "macOS" ]; then
-      ./ci_scripts/build_macos.sh
-    else
-      ./ci_scripts/build_ios.sh
+    if [ "$CHECK_REUSE" != "ONLY" -a "$CHECK_MKVK" != "ONLY" ]; then
+      if [ "$PLATFORM" = "macOS" ]; then
+        ./ci_scripts/build_macos.sh
+      else
+        ./ci_scripts/build_ios.sh
+      fi
     fi
     ;;
   esac
+  if [ "$CHECK_MKVK" = "ONLY" ]; then
+    ci_scripts/check_mkvk.sh
+  fi
   if [ "$DEPLOY_DOCS" = "YES" ]; then
     # Some files in the pyktx docs have an _ prefix so Jekyll will
     # not copy them from the gh-pages branch to the website. This
     # file says no Jekyll files here. Treat all as ordinary files.
     touch $BUILD_DIR/docs/html/.nojekyll
   fi
+  set +e
 
 # See if this helps with truncated logs.
 #after_script:
