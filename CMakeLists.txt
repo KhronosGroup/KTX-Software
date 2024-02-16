@@ -4,6 +4,8 @@
 
 cmake_minimum_required(VERSION 3.15)
 
+include(CMakePrintHelpers)
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/modules/")
 
 find_package(Bash REQUIRED)
@@ -137,6 +139,12 @@ else()
     set( KTX_LOADTEST_APPS_USE_LOCAL_DEPENDENCIES ON )
 endif()
 
+option( KTX_GENERATE_VK_FILES
+    "Include targets for generating VkFormat related files. For project developers only."
+    OFF
+)
+mark_as_advanced(FORCE KTX_GENERATE_VK_FILES)
+
 # Platform specific settings
 
 if(APPLE)
@@ -253,7 +261,9 @@ else()
 endif()
 
 # Depends on the settings, so it must be included after
-include(cmake/mkvk.cmake)
+if(KTX_GENERATE_VK_FILES)
+    include(cmake/mkvk.cmake)
+endif()
 
 # Global compile & link options including optimization flags
 
@@ -379,6 +389,7 @@ set(KTX_MAIN_SRC
     lib/vkformat_check.c
     lib/vkformat_enum.h
     lib/vkformat_str.c
+    lib/vkformat_typesize.c
     )
 
 set(BASISU_ENCODER_CXX_SRC
@@ -457,7 +468,7 @@ add_library( ktx_read ${LIB_TYPE}
 macro(common_libktx_settings target enable_write library_type)
 
     if(TARGET mkvk)
-        # Creating vulkan headers is only required when Vulkan SDK updates.
+        # Creating vulkan headers only required after Vulkan Spec/SDK updates.
         add_dependencies(${target} mkvk)
     endif()
 
@@ -1146,7 +1157,7 @@ install(EXPORT KTXTargets
     FILE KtxTargets.cmake
     NAMESPACE KTX::
     DESTINATION lib/cmake/ktx
-    COMPONENT library
+    COMPONENT dev
 )
 
 include(CMakePackageConfigHelpers)
@@ -1159,7 +1170,7 @@ install( FILES
     "cmake/KtxConfig.cmake"
     "${CMAKE_CURRENT_BINARY_DIR}/KtxConfigVersion.cmake"
     DESTINATION lib/cmake/ktx
-    COMPONENT library
+    COMPONENT dev
 )
 
 # CPack

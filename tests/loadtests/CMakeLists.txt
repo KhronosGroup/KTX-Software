@@ -1,8 +1,6 @@
 # Copyright 2017-2020 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-include(CMakePrintHelpers)
-
 if(WIN32)
     cmake_print_variables(
         CMAKE_SYSTEM_VERSION

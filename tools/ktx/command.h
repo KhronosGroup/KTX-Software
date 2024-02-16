@@ -247,6 +247,9 @@ struct OptionsSingleIn {
     }
 
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
+        if (!args.unmatched().empty())
+            report.fatal_usage("Too many filenames specified.");
+
         if (args.count("stdin") + args.count("input-file") == 0)
             report.fatal_usage("Missing input file. Either <input-file> or --stdin must be specified.");
         if (args.count("stdin") + args.count("input-file") > 1)
@@ -274,6 +277,9 @@ struct OptionsSingleInSingleOut {
     }
 
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
+        if (!args.unmatched().empty())
+            report.fatal_usage("Too many filenames specified.");
+
         if (args.count("stdin") + args.count("input-file") == 0)
             report.fatal_usage("Missing input file. Either <input-file> or --stdin must be specified.");
         if (args.count("stdin") + args.count("input-file") > 1)

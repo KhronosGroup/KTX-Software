@@ -943,6 +943,7 @@ INPUT                  = LICENSE.adoc \
                          dfd2vk.c \
                          interpretdfd.c \
                          printdfd.c \
+                         queries.c \
                          vk2dfd.c
 
 # This tag can be used to specify the character encoding of the source files

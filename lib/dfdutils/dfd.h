@@ -74,9 +74,9 @@ uint32_t *createDFDUnpacked(int bigEndian, int numChannels, int bytes,
                             int redBlueSwap, enum VkSuffix suffix);
 
 /* Create a Data Format Descriptor for a packed padded format. */
-uint32_t *createDFDPackedPadded(int bigEndian, int numChannels,
-                                int bits[], int paddings[], int channels[],
-                                enum VkSuffix suffix);
+uint32_t *createDFDPackedShifted(int bigEndian, int numChannels,
+                                 int bits[], int shiftBits[],
+                                 int channels[], enum VkSuffix suffix);
 
 /* Create a Data Format Descriptor for a packed format. */
 uint32_t *createDFDPacked(int bigEndian, int numChannels,
@@ -85,7 +85,7 @@ uint32_t *createDFDPacked(int bigEndian, int numChannels,
 
 /* Create a Data Format Descriptor for a 4:2:2 format. */
 uint32_t *createDFD422(int bigEndian, int numChannels,
-                       int bits[], int paddings[], int channels[],
+                       int bits[], int shiftBits[], int channels[],
                        int position_xs[], int position_ys[],
                        enum VkSuffix suffix);
 
@@ -198,9 +198,12 @@ getDFDComponentInfoUnpacked(const uint32_t* DFD, uint32_t* numComponents,
 /* Return the number of components described by a DFD. */
 uint32_t getDFDNumComponents(const uint32_t* DFD);
 
-/* Recreate and return the value of bytesPlane0 as it should be for the data
+/* Reconstruct and return the value of bytesPlane0 as it should be for the data
  * post-inflation from variable-rate compression.
  */
+uint32_t
+reconstructDFDBytesPlane0FromSamples(const uint32_t* DFD);
+/* Deprecated. For backward compatibility. */
 void
 recreateBytesPlane0FromSampleInfo(const uint32_t* DFD, uint32_t* bytesPlane0);
 

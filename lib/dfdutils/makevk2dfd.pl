@@ -81,7 +81,7 @@ while (my $line = <$input>) {
         my $formatChannels = $1;
 
         my $bits = "";
-        my $paddings = "";
+        my $shiftBits = "";
         my $position_xs = "";
         my $position_ys = "";
         my $last_green = 1;
@@ -95,7 +95,7 @@ while (my $line = <$input>) {
             if ($channels ne "") {
                 $channels = ", " . $channels;
                 $bits = ", " . $bits;
-                $paddings = ", " . $paddings;
+                $shiftBits = ", " . $shiftBits;
                 $position_xs = ", " . $position_xs;
                 $position_ys = ", " . $position_ys;
             }
@@ -134,16 +134,16 @@ while (my $line = <$input>) {
 
             $bits = $bit . $bits;
 
-            if ($padding ne "") { $paddings = $padding . $paddings; }
-            else { $paddings = "0" . $paddings; }
+            if ($padding ne "") { $shiftBits = $padding . $shiftBits; }
+            else { $shiftBits = "0" . $shiftBits; }
 
             $formatChannels = $1;
         }
 
         print "case $format: {\n";
-        print "    int channels[] = {$channels}; int bits[] = {$bits}; int paddings[] = {$paddings};\n";
+        print "    int channels[] = {$channels}; int bits[] = {$bits}; int shiftBits[] = {$shiftBits};\n";
         print "    int position_xs[] = {$position_xs}; int position_ys[] = {$position_ys};\n";
-        print "    return createDFD422($bigEndian, 4, bits, paddings, channels, position_xs, position_ys, s_UNORM);\n}\n";
+        print "    return createDFD422($bigEndian, 4, bits, shiftBits, channels, position_xs, position_ys, s_UNORM);\n}\n";
 
     } elsif ($line =~ m/VK_FORMAT_[RGBAE0-9]+_/) {
         # Set $format to the enum identifier
@@ -308,48 +308,48 @@ while (my $line = <$input>) {
         if (!exists($foundFormats{$format})) {
             $foundFormats{$format} = 1;
             print "case $format: {\n";
-            print "    int channels[] = {0}; int bits[] = {10}; int paddings[] = {6};\n";
-            print "    return createDFDPackedPadded($bigEndian, 1, bits, paddings, channels, s_UNORM);\n}\n"
+            print "    int channels[] = {0}; int bits[] = {10}; int shiftBits[] = {6};\n";
+            print "    return createDFDPackedShifted($bigEndian, 1, bits, shiftBits, channels, s_UNORM);\n}\n"
         }
     } elsif ($line =~ m/(VK_FORMAT_R10X6G10X6_UNORM_2PACK16)/) {
         $format = $1; # Extract the format identifier from the rest of the line
         if (!exists($foundFormats{$format})) {
             $foundFormats{$format} = 1;
             print "case $format: {\n";
-            print "    int channels[] = {0, 1}; int bits[] = {10, 10}; int paddings[] = {6, 6};\n";
-            print "    return createDFDPackedPadded($bigEndian, 2, bits, paddings, channels, s_UNORM);\n}\n"
+            print "    int channels[] = {0, 1}; int bits[] = {10, 10}; int shiftBits[] = {6, 6};\n";
+            print "    return createDFDPackedShifted($bigEndian, 2, bits, shiftBits, channels, s_UNORM);\n}\n"
         }
     } elsif ($line =~ m/(VK_FORMAT_R10X6G10X6B10X6A10X6_UNORM_4PACK16)/) {
         $format = $1; # Extract the format identifier from the rest of the line
         if (!exists($foundFormats{$format})) {
             $foundFormats{$format} = 1;
             print "case $format: {\n";
-            print "    int channels[] = {0, 1, 2, 3}; int bits[] = {10, 10, 10, 10}; int paddings[] = {6, 6, 6, 6};\n";
-            print "    return createDFDPackedPadded($bigEndian, 4, bits, paddings, channels, s_UNORM);\n}\n"
+            print "    int channels[] = {0, 1, 2, 3}; int bits[] = {10, 10, 10, 10}; int shiftBits[] = {6, 6, 6, 6};\n";
+            print "    return createDFDPackedShifted($bigEndian, 4, bits, shiftBits, channels, s_UNORM);\n}\n"
         }
     } elsif ($line =~ m/(VK_FORMAT_R12X4_UNORM_PACK16)/) {
         $format = $1; # Extract the format identifier from the rest of the line
         if (!exists($foundFormats{$format})) {
             $foundFormats{$format} = 1;
             print "case $format: {\n";
-            print "    int channels[] = {0}; int bits[] = {12}; int paddings[] = {4};\n";
-            print "    return createDFDPackedPadded($bigEndian, 1, bits, paddings, channels, s_UNORM);\n}\n"
+            print "    int channels[] = {0}; int bits[] = {12}; int shiftBits[] = {4};\n";
+            print "    return createDFDPackedShifted($bigEndian, 1, bits, shiftBits, channels, s_UNORM);\n}\n"
         }
     } elsif ($line =~ m/(VK_FORMAT_R12X4G12X4_UNORM_2PACK16)/) {
         $format = $1; # Extract the format identifier from the rest of the line
         if (!exists($foundFormats{$format})) {
             $foundFormats{$format} = 1;
             print "case $format: {\n";
-            print "    int channels[] = {0, 1}; int bits[] = {12, 12}; int paddings[] = {4, 4};\n";
-            print "    return createDFDPackedPadded($bigEndian, 2, bits, paddings, channels, s_UNORM);\n}\n"
+            print "    int channels[] = {0, 1}; int bits[] = {12, 12}; int shiftBits[] = {4, 4};\n";
+            print "    return createDFDPackedShifted($bigEndian, 2, bits, shiftBits, channels, s_UNORM);\n}\n"
         }
     } elsif ($line =~ m/(VK_FORMAT_R12X4G12X4B12X4A12X4_UNORM_4PACK16)/) {
         $format = $1; # Extract the format identifier from the rest of the line
         if (!exists($foundFormats{$format})) {
             $foundFormats{$format} = 1;
             print "case $format: {\n";
-            print "    int channels[] = {0, 1, 2, 3}; int bits[] = {12, 12, 12, 12}; int paddings[] = {4, 4, 4, 4};\n";
-            print "    return createDFDPackedPadded($bigEndian, 4, bits, paddings, channels, s_UNORM);\n}\n"
+            print "    int channels[] = {0, 1, 2, 3}; int bits[] = {12, 12, 12, 12}; int shiftBits[] = {4, 4, 4, 4};\n";
+            print "    return createDFDPackedShifted($bigEndian, 4, bits, shiftBits, channels, s_UNORM);\n}\n"
         }
 
     # If we weren't VK_FORMAT_ plus a channel, we might be a compressed
