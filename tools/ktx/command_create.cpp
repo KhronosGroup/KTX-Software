@@ -327,6 +327,8 @@ struct OptionsCreate {
                 VK_FORMAT_R8G8B8A8_SRGB,
                 VK_FORMAT_B8G8R8A8_UNORM,
                 VK_FORMAT_B8G8R8A8_SRGB,
+                VK_FORMAT_A8B8G8R8_UNORM_PACK32,
+                VK_FORMAT_A8B8G8R8_SRGB_PACK32,
                 VK_FORMAT_ASTC_4x4_UNORM_BLOCK,
                 VK_FORMAT_ASTC_4x4_SRGB_BLOCK,
                 VK_FORMAT_ASTC_5x4_UNORM_BLOCK,
@@ -406,6 +408,8 @@ struct OptionsCreate {
                 VK_FORMAT_R8G8B8A8_SINT,
                 VK_FORMAT_B8G8R8A8_UINT,
                 VK_FORMAT_B8G8R8A8_SINT,
+                VK_FORMAT_A8B8G8R8_UINT_PACK32,
+                VK_FORMAT_A8B8G8R8_SINT_PACK32,
                 VK_FORMAT_R16G16B16A16_UINT,
                 VK_FORMAT_R16G16B16A16_SINT,
                 VK_FORMAT_R32G32B32A32_UINT,
@@ -1547,7 +1551,9 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
         // 8 bits with a right-shift and a warning must be generated in the stderr.
 
     case VK_FORMAT_R8G8B8A8_UNORM: [[fallthrough]];
-    case VK_FORMAT_R8G8B8A8_SRGB:
+    case VK_FORMAT_R8G8B8A8_SRGB: [[fallthrough]];
+    case VK_FORMAT_A8B8G8R8_UNORM_PACK32: [[fallthrough]];
+    case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
         requireUNORM(8);
         return convertUNORM<rgba8image>(image);
     case VK_FORMAT_B8G8R8A8_UNORM: [[fallthrough]];
@@ -1747,10 +1753,12 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
     case VK_FORMAT_R32G32B32_UINT:
         requireUINT(32);
         return convertUINT<rgb32image>(image);
-    case VK_FORMAT_R8G8B8A8_UINT:
+    case VK_FORMAT_R8G8B8A8_UINT: [[fallthrough]];
+    case VK_FORMAT_A8B8G8R8_UINT_PACK32:
         requireSFloat(16);
         return convertUINT<rgba8image>(image);
-    case VK_FORMAT_R8G8B8A8_SINT:
+    case VK_FORMAT_R8G8B8A8_SINT: [[fallthrough]];
+    case VK_FORMAT_A8B8G8R8_SINT_PACK32:
         requireSFloat(16);
         return convertSINT<rgba8image>(image);
     case VK_FORMAT_B8G8R8A8_UINT:
