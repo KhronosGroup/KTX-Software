@@ -139,10 +139,53 @@ add_custom_target(makedfd2vk
     SOURCES ${makedfd2vk_input}
 )
 
+#set( Ruby_FIND_VIRTUALENV ONLY )
+#set( _Ruby_DEBUG_OUTPUT TRUE )
+find_program(RUBY_EXECUTABLE
+    NAMES ruby ruby3.1 ruby31 ruby3.0 ruby30
+    # N.B. Must use HINTS. PATHS are searched after default paths.
+    HINTS $ENV{MY_RUBY_HOME}/bin
+    REQUIRED)
+find_path(KTX_SPECIFICATION
+    NAME formats.json
+    PATHS ${PROJECT_SOURCE_DIR}/../KTX-Specification
+    NO_DEFAULT_PATH
+    REQUIRED)
+
+list(APPEND makevk2gl_input
+    ${KTX_SPECIFICATION_REPO}/generate_format_switches.rb
+    ${KTX_SPECIFICATION_REPO}/formats.json)
+list(APPEND makevk2gl_output
+    "${PROJECT_SOURCE_DIR}/lib/vkFormat2glFormat.inl"
+    "${PROJECT_SOURCE_DIR}/lib/vkFormat2glInternalFormat.inl"
+    "${PROJECT_SOURCE_DIR}/lib/vkFormat2glType.inl")
+# Until we have D3D or Metal loaders these outputs of
+# generate_format_switches.rb are unneeded.
+list(APPEND makevk2gl_extraneous_files
+    "${PROJECT_SOURCE_DIR}/lib/vkFormat2dxgiFormat.inl"
+    "${PROJECT_SOURCE_DIR}/lib/vkFormat2mtlFormat.inl"
+)
+
+add_custom_command(
+    OUTPUT ${makevk2gl_output}
+    COMMAND "${RUBY_EXECUTABLE}" ${KTX_SPECIFICATION}/generate_format_switches.rb ${PROJECT_SOURCE_DIR}/lib
+    COMMAND ${CMAKE_COMMAND} -E rm -f ${makevk2gl_extraneous_files}
+    DEPENDS ${makevk2gl_input}
+    WORKING_DIRECTORY ${KTX_SPECIFICATION}
+    COMMENT "Generating VkFormat to OpenGL internal format, format and type switches"
+    VERBATIM
+)
+
+add_custom_target(makevk2gl
+    DEPENDS ${makevk2gl_output}
+    SOURCES ${makedvk2gl_input}
+)
+
 add_custom_target(mkvk SOURCES ${CMAKE_CURRENT_LIST_FILE})
 
 add_dependencies(mkvk
     mkvkformatfiles
     makevk2dfd
     makedfd2vk
+    makevk2gl
 )
