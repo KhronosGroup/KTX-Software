@@ -20,6 +20,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -34,7 +35,6 @@
 #include "memstream.h"
 #include "texture2.h"
 #include "unused.h"
-#include "vk_format.h"
 
 // FIXME: Test this #define and put it in a header somewhere.
 //#define IS_BIG_ENDIAN (1 == *(unsigned char *)&(const int){0x01000000ul})
