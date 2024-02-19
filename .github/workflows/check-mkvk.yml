@@ -28,7 +28,7 @@ jobs:
   check-mkvk:
     strategy:
       matrix:
-        os: [ macOS ubuntu-latest windows-latest ]
+        os: [ macos-latest ubuntu-latest windows-latest ]
 
     runs-on: ${{ matrix.os }}
     env:
