@@ -154,8 +154,8 @@ find_path(KTX_SPECIFICATION
     REQUIRED)
 
 list(APPEND makevk2gl_input
-    ${KTX_SPECIFICATION_REPO}/generate_format_switches.rb
-    ${KTX_SPECIFICATION_REPO}/formats.json)
+    ${KTX_SPECIFICATION}/generate_format_switches.rb
+    ${KTX_SPECIFICATION}/formats.json)
 list(APPEND makevk2gl_output
     "${PROJECT_SOURCE_DIR}/lib/vkFormat2glFormat.inl"
     "${PROJECT_SOURCE_DIR}/lib/vkFormat2glInternalFormat.inl"
