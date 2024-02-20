@@ -1,13 +1,11 @@
 
-/***************************** Do not edit.  *****************************
- Automatically generated from vulkan_core.h version 267 by mkvkformatfiles.
- *************************************************************************/
+#******************************* Do not edit.  *****************************
+# Automatically generated from vulkan_core.h version 267 by mkvkformatfiles.
+#***************************************************************************
 
-/*
-** Copyright 2015-2023 The Khronos Group Inc.
-**
-** SPDX-License-Identifier: Apache-2.0
-*/
+# Copyright 2015-2023 The Khronos Group Inc.
+#
+# SPDX-License-Identifier: Apache-2.0
 
 from enum import IntEnum
 

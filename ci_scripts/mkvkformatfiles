@@ -96,7 +96,9 @@ BEGIN {
 }
 
 # A range pattern to extract the copyright message.
-/\*\* Copyright*/,/\*\// { copyright = copyright $0 ORS }
+/\*\* Copyright*/,/\*\// {
+  copyright = copyright $0 ORS;
+}
 
 $2 == "VK_HEADER_VERSION" {
   banner = ORS
@@ -222,6 +224,26 @@ function write_source_file(body, filename) {
     print body > filename
 }
 
+function write_python_source_file(body, filename) {
+    pybanner = banner;
+    sub(/\/\*/, "#***", pybanner);
+    sub(/\*\//, "****", pybanner);
+    sub(/ Auto/, "# Auto", pybanner);
+    regexp = ORS " \\*";
+    sub(regexp, ORS "#", pybanner);
+
+    pycopyright = copyright;
+    regexp = "/\\*" ORS;
+    sub(regexp, "", pycopyright);
+    gsub(/\*\*/, "#", pycopyright);
+    regexp = "\\*/" ORS;
+    sub(regexp, "", pycopyright);
+
+    print pybanner > filename
+    print pycopyright > filename
+    print body > filename
+}
+
 END {
     # vkformat_enum.h
     write_header_file("_VKFORMAT_ENUM_H_", "VULKAN_CORE_H_", format_decl ORS end_range, format_hdr);
@@ -308,7 +330,7 @@ END {
     write_source_file(java end_java, format_java);
 
     # vk_format.py
-    write_source_file(python, format_python);
+    write_python_source_file(python, format_python);
 }
 
 # vim:ai:ts=4:sts=4:sw=2:expandtab:textwidth=70
