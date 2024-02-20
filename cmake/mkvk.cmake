@@ -81,12 +81,10 @@ list(APPEND mkvkformatfiles_output
 
 list(APPEND mvffc_as_list
     ci_scripts/mkvkformatfiles ./ ${vulkan_header})
-# This is needed if command line args or env. var. settings are added above.
 list(JOIN mvffc_as_list " " mvffc_as_string)
     set(mkvkformatfiles_command "${BASH_EXECUTABLE}" -c "${mvffc_as_string}")
 
 add_custom_command(OUTPUT ${mkvkformatfiles_output}
-#    COMMAND ${CMAKE_COMMAND} -E make_directory lib
     COMMAND ${mkvkformatfiles_command}
     DEPENDS ${mkvkformatfiles_input}
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
@@ -107,7 +105,6 @@ set(makevk2dfd_output
 
 add_custom_command(
     OUTPUT ${makevk2dfd_output}
-#    COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
     COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makevk2dfd.pl ${vulkan_header} lib/dfdutils/vk2dfd.inl
     DEPENDS ${makevk2dfd_input}
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}

@@ -96,9 +96,7 @@ BEGIN {
 }
 
 # A range pattern to extract the copyright message.
-/\*\* Copyright*/,/\*\// {
-  copyright = copyright $0 ORS;
-}
+/\*\* Copyright*/,/\*\// { copyright = copyright $0 ORS; }
 
 $2 == "VK_HEADER_VERSION" {
   banner = ORS
