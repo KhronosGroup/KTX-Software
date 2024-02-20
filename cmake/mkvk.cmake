@@ -22,9 +22,9 @@ if (NOT IOS AND NOT ANDROID)
 #    # I haven't investigated why.
 #    find_package(Vulkan REQUIRED)
 
-# This file is included from its parent so has the same scope as the
-# including file. If we change Vulkan_INCLUDE_DIR, other users will
-# be affected.
+    # This cmake file is included from its parent so has the same scope as
+    # the including file. If we change Vulkan_INCLUDE_DIR, other parts will
+    # be affected.
     set(mkvk_vulkan_include_dir lib/dfdutils)
 else()
     # Skip mkvk. There is no need to use iOS or Android to regenerate
@@ -55,13 +55,15 @@ find_package(Perl REQUIRED)
 
 list(APPEND mkvkformatfiles_input
     ${vulkan_header}
-    lib/mkvkformatfiles)
+    ci_scripts/mkvkformatfiles)
 list(APPEND mkvkformatfiles_output
+    "${PROJECT_SOURCE_DIR}/interface/java_binding/src/main/java/org/khronos/ktx/VkFormat.java"
+    "${PROJECT_SOURCE_DIR}/interface/python_binding/pyktx/vk_format.py"
     "${PROJECT_SOURCE_DIR}/lib/vkformat_enum.h"
     "${PROJECT_SOURCE_DIR}/lib/vkformat_typesize.c"
     "${PROJECT_SOURCE_DIR}/lib/vkformat_check.c"
-    "${PROJECT_SOURCE_DIR}/lib/vkformat_list.c"
-    "${PROJECT_SOURCE_DIR}/lib/vkformat_str.c")
+    "${PROJECT_SOURCE_DIR}/lib/vkformat_str.c"
+    "${PROJECT_SOURCE_DIR}tests/unittests/vkformat_list.inl")
 
 # CAUTION: When a COMMAND contains VAR="Value" CMake messes up the escaping
 # for Bash. With or without VERBATIM, if Value has no spaces CMake changes it
@@ -78,12 +80,13 @@ list(APPEND mkvkformatfiles_output
 # parses successfully.
 
 list(APPEND mvffc_as_list
-    Vulkan_INCLUDE_DIR="${mkvk_vulkan_include_dir}" lib/mkvkformatfiles lib)
-    list(JOIN mvffc_as_list " " mvffc_as_string)
+    ci_scripts/mkvkformatfiles ./ ${vulkan_header})
+# This is needed if command line args or env. var. settings are added above.
+list(JOIN mvffc_as_list " " mvffc_as_string)
     set(mkvkformatfiles_command "${BASH_EXECUTABLE}" -c "${mvffc_as_string}")
 
 add_custom_command(OUTPUT ${mkvkformatfiles_output}
-    COMMAND ${CMAKE_COMMAND} -E make_directory lib
+#    COMMAND ${CMAKE_COMMAND} -E make_directory lib
     COMMAND ${mkvkformatfiles_command}
     DEPENDS ${mkvkformatfiles_input}
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
@@ -104,7 +107,7 @@ set(makevk2dfd_output
 
 add_custom_command(
     OUTPUT ${makevk2dfd_output}
-    COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
+#    COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
     COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makevk2dfd.pl ${vulkan_header} lib/dfdutils/vk2dfd.inl
     DEPENDS ${makevk2dfd_input}
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
@@ -139,8 +142,6 @@ add_custom_target(makedfd2vk
     SOURCES ${makedfd2vk_input}
 )
 
-#set( Ruby_FIND_VIRTUALENV ONLY )
-#set( _Ruby_DEBUG_OUTPUT TRUE )
 find_program(RUBY_EXECUTABLE
     NAMES ruby ruby3.1 ruby31 ruby3.0 ruby30
     # N.B. Must use HINTS. PATHS are searched after default paths.

@@ -1,25 +1,74 @@
-#! /usr/bin/awk -f
+#! /usr/bin/env awk -f
 # Copyright 2019-2024 Mark Callow
 # SPDX-License-Identifier: Apache-2.0
 
+# Usage: mkvkformatfiles [output-dir path/to/vulkan_core]
+#
+# output_dir defaults to the current directory.
+# path/to/vulkan_core defaults to ENVIRON["Vulkan_INCLUDE_DIR"]. If not
+# set, default is lib/dfdutils/vulkan/vulkan_core.h.
+#
+# When specifying path/to/vulkan_core, output-dir must also be
+# specified.
+
 # This script creates 5 files from vulkan/vulkan_core.h:
 #
-# - vkformat_enum.h, the VkFormat enum declaration for those who don't
-#   want to include vulkan_core.h.
-# - vkformat_list.inl, a list of VkFormat enum names for use in
-#   initializing tables, etc.
-# - vkformat_str.c, a switch statement for converting VkFormat enums to
+# - lib/vkformat_enum.h: the VkFormat enum declaration for those who don't
+#   want to include vulkan_core.h. extension token names for
+#   extensions that have been moved to core are omitted.
+#
+# - lib/vkformat_str.c: a switch statement for converting VkFormat enums to
 #   to strings corresponding to the format names.
-# - vkformat_typesize.c, function to return the type-size for each
+# - lib/vkformat_typesize.c, function to return the type-size for each
 #   format.
-# - vkformat_check.c, 2 functions: 1 to checking if a format is prohibited in
-#   KTX2 and the other to see if a format is valid.
-#   KTX2.
+#
+# - lib/vkformat_check.c: 2 functions: 1 to check if a format is prohibited in
+#   KTX2 and the other to see if a format is a valid Vulkan format.
+#
+# - interface/python_binding/pyktx/vk_format.py, VkFormat enumerators for
+#   Python.
+#
+# - interface/java_binding/src/main/java/org/khronos/ktx/VkFormat.java,
+#   VkFormat enumerators for Java.
+#
+# - tests/unittests/vkformat_list.inl, a list of VkFormat enum names for use in
+#   initializing tables, etc.
+#
+# KTX v2 prohibited formats are excluded from the last three files.
 
 BEGIN {
     if (index(tolower(ENVIRON["OS"]), "windows") > 0) {
         ORS = "\r\n";
     }
+    # ARGV[0] is "awk".
+    if (ARGC > 1) {
+      output_dir = ARGV[1] "/";
+      delete ARGV[1];
+    } else {
+      output_dir = "./";
+    }
+    # awk reads files whose names are found in the positional parameters,
+    # hence setting ARGV[1] here and deleting a possible ARGV[1] above.
+    if (ARGC == 1) {
+      if (ENVIRON["Vulkan_INCLUDE_DIR"]) {
+          ARGV[1] = ENVIRON["Vulkan_INCLUDE_DIR"] "/vulkan/vulkan_core.h"; ARGC = 2
+      } else {
+  # Use local vulkan_core.h until ASTC 3D texture extension is released.
+  #       ARGV[1] = "/usr/include";
+          ARGV[1] = "lib/dfdutils/vulkan/vulkan_core.h"; ARGC = 2
+      }
+    }
+
+    # Hard-coded paths are somewhat unfortunate but major changes in
+    # the source code organization are unlikely.
+    format_hdr = output_dir "lib/vkformat_enum.h"
+    format_typesize = output_dir "lib/vkformat_typesize.c"
+    format_inl = output_dir "tests/unittests/vkformat_list.inl"
+    format_strings = output_dir "lib/vkformat_str.c"
+    format_check = output_dir "lib/vkformat_check.c"
+    format_java = output_dir "interface/java_binding/src/main/java/org/khronos/ktx/VkFormat.java"
+    format_python = output_dir "interface/python_binding/pyktx/vk_format.py"
+
     vulkan_core = "vulkan_core.h"
     processing_core_formats = 0
     processing_extension_formats = 0
@@ -33,29 +82,17 @@ BEGIN {
     extension_formats = ""
     end_range = ""
     max_std_format_enum = 0
+    java = "package org.khronos.ktx;" ORS "public class VkFormat {" ORS
     prohibited = "#include <stdint.h>" ORS "#include <stdbool.h>" ORS ORS
     prohibited = prohibited "#include \"vkformat_enum.h\"" ORS ORS
     prohibited = prohibited "bool" ORS "isProhibitedFormat(VkFormat format)" ORS "{" ORS
     prohibited = prohibited "    switch (format) {" ORS;
+    python = "from enum import IntEnum)" ORS ORS "class VkFormat(IntEnum):" ORS
+    python = python "    \"\"\"Vulkan texture format constants.\"\"\"" ORS ORS
     valid = "bool" ORS "isValidFormat(VkFormat format)" ORS "{" ORS
     valid = valid "    // On MSVC VkFormat can be a signed integer" ORS
     valid = valid "    if ((uint32_t) format <= VK_FORMAT_MAX_STANDARD_ENUM)" ORS
     valid = valid "        return true;" ORS "    else switch(format) {" ORS
-    if (ARGC == 2) {
-        output_dir = ARGV[1] "/";
-    }
-    format_hdr = output_dir "vkformat_enum.h"
-    format_typesize = output_dir "vkformat_typesize.c"
-    format_inl = output_dir "vkformat_list.inl"
-    format_strings = output_dir "vkformat_str.c"
-    format_check = output_dir "vkformat_check.c"
-    if (ENVIRON["Vulkan_INCLUDE_DIR"]) {
-        ARGV[1] = ENVIRON["Vulkan_INCLUDE_DIR"] "/vulkan/vulkan_core.h"; ARGC = 2
-    } else {
-# Use local vulkan_core.h until ASTC 3D texture extension is released.
-#       ARGV[1] = "/usr/include";
-        ARGV[1] = "lib/dfdutils/vulkan/vulkan_core.h"; ARGC = 2
-    }
 }
 
 # A range pattern to extract the copyright message.
@@ -89,8 +126,12 @@ $2 == "VK_HEADER_VERSION" {
       if (enum_val+0 > max_std_format_enum) {
         max_std_format_enum = enum_val+0;
       }
-      if ($1 !~ /UNDEFINED/) {
-        format_name_list = format_name_list $1 "," ORS
+      if ($1 !~ /SCALED/) {
+        if ($1 !~ /UNDEFINED/) {
+          format_name_list = format_name_list $1 "," ORS
+        }
+        java = java "    public static final int " $1 " = " enum_val ";" ORS
+        python = python "    " $1 " = " enum_val ORS
       }
     }
   }
@@ -113,6 +154,10 @@ $2 == "VK_HEADER_VERSION" {
 /VK_FORMAT_[^F].* = 1000/ && ! /PLANE/ && !/420/ {
   valid = valid "        case " $1 ":" ORS;
   format_name_list = format_name_list $1 "," ORS
+  enum_val = $3;
+  sub(/,$/, "", enum_val);
+  java = java "    public static final int " $1 " = " enum_val ";" ORS
+  python = python "    " $1 " = " enum_val ORS
 }
 
 function removePrefix(string, prefix) {
@@ -180,6 +225,8 @@ function write_source_file(body, filename) {
 END {
     # vkformat_enum.h
     write_header_file("_VKFORMAT_ENUM_H_", "VULKAN_CORE_H_", format_decl ORS end_range, format_hdr);
+
+    # vkformat_list.inl
     write_source_file(format_name_list ORS, format_inl)
 
     # vkformat_typesize.c
@@ -255,6 +302,13 @@ END {
     end_str2vk = "    return VK_FORMAT_UNDEFINED;" ORS;
     end_str2vk = end_str2vk "}"
     write_source_file(prelude switch_body_vk2str postscript begin_str2vk switch_body_str2vk end_str2vk, format_strings);
+
+    # VkFormat.java
+    end_java = "}" ORS
+    write_source_file(java end_java, format_java);
+
+    # vk_format.py
+    write_source_file(python, format_python);
 }
 
 # vim:ai:ts=4:sts=4:sw=2:expandtab:textwidth=70
