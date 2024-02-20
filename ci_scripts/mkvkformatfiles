@@ -1,4 +1,4 @@
-#! /usr/bin/env awk -f
+#! /usr/bin/env -S awk -f
 # Copyright 2019-2024 Mark Callow
 # SPDX-License-Identifier: Apache-2.0
 
