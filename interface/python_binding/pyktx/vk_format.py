@@ -9,7 +9,7 @@
 ** SPDX-License-Identifier: Apache-2.0
 */
 
-from enum import IntEnum)
+from enum import IntEnum
 
 class VkFormat(IntEnum):
     """Vulkan texture format constants."""

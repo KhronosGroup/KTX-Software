@@ -87,7 +87,7 @@ BEGIN {
     prohibited = prohibited "#include \"vkformat_enum.h\"" ORS ORS
     prohibited = prohibited "bool" ORS "isProhibitedFormat(VkFormat format)" ORS "{" ORS
     prohibited = prohibited "    switch (format) {" ORS;
-    python = "from enum import IntEnum)" ORS ORS "class VkFormat(IntEnum):" ORS
+    python = "from enum import IntEnum" ORS ORS "class VkFormat(IntEnum):" ORS
     python = python "    \"\"\"Vulkan texture format constants.\"\"\"" ORS ORS
     valid = "bool" ORS "isValidFormat(VkFormat format)" ORS "{" ORS
     valid = valid "    // On MSVC VkFormat can be a signed integer" ORS
