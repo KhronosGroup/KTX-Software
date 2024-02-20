@@ -42,7 +42,7 @@ jobs:
       run: |
         pushd ..; git clone https://github.com/KhronosGroup/KTX-Specification.git; popd
     - name: Configure CMake build
-      run: cmake -B build -DKTX_GENERATE_VK_FILES -DKTX_FEATURE_TOOLS=OFF -DKTX_WERROR=$WERROR
+      run: cmake -B build -DKTX_GENERATE_VK_FILES=ON -DKTX_FEATURE_TOOLS=OFF -DKTX_WERROR=$WERROR
     - name: Test file generation
       run: cmake --build --target mkvk
     - name: List files
