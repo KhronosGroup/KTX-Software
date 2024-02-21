@@ -45,6 +45,6 @@ jobs:
       run: cmake -B ${{ env.BUILD_DIR }} -DKTX_GENERATE_VK_FILES=ON -DKTX_FEATURE_TESTS=OFF -DKTX_FEATURE_TOOLS=OFF -DKTX_WERROR=${{ env.WERROR }} 
     - name: Test file generation
       run: |
-        cmake --build ${{ env.BUILD_DIR }} --target mkvk
+        cmake --build ${{ env.BUILD_DIR }} --target mkvk --clean-first
         git diff --quiet HEAD
 
