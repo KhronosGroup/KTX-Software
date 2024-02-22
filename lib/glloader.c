@@ -1030,12 +1030,19 @@ ktxTexture2_GLUpload(ktxTexture2* This, GLuint* pTexture, GLenum* pTarget,
                                      // before upload.
     }
 
-    formatInfo.glFormat = vkFormat2glFormat(This->vkFormat);
-    formatInfo.glType = vkFormat2glType(This->vkFormat);
-    formatInfo.glBaseInternalformat = formatInfo.glInternalformat;
-    if (formatInfo.glFormat == GL_INVALID_VALUE || formatInfo.glType == GL_INVALID_VALUE)
-        return KTX_INVALID_OPERATION;
+    if (This->isCompressed) {
+        /* Unused. */
+        formatInfo.glFormat = GL_INVALID_VALUE;
+        formatInfo.glType = GL_INVALID_VALUE;
+        formatInfo.glBaseInternalformat = GL_INVALID_VALUE;
+    } else {
+        formatInfo.glFormat = vkFormat2glFormat(This->vkFormat);
+        formatInfo.glType = vkFormat2glType(This->vkFormat);
+        formatInfo.glBaseInternalformat = formatInfo.glInternalformat;
 
+        if (formatInfo.glFormat == GL_INVALID_VALUE || formatInfo.glType == GL_INVALID_VALUE)
+            return KTX_INVALID_OPERATION;
+    }
     /* KTX 2 files require an unpack alignment of 1. OGL default is 4. */
     glGetIntegerv(GL_UNPACK_ALIGNMENT, &previousUnpackAlignment);
     if (previousUnpackAlignment != 1) {
