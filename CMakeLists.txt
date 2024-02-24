@@ -385,7 +385,11 @@ set(KTX_MAIN_SRC
     lib/texture2.c
     lib/texture2.h
     lib/uthash.h
+    lib/vk2gl.h
     lib/vk_format.h
+    lib/vkFormat2glFormat.inl
+    lib/vkFormat2glInternalFormat.inl
+    lib/vkFormat2glType.inl
     lib/vkformat_check.c
     lib/vkformat_enum.h
     lib/vkformat_str.c

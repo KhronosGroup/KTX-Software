@@ -16,6 +16,7 @@
  * @author Wasim Abbas , www.arm.com
  */
 
+#include <assert.h>
 #include <cstring>
 #include <inttypes.h>
 #include <iostream>
@@ -30,7 +31,6 @@
 #include "ktxint.h"
 #include "texture2.h"
 #include "vkformat_enum.h"
-#include "vk_format.h"
 
 #include "astc-encoder/Source/astcenc.h"
 

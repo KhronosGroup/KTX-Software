@@ -51,11 +51,6 @@ jobs:
            sse: ON, opencl: ON}
         ]
         include:
-          - os: windows-latest
-            generator: 'Visual Studio 17 2022'
-            toolset: CLangCL
-            arch: x64
-            check_mkvk: ONLY
           - os: windows-2019
             generator: 'Visual Studio 16 2019'
             toolset: v142

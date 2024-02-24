@@ -31,11 +31,11 @@ add_subdirectory(transcodetests)
 add_subdirectory(streamtests)
 
 add_executable( unittests
-    ${PROJECT_SOURCE_DIR}/lib/vkformat_list.inl
     unittests/image_unittests.cc
     unittests/test_fragment_uri.cc
     unittests/test_string_to_vkformat.cc
     unittests/unittests.cc
+    unittests/vkformat_list.inl
     unittests/wthelper.h
     tests.cmake
 )

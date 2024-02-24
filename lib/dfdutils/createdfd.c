@@ -109,7 +109,6 @@ static void writeSample(uint32_t *DFD, int sampleNo, int channel,
         float f;
     } lower, upper;
     uint32_t *sample = DFD + 1 + KHR_DF_WORD_SAMPLESTART + sampleNo * KHR_DF_WORD_SAMPLEWORDS;
-    if (channel == 3) channel = KHR_DF_CHANNEL_RGBSDA_ALPHA;
 
     if (channel == 3) channel = KHR_DF_CHANNEL_RGBSDA_ALPHA;
     channel = setChannelFlags(channel, suffix);

@@ -20,6 +20,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -34,7 +35,6 @@
 #include "memstream.h"
 #include "texture2.h"
 #include "unused.h"
-#include "vk_format.h"
 
 // FIXME: Test this #define and put it in a header somewhere.
 //#define IS_BIG_ENDIAN (1 == *(unsigned char *)&(const int){0x01000000ul})
@@ -219,18 +219,18 @@ ktx_uint32_t e5b9g9r9_ufloat_comparator[e5b9g9r9_bdbwordcount] = {
 #endif
 
 /**
-* @private
-* @~English
-* @brief Initialize a ktxFormatSize object from the info in a DFD.
-*
-* This is used instead of referring to the DFD directly so code dealing
-* with format info can be common to KTX 1 & 2.
-*
-* @param[in] This   pointer the ktxTexture2 whose DFD to use.
-* @param[in] fi       pointer to the ktxFormatSize object to initialize.
-*
-* @return    KTX_TRUE on success, otherwise KTX_FALSE.
-*/
+ * @private
+ * @~English
+ * @brief Initialize a ktxFormatSize object from the info in a DFD.
+ *
+ * This is used instead of referring to the DFD directly so code dealing
+ * with format info can be common to KTX 1 & 2.
+ *
+ * @param[in] This   pointer the ktxFormatSize to initialize.
+ * @param[in] pDFD   pointer to the DFD whose data to use.
+ *
+ * @return    KTX_TRUE on success, otherwise KTX_FALSE.
+ */
 bool
 ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
 {
