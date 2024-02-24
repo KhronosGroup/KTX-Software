@@ -29,6 +29,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+      GIT_LFS_SKIP_SMUDGE: 1
       WERROR: ON
 
     steps:

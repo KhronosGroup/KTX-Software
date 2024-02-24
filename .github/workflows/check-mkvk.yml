@@ -32,6 +32,7 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     env:
+      GIT_LFS_SKIP_SMUDGE: 1
       BUILD_DIR: "build"
       WERROR: ON
 

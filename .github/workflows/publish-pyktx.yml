@@ -60,6 +60,7 @@ on:
 #      - 'v[0-9]+\.[0-9]+\.[0-9]+-*'
 
 env:
+  GIT_LFS_SKIP_SMUDGE: 1
   INPUT_PRERELEASE: ${{ inputs.prerelease }}
 
 jobs:
