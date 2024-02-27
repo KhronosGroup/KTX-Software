@@ -544,6 +544,18 @@ struct OptionsCreate {
             }
         }
 
+        if (isFormatNotSRGBButHasSRGBVariant(vkFormat)) {
+            if (!convertOETF.has_value() && assignOETF.has_value() && assignOETF == KHR_DF_TRANSFER_SRGB) {
+                report.fatal_usage(
+                        "Invalid value to --assign-oetf \"{}\" for format \"{}\". Transfer function must not be sRGB for a non-sRGB VkFormat with sRGB variant.",
+                        args[kAssignOetf].as<std::string>(), args[kFormat].as<std::string>());
+            } else if (convertOETF.has_value() && convertOETF == KHR_DF_TRANSFER_SRGB) {
+                report.fatal_usage(
+                        "Invalid value to --convert-oetf \"{}\" for format \"{}\". Transfer function must not be sRGB for a non-sRGB VkFormat with sRGB variant.",
+                        args[kConvertOetf].as<std::string>(), args[kFormat].as<std::string>());
+            }
+        }
+
         if (args[kFailOnColorConversions].count())
             failOnColorConversions = true;
 
