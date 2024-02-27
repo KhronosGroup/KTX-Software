@@ -1234,7 +1234,60 @@
             "type": "object",
             "patternProperties": {
                 "^m=[0-9]+,a=[0-9]+,f=[0-9]+$": {
-                    "type": "object"
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "coordinates": {
+                                "type": "array",
+                                "items": { "type": "integer" },
+                                "minItems": 3,
+                                "maxItems": 3
+                            },
+                            "imageByteOffset": {
+                                "type": "array",
+                                "items": { "type": "integer" }
+                            },
+                            "fileByteOffset": {
+                                "type": "array",
+                                "items": {
+                                    "oneOf": [
+                                        { "type": "integer" },
+                                        { "type": "null" }
+                                    ]
+                                }
+                            },
+                            "packed": {
+                                "type": "array",
+                                "items": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string",
+                                        "pattern": "^0x([0-9a-f]{2})+$"
+                                    }
+                                }
+                            },
+                            "channels": {
+                                "type": "array",
+                                "items": {
+                                    "type": "array",
+                                    "items": {
+                                        "oneOf": [
+                                            { "type": "number" },
+                                            {
+                                                "type": "string",
+                                                "enum": [
+                                                    "nan",
+                                                    "+inf",
+                                                    "-inf"
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
