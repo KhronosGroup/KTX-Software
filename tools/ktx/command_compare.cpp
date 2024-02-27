@@ -648,16 +648,16 @@ public:
         const auto space = outputFormat != OutputFormat::json_mini ?  " " : "";
         const auto nl = outputFormat != OutputFormat::json_mini ?  "\n" : "";
 
-        auto formatOptionalFileOffset = [](const std::optional<std::size_t>& fileOffset, std::size_t imageOffset, const char* noValue) {
+        auto formatOptionalFileOffset = [](const std::optional<std::size_t>& fileOffset, std::size_t imageOffset, bool json) {
             if (fileOffset.has_value())
-                return fmt::format("0x{:x}", *fileOffset + imageOffset);
+                return fmt::format(json ? "{}" : "0x{:x}", *fileOffset + imageOffset);
             else
-                return fmt::format(noValue);
+                return fmt::format(json ? "null" : "N/A");
         };
 
-        auto formatPacked = [=](const ImageSpan::TexelBlockPtr<>& texelBlock, bool quoteValues) {
+        auto formatPacked = [=](const ImageSpan::TexelBlockPtr<>& texelBlock, bool json) {
             const uint32_t hexDigits = texelBlock.getPackedElementByteSize() << 1;
-            const auto quote = quoteValues ? "\"" : "";
+            const auto quote = json ? "\"" : "";
             std::stringstream formattedValue;
             bool first = true;
             for (uint32_t elementIdx = 0; elementIdx < texelBlock.getPackedElementCount(); ++elementIdx) {
@@ -668,10 +668,10 @@ public:
             return formattedValue.str();
         };
 
-        auto formatChannels = [=](const ImageSpan::TexelBlockPtr<>& texelBlock, bool quoteSpecial) {
+        auto formatChannels = [=](const ImageSpan::TexelBlockPtr<>& texelBlock, bool json) {
             // If decodable channels are not available (e.g. block compressed), then this should not be called
             assert(texelBlock.getChannelCount() != 0);
-            const auto quote = quoteSpecial ? "\"" : "";
+            const auto quote = json ? "\"" : "";
             std::stringstream formattedValue;
             bool first = true;
             // Prefer to decode to integer (e.g. UNORM will be output as list of integer values instead of float values)
@@ -695,16 +695,18 @@ public:
                 for (uint32_t channelIdx = 0; channelIdx < texelBlock.getChannelCount(); ++channelIdx) {
                     const auto comma = std::exchange(first, false) ? "" : fmt::format(",{}", space);
                     float channel = channels[channelIdx];
-                    const auto sign = std::signbit(channel) ? "-" : "+";
                     if (std::isinf(channel)) {
                         // Output signed infinity (optionally quoted)
+                        const auto sign = std::signbit(channel) ? "-" : "+";
                         fmt::print(formattedValue, "{}{}{}inf{}", comma, quote, sign, quote);
                     } else if (std::isnan(channel)) {
                         // Output signed not-a-number (optionally quoted)
-                        fmt::print(formattedValue, "{}{}{}nan{}", comma, quote, sign, quote);
+                        fmt::print(formattedValue, "{}{}nan{}", comma, quote, quote);
                     } else {
                         // Output signed value (explicitly handle sign bit to differentiate between +0.0 and -0.0)
-                        fmt::print(formattedValue, "{}{}{:f}", comma, sign, std::abs(channel));
+                        // However, we only output sign for negative values because JSON does not allow leading "+"
+                        const auto sign = std::signbit(channel) ? "-" : "";
+                        fmt::print(formattedValue, "{}{}{}", comma, sign, std::abs(channel));
                     }
                 }
             } else {
@@ -739,8 +741,8 @@ public:
                 };
 
                 printDiff("File byte offset",
-                    formatOptionalFileOffset(diff.fileOffsets[0], imageByteOffset, "N/A"),
-                    formatOptionalFileOffset(diff.fileOffsets[1], imageByteOffset, "N/A"));
+                    formatOptionalFileOffset(diff.fileOffsets[0], imageByteOffset, false),
+                    formatOptionalFileOffset(diff.fileOffsets[1], imageByteOffset, false));
 
                 printDiff("Packed", formatPacked(texelBlockPair.first, false), formatPacked(texelBlockPair.second, false));
 
@@ -770,8 +772,8 @@ public:
                     imageByteOffset, space, imageByteOffset, space, nl);
 
                 printIndent(4, "\"fileByteOffset\":{}[{}{},{}{}{}],{}", space, space,
-                    formatOptionalFileOffset(diff.fileOffsets[0], imageByteOffset, "null"), space,
-                    formatOptionalFileOffset(diff.fileOffsets[1], imageByteOffset, "null"), space, nl);
+                    formatOptionalFileOffset(diff.fileOffsets[0], imageByteOffset, true), space,
+                    formatOptionalFileOffset(diff.fileOffsets[1], imageByteOffset, true), space, nl);
 
                 printIndent(4, "\"packed\":{}[{}", space, nl);
                 printIndent(5, "[{}{}{}],{}", space, formatPacked(texelBlockPair.first, true), space, nl);
@@ -2313,6 +2315,10 @@ void CommandCompare::compareImagesRaw(PrintDiff& diff, InputStreams& streams) {
 void CommandCompare::compareImagesPerPixel(PrintDiff& diff, InputStreams& streams) {
     diff.setContext("Image Data\n\n");
 
+    // Reset the streams to the beginning of the files
+    streams[0]->seekg(0);
+    streams[1]->seekg(0);
+
     // Load texture data, setup format descriptors and image codecs
     KTXTexture2 textures[2] = {KTXTexture2(nullptr), KTXTexture2(nullptr)};
     StreambufStream<std::streambuf*> ktx2Streams[2] = {
@@ -2335,6 +2341,10 @@ void CommandCompare::compareImagesPerPixel(PrintDiff& diff, InputStreams& stream
             ret = ktxTexture2_TranscodeBasis(textures[i], KTX_TTF_RGBA32, 0);
             if (ret != KTX_SUCCESS)
                 fatal(rc::INVALID_FILE, "Failed to transcode KTX2 texture from file \"{}\": {}", streams[i].str(), ktxErrorString(ret));
+
+            // Update format descriptor and image codec after transcoding
+            formatDesc[i] = createFormatDescriptor(textures[i]->pDfd);
+            imageCodecs[i] = ImageCodec(VK_FORMAT_R8G8B8A8_UNORM, 1, textures[i]->pDfd);
         }
 
         // If the image data was supercompressed then file offsets of texel blocks cannot be calculated
@@ -2351,10 +2361,7 @@ void CommandCompare::compareImagesPerPixel(PrintDiff& diff, InputStreams& stream
         fatal(rc::INVALID_ARGUMENTS, "Comparison requires matching texture and texel block dimensions.");
 
     // Currently, we only support comparing images with matching formats (barring BasisLZ decoding)
-    // which means checking the following parameters
-    //   * Matching vkFormat (already catches everything except Basis Universal cases)
-    //   * Matching color model (to handle Basis Universal cases)
-    if (headers[0].vkFormat != headers[1].vkFormat || formatDesc[0].model() != formatDesc[1].model())
+    if (textures[0]->vkFormat != textures[1]->vkFormat)
         fatal(rc::INVALID_ARGUMENTS, "Comparison requires matching texture formats (BasisLZ is treated as R8G8B8A8_UNORM).");
 
     // Currently, we only support comparing raw packed elements, but this can be extended

@@ -668,8 +668,8 @@ void ValidationContext::validateLevelIndex() {
 
     // The first (largest) mip level is the first in the index and the last in the file.
     for (std::size_t i = 1; i < levelIndices.size(); ++i) {
-        if (levelIndices[i].byteLength > levelIndices[i - 1].byteLength)
-            error(LevelIndex::IncorrectIndexOrder, i - 1, levelIndices[i - 1].byteLength, i, levelIndices[i].byteLength);
+        if (levelIndices[i].uncompressedByteLength > levelIndices[i - 1].uncompressedByteLength)
+            error(LevelIndex::IncorrectIndexOrder, i - 1, levelIndices[i - 1].uncompressedByteLength, i, levelIndices[i].uncompressedByteLength);
 
         if (levelIndices[i].byteOffset > levelIndices[i - 1].byteOffset)
             error(LevelIndex::IncorrectLevelOrder, i - 1, levelIndices[i - 1].byteOffset, i, levelIndices[i].byteOffset);

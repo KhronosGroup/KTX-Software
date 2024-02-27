@@ -69,7 +69,7 @@ public:
         }
 
         glm::uvec4 getPixelLocation() const {
-            return getTexelBlockLocation() / span.imageCodec().getTexelBlockDimensions();
+            return getTexelBlockLocation() * span.imageCodec().getTexelBlockDimensions();
         }
 
     private:

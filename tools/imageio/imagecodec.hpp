@@ -84,6 +84,12 @@ public:
             return;
         }
 
+        // If packedElementCount is zero, then there's something wrong with bytesPlane0 being zero
+        if (packedElementCount == 0) {
+            flags.valid = false;
+            return;
+        }
+
         // By default we do not have directly accessible channels
         // (e.g. for block compressed we can only access packed data)
         channels = 0;
@@ -146,7 +152,7 @@ public:
             default: {
                 // For other formats we only support cases where the number formats match across the samples
                 const auto sampleCount = KHR_DFDSAMPLECOUNT(bdfd);
-                const auto firstDataType = KHR_DFDSVAL(bdfd, 0, QUALIFIERS);
+                const auto firstDataType = KHR_DFDSVAL(bdfd, 0, QUALIFIERS) & ~KHR_DF_SAMPLE_DATATYPE_LINEAR;
                 const auto firstBitLength = KHR_DFDSVAL(bdfd, 0, BITLENGTH) + 1;
                 const auto sampleUpper = KHR_DFDSVAL(bdfd, 0, SAMPLEUPPER);
                 flags.isFloat = (firstDataType & KHR_DF_SAMPLE_DATATYPE_FLOAT) != 0;
@@ -163,7 +169,7 @@ public:
                     return;
                 }
                 for (uint32_t i = 0; i < sampleCount; ++i) {
-                    const auto dataType = KHR_DFDSVAL(bdfd, i, QUALIFIERS);
+                    const auto dataType = KHR_DFDSVAL(bdfd, i, QUALIFIERS) & ~KHR_DF_SAMPLE_DATATYPE_LINEAR;
                     const auto bitLength = KHR_DFDSVAL(bdfd, i, BITLENGTH) + 1;
                     // If not all elements match the packed element byte size then this is a packed format
                     if (bitLength != firstBitLength || bitLength != packedElementByteSize * 8) {
@@ -516,7 +522,24 @@ private:
 
     static glm::vec4 decodeFLOAT_B10G11R11(const ImageCodec*, const void* ptr) {
         auto data = reinterpret_cast<const uint32_t*>(ptr);
-        return glm::vec4(glm::unpackF2x11_1x10(data[0]), 1.f);
+        auto value = glm::unpackF2x11_1x10(data[0]);
+        // Need to handle NaN and infinity as special cases, because GLM "swallows" them
+        const uint32_t exponentShifts[] = { 6, 11 + 6, 22 + 5 };
+        const uint32_t exponentMask = 0x1F;
+        const uint32_t mantissaShifts[] = { 0, 11, 22 };
+        const uint32_t mantissaMasks[] = { 0x3F, 0x3F, 0x1F };
+        for (uint32_t channel = 0; channel < 3; ++channel) {
+            const uint32_t exponent = (data[0] >> exponentShifts[channel]) & exponentMask;
+            const uint32_t mantissa = (data[0] >> mantissaShifts[channel]) & mantissaMasks[channel];
+            if (exponent == 31) {
+                if (mantissa == 0) {
+                    value[channel] = std::numeric_limits<float>::infinity();
+                } else {
+                    value[channel] = std::numeric_limits<float>::quiet_NaN();
+                }
+            }
+        }
+        return glm::vec4(value, 1.f);
     }
 
     static glm::uvec4 decodeUINT_D16_S8(const ImageCodec*, const void* ptr) {
@@ -541,12 +564,12 @@ private:
 
     static glm::uvec4 decodeUINT_D24_S8(const ImageCodec*, const void* ptr) {
         auto data = reinterpret_cast<const uint32_t*>(ptr);
-        return glm::uvec4(data[0] & 0xFFFFFF, data[0] >> 24, 0, 0);
+        return glm::uvec4(data[0] >> 8, data[0] & 0xFF, 0, 0);
     }
 
     static glm::vec4 decodeFLOAT_D24_S8(const ImageCodec*, const void* ptr) {
         auto data = reinterpret_cast<const uint32_t*>(ptr);
-        return glm::vec4(imageio::convertUNORMToFloat(data[0] & 0xFFFFFF, 24), static_cast<float>(data[0] >> 24), 0.f, 1.f);
+        return glm::vec4(imageio::convertUNORMToFloat(data[0] >> 8, 24), static_cast<float>(data[0] & 0xFF), 0.f, 1.f);
     }
 
     static glm::vec4 decodeFLOAT_D32_S8(const ImageCodec*, const void* ptr) {
