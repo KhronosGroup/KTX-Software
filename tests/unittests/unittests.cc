@@ -220,6 +220,8 @@ TEST_F(WriterTestHelperRGB8Test, Construct3D) {
 // Base fixture for createDFD tests.
 /////////////////////////////////////
 
+// TODO: Move DFD tests to dfdutils when build is redone with CMake.
+
 #include <KHR/khr_df.h>
 #define LIBKTX // To make dfd.h not include vulkan/vulkan_core.h.
 #include "dfdutils/dfd.h"
@@ -677,9 +679,9 @@ TEST_F(createDFDCompressedTest1, FormatBC1) {
     free(dfd);
 }
 
-class ReconstructBytesPlane0Test : public ::testing::Test {
+class DFDVkFormatListTest : public ::testing::Test {
 protected:
-    ReconstructBytesPlane0Test() {}
+    DFDVkFormatListTest() {}
 
     static constexpr VkFormat formats[] = {
         #include "vkformat_list.inl"
@@ -688,7 +690,7 @@ protected:
 
 extern "C" const char* vkFormatString(VkFormat format);
 
-TEST_F(ReconstructBytesPlane0Test, reconstructBytesPlane0) {
+TEST_F(DFDVkFormatListTest, ReconstructDFDBytesPlane0) {
 
     for (uint32_t i = 0; i < sizeof(formats) / sizeof(VkFormat); i++) {
         uint32_t* dfd = vk2dfd(formats[i]);
@@ -699,6 +701,141 @@ TEST_F(ReconstructBytesPlane0Test, reconstructBytesPlane0) {
         KHR_DFDSETVAL(bdfd, BYTESPLANE0, 0);
         uint32_t reconstructedBytesPlane0 = reconstructDFDBytesPlane0FromSamples(dfd);
         EXPECT_EQ(origBytesPlane0, reconstructedBytesPlane0);
+        free(dfd);
+    }
+}
+
+TEST_F(DFDVkFormatListTest, BidirectionalVk2DfDTest) {
+
+    for (uint32_t i = 0; i < sizeof(formats) / sizeof(VkFormat); i++) {
+        uint32_t* dfd = vk2dfd(formats[i]);
+        ASSERT_TRUE(dfd != NULL) << "vk2dfd failed to produce DFD for "
+                                 << vkFormatString(formats[i]);
+        VkFormat formatOut = dfd2vk(dfd);
+        // The SCALED formats are indistinguishable from the INT formats
+        // and dfd2vk resolves the ambiguity in favor of the format more
+        // likely to be used as a texture.
+        //
+        // The A8B8G8R8_*_PACK32 formats are indistinguishable from the
+        // R8G8B8A8* formats and dfd2vk returns the more common format.
+        switch (formats[i]) {
+          case VK_FORMAT_R8_USCALED:
+            EXPECT_EQ(formatOut, VK_FORMAT_R8_UINT);
+            break;
+          case VK_FORMAT_R8_SSCALED:
+            EXPECT_EQ(formatOut, VK_FORMAT_R8_SINT);
+            break;
+          case VK_FORMAT_R8G8_USCALED:
+            EXPECT_EQ(formatOut, VK_FORMAT_R8G8_UINT);
+            break;
+          case VK_FORMAT_R8G8_SSCALED:
+            EXPECT_EQ(formatOut, VK_FORMAT_R8G8_SINT);
+            break;
+          case VK_FORMAT_B8G8R8_USCALED:
+            EXPECT_EQ(formatOut, VK_FORMAT_B8G8R8_UINT);
+            break;
+          case VK_FORMAT_B8G8R8_SSCALED:
+            EXPECT_EQ(formatOut, VK_FORMAT_B8G8R8_SINT);
+            break;
+          case VK_FORMAT_R8G8B8_USCALED:
+            EXPECT_EQ(formatOut, VK_FORMAT_R8G8B8_UINT);
+            break;
+          case VK_FORMAT_R8G8B8_SSCALED:
+            EXPECT_EQ(formatOut, VK_FORMAT_R8G8B8_SINT);
+            break;
+          case VK_FORMAT_R8G8B8A8_USCALED:
+            EXPECT_EQ(formatOut, VK_FORMAT_R8G8B8A8_UINT);
+            break;
+          case VK_FORMAT_R8G8B8A8_SSCALED:
+            EXPECT_EQ(formatOut, VK_FORMAT_R8G8B8A8_SINT);
+            break;
+          case VK_FORMAT_B8G8R8A8_USCALED:
+            EXPECT_EQ(formatOut, VK_FORMAT_B8G8R8A8_UINT);
+            break;
+          case VK_FORMAT_B8G8R8A8_SSCALED:
+            EXPECT_EQ(formatOut, VK_FORMAT_B8G8R8A8_SINT);
+            break;
+          case VK_FORMAT_A8B8G8R8_USCALED_PACK32:
+            EXPECT_EQ(formatOut, VK_FORMAT_R8G8B8A8_UINT);
+            break;
+          case VK_FORMAT_A8B8G8R8_SSCALED_PACK32:
+            EXPECT_EQ(formatOut, VK_FORMAT_R8G8B8A8_SINT);
+            break;
+          case VK_FORMAT_A8B8G8R8_UINT_PACK32:
+            EXPECT_EQ(formatOut, VK_FORMAT_R8G8B8A8_UINT);
+            break;
+          case VK_FORMAT_A8B8G8R8_SINT_PACK32:
+            EXPECT_EQ(formatOut, VK_FORMAT_R8G8B8A8_SINT);
+            break;
+          case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
+            EXPECT_EQ(formatOut, VK_FORMAT_R8G8B8A8_SRGB);
+            break;
+          case VK_FORMAT_A2R10G10B10_USCALED_PACK32:
+            EXPECT_EQ(formatOut, VK_FORMAT_A2R10G10B10_UINT_PACK32);
+            break;
+          case VK_FORMAT_A2R10G10B10_SSCALED_PACK32:
+            EXPECT_EQ(formatOut, VK_FORMAT_A2R10G10B10_SINT_PACK32);
+            break;
+          case VK_FORMAT_A2B10G10R10_USCALED_PACK32:
+            EXPECT_EQ(formatOut, VK_FORMAT_A2B10G10R10_UINT_PACK32);
+            break;
+          case VK_FORMAT_A2B10G10R10_SSCALED_PACK32:
+            EXPECT_EQ(formatOut, VK_FORMAT_A2B10G10R10_SINT_PACK32);
+            break;
+          case VK_FORMAT_R16_USCALED:
+            EXPECT_EQ(formatOut, VK_FORMAT_R16_UINT);
+            break;
+          case VK_FORMAT_R16_SSCALED:
+            EXPECT_EQ(formatOut, VK_FORMAT_R16_SINT);
+            break;
+          case VK_FORMAT_R16G16_USCALED:
+            EXPECT_EQ(formatOut, VK_FORMAT_R16G16_UINT);
+            break;
+          case VK_FORMAT_R16G16_SSCALED:
+            EXPECT_EQ(formatOut, VK_FORMAT_R16G16_SINT);
+            break;
+          case VK_FORMAT_R16G16B16_USCALED:
+            EXPECT_EQ(formatOut, VK_FORMAT_R16G16B16_UINT);
+            break;
+          case VK_FORMAT_R16G16B16_SSCALED:
+            EXPECT_EQ(formatOut, VK_FORMAT_R16G16B16_SINT);
+            break;
+          case VK_FORMAT_R16G16B16A16_USCALED:
+            EXPECT_EQ(formatOut, VK_FORMAT_R16G16B16A16_UINT);
+            break;
+          case VK_FORMAT_R16G16B16A16_SSCALED:
+            EXPECT_EQ(formatOut, VK_FORMAT_R16G16B16A16_SINT);
+            break;
+          case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
+            EXPECT_EQ(formatOut, VK_FORMAT_R8G8B8A8_UNORM);
+            break;
+          case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
+            EXPECT_EQ(formatOut, VK_FORMAT_R8G8B8A8_SNORM);
+            break;
+          //case VK_FORMAT_G8B8G8R8_422_UNORM: [[fallthrough]];
+          //case VK_FORMAT_B8G8R8G8_422_UNORM: [[fallthrough]];
+          //case VK_FORMAT_R10X6_UNORM_PACK16: [[fallthrough]];
+          //case VK_FORMAT_R10X6G10X6_UNORM_2PACK16: [[fallthrough]];
+          //case VK_FORMAT_R10X6G10X6B10X6A10X6_UNORM_4PACK16: [[fallthrough]];
+          //case VK_FORMAT_G10X6B10X6G10X6R10X6_422_UNORM_4PACK16: [[fallthrough]];
+          //case VK_FORMAT_B10X6G10X6R10X6G10X6_422_UNORM_4PACK16: [[fallthrough]];
+          //case VK_FORMAT_R12X4_UNORM_PACK16: [[fallthrough]];
+          //case VK_FORMAT_R12X4G12X4_UNORM_2PACK16: [[fallthrough]];
+          //case VK_FORMAT_R12X4G12X4B12X4A12X4_UNORM_4PACK16: [[fallthrough]];
+          //case VK_FORMAT_G12X4B12X4G12X4R12X4_422_UNORM_4PACK16: [[fallthrough]];
+          //case VK_FORMAT_B12X4G12X4R12X4G12X4_422_UNORM_4PACK16: [[fallthrough]];
+          //case VK_FORMAT_G16B16G16R16_422_UNORM: [[fallthrough]];
+          //case VK_FORMAT_B16G16R16G16_422_UNORM: [[fallthrough]];
+          //case VK_FORMAT_A4R4G4B4_UNORM_PACK16: [[fallthrough]];
+          //case VK_FORMAT_A4B4G4R4_UNORM_PACK16: [[fallthrough]];
+          case VK_FORMAT_R16G16_S10_5_NV: // SHOULD BE SUPPORTED. Currently returns 78 VK_FORMAT_R16G16_SNORM
+          //case VK_FORMAT_A8_UNORM_KHR: // SHOULD BE SUPPORTED. Currently returns 37 VK_FORMAT_R8G8B8A8_UNORM
+            // These formats currently unsupported. Should they be?
+            //EXPECT_EQ(formatOut, VK_FORMAT_UNDEFINED);
+            break;
+         default:
+            EXPECT_EQ(formatOut, formats[i]);
+        }
         free(dfd);
     }
 }
