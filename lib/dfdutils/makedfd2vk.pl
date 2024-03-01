@@ -220,7 +220,7 @@ sub checkSuffices {
     my $packSuffix = shift(@_);
     my $indentDepth = shift(@_);
 
-    $indent = ' ' x ($indentDepth);
+    $indent = ' ' x $indentDepth;
 
     # Only output tests for formats that exist.
     # Simplify things by picking off sRGB and float (always signed for unpacked) first.
