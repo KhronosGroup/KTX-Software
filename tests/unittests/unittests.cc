@@ -812,28 +812,7 @@ TEST_F(DFDVkFormatListTest, BidirectionalVk2DfDTest) {
           case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
             EXPECT_EQ(formatOut, VK_FORMAT_R8G8B8A8_SNORM);
             break;
-          //case VK_FORMAT_G8B8G8R8_422_UNORM: [[fallthrough]];
-          //case VK_FORMAT_B8G8R8G8_422_UNORM: [[fallthrough]];
-          //case VK_FORMAT_R10X6_UNORM_PACK16: [[fallthrough]];
-          //case VK_FORMAT_R10X6G10X6_UNORM_2PACK16: [[fallthrough]];
-          //case VK_FORMAT_R10X6G10X6B10X6A10X6_UNORM_4PACK16: [[fallthrough]];
-          //case VK_FORMAT_G10X6B10X6G10X6R10X6_422_UNORM_4PACK16: [[fallthrough]];
-          //case VK_FORMAT_B10X6G10X6R10X6G10X6_422_UNORM_4PACK16: [[fallthrough]];
-          //case VK_FORMAT_R12X4_UNORM_PACK16: [[fallthrough]];
-          //case VK_FORMAT_R12X4G12X4_UNORM_2PACK16: [[fallthrough]];
-          //case VK_FORMAT_R12X4G12X4B12X4A12X4_UNORM_4PACK16: [[fallthrough]];
-          //case VK_FORMAT_G12X4B12X4G12X4R12X4_422_UNORM_4PACK16: [[fallthrough]];
-          //case VK_FORMAT_B12X4G12X4R12X4G12X4_422_UNORM_4PACK16: [[fallthrough]];
-          //case VK_FORMAT_G16B16G16R16_422_UNORM: [[fallthrough]];
-          //case VK_FORMAT_B16G16R16G16_422_UNORM: [[fallthrough]];
-          //case VK_FORMAT_A4R4G4B4_UNORM_PACK16: [[fallthrough]];
-          //case VK_FORMAT_A4B4G4R4_UNORM_PACK16: [[fallthrough]];
-          case VK_FORMAT_R16G16_S10_5_NV: // SHOULD BE SUPPORTED. Currently returns 78 VK_FORMAT_R16G16_SNORM
-          //case VK_FORMAT_A8_UNORM_KHR: // SHOULD BE SUPPORTED. Currently returns 37 VK_FORMAT_R8G8B8A8_UNORM
-            // These formats currently unsupported. Should they be?
-            //EXPECT_EQ(formatOut, VK_FORMAT_UNDEFINED);
-            break;
-         default:
+          default:
             EXPECT_EQ(formatOut, formats[i]);
         }
         free(dfd);

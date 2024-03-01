@@ -151,6 +151,8 @@ if (KHR_DFDVAL(dfd + 1, MODEL) == KHR_DF_MODEL_RGBSDA || KHR_DFDVAL(dfd + 1, MOD
             if (!(r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_B8G8R8_SINT;
           }
         } else if (G.size > 0) { /* 2 channels */
+          if ((r & i_FIXED_FORMAT_BIT) && R.size == 2 && G.size == 2)
+            return  VK_FORMAT_R16G16_S10_5_NV;
             if ((r & i_SRGB_FORMAT_BIT)) return VK_FORMAT_R8G8_SRGB;
             if ((r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R8G8_UNORM;
             if ((r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R8G8_SNORM;
@@ -183,6 +185,8 @@ if (KHR_DFDVAL(dfd + 1, MODEL) == KHR_DF_MODEL_RGBSDA || KHR_DFDVAL(dfd + 1, MOD
           } else { /* BGR */
           }
         } else if (G.size > 0) { /* 2 channels */
+          if ((r & i_FIXED_FORMAT_BIT) && R.size == 2 && G.size == 2)
+            return  VK_FORMAT_R16G16_S10_5_NV;
             if ((r & i_FLOAT_FORMAT_BIT)) return VK_FORMAT_R16G16_SFLOAT;
             if ((r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R16G16_UNORM;
             if ((r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R16G16_SNORM;
@@ -211,6 +215,8 @@ if (KHR_DFDVAL(dfd + 1, MODEL) == KHR_DF_MODEL_RGBSDA || KHR_DFDVAL(dfd + 1, MOD
           } else { /* BGR */
           }
         } else if (G.size > 0) { /* 2 channels */
+          if ((r & i_FIXED_FORMAT_BIT) && R.size == 2 && G.size == 2)
+            return  VK_FORMAT_R16G16_S10_5_NV;
             if ((r & i_FLOAT_FORMAT_BIT)) return VK_FORMAT_R32G32_SFLOAT;
             if (!(r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R32G32_UINT;
             if (!(r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R32G32_SINT;
@@ -235,6 +241,8 @@ if (KHR_DFDVAL(dfd + 1, MODEL) == KHR_DF_MODEL_RGBSDA || KHR_DFDVAL(dfd + 1, MOD
           } else { /* BGR */
           }
         } else if (G.size > 0) { /* 2 channels */
+          if ((r & i_FIXED_FORMAT_BIT) && R.size == 2 && G.size == 2)
+            return  VK_FORMAT_R16G16_S10_5_NV;
             if ((r & i_FLOAT_FORMAT_BIT)) return VK_FORMAT_R64G64_SFLOAT;
             if (!(r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R64G64_UINT;
             if (!(r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R64G64_SINT;

@@ -379,7 +379,6 @@ print $yuvDecode;
 for ($byteSize = 1; $byteSize <= 8; $byteSize <<= 1) {
     if ($byteSize == 1) {
         print "      if (wordBytes == $byteSize) {\n";
-
         # Handle the single alpha-only format (unfortunately, the rest of the script could not handle this)
         print "        if (A.size == 1 && R.size == 0 && G.size == 0 && B.size == 0 && (r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) {\n";
         print "            return VK_FORMAT_A8_UNORM_KHR;\n";
@@ -401,6 +400,10 @@ for ($byteSize = 1; $byteSize <= 8; $byteSize <<= 1) {
     checkSuffices("B" . 8 * $byteSize . "G" . 8 * $byteSize . "R" . 8 * $byteSize, "");
     print "          }\n";
     print "        } else if (G.size > 0) { /* 2 channels */\n";
+       # Handle VK_FORMAT_R16G16_S10_5_NV. Non-standard naming means
+       # checkSuffices can't handle it.
+    print "          if ((r & i_FIXED_FORMAT_BIT) && R.size == 2 && G.size == 2)\n";
+    print "            return  VK_FORMAT_R16G16_S10_5_NV;\n";
     checkSuffices("R" . 8 * $byteSize . "G" . 8 * $byteSize, "");
     print "        } else { /* 1 channel */\n"; # Red only
     checkSuffices("R" . 8 * $byteSize, "");
