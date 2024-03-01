@@ -510,6 +510,7 @@ private:
     template <typename TYPE>
     static uint32_t getPackedElement(const ImageCodec* codec, const void* ptr, uint32_t index) {
         static_assert(std::is_unsigned_v<TYPE>);
+        (void)codec; // silences unused parameter warnings in release builds
         assert(sizeof(TYPE) == codec->getPackedElementByteSize());
         auto data = reinterpret_cast<const TYPE*>(ptr);
         return data[index];
@@ -651,7 +652,7 @@ private:
         glm::uvec4 result(0, 0, 0, 0);
         for (std::size_t i = 0; i < codec->packedSampleInfo.size(); ++i) {
             const auto& info = codec->packedSampleInfo[i];
-            result[i] = (data[info.elementIndex] >> info.bitOffset) & ((1u << info.bitLength) - 1u);
+            result[static_cast<glm::length_t>(i)] = (data[info.elementIndex] >> info.bitOffset) & ((1u << info.bitLength) - 1u);
         }
         return result;
     }
@@ -665,7 +666,7 @@ private:
             const auto& info = codec->packedSampleInfo[i];
             const auto upper = static_cast<float>((1u << info.bitLength) - 1u);
             uint32_t rawValue = (data[info.elementIndex] >> info.bitOffset) & ((1u << info.bitLength) - 1u);
-            result[i] = static_cast<float>(rawValue) / upper;
+            result[static_cast<glm::length_t>(i)] = static_cast<float>(rawValue) / upper;
         }
         return result;
     }
@@ -678,7 +679,7 @@ private:
         for (std::size_t i = 0; i < codec->packedSampleInfo.size(); ++i) {
             const auto& info = codec->packedSampleInfo[i];
             uint32_t rawValue = (data[info.elementIndex] >> info.bitOffset) & ((1u << info.bitLength) - 1u);
-            result[i] = imageio::sign_extend(rawValue, info.bitLength);
+            result[static_cast<glm::length_t>(i)] = imageio::sign_extend(rawValue, info.bitLength);
         }
         return result;
     }
@@ -692,7 +693,7 @@ private:
             const auto& info = codec->packedSampleInfo[i];
             const auto upper = static_cast<float>((1u << (info.bitLength - 1)) - 1u);
             uint32_t rawValue = (data[info.elementIndex] >> info.bitOffset) & ((1u << info.bitLength) - 1u);
-            result[i] = static_cast<float>(imageio::sign_extend(rawValue, info.bitLength)) / upper;
+            result[static_cast<glm::length_t>(i)] = static_cast<float>(imageio::sign_extend(rawValue, info.bitLength)) / upper;
         }
         return result;
     }
