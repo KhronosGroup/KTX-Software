@@ -52,10 +52,10 @@ struct FormatDescriptor {
     /// @internal
     /// @brief Basic descriptor.
     struct basicDescriptor {
-        khr_df_model_e model: 8;
-        khr_df_primaries_e primaries: 8;
-        khr_df_transfer_e transfer: 8;
-        khr_df_flags_e flags: 8;
+        uint32_t model: 8;
+        uint32_t primaries: 8;
+        uint32_t transfer: 8;
+        uint32_t flags: 8;
         uint32_t texelBlockDimension0: 8;
         uint32_t texelBlockDimension1: 8;
         uint32_t texelBlockDimension2: 8;
@@ -550,7 +550,7 @@ struct FormatDescriptor {
         basic.primaries = p;
     }
     void setTransfer(khr_df_transfer_e t) {
-        khr_df_transfer_e oldOetf = basic.transfer;
+        khr_df_transfer_e oldOetf = static_cast<khr_df_transfer_e>(basic.transfer);
         basic.transfer = t;
         if ((oldOetf <= KHR_DF_TRANSFER_LINEAR) != (t <= KHR_DF_TRANSFER_LINEAR))
         {
@@ -672,7 +672,9 @@ struct FormatDescriptor {
             samples.push_back(sample(s, channelBitLength,
                                      s * channelBitLength,
                                      sampleLower, sampleUpper,
-                                     dt, basic.transfer, basic.model));
+                                     dt,
+                                     static_cast<khr_df_transfer_e>(basic.transfer),
+                                     static_cast<khr_df_model_e>(basic.model)));
         }
         if (basic.model == KHR_DF_MODEL_YUVSDA && channelCount == 2) {
             samples[1].channelType = KHR_DF_CHANNEL_YUVSDA_ALPHA;
