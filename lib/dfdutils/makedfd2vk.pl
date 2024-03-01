@@ -218,32 +218,29 @@ while ($line = <$input>) {
 sub checkSuffices {
     my $formatPrefix = shift(@_);
     my $packSuffix = shift(@_);
+    my $indentDepth = shift(@_);
+
+    $indent = ' ' x ($indentDepth);
 
     # Only output tests for formats that exist.
     # Simplify things by picking off sRGB and float (always signed for unpacked) first.
     if (exists($foundFormats{"VK_FORMAT_" . $formatPrefix . "_SRGB" . $packSuffix})) {
-        if ($packSuffix eq "") { print "  "; }
-        print "          if ((r & i_SRGB_FORMAT_BIT)) return VK_FORMAT_" . $formatPrefix . "_SRGB" . $packSuffix . ";\n";
+        print $indent . "if ((r & i_SRGB_FORMAT_BIT)) return VK_FORMAT_" . $formatPrefix . "_SRGB" . $packSuffix . ";\n";
     }
     if (exists($foundFormats{"VK_FORMAT_" . $formatPrefix . "_SFLOAT" . $packSuffix})) {
-        if ($packSuffix eq "") { print "  "; }
-        print "          if ((r & i_FLOAT_FORMAT_BIT)) return VK_FORMAT_" . $formatPrefix . "_SFLOAT" . $packSuffix . ";\n";
+        print $indent . "if ((r & i_FLOAT_FORMAT_BIT)) return VK_FORMAT_" . $formatPrefix . "_SFLOAT" . $packSuffix . ";\n";
     }
     if (exists($foundFormats{"VK_FORMAT_" . $formatPrefix . "_UNORM" . $packSuffix})) {
-        if ($packSuffix eq "") { print "  "; }
-        print "          if ((r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_" . $formatPrefix . "_UNORM" . $packSuffix . ";\n";
+        print $indent . "if ((r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_" . $formatPrefix . "_UNORM" . $packSuffix . ";\n";
     }
     if (exists($foundFormats{"VK_FORMAT_" . $formatPrefix . "_SNORM" . $packSuffix})) {
-        if ($packSuffix eq "") { print "  "; }
-        print "          if ((r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_" . $formatPrefix . "_SNORM" . $packSuffix . ";\n";
+        print $indent . "if ((r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_" . $formatPrefix . "_SNORM" . $packSuffix . ";\n";
     }
     if (exists($foundFormats{"VK_FORMAT_" . $formatPrefix . "_UINT" . $packSuffix})) {
-        if ($packSuffix eq "") { print "  "; }
-        print "          if (!(r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_" . $formatPrefix . "_UINT" . $packSuffix . ";\n";
+        print $indent . "if (!(r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_" . $formatPrefix . "_UINT" . $packSuffix . ";\n";
     }
     if (exists($foundFormats{"VK_FORMAT_" . $formatPrefix . "_SINT" . $packSuffix})) {
-        if ($packSuffix eq "") { print "  "; }
-        print "          if (!(r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_" . $formatPrefix . "_SINT" . $packSuffix . ";\n";
+        print $indent . "if (!(r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_" . $formatPrefix . "_SINT" . $packSuffix . ";\n";
     }
     # N.B. Drop through if the VKFORMAT doesn't exist.
 }
@@ -322,11 +319,11 @@ END_PACKED
 print $packedDecode;
 
 print "      if (A.size == 8) {\n";
-checkSuffices("A8B8G8R8", "_PACK32");
+checkSuffices("A8B8G8R8", "_PACK32", 8);
 print "      } else if (A.size == 2 && B.offset == 0) {\n";
-checkSuffices("A2R10G10B10", "_PACK32");
+checkSuffices("A2R10G10B10", "_PACK32", 8);
 print "      } else if (A.size == 2 && R.offset == 0) {\n";
-checkSuffices("A2B10G10R10", "_PACK32");
+checkSuffices("A2B10G10R10", "_PACK32", 8);
 print "      } else if (R.size == 11) {\n";
 print "          return VK_FORMAT_B10G11R11_UFLOAT_PACK32;\n";
 print "      } else if (R.size == 10 && G.size == 10 && B.size == 0) { \n";
@@ -383,30 +380,31 @@ for ($byteSize = 1; $byteSize <= 8; $byteSize <<= 1) {
         print "        if (A.size == 1 && R.size == 0 && G.size == 0 && B.size == 0 && (r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) {\n";
         print "            return VK_FORMAT_A8_UNORM_KHR;\n";
         print "        }\n";
+    } elsif ($byteSize == 2) {
+        print "      } else if (wordBytes == $byteSize) {\n";
+        # Handle VK_FORMAT_R16G16_S10_5_NV. Non-standard naming means
+        # checkSuffices can't handle it.
+        print "        if ((r & i_FIXED_FORMAT_BIT) && R.size == 2 && G.size == 2)  return  VK_FORMAT_R16G16_S10_5_NV;\n";
     } else {
         print "      } else if (wordBytes == $byteSize) {\n";
     }
     # If we have an alpha channel...
     print "        if (A.size > 0) { /* 4 channels */\n";
     print "          if (R.offset == 0) { /* RGBA */\n";
-    checkSuffices("R" . 8 * $byteSize . "G" . 8 * $byteSize . "B" . 8 * $byteSize . "A" . 8 * $byteSize, "");
+    checkSuffices("R" . 8 * $byteSize . "G" . 8 * $byteSize . "B" . 8 * $byteSize . "A" . 8 * $byteSize, "", 12);
     print "          } else { /* BGRA */\n";
-    checkSuffices("B" . 8 * $byteSize . "G" . 8 * $byteSize . "R" . 8 * $byteSize . "A" . 8 * $byteSize, "");
+    checkSuffices("B" . 8 * $byteSize . "G" . 8 * $byteSize . "R" . 8 * $byteSize . "A" . 8 * $byteSize, "", 12);
     print "          }\n";
     print "        } else if (B.size > 0) { /* 3 channels */\n";
     print "          if (R.offset == 0) { /* RGB */\n";
-    checkSuffices("R" . 8 * $byteSize . "G" . 8 * $byteSize . "B" . 8 * $byteSize, "");
+    checkSuffices("R" . 8 * $byteSize . "G" . 8 * $byteSize . "B" . 8 * $byteSize, "", 12);
     print "          } else { /* BGR */\n";
-    checkSuffices("B" . 8 * $byteSize . "G" . 8 * $byteSize . "R" . 8 * $byteSize, "");
+    checkSuffices("B" . 8 * $byteSize . "G" . 8 * $byteSize . "R" . 8 * $byteSize, "", 12);
     print "          }\n";
     print "        } else if (G.size > 0) { /* 2 channels */\n";
-       # Handle VK_FORMAT_R16G16_S10_5_NV. Non-standard naming means
-       # checkSuffices can't handle it.
-    print "          if ((r & i_FIXED_FORMAT_BIT) && R.size == 2 && G.size == 2)\n";
-    print "            return  VK_FORMAT_R16G16_S10_5_NV;\n";
-    checkSuffices("R" . 8 * $byteSize . "G" . 8 * $byteSize, "");
+    checkSuffices("R" . 8 * $byteSize . "G" . 8 * $byteSize, "", 10);
     print "        } else { /* 1 channel */\n"; # Red only
-    checkSuffices("R" . 8 * $byteSize, "");
+    checkSuffices("R" . 8 * $byteSize, "", 10);
     print "        }\n";
 }
 print "      }\n";

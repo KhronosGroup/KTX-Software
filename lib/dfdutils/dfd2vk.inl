@@ -65,21 +65,21 @@ if (KHR_DFDVAL(dfd + 1, MODEL) == KHR_DF_MODEL_RGBSDA || KHR_DFDVAL(dfd + 1, MOD
       }
     } else if (wordBytes == 4) { /* PACK32 or 2PACK16 */
       if (A.size == 8) {
-          if ((r & i_SRGB_FORMAT_BIT)) return VK_FORMAT_A8B8G8R8_SRGB_PACK32;
-          if ((r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_A8B8G8R8_UNORM_PACK32;
-          if ((r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_A8B8G8R8_SNORM_PACK32;
-          if (!(r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_A8B8G8R8_UINT_PACK32;
-          if (!(r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_A8B8G8R8_SINT_PACK32;
+        if ((r & i_SRGB_FORMAT_BIT)) return VK_FORMAT_A8B8G8R8_SRGB_PACK32;
+        if ((r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_A8B8G8R8_UNORM_PACK32;
+        if ((r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_A8B8G8R8_SNORM_PACK32;
+        if (!(r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_A8B8G8R8_UINT_PACK32;
+        if (!(r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_A8B8G8R8_SINT_PACK32;
       } else if (A.size == 2 && B.offset == 0) {
-          if ((r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_A2R10G10B10_UNORM_PACK32;
-          if ((r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_A2R10G10B10_SNORM_PACK32;
-          if (!(r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_A2R10G10B10_UINT_PACK32;
-          if (!(r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_A2R10G10B10_SINT_PACK32;
+        if ((r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_A2R10G10B10_UNORM_PACK32;
+        if ((r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_A2R10G10B10_SNORM_PACK32;
+        if (!(r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_A2R10G10B10_UINT_PACK32;
+        if (!(r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_A2R10G10B10_SINT_PACK32;
       } else if (A.size == 2 && R.offset == 0) {
-          if ((r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_A2B10G10R10_UNORM_PACK32;
-          if ((r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_A2B10G10R10_SNORM_PACK32;
-          if (!(r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_A2B10G10R10_UINT_PACK32;
-          if (!(r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_A2B10G10R10_SINT_PACK32;
+        if ((r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_A2B10G10R10_UNORM_PACK32;
+        if ((r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_A2B10G10R10_SNORM_PACK32;
+        if (!(r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_A2B10G10R10_UINT_PACK32;
+        if (!(r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_A2B10G10R10_SINT_PACK32;
       } else if (R.size == 11) {
           return VK_FORMAT_B10G11R11_UFLOAT_PACK32;
       } else if (R.size == 10 && G.size == 10 && B.size == 0) { 
@@ -151,21 +151,20 @@ if (KHR_DFDVAL(dfd + 1, MODEL) == KHR_DF_MODEL_RGBSDA || KHR_DFDVAL(dfd + 1, MOD
             if (!(r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_B8G8R8_SINT;
           }
         } else if (G.size > 0) { /* 2 channels */
-          if ((r & i_FIXED_FORMAT_BIT) && R.size == 2 && G.size == 2)
-            return  VK_FORMAT_R16G16_S10_5_NV;
-            if ((r & i_SRGB_FORMAT_BIT)) return VK_FORMAT_R8G8_SRGB;
-            if ((r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R8G8_UNORM;
-            if ((r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R8G8_SNORM;
-            if (!(r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R8G8_UINT;
-            if (!(r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R8G8_SINT;
+          if ((r & i_SRGB_FORMAT_BIT)) return VK_FORMAT_R8G8_SRGB;
+          if ((r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R8G8_UNORM;
+          if ((r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R8G8_SNORM;
+          if (!(r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R8G8_UINT;
+          if (!(r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R8G8_SINT;
         } else { /* 1 channel */
-            if ((r & i_SRGB_FORMAT_BIT)) return VK_FORMAT_R8_SRGB;
-            if ((r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R8_UNORM;
-            if ((r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R8_SNORM;
-            if (!(r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R8_UINT;
-            if (!(r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R8_SINT;
+          if ((r & i_SRGB_FORMAT_BIT)) return VK_FORMAT_R8_SRGB;
+          if ((r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R8_UNORM;
+          if ((r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R8_SNORM;
+          if (!(r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R8_UINT;
+          if (!(r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R8_SINT;
         }
       } else if (wordBytes == 2) {
+        if ((r & i_FIXED_FORMAT_BIT) && R.size == 2 && G.size == 2)  return  VK_FORMAT_R16G16_S10_5_NV;
         if (A.size > 0) { /* 4 channels */
           if (R.offset == 0) { /* RGBA */
             if ((r & i_FLOAT_FORMAT_BIT)) return VK_FORMAT_R16G16B16A16_SFLOAT;
@@ -185,19 +184,17 @@ if (KHR_DFDVAL(dfd + 1, MODEL) == KHR_DF_MODEL_RGBSDA || KHR_DFDVAL(dfd + 1, MOD
           } else { /* BGR */
           }
         } else if (G.size > 0) { /* 2 channels */
-          if ((r & i_FIXED_FORMAT_BIT) && R.size == 2 && G.size == 2)
-            return  VK_FORMAT_R16G16_S10_5_NV;
-            if ((r & i_FLOAT_FORMAT_BIT)) return VK_FORMAT_R16G16_SFLOAT;
-            if ((r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R16G16_UNORM;
-            if ((r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R16G16_SNORM;
-            if (!(r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R16G16_UINT;
-            if (!(r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R16G16_SINT;
+          if ((r & i_FLOAT_FORMAT_BIT)) return VK_FORMAT_R16G16_SFLOAT;
+          if ((r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R16G16_UNORM;
+          if ((r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R16G16_SNORM;
+          if (!(r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R16G16_UINT;
+          if (!(r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R16G16_SINT;
         } else { /* 1 channel */
-            if ((r & i_FLOAT_FORMAT_BIT)) return VK_FORMAT_R16_SFLOAT;
-            if ((r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R16_UNORM;
-            if ((r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R16_SNORM;
-            if (!(r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R16_UINT;
-            if (!(r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R16_SINT;
+          if ((r & i_FLOAT_FORMAT_BIT)) return VK_FORMAT_R16_SFLOAT;
+          if ((r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R16_UNORM;
+          if ((r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R16_SNORM;
+          if (!(r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R16_UINT;
+          if (!(r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R16_SINT;
         }
       } else if (wordBytes == 4) {
         if (A.size > 0) { /* 4 channels */
@@ -215,15 +212,13 @@ if (KHR_DFDVAL(dfd + 1, MODEL) == KHR_DF_MODEL_RGBSDA || KHR_DFDVAL(dfd + 1, MOD
           } else { /* BGR */
           }
         } else if (G.size > 0) { /* 2 channels */
-          if ((r & i_FIXED_FORMAT_BIT) && R.size == 2 && G.size == 2)
-            return  VK_FORMAT_R16G16_S10_5_NV;
-            if ((r & i_FLOAT_FORMAT_BIT)) return VK_FORMAT_R32G32_SFLOAT;
-            if (!(r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R32G32_UINT;
-            if (!(r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R32G32_SINT;
+          if ((r & i_FLOAT_FORMAT_BIT)) return VK_FORMAT_R32G32_SFLOAT;
+          if (!(r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R32G32_UINT;
+          if (!(r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R32G32_SINT;
         } else { /* 1 channel */
-            if ((r & i_FLOAT_FORMAT_BIT)) return VK_FORMAT_R32_SFLOAT;
-            if (!(r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R32_UINT;
-            if (!(r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R32_SINT;
+          if ((r & i_FLOAT_FORMAT_BIT)) return VK_FORMAT_R32_SFLOAT;
+          if (!(r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R32_UINT;
+          if (!(r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R32_SINT;
         }
       } else if (wordBytes == 8) {
         if (A.size > 0) { /* 4 channels */
@@ -241,15 +236,13 @@ if (KHR_DFDVAL(dfd + 1, MODEL) == KHR_DF_MODEL_RGBSDA || KHR_DFDVAL(dfd + 1, MOD
           } else { /* BGR */
           }
         } else if (G.size > 0) { /* 2 channels */
-          if ((r & i_FIXED_FORMAT_BIT) && R.size == 2 && G.size == 2)
-            return  VK_FORMAT_R16G16_S10_5_NV;
-            if ((r & i_FLOAT_FORMAT_BIT)) return VK_FORMAT_R64G64_SFLOAT;
-            if (!(r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R64G64_UINT;
-            if (!(r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R64G64_SINT;
+          if ((r & i_FLOAT_FORMAT_BIT)) return VK_FORMAT_R64G64_SFLOAT;
+          if (!(r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R64G64_UINT;
+          if (!(r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R64G64_SINT;
         } else { /* 1 channel */
-            if ((r & i_FLOAT_FORMAT_BIT)) return VK_FORMAT_R64_SFLOAT;
-            if (!(r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R64_UINT;
-            if (!(r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R64_SINT;
+          if ((r & i_FLOAT_FORMAT_BIT)) return VK_FORMAT_R64_SFLOAT;
+          if (!(r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R64_UINT;
+          if (!(r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R64_SINT;
         }
       }
     }
