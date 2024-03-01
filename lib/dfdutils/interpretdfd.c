@@ -129,13 +129,6 @@ enum InterpretDFDResult interpretDFD(const uint32_t *DFD,
         // (i.e. set to the maximum bit value, and check min value) on
         // the assumption that we're looking at a format which *came* from
         // an API we can support.
-#if 0
-        const bool isNormalized = isFloat ?
-                *(float*) (void*) &BDFDB[KHR_DF_WORD_SAMPLESTART +
-                    KHR_DF_WORD_SAMPLEWORDS * i +
-                    KHR_DF_SAMPLEWORD_SAMPLEUPPER] != 1.0f :
-                KHR_DFDSVAL(BDFDB, i, SAMPLEUPPER) != 1U;
-#else
         bool isFixed;
         bool isNormalized;
         if (isFloat) {
@@ -143,13 +136,6 @@ enum InterpretDFDResult interpretDFD(const uint32_t *DFD,
                     KHR_DF_WORD_SAMPLEWORDS * i +
                     KHR_DF_SAMPLEWORD_SAMPLEUPPER] != 1.0f;
             isFixed = false;
-//        } else if (isSigned) {
-//
-//             int32_t maxVal = (1U << KHR_DFDSVAL(BDFDB, i, BITLENGTH);
-//             int32_t minVal = -maxPosVal;
-//             isNormalized = KHR_DFDSVAL(BDFDB, i, SAMPLELOWER) == minVal
-//                            && KHR_DFDSVAL(BDFDB, i, SAMPLEUPPER) == maxVal;
-//
         } else {
             uint32_t sampleUpper = KHR_DFDSVAL(BDFDB, i, SAMPLEUPPER);
             uint32_t maxVal = 1U << KHR_DFDSVAL(BDFDB, i, BITLENGTH);
@@ -158,7 +144,6 @@ enum InterpretDFDResult interpretDFD(const uint32_t *DFD,
             isFixed = 1U < sampleUpper && sampleUpper < maxVal;
             isNormalized = !isFixed && sampleUpper != 1U;
         }
-#endif
         hasSigned |= isSigned;
         hasFixed |= isFixed;
         hasFloat |= isFloat;
