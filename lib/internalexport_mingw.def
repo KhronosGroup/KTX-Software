@@ -22,7 +22,6 @@ EXPORTS
     createDFDDepthStencil
     createDFDUnpacked
     createDFDPacked
-    dfd2vk
     findMapping
     getPrimaries
     interpretDFD
