@@ -547,7 +547,7 @@ void CommandExtract::unpackAndSave422(std::string filepath, bool appendExtension
         const char* data, std::size_t size) {
     (void) vkFormat;
 
-    assert(format.basic.model == KHR_DF_MODEL_YUVSDA);
+    assert(format.model() == KHR_DF_MODEL_YUVSDA);
     assert(format.find(KHR_DF_CHANNEL_YUVSDA_Y));
     // Create a custom format with the same precision but with only 3 channels
     // Reuse similar 4 channel VkFormats and drop the last channel (There is no RGB variant of 10X6 and 12X4)
