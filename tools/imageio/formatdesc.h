@@ -52,10 +52,10 @@ struct FormatDescriptor {
     /// @internal
     /// @brief Basic descriptor.
     struct basicDescriptor {
-        uint32_t model: 8;
-        uint32_t primaries: 8;
-        uint32_t transfer: 8;
-        uint32_t flags: 8;
+        uint32_t colorModel: 8;
+        uint32_t colorPrimaries: 8;
+        uint32_t transferFunction: 8;
+        uint32_t dataFlags: 8;
         uint32_t texelBlockDimension0: 8;
         uint32_t texelBlockDimension1: 8;
         uint32_t texelBlockDimension2: 8;
@@ -80,10 +80,10 @@ struct FormatDescriptor {
                         khr_df_primaries_e p = KHR_DF_PRIMARIES_BT709,
                         khr_df_model_e m = KHR_DF_MODEL_RGBSDA,
                         khr_df_flags_e f = KHR_DF_FLAG_ALPHA_STRAIGHT) {
-            model = m;
-            primaries = p;
-            transfer = t;
-            flags = f;
+            colorModel = m;
+            colorPrimaries = p;
+            transferFunction = t;
+            dataFlags = f;
             texelBlockDimension0 = 0; // Uncompressed means only 1x1x1x1 blocks.
             texelBlockDimension1 = 0;
             texelBlockDimension2 = 0;
@@ -103,6 +103,19 @@ struct FormatDescriptor {
         }
         bool operator!=(const basicDescriptor& rhs) const {
             return !(*this == rhs);
+        }
+
+        khr_df_model_e model() const noexcept {
+            return static_cast<khr_df_model_e>(colorModel);
+        }
+        khr_df_primaries_e primaries() const noexcept {
+            return static_cast<khr_df_primaries_e>(colorPrimaries);
+        }
+        khr_df_transfer_e transfer() const noexcept {
+            return static_cast<khr_df_transfer_e>(transferFunction);
+        }
+        khr_df_flags_e flags() const noexcept {
+            return static_cast<khr_df_flags_e>(dataFlags);
         }
     } basic;
 
@@ -523,16 +536,16 @@ struct FormatDescriptor {
     }
 
     khr_df_model_e model() const noexcept {
-        return static_cast<khr_df_model_e>(basic.model);
+        return basic.model();
     }
     khr_df_primaries_e primaries() const noexcept {
-        return static_cast<khr_df_primaries_e>(basic.primaries);
+        return basic.primaries();
     }
     khr_df_transfer_e transfer() const noexcept {
-        return static_cast<khr_df_transfer_e>(basic.transfer);
+        return basic.transfer();
     }
     khr_df_flags_e flags() const noexcept {
-        return static_cast<khr_df_flags_e>(basic.flags);
+        return basic.flags();
     }
     float oeGamma() const noexcept {
         return extended.oeGamma;
@@ -544,14 +557,14 @@ struct FormatDescriptor {
         return extended.iccProfile.profile;
     }
     void setModel(khr_df_model_e m) {
-        basic.model = m;
+        basic.colorModel = m;
     }
     void setPrimaries(khr_df_primaries_e p) {
-        basic.primaries = p;
+        basic.colorPrimaries = p;
     }
     void setTransfer(khr_df_transfer_e t) {
-        khr_df_transfer_e oldOetf = static_cast<khr_df_transfer_e>(basic.transfer);
-        basic.transfer = t;
+        khr_df_transfer_e oldOetf = static_cast<khr_df_transfer_e>(basic.transferFunction);
+        basic.transferFunction = t;
         if ((oldOetf <= KHR_DF_TRANSFER_LINEAR) != (t <= KHR_DF_TRANSFER_LINEAR))
         {
             std::vector<sample>::iterator sit = samples.begin();
@@ -673,10 +686,10 @@ struct FormatDescriptor {
                                      s * channelBitLength,
                                      sampleLower, sampleUpper,
                                      dt,
-                                     static_cast<khr_df_transfer_e>(basic.transfer),
-                                     static_cast<khr_df_model_e>(basic.model)));
+                                     basic.transfer(),
+                                     basic.model()));
         }
-        if (basic.model == KHR_DF_MODEL_YUVSDA && channelCount == 2) {
+        if (basic.model() == KHR_DF_MODEL_YUVSDA && channelCount == 2) {
             samples[1].channelType = KHR_DF_CHANNEL_YUVSDA_ALPHA;
         }
         extended.channelCount = channelCount;

@@ -8,7 +8,7 @@
 //!
 //! @internal
 //! @~English
-//! @file imageiter.hpp
+//! @file imagespan.hpp
 //!
 //! @brief Internal Image Span container and iterator classes
 //!

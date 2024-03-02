@@ -522,6 +522,7 @@ struct OptionsCreate {
         }
 
         if (formatDesc.transfer() == KHR_DF_TRANSFER_SRGB) {
+            const auto error_message = "Invalid value to --{} \"{}\" for format \"{}\". Transfer function must be sRGB for sRGB formats.";
             if (!convertOETF.has_value() && assignOETF.has_value()) {
                 switch (assignOETF.value()) {
                 case KHR_DF_TRANSFER_UNSPECIFIED:
@@ -529,26 +530,19 @@ struct OptionsCreate {
                     // assign-oetf must either not be specified or must be sRGB for an sRGB format
                     break;
                 default:
-                    report.fatal_usage(
-                            "Invalid value to --assign-oetf \"{}\" for format \"{}\". Transfer function must be sRGB for sRGB formats.",
-                            args[kAssignOetf].as<std::string>(), args[kFormat].as<std::string>());
+                    report.fatal_usage(error_message, "assign-oetf", args[kAssignOetf].as<std::string>(), args[kFormat].as<std::string>());
                 }
             } else if (convertOETF.has_value() && convertOETF != KHR_DF_TRANSFER_SRGB) {
-                report.fatal_usage(
-                        "Invalid value to --convert-oetf \"{}\" for format \"{}\". Transfer function must be sRGB for sRGB formats.",
-                        args[kConvertOetf].as<std::string>(), args[kFormat].as<std::string>());
+                report.fatal_usage(error_message, "convert-oetf", args[kConvertOetf].as<std::string>(), args[kFormat].as<std::string>());
             }
         }
 
         if (isFormatNotSRGBButHasSRGBVariant(vkFormat)) {
+            const auto error_message = "Invalid value to --{} \"{}\" for format \"{}\". Transfer function must not be sRGB for a non-sRGB VkFormat with sRGB variant.";
             if (!convertOETF.has_value() && assignOETF.has_value() && assignOETF == KHR_DF_TRANSFER_SRGB) {
-                report.fatal_usage(
-                        "Invalid value to --assign-oetf \"{}\" for format \"{}\". Transfer function must not be sRGB for a non-sRGB VkFormat with sRGB variant.",
-                        args[kAssignOetf].as<std::string>(), args[kFormat].as<std::string>());
+                report.fatal_usage(error_message, "assign-oetf", args[kAssignOetf].as<std::string>(), args[kFormat].as<std::string>());
             } else if (convertOETF.has_value() && convertOETF == KHR_DF_TRANSFER_SRGB) {
-                report.fatal_usage(
-                        "Invalid value to --convert-oetf \"{}\" for format \"{}\". Transfer function must not be sRGB for a non-sRGB VkFormat with sRGB variant.",
-                        args[kConvertOetf].as<std::string>(), args[kFormat].as<std::string>());
+                report.fatal_usage(error_message, "convert-oetf", args[kConvertOetf].as<std::string>(), args[kFormat].as<std::string>());
             }
         }
 
