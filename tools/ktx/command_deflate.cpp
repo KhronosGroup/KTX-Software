@@ -125,7 +125,9 @@ void CommandDeflate::OptionsDeflate::process(cxxopts::Options&,
     quiet = args[kQuiet].as<bool>();
     warningsAsErrors = args[kWarningsAsErrors].as<bool>();
     if (quiet && warningsAsErrors) {
-        report.fatal_usage("Cannot specify both --quiet and --warnings-as-errors");
+        report.fatal_usage("Cannot specify both --{} and --{}.",
+                           this->kQuiet, this->kWarningsAsErrors);
+//                            OptionsDeflate::kQuiet, OptionsDeflate::kWarningsAsErrors);
     }
 }
 
@@ -135,9 +137,6 @@ void CommandDeflate::initOptions(cxxopts::Options& opts) {
 
 void CommandDeflate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) {
     options.process(opts, args, *this);
-
-    if (!options.zlib.has_value() && !options.zstd.has_value())
-        fatal_usage("Must specify --zlib or --zstd");
 }
 
 void CommandDeflate::executeDeflate() {
