@@ -1740,7 +1740,7 @@ void CommandCompare::compareDFDBasic(PrintDiff& diff, uint32_t blockIndex,
         } else {
             diff << Diff({},
                 fmt::format("/dataFormatDescriptor/blocks/{}/samples/{}/bitLength", blockIndex, sampleIndex),
-                OPT_BITFIELDS(samples, bitLength + 1));
+                OPT_BITFIELDS(samples, bitLength));
             diff << Diff({},
                 fmt::format("/dataFormatDescriptor/blocks/{}/samples/{}/bitOffset", blockIndex, sampleIndex),
                 OPT_BITFIELDS(samples, bitOffset));
