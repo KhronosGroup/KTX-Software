@@ -123,6 +123,11 @@ public:
                 codec.decodeFLOAT = decodeFLOAT_B10G11R11;
                 break;
 
+            case VK_FORMAT_R16G16_S10_5_NV:
+                channels = 2;
+                codec.decodeFLOAT = decodeFLOAT_S10_5_NV<2>;
+                break;
+
             case VK_FORMAT_D16_UNORM_S8_UINT:
                 flags.isNormalized = true;
                 channels = 2;
@@ -596,6 +601,16 @@ private:
         glm::vec4 result(0.f, 0.f, 0.f, 1.f);
         for (int i = 0; i < COMPONENTS; ++i)
             result[i] = imageio::half_to_float(data[i]);
+        return result;
+    }
+
+    template <int COMPONENTS>
+    static glm::vec4 decodeFLOAT_S10_5_NV(const ImageCodec*, const void* ptr) {
+        static_assert((COMPONENTS > 0) && (COMPONENTS <= 4));
+        auto data = reinterpret_cast<const int16_t*>(ptr);
+        glm::vec4 result(0.f, 0.f, 0.f, 1.f);
+        for (int i = 0; i < COMPONENTS; ++i)
+            result[i] = data[i] / 32.f;
         return result;
     }
 
