@@ -1069,6 +1069,7 @@ endif()
 # this CMakeLists is included in another project which is unlikely
 # except for building the ktx library.
 if((KTX_FEATURE_TOOLS OR KTX_FEATURE_TESTS) AND NOT TARGET fmt::fmt)
+    set(FMT_INSTALL OFF)
     set(FMT_SYSTEM_HEADERS ON)
     add_subdirectory(other_projects/fmt)
 endif()
