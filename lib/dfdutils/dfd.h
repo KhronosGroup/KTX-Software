@@ -35,7 +35,7 @@ enum VkSuffix {
     s_SINT,    /*!< Signed integer format. */
     s_SFLOAT,  /*!< Signed float format. */
     s_UFLOAT,  /*!< Unsigned float format. */
-    s_SRGB,     /*!< sRGB normalized format. */
+    s_SRGB,    /*!< sRGB normalized format. */
     s_S10_5    /*!< 2's complement fixed-point; 5 fractional bits. */
 };
 
