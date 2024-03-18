@@ -7,7 +7,8 @@
 # registry, vk.xml, in the Vulkan-Docs repo.
 
 # NOTE: Since this must be explicitly included by setting an option,
-# require sought packages.
+# require sought packages. However, in order to give an informative
+# error, REQUIRED is not used in the find_* commands.
 #
 # CAUTION: Outputs of custom commands are deleted during a clean
 # operation so these targets result in clean deleting what are normally
@@ -51,7 +52,28 @@ set(vulkan_header "${mkvk_vulkan_include_dir}/vulkan/vulkan_core.h")
 #    set(CYGWIN_INSTALL_PATH "C:\\Program Files\\Git\\usr")
 #endif()
 
-find_package(Perl REQUIRED)
+string(APPEND not_found_error
+    "not found. "
+    "This is only needed by project maintainers when regenerating source files. "
+    "To silence, set KTX_GENERATE_VK_FILES OFF.")
+find_package(Perl QUIET)
+# Painful. Oh for a way to provide custom error messages for failures.
+if(NOT PERL_EXECUTABLE)
+    message(FATAL_ERROR "Perl executable ${not_found_error}")
+endif()
+
+find_package(Ruby 3 QUIET)
+if(NOT Ruby_EXECUTABLE)
+    message(FATAL_ERROR "Ruby v3 executable ${not_found_error}")
+endif()
+
+find_path(KTX_SPECIFICATION
+    NAMES formats.json
+    PATHS ${PROJECT_SOURCE_DIR}/../KTX-Specification
+    NO_DEFAULT_PATH)
+if(NOT KTX_SPECIFICATION)
+    message(FATAL_ERROR "KTX-Specification repo clone ${not_found_error}")
+endif()
 
 list(APPEND mkvkformatfiles_input
     ${vulkan_header}
@@ -138,17 +160,6 @@ add_custom_target(makedfd2vk
     DEPENDS ${makedfd2vk_output}
     SOURCES ${makedfd2vk_input}
 )
-
-find_program(RUBY_EXECUTABLE
-    NAMES ruby ruby3.1 ruby31 ruby3.0 ruby30
-    # N.B. Must use HINTS. PATHS are searched after default paths.
-    HINTS $ENV{MY_RUBY_HOME}/bin
-    REQUIRED)
-find_path(KTX_SPECIFICATION
-    NAME formats.json
-    PATHS ${PROJECT_SOURCE_DIR}/../KTX-Specification
-    NO_DEFAULT_PATH
-    REQUIRED)
 
 list(APPEND makevk2gl_input
     ${KTX_SPECIFICATION}/generate_format_switches.rb
