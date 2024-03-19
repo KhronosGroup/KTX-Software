@@ -8,11 +8,38 @@
 
 #include <emscripten/bind.h>
 #include <ktx.h>
+#include "GL/glcorearb.h"
+#include "vkformat_enum.h"
 #include <iostream>
 
 using namespace emscripten;
 
 #define ktxTexture2(t) reinterpret_cast<ktxTexture2*>(m_ptr.get())
+
+#if !defined(GL_RED)
+#define GL_RED                          0x1903
+#define GL_RGB8                         0x8051
+#define GL_RGB16                        0x8054
+#define GL_RGBA8                        0x8058
+#define GL_RGBA16                       0x805B
+#endif
+#if !defined(GL_RG)
+#define GL_RG                           0x8227
+#define GL_R8                           0x8229
+#define GL_R16                          0x822A
+#define GL_RG8                          0x822B
+#define GL_RG16                         0x822C
+#endif
+
+#ifndef GL_SR8
+// From GL_EXT_texture_sRGB_R8
+#define GL_SR8                          0x8FBD // same as GL_SR8_EXT
+#endif
+
+#ifndef GL_SRG8
+// From GL_EXT_texture_sRGB_RG8
+#define GL_SRG8                         0x8FBE // same as GL_SRG8_EXT
+#endif
 
 namespace ktx
 {
@@ -21,6 +48,139 @@ namespace ktx
     public:
         texture(texture&) = delete;
         texture(texture&& other) = default;
+
+        static texture createFromBuffer(const emscripten::val& data, int width, int height, int comps, bool srgb) {
+            std::vector<uint8_t> bytes{};
+            bytes.resize(data["byteLength"].as<size_t>());
+            // Yes, this code IS copying the data. Sigh! According to Alon
+            // Zakai:
+            //     "There isn't a way to let compiled code access a new
+            //     ArrayBuffer. The compiled code has hardcoded access to the
+            //     wasm Memory it was instantiated with - all the pointers it
+            //     can understand are indexes into that Memory. It can't refer
+            //     to anything else, I'm afraid."
+            //
+            //     "In the future using different address spaces or techniques
+            //     with reference types may open up some possibilities here."
+            emscripten::val memory = emscripten::val::module_property("HEAP8")["buffer"];
+            emscripten::val memoryView = data["constructor"].new_(memory, reinterpret_cast<uintptr_t>(bytes.data()), data["length"].as<uint32_t>());
+            memoryView.call<void>("set", data);
+
+            ktxTextureCreateInfo createInfo {0};
+            createInfo.numFaces = 1;
+            createInfo.numLayers = 1;
+            createInfo.numLevels = 1;
+            int componentCount = comps;
+            int componentSize = 1;
+            switch (componentCount) {
+              case 1:
+                switch (componentSize) {
+                  case 1:
+                    createInfo.glInternalformat
+                                    = srgb ? GL_SR8 : GL_R8;
+                    createInfo.vkFormat
+                                    = srgb ? VK_FORMAT_R8_SRGB
+                                           : VK_FORMAT_R8_UNORM;
+                    break;
+                  case 2:
+                    createInfo.glInternalformat = GL_R16;
+                    createInfo.vkFormat = VK_FORMAT_R16_UNORM;
+                    break;
+                  case 4:
+                    createInfo.glInternalformat = GL_R32F;
+                    createInfo.vkFormat = VK_FORMAT_R32_SFLOAT;
+                    break;
+                }
+                break;
+
+              case 2:
+                 switch (componentSize) {
+                  case 1:
+                    createInfo.glInternalformat
+                                    = srgb ? GL_SRG8 : GL_RG8;
+                    createInfo.vkFormat
+                                    = srgb ? VK_FORMAT_R8G8_SRGB
+                                           : VK_FORMAT_R8G8_UNORM;
+                    break;
+                  case 2:
+                    createInfo.glInternalformat = GL_RG16;
+                    createInfo.vkFormat = VK_FORMAT_R16G16_UNORM;
+                    break;
+                  case 4:
+                    createInfo.glInternalformat = GL_RG32F;
+                    createInfo.vkFormat = VK_FORMAT_R32G32_SFLOAT;
+                    break;
+                }
+                break;
+
+              case 3:
+                 switch (componentSize) {
+                  case 1:
+                    createInfo.glInternalformat
+                                    = srgb ? GL_SRGB8 : GL_RGB8;
+                    createInfo.vkFormat
+                                    = srgb ? VK_FORMAT_R8G8B8_SRGB
+                                           : VK_FORMAT_R8G8B8_UNORM;
+                    break;
+                  case 2:
+                    createInfo.glInternalformat = GL_RGB16;
+                    createInfo.vkFormat = VK_FORMAT_R16G16B16_UNORM;
+                    break;
+                  case 4:
+                    createInfo.glInternalformat = GL_RGB32F;
+                    createInfo.vkFormat = VK_FORMAT_R32G32B32_SFLOAT;
+                    break;
+                }
+                break;
+
+              case 4:
+                 switch (componentSize) {
+                  case 1:
+                    createInfo.glInternalformat
+                                    = srgb ? GL_SRGB8_ALPHA8 : GL_RGBA8;
+                    createInfo.vkFormat
+                                    = srgb ? VK_FORMAT_R8G8B8A8_SRGB
+                                           : VK_FORMAT_R8G8B8A8_UNORM;
+                    break;
+                  case 2:
+                    createInfo.glInternalformat = GL_RGBA16;
+                    createInfo.vkFormat = VK_FORMAT_R16G16B16A16_UNORM;
+                    break;
+                  case 4:
+                    createInfo.glInternalformat = GL_RGBA32F;
+                    createInfo.vkFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
+                    break;
+                }
+                break;
+
+              default:
+                /* If we get here there's a bug. */
+                assert(0);
+            }
+            if (createInfo.vkFormat == VK_FORMAT_R8_SRGB
+                || createInfo.vkFormat == VK_FORMAT_R8G8_SRGB) {
+            }
+            createInfo.baseWidth = width;
+            createInfo.baseHeight = height;
+            createInfo.baseDepth = 1;
+            createInfo.numDimensions = 2;
+            createInfo.generateMipmaps = KTX_FALSE;
+            createInfo.isArray = KTX_FALSE;
+
+            ktxTexture* ptr = nullptr;
+            KTX_error_code ret = ktxTexture2_Create(&createInfo,
+                                     KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                     (ktxTexture2**)&ptr);
+
+            ret = ktxTexture_SetImageFromMemory(ptr,
+                                            0,
+                                            0,
+                                            0,
+                                            bytes.data(),
+                                            bytes.size());
+
+            return texture(ptr);
+        }
 
         static texture createFromMemory(const emscripten::val& data)
         {
@@ -58,6 +218,11 @@ namespace ktx
             return texture(ptr);
         }
 
+        uint32_t getDataSize() const 
+        {
+          return ktxTexture_GetDataSize(m_ptr.get());
+        }
+
         uint32_t baseWidth() const
         {
             return m_ptr->baseWidth;
@@ -71,6 +236,12 @@ namespace ktx
         bool needsTranscoding() const
         {
             return ktxTexture_NeedsTranscoding(m_ptr.get());
+        }
+
+        bool isSRGB() const
+        {
+            const auto df = ktxTexture2_GetOETF_e(ktxTexture2(m_ptr.get()));
+            return KHR_DF_TRANSFER_SRGB == df;
         }
 
         bool isPremultiplied() const
@@ -114,6 +285,83 @@ namespace ktx
         {
             return m_ptr->orientation;
         }
+
+#if KTX_FEATURE_WRITE
+        emscripten::val compressBasisU(const ktxBasisParams& bopts_input, ktxSupercmpScheme ss_scheme, int compression_level) {
+          KTX_error_code result = KTX_SUCCESS;
+          ktxBasisParams bopts = bopts_input;
+          bopts.structSize = sizeof(ktxBasisParams);
+          bopts.threadCount = 1;
+          bopts.verbose = false;
+          bopts.noSSE = true;
+
+//#define DUMP_OPTIONS
+#ifdef DUMP_OPTIONS
+    printf("options.structSize %d\n", bopts.structSize);
+    printf("options.uastc %d\n", bopts.uastc);
+    printf("options.verbose %d\n", bopts.verbose);
+    printf("options.noSSE %d\n", bopts.noSSE);
+    printf("options.threadCount %d\n", bopts.threadCount);
+    printf("options.ETC1S.compressionLevel %d\n", bopts.compressionLevel);
+    printf("options.ETC1S.qualityLevel %d\n", bopts.qualityLevel);
+    printf("options.ETC1S.maxEndpoints %d\n", bopts.maxEndpoints);
+    printf("options.ETC1S.endpointRDOThreshold %f\n", bopts.endpointRDOThreshold);
+    printf("options.ETC1S.maxSelectors %d\n", bopts.maxSelectors);
+    printf("options.ETC1S.selectorRDOThreshold %f\n", bopts.selectorRDOThreshold);
+    printf("options.ETC1S.normalMap %d\n", bopts.normalMap);
+    printf("options.ETC1S.separateRGToRGB_A %d\n", bopts.separateRGToRGB_A);
+    printf("options.ETC1S.preSwizzle %d\n", bopts.preSwizzle);
+    printf("options.ETC1S.noEndpointRDO %d\n", bopts.noEndpointRDO);
+    printf("options.ETC1S.noSelectorRDO %d\n", bopts.noSelectorRDO);
+
+    printf("options.UASTC.uastcFlags %d\n", bopts.uastcFlags);
+    printf("options.UASTC.uastcRDO %d\n", bopts.uastcRDO);
+    printf("options.UASTC.uastcRDOQualityScalar %f\n", bopts.uastcRDOQualityScalar);
+    printf("options.UASTC.uastcRDODictSize %d\n", bopts.uastcRDODictSize);
+    printf("options.UASTC.uastcRDOMaxSmoothBlockErrorScale %f\n", bopts.uastcRDOMaxSmoothBlockErrorScale);
+    printf("options.UASTC.uastcRDOMaxSmoothBlockStdDev %f\n", bopts.uastcRDOMaxSmoothBlockStdDev);
+    printf("options.UASTC.uastcRDODontFavorSimplerModes %d\n", bopts.uastcRDODontFavorSimplerModes);
+    printf("options.UASTC.uastcRDONoMultithreading %d\n", bopts.uastcRDONoMultithreading);
+#endif
+
+          ktx_uint32_t row_pitch = ktxTexture_GetRowPitch(m_ptr.get(), 0);      
+          ktx_uint32_t elem_size = ktxTexture_GetElementSize(m_ptr.get());      
+
+          ktxHashList* ht = &m_ptr->kvDataHead;
+          char orientation[20] = {0};
+          bool lower_left_maps_to_s0t0 = true;
+          orientation[0] = 'r';
+          orientation[1] = lower_left_maps_to_s0t0 ? 'u' : 'd';
+
+          ktxHashList_AddKVPair(ht, KTX_ORIENTATION_KEY,
+                              (unsigned int)strlen(orientation) + 1,
+                              orientation);
+          std::string writer = "GLTF Compressor";
+          ktxHashList_AddKVPair(ht, KTX_WRITER_KEY,
+                              (ktx_uint32_t)writer.length() + 1,
+                              writer.c_str());
+          std::string swizzle = "";
+          ktxHashList_AddKVPair(ht, KTX_SWIZZLE_KEY,
+                                  (uint32_t)swizzle.size()+1,
+                                  // +1 is for the NUL on the c_str
+                                  swizzle.c_str());
+
+          result = ktxTexture2_CompressBasisEx(ktxTexture2(m_ptr.get()), &bopts);
+
+          if (KTX_SS_ZSTD == ss_scheme) result = ktxTexture2_DeflateZstd(ktxTexture2(m_ptr.get()), compression_level);
+          else if (KTX_SS_ZLIB == ss_scheme) result = ktxTexture2_DeflateZLIB(ktxTexture2(m_ptr.get()), compression_level);
+
+          ktx_size_t ktx_data_size = 0;
+          ktx_uint8_t* ktx_data = nullptr;
+          result = ktxTexture_WriteToMemory(m_ptr.get(), &ktx_data, &ktx_data_size);
+          
+          const auto p = ktxTexture_GetData(m_ptr.get());
+
+          return emscripten::val(
+            emscripten::typed_memory_view(ktx_data_size,
+                                          ktx_data));        
+        }
+#endif
 
         ktx_error_code_e transcodeBasis(const val& targetFormat, const val& decodeFlags)
         {
@@ -299,6 +547,9 @@ tag with libktx.js as the @c src as shown below, changing the path as necessary
 for the relative locations of your .html file and the script source. libktx.js
 will automatically load msc_basis_transcoder.wasm.
 
+@note For the read-only version of the library, use libktx_read.js and
+libktx_read.wasm instead.
+
 ### Create an instance of the LIBKTX module
 
 Add this to the .html file to initialize the libktx module and make it available on the main window.
@@ -435,6 +686,16 @@ EMSCRIPTEN_BINDINGS(ktx)
         .value("DECOMPRESS_CHECKSUM_ERROR", KTX_DECOMPRESS_CHECKSUM_ERROR)
         ;
 
+#if KTX_FEATURE_WRITE
+    enum_<ktx_pack_uastc_flag_bits_e>("UastcFlags")
+        .value("LEVEL_FASTEST", KTX_PACK_UASTC_LEVEL_FASTEST)
+        .value("LEVEL_FASTER", KTX_PACK_UASTC_LEVEL_FASTER)
+        .value("LEVEL_DEFAULT", KTX_PACK_UASTC_LEVEL_DEFAULT)
+        .value("LEVEL_SLOWER", KTX_PACK_UASTC_LEVEL_SLOWER)
+        .value("LEVEL_VERYSLOW", KTX_PACK_UASTC_LEVEL_VERYSLOW)
+    ;
+#endif
+
     enum_<ktx_texture_transcode_fmt_e>("TranscodeTarget")
         .value("ETC1_RGB", KTX_TTF_ETC1_RGB)
         .value("BC1_RGB", KTX_TTF_BC1_RGB)
@@ -453,6 +714,7 @@ EMSCRIPTEN_BINDINGS(ktx)
         .value("RGB565", KTX_TTF_RGB565)
         .value("BGR565", KTX_TTF_BGR565)
         .value("RGBA4444", KTX_TTF_RGBA4444)
+        .value("RGBA8888", KTX_TTF_RGBA32)
         .value("PVRTC2_4_RGB", KTX_TTF_PVRTC2_4_RGB)
         .value("PVRTC2_4_RGBA", KTX_TTF_PVRTC2_4_RGBA)
         .value("ETC", KTX_TTF_ETC)
@@ -490,17 +752,60 @@ EMSCRIPTEN_BINDINGS(ktx)
 
     class_<ktx::texture>("ktxTexture")
         .constructor(&ktx::texture::createFromMemory)
+        .constructor(&ktx::texture::createFromBuffer)
+        //.class_function("createFromMemory", &ktx::texture::createFromMemory)
         //.class_function("createFromMemory", &ktx::texture::createFromMemory)
         // .property("data", &ktx::texture::getData)
+        .property("dataSize", &ktx::texture::getDataSize)
         .property("baseWidth", &ktx::texture::baseWidth)
         .property("baseHeight", &ktx::texture::baseHeight)
+        .property("isSRGB", &ktx::texture::isSRGB)
         .property("isPremultiplied", &ktx::texture::isPremultiplied)
         .property("needsTranscoding", &ktx::texture::needsTranscoding)
         .property("numComponents", &ktx::texture::numComponents)
         .property("orientation", &ktx::texture::orientation)
         .property("supercompressScheme", &ktx::texture::supercompressionScheme)
         .property("vkFormat", &ktx::texture::vkFormat)
+#if KTX_FEATURE_WRITE
+        .function("compressBasisU", &ktx::texture::compressBasisU)
+#endif
         .function("transcodeBasis", &ktx::texture::transcodeBasis)
         .function("glUpload", &ktx::texture::glUpload)
     ;
+
+#if KTX_FEATURE_WRITE
+    emscripten::class_<ktxBasisParams>("ktxBasisParams")
+      .constructor<>()
+      .property("structSize", &ktxBasisParams::structSize)
+      .property("uastc", &ktxBasisParams::uastc)
+      .property("verbose", &ktxBasisParams::verbose)
+      .property("noSSE", &ktxBasisParams::noSSE)
+      .property("threadCount", &ktxBasisParams::threadCount)
+
+      /* ETC1S params */
+
+      .property("compressionLevel", &ktxBasisParams::compressionLevel)
+      .property("qualityLevel", &ktxBasisParams::qualityLevel)
+      .property("maxEndpoints", &ktxBasisParams::maxEndpoints)
+      .property("endpointRDOThreshold", &ktxBasisParams::endpointRDOThreshold)
+      .property("maxSelectors", &ktxBasisParams::maxSelectors)
+      .property("selectorRDOThreshold", &ktxBasisParams::selectorRDOThreshold)
+      //.property("inputSwizzle", &ktxBasisParams::inputSwizzle)
+      .property("normalMap", &ktxBasisParams::normalMap)
+      .property("separateRGToRGB_A", &ktxBasisParams::separateRGToRGB_A)
+      .property("preSwizzle", &ktxBasisParams::preSwizzle)
+      .property("noEndpointRDO", &ktxBasisParams::noEndpointRDO)
+      .property("noSelectorRDO", &ktxBasisParams::noSelectorRDO)
+
+      /* UASTC params */
+
+      .property("uastcFlags", &ktxBasisParams::uastcFlags)
+      .property("uastcRDO", &ktxBasisParams::uastcRDO)
+      .property("uastcRDOQualityScalar", &ktxBasisParams::uastcRDOQualityScalar)
+      .property("uastcRDODictSize", &ktxBasisParams::uastcRDODictSize)
+      .property("uastcRDOMaxSmoothBlockErrorScale", &ktxBasisParams::uastcRDOMaxSmoothBlockErrorScale)
+      .property("uastcRDOMaxSmoothBlockStdDev", &ktxBasisParams::uastcRDOMaxSmoothBlockStdDev)
+      .property("uastcRDODontFavorSimplerModes", &ktxBasisParams::uastcRDODontFavorSimplerModes)
+      .property("uastcRDONoMultithreading", &ktxBasisParams::uastcRDONoMultithreading);
+#endif
 }
