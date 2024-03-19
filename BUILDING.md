@@ -290,9 +290,10 @@ cmake --build build-web
 
 To include the load test application into the build add `-DKTX_FEATURE_LOADTEST_APPS=ON` to either of the above configuration steps.
 
-Web builds create two additional targets:
+Web builds create three additional targets:
 
-- `ktx_js`, (libktx javascript wrapper)
+- `ktx_js` (libktx javascript wrapper - with write support)
+- `ktx_js_read` (libktx_read javascript wrapper - read-only)
 - `msc_basis_transcoder_js` (transcoder wrapper)
 
 > **Note:** The libktx wrapper does not use the transcoder wrapper. It directly uses the underlying c++ transcoder.
