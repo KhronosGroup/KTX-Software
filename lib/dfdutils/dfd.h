@@ -113,7 +113,7 @@ enum InterpretDFDResult {
     i_SRGB_FORMAT_BIT          = 1u << 2u, /*!< sRGB transfer function. */
     i_NORMALIZED_FORMAT_BIT    = 1u << 3u, /*!< Normalized (UNORM or SNORM). */
     i_SIGNED_FORMAT_BIT        = 1u << 4u, /*!< Format is signed. */
-    i_FIXED_FORMAT_BIT         = 1u << 5u,
+    i_FIXED_FORMAT_BIT         = 1u << 5u, /*!< Format is a fixed-point representation. */
     i_FLOAT_FORMAT_BIT         = 1u << 6u, /*!< Format is floating point. */
     i_COMPRESSED_FORMAT_BIT    = 1u << 7u, /*!< Format is block compressed (422). */
     i_YUVSDA_FORMAT_BIT        = 1u << 8u, /*!< Color model is YUVSDA. */

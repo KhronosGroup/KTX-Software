@@ -252,6 +252,14 @@ if (KHR_DFDVAL(dfd + 1, MODEL) == KHR_DF_MODEL_RGBSDA || KHR_DFDVAL(dfd + 1, MOD
   InterpretedDFDChannel G = {0,0};
   InterpretedDFDChannel B = {0,0};
   InterpretedDFDChannel A = {0,0};
+  /* interpretDFD channel overloadings for YUVSDA formats. These are
+   * different from the mapping used by Vulkan. */
+  #define Y1 R
+  #define Y2 A
+  #define CB G
+  #define U G
+  #define CR B
+  #define V B
   uint32_t wordBytes;
 
   /* Special case exponent format */
@@ -335,13 +343,14 @@ print "      }\n";
 $fourPack16Decode = << 'END_4PACK16';
     } else if (wordBytes == 8) { /* 4PACK16 */
       if (r & i_YUVSDA_FORMAT_BIT) {
-        if (R.size == 10 && R.offset == 6 && A.size == 10 && A.offset == 38)
+        /* In Vulkan G = Y, R = Cr, B = Cb. */
+        if (Y1.size == 10 && Y1.offset == 6 && Y2.size == 10 && Y2.offset == 38)
           return  VK_FORMAT_G10X6B10X6G10X6R10X6_422_UNORM_4PACK16;
-        if (R.size == 10 && R.offset == 22 && A.size == 10 && A.offset == 54)
+        if (Y1.size == 10 && Y1.offset == 22 && Y2.size == 10 && Y2.offset == 54)
           return VK_FORMAT_B10X6G10X6R10X6G10X6_422_UNORM_4PACK16;
-        if (R.size == 12 && R.offset == 4 && A.size == 12 && A.offset == 36)
+        if (Y1.size == 12 && Y1.offset == 4 && Y2.size == 12 && Y2.offset == 36)
           return VK_FORMAT_G12X4B12X4G12X4R12X4_422_UNORM_4PACK16;
-        if (R.size == 12 && R.offset == 20 && A.size == 12 && A.offset == 52)
+        if (Y1.size == 12 && Y1.offset == 20 && Y2.size == 12 && Y2.offset == 52)
           return VK_FORMAT_B12X4G12X4R12X4G12X4_422_UNORM_4PACK16;
       } else {
         if (R.size == 10)
@@ -357,14 +366,14 @@ print $fourPack16Decode;
 
 $yuvDecode = << 'END_YUV';
     if (r & i_YUVSDA_FORMAT_BIT) {
-      /* Conventions for mapping YUV to RGB channel names in DFD and Vulkan are different. */
-      if (R.size == 1 && R.offset == 0 && A.size == 1 && A.offset == 2)
+      /* In Vulkan G = Y, R = Cr, B = Cb. */
+      if (Y1.size == 1 && Y1.offset == 0 && Y2.size == 1 && Y2.offset == 2)
         return VK_FORMAT_G8B8G8R8_422_UNORM;
-      else if (R.size == 1 && R.offset == 1 && A.size == 1 && A.offset == 3)
+      else if (Y1.size == 1 && Y1.offset == 1 && Y2.size == 1 && Y2.offset == 3)
         return VK_FORMAT_B8G8R8G8_422_UNORM;
-      else if (R.size == 2 && R.offset == 0 && A.size == 2 && A.offset == 4)
+      else if (Y1.size == 2 && Y1.offset == 0 && Y2.size == 2 && Y2.offset == 4)
         return VK_FORMAT_G16B16G16R16_422_UNORM;
-      else if (R.size == 2 && R.offset == 2 && A.size == 2 && A.offset == 6)
+      else if (Y1.size == 2 && Y1.offset == 2 && Y2.size == 2 && Y2.offset == 6)
         return VK_FORMAT_B16G16R16G16_422_UNORM;
       else
         return VK_FORMAT_UNDEFINED; // Until support added.
