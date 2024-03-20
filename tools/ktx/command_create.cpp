@@ -97,7 +97,7 @@ struct OptionsCreate {
                 (kFormat, "KTX format enum that specifies the image data format."
                     " The enum names are matching the VkFormats without the VK_FORMAT_ prefix."
                     " The VK_FORMAT_ prefix is ignored if present."
-                    "\nWhen used with --encode it specifies the format of the input files before the encoding step."
+                    "\nWhen used with --encode it specifies the target format before the encoding step."
                     " In this case it must be one of:"
                     "\n    R8_UNORM"
                     "\n    R8_SRGB"
@@ -671,7 +671,7 @@ Create a KTX2 file from various input files.
         <dd>KTX format enum that specifies the image data format.
             The enum names are matching the VkFormats without the VK_FORMAT_ prefix.
             The VK_FORMAT_ prefix is ignored if present.<br />
-            When used with --encode it specifies the format of the input files before the encoding step.
+            When used with --encode it specifies the target format before the encoding step.
             In this case it must be one of:
             <ul>
                 <li>R8_UNORM</li>
