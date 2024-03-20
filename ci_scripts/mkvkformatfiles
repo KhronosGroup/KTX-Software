@@ -126,10 +126,10 @@ $2 == "VK_HEADER_VERSION" {
       if (enum_val+0 > max_std_format_enum) {
         max_std_format_enum = enum_val+0;
       }
+      if ($1 !~ /UNDEFINED/) {
+        format_name_list = format_name_list $1 "," ORS
+      }
       if ($1 !~ /SCALED/) {
-        if ($1 !~ /UNDEFINED/) {
-          format_name_list = format_name_list $1 "," ORS
-        }
         java = java "    public static final int " $1 " = " enum_val ";" ORS
         python = python "    " $1 " = " enum_val ORS
       }

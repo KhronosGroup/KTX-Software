@@ -218,43 +218,48 @@ while ($line = <$input>) {
 sub checkSuffices {
     my $formatPrefix = shift(@_);
     my $packSuffix = shift(@_);
+    my $indentDepth = shift(@_);
+
+    $indent = ' ' x $indentDepth;
 
     # Only output tests for formats that exist.
     # Simplify things by picking off sRGB and float (always signed for unpacked) first.
     if (exists($foundFormats{"VK_FORMAT_" . $formatPrefix . "_SRGB" . $packSuffix})) {
-        if ($packSuffix eq "") { print "  "; }
-        print "        if ((r & i_SRGB_FORMAT_BIT)) return VK_FORMAT_" . $formatPrefix . "_SRGB" . $packSuffix . ";\n";
+        print $indent . "if ((r & i_SRGB_FORMAT_BIT)) return VK_FORMAT_" . $formatPrefix . "_SRGB" . $packSuffix . ";\n";
     }
     if (exists($foundFormats{"VK_FORMAT_" . $formatPrefix . "_SFLOAT" . $packSuffix})) {
-        if ($packSuffix eq "") { print "  "; }
-        print "        if ((r & i_FLOAT_FORMAT_BIT)) return VK_FORMAT_" . $formatPrefix . "_SFLOAT" . $packSuffix . ";\n";
+        print $indent . "if ((r & i_FLOAT_FORMAT_BIT)) return VK_FORMAT_" . $formatPrefix . "_SFLOAT" . $packSuffix . ";\n";
     }
     if (exists($foundFormats{"VK_FORMAT_" . $formatPrefix . "_UNORM" . $packSuffix})) {
-        if ($packSuffix eq "") { print "  "; }
-        print "        if ((r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_" . $formatPrefix . "_UNORM" . $packSuffix . ";\n";
+        print $indent . "if ((r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_" . $formatPrefix . "_UNORM" . $packSuffix . ";\n";
     }
     if (exists($foundFormats{"VK_FORMAT_" . $formatPrefix . "_SNORM" . $packSuffix})) {
-        if ($packSuffix eq "") { print "  "; }
-        print "        if ((r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_" . $formatPrefix . "_SNORM" . $packSuffix . ";\n";
+        print $indent . "if ((r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_" . $formatPrefix . "_SNORM" . $packSuffix . ";\n";
     }
     if (exists($foundFormats{"VK_FORMAT_" . $formatPrefix . "_UINT" . $packSuffix})) {
-        if ($packSuffix eq "") { print "  "; }
-        print "        if (!(r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_" . $formatPrefix . "_UINT" . $packSuffix . ";\n";
+        print $indent . "if (!(r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_" . $formatPrefix . "_UINT" . $packSuffix . ";\n";
     }
     if (exists($foundFormats{"VK_FORMAT_" . $formatPrefix . "_SINT" . $packSuffix})) {
-        if ($packSuffix eq "") { print "  "; }
-        print "        if (!(r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_" . $formatPrefix . "_SINT" . $packSuffix . ";\n";
+        print $indent . "if (!(r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_" . $formatPrefix . "_SINT" . $packSuffix . ";\n";
     }
     # N.B. Drop through if the VKFORMAT doesn't exist.
 }
 
 $prefix = <<'END_PREFIX';
-if (KHR_DFDVAL(dfd + 1, MODEL) == KHR_DF_MODEL_RGBSDA) {
+if (KHR_DFDVAL(dfd + 1, MODEL) == KHR_DF_MODEL_RGBSDA || KHR_DFDVAL(dfd + 1, MODEL) == KHR_DF_MODEL_YUVSDA) {
   enum InterpretDFDResult r;
   InterpretedDFDChannel R = {0,0};
   InterpretedDFDChannel G = {0,0};
   InterpretedDFDChannel B = {0,0};
   InterpretedDFDChannel A = {0,0};
+  /* interpretDFD channel overloadings for YUVSDA formats. These are
+   * different from the mapping used by Vulkan. */
+  #define Y1 R
+  #define Y2 A
+  #define CB G
+  #define U G
+  #define CR B
+  #define V B
   uint32_t wordBytes;
 
   /* Special case exponent format */
@@ -297,8 +302,17 @@ $packedDecode = << 'END_PACKED';
     else if (wordBytes == 2) { /* PACK16 */
       if (A.size == 4) {
         if (R.offset == 12) return VK_FORMAT_R4G4B4A4_UNORM_PACK16;
-        else return VK_FORMAT_B4G4R4A4_UNORM_PACK16;
-      } else if (A.size == 0) { /* Three channels */
+        else if (B.offset == 12) return VK_FORMAT_B4G4R4A4_UNORM_PACK16;
+        else if (A.offset == 12) {
+          if (R.offset == 8) return VK_FORMAT_A4R4G4B4_UNORM_PACK16;
+          else return VK_FORMAT_A4B4G4R4_UNORM_PACK16;
+        }
+      } else if (G.size == 0 && B.size == 0 && A.size == 0) { /* One channel */
+        if (R.size == 10)
+          return VK_FORMAT_R10X6_UNORM_PACK16;
+        else if (R.size ==12)
+          return VK_FORMAT_R12X4_UNORM_PACK16;
+       } else if (A.size == 0) { /* Three channels */
         if (B.offset == 0) return VK_FORMAT_R5G6B5_UNORM_PACK16;
         else return VK_FORMAT_B5G6R5_UNORM_PACK16;
       } else { /* Four channels, one-bit alpha */
@@ -307,54 +321,105 @@ $packedDecode = << 'END_PACKED';
         if (B.offset == 10) return VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR;
         return VK_FORMAT_B5G5R5A1_UNORM_PACK16;
       }
-    } else if (wordBytes == 4) { /* PACK32 */
+    } else if (wordBytes == 4) { /* PACK32 or 2PACK16 */
 END_PACKED
 
 print $packedDecode;
 
 print "      if (A.size == 8) {\n";
-checkSuffices("A8B8G8R8", "_PACK32");
+checkSuffices("A8B8G8R8", "_PACK32", 8);
 print "      } else if (A.size == 2 && B.offset == 0) {\n";
-checkSuffices("A2R10G10B10", "_PACK32");
+checkSuffices("A2R10G10B10", "_PACK32", 8);
 print "      } else if (A.size == 2 && R.offset == 0) {\n";
-checkSuffices("A2B10G10R10", "_PACK32");
-print "      } else if (R.size == 11) return VK_FORMAT_B10G11R11_UFLOAT_PACK32;\n";
-print "    }\n";
-print "  } else { /* Not a packed format */\n";
+checkSuffices("A2B10G10R10", "_PACK32", 8);
+print "      } else if (R.size == 11) {\n";
+print "          return VK_FORMAT_B10G11R11_UFLOAT_PACK32;\n";
+print "      } else if (R.size == 10 && G.size == 10 && B.size == 0) { \n";
+print "          return VK_FORMAT_R10X6G10X6_UNORM_2PACK16;\n";
+print "      } else if (R.size == 12 && G.size == 12 && B.size == 0) { \n";
+print "          return VK_FORMAT_R12X4G12X4_UNORM_2PACK16;\n";
+print "      }\n";
+
+$fourPack16Decode = << 'END_4PACK16';
+    } else if (wordBytes == 8) { /* 4PACK16 */
+      if (r & i_YUVSDA_FORMAT_BIT) {
+        /* In Vulkan G = Y, R = Cr, B = Cb. */
+        if (Y1.size == 10 && Y1.offset == 6 && Y2.size == 10 && Y2.offset == 38)
+          return  VK_FORMAT_G10X6B10X6G10X6R10X6_422_UNORM_4PACK16;
+        if (Y1.size == 10 && Y1.offset == 22 && Y2.size == 10 && Y2.offset == 54)
+          return VK_FORMAT_B10X6G10X6R10X6G10X6_422_UNORM_4PACK16;
+        if (Y1.size == 12 && Y1.offset == 4 && Y2.size == 12 && Y2.offset == 36)
+          return VK_FORMAT_G12X4B12X4G12X4R12X4_422_UNORM_4PACK16;
+        if (Y1.size == 12 && Y1.offset == 20 && Y2.size == 12 && Y2.offset == 52)
+          return VK_FORMAT_B12X4G12X4R12X4G12X4_422_UNORM_4PACK16;
+      } else {
+        if (R.size == 10)
+          return VK_FORMAT_R10X6G10X6B10X6A10X6_UNORM_4PACK16;
+        else if (R.size == 12)
+          return VK_FORMAT_R12X4G12X4B12X4A12X4_UNORM_4PACK16;
+      }
+    }
+  } else { /* Not a packed format */
+END_4PACK16
+
+print $fourPack16Decode;
+
+$yuvDecode = << 'END_YUV';
+    if (r & i_YUVSDA_FORMAT_BIT) {
+      /* In Vulkan G = Y, R = Cr, B = Cb. */
+      if (Y1.size == 1 && Y1.offset == 0 && Y2.size == 1 && Y2.offset == 2)
+        return VK_FORMAT_G8B8G8R8_422_UNORM;
+      else if (Y1.size == 1 && Y1.offset == 1 && Y2.size == 1 && Y2.offset == 3)
+        return VK_FORMAT_B8G8R8G8_422_UNORM;
+      else if (Y1.size == 2 && Y1.offset == 0 && Y2.size == 2 && Y2.offset == 4)
+        return VK_FORMAT_G16B16G16R16_422_UNORM;
+      else if (Y1.size == 2 && Y1.offset == 2 && Y2.size == 2 && Y2.offset == 6)
+        return VK_FORMAT_B16G16R16G16_422_UNORM;
+      else
+        return VK_FORMAT_UNDEFINED; // Until support added.
+    } else { /* Not YUV */
+END_YUV
+print $yuvDecode;
 
 # Start by checking sizes
 for ($byteSize = 1; $byteSize <= 8; $byteSize <<= 1) {
     if ($byteSize == 1) {
-        print "    if (wordBytes == $byteSize) {\n";
-
+        print "      if (wordBytes == $byteSize) {\n";
         # Handle the single alpha-only format (unfortunately, the rest of the script could not handle this)
-        print "      if (A.size > 8 && R.size == 0 && G.size == 0 && B.size == 0 && (r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) {\n";
-        print "          return VK_FORMAT_A8_UNORM_KHR;\n";
-        print "      }\n";
+        print "        if (A.size == 1 && R.size == 0 && G.size == 0 && B.size == 0 && (r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT)) {\n";
+        print "            return VK_FORMAT_A8_UNORM_KHR;\n";
+        print "        }\n";
+    } elsif ($byteSize == 2) {
+        print "      } else if (wordBytes == $byteSize) {\n";
+        # Handle VK_FORMAT_R16G16_S10_5_NV. Non-standard naming means
+        # checkSuffices can't handle it.
+        print "        if ((r & i_FIXED_FORMAT_BIT) && R.size == 2 && G.size == 2)  return  VK_FORMAT_R16G16_S10_5_NV;\n";
     } else {
-        print "    } else if (wordBytes == $byteSize) {\n";
+        print "      } else if (wordBytes == $byteSize) {\n";
     }
     # If we have an alpha channel...
-    print "      if (A.size > 0) { /* 4 channels */\n";
-    print "        if (R.offset == 0) { /* RGBA */\n";
-    checkSuffices("R" . 8 * $byteSize . "G" . 8 * $byteSize . "B" . 8 * $byteSize . "A" . 8 * $byteSize, "");
-    print "        } else { /* BGRA */\n";
-    checkSuffices("B" . 8 * $byteSize . "G" . 8 * $byteSize . "R" . 8 * $byteSize . "A" . 8 * $byteSize, "");
+    print "        if (A.size > 0) { /* 4 channels */\n";
+    print "          if (R.offset == 0) { /* RGBA */\n";
+    checkSuffices("R" . 8 * $byteSize . "G" . 8 * $byteSize . "B" . 8 * $byteSize . "A" . 8 * $byteSize, "", 12);
+    print "          } else { /* BGRA */\n";
+    checkSuffices("B" . 8 * $byteSize . "G" . 8 * $byteSize . "R" . 8 * $byteSize . "A" . 8 * $byteSize, "", 12);
+    print "          }\n";
+    print "        } else if (B.size > 0) { /* 3 channels */\n";
+    print "          if (R.offset == 0) { /* RGB */\n";
+    checkSuffices("R" . 8 * $byteSize . "G" . 8 * $byteSize . "B" . 8 * $byteSize, "", 12);
+    print "          } else { /* BGR */\n";
+    checkSuffices("B" . 8 * $byteSize . "G" . 8 * $byteSize . "R" . 8 * $byteSize, "", 12);
+    print "          }\n";
+    print "        } else if (G.size > 0) { /* 2 channels */\n";
+    checkSuffices("R" . 8 * $byteSize . "G" . 8 * $byteSize, "", 10);
+    print "        } else { /* 1 channel */\n"; # Red only
+    checkSuffices("R" . 8 * $byteSize, "", 10);
     print "        }\n";
-    print "      } else if (B.size > 0) { /* 3 channels */\n";
-    print "        if (R.offset == 0) { /* RGB */\n";
-    checkSuffices("R" . 8 * $byteSize . "G" . 8 * $byteSize . "B" . 8 * $byteSize, "");
-    print "        } else { /* BGR */\n";
-    checkSuffices("B" . 8 * $byteSize . "G" . 8 * $byteSize . "R" . 8 * $byteSize, "");
-    print "        }\n";
-    print "      } else if (G.size > 0) { /* 2 channels */\n";
-    checkSuffices("R" . 8 * $byteSize . "G" . 8 * $byteSize, "");
-    print "      } else { /* 1 channel */\n"; # Red only
-    checkSuffices("R" . 8 * $byteSize, "");
-    print "      }\n";
 }
+print "      }\n";
 print "    }\n";
 print "  }\n";
+
 
 $compressedDecode = << 'END_COMPRESSED';
 } else if (KHR_DFDVAL((dfd + 1), MODEL) >= 128) {
