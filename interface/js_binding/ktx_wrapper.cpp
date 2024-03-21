@@ -66,7 +66,7 @@ namespace ktx
             emscripten::val memoryView = data["constructor"].new_(memory, reinterpret_cast<uintptr_t>(bytes.data()), data["length"].as<uint32_t>());
             memoryView.call<void>("set", data);
 
-            ktxTextureCreateInfo createInfo {0};
+            ktxTextureCreateInfo createInfo{};
             createInfo.numFaces = 1;
             createInfo.numLayers = 1;
             createInfo.numLevels = 1;
@@ -168,16 +168,13 @@ namespace ktx
             createInfo.isArray = KTX_FALSE;
 
             ktxTexture* ptr = nullptr;
-            KTX_error_code ret = ktxTexture2_Create(&createInfo,
-                                     KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                     (ktxTexture2**)&ptr);
+            KTX_error_code result = ktxTexture2_Create(&createInfo,
+                                        KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                        (ktxTexture2**)&ptr);
 
-            ret = ktxTexture_SetImageFromMemory(ptr,
-                                            0,
-                                            0,
-                                            0,
-                                            bytes.data(),
-                                            bytes.size());
+            if (result == KTX_SUCCESS) {
+                ktxTexture_SetImageFromMemory(ptr, 0, 0, 0, bytes.data(), bytes.size());
+            }
 
             return texture(ptr);
         }
@@ -288,12 +285,12 @@ namespace ktx
 
 #if KTX_FEATURE_WRITE
         emscripten::val compressBasisU(const ktxBasisParams& bopts_input, ktxSupercmpScheme ss_scheme, int compression_level) {
-          KTX_error_code result = KTX_SUCCESS;
-          ktxBasisParams bopts = bopts_input;
-          bopts.structSize = sizeof(ktxBasisParams);
-          bopts.threadCount = 1;
-          bopts.verbose = false;
-          bopts.noSSE = true;
+            KTX_error_code result = KTX_SUCCESS;
+            ktxBasisParams bopts = bopts_input;
+            bopts.structSize = sizeof(ktxBasisParams);
+            bopts.threadCount = 1;
+            bopts.verbose = false;
+            bopts.noSSE = true;
 
 //#define DUMP_OPTIONS
 #ifdef DUMP_OPTIONS
@@ -324,42 +321,48 @@ namespace ktx
     printf("options.UASTC.uastcRDONoMultithreading %d\n", bopts.uastcRDONoMultithreading);
 #endif
 
-          ktx_uint32_t row_pitch = ktxTexture_GetRowPitch(m_ptr.get(), 0);      
-          ktx_uint32_t elem_size = ktxTexture_GetElementSize(m_ptr.get());      
+            ktxHashList* ht = &m_ptr->kvDataHead;
+            char orientation[20] = {0};
+            bool lower_left_maps_to_s0t0 = true;
+            orientation[0] = 'r';
+            orientation[1] = lower_left_maps_to_s0t0 ? 'u' : 'd';
 
-          ktxHashList* ht = &m_ptr->kvDataHead;
-          char orientation[20] = {0};
-          bool lower_left_maps_to_s0t0 = true;
-          orientation[0] = 'r';
-          orientation[1] = lower_left_maps_to_s0t0 ? 'u' : 'd';
+            ktxHashList_AddKVPair(ht, KTX_ORIENTATION_KEY,
+                                (unsigned int)strlen(orientation) + 1,
+                                orientation);
+            std::string writer = "GLTF Compressor";
+            ktxHashList_AddKVPair(ht, KTX_WRITER_KEY,
+                                (ktx_uint32_t)writer.length() + 1,
+                                writer.c_str());
+            std::string swizzle = "";
+            ktxHashList_AddKVPair(ht, KTX_SWIZZLE_KEY,
+                                    (uint32_t)swizzle.size()+1,
+                                    // +1 is for the NUL on the c_str
+                                    swizzle.c_str());
 
-          ktxHashList_AddKVPair(ht, KTX_ORIENTATION_KEY,
-                              (unsigned int)strlen(orientation) + 1,
-                              orientation);
-          std::string writer = "GLTF Compressor";
-          ktxHashList_AddKVPair(ht, KTX_WRITER_KEY,
-                              (ktx_uint32_t)writer.length() + 1,
-                              writer.c_str());
-          std::string swizzle = "";
-          ktxHashList_AddKVPair(ht, KTX_SWIZZLE_KEY,
-                                  (uint32_t)swizzle.size()+1,
-                                  // +1 is for the NUL on the c_str
-                                  swizzle.c_str());
+            result = ktxTexture2_CompressBasisEx(ktxTexture2(m_ptr.get()), &bopts);
 
-          result = ktxTexture2_CompressBasisEx(ktxTexture2(m_ptr.get()), &bopts);
+            if (result == KTX_SUCCESS) {
+                switch (ss_scheme) {
+                    case KTX_SS_ZSTD:
+                        result = ktxTexture2_DeflateZstd(ktxTexture2(m_ptr.get()), compression_level);
+                        break;
+                    case KTX_SS_ZLIB:
+                        result = ktxTexture2_DeflateZLIB(ktxTexture2(m_ptr.get()), compression_level);
+                        break;
+                    default:
+                        break;
+                }
+            }
 
-          if (KTX_SS_ZSTD == ss_scheme) result = ktxTexture2_DeflateZstd(ktxTexture2(m_ptr.get()), compression_level);
-          else if (KTX_SS_ZLIB == ss_scheme) result = ktxTexture2_DeflateZLIB(ktxTexture2(m_ptr.get()), compression_level);
-
-          ktx_size_t ktx_data_size = 0;
-          ktx_uint8_t* ktx_data = nullptr;
-          result = ktxTexture_WriteToMemory(m_ptr.get(), &ktx_data, &ktx_data_size);
-          
-          const auto p = ktxTexture_GetData(m_ptr.get());
-
-          return emscripten::val(
-            emscripten::typed_memory_view(ktx_data_size,
-                                          ktx_data));        
+            if (result == KTX_SUCCESS) {
+                ktx_size_t ktx_data_size = 0;
+                ktx_uint8_t* ktx_data = nullptr;
+                result = ktxTexture_WriteToMemory(m_ptr.get(), &ktx_data, &ktx_data_size);
+                return emscripten::val(emscripten::typed_memory_view(ktx_data_size, ktx_data));
+            } else {
+                return emscripten::val::null();
+            }
         }
 #endif
 
