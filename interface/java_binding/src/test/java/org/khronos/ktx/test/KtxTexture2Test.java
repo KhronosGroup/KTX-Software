@@ -266,6 +266,74 @@ public class KtxTexture2Test {
 		t.destroy();
 	}
 
+	@Test
+	public void testSupercompressionZstd() throws IOException {
+
+		int sizeX = 32;
+		int sizeY = 32;
+
+		// Create a dummy texture
+		KtxTextureCreateInfo info = new KtxTextureCreateInfo();
+		info.setBaseWidth(sizeX);
+		info.setBaseHeight(sizeY);
+		info.setVkFormat(VkFormat.VK_FORMAT_R8G8B8A8_SRGB);
+		KtxTexture2 t = KtxTexture2.create(info, KtxCreateStorage.ALLOC);
+		byte[] rgba = new byte[sizeX * sizeY * 4];
+		t.setImageFromMemory(0, 0, 0, rgba);
+
+		// Apply default UASTC compression
+		KtxBasisParams p = new KtxBasisParams();
+		p.setUastc(true);
+		t.compressBasisEx(p);
+
+		// The supercompression scheme should be NONE here
+		int scBefore = t.getSupercompressionScheme();
+		assertEquals(KtxSupercmpScheme.NONE, scBefore);
+
+		// Apply Zstd compression
+		t.deflateZstd(10);
+
+		// The supercompression scheme should now be ZSTD
+		int scAfter = t.getSupercompressionScheme();
+		assertEquals(KtxSupercmpScheme.ZSTD, scAfter);
+
+		t.destroy();
+	}
+
+	@Test
+	public void testSupercompressionZLIB() throws IOException {
+
+		int sizeX = 32;
+		int sizeY = 32;
+
+		// Create a dummy texture
+		KtxTextureCreateInfo info = new KtxTextureCreateInfo();
+		info.setBaseWidth(sizeX);
+		info.setBaseHeight(sizeY);
+		info.setVkFormat(VkFormat.VK_FORMAT_R8G8B8A8_SRGB);
+		KtxTexture2 t = KtxTexture2.create(info, KtxCreateStorage.ALLOC);
+		byte[] rgba = new byte[sizeX * sizeY * 4];
+		t.setImageFromMemory(0, 0, 0, rgba);
+
+		// Apply default UASTC compression
+		KtxBasisParams p = new KtxBasisParams();
+		p.setUastc(true);
+		t.compressBasisEx(p);
+
+		// The supercompression scheme should be NONE here
+		int scBefore = t.getSupercompressionScheme();
+		assertEquals(KtxSupercmpScheme.NONE, scBefore);
+
+		// Apply LIB compression
+		t.deflateZLIB(10);
+
+		// The supercompression scheme should now be ZLIB
+		int scAfter = t.getSupercompressionScheme();
+		assertEquals(KtxSupercmpScheme.ZLIB, scAfter);
+
+		t.destroy();
+	}
+
 	// Fill the specified range of rows of the given RGBA pixels
 	// array with the given RGBA components
 	private static void fillRows(byte rgba[], int sizeX, int sizeY,
