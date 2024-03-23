@@ -227,4 +227,58 @@ public class KtxTexture2Test {
 
         texture.destroy();
     }
+
+	@Test
+	public void testInputSwizzleBasisEx() throws IOException {
+
+		// Create RGBA pixels for an image with 32x32 pixels,
+		// filled with
+		// 8 rows of red pixels
+		// 8 rows of green pixels
+		// 8 rows of blue pixels
+		// 8 rows of white pixels
+		int sizeX = 32;
+		int sizeY = 32;
+		byte[] rgba = new byte[sizeX * sizeY * 4];
+		fillRows(rgba, sizeX, sizeY, 0, 8, 255, 0, 0, 255); // Red
+		fillRows(rgba, sizeX, sizeY, 8, 16, 0, 255, 0, 255); // Green
+		fillRows(rgba, sizeX, sizeY, 16, 24, 0, 0, 255, 255); // Blue
+		fillRows(rgba, sizeX, sizeY, 24, 32, 255, 255, 255, 255); // White
+
+		// Create a texture and fill it with the RGBA pixel data
+		KtxTextureCreateInfo info = new KtxTextureCreateInfo();
+		info.setBaseWidth(sizeX);
+		info.setBaseHeight(sizeY);
+		info.setVkFormat(VkFormat.VK_FORMAT_R8G8B8A8_SRGB);
+		KtxTexture2 t = KtxTexture2.create(info, KtxCreateStorage.ALLOC);
+		t.setImageFromMemory(0, 0, 0, rgba);
+
+		// Apply basis compression with an input swizzle, BRGA, so that
+		// the former B channel becomes the R channel
+		// the former R channel becomes the G channel
+		// the former G channel becomes the B channel
+		// the former A channel remains the A channel
+		KtxBasisParams p = new KtxBasisParams();
+		p.setUastc(false);
+		p.setInputSwizzle(new char[] { 'b', 'r', 'g', 'a' });
+		t.compressBasisEx(p);
+
+		t.destroy();
+	}
+
+	// Fill the specified range of rows of the given RGBA pixels
+	// array with the given RGBA components
+	private static void fillRows(byte rgba[], int sizeX, int sizeY,
+			int minRow, int maxRow,
+			int r, int g, int b, int a) {
+		for (int y = minRow; y < maxRow; y++) {
+			for (int x = 0; x < sizeX; x++) {
+				int index = (y * sizeX) + x;
+				rgba[index * 4 + 0] = (byte) r;
+				rgba[index * 4 + 1] = (byte) g;
+				rgba[index * 4 + 2] = (byte) b;
+				rgba[index * 4 + 3] = (byte) a;
+			}
+		}
+	}
 }
