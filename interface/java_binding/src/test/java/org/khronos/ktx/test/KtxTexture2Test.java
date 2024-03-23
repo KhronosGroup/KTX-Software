@@ -324,7 +324,7 @@ public class KtxTexture2Test {
 		int scBefore = t.getSupercompressionScheme();
 		assertEquals(KtxSupercmpScheme.NONE, scBefore);
 
-		// Apply LIB compression
+		// Apply ZLIB compression
 		t.deflateZLIB(10);
 
 		// The supercompression scheme should now be ZLIB
