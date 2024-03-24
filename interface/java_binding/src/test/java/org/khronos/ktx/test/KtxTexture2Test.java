@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -263,7 +264,21 @@ public class KtxTexture2Test {
 		p.setInputSwizzle(new char[] { 'b', 'r', 'g', 'a' });
 		t.compressBasisEx(p);
 
+		// Obtain the texture data, and compare it to the
+		// expected data of the reference texture
+		byte[] data = t.getData();
+		Path referenceKtxFile = Paths.get("")
+				.resolve("../../tests/testimages/swizzle-brga-reference.ktx")
+				.toAbsolutePath()
+				.normalize();
+		KtxTexture2 referenceTexture = KtxTexture2.createFromNamedFile(referenceKtxFile.toString(),
+				KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
+		byte[] referenceData = referenceTexture.getData();
+
+		assertArrayEquals(referenceData, data);
+
 		t.destroy();
+		referenceTexture.destroy();
 	}
 
 	@Test
