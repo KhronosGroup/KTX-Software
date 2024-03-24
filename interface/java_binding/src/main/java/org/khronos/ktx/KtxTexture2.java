@@ -5,6 +5,8 @@
 
 package org.khronos.ktx;
 
+import java.nio.ByteBuffer;
+
 public class KtxTexture2 extends KtxTexture {
     protected KtxTexture2(long instance) {
         super(instance);
@@ -46,6 +48,27 @@ public class KtxTexture2 extends KtxTexture {
         return createFromNamedFile(filename, KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
     }
 
+    /**
+     * Create a {@link KtxTexture2} from KTX-formatted data in memory.
+     * 
+     * The create flag {@link KtxTextureCreateFlagBits#LOAD_IMAGE_DATA_BIT}
+     * should not be set if the ktxTexture is ultimately to be uploaded to 
+     * OpenGL or Vulkan. This will minimize memory usage by allowing, for 
+     * example, loading the images directly from the source into a Vulkan 
+     * staging buffer.
+     *
+     * The create flag {@link KtxTextureCreateFlagBits#RAW_KVDATA_BIT} should
+     * not be used. It is provided solely to enable implementation of the 
+     * libktx v1 API on top of ktxTexture.
+     *
+     * @param byteBuffer The buffer containing the serialized KTX data.
+     * @param createFlags bitmask requesting specific actions during creation.
+     * @return The {@link KtxTexture2}, or <code>null</code> in case of
+     * an error.
+     */
+    public static native KtxTexture2 createFromMemory(
+    		ByteBuffer byteBuffer, int createFlags);
+    
     /**
      * Deflate the data in a {@link KtxTexture2} object using Zstandard.
      *
