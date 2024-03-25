@@ -41,7 +41,7 @@
             <key>LSIsAppleDefaultForType</key>
             <false/>
             <key>LSHandlerRank</key>
-            <string>Secondary</string>
+            <string>Alternate</string>
             <key>CFBundleTypeIconFile</key>
             <string>${KTX_DOC_ICON}</string>
             <key>LSItemContentTypes</key>
