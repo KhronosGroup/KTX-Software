@@ -563,7 +563,7 @@ struct FormatDescriptor {
         basic.colorPrimaries = p;
     }
     void setTransfer(khr_df_transfer_e t) {
-        khr_df_transfer_e oldOetf = static_cast<khr_df_transfer_e>(basic.transferFunction);
+        khr_df_transfer_e oldOetf = transfer();
         basic.transferFunction = t;
         if ((oldOetf <= KHR_DF_TRANSFER_LINEAR) != (t <= KHR_DF_TRANSFER_LINEAR))
         {
