@@ -118,4 +118,58 @@ public class KtxErrorCode {
 	 * For safety checks
 	 */
 	public static final int ERROR_MAX_ENUM = DECOMPRESS_CHECKSUM_ERROR;
+
+	/**
+	 * Returns a string representation of the given error code
+	 *
+	 * @param n The error code
+	 * @return A string representation of the given error code
+	 */
+	public static String stringFor(int n) {
+		switch (n) {
+		case SUCCESS:
+			return "SUCCESS";
+		case FILE_DATA_ERROR:
+			return "FILE_DATA_ERROR";
+		case FILE_ISPIPE:
+			return "FILE_ISPIPE";
+		case FILE_OPEN_FAILED:
+			return "FILE_OPEN_FAILED";
+		case FILE_OVERFLOW:
+			return "FILE_OVERFLOW";
+		case FILE_READ_ERROR:
+			return "FILE_READ_ERROR";
+		case FILE_SEEK_ERROR:
+			return "FILE_SEEK_ERROR";
+		case FILE_UNEXPECTED_EOF:
+			return "FILE_UNEXPECTED_EOF";
+		case FILE_WRITE_ERROR:
+			return "FILE_WRITE_ERROR";
+		case GL_ERROR:
+			return "GL_ERROR";
+		case INVALID_OPERATION:
+			return "INVALID_OPERATION";
+		case INVALID_VALUE:
+			return "INVALID_VALUE";
+		case NOT_FOUND:
+			return "NOT_FOUND";
+		case OUT_OF_MEMORY:
+			return "OUT_OF_MEMORY";
+		case TRANSCODE_FAILED:
+			return "TRANSCODE_FAILED";
+		case UNKNOWN_FILE_FORMAT:
+			return "UNKNOWN_FILE_FORMAT";
+		case UNSUPPORTED_TEXTURE_TYPE:
+			return "UNSUPPORTED_TEXTURE_TYPE";
+		case UNSUPPORTED_FEATURE:
+			return "UNSUPPORTED_FEATURE";
+		case LIBRARY_NOT_LINKED:
+			return "LIBRARY_NOT_LINKED";
+		case DECOMPRESS_LENGTH_ERROR:
+			return "DECOMPRESS_LENGTH_ERROR";
+		case DECOMPRESS_CHECKSUM_ERROR:
+			return "DECOMPRESS_CHECKSUM_ERROR";
+		}
+		return "[Unknown KtxErrorCode]";
+	}
 }
