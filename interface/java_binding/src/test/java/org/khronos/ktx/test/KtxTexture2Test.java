@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -241,10 +243,10 @@ public class KtxTexture2Test {
 		int sizeX = 32;
 		int sizeY = 32;
 		byte[] rgba = new byte[sizeX * sizeY * 4];
-		fillRows(rgba, sizeX, sizeY, 0, 8, 255, 0, 0, 255); // Red
-		fillRows(rgba, sizeX, sizeY, 8, 16, 0, 255, 0, 255); // Green
-		fillRows(rgba, sizeX, sizeY, 16, 24, 0, 0, 255, 255); // Blue
-		fillRows(rgba, sizeX, sizeY, 24, 32, 255, 255, 255, 255); // White
+		TestUtils.fillRows(rgba, sizeX, sizeY, 0, 8, 255, 0, 0, 255); // Red
+		TestUtils.fillRows(rgba, sizeX, sizeY, 8, 16, 0, 255, 0, 255); // Green
+		TestUtils.fillRows(rgba, sizeX, sizeY, 16, 24, 0, 0, 255, 255); // Blue
+		TestUtils.fillRows(rgba, sizeX, sizeY, 24, 32, 255, 255, 255, 255); // White
 
 		// Create a texture and fill it with the RGBA pixel data
 		KtxTextureCreateInfo info = new KtxTextureCreateInfo();
@@ -264,36 +266,27 @@ public class KtxTexture2Test {
 		p.setInputSwizzle(new char[] { 'b', 'r', 'g', 'a' });
 		t.compressBasisEx(p);
 
-		// Obtain the texture data, and compare it to the
-		// expected data of the reference texture
-		byte[] data = t.getData();
-		Path referenceKtxFile = Paths.get("")
-				.resolve("../../tests/testimages/swizzle-brga-reference.ktx")
-				.toAbsolutePath()
-				.normalize();
-		KtxTexture2 referenceTexture = KtxTexture2.createFromNamedFile(referenceKtxFile.toString(),
-				KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
-		byte[] referenceData = referenceTexture.getData();
+		// TODO This constant is currently not defined in KtxTranscodeFormat:
+		final int KTX_TTF_RGBA32 = 13;
 
-		assertArrayEquals(referenceData, data);
+		// Transcode the resulting texture to RGBA32
+		int outputFormat = KTX_TTF_RGBA32;
+		int transcodeFlags = 0;
+		t.transcodeBasis(outputFormat, transcodeFlags);
+		byte[] actualRgba = t.getData();
+
+		// Define the expected RGBA pixels. These are the swizzled input
+		// pixels, with slight deviations due to compression artifacts
+		byte[] expectedRgba = new byte[sizeX * sizeY * 4];
+		TestUtils.fillRows(expectedRgba, sizeX, sizeY, 0, 8, 2, 255, 2, 255);
+		TestUtils.fillRows(expectedRgba, sizeX, sizeY, 8, 16, 0, 0, 253, 255);
+		TestUtils.fillRows(expectedRgba, sizeX, sizeY, 16, 24, 253, 0, 0, 255);
+		TestUtils.fillRows(expectedRgba, sizeX, sizeY, 24, 32, 255, 255, 255, 255);
+
+		// Compare the resulting data to the expected RGBA values.
+		assertArrayEquals(expectedRgba, actualRgba);
 
 		t.destroy();
-		referenceTexture.destroy();
 	}
 
-	// Fill the specified range of rows of the given RGBA pixels
-	// array with the given RGBA components
-	private static void fillRows(byte rgba[], int sizeX, int sizeY,
-			int minRow, int maxRow,
-			int r, int g, int b, int a) {
-		for (int y = minRow; y < maxRow; y++) {
-			for (int x = 0; x < sizeX; x++) {
-				int index = (y * sizeX) + x;
-				rgba[index * 4 + 0] = (byte) r;
-				rgba[index * 4 + 1] = (byte) g;
-				rgba[index * 4 + 2] = (byte) b;
-				rgba[index * 4 + 3] = (byte) a;
-			}
-		}
-	}
 }
