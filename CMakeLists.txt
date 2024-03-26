@@ -468,9 +468,6 @@ endif()
 
 set(KTX_BASISU_INCLUDE_DIRS
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu/transcoder>
-    $<INSTALL_INTERFACE:lib/basisu/transcoder>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu/zstd>
-    $<INSTALL_INTERFACE:lib/basisu/zstd>
 )
 
 # Main library
@@ -559,6 +556,10 @@ macro(common_libktx_settings target enable_write library_type)
         $<INSTALL_INTERFACE:include>
     PRIVATE
         ${KTX_BASISU_INCLUDE_DIRS}
+        $<INSTALL_INTERFACE:lib/basisu/transcoder>
+
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu/zstd>
+        $<INSTALL_INTERFACE:lib/basisu/zstd>
 
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/utils>
         $<INSTALL_INTERFACE:utils>
