@@ -898,10 +898,10 @@ Compare two KTX2 files.
         <dt>\--ignore-bdfd-bytesplane</dt>
         <dd>Ignore BDFD bytesPlane values. Useful when comparing supercompressed files with
             non-supercompressed ones, as bytesPlane is set to zero for supercompressed files.</dd>
-        <dt>\--ignore-metadata all | &lt;keys&gt; | none</dt>
+        <dt>\--ignore-metadata all | &lt;key&gt;[,...] | none</dt>
         <dd>Controls the comparison of metadata (KVD) entries. Possible options are: <br />
             @b all - Ignore all metadata entries. <br />
-            @b &lt;keys&gt; - Ignore the specified comma separated list of metadata keys. <br />
+            @b &lt;key&gt;[,...] - Ignore the specified comma separated list of metadata keys. <br />
             @b none - Do not ignore any metadata entries. <br />
             The default mode is @b none, meaning that all metadata entries will be compared.
         </dd>
@@ -1059,9 +1059,9 @@ class CommandCompare : public Command {
                         "files with non-supercompressed ones, as bytesPlane is set to zero for supercompressed files.")
                     (kIgnoreMetadata, "Controls the comparison of metadata (KVD) entries. Possible options are:\n"
                         "  all: Ignore all metadata entries\n"
-                        "  <keys>: Ignore the specified comma separated list of metadata keys\n"
+                        "  <key>[,...]: Ignore the specified comma separated list of metadata keys\n"
                         "  none: Do not ignore any metadata entries\n",
-                        cxxopts::value<std::string>()->default_value("none"), "all|<keys>|none")
+                        cxxopts::value<std::string>()->default_value("none"), "all|<key>[,...]|none")
                     (kIgnoreSGD, "Controls the comparison of the SGD section. Possible options are:\n"
                         "  all: Ignore the SGD section\n"
                         "  unknown: Ignore any unrecognized SGD section\n"
