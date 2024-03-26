@@ -68,7 +68,7 @@ function( create_gl_target target version sources common_resources test_images
 
     if(APPLE)
         if(IOS)
-            set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/glloadtests/resources/ios/Info.plist" )
+            set( INFO_PLIST_IN "${PROJECT_SOURCE_DIR}/tests/loadtests/glloadtests/resources/ios/Info.plist.in" )
             set( icon_launch_assets
                 ${PROJECT_SOURCE_DIR}/icons/ios/CommonIcons.xcassets
                 glloadtests/resources/ios/LaunchImages.xcassets
@@ -97,7 +97,7 @@ function( create_gl_target target version sources common_resources test_images
                 ${UIKit_LIBRARY}
             )
         else()
-            set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/glloadtests/resources/mac/Info.plist" )
+            set( INFO_PLIST_IN "${PROJECT_SOURCE_DIR}/tests/loadtests/glloadtests/resources/mac/Info.plist.in" )
         endif()
     elseif(EMSCRIPTEN)
         # Beware of de-duplication in list expansion for commands and options.
@@ -183,28 +183,32 @@ function( create_gl_target target version sources common_resources test_images
     set_target_properties( ${target} PROPERTIES RESOURCE "${resources}" )
 
     if(APPLE)
-        set(PRODUCT_NAME "${target}")
-        set(EXECUTABLE_NAME ${PRODUCT_NAME})
-        # How amazingly irritating. We have to set both of these to the same
-        # value. The first must be set otherwise the app cannot be installed
-        # on iOS. The second has to be set to avoid an Xcode warning.
-        set(PRODUCT_BUNDLE_IDENTIFIER "org.khronos.ktx.${PRODUCT_NAME}")
-        set_target_properties(${target} PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.ktx.${PRODUCT_NAME}")
-        configure_file( ${INFO_PLIST} ${target}/Info.plist )
+        set(product_name "${target}")
+        set( bundle_identifier org.khronos.ktx.${product_name} )
+        # This property must be set to avoid an Xcode warning.
+        set_target_properties(${target} PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.ktx.${product_name}")
+        # See important comment about MACOSX_BUNDLE_INFO_PLIST and these
+        # properties in ./vkloadtests.cmake.
         set_target_properties( ${target} PROPERTIES
-            MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_BINARY_DIR}/${target}/Info.plist"
-            MACOSX_BUNDLE_ICON_FILE "ktx_app.icns"
+            MACOSX_BUNDLE_BUNDLE_NAME ${product_name}
+            MACOSX_BUNDLE_EXECUTABLE_NAME ${product_name}
+            MACOSX_BUNDLE_COPYRIGHT "© 2024 Khronos Group, Inc."
+            MACOSX_BUNDLE_GUI_IDENTIFIER ${bundle_identifier}
+            MACOSX_BUNDLE_INFO_PLIST ${INFO_PLIST_IN}
+            MACOSX_BUNDLE_INFO_STRING "View KTX textures; display via OpenGL."
+            MACOSX_BUNDLE_ICON_FILE ${KTX_APP_ICON}
+            MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
+            MACOSX_BUNDLE_SHORT_VERSION_STRING  ${PROJECT_VERSION}
             # Because libassimp is built with bitcode disabled. It's not
             # important unless submitting to the App Store and currently
             # bitcode is optional.
             XCODE_ATTRIBUTE_ENABLE_BITCODE "NO"
             XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES"
-            XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME "ktx_app"
+            XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME ${KTX_APP_ICON_BASENAME}
             XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2" # iPhone and iPad
         )
-        unset(PRODUCT_NAME)
-        unset(EXECUTABLE_NAME)
-        unset(PRODUCT_BUNDLE_IDENTIFIER)
+        unset(product_name)
+        unset(bundle_identifier)
 
         # The generated project code for building an Apple bundle automatically
         # copies the executable and all files with the RESOURCE property to the
@@ -434,7 +438,7 @@ endif()
 
 if(IOS OR EMULATE_GLES)
     # OpenGL ES 1.0
-    create_gl_target( es1loadtests "ES1" "${ES1_SOURCES}" "${KTX_ICON}" "${ES1_TEST_IMAGES}" SDL_GL_CONTEXT_PROFILE_ES 1 0 ON)
+    create_gl_target( es1loadtests "ES1" "${ES1_SOURCES}" "${KTX_APP_ICON_PATH}" "${ES1_TEST_IMAGES}" SDL_GL_CONTEXT_PROFILE_ES 1 0 ON)
 endif()
 
 if(IOS OR EMSCRIPTEN OR EMULATE_GLES)
