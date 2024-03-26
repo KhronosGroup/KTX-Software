@@ -5,20 +5,26 @@
 
 package org.khronos.ktx.test;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.khronos.ktx.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Locale;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.khronos.ktx.KtxBasisParams;
+import org.khronos.ktx.KtxCreateStorage;
+import org.khronos.ktx.KtxErrorCode;
+import org.khronos.ktx.KtxSupercmpScheme;
+import org.khronos.ktx.KtxTexture2;
+import org.khronos.ktx.KtxTextureCreateFlagBits;
+import org.khronos.ktx.KtxTextureCreateInfo;
+import org.khronos.ktx.KtxTranscodeFormat;
+import org.khronos.ktx.VkFormat;
 
 @ExtendWith({ KtxTestLibraryLoader.class })
 public class KtxTexture2Test {
@@ -288,5 +294,5 @@ public class KtxTexture2Test {
 
 		t.destroy();
 	}
-
 }
+
