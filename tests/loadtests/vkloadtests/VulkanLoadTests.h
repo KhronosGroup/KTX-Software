@@ -75,7 +75,8 @@ class VulkanLoadTests : public VulkanAppSDL {
     } sampleIndex;
 
     std::vector<std::string> infiles;
-    
+
+    uint32_t dropCompleteTime = 0;
     struct {
         int32_t x;
         int32_t y;

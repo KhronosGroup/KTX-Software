@@ -227,7 +227,7 @@ target_sources(vkloadtests PUBLIC ${MOLTENVK_ICD} ${VK_LAYER})
 
 if(APPLE)
     if(IOS)
-        set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/ios/Info.plist" )
+        set( INFO_PLIST_IN "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/ios/Info.plist.in" )
         set( icon_launch_assets
             ${PROJECT_SOURCE_DIR}/icons/ios/CommonIcons.xcassets
             vkloadtests/resources/ios/LaunchImages.xcassets
@@ -258,7 +258,7 @@ if(APPLE)
             ${UIKit_LIBRARY}
         )
     else()
-        set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/mac/Info.plist" )
+        set( INFO_PLIST_IN "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/mac/Info.plist.in" )
     endif()
 
     set_source_files_properties(${MOLTENVK_ICD} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/vulkan/icd.d")
@@ -285,27 +285,37 @@ PRIVATE
 set_target_properties( vkloadtests PROPERTIES RESOURCE "${KTX_RESOURCES};${SHADER_SOURCES}" )
 
 if(APPLE)
-    set(PRODUCT_NAME "vkloadtests")
-    set(EXECUTABLE_NAME ${PRODUCT_NAME})
-    # How amazingly irritating. We have to set both of these to the same value.
-    # The first must be set otherwise the app cannot be installed on iOS. The
-    # second has to be set to avoid an Xcode warning.
-    set(PRODUCT_BUNDLE_IDENTIFIER "org.khronos.ktx.${PRODUCT_NAME}")
-    set_target_properties(vkloadtests PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.ktx.${PRODUCT_NAME}")
-    configure_file( ${INFO_PLIST} vkloadtests/Info.plist )
+    set( product_name vkloadtests )
+    set( bundle_identifier org.khronos.ktx.${product_name} )
+    # This property must be set to avoid an Xcode warning.
+    set_target_properties( vkloadtests PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER ${bundle_identifier} )
+    # The file identified by MACOSX_BUNDLE_INFO_PLIST is subject to an
+    # implicit configure_file() step by CMake. Since this target has a custom
+    # Info.plist this is not strictly necessary but the writer does not know
+    # how to prevent it. Furthermore the BUNDLE_NAME, EXECUTABLE_NAME and
+    # GUI_IDENTIFIER properties could all be set from Xcode build settings
+    # but using those in the custom Info.plist would not be portable to other
+    # generators. Since configure_file() is happening use the standard
+    # property names for consistency with the standard Info.plist template.
     set_target_properties( vkloadtests PROPERTIES
-        MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_BINARY_DIR}/vkloadtests/Info.plist"
-        MACOSX_BUNDLE_ICON_FILE "ktx_app.icns"
-        # Because libassimp is built with bitcode disabled. It's not important unless
-        # submitting to the App Store and currently bitcode is optional.
+        MACOSX_BUNDLE_BUNDLE_NAME ${product_name}
+        MACOSX_BUNDLE_EXECUTABLE_NAME ${product_name}
+        MACOSX_BUNDLE_COPYRIGHT "© 2024 Khronos Group, Inc."
+        MACOSX_BUNDLE_GUI_IDENTIFIER ${bundle_identifier}
+        MACOSX_BUNDLE_INFO_PLIST ${INFO_PLIST_IN}
+        MACOSX_BUNDLE_INFO_STRING "View KTX textures; display via Vulkan."
+        MACOSX_BUNDLE_ICON_FILE ${KTX_APP_ICON}
+        MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
+        MACOSX_BUNDLE_SHORT_VERSION_STRING  ${PROJECT_VERSION}
+        # Because libassimp is built with bitcode disabled. It's not important
+        # unless submitting to the App Store and currently bitcode is optional.
         XCODE_ATTRIBUTE_ENABLE_BITCODE "NO"
         XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES"
-        XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME "ktx_app"
+        XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME ${KTX_APP_ICON_BASENAME}
         XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2" # iPhone and iPad
     )
-    unset(PRODUCT_NAME)
-    unset(EXECUTABLE_NAME)
-    unset(PRODUCT_BUNDLE_IDENTIFIER)
+    unset(product_name)
+    unset(bundle_identifier)
 
     # The generated project code for building an Apple bundle automatically
     # copies the executable and all files with the RESOURCE property to the

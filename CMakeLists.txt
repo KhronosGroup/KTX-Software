@@ -56,6 +56,8 @@ option( KTX_FEATURE_PY "Create Python source distribution." OFF )
 option( KTX_FEATURE_TESTS "Create unit tests." ON )
 option( KTX_FEATURE_TOOLS_CTS "Enable KTX CLI Tools CTS tests (requires CTS submodule)." OFF )
 
+option( KTX_FEATURE_ETC_UNPACK "ETC decoding support." ON )
+
 if(KTX_FEATURE_TOOLS_CTS AND NOT KTX_FEATURE_TOOLS)
     message(WARNING "KTX_FEATURE_TOOLS is not set -> disabling KTX_FEATURE_TOOLS_CTS.")
     set(KTX_FEATURE_TOOLS_CTS "OFF")
@@ -367,7 +369,6 @@ set(KTX_MAIN_SRC
     lib/dfdutils/vk2dfd.inl
     lib/dfdutils/vulkan/vk_platform.h
     lib/dfdutils/vulkan/vulkan_core.h
-    lib/etcdec.cxx
     lib/etcunpack.cxx
     lib/filestream.c
     lib/filestream.h
@@ -395,6 +396,12 @@ set(KTX_MAIN_SRC
     lib/vkformat_str.c
     lib/vkformat_typesize.c
     )
+
+if (KTX_FEATURE_ETC_UNPACK)
+	list(APPEND KTX_MAIN_SRC 
+		lib/etcdec.cxx
+	)
+endif()
 
 set(BASISU_ENCODER_CXX_SRC
     lib/basisu/encoder/basisu_backend.cpp
@@ -509,6 +516,7 @@ macro(common_libktx_settings target enable_write library_type)
         "$<$<CONFIG:Debug>:_DEBUG;DEBUG>"
     PRIVATE
         LIBKTX
+        SUPPORT_SOFTWARE_ETC_UNPACK=$<BOOL:${KTX_FEATURE_ETC_UNPACK}>
     )
 
     # C/C++ Standard
