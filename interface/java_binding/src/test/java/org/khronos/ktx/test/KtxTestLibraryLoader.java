@@ -88,7 +88,7 @@ public class KtxTestLibraryLoader implements BeforeAllCallback, ExtensionContext
 			}
 		}
 		System.out
-				.println("KTXTestLibraryLoader: Could not findl " + expectedKtxJniLibraryName + " in given directory");
+				.println("KTXTestLibraryLoader: Could not find " + expectedKtxJniLibraryName + " in given directory");
 		return null;
 	}
 
