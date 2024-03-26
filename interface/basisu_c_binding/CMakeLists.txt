@@ -47,4 +47,8 @@ if(WIN32)
     PRIVATE 
         $<IF:$<STREQUAL:"${LIB_TYPE}","STATIC">,KHRONOS_STATIC,KTX_BASISU_API=__declspec\(dllexport\)>
     )
+elseif(APPLE)
+    if(KTX_EMBED_BITCODE)
+        target_compile_options(obj_basisu_cbind PRIVATE "-fembed-bitcode")
+    endif()
 endif()

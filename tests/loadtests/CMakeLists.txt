@@ -277,15 +277,21 @@ set( LOAD_TEST_COMMON_LIBS )
 
 if(APPLE)
     set( EXE_FLAG MACOSX_BUNDLE )
+    set( KTX_APP_ICON_BASENAME ktx_app)
+    set( KTX_DOC_ICON_BASENAME ktx_document)
+    set( KTX_APP_ICON ${KTX_APP_ICON_BASENAME}.icns)
+    set( KTX_DOC_ICON ${KTX_DOC_ICON_BASENAME}.icns)
+    # On iOS an icon is a directory of images not a single file.
+    # BASENAME is the name of the directory in the common .xcassets directory.
+    # Assets are copied to the bundle in the build target setup.
+    set( KTX_APP_ICON_PATH ${PROJECT_SOURCE_DIR}/icons/mac/${KTX_APP_ICON} )
+    set( KTX_DOC_ICON_PATH ${PROJECT_SOURCE_DIR}/icons/mac/${KTX_DOC_ICON} )
     if(IOS)
-        # Do not set KTX_ICON here. On iOS the icon is not a single file.
-        # Icon setup must be handled when creating a target.
         set( LOAD_TEST_COMMON_LIBS
             ${ASSIMP_LIBRARIES}
             ${SDL2_LIBRARIES}
         )
     else()
-        set( KTX_ICON ${PROJECT_SOURCE_DIR}/icons/mac/ktx_app.icns )
         set( LOAD_TEST_COMMON_LIBS
             ${ASSIMP_LIBRARIES}
             ${SDL2_LIBRARIES}
@@ -293,14 +299,14 @@ if(APPLE)
         )
     endif()
 elseif(LINUX)
-    set( KTX_ICON ${PROJECT_SOURCE_DIR}/icons/linux/ktx_app.svg )
+    set( KTX_APP_ICON_PATH ${PROJECT_SOURCE_DIR}/icons/linux/ktx_app.svg )
     set( LOAD_TEST_COMMON_LIBS
         ${ASSIMP_LIBRARIES}
         ${SDL2_LIBRARIES}
     )
 elseif(WIN32)
     set( EXE_FLAG WIN32 )
-    set( KTX_ICON ${PROJECT_SOURCE_DIR}/icons/win/ktx_app.ico )
+    set( KTX_APP_ICON_PATH ${PROJECT_SOURCE_DIR}/icons/win/ktx_app.ico )
     set( LOAD_TEST_COMMON_LIBS
         ${ASSIMP_LIBRARIES}
         ${SDL2_LIBRARIES}
@@ -320,14 +326,15 @@ set_source_files_properties( ${LOAD_TEST_COMMON_MODELS}
 )
 
 # A custom loadtest_models target does not work as configure fails at
-# an install_targets that uses this with an error "the target is not
+# an install_target that uses this with an error "the target is not
 # an executable, library or module."
 #add_custom_target( loadtest_models
 #    SOURCES ${LOAD_TEST_COMMON_MODELS}
 #)
 
 set( LOAD_TEST_COMMON_RESOURCE_FILES
-    ${KTX_ICON}
+    ${KTX_APP_ICON_PATH}
+    ${KTX_DOC_ICON_PATH}
     ${LOAD_TEST_COMMON_MODELS}
 )
 

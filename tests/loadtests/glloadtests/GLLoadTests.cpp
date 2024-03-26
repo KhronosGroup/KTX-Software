@@ -116,6 +116,27 @@ GLLoadTests::doEvent(SDL_Event* event)
             break;
         }
         break;
+      // On macOS drop events come also when Launch Pad sends a file open event.
+      case SDL_DROPBEGIN:
+        // Opens of multiple selected files from Finder/LaunchPad come as
+        // a BEGIN, COMPLETE sequence per file. Only clear infiles after a
+        // suitable pause between COMPLETE and BEGIN.
+        if (event->drop.timestamp - dropCompleteTime > 500) {
+            infiles.clear();
+        }
+        break;
+      case SDL_DROPFILE:
+        infiles.push_back(event->drop.file);
+        SDL_free(event->drop.file);
+        break;
+      case SDL_DROPCOMPLETE:
+        if (!infiles.empty()) {
+            // Guard against the drop being text.
+            dropCompleteTime = event->drop.timestamp;
+            sampleIndex.setNumSamples((uint32_t)infiles.size());
+            invokeSample(Direction::eForward);
+        }
+        break;
       default:
         switch(swipeDetector.doEvent(event)) {
           case SwipeDetector::eSwipeUp:
@@ -157,7 +178,8 @@ GLLoadTests::windowResized()
 void
 GLLoadTests::drawFrame(uint32_t msTicks)
 {
-    pCurSample->run(msTicks);
+    if (pCurSample != nullptr)
+        pCurSample->run(msTicks);
 
     GLAppSDL::drawFrame(msTicks);
 }
