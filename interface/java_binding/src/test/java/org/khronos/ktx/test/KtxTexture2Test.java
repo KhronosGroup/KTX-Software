@@ -272,11 +272,8 @@ public class KtxTexture2Test {
 		p.setInputSwizzle(new char[] { 'b', 'r', 'g', 'a' });
 		t.compressBasisEx(p);
 
-		// TODO This constant is currently not defined in KtxTranscodeFormat:
-		final int KTX_TTF_RGBA32 = 13;
-
 		// Transcode the resulting texture to RGBA32
-		int outputFormat = KTX_TTF_RGBA32;
+		int outputFormat = KtxTranscodeFormat.RGBA32;
 		int transcodeFlags = 0;
 		t.transcodeBasis(outputFormat, transcodeFlags);
 		byte[] actualRgba = t.getData();
