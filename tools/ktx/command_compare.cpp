@@ -918,22 +918,22 @@ Compare two KTX2 files.
     </dl>
     @snippet{doc} ktx/command.h command options_generic
 
-    Reports about individual texel block differences include the following information: <br />
-    <ul>
-        <li>The level, layer, and face index of the image where the difference was found.</li>
-        <li>The texel coordinates within the image where the difference was found, if --content
-            is set to @b image. These coordinates are the raw coordinates of the image and are
-            not affected by metadata such as @b KTXorientation.</li>
-        <li>The packed elements of the texel block, if --content is set to @b image, output as
-            an array of hexadecimal values. Each packed element has a byte size equal to the
-            @b typeSize value of the image.</li>
-        <li>The channel values of the texel block, if --content is set to @b image, output as
-            an array of integer (for integer and normalized formats) or floating point (for
-            floating point formats) values. In case of floating point formats @b NaN, @b +inf,
-            and @b -inf are used to indicate values that are not a number or represent
-            infinities, respectively. The output order of the channels always follow the order
-            they appear in the BDFD.</li>
-    </ul>
+    @note Reports about image content mismatches when --content is set to @b raw or @b image
+    include the following information: <br />
+    - The level, layer, and face index of the image where the difference was found.
+
+    @note Reports about individual texel block differences when --content is set to @b image
+    include the following additional information: <br />
+    - The texel coordinates within the image where the difference was found. These
+      coordinates are the raw coordinates of the image and are not affected by metadata
+      such as @b KTXorientation.
+    - The packed elements of the texel block output as an array of hexadecimal values.
+      Each packed element has a byte size equal to the @b typeSize value of the image.
+    - The channel values of the texel block output as an array of integer (for integer
+      and normalized formats) or floating point (for floating point formats) values.
+      In case of floating point formats @b NaN, @b +inf, and @b -inf are used to indicate
+      values that are not a number or represent infinities, respectively.
+      The output order of the channels always follow the order they appear in the BDFD.
 
 @section ktx_compare_exitstatus EXIT STATUS
     @snippet{doc} ktx/command.h command exitstatus
