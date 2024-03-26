@@ -30,4 +30,11 @@ static inline ktxTexture2 *get_ktx2_texture(JNIEnv *env, jobject thiz)
     return reinterpret_cast<ktxTexture2*>(get_ktx_texture(env, thiz));
 }
 
+/**
+ * Throws a new Java Exception that is identified by the given name, e.g.
+ * "java/lang/IllegalArgumentException"
+ * and contains the given message.
+ */
+void ThrowByName(JNIEnv *env, const char *name, const char *msg);
+
 #endif

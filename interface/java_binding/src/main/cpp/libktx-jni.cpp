@@ -170,3 +170,19 @@ void copy_ktx_basis_params(JNIEnv *env, jobject params, ktxBasisParams &out)
     out.uastcRDODontFavorSimplerModes = env->GetBooleanField(params, uastcRDODontFavorSimplerModes);
     out.uastcRDONoMultithreading = env->GetBooleanField(params, uastcRDONoMultithreading);
 }
+
+/**
+ * Throws a new Java Exception that is identified by the given name, e.g.
+ * "java/lang/IllegalArgumentException"
+ * and contains the given message.
+ */
+void ThrowByName(JNIEnv *env, const char *name, const char *msg)
+{
+    jclass cls = env->FindClass(name);
+    if (cls != NULL)
+    {
+        env->ThrowNew(cls, msg);
+    }
+    env->DeleteLocalRef(cls);
+}
+

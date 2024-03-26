@@ -30,6 +30,12 @@ extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KtxTexture1_create(JNI
                                                                                 jobject java_create_info,
                                                                                 jint storageAllocation)
 {
+    if (java_create_info == NULL) 
+    {
+      ThrowByName(env, "java/lang/NullPointerException", "Parameter 'java_create_info' is null for create");
+      return NULL;
+    }
+
     ktxTextureCreateInfo info;
     copy_ktx_texture_create_info(env, java_create_info, info);
 
@@ -55,6 +61,12 @@ extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KtxTexture1_createFrom
                                                                                             jstring filename,
                                                                                             jint createFlags)
 {
+    if (filename == NULL) 
+    {
+      ThrowByName(env, "java/lang/NullPointerException", "Parameter 'filename' is null for createFromNamedFile");
+      return NULL;
+    }
+
     const char *filenameArray = env->GetStringUTFChars(filename, NULL);
     ktxTexture1 *instance = NULL;
 

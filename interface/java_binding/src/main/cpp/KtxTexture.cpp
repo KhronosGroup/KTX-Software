@@ -160,6 +160,12 @@ extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture_setImageFromMe
                                                                                     jint faceSlice,
                                                                                     jbyteArray srcArray)
 {
+    if (srcArray == NULL) 
+    {
+      ThrowByName(env, "java/lang/NullPointerException", "Parameter 'srcArray' is null for setImageFromMemory");
+      return KTX_INVALID_VALUE;
+    }
+
     ktx_uint8_t *src = reinterpret_cast<ktx_uint8_t*>(env->GetByteArrayElements(srcArray, NULL));
     ktx_size_t srcSize = static_cast<ktx_size_t>(env->GetArrayLength(srcArray));
 
@@ -179,6 +185,12 @@ extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture_writeToNamedFi
                                                                                     jobject thiz,
                                                                                     jstring dstName)
 {
+    if (dstName == NULL) 
+    {
+      ThrowByName(env, "java/lang/NullPointerException", "Parameter 'dstName' is null for writeToNamedFile");
+      return KTX_INVALID_VALUE;
+    }
+
     const char *dstNameArray = env->GetStringUTFChars(dstName, NULL);
 
     jint result = ktxTexture_WriteToNamedFile(get_ktx_texture(env, thiz), dstNameArray);
