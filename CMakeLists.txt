@@ -466,6 +466,10 @@ elseif(APPLE OR LINUX)
     endif()
 endif()
 
+set(KTX_BASISU_INCLUDE_DIRS
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu/transcoder>
+)
+
 # Main library
 add_library( ktx ${LIB_TYPE}
     ${KTX_MAIN_SRC}
@@ -551,7 +555,7 @@ macro(common_libktx_settings target enable_write library_type)
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
     PRIVATE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu/transcoder>
+        ${KTX_BASISU_INCLUDE_DIRS}
         $<INSTALL_INTERFACE:lib/basisu/transcoder>
 
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu/zstd>
