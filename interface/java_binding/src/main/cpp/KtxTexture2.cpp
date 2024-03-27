@@ -120,27 +120,57 @@ void releaseBufferData(JNIEnv *env, jobject buffer, jbyte* baseAddress) {
 
 extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture2_getOETF(JNIEnv *env, jobject thiz)
 {
-    return ktxTexture2_GetOETF(get_ktx2_texture(env, thiz));
+    ktxTexture2 *texture = get_ktx2_texture(env, thiz);
+    if (texture == NULL) 
+    {
+      ThrowDestroyed(env);
+      return 0;
+    }
+    return ktxTexture2_GetOETF(texture);
 }
 
 extern "C" JNIEXPORT jboolean JNICALL Java_org_khronos_ktx_KtxTexture2_getPremultipliedAlpha(JNIEnv *env, jobject thiz)
 {
-    return ktxTexture2_GetPremultipliedAlpha(get_ktx2_texture(env, thiz));
+    ktxTexture2 *texture = get_ktx2_texture(env, thiz);
+    if (texture == NULL) 
+    {
+      ThrowDestroyed(env);
+      return 0;
+    }
+    return ktxTexture2_GetPremultipliedAlpha(texture);
 }
 
 extern "C" JNIEXPORT jboolean JNICALL Java_org_khronos_ktx_KtxTexture2_needsTranscoding(JNIEnv *env, jobject thiz)
 {
-    return ktxTexture2_NeedsTranscoding(get_ktx2_texture(env, thiz));
+    ktxTexture2 *texture = get_ktx2_texture(env, thiz);
+    if (texture == NULL) 
+    {
+      ThrowDestroyed(env);
+      return false;
+    }
+    return ktxTexture2_NeedsTranscoding(texture);
 }
 
 extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture2_getVkFormat(JNIEnv *env, jobject thiz)
 {
-    return get_ktx2_texture(env, thiz)->vkFormat;
+    ktxTexture2 *texture = get_ktx2_texture(env, thiz);
+    if (texture == NULL) 
+    {
+      ThrowDestroyed(env);
+      return 0;
+    }
+    return texture->vkFormat;
 }
 
 extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture2_getSupercompressionScheme(JNIEnv *env, jobject thiz)
 {
-    return get_ktx2_texture(env, thiz)->supercompressionScheme;
+    ktxTexture2 *texture = get_ktx2_texture(env, thiz);
+    if (texture == NULL) 
+    {
+      ThrowDestroyed(env);
+      return 0;
+    }
+    return texture->supercompressionScheme;
 }
 
 extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture2_compressAstcEx(JNIEnv *env,
@@ -150,22 +180,32 @@ extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture2_compressAstcE
     if (jparams == NULL) 
     {
       ThrowByName(env, "java/lang/NullPointerException", "Parameter 'jparams' is null for compressAstcEx");
-      return KTX_INVALID_VALUE;
+      return 0;
+    }
+    ktxTexture2 *texture = get_ktx2_texture(env, thiz);
+    if (texture == NULL) 
+    {
+      ThrowDestroyed(env);
+      return 0;
     }
 
     ktxAstcParams params = {};
     copy_ktx_astc_params(env, jparams, params);
 
-    return ktxTexture2_CompressAstcEx(get_ktx2_texture(env, thiz),
-                                        &params);
+    return ktxTexture2_CompressAstcEx(texture, &params);
 }
 
 extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture2_compressAstc(JNIEnv *env,
                                                                                 jobject thiz,
                                                                                 jint quality)
 {
-    return ktxTexture2_CompressAstc(get_ktx2_texture(env, thiz),
-                                        static_cast<uint32_t>(quality));
+    ktxTexture2 *texture = get_ktx2_texture(env, thiz);
+    if (texture == NULL) 
+    {
+      ThrowDestroyed(env);
+      return 0;
+    }
+    return ktxTexture2_CompressAstc(texture, static_cast<uint32_t>(quality));
 }
 
 extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture2_compressBasisEx(JNIEnv *env,
@@ -175,21 +215,32 @@ extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture2_compressBasis
     if (jparams == NULL) 
     {
       ThrowByName(env, "java/lang/NullPointerException", "Parameter 'jparams' is null for compressBasisEx");
-      return KTX_INVALID_VALUE;
+      return 0;
+    }
+    ktxTexture2 *texture = get_ktx2_texture(env, thiz);
+    if (texture == NULL) 
+    {
+      ThrowDestroyed(env);
+      return 0;
     }
 
     ktxBasisParams params = {};
     copy_ktx_basis_params(env, jparams, params);
 
-    return ktxTexture2_CompressBasisEx(get_ktx2_texture(env, thiz),
-                                        &params);
+    return ktxTexture2_CompressBasisEx(texture, &params);
 }
 
 extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture2_compressBasis(JNIEnv *env,
                                                                                 jobject thiz,
                                                                                 jint quality)
 {
-    return ktxTexture2_CompressBasis(get_ktx2_texture(env, thiz), static_cast<uint32_t>(quality));
+    ktxTexture2 *texture = get_ktx2_texture(env, thiz);
+    if (texture == NULL) 
+    {
+      ThrowDestroyed(env);
+      return 0;
+    }
+    return ktxTexture2_CompressBasis(texture, static_cast<uint32_t>(quality));
 }
 
 extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture2_transcodeBasis(JNIEnv *env,
@@ -197,8 +248,14 @@ extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture2_transcodeBasi
                                                                                 jint outputFormat,
                                                                                 jint transcodeFlags)
 {
+    ktxTexture2 *texture = get_ktx2_texture(env, thiz);
+    if (texture == NULL) 
+    {
+      ThrowDestroyed(env);
+      return 0;
+    }
     return ktxTexture2_TranscodeBasis(
-        get_ktx2_texture(env, thiz),
+        texture,
         static_cast<ktx_transcode_fmt_e>(outputFormat),
         transcodeFlags);
 }
@@ -304,12 +361,24 @@ extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture2_deflateZstd(J
                                                                                jobject thiz,
                                                                                jint level)
 {
-  return ktxTexture2_DeflateZstd(get_ktx2_texture(env, thiz), static_cast<ktx_uint32_t>(level));
+    ktxTexture2 *texture = get_ktx2_texture(env, thiz);
+    if (texture == NULL) 
+    {
+      ThrowDestroyed(env);
+      return 0;
+    }
+    return ktxTexture2_DeflateZstd(texture, static_cast<ktx_uint32_t>(level));
 }
 
 extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture2_deflateZLIB(JNIEnv *env,
                                                                                jobject thiz,
                                                                                jint level)
 {
-  return ktxTexture2_DeflateZLIB(get_ktx2_texture(env, thiz), static_cast<ktx_uint32_t>(level));
+    ktxTexture2 *texture = get_ktx2_texture(env, thiz);
+    if (texture == NULL) 
+    {
+      ThrowDestroyed(env);
+      return 0;
+    }
+    return ktxTexture2_DeflateZLIB(texture, static_cast<ktx_uint32_t>(level));
 }

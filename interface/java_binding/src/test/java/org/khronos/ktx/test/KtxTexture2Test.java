@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -211,6 +212,40 @@ public class KtxTexture2Test {
 		assertEquals(KtxSupercmpScheme.BASIS_LZ, texture.getSupercompressionScheme());
 
 		texture.destroy();
+	}
+
+	@Test
+	public void testUsingAfterDestroy() {
+		KtxTextureCreateInfo info = new KtxTextureCreateInfo();
+		info.setBaseWidth(16);
+		info.setBaseHeight(16);
+		info.setVkFormat(VkFormat.VK_FORMAT_ASTC_4x4_SRGB_BLOCK);
+		KtxTexture2 texture = KtxTexture2.create(info, KtxCreateStorage.ALLOC);
+
+		// Call destroy, and then try to call a function.
+		// It should throw for ALL functions, and there
+		// should be a test for EACH function, but...
+		// I got stuff to do, you know...
+		texture.destroy();
+		assertThrows(IllegalStateException.class,
+				() -> texture.getBaseDepth(),
+				"Expected to throw IllegalStateException");
+
+	}
+
+	@Test
+	public void testDestroyMultipleTimes() {
+		KtxTextureCreateInfo info = new KtxTextureCreateInfo();
+		info.setBaseWidth(16);
+		info.setBaseHeight(16);
+		info.setVkFormat(VkFormat.VK_FORMAT_ASTC_4x4_SRGB_BLOCK);
+		KtxTexture2 texture = KtxTexture2.create(info, KtxCreateStorage.ALLOC);
+
+		texture.destroy();
+		texture.destroy();
+		texture.destroy();
+
+		assertTrue(true, "Should be able to call destroy() multiple times");
 	}
 
 

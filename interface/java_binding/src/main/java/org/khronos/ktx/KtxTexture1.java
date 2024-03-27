@@ -5,6 +5,18 @@
 
 package org.khronos.ktx;
 
+/**
+ * Class representing a KTX version 1 format texture.
+ *
+ * KTX textures should be created only by one of the provided functions and these
+ * fields should be considered read-only.
+ *
+ * Trying to use a KTX texture after its {@link #destroy()} method was called
+ * will result in an <code>IllegalStateException</code>.
+ *
+ * Unless explicitly noted, none of the parameters passed to any function
+ * may be <code>null</code>.
+ */
 public class KtxTexture1 extends KtxTexture {
     protected KtxTexture1(long instance) {
         super(instance);

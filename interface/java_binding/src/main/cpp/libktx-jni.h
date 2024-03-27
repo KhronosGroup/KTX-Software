@@ -37,4 +37,10 @@ static inline ktxTexture2 *get_ktx2_texture(JNIEnv *env, jobject thiz)
  */
 void ThrowByName(JNIEnv *env, const char *name, const char *msg);
 
+/**
+ * Throws a new Java Exception that indicates that a KTX texture
+ * was used after its 'destroy()' method was called
+ */
+void ThrowDestroyed(JNIEnv *env);
+
 #endif

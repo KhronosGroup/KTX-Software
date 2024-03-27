@@ -186,3 +186,12 @@ void ThrowByName(JNIEnv *env, const char *name, const char *msg)
     env->DeleteLocalRef(cls);
 }
 
+/**
+ * Throws a new Java Exception that indicates that a KTX texture
+ * was used after its 'destroy()' method was called
+ */
+void ThrowDestroyed(JNIEnv *env) 
+{
+    ThrowByName(env, "java/lang/IllegalStateException", "Cannot use a texture after destroy() was called");
+}
+

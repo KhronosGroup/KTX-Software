@@ -10,19 +10,37 @@
 extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture1_getGlFormat(JNIEnv *env,
                                                                                 jobject thiz)
 {
-    return get_ktx1_texture(env, thiz)->glFormat;
+    ktxTexture1 *texture = get_ktx1_texture(env, thiz);
+    if (texture == NULL) 
+    {
+      ThrowDestroyed(env);
+      return 0;
+    }
+    return texture->glFormat;
 }
 
 extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture1_getGlInternalformat(JNIEnv *env,
                                                                                 jobject thiz)
 {
-    return get_ktx1_texture(env, thiz)->glInternalformat;
+    ktxTexture1 *texture = get_ktx1_texture(env, thiz);
+    if (texture == NULL) 
+    {
+      ThrowDestroyed(env);
+      return 0;
+    }
+    return texture->glInternalformat;
 }
 
 extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture1_getGlBaseInternalformat(JNIEnv *env,
                                                                                 jobject thiz)
 {
-    return get_ktx1_texture(env, thiz)->glBaseInternalformat;
+    ktxTexture1 *texture = get_ktx1_texture(env, thiz);
+    if (texture == NULL) 
+    {
+      ThrowDestroyed(env);
+      return 0;
+    }
+    return texture->glBaseInternalformat;
 }
 
 extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KtxTexture1_create(JNIEnv *env,

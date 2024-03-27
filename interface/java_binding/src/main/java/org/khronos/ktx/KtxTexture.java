@@ -5,6 +5,18 @@
 
 package org.khronos.ktx;
 
+/**
+ * Base class representing a texture.
+ *
+ * KTX textures should be created only by one of the provided functions and these
+ * fields should be considered read-only.
+ *
+ * Trying to use a KTX texture after its {@link #destroy()} method was called
+ * will result in an <code>IllegalStateException</code>.
+ *
+ * Unless explicitly noted, none of the parameters passed to any function
+ * may be <code>null</code>.
+ */
 public abstract class KtxTexture {
     private final long instance;
 
@@ -43,8 +55,8 @@ public abstract class KtxTexture {
     /**
      * Destroy the KTX texture and free memory image resources
      *
-     * NOTE: If you try to use a {@link KTXTexture} after it's destroyed, that will cause a segmentation
-     * fault (the texture pointer is set to NULL).
+     * Trying to use a {@link KTXTexture} after it's destroyed will cause a
+     * an <code>IllegalStateException</code> to be thrown.
      */
     public native void destroy();
 
