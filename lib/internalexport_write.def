@@ -21,7 +21,10 @@ EXPORTS
     dfdToStringColorModel
     dfdToStringColorPrimaries
     dfdToStringDescriptorType
+    dfdToStringFlagsBit
+    dfdToStringSampleDatatypeQualifiersBit
     dfdToStringTransferFunction
     dfdToStringVendorID
     dfdToStringVersionNumber
+    ktxBUImageFlagsBitString
     ktxTexture2_constructCopy

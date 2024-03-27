@@ -40,7 +40,12 @@ if (KHR_DFDVAL(dfd + 1, MODEL) == KHR_DF_MODEL_RGBSDA || KHR_DFDVAL(dfd + 1, MOD
     }
   }
   if (KHR_DFDSVAL((dfd + 1), 0, CHANNELID) == KHR_DF_CHANNEL_RGBSDA_STENCIL) {
-    return VK_FORMAT_S8_UINT;
+    if (KHR_DFDSAMPLECOUNT((dfd + 1)) == 1) {
+      return VK_FORMAT_S8_UINT;
+    } else {
+      // The KTX 2.0 specification defines D24_UNORM_S8_UINT with S8 in the LSBs
+      return VK_FORMAT_D24_UNORM_S8_UINT;
+    }
   }
 
   r = interpretDFD(dfd, &R, &G, &B, &A, &wordBytes);
