@@ -13,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -52,6 +53,103 @@ public class KtxTexture2Test {
 
 		texture.destroy();
 	}
+
+	@Test
+	public void testCreateFromMemoryBasic() {
+
+		// Create a texture, and write it to memory
+		int sizeX = 512;
+		int sizeY = 512;
+		KtxTextureCreateInfo info = new KtxTextureCreateInfo();
+		info.setBaseWidth(sizeX);
+		info.setBaseHeight(sizeY);
+		info.setVkFormat(VkFormat.VK_FORMAT_R8G8B8A8_SRGB);
+		KtxTexture2 input = KtxTexture2.create(info, KtxCreateStorage.ALLOC);
+		byte[] inputMemoryArray = input.writeToMemory();
+
+		// Create the texture from the exact memory
+		int createFlags = KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT;
+		KtxTexture2 t = KtxTexture2.createFromMemory(ByteBuffer.wrap(inputMemoryArray), createFlags);
+
+		// Ensure that the image has the same basic properties
+		// as the one that it was created from
+		assertEquals(t.getBaseWidth(), 512);
+		assertEquals(t.getBaseHeight(), 512);
+	}
+
+	@Test
+	public void testCreateFromMemoryWithPositionAndLimit() {
+
+		// Create a texture, and write it to memory
+		int sizeX = 512;
+		int sizeY = 512;
+		KtxTextureCreateInfo info = new KtxTextureCreateInfo();
+		info.setBaseWidth(sizeX);
+		info.setBaseHeight(sizeY);
+		info.setVkFormat(VkFormat.VK_FORMAT_R8G8B8A8_SRGB);
+		KtxTexture2 input = KtxTexture2.create(info, KtxCreateStorage.ALLOC);
+		byte[] inputMemoryArray = input.writeToMemory();
+
+		// Create a byte buffer that is a bit larger than
+		// the input memory, and put the input memory
+		// into it, at position 50
+		ByteBuffer largeBuffer = ByteBuffer.wrap(new byte[inputMemoryArray.length + 100]);
+		largeBuffer.position(50);
+		largeBuffer.put(inputMemoryArray);
+
+		// Set the position and limit of the buffer to
+		// reflect the range that actually contains
+		// the real input data
+		largeBuffer.position(50);
+		largeBuffer.limit(50 + inputMemoryArray.length);
+
+		// Create the texture from the exact memory
+		int createFlags = KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT;
+		KtxTexture2 t = KtxTexture2.createFromMemory(largeBuffer, createFlags);
+
+		// Ensure that the image has the same basic properties
+		// as the one that it was created from
+		assertEquals(t.getBaseWidth(), 512);
+		assertEquals(t.getBaseHeight(), 512);
+	}
+
+	@Test
+	public void testCreateFromDirectMemoryWithPositionAndLimit() {
+
+		// Create a texture, and write it to memory
+		int sizeX = 512;
+		int sizeY = 512;
+		KtxTextureCreateInfo info = new KtxTextureCreateInfo();
+		info.setBaseWidth(sizeX);
+		info.setBaseHeight(sizeY);
+		info.setVkFormat(VkFormat.VK_FORMAT_R8G8B8A8_SRGB);
+		KtxTexture2 input = KtxTexture2.create(info, KtxCreateStorage.ALLOC);
+		byte[] inputMemoryArray = input.writeToMemory();
+
+		// Create a DIRECT byte buffer that is a bit larger than
+		// the input memory, and put the input memory
+		// into it, at position 50
+		ByteBuffer largeBuffer = ByteBuffer.allocateDirect(inputMemoryArray.length + 100);
+		largeBuffer.position(50);
+		largeBuffer.put(inputMemoryArray);
+
+		// Set the position and limit of the buffer to
+		// reflect the range that actually contains
+		// the real input data
+		largeBuffer.position(50);
+		largeBuffer.limit(50 + inputMemoryArray.length);
+
+		// Create the texture from the exact memory
+		int createFlags = KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT;
+		KtxTexture2 t = KtxTexture2.createFromMemory(largeBuffer, createFlags);
+
+		// Ensure that the image has the same basic properties
+		// as the one that it was created from
+		assertEquals(t.getBaseWidth(), 512);
+		assertEquals(t.getBaseHeight(), 512);
+	}
+
+
 
 	@Test
 	public void testCreateFromNamedFileWithNull() {
