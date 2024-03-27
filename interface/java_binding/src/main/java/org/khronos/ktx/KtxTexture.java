@@ -61,13 +61,19 @@ public abstract class KtxTexture {
     public native void destroy();
 
     /**
-     * Set the image data - the passed data should be not modified after passing it! The bytes
-     * will be kept in memory until {@link KTXTexture#destroy} is called.
+     * Set image for level, layer, faceSlice from an image in memory.
      *
-     * @param level - The image level, should be 0 for non-mipmapped textures
-     * @param layer - The texture layer, should be 0 for non-arrays
+     * Uncompressed images in memory are expected to have their rows tightly packed
+     * as is the norm for most image file formats. KTX 2 also requires tight packing
+     * this function does not add any padding.
+     *
+     * Level, layer, faceSlice rather than offset are specified to enable some
+     * validation.
+     *
+     * @param level     - The image level, should be 0 for non-mipmapped textures
+     * @param layer     - The texture layer, should be 0 for non-arrays
      * @param faceSlice - The face slice, should be 0 for non-cubemaps
-     * @param src - The image data
+     * @param src       - The image data
      */
     public native int setImageFromMemory(int level, int layer, int faceSlice, byte[] src);
 
