@@ -169,9 +169,11 @@ if(APPLE)
     # Deployment
     if(APPLE_MAC_OS)
         set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "macOS Deployment Target")
-    elseif(IOS)
-        set(CMAKE_XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET "11.0" CACHE STRING "iOS Deployment Target")
+    elseif(IOS OR CMAKE_SYSTEM_NAME STREQUAL "tvOS")
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "iOS/tvOS Deployment Target")
         set(CMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH NO)
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "visionOS")
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "1.0" CACHE STRING "visionOS Deployment Target")
     endif()
 endif()
 
