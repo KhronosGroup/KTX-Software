@@ -28,6 +28,15 @@ public class KtxTexture2 extends KtxTexture {
     public native boolean getPremultipliedAlpha();
     public native boolean needsTranscoding();
     public native int getVkFormat();
+
+    /**
+     * Returns the supercompression scheme that has been applied to
+     * this texture.
+     *
+     * This is a constant from the {@link KtxSupercmpScheme} class.
+     *
+     * @return The supercompression scheme.
+     */
     public native int getSupercompressionScheme();
 
     public native int compressAstcEx(KtxAstcParams params);
