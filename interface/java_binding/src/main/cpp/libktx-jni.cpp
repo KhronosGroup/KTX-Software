@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2021, Shukant Pal and Contributors
+ * Copyright (c) 2024, Khronos Group and Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -171,11 +172,75 @@ void copy_ktx_basis_params(JNIEnv *env, jobject params, ktxBasisParams &out)
     out.uastcRDONoMultithreading = env->GetBooleanField(params, uastcRDONoMultithreading);
 }
 
-/**
- * Throws a new Java Exception that is identified by the given name, e.g.
- * "java/lang/IllegalArgumentException"
- * and contains the given message.
- */
+bool getBufferData(JNIEnv *env, jobject buffer, jbyte** baseAddress, jbyte **actualAddress, jint *length) {
+
+  // Obtain the java.nio.Buffer class and its required methods
+  jclass bufferClass = env->FindClass("java/nio/Buffer");
+  jmethodID positionMethod = env->GetMethodID(bufferClass, "position", "()I");
+  jmethodID limitMethod = env->GetMethodID(bufferClass, "limit", "()I");
+  jmethodID isDirectMethod = env->GetMethodID(bufferClass, "isDirect", "()Z");
+  jmethodID hasArrayMethod = env->GetMethodID(bufferClass, "hasArray", "()Z");
+  jmethodID arrayMethod = env->GetMethodID(bufferClass, "array", "()Ljava/lang/Object;");
+
+  // Obtain the position and limit of the buffer
+  jint position = env->CallIntMethod(buffer, positionMethod);
+  jint limit = env->CallIntMethod(buffer, limitMethod);
+
+  // If the buffer is direct, then compute the results from
+  // the direct buffer address
+  jboolean isDirect = env->CallBooleanMethod(buffer, isDirectMethod);
+  if (isDirect == JNI_TRUE) {
+    jbyte* start = static_cast<jbyte*>(env->GetDirectBufferAddress(buffer));
+    *baseAddress = start;
+    *actualAddress = start + position;
+    *length = (position - limit);
+    return true;
+  }
+
+  // If the buffer is backed by an array, then compute the
+  // results from the array elements. (These have to be 
+  // released in the releaseBufferData call!)
+  jboolean hasArray = env->CallBooleanMethod(buffer, hasArrayMethod);
+  if (hasArray == JNI_TRUE) {
+    jobject array = env->CallObjectMethod(buffer, arrayMethod);
+    jbyte* start = env->GetByteArrayElements(static_cast<jbyteArray>(array), NULL);
+    if (start == NULL) 
+    {
+      // OutOfMemoryError is already pending
+      return false;
+    }
+    *baseAddress = start;
+    *actualAddress = start + position;
+    *length = (position - limit);
+    return true;
+  }
+
+  return false;
+}
+
+void releaseBufferData(JNIEnv *env, jobject buffer, jbyte* baseAddress) {
+
+  // Obtain the java.nio.Buffer class and its required methods
+  jclass bufferClass = env->FindClass("java/nio/Buffer");
+  jmethodID isDirectMethod = env->GetMethodID(bufferClass, "isDirect", "()Z");
+  jmethodID hasArrayMethod = env->GetMethodID(bufferClass, "hasArray", "()Z");
+  jmethodID arrayMethod = env->GetMethodID(bufferClass, "array", "()Ljava/lang/Object;");
+
+  // For direct buffers, nothing has to be done
+  jboolean isDirect = env->CallBooleanMethod(buffer, isDirectMethod);
+  if (isDirect == JNI_FALSE) {
+    return;
+  }
+
+  // For array-backed buffers, the elements are released, without
+  // writing back any changes
+  jboolean hasArray = env->CallBooleanMethod(buffer, hasArrayMethod);
+  if (hasArray == JNI_TRUE) {
+    jobject array = env->CallObjectMethod(buffer, arrayMethod);
+    env->ReleaseByteArrayElements(static_cast<jbyteArray>(array), baseAddress, JNI_ABORT);
+  }
+}
+
 void ThrowByName(JNIEnv *env, const char *name, const char *msg)
 {
     jclass cls = env->FindClass(name);
@@ -186,10 +251,6 @@ void ThrowByName(JNIEnv *env, const char *name, const char *msg)
     env->DeleteLocalRef(cls);
 }
 
-/**
- * Throws a new Java Exception that indicates that a KTX texture
- * was used after its 'destroy()' method was called
- */
 void ThrowDestroyed(JNIEnv *env) 
 {
     ThrowByName(env, "java/lang/IllegalStateException", "Cannot use a texture after destroy() was called");

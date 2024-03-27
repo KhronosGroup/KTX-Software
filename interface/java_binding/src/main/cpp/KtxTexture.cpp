@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2021, Shukant Pal and Contributors
+ * Copyright (c) 2024, Khronos Group and Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -156,6 +157,12 @@ extern "C" JNIEXPORT jbyteArray JNICALL Java_org_khronos_ktx_KtxTexture_getData(
     }
 
     jbyteArray outputArray = env->NewByteArray(static_cast<jsize>(dataSize));
+    if (outputArray == NULL) 
+    {
+      // OutOfMemoryError is already pending
+      return NULL;
+    }
+
     jsize outputLength = env->GetArrayLength(outputArray);
 
     if ((ktx_size_t) outputLength != dataSize) {
@@ -286,7 +293,14 @@ extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture_setImageFromMe
       return 0;
     }
 
-    ktx_uint8_t *src = reinterpret_cast<ktx_uint8_t*>(env->GetByteArrayElements(srcArray, NULL));
+    jbyte* srcArrayElements = env->GetByteArrayElements(srcArray, NULL);
+    if (srcArrayElements == NULL) 
+    {
+      // OutOfMemoryError is already pending
+      return NULL;
+    }
+
+    ktx_uint8_t *src = reinterpret_cast<ktx_uint8_t*>(srcArrayElements);
     ktx_size_t srcSize = static_cast<ktx_size_t>(env->GetArrayLength(srcArray));
 
     jint result = ktxTexture_SetImageFromMemory(texture,
@@ -318,6 +332,12 @@ extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture_writeToNamedFi
     }
 
     const char *dstNameArray = env->GetStringUTFChars(dstName, NULL);
+    if (dstNameArray == NULL) 
+    {
+      // OutOfMemoryError is already pending
+      return NULL;
+    }
+
 
     jint result = ktxTexture_WriteToNamedFile(texture, dstNameArray);
 
@@ -351,6 +371,11 @@ extern "C" JNIEXPORT jbyteArray JNICALL Java_org_khronos_ktx_KtxTexture_writeToM
     }
 
     jbyteArray out = env->NewByteArray(static_cast<jsize>(pSize));
+    if (out == NULL) 
+    {
+      // OutOfMemoryError is already pending
+      return NULL;
+    }
 
     env->SetByteArrayRegion(out,
                             0,

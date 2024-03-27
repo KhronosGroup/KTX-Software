@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2021, Shukant Pal and Contributors
+ * Copyright (c) 2024, Khronos Group and Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -86,6 +87,12 @@ extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KtxTexture1_createFrom
     }
 
     const char *filenameArray = env->GetStringUTFChars(filename, NULL);
+    if (filenameArray == NULL) 
+    {
+      // OutOfMemoryError is already pending
+      return NULL;
+    }
+
     ktxTexture1 *instance = NULL;
 
     jint result = ktxTexture1_CreateFromNamedFile(filenameArray, createFlags, &instance);
