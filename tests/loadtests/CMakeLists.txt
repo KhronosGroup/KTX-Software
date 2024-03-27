@@ -8,7 +8,7 @@ if(WIN32)
     )
 endif()
 
-if(NOT IOS)
+if(NOT APPLE_LOCKED_OS)
     set( fp_pref ${CMAKE_FIND_PACKAGE_PREFER_CONFIG} )
     # Prefer CONFIG for vcpkg
     set( CMAKE_FIND_PACKAGE_PREFER_CONFIG TRUE )
