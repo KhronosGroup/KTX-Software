@@ -11,9 +11,6 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-
-import static org.junit.jupiter.api.extension.ExtensionContext.Namespace.GLOBAL;
 
 public class KtxTestLibraryLoader
         implements BeforeAllCallback, ExtensionContext.Store.CloseableResource {
