@@ -38,14 +38,14 @@ include(cmake/cputypetest.cmake)
 # OPTIONS
 
 if(IOS OR CMAKE_SYSTEM_NAME STREQUAL "tvOS" OR CMAKE_SYSTEM_NAME STREQUAL "visionOS")
-    set( APPLE_VAR_OS ON )
+    set( APPLE_LOCKED_OS ON )
 endif()
 
 if(APPLE AND CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set( APPLE_MAC_OS ON )
 endif()
 
-if(APPLE_VAR_OS OR EMSCRIPTEN)
+if(APPLE_LOCKED_OS OR EMSCRIPTEN)
     set( LIB_TYPE_DEFAULT ON )
 else()
     set( LIB_TYPE_DEFAULT OFF )
@@ -54,7 +54,7 @@ endif()
 CMAKE_DEPENDENT_OPTION( KTX_FEATURE_TOOLS
                         "Create KTX tools"
                         ON
-                        "NOT APPLE_VAR_OS;NOT ANDROID;NOT EMSCRIPTEN"
+                        "NOT APPLE_LOCKED_OS;NOT ANDROID;NOT EMSCRIPTEN"
                         OFF
 )
 option( KTX_FEATURE_DOC "Create KTX documentation." OFF )
@@ -117,7 +117,7 @@ endif()
 CMAKE_DEPENDENT_OPTION( KTX_EMBED_BITCODE
     "Embed bitcode in binaries."
     OFF
-    "APPLE AND APPLE_VAR_OS"
+    "APPLE AND APPLE_LOCKED_OS"
     OFF
 )
 
@@ -161,7 +161,7 @@ if(APPLE)
     set(XCODE_DEVELOPMENT_TEAM "" CACHE STRING "Xcode development team ID")
     set(PRODUCTBUILD_IDENTITY_NAME "" CACHE STRING "productbuild identity name")
     set(PRODUCTBUILD_KEYCHAIN_PATH "" CACHE FILEPATH "pkgbuild keychain file")
-    if(APPLE_VAR_OS)
+    if(APPLE_LOCKED_OS)
         set(XCODE_PROVISIONING_PROFILE_SPECIFIER "" CACHE STRING "Xcode provisioning profile specifier")
         set(MOLTENVK_SDK "$ENV{VULKAN_SDK}/../MoltenVK" CACHE STRING "MoltenVK directory inside the Vulkan SDK")
     endif()
@@ -507,7 +507,7 @@ macro(common_libktx_settings target enable_write library_type)
         CXX_STANDARD_REQUIRED YES
 
     )
-    if(APPLE_VAR_OS)
+    if(APPLE_LOCKED_OS)
         set_target_properties(${target} PROPERTIES
             FRAMEWORK TRUE
         )
@@ -1164,7 +1164,7 @@ endif()
 # Use of this to install KHR/khr_df.h is due to CMake's failure to
 # preserve the include source folder hierarchy.
 # See https://gitlab.kitware.com/cmake/cmake/-/issues/16739.
-if (APPLE_VAR_OS)
+if (APPLE_LOCKED_OS)
     set_source_files_properties(
           include/KHR/khr_df.h
           PROPERTIES MACOSX_PACKAGE_LOCATION Headers/KHR
@@ -1241,7 +1241,7 @@ elseif( CMAKE_SYSTEM_PROCESSOR )
     else()
         set(processor_name ${CMAKE_SYSTEM_PROCESSOR})
     endif()
-elseif( APPLE_VAR_OS )
+elseif( APPLE_LOCKED_OS )
     # CMAKE_SYSTEM_PROCESSOR not set when building for iOS/tvOS/visionOS.
     set(processor_name "arm64")
 endif()
