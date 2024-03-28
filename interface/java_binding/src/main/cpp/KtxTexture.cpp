@@ -297,7 +297,7 @@ extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture_setImageFromMe
     if (srcArrayElements == NULL) 
     {
       // OutOfMemoryError is already pending
-      return NULL;
+      return 0;
     }
 
     ktx_uint8_t *src = reinterpret_cast<ktx_uint8_t*>(srcArrayElements);
@@ -335,7 +335,7 @@ extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture_writeToNamedFi
     if (dstNameArray == NULL) 
     {
       // OutOfMemoryError is already pending
-      return NULL;
+      return 0;
     }
 
 
