@@ -49,7 +49,7 @@ public class KtxTexture2 extends KtxTexture {
     /**
      * Create a fresh {@link KTXTexture2}
      *
-     * @param createInfo The {@link KtxTextureCreateInfo} paramaters for the texture
+     * @param createInfo The {@link KtxTextureCreateInfo} parameters for the texture
      * @param storageAllocation The storage allocation. Pass {@link KTXCreateStorage.ALLOC} if you will write image data.
      * @return The {@link KtxTexture2}
      * @throws KtxException If the input parameters have been invalid and caused
