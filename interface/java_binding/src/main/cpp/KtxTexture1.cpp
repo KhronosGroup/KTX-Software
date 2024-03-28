@@ -59,16 +59,15 @@ extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KtxTexture1_create(JNI
     copy_ktx_texture_create_info(env, java_create_info, info);
 
     ktxTexture1 *instance = NULL;
-    KTX_error_code result;
 
     ktxTextureCreateStorageEnum storage_alloc = static_cast<ktxTextureCreateStorageEnum>(storageAllocation);
-    result = ktxTexture1_Create(&info, storage_alloc, &instance);
+    KTX_error_code result = ktxTexture1_Create(&info, storage_alloc, &instance);
 
     assert (instance != NULL);
 
     if (result != KTX_SUCCESS)
     {
-        std::cout << "Failure to create Ktx1Texture, error " << result << std::endl;
+        ThrowByName(env, "org/khronos/ktx/KtxException", ktxErrorString(result));
         return NULL;
     }
 
@@ -95,10 +94,10 @@ extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KtxTexture1_createFrom
 
     ktxTexture1 *instance = NULL;
 
-    jint result = ktxTexture1_CreateFromNamedFile(filenameArray, createFlags, &instance);
+    ktx_error_code_e result = ktxTexture1_CreateFromNamedFile(filenameArray, createFlags, &instance);
 
     if (result != KTX_SUCCESS) {
-        std::cout << "Failure to createFromNamedFile Ktx1Texture, error " << result << std::endl;
+        ThrowByName(env, "org/khronos/ktx/KtxException", ktxErrorString(result));
         return NULL;
     }
 

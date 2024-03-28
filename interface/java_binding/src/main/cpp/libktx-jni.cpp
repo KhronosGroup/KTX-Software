@@ -249,7 +249,7 @@ void copy_ktx_texture_create_info(JNIEnv *env, jobject info, ktxTextureCreateInf
     out.vkFormat = env->GetIntField(info, KtxTextureCreateInfo_vkFormat_field);
 }
 
-void copy_ktx_astc_params(JNIEnv *env, jobject params, ktxAstcParams &out)
+bool copy_ktx_astc_params(JNIEnv *env, jobject params, ktxAstcParams &out)
 {
     // Undocumented quirk!
     out.structSize = sizeof(ktxAstcParams);
@@ -265,14 +265,20 @@ void copy_ktx_astc_params(JNIEnv *env, jobject params, ktxAstcParams &out)
     jobject inputSwizzleObject = env->GetObjectField(params, KtxAstcParams_inputSwizzle_field);
     jcharArray inputSwizzleArray = static_cast<jcharArray>(inputSwizzleObject);
     jchar *inputSwizzleValues = env->GetCharArrayElements( inputSwizzleArray, NULL);
+    if (inputSwizzleValues == NULL) 
+    {
+        // OutOfMemoryError is already pending
+        return false;
+    }
     for (int i=0; i<4; i++)
     {
       out.inputSwizzle[i] = static_cast<char>(inputSwizzleValues[i]);
     }
     env->ReleaseCharArrayElements(inputSwizzleArray, inputSwizzleValues, JNI_ABORT);
+    return true;
 }
 
-void copy_ktx_basis_params(JNIEnv *env, jobject params, ktxBasisParams &out)
+bool copy_ktx_basis_params(JNIEnv *env, jobject params, ktxBasisParams &out)
 {
     // Undocumented quirk!
     out.structSize = sizeof(ktxBasisParams);
@@ -291,6 +297,11 @@ void copy_ktx_basis_params(JNIEnv *env, jobject params, ktxBasisParams &out)
     jobject inputSwizzleObject = env->GetObjectField(params, KtxBasisParams_inputSwizzle_field);
     jcharArray inputSwizzleArray = static_cast<jcharArray>(inputSwizzleObject);
     jchar *inputSwizzleValues = env->GetCharArrayElements( inputSwizzleArray, NULL);
+    if (inputSwizzleValues == NULL) 
+    {
+        // OutOfMemoryError is already pending
+        return false;
+    }
     for (int i=0; i<4; i++)
     {
       out.inputSwizzle[i] = static_cast<char>(inputSwizzleValues[i]);
@@ -309,6 +320,8 @@ void copy_ktx_basis_params(JNIEnv *env, jobject params, ktxBasisParams &out)
     out.uastcRDOMaxSmoothBlockStdDev = env->GetFloatField(params, KtxBasisParams_uastcRDOMaxSmoothBlockStdDev_field);
     out.uastcRDODontFavorSimplerModes = env->GetBooleanField(params, KtxBasisParams_uastcRDODontFavorSimplerModes_field);
     out.uastcRDONoMultithreading = env->GetBooleanField(params, KtxBasisParams_uastcRDONoMultithreading_field);
+
+    return true;
 }
 
 bool getBufferData(JNIEnv *env, jobject buffer, jbyte** baseAddress, jbyte **actualAddress, jint *length) {

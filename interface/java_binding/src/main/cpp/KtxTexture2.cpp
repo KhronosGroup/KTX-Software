@@ -80,7 +80,11 @@ extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture2_compressAstcE
     }
 
     ktxAstcParams params = {};
-    copy_ktx_astc_params(env, jparams, params);
+    if (!copy_ktx_astc_params(env, jparams, params)) 
+    {
+        // Exception is already pending
+        return 0;
+    }
 
     return ktxTexture2_CompressAstcEx(texture, &params);
 }
@@ -115,7 +119,11 @@ extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture2_compressBasis
     }
 
     ktxBasisParams params = {};
-    copy_ktx_basis_params(env, jparams, params);
+    if (!copy_ktx_basis_params(env, jparams, params)) 
+    {
+        // Exception is already pending
+        return 0;
+    }
 
     return ktxTexture2_CompressBasisEx(texture, &params);
 }
@@ -170,7 +178,7 @@ extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KtxTexture2_create(JNI
 
     if (result != KTX_SUCCESS)
     {
-        std::cout << "Failure to create Ktx2Texture, error " << result << std::endl;
+        ThrowByName(env, "org/khronos/ktx/KtxException", ktxErrorString(result));
         return NULL;
     }
 
@@ -198,10 +206,10 @@ extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KtxTexture2_createFrom
     }
     ktxTexture2 *instance = NULL;
 
-    jint result = ktxTexture2_CreateFromNamedFile(filenameArray, createFlags, &instance);
+    KTX_error_code result = ktxTexture2_CreateFromNamedFile(filenameArray, createFlags, &instance);
 
     if (result != KTX_SUCCESS) {
-        std::cout << "Failure to createFromNamedFile Ktx2Texture, error " << result << std::endl;
+        ThrowByName(env, "org/khronos/ktx/KtxException", ktxErrorString(result));
         return NULL;
     }
 
@@ -226,17 +234,17 @@ extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KtxTexture2_createFrom
     jint length = 0;
     bool acquired = getBufferData(env, byteBuffer, &baseAddress, &actualAddress, &length);
     if (!acquired) {
-        std::cout << "Could not obtain data from input buffer" << std::endl;
+        ThrowByName(env, "org/khronos/ktx/KtxException", "Could not obtain data from input buffer");
         return NULL;
     }
     ktxTexture2 *instance = NULL;
     ktx_uint8_t *inputData = reinterpret_cast<ktx_uint8_t*>(actualAddress);
     ktx_size_t size = static_cast<ktx_size_t>(length);
 
-    jint result = ktxTexture2_CreateFromMemory(inputData, size, createFlags, &instance);
+    KTX_error_code result = ktxTexture2_CreateFromMemory(inputData, size, createFlags, &instance);
     releaseBufferData(env, byteBuffer, baseAddress);
     if (result != KTX_SUCCESS) {
-        std::cout << "Failure to createFromMemory Ktx2Texture, error " << result << std::endl;
+        ThrowByName(env, "org/khronos/ktx/KtxException", ktxErrorString(result));
         return NULL;
     }
     assert (instance != NULL);

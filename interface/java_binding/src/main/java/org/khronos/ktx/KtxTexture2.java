@@ -49,8 +49,12 @@ public class KtxTexture2 extends KtxTexture {
     /**
      * Create a fresh {@link KTXTexture2}
      *
-     * @param createInfo - Paramaters for the texture
-     * @param storageAllocation - Pass {@link KTXCreateStorage.ALLOC} if you will write image data.
+     * @param createInfo The {@link KtxTextureCreateInfo} paramaters for the texture
+     * @param storageAllocation The storage allocation. Pass {@link KTXCreateStorage.ALLOC} if you will write image data.
+     * @return The {@link KtxTexture2}
+     * @throws KtxException If the input parameters have been invalid and caused
+     * an error code that was not {@link KtxErrorCode#SUCCESS} in the underlying
+     * implementation.
      */
     public static native KtxTexture2 create(KtxTextureCreateInfo createInfo,
                                             int storageAllocation);
@@ -58,14 +62,27 @@ public class KtxTexture2 extends KtxTexture {
     /**
      * Create a {@link KTXTexture2} from a file.
      *
-     * @param filename - The name of the file to read.
-     * @param createFlags - Pass {@link KTXTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT} if you
+     * @param filename The name of the file to read.
+     * @param createFlags Pass {@link KTXTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT} if you
      *                   want to read image data! Otherwise, {@link KTXTexture.getData()} will
      *                    return null.
+     * @return The {@link KtxTexture2}
+     * @throws KtxException If the input data was invalid and caused
+     * an error code that was not {@link KtxErrorCode#SUCCESS} in the underlying
+     * implementation.
      */
     public static native KtxTexture2 createFromNamedFile(String filename,
                                                          int createFlags);
 
+    /**
+     * Create a {@link KTXTexture2} from a file.
+     *
+     * @param filename The name of the file to read.
+     * @return The {@link KtxTexture2}
+     * @throws KtxException If the input data was invalid and caused
+     * an error code that was not {@link KtxErrorCode#SUCCESS} in the underlying
+     * implementation.
+     */
     public static KtxTexture2 createFromNamedFile(String filename) {
         return createFromNamedFile(filename, KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
     }
@@ -85,8 +102,10 @@ public class KtxTexture2 extends KtxTexture {
      *
      * @param byteBuffer The buffer containing the serialized KTX data.
      * @param createFlags bitmask requesting specific actions during creation.
-     * @return The {@link KtxTexture2}, or <code>null</code> in case of
-     * an error.
+     * @return The {@link KtxTexture2}
+     * @throws KtxException If the input data was invalid and caused
+     * an error code that was not {@link KtxErrorCode#SUCCESS} in the underlying
+     * implementation.
      */
     public static native KtxTexture2 createFromMemory(
     		ByteBuffer byteBuffer, int createFlags);

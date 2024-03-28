@@ -152,7 +152,7 @@ extern "C" JNIEXPORT jbyteArray JNICALL Java_org_khronos_ktx_KtxTexture_getData(
     ktx_size_t dataSize = ktxTexture_GetDataSize(texture);
 
     if (dataSize >= UINT32_MAX) {
-        std::cout << "getData array too large for Java" << std::endl;
+        ThrowByName(env, "java/lang/UnsupportedOperationException", "The array returned by getData is too large for a Java array");
         return NULL;
     }
 
@@ -361,12 +361,12 @@ extern "C" JNIEXPORT jbyteArray JNICALL Java_org_khronos_ktx_KtxTexture_writeToM
     KTX_error_code result = ktxTexture_WriteToMemory(texture, &ppDstBytes, &pSize);
 
     if (result != KTX_SUCCESS) {
-        std::cout << "Failed to writeToMemory KTXTexture, error " << result << std::endl;
+        ThrowByName(env, "org/khronos/ktx/KtxException", ktxErrorString(result));
         return NULL;
     }
     if (pSize >= UINT32_MAX) {
-        std::cout << "writeToMemory array is too large for Java" << std::endl;
         delete ppDstBytes;// make sure to delete it
+        ThrowByName(env, "java/lang/UnsupportedOperationException", "The array created by by writeToMemory is too large for a Java array");
         return NULL;
     }
 

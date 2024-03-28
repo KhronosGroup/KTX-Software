@@ -23,6 +23,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.khronos.ktx.KtxBasisParams;
 import org.khronos.ktx.KtxCreateStorage;
 import org.khronos.ktx.KtxErrorCode;
+import org.khronos.ktx.KtxException;
 import org.khronos.ktx.KtxSupercmpScheme;
 import org.khronos.ktx.KtxTexture2;
 import org.khronos.ktx.KtxTextureCreateFlagBits;
@@ -52,6 +53,20 @@ public class KtxTexture2Test {
 		assertEquals(texture.getSupercompressionScheme(), KtxSupercmpScheme.NONE);
 
 		texture.destroy();
+	}
+
+	@Test
+	public void testCreateWithInvalidParameters() {
+
+		KtxTextureCreateInfo info = new KtxTextureCreateInfo();
+		info.setBaseWidth(128);
+		info.setBaseHeight(128);
+		info.setNumDimensions(-123); // Invalid!
+		info.setVkFormat(VkFormat.VK_FORMAT_R8G8B8A8_SRGB);
+
+		assertThrows(KtxException.class,
+				() -> KtxTexture2.create(info, KtxCreateStorage.ALLOC),
+				"Expected to throw NullPointerException");
 	}
 
 	@Test
@@ -415,6 +430,17 @@ public class KtxTexture2Test {
 
 		assertThrows(NullPointerException.class,
 				() -> t.setImageFromMemory(0, 0, 0, null),
+				"Expected to throw NullPointerException");
+	}
+
+	@Test
+	void testCreateFromMemoryWithInvalidMemory() {
+
+		byte[] invalidMemory = new byte[1000];
+		int createFlags = KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT;
+
+		assertThrows(KtxException.class,
+				() -> KtxTexture2.createFromMemory(ByteBuffer.wrap(invalidMemory), createFlags),
 				"Expected to throw NullPointerException");
 	}
 
