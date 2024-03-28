@@ -32,6 +32,42 @@ static inline ktxTexture2 *get_ktx2_texture(JNIEnv *env, jobject thiz)
 }
 
 /**
+ * Initialize the given jclass, and return whether
+ * the initialization succeeded
+ * 
+ * @param env The JNI environment pointer
+ * @param cls The class
+ * @param name The name of the class, e.g. "java/lang/Object"
+ * @return Whether the initialization succeeded
+ */
+bool initClass(JNIEnv *env, jclass& cls, const char *name);
+
+/**
+ * Initialize the specified field ID, and return whether
+ * the initialization succeeded
+ * 
+ * @param env The JNI environment pointer
+ * @param field The field ID
+ * @param name The name of the field
+ * @param signature The signature of the field, 
+ * "I" for int, "J" for long, or a class like "Ljava.nio.Buffer;"
+ * @return Whether the initialization succeeded
+ */
+bool initField(JNIEnv *env, jclass cls, jfieldID& field, const char *name, const char *signature);
+
+/**
+ * Initialize the specified method ID, and return whether
+ * the initialization succeeded
+ * 
+ * @param env The JNI environment pointer
+ * @param method The method ID
+ * @param name The name of the method
+ * @param signature The signature of the method
+ * @return Whether the initialization succeeded
+ */
+bool initMethod(JNIEnv *env, jclass cls, jmethodID& method, const char *name, const char *signature);
+
+/**
  * Obtain the data of the given ByteBuffer.
  * 
  * The data may not be modified by callers!
