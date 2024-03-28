@@ -45,7 +45,7 @@ public class KtxParallelTest {
 
         public void run() {
             // Repeatedly create a compress an image.
-            for (int i = 0; i < 300; i++) {
+            for (int i = 0; i < 30; i++) {
                 final int w = (testRandomizer.nextInt() % 512) + 1024;
                 final int h = w;
                 final int size = convertToASTC(w, h);

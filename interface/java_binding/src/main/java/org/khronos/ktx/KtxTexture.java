@@ -5,6 +5,18 @@
 
 package org.khronos.ktx;
 
+/**
+ * Base class representing a texture.
+ *
+ * KTX textures should be created only by one of the provided functions and these
+ * fields should be considered read-only.
+ *
+ * Trying to use a KTX texture after its {@link #destroy()} method was called
+ * will result in an <code>IllegalStateException</code>.
+ *
+ * Unless explicitly noted, none of the parameters passed to any function
+ * may be <code>null</code>.
+ */
 public abstract class KtxTexture {
     private final long instance;
 
@@ -30,7 +42,12 @@ public abstract class KtxTexture {
     public native int getNumFaces();
 
     /**
-     * Gets the image data of the KTX file (the data is copied into a Java array)
+     * Gets the image data of the KTX file.
+     *
+     * The the data is copied into a Java array.
+     *
+     * @throws UnsupportedOperationException If the resulting array would
+     * be larger than the maximum size of a Java array (i.e. more than 2GB)
      */
     public native byte[] getData();
     public native long getDataSize();
@@ -43,31 +60,48 @@ public abstract class KtxTexture {
     /**
      * Destroy the KTX texture and free memory image resources
      *
-     * NOTE: If you try to use a {@link KTXTexture} after it's destroyed, that will cause a segmentation
-     * fault (the texture pointer is set to NULL).
+     * Trying to use a {@link KTXTexture} after it's destroyed will cause a
+     * an <code>IllegalStateException</code> to be thrown. This method is
+     * idempotent: Calling it on an already destroyed texture will have
+     * no effect.
      */
     public native void destroy();
 
     /**
-     * Set the image data - the passed data should be not modified after passing it! The bytes
-     * will be kept in memory until {@link KTXTexture#destroy} is called.
+     * Set image for level, layer, faceSlice from an image in memory.
      *
-     * @param level - The image level, should be 0 for non-mipmapped textures
-     * @param layer - The texture layer, should be 0 for non-arrays
-     * @param faceSlice - The face slice, should be 0 for non-cubemaps
-     * @param src - The image data
+     * Uncompressed images in memory are expected to have their rows tightly packed
+     * as is the norm for most image file formats. KTX 2 also requires tight packing
+     * this function does not add any padding.
+     *
+     * Level, layer, faceSlice rather than offset are specified to enable some
+     * validation.
+     *
+     * @param level     The image level, should be 0 for non-mipmapped textures
+     * @param layer     The texture layer, should be 0 for non-arrays
+     * @param faceSlice The face slice, should be 0 for non-cubemaps
+     * @param src       The image data
+     * @return a {@link KtxErrorCode} value
      */
     public native int setImageFromMemory(int level, int layer, int faceSlice, byte[] src);
 
     /**
      * Write the KTX image to the given destination file in KTX format
      *
-     * @param dstFilename - The name of the destination file.
+     * @param dstFilename The name of the destination file.
+     * @return a {@link KtxErrorCode} value
      */
     public native int writeToNamedFile(String dstFilename);
 
     /**
-     * This **might** not work (INVALID_OPERATION for some reason)
+     * Write this texture to memory.
+     *
+     * @return The memory containing the texture data.
+     * @throws KtxException If the attempt to write the texture to memory caused
+     * an error code that was not {@link KtxErrorCode#SUCCESS} in the underlying
+     * implementation.
+     * @throws UnsupportedOperationException If the resulting array would
+     * be larger than the maximum size of a Java array (i.e. more than 2GB)
      */
     public native byte[] writeToMemory();
 }
