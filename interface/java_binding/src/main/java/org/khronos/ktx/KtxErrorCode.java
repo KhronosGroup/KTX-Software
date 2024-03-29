@@ -6,7 +6,9 @@
 
 package org.khronos.ktx;
 
-/** Error codes returned from KTX functions as "int". */
+/**
+ * Error codes returned from KTX functions as "int"
+ */
 public class KtxErrorCode {
 
 	/**
