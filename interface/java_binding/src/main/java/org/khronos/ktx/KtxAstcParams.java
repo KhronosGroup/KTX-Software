@@ -8,6 +8,10 @@ package org.khronos.ktx;
 public class KtxAstcParams {
     private boolean verbose;
     private int threadCount;
+
+    /**
+     * The {@link KtxPackAstcBlockDimension} constant
+     */
     private int blockDimension;
     private int mode;
     private int qualityLevel;
@@ -31,10 +35,20 @@ public class KtxAstcParams {
         this.threadCount = threadCount;
     }
 
+    /**
+     * Returns the {@link KtxPackAstcBlockDimension} constant
+     *
+     * @return The block dimension constant
+     */
     public int getBlockDimension() {
         return blockDimension;
     }
 
+    /**
+     * Set the specified {@link KtxPackAstcBlockDimension} constant
+     *
+     * @param blockDimension The block dimension constant
+     */
     public void setBlockDimension(int blockDimension) {
         this.blockDimension = blockDimension;
     }

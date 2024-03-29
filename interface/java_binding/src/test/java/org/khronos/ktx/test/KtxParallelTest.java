@@ -70,7 +70,7 @@ public class KtxParallelTest {
 
             // Compress the data
             final KtxAstcParams p = new KtxAstcParams();
-            p.setBlockDimension(KtxPackAstcBlockDimension.D8x8);
+            p.setBlockDimension(KtxPackAstcBlockDimension.KTX_PACK_ASTC_BLOCK_DIMENSION_D8x8);
             p.setMode(KtxPackAstcEncoderMode.LDR);
             p.setQualityLevel(KtxPackAstcQualityLevel.EXHAUSTIVE);
             final int rc = t.compressAstcEx(p);
