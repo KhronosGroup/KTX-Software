@@ -75,10 +75,25 @@ public class KtxAstcParams {
         this.mode = mode;
     }
 
+    /**
+     * Returns the {@link KtxPackAstcQualityLevel} constant
+     *
+     * @return The quality level constant
+     */
     public int getQualityLevel() {
         return qualityLevel;
     }
 
+    /**
+     * Set the {@link KtxPackAstcQualityLevel} constant
+     *
+     * Note that while this appears to be a simple integer value in the range [0, 100],
+     * it does not seem to be guaranteed that all values are supposed. Only the
+     * constants from the {@link KtxPackAstcQualityLevel} are guaranteed to be
+     * supported.
+     *
+     * @param qualityLevel The quality level
+     */
     public void setQualityLevel(int qualityLevel) {
         this.qualityLevel = qualityLevel;
     }

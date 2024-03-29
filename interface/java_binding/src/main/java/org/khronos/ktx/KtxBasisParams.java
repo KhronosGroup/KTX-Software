@@ -153,10 +153,20 @@ public class KtxBasisParams {
         this.noSelectorRDO = noSelectorRDO;
     }
 
+    /**
+     * Returns the {@link KtxPackUastcFlagBits}
+     *
+     * @return The flag bits
+     */
     public int getUastcFlags() {
         return uastcFlags;
     }
 
+    /**
+     * Set the {@link KtxPackUastcFlagBits}
+     *
+     * @param uastcFlags The flag bits
+     */
     public void setUastcFlags(int uastcFlags) {
         this.uastcFlags = uastcFlags;
     }
