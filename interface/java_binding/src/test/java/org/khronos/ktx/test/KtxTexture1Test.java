@@ -27,7 +27,7 @@ public class KtxTexture1Test {
                 .normalize();
 
         KtxTexture1 texture = KtxTexture1.createFromNamedFile(testKtxFile.toString(),
-                                                            KtxTextureCreateFlagBits.NO_FLAGS);
+                                                            KtxTextureCreateFlagBits.KTX_TEXTURE_CREATE_NO_FLAGS);
 
         assertNotNull(texture);
         assertEquals(texture.getGlInternalformat(), KtxInternalformat.GL_ETC1_RGB8_OES);
@@ -47,7 +47,7 @@ public class KtxTexture1Test {
                 .normalize();
         File copyFile = File.createTempFile("copyktx", ".ktx");
 
-        KtxTexture1 texture = KtxTexture1.createFromNamedFile(testKtxFile.toString(), KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
+        KtxTexture1 texture = KtxTexture1.createFromNamedFile(testKtxFile.toString(), KtxTextureCreateFlagBits.KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT);
         assertNotNull(texture);
 
         int result = texture.writeToNamedFile(copyFile.getAbsolutePath().toString());
@@ -68,7 +68,7 @@ public class KtxTexture1Test {
                 .toAbsolutePath()
                 .normalize();
 
-        KtxTexture1 texture = KtxTexture1.createFromNamedFile(testKtxFile.toString(), KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
+        KtxTexture1 texture = KtxTexture1.createFromNamedFile(testKtxFile.toString(), KtxTextureCreateFlagBits.KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT);
         assertNotNull(texture);
 
         byte[] file = Files.readAllBytes(testKtxFile);
@@ -86,7 +86,7 @@ public class KtxTexture1Test {
                 .toAbsolutePath()
                 .normalize();
 
-        KtxTexture1 texture = KtxTexture1.createFromNamedFile(testKtxFile.toString(), KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
+        KtxTexture1 texture = KtxTexture1.createFromNamedFile(testKtxFile.toString(), KtxTextureCreateFlagBits.KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT);
         assertNotNull(texture);
 
         byte[] data = texture.getData();

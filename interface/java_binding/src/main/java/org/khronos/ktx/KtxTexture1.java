@@ -66,6 +66,6 @@ public class KtxTexture1 extends KtxTexture {
      * implementation.
      */
     public static KtxTexture1 createFromNamedFile(String filename) {
-        return createFromNamedFile(filename, KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
+        return createFromNamedFile(filename, KtxTextureCreateFlagBits.KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT);
     }
 }

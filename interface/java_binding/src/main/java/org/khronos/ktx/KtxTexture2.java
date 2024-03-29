@@ -84,19 +84,19 @@ public class KtxTexture2 extends KtxTexture {
      * implementation.
      */
     public static KtxTexture2 createFromNamedFile(String filename) {
-        return createFromNamedFile(filename, KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
+        return createFromNamedFile(filename, KtxTextureCreateFlagBits.KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT);
     }
 
     /**
      * Create a {@link KtxTexture2} from KTX-formatted data in memory.
      *
-     * The create flag {@link KtxTextureCreateFlagBits#LOAD_IMAGE_DATA_BIT}
+     * The create flag {@link KtxTextureCreateFlagBits#KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT}
      * should not be set if the ktxTexture is ultimately to be uploaded to
      * OpenGL or Vulkan. This will minimize memory usage by allowing, for
      * example, loading the images directly from the source into a Vulkan
      * staging buffer.
      *
-     * The create flag {@link KtxTextureCreateFlagBits#RAW_KVDATA_BIT} should
+     * The create flag {@link KtxTextureCreateFlagBits#KTX_TEXTURE_CREATE_RAW_KVDATA_BIT} should
      * not be used. It is provided solely to enable implementation of the
      * libktx v1 API on top of ktxTexture.
      *
