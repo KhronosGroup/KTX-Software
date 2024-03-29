@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2024, Khronos Group and Contributors
  * Copyright (c) 2021, Shukant Pal and Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -166,7 +167,7 @@ public class KtxPackAstcBlockDimension {
 		case KTX_PACK_ASTC_BLOCK_DIMENSION_D6x6x5: return "KTX_PACK_ASTC_BLOCK_DIMENSION_D6x6x5";
 		case KTX_PACK_ASTC_BLOCK_DIMENSION_D6x6x6: return "KTX_PACK_ASTC_BLOCK_DIMENSION_D6x6x6";
 		}
-		return "[Unknown KtxTextureCreateStorage]";
+		return "[Unknown KtxPackAstcBlockDimension]";
 	}
 
 }

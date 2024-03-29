@@ -13,6 +13,10 @@ public class KtxAstcParams {
      * The {@link KtxPackAstcBlockDimension} constant
      */
     private int blockDimension;
+
+    /**
+     * The {@link KtxPackAstcEncoderMode} constant
+     */
     private int mode;
     private int qualityLevel;
     private boolean normalMap;
@@ -53,10 +57,20 @@ public class KtxAstcParams {
         this.blockDimension = blockDimension;
     }
 
+    /**
+     * Returns the {@link KtxPackAstcEncoderMode} constant
+     *
+     * @return The encoder mode constant
+     */
     public int getMode() {
         return mode;
     }
 
+    /**
+     * Set the {@link KtxPackAstcEncoderMode} constant
+     *
+     * @param mode The encoder mode constant
+     */
     public void setMode(int mode) {
         this.mode = mode;
     }
