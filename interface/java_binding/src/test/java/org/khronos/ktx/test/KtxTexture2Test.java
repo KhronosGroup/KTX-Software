@@ -50,7 +50,7 @@ public class KtxTexture2Test {
 		assertEquals(texture.getVkFormat(), VkFormat.VK_FORMAT_ASTC_4x4_SRGB_BLOCK);
 		assertEquals(texture.getBaseWidth(), 2048);
 		assertEquals(texture.getBaseHeight(), 2048);
-		assertEquals(texture.getSupercompressionScheme(), KtxSupercmpScheme.NONE);
+		assertEquals(texture.getSupercompressionScheme(), KtxSupercmpScheme.KTX_SS_NONE);
 
 		texture.destroy();
 	}
@@ -295,12 +295,12 @@ public class KtxTexture2Test {
 
 		assertNotNull(texture);
 		assertEquals(false, texture.isCompressed());
-		assertEquals(KtxSupercmpScheme.NONE, texture.getSupercompressionScheme());
+		assertEquals(KtxSupercmpScheme.KTX_SS_NONE, texture.getSupercompressionScheme());
 
 		assertEquals(KtxErrorCode.SUCCESS, texture.compressBasis(1));
 
 		assertEquals(true, texture.isCompressed());
-		assertEquals(KtxSupercmpScheme.BASIS_LZ, texture.getSupercompressionScheme());
+		assertEquals(KtxSupercmpScheme.KTX_SS_BASIS_LZ, texture.getSupercompressionScheme());
 
 		texture.destroy();
 	}
@@ -317,12 +317,12 @@ public class KtxTexture2Test {
 
 		assertNotNull(texture);
 		assertEquals(false, texture.isCompressed());
-		assertEquals(KtxSupercmpScheme.NONE, texture.getSupercompressionScheme());
+		assertEquals(KtxSupercmpScheme.KTX_SS_NONE, texture.getSupercompressionScheme());
 
 		assertEquals(KtxErrorCode.SUCCESS, texture.compressBasisEx(new KtxBasisParams()));
 
 		assertEquals(true, texture.isCompressed());
-		assertEquals(KtxSupercmpScheme.BASIS_LZ, texture.getSupercompressionScheme());
+		assertEquals(KtxSupercmpScheme.KTX_SS_BASIS_LZ, texture.getSupercompressionScheme());
 
 		texture.destroy();
 	}
@@ -521,14 +521,14 @@ public class KtxTexture2Test {
 
 		// The supercompression scheme should be NONE here
 		int scBefore = t.getSupercompressionScheme();
-		assertEquals(KtxSupercmpScheme.NONE, scBefore);
+		assertEquals(KtxSupercmpScheme.KTX_SS_NONE, scBefore);
 
 		// Apply Zstd compression
 		t.deflateZstd(10);
 
 		// The supercompression scheme should now be ZSTD
 		int scAfter = t.getSupercompressionScheme();
-		assertEquals(KtxSupercmpScheme.ZSTD, scAfter);
+		assertEquals(KtxSupercmpScheme.KTX_SS_ZSTD, scAfter);
 
 		t.destroy();
 	}
@@ -555,14 +555,14 @@ public class KtxTexture2Test {
 
 		// The supercompression scheme should be NONE here
 		int scBefore = t.getSupercompressionScheme();
-		assertEquals(KtxSupercmpScheme.NONE, scBefore);
+		assertEquals(KtxSupercmpScheme.KTX_SS_NONE, scBefore);
 
 		// Apply ZLIB compression
 		t.deflateZLIB(10);
 
 		// The supercompression scheme should now be ZLIB
 		int scAfter = t.getSupercompressionScheme();
-		assertEquals(KtxSupercmpScheme.ZLIB, scAfter);
+		assertEquals(KtxSupercmpScheme.KTX_SS_ZLIB, scAfter);
 
 		t.destroy();
 	}
