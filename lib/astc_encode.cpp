@@ -46,8 +46,7 @@ typedef int pthread_attr_t;
 
 /* Public function, see header file for detailed documentation */
 static int
-pthread_create(pthread_t* thread, const pthread_attr_t* attribs,
-               void* (*threadfunc)(void*), void* thread_arg) {
+pthread_create(pthread_t *thread, const pthread_attr_t *attribs, void *(*threadfunc)(void *), void *thread_arg) {
     (void)attribs;
     LPTHREAD_START_ROUTINE func = (LPTHREAD_START_ROUTINE)threadfunc;
     *thread = CreateThread(nullptr, 0, func, thread_arg, 0, nullptr);
@@ -56,46 +55,43 @@ pthread_create(pthread_t* thread, const pthread_attr_t* attribs,
 
 /* Public function, see header file for detailed documentation */
 static int
-pthread_join(pthread_t thread, void** value) {
+pthread_join(pthread_t thread, void **value) {
     (void)value;
     WaitForSingleObject(thread, INFINITE);
     return 0;
 }
 #endif
 
-static astcenc_image*
-imageAllocate(uint32_t bitness,
-              uint32_t dim_x, uint32_t dim_y, uint32_t dim_z) {
+static astcenc_image *
+imageAllocate(uint32_t bitness, uint32_t dim_x, uint32_t dim_y, uint32_t dim_z) {
     astcenc_image *img = new astcenc_image;
     assert(img);
 
-    img->dim_x         = dim_x;
-    img->dim_y         = dim_y;
-    img->dim_z         = dim_z;
+    img->dim_x = dim_x;
+    img->dim_y = dim_y;
+    img->dim_z = dim_z;
 
     if (bitness == 8) {
-        void **data    = new void *[dim_z];
+        void **data = new void *[dim_z];
         img->data_type = ASTCENC_TYPE_U8;
-        img->data      = data;
+        img->data = data;
 
         for (uint32_t z = 0; z < dim_z; z++) {
             data[z] = new uint8_t[dim_x * dim_y * 4];
         }
-    }
-    else if (bitness == 16) {
-        void **data    = new void *[dim_z];
+    } else if (bitness == 16) {
+        void **data = new void *[dim_z];
         img->data_type = ASTCENC_TYPE_F16;
-        img->data      = data;
+        img->data = data;
 
         for (uint32_t z = 0; z < dim_z; z++) {
             data[z] = new uint16_t[dim_x * dim_y * 4];
         }
-    }
-    else {       // if (bitness == 32)
+    } else {  // if (bitness == 32)
         assert(bitness == 32);
-        void **data    = new void *[dim_z];
+        void **data = new void *[dim_z];
         img->data_type = ASTCENC_TYPE_F32;
-        img->data      = data;
+        img->data = data;
 
         for (uint32_t z = 0; z < dim_z; z++) {
             data[z] = new float[dim_x * dim_y * 4];
@@ -119,17 +115,17 @@ imageFree(astcenc_image *img) {
     delete img;
 }
 
-static astcenc_image*
+static astcenc_image *
 unorm8x1ArrayToImage(const uint8_t *data, uint32_t dim_x, uint32_t dim_y) {
     astcenc_image *img = imageAllocate(8, dim_x, dim_y, 1);
     assert(img);
 
     for (uint32_t y = 0; y < dim_y; y++) {
-        uint8_t *      data8 = static_cast<uint8_t *>(img->data[0]);
-        const uint8_t *src   = data + dim_x * y;
+        uint8_t *data8 = static_cast<uint8_t *>(img->data[0]);
+        const uint8_t *src = data + dim_x * y;
 
         for (uint32_t x = 0; x < dim_x; x++) {
-            data8[(4 * dim_x * y) + (4 * x)    ] = src[x];
+            data8[(4 * dim_x * y) + (4 * x)] = src[x];
             data8[(4 * dim_x * y) + (4 * x + 1)] = src[x];
             data8[(4 * dim_x * y) + (4 * x + 2)] = src[x];
             data8[(4 * dim_x * y) + (4 * x + 3)] = 255;
@@ -139,19 +135,19 @@ unorm8x1ArrayToImage(const uint8_t *data, uint32_t dim_x, uint32_t dim_y) {
     return img;
 }
 
-static astcenc_image*
+static astcenc_image *
 unorm8x2ArrayToImage(const uint8_t *data, uint32_t dim_x, uint32_t dim_y) {
     astcenc_image *img = imageAllocate(8, dim_x, dim_y, 1);
     assert(img);
 
     for (uint32_t y = 0; y < dim_y; y++) {
-        uint8_t *      data8 = static_cast<uint8_t *>(img->data[0]);
-        const uint8_t *src   = data + 2 * dim_x * y;
+        uint8_t *data8 = static_cast<uint8_t *>(img->data[0]);
+        const uint8_t *src = data + 2 * dim_x * y;
 
         for (uint32_t x = 0; x < dim_x; x++) {
-            data8[(4 * dim_x * y) + (4 * x)    ] = src[2 * x    ];
-            data8[(4 * dim_x * y) + (4 * x + 1)] = src[2 * x    ];
-            data8[(4 * dim_x * y) + (4 * x + 2)] = src[2 * x    ];
+            data8[(4 * dim_x * y) + (4 * x)] = src[2 * x];
+            data8[(4 * dim_x * y) + (4 * x + 1)] = src[2 * x];
+            data8[(4 * dim_x * y) + (4 * x + 2)] = src[2 * x];
             data8[(4 * dim_x * y) + (4 * x + 3)] = src[2 * x + 1];
         }
     }
@@ -159,17 +155,17 @@ unorm8x2ArrayToImage(const uint8_t *data, uint32_t dim_x, uint32_t dim_y) {
     return img;
 }
 
-static astcenc_image*
+static astcenc_image *
 unorm8x3ArrayToImage(const uint8_t *data, uint32_t dim_x, uint32_t dim_y) {
     astcenc_image *img = imageAllocate(8, dim_x, dim_y, 1);
     assert(img);
 
     for (uint32_t y = 0; y < dim_y; y++) {
-        uint8_t *      data8 = static_cast<uint8_t *>(img->data[0]);
-        const uint8_t *src   = data + 3 * dim_x * y;
+        uint8_t *data8 = static_cast<uint8_t *>(img->data[0]);
+        const uint8_t *src = data + 3 * dim_x * y;
 
         for (uint32_t x = 0; x < dim_x; x++) {
-            data8[(4 * dim_x * y) + (4 * x)    ] = src[3 * x    ];
+            data8[(4 * dim_x * y) + (4 * x)] = src[3 * x];
             data8[(4 * dim_x * y) + (4 * x + 1)] = src[3 * x + 1];
             data8[(4 * dim_x * y) + (4 * x + 2)] = src[3 * x + 2];
             data8[(4 * dim_x * y) + (4 * x + 3)] = 255;
@@ -179,17 +175,17 @@ unorm8x3ArrayToImage(const uint8_t *data, uint32_t dim_x, uint32_t dim_y) {
     return img;
 }
 
-static astcenc_image*
+static astcenc_image *
 unorm8x4ArrayToImage(const uint8_t *data, uint32_t dim_x, uint32_t dim_y) {
     astcenc_image *img = imageAllocate(8, dim_x, dim_y, 1);
     assert(img);
 
     for (uint32_t y = 0; y < dim_y; y++) {
-        uint8_t *      data8 = static_cast<uint8_t *>(img->data[0]);
-        const uint8_t *src   = data + 4 * dim_x * y;
+        uint8_t *data8 = static_cast<uint8_t *>(img->data[0]);
+        const uint8_t *src = data + 4 * dim_x * y;
 
         for (uint32_t x = 0; x < dim_x; x++) {
-            data8[(4 * dim_x * y) + (4 * x)    ] = src[4 * x    ];
+            data8[(4 * dim_x * y) + (4 * x)] = src[4 * x];
             data8[(4 * dim_x * y) + (4 * x + 1)] = src[4 * x + 1];
             data8[(4 * dim_x * y) + (4 * x + 2)] = src[4 * x + 2];
             data8[(4 * dim_x * y) + (4 * x + 3)] = src[4 * x + 3];
@@ -232,61 +228,109 @@ static VkFormat
 astcVkFormat(ktx_uint32_t block_size, bool sRGB) {
     if (sRGB) {
         switch (block_size) {
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4: return VK_FORMAT_ASTC_4x4_SRGB_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_5x4: return VK_FORMAT_ASTC_5x4_SRGB_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5: return VK_FORMAT_ASTC_5x5_SRGB_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_6x5: return VK_FORMAT_ASTC_6x5_SRGB_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6: return VK_FORMAT_ASTC_6x6_SRGB_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_8x5: return VK_FORMAT_ASTC_8x5_SRGB_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_8x6: return VK_FORMAT_ASTC_8x6_SRGB_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_8x8: return VK_FORMAT_ASTC_8x8_SRGB_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_10x5: return VK_FORMAT_ASTC_10x5_SRGB_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_10x6: return VK_FORMAT_ASTC_10x6_SRGB_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_10x8: return VK_FORMAT_ASTC_10x8_SRGB_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_10x10: return VK_FORMAT_ASTC_10x10_SRGB_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_12x10: return VK_FORMAT_ASTC_12x10_SRGB_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_12x12: return VK_FORMAT_ASTC_12x12_SRGB_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_3x3x3: return VK_FORMAT_ASTC_3x3x3_SRGB_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_4x3x3: return VK_FORMAT_ASTC_4x3x3_SRGB_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x3: return VK_FORMAT_ASTC_4x4x3_SRGB_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x4: return VK_FORMAT_ASTC_4x4x4_SRGB_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_5x4x4: return VK_FORMAT_ASTC_5x4x4_SRGB_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x4: return VK_FORMAT_ASTC_5x5x4_SRGB_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x5: return VK_FORMAT_ASTC_5x5x5_SRGB_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_6x5x5: return VK_FORMAT_ASTC_6x5x5_SRGB_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x5: return VK_FORMAT_ASTC_6x6x5_SRGB_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x6: return VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4:
+            return VK_FORMAT_ASTC_4x4_SRGB_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_5x4:
+            return VK_FORMAT_ASTC_5x4_SRGB_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5:
+            return VK_FORMAT_ASTC_5x5_SRGB_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_6x5:
+            return VK_FORMAT_ASTC_6x5_SRGB_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6:
+            return VK_FORMAT_ASTC_6x6_SRGB_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_8x5:
+            return VK_FORMAT_ASTC_8x5_SRGB_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_8x6:
+            return VK_FORMAT_ASTC_8x6_SRGB_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_8x8:
+            return VK_FORMAT_ASTC_8x8_SRGB_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_10x5:
+            return VK_FORMAT_ASTC_10x5_SRGB_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_10x6:
+            return VK_FORMAT_ASTC_10x6_SRGB_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_10x8:
+            return VK_FORMAT_ASTC_10x8_SRGB_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_10x10:
+            return VK_FORMAT_ASTC_10x10_SRGB_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_12x10:
+            return VK_FORMAT_ASTC_12x10_SRGB_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_12x12:
+            return VK_FORMAT_ASTC_12x12_SRGB_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_3x3x3:
+            return VK_FORMAT_ASTC_3x3x3_SRGB_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_4x3x3:
+            return VK_FORMAT_ASTC_4x3x3_SRGB_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x3:
+            return VK_FORMAT_ASTC_4x4x3_SRGB_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x4:
+            return VK_FORMAT_ASTC_4x4x4_SRGB_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_5x4x4:
+            return VK_FORMAT_ASTC_5x4x4_SRGB_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x4:
+            return VK_FORMAT_ASTC_5x5x4_SRGB_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x5:
+            return VK_FORMAT_ASTC_5x5x5_SRGB_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_6x5x5:
+            return VK_FORMAT_ASTC_6x5x5_SRGB_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x5:
+            return VK_FORMAT_ASTC_6x6x5_SRGB_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x6:
+            return VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT;
         }
     } else {
         switch (block_size) {
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4: return VK_FORMAT_ASTC_4x4_UNORM_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_5x4: return VK_FORMAT_ASTC_5x4_UNORM_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5: return VK_FORMAT_ASTC_5x5_UNORM_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_6x5: return VK_FORMAT_ASTC_6x5_UNORM_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6: return VK_FORMAT_ASTC_6x6_UNORM_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_8x5: return VK_FORMAT_ASTC_8x5_UNORM_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_8x6: return VK_FORMAT_ASTC_8x6_UNORM_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_8x8: return VK_FORMAT_ASTC_8x8_UNORM_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_10x5: return VK_FORMAT_ASTC_10x5_UNORM_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_10x6: return VK_FORMAT_ASTC_10x6_UNORM_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_10x8: return VK_FORMAT_ASTC_10x8_UNORM_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_10x10: return VK_FORMAT_ASTC_10x10_UNORM_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_12x10: return VK_FORMAT_ASTC_12x10_UNORM_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_12x12: return VK_FORMAT_ASTC_12x12_UNORM_BLOCK;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_3x3x3: return VK_FORMAT_ASTC_3x3x3_UNORM_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_4x3x3: return VK_FORMAT_ASTC_4x3x3_UNORM_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x3: return VK_FORMAT_ASTC_4x4x3_UNORM_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x4: return VK_FORMAT_ASTC_4x4x4_UNORM_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_5x4x4: return VK_FORMAT_ASTC_5x4x4_UNORM_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x4: return VK_FORMAT_ASTC_5x5x4_UNORM_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x5: return VK_FORMAT_ASTC_5x5x5_UNORM_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_6x5x5: return VK_FORMAT_ASTC_6x5x5_UNORM_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x5: return VK_FORMAT_ASTC_6x6x5_UNORM_BLOCK_EXT;
-        case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x6: return VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4:
+            return VK_FORMAT_ASTC_4x4_UNORM_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_5x4:
+            return VK_FORMAT_ASTC_5x4_UNORM_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5:
+            return VK_FORMAT_ASTC_5x5_UNORM_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_6x5:
+            return VK_FORMAT_ASTC_6x5_UNORM_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6:
+            return VK_FORMAT_ASTC_6x6_UNORM_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_8x5:
+            return VK_FORMAT_ASTC_8x5_UNORM_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_8x6:
+            return VK_FORMAT_ASTC_8x6_UNORM_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_8x8:
+            return VK_FORMAT_ASTC_8x8_UNORM_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_10x5:
+            return VK_FORMAT_ASTC_10x5_UNORM_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_10x6:
+            return VK_FORMAT_ASTC_10x6_UNORM_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_10x8:
+            return VK_FORMAT_ASTC_10x8_UNORM_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_10x10:
+            return VK_FORMAT_ASTC_10x10_UNORM_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_12x10:
+            return VK_FORMAT_ASTC_12x10_UNORM_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_12x12:
+            return VK_FORMAT_ASTC_12x12_UNORM_BLOCK;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_3x3x3:
+            return VK_FORMAT_ASTC_3x3x3_UNORM_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_4x3x3:
+            return VK_FORMAT_ASTC_4x3x3_UNORM_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x3:
+            return VK_FORMAT_ASTC_4x4x3_UNORM_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x4:
+            return VK_FORMAT_ASTC_4x4x4_UNORM_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_5x4x4:
+            return VK_FORMAT_ASTC_5x4x4_UNORM_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x4:
+            return VK_FORMAT_ASTC_5x5x4_UNORM_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x5:
+            return VK_FORMAT_ASTC_5x5x5_UNORM_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_6x5x5:
+            return VK_FORMAT_ASTC_6x5x5_UNORM_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x5:
+            return VK_FORMAT_ASTC_6x6x5_UNORM_BLOCK_EXT;
+        case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x6:
+            return VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT;
         }
     }
 
-    return VK_FORMAT_ASTC_6x6_SRGB_BLOCK; // Default is 6x6 sRGB image
+    return VK_FORMAT_ASTC_6x6_SRGB_BLOCK;  // Default is 6x6 sRGB image
 }
 
 /**
@@ -298,12 +342,10 @@ astcVkFormat(ktx_uint32_t block_size, bool sRGB) {
  * @return      Valid astc_profile from string
  */
 static astcenc_profile
-astcEncoderAction(const ktxAstcParams &params, const uint32_t* bdb) {
-
+astcEncoderAction(const ktxAstcParams &params, const uint32_t *bdb) {
     ktx_uint32_t transfer = KHR_DFDVAL(bdb, TRANSFER);
 
-    if (transfer == KHR_DF_TRANSFER_SRGB &&
-        params.mode == KTX_PACK_ASTC_ENCODER_MODE_LDR)
+    if (transfer == KHR_DF_TRANSFER_SRGB && params.mode == KTX_PACK_ASTC_ENCODER_MODE_LDR)
         return ASTCENC_PRF_LDR_SRGB;
     else if (transfer == KHR_DF_TRANSFER_LINEAR) {
         if (params.mode == KTX_PACK_ASTC_ENCODER_MODE_LDR)
@@ -314,9 +356,8 @@ astcEncoderAction(const ktxAstcParams &params, const uint32_t* bdb) {
     // TODO: Add support for the following
     // KTX_PACK_ASTC_ENCODER_ACTION_COMP_HDR_RGB_LDR_ALPHA; currently not supported
 
-  return ASTCENC_PRF_LDR_SRGB;
+    return ASTCENC_PRF_LDR_SRGB;
 }
-
 
 /**
  * @memberof ktxTexture
@@ -328,10 +369,9 @@ astcEncoderAction(const ktxAstcParams &params, const uint32_t* bdb) {
  */
 static astcenc_swizzle
 astcSwizzle(const ktxAstcParams &params) {
-
     astcenc_swizzle swizzle{ASTCENC_SWZ_R, ASTCENC_SWZ_G, ASTCENC_SWZ_B, ASTCENC_SWZ_A};
 
-    std::vector<astcenc_swz*> swizzle_array{&swizzle.r, &swizzle.g, &swizzle.b, &swizzle.a};
+    std::vector<astcenc_swz *> swizzle_array{&swizzle.r, &swizzle.g, &swizzle.b, &swizzle.a};
     std::string inputSwizzle = params.inputSwizzle;
 
     if (inputSwizzle.size() > 0) {
@@ -359,68 +399,170 @@ astcSwizzle(const ktxAstcParams &params) {
 }
 
 static void
-astcBlockDimensions(ktx_uint32_t block_size,
-               uint32_t& block_x, uint32_t& block_y, uint32_t& block_z) {
+astcBlockDimensions(ktx_uint32_t block_size, uint32_t &block_x, uint32_t &block_y, uint32_t &block_z) {
     switch (block_size) {
-    case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4 : block_x = 4; block_y = 4; block_z = 1; break;
-    case KTX_PACK_ASTC_BLOCK_DIMENSION_5x4 : block_x = 5; block_y = 4; block_z = 1; break;
-    case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5 : block_x = 5; block_y = 5; block_z = 1; break;
-    case KTX_PACK_ASTC_BLOCK_DIMENSION_6x5 : block_x = 6; block_y = 5; block_z = 1; break;
-    case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6 : block_x = 6; block_y = 6; block_z = 1; break;
-    case KTX_PACK_ASTC_BLOCK_DIMENSION_8x5 : block_x = 8; block_y = 5; block_z = 1; break;
-    case KTX_PACK_ASTC_BLOCK_DIMENSION_8x6 : block_x = 8; block_y = 6; block_z = 1; break;
-    case KTX_PACK_ASTC_BLOCK_DIMENSION_10x5 : block_x = 10; block_y = 5; block_z = 1; break;
-    case KTX_PACK_ASTC_BLOCK_DIMENSION_10x6 : block_x = 10; block_y = 6; block_z = 1; break;
-    case KTX_PACK_ASTC_BLOCK_DIMENSION_8x8 : block_x = 8; block_y = 8; block_z = 1; break;
-    case KTX_PACK_ASTC_BLOCK_DIMENSION_10x8 : block_x = 10; block_y = 8; block_z = 1; break;
-    case KTX_PACK_ASTC_BLOCK_DIMENSION_10x10 : block_x = 10; block_y = 10; block_z = 1; break;
-    case KTX_PACK_ASTC_BLOCK_DIMENSION_12x10 : block_x = 12; block_y = 10; block_z = 1; break;
-    case KTX_PACK_ASTC_BLOCK_DIMENSION_12x12 : block_x = 12; block_y = 12; block_z = 1; break;
-    case KTX_PACK_ASTC_BLOCK_DIMENSION_3x3x3 : block_x = 3; block_y = 3; block_z = 3; break;
-    case KTX_PACK_ASTC_BLOCK_DIMENSION_4x3x3 : block_x = 4; block_y = 3; block_z = 3; break;
-    case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x3 : block_x = 4; block_y = 4; block_z = 3; break;
-    case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x4 : block_x = 4; block_y = 4; block_z = 4; break;
-    case KTX_PACK_ASTC_BLOCK_DIMENSION_5x4x4 : block_x = 5; block_y = 4; block_z = 4; break;
-    case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x4 : block_x = 5; block_y = 5; block_z = 4; break;
-    case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x5 : block_x = 5; block_y = 5; block_z = 5; break;
-    case KTX_PACK_ASTC_BLOCK_DIMENSION_6x5x5 : block_x = 6; block_y = 5; block_z = 5; break;
-    case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x5 : block_x = 6; block_y = 6; block_z = 5; break;
-    case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x6 : block_x = 6; block_y = 6; block_z = 6; break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4:
+        block_x = 4;
+        block_y = 4;
+        block_z = 1;
+        break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_5x4:
+        block_x = 5;
+        block_y = 4;
+        block_z = 1;
+        break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5:
+        block_x = 5;
+        block_y = 5;
+        block_z = 1;
+        break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_6x5:
+        block_x = 6;
+        block_y = 5;
+        block_z = 1;
+        break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6:
+        block_x = 6;
+        block_y = 6;
+        block_z = 1;
+        break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_8x5:
+        block_x = 8;
+        block_y = 5;
+        block_z = 1;
+        break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_8x6:
+        block_x = 8;
+        block_y = 6;
+        block_z = 1;
+        break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_10x5:
+        block_x = 10;
+        block_y = 5;
+        block_z = 1;
+        break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_10x6:
+        block_x = 10;
+        block_y = 6;
+        block_z = 1;
+        break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_8x8:
+        block_x = 8;
+        block_y = 8;
+        block_z = 1;
+        break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_10x8:
+        block_x = 10;
+        block_y = 8;
+        block_z = 1;
+        break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_10x10:
+        block_x = 10;
+        block_y = 10;
+        block_z = 1;
+        break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_12x10:
+        block_x = 12;
+        block_y = 10;
+        block_z = 1;
+        break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_12x12:
+        block_x = 12;
+        block_y = 12;
+        block_z = 1;
+        break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_3x3x3:
+        block_x = 3;
+        block_y = 3;
+        block_z = 3;
+        break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_4x3x3:
+        block_x = 4;
+        block_y = 3;
+        block_z = 3;
+        break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x3:
+        block_x = 4;
+        block_y = 4;
+        block_z = 3;
+        break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x4:
+        block_x = 4;
+        block_y = 4;
+        block_z = 4;
+        break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_5x4x4:
+        block_x = 5;
+        block_y = 4;
+        block_z = 4;
+        break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x4:
+        block_x = 5;
+        block_y = 5;
+        block_z = 4;
+        break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x5:
+        block_x = 5;
+        block_y = 5;
+        block_z = 5;
+        break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_6x5x5:
+        block_x = 6;
+        block_y = 5;
+        block_z = 5;
+        break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x5:
+        block_x = 6;
+        block_y = 6;
+        block_z = 5;
+        break;
+    case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x6:
+        block_x = 6;
+        block_y = 6;
+        block_z = 6;
+        break;
     default:
-        block_x = 6; block_y = 6; block_z = 1; break;
+        block_x = 6;
+        block_y = 6;
+        block_z = 1;
+        break;
     }
 }
 
 static float
 astcQuality(ktx_uint32_t quality_level) {
     switch (quality_level) {
-    case KTX_PACK_ASTC_QUALITY_LEVEL_FASTEST: return ASTCENC_PRE_FASTEST;
-    case KTX_PACK_ASTC_QUALITY_LEVEL_FAST: return ASTCENC_PRE_FAST;
-    case KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM: return ASTCENC_PRE_MEDIUM;
-    case KTX_PACK_ASTC_QUALITY_LEVEL_THOROUGH: return ASTCENC_PRE_THOROUGH;
-    case KTX_PACK_ASTC_QUALITY_LEVEL_EXHAUSTIVE: return ASTCENC_PRE_EXHAUSTIVE;
+    case KTX_PACK_ASTC_QUALITY_LEVEL_FASTEST:
+        return ASTCENC_PRE_FASTEST;
+    case KTX_PACK_ASTC_QUALITY_LEVEL_FAST:
+        return ASTCENC_PRE_FAST;
+    case KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM:
+        return ASTCENC_PRE_MEDIUM;
+    case KTX_PACK_ASTC_QUALITY_LEVEL_THOROUGH:
+        return ASTCENC_PRE_THOROUGH;
+    case KTX_PACK_ASTC_QUALITY_LEVEL_EXHAUSTIVE:
+        return ASTCENC_PRE_EXHAUSTIVE;
     }
 
     return ASTCENC_PRE_MEDIUM;
 }
 
 struct CompressionWorkload {
-    astcenc_context* context;
-    astcenc_image* image;
+    astcenc_context *context;
+    astcenc_image *image;
     astcenc_swizzle swizzle;
-    uint8_t* data_out;
+    uint8_t *data_out;
     size_t data_len;
     astcenc_error error;
 };
 
 static void
-compressionWorkloadRunner(int threadCount, int threadId, void* payload) {
+compressionWorkloadRunner(int threadCount, int threadId, void *payload) {
     (void)threadCount;
 
-    CompressionWorkload* work = static_cast<CompressionWorkload*>(payload);
-    astcenc_error error = astcenc_compress_image(
-                           work->context, work->image, &work->swizzle,
-                           work->data_out, work->data_len, threadId);
+    CompressionWorkload *work = static_cast<CompressionWorkload *>(payload);
+    astcenc_error error =
+        astcenc_compress_image(work->context, work->image, &work->swizzle, work->data_out, work->data_len, threadId);
 
     // This is a racy update, so which error gets returned is a random, but it
     // will reliably report an error if an error occurs
@@ -440,9 +582,9 @@ struct LaunchDesc {
     /** The thread index in the thread pool. */
     int threadId;
     /** The user thread function to execute. */
-    void (*func)(int, int, void*);
+    void (*func)(int, int, void *);
     /** The user thread payload. */
-    void* payload;
+    void *payload;
 };
 
 /**
@@ -453,16 +595,16 @@ struct LaunchDesc {
  *
  * @param p The thread launch helper payload.
  */
-static void*
+static void *
 launchThreadsHelper(void *p) {
-    LaunchDesc* ltd = (LaunchDesc*)p;
+    LaunchDesc *ltd = (LaunchDesc *)p;
     ltd->func(ltd->threadCount, ltd->threadId, ltd->payload);
     return nullptr;
 }
 
 /* Public function, see header file for detailed documentation */
 static void
-launchThreads(int threadCount, void (*func)(int, int, void*), void *payload) {
+launchThreads(int threadCount, void (*func)(int, int, void *), void *payload) {
     // Directly execute single threaded workloads on this thread
     if (threadCount <= 1) {
         func(1, 0, payload);
@@ -477,8 +619,7 @@ launchThreads(int threadCount, void (*func)(int, int, void*), void *payload) {
         threadDescs[i].payload = payload;
         threadDescs[i].func = func;
 
-        pthread_create(&(threadDescs[i].threadHandle), nullptr,
-                       launchThreadsHelper, (void*)&(threadDescs[i]));
+        pthread_create(&(threadDescs[i].threadHandle), nullptr, launchThreadsHelper, (void *)&(threadDescs[i]));
     }
 
     // ... and then wait for them to complete
@@ -526,46 +667,39 @@ launchThreads(int threadCount, void (*func)(int, int, void*), void *payload) {
  * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out compression.
  */
 extern "C" KTX_error_code
-ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
+ktxTexture2_CompressAstcEx(ktxTexture2 *This, ktxAstcParams *params) {
     assert(This->classId == ktxTexture2_c && "Only support ktx2 ASTC.");
 
     KTX_error_code result;
 
-    if (!params)
-        return KTX_INVALID_VALUE;
+    if (!params) return KTX_INVALID_VALUE;
 
-    if (params->structSize != sizeof(struct ktxAstcParams))
-        return KTX_INVALID_VALUE;
+    if (params->structSize != sizeof(struct ktxAstcParams)) return KTX_INVALID_VALUE;
 
-    if (This->supercompressionScheme != KTX_SS_NONE)
-        return KTX_INVALID_OPERATION; // Can't apply multiple schemes.
+    if (This->supercompressionScheme != KTX_SS_NONE) return KTX_INVALID_OPERATION;  // Can't apply multiple schemes.
 
     if (This->isCompressed)
         return KTX_INVALID_OPERATION;  // Only non-block compressed formats
                                        // can be encoded into an ASTC format.
 
-    if (This->_protected->_formatSize.flags & KTX_FORMAT_SIZE_PACKED_BIT)
-        return KTX_INVALID_OPERATION;
+    if (This->_protected->_formatSize.flags & KTX_FORMAT_SIZE_PACKED_BIT) return KTX_INVALID_OPERATION;
 
     // Basic descriptor block begins after the total size field.
-    const uint32_t* BDB = This->pDfd+1;
+    const uint32_t *BDB = This->pDfd + 1;
 
     uint32_t num_components, component_size;
     getDFDComponentInfoUnpacked(This->pDfd, &num_components, &component_size);
 
-    if (component_size != 1)
-        return KTX_INVALID_OPERATION; // Can only deal with 8-bit components at the moment
+    if (component_size != 1) return KTX_INVALID_OPERATION;  // Can only deal with 8-bit components at the moment
 
     if (This->pData == NULL) {
-        result = ktxTexture2_LoadImageData((ktxTexture2*)This, nullptr, 0);
+        result = ktxTexture2_LoadImageData((ktxTexture2 *)This, nullptr, 0);
 
-        if (result != KTX_SUCCESS)
-            return result;
+        if (result != KTX_SUCCESS) return result;
     }
 
     ktx_uint32_t threadCount = params->threadCount;
-    if (threadCount < 1)
-        threadCount = 1;
+    if (threadCount < 1) threadCount = 1;
 
     ktx_uint32_t transfer = KHR_DFDVAL(BDB, TRANSFER);
     bool sRGB = transfer == KHR_DF_TRANSFER_SRGB;
@@ -593,9 +727,8 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
     createInfo.numLevels = This->numLevels;
     createInfo.pDfd = nullptr;
 
-    ktxTexture2* prototype;
-    result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                &prototype);
+    ktxTexture2 *prototype;
+    result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &prototype);
 
     if (result != KTX_SUCCESS) {
         assert(result == KTX_OUT_OF_MEMORY && "Out of memory allocating texture.");
@@ -606,36 +739,28 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
 
     astcenc_swizzle swizzle{ASTCENC_SWZ_R, ASTCENC_SWZ_G, ASTCENC_SWZ_B, ASTCENC_SWZ_A};
 
-    uint32_t        block_size_x{6};
-    uint32_t        block_size_y{6};
-    uint32_t        block_size_z{1};
-    float           quality{ASTCENC_PRE_MEDIUM};
-    uint32_t        flags{params->normalMap ? ASTCENC_FLG_MAP_NORMAL : 0};
+    uint32_t block_size_x{6};
+    uint32_t block_size_y{6};
+    uint32_t block_size_z{1};
+    float quality{ASTCENC_PRE_MEDIUM};
+    uint32_t flags{params->normalMap ? ASTCENC_FLG_MAP_NORMAL : 0};
 
-    astcBlockDimensions(params->blockDimension,
-                        block_size_x, block_size_y, block_size_z);
+    astcBlockDimensions(params->blockDimension, block_size_x, block_size_y, block_size_z);
     quality = astcQuality(params->qualityLevel);
     profile = astcEncoderAction(*params, BDB);
     swizzle = astcSwizzle(*params);
 
-    if(params->perceptual)
-        flags |= ASTCENC_FLG_USE_PERCEPTUAL;
+    if (params->perceptual) flags |= ASTCENC_FLG_USE_PERCEPTUAL;
 
-    astcenc_config   astc_config;
+    astcenc_config astc_config;
     astcenc_context *astc_context;
-    astcenc_error astc_error = astcenc_config_init(profile,
-                                                   block_size_x, block_size_y, block_size_z,
-                                                   quality, flags,
-                                                   &astc_config);
+    astcenc_error astc_error = astcenc_config_init(profile, block_size_x, block_size_y, block_size_z, quality, flags, &astc_config);
 
-    if (astc_error != ASTCENC_SUCCESS)
-        return KTX_INVALID_OPERATION;
+    if (astc_error != ASTCENC_SUCCESS) return KTX_INVALID_OPERATION;
 
-    astc_error  = astcenc_context_alloc(&astc_config, threadCount,
-                                        &astc_context);
+    astc_error = astcenc_context_alloc(&astc_config, threadCount, &astc_context);
 
-    if (astc_error != ASTCENC_SUCCESS)
-        return KTX_INVALID_OPERATION;
+    if (astc_error != ASTCENC_SUCCESS) return KTX_INVALID_OPERATION;
 
     // Walk in reverse on levels so we don't have to do this later
     assert(prototype->dataSize && "Prototype texture size not initialized.\n");
@@ -644,7 +769,7 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
         return KTX_OUT_OF_MEMORY;
     }
 
-    uint8_t* buffer_out  = prototype->pData;
+    uint8_t *buffer_out = prototype->pData;
 
     for (int32_t level = This->numLevels - 1; level >= 0; level--) {
         uint32_t width = MAX(1, This->baseWidth >> level);
@@ -655,26 +780,20 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
         ktx_uint32_t levelImages = 0;
 
         levelImages = This->numLayers * This->numFaces * depth;
-        levelImageSizeIn = ktxTexture_calcImageSize(ktxTexture(This), level,
-                                                    KTX_FORMAT_VERSION_TWO);
-        levelImageSizeOut = ktxTexture_calcImageSize(ktxTexture(prototype), level,
-                                                     KTX_FORMAT_VERSION_TWO);
+        levelImageSizeIn = ktxTexture_calcImageSize(ktxTexture(This), level, KTX_FORMAT_VERSION_TWO);
+        levelImageSizeOut = ktxTexture_calcImageSize(ktxTexture(prototype), level, KTX_FORMAT_VERSION_TWO);
         ktx_size_t offset = ktxTexture2_levelDataOffset(This, level);
 
         for (uint32_t image = 0; image < levelImages; image++) {
             astcenc_image *input_image = nullptr;
             if (num_components == 1)
-                input_image = unorm8x1ArrayToImage(This->pData + offset,
-                                                   width, height);
+                input_image = unorm8x1ArrayToImage(This->pData + offset, width, height);
             else if (num_components == 2)
-                input_image = unorm8x2ArrayToImage(This->pData + offset,
-                                                   width, height);
+                input_image = unorm8x2ArrayToImage(This->pData + offset, width, height);
             else if (num_components == 3)
-                input_image = unorm8x3ArrayToImage(This->pData + offset,
-                                                   width, height);
-            else // assume (num_components == 4)
-                input_image = unorm8x4ArrayToImage(This->pData + offset,
-                                                   width, height);
+                input_image = unorm8x3ArrayToImage(This->pData + offset, width, height);
+            else  // assume (num_components == 4)
+                input_image = unorm8x4ArrayToImage(This->pData + offset, width, height);
 
             assert(input_image);
 
@@ -697,8 +816,7 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
             imageFree(input_image);
 
             if (work.error != ASTCENC_SUCCESS) {
-                std::cout << "ASTC compressor failed\n" <<
-                             astcenc_get_error_string(work.error) << std::endl;
+                std::cout << "ASTC compressor failed\n" << astcenc_get_error_string(work.error) << std::endl;
 
                 astcenc_context_free(astc_context);
                 return KTX_INVALID_OPERATION;
@@ -709,30 +827,26 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
     // We are done with astcencoder
     astcenc_context_free(astc_context);
 
-    assert(KHR_DFDVAL(prototype->pDfd+1, MODEL) == KHR_DF_MODEL_ASTC
-           && "Invalid dfd generated for ASTC image\n");
-    assert((transfer == KHR_DF_TRANSFER_SRGB
-           ? KHR_DFDVAL(prototype->pDfd+1, PRIMARIES) == KHR_DF_PRIMARIES_SRGB
-           : true) && "Not a valid sRGB image\n");
+    assert(KHR_DFDVAL(prototype->pDfd + 1, MODEL) == KHR_DF_MODEL_ASTC && "Invalid dfd generated for ASTC image\n");
+    assert((transfer == KHR_DF_TRANSFER_SRGB ? KHR_DFDVAL(prototype->pDfd + 1, PRIMARIES) == KHR_DF_PRIMARIES_SRGB : true) &&
+           "Not a valid sRGB image\n");
 
-    // Fix up the current (This) texture
-    #undef DECLARE_PRIVATE
-    #undef DECLARE_PROTECTED
-    #define DECLARE_PRIVATE(n,t2) ktxTexture2_private& n = *(t2->_private)
-    #define DECLARE_PROTECTED(n,t2) ktxTexture_protected& n = *(t2->_protected)
+// Fix up the current (This) texture
+#undef DECLARE_PRIVATE
+#undef DECLARE_PROTECTED
+#define DECLARE_PRIVATE(n, t2) ktxTexture2_private &n = *(t2->_private)
+#define DECLARE_PROTECTED(n, t2) ktxTexture_protected &n = *(t2->_protected)
 
     DECLARE_PROTECTED(thisPrtctd, This);
     DECLARE_PRIVATE(protoPriv, prototype);
     DECLARE_PROTECTED(protoPrtctd, prototype);
-    memcpy(&thisPrtctd._formatSize, &protoPrtctd._formatSize,
-           sizeof(ktxFormatSize));
+    memcpy(&thisPrtctd._formatSize, &protoPrtctd._formatSize, sizeof(ktxFormatSize));
     This->vkFormat = vkFormat;
     This->isCompressed = prototype->isCompressed;
     This->supercompressionScheme = KTX_SS_NONE;
     This->_private->_requiredLevelAlignment = protoPriv._requiredLevelAlignment;
     // Copy the levelIndex from the prototype to This.
-    memcpy(This->_private->_levelIndex, protoPriv._levelIndex,
-           This->numLevels * sizeof(ktxLevelIndexEntry));
+    memcpy(This->_private->_levelIndex, protoPriv._levelIndex, This->numLevels * sizeof(ktxLevelIndexEntry));
     // Move the DFD and data from the prototype to This.
     free(This->pDfd);
     This->pDfd = prototype->pDfd;
@@ -783,23 +897,18 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
  * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out supercompression.
  */
 extern "C" KTX_error_code
-ktxTexture2_CompressAstc(ktxTexture2* This, ktx_uint32_t quality) {
+ktxTexture2_CompressAstc(ktxTexture2 *This, ktx_uint32_t quality) {
     ktxAstcParams params = astcDefaultOptions();
 
-    if (quality >= KTX_PACK_ASTC_QUALITY_LEVEL_FASTEST)
-        params.qualityLevel = KTX_PACK_ASTC_QUALITY_LEVEL_FASTEST;
+    if (quality >= KTX_PACK_ASTC_QUALITY_LEVEL_FASTEST) params.qualityLevel = KTX_PACK_ASTC_QUALITY_LEVEL_FASTEST;
 
-    if (quality >= KTX_PACK_ASTC_QUALITY_LEVEL_FAST)
-        params.qualityLevel = KTX_PACK_ASTC_QUALITY_LEVEL_FAST;
+    if (quality >= KTX_PACK_ASTC_QUALITY_LEVEL_FAST) params.qualityLevel = KTX_PACK_ASTC_QUALITY_LEVEL_FAST;
 
-    if (quality >= KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM)
-        params.qualityLevel = KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM;
+    if (quality >= KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM) params.qualityLevel = KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM;
 
-    if (quality >= KTX_PACK_ASTC_QUALITY_LEVEL_THOROUGH)
-        params.qualityLevel = KTX_PACK_ASTC_QUALITY_LEVEL_THOROUGH;
+    if (quality >= KTX_PACK_ASTC_QUALITY_LEVEL_THOROUGH) params.qualityLevel = KTX_PACK_ASTC_QUALITY_LEVEL_THOROUGH;
 
-    if (quality >= KTX_PACK_ASTC_QUALITY_LEVEL_EXHAUSTIVE)
-        params.qualityLevel = KTX_PACK_ASTC_QUALITY_LEVEL_EXHAUSTIVE;
+    if (quality >= KTX_PACK_ASTC_QUALITY_LEVEL_EXHAUSTIVE) params.qualityLevel = KTX_PACK_ASTC_QUALITY_LEVEL_EXHAUSTIVE;
 
     return ktxTexture2_CompressAstcEx(This, &params);
 }

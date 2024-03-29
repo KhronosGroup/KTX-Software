@@ -2,7 +2,6 @@
 // Copyright 2022-2023 RasterGrid Kft.
 // SPDX-License-Identifier: Apache-2.0
 
-
 #include "command.h"
 #include "platform_utils.h"
 #include "version.h"
@@ -29,33 +28,30 @@ void Command::parseCommandLine(const std::string& name, const std::string& desc,
     cxxopts::Options commandOpts(name, "");
     commandOpts.custom_help("[OPTION...]");
     commandOpts.set_width(CONSOLE_USAGE_WIDTH);
-    initOptions(commandOpts); // virtual customization point
+    initOptions(commandOpts);  // virtual customization point
 
     cxxopts::ParseResult args;
     try {
         args = commandOpts.parse(argc, argv);
-        processOptions(commandOpts, args); // virtual customization point
+        processOptions(commandOpts, args);  // virtual customization point
 
     } catch (const cxxopts::exceptions::parsing& ex) {
         fatal_usage("{}.", ex.what());
     }
 
 #if defined(_WIN32) && defined(DEBUG)
-    if (args["ld"].as<bool>())
-        launchDebugger();
+    if (args["ld"].as<bool>()) launchDebugger();
 #endif
 }
 
 #if defined(_WIN32) && defined(DEBUG)
 // For use when debugging stdin with Visual Studio which does not have a
 // "wait for executable to be launched" choice in its debugger settings.
-bool Command::launchDebugger()
-{
+bool Command::launchDebugger() {
     // Get System directory, typically c:\windows\system32
     std::wstring systemDir(MAX_PATH + 1, '\0');
-    UINT nChars = GetSystemDirectoryW(&systemDir[0],
-                                static_cast<UINT>(systemDir.length()));
-    if (nChars == 0) return false; // failed to get system directory
+    UINT nChars = GetSystemDirectoryW(&systemDir[0], static_cast<UINT>(systemDir.length()));
+    if (nChars == 0) return false;  // failed to get system directory
     systemDir.resize(nChars);
 
     // Get process ID and create the command line
@@ -87,49 +83,41 @@ bool Command::launchDebugger()
 }
 #endif
 
-std::string version(bool testrun) {
-    return testrun ? STR(KTX_DEFAULT_VERSION) : STR(KTX_VERSION);
-}
+std::string version(bool testrun) { return testrun ? STR(KTX_DEFAULT_VERSION) : STR(KTX_VERSION); }
 
 // -------------------------------------------------------------------------------------------------
 
-InputStream::InputStream(const std::string& filepath, Reporter& report) :
-        filepath(filepath) {
+InputStream::InputStream(const std::string& filepath, Reporter& report) : filepath(filepath) {
     if (filepath == "-") {
-        #if defined(_WIN32)
+#if defined(_WIN32)
         // Set "stdin" to binary mode
         const auto setmodeResult = _setmode(_fileno(stdin), _O_BINARY);
-        if (setmodeResult == -1)
-            report.fatal(rc::IO_FAILURE, "Failed to set stdin mode to binary: {}.", setmodeResult);
-        // #else
-        // std::freopen(nullptr, "rb", stdin);
-        #endif
+        if (setmodeResult == -1) report.fatal(rc::IO_FAILURE, "Failed to set stdin mode to binary: {}.", setmodeResult);
+// #else
+// std::freopen(nullptr, "rb", stdin);
+#endif
 
         // Read everything from stdin into memory to enable random access
         stdinBuffer << std::cin.rdbuf();
         activeStream = &stdinBuffer;
     } else {
         file.open(DecodeUTF8Path(filepath).c_str(), std::ios::binary | std::ios::in);
-        if (!file)
-            report.fatal(rc::IO_FAILURE, "Could not open input file \"{}\": {}.", filepath, errnoMessage());
+        if (!file) report.fatal(rc::IO_FAILURE, "Could not open input file \"{}\": {}.", filepath, errnoMessage());
         activeStream = &file;
     }
 }
 
 // -------------------------------------------------------------------------------------------------
 
-OutputStream::OutputStream(const std::string& filepath, Reporter& report) :
-        filepath(filepath) {
-
+OutputStream::OutputStream(const std::string& filepath, Reporter& report) : filepath(filepath) {
     if (filepath == "-") {
-        #if defined(_WIN32)
+#if defined(_WIN32)
         // Set "stdout" to binary mode
         const auto setmodeResult = _setmode(_fileno(stdout), _O_BINARY);
-        if (setmodeResult == -1)
-            report.fatal(rc::IO_FAILURE, "Failed to set stdout mode to binary: {}.", setmodeResult);
-        // #else
-        // std::freopen(nullptr, "wb", stdout);
-        #endif
+        if (setmodeResult == -1) report.fatal(rc::IO_FAILURE, "Failed to set stdout mode to binary: {}.", setmodeResult);
+// #else
+// std::freopen(nullptr, "wb", stdout);
+#endif
         file = stdout;
     } else {
 #if defined(_WIN32)
@@ -137,8 +125,7 @@ OutputStream::OutputStream(const std::string& filepath, Reporter& report) :
 #else
         file = fopen(DecodeUTF8Path(filepath).c_str(), "wb");
 #endif
-        if (!file)
-            report.fatal(rc::IO_FAILURE, "Could not open output file \"{}\": {}.", filepath, errnoMessage());
+        if (!file) report.fatal(rc::IO_FAILURE, "Could not open output file \"{}\": {}.", filepath, errnoMessage());
     }
 
     // TODO: Investigate and resolve the portability issue with the C++ streams. The issue will most likely
@@ -162,8 +149,7 @@ OutputStream::OutputStream(const std::string& filepath, Reporter& report) :
 }
 
 OutputStream::~OutputStream() {
-    if (file != stdout)
-        fclose(file);
+    if (file != stdout) fclose(file);
 }
 
 void OutputStream::write(const char* data, std::size_t size, Reporter& report) {
@@ -175,8 +161,7 @@ void OutputStream::write(const char* data, std::size_t size, Reporter& report) {
 void OutputStream::writeKTX2(ktxTexture* texture, Reporter& report) {
     const auto ret = ktxTexture_WriteToStdioStream(texture, file);
     if (KTX_SUCCESS != ret) {
-        if (file != stdout)
-            std::filesystem::remove(DecodeUTF8Path(filepath).c_str());
+        if (file != stdout) std::filesystem::remove(DecodeUTF8Path(filepath).c_str());
         report.fatal(rc::IO_FAILURE, "Failed to write KTX file \"{}\": KTX error: {}.", filepath, ktxErrorString(ret));
     }
 
@@ -194,4 +179,4 @@ void OutputStream::writeKTX2(ktxTexture* texture, Reporter& report) {
 
 // -------------------------------------------------------------------------------------------------
 
-} // namespace ktx
+}  // namespace ktx

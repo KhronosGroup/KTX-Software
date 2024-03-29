@@ -16,7 +16,7 @@
 
 class argvector : public std::vector<std::string> {
   public:
-    argvector() { };
+    argvector(){};
     argvector(const std::string& argstring);
     argvector(int argc, const char* const* argv);
 };
@@ -25,7 +25,7 @@ class argparser {
   public:
     struct option {
         const char* name;
-        enum has_arg_t {no_argument, required_argument, optional_argument} has_arg;
+        enum has_arg_t { no_argument, required_argument, optional_argument } has_arg;
         int* flag;
         int val;
 
@@ -36,26 +36,22 @@ class argparser {
     unsigned int optind;
     argvector argv;
 
-    argparser(argvector& argv, unsigned int startindex = 0)
-        : optind(startindex), argv(argv) { }
+    argparser(argvector& argv, unsigned int startindex = 0) : optind(startindex), argv(argv) {}
 
-    argparser(int argc, const char* const* argv1)
-        : optind(1), argv(argc, argv1)  { }
+    argparser(int argc, const char* const* argv1) : optind(1), argv(argc, argv1) {}
 
-    int getopt(std::string* shortopts, const struct option* longopts,
-               int* longindex = nullptr);
+    int getopt(std::string* shortopts, const struct option* longopts, int* longindex = nullptr);
 };
 
 //================== Helper for apps' processArgs ========================
 
 // skips the number of characters equal to the length of given text
 // does not check whether the skipped characters are the same as it
-struct skip
-{
+struct skip {
     const char* text;
     skip(const char* text) : text(text) {}
 };
 
-std::istream& operator >> (std::istream& stream, const skip& x);
+std::istream& operator>>(std::istream& stream, const skip& x);
 
 #endif /* ARGPARSER_H */

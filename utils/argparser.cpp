@@ -28,8 +28,7 @@ using namespace std;
 /*
  * Construct from a string of arguments.
  */
-argvector::argvector(const string& sArgs)
-{
+argvector::argvector(const string& sArgs) {
     const string sep(" \t\n\r\v\f");
     size_t pos;
 
@@ -47,8 +46,7 @@ argvector::argvector(const string& sArgs)
 /*
  * Construct from an array of C strings
  */
-argvector::argvector(int argc, const char* const* argv)
-{
+argvector::argvector(int argc, const char* const* argv) {
     for (int i = 0; i < argc; i++) {
         push_back(argv[i]);
     }
@@ -57,22 +55,17 @@ argvector::argvector(int argc, const char* const* argv)
 /*
  * Functions the same as getopt_long. See `man 3 getopt_long`.
  */
-int
-argparser::getopt(string* shortopts, const struct option* longopts,
-                  int* /*longindex*/)
-{
-    if (optind == argv.size())
-        return -1;
+int argparser::getopt(string* shortopts, const struct option* longopts, int* /*longindex*/) {
+    if (optind == argv.size()) return -1;
 
     string arg;
     arg = argv[optind];
-    if (arg[0] != '-' || (arg[0] == '-' && arg.size() == 1))
-        return -1;
+    if (arg[0] != '-' || (arg[0] == '-' && arg.size() == 1)) return -1;
     optind++;
 
     int retval = '?';
     if (arg.compare(0, 2, "--") == 0) {
-        if (arg.size() == 2) return -1; // " -- " separates options and files
+        if (arg.size() == 2) return -1;  // " -- " separates options and files
         const struct option* opt = longopts;
         while (opt->name != nullptr) {
             if (arg.compare(2, string::npos, opt->name) == 0) {
@@ -81,8 +74,7 @@ argparser::getopt(string* shortopts, const struct option* longopts,
                     if (optind >= argv.size() || (optarg = argv[optind++])[0] == '-') {
                         optarg.clear();
                         optind--;
-                        if (opt->has_arg == option::required_argument)
-                            retval = ':';
+                        if (opt->has_arg == option::required_argument) retval = ':';
                     }
                 }
                 if (opt->flag != nullptr) {
@@ -97,13 +89,12 @@ argparser::getopt(string* shortopts, const struct option* longopts,
         size_t pos = shortopts->find(arg.substr(1, 1));
         if (pos != string::npos) {
             retval = (*shortopts)[pos];
-            if (pos < shortopts->length()
-                && ((*shortopts)[++pos] == ':' || (*shortopts)[pos] == ';')) {
+            if (pos < shortopts->length() && ((*shortopts)[++pos] == ':' || (*shortopts)[pos] == ';')) {
                 if (optind >= argv.size() || (optarg = argv[optind++])[0] == '-') {
                     optarg.clear();
                     optind--;
-                    if ((*shortopts)[pos] == ':') // required argument
-                    retval = ':';
+                    if ((*shortopts)[pos] == ':')  // required argument
+                        retval = ':';
                 }
             }
         }
@@ -114,17 +105,14 @@ argparser::getopt(string* shortopts, const struct option* longopts,
 
 //================== Helper for apps' processArgs ========================
 
-std::istream& operator >> (std::istream& stream, const skip& x)
-{
+std::istream& operator>>(std::istream& stream, const skip& x) {
     std::ios_base::fmtflags f = stream.flags();
     stream >> std::noskipws;
 
     char c;
     const char* text = x.text;
-    while (stream && *text++)
-        stream >> c;
+    while (stream && *text++) stream >> c;
 
     stream.flags(f);
     return stream;
 }
-

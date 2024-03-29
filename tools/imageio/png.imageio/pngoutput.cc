@@ -28,24 +28,14 @@ class pngOutput final : public ImageOutput {
   public:
     pngOutput() : ImageOutput("png") {}
     virtual ~pngOutput() { close(); }
-    virtual void close() override { }
-    virtual void open(const std::string& name, const ImageSpec& newspec,
-                      OpenMode mode) override;
+    virtual void close() override {}
+    virtual void open(const std::string& name, const ImageSpec& newspec, OpenMode mode) override;
 
   protected:
 };
 
-ImageOutput*
-pngOutputCreate()
-{
-    return new pngOutput;
-}
+ImageOutput* pngOutputCreate() { return new pngOutput; }
 
-const char* pngOutputExtensions[] = { "png", nullptr };
+const char* pngOutputExtensions[] = {"png", nullptr};
 
-void
-pngOutput::open(const std::string& /*name*/, const ImageSpec& /*newspec*/,
-                OpenMode /*mode*/)
-{
-
-}
+void pngOutput::open(const std::string& /*name*/, const ImageSpec& /*newspec*/, OpenMode /*mode*/) {}

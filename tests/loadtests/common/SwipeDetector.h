@@ -13,16 +13,9 @@
 
 class SwipeDetector {
   public:
-    enum result {
-        eEventNotConsumed,
-        eEventConsumed,
-        eSwipeUp,
-        eSwipeDown,
-        eSwipeLeft,
-        eSwipeRight
-    };
+    enum result { eEventNotConsumed, eEventConsumed, eSwipeUp, eSwipeDown, eSwipeLeft, eSwipeRight };
 
-    SwipeDetector() : mgestureFirstSaved(false), mgestureSwipe(false) { }
+    SwipeDetector() : mgestureFirstSaved(false), mgestureSwipe(false) {}
 
     result doEvent(SDL_Event* event);
 

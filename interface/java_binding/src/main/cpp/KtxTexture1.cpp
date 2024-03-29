@@ -7,29 +7,20 @@
 #include <iostream>
 #include "libktx-jni.h"
 
-extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture1_getGlFormat(JNIEnv *env,
-                                                                                jobject thiz)
-{
+extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture1_getGlFormat(JNIEnv *env, jobject thiz) {
     return get_ktx1_texture(env, thiz)->glFormat;
 }
 
-extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture1_getGlInternalformat(JNIEnv *env,
-                                                                                jobject thiz)
-{
+extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture1_getGlInternalformat(JNIEnv *env, jobject thiz) {
     return get_ktx1_texture(env, thiz)->glInternalformat;
 }
 
-extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture1_getGlBaseInternalformat(JNIEnv *env,
-                                                                                jobject thiz)
-{
+extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture1_getGlBaseInternalformat(JNIEnv *env, jobject thiz) {
     return get_ktx1_texture(env, thiz)->glBaseInternalformat;
 }
 
-extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KtxTexture1_create(JNIEnv *env,
-                                                                                jobject,
-                                                                                jobject java_create_info,
-                                                                                jint storageAllocation)
-{
+extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KtxTexture1_create(JNIEnv *env, jobject, jobject java_create_info,
+                                                                             jint storageAllocation) {
     ktxTextureCreateInfo info;
     copy_ktx_texture_create_info(env, java_create_info, info);
 
@@ -39,10 +30,9 @@ extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KtxTexture1_create(JNI
     ktxTextureCreateStorageEnum storage_alloc = static_cast<ktxTextureCreateStorageEnum>(storageAllocation);
     result = ktxTexture1_Create(&info, storage_alloc, &instance);
 
-    assert (instance != NULL);
+    assert(instance != NULL);
 
-    if (result != KTX_SUCCESS)
-    {
+    if (result != KTX_SUCCESS) {
         std::cout << "Failure to create Ktx1Texture, error " << result << std::endl;
         return NULL;
     }
@@ -50,11 +40,8 @@ extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KtxTexture1_create(JNI
     return make_ktx1_wrapper(env, instance);
 }
 
-extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KtxTexture1_createFromNamedFile(JNIEnv *env,
-                                                                                            jobject,
-                                                                                            jstring filename,
-                                                                                            jint createFlags)
-{
+extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KtxTexture1_createFromNamedFile(JNIEnv *env, jobject, jstring filename,
+                                                                                          jint createFlags) {
     const char *filenameArray = env->GetStringUTFChars(filename, NULL);
     ktxTexture1 *instance = NULL;
 
@@ -65,8 +52,7 @@ extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KtxTexture1_createFrom
         return NULL;
     }
 
-    assert (instance != NULL);
+    assert(instance != NULL);
 
     return make_ktx1_wrapper(env, instance);
 }
-

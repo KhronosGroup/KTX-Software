@@ -20,21 +20,16 @@ using namespace glm;
 
 class TexturedCube : public VulkanLoadTestSample {
   public:
-    TexturedCube(VulkanContext& vkctx,
-                 uint32_t width, uint32_t height,
-                 const char* const szArgs,
-                 const std::string sBasePath);
+    TexturedCube(VulkanContext& vkctx, uint32_t width, uint32_t height, const char* const szArgs, const std::string sBasePath);
     virtual ~TexturedCube();
 
     virtual void resize(uint32_t width, uint32_t height);
     virtual void run(uint32_t msTicks);
 
-    //virtual void getOverlayText(VulkanTextOverlay *textOverlay);
+    // virtual void getOverlayText(VulkanTextOverlay *textOverlay);
 
-    static VulkanLoadTestSample*
-    create(VulkanContext& vkctx,
-           uint32_t width, uint32_t height,
-           const char* const szArgs, const std::string sBasePath);
+    static VulkanLoadTestSample* create(VulkanContext& vkctx, uint32_t width, uint32_t height, const char* const szArgs,
+                                        const std::string sBasePath);
 
   protected:
     void buildCommandBuffer(const int bufferIndex);

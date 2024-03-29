@@ -14,12 +14,7 @@
 
 namespace ktx {
 
-enum class EncodeCodec {
-    NONE = 0,
-    BasisLZ,
-    UASTC,
-    INVALID = 0x7FFFFFFF
-};
+enum class EncodeCodec { NONE = 0, BasisLZ, UASTC, INVALID = 0x7FFFFFFF };
 
 /**
 //! [command options_codec]
@@ -219,21 +214,15 @@ struct OptionsCodec {
         ClampedOption<float> uastcRDOMaxSmoothBlockErrorScale;
         ClampedOption<float> uastcRDOMaxSmoothBlockStdDev;
 
-        BasisOptions() :
-            threadCount(ktxBasisParams::threadCount, 1, 10000),
-            qualityLevel(ktxBasisParams::qualityLevel, 1, 255),
-            maxEndpoints(ktxBasisParams::maxEndpoints, 1, 16128),
-            maxSelectors(ktxBasisParams::maxSelectors, 1, 16128),
-            uastcRDODictSize(ktxBasisParams::uastcRDODictSize, 256, 65536),
-            uastcRDOQualityScalar(ktxBasisParams::uastcRDOQualityScalar,
-                                    0.001f, 50.0f),
-            uastcRDOMaxSmoothBlockErrorScale(
-                            ktxBasisParams::uastcRDOMaxSmoothBlockErrorScale,
-                            1.0f, 300.0f),
-            uastcRDOMaxSmoothBlockStdDev(
-                            ktxBasisParams::uastcRDOMaxSmoothBlockStdDev,
-                            0.01f, 65536.0f)
-        {
+        BasisOptions()
+            : threadCount(ktxBasisParams::threadCount, 1, 10000),
+              qualityLevel(ktxBasisParams::qualityLevel, 1, 255),
+              maxEndpoints(ktxBasisParams::maxEndpoints, 1, 16128),
+              maxSelectors(ktxBasisParams::maxSelectors, 1, 16128),
+              uastcRDODictSize(ktxBasisParams::uastcRDODictSize, 256, 65536),
+              uastcRDOQualityScalar(ktxBasisParams::uastcRDOQualityScalar, 0.001f, 50.0f),
+              uastcRDOMaxSmoothBlockErrorScale(ktxBasisParams::uastcRDOMaxSmoothBlockErrorScale, 1.0f, 300.0f),
+              uastcRDOMaxSmoothBlockStdDev(ktxBasisParams::uastcRDOMaxSmoothBlockStdDev, 0.01f, 65536.0f) {
             uint32_t tc = std::thread::hardware_concurrency();
             if (tc == 0) tc = 1;
             threadCount.max = tc;
@@ -252,7 +241,7 @@ struct OptionsCodec {
             preSwizzle = false;
             noEndpointRDO = false;
             noSelectorRDO = false;
-            uastc = false; // Default to ETC1S.
+            uastc = false;  // Default to ETC1S.
             uastcRDO = false;
             uastcFlags = KTX_PACK_UASTC_LEVEL_DEFAULT;
             uastcRDODictSize.clear();
@@ -260,7 +249,7 @@ struct OptionsCodec {
             uastcRDODontFavorSimplerModes = false;
             uastcRDONoMultithreading = false;
             noSSE = false;
-            verbose = false; // Default to quiet operation.
+            verbose = false;  // Default to quiet operation.
             for (int i = 0; i < 4; i++) inputSwizzle[i] = 0;
         }
     };
@@ -271,78 +260,89 @@ struct OptionsCodec {
     BasisOptions basisOpts;
 
     void init(cxxopts::Options& opts) {
-        opts.add_options("Encode BasisLZ")
-            (kCLevel, "BasisLZ compression level, an encoding speed vs. quality level tradeoff. "
-                "Range is [0,5], default is 1. Higher values are slower but give higher quality.",
-                cxxopts::value<uint32_t>(), "<level>")
-            (kQLevel, "BasisLZ quality level. Range is [1,255]. Lower gives better compression/lower "
-                "quality/faster. Higher gives less compression/higher quality/slower. --qlevel "
-                "automatically determines values for --max-endpoints, --max-selectors, "
-                "--endpoint-rdo-threshold and --selector-rdo-threshold for the target quality level. "
-                "Setting these options overrides the values determined by --qlevel which defaults to "
-                "128 if neither it nor --max-endpoints and --max-selectors have been set.",
-                cxxopts::value<uint32_t>(), "<level>")
-            (kMaxEndpoints, "Manually set the maximum number of color endpoint clusters. Range "
-                "is [1,16128]. Default is 0, unset.",
-                cxxopts::value<uint32_t>(), "<arg>")
-            (kEndpointRdoThreshold, "Set endpoint RDO quality threshold. The default is 1.25. Lower "
-                "is higher quality but less quality per output bit (try [1.0,3.0]). This will override "
-                "the value chosen by --qlevel.", cxxopts::value<float>(), "<arg>")
-            (kMaxSelectors, "Manually set the maximum number of color selector clusters from [1,16128]. "
-                "Default is 0, unset.", cxxopts::value<uint32_t>(), "<arg>")
-            (kSelectorRdoThreshold, "Set selector RDO quality threshold. The default is 1.25. Lower "
-                "is higher quality but less quality per output bit (try [1.0,3.0]). This will override "
-                "the value chosen by --qlevel.", cxxopts::value<float>(), "<arg>")
-            (kNoEndpointRdo, "Disable endpoint rate distortion optimizations. Slightly faster, "
-                "less noisy output, but lower quality per output bit. Default is to do endpoint RDO.")
-            (kNoSelectorRdo, "Disable selector rate distortion optimizations. Slightly faster, "
-                "less noisy output, but lower quality per output bit. Default is to do selector RDO.");
-        opts.add_options("Encode UASTC")
-            (kUastcQuality, "UASTC compression level, an encoding speed vs. quality level tradeoff. "
-                "Range is [0,4], default is 1. Higher values are slower but give higher quality.",
-                cxxopts::value<uint32_t>(), "<level>")
-            (kUastcRdo, "Enable UASTC RDO post-processing.")
-            (kUastcRdoL, "Set UASTC RDO quality scalar to the specified value. Lower values yield "
-                "higher quality/larger supercompressed files, higher values yield lower quality/smaller "
-                "supercompressed files. A good range to try is [.25,10]. For normal maps a good range is "
-                "[.25,.75]. The full range is [.001,10.0]. Default is 1.0.",
-                cxxopts::value<float>(), "<lambda>")
-            (kUastcRdoD, "Set UASTC RDO dictionary size in bytes. Default is 4096. Lower values=faster, "
-                "but give less compression. Range is [64,65536].",
-                cxxopts::value<uint32_t>(), "<dictsize>")
-            (kUastcRdoB, "Set UASTC RDO max smooth block error scale. Range is [1.0,300.0]. Default "
-                "is 10.0, 1.0 is disabled. Larger values suppress more artifacts (and allocate more bits) "
-                "on smooth blocks.", cxxopts::value<float>(), "<scale>")
-            (kUastcRdoS, "Set UASTC RDO max smooth block standard deviation. Range is [.01,65536.0]. "
-                "Default is 18.0. Larger values expand the range of blocks considered smooth.",
-                cxxopts::value<float>(), "<deviation>")
-            (kUastcRdoF, "Do not favor simpler UASTC modes in RDO mode.")
-            (kUastcRdoM, "Disable RDO multithreading (slightly higher compression, deterministic).");
-        opts.add_options("Encode common")
-            (kNormalMode, "Optimizes for encoding textures with normal data. If the input texture has "
-                "three or four linear components it is assumed to be a three component linear normal "
-                "map storing unit length normals as (R=X, G=Y, B=Z). A fourth component will be ignored. "
-                "The map will be converted to a two component X+Y normal map stored as (RGB=X, A=Y) "
-                "prior to encoding. If unsure that your normals are unit length, use --normalize. "
-                "If the input has 2 linear components it is assumed to be an X+Y map of unit normals.\n"
-                "The Z component can be recovered programmatically in shader code by using the equations:\n"
-                "    nml.xy = texture(...).ga;              // Load in [0,1]\n"
-                "    nml.xy = nml.xy * 2.0 - 1.0;           // Unpack to [-1,1]\n"
-                "    nml.z = sqrt(1 - dot(nml.xy, nml.xy)); // Compute Z\n"
-                "ETC1S / BasisLZ encoding, RDO is disabled (no selector RDO, no endpoint RDO) to provide better quality.")
-            (kThreads, "Sets the number of threads to use during encoding. By default, encoding "
-                "will use the number of threads reported by thread::hardware_concurrency or 1 if "
-                "value returned is 0.", cxxopts::value<uint32_t>(), "<count>")
-            (kNoSse, "Forbid use of the SSE instruction set. Ignored if CPU does "
-               "not support SSE. SSE can only be disabled on the basis-lz and "
-               "uastc compressors.");
+        opts.add_options("Encode BasisLZ")(kCLevel,
+                                           "BasisLZ compression level, an encoding speed vs. quality level tradeoff. "
+                                           "Range is [0,5], default is 1. Higher values are slower but give higher quality.",
+                                           cxxopts::value<uint32_t>(), "<level>")(
+            kQLevel,
+            "BasisLZ quality level. Range is [1,255]. Lower gives better compression/lower "
+            "quality/faster. Higher gives less compression/higher quality/slower. --qlevel "
+            "automatically determines values for --max-endpoints, --max-selectors, "
+            "--endpoint-rdo-threshold and --selector-rdo-threshold for the target quality level. "
+            "Setting these options overrides the values determined by --qlevel which defaults to "
+            "128 if neither it nor --max-endpoints and --max-selectors have been set.",
+            cxxopts::value<uint32_t>(), "<level>")(kMaxEndpoints,
+                                                   "Manually set the maximum number of color endpoint clusters. Range "
+                                                   "is [1,16128]. Default is 0, unset.",
+                                                   cxxopts::value<uint32_t>(), "<arg>")(
+            kEndpointRdoThreshold,
+            "Set endpoint RDO quality threshold. The default is 1.25. Lower "
+            "is higher quality but less quality per output bit (try [1.0,3.0]). This will override "
+            "the value chosen by --qlevel.",
+            cxxopts::value<float>(), "<arg>")(kMaxSelectors,
+                                              "Manually set the maximum number of color selector clusters from [1,16128]. "
+                                              "Default is 0, unset.",
+                                              cxxopts::value<uint32_t>(), "<arg>")(
+            kSelectorRdoThreshold,
+            "Set selector RDO quality threshold. The default is 1.25. Lower "
+            "is higher quality but less quality per output bit (try [1.0,3.0]). This will override "
+            "the value chosen by --qlevel.",
+            cxxopts::value<float>(),
+            "<arg>")(kNoEndpointRdo,
+                     "Disable endpoint rate distortion optimizations. Slightly faster, "
+                     "less noisy output, but lower quality per output bit. Default is to do endpoint RDO.")(
+            kNoSelectorRdo,
+            "Disable selector rate distortion optimizations. Slightly faster, "
+            "less noisy output, but lower quality per output bit. Default is to do selector RDO.");
+        opts.add_options("Encode UASTC")(kUastcQuality,
+                                         "UASTC compression level, an encoding speed vs. quality level tradeoff. "
+                                         "Range is [0,4], default is 1. Higher values are slower but give higher quality.",
+                                         cxxopts::value<uint32_t>(), "<level>")(kUastcRdo, "Enable UASTC RDO post-processing.")(
+            kUastcRdoL,
+            "Set UASTC RDO quality scalar to the specified value. Lower values yield "
+            "higher quality/larger supercompressed files, higher values yield lower quality/smaller "
+            "supercompressed files. A good range to try is [.25,10]. For normal maps a good range is "
+            "[.25,.75]. The full range is [.001,10.0]. Default is 1.0.",
+            cxxopts::value<float>(), "<lambda>")(kUastcRdoD,
+                                                 "Set UASTC RDO dictionary size in bytes. Default is 4096. Lower values=faster, "
+                                                 "but give less compression. Range is [64,65536].",
+                                                 cxxopts::value<uint32_t>(), "<dictsize>")(
+            kUastcRdoB,
+            "Set UASTC RDO max smooth block error scale. Range is [1.0,300.0]. Default "
+            "is 10.0, 1.0 is disabled. Larger values suppress more artifacts (and allocate more bits) "
+            "on smooth blocks.",
+            cxxopts::value<float>(), "<scale>")(kUastcRdoS,
+                                                "Set UASTC RDO max smooth block standard deviation. Range is [.01,65536.0]. "
+                                                "Default is 18.0. Larger values expand the range of blocks considered smooth.",
+                                                cxxopts::value<float>(),
+                                                "<deviation>")(kUastcRdoF, "Do not favor simpler UASTC modes in RDO mode.")(
+            kUastcRdoM, "Disable RDO multithreading (slightly higher compression, deterministic).");
+        opts.add_options("Encode common")(
+            kNormalMode,
+            "Optimizes for encoding textures with normal data. If the input texture has "
+            "three or four linear components it is assumed to be a three component linear normal "
+            "map storing unit length normals as (R=X, G=Y, B=Z). A fourth component will be ignored. "
+            "The map will be converted to a two component X+Y normal map stored as (RGB=X, A=Y) "
+            "prior to encoding. If unsure that your normals are unit length, use --normalize. "
+            "If the input has 2 linear components it is assumed to be an X+Y map of unit normals.\n"
+            "The Z component can be recovered programmatically in shader code by using the equations:\n"
+            "    nml.xy = texture(...).ga;              // Load in [0,1]\n"
+            "    nml.xy = nml.xy * 2.0 - 1.0;           // Unpack to [-1,1]\n"
+            "    nml.z = sqrt(1 - dot(nml.xy, nml.xy)); // Compute Z\n"
+            "ETC1S / BasisLZ encoding, RDO is disabled (no selector RDO, no endpoint RDO) to provide better quality.")(
+            kThreads,
+            "Sets the number of threads to use during encoding. By default, encoding "
+            "will use the number of threads reported by thread::hardware_concurrency or 1 if "
+            "value returned is 0.",
+            cxxopts::value<uint32_t>(), "<count>")(kNoSse,
+                                                   "Forbid use of the SSE instruction set. Ignored if CPU does "
+                                                   "not support SSE. SSE can only be disabled on the basis-lz and "
+                                                   "uastc compressors.");
     }
 
     EncodeCodec validateEncodeCodec(const cxxopts::OptionValue& codecOpt) const {
-        static const std::unordered_map<std::string, EncodeCodec> codecs = {
-            { "basis-lz", EncodeCodec::BasisLZ },
-            { "uastc", EncodeCodec::UASTC }
-        };
+        static const std::unordered_map<std::string, EncodeCodec> codecs = {{"basis-lz", EncodeCodec::BasisLZ},
+                                                                            {"uastc", EncodeCodec::UASTC}};
         if (codecOpt.count()) {
             auto it = codecs.find(to_lower_copy(codecOpt.as<std::string>()));
             if (it != codecs.end()) {
@@ -355,9 +355,7 @@ struct OptionsCodec {
         }
     }
 
-    void captureCodecOption(const char* name) {
-        codecOptions += fmt::format(" --{}", name);
-    }
+    void captureCodecOption(const char* name) { codecOptions += fmt::format(" --{}", name); }
 
     template <typename T>
     T captureCodecOption(cxxopts::ParseResult& args, const char* name) {
@@ -368,41 +366,38 @@ struct OptionsCodec {
 
     void validateCommonEncodeArg(Reporter& report, const char* name) {
         if (codec == EncodeCodec::NONE)
-            report.fatal(rc::INVALID_ARGUMENTS,
-                "Invalid use of argument --{} that only applies to encoding.", name);
+            report.fatal(rc::INVALID_ARGUMENTS, "Invalid use of argument --{} that only applies to encoding.", name);
     }
 
     void validateBasisLZArg(Reporter& report, const char* name) {
         if (codec != EncodeCodec::BasisLZ)
-            report.fatal(rc::INVALID_ARGUMENTS,
-                "Invalid use of argument --{} that only applies when the used codec is BasisLZ.", name);
+            report.fatal(rc::INVALID_ARGUMENTS, "Invalid use of argument --{} that only applies when the used codec is BasisLZ.",
+                         name);
     }
 
     void validateBasisLZEndpointRDOArg(Reporter& report, const char* name) {
         validateBasisLZArg(report, name);
         if (basisOpts.noEndpointRDO)
-            report.fatal(rc::INVALID_ARGUMENTS,
-                "Invalid use of argument --{} when endpoint RDO is disabled.", name);
+            report.fatal(rc::INVALID_ARGUMENTS, "Invalid use of argument --{} when endpoint RDO is disabled.", name);
     }
 
     void validateBasisLZSelectorRDOArg(Reporter& report, const char* name) {
         validateBasisLZArg(report, name);
         if (basisOpts.noSelectorRDO)
-            report.fatal(rc::INVALID_ARGUMENTS,
-                "Invalid use of argument --{} when selector RDO is disabled.", name);
+            report.fatal(rc::INVALID_ARGUMENTS, "Invalid use of argument --{} when selector RDO is disabled.", name);
     }
 
     void validateUASTCArg(Reporter& report, const char* name) {
         if (codec != EncodeCodec::UASTC)
-            report.fatal(rc::INVALID_ARGUMENTS,
-                "Invalid use of argument --{} that only applies when the used codec is UASTC.", name);
+            report.fatal(rc::INVALID_ARGUMENTS, "Invalid use of argument --{} that only applies when the used codec is UASTC.",
+                         name);
     }
 
     void validateUASTCRDOArg(Reporter& report, const char* name) {
         validateUASTCArg(report, name);
         if (!basisOpts.uastcRDO)
-            report.fatal(rc::INVALID_ARGUMENTS,
-                "Invalid use of argument --{} when UASTC RDO post-processing was not enabled.", name);
+            report.fatal(rc::INVALID_ARGUMENTS, "Invalid use of argument --{} when UASTC RDO post-processing was not enabled.",
+                         name);
     }
 
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
@@ -450,7 +445,8 @@ struct OptionsCodec {
 
         if (args[kCLevel].count()) {
             validateBasisLZArg(report, kCLevel);
-            basisOpts.compressionLevel = captureCodecOption<uint32_t>(args, kCLevel);;
+            basisOpts.compressionLevel = captureCodecOption<uint32_t>(args, kCLevel);
+            ;
         }
 
         if (args[kQLevel].count()) {
@@ -557,4 +553,4 @@ struct OptionsCodec {
     }
 };
 
-} // namespace ktx
+}  // namespace ktx

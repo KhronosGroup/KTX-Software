@@ -2,7 +2,6 @@
 // Copyright 2022-2023 RasterGrid Kft.
 // SPDX-License-Identifier: Apache-2.0
 
-
 #include "command.h"
 #include "platform_utils.h"
 #include "stdafx.h"
@@ -85,13 +84,14 @@ Unified CLI frontend for the KTX-Software library.
 */
 
 class Tools : public Command {
-    bool testrun = false; /// Indicates test run. If enabled ktx tools will only include the default version information in any output
+    bool testrun =
+        false;  /// Indicates test run. If enabled ktx tools will only include the default version information in any output
 
-public:
+  public:
     using Command::Command;
-    virtual ~Tools() {};
+    virtual ~Tools(){};
 
-public:
+  public:
     virtual int main(int argc, char* argv[]) override;
     void printUsage(std::ostream& os, const cxxopts::Options& options);
 };
@@ -102,10 +102,9 @@ int Tools::main(int argc, char* argv[]) {
     cxxopts::Options options("ktx", "");
     options.custom_help("[--version] [--help] <command> <command-args>");
     options.set_width(CONSOLE_USAGE_WIDTH);
-    options.add_options()
-            ("h,help", "Print this usage message and exit")
-            ("v,version", "Print the version number of this program and exit")
-            ("testrun", "Indicates test run. If enabled the tool will produce deterministic output whenever possible");
+    options.add_options()("h,help", "Print this usage message and exit")("v,version",
+                                                                         "Print the version number of this program and exit")(
+        "testrun", "Indicates test run. If enabled the tool will produce deterministic output whenever possible");
 
     options.allow_unrecognised_options();
 
@@ -121,7 +120,8 @@ int Tools::main(int argc, char* argv[]) {
     testrun = args["testrun"].as<bool>();
 
     if (args.count("help")) {
-        fmt::print(std::cout, "{}: Unified CLI frontend for the KTX-Software library with sub-commands for specific operations.\n", options.program());
+        fmt::print(std::cout, "{}: Unified CLI frontend for the KTX-Software library with sub-commands for specific operations.\n",
+                   options.program());
         printUsage(std::cout, options);
         return +rc::SUCCESS;
     }
@@ -156,11 +156,12 @@ void Tools::printUsage(std::ostream& os, const cxxopts::Options& options) {
     fmt::print(os, "  compare    Compare two KTX2 files\n");
     fmt::print(os, "  help       Display help information about the ktx tool\n");
     fmt::print(os, "\n");
-    fmt::print(os, "For detailed usage and description of each subcommand use 'ktx help <command>'\n"
-                   "or 'ktx <command> --help'\n");
+    fmt::print(os,
+               "For detailed usage and description of each subcommand use 'ktx help <command>'\n"
+               "or 'ktx <command> --help'\n");
 }
 
-} // namespace ktx ---------------------------------------------------------------------------------
+}  // namespace ktx
 
 KTX_COMMAND_BUILTIN(ktxCreate)
 KTX_COMMAND_BUILTIN(ktxExtract)
@@ -172,15 +173,8 @@ KTX_COMMAND_BUILTIN(ktxCompare)
 KTX_COMMAND_BUILTIN(ktxHelp)
 
 std::unordered_map<std::string, ktx::pfnBuiltinCommand> builtinCommands = {
-    { "create",     ktxCreate },
-    { "extract",    ktxExtract },
-    { "encode",     ktxEncode },
-    { "transcode",  ktxTranscode },
-    { "info",       ktxInfo },
-    { "validate",   ktxValidate },
-    { "compare",    ktxCompare },
-    { "help",       ktxHelp }
-};
+    {"create", ktxCreate}, {"extract", ktxExtract},   {"encode", ktxEncode},   {"transcode", ktxTranscode},
+    {"info", ktxInfo},     {"validate", ktxValidate}, {"compare", ktxCompare}, {"help", ktxHelp}};
 
 int main(int argc, char* argv[]) {
     // If -NSDocumentRevisionsDebugMode YES ever causes any problem it should be discarded here

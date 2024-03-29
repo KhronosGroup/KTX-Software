@@ -20,11 +20,10 @@
 #include <fmt/ostream.h>
 #include <fmt/printf.h>
 
-
 template <typename T>
 [[nodiscard]] constexpr inline T ceil_div(const T x, const T y) noexcept {
     assert(y != 0);
-	return (x + y - 1) / y;
+    return (x + y - 1) / y;
 }
 
 // C++20 - std::bit_cast
@@ -41,77 +40,148 @@ template <class To, class From>
 
 [[nodiscard]] constexpr inline bool isFormatAstc(VkFormat format) noexcept {
     switch (format) {
-    case VK_FORMAT_ASTC_4x4_UNORM_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_4x4_SRGB_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_5x4_UNORM_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_5x4_SRGB_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_5x5_UNORM_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_5x5_SRGB_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_6x5_UNORM_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_6x5_SRGB_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_6x6_UNORM_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_6x6_SRGB_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_8x5_UNORM_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_8x5_SRGB_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_8x6_UNORM_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_8x6_SRGB_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_8x8_UNORM_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_8x8_SRGB_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_10x5_UNORM_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_10x5_SRGB_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_10x6_UNORM_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_10x6_SRGB_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_10x8_UNORM_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_10x8_SRGB_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_10x10_UNORM_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_10x10_SRGB_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_12x10_UNORM_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_12x10_SRGB_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_12x12_UNORM_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_12x12_SRGB_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_3x3x3_UNORM_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_3x3x3_SRGB_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_3x3x3_SFLOAT_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_4x3x3_UNORM_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_4x3x3_SRGB_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_4x3x3_SFLOAT_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_4x4x3_UNORM_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_4x4x3_SRGB_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_4x4x3_SFLOAT_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_4x4x4_UNORM_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_4x4x4_SRGB_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_4x4x4_SFLOAT_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_5x4x4_UNORM_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_5x4x4_SRGB_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_5x4x4_SFLOAT_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_5x5x4_UNORM_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_5x5x4_SRGB_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_5x5x4_SFLOAT_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_5x5x5_UNORM_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_5x5x5_SRGB_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_5x5x5_SFLOAT_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_6x5x5_UNORM_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_6x5x5_SRGB_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_6x5x5_SFLOAT_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_6x6x5_UNORM_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_6x6x5_SRGB_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_6x6x5_SFLOAT_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4_UNORM_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4_SRGB_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_5x4_UNORM_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_5x4_SRGB_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5_UNORM_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5_SRGB_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_6x5_UNORM_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_6x5_SRGB_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6_UNORM_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6_SRGB_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_8x5_UNORM_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_8x5_SRGB_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_8x6_UNORM_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_8x6_SRGB_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_8x8_UNORM_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_8x8_SRGB_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_10x5_UNORM_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_10x5_SRGB_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_10x6_UNORM_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_10x6_SRGB_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_10x8_UNORM_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_10x8_SRGB_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_10x10_UNORM_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_10x10_SRGB_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_12x10_UNORM_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_12x10_SRGB_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_12x12_UNORM_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_12x12_SRGB_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_3x3x3_UNORM_BLOCK_EXT:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_3x3x3_SRGB_BLOCK_EXT:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_3x3x3_SFLOAT_BLOCK_EXT:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_4x3x3_UNORM_BLOCK_EXT:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_4x3x3_SRGB_BLOCK_EXT:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_4x3x3_SFLOAT_BLOCK_EXT:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4x3_UNORM_BLOCK_EXT:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4x3_SRGB_BLOCK_EXT:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4x3_SFLOAT_BLOCK_EXT:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4x4_UNORM_BLOCK_EXT:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4x4_SRGB_BLOCK_EXT:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4x4_SFLOAT_BLOCK_EXT:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_5x4x4_UNORM_BLOCK_EXT:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_5x4x4_SRGB_BLOCK_EXT:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_5x4x4_SFLOAT_BLOCK_EXT:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5x4_UNORM_BLOCK_EXT:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5x4_SRGB_BLOCK_EXT:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5x4_SFLOAT_BLOCK_EXT:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5x5_UNORM_BLOCK_EXT:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5x5_SRGB_BLOCK_EXT:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5x5_SFLOAT_BLOCK_EXT:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_6x5x5_UNORM_BLOCK_EXT:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_6x5x5_SRGB_BLOCK_EXT:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_6x5x5_SFLOAT_BLOCK_EXT:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6x5_UNORM_BLOCK_EXT:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6x5_SRGB_BLOCK_EXT:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6x5_SFLOAT_BLOCK_EXT:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT:
+        [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT:
+        [[fallthrough]];
     case VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT:
         return true;
     default:
@@ -131,9 +201,7 @@ void error(int return_code, Args&&... args) {
     std::exit(return_code);
 }
 
-[[nodiscard]] inline std::string errnoMessage() {
-    return std::make_error_code(static_cast<std::errc>(errno)).message();
-}
+[[nodiscard]] inline std::string errnoMessage() { return std::make_error_code(static_cast<std::errc>(errno)).message(); }
 
 struct Texture {
     std::string filepath;
@@ -153,49 +221,38 @@ struct Texture {
     ktxTexture2* handle = nullptr;
     bool transcoded = false;
 
-public:
-    explicit Texture(std::string filepath) :
-        filepath(filepath) {
+  public:
+    explicit Texture(std::string filepath) : filepath(filepath) {
         std::memset(&header, 0, sizeof(header));
 
         loadFile();
         loadKTX();
         loadMetadata();
     }
-    ~Texture() {
-        std::free(handle);
-    }
+    ~Texture() { std::free(handle); }
     void loadFile();
     void loadKTX();
     void loadMetadata();
-    inline ktxTexture2* operator->() const {
-        return handle;
-    }
+    inline ktxTexture2* operator->() const { return handle; }
 };
 
 void Texture::loadFile() {
     auto file = std::ifstream(DecodeUTF8Path(filepath).c_str(), std::ios::binary | std::ios::in | std::ios::ate);
-    if (!file)
-        error(EXIT_CODE_ERROR, "ktxdiff error \"{}\": Failed to open file: {}\n", filepath, errnoMessage());
+    if (!file) error(EXIT_CODE_ERROR, "ktxdiff error \"{}\": Failed to open file: {}\n", filepath, errnoMessage());
 
     const auto fileSize = file.tellg();
     file.seekg(0);
-    if (file.fail())
-        error(EXIT_CODE_ERROR, "ktxdiff error \"{}\": Failed to seek file: {}\n", filepath, errnoMessage());
+    if (file.fail()) error(EXIT_CODE_ERROR, "ktxdiff error \"{}\": Failed to seek file: {}\n", filepath, errnoMessage());
 
     rawData.resize(fileSize);
     file.read(reinterpret_cast<char*>(rawData.data()), fileSize);
-    if (file.fail())
-        error(EXIT_CODE_ERROR, "ktxdiff error \"{}\": Failed to read file: {}\n", filepath, errnoMessage());
+    if (file.fail()) error(EXIT_CODE_ERROR, "ktxdiff error \"{}\": Failed to read file: {}\n", filepath, errnoMessage());
 }
 
 void Texture::loadKTX() {
     KTX_error_code ec = KTX_SUCCESS;
-    ec = ktxTexture2_CreateFromMemory(
-            reinterpret_cast<const ktx_uint8_t*>(rawData.data()),
-            rawData.size(),
-            KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-            &handle);
+    ec = ktxTexture2_CreateFromMemory(reinterpret_cast<const ktx_uint8_t*>(rawData.data()), rawData.size(),
+                                      KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &handle);
     if (ec != KTX_SUCCESS)
         error(EXIT_CODE_ERROR, "ktxdiff error \"{}\": ktxTexture2_CreateFromNamedFile: {}\n", filepath, ktxErrorString(ec));
 
@@ -249,8 +306,7 @@ CompareResult compareUnorm8(const char* rawLhs, const char* rawRhs, std::size_t 
 
     for (std::size_t i = 0; i < count; ++i) {
         const auto diff = std::abs(static_cast<float>(lhs[i]) / 255.f - static_cast<float>(rhs[i]) / 255.f);
-        if (diff > tolerance)
-            return CompareResult{false, diff, i, i * element_size};
+        if (diff > tolerance) return CompareResult{false, diff, i, i * element_size};
     }
 
     return CompareResult{};
@@ -264,16 +320,14 @@ CompareResult compareSFloat32(const char* rawLhs, const char* rawRhs, std::size_
 
     for (std::size_t i = 0; i < count; ++i) {
         const auto diff = std::abs(lhs[i] - rhs[i]);
-        if (diff > tolerance)
-            return CompareResult{false, diff, i, i * element_size};
+        if (diff > tolerance) return CompareResult{false, diff, i, i * element_size};
     }
 
     return CompareResult{};
 }
 
 auto decodeASTC(const char* compressedData, std::size_t compressedSize, uint32_t width, uint32_t height,
-        const std::string& filepath, bool isFormatSRGB, uint32_t blockSizeX, uint32_t blockSizeY, uint32_t blockSizeZ) {
-
+                const std::string& filepath, bool isFormatSRGB, uint32_t blockSizeX, uint32_t blockSizeY, uint32_t blockSizeZ) {
     const auto threadCount = 1u;
     static constexpr astcenc_swizzle swizzle{ASTCENC_SWZ_R, ASTCENC_SWZ_G, ASTCENC_SWZ_B, ASTCENC_SWZ_A};
 
@@ -287,9 +341,7 @@ auto decodeASTC(const char* compressedData, std::size_t compressedSize, uint32_t
 
     struct ASTCencStruct {
         astcenc_context* context = nullptr;
-        ~ASTCencStruct() {
-            astcenc_context_free(context);
-        }
+        ~ASTCencStruct() { astcenc_context_free(context); }
     } astcenc;
     astcenc_context*& context = astcenc.context;
 
@@ -300,7 +352,7 @@ auto decodeASTC(const char* compressedData, std::size_t compressedSize, uint32_t
     astcenc_image image{};
     image.dim_x = width;
     image.dim_y = height;
-    image.dim_z = 1; // 3D ASTC formats are currently not supported
+    image.dim_z = 1;  // 3D ASTC formats are currently not supported
     const auto uncompressedSize = width * height * 4 * sizeof(uint8_t);
     auto uncompressedBuffer = std::make_unique<uint8_t[]>(uncompressedSize);
     auto* bufferPtr = uncompressedBuffer.get();
@@ -321,17 +373,15 @@ auto decodeASTC(const char* compressedData, std::size_t compressedSize, uint32_t
 }
 
 CompareResult compareAstc(const char* lhs, const char* rhs, std::size_t size, uint32_t width, uint32_t height,
-        const std::string& filepathLhs, const std::string& filepathRhs,
-        bool isFormatSRGB, uint32_t blockSizeX, uint32_t blockSizeY, uint32_t blockSizeZ,
-        float tolerance) {
-    const auto uncompressedLhs = decodeASTC(lhs, size, width, height, filepathLhs, isFormatSRGB, blockSizeX, blockSizeY, blockSizeZ);
-    const auto uncompressedRhs = decodeASTC(rhs, size, width, height, filepathRhs, isFormatSRGB, blockSizeX, blockSizeY, blockSizeZ);
+                          const std::string& filepathLhs, const std::string& filepathRhs, bool isFormatSRGB, uint32_t blockSizeX,
+                          uint32_t blockSizeY, uint32_t blockSizeZ, float tolerance) {
+    const auto uncompressedLhs =
+        decodeASTC(lhs, size, width, height, filepathLhs, isFormatSRGB, blockSizeX, blockSizeY, blockSizeZ);
+    const auto uncompressedRhs =
+        decodeASTC(rhs, size, width, height, filepathRhs, isFormatSRGB, blockSizeX, blockSizeY, blockSizeZ);
 
-    return compareUnorm8(
-            reinterpret_cast<const char*>(uncompressedLhs.data.get()),
-            reinterpret_cast<const char*>(uncompressedRhs.data.get()),
-            uncompressedLhs.size,
-            tolerance);
+    return compareUnorm8(reinterpret_cast<const char*>(uncompressedLhs.data.get()),
+                         reinterpret_cast<const char*>(uncompressedRhs.data.get()), uncompressedLhs.size, tolerance);
 }
 
 bool compare(Texture& lhs, Texture& rhs, float tolerance) {
@@ -369,28 +419,23 @@ bool compare(Texture& lhs, Texture& rhs, float tolerance) {
         if (std::memcmp(&lhs.header, &rhs.header, sizeof(lhs.header) - sizeof(ktxIndexEntry64)) != 0)
             return mismatch("Mismatching header");
     } else {
-        if (std::memcmp(&lhs.header, &rhs.header, sizeof(lhs.header)) != 0)
-            return mismatch("Mismatching header");
-        if (lhs.levelIndexSize != rhs.levelIndexSize)
-            return mismatch("Mismatching levelIndices");
+        if (std::memcmp(&lhs.header, &rhs.header, sizeof(lhs.header)) != 0) return mismatch("Mismatching header");
+        if (lhs.levelIndexSize != rhs.levelIndexSize) return mismatch("Mismatching levelIndices");
         for (uint32_t i = 0; i < lhs.levelIndices.size(); ++i)
             // Offsets and (compressed) sizes can differ, but uncompressedByteLength must match
             if (lhs.levelIndices[i].uncompressedByteLength != rhs.levelIndices[i].uncompressedByteLength)
                 return mismatch("Mismatching levelIndices[{}].uncompressedByteLength", i);
     }
-    if (lhs.dfdSize != rhs.dfdSize || std::memcmp(lhs.dfdData, rhs.dfdData, lhs.dfdSize) != 0)
-        return mismatch("Mismatching DFD");
+    if (lhs.dfdSize != rhs.dfdSize || std::memcmp(lhs.dfdData, rhs.dfdData, lhs.dfdSize) != 0) return mismatch("Mismatching DFD");
 
-    if (lhs.kvdSize != rhs.kvdSize || std::memcmp(lhs.kvdData, rhs.kvdData, lhs.kvdSize) != 0)
-        return mismatch("Mismatching KVD");
+    if (lhs.kvdSize != rhs.kvdSize || std::memcmp(lhs.kvdData, rhs.kvdData, lhs.kvdSize) != 0) return mismatch("Mismatching KVD");
 
     if (!lhs.transcoded)
         if (lhs.sgdSize != rhs.sgdSize || std::memcmp(lhs.sgdData, rhs.sgdData, lhs.sgdSize) != 0)
             return mismatch("Mismatching SGD");
 
     // If the tolerance is 1 or above accept every image data as matching
-    if (tolerance >= 1.0f)
-        return true;
+    if (tolerance >= 1.0f) return true;
 
     for (uint32_t levelIndex = 0; levelIndex < lhs->numLevels; ++levelIndex) {
         const auto imageSize = ktxTexture_GetImageSize(ktxTexture(lhs.handle), levelIndex);
@@ -401,7 +446,6 @@ bool compare(Texture& lhs, Texture& rhs, float tolerance) {
         for (uint32_t faceIndex = 0; faceIndex < lhs->numFaces; ++faceIndex) {
             for (uint32_t layerIndex = 0; layerIndex < lhs->numLayers; ++layerIndex) {
                 for (uint32_t depthIndex = 0; depthIndex < ceil_div(imageDepth, blockSizeZ); ++depthIndex) {
-
                     ktx_size_t imageOffset;
                     ktxTexture2_GetImageOffset(lhs.handle, levelIndex, layerIndex, faceIndex + depthIndex, &imageOffset);
                     const char* imageDataLhs = reinterpret_cast<const char*>(lhs->pData) + imageOffset;
@@ -411,24 +455,23 @@ bool compare(Texture& lhs, Texture& rhs, float tolerance) {
                     if (lhs.transcoded || isFormatUNORM8) {
                         result = compareUnorm8(imageDataLhs, imageDataRhs, imageSize, tolerance);
                     } else if (isFormatAstc(vkFormat)) {
-                        result = compareAstc(imageDataLhs, imageDataRhs, imageSize, imageWidth, imageHeight,
-                                lhs.filepath, rhs.filepath,
-                                isFormatSRGB, blockSizeX, blockSizeY, blockSizeZ,
-                                tolerance);
+                        result = compareAstc(imageDataLhs, imageDataRhs, imageSize, imageWidth, imageHeight, lhs.filepath,
+                                             rhs.filepath, isFormatSRGB, blockSizeX, blockSizeY, blockSizeZ, tolerance);
                     } else if (isFormatSFloat32) {
                         result = compareSFloat32(imageDataLhs, imageDataRhs, imageSize, tolerance);
                     } else {
                         for (std::size_t i = 0; i < imageSize; ++i) {
                             if (imageDataLhs[i] != imageDataRhs[i])
                                 return mismatch("Mismatching image data: level {}, face {}, layer {}, depth {}, image byte {}",
-                                        levelIndex, faceIndex, layerIndex, depthIndex, i);
+                                                levelIndex, faceIndex, layerIndex, depthIndex, i);
                         }
                     }
 
                     if (!result.match) {
-                        return mismatch("Mismatching image data (diff: {}): level {}, face {}, layer {}, depth {}, pixel {}, component {}",
-                                result.difference, levelIndex, faceIndex, layerIndex, depthIndex,
-                                result.elementIndex / componentCount, result.elementIndex % componentCount);
+                        return mismatch(
+                            "Mismatching image data (diff: {}): level {}, face {}, layer {}, depth {}, pixel {}, component {}",
+                            result.difference, levelIndex, faceIndex, layerIndex, depthIndex, result.elementIndex / componentCount,
+                            result.elementIndex % componentCount);
                     }
                 }
             }

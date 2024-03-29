@@ -27,8 +27,7 @@
 inline std::wstring DecodeUTF8Path(std::string path) {
     std::wstring result;
     int len = MultiByteToWideChar(CP_UTF8, 0, path.c_str(), static_cast<int>(path.length()), NULL, 0);
-    if (len > 0)
-    {
+    if (len > 0) {
         result.resize(len);
         MultiByteToWideChar(CP_UTF8, 0, path.c_str(), static_cast<int>(path.length()), &result[0], len);
     }
@@ -37,9 +36,7 @@ inline std::wstring DecodeUTF8Path(std::string path) {
 #else
 // For other platforms there is no need for any conversion, they
 // support UTF-8 natively.
-inline std::string DecodeUTF8Path(std::string path) {
-    return path;
-}
+inline std::string DecodeUTF8Path(std::string path) { return path; }
 #endif
 
 inline void InitUTF8CLI(int& argc, char* argv[]) {

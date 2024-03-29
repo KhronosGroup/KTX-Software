@@ -14,12 +14,11 @@
  * @author  Mark Callow
  */
 
-
 #if defined(_WIN32)
-  #if _MSC_VER < 1900
-    #define snprintf _snprintf
-  #endif
-  #define _CRT_SECURE_NO_WARNINGS
+#if _MSC_VER < 1900
+#define snprintf _snprintf
+#endif
+#define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #include <iomanip>
@@ -45,53 +44,45 @@ static int isPowerOfTwo (int x)
 
 /* ------------------------------------------------------------------------ */
 
-LoadTestSample*
-DrawTexture::create(uint32_t width, uint32_t height,
-                    const char* const szArgs,
-                    const std::string sBasePath)
-{
+LoadTestSample *DrawTexture::create(uint32_t width, uint32_t height, const char *const szArgs, const std::string sBasePath) {
     return new DrawTexture(width, height, szArgs, sBasePath);
 }
 
-DrawTexture::DrawTexture(uint32_t width, uint32_t height,
-                         const char* const szArgs,
-                         const std::string sBasePath)
-        : LoadTestSample(width, height, sBasePath)
-{
-    GLint           iCropRect[4] = {0, 0, 0, 0};
-    const GLchar*  szExtensions  = (const GLchar*)glGetString(GL_EXTENSIONS);
-    const char* filename;
+DrawTexture::DrawTexture(uint32_t width, uint32_t height, const char *const szArgs, const std::string sBasePath)
+    : LoadTestSample(width, height, sBasePath) {
+    GLint iCropRect[4] = {0, 0, 0, 0};
+    const GLchar *szExtensions = (const GLchar *)glGetString(GL_EXTENSIONS);
+    const char *filename;
     std::string pathname;
     GLenum target;
     GLboolean npotTexture;
     GLenum glerror;
-    ktxTexture* kTexture;
+    ktxTexture *kTexture;
     KTX_error_code ktxresult;
     GLint sign_s = 1, sign_t = 1;
 
     bInitialized = false;
     gnTexture = 0;
 
-
     if (strstr(szExtensions, "OES_draw_texture") != NULL) {
-       /*
-        * This strange casting is because SDL_GL_GetProcAddress returns a
-        * void* thus is not compatible with ISO C which forbids conversion
-        * of object pointers to function pointers. The cast masks the
-        * conversion from the compiler thus no warning even though -pedantic
-        * is set. Ideally, if SDL_GL_GetPRocAddress returned a (void*)(void),
-        * the assignment would be
-        *
-        *    glDrawFooOES = (PFNHLDRAWFOOOESPROC)SDL_GetProcAddress(...)
-        */                                                  \
-       *(void **)(&glDrawTexsOES) = SDL_GL_GetProcAddress("glDrawTexsOES");
-       *(void **)(&glDrawTexiOES) = SDL_GL_GetProcAddress("glDrawTexiOES");
-       *(void **)(&glDrawTexxOES) = SDL_GL_GetProcAddress("glDrawTexxOES");
-       *(void **)(&glDrawTexfOES) = SDL_GL_GetProcAddress("glDrawTexfOES");
-       *(void **)(&glDrawTexsvOES) = SDL_GL_GetProcAddress("glDrawTexsvOES");
-       *(void **)(&glDrawTexivOES) = SDL_GL_GetProcAddress("glDrawTexivOES");
-       *(void **)(&glDrawTexxvOES) = SDL_GL_GetProcAddress("glDrawTexxvOES");
-       *(void **)(&glDrawTexfvOES) = SDL_GL_GetProcAddress("glDrawTexfvOES");
+        /*
+         * This strange casting is because SDL_GL_GetProcAddress returns a
+         * void* thus is not compatible with ISO C which forbids conversion
+         * of object pointers to function pointers. The cast masks the
+         * conversion from the compiler thus no warning even though -pedantic
+         * is set. Ideally, if SDL_GL_GetPRocAddress returned a (void*)(void),
+         * the assignment would be
+         *
+         *    glDrawFooOES = (PFNHLDRAWFOOOESPROC)SDL_GetProcAddress(...)
+         */
+        *(void **)(&glDrawTexsOES) = SDL_GL_GetProcAddress("glDrawTexsOES");
+        *(void **)(&glDrawTexiOES) = SDL_GL_GetProcAddress("glDrawTexiOES");
+        *(void **)(&glDrawTexxOES) = SDL_GL_GetProcAddress("glDrawTexxOES");
+        *(void **)(&glDrawTexfOES) = SDL_GL_GetProcAddress("glDrawTexfOES");
+        *(void **)(&glDrawTexsvOES) = SDL_GL_GetProcAddress("glDrawTexsvOES");
+        *(void **)(&glDrawTexivOES) = SDL_GL_GetProcAddress("glDrawTexivOES");
+        *(void **)(&glDrawTexxvOES) = SDL_GL_GetProcAddress("glDrawTexxvOES");
+        *(void **)(&glDrawTexfvOES) = SDL_GL_GetProcAddress("glDrawTexfvOES");
     } else {
         /* Can't do anything */
         std::stringstream message;
@@ -100,12 +91,11 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
                 << " OES_draw_texture. Can't Run Test";
         throw std::runtime_error(message.str());
     }
-  
-    if (strstr(szExtensions, "OES_texture_npot") != NULL)
-       bNpotSupported = GL_TRUE;
-    else
-       bNpotSupported = GL_FALSE;
 
+    if (strstr(szExtensions, "OES_texture_npot") != NULL)
+        bNpotSupported = GL_TRUE;
+    else
+        bNpotSupported = GL_FALSE;
 
     if ((filename = strchr(szArgs, ' ')) != NULL) {
         npotTexture = GL_FALSE;
@@ -121,21 +111,18 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
         npotTexture = GL_FALSE;
     }
 
-    if (npotTexture  && !bNpotSupported) {
+    if (npotTexture && !bNpotSupported) {
         /* Load error texture. */
         filename = "no-npot.ktx";
     }
-    
+
     pathname = getAssetPath() + filename;
-    
-    ktxresult = ktxTexture_CreateFromNamedFile(pathname.c_str(),
-                                               KTX_TEXTURE_CREATE_NO_FLAGS,
-                                               &kTexture);
+
+    ktxresult = ktxTexture_CreateFromNamedFile(pathname.c_str(), KTX_TEXTURE_CREATE_NO_FLAGS, &kTexture);
     if (KTX_SUCCESS != ktxresult) {
         std::stringstream message;
 
-        message << "Creation of ktxTexture from \"" << pathname
-                << "\" failed: " << ktxErrorString(ktxresult);
+        message << "Creation of ktxTexture from \"" << pathname << "\" failed: " << ktxErrorString(ktxresult);
         throw std::runtime_error(message.str());
     }
     ktxresult = ktxTexture_GLUpload(kTexture, &gnTexture, &target, &glerror);
@@ -147,10 +134,8 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
             return;
         }
 
-        if (kTexture->orientation.x == KTX_ORIENT_X_LEFT)
-            sign_s = -1;
-        if (kTexture->orientation.y == KTX_ORIENT_Y_DOWN)
-            sign_t = -1;
+        if (kTexture->orientation.x == KTX_ORIENT_X_LEFT) sign_s = -1;
+        if (kTexture->orientation.y == KTX_ORIENT_Y_DOWN) sign_t = -1;
 
         iCropRect[2] = uTexWidth = kTexture->baseWidth;
         iCropRect[3] = uTexHeight = kTexture->baseHeight;
@@ -163,8 +148,7 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
             // Enable bilinear mipmapping.
             // TO DO: application can consider inserting a key,value pair in
             // the KTX file that indicates what type of filtering to use.
-            glTexParameteri(target,
-                            GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+            glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
         else
             glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -181,8 +165,7 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
 
         message << "Load of texture from \"" << pathname << "\" failed: ";
         if (ktxresult == KTX_GL_ERROR) {
-            message << std::showbase << "GL error " << std::hex << glerror
-                    << "occurred.";
+            message << std::showbase << "GL error " << std::hex << glerror << "occurred.";
         } else {
             message << ktxErrorString(ktxresult);
         }
@@ -199,8 +182,7 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
 
 /* ------------------------------------------------------------------------ */
 
-DrawTexture::~DrawTexture()
-{
+DrawTexture::~DrawTexture() {
     if (bInitialized) {
         glDeleteTextures(1, &gnTexture);
     }
@@ -209,9 +191,7 @@ DrawTexture::~DrawTexture()
 
 /* ------------------------------------------------------------------------ */
 
-void
-DrawTexture::resize(uint32_t uNewWidth, uint32_t uNewHeight)
-{
+void DrawTexture::resize(uint32_t uNewWidth, uint32_t uNewHeight) {
     glViewport(0, 0, uNewWidth, uNewHeight);
     this->uWidth = uNewWidth;
     this->uHeight = uNewHeight;
@@ -219,8 +199,7 @@ DrawTexture::resize(uint32_t uNewWidth, uint32_t uNewHeight)
     // Set up an orthographic projection where 1 = 1 pixel
     framePMatrix = glm::ortho(0.f, (float)uWidth, 0.f, (float)uHeight);
     // Move (0,0,0) to the center of the window.
-    framePMatrix *= glm::translate(glm::mat4(),
-                              glm::vec3((float)uWidth/2, (float)uHeight/2, 0));
+    framePMatrix *= glm::translate(glm::mat4(), glm::vec3((float)uWidth / 2, (float)uHeight / 2, 0));
 
     glMatrixMode(GL_PROJECTION);
     glLoadMatrixf(glm::value_ptr(framePMatrix));
@@ -241,18 +220,13 @@ DrawTexture::resize(uint32_t uNewWidth, uint32_t uNewHeight)
 
 /* ------------------------------------------------------------------------ */
 
-void
-DrawTexture::run(uint32_t /*msTicks*/)
-{
+void DrawTexture::run(uint32_t /*msTicks*/) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_TEXTURE_2D);
     glDrawArrays(GL_LINE_LOOP, 0, 4);
 
     glEnable(GL_TEXTURE_2D);
-    glDrawTexiOES(uWidth/2 - uTexWidth/2,
-                         (uHeight)/2 - uTexHeight/2,
-                         0,
-                         uTexWidth, uTexHeight);
+    glDrawTexiOES(uWidth / 2 - uTexWidth / 2, (uHeight) / 2 - uTexHeight / 2, 0, uTexWidth, uTexHeight);
 
     assert(GL_NO_ERROR == glGetError());
 }

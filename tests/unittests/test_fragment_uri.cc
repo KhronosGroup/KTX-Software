@@ -7,13 +7,12 @@
 #include <ktx/fragment_uri.h>
 #include "gtest/gtest.h"
 
-
 namespace {
 
 // -------------------------------------------------------------------------------------------------
 
 class FragmentURITest : public ::testing::Test {
-protected:
+  protected:
     FragmentURITest() {}
 };
 

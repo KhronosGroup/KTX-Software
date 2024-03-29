@@ -20,7 +20,7 @@
 #ifndef _GL_FUNCS_H_
 #define _GL_FUNCS_H_
 
-#undef GL_GLEXT_PROTOTYPES // Just to be sure.
+#undef GL_GLEXT_PROTOTYPES  // Just to be sure.
 #include "GL/glcorearb.h"
 #include "ktx.h"
 
@@ -61,4 +61,3 @@ extern struct glFuncPtrs {
 #endif
 
 #endif /* _GL_FUNCS_H_ */
-

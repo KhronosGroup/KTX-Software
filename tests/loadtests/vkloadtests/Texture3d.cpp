@@ -25,28 +25,22 @@
 #include <string.h>
 #include <assert.h>
 #include <algorithm>
-#include <time.h> 
+#include <time.h>
 #include <vector>
 
 #include "Texture3d.h"
 #include "ltexceptions.h"
 
-VulkanLoadTestSample*
-Texture3d::create(VulkanContext& vkctx,
-                 uint32_t width, uint32_t height,
-                 const char* const szArgs, const std::string sBasePath)
-{
+VulkanLoadTestSample* Texture3d::create(VulkanContext& vkctx, uint32_t width, uint32_t height, const char* const szArgs,
+                                        const std::string sBasePath) {
     return new Texture3d(vkctx, width, height, szArgs, sBasePath);
 }
 
 #define INSTANCE_COUNT_CONST_ID 1
 #define INSTANCES_DECLARED_IN_SHADER 30
 
-Texture3d::Texture3d(VulkanContext& vkctx,
-                 uint32_t width, uint32_t height,
-                 const char* const szArgs, const std::string sBasePath)
-        : InstancedSampleBase(vkctx, width, height, szArgs, sBasePath)
-{
+Texture3d::Texture3d(VulkanContext& vkctx, uint32_t width, uint32_t height, const char* const szArgs, const std::string sBasePath)
+    : InstancedSampleBase(vkctx, width, height, szArgs, sBasePath) {
     zoom = -15.0f;
 
     if (texture.depth == 1) {
@@ -57,12 +51,11 @@ Texture3d::Texture3d(VulkanContext& vkctx,
     }
 
     try {
-        prepare("instancing3d.frag.spv", "instancing3d.vert.spv",
-                INSTANCE_COUNT_CONST_ID, texture.depth,
+        prepare("instancing3d.frag.spv", "instancing3d.vert.spv", INSTANCE_COUNT_CONST_ID, texture.depth,
                 INSTANCES_DECLARED_IN_SHADER);
     } catch (std::exception& e) {
-        (void)e; // To quiet unused variable warnings from some compilers.
-        //cleanup(); // See explanation in TextureMipmap.cpp
+        (void)e;  // To quiet unused variable warnings from some compilers.
+        // cleanup(); // See explanation in TextureMipmap.cpp
         throw;
     }
 }
@@ -86,26 +79,13 @@ Texture3d::addSubclassDescriptors(DescriptorBindings& descriptorBindings)
 // Providing instanceCount via a push constant is a workaround for
 // MoltenVK issue #1421:
 //     https://github.com/KhronosGroup/MoltenVK/issues/1421.
-void
-Texture3d::addSubclassPushConstantRanges(PushConstantRanges& ranges)
-{
-    ranges.push_back(vk::PushConstantRange(
-      vk::ShaderStageFlagBits::eVertex,
-      0, // offset
-      sizeof(instanceCount)
-    ));
+void Texture3d::addSubclassPushConstantRanges(PushConstantRanges& ranges) {
+    ranges.push_back(vk::PushConstantRange(vk::ShaderStageFlagBits::eVertex,
+                                           0,  // offset
+                                           sizeof(instanceCount)));
 }
 
-void
-Texture3d::setSubclassPushConstants(uint32_t bufferIndex)
-{
-    vkCmdPushConstants(
-        vkctx.drawCmdBuffers[bufferIndex],
-        pipelineLayout,
-        VK_SHADER_STAGE_VERTEX_BIT,
-        0,
-        sizeof(instanceCount),
-        &instanceCount
-    );
+void Texture3d::setSubclassPushConstants(uint32_t bufferIndex) {
+    vkCmdPushConstants(vkctx.drawCmdBuffers[bufferIndex], pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(instanceCount),
+                       &instanceCount);
 }
-

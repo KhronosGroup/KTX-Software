@@ -31,19 +31,15 @@ class PngInput final : public ImageInput {
     PngInput() : ImageInput("png") {}
     virtual ~PngInput() { close(); }
     virtual void open(ImageSpec& newspec) override;
-    virtual void close() override {
-        decodingBegun = false;
-    }
+    virtual void close() override { decodingBegun = false; }
 
-    virtual void readImage(void* bufferOut, size_t bufferByteCount,
-                           uint32_t subimage, uint32_t miplevel,
+    virtual void readImage(void* bufferOut, size_t bufferByteCount, uint32_t subimage, uint32_t miplevel,
                            const FormatDescriptor& targetFormat) override;
 
     /// Read a single scanline (all channels) of native data into contiguous
     /// memory.
-    virtual void readNativeScanline(void* /*buffer*/,  size_t /*bufferByteCount*/,
-                                    uint32_t /*y*/, uint32_t /*z*/,
-                                    uint32_t /*subimage*/, uint32_t /*miplevel*/) override { };
+    virtual void readNativeScanline(void* /*buffer*/, size_t /*bufferByteCount*/, uint32_t /*y*/, uint32_t /*z*/,
+                                    uint32_t /*subimage*/, uint32_t /*miplevel*/) override{};
 
   protected:
     void readHeader();
@@ -58,17 +54,11 @@ class PngInput final : public ImageInput {
     bool decodingBegun = false;
 };
 
-ImageInput*
-pngInputCreate()
-{
-    return new PngInput;
-}
+ImageInput* pngInputCreate() { return new PngInput; }
 
-const char* pngInputExtensions[] = { "png", nullptr };
+const char* pngInputExtensions[] = {"png", nullptr};
 
-void
-PngInput::open(ImageSpec& newspec)
-{
+void PngInput::open(ImageSpec& newspec) {
     assert(isp != nullptr && "ImageInput not properly opened");
 
     readHeader();
@@ -76,9 +66,7 @@ PngInput::open(ImageSpec& newspec)
     nextScanline = 0;
 }
 
-
-void PngInput::slurp()
-{
+void PngInput::slurp() {
     size_t pngByteLength;
 
     isp->seekg(0, isp->end);
@@ -89,23 +77,16 @@ void PngInput::slurp()
     isp->read(pngBuffer.data(), pngByteLength);
 }
 
-
-void
-PngInput::readHeader()
-{
+void PngInput::readHeader() {
     // Unfortunately LoadPNG doesn't believe in stdio. The functions
     // we need either read from memory or take a file name. To avoid
     // a potentially unnecessary slurp of the whole file check the
     // signature ourselves.
-    uint8_t pngsig[8] = {
-       0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a
-    };
+    uint8_t pngsig[8] = {0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a};
     uint8_t filesig[sizeof(pngsig)];
-    isp->read((char *)filesig, sizeof(pngsig));
-    if (isp->fail())
-       throwOnReadFailure();
-    if (memcmp(filesig, pngsig, sizeof(pngsig)))
-       throw different_format();
+    isp->read((char*)filesig, sizeof(pngsig));
+    if (isp->fail()) throwOnReadFailure();
+    if (memcmp(filesig, pngsig, sizeof(pngsig))) throw different_format();
 
     // It's a PNG file.
 
@@ -122,14 +103,9 @@ PngInput::readHeader()
 
     unsigned int lodepngError;
     uint32_t w, h;
-    lodepngError = lodepng_decode_chunks(&pIdat, &idatsize, &w, &h, &state,
-                                         (const uint8_t*)pngBuffer.data(),
-                                         pngBuffer.size());
+    lodepngError = lodepng_decode_chunks(&pIdat, &idatsize, &w, &h, &state, (const uint8_t*)pngBuffer.data(), pngBuffer.size());
     if (lodepngError) {
-        throw std::runtime_error(
-            fmt::format("PNG decode chunks error: {}.",
-                        lodepng_error_text(lodepngError))
-        );
+        throw std::runtime_error(fmt::format("PNG decode chunks error: {}.", lodepng_error_text(lodepngError)));
     }
 
     // Tell the decoder to produce the same color type as the file. Exceptions
@@ -142,7 +118,7 @@ PngInput::readHeader()
     khr_df_model_e colorModel = KHR_DF_MODEL_RGBSDA;
 
     switch (state.info_png.color.colortype) {
-      case LCT_GREY:
+    case LCT_GREY:
         if (state.info_png.color.key_defined) {
             state.info_raw.colortype = LCT_GREY_ALPHA;
             componentCount = 2;
@@ -152,7 +128,7 @@ PngInput::readHeader()
             colorModel = KHR_DF_MODEL_YUVSDA;
         }
         break;
-      case LCT_RGB:
+    case LCT_RGB:
         if (state.info_png.color.key_defined) {
             state.info_raw.colortype = LCT_RGBA;
             componentCount = 4;
@@ -162,16 +138,14 @@ PngInput::readHeader()
             colorModel = KHR_DF_MODEL_RGBSDA;
         }
         break;
-      case LCT_PALETTE: {
+    case LCT_PALETTE: {
         // color.key_defined is not set for paletted. tRNS info is written
         // directly into the palette. To determine the colortype to expand to
         // here we need to check if there is a tRNS chunk.
-	    const unsigned char *pTrnsChunk = nullptr;
+        const unsigned char* pTrnsChunk = nullptr;
         // 1st chunk after header
         const unsigned char* pFirstChunk = (unsigned char*)&pngBuffer[33];
-        pTrnsChunk = lodepng_chunk_find_const(pFirstChunk,
-                                (unsigned char*)&pngBuffer[pngBuffer.size()-1],
-                                "tRNS");
+        pTrnsChunk = lodepng_chunk_find_const(pFirstChunk, (unsigned char*)&pngBuffer[pngBuffer.size() - 1], "tRNS");
         if (pTrnsChunk) {
             state.info_raw.colortype = LCT_RGBA;
             componentCount = 4;
@@ -186,23 +160,21 @@ PngInput::readHeader()
         // with handling for them, cause them to be expanded to 8 bits by
         // this reader and issue a warning.
         if (state.info_png.color.bitdepth < 8) {
-            bitDepth = 8; // This value will be set in the ImageSpec and
-                          // eventually passed back to readImage().
+            bitDepth = 8;  // This value will be set in the ImageSpec and
+                           // eventually passed back to readImage().
         }
-        fwarning(fmt::format("Expanding {}-bit paletted image to {}",
-                state.info_png.color.bitdepth,
-                state.info_raw.colortype == LCT_RGBA ? "R8G8B8A8" : "R8G8B8"));
-        }
-        break;
-      case LCT_GREY_ALPHA:
+        fwarning(fmt::format("Expanding {}-bit paletted image to {}", state.info_png.color.bitdepth,
+                             state.info_raw.colortype == LCT_RGBA ? "R8G8B8A8" : "R8G8B8"));
+    } break;
+    case LCT_GREY_ALPHA:
         componentCount = 2;
         colorModel = KHR_DF_MODEL_YUVSDA;
         break;
-      case LCT_RGBA:
+    case LCT_RGBA:
         colorModel = KHR_DF_MODEL_RGBSDA;
         componentCount = 4;
         break;
-      case LCT_MAX_OCTET_VALUE:
+    case LCT_MAX_OCTET_VALUE:
         break;
     }
 
@@ -227,14 +199,11 @@ PngInput::readHeader()
         break;
     }
 
-    images.emplace_back(ImageSpec(w, h, 1, componentCount,
-                            bitDepth,
-                            static_cast<khr_df_sample_datatype_qualifiers_e>(0),
-                            KHR_DF_TRANSFER_UNSPECIFIED,
-                            // PNG spec. says BT.709 primaries are a
-                            // reasonable default.
-                            KHR_DF_PRIMARIES_BT709,
-                            colorModel),
+    images.emplace_back(ImageSpec(w, h, 1, componentCount, bitDepth, static_cast<khr_df_sample_datatype_qualifiers_e>(0),
+                                  KHR_DF_TRANSFER_UNSPECIFIED,
+                                  // PNG spec. says BT.709 primaries are a
+                                  // reasonable default.
+                                  KHR_DF_PRIMARIES_BT709, colorModel),
                         formatType);
 
     // This is ugly. FIXME:
@@ -242,12 +211,10 @@ PngInput::readHeader()
     if (state.info_png.iccp_defined) {
         format.setPrimaries(KHR_DF_PRIMARIES_UNSPECIFIED);
         format.setTransfer(KHR_DF_TRANSFER_UNSPECIFIED);
-        format.extended.iccProfile.name =  state.info_png.iccp_name;
+        format.extended.iccProfile.name = state.info_png.iccp_name;
         format.extended.iccProfile.profile.resize(state.info_png.iccp_profile_size);
-        format.extended.iccProfile.profile.insert(
-               format.extended.iccProfile.profile.begin(),
-               state.info_png.iccp_profile,
-               &state.info_png.iccp_profile[state.info_png.iccp_profile_size]);
+        format.extended.iccProfile.profile.insert(format.extended.iccProfile.profile.begin(), state.info_png.iccp_profile,
+                                                  &state.info_png.iccp_profile[state.info_png.iccp_profile_size]);
         if (format.extended.iccProfile.name == "ITUR_2100_PQ_FULL") {
             format.setPrimaries(KHR_DF_PRIMARIES_BT2020);
             format.setTransfer(KHR_DF_TRANSFER_PQ_EOTF);
@@ -268,8 +235,7 @@ PngInput::readHeader()
         format.setTransfer(KHR_DF_TRANSFER_UNSPECIFIED);
     }
 
-    if (state.info_png.chrm_defined
-        && !state.info_png.srgb_defined && !state.info_png.iccp_defined) {
+    if (state.info_png.chrm_defined && !state.info_png.srgb_defined && !state.info_png.iccp_defined) {
         Primaries primaries;
         primaries.Rx = (float)state.info_png.chrm_red_x / 100000;
         primaries.Ry = (float)state.info_png.chrm_red_y / 100000;
@@ -282,7 +248,6 @@ PngInput::readHeader()
         format.setPrimaries(findMapping(&primaries, 0.002f));
     }
 }
-
 
 /// @brief Read an entire image into contiguous memory performing conversions
 /// to @a format.
@@ -300,11 +265,8 @@ PngInput::readHeader()
 ///
 /// If the PNG file has an sBit chunk the normalized results are adjusted
 /// accordingly.
-void
-PngInput::readImage(void* bufferOut, size_t bufferOutByteCount,
-                    uint32_t /*subimage*/, uint32_t /*miplevel*/,
-                    const FormatDescriptor& format)
-{
+void PngInput::readImage(void* bufferOut, size_t bufferOutByteCount, uint32_t /*subimage*/, uint32_t /*miplevel*/,
+                         const FormatDescriptor& format) {
     const auto& targetFormat = format.isUnknown() ? spec().format() : format;
 
     const auto channelCount = targetFormat.channelCount();
@@ -314,10 +276,8 @@ PngInput::readImage(void* bufferOut, size_t bufferOutByteCount,
     const auto requestBits = std::max(imageio::bit_ceil(targetBitLength), 8u);
 
     if (requestBits != 8 && requestBits != 16)
-        throw std::runtime_error(fmt::format(
-                "PNG decode error: Requested decode into {}-bit format is not supported.",
-                requestBits)
-              );
+        throw std::runtime_error(
+            fmt::format("PNG decode error: Requested decode into {}-bit format is not supported.", requestBits));
 
     const bool targetL = targetFormat.samples[0].qualifierLinear;
     const bool targetE = targetFormat.samples[0].qualifierExponent;
@@ -326,17 +286,12 @@ PngInput::readImage(void* bufferOut, size_t bufferOutByteCount,
 
     // Only UNORM requests are allowed for PNG inputs
     if (targetE || targetL || targetS || targetF)
-        throw std::runtime_error(fmt::format(
-                "PNG decode error: Requested format conversion to {}-bit{}{}{}{} is not supported.",
-                requestBits,
-                targetL ? " Linear" : "",
-                targetE ? " Exponent" : "",
-                targetS ? " Signed" : "",
-                targetF ? " Float" : "")
-              );
+        throw std::runtime_error(fmt::format("PNG decode error: Requested format conversion to {}-bit{}{}{}{} is not supported.",
+                                             requestBits, targetL ? " Linear" : "", targetE ? " Exponent" : "",
+                                             targetS ? " Signed" : "", targetF ? " Float" : ""));
 
     state.info_raw.bitdepth = requestBits;
-    state.info_raw.colortype = [&]{
+    state.info_raw.colortype = [&] {
         switch (targetFormat.channelCount()) {
         case 1:
             return LCT_GREY;
@@ -347,31 +302,20 @@ PngInput::readImage(void* bufferOut, size_t bufferOutByteCount,
         case 4:
             return LCT_RGBA;
         }
-        throw std::runtime_error(fmt::format(
-                "PNG decode error: Requested decode into {} channels is not supported.",
-                targetFormat.channelCount())
-              );
+        throw std::runtime_error(
+            fmt::format("PNG decode error: Requested decode into {} channels is not supported.", targetFormat.channelCount()));
     }();
-    auto lodepngError = lodepng_finish_decode(
-                                          (unsigned char*)bufferOut,
-                                          bufferOutByteCount,
-                                          width,
-                                          height,
-                                          &state,
-                                          pIdat,
-                                          idatsize);
+    auto lodepngError =
+        lodepng_finish_decode((unsigned char*)bufferOut, bufferOutByteCount, width, height, &state, pIdat, idatsize);
 
-    if (lodepngError)
-        throw std::runtime_error(fmt::format(
-                "PNG decode error: {}.", lodepng_error_text(lodepngError)));
+    if (lodepngError) throw std::runtime_error(fmt::format("PNG decode error: {}.", lodepng_error_text(lodepngError)));
 
     // TODO: Detect endianness
     // if constexpr (std::endian::native == std::endian::little)
     if (requestBits == 16) {
         // LodePNG loads 16 bit channels in big endian order
-        auto* data = (unsigned char*) bufferOut;
-        for (size_t i = 0; i < bufferOutByteCount; i += 2)
-            std::swap(*(data + i), *(data + i + 1));
+        auto* data = (unsigned char*)bufferOut;
+        for (size_t i = 0; i < bufferOutByteCount; i += 2) std::swap(*(data + i), *(data + i + 1));
     }
 
     if (state.info_png.sbit_defined) {
@@ -391,7 +335,7 @@ PngInput::readImage(void* bufferOut, size_t bufferOutByteCount,
                     if (requestBits == 8) {
                         auto& value = *(reinterpret_cast<uint8_t*>(bufferOut) + index);
                         value = static_cast<uint8_t>(imageio::convertUNORM(value >> (8 - sBits[c]), sBits[c], 8));
-                    } else { // requestBits == 16
+                    } else {  // requestBits == 16
                         auto& value = *(reinterpret_cast<uint16_t*>(bufferOut) + index);
                         value = static_cast<uint16_t>(imageio::convertUNORM(value >> (16 - sBits[c]), sBits[c], 16));
                     }

@@ -16,19 +16,16 @@
 #include <ktxvulkan.h>
 #include <glm/gtc/matrix_transform.hpp>
 
-class InstancedSampleBase : public VulkanLoadTestSample
-{
+class InstancedSampleBase : public VulkanLoadTestSample {
   public:
-    InstancedSampleBase(VulkanContext& vkctx,
-                 uint32_t width, uint32_t height,
-                 const char* const szArgs,
-                 const std::string sBasePath);
+    InstancedSampleBase(VulkanContext& vkctx, uint32_t width, uint32_t height, const char* const szArgs,
+                        const std::string sBasePath);
     virtual ~InstancedSampleBase();
 
     virtual void resize(uint32_t width, uint32_t height);
     virtual void run(uint32_t msTicks);
 
-    //virtual void getOverlayText(VulkanTextOverlay *textOverlay, float yOffset);
+    // virtual void getOverlayText(VulkanTextOverlay *textOverlay, float yOffset);
     virtual const char* customizeTitle(const char* const title);
 
   protected:
@@ -71,7 +68,7 @@ class InstancedSampleBase : public VulkanLoadTestSample
         // boundary as it starts with a matrix.
         //
         // Separate data for each instance
-        UboInstanceData *instance;
+        UboInstanceData* instance;
     } uboVS;
 
     struct {
@@ -92,26 +89,22 @@ class InstancedSampleBase : public VulkanLoadTestSample
 
     using DescriptorBindings = std::vector<vk::DescriptorSetLayoutBinding>;
     using PushConstantRanges = std::vector<vk::PushConstantRange>;
-    virtual void addSubclassDescriptors(DescriptorBindings&) { }
-    virtual void addSubclassPushConstantRanges(PushConstantRanges&) { }
-    virtual void setSubclassPushConstants(uint32_t) { }
+    virtual void addSubclassDescriptors(DescriptorBindings&) {}
+    virtual void addSubclassPushConstantRanges(PushConstantRanges&) {}
+    virtual void setSubclassPushConstants(uint32_t) {}
     void setupVertexDescriptions();
     void setupDescriptorPool();
     void setupDescriptorSetLayout();
     void setupDescriptorSet();
-    void preparePipelines(const char* const fragShaderName,
-                          const char* const vertShaderName,
-                          uint32_t instanceCountConstId);
+    void preparePipelines(const char* const fragShaderName, const char* const vertShaderName, uint32_t instanceCountConstId);
 
-    void prepareUniformBuffers(// See note in prepare declaration.
-                               uint32_t shaderDeclaredInstances);
+    void prepareUniformBuffers(  // See note in prepare declaration.
+        uint32_t shaderDeclaredInstances);
     void updateUniformBufferMatrices();
 
     void prepareSamplerAndView();
-    
-    void prepare(const char* const fragShaderName,
-                 const char* const vertShaderName,
-                 uint32_t instanceCountConstId,
+
+    void prepare(const char* const fragShaderName, const char* const vertShaderName, uint32_t instanceCountConstId,
                  uint32_t instanceCount,
                  // Solely because of MoltenVK issue #1420.
                  // It can't specialize array length constants.
@@ -119,10 +112,7 @@ class InstancedSampleBase : public VulkanLoadTestSample
 
     void processArgs(std::string sArgs);
 
-    virtual void viewChanged()
-    {
-        updateUniformBufferMatrices();
-    }
+    virtual void viewChanged() { updateUniformBufferMatrices(); }
 };
 
 #endif /* _INSTANCE_SAMPLE_BASE_H_ */

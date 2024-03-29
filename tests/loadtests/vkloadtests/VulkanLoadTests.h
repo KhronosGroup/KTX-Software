@@ -23,10 +23,8 @@ class VulkanLoadTests : public VulkanAppSDL {
         const char* const args;
         const char* const title;
     } sampleInvocation;
-    
-    VulkanLoadTests(const sampleInvocation samples[],
-                const uint32_t numSamples,
-                const char* const name);
+
+    VulkanLoadTests(const sampleInvocation samples[], const uint32_t numSamples, const char* const name);
     virtual ~VulkanLoadTests();
     virtual int doEvent(SDL_Event* event);
     virtual void drawFrame(uint32_t msTicks);
@@ -37,10 +35,7 @@ class VulkanLoadTests : public VulkanAppSDL {
     virtual void windowResized();
 
   protected:
-    enum class Direction {
-        eForward,
-        eBack
-    };
+    enum class Direction { eForward, eBack };
     void invokeSample(Direction dir);
     VulkanLoadTestSample* showFile(std::string& filename);
     VulkanLoadTestSample* pCurSample;
@@ -50,22 +45,16 @@ class VulkanLoadTests : public VulkanAppSDL {
     const sampleInvocation* const siSamples;
     class sampleIndex {
       public:
-        sampleIndex(const int32_t numSamples) : numSamples(numSamples) {
-            index = 0;
-        }
+        sampleIndex(const int32_t numSamples) : numSamples(numSamples) { index = 0; }
         sampleIndex& operator++() {
-            if (++index >= numSamples)
-                index = 0;
+            if (++index >= numSamples) index = 0;
             return *this;
         }
         sampleIndex& operator--() {
-            if (--index > numSamples /* underflow */)
-                index = numSamples-1;
+            if (--index > numSamples /* underflow */) index = numSamples - 1;
             return *this;
         }
-        operator int32_t() {
-            return index;
-        }
+        operator int32_t() { return index; }
         uint32_t getNumSamples() { return numSamples; }
         void setNumSamples(uint32_t ns) { numSamples = ns; }
 

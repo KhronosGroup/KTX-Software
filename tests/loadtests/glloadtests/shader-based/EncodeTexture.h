@@ -20,19 +20,15 @@
 
 class EncodeTexture : public GL3LoadTestSample {
   public:
-    EncodeTexture(uint32_t width, uint32_t height,
-                const char* const szArgs,
-                const std::string sBasePath);
+    EncodeTexture(uint32_t width, uint32_t height, const char* const szArgs, const std::string sBasePath);
     ~EncodeTexture();
 
     virtual void resize(uint32_t width, uint32_t height);
     virtual void run(uint32_t msTicks);
 
-    //virtual void getOverlayText(GLTextOverlay *textOverlay);
+    // virtual void getOverlayText(GLTextOverlay *textOverlay);
 
-    static LoadTestSample*
-    create(uint32_t width, uint32_t height,
-           const char* const szArgs, const std::string sBasePath);
+    static LoadTestSample* create(uint32_t width, uint32_t height, const char* const szArgs, const std::string sBasePath);
 
   protected:
     void processArgs(std::string sArgs);
@@ -54,16 +50,15 @@ class EncodeTexture : public GL3LoadTestSample {
     encode_fmt_e encodeTarget;
 };
 
-inline std::ostream& operator<<(std::ostream& os, EncodeTexture::encode_fmt_e format)
-{
+inline std::ostream& operator<<(std::ostream& os, EncodeTexture::encode_fmt_e format) {
     switch (format) {
-      case EncodeTexture::EF_ASTC:
+    case EncodeTexture::EF_ASTC:
         os << "astc";
         break;
-      case EncodeTexture::EF_ETC1S:
+    case EncodeTexture::EF_ETC1S:
         os << "etc1s";
         break;
-      case EncodeTexture::EF_UASTC:
+    case EncodeTexture::EF_UASTC:
         os << "uastc";
         break;
     }

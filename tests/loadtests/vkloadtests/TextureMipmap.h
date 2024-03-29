@@ -26,18 +26,12 @@
 #include <ktxvulkan.h>
 #include <glm/gtc/matrix_transform.hpp>
 
-class TextureMipmap : public InstancedSampleBase
-{
+class TextureMipmap : public InstancedSampleBase {
   public:
-    TextureMipmap(VulkanContext& vkctx,
-                 uint32_t width, uint32_t height,
-                 const char* const szArgs,
-                 const std::string sBasePath);
+    TextureMipmap(VulkanContext& vkctx, uint32_t width, uint32_t height, const char* const szArgs, const std::string sBasePath);
 
-    static VulkanLoadTestSample*
-    create(VulkanContext& vkctx,
-           uint32_t width, uint32_t height,
-           const char* const szArgs, const std::string sBasePath);
+    static VulkanLoadTestSample* create(VulkanContext& vkctx, uint32_t width, uint32_t height, const char* const szArgs,
+                                        const std::string sBasePath);
 };
 
 #endif /* _TEXTURE_MIPMAP_H_ */

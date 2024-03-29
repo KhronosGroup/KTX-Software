@@ -20,14 +20,12 @@ void copy_ktx_texture_create_info(JNIEnv *env, jobject info, ktxTextureCreateInf
 void copy_ktx_astc_params(JNIEnv *env, jobject params, ktxAstcParams &out);
 void copy_ktx_basis_params(JNIEnv *env, jobject params, ktxBasisParams &out);
 
-static inline ktxTexture1 *get_ktx1_texture(JNIEnv *env, jobject thiz)
-{
-    return reinterpret_cast<ktxTexture1*>(get_ktx_texture(env, thiz));
+static inline ktxTexture1 *get_ktx1_texture(JNIEnv *env, jobject thiz) {
+    return reinterpret_cast<ktxTexture1 *>(get_ktx_texture(env, thiz));
 }
 
-static inline ktxTexture2 *get_ktx2_texture(JNIEnv *env, jobject thiz)
-{
-    return reinterpret_cast<ktxTexture2*>(get_ktx_texture(env, thiz));
+static inline ktxTexture2 *get_ktx2_texture(JNIEnv *env, jobject thiz) {
+    return reinterpret_cast<ktxTexture2 *>(get_ktx_texture(env, thiz));
 }
 
 #endif

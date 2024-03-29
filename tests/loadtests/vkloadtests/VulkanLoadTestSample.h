@@ -19,18 +19,17 @@
 
 #include <ktxvulkan.h>
 
-namespace VMA_CALLBACKS
-{
-    void InitVMA(VkPhysicalDevice& physicalDevice, VkDevice& device, VkInstance& instance, 
-                 VkPhysicalDeviceMemoryProperties& devMemProps);
-    void DestroyVMA();
-    uint64_t AllocMemCWrapper(VkMemoryAllocateInfo* allocInfo, VkMemoryRequirements* memReq, uint64_t* numPages);
-    VkResult BindBufferMemoryCWrapper(VkBuffer buffer, uint64_t allocId);
-    VkResult BindImageMemoryCWrapper(VkImage image, uint64_t allocId);
-    VkResult MapMemoryCWrapper(uint64_t allocId, uint64_t, VkDeviceSize* mapLength, void** dataPtr);
-    void UnmapMemoryCWrapper(uint64_t allocId, uint64_t);
-    void FreeMemCWrapper(uint64_t allocId);
-}
+namespace VMA_CALLBACKS {
+void InitVMA(VkPhysicalDevice& physicalDevice, VkDevice& device, VkInstance& instance,
+             VkPhysicalDeviceMemoryProperties& devMemProps);
+void DestroyVMA();
+uint64_t AllocMemCWrapper(VkMemoryAllocateInfo* allocInfo, VkMemoryRequirements* memReq, uint64_t* numPages);
+VkResult BindBufferMemoryCWrapper(VkBuffer buffer, uint64_t allocId);
+VkResult BindImageMemoryCWrapper(VkImage image, uint64_t allocId);
+VkResult MapMemoryCWrapper(uint64_t allocId, uint64_t, VkDeviceSize* mapLength, void** dataPtr);
+void UnmapMemoryCWrapper(uint64_t allocId, uint64_t);
+void FreeMemCWrapper(uint64_t allocId);
+}  // namespace VMA_CALLBACKS
 
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
 
@@ -39,63 +38,41 @@ extern "C" const char* vkFormatString(VkFormat format);
 class VulkanLoadTestSample : public LoadTestSample {
   public:
     typedef uint64_t ticks_t;
-    VulkanLoadTestSample(VulkanContext& vkctx,
-                     uint32_t width, uint32_t height,
-                     /* const char* const szArgs, */
-                     const std::string sBasePath, int32_t yflip = -1)
-           : LoadTestSample(width, height, /*szArgs,*/ sBasePath, yflip),
-             vkctx(vkctx),
-             defaultClearColor(std::array<float,4>({0.025f, 0.025f, 0.025f, 1.0f}))
-    {
-    }
+    VulkanLoadTestSample(VulkanContext& vkctx, uint32_t width, uint32_t height,
+                         /* const char* const szArgs, */
+                         const std::string sBasePath, int32_t yflip = -1)
+        : LoadTestSample(width, height, /*szArgs,*/ sBasePath, yflip),
+          vkctx(vkctx),
+          defaultClearColor(std::array<float, 4>({0.025f, 0.025f, 0.025f, 1.0f})) {}
 
     virtual ~VulkanLoadTestSample();
-    //virtual int doEvent(SDL_Event* event);
+    // virtual int doEvent(SDL_Event* event);
     virtual void resize(uint32_t width, uint32_t height) = 0;
     virtual void run(uint32_t msTicks) = 0;
 
-    virtual void getOverlayText(VulkanTextOverlay* /*textOverlay*/,
-                                float /*yoffset*/) { }
-    virtual const char* customizeTitle(const char* const title) {
-        return title;
-    }
+    virtual void getOverlayText(VulkanTextOverlay* /*textOverlay*/, float /*yoffset*/) {}
+    virtual const char* customizeTitle(const char* const title) { return title; }
 
-    typedef VulkanLoadTestSample* (*PFN_create)(VulkanContext&,
-                                    uint32_t width, uint32_t height,
-                                    const char* const szArgs,
-                                    const std::string sBasePath);
+    typedef VulkanLoadTestSample* (*PFN_create)(VulkanContext&, uint32_t width, uint32_t height, const char* const szArgs,
+                                                const std::string sBasePath);
 
   protected:
-
     ktxVulkanTexture_subAllocatorCallbacks subAllocatorCallbacks = {
-        VMA_CALLBACKS::AllocMemCWrapper,
-        VMA_CALLBACKS::BindBufferMemoryCWrapper,
-        VMA_CALLBACKS::BindImageMemoryCWrapper,
-        VMA_CALLBACKS::MapMemoryCWrapper,
-        VMA_CALLBACKS::UnmapMemoryCWrapper,
-        VMA_CALLBACKS::FreeMemCWrapper
-    };
+        VMA_CALLBACKS::AllocMemCWrapper,  VMA_CALLBACKS::BindBufferMemoryCWrapper, VMA_CALLBACKS::BindImageMemoryCWrapper,
+        VMA_CALLBACKS::MapMemoryCWrapper, VMA_CALLBACKS::UnmapMemoryCWrapper,      VMA_CALLBACKS::FreeMemCWrapper};
 
-    virtual void keyPressed(uint32_t /*keyCode*/) { }
-    virtual void viewChanged() { }
-    bool gpuSupportsSwizzle() {
-        return vkctx.gpuSupportsSwizzle();
-    }
+    virtual void keyPressed(uint32_t /*keyCode*/) {}
+    virtual void viewChanged() {}
+    bool gpuSupportsSwizzle() { return vkctx.gpuSupportsSwizzle(); }
 
     std::string ktxfilename;
     int externalFile = 0;
 
-    vk::PipelineShaderStageCreateInfo
-    loadShader(std::string filename,
-               vk::ShaderStageFlagBits stage,
-               const char* modname = "main");
-    void loadMesh(std::string filename,
-                  vkMeshLoader::MeshBuffer* meshBuffer,
-                  std::vector<vkMeshLoader::VertexLayout> vertexLayout,
+    vk::PipelineShaderStageCreateInfo loadShader(std::string filename, vk::ShaderStageFlagBits stage, const char* modname = "main");
+    void loadMesh(std::string filename, vkMeshLoader::MeshBuffer* meshBuffer, std::vector<vkMeshLoader::VertexLayout> vertexLayout,
                   float scale);
 
-    struct MeshBufferInfo
-    {
+    struct MeshBufferInfo {
         vk::Buffer buf;
         vk::DeviceMemory mem;
         vk::DeviceSize size = 0;
@@ -106,8 +83,7 @@ class VulkanLoadTestSample : public LoadTestSample {
         }
     };
 
-    struct MeshBuffer
-    {
+    struct MeshBuffer {
         MeshBufferInfo vertices;
         MeshBufferInfo indices;
         uint32_t indexCount;
@@ -119,8 +95,7 @@ class VulkanLoadTestSample : public LoadTestSample {
         }
     };
 
-    struct UniformData
-    {
+    struct UniformData {
         vk::Buffer buffer;
         vk::DeviceMemory memory;
         vk::DescriptorBufferInfo descriptor;

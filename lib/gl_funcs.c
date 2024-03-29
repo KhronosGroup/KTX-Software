@@ -35,7 +35,7 @@
 #undef MACOS
 #define MACOS 1
 #endif
-#if defined(__APPLE__) && (defined(__arm64__) || defined (__arm__))
+#if defined(__APPLE__) && (defined(__arm64__) || defined(__arm__))
 #undef IOS
 #define IOS 1
 #endif
@@ -69,21 +69,21 @@ HMODULE ktxOpenGLModuleHandle;
 #define GetOpenGLModuleHandle(flags) dlopen(NULL, flags)
 #define LoadProcAddr dlsym
 #define LIBRARY_NAME NULL
-void* ktxOpenGLModuleHandle;
+void *ktxOpenGLModuleHandle;
 #elif WEB
-extern void* emscripten_GetProcAddress(const char *name_);
-#define GetOpenGLModuleHandle(flag) (void*)0x0000ffff // Value doesn't matter.
+extern void *emscripten_GetProcAddress(const char *name_);
+#define GetOpenGLModuleHandle(flag) (void *)0x0000ffff  // Value doesn't matter.
 #define LoadProcAddr(lib, proc) emscripten_GetProcAddress(proc)
 #define LIBRARY_NAME "unused"
-void* ktxOpenGLModuleHandle;
+void *ktxOpenGLModuleHandle;
 #else
 #error "Don\'t know how to load symbols on this OS."
 #endif
 
-typedef void (WINAPI *PFNVOIDFUNCTION)(void);
-typedef  PFNVOIDFUNCTION *(WINAPI * PFNWGLGETPROCADDRESS) (const char *proc);
-static  PFNWGLGETPROCADDRESS wglGetProcAddressPtr;
-static const char* noloadmsg = "Could not load OpenGL command: %s!\n";
+typedef void(WINAPI *PFNVOIDFUNCTION)(void);
+typedef PFNVOIDFUNCTION *(WINAPI *PFNWGLGETPROCADDRESS)(const char *proc);
+static PFNWGLGETPROCADDRESS wglGetProcAddressPtr;
+static const char *noloadmsg = "Could not load OpenGL command: %s!\n";
 
 /* Define pointers for functions libktx is using. */
 struct glFuncPtrs gl;
@@ -95,25 +95,21 @@ struct glFuncPtrs gl;
 // compiler thus no warning even though -pedantic is set. Since the
 // platform supports dlsym, conversion to function pointers must
 // work, despite the mandated ISO C warning.
-#define GL_FUNCTION(type, func, required)                                  \
-  if ( wglGetProcAddressPtr )                                              \
-  *(void **)(&gl.func) = wglGetProcAddressPtr(#func);                      \
-  if ( !gl.func )                                                          \
-    *(void **)(&gl.func) = LoadProcAddr(ktxOpenGLModuleHandle, #func);     \
-  if ( !gl.func && required ) {                                            \
-        fprintf(stderr, noloadmsg, #func);                                 \
-        return KTX_NOT_FOUND;                                              \
-  }
+#define GL_FUNCTION(type, func, required)                                            \
+    if (wglGetProcAddressPtr) *(void **)(&gl.func) = wglGetProcAddressPtr(#func);    \
+    if (!gl.func) *(void **)(&gl.func) = LoadProcAddr(ktxOpenGLModuleHandle, #func); \
+    if (!gl.func && required) {                                                      \
+        fprintf(stderr, noloadmsg, #func);                                           \
+        return KTX_NOT_FOUND;                                                        \
+    }
 #else
-#define GL_FUNCTION(type, func, required)                                  \
-  if ( wglGetProcAddressPtr )                                              \
-    gl.func = (type)wglGetProcAddressPtr(#func);                           \
-  if ( !gl.func)                                                           \
-    gl.func = (type)LoadProcAddr(ktxOpenGLModuleHandle, #func);            \
-  if ( !gl.func && required) {                                             \
-    fprintf(stderr, noloadmsg, #func);                                     \
-    return KTX_NOT_FOUND;                                                  \
-  }
+#define GL_FUNCTION(type, func, required)                                     \
+    if (wglGetProcAddressPtr) gl.func = (type)wglGetProcAddressPtr(#func);    \
+    if (!gl.func) gl.func = (type)LoadProcAddr(ktxOpenGLModuleHandle, #func); \
+    if (!gl.func && required) {                                               \
+        fprintf(stderr, noloadmsg, #func);                                    \
+        return KTX_NOT_FOUND;                                                 \
+    }
 #endif
 
 #if WINDOWS
@@ -124,51 +120,29 @@ ktxFindOpenGL() {
     // Use GetModule not LoadLibrary so we only succeed if the process
     // has already loaded some OpenGL library.
     // Check current module to see if we are statically linked to GL.
-    found = GetModuleHandleExA(
-        GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
-        (LPCSTR)ktxFindOpenGL,
-        &module
-    );
+    found = GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (LPCSTR)ktxFindOpenGL, &module);
     if (found) {
-        if (LoadProcAddr(module, "glGetError") != NULL)
-            return module;
+        if (LoadProcAddr(module, "glGetError") != NULL) return module;
     }
     // Not statically linked. See what dll the process has loaded.
     // Emulators probably also have opengl32.lib loaded so check that last.
-    found = GetModuleHandleExA(
-        0,
-        "libGLESv2.dll",
-        &module
-    );
+    found = GetModuleHandleExA(0, "libGLESv2.dll", &module);
     if (found) return module;
-    found = GetModuleHandleExA(
-        0,
-        "libGLES_CM.dll",
-        &module
-    );
+    found = GetModuleHandleExA(0, "libGLES_CM.dll", &module);
     if (found) return module;
-    found = GetModuleHandleExA(
-        0,
-        "opengl32.dll",
-        &module
-    );
+    found = GetModuleHandleExA(0, "opengl32.dll", &module);
     if (found) {
         // Need wglGetProcAddr for non-OpenGL-2 functions.
-        wglGetProcAddressPtr =
-            (PFNWGLGETPROCADDRESS)LoadProcAddr(module,
-                                               "wglGetProcAddress");
-        if (wglGetProcAddressPtr != NULL)
-            return module;
+        wglGetProcAddressPtr = (PFNWGLGETPROCADDRESS)LoadProcAddr(module, "wglGetProcAddress");
+        if (wglGetProcAddressPtr != NULL) return module;
     }
-    return module; // Keep the compiler happy!
+    return module;  // Keep the compiler happy!
 }
 #endif
 
 ktx_error_code_e
-ktxLoadOpenGLLibrary(void)
-{
-    if (ktxOpenGLModuleHandle)
-        return KTX_SUCCESS;
+ktxLoadOpenGLLibrary(void) {
+    if (ktxOpenGLModuleHandle) return KTX_SUCCESS;
 
     ktxOpenGLModuleHandle = GetOpenGLModuleHandle(RTLD_LAZY);
     if (ktxOpenGLModuleHandle == NULL) {
@@ -181,7 +155,7 @@ ktxLoadOpenGLLibrary(void)
 #if defined(DEBUG)
         abort();
 #else
-        return KTX_LIBRARY_NOT_LINKED; // So release version doesn't crash.
+        return KTX_LIBRARY_NOT_LINKED;  // So release version doesn't crash.
 #endif
     }
 
@@ -191,4 +165,3 @@ ktxLoadOpenGLLibrary(void)
 }
 
 #undef GL_FUNCTION
-

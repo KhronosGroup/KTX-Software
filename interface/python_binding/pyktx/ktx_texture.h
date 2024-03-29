@@ -24,18 +24,14 @@ typedef struct {
     int error;
 } ktxImageOffset;
 
-ktxTextureMixed PY_ktxTexture_CreateFromNamedFile(const char* const filename, ktx_uint32_t create_flags);
+ktxTextureMixed PY_ktxTexture_CreateFromNamedFile(const char *const filename, ktx_uint32_t create_flags);
 ktxWriteToMemory PY_ktxTexture_WriteToMemory(ktxTexture *);
-ktxImageOffset PY_ktxTexture_GetImageOffset(ktxTexture *,
-                                            ktx_uint32_t level,
-                                            ktx_uint32_t layer,
-                                            ktx_uint32_t faceSlice);
+ktxImageOffset PY_ktxTexture_GetImageOffset(ktxTexture *, ktx_uint32_t level, ktx_uint32_t layer, ktx_uint32_t faceSlice);
 ktxWriteToMemory PY_ktxHashList_FindValue(ktxHashList *, const char *key);
 ktxWriteToMemory PY_ktxHashListEntry_GetKey(ktxHashListEntry *);
 ktxWriteToMemory PY_ktxHashListEntry_GetValue(ktxHashListEntry *);
 
-#define KTX_GETTER(type, prop) \
-    type PY_ktxTexture_get_##prop(ktxTexture *texture)
+#define KTX_GETTER(type, prop) type PY_ktxTexture_get_##prop(ktxTexture *texture)
 
 KTX_GETTER(class_id, classId);
 KTX_GETTER(ktx_bool_t, isArray);
@@ -53,10 +49,7 @@ KTX_GETTER(ktx_uint8_t *, kvData);
 KTX_GETTER(ktxHashList *, kvDataHead);
 ktxHashListEntry *PY_ktxHashList_get_listHead(ktxHashList *list);
 
-#define KTX_IMPL(type, prop)        \
-KTX_GETTER(type, prop)              \
-{                                   \
-    return texture->prop;           \
-}
+#define KTX_IMPL(type, prop) \
+    KTX_GETTER(type, prop) { return texture->prop; }
 
 #endif

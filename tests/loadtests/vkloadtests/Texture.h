@@ -12,32 +12,22 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-class Texture : public VulkanLoadTestSample
-{
+class Texture : public VulkanLoadTestSample {
   public:
-    Texture(VulkanContext& vkctx,
-            uint32_t width, uint32_t height,
-            const char* const szArgs,
-            const std::string sBasePath);
+    Texture(VulkanContext& vkctx, uint32_t width, uint32_t height, const char* const szArgs, const std::string sBasePath);
     ~Texture();
 
     virtual void resize(uint32_t width, uint32_t height);
     virtual void run(uint32_t msTicks);
 
-    virtual void getOverlayText(VulkanTextOverlay *textOverlay, float yOffset);
+    virtual void getOverlayText(VulkanTextOverlay* textOverlay, float yOffset);
     virtual const char* customizeTitle(const char* const title);
 
-    static VulkanLoadTestSample*
-    create(VulkanContext& vkctx,
-           uint32_t width, uint32_t height,
-           const char* const szArgs, const std::string sBasePath);
+    static VulkanLoadTestSample* create(VulkanContext& vkctx, uint32_t width, uint32_t height, const char* const szArgs,
+                                        const std::string sBasePath);
 
   protected:
-    enum class UseSuballocator
-    {
-        No = 0,
-        Yes
-    };
+    enum class UseSuballocator { No = 0, Yes };
 
     std::string filename;
     ktxVulkanTexture texture;
@@ -55,7 +45,7 @@ class Texture : public VulkanLoadTestSample
 
     MeshBuffer quad;
     typedef std::array<float, 3> rgbcolor;
-    std::array<rgbcolor,4> quadColor;
+    std::array<rgbcolor, 4> quadColor;
 
     UniformData uniformDataVS;
 
@@ -96,16 +86,11 @@ class Texture : public VulkanLoadTestSample
     void updateUniformBuffers();
     void prepareSamplerAndView();
     void prepare();
-    
+
     void processArgs(std::string sArgs);
 
     virtual void keyPressed(uint32_t keyCode);
-    virtual void viewChanged()
-    {
-        updateUniformBuffers();
-    }
+    virtual void viewChanged() { updateUniformBuffers(); }
 
     void changeLodBias(float delta);
 };
-
-

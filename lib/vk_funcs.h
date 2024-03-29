@@ -29,7 +29,6 @@
 #include "vulkan/vulkan_core.h"
 #include "ktx.h"
 
-
 #if WINDOWS
 #define WINDOWS_LEAN_AND_MEAN
 #include <windows.h>
@@ -43,6 +42,4 @@ ktx_error_code_e ktxLoadVulkanLibrary(void);
 // This is used to load instance functions through libktx's methods.
 PFN_vkVoidFunction ktxLoadVulkanFunction(const char* pName);
 
-
 #endif /* _VK_FUNCS_H_ */
-

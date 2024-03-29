@@ -19,15 +19,15 @@
 #include "version.h"
 
 #if defined(_MSC_VER)
-  #define strncasecmp _strnicmp
-  #define fileno _fileno
-  #define mktemp _mkstemp
-  #define isatty _isatty
+#define strncasecmp _strnicmp
+#define fileno _fileno
+#define mktemp _mkstemp
+#define isatty _isatty
 #endif
 
 #if defined(_MSC_VER)
-  #undef min
-  #undef max
+#undef min
+#undef max
 #endif
 
 using namespace std;
@@ -102,8 +102,8 @@ class ktxSupercompressor : public scApp {
     void validateOptions();
 
     struct commandOptions : public scApp::commandOptions {
-        bool        useStdout;
-        bool        force;
+        bool useStdout;
+        bool force;
 
         commandOptions() {
             force = false;
@@ -112,45 +112,38 @@ class ktxSupercompressor : public scApp {
     } options;
 };
 
-ktxSupercompressor::ktxSupercompressor() : scApp(myversion, mydefversion, options)
-{
+ktxSupercompressor::ktxSupercompressor() : scApp(myversion, mydefversion, options) {
     argparser::option my_option_list[] = {
-        { "force", argparser::option::no_argument, NULL, 'f' },
-        { "outfile", argparser::option::required_argument, NULL, 'o' },
+        {"force", argparser::option::no_argument, NULL, 'f'},
+        {"outfile", argparser::option::required_argument, NULL, 'o'},
     };
-    const int lastOptionIndex = sizeof(my_option_list)
-                                / sizeof(argparser::option);
-    option_list.insert(option_list.begin(), my_option_list,
-                       my_option_list + lastOptionIndex);
+    const int lastOptionIndex = sizeof(my_option_list) / sizeof(argparser::option);
+    option_list.insert(option_list.begin(), my_option_list, my_option_list + lastOptionIndex);
     short_opts += "fo:";
 }
 
-void
-ktxSupercompressor::usage()
-{
-    cerr <<
-        "Usage: " << name  << " [options] [<infile> ...]\n"
-        "\n"
-        "  infile       The ktx2 file(s) to supercompress. The output is written to a\n"
-        "               file of the same name. If infile not specified input will be read\n"
-        "               from stdin and the compressed texture written to stdout.\n"
-        "\n"
-        "  Options are:\n"
-        "\n"
-        "  -o outfile, --output=outfile\n"
-        "               Writes the output to outfile. If outfile is 'stdout', output\n"
-        "               will be written to stdout. Parent directories will be\n"
-        "               created if necessary. If there is more than 1 input file\n"
-        "               the command prints its usage message and exits.\n"
-        "  -f, --force  If the output file cannot be opened, remove it and create a\n"
-        "               new file, without prompting for confirmation regardless of\n"
-        "               its permissions.\n";
-        scApp::usage();
+void ktxSupercompressor::usage() {
+    cerr << "Usage: " << name
+         << " [options] [<infile> ...]\n"
+            "\n"
+            "  infile       The ktx2 file(s) to supercompress. The output is written to a\n"
+            "               file of the same name. If infile not specified input will be read\n"
+            "               from stdin and the compressed texture written to stdout.\n"
+            "\n"
+            "  Options are:\n"
+            "\n"
+            "  -o outfile, --output=outfile\n"
+            "               Writes the output to outfile. If outfile is 'stdout', output\n"
+            "               will be written to stdout. Parent directories will be\n"
+            "               created if necessary. If there is more than 1 input file\n"
+            "               the command prints its usage message and exits.\n"
+            "  -f, --force  If the output file cannot be opened, remove it and create a\n"
+            "               new file, without prompting for confirmation regardless of\n"
+            "               its permissions.\n";
+    scApp::usage();
 }
 
-
-static string dir_name(const string& path)
-{
+static string dir_name(const string& path) {
     // Supports both Unix-style and Windows-style.
     size_t last_separator = path.find_last_of("/\\");
     if (last_separator != string::npos) {
@@ -163,9 +156,7 @@ static string dir_name(const string& path)
 static ktxSupercompressor ktxsc;
 ktxApp& theApp = ktxsc;
 
-int
-ktxSupercompressor::main(int argc, char* argv[])
-{
+int ktxSupercompressor::main(int argc, char* argv[]) {
     FILE *inf, *outf = nullptr;
     KTX_error_code result;
     ktxTexture2* texture = 0;
@@ -183,7 +174,7 @@ ktxSupercompressor::main(int argc, char* argv[])
             inf = stdin;
 #if defined(_WIN32)
             /* Set "stdin" to have binary mode */
-            (void)_setmode( _fileno( stdin ), _O_BINARY );
+            (void)_setmode(_fileno(stdin), _O_BINARY);
 #endif
         } else {
             inf = fopenUTF8(infile, "rb");
@@ -194,12 +185,11 @@ ktxSupercompressor::main(int argc, char* argv[])
                 outf = stdout;
 #if defined(_WIN32)
                 /* Set "stdout" to have binary mode */
-                (void)_setmode( _fileno( stdout ), _O_BINARY );
+                (void)_setmode(_fileno(stdout), _O_BINARY);
 #endif
             } else if (options.outfile.length()) {
                 const auto outputPath = filesystem::path(DecodeUTF8Path(options.outfile));
-                if (outputPath.has_parent_path())
-                    filesystem::create_directories(outputPath.parent_path());
+                if (outputPath.has_parent_path()) filesystem::create_directories(outputPath.parent_path());
                 outf = fopen_write_if_not_exists(options.outfile);
             } else {
                 // Make a temporary file in the same directory as the source
@@ -209,8 +199,7 @@ ktxSupercompressor::main(int argc, char* argv[])
                 // Despite receiving size() the debug CRT version of mktemp_s
                 // asserts that the string template is NUL terminated.
                 tmpfile.push_back('\0');
-                if (_wmktemp_s(&DecodeUTF8Path(tmpfile)[0], tmpfile.size()) == 0)
-                    outf = fopenUTF8(tmpfile, "wb");
+                if (_wmktemp_s(&DecodeUTF8Path(tmpfile)[0], tmpfile.size()) == 0) outf = fopenUTF8(tmpfile, "wb");
 #else
                 int fd_tmp = mkstemp(&tmpfile[0]);
                 outf = fdopen(fd_tmp, "wb");
@@ -222,8 +211,7 @@ ktxSupercompressor::main(int argc, char* argv[])
                 if (!force) {
                     if (isatty(fileno(stdin))) {
                         char answer;
-                        cout << "Output file " << options.outfile
-                             << " exists. Overwrite? [Y or n] ";
+                        cout << "Output file " << options.outfile << " exists. Overwrite? [Y or n] ";
                         cin >> answer;
                         if (answer == 'Y') {
                             force = true;
@@ -236,17 +224,13 @@ ktxSupercompressor::main(int argc, char* argv[])
             }
 
             if (outf) {
-                result = ktxTexture2_CreateFromStdioStream(inf,
-                                        KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-                                        &texture);
+                result = ktxTexture2_CreateFromStdioStream(inf, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
                 if (result == KTX_UNKNOWN_FILE_FORMAT) {
                     cerr << infile << " is not a KTX v2 file." << endl;
                     exitCode = 2;
                     goto cleanup;
                 } else if (result != KTX_SUCCESS) {
-                    cerr << name
-                         << " failed to create ktxTexture from " << infile
-                         << ": " << ktxErrorString(result) << endl;
+                    cerr << name << " failed to create ktxTexture from " << infile << ": " << ktxErrorString(result) << endl;
                     exitCode = 2;
                     goto cleanup;
                 }
@@ -254,23 +238,20 @@ ktxSupercompressor::main(int argc, char* argv[])
 
                 if (texture->classId != ktxTexture2_c) {
                     cerr << name << ": "
-                         << "Only KTX texture version 2 files can be supercompressed."
-                         << endl;
+                         << "Only KTX texture version 2 files can be supercompressed." << endl;
                     exitCode = 1;
                     goto cleanup;
                 }
                 if (texture->supercompressionScheme != KTX_SS_NONE) {
                     cerr << name << ": "
-                         << "Cannot supercompress already supercompressed files."
-                         << endl;
+                         << "Cannot supercompress already supercompressed files." << endl;
                     exitCode = 1;
                     goto cleanup;
                 }
                 if ((options.astc || options.etc1s || options.bopts.uastc) && texture->isCompressed) {
                     cerr << name << ": "
                          << "Cannot encode already block-compressed textures "
-                         << "to ASTC, Basis Universal or UASTC."
-                         << endl;
+                         << "to ASTC, Basis Universal or UASTC." << endl;
                     exitCode = 1;
                     goto cleanup;
                 }
@@ -279,18 +260,14 @@ ktxSupercompressor::main(int argc, char* argv[])
                 stringstream writer;
                 writeId(writer, true);
                 ktxHashList_DeleteKVPair(&texture->kvDataHead, KTX_WRITER_KEY);
-                ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
-                                      (ktx_uint32_t)writer.str().length() + 1,
+                ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY, (ktx_uint32_t)writer.str().length() + 1,
                                       writer.str().c_str());
 
                 exitCode = encode(texture, options.inputSwizzle, infile);
-                if (exitCode)
-                    goto cleanup;
+                if (exitCode) goto cleanup;
                 result = ktxTexture_WriteToStdioStream(ktxTexture(texture), outf);
                 if (result != KTX_SUCCESS) {
-                    cerr << name
-                         << " failed to write KTX file; "
-                         << ktxErrorString(result) << endl;
+                    cerr << name << " failed to write KTX file; " << ktxErrorString(result) << endl;
                     exitCode = 2;
                     goto cleanup;
                 }
@@ -300,32 +277,25 @@ ktxSupercompressor::main(int argc, char* argv[])
                     assert(tmpfile.size() > 0 && infile.length());
 #if defined(_WIN32)
                     // Windows' rename() fails if the destination file exists!
-                    if (!MoveFileExW(DecodeUTF8Path(tmpfile).c_str(), DecodeUTF8Path(infile).c_str(),
-                                     MOVEFILE_REPLACE_EXISTING))
+                    if (!MoveFileExW(DecodeUTF8Path(tmpfile).c_str(), DecodeUTF8Path(infile).c_str(), MOVEFILE_REPLACE_EXISTING))
 #else
                     if (rename(tmpfile.c_str(), infile.c_str()))
 #endif
                     {
-                        cerr << name
-                             << ": rename of \"" << tmpfile << "\" to \""
-                             << infile << "\" failed: "
-                             << strerror(errno) << endl;
+                        cerr << name << ": rename of \"" << tmpfile << "\" to \"" << infile << "\" failed: " << strerror(errno)
+                             << endl;
                         exitCode = 2;
                         goto cleanup;
                     }
                 }
             } else {
-                cerr << name
-                     << " could not open output file \""
-                     << (options.useStdout ? "stdout" : options.outfile) << "\". "
+                cerr << name << " could not open output file \"" << (options.useStdout ? "stdout" : options.outfile) << "\". "
                      << strerror(errno) << endl;
                 exitCode = 2;
                 goto cleanup;
             }
         } else {
-            cerr << name
-                 << " could not open input file \""
-                 << (infile.compare("-") == 0 ? "stdin" : infile) << "\". "
+            cerr << name << " could not open input file \"" << (infile.compare("-") == 0 ? "stdin" : infile) << "\". "
                  << strerror(errno) << endl;
             exitCode = 2;
             goto cleanup;
@@ -334,18 +304,15 @@ ktxSupercompressor::main(int argc, char* argv[])
     return 0;
 
 cleanup:
-    if (outf) { // Windows debug CRT fclose asserts that outf != nullptr...
-        (void)fclose(outf); // N.B Windows refuses to unlink an open file.
+    if (outf) {              // Windows debug CRT fclose asserts that outf != nullptr...
+        (void)fclose(outf);  // N.B Windows refuses to unlink an open file.
     }
     if (tmpfile.size() > 0) (void)unlinkUTF8(tmpfile);
     if (options.outfile.length()) (void)unlinkUTF8(options.outfile);
     return exitCode;
 }
 
-
-void
-ktxSupercompressor::validateOptions()
-{
+void ktxSupercompressor::validateOptions() {
     scApp::validateOptions();
 
     if (options.infiles.size() > 1 && options.outfile.length()) {
@@ -359,9 +326,9 @@ ktxSupercompressor::validateOptions()
         exit(1);
     }
     if (!options.astc && !options.etc1s && !options.zcmp && !options.bopts.uastc) {
-       cerr << "Must specify one of --zcmp, --etc1s (deprecated --bcmp) or --uastc." << endl;
-       usage();
-       exit(1);
+        cerr << "Must specify one of --zcmp, --etc1s (deprecated --bcmp) or --uastc." << endl;
+        usage();
+        exit(1);
     }
 }
 
@@ -372,14 +339,12 @@ ktxSupercompressor::validateOptions()
  *
  * @param[in]     parser,     an @c argparser holding the options to process.
  */
-bool
-ktxSupercompressor::processOption(argparser& parser, int opt)
-{
+bool ktxSupercompressor::processOption(argparser& parser, int opt) {
     switch (opt) {
-      case 'f':
+    case 'f':
         options.force = true;
         break;
-      case 'o':
+    case 'o':
         options.outfile = parser.optarg;
         if (!options.outfile.compare("stdout")) {
             options.useStdout = true;
@@ -393,13 +358,12 @@ ktxSupercompressor::processOption(argparser& parser, int opt)
             }
             // dot < slash means there's a dot but it is not prefixing
             // a file extension.
-            if (dot == string::npos
-                || (slash != string::npos && dot < slash)) {
+            if (dot == string::npos || (slash != string::npos && dot < slash)) {
                 options.outfile += ".ktx2";
             }
         }
         break;
-      default:
+    default:
         return scApp::processOption(parser, opt);
     }
     return true;

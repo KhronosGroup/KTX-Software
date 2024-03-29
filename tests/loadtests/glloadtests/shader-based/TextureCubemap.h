@@ -25,22 +25,17 @@
 #define VERTEX_BUFFER_BIND_ID 0
 #define ENABLE_VALIDATION false
 
-class TextureCubemap : public GL3LoadTestSample
-{
+class TextureCubemap : public GL3LoadTestSample {
   public:
-    TextureCubemap(uint32_t width, uint32_t height,
-                 const char* const szArgs,
-                 const std::string sBasePath);
+    TextureCubemap(uint32_t width, uint32_t height, const char* const szArgs, const std::string sBasePath);
     ~TextureCubemap();
 
     virtual void resize(uint32_t width, uint32_t height);
     virtual void run(uint32_t msTicks);
 
-    //virtual void getOverlayText(VulkanTextOverlay *textOverlay);
+    // virtual void getOverlayText(VulkanTextOverlay *textOverlay);
 
-    static LoadTestSample*
-    create(uint32_t width, uint32_t height,
-           const char* const szArgs, const std::string sBasePath);
+    static LoadTestSample* create(uint32_t width, uint32_t height, const char* const szArgs, const std::string sBasePath);
 
   protected:
     const GLuint cubemapTexUnit;
@@ -51,11 +46,11 @@ class TextureCubemap : public GL3LoadTestSample
     GLuint gnReflectProg;
     GLuint gnSkyboxProg;
     GLuint gnUbo;
-    
+
     bool bInitialized;
     bool bIsMipmapped;
     bool bDisplaySkybox = true;
-    
+
     uint32_t numLayers;
 
     // Vertex layout for this example
@@ -63,7 +58,7 @@ class TextureCubemap : public GL3LoadTestSample
         float pos[3];
         float uv[2];
     };
-    
+
     struct {
         glMeshLoader::MeshBuffer skybox;
         std::vector<glMeshLoader::MeshBuffer> objects;
@@ -79,7 +74,7 @@ class TextureCubemap : public GL3LoadTestSample
         glm::mat4 uvwTransform;
         float lodBias = 0.0f;
     } ubo;
-    
+
     GLint uReflectProgramUniforms;
     GLint uSkyboxProgramUniforms;
     GLint uReflectCubemap;
@@ -102,10 +97,7 @@ class TextureCubemap : public GL3LoadTestSample
     void processArgs(std::string sArgs);
 
     virtual void keyPressed(uint32_t keyCode);
-    virtual void viewChanged()
-    {
-        updateUniformBuffers();
-    }
+    virtual void viewChanged() { updateUniformBuffers(); }
 
     GLuint skyboxVAO, skyboxVBO;
 };

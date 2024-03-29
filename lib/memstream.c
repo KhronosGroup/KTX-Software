@@ -26,20 +26,19 @@
 #include "memstream.h"
 
 /**
-* @brief Default allocation size for a ktxMemStream.
-*/
+ * @brief Default allocation size for a ktxMemStream.
+ */
 #define KTX_MEM_DEFAULT_ALLOCATED_SIZE 256
 
 /**
  * @brief Structure to store information about data allocated for ktxMemStream.
  */
-struct ktxMem
-{
-    const ktx_uint8_t* robytes;/*!< pointer to read-only data */
-    ktx_uint8_t* bytes;        /*!< pointer to rw data. */
-    ktx_size_t alloc_size;       /*!< allocated size of the memory block. */
-    ktx_size_t used_size;        /*!< bytes used. Effectively the write position. */
-    ktx_off_t pos;               /*!< read/write position. */
+struct ktxMem {
+    const ktx_uint8_t* robytes; /*!< pointer to read-only data */
+    ktx_uint8_t* bytes;         /*!< pointer to rw data. */
+    ktx_size_t alloc_size;      /*!< allocated size of the memory block. */
+    ktx_size_t used_size;       /*!< bytes used. Effectively the write position. */
+    ktx_off_t pos;              /*!< read/write position. */
 };
 
 static KTX_error_code ktxMem_expand(ktxMem* pMem, const ktx_size_t size);
@@ -56,8 +55,7 @@ static KTX_error_code ktxMem_expand(ktxMem* pMem, const ktx_size_t size);
  * @param [in] pMem pointer to the @c ktxMem to initialize.
  */
 static KTX_error_code
-ktxMem_construct(ktxMem* pMem)
-{
+ktxMem_construct(ktxMem* pMem) {
     pMem->pos = 0;
     pMem->alloc_size = 0;
     pMem->robytes = 0;
@@ -79,16 +77,13 @@ ktxMem_construct(ktxMem* pMem)
  * @exception  KTX_OUT_OF_MEMORY    System failed to allocate sufficient pMemory.
  */
 static KTX_error_code
-ktxMem_create(ktxMem** ppMem)
-{
+ktxMem_create(ktxMem** ppMem) {
     ktxMem* pNewMem = (ktxMem*)malloc(sizeof(ktxMem));
     if (pNewMem) {
         KTX_error_code result = ktxMem_construct(pNewMem);
-        if (result == KTX_SUCCESS)
-            *ppMem = pNewMem;
+        if (result == KTX_SUCCESS) *ppMem = pNewMem;
         return result;
-    }
-    else {
+    } else {
         return KTX_OUT_OF_MEMORY;
     }
 }
@@ -101,8 +96,7 @@ ktxMem_create(ktxMem** ppMem)
  * @param [in] numBytes number of bytes of data.
  */
 static void
-ktxMem_construct_ro(ktxMem* pMem, const void* bytes, ktx_size_t numBytes)
-{
+ktxMem_construct_ro(ktxMem* pMem, const void* bytes, ktx_size_t numBytes) {
     pMem->pos = 0;
     pMem->robytes = bytes;
     pMem->bytes = 0;
@@ -125,15 +119,13 @@ ktxMem_construct_ro(ktxMem* pMem, const void* bytes, ktx_size_t numBytes)
  * @exception  KTX_OUT_OF_MEMORY    System failed to allocate sufficient pMemory.
  */
 static KTX_error_code
-ktxMem_create_ro(ktxMem** ppMem, const void* bytes, ktx_size_t numBytes)
-{
+ktxMem_create_ro(ktxMem** ppMem, const void* bytes, ktx_size_t numBytes) {
     ktxMem* pNewMem = (ktxMem*)malloc(sizeof(ktxMem));
     if (pNewMem) {
         ktxMem_construct_ro(pNewMem, bytes, numBytes);
         *ppMem = pNewMem;
         return KTX_SUCCESS;
-    }
-    else {
+    } else {
         return KTX_OUT_OF_MEMORY;
     }
 }
@@ -149,8 +141,7 @@ ktxMem_create_ro(ktxMem** ppMem, const void* bytes, ktx_size_t numBytes)
  * @param pMem pointer to ktxMem to free.
  */
 static void
-ktxMem_destroy(ktxMem* pMem, ktx_bool_t freeData)
-{
+ktxMem_destroy(ktxMem* pMem, ktx_bool_t freeData) {
     assert(pMem != NULL);
     if (freeData) {
         free(pMem->bytes);
@@ -165,8 +156,7 @@ ktxMem_destroy(ktxMem* pMem, ktx_bool_t freeData)
  * @param pMem pointer to ktxMem to clear.
  */
 static void
-ktxMem_clear(ktxMem* pMem)
-{
+ktxMem_clear(ktxMem* pMem) {
     assert(pMem != NULL);
     memset(pMem, 0, sizeof(ktxMem));
 }
@@ -184,14 +174,12 @@ ktxMem_clear(ktxMem* pMem)
  * @exception  KTX_OUT_OF_MEMORY    System failed to allocate sufficient pMemory.
  */
 static KTX_error_code
-ktxMem_expand(ktxMem *pMem, const ktx_size_t newsize)
-{
+ktxMem_expand(ktxMem* pMem, const ktx_size_t newsize) {
     ktx_size_t new_alloc_size;
 
     assert(pMem != NULL && newsize != 0);
 
-    new_alloc_size = pMem->alloc_size == 0 ?
-                     KTX_MEM_DEFAULT_ALLOCATED_SIZE : pMem->alloc_size;
+    new_alloc_size = pMem->alloc_size == 0 ? KTX_MEM_DEFAULT_ALLOCATED_SIZE : pMem->alloc_size;
     while (new_alloc_size < newsize) {
         ktx_size_t alloc_size = new_alloc_size;
         new_alloc_size <<= 1;
@@ -201,16 +189,14 @@ ktxMem_expand(ktxMem *pMem, const ktx_size_t newsize)
         }
     }
 
-    if (new_alloc_size == pMem->alloc_size)
-        return KTX_SUCCESS;
+    if (new_alloc_size == pMem->alloc_size) return KTX_SUCCESS;
 
     if (!pMem->bytes)
         pMem->bytes = (ktx_uint8_t*)malloc(new_alloc_size);
     else
         pMem->bytes = (ktx_uint8_t*)realloc(pMem->bytes, new_alloc_size);
 
-    if (!pMem->bytes)
-    {
+    if (!pMem->bytes) {
         pMem->alloc_size = 0;
         pMem->used_size = 0;
         return KTX_OUT_OF_MEMORY;
@@ -235,21 +221,17 @@ ktxMem_expand(ktxMem *pMem, const ktx_size_t newsize)
  *                                  @c NULL.
  * @exception KTX_FILE_UNEXPECTED_EOF not enough data to satisfy the request.
  */
-static
-KTX_error_code ktxMemStream_read(ktxStream* str, void* dst, const ktx_size_t count)
-{
+static KTX_error_code
+ktxMemStream_read(ktxStream* str, void* dst, const ktx_size_t count) {
     ktxMem* mem;
     ktx_off_t newpos;
     const ktx_uint8_t* bytes;
 
-
-    if (!str || (mem = str->data.mem)== 0)
-        return KTX_INVALID_VALUE;
+    if (!str || (mem = str->data.mem) == 0) return KTX_INVALID_VALUE;
 
     newpos = mem->pos + count;
     /* The first clause checks for overflow. */
-    if (newpos < mem->pos || (ktx_uint32_t)newpos > mem->used_size)
-        return KTX_FILE_UNEXPECTED_EOF;
+    if (newpos < mem->pos || (ktx_uint32_t)newpos > mem->used_size) return KTX_FILE_UNEXPECTED_EOF;
 
     bytes = mem->robytes ? mem->robytes : mem->bytes;
     memcpy(dst, bytes + mem->pos, count);
@@ -271,19 +253,16 @@ KTX_error_code ktxMemStream_read(ktxStream* str, void* dst, const ktx_size_t cou
  *                                  data is not available in ktxMem.
  * @exception KTX_FILE_UNEXPECTED_EOF not enough data to satisfy the request.
  */
-static
-KTX_error_code ktxMemStream_skip(ktxStream* str, const ktx_size_t count)
-{
+static KTX_error_code
+ktxMemStream_skip(ktxStream* str, const ktx_size_t count) {
     ktxMem* mem;
     ktx_off_t newpos;
 
-    if (!str || (mem = str->data.mem) == 0)
-        return KTX_INVALID_VALUE;
+    if (!str || (mem = str->data.mem) == 0) return KTX_INVALID_VALUE;
 
     newpos = mem->pos + count;
     /* The first clause checks for overflow. */
-    if (newpos < mem->pos || (ktx_uint32_t)newpos > mem->used_size)
-        return KTX_FILE_UNEXPECTED_EOF;
+    if (newpos < mem->pos || (ktx_uint32_t)newpos > mem->used_size) return KTX_FILE_UNEXPECTED_EOF;
 
     mem->pos = newpos;
 
@@ -309,36 +288,28 @@ KTX_error_code ktxMemStream_skip(ktxStream* str, const ktx_size_t count)
  * @exception KTX_INVALID_VALUE        @p dst is @c NULL or @p mem is @c NULL.
  * @exception KTX_OUT_OF_MEMORY        See ktxMem_expand() for causes.
  */
-static
-KTX_error_code ktxMemStream_write(ktxStream* str, const void* src,
-                                  const ktx_size_t size, const ktx_size_t count)
-{
+static KTX_error_code
+ktxMemStream_write(ktxStream* str, const void* src, const ktx_size_t size, const ktx_size_t count) {
     ktxMem* mem;
     KTX_error_code rc = KTX_SUCCESS;
     ktx_size_t new_size;
 
-    if (!str || (mem = str->data.mem) == 0)
-        return KTX_INVALID_VALUE;
+    if (!str || (mem = str->data.mem) == 0) return KTX_INVALID_VALUE;
 
-    if (mem->robytes)
-        return KTX_INVALID_OPERATION; /* read-only */
+    if (mem->robytes) return KTX_INVALID_OPERATION; /* read-only */
 
-    new_size = mem->pos + (size*count);
-    //if (new_size < mem->used_size)
-    if ((ktx_off_t)new_size < mem->pos)
-        return KTX_FILE_OVERFLOW;
+    new_size = mem->pos + (size * count);
+    // if (new_size < mem->used_size)
+    if ((ktx_off_t)new_size < mem->pos) return KTX_FILE_OVERFLOW;
 
     if (mem->alloc_size < new_size) {
         rc = ktxMem_expand(mem, new_size);
-        if (rc != KTX_SUCCESS)
-            return rc;
+        if (rc != KTX_SUCCESS) return rc;
     }
 
-    memcpy(mem->bytes + mem->pos, src, size*count);
-    mem->pos += size*count;
-    if (mem->pos > (ktx_off_t)mem->used_size)
-        mem->used_size = mem->pos;
-
+    memcpy(mem->bytes + mem->pos, src, size * count);
+    mem->pos += size * count;
+    if (mem->pos > (ktx_off_t)mem->used_size) mem->used_size = mem->pos;
 
     return KTX_SUCCESS;
 }
@@ -354,11 +325,9 @@ KTX_error_code ktxMemStream_write(ktxStream* str, const void* src,
  *
  * @exception KTX_INVALID_VALUE @p str or @p pos is @c NULL.
  */
-static
-KTX_error_code ktxMemStream_getpos(ktxStream* str, ktx_off_t* const pos)
-{
-    if (!str || !pos)
-        return KTX_INVALID_VALUE;
+static KTX_error_code
+ktxMemStream_getpos(ktxStream* str, ktx_off_t* const pos) {
+    if (!str || !pos) return KTX_INVALID_VALUE;
 
     assert(str->type == eStreamTypeMemory);
 
@@ -380,16 +349,13 @@ KTX_error_code ktxMemStream_getpos(ktxStream* str, ktx_off_t* const pos)
  * @exception KTX_INVALID_VALUE @p str is @c NULL.
  * @exception KTX_INVALID_OPERATION @p pos > size of the allocated memory.
  */
-static
-KTX_error_code ktxMemStream_setpos(ktxStream* str, ktx_off_t pos)
-{
-    if (!str)
-        return KTX_INVALID_VALUE;
+static KTX_error_code
+ktxMemStream_setpos(ktxStream* str, ktx_off_t pos) {
+    if (!str) return KTX_INVALID_VALUE;
 
     assert(str->type == eStreamTypeMemory);
 
-    if (pos > (ktx_off_t)str->data.mem->alloc_size)
-        return KTX_INVALID_OPERATION;
+    if (pos > (ktx_off_t)str->data.mem->alloc_size) return KTX_INVALID_OPERATION;
 
     str->data.mem->pos = pos;
     return KTX_SUCCESS;
@@ -411,10 +377,9 @@ KTX_error_code ktxMemStream_setpos(ktxStream* str, ktx_off_t pos)
  *
  * @exception KTX_INVALID_VALUE @p str or @p ppBytes is @c NULL.
  */
-KTX_error_code ktxMemStream_getdata(ktxStream* str, ktx_uint8_t** ppBytes)
-{
-    if (!str || !ppBytes)
-        return KTX_INVALID_VALUE;
+KTX_error_code
+ktxMemStream_getdata(ktxStream* str, ktx_uint8_t** ppBytes) {
+    if (!str || !ppBytes) return KTX_INVALID_VALUE;
 
     assert(str->type == eStreamTypeMemory);
 
@@ -433,11 +398,9 @@ KTX_error_code ktxMemStream_getdata(ktxStream* str, ktx_uint8_t** ppBytes)
  *
  * @exception KTX_INVALID_VALUE @p str or @p pSize is @c NULL.
  */
-static
-KTX_error_code ktxMemStream_getsize(ktxStream* str, ktx_size_t* pSize)
-{
-    if (!str || !pSize)
-        return KTX_INVALID_VALUE;
+static KTX_error_code
+ktxMemStream_getsize(ktxStream* str, ktx_size_t* pSize) {
+    if (!str || !pSize) return KTX_INVALID_VALUE;
 
     assert(str->type == eStreamTypeMemory);
 
@@ -450,8 +413,7 @@ KTX_error_code ktxMemStream_getsize(ktxStream* str, ktx_size_t* pSize)
  * @brief Setup ktxMemStream function pointers.
  */
 void
-ktxMemStream_setup(ktxStream* str)
-{
+ktxMemStream_setup(ktxStream* str) {
     str->type = eStreamTypeMemory;
     str->read = ktxMemStream_read;
     str->skip = ktxMemStream_skip;
@@ -479,14 +441,12 @@ ktxMemStream_setup(ktxStream* str)
  * @exception KTX_INVALID_VALUE     @p str is @c NULL.
  * @exception KTX_OUT_OF_MEMORY     system failed to allocate sufficient memory.
  */
-KTX_error_code ktxMemStream_construct(ktxStream* str,
-                                      ktx_bool_t freeOnDestruct)
-{
+KTX_error_code
+ktxMemStream_construct(ktxStream* str, ktx_bool_t freeOnDestruct) {
     ktxMem* mem;
     KTX_error_code result = KTX_SUCCESS;
 
-    if (!str)
-        return KTX_INVALID_VALUE;
+    if (!str) return KTX_INVALID_VALUE;
 
     result = ktxMem_create(&mem);
 
@@ -514,15 +474,12 @@ KTX_error_code ktxMemStream_construct(ktxStream* str,
  *                                  or @p size is less than 0.
  * @exception KTX_OUT_OF_MEMORY     system failed to allocate sufficient memory.
  */
-KTX_error_code ktxMemStream_construct_ro(ktxStream* str,
-                                         const ktx_uint8_t* bytes,
-                                         const ktx_size_t numBytes)
-{
+KTX_error_code
+ktxMemStream_construct_ro(ktxStream* str, const ktx_uint8_t* bytes, const ktx_size_t numBytes) {
     ktxMem* mem;
     KTX_error_code result = KTX_SUCCESS;
 
-    if (!str || !bytes || numBytes == 0)
-        return KTX_INVALID_VALUE;
+    if (!str || !bytes || numBytes == 0) return KTX_INVALID_VALUE;
 
     result = ktxMem_create_ro(&mem, bytes, numBytes);
 
@@ -551,11 +508,9 @@ KTX_error_code ktxMemStream_construct_ro(ktxStream* str,
  *                 to be freed.
  */
 void
-ktxMemStream_destruct(ktxStream* str)
-{
+ktxMemStream_destruct(ktxStream* str) {
     assert(str && str->type == eStreamTypeMemory);
 
     ktxMem_destroy(str->data.mem, str->closeOnDestruct);
     str->data.mem = NULL;
 }
-

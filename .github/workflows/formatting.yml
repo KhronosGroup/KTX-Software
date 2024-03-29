@@ -1,0 +1,41 @@
+# Copyright 2024 The Khronos Group Inc.
+# Copyright 2024 RasterGrid Kft.
+# SPDX-License-Identifier: Apache-2.0
+name: Formatting
+
+on:
+  # Trigger the workflow on a pull request,
+  pull_request:
+
+  push:
+    # And on pushes to main, which will occur when a PR is merged.
+    branches:
+      - main
+    # Also trigger on push of release tags to any branch. Useful
+    # for testing release builds before merging to main.
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-*'
+    paths-ignore:
+      - .appveyor.yml
+      - .travis.yml
+
+permissions:
+  contents: read
+
+jobs:
+  clang-format:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Run clang-format
+      uses: jidicula/clang-format-action@v4.11.0
+      with:
+        clang-format-version: '14'
+
+  clang-tidy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Run clang-tidy
+      uses: HorstBaerbel/action-clang-tidy@1.2

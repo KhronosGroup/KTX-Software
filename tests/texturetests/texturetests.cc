@@ -17,10 +17,10 @@
  */
 
 #if defined(_WIN32)
-  #define _CRT_SECURE_NO_WARNINGS
-  #if _MSC_VER < 1900
-    #define snprintf _snprintf
-  #endif
+#define _CRT_SECURE_NO_WARNINGS
+#if _MSC_VER < 1900
+#define snprintf _snprintf
+#endif
 #endif
 
 #include <string>
@@ -39,8 +39,7 @@
 #include "wthelper.h"
 #include "vk_format.h"
 
-#define ROUNDING(x) \
-        (3 - ((x + KTX_GL_UNPACK_ALIGNMENT-1) % KTX_GL_UNPACK_ALIGNMENT));
+#define ROUNDING(x) (3 - ((x + KTX_GL_UNPACK_ALIGNMENT - 1) % KTX_GL_UNPACK_ALIGNMENT));
 
 #if defined(TestNoMetadata)
 extern ktx_bool_t __disableWriterMetadata__;
@@ -49,30 +48,23 @@ extern ktx_bool_t __disableWriterMetadata__;
 namespace {
 
 // Recursive function to return the greatest common divisor of a and b.
-static uint32_t
-gcd(uint32_t a, uint32_t b) {
-    if (a == 0)
-        return b;
+static uint32_t gcd(uint32_t a, uint32_t b) {
+    if (a == 0) return b;
     return gcd(b % a, a);
 }
 
 // Function to return the least common multiple of a & 4.
-uint32_t
-lcm4(uint32_t a)
-{
-    if (!(a & 0x03))
-        return a;  // a is a multiple of 4.
-    return (a*4) / gcd(a, 4);
+uint32_t lcm4(uint32_t a) {
+    if (!(a & 0x03)) return a;  // a is a multiple of 4.
+    return (a * 4) / gcd(a, 4);
 }
 
 //-------------------------------------------------------
 // Helper for base fixture & ktxTexture_WriterTest cases.
 //-------------------------------------------------------
 
-template<typename component_type, ktx_uint32_t numComponents,
-         GLenum internalformat>
-class TextureWriterTestHelper
-    : public WriterTestHelper<component_type, numComponents, internalformat> {
+template <typename component_type, ktx_uint32_t numComponents, GLenum internalformat>
+class TextureWriterTestHelper : public WriterTestHelper<component_type, numComponents, internalformat> {
   public:
     using typename WriterTestHelper<component_type, numComponents, internalformat>::createFlags;
     using typename WriterTestHelper<component_type, numComponents, internalformat>::createFlagBits;
@@ -84,23 +76,14 @@ class TextureWriterTestHelper
 
     TextureWriterTestHelper() {}
 
-    void
-    resize(createFlags flags, ktx_uint32_t layers, ktx_uint32_t faces,
-           ktx_uint32_t dimensions,
-           ktx_uint32_t w, ktx_uint32_t h, ktx_uint32_t d)
-    {
-        WriterTestHelper<component_type, numComponents, internalformat>::resize(
-                                               flags, layers, faces,
-                                               dimensions,
-                                               w, h, d);
-        createInfo.resize(flags, layers, faces,
-                          dimensions, w, h, d);
+    void resize(createFlags flags, ktx_uint32_t layers, ktx_uint32_t faces, ktx_uint32_t dimensions, ktx_uint32_t w, ktx_uint32_t h,
+                ktx_uint32_t d) {
+        WriterTestHelper<component_type, numComponents, internalformat>::resize(flags, layers, faces, dimensions, w, h, d);
+        createInfo.resize(flags, layers, faces, dimensions, w, h, d);
     }
 
     // Compare images as loaded into a ktxTexture1 object with our image.
-    bool
-    compareTexture1Images(ktx_uint8_t* pData)
-    {
+    bool compareTexture1Images(ktx_uint8_t* pData) {
         for (ktx_uint32_t level = 0; level < images.size(); level++) {
             ktx_uint32_t levelWidth = MAX(1, width >> level);
             ktx_uint32_t levelHeight = MAX(1, height >> level);
@@ -117,8 +100,7 @@ class TextureWriterTestHelper
                     } else {
                         ktx_uint8_t* pImage = (ktx_uint8_t*)images[level][layer][faceSlice].data();
                         for (ktx_uint32_t row = 0; row < levelHeight; row++) {
-                            if (memcmp(pImage, pData, rowBytes))
-                                return false;
+                            if (memcmp(pImage, pData, rowBytes)) return false;
                             pImage += rowBytes;
                             pData += rowBytes + rowPadding;
                         }
@@ -130,9 +112,7 @@ class TextureWriterTestHelper
     }
 
     // Compare images as loaded into a ktxTexture2 object with our image.
-    bool
-    compareTexture2Images(ktx_uint8_t* pData)
-    {
+    bool compareTexture2Images(ktx_uint8_t* pData) {
         for (ktx_int32_t level = (ktx_int32_t)images.size() - 1; level >= 0; level--) {
             ktx_uint32_t levelWidth = MAX(1, width >> level);
             ktx_uint32_t levelHeight = MAX(1, height >> level);
@@ -153,8 +133,7 @@ class TextureWriterTestHelper
         return true;
     }
 
-    KTX_error_code
-    copyImagesToTexture(ktxTexture1* texture) {
+    KTX_error_code copyImagesToTexture(ktxTexture1* texture) {
         KTX_error_code result = KTX_SUCCESS;
 
         for (ktx_uint32_t level = 0; level < images.size(); level++) {
@@ -162,13 +141,8 @@ class TextureWriterTestHelper
                 for (ktx_uint32_t faceSlice = 0; faceSlice < images[level][layer].size(); faceSlice++) {
                     ktx_size_t imageBytes = images[level][layer][faceSlice].size() * sizeof(component_type);
                     ktx_uint8_t* imageDataPtr = (ktx_uint8_t*)(images[level][layer][faceSlice].data());
-                    result = ktxTexture1_SetImageFromMemory(texture,
-                                                            level, layer,
-                                                            faceSlice,
-                                                            imageDataPtr,
-                                                            imageBytes);
-                   if (result != KTX_SUCCESS)
-                       break;
+                    result = ktxTexture1_SetImageFromMemory(texture, level, layer, faceSlice, imageDataPtr, imageBytes);
+                    if (result != KTX_SUCCESS) break;
                 }
             }
         }
@@ -177,29 +151,21 @@ class TextureWriterTestHelper
 
     class createInfo : public ktxTextureCreateInfo {
       public:
-        createInfo() {
-            glInternalformat = internalformat;
-        }
+        createInfo() { glInternalformat = internalformat; }
 
-        void resize(createFlags flags,
-                    ktx_uint32_t layers, ktx_uint32_t faces,
-                    ktx_uint32_t dimensions, ktx_uint32_t w,
-                    ktx_uint32_t h, ktx_uint32_t d)
-        {
+        void resize(createFlags flags, ktx_uint32_t layers, ktx_uint32_t faces, ktx_uint32_t dimensions, ktx_uint32_t w,
+                    ktx_uint32_t h, ktx_uint32_t d) {
             baseWidth = w;
             baseHeight = h;
             baseDepth = d;
             this->numDimensions = dimensions;
-            generateMipmaps = flags & createFlagBits::eGenerateMipmaps
-                              ? KTX_TRUE : KTX_FALSE;
+            generateMipmaps = flags & createFlagBits::eGenerateMipmaps ? KTX_TRUE : KTX_FALSE;
             isArray = flags & createFlagBits::eArray ? KTX_TRUE : KTX_FALSE;
             this->numFaces = faces;
             this->numLayers = layers;
-            numLevels = flags & createFlagBits::eMipmapped
-                        ? levelsFromSize(w, h, d) : 1;
+            numLevels = flags & createFlagBits::eMipmapped ? levelsFromSize(w, h, d) : 1;
         };
     } createInfo;
-
 };
 
 const ktx_uint8_t ktxId[12] = KTX_IDENTIFIER_REF;
@@ -215,12 +181,10 @@ const ktx_uint8_t ktxId2[12] = KTX2_IDENTIFIER_REF;
 
 typedef TextureWriterTestHelper<GLubyte, 4, GL_RGBA8>::createFlagBits createFlagBits;
 
-template<typename component_type, ktx_uint32_t numComponents,
-         GLenum internalformat>
+template <typename component_type, ktx_uint32_t numComponents, GLenum internalformat>
 class ktxTextureTestBase : public ::testing::Test {
   protected:
-    ktxTextureTestBase(ktxFormatVersionEnum fv) : pixelSize(16)
-    {
+    ktxTextureTestBase(ktxFormatVersionEnum fv) : pixelSize(16) {
         helper.resize(createFlagBits::eMipmapped, 1, 1, 2, 16, 16, 1);
         // Create a KTX file in memory for testing.
 
@@ -235,26 +199,19 @@ class ktxTextureTestBase : public ::testing::Test {
 
         ktxTexture* texture = 0;
         if (fv == KTX_FORMAT_VERSION_ONE) {
-           kvDataLen = helper.kvDataLen;
-           kvData = helper.kvData;
-           errorCode = ktxTexture1_Create(&texinfo,
-                                           KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                           (ktxTexture1**)&texture);
+            kvDataLen = helper.kvDataLen;
+            kvData = helper.kvData;
+            errorCode = ktxTexture1_Create(&texinfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE, (ktxTexture1**)&texture);
         } else {
             kvDataLen = helper.kvDataLenWriter_ktx2;
             kvData = helper.kvDataWriter_ktx2;
-            texinfo.vkFormat
-                = vkGetFormatFromOpenGLInternalFormat(texinfo.glInternalformat);
-            errorCode = ktxTexture2_Create(&texinfo,
-                                           KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                           (ktxTexture2**)&texture);
+            texinfo.vkFormat = vkGetFormatFromOpenGLInternalFormat(texinfo.glInternalformat);
+            errorCode = ktxTexture2_Create(&texinfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE, (ktxTexture2**)&texture);
             texture->kvDataHead = helper.kvHash_ktx2;
         }
         if (KTX_SUCCESS != errorCode) {
-            ADD_FAILURE() << "ktxTexture"
-                          << (fv == KTX_FORMAT_VERSION_ONE ? "1" : "2")
-                          << "_Create failed: "
-                          << ktxErrorString(errorCode);
+            ADD_FAILURE() << "ktxTexture" << (fv == KTX_FORMAT_VERSION_ONE ? "1" : "2")
+                          << "_Create failed: " << ktxErrorString(errorCode);
             return;
         }
 
@@ -265,12 +222,9 @@ class ktxTextureTestBase : public ::testing::Test {
         for (ktx_uint32_t level = 0; level < texinfo.numLevels; level++) {
             ktx_uint32_t levelDepth = MAX(1, texinfo.baseDepth >> level);
             for (ktx_uint32_t layer = 0; layer < texinfo.numLayers; layer++) {
-                ktx_uint32_t numImages = texinfo.numFaces == 6
-                                       ? texinfo.numFaces : levelDepth;
+                ktx_uint32_t numImages = texinfo.numFaces == 6 ? texinfo.numFaces : levelDepth;
                 for (ktx_uint32_t faceSlice = 0; faceSlice < numImages; faceSlice++) {
-                    ktxTexture_SetImageFromMemory(texture,
-                                                  level, layer, faceSlice,
-                                                  it->data, it->size);
+                    ktxTexture_SetImageFromMemory(texture, level, layer, faceSlice, it->data, it->size);
                 }
             }
             it++;
@@ -279,42 +233,28 @@ class ktxTextureTestBase : public ::testing::Test {
         paddedImageDataSize = texture->dataSize;
         texture->kvData = kvData;
         texture->kvDataLen = kvDataLen;
-        errorCode = ktxTexture_WriteToMemory(texture, &ktxMemFile,
-                                             &ktxMemFileLen);
+        errorCode = ktxTexture_WriteToMemory(texture, &ktxMemFile, &ktxMemFileLen);
         if (KTX_SUCCESS != errorCode) {
-            ADD_FAILURE() << "ktxTexture_WriteToMemory failed: "
-                          << ktxErrorString(errorCode);
+            ADD_FAILURE() << "ktxTexture_WriteToMemory failed: " << ktxErrorString(errorCode);
         }
     }
 
-    ~ktxTextureTestBase() {
-        delete ktxMemFile;
-    }
+    ~ktxTextureTestBase() { delete ktxMemFile; }
 
-    KTX_error_code
-    iterCallback(int miplevel, int /*face*/,
-                 int width, int /*height*/, int /*depth*/,
-                 ktx_uint64_t faceLodSize,
-                 void* pixels)
-    {
+    KTX_error_code iterCallback(int miplevel, int /*face*/, int width, int /*height*/, int /*depth*/, ktx_uint64_t faceLodSize,
+                                void* pixels) {
         int expectedWidth = pixelSize >> miplevel;
         EXPECT_EQ(width, expectedWidth);
         EXPECT_EQ(faceLodSize, (uint64_t)(expectedWidth * expectedWidth * 4));
-        EXPECT_EQ(memcmp(pixels, images[miplevel].data, images[miplevel].size),
-                  0);
+        EXPECT_EQ(memcmp(pixels, images[miplevel].data, images[miplevel].size), 0);
         iterCbCalls++;
         return KTX_SUCCESS;
     }
 
-    static KTX_error_code
-    iterCallback(int miplevel, int face,
-                  int width, int height, int depth,
-                  ktx_uint64_t faceLodSize,
-                  void* pixels, void* userdata)
-    {
+    static KTX_error_code iterCallback(int miplevel, int face, int width, int height, int depth, ktx_uint64_t faceLodSize,
+                                       void* pixels, void* userdata) {
         ktxTextureTestBase* fixture = (ktxTextureTestBase*)userdata;
-        return fixture->iterCallback(miplevel, face, width, height, depth,
-                                     faceLodSize, pixels);
+        return fixture->iterCallback(miplevel, face, width, height, depth, faceLodSize, pixels);
     }
 
     TextureWriterTestHelper<component_type, numComponents, internalformat> helper;
@@ -331,120 +271,82 @@ class ktxTextureTestBase : public ::testing::Test {
 
     ktx_size_t paddedImageDataSize;
     ktx_size_t& imageDataSize = helper.imageDataSize;
-    std::vector< std::vector < std::vector < std::vector<GLubyte>  > > >& imageData = helper.images;
+    std::vector<std::vector<std::vector<std::vector<GLubyte> > > >& imageData = helper.images;
 
     std::vector<wthImageInfo>& images = helper.imageList;
 };
 
 class ktxTexture1TestBase : public ktxTextureTestBase<GLubyte, 4, GL_RGBA8> {
   protected:
-    ktxTexture1TestBase() : ktxTextureTestBase(KTX_FORMAT_VERSION_ONE) { }
+    ktxTexture1TestBase() : ktxTextureTestBase(KTX_FORMAT_VERSION_ONE) {}
 
-    bool
-    compareTexture(ktxTexture1* texture)
-    {
-        if (texture->glInternalformat != texinfo.glInternalformat)
-            return false;
-        if (texture->glBaseInternalformat != texinfo.glBaseInternalformat)
-            return false;
-        if (texture->glFormat != texinfo.glFormat)
-            return false;
-        if (texture->glType != texinfo.glType)
-            return false;
-        if (ktxTexture1_glTypeSize(texture) != texinfo.glTypeSize)
-            return false;
-        if (texture->baseWidth != texinfo.baseWidth)
-            return false;
+    bool compareTexture(ktxTexture1* texture) {
+        if (texture->glInternalformat != texinfo.glInternalformat) return false;
+        if (texture->glBaseInternalformat != texinfo.glBaseInternalformat) return false;
+        if (texture->glFormat != texinfo.glFormat) return false;
+        if (texture->glType != texinfo.glType) return false;
+        if (ktxTexture1_glTypeSize(texture) != texinfo.glTypeSize) return false;
+        if (texture->baseWidth != texinfo.baseWidth) return false;
         if (texinfo.baseHeight == 0) {
-            if (texture->baseHeight != 1)
-                return false;
+            if (texture->baseHeight != 1) return false;
         } else if (texture->baseHeight != texinfo.baseHeight)
             return false;
         if (texinfo.baseDepth == 0) {
-            if (texture->baseDepth != 1)
-                return false;
+            if (texture->baseDepth != 1) return false;
         } else if (texture->baseDepth != texinfo.baseDepth)
             return false;
-        if (texture->numFaces != texinfo.numFaces)
-            return false;
-        if (texture->numLevels != texinfo.numLevels)
-            return false;
+        if (texture->numFaces != texinfo.numFaces) return false;
+        if (texture->numLevels != texinfo.numLevels) return false;
         return true;
     }
 };
 
-
-template<typename component_type,
-         ktx_uint32_t numComponents,
-         GLenum internalformat>
-class ktxTexture2TestBase : public ktxTextureTestBase<component_type,
-                                                      numComponents,
-                                                      internalformat>
-{
+template <typename component_type, ktx_uint32_t numComponents, GLenum internalformat>
+class ktxTexture2TestBase : public ktxTextureTestBase<component_type, numComponents, internalformat> {
   protected:
     using ktxTextureTestBase<component_type, numComponents, internalformat>::helper;
     using ktxTextureTestBase<component_type, numComponents, internalformat>::texinfo;
 
-    ktxTexture2TestBase() : ktxTextureTestBase<component_type, numComponents, internalformat>(KTX_FORMAT_VERSION_TWO) { }
+    ktxTexture2TestBase() : ktxTextureTestBase<component_type, numComponents, internalformat>(KTX_FORMAT_VERSION_TWO) {}
 
-    bool
-    compareTexture(ktxTexture2* texture)
-    {
-        if (texture->vkFormat != (uint32_t)vkGetFormatFromOpenGLInternalFormat(helper.texinfo.glInternalformat))
-            return false;
-        if (texture->baseWidth != texinfo.baseWidth)
-            return false;
+    bool compareTexture(ktxTexture2* texture) {
+        if (texture->vkFormat != (uint32_t)vkGetFormatFromOpenGLInternalFormat(helper.texinfo.glInternalformat)) return false;
+        if (texture->baseWidth != texinfo.baseWidth) return false;
         if (texinfo.baseHeight == 0) {
-            if (texture->baseHeight != 1)
-                return false;
+            if (texture->baseHeight != 1) return false;
         } else if (texture->baseHeight != texinfo.baseHeight)
             return false;
         if (texinfo.baseDepth == 0) {
-            if (texture->baseDepth != 1)
-                return false;
+            if (texture->baseDepth != 1) return false;
         } else if (texture->baseDepth != texinfo.baseDepth)
             return false;
-        if (texture->numFaces != texinfo.numFaces)
-            return false;
-        if (texture->numLevels != texinfo.numLevels)
-            return false;
+        if (texture->numFaces != texinfo.numFaces) return false;
+        if (texture->numLevels != texinfo.numLevels) return false;
         return true;
     }
 };
 
 class ktxTexture2_CreateTest : public ::testing::Test {
   protected:
-    ktx_error_code_e create(VkFormat format,
-                          ktx_uint32_t width = 16u,
-                          ktx_uint32_t height = 16u,
-                          ktx_uint32_t depth = 1u,
-                          ktx_uint32_t dimensions = 2u,
-                          ktx_uint32_t levels = 1u,
-                          ktx_uint32_t layers = 1u,
-                          ktx_uint32_t faces = 1u,
-                          bool isArray = false,
-                          bool generateMipmaps = false)
-    {
+    ktx_error_code_e create(VkFormat format, ktx_uint32_t width = 16u, ktx_uint32_t height = 16u, ktx_uint32_t depth = 1u,
+                            ktx_uint32_t dimensions = 2u, ktx_uint32_t levels = 1u, ktx_uint32_t layers = 1u,
+                            ktx_uint32_t faces = 1u, bool isArray = false, bool generateMipmaps = false) {
         ktxTextureCreateInfo createInfo;
-            createInfo.vkFormat = format;
-            createInfo.baseWidth = width;
-            createInfo.baseHeight = height;
-            createInfo.baseDepth = depth;
-            createInfo.numDimensions = dimensions;
-            createInfo.numLevels = levels;
-            createInfo.numLayers = layers;
-            createInfo.numFaces = faces;
-            createInfo.isArray = isArray;
-            createInfo.generateMipmaps = generateMipmaps;
+        createInfo.vkFormat = format;
+        createInfo.baseWidth = width;
+        createInfo.baseHeight = height;
+        createInfo.baseDepth = depth;
+        createInfo.numDimensions = dimensions;
+        createInfo.numLevels = levels;
+        createInfo.numLayers = layers;
+        createInfo.numFaces = faces;
+        createInfo.isArray = isArray;
+        createInfo.generateMipmaps = generateMipmaps;
 
-            return ktxTexture2_Create(&createInfo,
-                                      KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                      &texture);
+        return ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &texture);
     }
 
-    ~ktxTexture2_CreateTest() {
-        ktxTexture_Destroy(ktxTexture(texture));
-    }
+    ~ktxTexture2_CreateTest() { ktxTexture_Destroy(ktxTexture(texture)); }
 
     ktxTexture2* texture;
 };
@@ -453,12 +355,11 @@ class ktxTexture2_CreateTest : public ::testing::Test {
 // Template for base fixture for ktxTextureWrite tests.
 //----------------------------------------------------
 
-template<typename component_type, ktx_uint32_t numComponents,
-         GLenum internalformat>
+template <typename component_type, ktx_uint32_t numComponents, GLenum internalformat>
 class ktxTexture1WriteTestBase : public ::testing::Test {
   public:
     using createFlags = typename WriterTestHelper<component_type, numComponents, internalformat>::createFlags;
-    ktxTexture1WriteTestBase() { }
+    ktxTexture1WriteTestBase() {}
 
     void runTest(bool writeMetadata) {
         ktxTexture1* texture = 0;
@@ -467,16 +368,12 @@ class ktxTexture1WriteTestBase : public ::testing::Test {
         ktx_size_t ktxMemFileLen;
         ktx_uint8_t* filePtr;
 
-        result = ktxTexture1_Create(&helper.createInfo,
-                                   KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                   &texture);
+        result = ktxTexture1_Create(&helper.createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &texture);
         EXPECT_EQ(result, KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: " << ktxErrorString(result);
 
         if (writeMetadata)
-            ktxHashList_AddKVPair(&texture->kvDataHead, KTX_ORIENTATION_KEY,
-                                  (unsigned int)strlen(helper.orientation) + 1,
+            ktxHashList_AddKVPair(&texture->kvDataHead, KTX_ORIENTATION_KEY, (unsigned int)strlen(helper.orientation) + 1,
                                   helper.orientation);
 
         result = helper.copyImagesToTexture(texture);
@@ -485,8 +382,7 @@ class ktxTexture1WriteTestBase : public ::testing::Test {
         EXPECT_EQ(helper.compareTexture1Images(texture->pData), true);
         result = ktxTexture1_WriteToMemory(texture, &ktxMemFile, &ktxMemFileLen);
 
-        ASSERT_TRUE(result == KTX_SUCCESS) << "ktxTexture_WriteToMemory failed: "
-                                           << ktxErrorString(result);
+        ASSERT_TRUE(result == KTX_SUCCESS) << "ktxTexture_WriteToMemory failed: " << ktxErrorString(result);
         EXPECT_EQ(memcmp(ktxMemFile, ktxId, sizeof(ktxId)), 0);
         EXPECT_EQ(helper.texinfo.compare((KTX_header*)ktxMemFile), true);
 
@@ -512,22 +408,22 @@ class ktxTexture1WriteTestBase : public ::testing::Test {
 // Actual test fixtures
 //---------------------------
 
-class ktxTexture_CreateTest : public ktxTexture1TestBase { };
-class ktxTexture1_CreateTest : public ktxTexture1TestBase { };
-class ktxTexture_KVDataTest : public ktxTexture1TestBase { };
-class ktxTexture1_IterateLoadLevelFacesTest : public ktxTexture1TestBase { };
-class ktxTexture1_IterateLevelFacesTest : public ktxTexture1TestBase { };
-class ktxTexture1_LoadImageDataTest : public ktxTexture1TestBase { };
+class ktxTexture_CreateTest : public ktxTexture1TestBase {};
+class ktxTexture1_CreateTest : public ktxTexture1TestBase {};
+class ktxTexture_KVDataTest : public ktxTexture1TestBase {};
+class ktxTexture1_IterateLoadLevelFacesTest : public ktxTexture1TestBase {};
+class ktxTexture1_IterateLevelFacesTest : public ktxTexture1TestBase {};
+class ktxTexture1_LoadImageDataTest : public ktxTexture1TestBase {};
 
-class ktxTexture1WriteTestRGBA8 : public ktxTexture1WriteTestBase<GLubyte, 4, GL_RGBA8> { };
-class ktxTexture1WriteTestRGB8 : public ktxTexture1WriteTestBase<GLubyte, 3, GL_RGB8> { };
-class ktxTexture1WriteTestRG16 : public ktxTexture1WriteTestBase<GLushort, 2, GL_RG16> { };
+class ktxTexture1WriteTestRGBA8 : public ktxTexture1WriteTestBase<GLubyte, 4, GL_RGBA8> {};
+class ktxTexture1WriteTestRGB8 : public ktxTexture1WriteTestBase<GLubyte, 3, GL_RGB8> {};
+class ktxTexture1WriteTestRG16 : public ktxTexture1WriteTestBase<GLushort, 2, GL_RG16> {};
 
-class ktxTexture2_IterateLoadLevelFacesTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8>  { };
-class ktxTexture2_IterateLevelFacesTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8>  { };
-class ktxTexture2_IterateLevelsTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> { };
-class ktxTexture2_LoadImageDataTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> { };
-class ktxTexture2_CreateCopyTest: public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> { };
+class ktxTexture2_IterateLoadLevelFacesTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> {};
+class ktxTexture2_IterateLevelFacesTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> {};
+class ktxTexture2_IterateLevelsTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> {};
+class ktxTexture2_LoadImageDataTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> {};
+class ktxTexture2_CreateCopyTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> {};
 
 /////////////////////////////////////////
 // ktxTexture_Create tests
@@ -536,18 +432,13 @@ class ktxTexture2_CreateCopyTest: public ktxTexture2TestBase<GLubyte, 4, GL_RGBA
 TEST_F(ktxTexture1_CreateTest, InvalidValueOnNullParams) {
     ktxTexture* texture = 0;
 
-    EXPECT_EQ(ktxTexture_CreateFromStdioStream(0, 0, &texture),
-              KTX_INVALID_VALUE);
-    EXPECT_EQ(ktxTexture_CreateFromNamedFile(0, 0, &texture),
-              KTX_INVALID_VALUE);
-    EXPECT_EQ(ktxTexture_CreateFromMemory(0, 0, 0, &texture),
-              KTX_INVALID_VALUE);
-    //EXPECT_EQ(ktxTexture_CreateFromStdioStream(0, 0, 0),
-    //          KTX_INVALID_VALUE);
-    EXPECT_EQ(ktxTexture_CreateFromNamedFile("foo", 0, 0),
-              KTX_INVALID_VALUE);
-    EXPECT_EQ(ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen, 0, 0),
-              KTX_INVALID_VALUE);
+    EXPECT_EQ(ktxTexture_CreateFromStdioStream(0, 0, &texture), KTX_INVALID_VALUE);
+    EXPECT_EQ(ktxTexture_CreateFromNamedFile(0, 0, &texture), KTX_INVALID_VALUE);
+    EXPECT_EQ(ktxTexture_CreateFromMemory(0, 0, 0, &texture), KTX_INVALID_VALUE);
+    // EXPECT_EQ(ktxTexture_CreateFromStdioStream(0, 0, 0),
+    //           KTX_INVALID_VALUE);
+    EXPECT_EQ(ktxTexture_CreateFromNamedFile("foo", 0, 0), KTX_INVALID_VALUE);
+    EXPECT_EQ(ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen, 0, 0), KTX_INVALID_VALUE);
 }
 
 TEST_F(ktxTexture_CreateTest, ConstructFromMemory) {
@@ -555,11 +446,9 @@ TEST_F(ktxTexture_CreateTest, ConstructFromMemory) {
     KTX_error_code result;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                             0, &texture);
+        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen, 0, &texture);
         EXPECT_EQ(result, KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         EXPECT_EQ(texture->classId, ktxTexture1_c);
         EXPECT_EQ(compareTexture((ktxTexture1*)texture), true);
         EXPECT_EQ(texture->isCompressed, KTX_FALSE);
@@ -567,8 +456,7 @@ TEST_F(ktxTexture_CreateTest, ConstructFromMemory) {
         EXPECT_EQ(texture->numDimensions, 2U);
         EXPECT_EQ(texture->numLayers, 1U);
         EXPECT_EQ(texture->isArray, KTX_FALSE);
-        if (texture)
-            ktxTexture_Destroy(texture);
+        if (texture) ktxTexture_Destroy(texture);
     }
 }
 
@@ -577,19 +465,16 @@ TEST_F(ktxTexture1_CreateTest, ConstructFromMemory) {
     KTX_error_code result;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture1_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                             0, &texture);
+        result = ktxTexture1_CreateFromMemory(ktxMemFile, ktxMemFileLen, 0, &texture);
         EXPECT_EQ(result, KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         EXPECT_EQ(compareTexture(texture), true);
         EXPECT_EQ(texture->isCompressed, KTX_FALSE);
         EXPECT_EQ(texture->generateMipmaps, KTX_FALSE);
         EXPECT_EQ(texture->numDimensions, 2U);
         EXPECT_EQ(texture->numLayers, 1U);
         EXPECT_EQ(texture->isArray, KTX_FALSE);
-        if (texture)
-            ktxTexture1_Destroy(texture);
+        if (texture) ktxTexture1_Destroy(texture);
     }
 }
 
@@ -597,13 +482,10 @@ TEST_F(ktxTexture1_CreateTest, CreateEmpty) {
     ktxTexture1* texture = 0;
     KTX_error_code result;
 
-    result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE,
-                                &texture);
+    result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE, &texture);
     EXPECT_EQ(result, KTX_SUCCESS);
-    ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: "
-                                 << ktxErrorString(result);
-    if (texture)
-        ktxTexture1_Destroy(texture);
+    ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: " << ktxErrorString(result);
+    if (texture) ktxTexture1_Destroy(texture);
 }
 
 TEST_F(ktxTexture1_CreateTest, InvalidValueTooManyMipLevels) {
@@ -611,43 +493,34 @@ TEST_F(ktxTexture1_CreateTest, InvalidValueTooManyMipLevels) {
 
     createInfo.numLevels += 1;
 
-    EXPECT_EQ(ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE, &texture),
-              KTX_INVALID_OPERATION);
+    EXPECT_EQ(ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE, &texture), KTX_INVALID_OPERATION);
 }
 
 TEST_F(ktxTexture1_CreateTest, InvalidOpOnSetImagesNoStorage) {
     ktxTexture1* texture = 0;
     KTX_error_code result;
 
-    result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE,
-                               &texture);
+    result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE, &texture);
     EXPECT_EQ(result, KTX_SUCCESS);
-    ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: "
-                                 << ktxErrorString(result);
+    ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: " << ktxErrorString(result);
 
     // Type RGBA UNSIGNED_BYTE -> *4
     ktx_size_t imageBytes = imageData[0].size() * 4;
     ktx_uint8_t* imageDataPtr = (ktx_uint8_t*)(&imageData[0].front());
     // Allocate the image data and initialize it to a color.
-    EXPECT_EQ(ktxTexture1_SetImageFromMemory(texture, 0, 0, 0,
-                                             imageDataPtr,
-                                             imageBytes),
-              KTX_INVALID_OPERATION);
+    EXPECT_EQ(ktxTexture1_SetImageFromMemory(texture, 0, 0, 0, imageDataPtr, imageBytes), KTX_INVALID_OPERATION);
     ASSERT_TRUE(result == KTX_SUCCESS);
 
-    if (texture)
-        ktxTexture1_Destroy(texture);
+    if (texture) ktxTexture1_Destroy(texture);
 }
 
 TEST_F(ktxTexture1_CreateTest, CreateEmptyAndSetImages) {
     ktxTexture1* texture = 0;
     KTX_error_code result;
 
-    result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                &texture);
+    result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &texture);
     EXPECT_EQ(result, KTX_SUCCESS);
-    ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: "
-                                 << ktxErrorString(result);
+    ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: " << ktxErrorString(result);
 
     result = helper.copyImagesToTexture(texture);
     ASSERT_TRUE(result == KTX_SUCCESS);
@@ -655,8 +528,7 @@ TEST_F(ktxTexture1_CreateTest, CreateEmptyAndSetImages) {
     // use this simple comparison.
     EXPECT_EQ(helper.compareTexture1Images(texture->pData), true);
 
-    if (texture)
-        ktxTexture1_Destroy(texture);
+    if (texture) ktxTexture1_Destroy(texture);
 }
 
 TEST_F(ktxTexture1_CreateTest, CreateEmptySetImagesWriteToMemory) {
@@ -666,27 +538,20 @@ TEST_F(ktxTexture1_CreateTest, CreateEmptySetImagesWriteToMemory) {
     ktx_size_t testMemFileLen;
     char orientation[10];
 
-    result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                &texture);
+    result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &texture);
     EXPECT_EQ(result, KTX_SUCCESS);
-    ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: "
-                                 << ktxErrorString(result);
+    ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: " << ktxErrorString(result);
 
-    snprintf(orientation, sizeof(orientation), KTX_ORIENTATION2_FMT,
-             'r', 'd');
-    ktxHashList_AddKVPair(&texture->kvDataHead, KTX_ORIENTATION_KEY,
-                          (unsigned int)strlen(orientation) + 1,
-                          orientation);
+    snprintf(orientation, sizeof(orientation), KTX_ORIENTATION2_FMT, 'r', 'd');
+    ktxHashList_AddKVPair(&texture->kvDataHead, KTX_ORIENTATION_KEY, (unsigned int)strlen(orientation) + 1, orientation);
     result = helper.copyImagesToTexture(texture);
     ASSERT_TRUE(result == KTX_SUCCESS);
     EXPECT_EQ(helper.compareTexture1Images(texture->pData), true);
-    EXPECT_EQ(ktxTexture1_WriteToMemory(texture, &testMemFile, &testMemFileLen),
-              KTX_SUCCESS);
+    EXPECT_EQ(ktxTexture1_WriteToMemory(texture, &testMemFile, &testMemFileLen), KTX_SUCCESS);
     EXPECT_EQ(testMemFileLen, ktxMemFileLen);
     EXPECT_EQ(memcmp(testMemFile, ktxMemFile, ktxMemFileLen), 0);
 
-    if (texture)
-        ktxTexture1_Destroy(texture);
+    if (texture) ktxTexture1_Destroy(texture);
 }
 
 /////////////////////////////////////////
@@ -707,27 +572,21 @@ TEST_F(ktxTexture_KVDataTest, KVDataDeserialized) {
     KTX_error_code result;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                             0,
-                                             &texture);
+        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen, 0, &texture);
         EXPECT_EQ(result, KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->kvData == NULL) << "Raw KVData should not be loaded";
         ASSERT_TRUE(texture->kvDataHead != NULL) << "KVData not deserialized";
 
         char* pValue;
         ktx_uint32_t valueLen;
         char s, t;
-        result = ktxHashList_FindValue(&texture->kvDataHead,
-                                       KTX_ORIENTATION_KEY,
-                                       &valueLen, (void**)&pValue);
+        result = ktxHashList_FindValue(&texture->kvDataHead, KTX_ORIENTATION_KEY, &valueLen, (void**)&pValue);
         EXPECT_EQ(result, KTX_SUCCESS);
         EXPECT_EQ(sscanf(pValue, /*valueLen,*/ KTX_ORIENTATION2_FMT, &s, &t), 2);
-        EXPECT_EQ(s,'r');
+        EXPECT_EQ(s, 'r');
         EXPECT_EQ(t, 'd');
-        if (texture)
-            ktxTexture_Destroy(texture);
+        if (texture) ktxTexture_Destroy(texture);
     }
 }
 
@@ -736,18 +595,14 @@ TEST_F(ktxTexture_KVDataTest, LoadRawKVData) {
     KTX_error_code result;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                             KTX_TEXTURE_CREATE_RAW_KVDATA_BIT,
-                                             &texture);
+        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen, KTX_TEXTURE_CREATE_RAW_KVDATA_BIT, &texture);
         EXPECT_EQ(result, KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-        << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->kvData != NULL) << "Raw KVData not loaded";
         ASSERT_TRUE(texture->kvDataHead == NULL) << "KVData should not be deserialized";
         EXPECT_EQ(texture->kvDataLen, kvDataLen) << "Length of KV data incorrect";
         EXPECT_EQ(memcmp(texture->kvData, kvData, kvDataLen), 0);
-        if (texture)
-            ktxTexture_Destroy(texture);
+        if (texture) ktxTexture_Destroy(texture);
     }
 }
 
@@ -756,16 +611,12 @@ TEST_F(ktxTexture_KVDataTest, SkipKVData) {
     KTX_error_code result;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                             KTX_TEXTURE_CREATE_SKIP_KVDATA_BIT,
-                                             &texture);
+        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen, KTX_TEXTURE_CREATE_SKIP_KVDATA_BIT, &texture);
         EXPECT_EQ(result, KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->kvData == NULL) << "Raw KVData should not be loaded";
         ASSERT_TRUE(texture->kvDataHead == NULL) << "KVData should not be deserialized";
-        if (texture)
-            ktxTexture_Destroy(texture);
+        if (texture) ktxTexture_Destroy(texture);
     }
 }
 
@@ -779,16 +630,12 @@ TEST_F(ktxTexture1_IterateLoadLevelFacesTest, InvalidValueOnNullCallback) {
     ktxTexture1_IterateLoadLevelFacesTest* fixture = this;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                             0, &texture);
+        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen, 0, &texture);
         EXPECT_EQ(result, KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
 
-        EXPECT_EQ(ktxTexture_IterateLoadLevelFaces(texture, 0, fixture),
-                  KTX_INVALID_VALUE);
-        if (texture)
-            ktxTexture_Destroy(texture);
+        EXPECT_EQ(ktxTexture_IterateLoadLevelFaces(texture, 0, fixture), KTX_INVALID_VALUE);
+        if (texture) ktxTexture_Destroy(texture);
     }
 }
 
@@ -798,17 +645,12 @@ TEST_F(ktxTexture1_IterateLoadLevelFacesTest, InvalidOpWhenDataAlreadyLoaded) {
     ktxTexture1_IterateLoadLevelFacesTest* fixture = this;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                             KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-                                             &texture);
+        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
         EXPECT_EQ(result, KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
-        EXPECT_EQ(ktxTexture_IterateLoadLevelFaces(texture, iterCallback, fixture),
-                  KTX_INVALID_OPERATION);
-        if (texture)
-            ktxTexture_Destroy(texture);
+        EXPECT_EQ(ktxTexture_IterateLoadLevelFaces(texture, iterCallback, fixture), KTX_INVALID_OPERATION);
+        if (texture) ktxTexture_Destroy(texture);
     }
 }
 
@@ -818,18 +660,13 @@ TEST_F(ktxTexture1_IterateLoadLevelFacesTest, IterateImages) {
     ktxTexture1_IterateLoadLevelFacesTest* fixture = this;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                             0, &texture);
+        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen, 0, &texture);
         EXPECT_EQ(result, KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
 
-        EXPECT_EQ(ktxTexture_IterateLoadLevelFaces(texture, iterCallback, fixture),
-                  KTX_SUCCESS);
-        EXPECT_EQ(iterCbCalls, mipLevels)
-                  << "No. of calls to iterCallback differs from number of mip levels";
-        if (texture)
-            ktxTexture_Destroy(texture);
+        EXPECT_EQ(ktxTexture_IterateLoadLevelFaces(texture, iterCallback, fixture), KTX_SUCCESS);
+        EXPECT_EQ(iterCbCalls, mipLevels) << "No. of calls to iterCallback differs from number of mip levels";
+        if (texture) ktxTexture_Destroy(texture);
     }
 }
 
@@ -843,17 +680,12 @@ TEST_F(ktxTexture1_IterateLevelFacesTest, InvalidValueOnNullCallback) {
     ktxTexture1_IterateLevelFacesTest* fixture = this;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                             KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-                                             &texture);
+        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
         EXPECT_EQ(result, KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
-        EXPECT_EQ(ktxTexture_IterateLevelFaces(texture, 0, fixture),
-                  KTX_INVALID_VALUE);
-        if (texture)
-            ktxTexture_Destroy(texture);
+        EXPECT_EQ(ktxTexture_IterateLevelFaces(texture, 0, fixture), KTX_INVALID_VALUE);
+        if (texture) ktxTexture_Destroy(texture);
     }
 }
 
@@ -863,19 +695,13 @@ TEST_F(ktxTexture1_IterateLevelFacesTest, IterateImages) {
     ktxTexture1_IterateLevelFacesTest* fixture = this;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                             KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-                                             &texture);
+        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
         EXPECT_EQ(result, KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
 
-        EXPECT_EQ(ktxTexture_IterateLevelFaces(texture, iterCallback, fixture),
-                  KTX_SUCCESS);
-        EXPECT_EQ(iterCbCalls, mipLevels)
-                  << "No. of calls to iterCallback differs from number of mip levels";
-        if (texture)
-            ktxTexture_Destroy(texture);
+        EXPECT_EQ(ktxTexture_IterateLevelFaces(texture, iterCallback, fixture), KTX_SUCCESS);
+        EXPECT_EQ(iterCbCalls, mipLevels) << "No. of calls to iterCallback differs from number of mip levels";
+        if (texture) ktxTexture_Destroy(texture);
     }
 }
 
@@ -885,17 +711,12 @@ TEST_F(ktxTexture2_IterateLevelFacesTest, InvalidValueOnNullCallback) {
     ktxTexture2_IterateLevelFacesTest* fixture = this;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                             KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-                                             &texture);
+        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
         ASSERT_TRUE(result == KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
-        EXPECT_EQ(ktxTexture_IterateLevelFaces(texture, 0, fixture),
-                  KTX_INVALID_VALUE);
-        if (texture)
-            ktxTexture_Destroy(texture);
+        EXPECT_EQ(ktxTexture_IterateLevelFaces(texture, 0, fixture), KTX_INVALID_VALUE);
+        if (texture) ktxTexture_Destroy(texture);
     }
 }
 
@@ -905,19 +726,13 @@ TEST_F(ktxTexture2_IterateLevelFacesTest, IterateImages) {
     ktxTexture2_IterateLevelFacesTest* fixture = this;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                             KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-                                             &texture);
+        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
         ASSERT_TRUE(result == KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
 
-        EXPECT_EQ(ktxTexture_IterateLevelFaces(texture, iterCallback, fixture),
-                  KTX_SUCCESS);
-        EXPECT_EQ(iterCbCalls, mipLevels)
-                  << "No. of calls to iterCallback differs from number of mip levels";
-        if (texture)
-            ktxTexture_Destroy(texture);
+        EXPECT_EQ(ktxTexture_IterateLevelFaces(texture, iterCallback, fixture), KTX_SUCCESS);
+        EXPECT_EQ(iterCbCalls, mipLevels) << "No. of calls to iterCallback differs from number of mip levels";
+        if (texture) ktxTexture_Destroy(texture);
     }
 }
 
@@ -931,17 +746,12 @@ TEST_F(ktxTexture2_IterateLevelsTest, InvalidValueOnNullCallback) {
     ktxTexture2_IterateLevelsTest* fixture = this;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                             KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-                                             &texture);
+        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
         ASSERT_TRUE(result == KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
-        EXPECT_EQ(ktxTexture_IterateLevels(texture, 0, fixture),
-                  KTX_INVALID_VALUE);
-        if (texture)
-            ktxTexture_Destroy(texture);
+        EXPECT_EQ(ktxTexture_IterateLevels(texture, 0, fixture), KTX_INVALID_VALUE);
+        if (texture) ktxTexture_Destroy(texture);
     }
 }
 
@@ -951,19 +761,13 @@ TEST_F(ktxTexture2_IterateLevelsTest, IterateLevels) {
     ktxTexture2_IterateLevelsTest* fixture = this;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                             KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-                                             &texture);
+        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
         EXPECT_EQ(result, KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
 
-        EXPECT_EQ(ktxTexture_IterateLevelFaces(texture, iterCallback, fixture),
-                  KTX_SUCCESS);
-        EXPECT_EQ(iterCbCalls, mipLevels)
-                  << "No. of calls to iterCallback differs from number of mip levels";
-        if (texture)
-            ktxTexture_Destroy(texture);
+        EXPECT_EQ(ktxTexture_IterateLevelFaces(texture, iterCallback, fixture), KTX_SUCCESS);
+        EXPECT_EQ(iterCbCalls, mipLevels) << "No. of calls to iterCallback differs from number of mip levels";
+        if (texture) ktxTexture_Destroy(texture);
     }
 }
 
@@ -977,18 +781,13 @@ TEST_F(ktxTexture1_LoadImageDataTest, InvalidOpWhenDataAlreadyLoaded) {
     ktx_uint8_t* buf;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                             KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-                                             &texture);
+        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
         EXPECT_EQ(result, KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
         buf = new ktx_uint8_t[paddedImageDataSize];
-        EXPECT_EQ(ktxTexture_LoadImageData(texture, buf, paddedImageDataSize),
-                  KTX_INVALID_OPERATION);
-        if (texture)
-            ktxTexture_Destroy(texture);
+        EXPECT_EQ(ktxTexture_LoadImageData(texture, buf, paddedImageDataSize), KTX_INVALID_OPERATION);
+        if (texture) ktxTexture_Destroy(texture);
         delete[] buf;
     }
 }
@@ -999,20 +798,14 @@ TEST_F(ktxTexture1_LoadImageDataTest, InvalidOpWhenDataAlreadyLoadedToExternal) 
     ktx_uint8_t* buf;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                             0,
-                                             &texture);
+        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen, 0, &texture);
         EXPECT_EQ(result, KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData == NULL) << "Image data must not be loaded";
         buf = new ktx_uint8_t[paddedImageDataSize];
-        EXPECT_EQ(ktxTexture_LoadImageData(texture, buf, paddedImageDataSize),
-                  KTX_SUCCESS);
-        EXPECT_EQ(ktxTexture_LoadImageData(texture, buf, paddedImageDataSize),
-                  KTX_INVALID_OPERATION);
-        if (texture)
-            ktxTexture_Destroy(texture);
+        EXPECT_EQ(ktxTexture_LoadImageData(texture, buf, paddedImageDataSize), KTX_SUCCESS);
+        EXPECT_EQ(ktxTexture_LoadImageData(texture, buf, paddedImageDataSize), KTX_INVALID_OPERATION);
+        if (texture) ktxTexture_Destroy(texture);
         delete[] buf;
     }
 }
@@ -1022,17 +815,13 @@ TEST_F(ktxTexture1_LoadImageDataTest, LoadImageDataInternal) {
     KTX_error_code result;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                             KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-                                             &texture);
+        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
         EXPECT_EQ(result, KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
         EXPECT_EQ(paddedImageDataSize, ktxTexture_GetDataSize(texture));
         EXPECT_EQ(helper.compareTexture1Images(ktxTexture_GetData(texture)), true);
-        if (texture)
-            ktxTexture_Destroy(texture);
+        if (texture) ktxTexture_Destroy(texture);
     }
 }
 
@@ -1042,19 +831,14 @@ TEST_F(ktxTexture1_LoadImageDataTest, LoadImageDataExternal) {
     ktx_uint8_t* buf;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                             0,
-                                             &texture);
+        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen, 0, &texture);
         EXPECT_EQ(result, KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         buf = new ktx_uint8_t[paddedImageDataSize];
-        EXPECT_EQ(ktxTexture_LoadImageData(texture, buf, paddedImageDataSize),
-                  KTX_SUCCESS);
+        EXPECT_EQ(ktxTexture_LoadImageData(texture, buf, paddedImageDataSize), KTX_SUCCESS);
         EXPECT_EQ(paddedImageDataSize, ktxTexture_GetDataSize(texture));
         EXPECT_EQ(helper.compareTexture1Images(buf), true);
-        if (texture)
-            ktxTexture_Destroy(texture);
+        if (texture) ktxTexture_Destroy(texture);
         delete[] buf;
     }
 }
@@ -1065,18 +849,13 @@ TEST_F(ktxTexture2_LoadImageDataTest, InvalidOpWhenDataAlreadyLoaded) {
     ktx_uint8_t* buf;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                             KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-                                             &texture);
+        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
         EXPECT_EQ(result, KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
         buf = new ktx_uint8_t[paddedImageDataSize];
-        EXPECT_EQ(ktxTexture_LoadImageData(texture, buf, paddedImageDataSize),
-                  KTX_INVALID_OPERATION);
-        if (texture)
-            ktxTexture_Destroy(texture);
+        EXPECT_EQ(ktxTexture_LoadImageData(texture, buf, paddedImageDataSize), KTX_INVALID_OPERATION);
+        if (texture) ktxTexture_Destroy(texture);
         delete[] buf;
     }
 }
@@ -1087,20 +866,14 @@ TEST_F(ktxTexture2_LoadImageDataTest, InvalidOpWhenDataAlreadyLoadedToExternal) 
     ktx_uint8_t* buf;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                             0,
-                                             &texture);
+        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen, 0, &texture);
         EXPECT_EQ(result, KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData == NULL) << "Image data must not be loaded";
         buf = new ktx_uint8_t[paddedImageDataSize];
-        EXPECT_EQ(ktxTexture_LoadImageData(texture, buf, paddedImageDataSize),
-                  KTX_SUCCESS);
-        EXPECT_EQ(ktxTexture_LoadImageData(texture, buf, paddedImageDataSize),
-                  KTX_INVALID_OPERATION);
-        if (texture)
-            ktxTexture_Destroy(texture);
+        EXPECT_EQ(ktxTexture_LoadImageData(texture, buf, paddedImageDataSize), KTX_SUCCESS);
+        EXPECT_EQ(ktxTexture_LoadImageData(texture, buf, paddedImageDataSize), KTX_INVALID_OPERATION);
+        if (texture) ktxTexture_Destroy(texture);
         delete[] buf;
     }
 }
@@ -1110,17 +883,13 @@ TEST_F(ktxTexture2_LoadImageDataTest, LoadImageDataInternal) {
     KTX_error_code result;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                             KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-                                             &texture);
+        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
         EXPECT_EQ(result, KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
         EXPECT_EQ(paddedImageDataSize, ktxTexture_GetDataSize(texture));
         EXPECT_EQ(helper.compareTexture2Images(ktxTexture_GetData(texture)), true);
-        if (texture)
-            ktxTexture_Destroy(texture);
+        if (texture) ktxTexture_Destroy(texture);
     }
 }
 
@@ -1130,19 +899,14 @@ TEST_F(ktxTexture2_LoadImageDataTest, LoadImageDataExternal) {
     ktx_uint8_t* buf;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                             0,
-                                             &texture);
+        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen, 0, &texture);
         EXPECT_EQ(result, KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         buf = new ktx_uint8_t[paddedImageDataSize];
-        EXPECT_EQ(ktxTexture_LoadImageData(texture, buf, paddedImageDataSize),
-                  KTX_SUCCESS);
+        EXPECT_EQ(ktxTexture_LoadImageData(texture, buf, paddedImageDataSize), KTX_SUCCESS);
         EXPECT_EQ(paddedImageDataSize, ktxTexture_GetDataSize(texture));
         EXPECT_EQ(helper.compareTexture2Images(buf), true);
-        if (texture)
-            ktxTexture_Destroy(texture);
+        if (texture) ktxTexture_Destroy(texture);
         delete[] buf;
     }
 }
@@ -1157,32 +921,21 @@ TEST_F(ktxTexture2_CreateCopyTest, CreateCopy) {
     KTX_error_code result;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                             0,
-                                             (ktxTexture**)&texture);
+        result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen, 0, (ktxTexture**)&texture);
         EXPECT_EQ(result, KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         result = ktxTexture2_CreateCopy(texture, &copyTexture);
         EXPECT_EQ(result, KTX_SUCCESS);
-        ASSERT_TRUE(copyTexture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(copyTexture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
 
         EXPECT_EQ(compareTexture(copyTexture), true);
-        EXPECT_EQ(memcmp(texture->pData, copyTexture->pData, texture->dataSize),
-                  0);
-        EXPECT_EQ(memcmp(texture->_protected, copyTexture->_protected,
-                         sizeof(ktxTexture_protected)), 0);
-        ktx_size_t privateSize = sizeof(ktxTexture2_private)
-                               + sizeof(ktxLevelIndexEntry)
-                               * (texture->numLevels - 1);
-        EXPECT_EQ(memcmp(texture->_private, copyTexture->_private,
-                         privateSize), 0);
+        EXPECT_EQ(memcmp(texture->pData, copyTexture->pData, texture->dataSize), 0);
+        EXPECT_EQ(memcmp(texture->_protected, copyTexture->_protected, sizeof(ktxTexture_protected)), 0);
+        ktx_size_t privateSize = sizeof(ktxTexture2_private) + sizeof(ktxLevelIndexEntry) * (texture->numLevels - 1);
+        EXPECT_EQ(memcmp(texture->_private, copyTexture->_private, privateSize), 0);
 
-        if (texture)
-            ktxTexture_Destroy((ktxTexture*)texture);
-        if (copyTexture)
-            ktxTexture_Destroy((ktxTexture*)copyTexture);
+        if (texture) ktxTexture_Destroy((ktxTexture*)texture);
+        if (copyTexture) ktxTexture_Destroy((ktxTexture*)copyTexture);
     }
 }
 
@@ -1192,19 +945,15 @@ TEST_F(ktxTexture2_CreateCopyTest, CreateCopy) {
 
 class TestCreateInfo : public ktxTextureCreateInfo {
   public:
-    TestCreateInfo() : TestCreateInfo(16) { }
+    TestCreateInfo() : TestCreateInfo(16) {}
 
-    TestCreateInfo(ktx_uint32_t pixelSize)
-    : TestCreateInfo(pixelSize, pixelSize, 1) { }
+    TestCreateInfo(ktx_uint32_t pixelSize) : TestCreateInfo(pixelSize, pixelSize, 1) {}
 
     TestCreateInfo(ktx_uint32_t width, ktx_uint32_t height, ktx_uint32_t depth)
-    : TestCreateInfo(width, height, depth, 2, GL_RGBA8,
-                     VK_FORMAT_R8G8B8A8_UNORM, KTX_FALSE, 1, 1) { }
+        : TestCreateInfo(width, height, depth, 2, GL_RGBA8, VK_FORMAT_R8G8B8A8_UNORM, KTX_FALSE, 1, 1) {}
 
-    TestCreateInfo(ktx_uint32_t width, ktx_uint32_t height, ktx_uint32_t depth,
-                   ktx_uint32_t dimensions, ktx_uint32_t internalformat,
-                   ktx_uint32_t vkformat, ktx_bool_t array, ktx_uint32_t faces,
-                   ktx_uint32_t layers) {
+    TestCreateInfo(ktx_uint32_t width, ktx_uint32_t height, ktx_uint32_t depth, ktx_uint32_t dimensions,
+                   ktx_uint32_t internalformat, ktx_uint32_t vkformat, ktx_bool_t array, ktx_uint32_t faces, ktx_uint32_t layers) {
         baseWidth = width;
         baseHeight = height;
         baseDepth = depth;
@@ -1218,11 +967,11 @@ class TestCreateInfo : public ktxTextureCreateInfo {
         numLevels = levelsFromSize(width, height, depth);
     };
 
-    static ktx_uint32_t
-    levelsFromSize(ktx_uint32_t width, ktx_uint32_t height, ktx_uint32_t depth) {
+    static ktx_uint32_t levelsFromSize(ktx_uint32_t width, ktx_uint32_t height, ktx_uint32_t depth) {
         ktx_uint32_t mipLevels;
         ktx_uint32_t max_dim = MAX(MAX(width, height), depth);
-        for (mipLevels = 1; max_dim != 1; mipLevels++, max_dim >>= 1) { }
+        for (mipLevels = 1; max_dim != 1; mipLevels++, max_dim >>= 1) {
+        }
         return mipLevels;
     }
 };
@@ -1240,50 +989,39 @@ TEST(ktxTexture_calcImageSize, ImageSizeAtEachLevelRGBA2D) {
     ktx_uint32_t ktx1sizes[] = {1024, 256, 64, 16, 4};
     ktx_uint32_t ktx2sizes[] = {1024, 256, 64, 16, 4};
 
-    result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE,
-                                (ktxTexture1**)&texture);
+    result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE, (ktxTexture1**)&texture);
     EXPECT_EQ(result, KTX_SUCCESS);
-    ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: "
-                                 << ktxErrorString(result);
+    ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: " << ktxErrorString(result);
     for (ktx_uint32_t i = 0; i < createInfo.numLevels; i++) {
         ktx_size_t imageSize;
-        imageSize = ktxTexture_calcImageSize(texture, i,
-                                             KTX_FORMAT_VERSION_ONE);
+        imageSize = ktxTexture_calcImageSize(texture, i, KTX_FORMAT_VERSION_ONE);
         EXPECT_EQ(imageSize, ktx1sizes[i]);
-        imageSize = ktxTexture_calcImageSize(texture, i,
-                                             KTX_FORMAT_VERSION_TWO);
+        imageSize = ktxTexture_calcImageSize(texture, i, KTX_FORMAT_VERSION_TWO);
         EXPECT_EQ(imageSize, ktx2sizes[i]);
     }
-    if (texture)
-        ktxTexture_Destroy(texture);
+    if (texture) ktxTexture_Destroy(texture);
 }
 
 TEST(ktxTexture_calcImageSize, ImageSizeAtEachLevelRGB2D) {
     ktxTexture* texture = 0;
-    TestCreateInfo createInfo(9, 9, 1, 2, GL_RGB8,
-                              VK_FORMAT_R8G8B8_UNORM, KTX_FALSE, 1, 1);
+    TestCreateInfo createInfo(9, 9, 1, 2, GL_RGB8, VK_FORMAT_R8G8B8_UNORM, KTX_FALSE, 1, 1);
     KTX_error_code result;
     // Sizes for 9x9, 4 level RGB8 texture.
     // level 0 ... level 4
-    ktx_uint32_t ktx1sizes[] = {28*9, 12*4, 8*2, 4*1};
-    ktx_uint32_t ktx2sizes[] = {27*9, 12*4, 6*2, 3*1};
+    ktx_uint32_t ktx1sizes[] = {28 * 9, 12 * 4, 8 * 2, 4 * 1};
+    ktx_uint32_t ktx2sizes[] = {27 * 9, 12 * 4, 6 * 2, 3 * 1};
 
-    result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE,
-                                (ktxTexture1**)&texture);
+    result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE, (ktxTexture1**)&texture);
     EXPECT_EQ(result, KTX_SUCCESS);
-    ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: "
-                                 << ktxErrorString(result);
+    ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: " << ktxErrorString(result);
     for (ktx_uint32_t i = 0; i < createInfo.numLevels; i++) {
         ktx_size_t imageSize;
-        imageSize = ktxTexture_calcImageSize(texture, i,
-                                             KTX_FORMAT_VERSION_ONE);
+        imageSize = ktxTexture_calcImageSize(texture, i, KTX_FORMAT_VERSION_ONE);
         EXPECT_EQ(imageSize, ktx1sizes[i]);
-        imageSize = ktxTexture_calcImageSize(texture, i,
-                                             KTX_FORMAT_VERSION_TWO);
+        imageSize = ktxTexture_calcImageSize(texture, i, KTX_FORMAT_VERSION_TWO);
         EXPECT_EQ(imageSize, ktx2sizes[i]);
     }
-    if (texture)
-        ktxTexture_Destroy(texture);
+    if (texture) ktxTexture_Destroy(texture);
 }
 
 /////////////////////////////////////////
@@ -1299,50 +1037,39 @@ TEST(ktxTexture_calcLevelSize, SizeOfEachLevelRGBA2D) {
     ktx_uint32_t ktx1sizes[] = {1024, 256, 64, 16, 4};
     ktx_uint32_t ktx2sizes[] = {1024, 256, 64, 16, 4};
 
-    result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE,
-                                (ktxTexture1**)&texture);
+    result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE, (ktxTexture1**)&texture);
     EXPECT_EQ(result, KTX_SUCCESS);
-    ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: "
-                                 << ktxErrorString(result);
+    ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: " << ktxErrorString(result);
     for (ktx_uint32_t i = 0; i < createInfo.numLevels; i++) {
         ktx_size_t levelSize;
-        levelSize = ktxTexture_calcLevelSize(texture, i,
-                                             KTX_FORMAT_VERSION_ONE);
+        levelSize = ktxTexture_calcLevelSize(texture, i, KTX_FORMAT_VERSION_ONE);
         EXPECT_EQ(levelSize, ktx1sizes[i]);
-        levelSize = ktxTexture_calcLevelSize(texture, i,
-                                             KTX_FORMAT_VERSION_TWO);
+        levelSize = ktxTexture_calcLevelSize(texture, i, KTX_FORMAT_VERSION_TWO);
         EXPECT_EQ(levelSize, ktx2sizes[i]);
     }
-    if (texture)
-        ktxTexture_Destroy(texture);
+    if (texture) ktxTexture_Destroy(texture);
 }
 
 TEST(ktxTexture_calcLevelSize, SizeOfEachLevelRGB2D) {
     ktxTexture* texture = 0;
-    TestCreateInfo createInfo(9, 9, 1, 2, GL_RGB8,
-                              VK_FORMAT_R8G8B8_UNORM, KTX_FALSE, 1, 1);
+    TestCreateInfo createInfo(9, 9, 1, 2, GL_RGB8, VK_FORMAT_R8G8B8_UNORM, KTX_FALSE, 1, 1);
     KTX_error_code result;
     // Sizes for 9x9, 4 level RGB8 texture.
     // level 0 ... level 4
-    ktx_uint32_t ktx1sizes[] = {28*9, 12*4, 8*2, 4*1};
-    ktx_uint32_t ktx2sizes[] = {27*9, 12*4, 6*2, 3*1};
+    ktx_uint32_t ktx1sizes[] = {28 * 9, 12 * 4, 8 * 2, 4 * 1};
+    ktx_uint32_t ktx2sizes[] = {27 * 9, 12 * 4, 6 * 2, 3 * 1};
 
-    result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE,
-                                (ktxTexture1**)&texture);
+    result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE, (ktxTexture1**)&texture);
     EXPECT_EQ(result, KTX_SUCCESS);
-    ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: "
-                                 << ktxErrorString(result);
+    ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: " << ktxErrorString(result);
     for (ktx_uint32_t i = 0; i < createInfo.numLevels; i++) {
         ktx_size_t levelSize;
-        levelSize = ktxTexture_calcLevelSize(texture, i,
-                                             KTX_FORMAT_VERSION_ONE);
+        levelSize = ktxTexture_calcLevelSize(texture, i, KTX_FORMAT_VERSION_ONE);
         EXPECT_EQ(levelSize, ktx1sizes[i]);
-        levelSize = ktxTexture_calcLevelSize(texture, i,
-                                             KTX_FORMAT_VERSION_TWO);
+        levelSize = ktxTexture_calcLevelSize(texture, i, KTX_FORMAT_VERSION_TWO);
         EXPECT_EQ(levelSize, ktx2sizes[i]);
     }
-    if (texture)
-        ktxTexture_Destroy(texture);
+    if (texture) ktxTexture_Destroy(texture);
 }
 
 /////////////////////////////////////////
@@ -1356,20 +1083,16 @@ TEST(ktxTexture_calcLevelOffset, OffsetOfEachLevelRGBA2D) {
     KTX_error_code result;
     // Offsets for 16x16, 5 level RGBA8 texture.
     // KTX 1: level 0 ... level 4
-    ktx_uint32_t ktx1offsets[] = {0, 1024, 1024+256, 1024+256+64, 1024+256+64+16};
+    ktx_uint32_t ktx1offsets[] = {0, 1024, 1024 + 256, 1024 + 256 + 64, 1024 + 256 + 64 + 16};
     // KTX 2: level 0 ... level 4 with mip padding to a 4 byte alignment.
-    ktx_uint32_t ktx2offsets[] = {4+16+64+256, 4+16+64, 4+16, 4, 0};
+    ktx_uint32_t ktx2offsets[] = {4 + 16 + 64 + 256, 4 + 16 + 64, 4 + 16, 4, 0};
 
-    result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE,
-                                &ktx1texture);
+    result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE, &ktx1texture);
     EXPECT_EQ(result, KTX_SUCCESS);
-    ASSERT_TRUE(ktx1texture != NULL) << "ktxTexture1_Create failed: "
-                                 << ktxErrorString(result);
-    result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE,
-                                &ktx2texture);
+    ASSERT_TRUE(ktx1texture != NULL) << "ktxTexture1_Create failed: " << ktxErrorString(result);
+    result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE, &ktx2texture);
     EXPECT_EQ(result, KTX_SUCCESS);
-    ASSERT_TRUE(ktx2texture != NULL) << "ktxTexture2_Create failed: "
-                                 << ktxErrorString(result);
+    ASSERT_TRUE(ktx2texture != NULL) << "ktxTexture2_Create failed: " << ktxErrorString(result);
     for (ktx_uint32_t i = 0; i < createInfo.numLevels; i++) {
         ktx_size_t levelOffset;
         levelOffset = ktxTexture1_calcLevelOffset(ktx1texture, i);
@@ -1377,34 +1100,27 @@ TEST(ktxTexture_calcLevelOffset, OffsetOfEachLevelRGBA2D) {
         levelOffset = ktxTexture2_calcLevelOffset(ktx2texture, i);
         EXPECT_EQ(levelOffset, ktx2offsets[i]);
     }
-    if (ktx1texture)
-        ktxTexture_Destroy(ktxTexture(ktx1texture));
-    if (ktx2texture)
-        ktxTexture_Destroy(ktxTexture(ktx2texture));
+    if (ktx1texture) ktxTexture_Destroy(ktxTexture(ktx1texture));
+    if (ktx2texture) ktxTexture_Destroy(ktxTexture(ktx2texture));
 }
 
 TEST(ktxTexture_calcLevelOffset, OffsetOfEachLevelRGB2D) {
     ktxTexture1* ktx1texture = 0;
     ktxTexture2* ktx2texture = 0;
-    TestCreateInfo createInfo(9, 9, 1, 2, GL_RGB8,
-                              VK_FORMAT_R8G8B8_UNORM, KTX_FALSE, 1, 1);
+    TestCreateInfo createInfo(9, 9, 1, 2, GL_RGB8, VK_FORMAT_R8G8B8_UNORM, KTX_FALSE, 1, 1);
     KTX_error_code result;
     // Offsets for 9x9, 4 level RGB8 texture.
     // KTX 1: level 0 ... level 4
-    ktx_uint32_t ktx1offsets[] = {0, 28*9, 28*9+12*4, 28*9+12*4+8*2};
+    ktx_uint32_t ktx1offsets[] = {0, 28 * 9, 28 * 9 + 12 * 4, 28 * 9 + 12 * 4 + 8 * 2};
     // KTX 2: level 0 ... level 4 with mip padding to a 12 byte alignment.
-    ktx_uint32_t ktx2offsets[] = {12*4+24, 6*2+12, 3*1+9, 0};
+    ktx_uint32_t ktx2offsets[] = {12 * 4 + 24, 6 * 2 + 12, 3 * 1 + 9, 0};
 
-    result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE,
-                                &ktx1texture);
+    result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE, &ktx1texture);
     EXPECT_EQ(result, KTX_SUCCESS);
-    ASSERT_TRUE(ktx1texture != NULL) << "ktxTexture1_Create failed: "
-                                 << ktxErrorString(result);
-    result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE,
-                                &ktx2texture);
+    ASSERT_TRUE(ktx1texture != NULL) << "ktxTexture1_Create failed: " << ktxErrorString(result);
+    result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE, &ktx2texture);
     EXPECT_EQ(result, KTX_SUCCESS);
-    ASSERT_TRUE(ktx2texture != NULL) << "ktxTexture2_Create failed: "
-                                 << ktxErrorString(result);
+    ASSERT_TRUE(ktx2texture != NULL) << "ktxTexture2_Create failed: " << ktxErrorString(result);
 
     for (ktx_uint32_t i = 0; i < createInfo.numLevels; i++) {
         ktx_size_t levelOffset;
@@ -1413,58 +1129,48 @@ TEST(ktxTexture_calcLevelOffset, OffsetOfEachLevelRGB2D) {
         levelOffset = ktxTexture2_calcLevelOffset(ktx2texture, i);
         EXPECT_EQ(levelOffset, ktx2offsets[i]);
     }
-    if (ktx1texture)
-        ktxTexture_Destroy(ktxTexture(ktx1texture));
-    if (ktx2texture)
-        ktxTexture_Destroy(ktxTexture(ktx2texture));
+    if (ktx1texture) ktxTexture_Destroy(ktxTexture(ktx1texture));
+    if (ktx2texture) ktxTexture_Destroy(ktxTexture(ktx2texture));
 }
 
 TEST(ktxTexture_calcLevelOffset, OffsetOfEachLevelD16_UNORM_S8_UINT) {
     ktxTexture2* ktx2texture = 0;
-    TestCreateInfo createInfo(9, 9, 1, 2, 0,
-                              VK_FORMAT_D16_UNORM_S8_UINT, KTX_FALSE, 1, 1);
+    TestCreateInfo createInfo(9, 9, 1, 2, 0, VK_FORMAT_D16_UNORM_S8_UINT, KTX_FALSE, 1, 1);
     KTX_error_code result;
     // Offsets for 9x9, 4 level  texture.
     // KTX 2: level 0 ... level 4 with mip padding to a 4 byte alignment.
-    ktx_uint32_t ktx2offsets[] = {4+16+64, 4+16, 4, 0};
+    ktx_uint32_t ktx2offsets[] = {4 + 16 + 64, 4 + 16, 4, 0};
 
-    result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE,
-                                &ktx2texture);
+    result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE, &ktx2texture);
     EXPECT_EQ(result, KTX_SUCCESS);
-    ASSERT_TRUE(ktx2texture != NULL) << "ktxTexture2_Create failed: "
-                                 << ktxErrorString(result);
+    ASSERT_TRUE(ktx2texture != NULL) << "ktxTexture2_Create failed: " << ktxErrorString(result);
 
     for (ktx_uint32_t i = 0; i < createInfo.numLevels; i++) {
         ktx_size_t levelOffset;
         levelOffset = ktxTexture2_calcLevelOffset(ktx2texture, i);
         EXPECT_EQ(levelOffset, ktx2offsets[i]);
     }
-    if (ktx2texture)
-        ktxTexture_Destroy(ktxTexture(ktx2texture));
+    if (ktx2texture) ktxTexture_Destroy(ktxTexture(ktx2texture));
 }
 
 TEST(ktxTexture_calcLevelOffset, OffsetOfEachLevelD32_SFLOAT_S8_UINT) {
     ktxTexture2* ktx2texture = 0;
-    TestCreateInfo createInfo(9, 9, 1, 2, 0,
-                              VK_FORMAT_D32_SFLOAT_S8_UINT, KTX_FALSE, 1, 1);
+    TestCreateInfo createInfo(9, 9, 1, 2, 0, VK_FORMAT_D32_SFLOAT_S8_UINT, KTX_FALSE, 1, 1);
     KTX_error_code result;
     // Offsets for 9x9, 4 level  texture.
     // KTX 2: level 0 ... level 4 with mip padding to an 8 byte alignment.
-    ktx_uint32_t ktx2offsets[] = {8+32+128, 8+32, 8, 0};
+    ktx_uint32_t ktx2offsets[] = {8 + 32 + 128, 8 + 32, 8, 0};
 
-    result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE,
-                                &ktx2texture);
+    result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE, &ktx2texture);
     EXPECT_EQ(result, KTX_SUCCESS);
-    ASSERT_TRUE(ktx2texture != NULL) << "ktxTexture2_Create failed: "
-                                 << ktxErrorString(result);
+    ASSERT_TRUE(ktx2texture != NULL) << "ktxTexture2_Create failed: " << ktxErrorString(result);
 
     for (ktx_uint32_t i = 0; i < createInfo.numLevels; i++) {
         ktx_size_t levelOffset;
         levelOffset = ktxTexture2_calcLevelOffset(ktx2texture, i);
         EXPECT_EQ(levelOffset, ktx2offsets[i]);
     }
-    if (ktx2texture)
-        ktxTexture_Destroy(ktxTexture(ktx2texture));
+    if (ktx2texture) ktxTexture_Destroy(ktxTexture(ktx2texture));
 }
 
 /////////////////////////////////////////
@@ -1477,23 +1183,17 @@ TEST(ktxTexture_GetImageOffsetTest, InvalidOpOnLevelFaceLayerTooBig) {
     KTX_error_code result;
     ktx_size_t offset;
 
-    result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE,
-                                (ktxTexture1**)&texture);
+    result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE, (ktxTexture1**)&texture);
     EXPECT_EQ(result, KTX_SUCCESS);
-    ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: "
-                                 << ktxErrorString(result);
-    EXPECT_EQ(ktxTexture_GetImageOffset(texture, createInfo.numLevels, 0, 0, &offset),
-              KTX_INVALID_OPERATION);
-    EXPECT_EQ(ktxTexture_GetImageOffset(texture, 0, createInfo.numLayers, 0, &offset),
-              KTX_INVALID_OPERATION);
-    EXPECT_EQ(ktxTexture_GetImageOffset(texture, 0, 0, createInfo.numFaces, &offset),
-              KTX_INVALID_OPERATION);
-    if (texture)
-        ktxTexture_Destroy(texture);
+    ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: " << ktxErrorString(result);
+    EXPECT_EQ(ktxTexture_GetImageOffset(texture, createInfo.numLevels, 0, 0, &offset), KTX_INVALID_OPERATION);
+    EXPECT_EQ(ktxTexture_GetImageOffset(texture, 0, createInfo.numLayers, 0, &offset), KTX_INVALID_OPERATION);
+    EXPECT_EQ(ktxTexture_GetImageOffset(texture, 0, 0, createInfo.numFaces, &offset), KTX_INVALID_OPERATION);
+    if (texture) ktxTexture_Destroy(texture);
 }
 
 TEST(ktxTexture_GetImageOffsetTest, ImageOffsetLevel) {
-    //using createFlagBits = typename WriterTestHelper<GLubyte, 4, GL_RGBA8>::createFlagBits;
+    // using createFlagBits = typename WriterTestHelper<GLubyte, 4, GL_RGBA8>::createFlagBits;
     TextureWriterTestHelper<GLubyte, 4, GL_RGBA8> helper;
 
     helper.resize(createFlagBits::eMipmapped, 1, 1, 2, 16, 16, 1);
@@ -1501,30 +1201,22 @@ TEST(ktxTexture_GetImageOffsetTest, ImageOffsetLevel) {
     KTX_error_code result;
     ktx_size_t expectedOffset, imageSize, offset;
 
-    result = ktxTexture1_Create(&helper.createInfo,
-                               KTX_TEXTURE_CREATE_NO_STORAGE,
-                               (ktxTexture1**)&texture);
+    result = ktxTexture1_Create(&helper.createInfo, KTX_TEXTURE_CREATE_NO_STORAGE, (ktxTexture1**)&texture);
     EXPECT_EQ(result, KTX_SUCCESS);
-    ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: "
-                                 << ktxErrorString(result);
-    EXPECT_EQ(ktxTexture_GetImageOffset(texture, 0, 0, 0, &offset),
-              KTX_SUCCESS);
+    ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: " << ktxErrorString(result);
+    EXPECT_EQ(ktxTexture_GetImageOffset(texture, 0, 0, 0, &offset), KTX_SUCCESS);
     EXPECT_EQ(offset, 0U);
     // GL_RGBA8 is 1 x 4 bytes.
-    imageSize = helper.createInfo.baseWidth
-                * helper.createInfo.baseHeight * 1 * 4;
+    imageSize = helper.createInfo.baseWidth * helper.createInfo.baseHeight * 1 * 4;
     expectedOffset = imageSize;
-    EXPECT_EQ(ktxTexture_GetImageOffset(texture, 1, 0, 0, &offset),
-              KTX_SUCCESS);
+    EXPECT_EQ(ktxTexture_GetImageOffset(texture, 1, 0, 0, &offset), KTX_SUCCESS);
     EXPECT_EQ(offset, expectedOffset);
     // The image used to calculate imageDataSize has the same dimensions and
     // internalformat as those specified by createInfo.
     expectedOffset = helper.imageDataSize - 4;
-    EXPECT_EQ(ktxTexture_GetImageOffset(texture, helper.createInfo.numLevels - 1, 0, 0, &offset),
-              KTX_SUCCESS);
+    EXPECT_EQ(ktxTexture_GetImageOffset(texture, helper.createInfo.numLevels - 1, 0, 0, &offset), KTX_SUCCESS);
     EXPECT_EQ(offset, expectedOffset);
-    if (texture)
-        ktxTexture_Destroy(texture);
+    if (texture) ktxTexture_Destroy(texture);
 }
 
 TEST(ktxTexture_GetImageOffsetTest, ImageOffsetWithRowPadding) {
@@ -1537,17 +1229,14 @@ TEST(ktxTexture_GetImageOffsetTest, ImageOffsetWithRowPadding) {
     // Pick type and size that requires row padding for KTX_GL_UNPACK_ALIGNMENT.
     createInfo.glInternalformat = GL_RGB8;
     createInfo.baseWidth = 9;
-    result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE,
-                                (ktxTexture1**)&texture);
+    result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE, (ktxTexture1**)&texture);
     EXPECT_EQ(result, KTX_SUCCESS);
-    ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: "
-                                 << ktxErrorString(result);
+    ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: " << ktxErrorString(result);
     rowBytes = 9 * 3;
     rowRounding = ROUNDING(rowBytes);
     imageSize = (rowBytes + rowRounding) * texture->baseHeight;
     expectedOffset = imageSize;
-    EXPECT_EQ(ktxTexture_GetImageOffset(texture, 1, 0, 0, &offset),
-              KTX_SUCCESS);
+    EXPECT_EQ(ktxTexture_GetImageOffset(texture, 1, 0, 0, &offset), KTX_SUCCESS);
     EXPECT_EQ(offset, expectedOffset);
 
     expectedOffset = 0;
@@ -1561,11 +1250,9 @@ TEST(ktxTexture_GetImageOffsetTest, ImageOffsetWithRowPadding) {
         imageSize = levelRowBytes * levelHeight;
         expectedOffset += imageSize;
     }
-    EXPECT_EQ(ktxTexture_GetImageOffset(texture, createInfo.numLevels - 1, 0, 0, &offset),
-              KTX_SUCCESS);
+    EXPECT_EQ(ktxTexture_GetImageOffset(texture, createInfo.numLevels - 1, 0, 0, &offset), KTX_SUCCESS);
     EXPECT_EQ(offset, expectedOffset);
-    if (texture)
-        ktxTexture_Destroy(texture);
+    if (texture) ktxTexture_Destroy(texture);
 }
 
 TEST(ktxTexture_GetImageOffsetTest, ImageOffsetArray) {
@@ -1579,18 +1266,15 @@ TEST(ktxTexture_GetImageOffsetTest, ImageOffsetArray) {
     createInfo.glInternalformat = GL_RGB8;
     createInfo.baseWidth = 9;
     createInfo.numLayers = 3;
-    result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE,
-                                (ktxTexture1**)&texture);
+    result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE, (ktxTexture1**)&texture);
     EXPECT_EQ(result, KTX_SUCCESS);
-    ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: "
-                                 << ktxErrorString(result);
+    ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: " << ktxErrorString(result);
     rowBytes = 9 * 3;
     rowRounding = ROUNDING(rowBytes);
     imageSize = (rowBytes + rowRounding) * createInfo.baseHeight;
     layerSize = imageSize * texture->numFaces;
     expectedOffset = layerSize * texture->numLayers;
-    EXPECT_EQ(ktxTexture_GetImageOffset(texture, 1, 0, 0, &offset),
-              KTX_SUCCESS);
+    EXPECT_EQ(ktxTexture_GetImageOffset(texture, 1, 0, 0, &offset), KTX_SUCCESS);
     EXPECT_EQ(offset, expectedOffset);
     levelWidth = MAX(1, texture->baseWidth >> 1);
     levelHeight = MAX(1, texture->baseHeight >> 1);
@@ -1599,11 +1283,9 @@ TEST(ktxTexture_GetImageOffsetTest, ImageOffsetArray) {
     levelRowBytes += rowRounding;
     levelImageSize = levelRowBytes * levelHeight;
     expectedOffset += levelImageSize * 2;
-    EXPECT_EQ(ktxTexture_GetImageOffset(texture, 1, 2, 0, &offset),
-              KTX_SUCCESS);
+    EXPECT_EQ(ktxTexture_GetImageOffset(texture, 1, 2, 0, &offset), KTX_SUCCESS);
     EXPECT_EQ(offset, expectedOffset);
-    if (texture)
-        ktxTexture_Destroy(texture);
+    if (texture) ktxTexture_Destroy(texture);
 }
 
 TEST(ktxTexture_GetImageOffsetTest, ImageOffsetFace) {
@@ -1620,18 +1302,15 @@ TEST(ktxTexture_GetImageOffsetTest, ImageOffsetFace) {
     createInfo.numLevels = 4;
     createInfo.numLayers = 1;
     createInfo.numFaces = 6;
-    result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE,
-                                (ktxTexture1**)&texture);
+    result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE, (ktxTexture1**)&texture);
     EXPECT_EQ(result, KTX_SUCCESS);
-    ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: "
-                                 << ktxErrorString(result);
+    ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: " << ktxErrorString(result);
     rowBytes = 9 * 3;
     rowRounding = ROUNDING(rowBytes);
     imageSize = (rowBytes + rowRounding) * texture->baseHeight;
     layerSize = imageSize * texture->numFaces;
     expectedOffset = imageSize * 4;
-    EXPECT_EQ(ktxTexture_GetImageOffset(texture, 0, 0, 4, &offset),
-              KTX_SUCCESS);
+    EXPECT_EQ(ktxTexture_GetImageOffset(texture, 0, 0, 4, &offset), KTX_SUCCESS);
     EXPECT_EQ(offset, expectedOffset);
     levelWidth = MAX(1, texture->baseWidth >> 1);
     levelHeight = MAX(1, texture->baseHeight >> 1);
@@ -1640,11 +1319,9 @@ TEST(ktxTexture_GetImageOffsetTest, ImageOffsetFace) {
     levelRowBytes += rowRounding;
     levelImageSize = levelRowBytes * levelHeight;
     expectedOffset = layerSize + levelImageSize * 3;
-    EXPECT_EQ(ktxTexture_GetImageOffset(texture, 1, 0, 3, &offset),
-              KTX_SUCCESS);
+    EXPECT_EQ(ktxTexture_GetImageOffset(texture, 1, 0, 3, &offset), KTX_SUCCESS);
     EXPECT_EQ(offset, expectedOffset);
-    if (texture)
-        ktxTexture_Destroy(texture);
+    if (texture) ktxTexture_Destroy(texture);
 }
 
 TEST(ktxTexture_GetImageOffsetTest, ImageOffsetArrayFace) {
@@ -1662,18 +1339,15 @@ TEST(ktxTexture_GetImageOffsetTest, ImageOffsetArrayFace) {
     createInfo.numLevels = 4;
     createInfo.numLayers = 3;
     createInfo.numFaces = 6;
-    result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE,
-                                (ktxTexture1**)&texture);
+    result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE, (ktxTexture1**)&texture);
     EXPECT_EQ(result, KTX_SUCCESS);
-    ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: "
-                                 << ktxErrorString(result);
+    ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: " << ktxErrorString(result);
     rowBytes = 9 * 3;
     rowRounding = ROUNDING(rowBytes);
     imageSize = (rowBytes + rowRounding) * createInfo.baseHeight;
     layerSize = imageSize * texture->numFaces;
     expectedOffset = layerSize * createInfo.numLayers;
-    EXPECT_EQ(ktxTexture_GetImageOffset(texture, 1, 0, 0, &offset),
-              KTX_SUCCESS);
+    EXPECT_EQ(ktxTexture_GetImageOffset(texture, 1, 0, 0, &offset), KTX_SUCCESS);
     EXPECT_EQ(offset, expectedOffset);
     levelWidth = MAX(1, createInfo.baseWidth >> 1);
     levelHeight = MAX(1, createInfo.baseHeight >> 1);
@@ -1682,15 +1356,12 @@ TEST(ktxTexture_GetImageOffsetTest, ImageOffsetArrayFace) {
     levelRowBytes += rowRounding;
     levelImageSize = levelRowBytes * levelHeight;
     expectedOffset += levelImageSize * texture->numFaces * 2;
-    EXPECT_EQ(ktxTexture_GetImageOffset(texture, 1, 2, 0, &offset),
-              KTX_SUCCESS);
+    EXPECT_EQ(ktxTexture_GetImageOffset(texture, 1, 2, 0, &offset), KTX_SUCCESS);
     EXPECT_EQ(offset, expectedOffset);
-    expectedOffset += levelImageSize * 3; // 3 faces
-    EXPECT_EQ(ktxTexture_GetImageOffset(texture, 1, 2, 3, &offset),
-              KTX_SUCCESS);
+    expectedOffset += levelImageSize * 3;  // 3 faces
+    EXPECT_EQ(ktxTexture_GetImageOffset(texture, 1, 2, 3, &offset), KTX_SUCCESS);
     EXPECT_EQ(offset, expectedOffset);
-    if (texture)
-        ktxTexture_Destroy(texture);
+    if (texture) ktxTexture_Destroy(texture);
 }
 
 /////////////////////////////////////////
@@ -1718,8 +1389,7 @@ TEST_F(ktxTexture1WriteTestRGB8, Write1DArray) {
 }
 
 TEST_F(ktxTexture1WriteTestRGBA8, Write1DArrayMipmap) {
-    helper.resize(createFlagBits::eMipmapped | createFlagBits::eArray,
-                  4, 1, 1, 32, 1, 1);
+    helper.resize(createFlagBits::eMipmapped | createFlagBits::eArray, 4, 1, 1, 32, 1, 1);
     runTest(false);
 }
 
@@ -1739,13 +1409,12 @@ TEST_F(ktxTexture1WriteTestRGBA8, Write2DArray) {
 }
 
 TEST_F(ktxTexture1WriteTestRGBA8, Write2DArrayMipmap) {
-    helper.resize(createFlagBits::eArray | createFlagBits::eMipmapped,
-                  4, 1, 2, 32, 32, 1);
+    helper.resize(createFlagBits::eArray | createFlagBits::eMipmapped, 4, 1, 2, 32, 32, 1);
     runTest(true);
 }
 
 TEST_F(ktxTexture1WriteTestRGB8, 3D) {
-    helper.resize(createFlagBits::eNone,1, 1, 3, 32, 32, 32);
+    helper.resize(createFlagBits::eNone, 1, 1, 3, 32, 32, 32);
     runTest(true);
 }
 
@@ -1760,13 +1429,11 @@ TEST_F(ktxTexture1WriteTestRGB8, WriteCubemap) {
 }
 
 TEST_F(ktxTexture1WriteTestRGBA8, WriteCubemapMipmap) {
-    helper.resize(createFlagBits::eMipmapped,
-                  1, 6, 2, 32, 32, 1);
+    helper.resize(createFlagBits::eMipmapped, 1, 6, 2, 32, 32, 1);
     runTest(true);
 }
 TEST_F(ktxTexture1WriteTestRGBA8, WriteCubemapArrayMipmap) {
-    helper.resize(createFlagBits::eMipmapped | createFlagBits::eArray,
-                  4, 6, 2, 32, 32, 1);
+    helper.resize(createFlagBits::eMipmapped | createFlagBits::eArray, 4, 6, 2, 32, 32, 1);
     runTest(true);
 }
 
@@ -1780,20 +1447,16 @@ TEST_F(ktxTexture1WriteTestRG16, Write2DMipmap) {
 //----------------------------------------------------------
 
 #include "vkformat_enum.h"
-#define LIBKTX // To make dfd.h not include vulkan/vulkan_core.h.
+#define LIBKTX  // To make dfd.h not include vulkan/vulkan_core.h.
 #include "dfdutils/dfd.h"
 
-template<typename component_type, ktx_uint32_t numComponents,
-         GLenum internalformat>
-class ktxTexture1WriteKTX2TestBase
-      : public ktxTexture1WriteTestBase<component_type, numComponents, internalformat> {
+template <typename component_type, ktx_uint32_t numComponents, GLenum internalformat>
+class ktxTexture1WriteKTX2TestBase : public ktxTexture1WriteTestBase<component_type, numComponents, internalformat> {
   public:
     using createFlags = typename WriterTestHelper<component_type, numComponents, internalformat>::createFlags;
     using ktxTexture1WriteTestBase<component_type, numComponents, internalformat>::helper;
 
-    ktxTexture1WriteKTX2TestBase() {
-        requiredLevelAlignment = lcm4(sizeof(component_type) * numComponents);
-    }
+    ktxTexture1WriteKTX2TestBase() { requiredLevelAlignment = lcm4(sizeof(component_type) * numComponents); }
 
     void runTest(bool writeOrientationMeta, bool writeWriterMeta = true) {
         ktxTexture1* texture = 0;
@@ -1806,36 +1469,29 @@ class ktxTexture1WriteKTX2TestBase
         ktx_uint8_t* kvData;
         ktx_uint32_t kvDataLen;
 
-        result = ktxTexture1_Create(&helper.createInfo,
-                                   KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                   &texture);
+        result = ktxTexture1_Create(&helper.createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &texture);
         EXPECT_EQ(result, KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: " << ktxErrorString(result);
 
         if (writeOrientationMeta) {
             // Reminder: this is for the KTX 1 texture we have just created.
-            ktxHashList_AddKVPair(&texture->kvDataHead, KTX_ORIENTATION_KEY,
-                                  (unsigned int)strlen(helper.orientation) + 1,
+            ktxHashList_AddKVPair(&texture->kvDataHead, KTX_ORIENTATION_KEY, (unsigned int)strlen(helper.orientation) + 1,
                                   helper.orientation);
             // This is for the comparison metadata.
-            ktxHashList_AddKVPair(hl, KTX_ORIENTATION_KEY,
-                                  (unsigned int)strlen(helper.orientation_ktx2) + 1,
+            ktxHashList_AddKVPair(hl, KTX_ORIENTATION_KEY, (unsigned int)strlen(helper.orientation_ktx2) + 1,
                                   helper.orientation_ktx2);
         }
         // N.B. Writer metadata is not legal in a KTX v1 file but we know
         // we're going to write this out as a v2 file so okay.
         if (writeWriterMeta) {
-            ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
-                                  (uint32_t)helper.writer_ktx2.size(),
+            ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY, (uint32_t)helper.writer_ktx2.size(),
                                   helper.writer_ktx2.data());
-            ktxHashList_AddKVPair(hl, KTX_WRITER_KEY,
-                                  (uint32_t)helper.writer_ktx2.size(),
-                                  helper.writer_ktx2.data());
+            ktxHashList_AddKVPair(hl, KTX_WRITER_KEY, (uint32_t)helper.writer_ktx2.size(), helper.writer_ktx2.data());
         }
         // Now update the comparison metadata by doing the things WriteKTX2 is
         // supposed to do so we can check it's actually doing it..
-        ktxHashListEntry* pWriter = nullptr;;
+        ktxHashListEntry* pWriter = nullptr;
+        ;
         ktxHashList_FindEntry(hl, KTX_WRITER_KEY, &pWriter);
         result = appendLibId(hl, pWriter);
         EXPECT_EQ(result, KTX_SUCCESS);
@@ -1848,12 +1504,9 @@ class ktxTexture1WriteKTX2TestBase
 
         EXPECT_EQ(helper.compareTexture1Images(texture->pData), true);
 
-        result = ktxTexture1_WriteKTX2ToMemory(texture,
-                                               &ktxMemFile,
-                                               &ktxMemFileLen);
+        result = ktxTexture1_WriteKTX2ToMemory(texture, &ktxMemFile, &ktxMemFileLen);
 
-        ASSERT_TRUE(result == KTX_SUCCESS) << "ktxTexture_WriteKTX2ToMemory failed: "
-                                           << ktxErrorString(result);
+        ASSERT_TRUE(result == KTX_SUCCESS) << "ktxTexture_WriteKTX2ToMemory failed: " << ktxErrorString(result);
 
         KTX_header2* header = (KTX_header2*)ktxMemFile;
 
@@ -1866,9 +1519,7 @@ class ktxTexture1WriteKTX2TestBase
         // generator, so can be reasonably confident in it. This test
         // ensures there is a DFD in the file.
         ktx_uint32_t* dfd = vk2dfd(static_cast<VkFormat>(header->vkFormat));
-        EXPECT_EQ(memcmp(ktxMemFile + header->dataFormatDescriptor.byteOffset,
-                         dfd,
-                         *dfd), 0);
+        EXPECT_EQ(memcmp(ktxMemFile + header->dataFormatDescriptor.byteOffset, dfd, *dfd), 0);
 
         // Check the metadata.
         filePtr = ktxMemFile + header->keyValueData.byteOffset;
@@ -1892,8 +1543,7 @@ class ktxTexture1WriteKTX2TestBase
         }
 #endif
         // Offset of level 0 is first item in leveIndex after header.
-        ktxLevelIndexEntry* levelIndex =
-            reinterpret_cast<ktxLevelIndexEntry*>(ktxMemFile + sizeof(*header));
+        ktxLevelIndexEntry* levelIndex = reinterpret_cast<ktxLevelIndexEntry*>(ktxMemFile + sizeof(*header));
 
         ktx_uint64_t prevOffset = UINT64_MAX;
         for (ktx_uint32_t level = 0; level < helper.numLevels; level++) {
@@ -1921,12 +1571,9 @@ class ktxTexture1WriteKTX2TestBase
         ktx_uint8_t* kvData;
         ktx_uint32_t kvDataLen;
 
-        result = ktxTexture1_Create(&helper.createInfo,
-                                   KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                   &texture);
+        result = ktxTexture1_Create(&helper.createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &texture);
         EXPECT_EQ(result, KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: " << ktxErrorString(result);
 
         ktxHashList* hl;
         ktxHashList_Create(&hl);
@@ -1936,18 +1583,12 @@ class ktxTexture1WriteKTX2TestBase
         for (uint32_t i = 0; i < 2; i++) {
             // N.B. Writer metadata is not legal in a KTX v1 file but we know
             // we're going to write this out as a v2 file so okay.
-            ktxHashList_AddKVPair(hlists[i], KTX_WRITER_KEY,
-                                  (uint32_t)helper.writer_ktx2.size(),
-                                  helper.writer_ktx2.data());
+            ktxHashList_AddKVPair(hlists[i], KTX_WRITER_KEY, (uint32_t)helper.writer_ktx2.size(), helper.writer_ktx2.data());
             if (unrecognizedKey) {
-                ktxHashList_AddKVPair(hlists[i], unrecognizedKey,
-                                      sizeof(rubbishValue),
-                                      rubbishValue);
+                ktxHashList_AddKVPair(hlists[i], unrecognizedKey, sizeof(rubbishValue), rubbishValue);
             }
             if (proprietaryKey) {
-                ktxHashList_AddKVPair(hlists[i], proprietaryKey,
-                                      sizeof(rubbishValue),
-                                      rubbishValue);
+                ktxHashList_AddKVPair(hlists[i], proprietaryKey, sizeof(rubbishValue), rubbishValue);
             }
             ktxHashList_Sort(hlists[i]);
         }
@@ -1965,13 +1606,10 @@ class ktxTexture1WriteKTX2TestBase
 
         EXPECT_EQ(helper.compareTexture1Images(texture->pData), true);
 
-        result = ktxTexture1_WriteKTX2ToMemory(texture,
-                                               &ktxMemFile,
-                                               &ktxMemFileLen);
+        result = ktxTexture1_WriteKTX2ToMemory(texture, &ktxMemFile, &ktxMemFileLen);
 
         if (unrecognizedKey == NULL) {
-            ASSERT_TRUE(result == KTX_SUCCESS) << "ktxTexture_WriteKTX2ToMemory failed: "
-                                               << ktxErrorString(result);
+            ASSERT_TRUE(result == KTX_SUCCESS) << "ktxTexture_WriteKTX2ToMemory failed: " << ktxErrorString(result);
 
             KTX_header2* header = (KTX_header2*)ktxMemFile;
 
@@ -1980,9 +1618,7 @@ class ktxTexture1WriteKTX2TestBase
 
             // Check the format descriptor.
             ktx_uint32_t* dfd = vk2dfd(static_cast<VkFormat>(header->vkFormat));
-            EXPECT_EQ(memcmp(ktxMemFile + header->dataFormatDescriptor.byteOffset,
-                             dfd,
-                             *dfd), 0);
+            EXPECT_EQ(memcmp(ktxMemFile + header->dataFormatDescriptor.byteOffset, dfd, *dfd), 0);
 
             // Check the metadata.
             filePtr = ktxMemFile + header->keyValueData.byteOffset;
@@ -1991,8 +1627,7 @@ class ktxTexture1WriteKTX2TestBase
             filePtr += helper.kvDataLen;
 
             // Offset of level 0 is first item in leveIndex after header.
-            ktxLevelIndexEntry* levelIndex =
-                reinterpret_cast<ktxLevelIndexEntry*>(ktxMemFile + sizeof(*header));
+            ktxLevelIndexEntry* levelIndex = reinterpret_cast<ktxLevelIndexEntry*>(ktxMemFile + sizeof(*header));
 
             ktx_uint64_t offset = UINT64_MAX;
             for (ktx_uint32_t level = 0; level < helper.numLevels; level++) {
@@ -2014,15 +1649,15 @@ class ktxTexture1WriteKTX2TestBase
 
         ktxTexture_Destroy(ktxTexture(texture));
         delete kvData;
-
     }
+
   protected:
     ktx_uint32_t requiredLevelAlignment;
 };
 
-class ktxTexture1WriteKTX2TestRGBA8: public ktxTexture1WriteKTX2TestBase<GLubyte, 4, GL_RGBA8> { };
-class ktxTexture1WriteKTX2TestRGB8: public ktxTexture1WriteKTX2TestBase<GLubyte, 3, GL_RGB8> { };
-class ktxTexture1WriteKTX2TestRG16: public ktxTexture1WriteKTX2TestBase<GLushort, 2, GL_RG16> { };
+class ktxTexture1WriteKTX2TestRGBA8 : public ktxTexture1WriteKTX2TestBase<GLubyte, 4, GL_RGBA8> {};
+class ktxTexture1WriteKTX2TestRGB8 : public ktxTexture1WriteKTX2TestBase<GLubyte, 3, GL_RGB8> {};
+class ktxTexture1WriteKTX2TestRG16 : public ktxTexture1WriteKTX2TestBase<GLushort, 2, GL_RG16> {};
 
 /////////////////////////////////////////
 // ktxTexture_WriteKTX2 tests
@@ -2043,15 +1678,13 @@ TEST_F(ktxTexture1WriteKTX2TestRGBA8, Write1DMipmap) {
     runTest(false);
 }
 
-
 TEST_F(ktxTexture1WriteKTX2TestRGB8, Write1DArray) {
     helper.resize(createFlagBits::eArray, 4, 1, 1, 32, 1, 1);
     runTest(false);
 }
 
 TEST_F(ktxTexture1WriteKTX2TestRGBA8, Write1DArrayMipmap) {
-    helper.resize(createFlagBits::eMipmapped | createFlagBits::eArray,
-                  4, 1, 1, 32, 1, 1);
+    helper.resize(createFlagBits::eMipmapped | createFlagBits::eArray, 4, 1, 1, 32, 1, 1);
     runTest(false);
 }
 
@@ -2095,13 +1728,12 @@ TEST_F(ktxTexture1WriteKTX2TestRGBA8, Write2DArray) {
 }
 
 TEST_F(ktxTexture1WriteKTX2TestRGBA8, Write2DArrayMipmap) {
-    helper.resize(createFlagBits::eArray | createFlagBits::eMipmapped,
-                  4, 1, 2, 32, 32, 1);
+    helper.resize(createFlagBits::eArray | createFlagBits::eMipmapped, 4, 1, 2, 32, 32, 1);
     runTest(true);
 }
 
 TEST_F(ktxTexture1WriteKTX2TestRGB8, 3D) {
-    helper.resize(createFlagBits::eNone,1, 1, 3, 32, 32, 32);
+    helper.resize(createFlagBits::eNone, 1, 1, 3, 32, 32, 32);
     runTest(true);
 }
 
@@ -2116,14 +1748,12 @@ TEST_F(ktxTexture1WriteKTX2TestRGB8, WriteCubemap) {
 }
 
 TEST_F(ktxTexture1WriteKTX2TestRGBA8, WriteCubemapMipmap) {
-    helper.resize(createFlagBits::eMipmapped,
-                  1, 6, 2, 32, 32, 1);
+    helper.resize(createFlagBits::eMipmapped, 1, 6, 2, 32, 32, 1);
     runTest(true);
 }
 
 TEST_F(ktxTexture1WriteKTX2TestRGBA8, WriteCubemapArrayMipmap) {
-    helper.resize(createFlagBits::eMipmapped | createFlagBits::eArray,
-                  4, 6, 2, 32, 32, 1);
+    helper.resize(createFlagBits::eMipmapped | createFlagBits::eArray, 4, 6, 2, 32, 32, 1);
     runTest(true);
 }
 
@@ -2136,56 +1766,41 @@ TEST_F(ktxTexture1WriteKTX2TestRG16, Write2DMipmap) {
 // Template for base fixture for ktxTexture2_Read tests.
 //----------------------------------------------------------
 
-template<typename component_type, ktx_uint32_t numComponents,
-         GLenum internalformat>
-class ktxTexture2ReadTestBase
-      : public ktxTexture1WriteTestBase<component_type, numComponents, internalformat> {
+template <typename component_type, ktx_uint32_t numComponents, GLenum internalformat>
+class ktxTexture2ReadTestBase : public ktxTexture1WriteTestBase<component_type, numComponents, internalformat> {
   public:
     using createFlags = typename WriterTestHelper<component_type, numComponents, internalformat>::createFlags;
     using ktxTexture1WriteTestBase<component_type, numComponents, internalformat>::helper;
 
-    ktxTexture2ReadTestBase() { }
+    ktxTexture2ReadTestBase() {}
 
     ~ktxTexture2ReadTestBase() {
         if (ktx2MemFile) delete ktx2MemFile;
     }
 
-    void resize(createFlags flags,
-                ktx_uint32_t numLayers, ktx_uint32_t numFaces,
-                ktx_uint32_t numDimensions,
-                ktx_uint32_t width, ktx_uint32_t height, ktx_uint32_t depth)
-    {
+    void resize(createFlags flags, ktx_uint32_t numLayers, ktx_uint32_t numFaces, ktx_uint32_t numDimensions, ktx_uint32_t width,
+                ktx_uint32_t height, ktx_uint32_t depth) {
         ktxTexture1* texture = 0;
         KTX_error_code result;
 
-        helper.resize(flags, numLayers, numFaces, numDimensions,
-                      width, height, depth);
+        helper.resize(flags, numLayers, numFaces, numDimensions, width, height, depth);
 
-        result = ktxTexture1_Create(&helper.createInfo,
-                                    KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                    &texture);
+        result = ktxTexture1_Create(&helper.createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &texture);
         EXPECT_EQ(result, KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture1_Create failed: " << ktxErrorString(result);
 
         // Reminder: this is for the KTX 1 texture we have just created.
-        ktxHashList_AddKVPair(&texture->kvDataHead, KTX_ORIENTATION_KEY,
-                              (unsigned int)strlen(helper.orientation) + 1,
+        ktxHashList_AddKVPair(&texture->kvDataHead, KTX_ORIENTATION_KEY, (unsigned int)strlen(helper.orientation) + 1,
                               helper.orientation);
-        ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
-                              (uint32_t)helper.writer_ktx2.size(),
-                              helper.writer_ktx2.data());
+        ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY, (uint32_t)helper.writer_ktx2.size(), helper.writer_ktx2.data());
 
         result = helper.copyImagesToTexture(texture);
         EXPECT_EQ(result, KTX_SUCCESS);
 
         EXPECT_EQ(helper.compareTexture1Images(texture->pData), true);
 
-        result = ktxTexture1_WriteKTX2ToMemory(texture,
-                                               &ktx2MemFile,
-                                               &ktx2MemFileLen);
-        ASSERT_TRUE(result == KTX_SUCCESS) << "ktxTexture1_WriteKTX2ToMemory failed: "
-                                           << ktxErrorString(result);
+        result = ktxTexture1_WriteKTX2ToMemory(texture, &ktx2MemFile, &ktx2MemFileLen);
+        ASSERT_TRUE(result == KTX_SUCCESS) << "ktxTexture1_WriteKTX2ToMemory failed: " << ktxErrorString(result);
         fileHeader = (KTX_header2*)ktx2MemFile;
         levelIndex = (ktxLevelIndexEntry*)(ktx2MemFile + sizeof(KTX_header2));
 
@@ -2196,13 +1811,10 @@ class ktxTexture2ReadTestBase
         ktxTexture2* texture2 = 0;
         KTX_error_code result;
 
-        result = ktxTexture2_CreateFromMemory(ktx2MemFile, ktx2MemFileLen,
-                                        KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-                                        &texture2);
+        result = ktxTexture2_CreateFromMemory(ktx2MemFile, ktx2MemFileLen, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture2);
 
         EXPECT_EQ(result, KTX_SUCCESS);
-        ASSERT_TRUE(texture2 != NULL) << "ktxTexture2_Create failed: "
-                                      << ktxErrorString(result);
+        ASSERT_TRUE(texture2 != NULL) << "ktxTexture2_Create failed: " << ktxErrorString(result);
 
         EXPECT_EQ(texture2->classId, ktxTexture2_c);
         EXPECT_EQ(helper.texinfo.compare(texture2), true);
@@ -2212,24 +1824,22 @@ class ktxTexture2ReadTestBase
         ktx_size_t baseOffset = levelIndex[helper.numLevels - 1].byteOffset;
         for (ktx_uint32_t level = 0; level < texture2->numLevels; level++) {
             ktx_size_t levelOffset;
-            result = ktxTexture2_GetImageOffset(texture2, level, 0, 0,
-                                                &levelOffset);
+            result = ktxTexture2_GetImageOffset(texture2, level, 0, 0, &levelOffset);
             EXPECT_EQ(result, KTX_SUCCESS);
             EXPECT_EQ(levelOffset, levelIndex[level].byteOffset - baseOffset);
         }
 
         ktxTexture2_destruct(texture2);
-
     }
 
-    protected:
-        ktx_uint8_t* ktx2MemFile;
-        ktx_size_t ktx2MemFileLen;
-        KTX_header2* fileHeader;
-        ktxLevelIndexEntry* levelIndex;
+  protected:
+    ktx_uint8_t* ktx2MemFile;
+    ktx_size_t ktx2MemFileLen;
+    KTX_header2* fileHeader;
+    ktxLevelIndexEntry* levelIndex;
 };
 
-class ktxTexture2ReadTestRGBA8: public ktxTexture2ReadTestBase<GLubyte, 4, GL_RGBA8> { };
+class ktxTexture2ReadTestRGBA8 : public ktxTexture2ReadTestBase<GLubyte, 4, GL_RGBA8> {};
 
 /////////////////////////////////////////
 // ktxTexture_WriteKTX2 tests
@@ -2265,7 +1875,7 @@ TEST_F(ktxTexture2ReadTestRGBA8, Read3DMipmap) {
     runTest();
 }
 
-class ktxTexture2_BasisCompressTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8>  { };
+class ktxTexture2_BasisCompressTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> {};
 
 /////////////////////////////////////////
 // ktxTexture2_BasisCompress tests
@@ -2277,12 +1887,9 @@ TEST_F(ktxTexture2_BasisCompressTest, Compress) {
     KTX_error_code result;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-                                              &texture);
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
         ASSERT_TRUE(result == KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         dataSize = texture->dataSize;
@@ -2296,16 +1903,15 @@ TEST_F(ktxTexture2_BasisCompressTest, Compress) {
 
         result = ktxTexture2_TranscodeBasis(texture, KTX_TTF_BC1_RGB, 0);
         EXPECT_EQ(result, KTX_SUCCESS);
-        if (texture)
-            ktxTexture_Destroy(ktxTexture(texture));
+        if (texture) ktxTexture_Destroy(ktxTexture(texture));
     }
 }
 
-class ktxTexture2_GetNumComponentsTestR8 : public ktxTexture2TestBase<GLubyte, 1, GL_R8> { };
-class ktxTexture2_GetNumComponentsTestRG8 : public ktxTexture2TestBase<GLubyte, 2, GL_RG8> { };
-class ktxTexture2_GetNumComponentsTestRGB8 : public ktxTexture2TestBase<GLubyte, 3, GL_RGB8> { };
-class ktxTexture2_GetNumComponentsTestRGBA8 : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> { };
-class ktxTexture2_MetadataTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> { };
+class ktxTexture2_GetNumComponentsTestR8 : public ktxTexture2TestBase<GLubyte, 1, GL_R8> {};
+class ktxTexture2_GetNumComponentsTestRG8 : public ktxTexture2TestBase<GLubyte, 2, GL_RG8> {};
+class ktxTexture2_GetNumComponentsTestRGB8 : public ktxTexture2TestBase<GLubyte, 3, GL_RGB8> {};
+class ktxTexture2_GetNumComponentsTestRGBA8 : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> {};
+class ktxTexture2_MetadataTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> {};
 
 ////////////////////////////////////////////
 // ktxTexture2_GetNumComponents tests
@@ -2316,18 +1922,14 @@ TEST_F(ktxTexture2_GetNumComponentsTestR8, Uncompressed) {
     KTX_error_code result;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-                                              &texture);
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
         ASSERT_TRUE(result == KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
         EXPECT_EQ(components, 1U);
-        if (texture)
-            ktxTexture_Destroy(ktxTexture(texture));
+        if (texture) ktxTexture_Destroy(ktxTexture(texture));
     }
 }
 
@@ -2336,35 +1938,28 @@ TEST_F(ktxTexture2_GetNumComponentsTestR8, BasisLZ) {
     KTX_error_code result;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-                                              &texture);
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
         ASSERT_TRUE(result == KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
         EXPECT_EQ(components, 1U);
         ktxTexture2_CompressBasis(texture, 0);
         EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
-        if (texture)
-            ktxTexture_Destroy(ktxTexture(texture));
+        if (texture) ktxTexture_Destroy(ktxTexture(texture));
     }
 }
 
 TEST_F(ktxTexture2_GetNumComponentsTestR8, UASTC) {
     ktxTexture2* texture;
     KTX_error_code result;
-    ktxBasisParams cparams = { };
+    ktxBasisParams cparams = {};
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-                                              &texture);
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
         ASSERT_TRUE(result == KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
@@ -2372,8 +1967,7 @@ TEST_F(ktxTexture2_GetNumComponentsTestR8, UASTC) {
         cparams.uastc = KTX_TRUE;
         ktxTexture2_CompressBasisEx(texture, &cparams);
         EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
-        if (texture)
-            ktxTexture_Destroy(ktxTexture(texture));
+        if (texture) ktxTexture_Destroy(ktxTexture(texture));
     }
 }
 
@@ -2382,18 +1976,14 @@ TEST_F(ktxTexture2_GetNumComponentsTestRG8, Uncompressed) {
     KTX_error_code result;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-                                              &texture);
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
         ASSERT_TRUE(result == KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
         EXPECT_EQ(components, 2U);
-        if (texture)
-            ktxTexture_Destroy(ktxTexture(texture));
+        if (texture) ktxTexture_Destroy(ktxTexture(texture));
     }
 }
 
@@ -2402,12 +1992,9 @@ TEST_F(ktxTexture2_GetNumComponentsTestRG8, BasisLZ) {
     KTX_error_code result;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-                                              &texture);
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
         ASSERT_TRUE(result == KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
@@ -2420,15 +2007,12 @@ TEST_F(ktxTexture2_GetNumComponentsTestRG8, BasisLZ) {
 TEST_F(ktxTexture2_GetNumComponentsTestRG8, UASTC) {
     ktxTexture2* texture;
     KTX_error_code result;
-    ktxBasisParams cparams = { };
+    ktxBasisParams cparams = {};
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-                                              &texture);
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
         ASSERT_TRUE(result == KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
@@ -2436,8 +2020,7 @@ TEST_F(ktxTexture2_GetNumComponentsTestRG8, UASTC) {
         cparams.uastc = KTX_TRUE;
         ktxTexture2_CompressBasisEx(texture, &cparams);
         EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
-        if (texture)
-            ktxTexture_Destroy(ktxTexture(texture));
+        if (texture) ktxTexture_Destroy(ktxTexture(texture));
     }
 }
 
@@ -2446,18 +2029,14 @@ TEST_F(ktxTexture2_GetNumComponentsTestRGB8, Uncompressed) {
     KTX_error_code result;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-                                              &texture);
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
         ASSERT_TRUE(result == KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
         EXPECT_EQ(components, 3U);
-        if (texture)
-            ktxTexture_Destroy(ktxTexture(texture));
+        if (texture) ktxTexture_Destroy(ktxTexture(texture));
     }
 }
 
@@ -2466,35 +2045,28 @@ TEST_F(ktxTexture2_GetNumComponentsTestRGB8, BasisLZ) {
     KTX_error_code result;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-                                              &texture);
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
         ASSERT_TRUE(result == KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
         EXPECT_EQ(components, 3U);
         ktxTexture2_CompressBasis(texture, 0);
         EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
-        if (texture)
-            ktxTexture_Destroy(ktxTexture(texture));
+        if (texture) ktxTexture_Destroy(ktxTexture(texture));
     }
 }
 
 TEST_F(ktxTexture2_GetNumComponentsTestRGB8, UASTC) {
     ktxTexture2* texture;
     KTX_error_code result;
-    ktxBasisParams cparams = { };
+    ktxBasisParams cparams = {};
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-                                              &texture);
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
         ASSERT_TRUE(result == KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
@@ -2502,8 +2074,7 @@ TEST_F(ktxTexture2_GetNumComponentsTestRGB8, UASTC) {
         cparams.uastc = KTX_TRUE;
         ktxTexture2_CompressBasisEx(texture, &cparams);
         EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
-        if (texture)
-            ktxTexture_Destroy(ktxTexture(texture));
+        if (texture) ktxTexture_Destroy(ktxTexture(texture));
     }
 }
 
@@ -2512,18 +2083,14 @@ TEST_F(ktxTexture2_GetNumComponentsTestRGBA8, Uncompressed) {
     KTX_error_code result;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-                                              &texture);
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
         ASSERT_TRUE(result == KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
         EXPECT_EQ(components, 4U);
-        if (texture)
-            ktxTexture_Destroy(ktxTexture(texture));
+        if (texture) ktxTexture_Destroy(ktxTexture(texture));
     }
 }
 
@@ -2532,35 +2099,28 @@ TEST_F(ktxTexture2_GetNumComponentsTestRGBA8, BasisLZ) {
     KTX_error_code result;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-                                              &texture);
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
         ASSERT_TRUE(result == KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
         EXPECT_EQ(components, 4U);
         ktxTexture2_CompressBasis(texture, 0);
         EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
-        if (texture)
-            ktxTexture_Destroy(ktxTexture(texture));
+        if (texture) ktxTexture_Destroy(ktxTexture(texture));
     }
 }
 
 TEST_F(ktxTexture2_GetNumComponentsTestRGBA8, UASTC) {
     ktxTexture2* texture;
     KTX_error_code result;
-    ktxBasisParams cparams = { };
+    ktxBasisParams cparams = {};
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-                                              &texture);
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
         ASSERT_TRUE(result == KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
@@ -2568,8 +2128,7 @@ TEST_F(ktxTexture2_GetNumComponentsTestRGBA8, UASTC) {
         cparams.uastc = KTX_TRUE;
         ktxTexture2_CompressBasisEx(texture, &cparams);
         EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
-        if (texture)
-            ktxTexture_Destroy(ktxTexture(texture));
+        if (texture) ktxTexture_Destroy(ktxTexture(texture));
     }
 }
 
@@ -2578,46 +2137,34 @@ TEST_F(ktxTexture2_MetadataTest, EmptyValue) {
     KTX_error_code result;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                              KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                              &texture);
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &texture);
         ASSERT_TRUE(result == KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image storage not allocated";
 
-        result = ktxHashList_AddKVPair(&texture->kvDataHead,
-                                       "MSCtestKey", 0, nullptr);
+        result = ktxHashList_AddKVPair(&texture->kvDataHead, "MSCtestKey", 0, nullptr);
         EXPECT_EQ(result, KTX_SUCCESS);
 
         ktx_size_t newMemFileLen;
         ktx_uint8_t* newMemFile;
-        result = ktxTexture_WriteToMemory(ktxTexture(texture), &newMemFile,
-                                          &newMemFileLen);
+        result = ktxTexture_WriteToMemory(ktxTexture(texture), &newMemFile, &newMemFileLen);
         EXPECT_EQ(result, KTX_SUCCESS);
-        if (texture)
-            ktxTexture_Destroy(ktxTexture(texture));
+        if (texture) ktxTexture_Destroy(ktxTexture(texture));
 
-        result = ktxTexture2_CreateFromMemory(newMemFile, newMemFileLen,
-                                              KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                              &texture);
+        result = ktxTexture2_CreateFromMemory(newMemFile, newMemFileLen, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &texture);
         ASSERT_TRUE(result == KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image storage not allocated";
 
         ktx_uint32_t valueLen;
         ktx_uint8_t* value;
-        result = ktxHashList_FindValue(&texture->kvDataHead,
-                                      "MSCtestKey", &valueLen, (void**)&value);
+        result = ktxHashList_FindValue(&texture->kvDataHead, "MSCtestKey", &valueLen, (void**)&value);
         EXPECT_EQ(result, KTX_SUCCESS);
         EXPECT_EQ(valueLen, 0U);
         EXPECT_EQ(value, nullptr);
 
-        if (newMemFile)
-            free(newMemFile);
-        if (texture)
-            ktxTexture_Destroy(ktxTexture(texture));
+        if (newMemFile) free(newMemFile);
+        if (texture) ktxTexture_Destroy(ktxTexture(texture));
     }
 }
 
@@ -2627,35 +2174,26 @@ TEST_F(ktxTexture2_MetadataTest, NoMetadata) {
     KTX_error_code result;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                              KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                              &texture);
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &texture);
         ASSERT_TRUE(result == KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image storage not allocated";
 
         ktxHashList_Destruct(&texture->kvDataHead);
         ktxTexture(texture)->kvDataHead = nullptr;
         ktxTexture(texture)->kvDataLen = 0;
 
-
         ktx_size_t newMemFileLen;
         ktx_uint8_t* newMemFile;
         ::__disableWriterMetadata__ = KTX_TRUE;
-        result = ktxTexture_WriteToMemory(ktxTexture(texture), &newMemFile,
-                                          &newMemFileLen);
+        result = ktxTexture_WriteToMemory(ktxTexture(texture), &newMemFile, &newMemFileLen);
         ::__disableWriterMetadata__ = KTX_FALSE;
         EXPECT_EQ(result, KTX_SUCCESS);
-        if (texture)
-            ktxTexture_Destroy(ktxTexture(texture));
+        if (texture) ktxTexture_Destroy(ktxTexture(texture));
 
-        result = ktxTexture2_CreateFromMemory(newMemFile, newMemFileLen,
-                                              KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                              &texture);
+        result = ktxTexture2_CreateFromMemory(newMemFile, newMemFileLen, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &texture);
         ASSERT_TRUE(result == KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image storage not allocated";
 
         ktx_uint32_t valueLen;
@@ -2664,10 +2202,8 @@ TEST_F(ktxTexture2_MetadataTest, NoMetadata) {
         EXPECT_EQ(texture->kvDataLen, 0U);
         EXPECT_EQ(texture->kvDataHead, nullptr);
 
-        if (newMemFile)
-            free(newMemFile);
-        if (texture)
-            ktxTexture_Destroy(ktxTexture(texture));
+        if (newMemFile) free(newMemFile);
+        if (texture) ktxTexture_Destroy(ktxTexture(texture));
     }
 }
 #endif
@@ -2677,65 +2213,50 @@ TEST_F(ktxTexture2_MetadataTest, NoLibVersionDupOnMultipleWrites) {
     KTX_error_code result;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                              KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                              &texture);
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &texture);
         ASSERT_TRUE(result == KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image storage not allocated";
 
         const ktx_uint32_t iterations = 2;
         ktx_size_t newMemFileLens[iterations];
         ktx_uint8_t* newMemFiles[iterations];
         for (uint32_t i = 0; i < iterations; i++) {
-            result = ktxTexture_WriteToMemory(ktxTexture(texture),
-                                              &newMemFiles[i],
-                                              &newMemFileLens[i]);
+            result = ktxTexture_WriteToMemory(ktxTexture(texture), &newMemFiles[i], &newMemFileLens[i]);
             EXPECT_EQ(result, KTX_SUCCESS);
         }
         for (uint32_t i = 1; i < iterations; i++) {
-            EXPECT_EQ(newMemFileLens[i-1], newMemFileLens[i]);
+            EXPECT_EQ(newMemFileLens[i - 1], newMemFileLens[i]);
         }
 
-        if (texture)
-            ktxTexture_Destroy(ktxTexture(texture));
+        if (texture) ktxTexture_Destroy(ktxTexture(texture));
 
         std::string writers[iterations];
         for (uint32_t i = 0; i < iterations; i++) {
             ktx_uint32_t valueLen;
             ktx_uint8_t* value;
-            result = ktxTexture2_CreateFromMemory(newMemFiles[i],
-                                                  newMemFileLens[i],
-                                                  KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                                  &texture);
+            result = ktxTexture2_CreateFromMemory(newMemFiles[i], newMemFileLens[i], KTX_TEXTURE_CREATE_ALLOC_STORAGE, &texture);
             ASSERT_TRUE(result == KTX_SUCCESS);
-            ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                         << ktxErrorString(result);
+            ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
             ASSERT_TRUE(texture->pData != NULL) << "Image storage not allocated";
 
-            result = ktxHashList_FindValue(&texture->kvDataHead,
-                                          "KTXwriter",
-                                          &valueLen, (void**)&value);
+            result = ktxHashList_FindValue(&texture->kvDataHead, "KTXwriter", &valueLen, (void**)&value);
             EXPECT_EQ(result, KTX_SUCCESS);
             // We want ktxWriteTo* to NUL terminate the value when adding
             // the libktx version.
-            ASSERT_TRUE(value[valueLen-1] == '\0')
-                        << "KTXwriter not NUL terminated";
+            ASSERT_TRUE(value[valueLen - 1] == '\0') << "KTXwriter not NUL terminated";
             writers[i] = (char*)value;
-            if (texture)
-                ktxTexture_Destroy(ktxTexture(texture));
+            if (texture) ktxTexture_Destroy(ktxTexture(texture));
         }
 
         for (uint32_t i = 1; i < iterations; i++) {
             // This is a valid test because we know all our calls to libktx
             // use the same version of libktx.
-            EXPECT_EQ(0, writers[i-1].compare(writers[i]));
+            EXPECT_EQ(0, writers[i - 1].compare(writers[i]));
         }
 
         for (uint32_t i = 0; i < iterations; i++) {
-            if (newMemFiles[i])
-                free(newMemFiles[i]);
+            if (newMemFiles[i]) free(newMemFiles[i]);
         }
     }
 }
@@ -2745,74 +2266,51 @@ TEST_F(ktxTexture2_MetadataTest, LibVersionUpdatedCorrectly) {
     KTX_error_code result;
 
     if (ktxMemFile != NULL) {
-        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                              KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                              &texture);
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &texture);
         ASSERT_TRUE(result == KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image storage not allocated";
 
         ktx_uint32_t curWriterLen;
         ktx_uint8_t* curWriterVal;
-        result = ktxHashList_FindValue(&texture->kvDataHead,
-                                       "KTXwriter",
-                                        &curWriterLen, (void**)&curWriterVal);
+        result = ktxHashList_FindValue(&texture->kvDataHead, "KTXwriter", &curWriterLen, (void**)&curWriterVal);
         EXPECT_EQ(result, KTX_SUCCESS);
         // We want ktxWriteTo* to NUL terminate the value when adding
         // the libktx version.
-        ASSERT_TRUE(curWriterVal[curWriterLen-1] == '\0')
-                    << "KTXwriter not NUL terminated";
+        ASSERT_TRUE(curWriterVal[curWriterLen - 1] == '\0') << "KTXwriter not NUL terminated";
         // The pointer returned by FindValue becomes invalid when the texture
         // is destroyed hence saving to this string. -1 to omit the terminator.
-        std::string curWriter((char*)curWriterVal, curWriterLen-1);
+        std::string curWriter((char*)curWriterVal, curWriterLen - 1);
         std::string writer(curWriter);
         size_t slash_pos = writer.find_last_of('/');
-        ASSERT_TRUE(slash_pos != std::string::npos)
-                    << "KTXwriter does not have lib version.";
+        ASSERT_TRUE(slash_pos != std::string::npos) << "KTXwriter does not have lib version.";
         writer.replace(slash_pos + 2, std::string::npos, "libktx v3.0.0");
-        result = ktxHashList_AddKVPair(&texture->kvDataHead,
-                                       "KTXwriter",
-                                       (ktx_uint32_t)writer.length(),
-                                       writer.c_str());
+        result = ktxHashList_AddKVPair(&texture->kvDataHead, "KTXwriter", (ktx_uint32_t)writer.length(), writer.c_str());
         EXPECT_EQ(result, KTX_SUCCESS);
-
 
         ktx_size_t newMemFileLen;
         ktx_uint8_t* newMemFile;
-        result = ktxTexture_WriteToMemory(ktxTexture(texture),
-                                          &newMemFile,
-                                          &newMemFileLen);
+        result = ktxTexture_WriteToMemory(ktxTexture(texture), &newMemFile, &newMemFileLen);
         EXPECT_EQ(result, KTX_SUCCESS);
 
-        if (texture)
-            ktxTexture_Destroy(ktxTexture(texture));
+        if (texture) ktxTexture_Destroy(ktxTexture(texture));
 
         ktx_uint32_t newWriterLen;
         ktx_uint8_t* newWriterVal;
-        result = ktxTexture2_CreateFromMemory(newMemFile,
-                                              newMemFileLen,
-                                              KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                              &texture);
+        result = ktxTexture2_CreateFromMemory(newMemFile, newMemFileLen, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &texture);
         ASSERT_TRUE(result == KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
-                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image storage not allocated";
 
-        result = ktxHashList_FindValue(&texture->kvDataHead,
-                                       "KTXwriter",
-                                        &newWriterLen, (void**)&newWriterVal);
+        result = ktxHashList_FindValue(&texture->kvDataHead, "KTXwriter", &newWriterLen, (void**)&newWriterVal);
         EXPECT_EQ(result, KTX_SUCCESS);
-        ASSERT_TRUE(newWriterVal[newWriterLen-1] == '\0')
-                    << "KTXwriter not NUL terminated";
+        ASSERT_TRUE(newWriterVal[newWriterLen - 1] == '\0') << "KTXwriter not NUL terminated";
 
-        EXPECT_EQ(0, curWriter.compare((char *)newWriterVal));
+        EXPECT_EQ(0, curWriter.compare((char*)newWriterVal));
 
-        if (texture)
-            ktxTexture_Destroy(ktxTexture(texture));
+        if (texture) ktxTexture_Destroy(ktxTexture(texture));
 
-        if (newMemFile)
-            free(newMemFile);
+        if (newMemFile) free(newMemFile);
     }
 }
 
@@ -2834,29 +2332,17 @@ std::string combinePaths(std::string const a, std::string const b) {
     if (a.back() == OS_SEP) {
         return a + b;
 #if defined(_WIN32)
-    }
-    else if (a.back() == UNIX_SEP) {
+    } else if (a.back() == UNIX_SEP) {
         return a + b;
 #endif
-    }
-    else {
+    } else {
         return a + OS_SEP + b;
     }
 }
 
 TEST(UnicodeFileNames, CreateFrom) {
-    std::vector<std::string> fileSet = {
-        "hűtő.ktx",
-        "hűtő.ktx2",
-        "نَسِيج.ktx",
-        "نَسِيج.ktx2",
-        "テクスチャ.ktx",
-        "テクスチャ.ktx2",
-        "质地.ktx",
-        "质地.ktx2",
-        "조직.ktx",
-        "조직.ktx2"
-    };
+    std::vector<std::string> fileSet = {"hűtő.ktx",        "hűtő.ktx2", "نَسِيج.ktx",  "نَسِيج.ktx2", "テクスチャ.ktx",
+                                        "テクスチャ.ktx2", "质地.ktx",  "质地.ktx2", "조직.ktx",  "조직.ktx2"};
 
     std::vector<std::string>::const_iterator it;
 
@@ -2865,25 +2351,16 @@ TEST(UnicodeFileNames, CreateFrom) {
         ktxTexture* texture;
 
         std::string path = combinePaths(imagePath, *it);
-        result = ktxTexture_CreateFromNamedFile(
-            path.c_str(),
-            KTX_TEXTURE_CREATE_NO_FLAGS,
-            &texture);
+        result = ktxTexture_CreateFromNamedFile(path.c_str(), KTX_TEXTURE_CREATE_NO_FLAGS, &texture);
         EXPECT_EQ(result, KTX_SUCCESS);
         EXPECT_NE(texture, (ktxTexture*)0);
         ktxTexture_Destroy(texture);
 
         size_t dotIndex = path.find_last_of('.');
         if (path.substr(dotIndex + 1).compare("ktx") == 0) {
-            result = ktxTexture1_CreateFromNamedFile(
-                path.c_str(),
-                KTX_TEXTURE_CREATE_NO_FLAGS,
-                (ktxTexture1**)&texture);
+            result = ktxTexture1_CreateFromNamedFile(path.c_str(), KTX_TEXTURE_CREATE_NO_FLAGS, (ktxTexture1**)&texture);
         } else {
-            result = ktxTexture2_CreateFromNamedFile(
-                path.c_str(),
-                KTX_TEXTURE_CREATE_NO_FLAGS,
-                (ktxTexture2**)&texture);
+            result = ktxTexture2_CreateFromNamedFile(path.c_str(), KTX_TEXTURE_CREATE_NO_FLAGS, (ktxTexture2**)&texture);
         }
         EXPECT_EQ(result, KTX_SUCCESS);
         EXPECT_NE(texture, (ktxTexture*)0);
@@ -2909,8 +2386,7 @@ GTEST_API_ int main(int argc, char** argv) {
         if (stat(imagePath.data(), &info) != 0) {
             std::cerr << "Cannot access " << imagePath << std::endl;
             return -2;
-        }
-        else if (!(info.st_mode & S_IFDIR)) {
+        } else if (!(info.st_mode & S_IFDIR)) {
             std::cerr << imagePath << "is not a valid directory\n";
             return -3;
         }
@@ -2918,4 +2394,3 @@ GTEST_API_ int main(int argc, char** argv) {
 
     return RUN_ALL_TESTS();
 }
-

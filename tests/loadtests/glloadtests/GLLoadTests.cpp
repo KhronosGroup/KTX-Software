@@ -21,28 +21,16 @@
 #include "GLLoadTests.h"
 #include "ltexceptions.h"
 
-GLLoadTests::GLLoadTests(const sampleInvocation samples[],
-                         const uint32_t numSamples,
-                         const char* const name,
-                         const SDL_GLprofile profile,
-                         const int majorVersion,
-                         const int minorVersion)
-                : GLAppSDL(name, 640, 480, profile, majorVersion, minorVersion),
-                  siSamples(samples), sampleIndex(numSamples)
-{
+GLLoadTests::GLLoadTests(const sampleInvocation samples[], const uint32_t numSamples, const char* const name,
+                         const SDL_GLprofile profile, const int majorVersion, const int minorVersion)
+    : GLAppSDL(name, 640, 480, profile, majorVersion, minorVersion), siSamples(samples), sampleIndex(numSamples) {
     pCurSample = nullptr;
 }
 
-GLLoadTests::~GLLoadTests()
-{
-    delete pCurSample;
-}
+GLLoadTests::~GLLoadTests() { delete pCurSample; }
 
-bool
-GLLoadTests::initialize(Args& args)
-{
-    if (!GLAppSDL::initialize(args))
-        return false;
+bool GLLoadTests::initialize(Args& args) {
+    if (!GLAppSDL::initialize(args)) return false;
 
     for (auto it = args.begin() + 1; it != args.end(); it++) {
         infiles.push_back(*it);
@@ -55,69 +43,62 @@ GLLoadTests::initialize(Args& args)
     return AppBaseSDL::initialize(args);
 }
 
-
-void
-GLLoadTests::finalize()
-{
+void GLLoadTests::finalize() {
     delete pCurSample;
     GLAppSDL::finalize();
 }
 
-
-int
-GLLoadTests::doEvent(SDL_Event* event)
-{
+int GLLoadTests::doEvent(SDL_Event* event) {
     int result = 0;
     switch (event->type) {
-      case SDL_KEYUP:
+    case SDL_KEYUP:
         switch (event->key.keysym.sym) {
-          case 'q':
+        case 'q':
             quit = true;
             break;
-          case 'n':
+        case 'n':
             ++sampleIndex;
             invokeSample(Direction::eForward);
             break;
-          case 'p':
+        case 'p':
             --sampleIndex;
             invokeSample(Direction::eBack);
             break;
-          default:
+        default:
             result = 1;
         }
         break;
-      case SDL_MOUSEBUTTONDOWN:
+    case SDL_MOUSEBUTTONDOWN:
         // Forward to sample in case this is the start of motion.
         result = 1;
         switch (event->button.button) {
-          case SDL_BUTTON_LEFT:
+        case SDL_BUTTON_LEFT:
             buttonDown.x = event->button.x;
             buttonDown.y = event->button.y;
             buttonDown.timestamp = event->button.timestamp;
             break;
-          default:
+        default:
             break;
         }
         break;
-      case SDL_MOUSEBUTTONUP:
+    case SDL_MOUSEBUTTONUP:
         // Forward to sample so it doesn't get stuck in button down state.
         result = 1;
         switch (event->button.button) {
-          case SDL_BUTTON_LEFT:
-            if (SDL_abs(event->button.x - buttonDown.x) < 5
-                && SDL_abs(event->button.y - buttonDown.y) < 5
-                && (event->button.timestamp - buttonDown.timestamp) < 100) {
+        case SDL_BUTTON_LEFT:
+            if (SDL_abs(event->button.x - buttonDown.x) < 5 && SDL_abs(event->button.y - buttonDown.y) < 5 &&
+                (event->button.timestamp - buttonDown.timestamp) < 100) {
                 // Advance to the next sample.
                 ++sampleIndex;
                 invokeSample(Direction::eForward);
             }
             break;
-          default:
+        default:
             break;
         }
         break;
-      // On macOS drop events come also when Launch Pad sends a file open event.
-      case SDL_DROPBEGIN:
+    // On macOS drop events come also when Launch Pad sends a file open event.
+    case SDL_DROPBEGIN:
         // Opens of multiple selected files from Finder/LaunchPad come as
         // a BEGIN, COMPLETE sequence per file. Only clear infiles after a
         // suitable pause between COMPLETE and BEGIN.
@@ -125,11 +106,11 @@ GLLoadTests::doEvent(SDL_Event* event)
             infiles.clear();
         }
         break;
-      case SDL_DROPFILE:
+    case SDL_DROPFILE:
         infiles.push_back(event->drop.file);
         SDL_free(event->drop.file);
         break;
-      case SDL_DROPCOMPLETE:
+    case SDL_DROPCOMPLETE:
         if (!infiles.empty()) {
             // Guard against the drop being text.
             dropCompleteTime = event->drop.timestamp;
@@ -137,49 +118,39 @@ GLLoadTests::doEvent(SDL_Event* event)
             invokeSample(Direction::eForward);
         }
         break;
-      default:
-        switch(swipeDetector.doEvent(event)) {
-          case SwipeDetector::eSwipeUp:
-          case SwipeDetector::eSwipeDown:
-          case SwipeDetector::eEventConsumed:
+    default:
+        switch (swipeDetector.doEvent(event)) {
+        case SwipeDetector::eSwipeUp:
+        case SwipeDetector::eSwipeDown:
+        case SwipeDetector::eEventConsumed:
             break;
-          case SwipeDetector::eSwipeLeft:
+        case SwipeDetector::eSwipeLeft:
             ++sampleIndex;
             invokeSample(Direction::eForward);
             break;
-          case SwipeDetector::eSwipeRight:
+        case SwipeDetector::eSwipeRight:
             --sampleIndex;
             invokeSample(Direction::eBack);
             break;
-          case SwipeDetector::eEventNotConsumed:
+        case SwipeDetector::eEventNotConsumed:
             result = 1;
-          }
+        }
     }
-    
+
     if (result == 1) {
         // Further processing required.
-        if (pCurSample != nullptr)
-            result = pCurSample->doEvent(event);  // Give sample a chance.
-        if (result == 1)
-            return GLAppSDL::doEvent(event);  // Pass to base class.
+        if (pCurSample != nullptr) result = pCurSample->doEvent(event);  // Give sample a chance.
+        if (result == 1) return GLAppSDL::doEvent(event);                // Pass to base class.
     }
     return result;
 }
 
-
-void
-GLLoadTests::windowResized()
-{
-    if (pCurSample != nullptr)
-        pCurSample->resize(w_width, w_height);
+void GLLoadTests::windowResized() {
+    if (pCurSample != nullptr) pCurSample->resize(w_width, w_height);
 }
 
-
-void
-GLLoadTests::drawFrame(uint32_t msTicks)
-{
-    if (pCurSample != nullptr)
-        pCurSample->run(msTicks);
+void GLLoadTests::drawFrame(uint32_t msTicks) {
+    if (pCurSample != nullptr) pCurSample->run(msTicks);
 
     GLAppSDL::drawFrame(msTicks);
 }
@@ -194,9 +165,7 @@ GLLoadTests::getOverlayText(GLTextOverlay * textOverlay)
 }
 #endif
 
-void
-GLLoadTests::invokeSample(Direction dir)
-{
+void GLLoadTests::invokeSample(Direction dir) {
     const sampleInvocation* sampleInv = &siSamples[sampleIndex];
 
     delete pCurSample;
@@ -215,20 +184,17 @@ GLLoadTests::invokeSample(Direction dir)
                 pCurSample = showFile(infiles[sampleIndex]);
             } else {
                 sampleInv = &siSamples[sampleIndex];
-                pCurSample = sampleInv->createSample(w_width, w_height,
-                                                     sampleInv->args,
-                                                     sBasePath);
+                pCurSample = sampleInv->createSample(w_width, w_height, sampleInv->args, sBasePath);
             }
             break;
         } catch (unsupported_ctype& e) {
-            (void)e; // To quiet unused variable warnings from some compilers.
+            (void)e;  // To quiet unused variable warnings from some compilers.
             unsupportedTypeExceptions++;
             if (unsupportedTypeExceptions == sampleIndex.getNumSamples()) {
-                SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-                    infiles.size() > 0 ? fileTitle.c_str() : sampleInv->title,
-                    "None of the specified samples or files use texture types "
-                    "supported on this platform.",
-                    NULL);
+                SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, infiles.size() > 0 ? fileTitle.c_str() : sampleInv->title,
+                                         "None of the specified samples or files use texture types "
+                                         "supported on this platform.",
+                                         NULL);
                 exit(0);
             } else {
                 dir == Direction::eForward ? ++sampleIndex : --sampleIndex;
@@ -236,8 +202,8 @@ GLLoadTests::invokeSample(Direction dir)
         } catch (std::exception& e) {
             const SDL_MessageBoxButtonData buttons[] = {
                 /* .flags, .buttonid, .text */
-                { SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "Continue" },
-                { SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 1, "Abort" },
+                {SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "Continue"},
+                {SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 1, "Abort"},
             };
 #if 0
             const SDL_MessageBoxColorScheme colorScheme = {
@@ -256,14 +222,13 @@ GLLoadTests::invokeSample(Direction dir)
             };
 #endif
             const SDL_MessageBoxData messageboxdata = {
-                SDL_MESSAGEBOX_ERROR,                               // .flags
-                NULL,                                               // .window
-                infiles.size() > 0 ?
-                 fileTitle.c_str() : sampleInv->title,              // .title
-                e.what(),                                           // .message
-                SDL_arraysize(buttons),                             // .numbuttons
-                buttons,                                            // .buttons
-                NULL //&colorScheme                                 // .colorScheme
+                SDL_MESSAGEBOX_ERROR,                                       // .flags
+                NULL,                                                       // .window
+                infiles.size() > 0 ? fileTitle.c_str() : sampleInv->title,  // .title
+                e.what(),                                                   // .message
+                SDL_arraysize(buttons),                                     // .numbuttons
+                buttons,                                                    // .buttons
+                NULL  //&colorScheme                                 // .colorScheme
             };
             int buttonid;
             if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {
@@ -279,15 +244,12 @@ GLLoadTests::invokeSample(Direction dir)
             }
         }
     }
-    setAppTitle(infiles.size() > 0 ? fileTitle.c_str()  : sampleInv->title);
+    setAppTitle(infiles.size() > 0 ? fileTitle.c_str() : sampleInv->title);
     pCurSample->resize(w_width, w_height);
 }
 
-void
-GLLoadTests::onFPSUpdate()
-{
+void GLLoadTests::onFPSUpdate() {
     // Using onFPSUpdate avoids rewriting the title every frame.
-    //setWindowTitle(pCurSample->title);
+    // setWindowTitle(pCurSample->title);
     GLAppSDL::onFPSUpdate();
 }
-

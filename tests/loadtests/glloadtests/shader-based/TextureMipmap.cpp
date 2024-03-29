@@ -30,7 +30,7 @@
 #include "TextureMipmap.h"
 #include "ltexceptions.h"
 
-#define member_size(type, member) sizeof(((type *)0)->member)
+#define member_size(type, member) sizeof(((type*)0)->member)
 
 const GLchar* pszLodFsDeclarations =
     "precision mediump float;\n"
@@ -43,7 +43,7 @@ const GLchar* pszLodFsDeclarations =
     "uniform mediump sampler2D uSampler;\n\n";
 
 const GLchar* pszLodFsMain =
-   "void main()\n"
+    "void main()\n"
     "{\n"
     "    outFragColor = textureLod(uSampler, UV, lambda);\n"
     "}";
@@ -70,10 +70,7 @@ const GLchar* pszLodVsMain =
 
 /* ------------------------------------------------------------------------- */
 
-LoadTestSample*
-TextureMipmap::create(uint32_t width, uint32_t height,
-                     const char* const szArgs, const std::string sBasePath)
-{
+LoadTestSample* TextureMipmap::create(uint32_t width, uint32_t height, const char* const szArgs, const std::string sBasePath) {
     return new TextureMipmap(width, height, szArgs, sBasePath);
 }
 
@@ -84,15 +81,12 @@ TextureMipmap::create(uint32_t width, uint32_t height,
  *
  * @brief Test loading of 2D texture arrays.
  */
-TextureMipmap::TextureMipmap(uint32_t width, uint32_t height,
-                           const char* const szArgs,
-                           const std::string sBasePath)
-        : InstancedSampleBase(width, height, szArgs, sBasePath)
-{
+TextureMipmap::TextureMipmap(uint32_t width, uint32_t height, const char* const szArgs, const std::string sBasePath)
+    : InstancedSampleBase(width, height, szArgs, sBasePath) {
     zoom = -15.0f;
     if (texTarget != GL_TEXTURE_2D || textureInfo.numLevels == 1) {
         std::stringstream message;
-        
+
         message << "TextureMipmap requires a 2D mipmapped texture.";
         throw std::runtime_error(message.str());
     }
@@ -109,7 +103,8 @@ TextureMipmap::TextureMipmap(uint32_t width, uint32_t height,
         fs.push_back(pszSrgbEncodeFunc);
         fs.push_back(pszLodSrgbEncodeFsMain);
     } else {
-        fs.push_back(pszLodFsMain);;
+        fs.push_back(pszLodFsMain);
+        ;
     }
     vs.push_back(pszInstancingVsDeclarations);
     vs.push_back(pszLodVsMain);
@@ -117,7 +112,7 @@ TextureMipmap::TextureMipmap(uint32_t width, uint32_t height,
     try {
         prepare(fs, vs);
     } catch (std::exception& e) {
-        (void)e; // To quiet unused variable warnings from some compilers.
+        (void)e;  // To quiet unused variable warnings from some compilers.
         cleanup();
         throw;
     }

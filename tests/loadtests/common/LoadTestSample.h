@@ -21,12 +21,8 @@
 class LoadTestSample {
   public:
     typedef uint64_t ticks_t;
-    LoadTestSample(uint32_t width, uint32_t height,
-                   const std::string sBasePath,
-                   int32_t yflip = 1)
-           : w_width(width), w_height(height), yflip(yflip),
-             sBasePath(sBasePath)
-    {
+    LoadTestSample(uint32_t width, uint32_t height, const std::string sBasePath, int32_t yflip = 1)
+        : w_width(width), w_height(height), yflip(yflip), sBasePath(sBasePath) {
         // Some compilers. e.g. VS2013, do not support initializers in the class
         // definition yet compile without warnings. So initialize the
         // old-fashioned way.
@@ -38,21 +34,19 @@ class LoadTestSample {
         rotationSpeed = zoomSpeed = 1.f;
     }
 
-    virtual ~LoadTestSample() { };
+    virtual ~LoadTestSample(){};
     virtual int doEvent(SDL_Event* event);
     virtual void resize(uint32_t width, uint32_t height) = 0;
     virtual void run(uint32_t msTicks) = 0;
 
-    //virtual void getOverlayText(TextOverlay *textOverlay) { };
+    // virtual void getOverlayText(TextOverlay *textOverlay) { };
 
-    typedef LoadTestSample* (*PFN_create)(uint32_t width, uint32_t height,
-                                          const char* const szArgs,
-                                          const std::string sBasePath);
+    typedef LoadTestSample* (*PFN_create)(uint32_t width, uint32_t height, const char* const szArgs, const std::string sBasePath);
 
   protected:
-    virtual void keyPressed(uint32_t /*keyCode*/) { }
-    virtual void viewChanged() { }
-    
+    virtual void keyPressed(uint32_t /*keyCode*/) {}
+    virtual void viewChanged() {}
+
     const std::string getAssetPath() { return sBasePath; }
 
     glm::vec3 rotation;

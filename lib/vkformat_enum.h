@@ -11,7 +11,7 @@
 ** SPDX-License-Identifier: Apache-2.0
 */
 
-#if defined(_MSC_VER) && _MSC_VER < 1900 // Older than VS 2015.
+#if defined(_MSC_VER) && _MSC_VER < 1900  // Older than VS 2015.
 typedef unsigned __int32 VkFlags;
 #else
 #include <stdint.h>
@@ -301,13 +301,12 @@ typedef enum VkFormat {
     VK_FORMAT_A8_UNORM_KHR = 1000470001,
     VK_FORMAT_MAX_ENUM = 0x7FFFFFFF
 } VkFormat;
-#if defined(_MSC_VER) && _MSC_VER < 1900 // Older than VS 2015.
+#if defined(_MSC_VER) && _MSC_VER < 1900  // Older than VS 2015.
 typedef unsigned __int32 VkFlags;
 #else
 #include <stdint.h>
 typedef uint64_t VkFlags64;
 #endif
-
 
 #define VK_FORMAT_MAX_STANDARD_ENUM 184
 

@@ -27,8 +27,8 @@
 #define _POSIX_SOURCE 1    // For both the above in Emscripten.
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/types.h>     // For stat.h on Windows
-#define __USE_MISC 1       // For declaration of S_IF...
+#include <sys/types.h>  // For stat.h on Windows
+#define __USE_MISC 1    // For declaration of S_IF...
 #include <sys/stat.h>
 
 #include "ktx.h"
@@ -37,23 +37,23 @@
 
 // Gotta love Windows :-(
 #if defined(_MSC_VER)
-  #if defined(_WIN64)
-    #define ftello _ftelli64
-    #define fseeko _fseeki64
-  #else
-    #define ftello ftell
-    #define fseeko fseek
-  #endif
-  #define fileno _fileno
-  #define fstat _fstat
-  #define stat _stat
-  #define S_IFIFO _S_IFIFO
-  #define S_IFSOCK 0xC000
-  typedef unsigned short mode_t;
+#if defined(_WIN64)
+#define ftello _ftelli64
+#define fseeko _fseeki64
+#else
+#define ftello ftell
+#define fseeko fseek
+#endif
+#define fileno _fileno
+#define fstat _fstat
+#define stat _stat
+#define S_IFIFO _S_IFIFO
+#define S_IFSOCK 0xC000
+typedef unsigned short mode_t;
 #endif
 
 #if defined(__MINGW32__)
-    #define S_IFSOCK 0xC000
+#define S_IFSOCK 0xC000
 #endif
 
 #define KTX_FILE_STREAM_MAX (1 << (sizeof(ktx_off_t) - 1) - 1)
@@ -74,13 +74,11 @@
  * @exception KTX_FILE_READ_ERROR  an error occurred while reading the file.
  * @exception KTX_FILE_UNEXPECTED_EOF not enough data to satisfy the request.
  */
-static
-KTX_error_code ktxFileStream_read(ktxStream* str, void* dst, const ktx_size_t count)
-{
+static KTX_error_code
+ktxFileStream_read(ktxStream* str, void* dst, const ktx_size_t count) {
     ktx_size_t nread;
 
-    if (!str || !dst)
-        return KTX_INVALID_VALUE;
+    if (!str || !dst) return KTX_INVALID_VALUE;
 
     assert(str->type == eStreamTypeFile);
 
@@ -115,11 +113,9 @@ KTX_error_code ktxFileStream_read(ktxStream* str, void* dst, const ktx_size_t co
  *                                    @p count is set to the number of bytes
  *                                    skipped.
  */
-static
-KTX_error_code ktxFileStream_skip(ktxStream* str, const ktx_size_t count)
-{
-    if (!str)
-        return KTX_INVALID_VALUE;
+static KTX_error_code
+ktxFileStream_skip(ktxStream* str, const ktx_size_t count) {
+    if (!str) return KTX_INVALID_VALUE;
 
     assert(str->type == eStreamTypeFile);
 
@@ -158,13 +154,9 @@ KTX_error_code ktxFileStream_skip(ktxStream* str, const ktx_size_t count)
  * @exception KTX_FILE_WRITE_ERROR a system error occurred while writing the
  *                                 file.
  */
-static
-KTX_error_code ktxFileStream_write(ktxStream* str, const void *src,
-                                   const ktx_size_t size,
-                                   const ktx_size_t count)
-{
-    if (!str || !src)
-        return KTX_INVALID_VALUE;
+static KTX_error_code
+ktxFileStream_write(ktxStream* str, const void* src, const ktx_size_t size, const ktx_size_t count) {
+    if (!str || !src) return KTX_INVALID_VALUE;
 
     assert(str->type == eStreamTypeFile);
 
@@ -192,13 +184,11 @@ KTX_error_code ktxFileStream_write(ktxStream* str, const void *src,
  *                            file-position indicator.
  * @exception KTX_INVALID_VALUE @p str or @p pos is @c NULL.
  */
-static
-KTX_error_code ktxFileStream_getpos(ktxStream* str, ktx_off_t* pos)
-{
+static KTX_error_code
+ktxFileStream_getpos(ktxStream* str, ktx_off_t* pos) {
     ktx_off_t ftellval;
 
-    if (!str || !pos)
-        return KTX_INVALID_VALUE;
+    if (!str || !pos) return KTX_INVALID_VALUE;
 
     assert(str->type == eStreamTypeFile);
 
@@ -211,8 +201,10 @@ KTX_error_code ktxFileStream_getpos(ktxStream* str, ktx_off_t* pos)
         ftellval = (ktx_off_t)ftello(str->data.file);
         if (ftellval < 0) {
             switch (errno) {
-              case ESPIPE: return KTX_FILE_ISPIPE;
-              case EOVERFLOW: return KTX_FILE_OVERFLOW;
+            case ESPIPE:
+                return KTX_FILE_ISPIPE;
+            case EOVERFLOW:
+                return KTX_FILE_OVERFLOW;
             }
         }
 
@@ -243,14 +235,12 @@ KTX_error_code ktxFileStream_getpos(ktxStream* str, ktx_off_t* pos)
  * @exception KTX_INVALID_OPERATION @p pos is > the size of the file or an
  *                                  fseek error occurred.
  */
-static
-KTX_error_code ktxFileStream_setpos(ktxStream* str, ktx_off_t pos)
-{
+static KTX_error_code
+ktxFileStream_setpos(ktxStream* str, ktx_off_t pos) {
     ktx_size_t fileSize;
     KTX_error_code result;
 
-    if (!str)
-        return KTX_INVALID_VALUE;
+    if (!str) return KTX_INVALID_VALUE;
 
     assert(str->type == eStreamTypeFile);
 
@@ -268,13 +258,12 @@ KTX_error_code ktxFileStream_setpos(ktxStream* str, ktx_off_t pos)
         return result;
     }
 
-    if (pos > (ktx_off_t)fileSize)
-        return KTX_INVALID_OPERATION;
+    if (pos > (ktx_off_t)fileSize) return KTX_INVALID_OPERATION;
 
     if (fseeko(str->data.file, pos, SEEK_SET) < 0)
-            return KTX_FILE_SEEK_ERROR;
+        return KTX_FILE_SEEK_ERROR;
     else
-            return KTX_SUCCESS;
+        return KTX_SUCCESS;
 }
 
 /**
@@ -296,14 +285,12 @@ KTX_error_code ktxFileStream_setpos(ktxStream* str, ktx_off_t pos)
  * @exception KTX_INVALID_VALUE @p str or @p size is @c NULL.
  * @exception KTX_INVALID_OPERATION stream is a tty.
  */
-static
-KTX_error_code ktxFileStream_getsize(ktxStream* str, ktx_size_t* size)
-{
+static KTX_error_code
+ktxFileStream_getsize(ktxStream* str, ktx_size_t* size) {
     struct stat statbuf;
     int statret;
 
-    if (!str || !size)
-        return KTX_INVALID_VALUE;
+    if (!str || !size) return KTX_INVALID_VALUE;
 
     assert(str->type == eStreamTypeFile);
 
@@ -313,27 +300,25 @@ KTX_error_code ktxFileStream_getsize(ktxStream* str, ktx_size_t* size)
 #if (defined(_MSC_VER) && _MSC_VER < 1900) || defined(__MINGW64__) && !defined(_UCRT)
     // Bug in VS2013 msvcrt. fflush on FILE open for READ changes file offset
     // to 4096.
-    if (str->data.file->_flag & _IOWRT)
-        (void)fflush(str->data.file);
+    if (str->data.file->_flag & _IOWRT) (void)fflush(str->data.file);
 #else
     (void)fflush(str->data.file);
 #endif
     statret = fstat(fileno(str->data.file), &statbuf);
     if (statret < 0) {
         switch (errno) {
-          case EOVERFLOW: return KTX_FILE_OVERFLOW;
-          case EIO:
-          default:
+        case EOVERFLOW:
+            return KTX_FILE_OVERFLOW;
+        case EIO:
+        default:
             return KTX_FILE_READ_ERROR;
         }
     }
 
     mode_t ftype = statbuf.st_mode & S_IFMT;
-    if (ftype == S_IFIFO || ftype == S_IFSOCK)
-        return KTX_FILE_ISPIPE;
+    if (ftype == S_IFIFO || ftype == S_IFSOCK) return KTX_FILE_ISPIPE;
 
-    if (statbuf.st_mode & S_IFCHR)
-        return KTX_INVALID_OPERATION;
+    if (statbuf.st_mode & S_IFCHR) return KTX_INVALID_OPERATION;
 
     *size = (ktx_size_t)statbuf.st_size; /* See _getpos for why this cast. */
 
@@ -353,11 +338,9 @@ KTX_error_code ktxFileStream_getsize(ktxStream* str, ktx_size_t* size)
  *
  * @exception KTX_INVALID_VALUE @p stream is @c NULL or @p file is @c NULL.
  */
-KTX_error_code ktxFileStream_construct(ktxStream* str, FILE* file,
-                                       ktx_bool_t closeFileOnDestruct)
-{
-    if (!str || !file)
-        return KTX_INVALID_VALUE;
+KTX_error_code
+ktxFileStream_construct(ktxStream* str, FILE* file, ktx_bool_t closeFileOnDestruct) {
+    if (!str || !file) return KTX_INVALID_VALUE;
 
     str->data.file = file;
     str->readpos = 0;
@@ -385,11 +368,9 @@ KTX_error_code ktxFileStream_construct(ktxStream* str, FILE* file,
  *             be closed.
  */
 void
-ktxFileStream_destruct(ktxStream* str)
-{
+ktxFileStream_destruct(ktxStream* str) {
     assert(str && str->type == eStreamTypeFile);
 
-    if (str->closeOnDestruct)
-        fclose(str->data.file);
+    if (str->closeOnDestruct) fclose(str->data.file);
     str->data.file = 0;
 }

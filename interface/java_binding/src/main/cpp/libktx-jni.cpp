@@ -8,46 +8,39 @@
 
 #include <iostream>
 
-ktxTexture *get_ktx_texture(JNIEnv *env, jobject thiz)
-{
+ktxTexture *get_ktx_texture(JNIEnv *env, jobject thiz) {
     jclass ktx_texture_class = env->GetObjectClass(thiz);
     jfieldID ktx_instance_field = env->GetFieldID(ktx_texture_class, "instance", "J");
 
-    return reinterpret_cast<ktxTexture*>(env->GetLongField(thiz, ktx_instance_field));
+    return reinterpret_cast<ktxTexture *>(env->GetLongField(thiz, ktx_instance_field));
 }
 
-void set_ktx_texture(JNIEnv *env, jobject thiz, ktxTexture *texture)
-{
+void set_ktx_texture(JNIEnv *env, jobject thiz, ktxTexture *texture) {
     jclass ktx_texture_class = env->GetObjectClass(thiz);
     jfieldID ktx_instance_field = env->GetFieldID(ktx_texture_class, "instance", "J");
 
-    env->SetLongField(thiz,
-                        ktx_instance_field,
-                        reinterpret_cast<jlong>(texture));
+    env->SetLongField(thiz, ktx_instance_field, reinterpret_cast<jlong>(texture));
 }
 
-jobject make_ktx1_wrapper(JNIEnv *env, ktxTexture1 *texture)
-{
+jobject make_ktx1_wrapper(JNIEnv *env, ktxTexture1 *texture) {
     jclass ktx_texture_class = env->FindClass("org/khronos/ktx/KtxTexture1");
-    assert (ktx_texture_class != NULL);
+    assert(ktx_texture_class != NULL);
 
     jmethodID ktx_texture_ctor = env->GetMethodID(ktx_texture_class, "<init>", "(J)V");
 
     return env->NewObject(ktx_texture_class, ktx_texture_ctor, reinterpret_cast<jlong>(texture));
 }
 
-jobject make_ktx2_wrapper(JNIEnv *env, ktxTexture2 *texture)
-{
+jobject make_ktx2_wrapper(JNIEnv *env, ktxTexture2 *texture) {
     jclass ktx_texture_class = env->FindClass("org/khronos/ktx/KtxTexture2");
-    assert (ktx_texture_class != NULL);
+    assert(ktx_texture_class != NULL);
 
     jmethodID ktx_texture_ctor = env->GetMethodID(ktx_texture_class, "<init>", "(J)V");
 
     return env->NewObject(ktx_texture_class, ktx_texture_ctor, reinterpret_cast<jlong>(texture));
 }
 
-void copy_ktx_texture_create_info(JNIEnv *env, jobject info, ktxTextureCreateInfo &out)
-{
+void copy_ktx_texture_create_info(JNIEnv *env, jobject info, ktxTextureCreateInfo &out) {
     jclass ktx_info_class = env->GetObjectClass(info);
     jfieldID f_gl_internalformat = env->GetFieldID(ktx_info_class, "glInternalformat", "I");
     jfieldID f_base_width = env->GetFieldID(ktx_info_class, "baseWidth", "I");
@@ -74,8 +67,7 @@ void copy_ktx_texture_create_info(JNIEnv *env, jobject info, ktxTextureCreateInf
     out.vkFormat = env->GetIntField(info, f_vk_format);
 }
 
-void copy_ktx_astc_params(JNIEnv *env, jobject params, ktxAstcParams &out)
-{
+void copy_ktx_astc_params(JNIEnv *env, jobject params, ktxAstcParams &out) {
     // Undocumented quirk!
     out.structSize = sizeof(ktxAstcParams);
 
@@ -97,16 +89,11 @@ void copy_ktx_astc_params(JNIEnv *env, jobject params, ktxAstcParams &out)
     out.normalMap = env->GetBooleanField(params, normalMap);
     out.perceptual = env->GetBooleanField(params, perceptual);
 
-    env->GetByteArrayRegion(
-        static_cast<jbyteArray>(env->GetObjectField(params, inputSwizzle)),
-        0,
-        4,
-        reinterpret_cast<jbyte*>(&out.inputSwizzle)
-    );
+    env->GetByteArrayRegion(static_cast<jbyteArray>(env->GetObjectField(params, inputSwizzle)), 0, 4,
+                            reinterpret_cast<jbyte *>(&out.inputSwizzle));
 }
 
-void copy_ktx_basis_params(JNIEnv *env, jobject params, ktxBasisParams &out)
-{
+void copy_ktx_basis_params(JNIEnv *env, jobject params, ktxBasisParams &out) {
     // Undocumented quirk!
     out.structSize = sizeof(ktxBasisParams);
 
@@ -145,12 +132,8 @@ void copy_ktx_basis_params(JNIEnv *env, jobject params, ktxBasisParams &out)
     out.endpointRDOThreshold = env->GetFloatField(params, endpointRDOThreshold);
     out.maxSelectors = env->GetIntField(params, maxSelectors);
     out.selectorRDOThreshold = env->GetFloatField(params, selectorRDOThreshold);
-    env->GetByteArrayRegion(
-        static_cast<jbyteArray>(env->GetObjectField(params, inputSwizzle)),
-        0,
-        4,
-        reinterpret_cast<jbyte*>(&out.inputSwizzle)
-    );
+    env->GetByteArrayRegion(static_cast<jbyteArray>(env->GetObjectField(params, inputSwizzle)), 0, 4,
+                            reinterpret_cast<jbyte *>(&out.inputSwizzle));
     out.normalMap = env->GetBooleanField(params, normalMap);
     out.preSwizzle = env->GetBooleanField(params, preSwizzle);
     out.noEndpointRDO = env->GetBooleanField(params, noEndpointRDO);

@@ -22,14 +22,13 @@ class Texture {
     prepareSamplerAndView();
 };
 
-Texture::Texture(const std::string ktxfile)
-{
+Texture::Texture(const std::string ktxfile) {
     ktxVulkanDeviceInfo kvdi;
     ktxTexture* kTexture;
     KTX_error_code ktxresult;
 
     createVulkanInstance();
-    findVulkanGpu();         // Find a suitable physical device
+    findVulkanGpu();  // Find a suitable physical device
     createVulkanSurface();
     createVulkanDevice();
     prepareVulkanSwapchain();
@@ -43,20 +42,14 @@ Texture::Texture(const std::string ktxfile)
     // with the expectation that app's will typically load many textures.
     ktxVulkanDeviceInfo_Construct(&kvdi, gpu, device, queue, commandPool, nullptr);
 
-    ktxresult = ktxTexture_CreateFromNamedFile(
-                                        (getAssetPath() + ktxfile).c_str(),
-                                        KTX_TEXTURE_CREATE_NO_FLAGS,
-                                        &kTexture);
+    ktxresult = ktxTexture_CreateFromNamedFile((getAssetPath() + ktxfile).c_str(), KTX_TEXTURE_CREATE_NO_FLAGS, &kTexture);
     if (KTX_SUCCESS != ktxresult) {
         std::stringstream message;
 
-        message << "Creation of ktxTexture from \"" << getAssetPath()
-                << ktxfile << "\" failed: " << ktxErrorString(ktxresult);
+        message << "Creation of ktxTexture from \"" << getAssetPath() << ktxfile << "\" failed: " << ktxErrorString(ktxresult);
         throw std::runtime_error(message.str());
     }
-    ktxresult = ktxTexture_VkUploadEx(kTexture, &kvdi, &texture,
-                                      VK_IMAGE_TILING_OPTIMAL,
-                                      VK_IMAGE_USAGE_SAMPLED_BIT,
+    ktxresult = ktxTexture_VkUploadEx(kTexture, &kvdi, &texture, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT,
                                       VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     if (KTX_SUCCESS != ktxresult) {
         std::stringstream message;
@@ -67,10 +60,7 @@ Texture::Texture(const std::string ktxfile)
 
     char* pValue;
     uint32_t valueLen;
-    if (KTX_SUCCESS == ktxHashTable_FindValue(&kTexture->kvDataHead,
-                                              KTX_ORIENTATION_KEY,
-                                              &valueLen, (void**)&pValue))
-    {
+    if (KTX_SUCCESS == ktxHashTable_FindValue(&kTexture->kvDataHead, KTX_ORIENTATION_KEY, &valueLen, (void**)&pValue)) {
         char s, t;
 
         if (sscanf(pValue, KTX_ORIENTATION2_FMT, &s, &t) == 2) {
@@ -83,7 +73,7 @@ Texture::Texture(const std::string ktxfile)
     ktxVulkanDeviceInfo_destruct(&kvdi);
 
     try {
-        prepareSamplerAndView(); // See below  for implementation.
+        prepareSamplerAndView();  // See below  for implementation.
         // Setup a layout with, e.g., a binding for a combined image-sampler.
         setupDescriptorSetLayout();
         // Create a descriptor set and update it with the sampler and image view handles.
@@ -98,13 +88,9 @@ Texture::Texture(const std::string ktxfile)
     }
 }
 
-Texture::~Texture()
-{
-    cleanup();
-}
+Texture::~Texture() { cleanup(); }
 
-Texture::cleanup()
-{
+Texture::cleanup() {
     destroyCommandBuffers();
     destroySampler();
     destroyImageview();
@@ -116,9 +102,7 @@ Texture::cleanup()
     */
 }
 
-void
-Texture::prepareSamplerAndView()
-{
+void Texture::prepareSamplerAndView() {
     // Create sampler.
     vk::SamplerCreateInfo samplerInfo;
     // Set the non-default values

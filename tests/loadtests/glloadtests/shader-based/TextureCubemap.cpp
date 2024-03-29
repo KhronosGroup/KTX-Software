@@ -31,7 +31,7 @@
 #include "GLTextureTranscoder.hpp"
 #include "ltexceptions.h"
 
-#define member_size(type, member) sizeof(((type *)0)->member)
+#define member_size(type, member) sizeof(((type*)0)->member)
 
 const GLchar* pszReflectFs =
     "precision highp float;"
@@ -167,7 +167,7 @@ const GLchar* pszSkyboxFs =
 
     "void main()\n"
     "{\n"
-      "  outFragColor = texture(uSamplerColor, vUVW);\n"
+    "  outFragColor = texture(uSamplerColor, vUVW);\n"
     "}\n";
 
 const GLchar* pszSkyboxSrgbEncodeFs =
@@ -217,17 +217,10 @@ const GLchar* pszSkyboxVs =
 /* ------------------------------------------------------------------------- */
 
 // Vertex layout for this example
-std::vector<glMeshLoader::VertexLayout> vertexLayout =
-{
-    glMeshLoader::VERTEX_LAYOUT_POSITION,
-    glMeshLoader::VERTEX_LAYOUT_NORMAL,
-    glMeshLoader::VERTEX_LAYOUT_UV
-};
+std::vector<glMeshLoader::VertexLayout> vertexLayout = {glMeshLoader::VERTEX_LAYOUT_POSITION, glMeshLoader::VERTEX_LAYOUT_NORMAL,
+                                                        glMeshLoader::VERTEX_LAYOUT_UV};
 
-LoadTestSample*
-TextureCubemap::create(uint32_t width, uint32_t height,
-                     const char* const szArgs, const std::string sBasePath)
-{
+LoadTestSample* TextureCubemap::create(uint32_t width, uint32_t height, const char* const szArgs, const std::string sBasePath) {
     return new TextureCubemap(width, height, szArgs, sBasePath);
 }
 
@@ -238,16 +231,14 @@ TextureCubemap::create(uint32_t width, uint32_t height,
  *
  * @brief Test loading of 2D texture arrays.
  */
-TextureCubemap::TextureCubemap(uint32_t width, uint32_t height,
-                           const char* const szArgs,
-                           const std::string sBasePath)
-        : GL3LoadTestSample(width, height, szArgs, sBasePath),
-          cubemapTexUnit(GL_TEXTURE0), uniformBufferBindId(0),
-          bInitialized(false)
-{
+TextureCubemap::TextureCubemap(uint32_t width, uint32_t height, const char* const szArgs, const std::string sBasePath)
+    : GL3LoadTestSample(width, height, szArgs, sBasePath),
+      cubemapTexUnit(GL_TEXTURE0),
+      uniformBufferBindId(0),
+      bInitialized(false) {
     zoom = -4.0f;
     rotationSpeed = 0.25f;
-    rotation = { -7.25f, 120.0f, 0.0f };
+    rotation = {-7.25f, 120.0f, 0.0f};
     gnCubemapTexture = 0;
     // Ensure we're using the desired unit
     glActiveTexture(cubemapTexUnit);
@@ -257,51 +248,44 @@ TextureCubemap::TextureCubemap(uint32_t width, uint32_t height,
     KTX_error_code ktxresult;
     ktxTexture* kTexture;
     GLenum glerror;
-    std::string ktxfilepath = externalFile ? ktxfilename
-                                           : getAssetPath() + ktxfilename;
-    ktxresult = ktxTexture_CreateFromNamedFile(ktxfilepath.c_str(),
-                                               KTX_TEXTURE_CREATE_NO_FLAGS,
-                                               &kTexture);
+    std::string ktxfilepath = externalFile ? ktxfilename : getAssetPath() + ktxfilename;
+    ktxresult = ktxTexture_CreateFromNamedFile(ktxfilepath.c_str(), KTX_TEXTURE_CREATE_NO_FLAGS, &kTexture);
     if (KTX_SUCCESS != ktxresult) {
         std::stringstream message;
-        
-        message << "Creation of ktxTexture from \"" << ktxfilepath
-                << "\" failed: " << ktxErrorString(ktxresult);
+
+        message << "Creation of ktxTexture from \"" << ktxfilepath << "\" failed: " << ktxErrorString(ktxresult);
         throw std::runtime_error(message.str());
     }
 
     if (ktxTexture_NeedsTranscoding(kTexture)) {
         TextureTranscoder tc;
         tc.transcode((ktxTexture2*)kTexture);
-        //transcoded = true;
+        // transcoded = true;
     }
 
-    ktxresult = ktxTexture_GLUpload(kTexture,
-                                    &gnCubemapTexture, &cubemapTexTarget,
-                                    &glerror);
-    
+    ktxresult = ktxTexture_GLUpload(kTexture, &gnCubemapTexture, &cubemapTexTarget, &glerror);
+
     if (KTX_SUCCESS != ktxresult) {
         std::stringstream message;
-        
+
         message << "ktxTexture_GLUpload failed: ";
         if (ktxresult != KTX_GL_ERROR) {
-             message << ktxErrorString(ktxresult);
-             throw std::runtime_error(message.str());
+            message << ktxErrorString(ktxresult);
+            throw std::runtime_error(message.str());
         } else if (kTexture->isCompressed && glerror == GL_INVALID_ENUM) {
-             throw unsupported_ctype();
+            throw unsupported_ctype();
         } else {
-             message << std::showbase << "GL error " << std::hex << glerror
-                    << " occurred.";
-             throw std::runtime_error(message.str());
+            message << std::showbase << "GL error " << std::hex << glerror << " occurred.";
+            throw std::runtime_error(message.str());
         }
     }
     if (cubemapTexTarget != GL_TEXTURE_CUBE_MAP) {
         std::stringstream message;
-        
+
         message << "Loaded texture is not a cubemap texture.";
         throw std::runtime_error(message.str());
     }
-    
+
     numLayers = kTexture->numLayers;
     if (numLayers > 1 || kTexture->generateMipmaps)
         // GLUpload will have generated the mipmaps already.
@@ -332,35 +316,27 @@ TextureCubemap::TextureCubemap(uint32_t width, uint32_t height,
     try {
         prepare();
     } catch (std::exception& e) {
-        (void)e; // To quiet unused variable warnings from some compilers.
+        (void)e;  // To quiet unused variable warnings from some compilers.
         cleanup();
         throw;
     }
     bInitialized = true;
 }
 
-TextureCubemap::~TextureCubemap()
-{
-    cleanup();
-}
+TextureCubemap::~TextureCubemap() { cleanup(); }
 
-void
-TextureCubemap::resize(uint32_t width, uint32_t height)
-{
+void TextureCubemap::resize(uint32_t width, uint32_t height) {
     this->w_width = width;
     this->w_height = height;
     glViewport(0, 0, width, height);
     updateUniformBuffers();
 }
 
-void
-TextureCubemap::run(uint32_t /*msTicks*/)
-{
+void TextureCubemap::run(uint32_t /*msTicks*/) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
     // Draw object.
-    glFrontFace(GL_CW); // Why is everything CW?
+    glFrontFace(GL_CW);  // Why is everything CW?
     glCullFace(GL_BACK);
     glUseProgram(gnReflectProg);
     meshes.objects[meshes.objectIndex].Draw();
@@ -382,14 +358,10 @@ TextureCubemap::run(uint32_t /*msTicks*/)
 
 //===================================================================
 
-void
-TextureCubemap::processArgs(std::string sArgs)
-{
+void TextureCubemap::processArgs(std::string sArgs) {
     // Options descriptor
-    struct argparser::option longopts[] = {
-      {"external",      argparser::option::no_argument, &externalFile, 1},
-      {NULL,            argparser::option::no_argument, NULL,          0}
-    };
+    struct argparser::option longopts[] = {{"external", argparser::option::no_argument, &externalFile, 1},
+                                           {NULL, argparser::option::no_argument, NULL, 0}};
 
     argvector argv(sArgs);
     argparser ap(argv);
@@ -397,8 +369,10 @@ TextureCubemap::processArgs(std::string sArgs)
     int ch;
     while ((ch = ap.getopt(nullptr, longopts, nullptr)) != -1) {
         switch (ch) {
-            case 0: break;
-            default: assert(false); // Error in args in sample table.
+        case 0:
+            break;
+        default:
+            assert(false);  // Error in args in sample table.
         }
     }
     assert(ap.optind < argv.size());
@@ -407,9 +381,7 @@ TextureCubemap::processArgs(std::string sArgs)
 
 /* ------------------------------------------------------------------------- */
 
-void
-TextureCubemap::cleanup()
-{
+void TextureCubemap::cleanup() {
     glEnable(GL_DITHER);
     glDisable(GL_CULL_FACE);
     glCullFace(GL_BACK);
@@ -428,9 +400,7 @@ TextureCubemap::cleanup()
     assert(GL_NO_ERROR == glGetError());
 }
 
-void
-TextureCubemap::loadMeshes()
-{
+void TextureCubemap::loadMeshes() {
     std::string filepath = getAssetPath();
 
     // Skybox
@@ -443,23 +413,21 @@ TextureCubemap::loadMeshes()
     loadMesh(filepath + "torusknot.obj", meshes.objects[2], vertexLayout, 0.05f);
 }
 
-void
-TextureCubemap::prepareUniformBuffers()
-{
+void TextureCubemap::prepareUniformBuffers() {
     uReflectProgramUniforms = glGetUniformBlockIndex(gnReflectProg, "UBO");
     if (uReflectProgramUniforms == -1) {
         std::stringstream message;
-        
+
         message << "prepareUniformBuffers: UBO not found in reflect program";
         throw std::runtime_error(message.str());
     }
 
     uSkyboxProgramUniforms = glGetUniformBlockIndex(gnSkyboxProg, "UBO");
     if (uSkyboxProgramUniforms == -1) {
-       std::stringstream message;
+        std::stringstream message;
 
-       message << "prepareUniformBuffers: UBO not found in skybox program";
-       throw std::runtime_error(message.str());
+        message << "prepareUniformBuffers: UBO not found in skybox program";
+        throw std::runtime_error(message.str());
     }
 
     glGenBuffers(1, &gnUbo);
@@ -470,29 +438,23 @@ TextureCubemap::prepareUniformBuffers()
 
     glBindBufferBase(GL_UNIFORM_BUFFER, uniformBufferBindId, gnUbo);
     glUseProgram(gnReflectProg);
-    glUniformBlockBinding(gnReflectProg, uReflectProgramUniforms,
-                          uniformBufferBindId);
+    glUniformBlockBinding(gnReflectProg, uReflectProgramUniforms, uniformBufferBindId);
 
     glUseProgram(gnSkyboxProg);
-    glUniformBlockBinding(gnSkyboxProg, uSkyboxProgramUniforms,
-                          uniformBufferBindId);
+    glUniformBlockBinding(gnSkyboxProg, uSkyboxProgramUniforms, uniformBufferBindId);
 
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     updateUniformBuffers();
     glUseProgram(0);
-    
+
     assert(glGetError() == GL_NO_ERROR);
 }
 
-void
-TextureCubemap::updateUniformBuffers()
-{
+void TextureCubemap::updateUniformBuffers() {
     // Reflect / 3D object
     glm::mat4 viewMatrix = glm::mat4(1.0f);
-    ubo.projection = glm::perspective(glm::radians(60.0f),
-                                      (float)w_width / (float)w_height,
-                                      0.001f, 256.0f);
+    ubo.projection = glm::perspective(glm::radians(60.0f), (float)w_width / (float)w_height, 0.001f, 256.0f);
     viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0f, 0.0f, zoom));
 
     // I do not understand why this is necessary. Assimp is supposed to
@@ -500,15 +462,11 @@ TextureCubemap::updateUniformBuffers()
     // upside down. Since the other objects are symmetrical it is not possible
     // to say if they are upside down.
     glm::mat4 object;
-    object = glm::rotate(object, glm::radians(180.0f),
-                         glm::vec3(1.0f, 0.0f, 0.0f));
+    object = glm::rotate(object, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     ubo.modelView = viewMatrix * glm::translate(glm::mat4(), cameraPos);
-    ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.x),
-                                glm::vec3(1.0f, 0.0f, 0.0f));
-    ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.y),
-                                glm::vec3(0.0f, 1.0f, 0.0f));
-    ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.z),
-                                glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+    ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+    ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
     // Remove translation from modelView so the skybox doesn't move.
     ubo.skyboxView = glm::mat4(glm::mat3(ubo.modelView));
     // Do the inverse here because doing it in every fragment is a bit much.
@@ -516,12 +474,9 @@ TextureCubemap::updateUniformBuffers()
     // Now add the object rotation.
     ubo.modelView = ubo.modelView * object;
 
-
     glBindBuffer(GL_UNIFORM_BUFFER, gnUbo);
 #if !defined(EMSCRIPTEN)
-    uint8_t* pData = (uint8_t*)glMapBufferRange(GL_UNIFORM_BUFFER,
-                                                0, sizeof(ubo),
-                                                GL_MAP_WRITE_BIT);
+    uint8_t* pData = (uint8_t*)glMapBufferRange(GL_UNIFORM_BUFFER, 0, sizeof(ubo), GL_MAP_WRITE_BIT);
     memcpy(pData, &ubo, sizeof(ubo));
     glUnmapBuffer(GL_UNIFORM_BUFFER);
 #else
@@ -530,30 +485,25 @@ TextureCubemap::updateUniformBuffers()
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
-void
-TextureCubemap::prepareSampler()
-{
+void TextureCubemap::prepareSampler() {
     glBindTexture(cubemapTexTarget, gnCubemapTexture);
     if (bIsMipmapped)
-        glTexParameteri(cubemapTexTarget,
-                        GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+        glTexParameteri(cubemapTexTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
     else
         glTexParameteri(cubemapTexTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(cubemapTexTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     glUseProgram(gnReflectProg);
-    if ((uReflectCubemap = glGetUniformLocation(gnReflectProg,
-                                                "uSamplerColor")) == -1) {
+    if ((uReflectCubemap = glGetUniformLocation(gnReflectProg, "uSamplerColor")) == -1) {
         std::stringstream message;
-        
+
         message << "prepareSampler: uSamplerColor not found in reflect program";
         throw std::runtime_error(message.str());
     }
     glUniform1i(uReflectCubemap, cubemapTexUnit - GL_TEXTURE0);
 
     glUseProgram(gnSkyboxProg);
-    if ((uSkyboxCubemap = glGetUniformLocation(gnSkyboxProg,
-                                              "uSamplerColor")) == -1) {
+    if ((uSkyboxCubemap = glGetUniformLocation(gnSkyboxProg, "uSamplerColor")) == -1) {
         std::stringstream message;
 
         message << "prepareSampler: uSamplerColor not found in skybox program";
@@ -564,9 +514,7 @@ TextureCubemap::prepareSampler()
     glUseProgram(0);
 }
 
-void
-TextureCubemap::preparePrograms()
-{
+void TextureCubemap::preparePrograms() {
     GLuint gnReflectFs, gnReflectVs, gnSkyboxFs, gnSkyboxVs;
     const GLchar* actualReflectFs;
     const GLchar* actualSkyboxFs;
@@ -586,7 +534,7 @@ TextureCubemap::preparePrograms()
         makeShader(GL_FRAGMENT_SHADER, actualSkyboxFs, &gnSkyboxFs);
         makeProgram(gnSkyboxVs, gnSkyboxFs, &gnSkyboxProg);
     } catch (std::exception& e) {
-        (void)e; // To quiet unused variable warnings from some compilers.
+        (void)e;  // To quiet unused variable warnings from some compilers.
         throw;
     }
     glDeleteShader(gnReflectVs);
@@ -595,16 +543,14 @@ TextureCubemap::preparePrograms()
     glDeleteShader(gnSkyboxFs);
 }
 
-void
-TextureCubemap::prepare()
-{
+void TextureCubemap::prepare() {
     // By default dithering is enabled. Dithering does not provide visual
     // improvement in this sample so disable it to improve performance.
     glDisable(GL_DITHER);
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
-    glClearColor(0.2f,0.3f,0.4f,1.0f);
+    glClearColor(0.2f, 0.3f, 0.4f, 1.0f);
 
     loadMeshes();
 
@@ -613,42 +559,28 @@ TextureCubemap::prepare()
     prepareSampler();
 }
 
-void
-TextureCubemap::toggleSkyBox()
-{
-    bDisplaySkybox = !bDisplaySkybox;
-}
+void TextureCubemap::toggleSkyBox() { bDisplaySkybox = !bDisplaySkybox; }
 
-void
-TextureCubemap::toggleObject()
-{
+void TextureCubemap::toggleObject() {
     meshes.objectIndex++;
-    if (meshes.objectIndex >= static_cast<uint32_t>(meshes.objects.size()))
-    {
+    if (meshes.objectIndex >= static_cast<uint32_t>(meshes.objects.size())) {
         meshes.objectIndex = 0;
     }
 }
 
-void
-TextureCubemap::changeLodBias(float delta)
-{
+void TextureCubemap::changeLodBias(float delta) {
     ubo.lodBias += delta;
-    if (ubo.lodBias < 0.0f)
-    {
+    if (ubo.lodBias < 0.0f) {
         ubo.lodBias = 0.0f;
     }
-    if (ubo.lodBias > levelCount)
-    {
+    if (ubo.lodBias > levelCount) {
         ubo.lodBias = (float)levelCount;
     }
     updateUniformBuffers();
 }
 
-void
-TextureCubemap::keyPressed(uint32_t keyCode)
-{
-    switch (keyCode)
-    {
+void TextureCubemap::keyPressed(uint32_t keyCode) {
+    switch (keyCode) {
     case 's':
         toggleSkyBox();
         break;
@@ -663,6 +595,3 @@ TextureCubemap::keyPressed(uint32_t keyCode)
         break;
     }
 }
-
-
-

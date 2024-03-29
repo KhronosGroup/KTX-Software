@@ -2,7 +2,6 @@
 // Copyright 2022-2023 RasterGrid Kft.
 // SPDX-License-Identifier: Apache-2.0
 
-
 #pragma once
 
 #include "stdafx.h"
@@ -15,34 +14,34 @@
 #include <fmt/ostream.h>
 #include <fmt/printf.h>
 
-
 #if defined(_WIN32)
-    #define KTX_COMMAND_EXPORT extern "C" __declspec(dllexport)
-    #define KTX_COMMAND_CALL __stdcall
-    #define KTX_COMMAND_PTR KTX_COMMAND_CALL
+#define KTX_COMMAND_EXPORT extern "C" __declspec(dllexport)
+#define KTX_COMMAND_CALL __stdcall
+#define KTX_COMMAND_PTR KTX_COMMAND_CALL
 #else
-    #define KTX_COMMAND_EXPORT extern "C" __attribute__((visibility="default"))
-    #define KTX_COMMAND_CALL
-    #define KTX_COMMAND_PTR
+#define KTX_COMMAND_EXPORT extern "C" __attribute__((visibility = "default"))
+#define KTX_COMMAND_CALL
+#define KTX_COMMAND_PTR
 #endif
 
 #define KTX_COMMAND_ENTRY_POINT_DEF(CMDCLASS) \
-    (int argc, char* argv[]) { CMDCLASS cmd{}; return cmd.main(argc, argv); }
+    (int argc, char* argv[]) {                \
+        CMDCLASS cmd{};                       \
+        return cmd.main(argc, argv);          \
+    }
 
 #if defined(KTX_COMMAND_EXECUTABLE)
-    // Command is built as a separate executable
-    // (parent command can issue it using a system call)
-    #define KTX_COMMAND_ENTRY_POINT(NAME, CMDCLASS) \
-        int _tmain KTX_COMMAND_ENTRY_POINT_DEF(CMDCLASS)
+// Command is built as a separate executable
+// (parent command can issue it using a system call)
+#define KTX_COMMAND_ENTRY_POINT(NAME, CMDCLASS) int _tmain KTX_COMMAND_ENTRY_POINT_DEF(CMDCLASS)
 #elif defined(KTX_COMMAND_SHARED_LIB)
-    // Command is built as a separate shared library
-    // (parent command can issue it by loading its entry point)
-    #define KTX_COMMAND_ENTRY_POINT(NAME, CMDCLASS) \
-        KTX_COMMAND_EXPORT int KTX_COMMAND_CALL ktxCommandMain KTX_COMMAND_ENTRY_POINT_DEF(CMDCLASS)
+// Command is built as a separate shared library
+// (parent command can issue it by loading its entry point)
+#define KTX_COMMAND_ENTRY_POINT(NAME, CMDCLASS) \
+    KTX_COMMAND_EXPORT int KTX_COMMAND_CALL ktxCommandMain KTX_COMMAND_ENTRY_POINT_DEF(CMDCLASS)
 #else
-    // Command is built statically into the executable
-    #define KTX_COMMAND_ENTRY_POINT(NAME, CMDCLASS) \
-        int NAME KTX_COMMAND_ENTRY_POINT_DEF(CMDCLASS)
+// Command is built statically into the executable
+#define KTX_COMMAND_ENTRY_POINT(NAME, CMDCLASS) int NAME KTX_COMMAND_ENTRY_POINT_DEF(CMDCLASS)
 #endif
 
 #define KTX_COMMAND_BUILTIN(NAME) int NAME(int argc, char* argv[]);
@@ -52,7 +51,7 @@
 namespace ktx {
 
 using pfnBuiltinCommand = int (*)(int argc, char* argv[]);
-using pfnImportedCommand = int (KTX_COMMAND_PTR *)(int argc, char* argv[]);
+using pfnImportedCommand = int(KTX_COMMAND_PTR*)(int argc, char* argv[]);
 
 static constexpr int CONSOLE_USAGE_WIDTH = 100;
 
@@ -81,12 +80,10 @@ enum class ReturnCode {
 };
 using rc = ReturnCode;
 
-[[nodiscard]] constexpr inline auto operator+(ReturnCode value) noexcept {
-	return to_underlying(value);
-}
+[[nodiscard]] constexpr inline auto operator+(ReturnCode value) noexcept { return to_underlying(value); }
 
 struct FatalError : public std::exception {
-    ReturnCode returnCode; /// Desired process exit code
+    ReturnCode returnCode;  /// Desired process exit code
     explicit FatalError(ReturnCode returnCode) : returnCode(returnCode) {}
 };
 
@@ -128,18 +125,18 @@ struct Reporter {
 [[nodiscard]] std::string version(bool testrun);
 
 class Command : public Reporter {
-public:
+  public:
     Command() = default;
     virtual ~Command() = default;
 
-public:
+  public:
     virtual int main(int argc, char* argv[]) = 0;
 
-protected:
+  protected:
     void parseCommandLine(const std::string& name, const std::string& desc, int argc, char* argv[]);
 
-    virtual void initOptions(cxxopts::Options& /*opts*/) { }
-    virtual void processOptions(cxxopts::Options& /*opts*/, cxxopts::ParseResult& /*args*/) { };
+    virtual void initOptions(cxxopts::Options& /*opts*/) {}
+    virtual void processOptions(cxxopts::Options& /*opts*/, cxxopts::ParseResult& /*args*/){};
 #if defined(_WIN32) && defined(DEBUG)
     bool launchDebugger();
 #endif
@@ -160,17 +157,17 @@ protected:
 struct OptionsGeneric {
     // --help
     // --version
-    bool testrun = false; /// Indicates test run. If enabled ktx tools will only include the default version information in any output
+    bool testrun =
+        false;  /// Indicates test run. If enabled ktx tools will only include the default version information in any output
 
     void init(cxxopts::Options& opts) {
-        opts.add_options()
-                ("h,help", "Print this usage message and exit")
-                ("v,version", "Print the version number of this program and exit")
-                ("testrun", "Indicates test run. If enabled the tool will produce deterministic output whenever possible")
+        opts.add_options()("h,help", "Print this usage message and exit")("v,version",
+                                                                          "Print the version number of this program and exit")(
+            "testrun", "Indicates test run. If enabled the tool will produce deterministic output whenever possible")
 #if defined(_WIN32) && defined(DEBUG)
-                ("ld", "Launch debugger on startup.")
+            ("ld", "Launch debugger on startup.")
 #endif
-                ;
+            ;
     }
 
     void process(cxxopts::Options& opts, cxxopts::ParseResult& args, Reporter& report) {
@@ -212,13 +209,12 @@ struct OptionsFormat {
     OutputFormat format;
 
     void init(cxxopts::Options& opts) {
-        opts.add_options()
-                ("f,format", "Specifies the report output format. Possible options are:\n"
-                        "  text: Human readable text based format\n"
-                        "  json: Formatted JSON\n"
-                        "  mini-json: Minified JSON\n",
-                        cxxopts::value<std::string>()->default_value("text"),
-                        "text|json|mini-json");
+        opts.add_options()("f,format",
+                           "Specifies the report output format. Possible options are:\n"
+                           "  text: Human readable text based format\n"
+                           "  json: Formatted JSON\n"
+                           "  mini-json: Minified JSON\n",
+                           cxxopts::value<std::string>()->default_value("text"), "text|json|mini-json");
     }
 
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
@@ -239,16 +235,15 @@ struct OptionsSingleIn {
     std::string inputFilepath;
 
     void init(cxxopts::Options& opts) {
-        opts.add_options()
-                ("stdin", "Use stdin as the input file. (Using a single dash '-' as the input file has the same effect)")
-                ("i,input-file", "The input file. Using a single dash '-' as the input file will use stdin.", cxxopts::value<std::string>(), "filepath");
+        opts.add_options()("stdin", "Use stdin as the input file. (Using a single dash '-' as the input file has the same effect)")(
+            "i,input-file", "The input file. Using a single dash '-' as the input file will use stdin.",
+            cxxopts::value<std::string>(), "filepath");
         opts.parse_positional("input-file");
         opts.positional_help("<input-file>");
     }
 
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
-        if (!args.unmatched().empty())
-            report.fatal_usage("Too many filenames specified.");
+        if (!args.unmatched().empty()) report.fatal_usage("Too many filenames specified.");
 
         if (args.count("stdin") + args.count("input-file") == 0)
             report.fatal_usage("Missing input file. Either <input-file> or --stdin must be specified.");
@@ -267,18 +262,18 @@ struct OptionsSingleInSingleOut {
     std::string outputFilepath;
 
     void init(cxxopts::Options& opts) {
-        opts.add_options()
-                ("stdin", "Use stdin as the input file. (Using a single dash '-' as the input file has the same effect)")
-                ("stdout", "Use stdout as the output file. (Using a single dash '-' as the output file has the same effect)")
-                ("i,input-file", "The input file. Using a single dash '-' as the input file will use stdin.", cxxopts::value<std::string>(), "filepath")
-                ("o,output-file", "The output file. Using a single dash '-' as the output file will use stdout.", cxxopts::value<std::string>(), "filepath");
+        opts.add_options()("stdin", "Use stdin as the input file. (Using a single dash '-' as the input file has the same effect)")(
+            "stdout", "Use stdout as the output file. (Using a single dash '-' as the output file has the same effect)")(
+            "i,input-file", "The input file. Using a single dash '-' as the input file will use stdin.",
+            cxxopts::value<std::string>(),
+            "filepath")("o,output-file", "The output file. Using a single dash '-' as the output file will use stdout.",
+                        cxxopts::value<std::string>(), "filepath");
         opts.parse_positional("input-file", "output-file");
         opts.positional_help("<input-file> <output-file>");
     }
 
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
-        if (!args.unmatched().empty())
-            report.fatal_usage("Too many filenames specified.");
+        if (!args.unmatched().empty()) report.fatal_usage("Too many filenames specified.");
 
         if (args.count("stdin") + args.count("input-file") == 0)
             report.fatal_usage("Missing input file. Either <input-file> or --stdin must be specified.");
@@ -307,29 +302,27 @@ struct OptionsMultiInSingleOut {
     std::string outputFilepath;
 
     void init(cxxopts::Options& opts) {
-        opts.add_options()
-                ("stdin", "Use stdin as the first input file. (Using a single dash '-' as the first input file has the same effect)")
-                ("stdout", "Use stdout as the output file. (Using a single dash '-' as the output file has the same effect)")
-                ("files", "Input/output files. Last file specified will be used as output."
-                          " Using a single dash '-' as an input or output file will use stdin/stdout.", cxxopts::value<std::vector<std::string>>(), "<filepath>");
+        opts.add_options()(
+            "stdin", "Use stdin as the first input file. (Using a single dash '-' as the first input file has the same effect)")(
+            "stdout", "Use stdout as the output file. (Using a single dash '-' as the output file has the same effect)")(
+            "files",
+            "Input/output files. Last file specified will be used as output."
+            " Using a single dash '-' as an input or output file will use stdin/stdout.",
+            cxxopts::value<std::vector<std::string>>(), "<filepath>");
         opts.parse_positional("files");
         opts.positional_help("<input-file...> <output-file>");
     }
 
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
         std::vector<std::string> files;
-        if (args.count("stdin"))
-            files.emplace_back("-");
+        if (args.count("stdin")) files.emplace_back("-");
         if (args.count("files")) {
             const auto& argFiles = args["files"].as<std::vector<std::string>>();
             files.insert(files.end(), argFiles.begin(), argFiles.end());
         }
-        if (args.count("stdout"))
-            files.emplace_back("-");
-        if (files.size() < 1)
-            report.fatal_usage("Input and output files must be specified.");
-        if (files.size() < 2)
-            report.fatal_usage("{} file must be specified.", args.count("stdout") == 0 ? "Output" : "Input");
+        if (args.count("stdout")) files.emplace_back("-");
+        if (files.size() < 1) report.fatal_usage("Input and output files must be specified.");
+        if (files.size() < 2) report.fatal_usage("{} file must be specified.", args.count("stdout") == 0 ? "Output" : "Input");
 
         outputFilepath = std::move(files.back());
         files.pop_back();
@@ -345,13 +338,11 @@ struct OptionsMultiInSingleOut {
 /// Process functions are called in reverse order from right to left.
 template <typename... Args>
 struct Combine : Args... {
-    void init(cxxopts::Options& opts) {
-        (Args::init(opts), ...);
-    }
+    void init(cxxopts::Options& opts) { (Args::init(opts), ...); }
     void process(cxxopts::Options& opts, cxxopts::ParseResult& args, Reporter& report) {
-        int dummy; // Reverse fold via operator= on a dummy int
+        int dummy;  // Reverse fold via operator= on a dummy int
         (dummy = ... = (Args::process(opts, args, report), 0));
-        (void) dummy;
+        (void)dummy;
     }
 };
 
@@ -359,26 +350,18 @@ struct Combine : Args... {
 class InputStream {
     std::string filepath;
     std::istream* activeStream = nullptr;
-    std::ifstream file; // Unused for stdin/stdout
+    std::ifstream file;  // Unused for stdin/stdout
     std::stringstream stdinBuffer;
 
-public:
+  public:
     InputStream(const std::string& filepath, Reporter& report);
 
-    const std::string& str() {
-        return filepath;
-    }
+    const std::string& str() { return filepath; }
 
-    /*explicit(false)*/ operator std::istream&() {
-        return *activeStream;
-    }
+    /*explicit(false)*/ operator std::istream&() { return *activeStream; }
 
-    std::istream* operator->() {
-        return activeStream;
-    }
-    std::istream& operator*() {
-        return *activeStream;
-    }
+    std::istream* operator->() { return activeStream; }
+    std::istream& operator*() { return *activeStream; }
 };
 
 /// Helper to handle stdout and fstream uniformly
@@ -388,16 +371,14 @@ class OutputStream {
     // std::ostream* activeStream = nullptr;
     // std::ofstream file; // Unused for stdin/stdout
 
-public:
+  public:
     OutputStream(const std::string& filepath, Reporter& report);
     ~OutputStream();
 
-    const std::string& str() {
-        return filepath;
-    }
+    const std::string& str() { return filepath; }
 
     void writeKTX2(ktxTexture* texture, Reporter& report);
     void write(const char* data, std::size_t size, Reporter& report);
 };
 
-} // namespace ktx
+}  // namespace ktx

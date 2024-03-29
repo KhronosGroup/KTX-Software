@@ -8,7 +8,6 @@
 #include "formats.h"
 #include "imageio.h"
 
-
 namespace ktx {
 
 [[nodiscard]] inline FormatDescriptor createFormatDescriptor(const uint32_t* dfd) {
@@ -56,10 +55,9 @@ namespace ktx {
 
 [[nodiscard]] inline FormatDescriptor createFormatDescriptor(VkFormat vkFormat, Reporter& report) {
     const auto dfd = std::unique_ptr<uint32_t[], decltype(std::free)*>(vk2dfd(vkFormat), std::free);
-    if (!dfd)
-        report.fatal(rc::DFD_FAILURE, "Failed to create format descriptor for: {}", toString(vkFormat));
+    if (!dfd) report.fatal(rc::DFD_FAILURE, "Failed to create format descriptor for: {}", toString(vkFormat));
 
     return createFormatDescriptor(dfd.get());
 }
 
-} // namespace ktx
+}  // namespace ktx

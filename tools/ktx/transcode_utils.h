@@ -61,8 +61,7 @@ struct OptionsTranscodeTarget {
         if (args[argName].count()) {
             const auto argStr = to_lower_copy(args[argName].as<std::string>());
             const auto it = targets.find(argStr);
-            if (it == targets.end())
-                report.fatal_usage("Invalid transcode target: \"{}\".", argStr);
+            if (it == targets.end()) report.fatal_usage("Invalid transcode target: \"{}\".", argStr);
 
             transcodeTarget = it->second.first;
             transcodeTargetName = argStr;
@@ -88,8 +87,7 @@ KTXTexture2 transcode(KTXTexture2&& texture, OptionsTranscodeTarget<TRANSCODE_CM
     options.validateTextureTranscode(texture, report);
 
     auto ret = ktxTexture2_TranscodeBasis(texture, options.transcodeTarget.value(), 0);
-    if (ret != KTX_SUCCESS)
-        report.fatal(rc::INVALID_FILE, "Failed to transcode KTX2 texture: {}", ktxErrorString(ret));
+    if (ret != KTX_SUCCESS) report.fatal(rc::INVALID_FILE, "Failed to transcode KTX2 texture: {}", ktxErrorString(ret));
 
     // Need to perform format conversion and swizzling if needed
     bool needFormatConversion = false;
@@ -137,8 +135,7 @@ KTXTexture2 transcode(KTXTexture2&& texture, OptionsTranscodeTarget<TRANSCODE_CM
         createInfo.pDfd = nullptr;
 
         ret = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE, convertedTexture.pHandle());
-        if (KTX_SUCCESS != ret)
-            report.fatal(rc::IO_FAILURE, "Failed to create output texture: {}", ktxErrorString(ret));
+        if (KTX_SUCCESS != ret) report.fatal(rc::IO_FAILURE, "Failed to create output texture: {}", ktxErrorString(ret));
     }
 
     KTXTexture2& outputTexture = (convertedTexture.handle() != nullptr) ? convertedTexture : texture;
@@ -195,4 +192,4 @@ KTXTexture2 transcode(KTXTexture2&& texture, OptionsTranscodeTarget<TRANSCODE_CM
     return std::move(outputTexture);
 }
 
-} // namespace ktx
+}  // namespace ktx

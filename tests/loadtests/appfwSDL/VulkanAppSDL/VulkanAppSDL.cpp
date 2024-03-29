@@ -16,12 +16,11 @@
  * @author Mark Callow, www.edgewise-consulting.com.
  */
 
-
 #if defined(_WIN32)
-  #if _MSC_VER < 1900
-    #define snprintf _snprintf
-  #endif
-  #define _CRT_SECURE_NO_WARNINGS
+#if _MSC_VER < 1900
+#define snprintf _snprintf
+#endif
+#define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #include <assert.h>
@@ -39,41 +38,31 @@
 
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
 
-#define ERROR_RETURN(msg) \
-      (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, szName, msg, NULL); \
-      return false;
+#define ERROR_RETURN(msg)                                                    \
+    (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, szName, msg, NULL); \
+    return false;
 
-#define WARNING(msg) \
-      (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, szName, msg, NULL);
+#define WARNING(msg) (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, szName, msg, NULL);
 
-#define GET_INSTANCE_PROC_ADDR(inst, entrypoint)                              \
-  {                                                                           \
-    pfn##entrypoint =                                                         \
-        (PFN_vk##entrypoint)vkGetInstanceProcAddr(inst, "vk" #entrypoint);    \
-    if (pfn##entrypoint == NULL) {                                            \
-        ERROR_RETURN("vkGetInstanceProcAddr: unable to find vk" #entrypoint); \
-    }                                                                         \
-  }
+#define GET_INSTANCE_PROC_ADDR(inst, entrypoint)                                             \
+    {                                                                                        \
+        pfn##entrypoint = (PFN_vk##entrypoint)vkGetInstanceProcAddr(inst, "vk" #entrypoint); \
+        if (pfn##entrypoint == NULL) {                                                       \
+            ERROR_RETURN("vkGetInstanceProcAddr: unable to find vk" #entrypoint);            \
+        }                                                                                    \
+    }
 
-#define GET_DEVICE_PROC_ADDR(device, entrypoint)                            \
-  {                                                                         \
-    pfn##entrypoint =                                                       \
-        (PFN_vk##entrypoint)vkGetDeviceProcAddr(device, "vk" #entrypoint);  \
-    if (pfn##entrypoint == NULL) {                                          \
-        ERROR_RETURN("vkGetDeviceProcAddr: unable to find vk" #entrypoint); \
-    }                                                                       \
-  }
+#define GET_DEVICE_PROC_ADDR(device, entrypoint)                                             \
+    {                                                                                        \
+        pfn##entrypoint = (PFN_vk##entrypoint)vkGetDeviceProcAddr(device, "vk" #entrypoint); \
+        if (pfn##entrypoint == NULL) {                                                       \
+            ERROR_RETURN("vkGetDeviceProcAddr: unable to find vk" #entrypoint);              \
+        }                                                                                    \
+    }
 
+VulkanAppSDL::~VulkanAppSDL() {}
 
-VulkanAppSDL::~VulkanAppSDL()
-{
-
-}
-
-
-bool
-VulkanAppSDL::initialize(Args& args)
-{
+bool VulkanAppSDL::initialize(Args &args) {
     for (uint32_t i = 1; i < args.size(); i++) {
         if (args[i].compare("--validate") == 0) {
             validate = true;
@@ -81,8 +70,7 @@ VulkanAppSDL::initialize(Args& args)
             break;
         }
     }
-    if (!AppBaseSDL::initialize(args))
-        return false;
+    if (!AppBaseSDL::initialize(args)) return false;
 
     SDL_SetHint(SDL_HINT_MAC_CTRL_CLICK_EMULATE_RIGHT_CLICK, "1");
     SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "1");
@@ -90,17 +78,11 @@ VulkanAppSDL::initialize(Args& args)
     // Create window.
     // Vulkan samples do not pass any information from Vulkan initialization
     // to window creation so creating the window first should be ok...
-    pswMainWindow = SDL_CreateWindow(
-                        szName,
-                        SDL_WINDOWPOS_UNDEFINED,
-                        SDL_WINDOWPOS_UNDEFINED,
-                        w_width, w_height,
-                        SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI
-                    );
+    pswMainWindow = SDL_CreateWindow(szName, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, w_width, w_height,
+                                     SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
 
     if (pswMainWindow == NULL) {
-        (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, szName,
-                                       SDL_GetError(), NULL);
+        (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, szName, SDL_GetError(), NULL);
         return false;
     }
 
@@ -112,90 +94,68 @@ VulkanAppSDL::initialize(Args& args)
     return true;
 }
 
-
-void
-VulkanAppSDL::finalize()
-{
-    if (vkctx.descriptorPool)
-    {
+void VulkanAppSDL::finalize() {
+    if (vkctx.descriptorPool) {
         vkctx.device.destroyDescriptorPool(vkctx.descriptorPool, nullptr);
     }
     vkDestroyPipelineCache((VkDevice)vkctx.device, vkctx.pipelineCache, nullptr);
 
     vkctx.swapchain.cleanup();
-    for (auto& shaderModule : shaderModules)
-    {
+    for (auto &shaderModule : shaderModules) {
         vkctx.device.destroyShaderModule(shaderModule);
     }
-    if (enableTextOverlay)
-    {
+    if (enableTextOverlay) {
         delete textOverlay;
     }
 
     vkctx.device.destroyCommandPool(vkctx.commandPool);
-    //vkctx.device.destroy();
+    // vkctx.device.destroy();
     if (vsSurface != VK_NULL_HANDLE) {
         // Destroy
     }
-    //vkctx.instance.destroy();
+    // vkctx.instance.destroy();
 }
 
-
-int
-VulkanAppSDL::doEvent(SDL_Event* event)
-{
+int VulkanAppSDL::doEvent(SDL_Event *event) {
     switch (event->type) {
-      case SDL_WINDOWEVENT:
+    case SDL_WINDOWEVENT:
         switch (event->window.event) {
-          case SDL_WINDOWEVENT_SIZE_CHANGED:
+        case SDL_WINDOWEVENT_SIZE_CHANGED:
             // Size given in event is in 'points' on some platforms.
             // Resize window will figure out the drawable pixel size.
             resizeWindow(/*event->window.data1, event->window.data2*/);
             return 0;
         }
         break;
-            
     }
     return AppBaseSDL::doEvent(event);
 }
 
-
-void
-VulkanAppSDL::drawFrame(uint32_t /*msTicks*/)
-{
-    if (!prepared)
-        return;
+void VulkanAppSDL::drawFrame(uint32_t /*msTicks*/) {
+    if (!prepared) return;
 
     prepareFrame();
 
     vkctx.drawCmdSubmitInfo.commandBufferCount = 1;
-    vkctx.drawCmdSubmitInfo.pCommandBuffers =
-                    &vkctx.drawCmdBuffers[currentBuffer];
+    vkctx.drawCmdSubmitInfo.pCommandBuffers = &vkctx.drawCmdBuffers[currentBuffer];
 
     // Submit to queue
-    VK_CHECK_RESULT(vkQueueSubmit(vkctx.queue, 1,
-                                  &vkctx.drawCmdSubmitInfo, VK_NULL_HANDLE));
+    VK_CHECK_RESULT(vkQueueSubmit(vkctx.queue, 1, &vkctx.drawCmdSubmitInfo, VK_NULL_HANDLE));
 
     submitFrame();
 }
 
-
-void
-VulkanAppSDL::windowResized()
-{
+void VulkanAppSDL::windowResized() {
     // Derived class can override as necessary.
 }
 
-void
-VulkanAppSDL::resizeWindow()
-{
+void VulkanAppSDL::resizeWindow() {
     // XXX Necessary? Get out-of-date errors from vkAcquireNextImage regardless
     // of whether this guard is used. This guard doesn't seem to make them any
     // less likely.
 #define GUARD 0
 #if GUARD
-    if (!prepared)
-    {
+    if (!prepared) {
         return;
     }
     prepared = false;
@@ -205,7 +165,7 @@ VulkanAppSDL::resizeWindow()
 
     // This call is unnecessary on iOS or macOS. Swapchain creation gets the
     // correct drawable size from the surface capabilities. Elsewhere?
-    SDL_Vulkan_GetDrawableSize(pswMainWindow, (int*)&w_width, (int*)&w_height);
+    SDL_Vulkan_GetDrawableSize(pswMainWindow, (int *)&w_width, (int *)&w_height);
 
     // This destroys any existing swapchain and makes a new one.
     createSwapchain();
@@ -215,8 +175,7 @@ VulkanAppSDL::resizeWindow()
     vkFreeMemory(vkctx.device, vkctx.depthBuffer.mem, nullptr);
 
     // Recreate the frame buffers
-    for (uint32_t i = 0; i < vkctx.framebuffers.size(); i++)
-    {
+    for (uint32_t i = 0; i < vkctx.framebuffers.size(); i++) {
         vkDestroyFramebuffer(vkctx.device, vkctx.framebuffers[i], nullptr);
     }
 
@@ -224,15 +183,12 @@ VulkanAppSDL::resizeWindow()
     vkDestroyRenderPass(vkctx.device, vkctx.renderPass, NULL);
 
     vkctx.destroyPresentCommandBuffers();
-    (void)(prepareDepthBuffer() // XXX Call it DepthStencil?
-        && vkctx.createPresentCommandBuffers()
-        && preparePresentCommandBuffers()
-        && prepareRenderPass()
-        && prepareFramebuffers());
+    (void)(prepareDepthBuffer()  // XXX Call it DepthStencil?
+           && vkctx.createPresentCommandBuffers() && preparePresentCommandBuffers() && prepareRenderPass() &&
+           prepareFramebuffers());
 
     flushInitialCommands();
-    if (enableTextOverlay)
-    {
+    if (enableTextOverlay) {
         textOverlay->reallocateCommandBuffers();
         updateTextOverlay();
     }
@@ -243,10 +199,7 @@ VulkanAppSDL::resizeWindow()
 #endif
 }
 
-
-void
-VulkanAppSDL::onFPSUpdate()
-{
+void VulkanAppSDL::onFPSUpdate() {
     if (!enableTextOverlay) {
         setWindowTitle();
     }
@@ -254,25 +207,20 @@ VulkanAppSDL::onFPSUpdate()
     // Using onFPSUpdate avoids rewriting the title every frame.
 }
 
-
 //----------------------------------------------------------------------
 //  Frame draw utilities
 //----------------------------------------------------------------------
 
-
-void
-VulkanAppSDL::prepareFrame()
-{
+void VulkanAppSDL::prepareFrame() {
     // Acquire the next image from the swap chain
     VkResult err;
-    err = vkctx.swapchain.acquireNextImage(semaphores.presentComplete,
-                                           &currentBuffer);
+    err = vkctx.swapchain.acquireNextImage(semaphores.presentComplete, &currentBuffer);
 
     if (err == VK_ERROR_OUT_OF_DATE_KHR) {
         // Swap chain is out of date (e.g. the window was resized).
         // Re-create it.
-        //resize();
-        //draw(demo);
+        // resize();
+        // draw(demo);
         return;
     } else if (err == VK_SUBOPTIMAL_KHR) {
         // demo->swapchain is not as optimal as it could be, but the platform's
@@ -288,22 +236,16 @@ VulkanAppSDL::prepareFrame()
     submitInfo.pNext = NULL;
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &vkctx.postPresentCmdBuffers[currentBuffer];
-    VK_CHECK_RESULT(vkQueueSubmit(vkctx.queue, 1,
-                                  &submitInfo, VK_NULL_HANDLE));
+    VK_CHECK_RESULT(vkQueueSubmit(vkctx.queue, 1, &submitInfo, VK_NULL_HANDLE));
 }
 
-
-void
-VulkanAppSDL::submitFrame()
-{
+void VulkanAppSDL::submitFrame() {
     bool submitTextOverlay = enableTextOverlay && textOverlay->visible;
 
-    if (submitTextOverlay)
-    {
+    if (submitTextOverlay) {
         // Wait for color attachment output to finish before rendering the
         // text overlay
-        VkPipelineStageFlags stageFlags
-                               = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        VkPipelineStageFlags stageFlags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
         vkctx.drawCmdSubmitInfo.pWaitDstStageMask = &stageFlags;
 
         // Set semaphores
@@ -312,15 +254,12 @@ VulkanAppSDL::submitFrame()
         vkctx.drawCmdSubmitInfo.pWaitSemaphores = &semaphores.renderComplete;
         // Signal ready with text overlay complete semaphore
         vkctx.drawCmdSubmitInfo.signalSemaphoreCount = 1;
-        vkctx.drawCmdSubmitInfo.pSignalSemaphores
-                                            = &semaphores.textOverlayComplete;
+        vkctx.drawCmdSubmitInfo.pSignalSemaphores = &semaphores.textOverlayComplete;
 
         // Submit current text overlay command buffer
         vkctx.drawCmdSubmitInfo.commandBufferCount = 1;
-        vkctx.drawCmdSubmitInfo.pCommandBuffers
-                                     = &textOverlay->cmdBuffers[currentBuffer];
-        VK_CHECK_RESULT(vkQueueSubmit(vkctx.queue, 1, &vkctx.drawCmdSubmitInfo,
-                                      VK_NULL_HANDLE));
+        vkctx.drawCmdSubmitInfo.pCommandBuffers = &textOverlay->cmdBuffers[currentBuffer];
+        VK_CHECK_RESULT(vkQueueSubmit(vkctx.queue, 1, &vkctx.drawCmdSubmitInfo, VK_NULL_HANDLE));
 
         // Reset stage mask
         vkctx.drawCmdSubmitInfo.pWaitDstStageMask = &vkctx.submitPipelineStages;
@@ -341,20 +280,16 @@ VulkanAppSDL::submitFrame()
     submitInfo.pCommandBuffers = &vkctx.prePresentCmdBuffers[currentBuffer];
     VK_CHECK_RESULT(vkQueueSubmit(vkctx.queue, 1, &submitInfo, VK_NULL_HANDLE));
 
-    VkResult err =
-            vkctx.swapchain.queuePresent(vkctx.queue, currentBuffer,
-               submitTextOverlay ?
-                   semaphores.textOverlayComplete : semaphores.renderComplete);
+    VkResult err = vkctx.swapchain.queuePresent(vkctx.queue, currentBuffer,
+                                                submitTextOverlay ? semaphores.textOverlayComplete : semaphores.renderComplete);
 
     if (err == VK_ERROR_OUT_OF_DATE_KHR) {
         // swapchain is out of date (e.g. the window was resized) and
         // must be recreated:
-        //resize();
+        // resize();
     } else if (err == VK_SUBOPTIMAL_KHR) {
         if (!subOptimalPresentWarned) {
-            SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, szName,
-                                     "Suboptimal present of framebuffer.",
-                                     NULL);
+            SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, szName, "Suboptimal present of framebuffer.", NULL);
         }
     } else
         assert(!err);
@@ -365,30 +300,15 @@ VulkanAppSDL::submitFrame()
     VK_CHECK_RESULT(vkQueueWaitIdle(vkctx.queue));
 }
 
-
 //----------------------------------------------------------------------
 //  Vulkan Initialization
 //----------------------------------------------------------------------
 
-
-bool
-VulkanAppSDL::initializeVulkan()
-{
-    if (createInstance()
-            && findGpu()
-            && setupDebugReporting()
-            && vkctx.swapchain.connectInstance(vkctx.instance, vkctx.gpu)
-            && createSurface()
-            && createDevice()
-            && vkctx.swapchain.connectDevice(vkctx.device)
-            && createSemaphores()
-            && createSwapchain()
-            && prepareDepthBuffer()
-            && vkctx.createPresentCommandBuffers()
-            && preparePresentCommandBuffers()
-            && prepareRenderPass()
-            && createPipelineCache()
-            && prepareFramebuffers()) {
+bool VulkanAppSDL::initializeVulkan() {
+    if (createInstance() && findGpu() && setupDebugReporting() && vkctx.swapchain.connectInstance(vkctx.instance, vkctx.gpu) &&
+        createSurface() && createDevice() && vkctx.swapchain.connectDevice(vkctx.device) && createSemaphores() &&
+        createSwapchain() && prepareDepthBuffer() && vkctx.createPresentCommandBuffers() && preparePresentCommandBuffers() &&
+        prepareRenderPass() && createPipelineCache() && prepareFramebuffers()) {
         // Functions above most likely generate pipeline commands
         // that need to be flushed before beginning the render loop.
         flushInitialCommands();
@@ -400,21 +320,14 @@ VulkanAppSDL::initializeVulkan()
     }
 }
 
-
-bool
-VulkanAppSDL::createInstance()
-{
+bool VulkanAppSDL::createInstance() {
     MAYBE_UNUSED VkResult err;
     uint32_t instanceLayerCount = 0;
-    std::vector<const char *>* instanceValidationLayers = nullptr;
+    std::vector<const char *> *instanceValidationLayers = nullptr;
 
-    std::vector<const char *> instanceValidationLayers_alt1 = {
-        "VK_LAYER_KHRONOS_validation"
-    };
+    std::vector<const char *> instanceValidationLayers_alt1 = {"VK_LAYER_KHRONOS_validation"};
 
-    std::vector<const char *> instanceValidationLayers_alt2 = {
-        "VK_LAYER_LUNARG_standard_validation"
-    };
+    std::vector<const char *> instanceValidationLayers_alt2 = {"VK_LAYER_LUNARG_standard_validation"};
 
     // Look for validation layers.
     bool validationFound = 0;
@@ -423,44 +336,34 @@ VulkanAppSDL::createInstance()
         assert(err == VK_SUCCESS);
 
         if (instanceLayerCount > 0) {
-            VkLayerProperties* instanceLayers
-                = new VkLayerProperties[instanceLayerCount];
-            err = vkEnumerateInstanceLayerProperties(&instanceLayerCount,
-                                                     instanceLayers);
+            VkLayerProperties *instanceLayers = new VkLayerProperties[instanceLayerCount];
+            err = vkEnumerateInstanceLayerProperties(&instanceLayerCount, instanceLayers);
             assert(err == VK_SUCCESS);
 
-            validationFound = checkLayers(
-                                (uint32_t)instanceValidationLayers_alt1.size(),
-                                instanceValidationLayers_alt1.data(),
-                                instanceLayerCount,
-                                instanceLayers);
+            validationFound = checkLayers((uint32_t)instanceValidationLayers_alt1.size(), instanceValidationLayers_alt1.data(),
+                                          instanceLayerCount, instanceLayers);
             if (validationFound) {
                 instanceValidationLayers = &instanceValidationLayers_alt1;
             } else {
                 // Use alternative set of validation layers.
-                validationFound = checkLayers(
-                                (uint32_t)instanceValidationLayers_alt2.size(),
-                                instanceValidationLayers_alt2.data(),
-                                instanceLayerCount,
-                                instanceLayers);
+                validationFound = checkLayers((uint32_t)instanceValidationLayers_alt2.size(), instanceValidationLayers_alt2.data(),
+                                              instanceLayerCount, instanceLayers);
                 instanceValidationLayers = &instanceValidationLayers_alt2;
             }
             if (validationFound) {
-                for (uint32_t i = 0; i < instanceValidationLayers->size(); i++)
-                {
-                    deviceValidationLayers.push_back(
-                                instanceValidationLayers->data()[i]);
+                for (uint32_t i = 0; i < instanceValidationLayers->size(); i++) {
+                    deviceValidationLayers.push_back(instanceValidationLayers->data()[i]);
                 }
             }
-            delete [] instanceLayers;
+            delete[] instanceLayers;
         }
 
         if (!validationFound) {
-            WARNING("vkEnumerateInstanceLayerProperties failed to find "
-                    "requested validation layers.\n");
+            WARNING(
+                "vkEnumerateInstanceLayerProperties failed to find "
+                "requested validation layers.\n");
         }
     }
-
 
     /* Build list of needed extensions */
     uint32_t c;
@@ -469,67 +372,53 @@ VulkanAppSDL::createInstance()
         std::stringstream msg;
         title = szName;
         title += ": SDL_Vulkan_GetInstanceExtensions Failure";
-        msg << "Could not retrieve instance extensions: "
-            << SDL_GetError();
+        msg << "Could not retrieve instance extensions: " << SDL_GetError();
 
-        (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, title.c_str(),
-                                       msg.str().c_str(), NULL);
+        (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, title.c_str(), msg.str().c_str(), NULL);
         return false;
     }
 
     // Find out if device_properties2 is available. If so, enable it just
     // in case we later find we are running on a Portability Subset device
     // in which case this extension is required.
-    std::vector<vk::ExtensionProperties> availableExtensions =
-        vk::enumerateInstanceExtensionProperties(nullptr);
-    for (auto& extension : availableExtensions) {
-        if (!strncmp(extension.extensionName,
-                     VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
-                     VK_MAX_EXTENSION_NAME_SIZE)) {
-            extensionNames.push_back(
-                VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME
-            );
+    std::vector<vk::ExtensionProperties> availableExtensions = vk::enumerateInstanceExtensionProperties(nullptr);
+    for (auto &extension : availableExtensions) {
+        if (!strncmp(extension.extensionName, VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, VK_MAX_EXTENSION_NAME_SIZE)) {
+            extensionNames.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
         }
     }
 
-    if (validate)
-        extensionNames.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+    if (validate) extensionNames.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 
     uint32_t i = (uint32_t)extensionNames.size();
     extensionNames.resize(i + c);
-    (void)SDL_Vulkan_GetInstanceExtensions(pswMainWindow, &c,
-                                           &extensionNames.data()[i]);
+    (void)SDL_Vulkan_GetInstanceExtensions(pswMainWindow, &c, &extensionNames.data()[i]);
 
     const vk::ApplicationInfo app(szName, 0, szName, 0, vkVersion);
 
-    vk::InstanceCreateInfo instanceInfo(
-                            {},
-                            &app,
-                            (uint32_t)deviceValidationLayers.size(),
-                            (const char *const *)deviceValidationLayers.data(),
-                            (uint32_t)extensionNames.size(),
-                            (const char *const *)extensionNames.data());
+    vk::InstanceCreateInfo instanceInfo({}, &app, (uint32_t)deviceValidationLayers.size(),
+                                        (const char *const *)deviceValidationLayers.data(), (uint32_t)extensionNames.size(),
+                                        (const char *const *)extensionNames.data());
 
     /*
      * This is info for a temp callback to use during CreateInstance.
      * After the instance is created, we use the instance-based
      * function to register the final callback.
      */
-    VkDebugReportCallbackCreateInfoEXT dbgCreateInfo = { };
+    VkDebugReportCallbackCreateInfoEXT dbgCreateInfo = {};
     if (validate) {
         dbgCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT;
         dbgCreateInfo.pNext = NULL;
         dbgCreateInfo.pfnCallback = debugFunc;
         dbgCreateInfo.pUserData = this;
         dbgCreateInfo.flags =
-            VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT
-            | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
-            //| VK_DEBUG_REPORT_INFORMATION_BIT_EXT
-            //| VK_DEBUG_REPORT_DEBUG_BIT_EXT;
+            VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
+        //| VK_DEBUG_REPORT_INFORMATION_BIT_EXT
+        //| VK_DEBUG_REPORT_DEBUG_BIT_EXT;
         instanceInfo.pNext = &dbgCreateInfo;
     }
 
-    //err = vkCreateInstance(&instanceInfo, NULL, &vkctx.instance);
+    // err = vkCreateInstance(&instanceInfo, NULL, &vkctx.instance);
     vk::Result cerr;
     cerr = vk::createInstance(&instanceInfo, nullptr, &vkctx.instance);
 
@@ -545,28 +434,19 @@ VulkanAppSDL::createInstance()
             // Figure out which extension(s) are missing.
             uint32_t instanceExtensionCount = 0;
 
-            err = vkEnumerateInstanceExtensionProperties(
-                                                        NULL,
-                                                        &instanceExtensionCount,
-                                                        NULL);
-            VkExtensionProperties* instanceExtensions
-                = new VkExtensionProperties[instanceExtensionCount];
+            err = vkEnumerateInstanceExtensionProperties(NULL, &instanceExtensionCount, NULL);
+            VkExtensionProperties *instanceExtensions = new VkExtensionProperties[instanceExtensionCount];
 
             assert(err == VK_SUCCESS);
             if (instanceExtensionCount > 0) {
-                err = vkEnumerateInstanceExtensionProperties(
-                                                        NULL,
-                                                        &instanceExtensionCount,
-                                                        instanceExtensions);
+                err = vkEnumerateInstanceExtensionProperties(NULL, &instanceExtensionCount, instanceExtensions);
                 assert(err == VK_SUCCESS);
             }
             msg << "Cannot find the following extensions:\n";
             for (uint32_t j = 0; j < extensionNames.size(); j++) {
                 uint32_t k;
                 for (k = 0; k < instanceExtensionCount; k++) {
-                    if (!strcmp(extensionNames[j],
-                                instanceExtensions[k].extensionName))
-                        break;
+                    if (!strcmp(extensionNames[j], instanceExtensions[k].extensionName)) break;
                 }
                 if (k == instanceExtensionCount) {
                     // Not found
@@ -574,30 +454,25 @@ VulkanAppSDL::createInstance()
                 }
             }
             msg << "\nMake sure your layers path is set appropriately.";
-            delete [] instanceExtensions;
-       } else {
-            msg << "vkCreateInstance: unexpected failure, code = "
-                << cerr << ".\n\nDo you have a compatible Vulkan "
-                  "installable client driver (ICD) installed?";
-       }
-       (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, title.c_str(),
-                                      msg.str().c_str(), NULL);
-       return false;
+            delete[] instanceExtensions;
+        } else {
+            msg << "vkCreateInstance: unexpected failure, code = " << cerr
+                << ".\n\nDo you have a compatible Vulkan "
+                   "installable client driver (ICD) installed?";
+        }
+        (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, title.c_str(), msg.str().c_str(), NULL);
+        return false;
     }
 
     return true;
-} // createInstance
+}  // createInstance
 
-
-bool
-VulkanAppSDL::findGpu()
-{
+bool VulkanAppSDL::findGpu() {
     MAYBE_UNUSED vk::Result err;
     uint32_t gpuCount;
 
     // Make initial call to query gpu_count, then second call for gpu info.
-    err = vkctx.instance.enumeratePhysicalDevices(&gpuCount,
-                                                  (vk::PhysicalDevice*)nullptr);
+    err = vkctx.instance.enumeratePhysicalDevices(&gpuCount, (vk::PhysicalDevice *)nullptr);
     assert(err == vk::Result::eSuccess);
 
     if (gpuCount > 0) {
@@ -618,7 +493,7 @@ VulkanAppSDL::findGpu()
 #endif
         // Get Memory information and properties
         vkctx.gpu.getMemoryProperties(&vkctx.memoryProperties);
-        
+
     } else {
         std::string msg;
         ERROR_RETURN(
@@ -628,12 +503,9 @@ VulkanAppSDL::findGpu()
     }
 
     return true;
-} // findGpu
+}  // findGpu
 
-
-bool
-VulkanAppSDL::setupDebugReporting()
-{
+bool VulkanAppSDL::setupDebugReporting() {
     if (validate) {
         GET_INSTANCE_PROC_ADDR(vkctx.instance, CreateDebugReportCallbackEXT);
         GET_INSTANCE_PROC_ADDR(vkctx.instance, DestroyDebugReportCallbackEXT);
@@ -643,50 +515,39 @@ VulkanAppSDL::setupDebugReporting()
         dbgCreateInfo.pNext = NULL;
         dbgCreateInfo.pfnCallback = debugFunc;
         dbgCreateInfo.pUserData = this;
-        dbgCreateInfo.flags =
-            VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
-        VkResult err = pfnCreateDebugReportCallbackEXT(vkctx.instance,
-                                                       &dbgCreateInfo, NULL,
-                                                       &msgCallback);
+        dbgCreateInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
+        VkResult err = pfnCreateDebugReportCallbackEXT(vkctx.instance, &dbgCreateInfo, NULL, &msgCallback);
         switch (err) {
-          case VK_SUCCESS:
+        case VK_SUCCESS:
             return true;
             break;
-          case VK_ERROR_OUT_OF_HOST_MEMORY:
+        case VK_ERROR_OUT_OF_HOST_MEMORY:
             ERROR_RETURN("CreateDebugReportCallback: out of host memory.");
             break;
-          default:
-          {
+        default: {
             std::stringstream msg;
-            msg << "CreateDebugReportCallback: unexpected failure, result code "
-                << err << ".";
+            msg << "CreateDebugReportCallback: unexpected failure, result code " << err << ".";
             ERROR_RETURN(msg.str().c_str());
             break;
-          }
+        }
         }
     }
     return true;
-} // setupDebugReporting
+}  // setupDebugReporting
 
-
-bool
-VulkanAppSDL::createSurface()
-{
+bool VulkanAppSDL::createSurface() {
     vkctx.swapchain.initSurface(pswMainWindow);
     return true;
-} // createSurface
+}  // createSurface
 
-
-bool
-VulkanAppSDL::createDevice()
-{
+bool VulkanAppSDL::createDevice() {
     typedef enum { optional, required } ext_need;
     struct extension {
         std::string name;
         ext_need need;
     };
     std::vector<extension> wantedExtensions;
-    std::vector<const char*> extensionsToEnable;
+    std::vector<const char *> extensionsToEnable;
 
     wantedExtensions.push_back({VK_KHR_SWAPCHAIN_EXTENSION_NAME, required});
     wantedExtensions.push_back({VK_KHR_MAINTENANCE1_EXTENSION_NAME, required});
@@ -715,20 +576,14 @@ VulkanAppSDL::createDevice()
     // device.
     uint32_t deviceExtensionCount = 0;
 
-    err = vkctx.gpu.enumerateDeviceExtensionProperties(
-                                            NULL,
-                                            &deviceExtensionCount,
-                                            (vk::ExtensionProperties*)nullptr);
+    err = vkctx.gpu.enumerateDeviceExtensionProperties(NULL, &deviceExtensionCount, (vk::ExtensionProperties *)nullptr);
     assert(err == vk::Result::eSuccess);
 
     std::vector<vk::ExtensionProperties> deviceExtensions;
     deviceExtensions.resize(deviceExtensionCount);
 
     if (deviceExtensionCount > 0) {
-        err = vkctx.gpu.enumerateDeviceExtensionProperties(
-                                                NULL,
-                                                &deviceExtensionCount,
-                                                deviceExtensions.data());
+        err = vkctx.gpu.enumerateDeviceExtensionProperties(NULL, &deviceExtensionCount, deviceExtensions.data());
         assert(err == vk::Result::eSuccess);
     }
 
@@ -736,7 +591,7 @@ VulkanAppSDL::createDevice()
     for (uint32_t i = 0; i < wantedExtensions.size(); i++) {
         uint32_t j;
         for (j = 0; j < deviceExtensions.size(); j++) {
-            if (!wantedExtensions[i].name.compare(static_cast<const char*>(deviceExtensions[j].extensionName))) {
+            if (!wantedExtensions[i].name.compare(static_cast<const char *>(deviceExtensions[j].extensionName))) {
                 extensionsToEnable.push_back(wantedExtensions[i].name.c_str());
                 if (!wantedExtensions[i].name.compare(VK_IMG_FORMAT_PVRTC_EXTENSION_NAME)) {
                     vkctx.enabledDeviceExtensions.pvrtc = true;
@@ -765,34 +620,23 @@ VulkanAppSDL::createDevice()
         title = szName;
         title += ": Vulkan Extensions not Found";
         msg << "The following required device extensions were not found:\n";
-        for (it = missingExtensions.begin(); it < missingExtensions.end(); it++)
-            msg << "    " << *it << "\n";
+        for (it = missingExtensions.begin(); it < missingExtensions.end(); it++) msg << "    " << *it << "\n";
 
         msg << "\n\nDo you have a compatible Vulkan "
                "installable client driver (ICD) installed?";
-       (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, title.c_str(),
-                                      msg.str().c_str(), NULL);
-       return false;
+        (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, title.c_str(), msg.str().c_str(), NULL);
+        return false;
     }
 
     float queue_priorities[1] = {0.0};
-    const vk::DeviceQueueCreateInfo queueInfo(
-        {},
-        vkctx.swapchain.queueIndex,
-        1,
-        queue_priorities
-    );
+    const vk::DeviceQueueCreateInfo queueInfo({}, vkctx.swapchain.queueIndex, 1, queue_priorities);
 
     vk::PhysicalDeviceFeatures deviceFeaturesToEnable;
     // Enable specific required and available features here.
-    if (vkctx.gpuFeatures.samplerAnisotropy)
-        deviceFeaturesToEnable.samplerAnisotropy = true;
-    if (vkctx.gpuFeatures.textureCompressionASTC_LDR)
-        deviceFeaturesToEnable.textureCompressionASTC_LDR = true;
-    if (vkctx.gpuFeatures.textureCompressionBC)
-        deviceFeaturesToEnable.textureCompressionBC = true;
-    if (vkctx.gpuFeatures.textureCompressionETC2)
-        deviceFeaturesToEnable.textureCompressionETC2 = true;
+    if (vkctx.gpuFeatures.samplerAnisotropy) deviceFeaturesToEnable.samplerAnisotropy = true;
+    if (vkctx.gpuFeatures.textureCompressionASTC_LDR) deviceFeaturesToEnable.textureCompressionASTC_LDR = true;
+    if (vkctx.gpuFeatures.textureCompressionBC) deviceFeaturesToEnable.textureCompressionBC = true;
+    if (vkctx.gpuFeatures.textureCompressionETC2) deviceFeaturesToEnable.textureCompressionETC2 = true;
 
 #if VK_KHR_portability_subset
     if (vkctx.gpuIsPortabilitySubsetDevice) {
@@ -824,17 +668,10 @@ VulkanAppSDL::createDevice()
         }
 #endif
 
-    vk::DeviceCreateInfo deviceInfo(
-            {},
-            1,
-            &queueInfo,
-            (uint32_t)deviceValidationLayers.size(),
-            (const char *const *)((validate)
-                                  ? deviceValidationLayers.data()
-                                  : NULL),
-            (uint32_t)extensionsToEnable.size(),
-            (const char *const *)extensionsToEnable.data(),
-            &deviceFeaturesToEnable);
+    vk::DeviceCreateInfo deviceInfo({}, 1, &queueInfo, (uint32_t)deviceValidationLayers.size(),
+                                    (const char *const *)((validate) ? deviceValidationLayers.data() : NULL),
+                                    (uint32_t)extensionsToEnable.size(), (const char *const *)extensionsToEnable.data(),
+                                    &deviceFeaturesToEnable);
 
 #if VK_KHR_portability_subset
     if (vkctx.gpuIsPortabilitySubsetDevice) {
@@ -851,31 +688,23 @@ VulkanAppSDL::createDevice()
         std::stringstream msg;
         title = szName;
         title += ": vkCreateDevice Failure";
-            msg << "vkCreateDevice: unexpected failure: ";
-            msg << to_string(err) << ".";
-        (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, title.c_str(),
-                                       msg.str().c_str(), NULL);
+        msg << "vkCreateDevice: unexpected failure: ";
+        msg << to_string(err) << ".";
+        (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, title.c_str(), msg.str().c_str(), NULL);
         return false;
     }
 
-    const vk::CommandPoolCreateInfo cmdPoolInfo(
-        vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
-        vkctx.swapchain.queueIndex
-    );
-    err = vkctx.device.createCommandPool(&cmdPoolInfo,
-                              nullptr, &vkctx.commandPool);
+    const vk::CommandPoolCreateInfo cmdPoolInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, vkctx.swapchain.queueIndex);
+    err = vkctx.device.createCommandPool(&cmdPoolInfo, nullptr, &vkctx.commandPool);
     assert(err == vk::Result::eSuccess);
 
     vkctx.device.getQueue(vkctx.swapchain.queueIndex, 0, &vkctx.queue);
 
     return true;
-} // createDevice
-
+}  // createDevice
 
 // Create synchronization objects
-bool
-VulkanAppSDL::createSemaphores()
-{
+bool VulkanAppSDL::createSemaphores() {
     VkSemaphoreCreateInfo semaphoreCreateInfo = {};
     semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
     semaphoreCreateInfo.pNext = NULL;
@@ -884,25 +713,16 @@ VulkanAppSDL::createSemaphores()
     // Semaphore used to synchronize image presentation.
     // Ensures that the image is displayed before we start submitting new
     // commands to the queue.
-    VK_CHECK_RESULT(vkCreateSemaphore(vkctx.device,
-                                      &semaphoreCreateInfo,
-                                      nullptr,
-                                      &semaphores.presentComplete));
+    VK_CHECK_RESULT(vkCreateSemaphore(vkctx.device, &semaphoreCreateInfo, nullptr, &semaphores.presentComplete));
     // Semaphore used to synchronize render command submission.
     // Ensures that the image is not presented until all render commands have
     // been submitted and executed.
-    VK_CHECK_RESULT(vkCreateSemaphore(vkctx.device,
-                                      &semaphoreCreateInfo,
-                                      nullptr,
-                                      &semaphores.renderComplete));
+    VK_CHECK_RESULT(vkCreateSemaphore(vkctx.device, &semaphoreCreateInfo, nullptr, &semaphores.renderComplete));
     // Semaphore used to synchronize text overlay command submission.
     // Ensures that the image is not presented until all commands for the
     // text overlay have been submitted and executed. Will be inserted after
     // the render complete semaphore if the text overlay is enabled.
-    VK_CHECK_RESULT(vkCreateSemaphore(vkctx.device,
-                                      &semaphoreCreateInfo,
-                                      nullptr,
-                                      &semaphores.textOverlayComplete));
+    VK_CHECK_RESULT(vkCreateSemaphore(vkctx.device, &semaphoreCreateInfo, nullptr, &semaphores.textOverlayComplete));
 
     // Set up submit info structure
     // Semaphores will stay the same during application lifetime
@@ -917,25 +737,16 @@ VulkanAppSDL::createSemaphores()
     return true;
 }
 
-
-bool
-VulkanAppSDL::createSwapchain()
-{
+bool VulkanAppSDL::createSwapchain() {
     vkctx.swapchain.create(&w_width, &w_height, enableVSync);
     return true;
-} // createSwapchain
+}  // createSwapchain
 
-
-bool
-VulkanAppSDL::prepareDepthBuffer()
-{
+bool VulkanAppSDL::prepareDepthBuffer() {
     vk::Format depthFormat;
     vk::ImageAspectFlags aspectMask;
-  
-    if (!getSupportedDepthFormat(vkctx.gpu, eNoStencil, e24bits,
-                                 vk::ImageTiling::eOptimal,
-                                 depthFormat, aspectMask))
-        return false;
+
+    if (!getSupportedDepthFormat(vkctx.gpu, eNoStencil, e24bits, vk::ImageTiling::eOptimal, depthFormat, aspectMask)) return false;
     vkctx.depthBuffer.format = static_cast<VkFormat>(depthFormat);
 
     VkImageCreateInfo image = {};
@@ -950,11 +761,10 @@ VulkanAppSDL::prepareDepthBuffer()
     image.arrayLayers = 1;
     image.samples = VK_SAMPLE_COUNT_1_BIT;
     image.tiling = VK_IMAGE_TILING_OPTIMAL;
-    image.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT
-                            | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+    image.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
     image.flags = 0;
 
-    VkImageViewCreateInfo view = { };
+    VkImageViewCreateInfo view = {};
     view.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     view.pNext = NULL;
     view.image = VK_NULL_HANDLE;
@@ -977,35 +787,27 @@ VulkanAppSDL::prepareDepthBuffer()
     err = vkCreateImage(vkctx.device, &image, NULL, &vkctx.depthBuffer.image);
     assert(!err);
 
-    vkGetImageMemoryRequirements(vkctx.device, vkctx.depthBuffer.image,
-                                 &mem_reqs);
+    vkGetImageMemoryRequirements(vkctx.device, vkctx.depthBuffer.image, &mem_reqs);
 
     vkctx.depthBuffer.memAlloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     vkctx.depthBuffer.memAlloc.pNext = NULL;
     vkctx.depthBuffer.memAlloc.allocationSize = mem_reqs.size;
     vkctx.depthBuffer.memAlloc.memoryTypeIndex = 0;
 
-    pass = vkctx.getMemoryType(mem_reqs.memoryTypeBits,
-                               vk::MemoryPropertyFlagBits::eDeviceLocal,
+    pass = vkctx.getMemoryType(mem_reqs.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal,
                                &vkctx.depthBuffer.memAlloc.memoryTypeIndex);
     assert(pass);
 
     /* allocate memory */
-    err = vkAllocateMemory(vkctx.device, &vkctx.depthBuffer.memAlloc, NULL,
-                           &vkctx.depthBuffer.mem);
+    err = vkAllocateMemory(vkctx.device, &vkctx.depthBuffer.memAlloc, NULL, &vkctx.depthBuffer.mem);
     assert(!err);
 
     /* bind memory */
-    err =
-        vkBindImageMemory(vkctx.device, vkctx.depthBuffer.image,
-                          vkctx.depthBuffer.mem, 0);
+    err = vkBindImageMemory(vkctx.device, vkctx.depthBuffer.image, vkctx.depthBuffer.mem, 0);
     assert(!err);
 
-    setImageLayout(vkctx.depthBuffer.image,
-                   static_cast<VkImageAspectFlags>(aspectMask),
-                   VK_IMAGE_LAYOUT_UNDEFINED,
-                   VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-                   (VkAccessFlags)0);
+    setImageLayout(vkctx.depthBuffer.image, static_cast<VkImageAspectFlags>(aspectMask), VK_IMAGE_LAYOUT_UNDEFINED,
+                   VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, (VkAccessFlags)0);
 
     /* create image view */
     view.image = vkctx.depthBuffer.image;
@@ -1013,18 +815,14 @@ VulkanAppSDL::prepareDepthBuffer()
     assert(!err);
 
     return true;
-} // prepareDepthBuffer
+}  // prepareDepthBuffer
 
-
-bool
-VulkanAppSDL::preparePresentCommandBuffers()
-{
+bool VulkanAppSDL::preparePresentCommandBuffers() {
     VkCommandBufferBeginInfo cmdBufferBeginInfo = {};
     cmdBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     cmdBufferBeginInfo.pNext = NULL;
 
-    for (uint32_t i = 0; i < vkctx.swapchain.imageCount; i++)
-    {
+    for (uint32_t i = 0; i < vkctx.swapchain.imageCount; i++) {
         // Command buffer for post present barrier
 
         // Insert a post present image barrier to transform the image back to a
@@ -1032,10 +830,9 @@ VulkanAppSDL::preparePresentCommandBuffers()
         // undefined image layout as the source as it doesn't actually matter
         // what is done with the previous image contents
 
-        VK_CHECK_RESULT(vkBeginCommandBuffer(vkctx.postPresentCmdBuffers[i],
-                                             &cmdBufferBeginInfo));
+        VK_CHECK_RESULT(vkBeginCommandBuffer(vkctx.postPresentCmdBuffers[i], &cmdBufferBeginInfo));
 
-        VkImageMemoryBarrier postPresentBarrier = { };
+        VkImageMemoryBarrier postPresentBarrier = {};
         postPresentBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
         postPresentBarrier.pNext = NULL;
         postPresentBarrier.srcAccessMask = 0;
@@ -1044,18 +841,11 @@ VulkanAppSDL::preparePresentCommandBuffers()
         postPresentBarrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
         postPresentBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
         postPresentBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        postPresentBarrier.subresourceRange =
-                                     { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+        postPresentBarrier.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
         postPresentBarrier.image = vkctx.swapchain.buffers[i].image;
 
-        vkCmdPipelineBarrier(
-            vkctx.postPresentCmdBuffers[i],
-            VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-            VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-            0,
-            0, nullptr,
-            0, nullptr,
-            1, &postPresentBarrier);
+        vkCmdPipelineBarrier(vkctx.postPresentCmdBuffers[i], VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                             0, 0, nullptr, 0, nullptr, 1, &postPresentBarrier);
 
         VK_CHECK_RESULT(vkEndCommandBuffer(vkctx.postPresentCmdBuffers[i]));
 
@@ -1065,10 +855,9 @@ VulkanAppSDL::preparePresentCommandBuffers()
         // Transforms the (framebuffer) image layout from color attachment to
         // present(khr) for presenting to the swap chain.
 
-        VK_CHECK_RESULT(vkBeginCommandBuffer(vkctx.prePresentCmdBuffers[i],
-                                             &cmdBufferBeginInfo));
+        VK_CHECK_RESULT(vkBeginCommandBuffer(vkctx.prePresentCmdBuffers[i], &cmdBufferBeginInfo));
 
-        VkImageMemoryBarrier prePresentBarrier = { };
+        VkImageMemoryBarrier prePresentBarrier = {};
         prePresentBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
         prePresentBarrier.pNext = NULL;
         prePresentBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
@@ -1077,54 +866,40 @@ VulkanAppSDL::preparePresentCommandBuffers()
         prePresentBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
         prePresentBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
         prePresentBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        prePresentBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+        prePresentBarrier.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
         prePresentBarrier.image = vkctx.swapchain.buffers[i].image;
 
-        vkCmdPipelineBarrier(
-            vkctx.prePresentCmdBuffers[i],
-            VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-            VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-            0,
-            0, nullptr, // No memory barriers,
-            0, nullptr, // No buffer barriers,
-            1, &prePresentBarrier);
+        vkCmdPipelineBarrier(vkctx.prePresentCmdBuffers[i], VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                             0, 0, nullptr,  // No memory barriers,
+                             0, nullptr,     // No buffer barriers,
+                             1, &prePresentBarrier);
 
         VK_CHECK_RESULT(vkEndCommandBuffer(vkctx.prePresentCmdBuffers[i]));
     }
     return true;
 }
 
+bool VulkanAppSDL::prepareDescriptorLayout() { return true; }
 
-bool
-VulkanAppSDL::prepareDescriptorLayout()
-{
-    return true;
-}
+bool VulkanAppSDL::prepareRenderPass() {
+    VkAttachmentDescription attachments[2] = {};
+    attachments[0].format = vkctx.swapchain.colorFormat;
+    attachments[0].samples = VK_SAMPLE_COUNT_1_BIT;
+    attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    attachments[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    attachments[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    attachments[0].initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    attachments[0].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-
-bool
-VulkanAppSDL::prepareRenderPass()
-{
-    VkAttachmentDescription attachments[2] = { };
-      attachments[0].format = vkctx.swapchain.colorFormat;
-      attachments[0].samples = VK_SAMPLE_COUNT_1_BIT;
-      attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-      attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-      attachments[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-      attachments[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-      attachments[0].initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-      attachments[0].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-      attachments[1].format = vkctx.depthBuffer.format;
-      attachments[1].samples = VK_SAMPLE_COUNT_1_BIT;
-      attachments[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-      attachments[1].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-      attachments[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-      attachments[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-      attachments[1].initialLayout =
-                     VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-      attachments[1].finalLayout =
-                     VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    attachments[1].format = vkctx.depthBuffer.format;
+    attachments[1].samples = VK_SAMPLE_COUNT_1_BIT;
+    attachments[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    attachments[1].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    attachments[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    attachments[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    attachments[1].initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    attachments[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
     const VkAttachmentReference color_reference = {
         0,
@@ -1135,27 +910,10 @@ VulkanAppSDL::prepareRenderPass()
         VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
     };
     const VkSubpassDescription subpass = {
-        0,
-        VK_PIPELINE_BIND_POINT_GRAPHICS,
-        0,
-        NULL,
-        1,
-        &color_reference,
-        NULL,
-        &depth_reference,
-        0,
-        NULL,
+        0, VK_PIPELINE_BIND_POINT_GRAPHICS, 0, NULL, 1, &color_reference, NULL, &depth_reference, 0, NULL,
     };
     const VkRenderPassCreateInfo rp_info = {
-        VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-        NULL,
-        0,
-        2,
-        attachments,
-        1,
-        &subpass,
-        0,
-        NULL,
+        VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO, NULL, 0, 2, attachments, 1, &subpass, 0, NULL,
     };
     U_ASSERT_ONLY VkResult err;
 
@@ -1164,49 +922,23 @@ VulkanAppSDL::prepareRenderPass()
     return true;
 }
 
-
-bool
-VulkanAppSDL::createPipelineCache()
-{
+bool VulkanAppSDL::createPipelineCache() {
     VkPipelineCacheCreateInfo pipelineCacheCreateInfo = {};
     pipelineCacheCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
-    VK_CHECK_RESULT(vkCreatePipelineCache(vkctx.device,
-                                          &pipelineCacheCreateInfo,
-                                          nullptr, &vkctx.pipelineCache));
+    VK_CHECK_RESULT(vkCreatePipelineCache(vkctx.device, &pipelineCacheCreateInfo, nullptr, &vkctx.pipelineCache));
     return true;
 }
 
+bool VulkanAppSDL::preparePipeline() { return true; }
 
-bool
-VulkanAppSDL::preparePipeline()
-{
-    return true;
-}
+bool VulkanAppSDL::prepareDescriptorSet() { return true; }
 
-
-bool
-VulkanAppSDL::prepareDescriptorSet()
-{
-    return true;
-}
-
-
-bool
-VulkanAppSDL::prepareFramebuffers()
-{
+bool VulkanAppSDL::prepareFramebuffers() {
     VkImageView attachments[2];
     attachments[1] = vkctx.depthBuffer.view;
 
     const VkFramebufferCreateInfo fb_info = {
-        VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-        NULL,
-        0,
-        vkctx.renderPass,
-        2,
-        attachments,
-        w_width,
-        w_height,
-        1,
+        VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO, NULL, 0, vkctx.renderPass, 2, attachments, w_width, w_height, 1,
     };
     U_ASSERT_ONLY VkResult err;
     uint32_t i;
@@ -1214,26 +946,21 @@ VulkanAppSDL::prepareFramebuffers()
     vkctx.framebuffers.resize(vkctx.swapchain.imageCount);
     for (i = 0; i < vkctx.framebuffers.size(); i++) {
         attachments[0] = vkctx.swapchain.buffers[i].view;
-        err = vkCreateFramebuffer(vkctx.device, &fb_info, NULL,
-                                  &vkctx.framebuffers[i]);
+        err = vkCreateFramebuffer(vkctx.device, &fb_info, NULL, &vkctx.framebuffers[i]);
         assert(!err);
     }
     return true;
 }
 
-
-void
-VulkanAppSDL::flushInitialCommands()
-{
+void VulkanAppSDL::flushInitialCommands() {
     U_ASSERT_ONLY VkResult err;
 
-    if (setupCmdBuffer == VK_NULL_HANDLE)
-        return;
+    if (setupCmdBuffer == VK_NULL_HANDLE) return;
 
     err = vkEndCommandBuffer(setupCmdBuffer);
     assert(!err);
 
-    const VkCommandBuffer cmd_bufs[] = { setupCmdBuffer };
+    const VkCommandBuffer cmd_bufs[] = {setupCmdBuffer};
     VkFence nullFence = VK_NULL_HANDLE;
     VkSubmitInfo sInfo;
     sInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -1254,24 +981,19 @@ VulkanAppSDL::flushInitialCommands()
 
     vkFreeCommandBuffers(vkctx.device, vkctx.commandPool, 1, cmd_bufs);
     setupCmdBuffer = VK_NULL_HANDLE;
-
 }
-
 
 //----------------------------------------------------------------------
 //  Window title and text overlay functions
 //----------------------------------------------------------------------
 
-
-void
-VulkanAppSDL::setWindowTitle()
-{
+void VulkanAppSDL::setWindowTitle() {
     if (!enableTextOverlay) {
         std::stringstream ss;
         std::string wt;
 
-        ss << std::fixed << std::setprecision(2)
-           << lastFrameTime << "ms (" << fpsCounter.lastFPS << " fps)" << " ";
+        ss << std::fixed << std::setprecision(2) << lastFrameTime << "ms (" << fpsCounter.lastFPS << " fps)"
+           << " ";
         wt = ss.str();
         wt += appTitle;
         SDL_SetWindowTitle(pswMainWindow, wt.c_str());
@@ -1280,10 +1002,7 @@ VulkanAppSDL::setWindowTitle()
     }
 }
 
-
-void
-VulkanAppSDL::prepareTextOverlay()
-{
+void VulkanAppSDL::prepareTextOverlay() {
     if (enableTextOverlay) {
         // Load the text rendering shaders
         std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
@@ -1297,41 +1016,27 @@ VulkanAppSDL::prepareTextOverlay()
         shaderStages.push_back(shaderStage);
         shaderModules.push_back(shaderStage.module);
 
-        textOverlay = new VulkanTextOverlay(
-            vkctx.gpu,
-            vkctx.device,
-            vkctx.queue,
-            vkctx.framebuffers,
-            vkctx.swapchain.colorFormat,
-            vkctx.depthBuffer.format,
-            &w_width,
-            &w_height,
-            shaderStages
-            );
+        textOverlay = new VulkanTextOverlay(vkctx.gpu, vkctx.device, vkctx.queue, vkctx.framebuffers, vkctx.swapchain.colorFormat,
+                                            vkctx.depthBuffer.format, &w_width, &w_height, shaderStages);
         updateTextOverlay();
     }
 }
 
-
-void VulkanAppSDL::updateTextOverlay()
-{
-    if (!enableTextOverlay)
-        return;
+void VulkanAppSDL::updateTextOverlay() {
+    if (!enableTextOverlay) return;
 
     textOverlay->beginTextUpdate();
 
     textOverlay->addText(appTitle, 5.0f, 5.0f, VulkanTextOverlay::alignLeft);
 
     std::stringstream ss;
-    ss << std::fixed << std::setprecision(2)
-       << lastFrameTime << "ms (" << fpsCounter.lastFPS << " fps)";
+    ss << std::fixed << std::setprecision(2) << lastFrameTime << "ms (" << fpsCounter.lastFPS << " fps)";
     textOverlay->addText(ss.str(), 5.0f, 25.0f, VulkanTextOverlay::alignLeft);
 
     // Cast is a workaround for a change in Vulkan SDK 1.2.141 to the
     // declaration of deviceName in PhysicalDeviceProperties from a char
     // array to use an Array1D template.
-    textOverlay->addText((char*)vkctx.gpuProperties.deviceName, 5.0f, 45.0f,
-                         VulkanTextOverlay::alignLeft);
+    textOverlay->addText((char *)vkctx.gpuProperties.deviceName, 5.0f, 45.0f, VulkanTextOverlay::alignLeft);
 
     // Leave a blank line between us and the derived class's text.
     getOverlayText(85.0f);
@@ -1339,12 +1044,9 @@ void VulkanAppSDL::updateTextOverlay()
     textOverlay->endTextUpdate();
 }
 
-
-void VulkanAppSDL::getOverlayText(float /*yOffset*/)
-{
+void VulkanAppSDL::getOverlayText(float /*yOffset*/) {
     // Can be overriden in derived class
 }
-
 
 //----------------------------------------------------------------------
 //  Utility functions
@@ -1355,31 +1057,22 @@ void VulkanAppSDL::getOverlayText(float /*yOffset*/)
 // All depth formats are optional. This finds a supported format with at
 // least the required number of bits and without stencil, if possible and
 // not required.
-bool
-VulkanAppSDL::getSupportedDepthFormat(vk::PhysicalDevice gpu,
-                                      stencilRequirement requiredStencil,
-                                      depthRequirement requiredDepth,
-                                      vk::ImageTiling tiling,
-                                      vk::Format& depthFormat,
-                                      vk::ImageAspectFlags& aspectMask)
-{
+bool VulkanAppSDL::getSupportedDepthFormat(vk::PhysicalDevice gpu, stencilRequirement requiredStencil,
+                                           depthRequirement requiredDepth, vk::ImageTiling tiling, vk::Format &depthFormat,
+                                           vk::ImageAspectFlags &aspectMask) {
     struct depthFormatDescriptor {
         stencilRequirement stencil;
         depthRequirement depth;
         vk::Format vkformat;
     };
-    std::vector<depthFormatDescriptor> depthFormats = {
-      { eNoStencil, e16bits, vk::Format::eD16Unorm },
-      { eStencil, e16bits, vk::Format::eD16UnormS8Uint },
-      { eStencil, e24bits, vk::Format::eD24UnormS8Uint },
-      { eNoStencil, e32bits, vk::Format::eD32Sfloat },
-      { eStencil, e32bits, vk::Format::eD32SfloatS8Uint }
-    };
+    std::vector<depthFormatDescriptor> depthFormats = {{eNoStencil, e16bits, vk::Format::eD16Unorm},
+                                                       {eStencil, e16bits, vk::Format::eD16UnormS8Uint},
+                                                       {eStencil, e24bits, vk::Format::eD24UnormS8Uint},
+                                                       {eNoStencil, e32bits, vk::Format::eD32Sfloat},
+                                                       {eStencil, e32bits, vk::Format::eD32SfloatS8Uint}};
 
-    for (auto& format : depthFormats)
-    {
-        if (format.depth >= requiredDepth
-            && format.stencil >= requiredStencil) {
+    for (auto &format : depthFormats) {
+        if (format.depth >= requiredDepth && format.stencil >= requiredStencil) {
             vk::FormatProperties formatProps;
             gpu.getFormatProperties(format.vkformat, &formatProps);
             // Format must support depth stencil attachment for tiling
@@ -1398,34 +1091,24 @@ VulkanAppSDL::getSupportedDepthFormat(vk::PhysicalDevice gpu,
             }
         }
     }
-    (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, szName,
-            "The VkPhysicalDevice does not support a suitable depth buffer.",
+    (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, szName, "The VkPhysicalDevice does not support a suitable depth buffer.",
                                    NULL);
     return false;
 }
 
-void
-VulkanAppSDL::setImageLayout(VkImage image, VkImageAspectFlags aspectMask,
-        VkImageLayout old_image_layout,
-        VkImageLayout new_image_layout,
-        VkImageAspectFlags srcAccessMask)
-{
+void VulkanAppSDL::setImageLayout(VkImage image, VkImageAspectFlags aspectMask, VkImageLayout old_image_layout,
+                                  VkImageLayout new_image_layout, VkImageAspectFlags srcAccessMask) {
     U_ASSERT_ONLY VkResult err;
 
     if (setupCmdBuffer == VK_NULL_HANDLE) {
         const VkCommandBufferAllocateInfo cbaInfo = {
-            VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-            NULL,
-            vkctx.commandPool,
-            VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-            1,
+            VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO, NULL, vkctx.commandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY, 1,
         };
 
-        err = vkAllocateCommandBuffers(vkctx.device, &cbaInfo,
-                                       &setupCmdBuffer);
+        err = vkAllocateCommandBuffers(vkctx.device, &cbaInfo, &setupCmdBuffer);
         assert(!err);
 
-        VkCommandBufferInheritanceInfo cmdBufHInfo = { };
+        VkCommandBufferInheritanceInfo cmdBufHInfo = {};
         cmdBufHInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
         cmdBufHInfo.pNext = NULL;
         cmdBufHInfo.renderPass = VK_NULL_HANDLE;
@@ -1435,7 +1118,7 @@ VulkanAppSDL::setImageLayout(VkImage image, VkImageAspectFlags aspectMask,
         cmdBufHInfo.queryFlags = 0;
         cmdBufHInfo.pipelineStatistics = 0;
 
-        VkCommandBufferBeginInfo cmdBufInfo = { };
+        VkCommandBufferBeginInfo cmdBufInfo = {};
         cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         cmdBufInfo.pNext = NULL;
         cmdBufInfo.flags = 0;
@@ -1445,7 +1128,7 @@ VulkanAppSDL::setImageLayout(VkImage image, VkImageAspectFlags aspectMask,
         assert(!err);
     }
 
-    VkImageMemoryBarrier imageMemoryBarrier = { };
+    VkImageMemoryBarrier imageMemoryBarrier = {};
     imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     imageMemoryBarrier.pNext = NULL;
     imageMemoryBarrier.srcAccessMask = srcAccessMask;
@@ -1465,28 +1148,23 @@ VulkanAppSDL::setImageLayout(VkImage image, VkImageAspectFlags aspectMask,
     }
 
     if (new_image_layout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
-        imageMemoryBarrier.dstAccessMask =
-            VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        imageMemoryBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
     }
 
     if (new_image_layout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
-        imageMemoryBarrier.dstAccessMask =
-            VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+        imageMemoryBarrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
     }
 
     if (new_image_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
         /* Make sure any Copy or CPU writes to image are flushed */
-        imageMemoryBarrier.dstAccessMask =
-            VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
+        imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
     }
 
     VkPipelineStageFlags src_stages = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
     VkPipelineStageFlags dest_stages = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
 
-    vkCmdPipelineBarrier(setupCmdBuffer, src_stages, dest_stages, 0, 0,
-                         NULL, 0, NULL, 1, &imageMemoryBarrier);
-} // setImageLayout
-
+    vkCmdPipelineBarrier(setupCmdBuffer, src_stages, dest_stages, 0, 0, NULL, 0, NULL, 1, &imageMemoryBarrier);
+}  // setImageLayout
 
 /*
  * @internal
@@ -1496,11 +1174,7 @@ VulkanAppSDL::setImageLayout(VkImage image, VkImageAspectFlags aspectMask,
  *
  * @return true if all layer names can be found, false otherwise.
  */
-bool
-VulkanAppSDL::checkLayers(uint32_t nameCount, const char **names,
-                      uint32_t layerCount,
-                      VkLayerProperties *layers)
-{
+bool VulkanAppSDL::checkLayers(uint32_t nameCount, const char **names, uint32_t layerCount, VkLayerProperties *layers) {
     for (uint32_t i = 0; i < nameCount; i++) {
         bool found = 0;
         for (uint32_t j = 0; j < layerCount; j++) {
@@ -1517,27 +1191,16 @@ VulkanAppSDL::checkLayers(uint32_t nameCount, const char **names,
     return 1;
 }
 
-
-VKAPI_ATTR VkBool32 VKAPI_CALL
-VulkanAppSDL::debugFunc(VkDebugReportFlagsEXT msgFlags,
-                    VkDebugReportObjectTypeEXT objType,
-                    uint64_t srcObject, size_t location, int32_t msgCode,
-                    const char *pLayerPrefix, const char *pMsg,
-                    void *pUserData)
-{
-    VulkanAppSDL* app = (VulkanAppSDL*)pUserData;
-    return app->debugFunc(msgFlags, objType, srcObject, location, msgCode,
-                          pLayerPrefix, pMsg);
+VKAPI_ATTR VkBool32 VKAPI_CALL VulkanAppSDL::debugFunc(VkDebugReportFlagsEXT msgFlags, VkDebugReportObjectTypeEXT objType,
+                                                       uint64_t srcObject, size_t location, int32_t msgCode,
+                                                       const char *pLayerPrefix, const char *pMsg, void *pUserData) {
+    VulkanAppSDL *app = (VulkanAppSDL *)pUserData;
+    return app->debugFunc(msgFlags, objType, srcObject, location, msgCode, pLayerPrefix, pMsg);
 }
 
-
-VKAPI_ATTR VkBool32 VKAPI_CALL
-VulkanAppSDL::debugFunc(VkDebugReportFlagsEXT msgFlags,
-                    VkDebugReportObjectTypeEXT /*objType*/,
-                    uint64_t /*srcObject*/, size_t /*location*/, int32_t msgCode,
-                    const char *pLayerPrefix, const char *pMsg)
-{
-
+VKAPI_ATTR VkBool32 VKAPI_CALL VulkanAppSDL::debugFunc(VkDebugReportFlagsEXT msgFlags, VkDebugReportObjectTypeEXT /*objType*/,
+                                                       uint64_t /*srcObject*/, size_t /*location*/, int32_t msgCode,
+                                                       const char *pLayerPrefix, const char *pMsg) {
     std::string title = szName;
     std::string text(pMsg);
     std::string prefix("");
@@ -1554,22 +1217,19 @@ VulkanAppSDL::debugFunc(VkDebugReportFlagsEXT msgFlags,
         // We know that we're submitting queues without fences, ignore this
         // warning
         // XXX Check this
-        if (strstr(pMsg,
-                   "vkQueueSubmit parameter, VkFence fence, is null pointer")) {
+        if (strstr(pMsg, "vkQueueSubmit parameter, VkFence fence, is null pointer")) {
             return false;
         }
         mbFlags = SDL_MESSAGEBOX_WARNING;
         prefix += "WARNING:";
     }
     // Performance warnings indicate sub-optimal usage of the API
-    if (msgFlags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT)
-    {
+    if (msgFlags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT) {
         mbFlags = SDL_MESSAGEBOX_WARNING;
         prefix += "PERFORMANCE:";
     };
     // Information that may be handy during debugging.
-    if (msgFlags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT)
-    {
+    if (msgFlags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT) {
         mbFlags = SDL_MESSAGEBOX_INFORMATION;
         prefix += "INFO:";
     }
@@ -1583,9 +1243,9 @@ VulkanAppSDL::debugFunc(VkDebugReportFlagsEXT msgFlags,
         prefix += "DEBUG:";
     }
 #endif
-    message << prefix << " [" << pLayerPrefix << "] Code "
-            << std::showbase << std::internal << std::setfill('0') << std::hex
-            << std::setw(8) << msgCode << ": " << std::endl << text;
+    message << prefix << " [" << pLayerPrefix << "] Code " << std::showbase << std::internal << std::setfill('0') << std::hex
+            << std::setw(8) << msgCode << ": " << std::endl
+            << text;
 
     title += " Debug Report";
     if (showDebugReport(mbFlags, title, message.str(), prepared)) {
@@ -1606,13 +1266,8 @@ VulkanAppSDL::debugFunc(VkDebugReportFlagsEXT msgFlags,
     return false;
 }
 
-
-std::string&
-VulkanAppSDL::wrapText(std::string& source, size_t width,
-                       const std::string& whitespace)
-{
-    if (source.length() <= width)
-        return source;
+std::string &VulkanAppSDL::wrapText(std::string &source, size_t width, const std::string &whitespace) {
+    if (source.length() <= width) return source;
 
     // Find the longest "word" and possibly set @a width to that. The
     // message box width is set from the longest line and many of
@@ -1628,30 +1283,25 @@ VulkanAppSDL::wrapText(std::string& source, size_t width,
         wl = we - ws;
         if (wl > maxWordLength) maxWordLength = wl;
     }
-    if (maxWordLength > width)
-        width = maxWordLength;
+    if (maxWordLength > width) width = maxWordLength;
 
     // If the string is one long word, nothing further to do.
-    if (source.length() == width)
-        return source;
+    if (source.length() == width) return source;
 
-    size_t  endPos = width, startPos = 0;
-    while (startPos < source.length())
-    {
-        size_t  breakPos, sizeToElim;
+    size_t endPos = width, startPos = 0;
+    while (startPos < source.length()) {
+        size_t breakPos, sizeToElim;
 
         endPos = source.find_last_of(whitespace, endPos);
-        if (endPos == std::string::npos)
-            break;
+        if (endPos == std::string::npos) break;
         if (endPos > startPos) {
             breakPos = source.find_last_not_of(whitespace, endPos) + 1;
-            if (breakPos == std::string::npos)
-                break;
+            if (breakPos == std::string::npos) break;
             endPos = source.find_first_not_of(whitespace, ++endPos);
             sizeToElim = endPos - breakPos;
-            source.replace( breakPos, sizeToElim , "\n");
+            source.replace(breakPos, sizeToElim, "\n");
             startPos = endPos;
-        } else { // have to tolerate a long line
+        } else {  // have to tolerate a long line
             startPos += width;
         }
         endPos += width;
@@ -1659,15 +1309,11 @@ VulkanAppSDL::wrapText(std::string& source, size_t width,
     return source;
 }
 
-
-uint32_t
-VulkanAppSDL::showDebugReport(uint32_t mbFlags, const std::string title,
-                              std::string message, bool enableAbort)
-{
+uint32_t VulkanAppSDL::showDebugReport(uint32_t mbFlags, const std::string title, std::string message, bool enableAbort) {
     const SDL_MessageBoxButtonData buttons[] = {
         /* .flags, .buttonid, .text */
-        { SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "Continue" },
-        { SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 1, "Abort" },
+        {SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "Continue"},
+        {SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 1, "Abort"},
     };
 #if 0
     const SDL_MessageBoxColorScheme colorScheme = {
@@ -1687,13 +1333,13 @@ VulkanAppSDL::showDebugReport(uint32_t mbFlags, const std::string title,
 #endif
     wrapText(message, 70, " \t\r");
     const SDL_MessageBoxData messageboxdata = {
-        mbFlags,                                            // .flags
-        NULL,                                               // .window
-        title.c_str(),                                      // .title
-        message.c_str(),                                    // .message
-        (int)(enableAbort ? SDL_arraysize(buttons) : 1),    // .numbuttons
-        buttons,                                            // .buttons
-        NULL //&colorScheme                                     // .colorScheme
+        mbFlags,                                          // .flags
+        NULL,                                             // .window
+        title.c_str(),                                    // .title
+        message.c_str(),                                  // .message
+        (int)(enableAbort ? SDL_arraysize(buttons) : 1),  // .numbuttons
+        buttons,                                          // .buttons
+        NULL                                              //&colorScheme                                     // .colorScheme
     };
     int buttonid;
     if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {
@@ -1706,4 +1352,3 @@ VulkanAppSDL::showDebugReport(uint32_t mbFlags, const std::string title,
         return buttonid;
     }
 }
-

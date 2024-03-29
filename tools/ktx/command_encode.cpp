@@ -22,7 +22,6 @@
 #include <fmt/ostream.h>
 #include <fmt/printf.h>
 
-
 // -------------------------------------------------------------------------------------------------
 
 namespace ktx {
@@ -83,12 +82,12 @@ class CommandEncode : public Command {
 
     Combine<OptionsEncode, OptionsCodec<true>, OptionsMetrics, OptionsCompress, OptionsSingleInSingleOut, OptionsGeneric> options;
 
-public:
+  public:
     virtual int main(int argc, char* argv[]) override;
     virtual void initOptions(cxxopts::Options& opts) override;
     virtual void processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) override;
 
-private:
+  private:
     void executeEncode();
 };
 
@@ -97,9 +96,9 @@ private:
 int CommandEncode::main(int argc, char* argv[]) {
     try {
         parseCommandLine("ktx encode",
-                "Encode the KTX file specified as the input-file argument,\n"
-                "    optionally supercompress the result, and save it as the output-file.",
-                argc, argv);
+                         "Encode the KTX file specified as the input-file argument,\n"
+                         "    optionally supercompress the result, and save it as the output-file.",
+                         argc, argv);
         executeEncode();
         return +rc::SUCCESS;
     } catch (const FatalError& error) {
@@ -111,36 +110,30 @@ int CommandEncode::main(int argc, char* argv[]) {
 }
 
 void CommandEncode::OptionsEncode::init(cxxopts::Options& opts) {
-    opts.add_options()
-        ("codec", "Target codec."
-                  " With each encoding option the encoder specific options become valid,"
-                  " otherwise they are ignored. Case-insensitive."
-                  "\nPossible options are: basis-lz | uastc", cxxopts::value<std::string>(), "<target>");
+    opts.add_options()("codec",
+                       "Target codec."
+                       " With each encoding option the encoder specific options become valid,"
+                       " otherwise they are ignored. Case-insensitive."
+                       "\nPossible options are: basis-lz | uastc",
+                       cxxopts::value<std::string>(), "<target>");
 }
 
-void CommandEncode::OptionsEncode::process(cxxopts::Options&, cxxopts::ParseResult&, Reporter&) {
-}
+void CommandEncode::OptionsEncode::process(cxxopts::Options&, cxxopts::ParseResult&, Reporter&) {}
 
-void CommandEncode::initOptions(cxxopts::Options& opts) {
-    options.init(opts);
-}
+void CommandEncode::initOptions(cxxopts::Options& opts) { options.init(opts); }
 
 void CommandEncode::processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) {
     options.process(opts, args, *this);
 
     if (options.codec == EncodeCodec::BasisLZ) {
-        if (options.zstd.has_value())
-            fatal_usage("Cannot encode to BasisLZ and supercompress with Zstd.");
+        if (options.zstd.has_value()) fatal_usage("Cannot encode to BasisLZ and supercompress with Zstd.");
 
-        if (options.zlib.has_value())
-            fatal_usage("Cannot encode to BasisLZ and supercompress with ZLIB.");
+        if (options.zlib.has_value()) fatal_usage("Cannot encode to BasisLZ and supercompress with ZLIB.");
     }
 
     const auto canCompare = options.codec == EncodeCodec::BasisLZ || options.codec == EncodeCodec::UASTC;
-    if (options.compare_ssim && !canCompare)
-        fatal_usage("--compare-ssim can only be used with BasisLZ or UASTC encoding.");
-    if (options.compare_psnr && !canCompare)
-        fatal_usage("--compare-psnr can only be used with BasisLZ or UASTC encoding.");
+    if (options.compare_ssim && !canCompare) fatal_usage("--compare-ssim can only be used with BasisLZ or UASTC encoding.");
+    if (options.compare_psnr && !canCompare) fatal_usage("--compare-psnr can only be used with BasisLZ or UASTC encoding.");
 }
 
 void CommandEncode::executeEncode() {
@@ -150,12 +143,11 @@ void CommandEncode::executeEncode() {
     KTXTexture2 texture{nullptr};
     StreambufStream<std::streambuf*> ktx2Stream{inputStream->rdbuf(), std::ios::in | std::ios::binary};
     auto ret = ktxTexture2_CreateFromStream(ktx2Stream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, texture.pHandle());
-    if (ret != KTX_SUCCESS)
-        fatal(rc::INVALID_FILE, "Failed to create KTX2 texture: {}", ktxErrorString(ret));
+    if (ret != KTX_SUCCESS) fatal(rc::INVALID_FILE, "Failed to create KTX2 texture: {}", ktxErrorString(ret));
 
     if (texture->supercompressionScheme != KTX_SS_NONE)
         fatal(rc::INVALID_FILE, "Cannot encode KTX2 file with {} supercompression.",
-            toString(ktxSupercmpScheme(texture->supercompressionScheme)));
+              toString(ktxSupercmpScheme(texture->supercompressionScheme)));
 
     switch (texture->vkFormat) {
     case VK_FORMAT_R8_UNORM:
@@ -169,8 +161,10 @@ void CommandEncode::executeEncode() {
         // Allowed formats
         break;
     default:
-        fatal_usage("Only R8, RG8, RGB8, or RGBA8 UNORM and SRGB formats can be encoded, "
-            "but format is {}.", toString(VkFormat(texture->vkFormat)));
+        fatal_usage(
+            "Only R8, RG8, RGB8, or RGBA8 UNORM and SRGB formats can be encoded, "
+            "but format is {}.",
+            toString(VkFormat(texture->vkFormat)));
         break;
     }
 
@@ -181,14 +175,13 @@ void CommandEncode::executeEncode() {
     const auto writer = fmt::format("{} {}", commandName, version(options.testrun));
     ktxHashList_DeleteKVPair(&texture->kvDataHead, KTX_WRITER_KEY);
     ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
-            static_cast<uint32_t>(writer.size() + 1), // +1 to include the \0
-            writer.c_str());
+                          static_cast<uint32_t>(writer.size() + 1),  // +1 to include the \0
+                          writer.c_str());
 
     ktx_uint32_t oetf = ktxTexture2_GetOETF(texture);
     if (options.basisOpts.normalMap && oetf != KHR_DF_TRANSFER_LINEAR)
-        fatal(rc::INVALID_FILE,
-            "--normal-mode specified but the input file uses non-linear transfer function {}.",
-            toString(khr_df_transfer_e(oetf)));
+        fatal(rc::INVALID_FILE, "--normal-mode specified but the input file uses non-linear transfer function {}.",
+              toString(khr_df_transfer_e(oetf)));
 
     MetricsCalculator metrics;
     metrics.saveReferenceImages(texture, options, *this);
@@ -199,14 +192,12 @@ void CommandEncode::executeEncode() {
 
     if (options.zstd) {
         ret = ktxTexture2_DeflateZstd(texture, *options.zstd);
-        if (ret != KTX_SUCCESS)
-            fatal(rc::IO_FAILURE, "Zstd deflation failed. KTX Error: {}", ktxErrorString(ret));
+        if (ret != KTX_SUCCESS) fatal(rc::IO_FAILURE, "Zstd deflation failed. KTX Error: {}", ktxErrorString(ret));
     }
 
     if (options.zlib) {
         ret = ktxTexture2_DeflateZLIB(texture, *options.zlib);
-        if (ret != KTX_SUCCESS)
-            fatal(rc::IO_FAILURE, "ZLIB deflation failed. KTX Error: {}", ktxErrorString(ret));
+        if (ret != KTX_SUCCESS) fatal(rc::IO_FAILURE, "ZLIB deflation failed. KTX Error: {}", ktxErrorString(ret));
     }
 
     // Add KTXwriterScParams metadata
@@ -215,20 +206,18 @@ void CommandEncode::executeEncode() {
     if (writerScParams.size() > 0) {
         // Options always contain a leading space
         assert(writerScParams[0] == ' ');
-        ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_SCPARAMS_KEY,
-            static_cast<uint32_t>(writerScParams.size()),
-            writerScParams.c_str() + 1); // +1 to exclude leading space
+        ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_SCPARAMS_KEY, static_cast<uint32_t>(writerScParams.size()),
+                              writerScParams.c_str() + 1);  // +1 to exclude leading space
     }
 
     // Save output file
     const auto outputPath = std::filesystem::path(DecodeUTF8Path(options.outputFilepath));
-    if (outputPath.has_parent_path())
-        std::filesystem::create_directories(outputPath.parent_path());
+    if (outputPath.has_parent_path()) std::filesystem::create_directories(outputPath.parent_path());
 
     OutputStream outputFile(options.outputFilepath, *this);
     outputFile.writeKTX2(texture, *this);
 }
 
-} // namespace ktx
+}  // namespace ktx
 
 KTX_COMMAND_ENTRY_POINT(ktxEncode, ktx::CommandEncode)

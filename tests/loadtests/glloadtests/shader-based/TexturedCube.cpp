@@ -14,10 +14,10 @@
  */
 
 #if defined(_WIN32)
-  #if _MSC_VER < 1900
-    #define snprintf _snprintf
-  #endif
-  #define _CRT_SECURE_NO_WARNINGS
+#if _MSC_VER < 1900
+#define snprintf _snprintf
+#endif
+#define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #include <assert.h>
@@ -38,19 +38,12 @@ extern const GLchar *pszDecalFs, *pszDecalSrgbEncodeFs;
 
 /* ------------------------------------------------------------------------- */
 
-LoadTestSample*
-TexturedCube::create(uint32_t width, uint32_t height,
-                    const char* const szArgs,
-                    const std::string sBasePath)
-{
+LoadTestSample* TexturedCube::create(uint32_t width, uint32_t height, const char* const szArgs, const std::string sBasePath) {
     return new TexturedCube(width, height, szArgs, sBasePath);
 }
 
-TexturedCube::TexturedCube(uint32_t width, uint32_t height,
-                           const char* const szArgs,
-                           const std::string sBasePath)
-        : GL3LoadTestSample(width, height, szArgs, sBasePath)
-{
+TexturedCube::TexturedCube(uint32_t width, uint32_t height, const char* const szArgs, const std::string sBasePath)
+    : GL3LoadTestSample(width, height, szArgs, sBasePath) {
     std::string filename;
     GLenum target;
     GLenum glerror;
@@ -63,14 +56,11 @@ TexturedCube::TexturedCube(uint32_t width, uint32_t height,
     gnTexture = 0;
 
     filename = getAssetPath() + szArgs;
-    ktxresult = ktxTexture_CreateFromNamedFile(filename.c_str(),
-                                               KTX_TEXTURE_CREATE_NO_FLAGS,
-                                               &kTexture);
+    ktxresult = ktxTexture_CreateFromNamedFile(filename.c_str(), KTX_TEXTURE_CREATE_NO_FLAGS, &kTexture);
     if (KTX_SUCCESS != ktxresult) {
         std::stringstream message;
 
-        message << "Creation of ktxTexture from \"" << filename
-                << "\" failed: " << ktxErrorString(ktxresult);
+        message << "Creation of ktxTexture from \"" << filename << "\" failed: " << ktxErrorString(ktxresult);
         throw std::runtime_error(message.str());
     }
     ktxresult = ktxTexture_GLUpload(kTexture, &gnTexture, &target, &glerror);
@@ -90,8 +80,7 @@ TexturedCube::TexturedCube(uint32_t width, uint32_t height,
             // Enable bilinear mipmapping.
             // TO DO: application can consider inserting a key,value pair in
             // the KTX file that indicates what type of filtering to use.
-            glTexParameteri(target,
-                            GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+            glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
         else
             glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -104,8 +93,7 @@ TexturedCube::TexturedCube(uint32_t width, uint32_t height,
 
         message << "Load of texture from \"" << filename << "\" failed: ";
         if (ktxresult == KTX_GL_ERROR) {
-            message << std::showbase << "GL error " << std::hex << glerror
-                    << " occurred.";
+            message << std::showbase << "GL error " << std::hex << glerror << " occurred.";
         } else {
             message << ktxErrorString(ktxresult);
         }
@@ -117,7 +105,7 @@ TexturedCube::TexturedCube(uint32_t width, uint32_t height,
     glDisable(GL_DITHER);
 
     glEnable(GL_CULL_FACE);
-    glClearColor(0.2f,0.3f,0.4f,1.0f);
+    glClearColor(0.2f, 0.3f, 0.4f, 1.0f);
 
     // Create a VAO and bind it.
     glGenVertexArrays(1, &gnVao);
@@ -130,10 +118,9 @@ TexturedCube::TexturedCube(uint32_t width, uint32_t height,
     // WebGL requires different buffers for data and indices.
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gnVbo[1]);
 
-    // Create the buffer data store. 
-    glBufferData(GL_ARRAY_BUFFER,
-                 sizeof(cube_face) + sizeof(cube_color) + sizeof(cube_texture)
-                 + sizeof(cube_normal), NULL, GL_STATIC_DRAW);
+    // Create the buffer data store.
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cube_face) + sizeof(cube_color) + sizeof(cube_texture) + sizeof(cube_normal), NULL,
+                 GL_STATIC_DRAW);
 
     // Interleave data copying and attrib pointer setup so offset is only
     // computed once.
@@ -155,8 +142,7 @@ TexturedCube::TexturedCube(uint32_t width, uint32_t height,
     glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)offset);
     offset += sizeof(cube_normal);
 
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cube_index_buffer),
-                 cube_index_buffer, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cube_index_buffer), cube_index_buffer, GL_STATIC_DRAW);
 
     const GLchar* actualDecalFs;
     if (framebufferColorEncoding() == GL_LINEAR) {
@@ -168,16 +154,16 @@ TexturedCube::TexturedCube(uint32_t width, uint32_t height,
         makeShader(GL_VERTEX_SHADER, pszVs, &gnVs);
         makeShader(GL_FRAGMENT_SHADER, actualDecalFs, &gnDecalFs);
         makeProgram(gnVs, gnDecalFs, &gnTexProg);
-        } catch (std::exception& e) {
-        (void)e; // To quiet unused variable warnings from some compilers.
+    } catch (std::exception& e) {
+        (void)e;  // To quiet unused variable warnings from some compilers.
         throw;
     }
     try {
         makeShader(GL_VERTEX_SHADER, pszVs, &gnVs);
         makeShader(GL_FRAGMENT_SHADER, pszDecalFs, &gnDecalFs);
         makeProgram(gnVs, gnDecalFs, &gnTexProg);
-        } catch (std::exception& e) {
-        (void)e; // To quiet unused variable warnings from some compilers.
+    } catch (std::exception& e) {
+        (void)e;  // To quiet unused variable warnings from some compilers.
         throw;
     }
     gulMvMatrixLocTP = glGetUniformLocation(gnTexProg, "mvmatrix");
@@ -193,8 +179,7 @@ TexturedCube::TexturedCube(uint32_t width, uint32_t height,
     bInitialized = GL_TRUE;
 }
 
-TexturedCube::~TexturedCube()
-{
+TexturedCube::~TexturedCube() {
     glEnable(GL_DITHER);
     glEnable(GL_CULL_FACE);
     if (bInitialized) {
@@ -207,31 +192,23 @@ TexturedCube::~TexturedCube()
     assert(GL_NO_ERROR == glGetError());
 }
 
-
-void
-TexturedCube::resize(uint32_t uWidth, uint32_t uHeight)
-{
+void TexturedCube::resize(uint32_t uWidth, uint32_t uHeight) {
     glm::mat4 matProj;
 
     glViewport(0, 0, uWidth, uHeight);
 
-    matProj = glm::perspective(glm::radians(45.f),
-                               uWidth / (float)uHeight,
-                               1.f, 100.f);
+    matProj = glm::perspective(glm::radians(45.f), uWidth / (float)uHeight, 1.f, 100.f);
     glUniformMatrix4fv(gulPMatrixLocTP, 1, GL_FALSE, glm::value_ptr(matProj));
 }
 
-void
-TexturedCube::run(uint32_t msTicks)
-{
+void TexturedCube::run(uint32_t msTicks) {
     // Setup the view matrix : just turn around the cube.
     const float fDistance = 5.0f;
-    glm::vec3 eye((float)cos( msTicks*0.001f ) * fDistance,
-                  (float)sin( msTicks*0.0007f ) * fDistance,
-                  (float)sin( msTicks*0.001f ) * fDistance);
-    glm::vec3 look(0.,0.,0.);
-    glm::vec3 up(0.,1.,0.);
-    glm::mat4 matView = glm::lookAt( eye, look, up );
+    glm::vec3 eye((float)cos(msTicks * 0.001f) * fDistance, (float)sin(msTicks * 0.0007f) * fDistance,
+                  (float)sin(msTicks * 0.001f) * fDistance);
+    glm::vec3 look(0., 0., 0.);
+    glm::vec3 up(0., 1., 0.);
+    glm::mat4 matView = glm::lookAt(eye, look, up);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUniformMatrix4fv(gulMvMatrixLocTP, 1, GL_FALSE, glm::value_ptr(matView));
@@ -242,4 +219,3 @@ TexturedCube::run(uint32_t msTicks)
 }
 
 /* ------------------------------------------------------------------------- */
-

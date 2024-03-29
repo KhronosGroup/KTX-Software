@@ -69,63 +69,57 @@ enum swizzle_e {
     ONE = 6,
 };
 
-typedef void
-(* PFNBUCOPYCB)(uint8_t* rgbadst, uint8_t* rgbasrc, uint32_t src_len,
-                ktx_size_t image_size, swizzle_e swizzle[4]);
+typedef void (*PFNBUCOPYCB)(uint8_t* rgbadst, uint8_t* rgbasrc, uint32_t src_len, ktx_size_t image_size, swizzle_e swizzle[4]);
 
 // All callbacks expect source images to have no row padding and expect
 // component size to be 8 bits.
 
 static void
-copy_rgba_to_rgba(uint8_t* rgbadst, uint8_t* rgbasrc, uint32_t,
-                  ktx_size_t image_size, swizzle_e[4])
-{
+copy_rgba_to_rgba(uint8_t* rgbadst, uint8_t* rgbasrc, uint32_t, ktx_size_t image_size, swizzle_e[4]) {
     memcpy(rgbadst, rgbasrc, image_size);
 }
 
 // Copy rgb to rgba. No swizzle.
 static void
-copy_rgb_to_rgba(uint8_t* rgbadst, uint8_t* rgbsrc, uint32_t,
-                 ktx_size_t image_size, swizzle_e[4])
-{
+copy_rgb_to_rgba(uint8_t* rgbadst, uint8_t* rgbsrc, uint32_t, ktx_size_t image_size, swizzle_e[4]) {
     for (ktx_size_t i = 0; i < image_size; i += 3) {
         memcpy(rgbadst, rgbsrc, 3);
-        rgbadst[3] = 0xff; // Convince Basis there is no alpha.
-        rgbadst += 4; rgbsrc += 3;
+        rgbadst[3] = 0xff;  // Convince Basis there is no alpha.
+        rgbadst += 4;
+        rgbsrc += 3;
     }
 }
 
 // This is not static only so the unit tests can access it.
 void
-swizzle_to_rgba(uint8_t* rgbadst, uint8_t* rgbasrc, uint32_t src_len,
-                ktx_size_t image_size, swizzle_e swizzle[4])
-{
+swizzle_to_rgba(uint8_t* rgbadst, uint8_t* rgbasrc, uint32_t src_len, ktx_size_t image_size, swizzle_e swizzle[4]) {
     for (ktx_size_t i = 0; i < image_size; i += src_len) {
         for (uint32_t c = 0; c < 4; c++) {
             switch (swizzle[c]) {
-              case R:
+            case R:
                 rgbadst[c] = rgbasrc[0];
                 break;
-              case G:
+            case G:
                 rgbadst[c] = rgbasrc[1];
                 break;
-              case B:
+            case B:
                 rgbadst[c] = rgbasrc[2];
                 break;
-              case A:
+            case A:
                 rgbadst[c] = rgbasrc[3];
                 break;
-              case ZERO:
+            case ZERO:
                 rgbadst[c] = 0x00;
                 break;
-              case ONE:
+            case ONE:
                 rgbadst[c] = 0xff;
                 break;
-              default:
+            default:
                 assert(false);
             }
         }
-        rgbadst +=4; rgbasrc += src_len;
+        rgbadst += 4;
+        rgbasrc += src_len;
     }
 }
 
@@ -233,24 +227,18 @@ swizzle_rg_to_rgb_a(uint8_t* rgbadst, uint8_t* rgsrc, ktx_size_t image_size,
 // not including an all 1's alpha channel, which would have been removed before
 // encoding and supercompression, by using hasAlpha.
 static KTX_error_code
-ktxTexture2_rewriteDfd4BasisLzETC1S(ktxTexture2* This,
-                                    alpha_content_e alphaContent,
-                                    bool isLuminance,
-                                    swizzle_e swizzle[4])
-{
+ktxTexture2_rewriteDfd4BasisLzETC1S(ktxTexture2* This, alpha_content_e alphaContent, bool isLuminance, swizzle_e swizzle[4]) {
     uint32_t* cdfd = This->pDfd;
     uint32_t* cbdb = cdfd + 1;
     uint32_t newSampleCount = alphaContent != eNone ? 2 : 1;
 
-    uint32_t ndbSize = KHR_DF_WORD_SAMPLESTART
-                       + newSampleCount * KHR_DF_WORD_SAMPLEWORDS;
+    uint32_t ndbSize = KHR_DF_WORD_SAMPLESTART + newSampleCount * KHR_DF_WORD_SAMPLEWORDS;
     ndbSize *= sizeof(uint32_t);
     uint32_t ndfdSize = ndbSize + 1 * sizeof(uint32_t);
-    uint32_t* ndfd = (uint32_t *)malloc(ndfdSize);
+    uint32_t* ndfd = (uint32_t*)malloc(ndfdSize);
     uint32_t* nbdb = ndfd + 1;
 
-    if (!ndfd)
-        return KTX_OUT_OF_MEMORY;
+    if (!ndfd) return KTX_OUT_OF_MEMORY;
 
     *ndfd = ndfdSize;
     KHR_DFDSETVAL(nbdb, VENDORID, KHR_DF_VENDORID_KHRONOS);
@@ -262,8 +250,7 @@ ktxTexture2_rewriteDfd4BasisLzETC1S(ktxTexture2* This,
     KHR_DFDSETVAL(nbdb, TRANSFER, KHR_DFDVAL(cbdb, TRANSFER));
     KHR_DFDSETVAL(nbdb, FLAGS, KHR_DFDVAL(cbdb, FLAGS));
 
-    nbdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0] =
-                            3 | (3 << KHR_DF_SHIFT_TEXELBLOCKDIMENSION1);
+    nbdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0] = 3 | (3 << KHR_DF_SHIFT_TEXELBLOCKDIMENSION1);
     // Show it describes an unsized format.
     nbdb[KHR_DF_WORD_BYTESPLANE0] = 0; /* bytesPlane3..0 = 0 */
     nbdb[KHR_DF_WORD_BYTESPLANE4] = 0; /* bytesPlane7..5 = 0 */
@@ -273,8 +260,7 @@ ktxTexture2_rewriteDfd4BasisLzETC1S(ktxTexture2* This,
         if (sample == 0) {
             bitOffset = 0;
 
-            if (!isLuminance && swizzle
-                && swizzle[0] == swizzle[1] && swizzle[1] == swizzle[2])
+            if (!isLuminance && swizzle && swizzle[0] == swizzle[1] && swizzle[1] == swizzle[2])
                 channelId = KHR_DF_CHANNEL_ETC1S_RRR;
             else
                 channelId = KHR_DF_CHANNEL_ETC1S_RGB;
@@ -285,7 +271,7 @@ ktxTexture2_rewriteDfd4BasisLzETC1S(ktxTexture2* This,
                 channelId = KHR_DF_CHANNEL_ETC1S_AAA;
             else if (alphaContent == eGreen)
                 channelId = KHR_DF_CHANNEL_ETC1S_GGG;
-            else // This is just to quiet a compiler warning.
+            else  // This is just to quiet a compiler warning.
                 channelId = KHR_DF_CHANNEL_ETC1S_RGB;
         }
         KHR_DFDSETSVAL(nbdb, sample, CHANNELID, channelId);
@@ -303,23 +289,17 @@ ktxTexture2_rewriteDfd4BasisLzETC1S(ktxTexture2* This,
 }
 
 static KTX_error_code
-ktxTexture2_rewriteDfd4Uastc(ktxTexture2* This,
-                             alpha_content_e alphaContent,
-                             bool isLuminance,
-                             swizzle_e swizzle[4])
-{
+ktxTexture2_rewriteDfd4Uastc(ktxTexture2* This, alpha_content_e alphaContent, bool isLuminance, swizzle_e swizzle[4]) {
     uint32_t* cdfd = This->pDfd;
     uint32_t* cbdb = cdfd + 1;
 
-    uint32_t ndbSize = KHR_DF_WORD_SAMPLESTART
-                       + 1 * KHR_DF_WORD_SAMPLEWORDS;
+    uint32_t ndbSize = KHR_DF_WORD_SAMPLESTART + 1 * KHR_DF_WORD_SAMPLEWORDS;
     ndbSize *= sizeof(uint32_t);
     uint32_t ndfdSize = ndbSize + 1 * sizeof(uint32_t);
-    uint32_t* ndfd = (uint32_t *)malloc(ndfdSize);
+    uint32_t* ndfd = (uint32_t*)malloc(ndfdSize);
     uint32_t* nbdb = ndfd + 1;
 
-    if (!ndfd)
-        return KTX_OUT_OF_MEMORY;
+    if (!ndfd) return KTX_OUT_OF_MEMORY;
 
     *ndfd = ndfdSize;
     KHR_DFDSETVAL(nbdb, VENDORID, KHR_DF_VENDORID_KHRONOS);
@@ -331,10 +311,9 @@ ktxTexture2_rewriteDfd4Uastc(ktxTexture2* This,
     KHR_DFDSETVAL(nbdb, TRANSFER, KHR_DFDVAL(cbdb, TRANSFER));
     KHR_DFDSETVAL(nbdb, FLAGS, KHR_DFDVAL(cbdb, FLAGS));
 
-    nbdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0] =
-                            3 | (3 << KHR_DF_SHIFT_TEXELBLOCKDIMENSION1);
+    nbdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0] = 3 | (3 << KHR_DF_SHIFT_TEXELBLOCKDIMENSION1);
     nbdb[KHR_DF_WORD_BYTESPLANE0] = 16; /* bytesPlane0 = 16, bytesPlane3..1 = 0 */
-    nbdb[KHR_DF_WORD_BYTESPLANE4] = 0; /* bytesPlane7..5 = 0 */
+    nbdb[KHR_DF_WORD_BYTESPLANE4] = 0;  /* bytesPlane7..5 = 0 */
 
     // Set the data for our single sample
     uint16_t channelId;
@@ -344,8 +323,7 @@ ktxTexture2_rewriteDfd4Uastc(ktxTexture2* This,
         channelId = KHR_DF_CHANNEL_UASTC_RRRG;
     } else if (swizzle && swizzle[2] == 0 && swizzle[3] == 1) {
         channelId = KHR_DF_CHANNEL_UASTC_RG;
-    } else if (!isLuminance && swizzle
-               && swizzle[0] == swizzle[1] && swizzle[1] == swizzle[2]) {
+    } else if (!isLuminance && swizzle && swizzle[0] == swizzle[1] && swizzle[1] == swizzle[2]) {
         channelId = KHR_DF_CHANNEL_UASTC_RRR;
     } else {
         channelId = KHR_DF_CHANNEL_UASTC_RGB;
@@ -406,57 +384,49 @@ static bool basisuEncoderInitialized = false;
  * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out compression.
  */
 extern "C" KTX_error_code
-ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
-{
+ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params) {
     KTX_error_code result;
 
-    if (!params)
-        return KTX_INVALID_VALUE;
+    if (!params) return KTX_INVALID_VALUE;
 
-    if (params->structSize != sizeof(struct ktxBasisParams))
-        return KTX_INVALID_VALUE;
+    if (params->structSize != sizeof(struct ktxBasisParams)) return KTX_INVALID_VALUE;
 
-    if (This->supercompressionScheme != KTX_SS_NONE)
-        return KTX_INVALID_OPERATION; // Can't apply multiple schemes.
+    if (This->supercompressionScheme != KTX_SS_NONE) return KTX_INVALID_OPERATION;  // Can't apply multiple schemes.
 
     if (This->isCompressed)
         return KTX_INVALID_OPERATION;  // Only non-block compressed formats
                                        // can be encoded into a Basis format.
 
-    if (This->_protected->_formatSize.flags & KTX_FORMAT_SIZE_PACKED_BIT)
-        return KTX_INVALID_OPERATION;
+    if (This->_protected->_formatSize.flags & KTX_FORMAT_SIZE_PACKED_BIT) return KTX_INVALID_OPERATION;
 
     // Basic descriptor block begins after the total size field.
-    const uint32_t* BDB = This->pDfd+1;
+    const uint32_t* BDB = This->pDfd + 1;
 
     uint32_t num_components, component_size;
     getDFDComponentInfoUnpacked(This->pDfd, &num_components, &component_size);
 
-    if (component_size != 1)
-        return KTX_INVALID_OPERATION; // Basis must have 8-bit components.
+    if (component_size != 1) return KTX_INVALID_OPERATION;  // Basis must have 8-bit components.
 
-    if (num_components == 1 && params->normalMap)
-        return KTX_INVALID_OPERATION; // Not enough components.
+    if (num_components == 1 && params->normalMap) return KTX_INVALID_OPERATION;  // Not enough components.
 
     if (This->pData == NULL) {
         result = ktxTexture2_LoadImageData(This, NULL, 0);
-        if (result != KTX_SUCCESS)
-            return result;
+        if (result != KTX_SUCCESS) return result;
     }
 
     if (!basisuEncoderInitialized) {
         // force_serialization uses a mutex to serialize when multiple command
         // queues per thread are used. We shouldn't need to worry about this.
         // How to decide whether to use OpenCL?
-        basisu_encoder_init((BASISU_SUPPORT_OPENCL ? true : false)/*use_opencl*/
+        basisu_encoder_init((BASISU_SUPPORT_OPENCL ? true : false) /*use_opencl*/
                             /*opencl_force_serialization = false*/);
-        //atexit(basisu_encoder_deinit);
+        // atexit(basisu_encoder_deinit);
         basisuEncoderInitialized = true;
     }
 
     basis_compressor_params cparams;
-    cparams.m_read_source_images = false; // Don't read from source files.
-    cparams.m_write_output_basis_files = false; // Don't write output files.
+    cparams.m_read_source_images = false;        // Don't read from source files.
+    cparams.m_write_output_basis_files = false;  // Don't write output files.
     cparams.m_status_output = params->verbose;
 
     //
@@ -482,10 +452,10 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     // Since we have to copy the data into the vector image anyway do the
     // separation here to avoid another loop over the image inside
     // basis_compressor.
-    swizzle_e rg_to_rgba_mapping_etc1s[4] = { R, R, R, G };
-    swizzle_e rg_to_rgba_mapping_uastc[4] = { R, G, ZERO, ONE };
-    swizzle_e normal_map_mapping[4] = { R, R, R, G };
-    swizzle_e r_to_rgba_mapping[4] = { R, R, R, ONE };
+    swizzle_e rg_to_rgba_mapping_etc1s[4] = {R, R, R, G};
+    swizzle_e rg_to_rgba_mapping_uastc[4] = {R, G, ZERO, ONE};
+    swizzle_e normal_map_mapping[4] = {R, R, R, G};
+    swizzle_e r_to_rgba_mapping[4] = {R, R, R, ONE};
     swizzle_e meta_mapping[4] = {};
     // All the above declarations need to stay here so they remain in scope
     // until after the pixel copy loop as comp_mapping will ultimately point
@@ -502,14 +472,12 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         }
 
         ktxHashListEntry* swizzleEntry;
-        result = ktxHashList_FindEntry(&This->kvDataHead, KTX_SWIZZLE_KEY,
-                                       &swizzleEntry);
+        result = ktxHashList_FindEntry(&This->kvDataHead, KTX_SWIZZLE_KEY, &swizzleEntry);
         if (result == KTX_SUCCESS) {
             ktx_uint32_t swizzleLen = 0;
             char* swizzleStr = nullptr;
 
-            ktxHashListEntry_GetValue(swizzleEntry,
-                                      &swizzleLen, (void**)&swizzleStr);
+            ktxHashListEntry_GetValue(swizzleEntry, &swizzleLen, (void**)&swizzleStr);
             // Remove the swizzle as it is no longer needed.
             ktxHashList_DeleteEntry(&This->kvDataHead, swizzleEntry);
             // Do it this way in case there is no NUL terminator.
@@ -538,17 +506,28 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     } else {
         // Only set comp_mapping for cases we can't shortcut.
         // If num_components < 3 we always swizzle so no shortcut there.
-        if (num_components < 3
-          || (num_components == 3 && swizzleString.compare("rgb1"))
-          || (num_components == 4 && swizzleString.compare("rgba"))) {
+        if (num_components < 3 || (num_components == 3 && swizzleString.compare("rgb1")) ||
+            (num_components == 4 && swizzleString.compare("rgba"))) {
             for (int i = 0; i < 4; i++) {
                 switch (swizzleString[i]) {
-                  case 'r': meta_mapping[i] = R; break;
-                  case 'g': meta_mapping[i] = G; break;
-                  case 'b': meta_mapping[i] = B; break;
-                  case 'a': meta_mapping[i] = A; break;
-                  case '0': meta_mapping[i] = ZERO; break;
-                  case '1': meta_mapping[i] = ONE; break;
+                case 'r':
+                    meta_mapping[i] = R;
+                    break;
+                case 'g':
+                    meta_mapping[i] = G;
+                    break;
+                case 'b':
+                    meta_mapping[i] = B;
+                    break;
+                case 'a':
+                    meta_mapping[i] = A;
+                    break;
+                case '0':
+                    meta_mapping[i] = ZERO;
+                    break;
+                case '1':
+                    meta_mapping[i] = ONE;
+                    break;
                 }
             }
             comp_mapping = meta_mapping;
@@ -559,8 +538,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
             // luminance texture. Set isLuminance so we can later distinguish
             // this from the identical swizzle used for normal maps.
             // cases for ETC1S.
-            if (meta_mapping[0] == meta_mapping[1]
-                && meta_mapping[1] == meta_mapping[2]) {
+            if (meta_mapping[0] == meta_mapping[1] && meta_mapping[1] == meta_mapping[2]) {
                 // Same component in r, g & b
                 isLuminance = true;
             }
@@ -572,15 +550,20 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         }
     }
 
-    PFNBUCOPYCB copycb = copy_rgba_to_rgba; // Initialization is just to keep
-                                            // compilers happy
+    PFNBUCOPYCB copycb = copy_rgba_to_rgba;  // Initialization is just to keep
+                                             // compilers happy
     if (comp_mapping) {
         copycb = swizzle_to_rgba;
     } else {
         switch (num_components) {
-          case 4: copycb = copy_rgba_to_rgba; break;
-          case 3: copycb = copy_rgb_to_rgba; break;
-          default: assert(false);
+        case 4:
+            copycb = copy_rgba_to_rgba;
+            break;
+        case 3:
+            copycb = copy_rgb_to_rgba;
+            break;
+        default:
+            assert(false);
         }
     }
 
@@ -597,15 +580,13 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
                 ktx_size_t offset;
                 ktxTexture2_GetImageOffset(This, level, layer, slice, &offset);
                 iit->resize(width, height);
-                copycb((uint8_t*)iit->get_ptr(), This->pData + offset,
-                        num_components, image_size,
-                        comp_mapping);
+                copycb((uint8_t*)iit->get_ptr(), This->pData + offset, num_components, image_size, comp_mapping);
                 ++iit;
             }
         }
     }
 
-    free(This->pData); // No longer needed. Reduce memory footprint.
+    free(This->pData);  // No longer needed. Reduce memory footprint.
     This->pData = NULL;
     This->dataSize = 0;
 
@@ -614,15 +595,13 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     //
 
     ktx_uint32_t threadCount = params->threadCount;
-    if (threadCount < 1)
-        threadCount = 1;
+    if (threadCount < 1) threadCount = 1;
     job_pool jpool(threadCount);
     cparams.m_pJob_pool = &jpool;
 
 #if BASISU_SUPPORT_SSE
     bool prevSSESupport = g_cpu_supports_sse41;
-    if (params->noSSE)
-        g_cpu_supports_sse41 = false;
+    if (params->noSSE) g_cpu_supports_sse41 = false;
 #endif
 
     ktx_uint32_t transfer = KHR_DFDVAL(BDB, TRANSFER);
@@ -631,7 +610,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     else
         cparams.m_perceptual = false;
 
-    cparams.m_mip_gen = false; // We provide the mip levels.
+    cparams.m_mip_gen = false;  // We provide the mip levels.
 
     cparams.m_uastc = params->uastc;
     if (params->uastc) {
@@ -639,24 +618,19 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         if (params->uastcRDO) {
             cparams.m_rdo_uastc = true;
             if (params->uastcRDOQualityScalar > 0.0f) {
-                cparams.m_rdo_uastc_quality_scalar =
-                                params->uastcRDOQualityScalar;
+                cparams.m_rdo_uastc_quality_scalar = params->uastcRDOQualityScalar;
             }
             if (params->uastcRDODictSize > 0) {
                 cparams.m_rdo_uastc_dict_size = params->uastcRDODictSize;
             }
             if (params->uastcRDOMaxSmoothBlockErrorScale > 0) {
-              cparams.m_rdo_uastc_max_smooth_block_error_scale =
-                               params->uastcRDOMaxSmoothBlockErrorScale;
+                cparams.m_rdo_uastc_max_smooth_block_error_scale = params->uastcRDOMaxSmoothBlockErrorScale;
             }
             if (params->uastcRDOMaxSmoothBlockStdDev > 0) {
-                cparams.m_rdo_uastc_smooth_block_max_std_dev =
-                                params->uastcRDOMaxSmoothBlockStdDev;
+                cparams.m_rdo_uastc_smooth_block_max_std_dev = params->uastcRDOMaxSmoothBlockStdDev;
             }
-            cparams.m_rdo_uastc_favor_simpler_modes_in_rdo_mode =
-                                    !params->uastcRDODontFavorSimplerModes;
-            cparams.m_rdo_uastc_favor_simpler_modes_in_rdo_mode =
-                                    !params->uastcRDONoMultithreading;
+            cparams.m_rdo_uastc_favor_simpler_modes_in_rdo_mode = !params->uastcRDODontFavorSimplerModes;
+            cparams.m_rdo_uastc_favor_simpler_modes_in_rdo_mode = !params->uastcRDONoMultithreading;
         }
     } else {
         // ETC1S-related params.
@@ -697,10 +671,8 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
             cparams.m_quality_level = 128;
         }
 
-        if (params->endpointRDOThreshold > 0)
-            cparams.m_endpoint_rdo_thresh = params->endpointRDOThreshold;
-        if (params->selectorRDOThreshold > 0)
-            cparams.m_selector_rdo_thresh = params->selectorRDOThreshold;
+        if (params->endpointRDOThreshold > 0) cparams.m_endpoint_rdo_thresh = params->endpointRDOThreshold;
+        if (params->selectorRDOThreshold > 0) cparams.m_selector_rdo_thresh = params->selectorRDOThreshold;
 
         if (params->normalMap) {
             cparams.m_no_endpoint_rdo = true;
@@ -716,14 +688,14 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     // ktxTexture is consistent.
 
     // Output debug information during compression
-    //cparams.m_debug = true;
+    // cparams.m_debug = true;
 
     // m_debug_images is pretty slow
-    //cparams.m_debug_images = true;
+    // cparams.m_debug_images = true;
 
     // Split the R channel to RGB and the G channel to alpha. We do the
     // seperation in this func (see above) so leave this at its default, false.
-    //bool_param<false> m_seperate_rg_to_color_alpha;
+    // bool_param<false> m_seperate_rg_to_color_alpha;
 
     // m_userdata0, m_userdata1 go directly into the .basis file header.
     // No need to set.
@@ -760,13 +732,12 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
 
     // As we don't use it, file reading support has been removed from the
     // BasisU code. Ensure we don't accidentally try to use it.
-    assert(cparams.m_read_source_images == false
-           && "m_read_source_images must be false");
+    assert(cparams.m_read_source_images == false && "m_read_source_images must be false");
 
     // init() only returns false if told to read source image files and the
     // list of files is empty.
     (void)c.init(cparams);
-    //enable_debug_printf(true);
+    // enable_debug_printf(true);
 
     basis_compressor::error_code ec = c.process();
 
@@ -833,8 +804,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     uint32_t image_data_size = 0;
     ktxTexture2_private& priv = *This->_private;
     uint32_t base_offset = bfh.m_slice_desc_file_ofs;
-    const basis_slice_desc* slice
-            = reinterpret_cast<const basis_slice_desc*>(&bf[base_offset]);
+    const basis_slice_desc* slice = reinterpret_cast<const basis_slice_desc*>(&bf[base_offset]);
     std::vector<uint32_t> level_file_offsets(This->numLevels);
 
     if (params->uastc) {
@@ -857,10 +827,8 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         //
         uint32_t image_desc_size = sizeof(ktxBasisLzEtc1sImageDesc);
 
-        bgd_size = sizeof(ktxBasisLzGlobalHeader)
-                 + image_desc_size * num_images
-                 + bfh.m_endpoint_cb_file_size + bfh.m_selector_cb_file_size
-                 + bfh.m_tables_file_size;
+        bgd_size = sizeof(ktxBasisLzGlobalHeader) + image_desc_size * num_images + bfh.m_endpoint_cb_file_size +
+                   bfh.m_selector_cb_file_size + bfh.m_tables_file_size;
         bgd = new ktx_uint8_t[bgd_size];
         ktxBasisLzGlobalHeader& bgdh = *reinterpret_cast<ktxBasisLzGlobalHeader*>(bgd);
         bgdh.endpointCount = (uint16_t)bfh.m_total_endpoints;
@@ -897,20 +865,16 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
             assert(!(slice->m_flags & cSliceDescFlagsHasAlpha));
             level_file_offsets[level] = slice->m_file_ofs;
             for (uint32_t layer = 0; layer < This->numLayers; layer++) {
-                uint32_t faceSlices = This->numFaces == 1 ? depth
-                                                          : This->numFaces;
+                uint32_t faceSlices = This->numFaces == 1 ? depth : This->numFaces;
                 for (uint32_t faceSlice = 0; faceSlice < faceSlices; faceSlice++) {
                     level_byte_length += slice->m_file_size;
-                    kimages[image].rgbSliceByteOffset = slice->m_file_ofs
-                                                   - level_file_offsets[level];
+                    kimages[image].rgbSliceByteOffset = slice->m_file_ofs - level_file_offsets[level];
                     kimages[image].rgbSliceByteLength = slice->m_file_size;
                     if (bfh.m_flags & cBASISHeaderFlagHasAlphaSlices) {
                         slice++;
                         level_byte_length += slice->m_file_size;
-                        kimages[image].alphaSliceByteOffset =
-                                slice->m_file_ofs - level_file_offsets[level];
-                        kimages[image].alphaSliceByteLength =
-                                slice->m_file_size;
+                        kimages[image].alphaSliceByteOffset = slice->m_file_ofs - level_file_offsets[level];
+                        kimages[image].alphaSliceByteLength = slice->m_file_size;
                     } else {
                         kimages[image].alphaSliceByteOffset = 0;
                         kimages[image].alphaSliceByteLength = 0;
@@ -918,11 +882,9 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
                     // Set the PFrame flag, inverse of the .basis IFrame flag.
                     if (This->isVideo) {
                         // Extract FrameIsIFrame
-                        kimages[image].imageFlags =
-                                    (slice->m_flags & ~cSliceDescFlagsHasAlpha);
+                        kimages[image].imageFlags = (slice->m_flags & ~cSliceDescFlagsHasAlpha);
                         // Set our flag to the inverse.
-                        kimages[image].imageFlags ^=
-                                    cSliceDescFlagsFrameIsIFrame;
+                        kimages[image].imageFlags ^= cSliceDescFlagsFrameIsIFrame;
                     } else {
                         kimages[image].imageFlags = 0;
                     }
@@ -944,19 +906,13 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         // byte where the endpoints, etc. must be written.
         uint8_t* dstptr = reinterpret_cast<uint8_t*>(&kimages[image]);
         // Copy the endpoints ...
-        memcpy(dstptr,
-               &bf[bfh.m_endpoint_cb_file_ofs],
-               bfh.m_endpoint_cb_file_size);
+        memcpy(dstptr, &bf[bfh.m_endpoint_cb_file_ofs], bfh.m_endpoint_cb_file_size);
         dstptr += bgdh.endpointsByteLength;
         // selectors ...
-        memcpy(dstptr,
-               &bf[bfh.m_selector_cb_file_ofs],
-               bfh.m_selector_cb_file_size);
+        memcpy(dstptr, &bf[bfh.m_selector_cb_file_ofs], bfh.m_selector_cb_file_size);
         dstptr += bgdh.selectorsByteLength;
         // and the huffman tables.
-        memcpy(dstptr,
-               &bf[bfh.m_tables_file_ofs],
-               bfh.m_tables_file_size);
+        memcpy(dstptr, &bf[bfh.m_tables_file_ofs], bfh.m_tables_file_size);
 
         assert((size_t)(dstptr + bgdh.tablesByteLength - bgd) <= bgd_size);
 
@@ -987,7 +943,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         alphaContent = eNone;
     }
 
-    new_data = (uint8_t*) malloc(image_data_size);
+    new_data = (uint8_t*)malloc(image_data_size);
     if (!new_data) {
         result = KTX_OUT_OF_MEMORY;
         goto cleanup;
@@ -996,9 +952,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     // Delayed modifying texture until here so it's after points of
     // possible failure.
     if (params->uastc) {
-        result = ktxTexture2_rewriteDfd4Uastc(This, alphaContent,
-                                              isLuminance,
-                                              comp_mapping);
+        result = ktxTexture2_rewriteDfd4Uastc(This, alphaContent, isLuminance, comp_mapping);
         if (result != KTX_SUCCESS) goto cleanup;
 
         // Reflect this in the formatSize
@@ -1006,9 +960,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         // and the requiredLevelAlignment.
         priv._requiredLevelAlignment = 4 * 4;
     } else {
-        result = ktxTexture2_rewriteDfd4BasisLzETC1S(This, alphaContent,
-                                                     isLuminance,
-                                                     comp_mapping);
+        result = ktxTexture2_rewriteDfd4BasisLzETC1S(This, alphaContent, isLuminance, comp_mapping);
         if (result != KTX_SUCCESS) goto cleanup;
 
         This->supercompressionScheme = KTX_SS_BASIS_LZ;
@@ -1032,11 +984,8 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     for (int32_t level = This->numLevels - 1; level >= 0; level--) {
         priv._levelIndex[level].byteOffset = level_offset;
         // byteLength was set in loop above
-        memcpy(This->pData + level_offset,
-               &bf[level_file_offsets[level]],
-               priv._levelIndex[level].byteLength);
-        level_offset += _KTX_PADN(priv._requiredLevelAlignment,
-                                  priv._levelIndex[level].byteLength);
+        memcpy(This->pData + level_offset, &bf[level_file_offsets[level]], priv._levelIndex[level].byteLength);
+        level_offset += _KTX_PADN(priv._requiredLevelAlignment, priv._levelIndex[level].byteLength);
     }
 
     return KTX_SUCCESS;
@@ -1051,8 +1000,7 @@ cleanup:
     return result;
 }
 
-extern "C" KTX_API const ktx_uint32_t KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL
-                                      = BASISU_DEFAULT_COMPRESSION_LEVEL;
+extern "C" KTX_API const ktx_uint32_t KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL = BASISU_DEFAULT_COMPRESSION_LEVEL;
 
 /**
  * @memberof ktxTexture2
@@ -1085,8 +1033,7 @@ extern "C" KTX_API const ktx_uint32_t KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL
  * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out supercompression.
  */
 extern "C" KTX_error_code
-ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality)
-{
+ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality) {
     ktxBasisParams params = {};
     params.structSize = sizeof(params);
     params.threadCount = 1;

@@ -20,19 +20,15 @@
 
 class TexturedCube : public GL3LoadTestSample {
   public:
-    TexturedCube(uint32_t width, uint32_t height,
-                const char* const szArgs,
-                const std::string sBasePath);
+    TexturedCube(uint32_t width, uint32_t height, const char* const szArgs, const std::string sBasePath);
     ~TexturedCube();
 
     virtual void resize(uint32_t width, uint32_t height);
     virtual void run(uint32_t msTicks);
 
-    //virtual void getOverlayText(GLTextOverlay *textOverlay);
+    // virtual void getOverlayText(GLTextOverlay *textOverlay);
 
-    static LoadTestSample*
-    create(uint32_t width, uint32_t height,
-           const char* const szArgs, const std::string sBasePath);
+    static LoadTestSample* create(uint32_t width, uint32_t height, const char* const szArgs, const std::string sBasePath);
 
   protected:
     GLuint gnTexture;

@@ -2,7 +2,6 @@
 // Copyright 2022-2023 RasterGrid Kft.
 // SPDX-License-Identifier: Apache-2.0
 
-
 #pragma once
 #include <array>
 #include <algorithm>
@@ -36,8 +35,7 @@ template <typename T>
 [[nodiscard]] constexpr inline T bit_ceil(T x) noexcept {
     x -= 1;
     for (uint32_t i = 0; i < sizeof(x) * 8; ++i)
-        if (1u << i > x)
-            return 1u << i;
+        if (1u << i > x) return 1u << i;
     return 0;
 }
 
@@ -67,22 +65,22 @@ inline float half_to_float(uint16_t value) {
     FP16 h;
     h.u = value;
     static const FP32 magic = {113 << 23};
-    static const uint32_t shifted_exp = 0x7c00 << 13; // exponent mask after shift
+    static const uint32_t shifted_exp = 0x7c00 << 13;  // exponent mask after shift
     FP32 o;
 
-    o.u = (h.u & 0x7fff) << 13;     // exponent/mantissa bits
-    uint32_t exp = shifted_exp & o.u;   // just the exponent
-    o.u += (127 - 15) << 23;        // exponent adjust
+    o.u = (h.u & 0x7fff) << 13;        // exponent/mantissa bits
+    uint32_t exp = shifted_exp & o.u;  // just the exponent
+    o.u += (127 - 15) << 23;           // exponent adjust
 
     // handle exponent special cases
-    if (exp == shifted_exp) // Inf/NaN?
-        o.u += (128 - 16) << 23;    // extra exp adjust
-    else if (exp == 0) { // Zero/Denormal?
-        o.u += 1 << 23;             // extra exp adjust
-        o.f -= magic.f;             // renormalize
+    if (exp == shifted_exp)       // Inf/NaN?
+        o.u += (128 - 16) << 23;  // extra exp adjust
+    else if (exp == 0) {          // Zero/Denormal?
+        o.u += 1 << 23;           // extra exp adjust
+        o.f -= magic.f;           // renormalize
     }
 
-    o.u |= (h.u & 0x8000) << 16;    // sign bit
+    o.u |= (h.u & 0x8000) << 16;  // sign bit
     return o.f;
 }
 
@@ -92,28 +90,28 @@ inline uint16_t float_to_half(float value) {
     FP16 o = {0};
 
     // Based on ISPC reference code (with minor modifications)
-    if (f.p.Exponent == 0) // Signed zero/denormal (which will underflow)
+    if (f.p.Exponent == 0)  // Signed zero/denormal (which will underflow)
         o.p.Exponent = 0;
-    else if (f.p.Exponent == 255) { // Inf or NaN (all exponent bits set)
+    else if (f.p.Exponent == 255) {  // Inf or NaN (all exponent bits set)
         o.p.Exponent = 31;
-        o.p.Mantissa = f.p.Mantissa ? 0x200 : 0; // NaN->qNaN and Inf->Inf
-    } else { // Normalized number
+        o.p.Mantissa = f.p.Mantissa ? 0x200 : 0;  // NaN->qNaN and Inf->Inf
+    } else {                                      // Normalized number
         // Exponent unbias the single, then bias the halfp
         int newexp = f.p.Exponent - 127 + 15;
-        if (newexp >= 31) // Overflow, return signed infinity
+        if (newexp >= 31)  // Overflow, return signed infinity
             o.p.Exponent = 31;
-        else if (newexp <= 0) { // Underflow
-            if ((14 - newexp) <= 24) { // Mantissa might be non-zero
-                uint32_t mant = f.p.Mantissa | 0x800000; // Hidden 1 bit
+        else if (newexp <= 0) {                           // Underflow
+            if ((14 - newexp) <= 24) {                    // Mantissa might be non-zero
+                uint32_t mant = f.p.Mantissa | 0x800000;  // Hidden 1 bit
                 o.p.Mantissa = mant >> (14 - newexp);
-                if ((mant >> (13 - newexp)) & 1) // Check for rounding
-                    o.u++; // Round, might overflow into exp bit, but this is OK
+                if ((mant >> (13 - newexp)) & 1)  // Check for rounding
+                    o.u++;                        // Round, might overflow into exp bit, but this is OK
             }
         } else {
             o.p.Exponent = newexp;
             o.p.Mantissa = f.p.Mantissa >> 13;
-            if (f.p.Mantissa & 0x1000) // Check for rounding
-                o.u++; // Round, might overflow to inf, this is OK
+            if (f.p.Mantissa & 0x1000)  // Check for rounding
+                o.u++;                  // Round, might overflow to inf, this is OK
         }
     }
 
@@ -160,21 +158,16 @@ template <typename T>
 
 [[nodiscard]] inline uint32_t convertFloatToUNORM(float value, uint32_t numBits) {
     assert(numBits > 0 && numBits <= 32);
-    if (std::isnan(value))
-        return 0;
-    if (value < 0.f)
-        return 0;
-    if (value > 1.f)
-        return (1u << numBits) - 1u;
+    if (std::isnan(value)) return 0;
+    if (value < 0.f) return 0;
+    if (value > 1.f) return (1u << numBits) - 1u;
     return static_cast<uint32_t>(value * static_cast<float>((1u << numBits) - 1u) + 0.5f);
 }
 
 [[nodiscard]] inline float convertSFloatToFloat(uint32_t rawBits, uint32_t numBits) {
     assert(numBits == 16 || numBits == 32);
-    if (numBits == 16)
-        return half_to_float(static_cast<uint16_t>(rawBits));
-    if (numBits == 32)
-        return bit_cast<float>(rawBits);
+    if (numBits == 16) return half_to_float(static_cast<uint16_t>(rawBits));
+    if (numBits == 32) return bit_cast<float>(rawBits);
     return 0;
 }
 [[nodiscard]] inline float convertUFloatToFloat(uint32_t rawBits, uint32_t numBits) {
@@ -193,7 +186,8 @@ template <typename T>
     return static_cast<float>(signedValue);
 }
 [[nodiscard]] inline float convertUIntToFloat(uint32_t rawBits, uint32_t numBits) {
-    assert(numBits > 0 && numBits <= 32); (void) numBits;
+    assert(numBits > 0 && numBits <= 32);
+    (void)numBits;
     return static_cast<float>(rawBits);
 }
 [[nodiscard]] inline float convertSNORMToFloat(uint32_t rawBits, uint32_t numBits) {
@@ -208,29 +202,27 @@ template <typename T>
 }
 [[nodiscard]] inline uint32_t convertSFloatToUInt(uint32_t rawBits, uint32_t numBits) {
     assert(numBits == 16 || numBits == 32);
-    if (numBits == 16)
-        return static_cast<uint32_t>(half_to_float(static_cast<uint16_t>(rawBits)));
-    if (numBits == 32)
-        return static_cast<uint32_t>(bit_cast<float>(rawBits));
+    if (numBits == 16) return static_cast<uint32_t>(half_to_float(static_cast<uint16_t>(rawBits)));
+    if (numBits == 32) return static_cast<uint32_t>(bit_cast<float>(rawBits));
     return 0;
 }
 [[nodiscard]] inline uint32_t convertUFloatToUInt(uint32_t rawBits, uint32_t numBits) {
     assert(numBits == 10 || numBits == 11 || numBits == 14);
-    (void) rawBits;
-    (void) numBits;
+    (void)rawBits;
+    (void)numBits;
     assert(false && "Not yet implemented");
     return 0;
 }
 [[nodiscard]] inline uint32_t convertSIntToUInt(uint32_t rawBits, uint32_t numBits) {
     assert(numBits > 0 && numBits <= 32);
-    (void) rawBits;
-    (void) numBits;
+    (void)rawBits;
+    (void)numBits;
     assert(false && "Not yet implemented");
     return 0;
 }
 [[nodiscard]] inline uint32_t convertUIntToUInt(uint32_t rawBits, uint32_t numBits) {
     assert(numBits > 0 && numBits <= 32);
-    (void) numBits;
+    (void)numBits;
     return rawBits;
 }
 
@@ -268,8 +260,7 @@ template <typename T>
     const auto sourceValueMask = sourceBits == 32 ? std::numeric_limits<uint32_t>::max() : (1u << sourceBits) - 1u;
 
     rawBits &= sourceValueMask;
-    if (targetBits < sourceBits)
-        rawBits &= targetValueMask;
+    if (targetBits < sourceBits) rawBits &= targetValueMask;
 
     return rawBits;
 }
@@ -299,4 +290,4 @@ template <typename T>
     return result;
 }
 
-} // namespace imageio
+}  // namespace imageio

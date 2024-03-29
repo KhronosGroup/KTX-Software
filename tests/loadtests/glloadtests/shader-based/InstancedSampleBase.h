@@ -18,21 +18,18 @@
 #define VERTEX_BUFFER_BIND_ID 0
 #define ENABLE_VALIDATION false
 
-class InstancedSampleBase : public GL3LoadTestSample
-{
+class InstancedSampleBase : public GL3LoadTestSample {
   public:
-    InstancedSampleBase(uint32_t width, uint32_t height,
-                 const char* const szArgs,
-                 const std::string sBasePath);
+    InstancedSampleBase(uint32_t width, uint32_t height, const char* const szArgs, const std::string sBasePath);
     ~InstancedSampleBase();
 
     virtual void resize(uint32_t width, uint32_t height);
     virtual void run(uint32_t msTicks);
 
-    //virtual void getOverlayText(VulkanTextOverlay *textOverlay);
+    // virtual void getOverlayText(VulkanTextOverlay *textOverlay);
 
   protected:
-  using ShaderSource = GL3LoadTestSample::ShaderSource;
+    using ShaderSource = GL3LoadTestSample::ShaderSource;
 
     const GLuint texUnit;
     const GLuint uniformBufferBindId;
@@ -58,7 +55,7 @@ class InstancedSampleBase : public GL3LoadTestSample
         float pos[3];
         float uv[2];
     };
-    
+
     struct MeshBuffer {
         uint32_t indexCount;
         glm::vec3 dim;
@@ -87,9 +84,9 @@ class InstancedSampleBase : public GL3LoadTestSample
         // boundary as it starts with a matrix.
         //
         // Separate data for each instance
-        UboInstanceData *instance;
+        UboInstanceData* instance;
     } uboVS;
-    
+
     GLint uProgramUniforms;
     GLint uSampler;
 
@@ -112,10 +109,7 @@ class InstancedSampleBase : public GL3LoadTestSample
 
     void processArgs(std::string sArgs);
 
-    virtual void viewChanged()
-    {
-        updateUniformBufferMatrices();
-    }
+    virtual void viewChanged() { updateUniformBufferMatrices(); }
 };
 
 #endif /* _INSTANCE_SAMPLE_BASE_H_ */

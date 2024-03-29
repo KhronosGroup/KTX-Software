@@ -30,10 +30,9 @@
 #include "TextureArray.h"
 #include "ltexceptions.h"
 
-#define member_size(type, member) sizeof(((type *)0)->member)
+#define member_size(type, member) sizeof(((type*)0)->member)
 
-const GLchar* pszFsArraySamplerDeclaration =
-    "uniform mediump sampler2DArray uSampler;\n\n";
+const GLchar* pszFsArraySamplerDeclaration = "uniform mediump sampler2DArray uSampler;\n\n";
 
 const GLchar* pszArrayVsMain =
     "void main()\n"
@@ -45,10 +44,7 @@ const GLchar* pszArrayVsMain =
 
 /* ------------------------------------------------------------------------- */
 
-LoadTestSample*
-TextureArray::create(uint32_t width, uint32_t height,
-                     const char* const szArgs, const std::string sBasePath)
-{
+LoadTestSample* TextureArray::create(uint32_t width, uint32_t height, const char* const szArgs, const std::string sBasePath) {
     return new TextureArray(width, height, szArgs, sBasePath);
 }
 
@@ -59,15 +55,12 @@ TextureArray::create(uint32_t width, uint32_t height,
  *
  * @brief Test loading of 2D texture arrays.
  */
-TextureArray::TextureArray(uint32_t width, uint32_t height,
-                           const char* const szArgs,
-                           const std::string sBasePath)
-        : InstancedSampleBase(width, height, szArgs, sBasePath)
-{
+TextureArray::TextureArray(uint32_t width, uint32_t height, const char* const szArgs, const std::string sBasePath)
+    : InstancedSampleBase(width, height, szArgs, sBasePath) {
     zoom = -15.0f;
     if (texTarget != GL_TEXTURE_2D_ARRAY) {
         std::stringstream message;
-        
+
         message << "TextureArray requires an array texture.";
         throw std::runtime_error(message.str());
     }
@@ -84,7 +77,8 @@ TextureArray::TextureArray(uint32_t width, uint32_t height,
         fs.push_back(pszSrgbEncodeFunc);
         fs.push_back(pszInstancingSrgbEncodeFsMain);
     } else {
-        fs.push_back(pszInstancingFsMain);;
+        fs.push_back(pszInstancingFsMain);
+        ;
     }
     vs.push_back(pszInstancingVsDeclarations);
     vs.push_back(pszArrayVsMain);
@@ -92,7 +86,7 @@ TextureArray::TextureArray(uint32_t width, uint32_t height,
     try {
         prepare(fs, vs);
     } catch (std::exception& e) {
-        (void)e; // To quiet unused variable warnings from some compilers.
+        (void)e;  // To quiet unused variable warnings from some compilers.
         cleanup();
         throw;
     }

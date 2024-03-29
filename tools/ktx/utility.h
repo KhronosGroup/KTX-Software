@@ -2,7 +2,6 @@
 // Copyright 2022-2023 RasterGrid Kft.
 // SPDX-License-Identifier: Apache-2.0
 
-
 #pragma once
 
 #include "ktx.h"
@@ -14,7 +13,6 @@
 #include <functional>
 #include <optional>
 #include <type_traits>
-
 
 // -------------------------------------------------------------------------------------------------
 
@@ -38,7 +36,7 @@ template <typename T>
 template <typename T>
 [[nodiscard]] constexpr inline T ceil_div(const T x, const T y) noexcept {
     assert(y != 0);
-	return (x + y - 1) / y;
+    return (x + y - 1) / y;
 }
 
 /// log2 floor
@@ -67,8 +65,7 @@ template <typename T>
 [[nodiscard]] constexpr inline int popcount(T value) noexcept {
     int count = 0;
     for (; value != 0; value >>= 1)
-        if (value & 1)
-            count++;
+        if (value & 1) count++;
     return count;
 }
 
@@ -114,21 +111,18 @@ struct identity {
 
 template <typename Range, typename Comp = std::less<>, typename Proj = identity>
 [[nodiscard]] constexpr inline bool is_sorted(const Range& range, Comp&& comp = {}, Proj&& proj = {}) {
-    return std::is_sorted(std::begin(range), std::end(range), [&](const auto& lhs, const auto& rhs) {
-        return comp(std::invoke(proj, lhs), std::invoke(proj, rhs));
-    });
+    return std::is_sorted(std::begin(range), std::end(range),
+                          [&](const auto& lhs, const auto& rhs) { return comp(std::invoke(proj, lhs), std::invoke(proj, rhs)); });
 }
 
 template <typename Range, typename Comp = std::less<>, typename Proj = identity>
 constexpr inline void sort(Range& range, Comp&& comp = {}, Proj&& proj = {}) {
-    return std::sort(std::begin(range), std::end(range), [&](const auto& lhs, const auto& rhs) {
-        return comp(std::invoke(proj, lhs), std::invoke(proj, rhs));
-    });
+    return std::sort(std::begin(range), std::end(range),
+                     [&](const auto& lhs, const auto& rhs) { return comp(std::invoke(proj, lhs), std::invoke(proj, rhs)); });
 }
 
 inline void to_lower_inplace(std::string& string) {
-    for (auto& c : string)
-        c = static_cast<char>(std::tolower(c));
+    for (auto& c : string) c = static_cast<char>(std::tolower(c));
 }
 
 [[nodiscard]] inline std::string to_lower_copy(std::string string) {
@@ -137,8 +131,7 @@ inline void to_lower_inplace(std::string& string) {
 }
 
 inline void to_upper_inplace(std::string& string) {
-    for (auto& c : string)
-        c = static_cast<char>(std::toupper(c));
+    for (auto& c : string) c = static_cast<char>(std::toupper(c));
 }
 
 [[nodiscard]] inline std::string to_upper_copy(std::string string) {
@@ -171,7 +164,7 @@ inline void replace_all_inplace(std::string& string, std::string_view search, st
 /// Remaps the value from [from_lo..from_hi] to [to_lo..to_hi] with extrapolation
 template <typename T>
 [[nodiscard]] constexpr inline T remap(T value, T from_lo, T from_hi, T to_lo, T to_hi) noexcept {
-	return to_lo + (value - from_lo) * (to_hi - to_lo) / (from_hi - from_lo);
+    return to_lo + (value - from_lo) * (to_hi - to_lo) / (from_hi - from_lo);
 }
 
 // --- UTF-8 ---------------------------------------------------------------------------------------
@@ -182,14 +175,10 @@ template <typename T>
  * @param[in] leadByte The lead byte of a UTF-8 sequence
  * @return The expected length of the codepoint */
 [[nodiscard]] constexpr inline int sequenceLength(uint8_t leadByte) noexcept {
-    if ((leadByte & 0b1000'0000u) == 0b0000'0000u)
-        return 1;
-    if ((leadByte & 0b1110'0000u) == 0b1100'0000u)
-        return 2;
-    if ((leadByte & 0b1111'0000u) == 0b1110'0000u)
-        return 3;
-    if ((leadByte & 0b1111'1000u) == 0b1111'0000u)
-        return 4;
+    if ((leadByte & 0b1000'0000u) == 0b0000'0000u) return 1;
+    if ((leadByte & 0b1110'0000u) == 0b1100'0000u) return 2;
+    if ((leadByte & 0b1111'0000u) == 0b1110'0000u) return 3;
+    if ((leadByte & 0b1111'1000u) == 0b1111'0000u) return 4;
 
     return 0;
 }
@@ -217,8 +206,7 @@ template <typename T>
  * @param[in] codepoint The unicode codepoint
  * @return True if the codepoint is a valid unicode codepoint */
 [[nodiscard]] constexpr inline bool isCodepointValid(uint32_t codepoint) noexcept {
-    return codepoint <= 0x0010FFFFu
-            && !(0xD800u <= codepoint && codepoint <= 0xDBFFu);
+    return codepoint <= 0x0010FFFFu && !(0xD800u <= codepoint && codepoint <= 0xDBFFu);
 }
 
 /**
@@ -229,20 +217,16 @@ template <typename T>
  * @return True if the advance operation was successful and the advanced codepoint was a valid UTF-8 sequence */
 template <typename Iterator>
 [[nodiscard]] constexpr bool advanceUTF8(Iterator& it, Iterator end) noexcept {
-    if (it == end)
-        return false;
+    if (it == end) return false;
 
     const auto length = sequenceLength(*it);
-    if (length == 0)
-        return false;
+    if (length == 0) return false;
 
-    if (std::distance(it, end) < length)
-        return false;
+    if (std::distance(it, end) < length) return false;
 
     for (int i = 1; i < length; ++i) {
         const auto trailByte = *(it + i);
-        if ((static_cast<uint8_t>(trailByte) & 0b1100'0000u) != 0b1000'0000u)
-            return false;
+        if ((static_cast<uint8_t>(trailByte) & 0b1100'0000u) != 0b1000'0000u) return false;
     }
 
     uint32_t codepoint = 0;
@@ -267,11 +251,9 @@ template <typename Iterator>
         break;
     }
 
-    if (!isCodepointValid(codepoint))
-        return false;
+    if (!isCodepointValid(codepoint)) return false;
 
-    if (isOverlongSequence(codepoint, length))
-        return false;
+    if (isOverlongSequence(codepoint, length)) return false;
 
     return true;
 }
@@ -286,8 +268,7 @@ template <typename Iterator>
     const auto end = text.end();
 
     while (it != end) {
-        if (!advanceUTF8(it, end))
-            return std::distance(text.begin(), it);
+        if (!advanceUTF8(it, end)) return std::distance(text.begin(), it);
     }
 
     return std::nullopt;
@@ -310,7 +291,7 @@ struct PrintIndent {
     int indentBase = 0;
     int indentWidth = 4;
 
-public:
+  public:
     template <typename Fmt, typename... Args>
     inline void operator()(int depth, Fmt&& fmt, Args&&... args) {
         fmt::print(os, "{:{}}", "", indentWidth * (indentBase + depth));
@@ -318,28 +299,23 @@ public:
     }
 };
 
-[[nodiscard]] inline std::string errnoMessage() {
-    return std::make_error_code(static_cast<std::errc>(errno)).message();
-}
+[[nodiscard]] inline std::string errnoMessage() { return std::make_error_code(static_cast<std::errc>(errno)).message(); }
 
 // -------------------------------------------------------------------------------------------------
 
 /// RAII Handler for ktxTexture
 class KTXTexture2 final {
-private:
+  private:
     ktxTexture2* handle_ = nullptr;
 
-public:
-    explicit KTXTexture2(std::nullptr_t) : handle_{nullptr} { }
-    explicit KTXTexture2(ktxTexture2* handle) : handle_{handle} { }
+  public:
+    explicit KTXTexture2(std::nullptr_t) : handle_{nullptr} {}
+    explicit KTXTexture2(ktxTexture2* handle) : handle_{handle} {}
 
     KTXTexture2(const KTXTexture2&) = delete;
     KTXTexture2& operator=(const KTXTexture2&) = delete;
 
-    KTXTexture2(KTXTexture2&& other) noexcept :
-        handle_{other.handle_} {
-        other.handle_ = nullptr;
-    }
+    KTXTexture2(KTXTexture2&& other) noexcept : handle_{other.handle_} { other.handle_ = nullptr; }
 
     KTXTexture2& operator=(KTXTexture2&& other) & {
         handle_ = other.handle_;
@@ -354,39 +330,24 @@ public:
         }
     }
 
-    inline ktxTexture2* handle() const {
-        return handle_;
-    }
+    inline ktxTexture2* handle() const { return handle_; }
 
-    inline ktxTexture2** pHandle() {
-        return &handle_;
-    }
+    inline ktxTexture2** pHandle() { return &handle_; }
 
-    /*implicit*/ inline operator ktxTexture*() {
-        return ktxTexture(handle_);
-    }
+    /*implicit*/ inline operator ktxTexture*() { return ktxTexture(handle_); }
 
-    /*implicit*/ inline operator ktxTexture2*() {
-        return handle_;
-    }
+    /*implicit*/ inline operator ktxTexture2*() { return handle_; }
 
-    inline ktxTexture2* operator->() const {
-        return handle_;
-    }
+    inline ktxTexture2* operator->() const { return handle_; }
 };
-
 
 template <typename T>
 struct ClampedOption {
     ClampedOption(T& option, T min_v, T max_v) : option(option), min(min_v), max(max_v) {}
 
-    void clear() {
-        option = 0;
-    }
+    void clear() { option = 0; }
 
-    operator T() const {
-        return option;
-    }
+    operator T() const { return option; }
 
     T operator=(T v) {
         option = std::clamp<T>(v, min, max);
@@ -398,4 +359,4 @@ struct ClampedOption {
     T max;
 };
 
-} // namespace ktx
+}  // namespace ktx

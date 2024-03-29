@@ -16,25 +16,20 @@
 #define VERTEX_BUFFER_BIND_ID 0
 #define ENABLE_VALIDATION false
 
-class TextureCubemap : public VulkanLoadTestSample
-{
+class TextureCubemap : public VulkanLoadTestSample {
   public:
-    TextureCubemap(VulkanContext& vkctx,
-            uint32_t width, uint32_t height,
-            const char* const szArgs,
-            const std::string sBasePath, int32_t yflip);
+    TextureCubemap(VulkanContext& vkctx, uint32_t width, uint32_t height, const char* const szArgs, const std::string sBasePath,
+                   int32_t yflip);
     ~TextureCubemap();
 
     virtual void resize(uint32_t width, uint32_t height);
     virtual void run(uint32_t msTicks);
 
-    virtual void getOverlayText(VulkanTextOverlay *textOverlay, float yOffset);
+    virtual void getOverlayText(VulkanTextOverlay* textOverlay, float yOffset);
     virtual const char* customizeTitle(const char* const title);
 
-    static VulkanLoadTestSample*
-    create(VulkanContext& vkctx,
-           uint32_t width, uint32_t height,
-           const char* const szArgs, const std::string sBasePath);
+    static VulkanLoadTestSample* create(VulkanContext& vkctx, uint32_t width, uint32_t height, const char* const szArgs,
+                                        const std::string sBasePath);
 
   protected:
     int preloadImages = 0;
@@ -65,7 +60,7 @@ class TextureCubemap : public VulkanLoadTestSample
         UniformData object;
         UniformData skybox;
     } uniformData;
-    
+
     struct {
         glm::mat4 projection;
         glm::mat4 modelView;
@@ -113,8 +108,5 @@ class TextureCubemap : public VulkanLoadTestSample
     void processArgs(std::string sArgs);
 
     virtual void keyPressed(uint32_t keyCode);
-    virtual void viewChanged()
-    {
-        updateUniformBuffers();
-    }
+    virtual void viewChanged() { updateUniformBuffers(); }
 };

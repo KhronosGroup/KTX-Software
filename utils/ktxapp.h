@@ -6,10 +6,10 @@
 
 #include "stdafx.h"
 
-#if defined (_WIN32)
-  #define _CRT_SECURE_NO_WARNINGS
-  #define WINDOWS_LEAN_AND_MEAN
-  #include <windows.h>
+#if defined(_WIN32)
+#define _CRT_SECURE_NO_WARNINGS
+#define WINDOWS_LEAN_AND_MEAN
+#include <windows.h>
 #endif
 
 #include <stdarg.h>
@@ -29,52 +29,39 @@
 
 // Thanks Windows!!!
 #if defined(min)
-  #undef min
+#undef min
 #endif
 #if defined(max)
-  #undef max
+#undef max
 #endif
 
 using namespace std;
 
 // clamp is in std:: from c++17.
 #if !(_MSVC_LANG >= 201703L || __cplusplus >= 201703L)
-template <typename T> inline T clamp(T value, T low, T high) {
+template <typename T>
+inline T clamp(T value, T low, T high) {
     return (value < low) ? low : ((value > high) ? high : value);
 }
 #endif
 
-template<typename T>
-struct clamped
-{
-  clamped(T def_v, T min_v, T max_v) :
-    def(def_v),
-    min(min_v),
-    max(max_v),
-    value(def_v)
-  {
-  }
+template <typename T>
+struct clamped {
+    clamped(T def_v, T min_v, T max_v) : def(def_v), min(min_v), max(max_v), value(def_v) {}
 
-  void clear()
-  {
-    value = def;
-  }
+    void clear() { value = def; }
 
-  operator T() const
-  {
-    return value;
-  }
+    operator T() const { return value; }
 
-  T operator= (T v)
-  {
-    value = clamp<T>(v, min, max);
-    return value;
-  }
+    T operator=(T v) {
+        value = clamp<T>(v, min, max);
+        return value;
+    }
 
-  T def;
-  T min;
-  T max;
-  T value;
+    T def;
+    T min;
+    T max;
+    T value;
 };
 
 /**
@@ -93,15 +80,14 @@ class ktxApp {
   public:
     virtual int main(int argc, char* argv[]) = 0;
     virtual void usage() {
-        cerr <<
-            "  -h, --help    Print this usage message and exit.\n"
-            "  -v, --version Print the version number of this program and exit.\n"
+        cerr << "  -h, --help    Print this usage message and exit.\n"
+                "  -v, --version Print the version number of this program and exit.\n"
 #if defined(_WIN32) && defined(DEBUG)
-            "      --ld      Launch Visual Studio deugger at start up.\n"
+                "      --ld      Launch Visual Studio deugger at start up.\n"
 #endif
             ;
     };
-    string& getName() { return name;  }
+    string& getName() { return name; }
 
   protected:
     struct commandOptions {
@@ -111,15 +97,13 @@ class ktxApp {
         int warn;
         int launchDebugger;
 
-        commandOptions() : test(false), warn(1), launchDebugger(0) { }
+        commandOptions() : test(false), warn(1), launchDebugger(0) {}
     };
 
-    ktxApp(std::string& version, std::string& defaultVersion,
-           commandOptions& options)
-        : version(version), defaultVersion(defaultVersion),
-          options(options) { }
+    ktxApp(std::string& version, std::string& defaultVersion, commandOptions& options)
+        : version(version), defaultVersion(defaultVersion), options(options) {}
 
-    void error(const char *pFmt, ...) {
+    void error(const char* pFmt, ...) {
         va_list args;
         va_start(args, pFmt);
 
@@ -129,7 +113,7 @@ class ktxApp {
         cerr << "\n";
     }
 
-    void warning(const char *pFmt, va_list args) {
+    void warning(const char* pFmt, va_list args) {
         if (options.warn) {
             cerr << name << " warning! ";
             vfprintf(stderr, pFmt, args);
@@ -137,7 +121,7 @@ class ktxApp {
         }
     }
 
-    void warning(const char *pFmt, ...) {
+    void warning(const char* pFmt, ...) {
         if (options.warn) {
             va_list args;
             va_start(args, pFmt);
@@ -185,8 +169,7 @@ class ktxApp {
         return file;
     }
 
-    int strtoi(const char* str)
-    {
+    int strtoi(const char* str) {
         char* endptr;
         int value = (int)strtol(str, &endptr, 0);
         // Some implementations set errno == EINVAL but we can't rely on it.
@@ -200,37 +183,28 @@ class ktxApp {
 
     enum StdinUse { eDisallowStdin, eAllowStdin };
     enum OutfilePos { eNone, eFirst, eLast };
-    void processCommandLine(int argc, char* argv[],
-                            StdinUse stdinStat = eAllowStdin,
-                            OutfilePos outfilePos = eNone)
-    {
+    void processCommandLine(int argc, char* argv[], StdinUse stdinStat = eAllowStdin, OutfilePos outfilePos = eNone) {
         uint32_t i;
         size_t slash, dot;
 
         name = argv[0];
         // For consistent Id, only use the stem of name;
         slash = name.find_last_of('\\');
-        if (slash == string::npos)
-            slash = name.find_last_of('/');
-        if (slash != string::npos)
-            name.erase(0, slash+1);  // Remove directory name.
+        if (slash == string::npos) slash = name.find_last_of('/');
+        if (slash != string::npos) name.erase(0, slash + 1);  // Remove directory name.
         dot = name.find_last_of('.');
-            if (dot != string::npos)
-                name.erase(dot, string::npos); // Remove extension.
+        if (dot != string::npos) name.erase(dot, string::npos);  // Remove extension.
 
         argparser parser(argc, argv);
         processOptions(parser);
 
         i = parser.optind;
         if (argc - i > 0) {
-            if (outfilePos == eFirst)
-                options.outfile = parser.argv[i++];
+            if (outfilePos == eFirst) options.outfile = parser.argv[i++];
             uint32_t infileCount = outfilePos == eLast ? argc - 1 : argc;
             for (; i < infileCount; i++) {
                 if (parser.argv[i][0] == '@') {
-                    if (!loadFileList(parser.argv[i],
-                                      parser.argv[i][1] == '@',
-                                      options.infiles)) {
+                    if (!loadFileList(parser.argv[i], parser.argv[i][1] == '@', options.infiles)) {
                         exit(1);
                     }
                 } else {
@@ -247,13 +221,12 @@ class ktxApp {
                     }
                 }
             }
-            if (outfilePos == eLast)
-                options.outfile = parser.argv[i];
+            if (outfilePos == eLast) options.outfile = parser.argv[i];
         }
 
         if (options.infiles.size() == 0) {
             if (stdinStat == eAllowStdin) {
-                options.infiles.push_back("-"); // Use stdin as 0 files.
+                options.infiles.push_back("-");  // Use stdin as 0 files.
             } else {
                 error("need some input files.");
                 usage();
@@ -265,17 +238,14 @@ class ktxApp {
         }
     }
 
-    bool loadFileList(const string &f, bool relativize,
-                      vector<string>& filenames)
-    {
+    bool loadFileList(const string& f, bool relativize, vector<string>& filenames) {
         string listName(f);
         listName.erase(0, relativize ? 2 : 1);
 
-        FILE *lf = nullptr;
+        FILE* lf = nullptr;
         lf = fopenUTF8(listName, "r");
         if (!lf) {
-            error("failed opening filename list: \"%s\": %s\n",
-                  listName.c_str(), strerror(errno));
+            error("failed opening filename list: \"%s\": %s\n", listName.c_str(), strerror(errno));
             return false;
         }
 
@@ -295,31 +265,30 @@ class ktxApp {
             char buf[4096];
             buf[0] = '\0';
 
-            char *p = fgets(buf, sizeof(buf), lf);
+            char* p = fgets(buf, sizeof(buf), lf);
             if (!p) {
-              if (ferror(lf)) {
-                error("failed reading filename list: \"%s\": %s\n",
-                      listName.c_str(), strerror(errno));
-                fclose(lf);
-                return false;
-              } else
-                break;
+                if (ferror(lf)) {
+                    error("failed reading filename list: \"%s\": %s\n", listName.c_str(), strerror(errno));
+                    fclose(lf);
+                    return false;
+                } else
+                    break;
             }
 
             string readFilename(p);
             while (readFilename.size()) {
                 if (readFilename[0] == ' ')
-                  readFilename.erase(0, 1);
+                    readFilename.erase(0, 1);
                 else
-                  break;
+                    break;
             }
 
             while (readFilename.size()) {
                 const char c = readFilename.back();
                 if ((c == ' ') || (c == '\n') || (c == '\r'))
-                  readFilename.erase(readFilename.size() - 1, 1);
+                    readFilename.erase(readFilename.size() - 1, 1);
                 else
-                  break;
+                    break;
             }
 
             if (readFilename.size()) {
@@ -339,21 +308,21 @@ class ktxApp {
         int opt;
         while ((opt = parser.getopt(&short_opts, option_list.data(), NULL)) != -1) {
             switch (opt) {
-              case 0:
+            case 0:
                 break;
-              case 10000:
+            case 10000:
                 break;
-              case 'h':
+            case 'h':
                 usage();
                 exit(0);
-              case 'v':
+            case 'v':
                 printVersion();
                 exit(0);
-              case ':':
+            case ':':
                 error("missing required option argument.");
                 usage();
                 exit(0);
-              default:
+            default:
                 if (!processOption(parser, opt)) {
                     usage();
                     exit(1);
@@ -361,8 +330,7 @@ class ktxApp {
             }
         }
 #if defined(_WIN32) && defined(DEBUG)
-        if (options.launchDebugger)
-            launchDebugger();
+        if (options.launchDebugger) launchDebugger();
 #endif
     }
 
@@ -381,13 +349,11 @@ class ktxApp {
 #if defined(_WIN32) && defined(DEBUG)
     // For use when debugging stdin with Visual Studio which does not have a
     // "wait for executable to be launched" choice in its debugger settings.
-    bool launchDebugger()
-    {
+    bool launchDebugger() {
         // Get System directory, typically c:\windows\system32
         std::wstring systemDir(MAX_PATH + 1, '\0');
-        UINT nChars = GetSystemDirectoryW(&systemDir[0],
-                                static_cast<UINT>(systemDir.length()));
-        if (nChars == 0) return false; // failed to get system directory
+        UINT nChars = GetSystemDirectoryW(&systemDir[0], static_cast<UINT>(systemDir.length()));
+        if (nChars == 0) return false;  // failed to get system directory
         systemDir.resize(nChars);
 
         // Get process ID and create the command line
@@ -419,29 +385,29 @@ class ktxApp {
     }
 #endif
 
-    string        name;
-    string&       version;
-    string&       defaultVersion;
+    string name;
+    string& version;
+    string& defaultVersion;
 
     commandOptions& options;
 
-    virtual void validateOptions() { }
+    virtual void validateOptions() {}
 
     std::vector<argparser::option> option_list {
-        { "help", argparser::option::no_argument, NULL, 'h' },
-        { "version", argparser::option::no_argument, NULL, 'v' },
-        { "test", argparser::option::no_argument, &options.test, 1},
+        {"help", argparser::option::no_argument, NULL, 'h'}, {"version", argparser::option::no_argument, NULL, 'v'},
+            {"test", argparser::option::no_argument, &options.test, 1},
 #if defined(_WIN32) && defined(DEBUG)
-        { "ld", argparser::option::no_argument, &options.launchDebugger, 1},
+            {"ld", argparser::option::no_argument, &options.launchDebugger, 1},
 #endif
-        // -NSDocumentRevisionsDebugMode YES is appended to the end
-        // of the command by Xcode when debugging and "Allow debugging when
-        // using document Versions Browser" is checked in the scheme. It
-        // defaults to checked and is saved in a user-specific file not the
-        // pbxproj file so it can't be disabled in a generated project.
-        // Remove these from the arguments under consideration.
-        { "-NSDocumentRevisionsDebugMode", argparser::option::required_argument, NULL, 10000 },
-        { nullptr, argparser::option::no_argument, nullptr, 0 }
+            // -NSDocumentRevisionsDebugMode YES is appended to the end
+            // of the command by Xcode when debugging and "Allow debugging when
+            // using document Versions Browser" is checked in the scheme. It
+            // defaults to checked and is saved in a user-specific file not the
+            // pbxproj file so it can't be disabled in a generated project.
+            // Remove these from the arguments under consideration.
+            {"-NSDocumentRevisionsDebugMode", argparser::option::required_argument, NULL, 10000}, {
+            nullptr, argparser::option::no_argument, nullptr, 0
+        }
     };
 
     string short_opts = "hv";
@@ -452,13 +418,12 @@ extern ktxApp& theApp;
 /** @internal
  * @~English
  * @brief Common main for all derived classes.
- * 
+ *
  * Handles rewriting of argv to UTF-8 on Windows.
  * Each app needs to initialize @c theApp to
  * point to an instance of itself.
  */
-int main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]) {
     InitUTF8CLI(argc, argv);
 #if 0
     if (!SetConsoleOutputCP(CP_UTF8)) {
@@ -468,5 +433,3 @@ int main(int argc, char* argv[])
 #endif
     return theApp.main(argc, argv);
 }
-
-

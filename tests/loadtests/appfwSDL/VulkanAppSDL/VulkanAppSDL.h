@@ -25,16 +25,15 @@
 
 class VulkanAppSDL : public AppBaseSDL {
   public:
-    VulkanAppSDL(const char* const name,
-             int width, int height,
-             const uint32_t version,
-             bool enableTextOverlay)
-            : AppBaseSDL(name), w_width(width), w_height(height),
-              subOptimalPresentWarned(false), validate(false),
-              vkVersion(version),
-              enableTextOverlay(enableTextOverlay),
-              textOverlay(nullptr)
-    {
+    VulkanAppSDL(const char* const name, int width, int height, const uint32_t version, bool enableTextOverlay)
+        : AppBaseSDL(name),
+          w_width(width),
+          w_height(height),
+          subOptimalPresentWarned(false),
+          validate(false),
+          vkVersion(version),
+          enableTextOverlay(enableTextOverlay),
+          textOverlay(nullptr) {
         // The overridden new below will zero the storage. Thus
         // we avoid a long list of initializers.
         appTitle = name;
@@ -54,9 +53,7 @@ class VulkanAppSDL : public AppBaseSDL {
         return storage;
     }
 
-    static void operator delete(void* storage, size_t) {
-        ::operator delete(storage);
-    }
+    static void operator delete(void* storage, size_t) { ::operator delete(storage); }
 
     void updateTextOverlay();
 
@@ -91,36 +88,24 @@ class VulkanAppSDL : public AppBaseSDL {
 
     enum stencilRequirement { eNoStencil = 0, eStencil = 1 };
     enum depthRequirement { e16bits = 0, e24bits = 1, e32bits = 2 };
-    bool getSupportedDepthFormat(vk::PhysicalDevice gpu,
-                                 stencilRequirement requiredStencil,
-                                 depthRequirement requiredDepth,
-                                 vk::ImageTiling tiling,
-                                 vk::Format& pFormat,
-                                 vk::ImageAspectFlags& pAspectMask);
+    bool getSupportedDepthFormat(vk::PhysicalDevice gpu, stencilRequirement requiredStencil, depthRequirement requiredDepth,
+                                 vk::ImageTiling tiling, vk::Format& pFormat, vk::ImageAspectFlags& pAspectMask);
 
     // Sets text on window title bar.
     void setWindowTitle();
 
-    void setImageLayout(VkImage image, VkImageAspectFlags aspectMask,
-                        VkImageLayout old_image_layout,
-                        VkImageLayout new_image_layout,
-                        VkAccessFlags srcAccessMask);
+    void setImageLayout(VkImage image, VkImageAspectFlags aspectMask, VkImageLayout old_image_layout,
+                        VkImageLayout new_image_layout, VkAccessFlags srcAccessMask);
 
-    VKAPI_ATTR VkBool32 VKAPI_CALL
-    debugFunc(VkFlags msgFlags, VkDebugReportObjectTypeEXT objType,
-              uint64_t srcObject, size_t location, int32_t msgCode,
-              const char *pLayerPrefix, const char *pMsg);
-    std::string& wrapText(std::string& source, size_t width = 70,
-                          const std::string& whitespace = " \t\r");
-    uint32_t showDebugReport(uint32_t mbFlags, const std::string title,
-                             std::string message, bool enableAbort);
+    VKAPI_ATTR VkBool32 VKAPI_CALL debugFunc(VkFlags msgFlags, VkDebugReportObjectTypeEXT objType, uint64_t srcObject,
+                                             size_t location, int32_t msgCode, const char* pLayerPrefix, const char* pMsg);
+    std::string& wrapText(std::string& source, size_t width = 70, const std::string& whitespace = " \t\r");
+    uint32_t showDebugReport(uint32_t mbFlags, const std::string title, std::string message, bool enableAbort);
 
-    static bool checkLayers(uint32_t nameCount, const char **names,
-                            uint32_t layerCount, VkLayerProperties *layers);
-    static VKAPI_ATTR VkBool32 VKAPI_CALL
-    debugFunc(VkFlags msgFlags, VkDebugReportObjectTypeEXT objType,
-              uint64_t srcObject, size_t location, int32_t msgCode,
-              const char *pLayerPrefix, const char *pMsg, void *pUserData);
+    static bool checkLayers(uint32_t nameCount, const char** names, uint32_t layerCount, VkLayerProperties* layers);
+    static VKAPI_ATTR VkBool32 VKAPI_CALL debugFunc(VkFlags msgFlags, VkDebugReportObjectTypeEXT objType, uint64_t srcObject,
+                                                    size_t location, int32_t msgCode, const char* pLayerPrefix, const char* pMsg,
+                                                    void* pUserData);
 
     bool prepared = false;
     // Set true if want presents v-sync'ed.
@@ -159,7 +144,7 @@ class VulkanAppSDL : public AppBaseSDL {
     std::vector<vk::ShaderModule> shaderModules;
 
     bool enableTextOverlay = false;
-    VulkanTextOverlay *textOverlay;
+    VulkanTextOverlay* textOverlay;
     // List of shader modules created (stored for cleanup)
 
     VkDebugReportCallbackEXT msgCallback;

@@ -11,7 +11,6 @@
 #include <string_view>
 #include <vector>
 
-
 // -------------------------------------------------------------------------------------------------
 
 namespace ktx {
@@ -23,7 +22,7 @@ using RangeIndex = uint32_t;
 static constexpr RangeIndex RangeEnd = std::numeric_limits<RangeIndex>::max();
 
 class SelectorRange {
-public:
+  public:
     // Half open range [begin, end)
     struct HalfRange {
         RangeIndex begin = 0;
@@ -34,69 +33,50 @@ public:
         }
     };
 
-private:
+  private:
     std::vector<HalfRange> ranges;
 
-public:
-    SelectorRange(RangeIndex begin, RangeIndex end) {
-        ranges.emplace_back(HalfRange{begin, end});
-    }
+  public:
+    SelectorRange(RangeIndex begin, RangeIndex end) { ranges.emplace_back(HalfRange{begin, end}); }
     SelectorRange() = default;
-    explicit SelectorRange(All_t) : SelectorRange(0, RangeEnd) {};
-    explicit SelectorRange(RangeIndex index) : SelectorRange(index, index + 1u) {};
+    explicit SelectorRange(All_t) : SelectorRange(0, RangeEnd){};
+    explicit SelectorRange(RangeIndex index) : SelectorRange(index, index + 1u){};
 
-    [[nodiscard]] friend bool operator==(const SelectorRange& lhs, const SelectorRange& rhs) {
-        return lhs.ranges == rhs.ranges;
-    }
+    [[nodiscard]] friend bool operator==(const SelectorRange& lhs, const SelectorRange& rhs) { return lhs.ranges == rhs.ranges; }
 
     [[nodiscard]] bool is_empty() const {
-        if (ranges.empty())
-            return true;
+        if (ranges.empty()) return true;
         for (const auto& range : ranges)
-            if (range.begin != range.end)
-                return false;
+            if (range.begin != range.end) return false;
         return true;
     }
 
     [[nodiscard]] bool is_single() const {
-        if (ranges.empty())
-            return false;
+        if (ranges.empty()) return false;
         const auto index = ranges[0].begin;
         for (const auto& range : ranges)
-            if (range.begin != index || range.end != index + 1)
-                return false;
+            if (range.begin != index || range.end != index + 1) return false;
         return true;
     }
 
-    [[nodiscard]] bool is_multi() const {
-        return !is_single();
-    }
+    [[nodiscard]] bool is_multi() const { return !is_single(); }
 
-    void clear() {
-        ranges.clear();
-    }
+    void clear() { ranges.clear(); }
 
-    [[nodiscard]] bool is_undefined() const {
-        return ranges.empty();
-    }
+    [[nodiscard]] bool is_undefined() const { return ranges.empty(); }
 
-    void add(HalfRange range) {
-        ranges.emplace_back(range);
-    }
+    void add(HalfRange range) { ranges.emplace_back(range); }
 
     [[nodiscard]] bool contains(RangeIndex index) const {
         for (const auto& range : ranges)
-            if (range.begin <= index && index < range.end)
-                return true;
+            if (range.begin <= index && index < range.end) return true;
         return false;
     }
 
     [[nodiscard]] bool validate(RangeIndex last) const {
         for (const auto& range : ranges) {
-            if (range.begin > last)
-                return false;
-            if (range.end > last && range.end != RangeEnd)
-                return false;
+            if (range.begin > last) return false;
+            if (range.end > last && range.end != RangeEnd) return false;
         }
         return true;
     }
@@ -104,15 +84,12 @@ public:
     [[nodiscard]] RangeIndex last() const {
         RangeIndex last = 0;
         for (const auto& range : ranges)
-            if (range.begin != range.end && range.end > last + 1)
-                last = range.end - 1;
+            if (range.begin != range.end && range.end > last + 1) last = range.end - 1;
         return last;
     }
 
     // Only used for fmt print
-    [[nodiscard]] const std::vector<HalfRange>& _ranges() const {
-        return ranges;
-    }
+    [[nodiscard]] const std::vector<HalfRange>& _ranges() const { return ranges; }
 
     SelectorRange& operator=(All_t) & {
         ranges.clear();
@@ -126,31 +103,20 @@ public:
         return *this;
     }
 
-    friend bool operator==(const SelectorRange& var, All_t) {
-        return var == SelectorRange{all};
-    }
-    friend bool operator==(All_t, const SelectorRange& var) {
-        return var == all;
-    }
-    friend bool operator!=(const SelectorRange& var, All_t) {
-        return !(var == all);
-    }
-    friend bool operator!=(All_t, const SelectorRange& var) {
-        return !(var == all);
-    }
-    friend bool operator==(const SelectorRange& var, RangeIndex index) {
-        return var == SelectorRange{index};
-    }
-    friend bool operator==(RangeIndex index, const SelectorRange& var) {
-        return var == index;
-    }
+    friend bool operator==(const SelectorRange& var, All_t) { return var == SelectorRange{all}; }
+    friend bool operator==(All_t, const SelectorRange& var) { return var == all; }
+    friend bool operator!=(const SelectorRange& var, All_t) { return !(var == all); }
+    friend bool operator!=(All_t, const SelectorRange& var) { return !(var == all); }
+    friend bool operator==(const SelectorRange& var, RangeIndex index) { return var == SelectorRange{index}; }
+    friend bool operator==(RangeIndex index, const SelectorRange& var) { return var == index; }
 };
 
-} // namespace ktx
+}  // namespace ktx
 
 namespace fmt {
 
-template<> struct formatter<ktx::SelectorRange> : fmt::formatter<uint32_t> {
+template <>
+struct formatter<ktx::SelectorRange> : fmt::formatter<uint32_t> {
     template <typename FormatContext>
     auto format(const ktx::SelectorRange& var, FormatContext& ctx) const -> decltype(ctx.out()) {
         if (var == ktx::all)
@@ -184,7 +150,7 @@ template<> struct formatter<ktx::SelectorRange> : fmt::formatter<uint32_t> {
     }
 };
 
-} // namespace fmt
+}  // namespace fmt
 
 namespace ktx {
 
@@ -193,9 +159,10 @@ namespace ktx {
 /// KTX fragments support addressing the KTX file’s payload along 5 dimensions
 ///     mip - This dimension denotes a range of mip levels in the KTX file.
 ///     stratal - This dimension denotes a range of array layers when the KTX file contains an array texture.
-///     temporal - This dimension denotes a specific time range in a KTX file containing KTXanimData metadata. Since a frame is an array layer, this is an alternate way of selecting in the stratal dimension.
-///     facial - This dimension denotes a range of faces when the KTX file contains a cube map.
-///     spatial - xyzwhd This dimension denotes a range of pixels in the KTX file such as "a volume with size (100,100,1) with its origin at (10,10,0).
+///     temporal - This dimension denotes a specific time range in a KTX file containing KTXanimData metadata. Since a frame is an
+///     array layer, this is an alternate way of selecting in the stratal dimension. facial - This dimension denotes a range of
+///     faces when the KTX file contains a cube map. spatial - xyzwhd This dimension denotes a range of pixels in the KTX file such
+///     as "a volume with size (100,100,1) with its origin at (10,10,0).
 struct FragmentURI {
     SelectorRange mip;
     SelectorRange stratal;
@@ -204,9 +171,7 @@ struct FragmentURI {
     // SelectorSpatial spatial; // Spatial selector is outside the current scope
 
     bool validate(uint32_t numLevels, uint32_t numLayers, uint32_t numFaces) {
-        return mip.validate(numLevels) &&
-                stratal.validate(numLayers) &&
-                facial.validate(numFaces);
+        return mip.validate(numLevels) && stratal.validate(numLayers) && facial.validate(numFaces);
     }
 };
 
@@ -263,4 +228,4 @@ struct FragmentURI {
     return result;
 }
 
-} // namespace ktx
+}  // namespace ktx

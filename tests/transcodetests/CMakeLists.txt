@@ -47,21 +47,21 @@ if(WIN32)
     # See comment in ../../CMakeLists.txt around line 625.
     if (transcoder_options)
         set_source_files_properties(
-            ${PROJECT_SOURCE_DIR}/lib/basisu/transcoder/basisu_transcoder.cpp
+            ${PROJECT_SOURCE_DIR}/external/basisu/transcoder/basisu_transcoder.cpp
             PROPERTIES COMPILE_OPTIONS "${transcoder_options}"
         )
     endif()
     if (zstd_options)
         set_source_files_properties(
-            ${PROJECT_SOURCE_DIR}/lib/basisu/zstd/zstd.c
+            ${PROJECT_SOURCE_DIR}/external/basisu/zstd/zstd.c
             PROPERTIES COMPILE_OPTIONS "${zstd_options}"
         )
     endif()
 
     # The Windows ktx.dll does not export needed symbols. This is a workaround to get it linking.
     add_library(obj_tmp_basisu OBJECT
-        $<$<NOT:$<BOOL:${KTX_FEATURE_STATIC_LIBRARY}>>:${PROJECT_SOURCE_DIR}/lib/basisu/transcoder/basisu_transcoder.cpp>
-        ${PROJECT_SOURCE_DIR}/lib/basisu/zstd/zstd.c
+        $<$<NOT:$<BOOL:${KTX_FEATURE_STATIC_LIBRARY}>>:${PROJECT_SOURCE_DIR}/external/basisu/transcoder/basisu_transcoder.cpp>
+        ${PROJECT_SOURCE_DIR}/external/basisu/zstd/zstd.c
         )
     target_compile_definitions(
         obj_tmp_basisu

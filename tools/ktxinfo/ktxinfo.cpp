@@ -24,26 +24,23 @@
 #include "argparser.h"
 #include "version.h"
 #if (IMAGE_DEBUG) && defined(_DEBUG) && defined(_WIN32) && !defined(_WIN32_WCE)
-#  include "imdebug.h"
+#include "imdebug.h"
 #elif defined(IMAGE_DEBUG) && IMAGE_DEBUG
-#  undef IMAGE_DEBUG
-#  define IMAGE_DEBUG 0
+#undef IMAGE_DEBUG
+#define IMAGE_DEBUG 0
 #endif
 
 struct commandOptions {
-    string      outfile;
-    string      outdir;
-    bool        force;
+    string outfile;
+    string outdir;
+    bool force;
     std::vector<string> infiles;
 
-    commandOptions() {
-        force = false;
-    }
+    commandOptions() { force = false; }
 };
 
 #if IMAGE_DEBUG
-static void dumpImage(char* name, int width, int height, int components,
-                      int componentSize, bool isLuminance,
+static void dumpImage(char* name, int width, int height, int components, int componentSize, bool isLuminance,
                       unsigned char* srcImage);
 #endif
 
@@ -101,50 +98,41 @@ class ktxInfo : public ktxApp {
     ktxApp::commandOptions options;
 };
 
+ktxInfo::ktxInfo() : ktxApp(myversion, mydefversion, options) {}
 
-ktxInfo::ktxInfo() : ktxApp(myversion, mydefversion, options)
-{
-
-}
-
-
-void
-ktxInfo::usage()
-{
-    cerr <<
-        "Usage: " << name << " [options] [<infile> ...]\n"
-        "\n"
-        "  infile ...   The file or files about which to print information. If\n"
-        "               not specified, stdin is read.\n"
-        "\n"
-        "  Note that ktxinfo prints using UTF-8 encoding. If your console is not\n"
-        "  set for UTF-8 you will see incorrect characters in output of the file\n"
-        "  identifier on each side of the \"KTX nn\".\n"
-        "\n"
-        "  Options are:\n\n";
-        ktxApp::usage();
+void ktxInfo::usage() {
+    cerr << "Usage: " << name
+         << " [options] [<infile> ...]\n"
+            "\n"
+            "  infile ...   The file or files about which to print information. If\n"
+            "               not specified, stdin is read.\n"
+            "\n"
+            "  Note that ktxinfo prints using UTF-8 encoding. If your console is not\n"
+            "  set for UTF-8 you will see incorrect characters in output of the file\n"
+            "  identifier on each side of the \"KTX nn\".\n"
+            "\n"
+            "  Options are:\n\n";
+    ktxApp::usage();
 }
 
 static ktxInfo ktxinfo;
 ktxApp& theApp = ktxinfo;
 
-int
-ktxInfo::main(int argc, char* argv[])
-{
-    FILE *inf;
+int ktxInfo::main(int argc, char* argv[]) {
+    FILE* inf;
     int exitCode = 0;
 
     processCommandLine(argc, argv);
 
     std::vector<string>::const_iterator it;
     for (it = options.infiles.begin(); it < options.infiles.end(); it++) {
-       string infile = *it;
+        string infile = *it;
 
         if (!infile.compare("-")) {
             inf = stdin;
 #if defined(_WIN32)
             /* Set "stdin" to have binary mode */
-            (void)_setmode( _fileno( stdin ), _O_BINARY );
+            (void)_setmode(_fileno(stdin), _O_BINARY);
 #endif
         } else {
             inf = fopenUTF8(infile, "rb");
@@ -154,35 +142,25 @@ ktxInfo::main(int argc, char* argv[])
             KTX_error_code result;
 
             result = ktxPrintInfoForStdioStream(inf);
-            if (result ==  KTX_FILE_UNEXPECTED_EOF) {
-                cerr << name
-                     << ": Unexpected end of file reading \""
-                     << (infile.compare("-") ? infile : "stdin" ) << "\"."
-                     << endl;
+            if (result == KTX_FILE_UNEXPECTED_EOF) {
+                cerr << name << ": Unexpected end of file reading \"" << (infile.compare("-") ? infile : "stdin") << "\"." << endl;
                 exitCode = 2;
                 goto cleanup;
             }
             if (result == KTX_UNKNOWN_FILE_FORMAT) {
-                cerr << name
-                     << ": " << (infile.compare("-") ? infile : "stdin")
-                     << " is not a KTX or KTX2 file."
-                     << endl;
+                cerr << name << ": " << (infile.compare("-") ? infile : "stdin") << " is not a KTX or KTX2 file." << endl;
                 exitCode = 2;
                 goto cleanup;
             }
             if (result == KTX_FILE_READ_ERROR) {
-                cerr << name
-                    << ": Error reading \""
-                    << (infile.compare("-") ? infile : "stdin") << "\"."
-                    << strerror(errno) << endl;
+                cerr << name << ": Error reading \"" << (infile.compare("-") ? infile : "stdin") << "\"." << strerror(errno)
+                     << endl;
                 exitCode = 2;
                 goto cleanup;
             }
         } else {
-            cerr << name
-                 << " could not open input file \""
-                 << (infile.compare("-") ? infile : "stdin") << "\". "
-                 << strerror(errno) << endl;
+            cerr << name << " could not open input file \"" << (infile.compare("-") ? infile : "stdin") << "\". " << strerror(errno)
+                 << endl;
             exitCode = 2;
             goto cleanup;
         }
@@ -192,26 +170,18 @@ cleanup:
     return exitCode;
 }
 
-
-bool
-ktxInfo::processOption(argparser&, int)
-{
-    return false;
-}
-
+bool ktxInfo::processOption(argparser&, int) { return false; }
 
 #if IMAGE_DEBUG
-static void
-dumpImage(char* name, int width, int height, int components, int componentSize,
-          bool isLuminance, unsigned char* srcImage)
-{
+static void dumpImage(char* name, int width, int height, int components, int componentSize, bool isLuminance,
+                      unsigned char* srcImage) {
     char formatstr[2048];
-    char *imagefmt;
-    char *fmtname;
+    char* imagefmt;
+    char* fmtname;
     int bitsPerComponent = componentSize == 2 ? 16 : 8;
 
     switch (components) {
-      case 1:
+    case 1:
         if (isLuminance) {
             imagefmt = "lum b=";
             fmtname = "LUMINANCE";
@@ -220,27 +190,22 @@ dumpImage(char* name, int width, int height, int components, int componentSize,
             fmtname = "ALPHA";
         }
         break;
-      case 2:
+    case 2:
         imagefmt = "luma b=";
         fmtname = "LUMINANCE_ALPHA";
         break;
-      case 3:
+    case 3:
         imagefmt = "rgb b=";
         fmtname = "RGB";
         break;
-      case 4:
+    case 4:
         imagefmt = "rgba b=";
         fmtname = "RGBA";
         break;
-      default:
+    default:
         assert(0);
     }
-    sprintf(formatstr, "%s%d w=%%d h=%%d t=\'%s %s%d\' %%p",
-            imagefmt,
-            bitsPerComponent,
-            name,
-            fmtname,
-            bitsPerComponent);
+    sprintf(formatstr, "%s%d w=%%d h=%%d t=\'%s %s%d\' %%p", imagefmt, bitsPerComponent, name, fmtname, bitsPerComponent);
     imdebug(formatstr, width, height, srcImage);
 }
 #endif

@@ -25,18 +25,12 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-class Texture3d : public InstancedSampleBase
-{
+class Texture3d : public InstancedSampleBase {
   public:
-    Texture3d(VulkanContext& vkctx,
-                 uint32_t width, uint32_t height,
-                 const char* const szArgs,
-                 const std::string sBasePath);
+    Texture3d(VulkanContext& vkctx, uint32_t width, uint32_t height, const char* const szArgs, const std::string sBasePath);
 
-    static VulkanLoadTestSample*
-    create(VulkanContext& vkctx,
-           uint32_t width, uint32_t height,
-           const char* const szArgs, const std::string sBasePath);
+    static VulkanLoadTestSample* create(VulkanContext& vkctx, uint32_t width, uint32_t height, const char* const szArgs,
+                                        const std::string sBasePath);
 
   protected:
     virtual void addSubclassPushConstantRanges(PushConstantRanges&);

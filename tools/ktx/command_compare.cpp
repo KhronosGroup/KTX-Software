@@ -24,26 +24,24 @@
 #include <ktx.h>
 #include <ktxint.h>
 
-
 // -------------------------------------------------------------------------------------------------
 
 namespace ktx {
 
 extern "C" {
-    const char* ktxBUImageFlagsBitString(ktx_uint32_t bit_index, bool bit_value);
+const char* ktxBUImageFlagsBitString(ktx_uint32_t bit_index, bool bit_value);
 }
 
 template <typename T>
 struct DiffBase {
-    DiffBase(const std::string_view textHeaderIn, const std::string_view jsonPathIn,
-        const std::optional<T>& value1, const std::optional<T>& value2)
+    DiffBase(const std::string_view textHeaderIn, const std::string_view jsonPathIn, const std::optional<T>& value1,
+             const std::optional<T>& value2)
         : textHeader(textHeaderIn), jsonPath(jsonPathIn), values(), different(value1 != value2) {
         values[0] = value1;
         values[1] = value2;
     }
 
-    DiffBase(const std::string_view textHeaderIn, const std::string_view jsonPathIn,
-        const T& value1, const T& value2)
+    DiffBase(const std::string_view textHeaderIn, const std::string_view jsonPathIn, const T& value1, const T& value2)
         : textHeader(textHeaderIn), jsonPath(jsonPathIn), values(), different(value1 != value2) {
         values[0] = value1;
         values[1] = value2;
@@ -52,34 +50,27 @@ struct DiffBase {
     const std::string_view textHeader;
     const std::string_view jsonPath;
 
-    bool isDifferent() const {
-        return different;
-    }
+    bool isDifferent() const { return different; }
 
-    bool hasValue(std::size_t index) const {
-        return values[index].has_value();
-    }
+    bool hasValue(std::size_t index) const { return values[index].has_value(); }
 
     virtual std::string value(std::size_t index, OutputFormat format) const = 0;
 
-protected:
-    const T& rawValue(std::size_t index) const {
-        return *values[index];
-    }
+  protected:
+    const T& rawValue(std::size_t index) const { return *values[index]; }
 
-private:
+  private:
     std::optional<T> values[2];
     const bool different;
 };
 
 template <typename T>
 struct Diff : public DiffBase<T> {
-    Diff(const std::string_view textHeaderIn, const std::string_view jsonPathIn,
-        const std::optional<T>& value1, const std::optional<T>& value2)
+    Diff(const std::string_view textHeaderIn, const std::string_view jsonPathIn, const std::optional<T>& value1,
+         const std::optional<T>& value2)
         : DiffBase<T>(textHeaderIn, jsonPathIn, value1, value2) {}
 
-    Diff(const std::string_view textHeaderIn, const std::string_view jsonPathIn,
-        const T& value1, const T& value2)
+    Diff(const std::string_view textHeaderIn, const std::string_view jsonPathIn, const T& value1, const T& value2)
         : DiffBase<T>(textHeaderIn, jsonPathIn, value1, value2) {}
 
     virtual std::string value(std::size_t index, OutputFormat) const override {
@@ -88,11 +79,10 @@ struct Diff : public DiffBase<T> {
 };
 
 struct DiffIdentifier : public DiffBase<std::array<uint8_t, sizeof(KTX_header2::identifier)>> {
-    DiffIdentifier(const std::string_view textHeaderIn, const std::string_view jsonPathIn,
-        const KTX_header2& value1, const KTX_header2& value2)
-        : DiffBase<std::array<uint8_t, sizeof(KTX_header2::identifier)>>(textHeaderIn, jsonPathIn,
-            to_array(value1), to_array(value2)) {
-    }
+    DiffIdentifier(const std::string_view textHeaderIn, const std::string_view jsonPathIn, const KTX_header2& value1,
+                   const KTX_header2& value2)
+        : DiffBase<std::array<uint8_t, sizeof(KTX_header2::identifier)>>(textHeaderIn, jsonPathIn, to_array(value1),
+                                                                         to_array(value2)) {}
 
     virtual std::string value(std::size_t index, OutputFormat format) const override {
         // Convert identifier for better display.
@@ -120,10 +110,8 @@ struct DiffIdentifier : public DiffBase<std::array<uint8_t, sizeof(KTX_header2::
                     u8identifier[idlen] = 'r';
                     break;
                 default:
-                    nchars = snprintf(&u8identifier[idlen],
-                                    sizeof(u8identifier) - idlen,
-                                    format == OutputFormat::text ? "\\x%02X" : "\\u%04X",
-                                    identifier[i]);
+                    nchars = snprintf(&u8identifier[idlen], sizeof(u8identifier) - idlen,
+                                      format == OutputFormat::text ? "\\x%02X" : "\\u%04X", identifier[i]);
                     idlen += nchars - 1;
                 }
             } else {
@@ -137,7 +125,7 @@ struct DiffIdentifier : public DiffBase<std::array<uint8_t, sizeof(KTX_header2::
         }
     }
 
-private:
+  private:
     static std::array<uint8_t, sizeof(KTX_header2::identifier)> to_array(const KTX_header2& header) {
         std::array<uint8_t, sizeof(KTX_header2::identifier)> arr{};
         for (std::size_t i = 0; i < sizeof(KTX_header2::identifier); ++i) {
@@ -149,12 +137,11 @@ private:
 
 template <typename T>
 struct DiffHex : public DiffBase<T> {
-    DiffHex(const std::string_view textHeaderIn, const std::string_view jsonPathIn,
-        const std::optional<T>& value1, const std::optional<T>& value2)
+    DiffHex(const std::string_view textHeaderIn, const std::string_view jsonPathIn, const std::optional<T>& value1,
+            const std::optional<T>& value2)
         : DiffBase<T>(textHeaderIn, jsonPathIn, value1, value2) {}
 
-    DiffHex(const std::string_view textHeaderIn, const std::string_view jsonPathIn,
-        const T& value1, const T& value2)
+    DiffHex(const std::string_view textHeaderIn, const std::string_view jsonPathIn, const T& value1, const T& value2)
         : DiffBase<T>(textHeaderIn, jsonPathIn, value1, value2) {}
 
     virtual std::string value(std::size_t index, OutputFormat format) const override {
@@ -168,12 +155,11 @@ struct DiffHex : public DiffBase<T> {
 
 template <typename T>
 struct DiffHexFixedWidth : public DiffBase<T> {
-    DiffHexFixedWidth(const std::string_view textHeaderIn, const std::string_view jsonPathIn,
-        const std::optional<T>& value1, const std::optional<T>& value2)
+    DiffHexFixedWidth(const std::string_view textHeaderIn, const std::string_view jsonPathIn, const std::optional<T>& value1,
+                      const std::optional<T>& value2)
         : DiffBase<T>(textHeaderIn, jsonPathIn, value1, value2) {}
 
-    DiffHexFixedWidth(const std::string_view textHeaderIn, const std::string_view jsonPathIn,
-        const T& value1, const T& value2)
+    DiffHexFixedWidth(const std::string_view textHeaderIn, const std::string_view jsonPathIn, const T& value1, const T& value2)
         : DiffBase<T>(textHeaderIn, jsonPathIn, value1, value2) {}
 
     virtual std::string value(std::size_t index, OutputFormat format) const override {
@@ -187,18 +173,16 @@ struct DiffHexFixedWidth : public DiffBase<T> {
 
 template <typename T>
 struct DiffEnum : public DiffBase<T> {
-    DiffEnum(const std::string_view textHeaderIn, const std::string_view jsonPathIn,
-        const std::optional<int32_t>& value1, const std::optional<int32_t>& value2,
-        const std::function<const char*(std::size_t)>& strFunc)
-        : DiffBase<T>(textHeaderIn, jsonPathIn,
-            value1.has_value() ? T(*value1) : std::optional<T>(),
-            value2.has_value() ? T(*value2) : std::optional<T>()) {
+    DiffEnum(const std::string_view textHeaderIn, const std::string_view jsonPathIn, const std::optional<int32_t>& value1,
+             const std::optional<int32_t>& value2, const std::function<const char*(std::size_t)>& strFunc)
+        : DiffBase<T>(textHeaderIn, jsonPathIn, value1.has_value() ? T(*value1) : std::optional<T>(),
+                      value2.has_value() ? T(*value2) : std::optional<T>()) {
         if (value1.has_value()) enumNames[0] = strFunc(0);
         if (value2.has_value()) enumNames[1] = strFunc(1);
     }
 
     DiffEnum(const std::string_view textHeaderIn, const std::string_view jsonPathIn, const int32_t& value1, const int32_t& value2,
-        const std::function<const char*(std::size_t)>& strFunc)
+             const std::function<const char*(std::size_t)>& strFunc)
         : DiffBase<T>(textHeaderIn, jsonPathIn, T(value1), T(value2)) {
         enumNames[0] = strFunc(0);
         enumNames[1] = strFunc(1);
@@ -229,9 +213,9 @@ struct DiffEnum : public DiffBase<T> {
         return *this;
     }
 
-private:
+  private:
     bool hexInText = false;
-    const char* enumNames[2] = { nullptr, nullptr };
+    const char* enumNames[2] = {nullptr, nullptr};
 };
 
 template <>
@@ -265,22 +249,21 @@ struct DiffEnum<ktxSupercmpScheme> : public DiffBase<ktxSupercmpScheme> {
         }
     }
 
-private:
-    const char* enumNames[2] = { nullptr, nullptr };
+  private:
+    const char* enumNames[2] = {nullptr, nullptr};
 };
 
 struct DiffFlags : DiffBase<uint32_t> {
-    DiffFlags(const std::string_view textHeaderIn, const std::string_view jsonPathIn,
-        const std::optional<uint32_t>& value1, const std::optional<uint32_t>& value2,
-        const char*(*bitToString)(uint32_t, bool))
+    DiffFlags(const std::string_view textHeaderIn, const std::string_view jsonPathIn, const std::optional<uint32_t>& value1,
+              const std::optional<uint32_t>& value2, const char* (*bitToString)(uint32_t, bool))
         : DiffBase<uint32_t>(textHeaderIn, jsonPathIn, value1, value2), toStringFn(bitToString) {}
 
-    DiffFlags(const std::string_view textHeaderIn, const std::string_view jsonPathIn, const uint32_t& value1, const uint32_t& value2,
-        const char*(*bitToString)(uint32_t, bool))
+    DiffFlags(const std::string_view textHeaderIn, const std::string_view jsonPathIn, const uint32_t& value1,
+              const uint32_t& value2, const char* (*bitToString)(uint32_t, bool))
         : DiffBase<uint32_t>(textHeaderIn, jsonPathIn, value1, value2), toStringFn(bitToString) {}
 
     virtual std::string value(std::size_t index, OutputFormat format) const override {
-        const auto space = format != OutputFormat::json_mini ?  " " : "";
+        const auto space = format != OutputFormat::json_mini ? " " : "";
         const auto quote = format == OutputFormat::text ? "" : "\"";
 
         std::stringstream formattedValue;
@@ -314,22 +297,22 @@ struct DiffFlags : DiffBase<uint32_t> {
         }
     }
 
-private:
-    const char*(*toStringFn)(uint32_t, bool);
+  private:
+    const char* (*toStringFn)(uint32_t, bool);
 };
 
 template <typename T, std::size_t N>
 struct DiffArray : public DiffBase<std::array<T, N>> {
-    DiffArray(const std::string_view textHeaderIn, const std::string_view jsonPathIn,
-        const std::optional<std::array<T, N>>& value1, const std::optional<std::array<T, N>>& value2)
+    DiffArray(const std::string_view textHeaderIn, const std::string_view jsonPathIn, const std::optional<std::array<T, N>>& value1,
+              const std::optional<std::array<T, N>>& value2)
         : DiffBase<std::array<T, N>>(textHeaderIn, jsonPathIn, value1, value2) {}
 
-    DiffArray(const std::string_view textHeaderIn, const std::string_view jsonPathIn,
-        const std::array<T, N>& value1, const std::array<T, N>& value2)
+    DiffArray(const std::string_view textHeaderIn, const std::string_view jsonPathIn, const std::array<T, N>& value1,
+              const std::array<T, N>& value2)
         : DiffBase<std::array<T, N>>(textHeaderIn, jsonPathIn, value1, value2) {}
 
     virtual std::string value(std::size_t index, OutputFormat format) const override {
-        const auto space = format != OutputFormat::json_mini ?  " " : "";
+        const auto space = format != OutputFormat::json_mini ? " " : "";
 
         std::stringstream formattedValue;
         bool first = true;
@@ -352,15 +335,15 @@ struct DiffArray : public DiffBase<std::array<T, N>> {
 
 struct DiffRawBytes : public DiffBase<std::vector<uint8_t>> {
     DiffRawBytes(const std::string_view textHeaderIn, const std::string_view jsonPathIn,
-        const std::optional<std::vector<uint8_t>>& value1, const std::optional<std::vector<uint8_t>>& value2)
+                 const std::optional<std::vector<uint8_t>>& value1, const std::optional<std::vector<uint8_t>>& value2)
         : DiffBase<std::vector<uint8_t>>(textHeaderIn, jsonPathIn, value1, value2) {}
 
-    DiffRawBytes(const std::string_view textHeaderIn, const std::string_view jsonPathIn,
-        const std::vector<uint8_t>& value1, const std::vector<uint8_t>& value2)
+    DiffRawBytes(const std::string_view textHeaderIn, const std::string_view jsonPathIn, const std::vector<uint8_t>& value1,
+                 const std::vector<uint8_t>& value2)
         : DiffBase<std::vector<uint8_t>>(textHeaderIn, jsonPathIn, value1, value2) {}
 
     virtual std::string value(std::size_t index, OutputFormat format) const override {
-        const auto space = format != OutputFormat::json_mini ?  " " : "";
+        const auto space = format != OutputFormat::json_mini ? " " : "";
 
         std::stringstream formattedValue;
         bool first = true;
@@ -387,18 +370,19 @@ struct DiffRawBytes : public DiffBase<std::vector<uint8_t>> {
 
 template <typename T>
 struct DiffComplex {
-    DiffComplex(const std::string_view textHeaderIn, const std::string_view jsonPathIn,
-        const std::optional<T>& value1, const std::optional<T>& value2)
-        : textHeader(textHeaderIn), jsonPath(jsonPathIn), values(),
-          different((value1.has_value() && value2.has_value())
-            ? value1->isDifferent(*value2)
-            : (!value1.has_value() || !value2.has_value()) ? true : false) {
+    DiffComplex(const std::string_view textHeaderIn, const std::string_view jsonPathIn, const std::optional<T>& value1,
+                const std::optional<T>& value2)
+        : textHeader(textHeaderIn),
+          jsonPath(jsonPathIn),
+          values(),
+          different((value1.has_value() && value2.has_value())     ? value1->isDifferent(*value2)
+                    : (!value1.has_value() || !value2.has_value()) ? true
+                                                                   : false) {
         values[0] = value1;
         values[1] = value2;
     }
 
-    DiffComplex(const std::string_view textHeaderIn, const std::string_view jsonPathIn,
-        const T& value1, const T& value2)
+    DiffComplex(const std::string_view textHeaderIn, const std::string_view jsonPathIn, const T& value1, const T& value2)
         : textHeader(textHeaderIn), jsonPath(jsonPathIn), values(), different(value1.different(value2)) {
         values[0] = value1;
         values[1] = value2;
@@ -407,27 +391,20 @@ struct DiffComplex {
     const std::string_view textHeader;
     const std::string_view jsonPath;
 
-    bool isDifferent() const {
-        return different;
-    }
+    bool isDifferent() const { return different; }
 
-    bool hasValue(std::size_t index) const {
-        return values[index].has_value();
-    }
+    bool hasValue(std::size_t index) const { return values[index].has_value(); }
 
-    void printText(std::size_t index, PrintIndent& out, const char* prefix) const {
-        values[index]->printText(out, prefix);
-    }
+    void printText(std::size_t index, PrintIndent& out, const char* prefix) const { values[index]->printText(out, prefix); }
 
     void printJson(std::size_t index, PrintIndent& out, int indent, const char* space, const char* nl) const {
         values[index]->printJson(out, indent, space, nl);
     }
 
-private:
+  private:
     std::optional<T> values[2];
     const bool different;
 };
-
 
 struct DiffTextCustom {
     DiffTextCustom(const std::optional<std::string>& text1, const std::optional<std::string>& text2)
@@ -436,33 +413,25 @@ struct DiffTextCustom {
         texts[1] = text2;
     }
 
-    DiffTextCustom(std::string&& text1, std::string&& text2)
-        : texts(), different(text1 != text2) {
+    DiffTextCustom(std::string&& text1, std::string&& text2) : texts(), different(text1 != text2) {
         texts[0] = text1;
         texts[1] = text2;
     }
 
-    bool isDifferent() const {
-        return different;
-    }
+    bool isDifferent() const { return different; }
 
-    bool hasText(std::size_t index) const {
-        return texts[index].has_value();
-    }
+    bool hasText(std::size_t index) const { return texts[index].has_value(); }
 
-    const std::string& text(std::size_t index) const {
-        return *texts[index];
-    }
+    const std::string& text(std::size_t index) const { return *texts[index]; }
 
-private:
+  private:
     std::optional<std::string> texts[2];
     const bool different;
 };
 
 // Helper used to report a mismatch without actual values to include in the report
 struct DiffMismatch {
-    DiffMismatch(const std::string_view textMsgIn, const std::string_view jsonPathIn)
-        : textMsg(textMsgIn), jsonPath(jsonPathIn) {}
+    DiffMismatch(const std::string_view textMsgIn, const std::string_view jsonPathIn) : textMsg(textMsgIn), jsonPath(jsonPathIn) {}
 
     const std::string_view textMsg;
     const std::string_view jsonPath;
@@ -472,9 +441,9 @@ struct DiffImage {
     using TexelBlockPairList = std::vector<std::pair<ImageSpan::TexelBlockPtr<>, ImageSpan::TexelBlockPtr<>>>;
 
     DiffImage(const std::string_view textHeaderIn, const std::string_view fragmentUriIn,
-        const std::optional<std::size_t>& fileOffset1, const std::optional<std::size_t>& fileOffset2,
-        const TexelBlockPairList& texelBlockPairListIn)
-      : textHeader(textHeaderIn), fragmentUri(fragmentUriIn), texelBlockPairList(texelBlockPairListIn) {
+              const std::optional<std::size_t>& fileOffset1, const std::optional<std::size_t>& fileOffset2,
+              const TexelBlockPairList& texelBlockPairListIn)
+        : textHeader(textHeaderIn), fragmentUri(fragmentUriIn), texelBlockPairList(texelBlockPairListIn) {
         fileOffsets[0] = fileOffset1;
         fileOffsets[1] = fileOffset2;
     }
@@ -496,10 +465,8 @@ class PrintDiff {
 
     void printContext() {
         if (!context.empty()) {
-            if (!std::exchange(firstContext, false))
-                printIndent(0, "\n");
-            for (const auto& ctx : context)
-                printIndent(0, ctx);
+            if (!std::exchange(firstContext, false)) printIndent(0, "\n");
+            for (const auto& ctx : context) printIndent(0, ctx);
             context.clear();
         }
     }
@@ -507,22 +474,18 @@ class PrintDiff {
     void beginJsonOutput() {
         assert(jsonSection.has_value());
 
-        const auto space = outputFormat != OutputFormat::json_mini ?  " " : "";
-        const auto nl = outputFormat != OutputFormat::json_mini ?  "\n" : "";
+        const auto space = outputFormat != OutputFormat::json_mini ? " " : "";
+        const auto nl = outputFormat != OutputFormat::json_mini ? "\n" : "";
 
         printIndent(0, ",{}", nl);
 
-        if (std::exchange(jsonSectionEmpty, false))
-            printIndent(1, "\"{}\":{}{{{}", *jsonSection, space, nl);
+        if (std::exchange(jsonSectionEmpty, false)) printIndent(1, "\"{}\":{}{{{}", *jsonSection, space, nl);
     }
 
-public:
-    PrintDiff(PrintIndent& output, OutputFormat format)
-        : printIndent(output), outputFormat(format) {}
+  public:
+    PrintDiff(PrintIndent& output, OutputFormat format) : printIndent(output), outputFormat(format) {}
 
-    bool isDifferent() const {
-        return different;
-    }
+    bool isDifferent() const { return different; }
 
     void beginJsonSection(std::string&& section) {
         jsonSection = section;
@@ -531,7 +494,7 @@ public:
 
     void endJsonSection() {
         if (jsonSection.has_value()) {
-            const auto nl = outputFormat != OutputFormat::json_mini ?  "\n" : "";
+            const auto nl = outputFormat != OutputFormat::json_mini ? "\n" : "";
             if (!jsonSectionEmpty) {
                 printIndent(0, "{}", nl);
                 printIndent(1, "}}");
@@ -545,9 +508,7 @@ public:
         context.emplace_back(std::move(ctx));
     }
 
-    void addContext(std::string&& ctx) {
-        context.emplace_back(std::move(ctx));
-    }
+    void addContext(std::string&& ctx) { context.emplace_back(std::move(ctx)); }
 
     void updateContext(std::string&& ctx) {
         if (!context.empty()) context.pop_back();
@@ -559,15 +520,13 @@ public:
         if (!diff.isDifferent()) return;
         different = true;
 
-        const auto space = outputFormat != OutputFormat::json_mini ?  " " : "";
-        const auto nl = outputFormat != OutputFormat::json_mini ?  "\n" : "";
+        const auto space = outputFormat != OutputFormat::json_mini ? " " : "";
+        const auto nl = outputFormat != OutputFormat::json_mini ? "\n" : "";
 
         if (outputFormat == OutputFormat::text) {
             printContext();
-            if (diff.hasValue(0))
-                printIndent(0, "-{}: {}\n", diff.textHeader, diff.value(0, outputFormat));
-            if (diff.hasValue(1))
-                printIndent(0, "+{}: {}\n", diff.textHeader, diff.value(1, outputFormat));
+            if (diff.hasValue(0)) printIndent(0, "-{}: {}\n", diff.textHeader, diff.value(0, outputFormat));
+            if (diff.hasValue(1)) printIndent(0, "+{}: {}\n", diff.textHeader, diff.value(1, outputFormat));
         } else {
             beginJsonOutput();
             printIndent(2, "\"{}\":{}[{}", diff.jsonPath, space, nl);
@@ -588,8 +547,8 @@ public:
         if (!diff.isDifferent()) return;
         different = true;
 
-        const auto space = outputFormat != OutputFormat::json_mini ?  " " : "";
-        const auto nl = outputFormat != OutputFormat::json_mini ?  "\n" : "";
+        const auto space = outputFormat != OutputFormat::json_mini ? " " : "";
+        const auto nl = outputFormat != OutputFormat::json_mini ? "\n" : "";
 
         if (outputFormat == OutputFormat::text) {
             printContext();
@@ -623,16 +582,14 @@ public:
         different = true;
 
         assert(outputFormat == OutputFormat::text);
-        if (diff.hasText(0))
-            printIndent(0, "-{}\n", diff.text(0));
-        if (diff.hasText(1))
-            printIndent(0, "+{}\n", diff.text(1));
+        if (diff.hasText(0)) printIndent(0, "-{}\n", diff.text(0));
+        if (diff.hasText(1)) printIndent(0, "+{}\n", diff.text(1));
     }
 
     void operator<<(const DiffMismatch& diff) {
         different = true;
 
-        const auto space = outputFormat != OutputFormat::json_mini ?  " " : "";
+        const auto space = outputFormat != OutputFormat::json_mini ? " " : "";
 
         if (outputFormat == OutputFormat::text) {
             printIndent(0, "+{}\n", diff.textMsg);
@@ -645,8 +602,8 @@ public:
     void operator<<(const DiffImage& diff) {
         different = true;
 
-        const auto space = outputFormat != OutputFormat::json_mini ?  " " : "";
-        const auto nl = outputFormat != OutputFormat::json_mini ?  "\n" : "";
+        const auto space = outputFormat != OutputFormat::json_mini ? " " : "";
+        const auto nl = outputFormat != OutputFormat::json_mini ? "\n" : "";
 
         auto formatOptionalFileOffset = [](const std::optional<std::size_t>& fileOffset, std::size_t imageOffset, bool json) {
             if (fileOffset.has_value())
@@ -740,15 +697,15 @@ public:
                     }
                 };
 
-                printDiff("File byte offset",
-                    formatOptionalFileOffset(diff.fileOffsets[0], imageByteOffset, false),
-                    formatOptionalFileOffset(diff.fileOffsets[1], imageByteOffset, false));
+                printDiff("File byte offset", formatOptionalFileOffset(diff.fileOffsets[0], imageByteOffset, false),
+                          formatOptionalFileOffset(diff.fileOffsets[1], imageByteOffset, false));
 
                 printDiff("Packed", formatPacked(texelBlockPair.first, false), formatPacked(texelBlockPair.second, false));
 
                 // Only output chnalles if not block-compressed
                 if (!texelBlockPair.first.isBlockCompressed())
-                    printDiff("Channels", formatChannels(texelBlockPair.first, false), formatChannels(texelBlockPair.second, false));
+                    printDiff("Channels", formatChannels(texelBlockPair.first, false),
+                              formatChannels(texelBlockPair.second, false));
             }
         } else {
             beginJsonOutput();
@@ -762,18 +719,18 @@ public:
                 const auto pixelCoords = texelBlockPair.first.getPixelLocation();
                 // Currently we only compare texel blocks with the same coordinates
                 assert(pixelCoords == texelBlockPair.second.getPixelLocation());
-                printIndent(4, "\"coordinates\":{}[{}{},{}{},{}{}{}],{}", space, space,
-                    pixelCoords.x, space, pixelCoords.y, space, pixelCoords.z, space, nl);
+                printIndent(4, "\"coordinates\":{}[{}{},{}{},{}{}{}],{}", space, space, pixelCoords.x, space, pixelCoords.y, space,
+                            pixelCoords.z, space, nl);
 
                 const auto imageByteOffset = texelBlockPair.first.getTexelBlockByteOffset();
                 // Currently we only compare matching formats, hence image byte offsets should match
                 assert(imageByteOffset == texelBlockPair.second.getTexelBlockByteOffset());
-                printIndent(4, "\"imageByteOffset\":{}[{}{},{}{}{}],{}", space, space,
-                    imageByteOffset, space, imageByteOffset, space, nl);
+                printIndent(4, "\"imageByteOffset\":{}[{}{},{}{}{}],{}", space, space, imageByteOffset, space, imageByteOffset,
+                            space, nl);
 
                 printIndent(4, "\"fileByteOffset\":{}[{}{},{}{}{}],{}", space, space,
-                    formatOptionalFileOffset(diff.fileOffsets[0], imageByteOffset, true), space,
-                    formatOptionalFileOffset(diff.fileOffsets[1], imageByteOffset, true), space, nl);
+                            formatOptionalFileOffset(diff.fileOffsets[0], imageByteOffset, true), space,
+                            formatOptionalFileOffset(diff.fileOffsets[1], imageByteOffset, true), space, nl);
 
                 printIndent(4, "\"packed\":{}[{}", space, nl);
                 printIndent(5, "[{}{}{}],{}", space, formatPacked(texelBlockPair.first, true), space, nl);
@@ -948,32 +905,13 @@ Compare two KTX2 files.
     - Daniel Rákos, RasterGrid www.rastergrid.com
 */
 class CommandCompare : public Command {
-    enum class ContentMode {
-        raw,
-        image,
-        ignore
-    };
+    enum class ContentMode { raw, image, ignore };
 
-    enum class IgnoreIndex {
-        all,
-        level,
-        none
-    };
+    enum class IgnoreIndex { all, level, none };
 
-    enum class IgnoreDFD {
-        all,
-        all_except_color_space,
-        unknown,
-        extended,
-        none
-    };
+    enum class IgnoreDFD { all, all_except_color_space, unknown, extended, none };
 
-    enum class IgnoreSGD {
-        all,
-        unknown,
-        payload,
-        none
-    };
+    enum class IgnoreSGD { all, unknown, payload, none };
 
     struct OptionsCompare {
         inline static const char* kContent = "content";
@@ -1001,98 +939,99 @@ class CommandCompare : public Command {
         IgnoreSGD ignoreSGD = IgnoreSGD::none;
 
         void init(cxxopts::Options& opts) {
-            opts.add_options()
-                    ("input-file1", "The first input file to compare.", cxxopts::value<std::string>(), "filepath")
-                    ("input-file2", "The second input file to compare.", cxxopts::value<std::string>(), "filepath")
-                    (kContent, "Controls how image content is compared. Possible values are:\n"
-                        "  raw: Encoded image data is compared verbatim, as it appears in the file\n"
-                        "  image: Effective image data is compared per texel block\n"
-                        "  ignore: Ignore image contents\n"
-                        "Note: When the mode is set to @b image, the effective image data of individual mip "
-                        "levels, layers, and faces is compared texel block by texel block after applying "
-                        "one or more of the following transformations, if needed:\n"
-                        "- If the texture is supercompressed (e.g. using Zstandard or ZLIB), the images "
-                        "are deflated before comparison.\n"
-                        "- If the texture is encoded using BasisLZ, the images are transcoded to "
-                        "R8G8B8A_UNORM before comparison.\n"
-                        "For block compressed textures and textures encoded using UASTC the texel blocks are "
-                        "the individual compressed blocks, while for other formats the texel blocks are the "
-                        "individual pixels of the image.\n"
-                        "When comparing files that use different supercompression schemes, or otherwise "
-                        "different encoding, additional options may need to be used to avoid unexpected "
-                        "differences to be reported related to the meta information of the files. "
-                        "For example:\n"
-                        "- The supercompression scheme can be ignored with --ignore-supercomp\n"
-                        "- Compressed byte length and other index section differences can be ignored "
-                        "with --ignore-index all or --ignore-index level\n"
-                        "- DFD section differences can be ignored with --ignore-dfd all or --ignore-dfd "
-                        "all-except-color-space\n"
-                        "- SGD section differences can be ignored with --ignore-sgd all or --ignore-sgd "
-                        "payload\n",
-                        cxxopts::value<std::string>()->default_value("raw"), "raw|image|ignore")
-                    (kPerPixelOutput, "Controls whether per pixel / texel block difference output is generated when "
-                        "--content is set to image:\n"
-                        "  all - Every single difference is output (may result in a very large output)\n"
-                        "  <number> - At most the specified number of differences are output\n"
-                        "  none - No per pixel / texel block differences are output\n",
-                        cxxopts::value<std::string>()->default_value("none"), "all|<number>|none")
-                    (kAllowInvalidInput, "Perform best effort comparison even if any of the input files are invalid.")
-                    (kIgnoreFormatHeader, "Ignore the vkFormat and typeSize fields in the file header.\n"
-                        "Note: useful when comparing textures with and without BasisLZ encoding, respectively.")
-                    (kIgnoreSupercomp, "Ignore supercompression scheme in the file header.\n"
-                        "Note: use the --ignore-sgd option to also ignore the SGD section, if needed.")
-                    (kIgnoreIndex, "Controls the comparison of index entries in the file headers. Possible options are:\n"
-                        "  all: Ignore all index entries\n"
-                        "  level: Ignore level index entries only\n"
-                        "  none: Do not ignore any index entries\n",
-                        cxxopts::value<std::string>()->default_value("none"), "all|level|none")
-                    (kIgnoreDFD, "Controls the comparison of DFD blocks. Possible options are:\n"
-                        "  all: Ignore all DFD blocks\n"
-                        "  all-except-color-space: Ignore all DFD blocks except the color space information "
-                        "in the basic DFD block\n"
-                        "  unknown: Ignore any unrecognized DFD blocks\n"
-                        "  extended: Ignore all DFD blocks except the basic DFD block\n"
-                        "  none: Do not ignore any DFD blocks\n",
-                        cxxopts::value<std::string>()->default_value("none"),
-                        "all|all-except-color-space|unknown|extended|none")
-                    (kIgnoreBDFDBytesPlane, "Ignore BDFD bytesPlane values. Useful when comparing supercompressed "
-                        "files with non-supercompressed ones, as bytesPlane is set to zero for supercompressed files.")
-                    (kIgnoreMetadata, "Controls the comparison of metadata (KVD) entries. Possible options are:\n"
-                        "  all: Ignore all metadata entries\n"
-                        "  <key>[,...]: Ignore the specified comma separated list of metadata keys\n"
-                        "  none: Do not ignore any metadata entries\n",
-                        cxxopts::value<std::string>()->default_value("none"), "all|<key>[,...]|none")
-                    (kIgnoreSGD, "Controls the comparison of the SGD section. Possible options are:\n"
-                        "  all: Ignore the SGD section\n"
-                        "  unknown: Ignore any unrecognized SGD section\n"
-                        "  payload: Ignore any unrecognized SGD section and the payload of any known SGD section\n"
-                        "  none: Do not ignore the SGD section\n"
-                        "Note: --ignore-sgd payload can be used to compare BasisLZ SGD headers without "
-                        "expecting an exact match for the individual SGD payload sections.",
-                        cxxopts::value<std::string>()->default_value("none"), "all|unknown|payload|none");
+            opts.add_options()("input-file1", "The first input file to compare.", cxxopts::value<std::string>(), "filepath")(
+                "input-file2", "The second input file to compare.", cxxopts::value<std::string>(), "filepath")(
+                kContent,
+                "Controls how image content is compared. Possible values are:\n"
+                "  raw: Encoded image data is compared verbatim, as it appears in the file\n"
+                "  image: Effective image data is compared per texel block\n"
+                "  ignore: Ignore image contents\n"
+                "Note: When the mode is set to @b image, the effective image data of individual mip "
+                "levels, layers, and faces is compared texel block by texel block after applying "
+                "one or more of the following transformations, if needed:\n"
+                "- If the texture is supercompressed (e.g. using Zstandard or ZLIB), the images "
+                "are deflated before comparison.\n"
+                "- If the texture is encoded using BasisLZ, the images are transcoded to "
+                "R8G8B8A_UNORM before comparison.\n"
+                "For block compressed textures and textures encoded using UASTC the texel blocks are "
+                "the individual compressed blocks, while for other formats the texel blocks are the "
+                "individual pixels of the image.\n"
+                "When comparing files that use different supercompression schemes, or otherwise "
+                "different encoding, additional options may need to be used to avoid unexpected "
+                "differences to be reported related to the meta information of the files. "
+                "For example:\n"
+                "- The supercompression scheme can be ignored with --ignore-supercomp\n"
+                "- Compressed byte length and other index section differences can be ignored "
+                "with --ignore-index all or --ignore-index level\n"
+                "- DFD section differences can be ignored with --ignore-dfd all or --ignore-dfd "
+                "all-except-color-space\n"
+                "- SGD section differences can be ignored with --ignore-sgd all or --ignore-sgd "
+                "payload\n",
+                cxxopts::value<std::string>()->default_value("raw"),
+                "raw|image|ignore")(kPerPixelOutput,
+                                    "Controls whether per pixel / texel block difference output is generated when "
+                                    "--content is set to image:\n"
+                                    "  all - Every single difference is output (may result in a very large output)\n"
+                                    "  <number> - At most the specified number of differences are output\n"
+                                    "  none - No per pixel / texel block differences are output\n",
+                                    cxxopts::value<std::string>()->default_value("none"), "all|<number>|none")(
+                kAllowInvalidInput, "Perform best effort comparison even if any of the input files are invalid.")(
+                kIgnoreFormatHeader,
+                "Ignore the vkFormat and typeSize fields in the file header.\n"
+                "Note: useful when comparing textures with and without BasisLZ encoding, respectively.")(
+                kIgnoreSupercomp,
+                "Ignore supercompression scheme in the file header.\n"
+                "Note: use the --ignore-sgd option to also ignore the SGD section, if needed.")(
+                kIgnoreIndex,
+                "Controls the comparison of index entries in the file headers. Possible options are:\n"
+                "  all: Ignore all index entries\n"
+                "  level: Ignore level index entries only\n"
+                "  none: Do not ignore any index entries\n",
+                cxxopts::value<std::string>()->default_value("none"), "all|level|none")(
+                kIgnoreDFD,
+                "Controls the comparison of DFD blocks. Possible options are:\n"
+                "  all: Ignore all DFD blocks\n"
+                "  all-except-color-space: Ignore all DFD blocks except the color space information "
+                "in the basic DFD block\n"
+                "  unknown: Ignore any unrecognized DFD blocks\n"
+                "  extended: Ignore all DFD blocks except the basic DFD block\n"
+                "  none: Do not ignore any DFD blocks\n",
+                cxxopts::value<std::string>()->default_value("none"), "all|all-except-color-space|unknown|extended|none")(
+                kIgnoreBDFDBytesPlane,
+                "Ignore BDFD bytesPlane values. Useful when comparing supercompressed "
+                "files with non-supercompressed ones, as bytesPlane is set to zero for supercompressed files.")(
+                kIgnoreMetadata,
+                "Controls the comparison of metadata (KVD) entries. Possible options are:\n"
+                "  all: Ignore all metadata entries\n"
+                "  <key>[,...]: Ignore the specified comma separated list of metadata keys\n"
+                "  none: Do not ignore any metadata entries\n",
+                cxxopts::value<std::string>()->default_value("none"),
+                "all|<key>[,...]|none")(kIgnoreSGD,
+                                        "Controls the comparison of the SGD section. Possible options are:\n"
+                                        "  all: Ignore the SGD section\n"
+                                        "  unknown: Ignore any unrecognized SGD section\n"
+                                        "  payload: Ignore any unrecognized SGD section and the payload of any known SGD section\n"
+                                        "  none: Do not ignore the SGD section\n"
+                                        "Note: --ignore-sgd payload can be used to compare BasisLZ SGD headers without "
+                                        "expecting an exact match for the individual SGD payload sections.",
+                                        cxxopts::value<std::string>()->default_value("none"), "all|unknown|payload|none");
             opts.parse_positional("input-file1", "input-file2");
             opts.positional_help("<input-file1> <input-file2>");
         }
 
         void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
-            if (args.count("input-file1") == 0)
-                report.fatal_usage("Missing input files.");
-            if (args.count("input-file2") == 0)
-                report.fatal_usage("Missing second input file.");
+            if (args.count("input-file1") == 0) report.fatal_usage("Missing input files.");
+            if (args.count("input-file2") == 0) report.fatal_usage("Missing second input file.");
 
             inputFilepaths[0] = args["input-file1"].as<std::string>();
             inputFilepaths[1] = args["input-file2"].as<std::string>();
 
             if (args[kContent].count()) {
                 static std::unordered_map<std::string, ContentMode> contentModeMapping{
-                    {"raw", ContentMode::raw},
-                    {"image", ContentMode::image},
-                    {"ignore", ContentMode::ignore}
-                };
+                    {"raw", ContentMode::raw}, {"image", ContentMode::image}, {"ignore", ContentMode::ignore}};
                 const auto contentModeStr = to_lower_copy(args[kContent].as<std::string>());
                 const auto it = contentModeMapping.find(contentModeStr);
-                if (it == contentModeMapping.end())
-                    report.fatal_usage("Invalid --content argument: \"{}\".", contentModeStr);
+                if (it == contentModeMapping.end()) report.fatal_usage("Invalid --content argument: \"{}\".", contentModeStr);
                 contentMode = it->second;
             }
 
@@ -1108,7 +1047,8 @@ class CommandCompare : public Command {
                     std::size_t parsedCharacters = 0;
                     try {
                         perPixelOutputLimit = static_cast<std::size_t>(std::stoull(perPixelOutputStr, &parsedCharacters));
-                    } catch (std::exception&) {}
+                    } catch (std::exception&) {
+                    }
                     if (parsedCharacters != perPixelOutputStr.length())
                         report.fatal_usage("Invalid --per-pixel-output arugment: \"{}\".", perPixelOutputStr);
                 }
@@ -1121,14 +1061,10 @@ class CommandCompare : public Command {
 
             if (args[kIgnoreIndex].count()) {
                 static std::unordered_map<std::string, IgnoreIndex> ignoreIndexMapping{
-                    {"all", IgnoreIndex::all},
-                    {"level", IgnoreIndex::level},
-                    {"none", IgnoreIndex::none}
-                };
+                    {"all", IgnoreIndex::all}, {"level", IgnoreIndex::level}, {"none", IgnoreIndex::none}};
                 const auto ignoreIndexStr = to_lower_copy(args[kIgnoreIndex].as<std::string>());
                 const auto it = ignoreIndexMapping.find(ignoreIndexStr);
-                if (it == ignoreIndexMapping.end())
-                    report.fatal_usage("Invalid --ignore-index argument: \"{}\".", ignoreIndexStr);
+                if (it == ignoreIndexMapping.end()) report.fatal_usage("Invalid --ignore-index argument: \"{}\".", ignoreIndexStr);
                 ignoreIndex = it->second;
             }
 
@@ -1138,46 +1074,37 @@ class CommandCompare : public Command {
                     {"all-except-color-space", IgnoreDFD::all_except_color_space},
                     {"unknown", IgnoreDFD::unknown},
                     {"extended", IgnoreDFD::extended},
-                    {"none", IgnoreDFD::none}
-                };
+                    {"none", IgnoreDFD::none}};
                 const auto ignoreDFDStr = to_lower_copy(args[kIgnoreDFD].as<std::string>());
                 const auto it = ignoreDFDMapping.find(ignoreDFDStr);
-                if (it == ignoreDFDMapping.end())
-                    report.fatal_usage("Invalid --ignore-dfd argument: \"{}\".", ignoreDFDStr);
+                if (it == ignoreDFDMapping.end()) report.fatal_usage("Invalid --ignore-dfd argument: \"{}\".", ignoreDFDStr);
                 ignoreDFD = it->second;
             }
 
             ignoreBDFDBytesPlane = args[kIgnoreBDFDBytesPlane].as<bool>();
 
             if (args[kIgnoreMetadata].count()) {
-                static std::unordered_map<std::string, bool> ignoreMetadataMapping{
-                    {"all", true},
-                    {"none", false}
-                };
+                static std::unordered_map<std::string, bool> ignoreMetadataMapping{{"all", true}, {"none", false}};
                 const auto ignoreMetadataStr = to_lower_copy(args[kIgnoreMetadata].as<std::string>());
                 const auto it = ignoreMetadataMapping.find(ignoreMetadataStr);
                 if (it == ignoreMetadataMapping.end()) {
                     // Comma separated list of keys
                     std::stringstream stream(args[kIgnoreMetadata].as<std::string>());
                     std::string key;
-                    while (std::getline(stream, key, ','))
-                        ignoreMetadataKeys.emplace(std::move(key));
+                    while (std::getline(stream, key, ',')) ignoreMetadataKeys.emplace(std::move(key));
                 } else {
                     ignoreAllMetadata = it->second;
                 }
             }
 
             if (args[kIgnoreSGD].count()) {
-                static std::unordered_map<std::string, IgnoreSGD> ignoreSGDMapping{
-                    {"all", IgnoreSGD::all},
-                    {"unknown", IgnoreSGD::unknown},
-                    {"payload", IgnoreSGD::payload},
-                    {"none", IgnoreSGD::none}
-                };
+                static std::unordered_map<std::string, IgnoreSGD> ignoreSGDMapping{{"all", IgnoreSGD::all},
+                                                                                   {"unknown", IgnoreSGD::unknown},
+                                                                                   {"payload", IgnoreSGD::payload},
+                                                                                   {"none", IgnoreSGD::none}};
                 const auto ignoreSGDStr = to_lower_copy(args[kIgnoreSGD].as<std::string>());
                 const auto it = ignoreSGDMapping.find(ignoreSGDStr);
-                if (it == ignoreSGDMapping.end())
-                    report.fatal_usage("Invalid --ignore-sgd argument: \"{}\".", ignoreSGDStr);
+                if (it == ignoreSGDMapping.end()) report.fatal_usage("Invalid --ignore-sgd argument: \"{}\".", ignoreSGDStr);
                 ignoreSGD = it->second;
             }
         }
@@ -1189,22 +1116,21 @@ class CommandCompare : public Command {
 
     std::vector<KTX_header2> headers;
 
-public:
+  public:
     virtual int main(int argc, char* argv[]) override;
     virtual void initOptions(cxxopts::Options& opts) override;
     virtual void processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) override;
 
-private:
+  private:
     void executeCompare();
 
     void compareHeader(PrintDiff& diff, InputStreams& streams);
     void compareLevelIndex(PrintDiff& diff, InputStreams& streams);
     void compareDFD(PrintDiff& diff, InputStreams& streams);
-    void compareDFDBasic(PrintDiff& diff, uint32_t blockIndex,
-        std::optional<BDFD> bdfds[2], std::optional<std::vector<SampleType>> bdfdSamples[2]);
+    void compareDFDBasic(PrintDiff& diff, uint32_t blockIndex, std::optional<BDFD> bdfds[2],
+                         std::optional<std::vector<SampleType>> bdfdSamples[2]);
     void compareKVD(PrintDiff& diff, InputStreams& streams);
-    void compareKVEntry(PrintDiff& diff, const std::string_view& key,
-        ktxHashListEntry* entry1, ktxHashListEntry* entry2);
+    void compareKVEntry(PrintDiff& diff, const std::string_view& key, ktxHashListEntry* entry1, ktxHashListEntry* entry2);
     void compareSGD(PrintDiff& diff, InputStreams& streams);
     void compareImages(PrintDiff& diff, InputStreams& streams);
     void compareImagesRaw(PrintDiff& diff, InputStreams& streams);
@@ -1212,8 +1138,7 @@ private:
 
     void read(InputStream& stream, std::size_t offset, void* readDst, std::size_t readSize, std::string_view what) {
         stream->seekg(offset);
-        if (stream->fail())
-            fatal(rc::IO_FAILURE, "Failed to seek file to {} \"{}\": {}.", what, stream.str(), errnoMessage());
+        if (stream->fail()) fatal(rc::IO_FAILURE, "Failed to seek file to {} \"{}\": {}.", what, stream.str(), errnoMessage());
 
         stream->read(reinterpret_cast<char*>(readDst), readSize);
         if (stream->eof()) {
@@ -1239,7 +1164,7 @@ private:
         assert(texelBlocks[0].imageCodec().getPackedElementCount() == texelBlocks[1].imageCodec().getPackedElementCount());
         assert(texelBlocks[0].imageCodec().getPackedElementByteSize() == texelBlocks[1].imageCodec().getPackedElementByteSize());
         for (uint32_t elementIdx = 0; elementIdx < texelBlocks[0].imageCodec().getPackedElementCount(); ++elementIdx) {
-            if (texelBlocks[0].getPackedElement(elementIdx) != texelBlocks[1].getPackedElement(elementIdx)){
+            if (texelBlocks[0].getPackedElement(elementIdx) != texelBlocks[1].getPackedElement(elementIdx)) {
                 return false;
             }
         }
@@ -1252,10 +1177,10 @@ private:
 int CommandCompare::main(int argc, char* argv[]) {
     try {
         parseCommandLine("ktx compare",
-                "Compares the two KTX files specified as the input-file1 and input-file2 arguments.\n"
-                "    The command implicitly calls validate and prints any found errors\n"
-                "    and warnings to stdout.",
-                argc, argv);
+                         "Compares the two KTX files specified as the input-file1 and input-file2 arguments.\n"
+                         "    The command implicitly calls validate and prints any found errors\n"
+                         "    and warnings to stdout.",
+                         argc, argv);
         executeCompare();
         return to_underlying(rc::SUCCESS);
     } catch (const FatalError& error) {
@@ -1266,13 +1191,9 @@ int CommandCompare::main(int argc, char* argv[]) {
     }
 }
 
-void CommandCompare::initOptions(cxxopts::Options& opts) {
-    options.init(opts);
-}
+void CommandCompare::initOptions(cxxopts::Options& opts) { options.init(opts); }
 
-void CommandCompare::processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) {
-    options.process(opts, args, *this);
-}
+void CommandCompare::processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) { options.process(opts, args, *this); }
 
 void CommandCompare::executeCompare() {
     InputStreams inputStreams{
@@ -1287,11 +1208,11 @@ void CommandCompare::executeCompare() {
     case OutputFormat::text: {
         for (std::size_t i = 0; i < inputStreams.size(); ++i) {
             std::ostringstream messagesOS;
-            validationResults.emplace_back(validateIOStream(inputStreams[i], fmtInFile(options.inputFilepaths[i]),
-                false, false, [&](const ValidationReport& issue) {
-                fmt::print(messagesOS, "{}-{:04}: {}\n", toString(issue.type), issue.id, issue.message);
-                fmt::print(messagesOS, "    {}\n", issue.details);
-            }));
+            validationResults.emplace_back(validateIOStream(
+                inputStreams[i], fmtInFile(options.inputFilepaths[i]), false, false, [&](const ValidationReport& issue) {
+                    fmt::print(messagesOS, "{}-{:04}: {}\n", toString(issue.type), issue.id, issue.message);
+                    fmt::print(messagesOS, "    {}\n", issue.details);
+                }));
 
             validationMessages.emplace_back(std::move(messagesOS).str());
         }
@@ -1299,11 +1220,10 @@ void CommandCompare::executeCompare() {
         bool hasValidationMessages = false;
         for (std::size_t i = 0; i < inputStreams.size(); ++i) {
             if (!validationMessages[i].empty()) {
-                if (std::exchange(hasValidationMessages, true))
-                    fmt::print("\n");
+                if (std::exchange(hasValidationMessages, true)) fmt::print("\n");
 
                 fmt::print("Validation {} for '{}'\n", validationResults[i] == 0 ? "successful" : "failed",
-                            options.inputFilepaths[i]);
+                           options.inputFilepaths[i]);
                 fmt::print("\n");
                 fmt::print("{}", validationMessages[i]);
             }
@@ -1319,8 +1239,7 @@ void CommandCompare::executeCompare() {
             }
         }
 
-        if (hasValidationMessages)
-            fmt::print("\n");
+        if (hasValidationMessages) fmt::print("\n");
 
         PrintIndent out{std::cout};
         PrintDiff diff(out, options.format);
@@ -1331,12 +1250,12 @@ void CommandCompare::executeCompare() {
         compareSGD(diff, inputStreams);
         compareImages(diff, inputStreams);
 
-        if (diff.isDifferent())
-            throw FatalError(rc::DIFFERENCE_FOUND);
+        if (diff.isDifferent()) throw FatalError(rc::DIFFERENCE_FOUND);
 
         break;
     }
-    case OutputFormat::json: [[fallthrough]];
+    case OutputFormat::json:
+        [[fallthrough]];
     case OutputFormat::json_mini: {
         int fatalValidationError = 0;
 
@@ -1354,17 +1273,17 @@ void CommandCompare::executeCompare() {
             PrintIndent pi{messagesOS, baseIndent, indentWidth};
 
             bool first = true;
-            validationResults.emplace_back(validateIOStream(inputStreams[i], fmtInFile(options.inputFilepaths[i]),
-                false, false, [&](const ValidationReport& issue) {
-                if (!std::exchange(first, false)) {
-                    pi(3, "}},{}", nl);
-                }
-                pi(3, "{{{}", nl);
-                pi(4, "\"id\":{}{},{}", space, issue.id, nl);
-                pi(4, "\"type\":{}\"{}\",{}", space, toString(issue.type), nl);
-                pi(4, "\"message\":{}\"{}\",{}", space, escape_json_copy(issue.message), nl);
-                pi(4, "\"details\":{}\"{}\"{}", space, escape_json_copy(issue.details), nl);
-            }));
+            validationResults.emplace_back(validateIOStream(
+                inputStreams[i], fmtInFile(options.inputFilepaths[i]), false, false, [&](const ValidationReport& issue) {
+                    if (!std::exchange(first, false)) {
+                        pi(3, "}},{}", nl);
+                    }
+                    pi(3, "{{{}", nl);
+                    pi(4, "\"id\":{}{},{}", space, issue.id, nl);
+                    pi(4, "\"type\":{}\"{}\",{}", space, toString(issue.type), nl);
+                    pi(4, "\"message\":{}\"{}\",{}", space, escape_json_copy(issue.message), nl);
+                    pi(4, "\"details\":{}\"{}\"{}", space, escape_json_copy(issue.details), nl);
+                }));
 
             validationMessages.emplace_back(std::move(messagesOS).str());
         }
@@ -1405,8 +1324,7 @@ void CommandCompare::executeCompare() {
         PrintDiff diff(out, options.format);
 
         try {
-            if (fatalValidationError)
-                throw FatalError(ReturnCode{fatalValidationError});
+            if (fatalValidationError) throw FatalError(ReturnCode{fatalValidationError});
 
             diff.beginJsonSection("info");
             compareHeader(diff, inputStreams);
@@ -1420,8 +1338,7 @@ void CommandCompare::executeCompare() {
             compareImages(diff, inputStreams);
             diff.endJsonSection();
 
-            if (diff.isDifferent())
-                throw FatalError(rc::DIFFERENCE_FOUND);
+            if (diff.isDifferent()) throw FatalError(rc::DIFFERENCE_FOUND);
         } catch (...) {
             diff.endJsonSection();
             fmt::print("{}}}{}", nl, nl);
@@ -1434,17 +1351,19 @@ void CommandCompare::executeCompare() {
 }
 
 // Helper macros to access the fields of optional structures
-#define OPT_FIELD(struct, member) ((struct).has_value() ? \
-    std::optional<decltype((struct)->member)>((struct)->member) : std::optional<decltype((struct)->member)>() )
-#define OPT_BITFIELD(struct, member) ((struct).has_value() ? \
-    std::optional<int32_t>(static_cast<int32_t>((struct)->member)) : std::optional<int32_t>() )
-#define OPT_UINT4(struct, memberPrefix) ((struct).has_value() ? \
-    std::optional<std::array<uint32_t, 4>>(std::array<uint32_t, 4>{ \
-        (struct)->memberPrefix##0, \
-        (struct)->memberPrefix##1, \
-        (struct)->memberPrefix##2, \
-        (struct)->memberPrefix##3, \
-    }) : std::optional<std::array<uint32_t, 4>>())
+#define OPT_FIELD(struct, member)                                                       \
+    ((struct).has_value() ? std::optional<decltype((struct)->member)>((struct)->member) \
+                          : std::optional<decltype((struct)->member)>())
+#define OPT_BITFIELD(struct, member) \
+    ((struct).has_value() ? std::optional<int32_t>(static_cast<int32_t>((struct)->member)) : std::optional<int32_t>())
+#define OPT_UINT4(struct, memberPrefix)                                                     \
+    ((struct).has_value() ? std::optional<std::array<uint32_t, 4>>(std::array<uint32_t, 4>{ \
+                                (struct)->memberPrefix##0,                                  \
+                                (struct)->memberPrefix##1,                                  \
+                                (struct)->memberPrefix##2,                                  \
+                                (struct)->memberPrefix##3,                                  \
+                            })                                                              \
+                          : std::optional<std::array<uint32_t, 4>>())
 // Helper macros to access the fields of an optional structure array with 2 values
 #define OPT_FIELDS(structArr, member) OPT_FIELD((structArr)[0], member), OPT_FIELD((structArr)[1], member)
 #define OPT_BITFIELDS(structArr, member) OPT_BITFIELD((structArr)[0], member), OPT_BITFIELD((structArr)[1], member)
@@ -1459,7 +1378,7 @@ void CommandCompare::compareHeader(PrintDiff& diff, InputStreams& streams) {
 
     if (!options.ignoreFormatHeader) {
         diff << DiffEnum<VkFormat>("vkFormat", "/header/vkFormat", headers[0].vkFormat, headers[1].vkFormat,
-            [&](auto i) { return vkFormatString(VkFormat(headers[i].vkFormat)); });
+                                   [&](auto i) { return vkFormatString(VkFormat(headers[i].vkFormat)); });
         diff << Diff("typeSize", "/header/typeSize", headers[0].typeSize, headers[1].typeSize);
     }
 
@@ -1472,23 +1391,23 @@ void CommandCompare::compareHeader(PrintDiff& diff, InputStreams& streams) {
 
     if (!options.ignoreSupercomp)
         diff << DiffEnum<ktxSupercmpScheme>("supercompressionScheme", "/header/supercompressionScheme",
-            headers[0].supercompressionScheme, headers[1].supercompressionScheme);
+                                            headers[0].supercompressionScheme, headers[1].supercompressionScheme);
 
     if (options.ignoreIndex != IgnoreIndex::all) {
         diff << DiffHex("dataFormatDescriptor.byteOffset", "/index/dataFormatDescriptor/byteOffset",
-            headers[0].dataFormatDescriptor.byteOffset, headers[1].dataFormatDescriptor.byteOffset);
+                        headers[0].dataFormatDescriptor.byteOffset, headers[1].dataFormatDescriptor.byteOffset);
         diff << Diff("dataFormatDescriptor.byteLength", "/index/dataFormatDescriptor/byteLength",
-            headers[0].dataFormatDescriptor.byteLength, headers[1].dataFormatDescriptor.byteLength);
+                     headers[0].dataFormatDescriptor.byteLength, headers[1].dataFormatDescriptor.byteLength);
 
-        diff << DiffHex("keyValueData.byteOffset", "/index/keyValueData/byteOffset",
-            headers[0].keyValueData.byteOffset, headers[1].keyValueData.byteOffset);
-        diff << Diff("keyValueData.byteLength", "/index/keyValueData/byteLength",
-            headers[0].keyValueData.byteLength, headers[1].keyValueData.byteLength);
+        diff << DiffHex("keyValueData.byteOffset", "/index/keyValueData/byteOffset", headers[0].keyValueData.byteOffset,
+                        headers[1].keyValueData.byteOffset);
+        diff << Diff("keyValueData.byteLength", "/index/keyValueData/byteLength", headers[0].keyValueData.byteLength,
+                     headers[1].keyValueData.byteLength);
 
         diff << DiffHex("supercompressionGlobalData.byteOffset", "/index/supercompressionGlobalData/byteOffset",
-            headers[0].supercompressionGlobalData.byteOffset, headers[1].supercompressionGlobalData.byteOffset);
+                        headers[0].supercompressionGlobalData.byteOffset, headers[1].supercompressionGlobalData.byteOffset);
         diff << Diff("supercompressionGlobalData.byteLength", "/index/supercompressionGlobalData/byteLength",
-            headers[0].supercompressionGlobalData.byteLength, headers[1].supercompressionGlobalData.byteLength);
+                     headers[0].supercompressionGlobalData.byteLength, headers[1].supercompressionGlobalData.byteLength);
     }
 }
 
@@ -1497,10 +1416,7 @@ void CommandCompare::compareLevelIndex(PrintDiff& diff, InputStreams& streams) {
 
     diff.setContext("Level Index\n\n");
 
-    const uint32_t numLevels[] = {
-        std::max(1u, headers[0].levelCount),
-        std::max(1u, headers[1].levelCount)
-    };
+    const uint32_t numLevels[] = {std::max(1u, headers[0].levelCount), std::max(1u, headers[1].levelCount)};
     const uint32_t maxNumLevels = std::max(numLevels[0], numLevels[1]);
 
     for (uint32_t level = 0; level < maxNumLevels; ++level) {
@@ -1513,15 +1429,13 @@ void CommandCompare::compareLevelIndex(PrintDiff& diff, InputStreams& streams) {
                 levelIndexEntry[i] = entry;
             }
 
-        diff << DiffHex(fmt::format("Level{}.byteOffset", level),
-            fmt::format("/index/levels/{}/byteOffset", level),
-            OPT_FIELDS(levelIndexEntry, byteOffset));
-        diff << Diff(fmt::format("Level{}.byteLength", level),
-            fmt::format("/index/levels/{}/byteLength", level),
-            OPT_FIELDS(levelIndexEntry, byteLength));
+        diff << DiffHex(fmt::format("Level{}.byteOffset", level), fmt::format("/index/levels/{}/byteOffset", level),
+                        OPT_FIELDS(levelIndexEntry, byteOffset));
+        diff << Diff(fmt::format("Level{}.byteLength", level), fmt::format("/index/levels/{}/byteLength", level),
+                     OPT_FIELDS(levelIndexEntry, byteLength));
         diff << Diff(fmt::format("Level{}.uncompressedByteLength", level),
-            fmt::format("/index/levels/{}/uncompressedByteLength", level),
-            OPT_FIELDS(levelIndexEntry, uncompressedByteLength));
+                     fmt::format("/index/levels/{}/uncompressedByteLength", level),
+                     OPT_FIELDS(levelIndexEntry, uncompressedByteLength));
     }
 }
 
@@ -1530,21 +1444,19 @@ void CommandCompare::compareDFD(PrintDiff& diff, InputStreams& streams) {
 
     diff.setContext("Data Format Descriptor\n\n");
 
-    std::unique_ptr<uint8_t[]> buffers[] = {
-        std::make_unique<uint8_t[]>(headers[0].dataFormatDescriptor.byteLength),
-        std::make_unique<uint8_t[]>(headers[1].dataFormatDescriptor.byteLength)
-    };
+    std::unique_ptr<uint8_t[]> buffers[] = {std::make_unique<uint8_t[]>(headers[0].dataFormatDescriptor.byteLength),
+                                            std::make_unique<uint8_t[]>(headers[1].dataFormatDescriptor.byteLength)};
 
     for (std::size_t i = 0; i < streams.size(); ++i)
-        read(streams[i], headers[i].dataFormatDescriptor.byteOffset, buffers[i].get(),
-            headers[i].dataFormatDescriptor.byteLength, "the DFD blocks");
+        read(streams[i], headers[i].dataFormatDescriptor.byteOffset, buffers[i].get(), headers[i].dataFormatDescriptor.byteLength,
+             "the DFD blocks");
 
-    const uint8_t* ptrDFD[] = { buffers[0].get(), buffers[1].get() };
+    const uint8_t* ptrDFD[] = {buffers[0].get(), buffers[1].get()};
     const uint8_t* ptrDFDEnd[] = {
         ptrDFD[0] + headers[0].dataFormatDescriptor.byteLength,
         ptrDFD[1] + headers[1].dataFormatDescriptor.byteLength,
     };
-    const uint8_t* ptrDFDIt[] = { ptrDFD[0], ptrDFD[1] };
+    const uint8_t* ptrDFDIt[] = {ptrDFD[0], ptrDFD[1]};
 
     uint32_t dfdTotalSize[2];
     for (std::size_t i = 0; i < streams.size(); ++i) {
@@ -1564,8 +1476,7 @@ void CommandCompare::compareDFD(PrintDiff& diff, InputStreams& streams) {
         };
 
         std::optional<DFDHeader> blockHeaders[2] = {};
-        if (remainingDFDBytes[0] < sizeof(DFDHeader) && remainingDFDBytes[1] < sizeof(DFDHeader))
-            break;
+        if (remainingDFDBytes[0] < sizeof(DFDHeader) && remainingDFDBytes[1] < sizeof(DFDHeader)) break;
 
         for (std::size_t i = 0; i < streams.size(); ++i)
             if (remainingDFDBytes[i] >= sizeof(DFDHeader)) {
@@ -1574,11 +1485,10 @@ void CommandCompare::compareDFD(PrintDiff& diff, InputStreams& streams) {
                 blockHeaders[i] = blockHeader;
             }
 
-        bool dfdKnown[2] = { false, false };
-        bool dfdBasic[2] = { false, false };
+        bool dfdKnown[2] = {false, false};
+        bool dfdBasic[2] = {false, false};
         for (std::size_t i = 0; i < streams.size(); ++i) {
-            if (blockHeaders[i].has_value() &&
-                blockHeaders[i]->vendorId == KHR_DF_VENDORID_KHRONOS &&
+            if (blockHeaders[i].has_value() && blockHeaders[i]->vendorId == KHR_DF_VENDORID_KHRONOS &&
                 blockHeaders[i]->descriptorType == KHR_DF_KHR_DESCRIPTORTYPE_BASICFORMAT) {
                 dfdKnown[i] = dfdBasic[i] = true;
             }
@@ -1587,42 +1497,42 @@ void CommandCompare::compareDFD(PrintDiff& diff, InputStreams& streams) {
         // Consider the ignore-dfd option before comparing the headers
         bool compareDFDs = true;
         switch (options.ignoreDFD) {
-            case IgnoreDFD::unknown:
-                // Only compare the DFDs if at least one of them is known
-                compareDFDs = dfdKnown[0] || dfdKnown[1];
-                break;
+        case IgnoreDFD::unknown:
+            // Only compare the DFDs if at least one of them is known
+            compareDFDs = dfdKnown[0] || dfdKnown[1];
+            break;
 
-            case IgnoreDFD::all_except_color_space: [[fallthrough]];
-            case IgnoreDFD::extended:
-                // Only compare the DFDs if at least one of them is basic
-                compareDFDs = dfdBasic[0] || dfdBasic[1];
-                break;
+        case IgnoreDFD::all_except_color_space:
+            [[fallthrough]];
+        case IgnoreDFD::extended:
+            // Only compare the DFDs if at least one of them is basic
+            compareDFDs = dfdBasic[0] || dfdBasic[1];
+            break;
 
-            default:
-                break;
+        default:
+            break;
         }
 
         if (compareDFDs) {
             if (options.ignoreDFD != IgnoreDFD::all_except_color_space) {
-                diff << DiffEnum<khr_df_vendorid_e>("Vendor ID",
-                    fmt::format("/dataFormatDescriptor/blocks/{}/vendorId", blockIndex),
+                diff << DiffEnum<khr_df_vendorid_e>(
+                    "Vendor ID", fmt::format("/dataFormatDescriptor/blocks/{}/vendorId", blockIndex),
                     OPT_BITFIELDS(blockHeaders, vendorId),
                     [&](auto i) { return dfdToStringVendorID(khr_df_vendorid_e(blockHeaders[i]->vendorId)); });
-                diff << DiffEnum<khr_df_khr_descriptortype_e>("Descriptor type",
-                    fmt::format("/dataFormatDescriptor/blocks/{}/descriptorType", blockIndex),
-                    OPT_BITFIELDS(blockHeaders, descriptorType),
-                    [&](auto i) {
+                diff << DiffEnum<khr_df_khr_descriptortype_e>(
+                    "Descriptor type", fmt::format("/dataFormatDescriptor/blocks/{}/descriptorType", blockIndex),
+                    OPT_BITFIELDS(blockHeaders, descriptorType), [&](auto i) {
                         return (blockHeaders[i]->vendorId == KHR_DF_VENDORID_KHRONOS)
-                            ? dfdToStringDescriptorType(khr_df_khr_descriptortype_e(blockHeaders[i]->descriptorType))
-                            : nullptr;
+                                   ? dfdToStringDescriptorType(khr_df_khr_descriptortype_e(blockHeaders[i]->descriptorType))
+                                   : nullptr;
                     });
-                diff << DiffEnum<khr_df_versionnumber_e>("Version",
-                    fmt::format("/dataFormatDescriptor/blocks/{}/versionNumber", blockIndex),
+                diff << DiffEnum<khr_df_versionnumber_e>(
+                    "Version", fmt::format("/dataFormatDescriptor/blocks/{}/versionNumber", blockIndex),
                     OPT_BITFIELDS(blockHeaders, versionNumber),
                     [&](auto i) { return dfdToStringVersionNumber(khr_df_versionnumber_e(blockHeaders[i]->versionNumber)); });
                 diff << Diff("Descriptor block size",
-                    fmt::format("/dataFormatDescriptor/blocks/{}/descriptorBlockSize", blockIndex),
-                    OPT_BITFIELDS(blockHeaders, descriptorBlockSize));
+                             fmt::format("/dataFormatDescriptor/blocks/{}/descriptorBlockSize", blockIndex),
+                             OPT_BITFIELDS(blockHeaders, descriptorBlockSize));
             }
 
             // Compare basic DFD data if possible
@@ -1630,14 +1540,14 @@ void CommandCompare::compareDFD(PrintDiff& diff, InputStreams& streams) {
                 std::optional<BDFD> bdfds[2] = {};
                 std::optional<std::vector<SampleType>> bdfdSamples[2] = {};
                 for (std::size_t i = 0; i < streams.size(); ++i)
-                    if (blockHeaders[i].has_value() &&
-                        blockHeaders[i]->vendorId == KHR_DF_VENDORID_KHRONOS &&
+                    if (blockHeaders[i].has_value() && blockHeaders[i]->vendorId == KHR_DF_VENDORID_KHRONOS &&
                         blockHeaders[i]->descriptorType == KHR_DF_KHR_DESCRIPTORTYPE_BASICFORMAT) {
                         BDFD bdfd;
                         std::memcpy(&bdfd, ptrDFDIt[i], sizeof(bdfd));
                         bdfds[i] = std::move(bdfd);
 
-                        std::vector<SampleType> samples(std::min(MAX_NUM_BDFD_SAMPLES, (blockHeaders[i]->descriptorBlockSize - 24u) / 16u));
+                        std::vector<SampleType> samples(
+                            std::min(MAX_NUM_BDFD_SAMPLES, (blockHeaders[i]->descriptorBlockSize - 24u) / 16u));
                         std::memcpy(samples.data(), ptrDFDIt[i] + sizeof(BDFD), samples.size() * sizeof(SampleType));
                         bdfdSamples[i] = std::move(samples);
                     }
@@ -1656,71 +1566,58 @@ void CommandCompare::compareDFD(PrintDiff& diff, InputStreams& streams) {
                             std::memcpy(rawPayloads[i]->data(), ptrDFDIt[i], rawPayloads[i]->size());
 
                             diff << DiffRawBytes("Raw payload",
-                                fmt::format("/dataFormatDescriptor/blocks/{}/rawPayload", blockIndex),
-                                rawPayloads[0], rawPayloads[1]);
+                                                 fmt::format("/dataFormatDescriptor/blocks/{}/rawPayload", blockIndex),
+                                                 rawPayloads[0], rawPayloads[1]);
                         }
                     }
                 }
         }
 
-        if (++blockIndex >= MAX_NUM_DFD_BLOCKS)
-            return;
+        if (++blockIndex >= MAX_NUM_DFD_BLOCKS) return;
 
         for (std::size_t i = 0; i < streams.size(); ++i)
-            if (blockHeaders[i].has_value())
-                ptrDFDIt[i] += std::max(blockHeaders[i]->descriptorBlockSize, 8u);
+            if (blockHeaders[i].has_value()) ptrDFDIt[i] += std::max(blockHeaders[i]->descriptorBlockSize, 8u);
     }
 }
 
-void CommandCompare::compareDFDBasic(PrintDiff& diff, uint32_t blockIndex,
-    std::optional<BDFD> bdfds[2], std::optional<std::vector<SampleType>> bdfdSamples[2]) {
-    for (std::size_t i = 0; i < 2; ++i)
-        assert(bdfds[i].has_value() == bdfdSamples[i].has_value());
+void CommandCompare::compareDFDBasic(PrintDiff& diff, uint32_t blockIndex, std::optional<BDFD> bdfds[2],
+                                     std::optional<std::vector<SampleType>> bdfdSamples[2]) {
+    for (std::size_t i = 0; i < 2; ++i) assert(bdfds[i].has_value() == bdfdSamples[i].has_value());
 
     if (options.ignoreDFD != IgnoreDFD::all_except_color_space)
-        diff << DiffFlags("Flags",
-            fmt::format("/dataFormatDescriptor/blocks/{}/flags", blockIndex),
-            OPT_BITFIELDS(bdfds, flags), dfdToStringFlagsBit);
+        diff << DiffFlags("Flags", fmt::format("/dataFormatDescriptor/blocks/{}/flags", blockIndex), OPT_BITFIELDS(bdfds, flags),
+                          dfdToStringFlagsBit);
 
-    diff << DiffEnum<khr_df_transfer_e>("Transfer",
-        fmt::format("/dataFormatDescriptor/blocks/{}/transferFunction", blockIndex),
-        OPT_BITFIELDS(bdfds, transfer),
-        [&](auto i) { return dfdToStringTransferFunction(khr_df_transfer_e(bdfds[i]->transfer)); });
-    diff << DiffEnum<khr_df_primaries_e>("Primaries",
-        fmt::format("/dataFormatDescriptor/blocks/{}/colorPrimaries", blockIndex),
-        OPT_BITFIELDS(bdfds, primaries),
+    diff << DiffEnum<khr_df_transfer_e>("Transfer", fmt::format("/dataFormatDescriptor/blocks/{}/transferFunction", blockIndex),
+                                        OPT_BITFIELDS(bdfds, transfer),
+                                        [&](auto i) { return dfdToStringTransferFunction(khr_df_transfer_e(bdfds[i]->transfer)); });
+    diff << DiffEnum<khr_df_primaries_e>(
+        "Primaries", fmt::format("/dataFormatDescriptor/blocks/{}/colorPrimaries", blockIndex), OPT_BITFIELDS(bdfds, primaries),
         [&](auto i) { return dfdToStringColorPrimaries(khr_df_primaries_e(bdfds[i]->primaries)); });
 
     // Do not compare the remainder of the BDFD if everything but color space information is ignored
-    if (options.ignoreDFD == IgnoreDFD::all_except_color_space)
-        return;
+    if (options.ignoreDFD == IgnoreDFD::all_except_color_space) return;
 
-    diff << DiffEnum<khr_df_model_e>("Model",
-        fmt::format("/dataFormatDescriptor/blocks/{}/colorModel", blockIndex),
-        OPT_BITFIELDS(bdfds, model),
-        [&](auto i) { return dfdToStringColorModel(khr_df_model_e(bdfds[i]->model)); });
-    diff << DiffArray("Dimensions",
-        fmt::format("/dataFormatDescriptor/blocks/{}/texelBlockDimension", blockIndex),
-        OPT_UINT4S(bdfds, texelBlockDimension));
+    diff << DiffEnum<khr_df_model_e>("Model", fmt::format("/dataFormatDescriptor/blocks/{}/colorModel", blockIndex),
+                                     OPT_BITFIELDS(bdfds, model),
+                                     [&](auto i) { return dfdToStringColorModel(khr_df_model_e(bdfds[i]->model)); });
+    diff << DiffArray("Dimensions", fmt::format("/dataFormatDescriptor/blocks/{}/texelBlockDimension", blockIndex),
+                      OPT_UINT4S(bdfds, texelBlockDimension));
 
     if (!options.ignoreBDFDBytesPlane)
-        diff << DiffArray("Plane bytes",
-            fmt::format("/dataFormatDescriptor/blocks/{}/bytesPlane", blockIndex),
-            OPT_FIELDS(bdfds, bytesPlanes));
+        diff << DiffArray("Plane bytes", fmt::format("/dataFormatDescriptor/blocks/{}/bytesPlane", blockIndex),
+                          OPT_FIELDS(bdfds, bytesPlanes));
 
     diff.addContext("Sample <i>:\n");
 
-    std::size_t maxNumSamples = std::max(
-        bdfdSamples[0].has_value() ? bdfdSamples[0]->size() : 0,
-        bdfdSamples[1].has_value() ? bdfdSamples[1]->size() : 0
-    );
+    std::size_t maxNumSamples =
+        std::max(bdfdSamples[0].has_value() ? bdfdSamples[0]->size() : 0, bdfdSamples[1].has_value() ? bdfdSamples[1]->size() : 0);
     for (std::size_t sampleIndex = 0; sampleIndex < maxNumSamples; ++sampleIndex) {
         diff.updateContext(fmt::format("Sample {}:\n", sampleIndex));
 
         std::optional<SampleType> samples[2] = {};
         for (std::size_t i = 0; i < 2; ++i)
-            if (bdfdSamples[i].has_value() && sampleIndex < bdfdSamples[i]->size())
-                samples[i] = (*bdfdSamples[i])[sampleIndex];
+            if (bdfdSamples[i].has_value() && sampleIndex < bdfdSamples[i]->size()) samples[i] = (*bdfdSamples[i])[sampleIndex];
 
         std::optional<uint32_t> qualifierFlags[2] = {};
         for (std::size_t i = 0; i < 2; ++i)
@@ -1733,45 +1630,44 @@ void CommandCompare::compareDFDBasic(PrintDiff& diff, uint32_t blockIndex,
                 qualifierFlags[i] = flags;
             }
         diff << DiffFlags("    Qualifiers",
-            fmt::format("/dataFormatDescriptor/blocks/{}/samples/{}/qualifiers", blockIndex, sampleIndex),
-            qualifierFlags[0], qualifierFlags[1], dfdToStringSampleDatatypeQualifiersBit);
+                          fmt::format("/dataFormatDescriptor/blocks/{}/samples/{}/qualifiers", blockIndex, sampleIndex),
+                          qualifierFlags[0], qualifierFlags[1], dfdToStringSampleDatatypeQualifiersBit);
 
-        diff << DiffEnum<khr_df_model_channels_e>("    Channel Type",
-            fmt::format("/dataFormatDescriptor/blocks/{}/samples/{}/channelType", blockIndex, sampleIndex),
-            OPT_BITFIELDS(samples, channelType),
-            [&](auto i) {
-                return dfdToStringChannelId(khr_df_model_e(bdfds[i]->model),
-                    khr_df_model_channels_e(samples[i]->channelType));
-            })
-            .outputHexInText();
+        diff << DiffEnum<khr_df_model_channels_e>(
+                    "    Channel Type",
+                    fmt::format("/dataFormatDescriptor/blocks/{}/samples/{}/channelType", blockIndex, sampleIndex),
+                    OPT_BITFIELDS(samples, channelType),
+                    [&](auto i) {
+                        return dfdToStringChannelId(khr_df_model_e(bdfds[i]->model),
+                                                    khr_df_model_channels_e(samples[i]->channelType));
+                    })
+                    .outputHexInText();
 
         // Text output combines length and offset so we have to special-case here
         if (options.format == OutputFormat::text) {
             std::optional<std::string> lengthAndOffset[2] = {};
             for (std::size_t i = 0; i < 2; ++i)
                 if (samples[i].has_value())
-                    lengthAndOffset[i] = fmt::format("    Length: {} bits Offset: {}",
-                        static_cast<uint32_t>(samples[i]->bitLength + 1),
-                        static_cast<uint32_t>(samples[i]->bitOffset));
+                    lengthAndOffset[i] =
+                        fmt::format("    Length: {} bits Offset: {}", static_cast<uint32_t>(samples[i]->bitLength + 1),
+                                    static_cast<uint32_t>(samples[i]->bitOffset));
             diff << DiffTextCustom(lengthAndOffset[0], lengthAndOffset[1]);
         } else {
-            diff << Diff({},
-                fmt::format("/dataFormatDescriptor/blocks/{}/samples/{}/bitLength", blockIndex, sampleIndex),
-                OPT_BITFIELDS(samples, bitLength));
-            diff << Diff({},
-                fmt::format("/dataFormatDescriptor/blocks/{}/samples/{}/bitOffset", blockIndex, sampleIndex),
-                OPT_BITFIELDS(samples, bitOffset));
+            diff << Diff({}, fmt::format("/dataFormatDescriptor/blocks/{}/samples/{}/bitLength", blockIndex, sampleIndex),
+                         OPT_BITFIELDS(samples, bitLength));
+            diff << Diff({}, fmt::format("/dataFormatDescriptor/blocks/{}/samples/{}/bitOffset", blockIndex, sampleIndex),
+                         OPT_BITFIELDS(samples, bitOffset));
         }
 
         diff << DiffArray("    Position",
-            fmt::format("/dataFormatDescriptor/blocks/{}/samples/{}/samplePosition", blockIndex, sampleIndex),
-            OPT_UINT4S(samples, samplePosition));
+                          fmt::format("/dataFormatDescriptor/blocks/{}/samples/{}/samplePosition", blockIndex, sampleIndex),
+                          OPT_UINT4S(samples, samplePosition));
         diff << DiffHexFixedWidth("    Lower",
-            fmt::format("/dataFormatDescriptor/blocks/{}/samples/{}/sampleLower", blockIndex, sampleIndex),
-            OPT_FIELDS(samples, lower));
+                                  fmt::format("/dataFormatDescriptor/blocks/{}/samples/{}/sampleLower", blockIndex, sampleIndex),
+                                  OPT_FIELDS(samples, lower));
         diff << DiffHexFixedWidth("    Upper",
-            fmt::format("/dataFormatDescriptor/blocks/{}/samples/{}/sampleUpper", blockIndex, sampleIndex),
-            OPT_FIELDS(samples, upper));
+                                  fmt::format("/dataFormatDescriptor/blocks/{}/samples/{}/sampleUpper", blockIndex, sampleIndex),
+                                  OPT_FIELDS(samples, upper));
     }
 }
 
@@ -1787,17 +1683,14 @@ void CommandCompare::compareKVD(PrintDiff& diff, InputStreams& streams) {
         if (headers[i].keyValueData.byteLength == 0) continue;
 
         keyValueStores[i].resize(headers[i].keyValueData.byteLength);
-        read(streams[i], headers[i].keyValueData.byteOffset, keyValueStores[i].data(),
-            headers[i].keyValueData.byteLength, "the KVD");
+        read(streams[i], headers[i].keyValueData.byteOffset, keyValueStores[i].data(), headers[i].keyValueData.byteLength,
+             "the KVD");
 
         ktxHashList kvDataHead = nullptr;
-        KTX_error_code result = ktxHashList_Deserialize(&kvDataHead,
-            headers[i].keyValueData.byteLength, keyValueStores[i].data());
-        if (result != KTX_SUCCESS)
-            fatal(rc::KTX_FAILURE, "Failed to parse KVD in file \"{}\".", streams[i].str());
+        KTX_error_code result = ktxHashList_Deserialize(&kvDataHead, headers[i].keyValueData.byteLength, keyValueStores[i].data());
+        if (result != KTX_SUCCESS) fatal(rc::KTX_FAILURE, "Failed to parse KVD in file \"{}\".", streams[i].str());
 
-        if (kvDataHead == nullptr)
-            continue;
+        if (kvDataHead == nullptr) continue;
 
         uint32_t entryIndex = 0;
         ktxHashListEntry* entry = kvDataHead;
@@ -1809,7 +1702,7 @@ void CommandCompare::compareKVD(PrintDiff& diff, InputStreams& streams) {
         }
     }
 
-    std::map<std::string_view, ktxHashListEntry*>::iterator it[2] = { keys[0].begin(), keys[1].begin() };
+    std::map<std::string_view, ktxHashListEntry*>::iterator it[2] = {keys[0].begin(), keys[1].begin()};
     while (it[0] != keys[0].end() || it[1] != keys[1].end()) {
         bool ignoreKey = false;
         for (std::size_t i = 0; i < streams.size(); ++i)
@@ -1848,8 +1741,7 @@ struct KVEntry {
         if (entry) {
             T newEntry;
             ktxHashListEntry_GetValue(entry, &newEntry.valueLen, reinterpret_cast<void**>(&newEntry.value));
-            if (newEntry.value)
-                return std::optional<T>(std::move(newEntry));
+            if (newEntry.value) return std::optional<T>(std::move(newEntry));
         }
         return std::optional<T>();
     }
@@ -1887,25 +1779,15 @@ struct KVEntry {
     }
 };
 
-void CommandCompare::compareKVEntry(PrintDiff& diff, const std::string_view& key,
-    ktxHashListEntry* entry1, ktxHashListEntry* entry2) {
-    const std::unordered_set<std::string_view> keysWithUint32Values = {
-        "KTXdxgiFormat__",
-        "KTXmetalPixelFormat"
-    };
-    const std::unordered_set<std::string_view> keysWithStringValues = {
-        "KTXorientation",
-        "KTXswizzle",
-        "KTXwriter",
-        "KTXwriterScParams",
-        "KTXastcDecodeMode"
-    };
+void CommandCompare::compareKVEntry(PrintDiff& diff, const std::string_view& key, ktxHashListEntry* entry1,
+                                    ktxHashListEntry* entry2) {
+    const std::unordered_set<std::string_view> keysWithUint32Values = {"KTXdxgiFormat__", "KTXmetalPixelFormat"};
+    const std::unordered_set<std::string_view> keysWithStringValues = {"KTXorientation", "KTXswizzle", "KTXwriter",
+                                                                       "KTXwriterScParams", "KTXastcDecodeMode"};
 
     if (keysWithUint32Values.find(key) != keysWithUint32Values.end()) {
         struct KVEntryUint32 : public KVEntry {
-            bool isValid() const {
-                return valueLen == sizeof(ktx_uint32_t);
-            }
+            bool isValid() const { return valueLen == sizeof(ktx_uint32_t); }
 
             void printText(PrintIndent& out, const char*) const {
                 if (isValid()) {
@@ -1924,13 +1806,11 @@ void CommandCompare::compareKVEntry(PrintDiff& diff, const std::string_view& key
             }
         };
 
-        diff << DiffComplex(key, fmt::format("/keyValueData/{}", key),
-            KVEntry::load<KVEntryUint32>(entry1), KVEntry::load<KVEntryUint32>(entry2));
+        diff << DiffComplex(key, fmt::format("/keyValueData/{}", key), KVEntry::load<KVEntryUint32>(entry1),
+                            KVEntry::load<KVEntryUint32>(entry2));
     } else if (keysWithStringValues.find(key) != keysWithStringValues.end()) {
         struct KVEntryString : public KVEntry {
-            bool isValid() const {
-                return value[valueLen - 1] == '\0';
-            }
+            bool isValid() const { return value[valueLen - 1] == '\0'; }
 
             void printText(PrintIndent& out, const char*) const {
                 if (isValid()) {
@@ -1949,13 +1829,11 @@ void CommandCompare::compareKVEntry(PrintDiff& diff, const std::string_view& key
             }
         };
 
-        diff << DiffComplex(key, fmt::format("/keyValueData/{}", key),
-            KVEntry::load<KVEntryString>(entry1), KVEntry::load<KVEntryString>(entry2));
+        diff << DiffComplex(key, fmt::format("/keyValueData/{}", key), KVEntry::load<KVEntryString>(entry1),
+                            KVEntry::load<KVEntryString>(entry2));
     } else if (key == "KTXglFormat") {
         struct KTXglFormat : public KVEntry {
-            bool isValid() const {
-                return valueLen == 3 * sizeof(ktx_uint32_t);
-            }
+            bool isValid() const { return valueLen == 3 * sizeof(ktx_uint32_t); }
 
             void printText(PrintIndent& out, const char* prefix) const {
                 if (isValid()) {
@@ -1981,13 +1859,11 @@ void CommandCompare::compareKVEntry(PrintDiff& diff, const std::string_view& key
             }
         };
 
-        diff << DiffComplex("KTXglFormat", "/keyValueData/KTXglFormat",
-            KVEntry::load<KTXglFormat>(entry1), KVEntry::load<KTXglFormat>(entry2));
+        diff << DiffComplex("KTXglFormat", "/keyValueData/KTXglFormat", KVEntry::load<KTXglFormat>(entry1),
+                            KVEntry::load<KTXglFormat>(entry2));
     } else if (key == "KTXanimData") {
         struct KTXanimData : public KVEntry {
-            bool isValid() const {
-                return valueLen == 3 * sizeof(ktx_uint32_t);
-            }
+            bool isValid() const { return valueLen == 3 * sizeof(ktx_uint32_t); }
 
             void printText(PrintIndent& out, const char* prefix) const {
                 if (isValid()) {
@@ -2013,13 +1889,11 @@ void CommandCompare::compareKVEntry(PrintDiff& diff, const std::string_view& key
             }
         };
 
-        diff << DiffComplex("KTXanimData", "/keyValueData/KTXanimData",
-            KVEntry::load<KTXanimData>(entry1), KVEntry::load<KTXanimData>(entry2));
+        diff << DiffComplex("KTXanimData", "/keyValueData/KTXanimData", KVEntry::load<KTXanimData>(entry1),
+                            KVEntry::load<KTXanimData>(entry2));
     } else if (key == "KTXcubemapIncomplete") {
         struct KTXcubemapIncomplete : public KVEntry {
-            bool isValid() const {
-                return valueLen == sizeof(ktx_uint8_t);
-            }
+            bool isValid() const { return valueLen == sizeof(ktx_uint8_t); }
 
             const char* bitValue(uint8_t bitIndex) const {
                 assert(isValid());
@@ -2058,20 +1932,18 @@ void CommandCompare::compareKVEntry(PrintDiff& diff, const std::string_view& key
         };
 
         diff << DiffComplex("KTXcubemapIncomplete", "/keyValueData/KTXcubemapIncomplete",
-            KVEntry::load<KTXcubemapIncomplete>(entry1), KVEntry::load<KTXcubemapIncomplete>(entry2));
+                            KVEntry::load<KTXcubemapIncomplete>(entry1), KVEntry::load<KTXcubemapIncomplete>(entry2));
     } else {
         struct KVEntryUnknown : public KVEntry {
-            void printText(PrintIndent& out, const char*) const {
-                out(0, " {}\n", extractRawBytes(true));
-            }
+            void printText(PrintIndent& out, const char*) const { out(0, " {}\n", extractRawBytes(true)); }
 
             void printJson(PrintIndent& out, int indent, const char* space, const char*) const {
                 out(indent, "{}", extractRawBytes(false, space));
             }
         };
 
-        diff << DiffComplex(key, fmt::format("/keyValueData/{}", key),
-            KVEntry::load<KVEntryUnknown>(entry1), KVEntry::load<KVEntryUnknown>(entry2));
+        diff << DiffComplex(key, fmt::format("/keyValueData/{}", key), KVEntry::load<KVEntryUnknown>(entry1),
+                            KVEntry::load<KVEntryUnknown>(entry2));
     }
 }
 
@@ -2080,14 +1952,12 @@ void CommandCompare::compareSGD(PrintDiff& diff, InputStreams& streams) {
 
     auto sgdTypeBasisLZ = [&](std::size_t i) { return headers[i].supercompressionScheme == KTX_SS_BASIS_LZ; };
 
-    std::unique_ptr<uint8_t[]> buffers[] = {
-        std::make_unique<uint8_t[]>(headers[0].supercompressionGlobalData.byteLength),
-        std::make_unique<uint8_t[]>(headers[1].supercompressionGlobalData.byteLength)
-    };
+    std::unique_ptr<uint8_t[]> buffers[] = {std::make_unique<uint8_t[]>(headers[0].supercompressionGlobalData.byteLength),
+                                            std::make_unique<uint8_t[]>(headers[1].supercompressionGlobalData.byteLength)};
 
     for (std::size_t i = 0; i < streams.size(); ++i)
         read(streams[i], headers[i].supercompressionGlobalData.byteOffset, buffers[i].get(),
-            headers[i].supercompressionGlobalData.byteLength, "the SGD");
+             headers[i].supercompressionGlobalData.byteLength, "the SGD");
 
     // BasisLZ specific parameters
     struct SGDBasisLZ {
@@ -2119,10 +1989,10 @@ void CommandCompare::compareSGD(PrintDiff& diff, InputStreams& streams) {
             uint32_t imageCount = 0;
             for (uint32_t level = 0; level < std::max(headers[i].levelCount, 1u); ++level)
                 // numFaces * depth is only reasonable because they can't both be > 1. There are no 3D cubemaps
-                imageCount += std::max(headers[i].layerCount, 1u) * headers[i].faceCount * std::max(headers[i].pixelDepth >> level, 1u);
+                imageCount +=
+                    std::max(headers[i].layerCount, 1u) * headers[i].faceCount * std::max(headers[i].pixelDepth >> level, 1u);
 
-            if (sgdByteLength < sizeof(ktxBasisLzGlobalHeader))
-                continue;
+            if (sgdByteLength < sizeof(ktxBasisLzGlobalHeader)) continue;
 
             const ktxBasisLzGlobalHeader& bgh = *reinterpret_cast<const ktxBasisLzGlobalHeader*>(buffers[i].get());
 
@@ -2133,8 +2003,7 @@ void CommandCompare::compareSGD(PrintDiff& diff, InputStreams& streams) {
             basisLZ[i].tablesByteLength = bgh.tablesByteLength;
             basisLZ[i].extendedByteLength = bgh.extendedByteLength;
 
-            if (sgdByteLength < sizeof(ktxBasisLzGlobalHeader) + sizeof(ktxBasisLzEtc1sImageDesc) * imageCount)
-                continue;
+            if (sgdByteLength < sizeof(ktxBasisLzGlobalHeader) + sizeof(ktxBasisLzEtc1sImageDesc) * imageCount) continue;
 
             const ktxBasisLzEtc1sImageDesc* imageDesc = BGD_ETC1S_IMAGE_DESCS(buffers[i].get());
 
@@ -2162,14 +2031,13 @@ void CommandCompare::compareSGD(PrintDiff& diff, InputStreams& streams) {
     }
 
     // Helper for comparing SGD payloads
-    auto compareSGDPayload = [&](const char* textName, const char* jsonPath,
-            std::optional<uint64_t> offset1, std::optional<uint64_t> length1,
-            std::optional<uint64_t> offset2, std::optional<uint64_t> length2) {
+    auto compareSGDPayload = [&](const char* textName, const char* jsonPath, std::optional<uint64_t> offset1,
+                                 std::optional<uint64_t> length1, std::optional<uint64_t> offset2,
+                                 std::optional<uint64_t> length2) {
         bool mismatch = false;
 
         // If SGD is not present in both files then consider that a mismatch
-        if (!offset1.has_value() || !length1.has_value() || !offset2.has_value() || !length2.has_value())
-            mismatch = true;
+        if (!offset1.has_value() || !length1.has_value() || !offset2.has_value() || !length2.has_value()) mismatch = true;
 
         if (!mismatch)
             // If we have an out of bounds situation then consider that a mismatch
@@ -2185,8 +2053,7 @@ void CommandCompare::compareSGD(PrintDiff& diff, InputStreams& streams) {
             }
         }
 
-        if (mismatch)
-            diff << DiffMismatch(fmt::format("{} mismatch", textName), jsonPath);
+        if (mismatch) diff << DiffMismatch(fmt::format("{} mismatch", textName), jsonPath);
     };
 
     if (sgdTypeBasisLZ(0) || sgdTypeBasisLZ(1)) {
@@ -2195,20 +2062,20 @@ void CommandCompare::compareSGD(PrintDiff& diff, InputStreams& streams) {
         // Supercompression global data type is only needed in JSON format
         if (options.format != OutputFormat::text)
             diff << DiffEnum<ktxSupercmpScheme>("supercompressionScheme", "/supercompressionGlobalData/type",
-                headers[0].supercompressionScheme, headers[1].supercompressionScheme);
+                                                headers[0].supercompressionScheme, headers[1].supercompressionScheme);
 
-        diff << Diff("endpointCount", "/supercompressionGlobalData/endpointCount",
-            basisLZ[0].endpointCount, basisLZ[1].endpointCount);
-        diff << Diff("selectorCount", "/supercompressionGlobalData/selectorCount",
-            basisLZ[0].selectorCount, basisLZ[1].selectorCount);
-        diff << Diff("endpointsByteLength", "/supercompressionGlobalData/endpointsByteLength",
-            basisLZ[0].endpointsByteLength, basisLZ[1].endpointsByteLength);
-        diff << Diff("selectorsByteLength", "/supercompressionGlobalData/selectorsByteLength",
-            basisLZ[0].selectorsByteLength, basisLZ[1].selectorsByteLength);
-        diff << Diff("tablesByteLength", "/supercompressionGlobalData/tablesByteLength",
-            basisLZ[0].tablesByteLength, basisLZ[1].tablesByteLength);
-        diff << Diff("extendedByteLength", "/supercompressionGlobalData/extendedByteLength",
-            basisLZ[0].extendedByteLength, basisLZ[1].extendedByteLength);
+        diff << Diff("endpointCount", "/supercompressionGlobalData/endpointCount", basisLZ[0].endpointCount,
+                     basisLZ[1].endpointCount);
+        diff << Diff("selectorCount", "/supercompressionGlobalData/selectorCount", basisLZ[0].selectorCount,
+                     basisLZ[1].selectorCount);
+        diff << Diff("endpointsByteLength", "/supercompressionGlobalData/endpointsByteLength", basisLZ[0].endpointsByteLength,
+                     basisLZ[1].endpointsByteLength);
+        diff << Diff("selectorsByteLength", "/supercompressionGlobalData/selectorsByteLength", basisLZ[0].selectorsByteLength,
+                     basisLZ[1].selectorsByteLength);
+        diff << Diff("tablesByteLength", "/supercompressionGlobalData/tablesByteLength", basisLZ[0].tablesByteLength,
+                     basisLZ[1].tablesByteLength);
+        diff << Diff("extendedByteLength", "/supercompressionGlobalData/extendedByteLength", basisLZ[0].extendedByteLength,
+                     basisLZ[1].extendedByteLength);
 
         // Make the per image arrays the same size for easier diffing
         std::size_t maxImageCount = std::max(basisLZ[0].imageFlags.size(), basisLZ[1].imageFlags.size());
@@ -2222,71 +2089,63 @@ void CommandCompare::compareSGD(PrintDiff& diff, InputStreams& streams) {
 
         for (std::size_t imageIndex = 0; imageIndex < maxImageCount; ++imageIndex) {
             diff << DiffFlags(fmt::format("Image{}.imageFlags", imageIndex),
-                fmt::format("/supercompressionGlobalData/images/{}/imageFlags", imageIndex),
-                basisLZ[0].imageFlags[imageIndex], basisLZ[1].imageFlags[imageIndex], ktxBUImageFlagsBitString);
+                              fmt::format("/supercompressionGlobalData/images/{}/imageFlags", imageIndex),
+                              basisLZ[0].imageFlags[imageIndex], basisLZ[1].imageFlags[imageIndex], ktxBUImageFlagsBitString);
 
             diff << Diff(fmt::format("Image{}.rgbSliceByteLength", imageIndex),
-                fmt::format("/supercompressionGlobalData/images/{}/rgbSliceByteLength", imageIndex),
-                basisLZ[0].rgbSliceByteLength[imageIndex], basisLZ[1].rgbSliceByteLength[imageIndex]);
+                         fmt::format("/supercompressionGlobalData/images/{}/rgbSliceByteLength", imageIndex),
+                         basisLZ[0].rgbSliceByteLength[imageIndex], basisLZ[1].rgbSliceByteLength[imageIndex]);
 
             diff << Diff(fmt::format("Image{}.rgbSliceByteOffset", imageIndex),
-                fmt::format("/supercompressionGlobalData/images/{}/rgbSliceByteOffset", imageIndex),
-                basisLZ[0].rgbSliceByteOffset[imageIndex], basisLZ[1].rgbSliceByteOffset[imageIndex]);
+                         fmt::format("/supercompressionGlobalData/images/{}/rgbSliceByteOffset", imageIndex),
+                         basisLZ[0].rgbSliceByteOffset[imageIndex], basisLZ[1].rgbSliceByteOffset[imageIndex]);
 
             diff << Diff(fmt::format("Image{}.alphaSliceByteLength", imageIndex),
-                fmt::format("/supercompressionGlobalData/images/{}/alphaSliceByteLength", imageIndex),
-                basisLZ[0].alphaSliceByteLength[imageIndex], basisLZ[1].alphaSliceByteLength[imageIndex]);
+                         fmt::format("/supercompressionGlobalData/images/{}/alphaSliceByteLength", imageIndex),
+                         basisLZ[0].alphaSliceByteLength[imageIndex], basisLZ[1].alphaSliceByteLength[imageIndex]);
 
             diff << Diff(fmt::format("Image{}.alphaSliceByteOffset", imageIndex),
-                fmt::format("/supercompressionGlobalData/images/{}/alphaSliceByteOffset", imageIndex),
-                basisLZ[0].alphaSliceByteOffset[imageIndex], basisLZ[1].alphaSliceByteOffset[imageIndex]);
+                         fmt::format("/supercompressionGlobalData/images/{}/alphaSliceByteOffset", imageIndex),
+                         basisLZ[0].alphaSliceByteOffset[imageIndex], basisLZ[1].alphaSliceByteOffset[imageIndex]);
         }
 
         if (options.ignoreSGD != IgnoreSGD::payload) {
-            compareSGDPayload("endpointsData", "/supercompressionGlobalData/endpointsData",
-                basisLZ[0].endpointsByteOffset, basisLZ[0].endpointsByteLength,
-                basisLZ[1].endpointsByteOffset, basisLZ[1].endpointsByteLength);
-            compareSGDPayload("selectorsData", "/supercompressionGlobalData/selectorsData",
-                basisLZ[0].selectorsByteOffset, basisLZ[0].selectorsByteLength,
-                basisLZ[1].selectorsByteOffset, basisLZ[1].selectorsByteLength);
-            compareSGDPayload("tablesData", "/supercompressionGlobalData/tablesData",
-                basisLZ[0].tablesByteOffset, basisLZ[0].tablesByteLength,
-                basisLZ[1].tablesByteOffset, basisLZ[1].tablesByteLength);
-            compareSGDPayload("extendedData", "/supercompressionGlobalData/extendedData",
-                basisLZ[0].extendedByteOffset, basisLZ[0].extendedByteLength,
-                basisLZ[1].extendedByteOffset, basisLZ[1].extendedByteLength);
+            compareSGDPayload("endpointsData", "/supercompressionGlobalData/endpointsData", basisLZ[0].endpointsByteOffset,
+                              basisLZ[0].endpointsByteLength, basisLZ[1].endpointsByteOffset, basisLZ[1].endpointsByteLength);
+            compareSGDPayload("selectorsData", "/supercompressionGlobalData/selectorsData", basisLZ[0].selectorsByteOffset,
+                              basisLZ[0].selectorsByteLength, basisLZ[1].selectorsByteOffset, basisLZ[1].selectorsByteLength);
+            compareSGDPayload("tablesData", "/supercompressionGlobalData/tablesData", basisLZ[0].tablesByteOffset,
+                              basisLZ[0].tablesByteLength, basisLZ[1].tablesByteOffset, basisLZ[1].tablesByteLength);
+            compareSGDPayload("extendedData", "/supercompressionGlobalData/extendedData", basisLZ[0].extendedByteOffset,
+                              basisLZ[0].extendedByteLength, basisLZ[1].extendedByteOffset, basisLZ[1].extendedByteLength);
         }
     } else if (options.ignoreSGD == IgnoreSGD::none) {
         diff.setContext("Unrecognized Supercompression Global Data\n\n");
 
         // Just compare raw payloads of the SGDs
-        compareSGDPayload("SGD", "/supercompressionGlobalData/rawPayload",
-            0, headers[0].supercompressionGlobalData.byteLength,
-            0, headers[1].supercompressionGlobalData.byteLength);
+        compareSGDPayload("SGD", "/supercompressionGlobalData/rawPayload", 0, headers[0].supercompressionGlobalData.byteLength, 0,
+                          headers[1].supercompressionGlobalData.byteLength);
     }
 }
 
 void CommandCompare::compareImages(PrintDiff& diff, InputStreams& streams) {
     switch (options.contentMode) {
-        case ContentMode::ignore:
-            // Nothing to do
-            break;
-        case ContentMode::raw:
-            compareImagesRaw(diff, streams);
-            break;
-        case ContentMode::image:
-            compareImagesPerPixel(diff, streams);
-            break;
+    case ContentMode::ignore:
+        // Nothing to do
+        break;
+    case ContentMode::raw:
+        compareImagesRaw(diff, streams);
+        break;
+    case ContentMode::image:
+        compareImagesPerPixel(diff, streams);
+        break;
     }
 }
 
 void CommandCompare::compareImagesRaw(PrintDiff& diff, InputStreams& streams) {
     diff.setContext("Image Data\n\n");
 
-    const uint32_t numLevels[] = {
-        std::max(1u, headers[0].levelCount),
-        std::max(1u, headers[1].levelCount)
-    };
+    const uint32_t numLevels[] = {std::max(1u, headers[0].levelCount), std::max(1u, headers[1].levelCount)};
     const uint32_t maxNumLevels = std::max(numLevels[0], numLevels[1]);
 
     for (uint32_t level = 0; level < maxNumLevels; ++level) {
@@ -2302,30 +2161,24 @@ void CommandCompare::compareImagesRaw(PrintDiff& diff, InputStreams& streams) {
         bool mismatch = false;
 
         // Missing levels are always considered a mismatch
-        if (!levelIndexEntry[0].has_value() || !levelIndexEntry[1].has_value())
-            mismatch = true;
+        if (!levelIndexEntry[0].has_value() || !levelIndexEntry[1].has_value()) mismatch = true;
 
         // Mismatching level data sizes are always considered a mismatch
-        if (!mismatch && levelIndexEntry[0]->byteLength != levelIndexEntry[1]->byteLength)
-            mismatch = true;
+        if (!mismatch && levelIndexEntry[0]->byteLength != levelIndexEntry[1]->byteLength) mismatch = true;
 
         if (!mismatch) {
             // If so far so good then load the level data and compare them
-            std::unique_ptr<uint8_t[]> buffers[] = {
-                std::make_unique<uint8_t[]>(levelIndexEntry[0]->byteLength),
-                std::make_unique<uint8_t[]>(levelIndexEntry[1]->byteLength)
-            };
+            std::unique_ptr<uint8_t[]> buffers[] = {std::make_unique<uint8_t[]>(levelIndexEntry[0]->byteLength),
+                                                    std::make_unique<uint8_t[]>(levelIndexEntry[1]->byteLength)};
 
             for (std::size_t i = 0; i < streams.size(); ++i)
-                read(streams[i], levelIndexEntry[i]->byteOffset, buffers[i].get(),
-                    levelIndexEntry[i]->byteLength, fmt::format("level {} data", level));
+                read(streams[i], levelIndexEntry[i]->byteOffset, buffers[i].get(), levelIndexEntry[i]->byteLength,
+                     fmt::format("level {} data", level));
 
-            if (std::memcmp(buffers[0].get(), buffers[1].get(), levelIndexEntry[0]->byteLength) != 0)
-                mismatch = true;
+            if (std::memcmp(buffers[0].get(), buffers[1].get(), levelIndexEntry[0]->byteLength) != 0) mismatch = true;
         }
 
-        if (mismatch)
-            diff << DiffMismatch(fmt::format("Mismatch in level {} data", level), fmt::format("m={}", level));
+        if (mismatch) diff << DiffMismatch(fmt::format("Mismatch in level {} data", level), fmt::format("m={}", level));
     }
 }
 
@@ -2340,13 +2193,13 @@ void CommandCompare::compareImagesPerPixel(PrintDiff& diff, InputStreams& stream
     KTXTexture2 textures[2] = {KTXTexture2(nullptr), KTXTexture2(nullptr)};
     StreambufStream<std::streambuf*> ktx2Streams[2] = {
         StreambufStream<std::streambuf*>(streams[0]->rdbuf(), std::ios::in | std::ios::binary),
-        StreambufStream<std::streambuf*>(streams[1]->rdbuf(), std::ios::in | std::ios::binary)
-    };
+        StreambufStream<std::streambuf*>(streams[1]->rdbuf(), std::ios::in | std::ios::binary)};
     FormatDescriptor formatDesc[2] = {};
     ImageCodec imageCodecs[2] = {};
     bool fileOffsetsValid[2] = {true, true};
     for (std::size_t i = 0; i < streams.size(); ++i) {
-        auto ret = ktxTexture2_CreateFromStream(ktx2Streams[i].stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, textures[i].pHandle());
+        auto ret =
+            ktxTexture2_CreateFromStream(ktx2Streams[i].stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, textures[i].pHandle());
         if (ret != KTX_SUCCESS)
             fatal(rc::INVALID_FILE, "Failed to create KTX2 texture from file \"{}\": {}", streams[i].str(), ktxErrorString(ret));
 
@@ -2357,7 +2210,8 @@ void CommandCompare::compareImagesPerPixel(PrintDiff& diff, InputStreams& stream
             // Transcode BasisLZ textures to RGBA8 before comparison
             ret = ktxTexture2_TranscodeBasis(textures[i], KTX_TTF_RGBA32, 0);
             if (ret != KTX_SUCCESS)
-                fatal(rc::INVALID_FILE, "Failed to transcode KTX2 texture from file \"{}\": {}", streams[i].str(), ktxErrorString(ret));
+                fatal(rc::INVALID_FILE, "Failed to transcode KTX2 texture from file \"{}\": {}", streams[i].str(),
+                      ktxErrorString(ret));
 
             // Update format descriptor and image codec after transcoding
             formatDesc[i] = createFormatDescriptor(textures[i]->pDfd);
@@ -2365,15 +2219,12 @@ void CommandCompare::compareImagesPerPixel(PrintDiff& diff, InputStreams& stream
         }
 
         // If the image data was supercompressed then file offsets of texel blocks cannot be calculated
-        if (headers[i].supercompressionScheme != KTX_SS_NONE)
-            fileOffsetsValid[i] = false;
+        if (headers[i].supercompressionScheme != KTX_SS_NONE) fileOffsetsValid[i] = false;
     }
 
     // Currently, we only support comparing images with matching dimensions
-    if (textures[0]->numDimensions != textures[1]->numDimensions ||
-        textures[0]->baseWidth != textures[1]->baseWidth ||
-        textures[0]->baseHeight != textures[1]->baseHeight ||
-        textures[0]->baseDepth != textures[1]->baseDepth ||
+    if (textures[0]->numDimensions != textures[1]->numDimensions || textures[0]->baseWidth != textures[1]->baseWidth ||
+        textures[0]->baseHeight != textures[1]->baseHeight || textures[0]->baseDepth != textures[1]->baseDepth ||
         imageCodecs[0].getTexelBlockDimensions() != imageCodecs[1].getTexelBlockDimensions())
         fatal(rc::INVALID_ARGUMENTS, "Comparison requires matching texture and texel block dimensions.");
 
@@ -2408,10 +2259,8 @@ void CommandCompare::compareImagesPerPixel(PrintDiff& diff, InputStreams& stream
         const auto texelBlockDims = imageCodecs[0].pixelToTexelBlockSize(glm::uvec4(imageWidth, imageHeight, imageDepth, 1));
 
         // Size returned by libktx is only for a single layer/face/slice
-        const std::size_t imageSizes[2] = {
-            ktxTexture_GetImageSize(textures[0], level) * texelBlockDims.z,
-            ktxTexture_GetImageSize(textures[1], level) * texelBlockDims.z
-        };
+        const std::size_t imageSizes[2] = {ktxTexture_GetImageSize(textures[0], level) * texelBlockDims.z,
+                                           ktxTexture_GetImageSize(textures[1], level) * texelBlockDims.z};
 
         for (uint32_t layer = 0; layer < maxNumLayers; ++layer) {
             for (uint32_t face = 0; face < maxNumFaces; ++face) {
@@ -2423,7 +2272,7 @@ void CommandCompare::compareImagesPerPixel(PrintDiff& diff, InputStreams& stream
 
                 if (missingImage) {
                     diff << DiffImage(fmt::format("Mismatch in level {}, layer {}, face {}", level, layer, face),
-                        fmt::format("m={},a={},f={}", level, layer, face), 0, 0, {});
+                                      fmt::format("m={},a={},f={}", level, layer, face), 0, 0, {});
                     continue;
                 }
 
@@ -2452,10 +2301,8 @@ void CommandCompare::compareImagesPerPixel(PrintDiff& diff, InputStreams& stream
                 for (uint32_t blockZ = 0; blockZ < texelBlockDims.z; ++blockZ) {
                     for (uint32_t blockY = 0; blockY < texelBlockDims.y; ++blockY) {
                         for (uint32_t blockX = 0; blockX < texelBlockDims.x; ++blockX) {
-                            ImageSpan::TexelBlockPtr<> texelBlocks[2] = {
-                                images[0].at(blockX, blockY, blockZ),
-                                images[1].at(blockX, blockY, blockZ)
-                            };
+                            ImageSpan::TexelBlockPtr<> texelBlocks[2] = {images[0].at(blockX, blockY, blockZ),
+                                                                         images[1].at(blockX, blockY, blockZ)};
                             if (!compareFunc(texelBlocks)) {
                                 imageMismatch = true;
                                 texelBlockDifferences += 1;
@@ -2469,14 +2316,14 @@ void CommandCompare::compareImagesPerPixel(PrintDiff& diff, InputStreams& stream
 
                 if (imageMismatch) {
                     diff << DiffImage(fmt::format("Mismatch in level {} layer {} face {}", level, layer, face),
-                        fmt::format("m={},a={},f={}", level, layer, face), imageFileOffsets[0], imageFileOffsets[1],
-                        mismatchingBlocks);
+                                      fmt::format("m={},a={},f={}", level, layer, face), imageFileOffsets[0], imageFileOffsets[1],
+                                      mismatchingBlocks);
                 }
             }
         }
     }
 }
 
-} // namespace ktx
+}  // namespace ktx
 
 KTX_COMMAND_ENTRY_POINT(ktxCompare, ktx::CommandCompare)

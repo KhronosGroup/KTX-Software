@@ -27,18 +27,18 @@ class AppBaseSDL {
   public:
     typedef Uint64 ticks_t;
     typedef std::vector<std::string> Args;
-    AppBaseSDL(const char* const name) : szName(name), appTitle(name) { }
+    AppBaseSDL(const char* const name) : szName(name), appTitle(name) {}
     virtual bool initialize(Args& args);
     virtual void finalize();
     // Ticks in milliseconds since start.
-    virtual void drawFrame(uint32_t) { }
+    virtual void drawFrame(uint32_t) {}
     // When used with SDL_SetEventWatch, return value is ignored. When used
     // with SDL_SetEventFilter, 1 causes event to be added to SDL's internal
     // event queue, 0 causes it to be dropped.
     virtual int doEvent(SDL_Event* event);
     virtual void onFPSUpdate();
     virtual SDL_Window* getMainWindow() { return pswMainWindow; }
-    
+
     void drawFrame();
     void initializeFPSTimer();
     const char* name() { return szName; }
@@ -48,13 +48,9 @@ class AppBaseSDL {
     // appended to the app name.
     virtual void setAppTitle(const char* const szExtra);
 
-    static int onEvent(void* userdata, SDL_Event* event) {
-        return ((AppBaseSDL *)userdata)->doEvent(event);
-    }
-    
-    static void onDrawFrame(void* userdata) {
-        ((AppBaseSDL *)userdata)->drawFrame();
-    }
+    static int onEvent(void* userdata, SDL_Event* event) { return ((AppBaseSDL*)userdata)->doEvent(event); }
+
+    static void onDrawFrame(void* userdata) { ((AppBaseSDL*)userdata)->drawFrame(); }
 
   protected:
     // Sets text on window title bar. Fps value is preprended to appTitle.
@@ -67,19 +63,14 @@ class AppBaseSDL {
         int numFrames;
         float lastFPS;
     } fpsCounter;
-    
+
     SDL_Window* pswMainWindow;
-    
+
     const char* const szName;
     std::string appTitle;
     std::string sBasePath;
-
 };
 
 extern class AppBaseSDL* theApp;
 
 #endif /* APP_BASE_SDL_H_1456211087 */
-
-
-
-

@@ -39,11 +39,9 @@ class TextureTranscoder {
         ktx_transcode_fmt_e tf;
         khr_df_model_e colorModel = ktxTexture2_GetColorModel_e(kTexture);
 
-        if (colorModel == KHR_DF_MODEL_UASTC
-            && deviceFeatures.textureCompressionASTC_LDR) {
+        if (colorModel == KHR_DF_MODEL_UASTC && deviceFeatures.textureCompressionASTC_LDR) {
             tf = KTX_TTF_ASTC_4x4_RGBA;
-        } else if (colorModel == KHR_DF_MODEL_ETC1S
-                   && deviceFeatures.textureCompressionETC2) {
+        } else if (colorModel == KHR_DF_MODEL_ETC1S && deviceFeatures.textureCompressionETC2) {
             tf = KTX_TTF_ETC;
         } else {
             tf = defaultTf;
@@ -53,9 +51,7 @@ class TextureTranscoder {
         if (KTX_SUCCESS != ktxresult) {
             std::stringstream message;
 
-            message << "Transcoding of ktxTexture2 to "
-                    << ktxTranscodeFormatString(tf) << " failed: "
-                    << ktxErrorString(ktxresult);
+            message << "Transcoding of ktxTexture2 to " << ktxTranscodeFormatString(tf) << " failed: " << ktxErrorString(ktxresult);
             throw std::runtime_error(message.str());
         }
     }

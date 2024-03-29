@@ -22,7 +22,6 @@
 #include <fmt/ostream.h>
 #include <fmt/printf.h>
 
-
 // -------------------------------------------------------------------------------------------------
 
 namespace ktx {
@@ -87,12 +86,12 @@ class CommandTranscode : public Command {
 
     Combine<OptionsTranscode, OptionsTranscodeTarget<true>, OptionsCompress, OptionsSingleInSingleOut, OptionsGeneric> options;
 
-public:
+  public:
     virtual int main(int argc, char* argv[]) override;
     virtual void initOptions(cxxopts::Options& opts) override;
     virtual void processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) override;
 
-private:
+  private:
     void executeTranscode();
 };
 
@@ -101,9 +100,9 @@ private:
 int CommandTranscode::main(int argc, char* argv[]) {
     try {
         parseCommandLine("ktx transcode",
-                "Transcode the KTX file specified as the input-file argument,\n"
-                "    optionally supercompress the result, and save it as the output-file.",
-                argc, argv);
+                         "Transcode the KTX file specified as the input-file argument,\n"
+                         "    optionally supercompress the result, and save it as the output-file.",
+                         argc, argv);
         executeTranscode();
         return +rc::SUCCESS;
     } catch (const FatalError& error) {
@@ -115,27 +114,22 @@ int CommandTranscode::main(int argc, char* argv[]) {
 }
 
 void CommandTranscode::OptionsTranscode::init(cxxopts::Options& opts) {
-    opts.add_options()
-        ("target", "Target transcode format."
-                   " Block compressed transcode targets can only be saved in raw format."
-                   " Case-insensitive."
-                   "\nPossible options are:"
-                   " etc-rgb | etc-rgba | eac-r11 | eac-rg11 | bc1 | bc3 | bc4 | bc5 | bc7 | astc |"
-                   " r8 | rg8 | rgb8 | rgba8."
-                   "\netc-rgb is ETC1; etc-rgba, eac-r11 and eac-rg11 are ETC2.",
-                   cxxopts::value<std::string>(), "<target>");
+    opts.add_options()("target",
+                       "Target transcode format."
+                       " Block compressed transcode targets can only be saved in raw format."
+                       " Case-insensitive."
+                       "\nPossible options are:"
+                       " etc-rgb | etc-rgba | eac-r11 | eac-rg11 | bc1 | bc3 | bc4 | bc5 | bc7 | astc |"
+                       " r8 | rg8 | rgb8 | rgba8."
+                       "\netc-rgb is ETC1; etc-rgba, eac-r11 and eac-rg11 are ETC2.",
+                       cxxopts::value<std::string>(), "<target>");
 }
 
-void CommandTranscode::OptionsTranscode::process(cxxopts::Options&, cxxopts::ParseResult&, Reporter&) {
-}
+void CommandTranscode::OptionsTranscode::process(cxxopts::Options&, cxxopts::ParseResult&, Reporter&) {}
 
-void CommandTranscode::initOptions(cxxopts::Options& opts) {
-    options.init(opts);
-}
+void CommandTranscode::initOptions(cxxopts::Options& opts) { options.init(opts); }
 
-void CommandTranscode::processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) {
-    options.process(opts, args, *this);
-}
+void CommandTranscode::processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) { options.process(opts, args, *this); }
 
 void CommandTranscode::executeTranscode() {
     InputStream inputStream(options.inputFilepath, *this);
@@ -144,32 +138,28 @@ void CommandTranscode::executeTranscode() {
     KTXTexture2 texture{nullptr};
     StreambufStream<std::streambuf*> ktx2Stream{inputStream->rdbuf(), std::ios::in | std::ios::binary};
     auto ret = ktxTexture2_CreateFromStream(ktx2Stream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, texture.pHandle());
-    if (ret != KTX_SUCCESS)
-        fatal(rc::INVALID_FILE, "Failed to create KTX2 texture: {}", ktxErrorString(ret));
+    if (ret != KTX_SUCCESS) fatal(rc::INVALID_FILE, "Failed to create KTX2 texture: {}", ktxErrorString(ret));
 
-    if (!ktxTexture2_NeedsTranscoding(texture))
-        fatal(rc::INVALID_FILE, "KTX file is not transcodable.");
+    if (!ktxTexture2_NeedsTranscoding(texture)) fatal(rc::INVALID_FILE, "KTX file is not transcodable.");
 
     texture = transcode(std::move(texture), options, *this);
 
     if (options.zstd) {
         ret = ktxTexture2_DeflateZstd(texture, *options.zstd);
-        if (ret != KTX_SUCCESS)
-            fatal(rc::KTX_FAILURE, "Zstd deflation failed. KTX Error: {}", ktxErrorString(ret));
+        if (ret != KTX_SUCCESS) fatal(rc::KTX_FAILURE, "Zstd deflation failed. KTX Error: {}", ktxErrorString(ret));
     }
 
     if (options.zlib) {
         ret = ktxTexture2_DeflateZLIB(texture, *options.zlib);
-        if (ret != KTX_SUCCESS)
-            fatal(rc::KTX_FAILURE, "ZLIB deflation failed. KTX Error: {}", ktxErrorString(ret));
+        if (ret != KTX_SUCCESS) fatal(rc::KTX_FAILURE, "ZLIB deflation failed. KTX Error: {}", ktxErrorString(ret));
     }
 
     // Modify KTXwriter metadata
     const auto writer = fmt::format("{} {}", commandName, version(options.testrun));
     ktxHashList_DeleteKVPair(&texture->kvDataHead, KTX_WRITER_KEY);
     ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
-            static_cast<uint32_t>(writer.size() + 1), // +1 to include the \0
-            writer.c_str());
+                          static_cast<uint32_t>(writer.size() + 1),  // +1 to include the \0
+                          writer.c_str());
 
     // Add KTXwriterScParams metadata if supercompression was used
     const auto writerScParams = options.compressOptions;
@@ -177,20 +167,18 @@ void CommandTranscode::executeTranscode() {
     if (writerScParams.size() > 0) {
         // Options always contain a leading space
         assert(writerScParams[0] == ' ');
-        ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_SCPARAMS_KEY,
-            static_cast<uint32_t>(writerScParams.size()),
-            writerScParams.c_str() + 1); // +1 to exclude leading space
+        ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_SCPARAMS_KEY, static_cast<uint32_t>(writerScParams.size()),
+                              writerScParams.c_str() + 1);  // +1 to exclude leading space
     }
 
     // Save output file
     const auto outputPath = std::filesystem::path(DecodeUTF8Path(options.outputFilepath));
-    if (outputPath.has_parent_path())
-        std::filesystem::create_directories(outputPath.parent_path());
+    if (outputPath.has_parent_path()) std::filesystem::create_directories(outputPath.parent_path());
 
     OutputStream outputFile(options.outputFilepath, *this);
     outputFile.writeKTX2(texture, *this);
 }
 
-} // namespace ktx
+}  // namespace ktx
 
 KTX_COMMAND_ENTRY_POINT(ktxTranscode, ktx::CommandTranscode)

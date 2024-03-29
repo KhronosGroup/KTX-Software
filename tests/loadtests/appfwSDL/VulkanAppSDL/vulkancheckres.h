@@ -27,21 +27,16 @@
  * Use for commands that will always succeed unless usage is invalid.
  */
 #if defined(DEBUG)
-#define VK_CHECK_RESULT(f)                                                    \
-{                                                                             \
-    VkResult res = (f);                                                       \
-    if (res != VK_SUCCESS)                                                    \
-    {                                                                         \
-        std::stringstream msg;                                                \
-        msg << "Fatal : VkResult is \"" << res << "\" in " << __FILE__        \
-            << " at line " << __LINE__ << std::endl;                          \
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,                        \
-                                 "VkSample_02_cube_textured",                 \
-                                 msg.str().c_str(),                           \
-                                 NULL);                                       \
-        assert(res == VK_SUCCESS);                                            \
-    }                                                                         \
-}
+#define VK_CHECK_RESULT(f)                                                                                          \
+    {                                                                                                               \
+        VkResult res = (f);                                                                                         \
+        if (res != VK_SUCCESS) {                                                                                    \
+            std::stringstream msg;                                                                                  \
+            msg << "Fatal : VkResult is \"" << res << "\" in " << __FILE__ << " at line " << __LINE__ << std::endl; \
+            SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "VkSample_02_cube_textured", msg.str().c_str(), NULL);   \
+            assert(res == VK_SUCCESS);                                                                              \
+        }                                                                                                           \
+    }
 #else
 #define VK_CHECK_RESULT(f) (void)f
 #endif

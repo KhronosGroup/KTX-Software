@@ -35,7 +35,7 @@
 #undef MACOS
 #define MACOS 1
 #endif
-#if defined(__APPLE__) && (defined(__arm64__) || defined (__arm__))
+#if defined(__APPLE__) && (defined(__arm64__) || defined(__arm__))
 #undef IOS
 #define IOS 1
 #endif
@@ -44,7 +44,6 @@
 #endif
 
 #include "vk_funcs.h"
-
 
 #if WINDOWS
 #define WINDOWS_LEAN_AND_MEAN
@@ -74,23 +73,16 @@ void* ktxVulkanModuleHandle;
 #if WINDOWS
 #define VULKANLIB "vulkan-1.dll"
 static HMODULE
-ktxGetVulkanModuleHandle()
-{
+ktxGetVulkanModuleHandle() {
     HMODULE module = NULL;
-    GetModuleHandleExA(
-		0,
-		VULKANLIB,
-		&module
-	);
-	return module;
+    GetModuleHandleExA(0, VULKANLIB, &module);
+    return module;
 }
 #endif
 
 ktx_error_code_e
-ktxLoadVulkanLibrary(void)
-{
-    if (ktxVulkanModuleHandle)
-        return KTX_SUCCESS;
+ktxLoadVulkanLibrary(void) {
+    if (ktxVulkanModuleHandle) return KTX_SUCCESS;
 
     ktxVulkanModuleHandle = GetVulkanModuleHandle(RTLD_LAZY);
     if (ktxVulkanModuleHandle == NULL) {
@@ -103,7 +95,7 @@ ktxLoadVulkanLibrary(void)
 #if defined(DEBUG)
         abort();
 #else
-        return KTX_LIBRARY_NOT_LINKED; // So release version doesn't crash.
+        return KTX_LIBRARY_NOT_LINKED;  // So release version doesn't crash.
 #endif
     }
 
@@ -117,14 +109,10 @@ ktxLoadVulkanFunction(const char* pName) {
         return NULL;
     }
 
-    PFN_vkVoidFunction pfn
-           = (PFN_vkVoidFunction)LoadProcAddr(ktxVulkanModuleHandle, pName);
+    PFN_vkVoidFunction pfn = (PFN_vkVoidFunction)LoadProcAddr(ktxVulkanModuleHandle, pName);
     if (pfn == NULL) {
         fprintf(stderr, "Couldn't load Vulkan command: %s\n", pName);
         return NULL;
     }
     return pfn;
 }
-
-
-
