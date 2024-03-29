@@ -6,14 +6,14 @@
 package org.khronos.ktx;
 
 /**
- * Base class representing a texture.
- *
+ * Base class representing a texture.<br>
+ * <br>
  * KTX textures should be created only by one of the provided functions and these
- * fields should be considered read-only.
- *
+ * fields should be considered read-only.<br>
+ * <br>
  * Trying to use a KTX texture after its {@link #destroy()} method was called
- * will result in an <code>IllegalStateException</code>.
- *
+ * will result in an <code>IllegalStateException</code>.<br>
+ * <br>
  * Unless explicitly noted, none of the parameters passed to any function
  * may be <code>null</code>.
  */
@@ -42,8 +42,8 @@ public abstract class KtxTexture {
     public native int getNumFaces();
 
     /**
-     * Gets the image data of the KTX file.
-     *
+     * Gets the image data of the KTX file.<br>
+     * <br>
      * The the data is copied into a Java array.
      *
      * @throws UnsupportedOperationException If the resulting array would
@@ -58,8 +58,8 @@ public abstract class KtxTexture {
     public native long getImageOffset(int level, int layer, int faceSlice);
 
     /**
-     * Destroy the KTX texture and free memory image resources
-     *
+     * Destroy the KTX texture and free memory image resources.<br>
+     * <br>
      * Trying to use a {@link KTXTexture} after it's destroyed will cause a
      * an <code>IllegalStateException</code> to be thrown. This method is
      * idempotent: Calling it on an already destroyed texture will have
@@ -69,13 +69,13 @@ public abstract class KtxTexture {
 
     /**
      * Set image for level, layer, faceSlice from an image in memory.
-     *
+     * <br>
      * Uncompressed images in memory are expected to have their rows tightly packed
      * as is the norm for most image file formats. KTX 2 also requires tight packing
-     * this function does not add any padding.
-     *
+     * this function does not add any padding.<br>
+     * <br>
      * Level, layer, faceSlice rather than offset are specified to enable some
-     * validation.
+     * validation.<br>
      *
      * @param level     The image level, should be 0 for non-mipmapped textures
      * @param layer     The texture layer, should be 0 for non-arrays
@@ -86,7 +86,7 @@ public abstract class KtxTexture {
     public native int setImageFromMemory(int level, int layer, int faceSlice, byte[] src);
 
     /**
-     * Write the KTX image to the given destination file in KTX format
+     * Write the KTX image to the given destination file in KTX format.
      *
      * @param dstFilename The name of the destination file.
      * @return a {@link KtxErrorCode} value

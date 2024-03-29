@@ -7,8 +7,8 @@
 package org.khronos.ktx;
 
 /**
- * Enumerators identifying the supercompression scheme.
- *
+ * Enumerators identifying the supercompression scheme.<br>
+ * <br>
  * These are the values that are returned by
  * {@link KtxTexture2#getSupercompressionScheme()}.
  */

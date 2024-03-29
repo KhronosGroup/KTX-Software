@@ -7,8 +7,10 @@
 package org.khronos.ktx;
 
 /**
- * Flag bits that can be passed to {@link KtxBasisParams#setUastcFlags(int)}.
- *
+ * Flag bits that determine UASTC compression.<br>
+ * <br>
+ * These bits can be passed to {@link KtxBasisParams#setUastcFlags(int)}.<br>
+ * <br>
  * The most important value is the level given in the least-significant
  * 4 bits which selects a speed vs quality tradeoff. These are the
  * <code>KTX_PACK_UASTC_LEVEL_...</code> constants.

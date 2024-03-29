@@ -6,8 +6,8 @@
 package org.khronos.ktx;
 
 /**
- * Enum for requesting, or not, allocation of storage for images.
- *
+ * Enum for requesting, or not, allocation of storage for images.<br>
+ * <br>
  * These are passed to the {@link KtxTexture1#create(KtxTextureCreateInfo, int)}
  * and {@link KtxTexture2#create(KtxTextureCreateInfo, int)} methods.
  */

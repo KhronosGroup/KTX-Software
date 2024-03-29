@@ -7,8 +7,8 @@
 package org.khronos.ktx;
 
 /**
- * Options specifying ASTC encoding quality levels.
- *
+ * Options specifying ASTC encoding quality levels.<br>
+ * <br>
  * These constants can be passed to {@link KtxAstcParams#setQualityLevel(int)}.
  */
 public class KtxPackAstcQualityLevel {

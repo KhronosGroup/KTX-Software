@@ -7,9 +7,7 @@
 package org.khronos.ktx;
 
 /**
- * Options specifiying ASTC encoding block dimensions
- * @author User
- *
+ * Options specifying ASTC encoding block dimensions
  */
 public class KtxPackAstcBlockDimension {
 

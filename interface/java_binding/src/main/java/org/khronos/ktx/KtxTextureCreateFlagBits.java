@@ -7,12 +7,12 @@
 package org.khronos.ktx;
 
 /**
- * Flags for requesting services during creation.
- *
- * These are passed to the <code>createFrom...</code> functions:
- * {@link KtxTexture2#createFromNamedFile(String, int)},
- * {@link KtxTexture2#createFromMemory(java.nio.ByteBuffer, int)},
- * {@link KtxTexture1#createFromNamedFile(String, int)}
+ * Flags for requesting services during creation.<br>
+ * <br>
+ * These are passed to the <code>createFrom...</code> functions:<br>
+ * {@link KtxTexture2#createFromNamedFile(String, int)}<br>
+ * {@link KtxTexture2#createFromMemory(java.nio.ByteBuffer, int)}<br>
+ * {@link KtxTexture1#createFromNamedFile(String, int)}<br>
  *
  */
 public class KtxTextureCreateFlagBits {

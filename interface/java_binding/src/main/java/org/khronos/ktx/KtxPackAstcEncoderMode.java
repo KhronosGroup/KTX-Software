@@ -7,8 +7,8 @@
 package org.khronos.ktx;
 
 /**
- * Options specifying ASTC encoder profile mode.
- *
+ * Options specifying ASTC encoder profile mode.<br>
+ * <br>
  * These constants can be passed to the {@link KtxAstcParams#setMode(int)}
  * function.
  */
