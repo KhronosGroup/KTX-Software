@@ -18,10 +18,10 @@ public class KtxPackAstcEncoderMode {
     public static final int KTX_PACK_ASTC_ENCODER_MODE_HDR = 2;
 
 	/**
-	 * Returns a string representation of the given block dimensions
+	 * Returns a string representation of the given encoder mode
 	 *
-	 * @param n The block dimensions
-	 * @return A string representation of the given block dimensions
+	 * @param n The encoder mode
+	 * @return A string representation of the given encoder mode
 	 */
 	public static String stringFor(int n) {
 		switch (n) {
