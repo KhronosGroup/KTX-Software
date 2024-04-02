@@ -10,7 +10,7 @@ package org.khronos.ktx;
  * This will be thrown from methods like the <code>KtxTexture2#create...</code>
  * methods or {@link KtxTexture2#writeToMemory()} in the case that the
  * underlying implementation caused an error code that was not
- * {@link KtxErrorCode#SUCCESS}.
+ * {@link KtxErrorCode#KTX_SUCCESS}.
  */
 public class KtxException extends RuntimeException
 {

@@ -131,7 +131,7 @@ public class KtxTexture2 extends KtxTexture {
      * @param storageAllocation The storage allocation. Pass {@link KTXCreateStorage.ALLOC} if you will write image data.
      * @return The {@link KtxTexture2}
      * @throws KtxException If the input parameters have been invalid and caused
-     * an error code that was not {@link KtxErrorCode#SUCCESS} in the underlying
+     * an error code that was not {@link KtxErrorCode#KTX_SUCCESS} in the underlying
      * implementation.
      */
     public static native KtxTexture2 create(KtxTextureCreateInfo createInfo,
@@ -146,7 +146,7 @@ public class KtxTexture2 extends KtxTexture {
      *                    return null.
      * @return The {@link KtxTexture2}
      * @throws KtxException If the input data was invalid and caused
-     * an error code that was not {@link KtxErrorCode#SUCCESS} in the underlying
+     * an error code that was not {@link KtxErrorCode#KTX_SUCCESS} in the underlying
      * implementation.
      */
     public static native KtxTexture2 createFromNamedFile(String filename,
@@ -158,7 +158,7 @@ public class KtxTexture2 extends KtxTexture {
      * @param filename The name of the file to read.
      * @return The {@link KtxTexture2}
      * @throws KtxException If the input data was invalid and caused
-     * an error code that was not {@link KtxErrorCode#SUCCESS} in the underlying
+     * an error code that was not {@link KtxErrorCode#KTX_SUCCESS} in the underlying
      * implementation.
      */
     public static KtxTexture2 createFromNamedFile(String filename) {
@@ -182,7 +182,7 @@ public class KtxTexture2 extends KtxTexture {
      * @param createFlags bitmask requesting specific actions during creation.
      * @return The {@link KtxTexture2}
      * @throws KtxException If the input data was invalid and caused
-     * an error code that was not {@link KtxErrorCode#SUCCESS} in the underlying
+     * an error code that was not {@link KtxErrorCode#KTX_SUCCESS} in the underlying
      * implementation.
      */
     public static native KtxTexture2 createFromMemory(

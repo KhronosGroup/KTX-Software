@@ -51,7 +51,7 @@ public class KtxTexture1Test {
         assertNotNull(texture);
 
         int result = texture.writeToNamedFile(copyFile.getAbsolutePath().toString());
-        assertEquals(result, KtxErrorCode.SUCCESS);
+        assertEquals(result, KtxErrorCode.KTX_SUCCESS);
 
         byte[] original = Files.readAllBytes(testKtxFile);
         byte[] copy = Files.readAllBytes(copyFile.toPath());

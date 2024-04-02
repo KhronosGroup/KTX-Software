@@ -98,7 +98,7 @@ public abstract class KtxTexture {
      *
      * @return The memory containing the texture data.
      * @throws KtxException If the attempt to write the texture to memory caused
-     * an error code that was not {@link KtxErrorCode#SUCCESS} in the underlying
+     * an error code that was not {@link KtxErrorCode#KTX_SUCCESS} in the underlying
      * implementation.
      * @throws UnsupportedOperationException If the resulting array would
      * be larger than the maximum size of a Java array (i.e. more than 2GB)
