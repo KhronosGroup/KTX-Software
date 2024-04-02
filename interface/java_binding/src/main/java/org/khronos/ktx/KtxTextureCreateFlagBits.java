@@ -16,22 +16,26 @@ package org.khronos.ktx;
  *
  */
 public class KtxTextureCreateFlagBits {
-    public static final int KTX_TEXTURE_CREATE_NO_FLAGS = 0x00;
 
-    /**
-     * Load the images from the KTX source
-     */
-    public static final int KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT = 0x01;
+	/**
+	 * No flags set
+	 */
+	public static final int KTX_TEXTURE_CREATE_NO_FLAGS = 0x00;
 
-    /**
-     * Load the raw key-value data instead of creating a ktxHashList from it.
-     */
-    public static final int KTX_TEXTURE_CREATE_RAW_KVDATA_BIT = 0x02;
+	/**
+	 * Load the images from the KTX source
+	 */
+	public static final int KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT = 0x01;
 
-    /**
-     * Skip any key-value data. This overrides the KTX_TEXTURE_CREATE_RAW_KVDATA_BIT.
-     */
-    public static final int KTX_TEXTURE_CREATE_SKIP_KVDATA_BIT = 0x04;
+	/**
+	 * Load the raw key-value data instead of creating a ktxHashList from it.
+	 */
+	public static final int KTX_TEXTURE_CREATE_RAW_KVDATA_BIT = 0x02;
+
+	/**
+	 * Skip any key-value data. This overrides the KTX_TEXTURE_CREATE_RAW_KVDATA_BIT.
+	 */
+	public static final int KTX_TEXTURE_CREATE_SKIP_KVDATA_BIT = 0x04;
 
 	/**
 	 * Returns a string representation of the given flag bits
