@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2024, Khronos Group and Contributors
  * Copyright (c) 2021, Shukant Pal and Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -46,6 +47,7 @@ public abstract class KtxTexture {
      * <br>
      * The the data is copied into a Java array.
      *
+     * @return The data
      * @throws UnsupportedOperationException If the resulting array would
      * be larger than the maximum size of a Java array (i.e. more than 2GB)
      */
@@ -60,7 +62,7 @@ public abstract class KtxTexture {
     /**
      * Destroy the KTX texture and free memory image resources.<br>
      * <br>
-     * Trying to use a {@link KTXTexture} after it's destroyed will cause a
+     * Trying to use a {@link KtxTexture} after it was destroyed will cause a
      * an <code>IllegalStateException</code> to be thrown. This method is
      * idempotent: Calling it on an already destroyed texture will have
      * no effect.

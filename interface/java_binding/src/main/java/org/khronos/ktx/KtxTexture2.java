@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2021, Shukant Pal and Contributors
  * Copyright (c) 2024, Khronos Group and Contributors
+ * Copyright (c) 2021, Shukant Pal and Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -85,7 +85,7 @@ public class KtxTexture2 extends KtxTexture {
 	 * <code>KTX_TTF_PVRTC1_4_RGBA</code> or <code>KTX_TTF_PVRTC2_4_RGBA</code> is
 	 * specified and there is no alpha channel <code>KTX_TTF_PVRTC1_4_RGB</code> or
 	 * <code>KTX_TTF_PVRTC2_4_RGB</code> respectively will be selected. <br>
-	 * Transcoding to ATC & FXT1 formats is not supported by libktx as there are no
+	 * Transcoding to ATC and FXT1 formats is not supported by libktx as there are no
 	 * equivalent Vulkan formats.<br>
 	 * <br>
 	 * The following uncompressed transcode targets are also available: <br>
@@ -125,10 +125,10 @@ public class KtxTexture2 extends KtxTexture {
     public native int transcodeBasis(int outputFormat, int transcodeFlags);
 
     /**
-     * Create a fresh {@link KTXTexture2}
+     * Create a fresh {@link KtxTexture2}
      *
      * @param createInfo The {@link KtxTextureCreateInfo} parameters for the texture
-     * @param storageAllocation The storage allocation. Pass {@link KTXCreateStorage.ALLOC} if you will write image data.
+     * @param storageAllocation The storage allocation. Pass {@link KtxTextureCreateStorage#KTX_TEXTURE_CREATE_ALLOC_STORAGE} if you will write image data.
      * @return The {@link KtxTexture2}
      * @throws KtxException If the input parameters have been invalid and caused
      * an error code that was not {@link KtxErrorCode#KTX_SUCCESS} in the underlying
@@ -138,11 +138,11 @@ public class KtxTexture2 extends KtxTexture {
                                             int storageAllocation);
 
     /**
-     * Create a {@link KTXTexture2} from a file.
+     * Create a {@link KtxTexture2} from a file.
      *
      * @param filename The name of the file to read.
-     * @param createFlags Pass {@link KTXTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT} if you
-     *                   want to read image data! Otherwise, {@link KTXTexture.getData()} will
+     * @param createFlags Pass {@link KtxTextureCreateFlagBits#KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT} if you
+     *                   want to read image data! Otherwise, {@link KtxTexture#getData()} will
      *                    return null.
      * @return The {@link KtxTexture2}
      * @throws KtxException If the input data was invalid and caused
@@ -153,7 +153,7 @@ public class KtxTexture2 extends KtxTexture {
                                                          int createFlags);
 
     /**
-     * Create a {@link KTXTexture2} from a file.
+     * Create a {@link KtxTexture2} from a file.
      *
      * @param filename The name of the file to read.
      * @return The {@link KtxTexture2}

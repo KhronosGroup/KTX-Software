@@ -8,7 +8,7 @@ package org.khronos.ktx;
 
 /**
  * Constants that can be set as the internal format in
- * {@link KtxTextureCreateInfo#setGlInternalformat(int).
+ * {@link KtxTextureCreateInfo#setGlInternalformat(int)}.
  */
 public class KtxInternalformat {
     public static final int GL_R3_G3_B2                       = 0x2A10;

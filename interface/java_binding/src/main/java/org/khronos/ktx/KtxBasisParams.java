@@ -10,10 +10,10 @@ package org.khronos.ktx;
  * Structure for passing parameters to {@link KtxTexture2#compressBasisEx(KtxBasisParams)}.<br>
  * <br>
  * At a minimum you must initialize the structure as follows:
- * <code><pre>
+ * <pre><code>
  * KtxBasisParams params = new KtxBasisParams();
  * params.setCompressionLevel(KtxBasisParams.KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL);
- * </pre></code>
+ * </code></pre>
  * The <code>compressionLevel</code> has to be explicitly set, because 0 is a valid
  * <code>compressionLevel</code> but is not the default used by the BasisU encoder when
  * no value is set. Only the other settings that are to be non-default must be non-zero.
@@ -304,8 +304,8 @@ public class KtxBasisParams {
 	}
 
 	/**
-	 * Set the maximum number of color endpoint clusters.
-	 *
+	 * Set the maximum number of color endpoint clusters.<br>
+	 * <br>
 	 * Range is [1,16128]. Default is 0, unset. If this is set, <code>maxSelectors</code>
 	 * must also be set, otherwise the value will be ignored.
 	 *
@@ -663,7 +663,7 @@ public class KtxBasisParams {
 	}
 
 	/**
-	 * Returns whether to <b>not<b> favor simpler UASTC modes in RDO mode.
+	 * Returns whether to <b>not</b> favor simpler UASTC modes in RDO mode.
 	 *
 	 * @return The setting
 	 */
@@ -672,7 +672,7 @@ public class KtxBasisParams {
 	}
 
 	/**
-	 * Set whether to <b>not<b> favor simpler UASTC modes in RDO mode.
+	 * Set whether to <b>not</b> favor simpler UASTC modes in RDO mode.
 	 *
 	 * @param uastcRDODontFavorSimplerModes The setting
 	 */

@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2021, Shukant Pal and Contributors
  * Copyright (c) 2024, Khronos Group and Contributors
+ * Copyright (c) 2021, Shukant Pal and Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -29,10 +29,10 @@ public class KtxTexture1 extends KtxTexture {
     public native int getGlType();
 
     /**
-     * Create a fresh {@link KTXTexture1}
+     * Create a fresh {@link KtxTexture1}
      *
-     * @param createInfo The {@link KtxTextureCreateInfo} parameters for the texture
-     * @param storageAllocation The storage allocation. Pass {@link KTXCreateStorage.ALLOC} if you will write image data.
+     * @param info The {@link KtxTextureCreateInfo} parameters for the texture
+     * @param storageAllocation The storage allocation. Pass {@link KtxTextureCreateStorage#KTX_TEXTURE_CREATE_ALLOC_STORAGE} if you will write image data.
      * @return The {@link KtxTexture1}
      * @throws KtxException If the input parameters have been invalid and caused
      * an error code that was not {@link KtxErrorCode#KTX_SUCCESS} in the underlying
@@ -42,11 +42,11 @@ public class KtxTexture1 extends KtxTexture {
                                             int storageAllocation);
 
     /**
-     * Create a {@link KTXTexture1} from a file.
+     * Create a {@link KtxTexture1} from a file.
      *
      * @param filename The name of the file to read.
-     * @param createFlags The creation flag bits. Pass {@link KTXTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT} if you
-     *                   want to read image data! Otherwise, {@link KTXTexture.getData()} will
+     * @param createFlags The creation flag bits. Pass {@link KtxTextureCreateFlagBits#KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT} if you
+     *                   want to read image data! Otherwise, {@link KtxTexture#getData()} will
      *                    return null.
      * @return The {@link KtxTexture1}
      * @throws KtxException If the input file was invalid and caused
@@ -57,7 +57,7 @@ public class KtxTexture1 extends KtxTexture {
                                                          int createFlags);
 
     /**
-     * Create a {@link KTXTexture1} from a file.
+     * Create a {@link KtxTexture1} from a file.
      *
      * @param filename The name of the file to read.
      * @return The {@link KtxTexture1}

@@ -209,7 +209,7 @@ public class KtxAstcParams {
 	 * quality, but typically lowers the measured PSNR score. Perceptual methods are
 	 * currently only available for normal maps and RGB color data.
 	 *
-	 * @param perceptual
+	 * @param perceptual The setting
 	 */
 	public void setPerceptual(boolean perceptual) {
 		this.perceptual = perceptual;
