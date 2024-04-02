@@ -218,6 +218,12 @@ public class KtxAstcParams {
 	/**
 	 * Returns the swizzle that is applied to the input.<br>
 	 * <br>
+	 * Note that this will never be <code>null</code>. But it may
+	 * be an array containing the value <code>0</code> four times,
+	 * to indicate that no swizzling should be applied.<br>
+	 * <br>
+	 * Callers may not modify the returned array.<br>
+	 * <br>
 	 * See {@link #setInputSwizzle(char[])}
 	 *
 	 * @return The swizzle
