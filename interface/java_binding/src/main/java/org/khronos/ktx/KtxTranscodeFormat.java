@@ -182,5 +182,11 @@ public class KtxTranscodeFormat {
 		return "[Unknown KtxTranscodeFormat]";
 	}
 
+	/**
+	 * Private constructor to prevent instantiation
+	 */
+	private KtxTranscodeFormat() {
+		// Prevent instantiation
+	}
 
 }

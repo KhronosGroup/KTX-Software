@@ -74,4 +74,12 @@ public class KtxTextureCreateFlagBits {
 		return sb.toString();
 	}
 
+	/**
+	 * Private constructor to prevent instantiation
+	 */
+	private KtxTextureCreateFlagBits() {
+		// Prevent instantiation
+	}
+
+
 }

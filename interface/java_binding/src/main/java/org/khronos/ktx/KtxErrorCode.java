@@ -175,4 +175,13 @@ public class KtxErrorCode {
 		}
 		return "[Unknown KtxErrorCode]";
 	}
+
+	/**
+	 * Private constructor to prevent instantiation
+	 */
+	private KtxErrorCode() {
+		// Prevent instantiation
+	}
+
+
 }

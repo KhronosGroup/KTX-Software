@@ -166,5 +166,12 @@ public class KhrDfTransfer {
 		return "[Unknown KhrDfTransfer]";
 	}
 
+	/**
+	 * Private constructor to prevent instantiation
+	 */
+	private KhrDfTransfer() {
+		// Prevent instantiation
+	}
+
 
 }

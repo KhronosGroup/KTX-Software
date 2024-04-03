@@ -129,4 +129,12 @@ public class KtxPackUastcFlagBits {
 		return sb.toString();
 	}
 
+	/**
+	 * Private constructor to prevent instantiation
+	 */
+	private KtxPackUastcFlagBits() {
+		// Prevent instantiation
+	}
+
+
 }

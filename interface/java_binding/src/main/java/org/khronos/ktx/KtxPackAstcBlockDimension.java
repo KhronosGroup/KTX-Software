@@ -168,4 +168,12 @@ public class KtxPackAstcBlockDimension {
 		return "[Unknown KtxPackAstcBlockDimension]";
 	}
 
+	/**
+	 * Private constructor to prevent instantiation
+	 */
+	private KtxPackAstcBlockDimension() {
+		// Prevent instantiation
+	}
+
+
 }

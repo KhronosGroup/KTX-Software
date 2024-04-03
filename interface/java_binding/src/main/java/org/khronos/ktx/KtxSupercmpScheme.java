@@ -54,4 +54,12 @@ public class KtxSupercmpScheme {
 		return "[Unknown KtxSupercmpScheme]";
 	}
 
+	/**
+	 * Private constructor to prevent instantiation
+	 */
+	private KtxSupercmpScheme() {
+		// Prevent instantiation
+	}
+
+
 }

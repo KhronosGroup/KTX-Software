@@ -69,4 +69,12 @@ public class KtxTranscodeFlagBits {
 		return sb.toString();
 	}
 
+	/**
+	 * Private constructor to prevent instantiation
+	 */
+	private KtxTranscodeFlagBits() {
+		// Prevent instantiation
+	}
+
+
 }

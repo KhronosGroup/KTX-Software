@@ -32,4 +32,12 @@ public class KtxPackAstcEncoderMode {
 		return "[Unknown KtxPackAstcEncoderMode]";
 	}
 
+	/**
+	 * Private constructor to prevent instantiation
+	 */
+	private KtxPackAstcEncoderMode() {
+		// Prevent instantiation
+	}
+
+
 }

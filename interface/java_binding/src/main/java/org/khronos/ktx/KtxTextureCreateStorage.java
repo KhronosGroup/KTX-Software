@@ -38,4 +38,10 @@ public class KtxTextureCreateStorage {
 		return "[Unknown KtxTextureCreateStorage]";
 	}
 
+	/**
+	 * Private constructor to prevent instantiation
+	 */
+	private KtxTextureCreateStorage() {
+		// Prevent instantiation
+	}
 }

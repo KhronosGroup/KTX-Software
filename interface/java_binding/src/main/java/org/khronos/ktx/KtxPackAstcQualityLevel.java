@@ -55,4 +55,12 @@ public class KtxPackAstcQualityLevel {
 		return "[Unknown KtxPackAstcQualityLevel]";
 	}
 
+	/**
+	 * Private constructor to prevent instantiation
+	 */
+	private KtxPackAstcQualityLevel() {
+		// Prevent instantiation
+	}
+
+
 }
