@@ -736,6 +736,19 @@ uint32_t *createDFDDepthStencil(int depthBits,
     uint32_t *DFD = 0;
     DFD = writeHeader((depthBits > 0) + (stencilBits > 0),
                       sizeBytes, s_UNORM, i_NON_COLOR);
+
+    /* Handle the special case of D24_UNORM_S8_UINT where the order of the
+       channels is flipped by putting stencil in the LSBs. */
+    if (depthBits == 24 && stencilBits == 8) {
+        writeSample(DFD, 0, KHR_DF_CHANNEL_RGBSDA_STENCIL,
+                    8, 0,
+                    1, 1, s_UINT);
+        writeSample(DFD, 1, KHR_DF_CHANNEL_RGBSDA_DEPTH,
+                    24, 8,
+                    1, 1, s_UNORM);
+        return DFD;
+    }
+
     if (depthBits == 32) {
         writeSample(DFD, 0, KHR_DF_CHANNEL_RGBSDA_DEPTH,
                     32, 0,

@@ -412,16 +412,16 @@ void CommandExtract::executeExtract() {
         const auto imageHeight = std::max(1u, texture->baseHeight >> levelIndex);
         const auto imageDepth = std::max(1u, texture->baseDepth >> levelIndex);
 
-        for (uint32_t faceIndex = 0; faceIndex < texture->numFaces; ++faceIndex) {
-            if (options.fragmentURI.facial.is_undefined() ?
-                    faceIndex != 0 :
-                    !options.fragmentURI.facial.contains(faceIndex))
+        for (uint32_t layerIndex = 0; layerIndex < texture->numLayers; ++layerIndex) {
+            if (options.fragmentURI.stratal.is_undefined() ?
+                    layerIndex != 0 :
+                    !options.fragmentURI.stratal.contains(layerIndex))
                 continue;
 
-            for (uint32_t layerIndex = 0; layerIndex < texture->numLayers; ++layerIndex) {
-                if (options.fragmentURI.stratal.is_undefined() ?
-                        layerIndex != 0 :
-                        !options.fragmentURI.stratal.contains(layerIndex))
+            for (uint32_t faceIndex = 0; faceIndex < texture->numFaces; ++faceIndex) {
+                if (options.fragmentURI.facial.is_undefined() ?
+                        faceIndex != 0 :
+                        !options.fragmentURI.facial.contains(faceIndex))
                     continue;
 
                 if (imageDepth > 1 && !options.globalAll && !options.depthFlagUsed && options.raw) {
@@ -547,7 +547,7 @@ void CommandExtract::unpackAndSave422(std::string filepath, bool appendExtension
         const char* data, std::size_t size) {
     (void) vkFormat;
 
-    assert(format.basic.model == KHR_DF_MODEL_YUVSDA);
+    assert(format.model() == KHR_DF_MODEL_YUVSDA);
     assert(format.find(KHR_DF_CHANNEL_YUVSDA_Y));
     // Create a custom format with the same precision but with only 3 channels
     // Reuse similar 4 channel VkFormats and drop the last channel (There is no RGB variant of 10X6 and 12X4)

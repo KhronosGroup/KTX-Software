@@ -37,7 +37,15 @@ include(cmake/cputypetest.cmake)
 
 # OPTIONS
 
-if( IOS OR EMSCRIPTEN )
+if(IOS OR CMAKE_SYSTEM_NAME STREQUAL "tvOS" OR CMAKE_SYSTEM_NAME STREQUAL "visionOS")
+    set( APPLE_LOCKED_OS ON )
+endif()
+
+if(APPLE AND CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set( APPLE_MAC_OS ON )
+endif()
+
+if(APPLE_LOCKED_OS OR EMSCRIPTEN)
     set( LIB_TYPE_DEFAULT ON )
 else()
     set( LIB_TYPE_DEFAULT OFF )
@@ -46,7 +54,7 @@ endif()
 CMAKE_DEPENDENT_OPTION( KTX_FEATURE_TOOLS
                         "Create KTX tools"
                         ON
-                        "NOT IOS;NOT ANDROID;NOT EMSCRIPTEN"
+                        "NOT APPLE_LOCKED_OS;NOT ANDROID;NOT EMSCRIPTEN"
                         OFF
 )
 option( KTX_FEATURE_DOC "Create KTX documentation." OFF )
@@ -109,7 +117,7 @@ endif()
 CMAKE_DEPENDENT_OPTION( KTX_EMBED_BITCODE
     "Embed bitcode in binaries."
     OFF
-    "APPLE AND IOS"
+    "APPLE AND APPLE_LOCKED_OS"
     OFF
 )
 
@@ -128,15 +136,13 @@ set( KTX_FEATURE_LOADTEST_APPS
 set_property( CACHE KTX_FEATURE_LOADTEST_APPS
               PROPERTY STRINGS OFF OpenGL Vulkan OpenGL+Vulkan
 )
-if(WIN32 OR APPLE)
-    if(NOT IOS)
-        CMAKE_DEPENDENT_OPTION( KTX_LOADTEST_APPS_USE_LOCAL_DEPENDENCIES
-            "Look for locally installed dependencies. Fail build if not found. When OFF use binaries from the KTX-Software repo, if available for the target processor. Useful when building for Windows arm64 using vcpkg packages."
-            OFF
-            KTX_FEATURE_LOADTEST_APPS
-            OFF
-        )
-    endif()
+if(WIN32 OR APPLE_MAC_OS)
+    CMAKE_DEPENDENT_OPTION( KTX_LOADTEST_APPS_USE_LOCAL_DEPENDENCIES
+        "Look for locally installed dependencies. Fail build if not found. When OFF use binaries from the KTX-Software repo, if available for the target processor. Useful when building for Windows arm64 using vcpkg packages."
+        OFF
+        KTX_FEATURE_LOADTEST_APPS
+        OFF
+    )
 else()
     set( KTX_LOADTEST_APPS_USE_LOCAL_DEPENDENCIES ON )
 endif()
@@ -155,16 +161,19 @@ if(APPLE)
     set(XCODE_DEVELOPMENT_TEAM "" CACHE STRING "Xcode development team ID")
     set(PRODUCTBUILD_IDENTITY_NAME "" CACHE STRING "productbuild identity name")
     set(PRODUCTBUILD_KEYCHAIN_PATH "" CACHE FILEPATH "pkgbuild keychain file")
-    if(IOS)
+    if(APPLE_LOCKED_OS)
         set(XCODE_PROVISIONING_PROFILE_SPECIFIER "" CACHE STRING "Xcode provisioning profile specifier")
         set(MOLTENVK_SDK "$ENV{VULKAN_SDK}/../MoltenVK" CACHE STRING "MoltenVK directory inside the Vulkan SDK")
     endif()
 
     # Deployment
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "macOS Deployment Target")
-    if(IOS)
-        set(CMAKE_XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET "11.0" CACHE STRING "iOS Deployment Target")
+    if(APPLE_MAC_OS)
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "macOS Deployment Target")
+    elseif(IOS OR CMAKE_SYSTEM_NAME STREQUAL "tvOS")
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "iOS/tvOS Deployment Target")
         set(CMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH NO)
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "visionOS")
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "1.0" CACHE STRING "visionOS Deployment Target")
     endif()
 endif()
 
@@ -456,15 +465,17 @@ if(WIN32)
     # generators (like Visual Studio) to take the exact path and not
     # change it.
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
-elseif(APPLE OR LINUX)
-    if(NOT IOS)
+elseif(APPLE_MAC_OS OR LINUX)
         # Set a common RUNTIME_OUTPUT_DIR and LIBRARY_OUTPUT_DIR for all targets,
         # so that INSTALL RPATH is functional in build directory as well.
         # BUILD_WITH_INSTALL_RPATH is necessary for working code signing.
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
         set(CMAKE_LIBRARY_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
-    endif()
 endif()
+
+set(KTX_BASISU_INCLUDE_DIRS
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu/transcoder>
+)
 
 # Main library
 add_library( ktx ${LIB_TYPE}
@@ -496,7 +507,7 @@ macro(common_libktx_settings target enable_write library_type)
         CXX_STANDARD_REQUIRED YES
 
     )
-    if(IOS)
+    if(APPLE_LOCKED_OS)
         set_target_properties(${target} PROPERTIES
             FRAMEWORK TRUE
         )
@@ -551,7 +562,7 @@ macro(common_libktx_settings target enable_write library_type)
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
     PRIVATE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu/transcoder>
+        ${KTX_BASISU_INCLUDE_DIRS}
         $<INSTALL_INTERFACE:lib/basisu/transcoder>
 
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu/zstd>
@@ -1153,7 +1164,7 @@ endif()
 # Use of this to install KHR/khr_df.h is due to CMake's failure to
 # preserve the include source folder hierarchy.
 # See https://gitlab.kitware.com/cmake/cmake/-/issues/16739.
-if (IOS)
+if (APPLE_LOCKED_OS)
     set_source_files_properties(
           include/KHR/khr_df.h
           PROPERTIES MACOSX_PACKAGE_LOCATION Headers/KHR
@@ -1230,8 +1241,8 @@ elseif( CMAKE_SYSTEM_PROCESSOR )
     else()
         set(processor_name ${CMAKE_SYSTEM_PROCESSOR})
     endif()
-elseif( IOS )
-    # CMAKE_SYSTEM_PROCESSOR not set when building for iOS.
+elseif( APPLE_LOCKED_OS )
+    # CMAKE_SYSTEM_PROCESSOR not set when building for iOS/tvOS/visionOS.
     set(processor_name "arm64")
 endif()
 string(TOLOWER "${processor_name}" processor_name)
@@ -1239,7 +1250,7 @@ string(TOLOWER "${processor_name}" processor_name)
 set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${KTX_VERSION_FULL}-${CMAKE_SYSTEM_NAME}-${processor_name}")
 
 if(APPLE)
-    if(NOT IOS)
+    if(APPLE_MAC_OS)
         install(FILES tools/package/mac/ktx-uninstall
             DESTINATION ${CMAKE_INSTALL_BINDIR}
             PERMISSIONS OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE

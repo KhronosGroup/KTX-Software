@@ -245,7 +245,7 @@ const char* dfdToStringColorModel(khr_df_model_e value) {
     return NULL;
 }
 
-const char* dfdToStringSampleDatatypeQualifiers(uint32_t bit_index, bool bit_value) {
+const char* dfdToStringSampleDatatypeQualifiersBit(uint32_t bit_index, bool bit_value) {
     if (!bit_value)
         return NULL;
 
@@ -782,7 +782,7 @@ void printDFD(uint32_t *DFD, uint32_t dataSize)
 
                 khr_df_sample_datatype_qualifiers_e qualifiers = KHR_DFDSVAL(block, sample, QUALIFIERS);
                 printf("    Qualifiers: 0x%X (", qualifiers);
-                printFlagBits(qualifiers, dfdToStringSampleDatatypeQualifiers);
+                printFlagBits(qualifiers, dfdToStringSampleDatatypeQualifiersBit);
                 printf(")\n");
                 printf("    Channel Type: 0x%X", channelType);
                 {
@@ -960,7 +960,7 @@ void printDFDJSON(uint32_t* DFD, uint32_t dataSize, uint32_t base_indent, uint32
 
                 } else {
                     PRINT_INDENT(4, "\"qualifiers\":%s[%s", space, nl)
-                    printFlagBitsJSON(LENGTH_OF_INDENT(5), nl, qualifiers, dfdToStringSampleDatatypeQualifiers);
+                    printFlagBitsJSON(LENGTH_OF_INDENT(5), nl, qualifiers, dfdToStringSampleDatatypeQualifiersBit);
                     PRINT_INDENT(4, "],%s", nl)
                 }
 

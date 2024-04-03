@@ -252,7 +252,7 @@ struct LevelIndex {
 
     static constexpr IssueError IncorrectIndexOrder{
         4001, "Invalid Level Index. Indices must be sorted from the largest level to the smallest level.",
-        "Indexes for level {} with byteLength {} and level {} with byteLength {} are incorrectly ordered."
+        "Indexes for level {} with uncompressedByteLength {} and level {} with uncompressedByteLength {} are incorrectly ordered."
     };
     static constexpr IssueError IncorrectLevelOrder{
         4002, "Invalid Level Index. Level images must be sorted from the smallest level to the largest level in the file.",
