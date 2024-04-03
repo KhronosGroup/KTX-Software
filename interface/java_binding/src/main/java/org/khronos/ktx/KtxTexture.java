@@ -207,8 +207,9 @@ public abstract class KtxTexture {
 	 * @param level The MIP level of the image
 	 * @param layer The array layer of the image
 	 * @param faceSlice The cube map face or depth slice of the image.
-	 * @return The offset, or -1 if the call {@link KtxErrorCode#KTX_INVALID_OPERATION}.
-	 * This means that the level, layer or faceSlice exceeded the dimensions of the texture,
+	 * @return The offset, or -1 if the call internally caused a
+	 * {@link KtxErrorCode#KTX_INVALID_OPERATION}. This means that the level,
+	 * layer or faceSlice exceeded the dimensions of the texture,
 	 * or that the texture is supercompressed.
 	 */
 	public native long getImageOffset(int level, int layer, int faceSlice);
