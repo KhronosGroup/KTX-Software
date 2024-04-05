@@ -326,7 +326,7 @@ typedef struct ktxTexture {
  * KTX_TRUE if the texture is a cubemap or cubemap array.
  */
 /**
- * @typedef ktxTexture::isCubemap
+ * @typedef ktxTexture::isCompressed
  * @~English
  *
  * KTX_TRUE if the texture's format is a block compressed format.
