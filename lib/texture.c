@@ -828,7 +828,7 @@ ktxTexture_rowInfo(ktxTexture* This, ktx_uint32_t level,
 /**
  * @memberof ktxTexture
  * @~English
- * @brief Return pitch betweeb rows of a texture image level in bytes.
+ * @brief Return pitch between rows of a texture image level in bytes.
  *
  * For uncompressed textures the pitch is the number of bytes between
  * rows of texels. For compressed textures it is the number of bytes
