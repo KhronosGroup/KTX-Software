@@ -338,7 +338,7 @@ typedef struct ktxTexture {
  * KTX_TRUE if mipmaps should be generated for the texture by
  * ktxTexture_GLUpload() or ktxTexture_VkUpload().
  */
-/**n
+/**
  * @typedef ktxTexture::baseWidth
  * @~English
  * @brief Width of the texture's base level.
