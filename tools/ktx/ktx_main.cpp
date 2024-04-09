@@ -100,7 +100,7 @@ public:
 
 int Tools::main(int argc, char* argv[]) {
     cxxopts::Options options("ktx", "");
-    options.custom_help("[--version] [--help] <command> <command-args>");
+    options.custom_help("[<command>] [OPTION...]");
     options.set_width(CONSOLE_USAGE_WIDTH);
     options.add_options()
             ("h,help", "Print this usage message and exit")
@@ -135,7 +135,11 @@ int Tools::main(int argc, char* argv[]) {
         fmt::print(std::cerr, "{}: Missing command.\n", options.program());
         printUsage(std::cerr, options);
     } else {
-        fmt::print(std::cerr, "{}: Unrecognized command: \"{}\"\n", options.program(), args.unmatched()[0]);
+        if (argv[1][0] != '-') {
+            fmt::print(std::cerr, "{}: Unrecognized command: \"{}\"\n", options.program(), argv[1]);
+        } else {
+            fmt::print(std::cerr, "{}: Unrecognized argument: \"{}\"\n", options.program(), args.unmatched()[0]);
+        }
         printUsage(std::cerr, options);
     }
 
