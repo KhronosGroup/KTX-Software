@@ -593,10 +593,10 @@ Create a KTX2 file from various input files.
     The following options are available:
     <dl>
         <dt>\--format &lt;enum&gt;</dt>
-        <dd>KTX format enum that specifies the image data format.
-            The enum names are matching the VkFormats without the VK_FORMAT_ prefix.
+        <dd>KTX format enum that specifies the image data format of the output file.
+            The enum names match the VkFormat names without the VK_FORMAT_ prefix.
             The VK_FORMAT_ prefix is ignored if present.<br />
-            When used with --encode it specifies the target format before the encoding step.
+            When used with \--encode it specifies the target format before the encoding step.
             In this case it must be one of:
             <ul>
                 <li>R8_UNORM</li>
@@ -608,9 +608,11 @@ Create a KTX2 file from various input files.
                 <li>R8G8B8A8_UNORM</li>
                 <li>R8G8B8A8_SRGB</li>
             </ul>
-            If the format is an ASTC format the ASTC encoder specific options become valid,
-            otherwise they are ignored.<br />
-            The format will be used to verify and load all input files into a texture before encoding.<br />
+            If the format is an ASTC format the input images will be encoded to ASTC. The ASTC
+            and common encoder specific options become valid, otherwise they are ignored.
+            This matches the functionality of the @ref ktx_encode "ktx encode" command when
+            an ASTC format is specified.<br />
+            The format will be used to verify and load all input files into a texture before any encoding.<br />
             Case insensitive. Required.</dd>
         @snippet{doc} ktx/astc_utils.h command options_encode_astc
         <dt>\--1d</dt>
