@@ -2579,12 +2579,12 @@ TEST_F(ktxTexture2_MetadataTest, EmptyValue) {
 
     if (ktxMemFile != NULL) {
         result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                              KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                               &texture);
         ASSERT_TRUE(result == KTX_SUCCESS);
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                      << ktxErrorString(result);
-        ASSERT_TRUE(texture->pData != NULL) << "Image storage not allocated";
+        ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         result = ktxHashList_AddKVPair(&texture->kvDataHead,
                                        "MSCtestKey", 0, nullptr);
@@ -2599,12 +2599,12 @@ TEST_F(ktxTexture2_MetadataTest, EmptyValue) {
             ktxTexture_Destroy(ktxTexture(texture));
 
         result = ktxTexture2_CreateFromMemory(newMemFile, newMemFileLen,
-                                              KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                               &texture);
         ASSERT_TRUE(result == KTX_SUCCESS);
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                      << ktxErrorString(result);
-        ASSERT_TRUE(texture->pData != NULL) << "Image storage not allocated";
+        ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         ktx_uint32_t valueLen;
         ktx_uint8_t* value;
@@ -2628,12 +2628,12 @@ TEST_F(ktxTexture2_MetadataTest, NoMetadata) {
 
     if (ktxMemFile != NULL) {
         result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                              KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                               &texture);
         ASSERT_TRUE(result == KTX_SUCCESS);
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                      << ktxErrorString(result);
-        ASSERT_TRUE(texture->pData != NULL) << "Image storage not allocated";
+        ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         ktxHashList_Destruct(&texture->kvDataHead);
         ktxTexture(texture)->kvDataHead = nullptr;
@@ -2651,12 +2651,12 @@ TEST_F(ktxTexture2_MetadataTest, NoMetadata) {
             ktxTexture_Destroy(ktxTexture(texture));
 
         result = ktxTexture2_CreateFromMemory(newMemFile, newMemFileLen,
-                                              KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                               &texture);
         ASSERT_TRUE(result == KTX_SUCCESS);
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                      << ktxErrorString(result);
-        ASSERT_TRUE(texture->pData != NULL) << "Image storage not allocated";
+        ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         ktx_uint32_t valueLen;
         ktx_uint8_t* value;
@@ -2678,12 +2678,12 @@ TEST_F(ktxTexture2_MetadataTest, NoLibVersionDupOnMultipleWrites) {
 
     if (ktxMemFile != NULL) {
         result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                              KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                               &texture);
         ASSERT_TRUE(result == KTX_SUCCESS);
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                      << ktxErrorString(result);
-        ASSERT_TRUE(texture->pData != NULL) << "Image storage not allocated";
+        ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         const ktx_uint32_t iterations = 2;
         ktx_size_t newMemFileLens[iterations];
@@ -2707,12 +2707,12 @@ TEST_F(ktxTexture2_MetadataTest, NoLibVersionDupOnMultipleWrites) {
             ktx_uint8_t* value;
             result = ktxTexture2_CreateFromMemory(newMemFiles[i],
                                                   newMemFileLens[i],
-                                                  KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                                  KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                                   &texture);
             ASSERT_TRUE(result == KTX_SUCCESS);
             ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                          << ktxErrorString(result);
-            ASSERT_TRUE(texture->pData != NULL) << "Image storage not allocated";
+            ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
             result = ktxHashList_FindValue(&texture->kvDataHead,
                                           "KTXwriter",
@@ -2746,12 +2746,12 @@ TEST_F(ktxTexture2_MetadataTest, LibVersionUpdatedCorrectly) {
 
     if (ktxMemFile != NULL) {
         result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
-                                              KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                               &texture);
         ASSERT_TRUE(result == KTX_SUCCESS);
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                      << ktxErrorString(result);
-        ASSERT_TRUE(texture->pData != NULL) << "Image storage not allocated";
+        ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         ktx_uint32_t curWriterLen;
         ktx_uint8_t* curWriterVal;
@@ -2792,12 +2792,12 @@ TEST_F(ktxTexture2_MetadataTest, LibVersionUpdatedCorrectly) {
         ktx_uint8_t* newWriterVal;
         result = ktxTexture2_CreateFromMemory(newMemFile,
                                               newMemFileLen,
-                                              KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                               &texture);
         ASSERT_TRUE(result == KTX_SUCCESS);
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                      << ktxErrorString(result);
-        ASSERT_TRUE(texture->pData != NULL) << "Image storage not allocated";
+        ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
         result = ktxHashList_FindValue(&texture->kvDataHead,
                                        "KTXwriter",
