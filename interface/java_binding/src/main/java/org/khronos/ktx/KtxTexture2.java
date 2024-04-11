@@ -106,7 +106,7 @@ public class KtxTexture2 extends KtxTexture {
 	 *
 	 * @param quality The compression quality, a value from 0 - 100.
 	 * Higher=higher quality/slower speed. Lower=lower quality/faster speed.
-	 * Negative values for quality are considered > 100.
+	 * Negative values for quality are considered to be greater than 100.
 	 * @return A {@link KtxErrorCode} constant:<br>
 	 * {@link KtxErrorCode#KTX_SUCCESS} on success<br>
 	 * {@link KtxErrorCode#KTX_INVALID_OPERATION} The texture is already supercompressed.<br>
