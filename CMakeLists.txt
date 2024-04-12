@@ -454,6 +454,7 @@ set(BASISU_ENCODER_CXX_SRC
 
 if(KTX_FEATURE_GL_UPLOAD)
     list(APPEND KTX_MAIN_SRC
+        lib/gl_funclist.inl
         lib/gl_funcs.c
         lib/gl_funcs.h
         lib/glloader.c

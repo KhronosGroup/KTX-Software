@@ -41,8 +41,22 @@ GLLoadTests::~GLLoadTests()
 bool
 GLLoadTests::initialize(Args& args)
 {
+    bool explicitlyLoadOpenGL = false;
+    for (uint32_t i = 1; i < args.size(); i++) {
+        if (args[i].compare("--load-gl") == 0) {
+            explicitlyLoadOpenGL = true;
+            args.erase(args.begin() + i);
+            break;
+        }
+    }
+
     if (!GLAppSDL::initialize(args))
         return false;
+
+    // --load-gl allows testing of explicitly loading the OpenGL pointers.
+    // Default is for ktxTexture_GLUpload to implicitly load them.
+    if (explicitlyLoadOpenGL)
+        ktxLoadOpenGL(reinterpret_cast<PFNGLGETPROCADDRESS>(SDL_GL_GetProcAddress));
 
     for (auto it = args.begin() + 1; it != args.end(); it++) {
         infiles.push_back(*it);

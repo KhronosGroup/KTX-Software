@@ -924,11 +924,9 @@ ktxTexture1_GLUpload(ktxTexture1* This, GLuint* pTexture, GLenum* pTarget,
         return KTX_INVALID_VALUE;
     }
 
-    if (!ktxOpenGLModuleHandle) {
-        result = ktxLoadOpenGLLibrary();
-        if (result != KTX_SUCCESS) {
-            return result;
-        }
+    result = ktxLoadOpenGL(NULL);
+    if (result != KTX_SUCCESS) {
+        return result;
     }
     /* KTX 1 files require an unpack alignment of 4 */
     glGetIntegerv(GL_UNPACK_ALIGNMENT, &previousUnpackAlignment);
@@ -1010,11 +1008,9 @@ ktxTexture2_GLUpload(ktxTexture2* This, GLuint* pTexture, GLenum* pTarget,
         return KTX_INVALID_VALUE;
     }
 
-    if (!ktxOpenGLModuleHandle) {
-        result = ktxLoadOpenGLLibrary();
-        if (result != KTX_SUCCESS) {
-            return result;
-        }
+    result = ktxLoadOpenGL(NULL);
+    if (result != KTX_SUCCESS) {
+        return result;
     }
 
     if (This->vkFormat != VK_FORMAT_UNDEFINED) {
