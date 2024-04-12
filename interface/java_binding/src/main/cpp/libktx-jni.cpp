@@ -337,7 +337,7 @@ bool getBufferData(JNIEnv *env, jobject buffer, jbyte** baseAddress, jbyte **act
     jbyte* start = static_cast<jbyte*>(env->GetDirectBufferAddress(buffer));
     *baseAddress = start;
     *actualAddress = start + position;
-    *length = (position - limit);
+    *length = (limit - position);
     return true;
   }
 
@@ -355,7 +355,7 @@ bool getBufferData(JNIEnv *env, jobject buffer, jbyte** baseAddress, jbyte **act
     }
     *baseAddress = start;
     *actualAddress = start + position;
-    *length = (position - limit);
+    *length = (limit - position);
     return true;
   }
 
