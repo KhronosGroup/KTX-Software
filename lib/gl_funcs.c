@@ -90,7 +90,7 @@ extern void* emscripten_GetProcAddress(const char *name_);
 #define GetOpenGLModuleHandle(flag) (void*)0x0000ffff // Value doesn't matter.
 void* ktxOpenGLModuleHandle;
 
-#define defaultGetProcAddress emscripten_GetProcAddress
+#define defaultGLGetProcAddress ((PFNGLGETPROCADDRESS)emscripten_GetProcAddress)
 #else
 #error "Don\'t know how to load symbols on this OS."
 #endif
@@ -101,27 +101,12 @@ static const char* noloadmsg = "Could not load OpenGL command: %s!\n";
 /* Define pointers for functions libktx is using. */
 struct glFuncPtrs gl;
 
-#if 0 //defined(__GNUC__)
-// This strange casting is because dlsym returns a void* thus is not
-// compatible with ISO C which forbids conversion of object pointers
-// to function pointers. The cast masks the conversion from the
-// compiler thus no warning even though -pedantic is set. Since the
-// platform supports dlsym, conversion to function pointers must
-// work, despite the mandated ISO C warning.
 #define GL_FUNCTION(type, func, required)                                  \
-  *(void **)(&gl.func) = pfnGLGetProcAddress(#func);                         \
-  if ( !gl.func && required ) {                                            \
-        fprintf(stderr, noloadmsg, #func);                                 \
-        return KTX_NOT_FOUND;                                              \
-  }
-#else
-#define GL_FUNCTION(type, func, required)                                  \
-  gl.func = (type)pfnGLGetProcAddress(#func);         \
+  gl.func = (type)pfnGLGetProcAddress(#func);                              \
   if ( !gl.func && required) {                                             \
     fprintf(stderr, noloadmsg, #func);                                     \
     return KTX_NOT_FOUND;                                                  \
   }
-#endif
 
 #if WINDOWS
 static HMODULE
