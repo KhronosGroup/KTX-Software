@@ -61,16 +61,21 @@
 #if WINDOWS
 #define GetOpenGLModuleHandle(flags) ktxFindOpenGL()
 static HMODULE ktxOpenGLModuleHandle;
-typedef PFNVOIDFUNCTION *(WINAPI * PFNWGLGETPROCADDRESS) (const char *proc);
+typedef PFNVOIDFUNCTION (WINAPI* PFNWGLGETPROCADDRESS) (const char *proc);
 static PFNWGLGETPROCADDRESS pfnWglGetProcAddress;
 
 PFNVOIDFUNCTION
 defaultGLGetProcAddress(const char* proc)
 {
+    PFNVOIDFUNCTION pfnGLProc = NULL;
+
     if (pfnWglGetProcAddress)
-        pfn = pfnWglGetProcAddress(proc);
-    if (!pfn)
-        pfn = GetProcAddr(ktxOpenGLModuleHandle, proc);
+        pfnGLProc = pfnWglGetProcAddress(proc);
+    if (!pfnGLProc) {
+        pfnGLProc = (PFNVOIDFUNCTION)GetProcAddress(ktxOpenGLModuleHandle,
+                                                    proc);
+    }
+    return pfnGLProc;
 }
 #elif MACOS || UNIX || IOS
 // Using NULL returns a handle that can be used to search the process that
@@ -122,7 +127,7 @@ ktxFindOpenGL() {
         &module
     );
     if (found) {
-        if (LoadProcAddr(module, "glGetError") != NULL)
+        if (GetProcAddress(module, "glGetError") != NULL)
             return module;
     }
     // Not statically linked. See what dll the process has loaded.
@@ -147,8 +152,8 @@ ktxFindOpenGL() {
     if (found) {
         // Need wglGetProcAddr for non-OpenGL-2 functions.
         pfnWglGetProcAddress =
-            (PFNWGLGETPROCADDRESS)LoadProcAddr(module,
-                                               "wglGetProcAddress");
+            (PFNWGLGETPROCADDRESS)GetProcAddress(module,
+                                                 "wglGetProcAddress");
         if (pfnWglGetProcAddress != NULL)
             return module;
     }
