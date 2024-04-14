@@ -38,7 +38,7 @@
     <tab type="user" url="../libktx/index.html" title="libktx Reference"/>
     <tab type="user" url="../ktxjswrappers/index.html"
         title="KTX Javascript Wrappers Reference"/>
-    <tab type="user"  url="pyktx/index.html" title="pyktx Reference"/>
+    <tab type="user"  url="../pyktx/index.html" title="pyktx Reference"/>
     <!-- navindex processing does not look in the .tag file so @ref is NG.
     URL to file is fragile.
     <tab type="user" url="@ref license" title="License"/> -->

@@ -48,6 +48,7 @@ struct OptionsHelp {
                 "transcode",
                 "info",
                 "validate",
+                "compare",
                 "help",
             };
 
@@ -86,6 +87,7 @@ Display help information about the ktx tool.
             @ref ktx_transcode "transcode" <br />
             @ref ktx_info "info" <br />
             @ref ktx_validate "validate" <br />
+            @ref ktx_compare "compare" <br />
             @ref ktx_help "help"
         </dd>
     </dl>

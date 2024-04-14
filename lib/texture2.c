@@ -2494,6 +2494,7 @@ ktxTexture2_inflateZstdInt(ktxTexture2* This, ktx_uint8_t* pDeflatedData,
     ktxLevelIndexEntry* cindex = This->_private->_levelIndex;
     ktxLevelIndexEntry* nindex;
     ktx_uint32_t uncompressedLevelAlignment;
+    ktx_error_code_e result;
 
     ZSTD_DCtx* dctx;
 
@@ -2515,6 +2516,10 @@ ktxTexture2_inflateZstdInt(ktxTexture2* This, ktx_uint8_t* pDeflatedData,
 
     ktx_size_t inflatedByteLength = 0;
     dctx = ZSTD_createDCtx();
+    if (dctx == NULL) {
+        result = KTX_OUT_OF_MEMORY;
+        goto cleanup;
+    }
     for (int32_t level = This->numLevels - 1; level >= 0; level--) {
         size_t levelByteLength =
             ZSTD_decompressDCtx(dctx, pInflatedData + levelOffset,
@@ -2525,13 +2530,17 @@ ktxTexture2_inflateZstdInt(ktxTexture2* This, ktx_uint8_t* pDeflatedData,
             ZSTD_ErrorCode error = ZSTD_getErrorCode(levelByteLength);
             switch(error) {
               case ZSTD_error_dstSize_tooSmall:
-                return KTX_DECOMPRESS_LENGTH_ERROR; // inflatedDataCapacity too small.
+                result = KTX_DECOMPRESS_LENGTH_ERROR; // inflatedDataCapacity too small.
+                goto cleanup;
               case ZSTD_error_checksum_wrong:
-                return KTX_DECOMPRESS_CHECKSUM_ERROR;
+                result = KTX_DECOMPRESS_CHECKSUM_ERROR;
+                goto cleanup;
               case ZSTD_error_memory_allocation:
-                return KTX_OUT_OF_MEMORY;
-              default:
-                return KTX_FILE_DATA_ERROR;
+                result =  KTX_OUT_OF_MEMORY;
+                goto cleanup;
+             default:
+                result = KTX_FILE_DATA_ERROR;
+                goto cleanup;
             }
         }
 
@@ -2562,6 +2571,11 @@ ktxTexture2_inflateZstdInt(ktxTexture2* This, ktx_uint8_t* pDeflatedData,
     bdb[KHR_DF_WORD_BYTESPLANE0] = prtctd->_formatSize.blockSizeInBits / 8;
 
     return KTX_SUCCESS;
+
+cleanup:
+    ZSTD_freeDCtx(dctx);
+    free(nindex);
+    return result;
 }
 
 /**
@@ -2616,11 +2630,15 @@ ktxTexture2_inflateZLIBInt(ktxTexture2* This, ktx_uint8_t* pDeflatedData,
                                                     &levelByteLength,
                                                     &pDeflatedData[cindex[level].byteOffset],
                                                     cindex[level].byteLength);
-        if (result != KTX_SUCCESS)
+        if (result != KTX_SUCCESS) {
+            free(nindex);
             return result;
+        }
 
-        if (This->_private->_levelIndex[level].uncompressedByteLength != levelByteLength)
+        if (This->_private->_levelIndex[level].uncompressedByteLength != levelByteLength) {
+            free(nindex);
             return KTX_DECOMPRESS_LENGTH_ERROR;
+        }
 
         nindex[level].byteOffset = levelOffset;
         nindex[level].uncompressedByteLength = nindex[level].byteLength =

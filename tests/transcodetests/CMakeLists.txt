@@ -10,10 +10,7 @@ set_code_sign(transcodetests)
 target_include_directories(
     transcodetests
 PRIVATE
-    $<TARGET_PROPERTY:ktx,INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:obj_basisu_cbind,INTERFACE_INCLUDE_DIRECTORIES>
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../other_include
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib
+    ${PROJECT_SOURCE_DIR}/lib
 )
 
 target_link_libraries(
@@ -28,7 +25,6 @@ target_compile_definitions(
     transcodetests
 PRIVATE
     $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
-    $<TARGET_PROPERTY:obj_basisu_cbind,INTERFACE_COMPILE_DEFINITIONS>
 )
 
 target_compile_features(transcodetests PUBLIC cxx_std_11)

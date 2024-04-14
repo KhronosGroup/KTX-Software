@@ -58,6 +58,10 @@ Unified CLI frontend for the KTX-Software library.
         <dd>
             Validate a KTX2 file.
         </dd>
+        <dt>@ref ktx_compare "compare"</dt>
+        <dd>
+            Compare two KTX2 files.
+        </dd>
         <dt>@ref ktx_help "help"</dt>
         <dd>
             Display help information about the ktx tool.
@@ -96,7 +100,7 @@ public:
 
 int Tools::main(int argc, char* argv[]) {
     cxxopts::Options options("ktx", "");
-    options.custom_help("[--version] [--help] <command> <command-args>");
+    options.custom_help("[<command>] [OPTION...]");
     options.set_width(CONSOLE_USAGE_WIDTH);
     options.add_options()
             ("h,help", "Print this usage message and exit")
@@ -131,7 +135,11 @@ int Tools::main(int argc, char* argv[]) {
         fmt::print(std::cerr, "{}: Missing command.\n", options.program());
         printUsage(std::cerr, options);
     } else {
-        fmt::print(std::cerr, "{}: Unrecognized command: \"{}\"\n", options.program(), args.unmatched()[0]);
+        if (argv[1][0] != '-') {
+            fmt::print(std::cerr, "{}: Unrecognized command: \"{}\"\n", options.program(), argv[1]);
+        } else {
+            fmt::print(std::cerr, "{}: Unrecognized argument: \"{}\"\n", options.program(), args.unmatched()[0]);
+        }
         printUsage(std::cerr, options);
     }
 
@@ -149,6 +157,7 @@ void Tools::printUsage(std::ostream& os, const cxxopts::Options& options) {
     fmt::print(os, "  transcode  Transcode a KTX2 file\n");
     fmt::print(os, "  info       Print information about a KTX2 file\n");
     fmt::print(os, "  validate   Validate a KTX2 file\n");
+    fmt::print(os, "  compare    Compare two KTX2 files\n");
     fmt::print(os, "  help       Display help information about the ktx tool\n");
     fmt::print(os, "\n");
     fmt::print(os, "For detailed usage and description of each subcommand use 'ktx help <command>'\n"
@@ -163,6 +172,7 @@ KTX_COMMAND_BUILTIN(ktxEncode)
 KTX_COMMAND_BUILTIN(ktxTranscode)
 KTX_COMMAND_BUILTIN(ktxInfo)
 KTX_COMMAND_BUILTIN(ktxValidate)
+KTX_COMMAND_BUILTIN(ktxCompare)
 KTX_COMMAND_BUILTIN(ktxHelp)
 
 std::unordered_map<std::string, ktx::pfnBuiltinCommand> builtinCommands = {
@@ -172,6 +182,7 @@ std::unordered_map<std::string, ktx::pfnBuiltinCommand> builtinCommands = {
     { "transcode",  ktxTranscode },
     { "info",       ktxInfo },
     { "validate",   ktxValidate },
+    { "compare",    ktxCompare },
     { "help",       ktxHelp }
 };
 
