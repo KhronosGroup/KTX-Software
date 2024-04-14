@@ -49,7 +49,7 @@ public class KtxTexture2 extends KtxTexture {
     /**
      * Deflate the data in a {@link KtxTexture2} object using Zstandard.
      *
-     * The texture's levelIndex, dataSize, DFD  and supercompressionScheme will
+     * The texture's levelIndex, dataSize, DFD, data pointer, and supercompressionScheme will
      * all be updated after successful deflation to reflect the deflated data.
      *
      * @param level Set speed vs compression ratio trade-off. Values
@@ -62,7 +62,7 @@ public class KtxTexture2 extends KtxTexture {
     /**
      * Deflate the data in a {@link KtxTexture2} object using miniz (ZLIB)
      *
-     * The texture's levelIndex, dataSize, DFD  and supercompressionScheme will
+     * The texture's levelIndex, dataSize, DFD, data pointer, and supercompressionScheme will
      * all be updated after successful deflation to reflect the deflated data.
      *
      * @param level Set speed vs compression ratio trade-off. Values
