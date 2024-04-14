@@ -52,8 +52,6 @@
 #else
 #include <dlfcn.h>
 #include <stdlib.h>
-// On other platforms, use default calling convention.
-#define WINAPI
 #endif
 #define NO_SHORTCUTS
 #include "gl_funcs.h"
@@ -61,8 +59,7 @@
 #if WINDOWS
 #define GetOpenGLModuleHandle(flags) ktxFindOpenGL()
 static HMODULE ktxOpenGLModuleHandle;
-typedef PFNVOIDFUNCTION (WINAPI* PFNWGLGETPROCADDRESS) (const char *proc);
-static PFNWGLGETPROCADDRESS pfnWglGetProcAddress;
+static PFNGLGETPROCADDRESS pfnWglGetProcAddress;
 
 PFNVOIDFUNCTION
 defaultGLGetProcAddress(const char* proc)
@@ -152,7 +149,7 @@ ktxFindOpenGL() {
     if (found) {
         // Need wglGetProcAddr for non-OpenGL-2 functions.
         pfnWglGetProcAddress =
-            (PFNWGLGETPROCADDRESS)GetProcAddress(module,
+            (PFNGLGETPROCADDRESS)GetProcAddress(module,
                                                  "wglGetProcAddress");
         if (pfnWglGetProcAddress != NULL)
             return module;
