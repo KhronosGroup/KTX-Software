@@ -2471,7 +2471,7 @@ ktx_uint64_t ktxTexture2_levelDataOffset(ktxTexture2* This, ktx_uint32_t level)
  * @~English
  * @brief Inflate the data in a ktxTexture2 object using Zstandard.
  *
- * The texture's levelIndex, dataSize, DFD  and supercompressionScheme will
+ * The texture's levelIndex, dataSize, DFD, data pointer, and supercompressionScheme will
  * all be updated after successful inflation to reflect the inflated data.
  *
  * @param[in] This                    pointer to the ktxTexture2 object of interest.
@@ -2583,7 +2583,7 @@ cleanup:
  * @~English
  * @brief Inflate the data in a ktxTexture2 object using miniz (ZLIB).
  *
- * The texture's levelIndex, dataSize, DFD and supercompressionScheme will
+ * The texture's levelIndex, dataSize, DFD, data pointer, and supercompressionScheme will
  * all be updated after successful inflation to reflect the inflated data.
  *
  * @param[in] This              pointer to the ktxTexture2 object of interest.
