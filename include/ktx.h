@@ -905,6 +905,10 @@ struct ktxStream
  * functions.
  */
 
+/**
+ * @~English
+ * @brief typedef of function pointer returned by GLGetProcAddress functions.
+ */
 typedef void (KTX_APIENTRY* PFNVOIDFUNCTION)(void);
 /**
  * @~English

@@ -187,7 +187,7 @@ ktxLoadOpenGLLibrary(void)
 
 /**
  * @~English
- * @brief Load pointers for the GL function needed by ktxTexture_GLUpload.
+ * @brief Load pointers for the GL functions used by ktxTexture_GLUpload.
  *
  * Should be called by an application before its first call to
  * ktxTexture\_GLUpload, passing a pointer to the GLGetProcAddress function
@@ -197,7 +197,7 @@ ktxLoadOpenGLLibrary(void)
  * @c dlsym (GNU/Linux, macOS), @c wglGetProcAddr and @c GetProcAddr (Windows)
  * or @c emscripten_GetProcAddress (Web). This works with the vast majority of
  * OpenGL implementations but issues have been seen on Fedora systems
- * particularly with NVIDIA hardware. For full robustness applications should
+ * particularly with NVIDIA hardware. For full robustness, applications should
  * call this function.
  *
  * @param [in] pfnGLGetProcAddress pointer to function for retrieving pointers
