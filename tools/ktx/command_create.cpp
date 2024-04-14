@@ -762,7 +762,7 @@ Create a KTX2 file from various input files.
         </dl>
     </dl>
     <dl>
-        <dt>\--encode basis-lz | uastc<</dt>
+        <dt>\--encode basis-lz | uastc</dt>
         <dd>Encode the texture with the specified codec before saving it.
             This option matches the functionality of the @ref ktx_encode "ktx encode" command.
             With each encoding option the following encoder specific options become valid,
