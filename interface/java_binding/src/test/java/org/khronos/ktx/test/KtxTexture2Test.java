@@ -449,7 +449,7 @@ public class KtxTexture2Test {
 
         int sizeX = 32;
         int sizeY = 32;
-        int outputFormat = KtxTranscodeFormat.RGBA32;
+        int outputFormat = KtxTranscodeFormat.KTX_TTF_RGBA32;
         int transcodeFlags = 0;
 
         // Create the actual texture data:
@@ -474,7 +474,8 @@ public class KtxTexture2Test {
         inputInfo.setBaseWidth(sizeX);
         inputInfo.setBaseHeight(sizeY);
         inputInfo.setVkFormat(VkFormat.VK_FORMAT_R8G8B8A8_SRGB);
-        KtxTexture2 inputTexture = KtxTexture2.create(inputInfo, KtxCreateStorage.ALLOC);
+        KtxTexture2 inputTexture = KtxTexture2.create(inputInfo,
+        		KtxTextureCreateStorage.KTX_TEXTURE_CREATE_ALLOC_STORAGE);
         inputTexture.setImageFromMemory(0, 0, 0, input);
 
         // Apply basis compression to the input, with an input swizzle BRGA,
@@ -511,7 +512,8 @@ public class KtxTexture2Test {
         goldInfo.setBaseWidth(sizeX);
         goldInfo.setBaseHeight(sizeY);
         goldInfo.setVkFormat(VkFormat.VK_FORMAT_R8G8B8A8_SRGB);
-        KtxTexture2 goldTexture = KtxTexture2.create(goldInfo, KtxCreateStorage.ALLOC);
+        KtxTexture2 goldTexture = KtxTexture2.create(goldInfo,
+        		KtxTextureCreateStorage.KTX_TEXTURE_CREATE_ALLOC_STORAGE);
         goldTexture.setImageFromMemory(0, 0, 0, gold);
 
         // Apply basis compression to the reference, without swizzling
