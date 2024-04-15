@@ -122,6 +122,7 @@ function( CreateDocLibKTX )
         lib/basis_transcode.cpp
         lib/miniz_wrapper.cpp
         lib/strings.c
+        lib/gl_funcs.c
         lib/glloader.c
         lib/hashlist.c
         lib/filestream.c

@@ -761,7 +761,7 @@ ktxTexture2_WriteToMemory(ktxTexture2* This,
  * @~English
  * @brief Deflate the data in a ktxTexture2 object using Zstandard.
  *
- * The texture's levelIndex, dataSize, DFD  and supercompressionScheme will
+ * The texture's levelIndex, dataSize, DFD, data pointer, and supercompressionScheme will
  * all be updated after successful deflation to reflect the deflated data.
  *
  * @param[in] This pointer to the ktxTexture2 object of interest.
@@ -890,7 +890,7 @@ cleanup:
  * @~English
  * @brief Deflate the data in a ktxTexture2 object using miniz (ZLIB).
  *
- * The texture's levelIndex, dataSize, DFD and supercompressionScheme will
+ * The texture's levelIndex, dataSize, DFD, data pointer, and supercompressionScheme will
  * all be updated after successful deflation to reflect the deflated data.
  *
  * @param[in] This pointer to the ktxTexture2 object of interest.
