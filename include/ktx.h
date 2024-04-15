@@ -905,6 +905,22 @@ struct ktxStream
  * functions.
  */
 
+/**
+ * @~English
+ * @brief typedef of function pointer returned by GLGetProcAddress functions.
+ */
+typedef void (KTX_APIENTRY* PFNVOIDFUNCTION)(void);
+/**
+ * @~English
+ * @brief typedef of pointer to function for retrieving OpenGL function pointers.
+ */
+typedef PFNVOIDFUNCTION (KTX_APIENTRY* PFNGLGETPROCADDRESS) (const char *proc);
+/*
+ * Load pointers for the OpenGL functions needed by ktxTexture_GLUpload.
+ */
+KTX_API KTX_error_code KTX_APIENTRY
+ktxLoadOpenGL(PFNGLGETPROCADDRESS pfnGLGetProcAddress);
+
 /*
  * These four create a ktxTexture1 or ktxTexture2 according to the data
  * header, and return a pointer to the base ktxTexture class.

@@ -84,6 +84,19 @@ GLenum target, glerror;
 result = ktxTexture_CreateFromNamedFile("mytex3d.ktx",
                                         KTX_TEXTURE_CREATE_NO_FLAGS,
                                         &kTexture);
+
+// Before the first call to  ktxTexture_GLUpload make libktx load its
+// function pointers for the GL functions it uses. The parameter is a
+// pointer to the GLGetProcAddress function provided by whatever OpenGL
+// framework the application is using. The example shown is for SDL.
+//
+// Note 1: This is unrelated to any GL function pointers the app may be
+//         using.
+// Note 2: When this is not called, libktx has fallback mechanisms to
+//         find the pointers which work on the vast majority of
+//         platforms. The only known failures have occurred on Fedora.
+result = ktxLoadOpenGL((PFNGLGETPROCADDRESS)SDL_GL_GetProcAddress);
+
 glGenTextures(1, &texture); // Optional. GLUpload can generate a texture.
 result = ktxTexture_GLUpload(kTexture, &texture, &target, &glerror);
 ktxTexture_Destroy(kTexture);
