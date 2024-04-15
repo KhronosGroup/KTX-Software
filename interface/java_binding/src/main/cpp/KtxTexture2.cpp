@@ -133,4 +133,16 @@ extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KtxTexture2_createFrom
     return make_ktx2_wrapper(env, instance);
 }
 
+extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture2_deflateZstd(JNIEnv *env,
+                                                                               jobject thiz,
+                                                                               jint level)
+{
+  return ktxTexture2_DeflateZstd(get_ktx2_texture(env, thiz), static_cast<ktx_uint32_t>(level));
+}
 
+extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture2_deflateZLIB(JNIEnv *env,
+                                                                               jobject thiz,
+                                                                               jint level)
+{
+  return ktxTexture2_DeflateZLIB(get_ktx2_texture(env, thiz), static_cast<ktx_uint32_t>(level));
+}
