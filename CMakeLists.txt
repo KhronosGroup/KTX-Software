@@ -281,8 +281,6 @@ endif()
 option( KTX_WERROR "Make all warnings in KTX code into errors." OFF)
 
 if(MSVC)
-    # ";" argument separator is problematic. Can't use a GenEx `$<IF:`
-    # because `/W4;/WX` is returned as a single string.
     add_compile_options( /W4;$<$<BOOL:${KTX_WERROR}>:/WX> )
     add_compile_options( $<IF:$<CONFIG:Debug>,/Gz,/O2> )
     # Enable UTF-8 support
@@ -291,7 +289,8 @@ if(MSVC)
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"
        OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
     add_compile_options( -Wall -Wextra $<$<BOOL:${KTX_WERROR}>:-Werror>)
-    add_compile_options( $<IF:$<CONFIG:Debug>,-O0,-O3> )
+    set(debug_options -O0;-g)
+    add_compile_options( $<IF:$<CONFIG:Debug>,-O0$<SEMICOLON>-g,-O3> )
     if(EMSCRIPTEN)
         add_link_options( $<IF:$<CONFIG:Debug>,-gsource-map,-O3> )
     else()
@@ -646,6 +645,15 @@ macro(common_libktx_settings target enable_write library_type)
             BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY=0
             KTX_OMIT_VULKAN=1
         )
+        target_link_options(${target} INTERFACE
+#            "SHELL:-s ASSERTIONS=2"
+#            "SHELL:-s SAFE_HEAP=1"
+#            "SHELL:-s STACK_OVERFLOW_CHECK=2"
+            "SHELL:-s ALLOW_MEMORY_GROWTH=1"
+            "SHELL:-s MALLOC=emmalloc"
+            "SHELL:-s FULL_ES3=1"
+            "SHELL:-s GL_ENABLE_GET_PROC_ADDRESS=1" # For Emscripten 3.1.51+
+        )
     endif()
 
     if(KTX_FEATURE_KTX1)
@@ -755,6 +763,14 @@ macro(common_libktx_settings target enable_write library_type)
                 -msse4.1
             >
         )
+        if(EMSCRIPTEN)
+            target_link_options(
+                ${target}
+            INTERFACE
+                # Default 64kb not enough for encode_uastc.
+                "SHELL:-s STACK_SIZE=96kb"
+            )
+        endif()
         target_link_libraries(
             ${target}
         PRIVATE
@@ -894,12 +910,7 @@ if(EMSCRIPTEN)
     set(
         KTX_EMC_LINK_FLAGS
         --bind
-        "SHELL:--source-map-base ./"
-        "SHELL:-s ALLOW_MEMORY_GROWTH=1"
-        "SHELL:-s ASSERTIONS=0"
-        "SHELL:-s MALLOC=emmalloc"
         "SHELL:-s MODULARIZE=1"
-        "SHELL:-s FULL_ES3=1"
     )
 
     add_executable( ktx_js interface/js_binding/ktx_wrapper.cpp )
@@ -912,7 +923,6 @@ if(EMSCRIPTEN)
         "SHELL:-s EXPORT_NAME=LIBKTX"
         "SHELL:-s EXPORTED_RUNTIME_METHODS=[\'GL\']"
         "SHELL:-s GL_PREINITIALIZED_CONTEXT=1"
-        "SHELL:-s GL_ENABLE_GET_PROC_ADDRESS=1" # For Emscripten 3.1.51+
     )
     set_target_properties( ktx_js PROPERTIES OUTPUT_NAME "libktx")
 
@@ -955,7 +965,7 @@ if(EMSCRIPTEN)
         "SHELL:-s EXPORT_NAME=MSC_TRANSCODER"
         # Re-use ktx's link options
         $<TARGET_PROPERTY:ktx_read,INTERFACE_LINK_OPTIONS>
-        )
+    )
     set_target_properties( msc_basis_transcoder_js PROPERTIES OUTPUT_NAME "msc_basis_transcoder")
 
     add_custom_command(
