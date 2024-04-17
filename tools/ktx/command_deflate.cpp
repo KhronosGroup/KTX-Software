@@ -127,7 +127,6 @@ void CommandDeflate::OptionsDeflate::process(cxxopts::Options&,
     if (quiet && warningsAsErrors) {
         report.fatal_usage("Cannot specify both --{} and --{}.",
                            this->kQuiet, this->kWarningsAsErrors);
-//                            OptionsDeflate::kQuiet, OptionsDeflate::kWarningsAsErrors);
     }
 }
 
@@ -245,8 +244,6 @@ void CommandDeflate::executeDeflate() {
     if (!writerScParams.empty()) {
         std::string writer = findMetadataValue(KTX_WRITER_KEY);
         if (!writer.empty()) {
-            // No need to match "deflate" or "transcode" as the code used
-            // when there are no ScParams handles that case.
             std::regex e("ktx (?:create|deflate|encode|transcode)");
             std::smatch deflateOptionMatch;
             if (std::regex_search(writer, e)) {
