@@ -137,6 +137,10 @@ void CommandDeflate::initOptions(cxxopts::Options& opts) {
 
 void CommandDeflate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) {
     options.process(opts, args, *this);
+    if (!options.zstd && !options.zlib) {
+        fatal_usage("Must specify --{}  or --{}.",
+                    OptionsCompress::kZStd, OptionsCompress::kZLib);
+    }
 }
 
 void CommandDeflate::executeDeflate() {
