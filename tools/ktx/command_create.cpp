@@ -882,6 +882,41 @@ Create a KTX2 file from various input files.
     @snippet{doc} ktx/encode_utils_common.h command options_encode_common
     @snippet{doc} ktx/metrics_utils.h command options_metrics
 
+@section ktx_create_oetf_handling OETF Handling
+
+The diagram below shows all assignments and conversions that can take place.
+
+<!-- ASCII art created with the help of  https://asciiflow.com. -->
+
+@verbatim
+                                      OETF Conversions
+
+┌────────┐                               ┌───────┐                ┌─────────┐
+│        │                               │       │                │         │
+│        │                               │       │                │         │
+│        │ CS Metadata                   │       │                │         │
+│        ├──────────────────────────────►│       │                │         │
+│        │                               │       │                │         │
+│        │              ┌────────────┐   │       │  ┌──────────┐  │         │
+│        │              │            │   │       │  │          │  │         │
+│ Input  │ CS Metadata  │ --convert- │   │ Input │  │ Implicit │  │  Output │
+│ File   ├─────────────►│   oetf     ├──►│ OETF  ├─►│Conversion├─►│  OETF   │
+│        │              │            │   │       │  │          │  │         │
+│        │              └────────────┘   │       │  │          │  │         │
+│        │                               │       │  └──────────┘  │         │
+│        │              ┌────────────┐   │       │                │         │
+│        │              │            │   │       │                │         │
+│        │              │ --assign-  │   │       │                │         │
+│        │              │   oetf     ├──►│       │                │         │
+│        │              │            │   │       │                │         │
+│        │              └────────────┘   │       │                │         │
+└────────┘                               └───────┘                └─────────┘
+
+@endverbatim
+
+@par Rules
+@li If @e --format is an _SRGB format it is an error for the input OETF to not be sRGB.
+
 @section ktx_create_exitstatus EXIT STATUS
     @snippet{doc} ktx/command.h command exitstatus
 
