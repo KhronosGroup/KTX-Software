@@ -889,33 +889,32 @@ The diagram below shows all assignments and conversions that can take place.
 <!-- ASCII art created with the help of  https://asciiflow.com. -->
 
 @verbatim
-                                      OETF Conversions
+                           OETF Handling
 
-┌────────┐                               ┌───────┐                ┌─────────┐
-│        │                               │       │                │         │
-│        │                               │       │                │         │
-│        │ CS Metadata                   │       │                │         │
-│        ├──────────────────────────────►│       │                │         │
-│        │                               │       │                │         │
-│        │              ┌────────────┐   │       │  ┌──────────┐  │         │
-│        │              │            │   │       │  │          │  │         │
-│ Input  │ CS Metadata  │ --convert- │   │ Input │  │ Implicit │  │  Output │
-│ File   ├─────────────►│   oetf     ├──►│ OETF  ├─►│Conversion├─►│  OETF   │
-│        │              │            │   │       │  │          │  │         │
-│        │              └────────────┘   │       │  │          │  │         │
-│        │                               │       │  └──────────┘  │         │
-│        │              ┌────────────┐   │       │                │         │
-│        │              │            │   │       │                │         │
-│        │              │ --assign-  │   │       │                │         │
-│        │              │   oetf     ├──►│       │                │         │
-│        │              │            │   │       │                │         │
-│        │              └────────────┘   │       │                │         │
-└────────┘                               └───────┘                └─────────┘
+┌───────┐                     ┌───────┐                    ┌───────┐
+│       │  CS Metadata        │       │                    │       │
+│       ├────────────────────►│       │   ┌────────────┐   │       │
+│       │                     │       │   │            │   │       │
+│       │                     │       ├──►│ --convert- ├──►│       │
+│ Input │                     │ Input │   │   oetf     │   │ Output│
+│ File  │                     │ OETF  │   │            │   │ OETF  │
+│       │     ┌───────────┐   │       │   └────────────┘   │       │
+│       │     │           │   │       │                    │       │
+│       │     │ --assign- │   │       ├───────────────────►│       │
+│       │     │   oetf    ├──►│       │                    │       │
+│       │     │           │   │       │                    │       │
+└───────┘     └───────────┘   └───────┘                    └───────┘
 
 @endverbatim
 
 @par Rules
-@li If @e --format is an _SRGB format it is an error for the input OETF to not be sRGB.
+@li There are no automatic OETF conversions. Users should chose a @b --format that matches the input files.
+@li If @b --format is one of the  @c *_SRGB{,_*} formats it is an error for the output OETF to not be sRGB.
+@li If @b --format is not one of the @c *_SRGB{,_*}formats and an sRGB variant exists it is an error for
+    the output OETF to be sRGB.
+
+@note When @b --format is not one of the *_SRGB{,_*} formats and the transfer function is not linear,
+the KTX file may be much less portable due to limited hardware support of such inputs.
 
 @section ktx_create_exitstatus EXIT STATUS
     @snippet{doc} ktx/command.h command exitstatus
