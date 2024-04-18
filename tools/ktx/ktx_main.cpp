@@ -38,6 +38,10 @@ Unified CLI frontend for the KTX-Software library.
         <dd>
             Create a KTX2 file from various input files.
         </dd>
+        <dt>@ref ktx_deflate "deflate"</dt>
+        <dd>
+            Deflate (supercompress) a KTX2 file.
+        </dd>
         <dt>@ref ktx_extract "extract"</dt>
         <dd>
             Extract selected images from a KTX2 file.
@@ -152,6 +156,7 @@ void Tools::printUsage(std::ostream& os, const cxxopts::Options& options) {
     fmt::print(os, "\n");
     fmt::print(os, "Available commands:\n");
     fmt::print(os, "  create     Create a KTX2 file from various input files\n");
+    fmt::print(os, "  deflate    Deflate (supercompress) a KTX2 file\n");
     fmt::print(os, "  extract    Extract selected images from a KTX2 file\n");
     fmt::print(os, "  encode     Encode a KTX2 file\n");
     fmt::print(os, "  transcode  Transcode a KTX2 file\n");
@@ -167,6 +172,7 @@ void Tools::printUsage(std::ostream& os, const cxxopts::Options& options) {
 } // namespace ktx ---------------------------------------------------------------------------------
 
 KTX_COMMAND_BUILTIN(ktxCreate)
+KTX_COMMAND_BUILTIN(ktxDeflate)
 KTX_COMMAND_BUILTIN(ktxExtract)
 KTX_COMMAND_BUILTIN(ktxEncode)
 KTX_COMMAND_BUILTIN(ktxTranscode)
@@ -177,6 +183,7 @@ KTX_COMMAND_BUILTIN(ktxHelp)
 
 std::unordered_map<std::string, ktx::pfnBuiltinCommand> builtinCommands = {
     { "create",     ktxCreate },
+    { "deflate",    ktxDeflate },
     { "extract",    ktxExtract },
     { "encode",     ktxEncode },
     { "transcode",  ktxTranscode },
