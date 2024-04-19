@@ -832,7 +832,7 @@ Create a KTX2 file from various input files.
 */
 class CommandCreate : public Command {
 private:
-    Combine<OptionsCreate, OptionsASTC, OptionsCodec<false>, OptionsCodecCommon, OptionsMetrics, OptionsCompress, OptionsMultiInSingleOut, OptionsGeneric> options;
+    Combine<OptionsCreate, OptionsASTC, OptionsBasis<false>, OptionsCodecCommon, OptionsMetrics, OptionsCompress, OptionsMultiInSingleOut, OptionsGeneric> options;
 
     uint32_t targetChannelCount = 0; // Derived from VkFormat
 
@@ -848,7 +848,7 @@ public:
 
 private:
     void executeCreate();
-    void encode(KTXTexture2& texture, OptionsCodec<false>& opts);
+    void encode(KTXTexture2& texture, OptionsBasis<false>& opts);
     void encodeASTC(KTXTexture2& texture, OptionsASTC& opts);
     void compress(KTXTexture2& texture, const OptionsCompress& opts);
 
@@ -1287,7 +1287,7 @@ void CommandCreate::executeCreate() {
 
 // -------------------------------------------------------------------------------------------------
 
-void CommandCreate::encode(KTXTexture2& texture, OptionsCodec<false>& opts) {
+void CommandCreate::encode(KTXTexture2& texture, OptionsBasis<false>& opts) {
     MetricsCalculator metrics;
     metrics.saveReferenceImages(texture, options, *this);
 

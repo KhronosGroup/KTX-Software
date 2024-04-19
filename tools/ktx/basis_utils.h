@@ -150,7 +150,7 @@ enum class BasisCodec {
 //! [command options_codec]
 */
 template <bool ENCODE_CMD>
-struct OptionsCodec : public ktxBasisParams {
+struct OptionsBasis : public ktxBasisParams {
     inline static const char* kCLevel = "clevel";
     inline static const char* kQLevel = "qlevel";
     inline static const char* kMaxEndpoints = "max-endpoints";
@@ -177,7 +177,7 @@ struct OptionsCodec : public ktxBasisParams {
     ClampedOption<float> uastcRDOMaxSmoothBlockErrorScale;
     ClampedOption<float> uastcRDOMaxSmoothBlockStdDev;
 
-    OptionsCodec() :
+    OptionsBasis() :
         qualityLevel(ktxBasisParams::qualityLevel, 1, 255),
         maxEndpoints(ktxBasisParams::maxEndpoints, 1, 16128),
         maxSelectors(ktxBasisParams::maxSelectors, 1, 16128),

@@ -79,7 +79,7 @@ class CommandEncode : public Command {
         void process(cxxopts::Options& opts, cxxopts::ParseResult& args, Reporter& report);
     };
 
-    Combine<OptionsEncode, OptionsCodec<true>, OptionsCodecCommon, OptionsMetrics, OptionsCompress, OptionsSingleInSingleOut, OptionsGeneric> options;
+    Combine<OptionsEncode, OptionsBasis<true>, OptionsCodecCommon, OptionsMetrics, OptionsCompress, OptionsSingleInSingleOut, OptionsGeneric> options;
 
 public:
     virtual int main(int argc, char* argv[]) override;
