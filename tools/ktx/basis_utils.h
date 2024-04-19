@@ -142,6 +142,10 @@ enum class BasisCodec {
         <dt>\--uastc-rdo-m</dt>
         <dd>Disable RDO multithreading (slightly higher compression,
             deterministic).</dd>
+        <dt>\--no-sse</dt>
+        <dd>Forbid use of the SSE instruction set. Ignored if CPU does
+            not support SSE. SSE can only be disabled on the basis-lz and
+            uastc compressors.</dd>
     </dl>
 
     @snippet{doc} ktx/encode_utils_common.h command options_codec_common
@@ -167,6 +171,7 @@ struct OptionsBasis : public ktxBasisParams {
     inline static const char* kUastcRdoS = "uastc-rdo-s";
     inline static const char* kUastcRdoF = "uastc-rdo-f";
     inline static const char* kUastcRdoM = "uastc-rdo-m";
+    inline static const char* kNoSse = "no-sse";
 
     // The remaining numeric fields are clamped within the Basis library
     ClampedOption<ktx_uint32_t> qualityLevel;
@@ -266,7 +271,10 @@ struct OptionsBasis : public ktxBasisParams {
                 "Default is 18.0. Larger values expand the range of blocks considered smooth.",
                 cxxopts::value<float>(), "<deviation>")
             (kUastcRdoF, "Do not favor simpler UASTC modes in RDO mode.")
-            (kUastcRdoM, "Disable RDO multithreading (slightly higher compression, deterministic).");
+            (kUastcRdoM, "Disable RDO multithreading (slightly higher compression, deterministic).")
+            (kNoSse, "Forbid use of the SSE instruction set. Ignored if CPU does "
+               "not support SSE. SSE can only be disabled on the basis-lz and "
+               "uastc compressors.");
     }
 
     BasisCodec validateEncodeCodec(const cxxopts::OptionValue& codecOpt) const {
@@ -465,6 +473,11 @@ struct OptionsBasis : public ktxBasisParams {
             validateUASTCRDOArg(report, kUastcRdoM);
             captureCodecOption(kUastcRdoM);
             uastcRDONoMultithreading = 1;
+        }
+
+        if (args[kNoSse].count()) {
+            captureCodecOption(kNoSse);
+            noSSE = true;
         }
     }
 };
