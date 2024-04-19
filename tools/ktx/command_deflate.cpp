@@ -4,7 +4,7 @@
 
 #include "command.h"
 #include "platform_utils.h"
-#include "compress_utils.h"
+#include "deflate_utils.h"
 #include "formats.h"
 #include "sbufstream.h"
 #include "utility.h"

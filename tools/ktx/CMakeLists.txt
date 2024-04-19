@@ -15,7 +15,7 @@ add_executable(ktxtools
         command_info.cpp
         command_transcode.cpp
         command_validate.cpp
-        compress_utils.h
+        deflate_utils.h
         basis_utils.h
         format_descriptor.h
         formats.h
