@@ -769,7 +769,7 @@ Create a KTX2 file from various input files.
             With each encoding option the following encoder specific options become valid,
             otherwise they are ignored. Case-insensitive.</dd>
 
-        @snippet{doc} ktx/encode_utils.h command options_codec
+        @snippet{doc} ktx/basis_utils.h command options_codec
         @snippet{doc} ktx/encode_utils_common.h command options_codec_common
         @snippet{doc} ktx/metrics_utils.h command options_metrics
     </dl>
