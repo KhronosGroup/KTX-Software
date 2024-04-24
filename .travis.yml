@@ -258,6 +258,10 @@ before_script:
       ./ci_scripts/before_build_macos.sh
       ;;
     esac
+  - |
+    if [ "$FEATURE_TOOLS_CTS" = "ON" ]; then
+      git submodule update --init --recursive tests/cts
+    fi
   # Make sure embedded dates are correct.
   - ./install-gitconfig.sh
   - ci_scripts/smudge_date.sh
