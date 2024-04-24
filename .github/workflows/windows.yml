@@ -217,6 +217,11 @@ jobs:
       with:
         python-version: '3.11.4'
 
+    - name: Init CTS submodule
+      if: matrix.options.tools_cts =='ON'
+      run:
+        git submodule update --init --recursive tests/cts
+
     - name: Smudge embedded dates
       if: matrix.options.doc == 'ON'
       run: |

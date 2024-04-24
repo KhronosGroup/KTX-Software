@@ -83,10 +83,6 @@ if (($PACKAGE -eq "YES") -and ($FEATURE_TOOLS -eq "OFF")) {
   exit 2
 }
 
-if (($FEATURE_TOOLS_CTS -eq "ON")) {
-  git submodule update --init --recursive tests/cts
-}
-
 $cmake_args = @(
   "-G", "$CMAKE_GEN"
   "-A", "$ARCH"

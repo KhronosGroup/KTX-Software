@@ -70,10 +70,6 @@ fi
 
 mkdir -p $BUILD_DIR
 
-if [ "$FEATURE_TOOLS_CTS" = "ON" ]; then
-  git submodule update --init --recursive tests/cts
-fi
-
 cmake_args=("-G" "$CMAKE_GEN"
   "-B" $BUILD_DIR \
   "-D" "CMAKE_BUILD_TYPE=$CONFIGURATION" \
