@@ -49,19 +49,26 @@ namespace ktx {
             compression. By default, ETC1S / BasisLZ will use the number of
             threads reported by thread::hardware_concurrency or 1 if value
             returned is 0.</dd>
+        <dt>\--no-sse</dt>
+        <dd>Forbid use of the SSE instruction set. Ignored if CPU does
+            not support SSE. SSE can only be disabled on the basis-lz and
+            uastc compressors.</dd>
     </dl>
 //! [command options_codec_common]
 */
 struct OptionsCodecCommon {
     inline static const char* kNormalMode = "normal-mode";
     inline static const char* kThreads = "threads";
+    inline static const char* kNoSse = "no-sse";
 
     std::string commonOptions{};
     bool normalMap{false};
     ktx_uint32_t threadCount{1};
+    ktx_bool_t noSSE;
 
     OptionsCodecCommon() {
         threadCount = std::clamp<ktx_uint32_t>(threadCount, std::thread::hardware_concurrency(), 10000);
+        noSSE = false;
     }
 
     void init(cxxopts::Options& opts) {
@@ -79,7 +86,10 @@ struct OptionsCodecCommon {
                 "ETC1S / BasisLZ encoding, RDO is disabled (no selector RDO, no endpoint RDO) to provide better quality.")
             (kThreads, "Sets the number of threads to use during encoding. By default, encoding "
                 "will use the number of threads reported by thread::hardware_concurrency or 1 if "
-                "value returned is 0.", cxxopts::value<uint32_t>(), "<count>");
+                "value returned is 0.", cxxopts::value<uint32_t>(), "<count>")
+            (kNoSse, "Forbid use of the SSE instruction set. Ignored if CPU does "
+               "not support SSE. SSE can only be disabled on the basis-lz and "
+               "uastc compressors.");
     }
 
     void captureCodecOption(const char* name) {
@@ -102,6 +112,11 @@ struct OptionsCodecCommon {
         if (args[kThreads].count()) {
             threadCount = captureCodecOption<uint32_t>(args, kThreads);
         }
+
+        if (args[kNoSse].count()) {
+            captureCodecOption(kNoSse);
+            noSSE = true;
+        }
     }
 };
 
@@ -109,6 +124,7 @@ template <typename Options, typename Codec>
 void fillCodecOptions(Options &options) {
     options.Codec::threadCount = options.OptionsCodecCommon::threadCount;
     options.Codec::normalMap = options.OptionsCodecCommon::normalMap;
+    options.Codec::noSSE = options.OptionsCodecCommon::noSSE;
 }
 
 } // namespace ktx
