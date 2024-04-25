@@ -945,8 +945,10 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
             goto cleanup;
 
         // There could be padding here so seek to the next item.
-        (void)stream->setpos(stream,
+        result = stream->setpos(stream,
                              pHeader->supercompressionGlobalData.byteOffset);
+        if (result != KTX_SUCCESS)
+            goto cleanup;
 
         // Read supercompressionGlobalData
         private->_supercompressionGlobalData =
