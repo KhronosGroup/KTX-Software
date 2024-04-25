@@ -121,10 +121,19 @@ struct OptionsCodecCommon {
 };
 
 template <typename Options, typename Codec>
-void fillCodecOptions(Options &options) {
+constexpr void fillOptionsCodec(Options &options) {
     options.Codec::threadCount = options.OptionsCodecCommon::threadCount;
     options.Codec::normalMap = options.OptionsCodecCommon::normalMap;
-    options.Codec::noSSE = options.OptionsCodecCommon::noSSE;
 }
 
+template <typename Options>
+constexpr void fillOptionsCodecBasis(Options &options) {
+    fillOptionsCodec<decltype(options), ktxBasisParams>(options);
+    options.ktxBasisParams::noSSE = options.OptionsCodecCommon::noSSE;
+}
+
+template <typename Options>
+constexpr void fillOptionsCodecAstc(Options &options) {
+    fillOptionsCodec<decltype(options), ktxAstcParams>(options);
+}
 } // namespace ktx

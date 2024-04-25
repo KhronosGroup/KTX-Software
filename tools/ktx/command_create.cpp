@@ -897,8 +897,6 @@ void CommandCreate::initOptions(cxxopts::Options& opts) {
 void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) {
     options.process(opts, args, *this);
 
-    fillCodecOptions<decltype(options), ktxBasisParams>(options);
-
     numLevels = options.levels.value_or(1);
     numLayers = options.layers.value_or(1);
     numFaces = options.cubemap ? 6 : 1;
@@ -925,6 +923,10 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
         for (const char* astcOption : OptionsASTC::kAstcOptions)
             if (args[astcOption].count())
                 fatal_usage("--{} can only be used with ASTC formats.", astcOption);
+    } else {
+        fillOptionsCodecAstc<decltype(options)>(options);
+        if (options.OptionsCodecCommon::noSSE)
+            fatal_usage("--{} is not allowed with ASTC encode", OptionsCodecCommon::kNoSse);
     }
 
     if (options.codec == BasisCodec::BasisLZ) {
@@ -955,6 +957,10 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
     }
 
     const auto canCompare = options.codec == BasisCodec::BasisLZ || options.codec == BasisCodec::UASTC;
+
+    if (canCompare)
+        fillOptionsCodecBasis<decltype(options)>(options);
+
     if (options.compare_ssim && !canCompare)
         fatal_usage("--compare-ssim can only be used with BasisLZ or UASTC encoding.");
     if (options.compare_psnr && !canCompare)

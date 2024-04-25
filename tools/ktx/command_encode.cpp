@@ -126,7 +126,7 @@ void CommandEncode::initOptions(cxxopts::Options& opts) {
 void CommandEncode::processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) {
     options.process(opts, args, *this);
 
-    fillCodecOptions<decltype(options), ktxBasisParams>(options);
+    fillOptionsCodecBasis<decltype(options)>(options);
 
     if (options.codec == BasisCodec::BasisLZ) {
         if (options.zstd.has_value())
