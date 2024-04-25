@@ -1282,6 +1282,7 @@ ktxTexture1_LoadImageData(ktxTexture1* This,
     DECLARE_PRIVATE(ktxTexture1);
     ktx_uint32_t    miplevel;
     ktx_uint8_t*    pDest;
+    ktx_uint8_t*    pDestEnd;
     KTX_error_code  result = KTX_SUCCESS;
 
     if (This == NULL)
@@ -1296,10 +1297,12 @@ ktxTexture1_LoadImageData(ktxTexture1* This,
         if (This->pData == NULL)
             return KTX_OUT_OF_MEMORY;
         pDest = This->pData;
+        pDestEnd = pDest + This->dataSize;
     } else if (bufSize < This->dataSize) {
         return KTX_INVALID_VALUE;
     } else {
         pDest = pBuffer;
+        pDestEnd = pBuffer + bufSize;
     }
 
     // Need to loop through for correct byte swapping
@@ -1330,6 +1333,10 @@ ktxTexture1_LoadImageData(ktxTexture1* This,
             innerIterations = 1;
         for (face = 0; face < innerIterations; ++face)
         {
+            if (pDest + faceLodSizePadded > pDestEnd) {
+                result = KTX_INVALID_VALUE;
+                goto cleanup;
+            }
             result = prtctd->_stream.read(&prtctd->_stream, pDest,
                                           faceLodSizePadded);
             if (result != KTX_SUCCESS) {
