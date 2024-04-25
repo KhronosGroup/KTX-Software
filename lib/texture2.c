@@ -244,6 +244,12 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
     if (KHR_DFDVAL(pBdb, VERSIONNUMBER) != KHR_DF_VERSIONNUMBER_1_3) {
         return false;
     }
+    // pDfd[0] contains the size in words as per createdfd.c writeHeader()
+    // Check if DFD buffer is large enough to hold all the declared samples
+    uint32_t samplesSize = sizeof(uint32_t) * (1 + KHR_DFDSIZEWORDS(KHR_DFDSAMPLECOUNT(pBdb)));
+    if (pDfd[0] < samplesSize) {
+        return false;
+    }
 
     // DFD has supported type and version. Process it.
     This->blockWidth = KHR_DFDVAL(pBdb, TEXELBLOCKDIMENSION0) + 1;
