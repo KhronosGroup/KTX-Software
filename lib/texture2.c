@@ -246,8 +246,8 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
     }
     // pDfd[0] contains the size in words as per createdfd.c writeHeader()
     // Check if DFD buffer is large enough to hold all the declared samples
-    uint32_t samplesSize = sizeof(uint32_t) * (1 + KHR_DFDSIZEWORDS(KHR_DFDSAMPLECOUNT(pBdb)));
-    if (pDfd[0] < samplesSize) {
+    uint32_t totalSize = sizeof(uint32_t) * (1 + KHR_DFDSIZEWORDS(KHR_DFDSAMPLECOUNT(pBdb)));
+    if (pDfd[0] < totalSize) {
         return false;
     }
 
@@ -2459,10 +2459,7 @@ ktxTexture2_LoadImageData(ktxTexture2* This,
     private->_firstLevelFileOffset = 0;
 
 cleanup:
-    if (pDeflatedData) {
-        free(pDeflatedData);
-        pDeflatedData = NULL;
-    }
+    free(pDeflatedData);
 
     return result;
 }
@@ -2585,14 +2582,8 @@ ktxTexture2_inflateZstdInt(ktxTexture2* This, ktx_uint8_t* pDeflatedData,
     bdb[KHR_DF_WORD_BYTESPLANE0] = prtctd->_formatSize.blockSizeInBits / 8;
 
 cleanup:
-    if(dctx) {
-        ZSTD_freeDCtx(dctx);
-        dctx = NULL;
-    }
-    if(nindex) {
-        free(nindex);
-        nindex = NULL;
-    }
+    ZSTD_freeDCtx(dctx);
+    free(nindex);
     return result;
 }
 
