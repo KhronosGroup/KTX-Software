@@ -51,7 +51,7 @@ Deflate (supercompress) a KTX2 file.
     supercompressed with BasisLZ.
 
     The following options are available:
-    @snippet{doc} ktx/compress_utils.h command options_compress
+    @snippet{doc} ktx/deflate_utils.h command options_deflate
     <dl>
         <dt>-q, --quiet</dt>
         <dd>Silence warning about already supercompressed input fiile..</dd>
@@ -76,7 +76,7 @@ class CommandDeflate : public Command {
         all = -1,
     };
 
-    struct OptionsDeflate {
+    struct Options {
         inline static const char* kQuiet = "quiet";
         inline static const char* kWarningsAsErrors = "warnings-as-errors";
         bool quiet = false;
@@ -85,7 +85,7 @@ class CommandDeflate : public Command {
         void process(cxxopts::Options& opts, cxxopts::ParseResult& args, Reporter& report);
     };
 
-    Combine<OptionsDeflate, OptionsCompress, OptionsSingleInSingleOut, OptionsGeneric> options;
+    Combine<Options, OptionsDeflate, OptionsSingleInSingleOut, OptionsGeneric> options;
 
 public:
     virtual int main(int argc, char* argv[]) override;
@@ -114,13 +114,13 @@ int CommandDeflate::main(int argc, char* argv[]) {
     }
 }
 
-void CommandDeflate::OptionsDeflate::init(cxxopts::Options& opts) {
+void CommandDeflate::Options::init(cxxopts::Options& opts) {
     opts.add_options()
         (kQuiet, "Don't print warning when input file is already supercompressed.")
         (kWarningsAsErrors, "Exit with error when input file is already supercompressed");
 }
 
-void CommandDeflate::OptionsDeflate::process(cxxopts::Options&,
+void CommandDeflate::Options::process(cxxopts::Options&,
                                              cxxopts::ParseResult& args,
                                              Reporter& report) {
     quiet = args[kQuiet].as<bool>();
@@ -139,7 +139,7 @@ void CommandDeflate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult
     options.process(opts, args, *this);
     if (!options.zstd && !options.zlib) {
         fatal_usage("Must specify --{}  or --{}.",
-                    OptionsCompress::kZStd, OptionsCompress::kZLib);
+                    OptionsDeflate::kZStd, OptionsDeflate::kZLib);
     }
 }
 

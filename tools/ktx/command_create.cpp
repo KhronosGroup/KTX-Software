@@ -815,7 +815,7 @@ Create a KTX2 file from various input files.
         <dt>\--warn-on-color-conversions</dt>
         <dd>Generates a warning if any of the input images are color converted.</dd>
     </dl>
-    @snippet{doc} ktx/compress_utils.h command options_compress
+    @snippet{doc} ktx/deflate_utils.h command options_deflate
     @snippet{doc} ktx/command.h command options_generic
 
 @section ktx_create_exitstatus EXIT STATUS
@@ -832,7 +832,7 @@ Create a KTX2 file from various input files.
 */
 class CommandCreate : public Command {
 private:
-    Combine<OptionsCreate, OptionsASTC, OptionsBasis<false>, OptionsCodecCommon, OptionsMetrics, OptionsCompress, OptionsMultiInSingleOut, OptionsGeneric> options;
+    Combine<OptionsCreate, OptionsASTC, OptionsBasis<false>, OptionsCodecCommon, OptionsMetrics, OptionsDeflate, OptionsMultiInSingleOut, OptionsGeneric> options;
 
     uint32_t targetChannelCount = 0; // Derived from VkFormat
 
@@ -848,9 +848,9 @@ public:
 
 private:
     void executeCreate();
-    void encode(KTXTexture2& texture, OptionsBasis<false>& opts);
+    void encodeBasis(KTXTexture2& texture, OptionsBasis<false>& opts);
     void encodeASTC(KTXTexture2& texture, OptionsASTC& opts);
-    void compress(KTXTexture2& texture, const OptionsCompress& opts);
+    void compress(KTXTexture2& texture, const OptionsDeflate& opts);
 
 private:
     template <typename F>
@@ -1268,7 +1268,7 @@ void CommandCreate::executeCreate() {
     }
 
     // Encode and apply compression
-    encode(texture, options);
+    encodeBasis(texture, options);
     encodeASTC(texture, options);
     compress(texture, options);
 
@@ -1293,7 +1293,7 @@ void CommandCreate::executeCreate() {
 
 // -------------------------------------------------------------------------------------------------
 
-void CommandCreate::encode(KTXTexture2& texture, OptionsBasis<false>& opts) {
+void CommandCreate::encodeBasis(KTXTexture2& texture, OptionsBasis<false>& opts) {
     MetricsCalculator metrics;
     metrics.saveReferenceImages(texture, options, *this);
 
@@ -1315,7 +1315,7 @@ void CommandCreate::encodeASTC(KTXTexture2& texture, OptionsASTC& opts) {
     }
 }
 
-void CommandCreate::compress(KTXTexture2& texture, const OptionsCompress& opts) {
+void CommandCreate::compress(KTXTexture2& texture, const OptionsDeflate& opts) {
     if (opts.zstd) {
         const auto ret = ktxTexture2_DeflateZstd(texture, *opts.zstd);
         if (ret != KTX_SUCCESS)

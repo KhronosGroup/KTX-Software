@@ -58,7 +58,7 @@ Encode a KTX2 file.
         @snippet{doc} ktx/encode_utils_common.h command options_codec_common
         @snippet{doc} ktx/metrics_utils.h command options_metrics
     </dl>
-    @snippet{doc} ktx/compress_utils.h command options_compress
+    @snippet{doc} ktx/deflate_utils.h command options_deflate
     @snippet{doc} ktx/command.h command options_generic
 
 @section ktx_encode_exitstatus EXIT STATUS
@@ -79,7 +79,7 @@ class CommandEncode : public Command {
         void process(cxxopts::Options& opts, cxxopts::ParseResult& args, Reporter& report);
     };
 
-    Combine<OptionsEncode, OptionsBasis<true>, OptionsCodecCommon, OptionsMetrics, OptionsCompress, OptionsSingleInSingleOut, OptionsGeneric> options;
+    Combine<OptionsEncode, OptionsBasis<true>, OptionsCodecCommon, OptionsMetrics, OptionsDeflate, OptionsSingleInSingleOut, OptionsGeneric> options;
 
 public:
     virtual int main(int argc, char* argv[]) override;
