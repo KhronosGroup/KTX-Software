@@ -22,7 +22,7 @@ enum class BasisCodec {
 };
 
 /**
-//! [command options_codec]
+//! [command options_codec_basis]
 <dl>
     <dt>
         basis-lz:
@@ -147,7 +147,7 @@ enum class BasisCodec {
     @snippet{doc} ktx/encode_utils_common.h command options_codec_common
 
 </dl>
-//! [command options_codec]
+//! [command options_codec_basis]
 */
 template <bool ENCODE_CMD>
 struct OptionsBasis : public ktxBasisParams {
