@@ -122,14 +122,14 @@ struct OptionsEncodeCommon {
 
 template <typename Options, typename Codec>
 constexpr void fillOptionsCodec(Options &options) {
-    options.Codec::threadCount = options.OptionsCodecCommon::threadCount;
-    options.Codec::normalMap = options.OptionsCodecCommon::normalMap;
+    options.Codec::threadCount = options.OptionsEncodeCommon::threadCount;
+    options.Codec::normalMap = options.OptionsEncodeCommon::normalMap;
 }
 
 template <typename Options>
 constexpr void fillOptionsCodecBasis(Options &options) {
     fillOptionsCodec<decltype(options), ktxBasisParams>(options);
-    options.ktxBasisParams::noSSE = options.OptionsCodecCommon::noSSE;
+    options.ktxBasisParams::noSSE = options.OptionsEncodeCommon::noSSE;
 }
 
 template <typename Options>

@@ -7,7 +7,7 @@
 #include "platform_utils.h"
 #include "metrics_utils.h"
 #include "deflate_utils.h"
-#include "basis_utils.h"
+#include "encode_utils_basis.h"
 #include "formats.h"
 #include "sbufstream.h"
 #include "utility.h"
