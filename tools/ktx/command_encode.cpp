@@ -54,8 +54,8 @@ Encode a KTX2 file.
             With each encoding option the following encoder specific options become valid,
             otherwise they are ignored. Case-insensitive.</dd>
 
-        @snippet{doc} ktx/basis_utils.h command options_codec_basis
-        @snippet{doc} ktx/encode_utils_common.h command options_codec_common
+        @snippet{doc} ktx/basis_utils.h command options_encode_basis
+        @snippet{doc} ktx/encode_utils_common.h command options_encode_common
         @snippet{doc} ktx/metrics_utils.h command options_metrics
     </dl>
     @snippet{doc} ktx/deflate_utils.h command options_deflate
@@ -79,7 +79,7 @@ class CommandEncode : public Command {
         void process(cxxopts::Options& opts, cxxopts::ParseResult& args, Reporter& report);
     };
 
-    Combine<OptionsEncode, OptionsBasis<true>, OptionsCodecCommon, OptionsMetrics, OptionsDeflate, OptionsSingleInSingleOut, OptionsGeneric> options;
+    Combine<OptionsEncode, OptionsEncodeBasis<true>, OptionsEncodeCommon, OptionsMetrics, OptionsDeflate, OptionsSingleInSingleOut, OptionsGeneric> options;
 
 public:
     virtual int main(int argc, char* argv[]) override;

@@ -15,7 +15,7 @@
 namespace ktx {
 
 /**
-//! [command options_codec_common]
+//! [command options_encode_common]
     <dt>
         common:
     </dt>
@@ -54,9 +54,9 @@ namespace ktx {
             not support SSE. SSE can only be disabled on the basis-lz and
             uastc compressors.</dd>
     </dl>
-//! [command options_codec_common]
+//! [command options_encode_common]
 */
-struct OptionsCodecCommon {
+struct OptionsEncodeCommon {
     inline static const char* kNormalMode = "normal-mode";
     inline static const char* kThreads = "threads";
     inline static const char* kNoSse = "no-sse";
@@ -66,8 +66,8 @@ struct OptionsCodecCommon {
     ktx_uint32_t threadCount{1};
     ktx_bool_t noSSE;
 
-    OptionsCodecCommon() {
-        threadCount = std::clamp<ktx_uint32_t>(threadCount, std::thread::hardware_concurrency(), 10000);
+    OptionsEncodeCommon() {
+        threadCount = std::max<ktx_uint32_t>(1u, std::thread::hardware_concurrency());
         noSSE = false;
     }
 

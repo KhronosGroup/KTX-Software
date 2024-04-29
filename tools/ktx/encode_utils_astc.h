@@ -14,7 +14,7 @@
 namespace ktx {
 
 /**
-//! [command options_astc_codec]
+//! [command options_encode_astc]
 <dl>
     <dt>
         ASTC:
@@ -48,13 +48,13 @@ namespace ktx {
             color data.</dd>
     </dl>
 
-    @snippet{doc} ktx/encode_utils_common.h command options_codec_common
+    @snippet{doc} ktx/encode_utils_common.h command options_encode_common
 
 </dl>
-//! [command options_codec_astc]
+//! [command options_encode_astc]
 */
 
-struct OptionsASTC : public ktxAstcParams {
+struct OptionsEncodeASTC : public ktxAstcParams {
     inline static const char* kAstcQuality = "astc-quality";
     inline static const char* kAstcPerceptual = "astc-perceptual";
 
@@ -67,8 +67,8 @@ struct OptionsASTC : public ktxAstcParams {
     bool encodeASTC = false;
     ClampedOption<ktx_uint32_t> qualityLevel{ktxAstcParams::qualityLevel, 0, KTX_PACK_ASTC_QUALITY_LEVEL_MAX};
 
-    OptionsASTC() : ktxAstcParams() {
-        threadCount = std::thread::hardware_concurrency();
+    OptionsEncodeASTC() : ktxAstcParams() {
+        threadCount = std::max<ktx_uint32_t>(1u, std::thread::hardware_concurrency());
         if (threadCount == 0)
             threadCount = 1;
         structSize = sizeof(ktxAstcParams);

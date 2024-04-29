@@ -612,7 +612,7 @@ Create a KTX2 file from various input files.
             otherwise they are ignored.<br />
             The format will be used to verify and load all input files into a texture before encoding.<br />
             Case insensitive. Required.</dd>
-        @snippet{doc} ktx/astc_utils.h command options_codec_astc
+        @snippet{doc} ktx/astc_utils.h command options_encode_astc
         <dt>\--1d</dt>
         <dd>Create a 1D texture. If not set the texture will be a 2D or 3D texture.</dd>
         <dt>\--cubemap</dt>
@@ -664,8 +664,8 @@ Create a KTX2 file from various input files.
             With each encoding option the following encoder specific options become valid,
             otherwise they are ignored. Case-insensitive.</dd>
 
-        @snippet{doc} ktx/basis_utils.h command options_codec_basis
-        @snippet{doc} ktx/encode_utils_common.h command options_codec_common
+        @snippet{doc} ktx/basis_utils.h command options_encode_basis
+        @snippet{doc} ktx/encode_utils_common.h command options_encode_common
         @snippet{doc} ktx/metrics_utils.h command options_metrics
     </dl>
     <dl>
@@ -727,7 +727,7 @@ Create a KTX2 file from various input files.
 */
 class CommandCreate : public Command {
 private:
-    Combine<OptionsCreate, OptionsASTC, OptionsBasis<false>, OptionsCodecCommon, OptionsMetrics, OptionsDeflate, OptionsMultiInSingleOut, OptionsGeneric> options;
+    Combine<OptionsCreate, OptionsEncodeASTC, OptionsEncodeBasis<false>, OptionsEncodeCommon, OptionsMetrics, OptionsDeflate, OptionsMultiInSingleOut, OptionsGeneric> options;
 
     uint32_t targetChannelCount = 0; // Derived from VkFormat
 
@@ -743,8 +743,8 @@ public:
 
 private:
     void executeCreate();
-    void encodeBasis(KTXTexture2& texture, OptionsBasis<false>& opts);
-    void encodeASTC(KTXTexture2& texture, OptionsASTC& opts);
+    void encodeBasis(KTXTexture2& texture, OptionsEncodeBasis<false>& opts);
+    void encodeASTC(KTXTexture2& texture, OptionsEncodeASTC& opts);
     void compress(KTXTexture2& texture, const OptionsDeflate& opts);
 
 private:
@@ -815,13 +815,13 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
     }
 
     if (!isFormatAstc(options.vkFormat)) {
-        for (const char* astcOption : OptionsASTC::kAstcOptions)
+        for (const char* astcOption : OptionsEncodeASTC::kAstcOptions)
             if (args[astcOption].count())
                 fatal_usage("--{} can only be used with ASTC formats.", astcOption);
     } else {
         fillOptionsCodecAstc<decltype(options)>(options);
-        if (options.OptionsCodecCommon::noSSE)
-            fatal_usage("--{} is not allowed with ASTC encode", OptionsCodecCommon::kNoSse);
+        if (options.OptionsEncodeCommon::noSSE)
+            fatal_usage("--{} is not allowed with ASTC encode", OptionsEncodeCommon::kNoSse);
     }
 
     if (options.codec == BasisCodec::BasisLZ) {
@@ -1188,7 +1188,7 @@ void CommandCreate::executeCreate() {
 
 // -------------------------------------------------------------------------------------------------
 
-void CommandCreate::encodeBasis(KTXTexture2& texture, OptionsBasis<false>& opts) {
+void CommandCreate::encodeBasis(KTXTexture2& texture, OptionsEncodeBasis<false>& opts) {
     MetricsCalculator metrics;
     metrics.saveReferenceImages(texture, options, *this);
 
@@ -1202,7 +1202,7 @@ void CommandCreate::encodeBasis(KTXTexture2& texture, OptionsBasis<false>& opts)
     metrics.decodeAndCalculateMetrics(texture, options, *this);
 }
 
-void CommandCreate::encodeASTC(KTXTexture2& texture, OptionsASTC& opts) {
+void CommandCreate::encodeASTC(KTXTexture2& texture, OptionsEncodeASTC& opts) {
     if (opts.encodeASTC) {
         const auto ret = ktxTexture2_CompressAstcEx(texture, &opts);
         if (ret != KTX_SUCCESS)

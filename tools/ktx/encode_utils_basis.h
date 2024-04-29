@@ -22,7 +22,7 @@ enum class BasisCodec {
 };
 
 /**
-//! [command options_codec_basis]
+//! [command options_encode_basis]
 <dl>
     <dt>
         basis-lz:
@@ -144,13 +144,13 @@ enum class BasisCodec {
             deterministic).</dd>
     </dl>
 
-    @snippet{doc} ktx/encode_utils_common.h command options_codec_common
+    @snippet{doc} ktx/encode_utils_common.h command options_encode_common
 
 </dl>
-//! [command options_codec_basis]
+//! [command options_encode_basis]
 */
 template <bool ENCODE_CMD>
-struct OptionsBasis : public ktxBasisParams {
+struct OptionsEncodeBasis : public ktxBasisParams {
     inline static const char* kCLevel = "clevel";
     inline static const char* kQLevel = "qlevel";
     inline static const char* kMaxEndpoints = "max-endpoints";
@@ -177,7 +177,7 @@ struct OptionsBasis : public ktxBasisParams {
     ClampedOption<float> uastcRDOMaxSmoothBlockErrorScale;
     ClampedOption<float> uastcRDOMaxSmoothBlockStdDev;
 
-    OptionsBasis() :
+    OptionsEncodeBasis() :
         qualityLevel(ktxBasisParams::qualityLevel, 1, 255),
         maxEndpoints(ktxBasisParams::maxEndpoints, 1, 16128),
         maxSelectors(ktxBasisParams::maxSelectors, 1, 16128),
@@ -190,7 +190,7 @@ struct OptionsBasis : public ktxBasisParams {
         uastcRDOMaxSmoothBlockStdDev(
             ktxBasisParams::uastcRDOMaxSmoothBlockStdDev,
             0.01f, 65536.0f) {
-        threadCount = std::clamp<ktx_uint32_t>(threadCount, std::thread::hardware_concurrency(), 10000);
+        threadCount = std::max<ktx_uint32_t>(1u, std::thread::hardware_concurrency());
         noSSE = false;
         structSize = sizeof(ktxBasisParams);
         // - 1 is to match what basisu_tool does (since 1.13).
