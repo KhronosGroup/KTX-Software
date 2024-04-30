@@ -202,7 +202,7 @@ jobs:
     - name: Install Dependencies
       if: matrix.check_mkvk != 'ONLY'
       # This script only installs what's needed by ON FEATUREs.
-      run: ci_scripts/install_win.ps1
+      run: scripts/install_win.ps1
 
     - name: Set up JDK 17.
       if: matrix.options.jni == 'ON' && matrix.check_mkvk != 'ONLY'
@@ -226,7 +226,7 @@ jobs:
       if: matrix.options.doc == 'ON'
       run: |
         ./install-gitconfig.ps1
-        ci_scripts/smudge_date.ps1
+        scripts/smudge_date.ps1
 
     - name: Build Windows
       if: matrix.check_mkvk != 'ONLY'
@@ -248,11 +248,11 @@ jobs:
         Import-Module "$env:ChocolateyInstall/helpers/chocolateyInstaller.psm1"
         refreshenv
         $env:JAVA_HOME=$step_java_home
-        ci_scripts/build_win.ps1
+        scripts/build_win.ps1
 
     - name: Test Generation of VkFormat-related files
       if: matrix.check_mkvk == 'ONLY'
-      run: ci_scripts/check_mkvk.ps1
+      run: scripts/check_mkvk.ps1
 
     - name: Test Windows build
       # Tests built for arm64 can't be run as the CI runners are all x64.
@@ -261,7 +261,7 @@ jobs:
 
     - name: Upload test log
       if: ${{ failure() }}
-      run: ci_scripts/on_failure.ps1
+      run: scripts/on_failure.ps1
 
     - name: Get KTX version
       if: matrix.options.package == 'YES'

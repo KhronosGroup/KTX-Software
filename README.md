@@ -101,7 +101,7 @@ Windows' Git Bash or Cygwin's bash terminal:
 
 ```bash
 ./install-gitconfig.sh
-./ci_scripts/smudge_date.sh
+./scripts/smudge_date.sh
 
 ```
 
@@ -110,7 +110,7 @@ on your %PATH%):
 
 ```ps1
 install-gitconfig.ps1
-./ci_scripts/smudge_date.ps1
+./scripts/smudge_date.ps1
 ```
 
 The first command adds an [include] of the repo's `.gitconfig` to the
