@@ -270,7 +270,7 @@ struct OptionsEncodeBasis : public ktxBasisParams {
             (kUastcRdoM, "Disable RDO multithreading (slightly higher compression, deterministic).");
     }
 
-    BasisCodec validateEncodeCodec(const cxxopts::OptionValue& codecOpt) const {
+    BasisCodec validateBasisCodec(const cxxopts::OptionValue& codecOpt) const {
         static const std::unordered_map<std::string, BasisCodec> codecs = {
             { "basis-lz", BasisCodec::BasisLZ },
             { "uastc", BasisCodec::UASTC }
@@ -340,7 +340,7 @@ struct OptionsEncodeBasis : public ktxBasisParams {
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
         if (ENCODE_CMD) {
             // "encode" command - required "codec" argument
-            codec = validateEncodeCodec(args["codec"]);
+            codec = validateBasisCodec(args["codec"]);
             switch (codec) {
             case BasisCodec::NONE:
                 report.fatal(rc::INVALID_ARGUMENTS, "Missing codec argument.");
@@ -357,7 +357,7 @@ struct OptionsEncodeBasis : public ktxBasisParams {
             }
         } else {
             // "create" command - optional "encode" argument
-            codec = validateEncodeCodec(args["encode"]);
+            codec = validateBasisCodec(args["encode"]);
             switch (codec) {
             case BasisCodec::NONE:
                 // Not specified
