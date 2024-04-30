@@ -909,9 +909,9 @@ The diagram below shows all assignments and conversions that can take place.
 
 @par Rules
 @li There are no automatic OETF conversions. Choose a @b --format that matches the Output OETF.
-@li If @b --format is one of the  @c *_SRGB{,_*} formats it is an error for the output OETF to not be sRGB.
+@li If @b --format is one of the  @c *_SRGB{,_*} formats it is an error for the Output OETF to not be sRGB.
 @li If @b --format is not one of the @c *_SRGB{,_*}formats and an sRGB variant exists it is an error for
-    the output OETF to be sRGB.
+    the Output OETF to be sRGB.
 
 @note When @b --format is not one of the *_SRGB{,_*} formats and the transfer function is not linear,
 the KTX file may be much less portable due to limited hardware support of such inputs.
