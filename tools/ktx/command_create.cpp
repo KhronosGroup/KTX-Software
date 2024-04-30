@@ -908,7 +908,7 @@ The diagram below shows all assignments and conversions that can take place.
 @endverbatim
 
 @par Rules
-@li There are no automatic OETF conversions. Users should chose a @b --format that matches the input files.
+@li There are no automatic OETF conversions. Choose a @b --format that matches the Output OETF.
 @li If @b --format is one of the  @c *_SRGB{,_*} formats it is an error for the output OETF to not be sRGB.
 @li If @b --format is not one of the @c *_SRGB{,_*}formats and an sRGB variant exists it is an error for
     the output OETF to be sRGB.
