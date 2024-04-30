@@ -62,10 +62,6 @@ else
   }
 fi
 
-if [ "$FEATURE_TOOLS_CTS" = "ON" ]; then
-  git submodule update --init --recursive tests/cts
-fi
-
 cmake_args=("-G" "Xcode" \
   "-B" $BUILD_DIR \
   "-D" "CMAKE_OSX_ARCHITECTURES=$ARCHS" \
