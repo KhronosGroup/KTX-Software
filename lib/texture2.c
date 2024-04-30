@@ -235,19 +235,32 @@ bool
 ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
 {
     uint32_t* pBdb = pDfd + 1;
-
-    // Check the DFD is of the expected type and version.
-    if (*pBdb != 0) {
+    // pDfd[0] contains totalSize in bytes, check if it has at least 8 bytes
+    if (pDfd[0] < 2 * sizeof(uint32_t) || *pBdb != 0) {
         // Either decriptorType or vendorId is not 0
         return false;
     }
-    if (KHR_DFDVAL(pBdb, VERSIONNUMBER) != KHR_DF_VERSIONNUMBER_1_3) {
+    // Iterate through all block descriptors and check if sum of their sizes
+    // is equal to the totalSize in pDfd[0]
+    uint32_t descriptorSize = pDfd[0] - sizeof(uint32_t);
+    while(descriptorSize > KHR_DF_WORD_DESCRIPTORBLOCKSIZE + 1) {
+        uint32_t descriptorBlockSize = KHR_DFDVAL(pBdb, DESCRIPTORBLOCKSIZE);
+        if (descriptorBlockSize <= descriptorSize) {
+            descriptorSize -= descriptorBlockSize;
+            pBdb += descriptorSize / sizeof(uint32_t);
+        } else {
+            break;
+        }
+    }
+    if (descriptorSize != 0) {
         return false;
     }
-    // pDfd[0] contains the size in words as per createdfd.c writeHeader()
-    // Check if DFD buffer is large enough to hold all the declared samples
-    uint32_t totalSize = sizeof(uint32_t) * (1 + KHR_DFDSIZEWORDS(KHR_DFDSAMPLECOUNT(pBdb)));
-    if (pDfd[0] < totalSize) {
+
+    // reset pBdb pointer to the first block descriptor
+    pBdb = pDfd + 1;
+
+    // Check the DFD is of the expected version.
+    if (KHR_DFDVAL(pBdb, VERSIONNUMBER) != KHR_DF_VERSIONNUMBER_1_3) {
         return false;
     }
 
