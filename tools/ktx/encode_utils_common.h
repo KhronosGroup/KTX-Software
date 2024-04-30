@@ -92,7 +92,7 @@ struct OptionsEncodeCommon {
                "uastc compressors.");
     }
 
-    void captureCodecOption(const char* name) {
+    void captureCommonOption(const char* name) {
         commonOptions += fmt::format(" --{}", name);
     }
 
@@ -105,7 +105,7 @@ struct OptionsEncodeCommon {
 
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter&) {
         if (args[kNormalMode].count()) {
-            captureCodecOption(kNormalMode);
+            captureCommonOption(kNormalMode);
             normalMap = true;
         }
 
@@ -114,7 +114,7 @@ struct OptionsEncodeCommon {
         }
 
         if (args[kNoSse].count()) {
-            captureCodecOption(kNoSse);
+            captureCommonOption(kNoSse);
             noSSE = true;
         }
     }
