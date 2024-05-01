@@ -1,9 +1,14 @@
 #! /usr/bin/env bash
 
 # gk: grep in ktx software
+
+# Depth of this script relative to the project root
+depth=..
+
 usage() {
   echo "Usage: $0 [-f <filename pattern>] [<match pattern>]"
-  echo "  <filename pattern> defaults to '*' if no -f"
+  echo "  <filename pattern> defaults to '*' if no -f."
+  echo "  With no <match pattern> prints names of files matching <filename pattern>."
   exit $1
 }
 
@@ -45,8 +50,8 @@ if [ -z "$filepattern" ]; then
   filepattern='*'
 fi
 
-# Make sure we're in the KTX directory
-cd $(dirname $0)/..
+# Make sure we're in the KTX root directory
+cd $(dirname $0)/$depth
 if [ -n "$match" ]; then
   find . -path './build*' -prune -o -path tests/cts -prune -o -path './.git' -prune -o -path './other_projects/' -prune -o -type f -name "$filepattern" -exec grep -H "$match" {} \;
 else
