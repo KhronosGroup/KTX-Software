@@ -3,10 +3,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "command.h"
+#include "encode_utils_common.h"
 #include "platform_utils.h"
 #include "metrics_utils.h"
-#include "compress_utils.h"
-#include "encode_utils.h"
+#include "deflate_utils.h"
+#include "encode_utils_basis.h"
+#include "encode_utils_astc.h"
 #include "format_descriptor.h"
 #include "formats.h"
 #include "utility.h"
@@ -561,89 +563,6 @@ struct OptionsCreate {
     }
 };
 
-struct OptionsASTC : public ktxAstcParams {
-    inline static const char* kAstcQuality = "astc-quality";
-    inline static const char* kAstcPerceptual = "astc-perceptual";
-
-    inline static const char* kAstcOptions[] = {
-        kAstcQuality,
-        kAstcPerceptual
-    };
-
-    std::string astcOptions{};
-    bool encodeASTC = false;
-    ClampedOption<ktx_uint32_t> qualityLevel{ktxAstcParams::qualityLevel, 0, KTX_PACK_ASTC_QUALITY_LEVEL_MAX};
-
-    OptionsASTC() : ktxAstcParams() {
-        threadCount = std::thread::hardware_concurrency();
-        if (threadCount == 0)
-            threadCount = 1;
-        structSize = sizeof(ktxAstcParams);
-        normalMap = false;
-        for (int i = 0; i < 4; i++)
-            inputSwizzle[i] = 0;
-        qualityLevel.clear();
-    }
-
-    void init(cxxopts::Options& opts) {
-        opts.add_options("Encode ASTC")
-                (kAstcQuality,
-                        "The quality level configures the quality-performance tradeoff for "
-                        "the compressor; more complete searches of the search space "
-                        "improve image quality at the expense of compression time. Default "
-                        "is 'medium'. The quality level can be set between fastest (0) and "
-                        "exhaustive (100) via the following fixed quality presets:\n\n"
-                        "    Level      |  Quality\n"
-                        "    ---------- | -----------------------------\n"
-                        "    fastest    | (equivalent to quality =   0)\n"
-                        "    fast       | (equivalent to quality =  10)\n"
-                        "    medium     | (equivalent to quality =  60)\n"
-                        "    thorough   | (equivalent to quality =  98)\n"
-                        "    exhaustive | (equivalent to quality = 100)",
-                        cxxopts::value<std::string>(), "<level>")
-                (kAstcPerceptual,
-                        "The codec should optimize for perceptual error, instead of direct "
-                        "RMS error. This aims to improve perceived image quality, but "
-                        "typically lowers the measured PSNR score. Perceptual methods are "
-                        "currently only available for normal maps and RGB color data.");
-    }
-
-    void captureASTCOption(const char* name) {
-        astcOptions += fmt::format(" --{}", name);
-    }
-
-    template <typename T>
-    T captureASTCOption(cxxopts::ParseResult& args, const char* name) {
-        const T value = args[name].as<T>();
-        astcOptions += fmt::format(" --{} {}", name, value);
-        return value;
-    }
-
-    void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
-        if (args[kAstcQuality].count()) {
-            static std::unordered_map<std::string, ktx_pack_astc_quality_levels_e> astc_quality_mapping{
-                    {"fastest", KTX_PACK_ASTC_QUALITY_LEVEL_FASTEST},
-                    {"fast", KTX_PACK_ASTC_QUALITY_LEVEL_FAST},
-                    {"medium", KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM},
-                    {"thorough", KTX_PACK_ASTC_QUALITY_LEVEL_THOROUGH},
-                    {"exhaustive", KTX_PACK_ASTC_QUALITY_LEVEL_EXHAUSTIVE}
-            };
-            const auto qualityLevelStr = to_lower_copy(captureASTCOption<std::string>(args, kAstcQuality));
-            const auto it = astc_quality_mapping.find(qualityLevelStr);
-            if (it == astc_quality_mapping.end())
-                report.fatal_usage("Invalid astc-quality: \"{}\"", qualityLevelStr);
-            qualityLevel = it->second;
-        } else {
-            qualityLevel = KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM;
-        }
-
-        if (args[kAstcPerceptual].count()) {
-            captureASTCOption(kAstcPerceptual);
-            perceptual = KTX_TRUE;
-        }
-    }
-};
-
 // -------------------------------------------------------------------------------------------------
 
 /** @page ktx_create ktx create
@@ -693,30 +612,7 @@ Create a KTX2 file from various input files.
             otherwise they are ignored.<br />
             The format will be used to verify and load all input files into a texture before encoding.<br />
             Case insensitive. Required.</dd>
-        <dl>
-            <dt>\--astc-quality &lt;level&gt;</dt>
-            <dd>The quality level configures the quality-performance
-                tradeoff for the compressor; more complete searches of the
-                search space improve image quality at the expense of
-                compression time. Default is 'medium'. The quality level can be
-                set between fastest (0) and exhaustive (100) via the
-                following fixed quality presets:
-                <table>
-                    <tr><th>Level      </th> <th> Quality                      </th></tr>
-                    <tr><td>fastest    </td> <td>(equivalent to quality =   0) </td></tr>
-                    <tr><td>fast       </td> <td>(equivalent to quality =  10) </td></tr>
-                    <tr><td>medium     </td> <td>(equivalent to quality =  60) </td></tr>
-                    <tr><td>thorough   </td> <td>(equivalent to quality =  98) </td></tr>
-                    <tr><td>exhaustive </td> <td>(equivalent to quality = 100) </td></tr>
-                </table>
-            </dd>
-            <dt>\--astc-perceptual</dt>
-            <dd>The codec should optimize for perceptual error, instead of
-                direct RMS error. This aims to improve perceived image quality,
-                but typically lowers the measured PSNR score. Perceptual
-                methods are currently only available for normal maps and RGB
-                color data.</dd>
-        </dl>
+        @snippet{doc} ktx/astc_utils.h command options_encode_astc
         <dt>\--1d</dt>
         <dd>Create a 1D texture. If not set the texture will be a 2D or 3D texture.</dd>
         <dt>\--cubemap</dt>
@@ -768,7 +664,8 @@ Create a KTX2 file from various input files.
             With each encoding option the following encoder specific options become valid,
             otherwise they are ignored. Case-insensitive.</dd>
 
-        @snippet{doc} ktx/encode_utils.h command options_codec
+        @snippet{doc} ktx/basis_utils.h command options_encode_basis
+        @snippet{doc} ktx/encode_utils_common.h command options_encode_common
         @snippet{doc} ktx/metrics_utils.h command options_metrics
     </dl>
     <dl>
@@ -813,7 +710,7 @@ Create a KTX2 file from various input files.
         <dt>\--warn-on-color-conversions</dt>
         <dd>Generates a warning if any of the input images are color converted.</dd>
     </dl>
-    @snippet{doc} ktx/compress_utils.h command options_compress
+    @snippet{doc} ktx/deflate_utils.h command options_deflate
     @snippet{doc} ktx/command.h command options_generic
 
 @section ktx_create_exitstatus EXIT STATUS
@@ -830,7 +727,7 @@ Create a KTX2 file from various input files.
 */
 class CommandCreate : public Command {
 private:
-    Combine<OptionsCreate, OptionsASTC, OptionsCodec<false>, OptionsMetrics, OptionsCompress, OptionsMultiInSingleOut, OptionsGeneric> options;
+    Combine<OptionsCreate, OptionsEncodeASTC, OptionsEncodeBasis<false>, OptionsEncodeCommon, OptionsMetrics, OptionsDeflate, OptionsMultiInSingleOut, OptionsGeneric> options;
 
     uint32_t targetChannelCount = 0; // Derived from VkFormat
 
@@ -846,9 +743,9 @@ public:
 
 private:
     void executeCreate();
-    void encode(KTXTexture2& texture, OptionsCodec<false>& opts);
-    void encodeASTC(KTXTexture2& texture, OptionsASTC& opts);
-    void compress(KTXTexture2& texture, const OptionsCompress& opts);
+    void encodeBasis(KTXTexture2& texture, OptionsEncodeBasis<false>& opts);
+    void encodeASTC(KTXTexture2& texture, OptionsEncodeASTC& opts);
+    void compress(KTXTexture2& texture, const OptionsDeflate& opts);
 
 private:
     template <typename F>
@@ -918,12 +815,16 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
     }
 
     if (!isFormatAstc(options.vkFormat)) {
-        for (const char* astcOption : OptionsASTC::kAstcOptions)
+        for (const char* astcOption : OptionsEncodeASTC::kAstcOptions)
             if (args[astcOption].count())
                 fatal_usage("--{} can only be used with ASTC formats.", astcOption);
+    } else {
+        fillOptionsCodecAstc<decltype(options)>(options);
+        if (options.OptionsEncodeCommon::noSSE)
+            fatal_usage("--{} is not allowed with ASTC encode", OptionsEncodeCommon::kNoSse);
     }
 
-    if (options.codec == EncodeCodec::BasisLZ) {
+    if (options.codec == BasisCodec::BasisLZ) {
         if (options.zstd.has_value())
             fatal_usage("Cannot encode to BasisLZ and supercompress with Zstd.");
 
@@ -931,7 +832,7 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
             fatal_usage("Cannot encode to BasisLZ and supercompress with ZLIB.");
     }
 
-    if (options.codec != EncodeCodec::NONE) {
+    if (options.codec != BasisCodec::NONE) {
         switch (options.vkFormat) {
         case VK_FORMAT_R8_UNORM:
         case VK_FORMAT_R8_SRGB:
@@ -950,7 +851,11 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
         }
     }
 
-    const auto canCompare = options.codec == EncodeCodec::BasisLZ || options.codec == EncodeCodec::UASTC;
+    const auto canCompare = options.codec == BasisCodec::BasisLZ || options.codec == BasisCodec::UASTC;
+
+    if (canCompare)
+        fillOptionsCodecBasis<decltype(options)>(options);
+
     if (options.compare_ssim && !canCompare)
         fatal_usage("--compare-ssim can only be used with BasisLZ or UASTC encoding.");
     if (options.compare_psnr && !canCompare)
@@ -1258,12 +1163,12 @@ void CommandCreate::executeCreate() {
     }
 
     // Encode and apply compression
-    encode(texture, options);
+    encodeBasis(texture, options);
     encodeASTC(texture, options);
     compress(texture, options);
 
     // Add KTXwriterScParams metadata if ASTC encoding, BasisU encoding, or other supercompression was used
-    const auto writerScParams = fmt::format("{}{}{}", options.astcOptions, options.codecOptions, options.compressOptions);
+    const auto writerScParams = fmt::format("{}{}{}{}", options.astcOptions, options.codecOptions, options.commonOptions, options.compressOptions);
     if (writerScParams.size() > 0) {
         // Options always contain a leading space
         assert(writerScParams[0] == ' ');
@@ -1283,12 +1188,12 @@ void CommandCreate::executeCreate() {
 
 // -------------------------------------------------------------------------------------------------
 
-void CommandCreate::encode(KTXTexture2& texture, OptionsCodec<false>& opts) {
+void CommandCreate::encodeBasis(KTXTexture2& texture, OptionsEncodeBasis<false>& opts) {
     MetricsCalculator metrics;
     metrics.saveReferenceImages(texture, options, *this);
 
-    if (opts.codec != EncodeCodec::NONE) {
-        auto ret = ktxTexture2_CompressBasisEx(texture, &opts.basisOpts);
+    if (opts.codec != BasisCodec::NONE) {
+        auto ret = ktxTexture2_CompressBasisEx(texture, &opts);
         if (ret != KTX_SUCCESS)
             fatal(rc::KTX_FAILURE, "Failed to encode KTX2 file with codec \"{}\". KTX Error: {}",
                     to_underlying(opts.codec), ktxErrorString(ret));
@@ -1297,7 +1202,7 @@ void CommandCreate::encode(KTXTexture2& texture, OptionsCodec<false>& opts) {
     metrics.decodeAndCalculateMetrics(texture, options, *this);
 }
 
-void CommandCreate::encodeASTC(KTXTexture2& texture, OptionsASTC& opts) {
+void CommandCreate::encodeASTC(KTXTexture2& texture, OptionsEncodeASTC& opts) {
     if (opts.encodeASTC) {
         const auto ret = ktxTexture2_CompressAstcEx(texture, &opts);
         if (ret != KTX_SUCCESS)
@@ -1305,7 +1210,7 @@ void CommandCreate::encodeASTC(KTXTexture2& texture, OptionsASTC& opts) {
     }
 }
 
-void CommandCreate::compress(KTXTexture2& texture, const OptionsCompress& opts) {
+void CommandCreate::compress(KTXTexture2& texture, const OptionsDeflate& opts) {
     if (opts.zstd) {
         const auto ret = ktxTexture2_DeflateZstd(texture, *opts.zstd);
         if (ret != KTX_SUCCESS)
