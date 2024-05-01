@@ -3,8 +3,8 @@
 
 <img src="https://www.khronos.org/assets/images/api_logos/khronos.svg" width="300"/>
 
-The Official Khronos KTX Software Repository
----
+## The Official Khronos KTX Software Repository
+
 
 | GNU/Linux, iOS, macOS & wasm | Windows | Android | Mingw |
 | :--------------------------: | :-----: | :-----: | :---: |
@@ -83,7 +83,7 @@ A few files have `$Date$` keywords. If you care about having the proper
 dates shown or will be generating the documentation or preparing
 distribution archives, you **must** follow the instructions below.
 
-#### KTX-Software-CTS - Conformance Test Suite
+### KTX-Software-CTS - Conformance Test Suite
 
 The tests and test files for the generic command line `ktx` tool can be found in a separate
 [CTS Repository](https://github.com/KhronosGroup/KTX-Software-CTS/). To save space and bandwidth this repository
@@ -91,7 +91,7 @@ is included with git submodule and by default it is not required for building th
 For more information about building, running and extending the CTS tests see [BUILDING](BUILDING.md#Conformance-Test-Suite) 
 and [CTS README](https://github.com/KhronosGroup/KTX-Software-CTS/blob/main/README.md).
 
-#### <a id="kwexpansion"></a>$Date$ keyword expansion
+### <a id="kwexpansion"></a>$Date$ keyword expansion
 
 $Date$ keywords are expanded via smudge & clean filters. To install
 the filters, issue the following commands in the root of your clone.
@@ -119,3 +119,7 @@ local git config file `.git/config`, i.e. the one in your clone of the repo.
 the second command forces a new checkout of the affected files to smudge them
 with their last modified date. This is unnecessary if you plan to edit
 these files.
+
+### Useful Tools
+
+For finding strings within the KTX-Software source use `scripts/gk`. Type `scripts/gk -h` for help. `gk` avoids looking in any build directories, `.git`, `other_projects` or `tests/cts`.
