@@ -52,7 +52,7 @@ namespace ktx {
         <dt>\--no-sse</dt>
         <dd>Forbid use of the SSE instruction set. Ignored if CPU does
             not support SSE. SSE can only be disabled on the basis-lz and
-            uastc compressors.</dd>
+            uastc compressors. Ignored for other compressors.</dd>
     </dl>
 //! [command options_encode_common]
 */
