@@ -47,8 +47,8 @@ fi
 
 # Make sure we're in the KTX directory
 cd $(dirname $0)/..
-if [ -n $match ]; then
-  find . -path './build*' -prune -o -path tests/cts -prune -o -path './.git' -prune -o -path './other_projects/*' -prune -o -type f -name "$filepattern" -exec grep -H "$match" {} \;
+if [ -n "$match" ]; then
+  find . -path './build*' -prune -o -path tests/cts -prune -o -path './.git' -prune -o -path './other_projects/' -prune -o -type f -name "$filepattern" -exec grep -H "$match" {} \;
 else
-  find . -path './build*' -prune -o -path tests/cts -prune -o -path './.git' -prune -o -path './other_projects/*' -prune -o -type f -name "$filepattern"
+  find . -path './build*' -prune -o -path tests/cts -prune -o -path './.git' -prune -o -path './other_projects' -prune -o -type f -name "$filepattern" -print
 fi
