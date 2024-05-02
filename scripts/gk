@@ -1,12 +1,15 @@
 #! /usr/bin/env bash
 
+# Copyright 2024, Mark Callow
+# SPDX-License-Identifier: Apache-2.0
+
 # gk: grep in ktx software
 
 # Depth of this script relative to the project root
 depth=..
 
 usage() {
-  echo "Usage: $0 [-f <filename pattern>] [<match pattern>]"
+  echo "Usage: $0 [--help,-h] [--filepattern,-f <filename pattern>] [<match pattern>]"
   echo "  <filename pattern> defaults to '*' if no -f."
   echo "  With no <match pattern> prints names of files matching <filename pattern>."
   exit $1
