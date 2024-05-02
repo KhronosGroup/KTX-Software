@@ -77,7 +77,7 @@ endif()
 
 list(APPEND mkvkformatfiles_input
     ${vulkan_header}
-    ci_scripts/mkvkformatfiles)
+    scripts/mkvkformatfiles)
 list(APPEND mkvkformatfiles_output
     "${PROJECT_SOURCE_DIR}/interface/java_binding/src/main/java/org/khronos/ktx/VkFormat.java"
     "${PROJECT_SOURCE_DIR}/interface/python_binding/pyktx/vk_format.py"
@@ -102,7 +102,7 @@ list(APPEND mkvkformatfiles_output
 # parses successfully.
 
 list(APPEND mvffc_as_list
-    ci_scripts/mkvkformatfiles ./ ${vulkan_header})
+    scripts/mkvkformatfiles ./ ${vulkan_header})
 list(JOIN mvffc_as_list " " mvffc_as_string)
     set(mkvkformatfiles_command "${BASH_EXECUTABLE}" -c "${mvffc_as_string}")
 
