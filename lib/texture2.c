@@ -218,6 +218,11 @@ ktx_uint32_t e5b9g9r9_ufloat_comparator[e5b9g9r9_bdbwordcount] = {
 };
 #endif
 
+/* Helper constant:
+   Minimal size of basic descriptor block to safely read its size */
+#define KHR_DFD_SIZEFOR_DESCRIPTORBLOCKSIZE \
+    ((KHR_DF_WORD_DESCRIPTORBLOCKSIZE + 1) * sizeof(uint32_t))
+
 /**
  * @private
  * @~English
@@ -235,19 +240,20 @@ bool
 ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
 {
     uint32_t* pBdb = pDfd + 1;
-    // pDfd[0] contains totalSize in bytes, check if it has at least 8 bytes
-    if (pDfd[0] < 2 * sizeof(uint32_t) || *pBdb != 0) {
+    // pDfd[0] contains totalSize in bytes, check if it has at least
+    // KHR_DFD_SIZEFOR_DESCRIPTORBLOCKSIZE bytes
+    if (pDfd[0] < KHR_DFD_SIZEFOR_DESCRIPTORBLOCKSIZE || *pBdb != 0) {
         // Either decriptorType or vendorId is not 0
         return false;
     }
     // Iterate through all block descriptors and check if sum of their sizes
     // is equal to the totalSize in pDfd[0]
     uint32_t descriptorSize = pDfd[0] - sizeof(uint32_t);
-    while(descriptorSize > KHR_DF_WORD_DESCRIPTORBLOCKSIZE + 1) {
+    while(descriptorSize > KHR_DFD_SIZEFOR_DESCRIPTORBLOCKSIZE) {
         uint32_t descriptorBlockSize = KHR_DFDVAL(pBdb, DESCRIPTORBLOCKSIZE);
         if (descriptorBlockSize <= descriptorSize) {
             descriptorSize -= descriptorBlockSize;
-            pBdb += descriptorSize / sizeof(uint32_t);
+            pBdb += descriptorBlockSize / sizeof(uint32_t);
         } else {
             break;
         }
