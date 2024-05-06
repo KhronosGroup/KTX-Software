@@ -601,7 +601,7 @@ Create a KTX2 file from various input files.
             <br />
             If the format is an ASTC format a texture object with the target format
             @c R8G8B8_{SRGB,UNORM} or  @c R8G8B8A8_{SRGB,UNORM} is created
-            then  encoded to the specified ASTC format. The latter format is chosen if alpha
+            then encoded to the specified ASTC format. The latter format is chosen if alpha
             is present in the input. @c SRGB or @c UNORM is chosen depending on the
             specified ASTC format. The ASTC-specific and common encoder options listed
             @ref ktx_create_options_encoding "below" become valid, otherwise they are ignored.

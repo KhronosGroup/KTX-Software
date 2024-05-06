@@ -37,7 +37,6 @@ namespace ktx {
                <tr><td>thorough   </td> <td>(equivalent to quality =  98) </td></tr>
                <tr><td>exhaustive </td> <td>(equivalent to quality = 100) </td></tr>
           </table>
-
         </dd>
         <dt>\--astc-perceptual</dt>
         <dd>The codec should optimize for perceptual error, instead of
