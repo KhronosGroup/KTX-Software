@@ -591,7 +591,8 @@ Create a KTX2 file from various input files.
     based on the used options.
 
 @section ktx\_create\_options OPTIONS
-    The following options are available:
+  @subsection ktx\_create\_options\_general General Options
+    The following are available:
     <dl>
         <dt>\--format &lt;enum&gt;</dt>
         <dd>KTX format enum that specifies the data format of the images in the created texture.
@@ -603,7 +604,7 @@ Create a KTX2 file from various input files.
             then  encoded to the specified ASTC format. The latter format is chosen if alpha
             is present in the input. @c SRGB or @c UNORM is chosen depending on the
             specified ASTC format. The ASTC-specific and common encoder options listed
-            @ref ktx_create_encoder_options "below" become valid, otherwise they are ignored.
+            @ref ktx_create_options_encoding "below" become valid, otherwise they are ignored.
             <!--This matches the functionality of the @ref ktx_encode "ktx encode" command
             when an ASTC format is specified.<br /> -->
             <br />
@@ -626,7 +627,7 @@ Create a KTX2 file from various input files.
         <dd>Encode the texture with the specified codec before saving it.
             This option matches the functionality of the @ref ktx_encode "ktx encode" command.
             With each choice, the specific and common encoder options listed
-            @ref ktx_create_encoder_options "below"  become valid, otherwise they
+            @ref ktx_create_options_encoding "below"  become valid, otherwise they
             are ignored. Case-insensitive.</dd>
 
             @snippet{doc} ktx/encode_utils_basis.h command options_basis_encoders
@@ -717,10 +718,10 @@ Create a KTX2 file from various input files.
     @snippet{doc} ktx/deflate_utils.h command options_deflate
     @snippet{doc} ktx/command.h command options_generic
 
-    @anchor ktx_create_encoder_options
-    The following specific and common encoder options are available. Specific options
-    become valid only if their encoder has been selected. Common encoder options
-    become valid when an encoder they apply to has been selected. Otherwise they are ignored.
+  @subsection ktx\_create\_options\_encoding Specific and Common Encoding Options
+    The following are available. Specific options become valid only if their encoder has been
+    selected. Common encoder options become valid when an encoder they apply to has
+    been selected. Otherwise they are ignored.
     @snippet{doc} ktx/encode_utils_astc.h command options_encode_astc
     @snippet{doc} ktx/encode_utils_basis.h command options_encode_basis
     @snippet{doc} ktx/encode_utils_common.h command options_encode_common

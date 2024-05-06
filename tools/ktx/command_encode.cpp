@@ -55,6 +55,7 @@ Encode a KTX2 file.
     to the stderr and the command exits with the relevant non-zero status code.
 
 @section ktx\_encode\_options OPTIONS
+  @subsection ktx\_encode\_options\_general General Options
     <!--Specifying both @e \--codec and @e \--format options is an error.
 -->
     The following options are available:
@@ -62,20 +63,21 @@ Encode a KTX2 file.
         <dt>\--codec basis-lz | uastc</dt>
         <dd>Target codec followed by the codec specific options. With each choice
             the specific and common encoder options listed
-            @ref ktx\_encode\_encoder\_options "below" become valid, otherwise
+            @ref ktx\_encode\_options\_encoding "below" become valid, otherwise
             they are ignored. Case-insensitive.</dd>
 
             @snippet{doc} ktx/encode_utils_basis.h command options_basis_encoders
 <!--        <dt>\--format</dt>
-        <dd>KTX format enum that specifies the target ASTC format. Non-ASTC formats
-            are invalid. When specified the ASTC-specific and common encoder options listed
-            @ref encoder_options "below" become valid, otherwise they are ignored.
+        <dd>KTX format enum that specifies the target ASTC format. Non-ASTC
+            formats are invalid. When specified the ASTC-specific and common
+            encoder options listed @ref ktx\_encode\_options\_encoding "below"
+            become valid, otherwise they are ignored.
 -->
     </dl>
     @snippet{doc} ktx/deflate_utils.h command options_deflate
     @snippet{doc} ktx/command.h command options_generic
 
-    @anchor ktx\_encode\_encoder\_options
+  @subsection ktx\_encode\_options\_encoding Specific and Common Encoding Options
     The following specific and common encoder options are available. Specific options
     become valid only if their encoder has been selected. Common encoder options
     become valid when an encoder they apply to has been selected. Otherwise they are ignored.
