@@ -65,7 +65,7 @@ struct OptionsHelp {
 Display help information about the ktx tool.
 
 @section ktx_help_synopsis SYNOPSIS
-    ktx help [option...] @e [command]
+    ktx help [option...] [@e command]
 
 @section ktx_help_description DESCRIPTION
     @b ktx @b help displays the man page of a specific ktx command specified as the @e command
