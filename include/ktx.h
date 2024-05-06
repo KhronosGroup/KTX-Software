@@ -30,7 +30,7 @@
 #include <stdbool.h>
 #include <sys/types.h>
 
-#include <KHR/khr_df.h>
+#include "KHR/khr_df.h"
 
 /*
  * Don't use khrplatform.h in order not to break apps existing

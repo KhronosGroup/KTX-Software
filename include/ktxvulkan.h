@@ -25,7 +25,7 @@
  * @author Mark Callow, Edgewise Consulting
  */
 
-#include <ktx.h>
+#include "ktx.h"
 
 #if 0
 /* Avoid Vulkan include file */
