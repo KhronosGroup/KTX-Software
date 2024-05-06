@@ -49,8 +49,8 @@ namespace ktx {
             returned is 0.</dd>
         <dt>\--no-sse</dt>
         <dd>Forbid use of the SSE instruction set. Ignored if CPU does
-            not support SSE. SSE can only be disabled on the basis-lz and
-            uastc compressors. Ignored for other compressors.</dd>
+            not support SSE. SSE can only be disabled for the basis-lz
+            and uastc encoders. Ignored for other encoders..</dd>
     </dl>
   </dl>
 //! [command options_encode_common]

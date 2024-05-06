@@ -23,6 +23,7 @@ namespace ktx {
 /**
 //! [command options_metrics]
 <dl>
+    <!-- Empty dt, and dd are so we can another dl for indentation. -->
     <dt></dt>
     <dd></dd>
     <dl>

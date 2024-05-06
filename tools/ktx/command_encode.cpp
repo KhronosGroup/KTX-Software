@@ -40,63 +40,48 @@ Encode a KTX2 file.
 
 @section ktx_encode_description DESCRIPTION
     @b ktx @b encode can encode the KTX file specified as the @e input-file argument
-    to a universal format or one of the ASTC formats,, optionally supercompress the result,
+    to a universal format<!-- or one of the ASTC formats,--> optionally supercompress the result,
     and save it as the @e output-file.
     If the @e input-file is '-' the file will be read from the stdin.
     If the @e output-path is '-' the output file will be written to the stdout.
 
-    For universal and ASTC LDR formats, the input file must be R8, R8G8, R8G8B8
+    For universal <!-- and ASTC LDR--> formats, the input file must be R8, R8G8, R8G8B8
     or R8G8B8A8 (or their sRGB variants).
 
-    For ASTC HDR formats the input file must be TBD (e.g. R16_{,S}FLOAT,
+    <!--For ASTC HDR formats the input file must be TBD (e.g. R16_{,S}FLOAT,
     R16G16_{,S}FLOAT ...
-
+-->
     If the input file is invalid the first encountered validation error is displayed
     to the stderr and the command exits with the relevant non-zero status code.
 
-    Specifying both @e \--codec and @e \--format options is an error.
-
+    <!--Specifying both @e \--codec and @e \--format options is an error.
+-->
     The following options are available:
     <dl>
         <dt>\--codec basis-lz | uastc</dt>
-        <dd>Target codec followed by the codec specific options.
-            With each encoding option the following encoder specific and common
-            options become valid, otherwise they are ignored.
-            Case-insensitive.</dd>
+        <dd>Target codec followed by the codec specific options. With each choice
+            the specific and common encoder options listed
+            @ref ktx\_encode\_encoder\_options "below" become valid, otherwise
+            they are ignored. Case-insensitive.</dd>
 
-        @snippet{doc} ktx/encode_utils_basis.h command options_encode_basis
-        @snippet{doc} ktx/encode_utils_common.h command options_encode_common
-        @snippet{doc} ktx/metrics_utils.h command options_metrics
-        <dt>\--format</dt>
-        <dd>KTX format enum that specifies the target ASTC format. Non-ASTC formats are invalid.
-            When specified the following ASTC options become valid otherwise they are ignored.</dd>
-            <dl>
-            <dt>\--astc-quality &lt;level&gt;</dt>
-            <dd>The quality level configures the quality-performance
-                tradeoff for the compressor; more complete searches of the
-                search space improve image quality at the expense of
-                compression time. Default is 'medium'. The quality level can be
-                set between fastest (0) and exhaustive (100) via the
-                following fixed quality presets:
-                <table>
-                    <tr><th>Level      </th> <th> Quality                      </th></tr>
-                    <tr><td>fastest    </td> <td>(equivalent to quality =   0) </td></tr>
-                    <tr><td>fast       </td> <td>(equivalent to quality =  10) </td></tr>
-                    <tr><td>medium     </td> <td>(equivalent to quality =  60) </td></tr>
-                    <tr><td>thorough   </td> <td>(equivalent to quality =  98) </td></tr>
-                    <tr><td>exhaustive </td> <td>(equivalent to quality = 100) </td></tr>
-                </table>
-            </dd>
-            <dt>\--astc-perceptual</dt>
-            <dd>The encoder should optimize for perceptual error, instead of
-                direct RMS error. This aims to improve perceived image quality,
-                but typically lowers the measured PSNR score. Perceptual
-                methods are currently only available for normal maps and RGB
-                color data.</dd>
-            </dl>
+            @snippet{doc} ktx/encode_utils_basis.h command options_basis_encoders
+<!--        <dt>\--format</dt>
+        <dd>KTX format enum that specifies the target ASTC format. Non-ASTC formats
+            are invalid. When specified the ASTC-specific and common encoder options listed
+            @ref encoder_options "below" become valid, otherwise they are ignored.
+-->
     </dl>
     @snippet{doc} ktx/deflate_utils.h command options_deflate
     @snippet{doc} ktx/command.h command options_generic
+
+    @anchor ktx\_encode\_encoder\_options
+    The following specific and common encoder options are available. Specific options
+    become valid only if their encoder has been selected. Common encoder options
+    become valid when an encoder they apply to has been selected. Otherwise they are ignored.
+    <!--@snippet{doc} ktx/encode_utils_astc.h command options_encode_astc-->
+    @snippet{doc} ktx/encode_utils_basis.h command options_encode_basis
+    @snippet{doc} ktx/encode_utils_common.h command options_encode_common
+    @snippet{doc} ktx/metrics_utils.h command options_metrics
 
 @section ktx_encode_exitstatus EXIT STATUS
     @snippet{doc} ktx/command.h command exitstatus
@@ -104,7 +89,10 @@ Encode a KTX2 file.
 @section ktx_encode_history HISTORY
 
 @par Version 4.0
- - Initial version
+ - Initial version.
+
+ @par Version 4.4
+  - Reorganize encoding options.
 
 @section ktx_encode_author AUTHOR
     - Mátyás Császár [Vader], RasterGrid www.rastergrid.com
