@@ -1,0 +1,45 @@
+name: Build KTX Framework for iOS
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+    - name: Setup Xcode
+      uses: maxim-lobanov/setup-xcode@v1.6.0
+      with:
+        xcode-version: '15.1'
+
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    - name: Create build directory
+      run: mkdir -p build
+
+    - name: Generate Xcode project
+      run: cmake -G Xcode -B build/ios -D CMAKE_SYSTEM_NAME=iOS
+
+    - name: Build for iphoneos
+      run: cmake --build build/ios --config Release -- -sdk iphoneos
+
+    - name: Build for iphonesimulator
+      run: cmake --build build/ios --config Release -- -sdk iphonesimulator EXCLUDED_ARCHS=x86_64
+
+    - name: Create XCFramework
+      run: |
+        xcodebuild -create-xcframework \
+          -framework build/ios/Release-iphoneos/ktx.framework \
+          -framework build/ios/Release-iphonesimulator/ktx.framework \
+          -output ktx.xcframework
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: ktx.xcframework
+        path: ktx.xcframework
