@@ -50,6 +50,7 @@ Deflate (supercompress) a KTX2 file.
     @b ktx @b deflate cannot be applied to KTX files that have been
     supercompressed with BasisLZ.
 
+@section ktx\_deflate\_options OPTIONS
     The following options are available:
     @snippet{doc} ktx/deflate_utils.h command options_deflate
     <dl>

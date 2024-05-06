@@ -54,6 +54,7 @@ Encode a KTX2 file.
     If the input file is invalid the first encountered validation error is displayed
     to the stderr and the command exits with the relevant non-zero status code.
 
+@section ktx\_encode\_options OPTIONS
     <!--Specifying both @e \--codec and @e \--format options is an error.
 -->
     The following options are available:

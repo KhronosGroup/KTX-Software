@@ -590,6 +590,7 @@ Create a KTX2 file from various input files.
     The number of input-files specified must match the expected number of input images
     based on the used options.
 
+@section ktx\_create\_options OPTIONS
     The following options are available:
     <dl>
         <dt>\--format &lt;enum&gt;</dt>

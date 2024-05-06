@@ -49,6 +49,7 @@ Print information about a KTX2 file.
     set for UTF-8 you will see incorrect characters in output of the file
     identifier on each side of the "KTX nn".
 
+@section ktx\_info\_options OPTIONS
     The following options are available:
     @snippet{doc} ktx/command.h command options_format
     @snippet{doc} ktx/command.h command options_generic
