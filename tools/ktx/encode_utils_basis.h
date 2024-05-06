@@ -143,9 +143,6 @@ enum class BasisCodec {
         <dd>Disable RDO multithreading (slightly higher compression,
             deterministic).</dd>
     </dl>
-
-    @snippet{doc} ktx/encode_utils_common.h command options_encode_common
-
 </dl>
 //! [command options_encode_basis]
 */

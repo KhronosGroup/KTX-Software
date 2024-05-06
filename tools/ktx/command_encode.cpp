@@ -59,10 +59,12 @@ Encode a KTX2 file.
     The following options are available:
     <dl>
         <dt>\--codec basis-lz | uastc</dt>
-        <dd>Target universal codec. With each codec option the following codec specific
-            options become valid, otherwise they are ignored. Case-insensitive.</dd>
+        <dd>Target codec followed by the codec specific options.
+            With each encoding option the following encoder specific and common
+            options become valid, otherwise they are ignored.
+            Case-insensitive.</dd>
 
-        @snippet{doc} ktx/basis_utils.h command options_encode_basis
+        @snippet{doc} ktx/encode_utils_basis.h command options_encode_basis
         @snippet{doc} ktx/encode_utils_common.h command options_encode_common
         @snippet{doc} ktx/metrics_utils.h command options_metrics
         <dt>\--format</dt>
