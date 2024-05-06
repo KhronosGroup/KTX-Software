@@ -23,10 +23,16 @@ namespace ktx {
 /**
 //! [command options_metrics]
 <dl>
-    <dt>\--compare-ssim</dt>
-    <dd>Calculate encoding structural similarity index measure (SSIM) and print it to stdout. Requires Basis-LZ or UASTC encoding.</dd>
-    <dt>\--compare-psnr</dt>
-    <dd>Calculate encoding peak signal-to-noise ratio (PSNR) and print it to stdout. Requires Basis-LZ or UASTC encoding.</dd>
+    <dt></dt>
+    <dd></dd>
+    <dl>
+      <dt>\--compare-ssim</dt>
+      <dd>Calculate encoding structural similarity index measure (SSIM) and print it to stdout.
+          Requires Basis-LZ or UASTC encoding.</dd>
+      <dt>\--compare-psnr</dt>
+      <dd>Calculate encoding peak signal-to-noise ratio (PSNR) and print it to stdout.
+          Requires Basis-LZ or UASTC encoding.</dd>
+    </dl>
 </dl>
 //! [command options_metrics]
 */
