@@ -41,7 +41,7 @@ else()
         # Find the name of the actual dylib which includes the version no.
         # Keep this for when CI has macOS 12.3 support!
         #execute_process(COMMAND readlink -f ${Vulkan_LIBRARY}
-        execute_process(COMMAND ${PROJECT_SOURCE_DIR}/ci_scripts/readlink.sh ${Vulkan_LIBRARY}
+        execute_process(COMMAND ${PROJECT_SOURCE_DIR}/scripts/readlink.sh ${Vulkan_LIBRARY}
                         OUTPUT_VARIABLE Vulkan_LIBRARY_REAL_PATH_NAME
                         OUTPUT_STRIP_TRAILING_WHITESPACE
         )

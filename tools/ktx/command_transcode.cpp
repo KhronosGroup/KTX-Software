@@ -4,7 +4,7 @@
 
 #include "command.h"
 #include "platform_utils.h"
-#include "compress_utils.h"
+#include "deflate_utils.h"
 #include "transcode_utils.h"
 #include "formats.h"
 #include "sbufstream.h"
@@ -60,7 +60,7 @@ Transcode a KTX2 file.
             etc-rgb is ETC1; etc-rgba, eac-r11 and eac-rg11 are ETC2.
         </dd>
     </dl>
-    @snippet{doc} ktx/compress_utils.h command options_compress
+    @snippet{doc} ktx/deflate_utils.h command options_deflate
     @snippet{doc} ktx/command.h command options_generic
 
 @section ktx_transcode_exitstatus EXIT STATUS
@@ -85,7 +85,7 @@ class CommandTranscode : public Command {
         void process(cxxopts::Options& opts, cxxopts::ParseResult& args, Reporter& report);
     };
 
-    Combine<OptionsTranscode, OptionsTranscodeTarget<true>, OptionsCompress, OptionsSingleInSingleOut, OptionsGeneric> options;
+    Combine<OptionsTranscode, OptionsTranscodeTarget<true>, OptionsDeflate, OptionsSingleInSingleOut, OptionsGeneric> options;
 
 public:
     virtual int main(int argc, char* argv[]) override;

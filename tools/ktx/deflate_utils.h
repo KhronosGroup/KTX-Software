@@ -12,7 +12,7 @@
 namespace ktx {
 
 /**
-//! [command options_compress]
+//! [command options_deflate]
 <dl>
     <dt>\--zstd &lt;level&gt;</dt>
     <dd>
@@ -30,9 +30,9 @@ namespace ktx {
         Lower levels give faster but worse compression.
     </dd>
 </dl>
-//! [command options_compress]
+//! [command options_deflate]
 */
-struct OptionsCompress {
+struct OptionsDeflate {
     inline static const char* kZStd = "zstd";
     inline static const char* kZLib = "zlib";
 

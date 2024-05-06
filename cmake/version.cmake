@@ -174,7 +174,7 @@ function( create_version_header dest_path target )
         add_custom_command(
             OUTPUT ${version_h_output}
             # On Windows this command has to be invoked by a shell in order to work
-            COMMAND ${BASH_EXECUTABLE} -c "\"./mkversion\" \"-o\" \"version.h\" \"${dest_path}\""
+            COMMAND ${BASH_EXECUTABLE} -c "\"scripts/mkversion\" \"-o\" \"version.h\" \"${dest_path}\""
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
             COMMENT "Generate ${version_h_output}"
             VERBATIM
@@ -182,7 +182,7 @@ function( create_version_header dest_path target )
     else()
         add_custom_command(
             OUTPUT ${version_h_output}
-            COMMAND ./mkversion -o version.h ${dest_path}
+            COMMAND scripts/mkversion -o version.h ${dest_path}
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
             COMMENT "Generate ${version_h_output}"
             VERBATIM

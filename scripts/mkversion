@@ -14,9 +14,9 @@ DEF_VER=v4.0
 LF='
 '
 
-# Change directory to this script location which must be root of the
-# Git repo.
-cd $(dirname $0)
+# Change directory the root of the Git repo.
+depth=..
+cd $(dirname $0)/$depth
 
 function genversion() {
   # Try git-describe, then default.

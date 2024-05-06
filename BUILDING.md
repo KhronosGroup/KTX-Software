@@ -257,7 +257,7 @@ Install [Docker Desktop](https://www.docker.com/products/docker-desktop) which i
 In the repo root run
 
 ```bash
-ci_scripts/build_wasm_docker.sh
+scripts/build_wasm_docker.sh
 ```
 
 This will build both Debug and Release configurations and will include the load test application. Builds are done with the official Emscripten Docker image. Output will be written to the folders `build/web-{debug,release}`.
