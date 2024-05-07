@@ -218,6 +218,11 @@ ktx_uint32_t e5b9g9r9_ufloat_comparator[e5b9g9r9_bdbwordcount] = {
 };
 #endif
 
+/* Helper constant:
+   Minimal size of basic descriptor block to safely read its size */
+#define KHR_DFD_SIZEFOR_DESCRIPTORBLOCKSIZE \
+    ((KHR_DF_WORD_DESCRIPTORBLOCKSIZE + 1) * sizeof(uint32_t))
+
 /**
  * @private
  * @~English
@@ -235,12 +240,32 @@ bool
 ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
 {
     uint32_t* pBdb = pDfd + 1;
-
-    // Check the DFD is of the expected type and version.
-    if (*pBdb != 0) {
+    // pDfd[0] contains totalSize in bytes, check if it has at least
+    // KHR_DFD_SIZEFOR_DESCRIPTORBLOCKSIZE bytes
+    if (pDfd[0] < KHR_DFD_SIZEFOR_DESCRIPTORBLOCKSIZE || *pBdb != 0) {
         // Either decriptorType or vendorId is not 0
         return false;
     }
+    // Iterate through all block descriptors and check if sum of their sizes
+    // is equal to the totalSize in pDfd[0]
+    uint32_t descriptorSize = pDfd[0] - sizeof(uint32_t);
+    while(descriptorSize > KHR_DFD_SIZEFOR_DESCRIPTORBLOCKSIZE) {
+        uint32_t descriptorBlockSize = KHR_DFDVAL(pBdb, DESCRIPTORBLOCKSIZE);
+        if (descriptorBlockSize <= descriptorSize) {
+            descriptorSize -= descriptorBlockSize;
+            pBdb += descriptorBlockSize / sizeof(uint32_t);
+        } else {
+            break;
+        }
+    }
+    if (descriptorSize != 0) {
+        return false;
+    }
+
+    // reset pBdb pointer to the first block descriptor
+    pBdb = pDfd + 1;
+
+    // Check the DFD is of the expected version.
     if (KHR_DFDVAL(pBdb, VERSIONNUMBER) != KHR_DF_VERSIONNUMBER_1_3) {
         return false;
     }
@@ -945,8 +970,10 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
             goto cleanup;
 
         // There could be padding here so seek to the next item.
-        (void)stream->setpos(stream,
+        result = stream->setpos(stream,
                              pHeader->supercompressionGlobalData.byteOffset);
+        if (result != KTX_SUCCESS)
+            goto cleanup;
 
         // Read supercompressionGlobalData
         private->_supercompressionGlobalData =
@@ -2354,7 +2381,7 @@ ktxTexture2_LoadImageData(ktxTexture2* This,
     DECLARE_PROTECTED(ktxTexture);
     DECLARE_PRIVATE(ktxTexture2);
     ktx_uint8_t*    pDest;
-    ktx_uint8_t*    pDeflatedData = 0;
+    ktx_uint8_t*    pDeflatedData = NULL;
     ktx_uint8_t*    pReadBuf;
     KTX_error_code  result = KTX_SUCCESS;
     ktx_size_t inflatedDataCapacity = ktxTexture2_GetDataSizeUncompressed(This);
@@ -2396,12 +2423,12 @@ ktxTexture2_LoadImageData(ktxTexture2* This,
     result = prtctd->_stream.setpos(&prtctd->_stream,
                                     private->_firstLevelFileOffset);
     if (result != KTX_SUCCESS)
-        return result;
+        goto cleanup;
 
     result = prtctd->_stream.read(&prtctd->_stream, pReadBuf,
                                   This->dataSize);
     if (result != KTX_SUCCESS)
-        return result;
+        goto cleanup;
 
     if (This->supercompressionScheme == KTX_SS_ZSTD || This->supercompressionScheme == KTX_SS_ZLIB) {
         assert(pDeflatedData != NULL);
@@ -2412,13 +2439,12 @@ ktxTexture2_LoadImageData(ktxTexture2* This,
             result = ktxTexture2_inflateZLIBInt(This, pDeflatedData, pDest,
                                                 inflatedDataCapacity);
         }
-        free(pDeflatedData);
         if (result != KTX_SUCCESS) {
             if (pBuffer == NULL) {
                 free(This->pData);
                 This->pData = 0;
             }
-            return result;
+            goto cleanup;
         }
     }
 
@@ -2450,6 +2476,10 @@ ktxTexture2_LoadImageData(ktxTexture2* This,
     // No further need for stream or file offset.
     prtctd->_stream.destruct(&prtctd->_stream);
     private->_firstLevelFileOffset = 0;
+
+cleanup:
+    free(pDeflatedData);
+
     return result;
 }
 
@@ -2492,11 +2522,11 @@ ktxTexture2_inflateZstdInt(ktxTexture2* This, ktx_uint8_t* pDeflatedData,
                             This->numLevels * sizeof(ktxLevelIndexEntry);
     uint64_t levelOffset = 0;
     ktxLevelIndexEntry* cindex = This->_private->_levelIndex;
-    ktxLevelIndexEntry* nindex;
+    ktxLevelIndexEntry* nindex = NULL;
     ktx_uint32_t uncompressedLevelAlignment;
-    ktx_error_code_e result;
+    ktx_error_code_e result = KTX_SUCCESS;
 
-    ZSTD_DCtx* dctx;
+    ZSTD_DCtx* dctx = NULL;
 
     if (pDeflatedData == NULL)
         return KTX_INVALID_VALUE;
@@ -2544,8 +2574,10 @@ ktxTexture2_inflateZstdInt(ktxTexture2* This, ktx_uint8_t* pDeflatedData,
             }
         }
 
-        if (This->_private->_levelIndex[level].uncompressedByteLength != levelByteLength)
-            return KTX_DECOMPRESS_LENGTH_ERROR;
+        if (This->_private->_levelIndex[level].uncompressedByteLength != levelByteLength) {
+            result = KTX_DECOMPRESS_LENGTH_ERROR;
+            goto cleanup;
+        }
 
         nindex[level].byteOffset = levelOffset;
         nindex[level].uncompressedByteLength = nindex[level].byteLength =
@@ -2556,21 +2588,17 @@ ktxTexture2_inflateZstdInt(ktxTexture2* This, ktx_uint8_t* pDeflatedData,
         levelOffset += paddedLevelByteLength;
         inflatedDataCapacity -= paddedLevelByteLength;
     }
-    ZSTD_freeDCtx(dctx);
 
     // Now modify the texture.
 
     This->dataSize = inflatedByteLength;
     This->supercompressionScheme = KTX_SS_NONE;
     memcpy(cindex, nindex, levelIndexByteLength); // Update level index
-    free(nindex);
     This->_private->_requiredLevelAlignment = uncompressedLevelAlignment;
     // Set bytesPlane as we're now sized.
     uint32_t* bdb = This->pDfd + 1;
     // blockSizeInBits was set to the inflated size on file load.
     bdb[KHR_DF_WORD_BYTESPLANE0] = prtctd->_formatSize.blockSizeInBits / 8;
-
-    return KTX_SUCCESS;
 
 cleanup:
     ZSTD_freeDCtx(dctx);

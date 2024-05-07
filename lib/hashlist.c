@@ -546,8 +546,8 @@ ktxHashList_Deserialize(ktxHashList* pHead, unsigned int kvdLen, void* pKvd)
 
         while (keyLen < keyAndValueByteSize && key[keyLen] != '\0') keyLen++;
 
-        if (key[keyLen] != '\0') {
-            // Missing NULL terminator
+        if (keyLen == keyAndValueByteSize || key[keyLen] != '\0') {
+            // Missing NULL terminator or no value
             return KTX_FILE_DATA_ERROR;
         }
 
