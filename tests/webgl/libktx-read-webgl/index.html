@@ -27,8 +27,8 @@
 
   <body>
     <div id="panel">
-      <h2>libktx Read-write Javascript Binding Test</h2>
-      <p>This demo uses the read-write Javascript binding for libktx,
+      <h2>libktx Read-only Javascript Binding Test</h2>
+      <p>This demo uses the read-only Javascript binding for libktx,
       which has been compiled to Javascript using Emscripten. It uses a
       KTX2 file with a Basis Universal-compressed payload. It has
       transcoded the images to <b id='format'>FORMAT</b>.
@@ -40,14 +40,14 @@
   </body>
 
   <script src="../gl-matrix.js"></script>
-  <script src="../libktx.js"></script>
+  <script src="../libktx_read.js"></script>
   <script src="webgl-demo.js"></script>
   <script type="text/javascript">
-    LIBKTX({preinitializedWebGLContext: gl}).then(module => {
-      window.LIBKTX = module;
+    LIBKTX_READ({preinitializedWebGLContext: gl}).then(module => {
+      window.LIBKTX_READ = module;
       // Make existing WebGL context current for Emscripten OpenGL.
-      LIBKTX.GL.makeContextCurrent(
-                  LIBKTX.GL.createContext(document.getElementById("glcanvas"),
+      LIBKTX_READ.GL.makeContextCurrent(
+                  LIBKTX_READ.GL.createContext(document.getElementById("glcanvas"),
                                           { majorVersion: 2.0 })
                   );
       texture = loadTexture(gl, 'ktx_app_basis.ktx2');

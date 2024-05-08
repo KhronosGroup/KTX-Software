@@ -20,8 +20,12 @@ SPDX-License-Identifier: CC0-1.0
     support.
   </p>
   <ul>
-    <li><a href="libktx-webgl">libktx and WebGL</a>: uses libktx and its embedded
-    Basisu transcoder compiled to .wasm and renders directly via WebGL.</li>
+    <li><a href="libktx-webgl">libktx and WebGL</a>: uses the read-write
+    JS binding to libktx and its embedded Basisu transcoder, which are
+    compiled to .wasm, and renders directly via WebGL.</li>
+    <li><a href="libktx-read-webgl">Read only libktx and WebGL</a>: uses
+    the read-only JS binding to libktx and its embedded Basisu transcoder,
+    which are compiled to .wasm, and renders directly via WebGL.</li>
     <li><a href="libktx-gltf/">libktx and glTF 2.0</a>: uses libktx and a glTF
     engine to load glTF files with KHR_texture_basisu for textures.
     TO BE IMPLEMENTED.</li>

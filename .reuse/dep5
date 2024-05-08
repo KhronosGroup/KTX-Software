@@ -158,7 +158,7 @@ Files: tests/webgl/libktx-gltf/*
 Copyright: 2020 Don McCurdy, Austin Eng, Shrek Shao, and Mark Callow
 License: Apache-2.0
 
-Files: tests/webgl/libktx-webgl/*
+Files: tests/webgl/libktx-webgl/* tests/webgl/libktx-read-webgl/*
 Copyright: 2020 Mark Callow
 License: Apache-2.0
 
