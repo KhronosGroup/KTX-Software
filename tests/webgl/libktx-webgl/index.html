@@ -4,17 +4,26 @@
     <meta charset="utf-8">
     <title>libktx.js Demo with WebGL</title>
     <link rel="stylesheet" href="../webgl.css" type="text/css">
+    <link rel="shortcut icon" href="../ktx_favicon.ico" type="image/x-icon" />
     <style>
       body {
         /* Set margins to center the page. */
         margin: 2em auto 2em auto;
-        max-width: 55em;
+        max-width: 65em;
       }
       /* Center the canvas too. */
-      canvas {
+      #glcanvas {
         display: block;
         margin-left: auto;
         margin-right: auto;
+        z-index: -1;
+        /* position: absolute;
+        top: 0;
+        width: 100%;
+        height: 100vh; */
+      }
+      #glcontent {
+        margin: 10px;
       }
       #panel {
         color: white;
@@ -22,21 +31,40 @@
         padding: 0.5em;
         max-width: 55em;
       }
+      .item {
+        display: inline-block;
+        margin: 1em;
+        padding: 1em;
+      }
+      .label {
+        margin-top: 0.5em;
+      }
+      .view {
+        width: 250px;
+        height: 250px;
+        border: 1px solid black;
+      }
     </style>
   </head>
 
   <body>
     <div id="panel">
       <h2>libktx Read-write Javascript Binding Test</h2>
-      <p>This demo uses the read-write Javascript binding for libktx,
-      which has been compiled to Javascript using Emscripten. It uses a
-      KTX2 file with a Basis Universal-compressed payload. It has
-      transcoded the images to <b id='format'>FORMAT</b>.
+      <p>This tests the limited functionality of the read-write Javascript
+      binding for libktx, which has been compiled to Javascript using
+      Emscripten. It accepts a .png file from which it creates a KTX2
+      texture. It then encodes the texture to the universal Basis-LZ
+      format, transcodes it to <b id='format'>FORMAT</b>, which is
+      supported on this device, and displays it.
       </p>
     </div>
-    <p></p>
-
-    <canvas id="glcanvas" width="640" height="480"></canvas>
+    <p id="image_ktx">
+      <input type="button" value="KTX Encode"
+             onclick="decodeFile('ktx_app.png')">
+    </p>
+    <div id="image_placeholder"></div>
+    <canvas id="glcanvas" width="1280" height="480"></canvas>
+    <div id="glcontent"></div>
   </body>
 
   <script src="../gl-matrix.js"></script>
@@ -52,5 +80,44 @@
                   );
       texture = loadTexture(gl, 'ktx_app_basis.ktx2');
     });
+
+    function createElem(type, parent, className) {
+      const elem = document.createElement(type);
+      parent.appendChild(elem);
+      if (className) {
+        elem.className = className;
+      }
+      return elem;
+    }
+
+    function randArrayElement(array) {
+      return array[Math.random() * array.length | 0];
+    }
+
+    function rand(min, max) {
+      if (max === undefined) {
+        max = min;
+        min = 0;
+      }
+      return Math.random() * (max - min) + min;
+    }
+
+    // Make 2 elements over the canvas.
+    const contentElem = document.querySelector('#glcontent');
+    const items = [];
+    const numItems = 2;
+    for (let i = 0; i < numItems; ++i) {
+      const outerElem = createElem('div', contentElem, 'item');
+      const viewElem = createElem('div', outerElem, 'view');
+      const labelElem = createElem('div', outerElem, 'label');
+      labelElem.textContent = `Item ${i + 1}`;
+      //const bufferInfo = randArrayElement(bufferInfos);
+      const color = [rand(1), rand(1), rand(1), 1];
+      items.push({
+        bufferInfo,
+        color,
+        element: viewElem,
+      });
+    }
   </script>
 </html>

@@ -449,7 +449,7 @@ function isPowerOf2(value) {
 // Draw the scene.
 //
 function drawScene(gl, programInfo, buffers, texture, deltaTime) {
-  gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
+  gl.clearColor(1.0, 1.0, 1.0, 1.0);  // Clear to black, fully opaque
   gl.clearDepth(1.0);                 // Clear everything
   gl.enable(gl.DEPTH_TEST);           // Enable depth testing
   gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
@@ -659,5 +659,63 @@ function loadShader(gl, type, source) {
   }
 
   return shader;
+}
+
+function encode(raw_data, width, height) {
+//  LIBKTX().then(function(Module) {
+    //const texture = new Module.ktxTexture(raw_data);
+//    const { ktxTexture, TranscodeTarget, OrientationX, OrientationY } = LIBKTX;
+//    const texture_raw = new ktxTexture(raw_data, width, height, 4);
+//    const baisu_options = new Module.ktxBasisParams();
+
+//    baisu_options.uastc = false;
+//    baisu_options.noSSE = true;
+//    baisu_options.verbose = false;
+//    baisu_options.qualityLevel = 200;
+//    baisu_options.compressionLevel = 2;
+
+//    const result = texture_raw.compressBasisU(baisu_options);
+
+//    console.log(result);
+
+// });
+  return;
+}
+
+
+async function loadImageData (img, flip = false) {
+  const canvas    = document.createElement("canvas");
+  const context   = canvas.getContext("2d");
+  canvas.height = img.height;
+  canvas.width  = img.width;
+
+  if (flip) {
+    context.translate(0, img.height);
+    context.scale(1, -1);
+  }
+  context.drawImage(img, 0, 0, img.width, img.height);
+
+  const rgba = context.getImageData(0, 0, img.width, img.height).data;
+  return rgba;
+};
+
+async function loadImage(src){
+  return new Promise((resolve, reject) => {
+    let img = new Image();
+    var div = document.getElementById('image_placeholder');
+    //img.onload = () => resolve(img);
+    img.onload = () => { div.appendChild(img); resolve(img); }
+    img.onerror = reject;
+    img.src = src;
+  })
+}
+
+async function decodeFile(filename) {
+  const img = await loadImage(filename);
+  const img_data = await loadImageData(img);
+  console.log(img);
+  console.log(img_data);
+
+//  encode(img_data, img.width, img.height);
 }
 
