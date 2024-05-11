@@ -13,6 +13,7 @@ made here are also licensed under CC0v1.
 var cubeRotation = 0.0;
 var gl;
 var texture;
+var texture_raw;
 
 var astcSupported = false;
 var etcSupported = false;
@@ -664,19 +665,19 @@ function loadShader(gl, type, source) {
 function encode(raw_data, width, height) {
 //  LIBKTX().then(function(Module) {
     //const texture = new Module.ktxTexture(raw_data);
-//    const { ktxTexture, TranscodeTarget, OrientationX, OrientationY } = LIBKTX;
-//    const texture_raw = new ktxTexture(raw_data, width, height, 4);
-//    const baisu_options = new Module.ktxBasisParams();
+    const { ktxTexture, ktxBasisParams, SupercmpScheme, TranscodeTarget, OrientationX, OrientationY } = LIBKTX;
+    const basisu_options = new ktxBasisParams();
+    texture_raw = new ktxTexture(raw_data, width, height, 4 /* components */, true/* srgb */);
 
-//    baisu_options.uastc = false;
-//    baisu_options.noSSE = true;
-//    baisu_options.verbose = false;
-//    baisu_options.qualityLevel = 200;
-//    baisu_options.compressionLevel = 2;
+    basisu_options.uastc = false;
+    basisu_options.noSSE = true;
+    basisu_options.verbose = false;
+    basisu_options.qualityLevel = 200;
+    basisu_options.compressionLevel = 2;
 
-//    const result = texture_raw.compressBasisU(baisu_options);
+    const result = texture_raw.compressBasisU(basisu_options, SupercmpScheme.BASIS_LZ, 0 /*for zlibv or zstd*/);
 
-//    console.log(result);
+    console.log(result);
 
 // });
   return;
@@ -716,6 +717,6 @@ async function decodeFile(filename) {
   console.log(img);
   console.log(img_data);
 
-//  encode(img_data, img.width, img.height);
+  encode(img_data, img.width, img.height);
 }
 
