@@ -335,6 +335,75 @@ function elem(id) {
   return document.getElementById(id);
 }
 
+// Upload content of a ktxTexture to WebGL.
+// Sets texture parameters suitable for the loaded texture, which requires
+// binding and unbinding the texture.
+// Returns the created WebGL texture object and texture target.
+function uploadTextureToGl(gl, ktexture) {
+  const { ktxTexture, TranscodeTarget, OrientationX, OrientationY } = LIBKTX;
+  var formatString;
+
+  if (ktexture.needsTranscoding) {
+    var format;
+    if (astcSupported) {
+      formatString = 'ASTC';
+      format = TranscodeTarget.ASTC_4x4_RGBA;
+    } else if (dxtSupported) {
+      formatString = ktexture.numComponents == 4 ? 'BC3' : 'BC1';
+      format = TranscodeTarget.BC1_OR_3;
+    } else if (pvrtcSupported) {
+      formatString = 'PVRTC1';
+      format = TranscodeTarget.PVRTC1_4_RGBA;
+    } else if (etcSupported) {
+      formatString = 'ETC';
+      format = TranscodeTarget.ETC;
+    } else {
+      formatString = 'RGBA4444';
+      format = TranscodeTarget.RGBA4444;
+    }
+    if (ktexture.transcodeBasis(format, 0) != LIBKTX.ErrorCode.SUCCESS) {
+        alert('Texture transcode failed. See console for details.');
+        return undefined;
+    }
+//    elem('format').innerText = formatString;
+  }
+
+  const result = ktexture.glUpload();
+  const {target, error} = result;
+  const texture = result.texture;
+  if (error != gl.NO_ERROR) {
+    alert('WebGL error when uploading texture, code = ' + error.toString(16));
+    return undefined;
+  }
+  if (texture === undefined) {
+    alert('Texture upload failed. See console for details.');
+    return undefined;
+  }
+  if (target != gl.TEXTURE_2D) {
+    alert('Loaded texture is not a TEXTURE2D.');
+    return undefined;
+  }
+
+  gl.bindTexture(target, texture);
+
+  if (ktexture.numLevels > 1 || ktexture.generateMipmaps)
+     // Enable bilinear mipmapping.
+     gl.texParameteri(target,
+                      gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+  else
+    gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+  gl.bindTexture(target, null);
+
+  return {
+    texture: texture,
+    target: target,
+    orientation: ktexture.orientation,
+    format: formatString
+  }
+}
+
 function loadTexture(gl, url)
 {
   // Because images have to be downloaded over the internet
@@ -373,67 +442,22 @@ function loadTexture(gl, url)
     var ktxdata = new Uint8Array(this.response);
     ktexture = new ktxTexture(ktxdata);
 
-    if (ktexture.needsTranscoding) {
-      var formatString;
-      var format;
-      if (astcSupported) {
-        formatString = 'ASTC';
-        format = TranscodeTarget.ASTC_4x4_RGBA;
-      } else if (dxtSupported) {
-        formatString = ktexture.numComponents == 4 ? 'BC3' : 'BC1';
-        format = TranscodeTarget.BC1_OR_3;
-      } else if (pvrtcSupported) {
-        formatString = 'PVRTC1';
-        format = TranscodeTarget.PVRTC1_4_RGBA;
-      } else if (etcSupported) {
-        formatString = 'ETC';
-        format = TranscodeTarget.ETC;
-      } else {
-        formatString = 'RGBA4444';
-        format = TranscodeTarget.RGBA4444;
-      }
-      if (ktexture.transcodeBasis(format, 0) != LIBKTX.ErrorCode.SUCCESS) {
-          alert('Texture transcode failed. See console for details.');
-          return undefined;
-      }
-      elem('format').innerText = formatString;
-    }
+    const result = uploadTextureToGl(gl, ktexture);
+    const { target, orientation, format } = result;
 
-    const result = ktexture.glUpload();
-    const {target, error} = result;
     texture = result.texture;
-    if (error != gl.NO_ERROR) {
-      alert('WebGL error when uploading texture, code = ' + error.toString(16));
-      return undefined;
-    }
-    if (texture === undefined) {
-      alert('Texture upload failed. See console for details.');
-      return undefined;
-    }
-    if (target != gl.TEXTURE_2D) {
-      alert('Loaded texture is not a TEXTURE2D.');
-      return undefined;
-    }
-
     gl.bindTexture(target, texture);
     gl.deleteTexture(placeholder);
 
-    if (ktexture.numLevels > 1 || ktexture.generateMipmaps)
-       // Enable bilinear mipmapping.
-       gl.texParameteri(target,
-                        gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-    else
-      gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-
-    if (ktexture.orientation.x == OrientationX.LEFT) {
+    if (orientation.x == OrientationX.LEFT) {
         mat3.translate(uvMatrix, uvMatrix, [1.0, 0.0]);
         mat3.scale(uvMatrix, uvMatrix, [-1.0, 1.0]);
     }
-    if (ktexture.orientation.y == OrientationY.DOWN) {
+    if (orientation.y == OrientationY.DOWN) {
         mat3.translate(uvMatrix, uvMatrix, [0.0, 1.0]);
         mat3.scale(uvMatrix, uvMatrix, [1.0, -1.0]);
     }
+    elem('format').innerText = format;
     ktexture.delete();
   };
   //xhr.onprogress = runProgress;
