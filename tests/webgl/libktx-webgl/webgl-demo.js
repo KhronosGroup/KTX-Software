@@ -727,7 +727,7 @@ async function loadImageData (img, flip = false) {
 async function loadImage(src){
   return new Promise((resolve, reject) => {
     let img = new Image();
-    var div = document.getElementById('image_placeholder');
+    div = items[0].element;
     //img.onload = () => resolve(img);
     img.onload = () => { div.appendChild(img); resolve(img); }
     img.onerror = reject;
