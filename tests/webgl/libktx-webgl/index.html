@@ -26,6 +26,7 @@
         position: absolute;
         top: 0;
         left: 0;
+        background-color: white;
         z-index: -1;
       }
       #glcontent {
@@ -125,10 +126,8 @@
       const viewElem = createElem('div', outerElem, 'view');
       const labelElem = createElem('div', outerElem, 'label');
       labelElem.textContent = `Item ${i + 1}`;
-      //const bufferInfo = randArrayElement(bufferInfos);
       const color = [rand(1), rand(1), rand(1), 1];
       items.push({
-        //bufferInfo,
         color,
         element: viewElem,
       });

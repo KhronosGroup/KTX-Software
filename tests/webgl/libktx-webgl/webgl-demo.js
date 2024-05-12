@@ -142,8 +142,63 @@ function main() {
     const deltaTime = now - then;
     then = now;
 
-    drawScene(gl, programInfo, buffers, texture, deltaTime);
+    gl.enable(gl.CULL_FACE);
+    gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.SCISSOR_TEST);
 
+    for (const [index, value] of items.entries()) {
+      if (index == 0) continue;
+
+      const {element, color} = value;
+      const rect = element.getBoundingClientRect(); // Includes padding and border.
+      var style = window.getComputedStyle(element, null);
+
+      const borderLeft = parseFloat(style.getPropertyValue("border-left-width"));
+      const borderRight = parseFloat(style.getPropertyValue("border-right-width"));
+      const borderTop = parseFloat(style.getPropertyValue("border-top-width"));
+      const borderBottom = parseFloat(style.getPropertyValue("border-bottom-width"));
+      // TODO: Handle padding as well.
+
+      // CSS has 0 padding, 0 border so no need for the above style heroics.
+      const cvrect = gl.canvas.getBoundingClientRect();
+
+      const width  = rect.right - borderRight - rect.left - borderLeft;
+      const height = rect.bottom - borderBottom - rect.top - borderTop;
+      const left   = rect.left + borderLeft - cvrect.left;
+      const bottom = cvrect.bottom - rect.bottom + borderBottom;
+
+      if (bottom < 0 || bottom + height  > gl.canvas.clientHeight ||
+          left + width  < 0 || left > gl.canvas.clientWidth) {
+        continue;  // it's off screen
+      }
+
+      gl.viewport(left, bottom, width, height);
+      // To limit clearing to the viewport.
+      gl.scissor(left, bottom, width, height);
+      gl.clearColor(...color);
+
+      // Create a perspective projection matrix.
+      // Our field of view is 45 degrees, with a width/height
+      // ratio that matches the size of the current item, and
+      // we only want to see objects between 0.1 units and
+      // 100 units away from the camera.
+
+      const fieldOfView = 45 * Math.PI / 180;   // in radians
+      const aspect = width / height;
+      const zNear = 0.1;
+      const zFar = 100.0;
+      const projectionMatrix = mat4.create();
+
+      // note: glmatrix.js always has the first argument
+      // as the destination to receive the result.
+      mat4.perspective(projectionMatrix,
+                       fieldOfView,
+                       aspect,
+                       zNear,
+                       zFar);
+
+      drawScene(gl, projectionMatrix, programInfo, buffers, texture, deltaTime);
+    }
     requestAnimationFrame(render);
   }
   requestAnimationFrame(render);
@@ -473,36 +528,13 @@ function isPowerOf2(value) {
 //
 // Draw the scene.
 //
-function drawScene(gl, programInfo, buffers, texture, deltaTime) {
-  gl.clearColor(1.0, 1.0, 1.0, 1.0);  // Clear to black, fully opaque
+function drawScene(gl, projectionMatrix, programInfo, buffers, texture, deltaTime) {
   gl.clearDepth(1.0);                 // Clear everything
-  gl.enable(gl.DEPTH_TEST);           // Enable depth testing
   gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
 
   // Clear the canvas before we start drawing on it.
 
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-  // Create a perspective matrix, a special matrix that is
-  // used to simulate the distortion of perspective in a camera.
-  // Our field of view is 45 degrees, with a width/height
-  // ratio that matches the display size of the canvas
-  // and we only want to see objects between 0.1 units
-  // and 100 units away from the camera.
-
-  const fieldOfView = 45 * Math.PI / 180;   // in radians
-  const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
-  const zNear = 0.1;
-  const zFar = 100.0;
-  const projectionMatrix = mat4.create();
-
-  // note: glmatrix.js always has the first argument
-  // as the destination to receive the result.
-  mat4.perspective(projectionMatrix,
-                   fieldOfView,
-                   aspect,
-                   zNear,
-                   zFar);
 
   // Set the drawing position to the "identity" point, which is
   // the center of the scene.
