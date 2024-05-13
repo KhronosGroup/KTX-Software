@@ -12,8 +12,7 @@ made here are also licensed under CC0v1.
 
 var cubeRotation = 0.0;
 var gl;
-var texture;
-var texture_raw;
+var defaultTexture;
 
 var astcSupported = false;
 var etcSupported = false;
@@ -149,7 +148,7 @@ function main() {
     for (const [index, value] of items.entries()) {
       if (index == 0) continue;
 
-      const {element, color} = value;
+      const {element, color, target, texture} = value;
       const rect = element.getBoundingClientRect(); // Includes padding and border.
       var style = window.getComputedStyle(element, null);
 
@@ -176,6 +175,10 @@ function main() {
       // To limit clearing to the viewport.
       gl.scissor(left, bottom, width, height);
       gl.clearColor(...color);
+      // Tell WebGL we want to affect texture unit 0
+      gl.activeTexture(gl.TEXTURE0);
+      // Bind the texture to texture unit 0
+      gl.bindTexture(target, texture);
 
       // Create a perspective projection matrix.
       // Our field of view is 45 degrees, with a width/height
@@ -449,7 +452,7 @@ function uploadTextureToGl(gl, ktexture) {
     gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
   gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
-  gl.bindTexture(target, null);
+  //gl.bindTexture(target);
 
   return {
     texture: texture,
@@ -457,6 +460,37 @@ function uploadTextureToGl(gl, ktexture) {
     orientation: ktexture.orientation,
     format: formatString
   }
+}
+
+function createPlaceholderTexture(gl, color)
+{
+//  // Must create texture via Emscripten so it knows of it.
+//  var texName;
+//  LIBKTX.GL._glGenTextures(1, texName);
+//  texture = LIBKTX.GL.textures[texName];
+  // Since it doesn't seem possible to get the above to work
+  // use a placeholder texture object to hold the temporary
+  // image.
+  const placeholder = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, placeholder);
+
+  const level = 0;
+  const internalFormat = gl.RGBA;
+  const width = 1;
+  const height = 1;
+  const border = 0;
+  const srcFormat = gl.RGBA;
+  const srcType = gl.UNSIGNED_BYTE;
+  const pixel = new Uint8Array(color);
+  //const pixel = new Uint8Array([0, 0, 255, 255]);  // opaque blue
+
+  gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+                width, height, border, srcFormat, srcType,
+                pixel);
+  return {
+    target: gl.TEXTURE_2D,
+    texture: placeholder
+  };
 }
 
 function loadTexture(gl, url)
@@ -500,8 +534,10 @@ function loadTexture(gl, url)
     const result = uploadTextureToGl(gl, ktexture);
     const { target, orientation, format } = result;
 
-    texture = result.texture;
-    gl.bindTexture(target, texture);
+    defaultTexture = result.texture;
+    items[2].texture = result.texture;
+    items[2].target = target;
+    gl.bindTexture(target, defaultTexture);
     gl.deleteTexture(placeholder);
 
     if (orientation.x == OrientationX.LEFT) {
@@ -518,7 +554,11 @@ function loadTexture(gl, url)
   //xhr.onprogress = runProgress;
   //xhr.onloadstart = openProgress;
   xhr.send();
-  return placeholder;
+
+  return {
+    target: gl.TEXTURE_2D,
+    texture: placeholder
+  };
 }
 
 function isPowerOf2(value) {
@@ -645,14 +685,6 @@ function drawScene(gl, projectionMatrix, programInfo, buffers, texture, deltaTim
     false,
     uvMatrix);
 
-  // Specify the texture to map onto the faces.
-
-  // Tell WebGL we want to affect texture unit 0
-  gl.activeTexture(gl.TEXTURE0);
-
-  // Bind the texture to texture unit 0
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-
   // Tell the shader we bound the texture to texture unit 0
   gl.uniform1i(programInfo.uniformLocations.uSampler, 0);
 
@@ -718,12 +750,17 @@ function loadShader(gl, type, source) {
   return shader;
 }
 
-function encode(raw_data, width, height) {
+async function encode(raw_data, width, height) {
 //  LIBKTX().then(function(Module) {
     //const texture = new Module.ktxTexture(raw_data);
     const { ktxTexture, ktxBasisParams, SupercmpScheme, TranscodeTarget, OrientationX, OrientationY } = LIBKTX;
     const basisu_options = new ktxBasisParams();
-    texture_raw = new ktxTexture(raw_data, width, height, 4 /* components */, true/* srgb */);
+    const ktexture = new ktxTexture(raw_data, width, height, 4 /* components */, true/* srgb */);
+
+    const {target, texture} = uploadTextureToGl(gl, ktexture);
+    gl.deleteTexture(items[1].texture);
+    items[1].target = target;
+    items[1].texture = texture;
 
     basisu_options.uastc = false;
     basisu_options.noSSE = true;
@@ -731,9 +768,18 @@ function encode(raw_data, width, height) {
     basisu_options.qualityLevel = 200;
     basisu_options.compressionLevel = 2;
 
-    const result = texture_raw.compressBasisU(basisu_options, SupercmpScheme.BASIS_LZ, 0 /*for zlibv or zstd*/);
+    const result = ktexture.compressBasisU(basisu_options, SupercmpScheme.BASIS_LZ, 0 /*for zlibv or zstd*/);
+    // result is a KTX file in memory with the compressed image.
+    // Not needed when calling upload but presence indiciates
+    // compression was successful.
+    if (result) {
+        const {target, texture} = uploadTextureToGl(gl, ktexture);
+        gl.deleteTexture(items[2].texture);
+        items[2].target = target;
+        items[2].texture = texture;
+    }
 
-    console.log(result);
+    console.log(texture_cmp);
 
 // });
   return;

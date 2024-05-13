@@ -48,13 +48,18 @@
       .label {
         margin-top: 0.5em;
       }
+      /*
+       * The size of an image is changed when it is added to the div
+       * styled by this. So the size needs to be a multiple of 4 for
+       * compatibility with various compressed texture formats in WebGL.
+       */
       .view {
-        width: 250px;
-        height: 250px;
+        width: 256px;
+        height: 256px;
         border: 1px solid black;
       }
       /* An img inside a .view should fill the view. */
-      .view img {
+     .view img {
         width: 100%;
         height: 100%;
       }
@@ -93,7 +98,7 @@
                   LIBKTX.GL.createContext(document.getElementById("glcanvas"),
                                           { majorVersion: 2.0 })
                   );
-      texture = loadTexture(gl, 'ktx_app_basis.ktx2');
+      //defaultTexture = loadTexture(gl, 'ktx_app_basis.ktx2');
     });
 
     function createElem(type, parent, className) {
@@ -126,9 +131,23 @@
       const viewElem = createElem('div', outerElem, 'view');
       const labelElem = createElem('div', outerElem, 'label');
       labelElem.textContent = `Item ${i + 1}`;
-      const color = [rand(1), rand(1), rand(1), 1];
+      const bgColor = [rand(1), rand(1), rand(1), 1];
+      var placeholder = {};
+      switch (i) {
+        case 0:
+          placeholder.target = null;
+          placeholder.texture = null;
+          break;
+        case 1:
+        case 2:
+          const texColor = [rand(255), rand(255), rand(255), 255];
+          placeholder = createPlaceholderTexture(gl, texColor);
+          break;
+      }
       items.push({
-        color,
+        color: bgColor,
+        target: placeholder.target,
+        texture: placeholder.texture,
         element: viewElem,
       });
     }
