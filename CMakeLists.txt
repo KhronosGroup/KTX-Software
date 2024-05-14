@@ -101,12 +101,12 @@ endif()
 if(BASISU_SUPPORT_OPENCL AND WIN32 AND NOT OpenCL_FOUND)
     # To avoid fiddly setting up of OpenCL on Windows CI VMs, use copy in repo.
     set(OpenCL_INCLUDE_DIR
-        "${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu/opencl"
+        "${CMAKE_CURRENT_SOURCE_DIR}/external/basisu/opencl"
         # FORCE to override *-NOTFOUND set by the failed find.
         CACHE PATH "" FORCE
     )
     set(OpenCL_LIBRARY
-        "${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu/opencl/lib/OpenCL64.lib"
+        "${CMAKE_CURRENT_SOURCE_DIR}/external/basisu/opencl/lib/OpenCL64.lib"
         CACHE FILEPATH "" FORCE
     )
     set(OpenCL_INCLUDE_DIRS ${OpenCL_INCLUDE_DIR})
@@ -356,15 +356,15 @@ set(KTX_MAIN_SRC
     lib/basis_sgd.h
     lib/basis_transcode.cpp
     lib/miniz_wrapper.cpp
-    lib/basisu/transcoder/basisu_containers.h
-    lib/basisu/transcoder/basisu_containers_impl.h
-    lib/basisu/transcoder/basisu_file_headers.h
-    lib/basisu/transcoder/basisu_transcoder_internal.h
-    lib/basisu/transcoder/basisu_transcoder_uastc.h
-    lib/basisu/transcoder/basisu_transcoder.cpp
-    lib/basisu/transcoder/basisu_transcoder.h
-    lib/basisu/transcoder/basisu.h
-    lib/basisu/zstd/zstd.c
+    external/basisu/transcoder/basisu_containers.h
+    external/basisu/transcoder/basisu_containers_impl.h
+    external/basisu/transcoder/basisu_file_headers.h
+    external/basisu/transcoder/basisu_transcoder_internal.h
+    external/basisu/transcoder/basisu_transcoder_uastc.h
+    external/basisu/transcoder/basisu_transcoder.cpp
+    external/basisu/transcoder/basisu_transcoder.h
+    external/basisu/transcoder/basisu.h
+    external/basisu/zstd/zstd.c
     lib/checkheader.c
     lib/dfdutils/createdfd.c
     lib/dfdutils/colourspaces.c
@@ -411,43 +411,43 @@ if (KTX_FEATURE_ETC_UNPACK)
 endif()
 
 set(BASISU_ENCODER_CXX_SRC
-    lib/basisu/encoder/basisu_backend.cpp
-    lib/basisu/encoder/basisu_backend.h
-    lib/basisu/encoder/basisu_basis_file.cpp
-    lib/basisu/encoder/basisu_basis_file.h
-    lib/basisu/encoder/basisu_bc7enc.cpp
-    lib/basisu/encoder/basisu_bc7enc.h
-    lib/basisu/encoder/basisu_comp.cpp
-    lib/basisu/encoder/basisu_comp.h
-    lib/basisu/encoder/basisu_enc.cpp
-    lib/basisu/encoder/basisu_enc.h
-    lib/basisu/encoder/basisu_etc.cpp
-    lib/basisu/encoder/basisu_etc.h
-    lib/basisu/encoder/basisu_frontend.cpp
-    lib/basisu/encoder/basisu_frontend.h
-    lib/basisu/encoder/basisu_gpu_texture.cpp
-    lib/basisu/encoder/basisu_gpu_texture.h
-    lib/basisu/encoder/basisu_kernels_declares.h
-    lib/basisu/encoder/basisu_kernels_imp.h
-    lib/basisu/encoder/basisu_kernels_sse.cpp
-    lib/basisu/encoder/basisu_miniz.h
-    lib/basisu/encoder/basisu_opencl.cpp
-    lib/basisu/encoder/basisu_opencl.h
-    lib/basisu/encoder/basisu_pvrtc1_4.cpp
-    lib/basisu/encoder/basisu_pvrtc1_4.h
-    lib/basisu/encoder/basisu_resample_filters.cpp
-    lib/basisu/encoder/basisu_resampler_filters.h
-    lib/basisu/encoder/basisu_resampler.cpp
-    lib/basisu/encoder/basisu_resampler.h
-    lib/basisu/encoder/basisu_ssim.cpp
-    lib/basisu/encoder/basisu_ssim.h
-    lib/basisu/encoder/basisu_uastc_enc.cpp
-    lib/basisu/encoder/basisu_uastc_enc.h
-    lib/basisu/encoder/cppspmd_flow.h
-    lib/basisu/encoder/cppspmd_math.h
-    lib/basisu/encoder/cppspmd_math_declares.h
-    lib/basisu/encoder/cppspmd_sse.h
-    lib/basisu/encoder/cppspmd_type_aliases.h
+    external/basisu/encoder/basisu_backend.cpp
+    external/basisu/encoder/basisu_backend.h
+    external/basisu/encoder/basisu_basis_file.cpp
+    external/basisu/encoder/basisu_basis_file.h
+    external/basisu/encoder/basisu_bc7enc.cpp
+    external/basisu/encoder/basisu_bc7enc.h
+    external/basisu/encoder/basisu_comp.cpp
+    external/basisu/encoder/basisu_comp.h
+    external/basisu/encoder/basisu_enc.cpp
+    external/basisu/encoder/basisu_enc.h
+    external/basisu/encoder/basisu_etc.cpp
+    external/basisu/encoder/basisu_etc.h
+    external/basisu/encoder/basisu_frontend.cpp
+    external/basisu/encoder/basisu_frontend.h
+    external/basisu/encoder/basisu_gpu_texture.cpp
+    external/basisu/encoder/basisu_gpu_texture.h
+    external/basisu/encoder/basisu_kernels_declares.h
+    external/basisu/encoder/basisu_kernels_imp.h
+    external/basisu/encoder/basisu_kernels_sse.cpp
+    external/basisu/encoder/basisu_miniz.h
+    external/basisu/encoder/basisu_opencl.cpp
+    external/basisu/encoder/basisu_opencl.h
+    external/basisu/encoder/basisu_pvrtc1_4.cpp
+    external/basisu/encoder/basisu_pvrtc1_4.h
+    external/basisu/encoder/basisu_resample_filters.cpp
+    external/basisu/encoder/basisu_resampler_filters.h
+    external/basisu/encoder/basisu_resampler.cpp
+    external/basisu/encoder/basisu_resampler.h
+    external/basisu/encoder/basisu_ssim.cpp
+    external/basisu/encoder/basisu_ssim.h
+    external/basisu/encoder/basisu_uastc_enc.cpp
+    external/basisu/encoder/basisu_uastc_enc.h
+    external/basisu/encoder/cppspmd_flow.h
+    external/basisu/encoder/cppspmd_math.h
+    external/basisu/encoder/cppspmd_math_declares.h
+    external/basisu/encoder/cppspmd_sse.h
+    external/basisu/encoder/cppspmd_type_aliases.h
     )
 
 if(KTX_FEATURE_GL_UPLOAD)
@@ -473,7 +473,7 @@ elseif(APPLE_MAC_OS OR LINUX)
 endif()
 
 set(KTX_BASISU_INCLUDE_DIRS
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu/transcoder>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/external/basisu/transcoder>
 )
 
 # Main library
@@ -562,10 +562,10 @@ macro(common_libktx_settings target enable_write library_type)
         $<INSTALL_INTERFACE:include>
     PRIVATE
         ${KTX_BASISU_INCLUDE_DIRS}
-        $<INSTALL_INTERFACE:lib/basisu/transcoder>
+        external
 
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu/zstd>
-        $<INSTALL_INTERFACE:lib/basisu/zstd>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/external/basisu/zstd>
+        $<INSTALL_INTERFACE:external/basisu/zstd>
 
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/utils>
         $<INSTALL_INTERFACE:utils>
@@ -735,8 +735,8 @@ macro(common_libktx_settings target enable_write library_type)
         target_include_directories(
             ${target}
         PRIVATE
-            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/basisu>
-            $<INSTALL_INTERFACE:lib/basisu>
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/external/basisu>
+            $<INSTALL_INTERFACE:external/basisu>
             $<$<BOOL:${BASISU_SUPPORT_OPENCL}>:${OpenCL_INCLUDE_DIRS}>
         )
         target_compile_definitions(
@@ -817,7 +817,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-variable;-Wno-class-memaccess;-Wno-misleading-indentation;-Wno-extra;-Wno-deprecated-copy;-Wno-parentheses;-Wno-strict-aliasing"
     )
     set_source_files_properties(
-        lib/basisu/transcoder/basisu_transcoder.cpp
+        external/basisu/transcoder/basisu_transcoder.cpp
         PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable;-Wno-class-memaccess;-Wno-maybe-uninitialized"
     )
     if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "11")
@@ -827,11 +827,11 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         # the facts that we have never seen a crash and version 12 no
         # longer raises the warnings.
         get_source_file_property(cur_options
-            lib/basisu/encoder/basisu_comp.cpp
+            external/basisu/encoder/basisu_comp.cpp
             COMPILE_OPTIONS
         )
         set_source_files_properties(
-            lib/basisu/encoder/basisu_comp.cpp
+            external/basisu/encoder/basisu_comp.cpp
             PROPERTIES COMPILE_OPTIONS "${cur_options};-Wno-stringop-overflow"
         )
         endif()
@@ -842,7 +842,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         # line 326, where the error is raised, to be > the array length.
         # Also we have never seen any crashes.
         set_source_files_properties(
-            lib/basisu/encoder/basisu_uastc_enc.cpp
+            external/basisu/encoder/basisu_uastc_enc.cpp
             PROPERTIES COMPILE_OPTIONS "-Wno-stringop-overflow"
         )
     endif()
@@ -867,11 +867,11 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     endif()
     # BEWARE: set_source_files_properties is not additive; it replaces.
     if (${clang_version} VERSION_GREATER_EQUAL "12.0.0")
-        set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
+        set_source_files_properties( external/basisu/encoder/basisu_kernels_sse.cpp
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter;-Wno-deprecated-copy;-Wno-uninitialized-const-reference"
         )
     else()
-        set_source_files_properties( lib/basisu/encoder/basisu_kernels_sse.cpp
+        set_source_files_properties( external/basisu/encoder/basisu_kernels_sse.cpp
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter"
         )
     endif()
@@ -883,11 +883,11 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
             PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-variable;-Wno-unused-parameter;-Wno-deprecated-copy-with-user-provided-copy"
         )
         set_source_files_properties(
-            lib/basisu/transcoder/basisu_transcoder.cpp
+            external/basisu/transcoder/basisu_transcoder.cpp
             PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable"
         )
         set_source_files_properties(
-            lib/basisu/zstd/zstd.c
+            external/basisu/zstd/zstd.c
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-function"
         )
     endif()
@@ -900,10 +900,10 @@ endif()
 # target to retrieve these from the ktx target are not available until
 # v18 and we still need to work with v16 in the Emscripten Docker image.
 get_source_file_property(transcoder_options
-    lib/basisu/transcoder/basisu_transcoder.cpp
+    external/basisu/transcoder/basisu_transcoder.cpp
     COMPILE_OPTIONS
 )
-get_source_file_property(zstd_options lib/basisu/zstd/zstd.c COMPILE_OPTIONS)
+get_source_file_property(zstd_options external/basisu/zstd/zstd.c COMPILE_OPTIONS)
 
 if(EMSCRIPTEN)
     set(
@@ -948,7 +948,7 @@ if(EMSCRIPTEN)
     target_include_directories( msc_basis_transcoder_js
         PRIVATE
         lib
-        lib/basisu/transcoder
+        external/basisu/transcoder
     )
 
     # Re-use ktx's compile options
