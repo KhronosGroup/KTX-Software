@@ -1103,7 +1103,7 @@ if((KTX_FEATURE_TOOLS OR KTX_FEATURE_TESTS) AND NOT TARGET fmt::fmt)
     add_subdirectory(other_projects/fmt)
 endif()
 if(KTX_FEATURE_TOOLS AND NOT TARGET cxxopts::cxxopts)
-    add_subdirectory(other_projects/cxxopts)
+    add_subdirectory(external/cxxopts)
 endif()
 
 # Tools
