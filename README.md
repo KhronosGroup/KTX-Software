@@ -122,4 +122,4 @@ these files.
 
 ### Useful Tools
 
-For finding strings within the KTX-Software source use `scripts/gk`. Type `scripts/gk -h` for help. `gk` avoids looking in any build directories, `.git`, `other_projects` or `tests/cts`.
+For finding strings within the KTX-Software source use `scripts/gk`. Type `scripts/gk -h` for help. `gk` avoids looking in any build directories, `.git`, `external` or `tests/cts`.
