@@ -79,13 +79,14 @@ Display help information about the ktx tool.
     @e command specifies which command's man page will be displayed.
     If @e command is s missing the main ktx tool man page will be displayed.
     Possible choices are: <br />
-    -        @ref ktx_create "create" <br />
-    -        @ref ktx_extract "extract" <br />
-    -        @ref ktx_encode "encode" <br />
-    -        @ref ktx_transcode "transcode" <br />
-    -        @ref ktx_info "info" <br />
-    -        @ref ktx_validate "validate" <br />
     -        @ref ktx_compare "compare" <br />
+    -        @ref ktx_create "create" <br />
+    -        @ref ktx_create "deflate" <br />
+    -        @ref ktx_encode "encode" <br />
+    -        @ref ktx_extract "extract" <br />
+    -        @ref ktx_info "info" <br />
+    -        @ref ktx_transcode "transcode" <br />
+    -        @ref ktx_validate "validate" <br />
     -        @ref ktx_help "help"
 
 @section ktx\_help\_options OPTIONS
@@ -184,7 +185,7 @@ void CommandHelp::executeHelp() {
                 options.command ? "_" : "",
                 options.command.value_or(""));
     if (std::filesystem::exists(manFile)) {
-        // We have relative access to the man file, prioritze opening it
+        // We have relative access to the man file, prioritize opening it
         // that way to support custom install locations
         const auto systemCommand = fmt::format("man \"{}\"", manFile);
         const auto result = std::system(systemCommand.c_str());
