@@ -16,10 +16,12 @@
 # /lib/
 /lib/astc-encoder/.gitmodules
 /lib/astc-encoder/Source/GoogleTest
-/lib/basisu/bin_osx
-/lib/basisu/bin
-/lib/basisu/build
 /lib/src
+
+# /external/
+/external/basisu/bin_osx
+/external/basisu/bin
+/external/basisu/build
 
 # /testimages/
 /testimages/*.png
