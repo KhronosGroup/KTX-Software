@@ -144,6 +144,10 @@ function main() {
     gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.SCISSOR_TEST);
+    // In case the source image has translucent parts ...
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
 
     for (const [index, value] of items.entries()) {
       if (index == 0) continue;
@@ -770,7 +774,7 @@ async function encode(raw_data, width, height) {
 
     const result = ktexture.compressBasisU(basisu_options, SupercmpScheme.BASIS_LZ, 0 /*for zlibv or zstd*/);
     // result is a KTX file in memory with the compressed image.
-    // Not needed when calling upload but presence indiciates
+    // Not needed when calling upload but presence indicates
     // compression was successful.
     if (result) {
         const {target, texture} = uploadTextureToGl(gl, ktexture);
@@ -779,7 +783,7 @@ async function encode(raw_data, width, height) {
         items[2].texture = texture;
     }
 
-    console.log(texture_cmp);
+    console.log(result);
 
 // });
   return;
