@@ -16,7 +16,9 @@ add_executable(ktxtools
         command_transcode.cpp
         command_validate.cpp
         deflate_utils.h
+        encode_utils_astc.h
         encode_utils_basis.h
+        encode_utils_common.h
         format_descriptor.h
         formats.h
         fragment_uri.h

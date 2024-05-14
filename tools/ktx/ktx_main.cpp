@@ -72,6 +72,7 @@ Unified CLI frontend for the KTX-Software library.
         </dd>
     </dl>
 
+@section ktx\_main\_options OPTIONS
     The following options are also available without a command:
     @snippet{doc} ktx/command.h command options_generic
 

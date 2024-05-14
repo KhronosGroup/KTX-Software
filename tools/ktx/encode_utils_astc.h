@@ -19,9 +19,7 @@ namespace ktx {
     <dt>
         ASTC:
     </dt>
-    <dd>
-        Encode the image data with ASTC compression.
-    </dd>
+    <dd></dd>
 
     <dl>
         <dt>\--astc-quality &lt;level&gt;</dt>
@@ -38,7 +36,7 @@ namespace ktx {
                <tr><td>medium     </td> <td>(equivalent to quality =  60) </td></tr>
                <tr><td>thorough   </td> <td>(equivalent to quality =  98) </td></tr>
                <tr><td>exhaustive </td> <td>(equivalent to quality = 100) </td></tr>
-            /table>
+          </table>
         </dd>
         <dt>\--astc-perceptual</dt>
         <dd>The codec should optimize for perceptual error, instead of
@@ -47,9 +45,6 @@ namespace ktx {
             methods are currently only available for normal maps and RGB
             color data.</dd>
     </dl>
-
-    @snippet{doc} ktx/encode_utils_common.h command options_encode_common
-
 </dl>
 //! [command options_encode_astc]
 */

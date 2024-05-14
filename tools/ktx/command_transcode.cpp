@@ -47,6 +47,7 @@ Transcode a KTX2 file.
     If the input file is invalid the first encountered validation error is displayed
     to the stderr and the command exits with the relevant non-zero status code.
 
+@section ktx\_transcode\_options OPTIONS
     The following options are available:
     <dl>
         <dt>\--target &lt;target&gt;</dt>

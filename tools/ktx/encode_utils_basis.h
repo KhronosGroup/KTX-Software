@@ -22,19 +22,35 @@ enum class BasisCodec {
 };
 
 /**
-//! [command options_encode_basis]
+//! [command options_basis_encoders]
 <dl>
     <dt>
         basis-lz:
     </dt>
     <dd>
-        Supercompress the image data with ETC1S / BasisLZ.
+        Supercompress the image data with transcodable ETC1S / BasisLZ.
         RED images will become RGB with RED in each component (RRR). RG
         images will have R in the RGB part and G in the alpha part of
         the compressed texture (RRRG). When set, the following BasisLZ-related
         options become valid, otherwise they are ignored.
     </dd>
+    <dt>
+        uastc:
+    </dt>
+    <dd>
+        Create a texture in high-quality transcodable UASTC format.
+    </dd>
+</dl>
+//! [command options_basis_encoders]
+*/
 
+/**
+//! [command options_encode_basis]
+<dl>
+    <dt>
+        basis-lz:
+    </dt>
+    <dd></dd>
     <dl>
         <dt>\--clevel &lt;level&gt;</dt>
              <dd>ETC1S / BasisLZ compression level, an encoding speed vs.
@@ -89,9 +105,7 @@ enum class BasisCodec {
     <dt>
         uastc:
     </dt>
-    <dd>
-        Create a texture in high-quality transcodable UASTC format.
-    </dd>
+    <dd></dd>
 
     <dl>
         <dt>\--uastc-quality &lt;level&gt;</dt>
@@ -143,9 +157,6 @@ enum class BasisCodec {
         <dd>Disable RDO multithreading (slightly higher compression,
             deterministic).</dd>
     </dl>
-
-    @snippet{doc} ktx/encode_utils_common.h command options_encode_common
-
 </dl>
 //! [command options_encode_basis]
 */

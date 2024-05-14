@@ -16,13 +16,11 @@ namespace ktx {
 
 /**
 //! [command options_encode_common]
+  <dl>
     <dt>
-        common:
+      common:
     </dt>
-    <dd>
-        Common options.
-    </dd>
-
+    <dd></dd>
     <dl>
         <dt>\--normal-mode</dt>
         <dd>Only valid for linear textures with two or more components.
@@ -51,9 +49,10 @@ namespace ktx {
             returned is 0.</dd>
         <dt>\--no-sse</dt>
         <dd>Forbid use of the SSE instruction set. Ignored if CPU does
-            not support SSE. SSE can only be disabled on the basis-lz and
-            uastc compressors. Ignored for other compressors.</dd>
+            not support SSE. SSE can only be disabled for the basis-lz
+            and uastc encoders. Ignored for other encoders..</dd>
     </dl>
+  </dl>
 //! [command options_encode_common]
 */
 struct OptionsEncodeCommon {
