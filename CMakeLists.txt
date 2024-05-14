@@ -300,7 +300,7 @@ else()
 endif()
 
 # To improve output determinism enable precise floating point operations globally
-# This code was based on lib/astc-encoder/Source/cmake_core.cmake
+# This code was based on external/astc-encoder/Source/cmake_core.cmake
 
 # For Visual Studio prior to 2022 (compiler < 19.30) /fp:strict
 # For Visual Studio 2022 (compiler >= 19.30) /fp:precise
@@ -1074,7 +1074,7 @@ endif()
 
 # astcenc
 set(ASTCENC_CLI OFF) # Only build as library not the CLI astcencoder
-add_subdirectory(lib/astc-encoder)
+add_subdirectory(external/astc-encoder)
 set_property(TARGET ${ASTCENC_LIB_TARGET} PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 if(KTX_FEATURE_STATIC_LIBRARY AND APPLE)

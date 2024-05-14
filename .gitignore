@@ -14,11 +14,11 @@
 /include/imdebug.h
 
 # /lib/
-/lib/astc-encoder/.gitmodules
-/lib/astc-encoder/Source/GoogleTest
 /lib/src
 
 # /external/
+/external/astc-encoder/.gitmodules
+/external/astc-encoder/Source/GoogleTest
 /external/basisu/bin_osx
 /external/basisu/bin
 /external/basisu/build
