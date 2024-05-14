@@ -366,16 +366,16 @@ set(KTX_MAIN_SRC
     external/basisu/transcoder/basisu.h
     external/basisu/zstd/zstd.c
     lib/checkheader.c
-    lib/dfdutils/createdfd.c
-    lib/dfdutils/colourspaces.c
-    lib/dfdutils/dfd.h
-    lib/dfdutils/interpretdfd.c
-    lib/dfdutils/printdfd.c
-    lib/dfdutils/queries.c
-    lib/dfdutils/vk2dfd.c
-    lib/dfdutils/vk2dfd.inl
-    lib/dfdutils/vulkan/vk_platform.h
-    lib/dfdutils/vulkan/vulkan_core.h
+    external/dfdutils/createdfd.c
+    external/dfdutils/colourspaces.c
+    external/dfdutils/dfd.h
+    external/dfdutils/interpretdfd.c
+    external/dfdutils/printdfd.c
+    external/dfdutils/queries.c
+    external/dfdutils/vk2dfd.c
+    external/dfdutils/vk2dfd.inl
+    external/dfdutils/vulkan/vk_platform.h
+    external/dfdutils/vulkan/vulkan_core.h
     lib/etcunpack.cxx
     lib/filestream.c
     lib/filestream.h
@@ -706,8 +706,8 @@ macro(common_libktx_settings target enable_write library_type)
         target_include_directories(
             ${target}
         PRIVATE
-            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/dfdutils>
-            $<INSTALL_INTERFACE:lib/dfdutils>
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/external/dfdutils>
+            $<INSTALL_INTERFACE:external/dfdutils>
         )
 
         get_target_property( KTX_PUBLIC_HEADER ${target} PUBLIC_HEADER )

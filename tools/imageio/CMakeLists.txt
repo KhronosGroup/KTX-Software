@@ -58,7 +58,7 @@ PUBLIC
 PRIVATE
     "${PROJECT_SOURCE_DIR}/external/astc-encoder/Source"
     "${PROJECT_SOURCE_DIR}/external/basisu"
-    ${PROJECT_SOURCE_DIR}/lib/dfdutils
+    "${PROJECT_SOURCE_DIR}/external/dfdutils"
 )
 
 target_compile_definitions(
