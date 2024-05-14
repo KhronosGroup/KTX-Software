@@ -19,8 +19,6 @@ var etcSupported = false;
 var dxtSupported = false;
 var pvrtcSupported = false;
 
-const uvMatrix = mat3.create();
-
 main();
 
 //
@@ -152,7 +150,7 @@ function main() {
     for (const [index, value] of items.entries()) {
       if (index == 0) continue;
 
-      const {element, color, target, texture} = value;
+      const {element, color, texture} = value;
       const rect = element.getBoundingClientRect(); // Includes padding and border.
       var style = window.getComputedStyle(element, null);
 
@@ -182,7 +180,7 @@ function main() {
       // Tell WebGL we want to affect texture unit 0
       gl.activeTexture(gl.TEXTURE0);
       // Bind the texture to texture unit 0
-      gl.bindTexture(target, texture);
+      gl.bindTexture(texture.target, texture.texture);
 
       // Create a perspective projection matrix.
       // Our field of view is 45 degrees, with a width/height
@@ -204,7 +202,7 @@ function main() {
                        zNear,
                        zFar);
 
-      drawScene(gl, projectionMatrix, programInfo, buffers, texture, deltaTime);
+      drawScene(gl, projectionMatrix, texture.uvMatrix, programInfo, buffers, texture, deltaTime);
     }
     requestAnimationFrame(render);
   }
@@ -461,7 +459,6 @@ function uploadTextureToGl(gl, ktexture) {
   return {
     texture: texture,
     target: target,
-    orientation: ktexture.orientation,
     format: formatString
   }
 }
@@ -493,7 +490,8 @@ function createPlaceholderTexture(gl, color)
                 pixel);
   return {
     target: gl.TEXTURE_2D,
-    texture: placeholder
+    texture: placeholder,
+    uvMatrix: mat3.create()
   };
 }
 
@@ -536,7 +534,7 @@ function loadTexture(gl, url)
     ktexture = new ktxTexture(ktxdata);
 
     const result = uploadTextureToGl(gl, ktexture);
-    const { target, orientation, format } = result;
+    const { target, format } = result;
 
     defaultTexture = result.texture;
     items[2].texture = result.texture;
@@ -544,11 +542,11 @@ function loadTexture(gl, url)
     gl.bindTexture(target, defaultTexture);
     gl.deleteTexture(placeholder);
 
-    if (orientation.x == OrientationX.LEFT) {
+    if (ktexture.orientation.x == OrientationX.LEFT) {
         mat3.translate(uvMatrix, uvMatrix, [1.0, 0.0]);
         mat3.scale(uvMatrix, uvMatrix, [-1.0, 1.0]);
     }
-    if (orientation.y == OrientationY.DOWN) {
+    if (ktexture.orientation.y == OrientationY.DOWN) {
         mat3.translate(uvMatrix, uvMatrix, [0.0, 1.0]);
         mat3.scale(uvMatrix, uvMatrix, [1.0, -1.0]);
     }
@@ -572,7 +570,7 @@ function isPowerOf2(value) {
 //
 // Draw the scene.
 //
-function drawScene(gl, projectionMatrix, programInfo, buffers, texture, deltaTime) {
+function drawScene(gl, projectionMatrix, uvMatrix, programInfo, buffers, texture, deltaTime) {
   gl.clearDepth(1.0);                 // Clear everything
   gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
 
@@ -754,6 +752,24 @@ function loadShader(gl, type, source) {
   return shader;
 }
 
+async function updateItem(item, ktexture, texture, target) {
+  const { ktxTexture, ktxBasisParams, SupercmpScheme, TranscodeTarget, OrientationX, OrientationY } = LIBKTX;
+
+  gl.deleteTexture(item.texture.texture);
+  item.texture.target = target;
+  item.texture.texture = texture;
+  uvMatrix = mat3.create();
+  if (ktexture.orientation.x == OrientationX.LEFT) {
+      mat3.translate(uvMatrix, uvMatrix, [1.0, 0.0]);
+      mat3.scale(uvMatrix, uvMatrix, [-1.0, 1.0]);
+  }
+  if (ktexture.orientation.y == OrientationY.DOWN) {
+      mat3.translate(uvMatrix, uvMatrix, [0.0, 1.0]);
+      mat3.scale(uvMatrix, uvMatrix, [1.0, -1.0]);
+  }
+  item.texture.uvMatrix = uvMatrix;
+}
+
 async function encode(raw_data, width, height) {
 //  LIBKTX().then(function(Module) {
     //const texture = new Module.ktxTexture(raw_data);
@@ -762,9 +778,7 @@ async function encode(raw_data, width, height) {
     const ktexture = new ktxTexture(raw_data, width, height, 4 /* components */, true/* srgb */);
 
     const {target, texture} = uploadTextureToGl(gl, ktexture);
-    gl.deleteTexture(items[1].texture);
-    items[1].target = target;
-    items[1].texture = texture;
+    updateItem(items[1], ktexture, texture, target);
 
     basisu_options.uastc = false;
     basisu_options.noSSE = true;
@@ -777,11 +791,11 @@ async function encode(raw_data, width, height) {
     // Not needed when calling upload but presence indicates
     // compression was successful.
     if (result) {
-        const {target, texture} = uploadTextureToGl(gl, ktexture);
-        gl.deleteTexture(items[2].texture);
-        items[2].target = target;
-        items[2].texture = texture;
+        const {target, texture, format} = uploadTextureToGl(gl, ktexture);
+        updateItem(items[2], ktexture, texture, target);
+        elem('format').innerText = format;
     }
+    ktexture.delete();
 
     console.log(result);
 

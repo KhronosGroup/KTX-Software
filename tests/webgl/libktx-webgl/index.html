@@ -137,6 +137,7 @@
         case 0:
           placeholder.target = null;
           placeholder.texture = null;
+          placeholder.uvMatrix = null;
           break;
         case 1:
         case 2:
@@ -146,8 +147,7 @@
       }
       items.push({
         color: bgColor,
-        target: placeholder.target,
-        texture: placeholder.texture,
+        texture: placeholder,
         element: viewElem,
       });
     }
