@@ -807,16 +807,16 @@ async function encode(raw_data, width, height) {
 async function loadImageData (img, flip = false) {
   const canvas    = document.createElement("canvas");
   const context   = canvas.getContext("2d");
-  canvas.height = img.height;
-  canvas.width  = img.width;
+  canvas.height = img.naturalHeight;
+  canvas.width  = img.naturalWidth;
 
   if (flip) {
-    context.translate(0, img.height);
+    context.translate(0, img.naturalHeight);
     context.scale(1, -1);
   }
-  context.drawImage(img, 0, 0, img.width, img.height);
+  context.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight);
 
-  const rgba = context.getImageData(0, 0, img.width, img.height).data;
+  const rgba = context.getImageData(0, 0, img.naturalWidth, img.naturalHeight).data;
   return rgba;
 };
 
@@ -837,6 +837,6 @@ async function decodeFile(filename) {
   console.log(img);
   console.log(img_data);
 
-  encode(img_data, img.width, img.height);
+  encode(img_data, img.naturalWidth, img.naturalHeight);
 }
 
