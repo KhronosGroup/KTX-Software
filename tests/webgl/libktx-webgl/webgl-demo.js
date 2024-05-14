@@ -12,7 +12,6 @@ made here are also licensed under CC0v1.
 
 var cubeRotation = 0.0;
 var gl;
-var defaultTexture;
 
 var astcSupported = false;
 var etcSupported = false;
@@ -495,6 +494,8 @@ function createPlaceholderTexture(gl, color)
   };
 }
 
+// Not currently used. Kept in case loading an external texture
+// is needed again.
 function loadTexture(gl, url)
 {
   // Because images have to be downloaded over the internet
@@ -510,20 +511,7 @@ function loadTexture(gl, url)
   // Since it doesn't seem possible to get the above to work
   // use a placeholder texture object to hold the temporary
   // image.
-  const placeholder = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, placeholder);
-
-  const level = 0;
-  const internalFormat = gl.RGBA;
-  const width = 1;
-  const height = 1;
-  const border = 0;
-  const srcFormat = gl.RGBA;
-  const srcType = gl.UNSIGNED_BYTE;
-  const pixel = new Uint8Array([0, 0, 255, 255]);  // opaque blue
-  gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
-                width, height, border, srcFormat, srcType,
-                pixel);
+  const placeholder = createPlaceholderTexture(gl, [0, 0, 255, 255]);
 
   var xhr = new XMLHttpRequest();
   xhr.open('GET', url);
@@ -534,22 +522,10 @@ function loadTexture(gl, url)
     ktexture = new ktxTexture(ktxdata);
 
     const result = uploadTextureToGl(gl, ktexture);
-    const { target, format } = result;
+    const { target, texture, format } = result;
 
-    defaultTexture = result.texture;
-    items[2].texture = result.texture;
-    items[2].target = target;
-    gl.bindTexture(target, defaultTexture);
-    gl.deleteTexture(placeholder);
+    updateItem(items[2], ktexture, texture, target);
 
-    if (ktexture.orientation.x == OrientationX.LEFT) {
-        mat3.translate(uvMatrix, uvMatrix, [1.0, 0.0]);
-        mat3.scale(uvMatrix, uvMatrix, [-1.0, 1.0]);
-    }
-    if (ktexture.orientation.y == OrientationY.DOWN) {
-        mat3.translate(uvMatrix, uvMatrix, [0.0, 1.0]);
-        mat3.scale(uvMatrix, uvMatrix, [1.0, -1.0]);
-    }
     elem('format').innerText = format;
     ktexture.delete();
   };
@@ -557,10 +533,7 @@ function loadTexture(gl, url)
   //xhr.onloadstart = openProgress;
   xhr.send();
 
-  return {
-    target: gl.TEXTURE_2D,
-    texture: placeholder
-  };
+  return placeholder
 }
 
 function isPowerOf2(value) {
