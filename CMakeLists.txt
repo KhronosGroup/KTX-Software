@@ -406,7 +406,7 @@ set(KTX_MAIN_SRC
 
 if (KTX_FEATURE_ETC_UNPACK)
 	list(APPEND KTX_MAIN_SRC 
-		lib/etcdec.cxx
+		external/etcdec/etcdec.cxx
 	)
 endif()
 
