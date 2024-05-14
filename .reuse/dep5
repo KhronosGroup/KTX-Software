@@ -91,15 +91,15 @@ Copyright: 2022 The Wuffs Authors.
 License: Apache-2.0
 
 # We have asked Binomial about REUSE compliance for their repo, see https://github.com/BinomialLLC/basis_universal/issues/165
-Files: lib/basisu/*
+Files: external/basisu/*
 Copyright: 2019-2020 Binomial LLC
 License: Apache-2.0
 
-Files: lib/basisu/apg_bmp.* lib/basisu/CMakeLists.txt lib/basisu/webgl/transcoder/CMakeLists.txt
+Files: external/basisu/apg_bmp.* external/basisu/CMakeLists.txt external/basisu/webgl/transcoder/CMakeLists.txt
 Copyright: 2019 Anton Gerdelan
 License: Apache-2.0
 
-Files: lib/basisu/basisu_astc_decomp.*
+Files: external/basisu/basisu_astc_decomp.*
 Copyright: 2016 The Android Open Source Project
 License: Apache-2.0
 
