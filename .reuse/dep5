@@ -107,11 +107,11 @@ Files: tools/imageio/png.imageio/lodepng.*
 Copyright: 2005-2019 Lode Vandevenne
 License: Zlib
 
-Files: lib/dfdutils/vulkan/*
+Files: external/dfdutils/vulkan/*
 Copyright: 2015-2020 The Khronos Group Inc.
 License: Apache-2.0
 
-Files: lib/dfdutils/.gitrepo
+Files: external/dfdutils/.gitrepo
 Copyright: 2019-2020 The Khronos Group Inc
 License: Apache-2.0
 
