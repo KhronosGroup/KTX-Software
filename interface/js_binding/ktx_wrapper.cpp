@@ -284,7 +284,8 @@ namespace ktx
         }
 
 #if KTX_FEATURE_WRITE
-        emscripten::val compressBasisU(const ktxBasisParams& bopts_input, ktxSupercmpScheme ss_scheme, int compression_level) {
+        ktx_error_code_e compressBasisEx(const ktxBasisParams& bopts_input)
+        {
             KTX_error_code result = KTX_SUCCESS;
             ktxBasisParams bopts = bopts_input;
             bopts.structSize = sizeof(ktxBasisParams);
@@ -321,6 +322,7 @@ namespace ktx
     printf("options.UASTC.uastcRDONoMultithreading %d\n", bopts.uastcRDONoMultithreading);
 #endif
 
+           // TODO: Should this be here?
             ktxHashList* ht = &m_ptr->kvDataHead;
             char orientation[20] = {0};
             bool lower_left_maps_to_s0t0 = true;
@@ -341,26 +343,45 @@ namespace ktx
                                     swizzle.c_str());
 
             result = ktxTexture2_CompressBasisEx(ktxTexture2(m_ptr.get()), &bopts);
-
-            if (result == KTX_SUCCESS) {
-                switch (ss_scheme) {
-                    case KTX_SS_ZSTD:
-                        result = ktxTexture2_DeflateZstd(ktxTexture2(m_ptr.get()), compression_level);
-                        break;
-                    case KTX_SS_ZLIB:
-                        result = ktxTexture2_DeflateZLIB(ktxTexture2(m_ptr.get()), compression_level);
-                        break;
-                    default:
-                        break;
-                }
+            if (result != KTX_SUCCESS) {
+                std::cout << "ERROR: failed to deflateZstd: " << ktxErrorString(result) << std::endl;
             }
+            return result;
+        }
 
+        ktx_error_code_e deflateZstd(int compression_level)
+        {
+            ktx_error_code_e result;
+
+            result = ktxTexture2_DeflateZstd(ktxTexture2(m_ptr.get()), compression_level);
+            if (result != KTX_SUCCESS) {
+                std::cout << "ERROR: failed to deflateZstd: " << ktxErrorString(result) << std::endl;
+            }
+            return result;
+        }
+
+        ktx_error_code_e deflateZLIB(int compression_level)
+        {
+            ktx_error_code_e result;
+
+            result = ktxTexture2_DeflateZLIB(ktxTexture2(m_ptr.get()), compression_level);
+ 
+            if (result != KTX_SUCCESS) {
+                std::cout << "ERROR: failed to deflateZLIB: " << ktxErrorString(result) << std::endl;
+            }
+            return result;
+        }
+
+        emscripten::val writeToMemory() const
+        {
+            ktx_error_code_e result;
+            ktx_size_t ktx_data_size = 0;
+            ktx_uint8_t* ktx_data = nullptr;
+            result = ktxTexture_WriteToMemory(m_ptr.get(), &ktx_data, &ktx_data_size);
             if (result == KTX_SUCCESS) {
-                ktx_size_t ktx_data_size = 0;
-                ktx_uint8_t* ktx_data = nullptr;
-                result = ktxTexture_WriteToMemory(m_ptr.get(), &ktx_data, &ktx_data_size);
                 return emscripten::val(emscripten::typed_memory_view(ktx_data_size, ktx_data));
             } else {
+                std::cout << "ERROR: failed to writeToMemory: " << ktxErrorString(result) << std::endl;
                 return emscripten::val::null();
             }
         }
@@ -770,7 +791,10 @@ EMSCRIPTEN_BINDINGS(ktx)
         .property("supercompressScheme", &ktx::texture::supercompressionScheme)
         .property("vkFormat", &ktx::texture::vkFormat)
 #if KTX_FEATURE_WRITE
-        .function("compressBasisU", &ktx::texture::compressBasisU)
+        .function("compressBasisEx", &ktx::texture::compressBasisEx)
+        .function("deflateZstd", &ktx::texture::deflateZstd)
+        .function("deflateZLIB", &ktx::texture::deflateZLIB)
+        .function("writeToMemory", &ktx::texture::writeToMemory)
 #endif
         .function("transcodeBasis", &ktx::texture::transcodeBasis)
         .function("glUpload", &ktx::texture::glUpload)

@@ -738,7 +738,7 @@ async function updateItem(item, ktexture, texture, target) {
 
 async function encode(raw_data, width, height) {
 //  LIBKTX().then(function(Module) {
-    const { ktxTexture, ktxBasisParams, SupercmpScheme } = LIBKTX;
+    const { ktxTexture, ktxBasisParams, SupercmpScheme, ErrorCode } = LIBKTX;
     const basisu_options = new ktxBasisParams();
     const ktexture = new ktxTexture(raw_data, width, height, 4 /* components */, true/* srgb */);
 
@@ -751,19 +751,27 @@ async function encode(raw_data, width, height) {
     basisu_options.qualityLevel = 200;
     basisu_options.compressionLevel = 2;
 
-    const result = ktexture.compressBasisU(basisu_options, SupercmpScheme.BASIS_LZ, 0 /*for zlibv or zstd*/);
-    // result is a KTX file in memory with the compressed image.
-    // Not needed when calling upload but presence indicates
-    // compression was successful.
-    if (result) {
-        const {target, texture, format} = uploadTextureToGl(gl, ktexture);
-        updateItem(items[2], ktexture, texture, target);
-        elem('format').innerText = format;
+    var result = ktexture.compressBasisEx(basisu_options);
+
+    if (result == ErrorCode.SUCCESS) {
+        //result = ktexture.deflateZstd(0);
+        //or
+        //result = ktexture.deflateZLIB(0);
+        //if (result == ErrorCode.Success) {
+
+          // result is a KTX file in memory with the compressed image.
+          // Not needed when calling upload but presence indicates
+          // compression was successful.
+          result = ktexture.writeToMemory();
+          if (result) {
+              const {target, texture, format} = uploadTextureToGl(gl, ktexture);
+              updateItem(items[2], ktexture, texture, target);
+              elem('format').innerText = format;
+          }
+          ktexture.delete();
+          console.log(result);
+      //}
     }
-    ktexture.delete();
-
-    console.log(result);
-
 //  });
   return;
 }
