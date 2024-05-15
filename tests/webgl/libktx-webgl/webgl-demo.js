@@ -469,7 +469,7 @@ function createPlaceholderTexture(gl, color)
 //  LIBKTX.GL._glGenTextures(1, texName);
 //  texture = LIBKTX.GL.textures[texName];
   // Since it doesn't seem possible to get the above to work
-  // use a placeholder texture object to hold the temporary
+  // use a placeholder WebGLTexture object to hold the temporary
   // image.
   const placeholder = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, placeholder);
@@ -504,13 +504,6 @@ function loadTexture(gl, url)
   // so we can use it immediately. When the image has finished
   // downloading we'll update texture to the new contents
 
-//  // Must create texture via Emscripten so it knows of it.
-//  var texName;
-//  LIBKTX.GL._glGenTextures(1, texName);
-//  texture = LIBKTX.GL.textures[texName];
-  // Since it doesn't seem possible to get the above to work
-  // use a placeholder texture object to hold the temporary
-  // image.
   const placeholder = createPlaceholderTexture(gl, [0, 0, 255, 255]);
 
   var xhr = new XMLHttpRequest();
@@ -745,8 +738,7 @@ async function updateItem(item, ktexture, texture, target) {
 
 async function encode(raw_data, width, height) {
 //  LIBKTX().then(function(Module) {
-    //const texture = new Module.ktxTexture(raw_data);
-    const { ktxTexture, ktxBasisParams, SupercmpScheme, TranscodeTarget, OrientationX, OrientationY } = LIBKTX;
+    const { ktxTexture, ktxBasisParams, SupercmpScheme } = LIBKTX;
     const basisu_options = new ktxBasisParams();
     const ktexture = new ktxTexture(raw_data, width, height, 4 /* components */, true/* srgb */);
 
@@ -772,7 +764,7 @@ async function encode(raw_data, width, height) {
 
     console.log(result);
 
-// });
+//  });
   return;
 }
 
