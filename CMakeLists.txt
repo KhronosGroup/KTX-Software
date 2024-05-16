@@ -948,6 +948,7 @@ if(EMSCRIPTEN)
     target_include_directories( msc_basis_transcoder_js
         PRIVATE
         lib
+        external
         external/basisu/transcoder
     )
 
