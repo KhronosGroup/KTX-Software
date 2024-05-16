@@ -455,6 +455,8 @@ typedef ktx_size_t
     (KTX_APIENTRY* PFNKTEXGETDATASIZEUNCOMPRESSED)(ktxTexture* This);
 typedef ktx_size_t
     (KTX_APIENTRY* PFNKTEXGETIMAGESIZE)(ktxTexture* This, ktx_uint32_t level);
+typedef ktx_size_t
+    (KTX_APIENTRY* PFNKTEXGETLEVELSIZE)(ktxTexture* This, ktx_uint32_t level);
 typedef KTX_error_code
     (KTX_APIENTRY* PFNKTEXITERATELEVELS)(ktxTexture* This, PFNKTXITERCB iterCb,
                                          void* userdata);
@@ -506,6 +508,7 @@ typedef KTX_error_code
     PFNKTEXGETIMAGEOFFSET GetImageOffset;
     PFNKTEXGETDATASIZEUNCOMPRESSED GetDataSizeUncompressed;
     PFNKTEXGETIMAGESIZE GetImageSize;
+    PFNKTEXGETLEVELSIZE GetLevelSize;
     PFNKTEXITERATELEVELS IterateLevels;
     PFNKTEXITERATELOADLEVELFACES IterateLoadLevelFaces;
     PFNKTEXNEEDSTRANSCODING NeedsTranscoding;
@@ -556,6 +559,14 @@ typedef KTX_error_code
  */
 #define ktxTexture_GetImageSize(This, level) \
             (This)->vtbl->GetImageSize(This, level)
+
+/**
+ * @~English
+ * @brief Helper for calling the GetImageSize virtual method of a ktxTexture.
+ * @copydoc ktxTexture2.ktxTexture2_GetImageSize
+ */
+#define ktxTexture_GetLevelSize(This, level) \
+            (This)->vtbl->GetLevelSize(This, level)
 
 /**
  * @~English
@@ -985,7 +996,7 @@ ktxTexture_IterateLevelFaces(ktxTexture* This, PFNKTXITERCB iterCb,
  * Create a new ktxTexture1.
  */
 KTX_API KTX_error_code KTX_APIENTRY
-ktxTexture1_Create(ktxTextureCreateInfo* createInfo,
+ktxTexture1_Create(const ktxTextureCreateInfo* const createInfo,
                    ktxTextureCreateStorageEnum storageAllocation,
                    ktxTexture1** newTex);
 
@@ -1044,7 +1055,7 @@ ktxTexture1_WriteKTX2ToStream(ktxTexture1* This, ktxStream *dststr);
  * Create a new ktxTexture2.
  */
 KTX_API KTX_error_code KTX_APIENTRY
-ktxTexture2_Create(ktxTextureCreateInfo* createInfo,
+ktxTexture2_Create(const ktxTextureCreateInfo* const createInfo,
                    ktxTextureCreateStorageEnum storageAllocation,
                    ktxTexture2** newTex);
 

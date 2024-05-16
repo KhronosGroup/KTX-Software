@@ -81,7 +81,8 @@ static ktx_uint32_t padRow(ktx_uint32_t* rowBytes);
  * @exception KTX_OUT_OF_MEMORY Not enough memory for the texture.
  */
 KTX_error_code
-ktxTexture_construct(ktxTexture* This, ktxTextureCreateInfo* createInfo,
+ktxTexture_construct(ktxTexture* This,
+                     const ktxTextureCreateInfo* const createInfo,
                      ktxFormatSize* formatSize)
 {
     DECLARE_PROTECTED(ktxTexture);
