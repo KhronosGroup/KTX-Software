@@ -65,6 +65,18 @@ License: CC0-1.0
 ## Licenses of binary files and files from other projects we don't want to
 ## modify
 
+Files: external/astc-encoder/*
+Copyright: 2020-2023 Arm Limited
+License: Apache-2.0
+
+Files: external/etcdec/etcdec.cxx
+Copyright: 2013 Ericsson AB
+License: LicenseRef-Ericsson
+
+Files: external/fmt/*
+Copyright: 2012-present Victor Zverovich and {fmt} contributors
+License: LicenseRef-fmt
+
 # The JSON format does not support comments for embedded copyrights
 Files: */*.json
 Copyright: 2017-2020 Mark Callow
