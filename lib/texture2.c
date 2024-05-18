@@ -1959,6 +1959,21 @@ ktxTexture2_GetPremultipliedAlpha(ktxTexture2* This)
 /**
  * @memberof ktxTexture2
  * @~English
+ * @brief Retrieve the color primaries of the images.
+ *
+ * @param[in]     This      pointer to the ktxTexture2 object of interest.
+ *
+ * @return A @c khr_df_primaries enum value specifying the primaries.
+ */
+khr_df_primaries_e
+ktxTexture2_GetPrimaries_e(ktxTexture2* This)
+{
+    return KHR_DFDVAL(This->pDfd+1, PRIMARIES);
+}
+
+/**
+ * @memberof ktxTexture2
+ * @~English
  * @brief Query if the images are in a transcodable format.
  *
  * @param[in]     This     pointer to the ktxTexture2 object of interest.

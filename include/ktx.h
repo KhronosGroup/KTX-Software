@@ -1117,6 +1117,9 @@ ktxTexture2_GetColorModel_e(ktxTexture2* This);
 KTX_API ktx_bool_t KTX_APIENTRY
 ktxTexture2_GetPremultipliedAlpha(ktxTexture2* This);
 
+KTX_API khr_df_primaries_e KTX_APIENTRY
+ktxTexture2_GetPrimaries_e(ktxTexture2* This);
+
 KTX_API ktx_bool_t KTX_APIENTRY
 ktxTexture2_NeedsTranscoding(ktxTexture2* This);
 
@@ -1369,7 +1372,7 @@ typedef struct ktxBasisParams {
         /*!< A swizzle to apply before encoding. It must match the regular
              expression /^[rgba01]{4}$/. If both this and preSwizzle
              are specified ktxTexture_CompressBasisEx will raise
-             KTX_INVALID_OPERATION.
+             KTX_INVALID_OPERATION. Usable with both ETC1S and UASTC.
          */
     ktx_bool_t normalMap;
         /*!< Tunes codec parameters for better quality on normal maps (no
@@ -1377,13 +1380,15 @@ typedef struct ktxBasisParams {
              Only valid for linear textures.
          */
     ktx_bool_t separateRGToRGB_A;
-        /*!< @deprecated. This was and is a no-op. 2-component inputs have always been
-             automatically separated using an "rrrg" inputSwizzle. @sa inputSwizzle and normalMode.
+        /*!< @deprecated. This was and is a no-op. 2-component inputs have
+            always been automatically separated using an "rrrg" inputSwizzle.
+            @sa inputSwizzle and normalMode.
          */
     ktx_bool_t preSwizzle;
         /*!< If the texture has @c KTXswizzle metadata, apply it before
              compressing. Swizzling, like @c rabb may yield drastically
-             different error metrics if done after supercompression.
+             different error metrics if done after supercompression. Usable
+             for both ETC1S and UASTC.
          */
     ktx_bool_t noEndpointRDO;
         /*!< Disable endpoint rate distortion optimizations. Slightly faster,
