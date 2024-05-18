@@ -6,8 +6,9 @@
 /*
 This code originated from sample 7 in the MDN WebGL examples
 at https://github.com/mdn/webgl-examples which is licensed
-under Creative Commons Zero v1.0 Universal. Modifications
-made here are also licensed under CC0v1.
+under Creative Commons Zero v1.0 Universal. It has been
+extensively modified to create a test for the JS wrapper
+for libkttx. Modifications are also licensed under CC0v1.
 */
 
 var cubeRotation = 0.0;
