@@ -736,11 +736,25 @@ async function updateItem(item, ktexture, texture, target) {
   item.texture.uvMatrix = uvMatrix;
 }
 
-async function encode(raw_data, width, height) {
+async function encodePhasmatic(imageData) {
 //  LIBKTX().then(function(Module) {
     const { ktxTexture, ktxBasisParams, SupercmpScheme, ErrorCode } = LIBKTX;
     const basisu_options = new ktxBasisParams();
-    const ktexture = new ktxTexture(raw_data, width, height, 4 /* components */, true/* srgb */);
+
+    const ktexture = new ktxTexture(imageData.data, imageData.width, imageData.height,
+                                    4 /* num components */,
+                                    imageData.colorSpace === undefined || imageData.colorSpace == "srgb");
+
+    const writerKey = "KTXwriter";
+    const orientationKey = "KTXorientation";
+    const writer = "libktx-js-test";
+    const orientation = "rd";
+    ktexture.addKVPair(ktexture.orientationKey, orientation);
+    ktexture.addKVPair(ktexture.writerKey, writer);
+
+    var value = ktexture.findKeyValue(ktexture.orientationKey);
+    var string = new TextDecoder().decode(value.subarray(0,2));
+    console.log(string);
 
     const {target, texture} = uploadTextureToGl(gl, ktexture);
     updateItem(items[1], ktexture, texture, target);
@@ -776,6 +790,89 @@ async function encode(raw_data, width, height) {
   return;
 }
 
+async function encode(imageData) {
+//  LIBKTX().then(function(Module) {
+    const { ktxTexture, ktxBasisParams,
+            ktxTextureCreateInfo, VkFormat,
+            CreateStorageEnum, SupercmpScheme, ErrorCode } = LIBKTX;
+    const basisu_options = new ktxBasisParams();
+    const createInfo = new ktxTextureCreateInfo();
+    const rgba = imageData.data;
+    const width = imageData.width;
+    const height = imageData.height;
+    const colorSpace = imageData.colorSpace;
+
+    createInfo.baseWidth = imageData.width;
+    createInfo.baseHeight = imageData.height;
+    createInfo.baseDepth = 1;
+    createInfo.numDimensions = 2;
+    createInfo.numLevels = 1;
+    createInfo.numLayers = 1;
+    createInfo.numFaces = 1;
+    createInfo.isArray = false;
+    createInfo.generateMipmaps = false;
+
+    var displayP3;
+    // Image data from 2d canvases is always 8-bit RGBA.
+    if ( imageData.colorSpace === undefined || imageData.colorSpace == "srgb") {
+        createInfo.vkFormat = VkFormat.R8G8B8A8_SRGB.value;
+    } else {
+        // The only alternative is DisplayP3.
+        createInfo.vkFormat = VkFormat.R8G8B8A8_UNORM.value;
+        displayP3 = true;
+    }
+
+    const ktexture = new ktxTexture(createInfo, CreateStorageEnum.ALLOC_STORAGE);
+    ktexture.setImageFromMemory(0, 0, 0, imageData.data);
+    if (displayP3) {
+        ktexture.setOETF(LIBKTX.dfTransfer.DISPLAYP3);
+        ktexture.setOETF(LIBKTX.dfPrimaries.DISPLAYP3);
+    }
+
+    const writerKey = "KTXwriter";
+    const orientationKey = "KTXorientation";
+    const writer = "libktx-js-test";
+    const orientation = "rd";
+    ktexture.addKVPair(ktexture.orientationKey, orientation);
+    ktexture.addKVPair(ktexture.writerKey, writer);
+
+    var value = ktexture.findKeyValue(ktexture.orientationKey);
+    var string = new TextDecoder().decode(value.subarray(0,2));
+    console.log(string);
+
+    const {target, texture} = uploadTextureToGl(gl, ktexture);
+    updateItem(items[1], ktexture, texture, target);
+
+    basisu_options.uastc = false;
+    basisu_options.noSSE = true;
+    basisu_options.verbose = false;
+    basisu_options.qualityLevel = 200;
+    basisu_options.compressionLevel = 2;
+
+    var result = ktexture.compressBasis(basisu_options);
+
+    if (result == ErrorCode.SUCCESS) {
+        //result = ktexture.deflateZstd(0);
+        //or
+        //result = ktexture.deflateZLIB(0);
+        //if (result == ErrorCode.Success) {
+
+          // result is a KTX file in memory with the compressed image.
+          // Not needed when calling upload but presence indicates
+          // compression was successful.
+          result = ktexture.writeToMemory();
+          if (result) {
+              const {target, texture, format} = uploadTextureToGl(gl, ktexture);
+              updateItem(items[2], ktexture, texture, target);
+              elem('format').innerText = format;
+          }
+          ktexture.delete();
+          console.log(result);
+      //}
+    }
+//  });
+  return;
+}
 
 async function loadImageData (img, flip = false) {
   const canvas    = document.createElement("canvas");
@@ -789,8 +886,8 @@ async function loadImageData (img, flip = false) {
   }
   context.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight);
 
-  const rgba = context.getImageData(0, 0, img.naturalWidth, img.naturalHeight).data;
-  return rgba;
+  const imageData = context.getImageData(0, 0, img.naturalWidth, img.naturalHeight);
+  return imageData;
 };
 
 async function loadImage(src){
@@ -806,10 +903,10 @@ async function loadImage(src){
 
 async function decodeFile(filename) {
   const img = await loadImage(filename);
-  const img_data = await loadImageData(img);
+  const imageData = await loadImageData(img);
   console.log(img);
-  console.log(img_data);
+  console.log(imageData);
 
-  encode(img_data, img.naturalWidth, img.naturalHeight);
+  encode(imageData);
 }
 
