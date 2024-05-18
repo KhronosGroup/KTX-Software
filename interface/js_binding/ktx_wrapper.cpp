@@ -324,16 +324,19 @@ namespace ktx
                               ktxTextureCreateStorageEnum storageAllocation)
         {
             ktxTexture* ptr = nullptr;
-printf("createInfo.vkFormat = %d\n", createInfo.vkFormat);
-printf("createInfo.baseWidth = %d\n", createInfo.baseWidth);
-printf("createInfo.baseHeight = %d\n", createInfo.baseHeight);
-printf("createInfo.baseDepth = %d\n", createInfo.baseDepth);
-printf("createInfo.numDimensions = %d\n", createInfo.numDimensions);
-printf("createInfo.numLevels = %d\n", createInfo.numLevels);
-printf("createInfo.numLayers = %d\n", createInfo.numLayers);
-printf("createInfo.numFaces = %d\n", createInfo.numFaces);
-printf("createInfo.isArray = %d\n", createInfo.isArray);
-printf("createInfo.generateMipmaps = %d\n", createInfo.generateMipmaps);
+//#define DUMP_CREATEINFO
+#ifdef DUMP_CREATEINFO
+    printf("createInfo.vkFormat = %d\n", createInfo.vkFormat);
+    printf("createInfo.baseWidth = %d\n", createInfo.baseWidth);
+    printf("createInfo.baseHeight = %d\n", createInfo.baseHeight);
+    printf("createInfo.baseDepth = %d\n", createInfo.baseDepth);
+    printf("createInfo.numDimensions = %d\n", createInfo.numDimensions);
+    printf("createInfo.numLevels = %d\n", createInfo.numLevels);
+    printf("createInfo.numLayers = %d\n", createInfo.numLayers);
+    printf("createInfo.numFaces = %d\n", createInfo.numFaces);
+    printf("createInfo.isArray = %d\n", createInfo.isArray);
+    printf("createInfo.generateMipmaps = %d\n", createInfo.generateMipmaps);
+#endif
             KTX_error_code result = ktxTexture2_Create(&createInfo,
                                                        storageAllocation,
                                                        (ktxTexture2**)&ptr);
