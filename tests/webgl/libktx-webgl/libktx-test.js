@@ -1110,7 +1110,7 @@ async function runTests(filename) {
                textureAstc.texture, textureAstc.target);
   } else {
     items[astcCompTextureItem].label.textContent +=
-               ". Not displayed as WEBGL_compressed_texture_astc not supported in this device."
+               " not displayed. This device does not support WEBGL_compressed_texture_astc."
   }
 }
 
