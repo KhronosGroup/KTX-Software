@@ -46,9 +46,11 @@
         margin: 1em;
         padding: 1em;
         background: transparent;
+        vertical-align: top;
       }
       .label {
         margin-top: 0.5em;
+        width: 256px;
       }
       /*
        * The size of an image is changed when it is added to the div
@@ -77,12 +79,16 @@
   <body>
     <div id="panel">
       <h2>libktx Read-write Javascript Binding Test</h2>
-      <p>This tests the limited functionality of the read-write Javascript
+      <p>This tests the functionality of the read-write Javascript
       binding for libktx, which has been compiled to Javascript using
-      Emscripten. It accepts a .png file from which it creates a KTX2
-      texture. It then encodes the texture to the universal Basis-LZ
-      format, transcodes it to <b id='format'>FORMAT</b>, which is
-      supported on this device, and displays it.
+      Emscripten. Though loosely referred to as "write" the added
+      functionalty tested here is more about creating ktxTexture objects
+      that writing them.
+      </p>
+      <p>Click the <i>Run Tests</i> button to run the tests.</p>
+      <p>The test reads a .png file then performs various operations
+      using the wrapper API including creating an uncompressed
+      ktxTexture2 object. The operations are shown in the list below.
       </p>
     </div>
     <p id="image_ktx">
@@ -145,11 +151,20 @@
     const origImageItem = 0, uncompTextureItem = 1;
     const copyTextureItem = 2, basisCompTextureItem = 3;
     const astcCompTextureItem = 4;
+    const labelText = [
+      'Input image',
+      'Uncompressed ktxTexture2',
+      'Copy of uncompressed ktxTexture2',
+      'ETC1S/Basis-LZ compressed texture',
+      'ASTC compressed texture'
+    ];
+
     for (let i = 0; i < numItems; ++i) {
       const outerElem = createElem('div', contentElem, 'item');
       const viewElem = createElem('div', outerElem, 'view');
       const labelElem = createElem('div', outerElem, 'label');
-      labelElem.textContent = `Item ${i + 1}`;
+      //labelElem.textContent = `Item ${i + 1}`;
+      labelElem.textContent = labelText[i];
       const bgColor = [rand(1), rand(1), rand(1), 1];
       var placeholder = {};
       switch (i) {
@@ -167,6 +182,7 @@
         color: bgColor,
         texture: placeholder,
         element: viewElem,
+        label: labelElem
       });
     }
   </script>

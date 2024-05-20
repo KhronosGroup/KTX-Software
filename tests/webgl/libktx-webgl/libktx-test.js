@@ -1098,6 +1098,8 @@ async function runTests(filename) {
   textureComp = await uploadTextureToGl(gl, ktexture);
   updateItem(items[basisCompTextureItem], ktexture,
              textureComp.texture, textureComp.target);
+  items[basisCompTextureItem].label.textContent +=
+             " transcoded to " + textureComp.format;
 
   await testWriteToMemory(ktexture);
 
@@ -1106,6 +1108,9 @@ async function runTests(filename) {
     textureAstc = await uploadTextureToGl(gl, ktextureCopy);
     updateItem(items[astcCompTextureItem], ktextureCopy,
                textureAstc.texture, textureAstc.target);
+  } else {
+    items[astcCompTextureItem].label.textContent +=
+               ". Not displayed as WEBGL_compressed_texture_astc not supported in this device."
   }
 }
 
