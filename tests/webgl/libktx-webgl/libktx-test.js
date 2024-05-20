@@ -756,60 +756,6 @@ async function updateItem(item, ktexture, texture, target) {
   item.texture.uvMatrix = uvMatrix;
 }
 
-async function encodePhasmatic(imageData) {
-//  LIBKTX().then(function(Module) {
-    const { ktxTexture, ktxBasisParams, SupercmpScheme, ErrorCode } = LIBKTX;
-    const basisu_options = new ktxBasisParams();
-
-    const ktexture = new ktxTexture(imageData.data, imageData.width, imageData.height,
-                                    4 /* num components */,
-                                    imageData.colorSpace === undefined || imageData.colorSpace == "srgb");
-
-    const writerKey = "KTXwriter";
-    const orientationKey = "KTXorientation";
-    const writer = "libktx-js-test";
-    const orientation = "rd";
-    ktexture.addKVPair(ktexture.orientationKey, orientation);
-    ktexture.addKVPair(ktexture.writerKey, writer);
-
-    var value = ktexture.findKeyValue(ktexture.orientationKey);
-    var string = new TextDecoder().decode(value.subarray(0,2));
-    console.log(string);
-
-    const {target, texture} = uploadTextureToGl(gl, ktexture);
-    updateItem(items[1], ktexture, texture, target);
-
-    basisu_options.uastc = false;
-    basisu_options.noSSE = true;
-    basisu_options.verbose = false;
-    basisu_options.qualityLevel = 200;
-    basisu_options.compressionLevel = 2;
-
-    var result = ktexture.compressBasisEx(basisu_options);
-
-    if (result == ErrorCode.SUCCESS) {
-        //result = ktexture.deflateZstd(0);
-        //or
-        //result = ktexture.deflateZLIB(0);
-        //if (result == ErrorCode.Success) {
-
-          // result is a KTX file in memory with the compressed image.
-          // Not needed when calling upload but presence indicates
-          // compression was successful.
-          result = ktexture.writeToMemory();
-          if (result) {
-              const {target, texture, format} = uploadTextureToGl(gl, ktexture);
-              updateItem(items[2], ktexture, texture, target);
-              elem('format').innerText = format;
-          }
-          ktexture.delete();
-          console.log(result);
-      //}
-    }
-//  });
-  return;
-}
-
 function arraysEqual(a, b) {
   if (a.length != b.length)
     return false;
@@ -952,90 +898,6 @@ async function testCreateCopy(ktexture) {
   return copy;
 }
 
-async function encode(imageData) {
-//  LIBKTX().then(function(Module) {
-    const { ktxTexture, ktxBasisParams,
-            ktxTextureCreateInfo, VkFormat,
-            CreateStorageEnum, SupercmpScheme, ErrorCode } = LIBKTX;
-    const basisu_options = new ktxBasisParams();
-    const createInfo = new ktxTextureCreateInfo();
-    const rgba = imageData.data;
-    const width = imageData.width;
-    const height = imageData.height;
-    const colorSpace = imageData.colorSpace;
-
-    createInfo.baseWidth = imageData.width;
-    createInfo.baseHeight = imageData.height;
-    createInfo.baseDepth = 1;
-    createInfo.numDimensions = 2;
-    createInfo.numLevels = 1;
-    createInfo.numLayers = 1;
-    createInfo.numFaces = 1;
-    createInfo.isArray = false;
-    createInfo.generateMipmaps = false;
-
-    var displayP3;
-    // Image data from 2d canvases is always 8-bit RGBA.
-    if ( imageData.colorSpace === undefined || imageData.colorSpace == "srgb") {
-        createInfo.vkFormat = VkFormat.R8G8B8A8_SRGB.value;
-    } else {
-        // The only alternative is DisplayP3.
-        createInfo.vkFormat = VkFormat.R8G8B8A8_UNORM.value;
-        displayP3 = true;
-    }
-
-    const ktexture = new ktxTexture(createInfo, CreateStorageEnum.ALLOC_STORAGE);
-    ktexture.setImageFromMemory(0, 0, 0, imageData.data);
-    if (displayP3) {
-        ktexture.setOETF(LIBKTX.dfTransfer.DISPLAYP3);
-        ktexture.setOETF(LIBKTX.dfPrimaries.DISPLAYP3);
-    }
-
-    const writerKey = "KTXwriter";
-    const orientationKey = "KTXorientation";
-    const writer = "libktx-js-test";
-    const orientation = "rd";
-    ktexture.addKVPair(ktexture.orientationKey, orientation);
-    ktexture.addKVPair(ktexture.writerKey, writer);
-
-    var value = ktexture.findKeyValue(ktexture.orientationKey);
-    var string = new TextDecoder().decode(value.subarray(0,2));
-    console.log(string);
-
-    const {target, texture} = uploadTextureToGl(gl, ktexture);
-    updateItem(items[1], ktexture, texture, target);
-
-    basisu_options.uastc = false;
-    basisu_options.noSSE = true;
-    basisu_options.verbose = false;
-    basisu_options.qualityLevel = 200;
-    basisu_options.compressionLevel = 2;
-
-    var result = ktexture.compressBasis(basisu_options);
-
-    if (result == ErrorCode.SUCCESS) {
-        //result = ktexture.deflateZstd(0);
-        //or
-        //result = ktexture.deflateZLIB(0);
-        //if (result == ErrorCode.Success) {
-
-          // result is a KTX file in memory with the compressed image.
-          // Not needed when calling upload but presence indicates
-          // compression was successful.
-          result = ktexture.writeToMemory();
-          if (result) {
-              const {target, texture, format} = uploadTextureToGl(gl, ktexture);
-              updateItem(items[2], ktexture, texture, target);
-              elem('format').innerText = format;
-          }
-          ktexture.delete();
-          console.log(result);
-      //}
-    }
-//  });
-  return;
-}
-
 async function loadImageData (img, flip = false) {
   const canvas    = document.createElement("canvas");
   const context   = canvas.getContext("2d");
@@ -1072,45 +934,47 @@ async function loadImage(src){
 }
 
 async function runTests(filename) {
-  const img = await loadImage(filename);
-  const imageData = await loadImageData(img);
-  console.log(img);
-  console.log(imageData);
+//  LIBKTX().then(function(Module) {
+    const img = await loadImage(filename);
+    const imageData = await loadImageData(img);
+    console.log(img);
+    console.log(imageData);
 
-  const ktexture = await testCreate(imageData);
-  if (ktexture == null)
-    return;
+    const ktexture = await testCreate(imageData);
+    if (ktexture == null)
+      return;
 
-  await testWriteReadMetadata(ktexture);
+    await testWriteReadMetadata(ktexture);
 
-  const texture = await uploadTextureToGl(gl, ktexture);
-  updateItem(items[uncompTextureItem], ktexture,
-                   texture.texture, texture.target);
+    const texture = await uploadTextureToGl(gl, ktexture);
+    updateItem(items[uncompTextureItem], ktexture,
+                     texture.texture, texture.target);
 
-  testGetImage(ktexture, imageData);
+    testGetImage(ktexture, imageData);
 
-  const ktextureCopy = await testCreateCopy(ktexture);
-  const textureCopy = await uploadTextureToGl(gl, ktextureCopy);
-  updateItem(items[copyTextureItem], ktextureCopy,
-                   textureCopy.texture, textureCopy.target);
+    const ktextureCopy = await testCreateCopy(ktexture);
+    const textureCopy = await uploadTextureToGl(gl, ktextureCopy);
+    updateItem(items[copyTextureItem], ktextureCopy,
+                     textureCopy.texture, textureCopy.target);
 
-  await testEncodeBasis(ktexture);
-  textureComp = await uploadTextureToGl(gl, ktexture);
-  updateItem(items[basisCompTextureItem], ktexture,
-             textureComp.texture, textureComp.target);
-  items[basisCompTextureItem].label.textContent +=
-             " transcoded to " + textureComp.format;
+    await testEncodeBasis(ktexture);
+    textureComp = await uploadTextureToGl(gl, ktexture);
+    updateItem(items[basisCompTextureItem], ktexture,
+               textureComp.texture, textureComp.target);
+    items[basisCompTextureItem].label.textContent +=
+               " transcoded to " + textureComp.format;
 
-  await testWriteToMemory(ktexture);
+    await testWriteToMemory(ktexture);
 
-  await testEncodeAstc(ktextureCopy);
-  if (astcSupported) {
-    textureAstc = await uploadTextureToGl(gl, ktextureCopy);
-    updateItem(items[astcCompTextureItem], ktextureCopy,
-               textureAstc.texture, textureAstc.target);
-  } else {
-    items[astcCompTextureItem].label.textContent +=
-               " not displayed. This device does not support WEBGL_compressed_texture_astc."
-  }
+    await testEncodeAstc(ktextureCopy);
+    if (astcSupported) {
+      textureAstc = await uploadTextureToGl(gl, ktextureCopy);
+      updateItem(items[astcCompTextureItem], ktextureCopy,
+                 textureAstc.texture, textureAstc.target);
+    } else {
+      items[astcCompTextureItem].label.textContent +=
+                 " not displayed. This device does not support WEBGL_compressed_texture_astc."
+    }
+//  });
 }
 
