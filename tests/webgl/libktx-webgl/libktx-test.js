@@ -133,6 +133,24 @@ function main() {
 
   var then = 0;
 
+  function resizeCanvasToDisplaySize(canvas) {
+    // Lookup the size the browser is displaying the canvas in CSS pixels.
+    const displayWidth  = canvas.clientWidth;
+    const displayHeight = canvas.clientHeight;
+
+    // Check if the canvas is not the same size.
+    const needResize = canvas.width  !== displayWidth ||
+                       canvas.height !== displayHeight;
+
+    if (needResize) {
+      // Make the canvas the same size
+      canvas.width  = displayWidth;
+      canvas.height = displayHeight;
+    }
+
+      return needResize;
+  }
+
   // Draw the scene repeatedly
   function render(now) {
     now *= 0.001;  // convert to seconds
@@ -146,6 +164,7 @@ function main() {
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
+    resizeCanvasToDisplaySize(gl.canvas);
 
     for (const [index, value] of items.entries()) {
       if (index == 0) continue;
@@ -791,6 +810,148 @@ async function encodePhasmatic(imageData) {
   return;
 }
 
+function arraysEqual(a, b) {
+  if (a.length != b.length)
+    return false;
+  for (let i = 0; i < a.length; i++)
+    if (a[i] != b[i]) return false;
+  return true;
+}
+
+function showTestResult(id, pass) {
+  element =elem(id);
+  if (pass) {
+      element.innerText = "PASSED";
+      element.className = "pass";
+  } else {
+      element.innerText = "FAILED.";
+      element.className = "fail";
+  }
+}
+
+// Test creation of a ktxTexture2 from the provided imageData.
+async function testCreate(imageData) {
+  const { ktxTexture, ktxBasisParams,
+          ktxTextureCreateInfo, VkFormat,
+          CreateStorageEnum, SupercmpScheme, ErrorCode } = LIBKTX;
+  const basisu_options = new ktxBasisParams();
+  const createInfo = new ktxTextureCreateInfo();
+  const colorSpace = imageData.colorSpace;
+
+  createInfo.baseWidth = imageData.width;
+  createInfo.baseHeight = imageData.height;
+  createInfo.baseDepth = 1;
+  createInfo.numDimensions = 2;
+  createInfo.numLevels = 1;
+  createInfo.numLayers = 1;
+  createInfo.numFaces = 1;
+  createInfo.isArray = false;
+  createInfo.generateMipmaps = false;
+
+  var displayP3;
+  // Image data from 2d canvases is always 8-bit RGBA.
+  if ( imageData.colorSpace === undefined || imageData.colorSpace == "srgb") {
+    createInfo.vkFormat = VkFormat.R8G8B8A8_SRGB.value;
+  } else {
+    // The only alternative is DisplayP3.
+    createInfo.vkFormat = VkFormat.R8G8B8A8_UNORM.value;
+    displayP3 = true;
+  }
+
+  const ktexture = new ktxTexture(createInfo, CreateStorageEnum.ALLOC_STORAGE);
+  showTestResult('create_result', ktexture != null);
+  if (ktexture != null) {
+    result = ktexture.setImageFromMemory(0, 0, 0, imageData.data);
+    showTestResult('copy_image_result', result == ErrorCode.SUCCESS);
+    if (result == ErrorCode.SUCCESS) {
+      if (displayP3) {
+        ktexture.setOETF(LIBKTX.dfTransfer.DISPLAYP3);
+        ktexture.setOETF(LIBKTX.dfPrimaries.DISPLAYP3);
+      }
+    }
+  }
+   return ktexture;
+}
+
+async function testWriteReadMetadata(ktexture) {
+  const writer = "libktx-js-test";
+  const orientation = "rd";
+  ktexture.addKVPair(ktexture.orientationKey, orientation);
+  ktexture.addKVPair(ktexture.writerKey, writer);
+
+  var textDecoder = new TextDecoder();
+  var value = ktexture.findKeyValue(ktexture.writerKey);
+  // subarray to remove the terminating null we know is there.
+  var string = textDecoder.decode(value.subarray(0,value.byteLength-1));
+  var passed = true;
+  //console.log(string);
+  if (!writer.localeCompare(string)) {
+    value = ktexture.findKeyValue(ktexture.orientationKey);
+    string = textDecoder.decode(value.subarray(0,value.byteLength-1));
+    //console.log(string);
+    if (orientation.localeCompare(string)) {
+      passed = false;
+    }
+  } else {
+    passed = false;
+  }
+  showTestResult('metadata_result', passed);
+}
+
+async function testGetImage(ktexture, imageData) {
+  var passed = true;
+
+  result = ktexture.getImage(0, 0, 0);
+  if (result != null) {
+    passed = arraysEqual(result, imageData.data);
+  } else {
+    passed = false;
+  }
+  showTestResult('get_image_result', passed);
+}
+
+async function testEncodeBasis(ktexture) {
+  const { ktxBasisParams, ErrorCode } = LIBKTX;
+  const basisu_options = new ktxBasisParams();
+
+  basisu_options.uastc = false;
+  basisu_options.noSSE = true;
+  basisu_options.verbose = false;
+  basisu_options.qualityLevel = 200;
+  basisu_options.compressionLevel = LIBKTX.etc1SDefaultCompressionLevel;
+
+  var result = ktexture.compressBasis(basisu_options);
+
+  showTestResult('compress_basis_result', result == ErrorCode.SUCCESS);
+}
+
+async function testEncodeAstc(ktexture) {
+  const { ktxAstcParams, AstcBlockDimension, AstcMode, AstcQualityLevel, ErrorCode } = LIBKTX;
+  const params = new ktxAstcParams();
+
+  params.blockDimension = AstcBlockDimension.d4x4;
+  params.mode = AstcMode.DEFAULT;
+  params.qualityLevel = AstcQualityLevel.FAST;
+  params.normalMap = false;
+
+  var result = ktexture.compressAstc(params);
+
+  showTestResult('compress_astc_result', result == ErrorCode.SUCCESS);
+}
+
+async function testWriteToMemory(ktexture) {
+  // result is a KTX file in memory with the compressed image.
+  result = ktexture.writeToMemory();
+  // Check the first bytes are a KTX header.
+  showTestResult('write_to_memory_result', result != null);
+}
+
+async function testCreateCopy(ktexture) {
+  const copy = ktexture.createCopy();
+  showTestResult('create_copy_result', copy != null);
+  return copy;
+}
+
 async function encode(imageData) {
 //  LIBKTX().then(function(Module) {
     const { ktxTexture, ktxBasisParams,
@@ -878,36 +1039,73 @@ async function encode(imageData) {
 async function loadImageData (img, flip = false) {
   const canvas    = document.createElement("canvas");
   const context   = canvas.getContext("2d");
-  canvas.height = img.naturalHeight;
-  canvas.width  = img.naturalWidth;
+  // These values draw the full image which gives a better starting
+  // point for compression.
+  //const width = img.naturalWidth;
+  //const height = img.naturalHeight;
+  // These values draw the image at the size displayed on the web
+  // page which, per CSS, is currently 256px giving a faster result
+  // which saves time for testing.
+  const width = img.width;
+  const height = img.height;
+  canvas.width  = width;
+  canvas.height = height;
 
   if (flip) {
-    context.translate(0, img.naturalHeight);
+    context.translate(0, height);
     context.scale(1, -1);
   }
-  context.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight);
+  context.drawImage(img, 0, 0, width, height);
 
-  const imageData = context.getImageData(0, 0, img.naturalWidth, img.naturalHeight);
+  const imageData = context.getImageData(0, 0, width, height);
   return imageData;
 };
 
 async function loadImage(src){
   return new Promise((resolve, reject) => {
     let img = new Image();
-    div = items[0].element;
-    //img.onload = () => resolve(img);
+    div = items[origImageItem].element;
     img.onload = () => { div.appendChild(img); resolve(img); }
     img.onerror = reject;
     img.src = src;
   })
 }
 
-async function decodeFile(filename) {
+async function runTests(filename) {
   const img = await loadImage(filename);
   const imageData = await loadImageData(img);
   console.log(img);
   console.log(imageData);
 
-  encode(imageData);
+  const ktexture = await testCreate(imageData);
+  if (ktexture == null)
+    return;
+
+  await testWriteReadMetadata(ktexture);
+
+  const texture = await uploadTextureToGl(gl, ktexture);
+  updateItem(items[uncompTextureItem], ktexture,
+                   texture.texture, texture.target);
+
+  testGetImage(ktexture, imageData);
+
+  const ktextureCopy = await testCreateCopy(ktexture);
+  const textureCopy = await uploadTextureToGl(gl, ktextureCopy);
+  updateItem(items[copyTextureItem], ktextureCopy,
+                   textureCopy.texture, textureCopy.target);
+
+  await testEncodeBasis(ktexture);
+  textureComp = await uploadTextureToGl(gl, ktexture);
+  updateItem(items[basisCompTextureItem], ktexture,
+             textureComp.texture, textureComp.target);
+
+  await testWriteToMemory(ktexture);
+
+  await testEncodeAstc(ktextureCopy);
+  if (astcSupported) {
+    textureAstc = await uploadTextureToGl(gl, ktextureCopy);
+    updateItem(items[astcCompTextureItem], ktextureCopy,
+               textureAstc.texture, textureAstc.target);
+  }
 }
 

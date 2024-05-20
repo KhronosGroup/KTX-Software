@@ -17,15 +17,17 @@
         margin-left: auto;
         margin-right: auto;
         position: relative;
-        /* top: 0;
+        top: 0;
         width: 100%;
-        height: 100vh; */
+        height: 100vh;
       }
       #glcanvas {
         border: none;
         position: absolute;
         top: 0;
         left: 0;
+        width: 100%;
+        height: 100%;
         background-color: white;
         z-index: -1;
       }
@@ -37,7 +39,7 @@
         color: white;
         background-color:rgba(0.3, 0.3, 0.3, 0.3);
         padding: 0.5em;
-        max-width: 55em;
+        max-width: 65em;
       }
       .item {
         display: inline-block;
@@ -59,9 +61,15 @@
         border: 1px solid black;
       }
       /* An img inside a .view should fill the view. */
-     .view img {
-        width: 100%;
-        height: 100%;
+      .view img {
+         width: 100%;
+         height: 100%;
+      }
+      .pass {
+        color: green;
+      }
+      .fail {
+        color: red;
       }
     </style>
   </head>
@@ -78,11 +86,20 @@
       </p>
     </div>
     <p id="image_ktx">
-      <input type="button" value="KTX Encode"
-             onclick="decodeFile('ktx_app.png')">
+      <input type="button" value="Run Tests"
+             onclick="runTests('ktx_app.png')">
     </p>
+    <p>Create uncompressed ktxTexture2 test: <b id='create_result'></b></p>
+    <p>Copy input image to new texture test: <b id='copy_image_result'></b></p>
+    <p>Write and read metadata test: <b id='metadata_result'></b></p>
+    <p>Get image from new texture test: <b id='get_image_result'></b></p>
+    <p>Create copy of original texture test: <b id='create_copy_result'></b></p>
+    <p>Compress ktxTexture2 with Basis test: <b id='compress_basis_result'></b></p>
+    <p>Write KTX file to memory test: <b id='write_to_memory_result'></b></p>
+    <p>Compress ktxTexture2 with ASTC test: <b id='compress_astc_result'></b></p>
     <div id="container">
-      <canvas id="glcanvas" width="1280" height="480"></canvas>
+      <!-- <canvas id="glcanvas" width="1280" height="480"></canvas> -->
+      <canvas id="glcanvas"></canvas>
       <div id="glcontent"></div>
     </div>
   </body>
@@ -98,7 +115,6 @@
                   LIBKTX.GL.createContext(document.getElementById("glcanvas"),
                                           { majorVersion: 2.0 })
                   );
-      //defaultTexture = loadTexture(gl, 'ktx_app_basis.ktx2');
     });
 
     function createElem(type, parent, className) {
@@ -125,7 +141,10 @@
     // Make 3 elements over the canvas.
     const contentElem = document.querySelector('#glcontent');
     const items = [];
-    const numItems = 3;
+    const numItems = 5;
+    const origImageItem = 0, uncompTextureItem = 1;
+    const copyTextureItem = 2, basisCompTextureItem = 3;
+    const astcCompTextureItem = 4;
     for (let i = 0; i < numItems; ++i) {
       const outerElem = createElem('div', contentElem, 'item');
       const viewElem = createElem('div', outerElem, 'view');
@@ -139,8 +158,7 @@
           placeholder.texture = null;
           placeholder.uvMatrix = null;
           break;
-        case 1:
-        case 2:
+        default:
           const texColor = [rand(255), rand(255), rand(255), 255];
           placeholder = createPlaceholderTexture(gl, texColor);
           break;

@@ -45,9 +45,38 @@ namespace ktx
 {
     class texture
     {
+    private:
+        texture(ktxTexture* ptr)
+            : m_ptr{ ptr, &destroy }
+        {
+        }
+
+        static void destroy(ktxTexture* ptr)
+        {
+            ktxTexture_Destroy(ptr);
+        }
+
+        std::unique_ptr<ktxTexture, decltype(&destroy)> m_ptr;
+
     public:
+#if 1
+        operator ktxTexture*() const {
+            // Don't understand why static_cast is needed here as
+            // m_ptr.get() is of type ktxTexture. Without it clang
+            // complains "no m_ptr in ktxTexture."
+            return reinterpret_cast<ktxTexture*>(m_ptr.get());
+        }
+#endif
+        operator ktxTexture2*() const {
+            return reinterpret_cast<ktxTexture2*>(m_ptr.get());
+        }
+#if 0
+        operator ktxTexture1*() const {
+            return reinterpret_cast<ktxTexture1*>(m_ptr.get());
+        }
+#endif
         texture(texture&) = delete;
-        texture(texture&& other) = default;
+        texture(texture&&) = default;
 
         static texture createFromMemory(const emscripten::val& data)
         {
@@ -79,10 +108,23 @@ namespace ktx
             if (result != KTX_SUCCESS)
             {
                 std::cout << "ERROR: Failed to create from memory: " << ktxErrorString(result) << std::endl;
-                return texture(nullptr);
             }
-
             return texture(ptr);
+        }
+
+        texture createCopy()
+        {
+            if (m_ptr->classId != ktxTexture2_c)
+                 return texture(nullptr);
+
+            ktxTexture2* ptr = nullptr;
+            ktx_error_code_e result;
+            result = ktxTexture2_CreateCopy(ktxTexture2(m_ptr.get()), &ptr);
+            if (result != KTX_SUCCESS)
+            {
+                std::cout << "ERROR: Failed to copy construct: " << ktxErrorString(result) << std::endl;
+            }
+            return texture(ktxTexture(ptr));
         }
 
         ktx_error_code_e addKVPair(const std::string& key, const std::string& value)
@@ -615,19 +657,6 @@ namespace ktx
             }
         }
 #endif
-
-    private:
-        texture(ktxTexture* ptr)
-            : m_ptr{ ptr, &destroy }
-        {
-        }
-
-        static void destroy(ktxTexture* ptr)
-        {
-            ktxTexture_Destroy(ptr);
-        }
-
-        std::unique_ptr<ktxTexture, decltype(&destroy)> m_ptr;
     };
     //const std::string texture::AnimDataKey = KTX_ANIMDATA_KEY;
     //const std::string texture::OrientationKey = KTX_ORIENTATION_KEY;
@@ -970,10 +999,26 @@ EMSCRIPTEN_BINDINGS(ktx)
     ;
 
     class_<ktx::texture>("ktxTexture")
+        // Trying to make 2 constructors.
+        // This compiles but get runtime error "Cannot register multiple
+        // constructors with identical number of parameters (1) ...! Overload
+        // resolution is currently only performed using the parameter count,
+        // not actual type info!
+        //.constructor(&ktx::texture::createFromMemory)
+        //.constructor(&ktx::texture::createCopy)
+
+        // This gets compile errors.
+        //.constructor<const emscripten::val&>(&ktx::texture::createFromMemory)
+        //.constructor<const ktx::texture&>(&ktx::texture::createCopy)
+
+        // This too gets compile errors.
+        //.constructor(select_overload<const emscripten::val&>(ktx::texture::createFromMemory))
+        //.constructor(select_overload<const ktx::texture&>(ktx::texture::createCopy))
+
+        // So make second constructor a function.
         .constructor(&ktx::texture::createFromMemory)
-        //.class_function("createFromMemory", &ktx::texture::createFromMemory)
-        //.class_function("createFromMemory", &ktx::texture::createFromMemory)
-        // .property("data", &ktx::texture::getData)
+        .function("createCopy", &ktx::texture::createCopy)
+        //.constructor<ktx::texture&&>()
         .property("dataSize", &ktx::texture::getDataSize)
         .property("baseWidth", &ktx::texture::baseWidth)
         .property("baseHeight", &ktx::texture::baseHeight)
@@ -1042,7 +1087,7 @@ EMSCRIPTEN_BINDINGS(ktx)
       .property("generateMipmaps", &ktxTextureCreateInfo::generateMipmaps)
     ;
 
-    enum_<ktx_pack_astc_quality_levels_e>("AstcQualityLevels")
+    enum_<ktx_pack_astc_quality_levels_e>("AstcQualityLevel")
       .value("FASTEST", KTX_PACK_ASTC_QUALITY_LEVEL_FASTEST)
       .value("FAST", KTX_PACK_ASTC_QUALITY_LEVEL_FAST)
       .value("MEDIUM", KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM)
@@ -1056,31 +1101,31 @@ EMSCRIPTEN_BINDINGS(ktx)
  */
     enum_<ktx_pack_astc_block_dimension_e>("AstcBlockDimension")
       // 2D formats
-      .value("4x4", KTX_PACK_ASTC_BLOCK_DIMENSION_4x4) //: 8.00 bpp
-      .value("5x4", KTX_PACK_ASTC_BLOCK_DIMENSION_5x4) //: 6.40 bpp
-      .value("5x5", KTX_PACK_ASTC_BLOCK_DIMENSION_5x5) //: 5.12 bpp
-      .value("6x5", KTX_PACK_ASTC_BLOCK_DIMENSION_6x5) //: 4.27 bpp
-      .value("6x6", KTX_PACK_ASTC_BLOCK_DIMENSION_6x6) //: 3.56 bpp
-      .value("8x5", KTX_PACK_ASTC_BLOCK_DIMENSION_8x5) //: 3.20 bpp
-      .value("8x6", KTX_PACK_ASTC_BLOCK_DIMENSION_8x6) //: 2.67 bpp
-      .value("10x5", KTX_PACK_ASTC_BLOCK_DIMENSION_10x5) //: 2.56 bpp
-      .value("10x6", KTX_PACK_ASTC_BLOCK_DIMENSION_10x6) //: 2.13 bpp
-      .value("8x8", KTX_PACK_ASTC_BLOCK_DIMENSION_8x8) //: 2.00 bpp
-      .value("10x8", KTX_PACK_ASTC_BLOCK_DIMENSION_10x8) //: 1.60 bpp
-      .value("10x10", KTX_PACK_ASTC_BLOCK_DIMENSION_10x10) //: 1.28 bpp
-      .value("12x10", KTX_PACK_ASTC_BLOCK_DIMENSION_12x10) //: 1.07 bpp
-      .value("12x12", KTX_PACK_ASTC_BLOCK_DIMENSION_12x12) //: 0.89 bpp
+      .value("d4x4", KTX_PACK_ASTC_BLOCK_DIMENSION_4x4) //: 8.00 bpp
+      .value("d5x4", KTX_PACK_ASTC_BLOCK_DIMENSION_5x4) //: 6.40 bpp
+      .value("d5x5", KTX_PACK_ASTC_BLOCK_DIMENSION_5x5) //: 5.12 bpp
+      .value("d6x5", KTX_PACK_ASTC_BLOCK_DIMENSION_6x5) //: 4.27 bpp
+      .value("d6x6", KTX_PACK_ASTC_BLOCK_DIMENSION_6x6) //: 3.56 bpp
+      .value("d8x5", KTX_PACK_ASTC_BLOCK_DIMENSION_8x5) //: 3.20 bpp
+      .value("d8x6", KTX_PACK_ASTC_BLOCK_DIMENSION_8x6) //: 2.67 bpp
+      .value("d10x5", KTX_PACK_ASTC_BLOCK_DIMENSION_10x5) //: 2.56 bpp
+      .value("d10x6", KTX_PACK_ASTC_BLOCK_DIMENSION_10x6) //: 2.13 bpp
+      .value("d8x8", KTX_PACK_ASTC_BLOCK_DIMENSION_8x8) //: 2.00 bpp
+      .value("d10x8", KTX_PACK_ASTC_BLOCK_DIMENSION_10x8) //: 1.60 bpp
+      .value("d10x10", KTX_PACK_ASTC_BLOCK_DIMENSION_10x10) //: 1.28 bpp
+      .value("d12x10", KTX_PACK_ASTC_BLOCK_DIMENSION_12x10) //: 1.07 bpp
+      .value("d12x12", KTX_PACK_ASTC_BLOCK_DIMENSION_12x12) //: 0.89 bpp
       // 3D formats
-      .value("3x3x3", KTX_PACK_ASTC_BLOCK_DIMENSION_3x3x3) //: 4.74 bpp
-      .value("4x3x3", KTX_PACK_ASTC_BLOCK_DIMENSION_4x3x3) //: 3.56 bpp
-      .value("4x4x3", KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x3) //: 2.67 bpp
-      .value("4x4x4", KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x4) //: 2.00 bpp
-      .value("5x4x4", KTX_PACK_ASTC_BLOCK_DIMENSION_5x4x4) //: 1.60 bpp
-      .value("5x5x4", KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x4) //: 1.28 bpp
-      .value("5x5x5", KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x5) //: 1.02 bpp
-      .value("6x5x5", KTX_PACK_ASTC_BLOCK_DIMENSION_6x5x5) //: 0.85 bpp
-      .value("6x6x5", KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x5) //: 0.71 bpp
-      .value("6x6x6", KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x6) //: 0.59 bpp
+      .value("d3x3x3", KTX_PACK_ASTC_BLOCK_DIMENSION_3x3x3) //: 4.74 bpp
+      .value("d4x3x3", KTX_PACK_ASTC_BLOCK_DIMENSION_4x3x3) //: 3.56 bpp
+      .value("d4x4x3", KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x3) //: 2.67 bpp
+      .value("d4x4x4", KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x4) //: 2.00 bpp
+      .value("d5x4x4", KTX_PACK_ASTC_BLOCK_DIMENSION_5x4x4) //: 1.60 bpp
+      .value("d5x5x4", KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x4) //: 1.28 bpp
+      .value("d5x5x5", KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x5) //: 1.02 bpp
+      .value("d6x5x5", KTX_PACK_ASTC_BLOCK_DIMENSION_6x5x5) //: 0.85 bpp
+      .value("d6x6x5", KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x5) //: 0.71 bpp
+      .value("d6x6x6", KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x6) //: 0.59 bpp
     ;
 
     enum_<ktx_pack_astc_encoder_mode_e>("AstcMode")
