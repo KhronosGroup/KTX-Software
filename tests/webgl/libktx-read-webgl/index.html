@@ -51,7 +51,10 @@
                   LIBKTX_READ.GL.createContext(document.getElementById("glcanvas"),
                                           { majorVersion: 2.0 })
                   );
-      texture = loadTexture(gl, 'ktx_app_basis.ktx2');
+      //texture = loadTexture(gl, 'ktx_app_basis.ktx2');
+      loadTexture(gl, 'ktx_app_basis.ktx2');
     });
+    texture = createPlaceholderTexture(gl, [0, 0, 255, 255]);
+    gl.bindTexture(texture.target, texture.object);
   </script>
 </html>

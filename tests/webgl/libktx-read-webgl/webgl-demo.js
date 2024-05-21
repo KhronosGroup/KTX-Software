@@ -19,8 +19,6 @@ var etcSupported = false;
 var dxtSupported = false;
 var pvrtcSupported = false;
 
-const uvMatrix = mat3.create();
-
 main();
 
 //
@@ -334,20 +332,73 @@ function elem(id) {
   return document.getElementById(id);
 }
 
-function loadTexture(gl, url)
-{
-  // Because images have to be downloaded over the internet
-  // they might take a moment until they are ready. Until
-  // then temporarily fill the texture with a single pixel image
-  // so we can use it immediately. When the image has finished
-  // downloading we'll update texture to the new contents
+// Upload content of a ktxTexture to WebGL.
+//
+// Returns the created WebGL texture object and texture target.
+//
+// Must be called AFTER the LIBKTX_READ module is loaded as `glUpload`
+// needs Emscripten's OpenGL ES emulation.
+async function uploadTextureToGl(gl, ktexture) {
+  //LIBKTX_READ(preinitializedWebGLContext: gl}).then(function(module) {
+  const { ktxTexture, TranscodeTarget } = LIBKTX_READ;
+  var formatString;
 
+  if (ktexture.needsTranscoding) {
+    var format;
+    if (astcSupported) {
+      formatString = 'ASTC';
+      format = TranscodeTarget.ASTC_4x4_RGBA;
+    } else if (dxtSupported) {
+      formatString = ktexture.numComponents == 4 ? 'BC3' : 'BC1';
+      format = TranscodeTarget.BC1_OR_3;
+    } else if (pvrtcSupported) {
+      formatString = 'PVRTC1';
+      format = TranscodeTarget.PVRTC1_4_RGBA;
+    } else if (etcSupported) {
+      formatString = 'ETC';
+      format = TranscodeTarget.ETC;
+    } else {
+      formatString = 'RGBA4444';
+      format = TranscodeTarget.RGBA4444;
+    }
+    if (ktexture.transcodeBasis(format, 0) != LIBKTX_READ.ErrorCode.SUCCESS) {
+        alert('Texture transcode failed. See console for details.');
+        return undefined;
+    }
+  }
+
+  const result = ktexture.glUpload();
+  if (result.error != gl.NO_ERROR) {
+    alert('WebGL error when uploading texture, code = '
+          + result.error.toString(16));
+    return undefined;
+  }
+  if (result.object === undefined) {
+    alert('Texture upload failed. See console for details.');
+    return undefined;
+  }
+  if (result.target != gl.TEXTURE_2D) {
+    alert('Loaded texture is not a TEXTURE2D.');
+    return undefined;
+  }
+
+  return {
+    target: result.target,
+    object: result.object,
+    format: formatString,
+    uvMatrix: null
+  }
+  //});
+}
+
+function createPlaceholderTexture(gl, color)
+{
 //  // Must create texture via Emscripten so it knows of it.
 //  var texName;
-//  LIBKTX_READ.GL._glGenTextures(1, texName);
-//  texture = LIBKTX_READ.GL.textures[texName];
+//  LIBKTX.GL._glGenTextures(1, texName);
+//  texture = LIBKTX.GL.objects[texName];
   // Since it doesn't seem possible to get the above to work
-  // use a placeholder texture object to hold the temporary
+  // use a placeholder WebGLTexture object for a temporary
   // image.
   const placeholder = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, placeholder);
@@ -359,86 +410,92 @@ function loadTexture(gl, url)
   const border = 0;
   const srcFormat = gl.RGBA;
   const srcType = gl.UNSIGNED_BYTE;
-  const pixel = new Uint8Array([0, 0, 255, 255]);  // opaque blue
+  const pixel = new Uint8Array(color);
+  //const pixel = new Uint8Array([0, 0, 255, 255]);  // opaque blue
+
   gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
                 width, height, border, srcFormat, srcType,
                 pixel);
+  return {
+    target: gl.TEXTURE_2D,
+    object: placeholder,
+    format: "",
+    uvMatrix: mat3.create()
+  };
+}
+
+//
+// Sets the uvMatrix for a texture.
+//
+// The WebGL texture object is expected to have been created from the
+// content of the ktxTexture object. The matrix is adjusted according
+// to the orientation in the ktxTexture object.
+//
+async function setUVMatrix(texture, inMatrix, ktexture) {
+  const { OrientationX, OrientationY } = LIBKTX_READ;
+  texture.uvMatrix = inMatrix;
+  if (ktexture.orientation.x == OrientationX.LEFT) {
+      mat3.translate(texture.uvMatrix, texture.uvMatrix, [1.0, 0.0]);
+      mat3.scale(texture.uvMatrix, texture.uvMatrix, [-1.0, 1.0]);
+  }
+  if (ktexture.orientation.y == OrientationY.DOWN) {
+      mat3.translate(texture.uvMatrix, texture.uvMatrix, [0.0, 1.0]);
+      mat3.scale(texture.uvMatrix, texture.uvMatrix, [1.0, -1.0]);
+  }
+}
+
+//
+// Binds a texture and sets suitable texture parameters.
+//
+// The WebGL texture object is expected to have been created from the
+// content of the ktxTexture object.
+//
+function setTexParameters(texture, ktexture) {
+  gl.bindTexture(texture.target, texture.object);
+
+  if (ktexture.numLevels > 1 || ktexture.generateMipmaps)
+     // Enable bilinear mipmapping.
+     gl.texParameteri(texture.target,
+                      gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+  else
+    gl.texParameteri(texture.target, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(texture.target, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+}
+
+function loadTexture(gl, url)
+{
+  // Because images have to be downloaded over the internet
+  // they might take a moment until they are ready. Until
+  // then temporarily fill the texture with a single pixel image
+  // so we can use it immediately. When the image has finished
+  // downloading we'll update texture to the new contents
+
+//  const placeholder = createPlaceholderTexture(gl, [0, 0, 255, 255]);
+
+//  gl.bindTexture(placeholder.target, placeholder.object);
 
   var xhr = new XMLHttpRequest();
   xhr.open('GET', url);
   xhr.responseType = "arraybuffer";
-  xhr.onload = function(){
+  xhr.onload = async function(){
     const { ktxTexture, TranscodeTarget, OrientationX, OrientationY } = LIBKTX_READ;
     var ktxdata = new Uint8Array(this.response);
     ktexture = new ktxTexture(ktxdata);
-
-    if (ktexture.needsTranscoding) {
-      var formatString;
-      var format;
-      if (astcSupported) {
-        formatString = 'ASTC';
-        format = TranscodeTarget.ASTC_4x4_RGBA;
-      } else if (dxtSupported) {
-        formatString = ktexture.numComponents == 4 ? 'BC3' : 'BC1';
-        format = TranscodeTarget.BC1_OR_3;
-      } else if (pvrtcSupported) {
-        formatString = 'PVRTC1';
-        format = TranscodeTarget.PVRTC1_4_RGBA;
-      } else if (etcSupported) {
-        formatString = 'ETC';
-        format = TranscodeTarget.ETC;
-      } else {
-        formatString = 'RGBA4444';
-        format = TranscodeTarget.RGBA4444;
-      }
-      if (ktexture.transcodeBasis(format, 0) != LIBKTX_READ.ErrorCode.SUCCESS) {
-          alert('Texture transcode failed. See console for details.');
-          return undefined;
-      }
-      elem('format').innerText = formatString;
-    }
-
-    const result = ktexture.glUpload();
-    const {target, error} = result;
-    texture = result.texture;
-    if (error != gl.NO_ERROR) {
-      alert('WebGL error when uploading texture, code = ' + error.toString(16));
-      return undefined;
-    }
-    if (texture === undefined) {
-      alert('Texture upload failed. See console for details.');
-      return undefined;
-    }
-    if (target != gl.TEXTURE_2D) {
-      alert('Loaded texture is not a TEXTURE2D.');
-      return undefined;
-    }
-
-    gl.bindTexture(target, texture);
-    gl.deleteTexture(placeholder);
-
-    if (ktexture.numLevels > 1 || ktexture.generateMipmaps)
-       // Enable bilinear mipmapping.
-       gl.texParameteri(target,
-                        gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-    else
-      gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-
-    if (ktexture.orientation.x == OrientationX.LEFT) {
-        mat3.translate(uvMatrix, uvMatrix, [1.0, 0.0]);
-        mat3.scale(uvMatrix, uvMatrix, [-1.0, 1.0]);
-    }
-    if (ktexture.orientation.y == OrientationY.DOWN) {
-        mat3.translate(uvMatrix, uvMatrix, [0.0, 1.0]);
-        mat3.scale(uvMatrix, uvMatrix, [1.0, -1.0]);
-    }
+    const tex = await uploadTextureToGl(gl, ktexture);
+    setUVMatrix(tex, mat3.create(), ktexture);
+    setTexParameters(tex, ktexture);
+    gl.bindTexture(tex.target, tex.object);
+    gl.deleteTexture(texture.object);
+    texture = tex;
+    elem('format').innerText = tex.format;
     ktexture.delete();
   };
+
   //xhr.onprogress = runProgress;
   //xhr.onloadstart = openProgress;
   xhr.send();
-  return placeholder;
+
+  //return placeholder;
 }
 
 function isPowerOf2(value) {
@@ -593,7 +650,7 @@ function drawScene(gl, programInfo, buffers, texture, deltaTime) {
   gl.uniformMatrix3fv(
     programInfo.uniformLocations.uvMatrix,
     false,
-    uvMatrix);
+    texture.uvMatrix);
 
   // Specify the texture to map onto the faces.
 
@@ -601,7 +658,7 @@ function drawScene(gl, programInfo, buffers, texture, deltaTime) {
   gl.activeTexture(gl.TEXTURE0);
 
   // Bind the texture to texture unit 0
-  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.bindTexture(texture.target, texture.object);
 
   // Tell the shader we bound the texture to texture unit 0
   gl.uniform1i(programInfo.uniformLocations.uSampler, 0);

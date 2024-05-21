@@ -349,8 +349,8 @@ namespace ktx
 
             val ret = val::object();
             // Find the WebGLTexture for texture.
-            val texture = val::module_property("GL")["textures"][texname];
-            ret.set("texture", texture);
+            val texObject = val::module_property("GL")["textures"][texname];
+            ret.set("object", texObject);
             ret.set("target", target);
             ret.set("error", error);
             return ret;

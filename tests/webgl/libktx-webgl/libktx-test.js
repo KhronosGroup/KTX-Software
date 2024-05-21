@@ -199,7 +199,7 @@ function main() {
       // Tell WebGL we want to affect texture unit 0
       gl.activeTexture(gl.TEXTURE0);
       // Bind the texture to texture unit 0
-      gl.bindTexture(texture.target, texture.texture);
+      gl.bindTexture(texture.target, texture.object);
 
       // Create a perspective projection matrix.
       // Our field of view is 45 degrees, with a width/height
@@ -415,11 +415,13 @@ function elem(id) {
 }
 
 // Upload content of a ktxTexture to WebGL.
-// Sets texture parameters suitable for the loaded texture, which requires
-// binding and unbinding the texture.
+//
 // Returns the created WebGL texture object and texture target.
+//
+// Must be called AFTER the LIBKTX_READ module is loaded as `glUpload`
+// needs Emscripten's OpenGL ES emulation.
 function uploadTextureToGl(gl, ktexture) {
-  const { ktxTexture, TranscodeTarget, OrientationX, OrientationY } = LIBKTX;
+  const { ktxTexture, TranscodeTarget  } = LIBKTX;
   var formatString;
 
   if (ktexture.needsTranscoding) {
@@ -444,41 +446,28 @@ function uploadTextureToGl(gl, ktexture) {
         alert('Texture transcode failed. See console for details.');
         return undefined;
     }
-//    elem('format').innerText = formatString;
   }
 
   const result = ktexture.glUpload();
-  const {target, error} = result;
-  const texture = result.texture;
-  if (error != gl.NO_ERROR) {
-    alert('WebGL error when uploading texture, code = ' + error.toString(16));
+  if (result.error != gl.NO_ERROR) {
+    alert('WebGL error when uploading texture, code = '
+          + result.error.toString(16));
     return undefined;
   }
-  if (texture === undefined) {
+  if (result.object === undefined) {
     alert('Texture upload failed. See console for details.');
     return undefined;
   }
-  if (target != gl.TEXTURE_2D) {
+  if (result.target != gl.TEXTURE_2D) {
     alert('Loaded texture is not a TEXTURE2D.');
     return undefined;
   }
 
-  gl.bindTexture(target, texture);
-
-  if (ktexture.numLevels > 1 || ktexture.generateMipmaps)
-     // Enable bilinear mipmapping.
-     gl.texParameteri(target,
-                      gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-  else
-    gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-
-  //gl.bindTexture(target);
-
   return {
-    texture: texture,
-    target: target,
-    format: formatString
+    target: result.target,
+    object: result.object,
+    format: formatString,
+    uvMatrix: null
   }
 }
 
@@ -509,44 +498,41 @@ function createPlaceholderTexture(gl, color)
                 pixel);
   return {
     target: gl.TEXTURE_2D,
-    texture: placeholder,
+    object: placeholder,
+    format: "",
     uvMatrix: mat3.create()
   };
 }
 
-// Not currently used. Kept in case loading an external texture
-// is needed again.
-function loadTexture(gl, url)
-{
-  // Because images have to be downloaded over the internet
-  // they might take a moment until they are ready. Until
-  // then temporarily fill the texture with a single pixel image
-  // so we can use it immediately. When the image has finished
-  // downloading we'll update texture to the new contents
+async function setUVMatrix(texture, inMatrix, ktexture) {
+  const { OrientationX, OrientationY } = LIBKTX;
+  texture.uvMatrix = inMatrix;
+  if (ktexture.orientation.x == OrientationX.LEFT) {
+      mat3.translate(texture.uvMatrix, texture.uvMatrix, [1.0, 0.0]);
+      mat3.scale(texture.uvMatrix, texture.uvMatrix, [-1.0, 1.0]);
+  }
+  if (ktexture.orientation.y == OrientationY.DOWN) {
+      mat3.translate(texture.uvMatrix, texture.uvMatrix, [0.0, 1.0]);
+      mat3.scale(texture.uvMatrix, texture.uvMatrix, [1.0, -1.0]);
+  }
+}
 
-  const placeholder = createPlaceholderTexture(gl, [0, 0, 255, 255]);
+//
+// Binds a texture and sets suitable texture parameters.
+//
+// The WebGL texture object is expected to have been created from the
+// content of the ktxTexture object.
+//
+function setTexParameters(texture, ktexture) {
+  gl.bindTexture(texture.target, texture.object);
 
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', url);
-  xhr.responseType = "arraybuffer";
-  xhr.onload = function(){
-    const { ktxTexture, TranscodeTarget, OrientationX, OrientationY } = LIBKTX;
-    var ktxdata = new Uint8Array(this.response);
-    ktexture = new ktxTexture(ktxdata);
-
-    const result = uploadTextureToGl(gl, ktexture);
-    const { target, texture, format } = result;
-
-    updateItem(items[2], ktexture, texture, target);
-
-    elem('format').innerText = format;
-    ktexture.delete();
-  };
-  //xhr.onprogress = runProgress;
-  //xhr.onloadstart = openProgress;
-  xhr.send();
-
-  return placeholder
+  if (ktexture.numLevels > 1 || ktexture.generateMipmaps)
+     // Enable bilinear mipmapping.
+     gl.texParameteri(texture.target,
+                      gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+  else
+    gl.texParameteri(texture.target, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(texture.target, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 }
 
 function isPowerOf2(value) {
@@ -738,22 +724,11 @@ function loadShader(gl, type, source) {
   return shader;
 }
 
-async function updateItem(item, ktexture, texture, target) {
+async function updateItem(item, texture) {
   const { ktxTexture, ktxBasisParams, SupercmpScheme, TranscodeTarget, OrientationX, OrientationY } = LIBKTX;
 
-  gl.deleteTexture(item.texture.texture);
-  item.texture.target = target;
-  item.texture.texture = texture;
-  uvMatrix = mat3.create();
-  if (ktexture.orientation.x == OrientationX.LEFT) {
-      mat3.translate(uvMatrix, uvMatrix, [1.0, 0.0]);
-      mat3.scale(uvMatrix, uvMatrix, [-1.0, 1.0]);
-  }
-  if (ktexture.orientation.y == OrientationY.DOWN) {
-      mat3.translate(uvMatrix, uvMatrix, [0.0, 1.0]);
-      mat3.scale(uvMatrix, uvMatrix, [1.0, -1.0]);
-  }
-  item.texture.uvMatrix = uvMatrix;
+  gl.deleteTexture(item.texture.object);
+  item.texture =texture;
 }
 
 function arraysEqual(a, b) {
@@ -947,20 +922,22 @@ async function runTests(filename) {
     await testWriteReadMetadata(ktexture);
 
     const texture = await uploadTextureToGl(gl, ktexture);
-    updateItem(items[uncompTextureItem], ktexture,
-                     texture.texture, texture.target);
+    setUVMatrix(texture, mat3.create(), ktexture);
+    setTexParameters(texture, ktexture);
+    updateItem(items[uncompTextureItem], texture);
 
     testGetImage(ktexture, imageData);
 
     const ktextureCopy = await testCreateCopy(ktexture);
     const textureCopy = await uploadTextureToGl(gl, ktextureCopy);
-    updateItem(items[copyTextureItem], ktextureCopy,
-                     textureCopy.texture, textureCopy.target);
+    setUVMatrix(textureCopy, mat3.create(), ktextureCopy);
+    updateItem(items[copyTextureItem], textureCopy);
 
     await testEncodeBasis(ktexture);
     textureComp = await uploadTextureToGl(gl, ktexture);
-    updateItem(items[basisCompTextureItem], ktexture,
-               textureComp.texture, textureComp.target);
+    setUVMatrix(textureComp, mat3.create(), ktexture);
+    setTexParameters(texture, ktexture);
+    updateItem(items[basisCompTextureItem], textureComp);
     items[basisCompTextureItem].label.textContent +=
                " transcoded to " + textureComp.format;
 
@@ -969,8 +946,9 @@ async function runTests(filename) {
     await testEncodeAstc(ktextureCopy);
     if (astcSupported) {
       textureAstc = await uploadTextureToGl(gl, ktextureCopy);
-      updateItem(items[astcCompTextureItem], ktextureCopy,
-                 textureAstc.texture, textureAstc.target);
+      setUVMatrix(textureAstc, mat3.create(), ktextureCopy);
+      setTexParameters(texture, ktexture);
+      updateItem(items[astcCompTextureItem], textureAstc);
     } else {
       items[astcCompTextureItem].label.textContent +=
                  " not displayed. This device does not support WEBGL_compressed_texture_astc."
