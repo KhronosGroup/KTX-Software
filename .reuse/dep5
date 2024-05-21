@@ -71,7 +71,7 @@ License: Apache-2.0
 
 Files: external/etcdec/etcdec.cxx
 Copyright: 2013 Ericsson AB
-License: LicenseRef-Ericsson
+License: LicenseRef-ETCSLA
 
 Files: external/fmt/*
 Copyright: 2012-present Victor Zverovich and {fmt} contributors
@@ -213,10 +213,11 @@ Files: the_khronos_group_inc.p12.enc
 Copyright: 2022 The Khronos Group Inc.
 License: Apache-2.0
 
-Files: other_projects/fmt/*
-Copyright: 2012 - present Victor Zverovich
-License: MIT
-
 Files: external/cxxopts/*
 Copyright: 2014-2022 Jarryd Beck
 License: MIT
+
+Files: NOTICE.md
+Copyright: 2024 The Khronos Group Inc.
+License: Apache-2.0
+
