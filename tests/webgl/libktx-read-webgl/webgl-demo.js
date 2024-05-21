@@ -395,8 +395,8 @@ function createPlaceholderTexture(gl, color)
 {
 //  // Must create texture via Emscripten so it knows of it.
 //  var texName;
-//  LIBKTX.GL._glGenTextures(1, texName);
-//  texture = LIBKTX.GL.objects[texName];
+//  LIBKTX_READ.GL._glGenTextures(1, texName);
+//  texture = LIBKTX_READ.GL.textures[texName];
   // Since it doesn't seem possible to get the above to work
   // use a placeholder WebGLTexture object for a temporary
   // image.
@@ -411,7 +411,6 @@ function createPlaceholderTexture(gl, color)
   const srcFormat = gl.RGBA;
   const srcType = gl.UNSIGNED_BYTE;
   const pixel = new Uint8Array(color);
-  //const pixel = new Uint8Array([0, 0, 255, 255]);  // opaque blue
 
   gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
                 width, height, border, srcFormat, srcType,
