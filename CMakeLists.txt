@@ -934,7 +934,7 @@ if(EMSCRIPTEN)
         ktx_js
     PUBLIC
         ${KTX_EMC_LINK_FLAGS}
-        "SHELL:-s EXPORT_NAME=LIBKTX"
+        "SHELL:-s EXPORT_NAME=createKtxModule"
         "SHELL:-s EXPORTED_RUNTIME_METHODS=[\'GL\']"
         "SHELL:-s GL_PREINITIALIZED_CONTEXT=1"
     )
@@ -971,7 +971,7 @@ if(EMSCRIPTEN)
         ktx_js_read
     PUBLIC
         ${KTX_EMC_LINK_FLAGS}
-        "SHELL:-s EXPORT_NAME=LIBKTX_READ"
+        "SHELL:-s EXPORT_NAME=createKtxReadModule"
         "SHELL:-s EXPORTED_RUNTIME_METHODS=[\'GL\']"
         "SHELL:-s GL_PREINITIALIZED_CONTEXT=1"
     )

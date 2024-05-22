@@ -93,8 +93,8 @@
       ktxTexture2 object. The operations are shown in the list below.
       </p>
     </div>
-    <p id="image_ktx">
-      <input type="button" value="Run Tests"
+    <p id="test_ktx">
+      <input type="button" value="Run Tests" id='runtests' disabled='true'
              onclick="runTests('ktx_app.png')">
     </p>
     <p>Create uncompressed ktxTexture2 test: <b id='create_result'></b></p>
@@ -116,15 +116,6 @@
   <script src="../libktx.js"></script>
   <script src="libktx-test.js"></script>
   <script type="text/javascript">
-    LIBKTX({preinitializedWebGLContext: gl}).then(module => {
-      window.LIBKTX = module;
-      // Make existing WebGL context current for Emscripten OpenGL.
-      LIBKTX.GL.makeContextCurrent(
-                  LIBKTX.GL.createContext(document.getElementById("glcanvas"),
-                                          { majorVersion: 2.0 })
-                  );
-    });
-
     function createElem(type, parent, className) {
       const elem = document.createElement(type);
       parent.appendChild(elem);

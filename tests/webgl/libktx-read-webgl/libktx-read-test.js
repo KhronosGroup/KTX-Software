@@ -23,7 +23,6 @@ var pvrtcSupported = false;
 //
 // Start here
 //
-
 const canvas = document.querySelector('#glcanvas');
 gl = canvas.getContext('webgl2');
 
@@ -31,11 +30,11 @@ gl = canvas.getContext('webgl2');
 if (!gl) {
   alert('Unable to initialize WebGL. Your browser or machine may not support it.');
 } else {
-  LIBKTX_READ({preinitializedWebGLContext: gl}).then(module => {
-    window.LIBKTX_READ = module;
+  createKtxReadModule({preinitializedWebGLContext: gl}).then(instance => {
+    window.ktxRead = instance;
     // Make existing WebGL context current for Emscripten OpenGL.
-    LIBKTX_READ.GL.makeContextCurrent(
-                LIBKTX_READ.GL.createContext(document.getElementById("glcanvas"),
+    ktxRead.GL.makeContextCurrent(
+                ktxRead.GL.createContext(document.getElementById("glcanvas"),
                                         { majorVersion: 2.0 })
                 );
     main()
@@ -349,7 +348,7 @@ function elem(id) {
 //
 // needs Emscripten's OpenGL ES emulation.
 function uploadTextureToGl(gl, ktexture) {
-  const { ktxTexture, TranscodeTarget } = LIBKTX_READ;
+  const { ktxTexture, TranscodeTarget } = ktxRead;
   var formatString;
 
   if (ktexture.needsTranscoding) {
@@ -370,7 +369,7 @@ function uploadTextureToGl(gl, ktexture) {
       formatString = 'RGBA4444';
       format = TranscodeTarget.RGBA4444;
     }
-    if (ktexture.transcodeBasis(format, 0) != LIBKTX_READ.ErrorCode.SUCCESS) {
+    if (ktexture.transcodeBasis(format, 0) != ktxRead.ErrorCode.SUCCESS) {
         alert('Texture transcode failed. See console for details.');
         return undefined;
     }
@@ -403,8 +402,8 @@ function createPlaceholderTexture(gl, color)
 {
 //  // Must create texture via Emscripten so it knows of it.
 //  var texName;
-//  LIBKTX_READ.GL._glGenTextures(1, texName);
-//  texture = LIBKTX_READ.GL.textures[texName];
+//  ktxRead.GL._glGenTextures(1, texName);
+//  texture = ktxRead.GL.textures[texName];
   // Since it doesn't seem possible to get the above to work
   // use a placeholder WebGLTexture object for a temporary
   // image.
@@ -439,7 +438,7 @@ function createPlaceholderTexture(gl, color)
 // to the orientation in the ktxTexture object.
 //
 function setUVMatrix(texture, inMatrix, ktexture) {
-  const { OrientationX, OrientationY } = LIBKTX_READ;
+  const { OrientationX, OrientationY } = ktxRead;
   texture.uvMatrix = inMatrix;
   if (ktexture.orientation.x == OrientationX.LEFT) {
       mat3.translate(texture.uvMatrix, texture.uvMatrix, [1.0, 0.0]);
@@ -484,7 +483,7 @@ function loadTexture(gl, url)
   xhr.open('GET', url);
   xhr.responseType = "arraybuffer";
   xhr.onload = function(){
-    const { ktxTexture, TranscodeTarget, OrientationX, OrientationY } = LIBKTX_READ;
+    const { ktxTexture, TranscodeTarget, OrientationX, OrientationY } = ktxRead;
     var ktxdata = new Uint8Array(this.response);
     ktexture = new ktxTexture(ktxdata);
     const tex = uploadTextureToGl(gl, ktexture);

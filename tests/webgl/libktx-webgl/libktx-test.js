@@ -1,5 +1,6 @@
 /*
  * Copyright 2015-2020 MDN Contributors
+ * Copyright 2024 Mark Callow
  * SPDX-License-Identifier: CC0-1.0
  */
 
@@ -8,7 +9,7 @@ This code originated from sample 7 in the MDN WebGL examples
 at https://github.com/mdn/webgl-examples which is licensed
 under Creative Commons Zero v1.0 Universal. It has been
 extensively modified to create a test for the JS wrapper
-for libkttx. Modifications are also licensed under CC0v1.
+for libktx. Modifications are also licensed under CC0v1.
 */
 
 var cubeRotation = 0.0;
@@ -19,21 +20,30 @@ var etcSupported = false;
 var dxtSupported = false;
 var pvrtcSupported = false;
 
-main();
-
 //
 // Start here
 //
+const canvas = document.querySelector('#glcanvas');
+gl = canvas.getContext('webgl2');
+
+// If we don't have a GL context, give up now
+if (!gl) {
+  alert('Unable to initialize WebGL. Your browser or machine may not support it.');
+} else {
+  createKtxModule({preinitializedWebGLContext: gl}).then(instance => {
+    window.ktx = instance;
+    // Make existing WebGL context current for Emscripten OpenGL.
+    ktx.GL.makeContextCurrent(
+                ktx.GL.createContext(document.getElementById("glcanvas"),
+                                        { majorVersion: 2.0 })
+                );
+    main()
+  });
+}
+
 function main() {
-  const canvas = document.querySelector('#glcanvas');
-  gl = canvas.getContext('webgl2');
 
-  // If we don't have a GL context, give up now
-
-  if (!gl) {
-    alert('Unable to initialize WebGL. Your browser or machine may not support it.');
-    return;
-  }
+  elem('runtests').disabled = false;
 
   astcSupported = !!gl.getExtension('WEBGL_compressed_texture_astc');
   etcSupported = !!gl.getExtension('WEBGL_compressed_texture_etc1');
@@ -418,10 +428,10 @@ function elem(id) {
 //
 // Returns the created WebGL texture object and texture target.
 //
-// Must be called AFTER the LIBKTX_READ module is loaded as `glUpload`
+// Must be called AFTER the ktx_READ module is loaded as `glUpload`
 // needs Emscripten's OpenGL ES emulation.
 function uploadTextureToGl(gl, ktexture) {
-  const { ktxTexture, TranscodeTarget  } = LIBKTX;
+  const { ktxTexture, TranscodeTarget  } = ktx;
   var formatString;
 
   if (ktexture.needsTranscoding) {
@@ -442,7 +452,7 @@ function uploadTextureToGl(gl, ktexture) {
       formatString = 'RGBA4444';
       format = TranscodeTarget.RGBA4444;
     }
-    if (ktexture.transcodeBasis(format, 0) != LIBKTX.ErrorCode.SUCCESS) {
+    if (ktexture.transcodeBasis(format, 0) != ktx.ErrorCode.SUCCESS) {
         alert('Texture transcode failed. See console for details.');
         return undefined;
     }
@@ -475,8 +485,8 @@ function createPlaceholderTexture(gl, color)
 {
 //  // Must create texture via Emscripten so it knows of it.
 //  var texName;
-//  LIBKTX.GL._glGenTextures(1, texName);
-//  texture = LIBKTX.GL.textures[texName];
+//  ktx.GL._glGenTextures(1, texName);
+//  texture = ktx.GL.textures[texName];
   // Since it doesn't seem possible to get the above to work
   // use a placeholder WebGLTexture object to hold the temporary
   // image.
@@ -504,7 +514,7 @@ function createPlaceholderTexture(gl, color)
 }
 
 async function setUVMatrix(texture, inMatrix, ktexture) {
-  const { OrientationX, OrientationY } = LIBKTX;
+  const { OrientationX, OrientationY } = ktx;
   texture.uvMatrix = inMatrix;
   if (ktexture.orientation.x == OrientationX.LEFT) {
       mat3.translate(texture.uvMatrix, texture.uvMatrix, [1.0, 0.0]);
@@ -724,7 +734,7 @@ function loadShader(gl, type, source) {
 }
 
 async function updateItem(item, texture) {
-  const { ktxTexture, ktxBasisParams, SupercmpScheme, TranscodeTarget, OrientationX, OrientationY } = LIBKTX;
+  const { ktxTexture, ktxBasisParams, SupercmpScheme, TranscodeTarget, OrientationX, OrientationY } = ktx;
 
   gl.deleteTexture(item.texture.object);
   item.texture =texture;
@@ -753,7 +763,7 @@ function showTestResult(id, pass) {
 async function testCreate(imageData) {
   const { ktxTexture, ktxBasisParams,
           ktxTextureCreateInfo, VkFormat,
-          CreateStorageEnum, SupercmpScheme, ErrorCode } = LIBKTX;
+          CreateStorageEnum, SupercmpScheme, ErrorCode } = ktx;
   const basisu_options = new ktxBasisParams();
   const createInfo = new ktxTextureCreateInfo();
   const colorSpace = imageData.colorSpace;
@@ -785,15 +795,15 @@ async function testCreate(imageData) {
     showTestResult('copy_image_result', result == ErrorCode.SUCCESS);
     if (result == ErrorCode.SUCCESS) {
       if (displayP3) {
-        ktexture.setOETF(LIBKTX.dfTransfer.DISPLAYP3);
-        ktexture.setOETF(LIBKTX.dfPrimaries.DISPLAYP3);
+        ktexture.setOETF(ktx.dfTransfer.DISPLAYP3);
+        ktexture.setOETF(ktx.dfPrimaries.DISPLAYP3);
       }
     }
   }
    return ktexture;
 }
 
-async function testWriteReadMetadata(ktexture) {
+function testWriteReadMetadata(ktexture) {
   const writer = "libktx-js-test";
   const orientation = "rd";
   ktexture.addKVPair(ktexture.orientationKey, orientation);
@@ -831,14 +841,14 @@ async function testGetImage(ktexture, imageData) {
 }
 
 async function testEncodeBasis(ktexture) {
-  const { ktxBasisParams, ErrorCode } = LIBKTX;
+  const { ktxBasisParams, ErrorCode } = ktx;
   const basisu_options = new ktxBasisParams();
 
   basisu_options.uastc = false;
   basisu_options.noSSE = true;
   basisu_options.verbose = false;
   basisu_options.qualityLevel = 200;
-  basisu_options.compressionLevel = LIBKTX.etc1SDefaultCompressionLevel;
+  basisu_options.compressionLevel = ktx.etc1SDefaultCompressionLevel;
 
   var result = ktexture.compressBasis(basisu_options);
 
@@ -846,7 +856,7 @@ async function testEncodeBasis(ktexture) {
 }
 
 async function testEncodeAstc(ktexture) {
-  const { ktxAstcParams, AstcBlockDimension, AstcMode, AstcQualityLevel, ErrorCode } = LIBKTX;
+  const { ktxAstcParams, AstcBlockDimension, AstcMode, AstcQualityLevel, ErrorCode } = ktx;
   const params = new ktxAstcParams();
 
   params.blockDimension = AstcBlockDimension.d4x4;
@@ -908,7 +918,6 @@ async function loadImage(src){
 }
 
 async function runTests(filename) {
-//  LIBKTX().then(function(Module) {
     const img = await loadImage(filename);
     const imageData = await loadImageData(img);
     console.log(img);
@@ -918,22 +927,22 @@ async function runTests(filename) {
     if (ktexture == null)
       return;
 
-    await testWriteReadMetadata(ktexture);
+    testWriteReadMetadata(ktexture);
 
     const texture = await uploadTextureToGl(gl, ktexture);
     setUVMatrix(texture, mat3.create(), ktexture);
     setTexParameters(texture, ktexture);
     updateItem(items[uncompTextureItem], texture);
 
-    testGetImage(ktexture, imageData);
+    await testGetImage(ktexture, imageData);
 
     const ktextureCopy = await testCreateCopy(ktexture);
-    const textureCopy = await uploadTextureToGl(gl, ktextureCopy);
+    const textureCopy = uploadTextureToGl(gl, ktextureCopy);
     setUVMatrix(textureCopy, mat3.create(), ktextureCopy);
     updateItem(items[copyTextureItem], textureCopy);
 
     await testEncodeBasis(ktexture);
-    textureComp = await uploadTextureToGl(gl, ktexture);
+    textureComp = uploadTextureToGl(gl, ktexture);
     setUVMatrix(textureComp, mat3.create(), ktexture);
     setTexParameters(texture, ktexture);
     updateItem(items[basisCompTextureItem], textureComp);
@@ -944,7 +953,7 @@ async function runTests(filename) {
 
     await testEncodeAstc(ktextureCopy);
     if (astcSupported) {
-      textureAstc = await uploadTextureToGl(gl, ktextureCopy);
+      textureAstc = uploadTextureToGl(gl, ktextureCopy);
       setUVMatrix(textureAstc, mat3.create(), ktextureCopy);
       setTexParameters(texture, ktexture);
       updateItem(items[astcCompTextureItem], textureAstc);
@@ -952,6 +961,5 @@ async function runTests(filename) {
       items[astcCompTextureItem].label.textContent +=
                  " not displayed. This device does not support WEBGL_compressed_texture_astc."
     }
-//  });
 }
 
