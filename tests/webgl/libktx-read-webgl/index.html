@@ -43,18 +43,4 @@
   <script src="../gl-matrix.js"></script>
   <script src="../libktx_read.js"></script>
   <script src="webgl-demo.js"></script>
-  <script type="text/javascript">
-    LIBKTX_READ({preinitializedWebGLContext: gl}).then(module => {
-      window.LIBKTX_READ = module;
-      // Make existing WebGL context current for Emscripten OpenGL.
-      LIBKTX_READ.GL.makeContextCurrent(
-                  LIBKTX_READ.GL.createContext(document.getElementById("glcanvas"),
-                                          { majorVersion: 2.0 })
-                  );
-      //texture = loadTexture(gl, 'ktx_app_basis.ktx2');
-      loadTexture(gl, 'ktx_app_basis.ktx2');
-    });
-    texture = createPlaceholderTexture(gl, [0, 0, 255, 255]);
-    gl.bindTexture(texture.target, texture.object);
-  </script>
 </html>

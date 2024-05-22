@@ -1,5 +1,6 @@
 /*
  * Copyright 2015-2020 MDN Contributors
+ * Copyright 2024 Mark Callow
  * SPDX-License-Identifier: CC0-1.0
  */
 
@@ -19,21 +20,31 @@ var etcSupported = false;
 var dxtSupported = false;
 var pvrtcSupported = false;
 
-main();
-
 //
 // Start here
 //
+
+const canvas = document.querySelector('#glcanvas');
+gl = canvas.getContext('webgl2');
+
+// If we don't have a GL context, give up now
+if (!gl) {
+  alert('Unable to initialize WebGL. Your browser or machine may not support it.');
+} else {
+  LIBKTX_READ({preinitializedWebGLContext: gl}).then(module => {
+    window.LIBKTX_READ = module;
+    // Make existing WebGL context current for Emscripten OpenGL.
+    LIBKTX_READ.GL.makeContextCurrent(
+                LIBKTX_READ.GL.createContext(document.getElementById("glcanvas"),
+                                        { majorVersion: 2.0 })
+                );
+    main()
+  });
+}
+
 function main() {
-  const canvas = document.querySelector('#glcanvas');
-  gl = canvas.getContext('webgl2');
 
-  // If we don't have a GL context, give up now
-
-  if (!gl) {
-    alert('Unable to initialize WebGL. Your browser or machine may not support it.');
-    return;
-  }
+  texture = loadTexture(gl, 'ktx_app_basis.ktx2');
 
   astcSupported = !!gl.getExtension('WEBGL_compressed_texture_astc');
   etcSupported = !!gl.getExtension('WEBGL_compressed_texture_etc1');
@@ -334,12 +345,10 @@ function elem(id) {
 
 // Upload content of a ktxTexture to WebGL.
 //
-// Returns the created WebGL texture object and texture target.
+// Returns the created WebGL texture object and matching texture target.
 //
-// Must be called AFTER the LIBKTX_READ module is loaded as `glUpload`
 // needs Emscripten's OpenGL ES emulation.
-async function uploadTextureToGl(gl, ktexture) {
-  //LIBKTX_READ(preinitializedWebGLContext: gl}).then(function(module) {
+function uploadTextureToGl(gl, ktexture) {
   const { ktxTexture, TranscodeTarget } = LIBKTX_READ;
   var formatString;
 
@@ -388,7 +397,6 @@ async function uploadTextureToGl(gl, ktexture) {
     format: formatString,
     uvMatrix: null
   }
-  //});
 }
 
 function createPlaceholderTexture(gl, color)
@@ -430,7 +438,7 @@ function createPlaceholderTexture(gl, color)
 // content of the ktxTexture object. The matrix is adjusted according
 // to the orientation in the ktxTexture object.
 //
-async function setUVMatrix(texture, inMatrix, ktexture) {
+function setUVMatrix(texture, inMatrix, ktexture) {
   const { OrientationX, OrientationY } = LIBKTX_READ;
   texture.uvMatrix = inMatrix;
   if (ktexture.orientation.x == OrientationX.LEFT) {
@@ -469,18 +477,17 @@ function loadTexture(gl, url)
   // so we can use it immediately. When the image has finished
   // downloading we'll update texture to the new contents
 
-//  const placeholder = createPlaceholderTexture(gl, [0, 0, 255, 255]);
-
-//  gl.bindTexture(placeholder.target, placeholder.object);
+  const placeholder = createPlaceholderTexture(gl, [0, 0, 255, 255]);
+  gl.bindTexture(placeholder.target, placeholder.object);
 
   var xhr = new XMLHttpRequest();
   xhr.open('GET', url);
   xhr.responseType = "arraybuffer";
-  xhr.onload = async function(){
+  xhr.onload = function(){
     const { ktxTexture, TranscodeTarget, OrientationX, OrientationY } = LIBKTX_READ;
     var ktxdata = new Uint8Array(this.response);
     ktexture = new ktxTexture(ktxdata);
-    const tex = await uploadTextureToGl(gl, ktexture);
+    const tex = uploadTextureToGl(gl, ktexture);
     setUVMatrix(tex, mat3.create(), ktexture);
     setTexParameters(tex, ktexture);
     gl.bindTexture(tex.target, tex.object);
@@ -494,7 +501,7 @@ function loadTexture(gl, url)
   //xhr.onloadstart = openProgress;
   xhr.send();
 
-  //return placeholder;
+  return placeholder;
 }
 
 function isPowerOf2(value) {
