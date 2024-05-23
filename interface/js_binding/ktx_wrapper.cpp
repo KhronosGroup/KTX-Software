@@ -78,7 +78,7 @@ namespace ktx
         texture(texture&) = delete;
         texture(texture&&) = default;
 
-        static texture createFromMemory(const emscripten::val& data)
+        texture(const emscripten::val& data) : m_ptr{ nullptr, &destroy }
         {
             std::vector<uint8_t> bytes{};
             bytes.resize(data["byteLength"].as<size_t>());
@@ -109,7 +109,7 @@ namespace ktx
             {
                 std::cout << "ERROR: Failed to create from memory: " << ktxErrorString(result) << std::endl;
             }
-            return texture(ptr);
+            m_ptr = texture(ptr).m_ptr;
         }
 
         texture createCopy()
@@ -362,8 +362,9 @@ namespace ktx
         //static const std::string WriterKey;
 
 #if KTX_FEATURE_WRITE
-        static texture create(const ktxTextureCreateInfo& createInfo,
-                              ktxTextureCreateStorageEnum storageAllocation)
+        texture(const ktxTextureCreateInfo& createInfo,
+                ktxTextureCreateStorageEnum storageAllocation)
+                : m_ptr{ nullptr, &destroy }
         {
             ktxTexture* ptr = nullptr;
 //#define DUMP_CREATEINFO
@@ -386,11 +387,11 @@ namespace ktx
             if (result != KTX_SUCCESS) {
                 std::cout << "ERROR: failed to create texture: " << ktxErrorString(result) << std::endl;
             }
-
-            return texture(ptr);
+            m_ptr = texture(ptr).m_ptr;
         }
 
-        static texture createFromBuffer(const emscripten::val& data, int width, int height, int comps, bool srgb)
+        texture(const emscripten::val& data, int width, int height, int comps, bool srgb)
+                : m_ptr{ nullptr, &destroy }
         {
             std::vector<uint8_t> bytes{};
             bytes.resize(data["byteLength"].as<size_t>());
@@ -509,8 +510,7 @@ namespace ktx
             if (result == KTX_SUCCESS) {
                 ktxTexture_SetImageFromMemory(ptr, 0, 0, 0, bytes.data(), bytes.size());
             }
-
-            return texture(ptr);
+            m_ptr = texture(ptr).m_ptr;
         }
 
         ktx_error_code_e setImageFromMemory(ktx_uint32_t level,
@@ -1016,8 +1016,8 @@ EMSCRIPTEN_BINDINGS(ktx)
         //.constructor(select_overload<const ktx::texture&>(ktx::texture::createCopy))
 
         // So make second constructor a function.
-        .constructor(&ktx::texture::createFromMemory)
-        .function("createCopy", &ktx::texture::createCopy)
+        .constructor<const val>()
+        .function("createCopy", &ktx::texture::createCopy, return_value_policy::take_ownership())
         //.constructor<ktx::texture&&>()
         .property("dataSize", &ktx::texture::getDataSize)
         .property("baseWidth", &ktx::texture::baseWidth)
@@ -1047,8 +1047,10 @@ EMSCRIPTEN_BINDINGS(ktx)
         .function("setOETF", &ktx::texture::setOETF)
         .function("setPrimaries", &ktx::texture::setPrimaries)
 #if KTX_FEATURE_WRITE
-        .constructor(&ktx::texture::create)
-        .constructor(&ktx::texture::createFromBuffer)
+        //.constructor(&ktx::texture::create)
+        .constructor<const ktxTextureCreateInfo&, ktxTextureCreateStorageEnum>()
+        //.constructor(&ktx::texture::createFromBuffer)
+        .constructor<const val&, int, int, int, bool>()
         .function("compressAstc", &ktx::texture::compressAstc)
         .function("compressBasis", &ktx::texture::compressBasis)
         .function("deflateZstd", &ktx::texture::deflateZstd)
