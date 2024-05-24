@@ -14,8 +14,6 @@
 
 using namespace emscripten;
 
-#define ktxTexture2(t) reinterpret_cast<ktxTexture2*>(m_ptr.get())
-
 #if !defined(GL_RED)
 #define GL_RED                          0x1903
 #define GL_RGB8                         0x8051
@@ -51,6 +49,15 @@ namespace ktx
         {
         }
 
+        texture() : m_ptr{ nullptr, &destroy }
+        {
+        }
+
+        texture(ktxTexture2* ptr)
+            : m_ptr{ reinterpret_cast<ktxTexture*>(ptr), &destroy }
+        {
+        }
+
         static void destroy(ktxTexture* ptr)
         {
             ktxTexture_Destroy(ptr);
@@ -59,23 +66,16 @@ namespace ktx
         std::unique_ptr<ktxTexture, decltype(&destroy)> m_ptr;
 
     public:
-#if 1
-        operator ktxTexture*() const {
-            // Don't understand why static_cast is needed here as
-            // m_ptr.get() is of type ktxTexture. Without it clang
-            // complains "no m_ptr in ktxTexture."
-            return reinterpret_cast<ktxTexture*>(m_ptr.get());
-        }
-#endif
         operator ktxTexture2*() const {
             return reinterpret_cast<ktxTexture2*>(m_ptr.get());
         }
-#if 0
-        operator ktxTexture1*() const {
-            return reinterpret_cast<ktxTexture1*>(m_ptr.get());
+
+        bool isTexture2() const {
+            return (m_ptr->classId == ktxTexture2_c);
+
         }
-#endif
-        texture(texture&) = delete;
+
+        //texture(texture&) = delete;
         texture(texture&&) = default;
 
         texture(const emscripten::val& data) : m_ptr{ nullptr, &destroy }
@@ -112,19 +112,28 @@ namespace ktx
             m_ptr = texture(ptr).m_ptr;
         }
 
-        texture createCopy()
+        texture(const texture& in) : m_ptr{ nullptr, &destroy }
         {
-            if (m_ptr->classId != ktxTexture2_c)
-                 return texture(nullptr);
+            if (!in.isTexture2())
+                 return;
 
             ktxTexture2* ptr = nullptr;
             ktx_error_code_e result;
-            result = ktxTexture2_CreateCopy(ktxTexture2(m_ptr.get()), &ptr);
+            result = ktxTexture2_CreateCopy(in, &ptr);
             if (result != KTX_SUCCESS)
             {
                 std::cout << "ERROR: Failed to copy construct: " << ktxErrorString(result) << std::endl;
             }
-            return texture(ktxTexture(ptr));
+            m_ptr = texture(ptr).m_ptr;
+        }
+
+        // This is needed because of a runtime embind error:"Cannot register
+        // multiple constructors with identical number of parameters (1)."
+        // See BINDINGS below for more details.
+        texture createCopy()
+        {
+            texture textureCopy(*this);
+            return textureCopy;
         }
 
         ktx_error_code_e addKVPair(const std::string& key, const std::string& value)
@@ -191,61 +200,59 @@ namespace ktx
 
         khr_df_transfer_e OETF() const
         {
-            if (m_ptr.get()->classId == ktxTexture2_c)
-                return ktxTexture2_GetOETF_e(ktxTexture2(m_ptr.get()));
+            if (isTexture2())
+                return ktxTexture2_GetOETF_e(*this);
             else
                 return KHR_DF_TRANSFER_UNSPECIFIED;
         }
 
         khr_df_primaries_e primaries() const
         {
-            if (m_ptr.get()->classId == ktxTexture2_c)
-                return ktxTexture2_GetPrimaries_e(ktxTexture2(m_ptr.get()));
+            if (isTexture2())
+                return ktxTexture2_GetPrimaries_e(*this);
             else
                 return KHR_DF_PRIMARIES_UNSPECIFIED;
         }
 
         bool isSRGB() const
         {
-            const auto df = ktxTexture2_GetOETF_e(ktxTexture2(m_ptr.get()));
-            return KHR_DF_TRANSFER_SRGB == df;
+            return (OETF() == KHR_DF_TRANSFER_SRGB);
         }
 
         bool isPremultiplied() const
         {
-            return (m_ptr->classId == ktxTexture2_c
-                    && ktxTexture2_GetPremultipliedAlpha(ktxTexture2(m_ptr.get())));
+            return (isTexture2()
+                    && ktxTexture2_GetPremultipliedAlpha(*this));
         }
 
         // @copydoc ktxTexture2::GetNumComponents
         uint32_t numComponents() const
         {
-            if (m_ptr->classId != ktxTexture2_c)
+            if (!isTexture2())
             {
                 std::cout << "ERROR: numComponents is only supported for KTX2" << std::endl;
                 return 0;
             }
 
-            return ktxTexture2_GetNumComponents(ktxTexture2(m_ptr.get()));
+            return ktxTexture2_GetNumComponents(*this);
         }
 
         enum ktxSupercmpScheme supercompressionScheme() const
         {
-            if (m_ptr->classId == ktxTexture1_c)
-                return KTX_SS_NONE;
+            if (isTexture2())
+                return static_cast<ktxTexture2*>(*this)->supercompressionScheme;
             else
-                return ktxTexture2(m_ptr.get())->supercompressionScheme;
+                return KTX_SS_NONE;
         }
 
         uint32_t vkFormat() const
         {
-            if (m_ptr->classId != ktxTexture2_c)
-            {
+            if (isTexture2()) {
+                return static_cast<ktxTexture2*>(*this)->vkFormat;
+            } else {
                 std::cout << "ERROR: vkFormat is only supported for KTX2" << std::endl;
-                return 0;
+                return VK_FORMAT_UNDEFINED;
             }
-
-            return ktxTexture2(m_ptr.get())->vkFormat;
         }
 
         emscripten::val getImage(uint32_t level, uint32_t layer, uint32_t faceSlice)
@@ -279,14 +286,14 @@ namespace ktx
 
         void setOETF(khr_df_transfer_e oetf)
         {
-            if (m_ptr->classId == ktxTexture2_c)
-                KHR_DFDSETVAL(ktxTexture2(m_ptr.get())->pDfd+1, TRANSFER, oetf);
+            if (isTexture2())
+                KHR_DFDSETVAL(static_cast<ktxTexture2*>(*this)->pDfd+1, TRANSFER, oetf);
         }
 
         void setPrimaries(khr_df_primaries_e primaries)
         {
-            if (m_ptr->classId == ktxTexture2_c)
-                KHR_DFDSETVAL(ktxTexture2(m_ptr.get())->pDfd+1, PRIMARIES, primaries);
+            if (isTexture2())
+                KHR_DFDSETVAL(static_cast<ktxTexture2*>(*this)->pDfd+1, PRIMARIES, primaries);
         }
 
         struct ktxOrientation orientation() const
@@ -316,14 +323,14 @@ namespace ktx
 
         ktx_error_code_e transcodeBasis(const val& targetFormat, const val& decodeFlags)
         {
-            if (m_ptr->classId != ktxTexture2_c)
+            if (!isTexture2())
             {
                 std::cout << "ERROR: transcodeBasis is only supported for KTX2" << std::endl;
-                return KTX_INVALID_VALUE;
+                return KTX_INVALID_OPERATION;
             }
 
             KTX_error_code result = ktxTexture2_TranscodeBasis(
-                ktxTexture2(m_ptr.get()),
+                *this,
                 targetFormat.as<ktx_texture_transcode_fmt_e>(),
                 decodeFlags.as<ktx_transcode_flags>());
 
@@ -567,7 +574,7 @@ namespace ktx
     printf("params.inputSwizzle %.4s\n", params.inputSwizzle);
 #endif
 
-            result = ktxTexture2_CompressAstcEx(ktxTexture2(m_ptr.get()), &params);
+            result = ktxTexture2_CompressAstcEx(*this, &params);
             if (result != KTX_SUCCESS) {
                 std::cout << "ERROR: failed to compressAstc: " << ktxErrorString(result) << std::endl;
             }
@@ -613,7 +620,7 @@ namespace ktx
     printf("params.UASTC.uastcRDONoMultithreading %d\n", params.uastcRDONoMultithreading);
 #endif
 
-            result = ktxTexture2_CompressBasisEx(ktxTexture2(m_ptr.get()), &params);
+            result = ktxTexture2_CompressBasisEx(*this, &params);
             if (result != KTX_SUCCESS) {
                 std::cout << "ERROR: failed to compressBasis: " << ktxErrorString(result) << std::endl;
             }
@@ -624,7 +631,13 @@ namespace ktx
         {
             ktx_error_code_e result;
 
-            result = ktxTexture2_DeflateZstd(ktxTexture2(m_ptr.get()), compression_level);
+            if (!isTexture2())
+            {
+                std::cout << "ERROR: deflateZstd is only supported for KTX2" << std::endl;
+                return KTX_INVALID_OPERATION;
+            }
+
+            result = ktxTexture2_DeflateZstd(*this, compression_level);
             if (result != KTX_SUCCESS) {
                 std::cout << "ERROR: failed to deflateZstd: " << ktxErrorString(result) << std::endl;
             }
@@ -635,8 +648,13 @@ namespace ktx
         {
             ktx_error_code_e result;
 
-            result = ktxTexture2_DeflateZLIB(ktxTexture2(m_ptr.get()), compression_level);
+            if (!isTexture2())
+            {
+                std::cout << "ERROR: deflateZLIB is only supported for KTX2" << std::endl;
+                return KTX_INVALID_OPERATION;
+            }
 
+            result = ktxTexture2_DeflateZLIB(*this, compression_level);
             if (result != KTX_SUCCESS) {
                 std::cout << "ERROR: failed to deflateZLIB: " << ktxErrorString(result) << std::endl;
             }
@@ -999,26 +1017,14 @@ EMSCRIPTEN_BINDINGS(ktx)
     ;
 
     class_<ktx::texture>("ktxTexture")
-        // Trying to make 2 constructors.
+        .constructor<const val>()
         // This compiles but get runtime error "Cannot register multiple
         // constructors with identical number of parameters (1) ...! Overload
         // resolution is currently only performed using the parameter count,
         // not actual type info!
-        //.constructor(&ktx::texture::createFromMemory)
-        //.constructor(&ktx::texture::createCopy)
-
-        // This gets compile errors.
-        //.constructor<const emscripten::val&>(&ktx::texture::createFromMemory)
-        //.constructor<const ktx::texture&>(&ktx::texture::createCopy)
-
-        // This too gets compile errors.
-        //.constructor(select_overload<const emscripten::val&>(ktx::texture::createFromMemory))
-        //.constructor(select_overload<const ktx::texture&>(ktx::texture::createCopy))
-
-        // So make second constructor a function.
-        .constructor<const val>()
+        //.constructor<const ktx::texture&>()
+        // So make copy constructor a function.
         .function("createCopy", &ktx::texture::createCopy, return_value_policy::take_ownership())
-        //.constructor<ktx::texture&&>()
         .property("dataSize", &ktx::texture::getDataSize)
         .property("baseWidth", &ktx::texture::baseWidth)
         .property("baseHeight", &ktx::texture::baseHeight)
