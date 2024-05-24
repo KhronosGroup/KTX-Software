@@ -869,17 +869,24 @@ async function testEncodeAstc(ktexture) {
   showTestResult('compress_astc_result', result == ErrorCode.SUCCESS);
 }
 
-async function testWriteToMemory(ktexture) {
-  // result is a KTX file in memory with the compressed image.
-  result = ktexture.writeToMemory();
-  // Check the first bytes are a KTX header.
-  showTestResult('write_to_memory_result', result != null);
-}
-
 async function testCreateCopy(ktexture) {
   const copy = ktexture.createCopy();
   showTestResult('create_copy_result', copy != null);
   return copy;
+}
+
+async function testWriteToMemoryAndRead(ktexture) {
+  // result is a KTX file in memory with the compressed image.
+  result = ktexture.writeToMemory();
+  // TODO: Check the first bytes are a KTX header.
+  showTestResult('write_to_memory_result', result != null);
+
+  readKTexture = new ktx.ktxTexture(result);
+  showTestResult('read_from_memory_result', result != null);
+  const readTexture = await uploadTextureToGl(gl, readKTexture);
+  setUVMatrix(readTexture, mat3.create(), readKTexture);
+  setTexParameters(readTexture, readKTexture);
+  updateItem(items[writeReadTextureItem], readTexture);
 }
 
 async function loadImageData (img, flip = false) {
@@ -943,13 +950,14 @@ async function runTests(filename) {
 
     await testEncodeBasis(ktexture);
     textureComp = uploadTextureToGl(gl, ktexture);
+    // upload transcodeds the texture so ktexture is uncompresssed again.
     setUVMatrix(textureComp, mat3.create(), ktexture);
     setTexParameters(texture, ktexture);
     updateItem(items[basisCompTextureItem], textureComp);
     items[basisCompTextureItem].label.textContent +=
                " transcoded to " + textureComp.format;
 
-    await testWriteToMemory(ktexture);
+    await testWriteToMemoryAndRead(ktexture)
 
     await testEncodeAstc(ktextureCopy);
     if (astcSupported) {
@@ -961,5 +969,8 @@ async function runTests(filename) {
       items[astcCompTextureItem].label.textContent +=
                  " not displayed. This device does not support WEBGL_compressed_texture_astc."
     }
+
+    elem('runtests').disabled = true;
+
 }
 

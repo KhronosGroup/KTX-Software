@@ -104,6 +104,7 @@
     <p>Create copy of original texture test: <b id='create_copy_result'></b></p>
     <p>Compress ktxTexture2 with Basis test: <b id='compress_basis_result'></b></p>
     <p>Write KTX file to memory test: <b id='write_to_memory_result'></b></p>
+    <p>Read KTX file from memory test: <b id='read_from_memory_result'></b></p>
     <p>Compress ktxTexture2 with ASTC test: <b id='compress_astc_result'></b></p>
     <div id="container">
       <!-- <canvas id="glcanvas" width="1280" height="480"></canvas> -->
@@ -140,15 +141,16 @@
     // Make 3 elements over the canvas.
     const contentElem = document.querySelector('#glcontent');
     const items = [];
-    const numItems = 5;
+    const numItems = 6;
     const origImageItem = 0, uncompTextureItem = 1;
     const copyTextureItem = 2, basisCompTextureItem = 3;
-    const astcCompTextureItem = 4;
+    const writeReadTextureItem = 4, astcCompTextureItem = 5;
     const labelText = [
       'Input image',
       'Uncompressed ktxTexture2',
       'Copy of uncompressed ktxTexture2',
       'ETC1S/Basis-LZ compressed texture',
+      'Written and Read .ktx2 file with uncompressed texture',
       'ASTC compressed texture'
     ];
 
