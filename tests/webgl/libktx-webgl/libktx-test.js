@@ -763,6 +763,7 @@ function showTestResult(id, pass) {
 async function testCreate(imageData) {
   const { ktxTexture, ktxBasisParams,
           ktxTextureCreateInfo, VkFormat,
+          dfPrimaries, dfTransfer,
           CreateStorageEnum, SupercmpScheme, ErrorCode } = ktx;
   const basisu_options = new ktxBasisParams();
   const createInfo = new ktxTextureCreateInfo();
@@ -781,16 +782,24 @@ async function testCreate(imageData) {
   var displayP3;
   // Image data from 2d canvases is always 8-bit RGBA.
   if ( imageData.colorSpace === undefined || imageData.colorSpace == "srgb") {
-    createInfo.vkFormat = VkFormat.R8G8B8A8_SRGB.value;
+    createInfo.vkFormat = VkFormat.R8G8B8A8_SRGB;
   } else {
     // The only alternative is DisplayP3.
-    createInfo.vkFormat = VkFormat.R8G8B8A8_UNORM.value;
+    createInfo.vkFormat = VkFormat.R8G8B8A8_UNORM;
     displayP3 = true;
   }
 
   const ktexture = new ktxTexture(createInfo, CreateStorageEnum.ALLOC_STORAGE);
   showTestResult('create_result', ktexture != null);
   if (ktexture != null) {
+    const OETF = ktexture.OETF;
+    const primaries = ktexture.primaries;
+    console.log("dfTransfer.SRGB = " + dfTransfer.SRGB + ", dfPrimaries.BT709 = " + dfPrimaries.BT709);
+    const foo = VkFormat.R8G8B8A8_SRGB;
+    console.log("VkFormat.R8G8B8A8_SRGB = " + VkFormat.R8G8B8A8_SRGB + "and foo = " + foo);
+    if (OETF === dfTransfer.SRGB && primaries === dfPrimaries.BT709)
+        console.log("Successfully matched OETF and primaries");
+    console.log("OETF = " + OETF + ", primaries = " + primaries);
     result = ktexture.setImageFromMemory(0, 0, 0, imageData.data);
     showTestResult('copy_image_result', result == ErrorCode.SUCCESS);
     if (result == ErrorCode.SUCCESS) {
@@ -859,12 +868,16 @@ async function testEncodeAstc(ktexture) {
   const { ktxAstcParams, AstcBlockDimension, AstcMode, AstcQualityLevel, ErrorCode } = ktx;
   const params = new ktxAstcParams();
 
-  params.blockDimension = AstcBlockDimension.d4x4;
+  params.blockDimension = AstcBlockDimension.d8x8;
   params.mode = AstcMode.DEFAULT;
   params.qualityLevel = AstcQualityLevel.FAST;
   params.normalMap = false;
+  params.inputSwizzle = 'rgb1';
 
   var result = ktexture.compressAstc(params);
+
+  const swizzle = params.inputSwizzle;
+  console.log("inputSwizzle = " + swizzle);
 
   showTestResult('compress_astc_result', result == ErrorCode.SUCCESS);
 }

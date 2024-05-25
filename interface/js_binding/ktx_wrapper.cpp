@@ -198,7 +198,7 @@ namespace ktx
             return ktxTexture_NeedsTranscoding(m_ptr.get());
         }
 
-        khr_df_transfer_e OETF() const
+        khr_df_transfer_e getOETF() const
         {
             if (isTexture2())
                 return ktxTexture2_GetOETF_e(*this);
@@ -206,7 +206,16 @@ namespace ktx
                 return KHR_DF_TRANSFER_UNSPECIFIED;
         }
 
-        khr_df_primaries_e primaries() const
+        // Should only be used when creating new ktx textures.
+        // TODO: How to prevent use on ktxTexture objects
+        // created with CreateFromMemory? Should we?
+        void setOETF(khr_df_transfer_e oetf)
+        {
+            if (isTexture2())
+                KHR_DFDSETVAL(static_cast<ktxTexture2*>(*this)->pDfd+1, TRANSFER, oetf);
+        }
+
+        khr_df_primaries_e getPrimaries() const
         {
             if (isTexture2())
                 return ktxTexture2_GetPrimaries_e(*this);
@@ -214,9 +223,15 @@ namespace ktx
                 return KHR_DF_PRIMARIES_UNSPECIFIED;
         }
 
+        void setPrimaries(khr_df_primaries_e primaries)
+        {
+            if (isTexture2())
+                KHR_DFDSETVAL(static_cast<ktxTexture2*>(*this)->pDfd+1, PRIMARIES, primaries);
+        }
+
         bool isSRGB() const
         {
-            return (OETF() == KHR_DF_TRANSFER_SRGB);
+            return (getOETF() == KHR_DF_TRANSFER_SRGB);
         }
 
         bool isPremultiplied() const
@@ -282,18 +297,6 @@ namespace ktx
             }
             return emscripten::val(emscripten::typed_memory_view(imageByteLength,
                                                      ptr->pData + imageByteOffset));
-        }
-
-        void setOETF(khr_df_transfer_e oetf)
-        {
-            if (isTexture2())
-                KHR_DFDSETVAL(static_cast<ktxTexture2*>(*this)->pDfd+1, TRANSFER, oetf);
-        }
-
-        void setPrimaries(khr_df_primaries_e primaries)
-        {
-            if (isTexture2())
-                KHR_DFDSETVAL(static_cast<ktxTexture2*>(*this)->pDfd+1, PRIMARIES, primaries);
         }
 
         struct ktxOrientation orientation() const
@@ -562,8 +565,8 @@ namespace ktx
             params.threadCount = 1;
             params.verbose = false;
 
-//#define DUMP_PARAMS
-#ifdef DUMP_PARAMS
+//#define DUMP_ASTC_PARAMS
+#ifdef DUMP_ASTC_PARAMS
     printf("params.structSize %d\n", params.structSize);
     printf("params.verbose %d\n", params.verbose);
     printf("params.threadCount %d\n", params.threadCount);
@@ -1024,12 +1027,14 @@ EMSCRIPTEN_BINDINGS(ktx)
         // not actual type info!
         //.constructor<const ktx::texture&>()
         // So make copy constructor a function.
-        .function("createCopy", &ktx::texture::createCopy, return_value_policy::take_ownership())
+        .function("createCopy", &ktx::texture::createCopy,
+                  return_value_policy::take_ownership())
         .property("dataSize", &ktx::texture::getDataSize)
         .property("baseWidth", &ktx::texture::baseWidth)
         .property("baseHeight", &ktx::texture::baseHeight)
-        .property("OETF", &ktx::texture::OETF)
-        .property("primaries", &ktx::texture::primaries)
+        .property("OETF", &ktx::texture::getOETF, &ktx::texture::setOETF)
+        .property("primaries", &ktx::texture::getPrimaries,
+                               &ktx::texture::setPrimaries)
         .property("isSRGB", &ktx::texture::isSRGB)
         .property("isPremultiplied", &ktx::texture::isPremultiplied)
         .property("needsTranscoding", &ktx::texture::needsTranscoding)
@@ -1045,17 +1050,10 @@ EMSCRIPTEN_BINDINGS(ktx)
         .function("deleteKVPair", &ktx::texture::deleteKVPair)
         .function("findKeyValue", &ktx::texture::findKeyValue)
         .function("getImage", &ktx::texture::getImage)
-                  // return_value_policy just added to Emscripten, May 14th 2024.
-                  // Use when it appears in Docker image.
-                  //emscripten::return_value_policy::take_ownership())
         .function("glUpload", &ktx::texture::glUpload)
         .function("transcodeBasis", &ktx::texture::transcodeBasis)
-        .function("setOETF", &ktx::texture::setOETF)
-        .function("setPrimaries", &ktx::texture::setPrimaries)
 #if KTX_FEATURE_WRITE
-        //.constructor(&ktx::texture::create)
         .constructor<const ktxTextureCreateInfo&, ktxTextureCreateStorageEnum>()
-        //.constructor(&ktx::texture::createFromBuffer)
         .constructor<const val&, int, int, int, bool>()
         .function("compressAstc", &ktx::texture::compressAstc)
         .function("compressBasis", &ktx::texture::compressBasis)
@@ -1063,7 +1061,6 @@ EMSCRIPTEN_BINDINGS(ktx)
         .function("deflateZLIB", &ktx::texture::deflateZLIB)
         .function("setImageFromMemory", &ktx::texture::setImageFromMemory)
         .function("writeToMemory", &ktx::texture::writeToMemory)
-                  //emscripten::return_value_policy::take_ownership())
 #endif
     ;
 
@@ -1083,7 +1080,17 @@ EMSCRIPTEN_BINDINGS(ktx)
 
     emscripten::class_<ktxTextureCreateInfo>("ktxTextureCreateInfo")
       .constructor<>()
-      .property("vkFormat", &ktxTextureCreateInfo::vkFormat)
+      // This and similar getters and setters below are needed so the, in
+      // this case VkFormat, enum value is correctly retrieved from and
+      // written to the uint32_t field of the, in this case,
+      // ktxTextureCreateInfo, struct. Without these the JS side would have
+      // to use, e.g, `VkFormat.R8G8B8A8_SRGB.value` to set this property.
+      .property("vkFormat", +[](const ktxTextureCreateInfo& info) {
+        return info.vkFormat;
+      },
+      +[](ktxTextureCreateInfo& info, VkFormat format) {
+        info.vkFormat = format;
+      })
       .property("baseWidth", &ktxTextureCreateInfo::baseWidth)
       .property("baseHeight", &ktxTextureCreateInfo::baseHeight)
       .property("baseDepth", &ktxTextureCreateInfo::baseDepth)
@@ -1147,11 +1154,34 @@ EMSCRIPTEN_BINDINGS(ktx)
       .property("structSize", &ktxAstcParams::structSize)
       .property("verbose", &ktxAstcParams::verbose)
       .property("threadCount", &ktxAstcParams::threadCount)
-      .property("blockDimension", &ktxAstcParams::blockDimension)
-      .property("mode", &ktxAstcParams::mode)
-      .property("qualityLevel", &ktxAstcParams::qualityLevel)
+      .property("blockDimension", +[](const ktxAstcParams& p) {
+        return p.blockDimension;
+      },
+      +[](ktxAstcParams& p, ktx_pack_astc_block_dimension_e d) {
+          p.blockDimension = d;
+      })
+      .property("mode", +[](const ktxAstcParams& p) {
+        return p.mode;
+      },
+      +[](ktxAstcParams& p, ktx_pack_astc_encoder_mode_e m) {
+          p.mode = m;
+      })
+      .property("qualityLevel", +[](const ktxAstcParams& p) {
+        return p.qualityLevel;
+      },
+      +[](ktxAstcParams& p, ktx_pack_astc_quality_levels_e q) {
+          p.qualityLevel = q;
+      })
       .property("normalMap", &ktxAstcParams::normalMap)
-      //.property("inputSwizzle", &ktxAstcParams::inputSwizzle)
+      // char arrays are not currently bindable. Interface vis std::string.
+      .property<std::string>("inputSwizzle", +[](const ktxAstcParams& p) {
+        return std::string(p.inputSwizzle, 4);
+      },
+      +[](ktxAstcParams& p, std::string s) {
+        for (uint32_t i = 0; i < 4; i++) {
+          p.inputSwizzle[i] = s[i];
+        }
+      })
     ;
 
     enum_<ktx_pack_uastc_flag_bits_e>("UastcFlags")
@@ -1169,7 +1199,14 @@ EMSCRIPTEN_BINDINGS(ktx)
       .property("verbose", &ktxBasisParams::verbose)
       .property("noSSE", &ktxBasisParams::noSSE)
       .property("threadCount", &ktxBasisParams::threadCount)
-      //.property("inputSwizzle", &ktxBasisParams::inputSwizzle)
+      .property<std::string>("inputSwizzle", +[](const ktxBasisParams& p) {
+        return std::string(p.inputSwizzle, 4);
+      },
+      +[](ktxBasisParams& p, std::string s) {
+        for (uint32_t i = 0; i < 4; i++) {
+          p.inputSwizzle[i] = s[i];
+        }
+      })
       .property("preSwizzle", &ktxBasisParams::preSwizzle)
 
       /* ETC1S params */
@@ -1187,7 +1224,13 @@ EMSCRIPTEN_BINDINGS(ktx)
 
       /* UASTC params */
 
-      .property("uastcFlags", &ktxBasisParams::uastcFlags)
+//      .property("uastcFlags", &ktxBasisParams::uastcFlags)
+      .property("uastcFlags", +[](const ktxBasisParams& p) {
+        return p.uastcFlags;
+      },
+      +[](ktxBasisParams& p, ktx_pack_uastc_flag_bits_e f) {
+          p.uastcFlags = f;
+      })
       .property("uastcRDO", &ktxBasisParams::uastcRDO)
       .property("uastcRDOQualityScalar", &ktxBasisParams::uastcRDOQualityScalar)
       .property("uastcRDODictSize", &ktxBasisParams::uastcRDODictSize)
