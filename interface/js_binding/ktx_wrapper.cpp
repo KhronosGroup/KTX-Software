@@ -400,129 +400,6 @@ namespace ktx
             m_ptr = texture(ptr).m_ptr;
         }
 
-        texture(const emscripten::val& data, int width, int height, int comps, bool srgb)
-                : m_ptr{ nullptr, &destroy }
-        {
-            std::vector<uint8_t> bytes{};
-            bytes.resize(data["byteLength"].as<size_t>());
-            emscripten::val memory = emscripten::val::module_property("HEAP8")["buffer"];
-            emscripten::val memoryView = data["constructor"].new_(memory, reinterpret_cast<uintptr_t>(bytes.data()), data["length"].as<uint32_t>());
-            // Yes, this code IS copying the data. Sigh! See comment in
-            // setImageFromMemory() below for details.
-            memoryView.call<void>("set", data);
-
-            ktxTextureCreateInfo createInfo{};
-            createInfo.numFaces = 1;
-            createInfo.numLayers = 1;
-            createInfo.numLevels = 1;
-            int componentCount = comps;
-            int componentSize = 1;
-            switch (componentCount) {
-              case 1:
-                switch (componentSize) {
-                  case 1:
-                    createInfo.glInternalformat
-                                    = srgb ? GL_SR8 : GL_R8;
-                    createInfo.vkFormat
-                                    = srgb ? VK_FORMAT_R8_SRGB
-                                           : VK_FORMAT_R8_UNORM;
-                    break;
-                  case 2:
-                    createInfo.glInternalformat = GL_R16;
-                    createInfo.vkFormat = VK_FORMAT_R16_UNORM;
-                    break;
-                  case 4:
-                    createInfo.glInternalformat = GL_R32F;
-                    createInfo.vkFormat = VK_FORMAT_R32_SFLOAT;
-                    break;
-                }
-                break;
-
-              case 2:
-                 switch (componentSize) {
-                  case 1:
-                    createInfo.glInternalformat
-                                    = srgb ? GL_SRG8 : GL_RG8;
-                    createInfo.vkFormat
-                                    = srgb ? VK_FORMAT_R8G8_SRGB
-                                           : VK_FORMAT_R8G8_UNORM;
-                    break;
-                  case 2:
-                    createInfo.glInternalformat = GL_RG16;
-                    createInfo.vkFormat = VK_FORMAT_R16G16_UNORM;
-                    break;
-                  case 4:
-                    createInfo.glInternalformat = GL_RG32F;
-                    createInfo.vkFormat = VK_FORMAT_R32G32_SFLOAT;
-                    break;
-                }
-                break;
-
-              case 3:
-                 switch (componentSize) {
-                  case 1:
-                    createInfo.glInternalformat
-                                    = srgb ? GL_SRGB8 : GL_RGB8;
-                    createInfo.vkFormat
-                                    = srgb ? VK_FORMAT_R8G8B8_SRGB
-                                           : VK_FORMAT_R8G8B8_UNORM;
-                    break;
-                  case 2:
-                    createInfo.glInternalformat = GL_RGB16;
-                    createInfo.vkFormat = VK_FORMAT_R16G16B16_UNORM;
-                    break;
-                  case 4:
-                    createInfo.glInternalformat = GL_RGB32F;
-                    createInfo.vkFormat = VK_FORMAT_R32G32B32_SFLOAT;
-                    break;
-                }
-                break;
-
-              case 4:
-                 switch (componentSize) {
-                  case 1:
-                    createInfo.glInternalformat
-                                    = srgb ? GL_SRGB8_ALPHA8 : GL_RGBA8;
-                    createInfo.vkFormat
-                                    = srgb ? VK_FORMAT_R8G8B8A8_SRGB
-                                           : VK_FORMAT_R8G8B8A8_UNORM;
-                    break;
-                  case 2:
-                    createInfo.glInternalformat = GL_RGBA16;
-                    createInfo.vkFormat = VK_FORMAT_R16G16B16A16_UNORM;
-                    break;
-                  case 4:
-                    createInfo.glInternalformat = GL_RGBA32F;
-                    createInfo.vkFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
-                    break;
-                }
-                break;
-
-              default:
-                /* If we get here there's a bug. */
-                assert(0);
-            }
-            if (createInfo.vkFormat == VK_FORMAT_R8_SRGB
-                || createInfo.vkFormat == VK_FORMAT_R8G8_SRGB) {
-            }
-            createInfo.baseWidth = width;
-            createInfo.baseHeight = height;
-            createInfo.baseDepth = 1;
-            createInfo.numDimensions = 2;
-            createInfo.generateMipmaps = KTX_FALSE;
-            createInfo.isArray = KTX_FALSE;
-
-            ktxTexture* ptr = nullptr;
-            KTX_error_code result = ktxTexture2_Create(&createInfo,
-                                        KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                        (ktxTexture2**)&ptr);
-
-            if (result == KTX_SUCCESS) {
-                ktxTexture_SetImageFromMemory(ptr, 0, 0, 0, bytes.data(), bytes.size());
-            }
-            m_ptr = texture(ptr).m_ptr;
-        }
-
         ktx_error_code_e setImageFromMemory(ktx_uint32_t level,
                                             ktx_uint32_t layer,
                                             ktx_uint32_t faceSlice,
@@ -1286,7 +1163,6 @@ EMSCRIPTEN_BINDINGS(ktx)
         .function("transcodeBasis", &ktx::texture::transcodeBasis)
 #if KTX_FEATURE_WRITE
         .constructor<const ktxTextureCreateInfo&, ktxTextureCreateStorageEnum>()
-        .constructor<const val&, int, int, int, bool>()
         .function("compressAstc", &ktx::texture::compressAstc)
         .function("compressBasis", &ktx::texture::compressBasis)
         .function("deflateZstd", &ktx::texture::deflateZstd)
