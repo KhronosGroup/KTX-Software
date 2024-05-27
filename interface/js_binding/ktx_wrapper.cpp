@@ -2,7 +2,7 @@
 /* vi: set sw=2 ts=4 expandtab textwidth=80: */
 
 /*
- * Copyright 2019-2020 Khronos Group, Inc.
+ * Copyright 2019-2024 Khronos Group, Inc.
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -701,7 +701,7 @@ namespace ktx
 
 ## WebIDL for the binding
 
-@code{.unparsed}
+@code{.idl}
 interface ktxOrientation {
     readonly attribute OrientationX x;
     readonly attribute OrientationY y;
@@ -714,19 +714,96 @@ interface ktxUploadResult {
     readonly attribute GLenum error;
 };
 
+interface ktxTextureCreateInfo {
+    attribute long vkFormat;
+    attribute long baseWidth;
+    attribute long baseHeight;
+    attribute long baseDepth;
+    attribute long numDimensions;
+    attribute long numLevels;
+    attribute long numLayers;
+    attribute long numFaces;
+    attribute boolean isArray;
+    attribute boolean generateMipmaps;
+};
+
+interface ktxAstcParams {  // ktx only.
+    void ktxAstcParams();
+
+    attribute boolean verbose;
+    attribute long threadCount;
+    attribute AstcBlockDimension blockDimension;
+    attribute AstcMode mode;
+    attribute long qualityLevel;
+    attribute boolean normalMap;
+    attribute DOMString inputSwizzle;
+};
+
+interface ktxBasisParams {
+    void ktxBasisParams();
+
+    attribute boolean uastc,
+    attribute boolean verbose,
+    attribute boolean noSSE,
+    attribute long threadCount,
+    attribute DOMString inputSwizzle,
+    attribute boolean preSwizzle,
+
+    // ETC1S/Basis-LZ parameters.
+
+    attribute long compressionLevel,
+    attribute long qualityLevel,
+    attribute long maxEndpoints,
+    attribute float endpointRDOThreshold,
+    attribute long maxSelectors,
+    attribute float selectorRDOThreshold,
+    attribute boolean normalMap,
+    attribute boolean noEndpointRDO,
+    attribute boolean noSelectorRDO,
+
+    // UASTC parameters.
+
+    attribute UastcFlags uastcFlags,
+    attribute boolean uastcRDO,
+    attribute float uastcRDOQualityScalar,
+    attribute long uastcRDODictSize,
+    attribute float uastcRDOMaxSmoothBlockErrorScale,
+    attribute float uastcRDOMaxSmoothBlockStdDev,
+    attribute boolean uastcRDODontFavorSimplerModes,
+    attribute boolean uastcRDONoMultithreading
+};
+
 interface ktxTexture {
-    void ktxTexture(ArrayBufferView fileData);
+    void constructor(ArrayBufferView fileData);
+    void constructor(ktxTextureCreateInfo createInfo, CreateStorageEnum? storage); // ktx only.
+
+    ErrorCode? compressAstc(ktxAstcParams params); // ktx only.
+    ErrorCode? compressBasis(ktxBasisParams params); // ktx only .
+    ktxTexture createCopy();
+    ErrorCode defateZLIB(); // ktx only.
+    ErrorCode deflateZstd(); // ktx only.
+    ArrayBufferView getImage(long level, long layer, long faceSlice);
     UploadResult glUpload();
-    ErrorCode transcodeBasis();
+    ErrorCode? setImageFromMemory(long level, long layer, long faceSlice,
+                                  ArrayBufferView imageData); // ktx only.
+    ErrorCode? transcodeBasis(TranscodeTarget? target, TranscodeFlagBits decodeFlags);
+    ArrayBufferView writeToMemory(); // ktx only.
+    ErrorCode? addKVPair(DOMString key, DOMString value);
+    deleteKVPair(DOMString key);
+    DOMString findKeyValue(DOMString key);
 
     readonly attribute long baseWidth;
     readonly attribute long baseHeight;
-    readonly attribute bool isPremultiplied;
-    readonly attribute bool needsTranscoding;
+    readonly attribute boolean isSRGB;
+    readonly attribute boolean isPremultiplied;
+    readonly attribute boolean needsTranscoding;
     readonly attribute long numComponents;
     readonly attribute long vkFormat;
     readonly attribute SupercmpScheme supercompressionScheme;
     readonly attribute ktxOrientation orientation;
+
+    attribute dfTransfer OETF;
+    attribute dfPrimaries primaries;
 };
 
 enum ErrorCode = {
@@ -763,8 +840,6 @@ enum TranscodeTarget = {
     "PVRTC1_4_RGB",
     "PVRTC1_4_RGBA",
     "BC7_RGBA",
-    "BC7_M6_RGB",  // Deprecated. Use BC7_RGBA.
-    "BC7_M5_RGBA", // Deprecated. Use BC7_RGBA.
     "ETC2_RGBA",
     "ASTC_4x4_RGBA",
     "RGBA32",
@@ -776,6 +851,22 @@ enum TranscodeTarget = {
     "ETC",
     "EAC_R11",
     "EAC_RG11"
+};
+
+enum dfPrimaries = {
+    // These are the values needed with HTML5/WebGL.
+    "UNSPECIFIED",
+    "BT709",
+    "SRGB"
+    "DISPLAYP3"
+};
+
+enum dfTransfer = {
+    // These are the values needed for KTX with HTML5/WebGL.
+    "UNSPECIFIED",
+    "LINEAR",
+    "SRGB",
+    "DISPLAYP3"
 };
 
 enum TranscodeFlagBits {
@@ -802,125 +893,268 @@ enum SupercmpScheme {
     "ZLIB"
 };
 
+enum AstcQualityLevel = {
+    "FASTEST",
+    "FAST",
+    "MEDIUM",
+    "THOROUGH",
+    "EXHAUSTIVE",
+};
+
+enum AstcBlockDimension = {
+    // 2D formats
+    "d4x4",
+    "d5x4",
+    "d5x5",
+    "d6x5",
+    "d6x6",
+    "d8x5",
+    "d8x6",
+    "d10x5",
+    "d10x6",
+    "d8x8",
+    "d10x8",
+    "d10x10",
+    "d12x10",
+    "d12x12",
+    // 3D formats
+    "d3x3x3",
+    "d4x3x3",
+    "d4x4x3",
+    "d4x4x4",
+    "d5x4x4",
+    "d5x5x4",
+    "d5x5x5",
+    "d6x5x5",
+    "d6x6x5",
+    "d6x6x6"
+};
+
+enum AstcMode = {
+    "DEFAULT",
+    "LDR",
+    "HDR"
+};
+
+enum UastcFlags = {
+    "LEVEL_FASTEST",
+    "LEVEL_FASTER",
+    "LEVEL_DEFAULT",
+    "LEVEL_SLOWER",
+    "LEVEL_VERYSLOW",
+};
 @endcode
 
 ## How to use
 
 Put libktx.js and libktx.wasm in a directory on your server. Create a script
-tag with libktx.js as the @c src as shown below, changing the path as necessary
-for the relative locations of your .html file and the script source. libktx.js
-will automatically load msc_basis_transcoder.wasm.
+tag with libktx.js as the @c src in your .html as shown below, changing the
+path as necessary for the relative locations of your .html file and the
+script source. libktx.js will automatically load libktx.wasm.
+@code{.html}
+    <script src="libktx.js"></script>
+@endcode
 
 @note For the read-only version of the library, use libktx_read.js and
 libktx_read.wasm instead.
 
-### Create an instance of the LIBKTX module
+### Create an instance of the ktx module
 
-Add this to the .html file to initialize the libktx module and make it available on the main window.
-@code{.unparsed}
-    &lt;script src="libktx.js">&lt;/script>
-    &lt;script type="text/javascript">
-      LIBKTX({preinitializedWebGLContext: gl}).then(module => {
-        window.LIBKTX = module;
+To avoid polluting the global @c window name space all methods, variables and
+tokens related to libktx are wrapped in a function that returns a promise.
+The promise is resolved with a module instance when it is safe to run the
+compiled code. To use any of the features your code must call the function,
+wait for the promise resolution and use the returned instance. Before doing so,
+your code must create your WebGL context. The context is needed during module
+initialization so that the @c glUpload function can provide WebGLTexture object
+handles on the same context.
+
+The function is called @e createKtxModule. In previous releases it was called
+@e LIBKTX. It has been renamed to clarify what it is actually doing. Old scripts
+must be updated to the new name.
+
+@note In libktx_read.js the function is called @e createKtxReadModule.
+
+Add the following to the top of your script to call the function, wait for the
+instance of the ktx module, make it available in the window name space, make
+your WebGL context the current context in Emscripten's OpenGL emulation and
+call your @c main().
+
+This snippet shows WebGL context creation as well.
+
+@code{.js}
+    const canvas = document.querySelector('#glcanvas');
+    gl = canvas.getContext('webgl2');
+
+    // If we don't have a GL context, give up now
+    if (!gl) {
+      alert('Unable to initialize WebGL. Your browser or machine may not support it.');
+    } else {
+      createKtxModule({preinitializedWebGLContext: gl}).then(instance => {
+        window.ktx = instance;
         // Make existing WebGL context current for Emscripten OpenGL.
-        LIBKTX.GL.makeContextCurrent(LIBKTX.GL.createContext(null, { majorVersion: 2.0 }));
-        texture = loadTexture(gl, 'ktx_app.ktx2');
+        ktx.GL.makeContextCurrent(
+                    ktx.GL.createContext(document.getElementById("glcanvas"),
+                                            { majorVersion: 2.0 })
+                    );
+        main()
       });
-    &lt;/script>
+    }
 @endcode
 
-@e After the module is initialized, invoke code that will directly or indirectly cause
-a function like the following to be executed.
+@e Call @c main() after the module instance has been created. Start the rest of your
+code there.
 
-### loadTexture function
+### Download a KTX file and create a texture
 
-@code{.unparsed}
-    // Set up an XHR to fetch the url into an ArrayBuffer.
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', url);
-    xhr.responseType = "arrayBuffer";
-    xhr.onload = function() {
-      const { ktxTexture, TranscodeTarget, OrientationX, OrientationY } = LIBKTX;
-      // this.response is a generic binary buffer which
-      // we can interpret as Uint8Array.
-      var ktxdata = new Uint8Array(this.response);
-      ktexture = new ktxTexture(ktxdata);
+To download an existing texture and create a WebGL texture from it, execute a
+function like @c loadTexture the following:
 
-      if (ktexture.needsTranscoding) {
-        var formatString;
-        var format;
-        if (astcSupported) {
-          formatString = 'ASTC';
-          format = TranscodeTarget.ASTC_4x4_RGBA;
-        } else if (dxtSupported) {
-          formatString = 'BC1 or BC3';
-          format = TranscodeTarget.BC1_OR_3;
-        } else if (pvrtcSupported) {
-          formatString = 'PVRTC1';
-          format = TranscodeTarget.PVRTC1_4_RGBA;
-        } else if (etcSupported) {
-          formatString = 'ETC';
-          format = TranscodeTarget.ETC;
-        } else {
-          formatString = 'RGBA4444';
-          format = TranscodeTarget.RGBA4444;
-        }
-        if (ktexture.transcodeBasis(format, 0) != LIBKTX.ErrorCode.SUCCESS) {
-          alert('Texture transcode failed. See console for details.');
-          return undefined;
-        }
-      }
+@code{.js}
+    var myTexture;
 
-      // If there is no global variable "texture".
-      //const {texture, target, error} = ktexture.glUpload();
-      // If there is a globla variable "texture"
-      const result = ktexture.glUpload();
-      const {target, error} = result;
-      texture = result.texture;
-
-      if (error != gl.NO_ERROR) {
-        alert('WebGL error when uploading texture, code = ' + error.toString(16));
-        return undefined;
-      }
-      if (texture === undefined) {
-        alert('Texture upload failed. See console for details.');
-        return undefined;
-      }
-      if (target != gl.TEXTURE_2D) {
-        alert('Loaded texture is not a TEXTURE2D.');
-        return undefined;
-      }
-
-      gl.bindTexture(target, texture);
-      // If using a placeholder texture during loading, delete
-      // it now.
-      //gl.deleteTexture(placeholder);
-
-      if (ktexture.numLevels > 1 || ktexture.generateMipmaps)
-         // Enable bilinear mipmapping.
-         gl.texParameteri(target,
-                          gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-      else
-        gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-      gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-
-      if (ktexture.orientation.x == OrientationX.LEFT) {
-        // Adjust u coords, e.g. by setting up a uv transform
-      }
-      if (ktexture.orientation.y == OrientationY.DOWN) {
-        // Adjust v coords, e.g. by setting up a uv transform
-      }
-      ktexture.delete();
+    main() {
+        loadTexture(gl, "myTextureUrl");
     }
 
-    xhr.send();
+    function loadTexture(gl, url)
+    {
+      // Create placeholder which will be replace once the data arrives.
+      myTexture = createPlaceholderTexture(gl, [0, 0, 255, 255]);
+      gl.bindTexture(myTexture.target, myTexture.object);
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', url);
+      xhr.responseType = "arraybuffer";
+      xhr.onload = function(){
+        const { ktxTexture, TranscodeTarget, OrientationX, OrientationY } = ktx;
+        var ktxdata = new Uint8Array(this.response);
+        ktexture = new ktxTexture(ktxdata);
+        const tex = uploadTextureToGl(gl, ktexture);
+        setTexParameters(tex, ktexture);
+        gl.bindTexture(tex.target, tex.object);
+        gl.deleteTexture(texture.object);
+        texture = tex;
+        elem('format').innerText = tex.format;
+        ktexture.delete();
+      };
+
+      //xhr.onprogress = runProgress;
+      //xhr.onloadstart = openProgress;
+      xhr.send();
+    }
+@endcode
+
+This is the function for creating the place holder texture.
+
+@code{.js}
+function createPlaceholderTexture(gl, color)
+{
+    const placeholder = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, placeholder);
+
+    const level = 0;
+    const internalFormat = gl.RGBA;
+    const width = 1;
+    const height = 1;
+    const border = 0;
+    const srcFormat = gl.RGBA;
+    const srcType = gl.UNSIGNED_BYTE;
+    const pixel = new Uint8Array(color);
+
+    gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+                  width, height, border, srcFormat, srcType,
+                  pixel);
+    return {
+      target: gl.TEXTURE_2D,
+      object: placeholder,
+      format: formatString,
+    };
+}
+@endcode
+
+
+Uploading the KTX texture to the WebGL context is done like this. This function
+returns the created WebGL texture object and matching texture target.
+
+@code{.js}
+function uploadTextureToGl(gl, ktexture) {
+  const { TranscodeTarget  } = ktx;
+  var formatString;
+
+  if (ktexture.needsTranscoding) {
+    var format;
+    if (astcSupported) {
+      formatString = 'ASTC';
+      format = TranscodeTarget.ASTC_4x4_RGBA;
+    } else if (dxtSupported) {
+      formatString = ktexture.numComponents == 4 ? 'BC3' : 'BC1';
+      format = TranscodeTarget.BC1_OR_3;
+    } else if (pvrtcSupported) {
+      formatString = 'PVRTC1';
+      format = TranscodeTarget.PVRTC1_4_RGBA;
+    } else if (etcSupported) {
+      formatString = 'ETC';
+      format = TranscodeTarget.ETC;
+    } else {
+      formatString = 'RGBA4444';
+      format = TranscodeTarget.RGBA4444;
+    }
+    if (ktexture.transcodeBasis(format, 0) != ktx.ErrorCode.SUCCESS) {
+        alert('Texture transcode failed. See console for details.');
+        return undefined;
+    }
+  }
+
+  const result = ktexture.glUpload();
+  if (result.error != gl.NO_ERROR) {
+    alert('WebGL error when uploading texture, code = '
+          + result.error.toString(16));
+    return undefined;
+  }
+  if (result.object === undefined) {
+    alert('Texture upload failed. See console for details.');
+    return undefined;
+  }
+  if (result.target != gl.TEXTURE_2D) {
+    alert('Loaded texture is not a TEXTURE2D.');
+    return undefined;
+  }
+
+  return {
+    target: result.target,
+    object: result.object,
+    format: formatString,
+  }
+}
+
+@endcode
+
+This is the function to correctly set the TexParameters for the loaded
+texture. It expects that the WebGLTexture object in the @c texture
+parameter was created from the content of the ktexture parameter.
+
+@code{.js}
+    function setTexParameters(texture, ktexture) {
+      gl.bindTexture(texture.target, texture.object);
+
+      if (ktexture.numLevels > 1 || ktexture.generateMipmaps) {
+         // Enable bilinear mipmapping.
+         gl.texParameteri(texture.target,
+                          gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+      } else {
+        gl.texParameteri(texture.target, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      }
+      gl.texParameteri(texture.target, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+      gl.bindTexture(texture.target, null);
+    }
 @endcode
 
 @note It is not clear if glUpload can be used with, e.g. THREE.js. It may
 be necessary to expose the ktxTexture_IterateLevelFaces or
 ktxTexture_IterateLoadLevelFaces API to JS with those calling a
 callback in JS to upload each image to WebGL.
-
 
 */
 
@@ -960,8 +1194,6 @@ EMSCRIPTEN_BINDINGS(ktx)
         .value("PVRTC1_4_RGB", KTX_TTF_PVRTC1_4_RGB)
         .value("PVRTC1_4_RGBA", KTX_TTF_PVRTC1_4_RGBA)
         .value("BC7_RGBA", KTX_TTF_BC7_RGBA)
-        .value("BC7_M6_RGB", KTX_TTF_BC7_M6_RGB)
-        .value("BC7_M5_RGBA", KTX_TTF_BC7_M5_RGBA)
         .value("ETC2_RGBA", KTX_TTF_ETC2_RGBA)
         .value("ASTC_4x4_RGBA", KTX_TTF_ASTC_4x4_RGBA)
         .value("RGBA32", KTX_TTF_RGBA32)
@@ -1218,13 +1450,11 @@ EMSCRIPTEN_BINDINGS(ktx)
       .property("maxSelectors", &ktxBasisParams::maxSelectors)
       .property("selectorRDOThreshold", &ktxBasisParams::selectorRDOThreshold)
       .property("normalMap", &ktxBasisParams::normalMap)
-      .property("separateRGToRGB_A", &ktxBasisParams::separateRGToRGB_A)
       .property("noEndpointRDO", &ktxBasisParams::noEndpointRDO)
       .property("noSelectorRDO", &ktxBasisParams::noSelectorRDO)
 
       /* UASTC params */
 
-//      .property("uastcFlags", &ktxBasisParams::uastcFlags)
       .property("uastcFlags", +[](const ktxBasisParams& p) {
         return p.uastcFlags;
       },
