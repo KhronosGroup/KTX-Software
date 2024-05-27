@@ -348,7 +348,7 @@ function elem(id) {
 //
 // needs Emscripten's OpenGL ES emulation.
 function uploadTextureToGl(gl, ktexture) {
-  const { ktxTexture, TranscodeTarget } = ktxRead;
+  const { TranscodeTarget } = ktxRead;
   var formatString;
 
   if (ktexture.needsTranscoding) {
@@ -459,13 +459,16 @@ function setUVMatrix(texture, inMatrix, ktexture) {
 function setTexParameters(texture, ktexture) {
   gl.bindTexture(texture.target, texture.object);
 
-  if (ktexture.numLevels > 1 || ktexture.generateMipmaps)
+  if (ktexture.numLevels > 1 || ktexture.generateMipmaps) {
      // Enable bilinear mipmapping.
      gl.texParameteri(texture.target,
                       gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-  else
+  } else {
     gl.texParameteri(texture.target, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  }
   gl.texParameteri(texture.target, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+  gl.bindTexture(texture.target, null);
 }
 
 function loadTexture(gl, url)

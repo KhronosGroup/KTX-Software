@@ -427,11 +427,8 @@ function elem(id) {
 // Upload content of a ktxTexture to WebGL.
 //
 // Returns the created WebGL texture object and texture target.
-//
-// Must be called AFTER the ktx_READ module is loaded as `glUpload`
-// needs Emscripten's OpenGL ES emulation.
 function uploadTextureToGl(gl, ktexture) {
-  const { ktxTexture, TranscodeTarget  } = ktx;
+  const { TranscodeTarget  } = ktx;
   var formatString;
 
   if (ktexture.needsTranscoding) {
@@ -535,13 +532,16 @@ async function setUVMatrix(texture, inMatrix, ktexture) {
 function setTexParameters(texture, ktexture) {
   gl.bindTexture(texture.target, texture.object);
 
-  if (ktexture.numLevels > 1 || ktexture.generateMipmaps)
+  if (ktexture.numLevels > 1 || ktexture.generateMipmaps) {
      // Enable bilinear mipmapping.
      gl.texParameteri(texture.target,
                       gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-  else
+  } else {
     gl.texParameteri(texture.target, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  }
   gl.texParameteri(texture.target, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+  gl.bindTexture(texture.target, null);
 }
 
 function isPowerOf2(value) {
