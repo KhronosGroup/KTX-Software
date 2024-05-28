@@ -21,8 +21,8 @@ target_include_directories(
     SYSTEM
 PRIVATE
     $<TARGET_PROPERTY:imageio,INTERFACE_SYSTEM_INCLUDE_DIRECTORIES>
-    ${PROJECT_SOURCE_DIR}/lib
-    ${PROJECT_SOURCE_DIR}/lib/dfdutils
+    "${PROJECT_SOURCE_DIR}/lib"
+    "${PROJECT_SOURCE_DIR}/external/dfdutils"
 )
 
 target_link_libraries(

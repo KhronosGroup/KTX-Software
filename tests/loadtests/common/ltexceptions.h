@@ -39,6 +39,11 @@ class bad_vulkan_alloc : public std::bad_alloc {
         }
         _what = message.str();
     }
+    bad_vulkan_alloc(const bad_vulkan_alloc& in)
+      : std::bad_alloc()
+      , message{in.message.str()}
+      , _what{in._what}
+    {}
     virtual const char* what() const throw() {
         return _what.c_str();
     }

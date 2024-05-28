@@ -22,7 +22,7 @@ namespace ktx
         texture(texture&) = delete;
         texture(texture&& other) = default;
 
-        static texture createFromMemory(const emscripten::val& data)
+        texture(const emscripten::val& data) : m_ptr{ nullptr, &destroy }
         {
             std::vector<uint8_t> bytes{};
             bytes.resize(data["byteLength"].as<size_t>());
@@ -52,10 +52,9 @@ namespace ktx
             if (result != KTX_SUCCESS)
             {
                 std::cout << "ERROR: Failed to create from memory: " << ktxErrorString(result) << std::endl;
-                return texture(nullptr);
             }
 
-            return texture(ptr);
+            m_ptr = texture(ptr).m_ptr;
         }
 
         uint32_t baseWidth() const
@@ -489,7 +488,7 @@ EMSCRIPTEN_BINDINGS(ktx)
         ;
 
     class_<ktx::texture>("ktxTexture")
-        .constructor(&ktx::texture::createFromMemory)
+        .constructor<val>()
         //.class_function("createFromMemory", &ktx::texture::createFromMemory)
         // .property("data", &ktx::texture::getData)
         .property("baseWidth", &ktx::texture::baseWidth)

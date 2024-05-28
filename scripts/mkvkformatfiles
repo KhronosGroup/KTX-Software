@@ -6,7 +6,7 @@
 #
 # output_dir defaults to the current directory.
 # path/to/vulkan_core defaults to ENVIRON["Vulkan_INCLUDE_DIR"]. If not
-# set, default is lib/dfdutils/vulkan/vulkan_core.h.
+# set, default is external/dfdutils/vulkan/vulkan_core.h.
 #
 # When specifying path/to/vulkan_core, output-dir must also be
 # specified.
@@ -55,7 +55,7 @@ BEGIN {
       } else {
   # Use local vulkan_core.h until ASTC 3D texture extension is released.
   #       ARGV[1] = "/usr/include";
-          ARGV[1] = "lib/dfdutils/vulkan/vulkan_core.h"; ARGC = 2
+          ARGV[1] = "external/dfdutils/vulkan/vulkan_core.h"; ARGC = 2
       }
     }
 

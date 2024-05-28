@@ -26,7 +26,7 @@ if (NOT IOS AND NOT ANDROID)
     # This cmake file is included from its parent so has the same scope as
     # the including file. If we change Vulkan_INCLUDE_DIR, other parts will
     # be affected.
-    set(mkvk_vulkan_include_dir lib/dfdutils)
+    set(mkvk_vulkan_include_dir external/dfdutils)
 else()
     # Skip mkvk. There is no need to use iOS or Android to regenerate
     # the files.
@@ -121,13 +121,13 @@ add_custom_target(mkvkformatfiles
 
 list(APPEND makevk2dfd_input
     ${vulkan_header}
-    lib/dfdutils/makevk2dfd.pl)
+    external/dfdutils/makevk2dfd.pl)
 set(makevk2dfd_output
-    "${PROJECT_SOURCE_DIR}/lib/dfdutils/vk2dfd.inl")
+    "${PROJECT_SOURCE_DIR}/external/dfdutils/vk2dfd.inl")
 
 add_custom_command(
     OUTPUT ${makevk2dfd_output}
-    COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makevk2dfd.pl ${vulkan_header} lib/dfdutils/vk2dfd.inl
+    COMMAND "${PERL_EXECUTABLE}" external/dfdutils/makevk2dfd.pl ${vulkan_header} external/dfdutils/vk2dfd.inl
     DEPENDS ${makevk2dfd_input}
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT "Generating VkFormat/DFD switch body"
@@ -142,14 +142,14 @@ add_custom_target(makevk2dfd
 
 list(APPEND makedfd2vk_input
     ${vulkan_header}
-    lib/dfdutils/makedfd2vk.pl)
+    external/dfdutils/makedfd2vk.pl)
 list(APPEND makedfd2vk_output
-    "${PROJECT_SOURCE_DIR}/lib/dfdutils/dfd2vk.inl")
+    "${PROJECT_SOURCE_DIR}/external/dfdutils/dfd2vk.inl")
 
 add_custom_command(
     OUTPUT ${makedfd2vk_output}
-    COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
-    COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makedfd2vk.pl ${vulkan_header} lib/dfdutils/dfd2vk.inl
+    COMMAND ${CMAKE_COMMAND} -E make_directory external/dfdutils
+    COMMAND "${PERL_EXECUTABLE}" external/dfdutils/makedfd2vk.pl ${vulkan_header} external/dfdutils/dfd2vk.inl
     DEPENDS ${makedfd2vk_input}
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT "Generating DFD/VkFormat switch body"

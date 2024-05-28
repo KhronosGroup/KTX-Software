@@ -171,12 +171,14 @@ function( create_gl_target target version sources common_resources test_images
             GL_CONTEXT_PROFILE=${KTX_GL_CONTEXT_PROFILE}
             GL_CONTEXT_MAJOR_VERSION=${KTX_GL_CONTEXT_MAJOR_VERSION}
             GL_CONTEXT_MINOR_VERSION=${KTX_GL_CONTEXT_MINOR_VERSION}
+            $<$<PLATFORM_ID:Windows>:NOMINMAX>
         )
     else()
         target_compile_definitions(
             ${target}
         PRIVATE
             $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
+            $<$<PLATFORM_ID:Windows>:NOMINMAX>
         )
     endif()
 
