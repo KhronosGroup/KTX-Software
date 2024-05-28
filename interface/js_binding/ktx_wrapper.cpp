@@ -8,36 +8,10 @@
 
 #include <emscripten/bind.h>
 #include <ktx.h>
-#include "GL/glcorearb.h"
 #include "vkformat_enum.h"
 #include <iostream>
 
 using namespace emscripten;
-
-#if !defined(GL_RED)
-#define GL_RED                          0x1903
-#define GL_RGB8                         0x8051
-#define GL_RGB16                        0x8054
-#define GL_RGBA8                        0x8058
-#define GL_RGBA16                       0x805B
-#endif
-#if !defined(GL_RG)
-#define GL_RG                           0x8227
-#define GL_R8                           0x8229
-#define GL_R16                          0x822A
-#define GL_RG8                          0x822B
-#define GL_RG16                         0x822C
-#endif
-
-#ifndef GL_SR8
-// From GL_EXT_texture_sRGB_R8
-#define GL_SR8                          0x8FBD // same as GL_SR8_EXT
-#endif
-
-#ifndef GL_SRG8
-// From GL_EXT_texture_sRGB_RG8
-#define GL_SRG8                         0x8FBE // same as GL_SRG8_EXT
-#endif
 
 namespace ktx
 {
