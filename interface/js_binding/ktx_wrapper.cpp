@@ -706,30 +706,6 @@ enum TranscodeTarget = {
     "EAC_RG11"
 };
 
-enum VkFormat = {
-    "R8G8B8A8_SRGB",
-    "R8G8B8A8_UNORM"
-    // Full list omitted as its length will distract from the documentation
-    // purpose of this IDL. Any VkFormat valid for KTX can be used. As shown
-    // here, omit the VK_FORMAT_ prefix and enclose in quotes.
-}
-
-enum dfPrimaries = {
-    // These are the values needed with HTML5/WebGL.
-    "UNSPECIFIED",
-    "BT709",
-    "SRGB"
-    "DISPLAYP3"
-};
-
-enum dfTransfer = {
-    // These are the values needed for KTX with HTML5/WebGL.
-    "UNSPECIFIED",
-    "LINEAR",
-    "SRGB",
-    "DISPLAYP3"
-};
-
 enum TranscodeFlagBits {
    "TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS"
 };
@@ -753,6 +729,30 @@ enum SupercmpScheme {
     "ZSTD"
     "ZLIB"
 };
+
+enum dfPrimaries = {
+    // These are the values needed with HTML5/WebGL.
+    "UNSPECIFIED",
+    "BT709",
+    "SRGB"
+    "DISPLAYP3"
+};
+
+enum dfTransfer = {
+    // These are the values needed for KTX with HTML5/WebGL.
+    "UNSPECIFIED",
+    "LINEAR",
+    "SRGB",
+    // DisplayP3 uses the SRGB transfer function.
+};
+
+enum VkFormat = {
+    "R8G8B8A8_SRGB",
+    "R8G8B8A8_UNORM"
+    // Full list omitted as its length will distract from the documentation
+    // purpose of this IDL. Any VkFormat valid for KTX can be used. As shown
+    // here, omit the VK_FORMAT_ prefix and enclose in quotes.
+}
 
 enum AstcQualityLevel = {
     "FASTEST",
@@ -1068,28 +1068,34 @@ EMSCRIPTEN_BINDINGS(ktx)
         .value("EAC_R11", KTX_TTF_ETC2_EAC_R11)
         .value("EAC_RG11", KTX_TTF_ETC2_EAC_RG11)
     ;
+
     enum_<ktx_transcode_flag_bits_e>("TranscodeFlagBits")
         .value("TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS",
                KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS)
     ;
+
     enum_<ktxSupercmpScheme>("SupercmpScheme")
         .value("NONE", KTX_SS_NONE)
         .value("BASIS_LZ", KTX_SS_BASIS_LZ)
         .value("ZSTD", KTX_SS_ZSTD)
         .value("ZLIB", KTX_SS_ZLIB)
     ;
+
     enum_<ktxOrientationX>("OrientationX")
         .value("LEFT", KTX_ORIENT_X_LEFT)
         .value("RIGHT", KTX_ORIENT_X_RIGHT)
     ;
+
     enum_<ktxOrientationY>("OrientationY")
         .value("UP", KTX_ORIENT_Y_UP)
         .value("DOWN", KTX_ORIENT_Y_DOWN)
     ;
+
     enum_<ktxOrientationZ>("OrientationZ")
         .value("IN", KTX_ORIENT_Z_IN)
         .value("OUT", KTX_ORIENT_Z_OUT)
     ;
+
     value_object<ktxOrientation>("Orientation")
         .field("x", &ktxOrientation::x)
         .field("y", &ktxOrientation::y)
@@ -1109,7 +1115,7 @@ EMSCRIPTEN_BINDINGS(ktx)
         .value("UNSPECIFIED", KHR_DF_TRANSFER_UNSPECIFIED)
         .value("LINEAR", KHR_DF_TRANSFER_LINEAR)
         .value("SRGB", KHR_DF_TRANSFER_SRGB)
-        .value("DISPLAYP3", KHR_DF_TRANSFER_DCIP3)
+        // DisplayP3 uses the SRGB transfer function.
     ;
 
     class_<ktx::texture>("ktxTexture")
@@ -1202,10 +1208,6 @@ EMSCRIPTEN_BINDINGS(ktx)
       .value("EXHAUSTIVE", KTX_PACK_ASTC_QUALITY_LEVEL_EXHAUSTIVE)
     ;
 
-/**
- * @~English
- * @brief Options specifiying ASTC encoding block dimensions
- */
     enum_<ktx_pack_astc_block_dimension_e>("AstcBlockDimension")
       // 2D formats
       .value("d4x4", KTX_PACK_ASTC_BLOCK_DIMENSION_4x4) //: 8.00 bpp

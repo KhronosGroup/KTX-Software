@@ -781,11 +781,10 @@ async function testCreate(imageData) {
 
   var displayP3;
   // Image data from 2d canvases is always 8-bit RGBA.
-  if ( imageData.colorSpace === undefined || imageData.colorSpace == "srgb") {
-    createInfo.vkFormat = VkFormat.R8G8B8A8_SRGB;
-  } else {
-    // The only alternative is DisplayP3.
-    createInfo.vkFormat = VkFormat.R8G8B8A8_UNORM;
+  // The only colorSpace choices, undefined, "srgb" and "displayp3" all use
+  // the sRGB transfer function.
+  createInfo.vkFormat = VkFormat.R8G8B8A8_SRGB;
+  if ( imageData.colorSpace == "display-p3") {
     displayP3 = true;
   }
 
@@ -804,7 +803,6 @@ async function testCreate(imageData) {
     showTestResult('copy_image_result', result == ErrorCode.SUCCESS);
     if (result == ErrorCode.SUCCESS) {
       if (displayP3) {
-        ktexture.setOETF(ktx.dfTransfer.DISPLAYP3);
         ktexture.setOETF(ktx.dfPrimaries.DISPLAYP3);
       }
     }
