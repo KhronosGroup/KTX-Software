@@ -280,6 +280,7 @@ target_compile_definitions(
     vkloadtests
 PRIVATE
     $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
+    $<$<PLATFORM_ID:Windows>:NOMINMAX>
 )
 
 set_target_properties( vkloadtests PROPERTIES RESOURCE "${KTX_RESOURCES};${SHADER_SOURCES}" )
