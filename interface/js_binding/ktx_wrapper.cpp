@@ -626,7 +626,8 @@ interface ktxBasisParams {
 
 interface ktxTexture {
     void constructor(ArrayBufferView fileData);
-    void constructor(ktxTextureCreateInfo createInfo, CreateStorageEnum? storage); // ktx only.
+    void constructor(ktxTextureCreateInfo createInfo, // ktx only
+                     CreateStorageEnum? storage);
 
     ErrorCode? compressAstc(ktxAstcParams params); // ktx only.
     ErrorCode? compressBasis(ktxBasisParams params); // ktx only .
@@ -637,7 +638,8 @@ interface ktxTexture {
     UploadResult glUpload();
     ErrorCode? setImageFromMemory(long level, long layer, long faceSlice,
                                   ArrayBufferView imageData); // ktx only.
-    ErrorCode? transcodeBasis(TranscodeTarget? target, TranscodeFlagBits decodeFlags);
+    ErrorCode? transcodeBasis(TranscodeTarget? target, TranscodeFlagBits
+                              decodeFlags);
     ArrayBufferView writeToMemory(); // ktx only.
     ErrorCode? addKVPair(DOMString key, DOMString value);
     deleteKVPair(DOMString key);
@@ -703,6 +705,14 @@ enum TranscodeTarget = {
     "EAC_R11",
     "EAC_RG11"
 };
+
+enum VkFormat = {
+    "R8G8B8A8_SRGB",
+    "R8G8B8A8_UNORM"
+    // Full list omitted as its length will distract from the documentation
+    // purpose of this IDL. Any VkFormat valid for KTX can be used. As shown
+    // here, omit the VK_FORMAT_ prefix and enclose in quotes.
+}
 
 enum dfPrimaries = {
     // These are the values needed with HTML5/WebGL.
