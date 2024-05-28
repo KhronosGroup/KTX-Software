@@ -491,8 +491,10 @@ The following files related to the the VkFormat enum are generated from `vulkan_
 - lib/vkformat_typesize.c
 - lib/dfd/dfd2vk.inl
 - lib/dfd/vk2dfd.inl
-- interface/java_binding/src/main/java/org/khronos/ktxVkFormat.java
+- interface/java\_binding/src/main/java/org/khronos/ktxVkFormat.java
 - interface/python\_binding/pyktx/vk\_format.py
+- interface/js\_binding/vk\_format.inl
+
 
 The following files are generated from the mapping database in the KTX-Specification repo by `generate_format_switches.rb`:
 

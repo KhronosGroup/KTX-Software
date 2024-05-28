@@ -75,6 +75,59 @@ isProhibitedFormat(VkFormat format)
 }
 
 bool
+isSrgbFormat(VkFormat format)
+{
+   switch(format) {
+      case VK_FORMAT_R8_SRGB:
+      case VK_FORMAT_R8G8_SRGB:
+      case VK_FORMAT_R8G8B8_SRGB:
+      case VK_FORMAT_B8G8R8_SRGB:
+      case VK_FORMAT_R8G8B8A8_SRGB:
+      case VK_FORMAT_B8G8R8A8_SRGB:
+      case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
+      case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
+      case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
+      case VK_FORMAT_BC2_SRGB_BLOCK:
+      case VK_FORMAT_BC3_SRGB_BLOCK:
+      case VK_FORMAT_BC7_SRGB_BLOCK:
+      case VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK:
+      case VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK:
+      case VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK:
+      case VK_FORMAT_ASTC_4x4_SRGB_BLOCK:
+      case VK_FORMAT_ASTC_5x4_SRGB_BLOCK:
+      case VK_FORMAT_ASTC_5x5_SRGB_BLOCK:
+      case VK_FORMAT_ASTC_6x5_SRGB_BLOCK:
+      case VK_FORMAT_ASTC_6x6_SRGB_BLOCK:
+      case VK_FORMAT_ASTC_8x5_SRGB_BLOCK:
+      case VK_FORMAT_ASTC_8x6_SRGB_BLOCK:
+      case VK_FORMAT_ASTC_8x8_SRGB_BLOCK:
+      case VK_FORMAT_ASTC_10x5_SRGB_BLOCK:
+      case VK_FORMAT_ASTC_10x6_SRGB_BLOCK:
+      case VK_FORMAT_ASTC_10x8_SRGB_BLOCK:
+      case VK_FORMAT_ASTC_10x10_SRGB_BLOCK:
+      case VK_FORMAT_ASTC_12x10_SRGB_BLOCK:
+      case VK_FORMAT_ASTC_12x12_SRGB_BLOCK:
+      case VK_FORMAT_PVRTC1_2BPP_SRGB_BLOCK_IMG:
+      case VK_FORMAT_PVRTC1_4BPP_SRGB_BLOCK_IMG:
+      case VK_FORMAT_PVRTC2_2BPP_SRGB_BLOCK_IMG:
+      case VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG:
+      case VK_FORMAT_ASTC_3x3x3_SRGB_BLOCK_EXT:
+      case VK_FORMAT_ASTC_4x3x3_SRGB_BLOCK_EXT:
+      case VK_FORMAT_ASTC_4x4x3_SRGB_BLOCK_EXT:
+      case VK_FORMAT_ASTC_4x4x4_SRGB_BLOCK_EXT:
+      case VK_FORMAT_ASTC_5x4x4_SRGB_BLOCK_EXT:
+      case VK_FORMAT_ASTC_5x5x4_SRGB_BLOCK_EXT:
+      case VK_FORMAT_ASTC_5x5x5_SRGB_BLOCK_EXT:
+      case VK_FORMAT_ASTC_6x5x5_SRGB_BLOCK_EXT:
+      case VK_FORMAT_ASTC_6x6x5_SRGB_BLOCK_EXT:
+      case VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT:
+        return true;
+      default:
+        return false;
+    }
+}
+
+bool
 isValidFormat(VkFormat format)
 {
     // On MSVC VkFormat can be a signed integer

@@ -1168,12 +1168,8 @@ EMSCRIPTEN_BINDINGS(ktx)
         .value("ALLOC_STORAGE", KTX_TEXTURE_CREATE_ALLOC_STORAGE)
     ;
 
-    // Perhaps someday generate a complete VkFormat entry. At present
-    // for textures created for image data from the result of canvas
-    // 2d drawing we only need these few.
     enum_<VkFormat>("VkFormat")
-        .value("R8G8B8A8_SRGB", VK_FORMAT_R8G8B8A8_SRGB)
-        .value("R8G8B8A8_UNORM", VK_FORMAT_R8G8B8A8_UNORM)
+#include "vk_format.inl"
     ;
 
     emscripten::class_<ktxTextureCreateInfo>("ktxTextureCreateInfo")
