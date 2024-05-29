@@ -138,9 +138,7 @@ $2 == "VK_HEADER_VERSION" {
       }
       if ($1 !~ /SCALED/ && $1) {
         java = java "    public static final int " $1 " = " enum_val ";" ORS
-        if ($1 !~ /UNDEFINED/) {
-          js = js "    .value(\"" removePrefix($1, "VK_FORMAT_") "\", " $1 ")" ORS
-        }
+        js = js "    .value(\"" removePrefix($1, "VK_FORMAT_") "\", " $1 ")" ORS
         python = python "    " $1 " = " enum_val ORS
       }
     }
