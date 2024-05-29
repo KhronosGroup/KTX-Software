@@ -25,7 +25,11 @@ on:
   workflow_dispatch:
 
 jobs:
+  #formatting:
+  #  uses: ./.github/workflows/formatting.yml
   windows:
+    # Shortcircuit and don't burn CI time when formatting will reject
+    #needs: formatting
     strategy:
       matrix:
         os: [ windows-latest ]
