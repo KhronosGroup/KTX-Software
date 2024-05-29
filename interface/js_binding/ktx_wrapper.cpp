@@ -203,7 +203,7 @@ namespace ktx
                 KHR_DFDSETVAL(static_cast<ktxTexture2*>(*this)->pDfd+1, PRIMARIES, primaries);
         }
 
-        bool isSRGB() const
+        bool isSrgb() const
         {
             return (getOETF() == KHR_DF_TRANSFER_SRGB);
         }
@@ -1131,10 +1131,10 @@ EMSCRIPTEN_BINDINGS(ktx)
         .property("dataSize", &ktx::texture::getDataSize)
         .property("baseWidth", &ktx::texture::baseWidth)
         .property("baseHeight", &ktx::texture::baseHeight)
-        .property("OETF", &ktx::texture::getOETF, &ktx::texture::setOETF)
+        .property("oetf", &ktx::texture::getOETF, &ktx::texture::setOETF)
         .property("primaries", &ktx::texture::getPrimaries,
                                &ktx::texture::setPrimaries)
-        .property("isSRGB", &ktx::texture::isSRGB)
+        .property("isSrgb", &ktx::texture::isSrgb)
         .property("isPremultiplied", &ktx::texture::isPremultiplied)
         .property("needsTranscoding", &ktx::texture::needsTranscoding)
         .property("numComponents", &ktx::texture::numComponents)

@@ -781,8 +781,8 @@ async function testCreate(imageData) {
 
   var displayP3;
   // Image data from 2d canvases is always 8-bit RGBA.
-  // The only colorSpace choices, undefined, "srgb" and "displayp3" all
-  // use the sRGB transfer function.
+  // The only possible ImageData colorSpace choices are undefined, "srgb"
+  // and "displayp3." All use the sRGB transfer function.
   createInfo.vkFormat = VkFormat.R8G8B8A8_SRGB;
   if ( imageData.colorSpace == "display-p3") {
     displayP3 = true;
@@ -791,23 +791,25 @@ async function testCreate(imageData) {
   const ktexture = new ktxTexture(createInfo, CreateStorageEnum.ALLOC_STORAGE);
   showTestResult('create_result', ktexture != null);
   if (ktexture != null) {
-    const OETF = ktexture.OETF;
+    if (displayP3) {
+        ktexture.primaries = ktx.dfPrimaries.DISPLAYP3;
+    }
+    // Check DFD settings. Oetf should be SRGB due to SRGB vkFormat.
+    // Primaries default to BT709 unless set to P3 above.
+    const expectedPrimaries = displayP3 ? ktx.dfPrimaries.DISPLAYP3
+                                        : ktx.dfPrimaries.BT709;
+    const oetf = ktexture.oetf;
     const primaries = ktexture.primaries;
-    console.log("dfTransfer.SRGB = " + dfTransfer.SRGB + ", dfPrimaries.BT709 = " + dfPrimaries.BT709);
-    const foo = VkFormat.R8G8B8A8_SRGB;
-    console.log("VkFormat.R8G8B8A8_SRGB = " + VkFormat.R8G8B8A8_SRGB + "and foo = " + foo);
-    if (OETF === dfTransfer.SRGB && primaries === dfPrimaries.BT709)
-        console.log("Successfully matched OETF and primaries");
-    console.log("OETF = " + OETF + ", primaries = " + primaries);
+    // Do not know how to compare without using .value as all these
+    // enumerators are objects.
+    showTestResult('colorspace_set_result',
+                   ( oetf.value == dfTransfer.SRGB.value
+                    && primaries.value == expectedPrimaries.value));
+
     result = ktexture.setImageFromMemory(0, 0, 0, imageData.data);
     showTestResult('copy_image_result', result == ErrorCode.SUCCESS);
-    if (result == ErrorCode.SUCCESS) {
-      if (displayP3) {
-        ktexture.primaries = ktx.dfPrimaries.DISPLAYP3;
-      }
-    }
   }
-   return ktexture;
+  return ktexture;
 }
 
 function testWriteReadMetadata(ktexture) {
@@ -870,13 +872,14 @@ async function testEncodeAstc(ktexture) {
   params.mode = AstcMode.DEFAULT;
   params.qualityLevel = AstcQualityLevel.FAST;
   params.normalMap = false;
-  params.inputSwizzle = 'rgb1';
+
+  // Before we compress, test inputSwizzle setting
+  params.inputSwizzle = 'rrrg';
+  showTestResult('swizzle_set_result',
+                  params.inputSwizzle.localeCompare('rrrg') == 0); 
+  params.inputSwizzle = ''; // Reset to default.
 
   var result = ktexture.compressAstc(params);
-
-  const swizzle = params.inputSwizzle;
-  console.log("inputSwizzle = " + swizzle);
-
   showTestResult('compress_astc_result', result == ErrorCode.SUCCESS);
 }
 
@@ -978,7 +981,7 @@ async function runTests(filename) {
       updateItem(items[astcCompTextureItem], textureAstc);
     } else {
       items[astcCompTextureItem].label.textContent +=
-                 " not displayed. This device does not support WEBGL_compressed_texture_astc."
+                 ". (Not displayed. This device does not support WEBGL_compressed_texture_astc)"
     }
 
     elem('runtests').disabled = true;
