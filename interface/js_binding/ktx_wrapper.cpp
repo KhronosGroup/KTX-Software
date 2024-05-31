@@ -110,32 +110,6 @@ namespace ktx
             return textureCopy;
         }
 
-        ktx_error_code_e addKVPair(const std::string& key, const std::string& value)
-        {
-            ktxHashList* ht = &m_ptr->kvDataHead;
-            ktx_error_code_e result;
-            result = ktxHashList_AddKVPair(ht, key.c_str(),
-                                           value.size() + 1,
-                                           value.c_str());
-
-            if (result != KTX_SUCCESS) {
-                std::cout << "ERROR: failed to addKVPair: " << ktxErrorString(result) << std::endl;
-            }
-            return result;
-        }
-
-        ktx_error_code_e deleteKVPair(const std::string& key)
-        {
-            ktxHashList* ht = &m_ptr->kvDataHead;
-            ktx_error_code_e result;
-            result = ktxHashList_DeleteKVPair(ht, key.c_str());
-
-            if (result != KTX_SUCCESS) {
-                std::cout << "ERROR: failed to deleteKVPair: " << ktxErrorString(result) << std::endl;
-            }
-            return result;
-        }
-
         emscripten::val findKeyValue(const std::string key)
         {
             ktxHashList* ht = &m_ptr->kvDataHead;
@@ -150,7 +124,6 @@ namespace ktx
                 return emscripten::val::null();
             }
         }
-
 
         uint32_t getDataSize() const 
         {
@@ -180,27 +153,12 @@ namespace ktx
                 return KHR_DF_TRANSFER_UNSPECIFIED;
         }
 
-        // Should only be used when creating new ktx textures.
-        // TODO: How to prevent use on ktxTexture objects
-        // created with CreateFromMemory? Should we?
-        void setOETF(khr_df_transfer_e oetf)
-        {
-            if (isTexture2())
-                KHR_DFDSETVAL(static_cast<ktxTexture2*>(*this)->pDfd+1, TRANSFER, oetf);
-        }
-
         khr_df_primaries_e getPrimaries() const
         {
             if (isTexture2())
                 return ktxTexture2_GetPrimaries_e(*this);
             else
                 return KHR_DF_PRIMARIES_UNSPECIFIED;
-        }
-
-        void setPrimaries(khr_df_primaries_e primaries)
-        {
-            if (isTexture2())
-                KHR_DFDSETVAL(static_cast<ktxTexture2*>(*this)->pDfd+1, PRIMARIES, primaries);
         }
 
         bool isSrgb() const
@@ -278,26 +236,6 @@ namespace ktx
             return m_ptr->orientation;
         }
 
-        const std::string animDataKey() const
-        {
-            return KTX_ANIMDATA_KEY;
-        }
-
-        const std::string orientationKey() const
-        {
-            return KTX_ORIENTATION_KEY;
-        }
-
-        const std::string swizzleKey() const
-        {
-            return KTX_SWIZZLE_KEY;
-        }
-
-        const std::string writerKey() const
-        {
-            return KTX_WRITER_KEY;
-        }
-
         ktx_error_code_e transcodeBasis(const val& targetFormat, const val& decodeFlags)
         {
             if (!isTexture2())
@@ -339,11 +277,6 @@ namespace ktx
             ret.set("error", error);
             return ret;
         }
-
-        //static const std::string AnimDataKey;
-        //static const std::string OrientationKey;
-        //static const std::string SwizzleKey;
-        //static const std::string WriterKey;
 
 #if KTX_FEATURE_WRITE
         texture(const ktxTextureCreateInfo& createInfo,
@@ -515,6 +448,69 @@ namespace ktx
             return result;
         }
 
+        ktx_error_code_e addKVPair(const std::string& key, const std::string& value)
+        {
+            ktxHashList* ht = &m_ptr->kvDataHead;
+            ktx_error_code_e result;
+            result = ktxHashList_AddKVPair(ht, key.c_str(),
+                                           value.size() + 1,
+                                           value.c_str());
+
+            if (result != KTX_SUCCESS) {
+                std::cout << "ERROR: failed to addKVPair (string): " << ktxErrorString(result) << std::endl;
+            }
+            return result;
+        }
+
+        ktx_error_code_e addKVPair(const std::string& key, const emscripten::val& jsvalue)
+        {
+            std::vector<uint8_t> value{};
+            value.resize(jsvalue["byteLength"].as<size_t>());
+            val memory = val::module_property("HEAP8")["buffer"];
+            val memoryView = jsvalue["constructor"].new_(memory,
+                                               reinterpret_cast<uintptr_t>(value.data()),
+                                               jsvalue["length"].as<uint32_t>());
+            memoryView.call<void>("set", jsvalue);
+
+            ktxHashList* ht = &m_ptr->kvDataHead;
+            ktx_error_code_e result;
+            result = ktxHashList_AddKVPair(ht, key.c_str(),
+                                           value.size(),
+                                           value.data());
+
+            if (result != KTX_SUCCESS) {
+                std::cout << "ERROR: failed to addKVPair (vector): " << ktxErrorString(result) << std::endl;
+            }
+            return result;
+        }
+
+        ktx_error_code_e deleteKVPair(const std::string& key)
+        {
+            ktxHashList* ht = &m_ptr->kvDataHead;
+            ktx_error_code_e result;
+            result = ktxHashList_DeleteKVPair(ht, key.c_str());
+
+            if (result != KTX_SUCCESS) {
+                std::cout << "ERROR: failed to deleteKVPair: " << ktxErrorString(result) << std::endl;
+            }
+            return result;
+        }
+
+        // Should only be used when creating new ktx textures.
+        // TODO: How to prevent use on ktxTexture objects
+        // created with CreateFromMemory? Should we?
+        void setOETF(khr_df_transfer_e oetf)
+        {
+            if (isTexture2())
+                KHR_DFDSETVAL(static_cast<ktxTexture2*>(*this)->pDfd+1, TRANSFER, oetf);
+        }
+
+        void setPrimaries(khr_df_primaries_e primaries)
+        {
+            if (isTexture2())
+                KHR_DFDSETVAL(static_cast<ktxTexture2*>(*this)->pDfd+1, PRIMARIES, primaries);
+        }
+
         emscripten::val writeToMemory() const
         {
             ktx_error_code_e result;
@@ -530,10 +526,6 @@ namespace ktx
         }
 #endif
     };
-    //const std::string texture::AnimDataKey = KTX_ANIMDATA_KEY;
-    //const std::string texture::OrientationKey = KTX_ORIENTATION_KEY;
-    //const std::string texture::SwizzleKey = KTX_SWIZZLE_KEY;
-    //const std::string texture::WriterKey = KTX_WRITER_KEY;
 }
 
 /** @mainpage
@@ -1131,9 +1123,14 @@ EMSCRIPTEN_BINDINGS(ktx)
         .property("dataSize", &ktx::texture::getDataSize)
         .property("baseWidth", &ktx::texture::baseWidth)
         .property("baseHeight", &ktx::texture::baseHeight)
+#if KTX_FEATURE_WRITE
         .property("oetf", &ktx::texture::getOETF, &ktx::texture::setOETF)
         .property("primaries", &ktx::texture::getPrimaries,
                                &ktx::texture::setPrimaries)
+#else
+        .property("oetf", &ktx::texture::getOETF)
+        .property("primaries", &ktx::texture::getPrimaries)
+#endif
         .property("isSrgb", &ktx::texture::isSrgb)
         .property("isPremultiplied", &ktx::texture::isPremultiplied)
         .property("needsTranscoding", &ktx::texture::needsTranscoding)
@@ -1141,12 +1138,6 @@ EMSCRIPTEN_BINDINGS(ktx)
         .property("orientation", &ktx::texture::orientation)
         .property("supercompressScheme", &ktx::texture::supercompressionScheme)
         .property("vkFormat", &ktx::texture::vkFormat)
-        .property("animDataKey", &ktx::texture::animDataKey)
-        .property("orientationKey", &ktx::texture::orientationKey)
-        .property("swizzleKey", &ktx::texture::swizzleKey)
-        .property("writerKey", &ktx::texture::writerKey)
-        .function("addKVPair", &ktx::texture::addKVPair)
-        .function("deleteKVPair", &ktx::texture::deleteKVPair)
         .function("findKeyValue", &ktx::texture::findKeyValue)
         .function("getImage", &ktx::texture::getImage)
         .function("glUpload", &ktx::texture::glUpload)
@@ -1157,6 +1148,11 @@ EMSCRIPTEN_BINDINGS(ktx)
         .function("compressBasis", &ktx::texture::compressBasis)
         .function("deflateZstd", &ktx::texture::deflateZstd)
         .function("deflateZLIB", &ktx::texture::deflateZLIB)
+        .function("addKVPairString",
+                  select_overload<ktx_error_code_e(const std::string&, const std::string&)>(&ktx::texture::addKVPair))
+        .function("addKVPairByte",
+                  select_overload<ktx_error_code_e(const std::string&, const val&)>(&ktx::texture::addKVPair))
+        .function("deleteKVPair", &ktx::texture::deleteKVPair)
         .function("setImageFromMemory", &ktx::texture::setImageFromMemory)
         .function("writeToMemory", &ktx::texture::writeToMemory)
 #endif
@@ -1328,7 +1324,11 @@ EMSCRIPTEN_BINDINGS(ktx)
       .property("uastcRDONoMultithreading", &ktxBasisParams::uastcRDONoMultithreading);
     ;
 
-    constant("faceSliceWholeLevel", KTX_FACESLICE_WHOLE_LEVEL);
-    constant("etc1SDefaultCompressionLevel", KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL);
+    constant("AnimDataKey", std::string(KTX_ANIMDATA_KEY));
+    constant("OrientationKey", std::string(KTX_ORIENTATION_KEY));
+    constant("SwizzleKey", std::string(KTX_SWIZZLE_KEY));
+    constant("WriterKey", std::string(KTX_WRITER_KEY));
+    constant("FaceSliceWholeLevel", KTX_FACESLICE_WHOLE_LEVEL);
+    constant("Etc1SDefaultCompressionLevel", KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL);
 #endif
 }

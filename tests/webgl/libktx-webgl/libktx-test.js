@@ -815,17 +815,17 @@ async function testCreate(imageData) {
 function testWriteReadMetadata(ktexture) {
   const writer = "libktx-js-test";
   const orientation = "rd";
-  ktexture.addKVPair(ktexture.orientationKey, orientation);
-  ktexture.addKVPair(ktexture.writerKey, writer);
+  ktexture.addKVPairString(ktx.OrientationKey, orientation);
+  ktexture.addKVPairString(ktx.WriterKey, writer);
 
   var textDecoder = new TextDecoder();
-  var value = ktexture.findKeyValue(ktexture.writerKey);
+  var value = ktexture.findKeyValue(ktx.WriterKey);
   // subarray to remove the terminating null we know is there.
   var string = textDecoder.decode(value.subarray(0,value.byteLength-1));
   var passed = true;
   //console.log(string);
   if (!writer.localeCompare(string)) {
-    value = ktexture.findKeyValue(ktexture.orientationKey);
+    value = ktexture.findKeyValue(ktx.OrientationKey);
     string = textDecoder.decode(value.subarray(0,value.byteLength-1));
     //console.log(string);
     if (orientation.localeCompare(string)) {
@@ -833,6 +833,33 @@ function testWriteReadMetadata(ktexture) {
     }
   } else {
     passed = false;
+  }
+
+  if (passed) {
+    // Test passing of array-valued metadata between JS & C++.
+    var animData = new Uint32Array(3);
+    animData[0] = 20;     // duration
+    animData[1] = 1000;   // timescale
+    animData[2] = 10;     // loopCount
+    // In real use the data should be endian-converted when on a
+    // big-endian machine as the KTX v2 spec. requires these values
+    // be little-endian. For the purpose of this test, it is not
+    // necessary as the data is not used.
+    ktexture.addKVPairByte(ktx.AnimDataKey, animData);
+    value = ktexture.findKeyValue(ktx.AnimDataKey);
+    if (value != null) {
+      // In real use, data needs to be endian-converted when on a
+      // big-endian machine.
+      const retData = new Uint32Array(value.buffer, value.byteOffset,
+                                      value.length / 4);
+      if (retData[0] != 20 || retData[1] != 1000 || retData[2] != 10)
+        passed = false;
+    } else {
+      passed = false;
+    }
+    // Since ktexture is not an array texture presence of AnimData
+    // will cause the a load to fail So delete the AnimData.
+    ktexture.deleteKVPair(ktx.AnimDataKey);
   }
   showTestResult('metadata_result', passed);
 }
@@ -857,7 +884,7 @@ async function testEncodeBasis(ktexture) {
   basisu_options.noSSE = true;
   basisu_options.verbose = false;
   basisu_options.qualityLevel = 200;
-  basisu_options.compressionLevel = ktx.etc1SDefaultCompressionLevel;
+  basisu_options.compressionLevel = ktx.Etc1SDefaultCompressionLevel;
 
   var result = ktexture.compressBasis(basisu_options);
 
