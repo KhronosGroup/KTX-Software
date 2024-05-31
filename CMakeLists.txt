@@ -912,15 +912,11 @@ if(EMSCRIPTEN)
         "SHELL:-s MODULARIZE=1"
     )
 
-    # ktx_js includes only the minimal write functionality (BasisU encoding)
-    # needed by the glTF Compressor. See
-    # https://github.khronos.org/glTF-Compressor-Release/. Its source repo,
-    # https://github.com/KhronosGroup/glTF-Compressor, currently has only
-    # the compiled libktx.{js,wasm} of this target. Actually that
-    # was compiled from Phasmatic's version of source which has been
-    # merged here so this should be equivalent. We will not include this
-    # in KTX-Software releases until it has full write functionality.
-    add_executable( ktx_js interface/js_binding/ktx_wrapper.cpp )
+    add_executable( ktx_js
+        interface/js_binding/ktx_wrapper.cpp
+#        interface/js_binding/polyfills.js
+        interface/js_binding/vk_format.inl
+    )
     target_compile_definitions(ktx_js PUBLIC KTX_FEATURE_WRITE)
     target_link_libraries( ktx_js ktx )
     target_include_directories(
@@ -934,6 +930,7 @@ if(EMSCRIPTEN)
         ktx_js
     PUBLIC
         ${KTX_EMC_LINK_FLAGS}
+        #--extern-post-js ${CMAKE_CURRENT_SOURCE_DIR}/interface/js_binding/polyfills.js
         "SHELL:-s EXPORT_NAME=createKtxModule"
         "SHELL:-s EXPORTED_RUNTIME_METHODS=[\'GL\']"
         "SHELL:-s GL_PREINITIALIZED_CONTEXT=1"
@@ -1388,8 +1385,7 @@ elseif(WIN32)
     endif()
 elseif(EMSCRIPTEN)
     set(CPACK_GENERATOR ZIP)
-    # Don't release until it includes full write functionality.
-    # set(CPACK_ARCHIVE_KTX_JS_FILE_NAME "${CMAKE_PROJECT_NAME}-${KTX_VERSION_FULL}-Web-libktx")
+    set(CPACK_ARCHIVE_KTX_JS_FILE_NAME "${CMAKE_PROJECT_NAME}-${KTX_VERSION_FULL}-Web-libktx")
     set(CPACK_ARCHIVE_KTX_JS_READ_FILE_NAME "${CMAKE_PROJECT_NAME}-${KTX_VERSION_FULL}-Web-libktx_read")
     set(CPACK_ARCHIVE_MSC_BASIS_TRANSCODER_JS_FILE_NAME "${CMAKE_PROJECT_NAME}-${KTX_VERSION_FULL}-Web-msc_basis_transcoder")
 
