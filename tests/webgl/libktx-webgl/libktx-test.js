@@ -761,11 +761,10 @@ function showTestResult(id, pass) {
 
 // Test creation of a ktxTexture2 from the provided imageData.
 async function testCreate(imageData) {
-  const { ktxTexture, ktxBasisParams,
+  const { ktxTexture,
           ktxTextureCreateInfo, VkFormat,
           dfPrimaries, dfTransfer,
           CreateStorageEnum, SupercmpScheme, ErrorCode } = ktx;
-  const basisu_options = new ktxBasisParams();
   const createInfo = new ktxTextureCreateInfo();
   const colorSpace = imageData.colorSpace;
 
