@@ -499,16 +499,22 @@ namespace ktx
         // Should only be used when creating new ktx textures.
         // TODO: How to prevent use on ktxTexture objects
         // created with CreateFromMemory? Should we?
-        void setOETF(khr_df_transfer_e oetf)
+        ktx_error_code_e setOETF(khr_df_transfer_e oetf)
         {
             if (isTexture2())
-                KHR_DFDSETVAL(static_cast<ktxTexture2*>(*this)->pDfd+1, TRANSFER, oetf);
+                return ktxTexture2_SetOETF(static_cast<ktxTexture2*>(*this),
+                                           oetf);
+
+            return KTX_INVALID_OPERATION;
         }
 
-        void setPrimaries(khr_df_primaries_e primaries)
+        ktx_error_code_e setPrimaries(khr_df_primaries_e primaries)
         {
             if (isTexture2())
-                KHR_DFDSETVAL(static_cast<ktxTexture2*>(*this)->pDfd+1, PRIMARIES, primaries);
+                return ktxTexture2_SetPrimaries(static_cast<ktxTexture2*>(*this),
+                                                primaries);
+
+            return KTX_INVALID_OPERATION;
         }
 
         val writeToMemory() const

@@ -1989,6 +1989,28 @@ ktxTexture2_NeedsTranscoding(ktxTexture2* This)
         return false;
 }
 
+#if KTX_FEATURE_WRITE
+bool isSrgbFormat(VkFormat format);
+
+ktx_error_code_e
+ktxTexture2_SetOETF(ktxTexture2* This, khr_df_transfer_e oetf)
+{
+    if (isSrgbFormat(This->vkFormat) && oetf != KHR_DF_TRANSFER_SRGB)
+        return KTX_INVALID_OPERATION;
+
+    // TODO: Implement other checks for compliance with KTX spec. Revision 3
+    KHR_DFDSETVAL(This->pDfd + 1, TRANSFER, oetf);
+    return KTX_SUCCESS;
+}
+
+ktx_error_code_e
+ktxTexture2_SetPrimaries(ktxTexture2* This, khr_df_primaries_e primaries)
+{
+    KHR_DFDSETVAL(This->pDfd + 1, PRIMARIES, primaries);
+    return KTX_SUCCESS;
+}
+#endif
+
 /**
  * @memberof ktxTexture2
  * @~English
