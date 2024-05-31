@@ -548,7 +548,10 @@ namespace ktx
 
 /** @page libktx_js libktx Binding
 
-## WebIDL for the binding
+# WebIDL for the binding
+
+Items marked with ** are only available in the full @e libktx.js wrapper. Unmarked
+items are available in both @e libktx.js and @e libktx_read.js.
 
 @code{.idl}
 interface ktxOrientation {
@@ -563,7 +566,7 @@ interface ktxUploadResult {
     readonly attribute GLenum error;
 };
 
-interface ktxTextureCreateInfo {
+interface ktxTextureCreateInfo {  // **
     attribute long vkFormat;
     attribute long baseWidth;
     attribute long baseHeight;
@@ -576,7 +579,7 @@ interface ktxTextureCreateInfo {
     attribute boolean generateMipmaps;
 };
 
-interface ktxAstcParams {  // ktx only.
+interface ktxAstcParams {  // **
     void ktxAstcParams();
 
     attribute boolean verbose;
@@ -588,7 +591,7 @@ interface ktxAstcParams {  // ktx only.
     attribute DOMString inputSwizzle;
 };
 
-interface ktxBasisParams {
+interface ktxBasisParams {  // **
     void ktxBasisParams();
 
     attribute boolean uastc,
@@ -624,23 +627,24 @@ interface ktxBasisParams {
 
 interface ktxTexture {
     void constructor(ArrayBufferView fileData);
-    void constructor(ktxTextureCreateInfo createInfo, // ktx only
+    void constructor(ktxTextureCreateInfo createInfo, // **
                      CreateStorageEnum? storage);
 
-    ErrorCode? compressAstc(ktxAstcParams params); // ktx only.
-    ErrorCode? compressBasis(ktxBasisParams params); // ktx only .
-    ktxTexture createCopy();
-    ErrorCode defateZLIB(); // ktx only.
-    ErrorCode deflateZstd(); // ktx only.
+    ErrorCode? compressAstc(ktxAstcParams params); // **
+    ErrorCode? compressBasis(ktxBasisParams params); // **
+    ktxTexture createCopy();  // **
+    ErrorCode defateZLIB();   // **
+    ErrorCode deflateZstd();  // **
     ArrayBufferView getImage(long level, long layer, long faceSlice);
     UploadResult glUpload();
     ErrorCode? setImageFromMemory(long level, long layer, long faceSlice,
-                                  ArrayBufferView imageData); // ktx only.
+                                  ArrayBufferView imageData); // **
     ErrorCode? transcodeBasis(TranscodeTarget? target, TranscodeFlagBits
                               decodeFlags);
-    ArrayBufferView writeToMemory(); // ktx only.
-    ErrorCode? addKVPair(DOMString key, DOMString value);
-    deleteKVPair(DOMString key);
+    ArrayBufferView writeToMemory(); // **
+    ErrorCode? addKVPairString(DOMString key, DOMString value);     // **
+    ErrorCode? addKVPairByte(DOMString key, ArrayBuffewView value); // **
+    deleteKVPair(DOMString key);  // **
     DOMString findKeyValue(DOMString key);
 
     readonly attribute long baseWidth;
@@ -653,8 +657,8 @@ interface ktxTexture {
     readonly attribute SupercmpScheme supercompressionScheme;
     readonly attribute ktxOrientation orientation;
 
-    attribute dfTransfer OETF;
-    attribute dfPrimaries primaries;
+    attribute dfTransfer OETF;       // Setting available only in libktx.js.
+    attribute dfPrimaries primaries; // Setting available only in libktx.js.
 };
 
 enum ErrorCode = {
@@ -729,7 +733,7 @@ enum SupercmpScheme {
 };
 
 enum dfPrimaries = {
-    // These are the values needed with HTML5/WebGL.
+    // These are the values needed for KTX with HTML5/WebGL.
     "UNSPECIFIED",
     "BT709",
     "SRGB"
@@ -750,9 +754,8 @@ enum VkFormat = {
     // Full list omitted as its length will distract from the documentation
     // purpose of this IDL. Any VkFormat valid for KTX can be used. As shown
     // here, omit the VK_FORMAT_ prefix and enclose in quotes.
-}
 
-enum AstcQualityLevel = {
+enum AstcQualityLevel = {  // **
     "FASTEST",
     "FAST",
     "MEDIUM",
@@ -760,7 +763,7 @@ enum AstcQualityLevel = {
     "EXHAUSTIVE",
 };
 
-enum AstcBlockDimension = {
+enum AstcBlockDimension = {  // **
     // 2D formats
     "d4x4",
     "d5x4",
@@ -789,13 +792,13 @@ enum AstcBlockDimension = {
     "d6x6x6"
 };
 
-enum AstcMode = {
+enum AstcMode = {  // **
     "DEFAULT",
     "LDR",
     "HDR"
 };
 
-enum UastcFlags = {
+enum UastcFlags = {  // **
     "LEVEL_FASTEST",
     "LEVEL_FASTER",
     "LEVEL_DEFAULT",
@@ -804,7 +807,7 @@ enum UastcFlags = {
 };
 @endcode
 
-## How to use
+# How to use
 
 Put libktx.js and libktx.wasm in a directory on your server. Create a script
 tag with libktx.js as the @c src in your .html as shown below, changing the
@@ -817,16 +820,16 @@ script source. libktx.js will automatically load libktx.wasm.
 @note For the read-only version of the library, use libktx_read.js and
 libktx_read.wasm instead.
 
-### Create an instance of the ktx module
+## Create an instance of the ktx module
 
 To avoid polluting the global @c window name space all methods, variables and
 tokens related to libktx are wrapped in a function that returns a promise.
 The promise is resolved with a module instance when it is safe to run the
 compiled code. To use any of the features your code must call the function,
-wait for the promise resolution and use the returned instance. Before doing so,
-your code must create your WebGL context. The context is needed during module
-initialization so that the @c glUpload function can provide WebGLTexture object
-handles on the same context.
+wait for the promise resolution and use the returned instance. Before calling
+the function your code must create your WebGL context. The context is needed
+during module initialization so that the @c glUpload function can provide
+WebGLTexture object handles on the same context.
 
 The function is called @e createKtxModule. In previous releases it was called
 @e LIBKTX. It has been renamed to clarify what it is actually doing. Old scripts
@@ -861,13 +864,13 @@ This snippet shows WebGL context creation as well.
     }
 @endcode
 
-@e Call @c main() after the module instance has been created. Start the rest of your
-code there.
+This calls @c main() after the module instance has been created. Start the rest
+of your code there.
 
-### Download a KTX file and create a texture
+# Downloading and using an existing KTX texture.
 
 To download an existing texture and create a WebGL texture from it, execute a
-function like @c loadTexture the following:
+function like @c loadTexture in the following:
 
 @code{.js}
     var myTexture;
@@ -894,7 +897,8 @@ function like @c loadTexture the following:
         gl.bindTexture(tex.target, tex.object);
         gl.deleteTexture(texture.object);
         texture = tex;
-        elem('format').innerText = tex.format;
+        // Use code like this to display the transcode target format.
+        // elem('format').innerText = tex.format;
         ktexture.delete();
       };
 
@@ -1014,6 +1018,128 @@ parameter was created from the content of the ktexture parameter.
 be necessary to expose the ktxTexture_IterateLevelFaces or
 ktxTexture_IterateLoadLevelFaces API to JS with those calling a
 callback in JS to upload each image to WebGL.
+
+# Creating a new KTX texture
+
+This function shows the main steps:
+
+@code{.js}
+    async function runTests(filename) {
+        const img = await loadImage(filename);
+        const imageData = await loadImageData(img);
+        const ktexture = await createTexture(imageData);
+    }
+@endcode
+
+Step 1 is to fetch the image via code such as this:
+
+@code{.js}
+    async function loadImage(src){
+      return new Promise((resolve, reject) => {
+        let img = new Image();
+        div = items[origImageItem].element;
+        img.onload = () => { div.appendChild(img); resolve(img); }
+        img.onerror = reject;
+        img.src = src;
+      })
+    }
+}
+@endcode
+
+Step 2 is to get the image data via code such as the following. Note
+that to get data at the original image size you must use @c img.naturalWidth
+and @c img.naturalHeight as shown here. If you use @c img.width and
+@c img.height the image data will be rendered at whatever size your CSS
+is displaying the canvas.
+
+@code{.js}
+    async function loadImageData (img, flip = false) {
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d");
+      const width = img.naturalWidth;
+      const height = img.naturalHeight;
+      canvas.width = width;
+      canvas.height = height;
+
+      if (flip) {
+        context.translate(0, height);
+        context.scale(1, -1);
+      }
+      context.drawImage(img, 0, 0, width, height);
+
+      const imageData = context.getImageData(0, 0, width, height);
+      return imageData;
+    };
+@endcode
+
+Step 3 is to create the KTX texture object as shonw here:
+
+@code{.js}
+    async function createTexture(imageData) {
+      const createInfo = new ktx.ktxTextureCreateInfo();
+      const colorSpace = imageData.colorSpace;
+
+      createInfo.baseWidth = imageData.width;
+      createInfo.baseHeight = imageData.height;
+      createInfo.baseDepth = 1;
+      createInfo.numDimensions = 2;
+      createInfo.numLevels = 1;
+      createInfo.numLayers = 1;
+      createInfo.numFaces = 1;
+      createInfo.isArray = false;
+      createInfo.generateMipmaps = false;
+
+      var displayP3;
+      // Image data from 2d canvases is always 8-bit RGBA.
+      // The only possible ImageData colorSpace choices are undefined, "srgb"
+      // and "displayp3." All use the sRGB transfer function.
+      createInfo.vkFormat = VkFormat.R8G8B8A8_SRGB;
+      if ( imageData.colorSpace == "display-p3") {
+        displayP3 = true;
+      }
+
+      const ktexture = new ktx.ktxTexture(createInfo, CreateStorageEnum.ALLOC_STORAGE);
+      if (ktexture != null) {
+        if (displayP3) {
+            ktexture.primaries = ktx.dfPrimaries.DISPLAYP3;
+        }
+        result = ktexture.setImageFromMemory(0, 0, 0, imageData.data);
+      }
+      return ktexture;
+    }
+@endcode
+
+The texture can now be uploaded to WebGL with `uploadTextureToGl`, that was
+listed earlier, and then displayed.
+
+The texture can be compressed to one of the Basis universal formats with code
+like the following.
+
+@code{.js}
+    async function testEncodeBasis(ktexture) {
+      const { ktxBasisParams, ErrorCode } = ktx;
+      const basisu_options = new ktxBasisParams();
+
+      basisu_options.uastc = false;
+      basisu_options.noSSE = true;
+      basisu_options.verbose = false;
+      basisu_options.qualityLevel = 200;
+      basisu_options.compressionLevel = ktx.Etc1SDefaultCompressionLevel;
+
+      var result = ktexture.compressBasis(basisu_options);
+      // Check for ErrorCode == SUCCESS.
+    }
+@endcode
+
+Finally the texture can be written back to Javascript with this single line
+of code:
+
+@code{.js}
+    const serializedTexture = ktexture.writeToMemory();
+@endcode
+
+@c serializedTexture is a TypedArray. The web client can write the data to
+a local file or upload it to a server.
 
 */
 
