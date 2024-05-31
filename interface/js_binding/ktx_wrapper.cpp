@@ -52,12 +52,12 @@ namespace ktx
         //texture(texture&) = delete;
         texture(texture&&) = default;
 
-        texture(const emscripten::val& data) : m_ptr{ nullptr, &destroy }
+        texture(const val& data) : m_ptr{ nullptr, &destroy }
         {
             std::vector<uint8_t> bytes{};
             bytes.resize(data["byteLength"].as<size_t>());
-            emscripten::val memory = emscripten::val::module_property("HEAP8")["buffer"];
-            emscripten::val memoryView = data["constructor"].new_(memory, reinterpret_cast<uintptr_t>(bytes.data()), data["length"].as<uint32_t>());
+            val memory = emscripten::val::module_property("HEAP8")["buffer"];
+            val memoryView = data["constructor"].new_(memory, reinterpret_cast<uintptr_t>(bytes.data()), data["length"].as<uint32_t>());
             // Yes, this code IS copying the data. Sigh! According to Alon
             // Zakai:
             //     "There isn't a way to let compiled code access a new
@@ -110,7 +110,7 @@ namespace ktx
             return textureCopy;
         }
 
-        emscripten::val findKeyValue(const std::string key)
+        val findKeyValue(const std::string key)
         {
             ktxHashList* ht = &m_ptr->kvDataHead;
             ktx_error_code_e result;
@@ -118,10 +118,10 @@ namespace ktx
             ktx_uint8_t* pValue = nullptr;
             result = ktxHashList_FindValue(ht, key.c_str(), &valueLen, (void**)&pValue);
             if (result == KTX_SUCCESS) {
-                return emscripten::val(emscripten::typed_memory_view((ktx_size_t)valueLen, pValue));
+                return val(emscripten::typed_memory_view((ktx_size_t)valueLen, pValue));
             } else {
                 std::cout << "ERROR: failed to findKeyValue: " << ktxErrorString(result) << std::endl;
-                return emscripten::val::null();
+                return val::null();
             }
         }
 
@@ -202,7 +202,7 @@ namespace ktx
             }
         }
 
-        emscripten::val getImage(uint32_t level, uint32_t layer, uint32_t faceSlice)
+        val getImage(uint32_t level, uint32_t layer, uint32_t faceSlice)
         {
             ktx_error_code_e result;
             ktx_size_t imageByteOffset, imageByteLength;
@@ -212,22 +212,22 @@ namespace ktx
                 result = ktxTexture_GetImageOffset(ptr, level, layer, 0, &imageByteOffset);
                 if (result != KTX_SUCCESS) {
                     std::cout << "ERROR: getImage.ktxTexture_GetImageOffset: " << ktxErrorString(result) << std::endl;
-                    return emscripten::val::null();
+                    return val::null();
                 }
                 imageByteLength = ktxTexture_GetLevelSize(ptr, level);
             } else {
                 result = ktxTexture_GetImageOffset(ptr, level, layer, faceSlice, &imageByteOffset);
                 if (result != KTX_SUCCESS) {
                     std::cout << "ERROR: getImage.ktxTexture_GetImageOffset: " << ktxErrorString(result) << std::endl;
-                    return emscripten::val::null();
+                    return val::null();
                 }
                 imageByteLength = ktxTexture_GetImageSize(ptr, level);
             }
             if (imageByteLength >  ptr->dataSize) {
                 std::cout << "ERROR: getImage: not enough data in texture." << std::endl;
-                return emscripten::val::null();
+                return val::null();
             }
-            return emscripten::val(emscripten::typed_memory_view(imageByteLength,
+            return val(emscripten::typed_memory_view(imageByteLength,
                                                      ptr->pData + imageByteOffset));
         }
 
@@ -258,7 +258,7 @@ namespace ktx
 
         // NOTE: WebGLTexture objects are completely opaque so the option of passing in the texture
         // to use is not viable.
-        emscripten::val glUpload()
+        val glUpload()
         {
             GLuint texname = 0;
             GLenum target = 0;
@@ -310,12 +310,12 @@ namespace ktx
         ktx_error_code_e setImageFromMemory(ktx_uint32_t level,
                                             ktx_uint32_t layer,
                                             ktx_uint32_t faceSlice,
-                                            const emscripten::val& jsimage)
+                                            const val& jsimage)
         {
             std::vector<uint8_t> image{};
             image.resize(jsimage["byteLength"].as<size_t>());
-            emscripten::val memory = emscripten::val::module_property("HEAP8")["buffer"];
-            emscripten::val memoryView = jsimage["constructor"].new_(memory,
+            val memory = emscripten::val::module_property("HEAP8")["buffer"];
+            val memoryView = jsimage["constructor"].new_(memory,
                                                reinterpret_cast<uintptr_t>(image.data()),
                                                jsimage["length"].as<uint32_t>());
             // Yes, this code IS copying the data. Sigh! According to Alon
@@ -462,7 +462,7 @@ namespace ktx
             return result;
         }
 
-        ktx_error_code_e addKVPair(const std::string& key, const emscripten::val& jsvalue)
+        ktx_error_code_e addKVPair(const std::string& key, const val& jsvalue)
         {
             std::vector<uint8_t> value{};
             value.resize(jsvalue["byteLength"].as<size_t>());
@@ -511,17 +511,17 @@ namespace ktx
                 KHR_DFDSETVAL(static_cast<ktxTexture2*>(*this)->pDfd+1, PRIMARIES, primaries);
         }
 
-        emscripten::val writeToMemory() const
+        val writeToMemory() const
         {
             ktx_error_code_e result;
             ktx_size_t ktx_data_size = 0;
             ktx_uint8_t* ktx_data = nullptr;
             result = ktxTexture_WriteToMemory(m_ptr.get(), &ktx_data, &ktx_data_size);
             if (result == KTX_SUCCESS) {
-                return emscripten::val(emscripten::typed_memory_view(ktx_data_size, ktx_data));
+                return val(emscripten::typed_memory_view(ktx_data_size, ktx_data));
             } else {
                 std::cout << "ERROR: failed to writeToMemory: " << ktxErrorString(result) << std::endl;
-                return emscripten::val::null();
+                return val::null();
             }
         }
 #endif
@@ -1168,7 +1168,7 @@ EMSCRIPTEN_BINDINGS(ktx)
 #include "vk_format.inl"
     ;
 
-    emscripten::class_<ktxTextureCreateInfo>("ktxTextureCreateInfo")
+    class_<ktxTextureCreateInfo>("ktxTextureCreateInfo")
       .constructor<>()
       // This and similar getters and setters below are needed so the, in
       // this case VkFormat, enum value is correctly retrieved from and
@@ -1235,7 +1235,7 @@ EMSCRIPTEN_BINDINGS(ktx)
       .value("HDR", KTX_PACK_ASTC_ENCODER_MODE_HDR)
     ;
 
-    emscripten::class_<ktxAstcParams>("ktxAstcParams")
+    class_<ktxAstcParams>("ktxAstcParams")
       .constructor<>()
       .property("structSize", &ktxAstcParams::structSize)
       .property("verbose", &ktxAstcParams::verbose)
@@ -1278,7 +1278,7 @@ EMSCRIPTEN_BINDINGS(ktx)
       .value("LEVEL_VERYSLOW", KTX_PACK_UASTC_LEVEL_VERYSLOW)
     ;
 
-    emscripten::class_<ktxBasisParams>("ktxBasisParams")
+    class_<ktxBasisParams>("ktxBasisParams")
       .constructor<>()
       .property("structSize", &ktxBasisParams::structSize)
       .property("uastc", &ktxBasisParams::uastc)
