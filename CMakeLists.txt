@@ -392,6 +392,7 @@ set(KTX_MAIN_SRC
     lib/texture.h
     lib/texture2.c
     lib/texture2.h
+    lib/texture_funcs.inl
     lib/uthash.h
     lib/vk2gl.h
     lib/vk_format.h
