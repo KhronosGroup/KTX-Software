@@ -521,8 +521,9 @@ launchThreads(int threadCount, void (*func)(int, int, void*), void *payload) {
  *                              The texture's images are 1D. Only 2D images can
  *                              be supercompressed.
  * @exception KTX_INVALID_OPERATION
- *                              ASTC  compressor failed to compress image for any
-                                reason.
+ *                              ASTC  compressor failed to compress image.
+ * @exception KTX_INVALID_OPERATION
+ *                              This->generateMipmaps is set.
  * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out compression.
  */
 extern "C" KTX_error_code
@@ -536,6 +537,9 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
 
     if (params->structSize != sizeof(struct ktxAstcParams))
         return KTX_INVALID_VALUE;
+
+    if (This->generateMipmaps)
+        return KTX_INVALID_OPERATION;
 
     if (This->supercompressionScheme != KTX_SS_NONE)
         return KTX_INVALID_OPERATION; // Can't apply multiple schemes.
