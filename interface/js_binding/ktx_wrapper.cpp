@@ -49,7 +49,6 @@ namespace ktx
 
         }
 
-        //texture(texture&) = delete;
         texture(texture&&) = default;
 
         texture(const val& data) : m_ptr{ nullptr, &destroy }
@@ -101,9 +100,10 @@ namespace ktx
             m_ptr = texture(ptr).m_ptr;
         }
 
-        // This is needed because of a runtime embind error:"Cannot register
-        // multiple constructors with identical number of parameters (1)."
-        // See BINDINGS below for more details.
+        // This is needed because embind cannot do constructor overloads
+        // where the only the parameter type(s) differ. See
+        // class_<ktx::texture> in EMSCRIPTEN_BINDINGS below for more
+        // details.
         texture createCopy()
         {
             texture textureCopy(*this);
@@ -343,7 +343,7 @@ namespace ktx
 
         ktx_error_code_e compressAstc(const ktxAstcParams& params_input)
         {
-            KTX_error_code result = KTX_SUCCESS;
+            ktx_error_code_e result = KTX_SUCCESS;
             ktxAstcParams params = params_input;
             params.structSize = sizeof(ktxAstcParams);
             params.threadCount = 1;
@@ -370,7 +370,7 @@ namespace ktx
 
         ktx_error_code_e compressBasis(const ktxBasisParams& params_input)
         {
-            KTX_error_code result = KTX_SUCCESS;
+            ktx_error_code_e result = KTX_SUCCESS;
             ktxBasisParams params = params_input;
             params.structSize = sizeof(ktxBasisParams);
             params.threadCount = 1;
@@ -1304,8 +1304,8 @@ EMSCRIPTEN_BINDINGS(ktx)
       .constructor<>()
       // This and similar getters and setters below are needed so the, in
       // this case VkFormat, enum value is correctly retrieved from and
-      // written to the uint32_t field of the, in this case,
-      // ktxTextureCreateInfo, struct. Without these the JS side would have
+      // written to the uint32_t field of the struct, in this case,
+      // ktxTextureCreateInfo. Without these the JS side would have
       // to use, e.g, `VkFormat.R8G8B8A8_SRGB.value` to set this property.
       .property("vkFormat", +[](const ktxTextureCreateInfo& info) {
         return info.vkFormat;
