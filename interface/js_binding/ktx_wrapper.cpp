@@ -554,19 +554,19 @@ Items marked with ** are only available in the full @e libktx.js wrapper. Unmark
 items are available in both @e libktx.js and @e libktx_read.js.
 
 @code{.idl}
-interface ktxOrientation {
+interface Orientation {
     readonly attribute OrientationX x;
     readonly attribute OrientationY y;
     readonly attribute OrientationZ z;
 };
 
-interface ktxUploadResult {
+interface UploadResult {
     readonly attribute WebGLTexture texture;
     readonly attribute GLenum target;
     readonly attribute GLenum error;
 };
 
-interface ktxTextureCreateInfo {  // **
+interface textureCreateInfo {  // **
     attribute long vkFormat;
     attribute long baseWidth;
     attribute long baseHeight;
@@ -579,7 +579,7 @@ interface ktxTextureCreateInfo {  // **
     attribute boolean generateMipmaps;
 };
 
-interface ktxAstcParams {  // **
+interface astcParams {  // **
     void ktxAstcParams();
 
     attribute boolean verbose;
@@ -591,7 +591,7 @@ interface ktxAstcParams {  // **
     attribute DOMString inputSwizzle;
 };
 
-interface ktxBasisParams {  // **
+interface basisParams {  // **
     void ktxBasisParams();
 
     attribute boolean uastc,
@@ -625,14 +625,14 @@ interface ktxBasisParams {  // **
     attribute boolean uastcRDONoMultithreading
 };
 
-interface ktxTexture {
+interface texture {
     void constructor(ArrayBufferView fileData);
-    void constructor(ktxTextureCreateInfo createInfo, // **
+    void constructor(textureCreateInfo createInfo, // **
                      CreateStorageEnum? storage);
 
     ErrorCode? compressAstc(ktxAstcParams params); // **
     ErrorCode? compressBasis(ktxBasisParams params); // **
-    ktxTexture createCopy();  // **
+    texture createCopy();  // **
     ErrorCode defateZLIB();   // **
     ErrorCode deflateZstd();  // **
     ArrayBufferView getImage(long level, long layer, long faceSlice);
@@ -833,7 +833,7 @@ WebGLTexture object handles on the same context.
 
 The function is called @e createKtxModule. In previous releases it was called
 @e LIBKTX. It has been renamed to clarify what it is actually doing. Old scripts
-must be updated to the new name.
+should be updated to the new name as the old name will be removed soon.
 
 @note In libktx_read.js the function is called @e createKtxReadModule.
 
@@ -889,9 +889,8 @@ function like @c loadTexture in the following:
       xhr.open('GET', url);
       xhr.responseType = "arraybuffer";
       xhr.onload = function(){
-        const { ktxTexture, TranscodeTarget, OrientationX, OrientationY } = ktx;
         var ktxdata = new Uint8Array(this.response);
-        ktexture = new ktxTexture(ktxdata);
+        ktexture = new ktx.texture(ktxdata);
         const tex = uploadTextureToGl(gl, ktexture);
         setTexParameters(tex, ktexture);
         gl.bindTexture(tex.target, tex.object);
@@ -1076,7 +1075,7 @@ Step 3 is to create the KTX texture object as shonw here:
 
 @code{.js}
     async function createTexture(imageData) {
-      const createInfo = new ktx.ktxTextureCreateInfo();
+      const createInfo = new ktx.textureCreateInfo();
       const colorSpace = imageData.colorSpace;
 
       createInfo.baseWidth = imageData.width;
@@ -1093,12 +1092,12 @@ Step 3 is to create the KTX texture object as shonw here:
       // Image data from 2d canvases is always 8-bit RGBA.
       // The only possible ImageData colorSpace choices are undefined, "srgb"
       // and "displayp3." All use the sRGB transfer function.
-      createInfo.vkFormat = VkFormat.R8G8B8A8_SRGB;
+      createInfo.vkFormat = ktx.VkFormat.R8G8B8A8_SRGB;
       if ( imageData.colorSpace == "display-p3") {
         displayP3 = true;
       }
 
-      const ktexture = new ktx.ktxTexture(createInfo, CreateStorageEnum.ALLOC_STORAGE);
+      const ktexture = new ktx.texture(createInfo, ktx.CreateStorageEnum.ALLOC_STORAGE);
       if (ktexture != null) {
         if (displayP3) {
             ktexture.primaries = ktx.dfPrimaries.DISPLAYP3;
@@ -1117,8 +1116,7 @@ like the following.
 
 @code{.js}
     async function testEncodeBasis(ktexture) {
-      const { ktxBasisParams, ErrorCode } = ktx;
-      const basisu_options = new ktxBasisParams();
+      const basisu_options = new ktx.basisParams();
 
       basisu_options.uastc = false;
       basisu_options.noSSE = true;
@@ -1127,7 +1125,7 @@ like the following.
       basisu_options.compressionLevel = ktx.Etc1SDefaultCompressionLevel;
 
       var result = ktexture.compressBasis(basisu_options);
-      // Check for ErrorCode == SUCCESS.
+      // Check result for ktx.ErrorCode.SUCCESS.
     }
 @endcode
 
