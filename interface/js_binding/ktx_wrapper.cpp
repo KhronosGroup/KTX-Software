@@ -1242,7 +1242,7 @@ EMSCRIPTEN_BINDINGS(ktx)
         // DisplayP3 uses the SRGB transfer function.
     ;
 
-    class_<ktx::texture>("ktxTexture")
+    class_<ktx::texture>("texture")
         .constructor<const val>()
         // This compiles but get runtime error "Cannot register multiple
         // constructors with identical number of parameters (1) ...! Overload

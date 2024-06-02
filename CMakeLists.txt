@@ -910,12 +910,22 @@ if(EMSCRIPTEN)
     set(
         KTX_EMC_LINK_FLAGS
         --bind
+        --pre-js ${CMAKE_CURRENT_SOURCE_DIR}/interface/js_binding/class_compat.js
+        --extern-post-js ${CMAKE_CURRENT_SOURCE_DIR}/interface/js_binding/module_create_compat.js
         "SHELL:-s MODULARIZE=1"
+        "SHELL:-s EXPORTED_RUNTIME_METHODS=[\'GL\']"
+        "SHELL:-s GL_PREINITIALIZED_CONTEXT=1"
+    )
+
+    set(
+        KTX_JS_COMMON_SOURCE
+        interface/js_binding/ktx_wrapper.cpp
+        interface/js_binding/class_compat.js
+        interface/js_binding/module_create_compat.js
     )
 
     add_executable( ktx_js
-        interface/js_binding/ktx_wrapper.cpp
-#        interface/js_binding/polyfills.js
+        ${KTX_JS_COMMON_SOURCE}
         interface/js_binding/vk_format.inl
     )
     target_compile_definitions(ktx_js PUBLIC KTX_FEATURE_WRITE)
@@ -931,10 +941,7 @@ if(EMSCRIPTEN)
         ktx_js
     PUBLIC
         ${KTX_EMC_LINK_FLAGS}
-        #--extern-post-js ${CMAKE_CURRENT_SOURCE_DIR}/interface/js_binding/polyfills.js
         "SHELL:-s EXPORT_NAME=createKtxModule"
-        "SHELL:-s EXPORTED_RUNTIME_METHODS=[\'GL\']"
-        "SHELL:-s GL_PREINITIALIZED_CONTEXT=1"
     )
     set_target_properties( ktx_js PROPERTIES OUTPUT_NAME "libktx")
 
@@ -956,7 +963,9 @@ if(EMSCRIPTEN)
         COMPONENT ktx_js
     )
 
-    add_executable( ktx_js_read interface/js_binding/ktx_wrapper.cpp )
+    add_executable( ktx_js_read
+        ${KTX_JS_COMMON_SOURCE}
+    )
     target_link_libraries( ktx_js_read ktx_read )
     target_include_directories(
         ktx_js_read
@@ -970,8 +979,6 @@ if(EMSCRIPTEN)
     PUBLIC
         ${KTX_EMC_LINK_FLAGS}
         "SHELL:-s EXPORT_NAME=createKtxReadModule"
-        "SHELL:-s EXPORTED_RUNTIME_METHODS=[\'GL\']"
-        "SHELL:-s GL_PREINITIALIZED_CONTEXT=1"
     )
     set_target_properties( ktx_js_read PROPERTIES OUTPUT_NAME "libktx_read")
 
