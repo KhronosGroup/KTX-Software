@@ -511,13 +511,12 @@ function createPlaceholderTexture(gl, color)
 }
 
 async function setUVMatrix(texture, inMatrix, ktexture) {
-  const { OrientationX, OrientationY } = ktx;
   texture.uvMatrix = inMatrix;
-  if (ktexture.orientation.x == OrientationX.LEFT) {
+  if (ktexture.orientation.x == ktx.OrientationX.LEFT) {
       mat3.translate(texture.uvMatrix, texture.uvMatrix, [1.0, 0.0]);
       mat3.scale(texture.uvMatrix, texture.uvMatrix, [-1.0, 1.0]);
   }
-  if (ktexture.orientation.y == OrientationY.DOWN) {
+  if (ktexture.orientation.y == ktx.OrientationY.DOWN) {
       mat3.translate(texture.uvMatrix, texture.uvMatrix, [0.0, 1.0]);
       mat3.scale(texture.uvMatrix, texture.uvMatrix, [1.0, -1.0]);
   }
@@ -734,10 +733,8 @@ function loadShader(gl, type, source) {
 }
 
 async function updateItem(item, texture) {
-  const { ktxTexture, ktxBasisParams, SupercmpScheme, TranscodeTarget, OrientationX, OrientationY } = ktx;
-
   gl.deleteTexture(item.texture.object);
-  item.texture =texture;
+  item.texture = texture;
 }
 
 function arraysEqual(a, b) {
@@ -761,11 +758,7 @@ function showTestResult(id, pass) {
 
 // Test creation of a ktxTexture2 from the provided imageData.
 async function testCreate(imageData) {
-  const { ktxTexture,
-          ktxTextureCreateInfo, VkFormat,
-          dfPrimaries, dfTransfer,
-          CreateStorageEnum, SupercmpScheme, ErrorCode } = ktx;
-  const createInfo = new ktxTextureCreateInfo();
+  const createInfo = new ktx.textureCreateInfo();
   const colorSpace = imageData.colorSpace;
 
   createInfo.baseWidth = imageData.width;
@@ -782,12 +775,13 @@ async function testCreate(imageData) {
   // Image data from 2d canvases is always 8-bit RGBA.
   // The only possible ImageData colorSpace choices are undefined, "srgb"
   // and "displayp3." All use the sRGB transfer function.
-  createInfo.vkFormat = VkFormat.R8G8B8A8_SRGB;
+  createInfo.vkFormat = ktx.VkFormat.R8G8B8A8_SRGB;
   if ( imageData.colorSpace == "display-p3") {
     displayP3 = true;
   }
 
-  const ktexture = new ktxTexture(createInfo, CreateStorageEnum.ALLOC_STORAGE);
+  const ktexture = new ktx.texture(createInfo,
+                                   ktx.CreateStorageEnum.ALLOC_STORAGE);
   showTestResult('create_result', ktexture != null);
   if (ktexture != null) {
     if (displayP3) {
@@ -802,11 +796,11 @@ async function testCreate(imageData) {
     // Do not know how to compare without using .value as all these
     // enumerators are objects.
     showTestResult('colorspace_set_result',
-                   ( oetf.value == dfTransfer.SRGB.value
+                   ( oetf.value == ktx.dfTransfer.SRGB.value
                     && primaries.value == expectedPrimaries.value));
 
     result = ktexture.setImageFromMemory(0, 0, 0, imageData.data);
-    showTestResult('copy_image_result', result == ErrorCode.SUCCESS);
+    showTestResult('copy_image_result', result == ktx.ErrorCode.SUCCESS);
   }
   return ktexture;
 }
@@ -876,8 +870,7 @@ async function testGetImage(ktexture, imageData) {
 }
 
 async function testEncodeBasis(ktexture) {
-  const { ktxBasisParams, ErrorCode } = ktx;
-  const basisu_options = new ktxBasisParams();
+  const basisu_options = new ktx.basisParams();
 
   basisu_options.uastc = false;
   basisu_options.noSSE = true;
@@ -887,16 +880,15 @@ async function testEncodeBasis(ktexture) {
 
   var result = ktexture.compressBasis(basisu_options);
 
-  showTestResult('compress_basis_result', result == ErrorCode.SUCCESS);
+  showTestResult('compress_basis_result', result == ktx.ErrorCode.SUCCESS);
 }
 
 async function testEncodeAstc(ktexture) {
-  const { ktxAstcParams, AstcBlockDimension, AstcMode, AstcQualityLevel, ErrorCode } = ktx;
-  const params = new ktxAstcParams();
+  const params = new ktx.astcParams();
 
-  params.blockDimension = AstcBlockDimension.d8x8;
-  params.mode = AstcMode.DEFAULT;
-  params.qualityLevel = AstcQualityLevel.FAST;
+  params.blockDimension = ktx.AstcBlockDimension.d8x8;
+  params.mode = ktx.AstcMode.DEFAULT;
+  params.qualityLevel = ktx.AstcQualityLevel.FAST;
   params.normalMap = false;
 
   // Before we compress, test inputSwizzle setting
@@ -906,7 +898,7 @@ async function testEncodeAstc(ktexture) {
   params.inputSwizzle = ''; // Reset to default.
 
   var result = ktexture.compressAstc(params);
-  showTestResult('compress_astc_result', result == ErrorCode.SUCCESS);
+  showTestResult('compress_astc_result', result == ktx.ErrorCode.SUCCESS);
 }
 
 async function testCreateCopy(ktexture) {
@@ -921,7 +913,7 @@ async function testWriteToMemoryAndRead(ktexture) {
   // TODO: Check the first bytes are a KTX header.
   showTestResult('write_to_memory_result', result != null);
 
-  readKTexture = new ktx.ktxTexture(result);
+  readKTexture = new ktx.texture(result);
   showTestResult('read_from_memory_result', result != null);
   const readTexture = await uploadTextureToGl(gl, readKTexture);
   setUVMatrix(readTexture, mat3.create(), readKTexture);

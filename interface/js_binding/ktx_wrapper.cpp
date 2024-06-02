@@ -1300,7 +1300,7 @@ EMSCRIPTEN_BINDINGS(ktx)
 #include "vk_format.inl"
     ;
 
-    class_<ktxTextureCreateInfo>("ktxTextureCreateInfo")
+    class_<ktxTextureCreateInfo>("textureCreateInfo")
       .constructor<>()
       // This and similar getters and setters below are needed so the, in
       // this case VkFormat, enum value is correctly retrieved from and
@@ -1367,7 +1367,7 @@ EMSCRIPTEN_BINDINGS(ktx)
       .value("HDR", KTX_PACK_ASTC_ENCODER_MODE_HDR)
     ;
 
-    class_<ktxAstcParams>("ktxAstcParams")
+    class_<ktxAstcParams>("astcParams")
       .constructor<>()
       .property("structSize", &ktxAstcParams::structSize)
       .property("verbose", &ktxAstcParams::verbose)
@@ -1410,7 +1410,7 @@ EMSCRIPTEN_BINDINGS(ktx)
       .value("LEVEL_VERYSLOW", KTX_PACK_UASTC_LEVEL_VERYSLOW)
     ;
 
-    class_<ktxBasisParams>("ktxBasisParams")
+    class_<ktxBasisParams>("basisParams")
       .constructor<>()
       .property("structSize", &ktxBasisParams::structSize)
       .property("uastc", &ktxBasisParams::uastc)
