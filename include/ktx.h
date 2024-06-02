@@ -1022,6 +1022,8 @@ KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture1_CreateFromStream(ktxStream* stream,
                              ktxTextureCreateFlags createFlags,
                              ktxTexture1** newTex);
+KTX_API void KTX_APIENTRY
+ktxTexture1_Destroy(ktxTexture1* This);
 
 KTX_API ktx_bool_t KTX_APIENTRY
 ktxTexture1_NeedsTranscoding(ktxTexture1* This);
@@ -1087,6 +1089,9 @@ KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture2_CreateFromStream(ktxStream* stream,
                              ktxTextureCreateFlags createFlags,
                              ktxTexture2** newTex);
+
+KTX_API void KTX_APIENTRY
+ktxTexture2_Destroy(ktxTexture2* This);
 
 KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality);
