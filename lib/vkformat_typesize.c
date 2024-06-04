@@ -9,6 +9,7 @@
 ** SPDX-License-Identifier: Apache-2.0
 */
 
+// clang-format off: CI is complicated if formatting checks on generated files are enforced.
 
 #include <stdint.h>
 
@@ -582,3 +583,4 @@ vkFormatTypeSize(VkFormat format)
         return 0;
     }
 }
+// clang-format on
