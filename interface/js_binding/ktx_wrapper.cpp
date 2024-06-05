@@ -567,6 +567,8 @@ interface UploadResult {
 };
 
 interface textureCreateInfo {  // **
+    constructor();
+
     attribute long vkFormat;
     attribute long baseWidth;
     attribute long baseHeight;
@@ -580,7 +582,7 @@ interface textureCreateInfo {  // **
 };
 
 interface astcParams {  // **
-    void ktxAstcParams();
+    constructor();
 
     attribute boolean verbose;
     attribute long threadCount;
@@ -592,7 +594,7 @@ interface astcParams {  // **
 };
 
 interface basisParams {  // **
-    void ktxBasisParams();
+    constructor();
 
     attribute boolean uastc,
     attribute boolean verbose,
@@ -626,26 +628,26 @@ interface basisParams {  // **
 };
 
 interface texture {
-    void constructor(ArrayBufferView fileData);
-    void constructor(textureCreateInfo createInfo, // **
-                     CreateStorageEnum? storage);
+    constructor(ArrayBufferView fileData);
+    constructor(textureCreateInfo createInfo, // **
+                CreateStorageEnum? storage);
 
-    ErrorCode? compressAstc(ktxAstcParams params); // **
-    ErrorCode? compressBasis(ktxBasisParams params); // **
+    ErrorCode compressAstc(ktxAstcParams params); // **
+    ErrorCode compressBasis(ktxBasisParams params); // **
     texture createCopy();  // **
     ErrorCode defateZLIB();   // **
     ErrorCode deflateZstd();  // **
     ArrayBufferView getImage(long level, long layer, long faceSlice);
     UploadResult glUpload();
-    ErrorCode? setImageFromMemory(long level, long layer, long faceSlice,
+    ErrorCode setImageFromMemory(long level, long layer, long faceSlice,
                                   ArrayBufferView imageData); // **
-    ErrorCode? transcodeBasis(TranscodeTarget? target, TranscodeFlagBits
+    ErrorCode transcodeBasis(TranscodeTarget? target, TranscodeFlagBits
                               decodeFlags);
     ArrayBufferView writeToMemory(); // **
-    ErrorCode? addKVPairString(DOMString key, DOMString value);     // **
-    ErrorCode? addKVPairByte(DOMString key, ArrayBuffewView value); // **
+    ErrorCode addKVPairString(DOMString key, DOMString value);     // **
+    ErrorCode addKVPairByte(DOMString key, ArrayBuffewView value); // **
     deleteKVPair(DOMString key);  // **
-    DOMString findKeyValue(DOMString key);
+    DOMString? findKeyValue(DOMString key);
 
     readonly attribute long baseWidth;
     readonly attribute long baseHeight;
@@ -681,6 +683,11 @@ enum ErrorCode = {
     "UNSUPPORTED_TEXTURE_TYPE",
     "UNSUPPORTED_FEATURE",
     "LIBRARY_NOT_LINKED"
+};
+
+enum CreateStorageEnum = {
+    "NO_STORAGE",
+    "ALLOC_STORAGE"
 };
 
 // Some targets may not be available depending on options used when compiling
@@ -805,6 +812,13 @@ enum UastcFlags = {  // **
     "LEVEL_SLOWER",
     "LEVEL_VERYSLOW",
 };
+
+const DOMString AnimDataKey = "KTXanimData";
+const DOMString OrientationKey = "KTXorientation";
+const DOMString SwizzleKey = "KTXswizzle";
+const DOMString WriterKey = "KTXwriter";
+const unsigned long FaceSliceWholeLevel = UINT_MAX;
+const unsigned long Etc1SDefaultCompressionLevel = 2;
 @endcode
 
 # How to use
