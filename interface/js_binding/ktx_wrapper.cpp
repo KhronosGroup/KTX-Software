@@ -839,12 +839,12 @@ libktx_read.wasm instead.
 
 To avoid polluting the global @c window name space all methods, variables and
 tokens related to libktx are wrapped in a function that returns a promise.
-The promise is resolved with a module instance when it is safe to run the
+The promise is fulfilled with a module instance when it is safe to run the
 compiled code. To use any of the features your code must call the function,
-wait for the promise resolution and use the returned instance. Before calling
-the function your code must create your WebGL context. The context is needed
-during module initialization so that the @c glUpload function can provide
-WebGLTexture object handles on the same context.
+wait for the promise to be fulfulled and use the returned instance. Before
+calling the function your code must create your WebGL context. The context
+is needed during module initialization so that the @c glUpload function can
+provide WebGLTexture object handles on the same context.
 
 The function is called @e createKtxModule. In previous releases it was called
 @e LIBKTX. It has been renamed to clarify what it is actually doing. Old scripts
