@@ -896,7 +896,7 @@ function like @c loadTexture in the following:
 
     function loadTexture(gl, url)
     {
-      // Create placeholder which will be replace once the data arrives.
+      // Create placeholder which will be replaced once the data arrives.
       myTexture = createPlaceholderTexture(gl, [0, 0, 255, 255]);
       gl.bindTexture(myTexture.target, myTexture.object);
 
