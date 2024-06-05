@@ -586,8 +586,8 @@ interface astcParams {  // **
 
     attribute boolean verbose;
     attribute long threadCount;
-    attribute AstcBlockDimension blockDimension;
-    attribute AstcMode mode;
+    attribute astc_block_dimension blockDimension;
+    attribute pack_astc_encoder_mode mode;
     attribute long qualityLevel;
     attribute boolean normalMap;
     attribute DOMString inputSwizzle;
@@ -617,7 +617,7 @@ interface basisParams {  // **
 
     // UASTC parameters.
 
-    attribute UastcFlags uastcFlags,
+    attribute pack_uastc_flag_bits uastcFlags,
     attribute boolean uastcRDO,
     attribute float uastcRDOQualityScalar,
     attribute long uastcRDODictSize,
@@ -632,20 +632,20 @@ interface texture {
     constructor(textureCreateInfo createInfo, // **
                 CreateStorageEnum? storage);
 
-    ErrorCode compressAstc(ktxAstcParams params); // **
-    ErrorCode compressBasis(ktxBasisParams params); // **
+    error_code compressAstc(ktxAstcParams params); // **
+    error_code compressBasis(ktxBasisParams params); // **
     texture createCopy();  // **
-    ErrorCode defateZLIB();   // **
-    ErrorCode deflateZstd();  // **
+    error_code defateZLIB();   // **
+    error_code deflateZstd();  // **
     ArrayBufferView getImage(long level, long layer, long faceSlice);
     UploadResult glUpload();
-    ErrorCode setImageFromMemory(long level, long layer, long faceSlice,
+    error_code setImageFromMemory(long level, long layer, long faceSlice,
                                   ArrayBufferView imageData); // **
-    ErrorCode transcodeBasis(TranscodeTarget? target, TranscodeFlagBits
+    error_code transcodeBasis(texture_transcode_fmt? target, transcode_flag_bits
                               decodeFlags);
     ArrayBufferView writeToMemory(); // **
-    ErrorCode addKVPairString(DOMString key, DOMString value);     // **
-    ErrorCode addKVPairByte(DOMString key, ArrayBuffewView value); // **
+    error_code addKVPairString(DOMString key, DOMString value);     // **
+    error_code addKVPairByte(DOMString key, ArrayBuffewView value); // **
     deleteKVPair(DOMString key);  // **
     DOMString? findKeyValue(DOMString key);
 
@@ -659,11 +659,11 @@ interface texture {
     readonly attribute SupercmpScheme supercompressionScheme;
     readonly attribute ktxOrientation orientation;
 
-    attribute dfTransfer OETF;       // Setting available only in libktx.js.
-    attribute dfPrimaries primaries; // Setting available only in libktx.js.
+    attribute khr_df_transfer OETF;       // Setting available only in libktx.js.
+    attribute khr_df_primaries primaries; // Setting available only in libktx.js.
 };
 
-enum ErrorCode = {
+enum error_code = {
     "SUCCESS",
     "FILE_DATA_ERROR",
     "FILE_ISPIPE",
@@ -692,7 +692,7 @@ enum CreateStorageEnum = {
 
 // Some targets may not be available depending on options used when compiling
 // the web assembly. ktxTexture.transcodeBasis will report this.
-enum TranscodeTarget = {
+enum texture_transcode_fmt = {
     "ETC1_RGB",
     "BC1_RGB",
     "BC4_R",
@@ -715,7 +715,7 @@ enum TranscodeTarget = {
     "EAC_RG11"
 };
 
-enum TranscodeFlagBits {
+enum transcode_flag_bits {
    "TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS"
 };
 
@@ -739,7 +739,7 @@ enum SupercmpScheme {
     "ZLIB"
 };
 
-enum dfPrimaries = {
+enum khr_df_primaries = {
     // These are the values needed for KTX with HTML5/WebGL.
     "UNSPECIFIED",
     "BT709",
@@ -747,7 +747,7 @@ enum dfPrimaries = {
     "DISPLAYP3"
 };
 
-enum dfTransfer = {
+enum khr_df_transfer = {
     // These are the values needed for KTX with HTML5/WebGL.
     "UNSPECIFIED",
     "LINEAR",
@@ -762,7 +762,7 @@ enum VkFormat = {
     // purpose of this IDL. Any VkFormat valid for KTX can be used. As shown
     // here, omit the VK_FORMAT_ prefix and enclose in quotes.
 
-enum AstcQualityLevel = {  // **
+enum astc_quality_levels = {  // **
     "FASTEST",
     "FAST",
     "MEDIUM",
@@ -770,7 +770,7 @@ enum AstcQualityLevel = {  // **
     "EXHAUSTIVE",
 };
 
-enum AstcBlockDimension = {  // **
+enum astc_block_dimension = {  // **
     // 2D formats
     "d4x4",
     "d5x4",
@@ -799,13 +799,13 @@ enum AstcBlockDimension = {  // **
     "d6x6x6"
 };
 
-enum AstcMode = {  // **
+enum pack_astc_encoder_mode = {  // **
     "DEFAULT",
     "LDR",
     "HDR"
 };
 
-enum UastcFlags = {  // **
+enum pack_uastc_flag_bits = {  // **
     "LEVEL_FASTEST",
     "LEVEL_FASTER",
     "LEVEL_DEFAULT",
@@ -813,12 +813,13 @@ enum UastcFlags = {  // **
     "LEVEL_VERYSLOW",
 };
 
-const DOMString AnimDataKey = "KTXanimData";
-const DOMString OrientationKey = "KTXorientation";
-const DOMString SwizzleKey = "KTXswizzle";
-const DOMString WriterKey = "KTXwriter";
-const unsigned long FaceSliceWholeLevel = UINT_MAX;
-const unsigned long Etc1SDefaultCompressionLevel = 2;
+const DOMString ANIMDATA_KEY = "KTXanimData";
+const DOMStringORIENTATION_KEY = "KTXorientation";
+const DOMString SWIZZLE_KEY = "KTXswizzle";
+const DOMString WRITER_KEY = "KTXwriter";
+const DOMString WRITER_SCPARAMS_KEY = "KTXwriterScParams";
+const unsigned long FACESLICE_WHOLE_lEVEL = UINT_MAX;
+const unsigned long ETC1S_DEFAULT_COMPRESSION_LEVEL = 2;
 @endcode
 
 # How to use
@@ -955,28 +956,28 @@ returns the created WebGL texture object and matching texture target.
 
 @code{.js}
 function uploadTextureToGl(gl, ktexture) {
-  const { TranscodeTarget  } = ktx;
+  const { texture_transcode_fmt  } = ktx;
   var formatString;
 
   if (ktexture.needsTranscoding) {
     var format;
     if (astcSupported) {
       formatString = 'ASTC';
-      format = TranscodeTarget.ASTC_4x4_RGBA;
+      format = texture_transcode_fmt.ASTC_4x4_RGBA;
     } else if (dxtSupported) {
       formatString = ktexture.numComponents == 4 ? 'BC3' : 'BC1';
-      format = TranscodeTarget.BC1_OR_3;
+      format = texture_transcode_fmt.BC1_OR_3;
     } else if (pvrtcSupported) {
       formatString = 'PVRTC1';
-      format = TranscodeTarget.PVRTC1_4_RGBA;
+      format = texture_transcode_fmt.PVRTC1_4_RGBA;
     } else if (etcSupported) {
       formatString = 'ETC';
-      format = TranscodeTarget.ETC;
+      format = texture_transcode_fmt.ETC;
     } else {
       formatString = 'RGBA4444';
-      format = TranscodeTarget.RGBA4444;
+      format = texture_transcode_fmt.RGBA4444;
     }
-    if (ktexture.transcodeBasis(format, 0) != ktx.ErrorCode.SUCCESS) {
+    if (ktexture.transcodeBasis(format, 0) != ktx.error_code.SUCCESS) {
         alert('Texture transcode failed. See console for details.');
         return undefined;
     }
@@ -1114,7 +1115,7 @@ Step 3 is to create the KTX texture object as shonw here:
       const ktexture = new ktx.texture(createInfo, ktx.CreateStorageEnum.ALLOC_STORAGE);
       if (ktexture != null) {
         if (displayP3) {
-            ktexture.primaries = ktx.dfPrimaries.DISPLAYP3;
+            ktexture.primaries = ktx.khr_df_primaries.DISPLAYP3;
         }
         result = ktexture.setImageFromMemory(0, 0, 0, imageData.data);
       }
@@ -1136,10 +1137,10 @@ like the following.
       basisu_options.noSSE = true;
       basisu_options.verbose = false;
       basisu_options.qualityLevel = 200;
-      basisu_options.compressionLevel = ktx.Etc1SDefaultCompressionLevel;
+      basisu_options.compressionLevel = ktx.ETC1S_DEFAULT_COMPRESSION_LEVEL;
 
       var result = ktexture.compressBasis(basisu_options);
-      // Check result for ktx.ErrorCode.SUCCESS.
+      // Check result for ktx.error_code.SUCCESS.
     }
 @endcode
 
@@ -1157,7 +1158,7 @@ a local file or upload it to a server.
 
 EMSCRIPTEN_BINDINGS(ktx)
 {
-    enum_<ktx_error_code_e>("ErrorCode")
+    enum_<ktx_error_code_e>("error_code")
         .value("SUCCESS", KTX_SUCCESS)
         .value("FILE_DATA_ERROR", KTX_FILE_DATA_ERROR)
         .value("FILE_ISPIPE", KTX_FILE_ISPIPE)
@@ -1181,7 +1182,7 @@ EMSCRIPTEN_BINDINGS(ktx)
         .value("DECOMPRESS_CHECKSUM_ERROR", KTX_DECOMPRESS_CHECKSUM_ERROR)
         ;
 
-    enum_<ktx_texture_transcode_fmt_e>("TranscodeTarget")
+    enum_<ktx_texture_transcode_fmt_e>("texture_transcode_fmt")
         .value("ETC1_RGB", KTX_TTF_ETC1_RGB)
         .value("BC1_RGB", KTX_TTF_BC1_RGB)
         .value("BC4_R", KTX_TTF_BC4_R)
@@ -1205,7 +1206,7 @@ EMSCRIPTEN_BINDINGS(ktx)
         .value("EAC_RG11", KTX_TTF_ETC2_EAC_RG11)
     ;
 
-    enum_<ktx_transcode_flag_bits_e>("TranscodeFlagBits")
+    enum_<ktx_transcode_flag_bits_e>("transcode_flag_bits")
         .value("TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS",
                KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS)
     ;
@@ -1238,7 +1239,7 @@ EMSCRIPTEN_BINDINGS(ktx)
         .field("z", &ktxOrientation::z)
     ;
 
-    enum_<khr_df_primaries_e>("dfPrimaries")
+    enum_<khr_df_primaries_e>("khr_df_primaries")
         // These are the values needed with HTML5/WebGL.
         .value("UNSPECIFIED", KHR_DF_PRIMARIES_UNSPECIFIED)
         .value("BT709", KHR_DF_PRIMARIES_BT709)
@@ -1246,7 +1247,7 @@ EMSCRIPTEN_BINDINGS(ktx)
         .value("DISPLAYP3", KHR_DF_PRIMARIES_DISPLAYP3)
     ;
 
-    enum_<khr_df_transfer_e>("dfTransfer")
+    enum_<khr_df_transfer_e>("khr_df_transfer")
         // These are the values needed for KTX with HTML5/WebGL.
         .value("UNSPECIFIED", KHR_DF_TRANSFER_UNSPECIFIED)
         .value("LINEAR", KHR_DF_TRANSFER_LINEAR)
@@ -1303,7 +1304,7 @@ EMSCRIPTEN_BINDINGS(ktx)
     ;
 
 #if KTX_FEATURE_WRITE
-    enum_<ktxTextureCreateStorageEnum>("CreateStorageEnum")
+    enum_<ktxTextureCreateStorageEnum>("TextureCreateStorageEnum")
         .value("NO_STORAGE", KTX_TEXTURE_CREATE_NO_STORAGE)
         .value("ALLOC_STORAGE", KTX_TEXTURE_CREATE_ALLOC_STORAGE)
     ;
@@ -1336,7 +1337,7 @@ EMSCRIPTEN_BINDINGS(ktx)
       .property("generateMipmaps", &ktxTextureCreateInfo::generateMipmaps)
     ;
 
-    enum_<ktx_pack_astc_quality_levels_e>("AstcQualityLevel")
+    enum_<ktx_pack_astc_quality_levels_e>("astc_quality_levels")
       .value("FASTEST", KTX_PACK_ASTC_QUALITY_LEVEL_FASTEST)
       .value("FAST", KTX_PACK_ASTC_QUALITY_LEVEL_FAST)
       .value("MEDIUM", KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM)
@@ -1344,7 +1345,7 @@ EMSCRIPTEN_BINDINGS(ktx)
       .value("EXHAUSTIVE", KTX_PACK_ASTC_QUALITY_LEVEL_EXHAUSTIVE)
     ;
 
-    enum_<ktx_pack_astc_block_dimension_e>("AstcBlockDimension")
+    enum_<ktx_pack_astc_block_dimension_e>("astc_block_dimension")
       // 2D formats
       .value("d4x4", KTX_PACK_ASTC_BLOCK_DIMENSION_4x4) //: 8.00 bpp
       .value("d5x4", KTX_PACK_ASTC_BLOCK_DIMENSION_5x4) //: 6.40 bpp
@@ -1373,7 +1374,7 @@ EMSCRIPTEN_BINDINGS(ktx)
       .value("d6x6x6", KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x6) //: 0.59 bpp
     ;
 
-    enum_<ktx_pack_astc_encoder_mode_e>("AstcMode")
+    enum_<ktx_pack_astc_encoder_mode_e>("pack_astc_encoder_mode")
       .value("DEFAULT", KTX_PACK_ASTC_ENCODER_MODE_DEFAULT)
       .value("LDR", KTX_PACK_ASTC_ENCODER_MODE_LDR)
       .value("HDR", KTX_PACK_ASTC_ENCODER_MODE_HDR)
@@ -1414,7 +1415,7 @@ EMSCRIPTEN_BINDINGS(ktx)
       })
     ;
 
-    enum_<ktx_pack_uastc_flag_bits_e>("UastcFlags")
+    enum_<ktx_pack_uastc_flag_bits_e>("pack_uastc_flag_bits")
       .value("LEVEL_FASTEST", KTX_PACK_UASTC_LEVEL_FASTEST)
       .value("LEVEL_FASTER", KTX_PACK_UASTC_LEVEL_FASTER)
       .value("LEVEL_DEFAULT", KTX_PACK_UASTC_LEVEL_DEFAULT)
@@ -1468,11 +1469,12 @@ EMSCRIPTEN_BINDINGS(ktx)
       .property("uastcRDONoMultithreading", &ktxBasisParams::uastcRDONoMultithreading);
     ;
 
-    constant("AnimDataKey", std::string(KTX_ANIMDATA_KEY));
-    constant("OrientationKey", std::string(KTX_ORIENTATION_KEY));
-    constant("SwizzleKey", std::string(KTX_SWIZZLE_KEY));
-    constant("WriterKey", std::string(KTX_WRITER_KEY));
-    constant("FaceSliceWholeLevel", KTX_FACESLICE_WHOLE_LEVEL);
-    constant("Etc1SDefaultCompressionLevel", KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL);
+    constant("ANIMDATA_KEY", std::string(KTX_ANIMDATA_KEY));
+    constant("ORIENTATION_KEY", std::string(KTX_ORIENTATION_KEY));
+    constant("SWIZZLE_KEY", std::string(KTX_SWIZZLE_KEY));
+    constant("WRITER_KEY", std::string(KTX_WRITER_KEY));
+    constant("WRITER_SCPARAMS_KEY", std::string(KTX_WRITER_SCPARAMS_KEY));
+    constant("FACESLICE_WHOLE_lEVEL", KTX_FACESLICE_WHOLE_LEVEL);
+    constant("ETC1S_DEFAULT_COMPRESSION_LEVEL", KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL);
 #endif
 }

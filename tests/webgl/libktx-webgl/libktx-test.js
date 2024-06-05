@@ -428,28 +428,28 @@ function elem(id) {
 //
 // Returns the created WebGL texture object and texture target.
 function uploadTextureToGl(gl, ktexture) {
-  const { TranscodeTarget  } = ktx;
+  const { texture_transcode_fmt  } = ktx;
   var formatString;
 
   if (ktexture.needsTranscoding) {
     var format;
     if (astcSupported) {
       formatString = 'ASTC';
-      format = TranscodeTarget.ASTC_4x4_RGBA;
+      format = texture_transcode_fmt.ASTC_4x4_RGBA;
     } else if (dxtSupported) {
       formatString = ktexture.numComponents == 4 ? 'BC3' : 'BC1';
-      format = TranscodeTarget.BC1_OR_3;
+      format = texture_transcode_fmt.BC1_OR_3;
     } else if (pvrtcSupported) {
       formatString = 'PVRTC1';
-      format = TranscodeTarget.PVRTC1_4_RGBA;
+      format = texture_transcode_fmt.PVRTC1_4_RGBA;
     } else if (etcSupported) {
       formatString = 'ETC';
-      format = TranscodeTarget.ETC;
+      format = texture_transcode_fmt.ETC;
     } else {
       formatString = 'RGBA4444';
-      format = TranscodeTarget.RGBA4444;
+      format = texture_transcode_fmt.RGBA4444;
     }
-    if (ktexture.transcodeBasis(format, 0) != ktx.ErrorCode.SUCCESS) {
+    if (ktexture.transcodeBasis(format, 0) != ktx.error_code.SUCCESS) {
         alert('Texture transcode failed. See console for details.');
         return undefined;
     }
@@ -781,26 +781,26 @@ async function testCreate(imageData) {
   }
 
   const ktexture = new ktx.texture(createInfo,
-                                   ktx.CreateStorageEnum.ALLOC_STORAGE);
+                                   ktx.TextureCreateStorageEnum.ALLOC_STORAGE);
   showTestResult('create_result', ktexture != null);
   if (ktexture != null) {
     if (displayP3) {
-        ktexture.primaries = ktx.dfPrimaries.DISPLAYP3;
+        ktexture.primaries = ktx.khr_df_primaries.DISPLAYP3;
     }
     // Check DFD settings. Oetf should be SRGB due to SRGB vkFormat.
     // Primaries default to BT709 unless set to P3 above.
-    const expectedPrimaries = displayP3 ? ktx.dfPrimaries.DISPLAYP3
-                                        : ktx.dfPrimaries.BT709;
+    const expectedPrimaries = displayP3 ? ktx.khr_df_primaries.DISPLAYP3
+                                        : ktx.khr_df_primaries.BT709;
     const oetf = ktexture.oetf;
     const primaries = ktexture.primaries;
     // Do not know how to compare without using .value as all these
     // enumerators are objects.
     showTestResult('colorspace_set_result',
-                   ( oetf.value == ktx.dfTransfer.SRGB.value
+                   ( oetf.value == ktx.khr_df_transfer.SRGB.value
                     && primaries.value == expectedPrimaries.value));
 
     result = ktexture.setImageFromMemory(0, 0, 0, imageData.data);
-    showTestResult('copy_image_result', result == ktx.ErrorCode.SUCCESS);
+    showTestResult('copy_image_result', result == ktx.error_code.SUCCESS);
   }
   return ktexture;
 }
@@ -808,17 +808,17 @@ async function testCreate(imageData) {
 function testWriteReadMetadata(ktexture) {
   const writer = "libktx-js-test";
   const orientation = "rd";
-  ktexture.addKVPairString(ktx.OrientationKey, orientation);
-  ktexture.addKVPairString(ktx.WriterKey, writer);
+  ktexture.addKVPairString(ktx.ORIENTATION_KEY, orientation);
+  ktexture.addKVPairString(ktx.WRITER_KEY, writer);
 
   var textDecoder = new TextDecoder();
-  var value = ktexture.findKeyValue(ktx.WriterKey);
+  var value = ktexture.findKeyValue(ktx.WRITER_KEY);
   // subarray to remove the terminating null we know is there.
   var string = textDecoder.decode(value.subarray(0,value.byteLength-1));
   var passed = true;
   //console.log(string);
   if (!writer.localeCompare(string)) {
-    value = ktexture.findKeyValue(ktx.OrientationKey);
+    value = ktexture.findKeyValue(ktx.ORIENTATION_KEY);
     string = textDecoder.decode(value.subarray(0,value.byteLength-1));
     //console.log(string);
     if (orientation.localeCompare(string)) {
@@ -838,8 +838,8 @@ function testWriteReadMetadata(ktexture) {
     // big-endian machine as the KTX v2 spec. requires these values
     // be little-endian. For the purpose of this test, it is not
     // necessary as the data is not used.
-    ktexture.addKVPairByte(ktx.AnimDataKey, animData);
-    value = ktexture.findKeyValue(ktx.AnimDataKey);
+    ktexture.addKVPairByte(ktx.ANIMDATA_KEY, animData);
+    value = ktexture.findKeyValue(ktx.ANIMDATA_KEY);
     if (value != null) {
       // In real use, data needs to be endian-converted when on a
       // big-endian machine.
@@ -852,7 +852,7 @@ function testWriteReadMetadata(ktexture) {
     }
     // Since ktexture is not an array texture presence of AnimData
     // will cause the a load to fail So delete the AnimData.
-    ktexture.deleteKVPair(ktx.AnimDataKey);
+    ktexture.deleteKVPair(ktx.ANIMDATA_KEY);
   }
   showTestResult('metadata_result', passed);
 }
@@ -876,19 +876,19 @@ async function testEncodeBasis(ktexture) {
   basisu_options.noSSE = true;
   basisu_options.verbose = false;
   basisu_options.qualityLevel = 200;
-  basisu_options.compressionLevel = ktx.Etc1SDefaultCompressionLevel;
+  basisu_options.compressionLevel = ktx.ETC1S_DEFAULT_COMPRESSION_LEVEL;
 
   var result = ktexture.compressBasis(basisu_options);
 
-  showTestResult('compress_basis_result', result == ktx.ErrorCode.SUCCESS);
+  showTestResult('compress_basis_result', result == ktx.error_code.SUCCESS);
 }
 
 async function testEncodeAstc(ktexture) {
   const params = new ktx.astcParams();
 
-  params.blockDimension = ktx.AstcBlockDimension.d8x8;
-  params.mode = ktx.AstcMode.DEFAULT;
-  params.qualityLevel = ktx.AstcQualityLevel.FAST;
+  params.blockDimension = ktx.astc_block_dimension.d8x8;
+  params.mode = ktx.pack_astc_encoder_mode.DEFAULT;
+  params.qualityLevel = ktx.astc_quality_levels.FAST;
   params.normalMap = false;
 
   // Before we compress, test inputSwizzle setting
@@ -898,7 +898,7 @@ async function testEncodeAstc(ktexture) {
   params.inputSwizzle = ''; // Reset to default.
 
   var result = ktexture.compressAstc(params);
-  showTestResult('compress_astc_result', result == ktx.ErrorCode.SUCCESS);
+  showTestResult('compress_astc_result', result == ktx.error_code.SUCCESS);
 }
 
 async function testCreateCopy(ktexture) {
