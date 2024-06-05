@@ -23,7 +23,7 @@ add_library( imageio STATIC
     imageio.h
     imageio_utility.h
     imageoutput.cc
-    "${PROJECT_SOURCE_DIR}/external/astc-encoder/Source/tinyexr.h"
+    "${PROJECT_SOURCE_DIR}/external/astc-encoder/Source/ThirdParty/tinyexr.h"
     "${PROJECT_SOURCE_DIR}/external/basisu/encoder/jpgd.cpp"
     "${PROJECT_SOURCE_DIR}/external/basisu/encoder/jpgd.h"
     ${PLUGIN_HEADERS}
@@ -39,7 +39,7 @@ source_group("Header Files/jpg.imageio" FILES
     "${PROJECT_SOURCE_DIR}/external/basisu/encoder/jpgd.h"
 )
 source_group("Header Files/exr.imageio" FILES
-    "${PROJECT_SOURCE_DIR}/external/astc-encoder/Source/tinyexr.h"
+    "${PROJECT_SOURCE_DIR}/external/astc-encoder/Source/ThirdParty/tinyexr.h"
 )
 
 target_include_directories(
@@ -56,7 +56,7 @@ target_include_directories(
 PUBLIC
     ${PROJECT_SOURCE_DIR}/other_include
 PRIVATE
-    "${PROJECT_SOURCE_DIR}/external/astc-encoder/Source"
+    "${PROJECT_SOURCE_DIR}/external/astc-encoder/Source/ThirdParty"
     "${PROJECT_SOURCE_DIR}/external/basisu"
     "${PROJECT_SOURCE_DIR}/external/dfdutils"
 )

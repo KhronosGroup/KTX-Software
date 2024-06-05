@@ -1034,16 +1034,28 @@ endif()
 
 add_subdirectory(interface/basisu_c_binding)
 
-# Only one architecture is supported at once, if neither ASTCENC_ISA_SSE41
-# nor ASTCENC_ISA_SSE2 are defined, ASTCENC_ISA_AVX2 is chosen. If
-# ASTCENC_ISA_AVX2 fails to compile user must chose other x86 options.
-# On arm based systems ASTCENC_ISA_NEON is the default. If we detect
-# the user is doing a universal build then SIMD is disabled.
+# On Linux and Windows only one architecture is supported at once. If neither
+# ASTCENC_ISA_SSE41 nor ASTCENC_ISA_SSE2 are defined, ASTCENC_ISA_AVX2 is
+# chosen. If ASTCENC_ISA_AVX2 fails to compile user must chose other x86
+# options. On arm based systems ASTCENC_ISA_NEON is the default. If we detect
+# the user is doing a universal build defer to astc-encoder to pick
+# the architectures. In this case, BASISU_SSE will be disabled in
 
-list(FIND CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" ASTCENC_BUILD_UNIVERSAL)
-list(LENGTH CMAKE_OSX_ARCHITECTURES ARCHITECTURE_COUNT)
+if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
+    # Override astc-encoder option's default and hide the option.
+    # Use only CMAKE_OSX_ARCHITECTURES to set up a universal
+    # build as that way will turn off BASISU_SUPPORT_SSE which is necessary.
+    set(ASTCENC_UNIVERSAL_BUILD OFF)
 
-if(${ASTCENC_BUILD_UNIVERSAL} EQUAL -1 AND ARCHITECTURE_COUNT LESS_EQUAL 1)
+    # Check CMAKE_OSX_ARCHITECTURES for multiple architectures.
+    list(FIND CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" archs_standard)
+    list(LENGTH CMAKE_OSX_ARCHITECTURES architecture_count)
+    if(NOT ${archs_standard} EQUAL -1 OR architecture_count GREATER 1)
+        set(ASTCENC_UNIVERSAL_BUILD ON)
+    endif()
+endif()
+
+if(NOT ("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin" AND ${ASTCENC_UNIVERSAL_BUILD}))
     if (${ASTCENC_ISA_NONE})
         set(ASTCENC_LIB_TARGET astcenc-none-static)
     else()
@@ -1071,8 +1083,6 @@ if(${ASTCENC_BUILD_UNIVERSAL} EQUAL -1 AND ARCHITECTURE_COUNT LESS_EQUAL 1)
             set(ASTCENC_ISA_NONE ON)
         endif()
     endif()
-else()
-    set(ASTCENC_LIB_TARGET astcenc-static)
 endif()
 
 # astcenc
