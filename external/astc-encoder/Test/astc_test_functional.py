@@ -1403,7 +1403,8 @@ class CLIPTest(CLITestBase):
         self.exec(command)
 
         # Compute the first image using a file-based round-trip
-        command = [self.binary, "-cl", inputFile, p2CompFile, "4x4", "-medium"]
+        command = [self.binary, "-cl", inputFile, p2CompFile, "4x4", "-medium",
+                   "-decode_unorm8"]
         self.exec(command)
         command = [self.binary, "-dl", p2CompFile, p2DecFile]
         self.exec(command)

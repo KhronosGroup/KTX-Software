@@ -15,11 +15,7 @@
 #  under the License.
 #  ----------------------------------------------------------------------------
 
-if(${ASTCENC_UNIVERSAL_BUILD})
-    set(ASTCENC_TARGET astc${ASTCENC_CODEC})
-else()
-    set(ASTCENC_TARGET astc${ASTCENC_CODEC}-${ASTCENC_ISA_SIMD})
-endif()
+set(ASTCENC_TARGET astc${ASTCENC_CODEC}-${ASTCENC_ISA_SIMD})
 
 project(${ASTCENC_TARGET})
 
@@ -211,6 +207,16 @@ macro(astcenc_set_properties ASTCENC_TARGET_NAME ASTCENC_IS_VENEER)
                 $<${is_clang}:-fsanitize=address>)
     endif()
 
+    if(${ASTCENC_UBSAN})
+        target_compile_options(${ASTCENC_TARGET_NAME}
+            PRIVATE
+                $<${is_clang}:-fsanitize=undefined>)
+
+        target_link_options(${ASTCENC_TARGET_NAME}
+            PRIVATE
+                $<${is_clang}:-fsanitize=undefined>)
+    endif()
+
     if(NOT ${ASTCENC_INVARIANCE})
         target_compile_definitions(${ASTCENC_TARGET_NAME}
             PRIVATE
@@ -262,26 +268,22 @@ macro(astcenc_set_properties ASTCENC_TARGET_NAME ASTCENC_IS_VENEER)
 
     # Set up configuration for SIMD ISA builds
     if(${ASTCENC_ISA_SIMD} MATCHES "none")
-        if(NOT ${ASTCENC_UNIVERSAL_BUILD})
-            target_compile_definitions(${ASTCENC_TARGET_NAME}
-                PRIVATE
-                    ASTCENC_NEON=0
-                    ASTCENC_SSE=0
-                    ASTCENC_AVX=0
-                    ASTCENC_POPCNT=0
-                    ASTCENC_F16C=0)
-        endif()
+        target_compile_definitions(${ASTCENC_TARGET_NAME}
+            PRIVATE
+                ASTCENC_NEON=0
+                ASTCENC_SSE=0
+                ASTCENC_AVX=0
+                ASTCENC_POPCNT=0
+                ASTCENC_F16C=0)
 
     elseif(${ASTCENC_ISA_SIMD} MATCHES "neon")
-        if(NOT ${ASTCENC_UNIVERSAL_BUILD})
-            target_compile_definitions(${ASTCENC_TARGET_NAME}
-                PRIVATE
-                    ASTCENC_NEON=1
-                    ASTCENC_SSE=0
-                    ASTCENC_AVX=0
-                    ASTCENC_POPCNT=0
-                    ASTCENC_F16C=0)
-        endif()
+        target_compile_definitions(${ASTCENC_TARGET_NAME}
+            PRIVATE
+                ASTCENC_NEON=1
+                ASTCENC_SSE=0
+                ASTCENC_AVX=0
+                ASTCENC_POPCNT=0
+                ASTCENC_F16C=0)
 
         # Workaround MSVC codegen bug for NEON builds on VS 2022 17.2 or older
         # https://developercommunity.visualstudio.com/t/inlining-turns-constant-into-register-operand-for/1394798
@@ -291,16 +293,14 @@ macro(astcenc_set_properties ASTCENC_TARGET_NAME ASTCENC_IS_VENEER)
                     $<${is_msvccl}:/d2ssa-cfg-sink->)
         endif()
 
-    elseif((${ASTCENC_ISA_SIMD} MATCHES "sse2") OR (${ASTCENC_UNIVERSAL_BUILD} AND ${ASTCENC_ISA_SSE2}))
-        if(NOT ${ASTCENC_UNIVERSAL_BUILD})
-            target_compile_definitions(${ASTCENC_TARGET_NAME}
-                PRIVATE
-                    ASTCENC_NEON=0
-                    ASTCENC_SSE=20
-                    ASTCENC_AVX=0
-                    ASTCENC_POPCNT=0
-                    ASTCENC_F16C=0)
-        endif()
+    elseif(${ASTCENC_ISA_SIMD} MATCHES "sse2")
+        target_compile_definitions(${ASTCENC_TARGET_NAME}
+            PRIVATE
+                ASTCENC_NEON=0
+                ASTCENC_SSE=20
+                ASTCENC_AVX=0
+                ASTCENC_POPCNT=0
+                ASTCENC_F16C=0)
 
         # Force SSE2 on AppleClang (normally SSE4.1 is the default)
         target_compile_options(${ASTCENC_TARGET_NAME}
@@ -310,16 +310,14 @@ macro(astcenc_set_properties ASTCENC_TARGET_NAME ASTCENC_IS_VENEER)
                 $<${is_gnu_fe}:-mno-sse4.1>
                 $<${is_gnu_fe}:-Wno-unused-command-line-argument>)
 
-    elseif((${ASTCENC_ISA_SIMD} MATCHES "sse4.1") OR (${ASTCENC_UNIVERSAL_BUILD} AND ${ASTCENC_ISA_SSE41}))
-        if(NOT ${ASTCENC_UNIVERSAL_BUILD})
-            target_compile_definitions(${ASTCENC_TARGET_NAME}
-                PRIVATE
-                    ASTCENC_NEON=0
-                    ASTCENC_SSE=41
-                    ASTCENC_AVX=0
-                    ASTCENC_POPCNT=1
-                    ASTCENC_F16C=0)
-        endif()
+    elseif(${ASTCENC_ISA_SIMD} MATCHES "sse4.1")
+        target_compile_definitions(${ASTCENC_TARGET_NAME}
+            PRIVATE
+                ASTCENC_NEON=0
+                ASTCENC_SSE=41
+                ASTCENC_AVX=0
+                ASTCENC_POPCNT=1
+                ASTCENC_F16C=0)
 
         if (${ASTCENC_IS_VENEER})
             # Force SSE2 on AppleClang (normally SSE4.1 is the default)
@@ -336,16 +334,14 @@ macro(astcenc_set_properties ASTCENC_TARGET_NAME ASTCENC_IS_VENEER)
                     $<${is_gnu_fe}:-Wno-unused-command-line-argument>)
         endif()
 
-    elseif((${ASTCENC_ISA_SIMD} MATCHES "avx2") OR (${ASTCENC_UNIVERSAL_BUILD} AND ${ASTCENC_ISA_AVX2}))
-        if(NOT ${ASTCENC_UNIVERSAL_BUILD})
-            target_compile_definitions(${ASTCENC_TARGET_NAME}
-                PRIVATE
-                    ASTCENC_NEON=0
-                    ASTCENC_SSE=41
-                    ASTCENC_AVX=2
-                    ASTCENC_POPCNT=1
-                    ASTCENC_F16C=1)
-        endif()
+    elseif(${ASTCENC_ISA_SIMD} MATCHES "avx2")
+        target_compile_definitions(${ASTCENC_TARGET_NAME}
+            PRIVATE
+                ASTCENC_NEON=0
+                ASTCENC_SSE=41
+                ASTCENC_AVX=2
+                ASTCENC_POPCNT=1
+                ASTCENC_F16C=1)
 
         if (${ASTCENC_IS_VENEER})
             # Force SSE2 on AppleClang (normally SSE4.1 is the default)
@@ -421,6 +417,10 @@ if(${ASTCENC_SHAREDLIB})
         PRIVATE
             $<${is_gnu_fe}:-fvisibility=hidden>
             $<${is_msvc_fe}:/W4>)
+
+    if(NOT ${ASTCENC_UNIVERSAL_BUILD})
+        install(TARGETS ${ASTCENC_TARGET}-shared)
+    endif()
 endif()
 
 if(${ASTCENC_CLI})
@@ -446,9 +446,7 @@ if(${ASTCENC_CLI})
         PRIVATE
             ${CMAKE_CURRENT_BINARY_DIR})
 
-    install(TARGETS ${ASTCENC_TARGET} DESTINATION ${PACKAGE_ROOT})
-endif()
-
-if(${ASTCENC_SHAREDLIB})
-    install(TARGETS ${ASTCENC_TARGET}-shared DESTINATION ${PACKAGE_ROOT})
+    if(NOT ${ASTCENC_UNIVERSAL_BUILD})
+        install(TARGETS ${ASTCENC_TARGET})
+    endif()
 endif()

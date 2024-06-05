@@ -24,10 +24,10 @@
 #include "astcenc_mathlib.h"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "ThirdParty/stb_image.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
+#include "ThirdParty/stb_image_write.h"
 
 /**
  * @brief Linearize an sRGB value.
@@ -165,10 +165,10 @@ int main(int argc, char **argv)
 				float g_dst = 1.0f;
 				float b_dst = 0.8f;
 
-				float r_out; 
-				float g_out; 
-				float b_out; 
-				float a_out; 
+				float r_out;
+				float g_out;
+				float b_out;
+				float a_out;
 
 				// Post-multiply blending
 				if (use_post_blend)
@@ -241,10 +241,10 @@ int main(int argc, char **argv)
 				float g_dst = 1.0f;
 				float b_dst = 0.8f;
 
-				float r_out; 
-				float g_out; 
-				float b_out; 
-				float a_out; 
+				float r_out;
+				float g_out;
+				float b_out;
+				float a_out;
 
 				// Post-multiply blending
 				if (use_post_blend)

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2011-2023 Arm Limited
+// Copyright 2011-2024 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -22,6 +22,12 @@
 #include "astcenc.h"
 #include "astcenccli_internal.h"
 
+#if defined(_WIN32)
+	#include <io.h>
+	#define isatty _isatty
+#else
+	#include <unistd.h>
+#endif
 #include <cassert>
 #include <cstring>
 #include <functional>
@@ -155,6 +161,35 @@ struct decompression_workload
 	astcenc_swizzle swizzle;
 	astcenc_error error;
 };
+
+/**
+ * @brief Callback emitting a progress bar
+ */
+extern "C" void progress_emitter(
+	float value
+) {
+	const unsigned int bar_size = 25;
+	unsigned int parts = static_cast<int>(value / 4.0f);
+
+	char buffer[bar_size + 3];
+	buffer[0] = '[';
+
+	for (unsigned int i = 0; i < parts; i++)
+	{
+		buffer[i + 1] = '=';
+	}
+
+	for (unsigned int i = parts; i < bar_size; i++)
+	{
+		buffer[i + 1] = ' ';
+	}
+
+	buffer[bar_size + 1] = ']';
+	buffer[bar_size + 2] = '\0';
+
+	printf("    Progress: %s %03.1f%%\r", buffer, static_cast<double>(value));
+	fflush(stdout);
+}
 
 /**
  * @brief Test if a string argument is a well formed float.
@@ -555,6 +590,10 @@ static int init_astcenc_config(
 		{
 			flags |= ASTCENC_FLG_MAP_NORMAL;
 		}
+		else if (!strcmp(argv[argidx], "-decode_unorm8"))
+		{
+			flags |= ASTCENC_FLG_USE_DECODE_UNORM8;
+		}
 		else if (!strcmp(argv[argidx], "-rgbm"))
 		{
 			// Skip over the data value for now
@@ -608,6 +647,11 @@ static int init_astcenc_config(
 	if (status == ASTCENC_ERR_BAD_BLOCK_SIZE)
 	{
 		print_error("ERROR: Block size '%s' is invalid\n", argv[4]);
+		return 1;
+	}
+	else if (status == ASTCENC_ERR_BAD_DECODE_MODE)
+	{
+		print_error("ERROR: Decode_unorm8 is not supported by HDR profiles\n", argv[4]);
 		return 1;
 	}
 	else if (status == ASTCENC_ERR_BAD_CPU_FLOAT)
@@ -858,6 +902,10 @@ static int edit_astcenc_config(
 
 			config.rgbm_m_scale = static_cast<float>(atof(argv[argidx - 1]));
 			config.cw_a_weight = 2.0f * config.rgbm_m_scale;
+		}
+		else if (!strcmp(argv[argidx], "-decode_unorm8"))
+		{
+			argidx++;
 		}
 		else if (!strcmp(argv[argidx], "-perceptual"))
 		{
@@ -1941,15 +1989,45 @@ int astcenc_main(
 		return 1;
 	}
 
+	// Enable progress callback if not in silent mode and using a terminal
+	#if defined(_WIN32)
+		int stdoutfno = _fileno(stdout);
+	#else
+		int stdoutfno = STDOUT_FILENO;
+	#endif
+
+	if ((!cli_config.silentmode) && isatty(stdoutfno))
+	{
+		config.progress_callback = progress_emitter;
+	}
+
 	astcenc_image* image_uncomp_in = nullptr ;
 	unsigned int image_uncomp_in_component_count = 0;
 	bool image_uncomp_in_is_hdr = false;
 	astcenc_image* image_decomp_out = nullptr;
 
+	// Determine decompression output bitness, if limited by file type
+	int out_bitness = 0;
+	if (operation & ASTCENC_STAGE_DECOMPRESS)
+	{
+		out_bitness = get_output_filename_enforced_bitness(output_filename.c_str());
+		if (out_bitness == 0)
+		{
+			bool is_hdr = (config.profile == ASTCENC_PRF_HDR) ||
+			              (config.profile == ASTCENC_PRF_HDR_RGB_LDR_A);
+			out_bitness = is_hdr ? 16 : 8;
+		}
+
+		// If decompressed output is unorm8 then force the decode_unorm8 heuristics for compression
+		if (out_bitness == 8)
+		{
+			config.flags |= ASTCENC_FLG_USE_DECODE_UNORM8;
+		}
+	}
+
 	// TODO: Handle RAII resources so they get freed when out of scope
 	astcenc_error    codec_status;
 	astcenc_context* codec_context;
-
 
 	// Preflight - check we have valid extensions for storing a file
 	if (operation & ASTCENC_STAGE_ST_NCOMP)
@@ -2091,10 +2169,17 @@ int astcenc_main(
 		double start_compression_time = get_time();
 		for (unsigned int i = 0; i < cli_config.repeat_count; i++)
 		{
+			if (config.progress_callback)
+			{
+				printf("Compression\n");
+				printf("===========\n");
+				printf("\n");
+			}
+
 			double start_iter_time = get_time();
 			if (cli_config.thread_count > 1)
 			{
-				launch_threads(cli_config.thread_count, compression_workload_runner, &work);
+				launch_threads("Compression", cli_config.thread_count, compression_workload_runner, &work);
 			}
 			else
 			{
@@ -2104,6 +2189,11 @@ int astcenc_main(
 			}
 
 			astcenc_compress_reset(codec_context);
+
+			if (config.progress_callback)
+			{
+				printf("\n\n");
+			}
 
 			double iter_time = get_time() - start_iter_time;
 			best_compression_time = astc::min(iter_time, best_compression_time);
@@ -2131,13 +2221,6 @@ int astcenc_main(
 	double total_decompression_time = 0.0;
 	if (operation & ASTCENC_STAGE_DECOMPRESS)
 	{
-		int out_bitness = get_output_filename_enforced_bitness(output_filename.c_str());
-		if (out_bitness == 0)
-		{
-			bool is_hdr = (config.profile == ASTCENC_PRF_HDR) || (config.profile == ASTCENC_PRF_HDR_RGB_LDR_A);
-			out_bitness = is_hdr ? 16 : 8;
-		}
-
 		image_decomp_out = alloc_image(
 		    out_bitness, image_comp.dim_x, image_comp.dim_y, image_comp.dim_z);
 
@@ -2157,7 +2240,7 @@ int astcenc_main(
 			double start_iter_time = get_time();
 			if (cli_config.thread_count > 1)
 			{
-				launch_threads(cli_config.thread_count, decompression_workload_runner, &work);
+				launch_threads("Decompression", cli_config.thread_count, decompression_workload_runner, &work);
 			}
 			else
 			{

@@ -66,9 +66,9 @@ static void astcenc_runtime_assert(bool condition)
     }
 }
 
-#include "stb_image.h"
-#include "stb_image_write.h"
-#include "tinyexr.h"
+#include "ThirdParty/stb_image.h"
+#include "ThirdParty/stb_image_write.h"
+#include "ThirdParty/tinyexr.h"
 
 /**
  * @brief Load an image using Wuffs to provide the loader.

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # -----------------------------------------------------------------------------
-# Copyright 2019-2022 Arm Limited
+# Copyright 2019-2023 Arm Limited
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy
@@ -251,11 +251,15 @@ class Encoder2x(EncoderBase):
 
     def __init__(self, variant, binary=None):
         name = "astcenc-%s-%s" % (variant, self.VERSION)
+
         if binary is None:
-            if os.name == 'nt':
-                binary = "./bin/astcenc-%s.exe" % variant
+            if variant != "universal":
+                binary = f"./bin/astcenc-{variant}"
             else:
-                binary = "./bin/astcenc-%s" % variant
+                binary = "./bin/astcenc"
+
+            if os.name == 'nt':
+                binary = f"{binary}.exe"
 
         super().__init__(name, variant, binary)
 
@@ -323,10 +327,13 @@ class Encoder2xRel(Encoder2x):
 
         self.VERSION = version
 
-        if os.name == 'nt':
-            binary = f"./Binaries/{version}/astcenc-{variant}.exe"
-        else:
+        if variant != "universal":
             binary = f"./Binaries/{version}/astcenc-{variant}"
+        else:
+            binary = f"./Binaries/{version}/astcenc"
+
+        if os.name == 'nt':
+            binary = f"{binary}.exe"
 
         super().__init__(variant, binary)
 
