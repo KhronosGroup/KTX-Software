@@ -531,7 +531,8 @@ macro(common_libktx_settings target enable_write library_type)
     )
 
     # C/C++ Standard
-    target_compile_features(${target} PUBLIC c_std_99 cxx_std_11)
+    # Need c11 for Unicode string literals
+    target_compile_features(${target} PUBLIC c_std_11 cxx_std_11)
 
     # Compiler Warning Flags
     if(EMSCRIPTEN)
