@@ -1037,26 +1037,30 @@ add_subdirectory(interface/basisu_c_binding)
 # On Linux and Windows only one architecture is supported at once. If neither
 # ASTCENC_ISA_SSE41 nor ASTCENC_ISA_SSE2 are defined, ASTCENC_ISA_AVX2 is
 # chosen. If ASTCENC_ISA_AVX2 fails to compile user must chose other x86
-# options. On arm based systems ASTCENC_ISA_NEON is the default. If we detect
-# the user is doing a universal build defer to astc-encoder to pick
-# the architectures. In this case, BASISU_SSE will be disabled in
+# options. On arm based systems ASTCENC_ISA_NEON is the default. On macOS,
+# If we detect the user is doing a universal build defer to astc-encoder
+# to pick the architectures.
+#
+# To ensure BASISU_SUPPORT_SSE is disabled when building for multiple
+# architectures use only the value of CMAKE_OSX_ARCHITECTURES to decide if
+# a universal build is requested. Do not expose the astc-encoder's
+# ASTCENC_UNIVERSAL_BUILD configuration option.
 
+set(universal_build OFF)
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
-    # Override astc-encoder option's default and hide the option.
-    # Use only CMAKE_OSX_ARCHITECTURES to set up a universal
-    # build as that way will turn off BASISU_SUPPORT_SSE which is necessary.
-    set(ASTCENC_UNIVERSAL_BUILD OFF)
-
     # Check CMAKE_OSX_ARCHITECTURES for multiple architectures.
     list(FIND CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" archs_standard)
     list(LENGTH CMAKE_OSX_ARCHITECTURES architecture_count)
     if(NOT ${archs_standard} EQUAL -1 OR architecture_count GREATER 1)
-        set(ASTCENC_UNIVERSAL_BUILD ON)
+        set(universal_build ON)
     endif()
+    # Set ordinary variable to override astc-encoder option's ON default
+    # and hide the option.
+    set(ASTCENC_UNIVERSAL_BUILD ${universal_build})
 endif()
 
-if(NOT ("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin" AND ${ASTCENC_UNIVERSAL_BUILD}))
-    if (${ASTCENC_ISA_NONE})
+if(NOT ${universal_build})
+    if(${ASTCENC_ISA_NONE})
         set(ASTCENC_LIB_TARGET astcenc-none-static)
     else()
         if(CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86)
