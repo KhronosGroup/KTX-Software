@@ -12,7 +12,7 @@
 #    path old-file old-hex old-mode new-file new-hex new-mode
 
 if [ $# -ne 7 ]; then
-  echo "Git did not provide the expected 7 arguments."
+  echo "$0: Git did not provide the expected 7 arguments."
   exit 1
 fi
 
