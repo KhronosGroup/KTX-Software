@@ -21,7 +21,6 @@
 #include <fmt/ostream.h>
 #include <fmt/printf.h>
 
-
 // -------------------------------------------------------------------------------------------------
 
 namespace ktx {
@@ -88,12 +87,12 @@ class CommandDeflate : public Command {
 
     Combine<Options, OptionsDeflate, OptionsSingleInSingleOut, OptionsGeneric> options;
 
-public:
+  public:
     virtual int main(int argc, char* argv[]) override;
     virtual void initOptions(cxxopts::Options& opts) override;
     virtual void processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) override;
 
-private:
+  private:
     void executeDeflate();
 };
 
@@ -102,9 +101,9 @@ private:
 int CommandDeflate::main(int argc, char* argv[]) {
     try {
         parseCommandLine("ktx deflate",
-                "Deflate (supercompress) the KTX file specified as the input-file\n"
-                "    and save it as the output-file.",
-                argc, argv);
+                         "Deflate (supercompress) the KTX file specified as the input-file\n"
+                         "    and save it as the output-file.",
+                         argc, argv);
         executeDeflate();
         return +rc::SUCCESS;
     } catch (const FatalError& error) {
@@ -116,31 +115,26 @@ int CommandDeflate::main(int argc, char* argv[]) {
 }
 
 void CommandDeflate::Options::init(cxxopts::Options& opts) {
-    opts.add_options()
-        (kQuiet, "Don't print warning when input file is already supercompressed.")
-        (kWarningsAsErrors, "Exit with error when input file is already supercompressed");
+    opts.add_options()(kQuiet, "Don't print warning when input file is already supercompressed.")(
+        kWarningsAsErrors, "Exit with error when input file is already supercompressed");
 }
 
-void CommandDeflate::Options::process(cxxopts::Options&,
-                                             cxxopts::ParseResult& args,
-                                             Reporter& report) {
+void CommandDeflate::Options::process(cxxopts::Options&, cxxopts::ParseResult& args,
+                                      Reporter& report) {
     quiet = args[kQuiet].as<bool>();
     warningsAsErrors = args[kWarningsAsErrors].as<bool>();
     if (quiet && warningsAsErrors) {
-        report.fatal_usage("Cannot specify both --{} and --{}.",
-                           this->kQuiet, this->kWarningsAsErrors);
+        report.fatal_usage("Cannot specify both --{} and --{}.", this->kQuiet,
+                           this->kWarningsAsErrors);
     }
 }
 
-void CommandDeflate::initOptions(cxxopts::Options& opts) {
-    options.init(opts);
-}
+void CommandDeflate::initOptions(cxxopts::Options& opts) { options.init(opts); }
 
 void CommandDeflate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) {
     options.process(opts, args, *this);
     if (!options.zstd && !options.zlib) {
-        fatal_usage("Must specify --{}  or --{}.",
-                    OptionsDeflate::kZStd, OptionsDeflate::kZLib);
+        fatal_usage("Must specify --{}  or --{}.", OptionsDeflate::kZStd, OptionsDeflate::kZLib);
     }
 }
 
@@ -149,24 +143,24 @@ void CommandDeflate::executeDeflate() {
     validateToolInput(inputStream, fmtInFile(options.inputFilepath), *this);
 
     KTXTexture2 texture{nullptr};
-    StreambufStream<std::streambuf*> ktx2Stream{inputStream->rdbuf(), std::ios::in | std::ios::binary};
-    auto ret = ktxTexture2_CreateFromStream(ktx2Stream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, texture.pHandle());
+    StreambufStream<std::streambuf*> ktx2Stream{inputStream->rdbuf(),
+                                                std::ios::in | std::ios::binary};
+    auto ret = ktxTexture2_CreateFromStream(
+        ktx2Stream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, texture.pHandle());
     if (ret != KTX_SUCCESS)
         fatal(rc::INVALID_FILE, "Failed to create KTX2 texture: {}", ktxErrorString(ret));
 
     if (texture->supercompressionScheme != KTX_SS_NONE) {
         switch (texture->supercompressionScheme) {
-          case KTX_SS_ZLIB:
-          case KTX_SS_ZSTD:
+        case KTX_SS_ZLIB:
+        case KTX_SS_ZSTD:
             if (!options.quiet) {
                 warning("Modifying existing {} supercompression of {}.",
-                        toString(texture->supercompressionScheme),
-                        options.inputFilepath);
+                        toString(texture->supercompressionScheme), options.inputFilepath);
             }
             break;
-          default:
-            fatal(rc::INVALID_FILE,
-                  "Cannot further deflate a KTX2 file supercompressed with {}.",
+        default:
+            fatal(rc::INVALID_FILE, "Cannot further deflate a KTX2 file supercompressed with {}.",
                   toString(texture->supercompressionScheme));
         }
     }
@@ -187,8 +181,7 @@ void CommandDeflate::executeDeflate() {
         const char* value;
         uint32_t valueLen;
         std::string result;
-        auto ret = ktxHashList_FindValue(&texture->kvDataHead, key,
-                      &valueLen, (void**)&value);
+        auto ret = ktxHashList_FindValue(&texture->kvDataHead, key, &valueLen, (void**)&value);
         if (ret == KTX_SUCCESS) {
             // The values we are looking for are required to be NUL terminated.
             result.assign(value, valueLen - 1);
@@ -196,12 +189,11 @@ void CommandDeflate::executeDeflate() {
         return result;
     };
 
-    const auto updateMetadataValue = [&](const char* const key,
-                                 const std::string& value) {
+    const auto updateMetadataValue = [&](const char* const key, const std::string& value) {
         ktxHashList_DeleteKVPair(&texture->kvDataHead, key);
         ktxHashList_AddKVPair(&texture->kvDataHead, key,
-                static_cast<uint32_t>(value.size() + 1), // +1 to include \0
-                value.c_str());
+                              static_cast<uint32_t>(value.size() + 1),  // +1 to include \0
+                              value.c_str());
     };
 
     // ======= KTXwriter and KTXwriterScParams metadata handling =======
@@ -259,17 +251,15 @@ void CommandDeflate::executeDeflate() {
                 if (std::regex_search(writer, e)) {
                     // Look for toktx/ktxsc deflate option
                     e = " ?--zcmp ?[1-9]?[0-9]?";
-                    (void)std::regex_search(writerScParams,
-                                            deflateOptionMatch, e);
+                    (void)std::regex_search(writerScParams, deflateOptionMatch, e);
                 }
                 origWriterName = writer.substr(0, writer.find_first_of(' '));
             }
             // Remove existing deflate option since its value will not apply
             // to the newly deflated data.
             for (uint32_t i = 0; i < deflateOptionMatch.size(); i++) {
-                 writerScParams.replace(deflateOptionMatch.position(i),
-                                        deflateOptionMatch.length(i),
-                                        "");
+                writerScParams.replace(deflateOptionMatch.position(i), deflateOptionMatch.length(i),
+                                       "");
             }
             // Does ScParams still have data and is the original writer a
             // member of the ktx suite?
@@ -293,14 +283,14 @@ void CommandDeflate::executeDeflate() {
         if (changeWriter) {
             // Leading space unneeded as this param will be first.
             newScParams.erase(newScParams.begin());
-            writerScParams = fmt::format("{} / (from {}) {}", newScParams,
-                                         origWriterName, writerScParams);
+            writerScParams =
+                fmt::format("{} / (from {}) {}", newScParams, origWriterName, writerScParams);
         } else {
             writerScParams.append(newScParams);
         }
     } else {
         writerScParams = newScParams;
-        writerScParams.erase(writerScParams.begin()); // Erase leading space.
+        writerScParams.erase(writerScParams.begin());  // Erase leading space.
     }
 
     // Add KTXwriterScParams metadata
@@ -308,13 +298,12 @@ void CommandDeflate::executeDeflate() {
 
     // Save output file
     const auto outputPath = std::filesystem::path(DecodeUTF8Path(options.outputFilepath));
-    if (outputPath.has_parent_path())
-        std::filesystem::create_directories(outputPath.parent_path());
+    if (outputPath.has_parent_path()) std::filesystem::create_directories(outputPath.parent_path());
 
     OutputStream outputFile(options.outputFilepath, *this);
     outputFile.writeKTX2(texture, *this);
 }
 
-} // namespace ktx
+}  // namespace ktx
 
 KTX_COMMAND_ENTRY_POINT(ktxDeflate, ktx::CommandDeflate)

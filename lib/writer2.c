@@ -17,7 +17,7 @@
  */
 
 #ifdef _WIN32
-#define _CRT_SECURE_NO_WARNINGS
+    #define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #include <assert.h>
@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 #if defined(__GNUC__)
-#include <strings.h>  // For strncasecmp on GNU/Linux
+    #include <strings.h>  // For strncasecmp on GNU/Linux
 #endif
 #include <zstd.h>
 #include <zstd_errors.h>
@@ -45,7 +45,7 @@
 #include "version.h"
 
 #if defined(_MSC_VER)
-#define strncasecmp _strnicmp
+    #define strncasecmp _strnicmp
 #endif
 
 /**
@@ -54,7 +54,8 @@
  * @{
  */
 
-#if defined(_WIN32) || defined(linux) || defined(__linux) || defined(__linux__) || defined(__EMSCRIPTEN__)
+#if defined(_WIN32) || defined(linux) || defined(__linux) || defined(__linux__) || \
+    defined(__EMSCRIPTEN__)
 /** @internal
  * @~English
  * @brief strnstr for Windows, Linux and Emscripten.
@@ -72,27 +73,22 @@
  *            first character of the first occurrence of @p needle.
  */
 static char*
-strnstr(const char *haystack, const char *needle, size_t len)
-{
+strnstr(const char* haystack, const char* needle, size_t len) {
     size_t i;
     size_t needleLen;
     const char* needleEnd;
 
-    // strnlen is not part of the C standard and does not compile on some platforms, 
+    // strnlen is not part of the C standard and does not compile on some platforms,
     // use case is covered by memchr.
-    needleEnd = (char *)memchr(needle, 0, len);
-    if (needleEnd == needle)
-        return (char *)haystack;
+    needleEnd = (char*)memchr(needle, 0, len);
+    if (needleEnd == needle) return (char*)haystack;
 
     needleLen = len;
-    if (needleEnd != NULL)
-        needleLen = needleEnd - needle;
+    if (needleEnd != NULL) needleLen = needleEnd - needle;
 
-    for (i = 0; i <= len - needleLen; i++)
-    {
-        if (haystack[0] == needle[0]
-            && strncmp(haystack, needle, needleLen) == 0)
-            return (char *)haystack;
+    for (i = 0; i <= len - needleLen; i++) {
+        if (haystack[0] == needle[0] && strncmp(haystack, needle, needleLen) == 0)
+            return (char*)haystack;
         haystack++;
     }
     return NULL;
@@ -115,8 +111,7 @@ strnstr(const char *haystack, const char *needle, size_t len)
  *                               maximum allowed.
  */
 KTX_error_code
-appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
-{
+appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry) {
     KTX_error_code result;
     const char* id;
     const char* libVer;
@@ -142,11 +137,9 @@ appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
     // overwrite so no need for +1 after strlen.
     libIdLen = sizeof(libIdIntro) + (ktx_uint32_t)strlen(libVer);
     char* libId = malloc(libIdLen);
-    if (!libId)
-        return KTX_OUT_OF_MEMORY;
+    if (!libId) return KTX_OUT_OF_MEMORY;
     strncpy(libId, libIdIntro, libIdLen);
-    strncpy(&libId[sizeof(libIdIntro)-1], libVer,
-            libIdLen-(sizeof(libIdIntro)-1));
+    strncpy(&libId[sizeof(libIdIntro) - 1], libVer, libIdLen - (sizeof(libIdIntro) - 1));
 
     if (strnstr(id, libId, idLen) != NULL) {
         // This lib id is already in the writer value.
@@ -157,23 +150,20 @@ appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
     if (libVerPos != NULL) {
         // There is a libktx version but not the current version.
         idLen = libVerPos - id;
-    } else if (id[idLen-1] == '\0') {
+    } else if (id[idLen - 1] == '\0') {
         idLen--;
     }
 
     size_t fullIdLen = idLen + strlen(libId) + 1;
-    if (fullIdLen > UINT_MAX)
-        return KTX_INVALID_OPERATION;
+    if (fullIdLen > UINT_MAX) return KTX_INVALID_OPERATION;
     char* fullId = malloc(fullIdLen);
-    if (!fullId)
-        return KTX_OUT_OF_MEMORY;
+    if (!fullId) return KTX_OUT_OF_MEMORY;
     strncpy(fullId, id, idLen);
     strncpy(&fullId[idLen], libId, libIdLen);
-    assert(fullId[fullIdLen-1] == '\0');
+    assert(fullId[fullIdLen - 1] == '\0');
 
     ktxHashList_DeleteEntry(head, writerEntry);
-    result = ktxHashList_AddKVPair(head, KTX_WRITER_KEY,
-                                   (ktx_uint32_t)fullIdLen, fullId);
+    result = ktxHashList_AddKVPair(head, KTX_WRITER_KEY, (ktx_uint32_t)fullIdLen, fullId);
     free(libId);
     free(fullId);
     return result;
@@ -202,19 +192,15 @@ appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
  *                              created.
  */
 KTX_error_code
-ktxTexture2_setImageFromStream(ktxTexture2* This, ktx_uint32_t level,
-                               ktx_uint32_t layer, ktx_uint32_t faceSlice,
-                               ktxStream* src, ktx_size_t srcSize)
-{
+ktxTexture2_setImageFromStream(ktxTexture2* This, ktx_uint32_t level, ktx_uint32_t layer,
+                               ktx_uint32_t faceSlice, ktxStream* src, ktx_size_t srcSize) {
     ktx_size_t imageByteLength;
     ktx_size_t imageByteOffset;
     ktx_error_code_e result;
 
-    if (!This || !src)
-        return KTX_INVALID_VALUE;
+    if (!This || !src) return KTX_INVALID_VALUE;
 
-    if (!This->pData)
-        return KTX_INVALID_OPERATION;
+    if (!This->pData) return KTX_INVALID_OPERATION;
 
     if (faceSlice == KTX_FACESLICE_WHOLE_LEVEL) {
         result = ktxTexture_GetImageOffset(ktxTexture(This), level, layer, 0, &imageByteOffset);
@@ -223,18 +209,18 @@ ktxTexture2_setImageFromStream(ktxTexture2* This, ktx_uint32_t level,
         }
         imageByteLength = ktxTexture_calcLevelSize(ktxTexture(This), level, KTX_FORMAT_VERSION_TWO);
     } else {
-        result = ktxTexture_GetImageOffset(ktxTexture(This), level, layer, faceSlice, &imageByteOffset);
+        result =
+            ktxTexture_GetImageOffset(ktxTexture(This), level, layer, faceSlice, &imageByteOffset);
         if (result != KTX_SUCCESS) {
             return result;
         }
         imageByteLength = ktxTexture_GetImageSize(ktxTexture(This), level);
     }
 
-    if (srcSize != imageByteLength)
-        return KTX_INVALID_OPERATION;
+    if (srcSize != imageByteLength) return KTX_INVALID_OPERATION;
     // The above will catch a flagrantly invalid srcSize. This is an
     // additional check of the internal calculations.
-    assert (imageByteOffset + srcSize <= This->dataSize);
+    assert(imageByteOffset + srcSize <= This->dataSize);
 
     /* Can copy whole image at once */
     src->read(src, This->pData + imageByteOffset, srcSize);
@@ -271,18 +257,14 @@ ktxTexture2_setImageFromStream(ktxTexture2* This, ktx_uint32_t level,
  *                              created.
  */
 KTX_error_code
-ktxTexture2_SetImageFromStdioStream(ktxTexture2* This, ktx_uint32_t level,
-                                    ktx_uint32_t layer, ktx_uint32_t faceSlice,
-                                    FILE* src, ktx_size_t srcSize)
-{
+ktxTexture2_SetImageFromStdioStream(ktxTexture2* This, ktx_uint32_t level, ktx_uint32_t layer,
+                                    ktx_uint32_t faceSlice, FILE* src, ktx_size_t srcSize) {
     ktxStream srcstr;
     KTX_error_code result;
 
     result = ktxFileStream_construct(&srcstr, src, KTX_FALSE);
-    if (result != KTX_SUCCESS)
-        return result;
-    result = ktxTexture2_setImageFromStream(This, level, layer, faceSlice,
-                                            &srcstr, srcSize);
+    if (result != KTX_SUCCESS) return result;
+    result = ktxTexture2_setImageFromStream(This, level, layer, faceSlice, &srcstr, srcSize);
     ktxFileStream_destruct(&srcstr);
     return result;
 }
@@ -317,18 +299,14 @@ ktxTexture2_SetImageFromStdioStream(ktxTexture2* This, ktx_uint32_t level,
  *                              created.
  */
 KTX_error_code
-ktxTexture2_SetImageFromMemory(ktxTexture2* This, ktx_uint32_t level,
-                               ktx_uint32_t layer, ktx_uint32_t faceSlice,
-                               const ktx_uint8_t* src, ktx_size_t srcSize)
-{
+ktxTexture2_SetImageFromMemory(ktxTexture2* This, ktx_uint32_t level, ktx_uint32_t layer,
+                               ktx_uint32_t faceSlice, const ktx_uint8_t* src, ktx_size_t srcSize) {
     ktxStream srcstr;
     KTX_error_code result;
 
     result = ktxMemStream_construct_ro(&srcstr, src, srcSize);
-    if (result != KTX_SUCCESS)
-        return result;
-    result = ktxTexture2_setImageFromStream(This, level, layer, faceSlice,
-                                            &srcstr, srcSize);
+    if (result != KTX_SUCCESS) return result;
+    result = ktxTexture2_setImageFromStream(This, level, layer, faceSlice, &srcstr, srcSize);
     ktxMemStream_destruct(&srcstr);
     return result;
 }
@@ -364,10 +342,9 @@ ktx_bool_t __disableWriterMetadata__ = KTX_FALSE;
  *                              An error occurred while writing the file.
  */
 KTX_error_code
-ktxTexture2_WriteToStream(ktxTexture2* This, ktxStream* dststr)
-{
+ktxTexture2_WriteToStream(ktxTexture2* This, ktxStream* dststr) {
     DECLARE_PRIVATE(ktxTexture2);
-    KTX_header2 header = { .identifier = KTX2_IDENTIFIER_REF };
+    KTX_header2 header = {.identifier = KTX2_IDENTIFIER_REF};
     KTX_error_code result;
     ktx_uint32_t kvdLen;
     ktx_uint8_t* pKvd;
@@ -381,8 +358,7 @@ ktxTexture2_WriteToStream(ktxTexture2* This, ktxStream* dststr)
         return KTX_INVALID_VALUE;
     }
 
-    if (This->pData == NULL)
-        return KTX_INVALID_OPERATION;
+    if (This->pData == NULL) return KTX_INVALID_OPERATION;
 
     header.vkFormat = This->vkFormat;
     header.typeSize = This->_protected->_typeSize;
@@ -390,9 +366,9 @@ ktxTexture2_WriteToStream(ktxTexture2* This, ktxStream* dststr)
     header.pixelHeight = This->numDimensions > 1 ? This->baseHeight : 0;
     header.pixelDepth = This->numDimensions > 2 ? This->baseDepth : 0;
     header.layerCount = This->isArray ? This->numLayers : 0;
-    assert (This->isCubemap ? This->numFaces == 6 : This->numFaces == 1);
+    assert(This->isCubemap ? This->numFaces == 6 : This->numFaces == 1);
     header.faceCount = This->numFaces;
-    assert (This->generateMipmaps? This->numLevels == 1 : This->numLevels >= 1);
+    assert(This->generateMipmaps ? This->numLevels == 1 : This->numLevels >= 1);
     header.levelCount = This->generateMipmaps ? 0 : This->numLevels;
     header.supercompressionScheme = This->supercompressionScheme;
 
@@ -414,26 +390,15 @@ ktxTexture2_WriteToStream(ktxTexture2* This, ktxStream* dststr)
         if (strncasecmp(key, "KTX", 3) == 0) {
             ktx_uint32_t i;
             const char* knownKeys[] = {
-              "KTXcubemapIncomplete",
-              "KTXorientation",
-              "KTXglFormat",
-              "KTXdxgiFormat__",
-              "KTXmetalPixelFormat",
-              "KTXswizzle",
-              "KTXwriter",
-              "KTXwriterScParams",
-              "KTXastcDecodeMode",
-              "KTXanimData"
-            };
-            if (strncmp(key, "ktx", 3) == 0)
-                return KTX_INVALID_OPERATION;
+                "KTXcubemapIncomplete", "KTXorientation", "KTXglFormat", "KTXdxgiFormat__",
+                "KTXmetalPixelFormat",  "KTXswizzle",     "KTXwriter",   "KTXwriterScParams",
+                "KTXastcDecodeMode",    "KTXanimData"};
+            if (strncmp(key, "ktx", 3) == 0) return KTX_INVALID_OPERATION;
             // Check for unrecognized KTX keys.
-            for (i = 0; i < sizeof(knownKeys)/sizeof(char*); i++) {
-                if (strcmp(key, knownKeys[i]) == 0)
-                    break;
+            for (i = 0; i < sizeof(knownKeys) / sizeof(char*); i++) {
+                if (strcmp(key, knownKeys[i]) == 0) break;
             }
-            if (i == sizeof(knownKeys)/sizeof(char*))
-                return KTX_INVALID_OPERATION;
+            if (i == sizeof(knownKeys) / sizeof(char*)) return KTX_INVALID_OPERATION;
         }
     }
 
@@ -441,16 +406,14 @@ ktxTexture2_WriteToStream(ktxTexture2* This, ktxStream* dststr)
     if (!__disableWriterMetadata__) {
 #endif
         pEntry = NULL;
-        result = ktxHashList_FindEntry(&This->kvDataHead, KTX_WRITER_KEY,
-                                       &pEntry);
+        result = ktxHashList_FindEntry(&This->kvDataHead, KTX_WRITER_KEY, &pEntry);
         result = appendLibId(&This->kvDataHead, pEntry);
-        if (result != KTX_SUCCESS)
-            return result;
+        if (result != KTX_SUCCESS) return result;
 #if defined(TestNoMetadata)
     }
 #endif
 
-    ktxHashList_Sort(&This->kvDataHead); // KTX2 requires sorted metadata.
+    ktxHashList_Sort(&This->kvDataHead);  // KTX2 requires sorted metadata.
     ktxHashList_Serialize(&This->kvDataHead, &kvdLen, &pKvd);
     header.keyValueData.byteOffset = kvdLen != 0 ? (uint32_t)baseOffset : 0;
     header.keyValueData.byteLength = kvdLen;
@@ -466,58 +429,53 @@ ktxTexture2_WriteToStream(ktxTexture2* This, ktxStream* dststr)
     header.supercompressionGlobalData.byteLength = sgdLen;
     baseOffset += sgdLen;
 
-    initialLevelPadLen = _KTX_PADN_LEN(This->_private->_requiredLevelAlignment,
-                                       baseOffset);
+    initialLevelPadLen = _KTX_PADN_LEN(This->_private->_requiredLevelAlignment, baseOffset);
     baseOffset += initialLevelPadLen;
 
     // write header and indices
     result = dststr->write(dststr, &header, sizeof(header), 1);
-    if (result != KTX_SUCCESS)
-        return result;
+    if (result != KTX_SUCCESS) return result;
 
     // Create a copy of the level index with file-adjusted offsets and write it.
-    ktxLevelIndexEntry* levelIndex
-                            = (ktxLevelIndexEntry*)malloc(levelIndexSize);
-    if (!levelIndex)
-        return KTX_OUT_OF_MEMORY;
+    ktxLevelIndexEntry* levelIndex = (ktxLevelIndexEntry*)malloc(levelIndexSize);
+    if (!levelIndex) return KTX_OUT_OF_MEMORY;
     for (ktx_uint32_t level = 0; level < This->numLevels; level++) {
         levelIndex[level].byteLength = private->_levelIndex[level].byteLength;
-        levelIndex[level].uncompressedByteLength
-                         = private->_levelIndex[level].uncompressedByteLength;
+        levelIndex[level].uncompressedByteLength =
+            private->_levelIndex[level].uncompressedByteLength;
         levelIndex[level].byteOffset = private->_levelIndex[level].byteOffset;
         levelIndex[level].byteOffset += baseOffset;
     }
     result = dststr->write(dststr, levelIndex, levelIndexSize, 1);
     free(levelIndex);
-    if (result != KTX_SUCCESS)
-        return result;
+    if (result != KTX_SUCCESS) return result;
 
-   // write data format descriptor
-   result = dststr->write(dststr, This->pDfd, 1, *This->pDfd);
+    // write data format descriptor
+    result = dststr->write(dststr, This->pDfd, 1, *This->pDfd);
 
-   // write keyValueData
+    // write keyValueData
     if (kvdLen != 0) {
         assert(pKvd != NULL);
 
         result = dststr->write(dststr, pKvd, 1, kvdLen);
         free(pKvd);
         if (result != KTX_SUCCESS) {
-             return result;
+            return result;
         }
     }
 
-    char padding[32] = { 0 };
+    char padding[32] = {0};
     // write supercompressionGlobalData & sgdPadding
     if (private->_sgdByteLength != 0) {
         if (align8PadLen) {
             result = dststr->write(dststr, padding, 1, align8PadLen);
             if (result != KTX_SUCCESS) {
-                 return result;
+                return result;
             }
         }
 
-        result = dststr->write(dststr, private->_supercompressionGlobalData,
-                               1, private->_sgdByteLength);
+        result =
+            dststr->write(dststr, private->_supercompressionGlobalData, 1, private->_sgdByteLength);
         if (result != KTX_SUCCESS) {
             return result;
         }
@@ -526,13 +484,12 @@ ktxTexture2_WriteToStream(ktxTexture2* This, ktxStream* dststr)
     if (initialLevelPadLen) {
         result = dststr->write(dststr, padding, 1, initialLevelPadLen);
         if (result != KTX_SUCCESS) {
-             return result;
+            return result;
         }
     }
 
     // write the image data
-    for (ktx_int32_t level = This->numLevels-1; level >= 0 && result == KTX_SUCCESS; --level)
-    {
+    for (ktx_int32_t level = This->numLevels - 1; level >= 0 && result == KTX_SUCCESS; --level) {
         ktx_uint64_t srcLevelOffset, levelSize;
 #define DUMP_IMAGE 0
 #if defined(DEBUG) || DUMP_IMAGE
@@ -561,8 +518,7 @@ ktxTexture2_WriteToStream(ktxTexture2* This, ktxStream* dststr)
                             level, layer, faceSlice, pos);
                     for (uint32_t y = 0; y < (This->baseHeight >> level); y++) {
                         for (uint32_t x = 0; x < rowBytes; x++) {
-                            fprintf(stdout, "%#x, ",
-                                    *(This->pData + srcOffset + y * rowBytes + x));
+                            fprintf(stdout, "%#x, ", *(This->pData + srcOffset + y * rowBytes + x));
                         }
                         fprintf(stdout, "\n");
                     }
@@ -572,14 +528,11 @@ ktxTexture2_WriteToStream(ktxTexture2* This, ktxStream* dststr)
         fprintf(stdout, "\n");
 #endif
         // Write entire level.
-        result = dststr->write(dststr, This->pData + srcLevelOffset,
-                               levelSize, 1);
-        if (result == KTX_SUCCESS && level > 0) { // No padding at end.
-            ktx_uint32_t levelPadLen
-                       = _KTX_PADN_LEN(This->_private->_requiredLevelAlignment,
-                                       levelSize);
-            if (levelPadLen != 0)
-              result = dststr->write(dststr, padding, 1, levelPadLen);
+        result = dststr->write(dststr, This->pData + srcLevelOffset, levelSize, 1);
+        if (result == KTX_SUCCESS && level > 0) {  // No padding at end.
+            ktx_uint32_t levelPadLen =
+                _KTX_PADN_LEN(This->_private->_requiredLevelAlignment, levelSize);
+            if (levelPadLen != 0) result = dststr->write(dststr, padding, 1, levelPadLen);
         }
     }
 
@@ -619,17 +572,14 @@ ktxTexture2_WriteToStream(ktxTexture2* This, ktxStream* dststr)
  *                              An error occurred while writing the file.
  */
 KTX_error_code
-ktxTexture2_WriteToStdioStream(ktxTexture2* This, FILE* dstsstr)
-{
+ktxTexture2_WriteToStdioStream(ktxTexture2* This, FILE* dstsstr) {
     ktxStream stream;
     KTX_error_code result = KTX_SUCCESS;
 
-    if (!This)
-        return KTX_INVALID_VALUE;
+    if (!This) return KTX_INVALID_VALUE;
 
     result = ktxFileStream_construct(&stream, dstsstr, KTX_FALSE);
-    if (result != KTX_SUCCESS)
-        return result;
+    if (result != KTX_SUCCESS) return result;
 
     return ktxTexture2_WriteToStream(This, &stream);
 }
@@ -670,13 +620,11 @@ ktxTexture2_WriteToStdioStream(ktxTexture2* This, FILE* dstsstr)
  *                              An error occurred while writing the file.
  */
 KTX_error_code
-ktxTexture2_WriteToNamedFile(ktxTexture2* This, const char* const dstname)
-{
+ktxTexture2_WriteToNamedFile(ktxTexture2* This, const char* const dstname) {
     KTX_error_code result;
     FILE* dst;
 
-    if (!This)
-        return KTX_INVALID_VALUE;
+    if (!This) return KTX_INVALID_VALUE;
 
     dst = ktxFOpenUTF8(dstname, "wb");
     if (dst) {
@@ -728,25 +676,20 @@ ktxTexture2_WriteToNamedFile(ktxTexture2* This, const char* const dstname)
  *                              An error occurred while writing the file.
  */
 KTX_error_code
-ktxTexture2_WriteToMemory(ktxTexture2* This,
-                          ktx_uint8_t** ppDstBytes, ktx_size_t* pSize)
-{
+ktxTexture2_WriteToMemory(ktxTexture2* This, ktx_uint8_t** ppDstBytes, ktx_size_t* pSize) {
     struct ktxStream dststr;
     KTX_error_code result;
     ktx_size_t strSize;
 
-    if (!This || !ppDstBytes || !pSize)
-        return KTX_INVALID_VALUE;
+    if (!This || !ppDstBytes || !pSize) return KTX_INVALID_VALUE;
 
     *ppDstBytes = NULL;
 
     result = ktxMemStream_construct(&dststr, KTX_FALSE);
-    if (result != KTX_SUCCESS)
-        return result;
+    if (result != KTX_SUCCESS) return result;
 
     result = ktxTexture2_WriteToStream(This, &dststr);
-    if(result != KTX_SUCCESS)
-    {
+    if (result != KTX_SUCCESS) {
         ktxMemStream_destruct(&dststr);
         return result;
     }
@@ -760,7 +703,6 @@ ktxTexture2_WriteToMemory(ktxTexture2* This,
      */
     ktxMemStream_destruct(&dststr);
     return KTX_SUCCESS;
-
 }
 
 /**
@@ -777,10 +719,8 @@ ktxTexture2_WriteToMemory(ktxTexture2* This,
  *            above 20 should be used with caution as they require more memory.
  */
 KTX_error_code
-ktxTexture2_DeflateZstd(ktxTexture2* This, ktx_uint32_t compressionLevel)
-{
-    ktx_uint32_t levelIndexByteLength =
-                            This->numLevels * sizeof(ktxLevelIndexEntry);
+ktxTexture2_DeflateZstd(ktxTexture2* This, ktx_uint32_t compressionLevel) {
+    ktx_uint32_t levelIndexByteLength = This->numLevels * sizeof(ktxLevelIndexEntry);
     ktx_uint8_t* workBuf;
     ktx_uint8_t* cmpData;
     ktx_size_t dstRemainingByteLength = 0;
@@ -792,11 +732,9 @@ ktxTexture2_DeflateZstd(ktxTexture2* This, ktx_uint32_t compressionLevel)
     ktx_error_code_e result;
 
     ZSTD_CCtx* cctx = ZSTD_createCCtx();
-    if (cctx == NULL)
-        return KTX_OUT_OF_MEMORY;
+    if (cctx == NULL) return KTX_OUT_OF_MEMORY;
 
-    if (This->supercompressionScheme != KTX_SS_NONE)
-        return KTX_INVALID_OPERATION;
+    if (This->supercompressionScheme != KTX_SS_NONE) return KTX_INVALID_OPERATION;
 
     // On rare occasions the deflated data can be a few bytes larger than
     // the source data. Calculating the dst buffer size using
@@ -815,37 +753,34 @@ ktxTexture2_DeflateZstd(ktxTexture2* This, ktx_uint32_t compressionLevel)
     pCmpDst = &workBuf[levelIndexByteLength];
 
     for (int32_t level = This->numLevels - 1; level >= 0; level--) {
-        size_t levelByteLengthCmp =
-            ZSTD_compressCCtx(cctx, pCmpDst + levelOffset,
-                              dstRemainingByteLength,
-                              &This->pData[cindex[level].byteOffset],
-                              cindex[level].byteLength,
-                              compressionLevel);
+        size_t levelByteLengthCmp = ZSTD_compressCCtx(
+            cctx, pCmpDst + levelOffset, dstRemainingByteLength,
+            &This->pData[cindex[level].byteOffset], cindex[level].byteLength, compressionLevel);
         if (ZSTD_isError(levelByteLengthCmp)) {
             free(workBuf);
             ZSTD_ErrorCode error = ZSTD_getErrorCode(levelByteLengthCmp);
-            switch(error) {
-              case ZSTD_error_parameter_outOfBound:
+            switch (error) {
+            case ZSTD_error_parameter_outOfBound:
                 result = KTX_INVALID_VALUE;
                 goto cleanup;
-              case ZSTD_error_dstSize_tooSmall:
+            case ZSTD_error_dstSize_tooSmall:
 #ifdef DEBUG
                 assert(false && "Deflate dstSize too small.");
 #else
                 result = KTX_OUT_OF_MEMORY;
                 goto cleanup;
 #endif
-              case ZSTD_error_workSpace_tooSmall:
+            case ZSTD_error_workSpace_tooSmall:
 #ifdef DEBUG
                 assert(false && "Deflate workspace too small.");
 #else
                 result = KTX_OUT_OF_MEMORY;
                 goto cleanup;
 #endif
-              case ZSTD_error_memory_allocation:
+            case ZSTD_error_memory_allocation:
                 result = KTX_OUT_OF_MEMORY;
                 goto cleanup;
-              default:
+            default:
                 // The remaining errors look like they should only
                 // occur during decompression but just in case.
 #ifdef DEBUG
@@ -872,8 +807,8 @@ ktxTexture2_DeflateZstd(ktxTexture2* This, ktx_uint32_t compressionLevel)
         return KTX_OUT_OF_MEMORY;
     }
     // Now modify the texture.
-    memcpy(cmpData, pCmpDst, byteLengthCmp); // Copy data to sized buffer.
-    memcpy(cindex, nindex, levelIndexByteLength); // Update level index
+    memcpy(cmpData, pCmpDst, byteLengthCmp);       // Copy data to sized buffer.
+    memcpy(cindex, nindex, levelIndexByteLength);  // Update level index
     free(workBuf);
     free(This->pData);
     This->pData = cmpData;
@@ -905,10 +840,8 @@ cleanup:
  *            between 1 and 9 are accepted. The lower the level the faster.
  */
 KTX_error_code
-ktxTexture2_DeflateZLIB(ktxTexture2* This, ktx_uint32_t compressionLevel)
-{
-    ktx_uint32_t levelIndexByteLength =
-                            This->numLevels * sizeof(ktxLevelIndexEntry);
+ktxTexture2_DeflateZLIB(ktxTexture2* This, ktx_uint32_t compressionLevel) {
+    ktx_uint32_t levelIndexByteLength = This->numLevels * sizeof(ktxLevelIndexEntry);
     ktx_uint8_t* workBuf;
     ktx_uint8_t* cmpData;
     ktx_size_t dstRemainingByteLength = 0;
@@ -918,8 +851,7 @@ ktxTexture2_DeflateZLIB(ktxTexture2* This, ktx_uint32_t compressionLevel)
     ktxLevelIndexEntry* nindex;
     ktx_uint8_t* pCmpDst;
 
-    if (This->supercompressionScheme != KTX_SS_NONE)
-        return KTX_INVALID_OPERATION;
+    if (This->supercompressionScheme != KTX_SS_NONE) return KTX_INVALID_OPERATION;
 
     // On rare occasions the deflated data can be a few bytes larger than
     // the source data. Calculating the dst buffer size using
@@ -929,18 +861,15 @@ ktxTexture2_DeflateZLIB(ktxTexture2* This, ktx_uint32_t compressionLevel)
     }
 
     workBuf = malloc(dstRemainingByteLength + levelIndexByteLength);
-    if (workBuf == NULL)
-        return KTX_OUT_OF_MEMORY;
+    if (workBuf == NULL) return KTX_OUT_OF_MEMORY;
     nindex = (ktxLevelIndexEntry*)workBuf;
     pCmpDst = &workBuf[levelIndexByteLength];
 
     for (int32_t level = This->numLevels - 1; level >= 0; level--) {
         size_t levelByteLengthCmp = dstRemainingByteLength;
-        KTX_error_code result = ktxCompressZLIBInt(pCmpDst + levelOffset,
-                                                    &levelByteLengthCmp,
-                                                    &This->pData[cindex[level].byteOffset],
-                                                    cindex[level].byteLength,
-                                                    compressionLevel);
+        KTX_error_code result = ktxCompressZLIBInt(pCmpDst + levelOffset, &levelByteLengthCmp,
+                                                   &This->pData[cindex[level].byteOffset],
+                                                   cindex[level].byteLength, compressionLevel);
         if (result != KTX_SUCCESS) {
             free(workBuf);
             return result;
@@ -961,8 +890,8 @@ ktxTexture2_DeflateZLIB(ktxTexture2* This, ktx_uint32_t compressionLevel)
         return KTX_OUT_OF_MEMORY;
     }
     // Now modify the texture.
-    memcpy(cmpData, pCmpDst, byteLengthCmp); // Copy data to sized buffer.
-    memcpy(cindex, nindex, levelIndexByteLength); // Update level index
+    memcpy(cmpData, pCmpDst, byteLengthCmp);       // Copy data to sized buffer.
+    memcpy(cindex, nindex, levelIndexByteLength);  // Update level index
     free(workBuf);
     free(This->pData);
     This->pData = cmpData;

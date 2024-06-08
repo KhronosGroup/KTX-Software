@@ -20,77 +20,70 @@
 #define IOS 0
 
 #if defined(_WIN32)
-#undef WINDOWS
-#define WINDOWS 1
+    #undef WINDOWS
+    #define WINDOWS 1
 #endif
-#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__bsdi__) || defined(__DragonFly__)
-#undef UNIX
-#define UNIX 1
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__bsdi__) || \
+    defined(__DragonFly__)
+    #undef UNIX
+    #define UNIX 1
 #endif
 #if defined(linux) || defined(__linux) || defined(__linux__)
-#undef UNIX
-#define UNIX 1
+    #undef UNIX
+    #define UNIX 1
 #endif
 #if defined(__APPLE__) && defined(__x86_64__)
-#undef MACOS
-#define MACOS 1
+    #undef MACOS
+    #define MACOS 1
 #endif
-#if defined(__APPLE__) && (defined(__arm64__) || defined (__arm__))
-#undef IOS
-#define IOS 1
+#if defined(__APPLE__) && (defined(__arm64__) || defined(__arm__))
+    #undef IOS
+    #define IOS 1
 #endif
 #if (IOS + MACOS + UNIX + WINDOWS) > 1
-#error "Multiple OS\'s defined"
+    #error "Multiple OS\'s defined"
 #endif
 
 #include "vk_funcs.h"
 
-
 #if WINDOWS
-#define WINDOWS_LEAN_AND_MEAN
-#include <windows.h>
+    #define WINDOWS_LEAN_AND_MEAN
+    #include <windows.h>
 #else
-#include <dlfcn.h>
-#include <stdlib.h>
+    #include <dlfcn.h>
+    #include <stdlib.h>
 #endif
 #include "ktx.h"
 
 #if WINDOWS
 HMODULE ktxVulkanModuleHandle;
-#define GetVulkanModuleHandle(flags) ktxGetVulkanModuleHandle()
-#define LoadProcAddr GetProcAddress
+    #define GetVulkanModuleHandle(flags) ktxGetVulkanModuleHandle()
+    #define LoadProcAddr GetProcAddress
 #elif MACOS || UNIX || IOS
 // Using NULL returns a handle that can be used to search the process that
 // loaded us and any other libraries it has loaded. That's all we need to
 // search as the app is responsible for creating the GL context so it must
 // be there.
-#define GetVulkanModuleHandle(flags) dlopen(NULL, flags)
-#define LoadProcAddr dlsym
+    #define GetVulkanModuleHandle(flags) dlopen(NULL, flags)
+    #define LoadProcAddr dlsym
 void* ktxVulkanModuleHandle;
 #else
-#error "Don\'t know how to load symbols on this OS."
+    #error "Don\'t know how to load symbols on this OS."
 #endif
 
 #if WINDOWS
-#define VULKANLIB "vulkan-1.dll"
+    #define VULKANLIB "vulkan-1.dll"
 static HMODULE
-ktxGetVulkanModuleHandle()
-{
+ktxGetVulkanModuleHandle() {
     HMODULE module = NULL;
-    GetModuleHandleExA(
-		0,
-		VULKANLIB,
-		&module
-	);
-	return module;
+    GetModuleHandleExA(0, VULKANLIB, &module);
+    return module;
 }
 #endif
 
 ktx_error_code_e
-ktxLoadVulkanLibrary(void)
-{
-    if (ktxVulkanModuleHandle)
-        return KTX_SUCCESS;
+ktxLoadVulkanLibrary(void) {
+    if (ktxVulkanModuleHandle) return KTX_SUCCESS;
 
     ktxVulkanModuleHandle = GetVulkanModuleHandle(RTLD_LAZY);
     if (ktxVulkanModuleHandle == NULL) {
@@ -103,7 +96,7 @@ ktxLoadVulkanLibrary(void)
 #if defined(DEBUG)
         abort();
 #else
-        return KTX_LIBRARY_NOT_LINKED; // So release version doesn't crash.
+        return KTX_LIBRARY_NOT_LINKED;  // So release version doesn't crash.
 #endif
     }
 
@@ -117,14 +110,10 @@ ktxLoadVulkanFunction(const char* pName) {
         return NULL;
     }
 
-    PFN_vkVoidFunction pfn
-           = (PFN_vkVoidFunction)LoadProcAddr(ktxVulkanModuleHandle, pName);
+    PFN_vkVoidFunction pfn = (PFN_vkVoidFunction)LoadProcAddr(ktxVulkanModuleHandle, pName);
     if (pfn == NULL) {
         fprintf(stderr, "Couldn't load Vulkan command: %s\n", pName);
         return NULL;
     }
     return pfn;
 }
-
-
-

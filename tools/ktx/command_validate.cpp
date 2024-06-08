@@ -12,7 +12,6 @@
 #include <cxxopts.hpp>
 #include <fmt/printf.h>
 
-
 // -------------------------------------------------------------------------------------------------
 
 namespace ktx {
@@ -69,9 +68,8 @@ class CommandValidate : public Command {
         bool GLTFBasisU = false;
 
         void init(cxxopts::Options& opts) {
-            opts.add_options()
-                ("e,warnings-as-errors", "Treat warnings as errors.")
-                ("g,gltf-basisu", "Check compatibility with KHR_texture_basisu glTF extension.");
+            opts.add_options()("e,warnings-as-errors", "Treat warnings as errors.")(
+                "g,gltf-basisu", "Check compatibility with KHR_texture_basisu glTF extension.");
         }
 
         void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter&) {
@@ -82,12 +80,12 @@ class CommandValidate : public Command {
 
     Combine<OptionsValidate, OptionsFormat, OptionsSingleIn, OptionsGeneric> options;
 
-public:
+  public:
     virtual int main(int argc, char* argv[]) override;
     virtual void initOptions(cxxopts::Options& opts) override;
     virtual void processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) override;
 
-private:
+  private:
     void executeValidate();
 };
 
@@ -95,10 +93,11 @@ private:
 
 int CommandValidate::main(int argc, char* argv[]) {
     try {
-        parseCommandLine("ktx validate",
-                "Validates the Khronos texture format version 2 (KTX2) file specified\n"
-                "    as the input-file argument. It prints any found errors and warnings to stdout.",
-                argc, argv);
+        parseCommandLine(
+            "ktx validate",
+            "Validates the Khronos texture format version 2 (KTX2) file specified\n"
+            "    as the input-file argument. It prints any found errors and warnings to stdout.",
+            argc, argv);
         executeValidate();
         return +rc::SUCCESS;
     } catch (const FatalError& error) {
@@ -109,9 +108,7 @@ int CommandValidate::main(int argc, char* argv[]) {
     }
 }
 
-void CommandValidate::initOptions(cxxopts::Options& opts) {
-    options.init(opts);
-}
+void CommandValidate::initOptions(cxxopts::Options& opts) { options.init(opts); }
 
 void CommandValidate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) {
     options.process(opts, args, *this);
@@ -124,14 +121,12 @@ void CommandValidate::executeValidate() {
     case OutputFormat::text: {
         std::ostringstream messagesOS;
         const auto validationResult = validateIOStream(
-                inputStream,
-                fmtInFile(options.inputFilepath),
-                options.warningsAsErrors,
-                options.GLTFBasisU,
-                [&](const ValidationReport& issue) {
-            fmt::print(messagesOS, "{}-{:04}: {}\n", toString(issue.type), issue.id, issue.message);
-            fmt::print(messagesOS, "    {}\n", issue.details);
-        });
+            inputStream, fmtInFile(options.inputFilepath), options.warningsAsErrors,
+            options.GLTFBasisU, [&](const ValidationReport& issue) {
+                fmt::print(messagesOS, "{}-{:04}: {}\n", toString(issue.type), issue.id,
+                           issue.message);
+                fmt::print(messagesOS, "    {}\n", issue.details);
+            });
 
         const auto validationMessages = std::move(messagesOS).str();
         if (!validationMessages.empty()) {
@@ -140,11 +135,11 @@ void CommandValidate::executeValidate() {
             fmt::print("{}", validationMessages);
         }
 
-        if (validationResult != 0)
-            throw FatalError(rc::INVALID_FILE);
+        if (validationResult != 0) throw FatalError(rc::INVALID_FILE);
         break;
     }
-    case OutputFormat::json: [[fallthrough]];
+    case OutputFormat::json:
+        [[fallthrough]];
     case OutputFormat::json_mini: {
         const auto base_indent = options.format == OutputFormat::json ? +0 : 0;
         const auto indent_width = options.format == OutputFormat::json ? 4 : 0;
@@ -156,20 +151,17 @@ void CommandValidate::executeValidate() {
 
         bool first = true;
         const auto validationResult = validateIOStream(
-                inputStream,
-                fmtInFile(options.inputFilepath),
-                options.warningsAsErrors,
-                options.GLTFBasisU,
-                [&](const ValidationReport& issue) {
-            if (!std::exchange(first, false)) {
-                pi(2, "}},{}", nl);
-            }
-            pi(2, "{{{}", nl);
-            pi(3, "\"id\":{}{},{}", space, issue.id, nl);
-            pi(3, "\"type\":{}\"{}\",{}", space, toString(issue.type), nl);
-            pi(3, "\"message\":{}\"{}\",{}", space, escape_json_copy(issue.message), nl);
-            pi(3, "\"details\":{}\"{}\"{}", space, escape_json_copy(issue.details), nl);
-        });
+            inputStream, fmtInFile(options.inputFilepath), options.warningsAsErrors,
+            options.GLTFBasisU, [&](const ValidationReport& issue) {
+                if (!std::exchange(first, false)) {
+                    pi(2, "}},{}", nl);
+                }
+                pi(2, "{{{}", nl);
+                pi(3, "\"id\":{}{},{}", space, issue.id, nl);
+                pi(3, "\"type\":{}\"{}\",{}", space, toString(issue.type), nl);
+                pi(3, "\"message\":{}\"{}\",{}", space, escape_json_copy(issue.message), nl);
+                pi(3, "\"details\":{}\"{}\"{}", space, escape_json_copy(issue.details), nl);
+            });
 
         PrintIndent out{std::cout, base_indent, indent_width};
         out(0, "{{{}", nl);
@@ -185,13 +177,12 @@ void CommandValidate::executeValidate() {
         }
         out(0, "}}{}", nl);
 
-        if (validationResult != 0)
-            throw FatalError(rc::INVALID_FILE);
+        if (validationResult != 0) throw FatalError(rc::INVALID_FILE);
         break;
     }
     }
 }
 
-} // namespace ktx
+}  // namespace ktx
 
 KTX_COMMAND_ENTRY_POINT(ktxValidate, ktx::CommandValidate)

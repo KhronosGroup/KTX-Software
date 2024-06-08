@@ -7,13 +7,12 @@
 #include <ktx/fragment_uri.h>
 #include "gtest/gtest.h"
 
-
 namespace {
 
 // -------------------------------------------------------------------------------------------------
 
 class FragmentURITest : public ::testing::Test {
-protected:
+  protected:
     FragmentURITest() {}
 };
 
@@ -95,7 +94,8 @@ TEST_F(FragmentURITest, ParseMultipleRange) {
 
 TEST_F(FragmentURITest, ParseMultiRange) {
     EXPECT_EQ(fmt::format("{}", ktx::parseFragmentURI("m=10,15&m=20,").mip), "10..15,20..last");
-    EXPECT_EQ(fmt::format("{}", ktx::parseFragmentURI("m=0,0&m=1,1&m=10,15&m=20,").mip), "0,1,10..15,20..last");
+    EXPECT_EQ(fmt::format("{}", ktx::parseFragmentURI("m=0,0&m=1,1&m=10,15&m=20,").mip),
+              "0,1,10..15,20..last");
 }
 
 TEST_F(FragmentURITest, Validate) {

@@ -8,46 +8,39 @@
 
 #include <iostream>
 
-ktxTexture *get_ktx_texture(JNIEnv *env, jobject thiz)
-{
+ktxTexture *get_ktx_texture(JNIEnv *env, jobject thiz) {
     jclass ktx_texture_class = env->GetObjectClass(thiz);
     jfieldID ktx_instance_field = env->GetFieldID(ktx_texture_class, "instance", "J");
 
-    return reinterpret_cast<ktxTexture*>(env->GetLongField(thiz, ktx_instance_field));
+    return reinterpret_cast<ktxTexture *>(env->GetLongField(thiz, ktx_instance_field));
 }
 
-void set_ktx_texture(JNIEnv *env, jobject thiz, ktxTexture *texture)
-{
+void set_ktx_texture(JNIEnv *env, jobject thiz, ktxTexture *texture) {
     jclass ktx_texture_class = env->GetObjectClass(thiz);
     jfieldID ktx_instance_field = env->GetFieldID(ktx_texture_class, "instance", "J");
 
-    env->SetLongField(thiz,
-                        ktx_instance_field,
-                        reinterpret_cast<jlong>(texture));
+    env->SetLongField(thiz, ktx_instance_field, reinterpret_cast<jlong>(texture));
 }
 
-jobject make_ktx1_wrapper(JNIEnv *env, ktxTexture1 *texture)
-{
+jobject make_ktx1_wrapper(JNIEnv *env, ktxTexture1 *texture) {
     jclass ktx_texture_class = env->FindClass("org/khronos/ktx/KtxTexture1");
-    assert (ktx_texture_class != NULL);
+    assert(ktx_texture_class != NULL);
 
     jmethodID ktx_texture_ctor = env->GetMethodID(ktx_texture_class, "<init>", "(J)V");
 
     return env->NewObject(ktx_texture_class, ktx_texture_ctor, reinterpret_cast<jlong>(texture));
 }
 
-jobject make_ktx2_wrapper(JNIEnv *env, ktxTexture2 *texture)
-{
+jobject make_ktx2_wrapper(JNIEnv *env, ktxTexture2 *texture) {
     jclass ktx_texture_class = env->FindClass("org/khronos/ktx/KtxTexture2");
-    assert (ktx_texture_class != NULL);
+    assert(ktx_texture_class != NULL);
 
     jmethodID ktx_texture_ctor = env->GetMethodID(ktx_texture_class, "<init>", "(J)V");
 
     return env->NewObject(ktx_texture_class, ktx_texture_ctor, reinterpret_cast<jlong>(texture));
 }
 
-void copy_ktx_texture_create_info(JNIEnv *env, jobject info, ktxTextureCreateInfo &out)
-{
+void copy_ktx_texture_create_info(JNIEnv *env, jobject info, ktxTextureCreateInfo &out) {
     jclass ktx_info_class = env->GetObjectClass(info);
     jfieldID f_gl_internalformat = env->GetFieldID(ktx_info_class, "glInternalformat", "I");
     jfieldID f_base_width = env->GetFieldID(ktx_info_class, "baseWidth", "I");
@@ -74,8 +67,7 @@ void copy_ktx_texture_create_info(JNIEnv *env, jobject info, ktxTextureCreateInf
     out.vkFormat = env->GetIntField(info, f_vk_format);
 }
 
-void copy_ktx_astc_params(JNIEnv *env, jobject params, ktxAstcParams &out)
-{
+void copy_ktx_astc_params(JNIEnv *env, jobject params, ktxAstcParams &out) {
     // Undocumented quirk!
     out.structSize = sizeof(ktxAstcParams);
 
@@ -99,16 +91,14 @@ void copy_ktx_astc_params(JNIEnv *env, jobject params, ktxAstcParams &out)
 
     jobject inputSwizzleObject = env->GetObjectField(params, inputSwizzle);
     jcharArray inputSwizzleArray = static_cast<jcharArray>(inputSwizzleObject);
-    jchar *inputSwizzleValues = env->GetCharArrayElements( inputSwizzleArray, NULL);
-    for (int i=0; i<4; i++)
-    {
-      out.inputSwizzle[i] = static_cast<char>(inputSwizzleValues[i]);
+    jchar *inputSwizzleValues = env->GetCharArrayElements(inputSwizzleArray, NULL);
+    for (int i = 0; i < 4; i++) {
+        out.inputSwizzle[i] = static_cast<char>(inputSwizzleValues[i]);
     }
     env->ReleaseCharArrayElements(inputSwizzleArray, inputSwizzleValues, JNI_ABORT);
 }
 
-void copy_ktx_basis_params(JNIEnv *env, jobject params, ktxBasisParams &out)
-{
+void copy_ktx_basis_params(JNIEnv *env, jobject params, ktxBasisParams &out) {
     // Undocumented quirk!
     out.structSize = sizeof(ktxBasisParams);
 
@@ -120,9 +110,11 @@ void copy_ktx_basis_params(JNIEnv *env, jobject params, ktxBasisParams &out)
     jfieldID compressionLevel = env->GetFieldID(ktx_basis_params_class, "compressionLevel", "I");
     jfieldID qualityLevel = env->GetFieldID(ktx_basis_params_class, "qualityLevel", "I");
     jfieldID maxEndpoints = env->GetFieldID(ktx_basis_params_class, "maxEndpoints", "I");
-    jfieldID endpointRDOThreshold = env->GetFieldID(ktx_basis_params_class, "endpointRDOThreshold", "F");
+    jfieldID endpointRDOThreshold =
+        env->GetFieldID(ktx_basis_params_class, "endpointRDOThreshold", "F");
     jfieldID maxSelectors = env->GetFieldID(ktx_basis_params_class, "maxSelectors", "I");
-    jfieldID selectorRDOThreshold = env->GetFieldID(ktx_basis_params_class, "selectorRDOThreshold", "F");
+    jfieldID selectorRDOThreshold =
+        env->GetFieldID(ktx_basis_params_class, "selectorRDOThreshold", "F");
     jfieldID inputSwizzle = env->GetFieldID(ktx_basis_params_class, "inputSwizzle", "[C");
     jfieldID normalMap = env->GetFieldID(ktx_basis_params_class, "normalMap", "Z");
     jfieldID preSwizzle = env->GetFieldID(ktx_basis_params_class, "preSwizzle", "Z");
@@ -130,12 +122,17 @@ void copy_ktx_basis_params(JNIEnv *env, jobject params, ktxBasisParams &out)
     jfieldID noSelectorRDO = env->GetFieldID(ktx_basis_params_class, "noSelectorRDO", "Z");
     jfieldID uastcFlags = env->GetFieldID(ktx_basis_params_class, "uastcFlags", "I");
     jfieldID uastcRDO = env->GetFieldID(ktx_basis_params_class, "uastcRDO", "Z");
-    jfieldID uastcRDOQualityScalar = env->GetFieldID(ktx_basis_params_class, "uastcRDOQualityScalar", "F");
+    jfieldID uastcRDOQualityScalar =
+        env->GetFieldID(ktx_basis_params_class, "uastcRDOQualityScalar", "F");
     jfieldID uastcRDODictSize = env->GetFieldID(ktx_basis_params_class, "uastcRDODictSize", "I");
-    jfieldID uastcRDOMaxSmoothBlockErrorScale = env->GetFieldID(ktx_basis_params_class, "uastcRDOMaxSmoothBlockErrorScale", "F");
-    jfieldID uastcRDOMaxSmoothBlockStdDev = env->GetFieldID(ktx_basis_params_class, "uastcRDOMaxSmoothBlockStdDev", "F");
-    jfieldID uastcRDODontFavorSimplerModes = env->GetFieldID(ktx_basis_params_class, "uastcRDODontFavorSimplerModes", "Z");
-    jfieldID uastcRDONoMultithreading = env->GetFieldID(ktx_basis_params_class, "uastcRDONoMultithreading", "Z");
+    jfieldID uastcRDOMaxSmoothBlockErrorScale =
+        env->GetFieldID(ktx_basis_params_class, "uastcRDOMaxSmoothBlockErrorScale", "F");
+    jfieldID uastcRDOMaxSmoothBlockStdDev =
+        env->GetFieldID(ktx_basis_params_class, "uastcRDOMaxSmoothBlockStdDev", "F");
+    jfieldID uastcRDODontFavorSimplerModes =
+        env->GetFieldID(ktx_basis_params_class, "uastcRDODontFavorSimplerModes", "Z");
+    jfieldID uastcRDONoMultithreading =
+        env->GetFieldID(ktx_basis_params_class, "uastcRDONoMultithreading", "Z");
 
     out.uastc = env->GetBooleanField(params, uastc);
     out.verbose = env->GetBooleanField(params, verbose);
@@ -150,10 +147,9 @@ void copy_ktx_basis_params(JNIEnv *env, jobject params, ktxBasisParams &out)
 
     jobject inputSwizzleObject = env->GetObjectField(params, inputSwizzle);
     jcharArray inputSwizzleArray = static_cast<jcharArray>(inputSwizzleObject);
-    jchar *inputSwizzleValues = env->GetCharArrayElements( inputSwizzleArray, NULL);
-    for (int i=0; i<4; i++)
-    {
-      out.inputSwizzle[i] = static_cast<char>(inputSwizzleValues[i]);
+    jchar *inputSwizzleValues = env->GetCharArrayElements(inputSwizzleArray, NULL);
+    for (int i = 0; i < 4; i++) {
+        out.inputSwizzle[i] = static_cast<char>(inputSwizzleValues[i]);
     }
     env->ReleaseCharArrayElements(inputSwizzleArray, inputSwizzleValues, JNI_ABORT);
 
@@ -165,7 +161,8 @@ void copy_ktx_basis_params(JNIEnv *env, jobject params, ktxBasisParams &out)
     out.uastcFlags = env->GetIntField(params, uastcFlags);
     out.uastcRDOQualityScalar = env->GetFloatField(params, uastcRDOQualityScalar);
     out.uastcRDODictSize = env->GetIntField(params, uastcRDODictSize);
-    out.uastcRDOMaxSmoothBlockErrorScale = env->GetFloatField(params, uastcRDOMaxSmoothBlockErrorScale);
+    out.uastcRDOMaxSmoothBlockErrorScale =
+        env->GetFloatField(params, uastcRDOMaxSmoothBlockErrorScale);
     out.uastcRDOMaxSmoothBlockStdDev = env->GetFloatField(params, uastcRDOMaxSmoothBlockStdDev);
     out.uastcRDODontFavorSimplerModes = env->GetBooleanField(params, uastcRDODontFavorSimplerModes);
     out.uastcRDONoMultithreading = env->GetBooleanField(params, uastcRDONoMultithreading);

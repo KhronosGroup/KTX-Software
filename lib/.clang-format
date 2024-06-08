@@ -1,0 +1,14 @@
+# Copyright 2024 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+---
+# Use defaults from the Google style with the following exceptions:
+Language: Cpp
+BasedOnStyle: Google
+IndentWidth: 4
+IndentCaseLabels: false
+AccessModifierOffset: -2
+ColumnLimit: 100
+SortIncludes: false
+AlwaysBreakAfterDefinitionReturnType: TopLevel
+IndentPPDirectives: BeforeHash
+...

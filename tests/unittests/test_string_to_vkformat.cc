@@ -7,15 +7,14 @@
 #include "vkformat_enum.h"
 #include "gtest/gtest.h"
 
-
 extern "C" {
-    VkFormat stringToVkFormat(const char* str);
+VkFormat stringToVkFormat(const char* str);
 }
 
 // -------------------------------------------------------------------------------------------------
 
 class StringToVkFormatTest : public ::testing::Test {
-protected:
+  protected:
     StringToVkFormatTest() {}
 };
 
@@ -51,4 +50,4 @@ TEST_F(StringToVkFormatTest, stringToVkFormat) {
     EXPECT_EQ(stringToVkFormat("STC_6x6_UNORM_BLOCK"), VK_FORMAT_UNDEFINED);
 }
 
-} // namespace
+}  // namespace

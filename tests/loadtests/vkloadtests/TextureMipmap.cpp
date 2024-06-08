@@ -11,7 +11,8 @@
  * @class TextureMipmap
  * @~English
  *
- * @brief Definition of test sample for loading and displaying all the levels of a 2D mipmapped texture.
+ * @brief Definition of test sample for loading and displaying all the levels of a 2D mipmapped
+ * texture.
  *
  * @author Mark Callow, www.edgewise-consulting.com.
  *
@@ -34,22 +35,17 @@
 
 #include <ktxvulkan.h>
 
-VulkanLoadTestSample*
-TextureMipmap::create(VulkanContext& vkctx,
-                 uint32_t width, uint32_t height,
-                 const char* const szArgs, const std::string sBasePath)
-{
+VulkanLoadTestSample* TextureMipmap::create(VulkanContext& vkctx, uint32_t width, uint32_t height,
+                                            const char* const szArgs, const std::string sBasePath) {
     return new TextureMipmap(vkctx, width, height, szArgs, sBasePath);
 }
 
 #define INSTANCE_COUNT_CONST_ID 1
 #define INSTANCES_DECLARED_IN_SHADER 16
 
-TextureMipmap::TextureMipmap(VulkanContext& vkctx,
-                 uint32_t width, uint32_t height,
-                 const char* const szArgs, const std::string sBasePath)
-        : InstancedSampleBase(vkctx, width, height, szArgs, sBasePath)
-{
+TextureMipmap::TextureMipmap(VulkanContext& vkctx, uint32_t width, uint32_t height,
+                             const char* const szArgs, const std::string sBasePath)
+    : InstancedSampleBase(vkctx, width, height, szArgs, sBasePath) {
     zoom = -18.0f;
 
     if (texture.levelCount == 1) {
@@ -60,18 +56,17 @@ TextureMipmap::TextureMipmap(VulkanContext& vkctx,
     }
 
     try {
-        prepare("instancinglod.frag.spv", "instancinglod.vert.spv",
-                INSTANCE_COUNT_CONST_ID, texture.levelCount,
-                INSTANCES_DECLARED_IN_SHADER);
+        prepare("instancinglod.frag.spv", "instancinglod.vert.spv", INSTANCE_COUNT_CONST_ID,
+                texture.levelCount, INSTANCES_DECLARED_IN_SHADER);
 
     } catch (std::exception& e) {
-        (void)e; // To quiet unused variable warnings from some compilers.
+        (void)e;  // To quiet unused variable warnings from some compilers.
         // For reasons I don't understand ~InstancedSampleBase is called
         // during the throw before the exception is caught. ~InstancedSampleBase
         // also calls cleanup(). In Texture, an identically structured class
         // which does not have a base class between it and LoadTestSample, the
         // destructor is not called during throw.
-        //cleanup();
+        // cleanup();
         throw;
     }
 }

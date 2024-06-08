@@ -23,20 +23,19 @@
 #include <vector>
 #include <assert.h>
 #ifdef _MSC_VER
-  #pragma warning(push)
-  #pragma warning(disable : 4201)
+    #pragma warning(push)
+    #pragma warning(disable : 4201)
 #endif
 #include <glm/gtc/packing.hpp>
 #ifdef _MSC_VER
-  #pragma warning(pop)
+    #pragma warning(pop)
 #endif
 #include "imageio_utility.h"
 #include "vkformat_enum.h"
 
 class ImageCodec {
-public:
-    struct TexelBlockCodec {
-    };
+  public:
+    struct TexelBlockCodec {};
 
     ImageCodec() {
         flags.valid = false;
@@ -69,13 +68,22 @@ public:
         // Packed element size must always be 1, 2, or 4 currently
         // (for block compressed formats the element size is considered 1 by convention)
         switch (packedElementByteSize) {
-        case 1: codec.getPackedElement = getPackedElement<uint8_t>; break;
-        case 2: codec.getPackedElement = getPackedElement<uint16_t>; break;
-        case 4: codec.getPackedElement = getPackedElement<uint32_t>; break;
-        default: flags.valid = false; return;
+        case 1:
+            codec.getPackedElement = getPackedElement<uint8_t>;
+            break;
+        case 2:
+            codec.getPackedElement = getPackedElement<uint16_t>;
+            break;
+        case 4:
+            codec.getPackedElement = getPackedElement<uint32_t>;
+            break;
+        default:
+            flags.valid = false;
+            return;
         }
 
-        // We initialize the packed element count here based on the first plane's size and the element size
+        // We initialize the packed element count here based on the first plane's size and the
+        // element size
         const auto firstPlaneBytes = KHR_DFDVAL(bdfd, BYTESPLANE0);
         packedElementCount = firstPlaneBytes / packedElementByteSize;
         // We can do the above because we do not currently support multiple planes
@@ -95,20 +103,34 @@ public:
         channels = 0;
 
         switch (model) {
-        case KHR_DF_MODEL_RGBSDA: [[fallthrough]];
-        case KHR_DF_MODEL_YUVSDA: [[fallthrough]];
-        case KHR_DF_MODEL_YIQSDA: [[fallthrough]];
-        case KHR_DF_MODEL_LABSDA: [[fallthrough]];
-        case KHR_DF_MODEL_CMYKA: [[fallthrough]];
-        case KHR_DF_MODEL_XYZW: [[fallthrough]];
-        case KHR_DF_MODEL_HSVA_ANG: [[fallthrough]];
-        case KHR_DF_MODEL_HSLA_ANG: [[fallthrough]];
-        case KHR_DF_MODEL_HSVA_HEX: [[fallthrough]];
-        case KHR_DF_MODEL_HSLA_HEX: [[fallthrough]];
-        case KHR_DF_MODEL_YCGCOA: [[fallthrough]];
-        case KHR_DF_MODEL_YCCBCCRC: [[fallthrough]];
-        case KHR_DF_MODEL_ICTCP: [[fallthrough]];
-        case KHR_DF_MODEL_CIEXYZ: [[fallthrough]];
+        case KHR_DF_MODEL_RGBSDA:
+            [[fallthrough]];
+        case KHR_DF_MODEL_YUVSDA:
+            [[fallthrough]];
+        case KHR_DF_MODEL_YIQSDA:
+            [[fallthrough]];
+        case KHR_DF_MODEL_LABSDA:
+            [[fallthrough]];
+        case KHR_DF_MODEL_CMYKA:
+            [[fallthrough]];
+        case KHR_DF_MODEL_XYZW:
+            [[fallthrough]];
+        case KHR_DF_MODEL_HSVA_ANG:
+            [[fallthrough]];
+        case KHR_DF_MODEL_HSLA_ANG:
+            [[fallthrough]];
+        case KHR_DF_MODEL_HSVA_HEX:
+            [[fallthrough]];
+        case KHR_DF_MODEL_HSLA_HEX:
+            [[fallthrough]];
+        case KHR_DF_MODEL_YCGCOA:
+            [[fallthrough]];
+        case KHR_DF_MODEL_YCCBCCRC:
+            [[fallthrough]];
+        case KHR_DF_MODEL_ICTCP:
+            [[fallthrough]];
+        case KHR_DF_MODEL_CIEXYZ:
+            [[fallthrough]];
         case KHR_DF_MODEL_CIEXYY:
             // These color models are handled as simple per-channel texel blocks
             switch (vkFormat) {
@@ -155,32 +177,39 @@ public:
                 break;
 
             default: {
-                // For other formats we only support cases where the number formats match across the samples
+                // For other formats we only support cases where the number formats match across the
+                // samples
                 const auto sampleCount = KHR_DFDSAMPLECOUNT(bdfd);
-                const auto firstDataType = KHR_DFDSVAL(bdfd, 0, QUALIFIERS) & ~KHR_DF_SAMPLE_DATATYPE_LINEAR;
+                const auto firstDataType =
+                    KHR_DFDSVAL(bdfd, 0, QUALIFIERS) & ~KHR_DF_SAMPLE_DATATYPE_LINEAR;
                 const auto firstBitLength = KHR_DFDSVAL(bdfd, 0, BITLENGTH) + 1;
                 const auto sampleUpper = KHR_DFDSVAL(bdfd, 0, SAMPLEUPPER);
                 flags.isFloat = (firstDataType & KHR_DF_SAMPLE_DATATYPE_FLOAT) != 0;
                 flags.isFloatHalf = flags.isFloat && (firstBitLength == 16);
                 flags.isSigned = (firstDataType & KHR_DF_SAMPLE_DATATYPE_SIGNED) != 0;
-                flags.isNormalized = sampleUpper != (flags.isFloat ? imageio::bit_cast<uint32_t>(1.f) : 1u);
+                flags.isNormalized =
+                    sampleUpper != (flags.isFloat ? imageio::bit_cast<uint32_t>(1.f) : 1u);
 
                 // Channel count matches sample count for these cases
                 channels = sampleCount;
 
                 if (firstDataType & KHR_DF_SAMPLE_DATATYPE_EXPONENT) {
-                    // No other shared exponent formats are supported other than the ones handled explicitly
+                    // No other shared exponent formats are supported other than the ones handled
+                    // explicitly
                     flags.valid = false;
                     return;
                 }
                 for (uint32_t i = 0; i < sampleCount; ++i) {
-                    const auto dataType = KHR_DFDSVAL(bdfd, i, QUALIFIERS) & ~KHR_DF_SAMPLE_DATATYPE_LINEAR;
+                    const auto dataType =
+                        KHR_DFDSVAL(bdfd, i, QUALIFIERS) & ~KHR_DF_SAMPLE_DATATYPE_LINEAR;
                     const auto bitLength = KHR_DFDSVAL(bdfd, i, BITLENGTH) + 1;
-                    // If not all elements match the packed element byte size then this is a packed format
+                    // If not all elements match the packed element byte size then this is a packed
+                    // format
                     if (bitLength != firstBitLength || bitLength != packedElementByteSize * 8) {
                         flags.isPacked = true;
                     }
-                    // We do not support mixed component types here as all special cases are handled outside
+                    // We do not support mixed component types here as all special cases are handled
+                    // outside
                     if (dataType != firstDataType) {
                         flags.valid = false;
                         return;
@@ -196,20 +225,40 @@ public:
                 if (flags.isFloatHalf) {
                     // Data is a vector of FP16 values
                     switch (sampleCount) {
-                    case 1: codec.decodeFLOAT = decodeFLOAT_FP16Vec<1>; break;
-                    case 2: codec.decodeFLOAT = decodeFLOAT_FP16Vec<2>; break;
-                    case 3: codec.decodeFLOAT = decodeFLOAT_FP16Vec<3>; break;
-                    case 4: codec.decodeFLOAT = decodeFLOAT_FP16Vec<4>; break;
-                    default: flags.valid = false; return;
+                    case 1:
+                        codec.decodeFLOAT = decodeFLOAT_FP16Vec<1>;
+                        break;
+                    case 2:
+                        codec.decodeFLOAT = decodeFLOAT_FP16Vec<2>;
+                        break;
+                    case 3:
+                        codec.decodeFLOAT = decodeFLOAT_FP16Vec<3>;
+                        break;
+                    case 4:
+                        codec.decodeFLOAT = decodeFLOAT_FP16Vec<4>;
+                        break;
+                    default:
+                        flags.valid = false;
+                        return;
                     }
                 } else if (flags.isFloat) {
                     // Data is a vector of FP32 values
                     switch (sampleCount) {
-                    case 1: codec.decodeFLOAT = decodeFLOAT_FP32Vec<1>; break;
-                    case 2: codec.decodeFLOAT = decodeFLOAT_FP32Vec<2>; break;
-                    case 3: codec.decodeFLOAT = decodeFLOAT_FP32Vec<3>; break;
-                    case 4: codec.decodeFLOAT = decodeFLOAT_FP32Vec<4>; break;
-                    default: flags.valid = false; return;
+                    case 1:
+                        codec.decodeFLOAT = decodeFLOAT_FP32Vec<1>;
+                        break;
+                    case 2:
+                        codec.decodeFLOAT = decodeFLOAT_FP32Vec<2>;
+                        break;
+                    case 3:
+                        codec.decodeFLOAT = decodeFLOAT_FP32Vec<3>;
+                        break;
+                    case 4:
+                        codec.decodeFLOAT = decodeFLOAT_FP32Vec<4>;
+                        break;
+                    default:
+                        flags.valid = false;
+                        return;
                     }
                 } else if (flags.isPacked) {
                     // Data is packed so use the more general decoders
@@ -222,8 +271,10 @@ public:
                         sampleInfo.bitOffset = bitOffset % (packedElementByteSize << 3);
                         sampleInfo.bitLength = bitLength;
 
-                        // If any of the samples straddle the packed elements then there's something wrong
-                        if (sampleInfo.bitOffset + sampleInfo.bitLength > (packedElementByteSize << 3)) {
+                        // If any of the samples straddle the packed elements then there's something
+                        // wrong
+                        if (sampleInfo.bitOffset + sampleInfo.bitLength >
+                            (packedElementByteSize << 3)) {
                             flags.valid = false;
                             return;
                         }
@@ -279,57 +330,114 @@ public:
                         case 1:
                             // 8-bit signed integer
                             switch (sampleCount) {
-                            case 1: codec.decodeSINT = decodeSINT_SINTVec<int8_t, 1>; break;
-                            case 2: codec.decodeSINT = decodeSINT_SINTVec<int8_t, 2>; break;
-                            case 3: codec.decodeSINT = decodeSINT_SINTVec<int8_t, 3>; break;
-                            case 4: codec.decodeSINT = decodeSINT_SINTVec<int8_t, 4>; break;
-                            default: flags.valid = false; return;
+                            case 1:
+                                codec.decodeSINT = decodeSINT_SINTVec<int8_t, 1>;
+                                break;
+                            case 2:
+                                codec.decodeSINT = decodeSINT_SINTVec<int8_t, 2>;
+                                break;
+                            case 3:
+                                codec.decodeSINT = decodeSINT_SINTVec<int8_t, 3>;
+                                break;
+                            case 4:
+                                codec.decodeSINT = decodeSINT_SINTVec<int8_t, 4>;
+                                break;
+                            default:
+                                flags.valid = false;
+                                return;
                             }
                             if (flags.isNormalized) {
                                 switch (sampleCount) {
-                                case 1: codec.decodeFLOAT = decodeFLOAT_SINTVec<int8_t, 1>; break;
-                                case 2: codec.decodeFLOAT = decodeFLOAT_SINTVec<int8_t, 2>; break;
-                                case 3: codec.decodeFLOAT = decodeFLOAT_SINTVec<int8_t, 3>; break;
-                                case 4: codec.decodeFLOAT = decodeFLOAT_SINTVec<int8_t, 4>; break;
-                                default: break;
+                                case 1:
+                                    codec.decodeFLOAT = decodeFLOAT_SINTVec<int8_t, 1>;
+                                    break;
+                                case 2:
+                                    codec.decodeFLOAT = decodeFLOAT_SINTVec<int8_t, 2>;
+                                    break;
+                                case 3:
+                                    codec.decodeFLOAT = decodeFLOAT_SINTVec<int8_t, 3>;
+                                    break;
+                                case 4:
+                                    codec.decodeFLOAT = decodeFLOAT_SINTVec<int8_t, 4>;
+                                    break;
+                                default:
+                                    break;
                                 }
                             }
                             break;
                         case 2:
                             // 16-bit signed integer
                             switch (sampleCount) {
-                            case 1: codec.decodeSINT = decodeSINT_SINTVec<int16_t, 1>; break;
-                            case 2: codec.decodeSINT = decodeSINT_SINTVec<int16_t, 2>; break;
-                            case 3: codec.decodeSINT = decodeSINT_SINTVec<int16_t, 3>; break;
-                            case 4: codec.decodeSINT = decodeSINT_SINTVec<int16_t, 4>; break;
-                            default: flags.valid = false; return;
+                            case 1:
+                                codec.decodeSINT = decodeSINT_SINTVec<int16_t, 1>;
+                                break;
+                            case 2:
+                                codec.decodeSINT = decodeSINT_SINTVec<int16_t, 2>;
+                                break;
+                            case 3:
+                                codec.decodeSINT = decodeSINT_SINTVec<int16_t, 3>;
+                                break;
+                            case 4:
+                                codec.decodeSINT = decodeSINT_SINTVec<int16_t, 4>;
+                                break;
+                            default:
+                                flags.valid = false;
+                                return;
                             }
                             if (flags.isNormalized) {
                                 switch (sampleCount) {
-                                case 1: codec.decodeFLOAT = decodeFLOAT_SINTVec<int16_t, 1>; break;
-                                case 2: codec.decodeFLOAT = decodeFLOAT_SINTVec<int16_t, 2>; break;
-                                case 3: codec.decodeFLOAT = decodeFLOAT_SINTVec<int16_t, 3>; break;
-                                case 4: codec.decodeFLOAT = decodeFLOAT_SINTVec<int16_t, 4>; break;
-                                default: break;
+                                case 1:
+                                    codec.decodeFLOAT = decodeFLOAT_SINTVec<int16_t, 1>;
+                                    break;
+                                case 2:
+                                    codec.decodeFLOAT = decodeFLOAT_SINTVec<int16_t, 2>;
+                                    break;
+                                case 3:
+                                    codec.decodeFLOAT = decodeFLOAT_SINTVec<int16_t, 3>;
+                                    break;
+                                case 4:
+                                    codec.decodeFLOAT = decodeFLOAT_SINTVec<int16_t, 4>;
+                                    break;
+                                default:
+                                    break;
                                 }
                             }
                             break;
                         case 4:
                             // 32-bit signed integer
                             switch (sampleCount) {
-                            case 1: codec.decodeSINT = decodeSINT_SINTVec<int32_t, 1>; break;
-                            case 2: codec.decodeSINT = decodeSINT_SINTVec<int32_t, 2>; break;
-                            case 3: codec.decodeSINT = decodeSINT_SINTVec<int32_t, 3>; break;
-                            case 4: codec.decodeSINT = decodeSINT_SINTVec<int32_t, 4>; break;
-                            default: flags.valid = false; return;
+                            case 1:
+                                codec.decodeSINT = decodeSINT_SINTVec<int32_t, 1>;
+                                break;
+                            case 2:
+                                codec.decodeSINT = decodeSINT_SINTVec<int32_t, 2>;
+                                break;
+                            case 3:
+                                codec.decodeSINT = decodeSINT_SINTVec<int32_t, 3>;
+                                break;
+                            case 4:
+                                codec.decodeSINT = decodeSINT_SINTVec<int32_t, 4>;
+                                break;
+                            default:
+                                flags.valid = false;
+                                return;
                             }
                             if (flags.isNormalized) {
                                 switch (sampleCount) {
-                                case 1: codec.decodeFLOAT = decodeFLOAT_SINTVec<int32_t, 1>; break;
-                                case 2: codec.decodeFLOAT = decodeFLOAT_SINTVec<int32_t, 2>; break;
-                                case 3: codec.decodeFLOAT = decodeFLOAT_SINTVec<int32_t, 3>; break;
-                                case 4: codec.decodeFLOAT = decodeFLOAT_SINTVec<int32_t, 4>; break;
-                                default: break;
+                                case 1:
+                                    codec.decodeFLOAT = decodeFLOAT_SINTVec<int32_t, 1>;
+                                    break;
+                                case 2:
+                                    codec.decodeFLOAT = decodeFLOAT_SINTVec<int32_t, 2>;
+                                    break;
+                                case 3:
+                                    codec.decodeFLOAT = decodeFLOAT_SINTVec<int32_t, 3>;
+                                    break;
+                                case 4:
+                                    codec.decodeFLOAT = decodeFLOAT_SINTVec<int32_t, 4>;
+                                    break;
+                                default:
+                                    break;
                                 }
                             }
                             break;
@@ -342,57 +450,114 @@ public:
                         case 1:
                             // 8-bit unsigned integer
                             switch (sampleCount) {
-                            case 1: codec.decodeUINT = decodeUINT_UINTVec<uint8_t, 1>; break;
-                            case 2: codec.decodeUINT = decodeUINT_UINTVec<uint8_t, 2>; break;
-                            case 3: codec.decodeUINT = decodeUINT_UINTVec<uint8_t, 3>; break;
-                            case 4: codec.decodeUINT = decodeUINT_UINTVec<uint8_t, 4>; break;
-                            default: flags.valid = false; return;
+                            case 1:
+                                codec.decodeUINT = decodeUINT_UINTVec<uint8_t, 1>;
+                                break;
+                            case 2:
+                                codec.decodeUINT = decodeUINT_UINTVec<uint8_t, 2>;
+                                break;
+                            case 3:
+                                codec.decodeUINT = decodeUINT_UINTVec<uint8_t, 3>;
+                                break;
+                            case 4:
+                                codec.decodeUINT = decodeUINT_UINTVec<uint8_t, 4>;
+                                break;
+                            default:
+                                flags.valid = false;
+                                return;
                             }
                             if (flags.isNormalized) {
                                 switch (sampleCount) {
-                                case 1: codec.decodeFLOAT = decodeFLOAT_UINTVec<uint8_t, 1>; break;
-                                case 2: codec.decodeFLOAT = decodeFLOAT_UINTVec<uint8_t, 2>; break;
-                                case 3: codec.decodeFLOAT = decodeFLOAT_UINTVec<uint8_t, 3>; break;
-                                case 4: codec.decodeFLOAT = decodeFLOAT_UINTVec<uint8_t, 4>; break;
-                                default: break;
+                                case 1:
+                                    codec.decodeFLOAT = decodeFLOAT_UINTVec<uint8_t, 1>;
+                                    break;
+                                case 2:
+                                    codec.decodeFLOAT = decodeFLOAT_UINTVec<uint8_t, 2>;
+                                    break;
+                                case 3:
+                                    codec.decodeFLOAT = decodeFLOAT_UINTVec<uint8_t, 3>;
+                                    break;
+                                case 4:
+                                    codec.decodeFLOAT = decodeFLOAT_UINTVec<uint8_t, 4>;
+                                    break;
+                                default:
+                                    break;
                                 }
                             }
                             break;
                         case 2:
                             // 16-bit unsigned integer
                             switch (sampleCount) {
-                            case 1: codec.decodeUINT = decodeUINT_UINTVec<uint16_t, 1>; break;
-                            case 2: codec.decodeUINT = decodeUINT_UINTVec<uint16_t, 2>; break;
-                            case 3: codec.decodeUINT = decodeUINT_UINTVec<uint16_t, 3>; break;
-                            case 4: codec.decodeUINT = decodeUINT_UINTVec<uint16_t, 4>; break;
-                            default: flags.valid = false; return;
+                            case 1:
+                                codec.decodeUINT = decodeUINT_UINTVec<uint16_t, 1>;
+                                break;
+                            case 2:
+                                codec.decodeUINT = decodeUINT_UINTVec<uint16_t, 2>;
+                                break;
+                            case 3:
+                                codec.decodeUINT = decodeUINT_UINTVec<uint16_t, 3>;
+                                break;
+                            case 4:
+                                codec.decodeUINT = decodeUINT_UINTVec<uint16_t, 4>;
+                                break;
+                            default:
+                                flags.valid = false;
+                                return;
                             }
                             if (flags.isNormalized) {
                                 switch (sampleCount) {
-                                case 1: codec.decodeFLOAT = decodeFLOAT_UINTVec<uint16_t, 1>; break;
-                                case 2: codec.decodeFLOAT = decodeFLOAT_UINTVec<uint16_t, 2>; break;
-                                case 3: codec.decodeFLOAT = decodeFLOAT_UINTVec<uint16_t, 3>; break;
-                                case 4: codec.decodeFLOAT = decodeFLOAT_UINTVec<uint16_t, 4>; break;
-                                default: break;
+                                case 1:
+                                    codec.decodeFLOAT = decodeFLOAT_UINTVec<uint16_t, 1>;
+                                    break;
+                                case 2:
+                                    codec.decodeFLOAT = decodeFLOAT_UINTVec<uint16_t, 2>;
+                                    break;
+                                case 3:
+                                    codec.decodeFLOAT = decodeFLOAT_UINTVec<uint16_t, 3>;
+                                    break;
+                                case 4:
+                                    codec.decodeFLOAT = decodeFLOAT_UINTVec<uint16_t, 4>;
+                                    break;
+                                default:
+                                    break;
                                 }
                             }
                             break;
                         case 4:
                             // 32-bit unsigned integer
                             switch (sampleCount) {
-                            case 1: codec.decodeUINT = decodeUINT_UINTVec<uint32_t, 1>; break;
-                            case 2: codec.decodeUINT = decodeUINT_UINTVec<uint32_t, 2>; break;
-                            case 3: codec.decodeUINT = decodeUINT_UINTVec<uint32_t, 3>; break;
-                            case 4: codec.decodeUINT = decodeUINT_UINTVec<uint32_t, 4>; break;
-                            default: flags.valid = false; return;
+                            case 1:
+                                codec.decodeUINT = decodeUINT_UINTVec<uint32_t, 1>;
+                                break;
+                            case 2:
+                                codec.decodeUINT = decodeUINT_UINTVec<uint32_t, 2>;
+                                break;
+                            case 3:
+                                codec.decodeUINT = decodeUINT_UINTVec<uint32_t, 3>;
+                                break;
+                            case 4:
+                                codec.decodeUINT = decodeUINT_UINTVec<uint32_t, 4>;
+                                break;
+                            default:
+                                flags.valid = false;
+                                return;
                             }
                             if (flags.isNormalized) {
                                 switch (sampleCount) {
-                                case 1: codec.decodeFLOAT = decodeFLOAT_UINTVec<uint32_t, 1>; break;
-                                case 2: codec.decodeFLOAT = decodeFLOAT_UINTVec<uint32_t, 2>; break;
-                                case 3: codec.decodeFLOAT = decodeFLOAT_UINTVec<uint32_t, 3>; break;
-                                case 4: codec.decodeFLOAT = decodeFLOAT_UINTVec<uint32_t, 4>; break;
-                                default: break;
+                                case 1:
+                                    codec.decodeFLOAT = decodeFLOAT_UINTVec<uint32_t, 1>;
+                                    break;
+                                case 2:
+                                    codec.decodeFLOAT = decodeFLOAT_UINTVec<uint32_t, 2>;
+                                    break;
+                                case 3:
+                                    codec.decodeFLOAT = decodeFLOAT_UINTVec<uint32_t, 3>;
+                                    break;
+                                case 4:
+                                    codec.decodeFLOAT = decodeFLOAT_UINTVec<uint32_t, 4>;
+                                    break;
+                                default:
+                                    break;
                                 }
                             }
                             break;
@@ -407,17 +572,28 @@ public:
             }
             break;
 
-        case KHR_DF_MODEL_BC1A: [[fallthrough]];
-        case KHR_DF_MODEL_BC2: [[fallthrough]];
-        case KHR_DF_MODEL_BC3: [[fallthrough]];
-        case KHR_DF_MODEL_BC4: [[fallthrough]];
-        case KHR_DF_MODEL_BC5: [[fallthrough]];
-        case KHR_DF_MODEL_BC6H: [[fallthrough]];
-        case KHR_DF_MODEL_BC7: [[fallthrough]];
-        case KHR_DF_MODEL_ETC1: [[fallthrough]];
-        case KHR_DF_MODEL_ETC2: [[fallthrough]];
-        case KHR_DF_MODEL_ASTC: [[fallthrough]];
-        case KHR_DF_MODEL_PVRTC: [[fallthrough]];
+        case KHR_DF_MODEL_BC1A:
+            [[fallthrough]];
+        case KHR_DF_MODEL_BC2:
+            [[fallthrough]];
+        case KHR_DF_MODEL_BC3:
+            [[fallthrough]];
+        case KHR_DF_MODEL_BC4:
+            [[fallthrough]];
+        case KHR_DF_MODEL_BC5:
+            [[fallthrough]];
+        case KHR_DF_MODEL_BC6H:
+            [[fallthrough]];
+        case KHR_DF_MODEL_BC7:
+            [[fallthrough]];
+        case KHR_DF_MODEL_ETC1:
+            [[fallthrough]];
+        case KHR_DF_MODEL_ETC2:
+            [[fallthrough]];
+        case KHR_DF_MODEL_ASTC:
+            [[fallthrough]];
+        case KHR_DF_MODEL_PVRTC:
+            [[fallthrough]];
         case KHR_DF_MODEL_PVRTC2:
             // These color models are handled is raw compressed blocks
             flags.isBlockCompressed = true;
@@ -471,12 +647,14 @@ public:
         return (pixelSize + texelBlockDimensions - glm::uvec4(1, 1, 1, 1)) / texelBlockDimensions;
     }
 
-    uint32_t getPackedElement(const void* ptr, uint32_t index) const { return codec.getPackedElement(this, ptr, index); }
+    uint32_t getPackedElement(const void* ptr, uint32_t index) const {
+        return codec.getPackedElement(this, ptr, index);
+    }
     glm::uvec4 decodeUINT(const void* ptr) const { return codec.decodeUINT(this, ptr); }
     glm::ivec4 decodeSINT(const void* ptr) const { return codec.decodeSINT(this, ptr); }
     glm::vec4 decodeFLOAT(const void* ptr) const { return codec.decodeFLOAT(this, ptr); }
 
-private:
+  private:
     struct {
         uint32_t valid : 1;
         uint32_t isBlockCompressed : 1;
@@ -507,15 +685,15 @@ private:
 
     struct {
         GetPackedElement getPackedElement = nullptr;
-        DecodeUINT  decodeUINT = nullptr;
-        DecodeSINT  decodeSINT = nullptr;
+        DecodeUINT decodeUINT = nullptr;
+        DecodeSINT decodeSINT = nullptr;
         DecodeFLOAT decodeFLOAT = nullptr;
     } codec = {};
 
     template <typename TYPE>
     static uint32_t getPackedElement(const ImageCodec* codec, const void* ptr, uint32_t index) {
         static_assert(std::is_unsigned_v<TYPE>);
-        (void)codec; // silences unused parameter warnings in release builds
+        (void)codec;  // silences unused parameter warnings in release builds
         assert(sizeof(TYPE) == codec->getPackedElementByteSize());
         auto data = reinterpret_cast<const TYPE*>(ptr);
         return data[index];
@@ -530,10 +708,10 @@ private:
         auto data = reinterpret_cast<const uint32_t*>(ptr);
         auto value = glm::unpackF2x11_1x10(data[0]);
         // Need to handle NaN and infinity as special cases, because GLM "swallows" them
-        const uint32_t exponentShifts[] = { 6, 11 + 6, 22 + 5 };
+        const uint32_t exponentShifts[] = {6, 11 + 6, 22 + 5};
         const uint32_t exponentMask = 0x1F;
-        const uint32_t mantissaShifts[] = { 0, 11, 22 };
-        const uint32_t mantissaMasks[] = { 0x3F, 0x3F, 0x1F };
+        const uint32_t mantissaShifts[] = {0, 11, 22};
+        const uint32_t mantissaMasks[] = {0x3F, 0x3F, 0x1F};
         for (uint32_t channel = 0; channel < 3; ++channel) {
             const uint32_t exponent = (data[0] >> exponentShifts[channel]) & exponentMask;
             const uint32_t mantissa = (data[0] >> mantissaShifts[channel]) & mantissaMasks[channel];
@@ -555,7 +733,8 @@ private:
 
     static glm::vec4 decodeFLOAT_D16_S8(const ImageCodec*, const void* ptr) {
         auto data = reinterpret_cast<const uint16_t*>(ptr);
-        return glm::vec4(imageio::convertUNORMToFloat(data[0], 16), static_cast<float>(data[1] & 0xFF), 0.f, 1.f);
+        return glm::vec4(imageio::convertUNORMToFloat(data[0], 16),
+                         static_cast<float>(data[1] & 0xFF), 0.f, 1.f);
     }
 
     static glm::uvec4 decodeUINT_D24(const ImageCodec*, const void* ptr) {
@@ -575,7 +754,8 @@ private:
 
     static glm::vec4 decodeFLOAT_D24_S8(const ImageCodec*, const void* ptr) {
         auto data = reinterpret_cast<const uint32_t*>(ptr);
-        return glm::vec4(imageio::convertUNORMToFloat(data[0] >> 8, 24), static_cast<float>(data[0] & 0xFF), 0.f, 1.f);
+        return glm::vec4(imageio::convertUNORMToFloat(data[0] >> 8, 24),
+                         static_cast<float>(data[0] & 0xFF), 0.f, 1.f);
     }
 
     static glm::vec4 decodeFLOAT_D32_S8(const ImageCodec*, const void* ptr) {
@@ -589,8 +769,7 @@ private:
         static_assert((COMPONENTS > 0) && (COMPONENTS <= 4));
         auto data = reinterpret_cast<const float*>(ptr);
         glm::vec4 result(0.f, 0.f, 0.f, 1.f);
-        for (int i = 0; i < COMPONENTS; ++i)
-            result[i] = data[i];
+        for (int i = 0; i < COMPONENTS; ++i) result[i] = data[i];
         return result;
     }
 
@@ -599,8 +778,7 @@ private:
         static_assert((COMPONENTS > 0) && (COMPONENTS <= 4));
         auto data = reinterpret_cast<const uint16_t*>(ptr);
         glm::vec4 result(0.f, 0.f, 0.f, 1.f);
-        for (int i = 0; i < COMPONENTS; ++i)
-            result[i] = imageio::half_to_float(data[i]);
+        for (int i = 0; i < COMPONENTS; ++i) result[i] = imageio::half_to_float(data[i]);
         return result;
     }
 
@@ -609,8 +787,7 @@ private:
         static_assert((COMPONENTS > 0) && (COMPONENTS <= 4));
         auto data = reinterpret_cast<const int16_t*>(ptr);
         glm::vec4 result(0.f, 0.f, 0.f, 1.f);
-        for (int i = 0; i < COMPONENTS; ++i)
-            result[i] = data[i] / 32.f;
+        for (int i = 0; i < COMPONENTS; ++i) result[i] = data[i] / 32.f;
         return result;
     }
 
@@ -620,8 +797,7 @@ private:
         static_assert((COMPONENTS > 0) && (COMPONENTS <= 4));
         auto data = reinterpret_cast<const TYPE*>(ptr);
         glm::uvec4 result(0, 0, 0, 0);
-        for (int i = 0; i < COMPONENTS; ++i)
-            result[i] = data[i];
+        for (int i = 0; i < COMPONENTS; ++i) result[i] = data[i];
         return result;
     }
 
@@ -632,8 +808,7 @@ private:
         auto data = reinterpret_cast<const TYPE*>(ptr);
         const auto upper = static_cast<float>((256u << sizeof(TYPE)) - 1u);
         glm::vec4 result(0.f, 0.f, 0.f, 1.f);
-        for (int i = 0; i < COMPONENTS; ++i)
-            result[i] = static_cast<float>(data[i]) / upper;
+        for (int i = 0; i < COMPONENTS; ++i) result[i] = static_cast<float>(data[i]) / upper;
         return result;
     }
 
@@ -643,8 +818,7 @@ private:
         static_assert((COMPONENTS > 0) && (COMPONENTS <= 4));
         auto data = reinterpret_cast<const TYPE*>(ptr);
         glm::ivec4 result(0, 0, 0, 0);
-        for (int i = 0; i < COMPONENTS; ++i)
-            result[i] = data[i];
+        for (int i = 0; i < COMPONENTS; ++i) result[i] = data[i];
         return result;
     }
 
@@ -667,7 +841,8 @@ private:
         glm::uvec4 result(0, 0, 0, 0);
         for (std::size_t i = 0; i < codec->packedSampleInfo.size(); ++i) {
             const auto& info = codec->packedSampleInfo[i];
-            result[static_cast<glm::length_t>(i)] = (data[info.elementIndex] >> info.bitOffset) & ((1u << info.bitLength) - 1u);
+            result[static_cast<glm::length_t>(i)] =
+                (data[info.elementIndex] >> info.bitOffset) & ((1u << info.bitLength) - 1u);
         }
         return result;
     }
@@ -680,7 +855,8 @@ private:
         for (std::size_t i = 0; i < codec->packedSampleInfo.size(); ++i) {
             const auto& info = codec->packedSampleInfo[i];
             const auto upper = static_cast<float>((1u << info.bitLength) - 1u);
-            uint32_t rawValue = (data[info.elementIndex] >> info.bitOffset) & ((1u << info.bitLength) - 1u);
+            uint32_t rawValue =
+                (data[info.elementIndex] >> info.bitOffset) & ((1u << info.bitLength) - 1u);
             result[static_cast<glm::length_t>(i)] = static_cast<float>(rawValue) / upper;
         }
         return result;
@@ -693,7 +869,8 @@ private:
         glm::ivec4 result(0, 0, 0, 0);
         for (std::size_t i = 0; i < codec->packedSampleInfo.size(); ++i) {
             const auto& info = codec->packedSampleInfo[i];
-            uint32_t rawValue = (data[info.elementIndex] >> info.bitOffset) & ((1u << info.bitLength) - 1u);
+            uint32_t rawValue =
+                (data[info.elementIndex] >> info.bitOffset) & ((1u << info.bitLength) - 1u);
             result[static_cast<glm::length_t>(i)] = imageio::sign_extend(rawValue, info.bitLength);
         }
         return result;
@@ -707,8 +884,10 @@ private:
         for (std::size_t i = 0; i < codec->packedSampleInfo.size(); ++i) {
             const auto& info = codec->packedSampleInfo[i];
             const auto upper = static_cast<float>((1u << (info.bitLength - 1)) - 1u);
-            uint32_t rawValue = (data[info.elementIndex] >> info.bitOffset) & ((1u << info.bitLength) - 1u);
-            result[static_cast<glm::length_t>(i)] = static_cast<float>(imageio::sign_extend(rawValue, info.bitLength)) / upper;
+            uint32_t rawValue =
+                (data[info.elementIndex] >> info.bitOffset) & ((1u << info.bitLength) - 1u);
+            result[static_cast<glm::length_t>(i)] =
+                static_cast<float>(imageio::sign_extend(rawValue, info.bitLength)) / upper;
         }
         return result;
     }

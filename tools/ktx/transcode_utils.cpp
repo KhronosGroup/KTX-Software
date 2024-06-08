@@ -12,8 +12,7 @@ namespace ktx {
 std::optional<khr_df_model_channels_e> getChannelType(const KTXTexture2& texture, uint32_t index) {
     const auto* bdfd = (texture->pDfd + 1);
 
-    if (KHR_DFDSAMPLECOUNT(bdfd) <= index)
-        return std::nullopt;
+    if (KHR_DFDSAMPLECOUNT(bdfd) <= index) return std::nullopt;
 
     return khr_df_model_channels_e(KHR_DFDSVAL(bdfd, index, CHANNELID));
 }
@@ -40,9 +39,10 @@ TranscodeSwizzleInfo determineTranscodeSwizzle(const KTXTexture2& texture, Repor
             result.defaultNumComponents = 1;
             result.swizzle = "r001";
         } else {
-            report.fatal(rc::INVALID_FILE, "Unsupported channel types for Basis-LZ transcoding: {}, {}",
-                    sample0 ? toString(KHR_DF_MODEL_ETC1S, *sample0) : "-",
-                    sample1 ? toString(KHR_DF_MODEL_ETC1S, *sample1) : "-");
+            report.fatal(rc::INVALID_FILE,
+                         "Unsupported channel types for Basis-LZ transcoding: {}, {}",
+                         sample0 ? toString(KHR_DF_MODEL_ETC1S, *sample0) : "-",
+                         sample1 ? toString(KHR_DF_MODEL_ETC1S, *sample1) : "-");
         }
     } else if (khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_UASTC) {
         result.defaultNumComponents = 0;
@@ -63,13 +63,14 @@ TranscodeSwizzleInfo determineTranscodeSwizzle(const KTXTexture2& texture, Repor
             result.swizzle = "r001";
         } else {
             report.fatal(rc::INVALID_FILE, "Unsupported channel type for UASTC transcoding: {}",
-                    sample0 ? toString(KHR_DF_MODEL_UASTC, *sample0) : "-");
+                         sample0 ? toString(KHR_DF_MODEL_UASTC, *sample0) : "-");
         }
     } else {
-        report.fatal(rc::INVALID_FILE, "Requested transcoding but input file is neither BasisLZ, nor UASTC");
+        report.fatal(rc::INVALID_FILE,
+                     "Requested transcoding but input file is neither BasisLZ, nor UASTC");
     }
 
     return result;
 }
 
-} // namespace ktx
+}  // namespace ktx

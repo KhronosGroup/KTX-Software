@@ -8,11 +8,11 @@
 
 #if !defined REENABLE_WARNINGS_H
 
-// Reenable warnings disabled by, e.g. disable_glm_warnings.h.
-#if defined(_MSC_VER)
-  #pragma warning(pop)
-#elif defined(__clang__)
-  #pragma clang diagnostic pop
-#endif
+    // Reenable warnings disabled by, e.g. disable_glm_warnings.h.
+    #if defined(_MSC_VER)
+        #pragma warning(pop)
+    #elif defined(__clang__)
+        #pragma clang diagnostic pop
+    #endif
 
 #endif /* REENABLE_WARNINGS_H */

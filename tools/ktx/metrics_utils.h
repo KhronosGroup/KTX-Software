@@ -42,9 +42,12 @@ struct OptionsMetrics {
     bool compare_psnr;
 
     void init(cxxopts::Options& opts) {
-        opts.add_options()
-            ("compare-ssim", "Calculate encoding structural similarity index measure (SSIM) and print it to stdout. Requires Basis-LZ or UASTC encoding.")
-            ("compare-psnr", "Calculate encoding peak signal-to-noise ratio (PSNR) and print it to stdout. Requires Basis-LZ or UASTC encoding.");
+        opts.add_options()("compare-ssim",
+                           "Calculate encoding structural similarity index measure (SSIM) and "
+                           "print it to stdout. Requires Basis-LZ or UASTC encoding.")(
+            "compare-psnr",
+            "Calculate encoding peak signal-to-noise ratio (PSNR) and print it to stdout. Requires "
+            "Basis-LZ or UASTC encoding.");
     }
 
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter&) {
@@ -57,10 +60,9 @@ class MetricsCalculator {
     uint32_t referenceNumChannels = 0;
     std::vector<basisu::image> referenceImages;
 
-public:
+  public:
     void saveReferenceImages(KTXTexture2& texture, const OptionsMetrics& opts, Reporter&) {
-        if (!opts.compare_ssim && !opts.compare_psnr)
-            return;
+        if (!opts.compare_ssim && !opts.compare_psnr) return;
 
         const auto numChannels = ktxTexture2_GetNumComponents(texture);
         referenceNumChannels = numChannels;
@@ -73,10 +75,11 @@ public:
 
             for (uint32_t layerIndex = 0; layerIndex < texture->numLayers; ++layerIndex) {
                 for (uint32_t faceIndex = 0; faceIndex < texture->numFaces; ++faceIndex) {
-                    for (uint32_t depthSliceIndex = 0; depthSliceIndex < imageDepths; ++depthSliceIndex) {
-
+                    for (uint32_t depthSliceIndex = 0; depthSliceIndex < imageDepths;
+                         ++depthSliceIndex) {
                         ktx_size_t imageOffset;
-                        ktxTexture_GetImageOffset(texture, levelIndex, layerIndex, faceIndex + depthSliceIndex, &imageOffset);
+                        ktxTexture_GetImageOffset(texture, levelIndex, layerIndex,
+                                                  faceIndex + depthSliceIndex, &imageOffset);
                         const auto* imageData = texture->pData + imageOffset;
 
                         auto& ref = referenceImages.emplace_back(imageWidth, imageHeight);
@@ -85,7 +88,8 @@ public:
                             for (uint32_t x = 0; x < imageWidth; ++x) {
                                 ref(x, y) = basisu::color_rgba(0, 0, 0, 255);
                                 for (uint32_t c = 0; c < numChannels; ++c)
-                                    ref(x, y)[c] = *(imageData + y * imageWidth * numChannels + x * numChannels + c);
+                                    ref(x, y)[c] = *(imageData + y * imageWidth * numChannels +
+                                                     x * numChannels + c);
                             }
                         }
                     }
@@ -94,9 +98,9 @@ public:
         }
     }
 
-    void decodeAndCalculateMetrics(KTXTexture2& encodedTexture, const OptionsMetrics& opts, Reporter& report) {
-        if (!opts.compare_ssim && !opts.compare_psnr)
-            return;
+    void decodeAndCalculateMetrics(KTXTexture2& encodedTexture, const OptionsMetrics& opts,
+                                   Reporter& report) {
+        if (!opts.compare_ssim && !opts.compare_psnr) return;
 
         KTXTexture2 texture{static_cast<ktxTexture2*>(malloc(sizeof(ktxTexture2)))};
         ktxTexture2_constructCopy(texture, encodedTexture);
@@ -107,7 +111,9 @@ public:
         // Decode the encoded texture to observe the compression losses
         ec = ktxTexture2_TranscodeBasis(texture, KTX_TTF_RGBA32, 0);
         if (ec != KTX_SUCCESS)
-            report.fatal(rc::KTX_FAILURE, "Failed to transcode KTX2 texture to calculate error metrics: {}", ktxErrorString(ec));
+            report.fatal(rc::KTX_FAILURE,
+                         "Failed to transcode KTX2 texture to calculate error metrics: {}",
+                         ktxErrorString(ec));
 
         float overallSSIM[4] = {};
         float overallPSNR = 0;
@@ -120,14 +126,17 @@ public:
 
             for (uint32_t layerIndex = 0; layerIndex < texture->numLayers; ++layerIndex) {
                 for (uint32_t faceIndex = 0; faceIndex < texture->numFaces; ++faceIndex) {
-                    for (uint32_t depthSliceIndex = 0; depthSliceIndex < imageDepth; ++depthSliceIndex) {
+                    for (uint32_t depthSliceIndex = 0; depthSliceIndex < imageDepth;
+                         ++depthSliceIndex) {
                         assert(refIt != referenceImages.end() && "Internal error");
 
                         ktx_size_t imageOffset;
-                        ktxTexture_GetImageOffset(texture, levelIndex, layerIndex, faceIndex + depthSliceIndex, &imageOffset);
+                        ktxTexture_GetImageOffset(texture, levelIndex, layerIndex,
+                                                  faceIndex + depthSliceIndex, &imageOffset);
                         auto* imageData = texture->pData + imageOffset;
 
-                        rgba8image imageView(imageWidth, imageHeight, reinterpret_cast<rgba8color*>(imageData));
+                        rgba8image imageView(imageWidth, imageHeight,
+                                             reinterpret_cast<rgba8color*>(imageData));
                         imageView.swizzle(tSwizzleInfo.swizzle);
 
                         auto& ref = *refIt++;
@@ -144,26 +153,31 @@ public:
                         }
 
                         if (referenceImages.size() != 1)
-                            fmt::print("Level {}{}{}{}:\n",
-                                    levelIndex,
-                                    texture->isArray ? fmt::format(" Layer {}", layerIndex) : "",
-                                    texture->isCubemap ? fmt::format(" Face {}", faceIndex) : "",
-                                    texture->numDimensions == 3 ? fmt::format(" Depth {}", depthSliceIndex) : "");
+                            fmt::print("Level {}{}{}{}:\n", levelIndex,
+                                       texture->isArray ? fmt::format(" Layer {}", layerIndex) : "",
+                                       texture->isCubemap ? fmt::format(" Face {}", faceIndex) : "",
+                                       texture->numDimensions == 3
+                                           ? fmt::format(" Depth {}", depthSliceIndex)
+                                           : "");
 
                         if (opts.compare_ssim) {
                             const auto ssim = basisu::compute_ssim(ref, basisuImage, false, false);
                             if (referenceImages.size() != 1) {
                                 if (referenceNumChannels > 3)
-                                    fmt::print("    SSIM R: {:+7.6f}, G: {:+7.6f}, B: {:+7.6f}, A: {:+7.6f}\n", ssim[0], ssim[1], ssim[2], ssim[3]);
+                                    fmt::print(
+                                        "    SSIM R: {:+7.6f}, G: {:+7.6f}, B: {:+7.6f}, A: "
+                                        "{:+7.6f}\n",
+                                        ssim[0], ssim[1], ssim[2], ssim[3]);
                                 else if (referenceNumChannels > 2)
-                                    fmt::print("    SSIM R: {:+7.6f}, G: {:+7.6f}, B: {:+7.6f}\n", ssim[0], ssim[1], ssim[2]);
+                                    fmt::print("    SSIM R: {:+7.6f}, G: {:+7.6f}, B: {:+7.6f}\n",
+                                               ssim[0], ssim[1], ssim[2]);
                                 else if (referenceNumChannels > 1)
-                                    fmt::print("    SSIM R: {:+7.6f}, G: {:+7.6f}\n", ssim[0], ssim[1]);
+                                    fmt::print("    SSIM R: {:+7.6f}, G: {:+7.6f}\n", ssim[0],
+                                               ssim[1]);
                                 else if (referenceNumChannels > 0)
                                     fmt::print("    SSIM R: {:+7.6f}\n", ssim[0]);
                             }
-                            for (int i = 0; i < 4; ++i)
-                                overallSSIM[i] += ssim[i];
+                            for (int i = 0; i < 4; ++i) overallSSIM[i] += ssim[i];
                         }
 
                         if (opts.compare_psnr) {
@@ -184,11 +198,15 @@ public:
         if (opts.compare_ssim) {
             const auto numIf = static_cast<float>(referenceImages.size());
             if (referenceNumChannels > 3)
-                fmt::print("    SSIM Avg R: {:+7.6f}, G: {:+7.6f}, B: {:+7.6f}, A: {:+7.6f}\n", overallSSIM[0] / numIf, overallSSIM[1] / numIf, overallSSIM[2] / numIf, overallSSIM[3] / numIf);
+                fmt::print("    SSIM Avg R: {:+7.6f}, G: {:+7.6f}, B: {:+7.6f}, A: {:+7.6f}\n",
+                           overallSSIM[0] / numIf, overallSSIM[1] / numIf, overallSSIM[2] / numIf,
+                           overallSSIM[3] / numIf);
             else if (referenceNumChannels > 2)
-                fmt::print("    SSIM Avg R: {:+7.6f}, G: {:+7.6f}, B: {:+7.6f}\n", overallSSIM[0] / numIf, overallSSIM[1] / numIf, overallSSIM[2] / numIf);
+                fmt::print("    SSIM Avg R: {:+7.6f}, G: {:+7.6f}, B: {:+7.6f}\n",
+                           overallSSIM[0] / numIf, overallSSIM[1] / numIf, overallSSIM[2] / numIf);
             else if (referenceNumChannels > 1)
-                fmt::print("    SSIM Avg R: {:+7.6f}, G: {:+7.6f}\n", overallSSIM[0] / numIf, overallSSIM[1] / numIf);
+                fmt::print("    SSIM Avg R: {:+7.6f}, G: {:+7.6f}\n", overallSSIM[0] / numIf,
+                           overallSSIM[1] / numIf);
             else
                 fmt::print("    SSIM Avg R: {:+7.6f}\n", overallSSIM[0] / numIf);
         }
@@ -199,4 +217,4 @@ public:
     }
 };
 
-} // namespace ktx
+}  // namespace ktx

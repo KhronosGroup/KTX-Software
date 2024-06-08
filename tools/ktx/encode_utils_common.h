@@ -71,29 +71,34 @@ struct OptionsEncodeCommon {
     }
 
     void init(cxxopts::Options& opts) {
-        opts.add_options("Encode common")
-            (kNormalMode, "Optimizes for encoding textures with normal data. If the input texture has "
-                "three or four linear components it is assumed to be a three component linear normal "
-                "map storing unit length normals as (R=X, G=Y, B=Z). A fourth component will be ignored. "
-                "The map will be converted to a two component X+Y normal map stored as (RGB=X, A=Y) "
-                "prior to encoding. If unsure that your normals are unit length, use --normalize. "
-                "If the input has 2 linear components it is assumed to be an X+Y map of unit normals.\n"
-                "The Z component can be recovered programmatically in shader code by using the equations:\n"
-                "    nml.xy = texture(...).ga;              // Load in [0,1]\n"
-                "    nml.xy = nml.xy * 2.0 - 1.0;           // Unpack to [-1,1]\n"
-                "    nml.z = sqrt(1 - dot(nml.xy, nml.xy)); // Compute Z\n"
-                "ETC1S / BasisLZ encoding, RDO is disabled (no selector RDO, no endpoint RDO) to provide better quality.")
-            (kThreads, "Sets the number of threads to use during encoding. By default, encoding "
-                "will use the number of threads reported by thread::hardware_concurrency or 1 if "
-                "value returned is 0.", cxxopts::value<uint32_t>(), "<count>")
-            (kNoSse, "Forbid use of the SSE instruction set. Ignored if CPU does "
-               "not support SSE. SSE can only be disabled on the basis-lz and "
-               "uastc compressors.");
+        opts.add_options("Encode common")(
+            kNormalMode,
+            "Optimizes for encoding textures with normal data. If the input texture has "
+            "three or four linear components it is assumed to be a three component linear normal "
+            "map storing unit length normals as (R=X, G=Y, B=Z). A fourth component will be "
+            "ignored. "
+            "The map will be converted to a two component X+Y normal map stored as (RGB=X, A=Y) "
+            "prior to encoding. If unsure that your normals are unit length, use --normalize. "
+            "If the input has 2 linear components it is assumed to be an X+Y map of unit normals.\n"
+            "The Z component can be recovered programmatically in shader code by using the "
+            "equations:\n"
+            "    nml.xy = texture(...).ga;              // Load in [0,1]\n"
+            "    nml.xy = nml.xy * 2.0 - 1.0;           // Unpack to [-1,1]\n"
+            "    nml.z = sqrt(1 - dot(nml.xy, nml.xy)); // Compute Z\n"
+            "ETC1S / BasisLZ encoding, RDO is disabled (no selector RDO, no endpoint RDO) to "
+            "provide better quality.")(
+            kThreads,
+            "Sets the number of threads to use during encoding. By default, encoding "
+            "will use the number of threads reported by thread::hardware_concurrency or 1 if "
+            "value returned is 0.",
+            cxxopts::value<uint32_t>(),
+            "<count>")(kNoSse,
+                       "Forbid use of the SSE instruction set. Ignored if CPU does "
+                       "not support SSE. SSE can only be disabled on the basis-lz and "
+                       "uastc compressors.");
     }
 
-    void captureCommonOption(const char* name) {
-        commonOptions += fmt::format(" --{}", name);
-    }
+    void captureCommonOption(const char* name) { commonOptions += fmt::format(" --{}", name); }
 
     template <typename T>
     T captureCodecOption(cxxopts::ParseResult& args, const char* name) {
@@ -120,19 +125,19 @@ struct OptionsEncodeCommon {
 };
 
 template <typename Options, typename Codec>
-constexpr void fillOptionsCodec(Options &options) {
+constexpr void fillOptionsCodec(Options& options) {
     options.Codec::threadCount = options.OptionsEncodeCommon::threadCount;
     options.Codec::normalMap = options.OptionsEncodeCommon::normalMap;
 }
 
 template <typename Options>
-constexpr void fillOptionsCodecBasis(Options &options) {
+constexpr void fillOptionsCodecBasis(Options& options) {
     fillOptionsCodec<decltype(options), ktxBasisParams>(options);
     options.ktxBasisParams::noSSE = options.OptionsEncodeCommon::noSSE;
 }
 
 template <typename Options>
-constexpr void fillOptionsCodecAstc(Options &options) {
+constexpr void fillOptionsCodecAstc(Options& options) {
     fillOptionsCodec<decltype(options), ktxAstcParams>(options);
 }
-} // namespace ktx
+}  // namespace ktx

@@ -13,14 +13,15 @@
  *
  * @brief Declare pointers for OpenGL {,ES} functions.
  *
- * Dynamically retrieving pointers avoids apps or shared library builds having to link with OpenGL {,ES}
- * and avoids the need for compiling different versions of the libary for different OpenGL {,ES} versions.
+ * Dynamically retrieving pointers avoids apps or shared library builds having to link with OpenGL
+ * {,ES} and avoids the need for compiling different versions of the libary for different OpenGL
+ * {,ES} versions.
  */
 
 #ifndef _GL_FUNCS_H_
 #define _GL_FUNCS_H_
 
-#undef GL_GLEXT_PROTOTYPES // Just to be sure.
+#undef GL_GLEXT_PROTOTYPES  // Just to be sure.
 #include "GL/glcorearb.h"
 #include "ktx.h"
 
@@ -35,22 +36,21 @@ extern struct glFuncPtrs {
 #undef GL_FUNCTION
 
 #if !defined(NO_SHORTCUTS)
-// Macros to allow standard, i.e always present functions, to be called
-// by their prototype names.
-#define glBindTexture gl.glBindTexture
-#define glCompressedTexImage2D gl.glCompressedTexImage2D
-#define glCompressedTexSubImage2D gl.glCompressedTexSubImage2D
-#define glDeleteTextures gl.glDeleteTextures
-#define glGenTextures gl.glGenTextures
-#define glGetError gl.glGetError
-#define glGetIntegerv gl.glGetIntegerv
-#define glGetString(x) (const char*)gl.glGetString(x)
-#define glPixelStorei gl.glPixelStorei
-#define glTexImage2D gl.glTexImage2D
-#define glTexSubImage2D gl.glTexSubImage2D
-#define glTexParameteri gl.glTexParameteri
-#define glTexParameteriv gl.glTexParameteriv
+    // Macros to allow standard, i.e always present functions, to be called
+    // by their prototype names.
+    #define glBindTexture gl.glBindTexture
+    #define glCompressedTexImage2D gl.glCompressedTexImage2D
+    #define glCompressedTexSubImage2D gl.glCompressedTexSubImage2D
+    #define glDeleteTextures gl.glDeleteTextures
+    #define glGenTextures gl.glGenTextures
+    #define glGetError gl.glGetError
+    #define glGetIntegerv gl.glGetIntegerv
+    #define glGetString(x) (const char*)gl.glGetString(x)
+    #define glPixelStorei gl.glPixelStorei
+    #define glTexImage2D gl.glTexImage2D
+    #define glTexSubImage2D gl.glTexSubImage2D
+    #define glTexParameteri gl.glTexParameteri
+    #define glTexParameteriv gl.glTexParameteriv
 #endif
 
 #endif /* _GL_FUNCS_H_ */
-

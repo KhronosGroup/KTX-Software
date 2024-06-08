@@ -19,14 +19,16 @@
 #include "imagecodec.hpp"
 
 class ImageSpan {
-public:
+  public:
     template <typename PTR = uint8_t*>
     class TexelBlockPtr {
-    public:
+      public:
         using pointer = PTR;
         TexelBlockPtr(PTR ptr, const ImageSpan& span) noexcept : ptr(ptr), span(span) {}
 
-        uint32_t getPackedElement(uint32_t index) const { return span.imageCodec().getPackedElement(ptr, index); }
+        uint32_t getPackedElement(uint32_t index) const {
+            return span.imageCodec().getPackedElement(ptr, index);
+        }
         glm::uvec4 decodeUINT() const { return span.imageCodec().decodeUINT(ptr); }
         glm::ivec4 decodeSINT() const { return span.imageCodec().decodeSINT(ptr); }
         glm::vec4 decodeFLOAT() const { return span.imageCodec().decodeFLOAT(ptr); }
@@ -43,15 +45,21 @@ public:
         constexpr bool canDecodeSINT() const { return span.imageCodec().canDecodeSINT(); }
         constexpr bool canDecodeFLOAT() const { return span.imageCodec().canDecodeFLOAT(); }
 
-        glm::uvec4 getTexelBlockDimensions() const { return span.imageCodec().getTexelBlockDimensions(); }
-        constexpr uint32_t getPackedElementByteSize() const { return span.imageCodec().getPackedElementByteSize(); }
-        constexpr uint32_t getPackedElementCount() const { return span.imageCodec().getPackedElementCount(); }
-        constexpr uint32_t getTexelBlockByteSize() const { return span.imageCodec().getTexelBlockByteSize(); }
+        glm::uvec4 getTexelBlockDimensions() const {
+            return span.imageCodec().getTexelBlockDimensions();
+        }
+        constexpr uint32_t getPackedElementByteSize() const {
+            return span.imageCodec().getPackedElementByteSize();
+        }
+        constexpr uint32_t getPackedElementCount() const {
+            return span.imageCodec().getPackedElementCount();
+        }
+        constexpr uint32_t getTexelBlockByteSize() const {
+            return span.imageCodec().getTexelBlockByteSize();
+        }
         constexpr uint32_t getChannelCount() const { return span.imageCodec().getChannelCount(); }
 
-        std::ptrdiff_t getTexelBlockByteOffset() const {
-            return ptr - span.data();
-        }
+        std::ptrdiff_t getTexelBlockByteOffset() const { return ptr - span.data(); }
 
         glm::uvec4 getTexelBlockLocation() const {
             const std::ptrdiff_t blockPitch = span.imageCodec().getTexelBlockByteSize();
@@ -72,34 +80,54 @@ public:
             return getTexelBlockLocation() * span.imageCodec().getTexelBlockDimensions();
         }
 
-    private:
+      private:
         PTR ptr;
         const ImageSpan& span;
     };
 
     template <typename TBPTR = TexelBlockPtr<uint8_t*>, bool REVERSE = false>
     class Iterator {
-    public:
+      public:
         using iterator_category = std::random_access_iterator_tag;
         using difference_type = std::ptrdiff_t;
         using value_type = TBPTR;
         using pointer = TBPTR;
         using reference = TBPTR;
 
-        Iterator& operator+=(difference_type rhs) noexcept { ptr = advance(rhs); return *this; }
-        Iterator& operator-=(difference_type rhs) noexcept { ptr = advance(-rhs); return *this; }
+        Iterator& operator+=(difference_type rhs) noexcept {
+            ptr = advance(rhs);
+            return *this;
+        }
+        Iterator& operator-=(difference_type rhs) noexcept {
+            ptr = advance(-rhs);
+            return *this;
+        }
         reference operator*() const { return reference(ptr, span); }
         pointer operator->() const { return pointer(ptr, span); }
         reference operator[](difference_type rhs) const { return *advance(rhs); }
-        Iterator& operator++() noexcept { ptr = advance(1); return *this; }
-        Iterator& operator--() noexcept { ptr = advance(-1); return *this; }
+        Iterator& operator++() noexcept {
+            ptr = advance(1);
+            return *this;
+        }
+        Iterator& operator--() noexcept {
+            ptr = advance(-1);
+            return *this;
+        }
         Iterator operator++(int) const noexcept { return Iterator(span, advance(1), stride); }
         Iterator operator--(int) const noexcept { return Iterator(span, advance(-1), stride); }
         difference_type operator-(const Iterator& rhs) const noexcept { return diff(rhs.ptr); }
-        Iterator operator+(difference_type rhs) const noexcept { return Iterator(span, advance(rhs), stride); }
-        Iterator operator-(difference_type rhs) const noexcept { return Iterator(span, advance(-rhs), stride); }
-        friend Iterator operator+(difference_type lhs, const Iterator& rhs) { return Iterator(rhs.span, rhs.advance(lhs), rhs.stride); }
-        friend Iterator operator-(difference_type lhs, const Iterator& rhs) { return Iterator(rhs.span, rhs.advance(-lhs), rhs.stride); }
+        Iterator operator+(difference_type rhs) const noexcept {
+            return Iterator(span, advance(rhs), stride);
+        }
+        Iterator operator-(difference_type rhs) const noexcept {
+            return Iterator(span, advance(-rhs), stride);
+        }
+        friend Iterator operator+(difference_type lhs, const Iterator& rhs) {
+            return Iterator(rhs.span, rhs.advance(lhs), rhs.stride);
+        }
+        friend Iterator operator-(difference_type lhs, const Iterator& rhs) {
+            return Iterator(rhs.span, rhs.advance(-lhs), rhs.stride);
+        }
 
         bool operator==(const Iterator& rhs) const noexcept { return (ptr == rhs.ptr) != REVERSE; }
         bool operator!=(const Iterator& rhs) const noexcept { return (ptr != rhs.ptr) != REVERSE; }
@@ -108,7 +136,7 @@ public:
         bool operator>=(const Iterator& rhs) const noexcept { return (ptr >= rhs.ptr) != REVERSE; }
         bool operator<=(const Iterator& rhs) const noexcept { return (ptr <= rhs.ptr) != REVERSE; }
 
-    private:
+      private:
         const ImageSpan& span;
         typename TBPTR::pointer ptr;
         const uint32_t stride;
@@ -139,11 +167,16 @@ public:
     using reverse_iterator = Iterator<TexelBlockPtr<uint8_t*>, true>;
     using const_reverse_iterator = Iterator<TexelBlockPtr<const uint8_t*>, true>;
 
-    ImageSpan(uint32_t width, uint32_t height, uint32_t depth, void* pixels, const ImageCodec& imageCodec)
-      : texelBlockWidth((width + imageCodec.getTexelBlockDimensions()[0] - 1) / imageCodec.getTexelBlockDimensions()[0]),
-        texelBlockHeight((height + imageCodec.getTexelBlockDimensions()[1] - 1) / imageCodec.getTexelBlockDimensions()[1]),
-        texelBlockDepth((depth + imageCodec.getTexelBlockDimensions()[2] - 1) / imageCodec.getTexelBlockDimensions()[2]),
-        pixels(reinterpret_cast<uint8_t*>(pixels)), codec(imageCodec) {}
+    ImageSpan(uint32_t width, uint32_t height, uint32_t depth, void* pixels,
+              const ImageCodec& imageCodec)
+        : texelBlockWidth((width + imageCodec.getTexelBlockDimensions()[0] - 1) /
+                          imageCodec.getTexelBlockDimensions()[0]),
+          texelBlockHeight((height + imageCodec.getTexelBlockDimensions()[1] - 1) /
+                           imageCodec.getTexelBlockDimensions()[1]),
+          texelBlockDepth((depth + imageCodec.getTexelBlockDimensions()[2] - 1) /
+                          imageCodec.getTexelBlockDimensions()[2]),
+          pixels(reinterpret_cast<uint8_t*>(pixels)),
+          codec(imageCodec) {}
 
     const ImageCodec& imageCodec() const { return codec; }
 
@@ -154,17 +187,39 @@ public:
         return const_reference(pixels + texelBlockByteOffset(blockX, blockY, blockZ), *this);
     }
     iterator begin() noexcept { return iterator(*this, pixels, codec.getTexelBlockByteSize()); }
-    const_iterator begin() const noexcept { return const_iterator(*this, pixels, codec.getTexelBlockByteSize()); }
-    const_iterator cbegin() const noexcept { return const_iterator(*this, pixels, codec.getTexelBlockByteSize()); }
-    iterator end() noexcept { return iterator(*this, pixels, codec.getTexelBlockByteSize()) + size(); }
-    const_iterator end() const noexcept { return const_iterator(*this, pixels, codec.getTexelBlockByteSize()) + size(); }
-    const_iterator cend() const noexcept { return const_iterator(*this, pixels, codec.getTexelBlockByteSize()) + size(); }
-    reverse_iterator rbegin() noexcept { return reverse_iterator(*this, pixels, codec.getTexelBlockByteSize()) - size() + 1; }
-    const_reverse_iterator rbegin() const noexcept { return const_reverse_iterator(*this, pixels, codec.getTexelBlockByteSize()) - size() + 1; }
-    const_reverse_iterator crbegin() const noexcept { return const_reverse_iterator(*this, pixels, codec.getTexelBlockByteSize()) - size() + 1; }
-    reverse_iterator rend() noexcept { return reverse_iterator(*this, pixels , codec.getTexelBlockByteSize()) + 1; }
-    const_reverse_iterator rend() const noexcept { return const_reverse_iterator(*this, pixels, codec.getTexelBlockByteSize()) + 1; }
-    const_reverse_iterator crend() const noexcept { return const_reverse_iterator(*this, pixels, codec.getTexelBlockByteSize()) + 1; }
+    const_iterator begin() const noexcept {
+        return const_iterator(*this, pixels, codec.getTexelBlockByteSize());
+    }
+    const_iterator cbegin() const noexcept {
+        return const_iterator(*this, pixels, codec.getTexelBlockByteSize());
+    }
+    iterator end() noexcept {
+        return iterator(*this, pixels, codec.getTexelBlockByteSize()) + size();
+    }
+    const_iterator end() const noexcept {
+        return const_iterator(*this, pixels, codec.getTexelBlockByteSize()) + size();
+    }
+    const_iterator cend() const noexcept {
+        return const_iterator(*this, pixels, codec.getTexelBlockByteSize()) + size();
+    }
+    reverse_iterator rbegin() noexcept {
+        return reverse_iterator(*this, pixels, codec.getTexelBlockByteSize()) - size() + 1;
+    }
+    const_reverse_iterator rbegin() const noexcept {
+        return const_reverse_iterator(*this, pixels, codec.getTexelBlockByteSize()) - size() + 1;
+    }
+    const_reverse_iterator crbegin() const noexcept {
+        return const_reverse_iterator(*this, pixels, codec.getTexelBlockByteSize()) - size() + 1;
+    }
+    reverse_iterator rend() noexcept {
+        return reverse_iterator(*this, pixels, codec.getTexelBlockByteSize()) + 1;
+    }
+    const_reverse_iterator rend() const noexcept {
+        return const_reverse_iterator(*this, pixels, codec.getTexelBlockByteSize()) + 1;
+    }
+    const_reverse_iterator crend() const noexcept {
+        return const_reverse_iterator(*this, pixels, codec.getTexelBlockByteSize()) + 1;
+    }
     uint8_t* data() noexcept { return pixels; }
     const uint8_t* data() const noexcept { return pixels; }
     constexpr size_type size() const noexcept { return texelBlockWidth * texelBlockHeight; }
@@ -173,14 +228,16 @@ public:
     constexpr uint32_t getTexelBlockHeight() const { return texelBlockHeight; }
     constexpr uint32_t getTexelBlockDepth() const { return texelBlockDepth; }
 
-private:
+  private:
     const uint32_t texelBlockWidth;
     const uint32_t texelBlockHeight;
     const uint32_t texelBlockDepth;
     uint8_t* const pixels;
     const ImageCodec& codec;
 
-    constexpr std::ptrdiff_t texelBlockByteOffset(uint32_t blockX, uint32_t blockY, uint32_t blockZ) const {
-        return (blockX + blockY * texelBlockWidth + blockZ * texelBlockWidth * texelBlockHeight) * codec.getTexelBlockByteSize();
+    constexpr std::ptrdiff_t texelBlockByteOffset(uint32_t blockX, uint32_t blockY,
+                                                  uint32_t blockZ) const {
+        return (blockX + blockY * texelBlockWidth + blockZ * texelBlockWidth * texelBlockHeight) *
+               codec.getTexelBlockByteSize();
     }
 };

@@ -11,14 +11,14 @@
 #include <vector>
 
 #if defined(_WIN32)
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
-#include <windows.h>
-#include <shellapi.h>
+    #ifndef WIN32_LEAN_AND_MEAN
+        #define WIN32_LEAN_AND_MEAN
+    #endif
+    #ifndef NOMINMAX
+        #define NOMINMAX
+    #endif
+    #include <windows.h>
+    #include <shellapi.h>
 #endif
 
 #if defined(_WIN32) && !defined(_UNICODE)
@@ -26,20 +26,19 @@
 // the APIs that correctly handle unicode characters.
 inline std::wstring DecodeUTF8Path(std::string path) {
     std::wstring result;
-    int len = MultiByteToWideChar(CP_UTF8, 0, path.c_str(), static_cast<int>(path.length()), NULL, 0);
-    if (len > 0)
-    {
+    int len =
+        MultiByteToWideChar(CP_UTF8, 0, path.c_str(), static_cast<int>(path.length()), NULL, 0);
+    if (len > 0) {
         result.resize(len);
-        MultiByteToWideChar(CP_UTF8, 0, path.c_str(), static_cast<int>(path.length()), &result[0], len);
+        MultiByteToWideChar(CP_UTF8, 0, path.c_str(), static_cast<int>(path.length()), &result[0],
+                            len);
     }
     return result;
 }
 #else
 // For other platforms there is no need for any conversion, they
 // support UTF-8 natively.
-inline std::string DecodeUTF8Path(std::string path) {
-    return path;
-}
+inline std::string DecodeUTF8Path(std::string path) { return path; }
 #endif
 
 inline void InitUTF8CLI(int& argc, char* argv[]) {
@@ -49,9 +48,11 @@ inline void InitUTF8CLI(int& argc, char* argv[]) {
     LPWSTR commandLine = GetCommandLineW();
     LPWSTR* wideArgv = CommandLineToArgvW(commandLine, &argc);
     for (int i = 0; i < argc; ++i) {
-        int byteSize = WideCharToMultiByte(CP_UTF8, 0, wideArgv[i], -1, nullptr, 0, nullptr, nullptr);
+        int byteSize =
+            WideCharToMultiByte(CP_UTF8, 0, wideArgv[i], -1, nullptr, 0, nullptr, nullptr);
         utf8Argv[i] = std::make_unique<char[]>(byteSize);
-        WideCharToMultiByte(CP_UTF8, 0, wideArgv[i], -1, utf8Argv[i].get(), byteSize, nullptr, nullptr);
+        WideCharToMultiByte(CP_UTF8, 0, wideArgv[i], -1, utf8Argv[i].get(), byteSize, nullptr,
+                            nullptr);
         argv[i] = utf8Argv[i].get();
     }
 #else

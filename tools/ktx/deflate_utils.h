@@ -41,18 +41,20 @@ struct OptionsDeflate {
     std::optional<uint32_t> zlib;
 
     void init(cxxopts::Options& opts) {
-        opts.add_options()
-            (kZStd, "Supercompress the data with Zstandard."
-                     " Cannot be used with ETC1S / BasisLZ format."
-                     " Level range is [1,22]."
-                     " Lower levels give faster but worse compression."
-                     " Values above 20 should be used with caution as they require more memory.",
-                cxxopts::value<uint32_t>(), "<level>")
-            (kZLib, "Supercompress the data with ZLIB."
-                     " Cannot be used with ETC1S / BasisLZ format."
-                     " Level range is [1,9]."
-                     " Lower levels give faster but worse compression.",
-                cxxopts::value<uint32_t>(), "<level>");
+        opts.add_options()(
+            kZStd,
+            "Supercompress the data with Zstandard."
+            " Cannot be used with ETC1S / BasisLZ format."
+            " Level range is [1,22]."
+            " Lower levels give faster but worse compression."
+            " Values above 20 should be used with caution as they require more memory.",
+            cxxopts::value<uint32_t>(),
+            "<level>")(kZLib,
+                       "Supercompress the data with ZLIB."
+                       " Cannot be used with ETC1S / BasisLZ format."
+                       " Level range is [1,9]."
+                       " Lower levels give faster but worse compression.",
+                       cxxopts::value<uint32_t>(), "<level>");
     }
 
     template <typename T>
@@ -66,16 +68,21 @@ struct OptionsDeflate {
         if (args[kZStd].count()) {
             zstd = captureCompressOption<uint32_t>(args, kZStd);
             if (zstd < 1u || zstd > 22u)
-                report.fatal_usage("Invalid zstd level: \"{}\". Value must be between 1 and 22 inclusive.", zstd.value());
+                report.fatal_usage(
+                    "Invalid zstd level: \"{}\". Value must be between 1 and 22 inclusive.",
+                    zstd.value());
         }
         if (args[kZLib].count()) {
             zlib = captureCompressOption<uint32_t>(args, kZLib);
             if (zlib < 1u || zlib > 9u)
-                report.fatal_usage("Invalid zlib level: \"{}\". Value must be between 1 and 9 inclusive.", zlib.value());
+                report.fatal_usage(
+                    "Invalid zlib level: \"{}\". Value must be between 1 and 9 inclusive.",
+                    zlib.value());
         }
         if (zstd.has_value() && zlib.has_value())
-            report.fatal_usage("Conflicting options: zstd and zlib cannot be used at the same time.");
+            report.fatal_usage(
+                "Conflicting options: zstd and zlib cannot be used at the same time.");
     }
 };
 
-} // namespace ktx
+}  // namespace ktx

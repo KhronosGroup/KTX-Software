@@ -10,9 +10,7 @@
 #include <ktx.h>
 #include "TranscodeTargetStrToFmt.h"
 
-ktx_transcode_fmt_e
-TranscodeTargetStrToFmt(std::string format)
-{
+ktx_transcode_fmt_e TranscodeTargetStrToFmt(std::string format) {
     if (!format.compare("ETC1_RGB"))
         return KTX_TTF_ETC1_RGB;
     else if (!format.compare("ETC2_RGBA"))
@@ -55,7 +53,6 @@ TranscodeTargetStrToFmt(std::string format)
         return KTX_TTF_ETC;
     else if (!format.compare("BC1_OR_3"))
         return KTX_TTF_BC1_OR_3;
-    assert(false); // Error in args in sample table.
-    return static_cast<ktx_transcode_fmt_e>(-1); // To keep compilers happy.
+    assert(false);                                // Error in args in sample table.
+    return static_cast<ktx_transcode_fmt_e>(-1);  // To keep compilers happy.
 }
-

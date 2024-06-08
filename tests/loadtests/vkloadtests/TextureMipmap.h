@@ -14,7 +14,8 @@
  * @file TextureMipmap.h
  * @~English
  *
- * @brief Declaration of test sample for loading and displaying all the levels of a 2D mipmapped texture.
+ * @brief Declaration of test sample for loading and displaying all the levels of a 2D mipmapped
+ * texture.
  *
  * @author Mark Callow, www.edgewise-consulting.com.
  */
@@ -26,18 +27,13 @@
 #include <ktxvulkan.h>
 #include <glm/gtc/matrix_transform.hpp>
 
-class TextureMipmap : public InstancedSampleBase
-{
+class TextureMipmap : public InstancedSampleBase {
   public:
-    TextureMipmap(VulkanContext& vkctx,
-                 uint32_t width, uint32_t height,
-                 const char* const szArgs,
-                 const std::string sBasePath);
+    TextureMipmap(VulkanContext& vkctx, uint32_t width, uint32_t height, const char* const szArgs,
+                  const std::string sBasePath);
 
-    static VulkanLoadTestSample*
-    create(VulkanContext& vkctx,
-           uint32_t width, uint32_t height,
-           const char* const szArgs, const std::string sBasePath);
+    static VulkanLoadTestSample* create(VulkanContext& vkctx, uint32_t width, uint32_t height,
+                                        const char* const szArgs, const std::string sBasePath);
 };
 
 #endif /* _TEXTURE_MIPMAP_H_ */

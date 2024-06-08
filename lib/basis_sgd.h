@@ -55,7 +55,7 @@ typedef struct ktxBasisLzEtc1sImageDesc {
 } ktxBasisLzEtc1sImageDesc;
 
 #define BGD_ETC1S_IMAGE_DESCS(bgd) \
-        reinterpret_cast<ktxBasisLzEtc1sImageDesc*>(bgd + sizeof(ktxBasisLzGlobalHeader))
+    reinterpret_cast<ktxBasisLzEtc1sImageDesc*>(bgd + sizeof(ktxBasisLzGlobalHeader))
 
 // The are followed in the global data by these ...
 //    uint8_t[endpointsByteLength] endpointsData;
@@ -65,18 +65,17 @@ typedef struct ktxBasisLzEtc1sImageDesc {
 #define BGD_ENDPOINTS_ADDR(bgd, imageCount) \
     (bgd + sizeof(ktxBasisLzGlobalHeader) + sizeof(ktxBasisLzEtc1sImageDesc) * imageCount)
 
-#define BGD_SELECTORS_ADDR(bgd, bgdh, imageCount) (BGD_ENDPOINTS_ADDR(bgd, imageCount) + bgdh.endpointsByteLength)
+#define BGD_SELECTORS_ADDR(bgd, bgdh, imageCount) \
+    (BGD_ENDPOINTS_ADDR(bgd, imageCount) + bgdh.endpointsByteLength)
 
-#define BGD_TABLES_ADDR(bgd, bgdh, imageCount) (BGD_SELECTORS_ADDR(bgd, bgdh, imageCount) + bgdh.selectorsByteLength)
+#define BGD_TABLES_ADDR(bgd, bgdh, imageCount) \
+    (BGD_SELECTORS_ADDR(bgd, bgdh, imageCount) + bgdh.selectorsByteLength)
 
-#define BGD_EXTENDED_ADDR(bgd, bgdh, imageCount) (BGD_TABLES_ADDR(bgd, bgdh, imageCount) + bgdh.tablesByteLength)
+#define BGD_EXTENDED_ADDR(bgd, bgdh, imageCount) \
+    (BGD_TABLES_ADDR(bgd, bgdh, imageCount) + bgdh.tablesByteLength)
 
 // Just because this is a convenient place to put it for basis_{en,trans}code.
-enum alpha_content_e {
-    eNone,
-    eAlpha,
-    eGreen
-};
+enum alpha_content_e { eNone, eAlpha, eGreen };
 
 #ifdef __cplusplus
 }

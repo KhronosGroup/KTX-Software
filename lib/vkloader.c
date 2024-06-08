@@ -17,16 +17,15 @@
  */
 
 #ifdef _WIN32
-#define _CRT_SECURE_NO_WARNINGS
+    #define _CRT_SECURE_NO_WARNINGS
 #endif
-
 
 #include <assert.h>
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "vk_funcs.h"   // Must be included before ktxvulkan.h.
+#include "vk_funcs.h"  // Must be included before ktxvulkan.h.
 #include "ktxvulkan.h"
 #include "ktxint.h"
 #include "unused.h"
@@ -42,20 +41,20 @@
 // Macro to check and display Vulkan return results.
 // Use when the only possible errors are caused by invalid usage by this loader.
 #if defined(_DEBUG)
-#define VK_CHECK_RESULT(f)                                                  \
-{                                                                           \
-    VkResult res = (f);                                                     \
-    if (res != VK_SUCCESS)                                                  \
-    {                                                                       \
-        /* XXX Find an errorString function. */                             \
-        fprintf(stderr, "Fatal error in ktxLoadVkTexture*: "                \
-                "VkResult is \"%d\" in %s at line %d\n",                    \
-                res, __FILE__, __LINE__);                                   \
-        assert(res == VK_SUCCESS);                                          \
-    }                                                                       \
-}
+    #define VK_CHECK_RESULT(f)                                   \
+        {                                                        \
+            VkResult res = (f);                                  \
+            if (res != VK_SUCCESS) {                             \
+                /* XXX Find an errorString function. */          \
+                fprintf(stderr,                                  \
+                        "Fatal error in ktxLoadVkTexture*: "     \
+                        "VkResult is \"%d\" in %s at line %d\n", \
+                        res, __FILE__, __LINE__);                \
+                assert(res == VK_SUCCESS);                       \
+            }                                                    \
+        }
 #else
-#define VK_CHECK_RESULT(f) ((void)f)
+    #define VK_CHECK_RESULT(f) ((void)f)
 #endif
 
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
@@ -63,18 +62,12 @@
 #define DEFAULT_FENCE_TIMEOUT 100000000000
 #define VK_FLAGS_NONE 0
 
-static void
-setImageLayout(
-    ktxVulkanFunctions vkFuncs,
-    VkCommandBuffer cmdBuffer,
-    VkImage image,
-    VkImageLayout oldLayout,
-    VkImageLayout newLayout,
-    VkImageSubresourceRange subresourceRange);
+static void setImageLayout(ktxVulkanFunctions vkFuncs, VkCommandBuffer cmdBuffer, VkImage image,
+                           VkImageLayout oldLayout, VkImageLayout newLayout,
+                           VkImageSubresourceRange subresourceRange);
 
-static void
-generateMipmaps(ktxVulkanTexture* vkTexture, ktxVulkanDeviceInfo* vdi,
-                VkFilter filter, VkImageLayout initialLayout);
+static void generateMipmaps(ktxVulkanTexture* vkTexture, ktxVulkanDeviceInfo* vdi, VkFilter filter,
+                            VkImageLayout initialLayout);
 
 /**
  * @defgroup ktx_vkloader Vulkan Texture Image Loader
@@ -103,12 +96,10 @@ generateMipmaps(ktxVulkanTexture* vkTexture, ktxVulkanDeviceInfo* vdi,
  * @sa ktxVulkanDeviceInfo\_Destroy()
  */
 ktxVulkanDeviceInfo*
-ktxVulkanDeviceInfo_Create(VkPhysicalDevice physicalDevice, VkDevice device,
-                           VkQueue queue, VkCommandPool cmdPool,
-                           const VkAllocationCallbacks* pAllocator)
-{
-    return ktxVulkanDeviceInfo_CreateEx(VK_NULL_HANDLE, physicalDevice, device,
-                                        queue, cmdPool, pAllocator, NULL);
+ktxVulkanDeviceInfo_Create(VkPhysicalDevice physicalDevice, VkDevice device, VkQueue queue,
+                           VkCommandPool cmdPool, const VkAllocationCallbacks* pAllocator) {
+    return ktxVulkanDeviceInfo_CreateEx(VK_NULL_HANDLE, physicalDevice, device, queue, cmdPool,
+                                        pAllocator, NULL);
 }
 
 /**
@@ -126,19 +117,15 @@ ktxVulkanDeviceInfo_Create(VkPhysicalDevice physicalDevice, VkDevice device,
  * @sa ktxVulkanDeviceInfo\_Destroy()
  */
 ktxVulkanDeviceInfo*
-ktxVulkanDeviceInfo_CreateEx(VkInstance instance,
-                             VkPhysicalDevice physicalDevice, VkDevice device,
+ktxVulkanDeviceInfo_CreateEx(VkInstance instance, VkPhysicalDevice physicalDevice, VkDevice device,
                              VkQueue queue, VkCommandPool cmdPool,
                              const VkAllocationCallbacks* pAllocator,
-                             const ktxVulkanFunctions* pFuncs)
-{
+                             const ktxVulkanFunctions* pFuncs) {
     ktxVulkanDeviceInfo* newvdi;
     newvdi = (ktxVulkanDeviceInfo*)malloc(sizeof(ktxVulkanDeviceInfo));
     if (newvdi != NULL) {
-        if (ktxVulkanDeviceInfo_ConstructEx(newvdi, instance, physicalDevice,
-                                            device, queue, cmdPool, pAllocator,
-                                            pFuncs) != KTX_SUCCESS)
-        {
+        if (ktxVulkanDeviceInfo_ConstructEx(newvdi, instance, physicalDevice, device, queue,
+                                            cmdPool, pAllocator, pFuncs) != KTX_SUCCESS) {
             free(newvdi);
             newvdi = 0;
         }
@@ -192,13 +179,11 @@ ktxVulkanDeviceInfo_CreateEx(VkInstance instance,
  *
  */
 KTX_error_code
-ktxVulkanDeviceInfo_Construct(ktxVulkanDeviceInfo* This,
-                              VkPhysicalDevice physicalDevice, VkDevice device,
-                              VkQueue queue, VkCommandPool cmdPool,
-                              const VkAllocationCallbacks* pAllocator)
-{
-   return ktxVulkanDeviceInfo_ConstructEx(This, VK_NULL_HANDLE, physicalDevice, device, queue,
-                                          cmdPool, pAllocator, NULL);
+ktxVulkanDeviceInfo_Construct(ktxVulkanDeviceInfo* This, VkPhysicalDevice physicalDevice,
+                              VkDevice device, VkQueue queue, VkCommandPool cmdPool,
+                              const VkAllocationCallbacks* pAllocator) {
+    return ktxVulkanDeviceInfo_ConstructEx(This, VK_NULL_HANDLE, physicalDevice, device, queue,
+                                           cmdPool, pAllocator, NULL);
 }
 
 /**
@@ -216,44 +201,39 @@ ktxVulkanDeviceInfo_Construct(ktxVulkanDeviceInfo* This,
  *                        will retrieve the proc addresses itself.
  */
 KTX_error_code
-ktxVulkanDeviceInfo_ConstructEx(ktxVulkanDeviceInfo* This,
-                              VkInstance instance,
-                              VkPhysicalDevice physicalDevice, VkDevice device,
-                              VkQueue queue, VkCommandPool cmdPool,
-                              const VkAllocationCallbacks* pAllocator,
-                              const ktxVulkanFunctions* pFunctions)
-{
+ktxVulkanDeviceInfo_ConstructEx(ktxVulkanDeviceInfo* This, VkInstance instance,
+                                VkPhysicalDevice physicalDevice, VkDevice device, VkQueue queue,
+                                VkCommandPool cmdPool, const VkAllocationCallbacks* pAllocator,
+                                const ktxVulkanFunctions* pFunctions) {
+#define LOAD_EXT_FUNC(member, fun)                                 \
+    do {                                                           \
+        if ((member).fun == NULL) {                                \
+            (member).fun = (PFN_##fun)ktxLoadVulkanFunction(#fun); \
+            if ((member).fun == NULL) {                            \
+                return KTX_NOT_FOUND;                              \
+            }                                                      \
+        }                                                          \
+    } while (0)
 
-#define LOAD_EXT_FUNC(member, fun) \
-do {                             \
-  if ((member).fun == NULL) {            \
-    (member).fun = (PFN_##fun)ktxLoadVulkanFunction(#fun); \
-    if ((member).fun == NULL) {          \
-        return KTX_NOT_FOUND;                         \
-    }\
-  } \
-} while (0)
+#define LOAD_INST_FUNC(member, instance, fun)                                             \
+    do {                                                                                  \
+        if ((member).fun == NULL) {                                                       \
+            (member).fun = (PFN_##fun)((member).vkGetInstanceProcAddr)((instance), #fun); \
+            if ((member).fun == NULL) {                                                   \
+                return KTX_NOT_FOUND;                                                     \
+            }                                                                             \
+        }                                                                                 \
+    } while (0)
 
-#define LOAD_INST_FUNC(member, instance, fun) \
-do {                             \
-  if ((member).fun == NULL) {            \
-    (member).fun = (PFN_##fun)((member).vkGetInstanceProcAddr)((instance), #fun); \
-    if ((member).fun == NULL) {          \
-        return KTX_NOT_FOUND;                         \
-    }\
-  } \
-} while (0)
-
-#define LOAD_DEVICE_FUNC(member, device, fun) \
-do {                             \
-  if ((member).fun == NULL) {            \
-    (member).fun = (PFN_##fun)((member).vkGetDeviceProcAddr)((device), #fun); \
-    if ((member).fun == NULL) {          \
-        return KTX_NOT_FOUND;                         \
-    }\
-  } \
-} while (0)
-
+#define LOAD_DEVICE_FUNC(member, device, fun)                                         \
+    do {                                                                              \
+        if ((member).fun == NULL) {                                                   \
+            (member).fun = (PFN_##fun)((member).vkGetDeviceProcAddr)((device), #fun); \
+            if ((member).fun == NULL) {                                               \
+                return KTX_NOT_FOUND;                                                 \
+            }                                                                         \
+        }                                                                             \
+    } while (0)
 
     This->instance = instance;
     This->physicalDevice = physicalDevice;
@@ -265,8 +245,7 @@ do {                             \
     ktxVulkanFunctions funcs;
     memset(&funcs, 0, sizeof(ktxVulkanFunctions));
 
-    if (pFunctions != NULL)
-        funcs = *pFunctions;
+    if (pFunctions != NULL) funcs = *pFunctions;
 
     if (instance == VK_NULL_HANDLE || pFunctions == NULL) {
         // This is the old behavior, where no functions where specified. We
@@ -275,8 +254,7 @@ do {                             \
         // The reason we check this here, is that ktxLoadVulkanFunction doesn't
         // give us a proper error code.
         ktx_error_code_e kresult = ktxLoadVulkanLibrary();
-        if (kresult != KTX_SUCCESS)
-            return kresult;
+        if (kresult != KTX_SUCCESS) return kresult;
 
         // If pFunctions are null, then we try to load the minimum number of
         // required functions.
@@ -301,7 +279,6 @@ do {                             \
     LOAD_INST_FUNC(funcs, instance, vkGetPhysicalDeviceFormatProperties);
     LOAD_INST_FUNC(funcs, instance, vkGetPhysicalDeviceMemoryProperties);
     LOAD_INST_FUNC(funcs, instance, vkGetPhysicalDeviceImageFormatProperties);
-
 
     // We now get to device functions.
     LOAD_INST_FUNC(funcs, instance, vkGetDeviceProcAddr);
@@ -332,26 +309,23 @@ do {                             \
     LOAD_DEVICE_FUNC(funcs, device, vkGetImageMemoryRequirements);
     LOAD_DEVICE_FUNC(funcs, device, vkGetImageSubresourceLayout);
 
-
     This->vkFuncs = funcs;
 
-    VkCommandBufferAllocateInfo cmdBufInfo = {
-            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO
-    };
+    VkCommandBufferAllocateInfo cmdBufInfo = {.sType =
+                                                  VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO};
     VkResult result;
 
     This->vkFuncs.vkGetPhysicalDeviceMemoryProperties(physicalDevice,
-                                        &This->deviceMemoryProperties);
+                                                      &This->deviceMemoryProperties);
 
     // Use a separate command buffer for texture loading. Needed for
     // submitting image barriers and converting tilings.
     cmdBufInfo.commandPool = cmdPool;
     cmdBufInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     cmdBufInfo.commandBufferCount = 1;
-    result = This->vkFuncs.vkAllocateCommandBuffers(device, &cmdBufInfo,
-                                                    &This->cmdBuffer);
+    result = This->vkFuncs.vkAllocateCommandBuffers(device, &cmdBufInfo, &This->cmdBuffer);
     if (result != VK_SUCCESS) {
-        return KTX_OUT_OF_MEMORY; // TODO: Consider an equivalent to pGlError
+        return KTX_OUT_OF_MEMORY;  // TODO: Consider an equivalent to pGlError
     }
     return KTX_SUCCESS;
 
@@ -370,10 +344,8 @@ do {                             \
  * @param This pointer to the ktxVulkanDeviceInfo to destruct.
  */
 void
-ktxVulkanDeviceInfo_Destruct(ktxVulkanDeviceInfo* This)
-{
-    This->vkFuncs.vkFreeCommandBuffers(This->device, This->cmdPool, 1,
-                         &This->cmdBuffer);
+ktxVulkanDeviceInfo_Destruct(ktxVulkanDeviceInfo* This) {
+    This->vkFuncs.vkFreeCommandBuffers(This->device, This->cmdPool, 1, &This->cmdBuffer);
 }
 
 /**
@@ -386,8 +358,7 @@ ktxVulkanDeviceInfo_Destruct(ktxVulkanDeviceInfo* This)
  * @param This pointer to the ktxVulkanDeviceInfo to destroy.
  */
 void
-ktxVulkanDeviceInfo_Destroy(ktxVulkanDeviceInfo* This)
-{
+ktxVulkanDeviceInfo_Destroy(ktxVulkanDeviceInfo* This) {
     assert(This != NULL);
     ktxVulkanDeviceInfo_Destruct(This);
     free(This);
@@ -395,15 +366,12 @@ ktxVulkanDeviceInfo_Destroy(ktxVulkanDeviceInfo* This)
 
 /* Get appropriate memory type index for a memory allocation. */
 static uint32_t
-ktxVulkanDeviceInfo_getMemoryType(ktxVulkanDeviceInfo* This,
-                                  uint32_t typeBits, VkFlags properties)
-{
-    for (uint32_t i = 0; i < 32; i++)
-    {
-        if ((typeBits & 1) == 1)
-        {
-            if ((This->deviceMemoryProperties.memoryTypes[i].propertyFlags & properties) == properties)
-            {
+ktxVulkanDeviceInfo_getMemoryType(ktxVulkanDeviceInfo* This, uint32_t typeBits,
+                                  VkFlags properties) {
+    for (uint32_t i = 0; i < 32; i++) {
+        if ((typeBits & 1) == 1) {
+            if ((This->deviceMemoryProperties.memoryTypes[i].propertyFlags & properties) ==
+                properties) {
                 return i;
             }
         }
@@ -419,12 +387,12 @@ ktxVulkanDeviceInfo_getMemoryType(ktxVulkanDeviceInfo* This,
 //======================================================================
 
 typedef struct user_cbdata_optimal {
-    VkBufferImageCopy* region; // Specify destination region in final image.
-    VkDeviceSize offset;       // Offset of current level in staging buffer
+    VkBufferImageCopy* region;  // Specify destination region in final image.
+    VkDeviceSize offset;        // Offset of current level in staging buffer
     ktx_uint32_t numFaces;
     ktx_uint32_t numLayers;
     // The following are used only by optimalTilingPadCallback
-    ktx_uint8_t* dest;         // Pointer to mapped staging buffer.
+    ktx_uint8_t* dest;  // Pointer to mapped staging buffer.
     ktx_uint32_t elementSize;
     ktx_uint32_t numDimensions;
 #if defined(_DEBUG)
@@ -449,11 +417,8 @@ typedef struct user_cbdata_optimal {
  * @copydetails PFNKTXITERCB
  */
 static KTX_error_code
-optimalTilingCallback(int miplevel, int face,
-                      int width, int height, int depth,
-                      ktx_uint64_t faceLodSize,
-                      void* pixels, void* userdata)
-{
+optimalTilingCallback(int miplevel, int face, int width, int height, int depth,
+                      ktx_uint64_t faceLodSize, void* pixels, void* userdata) {
     user_cbdata_optimal* ud = (user_cbdata_optimal*)userdata;
     UNUSED(pixels);
 
@@ -506,15 +471,12 @@ uint32_t lcm4(uint32_t a);
  * selected to minimize the buffering needed between reading the file and
  * copying the data into the staging buffer. Obviously when
  * @c ktx_Texture_IterateFaceLevels is being used, this is a moot point.
-*
+ *
  * @copydetails PFNKTXITERCB
  */
 KTX_error_code
-optimalTilingPadCallback(int miplevel, int face,
-                         int width, int height, int depth,
-                         ktx_uint64_t faceLodSize,
-                         void* pixels, void* userdata)
-{
+optimalTilingPadCallback(int miplevel, int face, int width, int height, int depth,
+                         ktx_uint64_t faceLodSize, void* pixels, void* userdata) {
     user_cbdata_optimal* ud = (user_cbdata_optimal*)userdata;
     ktx_uint32_t rowPitch = width * ud->elementSize;
 
@@ -531,8 +493,8 @@ optimalTilingPadCallback(int miplevel, int face,
         ud->offset += faceLodSize;
     } else {
         // Must remove padding. Copy a row at a time.
-		ktx_uint32_t image, imageIterations;
-		ktx_int32_t row;
+        ktx_uint32_t image, imageIterations;
+        ktx_int32_t row;
         ktx_uint32_t paddedRowPitch;
 
         if (ud->numDimensions == 3)
@@ -582,7 +544,7 @@ typedef struct user_cbdata_linear {
     ktxVulkanFunctions vkFuncs;
     VkImage destImage;
     VkDevice device;
-    uint8_t* dest;   // Pointer to mapped Image memory
+    uint8_t* dest;  // Pointer to mapped Image memory
     ktxTexture* texture;
 } user_cbdata_linear;
 
@@ -594,19 +556,13 @@ typedef struct user_cbdata_linear {
  * Copy the image data into the mapped Vulkan image.
  */
 KTX_error_code
-linearTilingCallback(int miplevel, int face,
-                      int width, int height, int depth,
-                      ktx_uint64_t faceLodSize,
-                      void* pixels, void* userdata)
-{
+linearTilingCallback(int miplevel, int face, int width, int height, int depth,
+                     ktx_uint64_t faceLodSize, void* pixels, void* userdata) {
     user_cbdata_linear* ud = (user_cbdata_linear*)userdata;
     VkSubresourceLayout subResLayout;
 #if !defined(_MSC_VER) || _MSC_VER >= 1920
     VkImageSubresource subRes = {
-      .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-      .mipLevel = miplevel,
-      .arrayLayer = face
-    };
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .mipLevel = miplevel, .arrayLayer = face};
 #else
     VkImageSubresource subRes = {0};
     subRes.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -620,8 +576,7 @@ linearTilingCallback(int miplevel, int face,
 
     // Get sub resources layout. Includes row pitch, size,
     // offsets, etc.
-    ud->vkFuncs.vkGetImageSubresourceLayout(ud->device, ud->destImage, &subRes,
-                                &subResLayout);
+    ud->vkFuncs.vkGetImageSubresourceLayout(ud->device, ud->destImage, &subRes, &subResLayout);
     // Copies all images of the miplevel (for array & 3d) or a single face.
     memcpy(ud->dest + subResLayout.offset, pixels, faceLodSize);
     return KTX_SUCCESS;
@@ -645,28 +600,22 @@ linearTilingCallback(int miplevel, int face,
  * strides appears to be for an R8G8B8A8_UNORM of the same texel size.
  */
 KTX_error_code
-linearTilingPadCallback(int miplevel, int face,
-                      int width, int height, int depth,
-                      ktx_uint64_t faceLodSize,
-                      void* pixels, void* userdata)
-{
+linearTilingPadCallback(int miplevel, int face, int width, int height, int depth,
+                        ktx_uint64_t faceLodSize, void* pixels, void* userdata) {
     user_cbdata_linear* ud = (user_cbdata_linear*)userdata;
     VkDeviceSize offset;
-    ktx_size_t   imageSize = 0;
+    ktx_size_t imageSize = 0;
     VkDeviceSize imagePitch = 0;
     ktx_uint32_t srcRowPitch;
     ktx_uint32_t rowIterations;
     ktx_uint32_t imageIterations;
     ktx_uint32_t row, image;
     ktx_uint8_t* pSrc;
-    ktx_size_t   copySize;
+    ktx_size_t copySize;
     VkSubresourceLayout subResLayout;
 #if !defined(_MSC_VER) || _MSC_VER >= 1920
     VkImageSubresource subRes = {
-      .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-      .mipLevel = miplevel,
-      .arrayLayer = face
-    };
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .mipLevel = miplevel, .arrayLayer = face};
 #else
     VkImageSubresource subRes = {0};
     subRes.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -678,8 +627,7 @@ linearTilingPadCallback(int miplevel, int face,
 
     // Get sub resources layout. Includes row pitch, size,
     // offsets, etc.
-    ud->vkFuncs.vkGetImageSubresourceLayout(ud->device, ud->destImage, &subRes,
-                                &subResLayout);
+    ud->vkFuncs.vkGetImageSubresourceLayout(ud->device, ud->destImage, &subRes, &subResLayout);
 
     srcRowPitch = ktxTexture_GetRowPitch(ud->texture, miplevel);
 
@@ -699,12 +647,10 @@ linearTilingPadCallback(int miplevel, int face,
         if (ud->texture->numLayers > 1) {
             imagePitch = subResLayout.arrayPitch;
             if (imagePitch != imageSize)
-                imageIterations
-                        = ud->texture->numLayers * ud->texture->numFaces;
+                imageIterations = ud->texture->numLayers * ud->texture->numFaces;
         } else {
             imagePitch = subResLayout.depthPitch;
-            if (imagePitch != imageSize)
-                imageIterations = depth;
+            if (imagePitch != imageSize) imageIterations = depth;
         }
         assert(imageSize <= imagePitch);
     }
@@ -729,7 +675,7 @@ linearTilingPadCallback(int miplevel, int face,
             memcpy(ud->dest + offset, pSrc, copySize);
             offset += subResLayout.rowPitch;
             pSrc += srcRowPitch;
-          }
+        }
         offset += imagePitch;
     }
     return KTX_SUCCESS;
@@ -761,10 +707,10 @@ linearTilingPadCallback(int miplevel, int face,
  * limited number of formats and features. Generally @c VK_IMAGE_TILING_OPTIMAL
  * is preferred. The latter requires a staging buffer so will use more memory
  * during loading.
- * 
+ *
  * If a pointer to a set of suballocator callbacks is provided, they
  * will be used instead of manual allocation of VkDeviceMemory. A 64 bit uint
- * that references the suballocated page(s) is returned on memory procurement 
+ * that references the suballocated page(s) is returned on memory procurement
  * and saved in the @c allocationId field of the structure pointed to by @a vkTexture.
  *
  * @param[in] This                        pointer to the ktxTexture from which to upload.
@@ -780,8 +726,8 @@ linearTilingPadCallback(int miplevel, int face,
  *                                        intended usage of the destination image.
  * @param [in] finalLayout                a VkImageLayout value indicating the desired
  *                                        final layout of the created image.
- * @param [in] subAllocatorCallbacks      pointer to a set of suballocator callbacks 
- *                                        that wrap around suballocator calls: alloc, 
+ * @param [in] subAllocatorCallbacks      pointer to a set of suballocator callbacks
+ *                                        that wrap around suballocator calls: alloc,
  *                                        bindbuffer, bindimage, map, unmap and free.
  *                                        They use a uint64_t stored in the @c allocationId
  *                                        field of the structure pointed at by @a vkTexture
@@ -789,7 +735,7 @@ linearTilingPadCallback(int miplevel, int face,
  *
  * @return  KTX_SUCCESS on success, other KTX_* enum values on error.
  *
- * @exception KTX_INVALID_VALUE         An incomplete set of callbacks are provided in 
+ * @exception KTX_INVALID_VALUE         An incomplete set of callbacks are provided in
  *                                      subAllocatorCallbacks.
  * @exception KTX_INVALID_VALUE         @p This, @p vdi or @p vkTexture is @c NULL.
  * @exception KTX_INVALID_OPERATION     The ktxTexture contains neither images nor
@@ -811,47 +757,35 @@ linearTilingPadCallback(int miplevel, int face,
  * @sa @ref ktxVulkanDeviceInfo::ktxVulkanDeviceInfo\_Construct "ktxVulkanDeviceInfo_Construct()"
  */
 KTX_error_code
-ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
-                                       ktxVulkanTexture* vkTexture,
-                                       VkImageTiling tiling,
-                                       VkImageUsageFlags usageFlags,
-                                       VkImageLayout finalLayout,
-                                       ktxVulkanTexture_subAllocatorCallbacks* subAllocatorCallbacks)
-{
-    KTX_error_code           kResult;
-    VkFilter                 blitFilter = VK_FILTER_LINEAR;
-    VkFormat                 vkFormat;
-    VkImageType              imageType;
-    VkImageViewType          viewType;
-    VkImageCreateFlags       createFlags = 0;
-    VkImageFormatProperties  imageFormatProperties;
-    VkResult                 vResult;
+ktxTexture_VkUploadEx_WithSuballocator(
+    ktxTexture* This, ktxVulkanDeviceInfo* vdi, ktxVulkanTexture* vkTexture, VkImageTiling tiling,
+    VkImageUsageFlags usageFlags, VkImageLayout finalLayout,
+    ktxVulkanTexture_subAllocatorCallbacks* subAllocatorCallbacks) {
+    KTX_error_code kResult;
+    VkFilter blitFilter = VK_FILTER_LINEAR;
+    VkFormat vkFormat;
+    VkImageType imageType;
+    VkImageViewType viewType;
+    VkImageCreateFlags createFlags = 0;
+    VkImageFormatProperties imageFormatProperties;
+    VkResult vResult;
     VkCommandBufferBeginInfo cmdBufBeginInfo = {
-        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-        .pNext = NULL
-    };
-    VkImageCreateInfo        imageCreateInfo = {
-         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-         .pNext = NULL
-    };
-    VkMemoryAllocateInfo     memAllocInfo = {
-        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-        .pNext = NULL,
-        .allocationSize = 0,
-        .memoryTypeIndex = 0
-    };
-    VkMemoryRequirements     memReqs;
-    ktx_uint32_t             numImageLayers, numImageLevels;
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, .pNext = NULL};
+    VkImageCreateInfo imageCreateInfo = {.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+                                         .pNext = NULL};
+    VkMemoryAllocateInfo memAllocInfo = {.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+                                         .pNext = NULL,
+                                         .allocationSize = 0,
+                                         .memoryTypeIndex = 0};
+    VkMemoryRequirements memReqs;
+    ktx_uint32_t numImageLayers, numImageLevels;
     ktx_uint32_t elementSize = ktxTexture_GetElementSize(This);
-    ktx_bool_t               canUseFasterPath;
-    ktx_bool_t               useSuballocator = false;
+    ktx_bool_t canUseFasterPath;
+    ktx_bool_t useSuballocator = false;
     if (subAllocatorCallbacks) {
-        if (subAllocatorCallbacks->allocMemFuncPtr &&
-            subAllocatorCallbacks->bindBufferFuncPtr &&
-            subAllocatorCallbacks->bindImageFuncPtr &&
-            subAllocatorCallbacks->memoryMapFuncPtr &&
-            subAllocatorCallbacks->memoryUnmapFuncPtr &&
-            subAllocatorCallbacks->freeMemFuncPtr)
+        if (subAllocatorCallbacks->allocMemFuncPtr && subAllocatorCallbacks->bindBufferFuncPtr &&
+            subAllocatorCallbacks->bindImageFuncPtr && subAllocatorCallbacks->memoryMapFuncPtr &&
+            subAllocatorCallbacks->memoryUnmapFuncPtr && subAllocatorCallbacks->freeMemFuncPtr)
             useSuballocator = true;
         else
             return KTX_INVALID_VALUE;
@@ -877,22 +811,19 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
 
     assert(This->numDimensions >= 1 && This->numDimensions <= 3);
     switch (This->numDimensions) {
-      case 1:
+    case 1:
         imageType = VK_IMAGE_TYPE_1D;
-        viewType = This->isArray ?
-                        VK_IMAGE_VIEW_TYPE_1D_ARRAY : VK_IMAGE_VIEW_TYPE_1D;
+        viewType = This->isArray ? VK_IMAGE_VIEW_TYPE_1D_ARRAY : VK_IMAGE_VIEW_TYPE_1D;
         break;
-      case 2:
-      default: // To keep compilers happy.
+    case 2:
+    default:  // To keep compilers happy.
         imageType = VK_IMAGE_TYPE_2D;
         if (This->isCubemap)
-            viewType = This->isArray ?
-                        VK_IMAGE_VIEW_TYPE_CUBE_ARRAY : VK_IMAGE_VIEW_TYPE_CUBE;
+            viewType = This->isArray ? VK_IMAGE_VIEW_TYPE_CUBE_ARRAY : VK_IMAGE_VIEW_TYPE_CUBE;
         else
-            viewType = This->isArray ?
-                        VK_IMAGE_VIEW_TYPE_2D_ARRAY : VK_IMAGE_VIEW_TYPE_2D;
+            viewType = This->isArray ? VK_IMAGE_VIEW_TYPE_2D_ARRAY : VK_IMAGE_VIEW_TYPE_2D;
         break;
-      case 3:
+    case 3:
         imageType = VK_IMAGE_TYPE_3D;
         /* 3D array textures not supported in Vulkan. Attempts to create or
          * load them should have been trapped long before this.
@@ -916,13 +847,9 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
         // Ensure we can blit between levels.
         usageFlags |= (VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
     }
-    vResult = vdi->vkFuncs.vkGetPhysicalDeviceImageFormatProperties(vdi->physicalDevice,
-                                                      vkFormat,
-                                                      imageType,
-                                                      tiling,
-                                                      usageFlags,
-                                                      createFlags,
-                                                      &imageFormatProperties);
+    vResult = vdi->vkFuncs.vkGetPhysicalDeviceImageFormatProperties(
+        vdi->physicalDevice, vkFormat, imageType, tiling, usageFlags, createFlags,
+        &imageFormatProperties);
     if (vResult == VK_ERROR_FORMAT_NOT_SUPPORTED) {
         return KTX_INVALID_OPERATION;
     }
@@ -932,26 +859,24 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
 
     if (This->generateMipmaps) {
         uint32_t max_dim;
-        VkFormatProperties    formatProperties;
-        VkFormatFeatureFlags  formatFeatureFlags;
-        VkFormatFeatureFlags  neededFeatures
-            = VK_FORMAT_FEATURE_BLIT_DST_BIT | VK_FORMAT_FEATURE_BLIT_SRC_BIT;
-        vdi->vkFuncs.vkGetPhysicalDeviceFormatProperties(vdi->physicalDevice,
-                                            vkFormat,
-                                            &formatProperties);
+        VkFormatProperties formatProperties;
+        VkFormatFeatureFlags formatFeatureFlags;
+        VkFormatFeatureFlags neededFeatures =
+            VK_FORMAT_FEATURE_BLIT_DST_BIT | VK_FORMAT_FEATURE_BLIT_SRC_BIT;
+        vdi->vkFuncs.vkGetPhysicalDeviceFormatProperties(vdi->physicalDevice, vkFormat,
+                                                         &formatProperties);
         assert(vResult == VK_SUCCESS);
         if (tiling == VK_IMAGE_TILING_OPTIMAL)
             formatFeatureFlags = formatProperties.optimalTilingFeatures;
         else
             formatFeatureFlags = formatProperties.linearTilingFeatures;
 
-        if ((formatFeatureFlags & neededFeatures) != neededFeatures)
-            return KTX_INVALID_OPERATION;
+        if ((formatFeatureFlags & neededFeatures) != neededFeatures) return KTX_INVALID_OPERATION;
 
         if (formatFeatureFlags & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT)
             blitFilter = VK_FILTER_LINEAR;
         else
-            blitFilter = VK_FILTER_NEAREST; // XXX INVALID_OP?
+            blitFilter = VK_FILTER_NEAREST;  // XXX INVALID_OP?
 
         max_dim = MAX(MAX(This->baseWidth, This->baseHeight), This->baseDepth);
         numImageLevels = (uint32_t)floor(log2(max_dim)) + 1;
@@ -982,8 +907,8 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
         //
         // Note all elementSizes > 4 Will be a multiple of 4, so only
         // elementSizes of 1, 2 & 3 are a concern here.
-        if (elementSize % 4 == 0  /* There'll be no padding at any level. */
-               /* There is no padding at level 0 and no other levels. */
+        if (elementSize % 4 == 0 /* There'll be no padding at any level. */
+                                 /* There is no padding at level 0 and no other levels. */
             || (This->numLevels == 1 && actualRowPitch == tightRowPitch))
             canUseFasterPath = KTX_TRUE;
         else
@@ -1001,36 +926,24 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
     vkTexture->vkDestroyImage = vdi->vkFuncs.vkDestroyImage;
     vkTexture->vkFreeMemory = vdi->vkFuncs.vkFreeMemory;
 
-    VK_CHECK_RESULT(
-            vdi->vkFuncs.vkBeginCommandBuffer(vdi->cmdBuffer, &cmdBufBeginInfo)
-            );
+    VK_CHECK_RESULT(vdi->vkFuncs.vkBeginCommandBuffer(vdi->cmdBuffer, &cmdBufBeginInfo));
 
-    if (tiling == VK_IMAGE_TILING_OPTIMAL)
-    {
+    if (tiling == VK_IMAGE_TILING_OPTIMAL) {
         // Create a host-visible staging buffer that contains the raw image data
         VkBuffer stagingBuffer;
         VkDeviceMemory stagingMemory = VK_NULL_HANDLE;
         VkBufferImageCopy* copyRegions;
         VkDeviceSize textureSize;
-        VkBufferCreateInfo bufferCreateInfo = {
-          .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-          .pNext = NULL
-        };
+        VkBufferCreateInfo bufferCreateInfo = {.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+                                               .pNext = NULL};
         VkImageSubresourceRange subresourceRange;
         VkFence copyFence;
         VkFenceCreateInfo fenceCreateInfo = {
-            .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
-            .pNext = NULL,
-            .flags = VK_FLAGS_NONE
-        };
-        VkSubmitInfo submitInfo = {
-            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-            .pNext = NULL
-        };
+            .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO, .pNext = NULL, .flags = VK_FLAGS_NONE};
+        VkSubmitInfo submitInfo = {.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO, .pNext = NULL};
         ktx_uint8_t* pMappedStagingBuffer;
         ktx_uint32_t numCopyRegions;
         user_cbdata_optimal cbData;
-
 
         textureSize = ktxTexture_GetDataSizeUncompressed(This);
         bufferCreateInfo.size = textureSize;
@@ -1048,8 +961,7 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
              * elementSize and 4 and also need a copy region per image
              * in case they end up with padding between them.
              */
-            numCopyRegions = This->isArray ? This->numLevels
-                                  : This->numLevels * This->numFaces;
+            numCopyRegions = This->isArray ? This->numLevels : This->numLevels * This->numFaces;
             /*
              * Add extra space to allow for possible padding described
              * above. A bit ad-hoc but it's only a small amount of
@@ -1057,8 +969,7 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
              */
             bufferCreateInfo.size += numCopyRegions * elementSize * 4;
         }
-        copyRegions = (VkBufferImageCopy*)malloc(sizeof(VkBufferImageCopy)
-                                                   * numCopyRegions);
+        copyRegions = (VkBufferImageCopy*)malloc(sizeof(VkBufferImageCopy) * numCopyRegions);
         if (copyRegions == NULL) {
             return KTX_OUT_OF_MEMORY;
         }
@@ -1067,9 +978,8 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
         bufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
         bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-        VK_CHECK_RESULT(
-                vdi->vkFuncs.vkCreateBuffer(vdi->device, &bufferCreateInfo,
-                                       vdi->pAllocator, &stagingBuffer));
+        VK_CHECK_RESULT(vdi->vkFuncs.vkCreateBuffer(vdi->device, &bufferCreateInfo, vdi->pAllocator,
+                                                    &stagingBuffer));
 
         // Get memory requirements for the staging buffer (alignment,
         // memory type bits)
@@ -1078,43 +988,35 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
         memAllocInfo.allocationSize = memReqs.size;
         // Get memory type index for a host visible buffer
         memAllocInfo.memoryTypeIndex = ktxVulkanDeviceInfo_getMemoryType(
-                vdi,
-                memReqs.memoryTypeBits,
-                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
-              | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-        );
+            vdi, memReqs.memoryTypeBits,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
         uint64_t stagingAllocId = 0ull;
         if (!useSuballocator) {
-            vResult = vdi->vkFuncs.vkAllocateMemory(vdi->device, &memAllocInfo,
-                vdi->pAllocator, &stagingMemory);
+            vResult = vdi->vkFuncs.vkAllocateMemory(vdi->device, &memAllocInfo, vdi->pAllocator,
+                                                    &stagingMemory);
             if (vResult != VK_SUCCESS) {
                 return KTX_OUT_OF_MEMORY;
             }
             VK_CHECK_RESULT(
-                    vdi->vkFuncs.vkBindBufferMemory(vdi->device, stagingBuffer,
-                        stagingMemory, 0));
+                vdi->vkFuncs.vkBindBufferMemory(vdi->device, stagingBuffer, stagingMemory, 0));
 
-            VK_CHECK_RESULT(
-                    vdi->vkFuncs.vkMapMemory(vdi->device, stagingMemory, 0,
-                        memReqs.size, 0,
-                        (void**)&pMappedStagingBuffer));
-        }
-        else {
+            VK_CHECK_RESULT(vdi->vkFuncs.vkMapMemory(vdi->device, stagingMemory, 0, memReqs.size, 0,
+                                                     (void**)&pMappedStagingBuffer));
+        } else {
             uint64_t numPages = 0ull;
-            stagingAllocId = subAllocatorCallbacks->allocMemFuncPtr(&memAllocInfo, &memReqs, &numPages);
+            stagingAllocId =
+                subAllocatorCallbacks->allocMemFuncPtr(&memAllocInfo, &memReqs, &numPages);
             if (stagingAllocId == 0ull) {
                 return KTX_OUT_OF_MEMORY;
             }
-            if (numPages > 1ull) { // Sparse binding of KTX textures is unsupported for the moment
+            if (numPages > 1ull) {  // Sparse binding of KTX textures is unsupported for the moment
                 return KTX_UNSUPPORTED_FEATURE;
             }
             VK_CHECK_RESULT(
                 subAllocatorCallbacks->bindBufferFuncPtr(stagingBuffer, stagingAllocId));
-            VK_CHECK_RESULT(
-                subAllocatorCallbacks->memoryMapFuncPtr(stagingAllocId, 0ull, 
-                &memReqs.size,
-                (void**)&pMappedStagingBuffer));
+            VK_CHECK_RESULT(subAllocatorCallbacks->memoryMapFuncPtr(
+                stagingAllocId, 0ull, &memReqs.size, (void**)&pMappedStagingBuffer));
         }
 
         cbData.offset = 0;
@@ -1141,17 +1043,13 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
                 /* The strange cast quiets an Xcode warning when building
                  * for the Generic iOS Device where size_t is 32-bit even
                  * when building for arm64. */
-                kResult = ktxTexture_LoadImageData(This,
-                                      pMappedStagingBuffer,
-                                      (ktx_size_t)memAllocInfo.allocationSize);
-                if (kResult != KTX_SUCCESS)
-                    return kResult;
+                kResult = ktxTexture_LoadImageData(This, pMappedStagingBuffer,
+                                                   (ktx_size_t)memAllocInfo.allocationSize);
+                if (kResult != KTX_SUCCESS) return kResult;
             }
 
             // Iterate over mip levels to set up the copy regions.
-            kResult = ktxTexture_IterateLevels(This,
-                                               optimalTilingCallback,
-                                               &cbData);
+            kResult = ktxTexture_IterateLevels(This, optimalTilingCallback, &cbData);
             // XXX Check for possible errors.
         } else {
             // Iterate over face-levels with callback that copies the
@@ -1159,15 +1057,9 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
             // removing padding. Using face-levels minimizes pre-staging-buffer
             // buffering, in the event the data is not already loaded.
             if (This->pData) {
-                kResult = ktxTexture_IterateLevelFaces(
-                                            This,
-                                            optimalTilingPadCallback,
-                                            &cbData);
+                kResult = ktxTexture_IterateLevelFaces(This, optimalTilingPadCallback, &cbData);
             } else {
-                kResult = ktxTexture_IterateLoadLevelFaces(
-                                            This,
-                                            optimalTilingPadCallback,
-                                            &cbData);
+                kResult = ktxTexture_IterateLoadLevelFaces(This, optimalTilingPadCallback, &cbData);
                 // XXX Check for possible errors.
             }
         }
@@ -1193,33 +1085,28 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
         imageCreateInfo.extent.height = vkTexture->height;
         imageCreateInfo.extent.depth = vkTexture->depth;
 
-        VK_CHECK_RESULT(
-                vdi->vkFuncs.vkCreateImage(vdi->device, &imageCreateInfo,
-                                      vdi->pAllocator, &vkTexture->image));
+        VK_CHECK_RESULT(vdi->vkFuncs.vkCreateImage(vdi->device, &imageCreateInfo, vdi->pAllocator,
+                                                   &vkTexture->image));
 
         vdi->vkFuncs.vkGetImageMemoryRequirements(vdi->device, vkTexture->image, &memReqs);
 
         memAllocInfo.allocationSize = memReqs.size;
         memAllocInfo.memoryTypeIndex = ktxVulkanDeviceInfo_getMemoryType(
-            vdi, memReqs.memoryTypeBits,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+            vdi, memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
         if (!useSuballocator) {
-            VK_CHECK_RESULT(
-                vdi->vkFuncs.vkAllocateMemory(vdi->device, &memAllocInfo,
-                    vdi->pAllocator,
-                    &vkTexture->deviceMemory));
-            VK_CHECK_RESULT(
-                vdi->vkFuncs.vkBindImageMemory(vdi->device, vkTexture->image,
-                    vkTexture->deviceMemory, 0));
-        }
-        else {
+            VK_CHECK_RESULT(vdi->vkFuncs.vkAllocateMemory(
+                vdi->device, &memAllocInfo, vdi->pAllocator, &vkTexture->deviceMemory));
+            VK_CHECK_RESULT(vdi->vkFuncs.vkBindImageMemory(vdi->device, vkTexture->image,
+                                                           vkTexture->deviceMemory, 0));
+        } else {
             uint64_t numPages = 0ull;
-            vkTexture->allocationId = subAllocatorCallbacks->allocMemFuncPtr(&memAllocInfo, &memReqs, &numPages);
+            vkTexture->allocationId =
+                subAllocatorCallbacks->allocMemFuncPtr(&memAllocInfo, &memReqs, &numPages);
             if (vkTexture->allocationId == 0ull) {
                 return KTX_OUT_OF_MEMORY;
             }
-            if(numPages > 1ull) { // Sparse binding of KTX textures is unsupported for the moment
+            if (numPages > 1ull) {  // Sparse binding of KTX textures is unsupported for the moment
                 return KTX_UNSUPPORTED_FEATURE;
             }
             VK_CHECK_RESULT(
@@ -1235,59 +1122,42 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
         // Image barrier to transition, possibly only the base level, image
         // layout to TRANSFER_DST_OPTIMAL so it can be used as the copy
         // destination.
-        setImageLayout(
-            vdi->vkFuncs,
-            vdi->cmdBuffer,
-            vkTexture->image,
-            VK_IMAGE_LAYOUT_UNDEFINED,
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            subresourceRange);
+        setImageLayout(vdi->vkFuncs, vdi->cmdBuffer, vkTexture->image, VK_IMAGE_LAYOUT_UNDEFINED,
+                       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, subresourceRange);
 
         // Copy mip levels from staging buffer
-        vdi->vkFuncs.vkCmdCopyBufferToImage(
-            vdi->cmdBuffer, stagingBuffer,
-            vkTexture->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            numCopyRegions, copyRegions
-            );
+        vdi->vkFuncs.vkCmdCopyBufferToImage(vdi->cmdBuffer, stagingBuffer, vkTexture->image,
+                                            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, numCopyRegions,
+                                            copyRegions);
 
         free(copyRegions);
 
         if (This->generateMipmaps) {
-            generateMipmaps(vkTexture, vdi,
-                            blitFilter, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+            generateMipmaps(vkTexture, vdi, blitFilter, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
         } else {
             // Transition image layout to finalLayout after all mip levels
             // have been copied.
             // In this case numImageLevels == This->numLevels
-            //subresourceRange.levelCount = numImageLevels;
-            setImageLayout(
-                vdi->vkFuncs,
-                vdi->cmdBuffer,
-                vkTexture->image,
-                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                finalLayout,
-                subresourceRange);
+            // subresourceRange.levelCount = numImageLevels;
+            setImageLayout(vdi->vkFuncs, vdi->cmdBuffer, vkTexture->image,
+                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, finalLayout, subresourceRange);
         }
 
         // Submit command buffer containing copy and image layout commands
-        VK_CHECK_RESULT(
-                vdi->vkFuncs.vkEndCommandBuffer(vdi->cmdBuffer));
+        VK_CHECK_RESULT(vdi->vkFuncs.vkEndCommandBuffer(vdi->cmdBuffer));
 
         // Create a fence to make sure that the copies have finished before
         // continuing
         VK_CHECK_RESULT(
-                vdi->vkFuncs.vkCreateFence(vdi->device, &fenceCreateInfo,
-                                      vdi->pAllocator, &copyFence));
+            vdi->vkFuncs.vkCreateFence(vdi->device, &fenceCreateInfo, vdi->pAllocator, &copyFence));
 
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &vdi->cmdBuffer;
 
-        VK_CHECK_RESULT(
-                vdi->vkFuncs.vkQueueSubmit(vdi->queue, 1, &submitInfo, copyFence));
+        VK_CHECK_RESULT(vdi->vkFuncs.vkQueueSubmit(vdi->queue, 1, &submitInfo, copyFence));
 
-        VK_CHECK_RESULT(
-                vdi->vkFuncs.vkWaitForFences(vdi->device, 1, &copyFence,
-                                        VK_TRUE, DEFAULT_FENCE_TIMEOUT));
+        VK_CHECK_RESULT(vdi->vkFuncs.vkWaitForFences(vdi->device, 1, &copyFence, VK_TRUE,
+                                                     DEFAULT_FENCE_TIMEOUT));
 
         vdi->vkFuncs.vkDestroyFence(vdi->device, copyFence, vdi->pAllocator);
 
@@ -1297,16 +1167,11 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
         else
             subAllocatorCallbacks->freeMemFuncPtr(stagingAllocId);
         vdi->vkFuncs.vkDestroyBuffer(vdi->device, stagingBuffer, vdi->pAllocator);
-    }
-    else
-    {
+    } else {
         VkImage mappableImage;
         VkDeviceMemory mappableMemory = VK_NULL_HANDLE;
-        VkFence nullFence = { VK_NULL_HANDLE };
-        VkSubmitInfo submitInfo = {
-            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-            .pNext = NULL
-        };
+        VkFence nullFence = {VK_NULL_HANDLE};
+        VkSubmitInfo submitInfo = {.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO, .pNext = NULL};
         user_cbdata_linear cbData;
         PFNKTXITERCB callback;
 
@@ -1326,9 +1191,8 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
         imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
 
         // Load mip map level 0 to linear tiling image
-        VK_CHECK_RESULT(
-                vdi->vkFuncs.vkCreateImage(vdi->device, &imageCreateInfo,
-                                      vdi->pAllocator, &mappableImage));
+        VK_CHECK_RESULT(vdi->vkFuncs.vkCreateImage(vdi->device, &imageCreateInfo, vdi->pAllocator,
+                                                   &mappableImage));
 
         // Get memory requirements for this image
         // like size and alignment
@@ -1338,28 +1202,26 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
 
         // Get memory type that can be mapped to host memory
         memAllocInfo.memoryTypeIndex = ktxVulkanDeviceInfo_getMemoryType(
-                vdi,
-                memReqs.memoryTypeBits,
-                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+            vdi, memReqs.memoryTypeBits,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
         // Allocate host memory
         if (!useSuballocator) {
             vResult = vdi->vkFuncs.vkAllocateMemory(vdi->device, &memAllocInfo, vdi->pAllocator,
-                &mappableMemory);
+                                                    &mappableMemory);
             if (vResult != VK_SUCCESS) {
                 return KTX_OUT_OF_MEMORY;
             }
             VK_CHECK_RESULT(
-                vdi->vkFuncs.vkBindImageMemory(vdi->device, mappableImage,
-                    mappableMemory, 0));
-        }
-        else {
+                vdi->vkFuncs.vkBindImageMemory(vdi->device, mappableImage, mappableMemory, 0));
+        } else {
             uint64_t numPages = 0ull;
-            vkTexture->allocationId = subAllocatorCallbacks->allocMemFuncPtr(&memAllocInfo, &memReqs, &numPages);
+            vkTexture->allocationId =
+                subAllocatorCallbacks->allocMemFuncPtr(&memAllocInfo, &memReqs, &numPages);
             if (vkTexture->allocationId == 0ull) {
                 return KTX_OUT_OF_MEMORY;
             }
-            if (numPages > 1ull) { // Sparse binding of KTX textures is unsupported for the moment
+            if (numPages > 1ull) {  // Sparse binding of KTX textures is unsupported for the moment
                 return KTX_UNSUPPORTED_FEATURE;
             }
             VK_CHECK_RESULT(
@@ -1370,30 +1232,22 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
         cbData.destImage = mappableImage;
         cbData.device = vdi->device;
         cbData.texture = This;
-        callback = canUseFasterPath ?
-                         linearTilingCallback : linearTilingPadCallback;
+        callback = canUseFasterPath ? linearTilingCallback : linearTilingPadCallback;
 
         // Map image memory
         if (!useSuballocator) {
-            VK_CHECK_RESULT(
-                vdi->vkFuncs.vkMapMemory(vdi->device, mappableMemory, 0,
-                    memReqs.size, 0, (void**)&cbData.dest));
-        }
-        else {
-            VK_CHECK_RESULT(
-                subAllocatorCallbacks->memoryMapFuncPtr(vkTexture->allocationId, 0ull,
-                    &memReqs.size, (void**)&cbData.dest));
+            VK_CHECK_RESULT(vdi->vkFuncs.vkMapMemory(vdi->device, mappableMemory, 0, memReqs.size,
+                                                     0, (void**)&cbData.dest));
+        } else {
+            VK_CHECK_RESULT(subAllocatorCallbacks->memoryMapFuncPtr(
+                vkTexture->allocationId, 0ull, &memReqs.size, (void**)&cbData.dest));
         }
 
         // Iterate over images to copy texture data into mapped image memory.
         if (ktxTexture_isActiveStream(This)) {
-            kResult = ktxTexture_IterateLoadLevelFaces(This,
-                                                       callback,
-                                                       &cbData);
+            kResult = ktxTexture_IterateLoadLevelFaces(This, callback, &cbData);
         } else {
-            kResult = ktxTexture_IterateLevelFaces(This,
-                                                   callback,
-                                                   &cbData);
+            kResult = ktxTexture_IterateLevelFaces(This, callback, &cbData);
         }
         // XXX Check for possible errors
         if (!useSuballocator)
@@ -1406,9 +1260,7 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
         if (!useSuballocator) vkTexture->deviceMemory = mappableMemory;
 
         if (This->generateMipmaps) {
-            generateMipmaps(vkTexture, vdi,
-                            blitFilter,
-                            VK_IMAGE_LAYOUT_PREINITIALIZED);
+            generateMipmaps(vkTexture, vdi, blitFilter, VK_IMAGE_LAYOUT_PREINITIALIZED);
         } else {
             VkImageSubresourceRange subresourceRange;
             subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -1417,14 +1269,9 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
             subresourceRange.baseArrayLayer = 0;
             subresourceRange.layerCount = numImageLayers;
 
-           // Transition image layout to finalLayout.
-            setImageLayout(
-                vdi->vkFuncs,
-                vdi->cmdBuffer,
-                vkTexture->image,
-                VK_IMAGE_LAYOUT_PREINITIALIZED,
-                finalLayout,
-                subresourceRange);
+            // Transition image layout to finalLayout.
+            setImageLayout(vdi->vkFuncs, vdi->cmdBuffer, vkTexture->image,
+                           VK_IMAGE_LAYOUT_PREINITIALIZED, finalLayout, subresourceRange);
         }
 
         // Submit command buffer containing image layout commands
@@ -1449,14 +1296,11 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
  * callbacks. Use that for complete control.
  */
 KTX_error_code
-ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
-    ktxVulkanTexture* vkTexture,
-    VkImageTiling tiling,
-    VkImageUsageFlags usageFlags,
-    VkImageLayout finalLayout)
-{
-    return ktxTexture_VkUploadEx_WithSuballocator(This, vdi, vkTexture,
-                                                  tiling, usageFlags, finalLayout, NULL);
+ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi, ktxVulkanTexture* vkTexture,
+                      VkImageTiling tiling, VkImageUsageFlags usageFlags,
+                      VkImageLayout finalLayout) {
+    return ktxTexture_VkUploadEx_WithSuballocator(This, vdi, vkTexture, tiling, usageFlags,
+                                                  finalLayout, NULL);
 }
 
 /**
@@ -1471,11 +1315,8 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
  * control.
  */
 KTX_error_code
-ktxTexture_VkUpload(ktxTexture* texture, ktxVulkanDeviceInfo* vdi,
-                    ktxVulkanTexture *vkTexture)
-{
-    return ktxTexture_VkUploadEx(ktxTexture(texture), vdi, vkTexture,
-                                 VK_IMAGE_TILING_OPTIMAL,
+ktxTexture_VkUpload(ktxTexture* texture, ktxVulkanDeviceInfo* vdi, ktxVulkanTexture* vkTexture) {
+    return ktxTexture_VkUploadEx(ktxTexture(texture), vdi, vkTexture, VK_IMAGE_TILING_OPTIMAL,
                                  VK_IMAGE_USAGE_SAMPLED_BIT,
                                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
@@ -1490,16 +1331,12 @@ ktxTexture_VkUpload(ktxTexture* texture, ktxVulkanDeviceInfo* vdi,
  * @copydetails ktxTexture::ktxTexture_VkUploadEx_WithSuballocator
  */
 KTX_error_code
-ktxTexture1_VkUploadEx_WithSuballocator(ktxTexture1* This, ktxVulkanDeviceInfo* vdi,
-                                        ktxVulkanTexture* vkTexture,
-                                        VkImageTiling tiling,
-                                        VkImageUsageFlags usageFlags,
-                                        VkImageLayout finalLayout,
-                                        ktxVulkanTexture_subAllocatorCallbacks* subAllocatorCallbacks)
-{
-    return ktxTexture_VkUploadEx_WithSuballocator(ktxTexture(This), vdi, vkTexture,
-                                                  tiling, usageFlags, finalLayout,
-                                                  subAllocatorCallbacks);
+ktxTexture1_VkUploadEx_WithSuballocator(
+    ktxTexture1* This, ktxVulkanDeviceInfo* vdi, ktxVulkanTexture* vkTexture, VkImageTiling tiling,
+    VkImageUsageFlags usageFlags, VkImageLayout finalLayout,
+    ktxVulkanTexture_subAllocatorCallbacks* subAllocatorCallbacks) {
+    return ktxTexture_VkUploadEx_WithSuballocator(ktxTexture(This), vdi, vkTexture, tiling,
+                                                  usageFlags, finalLayout, subAllocatorCallbacks);
 }
 
 /** @memberof ktxTexture1
@@ -1509,14 +1346,10 @@ ktxTexture1_VkUploadEx_WithSuballocator(ktxTexture1* This, ktxVulkanDeviceInfo* 
  * @copydetails ktxTexture::ktxTexture_VkUploadEx
  */
 KTX_error_code
-ktxTexture1_VkUploadEx(ktxTexture1* This, ktxVulkanDeviceInfo* vdi,
-                       ktxVulkanTexture* vkTexture,
-                       VkImageTiling tiling,
-                       VkImageUsageFlags usageFlags,
-                       VkImageLayout finalLayout)
-{
-    return ktxTexture_VkUploadEx(ktxTexture(This), vdi, vkTexture,
-                                 tiling, usageFlags, finalLayout);
+ktxTexture1_VkUploadEx(ktxTexture1* This, ktxVulkanDeviceInfo* vdi, ktxVulkanTexture* vkTexture,
+                       VkImageTiling tiling, VkImageUsageFlags usageFlags,
+                       VkImageLayout finalLayout) {
+    return ktxTexture_VkUploadEx(ktxTexture(This), vdi, vkTexture, tiling, usageFlags, finalLayout);
 }
 
 /** @memberof ktxTexture1
@@ -1529,11 +1362,8 @@ ktxTexture1_VkUploadEx(ktxTexture1* This, ktxVulkanDeviceInfo* vdi,
  * @c VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL. Use that for complete control.
  */
 KTX_error_code
-ktxTexture1_VkUpload(ktxTexture1* texture, ktxVulkanDeviceInfo* vdi,
-                     ktxVulkanTexture *vkTexture)
-{
-    return ktxTexture_VkUploadEx(ktxTexture(texture), vdi, vkTexture,
-                                 VK_IMAGE_TILING_OPTIMAL,
+ktxTexture1_VkUpload(ktxTexture1* texture, ktxVulkanDeviceInfo* vdi, ktxVulkanTexture* vkTexture) {
+    return ktxTexture_VkUploadEx(ktxTexture(texture), vdi, vkTexture, VK_IMAGE_TILING_OPTIMAL,
                                  VK_IMAGE_USAGE_SAMPLED_BIT,
                                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
@@ -1548,16 +1378,12 @@ ktxTexture1_VkUpload(ktxTexture1* texture, ktxVulkanDeviceInfo* vdi,
  * @copydetails ktxTexture::ktxTexture_VkUploadEx_WithSuballocator
  */
 KTX_error_code
-ktxTexture2_VkUploadEx_WithSuballocator(ktxTexture2* This, ktxVulkanDeviceInfo* vdi,
-                                        ktxVulkanTexture* vkTexture,
-                                        VkImageTiling tiling,
-                                        VkImageUsageFlags usageFlags,
-                                        VkImageLayout finalLayout,
-                                        ktxVulkanTexture_subAllocatorCallbacks* subAllocatorCallbacks)
-{
-    return ktxTexture_VkUploadEx_WithSuballocator(ktxTexture(This), vdi, vkTexture,
-                                                  tiling, usageFlags, finalLayout,
-                                                  subAllocatorCallbacks);
+ktxTexture2_VkUploadEx_WithSuballocator(
+    ktxTexture2* This, ktxVulkanDeviceInfo* vdi, ktxVulkanTexture* vkTexture, VkImageTiling tiling,
+    VkImageUsageFlags usageFlags, VkImageLayout finalLayout,
+    ktxVulkanTexture_subAllocatorCallbacks* subAllocatorCallbacks) {
+    return ktxTexture_VkUploadEx_WithSuballocator(ktxTexture(This), vdi, vkTexture, tiling,
+                                                  usageFlags, finalLayout, subAllocatorCallbacks);
 }
 
 /** @memberof ktxTexture2
@@ -1569,14 +1395,10 @@ ktxTexture2_VkUploadEx_WithSuballocator(ktxTexture2* This, ktxVulkanDeviceInfo* 
  * @copydetails ktxTexture::ktxTexture_VkUploadEx
  */
 KTX_error_code
-ktxTexture2_VkUploadEx(ktxTexture2* This, ktxVulkanDeviceInfo* vdi,
-                       ktxVulkanTexture* vkTexture,
-                       VkImageTiling tiling,
-                       VkImageUsageFlags usageFlags,
-                       VkImageLayout finalLayout)
-{
-    return ktxTexture_VkUploadEx(ktxTexture(This), vdi, vkTexture,
-                                 tiling, usageFlags, finalLayout);
+ktxTexture2_VkUploadEx(ktxTexture2* This, ktxVulkanDeviceInfo* vdi, ktxVulkanTexture* vkTexture,
+                       VkImageTiling tiling, VkImageUsageFlags usageFlags,
+                       VkImageLayout finalLayout) {
+    return ktxTexture_VkUploadEx(ktxTexture(This), vdi, vkTexture, tiling, usageFlags, finalLayout);
 }
 
 /** @memberof ktxTexture2
@@ -1589,11 +1411,8 @@ ktxTexture2_VkUploadEx(ktxTexture2* This, ktxVulkanDeviceInfo* vdi,
  * @c VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL. Use that for complete control.
  */
 KTX_error_code
-ktxTexture2_VkUpload(ktxTexture2* This, ktxVulkanDeviceInfo* vdi,
-                     ktxVulkanTexture *vkTexture)
-{
-    return ktxTexture_VkUploadEx(ktxTexture(This), vdi, vkTexture,
-                                 VK_IMAGE_TILING_OPTIMAL,
+ktxTexture2_VkUpload(ktxTexture2* This, ktxVulkanDeviceInfo* vdi, ktxVulkanTexture* vkTexture) {
+    return ktxTexture_VkUploadEx(ktxTexture(This), vdi, vkTexture, VK_IMAGE_TILING_OPTIMAL,
                                  VK_IMAGE_USAGE_SAMPLED_BIT,
                                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
@@ -1606,14 +1425,12 @@ ktxTexture2_VkUpload(ktxTexture2* This, ktxVulkanDeviceInfo* vdi,
  *         there is no mapping from the GL internalformat and format.
  */
 VkFormat
-ktxTexture1_GetVkFormat(ktxTexture1* This)
-{
+ktxTexture1_GetVkFormat(ktxTexture1* This) {
     VkFormat vkFormat;
 
     vkFormat = vkGetFormatFromOpenGLInternalFormat(This->glInternalformat);
     if (vkFormat == VK_FORMAT_UNDEFINED) {
-        vkFormat = vkGetFormatFromOpenGLFormat(This->glFormat,
-            This->glType);
+        vkFormat = vkGetFormatFromOpenGLFormat(This->glFormat, This->glType);
     }
     return vkFormat;
 }
@@ -1625,8 +1442,7 @@ ktxTexture1_GetVkFormat(ktxTexture1* This)
  * @return The VkFormat of the texture object.
  */
 VkFormat
-ktxTexture2_GetVkFormat(ktxTexture2* This)
-{
+ktxTexture2_GetVkFormat(ktxTexture2* This) {
     return This->vkFormat;
 }
 
@@ -1634,14 +1450,14 @@ ktxTexture2_GetVkFormat(ktxTexture2* This)
  * @~English
  * @brief Return the VkFormat enum of a ktxTexture object.
  *
- * In ordert to ensure that the Vulkan uploader is not linked into an application unless explicitly called,
- * this is not a virtual function. It determines the texture type then dispatches to the correct function.
+ * In ordert to ensure that the Vulkan uploader is not linked into an application unless explicitly
+ * called, this is not a virtual function. It determines the texture type then dispatches to the
+ * correct function.
  * @sa @ref ktxTexture1::ktxTexture1_GetVkFormat "ktxTexture1_GetVkFormat()"
  * @sa @ref ktxTexture2::ktxTexture2_GetVkFormat "ktxTexture2_GetVkFormat()"
  */
 VkFormat
-ktxTexture_GetVkFormat(ktxTexture* This)
-{
+ktxTexture_GetVkFormat(ktxTexture* This) {
     if (This->classId == ktxTexture2_c)
         return ktxTexture2_GetVkFormat((ktxTexture2*)This);
     else
@@ -1661,22 +1477,15 @@ ktxTexture_GetVkFormat(ktxTexture* This)
  * chapter 11.4 "Image Layout" for details.
  */
 static void
-setImageLayout(
-    ktxVulkanFunctions vkFuncs,
-    VkCommandBuffer cmdBuffer,
-    VkImage image,
-    VkImageLayout oldLayout,
-    VkImageLayout newLayout,
-    VkImageSubresourceRange subresourceRange)
-{
+setImageLayout(ktxVulkanFunctions vkFuncs, VkCommandBuffer cmdBuffer, VkImage image,
+               VkImageLayout oldLayout, VkImageLayout newLayout,
+               VkImageSubresourceRange subresourceRange) {
     // Create an image barrier object
-    VkImageMemoryBarrier imageMemoryBarrier = {
-        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-        .pNext = NULL,
-         // Some default values
-        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED
-    };
+    VkImageMemoryBarrier imageMemoryBarrier = {.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                                               .pNext = NULL,
+                                               // Some default values
+                                               .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                                               .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED};
 
     imageMemoryBarrier.oldLayout = oldLayout;
     imageMemoryBarrier.newLayout = newLayout;
@@ -1686,8 +1495,7 @@ setImageLayout(
     // Source layouts (old)
     // The source access mask controls actions to be finished on the old
     // layout before it will be transitioned to the new layout.
-    switch (oldLayout)
-    {
+    switch (oldLayout) {
     case VK_IMAGE_LAYOUT_UNDEFINED:
         // Image layout is undefined (or does not matter).
         // Only valid as initial layout. No flags required.
@@ -1710,8 +1518,7 @@ setImageLayout(
     case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
         // Image is a depth/stencil attachment.
         // Make sure any writes to the depth/stencil buffer have finished.
-        imageMemoryBarrier.srcAccessMask
-                                = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+        imageMemoryBarrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
         break;
 
     case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
@@ -1740,8 +1547,7 @@ setImageLayout(
     // Target layouts (new)
     // The destination access mask controls the dependency for the new image
     // layout.
-    switch (newLayout)
-    {
+    switch (newLayout) {
     case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
         // Image will be used as a transfer destination.
         // Make sure any writes to the image have finished.
@@ -1765,17 +1571,15 @@ setImageLayout(
     case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
         // Image layout will be used as a depth/stencil attachment.
         // Make sure any writes to depth/stencil buffer have finished.
-        imageMemoryBarrier.dstAccessMask
-                                = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+        imageMemoryBarrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
         break;
 
     case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
         // Image will be read in a shader (sampler, input attachment).
         // Make sure any writes to the image have finished.
-        if (imageMemoryBarrier.srcAccessMask == 0)
-        {
-            imageMemoryBarrier.srcAccessMask
-                    = VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
+        if (imageMemoryBarrier.srcAccessMask == 0) {
+            imageMemoryBarrier.srcAccessMask =
+                VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
         }
         imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
         break;
@@ -1789,14 +1593,8 @@ setImageLayout(
     VkPipelineStageFlags destStageFlags = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
 
     // Add the barrier to the passed command buffer
-    vkFuncs.vkCmdPipelineBarrier(
-        cmdBuffer,
-        srcStageFlags,
-        destStageFlags,
-        0,
-        0, NULL,
-        0, NULL,
-        1, &imageMemoryBarrier);
+    vkFuncs.vkCmdPipelineBarrier(cmdBuffer, srcStageFlags, destStageFlags, 0, 0, NULL, 0, NULL, 1,
+                                 &imageMemoryBarrier);
 }
 
 /** @internal
@@ -1817,9 +1615,8 @@ setImageLayout(
  * @param[in] initialLayout the layout of the image on entry to the function.
  */
 static void
-generateMipmaps(ktxVulkanTexture* vkTexture, ktxVulkanDeviceInfo* vdi,
-                VkFilter blitFilter, VkImageLayout initialLayout)
-{
+generateMipmaps(ktxVulkanTexture* vkTexture, ktxVulkanDeviceInfo* vdi, VkFilter blitFilter,
+                VkImageLayout initialLayout) {
     VkImageSubresourceRange subresourceRange;
     memset(&subresourceRange, 0, sizeof(subresourceRange));
     subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -1829,29 +1626,24 @@ generateMipmaps(ktxVulkanTexture* vkTexture, ktxVulkanDeviceInfo* vdi,
     subresourceRange.layerCount = vkTexture->layerCount;
 
     // Transition base level to SRC_OPTIMAL for blitting.
-    setImageLayout(
-        vdi->vkFuncs,
-        vdi->cmdBuffer,
-        vkTexture->image,
-        initialLayout,
-        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-        subresourceRange);
+    setImageLayout(vdi->vkFuncs, vdi->cmdBuffer, vkTexture->image, initialLayout,
+                   VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, subresourceRange);
 
     // Generate the mip chain
     // ----------------------
     // Blit level n from level n-1.
-    for (uint32_t i = 1; i < vkTexture->levelCount; i++)
-    {
+    for (uint32_t i = 1; i < vkTexture->levelCount; i++) {
         VkImageBlit imageBlit;
         memset(&imageBlit, 0, sizeof(imageBlit));
 
         // Source
         imageBlit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         imageBlit.srcSubresource.layerCount = vkTexture->layerCount;
-        imageBlit.srcSubresource.mipLevel = i-1;
+        imageBlit.srcSubresource.mipLevel = i - 1;
         imageBlit.srcOffsets[1].x = MAX(1, vkTexture->width >> (i - 1));
         imageBlit.srcOffsets[1].y = MAX(1, vkTexture->height >> (i - 1));
-        imageBlit.srcOffsets[1].z = MAX(1, vkTexture->depth >> (i - 1));;
+        imageBlit.srcOffsets[1].z = MAX(1, vkTexture->depth >> (i - 1));
+        ;
 
         // Destination
         imageBlit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -1870,46 +1662,26 @@ generateMipmaps(ktxVulkanTexture* vkTexture, ktxVulkanDeviceInfo* vdi,
         mipSubRange.layerCount = vkTexture->layerCount;
 
         // Transiton current mip level to transfer dest
-        setImageLayout(
-            vdi->vkFuncs,
-            vdi->cmdBuffer,
-            vkTexture->image,
-            VK_IMAGE_LAYOUT_UNDEFINED,
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            mipSubRange);
+        setImageLayout(vdi->vkFuncs, vdi->cmdBuffer, vkTexture->image, VK_IMAGE_LAYOUT_UNDEFINED,
+                       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipSubRange);
 
         // Blit from previous level
         vdi->vkFuncs.vkCmdBlitImage(
-            vdi->cmdBuffer,
-            vkTexture->image,
-            VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-            vkTexture->image,
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            1,
-            &imageBlit,
-            blitFilter);
+            vdi->cmdBuffer, vkTexture->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+            vkTexture->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imageBlit, blitFilter);
 
         // Transiton current mip level to transfer source for read in
         // next iteration.
-        setImageLayout(
-            vdi->vkFuncs,
-            vdi->cmdBuffer,
-            vkTexture->image,
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-            mipSubRange);
+        setImageLayout(vdi->vkFuncs, vdi->cmdBuffer, vkTexture->image,
+                       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                       mipSubRange);
     }
 
     // After the loop, all mip layers are in TRANSFER_SRC layout.
     // Transition all to final layout.
     subresourceRange.levelCount = vkTexture->levelCount;
-    setImageLayout(
-        vdi->vkFuncs,
-        vdi->cmdBuffer,
-        vkTexture->image,
-        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-        vkTexture->imageLayout,
-        subresourceRange);
+    setImageLayout(vdi->vkFuncs, vdi->cmdBuffer, vkTexture->image,
+                   VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, vkTexture->imageLayout, subresourceRange);
 }
 
 //======================================================================
@@ -1935,18 +1707,14 @@ generateMipmaps(ktxVulkanTexture* vkTexture, ktxVulkanDeviceInfo* vdi,
  *                                 supplied subAllocatorCallbacks structure is incomplete.
  */
 ktx_error_code_e
-ktxVulkanTexture_Destruct_WithSuballocator(ktxVulkanTexture* vkTexture, VkDevice device,
-                                           const VkAllocationCallbacks* pAllocator,
-                                           ktxVulkanTexture_subAllocatorCallbacks* subAllocatorCallbacks)
-{
+ktxVulkanTexture_Destruct_WithSuballocator(
+    ktxVulkanTexture* vkTexture, VkDevice device, const VkAllocationCallbacks* pAllocator,
+    ktxVulkanTexture_subAllocatorCallbacks* subAllocatorCallbacks) {
     ktx_bool_t useSuballocator = false;
     if (subAllocatorCallbacks) {
-        if (subAllocatorCallbacks->allocMemFuncPtr &&
-            subAllocatorCallbacks->bindBufferFuncPtr &&
-            subAllocatorCallbacks->bindImageFuncPtr &&
-            subAllocatorCallbacks->memoryMapFuncPtr &&
-            subAllocatorCallbacks->memoryUnmapFuncPtr &&
-            subAllocatorCallbacks->freeMemFuncPtr)
+        if (subAllocatorCallbacks->allocMemFuncPtr && subAllocatorCallbacks->bindBufferFuncPtr &&
+            subAllocatorCallbacks->bindImageFuncPtr && subAllocatorCallbacks->memoryMapFuncPtr &&
+            subAllocatorCallbacks->memoryUnmapFuncPtr && subAllocatorCallbacks->freeMemFuncPtr)
             useSuballocator = true;
         else
             return KTX_INVALID_VALUE;
@@ -1974,10 +1742,8 @@ ktxVulkanTexture_Destruct_WithSuballocator(ktxVulkanTexture* vkTexture, VkDevice
  */
 void
 ktxVulkanTexture_Destruct(ktxVulkanTexture* vkTexture, VkDevice device,
-                          const VkAllocationCallbacks* pAllocator)
-{
+                          const VkAllocationCallbacks* pAllocator) {
     (void)ktxVulkanTexture_Destruct_WithSuballocator(vkTexture, device, pAllocator, NULL);
 }
-
 
 /** @} */

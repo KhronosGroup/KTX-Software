@@ -25,18 +25,13 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-class TextureArray : public InstancedSampleBase
-{
+class TextureArray : public InstancedSampleBase {
   public:
-    TextureArray(VulkanContext& vkctx,
-                 uint32_t width, uint32_t height,
-                 const char* const szArgs,
+    TextureArray(VulkanContext& vkctx, uint32_t width, uint32_t height, const char* const szArgs,
                  const std::string sBasePath);
 
-    static VulkanLoadTestSample*
-    create(VulkanContext& vkctx,
-           uint32_t width, uint32_t height,
-           const char* const szArgs, const std::string sBasePath);
+    static VulkanLoadTestSample* create(VulkanContext& vkctx, uint32_t width, uint32_t height,
+                                        const char* const szArgs, const std::string sBasePath);
 };
 
 #endif /* _TEXTURE_ARRAY_H_ */

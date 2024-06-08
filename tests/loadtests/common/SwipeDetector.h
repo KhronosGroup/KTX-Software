@@ -22,7 +22,7 @@ class SwipeDetector {
         eSwipeRight
     };
 
-    SwipeDetector() : mgestureFirstSaved(false), mgestureSwipe(false) { }
+    SwipeDetector() : mgestureFirstSaved(false), mgestureSwipe(false) {}
 
     result doEvent(SDL_Event* event);
 
