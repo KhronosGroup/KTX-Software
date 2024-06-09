@@ -4,7 +4,7 @@
 # Use ktx compare for diff'ing .ktx2 files.
 # Note ktx-compare-git expects `ktx` to be in the user's path
 [diff "ktx-compare"]
-    command = scripts/ktx-compare-git
+    command = bash scripts/ktx-compare-git
 
 # Filters used by KTX repo
 [filter "keyworder"]

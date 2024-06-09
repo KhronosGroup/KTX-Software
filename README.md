@@ -34,7 +34,9 @@ Javascript wrapper for Basis Universal formats. For use with KTX parsers written
 - *libktx.jar, libktx-jni* - Java wrapper and native interface library.
 [`interface/java_binding`](https://github.com/KhronosGroup/KTX-Software/tree/main/interface/java_binding)
 - *ktx* - a generic command line tool for managing KTX2 files with subcommands.[`tools/ktx`](https://github.com/KhronosGroup/KTX-Software/tree/main/tools/ktx)
+  - *ktx compare* - Compare two KTX2 files
   - *ktx create* - Create a KTX2 file from various input files
+  - *ktx deflate* - Deflate a KTX2 file with zstd or ZLIB
   - *ktx extract* - Export selected images from a KTX2 file
   - *ktx encode* - Encode a KTX2 file
   - *ktx transcode* - Transcode a KTX2 file
@@ -122,4 +124,33 @@ these files.
 
 ### Useful Tools
 
-For finding strings within the KTX-Software source use `scripts/gk`. Type `scripts/gk -h` for help. `gk` avoids looking in any build directories, `.git`, `external` or `tests/cts`.
+#### scripts/gk
+
+For finding strings within the KTX-Software source. Type `scripts/gk -h` for help. `gk` avoids looking in any build directories, `.git`, `external` or `tests/cts`.
+
+#### scripts/ktx-compare-git
+
+Wrapper that allows use of `ktx compare` when using `git diff` on KTX2 files.
+Together with this, `.gitconfig` now includes a *ktx-compare* diff command.
+Those wishing to use this must run, or have run, install-gitconfig.{ps1,sh}
+as described above for keyword expansion so that `.gitconfig` is
+included by your local `.git/config`.
+    
+You need to have the `ktx` command installed in a directory on your $PATH.
+    
+You need to add the line
+
+``` 
+*.ktx2 binary diff=ktx-compare
+```
+  
+to your repo clone's `.git/info/attributes`. This is not included in the repo's
+`.gitattributes` because not everyone will have the `ktx` command installed nor have `.gitconfig` included by `.git/config`.
+
+*NOTE:* This line in a user-global or system-global Git attributes file will not 
+work because those are lower priority than `.gitattributes` so are read first
+and `.gitattributes` already has an entry for *.ktx2, indicating binary, which
+overrides anything from the global files.
+
+We will be happy to accept a PR to add a .ps1 equivalent script.
+
