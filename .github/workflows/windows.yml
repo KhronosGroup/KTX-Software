@@ -125,7 +125,7 @@ jobs:
         fetch-depth: 0
 
     - name: Check vcruntime140.dll version
-      if: matrix.os == 'windows.latest'
+      if: matrix.os == 'windows-latest'
       run: |
         echo "((Get-Command vcruntime140.dll).Path)"
         echo ((Get-Command vcruntime140.dll).Path)
