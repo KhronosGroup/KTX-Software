@@ -15,7 +15,7 @@ for ($i=0; $i -lt $args.length; $i++)
 function Set-ConfigVariable {
   param ( $VariableName, $DefaultValue )
   $res = get-variable $VariableName -ValueOnly -ErrorAction 'SilentlyContinue'
-  if ($res -eq $null) {
+  if ([string]::IsNullOrEmpty($res)) {
     $res = [Environment]::GetEnvironmentVariable($VariableName)
     if ($res -eq $null) {
         $res = $DefaultValue
