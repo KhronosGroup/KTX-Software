@@ -152,5 +152,10 @@ work because those are lower priority than `.gitattributes` so are read first
 and `.gitattributes` already has an entry for *.ktx2, indicating binary, which
 overrides anything from the global files.
 
+To set up your `tests/cts` submodule to use this, copy the *ktx-compare* diff
+command to `.git/modules/tests/cts/config`. Depending on when you set up the
+submodule and when you ran `install-gitconfig.sh`, it may already be there.
+Add the attribute line to `.git/modules/tests/cts/info/attributes`.
+
 We will be happy to accept a PR to add a .ps1 equivalent script.
 
