@@ -1,0 +1,33 @@
+#! /usr/bin/env bash
+# -*- tab-width: 4; -*-
+# vi: set sw=2 ts=4:
+
+# Copyright 2024 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+# Wrapper for git diff to use ktx compare.
+
+# Per https://git-scm.com/docs/git/2.18.0#Documentation/git.txt-codeGITEXTERNALDIFFcode
+# git diff sends 7 arguments:
+#    path old-file old-hex old-mode new-file new-hex new-mode
+
+if [ $# -ne 7 ]; then
+  echo "$0: Git did not provide the expected 7 arguments."
+  exit 1
+fi
+
+oldfile=$2
+newfile=$5
+
+#echo "oldfile = $oldfile"
+#echo "newfile = $newfile"
+
+ktx compare $oldfile $newfile
+# Mask ktx compare's exit code. git diff expects the diff program to exit
+# without error even when there are differences.
+status=$?
+if [ $status -eq 7 ]; then
+  exit 0
+else
+  exit $status
+fi
