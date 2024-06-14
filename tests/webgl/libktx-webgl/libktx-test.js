@@ -982,12 +982,12 @@ async function runTests(filename) {
 
     await testEncodeBasis(ktexture);
     textureComp = uploadTextureToGl(gl, ktexture);
-    // upload transcodeds the texture so ktexture is uncompresssed again.
+    // upload transcodes the texture so ktexture is uncompresssed again.
     setUVMatrix(textureComp, mat3.create(), ktexture);
     setTexParameters(texture, ktexture);
     updateItem(items[basisCompTextureItem], textureComp);
     items[basisCompTextureItem].label.textContent +=
-               " transcoded to " + textureComp.format;
+               ", transcoded to " + textureComp.format;
 
     await testWriteToMemoryAndRead(ktexture)
 
