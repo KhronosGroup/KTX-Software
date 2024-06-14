@@ -7,11 +7,115 @@ All performance data on this page is measured on an Intel Core i5-9600K
 clocked at 4.2 GHz, running `astcenc` using AVX2 and 6 threads.
 
 <!-- ---------------------------------------------------------------------- -->
+## 4.8.0
+
+**Status:** May 2024
+
+The 4.8.0 release is a minor maintenance release.
+
+* **General:**
+  * **Bug fix:** Native builds on macOS will now correctly build for arm64 when
+    run outside of Rosetta on an Apple silicon device.
+  * **Bug fix:** Multiple small improvements to remove use of undefined
+    language behavior, to improve support for deployment using Emscripten.
+  * **Feature:** Builds using Clang can now build with undefined behavior
+    sanitizer by setting `-DASTCENC_UBSAN=ON` on the CMake configure line.
+  * **Feature:** Updated to Wuffs library 0.3.4, which ignores tRNS alpha chunks
+    for type 4 (LA) and 6 (RGBA) PNGs, to improve compatibility with libpng.
+
+<!-- ---------------------------------------------------------------------- -->
+## 4.7.0
+
+**Status:** January 2024
+
+The 4.7.0 release is a major maintenance release, fixing rounding behavior in
+the decompressor to match the Khronos specification. This fix includes the
+addition of explicit support for optimizing for `decode_unorm8` rounding.
+
+Reminder - the codec library API is not designed to be binary compatible across
+versions. We always recommend rebuilding your client-side code using the updated
+`astcenc.h` header.
+
+* **General:**
+  * **Bug fix:** sRGB LDR decompression now uses the correct endpoint expansion
+    method to create the 16-bit RGB endpoint colors, and removes the previous
+    correction code from the interpolation function. This bug could result in
+    LSB bit flips relative to the standard specification.
+  * **Bug fix:** Decompressing to an 8-bit per component output image now
+    matches the `decode_unorm8` extension rounding rules. This bug could result
+    in LSB bit flips relative to the standard specification.
+  * **Bug fix:** Code now avoids using `alignas()` in the reference C
+    implementation, as the  default `alignas(16)` is narrower than the
+    native minimum alignment requirement on some CPUs.
+  * **Feature:** Library configuration supports a new flag,
+    `ASTCENC_FLG_USE_DECODE_UNORM8`. This flag indicates that the image will be
+    used with the `decode_unorm8` decode mode. When set during compression
+    this allows the compressor to use the correct rounding when determining the
+    best encoding.
+  * **Feature:** Command line tool supports a new option, `-decode_unorm8`.
+    This option indicates that the image will be used with the `decode_unorm8`
+    decode mode. This option will automatically be set for decompression
+    (`-d*`) and trial (`-t*`) tool operation if the decompressed output image
+    is stored to an 8-bit per component file format. This option must be set
+    manually for compression (`-c*`) tool operation, as the desired decode mode
+    cannot be reliably determined.
+  * **Feature:** Library configuration supports a new optional progress
+    reporting callback to be specified. This is called during compression to
+    to allow interactive tooling use cases to display incremental progress. The
+    command line tool uses this feature to show compression progress unless
+    `-silent` is used.
+
+<!-- ---------------------------------------------------------------------- -->
+## 4.6.1
+
+**Status:** November 2023
+
+The 4.6.1 release is a minor maintenance release to fix a scaling bug on
+large core count Windows systems.
+
+* **General:**
+  * **Optimization:** Windows builds of the `astcenc` command line tool can now
+    use more than 64 cores on large core count systems. This change doubled
+    command line performance for `-exhaustive` compression when testing on an
+    96 core/192 thread system.
+  * **Feature:** Windows Arm64 native builds of the `astcenc` command line tool
+    are now included in the prebuilt release binaries.
+
+<!-- ---------------------------------------------------------------------- -->
+## 4.6.0
+
+**Status:** November 2023
+
+The 4.6.0 release retunes the compressor heuristics to give improvements to
+performance for trivial losses to image quality. It also includes some minor
+bug fixes and code quality improvements.
+
+Reminder - the codec library API is not designed to be binary compatible across
+versions. We always recommend rebuilding your client-side code using the updated
+`astcenc.h` header.
+
+* **General:**
+  * **Bug-fix:** Fixed context allocation for contexts allocated with the
+    `ASTCENC_FLG_DECOMPRESS_ONLY` flag.
+  * **Bug-fix:** Reduced use of `reinterpret_cast` in the core codec to
+    avoid strict aliasing violations.
+  * **Optimization:** `-medium` search quality no longer tests 4 partition
+     encodings for block sizes between 25 and 83 texels (inclusive). This
+     improves performance for a tiny drop in image quality.
+  * **Optimization:** `-thorough` and higher search qualities no longer test the
+     mode0 first search for block sizes between 25 and 83 texels (inclusive).
+     This improves performance for a tiny drop in image quality.
+  * **Optimization:** `TUNE_MAX_PARTITIONING_CANDIDATES` reduced from 32 to 8
+     to reduce the size of stack allocated data structures. This causes a tiny
+     drop in image quality for the `-verythorough` and `-exhaustive` presets.
+
+<!-- ---------------------------------------------------------------------- -->
 ## 4.5.0
 
-**Status:** In development
+**Status:** June 2023
 
-The 4.5.0 release is a maintenance release with minor fixes and improvements.
+The 4.5.0 release is a maintenance release with small image quality
+improvements, and a number of build system quality of life improvements.
 
 * **General:**
   * **Bug-fix:** Improved handling compiler arguments in CMake, including
@@ -19,6 +123,9 @@ The 4.5.0 release is a maintenance release with minor fixes and improvements.
   * **Bug-fix:** Invariant Clang builds now use `-ffp-model=precise` with
     `-ffp-contract=off` which is needed to restore invariance due to recent
     changes in compiler defaults.
+  * **Change:** macOS binary releases are now distributed as a single universal
+    binary for all platforms.
+  * **Change:** Windows binary releases are now compiled with VS2022.
   * **Change:** Invariant MSVC builds for VS2022 now use `/fp:precise` instead
     of `/fp:strict`, which is is now possible because precise no longer implies
     contraction. This should improve performance for MSVC builds.
@@ -29,10 +136,21 @@ The 4.5.0 release is a maintenance release with minor fixes and improvements.
     with `/fp:contract`. This should improve performance for MSVC builds.
   * **Change:** CMake config variables now use an `ASTCENC_` prefix to add a
     namespace and group options when the library is used in a larger project.
+  * **Change:** CMake config `ASTCENC_UNIVERSAL_BUILD` for building macOS
+    universal binaries has been improved to include the `x86_64h` slice for
+    AVX2 builds. Universal builds are now on by default for macOS, and always
+    include NEON (arm64), SSE4.1 (x86_64), and AVX2 (x86_64h) variants.
   * **Change:** CMake config `ASTCENC_NO_INVARIANCE` has been inverted to
     remove the negated option, and is now `ASTCENC_INVARIANCE` with a default
-    of `ON`. Disablign this option can substantially improve performance, but
+    of `ON`. Disabling this option can substantially improve performance, but
     images can different across platforms and compilers.
+  * **Optimization:** Color quantization and packing for LDR RGB and RGBA has
+    been vectorized to improve performance.
+  * **Change:** Color quantization for LDR RGB and RGBA endpoints will now try
+    multiple quantization packing methods, and pick the one with the lowest
+    endpoint encoding error. This gives a minor image quality improvement, for
+    no significant performance impact when combined with the vectorization
+    optimizations.
 
 <!-- ---------------------------------------------------------------------- -->
 ## 4.4.0
@@ -294,4 +412,4 @@ Key for charts:
 
 - - -
 
-_Copyright © 2022-2023, Arm Limited and contributors. All rights reserved._
+_Copyright © 2022-2024, Arm Limited and contributors. All rights reserved._

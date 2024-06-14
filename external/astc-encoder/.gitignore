@@ -40,3 +40,6 @@ TestOutput
 astc_reference-main*
 Docs/Profiling.md
 Source/astcenccli_version.h
+
+# Do not ignore workflows
+!.github/workflows/

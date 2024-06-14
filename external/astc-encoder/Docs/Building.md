@@ -10,7 +10,7 @@ backends.
 
 ## Windows
 
-Builds for Windows are tested with CMake 3.17 and Visual Studio 2019.
+Builds for Windows are tested with CMake 3.17, and Visual Studio 2019 or newer.
 
 ### Configuring the build
 
@@ -25,12 +25,12 @@ cd build
 
 # Configure your build of choice, for example:
 
-# x86-64 using NMake
-cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=..\ ^
+# x86-64 using a Visual Studio solution
+cmake -G "Visual Studio 16 2019" -T ClangCL -DCMAKE_INSTALL_PREFIX=..\ ^
     -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON ..
 
-# x86-64 using Visual Studio solution
-cmake -G "Visual Studio 16 2019" -T ClangCL -DCMAKE_INSTALL_PREFIX=..\ ^
+# x86-64 using NMake
+cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=..\ ^
     -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON ..
 ```
 
@@ -54,9 +54,10 @@ cd build
 nmake install
 ```
 
-## macOS and Linux
+## macOS and Linux using Make
 
-Builds for macOS and Linux are tested with CMake 3.17 and clang++ 9.0.
+Builds for macOS and Linux are tested with CMake 3.17, and clang++ 9.0 or
+newer.
 
 > Compiling using g++ is supported, but clang++ builds are faster by ~15%.
 
@@ -85,8 +86,7 @@ cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ 
     -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON ..
 
 # macOS universal binary build
-cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ \
-    -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_NEON=ON ..
+cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ ..
 ```
 
 A single CMake configure can build multiple binaries for a single target CPU
@@ -94,14 +94,13 @@ architecture, for example building x64 for both SSE2 and AVX2. Each binary name
 will include the build variant as a postfix. It is possible to build any set of
 the supported SIMD variants by enabling only the ones you require.
 
-For macOS, we additionally support the ability to build a universal binary,
-combining one x86 and one arm64 variant into a single output binary. The OS
-will select the correct variant to run for the machine being used to run the
-built binary. To build a universal binary select a single x86 variant and a
-single arm64 variant, and both will be included in a single output binary. It
-is not required, but if `CMAKE_OSX_ARCHITECTURES` is set on the command line
-(e.g. by XCode-generated build commands) it will be validated against the other
-configuration variant settings.
+For macOS, we additionally support the ability to build a universal binary.
+This build includes SSE4.1 (`x86_64`), AVX2 (`x86_64h`), and NEON (`arm64`)
+build slices in a single output binary. The OS will select the correct variant
+to run for the machine being used. This is the default build target for a macOS
+build, but single-target binaries can still be built by setting
+`-DASTCENC_UNIVERSAL_BINARY=OFF` and then manually selecting the specific ISA
+variants that are required.
 
 ### Building
 
@@ -113,6 +112,38 @@ your build dir, and install to your target install directory.
 # for executable binaries and `${CMAKE_INSTALL_PREFIX}/lib/` for libraries
 cd build
 make install -j16
+```
+
+## macOS using XCode
+
+Builds for macOS and Linux are tested with CMake 3.17, and XCode 14.0 or
+newer.
+
+### Configuring the build
+
+To use CMake you must first configure the build. Create a build directory
+in the root of the astcenc checkout, and then run `cmake` inside that directory
+to generate the build system.
+
+```shell
+# Create a build directory
+mkdir build
+cd build
+
+# Configure a universal build
+cmake -G Xcode -DCMAKE_INSTALL_PREFIX=../ ..
+```
+
+### Building
+
+Once you have configured the build you can use CMake to compile the project
+from your build dir, and install to your target install directory.
+
+```shell
+cmake --build . --config Release
+
+# Optionally install the binaries to the installation directory
+cmake --install . --config Release
 ```
 
 ## Advanced build options
@@ -136,7 +167,9 @@ which can make profiling more challenging ...
 ### Shared Libraries
 
 We support building the core library as a shared object by setting the CMake
-option `-DASTCENC_SHAREDLIB=ON` at configure time.
+option `-DASTCENC_SHAREDLIB=ON` at configure time. For macOS build targets the
+shared library supports the same universal build configuration as the command
+line utility.
 
 Note that the command line tool is always statically linked; the shared objects
 are an extra build output that are not currently used by the command line tool.
@@ -192,11 +225,15 @@ cd build
 ctest --verbose
 ```
 
-### Address sanitizer builds
+### Sanitizer builds
 
-We support building with ASAN on Linux and macOS when using a compiler that
-supports it. To build binaries with ASAN checking enabled add `-DASTCENC_ASAN=ON`
-to the CMake command line when configuring.
+We support building with sanitizers on Linux and macOS when using Clang.
+
+To build binaries with ASAN checking enabled add `-DASTCENC_ASAN=ON` to the
+CMake command line when configuring.
+
+To build binaries with UBSAN checking enabled add `-DASTCENC_UBSAN=ON` to the
+CMake command line when configuring.
 
 ### Android builds
 
@@ -264,4 +301,4 @@ details.
 
 - - -
 
-_Copyright © 2019-2023, Arm Limited and contributors. All rights reserved._
+_Copyright © 2019-2024, Arm Limited and contributors. All rights reserved._

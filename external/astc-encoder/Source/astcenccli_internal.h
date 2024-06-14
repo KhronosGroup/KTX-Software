@@ -385,12 +385,14 @@ int get_cpu_count();
  * All threads run the same thread function, and have the same thread payload, but are given a
  * unique thread ID (0 .. N-1) as a parameter to the run function to allow thread-specific behavior.
  *
-|* @param thread_count The number of threads to spawn.
- * @param func         The function to execute. Must have the signature:
- *                     void (int thread_count, int thread_id, void* payload)
- * @param payload      Pointer to an opaque thread payload object.
+ * @param operation      The name of the operation for this async task.
+ * @param thread_count   The number of threads to spawn.
+ * @param func           The function to execute. Must have the signature:
+ *                       void (int thread_count, int thread_id, void* payload)
+ * @param payload        Pointer to an opaque thread payload object.
  */
 void launch_threads(
+	const char* operation,
 	int thread_count,
 	void (*func)(int, int, void*),
 	void *payload);

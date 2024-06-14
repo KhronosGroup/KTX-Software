@@ -1,13 +1,13 @@
 # About
 
-This is the official repository for the Arm® Adaptive Scalable Texture
-Compression (ASTC) Encoder, `astcenc`, a command-line tool for compressing
-and decompressing images using the ASTC texture compression standard.
+The Arm® Adaptive Scalable Texture Compression (ASTC) Encoder, `astcenc`, is
+a command-line tool for compressing and decompressing images using the ASTC
+texture compression standard.
 
 ## The ASTC format
 
 The ASTC compressed data format, developed by Arm® and AMD, has been adopted as
-an official extension to the Open GL®, OpenGL ES, and Vulkan® graphics APIs. It
+an official extension to the OpenGL®, OpenGL ES, and Vulkan® graphics APIs. It
 provides a major step forward in terms of both the image quality at a given
 bitrate, and the format and bitrate flexibility available to content creators.
 This allows more assets to use compression, often at a reduced bitrate compared
@@ -33,8 +33,8 @@ dynamic range (BMP, PNG, TGA), high dynamic range (EXR, HDR), or DDS and KTX
 wrapped output images.
 
 The encoder allows control over the compression time/quality tradeoff with
-`exhaustive`, `thorough`, `medium`, `fast`, and `fastest` encoding quality
-presets.
+`exhaustive`, `verythorough`, `thorough`, `medium`, `fast`, and `fastest`
+encoding quality presets.
 
 The encoder allows compression time and quality analysis by reporting the
 compression time, and the Peak Signal-to-Noise Ratio (PSNR) between the input
@@ -58,15 +58,15 @@ from 0.89 bits/pixel up to 8 bits/pixel.
 Release build binaries for the `astcenc` stable releases are provided in the
 [GitHub Releases page][3].
 
-**Latest 4.x stable release:** 4.4
 * Change log: [4.x series](./Docs/ChangeLog-4x.md)
-
-**Latest 3.x stable release:** 3.7
 * Change log: [3.x series](./Docs/ChangeLog-3x.md)
 
-Binaries are provided for 64-bit builds on Windows, macOS, and Linux. The
-builds of the astcenc are provided as multiple binaries, each tuned for a
-specific SIMD instruction set.
+Binaries are provided for 64-bit builds on Windows, macOS, and Linux.
+
+## Windows and Linux
+
+For Windows and Linux the builds of the astcenc are provided as multiple
+binaries, each tuned for a specific SIMD instruction set.
 
 For x86-64 we provide, in order of increasing performance:
 
@@ -78,10 +78,19 @@ The x86-64 SSE2 builds will work on all x86-64 machines, but it is the slowest
 of the three. The other two require extended CPU instruction set support which
 is not universally available, but each step gains ~15% more performance.
 
-For Apple silicon macOS devices we provide:
+For Arm, if binaries are available, we provide:
 
 * `astcenc-neon` - uses NEON
 
+## macOS
+
+For macOS devices we provide a single universal binary `astcenc`, which allows
+the OS to automatically use the correct binary variant for the current host
+machine. Support is provided for three architecture slices:
+
+* `x86_64` - uses the `astcenc-sse4.1` build defined above.
+* `x86_64h` - uses the `astcenc-avx2` build defined above.
+* `arm64` - uses the `astcenc-neon` build defined above.
 
 ## Repository branches
 
@@ -135,6 +144,11 @@ The modes available are:
 * `-cs` : use the sRGB LDR color profile.
 * `-ch` : use the HDR color profile, tuned for HDR RGB and LDR A.
 * `-cH` : use the HDR color profile, tuned for HDR RGBA.
+
+If you intend to use the resulting image with the decode mode extensions to
+limit the decompressed precision to UNORM8, it is recommended that you also
+specify the `-decode_unorm8` flag. This will ensure that the compressor uses
+the correct rounding rules when choosing encodings.
 
 ## Decompressing an image
 
@@ -222,7 +236,7 @@ or general mobile graphics development or technology please submit them on the
 
 - - -
 
-_Copyright © 2013-2023, Arm Limited and contributors. All rights reserved._
+_Copyright © 2013-2024, Arm Limited and contributors. All rights reserved._
 
 [1]: ./Docs/FormatOverview.md
 [2]: https://www.khronos.org/registry/DataFormat/specs/1.3/dataformat.1.3.html#ASTC

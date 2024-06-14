@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2011-2022 Arm Limited
+// Copyright 2011-2023 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -58,7 +58,59 @@ static int pthread_create(
 	static_cast<void>(attribs);
 	LPTHREAD_START_ROUTINE func = reinterpret_cast<LPTHREAD_START_ROUTINE>(threadfunc);
 	*thread = CreateThread(nullptr, 0, func, thread_arg, 0, nullptr);
+	
+	// Ensure we return 0 on success, non-zero on error
+	if (*thread == NULL)
+	{
+		return 1;
+	}
+
 	return 0;
+}
+
+/**
+ * @brief Manually set CPU group and thread affinity.
+ *
+ * This is needed on Windows 10 or older to allow benefit from large core count
+ * systems with more than 64 logical CPUs. The assignment is skipped on systems
+ * with a single processor group, as it is not necessary.
+ */
+static void set_group_affinity(
+	pthread_t thread,
+	int thread_index
+) {
+	// Skip thread assignment for hardware with a single CPU group
+	int group_count = GetActiveProcessorGroupCount();
+	if (group_count == 1)
+	{
+		return;
+	}
+
+	// Ensure we have a valid assign if user creates more threads than cores
+	int assign_index = thread_index % get_cpu_count();
+	int assign_group { 0 };
+	int assign_group_cpu_count { 0 };
+
+	// Determine which core group and core in the group to use for this thread
+	int group_cpu_count_sum { 0 };
+	for (int group = 0; group < group_count; group++)
+	{
+		int group_cpu_count = static_cast<int>(GetMaximumProcessorCount(group));
+		group_cpu_count_sum += group_cpu_count;
+
+		if (assign_index < group_cpu_count_sum)
+		{
+			assign_group = group;
+			assign_group_cpu_count = group_cpu_count;
+			break;
+		}
+	}
+
+	// Set the affinity to the assigned group, and all supported cores
+	GROUP_AFFINITY affinity {};
+	affinity.Mask = (1 << assign_group_cpu_count) - 1;
+	affinity.Group = assign_group;
+	SetThreadGroupAffinity(thread, &affinity, nullptr);
 }
 
 /**
@@ -76,9 +128,8 @@ static int pthread_join(
 /* See header for documentation */
 int get_cpu_count()
 {
-	SYSTEM_INFO sysinfo;
-	GetSystemInfo(&sysinfo);
-	return sysinfo.dwNumberOfProcessors;
+	DWORD cpu_count = GetActiveProcessorCount(ALL_PROCESSOR_GROUPS);
+	return static_cast<int>(cpu_count);
 }
 
 /* See header for documentation */
@@ -151,6 +202,7 @@ static void* launch_threads_helper(
 
 /* See header for documentation */
 void launch_threads(
+	const char* operation,
 	int thread_count,
 	void (*func)(int, int, void*),
 	void *payload
@@ -163,22 +215,58 @@ void launch_threads(
 	}
 
 	// Otherwise spawn worker threads
-	launch_desc *thread_descs = new launch_desc[thread_count];
+	launch_desc *thread_descs = new launch_desc[thread_count];	
+	int actual_thread_count { 0 };
+	
 	for (int i = 0; i < thread_count; i++)
 	{
-		thread_descs[i].thread_count = thread_count;
-		thread_descs[i].thread_id = i;
-		thread_descs[i].payload = payload;
-		thread_descs[i].func = func;
+		thread_descs[actual_thread_count].thread_count = thread_count;
+		thread_descs[actual_thread_count].thread_id = actual_thread_count;
+		thread_descs[actual_thread_count].payload = payload;
+		thread_descs[actual_thread_count].func = func;
 
-		pthread_create(&(thread_descs[i].thread_handle), nullptr,
-		               launch_threads_helper, reinterpret_cast<void*>(thread_descs + i));
+		// Handle pthread_create failing by simply using fewer threads
+		int error = pthread_create(
+			&(thread_descs[actual_thread_count].thread_handle),
+			nullptr,
+			launch_threads_helper,
+			reinterpret_cast<void*>(thread_descs + actual_thread_count));		
+
+		// Track how many threads we actually created
+		if (!error)
+		{
+			// Windows needs explicit thread assignment to handle large core count systems
+			#if defined(_WIN32) && !defined(__CYGWIN__)
+				set_group_affinity(
+					thread_descs[actual_thread_count].thread_handle,
+					actual_thread_count);
+			#endif
+
+			actual_thread_count++;
+		}
 	}
 
-	// ... and then wait for them to complete
-	for (int i = 0; i < thread_count; i++)
+	// If we did not create thread_count threads then emit a warning
+	if (actual_thread_count != thread_count)
+	{		
+		int log_count = actual_thread_count == 0 ? 1 : actual_thread_count;
+		const char* log_s = log_count == 1 ? "" : "s";
+		printf("WARNING: %s using %d thread%s due to thread creation error\n\n",
+		       operation, log_count, log_s);
+	}
+
+	// If we managed to spawn any threads wait for them to complete
+	if (actual_thread_count != 0)
 	{
-		pthread_join(thread_descs[i].thread_handle, nullptr);
+		for (int i = 0; i < actual_thread_count; i++)
+		{
+			pthread_join(thread_descs[i].thread_handle, nullptr);
+		}
+	}
+	// Else fall back to using this thread
+	else
+	{
+		func(1, 0, payload);
 	}
 
 	delete[] thread_descs;
