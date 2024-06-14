@@ -1,0 +1,231 @@
+name: build-test
+run-name: Build and test
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-ubuntu:
+    name: Build and test on Ubuntu
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+
+      - name: Build R
+        run: |
+          export CXX=clang++
+          mkdir build_rel
+          cd build_rel
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_ISA_NONE=ON -DASTCENC_UNITTEST=ON -DASTCENC_PACKAGE=x64 ..
+          make install package -j4
+
+      - name: Build D
+        run: |
+          export CXX=clang++
+          mkdir build_dbg
+          cd build_dbg
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_ISA_NONE=ON ..
+          make -j4
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: astcenc-linux-x64
+          path: |
+            build_rel/*.zip
+            build_rel/*.zip.sha256
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Get Python modules
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy Pillow
+
+      - name: Python Tests
+        run: |
+          python ./Test/astc_test_functional.py --encoder=none
+          python ./Test/astc_test_functional.py --encoder=sse2
+          python ./Test/astc_test_functional.py --encoder=sse4.1
+          python ./Test/astc_test_functional.py --encoder=avx2
+          python ./Test/astc_test_image.py --encoder=none --test-set Small --test-quality medium
+          python ./Test/astc_test_image.py --encoder=all-x86 --test-set Small --test-quality medium
+
+      - name: ctest
+        run: ctest
+        working-directory: build_rel
+
+  build-macos:
+    name: Build and test on MacOS
+    runs-on: macos-12
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+
+      - name: Build R
+        run: |
+          mkdir build_rel
+          cd build_rel
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_UNIVERSAL_BUILD=OFF -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_PACKAGE=x64 ..
+          make install package -j4
+
+      - name: Build D
+        run: |
+          mkdir build_dbg
+          cd build_dbg
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DASTCENC_UNIVERSAL_BUILD=OFF -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_ISA_NONE=ON ..
+          make -j4
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: astcenc-macos-x64
+          path: |
+            build_rel/*.zip
+            build_rel/*.zip.sha256
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Get Python modules
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy Pillow
+
+      - name: Python Tests
+        run: |
+          python ./Test/astc_test_image.py --test-set Small --test-quality medium
+
+  build-windows-msvc:
+    name: Build and test on Windows MSVC
+    runs-on: windows-2022
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+
+      - name: Setup Visual Studio x86_6
+        uses: ilammy/msvc-dev-cmd@v1
+      - name: Build R
+        run: |
+          mkdir build_rel
+          cd build_rel
+          cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_PACKAGE=x64-cl ..
+          nmake install package
+        shell: cmd
+      - name: Build D
+        run: |
+          mkdir build_dbg
+          cd build_dbg
+          cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Debug -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_ISA_NONE=ON ..
+          nmake
+        shell: cmd
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: astcenc-windows-x64-cl
+          path: build_rel/*.zip
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Get Python modules
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy Pillow
+        shell: cmd
+
+      - name: Python Tests
+        run: |
+          python ./Test/astc_test_image.py --test-set Small --test-quality medium
+        shell: cmd
+
+  build-windows-ClangCL:
+    name: Build and test on Windows ClangCL
+    runs-on: windows-2022
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+
+      - name: Setup Visual Studio x86_6
+        uses: ilammy/msvc-dev-cmd@v1
+      - name: Build R
+        run: |
+          mkdir build_rel
+          cd build_rel
+          cmake -G "Visual Studio 17 2022" -T ClangCL -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_PACKAGE=x64-clangcl ..
+          msbuild astcencoder.sln -property:Configuration=Release
+          msbuild PACKAGE.vcxproj -property:Configuration=Release
+          msbuild INSTALL.vcxproj -property:Configuration=Release
+        shell: cmd
+      - name: Build D
+        run: |
+          mkdir build_dbg
+          cd build_dbg
+          cmake -G "Visual Studio 17 2022" -T ClangCL -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON ..
+          msbuild astcencoder.sln -property:Configuration=Debug
+        shell: cmd
+
+      - name: Setup Visual Studio arm64
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x86_arm64
+      - name: Build R
+        run: |
+          mkdir build_rel_arm64
+          cd build_rel_arm64
+          cmake -G "Visual Studio 17 2022" -A ARM64 -T ClangCL -DASTCENC_ISA_NEON=ON -DASTCENC_PACKAGE=arm64-clangcl ..
+          msbuild astcencoder.sln -property:Configuration=Release
+          msbuild PACKAGE.vcxproj -property:Configuration=Release
+          msbuild INSTALL.vcxproj -property:Configuration=Release
+        shell: cmd
+      - name: Build D
+        run: |
+          mkdir build_dbg_arm64
+          cd build_dbg_arm64
+          cmake -G "Visual Studio 17 2022" -A ARM64 -T ClangCL -DASTCENC_ISA_NEON=ON ..
+          msbuild astcencoder.sln -property:Configuration=Debug
+        shell: cmd
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: astcenc-windows-multi-clangcl
+          path: |
+            build_rel/*.zip
+            build_rel_arm64/*.zip
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Get Python modules
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy Pillow
+        shell: cmd
+
+      - name: Python Tests
+        run: |
+          python ./Test/astc_test_image.py --test-set Small --test-quality medium
+        shell: cmd

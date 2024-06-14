@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2020-2023 Arm Limited
+// Copyright 2020-2024 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -16,10 +16,11 @@
 // ----------------------------------------------------------------------------
 
 /**
- * @brief Platform-specific function implementations.
+ * @brief Application entry point.
  *
- * This module contains the CLI entry point which also performs the role of
- * validating the host extended ISA support meets the needs of the tools.
+ * This module contains the command line entry point which also performs the
+ * role of validating the host extended ISA support meets the needs of the
+ * tools.
  */
 
 #include <cstdio>

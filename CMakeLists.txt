@@ -531,7 +531,8 @@ macro(common_libktx_settings target enable_write library_type)
     )
 
     # C/C++ Standard
-    target_compile_features(${target} PUBLIC c_std_99 cxx_std_11)
+    # Need c11 for Unicode string literals
+    target_compile_features(${target} PUBLIC c_std_11 cxx_std_11)
 
     # Compiler Warning Flags
     if(EMSCRIPTEN)
@@ -1089,17 +1090,33 @@ endif()
 
 add_subdirectory(interface/basisu_c_binding)
 
-# Only one architecture is supported at once, if neither ASTCENC_ISA_SSE41
-# nor ASTCENC_ISA_SSE2 are defined, ASTCENC_ISA_AVX2 is chosen. If
-# ASTCENC_ISA_AVX2 fails to compile user must chose other x86 options.
-# On arm based systems ASTCENC_ISA_NEON is the default. If we detect
-# the user is doing a universal build then SIMD is disabled.
+# On Linux and Windows only one architecture is supported at once. If neither
+# ASTCENC_ISA_SSE41 nor ASTCENC_ISA_SSE2 are defined, ASTCENC_ISA_AVX2 is
+# chosen. If ASTCENC_ISA_AVX2 fails to compile user must chose other x86
+# options. On arm based systems ASTCENC_ISA_NEON is the default. On macOS,
+# if we detect the user is doing a universal build defer to astc-encoder
+# to pick the architectures.
+#
+# To ensure BASISU_SUPPORT_SSE is disabled when building for multiple
+# architectures use only the value of CMAKE_OSX_ARCHITECTURES to decide if
+# a universal build is requested. Do not expose the astc-encoder's
+# ASTCENC_UNIVERSAL_BUILD configuration option.
 
-list(FIND CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" ASTCENC_BUILD_UNIVERSAL)
-list(LENGTH CMAKE_OSX_ARCHITECTURES ARCHITECTURE_COUNT)
+set(universal_build OFF)
+if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
+    # Check CMAKE_OSX_ARCHITECTURES for multiple architectures.
+    list(FIND CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" archs_standard)
+    list(LENGTH CMAKE_OSX_ARCHITECTURES architecture_count)
+    if(NOT ${archs_standard} EQUAL -1 OR architecture_count GREATER 1)
+        set(universal_build ON)
+    endif()
+    # Set ordinary variable to override astc-encoder option's ON default
+    # and hide the option.
+    set(ASTCENC_UNIVERSAL_BUILD ${universal_build})
+endif()
 
-if(${ASTCENC_BUILD_UNIVERSAL} EQUAL -1 AND ARCHITECTURE_COUNT LESS_EQUAL 1)
-    if (${ASTCENC_ISA_NONE})
+if(NOT ${universal_build})
+    if(${ASTCENC_ISA_NONE})
         set(ASTCENC_LIB_TARGET astcenc-none-static)
     else()
         if(CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86)
@@ -1108,26 +1125,25 @@ if(${ASTCENC_BUILD_UNIVERSAL} EQUAL -1 AND ARCHITECTURE_COUNT LESS_EQUAL 1)
             elseif (${ASTCENC_ISA_SSE2})
                 set(ASTCENC_LIB_TARGET astcenc-sse2-static)
             else()
-                set(ASTCENC_ISA_AVX2 ON)
+                # The existing documentation string continues to be used...
+                set(ASTCENC_ISA_AVX2 ON CACHE BOOL "" FORCE)
                 set(ASTCENC_LIB_TARGET astcenc-avx2-static)
             endif()
             if(CPU_ARCHITECTURE STREQUAL x86)
-                set(ASTCENC_ISA_NONE ON)
-                set(ASTCENC_ISA_AVX2 OFF)
+                set(ASTCENC_ISA_NONE ON CACHE BOOL "" FORCE)
+                set(ASTCENC_ISA_AVX2 OFF CACHE BOOL "" FORCE)
                 set(ASTCENC_POPCNT 0)
                 set(ASTCENC_LIB_TARGET astcenc-none-static)
             endif()
         elseif(CPU_ARCHITECTURE STREQUAL armv8 OR CPU_ARCHITECTURE STREQUAL arm64)
+            set(ASTCENC_ISA_NEON ON CACHE BOOL "" FORCE)
             set(ASTCENC_LIB_TARGET astcenc-neon-static)
-            set(ASTCENC_ISA_NEON ON)
         else()
             message(STATUS "Unsupported ISA for ASTC on ${CPU_ARCHITECTURE} arch, using ASTCENC_ISA_NONE.")
+            set(ASTCENC_ISA_NONE ON CACHE BOOL "" FORCE)
             set(ASTCENC_LIB_TARGET astcenc-none-static)
-            set(ASTCENC_ISA_NONE ON)
         endif()
     endif()
-else()
-    set(ASTCENC_LIB_TARGET astcenc-static)
 endif()
 
 # astcenc

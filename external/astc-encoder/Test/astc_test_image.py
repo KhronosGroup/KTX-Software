@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # -----------------------------------------------------------------------------
-# Copyright 2019-2022 Arm Limited
+# Copyright 2019-2023 Arm Limited
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy
@@ -290,10 +290,11 @@ def parse_command_line():
                  "ref-2.5-neon", "ref-2.5-sse2", "ref-2.5-sse4.1", "ref-2.5-avx2",
                  "ref-3.7-neon", "ref-3.7-sse2", "ref-3.7-sse4.1", "ref-3.7-avx2",
                  "ref-4.4-neon", "ref-4.4-sse2", "ref-4.4-sse4.1", "ref-4.4-avx2",
+                 "ref-4.5-neon", "ref-4.5-sse2", "ref-4.5-sse4.1", "ref-4.5-avx2",
                  "ref-main-neon", "ref-main-sse2", "ref-main-sse4.1", "ref-main-avx2"]
 
     # All test encoders
-    testcoders = ["none", "neon", "sse2", "sse4.1", "avx2", "native"]
+    testcoders = ["none", "neon", "sse2", "sse4.1", "avx2", "native", "universal"]
     testcodersAArch64 = ["neon"]
     testcodersX86 = ["sse2", "sse4.1", "avx2"]
 
@@ -302,7 +303,7 @@ def parse_command_line():
     parser.add_argument("--encoder", dest="encoders", default="avx2",
                         choices=coders, help="test encoder variant")
 
-    parser.add_argument("--reference", dest="reference", default="ref-4.4-avx2",
+    parser.add_argument("--reference", dest="reference", default="ref-main-avx2",
                         choices=refcoders, help="reference encoder variant")
 
     astcProfile = ["ldr", "ldrs", "hdr", "all"]
@@ -414,16 +415,8 @@ def main():
                 testSet = tts.TestSet(imageSet, testDir,
                                       args.profiles, args.formats, args.testImage)
 
-                # The fast and fastest presets are now sufficiently fast that
-                # the results are noisy without more repeats
-                testRepeats = args.testRepeats
-                if quality == "fast" and testRepeats > 1:
-                    testRepeats *= 2
-                elif quality == "fastest" and testRepeats > 1:
-                    testRepeats *= 4
-
                 resultSet = run_test_set(encoder, testRef, testSet, quality,
-                                         args.blockSizes, testRepeats,
+                                         args.blockSizes, args.testRepeats,
                                          args.keepOutput, args.threads)
 
                 resultSet.save_to_file(testRes)

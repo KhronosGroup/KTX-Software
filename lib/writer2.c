@@ -76,10 +76,17 @@ strnstr(const char *haystack, const char *needle, size_t len)
 {
     size_t i;
     size_t needleLen;
+    const char* needleEnd;
 
-    needleLen = strnlen(needle, len);
-    if (needleLen == 0)
+    // strnlen is not part of the C standard and does not compile on some platforms, 
+    // use case is covered by memchr.
+    needleEnd = (char *)memchr(needle, 0, len);
+    if (needleEnd == needle)
         return (char *)haystack;
+
+    needleLen = len;
+    if (needleEnd != NULL)
+        needleLen = needleEnd - needle;
 
     for (i = 0; i <= len - needleLen; i++)
     {

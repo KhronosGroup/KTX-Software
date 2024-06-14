@@ -94,9 +94,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	int i = stream.ConsumeIntegralInRange<int>(0, testSz.size() - 1);
 
 	// Populate the physical block
-	physical_compressed_block pcb;
+	uint8_t pcb[16];
 	std::vector<uint8_t> buffer = stream.ConsumeBytes<uint8_t>(16);
-	std::memcpy(&pcb, buffer.data(), 16);
+	std::memcpy(pcb, buffer.data(), 16);
 
 	// Call the function under test
 	symbolic_compressed_block scb;

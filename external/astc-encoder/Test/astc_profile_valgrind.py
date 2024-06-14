@@ -125,7 +125,7 @@ def run_pass(image, noStartup, encoder, blocksize, quality):
 
     if noStartup:
         args = ["gprof2dot", "--format=callgrind", "--output=out.dot", "callgrind.txt",
-                "-s", "-z", "compress_block(astcenc_context const&, image_block const&, physical_compressed_block&, compression_working_buffers&)"]
+                "-s", "-z", "compress_block(astcenc_contexti const&, image_block const&, physical_compressed_block&, compression_working_buffers&)"]
     else:
         args = ["gprof2dot", "--format=callgrind", "--output=out.dot", "callgrind.txt",
                 "-s",  "-z", "main"]

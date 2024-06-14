@@ -455,7 +455,7 @@ Once the submodule is fetched the CTS tests can be enabled with the `KTX_FEATURE
 cmake option during cmake configuration. Please note that for `KTX_FEATURE_TOOLS_CTS` to take
 effect both `KTX_FEATURE_TESTS` and `KTX_FEATURE_TOOLS` has to be also enabled.
 The CTS integrates into `ctest` so running `ctest` will also execute the CTS tests too.
-The test cases can be limited to the CTS tests with `ctest -R ktxToolTests`.
+The test cases can be limited to the CTS tests with `ctest -R ktxToolsTest`.
 
 Example for development workflow with CTS testing:
 
@@ -472,7 +472,7 @@ cmake --build build --target all
 # Run every test case:
 ctest --test-dir build
 # Run only the CTS test cases:
-ctest --test-dir build -R ktxToolTests
+ctest --test-dir build -R ktxToolsTest
 ```
 
 To create and update CTS test cases and about their specific features and usages
