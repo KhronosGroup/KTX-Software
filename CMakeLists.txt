@@ -1038,7 +1038,7 @@ add_subdirectory(interface/basisu_c_binding)
 # ASTCENC_ISA_SSE41 nor ASTCENC_ISA_SSE2 are defined, ASTCENC_ISA_AVX2 is
 # chosen. If ASTCENC_ISA_AVX2 fails to compile user must chose other x86
 # options. On arm based systems ASTCENC_ISA_NEON is the default. On macOS,
-# If we detect the user is doing a universal build defer to astc-encoder
+# if we detect the user is doing a universal build defer to astc-encoder
 # to pick the architectures.
 #
 # To ensure BASISU_SUPPORT_SSE is disabled when building for multiple
