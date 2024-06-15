@@ -62,6 +62,7 @@ if(NOT PERL_EXECUTABLE)
     message(FATAL_ERROR "Perl executable ${not_found_error}")
 endif()
 
+set(Ruby_FIND_VIRTUALENV FIRST)
 find_package(Ruby 3 QUIET)
 if(NOT Ruby_EXECUTABLE)
     message(FATAL_ERROR "Ruby v3 executable ${not_found_error}")
