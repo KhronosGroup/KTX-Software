@@ -1,10 +1,10 @@
 
 /***************************** Do not edit.  *****************************
- Automatically generated from vulkan_core.h version 267 by mkvkformatfiles.
+ Automatically generated from vulkan_core.h version 287 by mkvkformatfiles.
  *************************************************************************/
 
 /*
-** Copyright 2015-2023 The Khronos Group Inc.
+** Copyright 2015-2024 The Khronos Group Inc.
 **
 ** SPDX-License-Identifier: Apache-2.0
 */
@@ -236,7 +236,7 @@
     .value("ASTC_6x6x6_UNORM_BLOCK_EXT", VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT)
     .value("ASTC_6x6x6_SRGB_BLOCK_EXT", VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT)
     .value("ASTC_6x6x6_SFLOAT_BLOCK_EXT", VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT)
-    .value("R16G16_S10_5_NV", VK_FORMAT_R16G16_S10_5_NV)
+    .value("R16G16_SFIXED5_NV", VK_FORMAT_R16G16_SFIXED5_NV)
     .value("A1B5G5R5_UNORM_PACK16_KHR", VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR)
     .value("A8_UNORM_KHR", VK_FORMAT_A8_UNORM_KHR)
 

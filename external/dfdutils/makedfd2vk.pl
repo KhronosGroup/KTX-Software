@@ -396,9 +396,9 @@ for ($byteSize = 1; $byteSize <= 8; $byteSize <<= 1) {
         print "        }\n";
     } elsif ($byteSize == 2) {
         print "      } else if (wordBytes == $byteSize) {\n";
-        # Handle VK_FORMAT_R16G16_S10_5_NV. Non-standard naming means
-        # checkSuffices can't handle it.
-        print "        if ((r & i_FIXED_FORMAT_BIT) && R.size == 2 && G.size == 2)  return  VK_FORMAT_R16G16_S10_5_NV;\n";
+        # Handle VK_FORMAT_R16G16_SFIXED5_NV. checkSuffices does not
+        # handle this unique suffix.
+        print "        if ((r & i_FIXED_FORMAT_BIT) && R.size == 2 && G.size == 2)  return  VK_FORMAT_R16G16_SFIXED5_NV;\n";
     } else {
         print "      } else if (wordBytes == $byteSize) {\n";
     }
