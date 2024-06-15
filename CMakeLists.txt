@@ -911,19 +911,38 @@ if(EMSCRIPTEN)
     set(
         KTX_EMC_LINK_FLAGS
         --bind
+        --pre-js ${CMAKE_CURRENT_SOURCE_DIR}/interface/js_binding/class_compat.js
+        --extern-post-js ${CMAKE_CURRENT_SOURCE_DIR}/interface/js_binding/module_create_compat.js
         "SHELL:-s MODULARIZE=1"
+        "SHELL:-s EXPORTED_RUNTIME_METHODS=[\'GL\']"
+        "SHELL:-s GL_PREINITIALIZED_CONTEXT=1"
     )
 
-    add_executable( ktx_js interface/js_binding/ktx_wrapper.cpp )
-    target_link_libraries( ktx_js ktx_read )
-    target_include_directories( ktx_js PRIVATE $<TARGET_PROPERTY:ktx_read,INTERFACE_INCLUDE_DIRECTORIES> )
+    set(
+        KTX_JS_COMMON_SOURCE
+        interface/js_binding/ktx_wrapper.cpp
+        interface/js_binding/class_compat.js
+        interface/js_binding/module_create_compat.js
+    )
+
+    add_executable( ktx_js
+        ${KTX_JS_COMMON_SOURCE}
+        interface/js_binding/vk_format.inl
+    )
+    target_compile_definitions(ktx_js PUBLIC KTX_FEATURE_WRITE)
+    target_link_libraries( ktx_js ktx )
+    target_include_directories(
+        ktx_js
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/other_include
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib
+        $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
+    )
     target_link_options(
         ktx_js
     PUBLIC
         ${KTX_EMC_LINK_FLAGS}
-        "SHELL:-s EXPORT_NAME=LIBKTX"
-        "SHELL:-s EXPORTED_RUNTIME_METHODS=[\'GL\']"
-        "SHELL:-s GL_PREINITIALIZED_CONTEXT=1"
+        "SHELL:-s EXPORT_NAME=createKtxModule"
     )
     set_target_properties( ktx_js PROPERTIES OUTPUT_NAME "libktx")
 
@@ -943,6 +962,43 @@ if(EMSCRIPTEN)
     install(FILES ${CMAKE_BINARY_DIR}/libktx.wasm
         DESTINATION .
         COMPONENT ktx_js
+    )
+
+    add_executable( ktx_js_read
+        ${KTX_JS_COMMON_SOURCE}
+    )
+    target_link_libraries( ktx_js_read ktx_read )
+    target_include_directories(
+        ktx_js_read
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/other_include
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib
+        $<TARGET_PROPERTY:ktx_read,INTERFACE_INCLUDE_DIRECTORIES>
+    )
+    target_link_options(
+        ktx_js_read
+    PUBLIC
+        ${KTX_EMC_LINK_FLAGS}
+        "SHELL:-s EXPORT_NAME=createKtxReadModule"
+    )
+    set_target_properties( ktx_js_read PROPERTIES OUTPUT_NAME "libktx_read")
+
+    add_custom_command(
+        TARGET ktx_js_read
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE_DIR:ktx_js_read>/$<TARGET_FILE_PREFIX:ktx_js_read>$<TARGET_FILE_BASE_NAME:ktx_js_read>.js" "${PROJECT_SOURCE_DIR}/tests/webgl"
+        COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE_DIR:ktx_js_read>/$<TARGET_FILE_PREFIX:ktx_js_read>$<TARGET_FILE_BASE_NAME:ktx_js_read>.wasm" "${PROJECT_SOURCE_DIR}/tests/webgl"
+        COMMENT "Copy libktx_read.js and libktx_read.wasm to tests/webgl"
+    )
+
+    install(TARGETS ktx_js_read
+        RUNTIME
+            DESTINATION .
+            COMPONENT ktx_js_read
+    )
+    install(FILES ${CMAKE_BINARY_DIR}/libktx_read.wasm
+        DESTINATION .
+        COMPONENT ktx_js_read
     )
 
     add_executable( msc_basis_transcoder_js interface/js_binding/transcoder_wrapper.cpp )
@@ -1354,6 +1410,7 @@ elseif(WIN32)
 elseif(EMSCRIPTEN)
     set(CPACK_GENERATOR ZIP)
     set(CPACK_ARCHIVE_KTX_JS_FILE_NAME "${CMAKE_PROJECT_NAME}-${KTX_VERSION_FULL}-Web-libktx")
+    set(CPACK_ARCHIVE_KTX_JS_READ_FILE_NAME "${CMAKE_PROJECT_NAME}-${KTX_VERSION_FULL}-Web-libktx_read")
     set(CPACK_ARCHIVE_MSC_BASIS_TRANSCODER_JS_FILE_NAME "${CMAKE_PROJECT_NAME}-${KTX_VERSION_FULL}-Web-msc_basis_transcoder")
 
     set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
@@ -1405,6 +1462,7 @@ cpack_add_component_group(LoadTestApps
 if(EMSCRIPTEN)
     set(CPACK_COMPONENTS_ALL
         ktx_js
+        ktx_js_read
         msc_basis_transcoder_js
     )
 else()

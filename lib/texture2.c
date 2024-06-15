@@ -393,6 +393,11 @@ ktxTexture2_constructCommon(ktxTexture2* This, ktx_uint32_t numLevels)
     return KTX_SUCCESS;
 }
 
+/*
+ * In hindsight this function should have been `#if KTX_FEATURE_WRITE`.
+ * In the interest of not breaking an app that may be using this via
+ * `ktxTexture2_Create` in `libktx_read` we won't change it.
+ */
 /**
  * @memberof ktxTexture2 @private
  * @~English
@@ -412,7 +417,8 @@ ktxTexture2_constructCommon(ktxTexture2* This, ktx_uint32_t numLevels)
  *                              prohibited formats.
  */
 static KTX_error_code
-ktxTexture2_construct(ktxTexture2* This, ktxTextureCreateInfo* createInfo,
+ktxTexture2_construct(ktxTexture2* This,
+                      const ktxTextureCreateInfo* const createInfo,
                       ktxTextureCreateStorageEnum storageAllocation)
 {
     ktxFormatSize formatSize;
@@ -1205,6 +1211,11 @@ ktxTexture2_destruct(ktxTexture2* This)
     ktxTexture_destruct(ktxTexture(This));
 }
 
+/*
+ * In hindsight this function should have been `#if KTX_FEATURE_WRITE`.
+ * In the interest of not breaking an app that may be using this in
+ * `libktx_read` we won't change it.
+ */
 /**
  * @memberof ktxTexture2
  * @ingroup writer
@@ -1249,7 +1260,7 @@ ktxTexture2_destruct(ktxTexture2* This)
  * @exception KTX_OUT_OF_MEMORY Not enough memory for the texture's images.
  */
 KTX_error_code
-ktxTexture2_Create(ktxTextureCreateInfo* createInfo,
+ktxTexture2_Create(const ktxTextureCreateInfo* const createInfo,
                   ktxTextureCreateStorageEnum storageAllocation,
                   ktxTexture2** newTex)
 {
@@ -1948,6 +1959,21 @@ ktxTexture2_GetPremultipliedAlpha(ktxTexture2* This)
 /**
  * @memberof ktxTexture2
  * @~English
+ * @brief Retrieve the color primaries of the images.
+ *
+ * @param[in]     This      pointer to the ktxTexture2 object of interest.
+ *
+ * @return A @c khr_df_primaries enum value specifying the primaries.
+ */
+khr_df_primaries_e
+ktxTexture2_GetPrimaries_e(ktxTexture2* This)
+{
+    return KHR_DFDVAL(This->pDfd+1, PRIMARIES);
+}
+
+/**
+ * @memberof ktxTexture2
+ * @~English
  * @brief Query if the images are in a transcodable format.
  *
  * @param[in]     This     pointer to the ktxTexture2 object of interest.
@@ -1962,6 +1988,28 @@ ktxTexture2_NeedsTranscoding(ktxTexture2* This)
     else
         return false;
 }
+
+#if KTX_FEATURE_WRITE
+bool isSrgbFormat(VkFormat format);
+
+ktx_error_code_e
+ktxTexture2_SetOETF(ktxTexture2* This, khr_df_transfer_e oetf)
+{
+    if (isSrgbFormat(This->vkFormat) && oetf != KHR_DF_TRANSFER_SRGB)
+        return KTX_INVALID_OPERATION;
+
+    // TODO: Implement other checks for compliance with KTX spec. Revision 3
+    KHR_DFDSETVAL(This->pDfd + 1, TRANSFER, oetf);
+    return KTX_SUCCESS;
+}
+
+ktx_error_code_e
+ktxTexture2_SetPrimaries(ktxTexture2* This, khr_df_primaries_e primaries)
+{
+    KHR_DFDSETVAL(This->pDfd + 1, PRIMARIES, primaries);
+    return KTX_SUCCESS;
+}
+#endif
 
 /**
  * @memberof ktxTexture2
@@ -2033,6 +2081,25 @@ ktx_size_t
 ktxTexture2_GetImageSize(ktxTexture2* This, ktx_uint32_t level)
 {
     return ktxTexture_calcImageSize(ktxTexture(This), level,
+                                    KTX_FORMAT_VERSION_TWO);
+}
+
+/**
+ * @memberof ktxTexture2
+ * @~English
+ * @brief Calculate & return the size in bytes of all the  images in the specified
+ *        mip level.
+ *
+ * For arrays, this is the size of all layers in the level, for cubemaps, the size of all
+ * faces in the level and for 3D textures, the size of all depth slices in the level.
+ *
+ * @param[in]     This     pointer to the ktxTexture2 object of interest.
+ * @param[in]     level    level of interest. *
+ */
+ktx_size_t
+ktxTexture2_GetLevelSize(ktxTexture2* This, ktx_uint32_t level)
+{
+    return ktxTexture_calcLevelSize(ktxTexture(This), level,
                                     KTX_FORMAT_VERSION_TWO);
 }
 
@@ -2780,6 +2847,7 @@ struct ktxTexture_vtbl ktxTexture2_vtbl = {
     (PFNKTEXGETIMAGEOFFSET)ktxTexture2_GetImageOffset,
     (PFNKTEXGETDATASIZEUNCOMPRESSED)ktxTexture2_GetDataSizeUncompressed,
     (PFNKTEXGETIMAGESIZE)ktxTexture2_GetImageSize,
+    (PFNKTEXGETLEVELSIZE)ktxTexture2_GetLevelSize,
     (PFNKTEXITERATELEVELS)ktxTexture2_IterateLevels,
     (PFNKTEXITERATELOADLEVELFACES)ktxTexture2_IterateLoadLevelFaces,
     (PFNKTEXNEEDSTRANSCODING)ktxTexture2_NeedsTranscoding,

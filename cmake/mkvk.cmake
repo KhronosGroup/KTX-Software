@@ -80,6 +80,7 @@ list(APPEND mkvkformatfiles_input
     scripts/mkvkformatfiles)
 list(APPEND mkvkformatfiles_output
     "${PROJECT_SOURCE_DIR}/interface/java_binding/src/main/java/org/khronos/ktx/VkFormat.java"
+    "${PROJECT_SOURCE_DIR}/interface/js_binding/vk_format.inl"
     "${PROJECT_SOURCE_DIR}/interface/python_binding/pyktx/vk_format.py"
     "${PROJECT_SOURCE_DIR}/lib/vkformat_enum.h"
     "${PROJECT_SOURCE_DIR}/lib/vkformat_typesize.c"

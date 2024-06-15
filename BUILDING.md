@@ -290,9 +290,10 @@ cmake --build build-web
 
 To include the load test application into the build add `-DKTX_FEATURE_LOADTEST_APPS=ON` to either of the above configuration steps.
 
-Web builds create two additional targets:
+Web builds create three additional targets:
 
-- `ktx_js`, (libktx javascript wrapper)
+- `ktx_js` (libktx javascript wrapper - with write support)
+- `ktx_js_read` (libktx_read javascript wrapper - read-only)
 - `msc_basis_transcoder_js` (transcoder wrapper)
 
 > **Note:** The libktx wrapper does not use the transcoder wrapper. It directly uses the underlying c++ transcoder.
@@ -490,8 +491,10 @@ The following files related to the the VkFormat enum are generated from `vulkan_
 - lib/vkformat_typesize.c
 - lib/dfd/dfd2vk.inl
 - lib/dfd/vk2dfd.inl
-- interface/java_binding/src/main/java/org/khronos/ktxVkFormat.java
+- interface/java\_binding/src/main/java/org/khronos/ktxVkFormat.java
 - interface/python\_binding/pyktx/vk\_format.py
+- interface/js\_binding/vk\_format.inl
+
 
 The following files are generated from the mapping database in the KTX-Specification repo by `generate_format_switches.rb`:
 
