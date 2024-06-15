@@ -46,7 +46,7 @@ if [ ! "${dst:0:1}" = "/" ]; then
 fi
 
 cd $1
-scripts/genvk.py -extension VK_EXT_extension_289 -removeExtensions '(VK_KHR_video_decode_h264|VK_KHR_video_decode_h265)' -registry xml/vk.xml -o $dst vulkan_core.h
+scripts/genvk.py -extension VK_EXT_extension_289 -removeExtensions '(VK_KHR_video_decode_av1|VK_KHR_video_decode_h264|VK_KHR_video_encode_h264|VK_KHR_video_decode_h265|VK_KHR_video_encode_h265)' -registry xml/vk.xml -o $dst vulkan_core.h
 
 # To use with Docker
 #   1. Install Docker

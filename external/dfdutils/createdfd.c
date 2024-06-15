@@ -94,7 +94,7 @@ static uint32_t setChannelFlags(uint32_t channel, enum VkSuffix suffix)
             channel |= KHR_DF_SAMPLE_DATATYPE_LINEAR;
         }
         break;
-    case s_S10_5:
+    case s_SFIXED5:
         channel |=
             KHR_DF_SAMPLE_DATATYPE_SIGNED;
         break;
@@ -162,7 +162,7 @@ static void writeSample(uint32_t *DFD, int sampleNo, int channel,
         upper.f = 1.0f;
         lower.f = 0.0f;
         break;
-    case s_S10_5:
+    case s_SFIXED5:
         assert(bits == 16 && "Format with this suffix must be 16 bits per channel.");
         upper.i = 32;
         lower.i = ~upper.i + 1; // -32

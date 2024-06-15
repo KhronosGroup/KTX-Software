@@ -293,12 +293,12 @@ while (my $line = <$input>) {
                 print "case $format: return createDFDUnpacked($bigEndian, $numChannels, $bytesPerChannel, $rbswap, s_$suffix);\n";
                 # Add the format we've processed to our "done" hash
                 $foundFormats{$format} = 1;
-            } elsif ($format =~ m/R16G16_S10_5_NV/) {
-                # Currently only this 2-channel S10_5 format exists so an
+            } elsif ($format =~ m/R16G16_SFIXED5_NV/) {
+                # Currently only this 2-channel SFIXED5 format exists so an
                 # explicit match is used.
 
                 # Output the case entry
-                print "case $format: return createDFDUnpacked($bigEndian, 2, 2, 0, s_S10_5);\n";
+                print "case $format: return createDFDUnpacked($bigEndian, 2, 2, 0, s_SFIXED5);\n";
             }
         }
 

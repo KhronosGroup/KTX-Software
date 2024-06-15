@@ -1,10 +1,10 @@
 
 /***************************** Do not edit.  *****************************
- Automatically generated from vulkan_core.h version 267 by mkvkformatfiles.
+ Automatically generated from vulkan_core.h version 287 by mkvkformatfiles.
  *************************************************************************/
 
 /*
-** Copyright 2015-2023 The Khronos Group Inc.
+** Copyright 2015-2024 The Khronos Group Inc.
 **
 ** SPDX-License-Identifier: Apache-2.0
 */
@@ -573,8 +573,8 @@ vkFormatString(VkFormat format)
         return "VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT";
       case VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT:
         return "VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT";
-      case VK_FORMAT_R16G16_S10_5_NV:
-        return "VK_FORMAT_R16G16_S10_5_NV";
+      case VK_FORMAT_R16G16_SFIXED5_NV:
+        return "VK_FORMAT_R16G16_SFIXED5_NV";
       case VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR:
         return "VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR";
       case VK_FORMAT_A8_UNORM_KHR:
@@ -1174,8 +1174,8 @@ stringToVkFormat(const char* str)
         return VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT;
     if (ktx_strcasecmp(str, "ASTC_6x6x6_SFLOAT_BLOCK_EXT") == 0)
         return VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT;
-    if (ktx_strcasecmp(str, "R16G16_S10_5_NV") == 0)
-        return VK_FORMAT_R16G16_S10_5_NV;
+    if (ktx_strcasecmp(str, "R16G16_SFIXED5_NV") == 0)
+        return VK_FORMAT_R16G16_SFIXED5_NV;
     if (ktx_strcasecmp(str, "A1B5G5R5_UNORM_PACK16_KHR") == 0)
         return VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR;
     if (ktx_strcasecmp(str, "A8_UNORM_KHR") == 0)
@@ -1288,5 +1288,7 @@ stringToVkFormat(const char* str)
         return VK_FORMAT_A4R4G4B4_UNORM_PACK16;
     if (ktx_strcasecmp(str, "A4B4G4R4_UNORM_PACK16_EXT") == 0)
         return VK_FORMAT_A4B4G4R4_UNORM_PACK16;
+    if (ktx_strcasecmp(str, "R16G16_S10_5_NV") == 0)
+        return VK_FORMAT_R16G16_SFIXED5_NV;
     return VK_FORMAT_UNDEFINED;
 }

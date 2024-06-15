@@ -178,7 +178,7 @@ if (KHR_DFDVAL(dfd + 1, MODEL) == KHR_DF_MODEL_RGBSDA || KHR_DFDVAL(dfd + 1, MOD
           if (!(r & i_NORMALIZED_FORMAT_BIT) && (r & i_SIGNED_FORMAT_BIT)) return VK_FORMAT_R8_SINT;
         }
       } else if (wordBytes == 2) {
-        if ((r & i_FIXED_FORMAT_BIT) && R.size == 2 && G.size == 2)  return  VK_FORMAT_R16G16_S10_5_NV;
+        if ((r & i_FIXED_FORMAT_BIT) && R.size == 2 && G.size == 2)  return  VK_FORMAT_R16G16_SFIXED5_NV;
         if (A.size > 0) { /* 4 channels */
           if (R.offset == 0) { /* RGBA */
             if ((r & i_FLOAT_FORMAT_BIT)) return VK_FORMAT_R16G16B16A16_SFLOAT;
