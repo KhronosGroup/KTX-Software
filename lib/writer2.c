@@ -299,6 +299,9 @@ ktxTexture2_SetImageFromStdioStream(ktxTexture2* This, ktx_uint32_t level,
  * Level, layer, faceSlice rather than offset are specified to enable some
  * validation.
  *
+ * @note The caller is responsible for freeing the original image memory
+ *       referred to by @p src.
+ *
  * @param[in] This      pointer to the target ktxTexture object.
  * @param[in] level     mip level of the image to set.
  * @param[in] layer     array layer of the image to set.
