@@ -1,13 +1,65 @@
 /*
  * Copyright (c) 2021, Shukant Pal and Contributors
+ * Copyright (c) 2024, Khronos Group and Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
 package org.khronos.ktx;
 
+/**
+ * Enumerators identifying the supercompression scheme.<br>
+ * <br>
+ * These are the values that are returned by
+ * {@link KtxTexture2#getSupercompressionScheme()}.
+ */
 public class KtxSupercmpScheme {
-    public static final int NONE = 0;
-    public static final int BASIS_LZ = 1;
-    public static final int ZSTD = 2;
-    public static final int ZLIB = 3;
+
+    /**
+     * No supercompression
+     */
+    public static final int KTX_SS_NONE = 0;
+
+    /**
+     * Basis LZ supercompression
+     */
+    public static final int KTX_SS_BASIS_LZ = 1;
+
+    /**
+     * ZStd supercompression
+     */
+    public static final int KTX_SS_ZSTD = 2;
+
+    /**
+     * ZLIB supercompression
+     */
+    public static final int KTX_SS_ZLIB = 3;
+
+	/**
+	 * Returns a string representation of the given supercompression scheme
+	 *
+	 * @param n The supercompression scheme
+	 * @return A string representation of the given supercompression scheme
+	 */
+	public static String stringFor(int n) {
+		switch (n) {
+		case KTX_SS_NONE:
+			return "KTX_SS_NONE";
+		case KTX_SS_BASIS_LZ:
+			return "KTX_SS_BASIS_LZ";
+		case KTX_SS_ZSTD:
+			return "KTX_SS_ZSTD";
+		case KTX_SS_ZLIB:
+			return "KTX_SS_ZLIB";
+		}
+		return "[Unknown KtxSupercmpScheme]";
+	}
+
+	/**
+	 * Private constructor to prevent instantiation
+	 */
+	private KtxSupercmpScheme() {
+		// Prevent instantiation
+	}
+
+
 }
