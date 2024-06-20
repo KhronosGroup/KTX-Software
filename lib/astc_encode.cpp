@@ -201,7 +201,7 @@ unorm8x4ArrayToImage(const uint8_t *data, uint32_t dim_x, uint32_t dim_y) {
 
 /**
  * @memberof ktxTexture
- * @ingroup write
+ * @ingroup writer
  * @~English
  * @brief       Creates default ASTC parameters
  *
@@ -222,7 +222,7 @@ astcDefaultOptions() {
 
 /**
  * @memberof ktxTexture
- * @ingroup write
+ * @ingroup writer
  * @~English
  * @brief       Should be used to get VkFormat from ASTC block enum
  *
@@ -291,7 +291,7 @@ astcVkFormat(ktx_uint32_t block_size, bool sRGB) {
 
 /**
  * @memberof ktxTexture
- * @ingroup write
+ * @ingroup writer
  * @~English
  * @brief Creates valid ASTC encoder action from string.
  *
@@ -320,7 +320,7 @@ astcEncoderAction(const ktxAstcParams &params, const uint32_t* bdb) {
 
 /**
  * @memberof ktxTexture
- * @ingroup write
+ * @ingroup writer
  * @~English
  * @brief Creates valid ASTC encoder swizzle from string.
  *

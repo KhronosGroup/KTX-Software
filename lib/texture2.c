@@ -1421,7 +1421,7 @@ ktxTexture2_CreateFromStdioStream(FILE* stdioStream,
  * @exception KTX_FILE_OPEN_FAILED The file could not be opened.
  * @exception KTX_INVALID_VALUE @p filename is @c NULL.
  *
- * For other exceptions, see ktxTexture_CreateFromStdioStream().
+ * For other exceptions, see ktxTexture2_CreateFromStdioStream().
  */
 KTX_error_code
 ktxTexture2_CreateFromNamedFile(const char* const filename,
@@ -1474,7 +1474,7 @@ ktxTexture2_CreateFromNamedFile(const char* const filename,
  *
  * @exception KTX_INVALID_VALUE Either @p bytes is NULL or @p size is 0.
  *
- * For other exceptions, see ktxTexture_CreateFromStdioStream().
+ * For other exceptions, see ktxTexture2_CreateFromStdioStream().
  */
 KTX_error_code
 ktxTexture2_CreateFromMemory(const ktx_uint8_t* bytes, ktx_size_t size,
@@ -1526,7 +1526,7 @@ ktxTexture2_CreateFromMemory(const ktx_uint8_t* bytes, ktx_size_t size,
  *
  * @exception KTX_INVALID_VALUE Either @p bytes is NULL or @p size is 0.
  *
- * For other exceptions, see ktxTexture_CreateFromStdioStream().
+ * For other exceptions, see ktxTexture2_CreateFromStdioStream().
  */
 KTX_error_code
 ktxTexture2_CreateFromStream(ktxStream* stream,

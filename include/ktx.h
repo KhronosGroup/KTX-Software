@@ -719,12 +719,24 @@ typedef struct ktxTexture2 {
     struct ktxTexture2_private* _private;  /*!< Private data. */
 } ktxTexture2;
 
-/**
- * @brief Helper for casting ktxTexture1 and ktxTexture2 to ktxTexture.
+/*
+ * If Doxygen sees this macro it gets confused and fails to spot
+ * references to ktxTexture_*() functions in the running text. It
+ * also complains it can't find the reference when @ref is used
+ * with a fully qualified method name to make an intra-class
+ * reference in the @c ktxTexture class.
+ * See https://github.com/doxygen/doxygen/issues/10311.
  *
- * Use with caution.
+ * Not documenting the macro is the lesser of two evils.
  */
-#define ktxTexture(t) ((ktxTexture*)t)
+#if !defined(KTX_DOXYGEN_SKIP)
+    /**
+     * @brief Helper for casting ktxTexture1 and ktxTexture2 to ktxTexture.
+     *
+     * Use with caution.
+     */
+    #define ktxTexture(t) ((ktxTexture*)t)
+#endif
 
 /**
  * @memberof ktxTexture
