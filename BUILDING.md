@@ -570,12 +570,22 @@ For iOS and macOS, install the Vulkan SDK by downloading the macOS installer and
 
 ### Doxygen
 
-Needed if you want to generate the _libktx_ and _ktxtools_ documentation.
+Needed if you want to generate _libktx_, _ktxtools_ and other documentation.
 
-You need a minimum of version 1.8.14 to generate the documentation correctly. You
-can download binaries and also find instructions for building it from source at
-[Doxygen downloads](http://www.stack.nl/~dimitri/doxygen/download.html). Make
+You need a minimum of version 1.8.14 to generate the documentation correctly.
+You can download binaries and also find instructions for building it from source
+at [Doxygen downloads](http://www.stack.nl/~dimitri/doxygen/download.html). Make
 sure the directory containing the `doxygen` executable is in your `$PATH`.
+
+### dot (Graphviz)
+
+Needed if you want Doxygen to generate include dependency, inverse include
+dependency, inheritance and other graphs in the generated documentation.
+
+You can download binaries from
+[Graphviz downloads](https://graphviz.org/download/).
+
+Optional. If not present documentation will be generated minus graphs. 
 
 ### libassimp
 

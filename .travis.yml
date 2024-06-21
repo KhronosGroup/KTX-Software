@@ -20,7 +20,6 @@ addons:
     update: false
     packages:
     - git-lfs
-    - doxygen
 
 env:
   global:
@@ -107,6 +106,7 @@ jobs:
       addons:
         apt:
           packages:
+            - graphviz
             - python3
             - python3-venv
       compiler: gcc
@@ -127,6 +127,7 @@ jobs:
       addons:
         apt:
           packages:
+            - graphviz
             - python3
             - python3-venv
       compiler: gcc
@@ -245,6 +246,10 @@ install:
       if [ "$LOADTESTS_USE_LOCAL_DEPENDENCIES" = "ON" ]; then
           brew install sdl2
           brew install assimp
+      fi
+      if [ "$FEATURE_DOC" = "ON" ]; then
+          brew install doxygen
+          brew install graphviz
       fi
       ./scripts/install_macos.sh
     fi
