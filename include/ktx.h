@@ -191,8 +191,8 @@ typedef enum ktx_error_code_e {
     KTX_ERROR_MAX_ENUM = KTX_DECOMPRESS_CHECKSUM_ERROR /*!< For safety checks. */
 } ktx_error_code_e;
 /**
- * @deprecated
  * @~English
+ * @deprecated Use #ktx_error_code_e.
  * @brief For backward compatibility
  */
 #define KTX_error_code ktx_error_code_e
