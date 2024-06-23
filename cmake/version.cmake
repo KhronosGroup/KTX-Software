@@ -108,8 +108,10 @@ function(generate_version _var )
     set(${_var} "${KTX_VERSION}" PARENT_SCOPE)
 endfunction()
 
-# Get latest tag
-git_describe_raw(KTX_VERSION_FULL --abbrev=0 --match v[0-9]*)
+# Get latest tag from git if not passed to cmake
+if(NOT KTX_VERSION_FULL)
+    git_describe_raw(KTX_VERSION_FULL --abbrev=0 --match v[0-9]*)
+endif()
 #message("KTX full version: ${KTX_VERSION_FULL}")
 
 # generate_version(TOKTX_VERSION tools/toktx)
