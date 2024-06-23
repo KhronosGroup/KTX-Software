@@ -89,7 +89,10 @@ function setfile() {
 
 # Figure out the object name and write its version file.
 function writeversion() {
-  genversion $1
+  # Extract version from git if it is not passed via command line
+  if [-z "$VN"]; then
+    genversion $1
+  fi
   local vfp;
   if [ -z "$1" ]; then
     vfp=$VF
@@ -107,14 +110,14 @@ function writeversion() {
 }
 
 function usage() {
-    echo "Usage: $0 [-a] [-f] [-n] [-o <outfile>] [<object>]"
+    echo "Usage: $0 [-a] [-f] [-n] [-v version] [-o <outfile>] [<object>]"
     exit 1
 }
 
 force=0
 dry_run=0
 write_all=0;
-args=$(getopt afno: $*)
+args=$(getopt afnv:o: $*)
 
 set -- $args
 for i; do
@@ -125,6 +128,7 @@ for i; do
         shift;;
     -n) dry_run=1;
         shift;;
+    -v) VN=$2; shift; shift;;
     -o) VF=$2; shift; shift;;
     --) shift; break;;
   esac

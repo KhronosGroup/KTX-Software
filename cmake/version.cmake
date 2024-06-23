@@ -108,8 +108,10 @@ function(generate_version _var )
     set(${_var} "${KTX_VERSION}" PARENT_SCOPE)
 endfunction()
 
-# Get latest tag
-git_describe_raw(KTX_VERSION_FULL --abbrev=0 --match v[0-9]*)
+# Get latest tag from git if not passed to cmake
+if(NOT KTX_VERSION_FULL)
+    git_describe_raw(KTX_VERSION_FULL --abbrev=0 --match v[0-9]*)
+endif()
 #message("KTX full version: ${KTX_VERSION_FULL}")
 
 # generate_version(TOKTX_VERSION tools/toktx)
@@ -174,7 +176,7 @@ function( create_version_header dest_path target )
         add_custom_command(
             OUTPUT ${version_h_output}
             # On Windows this command has to be invoked by a shell in order to work
-            COMMAND ${BASH_EXECUTABLE} -c "\"scripts/mkversion\" \"-o\" \"version.h\" \"${dest_path}\""
+            COMMAND ${BASH_EXECUTABLE} -c "\"scripts/mkversion\" \"-v\" \"${KTX_VERSION_FULL}\" \"-o\" \"version.h\" \"${dest_path}\""
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
             COMMENT "Generate ${version_h_output}"
             VERBATIM
@@ -182,7 +184,7 @@ function( create_version_header dest_path target )
     else()
         add_custom_command(
             OUTPUT ${version_h_output}
-            COMMAND scripts/mkversion -o version.h ${dest_path}
+            COMMAND scripts/mkversion -v ${KTX_VERSION_FULL} -o version.h ${dest_path}
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
             COMMENT "Generate ${version_h_output}"
             VERBATIM
