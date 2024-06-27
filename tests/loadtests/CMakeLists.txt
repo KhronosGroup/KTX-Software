@@ -1,12 +1,12 @@
 # Copyright 2017-2020 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-if(WIN32)
-    cmake_print_variables(
-        CMAKE_SYSTEM_VERSION
-        CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION
-    )
-endif()
+#if(WIN32)
+#    cmake_print_variables(
+#        CMAKE_SYSTEM_VERSION
+#        CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION
+#    )
+#endif()
 
 if(NOT APPLE_LOCKED_OS)
     set( fp_pref ${CMAKE_FIND_PACKAGE_PREFER_CONFIG} )

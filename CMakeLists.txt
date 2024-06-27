@@ -313,6 +313,12 @@ if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "")
     set(CMAKE_CXX_COMPILER_FRONTEND_VARIANT "${CMAKE_CXX_COMPILER_ID}")
 endif()
 
+#cmake_print_variables(
+#    CMAKE_CXX_COMPILER_ID
+#    CMAKE_CXX_COMPILER_VERSION
+#    CMAKE_CXX_COMPILER_FRONTEND_VARIANT
+#)
+
 # Compiler accepts MSVC-style command line options
 set(is_msvc_fe "$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},MSVC>")
 # Compiler accepts GNU-style command line options
@@ -609,6 +615,19 @@ macro(common_libktx_settings target enable_write library_type)
         PRIVATE
             # Only set dllexport when building a shared library.
             $<$<STREQUAL:${library_type},SHARED>:KTX_API=__declspec\(dllexport\)>
+            # Code compiled with the versions shown defaults to a constexpr
+            # std::mutex constructor and requires a vcruntime140.dll with at
+            # least version 140.0.33811 otherwise code creating a mutex
+            # crashes mysteriously. Since many JVM installations bundle their
+            # own version of the vcruntime chances are high they will not have
+            # a modern enough version so JNI modules linked to libktx will
+            # crash when multiple threads are used (BasisU and ASTC encoders).
+            #
+            # To avoid this set a define to prevent the compiler using
+            # constexpr mutex constructors. Remove this eventually after
+            # in-use JVM installations have at least this vcruntime.
+            "$<$<AND:${is_msvccl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.40.33811>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>"
+            "$<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,17.0.3>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>"
         PUBLIC # only for basisu_c_binding.
             BASISU_NO_ITERATOR_DEBUG_LEVEL
         )
@@ -805,10 +824,6 @@ PRIVATE
 # Turn off these warnings until Rich fixes the occurences.
 # It it not clear to me if generator expressions can be used here
 # hence the long-winded way.
-#message(STATUS
-#        "CMAKE_CXX_COMPILER_ID = ${CMAKE_CXX_COMPILER_ID} "
-#        "CMAKE_CXX_COMPILER_VERSION = ${CMAKE_CXX_COMPILER_VERSION}"
-#)
 if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 # Currently no need to disable any warnings in basisu code. Rich fixed them.
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
