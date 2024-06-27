@@ -626,8 +626,8 @@ macro(common_libktx_settings target enable_write library_type)
             # To avoid this set a define to prevent the compiler using
             # constexpr mutex constructors. Remove this eventually after
             # in-use JVM installations have at least this vcruntime.
-            "$<$<AND:${is_msvccl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.40.33811>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>"
-            "$<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,17.0.3>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>"
+            $<$<AND:${is_msvccl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.40.33811>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
+            $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,17.0.3>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
         PUBLIC # only for basisu_c_binding.
             BASISU_NO_ITERATOR_DEBUG_LEVEL
         )

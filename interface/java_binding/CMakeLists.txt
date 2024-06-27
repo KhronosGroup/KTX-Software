@@ -34,6 +34,12 @@ add_library(ktx-jni SHARED
 
 configure_file(src/main/cpp/ktx-jni.manifest.in ktx-jni.manifest)
 
+# See comment for same setting in root CMakeLists.txt around line 618.
+target_compile_definitions(ktx-jni PRIVATE
+    $<$<AND:${is_msvccl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.40.33811>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
+    $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,17.0.3>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
+)
+
 target_include_directories(ktx-jni SYSTEM PRIVATE
       ${JNI_INCLUDE_DIRS}
 )
