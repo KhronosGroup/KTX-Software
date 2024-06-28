@@ -622,7 +622,7 @@ macro(common_libktx_settings target enable_write library_type)
             # their own version of the VC++ redistributables chances are
             # high they will not have a modern enough version so JNI modules
             # linked with libktx will crash when multiple threads are used,
-            # which they are in the BasisU and ASTC encoders.
+            # as they are in the BasisU and ASTC encoders.
             #
             # To avoid this set a define to prevent the compiler using
             # constexpr mutex constructors. Remove this eventually after
