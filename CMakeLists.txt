@@ -625,7 +625,8 @@ macro(common_libktx_settings target enable_write library_type)
             #
             # To avoid this set a define to prevent the compiler using
             # constexpr mutex constructors. Remove this eventually after
-            # in-use JVM installations have at least this vcruntime.
+            # in-use JVM installations have at least this vcruntime. Remove
+            # also from ASTCENC_LIB_TARGET settings around line 1169.
             $<$<AND:${is_msvccl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.40.33811>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
             $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,17.0.3>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
         PUBLIC # only for basisu_c_binding.
@@ -1165,6 +1166,15 @@ endif()
 set(ASTCENC_CLI OFF) # Only build as library not the CLI astcencoder
 add_subdirectory(external/astc-encoder)
 set_property(TARGET ${ASTCENC_LIB_TARGET} PROPERTY POSITION_INDEPENDENT_CODE ON)
+target_compile_definitions(
+    ${ASTCENC_LIB_TARGET}
+PRIVATE
+    # ASTC encoder uses std::mutex. For more info. see comment about
+    # same setting in libktx starting about line 618. To be eventually
+    # removed as noted in that comment.
+    $<$<AND:${is_msvccl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.40.33811>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
+    $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,17.0.3>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
+)
 
 if(KTX_FEATURE_STATIC_LIBRARY AND APPLE)
     # Make a single static library to simplify linking.
