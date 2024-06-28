@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file astc_encode.cpp
+ * @file
  * @~English
  *
  * @brief Functions for compressing a texture to ASTC format.

@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file hashlist.c
+ * @file
  * @~English
  *
  * @brief Functions for creating and using a hash list of key-value

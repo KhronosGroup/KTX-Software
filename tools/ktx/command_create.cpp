@@ -22,6 +22,10 @@
 #include "image.hpp"
 #include "imageio.h"
 
+/** @file
+ * @~English
+ * @brief @b create command implementation.
+ */
 
 // -------------------------------------------------------------------------------------------------
 
@@ -735,7 +739,7 @@ Create a KTX2 file from various input files.
 @par Version 4.0
  - Initial version
 
- @par Version 4.4
+@par Version 4.4
  - Reorganize encoding options.
  - Improve explanation of use of @b \--format with @b \--encode.
  - Improve explanation of ASTC encoding.

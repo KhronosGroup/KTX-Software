@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file texture_funcs.h
+ * @file
  * @~English
  *
  * @brief Templates for functions common to base & derived ktxTexture classes.

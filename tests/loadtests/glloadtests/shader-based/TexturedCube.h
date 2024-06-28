@@ -7,7 +7,7 @@
  */
 
 /**
- * @file    TexturedCube.h
+ * @file
  * @brief   GLLoadTestSample derived class for drawing a textured cube.
  *
  * @author Mark Callow, www.edgewise-consulting.com.

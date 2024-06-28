@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file TextureArray.cpp
+ * @file
  * @~English
  *
  * @brief Definition of test sample for loading and displaying the layers of a 2D array texture.

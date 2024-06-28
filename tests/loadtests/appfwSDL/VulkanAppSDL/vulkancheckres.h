@@ -19,7 +19,7 @@
 
 /**
  * @internal
- * @file vulkancheckres.h
+ * @file
  * @~English
  *
  * @brief Check result of a Vulkan command.

@@ -7,7 +7,7 @@
  */
 
 /**
- * @file    DrawTexture.h
+ * @file
  * @brief   Definition of texture loading test using glDrawTexture.
  *
  * @author  Mark Callow

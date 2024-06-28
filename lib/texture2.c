@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file texture2.c
+ * @file
  * @~English
  *
  * @brief ktxTexture2 implementation. Support for KTX2 format.

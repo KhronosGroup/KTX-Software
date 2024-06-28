@@ -10,7 +10,7 @@
 
 /**
  * @internal
- * @file main.c
+ * @file
  * @~English
  *
  * @brief main() function for SDL app framework.

@@ -7,7 +7,7 @@
  */
 
 /**
- * @file    shaders.c
+ * @file
  * @brief   Shaders used by the DrawTexture and TexturedCube samples.
  */
 

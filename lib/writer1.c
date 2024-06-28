@@ -3,7 +3,7 @@
 
 /**
  * @internal
- * @file writer.c
+ * @file
  * @~English
  *
  * @brief Functions for creating KTX-format files from a set of images.

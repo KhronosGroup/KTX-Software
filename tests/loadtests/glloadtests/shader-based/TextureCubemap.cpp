@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file TextureCubemap.cpp
+ * @file
  * @~English
  *
  * @brief Test loading of 2D texture arrays.
