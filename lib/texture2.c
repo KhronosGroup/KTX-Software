@@ -1912,7 +1912,8 @@ ktxTexture2_GetOETF_e(ktxTexture2* This)
 /**
  * @memberof ktxTexture2
  * @~English
- * @brief Retrieve the opto-electrical transfer function of the imS
+ * @brief Retrieve the opto-electrical transfer function of the images.
+ * @deprecated Use ktxTexture2\_GetOETF\_e.
  *
  * @param[in]     This      pointer to the ktxTexture2 object of interest.
  *
