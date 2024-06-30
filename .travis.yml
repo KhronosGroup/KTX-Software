@@ -120,6 +120,9 @@ jobs:
           SUPPORT_SSE=ON SUPPORT_OPENCL=OFF WERROR=ON PACKAGE=YES
     - os: linux
       arch: arm64
+      # Suggested by Travis-CI support to workaround pyparser install
+      # failure with 2024.6.25 runner image.
+      group: previous
       dist: jammy
       addons:
         apt:
