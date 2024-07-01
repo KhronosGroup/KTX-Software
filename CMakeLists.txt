@@ -928,8 +928,6 @@ if(EMSCRIPTEN)
     set(
         KTX_EMC_LINK_FLAGS
         --bind
-        --pre-js ${CMAKE_CURRENT_SOURCE_DIR}/interface/js_binding/class_compat.js
-        --extern-post-js ${CMAKE_CURRENT_SOURCE_DIR}/interface/js_binding/module_create_compat.js
         "SHELL:-s MODULARIZE=1"
         "SHELL:-s EXPORTED_RUNTIME_METHODS=[\'GL\']"
         "SHELL:-s GL_PREINITIALIZED_CONTEXT=1"
@@ -959,6 +957,8 @@ if(EMSCRIPTEN)
         ktx_js
     PUBLIC
         ${KTX_EMC_LINK_FLAGS}
+        --pre-js ${CMAKE_CURRENT_SOURCE_DIR}/interface/js_binding/class_compat.js
+        --extern-post-js ${CMAKE_CURRENT_SOURCE_DIR}/interface/js_binding/module_create_compat.js
         "SHELL:-s EXPORT_NAME=createKtxModule"
     )
     set_target_properties( ktx_js PROPERTIES OUTPUT_NAME "libktx")
@@ -996,6 +996,8 @@ if(EMSCRIPTEN)
         ktx_js_read
     PUBLIC
         ${KTX_EMC_LINK_FLAGS}
+        --pre-js ${CMAKE_CURRENT_SOURCE_DIR}/interface/js_binding/class_compat.js
+        --extern-post-js ${CMAKE_CURRENT_SOURCE_DIR}/interface/js_binding/module_create_compat.js
         "SHELL:-s EXPORT_NAME=createKtxReadModule"
     )
     set_target_properties( ktx_js_read PROPERTIES OUTPUT_NAME "libktx_read")
