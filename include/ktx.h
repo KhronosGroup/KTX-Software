@@ -1403,7 +1403,7 @@ typedef struct ktxBasisParams {
              Only valid for linear textures.
          */
     ktx_bool_t separateRGToRGB_A;
-        /*!< @deprecated. This was and is a no-op. 2-component inputs have
+        /*!< @deprecated This was and is a no-op. 2-component inputs have
             always been automatically separated using an "rrrg" inputSwizzle.
             @sa inputSwizzle and normalMode.
          */
@@ -1598,25 +1598,25 @@ typedef enum ktx_transcode_fmt_e {
         // Old enums for compatibility with code compiled against previous
         // versions of libktx.
         KTX_TF_ETC1 = KTX_TTF_ETC1_RGB,
-            //!< @deprecated. Use #KTX_TTF_ETC1_RGB.
+            //!< @deprecated Use #KTX_TTF_ETC1_RGB.
         KTX_TF_ETC2 = KTX_TTF_ETC,
-            //!< @deprecated. Use #KTX_TTF_ETC.
+            //!< @deprecated Use #KTX_TTF_ETC.
         KTX_TF_BC1 = KTX_TTF_BC1_RGB,
-            //!< @deprecated. Use #KTX_TTF_BC1_RGB.
+            //!< @deprecated Use #KTX_TTF_BC1_RGB.
         KTX_TF_BC3 = KTX_TTF_BC3_RGBA,
-            //!< @deprecated. Use #KTX_TTF_BC3_RGBA.
+            //!< @deprecated Use #KTX_TTF_BC3_RGBA.
         KTX_TF_BC4 = KTX_TTF_BC4_R,
-            //!< @deprecated. Use #KTX_TTF_BC4_R.
+            //!< @deprecated Use #KTX_TTF_BC4_R.
         KTX_TF_BC5 = KTX_TTF_BC5_RG,
-            //!< @deprecated. Use #KTX_TTF_BC5_RG.
+            //!< @deprecated Use #KTX_TTF_BC5_RG.
         KTX_TTF_BC7_M6_RGB = KTX_TTF_BC7_RGBA,
-            //!< @deprecated. Use #KTX_TTF_BC7_RGBA.
+            //!< @deprecated Use #KTX_TTF_BC7_RGBA.
         KTX_TTF_BC7_M5_RGBA = KTX_TTF_BC7_RGBA,
-            //!< @deprecated. Use #KTX_TTF_BC7_RGBA.
+            //!< @deprecated Use #KTX_TTF_BC7_RGBA.
         KTX_TF_BC7_M6_OPAQUE_ONLY = KTX_TTF_BC7_RGBA,
-            //!< @deprecated. Use #KTX_TTF_BC7_RGBA
+            //!< @deprecated Use #KTX_TTF_BC7_RGBA
         KTX_TF_PVRTC1_4_OPAQUE_ONLY = KTX_TTF_PVRTC1_4_RGB
-            //!< @deprecated. Use #KTX_TTF_PVRTC1_4_RGB.
+            //!< @deprecated Use #KTX_TTF_PVRTC1_4_RGB.
 } ktx_transcode_fmt_e;
 
 /**
