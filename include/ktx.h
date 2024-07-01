@@ -692,11 +692,7 @@ typedef enum ktxSupercmpScheme {
     KTX_SS_END_RANGE = KTX_SS_ZLIB,
     KTX_SS_BEGIN_VENDOR_RANGE = 0x10000,
     KTX_SS_END_VENDOR_RANGE = 0x1ffff,
-    KTX_SS_BEGIN_RESERVED = 0x20000,
-    KTX_SUPERCOMPRESSION_BASIS = KTX_SS_BASIS_LZ,
-        /*!< @deprecated Will be removed before v4 release. Use  KTX_SS_BASIS_LZ instead. */
-    KTX_SUPERCOMPRESSION_ZSTD = KTX_SS_ZSTD
-        /*!< @deprecated Will be removed before v4 release. Use  KTX_SS_ZSTD instead. */
+    KTX_SS_BEGIN_RESERVED = 0x20000
 } ktxSupercmpScheme;
 
 /**
@@ -1770,25 +1766,6 @@ KTX_API KTX_error_code KTX_APIENTRY ktxPrintKTX2InfoJSONForStream(ktxStream* str
 #ifdef __cplusplus
 }
 #endif
-
-/*========================================================================*
- * For backward compatibilty with the V3 & early versions of the V4 APIs. *
- *========================================================================*/
-
-/**
- * @deprecated Will be dropped before V4 release.
- */
-#define ktx_texture_transcode_fmt_e ktx_transcode_fmt_e
-
-/**
- * @deprecated Will be dropped before V4 release.
- */
-#define ktx_texture_decode_flags ktx_transcode_flag_bits
-
-/**
- * @deprecated Will be dropped before V4 release.
- */
-#define ktxTexture_GetSize ktxTexture_GetDatasize
 
 /**
 @~English
