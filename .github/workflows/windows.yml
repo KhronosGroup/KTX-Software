@@ -154,33 +154,41 @@ jobs:
       if: github.ref_type == 'tag' && matrix.check_mkvk != 'ONLY'
       run: git fetch -f origin ${{ github.ref }}:${{ github.ref }}
 
-    # Need doxygen if docs are supposed to be built.
-    # Note this suffers frequent failures due to Chocolatey attempts
+    # Need doxygen and graphviz if docs are supposed to be built.
+    # Note these suffer frequent failures due to Chocolatey attempts
     # to blackmail you into purchasing a license. Hence we retry a
     # few times. If this still fails, re-run the build.
-    - name: Install Doxygen
+    - name: Install Doxygen and Graphviz
       if: matrix.options.doc == 'ON'
       #run: choco install doxygen.install
+      #run: choco install graphviz
       run: |
-        $retryCount = 4
-        $success = $false
-        for ($i = 1; $i -le $retryCount; $i++) {
-            Write-Host "Attempt no: $i"
-            choco install doxygen.install --no-progress
-            if ($LASTEXITCODE -eq 0) {
-                $success = $true
-                Write-Host "Installation successful."
-                break
-            } else {
-                Write-Host "Installation failed. Retrying..."
-                Start-Sleep -Seconds (2*$i)
+        function Install-WithChoco {
+            param ( $Package )
+            $retryCount = 4
+            $success = $false
+            for ($i = 1; $i -le $retryCount; $i++) {
+                Write-Host "Attempt no $i for $Package"
+                # Without | Out-Host the choco output becomes output of this
+                # function because it is called from within `if`.
+                choco install $Package --no-progress --yes | Out-Host
+                if ($LASTEXITCODE -eq 0) {
+                    $success = $true
+                    Write-Host "$Package installation successful."
+                    break
+                } else {
+                    Write-Host "$Package installation failed. Retrying..."
+                    Start-Sleep -Seconds (2*$i)
+                }
             }
+            if (-not $success) {
+                Write-Host "$Package installation failed after $retryCount attempts."
+            }
+            return $success
         }
-        if (-not $success) {
-            Write-Host "Installation failed after $retryCount attempts."
+        if (-not ((Install-WithChoco doxygen.install) -and (Install-WithChoco graphviz))) {
             exit 1
         }
-
     - name: Install AzureSignTool
       if: matrix.check_mkvk != 'ONLY'
       id: install-ast

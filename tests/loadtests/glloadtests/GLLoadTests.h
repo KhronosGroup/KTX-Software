@@ -11,7 +11,7 @@
 
 /**
  * @internal
- * @file LoadTests.h
+ * @file
  * @~English
  *
  * @brief Definition of app for running a set of OpenGL load tests.

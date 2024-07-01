@@ -7,7 +7,7 @@
 //!
 //! @internal
 //! @~English
-//! @file imageoutput.cc
+//! @file
 //!
 //! @brief ImageOutput class implementation
 //!

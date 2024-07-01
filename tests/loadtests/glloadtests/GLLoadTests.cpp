@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file GLLoadTests.cpp
+ * @file
  * @~English
  *
  * @brief Implementation of app for running a set of OpenGL load tests.

@@ -106,7 +106,7 @@ Check the validity of a KTX 2 file.
     <dt>-w, \--warn-as-error</dt>
     <dd>Treat warnings as errors. Changes exit code from success to error.
     </dl>
-    @snippetdoc ktxapp.h ktxApp options
+    @snippet{doc} ktxapp.h ktxApp options
 
 @section ktx2check_exitstatus EXIT STATUS
     @b ktx2check exits 0 on success, 1 on command line errors and 2 on

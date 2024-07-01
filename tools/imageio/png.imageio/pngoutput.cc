@@ -7,7 +7,7 @@
 /**
  * @internal
  * @~English
- * @file pngoutput.cc
+ * @file
  *
  * @brief ImageOutput to  PNG format files.
  *

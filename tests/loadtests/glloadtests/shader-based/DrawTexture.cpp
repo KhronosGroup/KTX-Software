@@ -7,7 +7,7 @@
  */
 
 /**
- * @file    DrawTexture.cpp
+ * @file
  * @brief   Tests texture loading by using glDrawTexture to draw the texture.
  *
  * @author  Mark Callow

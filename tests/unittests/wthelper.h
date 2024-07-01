@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file wthelper.h
+ * @file
  * @~English
  *
  * @brief Helper class for writer tests.

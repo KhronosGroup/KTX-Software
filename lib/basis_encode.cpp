@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file basis_encode.cpp
+ * @file
  * @~English
  *
  * @brief Functions for supercompressing a texture with Basis Universal.

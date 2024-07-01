@@ -7,7 +7,7 @@
 //!
 //! @internal
 //! @~English
-//! @file imageio.h
+//! @file
 //!
 //! @brief Base classes for image input and output plugins
 //!

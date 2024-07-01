@@ -7,7 +7,7 @@
 //!
 //! @internal
 //! @~English
-//! @file image.hpp
+//! @file
 //!
 //! @brief Internal Image class
 //!

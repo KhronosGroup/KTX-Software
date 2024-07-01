@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file texture2.c
+ * @file
  * @~English
  *
  * @brief ktxTexture2 implementation. Support for KTX2 format.
@@ -1421,7 +1421,7 @@ ktxTexture2_CreateFromStdioStream(FILE* stdioStream,
  * @exception KTX_FILE_OPEN_FAILED The file could not be opened.
  * @exception KTX_INVALID_VALUE @p filename is @c NULL.
  *
- * For other exceptions, see ktxTexture_CreateFromStdioStream().
+ * For other exceptions, see ktxTexture2_CreateFromStdioStream().
  */
 KTX_error_code
 ktxTexture2_CreateFromNamedFile(const char* const filename,
@@ -1474,7 +1474,7 @@ ktxTexture2_CreateFromNamedFile(const char* const filename,
  *
  * @exception KTX_INVALID_VALUE Either @p bytes is NULL or @p size is 0.
  *
- * For other exceptions, see ktxTexture_CreateFromStdioStream().
+ * For other exceptions, see ktxTexture2_CreateFromStdioStream().
  */
 KTX_error_code
 ktxTexture2_CreateFromMemory(const ktx_uint8_t* bytes, ktx_size_t size,
@@ -1526,7 +1526,7 @@ ktxTexture2_CreateFromMemory(const ktx_uint8_t* bytes, ktx_size_t size,
  *
  * @exception KTX_INVALID_VALUE Either @p bytes is NULL or @p size is 0.
  *
- * For other exceptions, see ktxTexture_CreateFromStdioStream().
+ * For other exceptions, see ktxTexture2_CreateFromStdioStream().
  */
 KTX_error_code
 ktxTexture2_CreateFromStream(ktxStream* stream,
@@ -1913,7 +1913,7 @@ ktxTexture2_GetOETF_e(ktxTexture2* This)
  * @memberof ktxTexture2
  * @~English
  * @brief Retrieve the opto-electrical transfer function of the images.
- * @deprecated Retained for backward compatibility. Use ktxTexture2\_GetOETF\_e()
+ * @deprecated Use ktxTexture2\_GetOETF\_e().
  *
  * @param[in]     This      pointer to the ktxTexture2 object of interest.
  *

@@ -7,7 +7,7 @@
 //!
 //! @internal
 //! @~English
-//! @file imageinput.cc
+//! @file
 //!
 //! @brief ImageInput:open function
 //!

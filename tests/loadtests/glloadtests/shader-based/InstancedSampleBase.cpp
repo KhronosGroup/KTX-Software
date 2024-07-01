@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file InstancedSampleBase.cpp
+ * @file
  * @~English
  *
  * @brief Base for samplesusing instancing such as array texture display.

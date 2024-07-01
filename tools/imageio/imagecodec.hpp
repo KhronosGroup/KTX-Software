@@ -8,7 +8,7 @@
 //!
 //! @internal
 //! @~English
-//! @file imagecodec.hpp
+//! @file
 //!
 //! @brief Internal Image Codec class
 //!

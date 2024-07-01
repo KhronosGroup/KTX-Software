@@ -1444,9 +1444,8 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
  * @~English
  * @brief Create a Vulkan image object from a ktxTexture object.
  *
- * Calls @ref ktxTexture::ktxTexture\_VkUploadEx_WithSuballocator
- * "ktxTexture_VkUploadEx_WithSuballocator()" with no supplied suballocator
- * callbacks. Use that for complete control.
+ * Calls ktxTexture\_VkUploadEx\_WithSuballocator() with no supplied
+ * suballocator callbacks. Use that for complete control.
  */
 KTX_error_code
 ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
@@ -1464,8 +1463,8 @@ ktxTexture_VkUploadEx(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
  * @~English
  * @brief Create a Vulkan image object from a ktxTexture object.
  *
- * Calls @ref ktxTexture::ktxTexture\_VkUploadEx "ktxTexture_VkUploadEx()" with
- * the most commonly used options: @c VK_IMAGE_TILING_OPTIMAL,
+ * Calls ktxTexture\_VkUploadEx() with the most commonly used options:
+ * @c VK_IMAGE_TILING_OPTIMAL,
  * @c VK_IMAGE_USAGE_SAMPLED_BIT and
  * @c VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL. Use that for complete
  * control.
@@ -1506,7 +1505,7 @@ ktxTexture1_VkUploadEx_WithSuballocator(ktxTexture1* This, ktxVulkanDeviceInfo* 
  * @~English
  * @brief Create a Vulkan image object from a ktxTexture1 object.
  *
- * @copydetails ktxTexture::ktxTexture_VkUploadEx
+ * This simply calls @ref ktxTexture::ktxTexture\_VkUploadEx "ktxTexture_VkUploadEx()".
  */
 KTX_error_code
 ktxTexture1_VkUploadEx(ktxTexture1* This, ktxVulkanDeviceInfo* vdi,
@@ -1565,8 +1564,6 @@ ktxTexture2_VkUploadEx_WithSuballocator(ktxTexture2* This, ktxVulkanDeviceInfo* 
  * @brief Create a Vulkan image object from a ktxTexture2 object.
  *
  * This simply calls @ref ktxTexture::ktxTexture\_VkUploadEx "ktxTexture_VkUploadEx()".
- *
- * @copydetails ktxTexture::ktxTexture_VkUploadEx
  */
 KTX_error_code
 ktxTexture2_VkUploadEx(ktxTexture2* This, ktxVulkanDeviceInfo* vdi,

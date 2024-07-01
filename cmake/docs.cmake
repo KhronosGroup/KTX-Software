@@ -1,7 +1,15 @@
 # Copyright 2015-2020 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-find_package(Doxygen REQUIRED)
+# dot is optional as missing include dependency graphs and
+# inheritance graphs is not a big enough deal to justify
+# forcing people to install Graphviz.
+find_package(Doxygen REQUIRED OPTIONAL_COMPONENTS dot)
+if(NOT DOXYGEN_DOT_EXECUTABLE)
+    message(NOTICE "dot executable not found so Doxygen will not generate\n"
+                   "include dependency or inheritance graphs in the documentation.\n"
+                   "If you want these graphs, install Graphviz.")
+endif()
 
 set(docdest "${CMAKE_CURRENT_BINARY_DIR}/docs")
 
@@ -85,6 +93,7 @@ function( CreateDocLibKTX )
     set( DOXYGEN_EXPAND_ONLY_PREDEF YES )
 
     set( DOXYGEN_PREDEFINED
+    KTX_DOXYGEN_SKIP
     "KTXTEXTURECLASSDEFN=class_id classId\; \\
         struct ktxTexture_vtbl* vtbl\;             \\
         struct ktxTexture_vvtbl* vvtbl\;           \\

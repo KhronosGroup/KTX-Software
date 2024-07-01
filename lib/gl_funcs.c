@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file gl_funcs.c
+ * @file
  * @~English
  *
  * @brief Retrieve OpenGL function pointers needed by libktx

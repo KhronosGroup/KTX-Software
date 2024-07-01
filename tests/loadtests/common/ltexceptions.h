@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file ltexceptions.h
+ * @file
  * @~English
  *
  * @brief Custom exceptions for the load tests.

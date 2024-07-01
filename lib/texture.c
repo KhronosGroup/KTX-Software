@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file texture.c
+ * @file
  * @~English
  *
  * @brief ktxTexture implementation.

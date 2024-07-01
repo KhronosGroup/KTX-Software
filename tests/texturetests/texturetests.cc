@@ -3,7 +3,7 @@
 
 /**
  * @internal
- * @file texturetests.cc
+ * @file
  * @~English
  *
  * @brief Test ktxTexture API functions.
