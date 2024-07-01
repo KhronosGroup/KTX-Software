@@ -348,26 +348,26 @@ function elem(id) {
 //
 // needs Emscripten's OpenGL ES emulation.
 function uploadTextureToGl(gl, ktexture) {
-  const { texture_transcode_fmt } = ktx;
+  const { transcode_fmt } = ktx;
   var formatString;
 
   if (ktexture.needsTranscoding) {
     var format;
     if (astcSupported) {
       formatString = 'ASTC';
-      format = texture_transcode_fmt.ASTC_4x4_RGBA;
+      format = transcode_fmt.ASTC_4x4_RGBA;
     } else if (dxtSupported) {
       formatString = ktexture.numComponents == 4 ? 'BC3' : 'BC1';
-      format = texture_transcode_fmt.BC1_OR_3;
+      format = transcode_fmt.BC1_OR_3;
     } else if (pvrtcSupported) {
       formatString = 'PVRTC1';
-      format = texture_transcode_fmt.PVRTC1_4_RGBA;
+      format = transcode_fmt.PVRTC1_4_RGBA;
     } else if (etcSupported) {
       formatString = 'ETC';
-      format = texture_transcode_fmt.ETC;
+      format = transcode_fmt.ETC;
     } else {
       formatString = 'RGBA4444';
-      format = texture_transcode_fmt.RGBA4444;
+      format = transcode_fmt.RGBA4444;
     }
     if (ktexture.transcodeBasis(format, 0) != ktx.error_code.SUCCESS) {
         alert('Texture transcode failed. See console for details.');

@@ -246,7 +246,7 @@ namespace ktx
 
             KTX_error_code result = ktxTexture2_TranscodeBasis(
                 *this,
-                targetFormat.as<ktx_texture_transcode_fmt_e>(),
+                targetFormat.as<ktx_transcode_fmt_e>(),
                 decodeFlags.as<ktx_transcode_flags>());
 
             if (result != KTX_SUCCESS)
@@ -641,7 +641,7 @@ interface texture {
     UploadResult glUpload();
     error_code setImageFromMemory(long level, long layer, long faceSlice,
                                   ArrayBufferView imageData); // **
-    error_code transcodeBasis(texture_transcode_fmt? target, transcode_flag_bits
+    error_code transcodeBasis(transcode_fmt? target, transcode_flag_bits
                               decodeFlags);
     ArrayBufferView writeToMemory(); // **
     error_code addKVPairString(DOMString key, DOMString value);     // **
@@ -692,7 +692,7 @@ enum CreateStorageEnum = {
 
 // Some targets may not be available depending on options used when compiling
 // the web assembly. ktxTexture.transcodeBasis will report this.
-enum texture_transcode_fmt = {
+enum transcode_fmt = {
     "ETC1_RGB",
     "BC1_RGB",
     "BC4_R",
@@ -956,26 +956,26 @@ returns the created WebGL texture object and matching texture target.
 
 @code{.js}
 function uploadTextureToGl(gl, ktexture) {
-  const { texture_transcode_fmt  } = ktx;
+  const { transcode_fmt  } = ktx;
   var formatString;
 
   if (ktexture.needsTranscoding) {
     var format;
     if (astcSupported) {
       formatString = 'ASTC';
-      format = texture_transcode_fmt.ASTC_4x4_RGBA;
+      format = transcode_fmt.ASTC_4x4_RGBA;
     } else if (dxtSupported) {
       formatString = ktexture.numComponents == 4 ? 'BC3' : 'BC1';
-      format = texture_transcode_fmt.BC1_OR_3;
+      format = transcode_fmt.BC1_OR_3;
     } else if (pvrtcSupported) {
       formatString = 'PVRTC1';
-      format = texture_transcode_fmt.PVRTC1_4_RGBA;
+      format = transcode_fmt.PVRTC1_4_RGBA;
     } else if (etcSupported) {
       formatString = 'ETC';
-      format = texture_transcode_fmt.ETC;
+      format = transcode_fmt.ETC;
     } else {
       formatString = 'RGBA4444';
-      format = texture_transcode_fmt.RGBA4444;
+      format = transcode_fmt.RGBA4444;
     }
     if (ktexture.transcodeBasis(format, 0) != ktx.error_code.SUCCESS) {
         alert('Texture transcode failed. See console for details.');
@@ -1182,7 +1182,7 @@ EMSCRIPTEN_BINDINGS(ktx)
         .value("DECOMPRESS_CHECKSUM_ERROR", KTX_DECOMPRESS_CHECKSUM_ERROR)
         ;
 
-    enum_<ktx_texture_transcode_fmt_e>("texture_transcode_fmt")
+    enum_<ktx_transcode_fmt_e>("transcode_fmt")
         .value("ETC1_RGB", KTX_TTF_ETC1_RGB)
         .value("BC1_RGB", KTX_TTF_BC1_RGB)
         .value("BC4_R", KTX_TTF_BC4_R)

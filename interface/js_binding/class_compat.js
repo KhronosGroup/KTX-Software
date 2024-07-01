@@ -11,7 +11,7 @@
 Module.onRuntimeInitialized = function() {
   Module['ktxTexture'] = Module.texture;
   Module['ErrorCode'] = Module.error_code;
-  Module['TranscodeTarget'] = Module.texture_transcode_fmt;
+  Module['TranscodeTarget'] = Module.transcode_fmt;
   Module['TranscodeFlags'] = Module.transcode_flag_bits;
 }
 
