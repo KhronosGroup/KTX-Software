@@ -926,11 +926,18 @@ get_source_file_property(zstd_options external/basisu/zstd/zstd.c COMPILE_OPTION
 
 if(EMSCRIPTEN)
     set(
-        KTX_EMC_LINK_FLAGS
+        KTX_EM_COMMON_LINK_FLAGS
         --bind
         "SHELL:-s MODULARIZE=1"
         "SHELL:-s EXPORTED_RUNTIME_METHODS=[\'GL\']"
         "SHELL:-s GL_PREINITIALIZED_CONTEXT=1"
+    )
+
+    set(
+        KTX_EM_COMMON_KTX_LINK_FLAGS
+        --pre-js ${CMAKE_CURRENT_SOURCE_DIR}/interface/js_binding/class_compat.js
+        --extern-post-js ${CMAKE_CURRENT_SOURCE_DIR}/interface/js_binding/module_create_compat.js
+        ${KTX_EM_COMMON_LINK_FLAGS}
     )
 
     set(
@@ -956,9 +963,7 @@ if(EMSCRIPTEN)
     target_link_options(
         ktx_js
     PUBLIC
-        ${KTX_EMC_LINK_FLAGS}
-        --pre-js ${CMAKE_CURRENT_SOURCE_DIR}/interface/js_binding/class_compat.js
-        --extern-post-js ${CMAKE_CURRENT_SOURCE_DIR}/interface/js_binding/module_create_compat.js
+        ${KTX_EM_COMMON_KTX_LINK_FLAGS}
         "SHELL:-s EXPORT_NAME=createKtxModule"
     )
     set_target_properties( ktx_js PROPERTIES OUTPUT_NAME "libktx")
@@ -995,9 +1000,7 @@ if(EMSCRIPTEN)
     target_link_options(
         ktx_js_read
     PUBLIC
-        ${KTX_EMC_LINK_FLAGS}
-        --pre-js ${CMAKE_CURRENT_SOURCE_DIR}/interface/js_binding/class_compat.js
-        --extern-post-js ${CMAKE_CURRENT_SOURCE_DIR}/interface/js_binding/module_create_compat.js
+        ${KTX_EM_COMMON_KTX_LINK_FLAGS}
         "SHELL:-s EXPORT_NAME=createKtxReadModule"
     )
     set_target_properties( ktx_js_read PROPERTIES OUTPUT_NAME "libktx_read")
@@ -1038,7 +1041,7 @@ if(EMSCRIPTEN)
     target_link_options(
         msc_basis_transcoder_js
     PUBLIC
-        ${KTX_EMC_LINK_FLAGS}
+        ${KTX_EM_COMMON_LINK_FLAGS}
         "SHELL:-s EXPORT_NAME=MSC_TRANSCODER"
         # Re-use ktx's link options
         $<TARGET_PROPERTY:ktx_read,INTERFACE_LINK_OPTIONS>
