@@ -81,10 +81,6 @@ then, after installing it, you **must** run
 git lfs checkout
 ```
 
-A few files have `$Date$` keywords. If you care about having the proper
-dates shown or will be generating the documentation or preparing
-distribution archives, you **must** follow the instructions below.
-
 ### KTX-Software-CTS - Conformance Test Suite
 
 The tests and test files for the generic command line `ktx` tool can be found in a separate
@@ -94,6 +90,10 @@ For more information about building, running and extending the CTS tests see [BU
 and [CTS README](https://github.com/KhronosGroup/KTX-Software-CTS/blob/main/README.md).
 
 ### <a id="kwexpansion"></a>$Date$ keyword expansion
+
+A few files have `$Date$` keywords. If you care about having the proper
+dates shown or will be generating the documentation or preparing
+distribution archives, you **must** follow the instructions below.
 
 $Date$ keywords are expanded via smudge & clean filters. To install
 the filters, issue the following commands in the root of your clone.
