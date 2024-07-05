@@ -220,6 +220,7 @@ install:
   linux)
     if [ "$CHECK_REUSE" = "YES" -o "$CHECK_REUSE" = "ONLY" ]; then
       set -e  # because the if below swallows a bad exit status.
+      python -m pip install --upgrade pip
       pip3 install reuse
       set +e
     fi
