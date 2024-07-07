@@ -84,8 +84,6 @@ jobs:
   include:
     - os: linux
       dist: jammy
-      # Force use of previous runner version. See arm64 runner below.
-      group: previous
       env:
         - CHECK_REUSE: ONLY
 #    - os: linux
@@ -286,6 +284,8 @@ script:
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
     if [ "$CHECK_REUSE" = "YES" -o "$CHECK_REUSE" = "ONLY" ]; then
+      printenv PATH
+      printenv PYTHONPATH
       echo "Calling reuse lint."
       reuse --suppress-deprecation lint
     fi
@@ -319,8 +319,8 @@ script:
   set +e
 
 # See if this helps with truncated logs.
-#after_script:
-#  - sleep 10
+after_script:
+  - sleep 10
 
 after_failure:
   - ./scripts/on_failure.sh
