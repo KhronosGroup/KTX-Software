@@ -319,8 +319,8 @@ script:
   set +e
 
 # See if this helps with truncated logs.
-after_script:
-  - sleep 10
+#after_script:
+#  - sleep 10
 
 after_failure:
   - ./scripts/on_failure.sh
