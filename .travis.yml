@@ -284,8 +284,6 @@ script:
   case "${TRAVIS_OS_NAME:-linux}" in
   linux)
     if [ "$CHECK_REUSE" = "YES" -o "$CHECK_REUSE" = "ONLY" ]; then
-      printenv PATH
-      printenv PYTHONPATH
       echo "Calling reuse lint."
       reuse --suppress-deprecation lint
     fi
