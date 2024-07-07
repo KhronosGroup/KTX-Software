@@ -224,6 +224,7 @@ install:
       # reuse available via `apt install reuse` is very old: 0.14.0.
       # Therefore install via pip. Version today, 2024.7.7, is 4.0.2.
       pip3 install reuse
+      pip3 install --upgrade attrs
       set +e
     fi
     if [ "$CHECK_REUSE" != "ONLY" -a "$CHECK_MKVK" != "ONLY" -a "$WASM_BUILD" != "YES" ]; then
