@@ -282,7 +282,7 @@ script:
   linux)
     if [ "$CHECK_REUSE" = "YES" -o "$CHECK_REUSE" = "ONLY" ]; then
       echo "Calling reuse lint."
-      reuse --suppress-deprecation lint
+      reuse lint
     fi
     if [ "$CHECK_REUSE" != "ONLY" -a "$CHECK_MKVK" != "ONLY" ]; then
       if [ "$WASM_BUILD" = "YES" ]; then
