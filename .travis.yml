@@ -215,12 +215,6 @@ install:
       # reuse available via `apt install reuse` is very old: 0.14.0.
       # Therefore install via pip. Version today, 2024.7.7, is 4.0.2.
       pip3 install reuse
-      # 4.0.2's version specifier, attrs>=21.1, is too relaxed. reuse fails
-      # with ModuleNotFound for attrs. 21.2 is installed in the runner.
-      # It needs a more recent attrs. As of 2.24.7.7 this upgrades to 23.2
-      # and reuse works. Watch https://github.com/fsfe/reuse-tool/issues/1039.
-      # When fixed remove this upgrade line.
-      pip3 install --upgrade attrs
       set +e
     fi
     if [ "$CHECK_REUSE" != "ONLY" -a "$CHECK_MKVK" != "ONLY" -a "$WASM_BUILD" != "YES" ]; then
