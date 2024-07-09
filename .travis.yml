@@ -213,7 +213,7 @@ install:
     if [ "$CHECK_REUSE" = "YES" -o "$CHECK_REUSE" = "ONLY" ]; then
       set -e  # because the if below swallows a bad exit status.
       # reuse available via `apt install reuse` is very old: 0.14.0.
-      # Therefore install via pip. Version today, 2024.7.7, is 4.0.2.
+      # Therefore install via pip. Version today, 2024.7.9, is 4.0.3.
       pip3 install reuse
       set +e
     fi
