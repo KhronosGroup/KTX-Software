@@ -218,6 +218,7 @@ function genTypeSize(format) {
 }
 
 function write_header_file(guard1, guard2, body, filename) {
+    print "// clang-format off: CI is complicated if formatting checks on generated files are enforced." > filename
     if (guard2) {
         print "#if !defined("guard1") && !defined("guard2")" > filename
     } else {
@@ -228,12 +229,20 @@ function write_header_file(guard1, guard2, body, filename) {
     print copyright > filename
     print body > filename
     print "#endif /* "guard1" */" > filename
+    print "// clang-format on" > filename
 }
 
 function write_source_file(body, filename) {
     print banner > filename
     print copyright > filename
+    # write_source_file used for both java and c sources
+    if (filename ~ /\.(h|c)$/) {
+      print "// clang-format off: CI is complicated if formatting checks on generated files are enforced." > filename
+    }
     print body > filename
+    if (filename ~ /\.(h|c)$/) {
+      print "// clang-format on" > filename
+    }
 }
 
 function write_python_source_file(body, filename) {

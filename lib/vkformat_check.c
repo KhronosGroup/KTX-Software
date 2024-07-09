@@ -9,6 +9,7 @@
 ** SPDX-License-Identifier: Apache-2.0
 */
 
+// clang-format off: CI is complicated if formatting checks on generated files are enforced.
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -211,3 +212,4 @@ isValidFormat(VkFormat format)
     }
 }
 
+// clang-format on

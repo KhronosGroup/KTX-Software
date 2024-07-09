@@ -638,5 +638,17 @@ directory of your KTX-Software workarea or set the value of the
 `KTX_SPECIFICATION` CMake cache variable to the location of your specification
 clone.
 
+Formatting
+------------
+
+The KTX repository is transitioning to enforcing a set of formatting guides, checked during CI.
+The tool used for this is [ClangFormat](https://clang.llvm.org/docs/ClangFormat.html).
+To minimize friction, it is advised that one configure their environment to run ClangFormat in an automated fashion,
+minimally before committing to source control, ideally on every save.
+
+### Visual Studio Code
+
+Set the [`editor.formatOnSave`](https://code.visualstudio.com/docs/editor/codebasics#_formatting) option and use one of the C/C++ formatting extensions available, most notably [ms-vscode.cpptools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) or [llvm-vs-code-extensions.vscode-clangd](https://marketplace.visualstudio.com/items?itemName=llvm-vs-code-extensions.vscode-clangd).
+
 
 {# vim: set ai ts=4 sts=4 sw=2 expandtab textwidth=75:}

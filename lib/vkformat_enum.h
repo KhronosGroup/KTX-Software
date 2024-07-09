@@ -1,3 +1,4 @@
+// clang-format off: CI is complicated if formatting checks on generated files are enforced.
 #if !defined(_VKFORMAT_ENUM_H_) && !defined(VULKAN_CORE_H_)
 #define _VKFORMAT_ENUM_H_
 
@@ -312,3 +313,4 @@ typedef uint64_t VkFlags64;
 #define VK_FORMAT_MAX_STANDARD_ENUM 184
 
 #endif /* _VKFORMAT_ENUM_H_ */
+// clang-format on
