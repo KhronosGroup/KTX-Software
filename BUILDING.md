@@ -63,6 +63,12 @@ add `-D BASISU_SUPPORT_OPENCL=ON` to the CMake configure command.
 >  There is very little advantage to using OpenCL in the context
 >  of `libktx`. It is disabled in the default build configuration.
 
+> **Note:**
+> 
+> When building from the `tar.gz` and not from the git repository directly, it is recommended to pass the variable `KTX_GIT_VERSION_FULL` with the associated git tag (e.g `v4.3.2`)
+> ```bash
+> cmake . -G Ninja -B build -DKTX_GIT_VERSION_FULL=v4.3.2
+> ```
 
 Building
 --------
