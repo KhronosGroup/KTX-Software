@@ -62,13 +62,13 @@ else
 fi
 
 cmake_args=("-G" "Xcode" \
-  "-B" $BUILD_DIR \
+  "-B" $BUILD_DIR
 )
-if [[ "$FEATURE_LOADTESTS" != "OFF" -a -n "$VCPKG_ROOT" ]]; then
+if [[ "$FEATURE_LOADTESTS" != "OFF" && -n "$VCPKG_ROOT" ]]; then
   cmake_args+=(
-    "-D" "CMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" \
+    "-D" "CMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
   )
-)
+fi
 cmake_args+=( \
   "-D" "CMAKE_OSX_ARCHITECTURES=$ARCHS" \
   "-D" "KTX_FEATURE_DOC=$FEATURE_DOC" \
