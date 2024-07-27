@@ -189,12 +189,6 @@ if(WIN32)
         # KTX_DEPENDENT_VARIABLE won't work. Force disable signing.
         unset(CODE_SIGN_KEY_VAULT CACHE)
     endif()
-
-    # Windows Store Compatibility
-    if (${CMAKE_SYSTEM_NAME} STREQUAL "WindowsStore")
-        # Disable OpenGL upload on Universal Windows Platform
-        set(KTX_FEATURE_GL_UPLOAD OFF)
-    endif()
 endif()
 
 set(bitness 64)
@@ -210,6 +204,9 @@ project(KTX-Software
     DESCRIPTION "Libraries and tools to create and read KTX image texture files."
 )
 
+include(GNUInstallDirs) # Must be after project.
+include(CTest)          #           "
+
 CMAKE_DEPENDENT_OPTION( BASISU_SUPPORT_OPENCL
     "Compile with OpenCL support so applications can choose to use it."
     OFF
@@ -218,7 +215,7 @@ CMAKE_DEPENDENT_OPTION( BASISU_SUPPORT_OPENCL
 )
 
 if(BASISU_SUPPORT_OPENCL)
-    find_package(OpenCL)
+    find_package(OpenCL)  # Must be after project as needs language defined.
 endif()
 
 if(BASISU_SUPPORT_OPENCL AND WIN32 AND NOT OpenCL_FOUND)
@@ -236,8 +233,13 @@ if(BASISU_SUPPORT_OPENCL AND WIN32 AND NOT OpenCL_FOUND)
     set(OpenCL_LIBRARIES ${OpenCL_LIBRARY})
 endif()
 
-include(GNUInstallDirs) # Must be after project.
-include(CTest)          #           "
+# Windows Store Compatibility.
+# In this case CMAKE_SYSTEM_NAME is not set until after project.
+if (${CMAKE_SYSTEM_NAME} STREQUAL "WindowsStore")
+    # Disable OpenGL upload on Universal Windows Platform
+    set(KTX_FEATURE_GL_UPLOAD OFF)
+endif()
+
 # Uses IOS, so included after project to avoid modifying it.
 if(KTX_GENERATE_VK_FILES)
     include(cmake/mkvk.cmake)
