@@ -66,32 +66,6 @@ CMAKE_DEPENDENT_OPTION( BASISU_SUPPORT_SSE
     "NOT CMAKE_OSX_ARCHITECTURES STREQUAL \"$(ARCHS_STANDARD)\"; CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86"
     OFF
 )
-CMAKE_DEPENDENT_OPTION( BASISU_SUPPORT_OPENCL
-    "Compile with OpenCL support so applications can choose to use it."
-    OFF
-    "OpenCL_FOUND OR WIN32"
-    OFF
-)
-
-if(BASISU_SUPPORT_OPENCL)
-    find_package(OpenCL)
-endif()
-
-if(BASISU_SUPPORT_OPENCL AND WIN32 AND NOT OpenCL_FOUND)
-    # To avoid fiddly setting up of OpenCL on Windows CI VMs, use copy in repo.
-    set(OpenCL_INCLUDE_DIR
-        "${CMAKE_CURRENT_SOURCE_DIR}/external/basisu/opencl"
-        # FORCE to override *-NOTFOUND set by the failed find.
-        CACHE PATH "" FORCE
-    )
-    set(OpenCL_LIBRARY
-        "${CMAKE_CURRENT_SOURCE_DIR}/external/basisu/opencl/lib/OpenCL64.lib"
-        CACHE FILEPATH "" FORCE
-    )
-    set(OpenCL_INCLUDE_DIRS ${OpenCL_INCLUDE_DIR})
-    set(OpenCL_LIBRARIES ${OpenCL_LIBRARY})
-endif()
-
 
 CMAKE_DEPENDENT_OPTION( KTX_EMBED_BITCODE
     "Embed bitcode in binaries."
@@ -235,6 +209,32 @@ project(KTX-Software
     VERSION ${KTX_VERSION}
     DESCRIPTION "Libraries and tools to create and read KTX image texture files."
 )
+
+CMAKE_DEPENDENT_OPTION( BASISU_SUPPORT_OPENCL
+    "Compile with OpenCL support so applications can choose to use it."
+    OFF
+    "OpenCL_FOUND OR WIN32"
+    OFF
+)
+
+if(BASISU_SUPPORT_OPENCL)
+    find_package(OpenCL)
+endif()
+
+if(BASISU_SUPPORT_OPENCL AND WIN32 AND NOT OpenCL_FOUND)
+    # To avoid fiddly setting up of OpenCL on Windows CI VMs, use copy in repo.
+    set(OpenCL_INCLUDE_DIR
+        "${CMAKE_CURRENT_SOURCE_DIR}/external/basisu/opencl"
+        # FORCE to override *-NOTFOUND set by the failed find.
+        CACHE PATH "" FORCE
+    )
+    set(OpenCL_LIBRARY
+        "${CMAKE_CURRENT_SOURCE_DIR}/external/basisu/opencl/lib/OpenCL64.lib"
+        CACHE FILEPATH "" FORCE
+    )
+    set(OpenCL_INCLUDE_DIRS ${OpenCL_INCLUDE_DIR})
+    set(OpenCL_LIBRARIES ${OpenCL_LIBRARY})
+endif()
 
 include(GNUInstallDirs) # Must be after project.
 include(CTest)          #           "
