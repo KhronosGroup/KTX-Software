@@ -54,7 +54,6 @@ $FEATURE_PY = Set-ConfigVariable FEATURE_PY "OFF"
 $FEATURE_TESTS = Set-ConfigVariable FEATURE_TESTS "ON"
 $FEATURE_TOOLS = Set-ConfigVariable FEATURE_TOOLS "ON"
 $FEATURE_TOOLS_CTS = Set-ConfigVariable FEATURE_TOOLS_CTS "ON"
-$LOADTESTS_USE_LOCAL_DEPENDENCIES = Set-ConfigVariable LOADTESTS_USE_LOCAL_DEPENDENCIES "OFF"
 $PACKAGE = Set-ConfigVariable PACKAGE "NO"
 $PYTHON = Set-ConfigVariable PYTHON ""
 $SUPPORT_SSE = Set-ConfigVariable SUPPORT_SSE "ON"
@@ -92,6 +91,11 @@ if($CMAKE_TOOLSET) {
     "-T", "$CMAKE_TOOLSET"
   )
 }
+if($FEATURE_LOADTESTS -ne "OFF" -and $env:VCPKG_ROOT) {
+  $cmake_args += @(
+    "-D", "VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
+  )
+}
 $cmake_args += @(
   "-B", "$BUILD_DIR"
   "-D", "KTX_FEATURE_DOC=$FEATURE_DOC"
@@ -101,13 +105,13 @@ $cmake_args += @(
   "-D", "KTX_FEATURE_TESTS=$FEATURE_TESTS"
   "-D", "KTX_FEATURE_TOOLS=$FEATURE_TOOLS"
   "-D", "KTX_FEATURE_TOOLS_CTS=$FEATURE_TOOLS_CTS"
-  "-D", "KTX_LOADTEST_APPS_USE_LOCAL_DEPENDENCIES=$LOADTESTS_USE_LOCAL_DEPENDENCIES"
   "-D", "KTX_WERROR=$WERROR"
   "-D", "BASISU_SUPPORT_SSE=$SUPPORT_SSE"
   "-D", "BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL"
   "-D", "CODE_SIGN_KEY_VAULT=$CODE_SIGN_KEY_VAULT"
   "-D", "PYTHON=$PYTHON"
 )
+
 if ($CODE_SIGN_KEY_VAULT) {
   # To avoid CMake warning, only specify this when actually signing.
   $cmake_args += @(

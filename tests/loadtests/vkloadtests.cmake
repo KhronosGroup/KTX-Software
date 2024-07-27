@@ -2,59 +2,55 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Find Vulkan package
-if(IOS)
-    # On iOS we link against MoltenVK.framework manually
-    set( MOLTENVK_FRAMEWORK ${MOLTENVK_SDK}/iOS/framework/MoltenVK.framework )
-    if( NOT IS_DIRECTORY ${MOLTENVK_FRAMEWORK})
-        # Fallback: Older Vulkan SDKs have MoltenVK.framework at a
-        # different sub path
-        message("Could not find MoltenVK framework (at '${MOLTENVK_FRAMEWORK}')")
-        set(MOLTENVK_FRAMEWORK ${MOLTENVK_SDK}/iOS/MoltenVK.framework)
-    endif()
-    if( NOT IS_DIRECTORY ${MOLTENVK_FRAMEWORK})
-        message("Could not find MoltenVK framework (at '${MOLTENVK_FRAMEWORK}')")
-        # Fallback: On newer Vulkan SDKs it's a .xcframework at the root
-        # level. CMake does not support linking those directly (see
-        # https://gitlab.kitware.com/cmake/cmake/-/issues/21752), so we
-        # manually pick the static library file for iOS arm64 from a
-        # subfolder here
-        if( IS_DIRECTORY ${MOLTENVK_SDK}/MoltenVK.xcframework )
-            set( MOLTENVK_FRAMEWORK ${MOLTENVK_SDK}/MoltenVK.xcframework/ios-arm64/libMoltenVK.a )
-        endif()
-    endif()
-    if( NOT EXISTS ${MOLTENVK_FRAMEWORK})
-        message(SEND_ERROR "Could not find MoltenVK framework (at MOLTENVK_SDK dir '${MOLTENVK_SDK}')")
+if(APPLE)
+    cmake_print_variables(CMAKE_FIND_FRAMEWORK)
+    cmake_print_variables(CMAKE_PREFIX_PATH CMAKE_LIBRARY_PATH CMAKE_FRAMEWORK_PATH)
+    # N.B. FindVulkan needs the VULKAN_SDK environment variable set to find
+    # the iOS frameworks and to set Vulkan_Target_SDK, used later in this
+    # file. Therefore ensure to make that env. var. available to CMake and
+    # Xcode. Special care is needed to ensure it is available to the CMake
+    # and Xcode GUIs.
+#    set(CMAKE_FIND_DEBUG_MODE TRUE)
+    find_package( Vulkan REQUIRED COMPONENTS MoltenVK )
+#    set(CMAKE_FIND_DEBUG_MODE FALSE)
+
+    # Derive some other useful variables from those provided by find_package
+    if(APPLE_LOCKED_OS)
+        set( Vulkan_SHARE_VULKAN ${Vulkan_Target_SDK}/${CMAKE_SYSTEM_NAME}/share/vulkan )
+        unset( sdklibdir )
     else()
-        message(STATUS "Found MoltenVK framework at ${MOLTENVK_FRAMEWORK}")
-    endif()
-else()
-    find_package(Vulkan REQUIRED)
-    if(Vulkan_FOUND)
-        # Once we've moved on to CMake 3.20
-        #cmake_path(REMOVE_FILENAME ${Vulkan_LIBRARY} OUTPUT VARIABLE Vulkan_LIBRARY_DIR)
-        # Until then
-        string(REGEX REPLACE lib/.*$ lib/ Vulkan_LIBRARY_DIR ${Vulkan_LIBRARY})
-        message(STATUS "Found Vulkan at ${Vulkan_INCLUDE_DIR} & ${Vulkan_LIBRARY}")
-    endif()
-    if(APPLE)
-        # Vulkan_LIBRARY points to "libvulkan.dylib".
+        # Vulkan_LIBRARIES points to "libvulkan.dylib".
         # Find the name of the actual dylib which includes the version no.
-        # Keep this for when CI has macOS 12.3 support!
-        #execute_process(COMMAND readlink -f ${Vulkan_LIBRARY}
-        execute_process(COMMAND ${PROJECT_SOURCE_DIR}/scripts/readlink.sh ${Vulkan_LIBRARY}
+        # readlink -f requires macOS >= 12.3!
+        execute_process(COMMAND readlink -f ${Vulkan_LIBRARIES}
                         OUTPUT_VARIABLE Vulkan_LIBRARY_REAL_PATH_NAME
                         OUTPUT_STRIP_TRAILING_WHITESPACE
         )
-        string(REGEX REPLACE ^.*/libvulkan libvulkan
-               Vulkan_LIBRARY_REAL_FILE_NAME ${Vulkan_LIBRARY_REAL_PATH_NAME}
+        cmake_path(GET
+                  Vulkan_LIBRARY_REAL_PATH_NAME
+                  FILENAME
+                  Vulkan_LIBRARY_REAL_FILE_NAME
         )
         # Find the name that includes only the major version number.
-        execute_process(COMMAND readlink ${Vulkan_LIBRARY}
+        execute_process(COMMAND readlink ${Vulkan_LIBRARIES}
                         OUTPUT_VARIABLE Vulkan_LIBRARY_SONAME_FILE_NAME
                         OUTPUT_STRIP_TRAILING_WHITESPACE
         )
+        set( Vulkan_SHARE_VULKAN ${PROJECT_SOURCE_DIR}/other_lib/mac/resources/vulkan )
     endif()
+else()
+    find_package(Vulkan REQUIRED)
+#    if(Vulkan_FOUND)
+#        # Once we've moved on to CMake 3.20
+#        #cmake_path(REMOVE_FILENAME ${Vulkan_LIBRARY} OUTPUT_VARIABLE Vulkan_LIBRARY_DIR)
+#        # Until then
+#        string(REGEX REPLACE lib/.*$ lib/ Vulkan_LIBRARY_DIR ${Vulkan_LIBRARY})
+#        message(STATUS "Found Vulkan at ${Vulkan_INCLUDE_DIR} & ${Vulkan_LIBRARY}")
+#    endif()
 endif()
+cmake_path(REMOVE_FILENAME Vulkan_LIBRARIES OUTPUT_VARIABLE Vulkan_LIBRARIES_DIR)
+
+cmake_print_variables(Vulkan_LIBRARIES Vulkan_LIBRARY_REAL_PATH_NAME Vulkan_LIBRARY_REAL_FILE_NAME Vulkan_LIBRARY_SONAME_FILE_NAME)
 
 include(compile_shader.cmake)
 
@@ -119,6 +115,9 @@ list( TRANSFORM VK_TEST_IMAGES
 )
 
 set( KTX_RESOURCES ${LOAD_TEST_COMMON_RESOURCE_FILES} ${VK_TEST_IMAGES} )
+if(IOS)
+    list( APPEND KTX_RESOURCES ${Vulkan_SHARE_VULKAN} )
+endif()
 
 add_executable( vkloadtests
     ${EXE_FLAG}
@@ -157,6 +156,7 @@ add_executable( vkloadtests
     vkloadtests/VulkanLoadTestSample.cpp
     vkloadtests/VulkanLoadTestSample.h
     ${LOAD_TEST_COMMON_RESOURCE_FILES}
+    ${Vulkan_SHARE_VULKAN}
     ${SHADER_SOURCES}
     ${VK_TEST_IMAGES}
     vkloadtests.cmake
@@ -182,7 +182,7 @@ target_include_directories(vkloadtests
 
 target_link_libraries(vkloadtests
     ktx
-    ${KTX_ZLIB_LIBRARIES}
+#    ${KTX_ZLIB_LIBRARIES}
     objUtil
     appfwSDL
 )
@@ -191,39 +191,10 @@ set_target_properties(vkloadtests PROPERTIES
     CXX_VISIBILITY_PRESET ${STATIC_APP_LIB_SYMBOL_VISIBILITY}
 )
 
-if(IOS)
-    target_include_directories(
-        vkloadtests
-    PRIVATE
-        ${MOLTENVK_SDK}/include
-    )
-elseif(Vulkan_FOUND)
-    target_include_directories(
-        vkloadtests
-    PRIVATE
-        ${Vulkan_INCLUDE_DIR}
-    )
-    target_link_libraries(
-        vkloadtests
-        ${Vulkan_LIBRARY}
-    )
-endif()
-
-if(SDL2_FOUND)
-    target_link_libraries(
-        vkloadtests
-        ${SDL2_LIBRARIES}
-    )
-endif()
-
-set( MOLTENVK_ICD
-    ${PROJECT_SOURCE_DIR}/other_lib/mac/resources/MoltenVK_icd.json
+target_link_libraries(
+    vkloadtests
+    Vulkan::Vulkan
 )
-set( VK_LAYER
-    ${PROJECT_SOURCE_DIR}/other_lib/mac/resources/VkLayer_khronos_validation.json
-    ${PROJECT_SOURCE_DIR}/other_lib/mac/resources/VkLayer_api_dump.json
-)
-target_sources(vkloadtests PUBLIC ${MOLTENVK_ICD} ${VK_LAYER})
 
 if(APPLE)
     if(IOS)
@@ -260,9 +231,6 @@ if(APPLE)
     else()
         set( INFO_PLIST_IN "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/mac/Info.plist.in" )
     endif()
-
-    set_source_files_properties(${MOLTENVK_ICD} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/vulkan/icd.d")
-    set_source_files_properties(${VK_LAYER} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/vulkan/explicit_layer.d")
 elseif(WIN32)
     ensure_runtime_dependencies_windows(vkloadtests)
 elseif(LINUX)
@@ -310,10 +278,16 @@ if(APPLE)
         MACOSX_BUNDLE_SHORT_VERSION_STRING  ${PROJECT_VERSION}
         # Because libassimp is built with bitcode disabled. It's not important
         # unless submitting to the App Store and currently bitcode is optional.
-        XCODE_ATTRIBUTE_ENABLE_BITCODE "NO"
-        XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES"
+        XCODE_ATTRIBUTE_ENABLE_BITCODE NO
+        XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH YES
         XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME ${KTX_APP_ICON_BASENAME}
         XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2" # iPhone and iPad
+        # This is to silence a "not stripping because it is signed" warning
+        # from Xcode during copying by EMBED_FRAMEWORKS. It has no effect
+        # on the code because (a) all the Vulkan SDK dylibs and frameworks
+        # are Release config so have no symbols and (b) we need to keep the
+        # symbols in the Debug config of libktx.
+        XCODE_ATTRIBUTE_COPY_PHASE_STRIP NO
     )
     unset(product_name)
     unset(bundle_identifier)
@@ -323,36 +297,43 @@ if(APPLE)
     # bundle adjusting for the difference in bundle layout between iOS &
     # macOS.
 
-    if(NOT IOS)
-        # Set RPATH to find libktx dylib
+    if(IOS)
         set_target_properties( vkloadtests PROPERTIES
+            XCODE_EMBED_FRAMEWORKS "${Vulkan_MoltenVK_LIBRARY};${Vulkan_LIBRARIES};${Vulkan_Layer_VALIDATION}"
+            XCODE_EMBED_FRAMEWORKS_CODE_SIGN_ON_COPY		"YES"
+            XCODE_EMBED_FRAMEWORKS_REMOVE_HEADERS_ON_COPY	"YES"
+            # Set RPATH to find frameworks
+            INSTALL_RPATH "@executable_path/Frameworks"
+        )
+    else()
+        # Why is XCODE_EMBED_FRAMEWORKS_CODE_SIGN_ON_COPY not set here?
+        # Excellent question. The Vulkan, MoltenVk and VkLayer dylibs are
+        # all signed by LunarG, the ktx dylib by us so no need. On the other
+        # hand the Vulkan and MoltenVK frameworks in the iOS SDK are not
+        # signed. hence it is set there.
+        set_target_properties( vkloadtests PROPERTIES
+            XCODE_EMBED_FRAMEWORKS "${Vulkan_LIBRARY_REAL_PATH_NAME};${Vulkan_MoltenVK_LIBRARY};${Vulkan_Layer_VALIDATION}"
+            # Set RPATH to find frameworks and dylibs
             INSTALL_RPATH "@executable_path/../Frameworks"
         )
-
         if(NOT KTX_FEATURE_STATIC_LIBRARY)
-          add_custom_command( TARGET vkloadtests POST_BUILD
-              COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/$<TARGET_FILE_NAME:ktx>"
-              COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE_NAME:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/$<TARGET_SONAME_FILE_NAME:ktx>"
-              COMMENT "Copy KTX library to build destination"
-          )
-        endif()
-        add_custom_command( TARGET vkloadtests POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy "${Vulkan_LIBRARY_DIR}/libMoltenVK.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/libMoltenVK.dylib"
-            COMMAND ${CMAKE_COMMAND} -E copy "${Vulkan_LIBRARY_DIR}/libVkLayer*.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/"
-            COMMAND ${CMAKE_COMMAND} -E copy "${Vulkan_LIBRARY_REAL_PATH_NAME}" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/"
-            COMMAND ${CMAKE_COMMAND} -E create_symlink "${Vulkan_LIBRARY_REAL_FILE_NAME}" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/${Vulkan_LIBRARY_SONAME_FILE_NAME}"
-            COMMENT "Copy libraries & frameworks to build destination"
-        )
-        # No need to copy when there is a TARGET. The BREW SDL
-        # library has no LC_RPATH setting so the binary will
-        # only search for it where it was during linking.
-        # The vcpkg SDL target copies the library.
-        if(NOT TARGET SDL2::SDL2)
+            # XCODE_EMBED_FRAMEWORKS does not appear to support generator
+            # expressions hence this instead of a genex in the above.
+            set_property( TARGET vkloadtests
+                APPEND PROPERTY XCODE_EMBED_FRAMEWORKS
+                ktx
+            )
             add_custom_command( TARGET vkloadtests POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/other_lib/mac/$<CONFIG>/libSDL2.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/libSDL2.dylib"
-                COMMENT "Copy repo's SDL2 library to build destination"
+                COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE_NAME:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/$<TARGET_SONAME_FILE_NAME:ktx>"
+                COMMENT "Create symlink for KTX library (ld name to real name"
             )
         endif()
+        add_custom_command( TARGET vkloadtests POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E create_symlink "${Vulkan_LIBRARY_REAL_FILE_NAME}" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/${Vulkan_LIBRARY_SONAME_FILE_NAME}"
+            COMMENT "Create symlink for Vulkan library (ld name to real name)"
+        )
+        # Re. SDL2 & assimp: no copy required.: vcpkg libs are static or else
+        # vcpkg arranges copy. Brew libs cannot be bundled.
 
         # Specify destination for cmake --install.
         install(TARGETS vkloadtests

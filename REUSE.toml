@@ -162,6 +162,12 @@ SPDX-FileCopyrightText = "2019-2020 The Khronos Group Inc"
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
+path = "cmake/modules/FindVulkan.cmake"
+precedence = "aggregate"
+SPDX-FileCopyrightText = ["Copyright 2000-2024 Kitware, Inc. and Contributors", "Updates for iOS Copyright (c) 2024, Holochip Inc"]
+SPDX-License-Identifier = "BSD-3-Clause"
+
+[[annotations]]
 path = ["cmake/modules/NSIS.InstallOptions.ini.in", "cmake/**.rtf"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2017-2020 Andreas Atteneder"
@@ -258,12 +264,6 @@ SPDX-FileCopyrightText = "2013 Ericsson AB 2013. All Rights Reserved."
 SPDX-License-Identifier = "LicenseRef-ETCSLA"
 
 [[annotations]]
-path = "tests/loadtests/vkloadtests/resources/ios/LaunchScreen.storyboard"
-precedence = "aggregate"
-SPDX-FileCopyrightText = "2017-2020 The Khronos Group Inc."
-SPDX-License-Identifier = "Apache-2.0"
-
-[[annotations]]
 path = "tests/**/**loadtests.rc"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2020 The Khronos Group Inc."
@@ -289,6 +289,12 @@ SPDX-License-Identifier = "MIT"
 
 [[annotations]]
 path = "NOTICE.md"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2024 The Khronos Group Inc."
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ["vcpkg.json", "vcpkg-configuration.json"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2024 The Khronos Group Inc."
 SPDX-License-Identifier = "Apache-2.0"

@@ -119,7 +119,7 @@ jobs:
       # when vcpkg is compiling glew. Default is logical cores + 1.
       # Runners have 1 thread per core and 2 cores.
       VCPKG_MAX_CONCURRENCY: 2
-      VULKAN_SDK_VER: 1.3.243.0
+      VULKAN_SDK_VER: 1.3.290.0
 
     steps:
     - uses: actions/checkout@v4
@@ -202,15 +202,27 @@ jobs:
           echo "CODE_SIGN_KEY_VAULT=Azure" >> $env:GITHUB_ENV
         }
 
-    - name: Install Dependencies for load tests on arm64
-      if: matrix.arch == 'arm64' && matrix.options.loadtests != 'OFF'
-      run: |
-        pushd $env:VCPKG_INSTALLATION_ROOT
-        ./vcpkg install SDL2:arm64-windows assimp:arm64-windows glew:arm64-windows
-        cat buildtrees\glew\install-arm64-windows-rel-out.log
-        popd
-        echo "CMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" >> $env:GITHUB_ENV
-        echo "LOADTESTS_USE_LOCAL_DEPENDENCIES=ON" >> $env:GITHUB_ENV
+    - name: Export GitHub Actions cache environment variables
+      if: matrix.options.loadtests != 'OFF'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+          core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+          #core.exportVariable('ACTIONS_RUNTIME_TOKEN', secrets.GITHUB_TOKEN || '');
+
+#    - name: Set up vcpkg with cache
+#      if: matrix.options.loadtests != 'OFF'
+#      id: vcpkg
+#      uses: johnwason/vcpkg-action@v6
+#      with:
+#        manifest-dir: ${{ github.workspace }}
+#        token: ${{ secrets.GITHUB_TOKEN }}
+#        github-binarycache: true
+
+    - name: Set up CMAKE_TOOLCHAIN_FILE env. var.
+      if: matrix.options.loadtests != 'OFF'
+      run: echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" >> $env:GITHUB_ENV
 
     - name: Install Dependencies
       if: matrix.check_mkvk != 'ONLY'

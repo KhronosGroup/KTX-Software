@@ -65,10 +65,14 @@ add `-D BASISU_SUPPORT_OPENCL=ON` to the CMake configure command.
 
 > **Note:**
 > 
-> When building from the `tar.gz` and not from the git repository directly, it is recommended to pass the variable `KTX_GIT_VERSION_FULL` with the associated git tag (e.g `v4.3.2`)
+> When building from a source `tar.gz` and not from the git repository directly, 
+> it is recommended to set the variable `KTX_GIT_VERSION_FULL` to the
+> associated git tag (e.g `v4.3.2`)
+> 
 > ```bash
 > cmake . -G Ninja -B build -DKTX_GIT_VERSION_FULL=v4.3.2
 > ```
+> Use with caution.
 
 Building
 --------
@@ -80,7 +84,7 @@ You need to install the following
 - [CMake](https://cmake.org)
 - gcc and g++ from the [GNU Compiler Collection](https://gcc.gnu.org)
 - [GNU Make](https://www.gnu.org/software/make) or [Ninja](https://ninja-build.org) (recommended)
-- [Doxygen](#doxygen) (only if generating documentation)
+- [Doxygen](#doxygen) and [dot](#dot-\(graphviz\)) (only if generating documentation)
 
 To build `libktx` such that the Basis Universal encoders will use
 OpenCL you need
@@ -88,10 +92,25 @@ OpenCL you need
 - OpenCL headers
 - OpenCL driver
 
-Additional requirements for the load tests applications
+On Ubuntu and Debian these can be installed via
 
-- SDL2 development library
-- assimp development library
+```bash
+sudo apt install build-essential cmake libzstd-dev ninja-build doxygen graphviz opencl-c-headers mesa-opencl-icd
+```
+
+`mesa-opencl-icd` should be replaced by the appropriate package for your GPU.
+
+On Fedora and RedHat these can be installed via
+
+```bash
+sudo dnf install make automake gcc gcc-c++ kernel-devel cmake libzstd-devel ninja-build doxygen graphviz mesa-libOpenCL
+```
+
+
+To build the load test applications you also need to install the following
+
+- [SDL2](sdl2) development library
+- [assimp](assimp) development library
 - OpenGL development libraries
 - Vulkan development libraries
 - [Vulkan SDK](#vulkan-sdk)
@@ -100,15 +119,13 @@ Additional requirements for the load tests applications
 On Ubuntu and Debian these can be installed via
 
 ```bash
-sudo apt install build-essential cmake libzstd-dev ninja-build doxygen libsdl2-dev libgl1-mesa-glx libgl1-mesa-dev libvulkan1 libvulkan-dev libassimp-dev opencl-c-headers mesa-opencl-icd
+sudo apt install libsdl2-dev libgl1-mesa-glx libgl1-mesa-dev libvulkan1 libvulkan-dev libassimp-dev
 ```
-
-`mesa-opencl-icd` should be replaced by the appropriate package for your GPU.
 
 On Fedora and RedHat these can be installed via
 
 ```bash
-sudo dnf install make automake gcc gcc-c++ kernel-devel cmake libzstd-devel ninja-build doxygen SDL2-devel mesa-libGL mesa-libGL-devel mesa-vulkan-drivers assimp-devel opencl-headers mesa-libOpenCL
+sudo dnf install SDL2-devel mesa-libGL mesa-libGL-devel mesa-vulkan-drivers assimp-devel
 ```
 
 KTX requires `glslc`, which comes with [Vulkan SDK](#vulkan-sdk) (in sub-
@@ -118,11 +135,11 @@ install instructions for your platform this should already be set up. You
 can test it by running
 
 ```bash
-export PATH=$PATH:/path/to/vulkansdk/x86_64/bin
-# Should not fail and output version numbers
+# Should output version number.
 glslc --version
+# If it fails, try this then repeat the above.
+export PATH=$PATH:/path/to/vulkansdk/x86_64/bin
 ```
-
 
 You should be able then to build like this
 
@@ -141,31 +158,48 @@ cmake --build build
 You need to install the following
 
 - CMake
-- Xcode
-- [Doxygen](#doxygen) (only if generating documentation)
+- Xcode or, if using a different build system, the Xcode command line tools.
+- [Doxygen](#doxygen) and [dot](#dot-\(graphviz\)) (only if generating documentation)
 
-For the load tests applications you need to install the Vulkan SDK.
-To build for iOS you need to set the CMake cache variable `MOLTEN_VK_SDK` to the root of MoltenVK inside the Vulkan SDK, if it is not already set.
-Caution: `setup.env` in the macOS Vulkan SDK sets `VULKAN_SDK` to the macOS folder of the SDK, a sibling of the MoltenVK folder.
-To build for other platforms, you shouldn't need to do anything else, but you might need to set the environment variable `VULKAN_SDK`
-to the root of the Vulkan SDK as a hint for [FindVulkan](https://cmake.org/cmake/help/latest/module/FindVulkan.html#hints).
+To build the load test applications you also need to install
 
-Other dependencies (like zstd, SDL2 or the assimp library are included in this repository or come with Xcode).
+- [vcpkg](#vcpkg) (which will automatically install the actual dependencies: [SDL2](sdl2) and [assimp](assimp))
+- [Vulkan SDK](#vulkan-sdk)
 
-**NOTE:** the `iphoneos` or `MacOSX` SDK version gets hardwired into the generated projects. After installing an Xcode update that has the SDK for a new version of iOS, builds will fail. The only way to remedy this is to delete the build folder and regenerate from scratch.
+Other dependencies (like OpenGL) come with Xcode.
+
+For the load test applications you must also set these environment variables:
+
+- `VCPKG_ROOT` to the location where you installed [vcpkg](#vcpkg).
+- `VULKAN_SDK` to the `macOS` folder in your VulkanSDK installation. This can be set with the command `. /path/to/your/vulkansdk/setenv.sh`.
+
+> **Note:** If using the CMake GUI or Xcode IDE you must ensure `VULKAN_SDK` is > made available to them.
+
+> **Note:** `VULKAN_SDK` is essential when bulding for iOS. When building for
+> macOS it is not necessary if you selected _System Global Installation_ when
+> installing the SDK.
+
+> **Note:** the `iphoneos` or `MacOSX` SDK version gets hardwired into the
+> generated projects. After installing an Xcode update that has the SDK for a
+> new version of iOS, builds will fail. The only way to remedy this is to delete
+> the CMake cache and reconfigure and regenerate from scratch. Use of a
+> [`CMakeUserPresets.json`](https://cmake.org/cmake/help/latest/manual/cmake-presets.7.html)
+> file to capture unchanging settings is recommended.
 
 #### macOS
 
 To build for macOS:
 
 ```bash
-# This creates an Xcode project at `build/mac/KTX-Software.xcodeproj` containing the libktx and tools targets.
+# This creates an Xcode project at `build/mac/KTX-Software.xcodeproj`
+# containing the libktx and tools targets.
 mkdir build
 cmake -G Xcode -B build/mac
 
-# If you want to build the load test apps as well, you have to
-# set the `KTX_FEATURE_LOADTEST_APPS` parameter:
-cmake -GXcode -Bbuild/mac -D KTX_FEATURE_LOADTEST_APPS=ON
+# If you want to build the load test apps as well, set the
+# `KTX_FEATURE_LOADTEST_APPS` and `CMAKE_TOOLCHAIN_FILE`
+# parameters. vcpkg will automatically install the dependencies.
+cmake -GXcode -Bbuild/mac -D KTX_FEATURE_LOADTEST_APPS=ON -D CMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
 
 # Compile the project
 cmake --build build/mac
@@ -193,11 +227,11 @@ file build-macos-universal/Debug/libktx.dylib
 # build-macos-universal/Debug/libktx.dylib (for architecture x86_64):	Mach-O 64-bit dynamically linked shared library x86_64
 # build-macos-universal/Debug/libktx.dylib (for architecture arm64):	Mach-O 64-bit dynamically linked shared library arm64
 
-file build-macos-universal/Debug/toktx
+file build-macos-universal/Debug/ktx
 # outputs:
-# build-macos-universal/Debug/toktx: Mach-O universal binary with 2 architectures: [x86_64:Mach-O 64-bit executable x86_64] [arm64:Mach-O 64-bit executable arm64]
-# build-macos-universal/Debug/toktx (for architecture x86_64):	Mach-O 64-bit executable x86_64
-# build-macos-universal/Debug/toktx (for architecture arm64):	Mach-O 64-bit executable arm64
+# build-macos-universal/Debug/ktx: Mach-O universal binary with 2 architectures: [x86_64:Mach-O 64-bit executable x86_64] [arm64:Mach-O 64-bit executable arm64]
+# build-macos-universal/Debug/ktx (for architecture x86_64):	Mach-O 64-bit executable x86_64
+# build-macos-universal/Debug/ktx (for architecture arm64):	Mach-O 64-bit executable arm64
 ```
 
 To explicity build for one or the other architecture use
@@ -224,12 +258,13 @@ To sign the installation package you need to set the following variables:
 To build for iOS:
 
 ```bash
-# This creates an Xcode project at `build/ios/KTX-Software.xcodeproj` containing the libktx targets.
+# This creates an Xcode project at `build/ios/KTX-Software.xcodeproj`
+# containing the libktx targets.
 mkdir build # if it does not exist
 cmake -G Xcode -B build/ios -D CMAKE_SYSTEM_NAME=iOS
 
 # This creates a project to build the load test apps as well.
-cmake -G Xcode -B build/ios -D KTX_FEATURE_LOADTEST_APPS=ON"
+cmake -G Xcode -B build/ios -D KTX_FEATURE_LOADTEST_APPS=ON -D CMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
 
 # Compile the project
 cmake --build build -- -sdk iphoneos
@@ -302,26 +337,48 @@ Web builds create three additional targets:
 - `ktx_js_read` (libktx_read javascript wrapper - read-only)
 - `msc_basis_transcoder_js` (transcoder wrapper)
 
-> **Note:** The libktx wrapper does not use the transcoder wrapper. It directly uses the underlying c++ transcoder.
+> **Note:** The libktx wrappers do not use the transcoder wrapper. They directly uses the underlying c++ transcoder.
 
 ### Windows
 
-CMake can create solutions for Microsoft Visual Studio (2015/2017/2019 are supported by KTX).
+You need to install the following
+
+- CMake
+- Visual Studio 2019 or 2022
+- [Doxygen](#doxygen) and [dot](#dot\(graphviz\)) (only if generating documentation)
+
+To build the load test applications you also need to install
+
+- [vcpkg](#vcpkg) (which will automatically install the actual dependencies: [SDL2](sdl2) and [assimp](assimp))
+- [Vulkan SDK](#vulkan-sdk)
+
+For the load test applications you must also set these environment variables:
+
+- `VCPKG_ROOT` to the location where you installed [vcpkg](#vcpkg).
+- `VULKAN_SDK` to the location where you installed VulkanSDK. Normally this is set during installation of the SDK.
+
+Additional requirement for the OpenGL ES version of the load tests application
+
+- [OpenGL ES emulator](#opengl-es-emulator-for-windows).
+
+CMake can create solutions for Microsoft Visual Studio (2019 and 2022 are supported by KTX).
 
 > **Note:** x86 (32-bit) Windows is not supported.
 
-The CMake generators for Visual Studio 2017 and earlier generate projects whose default platform is Windows-x86. Since that is not supported by KTX-Software, the build will fail. To generate a project for x64 when using these earlier generators you must use CMake's `-A` option.
+To build for Windows
 
-```bash
-# -G shown for completeness. Not needed if you are happy
-# with the CMake's default selection.
-cmake -G "Visual Studio 17 2022" -B build -A x64 .
-```
-
-When using a more recent Visual Studio you simply need
-
-```bash
+```powershell
+# This creates a solution at `build/KTX-Software.sln`
+# containing the libktx and tools targets. 
 cmake -B build .
+
+# If you want to build the load test apps as well, set the
+# `KTX_FEATURE_LOADTEST_APPS` and `CMAKE_TOOLCHAIN_FILE`
+# parameters. vcpkg will automatically install the dependencies.
+cmake -B build . -D KTX_FEATURE_LOADTEST_APPS=ON -D CMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
+
+# Compile the project
+cmake --build build
 ```
 
 To configure for Universal Windows Platform (Windows Store) you have to
@@ -334,7 +391,7 @@ To configure for Universal Windows Platform (Windows Store) you have to
 
 Example UWP configuration
 
-```bash
+```powershell
 cmake . -A ARM64 -B build_uwp_arm64 -D CMAKE_SYSTEM_NAME:String=WindowsStore -D CMAKE_SYSTEM_VERSION:String="10.0"
 # Build `ktx.dll` only
 cmake -B build_uwp_arm64 --target ktx
@@ -343,19 +400,13 @@ cmake -B build_uwp_arm64 --target ktx
 A `bash` shell is needed by the `mkversion` script used during the build. If you installed your `git` via the
 [Git for Windows](https://gitforwindows.org/) package you are good to go.
 Alternatives are
-[Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install) plus a Linux distribution or [Cygwin](https://www.cygwin.com/)  .
+[Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install) plus a Linux distribution or [Cygwin](https://www.cygwin.com/). A contribution of a PowerShell equivalent script will be welcomed.
 
 The NSIS compiler is needed if you intend to build packages.
 
 CMake can include OpenGL ES versions of the KTX loader tests in the
 generated solution. To build and run these you need to install an
 OpenGL ES emulator. See [below](#opengl-es-emulator-for-windows).
-
-The KTX loader tests use libSDL 2.0.12+. You do not need SDL if you only wish to build the library or tools.
-
-The KTX vulkan loader tests require a [Vulkan SDK](#vulkan-sdk)
-and the Open Asset Import Library [`libassimp`](#libassimp). You must
-install the former. The latter is included in this repo.
 
 ##### Windows signing
 
@@ -399,11 +450,9 @@ emulator is recommended. Any of the other major emulators listed below could als
 
 If you want to run the `es1loadtests` you will need to use
 Imagination Technologies' PowerVR emulator as that alone supports OpenGL ES
-1.1. You must set the CMake configuration variable `OPENGL_ES_EMULATOR` to the directory containing the .lib files of your chosen emulator.
+1.1. You must set the CMake configuration variable `OPENGL_ES_EMULATOR` to the directory containing the .lib files of your chosen emulator and ensure the .dlls are in your `$env:PATH` or co-located with `es1loadtests`.
 
-<sup>*</sup>You will need to build ANGLE yourself and copy the libs
-and dlls to the appropriate directories under `other_lib/win`. Note
-that ANGLE's OpenGL ES 3 support is not yet complete.
+<sup>*</sup>You will need to build ANGLE yourself.
 
 #### OpenCL for Windows
 
@@ -532,47 +581,54 @@ Needed for the script that creates the version numbers from `git describe` outpu
 Standard on GNU/Linux and macOS. Available on Windows as part of Git for
 Windows, WSL (Windows Subsystem for Linux) or Cygwin.
 
-### SDL
+#### vcpkg
 
-Needed if you want to build the KTX load tests.
+This package manager is needed to install the [SDL2](#sdl2) and [assimp](assimp)
+dependencies of the KTX load test applications on macOS and Windows. Since
+KTX-Software uses vcpkg's manifest mode, installation of the dependencies is
+automatic.
 
-On GNU/Linux install `libsdl2-dev` using your package manager.
-Builds of SDL are provided in the KTX Git repo for iOS, macOS and Windows. These
-binaries were built from the 2.0.20 tag. For macOS and Windows you can download
-binaries from [libsdl.org](https://www.libsdl.org/download-2.0.php), if you
-prefer.
+Clone the [vcpkg](https://github.com/microsoft/vcpkg) repo. Follow the
+installation instructions in the
+[vcpkg with CMake](https://learn.microsoft.com/vcpkg/get_started/get-started)
+getting started guide. Ignore the rest. Set the environment variable
+`VCPKG_ROOT` to where you have installed _vcpkg_ and set `CMAKE_TOOLCHAIN_FILE`
+to `$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake` when using CMake to configure your project.
 
-#### macOS Notes
+### SDL2
 
-To build for both Intel and Apple Silicon you need a universal binary
-build of SDL as is provided in the KTX Git repo.
+Simple Direct Media Layer. Needed if you want to build the KTX load tests.
 
-For Apple Silicon you need at least release 2.0.14 of SDL.
+On GNU/Linux install `libsdl2-dev` using your package manager. On iOS, macOS
+and Windows it will be automatically installed by [vcpkg](#vcpkg). Libraries installed by other package managers are typically not redistributable or
+bundle-able.
 
-#### Building SDL from source
+Canonical source is at https://github.com/libsdl-org/SDL/tree/SDL2.
 
-As noted above, KTX uses
-[SDL release 2.0.20](https://github.com/libsdl-org/SDL/tree/release-2.0.20) in
-the canonical Mercurial repo at https://github.com/libsdl-org/SDL. Clone the repo, checkout tag `release-2.0.20`and follow the SDL build instructions.
+### assimp
 
-Copy the results of your build to the appropriate place under the
-`other_lib` directory.
+Open Asset Import Library. Needed if you want to build the KTX load tests.
+
+On GNU/Linux install `libassimp-dev` using your package manager. On
+iOS. macOS and Windows it will be automatically installed by [vcpkg](#vcpkg).
+
+Canonical source is at https://github.com/assimp/assimp. 
 
 ### Vulkan SDK
 
-Needed if you want to build the KTX Vulkan load tests, `vkloadtests`.
+Needed if you want to build the KTX Vulkan load tests, `vkloadtests`. The minimum required version is 1.3.283.0.
 
 Download the [Vulkan SDK from Lunar G](https://vulkan.lunarg.com/sdk/home).
 
-For Ubuntu (Xenial and Bionic) install packages are available. See [Getting
-Started - Ubuntu](https://vulkan.lunarg.com/doc/sdk/1.2.141.2/linux/getting_started_ubuntu.html) for detailed instructions.
+For Ubuntu (20.04 and 22.04) install packages are available. See [Getting
+Started - Ubuntu](https://vulkan.lunarg.com/doc/sdk/1.3.290.0/linux/getting_started_ubuntu.html) for detailed instructions.
 
 For other GNU/Linux distributions a `.tar.gz` file is available. See
-[Getting Started - Tarball](https://vulkan.lunarg.com/doc/sdk/1.2.141.2/linux/getting_started.html) for detailed instructions.
+[Getting Started - Tarball](https://vulkan.lunarg.com/doc/sdk/1.3.290.0/linux/getting_started.html) for detailed instructions.
 
 For Windows install the Vulkan SDK via the installer.
 
-For iOS and macOS, install the Vulkan SDK by downloading the macOS installer and double-clicking _install_ in the mounted `.dmg`. You need version 1.2.189.1 or later for Apple Silicon support. This SDK contains MoltenVK (Vulkan Portability on Metal) for both iOS and macOS.
+For iOS and macOS, install the Vulkan SDK by downloading the macOS installer and double-clicking _install_ in the mounted `.dmg`. This SDK contains MoltenVK (Vulkan Portability on Metal) for both iOS and macOS.
 
 ### Doxygen
 
@@ -592,15 +648,6 @@ You can download binaries from
 [Graphviz downloads](https://graphviz.org/download/).
 
 Optional. If not present documentation will be generated minus graphs. 
-
-### libassimp
-
-Needed if you want to build the KTX load tests.
-
-On GNU/Linux you need to install the Open Asset Import Library [`libassimp-de`]
-using your package manager. The KTX Git repo has binaries for iOS, macOS and Windows.
-
-Canonical source is at https://github.com/assimp/assimp. 
 
 ### OpenCL
 

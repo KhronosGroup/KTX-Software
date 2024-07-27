@@ -22,14 +22,6 @@ if(POLICY CMP0149)
     cmake_policy(SET CMP0149 NEW)
 endif()
 
-project(KTX-Software
-    VERSION ${KTX_VERSION}
-    DESCRIPTION "Libraries and tools to create and read KTX image texture files."
-)
-
-include(CTest)
-
-include(GNUInstallDirs)
 include(CMakeDependentOption)
 
 include(cmake/codesign.cmake)
@@ -37,7 +29,8 @@ include(cmake/cputypetest.cmake)
 
 # OPTIONS
 
-if(IOS OR CMAKE_SYSTEM_NAME STREQUAL "tvOS" OR CMAKE_SYSTEM_NAME STREQUAL "visionOS")
+# N.B IOS is not set until after project() command.
+if(CMAKE_SYSTEM_NAME STREQUAL "iOS" OR CMAKE_SYSTEM_NAME STREQUAL "tvOS" OR CMAKE_SYSTEM_NAME STREQUAL "visionOS")
     set( APPLE_LOCKED_OS ON )
 endif()
 
@@ -45,25 +38,11 @@ if(APPLE AND CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set( APPLE_MAC_OS ON )
 endif()
 
-if(APPLE_LOCKED_OS OR EMSCRIPTEN)
-    set( LIB_TYPE_DEFAULT ON )
-else()
-    set( LIB_TYPE_DEFAULT OFF )
-endif()
-
-CMAKE_DEPENDENT_OPTION( KTX_FEATURE_TOOLS
-                        "Create KTX tools"
-                        ON
-                        "NOT APPLE_LOCKED_OS;NOT ANDROID;NOT EMSCRIPTEN"
-                        OFF
-)
 option( KTX_FEATURE_DOC "Create KTX documentation." OFF )
-option( KTX_FEATURE_STATIC_LIBRARY "Create static libraries (shared otherwise)." ${LIB_TYPE_DEFAULT} )
 option( KTX_FEATURE_JNI "Create Java bindings for libktx." OFF )
 option( KTX_FEATURE_PY "Create Python source distribution." OFF )
 option( KTX_FEATURE_TESTS "Create unit tests." ON )
 option( KTX_FEATURE_TOOLS_CTS "Enable KTX CLI Tools CTS tests (requires CTS submodule)." OFF )
-
 option( KTX_FEATURE_ETC_UNPACK "ETC decoding support." ON )
 
 if(KTX_FEATURE_TOOLS_CTS AND NOT KTX_FEATURE_TOOLS)
@@ -136,15 +115,9 @@ set( KTX_FEATURE_LOADTEST_APPS
 set_property( CACHE KTX_FEATURE_LOADTEST_APPS
               PROPERTY STRINGS OFF OpenGL Vulkan OpenGL+Vulkan
 )
-if(WIN32 OR APPLE_MAC_OS)
-    CMAKE_DEPENDENT_OPTION( KTX_LOADTEST_APPS_USE_LOCAL_DEPENDENCIES
-        "Look for locally installed dependencies. Fail build if not found. When OFF use binaries from the KTX-Software repo, if available for the target processor. Useful when building for Windows arm64 using vcpkg packages."
-        OFF
-        KTX_FEATURE_LOADTEST_APPS
-        OFF
-    )
-else()
-    set( KTX_LOADTEST_APPS_USE_LOCAL_DEPENDENCIES ON )
+
+if(NOT KTX_FEATURE_LOADTEST_APPS MATCHES OFF)
+    set(VCPKG_MANIFEST_FEATURES loadtests)
 endif()
 
 option( KTX_GENERATE_VK_FILES
@@ -163,13 +136,14 @@ if(APPLE)
     set(PRODUCTBUILD_KEYCHAIN_PATH "" CACHE FILEPATH "pkgbuild keychain file")
     if(APPLE_LOCKED_OS)
         set(XCODE_PROVISIONING_PROFILE_SPECIFIER "" CACHE STRING "Xcode provisioning profile specifier")
-        set(MOLTENVK_SDK "$ENV{VULKAN_SDK}/../MoltenVK" CACHE STRING "MoltenVK directory inside the Vulkan SDK")
     endif()
 
     # Deployment
+    # When changing the target you must also edit the triplet files in
+    # vcpkg-triplets to reflect the new target.
     if(APPLE_MAC_OS)
         set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "macOS Deployment Target")
-    elseif(IOS OR CMAKE_SYSTEM_NAME STREQUAL "tvOS")
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS" OR CMAKE_SYSTEM_NAME STREQUAL "tvOS")
         set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0" CACHE STRING "iOS/tvOS Deployment Target")
         set(CMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH NO)
     elseif(CMAKE_SYSTEM_NAME STREQUAL "visionOS")
@@ -249,6 +223,42 @@ if(WIN32)
     endif()
 endif()
 
+set(bitness 64)
+if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8 OR FORCE32)
+        set(bitness 32)
+endif()
+
+option( KTX_WERROR "Make all warnings in KTX code into errors." OFF)
+
+# After most option settings so settings can be used to affect vcpkg.
+project(KTX-Software
+    VERSION ${KTX_VERSION}
+    DESCRIPTION "Libraries and tools to create and read KTX image texture files."
+)
+
+include(GNUInstallDirs) # Must be after project.
+include(CTest)          #           "
+# Uses IOS, so included after project to avoid modifying it.
+if(KTX_GENERATE_VK_FILES)
+    include(cmake/mkvk.cmake)
+endif()
+
+# EMSCRIPTEN is not set until project so all these must be after.
+if(APPLE_LOCKED_OS OR EMSCRIPTEN)
+    set( LIB_TYPE_DEFAULT ON )
+else()
+    set( LIB_TYPE_DEFAULT OFF )
+endif()
+
+option( KTX_FEATURE_STATIC_LIBRARY "Create static libraries (shared otherwise)." ${LIB_TYPE_DEFAULT} )
+
+CMAKE_DEPENDENT_OPTION( KTX_FEATURE_TOOLS
+                        "Create KTX tools"
+                        ON
+                        "NOT APPLE_LOCKED_OS;NOT ANDROID;NOT EMSCRIPTEN"
+                        OFF
+)
+
 if(UNIX AND NOT APPLE AND NOT EMSCRIPTEN AND NOT ANDROID)
     set(LINUX TRUE)
 endif()
@@ -257,29 +267,16 @@ if(EMSCRIPTEN)
     set( KTX_FEATURE_VK_UPLOAD OFF )
 endif()
 
-set(bitness 64)
-if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8 OR FORCE32)
-        set(bitness 32)
-endif()
-
 if(KTX_FEATURE_STATIC_LIBRARY)
     set(LIB_TYPE STATIC)
 else()
-    if(IOS OR EMSCRIPTEN)
+    if(CMAKE_SYSTEM_NAME STREQUAL "iOS" OR EMSCRIPTEN)
         message(SEND_ERROR "Library type cannot be shared for the current platform. Set KTX_FEATURE_STATIC_LIBRARY to ON!")
     endif()
     set(LIB_TYPE SHARED)
 endif()
 
-# Depends on the settings, so it must be included after
-if(KTX_GENERATE_VK_FILES)
-    include(cmake/mkvk.cmake)
-endif()
-
 # Global compile & link options including optimization flags
-
-option( KTX_WERROR "Make all warnings in KTX code into errors." OFF)
-
 if(MSVC)
     add_compile_options( /W4;$<$<BOOL:${KTX_WERROR}>:/WX> )
     add_compile_options( $<IF:$<CONFIG:Debug>,/Gz,/O2> )

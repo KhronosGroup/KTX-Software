@@ -49,7 +49,7 @@ function( create_gl_target target version sources common_resources test_images
         GLAppSDL
         appfwSDL
         ktx
-        ${KTX_ZLIB_LIBRARIES}
+#        ${KTX_ZLIB_LIBRARIES}
     )
 
     if(NOT EMSCRIPTEN AND NOT EMULATE_GLES)
@@ -59,24 +59,25 @@ function( create_gl_target target version sources common_resources test_images
         )
     endif()
 
-    if(SDL2_FOUND)
-        target_link_libraries(
-            ${target}
-            ${SDL2_LIBRARIES}
-        )
-    endif()
-
     if(APPLE)
         if(IOS)
+            # This is location where CMake puts the configured Info.plist.
+            # I have not found a CMake variable for this.
+            set( launch_screen ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${target}.dir/LaunchScreen.storyboard )
+            configure_file( glloadtests/resources/ios/LaunchScreen.storyboard.in
+                 ${launch_screen}
+            )
             set( INFO_PLIST_IN "${PROJECT_SOURCE_DIR}/tests/loadtests/glloadtests/resources/ios/Info.plist.in" )
             set( icon_launch_assets
                 ${PROJECT_SOURCE_DIR}/icons/ios/CommonIcons.xcassets
                 glloadtests/resources/ios/LaunchImages.xcassets
-                glloadtests/resources/ios/LaunchScreen.storyboard
+                ${launch_screen}
             )
             target_sources( ${target}
                 PRIVATE
-                    ${icon_launch_assets}
+                ${PROJECT_SOURCE_DIR}/icons/ios/CommonIcons.xcassets
+                glloadtests/resources/ios/LaunchImages.xcassets
+                glloadtests/resources/ios/LaunchScreen.storyboard.in
             )
             # Add to resources so they'll be copied to the bundle.
             list( APPEND resources ${icon_launch_assets} )
@@ -229,16 +230,8 @@ function( create_gl_target target version sources common_resources test_images
                   COMMENT "Copy KTX library to build destination"
               )
             endif()
-            # No need to copy when there is a TARGET. The BREW SDL
-            # library has no LC_RPATH setting so the binary will
-            # only search for it where it was during linking.
-            # The vcpkg SDL target copies the library.
-            if(NOT TARGET SDL2::SDL2)
-                add_custom_command( TARGET ${target} POST_BUILD
-                    COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/other_lib/mac/$<CONFIG>/libSDL2.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Frameworks/libSDL2.dylib"
-                    COMMENT "Copy SDL2 library to build destination"
-                )
-            endif()
+            # Re. SDL2 & assimp: no copy required.: vcpkg libs are static or else
+            # vcpkg arranges copy. Brew libs cannot be bundled.
 
             # Specify destination for cmake --install.
             install(TARGETS ${target}
