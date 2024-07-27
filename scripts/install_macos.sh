@@ -32,16 +32,18 @@ if [[ -n "$FEATURE_LOADTESTS" && "$FEATURE_LOADTESTS" != "OFF" ]]; then
   if [[ "$FEATURE_LOADTESTS" =~ "Vulkan" ]]; then
     # Current dir. is .../build/{KhronosGroup,msc-}/KTX-Software. cd to 'build'.
     pushd ../..
-    curl -s -S -o vulkansdk-macos-$VULKAN_SDK_VER.dmg https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/mac/vulkansdk-macos-$VULKAN_SDK_VER.dmg?Human=true
-    hdiutil attach vulkansdk-macos-$VULKAN_SDK_VER.dmg
-    sudo /Volumes/VulkanSDK/InstallVulkan.app/Contents/MacOS/InstallVulkan --root "$VULKAN_INSTALL_DIR" --accept-licenses --default-answer --confirm-command install com.lunarg.vulkan.ios
+    VULKAN_SDK_NAME=vulkansdk-macos-$VULKAN_SDK_VER
+    curl -s -S -o $VULKAN_SDK_NAME.dmg https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/mac/$VULKAN_SDK_NAME.dmg?Human=true
+    hdiutil attach $VULKAN_SDK_NAME.dmg
+    sudo /Volumes/$VULKAN_SDK_NAME/InstallVulkan.app/Contents/MacOS/InstallVulkan --root "$VULKAN_INSTALL_DIR" --accept-licenses --default-answer --confirm-command install com.lunarg.vulkan.ios
     #hdiutil detach /Volumes/VulkanSDK
     set +e
-    while hdiutil detach /Volumes/VulkanSDK; es=$?; [[ $ss -eq 16 ]]; do
-        lsof /Volumes/VulkanSDK
+    while hdiutil detach /Volumes/$VULKAN_SDK_NAME; es=$?; [[ $ss -eq 16 ]]; do
+        lsof /Volumes/$VULKAN_SDK_NAME
         sleep 10
     done
-    rm vulkansdk-macos-$VULKAN_SDK_VER.dmg
+    rm $VULKAN_SDK_NAME.dmg
+    unset VULKAN_SDK_NAME
     popd
   fi
 fi
