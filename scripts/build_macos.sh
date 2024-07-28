@@ -61,9 +61,7 @@ else
   }
 fi
 
-cmake_args=("-G" "Xcode" \
-  "-B" $BUILD_DIR
-)
+cmake_args=("-G" "Xcode" "-B" "$BUILD_DIR")
 if [[ "$FEATURE_LOADTESTS" != "OFF" && -n "$VCPKG_ROOT" ]]; then
   cmake_args+=(
     "-D" "CMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"

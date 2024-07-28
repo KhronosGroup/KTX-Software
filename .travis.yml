@@ -213,7 +213,7 @@ before_install:
         # Install vcpkg.
         pushd $HOME
         git clone https://github.com/microsoft/vcpkg
-        cd vcpkg && bootstrap-vcpkg.sh && export VCPKG_ROOT=$(pwd)
+        cd vcpkg && ./bootstrap-vcpkg.sh && export VCPKG_ROOT=$(pwd)
         popd
       fi
       ;;
