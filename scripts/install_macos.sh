@@ -23,10 +23,8 @@ gem install xcpretty
 git lfs pull --include=tests/srcimages,tests/testimages
 
 if [[ -n "$FEATURE_LOADTESTS" && "$FEATURE_LOADTESTS" != "OFF" ]]; then
-  if [ "$PLATFORM" = "macOS" ]; then
-    git lfs pull --include=other_lib/mac
-  else
-    git lfs pull --include=other_lib/ios
+  if [ "$PLATFORM" = "iOS" ]; then
+    IOS_COMPONENT=com.lunarg.vulkan.ios
   fi
 
   if [[ "$FEATURE_LOADTESTS" =~ "Vulkan" ]]; then
@@ -35,7 +33,7 @@ if [[ -n "$FEATURE_LOADTESTS" && "$FEATURE_LOADTESTS" != "OFF" ]]; then
     VULKAN_SDK_NAME=vulkansdk-macos-$VULKAN_SDK_VER
     curl -s -S -o $VULKAN_SDK_NAME.dmg https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/mac/$VULKAN_SDK_NAME.dmg?Human=true
     hdiutil attach $VULKAN_SDK_NAME.dmg
-    sudo /Volumes/$VULKAN_SDK_NAME/InstallVulkan.app/Contents/MacOS/InstallVulkan --root "$VULKAN_INSTALL_DIR" --accept-licenses --default-answer --confirm-command install com.lunarg.vulkan.ios
+    sudo /Volumes/$VULKAN_SDK_NAME/InstallVulkan.app/Contents/MacOS/InstallVulkan --root "$VULKAN_INSTALL_DIR" --accept-licenses --default-answer --confirm-command install $IOS_COMPONENT
     #hdiutil detach /Volumes/VulkanSDK
     set +e
     while hdiutil detach /Volumes/$VULKAN_SDK_NAME; es=$?; [[ $ss -eq 16 ]]; do
@@ -43,7 +41,7 @@ if [[ -n "$FEATURE_LOADTESTS" && "$FEATURE_LOADTESTS" != "OFF" ]]; then
         sleep 10
     done
     rm $VULKAN_SDK_NAME.dmg
-    unset VULKAN_SDK_NAME
+    unset VULKAN_SDK_NAME IOS_COMPONENT
     popd
   fi
 fi
