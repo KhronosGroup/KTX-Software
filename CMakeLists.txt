@@ -59,13 +59,6 @@ if(POLICY CMP0127)
     # Seems the parens in the match string trigger the warning.
     cmake_policy(SET CMP0127 NEW)
 endif()
-set_target_processor_type(CPU_ARCHITECTURE)
-CMAKE_DEPENDENT_OPTION( BASISU_SUPPORT_SSE
-    "Compile with SSE support so applications can choose to use it."
-    ON
-    "NOT CMAKE_OSX_ARCHITECTURES STREQUAL \"$(ARCHS_STANDARD)\"; CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86"
-    OFF
-)
 
 CMAKE_DEPENDENT_OPTION( KTX_EMBED_BITCODE
     "Embed bitcode in binaries."
@@ -206,6 +199,17 @@ project(KTX-Software
 
 include(GNUInstallDirs) # Must be after project.
 include(CTest)          #           "
+
+set_target_processor_type(CPU_ARCHITECTURE) # Must be after project.
+if (CPU_ARCHITECTURE STREQUAL x86)
+    message(FATAL_ERROR "This project cannot be built for x86 cpu.")
+endif()
+CMAKE_DEPENDENT_OPTION( BASISU_SUPPORT_SSE
+    "Compile with SSE support so applications can choose to use it."
+    ON
+    "NOT CMAKE_OSX_ARCHITECTURES STREQUAL \"$(ARCHS_STANDARD)\"; CPU_ARCHITECTURE STREQUAL x86_64"
+    OFF
+)
 
 CMAKE_DEPENDENT_OPTION( BASISU_SUPPORT_OPENCL
     "Compile with OpenCL support so applications can choose to use it."
@@ -1143,8 +1147,8 @@ endif()
 # If we detect the user is doing a universal build defer to astc-encoder
 # to pick the architectures. If a universal build has not been requested,
 # present options to the user to turn off SIMD and, if running on x86_64
-# to choose which SIMD ISA to use. On arm64 always use Neon. On x86 and
-# unknown CPUs use None.
+# to choose which SIMD ISA to use. On arm64 always use Neon. On unknown
+# CPUs use None.
 #
 # On x86_64, if neither ASTCENC_ISA_SSE41 nor ASTCENC_ISA_SSE2 are defined,
 # choose ASTCENC_ISA_AVX2. If ASTCENC_ISA_AVX2 fails to compile user must
@@ -1183,10 +1187,6 @@ if(NOT ${universal_build})
                 set(ASTCENC_ISA_SSE41 OFF CACHE BOOL "" FORCE)
                 set(ASTCENC_ISA_SSE2 OFF CACHE BOOL "" FORCE)
             endif()
-        elseif(CPU_ARCHITECTURE STREQUAL x86)
-            set(ASTCENC_POPCNT 0)
-            set(ASTCENC_LIB_TARGET astcenc-none-static)
-            set(ASTCENC_ISA_NONE ON CACHE BOOL "" FORCE)
         elseif(CPU_ARCHITECTURE STREQUAL armv8 OR CPU_ARCHITECTURE STREQUAL arm64)
             set(ASTCENC_LIB_TARGET astcenc-neon-static)
             set(ASTCENC_ISA_NEON ON)
