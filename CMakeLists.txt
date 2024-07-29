@@ -29,13 +29,14 @@ include(cmake/cputypetest.cmake)
 
 # OPTIONS
 
-# N.B IOS is not set until after project() command.
-if(CMAKE_SYSTEM_NAME STREQUAL "iOS" OR CMAKE_SYSTEM_NAME STREQUAL "tvOS" OR CMAKE_SYSTEM_NAME STREQUAL "visionOS")
-    set( APPLE_LOCKED_OS ON )
-endif()
-
-if(APPLE AND CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set( APPLE_MAC_OS ON )
+# N.B IOS and, in the Darwin case, CMAKE_SYSTEM_NAME are not set
+# until after the project() command. The latter is most strange.
+if(APPLE)
+    if(CMAKE_SYSTEM_NAME STREQUAL "iOS" OR CMAKE_SYSTEM_NAME STREQUAL "tvOS" OR CMAKE_SYSTEM_NAME STREQUAL "visionOS")
+        set( APPLE_LOCKED_OS ON )
+    else()
+        set( APPLE_MAC_OS ON )
+    endif()
 endif()
 
 option( KTX_FEATURE_DOC "Create KTX documentation." OFF )
@@ -116,7 +117,7 @@ if(APPLE)
     # When changing the target you must also edit the triplet files in
     # vcpkg-triplets to reflect the new target.
     if(APPLE_MAC_OS)
-        set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "macOS Deployment Target")
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "macOS Deployment Target")
     elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS" OR CMAKE_SYSTEM_NAME STREQUAL "tvOS")
         set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0" CACHE STRING "iOS/tvOS Deployment Target")
         set(CMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH NO)
