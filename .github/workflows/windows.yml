@@ -211,14 +211,16 @@ jobs:
 #          core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 #          #core.exportVariable('ACTIONS_RUNTIME_TOKEN', secrets.GITHUB_TOKEN || '');
 
-    - name: Export GitHub Actions cache environment variables
+    - name: Export GitHub Actions cache and vcpkg environment variables
       if: matrix.options.loadtests != 'OFF'
       uses: actions/github-script@v7
       with:
+        # Caution. JSON in use. "#core" breaks the build.
         script: |
           core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
           core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
           core.exportVariable('VCPKG_BINARY_SOURCES', "clear;x-gha,readwrite");
+          core.exportVariable('VCPKG_ROOT', process.env.VCPKG_INSTALLATION_ROOT || '');
 
 #    - name: Set up vcpkg with cache
 #      if: matrix.options.loadtests != 'OFF'
@@ -229,9 +231,9 @@ jobs:
 #        token: ${{ secrets.GITHUB_TOKEN }}
 #        github-binarycache: true
 
-    - name: Set up CMAKE_TOOLCHAIN_FILE env. var.
-      if: matrix.options.loadtests != 'OFF'
-      run: echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" >> $env:GITHUB_ENV
+#    - name: Set up VCPKG_ROOT env. var.
+#      if: matrix.options.loadtests != 'OFF'
+#      run: echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" >> $env:GITHUB_ENV
 
     - name: Install Dependencies
       if: matrix.check_mkvk != 'ONLY'
