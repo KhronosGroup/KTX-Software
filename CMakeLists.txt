@@ -87,8 +87,9 @@ if(NOT KTX_FEATURE_LOADTEST_APPS MATCHES OFF)
     set(VCPKG_MANIFEST_FEATURES loadtests)
     if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
         # Explicitly set the triplet to avoid potential trouble.
-        # Automatic triplet selection is not working in CI builds, which
-        # happen on x86_64 VMs but is working locally on arm64 macOS.
+        # Automatic triplet selection in CI, which runs on x86_64, selects
+        # x64-ios, which is the simulator. Works locally on arm64 so
+        # presumably running on an x86_64 is the reason.
         set(VCPKG_TARGET_TRIPLET arm64-ios)
     endif()
 endif()
