@@ -109,8 +109,12 @@ $cmake_args += @(
   "-D", "BASISU_SUPPORT_SSE=$SUPPORT_SSE"
   "-D", "BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL"
   "-D", "CODE_SIGN_KEY_VAULT=$CODE_SIGN_KEY_VAULT"
-  "-D", "PYTHON=$PYTHON"
 )
+if($FEATURE_PYTHON -eq "ON" -and $PYTHON) {
+  $cmake_args += @(
+    "-D", "PYTHON=$PYTHON"
+  )
+}
 
 if ($CODE_SIGN_KEY_VAULT) {
   # To avoid CMake warning, only specify this when actually signing.
