@@ -16,7 +16,6 @@ done
 
 # Set defaults
 ARCH=${ARCH:-$(uname -m)}
-if [[ "$ARCH" = "x86_64" ]]; then ARCH=x64; fi
 CONFIGURATION=${CONFIGURATION:-Release}
 FEATURE_DOC=${FEATURE_DOC:-OFF}
 FEATURE_JNI=${FEATURE_JNI:-OFF}
@@ -27,12 +26,9 @@ FEATURE_TOOLS=${FEATURE_TOOLS:-OFF}
 PACKAGE=${PACKAGE:-NO}
 SUPPORT_OPENCL=${SUPPORT_OPENCL:-OFF}
 SUPPORT_SSE=OFF
-TARGET=${TARGET:-ios}
 WERROR=${WERROR:-OFF}
 
-if [ -z "$BUILD_DIR" ]; then
-  BUILD_DIR=build/$TARGET
-fi
+BUILD_DIR=${BUILD_DIR:-build/ios}
 
 # Ensure that Vulkan SDK's glslc is in PATH
 export PATH="${VULKAN_SDK}/bin:$PATH"
@@ -58,17 +54,8 @@ fi
 set -o pipefail
 
 #
-# iOS or iOS-Simulator
+# iOS
 #
-
-# vcpkg's automatic triplet selection does the wrong thing when building
-# on x86_64 for ios so manually set it.
-if [[ "$TARGET" = "ios" ]]; then
-  VCPKG_TARGET_TRIPLET=arm64-ios
-else
-  VCPKG_TARGET_TRIPLET=$ARCH-ios-simulator
-fi
-echo "target = $TARGET triplet = $VCPKG_TARGET_TRIPLET"
 
 cmake_args=("-G" "Xcode" "-B" "$BUILD_DIR")
 if [[ "$FEATURE_LOADTESTS" != "OFF" && -n "$VCPKG_ROOT" ]]; then
@@ -87,8 +74,7 @@ cmake_args+=( \
   "-D" "KTX_FEATURE_TOOLS=$FEATURE_TOOLS" \
   "-D" "BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL" \
   "-D" "BASISU_SUPPORT_SSE=$SUPPORT_SSE" \
-  "-D" "KTX_WERROR=$WERROR" \
-  "-D" "VCPKG_TARGET_TRIPLET=$VCPKG_TARGET_TRIPLET"
+  "-D" "KTX_WERROR=$WERROR"
 )
 config_display="Configure KTX-Software (iOS): "
 for arg in "${cmake_args[@]}"; do
@@ -101,7 +87,7 @@ for arg in "${cmake_args[@]}"; do
 done
 
 echo ${config_display%??}
-echo cmake . "${cmake_args[@]}"
+cmake . "${cmake_args[@]}"
 
 pushd $BUILD_DIR
 
@@ -110,20 +96,20 @@ oldifs=$IFS
 IFS=, ; for config in $CONFIGURATION
 do
   IFS=$oldifs # Because of ; IFS set above will still be present.
-  if [[ "$TARGET" = "ios" ]]; then
-    echo "Build KTX-Software (iOS $config)"
-    cmake --build . --config $config -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO | handle_compiler_output
+  echo "Build KTX-Software (iOS $config)"
+  cmake --build . --config $config -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO | handle_compiler_output
+  # A simulator build would look like this but note that dues to the way vcpkg
+  # manifest mode works, different CMake configurations are needed for
+  # device and simulator. Hence a different BUILD_DIR.
+  #echo "Build KTX-Software (iOS Simulator $config)"
+  #cmake --build . --config $config -- -sdk iphonesimulator
 
-    if [ "$config" = "Release" -a "$PACKAGE" = "YES" ]; then
-      echo "Pack KTX-Software (iOS $config)"
-      if ! cpack -C $config; then
-        cat _CPack_Packages/iOS/ZIP/ZipBuildOutput.log
-        exit 1
-      fi
+  if [ "$config" = "Release" -a "$PACKAGE" = "YES" ]; then
+    echo "Pack KTX-Software (iOS $config)"
+    if ! cpack -C $config; then
+      cat _CPack_Packages/iOS/ZIP/ZipBuildOutput.log
+      exit 1
     fi
-  else
-    echo "Build KTX-Software (iOS Simulator $config)"
-    cmake --build . --config $config -- -sdk iphonesimulator
   fi
 done
 
