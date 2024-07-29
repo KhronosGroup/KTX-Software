@@ -93,7 +93,7 @@ if($CMAKE_TOOLSET) {
 }
 if($FEATURE_LOADTESTS -ne "OFF" -and $env:VCPKG_ROOT) {
   $cmake_args += @(
-    "-D", "VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
+    "-D", "CMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
   )
 }
 $cmake_args += @(
