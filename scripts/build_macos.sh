@@ -112,8 +112,6 @@ oldifs=$IFS
 IFS=, ; for config in $CONFIGURATION
 do
   IFS=$oldifs # Because of ; IFS set above will still be present.
-  # Temporarily skip Debug in attempt to get the vcpkg cache populated.
-  if [ "$config" = "Debug" ]; then continue; fi
   # Build and test
   echo "Build KTX-Software (macOS $ARCHS $config)"
   if [ -n "$MACOS_CERTIFICATES_P12" -a "$config" = "Release" ]; then
