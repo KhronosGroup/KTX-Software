@@ -31,9 +31,7 @@ $systype = (Get-WmiObject -Class Win32_ComputerSystem).SystemType
 $systype -match "(?<arch>.*)-based PC"
 $defaultArch = $matches['arch'].toLower()
 echo "defaultArch = $defaultArch"
-if ($defaultArch -eq "amd64") {
-  $defaultArch = "x64"
-} elseif ($defaultArch -ne "arm64") {
+if ($defaultArch -ne "x64" -and $defaultArch -ne "arm64") {
   echo "KTX build for Windows does not support $defaultArch architecture."
   echo "Only amd64 and arm64 are supported."
   exit 1
