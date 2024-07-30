@@ -25,7 +25,12 @@ function Set-ConfigVariable {
 }
 
 # Build for the local machine by default.
-$defaultArch = $env:processor_architecture.toLower()
+# NOTE: $env:processor_architecture reflects the architecture of
+# the process not the machine.
+$systype = (Get-WmiObject -Class Win32_ComputerSystem).SystemType
+$systype -match "(?<arch>.*)-based PC"
+$defaultArch = $matches['arch'].toLower()
+echo "defaultArch = $defaultArch"
 if ($defaultArch -eq "amd64") {
   $defaultArch = "x64"
 } elseif ($defaultArch -ne "arm64") {
