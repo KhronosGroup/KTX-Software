@@ -213,19 +213,6 @@ jobs:
           core.exportVariable('VCPKG_BINARY_SOURCES', "clear;x-gha,readwrite");
           core.exportVariable('VCPKG_ROOT', process.env.VCPKG_INSTALLATION_ROOT || '');
 
-#    - name: Set up vcpkg with cache
-#      if: matrix.options.loadtests != 'OFF'
-#      id: vcpkg
-#      uses: johnwason/vcpkg-action@v6
-#      with:
-#        manifest-dir: ${{ github.workspace }}
-#        token: ${{ secrets.GITHUB_TOKEN }}
-#        github-binarycache: true
-
-#    - name: Set up VCPKG_ROOT env. var.
-#      if: matrix.options.loadtests != 'OFF'
-#      run: echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" >> $env:GITHUB_ENV
-
     - name: Install Dependencies
       if: matrix.check_mkvk != 'ONLY'
       # This script only installs what's needed by ON FEATUREs.
