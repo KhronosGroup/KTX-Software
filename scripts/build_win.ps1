@@ -24,6 +24,7 @@ function Set-ConfigVariable {
   return $res
 }
 
+$PSVersionTable.PSVersion
 # Build for the local machine by default.
 # NOTE: $env:processor_architecture reflects the architecture of
 # the process not the machine.
