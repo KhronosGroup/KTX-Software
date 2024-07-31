@@ -28,7 +28,8 @@ $PSVersionTable.PSVersion
 # Build for the local machine by default.
 # NOTE: $env:processor_architecture reflects the architecture of
 # the process not the machine.
-$systype = (Get-WmiObject -Class Win32_ComputerSystem).SystemType
+#$systype = (Get-WmiObject -Class Win32_ComputerSystem).SystemType
+$systype = (Get-ComputerInfo).CsSystemType
 $systype -match "(?<arch>.*)-based PC"
 $defaultArch = $matches['arch'].toLower()
 echo "defaultArch = $defaultArch"
