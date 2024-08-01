@@ -45,12 +45,6 @@ set( CMAKE_FIND_PACKAGE_PREFER_CONFIG ${fp_pref} )
 # We use our own local copy of GL headers to ensure we have glcorearb.h.
 set( OPENGL_INCLUDE_DIR  ${CMAKE_SOURCE_DIR}/other_include )
 
-#if(NOT EMSCRIPTEN AND NOT WIN32)
-#    # libassimp needs zlib. On Windows we use a dll which has zlib embedded.
-#    find_package( ZLIB REQUIRED )
-#    set( KTX_ZLIB_LIBRARIES ZLIB::ZLIB )
-#endif()
-
 if(APPLE AND IOS)
     if( CMAKE_OSX_ARCHITECTURES )
         list(LENGTH CMAKE_OSX_ARCHITECTURES archs_len)
@@ -213,7 +207,6 @@ if(APPLE)
     else()
         set( LOAD_TEST_COMMON_LIBS
             ${ASSIMP_LIBRARIES}
-#            ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libminizip.a
         )
     endif()
 elseif(LINUX)

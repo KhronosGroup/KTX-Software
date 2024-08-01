@@ -56,7 +56,6 @@ function( create_gl_target target version sources common_resources test_images
         GLAppSDL
         appfwSDL
         ktx
-#        ${KTX_ZLIB_LIBRARIES}
     )
 
     if(NOT EMSCRIPTEN AND NOT EMULATE_GLES)

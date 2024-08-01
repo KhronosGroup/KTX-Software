@@ -177,7 +177,6 @@ target_include_directories(vkloadtests
 
 target_link_libraries(vkloadtests
     ktx
-#    ${KTX_ZLIB_LIBRARIES}
     objUtil
     appfwSDL
 )
