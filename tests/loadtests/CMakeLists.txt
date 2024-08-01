@@ -31,11 +31,9 @@ set( CMAKE_FIND_PACKAGE_PREFER_CONFIG TRUE )
 # generator is adding it. It leads to a harmless warning during
 # build, harmless because the libraries are referenced by full paths
 # and the .../lib directory is in the search path of SDL2::SDL2.
-cmake_print_variables(CMAKE_PREFIX_PATH CMAKE_SYSTEM_PREFIX_PATH
-                      CMAKE_SYSTEM_PROGRAM_PATH CMAKE_SYSTEM_APPBUNDLE_PATH)
-#        set(CMAKE_FIND_DEBUG_MODE TRUE)
+#set(CMAKE_FIND_DEBUG_MODE TRUE)
 find_package(SDL2 REQUIRED)
-#        set(CMAKE_FIND_DEBUG_MODE FALSE)
+#set(CMAKE_FIND_DEBUG_MODE FALSE)
 if(NOT EMSCRIPTEN)
     # There is no official assimp port for Emscripten, and we've had
     # no time to experiment, so tests that use assimp are omitted from

@@ -3,8 +3,6 @@
 
 # Find Vulkan package
 if(APPLE)
-    cmake_print_variables(CMAKE_FIND_FRAMEWORK)
-    cmake_print_variables(CMAKE_PREFIX_PATH CMAKE_LIBRARY_PATH CMAKE_FRAMEWORK_PATH)
     # N.B. FindVulkan needs the VULKAN_SDK environment variable set to find
     # the iOS frameworks and to set Vulkan_Target_SDK, used later in this
     # file. Therefore ensure to make that env. var. available to CMake and
@@ -40,17 +38,14 @@ if(APPLE)
     endif()
 else()
     find_package(Vulkan REQUIRED)
-#    if(Vulkan_FOUND)
-#        # Once we've moved on to CMake 3.20
-#        #cmake_path(REMOVE_FILENAME ${Vulkan_LIBRARY} OUTPUT_VARIABLE Vulkan_LIBRARY_DIR)
-#        # Until then
-#        string(REGEX REPLACE lib/.*$ lib/ Vulkan_LIBRARY_DIR ${Vulkan_LIBRARY})
-#        message(STATUS "Found Vulkan at ${Vulkan_INCLUDE_DIR} & ${Vulkan_LIBRARY}")
-#    endif()
 endif()
-cmake_path(REMOVE_FILENAME Vulkan_LIBRARIES OUTPUT_VARIABLE Vulkan_LIBRARIES_DIR)
 
-cmake_print_variables(Vulkan_LIBRARIES Vulkan_LIBRARY_REAL_PATH_NAME Vulkan_LIBRARY_REAL_FILE_NAME Vulkan_LIBRARY_SONAME_FILE_NAME)
+#cmake_print_variables(
+#    Vulkan_LIBRARIES
+#    Vulkan_LIBRARY_REAL_PATH_NAME
+#    Vulkan_LIBRARY_REAL_FILE_NAME
+#    Vulkan_LIBRARY_SONAME_FILE_NAME
+#)
 
 include(compile_shader.cmake)
 
