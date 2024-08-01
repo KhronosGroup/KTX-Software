@@ -588,12 +588,23 @@ dependencies of the KTX load test applications on macOS and Windows. Since
 KTX-Software uses vcpkg's manifest mode, installation of the dependencies is
 automatic.
 
-Clone the [vcpkg](https://github.com/microsoft/vcpkg) repo. Follow the
-installation instructions in the
+Clone the [vcpkg](https://github.com/microsoft/vcpkg) repo and run its
+bootstrap:
+
+```bash
+    cd /place/to/clone/vcpkg
+    git clone https://github.com/microsoft/vcpkg
+    cd vcpkg
+    ./bootstrap-vcpkg.sh -disableMetrics
+    # On Windows use ./bootstrap-vcpkg.bat
+```
+
+For more information see the
 [vcpkg with CMake](https://learn.microsoft.com/vcpkg/get_started/get-started)
-getting started guide. Ignore the rest. Set the environment variable
-`VCPKG_ROOT` to where you have installed _vcpkg_ and set `CMAKE_TOOLCHAIN_FILE`
-to `$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake` when using CMake to configure your project.
+Getting Started guide. Ignore all but the installation instructions. Set the
+environment variable `VCPKG_ROOT` to where you have installed _vcpkg_ and set
+`CMAKE_TOOLCHAIN_FILE` to `$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake` when
+using CMake to configure your project.
 
 ### SDL2
 
@@ -669,7 +680,7 @@ included as of macOS Sonoma. In future you may need to install an additional
 package. On Windows, you need a Perl that writes Windows line endings (CRLF).
 Strawberry Perl via Chocolatey is recommended.
 
-```bash
+```powershell
     choco install strawberryperl
 ```
 
