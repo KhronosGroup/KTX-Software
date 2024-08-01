@@ -98,9 +98,10 @@ do
   IFS=$oldifs # Because of ; IFS set above will still be present.
   echo "Build KTX-Software (iOS $config)"
   cmake --build . --config $config -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO | handle_compiler_output
-  # A simulator build would look like this but note that dues to the way vcpkg
+  # A simulator build would look like this but note that due to the way vcpkg
   # manifest mode works, different CMake configurations are needed for
-  # device and simulator. Hence a different BUILD_DIR.
+  # device and simulator. Hence a different BUILD_DIR and separate run
+  # of this script.
   #echo "Build KTX-Software (iOS Simulator $config)"
   #cmake --build . --config $config -- -sdk iphonesimulator
 
