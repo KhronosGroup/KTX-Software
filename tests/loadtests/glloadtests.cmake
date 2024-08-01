@@ -3,6 +3,13 @@
 
 set(OPENGL_ES_EMULATOR "" CACHE PATH "Path to OpenGL ES emulation libraries")
 
+if(NOT APPLE_LOCKED_OS)
+    find_package(OpenGL REQUIRED)
+endif()
+if(WIN32)
+    find_package(GLEW REQUIRED)
+endif()
+
 function( create_gl_target target version sources common_resources test_images
           KTX_GL_CONTEXT_PROFILE
           KTX_GL_CONTEXT_MAJOR_VERSION KTX_GL_CONTEXT_MINOR_VERSION

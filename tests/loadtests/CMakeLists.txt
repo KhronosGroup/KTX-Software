@@ -23,9 +23,6 @@ set( CMAKE_XCODE_SCHEME_ENABLE_GPU_FRAME_CAPTURE_MODE DISABLED )
 set( fp_pref ${CMAKE_FIND_PACKAGE_PREFER_CONFIG} )
 # Prefer CONFIG for vcpkg
 set( CMAKE_FIND_PACKAGE_PREFER_CONFIG TRUE )
-if(NOT APPLE_LOCKED_OS AND ${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
-    find_package(OpenGL REQUIRED)
-endif()
 # When using a local SDL2 package installed by brew, on macOS at
 # least, a mysterious .../lib/$<CONFIG> appears in the library
 # search paths in the generated project. I've been unable to find
@@ -44,9 +41,6 @@ if(NOT EMSCRIPTEN)
     # no time to experiment, so tests that use assimp are omitted from
     # loadtests when building for the web.
     find_package(assimp REQUIRED)
-endif()
-if(WIN32 AND ${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
-    find_package(GLEW REQUIRED)
 endif()
 set( CMAKE_FIND_PACKAGE_PREFER_CONFIG ${fp_pref} )
 
