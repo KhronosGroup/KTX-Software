@@ -72,7 +72,7 @@ jobs:
             arch: arm64
             options: {
               config: 'Debug,Release',
-              doc: ON, jni: ON, loadtests: OpenGL, py: OFF, tests: ON, tools: ON, tools_cts: ON,
+              doc: ON, jni: ON, loadtests: OpenGL+Vulkan, py: OFF, tests: ON, tools: ON, tools_cts: ON,
               package: YES
             }
     runs-on: ${{ matrix.os }}
@@ -127,9 +127,6 @@ jobs:
         # Fetch all history to make sure tags are
         # included (used for version creation)
         fetch-depth: 0
-
-    - name: Print out PS Version
-      run: $PSVersionTable.PSVersion
 
     - name: Install NSIS with large string support
       if: matrix.check_mkvk != 'ONLY'

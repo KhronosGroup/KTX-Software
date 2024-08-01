@@ -24,15 +24,11 @@ function Set-ConfigVariable {
   return $res
 }
 
-$PSVersionTable.PSVersion
 # Build for the local machine by default.
 # NOTE: $env:processor_architecture reflects the architecture of
-# the process not the machine.
-#$systype = (Get-WmiObject -Class Win32_ComputerSystem).SystemType
-$systype = (Get-ComputerInfo).CsSystemType
-$systype -match "(?<arch>.*)-based PC"
+# the process not the machine. Do not use.
+$systype = (Get-ComputerInfo).CsSystemType -match "(?<arch>.*)-based PC"
 $defaultArch = $matches['arch'].toLower()
-echo "defaultArch = $defaultArch"
 if ($defaultArch -ne "x64" -and $defaultArch -ne "arm64") {
   echo "KTX build for Windows does not support $defaultArch architecture."
   echo "Only amd64 and arm64 are supported."
