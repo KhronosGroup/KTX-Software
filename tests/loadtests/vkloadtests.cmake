@@ -110,8 +110,15 @@ list( TRANSFORM VK_TEST_IMAGES
 )
 
 set( KTX_RESOURCES ${LOAD_TEST_COMMON_RESOURCE_FILES} ${VK_TEST_IMAGES} )
-if(IOS)
-    list( APPEND KTX_RESOURCES ${Vulkan_SHARE_VULKAN} )
+if(APPLE)
+# Adding this directory to KTX_RESOURCES and ultimately vkloadtests's
+# RESOURCE property causes the install command (later in this file) to
+# raise an error at configuration time: "RESOURCE given directory". Use
+# this instead to cause the files to be added to Resources in the bundle.
+    set_source_files_properties( ${Vulkan_SHARE_VULKAN}
+        PROPERTIES
+        MACOSX_PACKAGE_LOCATION Resources
+    )
 endif()
 
 add_executable( vkloadtests
@@ -261,6 +268,7 @@ if(APPLE)
     # generators. Since configure_file() is happening use the standard
     # property names for consistency with the standard Info.plist template.
     set_target_properties( vkloadtests PROPERTIES
+        MACOSX_BUNDLE TRUE
         MACOSX_BUNDLE_BUNDLE_NAME ${product_name}
         MACOSX_BUNDLE_EXECUTABLE_NAME ${product_name}
         MACOSX_BUNDLE_COPYRIGHT "© 2024 Khronos Group, Inc."
@@ -332,7 +340,7 @@ if(APPLE)
         # Specify destination for cmake --install.
         install(TARGETS vkloadtests
             BUNDLE
-                DESTINATION /Applications
+                DESTINATION ${CMAKE_INSTALL_PREFIX}/Applications
                 COMPONENT VkLoadTestApp
         )
 
