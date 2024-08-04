@@ -15,7 +15,6 @@ if(APPLE)
     # Derive some other useful variables from those provided by find_package
     if(APPLE_LOCKED_OS)
         set( Vulkan_SHARE_VULKAN ${Vulkan_Target_SDK}/${CMAKE_SYSTEM_NAME}/share/vulkan )
-        unset( sdklibdir )
     else()
         # Vulkan_LIBRARIES points to "libvulkan.dylib".
         # Find the name of the actual dylib which includes the version no.
