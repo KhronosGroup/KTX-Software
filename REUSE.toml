@@ -180,12 +180,6 @@ SPDX-FileCopyrightText = "2016-present Facebook, Inc."
 SPDX-License-Identifier = "BSD-3-Clause"
 
 [[annotations]]
-path = ["other_include/GL/glew.h", "other_include/GL/glxew.h", "other_include/GL/wglew.h"]
-precedence = "aggregate"
-SPDX-FileCopyrightText = ["2008-2015, Nigel Stewart <nigels[]users sourceforge net>", "2002-2008, Milan Ikits <milan ikits[]ieee org>", "2002-2008, Marcelo E. Magallon <mmagallo[]debian org>", "2002, Lev Povalahev"]
-SPDX-License-Identifier = "BSD-3-Clause"
-
-[[annotations]]
 path = ["other_include/EGL/**.h", "other_include/GL**/**.h", "other_include/KHR/khrplatform.h"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2007-2020 The Khronos Group Inc."
