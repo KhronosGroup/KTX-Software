@@ -33,7 +33,7 @@ if(APPLE)
                         OUTPUT_VARIABLE Vulkan_LIBRARY_SONAME_FILE_NAME
                         OUTPUT_STRIP_TRAILING_WHITESPACE
         )
-        set( Vulkan_SHARE_VULKAN ${PROJECT_SOURCE_DIR}/other_lib/mac/resources/vulkan )
+        set( Vulkan_SHARE_VULKAN appfwSDL/VulkanAppSDL/mac/vulkan )
     endif()
 else()
     find_package(Vulkan REQUIRED)
