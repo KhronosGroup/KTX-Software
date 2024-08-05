@@ -110,10 +110,10 @@ list( TRANSFORM VK_TEST_IMAGES
 
 set( KTX_RESOURCES ${LOAD_TEST_COMMON_RESOURCE_FILES} ${VK_TEST_IMAGES} )
 if(APPLE)
-# Adding this directory to KTX_RESOURCES and ultimately vkloadtests's
-# RESOURCE property causes the install command (later in this file) to
-# raise an error at configuration time: "RESOURCE given directory". Use
-# this instead to cause the files to be added to Resources in the bundle.
+    # Adding this directory to KTX_RESOURCES and ultimately vkloadtests's
+    # RESOURCE property causes the install command (later in this file) to
+    # raise an error at configuration time: "RESOURCE given directory". Use
+    # this instead to cause the files to be added to Resources in the bundle.
     set_source_files_properties( ${Vulkan_SHARE_VULKAN}
         PROPERTIES
         MACOSX_PACKAGE_LOCATION Resources
