@@ -174,31 +174,13 @@ SPDX-FileCopyrightText = "2017-2020 Andreas Atteneder"
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
-path = ["other_lib/**/**SDL**", "other_include/SDL2/**"]
-precedence = "aggregate"
-SPDX-FileCopyrightText = "1997-2020 Sam Lantinga <slouken@libsdl.org>"
-SPDX-License-Identifier = "Zlib"
-
-[[annotations]]
-path = ["other_lib/**/**/**zstd**", "other_include/zstd**"]
+path = ["other_include/zstd**"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2016-present Facebook, Inc."
 SPDX-License-Identifier = "BSD-3-Clause"
 
 [[annotations]]
-path = "other_lib/mac/Release/libminizip.a"
-precedence = "aggregate"
-SPDX-FileCopyrightText = "1995-2017 Jean-loup Gailly and Mark Adler"
-SPDX-License-Identifier = "Zlib"
-
-[[annotations]]
-path = ["other_include/assimp/**", "other_lib/**/**/**assimp**", "other_lib/mac/Release/libIrrXML.a"]
-precedence = "aggregate"
-SPDX-FileCopyrightText = "2006-2019, assimp team"
-SPDX-License-Identifier = "BSD-3-Clause"
-
-[[annotations]]
-path = ["other_include/GL/glew.h", "other_include/GL/glxew.h", "other_include/GL/wglew.h", "other_lib/win/Release-x65/glew32.**"]
+path = ["other_include/GL/glew.h", "other_include/GL/glxew.h", "other_include/GL/wglew.h"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = ["2008-2015, Nigel Stewart <nigels[]users sourceforge net>", "2002-2008, Milan Ikits <milan ikits[]ieee org>", "2002-2008, Marcelo E. Magallon <mmagallo[]debian org>", "2002, Lev Povalahev"]
 SPDX-License-Identifier = "BSD-3-Clause"
@@ -208,12 +190,6 @@ path = ["other_include/EGL/**.h", "other_include/GL**/**.h", "other_include/KHR/
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2007-2020 The Khronos Group Inc."
 SPDX-License-Identifier = "MIT"
-
-[[annotations]]
-path = "other_lib/win/**"
-precedence = "aggregate"
-SPDX-FileCopyrightText = "2020 Andreas Atteneder"
-SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
 path = "pkgdoc/**"
