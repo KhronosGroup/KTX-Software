@@ -241,12 +241,14 @@ GL3LoadTestSample::framebufferColorEncoding()
     return encoding;
 }
 
+#if !defined(__EMSCRIPTEN__)
 void
 GL3LoadTestSample::loadMesh(std::string filename,
                             glMeshLoader::MeshBuffer& meshBuffer,
                             std::vector<glMeshLoader::VertexLayout> vertexLayout,
                             float scale)
 {
+// Emscripten assimp port not yet available.
     GLMeshLoader *mesh = new GLMeshLoader();
 
     mesh->LoadMesh(filename);
@@ -262,4 +264,15 @@ GL3LoadTestSample::loadMesh(std::string filename,
 
     delete(mesh);
 }
+#else
+void
+GL3LoadTestSample::loadMesh(std::string,
+                            glMeshLoader::MeshBuffer&,
+                            std::vector<glMeshLoader::VertexLayout>,
+                            float)
+{
+}
+#endif
+
+
 

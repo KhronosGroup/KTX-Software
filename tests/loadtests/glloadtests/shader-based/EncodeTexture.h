@@ -18,6 +18,8 @@
 
 #include "GL3LoadTestSample.h"
 
+#include <iostream>
+
 class EncodeTexture : public GL3LoadTestSample {
   public:
     EncodeTexture(uint32_t width, uint32_t height,
