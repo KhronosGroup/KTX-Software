@@ -30,8 +30,6 @@ WERROR=${WERROR:-OFF}
 
 BUILD_DIR=${BUILD_DIR:-build/ios}
 
-export VULKAN_SDK=${VULKAN_SDK:-~/VulkanSDK/1.2.198.1/macOS}
-
 # Ensure that Vulkan SDK's glslc is in PATH
 export PATH="${VULKAN_SDK}/bin:$PATH"
 
@@ -59,8 +57,13 @@ set -o pipefail
 # iOS
 #
 
-cmake_args=("-G" "Xcode" \
-  "-B" $BUILD_DIR \
+cmake_args=("-G" "Xcode" "-B" "$BUILD_DIR")
+if [[ "$FEATURE_LOADTESTS" != "OFF" && -n "$VCPKG_ROOT" ]]; then
+  cmake_args+=(
+    "-D" "CMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
+  )
+fi
+cmake_args+=( \
   "-D" "CMAKE_SYSTEM_NAME=iOS" \
   "-D" "ASTCENC_ISA_NEON=ON" \
   "-D" "KTX_FEATURE_DOC=$FEATURE_DOC" \
@@ -95,7 +98,10 @@ do
   IFS=$oldifs # Because of ; IFS set above will still be present.
   echo "Build KTX-Software (iOS $config)"
   cmake --build . --config $config -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO | handle_compiler_output
-
+  # A simulator build would look like this but note that due to the way vcpkg
+  # manifest mode works, different CMake configurations are needed for
+  # device and simulator. Hence a different BUILD_DIR and separate run
+  # of this script.
   #echo "Build KTX-Software (iOS Simulator $config)"
   #cmake --build . --config $config -- -sdk iphonesimulator
 

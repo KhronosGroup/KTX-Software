@@ -40,8 +40,6 @@ if ($FEATURE_TESTS -eq "ON") {
 }
 
 if ($FEATURE_LOADTESTS -and $FEATURE_LOADTESTS -ne "OFF") {
-  # Must be in repo root for this lfs pull.
-  git lfs pull --include=other_lib/win
   if ($FEATURE_LOADTESTS -match "OpenGL") {
     echo "Download PowerVR OpenGL ES Emulator libraries (latest version)."
     $null = md $OPENGL_ES_EMULATOR_WIN

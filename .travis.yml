@@ -21,6 +21,10 @@ addons:
     packages:
     - git-lfs
 
+cache:
+  directories:
+  -  $HOME/.cache/vcpkg/archives
+
 env:
   global:
     - BUILD_DIR: build
@@ -31,7 +35,7 @@ env:
     - HOMEBREW_NO_AUTO_UPDATE: 1
     - PACKAGE: NO
     - REL_DESC_FILE: "$BUILD_DIR/rel_desc.md"
-    - VULKAN_SDK_VER: "1.3.243.0"
+    - VULKAN_SDK_VER: "1.3.290.0"
     # This is just to tell the Vulkan install script where to install.
     - VULKAN_INSTALL_DIR: "$HOME/VulkanSDK/$VULKAN_SDK_VER"
     - VULKAN_SDK: "$VULKAN_INSTALL_DIR/macOS"
@@ -49,7 +53,7 @@ env:
     # runs on x86_64)
     - CONFIGURATION=Debug,Release PLATFORM=macOS ARCHS=x86_64
       FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_PY=ON FEATURE_LOADTESTS=OpenGL+Vulkan FEATURE_TOOLS=ON
-      FEATURE_TOOLS_CTS=ON LOADTESTS_USE_LOCAL_DEPENDENCIES=ON SUPPORT_SSE=ON SUPPORT_OPENCL=OFF DEPLOY_DOCS=YES PACKAGE=YES
+      FEATURE_TOOLS_CTS=ON SUPPORT_SSE=ON SUPPORT_OPENCL=OFF DEPLOY_DOCS=YES PACKAGE=YES
     - CONFIGURATION=Release PLATFORM=macOS ARCHS=arm64
       FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_PY=OFF FEATURE_LOADTESTS=OpenGL+Vulkan FEATURE_TESTS=OFF
       FEATURE_TOOLS=ON FEATURE_TOOLS_CTS=OFF SUPPORT_SSE=ON SUPPORT_OPENCL=OFF PACKAGE=YES
@@ -91,7 +95,7 @@ jobs:
       compiler: gcc # clang is tested by macOS build
       env:
         # NB: This must not have the fourth component of the version number.
-        - VULKAN_SDK_VER: "1.3.243"
+        - VULKAN_SDK_VER: "1.3.290"
         - CMAKE_GEN: Ninja
         - CONFIGURATION=Debug
           FEATURE_DOC=OFF FEATURE_JNI=ON FEATURE_PY=ON FEATURE_LOADTESTS=OpenGL+Vulkan FEATURE_TOOLS=ON
@@ -106,7 +110,7 @@ jobs:
       #jdk: openjdk17 # Reminder to find correct way to select jdk 17
       env:
         # NB: This must not have the fourth component of the version number.
-        - VULKAN_SDK_VER: "1.3.243"
+        - VULKAN_SDK_VER: "1.3.290"
         - CMAKE_GEN: Ninja
         - CONFIGURATION=Release
           FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_PY=ON FEATURE_LOADTESTS=OpenGL+Vulkan FEATURE_TOOLS=ON
@@ -126,7 +130,7 @@ jobs:
       #jdk: openjdk17
       env:
         # NB: This must not have the fourth component of the version number.
-        - VULKAN_SDK_VER: "1.3.243"
+        - VULKAN_SDK_VER: "1.3.290"
         - CMAKE_GEN: Ninja
         - CONFIGURATION=Release
           FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_PY=ON FEATURE_LOADTESTS=OpenGL
@@ -204,6 +208,15 @@ before_install:
         sudo apt-get update
       fi
       ;;
+    osx)
+      if [[ -n "$FEATURE_LOADTESTS" && "$FEATURE_LOADTESTS" != "OFF" ]]; then
+        # Install vcpkg.
+        pushd $HOME
+        git clone https://github.com/microsoft/vcpkg
+        cd vcpkg && ./bootstrap-vcpkg.sh -disableMetrics && export VCPKG_ROOT=$(pwd)
+        popd
+      fi
+      ;;
     esac
 
 install:
@@ -237,10 +250,6 @@ install:
     ;;
   osx)
     if [ "$CHECK_REUSE" != "ONLY" -a "$CHECK_MKVK" != "ONLY" ]; then
-      if [ "$LOADTESTS_USE_LOCAL_DEPENDENCIES" = "ON" ]; then
-          brew install sdl2
-          brew install assimp
-      fi
       if [ "$FEATURE_DOC" = "ON" ]; then
           brew install doxygen
           brew install graphviz

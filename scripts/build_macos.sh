@@ -29,7 +29,6 @@ FEATURE_PY=${FEATURE_PY:-OFF}
 FEATURE_TESTS=${FEATURE_TESTS:-ON}
 FEATURE_TOOLS=${FEATURE_TOOLS:-ON}
 FEATURE_TOOLS_CTS=${FEATURE_TOOLS_CTS:-ON}
-LOADTESTS_USE_LOCAL_DEPENDENCIES=${LOADTESTS_USE_LOCAL_DEPENDENCIES:-OFF}
 PACKAGE=${PACKAGE:-NO}
 SUPPORT_SSE=${SUPPORT_SSE:-ON}
 SUPPORT_OPENCL=${SUPPORT_OPENCL:-OFF}
@@ -62,8 +61,13 @@ else
   }
 fi
 
-cmake_args=("-G" "Xcode" \
-  "-B" $BUILD_DIR \
+cmake_args=("-G" "Xcode" "-B" "$BUILD_DIR")
+if [[ "$FEATURE_LOADTESTS" != "OFF" && -n "$VCPKG_ROOT" ]]; then
+  cmake_args+=(
+    "-D" "CMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
+  )
+fi
+cmake_args+=( \
   "-D" "CMAKE_OSX_ARCHITECTURES=$ARCHS" \
   "-D" "KTX_FEATURE_DOC=$FEATURE_DOC" \
   "-D" "KTX_FEATURE_JNI=$FEATURE_JNI" \
@@ -72,7 +76,6 @@ cmake_args=("-G" "Xcode" \
   "-D" "KTX_FEATURE_TESTS=$FEATURE_TESTS" \
   "-D" "KTX_FEATURE_TOOLS=$FEATURE_TOOLS" \
   "-D" "KTX_FEATURE_TOOLS_CTS=$FEATURE_TOOLS_CTS" \
-  "-D" "KTX_LOADTEST_APPS_USE_LOCAL_DEPENDENCIES=$LOADTESTS_USE_LOCAL_DEPENDENCIES" \
   "-D" "KTX_WERROR=$WERROR" \
   "-D" "BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL" \
   "-D" "BASISU_SUPPORT_SSE=$SUPPORT_SSE"
@@ -110,6 +113,7 @@ IFS=, ; for config in $CONFIGURATION
 do
   IFS=$oldifs # Because of ; IFS set above will still be present.
   # Build and test
+  #if [ "$config" = "Debug" ]; then continue; fi
   echo "Build KTX-Software (macOS $ARCHS $config)"
   if [ -n "$MACOS_CERTIFICATES_P12" -a "$config" = "Release" ]; then
     cmake --build . --config $config | handle_compiler_output
