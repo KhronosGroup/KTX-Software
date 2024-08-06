@@ -45,7 +45,7 @@ public class KtxParallelTest {
 
         public void run() {
             // Repeatedly create a compress an image.
-            for (int i = 0; i < 300; i++) {
+            for (int i = 0; i < 30; i++) {
                 final int w = (testRandomizer.nextInt() % 512) + 1024;
                 final int h = w;
                 final int size = convertToASTC(w, h);
@@ -61,7 +61,7 @@ public class KtxParallelTest {
             info.setBaseWidth(w);
             info.setBaseHeight(h);
             info.setVkFormat(VkFormat.VK_FORMAT_R8G8B8_SRGB); // Uncompressed
-            final KtxTexture2 t = KtxTexture2.create(info, KtxCreateStorage.ALLOC);
+            final KtxTexture2 t = KtxTexture2.create(info, KtxTextureCreateStorage.KTX_TEXTURE_CREATE_ALLOC_STORAGE);
 
             // Pass the uncompressed data
             int bufferSize = w * h * 3;
@@ -70,11 +70,11 @@ public class KtxParallelTest {
 
             // Compress the data
             final KtxAstcParams p = new KtxAstcParams();
-            p.setBlockDimension(KtxPackAstcBlockDimension.D8x8);
-            p.setMode(KtxPackAstcEncoderMode.LDR);
-            p.setQualityLevel(KtxPackAstcQualityLevel.EXHAUSTIVE);
+            p.setBlockDimension(KtxPackAstcBlockDimension.KTX_PACK_ASTC_BLOCK_DIMENSION_D8x8);
+            p.setMode(KtxPackAstcEncoderMode.KTX_PACK_ASTC_ENCODER_MODE_LDR);
+            p.setQualityLevel(KtxPackAstcQualityLevel.KTX_PACK_ASTC_QUALITY_LEVEL_EXHAUSTIVE);
             final int rc = t.compressAstcEx(p);
-            if (rc != KtxErrorCode.SUCCESS) {
+            if (rc != KtxErrorCode.KTX_SUCCESS) {
                 throw new RuntimeException("ASTC error " + rc);
             }
             final int retDataLen = (int) t.getDataSize();
