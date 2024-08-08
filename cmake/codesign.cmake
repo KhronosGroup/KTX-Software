@@ -9,9 +9,6 @@ macro (set_code_sign target)
       XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "${XCODE_DEVELOPMENT_TEAM}"
       XCODE_ATTRIBUTE_OTHER_CODE_SIGN_FLAGS "--timestamp"
       XCODE_ATTRIBUTE_CODE_SIGN_INJECT_BASE_ENTITLEMENTS $<IF:$<CONFIG:Debug>,YES,NO>
-      # Necessary for working code signing. Signing happens at build time
-      # so the binary cannot be altered during install.
-      BUILD_WITH_INSTALL_RPATH ON
     )
     if(IOS)
       set(set_pps FALSE)
@@ -39,6 +36,14 @@ macro (set_code_sign target)
       )
     endif()
   endif()
+
+  set_target_properties(${target} PROPERTIES
+    # Necessary for working code signing. Signing happens at build time
+    # so the binary must not be altered during install. Although Linux
+    # code is not yet being signed, use for symmetry there. Ignored on
+    # Windows builds.
+    BUILD_WITH_INSTALL_RPATH ON
+  )
 endmacro (set_code_sign)
 
 function(configure_windows_sign_params)

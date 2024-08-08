@@ -273,7 +273,7 @@ function( create_gl_target target version sources common_resources test_images
         # /usr/local/bin.
 
         set_target_properties( ${target} PROPERTIES
-            INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}"
+            INSTALL_RPATH "\$ORIGIN:${CMAKE_INSTALL_FULL_LIBDIR}"
         )
 
         ######### IMPORTANT ######

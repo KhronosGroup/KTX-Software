@@ -479,9 +479,10 @@ if(WIN32)
     # change it.
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
 elseif(APPLE_MAC_OS OR LINUX)
-        # Set a common RUNTIME_OUTPUT_DIR and LIBRARY_OUTPUT_DIR for all targets,
-        # so that INSTALL RPATH is functional in build directory as well.
-        # BUILD_WITH_INSTALL_RPATH is necessary for working code signing.
+        # Set a common RUNTIME_OUTPUT_DIR and LIBRARY_OUTPUT_DIR for all
+        # targets, so that INSTALL RPATH is functional in build directory
+        # as well. BUILD_WITH_INSTALL_RPATH is necessary for working code
+        # signing and is set in cmake/codesign.cmake.
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
         set(CMAKE_LIBRARY_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
 endif()
