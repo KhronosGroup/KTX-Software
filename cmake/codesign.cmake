@@ -36,14 +36,6 @@ macro (set_code_sign target)
       )
     endif()
   endif()
-
-  set_target_properties(${target} PROPERTIES
-    # Necessary for working code signing. Signing happens at build time
-    # so the binary must not be altered during install. Although Linux
-    # code is not yet being signed, use for symmetry there. Ignored on
-    # Windows builds.
-    BUILD_WITH_INSTALL_RPATH ON
-  )
 endmacro (set_code_sign)
 
 function(configure_windows_sign_params)
