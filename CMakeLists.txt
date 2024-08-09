@@ -480,7 +480,7 @@ if(APPLE_MAC_OS OR LINUX OR WIN32)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
     if(APPLE_MAC_OS OR LINUX)
         # Use a common RUNTIME_OUTPUT_DIR and LIBRARY_OUTPUT_DIR for all
-        # targets, so that INSTALL RPATH is functional in build directory
+        # targets so that INSTALL RPATH is functional in build directory
         # as well. BUILD_WITH_INSTALL_RPATH is necessary for working code
         # signing. Signing happens at build time so the binary must not
         # be altered during install. Although Linux code is not yet being
