@@ -81,10 +81,8 @@ GLAppSDL::initialize(Args& args)
 #endif
     }
 
-#if __MACOSX__
     SDL_SetHint(SDL_HINT_MAC_CTRL_CLICK_EMULATE_RIGHT_CLICK, "1");
     SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "1");
-#endif
     
     pswMainWindow = SDL_CreateWindow(
                         szName,
