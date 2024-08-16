@@ -762,7 +762,7 @@ enum VkFormat = {
     // purpose of this IDL. Any VkFormat valid for KTX can be used. As shown
     // here, omit the VK_FORMAT_ prefix and enclose in quotes.
 
-enum astc_quality_levels = {  // **
+enum pack_astc_quality_levels = {  // **
     "FASTEST",
     "FAST",
     "MEDIUM",
@@ -770,7 +770,7 @@ enum astc_quality_levels = {  // **
     "EXHAUSTIVE",
 };
 
-enum astc_block_dimension = {  // **
+enum pack_astc_block_dimension = {  // **
     // 2D formats
     "D4x4",
     "D5x4",
@@ -1337,7 +1337,7 @@ EMSCRIPTEN_BINDINGS(ktx)
       .property("generateMipmaps", &ktxTextureCreateInfo::generateMipmaps)
     ;
 
-    enum_<ktx_pack_astc_quality_levels_e>("astc_quality_levels")
+    enum_<ktx_pack_astc_quality_levels_e>("pack_astc_quality_levels")
       .value("FASTEST", KTX_PACK_ASTC_QUALITY_LEVEL_FASTEST)
       .value("FAST", KTX_PACK_ASTC_QUALITY_LEVEL_FAST)
       .value("MEDIUM", KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM)
@@ -1345,7 +1345,7 @@ EMSCRIPTEN_BINDINGS(ktx)
       .value("EXHAUSTIVE", KTX_PACK_ASTC_QUALITY_LEVEL_EXHAUSTIVE)
     ;
 
-    enum_<ktx_pack_astc_block_dimension_e>("astc_block_dimension")
+    enum_<ktx_pack_astc_block_dimension_e>("pack_astc_block_dimension")
       // 2D formats
       .value("D4x4", KTX_PACK_ASTC_BLOCK_DIMENSION_4x4) //: 8.00 bpp
       .value("D5x4", KTX_PACK_ASTC_BLOCK_DIMENSION_5x4) //: 6.40 bpp
