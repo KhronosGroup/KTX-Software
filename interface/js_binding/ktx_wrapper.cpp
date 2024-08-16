@@ -772,31 +772,31 @@ enum astc_quality_levels = {  // **
 
 enum astc_block_dimension = {  // **
     // 2D formats
-    "d4x4",
-    "d5x4",
-    "d5x5",
-    "d6x5",
-    "d6x6",
-    "d8x5",
-    "d8x6",
-    "d10x5",
-    "d10x6",
-    "d8x8",
-    "d10x8",
-    "d10x10",
-    "d12x10",
-    "d12x12",
+    "D4x4",
+    "D5x4",
+    "D5x5",
+    "D6x5",
+    "D6x6",
+    "D8x5",
+    "D8x6",
+    "D10x5",
+    "D10x6",
+    "D8x8",
+    "D10x8",
+    "D10x10",
+    "D12x10",
+    "D12x12",
     // 3D formats
-    "d3x3x3",
-    "d4x3x3",
-    "d4x4x3",
-    "d4x4x4",
-    "d5x4x4",
-    "d5x5x4",
-    "d5x5x5",
-    "d6x5x5",
-    "d6x6x5",
-    "d6x6x6"
+    "D3x3x3",
+    "D4x3x3",
+    "D4x4x3",
+    "D4x4x4",
+    "D5x4x4",
+    "D5x5x4",
+    "D5x5x5",
+    "D6x5x5",
+    "D6x6x5",
+    "D6x6x6"
 };
 
 enum pack_astc_encoder_mode = {  // **
@@ -1347,31 +1347,31 @@ EMSCRIPTEN_BINDINGS(ktx)
 
     enum_<ktx_pack_astc_block_dimension_e>("astc_block_dimension")
       // 2D formats
-      .value("d4x4", KTX_PACK_ASTC_BLOCK_DIMENSION_4x4) //: 8.00 bpp
-      .value("d5x4", KTX_PACK_ASTC_BLOCK_DIMENSION_5x4) //: 6.40 bpp
-      .value("d5x5", KTX_PACK_ASTC_BLOCK_DIMENSION_5x5) //: 5.12 bpp
-      .value("d6x5", KTX_PACK_ASTC_BLOCK_DIMENSION_6x5) //: 4.27 bpp
-      .value("d6x6", KTX_PACK_ASTC_BLOCK_DIMENSION_6x6) //: 3.56 bpp
-      .value("d8x5", KTX_PACK_ASTC_BLOCK_DIMENSION_8x5) //: 3.20 bpp
-      .value("d8x6", KTX_PACK_ASTC_BLOCK_DIMENSION_8x6) //: 2.67 bpp
-      .value("d10x5", KTX_PACK_ASTC_BLOCK_DIMENSION_10x5) //: 2.56 bpp
-      .value("d10x6", KTX_PACK_ASTC_BLOCK_DIMENSION_10x6) //: 2.13 bpp
-      .value("d8x8", KTX_PACK_ASTC_BLOCK_DIMENSION_8x8) //: 2.00 bpp
-      .value("d10x8", KTX_PACK_ASTC_BLOCK_DIMENSION_10x8) //: 1.60 bpp
-      .value("d10x10", KTX_PACK_ASTC_BLOCK_DIMENSION_10x10) //: 1.28 bpp
-      .value("d12x10", KTX_PACK_ASTC_BLOCK_DIMENSION_12x10) //: 1.07 bpp
-      .value("d12x12", KTX_PACK_ASTC_BLOCK_DIMENSION_12x12) //: 0.89 bpp
+      .value("D4x4", KTX_PACK_ASTC_BLOCK_DIMENSION_4x4) //: 8.00 bpp
+      .value("D5x4", KTX_PACK_ASTC_BLOCK_DIMENSION_5x4) //: 6.40 bpp
+      .value("D5x5", KTX_PACK_ASTC_BLOCK_DIMENSION_5x5) //: 5.12 bpp
+      .value("D6x5", KTX_PACK_ASTC_BLOCK_DIMENSION_6x5) //: 4.27 bpp
+      .value("D6x6", KTX_PACK_ASTC_BLOCK_DIMENSION_6x6) //: 3.56 bpp
+      .value("D8x5", KTX_PACK_ASTC_BLOCK_DIMENSION_8x5) //: 3.20 bpp
+      .value("D8x6", KTX_PACK_ASTC_BLOCK_DIMENSION_8x6) //: 2.67 bpp
+      .value("D10x5", KTX_PACK_ASTC_BLOCK_DIMENSION_10x5) //: 2.56 bpp
+      .value("D10x6", KTX_PACK_ASTC_BLOCK_DIMENSION_10x6) //: 2.13 bpp
+      .value("D8x8", KTX_PACK_ASTC_BLOCK_DIMENSION_8x8) //: 2.00 bpp
+      .value("D10x8", KTX_PACK_ASTC_BLOCK_DIMENSION_10x8) //: 1.60 bpp
+      .value("D10x10", KTX_PACK_ASTC_BLOCK_DIMENSION_10x10) //: 1.28 bpp
+      .value("D12x10", KTX_PACK_ASTC_BLOCK_DIMENSION_12x10) //: 1.07 bpp
+      .value("D12x12", KTX_PACK_ASTC_BLOCK_DIMENSION_12x12) //: 0.89 bpp
       // 3D formats
-      .value("d3x3x3", KTX_PACK_ASTC_BLOCK_DIMENSION_3x3x3) //: 4.74 bpp
-      .value("d4x3x3", KTX_PACK_ASTC_BLOCK_DIMENSION_4x3x3) //: 3.56 bpp
-      .value("d4x4x3", KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x3) //: 2.67 bpp
-      .value("d4x4x4", KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x4) //: 2.00 bpp
-      .value("d5x4x4", KTX_PACK_ASTC_BLOCK_DIMENSION_5x4x4) //: 1.60 bpp
-      .value("d5x5x4", KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x4) //: 1.28 bpp
-      .value("d5x5x5", KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x5) //: 1.02 bpp
-      .value("d6x5x5", KTX_PACK_ASTC_BLOCK_DIMENSION_6x5x5) //: 0.85 bpp
-      .value("d6x6x5", KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x5) //: 0.71 bpp
-      .value("d6x6x6", KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x6) //: 0.59 bpp
+      .value("D3x3x3", KTX_PACK_ASTC_BLOCK_DIMENSION_3x3x3) //: 4.74 bpp
+      .value("D4x3x3", KTX_PACK_ASTC_BLOCK_DIMENSION_4x3x3) //: 3.56 bpp
+      .value("D4x4x3", KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x3) //: 2.67 bpp
+      .value("D4x4x4", KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x4) //: 2.00 bpp
+      .value("D5x4x4", KTX_PACK_ASTC_BLOCK_DIMENSION_5x4x4) //: 1.60 bpp
+      .value("D5x5x4", KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x4) //: 1.28 bpp
+      .value("D5x5x5", KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x5) //: 1.02 bpp
+      .value("D6x5x5", KTX_PACK_ASTC_BLOCK_DIMENSION_6x5x5) //: 0.85 bpp
+      .value("D6x6x5", KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x5) //: 0.71 bpp
+      .value("D6x6x6", KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x6) //: 0.59 bpp
     ;
 
     enum_<ktx_pack_astc_encoder_mode_e>("pack_astc_encoder_mode")

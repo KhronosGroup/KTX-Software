@@ -886,7 +886,7 @@ async function testEncodeBasis(ktexture) {
 async function testEncodeAstc(ktexture) {
   const params = new ktx.astcParams();
 
-  params.blockDimension = ktx.astc_block_dimension.d8x8;
+  params.blockDimension = ktx.astc_block_dimension.D8x8;
   params.mode = ktx.pack_astc_encoder_mode.DEFAULT;
   params.qualityLevel = ktx.astc_quality_levels.FAST;
   params.normalMap = false;
