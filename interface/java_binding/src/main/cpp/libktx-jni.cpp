@@ -328,13 +328,26 @@ bool getBufferData(JNIEnv *env, jobject buffer, jbyte** baseAddress, jbyte **act
 
   // Obtain the position and limit of the buffer
   jint position = env->CallIntMethod(buffer, Buffer_position_method);
+  if (env->ExceptionCheck()) {
+    return false;
+  }
   jint limit = env->CallIntMethod(buffer, Buffer_limit_method);
+  if (env->ExceptionCheck()) {
+    return false;
+  }
 
   // If the buffer is direct, then compute the results from
   // the direct buffer address
   jboolean isDirect = env->CallBooleanMethod(buffer, Buffer_isDirect_method);
+  if (env->ExceptionCheck()) {
+    return false;
+  }
   if (isDirect == JNI_TRUE) {
-    jbyte* start = static_cast<jbyte*>(env->GetDirectBufferAddress(buffer));
+    void* address = env->GetDirectBufferAddress(buffer);
+    if (env->ExceptionCheck()) {
+      return false;
+    }
+    jbyte* start = static_cast<jbyte*>(address);
     *baseAddress = start;
     *actualAddress = start + position;
     *length = (limit - position);
@@ -345,8 +358,14 @@ bool getBufferData(JNIEnv *env, jobject buffer, jbyte** baseAddress, jbyte **act
   // results from the array elements. (These have to be 
   // released in the releaseBufferData call!)
   jboolean hasArray = env->CallBooleanMethod(buffer, Buffer_hasArray_method);
+  if (env->ExceptionCheck()) {
+    return false;
+  }
   if (hasArray == JNI_TRUE) {
     jobject array = env->CallObjectMethod(buffer, Buffer_array_method);
+    if (env->ExceptionCheck()) {
+      return false;
+    }
     jbyte* start = env->GetByteArrayElements(static_cast<jbyteArray>(array), NULL);
     if (start == NULL) 
     {
@@ -366,6 +385,9 @@ void releaseBufferData(JNIEnv *env, jobject buffer, jbyte* baseAddress) {
 
   // For direct buffers, nothing has to be done
   jboolean isDirect = env->CallBooleanMethod(buffer, Buffer_isDirect_method);
+  if (env->ExceptionCheck()) {
+    return;
+  }
   if (isDirect == JNI_FALSE) {
     return;
   }
@@ -373,6 +395,9 @@ void releaseBufferData(JNIEnv *env, jobject buffer, jbyte* baseAddress) {
   // For array-backed buffers, the elements are released, without
   // writing back any changes
   jboolean hasArray = env->CallBooleanMethod(buffer, Buffer_hasArray_method);
+  if (env->ExceptionCheck()) {
+    return;
+  }
   if (hasArray == JNI_TRUE) {
     jobject array = env->CallObjectMethod(buffer, Buffer_array_method);
     env->ReleaseByteArrayElements(static_cast<jbyteArray>(array), baseAddress, JNI_ABORT);

@@ -243,6 +243,9 @@ extern "C" JNIEXPORT jobject JNICALL Java_org_khronos_ktx_KtxTexture2_createFrom
 
     KTX_error_code result = ktxTexture2_CreateFromMemory(inputData, size, createFlags, &instance);
     releaseBufferData(env, byteBuffer, baseAddress);
+    if (env->ExceptionCheck()) {
+      return NULL;
+    }
     if (result != KTX_SUCCESS) {
         ThrowByName(env, "org/khronos/ktx/KtxException", ktxErrorString(result));
         return NULL;
