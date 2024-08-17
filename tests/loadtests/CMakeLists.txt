@@ -1,116 +1,49 @@
 # Copyright 2017-2020 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-if(WIN32)
-    cmake_print_variables(
-        CMAKE_SYSTEM_VERSION
-        CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION
-    )
-endif()
+#if(WIN32)
+#    cmake_print_variables(
+#        CMAKE_SYSTEM_VERSION
+#        CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION
+#    )
+#endif()
 
-if(NOT APPLE_LOCKED_OS)
-    set( fp_pref ${CMAKE_FIND_PACKAGE_PREFER_CONFIG} )
-    # Prefer CONFIG for vcpkg
-    set( CMAKE_FIND_PACKAGE_PREFER_CONFIG TRUE )
-    if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
-        find_package(OpenGL REQUIRED)
-    endif()
-    if(KTX_LOADTEST_APPS_USE_LOCAL_DEPENDENCIES)
-        # When using a local SDL2 package installed by brew on macOS, at
-        # least, a mysterious .../lib/$<CONFIG> appears in the library
-        # search paths in the generated project. I've been unable to find
-        # this in the {INTERFACE,}_LINK_DIRECTORIES properties in any of
-        # the SDL2::SDL2 or {gl3,vk}loadtests targets. My guess is the Xcode
-        # generator is adding it. It leads to a harmless warning during
-        # build, harmless because the libraries are referenced by full paths
-        # and the .../lib directory is in the search path of SDL2::SDL2.
-        find_package(SDL2 REQUIRED)
-        if(NOT EMSCRIPTEN)
-            # Tests that require assimp are omitted from loadtests
-            # when building for the web.
-            find_package(assimp REQUIRED)
-        endif()
-        if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL" AND WIN32)
-            find_package(GLEW REQUIRED)
-        endif()
-    endif()
-    set( CMAKE_FIND_PACKAGE_PREFER_CONFIG ${fp_pref} )
+# N.B. Do not set CMAKE_XCODE_GENERATE_SCHEME. If set, CMake will
+# destroy the scheme, losing any user-made settings, when generating
+# the project after the cache has been deleted. Cache deletion is
+# needed whenever Xcode is updated with new SDK versions due to CMake
+# hard-wiring the version in many of its variables.
+#
+# XCODE_SCHEME settings can be found at
+#  https://cmake.org/cmake/help/latest/prop_tgt/XCODE_GENERATE_SCHEME.html
+# These settings are recommended by MoltenVK Runtime User Guide.
+set( CMAKE_XCODE_SCHEME_ENABLE_GPU_API_VALIDATION FALSE )
+set( CMAKE_XCODE_SCHEME_ENABLE_GPU_FRAME_CAPTURE_MODE DISABLED )
+
+set( fp_pref ${CMAKE_FIND_PACKAGE_PREFER_CONFIG} )
+# Prefer CONFIG for vcpkg
+set( CMAKE_FIND_PACKAGE_PREFER_CONFIG TRUE )
+# When using a local SDL2 package installed by brew, on macOS at
+# least, a mysterious .../lib/$<CONFIG> appears in the library
+# search paths in the generated project. I've been unable to find
+# this in the {INTERFACE,}_LINK_DIRECTORIES properties in any of
+# the SDL2::SDL2 or {gl3,vk}loadtests targets. My guess is the Xcode
+# generator is adding it. It leads to a harmless warning during
+# build, harmless because the libraries are referenced by full paths
+# and the .../lib directory is in the search path of SDL2::SDL2.
+#set(CMAKE_FIND_DEBUG_MODE TRUE)
+find_package(SDL2 REQUIRED)
+#set(CMAKE_FIND_DEBUG_MODE FALSE)
+if(NOT EMSCRIPTEN)
+    # There is no official assimp port for Emscripten, and we've had
+    # no time to experiment, so tests that use assimp are omitted from
+    # loadtests when building for the web.
+    find_package(assimp REQUIRED)
 endif()
+set( CMAKE_FIND_PACKAGE_PREFER_CONFIG ${fp_pref} )
 
 # We use our own local copy of GL headers to ensure we have glcorearb.h.
 set( OPENGL_INCLUDE_DIR  ${CMAKE_SOURCE_DIR}/other_include )
-
-if(NOT SDL2_FOUND)
-    # Use binary from repo.
-    if(APPLE)
-        if(IOS)
-            # There is a check elsewhere that errors when not building
-            # for iOS/arm64.
-            set( SDL2_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
-            set( SDL2_LIBRARIES
-                ${CMAKE_SOURCE_DIR}/other_lib/ios/$<CONFIG>-iphoneos/libSDL2.a
-            )
-        else()
-            # These are universal binaries
-            set( SDL2_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
-            set( SDL2_LIBRARIES
-                ${CMAKE_SOURCE_DIR}/other_lib/mac/$<CONFIG>/libSDL2.dylib
-            )
-        endif()
-    elseif(WIN32 AND ${CPU_ARCHITECTURE} STREQUAL "x86_64")
-        set( SDL2_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
-        set( SDL2_LIBRARIES
-            ${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2main.lib
-            ${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2.lib
-        )
-    else()
-        message( FATAL_ERROR "SDL2 not found. Can't build loadtest apps." )
-    endif()
-endif()
-if(NOT assimp_FOUND)
-    if(APPLE)
-        if(IOS)
-            set( ASSIMP_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
-            set( ASSIMP_LIBRARIES
-                ${CMAKE_SOURCE_DIR}/other_lib/ios/Release-iphoneos/libassimp.a
-            )
-        else()
-            # These are universal binaries
-            set( ASSIMP_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
-            set( ASSIMP_LIBRARIES
-                ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libassimp.a
-            )
-        endif()
-    elseif(WIN32 AND ${CPU_ARCHITECTURE} STREQUAL "x86_64" )
-        set( ASSIMP_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/other_include )
-        set( ASSIMP_LIBRARIES
-            ${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/assimp.lib
-        )
-    elseif(NOT EMSCRIPTEN)
-        # There is no official libassimp for Emscripten yet and we've had
-        # no time to experiment so tests that use assimp are not included
-        # in the Emscripten build.
-        message( FATAL_ERROR "Assimp not found. Can't build loadtest apps." )
-    endif()
-endif()
-if(NOT EMSCRIPTEN AND NOT WIN32)
-    # libassimp needs zlib. On Windows we use a dll which has zlib embedded.
-    find_package( ZLIB REQUIRED )
-    set( KTX_ZLIB_LIBRARIES ZLIB::ZLIB )
-endif()
-
-if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL" AND WIN32)
-    if(NOT GLEW_FOUND)
-        if(${CPU_ARCHITECTURE} STREQUAL "x86_64")
-            set( GLEW_INCLUDE_DIR  ${CMAKE_SOURCE_DIR}/other_include )
-            set( GLEW_LIBRARIES
-                ${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/glew32.lib
-            )
-        else()
-            message( FATAL_ERROR "GLEW not found. Can't build gl3loadtests app." )
-        endif()
-    endif()
-endif()
 
 if(APPLE AND IOS)
     if( CMAKE_OSX_ARCHITECTURES )
@@ -144,34 +77,9 @@ if(APPLE AND IOS)
 endif()
 
 function( ensure_runtime_dependencies_windows target )
-
-    # Custom copy commands to ensure all dependencies (DLLs, testimages,
+    # Custom copy commands to ensure all dependencies (testimages,
     # shaders, models) are in correct location relative to executable.
 
-    # When these packages are imported via vcpkg, something there is
-    # adding a post-build to copy their DLLs. These are for the repo
-    # included DLLs.
-    #
-    # It does not appear possible to use a genex to decide presence
-    # of an entire command so we use the long-winded way.
-    if (NOT TARGET SDL2::SDL2)
-        add_custom_command( TARGET ${target} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/other_lib/win/$<CONFIG>-x64/SDL2.dll" "$<TARGET_FILE_DIR:${target}>"
-            COMMENT "Copy SDL2 DLLs to build destination"
-        )
-    endif()
-    if (NOT TARGET assimp::assimp)
-        add_custom_command( TARGET ${target} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/assimp.dll" "$<TARGET_FILE_DIR:${target}>"
-            COMMENT "Copy assimp DLL to build destination"
-        )
-   endif()
-    if (NOT TARGET GLEW::GLEW)
-        add_custom_command( TARGET ${target} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E;copy "${CMAKE_SOURCE_DIR}/other_lib/win/Release-x64/glew32.dll" "$<TARGET_FILE_DIR:${target}>"
-            COMMENT "Copy GLEW DLL to build destination"
-        )
-    endif()
     if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "Vulkan")
         add_custom_command( TARGET ${target} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_directory  "${CMAKE_CURRENT_BINARY_DIR}/shaders" "$<TARGET_FILE_DIR:${target}>/resources"
@@ -234,6 +142,12 @@ SYSTEM AFTER PUBLIC
     ${PROJECT_SOURCE_DIR}/other_include # For glm
 )
 
+target_link_libraries(
+    appfwSDL
+PUBLIC
+    ${SDL2_LIBRARIES}
+)
+
 if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
   add_library( GLAppSDL STATIC
       appfwSDL/GLAppSDL.cpp
@@ -289,13 +203,10 @@ if(APPLE)
     if(IOS)
         set( LOAD_TEST_COMMON_LIBS
             ${ASSIMP_LIBRARIES}
-            ${SDL2_LIBRARIES}
         )
     else()
         set( LOAD_TEST_COMMON_LIBS
             ${ASSIMP_LIBRARIES}
-            ${SDL2_LIBRARIES}
-            ${CMAKE_SOURCE_DIR}/other_lib/mac/Release/libminizip.a
         )
     endif()
 elseif(LINUX)
@@ -309,7 +220,6 @@ elseif(WIN32)
     set( KTX_APP_ICON_PATH ${PROJECT_SOURCE_DIR}/icons/win/ktx_app.ico )
     set( LOAD_TEST_COMMON_LIBS
         ${ASSIMP_LIBRARIES}
-        ${SDL2_LIBRARIES}
     )
 endif()
 

@@ -63,4 +63,4 @@ jobs:
     - name: Upload test log
       shell: pwsh
       if: ${{ failure() }}
-      run: ci_scripts/on_failure.ps1
+      run: scripts/on_failure.ps1

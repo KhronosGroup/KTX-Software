@@ -17,10 +17,10 @@
 #ifndef _KHR_DATA_FORMAT_H_
 #define _KHR_DATA_FORMAT_H_
 
-/** @file khr_df.h
-
-    @brief Data Format enums and macros.
-*/
+/** @file
+ * @~English
+ * @brief Data Format enums and macros.
+ */
 
 /* Accessors */
 typedef enum _khr_word_e {

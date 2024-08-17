@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file vk_funcs.h
+ * @file
  * @~English
  *
  * @brief Declare pointers for Vulkan functions.

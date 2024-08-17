@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file gl_funclist.h
+ * @file
  * @~English
  *
  * @brief List of OpenGL {,ES} functions used by libktx.

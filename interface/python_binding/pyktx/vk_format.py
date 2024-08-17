@@ -1,9 +1,9 @@
 
 #******************************* Do not edit.  *****************************
-# Automatically generated from vulkan_core.h version 267 by mkvkformatfiles.
+# Automatically generated from vulkan_core.h version 287 by mkvkformatfiles.
 #***************************************************************************
 
-# Copyright 2015-2023 The Khronos Group Inc.
+# Copyright 2015-2024 The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -239,7 +239,7 @@ class VkFormat(IntEnum):
     VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT = 1000288027
     VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT = 1000288028
     VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT = 1000288029
-    VK_FORMAT_R16G16_S10_5_NV = 1000464000
+    VK_FORMAT_R16G16_SFIXED5_NV = 1000464000
     VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR = 1000470000
     VK_FORMAT_A8_UNORM_KHR = 1000470001
 

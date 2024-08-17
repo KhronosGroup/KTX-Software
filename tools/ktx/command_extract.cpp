@@ -24,7 +24,7 @@
 #include <fmt/printf.h>
 
 #include "png.imageio/lodepng.h"
-#include "astc-encoder/Source/tinyexr.h"
+#include "astc-encoder/Source/ThirdParty/tinyexr.h"
 #include "astc-encoder/Source/astcenc.h"
 
 // -------------------------------------------------------------------------------------------------
@@ -72,6 +72,7 @@ Extract selected images from a KTX2 file.
     - D16_UNORM exported as PNG with luminance (Gray) 16 bit
     - Other Depth/Stencil formats exported as EXR with D/S/DS Half/Float
 
+@section ktx\_extract\_options OPTIONS
     The following options are available:
     <dl>
         <dt>\--transcode &lt;target&gt;</dt>

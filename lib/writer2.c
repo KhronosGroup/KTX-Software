@@ -3,7 +3,7 @@
 
 /**
  * @internal
- * @file writer.c
+ * @file
  * @~English
  *
  * @brief Functions for creating KTX-format files from a set of images.
@@ -76,10 +76,17 @@ strnstr(const char *haystack, const char *needle, size_t len)
 {
     size_t i;
     size_t needleLen;
+    const char* needleEnd;
 
-    needleLen = strnlen(needle, len);
-    if (needleLen == 0)
+    // strnlen is not part of the C standard and does not compile on some platforms, 
+    // use case is covered by memchr.
+    needleEnd = (char *)memchr(needle, 0, len);
+    if (needleEnd == needle)
         return (char *)haystack;
+
+    needleLen = len;
+    if (needleEnd != NULL)
+        needleLen = needleEnd - needle;
 
     for (i = 0; i <= len - needleLen; i++)
     {
@@ -291,6 +298,9 @@ ktxTexture2_SetImageFromStdioStream(ktxTexture2* This, ktx_uint32_t level,
  *
  * Level, layer, faceSlice rather than offset are specified to enable some
  * validation.
+ *
+ * @note The caller is responsible for freeing the original image memory
+ *       referred to by @p src.
  *
  * @param[in] This      pointer to the target ktxTexture object.
  * @param[in] level     mip level of the image to set.

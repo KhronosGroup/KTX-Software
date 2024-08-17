@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file texture_funcs.h
+ * @file
  * @~English
  *
  * @brief Templates for functions common to base & derived ktxTexture classes.
@@ -28,7 +28,6 @@
 */
 
 
-void CLASS_FUNC(Destroy)(CLASS* This);
 KTX_error_code CLASS_FUNC(GetImageOffset)(CLASS* This, ktx_uint32_t level,
                                           ktx_uint32_t layer,
                                           ktx_uint32_t faceSlice,

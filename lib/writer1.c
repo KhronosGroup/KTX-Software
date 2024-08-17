@@ -3,7 +3,7 @@
 
 /**
  * @internal
- * @file writer.c
+ * @file
  * @~English
  *
  * @brief Functions for creating KTX-format files from a set of images.
@@ -205,6 +205,9 @@ ktxTexture1_SetImageFromStdioStream(ktxTexture1* This, ktx_uint32_t level,
  * validation.
  *
  * @warning Do not use @c memcpy for this as it will not pad when necessary.
+ *
+ * @note The caller is responsible for freeing the original image memory
+ *       referred to by @p src.
  *
  * @param[in] This      pointer to the target ktxTexture object.
  * @param[in] level     mip level of the image to set.

@@ -191,8 +191,8 @@ typedef enum ktx_error_code_e {
     KTX_ERROR_MAX_ENUM = KTX_DECOMPRESS_CHECKSUM_ERROR /*!< For safety checks. */
 } ktx_error_code_e;
 /**
- * @deprecated
  * @~English
+ * @deprecated Use #ktx_error_code_e.
  * @brief For backward compatibility
  */
 #define KTX_error_code ktx_error_code_e
@@ -455,6 +455,8 @@ typedef ktx_size_t
     (KTX_APIENTRY* PFNKTEXGETDATASIZEUNCOMPRESSED)(ktxTexture* This);
 typedef ktx_size_t
     (KTX_APIENTRY* PFNKTEXGETIMAGESIZE)(ktxTexture* This, ktx_uint32_t level);
+typedef ktx_size_t
+    (KTX_APIENTRY* PFNKTEXGETLEVELSIZE)(ktxTexture* This, ktx_uint32_t level);
 typedef KTX_error_code
     (KTX_APIENTRY* PFNKTEXITERATELEVELS)(ktxTexture* This, PFNKTXITERCB iterCb,
                                          void* userdata);
@@ -506,6 +508,7 @@ typedef KTX_error_code
     PFNKTEXGETIMAGEOFFSET GetImageOffset;
     PFNKTEXGETDATASIZEUNCOMPRESSED GetDataSizeUncompressed;
     PFNKTEXGETIMAGESIZE GetImageSize;
+    PFNKTEXGETLEVELSIZE GetLevelSize;
     PFNKTEXITERATELEVELS IterateLevels;
     PFNKTEXITERATELOADLEVELFACES IterateLoadLevelFaces;
     PFNKTEXNEEDSTRANSCODING NeedsTranscoding;
@@ -556,6 +559,14 @@ typedef KTX_error_code
  */
 #define ktxTexture_GetImageSize(This, level) \
             (This)->vtbl->GetImageSize(This, level)
+
+/**
+ * @~English
+ * @brief Helper for calling the GetImageSize virtual method of a ktxTexture.
+ * @copydoc ktxTexture2.ktxTexture2_GetImageSize
+ */
+#define ktxTexture_GetLevelSize(This, level) \
+            (This)->vtbl->GetLevelSize(This, level)
 
 /**
  * @~English
@@ -681,11 +692,7 @@ typedef enum ktxSupercmpScheme {
     KTX_SS_END_RANGE = KTX_SS_ZLIB,
     KTX_SS_BEGIN_VENDOR_RANGE = 0x10000,
     KTX_SS_END_VENDOR_RANGE = 0x1ffff,
-    KTX_SS_BEGIN_RESERVED = 0x20000,
-    KTX_SUPERCOMPRESSION_BASIS = KTX_SS_BASIS_LZ,
-        /*!< @deprecated Will be removed before v4 release. Use  KTX_SS_BASIS_LZ instead. */
-    KTX_SUPERCOMPRESSION_ZSTD = KTX_SS_ZSTD
-        /*!< @deprecated Will be removed before v4 release. Use  KTX_SS_ZSTD instead. */
+    KTX_SS_BEGIN_RESERVED = 0x20000
 } ktxSupercmpScheme;
 
 /**
@@ -708,12 +715,24 @@ typedef struct ktxTexture2 {
     struct ktxTexture2_private* _private;  /*!< Private data. */
 } ktxTexture2;
 
-/**
- * @brief Helper for casting ktxTexture1 and ktxTexture2 to ktxTexture.
+/*
+ * If Doxygen sees this macro it gets confused and fails to spot
+ * references to ktxTexture_*() functions in the running text. It
+ * also complains it can't find the reference when @ref is used
+ * with a fully qualified method name to make an intra-class
+ * reference in the @c ktxTexture class.
+ * See https://github.com/doxygen/doxygen/issues/10311.
  *
- * Use with caution.
+ * Not documenting the macro is the lesser of two evils.
  */
-#define ktxTexture(t) ((ktxTexture*)t)
+#if !defined(KTX_DOXYGEN_SKIP)
+    /**
+     * @brief Helper for casting ktxTexture1 and ktxTexture2 to ktxTexture.
+     *
+     * Use with caution.
+     */
+    #define ktxTexture(t) ((ktxTexture*)t)
+#endif
 
 /**
  * @memberof ktxTexture
@@ -985,7 +1004,7 @@ ktxTexture_IterateLevelFaces(ktxTexture* This, PFNKTXITERCB iterCb,
  * Create a new ktxTexture1.
  */
 KTX_API KTX_error_code KTX_APIENTRY
-ktxTexture1_Create(ktxTextureCreateInfo* createInfo,
+ktxTexture1_Create(const ktxTextureCreateInfo* const createInfo,
                    ktxTextureCreateStorageEnum storageAllocation,
                    ktxTexture1** newTex);
 
@@ -1011,6 +1030,8 @@ KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture1_CreateFromStream(ktxStream* stream,
                              ktxTextureCreateFlags createFlags,
                              ktxTexture1** newTex);
+KTX_API void KTX_APIENTRY
+ktxTexture1_Destroy(ktxTexture1* This);
 
 KTX_API ktx_bool_t KTX_APIENTRY
 ktxTexture1_NeedsTranscoding(ktxTexture1* This);
@@ -1044,7 +1065,7 @@ ktxTexture1_WriteKTX2ToStream(ktxTexture1* This, ktxStream *dststr);
  * Create a new ktxTexture2.
  */
 KTX_API KTX_error_code KTX_APIENTRY
-ktxTexture2_Create(ktxTextureCreateInfo* createInfo,
+ktxTexture2_Create(const ktxTextureCreateInfo* const createInfo,
                    ktxTextureCreateStorageEnum storageAllocation,
                    ktxTexture2** newTex);
 
@@ -1077,6 +1098,9 @@ ktxTexture2_CreateFromStream(ktxStream* stream,
                              ktxTextureCreateFlags createFlags,
                              ktxTexture2** newTex);
 
+KTX_API void KTX_APIENTRY
+ktxTexture2_Destroy(ktxTexture2* This);
+
 KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture2_CompressBasis(ktxTexture2* This, ktx_uint32_t quality);
 
@@ -1106,8 +1130,17 @@ ktxTexture2_GetColorModel_e(ktxTexture2* This);
 KTX_API ktx_bool_t KTX_APIENTRY
 ktxTexture2_GetPremultipliedAlpha(ktxTexture2* This);
 
+KTX_API khr_df_primaries_e KTX_APIENTRY
+ktxTexture2_GetPrimaries_e(ktxTexture2* This);
+
 KTX_API ktx_bool_t KTX_APIENTRY
 ktxTexture2_NeedsTranscoding(ktxTexture2* This);
+
+KTX_API ktx_error_code_e KTX_APIENTRY
+ktxTexture2_SetOETF(ktxTexture2* This, khr_df_transfer_e oetf);
+
+KTX_API ktx_error_code_e KTX_APIENTRY
+ktxTexture2_SetPrimaries(ktxTexture2* This, khr_df_primaries_e primaries);
 
 /**
  * @~English
@@ -1358,7 +1391,7 @@ typedef struct ktxBasisParams {
         /*!< A swizzle to apply before encoding. It must match the regular
              expression /^[rgba01]{4}$/. If both this and preSwizzle
              are specified ktxTexture_CompressBasisEx will raise
-             KTX_INVALID_OPERATION.
+             KTX_INVALID_OPERATION. Usable with both ETC1S and UASTC.
          */
     ktx_bool_t normalMap;
         /*!< Tunes codec parameters for better quality on normal maps (no
@@ -1366,13 +1399,15 @@ typedef struct ktxBasisParams {
              Only valid for linear textures.
          */
     ktx_bool_t separateRGToRGB_A;
-        /*!< @deprecated. This was and is a no-op. 2-component inputs have always been
-             automatically separated using an "rrrg" inputSwizzle. @sa inputSwizzle and normalMode.
+        /*!< @deprecated This was and is a no-op. 2-component inputs have
+            always been automatically separated using an "rrrg" inputSwizzle.
+            @sa inputSwizzle and normalMode.
          */
     ktx_bool_t preSwizzle;
         /*!< If the texture has @c KTXswizzle metadata, apply it before
              compressing. Swizzling, like @c rabb may yield drastically
-             different error metrics if done after supercompression.
+             different error metrics if done after supercompression. Usable
+             for both ETC1S and UASTC.
          */
     ktx_bool_t noEndpointRDO;
         /*!< Disable endpoint rate distortion optimizations. Slightly faster,
@@ -1559,25 +1594,25 @@ typedef enum ktx_transcode_fmt_e {
         // Old enums for compatibility with code compiled against previous
         // versions of libktx.
         KTX_TF_ETC1 = KTX_TTF_ETC1_RGB,
-            //!< @deprecated. Use #KTX_TTF_ETC1_RGB.
+            //!< @deprecated Use #KTX_TTF_ETC1_RGB.
         KTX_TF_ETC2 = KTX_TTF_ETC,
-            //!< @deprecated. Use #KTX_TTF_ETC.
+            //!< @deprecated Use #KTX_TTF_ETC.
         KTX_TF_BC1 = KTX_TTF_BC1_RGB,
-            //!< @deprecated. Use #KTX_TTF_BC1_RGB.
+            //!< @deprecated Use #KTX_TTF_BC1_RGB.
         KTX_TF_BC3 = KTX_TTF_BC3_RGBA,
-            //!< @deprecated. Use #KTX_TTF_BC3_RGBA.
+            //!< @deprecated Use #KTX_TTF_BC3_RGBA.
         KTX_TF_BC4 = KTX_TTF_BC4_R,
-            //!< @deprecated. Use #KTX_TTF_BC4_R.
+            //!< @deprecated Use #KTX_TTF_BC4_R.
         KTX_TF_BC5 = KTX_TTF_BC5_RG,
-            //!< @deprecated. Use #KTX_TTF_BC5_RG.
+            //!< @deprecated Use #KTX_TTF_BC5_RG.
         KTX_TTF_BC7_M6_RGB = KTX_TTF_BC7_RGBA,
-            //!< @deprecated. Use #KTX_TTF_BC7_RGBA.
+            //!< @deprecated Use #KTX_TTF_BC7_RGBA.
         KTX_TTF_BC7_M5_RGBA = KTX_TTF_BC7_RGBA,
-            //!< @deprecated. Use #KTX_TTF_BC7_RGBA.
+            //!< @deprecated Use #KTX_TTF_BC7_RGBA.
         KTX_TF_BC7_M6_OPAQUE_ONLY = KTX_TTF_BC7_RGBA,
-            //!< @deprecated. Use #KTX_TTF_BC7_RGBA
+            //!< @deprecated Use #KTX_TTF_BC7_RGBA
         KTX_TF_PVRTC1_4_OPAQUE_ONLY = KTX_TTF_PVRTC1_4_RGB
-            //!< @deprecated. Use #KTX_TTF_PVRTC1_4_RGB.
+            //!< @deprecated Use #KTX_TTF_PVRTC1_4_RGB.
 } ktx_transcode_fmt_e;
 
 /**
@@ -1731,25 +1766,6 @@ KTX_API KTX_error_code KTX_APIENTRY ktxPrintKTX2InfoJSONForStream(ktxStream* str
 #ifdef __cplusplus
 }
 #endif
-
-/*========================================================================*
- * For backward compatibilty with the V3 & early versions of the V4 APIs. *
- *========================================================================*/
-
-/**
- * @deprecated Will be dropped before V4 release.
- */
-#define ktx_texture_transcode_fmt_e ktx_transcode_fmt_e
-
-/**
- * @deprecated Will be dropped before V4 release.
- */
-#define ktx_texture_decode_flags ktx_transcode_flag_bits
-
-/**
- * @deprecated Will be dropped before V4 release.
- */
-#define ktxTexture_GetSize ktxTexture_GetDatasize
 
 /**
 @~English

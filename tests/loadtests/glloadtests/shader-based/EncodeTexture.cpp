@@ -7,7 +7,7 @@
  */
 
 /**
- * @file    EncodeTexture.cpp
+ * @file
  * @brief    Encode a texture then texture a cube with it, transcoding if necessary.
  *
  * This is used principally to check the encoders are properly linked on platforms where the ktx tools are

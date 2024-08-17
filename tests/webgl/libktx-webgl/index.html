@@ -1,55 +1,186 @@
 <!doctype html>
+<!-- Copyright 2024 Mark Callow.
+     SPDX-License-Identifier: Apache-2.0 -->
 <html lang="en">
   <head>
     <meta charset="utf-8">
     <title>libktx.js Demo with WebGL</title>
     <link rel="stylesheet" href="../webgl.css" type="text/css">
+    <link rel="shortcut icon" href="../ktx_favicon.ico" type="image/x-icon" />
     <style>
       body {
         /* Set margins to center the page. */
         margin: 2em auto 2em auto;
-        max-width: 55em;
+        max-width: 65em;
       }
-      /* Center the canvas too. */
-      canvas {
+      /* Center the canvas container too. */
+      #container {
         display: block;
         margin-left: auto;
         margin-right: auto;
+        position: relative;
+        top: 0;
+        width: 100%;
+        height: 100vh;
+      }
+      #glcanvas {
+        border: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: white;
+        z-index: -1;
+      }
+      #glcontent {
+        position: relative;
+        margin: 10px;
       }
       #panel {
         color: white;
         background-color:rgba(0.3, 0.3, 0.3, 0.3);
         padding: 0.5em;
-        max-width: 55em;
+        max-width: 65em;
+      }
+      .item {
+        display: inline-block;
+        margin: 1em;
+        padding: 1em;
+        background: transparent;
+        vertical-align: top;
+      }
+      .label {
+        margin-top: 0.5em;
+        width: 256px;
+      }
+      /*
+       * The size of an image is changed when it is added to the div
+       * styled by this. So the size needs to be a multiple of 4 for
+       * compatibility with various compressed texture formats in WebGL.
+       */
+      .view {
+        width: 256px;
+        height: 256px;
+        border: 1px solid black;
+      }
+      /* An img inside a .view should fill the view. */
+      .view img {
+         width: 100%;
+         height: 100%;
+      }
+      .pass {
+        color: green;
+      }
+      .fail {
+        color: red;
       }
     </style>
   </head>
 
   <body>
     <div id="panel">
-      <h2>libktx Javascript Binding Test</h2>
-      <p>This demo uses the Javascript binding for libktx which has been compiled to
-      Javascript using Emscripten. It uses a KTX2 file with a Basis Universal-compressed
-      payload. It has transcoded the images to <b id='format'>FORMAT</b>.
+      <h2>libktx Read-write Javascript Binding Test</h2>
+      <p>This tests the functionality of the read-write Javascript
+      binding for libktx, which has been compiled to Javascript using
+      Emscripten. Though loosely referred to as "write" the added
+      functionalty tested here is more about creating ktxTexture objects
+      from scratch than writing them out as files.
+      </p>
+      <p>Click the <i>Run Tests</i> button to run the tests.</p>
+      <p>The test reads a .png file then performs various operations
+      using the wrapper API including creating an uncompressed
+      ktxTexture2 object. The operations are shown in the list below.
       </p>
     </div>
-    <p></p>
-
-    <canvas id="glcanvas" width="640" height="480"></canvas>
+    <p id="test_ktx">
+      <input type="button" value="Run Tests" id='runtests' disabled='true'
+             onclick="runTests('ktx_app.png')">
+    </p>
+    <p>Create uncompressed ktxTexture2: <b id='create_result'></b></p>
+    <p>Copy input image to new texture: <b id='copy_image_result'></b></p>
+    <p>Check oetf and primaries are set correctly: <b id='colorspace_set_result'></b></p>
+    <p>Write and read metadata: <b id='metadata_result'></b></p>
+    <p>Get image from new texture: <b id='get_image_result'></b></p>
+    <p>Create copy of original texture: <b id='create_copy_result'></b></p>
+    <p>Compress ktxTexture2 with Basis: <b id='compress_basis_result'></b></p>
+    <p>Write KTX file to memory: <b id='write_to_memory_result'></b></p>
+    <p>Read KTX file from memory: <b id='read_from_memory_result'></b></p>
+    <p>ASTC inputSwizzle set: <b id ='swizzle_set_result'></b></p>
+    <p>Compress ktxTexture2 with ASTC: <b id='compress_astc_result'></b></p>
+    <div id="container">
+      <!-- <canvas id="glcanvas" width="1280" height="480"></canvas> -->
+      <canvas id="glcanvas"></canvas>
+      <div id="glcontent"></div>
+    </div>
   </body>
 
   <script src="../gl-matrix.js"></script>
   <script src="../libktx.js"></script>
-  <script src="webgl-demo.js"></script>
+  <script src="libktx-test.js"></script>
   <script type="text/javascript">
-    LIBKTX({preinitializedWebGLContext: gl}).then(module => {
-      window.LIBKTX = module;
-      // Make existing WebGL context current for Emscripten OpenGL.
-      LIBKTX.GL.makeContextCurrent(
-                  LIBKTX.GL.createContext(document.getElementById("glcanvas"),
-                                          { majorVersion: 2.0 })
-                  );
-      texture = loadTexture(gl, 'ktx_app_basis.ktx2');
-    });
+    function createElem(type, parent, className) {
+      const elem = document.createElement(type);
+      parent.appendChild(elem);
+      if (className) {
+        elem.className = className;
+      }
+      return elem;
+    }
+
+    function randArrayElement(array) {
+      return array[Math.random() * array.length | 0];
+    }
+
+    function rand(min, max) {
+      if (max === undefined) {
+        max = min;
+        min = 0;
+      }
+      return Math.random() * (max - min) + min;
+    }
+
+    // Make 3 elements over the canvas.
+    const contentElem = document.querySelector('#glcontent');
+    const items = [];
+    const numItems = 6;
+    const origImageItem = 0, uncompTextureItem = 1;
+    const copyTextureItem = 2, basisCompTextureItem = 3;
+    const writeReadTextureItem = 4, astcCompTextureItem = 5;
+    const labelText = [
+      'Input image',
+      'Uncompressed ktxTexture2',
+      'Copy of uncompressed ktxTexture2',
+      'Compressed to ETC1S/Basis-LZ',
+      'Written and Read .ktx2 file with uncompressed texture',
+      'ASTC compressed texture'
+    ];
+
+    for (let i = 0; i < numItems; ++i) {
+      const outerElem = createElem('div', contentElem, 'item');
+      const viewElem = createElem('div', outerElem, 'view');
+      const labelElem = createElem('div', outerElem, 'label');
+      //labelElem.textContent = `Item ${i + 1}`;
+      labelElem.textContent = labelText[i];
+      const bgColor = [rand(1), rand(1), rand(1), 1];
+      var placeholder = {};
+      switch (i) {
+        case 0:
+          placeholder.target = null;
+          placeholder.object = null;
+          placeholder.uvMatrix = null;
+          break;
+        default:
+          const texColor = [rand(255), rand(255), rand(255), 255];
+          placeholder = createPlaceholderTexture(gl, texColor);
+          break;
+      }
+      items.push({
+        color: bgColor,
+        texture: placeholder,
+        element: viewElem,
+        label: labelElem
+      });
+    }
   </script>
 </html>

@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file formatdesc.h
+ * @file
  * @~English
  *
  * @brief Data Format Descriptor for imageio.

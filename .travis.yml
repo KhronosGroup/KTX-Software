@@ -20,7 +20,10 @@ addons:
     update: false
     packages:
     - git-lfs
-    - doxygen
+
+cache:
+  directories:
+  -  $HOME/.cache/vcpkg/archives
 
 env:
   global:
@@ -32,7 +35,7 @@ env:
     - HOMEBREW_NO_AUTO_UPDATE: 1
     - PACKAGE: NO
     - REL_DESC_FILE: "$BUILD_DIR/rel_desc.md"
-    - VULKAN_SDK_VER: "1.3.243.0"
+    - VULKAN_SDK_VER: "1.3.290.0"
     # This is just to tell the Vulkan install script where to install.
     - VULKAN_INSTALL_DIR: "$HOME/VulkanSDK/$VULKAN_SDK_VER"
     - VULKAN_SDK: "$VULKAN_INSTALL_DIR/macOS"
@@ -50,7 +53,7 @@ env:
     # runs on x86_64)
     - CONFIGURATION=Debug,Release PLATFORM=macOS ARCHS=x86_64
       FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_PY=ON FEATURE_LOADTESTS=OpenGL+Vulkan FEATURE_TOOLS=ON
-      FEATURE_TOOLS_CTS=ON LOADTESTS_USE_LOCAL_DEPENDENCIES=ON SUPPORT_SSE=ON SUPPORT_OPENCL=OFF DEPLOY_DOCS=YES PACKAGE=YES
+      FEATURE_TOOLS_CTS=ON SUPPORT_SSE=ON SUPPORT_OPENCL=OFF DEPLOY_DOCS=YES PACKAGE=YES
     - CONFIGURATION=Release PLATFORM=macOS ARCHS=arm64
       FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_PY=OFF FEATURE_LOADTESTS=OpenGL+Vulkan FEATURE_TESTS=OFF
       FEATURE_TOOLS=ON FEATURE_TOOLS_CTS=OFF SUPPORT_SSE=ON SUPPORT_OPENCL=OFF PACKAGE=YES
@@ -89,15 +92,10 @@ jobs:
         - CHECK_REUSE: ONLY
     - os: linux
       dist: jammy
-      addons:
-        apt:
-          packages:
-            - python3
-            - python3-venv
       compiler: gcc # clang is tested by macOS build
       env:
         # NB: This must not have the fourth component of the version number.
-        - VULKAN_SDK_VER: "1.3.243"
+        - VULKAN_SDK_VER: "1.3.290"
         - CMAKE_GEN: Ninja
         - CONFIGURATION=Debug
           FEATURE_DOC=OFF FEATURE_JNI=ON FEATURE_PY=ON FEATURE_LOADTESTS=OpenGL+Vulkan FEATURE_TOOLS=ON
@@ -107,13 +105,12 @@ jobs:
       addons:
         apt:
           packages:
-            - python3
-            - python3-venv
+            - graphviz
       compiler: gcc
       #jdk: openjdk17 # Reminder to find correct way to select jdk 17
       env:
         # NB: This must not have the fourth component of the version number.
-        - VULKAN_SDK_VER: "1.3.243"
+        - VULKAN_SDK_VER: "1.3.290"
         - CMAKE_GEN: Ninja
         - CONFIGURATION=Release
           FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_PY=ON FEATURE_LOADTESTS=OpenGL+Vulkan FEATURE_TOOLS=ON
@@ -121,16 +118,19 @@ jobs:
     - os: linux
       arch: arm64
       dist: jammy
+      # Suggested by Travis-CI support to workaround pyparser install
+      # failure due to no permission to write to system packages with
+      # 2024.6.25 runner image. Forces use of previous runner version.
+      group: previous
       addons:
         apt:
           packages:
-            - python3
-            - python3-venv
+            - graphviz
       compiler: gcc
       #jdk: openjdk17
       env:
         # NB: This must not have the fourth component of the version number.
-        - VULKAN_SDK_VER: "1.3.243"
+        - VULKAN_SDK_VER: "1.3.290"
         - CMAKE_GEN: Ninja
         - CONFIGURATION=Release
           FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_PY=ON FEATURE_LOADTESTS=OpenGL
@@ -208,6 +208,15 @@ before_install:
         sudo apt-get update
       fi
       ;;
+    osx)
+      if [[ -n "$FEATURE_LOADTESTS" && "$FEATURE_LOADTESTS" != "OFF" ]]; then
+        # Install vcpkg.
+        pushd $HOME
+        git clone https://github.com/microsoft/vcpkg
+        cd vcpkg && ./bootstrap-vcpkg.sh -disableMetrics && export VCPKG_ROOT=$(pwd)
+        popd
+      fi
+      ;;
     esac
 
 install:
@@ -216,6 +225,8 @@ install:
   linux)
     if [ "$CHECK_REUSE" = "YES" -o "$CHECK_REUSE" = "ONLY" ]; then
       set -e  # because the if below swallows a bad exit status.
+      # reuse available via `apt install reuse` is very old: 0.14.0.
+      # Therefore install via pip. Version today, 2024.7.9, is 4.0.3.
       pip3 install reuse
       set +e
     fi
@@ -234,16 +245,16 @@ install:
       ls -l /usr/lib/jvm
       echo "/usr/local/lib/jvm"
       ls -l /usr/local/lib/jvm
-      ./ci_scripts/install_linux.sh
+      ./scripts/install_linux.sh
     fi
     ;;
   osx)
     if [ "$CHECK_REUSE" != "ONLY" -a "$CHECK_MKVK" != "ONLY" ]; then
-      if [ "$LOADTESTS_USE_LOCAL_DEPENDENCIES" = "ON" ]; then
-          brew install sdl2
-          brew install assimp
+      if [ "$FEATURE_DOC" = "ON" ]; then
+          brew install doxygen
+          brew install graphviz
       fi
-      ./ci_scripts/install_macos.sh
+      ./scripts/install_macos.sh
     fi
     ;;
   esac
@@ -255,12 +266,16 @@ before_script:
     linux)
       ;;
     osx)
-      ./ci_scripts/before_build_macos.sh
+      ./scripts/before_build_macos.sh
       ;;
     esac
+  - |
+    if [ "$FEATURE_TOOLS_CTS" = "ON" ]; then
+      git submodule update --init --recursive tests/cts
+    fi
   # Make sure embedded dates are correct.
   - ./install-gitconfig.sh
-  - ci_scripts/smudge_date.sh
+  - scripts/smudge_date.sh
 
 script:
 - |
@@ -270,28 +285,28 @@ script:
   linux)
     if [ "$CHECK_REUSE" = "YES" -o "$CHECK_REUSE" = "ONLY" ]; then
       echo "Calling reuse lint."
-      reuse --suppress-deprecation lint
+      reuse lint
     fi
     if [ "$CHECK_REUSE" != "ONLY" -a "$CHECK_MKVK" != "ONLY" ]; then
       if [ "$WASM_BUILD" = "YES" ]; then
-        ./ci_scripts/build_wasm_docker.sh
+        ./scripts/build_wasm_docker.sh
       else
-        ./ci_scripts/build_linux.sh
+        ./scripts/build_linux.sh
       fi
     fi
     ;;
   osx)
     if [ "$CHECK_REUSE" != "ONLY" -a "$CHECK_MKVK" != "ONLY" ]; then
       if [ "$PLATFORM" = "macOS" ]; then
-        ./ci_scripts/build_macos.sh
+        ./scripts/build_macos.sh
       else
-        ./ci_scripts/build_ios.sh
+        ./scripts/build_ios.sh
       fi
     fi
     ;;
   esac
   if [ "$CHECK_MKVK" = "ONLY" ]; then
-    ci_scripts/check_mkvk.sh
+    scripts/check_mkvk.sh
   fi
   if [ "$DEPLOY_DOCS" = "YES" ]; then
     # Some files in the pyktx docs have an _ prefix so Jekyll will
@@ -306,7 +321,7 @@ script:
 #  - sleep 10
 
 after_failure:
-  - ./ci_scripts/on_failure.sh
+  - ./scripts/on_failure.sh
 
 # Errors in something run in after_success: don't cause the build to fail
 # so don't use for anything important.
@@ -332,7 +347,7 @@ before_deploy:
       # run twice. https://github.com/travis-ci/travis-ci/issues/2570 about
       # this has been open for years. What a crock!
       if [ -n "$MACOS_CERTIFICATES_P12" -a -n "$TRAVIS_TAG" -a -z "$NOTARIZED" ]; then
-        ./ci_scripts/notarize.sh $BUILD_DIR/KTX-Software-*.pkg $APPLE_ID $DEVELOPMENT_TEAM $ALTOOL_PASSWORD && export NOTARIZED="true"
+        ./scripts/notarize.sh $BUILD_DIR/KTX-Software-*.pkg $APPLE_ID $DEVELOPMENT_TEAM $ALTOOL_PASSWORD && export NOTARIZED="true"
       fi
       ;;
     esac
@@ -414,19 +429,19 @@ deploy:
   - provider: script
     edge: true
     # nullglob is to force a null string when there are no *.whl files.
-    script: ruby ci_scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -c $REL_DESC_FILE -t ${TRAVIS_TAG} --overwrite true --draft true --prerelease true $BUILD_DIR/KTX-Software-*-*
+    script: ruby scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -c $REL_DESC_FILE -t ${TRAVIS_TAG} --overwrite true --draft true --prerelease true $BUILD_DIR/KTX-Software-*-*
     on:
       tags: true
       #branch: master
       condition: $PACKAGE = "YES" && $TRAVIS_TAG =~ ^v[0-9].*
 
   # Separate deploy for pyktx because the linux runners use sh not bash
-  # for the "script" so `shopt -s nullglob; ci_scripts/github_release.rb ...`
+  # for the "script" so `shopt -s nullglob; scripts/github_release.rb ...`
   # does not work to avoid passing `.../*.whl` to github_release when
   # FEATURE_PY not ON.
   - provider: script
     edge: true
-    script: ruby ci_scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -c $REL_DESC_FILE -t ${TRAVIS_TAG} --overwrite true --draft true --prerelease true $BUILD_DIR/interface/python_binding/dist/*.whl
+    script: ruby scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -c $REL_DESC_FILE -t ${TRAVIS_TAG} --overwrite true --draft true --prerelease true $BUILD_DIR/interface/python_binding/dist/*.whl
     on:
       tags: true
       #branch: master

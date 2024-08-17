@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file unittests.cc
+ * @file
  * @~English
  *
  * @brief Tests of internal API functions.

@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file LoadTestsGL3.cpp
+ * @file
  * @~English
  *
  * @brief Instantiate GLLoadTests app with set of tests for OpenGL 3.3+ and

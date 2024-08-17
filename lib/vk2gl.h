@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file vk2gl.h
+ * @file
  * @~English
  *
  * @brief Get GL format information matching a VkFormat

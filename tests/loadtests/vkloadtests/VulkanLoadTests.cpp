@@ -21,8 +21,6 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-#include <SDL2/SDL_vulkan.h>
-
 #include "VulkanLoadTests.h"
 #include "Texture.h"
 #include "Texture3d.h"

@@ -23,9 +23,9 @@ add_library( imageio STATIC
     imageio.h
     imageio_utility.h
     imageoutput.cc
-    ${PROJECT_SOURCE_DIR}/lib/astc-encoder/Source/tinyexr.h
-    ${PROJECT_SOURCE_DIR}/lib/basisu/encoder/jpgd.cpp
-    ${PROJECT_SOURCE_DIR}/lib/basisu/encoder/jpgd.h
+    "${PROJECT_SOURCE_DIR}/external/astc-encoder/Source/ThirdParty/tinyexr.h"
+    "${PROJECT_SOURCE_DIR}/external/basisu/encoder/jpgd.cpp"
+    "${PROJECT_SOURCE_DIR}/external/basisu/encoder/jpgd.h"
     ${PLUGIN_HEADERS}
     ${PLUGIN_SOURCES}
 )
@@ -33,13 +33,13 @@ add_library( imageio STATIC
 source_group(TREE "${CMAKE_CURRENT_LIST_DIR}" PREFIX "Source Files" FILES ${PLUGIN_SOURCES})
 source_group(TREE "${CMAKE_CURRENT_LIST_DIR}" PREFIX "Header Files" FILES ${PLUGIN_HEADERS})
 source_group("Source Files/jpg.imageio" FILES
-    ${PROJECT_SOURCE_DIR}/lib/basisu/encoder/jpgd.cpp
+    "${PROJECT_SOURCE_DIR}/external/basisu/encoder/jpgd.cpp"
 )
 source_group("Header Files/jpg.imageio" FILES
-    ${PROJECT_SOURCE_DIR}/lib/basisu/encoder/jpgd.h
+    "${PROJECT_SOURCE_DIR}/external/basisu/encoder/jpgd.h"
 )
 source_group("Header Files/exr.imageio" FILES
-    ${PROJECT_SOURCE_DIR}/lib/astc-encoder/Source/tinyexr.h
+    "${PROJECT_SOURCE_DIR}/external/astc-encoder/Source/ThirdParty/tinyexr.h"
 )
 
 target_include_directories(
@@ -56,9 +56,9 @@ target_include_directories(
 PUBLIC
     ${PROJECT_SOURCE_DIR}/other_include
 PRIVATE
-    ${PROJECT_SOURCE_DIR}/lib/astc-encoder/Source
-    ${PROJECT_SOURCE_DIR}/lib/basisu
-    ${PROJECT_SOURCE_DIR}/lib/dfdutils
+    "${PROJECT_SOURCE_DIR}/external/astc-encoder/Source/ThirdParty"
+    "${PROJECT_SOURCE_DIR}/external/basisu"
+    "${PROJECT_SOURCE_DIR}/external/dfdutils"
 )
 
 target_compile_definitions(
