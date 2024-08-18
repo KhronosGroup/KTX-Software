@@ -54,8 +54,8 @@ enum class BasisCodec {
     <dl>
         <dt>\--clevel &lt;level&gt;</dt>
              <dd>ETC1S / BasisLZ compression level, an encoding speed vs.
-             quality tradeoff. Range is [0,5], default is 1. Higher values
-             are slower but give higher quality.</dd>
+             quality tradeoff. Range is [0,6], default is 1. Higher values
+             are slower but give higher quality. Use @b \--qlevel first.</dd>
         <dt>\--qlevel &lt;level&gt;</dt>
              <dd>ETC1S / BasisLZ quality level. Range is [1,255]. Lower
              gives better compression/lower quality/faster. Higher gives
@@ -234,7 +234,7 @@ struct OptionsEncodeBasis : public ktxBasisParams {
     void init(cxxopts::Options& opts) {
         opts.add_options("Encode BasisLZ")
             (kCLevel, "BasisLZ compression level, an encoding speed vs. quality level tradeoff. "
-                "Range is [0,5], default is 1. Higher values are slower but give higher quality.",
+                "Range is [0,6], default is 1. Higher values are slower but give higher quality.",
                 cxxopts::value<uint32_t>(), "<level>")
             (kQLevel, "BasisLZ quality level. Range is [1,255]. Lower gives better compression/lower "
                 "quality/faster. Higher gives less compression/higher quality/slower. --qlevel "
