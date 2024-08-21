@@ -31,14 +31,15 @@ enum class BasisCodec {
         Supercompress the image data with transcodable ETC1S / BasisLZ.
         RED images will become RGB with RED in each component (RRR). RG
         images will have R in the RGB part and G in the alpha part of
-        the compressed texture (RRRG). When set, the following BasisLZ-related
-        options become valid, otherwise they are ignored.
+        the compressed texture (RRRG). When set, the @e basis-lz options
+        become valid.
     </dd>
     <dt>
         uastc:
     </dt>
     <dd>
-        Create a texture in high-quality transcodable UASTC format.
+        Create a texture in high-quality transcodable UASTC format. When set
+        the @e uastc options become valid.
     </dd>
 </dl>
 //! [command options_basis_encoders]

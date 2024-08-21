@@ -32,6 +32,8 @@
 
 namespace ktx {
 
+#define AUTO_COLOR_CONVERSIONS 0  // This is just a way to keep the old code.
+
 struct ColorSpaceInfo {
     khr_df_transfer_e usedInputTransferFunction;
     khr_df_primaries_e usedInputPrimaries;
@@ -64,8 +66,10 @@ struct OptionsCreate {
     inline static const char* kConvertOetf = "convert-oetf";
     inline static const char* kConvertPrimaries = "convert-primaries";
     inline static const char* kConvertTexcoordOrigin = "convert-texcoord-origin";
+#if AUTO_COLOR_CONVERSIONS
     inline static const char* kFailOnColorConversions = "fail-on-color-conversions";
     inline static const char* kWarnOnColorConversions = "warn-on-color-conversions";
+#endif
     inline static const char* kFailOnOriginChanges = "fail-on-origin-changes";
     inline static const char* kWarnOnOriginChanges = "warn-on-origin-changes";
     inline static const char* kMipmapFilter = "mipmap-filter";
@@ -102,7 +106,11 @@ struct OptionsCreate {
     std::optional<khr_df_primaries_e> convertPrimaries = {};
     std::optional<ImageSpec::Origin> assignTexcoordOrigin;
     std::optional<ImageSpec::Origin> convertTexcoordOrigin;
+#if AUTO_COLOR_CONVERSIONS
     bool failOnColorConversions = false;
+#else
+    bool failOnColorConversions = true;
+#endif
     bool warnOnColorConversions = false;
     bool failOnOriginChanges = false;
     bool warnOnOriginChanges = false;
@@ -183,8 +191,10 @@ struct OptionsCreate {
                     "\nInput images whose origin does not match corner will be flipped vertically."
                     " KTXorientation metadata indicating the specified origin is written to the output file.",
                     cxxopts::value<std::string>(), "<origin>")
+#if AUTO_COLOR_CONVERSIONS
                 (kFailOnColorConversions, "Generates an error if any of the input images would need to be color converted.")
                 (kWarnOnColorConversions, "Generates a warning if any of the input images are color converted.")
+#endif
                 (kFailOnOriginChanges, "Generates an error if any of the input images would need to have their origin changed.")
                 (kWarnOnOriginChanges, "Generates a warning if any of the input images have their origin changed.");
 
@@ -650,6 +660,7 @@ struct OptionsCreate {
             }
         }
 
+#if AUTO_COLOR_CONVERSIONS
         if (args[kFailOnColorConversions].count())
             failOnColorConversions = true;
 
@@ -659,6 +670,7 @@ struct OptionsCreate {
                                    kFailOnColorConversions, kWarnOnColorConversions);
             warnOnColorConversions = true;
         }
+#endif
 
         if (args[kFailOnOriginChanges].count())
             failOnOriginChanges = true;
@@ -682,7 +694,7 @@ Create a KTX2 file from various input files.
 @section ktx_create_synopsis SYNOPSIS
     ktx create [option...] @e input-file... @e output-file
 
-@section ktx_create_description DESCRIPTION
+@section ktx\_create\_description DESCRIPTION
     @b ktx @b create can create, encode and supercompress a KTX2 file from the
     input images specified as the @e input-file... arguments and save it as the
     @e output-file. The last positional argument is treated as the @e output-file.
@@ -692,58 +704,68 @@ Create a KTX2 file from various input files.
     Each @e input-file must be a valid EXR (.exr), PNG (.png) or Raw (.raw) file.
     PNG files with luminance (L) or luminance + alpha (LA) data will be converted
     to RGB as LLL and RGBA as LLLA before processing further.
-    The input file formats must be compatible with the requested KTX format enum and
-    must have at least the same level of precision and number of channels.
+    The input file formats must be compatible with the requested KTX format enum
+    and must have at least the same level of precision and number of channels.
     Any unused channel will be discarded silently.
 
-    The number of input-files specified must match the expected number of input images
-    based on the used options.
+    The number of input-files specified must match the expected number of input
+    images based on the used options.
 
 @section ktx\_create\_options OPTIONS
   @subsection ktx\_create\_options\_general General Options
     The following are available:
     <dl>
         <dt>\--format &lt;enum&gt;</dt>
-        <dd>KTX format enum that specifies the data format of the images in the created texture.
-            The enum names are matching the VkFormats without the VK_FORMAT_ prefix.
-            The VK_FORMAT_ prefix is ignored if present. Case insensitive. Required.<br />
+        <dd>KTX format enum that specifies the data format for the images in the
+            created texture. The enum names match the VkFormat names without the
+            VK\_FORMAT\_ prefix. The VK\_FORMAT\_ prefix is ignored if present.
+            Case insensitive. Required.<br />
             <br />
-            If the format is an ASTC format a texture object with the target format
-            @c R8G8B8_{SRGB,UNORM} or  @c R8G8B8A8_{SRGB,UNORM} is created
-            then encoded to the specified ASTC format. The latter format is chosen if alpha
-            is present in the input. @c SRGB or @c UNORM is chosen depending on the
-            specified ASTC format. The ASTC-specific and common encoder options listed
-            @ref ktx_create_options_encoding "below" become valid, otherwise they are ignored.
-            This matches the functionality of the @ref ktx_encode "ktx encode" command
-            when an ASTC format is specified.<br />
+            If the format is an ASTC format a texture object with the target
+            format @c R8G8B8_{SRGB,UNORM} or  @c R8G8B8A8_{SRGB,UNORM} is
+            created then encoded to the specified ASTC format. The latter format
+            is chosen if alpha is present in the input. @c SRGB or @c UNORM is
+            chosen depending on the specified ASTC format. The ASTC-specific and
+            common encoder options listed @ref ktx_create_options_encoding "below"
+            become valid, otherwise they are ignored. This matches the functionality
+            of the @ref ktx_encode "ktx encode" command when an ASTC format is
+            specified.<br />
             <br />
-            When used with @b \--encode it specifies the target format before the encoding step.
-            In this case it must be one of:
+            When used with @b \--encode it specifies the target format before
+            the encoding step. In this case it must be one of:
             <ul>
-                <li>R8_UNORM</li>
-                <li>R8_SRGB</li>
-                <li>R8G8_UNORM</li>
-                <li>R8G8_SRGB</li>
-                <li>R8G8B8_UNORM</li>
-                <li>R8G8B8_SRGB</li>
-                <li>R8G8B8A8_UNORM</li>
-                <li>R8G8B8A8_SRGB</li>
+                <li>R8\_UNORM</li>
+                <li>R8\_SRGB</li>
+                <li>R8G8\_UNORM</li>
+                <li>R8G8\_SRGB</li>
+                <li>R8G8B8\_UNORM</li>
+                <li>R8G8B8\_SRGB</li>
+                <li>R8G8B8A8\_UNORM</li>
+                <li>R8G8B8A8\_SRGB</li>
             </ul>
-            The format will be used to verify and load all input files into a texture before
-            performing any specified encoding.
+            The format will be used to verify and load all input files into a
+            texture before performing any specified encoding.<br />
+            <br />
+            In a change from previous versions no automatic color conversions
+            are performed. The OETF of the input images, potentially modified by
+            @b \--assign-oetf or  @b \--convert-oetf options, must match that of
+            the chosen VkFormat according to the rules given in
+            @ref ktx\_create\_oetf\_handling below.
         </dd>
         <dt>\--encode basis-lz | uastc</dt>
         <dd>Encode the texture with the specified codec before saving it.
-            This option matches the functionality of the @ref ktx_encode "ktx encode" command.
-            With each choice, the specific and common encoder options listed
-            @ref ktx_create_options_encoding "below"  become valid, otherwise they
-            are ignored. Case-insensitive.</dd>
+            This option matches the functionality of the @ref ktx_encode "ktx encode"
+            command. With each choice, the specific and common encoder options
+            listed @ref ktx_create_options_encoding "below"  become valid,
+            otherwise they are ignored. Case-insensitive.</dd>
 
             @snippet{doc} ktx/encode_utils_basis.h command options_basis_encoders
         <dt>\--1d</dt>
-        <dd>Create a 1D texture. If not set the texture will be a 2D or 3D texture.</dd>
+        <dd>Create a 1D texture. If not set the texture will be a 2D or
+            3D texture.</dd>
         <dt>\--cubemap</dt>
-        <dd>Create a cubemap texture. If not set the texture will be a 2D or 3D texture.</dd>
+        <dd>Create a cubemap texture. If not set the texture will be a 2D or
+            3D texture.</dd>
         <dt>\--raw</dt>
         <dd>Create from raw image data.</dd>
         <dt>\--width</dt>
@@ -758,14 +780,15 @@ Create a KTX2 file from various input files.
             If set the texture will be an array texture.</dd>
         <dt>\--runtime-mipmap</dt>
         <dd>Runtime mipmap generation mode.
-            Sets up the texture to request the mipmaps to be generated by the client application at
-            runtime.</dd>
+            Sets up the texture to request the mipmaps to be generated by the
+            client application at runtime.</dd>
         <dt>\--generate-mipmap</dt>
         <dd>Causes mipmaps to be generated during texture creation.
-            If the @b \--levels is not specified the maximum possible mip level will be generated.
-            This option is mutually exclusive with @b \--runtime-mipmap and cannot be used with SINT,
-            UINT or 3D textures.</dd>
-            When set it enables the use of the following \'Generate Mipmap\' options.
+            If @b \--levels is not specified the maximum possible mip level will
+            be generated. This option is mutually exclusive with
+            --runtime-mipmap and cannot be used with SINT, UINT or 3D textures.
+            When set it enables the use of the following 'Generate Mipmap'
+            options.
         <dl>
             <dt>\--mipmap-filter &lt;filter&gt;</dt>
             <dd>Specifies the filter to use when generating the mipmaps. Case insensitive.<br />
@@ -783,6 +806,9 @@ Create a KTX2 file from various input files.
                 wrap | reflect | clamp.
                 Defaults to clamp.</dd>
         </dl>
+        Avoid mipmap generation if the Output OETF (see @ref ktx\_create\_oetf\_handling
+        below) is non-linear and is not sRGB.
+        </dd>
         <dt>\--swizzle [rgba01]{4}</dt>
         <dd>KTX swizzle metadata.</dd>
         <dt>\--input-swizzle [rgba01]{4}</dt>
@@ -791,7 +817,8 @@ Create a KTX2 file from various input files.
         <dd>Force the created texture to have the specified transfer function, ignoring
             the transfer function of the input file(s). Case insensitive.
             Possible options are:
-            linear | srgb
+            linear | srgb.
+            See @ref ktx_create_oetf_handling below for more information.
             </dd>
         <dt>\--assign-primaries &lt;primaries&gt;</dt>
         <dd>Force the created texture to have the specified color primaries, ignoring
@@ -818,7 +845,8 @@ Create a KTX2 file from various input files.
             specified, conversion will be performed from the assigned transfer function to the
             transfer function specified by this option, if different. Cannot be
             used with @b \--raw. Case insensitive.
-            Possible options are: linear | srgb
+            Possible options are: linear | srgb.
+            See @ref ktx_create_oetf_handling below for more information.
             </dd>
         <dt>\--convert-primaries &lt;primaries&gt;</dt>
         <dd>Convert the input image(s) to the specified color primaries, if different
@@ -882,46 +910,56 @@ Create a KTX2 file from various input files.
     @snippet{doc} ktx/encode_utils_common.h command options_encode_common
     @snippet{doc} ktx/metrics_utils.h command options_metrics
 
-@section ktx_create_oetf_handling OETF Handling
+@section ktx_create_oetf_handling OETF HANDLING
 
 The diagram below shows all assignments and conversions that can take place.
 
+<!-- No way to disable syntax coloring for file part. Live with bad Xcode rendering. -->
 <!-- ASCII art created with the help of  https://asciiflow.com. -->
 
 @verbatim
                            OETF Handling
 
-┌───────┐                     ┌───────┐                    ┌───────┐
-│       │  CS Metadata        │       │                    │       │
-│       ├────────────────────►│       │   ┌────────────┐   │       │
-│       │                     │       │   │            │   │       │
-│       │                     │       ├──►│ --convert- ├──►│       │
-│ Input │                     │ Input │   │   oetf     │   │ Output│
-│ File  │                     │ OETF  │   │            │   │ OETF  │
-│       │     ┌───────────┐   │       │   └────────────┘   │       │
-│       │     │           │   │       │                    │       │
-│       │     │ --assign- │   │       ├───────────────────►│       │
-│       │     │   oetf    ├──►│       │                    │       │
-│       │     │           │   │       │                    │       │
-└───────┘     └───────────┘   └───────┘                    └───────┘
+┌───────┐                   ┌───────┐   ┌────────────┐   ┌───────┐
+│       │    CS Metadata    │       │   │            │   │       │
+│       ├──────────────────►│       ├──►│ --convert- ├──►│       │
+│       │                   │       │   │   oetf     │   │       │
+│ Input │   ┌───────────┐   │ Input │   │            │   │ Output│
+│ File  │   │           │   │ OETF  │   └────────────┘   │ OETF  │
+│       │   │ --assign- │   │       │                    │       │
+│       │   │   oetf    ├──►│       ├───────────────────►│       │
+│       │   │           │   │       │                    │       │
+└───────┘   └───────────┘   └───────┘                    └───────┘
 
 @endverbatim
 
-@par Rules
-@li There are no automatic OETF conversions. Choose a @b --format that matches the Output OETF.
-@li If @b --format is one of the  @c *_SRGB{,_*} formats it is an error for the Output OETF to not be sRGB.
-@li If @b --format is not one of the @c *_SRGB{,_*}formats and an sRGB variant exists it is an error for
-    the Output OETF to be sRGB.
+@subsection ktx_create_oetf_handling_rules Rules
+There are no automatic color conversions. Specify a format with @b --format whose
+OETF matches Output OETF in compliance with the following rules.
+@li If @b \--format specifies one of the  @c *_SRGB{,_*} formats Output OETF
+    must be sRGB.
+@li If @b \--format does not specify one of the @c *_SRGB{,_*}formats and an
+    sRGB variant exists Output OETF must not be sRGB.
 
-@note When @b --format is not one of the *_SRGB{,_*} formats and the transfer function is not linear,
-the KTX file may be much less portable due to limited hardware support of such inputs.
+Any violation generates an error.
+
+Any OETF except sRGB or linear will have to come from the input file(s) as
+@b \--convert-oetf only supports those 2 OETFs.
+
+@note When @b \--format does not specify one of the *_SRGB{,_*} formats and
+      Output OETF  is not linear:
+      @li the KTX file may be much less portable due to limited hardware
+          support of such inputs.
+      @li avoid using @b \--generate-mipmap as the filters can only decode
+          sRGB.
+
 
 @section ktx_create_exitstatus EXIT STATUS
     @snippet{doc} ktx/command.h command exitstatus
 
 @section ktx_create_history HISTORY
 
-@par Version 4.0
+@par Version 4.3
  - Initial version
 
 @par Version 4.4
@@ -932,6 +970,7 @@ the KTX file may be much less portable due to limited hardware support of such i
 @section ktx_create_author AUTHOR
     - Mátyás Császár [Vader], RasterGrid www.rastergrid.com
     - Daniel Rákos, RasterGrid www.rastergrid.com
+    - Mark Callow
 */
 class CommandCreate : public Command {
 private:
