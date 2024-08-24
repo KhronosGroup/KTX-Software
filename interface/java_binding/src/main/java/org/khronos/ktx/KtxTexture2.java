@@ -179,39 +179,39 @@ public class KtxTexture2 extends KtxTexture {
 	 * API.<br>
 	 * <br>
 	 * The following block compressed transcode targets are available: <br>
-	 * {@link KtxTranscodeFormat#KTX_TTF_ETC1_RGB}<br>
-	 * {@link KtxTranscodeFormat#KTX_TTF_ETC2_RGBA}<br>
-	 * {@link KtxTranscodeFormat#KTX_TTF_BC1_RGB}<br>
-	 * {@link KtxTranscodeFormat#KTX_TTF_BC3_RGBA}<br>
-	 * {@link KtxTranscodeFormat#KTX_TTF_BC4_R}<br>
-	 * {@link KtxTranscodeFormat#KTX_TTF_BC5_RG}<br>
-	 * {@link KtxTranscodeFormat#KTX_TTF_BC7_RGBA}<br>
-	 * {@link KtxTranscodeFormat#KTX_TTF_PVRTC1_4_RGB}<br>
-	 * {@link KtxTranscodeFormat#KTX_TTF_PVRTC1_4_RGBA}<br>
-	 * {@link KtxTranscodeFormat#KTX_TTF_PVRTC2_4_RGB}<br>
-	 * {@link KtxTranscodeFormat#KTX_TTF_PVRTC2_4_RGBA}<br>
-	 * {@link KtxTranscodeFormat#KTX_TTF_ASTC_4x4_RGBA}<br>
-	 * {@link KtxTranscodeFormat#KTX_TTF_ETC2_EAC_R11}<br>
-	 * {@link KtxTranscodeFormat#KTX_TTF_ETC2_EAC_RG11}<br>
-	 * {@link KtxTranscodeFormat#KTX_TTF_ETC}<br>
-	 * {@link KtxTranscodeFormat#KTX_TTF_BC1_OR_3}<br>
+	 * {@link KtxTranscodeFormat#ETC1_RGB}<br>
+	 * {@link KtxTranscodeFormat#ETC2_RGBA}<br>
+	 * {@link KtxTranscodeFormat#BC1_RGB}<br>
+	 * {@link KtxTranscodeFormat#BC3_RGBA}<br>
+	 * {@link KtxTranscodeFormat#BC4_R}<br>
+	 * {@link KtxTranscodeFormat#BC5_RG}<br>
+	 * {@link KtxTranscodeFormat#BC7_RGBA}<br>
+	 * {@link KtxTranscodeFormat#PVRTC1_4_RGB}<br>
+	 * {@link KtxTranscodeFormat#PVRTC1_4_RGBA}<br>
+	 * {@link KtxTranscodeFormat#PVRTC2_4_RGB}<br>
+	 * {@link KtxTranscodeFormat#PVRTC2_4_RGBA}<br>
+	 * {@link KtxTranscodeFormat#ASTC_4x4_RGBA}<br>
+	 * {@link KtxTranscodeFormat#ETC2_EAC_R11}<br>
+	 * {@link KtxTranscodeFormat#ETC2_EAC_RG11}<br>
+	 * {@link KtxTranscodeFormat#ETC}<br>
+	 * {@link KtxTranscodeFormat#BC1_OR_3}<br>
 	 * <br>
-	 * <code>KTX_TTF_ETC</code> automatically selects between
-	 * <code>KTX_TTF_ETC1_RGB</code> and <code>KTX_TTF_ETC2_RGBA</code> according to
-	 * whether an alpha channel is available. <code>KTX_TTF_BC1_OR_3</code> does
-	 * likewise between <code>KTX_TTF_BC1_RGB</code> and
-	 * <code>KTX_TTF_BC3_RGBA</code>. Note that if
-	 * <code>KTX_TTF_PVRTC1_4_RGBA</code> or <code>KTX_TTF_PVRTC2_4_RGBA</code> is
-	 * specified and there is no alpha channel <code>KTX_TTF_PVRTC1_4_RGB</code> or
-	 * <code>KTX_TTF_PVRTC2_4_RGB</code> respectively will be selected. <br>
+	 * <code>ETC</code> automatically selects between
+	 * <code>ETC1_RGB</code> and <code>ETC2_RGBA</code> according to
+	 * whether an alpha channel is available. <code>BC1_OR_3</code> does
+	 * likewise between <code>BC1_RGB</code> and
+	 * <code>BC3_RGBA</code>. Note that if
+	 * <code>PVRTC1_4_RGBA</code> or <code>PVRTC2_4_RGBA</code> is
+	 * specified and there is no alpha channel <code>PVRTC1_4_RGB</code> or
+	 * <code>PVRTC2_4_RGB</code> respectively will be selected. <br>
 	 * Transcoding to ATC and FXT1 formats is not supported by libktx as there are no
 	 * equivalent Vulkan formats.<br>
 	 * <br>
 	 * The following uncompressed transcode targets are also available: <br>
-	 * {@link KtxTranscodeFormat#KTX_TTF_RGBA32}<br>
-	 * {@link KtxTranscodeFormat#KTX_TTF_RGB565}<br>
-	 * {@link KtxTranscodeFormat#KTX_TTF_BGR565}<br>
-	 * {@link KtxTranscodeFormat#KTX_TTF_RGBA4444}<br>
+	 * {@link KtxTranscodeFormat#RGBA32}<br>
+	 * {@link KtxTranscodeFormat#RGB565}<br>
+	 * {@link KtxTranscodeFormat#BGR565}<br>
+	 * {@link KtxTranscodeFormat#RGBA4444}<br>
 	 * <br>
 	 * The following transcodeFlags are available:<br>
 	 * <br>

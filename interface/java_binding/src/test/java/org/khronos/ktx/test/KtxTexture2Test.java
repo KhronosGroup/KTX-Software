@@ -391,7 +391,7 @@ public class KtxTexture2Test {
 
         assertNotNull(texture);
 
-        texture.transcodeBasis(KtxTranscodeFormat.KTX_TTF_ASTC_4x4_RGBA, 0);
+        texture.transcodeBasis(KtxTranscodeFormat.ASTC_4x4_RGBA, 0);
 
         assertEquals(VkFormat.VK_FORMAT_ASTC_4x4_SRGB_BLOCK, texture.getVkFormat());
     }
@@ -449,7 +449,7 @@ public class KtxTexture2Test {
 
         int sizeX = 32;
         int sizeY = 32;
-        int outputFormat = KtxTranscodeFormat.KTX_TTF_RGBA32;
+        int outputFormat = KtxTranscodeFormat.RGBA32;
         int transcodeFlags = 0;
 
         // Create the actual texture data:
