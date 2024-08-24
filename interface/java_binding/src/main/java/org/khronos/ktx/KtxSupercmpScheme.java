@@ -17,22 +17,22 @@ public class KtxSupercmpScheme {
     /**
      * No supercompression
      */
-    public static final int KTX_SS_NONE = 0;
+    public static final int NONE = 0;
 
     /**
      * Basis LZ supercompression
      */
-    public static final int KTX_SS_BASIS_LZ = 1;
+    public static final int BASIS_LZ = 1;
 
     /**
      * ZStd supercompression
      */
-    public static final int KTX_SS_ZSTD = 2;
+    public static final int ZSTD = 2;
 
     /**
      * ZLIB supercompression
      */
-    public static final int KTX_SS_ZLIB = 3;
+    public static final int ZLIB = 3;
 
 	/**
 	 * Returns a string representation of the given supercompression scheme
@@ -42,14 +42,14 @@ public class KtxSupercmpScheme {
 	 */
 	public static String stringFor(int n) {
 		switch (n) {
-		case KTX_SS_NONE:
-			return "KTX_SS_NONE";
-		case KTX_SS_BASIS_LZ:
-			return "KTX_SS_BASIS_LZ";
-		case KTX_SS_ZSTD:
-			return "KTX_SS_ZSTD";
-		case KTX_SS_ZLIB:
-			return "KTX_SS_ZLIB";
+		case NONE:
+			return "NONE";
+		case BASIS_LZ:
+			return "BASIS_LZ";
+		case ZSTD:
+			return "ZSTD";
+		case ZLIB:
+			return "ZLIB";
 		}
 		return "[Unknown KtxSupercmpScheme]";
 	}

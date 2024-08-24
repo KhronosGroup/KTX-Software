@@ -135,7 +135,7 @@ public abstract class KtxTexture {
 	 * Return the total size of the texture image data in bytes.
 	 *
 	 * For a {@link KtxTexture2} with {@link KtxTexture2#getSupercompressionScheme()} not
-	 * being {@link KtxSupercmpScheme#KTX_SS_NONE}, this will return the deflated size of the data.
+	 * being {@link KtxSupercmpScheme#NONE}, this will return the deflated size of the data.
 	 *
 	 * @return The data size
 	 */
@@ -147,11 +147,11 @@ public abstract class KtxTexture {
 	 * For a {@link KtxTexture1}, this always returns the value of {@link #getDataSize()}.<br>
 	 * <br>
 	 * For a {@link KtxTexture2}, if the {@link KtxTexture2#getSupercompressionScheme()} is
-	 * {@link KtxSupercmpScheme#KTX_SS_NONE} or {@link KtxSupercmpScheme#KTX_SS_BASIS_LZ},
+	 * {@link KtxSupercmpScheme#NONE} or {@link KtxSupercmpScheme#BASIS_LZ},
 	 * returns the value of {@link #getDataSize()}.<br>
 	 * <br>
-	 * Otherwise, if the supercompression scheme is {@link KtxSupercmpScheme#KTX_SS_ZSTD} or
-	 * {@link KtxSupercmpScheme#KTX_SS_ZLIB}, it returns the sum of the uncompressed sizes
+	 * Otherwise, if the supercompression scheme is {@link KtxSupercmpScheme#ZSTD} or
+	 * {@link KtxSupercmpScheme#ZLIB}, it returns the sum of the uncompressed sizes
 	 * of each mip level plus space for the level padding.<br>
 	 * <br>
 	 * With no supercompression the data size and uncompressed data size are the same.
