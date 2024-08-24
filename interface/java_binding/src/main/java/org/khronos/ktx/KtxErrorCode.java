@@ -120,7 +120,7 @@ public class KtxErrorCode {
 	/**
 	 * For safety checks
 	 */
-	public static final int ERROR_MAX_ENUM = DECOMPRESS_CHECKSUM_ERROR;
+	public static final int MAX_ENUM = DECOMPRESS_CHECKSUM_ERROR;
 
 	/**
 	 * Returns a string representation of the given error code
@@ -175,6 +175,15 @@ public class KtxErrorCode {
 		}
 		return "[Unknown KtxErrorCode]";
 	}
+
+	/**
+	 * Return a string corresponding to a KTX error code.
+	 *
+	 * @param error The error code for which to return a string
+     * @return The message string.
+	 */
+	public static native String createString(int error);
+
 
 	/**
 	 * Private constructor to prevent instantiation
