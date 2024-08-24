@@ -12,7 +12,7 @@ package org.khronos.ktx;
  * At a minimum you must initialize the structure as follows:
  * <pre><code>
  * KtxBasisParams params = new KtxBasisParams();
- * params.setCompressionLevel(KtxBasisParams.KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL);
+ * params.setCompressionLevel(KtxBasisParams.ETC1S_DEFAULT_COMPRESSION_LEVEL);
  * </code></pre>
  * The <code>compressionLevel</code> has to be explicitly set, because 0 is a valid
  * <code>compressionLevel</code> but is not the default used by the BasisU encoder when
@@ -23,7 +23,7 @@ public class KtxBasisParams {
 	/**
 	 * The default compression level
 	 */
-	public static final int KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL = 2;
+	public static final int ETC1S_DEFAULT_COMPRESSION_LEVEL = 2;
 
 	/**
 	 * True to use UASTC base, false to use ETC1S base.
