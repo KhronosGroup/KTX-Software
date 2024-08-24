@@ -72,7 +72,7 @@ public class KtxParallelTest {
             final KtxAstcParams p = new KtxAstcParams();
             p.setBlockDimension(KtxPackAstcBlockDimension.D8x8);
             p.setMode(KtxPackAstcEncoderMode.LDR);
-            p.setQualityLevel(KtxPackAstcQualityLevel.KTX_PACK_ASTC_QUALITY_LEVEL_EXHAUSTIVE);
+            p.setQualityLevel(KtxPackAstcQualityLevel.EXHAUSTIVE);
             final int rc = t.compressAstcEx(p);
             if (rc != KtxErrorCode.SUCCESS) {
                 throw new RuntimeException("ASTC error " + rc);

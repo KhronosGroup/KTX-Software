@@ -17,10 +17,10 @@ package org.khronos.ktx;
  * The <code>mode</code> will be
  * {@link KtxPackAstcEncoderMode#LDR}<br>
  * The <code>qualityLevel</code> will be
- * {@link KtxPackAstcQualityLevel#KTX_PACK_ASTC_QUALITY_LEVEL_FASTEST}<br>
+ * {@link KtxPackAstcQualityLevel#FASTEST}<br>
  * <br>
  * Setting the <code>qualityLevel</code> to
- * {@link KtxPackAstcQualityLevel#KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM} is
+ * {@link KtxPackAstcQualityLevel#MEDIUM} is
  * recommended.
  */
 public class KtxAstcParams {

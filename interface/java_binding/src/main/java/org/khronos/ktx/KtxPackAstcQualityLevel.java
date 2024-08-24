@@ -16,27 +16,27 @@ public class KtxPackAstcQualityLevel {
 	/**
 	 * Fastest compression
 	 */
-	public static final int KTX_PACK_ASTC_QUALITY_LEVEL_FASTEST = 0;
+	public static final int FASTEST = 0;
 
 	/**
 	 * Fast compression
 	 */
-	public static final int KTX_PACK_ASTC_QUALITY_LEVEL_FAST = 10;
+	public static final int FAST = 10;
 
 	/**
 	 * Medium compression
 	 */
-	public static final int KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM = 60;
+	public static final int MEDIUM = 60;
 
 	/**
 	 * Slower compression
 	 */
-	public static final int KTX_PACK_ASTC_QUALITY_LEVEL_THOROUGH = 98;
+	public static final int THOROUGH = 98;
 
 	/**
 	 * Very slow compression
 	 */
-	public static final int KTX_PACK_ASTC_QUALITY_LEVEL_EXHAUSTIVE = 100;
+	public static final int EXHAUSTIVE = 100;
 
 	/**
 	 * Returns a string representation of the given quality level
@@ -46,11 +46,11 @@ public class KtxPackAstcQualityLevel {
 	 */
 	public static String stringFor(int n) {
 		switch (n) {
-		case KTX_PACK_ASTC_QUALITY_LEVEL_FASTEST: return "KTX_PACK_ASTC_QUALITY_LEVEL_FASTEST";
-		case KTX_PACK_ASTC_QUALITY_LEVEL_FAST: return "KTX_PACK_ASTC_QUALITY_LEVEL_FAST";
-		case KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM: return "KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM";
-		case KTX_PACK_ASTC_QUALITY_LEVEL_THOROUGH: return "KTX_PACK_ASTC_QUALITY_LEVEL_THOROUGH";
-		case KTX_PACK_ASTC_QUALITY_LEVEL_EXHAUSTIVE: return "KTX_PACK_ASTC_QUALITY_LEVEL_EXHAUSTIVE";
+		case FASTEST: return "FASTEST";
+		case FAST: return "FAST";
+		case MEDIUM: return "MEDIUM";
+		case THOROUGH: return "THOROUGH";
+		case EXHAUSTIVE: return "EXHAUSTIVE";
 		}
 		return "[Unknown KtxPackAstcQualityLevel]";
 	}
