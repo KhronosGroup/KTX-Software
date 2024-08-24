@@ -61,7 +61,7 @@ public class KtxParallelTest {
             info.setBaseWidth(w);
             info.setBaseHeight(h);
             info.setVkFormat(VkFormat.VK_FORMAT_R8G8B8_SRGB); // Uncompressed
-            final KtxTexture2 t = KtxTexture2.create(info, KtxTextureCreateStorage.KTX_TEXTURE_CREATE_ALLOC_STORAGE);
+            final KtxTexture2 t = KtxTexture2.create(info, KtxTextureCreateStorage.ALLOC_STORAGE);
 
             // Pass the uncompressed data
             int bufferSize = w * h * 3;

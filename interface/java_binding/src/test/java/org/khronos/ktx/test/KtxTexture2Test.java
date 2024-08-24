@@ -42,7 +42,7 @@ public class KtxTexture2Test {
                 .normalize();
 
         KtxTexture2 texture = KtxTexture2.createFromNamedFile(testKtxFile.toString(),
-                KtxTextureCreateFlagBits.KTX_TEXTURE_CREATE_NO_FLAGS);
+                KtxTextureCreateFlagBits.NO_FLAGS);
 
         assertNotNull(texture);
         assertEquals(texture.getNumLevels(), 1);
@@ -65,7 +65,7 @@ public class KtxTexture2Test {
         info.setVkFormat(VkFormat.VK_FORMAT_R8G8B8A8_SRGB);
 
         assertThrows(KtxException.class,
-                () -> KtxTexture2.create(info, KtxTextureCreateStorage.KTX_TEXTURE_CREATE_ALLOC_STORAGE),
+                () -> KtxTexture2.create(info, KtxTextureCreateStorage.ALLOC_STORAGE),
                 "Expected to throw NullPointerException");
     }
 
@@ -79,11 +79,11 @@ public class KtxTexture2Test {
         info.setBaseWidth(sizeX);
         info.setBaseHeight(sizeY);
         info.setVkFormat(VkFormat.VK_FORMAT_R8G8B8A8_SRGB);
-        KtxTexture2 input = KtxTexture2.create(info, KtxTextureCreateStorage.KTX_TEXTURE_CREATE_ALLOC_STORAGE);
+        KtxTexture2 input = KtxTexture2.create(info, KtxTextureCreateStorage.ALLOC_STORAGE);
         byte[] inputMemoryArray = input.writeToMemory();
 
         // Create the texture from the exact memory
-        int createFlags = KtxTextureCreateFlagBits.KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT;
+        int createFlags = KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT;
         KtxTexture2 t = KtxTexture2.createFromMemory(ByteBuffer.wrap(inputMemoryArray), createFlags);
 
         // Ensure that the image has the same basic properties
@@ -102,7 +102,7 @@ public class KtxTexture2Test {
         info.setBaseWidth(sizeX);
         info.setBaseHeight(sizeY);
         info.setVkFormat(VkFormat.VK_FORMAT_R8G8B8A8_SRGB);
-        KtxTexture2 input = KtxTexture2.create(info, KtxTextureCreateStorage.KTX_TEXTURE_CREATE_ALLOC_STORAGE);
+        KtxTexture2 input = KtxTexture2.create(info, KtxTextureCreateStorage.ALLOC_STORAGE);
         byte[] inputMemoryArray = input.writeToMemory();
 
         // Create a byte buffer that is a bit larger than
@@ -119,7 +119,7 @@ public class KtxTexture2Test {
         largeBuffer.limit(50 + inputMemoryArray.length);
 
         // Create the texture from the exact memory
-        int createFlags = KtxTextureCreateFlagBits.KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT;
+        int createFlags = KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT;
         KtxTexture2 t = KtxTexture2.createFromMemory(largeBuffer, createFlags);
 
         // Ensure that the image has the same basic properties
@@ -138,7 +138,7 @@ public class KtxTexture2Test {
         info.setBaseWidth(sizeX);
         info.setBaseHeight(sizeY);
         info.setVkFormat(VkFormat.VK_FORMAT_R8G8B8A8_SRGB);
-        KtxTexture2 input = KtxTexture2.create(info, KtxTextureCreateStorage.KTX_TEXTURE_CREATE_ALLOC_STORAGE);
+        KtxTexture2 input = KtxTexture2.create(info, KtxTextureCreateStorage.ALLOC_STORAGE);
         byte[] inputMemoryArray = input.writeToMemory();
 
         // Create a DIRECT byte buffer that is a bit larger than
@@ -155,7 +155,7 @@ public class KtxTexture2Test {
         largeBuffer.limit(50 + inputMemoryArray.length);
 
         // Create the texture from the exact memory
-        int createFlags = KtxTextureCreateFlagBits.KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT;
+        int createFlags = KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT;
         KtxTexture2 t = KtxTexture2.createFromMemory(largeBuffer, createFlags);
 
         // Ensure that the image has the same basic properties
@@ -170,7 +170,7 @@ public class KtxTexture2Test {
     public void testCreateFromNamedFileWithNull() {
 
         assertThrows(NullPointerException.class,
-                () -> KtxTexture2.createFromNamedFile(null, KtxTextureCreateFlagBits.KTX_TEXTURE_CREATE_NO_FLAGS),
+                () -> KtxTexture2.createFromNamedFile(null, KtxTextureCreateFlagBits.NO_FLAGS),
                 "Expected to throw NullPointerException");
     }
 
@@ -182,7 +182,7 @@ public class KtxTexture2Test {
                 .normalize();
 
         KtxTexture2 texture = KtxTexture2.createFromNamedFile(testKtxFile.toString(),
-                KtxTextureCreateFlagBits.KTX_TEXTURE_CREATE_NO_FLAGS);
+                KtxTextureCreateFlagBits.NO_FLAGS);
 
         assertNotNull(texture);
         assertEquals(texture.getNumLevels(), 12);
@@ -200,7 +200,7 @@ public class KtxTexture2Test {
                 .normalize();
 
         KtxTexture2 texture = KtxTexture2.createFromNamedFile(testKtxFile.toString(),
-                KtxTextureCreateFlagBits.KTX_TEXTURE_CREATE_NO_FLAGS);
+                KtxTextureCreateFlagBits.NO_FLAGS);
 
         assertNotNull(texture);
         assertEquals( 4194304, texture.getImageSize(0));
@@ -216,7 +216,7 @@ public class KtxTexture2Test {
                 .normalize();
 
         KtxTexture2 texture = KtxTexture2.createFromNamedFile(testKtxFile.toString(),
-                KtxTextureCreateFlagBits.KTX_TEXTURE_CREATE_NO_FLAGS);
+                KtxTextureCreateFlagBits.NO_FLAGS);
 
         assertNotNull(texture);
 
@@ -238,7 +238,7 @@ public class KtxTexture2Test {
                 .normalize();
 
         KtxTexture2 texture = KtxTexture2.createFromNamedFile(testKtxFile.toString(),
-                KtxTextureCreateFlagBits.KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT);
+                KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
 
         assertNotNull(texture);
         assertEquals(texture.getNumLevels(), 12);
@@ -267,7 +267,7 @@ public class KtxTexture2Test {
                 .normalize();
 
         KtxTexture2 texture = KtxTexture2.createFromNamedFile(testKtxFile.toString(),
-                KtxTextureCreateFlagBits.KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT);
+                KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
 
         assertNotNull(texture);
         assertEquals(texture.getNumLevels(), 12);
@@ -291,7 +291,7 @@ public class KtxTexture2Test {
                 .normalize();
 
         KtxTexture2 texture = KtxTexture2.createFromNamedFile(testKtxFile.toString(),
-                KtxTextureCreateFlagBits.KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT);
+                KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
 
         assertNotNull(texture);
         assertEquals(false, texture.isCompressed());
@@ -313,7 +313,7 @@ public class KtxTexture2Test {
                 .normalize();
 
         KtxTexture2 texture = KtxTexture2.createFromNamedFile(testKtxFile.toString(),
-                KtxTextureCreateFlagBits.KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT);
+                KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
 
         assertNotNull(texture);
         assertEquals(false, texture.isCompressed());
@@ -333,7 +333,7 @@ public class KtxTexture2Test {
         info.setBaseWidth(16);
         info.setBaseHeight(16);
         info.setVkFormat(VkFormat.VK_FORMAT_ASTC_4x4_SRGB_BLOCK);
-        KtxTexture2 texture = KtxTexture2.create(info, KtxTextureCreateStorage.KTX_TEXTURE_CREATE_ALLOC_STORAGE);
+        KtxTexture2 texture = KtxTexture2.create(info, KtxTextureCreateStorage.ALLOC_STORAGE);
 
         // Call destroy, and then try to call a function.
         // It should throw for ALL functions, and there
@@ -352,7 +352,7 @@ public class KtxTexture2Test {
         info.setBaseWidth(16);
         info.setBaseHeight(16);
         info.setVkFormat(VkFormat.VK_FORMAT_ASTC_4x4_SRGB_BLOCK);
-        KtxTexture2 texture = KtxTexture2.create(info, KtxTextureCreateStorage.KTX_TEXTURE_CREATE_ALLOC_STORAGE);
+        KtxTexture2 texture = KtxTexture2.create(info, KtxTextureCreateStorage.ALLOC_STORAGE);
 
         texture.destroy();
         texture.destroy();
@@ -368,7 +368,7 @@ public class KtxTexture2Test {
         info.setBaseWidth(16);
         info.setBaseHeight(16);
         info.setVkFormat(VkFormat.VK_FORMAT_ASTC_4x4_SRGB_BLOCK);
-        KtxTexture2 texture = KtxTexture2.create(info, KtxTextureCreateStorage.KTX_TEXTURE_CREATE_ALLOC_STORAGE);
+        KtxTexture2 texture = KtxTexture2.create(info, KtxTextureCreateStorage.ALLOC_STORAGE);
 
         assertThrows(NullPointerException.class,
                 () -> texture.compressBasisEx(null),
@@ -387,7 +387,7 @@ public class KtxTexture2Test {
                 .normalize();
 
         KtxTexture2 texture = KtxTexture2.createFromNamedFile(testKtxFile.toString(),
-                KtxTextureCreateFlagBits.KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT);
+                KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
 
         assertNotNull(texture);
 
@@ -404,7 +404,7 @@ public class KtxTexture2Test {
         info.setBaseHeight(10);
         info.setVkFormat(VkFormat.VK_FORMAT_ASTC_4x4_SRGB_BLOCK);
 
-        KtxTexture2 texture = KtxTexture2.create(info, KtxTextureCreateStorage.KTX_TEXTURE_CREATE_ALLOC_STORAGE);
+        KtxTexture2 texture = KtxTexture2.create(info, KtxTextureCreateStorage.ALLOC_STORAGE);
         assertNotNull(texture);
 
         byte[] imageData = new byte[10 * 10];
@@ -416,7 +416,7 @@ public class KtxTexture2Test {
     @Test
     public void testCreateWithNull() {
         assertThrows(NullPointerException.class,
-                () -> KtxTexture2.create(null, KtxTextureCreateStorage.KTX_TEXTURE_CREATE_ALLOC_STORAGE),
+                () -> KtxTexture2.create(null, KtxTextureCreateStorage.ALLOC_STORAGE),
                 "Expected to throw NullPointerException");
     }
 
@@ -426,7 +426,7 @@ public class KtxTexture2Test {
         info.setBaseWidth(16);
         info.setBaseHeight(16);
         info.setVkFormat(VkFormat.VK_FORMAT_R8G8B8A8_SRGB);
-        KtxTexture2 t = KtxTexture2.create(info, KtxTextureCreateStorage.KTX_TEXTURE_CREATE_ALLOC_STORAGE);
+        KtxTexture2 t = KtxTexture2.create(info, KtxTextureCreateStorage.ALLOC_STORAGE);
 
         assertThrows(NullPointerException.class,
                 () -> t.setImageFromMemory(0, 0, 0, null),
@@ -437,7 +437,7 @@ public class KtxTexture2Test {
     void testCreateFromMemoryWithInvalidMemory() {
 
         byte[] invalidMemory = new byte[1000];
-        int createFlags = KtxTextureCreateFlagBits.KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT;
+        int createFlags = KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT;
 
         assertThrows(KtxException.class,
                 () -> KtxTexture2.createFromMemory(ByteBuffer.wrap(invalidMemory), createFlags),
@@ -475,7 +475,7 @@ public class KtxTexture2Test {
         inputInfo.setBaseHeight(sizeY);
         inputInfo.setVkFormat(VkFormat.VK_FORMAT_R8G8B8A8_SRGB);
         KtxTexture2 inputTexture = KtxTexture2.create(inputInfo,
-        		KtxTextureCreateStorage.KTX_TEXTURE_CREATE_ALLOC_STORAGE);
+        		KtxTextureCreateStorage.ALLOC_STORAGE);
         inputTexture.setImageFromMemory(0, 0, 0, input);
 
         // Apply basis compression to the input, with an input swizzle BRGA,
@@ -513,7 +513,7 @@ public class KtxTexture2Test {
         goldInfo.setBaseHeight(sizeY);
         goldInfo.setVkFormat(VkFormat.VK_FORMAT_R8G8B8A8_SRGB);
         KtxTexture2 goldTexture = KtxTexture2.create(goldInfo,
-        		KtxTextureCreateStorage.KTX_TEXTURE_CREATE_ALLOC_STORAGE);
+        		KtxTextureCreateStorage.ALLOC_STORAGE);
         goldTexture.setImageFromMemory(0, 0, 0, gold);
 
         // Apply basis compression to the reference, without swizzling
@@ -543,7 +543,7 @@ public class KtxTexture2Test {
         info.setBaseWidth(sizeX);
         info.setBaseHeight(sizeY);
         info.setVkFormat(VkFormat.VK_FORMAT_R8G8B8A8_SRGB);
-        KtxTexture2 t = KtxTexture2.create(info, KtxTextureCreateStorage.KTX_TEXTURE_CREATE_ALLOC_STORAGE);
+        KtxTexture2 t = KtxTexture2.create(info, KtxTextureCreateStorage.ALLOC_STORAGE);
         byte[] rgba = new byte[sizeX * sizeY * 4];
         t.setImageFromMemory(0, 0, 0, rgba);
 
@@ -577,7 +577,7 @@ public class KtxTexture2Test {
         info.setBaseWidth(sizeX);
         info.setBaseHeight(sizeY);
         info.setVkFormat(VkFormat.VK_FORMAT_R8G8B8A8_SRGB);
-        KtxTexture2 t = KtxTexture2.create(info, KtxTextureCreateStorage.KTX_TEXTURE_CREATE_ALLOC_STORAGE);
+        KtxTexture2 t = KtxTexture2.create(info, KtxTextureCreateStorage.ALLOC_STORAGE);
         byte[] rgba = new byte[sizeX * sizeY * 4];
         t.setImageFromMemory(0, 0, 0, rgba);
 

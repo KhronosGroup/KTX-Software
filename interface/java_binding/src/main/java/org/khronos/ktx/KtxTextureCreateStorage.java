@@ -15,12 +15,12 @@ public class KtxTextureCreateStorage {
 	/**
 	 * Don't allocate any image storage
 	 */
-    public static final int KTX_TEXTURE_CREATE_NO_STORAGE = 0;
+    public static final int NO_STORAGE = 0;
 
     /**
      * Allocate image storage.
      */
-    public static final int KTX_TEXTURE_CREATE_ALLOC_STORAGE = 1;
+    public static final int ALLOC_STORAGE = 1;
 
 	/**
 	 * Returns a string representation of the given storage mode
@@ -30,10 +30,10 @@ public class KtxTextureCreateStorage {
 	 */
 	public static String stringFor(int n) {
 		switch (n) {
-		case KTX_TEXTURE_CREATE_NO_STORAGE:
-			return "KTX_TEXTURE_CREATE_NO_STORAGE";
-		case KTX_TEXTURE_CREATE_ALLOC_STORAGE:
-			return "KTX_TEXTURE_CREATE_ALLOC_STORAGE";
+		case NO_STORAGE:
+			return "NO_STORAGE";
+		case ALLOC_STORAGE:
+			return "ALLOC_STORAGE";
 		}
 		return "[Unknown KtxTextureCreateStorage]";
 	}

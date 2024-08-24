@@ -247,7 +247,7 @@ public class KtxTexture2 extends KtxTexture {
 	 * Create a fresh {@link KtxTexture2}
 	 *
 	 * @param createInfo The {@link KtxTextureCreateInfo} parameters for the texture
-	 * @param storageAllocation The storage allocation. Pass {@link KtxTextureCreateStorage#KTX_TEXTURE_CREATE_ALLOC_STORAGE} if you will write image data.
+	 * @param storageAllocation The storage allocation. Pass {@link KtxTextureCreateStorage#ALLOC_STORAGE} if you will write image data.
 	 * @return The {@link KtxTexture2}
 	 * @throws KtxException If the input parameters have been invalid and caused
 	 * an error code that was not {@link KtxErrorCode#SUCCESS} in the underlying
@@ -260,7 +260,7 @@ public class KtxTexture2 extends KtxTexture {
 	 * Create a {@link KtxTexture2} from a file.
 	 *
 	 * @param filename The name of the file to read.
-	 * @param createFlags Pass {@link KtxTextureCreateFlagBits#KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT} if you
+	 * @param createFlags Pass {@link KtxTextureCreateFlagBits#LOAD_IMAGE_DATA_BIT} if you
 	 *                   want to read image data! Otherwise, {@link KtxTexture#getData()} will
 	 *                    return null.
 	 * @return The {@link KtxTexture2}
@@ -281,19 +281,19 @@ public class KtxTexture2 extends KtxTexture {
 	 * implementation.
 	 */
 	public static KtxTexture2 createFromNamedFile(String filename) {
-		return createFromNamedFile(filename, KtxTextureCreateFlagBits.KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT);
+		return createFromNamedFile(filename, KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
 	}
 
 	/**
 	 * Create a {@link KtxTexture2} from KTX-formatted data in memory.<br>
 	 * <br>
-	 * The create flag {@link KtxTextureCreateFlagBits#KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT}
+	 * The create flag {@link KtxTextureCreateFlagBits#LOAD_IMAGE_DATA_BIT}
 	 * should not be set if the ktxTexture is ultimately to be uploaded to
 	 * OpenGL or Vulkan. This will minimize memory usage by allowing, for
 	 * example, loading the images directly from the source into a Vulkan
 	 * staging buffer.<br>
 	 * <br>
-	 * The create flag {@link KtxTextureCreateFlagBits#KTX_TEXTURE_CREATE_RAW_KVDATA_BIT} should
+	 * The create flag {@link KtxTextureCreateFlagBits#RAW_KVDATA_BIT} should
 	 * not be used. It is provided solely to enable implementation of the
 	 * libktx v1 API on top of ktxTexture.<br>
 	 * <br>
