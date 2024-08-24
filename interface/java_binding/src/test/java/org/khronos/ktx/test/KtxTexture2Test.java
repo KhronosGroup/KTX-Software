@@ -297,7 +297,7 @@ public class KtxTexture2Test {
         assertEquals(false, texture.isCompressed());
         assertEquals(KtxSupercmpScheme.KTX_SS_NONE, texture.getSupercompressionScheme());
 
-        assertEquals(KtxErrorCode.KTX_SUCCESS, texture.compressBasis(1));
+        assertEquals(KtxErrorCode.SUCCESS, texture.compressBasis(1));
 
         assertEquals(true, texture.isCompressed());
         assertEquals(KtxSupercmpScheme.KTX_SS_BASIS_LZ, texture.getSupercompressionScheme());
@@ -319,7 +319,7 @@ public class KtxTexture2Test {
         assertEquals(false, texture.isCompressed());
         assertEquals(KtxSupercmpScheme.KTX_SS_NONE, texture.getSupercompressionScheme());
 
-        assertEquals(KtxErrorCode.KTX_SUCCESS, texture.compressBasisEx(new KtxBasisParams()));
+        assertEquals(KtxErrorCode.SUCCESS, texture.compressBasisEx(new KtxBasisParams()));
 
         assertEquals(true, texture.isCompressed());
         assertEquals(KtxSupercmpScheme.KTX_SS_BASIS_LZ, texture.getSupercompressionScheme());

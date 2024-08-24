@@ -84,14 +84,14 @@ public class KtxTexture2 extends KtxTexture {
 	 *
 	 * @param params The {@link KtxAstcParams}
 	 * @return A {@link KtxErrorCode} constant:<br>
-	 * {@link KtxErrorCode#KTX_SUCCESS} on success<br>
-	 * {@link KtxErrorCode#KTX_INVALID_OPERATION} The texture's images are supercompressed.<br>
-	 * {@link KtxErrorCode#KTX_INVALID_OPERATION} The texture's images are in a block compressed format.<br>
-	 * {@link KtxErrorCode#KTX_INVALID_OPERATION} The texture image's format is a packed format (e.g. RGB565).<br>
-	 * {@link KtxErrorCode#KTX_INVALID_OPERATION} The texture image format's component size is not 8-bits.<br>
-	 * {@link KtxErrorCode#KTX_INVALID_OPERATION} The texture's images are 1D. Only 2D images can be supercompressed.<br>
-	 * {@link KtxErrorCode#KTX_INVALID_OPERATION} ASTC compressor failed to compress image for any reason.<br>
-	 * {@link KtxErrorCode#KTX_OUT_OF_MEMORY} Not enough memory to carry out compression.
+	 * {@link KtxErrorCode#SUCCESS} on success<br>
+	 * {@link KtxErrorCode#INVALID_OPERATION} The texture's images are supercompressed.<br>
+	 * {@link KtxErrorCode#INVALID_OPERATION} The texture's images are in a block compressed format.<br>
+	 * {@link KtxErrorCode#INVALID_OPERATION} The texture image's format is a packed format (e.g. RGB565).<br>
+	 * {@link KtxErrorCode#INVALID_OPERATION} The texture image format's component size is not 8-bits.<br>
+	 * {@link KtxErrorCode#INVALID_OPERATION} The texture's images are 1D. Only 2D images can be supercompressed.<br>
+	 * {@link KtxErrorCode#INVALID_OPERATION} ASTC compressor failed to compress image for any reason.<br>
+	 * {@link KtxErrorCode#OUT_OF_MEMORY} Not enough memory to carry out compression.
 	 */
 	public native int compressAstcEx(KtxAstcParams params);
 
@@ -108,13 +108,13 @@ public class KtxTexture2 extends KtxTexture {
 	 * Higher=higher quality/slower speed. Lower=lower quality/faster speed.
 	 * Negative values for quality are considered to be greater than 100.
 	 * @return A {@link KtxErrorCode} constant:<br>
-	 * {@link KtxErrorCode#KTX_SUCCESS} on success<br>
-	 * {@link KtxErrorCode#KTX_INVALID_OPERATION} The texture is already supercompressed.<br>
-	 * {@link KtxErrorCode#KTX_INVALID_OPERATION} The texture's image are in a block compressed format.<br>
-	 * {@link KtxErrorCode#KTX_INVALID_OPERATION} The texture image's format is a packed format (e.g. RGB565).<br>
-	 * {@link KtxErrorCode#KTX_INVALID_OPERATION} The texture image format's component size is not 8-bits.<br>
-	 * {@link KtxErrorCode#KTX_INVALID_OPERATION} The texture's images are 1D. Only 2D images can be supercompressed.<br>
-	 * {@link KtxErrorCode#KTX_OUT_OF_MEMORY} Not enough memory to carry out supercompression.<br>
+	 * {@link KtxErrorCode#SUCCESS} on success<br>
+	 * {@link KtxErrorCode#INVALID_OPERATION} The texture is already supercompressed.<br>
+	 * {@link KtxErrorCode#INVALID_OPERATION} The texture's image are in a block compressed format.<br>
+	 * {@link KtxErrorCode#INVALID_OPERATION} The texture image's format is a packed format (e.g. RGB565).<br>
+	 * {@link KtxErrorCode#INVALID_OPERATION} The texture image format's component size is not 8-bits.<br>
+	 * {@link KtxErrorCode#INVALID_OPERATION} The texture's images are 1D. Only 2D images can be supercompressed.<br>
+	 * {@link KtxErrorCode#OUT_OF_MEMORY} Not enough memory to carry out supercompression.<br>
 	 */
 	public native int compressAstc(int quality);
 
@@ -132,14 +132,14 @@ public class KtxTexture2 extends KtxTexture {
 	 *
 	 * @param params The {@link KtxBasisParams}
 	 * @return A {@link KtxErrorCode} constant:<br>
-	 * {@link KtxErrorCode#KTX_SUCCESS} on success<br>
-	 * {@link KtxErrorCode#KTX_INVALID_OPERATION} The texture's images are supercompressed.<br>
-	 * {@link KtxErrorCode#KTX_INVALID_OPERATION} The texture's images are in a block compressed format.<br>
-	 * {@link KtxErrorCode#KTX_INVALID_OPERATION} The texture image's format is a packed format (e.g. RGB565).<br>
-	 * {@link KtxErrorCode#KTX_INVALID_OPERATION} The texture image format's component size is not 8-bits.<br>
-	 * {@link KtxErrorCode#KTX_INVALID_OPERATION} normalMode is specified but the texture has only one component.<br>
-	 * {@link KtxErrorCode#KTX_INVALID_OPERATION} Both preSwizzle and and inputSwizzle are specified in params.<br>
-	 * {@link KtxErrorCode#KTX_OUT_OF_MEMORY} Not enough memory to carry out compression.<br>
+	 * {@link KtxErrorCode#SUCCESS} on success<br>
+	 * {@link KtxErrorCode#INVALID_OPERATION} The texture's images are supercompressed.<br>
+	 * {@link KtxErrorCode#INVALID_OPERATION} The texture's images are in a block compressed format.<br>
+	 * {@link KtxErrorCode#INVALID_OPERATION} The texture image's format is a packed format (e.g. RGB565).<br>
+	 * {@link KtxErrorCode#INVALID_OPERATION} The texture image format's component size is not 8-bits.<br>
+	 * {@link KtxErrorCode#INVALID_OPERATION} normalMode is specified but the texture has only one component.<br>
+	 * {@link KtxErrorCode#INVALID_OPERATION} Both preSwizzle and and inputSwizzle are specified in params.<br>
+	 * {@link KtxErrorCode#OUT_OF_MEMORY} Not enough memory to carry out compression.<br>
 	 */
 	public native int compressBasisEx(KtxBasisParams params);
 
@@ -157,10 +157,10 @@ public class KtxTexture2 extends KtxTexture {
 	 * is selected if quality is 0. Lower=better compression/lower quality/faster.
 	 * Higher=less compression/higher quality/slower.
 	 * @return A {@link KtxErrorCode} constant:<br>
-	 * {@link KtxErrorCode#KTX_SUCCESS} on success<br>
-	 * {@link KtxErrorCode#KTX_INVALID_OPERATION} The texture is already supercompressed.<br>
-	 * {@link KtxErrorCode#KTX_INVALID_OPERATION} The texture's image are in a block compressed format.<br>
-	 * {@link KtxErrorCode#KTX_OUT_OF_MEMORY} Not enough memory to carry out supercompression.
+	 * {@link KtxErrorCode#SUCCESS} on success<br>
+	 * {@link KtxErrorCode#INVALID_OPERATION} The texture is already supercompressed.<br>
+	 * {@link KtxErrorCode#INVALID_OPERATION} The texture's image are in a block compressed format.<br>
+	 * {@link KtxErrorCode#OUT_OF_MEMORY} Not enough memory to carry out supercompression.
 	 */
 	public native int compressBasis(int quality);
 
@@ -223,23 +223,23 @@ public class KtxTexture2 extends KtxTexture {
 	 *                       the target format.
 	 * @param transcodeFlags A bitfield of flags from {@link KtxTranscodeFlagBits}
 	 *                       modifying the transcode
-	 * @return {@link KtxErrorCode#KTX_SUCCESS} on success, or a code indicating the error:<br>
-	 * {@link KtxErrorCode#KTX_FILE_DATA_ERROR} Supercompression global data
+	 * @return {@link KtxErrorCode#SUCCESS} on success, or a code indicating the error:<br>
+	 * {@link KtxErrorCode#FILE_DATA_ERROR} Supercompression global data
 	 * is corrupted.<br>
-	 * {@link KtxErrorCode#KTX_INVALID_OPERATION} The
+	 * {@link KtxErrorCode#INVALID_OPERATION} The
 	 * texture's format is not transcodable (not ETC1S/BasisLZ or UASTC).<br>
-	 * {@link KtxErrorCode#KTX_INVALID_OPERATION} Supercompression global
+	 * {@link KtxErrorCode#INVALID_OPERATION} Supercompression global
 	 * data is missing, i.e., the texture object is invalid.<br>
-	 * {@link KtxErrorCode#KTX_INVALID_OPERATION} Image data is missing,
+	 * {@link KtxErrorCode#INVALID_OPERATION} Image data is missing,
 	 * i.e., the texture object is invalid.<br>
-	 * {@link KtxErrorCode#KTX_INVALID_OPERATION} outputFormat is PVRTC1 but the texture
+	 * {@link KtxErrorCode#INVALID_OPERATION} outputFormat is PVRTC1 but the texture
 	 * does does not have power-of-two dimensions.<br>
-	 * {@link KtxErrorCode#KTX_INVALID_VALUE} outputFormat is invalid.<br>
-	 * {@link KtxErrorCode#KTX_TRANSCODE_FAILED} Something went wrong during transcoding.<br>
-	 * {@link KtxErrorCode#KTX_UNSUPPORTED_FEATURE} KTX_TF_PVRTC_DECODE_TO_NEXT_POW2 was
+	 * {@link KtxErrorCode#INVALID_VALUE} outputFormat is invalid.<br>
+	 * {@link KtxErrorCode#TRANSCODE_FAILED} Something went wrong during transcoding.<br>
+	 * {@link KtxErrorCode#UNSUPPORTED_FEATURE} KTX_TF_PVRTC_DECODE_TO_NEXT_POW2 was
 	 * requested or the specified transcode target has not been included in the library
 	 * being used.<br>
-	 * {@link KtxErrorCode#KTX_OUT_OF_MEMORY} Not enough memory to carry out transcoding.<br>
+	 * {@link KtxErrorCode#OUT_OF_MEMORY} Not enough memory to carry out transcoding.<br>
 	 */
 	public native int transcodeBasis(int outputFormat, int transcodeFlags);
 
@@ -250,7 +250,7 @@ public class KtxTexture2 extends KtxTexture {
 	 * @param storageAllocation The storage allocation. Pass {@link KtxTextureCreateStorage#KTX_TEXTURE_CREATE_ALLOC_STORAGE} if you will write image data.
 	 * @return The {@link KtxTexture2}
 	 * @throws KtxException If the input parameters have been invalid and caused
-	 * an error code that was not {@link KtxErrorCode#KTX_SUCCESS} in the underlying
+	 * an error code that was not {@link KtxErrorCode#SUCCESS} in the underlying
 	 * implementation.
 	 */
 	public static native KtxTexture2 create(KtxTextureCreateInfo createInfo,
@@ -265,7 +265,7 @@ public class KtxTexture2 extends KtxTexture {
 	 *                    return null.
 	 * @return The {@link KtxTexture2}
 	 * @throws KtxException If the input data was invalid and caused
-	 * an error code that was not {@link KtxErrorCode#KTX_SUCCESS} in the underlying
+	 * an error code that was not {@link KtxErrorCode#SUCCESS} in the underlying
 	 * implementation.
 	 */
 	public static native KtxTexture2 createFromNamedFile(String filename,
@@ -277,7 +277,7 @@ public class KtxTexture2 extends KtxTexture {
 	 * @param filename The name of the file to read.
 	 * @return The {@link KtxTexture2}
 	 * @throws KtxException If the input data was invalid and caused
-	 * an error code that was not {@link KtxErrorCode#KTX_SUCCESS} in the underlying
+	 * an error code that was not {@link KtxErrorCode#SUCCESS} in the underlying
 	 * implementation.
 	 */
 	public static KtxTexture2 createFromNamedFile(String filename) {
@@ -301,7 +301,7 @@ public class KtxTexture2 extends KtxTexture {
 	 * @param createFlags bitmask requesting specific actions during creation.
 	 * @return The {@link KtxTexture2}
 	 * @throws KtxException If the input data was invalid and caused
-	 * an error code that was not {@link KtxErrorCode#KTX_SUCCESS} in the underlying
+	 * an error code that was not {@link KtxErrorCode#SUCCESS} in the underlying
 	 * implementation.
 	 */
 	public static native KtxTexture2 createFromMemory(

@@ -208,7 +208,7 @@ public abstract class KtxTexture {
 	 * @param layer The array layer of the image
 	 * @param faceSlice The cube map face or depth slice of the image.
 	 * @return The offset, or -1 if the call internally caused a
-	 * {@link KtxErrorCode#KTX_INVALID_OPERATION}. This means that the level,
+	 * {@link KtxErrorCode#INVALID_OPERATION}. This means that the level,
 	 * layer or faceSlice exceeded the dimensions of the texture,
 	 * or that the texture is supercompressed.
 	 */
@@ -255,7 +255,7 @@ public abstract class KtxTexture {
 	 *
 	 * @return The memory containing the texture data.
 	 * @throws KtxException If the attempt to write the texture to memory caused
-	 * an error code that was not {@link KtxErrorCode#KTX_SUCCESS} in the underlying
+	 * an error code that was not {@link KtxErrorCode#SUCCESS} in the underlying
 	 * implementation.
 	 * @throws UnsupportedOperationException If the resulting array would
 	 * be larger than the maximum size of a Java array (i.e. more than 2GB)

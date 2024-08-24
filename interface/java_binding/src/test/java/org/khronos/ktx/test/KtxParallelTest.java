@@ -74,7 +74,7 @@ public class KtxParallelTest {
             p.setMode(KtxPackAstcEncoderMode.KTX_PACK_ASTC_ENCODER_MODE_LDR);
             p.setQualityLevel(KtxPackAstcQualityLevel.KTX_PACK_ASTC_QUALITY_LEVEL_EXHAUSTIVE);
             final int rc = t.compressAstcEx(p);
-            if (rc != KtxErrorCode.KTX_SUCCESS) {
+            if (rc != KtxErrorCode.SUCCESS) {
                 throw new RuntimeException("ASTC error " + rc);
             }
             final int retDataLen = (int) t.getDataSize();
