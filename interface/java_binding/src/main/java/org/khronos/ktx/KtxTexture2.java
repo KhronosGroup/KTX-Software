@@ -215,9 +215,9 @@ public class KtxTexture2 extends KtxTexture {
 	 * <br>
 	 * The following transcodeFlags are available:<br>
 	 * <br>
-	 * {@link KtxTranscodeFlagBits#KTX_TF_PVRTC_DECODE_TO_NEXT_POW2}<br>
-	 * {@link KtxTranscodeFlagBits#KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS}<br>
-	 * {@link KtxTranscodeFlagBits#KTX_TF_HIGH_QUALITY}<br>
+	 * {@link KtxTranscodeFlagBits#PVRTC_DECODE_TO_NEXT_POW2}<br>
+	 * {@link KtxTranscodeFlagBits#TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS}<br>
+	 * {@link KtxTranscodeFlagBits#HIGH_QUALITY}<br>
 	 *
 	 * @param outputFormat   A value from the {@link KtxTranscodeFormat} specifying
 	 *                       the target format.
@@ -236,7 +236,7 @@ public class KtxTexture2 extends KtxTexture {
 	 * does does not have power-of-two dimensions.<br>
 	 * {@link KtxErrorCode#INVALID_VALUE} outputFormat is invalid.<br>
 	 * {@link KtxErrorCode#TRANSCODE_FAILED} Something went wrong during transcoding.<br>
-	 * {@link KtxErrorCode#UNSUPPORTED_FEATURE} KTX_TF_PVRTC_DECODE_TO_NEXT_POW2 was
+	 * {@link KtxErrorCode#UNSUPPORTED_FEATURE} PVRTC_DECODE_TO_NEXT_POW2 was
 	 * requested or the specified transcode target has not been included in the library
 	 * being used.<br>
 	 * {@link KtxErrorCode#OUT_OF_MEMORY} Not enough memory to carry out transcoding.<br>

@@ -28,7 +28,7 @@ public class KtxTranscodeFormat {
 
 	/**
 	 * Opaque only. Returns RGB or alpha data, if
-	 * {@link KtxTranscodeFlagBits#KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS} flag is specified.
+	 * {@link KtxTranscodeFlagBits#TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS} flag is specified.
 	 */
 	public static final int KTX_TTF_ETC1_RGB = 0;
 
@@ -40,7 +40,7 @@ public class KtxTranscodeFormat {
 
 	/**
 	 * Opaque only, no punchthrough alpha support yet. Returns RGB or alpha data, if
-	 * {@link KtxTranscodeFlagBits#KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS} flag is specified.
+	 * {@link KtxTranscodeFlagBits#TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS} flag is specified.
 	 */
 	public static final int KTX_TTF_BC1_RGB = 2;
 
@@ -52,7 +52,7 @@ public class KtxTranscodeFormat {
 
 	/**
 	 * One BC4 block. R = opaque.g or alpha.g, if
-	 * {@link KtxTranscodeFlagBits#KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS} flag is specified.
+	 * {@link KtxTranscodeFlagBits#TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS} flag is specified.
 	 */
 	public static final int KTX_TTF_BC4_R = 4;
 
@@ -69,7 +69,7 @@ public class KtxTranscodeFormat {
 
 	/**
 	 * Opaque only. Returns RGB or alpha data, if
-	 * {@link KtxTranscodeFlagBits#KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS} flag is specified.
+	 * {@link KtxTranscodeFlagBits#TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS} flag is specified.
 	 */
 	public static final int KTX_TTF_PVRTC1_4_RGB = 8;
 
@@ -102,7 +102,7 @@ public class KtxTranscodeFormat {
 
 	/**
 	 * R only (ETC2 EAC R11 unsigned). R = opaque.g or alpha.g, if
-	 * {@link KtxTranscodeFlagBits#KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS} flag is specified.
+	 * {@link KtxTranscodeFlagBits#TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS} flag is specified.
 	 */
 	public static final int KTX_TTF_ETC2_EAC_R11 = 20;
 
