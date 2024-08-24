@@ -13,7 +13,7 @@ package org.khronos.ktx;
  * The default settings of an uninitialized structure will be:<br>
  * <br>
  * The <code>blockDimension</code> will be
- * {@link KtxPackAstcBlockDimension#KTX_PACK_ASTC_BLOCK_DIMENSION_D4x4}<br>
+ * {@link KtxPackAstcBlockDimension#D4x4}<br>
  * The <code>mode</code> will be
  * {@link KtxPackAstcEncoderMode#KTX_PACK_ASTC_ENCODER_MODE_LDR}<br>
  * The <code>qualityLevel</code> will be
