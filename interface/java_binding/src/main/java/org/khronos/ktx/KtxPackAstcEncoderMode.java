@@ -13,9 +13,9 @@ package org.khronos.ktx;
  * function.
  */
 public class KtxPackAstcEncoderMode {
-    public static final int KTX_PACK_ASTC_ENCODER_MODE_DEFAULT = 0;
-    public static final int KTX_PACK_ASTC_ENCODER_MODE_LDR = 1;
-    public static final int KTX_PACK_ASTC_ENCODER_MODE_HDR = 2;
+    public static final int DEFAULT = 0;
+    public static final int LDR = 1;
+    public static final int HDR = 2;
 
 	/**
 	 * Returns a string representation of the given encoder mode
@@ -25,9 +25,9 @@ public class KtxPackAstcEncoderMode {
 	 */
 	public static String stringFor(int n) {
 		switch (n) {
-		case KTX_PACK_ASTC_ENCODER_MODE_DEFAULT: return "KTX_PACK_ASTC_ENCODER_MODE_DEFAULT";
-		case KTX_PACK_ASTC_ENCODER_MODE_LDR: return "KTX_PACK_ASTC_ENCODER_MODE_LDR";
-		case KTX_PACK_ASTC_ENCODER_MODE_HDR: return "KTX_PACK_ASTC_ENCODER_MODE_HDR";
+		case DEFAULT: return "DEFAULT";
+		case LDR: return "LDR";
+		case HDR: return "HDR";
 		}
 		return "[Unknown KtxPackAstcEncoderMode]";
 	}

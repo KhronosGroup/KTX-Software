@@ -15,7 +15,7 @@ package org.khronos.ktx;
  * The <code>blockDimension</code> will be
  * {@link KtxPackAstcBlockDimension#D4x4}<br>
  * The <code>mode</code> will be
- * {@link KtxPackAstcEncoderMode#KTX_PACK_ASTC_ENCODER_MODE_LDR}<br>
+ * {@link KtxPackAstcEncoderMode#LDR}<br>
  * The <code>qualityLevel</code> will be
  * {@link KtxPackAstcQualityLevel#KTX_PACK_ASTC_QUALITY_LEVEL_FASTEST}<br>
  * <br>
