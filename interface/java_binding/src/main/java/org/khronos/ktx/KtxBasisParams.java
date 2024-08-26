@@ -245,7 +245,7 @@ public class KtxBasisParams {
 	 * <br>
 	 * The range is [0,5]. Higher values are slower, but give higher quality.
 	 * There is no default. Callers must explicitly set this value. Callers
-	 * can use {@link #KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL} as a default value.
+	 * can use {@link #ETC1S_DEFAULT_COMPRESSION_LEVEL} as a default value.
 	 * Currently this is 2.
 	 *
 	 * @param compressionLevel The compression level
