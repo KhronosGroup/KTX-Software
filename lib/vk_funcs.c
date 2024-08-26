@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file vk_funcs.c
+ * @file
  * @~English
  *
  * @brief Retrieve Vulkan function pointers needed by libktx

@@ -31,10 +31,11 @@ jobs:
       run:
         shell: bash
     env:
+      GIT_LFS_SKIP_SMUDGE: 1
       WERROR: ON
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         # Fetch all history to make sure tags are
         # included (used for version creation)
@@ -62,4 +63,4 @@ jobs:
     - name: Upload test log
       shell: pwsh
       if: ${{ failure() }}
-      run: ci_scripts/on_failure.ps1
+      run: scripts/on_failure.ps1

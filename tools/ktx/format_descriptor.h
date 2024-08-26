@@ -15,10 +15,10 @@ namespace ktx {
     const auto* bdfd = dfd + 1;
 
     FormatDescriptor::basicDescriptor basic;
-    basic.model = khr_df_model_e(KHR_DFDVAL(bdfd, MODEL));
-    basic.primaries = khr_df_primaries_e(KHR_DFDVAL(bdfd, PRIMARIES));
-    basic.transfer = khr_df_transfer_e(KHR_DFDVAL(bdfd, TRANSFER));
-    basic.flags = khr_df_flags_e(KHR_DFDVAL(bdfd, FLAGS));
+    basic.colorModel = khr_df_model_e(KHR_DFDVAL(bdfd, MODEL));
+    basic.colorPrimaries = khr_df_primaries_e(KHR_DFDVAL(bdfd, PRIMARIES));
+    basic.transferFunction = khr_df_transfer_e(KHR_DFDVAL(bdfd, TRANSFER));
+    basic.dataFlags = khr_df_flags_e(KHR_DFDVAL(bdfd, FLAGS));
     basic.texelBlockDimension0 = KHR_DFDVAL(bdfd, TEXELBLOCKDIMENSION0);
     basic.texelBlockDimension1 = KHR_DFDVAL(bdfd, TEXELBLOCKDIMENSION1);
     basic.texelBlockDimension2 = KHR_DFDVAL(bdfd, TEXELBLOCKDIMENSION2);

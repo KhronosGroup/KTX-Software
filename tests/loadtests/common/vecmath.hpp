@@ -10,7 +10,7 @@
 #define VECMATH_9B7E1CFE346D11E6AFA2D7DC87495A69_H
 
 /**
- * @file vecmath.h
+ * @file
  * @~English
  *
  * @brief Vector math package modelled after GLSL.

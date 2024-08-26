@@ -11,7 +11,7 @@
 
 /**
  * @internal
- * @file TextureArray.h
+ * @file
  * @~English
  *
  * @brief Declaration of test sample for loading and displaying the layers of a 2D array texture.

@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file astc_encode.cpp
+ * @file
  * @~English
  *
  * @brief Functions for compressing a texture to ASTC format.
@@ -16,6 +16,7 @@
  * @author Wasim Abbas , www.arm.com
  */
 
+#include <assert.h>
 #include <cstring>
 #include <inttypes.h>
 #include <iostream>
@@ -30,7 +31,6 @@
 #include "ktxint.h"
 #include "texture2.h"
 #include "vkformat_enum.h"
-#include "vk_format.h"
 
 #include "astc-encoder/Source/astcenc.h"
 
@@ -201,7 +201,7 @@ unorm8x4ArrayToImage(const uint8_t *data, uint32_t dim_x, uint32_t dim_y) {
 
 /**
  * @memberof ktxTexture
- * @ingroup write
+ * @ingroup writer
  * @~English
  * @brief       Creates default ASTC parameters
  *
@@ -222,7 +222,7 @@ astcDefaultOptions() {
 
 /**
  * @memberof ktxTexture
- * @ingroup write
+ * @ingroup writer
  * @~English
  * @brief       Should be used to get VkFormat from ASTC block enum
  *
@@ -291,7 +291,7 @@ astcVkFormat(ktx_uint32_t block_size, bool sRGB) {
 
 /**
  * @memberof ktxTexture
- * @ingroup write
+ * @ingroup writer
  * @~English
  * @brief Creates valid ASTC encoder action from string.
  *
@@ -320,7 +320,7 @@ astcEncoderAction(const ktxAstcParams &params, const uint32_t* bdb) {
 
 /**
  * @memberof ktxTexture
- * @ingroup write
+ * @ingroup writer
  * @~English
  * @brief Creates valid ASTC encoder swizzle from string.
  *
@@ -602,8 +602,9 @@ launchThreads(int threadCount, void (*func)(int, int, void*), void *payload) {
  *                              The texture's images are 1D. Only 2D images can
  *                              be supercompressed.
  * @exception KTX_INVALID_OPERATION
- *                              ASTC  compressor failed to compress image for any
-                                reason.
+ *                              ASTC  compressor failed to compress image.
+ * @exception KTX_INVALID_OPERATION
+ *                              This->generateMipmaps is set.
  * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out compression.
  */
 extern "C" KTX_error_code
@@ -617,6 +618,9 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
 
     if (params->structSize != sizeof(struct ktxAstcParams))
         return KTX_INVALID_VALUE;
+
+    if (This->generateMipmaps)
+        return KTX_INVALID_OPERATION;
 
     if (This->supercompressionScheme != KTX_SS_NONE)
         return KTX_INVALID_OPERATION; // Can't apply multiple schemes.

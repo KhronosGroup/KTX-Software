@@ -7,7 +7,7 @@
 //!
 //! @internal
 //! @~English
-//! @file imageio.cc
+//! @file
 //!
 //! @brief Create plugin maps.
 //!

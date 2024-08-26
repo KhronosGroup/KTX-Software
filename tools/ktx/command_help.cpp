@@ -48,6 +48,7 @@ struct OptionsHelp {
                 "transcode",
                 "info",
                 "validate",
+                "compare",
                 "help",
             };
 
@@ -64,7 +65,7 @@ struct OptionsHelp {
 Display help information about the ktx tool.
 
 @section ktx_help_synopsis SYNOPSIS
-    ktx help [option...] @e [command]
+    ktx help [option...] [@e command]
 
 @section ktx_help_description DESCRIPTION
     @b ktx @b help displays the man page of a specific ktx command specified as the @e command
@@ -75,20 +76,20 @@ Display help information about the ktx tool.
     To support custom install locations the tool first tries to use the man files relative to
     the executable and falls back to the system man pages.
 
-    The following options are available:
-    <dl>
-        <dt>command</dt>
-        <dd>Specifies which command's man page will be displayed. If the command option is missing
-        the main ktx tool man page will be displayed. Possible options are: <br />
-            @ref ktx_create "create" <br />
-            @ref ktx_extract "extract" <br />
-            @ref ktx_encode "encode" <br />
-            @ref ktx_transcode "transcode" <br />
-            @ref ktx_info "info" <br />
-            @ref ktx_validate "validate" <br />
-            @ref ktx_help "help"
-        </dd>
-    </dl>
+    @e command specifies which command's man page will be displayed.
+    If @e command is s missing the main ktx tool man page will be displayed.
+    Possible choices are: <br />
+    -        @ref ktx_compare "compare" <br />
+    -        @ref ktx_create "create" <br />
+    -        @ref ktx_create "deflate" <br />
+    -        @ref ktx_encode "encode" <br />
+    -        @ref ktx_extract "extract" <br />
+    -        @ref ktx_info "info" <br />
+    -        @ref ktx_transcode "transcode" <br />
+    -        @ref ktx_validate "validate" <br />
+    -        @ref ktx_help "help"
+
+@section ktx\_help\_options OPTIONS
     @snippet{doc} ktx/command.h command options_generic
 
 @section ktx_help_exitstatus EXIT STATUS
@@ -184,7 +185,7 @@ void CommandHelp::executeHelp() {
                 options.command ? "_" : "",
                 options.command.value_or(""));
     if (std::filesystem::exists(manFile)) {
-        // We have relative access to the man file, prioritze opening it
+        // We have relative access to the man file, prioritize opening it
         // that way to support custom install locations
         const auto systemCommand = fmt::format("man \"{}\"", manFile);
         const auto result = std::system(systemCommand.c_str());

@@ -490,6 +490,15 @@ VulkanAppSDL::createInstance()
                 VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME
             );
         }
+#if VK_KHR_portability_subset
+        if (!strncmp(extension.extensionName,
+                     VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
+                     VK_MAX_EXTENSION_NAME_SIZE)) {
+            extensionNames.push_back(
+                VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME
+            );
+        }
+#endif
     }
 
     if (validate)
@@ -509,6 +518,9 @@ VulkanAppSDL::createInstance()
                             (const char *const *)deviceValidationLayers.data(),
                             (uint32_t)extensionNames.size(),
                             (const char *const *)extensionNames.data());
+#if VK_KHR_portability_subset
+    instanceInfo.setFlags(vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR);
+#endif
 
     /*
      * This is info for a temp callback to use during CreateInstance.

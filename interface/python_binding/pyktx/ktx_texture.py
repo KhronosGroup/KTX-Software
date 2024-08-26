@@ -107,7 +107,7 @@ class KtxTexture:
     def kv_data_raw(self) -> Optional[c_buffer]:
         """
         The raw KV data buffer.
-        
+
         This is available only if RAW_KVDATA_BIT was used in create-flag bits.
         """
 
@@ -150,7 +150,7 @@ class KtxTexture:
         if necessary. For all currently known compressed formats padding will
         not be necessary.
         """
-        
+
         return lib.ktxTexture_GetRowPitch(self._ptr, level)
 
     def image_size(self, level: int) -> int:

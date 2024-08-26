@@ -13,9 +13,9 @@
 #include <cstring>
 #include <new>
 #include <vector>
-// Needed to get PortabilitySubset definitions in vulkan.hpp.
 #define VK_ENABLE_BETA_EXTENSIONS 1
 #include <vulkan/vulkan.hpp>
+#include <SDL2/SDL_vulkan.h> // Must be after vulkan.hpp.
 
 #include "AppBaseSDL.h"
 #include "VulkanContext.h"

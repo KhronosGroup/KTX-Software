@@ -45,7 +45,7 @@ class KtxErrorCode(IntEnum):
 
     NOT_FOUND = 12
     """Requested key was not found"""
-    
+
     OUT_OF_MEMORY = 13
     """Not enough memory to complete the operation."""
 

@@ -31,7 +31,7 @@
 #include "ktx.h"
 #include "ktxint.h"
 #include "texture.h"
-#include "gl_format.h"      // Must come after texture.h.
+#include "vk2gl.h"
 #include "unused.h"
 
 /**
@@ -39,6 +39,19 @@
  * @brief Create texture objects in current OpenGL context.
  * @{
  */
+
+/*
+ * These are defined only in compatibility mode (gl.h) not glcorearb.h
+ */
+#if !defined( GL_LUMINANCE )
+#define GL_LUMINANCE                  0x1909	// deprecated
+#endif
+#if !defined( GL_LUMINANCE_ALPHA )
+#define GL_LUMINANCE_ALPHA			  0x190A	// deprecated
+#endif
+#if !defined( GL_INTENSITY )
+#define GL_INTENSITY				  0x8049	// deprecated
+#endif
 
 /*
  * N.B. As of Doxygen 1.9.6 non-class members must use fully qualified
@@ -911,11 +924,9 @@ ktxTexture1_GLUpload(ktxTexture1* This, GLuint* pTexture, GLenum* pTarget,
         return KTX_INVALID_VALUE;
     }
 
-    if (!ktxOpenGLModuleHandle) {
-        result = ktxLoadOpenGLLibrary();
-        if (result != KTX_SUCCESS) {
-            return result;
-        }
+    result = ktxLoadOpenGL(NULL);
+    if (result != KTX_SUCCESS) {
+        return result;
     }
     /* KTX 1 files require an unpack alignment of 4 */
     glGetIntegerv(GL_UNPACK_ALIGNMENT, &previousUnpackAlignment);
@@ -997,16 +1008,14 @@ ktxTexture2_GLUpload(ktxTexture2* This, GLuint* pTexture, GLenum* pTarget,
         return KTX_INVALID_VALUE;
     }
 
-    if (!ktxOpenGLModuleHandle) {
-        result = ktxLoadOpenGLLibrary();
-        if (result != KTX_SUCCESS) {
-            return result;
-        }
+    result = ktxLoadOpenGL(NULL);
+    if (result != KTX_SUCCESS) {
+        return result;
     }
 
     if (This->vkFormat != VK_FORMAT_UNDEFINED) {
         formatInfo.glInternalformat =
-                            glGetInternalFormatFromVkFormat(This->vkFormat);
+                            vkFormat2glInternalFormat(This->vkFormat);
         if (formatInfo.glInternalformat == GL_INVALID_VALUE) {
             // TODO Check for mapping metadata. If none
             return KTX_INVALID_OPERATION;
@@ -1017,12 +1026,19 @@ ktxTexture2_GLUpload(ktxTexture2* This, GLuint* pTexture, GLenum* pTarget,
                                      // before upload.
     }
 
-    formatInfo.glFormat = glGetFormatFromInternalFormat(formatInfo.glInternalformat);
-    formatInfo.glType = glGetTypeFromInternalFormat(formatInfo.glInternalformat);
-    formatInfo.glBaseInternalformat = formatInfo.glInternalformat;
-    if (formatInfo.glFormat == GL_INVALID_VALUE || formatInfo.glType == GL_INVALID_VALUE)
-        return KTX_INVALID_OPERATION;
+    if (This->isCompressed) {
+        /* Unused. */
+        formatInfo.glFormat = GL_INVALID_VALUE;
+        formatInfo.glType = GL_INVALID_VALUE;
+        formatInfo.glBaseInternalformat = GL_INVALID_VALUE;
+    } else {
+        formatInfo.glFormat = vkFormat2glFormat(This->vkFormat);
+        formatInfo.glType = vkFormat2glType(This->vkFormat);
+        formatInfo.glBaseInternalformat = formatInfo.glInternalformat;
 
+        if (formatInfo.glFormat == GL_INVALID_VALUE || formatInfo.glType == GL_INVALID_VALUE)
+            return KTX_INVALID_OPERATION;
+    }
     /* KTX 2 files require an unpack alignment of 1. OGL default is 4. */
     glGetIntegerv(GL_UNPACK_ALIGNMENT, &previousUnpackAlignment);
     if (previousUnpackAlignment != 1) {

@@ -7,7 +7,7 @@
 //!
 //! @internal
 //! @~English
-//! @file imageinput.cc
+//! @file
 //!
 //! @brief ImageInput:open function
 //!
@@ -312,12 +312,18 @@ ImageInput::readImage(void* pBuffer, size_t bufferByteCount,
                      uint32_t subimage, uint32_t miplevel,
                      const FormatDescriptor& format)
 {
+    const auto& targetFormat = format.isUnknown() ? spec().format() : format;
+    size_t outScanlineByteCount
+           = targetFormat.pixelByteCount() * spec().width();
+    if (bufferByteCount < outScanlineByteCount * spec().height())
+        throw buffer_too_small();
+
     uint8_t* pDst = static_cast<uint8_t*>(pBuffer);
     for (uint32_t y = 0; y < spec().height(); y++) {
         readScanline(pDst, bufferByteCount,
-                     y, 0, subimage, miplevel, format);
-        pDst += spec().scanlineByteCount();
-        bufferByteCount -= spec().scanlineByteCount();
+                     y, 0, subimage, miplevel, targetFormat);
+        pDst += outScanlineByteCount;
+        bufferByteCount -= outScanlineByteCount;
     }
 }
 

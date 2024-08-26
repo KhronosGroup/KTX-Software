@@ -3,7 +3,7 @@
 
 /**
  * @internal
- * @file info.c
+ * @file
  * @~English
  *
  * @brief Functions for printing information about KTX or KTX2.

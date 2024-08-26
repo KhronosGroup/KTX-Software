@@ -1,5 +1,5 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
     "$id": "https://schema.khronos.org/ktx/info_v0.json",
     "definitions": {
         "enum_vkFormat": {
@@ -249,6 +249,20 @@
                         "VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK_EXT",
                         "VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK_EXT",
                         "VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK_EXT",
+                        "VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK",
+                        "VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK",
+                        "VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK",
+                        "VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK",
+                        "VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK",
+                        "VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK",
+                        "VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK",
+                        "VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK",
+                        "VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK",
+                        "VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK",
+                        "VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK",
+                        "VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK",
+                        "VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK",
+                        "VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK",
                         "VK_FORMAT_ASTC_3x3x3_UNORM_BLOCK_EXT",
                         "VK_FORMAT_ASTC_3x3x3_SRGB_BLOCK_EXT",
                         "VK_FORMAT_ASTC_3x3x3_SFLOAT_BLOCK_EXT",
@@ -280,7 +294,11 @@
                         "VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT",
                         "VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT",
                         "VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT",
-                        "VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT"
+                        "VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT",
+                        "VK_FORMAT_A8_UNORM_KHR",
+                        "VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR",
+                        "VK_FORMAT_A4R4G4B4_UNORM_PACK16",
+                        "VK_FORMAT_A4B4G4R4_UNORM_PACK16"
                     ]
                 }
             ]

@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file gl_funcs.c
+ * @file
  * @~English
  *
  * @brief Retrieve OpenGL function pointers needed by libktx
@@ -52,69 +52,63 @@
 #else
 #include <dlfcn.h>
 #include <stdlib.h>
-#define WINAPI
 #endif
 #define NO_SHORTCUTS
 #include "gl_funcs.h"
 
 #if WINDOWS
 #define GetOpenGLModuleHandle(flags) ktxFindOpenGL()
-#define LoadProcAddr GetProcAddress
-HMODULE ktxOpenGLModuleHandle;
+static HMODULE ktxOpenGLModuleHandle;
+static PFNGLGETPROCADDRESS pfnWglGetProcAddress;
+
+PFNVOIDFUNCTION
+defaultGLGetProcAddress(const char* proc)
+{
+    PFNVOIDFUNCTION pfnGLProc = NULL;
+
+    if (pfnWglGetProcAddress)
+        pfnGLProc = pfnWglGetProcAddress(proc);
+    if (!pfnGLProc) {
+        pfnGLProc = (PFNVOIDFUNCTION)GetProcAddress(ktxOpenGLModuleHandle,
+                                                    proc);
+    }
+    return pfnGLProc;
+}
 #elif MACOS || UNIX || IOS
 // Using NULL returns a handle that can be used to search the process that
 // loaded us and any other libraries it has loaded. That's all we need to
 // search as the app is responsible for creating the GL context so it must
 // be there.
 #define GetOpenGLModuleHandle(flags) dlopen(NULL, flags)
-#define LoadProcAddr dlsym
-#define LIBRARY_NAME NULL
-void* ktxOpenGLModuleHandle;
+static void* ktxOpenGLModuleHandle;
+
+PFNVOIDFUNCTION
+defaultGLGetProcAddress(const char* proc)
+{
+    return dlsym(ktxOpenGLModuleHandle, proc);
+}
 #elif WEB
 extern void* emscripten_GetProcAddress(const char *name_);
 #define GetOpenGLModuleHandle(flag) (void*)0x0000ffff // Value doesn't matter.
-#define LoadProcAddr(lib, proc) emscripten_GetProcAddress(proc)
-#define LIBRARY_NAME "unused"
 void* ktxOpenGLModuleHandle;
+
+#define defaultGLGetProcAddress ((PFNGLGETPROCADDRESS)emscripten_GetProcAddress)
 #else
 #error "Don\'t know how to load symbols on this OS."
 #endif
 
-typedef void (WINAPI *PFNVOIDFUNCTION)(void);
-typedef  PFNVOIDFUNCTION *(WINAPI * PFNWGLGETPROCADDRESS) (const char *proc);
-static  PFNWGLGETPROCADDRESS wglGetProcAddressPtr;
+static bool openGLLoaded = false;
 static const char* noloadmsg = "Could not load OpenGL command: %s!\n";
 
 /* Define pointers for functions libktx is using. */
 struct glFuncPtrs gl;
 
-#if defined(__GNUC__)
-// This strange casting is because dlsym returns a void* thus is not
-// compatible with ISO C which forbids conversion of object pointers
-// to function pointers. The cast masks the conversion from the
-// compiler thus no warning even though -pedantic is set. Since the
-// platform supports dlsym, conversion to function pointers must
-// work, despite the mandated ISO C warning.
 #define GL_FUNCTION(type, func, required)                                  \
-  if ( wglGetProcAddressPtr )                                              \
-  *(void **)(&gl.func) = wglGetProcAddressPtr(#func);                      \
-  if ( !gl.func )                                                          \
-    *(void **)(&gl.func) = LoadProcAddr(ktxOpenGLModuleHandle, #func);     \
-  if ( !gl.func && required ) {                                            \
-        fprintf(stderr, noloadmsg, #func);                                 \
-        return KTX_NOT_FOUND;                                              \
-  }
-#else
-#define GL_FUNCTION(type, func, required)                                  \
-  if ( wglGetProcAddressPtr )                                              \
-    gl.func = (type)wglGetProcAddressPtr(#func);                           \
-  if ( !gl.func)                                                           \
-    gl.func = (type)LoadProcAddr(ktxOpenGLModuleHandle, #func);            \
+  gl.func = (type)pfnGLGetProcAddress(#func);                              \
   if ( !gl.func && required) {                                             \
     fprintf(stderr, noloadmsg, #func);                                     \
     return KTX_NOT_FOUND;                                                  \
   }
-#endif
 
 #if WINDOWS
 static HMODULE
@@ -130,7 +124,7 @@ ktxFindOpenGL() {
         &module
     );
     if (found) {
-        if (LoadProcAddr(module, "glGetError") != NULL)
+        if (GetProcAddress(module, "glGetError") != NULL)
             return module;
     }
     // Not statically linked. See what dll the process has loaded.
@@ -154,22 +148,23 @@ ktxFindOpenGL() {
     );
     if (found) {
         // Need wglGetProcAddr for non-OpenGL-2 functions.
-        wglGetProcAddressPtr =
-            (PFNWGLGETPROCADDRESS)LoadProcAddr(module,
-                                               "wglGetProcAddress");
-        if (wglGetProcAddressPtr != NULL)
+        pfnWglGetProcAddress =
+            (PFNGLGETPROCADDRESS)GetProcAddress(module,
+                                                 "wglGetProcAddress");
+        if (pfnWglGetProcAddress != NULL)
             return module;
     }
-    return module; // Keep the compiler happy!
+    return 0;
 }
 #endif
 
 ktx_error_code_e
 ktxLoadOpenGLLibrary(void)
 {
-    if (ktxOpenGLModuleHandle)
+    if (openGLLoaded)
         return KTX_SUCCESS;
 
+    // Look for OpenGL module and set up default GetProcAddress.
     ktxOpenGLModuleHandle = GetOpenGLModuleHandle(RTLD_LAZY);
     if (ktxOpenGLModuleHandle == NULL) {
         fprintf(stderr, "OpenGL lib not linked or loaded by application.\n");
@@ -184,9 +179,48 @@ ktxLoadOpenGLLibrary(void)
         return KTX_LIBRARY_NOT_LINKED; // So release version doesn't crash.
 #endif
     }
+    return KTX_SUCCESS;
+}
+
+/**
+ * @~English
+ * @brief Load pointers for the GL functions used by ktxTexture_GLUpload.
+ *
+ * Should be called by an application before its first call to
+ * ktxTexture\_GLUpload, passing a pointer to the GLGetProcAddress function
+ * provided by whatever OpenGL framework it is using. For backward
+ * compatibility, ktxTexture\_GLUpload calls this with a NULL pointer causing an
+ * attempt to load the pointers from the program module using
+ * @c dlsym (GNU/Linux, macOS), @c wglGetProcAddr and @c GetProcAddr (Windows)
+ * or @c emscripten_GetProcAddress (Web). This works with the vast majority of
+ * OpenGL implementations but issues have been seen on Fedora systems
+ * particularly with NVIDIA hardware. For full robustness, applications should
+ * call this function.
+ *
+ * @param [in] pfnGLGetProcAddress pointer to function for retrieving pointers
+ *                                 to GL functions. If NULL, retrieval is
+ *                                 attempted using system dependent generic
+ *                                 functions.
+ */
+KTX_API ktx_error_code_e KTX_APIENTRY
+ktxLoadOpenGL(PFNGLGETPROCADDRESS pfnGLGetProcAddress)
+{
+    if (openGLLoaded)
+        return KTX_SUCCESS;
+
+    if (!pfnGLGetProcAddress) {
+        ktx_error_code_e result = ktxLoadOpenGLLibrary();
+        if (result != KTX_SUCCESS) {
+            return result;
+        }
+        pfnGLGetProcAddress = defaultGLGetProcAddress;
+    }
+
+    // Load function pointers
 
 #include "gl_funclist.inl"
 
+    openGLLoaded = true;
     return KTX_SUCCESS;
 }
 

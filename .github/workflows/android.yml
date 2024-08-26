@@ -29,10 +29,11 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+      GIT_LFS_SKIP_SMUDGE: 1
       WERROR: ON
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         # Fetch all history to make sure tags are
         # included (used for version creation)
@@ -53,7 +54,7 @@ jobs:
       run: sudo apt-get install -y ninja-build
 
     - name: android_Debug_arm64-v8a
-      run: ./ci_scripts/build_android.sh
+      run: ./scripts/build_android.sh
       env:
         ANDROID_ABI: arm64-v8a
         ANDROID_NDK: ${{ steps.setup-ndk.outputs.ndk-path }}
@@ -61,7 +62,7 @@ jobs:
         CONFIGURATION: Debug
 
     - name: android_arm64-v8a
-      run: ./ci_scripts/build_android.sh
+      run: ./scripts/build_android.sh
       env:
         ANDROID_ABI: arm64-v8a
         ANDROID_NDK: ${{ steps.setup-ndk.outputs.ndk-path }}
@@ -72,13 +73,13 @@ jobs:
     # and not supported by ARM ASTC encoder
 
     # - name: android_x86
-    #   run: ./ci_scripts/build_android.sh
+    #   run: ./scripts/build_android.sh
     #   env:
     #     ANDROID_ABI: x86
     #     ANDROID_NDK: ${{ steps.setup-ndk.outputs.ndk-path }}
 
     - name: android_x86_64
-      run: ./ci_scripts/build_android.sh
+      run: ./scripts/build_android.sh
       env:
         ANDROID_ABI: x86_64
         ANDROID_NDK: ${{ steps.setup-ndk.outputs.ndk-path }}
@@ -94,7 +95,7 @@ jobs:
     # by the preceding steps and uploads the zip.
     - name: upload artifact
       id: upload-artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: KTX-Software-${{env.KTX_VERSION}}-Android
         path: install-android

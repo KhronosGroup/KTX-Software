@@ -1,14 +1,15 @@
 
 /***************************** Do not edit.  *****************************
- Automatically generated from vulkan_core.h version 267 by mkvkformatfiles.
+ Automatically generated from vulkan_core.h version 287 by mkvkformatfiles.
  *************************************************************************/
 
 /*
-** Copyright 2015-2023 The Khronos Group Inc.
+** Copyright 2015-2024 The Khronos Group Inc.
 **
 ** SPDX-License-Identifier: Apache-2.0
 */
 
+// clang-format off: CI is complicated if formatting checks on generated files are enforced.
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -30,13 +31,8 @@ isProhibitedFormat(VkFormat format)
       case VK_FORMAT_R8G8B8A8_SSCALED:
       case VK_FORMAT_B8G8R8A8_USCALED:
       case VK_FORMAT_B8G8R8A8_SSCALED:
-      case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
-      case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
       case VK_FORMAT_A8B8G8R8_USCALED_PACK32:
       case VK_FORMAT_A8B8G8R8_SSCALED_PACK32:
-      case VK_FORMAT_A8B8G8R8_UINT_PACK32:
-      case VK_FORMAT_A8B8G8R8_SINT_PACK32:
-      case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
       case VK_FORMAT_A2R10G10B10_USCALED_PACK32:
       case VK_FORMAT_A2R10G10B10_SSCALED_PACK32:
       case VK_FORMAT_A2B10G10R10_USCALED_PACK32:
@@ -73,6 +69,59 @@ isProhibitedFormat(VkFormat format)
       case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16:
       case VK_FORMAT_G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16:
       case VK_FORMAT_G16_B16R16_2PLANE_444_UNORM:
+        return true;
+      default:
+        return false;
+    }
+}
+
+bool
+isSrgbFormat(VkFormat format)
+{
+   switch(format) {
+      case VK_FORMAT_R8_SRGB:
+      case VK_FORMAT_R8G8_SRGB:
+      case VK_FORMAT_R8G8B8_SRGB:
+      case VK_FORMAT_B8G8R8_SRGB:
+      case VK_FORMAT_R8G8B8A8_SRGB:
+      case VK_FORMAT_B8G8R8A8_SRGB:
+      case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
+      case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
+      case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
+      case VK_FORMAT_BC2_SRGB_BLOCK:
+      case VK_FORMAT_BC3_SRGB_BLOCK:
+      case VK_FORMAT_BC7_SRGB_BLOCK:
+      case VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK:
+      case VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK:
+      case VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK:
+      case VK_FORMAT_ASTC_4x4_SRGB_BLOCK:
+      case VK_FORMAT_ASTC_5x4_SRGB_BLOCK:
+      case VK_FORMAT_ASTC_5x5_SRGB_BLOCK:
+      case VK_FORMAT_ASTC_6x5_SRGB_BLOCK:
+      case VK_FORMAT_ASTC_6x6_SRGB_BLOCK:
+      case VK_FORMAT_ASTC_8x5_SRGB_BLOCK:
+      case VK_FORMAT_ASTC_8x6_SRGB_BLOCK:
+      case VK_FORMAT_ASTC_8x8_SRGB_BLOCK:
+      case VK_FORMAT_ASTC_10x5_SRGB_BLOCK:
+      case VK_FORMAT_ASTC_10x6_SRGB_BLOCK:
+      case VK_FORMAT_ASTC_10x8_SRGB_BLOCK:
+      case VK_FORMAT_ASTC_10x10_SRGB_BLOCK:
+      case VK_FORMAT_ASTC_12x10_SRGB_BLOCK:
+      case VK_FORMAT_ASTC_12x12_SRGB_BLOCK:
+      case VK_FORMAT_PVRTC1_2BPP_SRGB_BLOCK_IMG:
+      case VK_FORMAT_PVRTC1_4BPP_SRGB_BLOCK_IMG:
+      case VK_FORMAT_PVRTC2_2BPP_SRGB_BLOCK_IMG:
+      case VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG:
+      case VK_FORMAT_ASTC_3x3x3_SRGB_BLOCK_EXT:
+      case VK_FORMAT_ASTC_4x3x3_SRGB_BLOCK_EXT:
+      case VK_FORMAT_ASTC_4x4x3_SRGB_BLOCK_EXT:
+      case VK_FORMAT_ASTC_4x4x4_SRGB_BLOCK_EXT:
+      case VK_FORMAT_ASTC_5x4x4_SRGB_BLOCK_EXT:
+      case VK_FORMAT_ASTC_5x5x4_SRGB_BLOCK_EXT:
+      case VK_FORMAT_ASTC_5x5x5_SRGB_BLOCK_EXT:
+      case VK_FORMAT_ASTC_6x5x5_SRGB_BLOCK_EXT:
+      case VK_FORMAT_ASTC_6x6x5_SRGB_BLOCK_EXT:
+      case VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT:
         return true;
       default:
         return false;
@@ -154,7 +203,7 @@ isValidFormat(VkFormat format)
         case VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT:
         case VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT:
         case VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT:
-        case VK_FORMAT_R16G16_S10_5_NV:
+        case VK_FORMAT_R16G16_SFIXED5_NV:
         case VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR:
         case VK_FORMAT_A8_UNORM_KHR:
         return true;
@@ -163,3 +212,4 @@ isValidFormat(VkFormat format)
     }
 }
 
+// clang-format on

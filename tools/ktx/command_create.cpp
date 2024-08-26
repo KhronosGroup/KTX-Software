@@ -3,10 +3,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "command.h"
+#include "encode_utils_common.h"
 #include "platform_utils.h"
 #include "metrics_utils.h"
-#include "compress_utils.h"
-#include "encode_utils.h"
+#include "deflate_utils.h"
+#include "encode_utils_basis.h"
+#include "encode_utils_astc.h"
 #include "format_descriptor.h"
 #include "formats.h"
 #include "utility.h"
@@ -21,6 +23,10 @@
 #include "image.hpp"
 #include "imageio.h"
 
+/** @file
+ * @~English
+ * @brief @b create command implementation.
+ */
 
 // -------------------------------------------------------------------------------------------------
 
@@ -179,8 +185,8 @@ struct OptionsCreate {
         std::optional<khr_df_transfer_e> result = {};
 
         if (args[argName].count()) {
-            const auto oetfStr = to_upper_copy(args[argName].as<std::string>());
-            const auto it = values.find(oetfStr);
+            const auto oetfStr = args[argName].as<std::string>();
+            const auto it = values.find(to_upper_copy(oetfStr));
             if (it != values.end()) {
                 result = it->second;
             } else {
@@ -211,12 +217,12 @@ struct OptionsCreate {
         std::optional<khr_df_primaries_e> result = {};
 
         if (args[argName].count()) {
-            const auto primariesStr = to_upper_copy(args[argName].as<std::string>());
-            const auto it = values.find(primariesStr);
+            const auto primariesStr = args[argName].as<std::string>();
+            const auto it = values.find(to_upper_copy(primariesStr));
             if (it != values.end()) {
                 result = it->second;
             } else {
-                report.fatal_usage("Invalid or unsupported transfer function specified as --{} argument: \"{}\".", argName, primariesStr);
+                report.fatal_usage("Invalid or unsupported primaries specified as --{} argument: \"{}\".", argName, primariesStr);
             }
         }
 
@@ -329,6 +335,8 @@ struct OptionsCreate {
                 VK_FORMAT_R8G8B8A8_SRGB,
                 VK_FORMAT_B8G8R8A8_UNORM,
                 VK_FORMAT_B8G8R8A8_SRGB,
+                VK_FORMAT_A8B8G8R8_UNORM_PACK32,
+                VK_FORMAT_A8B8G8R8_SRGB_PACK32,
                 VK_FORMAT_ASTC_4x4_UNORM_BLOCK,
                 VK_FORMAT_ASTC_4x4_SRGB_BLOCK,
                 VK_FORMAT_ASTC_5x4_UNORM_BLOCK,
@@ -408,6 +416,8 @@ struct OptionsCreate {
                 VK_FORMAT_R8G8B8A8_SINT,
                 VK_FORMAT_B8G8R8A8_UINT,
                 VK_FORMAT_B8G8R8A8_SINT,
+                VK_FORMAT_A8B8G8R8_UINT_PACK32,
+                VK_FORMAT_A8B8G8R8_SINT_PACK32,
                 VK_FORMAT_R16G16B16A16_UINT,
                 VK_FORMAT_R16G16B16A16_SINT,
                 VK_FORMAT_R32G32B32A32_UINT,
@@ -524,6 +534,7 @@ struct OptionsCreate {
         }
 
         if (formatDesc.transfer() == KHR_DF_TRANSFER_SRGB) {
+            const auto error_message = "Invalid value to --{} \"{}\" for format \"{}\". Transfer function must be sRGB for sRGB formats.";
             if (!convertOETF.has_value() && assignOETF.has_value()) {
                 switch (assignOETF.value()) {
                 case KHR_DF_TRANSFER_UNSPECIFIED:
@@ -531,14 +542,19 @@ struct OptionsCreate {
                     // assign-oetf must either not be specified or must be sRGB for an sRGB format
                     break;
                 default:
-                    report.fatal_usage(
-                            "Invalid value to --assign-oetf \"{}\" for format \"{}\". Transfer function must be sRGB for sRGB formats.",
-                            args[kAssignOetf].as<std::string>(), args[kFormat].as<std::string>());
+                    report.fatal_usage(error_message, "assign-oetf", args[kAssignOetf].as<std::string>(), args[kFormat].as<std::string>());
                 }
             } else if (convertOETF.has_value() && convertOETF != KHR_DF_TRANSFER_SRGB) {
-                report.fatal_usage(
-                        "Invalid value to --convert-oetf \"{}\" for format \"{}\". Transfer function must be sRGB for sRGB formats.",
-                        args[kConvertOetf].as<std::string>(), args[kFormat].as<std::string>());
+                report.fatal_usage(error_message, "convert-oetf", args[kConvertOetf].as<std::string>(), args[kFormat].as<std::string>());
+            }
+        }
+
+        if (isFormatNotSRGBButHasSRGBVariant(vkFormat)) {
+            const auto error_message = "Invalid value to --{} \"{}\" for format \"{}\". Transfer function must not be sRGB for a non-sRGB VkFormat with sRGB variant.";
+            if (!convertOETF.has_value() && assignOETF.has_value() && assignOETF == KHR_DF_TRANSFER_SRGB) {
+                report.fatal_usage(error_message, "assign-oetf", args[kAssignOetf].as<std::string>(), args[kFormat].as<std::string>());
+            } else if (convertOETF.has_value() && convertOETF == KHR_DF_TRANSFER_SRGB) {
+                report.fatal_usage(error_message, "convert-oetf", args[kConvertOetf].as<std::string>(), args[kFormat].as<std::string>());
             }
         }
 
@@ -580,14 +596,25 @@ Create a KTX2 file from various input files.
     The number of input-files specified must match the expected number of input images
     based on the used options.
 
-    The following options are available:
+@section ktx\_create\_options OPTIONS
+  @subsection ktx\_create\_options\_general General Options
+    The following are available:
     <dl>
         <dt>\--format &lt;enum&gt;</dt>
         <dd>VkFormat enum that specifies the data format of the images in the output KTX file.
             The enum names are matching the VkFormats without the VK_FORMAT_ prefix.
-            The VK_FORMAT_ prefix is ignored if present.<br />
-            When used with --encode it specifies the format of the texture object created as input
-            to the encoding step before the encoding step.
+            The VK_FORMAT_ prefix is ignored if present. Case insensitive. Required.<br />
+            <br />
+            If the format is an ASTC format a texture object with the target format
+            @c R8G8B8_{SRGB,UNORM} or  @c R8G8B8A8_{SRGB,UNORM} is created
+            then encoded to the specified ASTC format. The latter format is chosen if alpha
+            is present in the input. @c SRGB or @c UNORM is chosen depending on the
+            specified ASTC format. The ASTC-specific and common encoder options listed
+            @ref ktx_create_options_encoding "below" become valid, otherwise they are ignored.
+            <!--This matches the functionality of the @ref ktx_encode "ktx encode" command
+            when an ASTC format is specified.<br /> -->
+            <br />
+            When used with @b \--encode it specifies the target format before the encoding step.
             In this case it must be one of:
             <ul>
                 <li>R8_UNORM</li>
@@ -604,6 +631,15 @@ Create a KTX2 file from various input files.
             The format will be used to verify and load all input files into a texture before encoding.<br />
             Case insensitive. Required.</dd>
             @snippet{doc} ktx/astc_utils.h command options_astc
+        </dd>
+        <dt>\--encode basis-lz | uastc</dt>
+        <dd>Encode the texture with the specified codec before saving it.
+            This option matches the functionality of the @ref ktx_encode "ktx encode" command.
+            With each choice, the specific and common encoder options listed
+            @ref ktx_create_options_encoding "below"  become valid, otherwise they
+            are ignored. Case-insensitive.</dd>
+
+            @snippet{doc} ktx/encode_utils_basis.h command options_basis_encoders
         <dt>\--1d</dt>
         <dd>Create a 1D texture. If not set the texture will be a 2D or 3D texture.</dd>
         <dt>\--cubemap</dt>
@@ -647,18 +683,6 @@ Create a KTX2 file from various input files.
                 wrap | reflect | clamp.
                 Defaults to clamp.</dd>
         </dl>
-    </dl>
-    <dl>
-        <dt>\--encode basis-lz | uastc<</dt>
-        <dd>Encode the texture with the specified codec before saving it.
-            This option matches the functionality of the @ref ktx_encode "ktx encode" command.
-            With each encoding option the following encoder specific options become valid,
-            otherwise they are ignored. Case-insensitive.</dd>
-
-        @snippet{doc} ktx/encode_utils.h command options_codec
-        @snippet{doc} ktx/metrics_utils.h command options_metrics
-    </dl>
-    <dl>
         <dt>\--swizzle [rgba01]{4}</dt>
         <dd>KTX swizzle metadata.</dd>
         <dt>\--input-swizzle [rgba01]{4}</dt>
@@ -700,8 +724,17 @@ Create a KTX2 file from various input files.
         <dt>\--warn-on-color-conversions</dt>
         <dd>Generates a warning if any of the input images are color converted.</dd>
     </dl>
-    @snippet{doc} ktx/compress_utils.h command options_compress
+    @snippet{doc} ktx/deflate_utils.h command options_deflate
     @snippet{doc} ktx/command.h command options_generic
+
+  @subsection ktx\_create\_options\_encoding Specific and Common Encoding Options
+    The following are available. Specific options become valid only if their encoder has been
+    selected. Common encoder options become valid when an encoder they apply to has
+    been selected. Otherwise they are ignored.
+    @snippet{doc} ktx/encode_utils_astc.h command options_encode_astc
+    @snippet{doc} ktx/encode_utils_basis.h command options_encode_basis
+    @snippet{doc} ktx/encode_utils_common.h command options_encode_common
+    @snippet{doc} ktx/metrics_utils.h command options_metrics
 
 @section ktx_create_exitstatus EXIT STATUS
     @snippet{doc} ktx/command.h command exitstatus
@@ -711,20 +744,25 @@ Create a KTX2 file from various input files.
 @par Version 4.0
  - Initial version
 
+@par Version 4.4
+ - Reorganize encoding options.
+ - Improve explanation of use of @b \--format with @b \--encode.
+ - Improve explanation of ASTC encoding.
+
 @section ktx_create_author AUTHOR
     - Mátyás Császár [Vader], RasterGrid www.rastergrid.com
     - Daniel Rákos, RasterGrid www.rastergrid.com
 */
 class CommandCreate : public Command {
 private:
-    Combine<OptionsCreate, OptionsASTC, OptionsCodec<false>, OptionsMetrics, OptionsCompress, OptionsMultiInSingleOut, OptionsGeneric> options;
+    Combine<OptionsCreate, OptionsEncodeASTC, OptionsEncodeBasis<false>, OptionsEncodeCommon, OptionsMetrics, OptionsDeflate, OptionsMultiInSingleOut, OptionsGeneric> options;
 
     uint32_t targetChannelCount = 0; // Derived from VkFormat
 
     uint32_t numLevels = 0;
     uint32_t numLayers = 0;
     uint32_t numFaces = 0;
-    uint32_t numBaseDepths = 0;
+    uint32_t baseDepth = 0;
 
 public:
     virtual int main(int argc, char* argv[]) override;
@@ -733,9 +771,9 @@ public:
 
 private:
     void executeCreate();
-    void encode(KTXTexture2& texture, OptionsCodec<false>& opts);
-    void encodeASTC(KTXTexture2& texture, OptionsASTC& opts);
-    void compress(KTXTexture2& texture, const OptionsCompress& opts);
+    void encodeBasis(KTXTexture2& texture, OptionsEncodeBasis<false>& opts);
+    void encodeASTC(KTXTexture2& texture, OptionsEncodeASTC& opts);
+    void compress(KTXTexture2& texture, const OptionsDeflate& opts);
 
 private:
     template <typename F>
@@ -785,14 +823,14 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
     numLevels = options.levels.value_or(1);
     numLayers = options.layers.value_or(1);
     numFaces = options.cubemap ? 6 : 1;
-    numBaseDepths = options.depth.value_or(1u);
+    baseDepth = options.depth.value_or(1u);
 
     const auto blockSizeZ = isFormat3DBlockCompressed(options.vkFormat) ?
             createFormatDescriptor(options.vkFormat, *this).basic.texelBlockDimension2 + 1u : 1u;
     uint32_t expectedInputImages = 0;
     for (uint32_t i = 0; i < (options.mipmapGenerate ? 1 : numLevels); ++i)
         // If --generate-mipmap is set the input only contains the base level images
-        expectedInputImages += numLayers * numFaces * ceil_div(std::max(numBaseDepths >> i, 1u), blockSizeZ);
+        expectedInputImages += numLayers * numFaces * ceil_div(std::max(baseDepth >> i, 1u), blockSizeZ);
     if (options.inputFilepaths.size() != expectedInputImages) {
         fatal_usage("Too {} input image for {} level{}, {} layer, {} face and {} depth. Provided {} but expected {}.",
                 options.inputFilepaths.size() > expectedInputImages ? "many" : "few",
@@ -800,11 +838,21 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
                 options.mipmapGenerate ? " (mips generated)" : "",
                 numLayers,
                 numFaces,
-                numBaseDepths,
+                baseDepth,
                 options.inputFilepaths.size(), expectedInputImages);
     }
 
-    if (options.codec == EncodeCodec::BasisLZ) {
+    if (!isFormatAstc(options.vkFormat)) {
+        for (const char* astcOption : OptionsEncodeASTC::kAstcOptions)
+            if (args[astcOption].count())
+                fatal_usage("--{} can only be used with ASTC formats.", astcOption);
+    } else {
+        fillOptionsCodecAstc<decltype(options)>(options);
+        if (options.OptionsEncodeCommon::noSSE)
+            fatal_usage("--{} is not allowed with ASTC encode", OptionsEncodeCommon::kNoSse);
+    }
+
+    if (options.codec == BasisCodec::BasisLZ) {
         if (options.zstd.has_value())
             fatal_usage("Cannot encode to BasisLZ and supercompress with Zstd.");
 
@@ -812,7 +860,7 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
             fatal_usage("Cannot encode to BasisLZ and supercompress with ZLIB.");
     }
 
-    if (options.codec != EncodeCodec::NONE) {
+    if (options.codec != BasisCodec::NONE) {
         switch (options.vkFormat) {
         case VK_FORMAT_R8_UNORM:
         case VK_FORMAT_R8_SRGB:
@@ -831,7 +879,11 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
         }
     }
 
-    const auto canCompare = options.codec == EncodeCodec::BasisLZ || options.codec == EncodeCodec::UASTC;
+    const auto canCompare = options.codec == BasisCodec::BasisLZ || options.codec == BasisCodec::UASTC;
+
+    if (canCompare)
+        fillOptionsCodecBasis<decltype(options)>(options);
+
     if (options.compare_ssim && !canCompare)
         fatal_usage("--compare-ssim can only be used with BasisLZ or UASTC encoding.");
     if (options.compare_psnr && !canCompare)
@@ -932,7 +984,7 @@ void CommandCreate::foreachImage(const FormatDescriptor& format, F&& func) {
     auto inputFileIt = options.inputFilepaths.begin();
 
     for (uint32_t levelIndex = 0; levelIndex < (options.mipmapGenerate ? 1 : numLevels); ++levelIndex) {
-        const auto numDepthSlices = ceil_div(std::max(numBaseDepths >> levelIndex, 1u), format.basic.texelBlockDimension2 + 1u);
+        const auto numDepthSlices = ceil_div(std::max(baseDepth >> levelIndex, 1u), format.basic.texelBlockDimension2 + 1u);
         for (uint32_t layerIndex = 0; layerIndex < numLayers; ++layerIndex) {
             for (uint32_t faceIndex = 0; faceIndex < numFaces; ++faceIndex) {
                 for (uint32_t depthSliceIndex = 0; depthSliceIndex < numDepthSlices; ++depthSliceIndex) {
@@ -1027,7 +1079,7 @@ void CommandCreate::executeCreate() {
             target = ImageSpec{
                     inputImageFile->spec().width(),
                     inputImageFile->spec().height(),
-                    inputImageFile->spec().depth(),
+                    options.depth.value_or(1u),
                     options.formatDesc};
 
             ColorSpaceInfo colorSpaceInfo{};
@@ -1042,11 +1094,11 @@ void CommandCreate::executeCreate() {
                     fatal(rc::INVALID_FILE, "For --1d textures the input image height must be 1, but for \"{}\" it was {}.",
                             fmtInFile(inputFilepath), target.height());
 
-                const auto maxDimension = std::max(target.width(), std::max(target.height(), numBaseDepths));
+                const auto maxDimension = std::max(target.width(), std::max(target.height(), baseDepth));
                 const auto maxLevels = log2(maxDimension) + 1;
                 if (options.levels.value_or(1) > maxLevels)
                     fatal_usage("Requested {} levels is too many. With input image \"{}\" sized {}x{} and depth {} the texture can only have {} levels at most.",
-                            options.levels.value_or(1), fmtInFile(inputFilepath), target.width(), target.height(), numBaseDepths, maxLevels);
+                            options.levels.value_or(1), fmtInFile(inputFilepath), target.width(), target.height(), baseDepth, maxLevels);
 
                 if (options.encodeASTC)
                     selectASTCMode(inputImageFile->spec().format().largestChannelBitLength());
@@ -1117,7 +1169,7 @@ void CommandCreate::executeCreate() {
             assert(ret == KTX_SUCCESS && "Internal error"); (void) ret;
 
             if (options.mipmapGenerate) {
-                const auto maxDimension = std::max(target.width(), std::max(target.height(), numBaseDepths));
+                const auto maxDimension = std::max(target.width(), std::max(target.height(), baseDepth));
                 const auto maxLevels = log2(maxDimension) + 1;
                 uint32_t numMipLevels = options.levels.value_or(maxLevels);
                 generateMipLevels(texture, std::move(image), *inputImageFile, numMipLevels, layerIndex, faceIndex, depthSliceIndex);
@@ -1139,12 +1191,12 @@ void CommandCreate::executeCreate() {
     }
 
     // Encode and apply compression
-    encode(texture, options);
+    encodeBasis(texture, options);
     encodeASTC(texture, options);
     compress(texture, options);
 
     // Add KTXwriterScParams metadata if ASTC encoding, BasisU encoding, or other supercompression was used
-    const auto writerScParams = fmt::format("{}{}{}", options.astcOptions, options.codecOptions, options.compressOptions);
+    const auto writerScParams = fmt::format("{}{}{}{}", options.astcOptions, options.codecOptions, options.commonOptions, options.compressOptions);
     if (writerScParams.size() > 0) {
         // Options always contain a leading space
         assert(writerScParams[0] == ' ');
@@ -1164,12 +1216,12 @@ void CommandCreate::executeCreate() {
 
 // -------------------------------------------------------------------------------------------------
 
-void CommandCreate::encode(KTXTexture2& texture, OptionsCodec<false>& opts) {
+void CommandCreate::encodeBasis(KTXTexture2& texture, OptionsEncodeBasis<false>& opts) {
     MetricsCalculator metrics;
     metrics.saveReferenceImages(texture, options, *this);
 
-    if (opts.codec != EncodeCodec::NONE) {
-        auto ret = ktxTexture2_CompressBasisEx(texture, &opts.basisOpts);
+    if (opts.codec != BasisCodec::NONE) {
+        auto ret = ktxTexture2_CompressBasisEx(texture, &opts);
         if (ret != KTX_SUCCESS)
             fatal(rc::KTX_FAILURE, "Failed to encode KTX2 file with codec \"{}\". KTX Error: {}",
                     to_underlying(opts.codec), ktxErrorString(ret));
@@ -1178,7 +1230,7 @@ void CommandCreate::encode(KTXTexture2& texture, OptionsCodec<false>& opts) {
     metrics.decodeAndCalculateMetrics(texture, options, *this);
 }
 
-void CommandCreate::encodeASTC(KTXTexture2& texture, OptionsASTC& opts) {
+void CommandCreate::encodeASTC(KTXTexture2& texture, OptionsEncodeASTC& opts) {
     if (opts.encodeASTC) {
         const auto ret = ktxTexture2_CompressAstcEx(texture, &opts);
         if (ret != KTX_SUCCESS)
@@ -1186,7 +1238,7 @@ void CommandCreate::encodeASTC(KTXTexture2& texture, OptionsASTC& opts) {
     }
 }
 
-void CommandCreate::compress(KTXTexture2& texture, const OptionsCompress& opts) {
+void CommandCreate::compress(KTXTexture2& texture, const OptionsDeflate& opts) {
     if (opts.zstd) {
         const auto ret = ktxTexture2_DeflateZstd(texture, *opts.zstd);
         if (ret != KTX_SUCCESS)
@@ -1248,19 +1300,11 @@ std::unique_ptr<Image> CommandCreate::loadInputImage(ImageInput& inputImageFile)
     return image;
 }
 
-std::vector<uint8_t> convertUNORMPackedPadded(const std::unique_ptr<Image>& image,
-        uint32_t c0 = 0, uint32_t c0Pad = 0, uint32_t c1 = 0, uint32_t c1Pad = 0,
-        uint32_t c2 = 0, uint32_t c2Pad = 0, uint32_t c3 = 0, uint32_t c3Pad = 0,
-        std::string_view swizzle = "") {
-
+std::vector<uint8_t> convertUNORMPacked(const std::unique_ptr<Image>& image, uint32_t C0, uint32_t C1, uint32_t C2, uint32_t C3, std::string_view swizzle = "") {
     if (!swizzle.empty())
         image->swizzle(swizzle);
 
-    return image->getUNORMPackedPadded(c0, c0Pad, c1, c1Pad, c2, c2Pad, c3, c3Pad);
-}
-
-std::vector<uint8_t> convertUNORMPacked(const std::unique_ptr<Image>& image, uint32_t C0, uint32_t C1, uint32_t C2, uint32_t C3, std::string_view swizzle = "") {
-    return convertUNORMPackedPadded(image, C0, 0, C1, 0, C2, 0, C3, 0, swizzle);
+    return image->getUNORMPacked(C0, C1, C2, C3);
 }
 
 template <typename T>
@@ -1274,6 +1318,19 @@ std::vector<uint8_t> convertUNORM(const std::unique_ptr<Image>& image, std::stri
         image->swizzle(swizzle);
 
     return image->getUNORM(componentCount, bits);
+}
+
+template <typename T>
+std::vector<uint8_t> convertUNORMSBits(const std::unique_ptr<Image>& image, uint32_t sBits, std::string_view swizzle = "") {
+    using ComponentT = typename T::Color::value_type;
+    static constexpr auto componentCount = T::Color::getComponentCount();
+    static constexpr auto bytesPerComponent = sizeof(ComponentT);
+    static constexpr auto bits = bytesPerComponent * 8;
+
+    if (!swizzle.empty())
+        image->swizzle(swizzle);
+
+    return image->getUNORM(componentCount, bits, sBits);
 }
 
 template <typename T>
@@ -1433,7 +1490,9 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
         // 8 bits with a right-shift and a warning must be generated in the stderr.
 
     case VK_FORMAT_R8G8B8A8_UNORM: [[fallthrough]];
-    case VK_FORMAT_R8G8B8A8_SRGB:
+    case VK_FORMAT_R8G8B8A8_SRGB: [[fallthrough]];
+    case VK_FORMAT_A8B8G8R8_UNORM_PACK32: [[fallthrough]];
+    case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
         requireUNORM(8);
         return convertUNORM<rgba8image>(image);
     case VK_FORMAT_B8G8R8A8_UNORM: [[fallthrough]];
@@ -1522,23 +1581,23 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
 
     case VK_FORMAT_R10X6_UNORM_PACK16:
         requireUNORM(10);
-        return convertUNORMPackedPadded(image, 10, 6);
+        return convertUNORMSBits<r16image>(image, 10);
     case VK_FORMAT_R10X6G10X6_UNORM_2PACK16:
         requireUNORM(10);
-        return convertUNORMPackedPadded(image, 10, 6, 10, 6);
+        return convertUNORMSBits<rg16image>(image, 10);
     case VK_FORMAT_R10X6G10X6B10X6A10X6_UNORM_4PACK16:
         requireUNORM(10);
-        return convertUNORMPackedPadded(image, 10, 6, 10, 6, 10, 6, 10, 6);
+        return convertUNORMSBits<rgba16image>(image, 10);
 
     case VK_FORMAT_R12X4_UNORM_PACK16:
         requireUNORM(12);
-        return convertUNORMPackedPadded(image, 12, 4);
+        return convertUNORMSBits<r16image>(image, 12);
     case VK_FORMAT_R12X4G12X4_UNORM_2PACK16:
         requireUNORM(12);
-        return convertUNORMPackedPadded(image, 12, 4, 12, 4);
+        return convertUNORMSBits<rg16image>(image, 12);
     case VK_FORMAT_R12X4G12X4B12X4A12X4_UNORM_4PACK16:
         requireUNORM(12);
-        return convertUNORMPackedPadded(image, 12, 4, 12, 4, 12, 4, 12, 4);
+        return convertUNORMSBits<rgba16image>(image, 12);
 
         // Input values must be rounded to the target precision.
         // When the input file contains an sBIT chunk, its values must be taken into account.
@@ -1633,10 +1692,12 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
     case VK_FORMAT_R32G32B32_UINT:
         requireUINT(32);
         return convertUINT<rgb32image>(image);
-    case VK_FORMAT_R8G8B8A8_UINT:
+    case VK_FORMAT_R8G8B8A8_UINT: [[fallthrough]];
+    case VK_FORMAT_A8B8G8R8_UINT_PACK32:
         requireSFloat(16);
         return convertUINT<rgba8image>(image);
-    case VK_FORMAT_R8G8B8A8_SINT:
+    case VK_FORMAT_R8G8B8A8_SINT: [[fallthrough]];
+    case VK_FORMAT_A8B8G8R8_SINT_PACK32:
         requireSFloat(16);
         return convertSINT<rgba8image>(image);
     case VK_FORMAT_B8G8R8A8_UINT:
@@ -1738,6 +1799,8 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
 KTXTexture2 CommandCreate::createTexture(const ImageSpec& target) {
     ktxTextureCreateInfo createInfo;
     std::memset(&createInfo, 0, sizeof(createInfo));
+
+    assert(target.depth() == baseDepth);
 
     createInfo.vkFormat = options.vkFormat;
     createInfo.numFaces = numFaces;

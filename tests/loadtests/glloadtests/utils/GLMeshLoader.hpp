@@ -21,9 +21,12 @@
 #else
 #endif
 
+// Emscripten assimp port not yet available.
+#if !defined(__EMSCRIPTEN__)
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#endif
 
 #include "disable_glm_warnings.h"
 #include <glm/glm.hpp>
@@ -88,6 +91,7 @@ namespace glMeshLoader
         }
     };
 
+#if !defined(__EMSCRIPTEN__)
     // Get vertex size from vertex layout
     static uint32_t vertexSize(std::vector<glMeshLoader::VertexLayout> layout)
     {
@@ -106,8 +110,10 @@ namespace glMeshLoader
         }
         return vSize;
     }
+#endif
 }
 
+#if !defined(__EMSCRIPTEN__)
 // Simple mesh class for getting all the necessary stuff from models
 // loaded via ASSIMP.
 class GLMeshLoader {
@@ -506,4 +512,5 @@ class GLMeshLoader {
         glBindVertexArray(0);
     }
 };
+#endif // !defined(__EMSCRIPTEN__)
 

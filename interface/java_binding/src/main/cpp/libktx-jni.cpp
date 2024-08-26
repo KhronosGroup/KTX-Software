@@ -97,12 +97,14 @@ void copy_ktx_astc_params(JNIEnv *env, jobject params, ktxAstcParams &out)
     out.normalMap = env->GetBooleanField(params, normalMap);
     out.perceptual = env->GetBooleanField(params, perceptual);
 
-    env->GetByteArrayRegion(
-        static_cast<jbyteArray>(env->GetObjectField(params, inputSwizzle)),
-        0,
-        4,
-        reinterpret_cast<jbyte*>(&out.inputSwizzle)
-    );
+    jobject inputSwizzleObject = env->GetObjectField(params, inputSwizzle);
+    jcharArray inputSwizzleArray = static_cast<jcharArray>(inputSwizzleObject);
+    jchar *inputSwizzleValues = env->GetCharArrayElements( inputSwizzleArray, NULL);
+    for (int i=0; i<4; i++)
+    {
+      out.inputSwizzle[i] = static_cast<char>(inputSwizzleValues[i]);
+    }
+    env->ReleaseCharArrayElements(inputSwizzleArray, inputSwizzleValues, JNI_ABORT);
 }
 
 void copy_ktx_basis_params(JNIEnv *env, jobject params, ktxBasisParams &out)
@@ -145,12 +147,16 @@ void copy_ktx_basis_params(JNIEnv *env, jobject params, ktxBasisParams &out)
     out.endpointRDOThreshold = env->GetFloatField(params, endpointRDOThreshold);
     out.maxSelectors = env->GetIntField(params, maxSelectors);
     out.selectorRDOThreshold = env->GetFloatField(params, selectorRDOThreshold);
-    env->GetByteArrayRegion(
-        static_cast<jbyteArray>(env->GetObjectField(params, inputSwizzle)),
-        0,
-        4,
-        reinterpret_cast<jbyte*>(&out.inputSwizzle)
-    );
+
+    jobject inputSwizzleObject = env->GetObjectField(params, inputSwizzle);
+    jcharArray inputSwizzleArray = static_cast<jcharArray>(inputSwizzleObject);
+    jchar *inputSwizzleValues = env->GetCharArrayElements( inputSwizzleArray, NULL);
+    for (int i=0; i<4; i++)
+    {
+      out.inputSwizzle[i] = static_cast<char>(inputSwizzleValues[i]);
+    }
+    env->ReleaseCharArrayElements(inputSwizzleArray, inputSwizzleValues, JNI_ABORT);
+
     out.normalMap = env->GetBooleanField(params, normalMap);
     out.preSwizzle = env->GetBooleanField(params, preSwizzle);
     out.noEndpointRDO = env->GetBooleanField(params, noEndpointRDO);

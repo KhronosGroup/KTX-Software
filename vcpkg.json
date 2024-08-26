@@ -1,0 +1,24 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "ktx-software",
+  "features": {
+    "loadtests": {
+      "description": "OpenGL & Vulkan Load Tests. All dependencies from vcpkg",
+      "dependencies": [
+        "assimp",
+        {
+          "name": "glew",
+          "platform": "windows"
+        },
+        {
+          "name": "sdl2",
+          "default-features": true,
+          "features": [
+            "vulkan"
+          ]
+        }
+      ]
+    }
+  }
+}
+

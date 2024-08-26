@@ -23,8 +23,8 @@ class KtxBasisParams:
 
     compression_level: int = 0
     """
-    Encoding speed vs. quality tradeoff. Range is [0,5]. 
-    
+    Encoding speed vs. quality tradeoff. Range is [0,5].
+
     Higher values are slower, but give higher quality. There is no default.
     Callers must explicitly set this value. Callers can use
     KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL as a default value. Currently this is 2.
@@ -35,13 +35,13 @@ class KtxBasisParams:
     Compression quality. Range is [1,255].
 
     Lower gives better compression/lower quality/faster.
-    Higher gives less compression/higher quality/slower. 
+    Higher gives less compression/higher quality/slower.
     This automatically determines values for max_endpoints, max_selectors,
     endpoint_rdo_threshold, and selector_rdo_threshold for the target quality
     level. Setting these parameters overrides the values determined by quality_level
     which defaults to 128 if neither it nor both of max_endpoints and max_selectors
     have been set.
-    
+
     Both of max_endpoints and max_selectors must be set for them to have any effect.
     quality_level will only determine values for endpoint_rdo_threshold and selector_rdo_threshold
     when its value exceeds 128, otherwise their defaults will be used.
@@ -58,7 +58,7 @@ class KtxBasisParams:
     endpoint_rdo_threshold: int = 0
     """
     Set endpoint RDO quality threshold. The default is 1.25.
-    
+
     Lower is higher quality but less quality per output bit (try [1.0,3.0].
     This will override the value chosen by quality_level.
     """
@@ -66,15 +66,15 @@ class KtxBasisParams:
     max_selectors: int = 0
     """
     Manually set the max number of color selector clusters. Range is [1,16128].
-    
+
     Default is 0, unset. If this is set, max_endpoints must also be set, otherwise
     the value will be ignored.
     """
-    
+
     selector_rdo_threshold: int = 0
     """
     Set selector RDO quality threshold. The default is 1.5.
-    
+
     Lower is higher quality but less quality per output bit (try [1.0,3.0]).
     This will override the value chosen by @c qualityLevel.
     """
@@ -82,7 +82,7 @@ class KtxBasisParams:
     input_swizzle: bytes = bytes(4)
     """
     A swizzle to apply before encoding.
-    
+
     It must match the regular expression /^[rgba01]{4}$/. If both this and
     pre_swizzle are specified KtxTexture2.compressBasis() will raise INVALID_OPERATION.
     """
@@ -98,7 +98,7 @@ class KtxBasisParams:
     pre_swizzle: bool = False
     """
     If the texture has swizzle metadata, apply it before compressing.
-    
+
     Swizzling, like rabb may yield drastically different error metrics
     if done after supercompression.
     """
@@ -106,7 +106,7 @@ class KtxBasisParams:
     separate_rg_to_rgb_a: bool = False
     """
     This was and is a no-op.
-    
+
     2-component inputs have always been automatically separated
     using an "rrrg" input_swizzle.
     """
@@ -114,21 +114,21 @@ class KtxBasisParams:
     no_endpoint_rdo: bool = False
     """
     Disable endpoint rate distortion optimizations.
-    
+
     Slightly faster, less noisy output, but lower quality per output bit.
     """
 
     no_selector_rdo: bool = False
     """
     Disable selector rate distortion optimizations.
-    
+
     Slightly faster, less noisy output, but lower quality per output bit.
     """
 
     uastc_flags: int = KtxPackUastcFlagBits.FASTEST
     """
     A set of KtxPackUastcFlagBits controlling UASTC encoding.
-    
+
     The most important value is the level given in the
     least-significant 4 bits which selects a speed vs quality tradeoff.
     """
@@ -139,7 +139,7 @@ class KtxBasisParams:
     uastc_rdo_quality_scalar: float = 0.
     """
     UASTC RDO quality scalar (lambda).
-    
+
     Lower values yield higher quality/larger LZ compressed files, higher
     values yield lower quality/smaller LZ compressed files. A good range to
     try is [.2,4]. Full range is [.001,50.0]. Default is 1.0.

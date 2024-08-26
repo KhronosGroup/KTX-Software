@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file vk_funcs.h
+ * @file
  * @~English
  *
  * @brief Declare pointers for Vulkan functions.
@@ -21,7 +21,9 @@
 #ifndef _VK_FUNCS_H_
 #define _VK_FUNCS_H_
 
+#if !defined(VK_NO_PROTOTYPES)
 #define VK_NO_PROTOTYPES
+#endif
 
 #include "vulkan/vk_platform.h"
 #include "vulkan/vulkan_core.h"

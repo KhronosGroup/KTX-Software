@@ -10,7 +10,7 @@
 
 /**
  * @internal
- * @file GLAppSDLGL.cpp
+ * @file
  * @~English
  *
  * @brief GLAppSDL app class.

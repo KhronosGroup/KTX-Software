@@ -5,17 +5,26 @@
 
 package org.khronos.ktx.test;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.khronos.ktx.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.khronos.ktx.KtxBasisParams;
+import org.khronos.ktx.KtxCreateStorage;
+import org.khronos.ktx.KtxErrorCode;
+import org.khronos.ktx.KtxSupercmpScheme;
+import org.khronos.ktx.KtxTexture2;
+import org.khronos.ktx.KtxTextureCreateFlagBits;
+import org.khronos.ktx.KtxTextureCreateInfo;
+import org.khronos.ktx.KtxTranscodeFormat;
+import org.khronos.ktx.VkFormat;
 
 @ExtendWith({ KtxTestLibraryLoader.class })
 public class KtxTexture2Test {
@@ -227,4 +236,91 @@ public class KtxTexture2Test {
 
         texture.destroy();
     }
+
+	@Test
+	public void testInputSwizzleBasisEx() throws IOException {
+
+		int sizeX = 32;
+		int sizeY = 32;
+		int outputFormat = KtxTranscodeFormat.RGBA32;
+		int transcodeFlags = 0;
+
+		// Create the actual texture data:
+		// - create RGBA pixels
+		// - create texture
+		// - compress with BRGA input swizzling
+		// - obtain resulting RGBA values
+
+		// Create a RGBA pixels for an image filled with
+		// 8 rows of red pixels
+		// 8 rows of green pixels
+		// 8 rows of blue pixels
+		// 8 rows of white pixels
+		byte[] input = new byte[sizeX * sizeY * 4];
+		TestUtils.fillRows(input, sizeX, sizeY, 0, 8, 255, 0, 0, 255); // Red
+		TestUtils.fillRows(input, sizeX, sizeY, 8, 16, 0, 255, 0, 255); // Green
+		TestUtils.fillRows(input, sizeX, sizeY, 16, 24, 0, 0, 255, 255); // Blue
+		TestUtils.fillRows(input, sizeX, sizeY, 24, 32, 255, 255, 255, 255); // White
+
+		// Create the input texture from the pixels
+		KtxTextureCreateInfo inputInfo = new KtxTextureCreateInfo();
+		inputInfo.setBaseWidth(sizeX);
+		inputInfo.setBaseHeight(sizeY);
+		inputInfo.setVkFormat(VkFormat.VK_FORMAT_R8G8B8A8_SRGB);
+		KtxTexture2 inputTexture = KtxTexture2.create(inputInfo, KtxCreateStorage.ALLOC);
+		inputTexture.setImageFromMemory(0, 0, 0, input);
+
+		// Apply basis compression to the input, with an input swizzle BRGA,
+		// so that
+		// the former B channel becomes the R channel
+		// the former R channel becomes the G channel
+		// the former G channel becomes the B channel
+		// the former A channel remains the A channel
+		KtxBasisParams inputParams = new KtxBasisParams();
+		inputParams.setUastc(false);
+		inputParams.setInputSwizzle(new char[] { 'b', 'r', 'g', 'a' });
+		inputTexture.compressBasisEx(inputParams);
+
+		// Transcode the input texture to RGBA32
+		inputTexture.transcodeBasis(outputFormat, transcodeFlags);
+		byte[] actualRgba = inputTexture.getData();
+
+		// Create the expected reference data:
+		// - create RGBA pixels, swizzled with BRGA
+		// - create texture
+		// - compress without input swizzling
+		// - obtain resulting RGBA values
+
+		// Create "golden" reference pixels, where a BRGA
+		// swizzling was already applied
+		byte[] gold = new byte[sizeX * sizeY * 4];
+		TestUtils.fillRows(gold, sizeX, sizeY, 0, 8, 0, 255, 0, 255); // Green
+		TestUtils.fillRows(gold, sizeX, sizeY, 8, 16, 0, 0, 255, 255); // Blue
+		TestUtils.fillRows(gold, sizeX, sizeY, 16, 24, 255, 0, 0, 255); // Red
+		TestUtils.fillRows(gold, sizeX, sizeY, 24, 32, 255, 255, 255, 255); // White
+
+		// Create the reference texture from the swizzled pixels
+		KtxTextureCreateInfo goldInfo = new KtxTextureCreateInfo();
+		goldInfo.setBaseWidth(sizeX);
+		goldInfo.setBaseHeight(sizeY);
+		goldInfo.setVkFormat(VkFormat.VK_FORMAT_R8G8B8A8_SRGB);
+		KtxTexture2 goldTexture = KtxTexture2.create(goldInfo, KtxCreateStorage.ALLOC);
+		goldTexture.setImageFromMemory(0, 0, 0, gold);
+
+		// Apply basis compression to the reference, without swizzling
+		KtxBasisParams goldParams = new KtxBasisParams();
+		goldParams.setUastc(false);
+		goldTexture.compressBasisEx(goldParams);
+
+		// Transcode the reference texture to RGBA32
+		goldTexture.transcodeBasis(outputFormat, transcodeFlags);
+		byte[] expectedRgba = goldTexture.getData();
+
+		// Compare the resulting data to the expected RGBA values.
+		assertArrayEquals(expectedRgba, actualRgba);
+
+		inputTexture.destroy();
+		goldTexture.destroy();
+	}
 }
+

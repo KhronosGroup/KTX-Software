@@ -77,6 +77,7 @@ enum class ReturnCode {
     DFD_FAILURE = RUNTIME_ERROR,
     NOT_SUPPORTED = 5,
     NOT_IMPLEMENTED = 6,
+    DIFFERENCE_FOUND = 7
 };
 using rc = ReturnCode;
 
@@ -246,6 +247,9 @@ struct OptionsSingleIn {
     }
 
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
+        if (!args.unmatched().empty())
+            report.fatal_usage("Too many filenames specified.");
+
         if (args.count("stdin") + args.count("input-file") == 0)
             report.fatal_usage("Missing input file. Either <input-file> or --stdin must be specified.");
         if (args.count("stdin") + args.count("input-file") > 1)
@@ -273,6 +277,9 @@ struct OptionsSingleInSingleOut {
     }
 
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
+        if (!args.unmatched().empty())
+            report.fatal_usage("Too many filenames specified.");
+
         if (args.count("stdin") + args.count("input-file") == 0)
             report.fatal_usage("Missing input file. Either <input-file> or --stdin must be specified.");
         if (args.count("stdin") + args.count("input-file") > 1)
@@ -358,6 +365,10 @@ class InputStream {
 public:
     InputStream(const std::string& filepath, Reporter& report);
 
+    const std::string& str() {
+        return filepath;
+    }
+
     /*explicit(false)*/ operator std::istream&() {
         return *activeStream;
     }
@@ -380,6 +391,11 @@ class OutputStream {
 public:
     OutputStream(const std::string& filepath, Reporter& report);
     ~OutputStream();
+
+    const std::string& str() {
+        return filepath;
+    }
+
     void writeKTX2(ktxTexture* texture, Reporter& report);
     void write(const char* data, std::size_t size, Reporter& report);
 };

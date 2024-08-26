@@ -3,7 +3,7 @@
 
 /**
  * @internal
- * @file writer.c
+ * @file
  * @~English
  *
  * @brief Functions for creating KTX-format files from a set of images.
@@ -76,10 +76,17 @@ strnstr(const char *haystack, const char *needle, size_t len)
 {
     size_t i;
     size_t needleLen;
+    const char* needleEnd;
 
-    needleLen = strnlen(needle, len);
-    if (needleLen == 0)
+    // strnlen is not part of the C standard and does not compile on some platforms, 
+    // use case is covered by memchr.
+    needleEnd = (char *)memchr(needle, 0, len);
+    if (needleEnd == needle)
         return (char *)haystack;
+
+    needleLen = len;
+    if (needleEnd != NULL)
+        needleLen = needleEnd - needle;
 
     for (i = 0; i <= len - needleLen; i++)
     {
@@ -291,6 +298,9 @@ ktxTexture2_SetImageFromStdioStream(ktxTexture2* This, ktx_uint32_t level,
  *
  * Level, layer, faceSlice rather than offset are specified to enable some
  * validation.
+ *
+ * @note The caller is responsible for freeing the original image memory
+ *       referred to by @p src.
  *
  * @param[in] This      pointer to the target ktxTexture object.
  * @param[in] level     mip level of the image to set.
@@ -761,7 +771,7 @@ ktxTexture2_WriteToMemory(ktxTexture2* This,
  * @~English
  * @brief Deflate the data in a ktxTexture2 object using Zstandard.
  *
- * The texture's levelIndex, dataSize, DFD  and supercompressionScheme will
+ * The texture's levelIndex, dataSize, DFD, data pointer, and supercompressionScheme will
  * all be updated after successful deflation to reflect the deflated data.
  *
  * @param[in] This pointer to the ktxTexture2 object of interest.
@@ -782,8 +792,11 @@ ktxTexture2_DeflateZstd(ktxTexture2* This, ktx_uint32_t compressionLevel)
     ktxLevelIndexEntry* cindex = This->_private->_levelIndex;
     ktxLevelIndexEntry* nindex;
     ktx_uint8_t* pCmpDst;
+    ktx_error_code_e result;
 
     ZSTD_CCtx* cctx = ZSTD_createCCtx();
+    if (cctx == NULL)
+        return KTX_OUT_OF_MEMORY;
 
     if (This->supercompressionScheme != KTX_SS_NONE)
         return KTX_INVALID_OPERATION;
@@ -797,8 +810,10 @@ ktxTexture2_DeflateZstd(ktxTexture2* This, ktx_uint32_t compressionLevel)
     }
 
     workBuf = malloc(dstRemainingByteLength + levelIndexByteLength);
-    if (workBuf == NULL)
-        return KTX_OUT_OF_MEMORY;
+    if (workBuf == NULL) {
+        result = KTX_OUT_OF_MEMORY;
+        goto cleanup;
+    }
     nindex = (ktxLevelIndexEntry*)workBuf;
     pCmpDst = &workBuf[levelIndexByteLength];
 
@@ -814,28 +829,33 @@ ktxTexture2_DeflateZstd(ktxTexture2* This, ktx_uint32_t compressionLevel)
             ZSTD_ErrorCode error = ZSTD_getErrorCode(levelByteLengthCmp);
             switch(error) {
               case ZSTD_error_parameter_outOfBound:
-                return KTX_INVALID_VALUE;
+                result = KTX_INVALID_VALUE;
+                goto cleanup;
               case ZSTD_error_dstSize_tooSmall:
 #ifdef DEBUG
                 assert(false && "Deflate dstSize too small.");
 #else
-                return KTX_OUT_OF_MEMORY;
+                result = KTX_OUT_OF_MEMORY;
+                goto cleanup;
 #endif
               case ZSTD_error_workSpace_tooSmall:
 #ifdef DEBUG
                 assert(false && "Deflate workspace too small.");
 #else
-                return KTX_OUT_OF_MEMORY;
+                result = KTX_OUT_OF_MEMORY;
+                goto cleanup;
 #endif
               case ZSTD_error_memory_allocation:
-                return KTX_OUT_OF_MEMORY;
+                result = KTX_OUT_OF_MEMORY;
+                goto cleanup;
               default:
                 // The remaining errors look like they should only
                 // occur during decompression but just in case.
 #ifdef DEBUG
                 assert(true);
 #else
-                return KTX_INVALID_OPERATION;
+                result = KTX_INVALID_OPERATION;
+                goto cleanup;
 #endif
             }
         }
@@ -868,6 +888,11 @@ ktxTexture2_DeflateZstd(ktxTexture2* This, ktx_uint32_t compressionLevel)
     bdb[KHR_DF_WORD_BYTESPLANE0] = 0; /* bytesPlane3..0 = 0 */
 
     return KTX_SUCCESS;
+
+cleanup:
+    ZSTD_freeCCtx(cctx);
+    free(workBuf);
+    return result;
 }
 
 /**
@@ -875,7 +900,7 @@ ktxTexture2_DeflateZstd(ktxTexture2* This, ktx_uint32_t compressionLevel)
  * @~English
  * @brief Deflate the data in a ktxTexture2 object using miniz (ZLIB).
  *
- * The texture's levelIndex, dataSize, DFD and supercompressionScheme will
+ * The texture's levelIndex, dataSize, DFD, data pointer, and supercompressionScheme will
  * all be updated after successful deflation to reflect the deflated data.
  *
  * @param[in] This pointer to the ktxTexture2 object of interest.
@@ -919,8 +944,10 @@ ktxTexture2_DeflateZLIB(ktxTexture2* This, ktx_uint32_t compressionLevel)
                                                     &This->pData[cindex[level].byteOffset],
                                                     cindex[level].byteLength,
                                                     compressionLevel);
-        if (result != KTX_SUCCESS)
+        if (result != KTX_SUCCESS) {
+            free(workBuf);
             return result;
+        }
 
         nindex[level].byteOffset = levelOffset;
         nindex[level].uncompressedByteLength = cindex[level].byteLength;

@@ -13,7 +13,7 @@
 
 /**
  * @internal
- * @file AppBaseSDL.h
+ * @file
  * @~English
  *
  * @brief Declarations for App framework using SDL.

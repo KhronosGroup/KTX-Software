@@ -3,6 +3,13 @@
 
 set(OPENGL_ES_EMULATOR "" CACHE PATH "Path to OpenGL ES emulation libraries")
 
+if(NOT APPLE_LOCKED_OS)
+    find_package(OpenGL REQUIRED)
+endif()
+if(WIN32)
+    find_package(GLEW REQUIRED)
+endif()
+
 function( create_gl_target target version sources common_resources test_images
           KTX_GL_CONTEXT_PROFILE
           KTX_GL_CONTEXT_MAJOR_VERSION KTX_GL_CONTEXT_MINOR_VERSION
@@ -49,7 +56,6 @@ function( create_gl_target target version sources common_resources test_images
         GLAppSDL
         appfwSDL
         ktx
-        ${KTX_ZLIB_LIBRARIES}
     )
 
     if(NOT EMSCRIPTEN AND NOT EMULATE_GLES)
@@ -59,24 +65,25 @@ function( create_gl_target target version sources common_resources test_images
         )
     endif()
 
-    if(SDL2_FOUND)
-        target_link_libraries(
-            ${target}
-            ${SDL2_LIBRARIES}
-        )
-    endif()
-
     if(APPLE)
         if(IOS)
-            set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/glloadtests/resources/ios/Info.plist" )
+            # This is location where CMake puts the configured Info.plist.
+            # I have not found a CMake variable for this.
+            set( launch_screen ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${target}.dir/LaunchScreen.storyboard )
+            configure_file( glloadtests/resources/ios/LaunchScreen.storyboard.in
+                 ${launch_screen}
+            )
+            set( INFO_PLIST_IN "${PROJECT_SOURCE_DIR}/tests/loadtests/glloadtests/resources/ios/Info.plist.in" )
             set( icon_launch_assets
                 ${PROJECT_SOURCE_DIR}/icons/ios/CommonIcons.xcassets
                 glloadtests/resources/ios/LaunchImages.xcassets
-                glloadtests/resources/ios/LaunchScreen.storyboard
+                ${launch_screen}
             )
             target_sources( ${target}
                 PRIVATE
-                    ${icon_launch_assets}
+                ${PROJECT_SOURCE_DIR}/icons/ios/CommonIcons.xcassets
+                glloadtests/resources/ios/LaunchImages.xcassets
+                glloadtests/resources/ios/LaunchScreen.storyboard.in
             )
             # Add to resources so they'll be copied to the bundle.
             list( APPEND resources ${icon_launch_assets} )
@@ -97,7 +104,7 @@ function( create_gl_target target version sources common_resources test_images
                 ${UIKit_LIBRARY}
             )
         else()
-            set( INFO_PLIST "${PROJECT_SOURCE_DIR}/tests/loadtests/glloadtests/resources/mac/Info.plist" )
+            set( INFO_PLIST_IN "${PROJECT_SOURCE_DIR}/tests/loadtests/glloadtests/resources/mac/Info.plist.in" )
         endif()
     elseif(EMSCRIPTEN)
         # Beware of de-duplication in list expansion for commands and options.
@@ -171,40 +178,46 @@ function( create_gl_target target version sources common_resources test_images
             GL_CONTEXT_PROFILE=${KTX_GL_CONTEXT_PROFILE}
             GL_CONTEXT_MAJOR_VERSION=${KTX_GL_CONTEXT_MAJOR_VERSION}
             GL_CONTEXT_MINOR_VERSION=${KTX_GL_CONTEXT_MINOR_VERSION}
+            $<$<PLATFORM_ID:Windows>:NOMINMAX>
         )
     else()
         target_compile_definitions(
             ${target}
         PRIVATE
             $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
+            $<$<PLATFORM_ID:Windows>:NOMINMAX>
         )
     endif()
 
     set_target_properties( ${target} PROPERTIES RESOURCE "${resources}" )
 
     if(APPLE)
-        set(PRODUCT_NAME "${target}")
-        set(EXECUTABLE_NAME ${PRODUCT_NAME})
-        # How amazingly irritating. We have to set both of these to the same
-        # value. The first must be set otherwise the app cannot be installed
-        # on iOS. The second has to be set to avoid an Xcode warning.
-        set(PRODUCT_BUNDLE_IDENTIFIER "org.khronos.ktx.${PRODUCT_NAME}")
-        set_target_properties(${target} PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.ktx.${PRODUCT_NAME}")
-        configure_file( ${INFO_PLIST} ${target}/Info.plist )
+        set(product_name "${target}")
+        set( bundle_identifier org.khronos.ktx.${product_name} )
+        # This property must be set to avoid an Xcode warning.
+        set_target_properties(${target} PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.khronos.ktx.${product_name}")
+        # See important comment about MACOSX_BUNDLE_INFO_PLIST and these
+        # properties in ./vkloadtests.cmake.
         set_target_properties( ${target} PROPERTIES
-            MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_BINARY_DIR}/${target}/Info.plist"
-            MACOSX_BUNDLE_ICON_FILE "ktx_app.icns"
+            MACOSX_BUNDLE_BUNDLE_NAME ${product_name}
+            MACOSX_BUNDLE_EXECUTABLE_NAME ${product_name}
+            MACOSX_BUNDLE_COPYRIGHT "© 2024 Khronos Group, Inc."
+            MACOSX_BUNDLE_GUI_IDENTIFIER ${bundle_identifier}
+            MACOSX_BUNDLE_INFO_PLIST ${INFO_PLIST_IN}
+            MACOSX_BUNDLE_INFO_STRING "View KTX textures; display via OpenGL."
+            MACOSX_BUNDLE_ICON_FILE ${KTX_APP_ICON}
+            MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
+            MACOSX_BUNDLE_SHORT_VERSION_STRING  ${PROJECT_VERSION}
             # Because libassimp is built with bitcode disabled. It's not
             # important unless submitting to the App Store and currently
             # bitcode is optional.
             XCODE_ATTRIBUTE_ENABLE_BITCODE "NO"
             XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES"
-            XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME "ktx_app"
+            XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME ${KTX_APP_ICON_BASENAME}
             XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2" # iPhone and iPad
         )
-        unset(PRODUCT_NAME)
-        unset(EXECUTABLE_NAME)
-        unset(PRODUCT_BUNDLE_IDENTIFIER)
+        unset(product_name)
+        unset(bundle_identifier)
 
         # The generated project code for building an Apple bundle automatically
         # copies the executable and all files with the RESOURCE property to the
@@ -223,16 +236,8 @@ function( create_gl_target target version sources common_resources test_images
                   COMMENT "Copy KTX library to build destination"
               )
             endif()
-            # No need to copy when there is a TARGET. The BREW SDL
-            # library has no LC_RPATH setting so the binary will
-            # only search for it where it was during linking.
-            # The vcpkg SDL target copies the library.
-            if(NOT TARGET SDL2::SDL2)
-                add_custom_command( TARGET ${target} POST_BUILD
-                    COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/other_lib/mac/$<CONFIG>/libSDL2.dylib" "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Frameworks/libSDL2.dylib"
-                    COMMENT "Copy SDL2 library to build destination"
-                )
-            endif()
+            # Re. SDL2 & assimp: no copy required.: vcpkg libs are static or else
+            # vcpkg arranges copy. Brew libs cannot be bundled.
 
             # Specify destination for cmake --install.
             install(TARGETS ${target}
@@ -434,7 +439,7 @@ endif()
 
 if(IOS OR EMULATE_GLES)
     # OpenGL ES 1.0
-    create_gl_target( es1loadtests "ES1" "${ES1_SOURCES}" "${KTX_ICON}" "${ES1_TEST_IMAGES}" SDL_GL_CONTEXT_PROFILE_ES 1 0 ON)
+    create_gl_target( es1loadtests "ES1" "${ES1_SOURCES}" "${KTX_APP_ICON_PATH}" "${ES1_TEST_IMAGES}" SDL_GL_CONTEXT_PROFILE_ES 1 0 ON)
 endif()
 
 if(IOS OR EMSCRIPTEN OR EMULATE_GLES)

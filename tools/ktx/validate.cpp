@@ -35,62 +35,6 @@
 
 namespace ktx {
 
-struct DFDHeader {
-    uint32_t vendorId: 17;
-    uint32_t descriptorType: 15;
-    uint32_t versionNumber: 16;
-    uint32_t descriptorBlockSize: 16;
-};
-static_assert(sizeof(DFDHeader) == 8);
-
-struct BDFD {
-    uint32_t vendorId: 17;
-    uint32_t descriptorType: 15;
-    uint32_t versionNumber: 16;
-    uint32_t descriptorBlockSize: 16;
-    uint32_t model: 8;
-    uint32_t primaries: 8;
-    uint32_t transfer: 8;
-    uint32_t flags: 8;
-    uint32_t texelBlockDimension0: 8;
-    uint32_t texelBlockDimension1: 8;
-    uint32_t texelBlockDimension2: 8;
-    uint32_t texelBlockDimension3: 8;
-    std::array<uint8_t, 8> bytesPlanes;
-
-    [[nodiscard]] bool matchTexelBlockDimensions(uint8_t dim0, uint8_t dim1, uint8_t dim2, uint8_t dim3) const {
-        return texelBlockDimension0 == dim0
-                && texelBlockDimension1 == dim1
-                && texelBlockDimension2 == dim2
-                && texelBlockDimension3 == dim3;
-    }
-
-    [[nodiscard]] bool hasNonZeroBytePlane() const {
-        return bytesPlanes[0] != 0 || bytesPlanes[1] != 0
-                || bytesPlanes[2] != 0 || bytesPlanes[3] != 0
-                || bytesPlanes[4] != 0 || bytesPlanes[5] != 0
-                || bytesPlanes[6] != 0 || bytesPlanes[7] != 0;
-    }
-};
-static_assert(sizeof(BDFD) == 24);
-
-struct SampleType {
-    uint32_t bitOffset: 16;
-    uint32_t bitLength: 8;
-    uint32_t channelType: 4;
-    uint32_t qualifierLinear: 1;
-    uint32_t qualifierExponent: 1;
-    uint32_t qualifierSigned: 1;
-    uint32_t qualifierFloat: 1;
-    uint32_t samplePosition0: 8;
-    uint32_t samplePosition1: 8;
-    uint32_t samplePosition2: 8;
-    uint32_t samplePosition3: 8;
-    uint32_t lower;
-    uint32_t upper;
-};
-static_assert(sizeof(SampleType) == 16);
-
 class FatalValidationError : public std::runtime_error {
 public:
     ValidationReport report;
@@ -100,10 +44,6 @@ public:
         std::runtime_error(report.details),
         report(std::move(report)) {}
 };
-
-static constexpr uint32_t MAX_NUM_DFD_BLOCKS = 10;
-static constexpr uint32_t MAX_NUM_BDFD_SAMPLES = 16;
-static constexpr uint32_t MAX_NUM_KV_ENTRIES = 100;
 
 // -------------------------------------------------------------------------------------------------
 
@@ -728,8 +668,8 @@ void ValidationContext::validateLevelIndex() {
 
     // The first (largest) mip level is the first in the index and the last in the file.
     for (std::size_t i = 1; i < levelIndices.size(); ++i) {
-        if (levelIndices[i].byteLength > levelIndices[i - 1].byteLength)
-            error(LevelIndex::IncorrectIndexOrder, i - 1, levelIndices[i - 1].byteLength, i, levelIndices[i].byteLength);
+        if (levelIndices[i].uncompressedByteLength > levelIndices[i - 1].uncompressedByteLength)
+            error(LevelIndex::IncorrectIndexOrder, i - 1, levelIndices[i - 1].uncompressedByteLength, i, levelIndices[i].uncompressedByteLength);
 
         if (levelIndices[i].byteOffset > levelIndices[i - 1].byteOffset)
             error(LevelIndex::IncorrectLevelOrder, i - 1, levelIndices[i - 1].byteOffset, i, levelIndices[i].byteOffset);
@@ -827,23 +767,7 @@ void ValidationContext::calculateExpectedDFD(VkFormat format) {
     expectedBlockDimension2 = static_cast<uint8_t>(KHR_DFDVAL(bdfd, TEXELBLOCKDIMENSION2));
     expectedBlockDimension3 = static_cast<uint8_t>(KHR_DFDVAL(bdfd, TEXELBLOCKDIMENSION3));
 
-    if (!*expectedColorModelIsBlockCompressed) {
-        InterpretedDFDChannel r, g, b, a;
-        InterpretDFDResult result;
-        uint32_t componentByteLength = 0;
-
-        result = interpretDFD(dfd.get(), &r, &g, &b, &a, &componentByteLength);
-
-        // Reset the false positive error in interpretDFD with VK_FORMAT_E5B9G9R9_UFLOAT_PACK32
-        // interpretDFD by design doesn't support this format
-        if (header.vkFormat == VK_FORMAT_E5B9G9R9_UFLOAT_PACK32 && result == i_UNSUPPORTED_NONTRIVIAL_ENDIANNESS)
-            result = InterpretDFDResult(0);
-
-        if (result >= i_UNSUPPORTED_ERROR_BIT)
-            error(Validator::CreateDFDRoundtripFailed, toString(format));
-        else
-            expectedTypeSize = componentByteLength;
-    }
+    expectedTypeSize = vkFormatTypeSize(format);
 }
 
 void ValidationContext::validateDFD() {

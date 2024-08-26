@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file TextureCubemap.h
+ * @file
  * @~English
  *
  * @brief Test loading of a cubemap.

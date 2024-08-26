@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file vk_funcs.h
+ * @file
  * @~English
  *
  * @brief Declare pointers for OpenGL {,ES} functions.
@@ -23,14 +23,6 @@
 #undef GL_GLEXT_PROTOTYPES // Just to be sure.
 #include "GL/glcorearb.h"
 #include "ktx.h"
-
-#if WINDOWS
-#define WINDOWS_LEAN_AND_MEAN
-#include <windows.h>
-extern HMODULE ktxOpenGLModuleHandle;
-#else
-extern void* ktxOpenGLModuleHandle;
-#endif
 
 extern ktx_error_code_e ktxLoadOpenGLLibrary(void);
 

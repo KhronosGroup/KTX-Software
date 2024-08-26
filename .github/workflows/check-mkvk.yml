@@ -1,0 +1,51 @@
+# Copyright 2015-2020 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+name: KTX-Software Check mkvk CI
+
+# Seems no way to avoid duplicating this on logic in each .yml file.
+# See https://github.com/actions/starter-workflows/issues/245.
+on:
+  # Trigger the workflow on a pull request,
+  pull_request:
+
+  push:
+    # And on pushes to main, which will occur when a PR is merged.
+    branches:
+      - main
+    # Also trigger on push of release tags to any branch. Useful
+    # for testing release builds before merging to main.
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-*'
+    paths-ignore:
+      - .appveyor.yml
+      - .travis.yml
+
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  check-mkvk:
+    strategy:
+      matrix:
+        os: [ macos-latest, ubuntu-latest, windows-latest ]
+
+    runs-on: ${{ matrix.os }}
+    env:
+      GIT_LFS_SKIP_SMUDGE: 1
+      BUILD_DIR: "build"
+      WERROR: ON
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Clone KTX-Specification repo
+      run: |
+        pushd ..; git clone https://github.com/KhronosGroup/KTX-Specification.git; popd
+    - name: Configure CMake build
+      run: cmake -B ${{ env.BUILD_DIR }} -DKTX_GENERATE_VK_FILES=ON -DKTX_FEATURE_TESTS=OFF -DKTX_FEATURE_TOOLS=OFF -DKTX_WERROR=${{ env.WERROR }} 
+    - name: Test file generation
+      run: |
+        cmake --build ${{ env.BUILD_DIR }} --target mkvk --clean-first
+        git diff --quiet HEAD
+

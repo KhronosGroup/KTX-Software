@@ -4,7 +4,7 @@
 
 #include "command.h"
 #include "platform_utils.h"
-#include "compress_utils.h"
+#include "deflate_utils.h"
 #include "transcode_utils.h"
 #include "formats.h"
 #include "sbufstream.h"
@@ -47,6 +47,7 @@ Transcode a KTX2 file.
     If the input file is invalid the first encountered validation error is displayed
     to the stderr and the command exits with the relevant non-zero status code.
 
+@section ktx\_transcode\_options OPTIONS
     The following options are available:
     <dl>
         <dt>\--target &lt;target&gt;</dt>
@@ -60,7 +61,7 @@ Transcode a KTX2 file.
             etc-rgb is ETC1; etc-rgba, eac-r11 and eac-rg11 are ETC2.
         </dd>
     </dl>
-    @snippet{doc} ktx/compress_utils.h command options_compress
+    @snippet{doc} ktx/deflate_utils.h command options_deflate
     @snippet{doc} ktx/command.h command options_generic
 
 @section ktx_transcode_exitstatus EXIT STATUS
@@ -85,7 +86,7 @@ class CommandTranscode : public Command {
         void process(cxxopts::Options& opts, cxxopts::ParseResult& args, Reporter& report);
     };
 
-    Combine<OptionsTranscode, OptionsTranscodeTarget<true>, OptionsCompress, OptionsSingleInSingleOut, OptionsGeneric> options;
+    Combine<OptionsTranscode, OptionsTranscodeTarget<true>, OptionsDeflate, OptionsSingleInSingleOut, OptionsGeneric> options;
 
 public:
     virtual int main(int argc, char* argv[]) override;
@@ -170,6 +171,17 @@ void CommandTranscode::executeTranscode() {
     ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
             static_cast<uint32_t>(writer.size() + 1), // +1 to include the \0
             writer.c_str());
+
+    // Add KTXwriterScParams metadata if supercompression was used
+    const auto writerScParams = options.compressOptions;
+    ktxHashList_DeleteKVPair(&texture->kvDataHead, KTX_WRITER_SCPARAMS_KEY);
+    if (writerScParams.size() > 0) {
+        // Options always contain a leading space
+        assert(writerScParams[0] == ' ');
+        ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_SCPARAMS_KEY,
+            static_cast<uint32_t>(writerScParams.size()),
+            writerScParams.c_str() + 1); // +1 to exclude leading space
+    }
 
     // Save output file
     const auto outputPath = std::filesystem::path(DecodeUTF8Path(options.outputFilepath));

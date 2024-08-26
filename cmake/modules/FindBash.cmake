@@ -62,7 +62,6 @@ NO_SYSTEM_ENVIRONMENT_PATH
 
 if(NOT BASH_EXECUTABLE)
   # Fallback search in default locations
-  # WSL bash did not work in my case :(
   find_program (
       BASH_EXECUTABLE
       bash
@@ -72,8 +71,9 @@ endif()
 mark_as_advanced (BASH_EXECUTABLE)
 
 # ----------------------------------------------------------------------------
-# get version of found BASH executable
+# Get version of found BASH executable.
 if (BASH_EXECUTABLE)
+  # Set LANG to en because match looks for English "version".
   set(ENV{LANG} "en_US.UTF-8")
   execute_process (COMMAND "${BASH_EXECUTABLE}" --version OUTPUT_VARIABLE _BASH_STDOUT ERROR_VARIABLE _BASH_STDERR)
   if (_BASH_STDOUT MATCHES "version ([0-9]+)\\.([0-9]+)\\.([0-9]+)")
@@ -89,7 +89,7 @@ if (BASH_EXECUTABLE)
 endif ()
 
 # ----------------------------------------------------------------------------
-# handle the QUIETLY and REQUIRED arguments and set *_FOUND to TRUE
+# Handle the QUIET and REQUIRED arguments and set *_FOUND to TRUE
 # if all listed variables are found or TRUE
 include (FindPackageHandleStandardArgs)
 

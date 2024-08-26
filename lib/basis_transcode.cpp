@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file basis_transcode.cpp
+ * @file
  * @~English
  *
  * @brief Functions for transcoding Basis Universal BasisLZ/ETC1S and UASTC textures.

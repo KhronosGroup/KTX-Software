@@ -13,7 +13,7 @@
 
 /**
  * @internal
- * @file GLAppSDL.h
+ * @file
  * @~English
  *
  * @brief Declaration of GLAppSDL base class for GL apps.
