@@ -74,12 +74,18 @@ mkdir -p $BUILD_DIR
 # emcmake uses the "Unix Makefiles" generator on Linux which does not
 # support multiple configurations.
 echo "Configure and Build KTX-Software (Web $CONFIGURATION)"
+
+# Uncomment and set to desired targets if you don't want to build everything.
+#targets="--target debug_isgnufe1 --target debug_gnufe_ffpcontract"
+# Uncomment to have make run in verbose mode.
+#verbose_make="-- VERBOSE=1"
+
 docker exec -it emscripten sh -c "emcmake cmake -B$BUILD_DIR . \
     -D CMAKE_BUILD_TYPE=$CONFIGURATION \
     -D KTX_FEATURE_DOC=OFF \
     -D KTX_FEATURE_LOADTEST_APPS=$FEATURE_LOADTESTS \
     -D KTX_WERROR=$WERROR \
-  && cmake --build $BUILD_DIR"
+  && cmake --build $BUILD_DIR $targets $verbose_make"
 
 if [ "$PACKAGE" = "YES" ]; then
   echo "Pack KTX-Software (Web $CONFIGURATION)"
