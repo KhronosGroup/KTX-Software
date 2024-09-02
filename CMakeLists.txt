@@ -902,8 +902,6 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         )
     endif()
     if (${clang_version} VERSION_GREATER_EQUAL "14.0")
-        # These are for Emscripten which is ahead of xcode in its clang
-        # version. Also future proofing for when xcode catches up.
         set_source_files_properties(
             ${BASISU_ENCODER_CXX_SRC}
             PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-variable;-Wno-unused-parameter;-Wno-deprecated-copy-with-user-provided-copy"
