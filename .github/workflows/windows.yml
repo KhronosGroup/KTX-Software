@@ -216,6 +216,7 @@ jobs:
     - name: Setup PIP_CONSTRAINTS (workaround https://github.com/python-cffi/cffi/issues/117)
       if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
       run: |
+          mkdir $env:BUILD_DIR # Doesn't exist until CMake configure
           echo 'setuptools<74' > $env:BUILD_DIR/constraint.txt
           echo "PIP_CONSTRAINT=$env:BUILD_DIR/constraint.txt" >> $env:GITHUB_ENV
 
