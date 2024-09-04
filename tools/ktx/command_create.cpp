@@ -2327,7 +2327,7 @@ void CommandCreate::determineTargetColorSpace(const ImageInput& in, ImageSpec& t
             } else {
                 if (!options.convertOETF.has_value()) {
                     fatal(rc::INVALID_FILE, "Gamma {} not automatically supported by KTX. Specify handing with "
-                        "--convert-oetf or --assign-oetf.");
+                        "--convert-oetf or --assign-oetf.", spec.format().oeGamma());
                 }
             }
         } else if (!in.formatName().compare("png")) {
@@ -2354,6 +2354,13 @@ void CommandCreate::determineTargetColorSpace(const ImageInput& in, ImageSpec& t
         if (colorSpaceInfo.srcTransferFunction == nullptr)
             fatal(rc::INVALID_FILE,
                 "No transfer function can be determined from input file \"{}\". Use --assign-oetf to specify one.", in.filename());
+
+        if (colorSpaceInfo.usedInputTransferFunction == KHR_DF_TRANSFER_SRGB
+            && isFormatNotSRGBButHasSRGBVariant(options.vkFormat)) {
+            fatal(rc::RUNTIME_ERROR, "Input image \"{}\" has sRGB transfer function. {} is not sRGB but has an sRGB variant. "
+                  "Transfer function must not be sRGB for a non-sRGB VkFormat with sRGB variant.",
+                  in.filename(), toString(options.vkFormat));
+        }
 
         switch (target.format().transfer()) {
         case KHR_DF_TRANSFER_LINEAR:

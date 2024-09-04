@@ -711,7 +711,7 @@ namespace ktx {
     case VK_FORMAT_ASTC_6x6x5_UNORM_BLOCK_EXT: [[fallthrough]];
 
     //   VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT
-    case VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT:
         return true;
     default:
         return false;
