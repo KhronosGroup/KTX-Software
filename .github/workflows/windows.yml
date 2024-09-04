@@ -216,9 +216,8 @@ jobs:
     - name: Setup PIP_CONSTRAINT (workaround https://github.com/python-cffi/cffi/issues/117)
       if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
       run: |
-          mkdir interface/python_binding/build # Doesn't exist until python build.
-          echo 'setuptools<74' > interface/python_binding/build/constraint.txt
-          echo "PIP_CONSTRAINT=interface/python_binding/build/constraint.txt" >> $env:GITHUB_ENV
+          echo 'setuptools<74' > $env:RUNNER_TEMP/constraint.txt
+          echo "PIP_CONSTRAINT=$env:RUNNER_TEMP/constraint.txt" >> $env:GITHUB_ENV
 
     - name: Install Dependencies
       if: matrix.check_mkvk != 'ONLY'
