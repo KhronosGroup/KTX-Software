@@ -37,6 +37,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <memory>
 
 #include <fmt/format.h>
 #include <math.h>
