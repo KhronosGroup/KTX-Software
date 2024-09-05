@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file TextureMipmap.cpp
+ * @file
  * @~English
  *
  * @brief Definition of test sample for loading and displaying all the levels of a 2D mipmapped texture.

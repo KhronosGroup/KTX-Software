@@ -3,7 +3,7 @@
 
 libktx.js
 libktx.wasm
+libktx_read.js
+libktx_read.wasm
 msc_basis_transcoder.js
 msc_basis_transcoder.wasm
-
-libktx-webgl/ktx_app.png

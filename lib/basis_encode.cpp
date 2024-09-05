@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file basis_encode.cpp
+ * @file
  * @~English
  *
  * @brief Functions for supercompressing a texture with Basis Universal.
@@ -396,13 +396,16 @@ static bool basisuEncoderInitialized = false;
  *                              The texture image's format is a packed format
  *                              (e.g. RGB565).
  * @exception KTX_INVALID_OPERATION
- *                              The texture image format's component size is not 8-bits.
+ *                              The texture image format's component size is
+ *                              not 8-bits.
  * @exception KTX_INVALID_OPERATION
- *                              @c normalMode is specified but the texture has only
- *                              one component.
+ *                              @c normalMode is specified but the texture has
+ *                              only one component.
  * @exception KTX_INVALID_OPERATION
- *                              Both preSwizzle and and inputSwizzle are specified
- *                              in @a params.
+ *                              Both preSwizzle and and inputSwizzle are
+ *                              specified in @a params.
+ * @exception KTX_INVALID_OPERATION
+ *                              This->generateMipmaps is set.
  * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out compression.
  */
 extern "C" KTX_error_code
@@ -415,6 +418,9 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
 
     if (params->structSize != sizeof(struct ktxBasisParams))
         return KTX_INVALID_VALUE;
+
+    if (This->generateMipmaps)
+        return KTX_INVALID_OPERATION;
 
     if (This->supercompressionScheme != KTX_SS_NONE)
         return KTX_INVALID_OPERATION; // Can't apply multiple schemes.

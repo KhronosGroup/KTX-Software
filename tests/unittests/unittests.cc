@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file unittests.cc
+ * @file
  * @~English
  *
  * @brief Tests of internal API functions.
@@ -936,9 +936,9 @@ class SwizzleTestBase : public ::testing::Test {
                                     KTX_TEXTURE_CREATE_ALLOC_STORAGE,
                                     &texture);
         ASSERT_TRUE(result == KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_Create failed: "
                                      << ktxErrorString(result);
-        ASSERT_TRUE(texture->pData != NULL) << "Image stoage not allocated";
+        ASSERT_TRUE(texture->pData != NULL) << "Image storage not allocated";
 
         result = helper.copyImagesToTexture(ktxTexture(texture));
         ASSERT_TRUE(result == KTX_SUCCESS);

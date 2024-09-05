@@ -8,7 +8,7 @@
 
 /**
  * @internal
- * @file Texture3d.cpp
+ * @file
  * @~English
  *
  * @brief Definition of test sample for loading and displaying the slices of a 3d texture.

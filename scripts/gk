@@ -1,0 +1,62 @@
+#! /usr/bin/env bash
+
+# Copyright 2024, Mark Callow
+# SPDX-License-Identifier: Apache-2.0
+
+# gk: grep in ktx software
+
+# Depth of this script relative to the project root
+depth=..
+
+usage() {
+  echo "Usage: $0 [--help,-h] [--filepattern,-f <filename pattern>] [<match pattern>]"
+  echo "  <filename pattern> defaults to '*' if no -f."
+  echo "  With no <match pattern> prints names of files matching <filename pattern>."
+  exit $1
+}
+
+while [ $# -ne 0 ]; do
+  case $1 in
+    --help | -h)
+      usage 0
+      ;;
+    --filepattern | -f)
+      if [ $# -lt 1 ]; then
+        usage 1
+      else
+        filepattern=$2
+        shift 2
+      fi
+      ;;
+     --*)
+       usage 1
+       ;;
+     *)
+       break
+       ;;
+  esac
+done
+
+if [ -z "$filepattern" -a $# -eq 0 ]; then
+  usage 1
+fi
+
+if [ $# -eq 1 ]; then
+  match=$1
+elif [ $# -gt 1 ]; then
+  usage 1
+elif [ -z "$filepattern" ]; then
+  usage 1
+fi
+
+if [ -z "$filepattern" ]; then
+  filepattern='*'
+fi
+
+# Make sure we're in the KTX root directory
+cd $(dirname $0)/$depth
+if [ -n "$match" ]; then
+  find . -path './build*' -prune -o -path tests/cts -prune -o -path './.git' -prune -o -path './external' -prune -o -type f -name "$filepattern" -exec grep -H "$match" {} \;
+else
+  find . -path './build*' -prune -o -path tests/cts -prune -o -path './.git' -prune -o -path './external' -prune -o -type f -name "$filepattern" -print
+fi

@@ -45,4 +45,30 @@ public class KtxTexture2 extends KtxTexture {
     public static KtxTexture2 createFromNamedFile(String filename) {
         return createFromNamedFile(filename, KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
     }
+
+    /**
+     * Deflate the data in a {@link KtxTexture2} object using Zstandard.
+     *
+     * The texture's levelIndex, dataSize, DFD, data pointer, and supercompressionScheme will
+     * all be updated after successful deflation to reflect the deflated data.
+     *
+     * @param level Set speed vs compression ratio trade-off. Values
+     * between 1 and 22 are accepted. The lower the level the faster. Values
+     * above 20 should be used with caution as they require more memory.
+     * @return A {@link KtxErrorCode} value
+     */
+    public native int deflateZstd(int level);
+
+    /**
+     * Deflate the data in a {@link KtxTexture2} object using miniz (ZLIB)
+     *
+     * The texture's levelIndex, dataSize, DFD, data pointer, and supercompressionScheme will
+     * all be updated after successful deflation to reflect the deflated data.
+     *
+     * @param level Set speed vs compression ratio trade-off. Values
+     * between 1 and 9 are accepted. The lower the level the faster.
+     * @return A {@link KtxErrorCode} value
+     */
+    public native int deflateZLIB(int level);
+
 }

@@ -7,7 +7,7 @@
  */
 
 /**
- * @file strings.c
+ * @file
  * @~English
  *
  * @brief Functions to return a string corresponding to various enumerations.

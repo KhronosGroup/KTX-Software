@@ -7,7 +7,7 @@
  */
 
 /**
- * @file    TexturedCube.cpp
+ * @file
  * @brief    Draw a textured cube.
  *
  * @author Mark Callow, www.edgewise-consulting.com.

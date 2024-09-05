@@ -10,7 +10,7 @@
 
 /**
  * @internal
- * @file AppBaseSDL.cpp
+ * @file
  * @~English
  *
  * @brief Base class for SDL applications.

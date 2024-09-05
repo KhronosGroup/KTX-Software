@@ -10,10 +10,7 @@ set_code_sign(transcodetests)
 target_include_directories(
     transcodetests
 PRIVATE
-    $<TARGET_PROPERTY:ktx,INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:obj_basisu_cbind,INTERFACE_INCLUDE_DIRECTORIES>
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../other_include
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib
+    ${PROJECT_SOURCE_DIR}/lib
 )
 
 target_link_libraries(
@@ -28,7 +25,6 @@ target_compile_definitions(
     transcodetests
 PRIVATE
     $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
-    $<TARGET_PROPERTY:obj_basisu_cbind,INTERFACE_COMPILE_DEFINITIONS>
 )
 
 target_compile_features(transcodetests PUBLIC cxx_std_11)
@@ -51,21 +47,21 @@ if(WIN32)
     # See comment in ../../CMakeLists.txt around line 625.
     if (transcoder_options)
         set_source_files_properties(
-            ${PROJECT_SOURCE_DIR}/lib/basisu/transcoder/basisu_transcoder.cpp
+            "${PROJECT_SOURCE_DIR}/external/basisu/transcoder/basisu_transcoder.cpp"
             PROPERTIES COMPILE_OPTIONS "${transcoder_options}"
         )
     endif()
     if (zstd_options)
         set_source_files_properties(
-            ${PROJECT_SOURCE_DIR}/lib/basisu/zstd/zstd.c
+            "${PROJECT_SOURCE_DIR}/external/basisu/zstd/zstd.c"
             PROPERTIES COMPILE_OPTIONS "${zstd_options}"
         )
     endif()
 
     # The Windows ktx.dll does not export needed symbols. This is a workaround to get it linking.
     add_library(obj_tmp_basisu OBJECT
-        $<$<NOT:$<BOOL:${KTX_FEATURE_STATIC_LIBRARY}>>:${PROJECT_SOURCE_DIR}/lib/basisu/transcoder/basisu_transcoder.cpp>
-        ${PROJECT_SOURCE_DIR}/lib/basisu/zstd/zstd.c
+        $<$<NOT:$<BOOL:${KTX_FEATURE_STATIC_LIBRARY}>>:${PROJECT_SOURCE_DIR}/external/basisu/transcoder/basisu_transcoder.cpp>
+        "${PROJECT_SOURCE_DIR}/external/basisu/zstd/zstd.c"
         )
     target_compile_definitions(
         obj_tmp_basisu

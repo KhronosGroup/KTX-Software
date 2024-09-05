@@ -7,29 +7,32 @@ SPDX-License-Identifier: CC0-1.0
   <head>
     <meta charset="utf-8">
     <title>JS Binding Tests & Demos</title>
-      <style>
-        body {
-          max-width: 500px;
-        }
-      </style>
+    <link rel="shortcut icon" href="ktx_favicon.ico" type="image/x-icon" />
+    <style>
+      body {
+        max-width: 500px;
+      }
+    </style>
   </head>
-  <h1>KTX2 with Basis WebGL demos</h1>
+  <h1>KTX2 with Basis WebGL tests</h1>
   <p>
-    Example webpages to render Basis Universal compressed textures,
-    that are in KTX2 containers. All demos require WebAssembly and WebGL
-    support.
+    Example webpages to test the libktx Javascript wrappers and WASM
+    support for transcoding Basis Universal compressed textures. All
+    tests require WebAssembly and WebGL support.
   </p>
   <ul>
-    <li><a href="libktx-webgl">libktx and WebGL</a>: uses libktx and its embedded
-    Basisu transcoder compiled to .wasm and renders directly via WebGL.</li>
-    <li><a href="libktx-gltf/">libktx and glTF 2.0</a>: uses libktx and a glTF
-    engine to load glTF files with KHR_texture_basisu for textures.
-    TO BE IMPLEMENTED.</li>
+    <li><a href="libktx-webgl">libktx and WebGL</a>: tests the
+    functionality of the read-write Javascript binding for libktx,
+    which has been compiled to Javascript using Emscripten. Among other
+    things, it reads a .png file, creates a KTX2 texture, encodes it to
+    the universal Basis-LZ format, transcodes it and renders it using
+    WebGL.</li>
+    <li><a href="libktx-read-webgl">Read only libktx and WebGL</a>: tests
+    the read-only JS binding to libktx and its embedded Basisu transcoder,
+    which are compiled to .wasm. It reads a KTX v2 file containing a Basis
+    Universal compressed texture and renders it using WebGL.</li>
     <li><a href="llt-three/">transcodeImage with Pure JS KTX2 loader for three.js</a>:
     transcodeImage is a BasisU transcoder method independent of .basis or any container
     format written in C++ and compiled to .wasm.</li>
-    <li><a href="llt-gltf/">transcodeImage with Pure JS .ktx2 parser and glTF 2.0</a>:
-    transcodeImage is a BasisU transcoder method independent of .basis or any container
-    format written in C++ and compiled to .wasm. TO BE IMPLEMENTED.</li>
   </ul>
 </html>

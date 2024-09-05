@@ -1,9 +1,14 @@
-# Copyright 2016-2020 The Khronos Group Inc.
+# Copyright 2016-2024 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
+
+# Use ktx compare for diff'ing .ktx2 files.
+# Note ktx-compare-git expects `ktx` to be in the user's path
+[diff "ktx-compare"]
+    command = bash scripts/ktx-compare-git
 
 # Filters used by KTX repo
 [filter "keyworder"]
-    smudge = bash expand_kw %f
+    smudge = bash scripts/expand_kw %f
     clean = bash -c \"sed -e 's/\\$Date.*\\$/\\$Date\\$/'\"
 
 # Needed to avoid merge conflicts

@@ -25,6 +25,7 @@ target_include_directories(
     obj_basisu_cbind
 PUBLIC
     inc
+    ${KTX_BASISU_INCLUDE_DIRS}
 PRIVATE
     $<TARGET_PROPERTY:ktx,INCLUDE_DIRECTORIES>
     ${PROJECT_SOURCE_DIR}/utils
@@ -47,4 +48,8 @@ if(WIN32)
     PRIVATE 
         $<IF:$<STREQUAL:"${LIB_TYPE}","STATIC">,KHRONOS_STATIC,KTX_BASISU_API=__declspec\(dllexport\)>
     )
+elseif(APPLE)
+    if(KTX_EMBED_BITCODE)
+        target_compile_options(obj_basisu_cbind PRIVATE "-fembed-bitcode")
+    endif()
 endif()

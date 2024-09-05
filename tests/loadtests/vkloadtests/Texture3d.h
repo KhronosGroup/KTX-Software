@@ -11,7 +11,7 @@
 
 /**
  * @internal
- * @file Texture3d.h
+ * @file
  * @~English
  *
  * @brief Declaration of test sample for loading and displaying the slices of a 3d texture..

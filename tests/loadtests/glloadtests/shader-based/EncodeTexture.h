@@ -7,7 +7,7 @@
  */
 
 /**
- * @file    EncodeTexture.h
+ * @file
  * @brief   GLLoadTestSample derived class for encoding a texture and texturing a cube with it.
  *
  * @author Mark Callow, www.edgewise-consulting.com.
@@ -17,6 +17,8 @@
 #define ENCODE_TEXTURE_H
 
 #include "GL3LoadTestSample.h"
+
+#include <iostream>
 
 class EncodeTexture : public GL3LoadTestSample {
   public:

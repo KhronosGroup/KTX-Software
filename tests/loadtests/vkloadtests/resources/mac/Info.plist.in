@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+    Copyright 2015-2024 Mark Callow
+    SPDX-License-Identifier: Apache-2.0
+
+    WARNING: Do not attempt to edit the Info.plist you see in the Xcode
+    project. It is unavoidably configured from this by CMake. Edit here.
+-->
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key>
+    <string>${MACOSX_BUNDLE_BUNDLE_NAME}</string>
+    <key>CFBundleDisplayName</key>
+    <string>${MACOSX_BUNDLE_BUNDLE_NAME}</string>
+    <key>CFBundleGetInfoString</key>
+    <string>${MACOSX_BUNDLE_INFO_STRING}</string>
+    <key>NSHumanReadableCopyright</key>
+    <string>${MACOSX_BUNDLE_COPYRIGHT}</string>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleExecutable</key>
+    <string>${MACOSX_BUNDLE_EXECUTABLE_NAME}</string>
+    <key>CFBundleIconFile</key>
+    <string>${MACOSX_BUNDLE_ICON_FILE}</string>
+    <key>CFBundleIdentifier</key>
+    <string>${MACOSX_BUNDLE_GUI_IDENTIFIER}</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleVersion</key>
+    <string>${MACOSX_BUNDLE_BUNDLE_VERSION}</string>
+    <key>CFBundleShortVersionString</key>
+    <string>${MACOSX_BUNDLE_SHORT_VERSION_STRING}</string>
+    <key>CFBundleSignature</key>
+    <string>????</string>
+    <key>CFBundleDocumentTypes</key>
+    <array>
+        <dict>
+            <key>LSIsAppleDefaultForType</key>
+            <!-- An already installed "Default" handler wins over this
+                 unless this is set to true. Leave it false and let user
+                 choose. -->
+            <false/>
+            <key>LSHandlerRank</key>
+            <string>Default</string>
+            <key>CFBundleTypeIconFile</key>
+            <string>${KTX_DOC_ICON}</string>
+            <key>LSItemContentTypes</key>
+            <array>
+                <string>public.ktx2</string>
+                <string>public.ktx</string>
+            </array>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>ktx</string>
+                <string>ktx2</string>
+            </array>
+            <key>CFBundleTypeMIMETypes</key>
+            <array>
+                <string>image/ktx</string>
+                <string>image/ktx2</string>
+            </array>
+            <key>CFBundleTypeName</key>
+            <string>KTX texture file</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>LSTypeIsPackage</key>
+            <false/>
+        </dict>
+    </array>
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.graphics-design</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>NSMainNibFile</key>
+    <string></string>
+    <key>UISupportedInterfaceOrientations</key>
+    <array/>
+</dict>
+</plist>

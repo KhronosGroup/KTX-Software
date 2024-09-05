@@ -6,15 +6,19 @@
 add_executable(ktxtools
         command.cpp
         command.h
+        command_compare.cpp
         command_create.cpp
+        command_deflate.cpp
         command_encode.cpp
         command_extract.cpp
         command_help.cpp
         command_info.cpp
         command_transcode.cpp
         command_validate.cpp
-        compress_utils.h
-        encode_utils.h
+        deflate_utils.h
+        encode_utils_astc.h
+        encode_utils_basis.h
+        encode_utils_common.h
         format_descriptor.h
         formats.h
         fragment_uri.h
