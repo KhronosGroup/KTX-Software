@@ -213,12 +213,6 @@ jobs:
           core.exportVariable('VCPKG_BINARY_SOURCES', "clear;x-gha,readwrite");
           core.exportVariable('VCPKG_ROOT', process.env.VCPKG_INSTALLATION_ROOT || '');
 
-    - name: Setup PIP_CONSTRAINT (workaround https://github.com/python-cffi/cffi/issues/117)
-      if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
-      run: |
-          echo 'setuptools<74' > $env:RUNNER_TEMP/constraint.txt
-          echo "PIP_CONSTRAINT=$env:RUNNER_TEMP/constraint.txt" >> $env:GITHUB_ENV
-
     - name: Install Dependencies
       if: matrix.check_mkvk != 'ONLY'
       # This script only installs what's needed by ON FEATUREs.
