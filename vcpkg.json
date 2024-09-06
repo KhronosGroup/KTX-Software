@@ -3,19 +3,24 @@
   "name": "ktx-software",
   "features": {
     "loadtests": {
-      "description": "OpenGL & Vulkan Load Tests. All dependencies from vcpkg",
+      "description": "OpenGL & Vulkan Load Tests.",
       "dependencies": [
         "assimp",
-        {
-          "name": "glew",
-          "platform": "windows"
-        },
         {
           "name": "sdl2",
           "default-features": true,
           "features": [
             "vulkan"
           ]
+        }
+      ]
+    },
+    "glloadtests": {
+      "description": "OpenGL Load Tests.",
+      "dependencies": [
+        {
+          "name": "glew",
+          "platform": "windows"
         }
       ]
     }

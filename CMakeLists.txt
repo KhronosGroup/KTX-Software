@@ -86,6 +86,9 @@ set_property( CACHE KTX_FEATURE_LOADTEST_APPS
 
 if(NOT KTX_FEATURE_LOADTEST_APPS MATCHES OFF)
     set(VCPKG_MANIFEST_FEATURES loadtests)
+    if (KTX_FEATURE_LOADTEST_APPS MATCHES OpenGL)
+        list(APPEND VCPKG_MANIFEST_FEATURES glloadtests)
+    endif()
     if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
         # Explicitly set the triplet to avoid potential trouble.
         # Automatic triplet selection in CI, which runs on x86_64, selects
