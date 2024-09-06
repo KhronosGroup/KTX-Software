@@ -7,16 +7,45 @@
 # Exit if any command fails.
 set -e
 
-atexit () {
+function atexit () {
   if [ -z $dockerrunning ]; then
     docker stop emscripten > /dev/null
     docker rm emscripten > /dev/null
   fi
 }
 
-# Set parameters from command-line arguments, if any.
-for i in $@; do
-  eval $i
+function usage() {
+  echo "Usage: $0 [Option] [PARAMETER=value] [target...]"
+  echo ""
+  echo "Build KTX-Software using Emscripten docker package."
+  echo "Defaults to building everything (Release config) if no targets specified."
+  echo "Options:"
+  echo "  --help, -h      Print this usage message."
+  echo "  --verbose ,-v   Cause the underlying make to run in verbose mode."
+  exit $1
+}
+
+# cd repo root so script will work whereever the current directory
+path_to_repo_root=..
+cd -- "$(dirname -- "${BASH_SOURCE[0]}")/$path_to_repo_root"
+
+for arg in $@; do
+  case $arg in
+    --help | -h)
+      usage 0
+      ;;
+    --verbose | -v)
+      verbose_make="-- VERBOSE=1"
+      shift
+      ;;
+    *\=*)
+      # Set parameter from command-line arguments
+      eval $arg
+      shift ;;
+    *)
+      targets="$targets --target $arg"
+      shift ;;
+  esac
 done
 
 # Set defaults
@@ -33,7 +62,7 @@ WERROR=${WERROR:-OFF}
 
 BUILD_DIR=${BUILD_DIR:-build/web-$CONFIGURATION}
 
-trap atexit EXIT
+trap atexit EXIT SIGINT
 
 # Check if emscripten container is already running as CI will already have started it.
 if [ "$(docker container inspect -f '{{.State.Status}}' emscripten 2> /dev/null)" != "running" ]
@@ -74,12 +103,16 @@ mkdir -p $BUILD_DIR
 # emcmake uses the "Unix Makefiles" generator on Linux which does not
 # support multiple configurations.
 echo "Configure and Build KTX-Software (Web $CONFIGURATION)"
+
+# Uncomment for debugging some generator expressions.
+#targets="--target debug_isgnufe1 --target debug_gnufe_ffpcontract"
+
 docker exec -it emscripten sh -c "emcmake cmake -B$BUILD_DIR . \
     -D CMAKE_BUILD_TYPE=$CONFIGURATION \
     -D KTX_FEATURE_DOC=OFF \
     -D KTX_FEATURE_LOADTEST_APPS=$FEATURE_LOADTESTS \
     -D KTX_WERROR=$WERROR \
-  && cmake --build $BUILD_DIR"
+  && cmake --build $BUILD_DIR $targets $verbose_make"
 
 if [ "$PACKAGE" = "YES" ]; then
   echo "Pack KTX-Software (Web $CONFIGURATION)"
