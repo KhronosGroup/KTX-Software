@@ -797,8 +797,10 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
     assert(KHR_DFDVAL(prototype->pDfd+1, MODEL) == KHR_DF_MODEL_ASTC
            && "Invalid dfd generated for ASTC image\n");
     assert((transfer == KHR_DF_TRANSFER_SRGB
-           ? KHR_DFDVAL(prototype->pDfd+1, PRIMARIES) == KHR_DF_PRIMARIES_SRGB
-           : true) && "Not a valid sRGB image\n");
+           ? KHR_DFDVAL(prototype->pDfd+1, TRANSFER) == KHR_DF_TRANSFER_SRGB &&
+             KHR_DFDVAL(prototype->pDfd+1, PRIMARIES) == KHR_DF_PRIMARIES_SRGB
+             : true) && "Not a valid sRGB image\n");
+
 
     // Fix up the current (This) texture
     #undef DECLARE_PRIVATE
