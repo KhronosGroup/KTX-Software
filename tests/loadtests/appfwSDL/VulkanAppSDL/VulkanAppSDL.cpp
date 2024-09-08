@@ -35,7 +35,6 @@
 
 // Include this when vulkantools is removed.
 //#include "vulkancheckres.h"
-#include <SDL2/SDL_vulkan.h>
 
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
 
