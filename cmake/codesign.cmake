@@ -9,9 +9,6 @@ macro (set_code_sign target)
       XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "${XCODE_DEVELOPMENT_TEAM}"
       XCODE_ATTRIBUTE_OTHER_CODE_SIGN_FLAGS "--timestamp"
       XCODE_ATTRIBUTE_CODE_SIGN_INJECT_BASE_ENTITLEMENTS $<IF:$<CONFIG:Debug>,YES,NO>
-      # Necessary for working code signing. Signing happens at build time
-      # so the binary cannot be altered during install.
-      BUILD_WITH_INSTALL_RPATH ON
     )
     if(IOS)
       set(set_pps FALSE)

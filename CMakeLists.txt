@@ -476,17 +476,21 @@ if(KTX_FEATURE_GL_UPLOAD)
     )
 endif()
 
-if(WIN32)
+if(APPLE_MAC_OS OR LINUX OR WIN32)
     # By wrapping in generator expression we force multi configuration
-    # generators (like Visual Studio) to take the exact path and not
-    # change it.
+    # generators (like Visual Studio, Xcode or Ninja multi-config) to
+    # take the exact path and not change it.
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
-elseif(APPLE_MAC_OS OR LINUX)
-        # Set a common RUNTIME_OUTPUT_DIR and LIBRARY_OUTPUT_DIR for all targets,
-        # so that INSTALL RPATH is functional in build directory as well.
-        # BUILD_WITH_INSTALL_RPATH is necessary for working code signing.
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
+    if(APPLE_MAC_OS OR LINUX)
+        # Use a common RUNTIME_OUTPUT_DIR and LIBRARY_OUTPUT_DIR for all
+        # targets so that INSTALL RPATH is functional in build directory
+        # as well. BUILD_WITH_INSTALL_RPATH is necessary for working code
+        # signing. Signing happens at build time so the binary must not
+        # be altered during install. Although Linux code is not yet being
+        # signed, make it symmetrical with macOS.
         set(CMAKE_LIBRARY_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
+        set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
+    endif()
 endif()
 
 set(KTX_BASISU_INCLUDE_DIRS
