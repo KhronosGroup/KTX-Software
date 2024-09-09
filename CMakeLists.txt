@@ -86,6 +86,9 @@ set_property( CACHE KTX_FEATURE_LOADTEST_APPS
 
 if(NOT KTX_FEATURE_LOADTEST_APPS MATCHES OFF)
     set(VCPKG_MANIFEST_FEATURES loadtests)
+    if (KTX_FEATURE_LOADTEST_APPS MATCHES OpenGL)
+        list(APPEND VCPKG_MANIFEST_FEATURES glloadtests)
+    endif()
     if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
         # Explicitly set the triplet to avoid potential trouble.
         # Automatic triplet selection in CI, which runs on x86_64, selects
@@ -315,9 +318,10 @@ endif()
 
 # For Visual Studio prior to 2022 (compiler < 19.30) /fp:strict
 # For Visual Studio 2022 (compiler >= 19.30) /fp:precise
-# For Visual Studio 2022 ClangCL seems to have accidentally enabled contraction by default,
-# so behaves differently to CL.exe. Use the -Xclang argument to workaround and allow access
-# GNU-style switch to control contraction and force disable.
+# For Visual Studio 2022 ClangCL has enabled contraction by default,
+# which is the same as standard clang, so behaves differently to
+# CL.exe. Use the -Xclang argument to access GNU-style switch to
+# control contraction and force disable.
 
 # On CMake 3.25 or older CXX_COMPILER_FRONTEND_VARIANT is not always set
 if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "")
@@ -338,6 +342,7 @@ set(is_gnu_fe1 "$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},GNU>")
 set(is_gnu_fe2 "$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},AppleClang>")
 # Compiler accepts GNU-style command line options
 set(is_gnu_fe "$<OR:${is_gnu_fe1},${is_gnu_fe2}>")
+#add_custom_target(debug_isgnufe1 COMMAND ${CMAKE_COMMAND} -E echo "is_gnufe1_exp = $<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},GNU>")
 
 # Compiler is Visual Studio cl.exe
 set(is_msvccl "$<AND:${is_msvc_fe},$<CXX_COMPILER_ID:MSVC>>")
@@ -346,24 +351,18 @@ set(is_clangcl "$<AND:${is_msvc_fe},$<CXX_COMPILER_ID:Clang>>")
 # Compiler is upstream clang with the standard frontend
 set(is_clang "$<AND:${is_gnu_fe},$<CXX_COMPILER_ID:Clang,AppleClang>>")
 
-if(${is_msvccl} AND $<VERSION_LESS:$<CXX_COMPILER_VERSION>,19.30>)
-    add_compile_options(/fp:strict)
-endif()
-if(${is_msvccl} AND $<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.30>)
-    add_compile_options(/fp:precise)
-endif()
-if(${is_clangcl})
-    add_compile_options(/fp:precise)
-endif()
-if(${is_clangcl} AND $<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,14.0.0>)
-    add_compile_options(-Xclang -ffp-contract=off)
-endif()
-if(${is_clang} AND $<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,10.0.0>)
-    add_compile_options(-ffp-model=precise)
-endif()
-if(${is_gnu_fe})
-    add_compile_options(-ffp-contract=off)
-endif()
+add_compile_options(
+    $<$<AND:${is_msvccl},$<VERSION_LESS:$<CXX_COMPILER_VERSION>,19.30>>:/fp:strict>
+    $<$<AND:${is_msvccl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.30>>:/fp:precise>
+    $<${is_clangcl}:/fp:precise>
+    $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,14.0.0>>:-Xclang$<SEMICOLON>-ffp-contract=off>
+    $<$<AND:${is_clang},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,10.0.0>>:-ffp-model=precise>
+    $<${is_gnu_fe}:-ffp-contract=off>
+    # Hide noise from clang and clangcl 20 warning the 2nd fp option changes
+    # one of the settings made the first.
+    $<$<AND:${is_clang},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,20.0.0>>:-Wno-overriding-option>
+)
+#add_custom_target(debug_gnufe_ffpcontract COMMAND ${CMAKE_COMMAND} -E echo "ffp_contract = $<${is_gnu_fe}:-ffp-contract=off>")
 
 set(KTX_BUILD_DIR "${CMAKE_BINARY_DIR}")
 
@@ -477,17 +476,21 @@ if(KTX_FEATURE_GL_UPLOAD)
     )
 endif()
 
-if(WIN32)
+if(APPLE_MAC_OS OR LINUX OR WIN32)
     # By wrapping in generator expression we force multi configuration
-    # generators (like Visual Studio) to take the exact path and not
-    # change it.
+    # generators (like Visual Studio, Xcode or Ninja multi-config) to
+    # take the exact path and not change it.
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
-elseif(APPLE_MAC_OS OR LINUX)
-        # Set a common RUNTIME_OUTPUT_DIR and LIBRARY_OUTPUT_DIR for all targets,
-        # so that INSTALL RPATH is functional in build directory as well.
-        # BUILD_WITH_INSTALL_RPATH is necessary for working code signing.
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
+    if(APPLE_MAC_OS OR LINUX)
+        # Use a common RUNTIME_OUTPUT_DIR and LIBRARY_OUTPUT_DIR for all
+        # targets so that INSTALL RPATH is functional in build directory
+        # as well. BUILD_WITH_INSTALL_RPATH is necessary for working code
+        # signing. Signing happens at build time so the binary must not
+        # be altered during install. Although Linux code is not yet being
+        # signed, make it symmetrical with macOS.
         set(CMAKE_LIBRARY_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
+        set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
+    endif()
 endif()
 
 set(KTX_BASISU_INCLUDE_DIRS
@@ -906,8 +909,6 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         )
     endif()
     if (${clang_version} VERSION_GREATER_EQUAL "14.0")
-        # These are for Emscripten which is ahead of xcode in its clang
-        # version. Also future proofing for when xcode catches up.
         set_source_files_properties(
             ${BASISU_ENCODER_CXX_SRC}
             PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-variable;-Wno-unused-parameter;-Wno-deprecated-copy-with-user-provided-copy"

@@ -35,7 +35,6 @@
 
 // Include this when vulkantools is removed.
 //#include "vulkancheckres.h"
-#include <SDL2/SDL_vulkan.h>
 
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
 
@@ -477,9 +476,9 @@ VulkanAppSDL::createInstance()
         return false;
     }
 
-    // Find out if device_properties2 is available. If so, enable it just
-    // in case we later find we are running on a Portability Subset device
-    // in which case this extension is required.
+    // Find out if device_properties2 is available. If so, enable it
+    // as it is required for ASTC HDR and also if we later find we
+    // are running on a Portability Subset device.
     std::vector<vk::ExtensionProperties> availableExtensions =
         vk::enumerateInstanceExtensionProperties(nullptr);
     for (auto& extension : availableExtensions) {
@@ -708,10 +707,12 @@ VulkanAppSDL::createDevice()
 #endif
     // And if present and enabled it requires this to be enabled.
     wantedExtensions.push_back({VK_IMG_FORMAT_PVRTC_EXTENSION_NAME, optional});
-#if 0
+#if VK_EXT_texture_compression_astc_hdr
     wantedExtensions.push_back(
-        {TEXTURE_COMPRESSION_ASTC_HDR_EXTENSION_NAME, optional}
+        {VK_EXT_TEXTURE_COMPRESSION_ASTC_HDR_EXTENSION_NAME, optional}
     );
+#endif
+#if 0
     wantedExtensions.push_back(
         {TEXTURE_COMPRESSION_ASTC_3D_EXTENSION_NAME, optional}
     );
@@ -752,7 +753,13 @@ VulkanAppSDL::createDevice()
                 extensionsToEnable.push_back(wantedExtensions[i].name.c_str());
                 if (!wantedExtensions[i].name.compare(VK_IMG_FORMAT_PVRTC_EXTENSION_NAME)) {
                     vkctx.enabledDeviceExtensions.pvrtc = true;
+
                 }
+#if VK_EXT_texture_compression_astc_hdr
+                if (!wantedExtensions[i].name.compare(VK_EXT_TEXTURE_COMPRESSION_ASTC_HDR_EXTENSION_NAME)) {
+                    vkctx.enabledDeviceExtensions.astc_hdr = true;
+                }
+#endif
 #if VK_KHR_portability_subset
                 if (!wantedExtensions[i].name.compare(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME)) {
                     vkctx.gpuIsPortabilitySubsetDevice = true;
