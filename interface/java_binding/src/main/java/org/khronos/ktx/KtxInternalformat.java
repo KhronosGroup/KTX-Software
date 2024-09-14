@@ -1,10 +1,15 @@
 /*
  * Copyright (c) 2021, Shukant Pal and Contributors
+ * Copyright (c) 2024, Khronos Group and Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
 package org.khronos.ktx;
 
+/**
+ * Constants that can be set as the internal format in
+ * {@link KtxTextureCreateInfo#setGlInternalformat(int)}.
+ */
 public class KtxInternalformat {
     public static final int GL_R3_G3_B2                       = 0x2A10;
     public static final int GL_RGB4                           = 0x804F;

@@ -108,7 +108,7 @@ public class KtxTexture1Test {
         info.setBaseWidth(10);
         info.setBaseHeight(10);
 
-        KtxTexture1 texture = KtxTexture1.create(info, KtxCreateStorage.ALLOC);
+        KtxTexture1 texture = KtxTexture1.create(info, KtxTextureCreateStorage.ALLOC_STORAGE);
         assertNotNull(texture);
 
         byte[] imageData = new byte[10 * 10];

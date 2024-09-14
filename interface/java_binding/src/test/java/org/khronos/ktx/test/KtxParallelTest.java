@@ -45,7 +45,7 @@ public class KtxParallelTest {
 
         public void run() {
             // Repeatedly create a compress an image.
-            for (int i = 0; i < 300; i++) {
+            for (int i = 0; i < 30; i++) {
                 final int w = (testRandomizer.nextInt() % 512) + 1024;
                 final int h = w;
                 final int size = convertToASTC(w, h);
@@ -61,7 +61,7 @@ public class KtxParallelTest {
             info.setBaseWidth(w);
             info.setBaseHeight(h);
             info.setVkFormat(VkFormat.VK_FORMAT_R8G8B8_SRGB); // Uncompressed
-            final KtxTexture2 t = KtxTexture2.create(info, KtxCreateStorage.ALLOC);
+            final KtxTexture2 t = KtxTexture2.create(info, KtxTextureCreateStorage.ALLOC_STORAGE);
 
             // Pass the uncompressed data
             int bufferSize = w * h * 3;

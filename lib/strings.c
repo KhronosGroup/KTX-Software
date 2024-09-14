@@ -58,7 +58,7 @@ typedef int errorStrings_SIZE_ASSERT[sizeof(errorStrings) / sizeof(char*) - 1 ==
  */
 const char* ktxErrorString(KTX_error_code error)
 {
-    if (error > KTX_ERROR_MAX_ENUM)
+    if (error < 0 || error > KTX_ERROR_MAX_ENUM)
         return "Unrecognized error code";
     return errorStrings[error];
 }

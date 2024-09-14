@@ -28,6 +28,7 @@ add_library(ktx-jni SHARED
     src/main/cpp/KtxTexture.cpp
     src/main/cpp/KtxTexture1.cpp
     src/main/cpp/KtxTexture2.cpp
+    src/main/cpp/KtxErrorCode.cpp
     src/main/cpp/libktx-jni.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/ktx-jni.manifest
 )
