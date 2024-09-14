@@ -372,7 +372,7 @@ else()
     # /usr/local/bin.
 
     set_target_properties( vkloadtests PROPERTIES
-        INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}"
+        INSTALL_RPATH "\$ORIGIN;${CMAKE_INSTALL_FULL_LIBDIR}"
     )
 
     ######### IMPORTANT ######
