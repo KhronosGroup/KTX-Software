@@ -43,6 +43,12 @@ add_executable( unittests
 set_test_properties(unittests)
 set_code_sign(unittests)
 
+target_compile_features(
+    unittests
+PUBLIC
+    cxx_std_17
+)
+
 target_include_directories(
     unittests
 PRIVATE
@@ -66,13 +72,6 @@ target_link_libraries(
     ktx
     fmt::fmt
     ${CMAKE_THREAD_LIBS_INIT}
-)
-
-set_target_properties(
-    unittests
-    PROPERTIES
-        CXX_STANDARD 17
-        CXX_STANDARD_REQUIRED YES
 )
 
 add_executable( texturetests

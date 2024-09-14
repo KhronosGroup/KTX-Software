@@ -6,6 +6,12 @@ add_executable( ktxsc
 )
 create_version_header( tools/ktxsc ktxsc )
 
+target_compile_features(
+    ktxsc
+PUBLIC
+    cxx_std_17
+)
+
 target_include_directories(
     ktxsc
 PRIVATE
@@ -20,13 +26,6 @@ target_link_libraries(
     ktxsc
     ktx
     objUtil
-)
-
-set_target_properties(
-    ktxsc
-    PROPERTIES
-        CXX_STANDARD 17
-        CXX_STANDARD_REQUIRED YES
 )
 
 set_tool_properties(ktxsc)

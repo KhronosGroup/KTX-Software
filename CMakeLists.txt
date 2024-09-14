@@ -523,9 +523,6 @@ macro(common_libktx_settings target enable_write library_type)
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}
         XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
-        CXX_STANDARD 11
-        CXX_STANDARD_REQUIRED YES
-
     )
     if(APPLE_LOCKED_OS)
         set_target_properties(${target} PROPERTIES
@@ -1093,6 +1090,11 @@ target_include_directories(
     objUtil
 PUBLIC
     utils
+)
+target_compile_features(
+    objUtil
+PUBLIC
+    cxx_std_11
 )
 
 # In C++ apps that use statically linked Libraries all compilatiom units must
