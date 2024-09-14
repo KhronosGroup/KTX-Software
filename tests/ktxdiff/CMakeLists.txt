@@ -44,3 +44,5 @@ target_compile_definitions(
 PRIVATE
     $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
 )
+
+set_test_properties(ktxdiff)
