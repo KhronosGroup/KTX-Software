@@ -377,7 +377,7 @@ else()
     # from where it is shared by gl3loadtests and vkloadtests? Only
     # put it in /opt/<provider>/lib with link from
     # ${CMAKE_INSTALL_LIBDIR}? NOTE: if we put lib in /opt/<provider>
-    # then the executables must be in /opt/provider/<target>.
+    # then consider putting the executables in /opt/provider/<target>.
 
     # TODO: Before adding this target to the release packages, ensure
     # this RPATH will work for alternate install root.
