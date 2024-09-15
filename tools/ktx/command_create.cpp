@@ -19,6 +19,7 @@
 #include <fmt/ostream.h>
 #include <fmt/printf.h>
 #include "ktx.h"
+#include "astc_utils.h"
 #include "image.hpp"
 #include "imageio.h"
 
@@ -100,10 +101,11 @@ struct OptionsCreate {
 
     void init(cxxopts::Options& opts) {
         opts.add_options()
-                (kFormat, "KTX format enum that specifies the image data format."
+                (kFormat, "VkFormat enum that specifies the data format of the images in the output KTX file."
                     " The enum names are matching the VkFormats without the VK_FORMAT_ prefix."
                     " The VK_FORMAT_ prefix is ignored if present."
-                    "\nWhen used with --encode it specifies the target format before the encoding step."
+                    "\nWhen used with --encode it specifies the format of the texture object created as input to "
+                    " the encoding step before the encoding step."
                     " In this case it must be one of:"
                     "\n    R8_UNORM"
                     "\n    R8_SRGB"
@@ -599,7 +601,7 @@ Create a KTX2 file from various input files.
     The following are available:
     <dl>
         <dt>\--format &lt;enum&gt;</dt>
-        <dd>KTX format enum that specifies the data format of the images in the created texture.
+        <dd>VkFormat enum that specifies the data format of the images in the output KTX file.
             The enum names are matching the VkFormats without the VK_FORMAT_ prefix.
             The VK_FORMAT_ prefix is ignored if present. Case insensitive. Required.<br />
             <br />
@@ -624,8 +626,11 @@ Create a KTX2 file from various input files.
                 <li>R8G8B8A8_UNORM</li>
                 <li>R8G8B8A8_SRGB</li>
             </ul>
-            The format will be used to verify and load all input files into a texture before
-            performing any specified encoding.
+            If the format is an ASTC format the ASTC encoder specific options become valid,
+            otherwise they are ignored.<br />
+            The format will be used to verify and load all input files into a texture before encoding.<br />
+            Case insensitive. Required.</dd>
+            @snippet{doc} ktx/astc_utils.h command options_astc
         </dd>
         <dt>\--encode basis-lz | uastc</dt>
         <dd>Encode the texture with the specified codec before saving it.

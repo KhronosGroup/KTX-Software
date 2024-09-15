@@ -225,14 +225,14 @@ cmake --build build-macos-universal
 file build-macos-universal/Debug/libktx.dylib
 # outputs:
 # build-macos-universal/Debug/libktx.dylib: Mach-O universal binary with 2 architectures: [x86_64:Mach-O 64-bit dynamically linked shared library x86_64] [arm64]
-# build-macos-universal/Debug/libktx.dylib (for architecture x86_64):	Mach-O 64-bit dynamically linked shared library x86_64
-# build-macos-universal/Debug/libktx.dylib (for architecture arm64):	Mach-O 64-bit dynamically linked shared library arm64
+# build-macos-universal/Debug/libktx.dylib (for architecture x86_64):    Mach-O 64-bit dynamically linked shared library x86_64
+# build-macos-universal/Debug/libktx.dylib (for architecture arm64):     Mach-O 64-bit dynamically linked shared library arm64
 
 file build-macos-universal/Debug/ktx
 # outputs:
 # build-macos-universal/Debug/ktx: Mach-O universal binary with 2 architectures: [x86_64:Mach-O 64-bit executable x86_64] [arm64:Mach-O 64-bit executable arm64]
-# build-macos-universal/Debug/ktx (for architecture x86_64):	Mach-O 64-bit executable x86_64
-# build-macos-universal/Debug/ktx (for architecture arm64):	Mach-O 64-bit executable arm64
+# build-macos-universal/Debug/ktx (for architecture x86_64):    Mach-O 64-bit executable x86_64
+# build-macos-universal/Debug/ktx (for architecture arm64):     Mach-O 64-bit executable arm64
 ```
 
 To explicity build for one or the other architecture use

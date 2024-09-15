@@ -10,6 +10,7 @@ add_executable(ktxtools
         command_create.cpp
         command_deflate.cpp
         command_encode.cpp
+        command_encode_astc.cpp
         command_extract.cpp
         command_help.cpp
         command_info.cpp
