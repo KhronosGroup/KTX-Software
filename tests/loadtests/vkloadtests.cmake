@@ -368,11 +368,21 @@ else()
     # we have chosen to install the apps and data in /opt/<target>.
     # Each target has a `bin` directory with the executable and a
     # `resources` directory with the resources. We install a symbolic
-    # link to the executable in ${CMAKE_INSTALL_LIBDIR}, usually
-    # /usr/local/bin.
+    # link to the executable in ${CMAKE_INSTALL_BINDIR}, usually
+    # /usr/local/bin, instead of adding /opt/<target>/bin to $PATH.
+    #
+    # TODO: Figure out how to handle libktx so installs of tools only,
+    # tools + loadtests and loadtests only are supported. Only put
+    # library in /usr/local/lib? Duplicate it in /opt/<provider>/lib
+    # from where it is shared by gl3loadtests and vkloadtests? Only
+    # put it in /opt/<provider>/lib with link from
+    # ${CMAKE_INSTALL_LIBDIR}? NOTE: if we put lib in /opt/<provider>
+    # then consider putting the executables in /opt/provider/<target>.
 
+    # TODO: Before adding this target to the release packages, ensure
+    # this RPATH will work for alternate install root.
     set_target_properties( vkloadtests PROPERTIES
-        INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}"
+        INSTALL_RPATH "\$ORIGIN;${CMAKE_INSTALL_FULL_LIBDIR}"
     )
 
     ######### IMPORTANT ######

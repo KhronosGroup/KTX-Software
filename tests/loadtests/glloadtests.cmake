@@ -263,17 +263,12 @@ function( create_gl_target target version sources common_resources test_images
               $<TARGET_FILE_DIR:${target}>/../resources
         )
 
-        # To keep the resources (test images and models) close to the
-        # executable and to be compliant with the Filesystem Hierarchy
-        # Standard https://refspecs.linuxfoundation.org/FHS_3.0/fhs/index.html
-        # we have chosen to install the apps and data in /opt/<target>.
-        # Each target has a `bin` directory with the executable and a
-        # `resources` directory with the resources. We install a symbolic
-        # link to the executable in ${CMAKE_INSTALL_LIBDIR}, usually
-        # /usr/local/bin.
+        # See important comment and TODO:s starting at line 365
+        # in ./vkloadtests.cmake regarding installation of these
+        # targets. Search for "keep the resources".
 
         set_target_properties( ${target} PROPERTIES
-            INSTALL_RPATH "\$ORIGIN:${CMAKE_INSTALL_FULL_LIBDIR}"
+            INSTALL_RPATH "\$ORIGIN;${CMAKE_INSTALL_FULL_LIBDIR}"
         )
 
         ######### IMPORTANT ######

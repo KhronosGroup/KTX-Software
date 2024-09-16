@@ -13,6 +13,10 @@ endif()
 
 function(set_tool_properties tool_target)
     if(APPLE)
+        # The first RPATH entry is so executables run in the build
+        # directories will work and will find the just built libraries
+        # instead of whatever may be installed on the system. The
+        # second RPATH entry is for finding the installed library.
         set_target_properties(${tool_target} PROPERTIES
             XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
             # Creates an LC_RPATH entry in the Mac-O binary for each
@@ -39,10 +43,19 @@ function(set_tool_properties tool_target)
             # - Default path: /lib;/usr/lib.
             # $ORIGIN is equivalent to @executable_path.
             #
+            # Use relative path to installed lib so users can change
+            # installation location. Using CMAKE_INSTALL_FULL_LIBDIR
+            # would not work when changing the location during package
+            # install only when changing the installation location
+            # during `cmake --build` or `cmake --install`. The second
+            # entry may not be necessary as users installing to an
+            # alternate location will likely have it set in their
+            # LD_LIBRARY_PATH or /etc/ld.so.conf.
+            #
             # Check DT_RUNPATH with one of
             # - readelf -d <file> | head -20
             # - objdump -x <file> | grep 'R.*PATH'
-            INSTALL_RPATH "$ORIGIN;$ORIGIN/../lib"
+            INSTALL_RPATH "\$ORIGIN;\$ORIGIN/../lib"
         )
     endif()
 endfunction()

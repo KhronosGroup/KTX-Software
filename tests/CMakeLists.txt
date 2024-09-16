@@ -9,7 +9,7 @@ function(set_test_properties test_target)
         )
     elseif(LINUX)
         set_target_properties(${test_target} PROPERTIES
-            INSTALL_RPATH "$ORIGIN;$ORIGIN/../lib"
+            INSTALL_RPATH "\$ORIGIN;\$ORIGIN/../lib"
         )
     endif()
 endfunction()
