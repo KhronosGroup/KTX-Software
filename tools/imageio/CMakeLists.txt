@@ -67,10 +67,11 @@ PRIVATE
     $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
 )
 
+target_compile_features(imageio PUBLIC cxx_std_17)
+
+target_link_libraries(imageio fmt::fmt)
+
 set_target_properties(imageio PROPERTIES
-    CXX_STANDARD 17
-    CXX_STANDARD_REQUIRED YES
     CXX_VISIBILITY_PRESET ${STATIC_APP_LIB_SYMBOL_VISIBILITY}
 )
 
-target_link_libraries(imageio fmt::fmt)

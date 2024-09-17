@@ -6,6 +6,18 @@ add_executable( ktx2check
 )
 create_version_header( tools/ktx2check ktx2check )
 
+set_target_properties(
+    ktx2check PROPERTIES
+    CXX_VISIBILITY_PRESET ${STATIC_APP_LIB_SYMBOL_VISIBILITY}
+)
+
+target_compile_features(
+    ktx2check
+PUBLIC
+    # C++14 for std::make_unique on AppleClang and Linux GCC
+    cxx_std_14
+)
+
 target_include_directories(
     ktx2check
 PRIVATE
@@ -14,14 +26,6 @@ PRIVATE
     $<TARGET_PROPERTY:objUtil,INTERFACE_INCLUDE_DIRECTORIES>
     ${PROJECT_SOURCE_DIR}/lib
     ${PROJECT_SOURCE_DIR}/other_include
-)
-
-set_target_properties(
-    ktx2check PROPERTIES
-    CXX_VISIBILITY_PRESET ${STATIC_APP_LIB_SYMBOL_VISIBILITY}
-    # Force C++14 (for std::make_unique on AppleClang and Linux GCC)
-    CXX_STANDARD 14
-    CXX_STANDARD_REQUIRED YES
 )
 
 target_link_libraries(
