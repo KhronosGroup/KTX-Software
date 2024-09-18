@@ -34,18 +34,17 @@ using namespace std;
 argvector::argvector(const string& sArgs)
 {
     const string sep(" \t");
-    //std::locale old = std::locale::global(std::locale("ja_JP.UTF-8"));
     // std::regex does not support negative lookbehind assertions. Darn!
     // RE to extract argument between string start and separator.
     // - Match 0 is whole matching string including separator.
     // - Match 1 is the argument.
+    // - Match 2 is an empty string or a backslash.
     // Use negative character class as it is easiest way to handle
     // utf-8 file names with non-Latin characters. $ must not be last
     // in the character class or it will be taken literally not as
     // end of string.
     // Use raw literal to avoid excess backslashes.
-    regex re(R"--(^([^$ \t]+)(?:[ \t]+|$))--");
-    //regex re(R"--(^([\\/:._[:alnum:]-]+)(?:[ \t]+|$))--");
+    regex re(R"--(^([^$\\ \t]+)(\\?)(?:[ \t]+|$))--");
     size_t pos;
 
     pos = sArgs.find_first_not_of(sep);
@@ -54,22 +53,23 @@ argvector::argvector(const string& sArgs)
     auto first = sArgs.begin() + pos;
     auto last = sArgs.end();
     bool continuation = false;
-    bool needContinuation = false;
     for (smatch sm; regex_search(first, last, sm, re);) {
+        bool needContinuation = false;
+#if DEBUG_REGEX
         std::cout << "prefix: " << sm.prefix() << '\n';
         std::cout << "suffix: " << sm.suffix() << '\n';
         std::cout << "match size: " << sm.size() << '\n';
         for(uint32_t i = 0; i < sm.size(); i++) {
             std::cout << "match " << i << ": " << "\"" << sm.str(i) << "\"" << '\n';
         }
+#endif
         string arg;
-        // All this because std::regex does not support negative lookbehind.
-        if (*(sm[1].second - 1) == '\\') {
-            arg = string(sm[1].first, sm[1].second - 1) + " ";
+        // All this because std::regex does not support negative
+        // lookbehind assertions.
+        arg = sm.str(1);
+        if (*sm[2].first == '\\') {
+            arg += " ";
             needContinuation = true;
-        } else {
-            arg = sm.str(1);
-            needContinuation = false;
         }
         if (continuation) {
             this->back() += arg;
@@ -79,7 +79,6 @@ argvector::argvector(const string& sArgs)
         continuation = needContinuation;
         first = sm.suffix().first;
     }
-    //std::locale::global(old);
 }
 
 /*
