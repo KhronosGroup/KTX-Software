@@ -20,6 +20,8 @@
 
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include <string>
+#include <regex>
 
 #include "VulkanLoadTests.h"
 #include "Texture.h"
@@ -355,6 +357,9 @@ VulkanLoadTests::showFile(std::string& filename)
         createViewer = Texture::create;
     }
     ktxTexture_Destroy(kTexture);
+
+    // Escape any spaces in filename.
+    filename = std::regex_replace( filename, std::regex(" "), "\\ " );
     std::string args = "--external " + filename;
     pViewer = createViewer(vkctx, w_width, w_height, args.c_str(), sBasePath);
     return pViewer;
