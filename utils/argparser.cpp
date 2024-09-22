@@ -24,7 +24,6 @@
 #include <iostream>
 #include "argparser.h"
 #include <regex>
-#include <locale>
 
 using namespace std;
 
