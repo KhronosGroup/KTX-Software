@@ -29,9 +29,112 @@
 #define STB_FONT_HEIGHT STB_FONT_consolas_24_latin1_BITMAP_HEIGHT 
 #define STB_FIRST_CHAR STB_FONT_consolas_24_latin1_FIRST_CHAR
 #define STB_NUM_CHARS STB_FONT_consolas_24_latin1_NUM_CHARS
+#define STB_MISSING_GLPYH 0x80 // Actually a control character.
 
 // Max. number of chars the text overlay buffer can hold
 #define MAX_CHAR_COUNT 1024
+
+
+/**
+ * @internal
+ * @brief Given the lead byte of a UTF-8 sequence returns the expected length of the codepoint
+ * @param[in] leadByte The lead byte of a UTF-8 sequence
+ * @return The expected length of the codepoint */
+[[nodiscard]] constexpr inline int sequenceLength(uint8_t leadByte) noexcept {
+    if ((leadByte & 0b1000'0000u) == 0b0000'0000u)
+        return 1;
+    if ((leadByte & 0b1110'0000u) == 0b1100'0000u)
+        return 2;
+    if ((leadByte & 0b1111'0000u) == 0b1110'0000u)
+        return 3;
+    if ((leadByte & 0b1111'1000u) == 0b1111'0000u)
+        return 4;
+
+    return 0;
+}
+
+/**
+ * @internal
+ * @brief Checks if the codepoint was coded as a longer than required sequence
+ * @param[in] codepoint The unicode codepoint
+ * @param[in] length The UTF-8 sequence length
+ * @return True if the sequence length was inappropriate for the given codepoint */
+[[nodiscard]] constexpr inline bool isOverlongSequence(uint32_t codepoint, int length) noexcept {
+    if (codepoint < 0x80)
+        return length != 1;
+    else if (codepoint < 0x800)
+        return length != 2;
+    else if (codepoint < 0x10000)
+        return length != 3;
+    else
+        return false;
+}
+
+/**
+ * @internal
+ * @brief Checks if the codepoint is valid
+ * @param[in] codepoint The unicode codepoint
+ * @return True if the codepoint is a valid unicode codepoint */
+[[nodiscard]] constexpr inline bool isCodepointValid(uint32_t codepoint) noexcept {
+    return codepoint <= 0x0010FFFFu
+            && !(0xD800u <= codepoint && codepoint <= 0xDBFFu);
+}
+
+/**
+ * @internal
+ * @brief Safely checks and advances a UTF-8 sequence iterator to the start of the next unicode codepoint
+ * @param[in] it iterator to be advanced
+ * @param[in] end iterator pointing to the end of the range
+ * @return True if the advance operation was successful and the advanced codepoint was a valid UTF-8 sequence */
+template <typename Iterator>
+[[nodiscard]] constexpr bool advanceUTF8(Iterator& it, Iterator end,
+                                         uint32_t& codepoint) noexcept {
+    if (it == end)
+        return false;
+
+    const auto length = sequenceLength(*it);
+    if (length == 0)
+        return false;
+
+    if (std::distance(it, end) < length)
+        return false;
+
+    for (int i = 1; i < length; ++i) {
+        const auto trailByte = *(it + i);
+        if ((static_cast<uint8_t>(trailByte) & 0b1100'0000u) != 0b1000'0000u)
+            return false;
+    }
+
+    codepoint = 0;
+    switch (length) {
+    case 1:
+        codepoint |= *it++;
+        break;
+    case 2:
+        codepoint |= (*it++ & 0b0001'1111u) << 6u;
+        codepoint |= (*it++ & 0b0011'1111u);
+        break;
+    case 3:
+        codepoint |= (*it++ & 0b0000'1111u) << 12u;
+        codepoint |= (*it++ & 0b0011'1111u) << 6u;
+        codepoint |= (*it++ & 0b0011'1111u);
+        break;
+    case 4:
+        codepoint |= (*it++ & 0b0000'0111u) << 18u;
+        codepoint |= (*it++ & 0b0011'1111u) << 12u;
+        codepoint |= (*it++ & 0b0011'1111u) << 6u;
+        codepoint |= (*it++ & 0b0011'1111u);
+        break;
+    }
+
+    if (!isCodepointValid(codepoint))
+        return false;
+
+    if (isOverlongSequence(codepoint, length))
+        return false;
+
+    return true;
+}
 
 // Mostly self-contained text overlay class
 // todo : comment
@@ -91,6 +194,7 @@ private:
         // todo : throw error
         return 0;
     }
+
 public:
 
     enum TextAlign { alignLeft, alignCenter, alignRight };
@@ -573,12 +677,20 @@ public:
 
         // Calculate text width
         float textWidth = 0;
-        for (auto letter : text)
+        uint32_t codepoint;
+        auto it = text.begin();
+        while (it != text.end())
         {
-            stb_fontchar *charData = &stbFontData[(uint32_t)letter - STB_FIRST_CHAR];
+            if (!advanceUTF8(it, text.end(), codepoint))
+                break;
+            // TODO: Get a UTF8 font. Consider changing to Dear ImGUI
+            // https://github.com/ocornut/imgui.
+            // Placeholder to avoid crashing.
+            if (codepoint > STB_NUM_CHARS + STB_FIRST_CHAR)
+                codepoint = STB_MISSING_GLPYH;
+            stb_fontchar *charData = &stbFontData[(uint32_t)codepoint - STB_FIRST_CHAR];
             textWidth += charData->advance * charW;
         }
-
         switch (align)
         {
         case alignRight:
@@ -592,9 +704,15 @@ public:
         }
 
         // Generate a uv mapped quad per char in the new text
-        for (auto letter : text)
+        it = text.begin();
+        while (it != text.end())        {
         {
-            stb_fontchar *charData = &stbFontData[(uint32_t)letter - STB_FIRST_CHAR];
+            if (!advanceUTF8(it, text.end(), codepoint))
+                break;
+            if (codepoint > STB_NUM_CHARS + STB_FIRST_CHAR)
+                codepoint = STB_MISSING_GLPYH;
+
+            stb_fontchar *charData = &stbFontData[(uint32_t)codepoint - STB_FIRST_CHAR];
 
             mappedLocal->x = (x + (float)charData->x0 * charW);
             mappedLocal->y = (y + (float)charData->y0 * charH);
@@ -627,8 +745,8 @@ public:
             if (numLetters == MAX_CHAR_COUNT)
                 break; // Truncate the text.
         }
+        }
     }
-
     // Unmap buffer and update command buffers
     void endTextUpdate()
     {
