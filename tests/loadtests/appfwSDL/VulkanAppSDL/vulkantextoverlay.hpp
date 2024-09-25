@@ -705,7 +705,7 @@ public:
 
         // Generate a uv mapped quad per char in the new text
         it = text.begin();
-        while (it != text.end())        {
+        while (it != text.end())
         {
             if (!advanceUTF8(it, text.end(), codepoint))
                 break;
@@ -744,7 +744,6 @@ public:
 
             if (numLetters == MAX_CHAR_COUNT)
                 break; // Truncate the text.
-        }
         }
     }
     // Unmap buffer and update command buffers
