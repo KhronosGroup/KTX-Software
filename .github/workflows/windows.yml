@@ -233,6 +233,7 @@ jobs:
 
     # Without this, venv stopped working in 20240929.1 runner.
     - name: Activate virtualenv
+      if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
       run: |
         . .venv/bin/activate
         echo PATH=$PATH >> $GITHUB_ENV
