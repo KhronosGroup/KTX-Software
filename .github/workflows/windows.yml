@@ -231,6 +231,12 @@ jobs:
       with:
         python-version: '3.11.4'
 
+    # Without this, venv stopped working in 20240929.1 runner.
+    - name: Activate virtualenv
+      run: |
+        . .venv/bin/activate
+        echo PATH=$PATH >> $GITHUB_ENV
+
     - name: Init CTS submodule
       if: matrix.options.tools_cts =='ON'
       run:
