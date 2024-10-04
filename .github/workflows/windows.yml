@@ -232,11 +232,11 @@ jobs:
         python-version: '3.11.4'
 
     # Without this, venv stopped working in 20240929.1 runner.
-    - name: Activate virtualenv
+    - name: Install Python virtualenv
       if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
-      run: |
-        . .venv/bin/activate
-        echo PATH=$PATH >> $GITHUB_ENV
+      run: pipx install virtualenv
+        # . .venv/bin/activate
+        # echo PATH=$PATH >> $GITHUB_ENV
 
     - name: Init CTS submodule
       if: matrix.options.tools_cts =='ON'
