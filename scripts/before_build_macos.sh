@@ -21,9 +21,10 @@ MACOS_CERTS_TMPFILE=macOS_certificates.p12
 # Set up a keychain for signing certificates
 security create-keychain -p $KEY_PASS $KEY_CHAIN
 security default-keychain -s $KEY_CHAIN
+# Turn off timeout that re-locks the keychain to avoid risk of build
+# taking longer than whatever timeout is set (default is 300s).
+security set-keychain-settings -u $KEY_CHAIN
 security unlock-keychain -p $KEY_PASS $KEY_CHAIN
-# Set locking timeout to 3600 secondsa. Avoid hang in codesign.
-security set-keychain-settings -t 3600 -u $KEY_CHAIN
 
 # Import the macOS certificates
 #
@@ -35,11 +36,15 @@ security set-keychain-settings -t 3600 -u $KEY_CHAIN
 # it was exported.
 #
 echo $MACOS_CERTIFICATES_P12 | base64 --decode > $MACOS_CERTS_TMPFILE
+# In CI (macOS 12.6) `security` prints a bunch of "attribute" info when
+# importing. I have been unable to find out if it is a security risk.
+# -q does not squelch it. macOS 14.6 `security` does not do this.
+#
 security import $MACOS_CERTS_TMPFILE -k $KEY_CHAIN -P $MACOS_CERTIFICATES_PASSWORD -T /usr/bin/codesign -T /usr/bin/productbuild
 rm $MACOS_CERTS_TMPFILE
 
-# Avoid hang in codesign.
-# See https://docs.travis-ci.com/user/common-build-problems/#mac-macos-sierra-1012-code-signing-errors
+# Allow Apple tools access to signing certs in the keychain. Both this and
+# an unlocked keychain are needed for access.
 #
 security set-key-partition-list -S apple-tool:,apple: -s -k $KEY_PASS $KEY_CHAIN
 
