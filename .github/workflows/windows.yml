@@ -234,9 +234,13 @@ jobs:
     # Without this, venv stopped working in 20240929.1 runner.
     - name: Install Python virtualenv
       if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
-      run: pipx install virtualenv
-        # . .venv/bin/activate
-        # echo PATH=$PATH >> $GITHUB_ENV
+      run: |
+        echo $env:PATH
+        pipx install virtualenv
+        echo $env:PATH
+        . .venv/bin/activate
+        echo $env:PATH
+        echo $env:PATH >> $GITHUB_ENV
 
     - name: Init CTS submodule
       if: matrix.options.tools_cts =='ON'
