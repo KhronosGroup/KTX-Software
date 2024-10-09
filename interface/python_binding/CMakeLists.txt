@@ -88,6 +88,8 @@ add_custom_command(
             LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
             LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
             LIBKTX_VERSION=${KTX_VERSION_NORMALIZED}
+        # Bulding sdist requires a virtual env. I have not found a
+        # a way via find_package to ensure venv support is installed.
         ${PYTHON_EXECUTABLE} -m build --sdist --outdir ${DIST_DIR}
     WORKING_DIRECTORY
         ${SOURCE_DIR}
@@ -103,6 +105,7 @@ add_custom_command(
             LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
             LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
             LIBKTX_VERSION=${KTX_VERSION_NORMALIZED}
+        # Ditto with sdist venv comment.
         ${PYTHON_EXECUTABLE} -m build --wheel --outdir ${DIST_DIR}
     WORKING_DIRECTORY
         ${SOURCE_DIR}
