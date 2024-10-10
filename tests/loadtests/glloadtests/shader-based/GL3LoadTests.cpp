@@ -15,6 +15,9 @@
  *        OpenGL ES 3.x
  */
 
+#include <string>
+#include <regex>
+
 #include "GLLoadTests.h"
 #include "EncodeTexture.h"
 #include "DrawTexture.h"
@@ -71,6 +74,9 @@ GLLoadTests::showFile(std::string& filename)
         createViewer = DrawTexture::create;
     }
     ktxTexture_Destroy(kTexture);
+
+    // Escape any spaces in filename.
+    filename = std::regex_replace( filename, std::regex(" "), "\\ " );
     std::string args = "--external " + filename;
     pViewer = createViewer(w_width, w_height, args.c_str(), sBasePath);
     return pViewer;

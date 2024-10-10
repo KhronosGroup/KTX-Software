@@ -165,6 +165,12 @@ add_executable( vkloadtests
 
 set_code_sign(vkloadtests)
 
+# If VulkanAppSDL is ever made into its own target change the target here.
+target_compile_features(vkloadtests
+PRIVATE
+    cxx_std_14
+)
+
 target_include_directories(vkloadtests
 PRIVATE
     ${SDL2_INCLUDE_DIRS}
