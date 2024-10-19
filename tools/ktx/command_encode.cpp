@@ -251,9 +251,18 @@ void CommandEncode::executeEncode() {
 
     MetricsCalculator metrics;
     metrics.saveReferenceImages(texture, options, *this);
-    ret = ktxTexture2_CompressBasisEx(texture, &options);
-    if (ret != KTX_SUCCESS)
-        fatal(rc::IO_FAILURE, "Failed to encode KTX2 file with codec \"{}\". KTX Error: {}", ktxErrorString(ret));
+
+    if (options.vkFormat != VK_FORMAT_UNDEFINED) {
+       options.mode = KTX_PACK_ASTC_ENCODER_MODE_LDR; // TODO: Fix me for HDR textures
+       ret = ktxTexture2_CompressAstcEx(texture, &options);
+       if (ret != KTX_SUCCESS)
+           fatal(rc::IO_FAILURE, "Failed to encode KTX2 file with codec \"{}\". KTX Error: {}", ktxErrorString(ret));
+    } else {
+       ret = ktxTexture2_CompressBasisEx(texture, &options);
+       if (ret != KTX_SUCCESS)
+           fatal(rc::IO_FAILURE, "Failed to encode KTX2 file with codec \"{}\". KTX Error: {}", ktxErrorString(ret));
+    }
+
     metrics.decodeAndCalculateMetrics(texture, options, *this);
 
     if (options.zstd) {
