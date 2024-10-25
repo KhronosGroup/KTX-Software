@@ -43,7 +43,7 @@ This creates the `libktx` library and the command line tools. To create the comp
 cmake . -B build -D KTX_FEATURE_LOADTEST_APPS=ON -D KTX_FEATURE_DOC=ON
 ```
 
-If you need the library to be static, add `-D KTX_FEATURE_STATIC_LIBRARY=ON` to the CMake configure command (always enabled on iOS and Emscripten).
+If you need the library to be static, add `-D BUILD_SHARED_LIBS=OFF` to the CMake configure command (always disabled on iOS and Emscripten).
 
 > **Note:**
 >
@@ -522,7 +522,7 @@ cd KTX-Software/
 git submodule update --init --recursive tests/cts
 # Configure 
 mkdir build
-cmake -B build . -DKTX_FEATURE_DOC=ON -DKTX_FEATURE_STATIC_LIBRARY=ON -DKTX_FEATURE_TOOLS_CTS=ON -DKTX_FEATURE_TESTS=ON -DKTX_FEATURE_TOOLS_CTS=ON
+cmake -B build . -DKTX_FEATURE_DOC=ON -DBUILD_SHARED_LIBS=OFF -DKTX_FEATURE_TOOLS_CTS=ON -DKTX_FEATURE_TESTS=ON -DKTX_FEATURE_TOOLS_CTS=ON
 # Build everything (depending on workflow its better to build the specific target like 'ktxtools'):
 cmake --build build --target all 
 # Run every test case:

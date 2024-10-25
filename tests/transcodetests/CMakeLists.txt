@@ -60,7 +60,7 @@ if(WIN32)
 
     # The Windows ktx.dll does not export needed symbols. This is a workaround to get it linking.
     add_library(obj_tmp_basisu OBJECT
-        $<$<NOT:$<BOOL:${KTX_FEATURE_STATIC_LIBRARY}>>:${PROJECT_SOURCE_DIR}/external/basisu/transcoder/basisu_transcoder.cpp>
+        $<$<BOOL:${BUILD_SHARED_LIBS}>:${PROJECT_SOURCE_DIR}/external/basisu/transcoder/basisu_transcoder.cpp>
         "${PROJECT_SOURCE_DIR}/external/basisu/zstd/zstd.c"
         )
     target_compile_definitions(

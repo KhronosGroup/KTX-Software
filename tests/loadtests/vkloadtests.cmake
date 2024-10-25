@@ -323,7 +323,7 @@ if(APPLE)
             # Set RPATH to find frameworks and dylibs
             INSTALL_RPATH "@executable_path/../Frameworks"
         )
-        if(NOT KTX_FEATURE_STATIC_LIBRARY)
+        if(BUILD_SHARED_LIBS)
             # XCODE_EMBED_FRAMEWORKS does not appear to support generator
             # expressions hence this instead of a genex in the above.
             set_property( TARGET vkloadtests

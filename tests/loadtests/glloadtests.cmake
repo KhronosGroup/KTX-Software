@@ -229,7 +229,7 @@ function( create_gl_target target version sources common_resources test_images
                 INSTALL_RPATH "@executable_path/../Frameworks"
             )
 
-            if(NOT KTX_FEATURE_STATIC_LIBRARY)
+            if(BUILD_SHARED_LIBS)
               add_custom_command( TARGET ${target} POST_BUILD
                   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Frameworks/$<TARGET_FILE_NAME:ktx>"
                   COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE_NAME:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Frameworks/$<TARGET_SONAME_FILE_NAME:ktx>"
