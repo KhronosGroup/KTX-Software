@@ -914,7 +914,8 @@ Create a KTX2 file from various input files.
 
 The diagram below shows all assignments and conversions that can take place.
 
-<!-- No way to disable syntax coloring for file part. Live with bad Xcode rendering. -->
+<!-- No way to disable Xcode syntax coloring for a file part. -->
+<!-- Live with the bad Xcode rendering. -->
 <!-- ASCII art created with the help of  https://asciiflow.com. -->
 
 @verbatim
@@ -934,25 +935,23 @@ The diagram below shows all assignments and conversions that can take place.
 @endverbatim
 
 @subsection ktx_create_oetf_handling_rules Rules
-There are no automatic color conversions. Specify a format with @b --format whose
-OETF matches Output OETF in compliance with the following rules.
-@li If @b \--format specifies one of the  @c *_SRGB{,_*} formats Output OETF
-    must be sRGB.
-@li If @b \--format does not specify one of the @c *_SRGB{,_*}formats and an
-    sRGB variant exists Output OETF must not be sRGB.
-
-Any violation generates an error.
-
-Any OETF except sRGB or linear will have to come from the input file(s) as
-@b \--convert-oetf only supports those 2 OETFs.
+The OETF handling rules are as follows:
+@li If @b \--format specifies one of the  @c *_SRGB{,_*} formats, Output OETF
+    is not sRGB and Input OETF is linear or BT.709 then the input is
+    converted to sRGB and a warning is generated. Any other Input OETF
+    generates an error.
+@li If @b \--format does not specify one of the @c *_SRGB{,_*}formats, an
+    sRGB variant exists and Output OETF is sRGB, an error is generated.
+@li Otherwise,  the OETF of the output KTX file is set to Output OETF.
+    @b \--assign-oetf and @b \--convert-oetf only recognize linear and
+    srgb so any OETF except these will have to come from the input file(s).
 
 @note When @b \--format does not specify one of the *_SRGB{,_*} formats and
-      Output OETF  is not linear:
+      Output OETF is not linear:
       @li the KTX file may be much less portable due to limited hardware
           support of such inputs.
       @li avoid using @b \--generate-mipmap as the filters can only decode
           sRGB.
-
 
 @section ktx_create_exitstatus EXIT STATUS
     @snippet{doc} ktx/command.h command exitstatus
