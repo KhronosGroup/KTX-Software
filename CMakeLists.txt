@@ -262,12 +262,15 @@ endif()
 
 # EMSCRIPTEN is not set until project so all these must be after.
 if(APPLE_LOCKED_OS OR EMSCRIPTEN)
-    set( LIB_TYPE_DEFAULT ON )
-else()
     set( LIB_TYPE_DEFAULT OFF )
+else()
+    set( LIB_TYPE_DEFAULT ON )
 endif()
 
-option( KTX_FEATURE_STATIC_LIBRARY "Create static libraries (shared otherwise)." ${LIB_TYPE_DEFAULT} )
+option(BUILD_SHARED_LIBS "Create shared libraries (static otherwise)." ${LIB_TYPE_DEFAULT} )
+
+# Used to reset BUILD_SHARED_LIBS after forcing static builds
+set(BUILD_SHARED_LIBS_RESET ${BUILD_SHARED_LIBS})
 
 CMAKE_DEPENDENT_OPTION( KTX_FEATURE_TOOLS
                         "Create KTX tools"
@@ -284,11 +287,11 @@ if(EMSCRIPTEN)
     set( KTX_FEATURE_VK_UPLOAD OFF )
 endif()
 
-if(KTX_FEATURE_STATIC_LIBRARY)
+if(NOT BUILD_SHARED_LIBS)
     set(LIB_TYPE STATIC)
 else()
     if(CMAKE_SYSTEM_NAME STREQUAL "iOS" OR EMSCRIPTEN)
-        message(SEND_ERROR "Library type cannot be shared for the current platform. Set KTX_FEATURE_STATIC_LIBRARY to ON!")
+        message(SEND_ERROR "Library type cannot be shared for the current platform. Set BUILD_SHARED_LIBS to OFF!")
     endif()
     set(LIB_TYPE SHARED)
 endif()
@@ -1116,7 +1119,7 @@ set (STATIC_APP_LIB_SYMBOL_VISIBILITY hidden)
 set_target_properties(objUtil PROPERTIES
     CXX_VISIBILITY_PRESET ${STATIC_APP_LIB_SYMBOL_VISIBILITY}
 )
-if(KTX_FEATURE_STATIC_LIBRARY AND
+if(NOT BUILD_SHARED_LIBS AND
    (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
     set_source_files_properties(
         lib/astc_encode.cpp
@@ -1211,7 +1214,10 @@ if(NOT ${universal_build})
 endif()
 
 set(ASTCENC_CLI OFF) # Only build as library not the CLI astcencoder
+# Force static build for astc-encoder
+set(BUILD_SHARED_LIBS OFF)
 add_subdirectory(external/astc-encoder)
+set(BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS_RESET})
 set_property(TARGET ${ASTCENC_LIB_TARGET} PROPERTY POSITION_INDEPENDENT_CODE ON)
 target_compile_definitions(
     ${ASTCENC_LIB_TARGET}
@@ -1223,7 +1229,7 @@ PRIVATE
     $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,17.0.3>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
 )
 
-if(KTX_FEATURE_STATIC_LIBRARY AND APPLE)
+if(NOT BUILD_SHARED_LIBS AND APPLE)
     # Make a single static library to simplify linking.
     add_dependencies(ktx ${ASTCENC_LIB_TARGET})
     add_custom_command( TARGET ktx
@@ -1244,9 +1250,12 @@ endif()
 # this CMakeLists is included in another project which is unlikely
 # except for building the ktx library.
 if((KTX_FEATURE_TOOLS OR KTX_FEATURE_TESTS) AND NOT TARGET fmt::fmt)
+    # Always build fmt static
+    set(BUILD_SHARED_LIBS OFF)
     set(FMT_INSTALL OFF)
     set(FMT_SYSTEM_HEADERS ON)
     add_subdirectory(external/fmt)
+    set(BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS_RESET})
 endif()
 if(KTX_FEATURE_TOOLS AND NOT TARGET cxxopts::cxxopts)
     add_subdirectory(external/cxxopts)
@@ -1266,7 +1275,7 @@ if(KTX_FEATURE_DOC)
 endif()
 
 set(KTX_INSTALL_TARGETS ktx)
-if(KTX_FEATURE_STATIC_LIBRARY AND NOT APPLE)
+if(NOT BUILD_SHARED_LIBS AND NOT APPLE)
     list(APPEND KTX_INSTALL_TARGETS ${ASTCENC_LIB_TARGET})
 endif()
 
