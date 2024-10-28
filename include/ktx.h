@@ -1114,6 +1114,11 @@ KTX_API void KTX_APIENTRY
 ktxTexture2_GetComponentInfo(ktxTexture2* This, ktx_uint32_t* numComponents,
                              ktx_uint32_t* componentByteLength);
 
+KTX_API KTX_error_code KTX_APIENTRY
+ktxTexture2_GetImageOffset(ktxTexture2* This, ktx_uint32_t level,
+                           ktx_uint32_t layer, ktx_uint32_t faceSlice,
+                           ktx_size_t* pOffset);
+
 KTX_API ktx_uint32_t KTX_APIENTRY
 ktxTexture2_GetNumComponents(ktxTexture2* This);
 
