@@ -28,10 +28,6 @@
 */
 
 
-KTX_error_code CLASS_FUNC(GetImageOffset)(CLASS* This, ktx_uint32_t level,
-                                          ktx_uint32_t layer,
-                                          ktx_uint32_t faceSlice,
-                                          ktx_size_t* pOffset);
 ktx_size_t CLASS_FUNC(GetImageSize)(CLASS* This, ktx_uint32_t level);
 KTX_error_code CLASS_FUNC(GLUpload)(CLASS* This, GLuint* pTexture,
                                     GLenum* pTarget, GLenum* pGlerror);
