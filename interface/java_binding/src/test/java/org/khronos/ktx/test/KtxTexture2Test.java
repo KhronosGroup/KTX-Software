@@ -599,4 +599,37 @@ public class KtxTexture2Test {
 
         t.destroy();
     }
+
+    @Test
+    public void testBindings() {
+        Path testKtxFile = Paths.get("")
+                .resolve("../../tests/testimages/astc_ldr_4x4_FlightHelmet_baseColor.ktx2")
+                .toAbsolutePath()
+                .normalize();
+
+        KtxTexture2 texture = KtxTexture2.createFromNamedFile(testKtxFile.toString(),
+                KtxTextureCreateFlagBits.NO_FLAGS);
+        texture.getOETF();
+        texture.getPremultipliedAlpha();
+        texture.needsTranscoding();
+        texture.getSupercompressionScheme();
+        texture.getVkFormat();
+
+        texture.isArray();
+        texture.isCubemap();
+        texture.isCompressed();
+        texture.getGenerateMipmaps();
+        texture.getBaseWidth();
+        texture.getBaseHeight();
+        texture.getBaseDepth();
+        texture.getNumDimensions();
+        texture.getNumLevels();
+        texture.getNumFaces();
+        texture.getDataSize();
+        texture.getDataSizeUncompressed();
+        texture.getElementSize();
+        texture.getRowPitch(0);
+        texture.getImageSize(0);
+    }
+
 }
