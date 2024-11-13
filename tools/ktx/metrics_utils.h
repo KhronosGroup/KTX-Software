@@ -107,8 +107,10 @@ public:
         tSwizzleInfo.swizzle = "rgba";
 
         ktx_error_code_e ec = KTX_SUCCESS;
+
         // Decode the encoded texture to observe the compression losses
-        if (isFormatAstc((VkFormat)texture->vkFormat))
+        const auto* bdfd = texture->pDfd + 1;
+        if (khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_ASTC)
         {
             ec = ktxTexture2_DecodeAstc(texture, VK_FORMAT_R8G8B8A8_UNORM);
         }
