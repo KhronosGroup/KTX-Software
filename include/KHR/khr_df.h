@@ -106,7 +106,7 @@ typedef enum _khr_df_mask_e {
     ((BDB)[KHR_DF_WORD_ ## X] = \
      ((BDB)[KHR_DF_WORD_ ## X] & \
       ~((KHR_DF_MASK_ ## X) << (KHR_DF_SHIFT_ ## X))) | \
-     (((val) & (KHR_DF_MASK_ ## X)) << (KHR_DF_SHIFT_ ## X)))
+     (((int)(val) & (KHR_DF_MASK_ ## X)) << (KHR_DF_SHIFT_ ## X)))
 
 /* Offsets relative to the start of a sample */
 typedef enum _khr_df_sampleword_e {
