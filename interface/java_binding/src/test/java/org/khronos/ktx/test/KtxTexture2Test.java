@@ -632,4 +632,59 @@ public class KtxTexture2Test {
         texture.getImageSize(0);
     }
 
+    @Test
+    public void testGlUpload() {
+        Path testKtxFile = Paths.get("")
+                .resolve("../../tests/testimages/astc_ldr_4x4_FlightHelmet_baseColor.ktx2")
+                .toAbsolutePath()
+                .normalize();
+
+        KtxTexture2 ktxTexture = KtxTexture2.createFromNamedFile(testKtxFile.toString(),
+                KtxTextureCreateFlagBits.NO_FLAGS);
+        ktxTexture.transcodeBasis(KtxTranscodeFormat.BC1_RGB, 0);
+
+        int texture0[] = { };
+        int target0[] = { };
+        int glError0[] = { };
+        int texture1[] = { 0 };
+        int target1[] = { 0 };
+        int glError1[] = { 0 };
+
+        // Expect NullPointerException when target is null
+        assertThrows(NullPointerException.class,
+            () -> {
+                ktxTexture.glUpload(texture1, null, glError1);
+            },
+            "Expected to throw NullPointerException");
+
+        // Expect IllegalArgumentException when texture length is 0
+        assertThrows(IllegalArgumentException.class,
+            () -> {
+                ktxTexture.glUpload(texture0, target1, glError1);
+            },
+            "Expected to throw NullPointerException");
+
+        // Expect IllegalArgumentException when target length is 0
+        assertThrows(IllegalArgumentException.class,
+            () -> {
+                ktxTexture.glUpload(texture1, target0, glError1);
+            },
+            "Expected to throw NullPointerException");
+
+        // Expect IllegalArgumentException when glError length is 0
+        assertThrows(IllegalArgumentException.class,
+            () -> {
+                ktxTexture.glUpload(texture1, target1, glError0);
+            },
+            "Expected to throw NullPointerException");
+
+        // Expect no exceptions when only target is not null
+        ktxTexture.glUpload(null, target1, null);
+
+        // Expect no exceptions when all arrays have proper length
+        ktxTexture.glUpload(texture1, target1, glError1);
+
+        ktxTexture.destroy();
+    }
+
 }
