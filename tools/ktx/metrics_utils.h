@@ -116,8 +116,8 @@ public:
         }
         else
         {
-            ec = ktxTexture2_TranscodeBasis(texture, KTX_TTF_RGBA32, 0);
             tSwizzleInfo = determineTranscodeSwizzle(texture, report);
+            ec = ktxTexture2_TranscodeBasis(texture, KTX_TTF_RGBA32, 0);
         }
         if (ec != KTX_SUCCESS)
             report.fatal(rc::KTX_FAILURE, "Failed to transcode KTX2 texture to calculate error metrics: {}", ktxErrorString(ec));
