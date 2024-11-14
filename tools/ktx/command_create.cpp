@@ -32,8 +32,6 @@
 
 namespace ktx {
 
-#define AUTO_COLOR_CONVERSIONS 0  // This is just a way to keep the old code.
-
 struct ColorSpaceInfo {
     khr_df_transfer_e usedInputTransferFunction;
     khr_df_primaries_e usedInputPrimaries;
@@ -66,10 +64,8 @@ struct OptionsCreate {
     inline static const char* kConvertOetf = "convert-oetf";
     inline static const char* kConvertPrimaries = "convert-primaries";
     inline static const char* kConvertTexcoordOrigin = "convert-texcoord-origin";
-#if AUTO_COLOR_CONVERSIONS
     inline static const char* kFailOnColorConversions = "fail-on-color-conversions";
     inline static const char* kWarnOnColorConversions = "warn-on-color-conversions";
-#endif
     inline static const char* kFailOnOriginChanges = "fail-on-origin-changes";
     inline static const char* kWarnOnOriginChanges = "warn-on-origin-changes";
     inline static const char* kMipmapFilter = "mipmap-filter";
@@ -106,11 +102,8 @@ struct OptionsCreate {
     std::optional<khr_df_primaries_e> convertPrimaries = {};
     std::optional<ImageSpec::Origin> assignTexcoordOrigin;
     std::optional<ImageSpec::Origin> convertTexcoordOrigin;
-#if AUTO_COLOR_CONVERSIONS
     bool failOnColorConversions = false;
-#else
     bool failOnColorConversions = true;
-#endif
     bool warnOnColorConversions = false;
     bool failOnOriginChanges = false;
     bool warnOnOriginChanges = false;
@@ -191,10 +184,8 @@ struct OptionsCreate {
                     "\nInput images whose origin does not match corner will be flipped vertically."
                     " KTXorientation metadata indicating the specified origin is written to the output file.",
                     cxxopts::value<std::string>(), "<origin>")
-#if AUTO_COLOR_CONVERSIONS
                 (kFailOnColorConversions, "Generates an error if any of the input images would need to be color converted.")
                 (kWarnOnColorConversions, "Generates a warning if any of the input images are color converted.")
-#endif
                 (kFailOnOriginChanges, "Generates an error if any of the input images would need to have their origin changed.")
                 (kWarnOnOriginChanges, "Generates a warning if any of the input images have their origin changed.");
 
@@ -700,7 +691,6 @@ struct OptionsCreate {
             }
         }
 
-#if AUTO_COLOR_CONVERSIONS
         if (args[kFailOnColorConversions].count())
             failOnColorConversions = true;
 
@@ -710,7 +700,6 @@ struct OptionsCreate {
                                    kFailOnColorConversions, kWarnOnColorConversions);
             warnOnColorConversions = true;
         }
-#endif
 
         if (args[kFailOnOriginChanges].count())
             failOnOriginChanges = true;
@@ -2341,7 +2330,7 @@ void CommandCreate::determineTargetColorSpace(const ImageInput& in, ImageSpec& t
             colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionLinear>();
         }
         colorSpaceInfo.usedInputTransferFunction = options.assignOETF.value();
-        target.format().setTransfer(options.assignOETF.value());
+        //target.format().setTransfer(options.assignOETF.value());
     } else {
         // Set image's OETF as indicated by metadata.
         if (spec.format().transfer() != KHR_DF_TRANSFER_UNSPECIFIED) {
@@ -2422,8 +2411,24 @@ void CommandCreate::determineTargetColorSpace(const ImageInput& in, ImageSpec& t
         }
     }
 
+    khr_df_transfer_e outputTransferFunction;
     if (options.convertOETF.has_value()) {
-        target.format().setTransfer(options.convertOETF.value());
+        //target.format().setTransfer(options.convertOETF.value());
+        outputTransferFunction = options.convertOETF.value();
+    } else {
+        outputTransferFunction = colorSpaceInfo.usedInputTransferFunction.
+    }
+
+    if (target.format().transfer() != KHR_DF_TRANSFER_SRGB) {
+        // Target format is not an SRGB format
+        if (outputTransferFunction == KHR_DF_TRANSFER_SRGB
+            && isFormatNotSRGBButHasSRGBVariant(options.vkFormat)) {
+            fatal(rc::RUNTIME_ERROR, "Input image \"{}\" has sRGB transfer function. {} is not sRGB but has an sRGB variant. "
+                  "Transfer function must not be sRGB for a non-sRGB VkFormat with sRGB variant.",
+                  in.filename(), toString(options.vkFormat));
+        } else {
+            target.format().setTransfer(outputTransferFunction)
+        }
     }
 
     // Need to do color conversion if either the transfer functions don't match or the primaries
@@ -2433,12 +2438,6 @@ void CommandCreate::determineTargetColorSpace(const ImageInput& in, ImageSpec& t
             fatal(rc::INVALID_FILE,
                 "No transfer function can be determined from input file \"{}\". Use --assign-oetf to specify one.", in.filename());
 
-        if (colorSpaceInfo.usedInputTransferFunction == KHR_DF_TRANSFER_SRGB
-            && isFormatNotSRGBButHasSRGBVariant(options.vkFormat)) {
-            fatal(rc::RUNTIME_ERROR, "Input image \"{}\" has sRGB transfer function. {} is not sRGB but has an sRGB variant. "
-                  "Transfer function must not be sRGB for a non-sRGB VkFormat with sRGB variant.",
-                  in.filename(), toString(options.vkFormat));
-        }
 
         switch (target.format().transfer()) {
         case KHR_DF_TRANSFER_LINEAR:
