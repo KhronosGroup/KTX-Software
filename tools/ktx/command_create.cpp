@@ -317,6 +317,46 @@ struct OptionsCreate {
         return result;
     }
 
+    std::optional<khr_df_transfer_e> parseTransferFunction(cxxopts::ParseResult& args, const char* argName, Reporter& report) const {
+        static const std::unordered_map<std::string, khr_df_transfer_e> values{
+            { "NONE", KHR_DF_TRANSFER_UNSPECIFIED },
+            { "LINEAR", KHR_DF_TRANSFER_LINEAR },
+            { "SRGB", KHR_DF_TRANSFER_SRGB },
+            { "ITU", KHR_DF_TRANSFER_ITU },
+            { "BT601", KHR_DF_TRANSFER_ITU },
+            { "BT709", KHR_DF_TRANSFER_ITU },
+            { "BT2020", KHR_DF_TRANSFER_ITU },
+            { "SMPTE170M", KHR_DF_TRANSFER_SMPTE170M },
+            { "NTSC", KHR_DF_TRANSFER_NTSC },
+            { "SLOG", KHR_DF_TRANSFER_SLOG },
+            { "SLOG2", KHR_DF_TRANSFER_SLOG2 },
+            { "HLG_OETF", KHR_DF_TRANSFER_HLG_OETF },
+            { "HLG_EOTF", KHR_DF_TRANSFER_HLG_EOTF },
+            { "PQ_OETF", KHR_DF_TRANSFER_HLG_OETF },
+            { "PQ_EOTF", KHR_DF_TRANSFER_HLG_EOTF },
+            { "DCIP3", KHR_DF_TRANSFER_DCIP3 },
+            { "PAL_OETF", KHR_DF_TRANSFER_PAL_OETF },
+            { "PAL625_EOTF", KHR_DF_TRANSFER_PAL625_EOTF },
+            { "ST240", KHR_DF_TRANSFER_ST240 },
+            { "ACESCC", KHR_DF_TRANSFER_ACESCC },
+            { "ACESCCT", KHR_DF_TRANSFER_ACESCCT },
+            { "ADOBERGB", KHR_DF_TRANSFER_ADOBERGB },
+        };
+
+        std::optional<khr_df_transfer_e> result = {};
+
+        if (args[argName].count()) {
+            const auto transferStr = args[argName].as<std::string>();
+            const auto it = values.find(to_upper_copy(transferStr));
+            if (it != values.end()) {
+                result = it->second;
+            } else {
+                report.fatal_usage("Invalid or unsupported transfer specified as --{} argument: \"{}\".", argName, primariesStr);
+            }
+        }
+
+        return result;
+    }
 
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
         _1d = args[k1D].as<bool>();
@@ -791,17 +831,20 @@ Create a KTX2 file from various input files.
             options.
         <dl>
             <dt>\--mipmap-filter &lt;filter&gt;</dt>
-            <dd>Specifies the filter to use when generating the mipmaps. Case insensitive.<br />
+            <dd>Specifies the filter to use when generating the mipmaps.
+                Case insensitive.<br />
                 Possible options are:
-                box | tent | bell | b-spline | mitchell | blackman | lanczos3 | lanczos4 | lanczos6 |
-                lanczos12 | kaiser | gaussian | catmullrom | quadratic_interp | quadratic_approx |
+                box | tent | bell | b-spline | mitchell | blackman | lanczos3 |
+                lanczos4 | lanczos6 | lanczos12 | kaiser | gaussian |
+                catmullrom | quadratic_interp | quadratic_approx |
                 quadratic_mix.
                 Defaults to lanczos4.</dd>
             <dt>\--mipmap-filter-scale &lt;float&gt;</dt>
             <dd>The filter scale to use.
                 Defaults to 1.0.</dd>
             <dt>\--mipmap-wrap &lt;mode&gt;</dt>
-            <dd>Specify how to sample pixels near the image boundaries. Case insensitive.<br />
+            <dd>Specify how to sample pixels near the image boundaries.
+                Case insensitive.<br />
                 Possible options are:
                 wrap | reflect | clamp.
                 Defaults to clamp.</dd>
@@ -817,15 +860,18 @@ Create a KTX2 file from various input files.
         <dd>Force the created texture to have the specified transfer function, ignoring
             the transfer function of the input file(s). Case insensitive.
             Possible options are:
-            linear | srgb.
-            See @ref ktx_create_oetf_handling below for more information.
+            linear | srgb | itu | bt601 | bt709 | bt2020 | smpte170m | ntsc |
+            slog | slog2 | bt1886 | hlg_oetf | hlg_eotf | pq_eotf | pq_oetf |
+            dcip3 | pal_oetf | pal625_eotf | st240 | acescc | acescct |
+            abobergb.
+            See @ref ktx_create_oetf_handling below for important information.
             </dd>
         <dt>\--assign-primaries &lt;primaries&gt;</dt>
         <dd>Force the created texture to have the specified color primaries, ignoring
             the color primaries of the input file(s). Case insensitive.
             Possible options are:
-            none | bt709 | srgb | bt601-ebu | bt601-smpte | bt2020 | ciexyz | aces | acescc |
-            ntsc1953 | pal525 | displayp3 | adobergb
+            none | bt709 | srgb | bt601-ebu | bt601-smpte | bt2020 | ciexyz |
+            aces | acescc | ntsc1953 | pal525 | displayp3 | adobergb.
             </dd>
         <dt>\--assign-texcoord-origin &lt;corner&gt;</dt>
         <dd>Force the created texture to indicate that the texture coordinate
@@ -919,39 +965,72 @@ The diagram below shows all assignments and conversions that can take place.
 <!-- ASCII art created with the help of  https://asciiflow.com. -->
 
 @verbatim
-                           OETF Handling
 
-┌───────┐                   ┌───────┐   ┌────────────┐   ┌───────┐
-│       │    CS Metadata    │       │   │            │   │       │
-│       ├──────────────────►│       ├──►│ --convert- ├──►│       │
-│       │                   │       │   │   oetf     │   │       │
-│ Input │   ┌───────────┐   │ Input │   │            │   │ Output│
-│ File  │   │           │   │ OETF  │   └────────────┘   │ OETF  │
-│       │   │ --assign- │   │       │                    │       │
-│       │   │   oetf    ├──►│       ├───────────────────►│       │
-│       │   │           │   │       │                    │       │
-└───────┘   └───────────┘   └───────┘                    └───────┘
+┌──────────┐                                     ┌─────────┐
+│          ├──────────────────1─────────────────►│         │
+│          │  ┌───────────┐                      │         │
+│   Input  │  │           │                      │         │
+│   OETF   │  │ --assign- ├──────────2──────────►│         │
+│   from   │  │   oetf    │    ┌────────────┐    │  Output │
+│   file   │  │           ├─3─►│            │    │  OETF   │
+│ metadata │  │           │    │ --convert- │    │         │
+│          │  └───────────┘    │   oetf     ├3,4►│         │
+│          │                   │            │    │         │
+│          ├────────4─────────►│            │    │         │
+└──────────┘                   └────────────┘    └─────────┘
 
 @endverbatim
 
-@subsection ktx_create_oetf_handling_rules Rules
-The OETF handling rules are as follows:
-@li If @b \--format specifies one of the  @c *_SRGB{,_*} formats, Output OETF
-    is not sRGB and Input OETF is linear or BT.709 then the input is
-    converted to sRGB and a warning is generated. Any other Input OETF
-    generates an error.
-@li If @b \--format does not specify one of the @c *_SRGB{,_*}formats, an
-    sRGB variant exists and Output OETF is sRGB, an error is generated.
-@li Otherwise,  the OETF of the output KTX file is set to Output OETF.
-    @b \--assign-oetf and @b \--convert-oetf only recognize linear and
-    srgb so any OETF except these will have to come from the input file(s).
+<h4>Processing Paths</h4>
+<ol>
+<li>Pass through. Input OETF matches that required by format.</li>
+<li>@b \--assign-oetf specified.</li>
+<li>@b \--assign-oetf and @b \--convert-oetf specified.</li>
+<li>@b \--convert-oetf specified.</li>
+</ol>
 
+@subsection ktx_create_oetf_handling_details Details
+The OETF handling rules are as follows:
+<ol>
+<li>If @b \--format specifies one of the  @c *_SRGB{,_*} formats and Output OETF
+    is not sRGB an error is generated.</li>
+<li>If @b \--format does not specify one of the @c *_SRGB{,_*}formats, an
+    sRGB variant exists and Output OETF is sRGB, an error is generated.</li>
+<li>Otherwise, the OETF of the output KTX file is set to Output OETF.</li>
+<li>If neither @b \--assign-oetf or @b \--convert-oetf are specified and
+    the input OETF is not sRGB for @c *_SRGB{,_*} formats or not linear
+    for formats that are not one of the @c *_SRGB{,_*} formats, an implicit
+    conversion is done. This is equivalent to setting @b \--convert-oetf
+    with a target of @c srgb for @c *_SRGB{,_*} formats or @c linear otherwise.
+    An error is generated if an unsupported conversion is required. Supported
+    Input OETFs for conversion are linear, sRGB, ITU (BT601, BT.709 & BT.2020)
+    and PQ EOTF.</li>
+<li>A non-linear OETF can be set for a format that is not one of the
+    @c *_SRGB{,_*} formats via @b \--assign-oetf.<li>
+<li>A warning is generated if a visually lossy color-conversion is performed.
+    sRGB to linear is considered visually lossy because there is a high chance
+    it will introduce artifacts visible to the human eye such as banding.
+    The warning can be suppressed with @b \--convert-oetf.
+    A warning or an error on any color conversion can be requested with
+    @b \--fail-on-color-conversions or @b \--warn-on-color-conversions.
+    QUESTION. What is the effect of @b \--convert-oetf on the warning or error?
+    In the previous version they would be generated for any conversion. Should
+    they stop the suppression effect?</li>
+</ol>
 @note When @b \--format does not specify one of the *_SRGB{,_*} formats and
       Output OETF is not linear:
       @li the KTX file may be much less portable due to limited hardware
           support of such inputs.
       @li avoid using @b \--generate-mipmap as the filters can only decode
           sRGB.
+
+@subsection ktx_create_oetf_handling_changes Changes since last Release
+<ol>
+<li>The parameter value for @b \--assign-oetf can now be any of the
+    transfer functions known to the Khronos Data Format Specification.</li>
+<li>A warning is now generated by default if a visually lossy color conversion
+    will be performed. The warning can be suppressed with @b \--convert-oetf.
+    </li>
 
 @section ktx_create_exitstatus EXIT STATUS
     @snippet{doc} ktx/command.h command exitstatus
