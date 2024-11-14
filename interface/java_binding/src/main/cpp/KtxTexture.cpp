@@ -248,7 +248,6 @@ extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture_glUpload(JNIEn
     }
 
     GLuint textureValue = 0;
-    GLuint *pTexture = &textureValue;
     if (javaTexture != NULL) 
     {
       jint *javaTextureArrayElements = env->GetIntArrayElements(javaTexture, NULL);
