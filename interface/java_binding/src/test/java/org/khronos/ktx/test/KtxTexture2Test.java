@@ -599,4 +599,47 @@ public class KtxTexture2Test {
 
         t.destroy();
     }
+
+    @Test
+    public void testBindings() {
+        Path testKtxFile = Paths.get("")
+                .resolve("../../tests/testimages/astc_ldr_4x4_FlightHelmet_baseColor.ktx2")
+                .toAbsolutePath()
+                .normalize();
+
+        // The purpose of this test is to check the bindings for the 'native'
+        // functions that only return a value. When the binding for one of
+        // these functions is not implemented properly, then trying to call
+        // it will cause an 'UnsatisfiedLinkError'.
+        // This does not cover all 'native' functions: Some of them can only
+        // sensibly be called in the context of the other tests.
+
+        KtxTexture2 texture = KtxTexture2.createFromNamedFile(testKtxFile.toString(),
+                KtxTextureCreateFlagBits.NO_FLAGS);
+
+        // Native getter methods from the 'KtxTexture2' class
+        texture.getOETF();
+        texture.getPremultipliedAlpha();
+        texture.needsTranscoding();
+        texture.getSupercompressionScheme();
+        texture.getVkFormat();
+
+        // Native getter methods from the 'KtxTexture' class
+        texture.isArray();
+        texture.isCubemap();
+        texture.isCompressed();
+        texture.getGenerateMipmaps();
+        texture.getBaseWidth();
+        texture.getBaseHeight();
+        texture.getBaseDepth();
+        texture.getNumDimensions();
+        texture.getNumLevels();
+        texture.getNumFaces();
+        texture.getDataSize();
+        texture.getDataSizeUncompressed();
+        texture.getElementSize();
+        texture.getRowPitch(0);
+        texture.getImageSize(0);
+    }
+
 }

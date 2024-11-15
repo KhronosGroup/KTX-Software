@@ -188,7 +188,7 @@ extern "C" JNIEXPORT jlong JNICALL Java_org_khronos_ktx_KtxTexture_getDataSize(J
     return static_cast<jlong>(ktxTexture_GetDataSize(texture));
 }
 
-extern "C" JNIEXPORT jlong JNICALL Java_org_khronos_KTXTexture_getDataSizeUncompressed(JNIEnv *env, jobject thiz)
+extern "C" JNIEXPORT jlong JNICALL Java_org_khronos_ktx_KtxTexture_getDataSizeUncompressed(JNIEnv *env, jobject thiz)
 {
     ktxTexture *texture = get_ktx_texture(env, thiz);
     if (texture == NULL) 
