@@ -147,7 +147,7 @@ void CommandEncode::OptionsEncode::init(cxxopts::Options& opts) {
                   " The enum names are matching the VkFormats without the VK_FORMAT_ prefix."
                   " The VK_FORMAT_ prefix is ignored if present."
                   "\nIt can't be used with --codec and is only valid for ASTC encoding."
-                  "\nThe format must be an ASTC format. When specified the ASTC encoder specific"
+                  "\nThe value must be an ASTC format. When specified the ASTC encoder specific"
                   " options becomes valid."
                   " Case insensitive.", cxxopts::value<std::string>(), "<enum>")
         (kCodec, "Target codec."
@@ -256,11 +256,11 @@ void CommandEncode::executeEncode() {
        options.mode = KTX_PACK_ASTC_ENCODER_MODE_LDR; // TODO: Fix me for HDR textures
        ret = ktxTexture2_CompressAstcEx(texture, &options);
        if (ret != KTX_SUCCESS)
-           fatal(rc::IO_FAILURE, "Failed to encode KTX2 file with codec \"{}\". KTX Error: {}", ktxErrorString(ret));
+           fatal(rc::IO_FAILURE, "Failed to encode KTX2 file to ASTC. KTX Error: {}", ktxErrorString(ret));
     } else {
        ret = ktxTexture2_CompressBasisEx(texture, &options);
        if (ret != KTX_SUCCESS)
-           fatal(rc::IO_FAILURE, "Failed to encode KTX2 file with codec \"{}\". KTX Error: {}", ktxErrorString(ret));
+           fatal(rc::IO_FAILURE, "Failed to encode KTX2 file with codec \"{}\". KTX Error: {}", options.codecName, ktxErrorString(ret));
     }
 
     metrics.decodeAndCalculateMetrics(texture, options, *this);
