@@ -653,6 +653,11 @@ public class KtxTexture2Test {
                 KtxTextureCreateFlagBits.NO_FLAGS);
         ktxTexture.transcodeBasis(KtxTranscodeFormat.BC1_RGB, 0);
 
+        // This test checks the error conditions that are supposed
+        // to be handled by the JNI layer by throwing exceptions.
+        // The test can NOT perform an actual, "valid" call that
+        // causes ktxTexture_GLUpload to be called internally,
+        // because that would require a GL context to be current.
         int texture0[] = { };
         int target0[] = { };
         int glError0[] = { };
@@ -687,12 +692,6 @@ public class KtxTexture2Test {
                 ktxTexture.glUpload(texture1, target1, glError0);
             },
             "Expected to throw NullPointerException");
-
-        // Expect no exceptions when only target is not null
-        ktxTexture.glUpload(null, target1, null);
-
-        // Expect no exceptions when all arrays have proper length
-        ktxTexture.glUpload(texture1, target1, glError1);
 
         ktxTexture.destroy();
     }
