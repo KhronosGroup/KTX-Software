@@ -146,7 +146,7 @@ void CommandEncode::OptionsEncode::init(cxxopts::Options& opts) {
         (kFormat, "KTX format enum that specifies the KTX file output format."
                   " The enum names are matching the VkFormats without the VK_FORMAT_ prefix."
                   " The VK_FORMAT_ prefix is ignored if present."
-                  "\nIt can't be used with --codec and is only valid for ASTC encoding."
+                  "\nIt can't be used with --codec."
                   "\nThe value must be an ASTC format. When specified the ASTC encoder specific"
                   " options becomes valid."
                   " Case insensitive.", cxxopts::value<std::string>(), "<enum>")
