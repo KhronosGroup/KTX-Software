@@ -609,8 +609,8 @@ Create a KTX2 file from various input files.
             is present in the input. @c SRGB or @c UNORM is chosen depending on the
             specified ASTC format. The ASTC-specific and common encoder options listed
             @ref ktx_create_options_encoding "below" become valid, otherwise they are ignored.
-            <!--This matches the functionality of the @ref ktx_encode "ktx encode" command
-            when an ASTC format is specified.<br /> -->
+            This matches the functionality of the @ref ktx_encode "ktx encode" command
+            when an ASTC format is specified.<br />
             <br />
             When used with @b \--encode it specifies the target format before the encoding step.
             In this case it must be one of:
