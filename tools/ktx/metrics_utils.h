@@ -29,10 +29,10 @@ namespace ktx {
     <dl>
       <dt>\--compare-ssim</dt>
       <dd>Calculate encoding structural similarity index measure (SSIM) and print it to stdout.
-          Requires Basis-LZ or UASTC encoding.</dd>
+          Requires Basis-LZ, UASTC or ASTC encoding.</dd>
       <dt>\--compare-psnr</dt>
       <dd>Calculate encoding peak signal-to-noise ratio (PSNR) and print it to stdout.
-          Requires Basis-LZ or UASTC encoding.</dd>
+          Requires Basis-LZ, UASTC or ASTC encoding.</dd>
     </dl>
 </dl>
 //! [command options_metrics]
@@ -43,8 +43,8 @@ struct OptionsMetrics {
 
     void init(cxxopts::Options& opts) {
         opts.add_options()
-            ("compare-ssim", "Calculate encoding structural similarity index measure (SSIM) and print it to stdout. Requires Basis-LZ or UASTC encoding.")
-            ("compare-psnr", "Calculate encoding peak signal-to-noise ratio (PSNR) and print it to stdout. Requires Basis-LZ or UASTC encoding.");
+            ("compare-ssim", "Calculate encoding structural similarity index measure (SSIM) and print it to stdout. Requires Basis-LZ, UASTC or ASTC encoding.")
+            ("compare-psnr", "Calculate encoding peak signal-to-noise ratio (PSNR) and print it to stdout. Requires Basis-LZ, UASTC or ASTC encoding.");
     }
 
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter&) {
