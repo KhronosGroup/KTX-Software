@@ -199,6 +199,116 @@ extern "C" JNIEXPORT jlong JNICALL Java_org_khronos_ktx_KtxTexture_getDataSizeUn
     return ktxTexture_GetDataSizeUncompressed(texture);
 }
 
+
+extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture_glUpload(JNIEnv *env, jobject thiz, jintArray javaTexture, jintArray javaTarget, jintArray javaGlError) 
+{
+    ktxTexture *texture = get_ktx_texture(env, thiz);
+    if (texture == NULL) 
+    {
+      ThrowDestroyed(env);
+      return 0;
+    }
+
+    // The target array may not be NULL, and must have
+    // a size of at least 1
+    if (javaTarget == NULL) 
+    {
+      ThrowByName(env, "java/lang/NullPointerException", "Parameter 'target' is null for glUpload");
+      return 0;
+    }
+    jsize javaTargetSize = env->GetArrayLength(javaTarget);
+    if (javaTargetSize == 0) 
+    {
+      ThrowByName(env, "java/lang/IllegalArgumentException", "Parameter 'target' may not have length 0");
+      return 0;
+    }
+
+    // The texture array may be NULL, but if it is not NULL,
+    // then it must have a length of at least 1
+    if (javaTexture != NULL) 
+    {
+      jsize javaTextureSize = env->GetArrayLength(javaTexture);
+      if (javaTextureSize == 0) 
+      {
+        ThrowByName(env, "java/lang/IllegalArgumentException", "Parameter 'texture' may not have length 0");
+        return 0;
+      }
+    }
+
+    // The GL error array may be NULL, but if it is not NULL,
+    // then it must have a length of at least 1
+    if (javaGlError != NULL) 
+    {
+      jsize javaGlErrorSize = env->GetArrayLength(javaGlError);
+      if (javaGlErrorSize == 0) 
+      {
+        ThrowByName(env, "java/lang/IllegalArgumentException", "Parameter 'glError' may not have length 0");
+        return 0;
+      }
+    }
+
+    GLuint textureValue = 0;
+    if (javaTexture != NULL) 
+    {
+      jint *javaTextureArrayElements = env->GetIntArrayElements(javaTexture, NULL);
+      if (javaTextureArrayElements == NULL) 
+      {
+        // OutOfMemoryError is already pending
+        return 0;
+      }
+      textureValue = static_cast<GLuint>(javaTextureArrayElements[0]);
+      env->ReleaseIntArrayElements(javaTexture, javaTextureArrayElements, JNI_ABORT);
+    }
+
+    GLenum target; 
+    GLenum glError;
+
+    KTX_error_code result = ktxTexture_GLUpload(texture, &textureValue, &target, &glError);
+
+    // Write back the texture into the array
+    if (javaTexture != NULL) 
+    {
+      jint *javaTextureArrayElements = env->GetIntArrayElements(javaTexture, NULL);
+      if (javaTextureArrayElements == NULL) 
+      {
+        // OutOfMemoryError is already pending
+        return 0;
+      }
+      javaTextureArrayElements[0] = static_cast<jint>(textureValue);
+      env->ReleaseIntArrayElements(javaTexture, javaTextureArrayElements, JNI_COMMIT);
+    }
+
+    // Write back the target into the array
+    if (javaTarget != NULL) 
+    {
+      jint *javaTargetArrayElements = env->GetIntArrayElements(javaTarget, NULL);
+      if (javaTargetArrayElements == NULL) 
+      {
+        // OutOfMemoryError is already pending
+        return 0;
+      }
+      javaTargetArrayElements[0] = static_cast<jint>(target);
+      env->ReleaseIntArrayElements(javaTarget, javaTargetArrayElements, JNI_COMMIT);
+    }
+
+    // Write back the error into the array
+    if (javaGlError != NULL) 
+    {
+      jint *javaGlErrorArrayElements = env->GetIntArrayElements(javaGlError, NULL);
+      if (javaGlErrorArrayElements == NULL) 
+      {
+        // OutOfMemoryError is already pending
+        return 0;
+      }
+      javaGlErrorArrayElements[0] = static_cast<jint>(glError);
+      env->ReleaseIntArrayElements(javaGlError, javaGlErrorArrayElements, JNI_COMMIT);
+    }
+    return result;
+}
+
+
+
+
 extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture_getElementSize(JNIEnv *env, jobject thiz)
 {
     ktxTexture *texture = get_ktx_texture(env, thiz);

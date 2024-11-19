@@ -215,6 +215,61 @@ public abstract class KtxTexture {
 	public native long getImageOffset(int level, int layer, int faceSlice);
 
 	/**
+	 * Create a GL texture object from a {@link KtxTexture} object.<br>
+	 * <br>
+	 * This may only be called when a GL context is current.<br>
+	 * <br>
+	 * In order to ensure that the GL uploader is not linked into an application 
+	 * unless explicitly called, this is not a virtual function. It determines 
+	 * the texture type then dispatches to the correct function.<br>
+	 * <br>
+	 * Sets the texture object's <code>GL_TEXTURE_MAX_LEVEL</code> parameter 
+	 * according to the number of levels in the KTX data, provided the 
+	 * context supports this feature.<br>
+	 * <br>
+	 * Unpacks compressed {@link KtxInternalformat#GL_ETC1_RGB8_OES} and 
+	 * <code>GL_ETC2_*</code> format textures in software when the format 
+	 * is not supported by the GL context, provided the library has been 
+	 * compiled with <code>SUPPORT_SOFTWARE_ETC_UNPACK</code> defined as 1.
+	 * 
+	 * It will also convert textures with legacy formats to their modern 
+	 * equivalents when the format is not supported by the GL context, 
+	 * provided the library has been compiled with 
+	 * <code>SUPPORT_LEGACY_FORMAT_CONVERSION</code> defined as 1.
+	 * 
+	 * @param texture An array that is either <code>null</code>, or 
+	 * has a length of at least 1. It contains the name of the GL texture 
+	 * object to load. If it is <code>null</code> or contains 0, the 
+	 * function will generate a texture name. The function binds either 
+	 * the generated name or the name given in <code>texture</code> to 
+	 * the texture target returned in <code>target</code>, before 
+	 * loading the texture data. If pTexture is not <code>null</code> 
+	 * and a name was generated, the generated name will be returned 
+	 * in <code>texture</code>.
+	 * @param target An array with a length of at least 1, where
+	 * element 0 will receive the GL target value
+	 * @param glError An array with a length of at least 1, where
+	 * element 0 will receive any GL error information
+	 * @return {@link KtxErrorCode#SUCCESS} on sucess.
+	 * Returns {@link KtxErrorCode#GL_ERROR} when GL error was raised by 
+	 * <code>glBindTexture</code>, <code>glGenTextures</code> or 
+	 * <code>gl*TexImage*</code> The GL error will be returned in 
+	 * <code>glError</code> if <code>glError</code> is not 
+	 * <code>null</code>. Returns {@link KtxErrorCode#INVALID_VALUE}
+	 * when target is <code>null</code> or the size of a mip level 
+	 * is greater than the size of the preceding level. Returns
+	 * {@link KtxErrorCode#NOT_FOUND} when a dynamically loaded 
+	 * OpenGL function required by the loader was not found.
+	 * Returns {@link KtxErrorCode#UNSUPPORTED_TEXTURE_TYPE} when
+	 * the type of texture is not supported by the current OpenGL context.
+	 * @throws NullPointerException If the given <code>target</code>
+	 * array is <code>null</code>
+	 * @throws IllegalArgumentException Any array that is not 
+	 * <code>null</code> has a length of 0
+	 */
+	public native int glUpload(int texture[], int target[], int glError[]);
+
+	/**
 	 * Destroy the KTX texture and free memory image resources.<br>
 	 * <br>
 	 * Trying to use a {@link KtxTexture} after it was destroyed will cause a
