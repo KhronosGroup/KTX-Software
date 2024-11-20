@@ -874,15 +874,17 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
         }
     }
 
-    const auto canCompare = options.codec == BasisCodec::BasisLZ || options.codec == BasisCodec::UASTC;
+    const auto basisCodec = options.codec == BasisCodec::BasisLZ || options.codec == BasisCodec::UASTC;
+    const auto astcCodec = isFormatAstc(options.vkFormat);
+    const auto canCompare = basisCodec || astcCodec;
 
-    if (canCompare)
+    if (basisCodec)
         fillOptionsCodecBasis<decltype(options)>(options);
 
     if (options.compare_ssim && !canCompare)
-        fatal_usage("--compare-ssim can only be used with BasisLZ or UASTC encoding.");
+        fatal_usage("--compare-ssim can only be used with BasisLZ, UASTC or ASTC encoding.");
     if (options.compare_psnr && !canCompare)
-        fatal_usage("--compare-psnr can only be used with BasisLZ or UASTC encoding.");
+        fatal_usage("--compare-psnr can only be used with BasisLZ, UASTC or ASTC encoding.");
 
     if (isFormatAstc(options.vkFormat) && !options.raw) {
         options.encodeASTC = true;
@@ -1226,11 +1228,16 @@ void CommandCreate::encodeBasis(KTXTexture2& texture, OptionsEncodeBasis<false>&
 }
 
 void CommandCreate::encodeASTC(KTXTexture2& texture, OptionsEncodeASTC& opts) {
+    MetricsCalculator metrics;
+    metrics.saveReferenceImages(texture, options, *this);
+
     if (opts.encodeASTC) {
         const auto ret = ktxTexture2_CompressAstcEx(texture, &opts);
         if (ret != KTX_SUCCESS)
             fatal(rc::KTX_FAILURE, "Failed to encode KTX2 file with codec ASTC. KTX Error: {}", ktxErrorString(ret));
     }
+
+    metrics.decodeAndCalculateMetrics(texture, options, *this);
 }
 
 void CommandCreate::compress(KTXTexture2& texture, const OptionsDeflate& opts) {

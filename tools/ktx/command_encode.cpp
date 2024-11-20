@@ -195,11 +195,14 @@ void CommandEncode::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
             fatal_usage("Cannot encode to BasisLZ and supercompress with ZLIB.");
     }
 
-    const auto canCompare = options.codec == BasisCodec::BasisLZ || options.codec == BasisCodec::UASTC;
+    const auto basisCodec = options.codec == BasisCodec::BasisLZ || options.codec == BasisCodec::UASTC;
+    const auto astcCodec = isFormatAstc(options.vkFormat);
+    const auto canCompare = basisCodec || astcCodec;
+
     if (options.compare_ssim && !canCompare)
-        fatal_usage("--compare-ssim can only be used with BasisLZ or UASTC encoding.");
+        fatal_usage("--compare-ssim can only be used with BasisLZ, UASTC or ASTC encoding.");
     if (options.compare_psnr && !canCompare)
-        fatal_usage("--compare-psnr can only be used with BasisLZ or UASTC encoding.");
+        fatal_usage("--compare-psnr can only be used with BasisLZ, UASTC or ASTC encoding.");
 }
 
 void CommandEncode::executeEncode() {
