@@ -203,6 +203,9 @@ void CommandEncode::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
         fatal_usage("--compare-ssim can only be used with BasisLZ, UASTC or ASTC encoding.");
     if (options.compare_psnr && !canCompare)
         fatal_usage("--compare-psnr can only be used with BasisLZ, UASTC or ASTC encoding.");
+
+    if (astcCodec)
+        options.encodeASTC = true;
 }
 
 void CommandEncode::executeEncode() {
@@ -218,6 +221,10 @@ void CommandEncode::executeEncode() {
     if (texture->supercompressionScheme != KTX_SS_NONE)
         fatal(rc::INVALID_FILE, "Cannot encode KTX2 file with {} supercompression.",
             toString(ktxSupercmpScheme(texture->supercompressionScheme)));
+
+    const auto* bdfd = texture->pDfd + 1;
+    if (khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_ASTC && options.encodeASTC)
+        fatal_usage("Encoding from ASTC format {} to another ASTC format {} is not supported.", toString(VkFormat(texture->vkFormat)), toString(options.vkFormat));
 
     switch (texture->vkFormat) {
     case VK_FORMAT_R8_UNORM:
