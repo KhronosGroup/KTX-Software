@@ -599,4 +599,101 @@ public class KtxTexture2Test {
 
         t.destroy();
     }
+
+    @Test
+    public void testBindings() {
+        Path testKtxFile = Paths.get("")
+                .resolve("../../tests/testimages/astc_ldr_4x4_FlightHelmet_baseColor.ktx2")
+                .toAbsolutePath()
+                .normalize();
+
+        // The purpose of this test is to check the bindings for the 'native'
+        // functions that only return a value. When the binding for one of
+        // these functions is not implemented properly, then trying to call
+        // it will cause an 'UnsatisfiedLinkError'.
+        // This does not cover all 'native' functions: Some of them can only
+        // sensibly be called in the context of the other tests.
+
+        KtxTexture2 texture = KtxTexture2.createFromNamedFile(testKtxFile.toString(),
+                KtxTextureCreateFlagBits.NO_FLAGS);
+
+        // Native getter methods from the 'KtxTexture2' class
+        texture.getOETF();
+        texture.getPremultipliedAlpha();
+        texture.needsTranscoding();
+        texture.getSupercompressionScheme();
+        texture.getVkFormat();
+
+        // Native getter methods from the 'KtxTexture' class
+        texture.isArray();
+        texture.isCubemap();
+        texture.isCompressed();
+        texture.getGenerateMipmaps();
+        texture.getBaseWidth();
+        texture.getBaseHeight();
+        texture.getBaseDepth();
+        texture.getNumDimensions();
+        texture.getNumLevels();
+        texture.getNumFaces();
+        texture.getDataSize();
+        texture.getDataSizeUncompressed();
+        texture.getElementSize();
+        texture.getRowPitch(0);
+        texture.getImageSize(0);
+    }
+
+    @Test
+    public void testGlUpload() {
+        Path testKtxFile = Paths.get("")
+                .resolve("../../tests/testimages/astc_ldr_4x4_FlightHelmet_baseColor.ktx2")
+                .toAbsolutePath()
+                .normalize();
+
+        KtxTexture2 ktxTexture = KtxTexture2.createFromNamedFile(testKtxFile.toString(),
+                KtxTextureCreateFlagBits.NO_FLAGS);
+        ktxTexture.transcodeBasis(KtxTranscodeFormat.BC1_RGB, 0);
+
+        // This test checks the error conditions that are supposed
+        // to be handled by the JNI layer by throwing exceptions.
+        // The test can NOT perform an actual, "valid" call that
+        // causes ktxTexture_GLUpload to be called internally,
+        // because that would require a GL context to be current.
+        int texture0[] = { };
+        int target0[] = { };
+        int glError0[] = { };
+        int texture1[] = { 0 };
+        int target1[] = { 0 };
+        int glError1[] = { 0 };
+
+        // Expect NullPointerException when target is null
+        assertThrows(NullPointerException.class,
+            () -> {
+                ktxTexture.glUpload(texture1, null, glError1);
+            },
+            "Expected to throw NullPointerException");
+
+        // Expect IllegalArgumentException when texture length is 0
+        assertThrows(IllegalArgumentException.class,
+            () -> {
+                ktxTexture.glUpload(texture0, target1, glError1);
+            },
+            "Expected to throw NullPointerException");
+
+        // Expect IllegalArgumentException when target length is 0
+        assertThrows(IllegalArgumentException.class,
+            () -> {
+                ktxTexture.glUpload(texture1, target0, glError1);
+            },
+            "Expected to throw NullPointerException");
+
+        // Expect IllegalArgumentException when glError length is 0
+        assertThrows(IllegalArgumentException.class,
+            () -> {
+                ktxTexture.glUpload(texture1, target1, glError0);
+            },
+            "Expected to throw NullPointerException");
+
+        ktxTexture.destroy();
+    }
+
 }
