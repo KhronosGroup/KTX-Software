@@ -1188,8 +1188,15 @@ void CommandCreate::executeCreate() {
     }
 
     // Encode and apply compression
+
+    MetricsCalculator metrics;
+    metrics.saveReferenceImages(texture, options, *this);
+
     encodeBasis(texture, options);
     encodeASTC(texture, options);
+
+    metrics.decodeAndCalculateMetrics(texture, options, *this);
+
     compress(texture, options);
 
     // Add KTXwriterScParams metadata if ASTC encoding, BasisU encoding, or other supercompression was used
@@ -1214,30 +1221,20 @@ void CommandCreate::executeCreate() {
 // -------------------------------------------------------------------------------------------------
 
 void CommandCreate::encodeBasis(KTXTexture2& texture, OptionsEncodeBasis<false>& opts) {
-    MetricsCalculator metrics;
-    metrics.saveReferenceImages(texture, options, *this);
-
     if (opts.codec != BasisCodec::NONE) {
         auto ret = ktxTexture2_CompressBasisEx(texture, &opts);
         if (ret != KTX_SUCCESS)
             fatal(rc::KTX_FAILURE, "Failed to encode KTX2 file with codec \"{}\". KTX Error: {}",
                     to_underlying(opts.codec), ktxErrorString(ret));
     }
-
-    metrics.decodeAndCalculateMetrics(texture, options, *this);
 }
 
 void CommandCreate::encodeASTC(KTXTexture2& texture, OptionsEncodeASTC& opts) {
-    MetricsCalculator metrics;
-    metrics.saveReferenceImages(texture, options, *this);
-
     if (opts.encodeASTC) {
         const auto ret = ktxTexture2_CompressAstcEx(texture, &opts);
         if (ret != KTX_SUCCESS)
             fatal(rc::KTX_FAILURE, "Failed to encode KTX2 file with codec ASTC. KTX Error: {}", ktxErrorString(ret));
     }
-
-    metrics.decodeAndCalculateMetrics(texture, options, *this);
 }
 
 void CommandCreate::compress(KTXTexture2& texture, const OptionsDeflate& opts) {
