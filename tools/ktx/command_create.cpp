@@ -1192,8 +1192,10 @@ void CommandCreate::executeCreate() {
     MetricsCalculator metrics;
     metrics.saveReferenceImages(texture, options, *this);
 
-    encodeBasis(texture, options);
-    encodeASTC(texture, options);
+    if (options.codec != BasisCodec::NONE)
+        encodeBasis(texture, options);
+    if (options.encodeASTC)
+        encodeASTC(texture, options);
 
     metrics.decodeAndCalculateMetrics(texture, options, *this);
 
@@ -1221,20 +1223,16 @@ void CommandCreate::executeCreate() {
 // -------------------------------------------------------------------------------------------------
 
 void CommandCreate::encodeBasis(KTXTexture2& texture, OptionsEncodeBasis<false>& opts) {
-    if (opts.codec != BasisCodec::NONE) {
-        auto ret = ktxTexture2_CompressBasisEx(texture, &opts);
-        if (ret != KTX_SUCCESS)
-            fatal(rc::KTX_FAILURE, "Failed to encode KTX2 file with codec \"{}\". KTX Error: {}",
-                    to_underlying(opts.codec), ktxErrorString(ret));
-    }
+    auto ret = ktxTexture2_CompressBasisEx(texture, &opts);
+    if (ret != KTX_SUCCESS)
+        fatal(rc::KTX_FAILURE, "Failed to encode KTX2 file with codec \"{}\". KTX Error: {}",
+                to_underlying(opts.codec), ktxErrorString(ret));
 }
 
 void CommandCreate::encodeASTC(KTXTexture2& texture, OptionsEncodeASTC& opts) {
-    if (opts.encodeASTC) {
-        const auto ret = ktxTexture2_CompressAstcEx(texture, &opts);
-        if (ret != KTX_SUCCESS)
-            fatal(rc::KTX_FAILURE, "Failed to encode KTX2 file with codec ASTC. KTX Error: {}", ktxErrorString(ret));
-    }
+    const auto ret = ktxTexture2_CompressAstcEx(texture, &opts);
+    if (ret != KTX_SUCCESS)
+        fatal(rc::KTX_FAILURE, "Failed to encode KTX2 file with codec ASTC. KTX Error: {}", ktxErrorString(ret));
 }
 
 void CommandCreate::compress(KTXTexture2& texture, const OptionsDeflate& opts) {
