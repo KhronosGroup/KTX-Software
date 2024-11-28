@@ -1312,6 +1312,9 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params);
 KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture2_CompressAstc(ktxTexture2* This, ktx_uint32_t quality);
 
+KTX_API KTX_error_code KTX_APIENTRY
+ktxTexture2_DecodeAstc(ktxTexture2* This, ktx_uint32_t vkformat);
+
 /**
  * @memberof ktxTexture2
  * @~English

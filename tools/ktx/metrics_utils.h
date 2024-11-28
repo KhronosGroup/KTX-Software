@@ -29,10 +29,10 @@ namespace ktx {
     <dl>
       <dt>\--compare-ssim</dt>
       <dd>Calculate encoding structural similarity index measure (SSIM) and print it to stdout.
-          Requires Basis-LZ or UASTC encoding.</dd>
+          Requires Basis-LZ, UASTC or ASTC encoding.</dd>
       <dt>\--compare-psnr</dt>
       <dd>Calculate encoding peak signal-to-noise ratio (PSNR) and print it to stdout.
-          Requires Basis-LZ or UASTC encoding.</dd>
+          Requires Basis-LZ, UASTC or ASTC encoding.</dd>
     </dl>
 </dl>
 //! [command options_metrics]
@@ -43,8 +43,8 @@ struct OptionsMetrics {
 
     void init(cxxopts::Options& opts) {
         opts.add_options()
-            ("compare-ssim", "Calculate encoding structural similarity index measure (SSIM) and print it to stdout. Requires Basis-LZ or UASTC encoding.")
-            ("compare-psnr", "Calculate encoding peak signal-to-noise ratio (PSNR) and print it to stdout. Requires Basis-LZ or UASTC encoding.");
+            ("compare-ssim", "Calculate encoding structural similarity index measure (SSIM) and print it to stdout. Requires Basis-LZ, UASTC or ASTC encoding.")
+            ("compare-psnr", "Calculate encoding peak signal-to-noise ratio (PSNR) and print it to stdout. Requires Basis-LZ, UASTC or ASTC encoding.");
     }
 
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter&) {
@@ -101,11 +101,24 @@ public:
         KTXTexture2 texture{static_cast<ktxTexture2*>(malloc(sizeof(ktxTexture2)))};
         ktxTexture2_constructCopy(texture, encodedTexture);
 
-        const auto tSwizzleInfo = determineTranscodeSwizzle(texture, report);
+        // Start with a default swizzle
+        TranscodeSwizzleInfo  tSwizzleInfo{};
+        tSwizzleInfo.defaultNumComponents = 4;
+        tSwizzleInfo.swizzle = "rgba";
 
         ktx_error_code_e ec = KTX_SUCCESS;
+
         // Decode the encoded texture to observe the compression losses
-        ec = ktxTexture2_TranscodeBasis(texture, KTX_TTF_RGBA32, 0);
+        const auto* bdfd = texture->pDfd + 1;
+        if (khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_ASTC)
+        {
+            ec = ktxTexture2_DecodeAstc(texture, VK_FORMAT_R8G8B8A8_UNORM);
+        }
+        else
+        {
+            tSwizzleInfo = determineTranscodeSwizzle(texture, report);
+            ec = ktxTexture2_TranscodeBasis(texture, KTX_TTF_RGBA32, 0);
+        }
         if (ec != KTX_SUCCESS)
             report.fatal(rc::KTX_FAILURE, "Failed to transcode KTX2 texture to calculate error metrics: {}", ktxErrorString(ec));
 

@@ -349,40 +349,26 @@ struct OptionsEncodeBasis : public ktxBasisParams {
     }
 
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
+        std::string codec_option{"encode"};
+
         if (ENCODE_CMD) {
-            // "encode" command - required "codec" argument
-            codec = validateBasisCodec(args["codec"]);
-            switch (codec) {
-            case BasisCodec::NONE:
-                report.fatal(rc::INVALID_ARGUMENTS, "Missing codec argument.");
-                break;
+            codec_option = "codec";
+        }
 
-            case BasisCodec::BasisLZ:
-            case BasisCodec::UASTC:
-                codecName = to_lower_copy(args["codec"].as<std::string>());
-                break;
+        codec = validateBasisCodec(args[codec_option]);
+        switch (codec) {
+        case BasisCodec::NONE:
+            // Not specified
+            break;
 
-            default:
-                report.fatal_usage("Invalid encode codec: \"{}\".", args["codec"].as<std::string>());
-                break;
-            }
-        } else {
-            // "create" command - optional "encode" argument
-            codec = validateBasisCodec(args["encode"]);
-            switch (codec) {
-            case BasisCodec::NONE:
-                // Not specified
-                break;
+        case BasisCodec::BasisLZ:
+        case BasisCodec::UASTC:
+            codecName = to_lower_copy(args[codec_option].as<std::string>());
+            break;
 
-            case BasisCodec::BasisLZ:
-            case BasisCodec::UASTC:
-                codecName = to_lower_copy(args["encode"].as<std::string>());
-                break;
-
-            default:
-                report.fatal_usage("Invalid encode codec: \"{}\".", args["encode"].as<std::string>());
-                break;
-            }
+        default:
+            report.fatal_usage("Invalid encode codec: \"{}\".", args[codec_option].as<std::string>());
+            break;
         }
 
         if (codec == BasisCodec::UASTC) {

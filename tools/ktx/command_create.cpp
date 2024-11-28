@@ -609,8 +609,8 @@ Create a KTX2 file from various input files.
             is present in the input. @c SRGB or @c UNORM is chosen depending on the
             specified ASTC format. The ASTC-specific and common encoder options listed
             @ref ktx_create_options_encoding "below" become valid, otherwise they are ignored.
-            <!--This matches the functionality of the @ref ktx_encode "ktx encode" command
-            when an ASTC format is specified.<br /> -->
+            This matches the functionality of the @ref ktx_encode "ktx encode" command
+            when an ASTC format is specified.<br />
             <br />
             When used with @b \--encode it specifies the target format before the encoding step.
             In this case it must be one of:
@@ -874,15 +874,17 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
         }
     }
 
-    const auto canCompare = options.codec == BasisCodec::BasisLZ || options.codec == BasisCodec::UASTC;
+    const auto basisCodec = options.codec == BasisCodec::BasisLZ || options.codec == BasisCodec::UASTC;
+    const auto astcCodec = isFormatAstc(options.vkFormat);
+    const auto canCompare = basisCodec || astcCodec;
 
-    if (canCompare)
+    if (basisCodec)
         fillOptionsCodecBasis<decltype(options)>(options);
 
     if (options.compare_ssim && !canCompare)
-        fatal_usage("--compare-ssim can only be used with BasisLZ or UASTC encoding.");
+        fatal_usage("--compare-ssim can only be used with BasisLZ, UASTC or ASTC encoding.");
     if (options.compare_psnr && !canCompare)
-        fatal_usage("--compare-psnr can only be used with BasisLZ or UASTC encoding.");
+        fatal_usage("--compare-psnr can only be used with BasisLZ, UASTC or ASTC encoding.");
 
     if (isFormatAstc(options.vkFormat) && !options.raw) {
         options.encodeASTC = true;
@@ -1186,8 +1188,17 @@ void CommandCreate::executeCreate() {
     }
 
     // Encode and apply compression
-    encodeBasis(texture, options);
-    encodeASTC(texture, options);
+
+    MetricsCalculator metrics;
+    metrics.saveReferenceImages(texture, options, *this);
+
+    if (options.codec != BasisCodec::NONE)
+        encodeBasis(texture, options);
+    if (options.encodeASTC)
+        encodeASTC(texture, options);
+
+    metrics.decodeAndCalculateMetrics(texture, options, *this);
+
     compress(texture, options);
 
     // Add KTXwriterScParams metadata if ASTC encoding, BasisU encoding, or other supercompression was used
@@ -1212,25 +1223,16 @@ void CommandCreate::executeCreate() {
 // -------------------------------------------------------------------------------------------------
 
 void CommandCreate::encodeBasis(KTXTexture2& texture, OptionsEncodeBasis<false>& opts) {
-    MetricsCalculator metrics;
-    metrics.saveReferenceImages(texture, options, *this);
-
-    if (opts.codec != BasisCodec::NONE) {
-        auto ret = ktxTexture2_CompressBasisEx(texture, &opts);
-        if (ret != KTX_SUCCESS)
-            fatal(rc::KTX_FAILURE, "Failed to encode KTX2 file with codec \"{}\". KTX Error: {}",
-                    to_underlying(opts.codec), ktxErrorString(ret));
-    }
-
-    metrics.decodeAndCalculateMetrics(texture, options, *this);
+    auto ret = ktxTexture2_CompressBasisEx(texture, &opts);
+    if (ret != KTX_SUCCESS)
+        fatal(rc::KTX_FAILURE, "Failed to encode KTX2 file with codec \"{}\". KTX Error: {}",
+                to_underlying(opts.codec), ktxErrorString(ret));
 }
 
 void CommandCreate::encodeASTC(KTXTexture2& texture, OptionsEncodeASTC& opts) {
-    if (opts.encodeASTC) {
-        const auto ret = ktxTexture2_CompressAstcEx(texture, &opts);
-        if (ret != KTX_SUCCESS)
-            fatal(rc::KTX_FAILURE, "Failed to encode KTX2 file with codec ASTC. KTX Error: {}", ktxErrorString(ret));
-    }
+    const auto ret = ktxTexture2_CompressAstcEx(texture, &opts);
+    if (ret != KTX_SUCCESS)
+        fatal(rc::KTX_FAILURE, "Failed to encode KTX2 file with codec ASTC. KTX Error: {}", ktxErrorString(ret));
 }
 
 void CommandCreate::compress(KTXTexture2& texture, const OptionsDeflate& opts) {
