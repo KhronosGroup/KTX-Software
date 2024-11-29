@@ -857,7 +857,7 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
  *
  * @exception KTX_INVALID_OPERATION
- *                              The texture is already supercompressed.
+ *                              The texture's images are supercompressed.
  * @exception KTX_INVALID_OPERATION
  *                              The texture's image are in a block compressed
  *                              format.
@@ -933,6 +933,22 @@ static void decompression_workload_runner(int thread_count, int thread_id, void*
  *
  * @param This     The texture to decode
  * @param vkformat The decoding format to use
+ *
+ * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_FILE_DATA_ERROR
+ *                              DFD is incorrect: supercompression scheme or
+ *                              sample's channelId do not match ASTC colorModel.
+ * @exception KTX_INVALID_OPERATION
+ *                              The texture's images are not in ASTC format.
+ * @exception KTX_INVALID_OPERATION
+ *                              The texture object does not contain any data.
+ * @exception KTX_INVALID_OPERATION
+ *                              ASTC decoder returned an error.
+ * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out decoding.
+ * @exception KTX_UNSUPPORTED_FEATURE
+ *                              The texture's images are supercompressed with an
+ *                              unsupported scheme.
  */
 KTX_error_code
 ktxTexture2_DecodeAstc(ktxTexture2 *This, ktx_uint32_t vkformat) {
@@ -940,17 +956,23 @@ ktxTexture2_DecodeAstc(ktxTexture2 *This, ktx_uint32_t vkformat) {
     uint32_t* BDB = This->pDfd + 1;
     khr_df_model_e colorModel = (khr_df_model_e)KHR_DFDVAL(BDB, MODEL);
     if (colorModel != KHR_DF_MODEL_ASTC) {
-        return KTX_INVALID_OPERATION; // Not in valid astc decodable format
+        return KTX_INVALID_OPERATION; // Not in astc decodable format
     }
+    if (This->supercompressionScheme == KTX_SS_BASIS_LZ) {
+        return KTX_FILE_DATA_ERROR; // Not a valid file.
+    }
+    // Safety check.
+    if (This->supercompressionScheme > KTX_SS_END_RANGE) {
+        return KTX_UNSUPPORTED_FEATURE; // Unsupported scheme.
+    }
+    // Other schemes are decoded in ktxTexture2_LoadImageData.
 
     DECLARE_PRIVATE(priv, This);
 
     uint32_t channelId = KHR_DFDSVAL(BDB, 0, CHANNELID);
-    if (channelId == KHR_DF_CHANNEL_ASTC_DATA) {
-        // Found astc data
-    }
-    else
+    if (channelId != KHR_DF_CHANNEL_ASTC_DATA) {
         return KTX_FILE_DATA_ERROR;
+    }
 
     // Create a prototype texture to use for calculating sizes in the target
     // format and, as useful side effects, provide us with a properly sized
@@ -988,7 +1010,7 @@ ktxTexture2_DecodeAstc(ktxTexture2 *This, ktx_uint32_t vkformat) {
                 return result;
             }
         } else {
-            // No data to transcode.
+            // No data to decode.
             ktxTexture2_Destroy(prototype);
             return KTX_INVALID_OPERATION;
         }
@@ -1077,7 +1099,7 @@ ktxTexture2_DecodeAstc(ktxTexture2 *This, ktx_uint32_t vkformat) {
                     astcenc_decompress_reset(astc_context);
 
                     if (work.error != ASTCENC_SUCCESS) {
-                        std::cout << "ASTC decompressor failed\n" << astcenc_get_error_string(work.error) << std::endl;
+                        //std::cout << "ASTC decompressor failed\n" << astcenc_get_error_string(work.error) << std::endl;
 
                         astcenc_context_free(astc_context);
                         return KTX_INVALID_OPERATION;
