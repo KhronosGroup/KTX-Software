@@ -512,6 +512,7 @@ compressionWorkloadRunner(int threadCount, int threadId, void* payload) {
 }
 
 /**
+ * @internal
  * @brief Worker thread helper payload for launchThreads.
  */
 struct LaunchDesc {
@@ -528,6 +529,7 @@ struct LaunchDesc {
 };
 
 /**
+ * @internal
  * @brief Helper function to translate thread entry points.
  *
  * Convert a (void*) thread entry to an (int, void*) thread entry, where the
@@ -902,6 +904,7 @@ struct decompression_workload
 };
 
 /**
+ * @internal
  * @brief Runner callback function for a decompression worker thread.
  *
  * @param thread_count   The number of threads in the worker pool.
@@ -923,19 +926,20 @@ static void decompression_workload_runner(int thread_count, int thread_id, void*
 }
 
 /**
- * @brief Decodes the provided ktx2 texture if its astc encoded
+ * @ingroup reader
+ * @brief Decodes a ktx2 texture object, if it is ASTC encoded.
+ *
+ * Updates @p This with the decoded image.
  *
  * @param This     The texture to decode
  * @param vkformat The decoding format to use
  */
-// will update "This" with the uncompressed copy
-KTX_API KTX_error_code KTX_APIENTRY
+KTX_error_code
 ktxTexture2_DecodeAstc(ktxTexture2 *This, ktx_uint32_t vkformat) {
     // Decompress This using astc-decoder
     uint32_t* BDB = This->pDfd + 1;
     khr_df_model_e colorModel = (khr_df_model_e)KHR_DFDVAL(BDB, MODEL);
-    if (colorModel != KHR_DF_MODEL_ASTC && This->supercompressionScheme != KTX_SS_NONE) // No supercompression supported yet
-    {
+    if (colorModel != KHR_DF_MODEL_ASTC) {
         return KTX_INVALID_OPERATION; // Not in valid astc decodable format
     }
 
@@ -1008,7 +1012,7 @@ ktxTexture2_DecodeAstc(ktxTexture2 *This, ktx_uint32_t vkformat) {
 
     // if(params->perceptual) flags |= ASTCENC_FLG_USE_PERCEPTUAL;
 
-    uint32_t threadCount{1}; // Decompression isn't the bottlneck and only used when checking for psnr and ssim
+    uint32_t threadCount{1}; // Decompression isn't the bottleneck and only used when checking for psnr and ssim
     astcenc_config   astc_config;
     astcenc_context *astc_context;
     astcenc_error astc_error = astcenc_config_init(profile,

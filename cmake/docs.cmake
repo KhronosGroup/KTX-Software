@@ -126,7 +126,7 @@ function( CreateDocLibKTX )
         libktx.doc
         lib/libktx_mainpage.md
         include
-        lib/astc_encode.cpp
+        lib/astc_codec.cpp
         lib/basis_encode.cpp
         lib/basis_transcode.cpp
         lib/miniz_wrapper.cpp
