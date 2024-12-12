@@ -592,12 +592,12 @@ mapAstcError(astcenc_error astc_error) {
         return KTX_SUCCESS;
     case ASTCENC_ERR_OUT_OF_MEM:
         return KTX_OUT_OF_MEMORY;
-    case ASTCENC_ERR_BAD_BLOCK_SIZE: [[fallthrough]];
-    case ASTCENC_ERR_BAD_DECODE_MODE: [[fallthrough]];
-    case ASTCENC_ERR_BAD_FLAGS: [[fallthrough]];
-    case ASTCENC_ERR_BAD_PARAM: [[fallthrough]];
-    case ASTCENC_ERR_BAD_PROFILE: [[fallthrough]];
-    case ASTCENC_ERR_BAD_QUALITY: [[fallthrough]];
+    case ASTCENC_ERR_BAD_BLOCK_SIZE: //[[fallthrough]];
+    case ASTCENC_ERR_BAD_DECODE_MODE: //[[fallthrough]];
+    case ASTCENC_ERR_BAD_FLAGS: //[[fallthrough]];
+    case ASTCENC_ERR_BAD_PARAM: //[[fallthrough]];
+    case ASTCENC_ERR_BAD_PROFILE: //[[fallthrough]];
+    case ASTCENC_ERR_BAD_QUALITY: //[[fallthrough]];
     case ASTCENC_ERR_BAD_SWIZZLE:
         assert(false && "libktx passing bad parameter to astcenc");
         return KTX_INVALID_VALUE;
@@ -605,12 +605,18 @@ mapAstcError(astcenc_error astc_error) {
         assert(false && "libktx has set up astcenc context incorrectly");
         return KTX_INVALID_OPERATION;
     case ASTCENC_ERR_BAD_CPU_FLOAT:
-        assert(false && "Code compiled in way that float operations do not meet codec's assumptions.");
+        assert(false && "Code compiled such that float operations do not meet codec's assumptions.");
         // Most likely compiled with fast match enabled.
         return KTX_INVALID_OPERATION;
     case ASTCENC_ERR_NOT_IMPLEMENTED:
         assert(false && "ASTCENC_BLOCK_MAX_TEXELS not enough for specified block size");
         return KTX_UNSUPPORTED_FEATURE;
+    // gcc fails to detect that the switch handles all astcenc_error
+    // enumerators and raises a return-type error, "control reaches end of
+    // non-void function", hence this
+    default:
+        assert(false && "Unhandled astcenc error");
+        return KTX_INVALID_OPERATION;
     }
 }
 
