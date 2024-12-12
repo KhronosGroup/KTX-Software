@@ -606,7 +606,7 @@ mapAstcError(astcenc_error astc_error) {
         return KTX_INVALID_OPERATION;
     case ASTCENC_ERR_BAD_CPU_FLOAT:
         assert(false && "Code compiled such that float operations do not meet codec's assumptions.");
-        // Most likely compiled with fast match enabled.
+        // Most likely compiled with fast math enabled.
         return KTX_INVALID_OPERATION;
     case ASTCENC_ERR_NOT_IMPLEMENTED:
         assert(false && "ASTCENC_BLOCK_MAX_TEXELS not enough for specified block size");
