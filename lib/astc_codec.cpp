@@ -530,6 +530,7 @@ struct LaunchDesc {
 
 /**
  * @internal
+ * @~English
  * @brief Helper function to translate thread entry points.
  *
  * Convert a (void*) thread entry to an (int, void*) thread entry, where the
@@ -574,6 +575,52 @@ launchThreads(int threadCount, void (*func)(int, int, void*), void *payload) {
 }
 
 /**
+ * @internal
+ * @~English
+ * @brief Map astcenc error code to KTX error code
+ *
+ * Asserts are fired on errors reflecting bad parameters passed by libktx
+ * or astcenc compilation settings that do not permit correct operation.
+ *
+ * @param astc_error The error code to be mapped.
+ * @return An equivalent KTX error code.
+ */
+static ktx_error_code_e
+mapAstcError(astcenc_error astc_error) {
+    switch (astc_error) {
+    case ASTCENC_SUCCESS:
+        return KTX_SUCCESS;
+    case ASTCENC_ERR_OUT_OF_MEM:
+        return KTX_OUT_OF_MEMORY;
+    case ASTCENC_ERR_BAD_BLOCK_SIZE: //[[fallthrough]];
+    case ASTCENC_ERR_BAD_DECODE_MODE: //[[fallthrough]];
+    case ASTCENC_ERR_BAD_FLAGS: //[[fallthrough]];
+    case ASTCENC_ERR_BAD_PARAM: //[[fallthrough]];
+    case ASTCENC_ERR_BAD_PROFILE: //[[fallthrough]];
+    case ASTCENC_ERR_BAD_QUALITY: //[[fallthrough]];
+    case ASTCENC_ERR_BAD_SWIZZLE:
+        assert(false && "libktx passing bad parameter to astcenc");
+        return KTX_INVALID_VALUE;
+    case ASTCENC_ERR_BAD_CONTEXT:
+        assert(false && "libktx has set up astcenc context incorrectly");
+        return KTX_INVALID_OPERATION;
+    case ASTCENC_ERR_BAD_CPU_FLOAT:
+        assert(false && "Code compiled such that float operations do not meet codec's assumptions.");
+        // Most likely compiled with fast math enabled.
+        return KTX_INVALID_OPERATION;
+    case ASTCENC_ERR_NOT_IMPLEMENTED:
+        assert(false && "ASTCENC_BLOCK_MAX_TEXELS not enough for specified block size");
+        return KTX_UNSUPPORTED_FEATURE;
+    // gcc fails to detect that the switch handles all astcenc_error
+    // enumerators and raises a return-type error, "control reaches end of
+    // non-void function", hence this
+    default:
+        assert(false && "Unhandled astcenc error");
+        return KTX_INVALID_OPERATION;
+    }
+}
+
+/**
  * @memberof ktxTexture2
  * @ingroup writer
  * @~English
@@ -605,10 +652,16 @@ launchThreads(int threadCount, void (*func)(int, int, void*), void *payload) {
  *                              The texture's images are 1D. Only 2D images can
  *                              be supercompressed.
  * @exception KTX_INVALID_OPERATION
- *                              ASTC  compressor failed to compress image.
+ *                              ASTC encoder failed to compress image.
+ *                              Possibly due to incorrect floating point
+ *                              compilation settings. Should not happen
+ *                              in release package.
  * @exception KTX_INVALID_OPERATION
  *                              This->generateMipmaps is set.
  * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out compression.
+ * @exception KTX_UNSUPPORTED_FEATURE ASTC encoder not compiled with enough
+ *                                    capacity for requested block size. Should
+ *                                    not happen in release package.
  */
 extern "C" KTX_error_code
 ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
@@ -717,13 +770,13 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
                                                    &astc_config);
 
     if (astc_error != ASTCENC_SUCCESS)
-        return KTX_INVALID_OPERATION;
+        return mapAstcError(astc_error);
 
     astc_error  = astcenc_context_alloc(&astc_config, threadCount,
                                         &astc_context);
 
     if (astc_error != ASTCENC_SUCCESS)
-        return KTX_INVALID_OPERATION;
+        return mapAstcError(astc_error);
 
     // Walk in reverse on levels so we don't have to do this later
     assert(prototype->dataSize && "Prototype texture size not initialized.\n");
@@ -785,11 +838,11 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
             imageFree(input_image);
 
             if (work.error != ASTCENC_SUCCESS) {
-                std::cout << "ASTC compressor failed\n" <<
-                             astcenc_get_error_string(work.error) << std::endl;
+                //std::cout << "ASTC compressor failed\n" <<
+                //             astcenc_get_error_string(work.error) << std::endl;
 
                 astcenc_context_free(astc_context);
-                return KTX_INVALID_OPERATION;
+                return mapAstcError(work.error);
             }
         }
     }
@@ -857,7 +910,7 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
  *
  * @exception KTX_INVALID_OPERATION
- *                              The texture is already supercompressed.
+ *                              The texture's images are supercompressed.
  * @exception KTX_INVALID_OPERATION
  *                              The texture's image are in a block compressed
  *                              format.
@@ -933,6 +986,29 @@ static void decompression_workload_runner(int thread_count, int thread_id, void*
  *
  * @param This     The texture to decode
  * @param vkformat The decoding format to use
+ *
+ * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_FILE_DATA_ERROR
+ *                              DFD is incorrect: supercompression scheme or
+ *                              sample's channelId do not match ASTC colorModel.
+ * @exception KTX_INVALID_OPERATION
+ *                              The texture's images are not in ASTC format.
+ * @exception KTX_INVALID_OPERATION
+ *                              The texture object does not contain any data.
+ * @exception KTX_INVALID_OPERATION
+ *                              ASTC decoder failed to decompress image.
+ *                              Possibly due to incorrect floating point
+ *                              compilation settings. Should not happen
+ *                              in release package.
+ * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out decoding.
+ * @exception KTX_UNSUPPORTED_FEATURE
+ *                              The texture's images are supercompressed with an
+ *                              unsupported scheme.
+ * @exception KTX_UNSUPPORTED_FEATURE
+ *                              ASTC encoder not compiled with enough
+ *                              capacity for requested block size. Should
+ *                              not happen in release package.
  */
 KTX_error_code
 ktxTexture2_DecodeAstc(ktxTexture2 *This, ktx_uint32_t vkformat) {
@@ -940,17 +1016,23 @@ ktxTexture2_DecodeAstc(ktxTexture2 *This, ktx_uint32_t vkformat) {
     uint32_t* BDB = This->pDfd + 1;
     khr_df_model_e colorModel = (khr_df_model_e)KHR_DFDVAL(BDB, MODEL);
     if (colorModel != KHR_DF_MODEL_ASTC) {
-        return KTX_INVALID_OPERATION; // Not in valid astc decodable format
+        return KTX_INVALID_OPERATION; // Not in astc decodable format
     }
+    if (This->supercompressionScheme == KTX_SS_BASIS_LZ) {
+        return KTX_FILE_DATA_ERROR; // Not a valid file.
+    }
+    // Safety check.
+    if (This->supercompressionScheme > KTX_SS_END_RANGE) {
+        return KTX_UNSUPPORTED_FEATURE; // Unsupported scheme.
+    }
+    // Other schemes are decoded in ktxTexture2_LoadImageData.
 
     DECLARE_PRIVATE(priv, This);
 
     uint32_t channelId = KHR_DFDSVAL(BDB, 0, CHANNELID);
-    if (channelId == KHR_DF_CHANNEL_ASTC_DATA) {
-        // Found astc data
-    }
-    else
+    if (channelId != KHR_DF_CHANNEL_ASTC_DATA) {
         return KTX_FILE_DATA_ERROR;
+    }
 
     // Create a prototype texture to use for calculating sizes in the target
     // format and, as useful side effects, provide us with a properly sized
@@ -988,7 +1070,7 @@ ktxTexture2_DecodeAstc(ktxTexture2 *This, ktx_uint32_t vkformat) {
                 return result;
             }
         } else {
-            // No data to transcode.
+            // No data to decode.
             ktxTexture2_Destroy(prototype);
             return KTX_INVALID_OPERATION;
         }
@@ -1021,12 +1103,12 @@ ktxTexture2_DecodeAstc(ktxTexture2 *This, ktx_uint32_t vkformat) {
                                                    &astc_config);
 
     if (astc_error != ASTCENC_SUCCESS)
-        return KTX_INVALID_OPERATION;
+        return mapAstcError(astc_error);
 
     astc_error  = astcenc_context_alloc(&astc_config, threadCount, &astc_context);
 
     if (astc_error != ASTCENC_SUCCESS)
-        return KTX_INVALID_OPERATION;
+        return mapAstcError(astc_error);
 
     decompression_workload work;
     work.context = astc_context;
@@ -1077,10 +1159,10 @@ ktxTexture2_DecodeAstc(ktxTexture2 *This, ktx_uint32_t vkformat) {
                     astcenc_decompress_reset(astc_context);
 
                     if (work.error != ASTCENC_SUCCESS) {
-                        std::cout << "ASTC decompressor failed\n" << astcenc_get_error_string(work.error) << std::endl;
+                        //std::cout << "ASTC decompressor failed\n" << astcenc_get_error_string(work.error) << std::endl;
 
                         astcenc_context_free(astc_context);
-                        return KTX_INVALID_OPERATION;
+                        return mapAstcError(work.error);
                     }
                 }
             }
