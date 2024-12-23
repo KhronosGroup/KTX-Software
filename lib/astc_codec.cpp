@@ -289,24 +289,208 @@ astcVkFormat(ktx_uint32_t block_size, bool sRGB) {
     return VK_FORMAT_ASTC_6x6_SRGB_BLOCK; // Default is 6x6 sRGB image
 }
 
+inline bool isFormatSRGB(VkFormat format) noexcept {
+    switch (format) {
+    case VK_FORMAT_R8_SRGB: [[fallthrough]];
+    case VK_FORMAT_R8G8_SRGB: [[fallthrough]];
+    case VK_FORMAT_R8G8B8_SRGB: [[fallthrough]];
+    case VK_FORMAT_B8G8R8_SRGB: [[fallthrough]];
+    case VK_FORMAT_R8G8B8A8_SRGB: [[fallthrough]];
+    case VK_FORMAT_B8G8R8A8_SRGB: [[fallthrough]];
+    case VK_FORMAT_A8B8G8R8_SRGB_PACK32: [[fallthrough]];
+    case VK_FORMAT_BC1_RGB_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC1_RGBA_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC2_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC3_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC7_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x4_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x5_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x5_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x6_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x8_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x5_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x6_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x8_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x10_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_12x10_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_12x12_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_PVRTC1_2BPP_SRGB_BLOCK_IMG: [[fallthrough]];
+    case VK_FORMAT_PVRTC1_4BPP_SRGB_BLOCK_IMG: [[fallthrough]];
+    case VK_FORMAT_PVRTC2_2BPP_SRGB_BLOCK_IMG: [[fallthrough]];
+    case VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG: [[fallthrough]];
+    case VK_FORMAT_ASTC_3x3x3_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x3x3_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4x3_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4x4_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x4x4_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5x4_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5x5_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x5x5_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6x5_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT:
+        return true;
+    default:
+        return false;
+    }
+}
+
+inline bool isFormatAstc(VkFormat format) noexcept {
+    switch (format) {
+    case VK_FORMAT_ASTC_4x4_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x4_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x4_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x5_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x5_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x5_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x5_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x6_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x6_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x8_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x8_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x5_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x5_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x6_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x6_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x8_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x8_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x10_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x10_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_12x10_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_12x10_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_12x12_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_12x12_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_3x3x3_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_3x3x3_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_3x3x3_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x3x3_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x3x3_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x3x3_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4x3_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4x3_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4x3_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4x4_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4x4_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4x4_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x4x4_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x4x4_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x4x4_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5x4_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5x4_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5x4_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5x5_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5x5_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5x5_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x5x5_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x5x5_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x5x5_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6x5_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6x5_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6x5_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT:
+        return true;
+    default:
+        return false;
+    }
+}
+
+inline bool isFormatAstcLDR(VkFormat format) noexcept {
+    switch (format) {
+    case VK_FORMAT_ASTC_4x4_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x4_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x4_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x5_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x5_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x5_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x5_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x6_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x6_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x8_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x8_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x5_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x5_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x6_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x6_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x8_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x8_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x10_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x10_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_12x10_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_12x10_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_12x12_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_12x12_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_3x3x3_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_3x3x3_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x3x3_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x3x3_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4x3_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4x3_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4x4_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4x4_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x4x4_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x4x4_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5x4_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5x4_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5x5_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5x5_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x5x5_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x5x5_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6x5_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6x5_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT:
+        return true;
+    default:
+        return false;
+    }
+}
+
 /**
  * @memberof ktxTexture
  * @ingroup writer
  * @~English
- * @brief Creates valid ASTC encoder action from string.
+ * @brief Creates valid ASTC decoder profile from VkFormat
  *
- * @return      Valid astc_profile from string
+ * @return      Valid astc_profile from VkFormat
  */
 static astcenc_profile
-astcEncoderAction(const ktxAstcParams &params, const uint32_t* bdb) {
+astcProfile(bool sRGB, bool ldr) {
 
-    ktx_uint32_t transfer = KHR_DFDVAL(bdb, TRANSFER);
-
-    if (transfer == KHR_DF_TRANSFER_SRGB &&
-        params.mode == KTX_PACK_ASTC_ENCODER_MODE_LDR)
+    if (sRGB && ldr)
         return ASTCENC_PRF_LDR_SRGB;
-    else if (transfer == KHR_DF_TRANSFER_LINEAR) {
-        if (params.mode == KTX_PACK_ASTC_ENCODER_MODE_LDR)
+    else if (!sRGB) {
+        if (ldr)
             return ASTCENC_PRF_LDR;
         else
             return ASTCENC_PRF_HDR;
@@ -317,6 +501,45 @@ astcEncoderAction(const ktxAstcParams &params, const uint32_t* bdb) {
   return ASTCENC_PRF_LDR_SRGB;
 }
 
+/**
+ * @memberof ktxTexture
+ * @ingroup writer
+ * @~English
+ * @brief Creates valid ASTC encoder profile provided params and bdb
+ *
+ * @return      Valid astc_profile from params and bdb
+ */
+static astcenc_profile
+astcEncoderProfile(const ktxAstcParams &params, const uint32_t* bdb) {
+
+    ktx_uint32_t transfer = KHR_DFDVAL(bdb, TRANSFER);
+
+    bool sRGB = transfer == KHR_DF_TRANSFER_SRGB;
+    bool ldr = params.mode == KTX_PACK_ASTC_ENCODER_MODE_LDR;
+
+    if (!sRGB) {
+        assert(transfer == KHR_DF_TRANSFER_LINEAR && "Unsupported transfer function, only support sRGB and Linear");
+    }
+
+    return astcProfile(sRGB, ldr);
+}
+
+/**
+ * @memberof ktxTexture
+ * @ingroup writer
+ * @~English
+ * @brief Creates valid ASTC decoder profile from VkFormat
+ *
+ * @return      Valid astc_profile from VkFormat
+ */
+static astcenc_profile
+astcDecoderProfile(VkFormat vkformat) {
+
+    bool sRGB = isFormatSRGB(vkformat);
+    bool ldr = isFormatAstcLDR(vkformat);
+
+    return astcProfile(sRGB, ldr);
+}
 
 /**
  * @memberof ktxTexture
@@ -756,7 +979,7 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
     astcBlockDimensions(params->blockDimension,
                         block_size_x, block_size_y, block_size_z);
     quality = astcQuality(params->qualityLevel);
-    profile = astcEncoderAction(*params, BDB);
+    profile = astcEncoderProfile(*params, BDB);
     swizzle = astcSwizzle(*params);
 
     if(params->perceptual)
@@ -992,6 +1215,18 @@ static void decompression_workload_runner(int thread_count, int thread_id, void*
  * @exception KTX_FILE_DATA_ERROR
  *                              DFD is incorrect: supercompression scheme or
  *                              sample's channelId do not match ASTC colorModel.
+ * @exception KTX_FILE_DATA_ERROR
+ *                              The provided texture is not ASTC LDR encoded.
+ * @exception KTX_FILE_DATA_ERROR
+ *                              The provided texture is not ASTC encoded.
+ * @exception KTX_INVALID_OPERATION
+ *                              The decoding format is not supported.
+ * @exception KTX_INVALID_OPERATION
+ *                              HDR to LDR decode is not supported.
+ * @exception KTX_INVALID_OPERATION
+ *                              sRGB to linear decode is not supported.
+ * @exception KTX_INVALID_OPERATION
+ *                              Linear to sRGB decode is not supported.
  * @exception KTX_INVALID_OPERATION
  *                              The texture's images are not in ASTC format.
  * @exception KTX_INVALID_OPERATION
@@ -1026,6 +1261,31 @@ ktxTexture2_DecodeAstc(ktxTexture2 *This, ktx_uint32_t vkformat) {
         return KTX_UNSUPPORTED_FEATURE; // Unsupported scheme.
     }
     // Other schemes are decoded in ktxTexture2_LoadImageData.
+
+    if (!isFormatAstcLDR((VkFormat)This->vkFormat)) {
+        if (isFormatAstcLDR((VkFormat)vkformat)) {
+            return KTX_INVALID_OPERATION; // Decompressing to LDR from HDR is not supported.
+        }
+        return KTX_FILE_DATA_ERROR; // Should be removed when supporting HDR images.
+    }
+
+    if (!isFormatAstc((VkFormat)This->vkFormat)) {
+        return KTX_FILE_DATA_ERROR; // Not a valid input file.
+    }
+
+    if (isFormatAstc((VkFormat)vkformat)) {
+        return KTX_INVALID_OPERATION; // Not a supported decoding format.
+    }
+
+    if (isFormatSRGB((VkFormat)vkformat)) {
+        if (!isFormatSRGB((VkFormat)This->vkFormat)) {
+            return KTX_INVALID_OPERATION; // Not a supported decoding format for sRGB input.
+        }
+    } else {
+        if (isFormatSRGB((VkFormat)This->vkFormat)) {
+            return KTX_INVALID_OPERATION; // Not a supported decoding format for linear input.
+        }
+    }
 
     DECLARE_PRIVATE(priv, This);
 
@@ -1080,7 +1340,7 @@ ktxTexture2_DecodeAstc(ktxTexture2 *This, ktx_uint32_t vkformat) {
     astcenc_profile profile{ASTCENC_PRF_LDR_SRGB};
     astcenc_swizzle swizzle{ASTCENC_SWZ_R, ASTCENC_SWZ_G, ASTCENC_SWZ_B, ASTCENC_SWZ_A};
 
-    uint32_t        block_size_x{4}; // Get the right blocks from vkformat
+    uint32_t        block_size_x{4};
     uint32_t        block_size_y{4};
     uint32_t        block_size_z{1};
     float           quality{ASTCENC_PRE_MEDIUM};
@@ -1089,10 +1349,11 @@ ktxTexture2_DecodeAstc(ktxTexture2 *This, ktx_uint32_t vkformat) {
     astcBlockDimensions((VkFormat)This->vkFormat, block_size_x, block_size_y, block_size_z);
 
     // quality = astcQuality(params->qualityLevel);
-    // profile = astcEncoderAction(*params, BDB);
     // swizzle = astcSwizzle(*params);
 
     // if(params->perceptual) flags |= ASTCENC_FLG_USE_PERCEPTUAL;
+
+    profile = astcDecoderProfile((VkFormat)vkformat);
 
     uint32_t threadCount{1}; // Decompression isn't the bottleneck and only used when checking for psnr and ssim
     astcenc_config   astc_config;
