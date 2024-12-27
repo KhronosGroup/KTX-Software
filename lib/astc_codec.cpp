@@ -201,6 +201,7 @@ unorm8x4ArrayToImage(const uint8_t *data, uint32_t dim_x, uint32_t dim_y) {
 
 /**
  * @memberof ktxTexture
+ * @internal
  * @ingroup writer
  * @~English
  * @brief       Creates default ASTC parameters
@@ -222,6 +223,7 @@ astcDefaultOptions() {
 
 /**
  * @memberof ktxTexture
+ * @internal
  * @ingroup writer
  * @~English
  * @brief       Should be used to get VkFormat from ASTC block enum
@@ -289,23 +291,45 @@ astcVkFormat(ktx_uint32_t block_size, bool sRGB) {
     return VK_FORMAT_ASTC_6x6_SRGB_BLOCK; // Default is 6x6 sRGB image
 }
 
-inline bool isFormatSRGB(VkFormat format) noexcept {
+/**
+ * @memberof ktxTexture
+ * @internal
+ * @ingroup reader
+ * @~English
+ * @brief       Should be used to get uncompressed version of ASTC VkFormat
+ *
+ * The decompressed format is calculated from coressponding ASTC format. There are
+ * only 3 possible options currently supported. RGBA8, sRGBA8 and RGBA32.
+ *
+ * @return      Uncompressed version of VKFormat for a specific ASTC VkFormat
+ */
+inline VkFormat getUncompressedFormat(VkFormat format) noexcept {
     switch (format) {
-    case VK_FORMAT_R8_SRGB:
-    case VK_FORMAT_R8G8_SRGB:
-    case VK_FORMAT_R8G8B8_SRGB:
-    case VK_FORMAT_B8G8R8_SRGB:
-    case VK_FORMAT_R8G8B8A8_SRGB:
-    case VK_FORMAT_B8G8R8A8_SRGB:
-    case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
-    case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
-    case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
-    case VK_FORMAT_BC2_SRGB_BLOCK:
-    case VK_FORMAT_BC3_SRGB_BLOCK:
-    case VK_FORMAT_BC7_SRGB_BLOCK:
-    case VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK:
-    case VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK:
-    case VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK:
+    case VK_FORMAT_ASTC_4x4_UNORM_BLOCK:
+    case VK_FORMAT_ASTC_5x4_UNORM_BLOCK:
+    case VK_FORMAT_ASTC_5x5_UNORM_BLOCK:
+    case VK_FORMAT_ASTC_6x5_UNORM_BLOCK:
+    case VK_FORMAT_ASTC_6x6_UNORM_BLOCK:
+    case VK_FORMAT_ASTC_8x5_UNORM_BLOCK:
+    case VK_FORMAT_ASTC_8x6_UNORM_BLOCK:
+    case VK_FORMAT_ASTC_8x8_UNORM_BLOCK:
+    case VK_FORMAT_ASTC_10x5_UNORM_BLOCK:
+    case VK_FORMAT_ASTC_10x6_UNORM_BLOCK:
+    case VK_FORMAT_ASTC_10x8_UNORM_BLOCK:
+    case VK_FORMAT_ASTC_10x10_UNORM_BLOCK:
+    case VK_FORMAT_ASTC_12x10_UNORM_BLOCK:
+    case VK_FORMAT_ASTC_12x12_UNORM_BLOCK:
+    case VK_FORMAT_ASTC_3x3x3_UNORM_BLOCK_EXT:
+    case VK_FORMAT_ASTC_4x3x3_UNORM_BLOCK_EXT:
+    case VK_FORMAT_ASTC_4x4x3_UNORM_BLOCK_EXT:
+    case VK_FORMAT_ASTC_4x4x4_UNORM_BLOCK_EXT:
+    case VK_FORMAT_ASTC_5x4x4_UNORM_BLOCK_EXT:
+    case VK_FORMAT_ASTC_5x5x4_UNORM_BLOCK_EXT:
+    case VK_FORMAT_ASTC_5x5x5_UNORM_BLOCK_EXT:
+    case VK_FORMAT_ASTC_6x5x5_UNORM_BLOCK_EXT:
+    case VK_FORMAT_ASTC_6x6x5_UNORM_BLOCK_EXT:
+    case VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT:
+        return VK_FORMAT_R8G8B8A8_UNORM;
     case VK_FORMAT_ASTC_4x4_SRGB_BLOCK:
     case VK_FORMAT_ASTC_5x4_SRGB_BLOCK:
     case VK_FORMAT_ASTC_5x5_SRGB_BLOCK:
@@ -320,10 +344,6 @@ inline bool isFormatSRGB(VkFormat format) noexcept {
     case VK_FORMAT_ASTC_10x10_SRGB_BLOCK:
     case VK_FORMAT_ASTC_12x10_SRGB_BLOCK:
     case VK_FORMAT_ASTC_12x12_SRGB_BLOCK:
-    case VK_FORMAT_PVRTC1_2BPP_SRGB_BLOCK_IMG:
-    case VK_FORMAT_PVRTC1_4BPP_SRGB_BLOCK_IMG:
-    case VK_FORMAT_PVRTC2_2BPP_SRGB_BLOCK_IMG:
-    case VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG:
     case VK_FORMAT_ASTC_3x3x3_SRGB_BLOCK_EXT:
     case VK_FORMAT_ASTC_4x3x3_SRGB_BLOCK_EXT:
     case VK_FORMAT_ASTC_4x4x3_SRGB_BLOCK_EXT:
@@ -334,42 +354,7 @@ inline bool isFormatSRGB(VkFormat format) noexcept {
     case VK_FORMAT_ASTC_6x5x5_SRGB_BLOCK_EXT:
     case VK_FORMAT_ASTC_6x6x5_SRGB_BLOCK_EXT:
     case VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT:
-        return true;
-    default:
-        return false;
-    }
-}
-
-inline bool isFormatAstc(VkFormat format) noexcept {
-    switch (format) {
-    case VK_FORMAT_ASTC_4x4_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_4x4_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_5x4_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_5x4_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_5x5_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_5x5_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_6x5_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_6x5_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_6x6_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_6x6_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_8x5_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_8x5_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_8x6_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_8x6_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_8x8_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_8x8_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_10x5_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_10x5_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_10x6_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_10x6_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_10x8_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_10x8_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_10x10_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_10x10_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_12x10_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_12x10_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_12x12_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_12x12_SRGB_BLOCK:
+        return VK_FORMAT_R8G8B8A8_SRGB;
     case VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK:
     case VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK:
     case VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK:
@@ -384,42 +369,31 @@ inline bool isFormatAstc(VkFormat format) noexcept {
     case VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK:
     case VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK:
     case VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK:
-    case VK_FORMAT_ASTC_3x3x3_UNORM_BLOCK_EXT:
-    case VK_FORMAT_ASTC_3x3x3_SRGB_BLOCK_EXT:
     case VK_FORMAT_ASTC_3x3x3_SFLOAT_BLOCK_EXT:
-    case VK_FORMAT_ASTC_4x3x3_UNORM_BLOCK_EXT:
-    case VK_FORMAT_ASTC_4x3x3_SRGB_BLOCK_EXT:
     case VK_FORMAT_ASTC_4x3x3_SFLOAT_BLOCK_EXT:
-    case VK_FORMAT_ASTC_4x4x3_UNORM_BLOCK_EXT:
-    case VK_FORMAT_ASTC_4x4x3_SRGB_BLOCK_EXT:
     case VK_FORMAT_ASTC_4x4x3_SFLOAT_BLOCK_EXT:
-    case VK_FORMAT_ASTC_4x4x4_UNORM_BLOCK_EXT:
-    case VK_FORMAT_ASTC_4x4x4_SRGB_BLOCK_EXT:
     case VK_FORMAT_ASTC_4x4x4_SFLOAT_BLOCK_EXT:
-    case VK_FORMAT_ASTC_5x4x4_UNORM_BLOCK_EXT:
-    case VK_FORMAT_ASTC_5x4x4_SRGB_BLOCK_EXT:
     case VK_FORMAT_ASTC_5x4x4_SFLOAT_BLOCK_EXT:
-    case VK_FORMAT_ASTC_5x5x4_UNORM_BLOCK_EXT:
-    case VK_FORMAT_ASTC_5x5x4_SRGB_BLOCK_EXT:
     case VK_FORMAT_ASTC_5x5x4_SFLOAT_BLOCK_EXT:
-    case VK_FORMAT_ASTC_5x5x5_UNORM_BLOCK_EXT:
-    case VK_FORMAT_ASTC_5x5x5_SRGB_BLOCK_EXT:
     case VK_FORMAT_ASTC_5x5x5_SFLOAT_BLOCK_EXT:
-    case VK_FORMAT_ASTC_6x5x5_UNORM_BLOCK_EXT:
-    case VK_FORMAT_ASTC_6x5x5_SRGB_BLOCK_EXT:
     case VK_FORMAT_ASTC_6x5x5_SFLOAT_BLOCK_EXT:
-    case VK_FORMAT_ASTC_6x6x5_UNORM_BLOCK_EXT:
-    case VK_FORMAT_ASTC_6x6x5_SRGB_BLOCK_EXT:
     case VK_FORMAT_ASTC_6x6x5_SFLOAT_BLOCK_EXT:
-    case VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT:
-    case VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT:
     case VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT:
-        return true;
+        return VK_FORMAT_R32G32B32A32_SFLOAT;
     default:
-        return false;
+        return VK_FORMAT_R8G8B8A8_SRGB;
     }
 }
 
+/**
+ * @memberof ktxTexture
+ * @internal
+ * @ingroup reader
+ * @~English
+ * @brief       Should be used to check if an ASTC VkFormat is LDR format or not.
+ *
+ * @return      true if the VkFormat is an ASTC LDR format.
+ */
 inline bool isFormatAstcLDR(VkFormat format) noexcept {
     switch (format) {
     case VK_FORMAT_ASTC_4x4_UNORM_BLOCK:
@@ -478,9 +452,10 @@ inline bool isFormatAstcLDR(VkFormat format) noexcept {
 
 /**
  * @memberof ktxTexture
- * @ingroup writer
+ * @internal
+ * @ingroup reader writer
  * @~English
- * @brief Creates valid ASTC decoder profile from VkFormat
+ * @brief       Creates valid ASTC decoder profile from VkFormat
  *
  * @return      Valid astc_profile from VkFormat
  */
@@ -498,14 +473,17 @@ astcProfile(bool sRGB, bool ldr) {
     // TODO: Add support for the following
     // KTX_PACK_ASTC_ENCODER_ACTION_COMP_HDR_RGB_LDR_ALPHA; currently not supported
 
+    assert(ldr && "HDR sRGB profile not supported");
+
   return ASTCENC_PRF_LDR_SRGB;
 }
 
 /**
  * @memberof ktxTexture
+ * @internal
  * @ingroup writer
  * @~English
- * @brief Creates valid ASTC encoder profile provided params and bdb
+ * @brief       Creates valid ASTC encoder profile provided params and bdb
  *
  * @return      Valid astc_profile from params and bdb
  */
@@ -526,26 +504,31 @@ astcEncoderProfile(const ktxAstcParams &params, const uint32_t* bdb) {
 
 /**
  * @memberof ktxTexture
- * @ingroup writer
+ * @internal
+ * @ingroup reader
  * @~English
- * @brief Creates valid ASTC decoder profile from VkFormat
+ * @brief       Creates valid ASTC decoder profile from VkFormat
  *
  * @return      Valid astc_profile from VkFormat
  */
 static astcenc_profile
-astcDecoderProfile(VkFormat vkformat) {
+astcDecoderProfile(ktxTexture2 *This) {
 
-    bool sRGB = isFormatSRGB(vkformat);
-    bool ldr = isFormatAstcLDR(vkformat);
+    uint32_t* BDB = This->pDfd + 1;
+    ktx_uint32_t transfer = KHR_DFDVAL(BDB, TRANSFER);
+
+    bool sRGB = transfer == KHR_DF_TRANSFER_SRGB;
+    bool ldr = isFormatAstcLDR((VkFormat)This->vkFormat);
 
     return astcProfile(sRGB, ldr);
 }
 
 /**
  * @memberof ktxTexture
+ * @internal
  * @ingroup writer
  * @~English
- * @brief Creates valid ASTC encoder swizzle from string.
+ * @brief       Creates valid ASTC encoder swizzle from string.
  *
  * @return      Valid astcenc_swizzle from string
  */
@@ -1181,6 +1164,7 @@ struct decompression_workload
 
 /**
  * @internal
+ * @ingroup reader
  * @brief Runner callback function for a decompression worker thread.
  *
  * @param thread_count   The number of threads in the worker pool.
@@ -1204,29 +1188,19 @@ static void decompression_workload_runner(int thread_count, int thread_id, void*
 /**
  * @ingroup reader
  * @brief Decodes a ktx2 texture object, if it is ASTC encoded.
+
+ * The decompressed format is calculated from coressponding ASTC format. There are
+ * only 3 possible options currently supported. RGBA8, sRGBA8 and RGBA32.
  *
  * Updates @p This with the decoded image.
  *
  * @param This     The texture to decode
- * @param vkformat The decoding format to use
  *
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
  *
  * @exception KTX_FILE_DATA_ERROR
  *                              DFD is incorrect: supercompression scheme or
  *                              sample's channelId do not match ASTC colorModel.
- * @exception KTX_FILE_DATA_ERROR
- *                              The provided texture is not ASTC LDR encoded.
- * @exception KTX_FILE_DATA_ERROR
- *                              The provided texture is not ASTC encoded.
- * @exception KTX_INVALID_OPERATION
- *                              The decoding format is not supported.
- * @exception KTX_INVALID_OPERATION
- *                              HDR to LDR decode is not supported.
- * @exception KTX_INVALID_OPERATION
- *                              sRGB to linear decode is not supported.
- * @exception KTX_INVALID_OPERATION
- *                              Linear to sRGB decode is not supported.
  * @exception KTX_INVALID_OPERATION
  *                              The texture's images are not in ASTC format.
  * @exception KTX_INVALID_OPERATION
@@ -1246,7 +1220,7 @@ static void decompression_workload_runner(int thread_count, int thread_id, void*
  *                              not happen in release package.
  */
 KTX_error_code
-ktxTexture2_DecodeAstc(ktxTexture2 *This, ktx_uint32_t vkformat) {
+ktxTexture2_DecodeAstc(ktxTexture2 *This) {
     // Decompress This using astc-decoder
     uint32_t* BDB = This->pDfd + 1;
     khr_df_model_e colorModel = (khr_df_model_e)KHR_DFDVAL(BDB, MODEL);
@@ -1262,37 +1236,14 @@ ktxTexture2_DecodeAstc(ktxTexture2 *This, ktx_uint32_t vkformat) {
     }
     // Other schemes are decoded in ktxTexture2_LoadImageData.
 
-    if (!isFormatAstcLDR((VkFormat)This->vkFormat)) {
-        if (isFormatAstcLDR((VkFormat)vkformat)) {
-            return KTX_INVALID_OPERATION; // Decompressing to LDR from HDR is not supported.
-        }
-        return KTX_FILE_DATA_ERROR; // Should be removed when supporting HDR images.
-    }
-
-    if (!isFormatAstc((VkFormat)This->vkFormat)) {
-        return KTX_FILE_DATA_ERROR; // Not a valid input file.
-    }
-
-    if (isFormatAstc((VkFormat)vkformat)) {
-        return KTX_INVALID_OPERATION; // Not a supported decoding format.
-    }
-
-    if (isFormatSRGB((VkFormat)vkformat)) {
-        if (!isFormatSRGB((VkFormat)This->vkFormat)) {
-            return KTX_INVALID_OPERATION; // Not a supported decoding format for sRGB input.
-        }
-    } else {
-        if (isFormatSRGB((VkFormat)This->vkFormat)) {
-            return KTX_INVALID_OPERATION; // Not a supported decoding format for linear input.
-        }
-    }
-
     DECLARE_PRIVATE(priv, This);
 
     uint32_t channelId = KHR_DFDSVAL(BDB, 0, CHANNELID);
     if (channelId != KHR_DF_CHANNEL_ASTC_DATA) {
         return KTX_FILE_DATA_ERROR;
     }
+
+    ktx_uint32_t vkformat = (ktx_uint32_t)getUncompressedFormat((VkFormat)This->vkFormat);
 
     // Create a prototype texture to use for calculating sizes in the target
     // format and, as useful side effects, provide us with a properly sized
@@ -1353,7 +1304,7 @@ ktxTexture2_DecodeAstc(ktxTexture2 *This, ktx_uint32_t vkformat) {
 
     // if(params->perceptual) flags |= ASTCENC_FLG_USE_PERCEPTUAL;
 
-    profile = astcDecoderProfile((VkFormat)vkformat);
+    profile = astcDecoderProfile(This);
 
     uint32_t threadCount{1}; // Decompression isn't the bottleneck and only used when checking for psnr and ssim
     astcenc_config   astc_config;

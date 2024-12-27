@@ -107,16 +107,11 @@ public:
         tSwizzleInfo.swizzle = "rgba";
 
         ktx_error_code_e ec = KTX_SUCCESS;
-        auto vkformat = VK_FORMAT_R8G8B8A8_UNORM; // TODO: Fix format for HDR support
 
         // Decode the encoded texture to observe the compression losses
         const auto* bdfd = texture->pDfd + 1;
-        if (KHR_DFDVAL(bdfd, TRANSFER) == KHR_DF_TRANSFER_SRGB) {
-            vkformat = VK_FORMAT_R8G8B8A8_SRGB;
-        }
-
         if (khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_ASTC) {
-            ec = ktxTexture2_DecodeAstc(texture, vkformat);
+            ec = ktxTexture2_DecodeAstc(texture);
         }
         else {
             tSwizzleInfo = determineTranscodeSwizzle(texture, report);
