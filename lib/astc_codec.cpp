@@ -299,89 +299,20 @@ astcVkFormat(ktx_uint32_t block_size, bool sRGB) {
  * @brief       Should be used to get uncompressed version of ASTC VkFormat
  *
  * The decompressed format is calculated from coressponding ASTC format. There are
- * only 3 possible options currently supported. RGBA8, sRGBA8 and RGBA32.
+ * only 3 possible options currently supported. RGBA8, SRGBA8 and RGBA32.
  *
  * @return      Uncompressed version of VKFormat for a specific ASTC VkFormat
  */
-inline VkFormat getUncompressedFormat(VkFormat format) noexcept {
-    switch (format) {
-    case VK_FORMAT_ASTC_4x4_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_5x4_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_5x5_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_6x5_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_6x6_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_8x5_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_8x6_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_8x8_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_10x5_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_10x6_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_10x8_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_10x10_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_12x10_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_12x12_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_3x3x3_UNORM_BLOCK_EXT:
-    case VK_FORMAT_ASTC_4x3x3_UNORM_BLOCK_EXT:
-    case VK_FORMAT_ASTC_4x4x3_UNORM_BLOCK_EXT:
-    case VK_FORMAT_ASTC_4x4x4_UNORM_BLOCK_EXT:
-    case VK_FORMAT_ASTC_5x4x4_UNORM_BLOCK_EXT:
-    case VK_FORMAT_ASTC_5x5x4_UNORM_BLOCK_EXT:
-    case VK_FORMAT_ASTC_5x5x5_UNORM_BLOCK_EXT:
-    case VK_FORMAT_ASTC_6x5x5_UNORM_BLOCK_EXT:
-    case VK_FORMAT_ASTC_6x6x5_UNORM_BLOCK_EXT:
-    case VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT:
-        return VK_FORMAT_R8G8B8A8_UNORM;
-    case VK_FORMAT_ASTC_4x4_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_5x4_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_5x5_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_6x5_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_6x6_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_8x5_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_8x6_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_8x8_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_10x5_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_10x6_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_10x8_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_10x10_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_12x10_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_12x12_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_3x3x3_SRGB_BLOCK_EXT:
-    case VK_FORMAT_ASTC_4x3x3_SRGB_BLOCK_EXT:
-    case VK_FORMAT_ASTC_4x4x3_SRGB_BLOCK_EXT:
-    case VK_FORMAT_ASTC_4x4x4_SRGB_BLOCK_EXT:
-    case VK_FORMAT_ASTC_5x4x4_SRGB_BLOCK_EXT:
-    case VK_FORMAT_ASTC_5x5x4_SRGB_BLOCK_EXT:
-    case VK_FORMAT_ASTC_5x5x5_SRGB_BLOCK_EXT:
-    case VK_FORMAT_ASTC_6x5x5_SRGB_BLOCK_EXT:
-    case VK_FORMAT_ASTC_6x6x5_SRGB_BLOCK_EXT:
-    case VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT:
-        return VK_FORMAT_R8G8B8A8_SRGB;
-    case VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK:
-    case VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK:
-    case VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK:
-    case VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK:
-    case VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK:
-    case VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK:
-    case VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK:
-    case VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK:
-    case VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK:
-    case VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK:
-    case VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK:
-    case VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK:
-    case VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK:
-    case VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK:
-    case VK_FORMAT_ASTC_3x3x3_SFLOAT_BLOCK_EXT:
-    case VK_FORMAT_ASTC_4x3x3_SFLOAT_BLOCK_EXT:
-    case VK_FORMAT_ASTC_4x4x3_SFLOAT_BLOCK_EXT:
-    case VK_FORMAT_ASTC_4x4x4_SFLOAT_BLOCK_EXT:
-    case VK_FORMAT_ASTC_5x4x4_SFLOAT_BLOCK_EXT:
-    case VK_FORMAT_ASTC_5x5x4_SFLOAT_BLOCK_EXT:
-    case VK_FORMAT_ASTC_5x5x5_SFLOAT_BLOCK_EXT:
-    case VK_FORMAT_ASTC_6x5x5_SFLOAT_BLOCK_EXT:
-    case VK_FORMAT_ASTC_6x6x5_SFLOAT_BLOCK_EXT:
-    case VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT:
+inline VkFormat getUncompressedFormat(ktxTexture2* This) noexcept {
+    uint32_t* BDB = This->pDfd + 1;
+
+    if (KHR_DFDSVAL(BDB, 0, QUALIFIERS) & KHR_DF_SAMPLE_DATATYPE_FLOAT) {
         return VK_FORMAT_R32G32B32A32_SFLOAT;
-    default:
-        return VK_FORMAT_R8G8B8A8_SRGB;
+    } else {
+        if (khr_df_transfer_e(KHR_DFDVAL(BDB, TRANSFER) == KHR_DF_TRANSFER_SRGB))
+            return VK_FORMAT_R8G8B8A8_SRGB;
+        else
+            return VK_FORMAT_R8G8B8A8_UNORM;
     }
 }
 
@@ -394,60 +325,8 @@ inline VkFormat getUncompressedFormat(VkFormat format) noexcept {
  *
  * @return      true if the VkFormat is an ASTC LDR format.
  */
-inline bool isFormatAstcLDR(VkFormat format) noexcept {
-    switch (format) {
-    case VK_FORMAT_ASTC_4x4_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_4x4_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_5x4_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_5x4_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_5x5_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_5x5_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_6x5_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_6x5_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_6x6_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_6x6_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_8x5_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_8x5_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_8x6_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_8x6_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_8x8_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_8x8_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_10x5_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_10x5_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_10x6_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_10x6_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_10x8_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_10x8_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_10x10_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_10x10_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_12x10_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_12x10_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_12x12_UNORM_BLOCK:
-    case VK_FORMAT_ASTC_12x12_SRGB_BLOCK:
-    case VK_FORMAT_ASTC_3x3x3_UNORM_BLOCK_EXT:
-    case VK_FORMAT_ASTC_3x3x3_SRGB_BLOCK_EXT:
-    case VK_FORMAT_ASTC_4x3x3_UNORM_BLOCK_EXT:
-    case VK_FORMAT_ASTC_4x3x3_SRGB_BLOCK_EXT:
-    case VK_FORMAT_ASTC_4x4x3_UNORM_BLOCK_EXT:
-    case VK_FORMAT_ASTC_4x4x3_SRGB_BLOCK_EXT:
-    case VK_FORMAT_ASTC_4x4x4_UNORM_BLOCK_EXT:
-    case VK_FORMAT_ASTC_4x4x4_SRGB_BLOCK_EXT:
-    case VK_FORMAT_ASTC_5x4x4_UNORM_BLOCK_EXT:
-    case VK_FORMAT_ASTC_5x4x4_SRGB_BLOCK_EXT:
-    case VK_FORMAT_ASTC_5x5x4_UNORM_BLOCK_EXT:
-    case VK_FORMAT_ASTC_5x5x4_SRGB_BLOCK_EXT:
-    case VK_FORMAT_ASTC_5x5x5_UNORM_BLOCK_EXT:
-    case VK_FORMAT_ASTC_5x5x5_SRGB_BLOCK_EXT:
-    case VK_FORMAT_ASTC_6x5x5_UNORM_BLOCK_EXT:
-    case VK_FORMAT_ASTC_6x5x5_SRGB_BLOCK_EXT:
-    case VK_FORMAT_ASTC_6x6x5_UNORM_BLOCK_EXT:
-    case VK_FORMAT_ASTC_6x6x5_SRGB_BLOCK_EXT:
-    case VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT:
-    case VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT:
-        return true;
-    default:
-        return false;
-    }
+inline bool isFormatAstcLDR(ktxTexture2* This) noexcept {
+    return (KHR_DFDSVAL(This->pDfd + 1, 0, QUALIFIERS) & KHR_DF_SAMPLE_DATATYPE_FLOAT) != 0;
 }
 
 /**
@@ -518,7 +397,7 @@ astcDecoderProfile(ktxTexture2 *This) {
     ktx_uint32_t transfer = KHR_DFDVAL(BDB, TRANSFER);
 
     bool sRGB = transfer == KHR_DF_TRANSFER_SRGB;
-    bool ldr = isFormatAstcLDR((VkFormat)This->vkFormat);
+    bool ldr = isFormatAstcLDR(This);
 
     return astcProfile(sRGB, ldr);
 }
@@ -594,88 +473,6 @@ astcBlockDimensions(ktx_uint32_t block_size,
     case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x6 : block_x = 6; block_y = 6; block_z = 6; break;
     default:
         block_x = 6; block_y = 6; block_z = 1; break;
-    }
-}
-
-
-static void
-astcBlockDimensions(VkFormat format,
-                    uint32_t &x, uint32_t &y, uint32_t &z) noexcept {
-    switch (format) {
-    case VK_FORMAT_ASTC_4x4_UNORM_BLOCK:     x = 4; y = 4; z = 0; break;
-    case VK_FORMAT_ASTC_4x4_SRGB_BLOCK:      x = 4; y = 4; z = 0; break;
-    case VK_FORMAT_ASTC_5x4_UNORM_BLOCK:     x = 5; y = 4; z = 0; break;
-    case VK_FORMAT_ASTC_5x4_SRGB_BLOCK:      x = 5; y = 4; z = 0; break;
-    case VK_FORMAT_ASTC_5x5_UNORM_BLOCK:     x = 5; y = 5; z = 0; break;
-    case VK_FORMAT_ASTC_5x5_SRGB_BLOCK:      x = 5; y = 5; z = 0; break;
-    case VK_FORMAT_ASTC_6x5_UNORM_BLOCK:     x = 6; y = 5; z = 0; break;
-    case VK_FORMAT_ASTC_6x5_SRGB_BLOCK:      x = 6; y = 5; z = 0; break;
-    case VK_FORMAT_ASTC_6x6_UNORM_BLOCK:     x = 6; y = 6; z = 0; break;
-    case VK_FORMAT_ASTC_6x6_SRGB_BLOCK:      x = 6; y = 6; z = 0; break;
-    case VK_FORMAT_ASTC_8x5_UNORM_BLOCK:     x = 8; y = 5; z = 0; break;
-    case VK_FORMAT_ASTC_8x5_SRGB_BLOCK:      x = 8; y = 5; z = 0; break;
-    case VK_FORMAT_ASTC_8x6_UNORM_BLOCK:     x = 8; y = 6; z = 0; break;
-    case VK_FORMAT_ASTC_8x6_SRGB_BLOCK:      x = 8; y = 6; z = 0; break;
-    case VK_FORMAT_ASTC_8x8_UNORM_BLOCK:     x = 8; y = 8; z = 0; break;
-    case VK_FORMAT_ASTC_8x8_SRGB_BLOCK:      x = 8; y = 8; z = 0; break;
-    case VK_FORMAT_ASTC_10x5_UNORM_BLOCK:    x = 10; y = 5; z = 0; break;
-    case VK_FORMAT_ASTC_10x5_SRGB_BLOCK:     x = 10; y = 5; z = 0; break;
-    case VK_FORMAT_ASTC_10x6_UNORM_BLOCK:    x = 10; y = 6; z = 0; break;
-    case VK_FORMAT_ASTC_10x6_SRGB_BLOCK:     x = 10; y = 6; z = 0; break;
-    case VK_FORMAT_ASTC_10x8_UNORM_BLOCK:    x = 10; y = 8; z = 0; break;
-    case VK_FORMAT_ASTC_10x8_SRGB_BLOCK:     x = 10; y = 8; z = 0; break;
-    case VK_FORMAT_ASTC_10x10_UNORM_BLOCK:   x = 10; y = 10; z = 0; break;
-    case VK_FORMAT_ASTC_10x10_SRGB_BLOCK:    x = 10; y = 10; z = 0; break;
-    case VK_FORMAT_ASTC_12x10_UNORM_BLOCK:   x = 12; y = 10; z = 0; break;
-    case VK_FORMAT_ASTC_12x10_SRGB_BLOCK:    x = 12; y = 10; z = 0; break;
-    case VK_FORMAT_ASTC_12x12_UNORM_BLOCK:   x = 12; y = 12; z = 0; break;
-    case VK_FORMAT_ASTC_12x12_SRGB_BLOCK:    x = 12; y = 12; z = 0; break;
-    case VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK:    x = 4; y = 4; z = 0; break;
-    case VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK:    x = 5; y = 4; z = 0; break;
-    case VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK:    x = 5; y = 5; z = 0; break;
-    case VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK:    x = 6; y = 5; z = 0; break;
-    case VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK:    x = 6; y = 6; z = 0; break;
-    case VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK:    x = 8; y = 5; z = 0; break;
-    case VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK:    x = 8; y = 6; z = 0; break;
-    case VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK:    x = 8; y = 8; z = 0; break;
-    case VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK:   x = 10; y = 5; z = 0; break;
-    case VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK:   x = 10; y = 6; z = 0; break;
-    case VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK:   x = 10; y = 8; z = 0; break;
-    case VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK:  x = 10; y = 10; z = 0; break;
-    case VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK:  x = 12; y = 10; z = 0; break;
-    case VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK:  x = 12; y = 12; z = 0; break;
-    case VK_FORMAT_ASTC_3x3x3_UNORM_BLOCK_EXT:   x = 3; y = 3; z = 3; break;
-    case VK_FORMAT_ASTC_3x3x3_SRGB_BLOCK_EXT:    x = 3; y = 3; z = 3; break;
-    case VK_FORMAT_ASTC_3x3x3_SFLOAT_BLOCK_EXT:  x = 3; y = 3; z = 3; break;
-    case VK_FORMAT_ASTC_4x3x3_UNORM_BLOCK_EXT:   x = 4; y = 3; z = 3; break;
-    case VK_FORMAT_ASTC_4x3x3_SRGB_BLOCK_EXT:    x = 4; y = 3; z = 3; break;
-    case VK_FORMAT_ASTC_4x3x3_SFLOAT_BLOCK_EXT:  x = 4; y = 3; z = 3; break;
-    case VK_FORMAT_ASTC_4x4x3_UNORM_BLOCK_EXT:   x = 4; y = 4; z = 3; break;
-    case VK_FORMAT_ASTC_4x4x3_SRGB_BLOCK_EXT:    x = 4; y = 4; z = 3; break;
-    case VK_FORMAT_ASTC_4x4x3_SFLOAT_BLOCK_EXT:  x = 4; y = 4; z = 3; break;
-    case VK_FORMAT_ASTC_4x4x4_UNORM_BLOCK_EXT:   x = 4; y = 4; z = 4; break;
-    case VK_FORMAT_ASTC_4x4x4_SRGB_BLOCK_EXT:    x = 4; y = 4; z = 4; break;
-    case VK_FORMAT_ASTC_4x4x4_SFLOAT_BLOCK_EXT:  x = 4; y = 4; z = 4; break;
-    case VK_FORMAT_ASTC_5x4x4_UNORM_BLOCK_EXT:   x = 5; y = 4; z = 4; break;
-    case VK_FORMAT_ASTC_5x4x4_SRGB_BLOCK_EXT:    x = 5; y = 4; z = 4; break;
-    case VK_FORMAT_ASTC_5x4x4_SFLOAT_BLOCK_EXT:  x = 5; y = 4; z = 4; break;
-    case VK_FORMAT_ASTC_5x5x4_UNORM_BLOCK_EXT:   x = 5; y = 5; z = 4; break;
-    case VK_FORMAT_ASTC_5x5x4_SRGB_BLOCK_EXT:    x = 5; y = 5; z = 4; break;
-    case VK_FORMAT_ASTC_5x5x4_SFLOAT_BLOCK_EXT:  x = 5; y = 5; z = 4; break;
-    case VK_FORMAT_ASTC_5x5x5_UNORM_BLOCK_EXT:   x = 5; y = 5; z = 5; break;
-    case VK_FORMAT_ASTC_5x5x5_SRGB_BLOCK_EXT:    x = 5; y = 5; z = 5; break;
-    case VK_FORMAT_ASTC_5x5x5_SFLOAT_BLOCK_EXT:  x = 5; y = 5; z = 5; break;
-    case VK_FORMAT_ASTC_6x5x5_UNORM_BLOCK_EXT:   x = 6; y = 5; z = 5; break;
-    case VK_FORMAT_ASTC_6x5x5_SRGB_BLOCK_EXT:    x = 6; y = 5; z = 5; break;
-    case VK_FORMAT_ASTC_6x5x5_SFLOAT_BLOCK_EXT:  x = 6; y = 5; z = 5; break;
-    case VK_FORMAT_ASTC_6x6x5_UNORM_BLOCK_EXT:   x = 6; y = 6; z = 5; break;
-    case VK_FORMAT_ASTC_6x6x5_SRGB_BLOCK_EXT:    x = 6; y = 6; z = 5; break;
-    case VK_FORMAT_ASTC_6x6x5_SFLOAT_BLOCK_EXT:  x = 6; y = 6; z = 5; break;
-    case VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT:   x = 6; y = 6; z = 6; break;
-    case VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT:    x = 6; y = 6; z = 6; break;
-    case VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT:  x = 6; y = 6; z = 6; break;
-    default:
-        x = 0; y = 0; z = 0;
     }
 }
 
@@ -1189,8 +986,8 @@ static void decompression_workload_runner(int thread_count, int thread_id, void*
  * @ingroup reader
  * @brief Decodes a ktx2 texture object, if it is ASTC encoded.
 
- * The decompressed format is calculated from coressponding ASTC format. There are
- * only 3 possible options currently supported. RGBA8, sRGBA8 and RGBA32.
+ * The decompressed format is calculated from corresponding ASTC format. There are
+ * only 3 possible options currently supported. RGBA8, SRGBA8 and RGBA32.
  *
  * Updates @p This with the decoded image.
  *
@@ -1243,7 +1040,7 @@ ktxTexture2_DecodeAstc(ktxTexture2 *This) {
         return KTX_FILE_DATA_ERROR;
     }
 
-    ktx_uint32_t vkformat = (ktx_uint32_t)getUncompressedFormat((VkFormat)This->vkFormat);
+    ktx_uint32_t vkformat = (ktx_uint32_t)getUncompressedFormat(This);
 
     // Create a prototype texture to use for calculating sizes in the target
     // format and, as useful side effects, provide us with a properly sized
@@ -1288,23 +1085,20 @@ ktxTexture2_DecodeAstc(ktxTexture2 *This) {
     }
 
     // This is where I do the decompression from "This" to prototype target
-    astcenc_profile profile{ASTCENC_PRF_LDR_SRGB};
     astcenc_swizzle swizzle{ASTCENC_SWZ_R, ASTCENC_SWZ_G, ASTCENC_SWZ_B, ASTCENC_SWZ_A};
-
-    uint32_t        block_size_x{4};
-    uint32_t        block_size_y{4};
-    uint32_t        block_size_z{1};
     float           quality{ASTCENC_PRE_MEDIUM};
     uint32_t        flags{0}; // TODO: Use normals mode to reconstruct normals params->normalMap ? ASTCENC_FLG_MAP_NORMAL : 0};
 
-    astcBlockDimensions((VkFormat)This->vkFormat, block_size_x, block_size_y, block_size_z);
+    uint32_t        block_size_x = KHR_DFDVAL(BDB, TEXELBLOCKDIMENSION0) + 1;
+    uint32_t        block_size_y = KHR_DFDVAL(BDB, TEXELBLOCKDIMENSION1) + 1;
+    uint32_t        block_size_z = KHR_DFDVAL(BDB, TEXELBLOCKDIMENSION2) + 1;
 
     // quality = astcQuality(params->qualityLevel);
     // swizzle = astcSwizzle(*params);
 
     // if(params->perceptual) flags |= ASTCENC_FLG_USE_PERCEPTUAL;
 
-    profile = astcDecoderProfile(This);
+    astcenc_profile profile = astcDecoderProfile(This);
 
     uint32_t threadCount{1}; // Decompression isn't the bottleneck and only used when checking for psnr and ssim
     astcenc_config   astc_config;
