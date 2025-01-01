@@ -298,7 +298,7 @@ astcVkFormat(ktx_uint32_t block_size, bool sRGB) {
  * @~English
  * @brief       Should be used to get uncompressed version of ASTC VkFormat
  *
- * The decompressed format is calculated from coressponding ASTC format. There are
+ * The decompressed format is calculated from corresponding ASTC format. There are
  * only 3 possible options currently supported. RGBA8, SRGBA8 and RGBA32.
  *
  * @return      Uncompressed version of VKFormat for a specific ASTC VkFormat
@@ -988,6 +988,7 @@ static void decompression_workload_runner(int thread_count, int thread_id, void*
 
  * The decompressed format is calculated from corresponding ASTC format. There are
  * only 3 possible options currently supported. RGBA8, SRGBA8 and RGBA32.
+ * @note 3d textures are decoded to a multi-slice 3d texture.
  *
  * Updates @p This with the decoded image.
  *
