@@ -23,9 +23,16 @@ public class KtxAstcParamsTest {
 
 	@Test
 	public void testNullSwizzle() {
-		KtxAstcParams p = new KtxAstcParams();
-		p.setInputSwizzle(null);
-		assertTrue(true, "Accepts null swizzle (to apply no swizzle)");
+	    KtxAstcParams p = new KtxAstcParams();
+	    p.setInputSwizzle(null);
+	    assertTrue(true, "Accepts null swizzle (to apply no swizzle)");
+	}
+
+	@Test
+	public void testDefaultSwizzle() {
+	    KtxAstcParams p = new KtxAstcParams();
+	    p.setInputSwizzle(new char[4]);
+	    assertTrue(true, "Accepts default swizzle (all zeros)");
 	}
 
 	@Test

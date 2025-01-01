@@ -6,6 +6,8 @@
 
 package org.khronos.ktx;
 
+import java.util.Arrays;
+
 /**
  * Structure for passing parameters to {@link KtxTexture2#compressBasisEx(KtxBasisParams)}.<br>
  * <br>
@@ -410,29 +412,36 @@ public class KtxBasisParams {
 	/**
 	 * Set the swizzle that should be applied to the input.<br>
 	 * <br>
-	 * This swizzle must match the regular expression /^[rgba01]{4}$/.<br>
+	 * When the given swizzle is <code>null</code> or all its elements are
+	 * <code>0</code>, then no swizzling will be applied to the input.<br>
 	 * <br>
-	 * When the given swizzle is <code>null</code>, then no swizzling will be
-	 * applied to the input.
+	 * Otherwise, this swizzle must match the regular expression 
+	 * <code>/^[rgba01]{4}$/</code>.<br>
+	 * <br>
 	 *
 	 * @param inputSwizzle The swizzle
 	 */
 	public void setInputSwizzle(char[] inputSwizzle) {
-		if (inputSwizzle == null) {
-			this.inputSwizzle = new char[4];
-			return;
-		}
-		if (inputSwizzle.length != 4) {
-			throw new IllegalArgumentException("The inputSwizzle must contain 4 characters");
-		}
-		String valid = "rgba01";
-		for (int i = 0; i < inputSwizzle.length; i++) {
-			char c = inputSwizzle[i];
-			if (valid.indexOf(c) == -1) {
-				throw new IllegalArgumentException("The inputSwizzle may only consist of 'rgba01', but contains " + c);
-			}
-		}
+	    char defaultSwizzle[] = new char[4];
+	    if (inputSwizzle == null) {
+		this.inputSwizzle = defaultSwizzle;
+		return;
+	    }
+	    if (inputSwizzle.length != 4) {
+		throw new IllegalArgumentException("The inputSwizzle must contain 4 characters");
+	    }
+	    if (Arrays.equals(inputSwizzle, defaultSwizzle)) {
 		this.inputSwizzle = inputSwizzle;
+		return;
+	    }
+	    String valid = "rgba01";
+	    for (int i = 0; i < inputSwizzle.length; i++) {
+		char c = inputSwizzle[i];
+		if (valid.indexOf(c) == -1) {
+		    throw new IllegalArgumentException("The inputSwizzle may only consist of 'rgba01', but contains " + c);
+		}
+	    }
+	    this.inputSwizzle = inputSwizzle;
 	}
 
 	/**
