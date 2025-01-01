@@ -29,7 +29,7 @@ public class KtxPackAstcBlockDimension {
     /**
      * 4.27 bpp
      */
-    public static final int D6x4 = 3;
+    public static final int D6x5 = 3;
 
     /**
      * 3.56 bpp
