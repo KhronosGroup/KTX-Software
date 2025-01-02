@@ -422,26 +422,7 @@ public class KtxBasisParams {
 	 * @param inputSwizzle The swizzle
 	 */
 	public void setInputSwizzle(char[] inputSwizzle) {
-	    char defaultSwizzle[] = new char[4];
-	    if (inputSwizzle == null) {
-		this.inputSwizzle = defaultSwizzle;
-		return;
-	    }
-	    if (inputSwizzle.length != 4) {
-		throw new IllegalArgumentException("The inputSwizzle must contain 4 characters");
-	    }
-	    if (Arrays.equals(inputSwizzle, defaultSwizzle)) {
-		this.inputSwizzle = inputSwizzle;
-		return;
-	    }
-	    String valid = "rgba01";
-	    for (int i = 0; i < inputSwizzle.length; i++) {
-		char c = inputSwizzle[i];
-		if (valid.indexOf(c) == -1) {
-		    throw new IllegalArgumentException("The inputSwizzle may only consist of 'rgba01', but contains " + c);
-		}
-	    }
-	    this.inputSwizzle = inputSwizzle;
+	    this.inputSwizzle = KtxUtilities.validateSwizzle(inputSwizzle);
 	}
 
 	/**
