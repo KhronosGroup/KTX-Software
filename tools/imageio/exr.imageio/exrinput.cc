@@ -37,7 +37,9 @@ public:
     }
     ~ExrInput() {
         // FreeEXRVersion(&version); // No need to call, no such function
-        FreeEXRImage(&image);
+        if (image.width != 0 && image.height != 0) {
+            FreeEXRImage(&image);
+        }
         FreeEXRHeader(&header);
         FreeEXRErrorMessage(err);
     }
@@ -222,6 +224,16 @@ void ExrInput::readImage(void* outputBuffer, size_t bufferByteCount,
             throw std::runtime_error(fmt::format("EXR load error: "
                     "Requested format conversion from the input type is not supported."));
     }
+
+    // Load image version
+    EXRVersion exr_version;
+    ec = ParseEXRVersionFromMemory(&exr_version, exrBuffer.data(), exrBuffer.size());
+    if (ec != TINYEXR_SUCCESS)
+        throw std::runtime_error(
+            fmt::format("EXR load error: {} - {}.", ec, "Failed to parse EXR version"));
+    if (exr_version.multipart || exr_version.non_image)
+        throw std::runtime_error(
+            fmt::format("EXR load error: {}.", "Unsupported EXR version (2.0)"));
 
     // Load image data
     ec = LoadEXRImageFromMemory(&image, &header, exrBuffer.data(), exrBuffer.size(), &err);
