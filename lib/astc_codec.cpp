@@ -326,7 +326,7 @@ inline VkFormat getUncompressedFormat(ktxTexture2* This) noexcept {
  * @return      true if the VkFormat is an ASTC LDR format.
  */
 inline bool isFormatAstcLDR(ktxTexture2* This) noexcept {
-    return (KHR_DFDSVAL(This->pDfd + 1, 0, QUALIFIERS) & KHR_DF_SAMPLE_DATATYPE_FLOAT) != 0;
+    return (KHR_DFDSVAL(This->pDfd + 1, 0, QUALIFIERS) & KHR_DF_SAMPLE_DATATYPE_FLOAT) == 0;
 }
 
 /**
