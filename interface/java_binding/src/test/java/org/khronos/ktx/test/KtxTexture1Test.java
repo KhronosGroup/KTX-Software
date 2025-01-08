@@ -17,7 +17,6 @@ import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@ExtendWith({ KtxTestLibraryLoader.class })
 public class KtxTexture1Test {
     @Test
     public void testCreateFromNamedFile() {
