@@ -237,11 +237,11 @@ void ExrInput::readImage(void* outputBuffer, size_t bufferByteCount,
 
     // Load image data
 
-    // TinyEXR does an unnecessary y-flip when line_order != 0, i.e is
-    // "decreasing Y". Unnecessary because the source data_ptr, passed to
-    // DecodePixelData points at the location in the file of the scanline
-    // being decoded. The location of scanline y in the output never changes.
-    // Avoid this bug.
+    // TinyEXR decodes images so that the first bytes in the returned buffer
+    // are the top-left corner of the image with line_order == 0 "increasing Y"
+    // and the bottom-left corner, "decreasing Y", otherwise. Force a top-left
+    // origin regardless of the line_order in the file. See
+    // https://github.com/syoyo/tinyexr/issues/213 for more information.
     header.line_order = 0;
     ec = LoadEXRImageFromMemory(&image, &header, exrBuffer.data(), exrBuffer.size(), &err);
     if (ec != TINYEXR_SUCCESS)
