@@ -167,6 +167,8 @@ void ExrInput::open(ImageSpec& newspec) {
                             width,
                             height,
                             1,
+                            // We make TinyEXR decode to top-left.
+                            ImageSpec::Origin(ImageSpec::Origin::eLeft, ImageSpec::Origin::eTop),
                             header.num_channels,
                             bitDepth,
                             static_cast<khr_df_sample_datatype_qualifiers_e>(qualifiers),
@@ -236,6 +238,13 @@ void ExrInput::readImage(void* outputBuffer, size_t bufferByteCount,
             fmt::format("EXR load error: {}.", "Unsupported EXR version (2.0)"));
 
     // Load image data
+
+    // TinyEXR decodes images so that the first bytes in the returned buffer
+    // are the top-left corner of the image with line_order == 0 "increasing Y"
+    // and the bottom-left corner otherwise, "decreasing Y". Force a top-left
+    // origin regardless of the line_order in the file. See
+    // https://github.com/syoyo/tinyexr/issues/213 for more information.
+    header.line_order = 0;
     ec = LoadEXRImageFromMemory(&image, &header, exrBuffer.data(), exrBuffer.size(), &err);
     if (ec != TINYEXR_SUCCESS)
         throw std::runtime_error(fmt::format("EXR load error: {} - {}.", ec, err));
@@ -263,6 +272,9 @@ void ExrInput::readImage(void* outputBuffer, size_t bufferByteCount,
             channels[3] = i;
         else
             warning(fmt::format("EXR load warning: Unrecognized channel \"{}\" is ignored.", header.channels[i].name));
+        // TODO: check for 1 channel "Y" and make greyscale texture.
+        // TODO: check for "Y", "RY" and "BY" (luminance/chroma) and reject as unsupported.
+        // TODO: check for "AR", "AG", "AB" and make texture with pre-multipled alpha provided there is also an A channel? Or reject?
     }
 
     // Copy the data
