@@ -292,15 +292,15 @@ struct OptionsCreate {
             orig.x = sm.str(2).compare("left") ? ImageSpec::Origin::eRight
                                                : ImageSpec::Origin::eLeft;
             orig.y = sm.str(1).compare("bottom") ? ImageSpec::Origin::eTop
-                                                : ImageSpec::Origin::eBottom;
+                                                 : ImageSpec::Origin::eBottom;
             if (args[kCubemap].count()) {
                 if (orig.x != ImageSpec::Origin::eLeft || orig.y != ImageSpec::Origin::eTop) {
                     report.fatal_usage("--{} argument must be --top-left for a cubemap.", argName);
                 }
             }
             if (numDimensions == 3)
-              orig.z = sm.str(3).compare("front") ? ImageSpec::Origin::eFront
-                                                 : ImageSpec::Origin::eBack;
+                orig.z = sm.str(3).compare("front") ? ImageSpec::Origin::eFront
+                                                    : ImageSpec::Origin::eBack;
             result = std::move(orig);
         }
 

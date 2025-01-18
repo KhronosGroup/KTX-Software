@@ -81,6 +81,7 @@ class ImageSpec {
     uint32_t imageHeight;          ///< height of the pixel data
     uint32_t imageDepth;           ///< depth of pixel data, >1 indicates a "volume"
     Origin imageOrigin;            ///< logical corner of image that is the first pixel in the data stream
+
   public:
     ImageSpec() : imageWidth(0), imageHeight(0),
                   imageDepth(0), imageOrigin() { }
