@@ -14,6 +14,7 @@
 #include "utility.h"
 #include <filesystem>
 #include <iostream>
+#include <regex>
 #include <sstream>
 #include <cxxopts.hpp>
 #include <fmt/ostream.h>
@@ -59,10 +60,14 @@ struct OptionsCreate {
     inline static const char* kInputSwizzle = "input-swizzle";
     inline static const char* kAssignOetf = "assign-oetf";
     inline static const char* kAssignPrimaries = "assign-primaries";
+    inline static const char* kAssignTexcoordOrigin = "assign-texcoord-origin";
     inline static const char* kConvertOetf = "convert-oetf";
     inline static const char* kConvertPrimaries = "convert-primaries";
+    inline static const char* kConvertTexcoordOrigin = "convert-texcoord-origin";
     inline static const char* kFailOnColorConversions = "fail-on-color-conversions";
     inline static const char* kWarnOnColorConversions = "warn-on-color-conversions";
+    inline static const char* kFailOnOriginChanges = "fail-on-origin-changes";
+    inline static const char* kWarnOnOriginChanges = "warn-on-origin-changes";
     inline static const char* kMipmapFilter = "mipmap-filter";
     inline static const char* kMipmapFilterScale = "mipmap-filter-scale";
     inline static const char* kMipmapWrap = "mipmap-wrap";
@@ -95,8 +100,12 @@ struct OptionsCreate {
     std::optional<khr_df_transfer_e> assignOETF = {};
     std::optional<khr_df_primaries_e> assignPrimaries = {};
     std::optional<khr_df_primaries_e> convertPrimaries = {};
+    std::optional<ImageSpec::Origin> assignTexcoordOrigin;
+    std::optional<ImageSpec::Origin> convertTexcoordOrigin;
     bool failOnColorConversions = false;
     bool warnOnColorConversions = false;
+    bool failOnOriginChanges = false;
+    bool warnOnOriginChanges = false;
 
     void init(cxxopts::Options& opts) {
         opts.add_options()
@@ -142,6 +151,14 @@ struct OptionsCreate {
                     "\nPossible options are:"
                     " none | bt709 | srgb | bt601-ebu | bt601-smpte | bt2020 | ciexyz | aces | acescc | ntsc1953 | pal525 | displayp3 | adobergb.",
                     cxxopts::value<std::string>(), "<primaries>")
+                (kAssignTexcoordOrigin, "Force the created texture to indicate that the texture coordinate"
+                    " origin s=0, t=0 is at the specified corner of the image. Case insensitive."
+                    "\nPossible options are top-left | bottom-left. -front | -back can be appended and"
+                    " one of these is required when --depth is specified. Must be top-left if --cubemap"
+                    " is specified."
+                    "\nAbsent --convert-texcoord-origin, the effect of this option is to cause KTXorientation"
+                    " metadata indicating the specified origin to be written to the output file.",
+                    cxxopts::value<std::string>(), "<origin>")
                 (kConvertOetf, "Convert the input image(s) to the specified transfer function, if different"
                     " from the transfer function of the input file(s). If both this and --assign-oetf are specified,"
                     " conversion will be performed from the assigned transfer function to the transfer function"
@@ -156,8 +173,20 @@ struct OptionsCreate {
                     "\nPossible options are:"
                     " bt709 | srgb | bt601-ebu | bt601-smpte | bt2020 | ciexyz | aces | acescc | ntsc1953 | pal525 | displayp3 | adobergb.",
                     cxxopts::value<std::string>(), "<primaries>")
+                (kConvertTexcoordOrigin, "Convert the input image(s) so the texture coordinate origin s=0,"
+                    " t=0, is at the specified corner of the image. If both this and --assign-texcoord-origin"
+                    " are specified, conversion will be performed from the assigned origin to the origin"
+                    " specified by this option, if different. Case insensitive."
+                    "\nPossible options are top-left | bottom-left. -front | -back can be appended and"
+                    " one of these is required when --depth is specified. Must be top-left if --cubemap"
+                    " is specified."
+                    "\nInput images whose origin does not match corner will be flipped vertically."
+                    " KTXorientation metadata indicating the specified origin is written to the output file.",
+                    cxxopts::value<std::string>(), "<origin>")
                 (kFailOnColorConversions, "Generates an error if any of the input images would need to be color converted.")
-                (kWarnOnColorConversions, "Generates a warning if any of the input images are color converted.");
+                (kWarnOnColorConversions, "Generates a warning if any of the input images are color converted.")
+                (kFailOnOriginChanges, "Generates an error if any of the input images would need to have their origin changed.")
+                (kWarnOnOriginChanges, "Generates a warning if any of the input images have their origin changed.");
 
         opts.add_options("Generate Mipmap")
                 (kMipmapFilter, "Specifies the filter to use when generating the mipmaps. Case insensitive."
@@ -226,6 +255,58 @@ struct OptionsCreate {
 
         return result;
     }
+
+  std::optional<ImageSpec::Origin> parseTexcoordOrigin(cxxopts::ParseResult& args, uint32_t numDimensions, const char* argName, Reporter& report) const {
+        std::optional<ImageSpec::Origin> result;
+        if (args[argName].count()) {
+            // RE to extract origin for each dimension.
+            // - Match 0 is whole matching string.
+            // - Match 1 is the y origin.
+            // - Match 2 is the x origin.
+            // - Match 3 is the z origin. Empty string, if not specified.
+            // Use raw literal to avoid excess blackslashes
+            std::regex re(R"--((?:\b(top|bottom)\b-)(?:\b(left)\b)(?:-\b(front|back)\b)?)--");
+            // For when support for right origin and 1d textures is added.
+            //               y dimension made optional ꜜ right added ꜜ
+            //std::regex re(R"--((?:\b(top|bottom)\b-)?(?:\b(left|right)\b)(?:-\b(front|back)\b)?)--");
+
+            // "auto" here leads to no matching function call for regex_match.
+            const std::string& originStr = to_lower_copy(args[argName].as<std::string>());
+            std::smatch sm;
+            std::regex_match(originStr.begin(), originStr.end(), sm, re);
+#if DEBUG_REGEX
+              std::cout << "match size: " << sm.size() << '\n';
+              for(uint32_t i = 0; i < sm.size(); i++) {
+                  std::cout << "match " << i << ": " << "\"" << sm.str(i) << "\"" << '\n';
+              }
+#endif
+            if (sm.empty()) {
+                report.fatal_usage("Invalid or unsupported origin specified as --{} argument: \"{}\".", argName, originStr);
+            }
+            if (numDimensions == 3 && sm.str(3).empty()) {
+                report.fatal_usage("Z origin must be specified in --{} argument for a 3D texture.", argName);
+            }
+
+            ImageSpec::Origin orig;
+            // Remember, compare returns 0 for a match.
+            orig.x = sm.str(2).compare("left") ? ImageSpec::Origin::eRight
+                                               : ImageSpec::Origin::eLeft;
+            orig.y = sm.str(1).compare("bottom") ? ImageSpec::Origin::eTop
+                                                : ImageSpec::Origin::eBottom;
+            if (args[kCubemap].count()) {
+                if (orig.x != ImageSpec::Origin::eLeft || orig.y != ImageSpec::Origin::eTop) {
+                    report.fatal_usage("--{} argument must be --top-left for a cubemap.", argName);
+                }
+            }
+            if (numDimensions == 3)
+              orig.z = sm.str(3).compare("front") ? ImageSpec::Origin::eFront
+                                                 : ImageSpec::Origin::eBack;
+            result = std::move(orig);
+        }
+
+        return result;
+    }
+
 
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
         _1d = args[k1D].as<bool>();
@@ -307,6 +388,16 @@ struct OptionsCreate {
                 if (!contains("rgba01", c))
                     report.fatal_usage(errorFmt, *swizzleInput);
         }
+
+        uint32_t numDimensions = 2;
+        if (args[kDepth].count())
+            numDimensions = 3;
+        else if (args[k1D].count())
+            numDimensions = 1;
+        assignTexcoordOrigin = parseTexcoordOrigin(args, numDimensions,
+                                              kAssignTexcoordOrigin, report);
+        convertTexcoordOrigin = parseTexcoordOrigin(args, numDimensions,
+                                              kConvertTexcoordOrigin, report);
 
         if (args[kFormat].count()) {
             const auto formatStr = args[kFormat].as<std::string>();
@@ -522,13 +613,16 @@ struct OptionsCreate {
         assignPrimaries = parseColorPrimaries(args, kAssignPrimaries, report);
 
         if (convertPrimaries.has_value() && assignPrimaries == KHR_DF_PRIMARIES_UNSPECIFIED)
-            report.fatal_usage("Option --convert-primaries cannot be used when --assign-primaries is set to 'none'.");
+            report.fatal_usage("Option --{} cannot be used when --{} is set to 'none'.",
+                               kConvertPrimaries, kAssignPrimaries);
 
         if (raw) {
             if (convertOETF.has_value())
-                report.fatal_usage("Option --convert-oetf cannot be used with --raw.");
+                report.fatal_usage("Option {} cannot be used with --{}.", kConvertOetf, kRaw);
             if (convertPrimaries.has_value())
-                report.fatal_usage("Option --convert-primaries cannot be used with --raw.");
+                report.fatal_usage("Option {} cannot be used with --{}.", kConvertPrimaries, kRaw);
+            if (convertTexcoordOrigin.has_value())
+                report.fatal_usage("Option {} cannot be used with --{}.", kConvertTexcoordOrigin, kRaw);
         }
 
         if (formatDesc.transfer() == KHR_DF_TRANSFER_SRGB) {
@@ -561,8 +655,19 @@ struct OptionsCreate {
 
         if (args[kWarnOnColorConversions].count()) {
             if (failOnColorConversions)
-                report.fatal_usage("The options --fail-on-color-conversions and warn-on-color-conversions are mutually exclusive.");
+                report.fatal_usage("The options --{} and --{} are mutually exclusive.",
+                                   kFailOnColorConversions, kWarnOnColorConversions);
             warnOnColorConversions = true;
+        }
+
+        if (args[kFailOnOriginChanges].count())
+            failOnOriginChanges = true;
+
+        if (args[kWarnOnOriginChanges].count()) {
+            if (failOnOriginChanges)
+                report.fatal_usage("The options --{} and --{} are mutually exclusive.",
+                                   kFailOnOriginChanges, kWarnOnOriginChanges);
+            warnOnOriginChanges = true;
         }
     }
 };
@@ -657,8 +762,8 @@ Create a KTX2 file from various input files.
             runtime.</dd>
         <dt>\--generate-mipmap</dt>
         <dd>Causes mipmaps to be generated during texture creation.
-            If the --levels is not specified the maximum possible mip level will be generated.
-            This option is mutually exclusive with --runtime-mipmap and cannot be used with SINT,
+            If the @b \--levels is not specified the maximum possible mip level will be generated.
+            This option is mutually exclusive with @b \--runtime-mipmap and cannot be used with SINT,
             UINT or 3D textures.</dd>
             When set it enables the use of the following \'Generate Mipmap\' options.
         <dl>
@@ -695,29 +800,75 @@ Create a KTX2 file from various input files.
             none | bt709 | srgb | bt601-ebu | bt601-smpte | bt2020 | ciexyz | aces | acescc |
             ntsc1953 | pal525 | displayp3 | adobergb
             </dd>
+        <dt>\--assign-texcoord-origin &lt;corner&gt;</dt>
+        <dd>Force the created texture to indicate that the texture coordinate
+            origin s=0, t=0 is at the specified @em corner of the logical image.
+            Case insensitive. Possible options are top-left | bottom-left.
+            -front | -back can be appended and one of these is required when
+            @b \--depth is specified. Must be top-left if @b \--cubemap is
+            specified. Absent @b —convert-texcoord-origin, the effect of this
+            option is to cause @e KTXorientation metadata indicating the
+            specified origin to be written to the output file. Example values
+            are "rd" (top-left) and "ru" (bottom-left) or, when @b \--depth is
+            specified, "rdi" (top-left-front) and "rui" (bottom-left-front).
+            </dd>
         <dt>\--convert-oetf &lt;oetf&gt;</dt>
         <dd>Convert the input image(s) to the specified transfer function, if different
-            from the transfer function of the input file(s). If both this and --assign-oetf are
+            from the transfer function of the input file(s). If both this and @b \--assign-oetf are
             specified, conversion will be performed from the assigned transfer function to the
-            transfer function specified by this option, if different. Case insensitive.
-            Possible options are:
-            linear | srgb
+            transfer function specified by this option, if different. Cannot be
+            used with @b \--raw. Case insensitive.
+            Possible options are: linear | srgb
             </dd>
         <dt>\--convert-primaries &lt;primaries&gt;</dt>
-        <dd>Convert the image image(s) to the specified color primaries, if different
-            from the color primaries of the input file(s) or the one specified by --assign-primaries.
-            If both this and --assign-primaries are specified, conversion will be performed from
+        <dd>Convert the input image(s) to the specified color primaries, if different
+            from the color primaries of the input file(s) or the one specified by @b \--assign-primaries.
+            If both this and @b \--assign-primaries are specified, conversion will be performed from
             the assigned primaries to the primaries specified by this option, if different.
-            This option is not allowed to be specified when --assign-primaries is set to 'none'.
-            Case insensitive.
+            This option is not allowed to be specified when @b \--assign-primaries is set to 'none'.
+            Cannot be used with @b \--raw. Case insensitive.
             Possible options are:
             bt709 | srgb | bt601-ebu | bt601-smpte | bt2020 | ciexyz | aces | acescc | ntsc1953 |
             pal525 | displayp3 | adobergb
             </dd>
+        <dt>\--convert-texcoord-origin &lt;corner&gt;</dt>
+        <dd>Convert the input image(s) so the texture coordinate origin s=0,
+            t=0, is at the specified @em corner of the logical image. If both
+            this and @b \--assign-texcoord-origin are specified, conversion will
+            be performed from the assigned origin to the origin specified by
+            this option, if different. The default for images in KTX files is
+            top-left which corresponds to the origin in most image file
+            formats. Cannot be used with @b \--raw. Case insensitive.
+            Possible options are: top-left | bottom-left. -front | -back can be
+            appended and one of these is required when @b \--depth is specified.
+            Must be top-left if @b \--cubemap is specified.<br />
+            <br />
+            Input images whose origin does not match @em corner will be flipped
+            vertically. @e KTXorientation metadata indicating the
+            the specified origin is written to the output file. Example values
+            are "rd" (top-left) and "ru" (bottom-left) or, when @b \--depth is
+            specified, "rdi" (top-left-front) and "rui" (bottom-left-back).
+            An error is raised if the input image origin is unknown as is the
+            case with raw image data.  Use @b --assign-texcoord-origin to
+            specify the orientation.
+            @note ktx create cannot rotate or flip incoming images, except
+            for a y-flip, so use an an image processing tool to reorient images
+            whose first data stream pixel is not at the logical top-left or
+            bottom-left of the image before using as input here. Such images
+            may be indicated by Exif-style orientation metadata in the file.
+            </dd>
         <dt>\--fail-on-color-conversions</dt>
-        <dd>Generates an error if any of the input images would need to be color converted.</dd>
+        <dd>Generates an error if any of the input images would need to be
+            color converted.</dd>
         <dt>\--warn-on-color-conversions</dt>
-        <dd>Generates a warning if any of the input images are color converted.</dd>
+        <dd>Generates a warning if any of the input images are color
+            converted.</dd>
+        <dt>\--fail-on-origin-changes</dt>
+        <dd>Generates an error if any of the input images would need to have
+            their origin changed.</dd>
+        <dt>\--warn-on-origin-changes</dt>
+        <dd>Generates a warning if any of the input images have their origin
+            changed..</dd>
     </dl>
     @snippet{doc} ktx/deflate_utils.h command options_deflate
     @snippet{doc} ktx/command.h command options_generic
@@ -786,6 +937,7 @@ private:
 
     void selectASTCMode(uint32_t bitLength);
     void determineTargetColorSpace(const ImageInput& in, ImageSpec& target, ColorSpaceInfo& colorSpaceInfo);
+    void determineTargetOrigin(const ImageInput& in, ImageSpec& target, ImageSpec::Origin& usedInputOrigin);
 
     void checkSpecsMatch(const ImageInput& current, const ImageSpec& firstSpec);
 };
@@ -1051,6 +1203,9 @@ void CommandCreate::executeCreate() {
                 if (options.assignPrimaries.has_value())
                     target.format().setPrimaries(options.assignPrimaries.value());
 
+                if (options.assignTexcoordOrigin.has_value())
+                    target.setOrigin(options.assignTexcoordOrigin.value());
+
                 texture = createTexture(target);
             }
 
@@ -1080,7 +1235,9 @@ void CommandCreate::executeCreate() {
                     options.formatDesc};
 
             ColorSpaceInfo colorSpaceInfo{};
+            ImageSpec::Origin usedInputOrigin;
             determineTargetColorSpace(*inputImageFile, target, colorSpaceInfo);
+            determineTargetOrigin(*inputImageFile, target, usedInputOrigin);
 
             if (std::exchange(firstImage, false)) {
                 if (options.cubemap && target.width() != target.height())
@@ -1149,6 +1306,27 @@ void CommandCreate::executeCreate() {
                     // Transform OETF without primary transform
                     image->transformColorSpace(*colorSpaceInfo.srcTransferFunction, *colorSpaceInfo.dstTransferFunction);
                 }
+            }
+
+            // TODO: Add auto conversion and warning? Not needed now
+            // because all supported source formats provide top-left images.
+
+            if (target.origin() != usedInputOrigin) {
+                    if (options.failOnOriginChanges)
+                        fatal(rc::INVALID_FILE,
+                            "Input file \"{}\" would need to be y-flipped as input and output origins are different. "
+                            "Use --{} and do not use --{} to avoid unwanted color conversions.",
+                            fmtInFile(inputFilepath), OptionsCreate::kAssignTexcoordOrigin,
+                            OptionsCreate::kConvertTexcoordOrigin);
+
+                    if (options.warnOnOriginChanges)
+                        warning("Input file \"{}\" is y-flipped as input and output origins are different. "
+                            "Use --{} and do not use --{} to avoid unwanted color conversions.",
+                            fmtInFile(inputFilepath), OptionsCreate::kAssignTexcoordOrigin,
+                            OptionsCreate::kConvertTexcoordOrigin);
+
+                // Only difference allowed by CLI is y down or y up.
+                image->yflip();
             }
 
             if (options.swizzleInput)
@@ -1406,7 +1584,7 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
         if (inputBitDepth < bitDepth)
             fatal(rc::INVALID_FILE, "{}: Not enough precision to convert {} bit input to {} bit output for {}.",
                     inputFile.filename(), inputBitDepth, bitDepth, toString(vkFormat));
-      if (inputBitDepth > imageio::bit_ceil(bitDepth))
+        if (inputBitDepth > imageio::bit_ceil(bitDepth))
             warning("{}: Possible loss of precision with converting {} bit input to {} bit output for {}.",
                     inputFile.filename(), inputBitDepth, bitDepth, toString(vkFormat));
     };
@@ -1830,6 +2008,25 @@ KTXTexture2 CommandCreate::createTexture(const ImageSpec& target) {
     KHR_DFDSETVAL(texture->pDfd + 1, PRIMARIES, target.format().primaries());
     KHR_DFDSETVAL(texture->pDfd + 1, TRANSFER, target.format().transfer());
 
+    // Add KTXorientation metadata
+    if (options.assignTexcoordOrigin.has_value() || options.convertTexcoordOrigin.has_value()) {
+        // This code is future-proofed by supporting "right" origin and 1d
+        // textures. Current imitations are enforced by CL option parsing.
+        std::string orientation;
+        orientation.resize(3);
+        orientation = target.origin().x == ImageSpec::Origin::eLeft ? "r" : "l";
+        if (!options._1d) {
+            orientation += target.origin().y == ImageSpec::Origin::eTop ? "d" : "u";
+            if (options.depth.has_value()) {
+                orientation += target.origin().z == ImageSpec::Origin::eFront ? "i" : "o";
+            }
+        }
+
+        ktxHashList_AddKVPair(&texture->kvDataHead, KTX_ORIENTATION_KEY,
+                static_cast<uint32_t>(orientation.size() + 1), // +1 to include the \0
+                orientation.c_str());
+    }
+
     return texture;
 }
 
@@ -2098,6 +2295,32 @@ void CommandCreate::determineTargetColorSpace(const ImageInput& in, ImageSpec& t
         }
     }
 }
+
+void CommandCreate::determineTargetOrigin(const ImageInput& in, ImageSpec& target,
+                                          ImageSpec::Origin& usedInputOrigin) {
+    const ImageSpec& spec = in.spec();
+
+    // Set Origin
+    usedInputOrigin = spec.origin();
+    if (options.assignTexcoordOrigin.has_value()) {
+        usedInputOrigin = options.assignTexcoordOrigin.value();
+        target.setOrigin(options.assignTexcoordOrigin.value());
+    } else {
+        target.setOrigin(spec.origin());
+    }
+
+    if (options.convertTexcoordOrigin.has_value()) {
+        if (usedInputOrigin.unspecified()) {
+            fatal(rc::INVALID_FILE, "Cannot convert texcoord origin as no information about the origin "
+                "is available in the input file \"{}\". Use --{} to specify one.",
+                in.filename(), OptionsCreate::kAssignTexcoordOrigin);
+        } else if (options.convertTexcoordOrigin.value() != usedInputOrigin) {
+            target.setOrigin(options.convertTexcoordOrigin.value());
+        }
+    }
+}
+
+
 
 void CommandCreate::checkSpecsMatch(const ImageInput& currentFile, const ImageSpec& firstSpec) {
     const FormatDescriptor& firstFormat = firstSpec.format();

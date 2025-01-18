@@ -227,7 +227,9 @@ PngInput::readHeader()
         break;
     }
 
-    images.emplace_back(ImageSpec(w, h, 1, componentCount,
+  images.emplace_back(ImageSpec(w, h, 1,
+                            ImageSpec::Origin(ImageSpec::Origin::eLeft, ImageSpec::Origin::eTop),
+                            componentCount,
                             bitDepth,
                             static_cast<khr_df_sample_datatype_qualifiers_e>(0),
                             KHR_DF_TRANSFER_UNSPECIFIED,

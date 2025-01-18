@@ -50,18 +50,48 @@ const stride_t AutoStride = std::numeric_limits<stride_t>::min();
 typedef bool (*ProgressCallback)(void *opaque_data, float portion_done);
 
 class ImageSpec {
+  public:
+    struct Origin {
+        uint8_t x;
+        uint8_t y;
+        uint8_t z;
+
+        static const uint8_t eLeft = 0;
+        static const uint8_t eRight = 1;
+        static const uint8_t eTop = 0;
+        static const uint8_t eBottom = 1;
+        static const uint8_t eFront = 0;
+        static const uint8_t eBack = 1;
+        static const uint8_t eUnspecified = 0xff;
+
+        // This is the most common origin among image file formats, hence
+        // the no arg constructor sets it. If unspecified, use the 3 arg ctor.
+        Origin() : x(eLeft), y(eTop), z(eFront) { };
+        Origin(uint8_t _x, uint8_t _y) : x(_x), y(_y), z(eFront) { }
+        Origin(uint8_t _x, uint8_t _y, uint8_t _z) : x(_x), y(_y), z(_z) { }
+
+        bool unspecified() {
+            return x == eUnspecified || y == eUnspecified || z == eUnspecified;
+        }
+    };
+
   protected:
     FormatDescriptor formatDesc;
     uint32_t imageWidth;           ///< width of the pixel data
     uint32_t imageHeight;          ///< height of the pixel data
     uint32_t imageDepth;           ///< depth of pixel data, >1 indicates a "volume"
-
+    Origin imageOrigin;            ///< logical corner of image that is the first pixel in the data stream
   public:
-    ImageSpec() : imageWidth(0), imageHeight(0), imageDepth(0) { }
+    ImageSpec() : imageWidth(0), imageHeight(0),
+                  imageDepth(0), imageOrigin() { }
 
-    ImageSpec(uint32_t w, uint32_t h, uint32_t d, FormatDescriptor formatDesc)
+    ImageSpec(uint32_t w, uint32_t h, uint32_t d, FormatDescriptor& formatDesc)
+        : ImageSpec(w, h, d, Origin(), formatDesc) { }
+
+    ImageSpec(uint32_t w, uint32_t h, uint32_t d, Origin&& o,
+              FormatDescriptor formatDesc)
         : formatDesc(std::move(formatDesc)),
-          imageWidth(w), imageHeight(h), imageDepth(d) { }
+          imageWidth(w), imageHeight(h), imageDepth(d), imageOrigin(o) { }
 
     ImageSpec(uint32_t w, uint32_t h, uint32_t d,
                uint32_t channelCount, uint32_t channelBitCount,
@@ -71,10 +101,34 @@ class ImageSpec {
                khr_df_primaries_e p = KHR_DF_PRIMARIES_BT709,
                khr_df_model_e m = KHR_DF_MODEL_RGBSDA,
                khr_df_flags_e f = KHR_DF_FLAG_ALPHA_STRAIGHT)
+        : ImageSpec(w, h, d, Origin(), channelCount,
+                    channelBitCount, dt, t, p, m, f) { }
+
+    ImageSpec(uint32_t w, uint32_t h, uint32_t d, Origin&& o,
+               uint32_t channelCount, uint32_t channelBitCount,
+               khr_df_sample_datatype_qualifiers_e dt
+                  = static_cast<khr_df_sample_datatype_qualifiers_e>(0),
+               khr_df_transfer_e t = KHR_DF_TRANSFER_UNSPECIFIED,
+               khr_df_primaries_e p = KHR_DF_PRIMARIES_BT709,
+               khr_df_model_e m = KHR_DF_MODEL_RGBSDA,
+               khr_df_flags_e f = KHR_DF_FLAG_ALPHA_STRAIGHT)
         : formatDesc(channelCount, channelBitCount, dt, t, p, m, f),
-          imageWidth(w), imageHeight(h), imageDepth(d) { }
+          imageWidth(w), imageHeight(h), imageDepth(d), imageOrigin(o) { }
 
     ImageSpec(uint32_t w, uint32_t h, uint32_t d,
+               uint32_t channelCount, uint32_t channelBitCount,
+               uint32_t channelLower, uint32_t channelUpper,
+               khr_df_sample_datatype_qualifiers_e dt
+                  = static_cast<khr_df_sample_datatype_qualifiers_e>(0),
+               khr_df_transfer_e t = KHR_DF_TRANSFER_UNSPECIFIED,
+               khr_df_primaries_e p = KHR_DF_PRIMARIES_BT709,
+               khr_df_model_e m = KHR_DF_MODEL_RGBSDA,
+               khr_df_flags_e f = KHR_DF_FLAG_ALPHA_STRAIGHT)
+       : ImageSpec(w, h, d, Origin(), channelCount,
+                   channelBitCount,channelLower, channelUpper,
+                   dt, t, p, m, f) { }
+
+    ImageSpec(uint32_t w, uint32_t h, uint32_t d, Origin&& o,
                uint32_t channelCount, uint32_t channelBitCount,
                uint32_t channelLower, uint32_t channelUpper,
                khr_df_sample_datatype_qualifiers_e dt
@@ -86,7 +140,7 @@ class ImageSpec {
         : formatDesc(channelCount, channelBitCount,
                      channelLower, channelUpper,
                      dt, t, p, m, f),
-          imageWidth(w), imageHeight(h), imageDepth(d) { }
+          imageWidth(w), imageHeight(h), imageDepth(d), imageOrigin(o) { }
 
     ImageSpec(uint32_t w, uint32_t h, uint32_t d,
                uint32_t channelCount, std::vector<uint32_t>& channelBitLengths,
@@ -97,9 +151,21 @@ class ImageSpec {
                khr_df_primaries_e p = KHR_DF_PRIMARIES_BT709,
                khr_df_model_e m = KHR_DF_MODEL_RGBSDA,
                khr_df_flags_e f = KHR_DF_FLAG_ALPHA_STRAIGHT)
+        : ImageSpec(w, h, d, Origin(), channelCount,
+                  channelBitLengths, channelTypes, dt, t, p, m, f) { }
+
+    ImageSpec(uint32_t w, uint32_t h, uint32_t d, Origin&& o,
+               uint32_t channelCount, std::vector<uint32_t>& channelBitLengths,
+               std::vector<khr_df_model_channels_e>& channelTypes,
+               khr_df_sample_datatype_qualifiers_e dt
+                  = static_cast<khr_df_sample_datatype_qualifiers_e>(0),
+               khr_df_transfer_e t = KHR_DF_TRANSFER_UNSPECIFIED,
+               khr_df_primaries_e p = KHR_DF_PRIMARIES_BT709,
+               khr_df_model_e m = KHR_DF_MODEL_RGBSDA,
+               khr_df_flags_e f = KHR_DF_FLAG_ALPHA_STRAIGHT)
         : formatDesc(channelCount, channelBitLengths,
                      channelTypes, dt, t, p, m, f),
-          imageWidth(w), imageHeight(h), imageDepth(d) { }
+          imageWidth(w), imageHeight(h), imageDepth(d), imageOrigin(o) { }
 
 
     FormatDescriptor& format() { return formatDesc; }
@@ -108,10 +174,12 @@ class ImageSpec {
     uint32_t width() const noexcept { return imageWidth; }
     uint32_t height() const noexcept { return imageHeight; }
     uint32_t depth() const noexcept { return imageDepth; }
+    const Origin& origin() const noexcept { return imageOrigin; }
 
     void setWidth(uint32_t w) { imageWidth = w; }
     void setHeight(uint32_t h) { imageHeight = h; }
     void setDepth(uint32_t d) { imageDepth = d; }
+    void setOrigin(const Origin& o) { imageOrigin = o; }
 
     size_t imagePixelCount() const noexcept {
         return depth() * width() * height();
@@ -133,6 +201,14 @@ class ImageSpec {
         return width() * format().channelCount();
     }
 };
+
+constexpr bool operator==(const ImageSpec::Origin& lhs, const ImageSpec::Origin& rhs) {
+    return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z;
+}
+
+constexpr bool operator!=(const ImageSpec::Origin& lhs, const ImageSpec::Origin& rhs) {
+    return lhs.x != rhs.x || lhs.y != rhs.y || lhs.z != rhs.z;
+}
 
 typedef std::function<void(const std::string&)> WarningCallbackFunction;
 

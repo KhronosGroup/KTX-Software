@@ -404,12 +404,13 @@ void NpbmInput::parseGPHeader(filetype ftype)
     }
 
     images.emplace_back(ImageSpec(width, height, 1,
-                                     ftype == filetype::PPM ? 3 : 1, 8,
-                                     0, maxVal,
-                                     static_cast<khr_df_sample_datatype_qualifiers_e>(0),
-                                     KHR_DF_TRANSFER_ITU,
-                                     KHR_DF_PRIMARIES_BT709,
-                                     ftype == filetype::PPM
+                                  ImageSpec::Origin(ImageSpec::Origin::eLeft, ImageSpec::Origin::eTop),
+                                  ftype == filetype::PPM ? 3 : 1, 8,
+                                  0, maxVal,
+                                  static_cast<khr_df_sample_datatype_qualifiers_e>(0),
+                                  KHR_DF_TRANSFER_ITU,
+                                  KHR_DF_PRIMARIES_BT709,
+                                  ftype == filetype::PPM
                                           ? KHR_DF_MODEL_RGBSDA
                                           : KHR_DF_MODEL_YUVSDA),
                         ImageInputFormatType::npbm);
