@@ -56,6 +56,7 @@ struct OptionsCreate {
     inline static const char* kRuntimeMipmap = "runtime-mipmap";
     inline static const char* kGenerateMipmap = "generate-mipmap";
     inline static const char* kEncode = "encode";
+    inline static const char* kNormalize = "normalize";
     inline static const char* kSwizzle = "swizzle";
     inline static const char* kInputSwizzle = "input-swizzle";
     inline static const char* kAssignOetf = "assign-oetf";
@@ -110,6 +111,7 @@ struct OptionsCreate {
     bool noWarnOnColorConversions = false;
     bool failOnOriginChanges = false;
     bool warnOnOriginChanges = false;
+    bool normalize = false;
 
     void init(cxxopts::Options& opts) {
         opts.add_options()
@@ -145,6 +147,12 @@ struct OptionsCreate {
                     " This option is mutually exclusive with --runtime-mipmap and cannot be used with UINT or 3D textures.")
                 (kEncode, "Encode the created KTX file. Case insensitive."
                     "\nPossible options are: basis-lz | uastc", cxxopts::value<std::string>(), "<codec>")
+                (kNormalize, "Normalize input normals to have a unit length. Only valid for\n"
+                    "linear textures with 2 or more components. For 2-component inputs\n"
+                    "2D unit normals are calculated. Do not use these 2D unit normals\n"
+                    "to generate X+Y normals for --normal-mode. For 4-component inputs\n"
+                    "a 3D unit normal is calculated. 1.0 is used for the value of the\n"
+                    "4th component.\n")
                 (kSwizzle, "KTX swizzle metadata.", cxxopts::value<std::string>(), "[rgba01]{4}")
                 (kInputSwizzle, "Pre-swizzle input channels.", cxxopts::value<std::string>(), "[rgba01]{4}")
                 (kAssignTf, "Force the created texture to have the specified transfer function, ignoring"
@@ -457,6 +465,9 @@ struct OptionsCreate {
             else
                 mipmapWrap = it->second;
         }
+
+        if (args[kNormalize].count())
+            normalize = true;
 
         if (args[kSwizzle].count()) {
             swizzle = to_lower_copy(args[kSwizzle].as<std::string>());
