@@ -57,11 +57,13 @@ namespace ktx {
 */
 struct OptionsEncodeCommon {
     inline static const char* kNormalMode = "normal-mode";
+    inline static const char* kNormalize = "normalize";
     inline static const char* kThreads = "threads";
     inline static const char* kNoSse = "no-sse";
 
     std::string commonOptions{};
     bool normalMap{false};
+    bool normalize{false};
     ktx_uint32_t threadCount{1};
     ktx_bool_t noSSE;
 
@@ -83,6 +85,12 @@ struct OptionsEncodeCommon {
                 "    nml.xy = nml.xy * 2.0 - 1.0;           // Unpack to [-1,1]\n"
                 "    nml.z = sqrt(1 - dot(nml.xy, nml.xy)); // Compute Z\n"
                 "ETC1S / BasisLZ encoding, RDO is disabled (no selector RDO, no endpoint RDO) to provide better quality.")
+            (kNormalize, "Normalize input normals to have a unit length. Only valid for\n"
+                "linear textures with 2 or more components. For 2-component inputs\n"
+                "2D unit normals are calculated. Do not use these 2D unit normals\n"
+                "to generate X+Y normals for --normal-mode. For 4-component inputs\n"
+                "a 3D unit normal is calculated. 1.0 is used for the value of the\n"
+                "4th component.\n")
             (kThreads, "Sets the number of threads to use during encoding. By default, encoding "
                 "will use the number of threads reported by thread::hardware_concurrency or 1 if "
                 "value returned is 0.", cxxopts::value<uint32_t>(), "<count>")
@@ -108,6 +116,11 @@ struct OptionsEncodeCommon {
             normalMap = true;
         }
 
+        if (args[kNormalize].count()) {
+            captureCommonOption(kNormalize);
+            normalize = true;
+        }
+
         if (args[kThreads].count()) {
             threadCount = captureCodecOption<uint32_t>(args, kThreads);
         }
@@ -123,6 +136,7 @@ template <typename Options, typename Codec>
 constexpr void fillOptionsCodec(Options &options) {
     options.Codec::threadCount = options.OptionsEncodeCommon::threadCount;
     options.Codec::normalMap = options.OptionsEncodeCommon::normalMap;
+    // options.Codec::normalize = options.OptionsEncodeCommon::normalize;
 }
 
 template <typename Options>

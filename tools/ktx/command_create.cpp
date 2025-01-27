@@ -1591,6 +1591,9 @@ void CommandCreate::executeCreate() {
                 image->yflip();
             }
 
+            if (options.normalize)
+                image->normalize();
+
             if (options.swizzleInput)
                 image->swizzle(*options.swizzleInput);
 
@@ -2313,6 +2316,9 @@ void CommandCreate::generateMipLevels(KTXTexture2& texture, std::unique_ptr<Imag
         } catch (const std::exception& e) {
             fatal(rc::RUNTIME_ERROR, "Mipmap generation failed: {}", e.what());
         }
+
+        if (options.normalize)
+            image->normalize();
 
         const auto imageData = convert(image, options.vkFormat, inputFile);
 
