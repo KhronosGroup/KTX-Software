@@ -56,6 +56,7 @@ struct OptionsCreate {
     inline static const char* kRuntimeMipmap = "runtime-mipmap";
     inline static const char* kGenerateMipmap = "generate-mipmap";
     inline static const char* kEncode = "encode";
+    inline static const char* kNormalize = "normalize";
     inline static const char* kSwizzle = "swizzle";
     inline static const char* kInputSwizzle = "input-swizzle";
     inline static const char* kAssignOetf = "assign-oetf";
@@ -106,6 +107,7 @@ struct OptionsCreate {
     bool warnOnColorConversions = false;
     bool failOnOriginChanges = false;
     bool warnOnOriginChanges = false;
+    bool normalize = false;
 
     void init(cxxopts::Options& opts) {
         opts.add_options()
@@ -141,6 +143,12 @@ struct OptionsCreate {
                     " This option is mutually exclusive with --runtime-mipmap and cannot be used with UINT or 3D textures.")
                 (kEncode, "Encode the created KTX file. Case insensitive."
                     "\nPossible options are: basis-lz | uastc", cxxopts::value<std::string>(), "<codec>")
+                (kNormalize, "Normalize input normals to have a unit length. Only valid for\n"
+                    "linear normal textures with 2 or more components. For 2-component inputs\n"
+                    "2D unit normals are calculated. Do not use these 2D unit normals\n"
+                    "to generate X+Y normals with --normal-mode. For 4-component inputs\n"
+                    "a 3D unit normal is calculated. 1.0 is used for the value of the\n"
+                    "4th component.\n")
                 (kSwizzle, "KTX swizzle metadata.", cxxopts::value<std::string>(), "[rgba01]{4}")
                 (kInputSwizzle, "Pre-swizzle input channels.", cxxopts::value<std::string>(), "[rgba01]{4}")
                 (kAssignOetf, "Force the created texture to have the specified transfer function, ignoring"
@@ -369,6 +377,9 @@ struct OptionsCreate {
             else
                 mipmapWrap = it->second;
         }
+
+        if (args[kNormalize].count())
+            normalize = true;
 
         if (args[kSwizzle].count()) {
             swizzle = to_lower_copy(args[kSwizzle].as<std::string>());
@@ -783,6 +794,13 @@ Create a KTX2 file from various input files.
                 wrap | reflect | clamp.
                 Defaults to clamp.</dd>
         </dl>
+        <dt>\--normalize</dt>
+        <dd>Normalize input normals to have a unit length. Only valid for
+                linear normal textures with 2 or more components. For 2-component inputs
+                2D unit normals are calculated. Do not use these 2D unit normals
+                to generate X+Y normals with @b --normal-mode. For 4-component inputs
+                a 3D unit normal is calculated. 1.0 is used for the value of the
+                4th component.</dd>
         <dt>\--swizzle [rgba01]{4}</dt>
         <dd>KTX swizzle metadata.</dd>
         <dt>\--input-swizzle [rgba01]{4}</dt>
@@ -1327,6 +1345,16 @@ void CommandCreate::executeCreate() {
 
                 // Only difference allowed by CLI is y down or y up.
                 image->yflip();
+            }
+
+            if (options.normalize) {
+                if (colorSpaceInfo.usedInputTransferFunction != KHR_DF_TRANSFER_LINEAR) {
+                    fatal(rc::INVALID_FILE,
+                        "Input file \"{}\" transfer functions is not linear. "
+                        "Use --assign-oetf=linear or --convert-oetf=linear to avoid this error.",
+                        fmtInFile(inputFilepath));
+                    }
+                image->normalize();
             }
 
             if (options.swizzleInput)
@@ -2051,6 +2079,9 @@ void CommandCreate::generateMipLevels(KTXTexture2& texture, std::unique_ptr<Imag
         } catch (const std::exception& e) {
             fatal(rc::RUNTIME_ERROR, "Mipmap generation failed: {}", e.what());
         }
+
+        if (options.normalize)
+            image->normalize();
 
         const auto imageData = convert(image, options.vkFormat, inputFile);
 
