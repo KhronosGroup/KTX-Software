@@ -150,7 +150,7 @@ struct OptionsCreate {
                 (kNormalize, "Normalize input normals to have a unit length. Only valid for\n"
                     "linear normal textures with 2 or more components. For 2-component inputs\n"
                     "2D unit normals are calculated. Do not use these 2D unit normals\n"
-                    "to generate X+Y normals for --normal-mode. For 4-component inputs\n"
+                    "to generate X+Y normals with --normal-mode. For 4-component inputs\n"
                     "a 3D unit normal is calculated. 1.0 is used for the value of the\n"
                     "4th component.\n")
                 (kSwizzle, "KTX swizzle metadata.", cxxopts::value<std::string>(), "[rgba01]{4}")
@@ -907,7 +907,7 @@ Create a KTX2 file from various input files.
         <dd>Normalize input normals to have a unit length. Only valid for
                 linear normal textures with 2 or more components. For 2-component inputs
                 2D unit normals are calculated. Do not use these 2D unit normals
-                to generate X+Y normals for --normal-mode. For 4-component inputs
+                to generate X+Y normals with @b --normal-mode. For 4-component inputs
                 a 3D unit normal is calculated. 1.0 is used for the value of the
                 4th component.</dd>
         <dt>\--swizzle [rgba01]{4}</dt>
@@ -1609,8 +1609,15 @@ void CommandCreate::executeCreate() {
                 image->yflip();
             }
 
-            if (options.normalize)
+            if (options.normalize) {
+                if (colorSpaceInfo.usedInputTransferFunction != KHR_DF_TRANSFER_LINEAR) {
+                    fatal(rc::INVALID_FILE,
+                        "Input file \"{}\" transfer functions is not linear. "
+                        "Use --assign-oetf=linear or --convert-oetf=linear to avoid this error.",
+                        fmtInFile(inputFilepath));
+                    }
                 image->normalize();
+            }
 
             if (options.swizzleInput)
                 image->swizzle(*options.swizzleInput);
