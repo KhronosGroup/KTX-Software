@@ -1897,11 +1897,30 @@ ktxTexture2_GetImageOffset(ktxTexture2* This, ktx_uint32_t level,
 /**
  * @memberof ktxTexture2
  * @~English
- * @brief Retrieve the opto-electrical transfer function of the images.
+ * @brief Retrieve the transfer function of the images.
  *
  * @param[in]     This      pointer to the ktxTexture2 object of interest.
  *
- * @return A @c khr_df_transfer enum value specifying the OETF.
+ * @return A @c khr_df_transfer enum value specifying the transfer function.
+ */
+khr_df_transfer_e
+ktxTexture2_GetTransferFunction_e(ktxTexture2* This)
+{
+    return KHR_DFDVAL(This->pDfd+1, TRANSFER);
+}
+
+/**
+ * @memberof ktxTexture2
+ * @~English
+ * @brief Retrieve the transfer function of the images.
+ * @deprecated Use ktxTexture2\_GetTransferFunction\_e. Now that the KTX
+ * specification allows setting of non-linear transfer functions other than
+ * sRGB, it is possible for the transfer function to be an EOTF so this
+ * name is no longer appropriate.
+ *
+ * @param[in]     This      pointer to the ktxTexture2 object of interest.
+ *
+ * @return A @c khr_df_transfer enum value specifying the transfer function.
  */
 khr_df_transfer_e
 ktxTexture2_GetOETF_e(ktxTexture2* This)
@@ -1912,13 +1931,13 @@ ktxTexture2_GetOETF_e(ktxTexture2* This)
 /**
  * @memberof ktxTexture2
  * @~English
- * @brief Retrieve the opto-electrical transfer function of the images.
- * @deprecated Use ktxTexture2\_GetOETF\_e().
+ * @brief Retrieve the transfer function of the images.
+ * @deprecated Use ktxTexture2\_GetTransferFunction\_e.
  *
  * @param[in]     This      pointer to the ktxTexture2 object of interest.
  *
- * @return A @c khr_df_transfer enum value specifying the OETF, returned as
- *         @c ktx_uint32_t.
+ * @return A @c khr_df_transfer enum value specifying the transfer function,
+ *         returned as @c ktx_uint32_t.
  */
 ktx_uint32_t
 ktxTexture2_GetOETF(ktxTexture2* This)
@@ -1992,17 +2011,51 @@ ktxTexture2_NeedsTranscoding(ktxTexture2* This)
 #if KTX_FEATURE_WRITE
 bool isSrgbFormat(VkFormat format);
 
+/**
+ * @memberof ktxTexture2
+ * @ingroup writer
+ * @~English
+ * @brief Set the transfer function  for the images in a texture.
+ *
+ * @param[in]     This     pointer to the ktxTexture2
+ * @param[in]     tf       enumerator of the transfer function to set
+ */
 ktx_error_code_e
-ktxTexture2_SetOETF(ktxTexture2* This, khr_df_transfer_e oetf)
+ktxTexture2_SetTransferFunction(ktxTexture2* This, khr_df_transfer_e tf)
 {
-    if (isSrgbFormat(This->vkFormat) && oetf != KHR_DF_TRANSFER_SRGB)
+    if (isSrgbFormat(This->vkFormat) && tf != KHR_DF_TRANSFER_SRGB)
         return KTX_INVALID_OPERATION;
 
-    // TODO: Implement other checks for compliance with KTX spec. Revision 3
-    KHR_DFDSETVAL(This->pDfd + 1, TRANSFER, oetf);
+    // TODO: Implement other checks for compliance with KTX spec. Revision 2
+    KHR_DFDSETVAL(This->pDfd + 1, TRANSFER, tf);
     return KTX_SUCCESS;
 }
 
+/**
+ * @memberof ktxTexture2
+ * @ingroup writer
+ * @~English
+ * @brief Set the transfer function for the images in a texture.
+ * @deprecated Use ktxTexture2\_SetTransferFunction.
+ *
+ * @param[in]     This     pointer to the ktxTexture2
+ * @param[in]     tf       enumerator of the transfer function to set
+ */
+ktx_error_code_e
+ktxTexture2_SetOETF(ktxTexture2* This, khr_df_transfer_e tf)
+{
+    return ktxTexture2_SetTransferFunction(This, tf);
+}
+
+/**
+ * @memberof ktxTexture2
+ * @ingroup writer
+ * @~English
+ * @brief Set the primaries  for the images in a texture.
+ *
+ * @param[in]     This           pointer to the ktxTexture2
+ * @param[in]     primaries      enumerator of the primaries to set
+ */
 ktx_error_code_e
 ktxTexture2_SetPrimaries(ktxTexture2* This, khr_df_primaries_e primaries)
 {

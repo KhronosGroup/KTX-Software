@@ -1123,9 +1123,10 @@ KTX_API ktx_uint32_t KTX_APIENTRY
 ktxTexture2_GetNumComponents(ktxTexture2* This);
 
 KTX_API khr_df_transfer_e KTX_APIENTRY
-ktxTexture2_GetOETF_e(ktxTexture2* This);
-
+ktxTexture2_GetTransferFunction_e(ktxTexture2* This);
 // For backward compatibility
+KTX_API khr_df_transfer_e KTX_APIENTRY
+ktxTexture2_GetOETF_e(ktxTexture2* This);
 KTX_API ktx_uint32_t KTX_APIENTRY
 ktxTexture2_GetOETF(ktxTexture2* This);
 
@@ -1141,6 +1142,9 @@ ktxTexture2_GetPrimaries_e(ktxTexture2* This);
 KTX_API ktx_bool_t KTX_APIENTRY
 ktxTexture2_NeedsTranscoding(ktxTexture2* This);
 
+KTX_API ktx_error_code_e KTX_APIENTRY
+ktxTexture2_SeTransferFunction(ktxTexture2* This, khr_df_transfer_e oetf);
+// For backward compatibility
 KTX_API ktx_error_code_e KTX_APIENTRY
 ktxTexture2_SetOETF(ktxTexture2* This, khr_df_transfer_e oetf);
 

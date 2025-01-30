@@ -253,11 +253,11 @@ void CommandEncode::executeEncode() {
             static_cast<uint32_t>(writer.size() + 1), // +1 to include the \0
             writer.c_str());
 
-    ktx_uint32_t oetf = ktxTexture2_GetOETF(texture);
-    if (options.ktxBasisParams::normalMap && oetf != KHR_DF_TRANSFER_LINEAR)
+    khr_df_transfer_e tf = ktxTexture2_GetTransferFunction_e(texture);
+    if (options.ktxBasisParams::normalMap && tf != KHR_DF_TRANSFER_LINEAR)
         fatal(rc::INVALID_FILE,
             "--normal-mode specified but the input file uses non-linear transfer function {}.",
-            toString(khr_df_transfer_e(oetf)));
+            toString(tf));
 
     MetricsCalculator metrics;
     metrics.saveReferenceImages(texture, options, *this);
