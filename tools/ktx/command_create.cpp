@@ -152,7 +152,7 @@ struct OptionsCreate {
                     "2D unit normals are calculated. Do not use these 2D unit normals\n"
                     "to generate X+Y normals with --normal-mode. For 4-component inputs\n"
                     "a 3D unit normal is calculated. 1.0 is used for the value of the\n"
-                    "4th component.\n")
+                    "4th component. Cannot be used with --raw.\n")
                 (kSwizzle, "KTX swizzle metadata.", cxxopts::value<std::string>(), "[rgba01]{4}")
                 (kInputSwizzle, "Pre-swizzle input channels.", cxxopts::value<std::string>(), "[rgba01]{4}")
                 (kAssignTf, "Force the created texture to have the specified transfer function, ignoring"
@@ -466,8 +466,11 @@ struct OptionsCreate {
                 mipmapWrap = it->second;
         }
 
-        if (args[kNormalize].count())
+        if (args[kNormalize].count()) {
+            if (raw)
+                report.fatal_usage("Option --normalize can't be used with --raw.");
             normalize = true;
+        }
 
         if (args[kSwizzle].count()) {
             swizzle = to_lower_copy(args[kSwizzle].as<std::string>());
@@ -909,7 +912,7 @@ Create a KTX2 file from various input files.
                 2D unit normals are calculated. Do not use these 2D unit normals
                 to generate X+Y normals with @b --normal-mode. For 4-component inputs
                 a 3D unit normal is calculated. 1.0 is used for the value of the
-                4th component.</dd>
+                4th component. Cannot be used with @b \--raw.</dd>
         <dt>\--swizzle [rgba01]{4}</dt>
         <dd>KTX swizzle metadata.</dd>
         <dt>\--input-swizzle [rgba01]{4}</dt>
@@ -1610,7 +1613,7 @@ void CommandCreate::executeCreate() {
             }
 
             if (options.normalize) {
-                if (colorSpaceInfo.usedInputTransferFunction != KHR_DF_TRANSFER_LINEAR) {
+                if (target.format().transfer() != KHR_DF_TRANSFER_LINEAR) {
                     fatal(rc::INVALID_FILE,
                         "Input file \"{}\" transfer functions is not linear. "
                         "Use --assign-oetf=linear or --convert-oetf=linear to avoid this error.",
