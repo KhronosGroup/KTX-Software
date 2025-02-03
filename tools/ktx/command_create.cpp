@@ -148,11 +148,11 @@ struct OptionsCreate {
                 (kEncode, "Encode the created KTX file. Case insensitive."
                     "\nPossible options are: basis-lz | uastc", cxxopts::value<std::string>(), "<codec>")
                 (kNormalize, "Normalize input normals to have a unit length. Only valid for\n"
-                    "linear normal textures with 2 or more components. For 2-component inputs\n"
-                    "2D unit normals are calculated. Do not use these 2D unit normals\n"
-                    "to generate X+Y normals with --normal-mode. For 4-component inputs\n"
-                    "a 3D unit normal is calculated. 1.0 is used for the value of the\n"
-                    "4th component. Cannot be used with --raw.\n")
+                    "linear normal textures with 2 or more components. For 2-component\n"
+                    "inputs 2D unit normals are calculated. Do not use these 2D unit\n"
+                    "normals to generate X+Y normals with --normal-mode. For 4-component\n"
+                    "inputs a 3D unit normal is calculated. 1.0 is used for the value of\n"
+                    "the 4th component. Cannot be used with --raw.")
                 (kSwizzle, "KTX swizzle metadata.", cxxopts::value<std::string>(), "[rgba01]{4}")
                 (kInputSwizzle, "Pre-swizzle input channels.", cxxopts::value<std::string>(), "[rgba01]{4}")
                 (kAssignTf, "Force the created texture to have the specified transfer function, ignoring"
@@ -468,7 +468,7 @@ struct OptionsCreate {
 
         if (args[kNormalize].count()) {
             if (raw)
-                report.fatal_usage("Option --normalize can't be used with --raw.");
+                report.fatal_usage("Conflicting options: Option --normalize can't be used with --raw.");
             normalize = true;
         }
 
@@ -908,11 +908,11 @@ Create a KTX2 file from various input files.
         </dd>
         <dt>\--normalize</dt>
         <dd>Normalize input normals to have a unit length. Only valid for
-                linear normal textures with 2 or more components. For 2-component inputs
-                2D unit normals are calculated. Do not use these 2D unit normals
-                to generate X+Y normals with @b --normal-mode. For 4-component inputs
-                a 3D unit normal is calculated. 1.0 is used for the value of the
-                4th component. Cannot be used with @b \--raw.</dd>
+                linear normal textures with 2 or more components. For 2-component
+                inputs 2D unit normals are calculated. Do not use these 2D unit
+                normals to generate X+Y normals with @b --normal-mode. For 4-component
+                inputs a 3D unit normal is calculated. 1.0 is used for the value of
+                the 4th component. Cannot be used with @b \--raw.</dd>
         <dt>\--swizzle [rgba01]{4}</dt>
         <dd>KTX swizzle metadata.</dd>
         <dt>\--input-swizzle [rgba01]{4}</dt>
@@ -1613,10 +1613,10 @@ void CommandCreate::executeCreate() {
             }
 
             if (options.normalize) {
-                if (target.format().transfer() != KHR_DF_TRANSFER_LINEAR) {
+                if (colorSpaceInfo.usedInputTransferFunction != KHR_DF_TRANSFER_LINEAR) {
                     fatal(rc::INVALID_FILE,
-                        "Input file \"{}\" transfer functions is not linear. "
-                        "Use --assign-oetf=linear or --convert-oetf=linear to avoid this error.",
+                        "Input file \"{}\" transfer function is not linear. Normalize is only available for linear images. "
+                        "Use --assign-oetf=linear or --convert-oetf=linear to convert to linear if required.",
                         fmtInFile(inputFilepath));
                     }
                 image->normalize();
