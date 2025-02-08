@@ -381,7 +381,7 @@ struct OptionsCreate {
                                                  : ImageSpec::Origin::eBottom;
             if (args[kCubemap].count()) {
                 if (orig.x != ImageSpec::Origin::eLeft || orig.y != ImageSpec::Origin::eTop) {
-                    report.fatal_usage("--{} argument must be --top-left for a cubemap.", argName);
+                    report.fatal_usage("--{} argument must be top-left for a cubemap.", argName);
                 }
             }
             if (numDimensions == 3)
@@ -1348,6 +1348,7 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
     if (options._1d && options.encodeASTC)
         fatal_usage("ASTC format {} cannot be used for 1 dimensional textures (indicated by --1d).",
                 toString(options.vkFormat));
+
 }
 
 template <typename F>
@@ -2390,7 +2391,8 @@ void CommandCreate::determineTargetColorSpace(const ImageInput& in, ImageSpec& t
     if (options.convertPrimaries.has_value()) {
         if (colorSpaceInfo.usedInputPrimaries == KHR_DF_PRIMARIES_UNSPECIFIED) {
             fatal(rc::INVALID_FILE, "Cannot convert primaries as no information about the color primaries "
-                "is available in the input file \"{}\". Use --assign-primaries to specify one.", in.filename());
+                "is available in the input file \"{}\". Use --{} to specify one.", in.filename(),
+                  options.kAssignPrimaries);
         } else if (options.convertPrimaries.value() != colorSpaceInfo.usedInputPrimaries) {
             colorSpaceInfo.srcColorPrimaries = createColorPrimaries(colorSpaceInfo.usedInputPrimaries);
             colorSpaceInfo.dstColorPrimaries = createColorPrimaries(options.convertPrimaries.value());
@@ -2419,40 +2421,17 @@ void CommandCreate::determineTargetColorSpace(const ImageInput& in, ImageSpec& t
 
     colorSpaceInfo.usedInputTransferFunction = KHR_DF_TRANSFER_UNSPECIFIED;
     if (options.assignTF.has_value()) {
-        if (options.assignTF == KHR_DF_TRANSFER_SRGB) {
-            colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionSRGB>();
-        } else {
-            assert(options.assignTF == KHR_DF_TRANSFER_LINEAR);
-            colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionLinear>();
-        }
         colorSpaceInfo.usedInputTransferFunction = options.assignTF.value();
         target.format().setTransfer(options.assignTF.value());
     } else {
         // Set image's transfer function as indicated by metadata.
         if (spec.format().transfer() != KHR_DF_TRANSFER_UNSPECIFIED) {
             colorSpaceInfo.usedInputTransferFunction = spec.format().transfer();
-            switch (spec.format().transfer()) {
-            case KHR_DF_TRANSFER_LINEAR:
-                colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionLinear>();
-                break;
-            case KHR_DF_TRANSFER_SRGB:
-                colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionSRGB>();
-                break;
-            case KHR_DF_TRANSFER_ITU:
-                colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionITU>();
-                break;
-            case KHR_DF_TRANSFER_PQ_EOTF:
-                colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionBT2100_PQ_EOTF>();
-                break;
-            default:
-                fatal(rc::INVALID_FILE, "Transfer function {} used by input file \"{}\" is not supported by KTX. "
-                    "Use --assign-tf to specify a different one.",
-                    toString(spec.format().transfer()), in.filename());
-            }
         } else if (spec.format().iccProfileName().size()) {
             fatal(rc::INVALID_FILE,
-                "Input file \"{}\" contains unsupported ICC profile \"{}\". Use --assign-tf to specify a different one.",
-                in.filename(), spec.format().iccProfileName());
+                 "Input file \"{}\" contains unsupported ICC profile \"{}\". Use --{} to specify a different one.",
+                 in.filename(), spec.format().iccProfileName(),
+                 options.kAssignTf);
         } else if (spec.format().oeGamma() > 0.0f) {
             if (spec.format().oeGamma() > .45450f && spec.format().oeGamma() < .45460f) {
                 // N.B The previous loader matched oeGamma .45455 to the sRGB
@@ -2463,11 +2442,11 @@ void CommandCreate::determineTargetColorSpace(const ImageInput& in, ImageSpec& t
                 // This change results in 1 bit differences in the LSB of
                 // some color values noticeable only when directly comparing
                 // images produced before and after this change of loader.
-                warning("Converting gamma 2.2f to sRGB. Use --assign-tf srgb to force treating input as sRGB.");
+                warning("Converting gamma 2.2f to sRGB. Use --{} srgb to force treating input as sRGB.",
+                        options.kAssignTf);
                 colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionGamma>(spec.format().oeGamma());
             } else if (spec.format().oeGamma() == 1.0) {
                 colorSpaceInfo.usedInputTransferFunction = KHR_DF_TRANSFER_LINEAR;
-                colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionLinear>();
             } else if (spec.format().oeGamma() > 0.0f) {
                 // We allow any gamma, there is not really a reason why we could not allow such input
                 colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionGamma>(spec.format().oeGamma());
@@ -2476,34 +2455,73 @@ void CommandCreate::determineTargetColorSpace(const ImageInput& in, ImageSpec& t
                     // If 8-bit, treat as sRGB, otherwise treat as linear.
                     if (spec.format().channelBitLength() == 8) {
                         colorSpaceInfo.usedInputTransferFunction = KHR_DF_TRANSFER_SRGB;
-                        colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionSRGB>();
                     } else {
                         colorSpaceInfo.usedInputTransferFunction = KHR_DF_TRANSFER_LINEAR;
-                        colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionLinear>();
                     }
                     warning("Ignoring reported gamma of 0.0f in {}-bit PNG input file \"{}\". Handling as {}.",
                         spec.format().channelBitLength(), in.filename(), toString(colorSpaceInfo.usedInputTransferFunction));
                 } else {
                     fatal(rc::INVALID_FILE,
-                        "Input file \"{}\" has gamma 0.0f. Use --assign-tf to specify transfer function.");
+                          "Input file \"{}\" has gamma 0.0f. Use --{} to specify transfer function.",
+                          options.kAssignTf);
                 }
             } else {
                 if (!options.convertTF.has_value()) {
                     fatal(rc::INVALID_FILE, "Gamma {} not automatically supported by KTX. Specify handing with "
-                        "--convert-tf or --assign-tf.", spec.format().oeGamma());
+                          "--{} or --{}.", spec.format().oeGamma(),
+                          options.kConvertTf, options.kAssignTf);
                 }
             }
         } else if (!in.formatName().compare("png")) {
             // If 8-bit, treat as sRGB, otherwise treat as linear.
             if (spec.format().channelBitLength() == 8) {
                 colorSpaceInfo.usedInputTransferFunction = KHR_DF_TRANSFER_SRGB;
-                colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionSRGB>();
             } else {
                 colorSpaceInfo.usedInputTransferFunction = KHR_DF_TRANSFER_LINEAR;
-                colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionLinear>();
             }
-            warning("No transfer function can be determined from {}-bit PNG input file \"{}\", defaulting to {}. Use --assign-tf to override.",
-                spec.format().channelBitLength(), in.filename(), toString(colorSpaceInfo.usedInputTransferFunction));
+            warning("No transfer function can be determined from {}-bit PNG input file \"{}\", defaulting to {}. Use --{} to override.",
+                    spec.format().channelBitLength(), in.filename(),
+                    toString(colorSpaceInfo.usedInputTransferFunction),
+                    options.kAssignTf);
+        }
+    }
+
+    if (colorSpaceInfo.srcTransferFunction == nullptr) {
+        assert(colorSpaceInfo.usedInputTransferFunction != KHR_DF_TRANSFER_UNSPECIFIED
+               && "One of srcTransferFunction or usedInputTransferFunction must be set.");
+        switch (colorSpaceInfo.usedInputTransferFunction) {
+        case KHR_DF_TRANSFER_LINEAR:
+            colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionLinear>();
+            break;
+        case KHR_DF_TRANSFER_SRGB:
+            colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionSRGB>();
+            break;
+        case KHR_DF_TRANSFER_ITU:
+            colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionITU>();
+            break;
+        case KHR_DF_TRANSFER_PQ_EOTF:
+            colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionBT2100_PQ_EOTF>();
+            break;
+        default:
+            if (!options.assignTF.has_value() || options.convertTF.has_value()) {
+                const auto errorFmt = "Conversion from transfer function {} {} is not supported by KTX. "
+                                      "Use an image processing tool to convert it";
+                std::string detail;
+                if (options.assignTF.has_value())
+                    detail = fmt::format("specified with --{}", options.kAssignTf);
+                else
+                    detail = fmt::format("used by input file \"{}\"", in.filename());
+
+                auto errorMsg = fmt::format(errorFmt,
+                                            toString(colorSpaceInfo.usedInputTransferFunction),
+                                            detail);
+                if (!options.assignTF.has_value())
+                    errorMsg += fmt::format(" or use {} to override it.", options.kAssignTf);
+                else
+                    errorMsg += ".";
+
+                fatal(rc::INVALID_FILE, errorMsg);
+            } // else with just --assign_tf srcTransferFunction is not needed.
         }
     }
 
@@ -2515,8 +2533,8 @@ void CommandCreate::determineTargetColorSpace(const ImageInput& in, ImageSpec& t
         target.format().primaries() != colorSpaceInfo.usedInputPrimaries) {
         if (colorSpaceInfo.srcTransferFunction == nullptr)
             fatal(rc::INVALID_FILE,
-                "No transfer function can be determined from input file \"{}\". Use --assign-tf to specify one.", in.filename());
-
+                  "No transfer function can be determined from input file \"{}\". Use --{} to specify one.",
+                  in.filename(), options.kAssignTf);
 
         switch (target.format().transfer()) {
         case KHR_DF_TRANSFER_LINEAR:
