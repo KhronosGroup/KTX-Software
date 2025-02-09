@@ -253,6 +253,8 @@ struct OptionsCreate {
             { "SLOG_OETF", KHR_DF_TRANSFER_SLOG_OETF }, // SLOG
             { "SLOG2", KHR_DF_TRANSFER_SLOG2 },
             { "SLOG2_OETF", KHR_DF_TRANSFER_SLOG2_OETF }, // SLOG2
+            { "BT1886", KHR_DF_TRANSFER_BT1886 },
+            { "BT1886_EOTF", KHR_DF_TRANSFER_BT1886_EOTF }, // BT1886
             { "HLG_OETF", KHR_DF_TRANSFER_HLG_OETF },
             { "HLG_EOTF", KHR_DF_TRANSFER_HLG_EOTF },
             { "PQ_OETF", KHR_DF_TRANSFER_HLG_OETF },
