@@ -1613,7 +1613,7 @@ void CommandCreate::executeCreate() {
             }
 
             if (options.normalize) {
-                if (colorSpaceInfo.usedInputTransferFunction != KHR_DF_TRANSFER_LINEAR) {
+                if (target.format().transfer() != KHR_DF_TRANSFER_LINEAR) {
                     fatal(rc::INVALID_FILE,
                         "Input file \"{}\" transfer function is not linear. Normalize is only available for linear images. "
                         "Use --assign-oetf=linear or --convert-oetf=linear to convert to linear if required.",
