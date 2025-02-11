@@ -1097,6 +1097,8 @@ Transfer function handling proceeds as follows:
           support of such inputs.
       @li avoid using @b \--generate-mipmap as the filters can only decode
           sRGB.
+      @li avoid encoding to ASTC, BasisLz/ETC1S or UASTC. The encoders'
+          quality metrics are designed for linear and sRGB.
 
 @subsection ktx_create_tf_handling_changes Changes since last Release
 <ol>
