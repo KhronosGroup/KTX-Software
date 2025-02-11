@@ -605,6 +605,9 @@ cleanup:
     return result;
 }
 
+bool isSrgbFormat(VkFormat format);
+bool isNotSrgbFormatButHasSrgbVariant(VkFormat format);
+
 /**
  * @memberof ktxTexture2 @private
  * @~English
@@ -773,10 +776,25 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
         result = KTX_FILE_DATA_ERROR;
         goto cleanup;
     }
-    if (pBDFD->transfer != KHR_DF_TRANSFER_LINEAR && pBDFD->transfer != KHR_DF_TRANSFER_SRGB) {
-        // Unsupported transfer function
-        result = KTX_FILE_DATA_ERROR;
-        goto cleanup;
+    if (pBDFD->transfer >= KHR_DF_TRANSFER_HLG_UNNORMALIZED_OETF) {
+          // Invalid transfer function
+          result = KTX_FILE_DATA_ERROR;
+          goto cleanup;
+    }
+    // No test for VK_FORMAT_UNDEFINED is needed here because:
+    // - any transfer function is allowed when vkFormat is UNDEFINED as with,
+    //   e.g., some Basis Universal formats;
+    // - the following tests return false for VK_FORMAT_UNDEFINED.
+    if (isSrgbFormat(This->vkFormat) && pBDFD->transfer != KHR_DF_TRANSFER_SRGB) {
+          // Invalid transfer function
+          result = KTX_FILE_DATA_ERROR;
+          goto cleanup;
+    }
+    if (isNotSrgbFormatButHasSrgbVariant(This->vkFormat)
+        && pBDFD->transfer == KHR_DF_TRANSFER_SRGB) {
+          // Invalid transfer function
+          result = KTX_FILE_DATA_ERROR;
+          goto cleanup;
     }
 
     if (!ktxFormatSize_initFromDfd(&This->_protected->_formatSize, This->pDfd)) {
@@ -2009,8 +2027,6 @@ ktxTexture2_NeedsTranscoding(ktxTexture2* This)
 }
 
 #if KTX_FEATURE_WRITE
-bool isSrgbFormat(VkFormat format);
-
 /**
  * @memberof ktxTexture2
  * @ingroup writer
