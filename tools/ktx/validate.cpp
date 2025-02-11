@@ -838,7 +838,7 @@ void ValidationContext::validateDFD() {
                     const auto numSamplesValidating = std::min(MAX_NUM_BDFD_SAMPLES, numSamplesStored);
 
                     if (numSamplesStored > MAX_NUM_BDFD_SAMPLES)
-                        warning(DFD::TooManySample, numBlocks, numSamplesStored, MAX_NUM_BDFD_SAMPLES,
+                        warning(DFD::TooManySamples, numBlocks, numSamplesStored, MAX_NUM_BDFD_SAMPLES,
                                 numSamplesStored - numSamplesValidating,
                                 block.descriptorBlockSize - sizeof(BDFD) - numSamplesValidating * sizeof(SampleType));
 

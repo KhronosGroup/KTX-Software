@@ -446,8 +446,8 @@ struct DFD {
         6028, "Invalid sample in basic DFD block. The samples must match the expected samples of the VkFormat.",
         "DFD block #{} sample #{} {} in basic DFD block is {} but the expected value is {} for {}."
     };
-    static constexpr IssueWarning TooManySample{
-        6029, "Too many BDFD sample. The number of BDFD samples exceeds the validator limit.",
+    static constexpr IssueWarning TooManySamples{
+        6029, "Too many BDFD samples. The number of BDFD samples exceeds the validator limit.",
         "DFD block #{} sample count in basic DFD block is {} which exceeds the validator limit of {}. Skipping validation of the last {} sample(s) ({} byte(s))."
     };
     static constexpr IssueError BasicProhibitedTransferFunction{
