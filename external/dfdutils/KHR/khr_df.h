@@ -1,6 +1,6 @@
-/* The Khronos Data Format Specification (version 1.3.2) */
+/* The Khronos Data Format Specification (version 1.4.0) */
 /*
-** Copyright 2015-2020 The Khronos Group Inc.
+** Copyright 2015-2025 The Khronos Group Inc.
 ** SPDX-License-Identifier: Apache-2.0
 */
 
@@ -101,7 +101,7 @@ typedef enum _khr_df_mask_e {
     ((BDB)[KHR_DF_WORD_ ## X] = \
      ((BDB)[KHR_DF_WORD_ ## X] & \
       ~((KHR_DF_MASK_ ## X) << (KHR_DF_SHIFT_ ## X))) | \
-     (((val) & (KHR_DF_MASK_ ## X)) << (KHR_DF_SHIFT_ ## X)))
+     (((uint32_t)(val) & (KHR_DF_MASK_ ## X)) << (KHR_DF_SHIFT_ ## X)))
 
 /* Offsets relative to the start of a sample */
 typedef enum _khr_df_sampleword_e {
@@ -135,14 +135,14 @@ typedef enum _khr_df_sampleshift_e {
 
 typedef enum _khr_df_samplemask_e {
     KHR_DF_SAMPLEMASK_BITOFFSET = 0xFFFFU,
-    KHR_DF_SAMPLEMASK_BITLENGTH = 0xFF,
-    KHR_DF_SAMPLEMASK_CHANNELID = 0xF,
+    KHR_DF_SAMPLEMASK_BITLENGTH = 0xFFU,
+    KHR_DF_SAMPLEMASK_CHANNELID = 0xFU,
     /* N.B. Qualifiers are defined as an offset into a byte */
-    KHR_DF_SAMPLEMASK_QUALIFIERS = 0xF0,
-    KHR_DF_SAMPLEMASK_SAMPLEPOSITION0 = 0xFF,
-    KHR_DF_SAMPLEMASK_SAMPLEPOSITION1 = 0xFF,
-    KHR_DF_SAMPLEMASK_SAMPLEPOSITION2 = 0xFF,
-    KHR_DF_SAMPLEMASK_SAMPLEPOSITION3 = 0xFF,
+    KHR_DF_SAMPLEMASK_QUALIFIERS = 0xF0U,
+    KHR_DF_SAMPLEMASK_SAMPLEPOSITION0 = 0xFFU,
+    KHR_DF_SAMPLEMASK_SAMPLEPOSITION1 = 0xFFU,
+    KHR_DF_SAMPLEMASK_SAMPLEPOSITION2 = 0xFFU,
+    KHR_DF_SAMPLEMASK_SAMPLEPOSITION3 = 0xFFU,
     /* ISO C restricts enum values to range of int hence the
        cast. We do it verbosely instead of using -1 to ensure
        it is a 32-bit value even if int is 64 bits. */
@@ -169,7 +169,7 @@ typedef enum _khr_df_samplemask_e {
             ((S) * KHR_DF_WORD_SAMPLEWORDS) + \
             KHR_DF_SAMPLEWORD_ ## X] & \
       ~((uint32_t)(KHR_DF_SAMPLEMASK_ ## X) << (KHR_DF_SAMPLESHIFT_ ## X))) | \
-     (((val) & (uint32_t)(KHR_DF_SAMPLEMASK_ ## X)) << (KHR_DF_SAMPLESHIFT_ ## X)))
+     (((uint32_t)(val) & (uint32_t)(KHR_DF_SAMPLEMASK_ ## X)) << (KHR_DF_SAMPLESHIFT_ ## X)))
 
 /* Helper macro:
    Number of samples in basic descriptor block BDB */
@@ -213,7 +213,8 @@ typedef enum _khr_df_versionnumber_e {
     KHR_DF_VERSIONNUMBER_1_1 = 0U, /* Version 1.1 did not bump the version number */
     KHR_DF_VERSIONNUMBER_1_2 = 1U, /* Version 1.2 increased the version number */
     KHR_DF_VERSIONNUMBER_1_3 = 2U, /* Version 1.3 increased the version number */
-    KHR_DF_VERSIONNUMBER_LATEST = KHR_DF_VERSIONNUMBER_1_3,
+    KHR_DF_VERSIONNUMBER_1_4 = 2U, /* Version 1.4.0 did not bump the block version number */
+    KHR_DF_VERSIONNUMBER_LATEST = KHR_DF_VERSIONNUMBER_1_4,
     KHR_DF_VERSIONNUMBER_MAX = 0xFFFFU
 } khr_df_versionnumber_e;
 
