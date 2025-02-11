@@ -379,8 +379,8 @@ struct DFD {
         "DFD block #{} versionNumber in basic DFD block is {} but it must be KHR_DF_VERSIONNUMBER_1_3."
     };
     static constexpr IssueError BasicInvalidTransferFunction{
-        6012, "Invalid transferFunction in basic DFD block. It must be either KHR_DF_TRANSFER_LINEAR or KHR_DF_TRANSFER_SRGB.",
-        "DFD block #{} transferFunction in basic DFD block is {} but it must be either KHR_DF_TRANSFER_LINEAR or KHR_DF_TRANSFER_SRGB."
+        6012, "Invalid transferFunction in basic DFD block. It is not a value known to the KTX specification.",
+        "DFD block #{} transferFunction in basic DFD block is {} but values must be between 0 (KHR_DF_TRANSFER_UNSPECIFIED) and 18 (KHR_DF_TRANSFER_ADOBERGB)."
     };
     static constexpr IssueError BasicSRGBMismatch{
         6013, "Invalid transferFunction in basic DFD block. For an sRGB VkFormat it must be KHR_DF_TRANSFER_SRGB.",
@@ -449,6 +449,10 @@ struct DFD {
     static constexpr IssueWarning TooManySample{
         6029, "Too many BDFD sample. The number of BDFD samples exceeds the validator limit.",
         "DFD block #{} sample count in basic DFD block is {} which exceeds the validator limit of {}. Skipping validation of the last {} sample(s) ({} byte(s))."
+    };
+    static constexpr IssueError BasicProhibitedTransferFunction{
+        6030, "Prohibited transferFunction in basic DFD block.",
+        "DFD block #{} transferFunction in basic DFD block is {} but that transferFunction is prohibited."
     };
 
     // 61xx - Basic Data Format Descriptor Block sample related issues:

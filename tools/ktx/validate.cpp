@@ -886,9 +886,16 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
         error(DFD::BasicVersionNotSupported, blockIndex, toString(khr_df_versionnumber_e(block.versionNumber)));
 
     // Validate transferFunction
-    if (block.transfer != KHR_DF_TRANSFER_SRGB && block.transfer != KHR_DF_TRANSFER_LINEAR)
-        error(DFD::BasicInvalidTransferFunction, blockIndex, toString(khr_df_transfer_e(block.transfer)));
+    if (block.transfer == KHR_DF_TRANSFER_HLG_UNNORMALIZED_OETF)
+        error(DFD::BasicProhibitedTransferFunction, blockIndex, toString(khr_df_transfer_e(block.transfer)));
 
+    if (block.transfer > KHR_DF_TRANSFER_HLG_UNNORMALIZED_OETF)
+        error(DFD::BasicInvalidTransferFunction, blockIndex, block.transfer);
+
+    // No test for VK_FORMAT_UNDEFINED is needed here because:
+    // - any transfer function is allowed when vkFormat is UNDEFINED as with,
+    //   e.g., some Basis Universal formats;
+    // - the following tests return false for VK_FORMAT_UNDEFINED.
     if (isFormatSRGB(VkFormat(header.vkFormat)) && block.transfer != KHR_DF_TRANSFER_SRGB)
         error(DFD::BasicSRGBMismatch, blockIndex, toString(khr_df_transfer_e(block.transfer)), toString(VkFormat(header.vkFormat)));
 
