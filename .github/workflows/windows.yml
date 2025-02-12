@@ -115,7 +115,8 @@ jobs:
       OPENGL_ES_EMULATOR_WIN: C:\Imagination\Windows_x86_64
       PVR_SDK_HOME: https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/
       PYTHON: C:\hostedtoolcache\windows\Python\3.11.4\x64\python.exe
-      PYTHON_DIST_DIR: ${{ env.BUILD_DIR}}/interface/python_binding/dist
+      # Sigh! Can't find a way to use BUILD_DIr here so we have to repeat it.
+      PYTHON_DIST_DIR: build/interface/python_binding/dist
       # This is set to avoid the compiler running out of heap space
       # when vcpkg is compiling glew. Default is logical cores + 1.
       # Runners have 1 thread per core and 2 cores.
