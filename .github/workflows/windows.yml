@@ -296,8 +296,8 @@ jobs:
         echo "KTX_VERSION=$KTX_VERSION" >> $env:GITHUB_ENV
 
     # For these artifact uploads, need to take care that only one CLangCL
-    # job for each architecture produces pyktx distributables. A second
-    # job would attempt to upload a same named artifact.
+    # "package" job for each architecture produces artifacts. A second
+    # job would attempt to upload a same-named artifact.
     - name: Upload artifact Install Package
       if: matrix.options.package == 'YES' && matrix.toolset == 'CLangCL'
       uses: actions/upload-artifact@v4
