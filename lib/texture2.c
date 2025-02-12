@@ -2042,7 +2042,9 @@ ktxTexture2_SetTransferFunction(ktxTexture2* This, khr_df_transfer_e tf)
     if (isSrgbFormat(This->vkFormat) && tf != KHR_DF_TRANSFER_SRGB)
         return KTX_INVALID_OPERATION;
 
-    // TODO: Implement other checks for compliance with KTX spec. Revision 2
+    if (isNotSrgbFormatButHasSrgbVariant(This->vkFormat) && tf == KHR_DF_TRANSFER_SRGB)
+        return KTX_INVALID_OPERATION;
+
     KHR_DFDSETVAL(This->pDfd + 1, TRANSFER, tf);
     return KTX_SUCCESS;
 }
