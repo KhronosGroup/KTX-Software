@@ -323,7 +323,7 @@ jobs:
 
     - name: Upload platform dependent pyktx artifact
       if: matrix.options.package == 'YES' && matrix.options.py == 'ON'
-      uses: upload-artifact@v4
+      uses: actions/upload-artifact@v4
       with:
         name: ${{env.PYTHON_WHEEL}}
         # I think we need to upload pyktx-4.3.2.tar.gz from just one job then
