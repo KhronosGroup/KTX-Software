@@ -189,7 +189,7 @@ struct OptionsCreate {
                     " This option is not allowed to be specified when --assign-primaries is set to 'none'."
                     " Possible options match the khr_df_transfer_e enumerators without the KHR_DF_TRANSFER_ prefix."
                     " The KHR_DF_PRIMARIES_ prefix is ignored if present. Case insensitive."
-                    "\nPossible options are:"
+                    "\nThe options are:"
                     " bt709 | srgb | bt601_ebu | bt601_smpte | bt2020 | ciexyz | aces | acescc | ntsc1953 | pal525 | displayp3 | adobergb.",
                     cxxopts::value<std::string>(), "<primaries>")
                 (kConvertTexcoordOrigin, "Convert the input image(s) so the texture coordinate origin s=0,"
@@ -944,7 +944,7 @@ Create a KTX2 file from various input files.
             performed from the assigned transfer function to the transfer
             function specified by this option, if different. Cannot be used with
             @b \--raw. Case insensitive.
-            Possible options are: linear | srgb. The following srgb aliases are
+            The options are: linear | srgb. The following srgb aliases are
             also supported: srgb_eotf | scrgb | scrgb_eotf.
             See @ref ktx_create_tf_handling below for more information.
             </dd>
@@ -961,7 +961,7 @@ Create a KTX2 file from various input files.
             Cannot be used with @b \--raw. Possible options match the
             khr_df_primaries_e enumerators without the KHR_DF_PRIMARIES_
             prefix. The KHR_DF_PRIMARIES_ prefix is ignored if present.
-            Case insensitive. Possible options are:
+            Case insensitive. The options are:
             bt709 | srgb | bt601_ebu | bt601_smpte | bt2020 | ciexyz | aces | acescc | ntsc1953 |
             pal525 | displayp3 | adobergb
             @note @c bt601-ebu and @c bt601-smpte, supported in previous
@@ -1099,6 +1099,7 @@ Transfer function handling proceeds as follows:
           sRGB.
       @li avoid encoding to ASTC, BasisLz/ETC1S or UASTC. The encoders'
           quality metrics are designed for linear and sRGB.
+
 
 @subsection ktx_create_tf_handling_changes Changes since last Release
 <ol>
