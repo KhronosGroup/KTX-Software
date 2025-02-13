@@ -2027,7 +2027,7 @@ ktxTexture2_NeedsTranscoding(ktxTexture2* This)
 }
 
 #if KTX_FEATURE_WRITE
-/**
+/*
  * @memberof ktxTexture2
  * @ingroup writer
  * @~English
@@ -2035,10 +2035,20 @@ ktxTexture2_NeedsTranscoding(ktxTexture2* This)
  *
  * @param[in]     This     pointer to the ktxTexture2
  * @param[in]     tf       enumerator of the transfer function to set
+ *
+ * @return  KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_INVALID_OPERATION The transfer function is not valid for the
+ *                                  vkFormat of the texture.
+ * @exception KTX_INVALID_VALUE The transfer function is not allowed by the
+ *                              KTX spec.
  */
 ktx_error_code_e
 ktxTexture2_SetTransferFunction(ktxTexture2* This, khr_df_transfer_e tf)
 {
+    if (tf == KHR_DF_TRANSFER_HLG_UNNORMALIZED_OETF)
+        return KTX_INVALID_VALUE;
+
     if (isSrgbFormat(This->vkFormat) && tf != KHR_DF_TRANSFER_SRGB)
         return KTX_INVALID_OPERATION;
 
