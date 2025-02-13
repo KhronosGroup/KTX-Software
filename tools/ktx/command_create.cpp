@@ -1515,7 +1515,7 @@ void CommandCreate::executeCreate() {
                         uint32_t bitLength;
                         try {
                             bitLength = target.format().channelBitLength();
-                        } catch(std::runtime_error e) {
+                        } catch(...) {
                             // This happens if channels have different bit length. Check just R.
                             // If format is something like RGB565, any channel length would fail
                             // the bitLength test so picking R doesn't matter.
