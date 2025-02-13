@@ -204,6 +204,8 @@ struct OptionsCreate {
                     cxxopts::value<std::string>(), "<origin>")
                 (kFailOnColorConversions, "Generates an error if any of the input images would need to be color converted.")
                 (kWarnOnColorConversions, "Generates a warning if any of the input images are color converted.")
+                (kNoWarnOnColorConversions, "Disable all warnings about color conversions including that for"
+                    " visually lossy conversions. Overrides --warn-on-color-conversions should both be specified.")
                 (kFailOnOriginChanges, "Generates an error if any of the input images would need to have their origin changed.")
                 (kWarnOnOriginChanges, "Generates a warning if any of the input images have their origin changed.");
 
@@ -1508,11 +1510,31 @@ void CommandCreate::executeCreate() {
             if (colorSpaceInfo.dstTransferFunction != nullptr) {
                 assert(colorSpaceInfo.srcTransferFunction != nullptr);
                 if (!options.noWarnOnColorConversions) {
-                    if (colorSpaceInfo.usedInputTransferFunction == KHR_DF_TRANSFER_SRGB
+                    if (target.format().model() == KHR_DF_MODEL_RGBSDA
                         && target.format().transfer() == KHR_DF_TRANSFER_LINEAR) {
-                        warning("Input file \"{}\" is undergoing a visual lossy color conversion from sRGB to linear. "
-                                "Specify an _SRGB format with --{} to prevent this warning.",
-                                fmtInFile(inputFilepath), options.kFormat);
+                        uint32_t bitLength;
+                        try {
+                            bitLength = target.format().channelBitLength();
+                        } catch(std::runtime_error e) {
+                            // This happens if channels have different bit length. Check just R.
+                            // If format is something like RGB565, any channel length would fail
+                            // the bitLength test so picking R doesn't matter.
+                            bitLength = target.format().channelBitLength(KHR_DF_CHANNEL_RGBSDA_R);
+                        }
+
+                        if (bitLength < 14) {
+                            // Per Poynton, >= 14 bits is enough to handle all transitions
+                            // visible to a human
+                            if (colorSpaceInfo.usedInputTransferFunction == KHR_DF_TRANSFER_SRGB
+                               || colorSpaceInfo.usedInputTransferFunction == KHR_DF_TRANSFER_ITU) {
+                              warning("Input file \"{}\" is undergoing a visual lossy color conversion from {} "
+                                      "to KHR_DF_TRANSFER_LINEAR. Specify an _SRGB format with --{} to prevent "
+                                      "this warning.",
+                                      fmtInFile(inputFilepath),
+                                      toString(colorSpaceInfo.usedInputTransferFunction),
+                                      options.kFormat);
+                            }
+                        }
                     }
                 }
                 if (colorSpaceInfo.dstColorPrimaries != nullptr) {

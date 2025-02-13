@@ -609,6 +609,9 @@ struct FormatDescriptor {
         return bitLength;
     }
     uint32_t channelBitLength() const {
+        if (channelCount() == 1)
+            return samples[0].bitLength + 1;
+
         if (!extended.sameUnitAllChannels) {
             throw std::runtime_error(
                 "Differing size channels. Specify channel to query."
