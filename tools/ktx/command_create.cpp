@@ -259,8 +259,8 @@ struct OptionsCreate {
             { "BT1886_EOTF", KHR_DF_TRANSFER_BT1886_EOTF }, // BT1886
             { "HLG_OETF", KHR_DF_TRANSFER_HLG_OETF },
             { "HLG_EOTF", KHR_DF_TRANSFER_HLG_EOTF },
-            { "PQ_OETF", KHR_DF_TRANSFER_HLG_OETF },
-            { "PQ_EOTF", KHR_DF_TRANSFER_HLG_EOTF },
+            { "PQ_OETF", KHR_DF_TRANSFER_PQ_OETF },
+            { "PQ_EOTF", KHR_DF_TRANSFER_PQ_EOTF },
             { "DCIP3", KHR_DF_TRANSFER_DCIP3 },
             { "DCIP3_EOTF", KHR_DF_TRANSFER_DCIP3_EOTF }, // DCIP3
             { "PAL_OETF", KHR_DF_TRANSFER_PAL_OETF },
@@ -274,8 +274,7 @@ struct OptionsCreate {
             { "ACESCCT_OETF", KHR_DF_TRANSFER_ACESCCT_OETF }, // ACESCCT
             { "ADOBERGB", KHR_DF_TRANSFER_ADOBERGB },
             { "ADOBERGB_EOTF", KHR_DF_TRANSFER_ADOBERGB_EOTF }, // ADOBERGB
-            // HLG_UNNORMALIZED_OETF is deliberately excluded as it is no
-            // longer part of the HLG standard.
+            { "HLG_UNNORMALIZED_OETF", KHR_DF_TRANSFER_HLG_UNNORMALIZED_OETF },
         };
 
         std::optional<khr_df_transfer_e> result = {};

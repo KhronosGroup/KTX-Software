@@ -776,7 +776,7 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
         result = KTX_FILE_DATA_ERROR;
         goto cleanup;
     }
-    if (pBDFD->transfer >= KHR_DF_TRANSFER_HLG_UNNORMALIZED_OETF) {
+    if (pBDFD->transfer > KHR_DF_TRANSFER_HLG_UNNORMALIZED_OETF) {
           // Invalid transfer function
           result = KTX_FILE_DATA_ERROR;
           goto cleanup;
@@ -2046,9 +2046,6 @@ ktxTexture2_NeedsTranscoding(ktxTexture2* This)
 ktx_error_code_e
 ktxTexture2_SetTransferFunction(ktxTexture2* This, khr_df_transfer_e tf)
 {
-    if (tf == KHR_DF_TRANSFER_HLG_UNNORMALIZED_OETF)
-        return KTX_INVALID_VALUE;
-
     if (isSrgbFormat(This->vkFormat) && tf != KHR_DF_TRANSFER_SRGB)
         return KTX_INVALID_OPERATION;
 

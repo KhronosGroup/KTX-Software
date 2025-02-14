@@ -886,9 +886,6 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
         error(DFD::BasicVersionNotSupported, blockIndex, toString(khr_df_versionnumber_e(block.versionNumber)));
 
     // Validate transferFunction
-    if (block.transfer == KHR_DF_TRANSFER_HLG_UNNORMALIZED_OETF)
-        error(DFD::BasicProhibitedTransferFunction, blockIndex, toString(khr_df_transfer_e(block.transfer)));
-
     if (block.transfer > KHR_DF_TRANSFER_HLG_UNNORMALIZED_OETF)
         error(DFD::BasicInvalidTransferFunction, blockIndex, block.transfer);
 
