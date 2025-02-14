@@ -203,7 +203,7 @@ struct FormatDescriptor {
                uint32_t bLength, uint32_t offset,
                khr_df_sample_datatype_qualifiers_e dataType
                   = static_cast<khr_df_sample_datatype_qualifiers_e>(0),
-               khr_df_transfer_e oetf = KHR_DF_TRANSFER_UNSPECIFIED,
+               khr_df_transfer_e tf = KHR_DF_TRANSFER_UNSPECIFIED,
                khr_df_model_e m = KHR_DF_MODEL_RGBSDA) {
             bitOffset = offset;
             bitLength = bLength - 1;
@@ -217,7 +217,7 @@ struct FormatDescriptor {
             qualifierSigned = (dataType & KHR_DF_SAMPLE_DATATYPE_SIGNED) != 0;
             qualifierExponent = (dataType & KHR_DF_SAMPLE_DATATYPE_EXPONENT) != 0;
             qualifierLinear = (dataType & KHR_DF_SAMPLE_DATATYPE_LINEAR) != 0;
-            if (oetf > KHR_DF_TRANSFER_LINEAR
+            if (tf > KHR_DF_TRANSFER_LINEAR
                 && channelType == KHR_DF_CHANNEL_RGBSDA_ALPHA) {
                 qualifierLinear = 1;
             }
@@ -266,9 +266,9 @@ struct FormatDescriptor {
                uint32_t sampleLower, uint32_t sampleUpper,
                khr_df_sample_datatype_qualifiers_e dataType
                   = static_cast<khr_df_sample_datatype_qualifiers_e>(0),
-               khr_df_transfer_e oetf = KHR_DF_TRANSFER_UNSPECIFIED,
+               khr_df_transfer_e tf = KHR_DF_TRANSFER_UNSPECIFIED,
                khr_df_model_e m = KHR_DF_MODEL_RGBSDA)
-               : sample(chanType, bitLength, offset, dataType, oetf, m)
+               : sample(chanType, bitLength, offset, dataType, tf, m)
         {
             if (qualifierFloat) {
                 throw std::runtime_error(

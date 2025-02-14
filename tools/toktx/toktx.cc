@@ -1103,7 +1103,7 @@ toktxApp::createImage(const targetImageSpec& target, ImageInput& in)
         }
     }
     image->setPrimaries((khr_df_primaries_e)target.format().primaries());
-    image->setOetf((khr_df_transfer_e)target.format().transfer());
+    image->setTransferFunction((khr_df_transfer_e)target.format().transfer());
 
     if (options.scale != 1.0f) {
         auto scaledWidth = image->getWidth() * options.scale;
