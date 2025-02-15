@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2021 Arm Limited
+// Copyright 2021-2024 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -110,7 +110,7 @@ int main(int argc, char **argv)
 	}
 	else if (!strcmp(argv[5], "off"))
 	{
-		use_filter == false;
+		use_filter = false;
 	}
 	else
 	{
@@ -136,7 +136,7 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	// For each pixel apply RGBM encoding
+	// For each pixel blending and filtering
 	if (!use_filter)
 	{
 		for (int y = 0; y < dim_y; y++)
@@ -161,9 +161,9 @@ int main(int argc, char **argv)
 					b_src = srgb_to_linear(b_src);
 				}
 
-				float r_dst = 0.8f;
-				float g_dst = 1.0f;
-				float b_dst = 0.8f;
+				float r_dst = 0.53f;
+				float g_dst = 0.53f;
+				float b_dst = 0.53f;
 
 				float r_out;
 				float g_out;

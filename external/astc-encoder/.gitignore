@@ -30,6 +30,7 @@ Test/Images/Scratch*
 # Test output
 TestOutput
 /*.xlsx
+/*.jpg
 /*.json
 /*.log
 /*.txt

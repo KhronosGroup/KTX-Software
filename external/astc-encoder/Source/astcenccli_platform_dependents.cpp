@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2011-2023 Arm Limited
+// Copyright 2011-2024 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -38,7 +38,11 @@
 #if defined(_WIN32) && !defined(__CYGWIN__)
 
 #define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <windows.h>
+#include <Processthreadsapi.h>
+#include <algorithm>
+#include <cstring>
 
 /** @brief Alias pthread_t to one of the internal Windows types. */
 typedef HANDLE pthread_t;
@@ -58,7 +62,7 @@ static int pthread_create(
 	static_cast<void>(attribs);
 	LPTHREAD_START_ROUTINE func = reinterpret_cast<LPTHREAD_START_ROUTINE>(threadfunc);
 	*thread = CreateThread(nullptr, 0, func, thread_arg, 0, nullptr);
-	
+
 	// Ensure we return 0 on success, non-zero on error
 	if (*thread == NULL)
 	{
@@ -142,6 +146,24 @@ double get_time()
 	return static_cast<double>(ticks) / 1.0e7;
 }
 
+/* See header for documentation */
+void set_thread_name(
+	const char* name
+) {
+	// Names are limited to 16 characters
+	wchar_t wname [16] { 0 };
+	size_t name_len = std::strlen(name);
+	size_t clamp_len = std::min<size_t>(name_len, 15);
+
+	// We know we only have basic 7-bit ASCII so just widen
+	for (size_t i = 0; i < clamp_len; i++)
+	{
+		wname[i] = static_cast<wchar_t>(name[i]);
+	}
+
+ 	SetThreadDescription(GetCurrentThread(), wname);
+}
+
 /* ============================================================================
    Platform code for an platform using POSIX APIs.
 ============================================================================ */
@@ -163,6 +185,20 @@ double get_time()
 	timeval tv;
 	gettimeofday(&tv, 0);
 	return static_cast<double>(tv.tv_sec) + static_cast<double>(tv.tv_usec) * 1.0e-6;
+}
+
+/* See header for documentation */
+void set_thread_name(
+	const char* name
+) {
+	// No standard mechanism, so be defensive here
+#if defined(__linux__)
+	pthread_setname_np(pthread_self(), name);
+#elif defined(__APPLE__)
+	pthread_setname_np(name);
+#else
+	(void)name;
+#endif
 }
 
 #endif
@@ -215,9 +251,9 @@ void launch_threads(
 	}
 
 	// Otherwise spawn worker threads
-	launch_desc *thread_descs = new launch_desc[thread_count];	
+	launch_desc *thread_descs = new launch_desc[thread_count];
 	int actual_thread_count { 0 };
-	
+
 	for (int i = 0; i < thread_count; i++)
 	{
 		thread_descs[actual_thread_count].thread_count = thread_count;
@@ -230,7 +266,7 @@ void launch_threads(
 			&(thread_descs[actual_thread_count].thread_handle),
 			nullptr,
 			launch_threads_helper,
-			reinterpret_cast<void*>(thread_descs + actual_thread_count));		
+			reinterpret_cast<void*>(thread_descs + actual_thread_count));
 
 		// Track how many threads we actually created
 		if (!error)
@@ -248,7 +284,7 @@ void launch_threads(
 
 	// If we did not create thread_count threads then emit a warning
 	if (actual_thread_count != thread_count)
-	{		
+	{
 		int log_count = actual_thread_count == 0 ? 1 : actual_thread_count;
 		const char* log_s = log_count == 1 ? "" : "s";
 		printf("WARNING: %s using %d thread%s due to thread creation error\n\n",

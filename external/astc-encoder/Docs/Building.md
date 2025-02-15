@@ -203,6 +203,17 @@ To enable this binary variant add `-DASTCENC_ISA_NONE=ON` to the CMake command
 line when configuring. It is NOT recommended to use this for production; it is
 significantly slower than the vectorized SIMD builds.
 
+### No x86 gather instruction builds
+
+On many x86 microarchitectures the native AVX gather instructions are slower
+than simply performing manual scalar loads and combining the results. Gathers
+are enabled by default, but can be disabled by setting the CMake option
+`-DASTCENC_X86_GATHERS=OFF` on the command line when configuring.
+
+Note that we have seen mixed results when compiling the scalar fallback path,
+so we would recommend testing which option works best for the compiler and
+microarchitecture pairing that you are targeting.
+
 ### Test builds
 
 We support building unit tests. These use the `googletest` framework, which is
