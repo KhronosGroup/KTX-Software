@@ -231,10 +231,10 @@ PROPERTIES
     ENVIRONMENT TOKTX_OPTIONS=--lower_left_maps_to_s0t0
 )
 
-# I regenerated the reference files with ASTC encoder 5.2.0 on an arm64. Both GCC 14 and clang 16
-# generated identical results. All but astc_mipmap_ldr_4x4 are passing on x86_64 machines with
-# these newly generated files so let's run these on arm64 as well.
-# run this
+# With reference files regenerated with ASTC encoder 5.2.0 on an arm64,
+# which produces identical results when compiled with either GCC 14 or
+# clang 16, all but astc_mipmap_ldr_4x4 pass on x86_64 machines as well.
+# Run thesse ASTC tests on arm64 as well.
 #if (NOT ${CPU_ARCHITECTURE} STREQUAL "arm64" )
   gencmpktx( astc_mipmap_ldr_cubemap_6x6 astc_mipmap_ldr_cubemap_6x6.ktx2 "../srcimages/Yokohama3/posx.jpg ../srcimages/Yokohama3/negx.jpg ../srcimages/Yokohama3/posy.jpg ../srcimages/Yokohama3/negy.jpg ../srcimages/Yokohama3/posz.jpg ../srcimages/Yokohama3/negz.jpg" "--test --encode astc --astc_blk_d 6x6 --genmipmap --cubemap" "" "" )
 #endif()
@@ -252,7 +252,7 @@ gencmpktx( astc_mipmap_ldr_6x6_kodim17_medium     astc_mipmap_ldr_6x6_kodim17_me
 
 #if (NOT ${CPU_ARCHITECTURE} STREQUAL "arm64" )
 if (NOT ${CPU_ARCHITECTURE} STREQUAL "x86_64" )
-  #This test is failing on x64_64 machines. All others are passing.
+  # This test is failing on x64_64 machines so prevent it running.
   gencmpktx( astc_mipmap_ldr_4x4_posx     astc_mipmap_ldr_4x4_posx.ktx2   ../srcimages/Yokohama3/posx.jpg "--test --encode astc --astc_blk_d 4x4   --genmipmap" "" "" )
 endif()
   gencmpktx( astc_mipmap_ldr_6x5_posx     astc_mipmap_ldr_6x5_posx.ktx2   ../srcimages/Yokohama3/posx.jpg "--test --encode astc --astc_blk_d 6x5   --genmipmap" "" "" )
