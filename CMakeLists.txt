@@ -879,6 +879,25 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
             PROPERTIES COMPILE_OPTIONS "-Wno-stringop-overflow"
         )
     endif()
+    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "14.0")
+        # Version 14 raises stringop-overflow on these files.
+        get_source_file_property(cur_options
+            external/basisu/encoder/basisu_comp.cpp
+            COMPILE_OPTIONS
+        )
+        set_source_files_properties(
+            external/basisu/transcoder/basisu_transcoder.cpp
+            PROPERTIES COMPILE_OPTIONS  "${cur_options};-Wno-stringop-overflow"
+        )
+        get_source_file_property(cur_options
+            external/basisu/encoder/basisu_bc7enc.cpp
+            COMPILE_OPTIONS
+        )
+        set_source_files_properties(
+            external/basisu/encoder/basisu_bc7enc.cpp
+            PROPERTIES COMPILE_OPTIONS  "${cur_options};-Wno-stringop-overflow"
+        )
+    endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     if (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
         # Versions equivalency from https://en.wikipedia.org/wiki/Xcode#Xcode_11.x_-_14.x_(since_SwiftUI_framework)_2

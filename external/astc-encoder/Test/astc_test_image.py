@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # -----------------------------------------------------------------------------
-# Copyright 2019-2023 Arm Limited
+# Copyright 2019-2024 Arm Limited
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy
@@ -148,8 +148,16 @@ def format_result(image, reference, result):
         str: The metrics string.
     """
     dPSNR = result.psnr - reference.psnr
-    sTTime = reference.tTime / result.tTime
-    sCTime = reference.cTime / result.cTime
+
+    try:
+        sTTime = reference.tTime / result.tTime
+    except ZeroDivisionError:
+        sTTime = float('NaN')
+
+    try:
+        sCTime = reference.cTime / result.cTime
+    except ZeroDivisionError:
+        sCTime = float('NaN')
 
     name  = "%5s %s" % (result.blkSz, result.name)
     tPSNR = "%2.3f dB (% 1.3f dB)" % (result.psnr, dPSNR)
@@ -211,8 +219,16 @@ def run_test_set(encoder, testRef, testSet, quality, blockSizes, testRuns,
                 refResult = testRef.get_matching_record(res)
                 res.set_status(determine_result(image, refResult, res))
 
-                res.tTimeRel = refResult.tTime / res.tTime
-                res.cTimeRel = refResult.cTime / res.cTime
+                try:
+                    res.tTimeRel = refResult.tTime / res.tTime
+                except ZeroDivisionError:
+                    res.tTimeRel = float('NaN')
+
+                try:
+                    res.cTimeRel = refResult.cTime / res.cTime
+                except ZeroDivisionError:
+                    res.cTimeRel = float('NaN')
+
                 res.psnrRel = res.psnr - refResult.psnr
 
                 res = format_result(image, refResult, res)
@@ -251,7 +267,7 @@ def get_encoder_params(encoderName, referenceName, imageSet):
         _, version, simd = encoderName.split("-")
 
         # 2.x, 3.x, and 4.x variants
-        compatible2xPrefixes = ["2.", "3.", "4."]
+        compatible2xPrefixes = ["2.", "3.", "4.", "5."]
         if any(True for x in compatible2xPrefixes if version.startswith(x)):
             encoder = te.Encoder2xRel(version, simd)
             name = f"reference-{version}-{simd}"
@@ -289,13 +305,13 @@ def parse_command_line():
     refcoders = ["ref-1.7",
                  "ref-2.5-neon", "ref-2.5-sse2", "ref-2.5-sse4.1", "ref-2.5-avx2",
                  "ref-3.7-neon", "ref-3.7-sse2", "ref-3.7-sse4.1", "ref-3.7-avx2",
-                 "ref-4.4-neon", "ref-4.4-sse2", "ref-4.4-sse4.1", "ref-4.4-avx2",
-                 "ref-4.5-neon", "ref-4.5-sse2", "ref-4.5-sse4.1", "ref-4.5-avx2",
-                 "ref-main-neon", "ref-main-sse2", "ref-main-sse4.1", "ref-main-avx2"]
+                 "ref-4.8-neon", "ref-4.8-sse2", "ref-4.8-sse4.1", "ref-4.8-avx2",
+                 "ref-5.0-neon", "ref-5.0-sse2", "ref-5.0-sse4.1", "ref-5.0-avx2",
+                 "ref-main-neon", "ref-main-sve_256", "ref-main-sve_128", "ref-main-sse2", "ref-main-sse4.1", "ref-main-avx2"]
 
     # All test encoders
-    testcoders = ["none", "neon", "sse2", "sse4.1", "avx2", "native", "universal"]
-    testcodersAArch64 = ["neon"]
+    testcoders = ["none", "neon", "sve_256", "sve_128", "sse2", "sse4.1", "avx2", "native", "universal"]
+    testcodersAArch64 = ["neon", "sve_256", "sve_128"]
     testcodersX86 = ["sse2", "sse4.1", "avx2"]
 
     coders = refcoders + testcoders + ["all-aarch64", "all-x86"]

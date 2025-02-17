@@ -20,8 +20,9 @@ The 4.8.0 release is a minor maintenance release.
     language behavior, to improve support for deployment using Emscripten.
   * **Feature:** Builds using Clang can now build with undefined behavior
     sanitizer by setting `-DASTCENC_UBSAN=ON` on the CMake configure line.
-  * **Feature:** Updated to Wuffs library 0.3.4, which ignores tRNS alpha chunks
-    for type 4 (LA) and 6 (RGBA) PNGs, to improve compatibility with libpng.
+  * **Feature:** Updated to Wuffs library 0.3.4, which ignores tRNS alpha
+    chunks for type 4 (LA) and 6 (RGBA) PNGs, to improve compatibility with
+    libpng.
 
 <!-- ---------------------------------------------------------------------- -->
 ## 4.7.0
@@ -33,8 +34,8 @@ the decompressor to match the Khronos specification. This fix includes the
 addition of explicit support for optimizing for `decode_unorm8` rounding.
 
 Reminder - the codec library API is not designed to be binary compatible across
-versions. We always recommend rebuilding your client-side code using the updated
-`astcenc.h` header.
+versions. We always recommend rebuilding your client-side code using the
+updated `astcenc.h` header.
 
 * **General:**
   * **Bug fix:** sRGB LDR decompression now uses the correct endpoint expansion

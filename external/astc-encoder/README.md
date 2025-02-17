@@ -58,8 +58,7 @@ from 0.89 bits/pixel up to 8 bits/pixel.
 Release build binaries for the `astcenc` stable releases are provided in the
 [GitHub Releases page][3].
 
-* Change log: [4.x series](./Docs/ChangeLog-4x.md)
-* Change log: [3.x series](./Docs/ChangeLog-3x.md)
+* Change log: [5.x series](./Docs/ChangeLog-5x.md)
 
 Binaries are provided for 64-bit builds on Windows, macOS, and Linux.
 
@@ -99,12 +98,12 @@ to be a stable branch for the latest major release series, but as it is used
 for ongoing development expect it to have some volatility. We recommend using
 the latest stable release tag for production development.
 
-The `3.x` branch is a stable branch for the 3.x release series. It is no longer
-under active development, but is a supported branch that continues to get
-backported bug fixes.
+The `4.x` branch is a stable branch for the older 4.x release series. It is no
+longer under active development, but is a supported branch that continues to
+get back-ported bug fixes.
 
-The `1.x` and `2.x` branches are stable branches for older releases. They are
-no longer under active development or getting bug fixes.
+The `1.x`, `2.x`, and `3.x` branches are stable branches for older releases.
+They are no longer under active development or getting bug fixes.
 
 Any other branches you might find are development branches for new features or
 optimizations, so might be interesting to play with but should be considered

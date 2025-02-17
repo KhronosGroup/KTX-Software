@@ -1,6 +1,6 @@
 #  SPDX-License-Identifier: Apache-2.0
 #  ----------------------------------------------------------------------------
-#  Copyright 2020-2024 Arm Limited
+#  Copyright 2020-2025 Arm Limited
 #
 #  Licensed under the Apache License, Version 2.0 (the "License"); you may not
 #  use this file except in compliance with the License. You may obtain a copy
@@ -27,8 +27,8 @@ else()
     set(ASTCENC_CODEC enc)
 endif()
 
-set(ASTCENC_ARTIFACTS native none neon avx2 sse4.1 sse2)
-set(ASTCENC_CONFIGS ${ASTCENC_ISA_NATIVE} ${ASTCENC_ISA_NONE} ${ASTCENC_ISA_NEON} ${ASTCENC_ISA_AVX2} ${ASTCENC_ISA_SSE41} ${ASTCENC_ISA_SSE2})
+set(ASTCENC_ARTIFACTS native none sve_256 sve_128 neon avx2 sse4.1 sse2)
+set(ASTCENC_CONFIGS ${ASTCENC_ISA_NATIVE} ${ASTCENC_ISA_NONE} ${ASTCENC_ISA_SVE_256} ${ASTCENC_ISA_SVE_128} ${ASTCENC_ISA_NEON} ${ASTCENC_ISA_AVX2} ${ASTCENC_ISA_SSE41} ${ASTCENC_ISA_SSE2})
 list(LENGTH ASTCENC_ARTIFACTS ASTCENC_ARTIFACTS_LEN)
 math(EXPR ASTCENC_ARTIFACTS_LEN "${ASTCENC_ARTIFACTS_LEN} - 1")
 
@@ -38,7 +38,11 @@ foreach(INDEX RANGE ${ASTCENC_ARTIFACTS_LEN})
     if(${ASTCENC_CONFIG})
         set(ASTCENC_ISA_SIMD ${ASTCENC_ARTIFACT})
 
-        if(${ASTCENC_ISA_SIMD} MATCHES "neon")
+        if(${ASTCENC_ISA_SIMD} MATCHES "sve_256")
+           # Not suported on macOS
+        elseif(${ASTCENC_ISA_SIMD} MATCHES "sve_128")
+           # Not suported on macOS
+        elseif(${ASTCENC_ISA_SIMD} MATCHES "neon")
            set(CMAKE_OSX_ARCHITECTURES arm64)
         elseif(${ASTCENC_ISA_SIMD} MATCHES "sse2")
            set(CMAKE_OSX_ARCHITECTURES x86_64)
@@ -100,6 +104,19 @@ if(${ASTCENC_UNITTEST})
     set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
     set(CMAKE_OSX_ARCHITECTURES x86_64;arm64)
     add_subdirectory(GoogleTest)
+
+    # Workaround GoogleTest CRT selection issue issue
+    # See https://github.com/google/googletest/issues/4067
+    set_property(
+        TARGET gtest
+            PROPERTY
+                MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
+    set_property(
+        TARGET gtest_main
+            PROPERTY
+                MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
     enable_testing()
     add_subdirectory(UnitTest)
 endif()

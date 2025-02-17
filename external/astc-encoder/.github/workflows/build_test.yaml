@@ -1,5 +1,5 @@
-name: build-test
-run-name: Build and test
+name: Build and test
+run-name: Build and test PR${{ github.event.number }}
 
 on:
   workflow_dispatch:
@@ -8,8 +8,127 @@ on:
       - main
 
 jobs:
-  build-ubuntu:
-    name: Build and test on Ubuntu
+  build-ubuntu-arm64-clang:
+    name: Ubuntu arm64 Clang
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+
+      - name: Install ImageMagick
+        run: sudo apt install imagemagick
+
+      - name: Build release
+        run: |
+          export CXX=clang++
+          mkdir build_rel
+          cd build_rel
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_UNITTEST=ON -DASTCENC_ISA_NEON=ON -DASTCENC_ISA_SVE_128=ON -DASTCENC_ISA_SVE_256=ON -DASTCENC_ISA_NONE=ON -DASTCENC_PACKAGE=arm64 ..
+          make install package -j4
+
+      - name: Build debug
+        run: |
+          export CXX=clang++
+          mkdir build_dbg
+          cd build_dbg
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DASTCENC_ISA_NEON=ON -DASTCENC_ISA_SVE_128=ON -DASTCENC_ISA_SVE_256=ON -DASTCENC_ISA_NONE=ON ..
+          make -j4
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: astcenc-linux-arm64
+          path: |
+            build_rel/*.zip
+            build_rel/*.zip.sha256
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Get Python modules
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy Pillow
+
+      - name: Run system tests
+        # GitHub is using Cobalt-100, which has 128-bit SVE so we cannot test sve_256 here
+        run: |
+          python ./Test/astc_test_functional.py --encoder none
+          python ./Test/astc_test_functional.py --encoder neon
+          python ./Test/astc_test_functional.py --encoder sve_128
+          python ./Test/astc_test_image.py --encoder none --test-set Small
+          python ./Test/astc_test_image.py --encoder neon --test-set Small
+          python ./Test/astc_test_image.py --encoder sve_128 --test-set Small
+
+      - name: Run unit tests
+        # GitHub is using Cobalt-100, which has 128-bit SVE so we cannot test sve_256 here
+        run: ctest -E test-unit-sve_256 --rerun-failed --output-on-failure
+        working-directory: build_rel
+
+  build-ubuntu-arm64-gcc:
+    name: Ubuntu arm64 GCC
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+
+      - name: Install ImageMagick
+        run: sudo apt install imagemagick
+
+      - name: Install GCC 14
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-14
+
+      - name: Build release
+        run: |
+          export CXX=g++-14
+          mkdir build_rel
+          cd build_rel
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_UNITTEST=ON -DASTCENC_ISA_NEON=ON -DASTCENC_ISA_SVE_128=ON -DASTCENC_ISA_NONE=ON ..
+          make install -j4
+
+      - name: Build debug
+        run: |
+          export CXX=g++-14
+          mkdir build_dbg
+          cd build_dbg
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DASTCENC_ISA_NEON=ON DASTCENC_ISA_SVE_128=ON -DASTCENC_ISA_NONE=ON ..
+          make -j4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Get Python modules
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy Pillow
+
+      - name: Run system tests
+        # GitHub is using Cobalt-100, which has 128-bit SVE so we cannot test sve_256 here
+        run: |
+          python ./Test/astc_test_functional.py --encoder none
+          python ./Test/astc_test_functional.py --encoder neon
+          python ./Test/astc_test_functional.py --encoder sve_128
+          python ./Test/astc_test_image.py --encoder none --test-set Small
+          python ./Test/astc_test_image.py --encoder neon --test-set Small
+          python ./Test/astc_test_image.py --encoder sve_128 --test-set Small
+
+      - name: Run unit tests
+        # GitHub is using Cobalt-100, which has 128-bit SVE so we cannot test sve_256 here
+        run: ctest -E test-unit-sve_256 --rerun-failed --output-on-failure
+        working-directory: build_rel
+
+  build-ubuntu-x64-clang:
+    name: Ubuntu x64 Clang
     runs-on: ubuntu-22.04
     steps:
       - name: Git checkout
@@ -17,15 +136,15 @@ jobs:
         with:
           submodules: 'true'
 
-      - name: Build R
+      - name: Build release
         run: |
           export CXX=clang++
           mkdir build_rel
           cd build_rel
-          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_ISA_NONE=ON -DASTCENC_UNITTEST=ON -DASTCENC_PACKAGE=x64 ..
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_UNITTEST=ON -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_ISA_NONE=ON -DASTCENC_UNITTEST=ON -DASTCENC_PACKAGE=x64 ..
           make install package -j4
 
-      - name: Build D
+      - name: Build debug
         run: |
           export CXX=clang++
           mkdir build_dbg
@@ -51,46 +170,135 @@ jobs:
           python -m pip install --upgrade pip
           pip install numpy Pillow
 
-      - name: Python Tests
+      - name: Run system tests
         run: |
-          python ./Test/astc_test_functional.py --encoder=none
-          python ./Test/astc_test_functional.py --encoder=sse2
-          python ./Test/astc_test_functional.py --encoder=sse4.1
-          python ./Test/astc_test_functional.py --encoder=avx2
-          python ./Test/astc_test_image.py --encoder=none --test-set Small --test-quality medium
-          python ./Test/astc_test_image.py --encoder=all-x86 --test-set Small --test-quality medium
+          python ./Test/astc_test_functional.py --encoder none
+          python ./Test/astc_test_functional.py --encoder sse2
+          python ./Test/astc_test_functional.py --encoder sse4.1
+          python ./Test/astc_test_functional.py --encoder avx2
+          python ./Test/astc_test_image.py --encoder none --test-set Small
+          python ./Test/astc_test_image.py --encoder all-x86 --test-set Small
 
-      - name: ctest
-        run: ctest
+      - name: Run unit tests
+        run: ctest --rerun-failed --output-on-failure
         working-directory: build_rel
 
-  build-macos:
-    name: Build and test on MacOS
-    runs-on: macos-12
+  build-ubuntu-x64-gcc:
+    name: Ubuntu x64 GCC
+    runs-on: ubuntu-22.04
     steps:
       - name: Git checkout
         uses: actions/checkout@v4
         with:
           submodules: 'true'
 
-      - name: Build R
+      - name: Build release
+        run: |
+          export CXX=g++
+          mkdir build_rel
+          cd build_rel
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_UNITTEST=ON -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_ISA_NONE=ON -DASTCENC_UNITTEST=ON -DASTCENC_PACKAGE=x64 ..
+          make install package -j4
+
+      - name: Build debug
+        run: |
+          export CXX=g++
+          mkdir build_dbg
+          cd build_dbg
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_ISA_NONE=ON ..
+          make -j4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Get Python modules
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy Pillow
+
+      - name: Python rests
+        run: |
+          python ./Test/astc_test_functional.py --encoder none
+          python ./Test/astc_test_functional.py --encoder sse2
+          python ./Test/astc_test_functional.py --encoder sse4.1
+          python ./Test/astc_test_functional.py --encoder avx2
+          python ./Test/astc_test_image.py --encoder none --test-set Small
+          python ./Test/astc_test_image.py --encoder all-x86 --test-set Small
+
+      - name: Run unit tests
+        run: ctest --rerun-failed --output-on-failure
+        working-directory: build_rel
+
+  build-macos-x64-clang:
+    name: macOS x64 Clang
+    runs-on: macos-14
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+
+      - name: Build release
         run: |
           mkdir build_rel
           cd build_rel
-          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_UNIVERSAL_BUILD=OFF -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_PACKAGE=x64 ..
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_UNITTEST=ON -DASTCENC_UNIVERSAL_BUILD=OFF -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_PACKAGE=x64 ..
           make install package -j4
 
-      - name: Build D
+      - name: Build debug
         run: |
           mkdir build_dbg
           cd build_dbg
           cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DASTCENC_UNIVERSAL_BUILD=OFF -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_ISA_NONE=ON ..
           make -j4
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Get Python modules
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy Pillow
+
+      - name: Run system tests
+        run: |
+          python ./Test/astc_test_image.py  --encoder sse4.1 --test-set Small
+
+      - name: Run unit tests
+        run: ctest -E test-unit-avx2 --rerun-failed --output-on-failure
+        working-directory: build_rel
+
+  build-macos-universal-clang:
+    name: macOS universal Clang
+    runs-on: macos-14
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+
+      - name: Build release
+        run: |
+          mkdir build_rel
+          cd build_rel
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_UNITTEST=ON -DASTCENC_UNIVERSAL_BUILD=ON -DASTCENC_PACKAGE=x64 ..
+          make install package -j4
+
+      - name: Build debug
+        run: |
+          mkdir build_dbg
+          cd build_dbg
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DASTCENC_UNIVERSAL_BUILD=ON ..
+          make -j4
+
       - name: Upload binaries
         uses: actions/upload-artifact@v4
         with:
-          name: astcenc-macos-x64
+          name: astcenc-macos-universal
           path: |
             build_rel/*.zip
             build_rel/*.zip.sha256
@@ -105,12 +313,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install numpy Pillow
 
-      - name: Python Tests
+      - name: Run system tests
         run: |
-          python ./Test/astc_test_image.py --test-set Small --test-quality medium
+          python ./Test/astc_test_image.py --encoder universal --test-set Small
 
-  build-windows-msvc:
-    name: Build and test on Windows MSVC
+      - name: Run unit tests
+        run: ctest -E test-unit-avx2 --rerun-failed --output-on-failure
+        working-directory: build_rel
+
+  build-windows-x64-msvc:
+    name: Windows x64 MSVC
     runs-on: windows-2022
     steps:
       - name: Git checkout
@@ -118,28 +330,24 @@ jobs:
         with:
           submodules: 'true'
 
-      - name: Setup Visual Studio x86_6
+      - name: Setup Visual Studio x86_64
         uses: ilammy/msvc-dev-cmd@v1
-      - name: Build R
+
+      - name: Build release
         run: |
           mkdir build_rel
           cd build_rel
-          cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_PACKAGE=x64-cl ..
+          cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_UNITTEST=ON -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_PACKAGE=x64 ..
           nmake install package
         shell: cmd
-      - name: Build D
+
+      - name: Build debug
         run: |
           mkdir build_dbg
           cd build_dbg
           cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Debug -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_ISA_NONE=ON ..
           nmake
         shell: cmd
-
-      - name: Upload binaries
-        uses: actions/upload-artifact@v4
-        with:
-          name: astcenc-windows-x64-cl
-          path: build_rel/*.zip
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -152,13 +360,17 @@ jobs:
           pip install numpy Pillow
         shell: cmd
 
-      - name: Python Tests
+      - name: Run system tests
         run: |
-          python ./Test/astc_test_image.py --test-set Small --test-quality medium
+          python ./Test/astc_test_image.py --test-set Small
         shell: cmd
 
-  build-windows-ClangCL:
-    name: Build and test on Windows ClangCL
+      - name: Run unit tests
+        run: ctest -C Release --rerun-failed --output-on-failure
+        working-directory: build_rel
+
+  build-windows-x64-clangcl:
+    name: Windows x64 ClangCL
     runs-on: windows-2022
     steps:
       - name: Git checkout
@@ -166,50 +378,31 @@ jobs:
         with:
           submodules: 'true'
 
-      - name: Setup Visual Studio x86_6
+      - name: Setup Visual Studio x86_64
         uses: ilammy/msvc-dev-cmd@v1
-      - name: Build R
+
+      - name: Build release
         run: |
           mkdir build_rel
           cd build_rel
-          cmake -G "Visual Studio 17 2022" -T ClangCL -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_PACKAGE=x64-clangcl ..
+          cmake -G "Visual Studio 17 2022" -T ClangCL -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_UNITTEST=ON -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_PACKAGE=x64 ..
           msbuild astcencoder.sln -property:Configuration=Release
           msbuild PACKAGE.vcxproj -property:Configuration=Release
           msbuild INSTALL.vcxproj -property:Configuration=Release
         shell: cmd
-      - name: Build D
+
+      - name: Build debug
         run: |
           mkdir build_dbg
           cd build_dbg
-          cmake -G "Visual Studio 17 2022" -T ClangCL -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON ..
-          msbuild astcencoder.sln -property:Configuration=Debug
-        shell: cmd
-
-      - name: Setup Visual Studio arm64
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: x86_arm64
-      - name: Build R
-        run: |
-          mkdir build_rel_arm64
-          cd build_rel_arm64
-          cmake -G "Visual Studio 17 2022" -A ARM64 -T ClangCL -DASTCENC_ISA_NEON=ON -DASTCENC_PACKAGE=arm64-clangcl ..
-          msbuild astcencoder.sln -property:Configuration=Release
-          msbuild PACKAGE.vcxproj -property:Configuration=Release
-          msbuild INSTALL.vcxproj -property:Configuration=Release
-        shell: cmd
-      - name: Build D
-        run: |
-          mkdir build_dbg_arm64
-          cd build_dbg_arm64
-          cmake -G "Visual Studio 17 2022" -A ARM64 -T ClangCL -DASTCENC_ISA_NEON=ON ..
+          cmake -G "Visual Studio 17 2022" -T ClangCL -DASTCENC_UNITTEST=ON -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON ..
           msbuild astcencoder.sln -property:Configuration=Debug
         shell: cmd
 
       - name: Upload binaries
         uses: actions/upload-artifact@v4
         with:
-          name: astcenc-windows-multi-clangcl
+          name: astcenc-windows-x64
           path: |
             build_rel/*.zip
             build_rel_arm64/*.zip
@@ -225,7 +418,50 @@ jobs:
           pip install numpy Pillow
         shell: cmd
 
-      - name: Python Tests
+      - name: Run system tests
         run: |
-          python ./Test/astc_test_image.py --test-set Small --test-quality medium
+          python ./Test/astc_test_image.py --test-set Small
         shell: cmd
+
+      - name: Run unit tests
+        run: ctest -C Release --rerun-failed --output-on-failure
+        working-directory: build_rel
+
+  build-windows-arm64-clangcl:
+    name: Windows arm64 ClangCL
+    runs-on: windows-2022
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+
+      - name: Setup Visual Studio arm64
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x86_arm64
+
+      - name: Build release
+        run: |
+          mkdir build_rel
+          cd build_rel
+          cmake -G "Visual Studio 17 2022" -A ARM64 -T ClangCL -DASTCENC_ISA_NEON=ON -DASTCENC_PACKAGE=arm64-clangcl ..
+          msbuild astcencoder.sln -property:Configuration=Release
+          msbuild PACKAGE.vcxproj -property:Configuration=Release
+          msbuild INSTALL.vcxproj -property:Configuration=Release
+        shell: cmd
+
+      - name: Build debug
+        run: |
+          mkdir build_dbg
+          cd build_dbg
+          cmake -G "Visual Studio 17 2022" -A ARM64 -T ClangCL -DASTCENC_ISA_NEON=ON ..
+          msbuild astcencoder.sln -property:Configuration=Debug
+        shell: cmd
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: astcenc-windows-arm64
+          path: |
+            build_rel/*.zip

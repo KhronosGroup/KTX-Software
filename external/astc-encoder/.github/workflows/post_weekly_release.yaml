@@ -1,5 +1,5 @@
 name: post-weekly-release
-run-name: Build, test, generate signed artefacts and optionally prepare release
+run-name: Build, test, generate signed artifacts and optionally prepare release
 
 on:
   workflow_dispatch:
@@ -14,18 +14,19 @@ on:
 jobs:
 
   coverity:
-    if: ${{ !startsWith(github.event.ref, 'refs/tags/') }}
-    name: Run Coverity Static Analysis
+    if: ${{ (!startsWith(github.event.ref, 'refs/tags/')) && (github.repository_owner == 'Arm-software') }}
+    name: Run Coverity static analysis
     runs-on: [self-hosted-ubuntu-latest-x64]
     steps:
       - name: Clean workspace
         uses: AutoModality/action-clean@v1
+
       - name: Git checkout
         uses: actions/checkout@v4
         with:
           submodules: 'true'
 
-      - name: Coverity Preparation
+      - name: Coverity preparation
         run: |
           export PATH=$PATH:/usr/local/cov-analysis/bin
           mkdir build_cov
@@ -34,19 +35,19 @@ jobs:
           cov-configure --config ${GITHUB_WORKSPACE}/coverity.conf --template --compiler cc --comptype gcc
           cov-configure --config ${GITHUB_WORKSPACE}/coverity.conf --template --compiler c++ --comptype g++
 
-      - name: Coverity Build
+      - name: Coverity build
         run: |
           export PATH=$PATH:/usr/local/cov-analysis/bin
           cd build_cov
           cov-build --config ${GITHUB_WORKSPACE}/coverity.conf --dir ${GITHUB_WORKSPACE}/intermediate make install
 
-      - name: Coverity Analyse
+      - name: Coverity analyze
         run: |
           export PATH=$PATH:/usr/local/cov-analysis/bin
           cd build_cov
           cov-analyze --dir ${GITHUB_WORKSPACE}/intermediate
 
-      - name: Coverity Upload
+      - name: Coverity upload
         env:
           COVERITY_KEY: ${{ secrets.COVERITY_KEY }}
         run: |
@@ -61,8 +62,54 @@ jobs:
             --auth-key-file ../coverity.key \
             --strip-path ${GITHUB_WORKSPACE}
 
-  build-ubuntu:
-    name: Build and test on Ubuntu
+  build-ubuntu-arm64:
+    name: Ubuntu arm64
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+
+      - name: Install ImageMagick
+        run: sudo apt install imagemagick
+
+      - name: Build release
+        run: |
+          export CXX=clang++
+          mkdir build_rel
+          cd build_rel
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_ISA_NEON=ON -DASTCENC_ISA_SVE_128=ON -DASTCENC_ISA_SVE_256=ON -DASTCENC_PACKAGE=arm64 ..
+          make install package -j4
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: astcenc-linux-arm64
+          path: |
+            build_rel/*.zip
+            build_rel/*.zip.sha256
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Get Python modules
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy Pillow
+
+      - name: Run system tests
+        # GitHub is using Cobalt-100, which has 128-bit SVE so we cannot test sve_256 here
+        run: |
+          python ./Test/astc_test_functional.py --encoder neon
+          python ./Test/astc_test_functional.py --encoder sve_128
+          python ./Test/astc_test_image.py --encoder neon --test-set Small
+          python ./Test/astc_test_image.py --encoder sve_128 --test-set Small
+
+  build-ubuntu-x64:
+    name: Ubuntu x64
     runs-on: ubuntu-22.04
     steps:
       - name: Git checkout
@@ -70,21 +117,13 @@ jobs:
         with:
           submodules: 'true'
 
-      - name: Build R
+      - name: Build release
         run: |
           export CXX=clang++
           mkdir build_rel
           cd build_rel
           cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_PACKAGE=x64 ..
           make install package -j4
-
-      - name: Build D
-        run: |
-          export CXX=clang++
-          mkdir build_dbg
-          cd build_dbg
-          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_DECOMPRESSOR=ON ..
-          make -j4
 
       - name: Upload binaries
         uses: actions/upload-artifact@v4
@@ -104,21 +143,21 @@ jobs:
           python -m pip install --upgrade pip
           pip install numpy Pillow
 
-      - name: Python Tests
+      - name: Run system tests
         run: |
           python ./Test/astc_test_functional.py
-          python ./Test/astc_test_image.py --encoder=all-x86 --test-set Small
+          python ./Test/astc_test_image.py --encoder all-x86 --test-set Small
 
-  build-macos:
-    name: Build and test on MacOS
-    runs-on: macos-12
+  build-macos-universal:
+    name: macOS universal
+    runs-on: macos-14
     steps:
       - name: Git checkout
         uses: actions/checkout@v4
         with:
           submodules: 'true'
 
-      - name: Build R
+      - name: Build release
         run: |
           mkdir build_rel
           cd build_rel
@@ -143,12 +182,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install numpy Pillow
 
-      - name: Python Tests
+      - name: Run system tests
         run: |
           python ./Test/astc_test_image.py --test-set Small --encoder universal
 
-  build-windows-msvc-ClangCL:
-    name: Build and test on Windows MSVC
+  build-windows-multi:
+    name: Windows multi
     runs-on: windows-2022
     steps:
       - name: Git checkout
@@ -158,7 +197,8 @@ jobs:
 
       - name: Setup Visual Studio x86_64
         uses: ilammy/msvc-dev-cmd@v1
-      - name: Build R x86_64
+
+      - name: Build release x64
         run: |
           mkdir build_rel
           cd build_rel
@@ -172,7 +212,8 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x86_arm64
-      - name: Build R arm64
+
+      - name: Build release arm64
         run: |
           mkdir build_rel_arm64
           cd build_rel_arm64
@@ -203,18 +244,20 @@ jobs:
           pip install numpy Pillow
         shell: cmd
 
-      - name: Python Tests
+      - name: Run system tests
         run: |
           python ./Test/astc_test_image.py --test-set Small
         shell: cmd
 
   sign-binaries:
-    name: Sign Windows and Mac
+    if: github.repository_owner == 'Arm-software'
+    name: Sign Windows and macOS
     runs-on: [self-hosted-ubuntu-latest-x64]
-    needs: [build-macos, build-windows-msvc-ClangCL]
+    needs: [build-macos-universal, build-windows-multi]
     steps:
       - name: Clean workspace
         uses: AutoModality/action-clean@v1
+
       - name: Checkout signing code
         env:
           SIGNING_REPO_URL: ${{ secrets.SIGNING_REPO_URL }}
@@ -231,19 +274,19 @@ jobs:
           . ./cs/bin/activate
           pip install -i https://${ARTIFACTORY_USER}:${ARTIFACTORY_APIKEY}@${ARTIFACTORY_FQDN}/artifactory/api/pypi/dsgcore.pypi/simple code-signer-client
 
+      - name: Download macOS binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: astcenc-macos-universal
+          path: mac
+
       - name: Download Windows binaries
         uses: actions/download-artifact@v4
         with:
           name: astcenc-windows-multi-cl
           path: windows
 
-      - name: Download Mac binaries
-        uses: actions/download-artifact@v4
-        with:
-          name: astcenc-macos-universal
-          path: mac
-
-      - name: Sign and notarize Mac
+      - name: Sign macOS binaries
         env:
           CODESIGNER_USER: ${{ secrets.CODESIGNER_USER }}
         run: |
@@ -268,7 +311,7 @@ jobs:
             windows/*
             mac/*
 
-      - name: Tidy intermediate artefacts
+      - name: Tidy intermediate artifacts
         uses: geekyeggo/delete-artifact@v5
         with:
           name: |
@@ -276,10 +319,10 @@ jobs:
             astcenc-macos-universal
 
   prepare-release:
-    if: ${{ startsWith(github.event.ref, 'refs/tags/') }}
+    if: ${{ (startsWith(github.event.ref, 'refs/tags/')) && (github.repository_owner == 'Arm-software') }}
     name: Prepare release
     runs-on: ubuntu-22.04
-    needs: [sign-binaries, build-ubuntu]
+    needs: [sign-binaries, build-ubuntu-x64]
     steps:
       - name: Git checkout
         uses: actions/checkout@v4
@@ -289,10 +332,17 @@ jobs:
         with:
           name: signed-binaries
           path: prepare-release
-      - name: Download Linux binaries
+
+      - name: Download Linux x86_64 binaries
         uses: actions/download-artifact@v4
         with:
           name: astcenc-linux-x86_64
+          path: prepare-release
+
+      - name: Download Linux arm64 binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: astcenc-linux-arm64
           path: prepare-release
 
       - name: Flatten file structure
@@ -326,7 +376,7 @@ jobs:
           body_path: prepare-release/release_body.md
           draft: true
 
-      - name: Attach artefacts
+      - name: Attach artifacts
         uses: AButler/upload-release-assets@v3.0
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}

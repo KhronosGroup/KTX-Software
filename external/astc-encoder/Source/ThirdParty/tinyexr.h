@@ -10887,7 +10887,7 @@ static int DecodeChunk(EXRImage *exr_image, const EXRHeader *exr_header,
     size_t num_tiles = offsets.size();  // = # of blocks
 
     exr_image->tiles = static_cast<EXRTile *>(
-        calloc(sizeof(EXRTile), static_cast<size_t>(num_tiles)));
+        calloc(static_cast<size_t>(num_tiles), sizeof(EXRTile)));
 
     int err_code = TINYEXR_SUCCESS;
 

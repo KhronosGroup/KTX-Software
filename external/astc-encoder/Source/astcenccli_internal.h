@@ -398,6 +398,16 @@ void launch_threads(
 	void *payload);
 
 /**
+ * @brief Set the current thread name to a string value.
+ *
+ * For portability strings should be no longer than 16 characters.
+ *
+ * @param name   The thread name.
+ */
+void set_thread_name(
+	const char* name);
+
+/**
  * @brief The main entry point.
  *
  * @param argc   The number of arguments.
