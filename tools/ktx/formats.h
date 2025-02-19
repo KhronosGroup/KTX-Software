@@ -580,30 +580,44 @@ namespace ktx {
     //   VK_FORMAT_R8_SRGB
     case VK_FORMAT_R8_UNORM: [[fallthrough]];
     case VK_FORMAT_R8_SNORM: [[fallthrough]];
+    case VK_FORMAT_R8_UINT: [[fallthrough]];
+    case VK_FORMAT_R8_SINT: [[fallthrough]];
 
     //   VK_FORMAT_R8G8_SRGB
     case VK_FORMAT_R8G8_UNORM: [[fallthrough]];
     case VK_FORMAT_R8G8_SNORM: [[fallthrough]];
+    case VK_FORMAT_R8G8_UINT: [[fallthrough]];
+    case VK_FORMAT_R8G8_SINT: [[fallthrough]];
 
     //   VK_FORMAT_R8G8B8_SRGB
     case VK_FORMAT_R8G8B8_UNORM: [[fallthrough]];
     case VK_FORMAT_R8G8B8_SNORM: [[fallthrough]];
+    case VK_FORMAT_R8G8B8_UINT: [[fallthrough]];
+    case VK_FORMAT_R8G8B8_SINT: [[fallthrough]];
 
     //   VK_FORMAT_B8G8R8_SRGB
     case VK_FORMAT_B8G8R8_UNORM: [[fallthrough]];
     case VK_FORMAT_B8G8R8_SNORM: [[fallthrough]];
+    case VK_FORMAT_B8G8R8_UINT: [[fallthrough]];
+    case VK_FORMAT_B8G8R8_SINT: [[fallthrough]];
 
     //   VK_FORMAT_R8G8B8A8_SRGB
     case VK_FORMAT_R8G8B8A8_UNORM: [[fallthrough]];
     case VK_FORMAT_R8G8B8A8_SNORM: [[fallthrough]];
+    case VK_FORMAT_R8G8B8A8_UINT: [[fallthrough]];
+    case VK_FORMAT_R8G8B8A8_SINT: [[fallthrough]];
 
     //   VK_FORMAT_B8G8R8A8_SRGB
     case VK_FORMAT_B8G8R8A8_UNORM: [[fallthrough]];
     case VK_FORMAT_B8G8R8A8_SNORM: [[fallthrough]];
+    case VK_FORMAT_B8G8R8A8_UINT: [[fallthrough]];
+    case VK_FORMAT_B8G8R8A8_SINT: [[fallthrough]];
 
     //   VK_FORMAT_A8B8G8R8_SRGB_PACK32
     case VK_FORMAT_A8B8G8R8_UNORM_PACK32: [[fallthrough]];
     case VK_FORMAT_A8B8G8R8_SNORM_PACK32: [[fallthrough]];
+    case VK_FORMAT_A8B8G8R8_UINT_PACK32: [[fallthrough]];
+    case VK_FORMAT_A8B8G8R8_SINT_PACK32: [[fallthrough]];
 
     //   VK_FORMAT_BC1_RGB_SRGB_BLOCK
     case VK_FORMAT_BC1_RGB_UNORM_BLOCK: [[fallthrough]];
