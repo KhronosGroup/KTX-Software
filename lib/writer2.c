@@ -883,9 +883,6 @@ ktxTexture2_DeflateZstd(ktxTexture2* This, ktx_uint32_t compressionLevel)
     This->dataSize = byteLengthCmp;
     This->supercompressionScheme = KTX_SS_ZSTD;
     This->_private->_requiredLevelAlignment = 1;
-    // Clear bytesPlane to indicate we're now unsized.
-    uint32_t* bdb = This->pDfd + 1;
-    bdb[KHR_DF_WORD_BYTESPLANE0] = 0; /* bytesPlane3..0 = 0 */
 
     return KTX_SUCCESS;
 
@@ -972,9 +969,6 @@ ktxTexture2_DeflateZLIB(ktxTexture2* This, ktx_uint32_t compressionLevel)
     This->dataSize = byteLengthCmp;
     This->supercompressionScheme = KTX_SS_ZLIB;
     This->_private->_requiredLevelAlignment = 1;
-    // Clear bytesPlane to indicate we're now unsized.
-    uint32_t* bdb = This->pDfd + 1;
-    bdb[KHR_DF_WORD_BYTESPLANE0] = 0; /* bytesPlane3..0 = 0 */
 
     return KTX_SUCCESS;
 }
