@@ -419,6 +419,7 @@ set(KTX_MAIN_SRC
     lib/vkFormat2glInternalFormat.inl
     lib/vkFormat2glType.inl
     lib/vkformat_check.c
+    lib/vkformat_check_variant.c
     lib/vkformat_enum.h
     lib/vkformat_str.c
     lib/vkformat_typesize.c

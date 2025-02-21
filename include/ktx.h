@@ -1123,9 +1123,10 @@ KTX_API ktx_uint32_t KTX_APIENTRY
 ktxTexture2_GetNumComponents(ktxTexture2* This);
 
 KTX_API khr_df_transfer_e KTX_APIENTRY
-ktxTexture2_GetOETF_e(ktxTexture2* This);
-
+ktxTexture2_GetTransferFunction_e(ktxTexture2* This);
 // For backward compatibility
+KTX_API khr_df_transfer_e KTX_APIENTRY
+ktxTexture2_GetOETF_e(ktxTexture2* This);
 KTX_API ktx_uint32_t KTX_APIENTRY
 ktxTexture2_GetOETF(ktxTexture2* This);
 
@@ -1141,6 +1142,9 @@ ktxTexture2_GetPrimaries_e(ktxTexture2* This);
 KTX_API ktx_bool_t KTX_APIENTRY
 ktxTexture2_NeedsTranscoding(ktxTexture2* This);
 
+KTX_API ktx_error_code_e KTX_APIENTRY
+ktxTexture2_SeTransferFunction(ktxTexture2* This, khr_df_transfer_e oetf);
+// For backward compatibility
 KTX_API ktx_error_code_e KTX_APIENTRY
 ktxTexture2_SetOETF(ktxTexture2* This, khr_df_transfer_e oetf);
 
@@ -1321,17 +1325,18 @@ ktxTexture2_DecodeAstc(ktxTexture2* This);
  * @brief Structure for passing extended parameters to
  *        ktxTexture2_CompressBasisEx().
  *
- * If you only want default values, use ktxTexture2_CompressBasis(). Here, at a minimum you
- * must initialize the structure as follows:
+ * If you only want default values, use ktxTexture2_CompressBasis(). Here, at
+ * a minimum you must initialize the structure as follows:
  * @code
  *  ktxBasisParams params = {0};
  *  params.structSize = sizeof(params);
  *  params.compressionLevel = KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL;
  * @endcode
  *
- * @e compressionLevel has to be explicitly set because 0 is a valid @e compressionLevel
- * but is not the default used by the BasisU encoder when no value is set. Only the other
- * settings that are to be non-default must be non-zero.
+ * @e compressionLevel has to be explicitly set because 0 is a valid
+ * @e compressionLevel but is not the default used by the BasisU encoder
+ * when no value is set. Only the other settings that are to be non-default
+ * must be non-zero.
  */
 typedef struct ktxBasisParams {
     ktx_uint32_t structSize;
@@ -1353,10 +1358,11 @@ typedef struct ktxBasisParams {
     /* ETC1S params */
 
     ktx_uint32_t compressionLevel;
-        /*!< Encoding speed vs. quality tradeoff. Range is [0,5]. Higher values
-             are slower, but give higher quality. There is no default. Callers
-             must explicitly set this value. Callers can use
-             KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL as a default value.
+        /*!< Encoding speed vs. quality tradeoff. Range is [0,6]. Higher values
+             are much slower, but give slightly higher quality. Higher levels
+             are intended for video. There is no default. Callers must
+             explicitly set this value. Callers can use
+             KTX\_ETC1S\_DEFAULT\_COMPRESSION\_LEVEL as a default value.
              Currently this is 2.
         */
     ktx_uint32_t qualityLevel;
