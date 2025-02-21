@@ -1616,10 +1616,8 @@ void CommandCreate::executeCreate() {
                 if (target.format().transfer() != KHR_DF_TRANSFER_UNSPECIFIED && target.format().transfer() != KHR_DF_TRANSFER_LINEAR) {
                     fatal(rc::INVALID_FILE,
                         "Input file \"{}\" The transfer function to be applied to the created texture is neither linear nor none. Normalize is only available for linear images. "
-                        "Use or modify {} or {} settings to assign the transfer function or convert the input image to linear, if required.",
-                        OptionsCreate::kAssignOetf, OptionsCreate::kConvertOetf);
-
-                        fmtInFile(inputFilepath));
+                        "Use or modify \"{}\" or \"{}\" settings to assign the transfer function or convert the input image to linear, if required.",
+                        fmtInFile(inputFilepath), OptionsCreate::kAssignOetf, OptionsCreate::kConvertOetf);
                     }
                 image->normalize();
             }
