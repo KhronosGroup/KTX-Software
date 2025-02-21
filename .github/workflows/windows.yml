@@ -53,7 +53,7 @@ jobs:
         check_mkvk: [ NO ]
         options: [
           {config: 'Debug,Release',
-           doc: ON, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tests: ON, tools: ON, tools_cts: ON,
+           doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tests: ON, tools: ON, tools_cts: ON,
            package: YES,
            sse: ON, opencl: OFF},
           {config: Release,
@@ -76,7 +76,7 @@ jobs:
             arch: x64
             options: {
               config: 'Debug,Release',
-              doc: ON, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tests: ON, tools: ON, tools_cts: ON,
+              doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tests: ON, tools: ON, tools_cts: ON,
               package: NO,
               sse: ON, opencl: OFF
             }
@@ -86,7 +86,7 @@ jobs:
             arch: arm64
             options: {
               config: 'Debug,Release',
-              doc: ON, jni: ON, loadtests: OpenGL+Vulkan, py: OFF, tests: ON, tools: ON, tools_cts: ON,
+              doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: OFF, tests: ON, tools: ON, tools_cts: ON,
               package: YES
             }
     runs-on: ${{ matrix.os }}
