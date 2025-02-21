@@ -19,7 +19,21 @@ on:
       - 'v[0-9]+.[0-9]+.[0-9]+-*'
     paths-ignore:
       - .appveyor.yml
+      - .github/workflows/android.yml
+      - .github/workflows/check-mkvk.yml
+      - .github/workflows/docs.yml
+      - .github/workflows/mingw.yml
+      - .github/workflows/publish-pyktx.yml
       - .travis.yml
+      - README.md
+      - CODE_OF_CONDUCT.md
+      - CONTRIBUTING.md
+      - LICENSE.md
+      - LICENSES
+      - REUSE.toml
+      - install-gitconfig*
+      - vcpkg.json
+      - vcpkg-configuration.json
 
   # Allow manual trigger
   workflow_dispatch:
