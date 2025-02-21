@@ -4,8 +4,6 @@ name: Build and Deploy Reference Pages and Other Documentation
 
 # Ensure documentation builds on all platforms. Deploy from the Ubuntu build.
 
-# Ensure documentation builds on all platforms. Deploy from the Ubuntu build.
-
 on:
   # Trigger the workflow on a pull request,
   pull_request:
