@@ -41,6 +41,7 @@
 #define IS_BIG_ENDIAN 0
 
 extern uint32_t vkFormatTypeSize(VkFormat format);
+extern bool isProhibitedFormat(VkFormat format);
 
 struct ktxTexture_vtbl ktxTexture2_vtbl;
 struct ktxTexture_vtblInt ktxTexture2_vtblInt;
@@ -414,7 +415,8 @@ ktxTexture2_constructCommon(ktxTexture2* This, ktx_uint32_t numLevels)
  * @exception KTX_OUT_OF_MEMORY Not enough memory for the texture or image data.
  * @exception KTX_UNSUPPORTED_TEXTURE_TYPE
  *                              The request VkFormat is one of the
- *                              prohibited formats.
+ *                              prohibited formats or is otherwise
+ *                              unsupported.
  */
 static KTX_error_code
 ktxTexture2_construct(ktxTexture2* This,
@@ -427,6 +429,8 @@ ktxTexture2_construct(ktxTexture2* This,
     memset(This, 0, sizeof(*This));
 
     if (createInfo->vkFormat != VK_FORMAT_UNDEFINED) {
+        if (isProhibitedFormat(createInfo->vkFormat))
+            return KTX_UNSUPPORTED_TEXTURE_TYPE;
         This->pDfd = ktxVk2dfd(createInfo->vkFormat);
         if (!This->pDfd)
             return KTX_INVALID_VALUE;  // Format is unknown or unsupported.
