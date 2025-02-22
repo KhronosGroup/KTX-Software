@@ -45,7 +45,7 @@ namespace ktx {
         <dt>\--threads &lt;count&gt;</dt>
         <dd>Explicitly set the number of threads to use during
             compression. By default, ETC1S / BasisLZ will use the number of
-            threads reported by thread::hardware_concurrency or 1 if value
+            threads reported by @c thread::hardware_concurrency or 1 if value
             returned is 0.</dd>
         <dt>\--no-sse</dt>
         <dd>Forbid use of the SSE instruction set. Ignored if CPU does
