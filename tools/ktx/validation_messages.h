@@ -450,9 +450,9 @@ struct DFD {
         6029, "Too many BDFD samples. The number of BDFD samples exceeds the validator limit.",
         "DFD block #{} sample count in basic DFD block is {} which exceeds the validator limit of {}. Skipping validation of the last {} sample(s) ({} byte(s))."
     };
-    static constexpr IssueError BasicProhibitedTransferFunction{
-        6030, "Prohibited transferFunction in basic DFD block.",
-        "DFD block #{} transferFunction in basic DFD block is {} but that transferFunction is prohibited."
+    static constexpr IssueWarning BytesPlanesUnsized{
+        6030, "Old specification bytesPlanes in basic DFD block. In specification 2.0.4+ BytesPlanes must be non-zero for supercompressed textures.",
+        "DFD block #{} bytesPlanes in basic DFD block are {} {} {} {} {} {} {} {} but for {} supercompressed textures at least one of these must be non-zero."
     };
 
     // 61xx - Basic Data Format Descriptor Block sample related issues:
