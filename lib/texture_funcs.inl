@@ -52,13 +52,6 @@ KTX_error_code CLASS_FUNC(SetImageFromMemory)(CLASS* This,
                                ktx_uint32_t faceSlice,
                                const ktx_uint8_t* src, ktx_size_t srcSize);
 
-KTX_error_code CLASS_FUNC(WriteToStdioStream)(CLASS* This, FILE* dstsstr);
-KTX_error_code CLASS_FUNC(WriteToNamedFile)(CLASS* This,
-                                             const char* const dstname);
-KTX_error_code CLASS_FUNC(WriteToMemory)(CLASS* This,
-                          ktx_uint8_t** ppDstBytes, ktx_size_t* pSize);
-KTX_error_code CLASS_FUNC(WriteToStream)(CLASS* This,
-                          ktxStream* dststr);
 
 /*
  ======================================

@@ -1037,27 +1037,34 @@ KTX_API ktx_bool_t KTX_APIENTRY
 ktxTexture1_NeedsTranscoding(ktxTexture1* This);
 
 /*
- * Write a ktxTexture object to a stdio stream in KTX format.
+ * These four write a ktxTexture1 object to a KTX v1 file.
+ */
+KTX_API KTX_error_code KTX_APIENTRY
+ktxTexture1_WriteToStdioStream(ktxTexture1* This, FILE* dstsstr);
+
+KTX_API KTX_error_code KTX_APIENTRY
+ktxTexture1_WriteToNamedFile(ktxTexture1* This, const char* const dstname);
+
+KTX_API KTX_error_code KTX_APIENTRY
+ktxTexture1_WriteToMemory(ktxTexture1* This,
+                             ktx_uint8_t** bytes, ktx_size_t* size);
+
+KTX_API KTX_error_code KTX_APIENTRY
+ktxTexture1_WriteToStream(ktxTexture1* This, ktxStream *dststr);
+
+/*
+ * These four write a ktxTexture1 object to a KTX v2 file.
  */
 KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture1_WriteKTX2ToStdioStream(ktxTexture1* This, FILE* dstsstr);
 
-/*
- * Write a ktxTexture object to a named file in KTX format.
- */
 KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture1_WriteKTX2ToNamedFile(ktxTexture1* This, const char* const dstname);
 
-/*
- * Write a ktxTexture object to a block of memory in KTX format.
- */
 KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture1_WriteKTX2ToMemory(ktxTexture1* This,
                              ktx_uint8_t** bytes, ktx_size_t* size);
 
-/*
- * Write a ktxTexture object to a ktxStream in KTX format.
- */
 KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture1_WriteKTX2ToStream(ktxTexture1* This, ktxStream *dststr);
 
@@ -1150,6 +1157,22 @@ ktxTexture2_SetOETF(ktxTexture2* This, khr_df_transfer_e oetf);
 
 KTX_API ktx_error_code_e KTX_APIENTRY
 ktxTexture2_SetPrimaries(ktxTexture2* This, khr_df_primaries_e primaries);
+
+/*
+ * These four write a ktxTexture2 object to a KTX v2 file.
+ */
+KTX_API KTX_error_code KTX_APIENTRY
+ktxTexture2_WriteToStdioStream(ktxTexture2* This, FILE* dstsstr);
+
+KTX_API KTX_error_code KTX_APIENTRY
+ktxTexture2_WriteToNamedFile(ktxTexture2* This, const char* const dstname);
+
+KTX_API KTX_error_code KTX_APIENTRY
+ktxTexture2_WriteToMemory(ktxTexture2* This,
+                             ktx_uint8_t** bytes, ktx_size_t* size);
+
+KTX_API KTX_error_code KTX_APIENTRY
+ktxTexture2_WriteToStream(ktxTexture2* This, ktxStream *dststr);
 
 /**
  * @~English
