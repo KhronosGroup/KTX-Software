@@ -1036,6 +1036,9 @@ ktxTexture1_Destroy(ktxTexture1* This);
 KTX_API ktx_bool_t KTX_APIENTRY
 ktxTexture1_NeedsTranscoding(ktxTexture1* This);
 
+KTX_API ktx_error_code_e KTX_APIENTRY
+ktxTexture1_LoadImageData(ktxTexture1* This, ktx_uint8_t* pBuffer, ktx_size_t bufSize);
+
 /*
  * These four write a ktxTexture1 object to a KTX v1 file.
  */
@@ -1131,7 +1134,7 @@ ktxTexture2_GetNumComponents(ktxTexture2* This);
 
 KTX_API khr_df_transfer_e KTX_APIENTRY
 ktxTexture2_GetTransferFunction_e(ktxTexture2* This);
-// For backward compatibility
+/* For backward compatibility. */
 KTX_API khr_df_transfer_e KTX_APIENTRY
 ktxTexture2_GetOETF_e(ktxTexture2* This);
 KTX_API ktx_uint32_t KTX_APIENTRY
@@ -1151,12 +1154,21 @@ ktxTexture2_NeedsTranscoding(ktxTexture2* This);
 
 KTX_API ktx_error_code_e KTX_APIENTRY
 ktxTexture2_SeTransferFunction(ktxTexture2* This, khr_df_transfer_e oetf);
-// For backward compatibility
+/* For backward compatibility. */
 KTX_API ktx_error_code_e KTX_APIENTRY
 ktxTexture2_SetOETF(ktxTexture2* This, khr_df_transfer_e oetf);
 
 KTX_API ktx_error_code_e KTX_APIENTRY
 ktxTexture2_SetPrimaries(ktxTexture2* This, khr_df_primaries_e primaries);
+
+KTX_API ktx_error_code_e KTX_APIENTRY
+ktxTexture2_LoadImageData(ktxTexture2* This, ktx_uint8_t* pBuffer, ktx_size_t bufSize);
+/*
+ * For rare testing scenarios. Use ktxTexture2_LoadImageData.
+ */
+KTX_API ktx_error_code_e KTX_APIENTRY
+ktxTexture2_LoadDeflatedImageData(ktxTexture2* This,
+                                  ktx_uint8_t* pBuffer, ktx_size_t bufSize);
 
 /*
  * These four write a ktxTexture2 object to a KTX v2 file.
