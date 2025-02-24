@@ -1614,10 +1614,21 @@ void CommandCreate::executeCreate() {
 
             if (options.normalize) {
                 if (target.format().transfer() != KHR_DF_TRANSFER_UNSPECIFIED && target.format().transfer() != KHR_DF_TRANSFER_LINEAR) {
-                    fatal(rc::INVALID_FILE,
-                        "Input file \"{}\" The transfer function to be applied to the created texture is neither linear nor none. Normalize is only available for linear images. "
-                        "Use or modify \"{}\" or \"{}\" settings to assign the transfer function or convert the input image to linear, if required.",
-                        fmtInFile(inputFilepath), OptionsCreate::kAssignOetf, OptionsCreate::kConvertOetf);
+                    const auto input_error_message = "Input file \"{}\" The transfer function to be applied to the created texture is neither linear nor none. Normalize is only available for these transfer functions.";
+                    const auto assign_error_message = "Input file \"{}\" Use \"{}\" to assign the linear transfer function to the input image, if required.";
+                    const auto convert_error_message = "Input file \"{}\" Modify \"{}\" settings to convert the input image to linear transfer function, if required.";
+                    const auto inputTransfer =  inputImageFile->spec().format().transfer();
+                    bool is_file_error = (inputTransfer != KHR_DF_TRANSFER_UNSPECIFIED && inputTransfer != KHR_DF_TRANSFER_LINEAR);
+                    bool is_assign_error =  !options.assignOETF.has_value();
+                    bool is_convert_error =  !options.convertOETF.has_value();
+                    if (is_assign_error)
+                        fatal(rc::INVALID_FILE, assign_error_message, fmtInFile(inputFilepath), OptionsCreate::kAssignOetf);
+                    else if (is_convert_error)
+                        fatal(rc::INVALID_FILE, convert_error_message, fmtInFile(inputFilepath), OptionsCreate::kConvertOetf);
+                    else {
+                        assert(is_file_error && "In this branch it must be the input file that has the transfre function issue"); (void)is_file_error;
+                        fatal(rc::INVALID_FILE, input_error_message, fmtInFile(inputFilepath));
+                    }
                     }
                 image->normalize();
             }
