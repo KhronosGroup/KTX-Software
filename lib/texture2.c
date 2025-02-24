@@ -275,13 +275,24 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
     This->blockWidth = KHR_DFDVAL(pBdb, TEXELBLOCKDIMENSION0) + 1;
     This->blockHeight = KHR_DFDVAL(pBdb, TEXELBLOCKDIMENSION1) + 1;
     This->blockDepth = KHR_DFDVAL(pBdb, TEXELBLOCKDIMENSION2) + 1;
+    if (KHR_DFDVAL(pBdb, BYTESPLANE0) == 0) {
+        // The DFD uses the deprecated way of indicating a supercompressed
+        // texture. Reconstruct the original values.
+        reconstructDFDBytesPlanesFromSamples(pDfd);
+    }
     This->blockSizeInBits = KHR_DFDVAL(pBdb, BYTESPLANE0) * 8;
+    // Account for ETC1S with possible second slice.
+    This->blockSizeInBits += KHR_DFDVAL(pBdb, BYTESPLANE1) * 8;
     This->paletteSizeInBits = 0; // No paletted formats in ktx v2.
     This->flags = 0;
     This->minBlocksX = This->minBlocksY = 1;
     if (KHR_DFDVAL(pBdb, MODEL) >= KHR_DF_MODEL_DXT1A) {
         // A block compressed format. Entire block is a single sample.
         This->flags |= KTX_FORMAT_SIZE_COMPRESSED_BIT;
+        if (KHR_DFDVAL(pBdb, MODEL) == KHR_DF_MODEL_ETC1S) {
+            // Special case the only multi-plane format we handle.
+            This->blockSizeInBits += KHR_DFDVAL(pBdb, BYTESPLANE1) * 8;
+        }
         if (KHR_DFDVAL(pBdb, MODEL) == KHR_DF_MODEL_PVRTC) {
             This->minBlocksX = This->minBlocksY = 2;
         }
@@ -327,19 +338,6 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
             if (result & i_YUVSDA_FORMAT_BIT)
                 This->flags |= KTX_FORMAT_SIZE_YUVSDA_BIT;
         }
-    }
-    if (This->blockSizeInBits == 0) {
-        // The DFD uses the deprecated way of indicating a supercompressed
-        // texture. Complete the ktxFormatSize struct by figuring out the post
-        // inflation value for bytesPlane0. Setting it here simplifies stuff
-        // later in this file and will not cause any problems for the
-        // following reasons. (1) in v2 files levelIndex is always used to
-        // calculate data size and, of course, for the level offsets. (2) Finer
-        // grain access to supercompressed data than levels is not possible.
-        //
-        // The value set here is applied to the DFD after the data has been
-        // inflated during loading.
-        This->blockSizeInBits = reconstructDFDBytesPlane0FromSamples(pDfd) * 8;
     }
     return true;
 }
@@ -2666,7 +2664,6 @@ ktxTexture2_inflateZstdInt(ktxTexture2* This, ktx_uint8_t* pDeflatedData,
                            ktx_uint8_t* pInflatedData,
                            ktx_size_t inflatedDataCapacity)
 {
-    DECLARE_PROTECTED(ktxTexture);
     ktx_uint32_t levelIndexByteLength =
                             This->numLevels * sizeof(ktxLevelIndexEntry);
     uint64_t levelOffset = 0;
@@ -2744,13 +2741,6 @@ ktxTexture2_inflateZstdInt(ktxTexture2* This, ktx_uint8_t* pDeflatedData,
     This->supercompressionScheme = KTX_SS_NONE;
     memcpy(cindex, nindex, levelIndexByteLength); // Update level index
     This->_private->_requiredLevelAlignment = uncompressedLevelAlignment;
-    uint32_t* bdb = This->pDfd + 1;
-    if (bdb[KHR_DF_WORD_BYTESPLANE0] == 0) {
-        // Deprecated bytesPlane == 0 for unsized. Set bytesPlane to indicate
-        // we're now sized.
-        // blockSizeInBits was set to the inflated size on file load.
-        bdb[KHR_DF_WORD_BYTESPLANE0] = prtctd->_formatSize.blockSizeInBits / 8;
-    }
 
 cleanup:
     ZSTD_freeDCtx(dctx);
@@ -2779,7 +2769,6 @@ ktxTexture2_inflateZLIBInt(ktxTexture2* This, ktx_uint8_t* pDeflatedData,
                            ktx_uint8_t* pInflatedData,
                            ktx_size_t inflatedDataCapacity)
 {
-    DECLARE_PROTECTED(ktxTexture);
     ktx_uint32_t levelIndexByteLength =
                             This->numLevels * sizeof(ktxLevelIndexEntry);
     uint64_t levelOffset = 0;
@@ -2837,14 +2826,6 @@ ktxTexture2_inflateZLIBInt(ktxTexture2* This, ktx_uint8_t* pDeflatedData,
     memcpy(cindex, nindex, levelIndexByteLength); // Update level index
     free(nindex);
     This->_private->_requiredLevelAlignment = uncompressedLevelAlignment;
-    // Set bytesPlane as we're now sized.
-    uint32_t* bdb = This->pDfd + 1;
-    if (bdb[KHR_DF_WORD_BYTESPLANE0] == 0) {
-        // Deprecated bytesPlane == 0 for unsized. Set bytesPlane to indicate
-        // we're now sized.
-        // blockSizeInBits was set to the inflated size on file load.
-        bdb[KHR_DF_WORD_BYTESPLANE0] = prtctd->_formatSize.blockSizeInBits / 8;
-    }
 
     return KTX_SUCCESS;
 }
