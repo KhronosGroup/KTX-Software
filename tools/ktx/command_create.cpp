@@ -1626,7 +1626,7 @@ void CommandCreate::executeCreate() {
                     else if (is_convert_error)
                         fatal(rc::INVALID_FILE, convert_error_message, fmtInFile(inputFilepath), OptionsCreate::kConvertOetf);
                     else {
-                        assert(is_file_error && "In this branch it must be the input file that has the transfre function issue"); (void)is_file_error;
+                        assert(is_file_error && "In this branch it must be the input file that has the transfer function issue"); (void)is_file_error;
                         fatal(rc::INVALID_FILE, input_error_message, fmtInFile(inputFilepath));
                     }
                     }
