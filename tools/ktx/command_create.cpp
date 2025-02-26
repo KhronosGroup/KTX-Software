@@ -1619,8 +1619,8 @@ void CommandCreate::executeCreate() {
                     const auto convert_error_message = "Input file \"{}\" Modify \"{}\" settings to convert the input image to linear transfer function, if required.";
                     const auto inputTransfer =  inputImageFile->spec().format().transfer();
                     bool is_file_error = (inputTransfer != KHR_DF_TRANSFER_UNSPECIFIED && inputTransfer != KHR_DF_TRANSFER_LINEAR);
-                    bool is_assign_error =  !options.assignOETF.has_value();
-                    bool is_convert_error =  !options.convertOETF.has_value();
+                    bool is_assign_error =  !options.assignTF.has_value();
+                    bool is_convert_error =  !options.convertTF.has_value();
                     if (is_assign_error)
                         fatal(rc::INVALID_FILE, assign_error_message, fmtInFile(inputFilepath), OptionsCreate::kAssignOetf);
                     else if (is_convert_error)
