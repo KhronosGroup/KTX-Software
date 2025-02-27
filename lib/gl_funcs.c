@@ -153,8 +153,8 @@ ktxFindOpenGL() {
     #pragma warning disable
 #endif
         pfnWglGetProcAddress =
-            reinterpret_cast<PFNGLGETPROCADDRESS>(GetProcAddress(module,
-                                                 "wglGetProcAddress"));
+            (PFNGLGETPROCADDRESS)GetProcAddress(module,
+                                               "wglGetProcAddress");
 #ifdef _MSVC_LANG
     #pragma warning restore
 #endif
