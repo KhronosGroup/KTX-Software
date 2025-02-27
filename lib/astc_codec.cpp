@@ -49,7 +49,13 @@ static int
 pthread_create(pthread_t* thread, const pthread_attr_t* attribs,
                void* (*threadfunc)(void*), void* thread_arg) {
     (void)attribs;
-    LPTHREAD_START_ROUTINE func = (LPTHREAD_START_ROUTINE)threadfunc;
+#ifdef _MSVC_LANG
+    #pragma warning disable
+#endif
+    LPTHREAD_START_ROUTINE func = reinterpret_cast<LPTHREAD_START_ROUTINE>(threadfunc);
+#ifdef _MSVC_LANG
+    #pragma warning restore
+#endif
     *thread = CreateThread(nullptr, 0, func, thread_arg, 0, nullptr);
     return 0;
 }
