@@ -303,6 +303,7 @@ if(MSVC)
     # Enable UTF-8 support
     add_compile_options( $<$<C_COMPILER_ID:MSVC>:/utf-8> )
     add_compile_options( $<$<CXX_COMPILER_ID:MSVC>:/utf-8> )
+    add_compile_options($<$<OR:$<COMPILE_LANGUAGE:C>,$<COMPILE_LANGUAGE:CXX>>:-Wno-cast-function-type-mismatch>)
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"
        OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
     add_compile_options( -Wall -Wextra $<$<BOOL:${KTX_WERROR}>:-Werror>)

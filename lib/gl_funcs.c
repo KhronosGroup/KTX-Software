@@ -149,15 +149,9 @@ ktxFindOpenGL() {
 
     if (found) {
         // Need wglGetProcAddr for non-OpenGL-2 functions.
-#ifdef _MSVC_LANG
-    #pragma warning disable
-#endif
         pfnWglGetProcAddress =
             (PFNGLGETPROCADDRESS)GetProcAddress(module,
                                                "wglGetProcAddress");
-#ifdef _MSVC_LANG
-    #pragma warning restore
-#endif
         if (pfnWglGetProcAddress != NULL)
             return module;
     }
