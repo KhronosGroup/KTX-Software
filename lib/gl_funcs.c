@@ -149,9 +149,17 @@ ktxFindOpenGL() {
 
     if (found) {
         // Need wglGetProcAddr for non-OpenGL-2 functions.
+#ifdef __clang__
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wcast-function-type-mismatche"
+#endif
         pfnWglGetProcAddress =
             (PFNGLGETPROCADDRESS)GetProcAddress(module,
                                                "wglGetProcAddress");
+#ifdef __clang__
+    #pragma clang diagnostic pop
+#endif
+
         if (pfnWglGetProcAddress != NULL)
             return module;
     }

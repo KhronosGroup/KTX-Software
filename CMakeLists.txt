@@ -307,7 +307,6 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"
        OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
     add_compile_options( -Wall -Wextra $<$<BOOL:${KTX_WERROR}>:-Werror>)
     add_compile_options( $<IF:$<CONFIG:Debug>,-O0$<SEMICOLON>-g,-O3> )
-    add_compile_options($<$<OR:$<COMPILE_LANGUAGE:C>,$<COMPILE_LANGUAGE:CXX>>:-Wno-cast-function-type-mismatch>)
     if(EMSCRIPTEN)
         add_link_options( $<IF:$<CONFIG:Debug>,-gsource-map,-O3> )
     else()
