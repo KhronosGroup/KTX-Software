@@ -769,7 +769,7 @@ TEST_F(DFDVkFormatListTest, ReconstructDFDBytesPlanes) {
         EXPECT_EQ(0U, KHR_DFDVAL(bdb, BYTESPLANE3));
         EXPECT_EQ(0U, bdb[KHR_DF_WORD_BYTESPLANE4]);
 
-        delete dfd;
+        delete[] dfd;
     }
 }
 
