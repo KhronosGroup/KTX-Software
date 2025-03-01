@@ -1153,7 +1153,7 @@ KTX_API ktx_bool_t KTX_APIENTRY
 ktxTexture2_NeedsTranscoding(ktxTexture2* This);
 
 KTX_API ktx_error_code_e KTX_APIENTRY
-ktxTexture2_SeTransferFunction(ktxTexture2* This, khr_df_transfer_e oetf);
+ktxTexture2_SetTransferFunction(ktxTexture2* This, khr_df_transfer_e tf);
 /* For backward compatibility. */
 KTX_API ktx_error_code_e KTX_APIENTRY
 ktxTexture2_SetOETF(ktxTexture2* This, khr_df_transfer_e oetf);
