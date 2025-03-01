@@ -29,7 +29,7 @@ public class KtxPackAstcBlockDimension {
     /**
      * 4.27 bpp
      */
-    public static final int D6x4 = 3;
+    public static final int D6x5 = 3;
 
     /**
      * 3.56 bpp
@@ -142,7 +142,7 @@ public class KtxPackAstcBlockDimension {
 		case D4x4: return "D4x4";
 		case D5x4: return "D5x4";
 		case D5x5: return "D5x5";
-		case D6x4: return "D6x4";
+		case D6x5: return "D6x5";
 		case D6x6: return "D6x6";
 		case D8x5: return "D8x5";
 		case D8x6: return "D8x6";

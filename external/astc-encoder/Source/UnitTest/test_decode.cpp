@@ -65,7 +65,7 @@ TEST(decode, decode12x12)
 
 	status = astcenc_decompress_image(context, data, 16, &image, &swizzle, 0);
 	EXPECT_EQ(status, ASTCENC_SUCCESS);
-
+#if 0
 	for (int y = 0; y < 12; y++)
 	{
 		for (int x = 0; x < 12; x++)
@@ -74,6 +74,7 @@ TEST(decode, decode12x12)
 			printf("[%2dx%2d] = %03d, %03d, %03d, %03d\n", x, y, pixel[0], pixel[1], pixel[2], pixel[3]);
 		}
 	}
+#endif
 }
 
 }

@@ -350,8 +350,7 @@ uint8_t* unorm8x4_array_from_astc_img(
 				color = clamp(0.0f, 1.0f, color) * 255.0f;
 
 				colori = float_to_int_rtn(color);
-				pack_low_bytes(colori);
-				store_nbytes(colori, dst + 4 * x);
+				pack_and_store_low_bytes(colori, dst + 4 * x);
 			}
 		}
 	}

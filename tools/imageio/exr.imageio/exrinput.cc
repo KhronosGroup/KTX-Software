@@ -37,7 +37,9 @@ public:
     }
     ~ExrInput() {
         // FreeEXRVersion(&version); // No need to call, no such function
-        FreeEXRImage(&image);
+        if (image.width != 0 && image.height != 0) {
+            FreeEXRImage(&image);
+        }
         FreeEXRHeader(&header);
         FreeEXRErrorMessage(err);
     }
@@ -165,6 +167,8 @@ void ExrInput::open(ImageSpec& newspec) {
                             width,
                             height,
                             1,
+                            // We make TinyEXR decode to top-left.
+                            ImageSpec::Origin(ImageSpec::Origin::eLeft, ImageSpec::Origin::eTop),
                             header.num_channels,
                             bitDepth,
                             static_cast<khr_df_sample_datatype_qualifiers_e>(qualifiers),
@@ -223,7 +227,24 @@ void ExrInput::readImage(void* outputBuffer, size_t bufferByteCount,
                     "Requested format conversion from the input type is not supported."));
     }
 
+    // Load image version
+    EXRVersion exr_version;
+    ec = ParseEXRVersionFromMemory(&exr_version, exrBuffer.data(), exrBuffer.size());
+    if (ec != TINYEXR_SUCCESS)
+        throw std::runtime_error(
+            fmt::format("EXR load error: {} - {}.", ec, "Failed to parse EXR version"));
+    if (exr_version.multipart || exr_version.non_image)
+        throw std::runtime_error(
+            fmt::format("EXR load error: {}.", "Unsupported EXR version (2.0)"));
+
     // Load image data
+
+    // TinyEXR decodes images so that the first bytes in the returned buffer
+    // are the top-left corner of the image with line_order == 0 "increasing Y"
+    // and the bottom-left corner otherwise, "decreasing Y". Force a top-left
+    // origin regardless of the line_order in the file. See
+    // https://github.com/syoyo/tinyexr/issues/213 for more information.
+    header.line_order = 0;
     ec = LoadEXRImageFromMemory(&image, &header, exrBuffer.data(), exrBuffer.size(), &err);
     if (ec != TINYEXR_SUCCESS)
         throw std::runtime_error(fmt::format("EXR load error: {} - {}.", ec, err));
@@ -251,6 +272,9 @@ void ExrInput::readImage(void* outputBuffer, size_t bufferByteCount,
             channels[3] = i;
         else
             warning(fmt::format("EXR load warning: Unrecognized channel \"{}\" is ignored.", header.channels[i].name));
+        // TODO: check for 1 channel "Y" and make greyscale texture.
+        // TODO: check for "Y", "RY" and "BY" (luminance/chroma) and reject as unsupported.
+        // TODO: check for "AR", "AG", "AB" and make texture with pre-multipled alpha provided there is also an A channel? Or reject?
     }
 
     // Copy the data

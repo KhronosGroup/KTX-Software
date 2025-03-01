@@ -1,0 +1,152 @@
+# Copyright 2025 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+name: Build and Deploy Reference Pages and Other Documentation
+
+# Ensure documentation builds on all platforms. Deploy from the Ubuntu build.
+
+on:
+  # Trigger the workflow on a pull request,
+  pull_request:
+
+  push:
+    # And on pushes to main, which will occur when a PR is merged.
+    branches:
+      - main
+    # Also trigger on push of release tags to any branch. Useful
+    # for testing release builds before merging to main.
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-*'
+    paths-ignore:
+      - .appveyor.yml
+      - .github/workflows/android.yml
+      - .github/workflows/check-mkvk.yml
+      - .github/workflows/formatting.yml
+      - .github/workflows/mingw.yml
+      - .github/workflows/publish-pyktx.yml
+      - .github/workflows/windows.yml
+      - .travis.yml
+      - README.md
+      - CODE_OF_CONDUCT.md
+      - CONTRIBUTING.md
+      - LICENSE.md
+      - LICENSES
+      - RELEASE_NOTES.md
+      - REUSE.toml
+      - install-gitconfig*
+      - vcpkg.json
+      - vcpkg-configuration.json
+
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  build-docs:
+    name: Build KTX-Software reference pages and documentation
+    strategy:
+      matrix:
+        os: [ macos-latest,  ubuntu-latest, windows-latest ]
+
+    runs-on: ${{ matrix.os }}
+
+    env:
+      BUILD_DIR: build
+      GIT_LFS_SKIP_SMUDGE: 1
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        # Fetch all history to make sure tags are
+        # included (used for version creation)
+        fetch-depth: 0
+
+    - name: Install Doxygen and Graphviz on macOS
+      if: matrix.os == 'macos-latest'
+      run: brew install --formula doxygen && brew install --formula graphviz && echo "Doxygen version $(doxygen --version)"
+
+    - name: Install Doxygen and Graphviz on Ubuntu
+      if: matrix.os == 'ubuntu-latest'
+      run: sudo apt-get install -y doxygen graphviz && echo "Doxygen version $(doxygen --version)"
+
+    - name: Install Doxygen and Graphviz on Windows
+      if: matrix.os == 'windows-latest'
+      #run: choco install doxygen.install
+      #run: choco install graphviz
+      # Note these suffer frequent failures due to Chocolatey attempts
+      # to blackmail you into purchasing a license. Hence we retry a
+      # few times. If this still fails, re-run the build.
+      run: |
+        function Install-WithChoco {
+            param ( $Package )
+            $retryCount = 4
+            $success = $false
+            for ($i = 1; $i -le $retryCount; $i++) {
+                Write-Host "Attempt no $i for $Package"
+                # Without | Out-Host the choco output becomes output of this
+                # function because it is called from within `if`.
+                choco install $Package --no-progress --yes | Out-Host
+                if ($LASTEXITCODE -eq 0) {
+                    $success = $true
+                    Write-Host "$Package installation successful."
+                    break
+                } else {
+                    Write-Host "$Package installation failed. Retrying..."
+                    Start-Sleep -Seconds (2*$i)
+                }
+            }
+            if (-not $success) {
+                Write-Host "$Package installation failed after $retryCount attempts."
+            }
+            return $success
+        }
+        if (-not ((Install-WithChoco doxygen.install) -and (Install-WithChoco graphviz))) {
+            exit 1
+        }
+        Import-Module "$env:ChocolateyInstall/helpers/chocolateyInstaller.psm1"
+        refreshenv
+        echo "Doxygen version $(doxygen --version)"
+
+    - name: Smudge dates (macOS and Ubuntu)
+      if:  matrix.os == 'macos-latest' || matrix.os == 'ubuntu-latest'
+      run: ./install-gitconfig.sh && scripts/smudge_date.sh
+
+    - name: Smudge dates (Windows)
+      if:  matrix.os == 'windows-latest'
+      run: ./install-gitconfig.ps1 && scripts/smudge_date.ps1
+
+    - name: Build docs
+      run: | 
+        cmake -B ${{ env.BUILD_DIR }} -D KTX_FEATURE_DOC=ON -D KTX_FEATURE_TESTS=OFF -D KTX_FEATURE_TOOLS=OFF
+        cmake --build ${{ env.BUILD_DIR }} --target all.doc
+
+    - name: Upload generated HTML documentation for GitHub Pages
+      if: matrix.os == 'ubuntu-latest'
+      id: deployment
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: ${{ env.BUILD_DIR }}/docs/html
+
+#  deploy:
+#    name: Deploy to GitHub Pages
+#    # Add a dependency to the build job
+#    needs: build-docs
+#    # Only deploy when building `main`.
+#    if: github.ref == 'refs/heads/main'
+#
+#    runs-on: ubuntu-latest
+#
+#    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+#    permissions:
+#      pages: write      # to deploy to Pages
+#      id-token: write   # to verify the deployment originates from an appropriate source
+#
+#    # Deploy to the github-pages environment
+#    environment:
+#      name: github-pages
+#      url: ${{ steps.deployment.outputs.page_url }}
+#
+#    # Specify deployment step
+#    steps:
+#      - name: Deploy to GitHub Pages
+#        id: deployment
+#        uses: actions/deploy-pages@v4

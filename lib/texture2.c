@@ -41,6 +41,7 @@
 #define IS_BIG_ENDIAN 0
 
 extern uint32_t vkFormatTypeSize(VkFormat format);
+extern bool isProhibitedFormat(VkFormat format);
 
 struct ktxTexture_vtbl ktxTexture2_vtbl;
 struct ktxTexture_vtblInt ktxTexture2_vtblInt;
@@ -414,7 +415,8 @@ ktxTexture2_constructCommon(ktxTexture2* This, ktx_uint32_t numLevels)
  * @exception KTX_OUT_OF_MEMORY Not enough memory for the texture or image data.
  * @exception KTX_UNSUPPORTED_TEXTURE_TYPE
  *                              The request VkFormat is one of the
- *                              prohibited formats.
+ *                              prohibited formats or is otherwise
+ *                              unsupported.
  */
 static KTX_error_code
 ktxTexture2_construct(ktxTexture2* This,
@@ -427,6 +429,8 @@ ktxTexture2_construct(ktxTexture2* This,
     memset(This, 0, sizeof(*This));
 
     if (createInfo->vkFormat != VK_FORMAT_UNDEFINED) {
+        if (isProhibitedFormat(createInfo->vkFormat))
+            return KTX_UNSUPPORTED_TEXTURE_TYPE;
         This->pDfd = ktxVk2dfd(createInfo->vkFormat);
         if (!This->pDfd)
             return KTX_INVALID_VALUE;  // Format is unknown or unsupported.
@@ -605,6 +609,9 @@ cleanup:
     return result;
 }
 
+bool isSrgbFormat(VkFormat format);
+bool isNotSrgbFormatButHasSrgbVariant(VkFormat format);
+
 /**
  * @memberof ktxTexture2 @private
  * @~English
@@ -773,10 +780,25 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
         result = KTX_FILE_DATA_ERROR;
         goto cleanup;
     }
-    if (pBDFD->transfer != KHR_DF_TRANSFER_LINEAR && pBDFD->transfer != KHR_DF_TRANSFER_SRGB) {
-        // Unsupported transfer function
-        result = KTX_FILE_DATA_ERROR;
-        goto cleanup;
+    if (pBDFD->transfer > KHR_DF_TRANSFER_HLG_UNNORMALIZED_OETF) {
+          // Invalid transfer function
+          result = KTX_FILE_DATA_ERROR;
+          goto cleanup;
+    }
+    // No test for VK_FORMAT_UNDEFINED is needed here because:
+    // - any transfer function is allowed when vkFormat is UNDEFINED as with,
+    //   e.g., some Basis Universal formats;
+    // - the following tests return false for VK_FORMAT_UNDEFINED.
+    if (isSrgbFormat(This->vkFormat) && pBDFD->transfer != KHR_DF_TRANSFER_SRGB) {
+          // Invalid transfer function
+          result = KTX_FILE_DATA_ERROR;
+          goto cleanup;
+    }
+    if (isNotSrgbFormatButHasSrgbVariant(This->vkFormat)
+        && pBDFD->transfer == KHR_DF_TRANSFER_SRGB) {
+          // Invalid transfer function
+          result = KTX_FILE_DATA_ERROR;
+          goto cleanup;
     }
 
     if (!ktxFormatSize_initFromDfd(&This->_protected->_formatSize, This->pDfd)) {
@@ -1897,11 +1919,30 @@ ktxTexture2_GetImageOffset(ktxTexture2* This, ktx_uint32_t level,
 /**
  * @memberof ktxTexture2
  * @~English
- * @brief Retrieve the opto-electrical transfer function of the images.
+ * @brief Retrieve the transfer function of the images.
  *
  * @param[in]     This      pointer to the ktxTexture2 object of interest.
  *
- * @return A @c khr_df_transfer enum value specifying the OETF.
+ * @return A @c khr_df_transfer enum value specifying the transfer function.
+ */
+khr_df_transfer_e
+ktxTexture2_GetTransferFunction_e(ktxTexture2* This)
+{
+    return KHR_DFDVAL(This->pDfd+1, TRANSFER);
+}
+
+/**
+ * @memberof ktxTexture2
+ * @~English
+ * @brief Retrieve the transfer function of the images.
+ * @deprecated Use ktxTexture2\_GetTransferFunction\_e. Now that the KTX
+ * specification allows setting of non-linear transfer functions other than
+ * sRGB, it is possible for the transfer function to be an EOTF so this
+ * name is no longer appropriate.
+ *
+ * @param[in]     This      pointer to the ktxTexture2 object of interest.
+ *
+ * @return A @c khr_df_transfer enum value specifying the transfer function.
  */
 khr_df_transfer_e
 ktxTexture2_GetOETF_e(ktxTexture2* This)
@@ -1912,13 +1953,13 @@ ktxTexture2_GetOETF_e(ktxTexture2* This)
 /**
  * @memberof ktxTexture2
  * @~English
- * @brief Retrieve the opto-electrical transfer function of the images.
- * @deprecated Use ktxTexture2\_GetOETF\_e().
+ * @brief Retrieve the transfer function of the images.
+ * @deprecated Use ktxTexture2\_GetTransferFunction\_e.
  *
  * @param[in]     This      pointer to the ktxTexture2 object of interest.
  *
- * @return A @c khr_df_transfer enum value specifying the OETF, returned as
- *         @c ktx_uint32_t.
+ * @return A @c khr_df_transfer enum value specifying the transfer function,
+ *         returned as @c ktx_uint32_t.
  */
 ktx_uint32_t
 ktxTexture2_GetOETF(ktxTexture2* This)
@@ -1990,19 +2031,60 @@ ktxTexture2_NeedsTranscoding(ktxTexture2* This)
 }
 
 #if KTX_FEATURE_WRITE
-bool isSrgbFormat(VkFormat format);
-
+/*
+ * @memberof ktxTexture2
+ * @ingroup writer
+ * @~English
+ * @brief Set the transfer function  for the images in a texture.
+ *
+ * @param[in]     This     pointer to the ktxTexture2
+ * @param[in]     tf       enumerator of the transfer function to set
+ *
+ * @return  KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_INVALID_OPERATION The transfer function is not valid for the
+ *                                  vkFormat of the texture.
+ * @exception KTX_INVALID_VALUE The transfer function is not allowed by the
+ *                              KTX spec.
+ */
 ktx_error_code_e
-ktxTexture2_SetOETF(ktxTexture2* This, khr_df_transfer_e oetf)
+ktxTexture2_SetTransferFunction(ktxTexture2* This, khr_df_transfer_e tf)
 {
-    if (isSrgbFormat(This->vkFormat) && oetf != KHR_DF_TRANSFER_SRGB)
+    if (isSrgbFormat(This->vkFormat) && tf != KHR_DF_TRANSFER_SRGB)
         return KTX_INVALID_OPERATION;
 
-    // TODO: Implement other checks for compliance with KTX spec. Revision 3
-    KHR_DFDSETVAL(This->pDfd + 1, TRANSFER, oetf);
+    if (isNotSrgbFormatButHasSrgbVariant(This->vkFormat) && tf == KHR_DF_TRANSFER_SRGB)
+        return KTX_INVALID_OPERATION;
+
+    KHR_DFDSETVAL(This->pDfd + 1, TRANSFER, tf);
     return KTX_SUCCESS;
 }
 
+/**
+ * @memberof ktxTexture2
+ * @ingroup writer
+ * @~English
+ * @brief Set the transfer function for the images in a texture.
+ * @deprecated Use ktxTexture2\_SetTransferFunction.
+ *
+ * @param[in]     This     pointer to the ktxTexture2
+ * @param[in]     tf       enumerator of the transfer function to set
+ */
+ktx_error_code_e
+ktxTexture2_SetOETF(ktxTexture2* This, khr_df_transfer_e tf)
+{
+    return ktxTexture2_SetTransferFunction(This, tf);
+}
+
+/**
+ * @memberof ktxTexture2
+ * @ingroup writer
+ * @~English
+ * @brief Set the primaries  for the images in a texture.
+ *
+ * @param[in]     This           pointer to the ktxTexture2
+ * @param[in]     primaries      enumerator of the primaries to set
+ */
 ktx_error_code_e
 ktxTexture2_SetPrimaries(ktxTexture2* This, khr_df_primaries_e primaries)
 {

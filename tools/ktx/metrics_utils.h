@@ -110,12 +110,10 @@ public:
 
         // Decode the encoded texture to observe the compression losses
         const auto* bdfd = texture->pDfd + 1;
-        if (khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_ASTC)
-        {
-            ec = ktxTexture2_DecodeAstc(texture, VK_FORMAT_R8G8B8A8_UNORM);
+        if (khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_ASTC) {
+            ec = ktxTexture2_DecodeAstc(texture);
         }
-        else
-        {
+        else {
             tSwizzleInfo = determineTranscodeSwizzle(texture, report);
             ec = ktxTexture2_TranscodeBasis(texture, KTX_TTF_RGBA32, 0);
         }

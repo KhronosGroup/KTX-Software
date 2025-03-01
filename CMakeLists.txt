@@ -419,6 +419,7 @@ set(KTX_MAIN_SRC
     lib/vkFormat2glInternalFormat.inl
     lib/vkFormat2glType.inl
     lib/vkformat_check.c
+    lib/vkformat_check_variant.c
     lib/vkformat_enum.h
     lib/vkformat_str.c
     lib/vkformat_typesize.c
@@ -877,6 +878,25 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         set_source_files_properties(
             external/basisu/encoder/basisu_uastc_enc.cpp
             PROPERTIES COMPILE_OPTIONS "-Wno-stringop-overflow"
+        )
+    endif()
+    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "14.0")
+        # Version 14 raises stringop-overflow on these files.
+        get_source_file_property(cur_options
+            external/basisu/encoder/basisu_comp.cpp
+            COMPILE_OPTIONS
+        )
+        set_source_files_properties(
+            external/basisu/transcoder/basisu_transcoder.cpp
+            PROPERTIES COMPILE_OPTIONS  "${cur_options};-Wno-stringop-overflow"
+        )
+        get_source_file_property(cur_options
+            external/basisu/encoder/basisu_bc7enc.cpp
+            COMPILE_OPTIONS
+        )
+        set_source_files_properties(
+            external/basisu/encoder/basisu_bc7enc.cpp
+            PROPERTIES COMPILE_OPTIONS  "${cur_options};-Wno-stringop-overflow"
         )
     endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")

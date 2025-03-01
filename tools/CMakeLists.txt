@@ -55,7 +55,7 @@ function(set_tool_properties tool_target)
             # Check DT_RUNPATH with one of
             # - readelf -d <file> | head -20
             # - objdump -x <file> | grep 'R.*PATH'
-            INSTALL_RPATH "\$ORIGIN;\$ORIGIN/../lib"
+            INSTALL_RPATH "\$ORIGIN;\$ORIGIN/../${CMAKE_INSTALL_LIBDIR}"
         )
     endif()
 endfunction()

@@ -1,0 +1,26 @@
+Image Set,Block Size,Name,PSNR,Total Time,Coding Time,Coding Rate
+HDRIHaven,4x4,hdr-rgb-arboretum.hdr,45.8046,1.5342,0.3969,1.4859
+HDRIHaven,4x4,hdr-rgb-bellparkpier.hdr,56.2870,1.4863,0.4220,1.3978
+HDRIHaven,4x4,hdr-rgb-canarywharf.hdr,50.0366,1.5331,0.4479,1.3168
+HDRIHaven,4x4,hdr-rgb-eveningroad.hdr,52.4315,1.5737,0.4197,1.4054
+HDRIHaven,4x4,hdr-rgb-riverwalk.hdr,34.9359,1.6700,0.5159,1.1433
+HDRIHaven,5x5,hdr-rgb-arboretum.hdr,41.6341,1.5100,0.3844,1.5344
+HDRIHaven,5x5,hdr-rgb-bellparkpier.hdr,52.4701,1.5200,0.4619,1.2768
+HDRIHaven,5x5,hdr-rgb-canarywharf.hdr,46.4281,1.5296,0.4567,1.2915
+HDRIHaven,5x5,hdr-rgb-eveningroad.hdr,49.2934,1.5667,0.4265,1.3829
+HDRIHaven,5x5,hdr-rgb-riverwalk.hdr,31.2162,1.7486,0.5112,1.1538
+HDRIHaven,6x6,hdr-rgb-arboretum.hdr,38.0203,1.5496,0.4359,1.3530
+HDRIHaven,6x6,hdr-rgb-bellparkpier.hdr,49.5959,1.4660,0.4415,1.3359
+HDRIHaven,6x6,hdr-rgb-canarywharf.hdr,43.5641,1.4529,0.4302,1.3710
+HDRIHaven,6x6,hdr-rgb-eveningroad.hdr,46.8519,1.4134,0.4110,1.4351
+HDRIHaven,6x6,hdr-rgb-riverwalk.hdr,28.7392,1.5354,0.4651,1.2682
+HDRIHaven,8x8,hdr-rgb-arboretum.hdr,33.7624,1.6178,0.5423,1.0877
+HDRIHaven,8x8,hdr-rgb-bellparkpier.hdr,45.7332,1.5885,0.5858,1.0069
+HDRIHaven,8x8,hdr-rgb-canarywharf.hdr,40.0260,1.6894,0.5961,0.9894
+HDRIHaven,8x8,hdr-rgb-eveningroad.hdr,43.7389,1.5827,0.5753,1.0253
+HDRIHaven,8x8,hdr-rgb-riverwalk.hdr,25.8109,1.7769,0.6178,0.9547
+HDRIHaven,12x12,hdr-rgb-arboretum.hdr,30.2874,1.9019,0.7545,0.7817
+HDRIHaven,12x12,hdr-rgb-bellparkpier.hdr,41.5439,1.7447,0.6695,0.8810
+HDRIHaven,12x12,hdr-rgb-canarywharf.hdr,36.7142,1.8530,0.7597,0.7764
+HDRIHaven,12x12,hdr-rgb-eveningroad.hdr,40.8829,1.7567,0.7422,0.7947
+HDRIHaven,12x12,hdr-rgb-riverwalk.hdr,23.1100,1.9763,0.8094,0.7287

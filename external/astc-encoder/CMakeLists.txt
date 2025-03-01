@@ -1,6 +1,6 @@
 #  SPDX-License-Identifier: Apache-2.0
 #  ----------------------------------------------------------------------------
-#  Copyright 2020-2024 Arm Limited
+#  Copyright 2020-2025 Arm Limited
 #
 #  Licensed under the Apache License, Version 2.0 (the "License"); you may not
 #  use this file except in compliance with the License. You may obtain a copy
@@ -25,7 +25,7 @@ if(MSVC)
     add_compile_options("/wd4324")
 endif()
 
-project(astcencoder VERSION 4.8.0)
+project(astcencoder VERSION 5.2.0)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -38,6 +38,8 @@ include(CTest)
 option(ASTCENC_ISA_AVX2 "Enable astcenc builds for AVX2 SIMD")
 option(ASTCENC_ISA_SSE41 "Enable astcenc builds for SSE4.1 SIMD")
 option(ASTCENC_ISA_SSE2 "Enable astcenc builds for SSE2 SIMD")
+option(ASTCENC_ISA_SVE_256 "Enable astcenc builds for 256-bit SVE SIMD")
+option(ASTCENC_ISA_SVE_128 "Enable astcenc builds for 128-bit SVE SIMD")
 option(ASTCENC_ISA_NEON "Enable astcenc builds for NEON SIMD")
 option(ASTCENC_ISA_NONE "Enable astcenc builds for no SIMD")
 option(ASTCENC_ISA_NATIVE "Enable astcenc builds for native SIMD")
@@ -49,6 +51,7 @@ option(ASTCENC_UBSAN "Enable astcenc builds with undefined behavior sanitizer")
 option(ASTCENC_UNITTEST "Enable astcenc builds with unit tests")
 option(ASTCENC_INVARIANCE "Enable astcenc floating point invariance" ON)
 option(ASTCENC_CLI "Enable build of astcenc command line tools" ON)
+option(ASTCENC_X86_GATHERS "Enable use of native x86 gathers" ON)
 
 # Preflight for some macOS-specific build options
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
@@ -86,7 +89,7 @@ endforeach()
 
 # Count options which MUST be arm64
 set(ASTCENC_ARM64_ISA_COUNT 0)
-set(ASTCENC_CONFIGS ${ASTCENC_ISA_NEON})
+set(ASTCENC_CONFIGS ${ASTCENC_ISA_NEON} ${ASTCENC_ISA_SVE_128} ${ASTCENC_ISA_SVE_256})
 foreach(ASTCENC_CONFIG ${ASTCENC_CONFIGS})
     if(${ASTCENC_CONFIG})
         math(EXPR ASTCENC_ARM64_ISA_COUNT "${ASTCENC_ARM64_ISA_COUNT} + 1")
@@ -117,22 +120,30 @@ if("${ASTCENC_BLOCK_MAX_TEXELS}")
      message(STATUS "  Max block texels - ${ASTCENC_BLOCK_MAX_TEXELS}")
 endif()
 
-printopt("AVX2 backend   " ${ASTCENC_ISA_AVX2})
-printopt("SSE4.1 backend " ${ASTCENC_ISA_SSE41})
-printopt("SSE2 backend   " ${ASTCENC_ISA_SSE2})
-printopt("NEON backend   " ${ASTCENC_ISA_NEON})
-printopt("NONE backend   " ${ASTCENC_ISA_NONE})
-printopt("NATIVE backend " ${ASTCENC_ISA_NATIVE})
+message(STATUS "Arm backend options")
+printopt("SVE 256b backend   " ${ASTCENC_ISA_SVE_256})
+printopt("SVE 128b backend   " ${ASTCENC_ISA_SVE_128})
+printopt("NEON backend       " ${ASTCENC_ISA_NEON})
+message(STATUS "x86-64 backend options")
+printopt("AVX2 backend       " ${ASTCENC_ISA_AVX2})
+printopt("SSE4.1 backend     " ${ASTCENC_ISA_SSE41})
+printopt("SSE2 backend       " ${ASTCENC_ISA_SSE2})
+printopt("Use native gathers " ${ASTCENC_X86_GATHERS})
+message(STATUS "Agnostic backend options")
+printopt("NONE backend       " ${ASTCENC_ISA_NONE})
+printopt("NATIVE backend     " ${ASTCENC_ISA_NATIVE})
+message(STATUS "Build options")
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
-    printopt("Universal bin  " ${ASTCENC_UNIVERSAL_BUILD})
+    printopt("Universal bin      " ${ASTCENC_UNIVERSAL_BUILD})
 endif()
-printopt("Invariance     " ${ASTCENC_INVARIANCE})
-printopt("Shared libs    " ${ASTCENC_SHAREDLIB})
-printopt("Decompressor   " ${ASTCENC_DECOMPRESSOR})
-printopt("Diagnostics    " ${ASTCENC_DIAGNOSTICS})
-printopt("ASAN           " ${ASTCENC_ASAN})
-printopt("UBSAN          " ${ASTCENC_UBSAN})
-printopt("Unit tests     " ${ASTCENC_UNITTEST})
+printopt("Invariance         " ${ASTCENC_INVARIANCE})
+printopt("Shared libs        " ${ASTCENC_SHAREDLIB})
+printopt("Decompressor       " ${ASTCENC_DECOMPRESSOR})
+message(STATUS "Developer options")
+printopt("Diagnostics        " ${ASTCENC_DIAGNOSTICS})
+printopt("ASAN               " ${ASTCENC_ASAN})
+printopt("UBSAN              " ${ASTCENC_UBSAN})
+printopt("Unit tests         " ${ASTCENC_UNITTEST})
 
 # Subcomponents
 add_subdirectory(Source)

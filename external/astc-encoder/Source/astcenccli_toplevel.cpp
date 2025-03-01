@@ -232,6 +232,10 @@ static void compression_workload_runner(
 ) {
 	(void)thread_count;
 
+	char name[16] { 0 };
+	std::snprintf(name, 16, "astc workc %d", thread_id);
+	set_thread_name(name);
+
 	compression_workload* work = static_cast<compression_workload*>(payload);
 	astcenc_error error = astcenc_compress_image(
 	                       work->context, work->image, &work->swizzle,
@@ -258,6 +262,10 @@ static void decompression_workload_runner(
 	void* payload
 ) {
 	(void)thread_count;
+
+	char name[16] { 0 };
+	std::snprintf(name, 16, "astc workd %d", thread_id);
+	set_thread_name(name);
 
 	decompression_workload* work = static_cast<decompression_workload*>(payload);
 	astcenc_error error = astcenc_decompress_image(
@@ -1382,8 +1390,7 @@ static void image_set_pixel_u8(
 	assert(img.data_type == ASTCENC_TYPE_U8);
 
 	uint8_t* data = static_cast<uint8_t*>(img.data[0]);
-	pixel = pack_low_bytes(pixel);
-	store_nbytes(pixel, data + (4 * img.dim_x * y) + (4 * x    ));
+	pack_and_store_low_bytes(pixel, data + (4 * img.dim_x * y) + (4 * x));
 }
 
 /**
@@ -1886,6 +1893,8 @@ int astcenc_main(
 	int argc,
 	char **argv
 ) {
+	set_thread_name("astc main");
+
 	double start_time = get_time();
 
 	if (argc < 2)

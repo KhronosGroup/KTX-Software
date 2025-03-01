@@ -94,6 +94,7 @@ function( CreateDocLibKTX )
 
     set( DOXYGEN_PREDEFINED
     KTX_DOXYGEN_SKIP
+    KTX_FEATURE_WRITE
     "KTXTEXTURECLASSDEFN=class_id classId\; \\
         struct ktxTexture_vtbl* vtbl\;             \\
         struct ktxTexture_vvtbl* vvtbl\;           \\

@@ -1079,8 +1079,8 @@ scApp::encode(ktxTexture2* texture, const string& swizzle,
 {
     ktx_error_code_e result;
 
-    khr_df_transfer_e oetf = ktxTexture2_GetOETF_e(texture);
-    if (options.normalMode && oetf != KHR_DF_TRANSFER_LINEAR) {
+    khr_df_transfer_e tf = ktxTexture2_GetTransferFunction_e(texture);
+    if (options.normalMode && tf != KHR_DF_TRANSFER_LINEAR) {
         cerr << name << ": "
              << "--normal_mode specified but input file(s) are not "
              << "linear." << endl;

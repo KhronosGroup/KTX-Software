@@ -685,8 +685,8 @@ class Image {
     uint32_t getWidth() const { return width; }
     uint32_t getHeight() const { return height; }
     uint32_t getPixelCount() const { return width * height; }
-    khr_df_transfer_e getOetf() const { return oetf; }
-    void setOetf(khr_df_transfer_e noetf) { this->oetf = noetf; }
+    khr_df_transfer_e getTransferFunction() const { return transferFunction; }
+    void setTransferFunction(khr_df_transfer_e tf) { transferFunction = tf; }
     khr_df_primaries_e getPrimaries() const { return primaries; }
     void setPrimaries(khr_df_primaries_e nprimaries) {
         this->primaries = nprimaries;
@@ -733,11 +733,11 @@ class Image {
   protected:
     Image() : Image(0, 0) { }
     Image(uint32_t w, uint32_t h)
-            : width(w), height(h), oetf(KHR_DF_TRANSFER_UNSPECIFIED),
+            : width(w), height(h), transferFunction(KHR_DF_TRANSFER_UNSPECIFIED),
               primaries(KHR_DF_PRIMARIES_BT709) { }
 
     uint32_t width, height;  // In pixels
-    khr_df_transfer_e oetf;
+    khr_df_transfer_e transferFunction;
     khr_df_primaries_e primaries;
 };
 
@@ -1113,7 +1113,7 @@ class ImageT : public Image {
         using namespace basisu;
 
         auto target = std::make_unique<ImageT<componentType, componentCount>>(targetWidth, targetHeight);
-        target->setOetf(oetf);
+        target->setTransferFunction(transferFunction);
         target->setPrimaries(primaries);
 
         const auto sourceWidth = width;
@@ -1149,7 +1149,7 @@ class ImageT : public Image {
 
         const TransferFunctionSRGB tfSRGB;
         const TransferFunctionLinear tfLinear;
-        const TransferFunction& tf = oetf == KHR_DF_TRANSFER_SRGB ?
+        const TransferFunction& tf = transferFunction == KHR_DF_TRANSFER_SRGB ?
                 static_cast<const TransferFunction&>(tfSRGB) :
                 static_cast<const TransferFunction&>(tfLinear);
 
@@ -1290,7 +1290,7 @@ class ImageT : public Image {
         assert(getComponentSize() == dst.getComponentSize());
         assert(width == dst.getWidth() && height == dst.getHeight());
 
-        dst.setOetf(oetf);
+        dst.setTransferFunction(transferFunction);
         dst.setPrimaries(primaries);
         for (size_t i = 0; i < getPixelCount(); i++) {
             uint32_t c;

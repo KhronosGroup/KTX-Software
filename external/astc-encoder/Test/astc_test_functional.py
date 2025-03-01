@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # -----------------------------------------------------------------------------
-# Copyright 2020-2023 Arm Limited
+# Copyright 2020-2025 Arm Limited
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy
@@ -2183,7 +2183,7 @@ def main():
 
     parser = argparse.ArgumentParser()
 
-    coders = ["none", "neon", "sse2", "sse4.1", "avx2"]
+    coders = ["none", "neon", "sve_128", "sve_256", "sse2", "sse4.1", "avx2"]
     parser.add_argument("--encoder", dest="encoder", default="avx2",
                         choices=coders, help="test encoder variant")
     args = parser.parse_known_args()

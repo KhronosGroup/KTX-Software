@@ -213,6 +213,7 @@ JpegInput::readHeader()
     // return what the decode() method will return not what is in the file.
 
     images.emplace_back(ImageSpec(pJd->get_width(), pJd->get_height(), 1,
+                                ImageSpec::Origin(ImageSpec::Origin::eLeft, ImageSpec::Origin::eTop),
                                 pJd->get_num_components(), 8, // component bit length
                                 static_cast<khr_df_sample_datatype_qualifiers_e>(0),
                                 KHR_DF_TRANSFER_SRGB,
