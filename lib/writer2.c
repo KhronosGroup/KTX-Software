@@ -133,6 +133,13 @@ appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
     }
 
     // strnstr needed because KTXwriter values may not be NUL terminated.
+#if defined(EMPTY_LIBVER_WITH_UNIDENTIFIED_APP)
+    // May be needed for patching some CTS files without changing their KTXwriter
+    // metadata. Keep in case useful again.
+    if (strnstr(id, "Unidentified app", idLen) != NULL) {
+        libVer = "";
+    } else
+#endif
     if (strnstr(id, "__default__", idLen) != NULL) {
         libVer = STR(LIBKTX_DEFAULT_VERSION);
     } else {
