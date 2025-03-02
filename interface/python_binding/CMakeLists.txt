@@ -28,6 +28,7 @@ add_custom_target( pyktx-deps ALL
 
 add_custom_command(
     TARGET pyktx-deps
+    PRE_BUILD
     COMMAND
         ${PYTHON_EXECUTABLE} -m pip install --no-warn-script-location -r ${SOURCE_DIR}/requirements.txt
     COMMENT
@@ -37,6 +38,13 @@ add_custom_command(
 add_custom_target( pyktx ALL
     DEPENDS
         ktx
+        ${pyktx_py_src}
+        pyktx/ktx_texture.h
+        pyktx/ktx_texture1.h
+        pyktx/ktx_texture2.h
+        pyktx/ktx_texture.c
+        pyktx/ktx_texture1.c
+        pyktx/ktx_texture2.c
     WORKING_DIRECTORY
         ${SOURCE_DIR}
     COMMENT
@@ -70,19 +78,11 @@ set(DIST_DIR ${KTX_BUILD_DIR}/interface/python_binding/dist)
 set(SOURCE_ARCHIVE_BASENAME ${DIST_DIR}/pyktx-${KTX_VERSION_NORMALIZED})
 
 add_custom_command(
-    TARGET
-        pyktx
+    TARGET pyktx
+    POST_BUILD
     BYPRODUCTS
         ${SOURCE_ARCHIVE_BASENAME}.tar.gz
         ${SOURCE_ARCHIVE_BASENAME}.zip
-    DEPENDS
-        ${pyktx_py_src}
-        pyktx/ktx_texture.h
-        pyktx/ktx_texture1.h
-        pyktx/ktx_texture2.h
-        pyktx/ktx_texture.c
-        pyktx/ktx_texture1.c
-        pyktx/ktx_texture2.c
     COMMAND
         ${CMAKE_COMMAND} -E env
             LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
@@ -96,10 +96,8 @@ add_custom_command(
 )
 
 add_custom_command(
-    TARGET
-        pyktx
-    DEPENDS
-        ${PYKTX_SRC_DIST}
+    TARGET pyktx
+    POST_BUILD
     COMMAND
         ${CMAKE_COMMAND} -E env
             LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
@@ -150,13 +148,13 @@ if(KTX_FEATURE_DOC)
             ${KTX_BUILD_DIR}/interface/python_binding/docs/pyktx.rst
             ${KTX_BUILD_DIR}/interface/python_binding/docs/pyktx.native.rst
             ${pyktx_egg_info}
-        COMMAND
-            ${CMAKE_COMMAND} -E env
-                LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
-                LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
-                DYLD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{DYLD_LIBRARY_PATH}
-                LD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{LD_LIBRARY_PATH}
-            ${PYTHON_EXECUTABLE} buildscript.py
+#        COMMAND
+#            ${CMAKE_COMMAND} -E env
+#                LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
+#                LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
+#                DYLD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{DYLD_LIBRARY_PATH}
+#                LD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{LD_LIBRARY_PATH}
+#            ${PYTHON_EXECUTABLE} buildscript.py
         COMMAND
             ${CMAKE_COMMAND} -E copy
                 index.rst conf.py ${KTX_BUILD_DIR}/interface/python_binding
