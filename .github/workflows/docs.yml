@@ -60,6 +60,12 @@ jobs:
         # included (used for version creation)
         fetch-depth: 0
 
+    - name: Set up Python 3.11
+      if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11.4'
+
     - name: Install Doxygen and Graphviz on macOS
       if: matrix.os == 'macos-latest'
       run: brew install --formula doxygen && brew install --formula graphviz && echo "Doxygen version $(doxygen --version)"
@@ -116,8 +122,15 @@ jobs:
 
     - name: Build docs
       run: | 
-        cmake -B ${{ env.BUILD_DIR }} -D KTX_FEATURE_DOC=ON -D KTX_FEATURE_TESTS=OFF -D KTX_FEATURE_TOOLS=OFF
+        cmake -B ${{ env.BUILD_DIR }} -D KTX_FEATURE_DOC=ON -D KTX_FEATURE_PY=ON -D KTX_FEATURE_TESTS=OFF -D KTX_FEATURE_TOOLS=OFF
         cmake --build ${{ env.BUILD_DIR }} --target all.doc
+
+#    - name: Patch .nojekyll
+      # Some files in the pyktx docs have an _ prefix so Jekyll will
+      # not copy them from the gh-pages branch to the website. This
+      # file says no Jekyll files here. Treat all as ordinary files.
+#      if: matrix.os == 'ubuntu-latest'
+#      run: touch ${{ env.BUILD_DIR }}/docs/html/.nojekyll
 
     - name: Upload generated HTML documentation for GitHub Pages
       if: matrix.os == 'ubuntu-latest'
