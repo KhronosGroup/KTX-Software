@@ -61,10 +61,18 @@ jobs:
         fetch-depth: 0
 
     - name: Set up Python 3.11
-      if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
       uses: actions/setup-python@v5
       with:
         python-version: '3.11.4'
+
+    # virtualenv is no longer included as of 20240929.1 runner so
+    # install it ourselves. See
+    # https://github.com/actions/runner-images/issues/10749.
+    #
+    # Note that it is the builds of sdist and wheel that require virtualenv
+    # not the explicit dependencies of pyktx.
+    - name: Install Python virtualenv
+      run: pip install virtualenv
 
     - name: Install Doxygen and Graphviz on macOS
       if: matrix.os == 'macos-latest'
