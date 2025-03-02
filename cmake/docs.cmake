@@ -210,7 +210,7 @@ function( CreateDocPyktxWrappers )
         COMMAND
             ${CMAKE_COMMAND} -E copy_directory ${KTX_BUILD_DIR}/interface/python_binding/docs/html/pyktx/html ${KTX_BUILD_DIR}/docs/html/pyktx
     )
-    add_dependencies( libktx.doc pyktx )
+    add_dependencies( libktx.doc pyktx.doc )
 endfunction()
 
 # ktxpkg.doc
