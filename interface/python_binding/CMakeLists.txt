@@ -137,6 +137,7 @@ if(KTX_FEATURE_DOC)
           "Python documentation"
     )
 
+    add_dependencies(pyktx.doc pyktx-deps)
     add_dependencies(pyktx pyktx.doc)
 
     add_custom_command(
