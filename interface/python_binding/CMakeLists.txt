@@ -132,8 +132,15 @@ add_test(NAME pyktx
 )
 
 if(KTX_FEATURE_DOC)
+    add_custom_target(pyktx.doc ALL
+      COMMENT
+          "Python documentation"
+    )
+
+    add_dependencies(pyktx pyktx.doc)
+
     add_custom_command(
-        TARGET pyktx
+        TARGET pyktx.doc
         POST_BUILD
         BYPRODUCTS
             ${KTX_BUILD_DIR}/interface/python_binding/conf.py
