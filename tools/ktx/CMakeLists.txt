@@ -81,5 +81,18 @@ PUBLIC
     cxx_std_17
 )
 
+if (KTX_DEVELOPER_FEATURE_PATCH)
+    target_sources(
+        ktxtools
+    PRIVATE
+        command_patch.cpp
+    )
+    target_compile_definitions(
+        ktxtools
+    PRIVATE
+        KTX_DEVELOPER_FEATURE_PATCH=1
+    )
+endif()
+
 set_tool_properties(ktxtools)
 set_code_sign(ktxtools)

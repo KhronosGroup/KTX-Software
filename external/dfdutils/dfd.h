@@ -194,21 +194,21 @@ void printDFDJSON(uint32_t *DFD, uint32_t dataSize, uint32_t base_indent, uint32
 /* Get the number of components & component size from a DFD for an
  * unpacked format.
  */
-void
-getDFDComponentInfoUnpacked(const uint32_t* DFD, uint32_t* numComponents,
-                            uint32_t* componentByteLength);
+void getDFDComponentInfoUnpacked(const uint32_t* DFD, uint32_t* numComponents,
+                                 uint32_t* componentByteLength);
 
 /* Return the number of components described by a DFD. */
 uint32_t getDFDNumComponents(const uint32_t* DFD);
 
-/* Reconstruct and return the value of bytesPlane0 as it should be for the data
- * post-inflation from variable-rate compression.
+/* Reconstruct and update the bytesPlane[0-4] fields of an unsized DFD to what
+ * they were before supercompression.
  */
-uint32_t
-reconstructDFDBytesPlane0FromSamples(const uint32_t* DFD);
+void reconstructDFDBytesPlanesFromSamples(uint32_t* DFD);
 /* Deprecated. For backward compatibility. */
-void
-recreateBytesPlane0FromSampleInfo(const uint32_t* DFD, uint32_t* bytesPlane0);
+uint32_t reconstructDFDBytesPlane0FromSamples(const uint32_t* DFD);
+/* Deprecated. For backward compatibility. */
+void recreateBytesPlane0FromSampleInfo(const uint32_t* DFD,
+                                       uint32_t* bytesPlane0);
 
 /** @brief Colourspace primaries information.
  *

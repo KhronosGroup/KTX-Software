@@ -1052,7 +1052,13 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
                 }
             }
 
-            if (header.supercompressionScheme == KTX_SS_NONE) {
+            if (header.supercompressionScheme != KTX_SS_NONE && block.bytesPlanes[0] == 0) {
+                        warning(DFD::BytesPlanesUnsized,
+                                blockIndex,
+                                block.bytesPlanes[0],
+                                toString(ktxSupercmpScheme(header.supercompressionScheme)));
+
+            } else {
                 if (expectedBytePlanes && !std::equal(
                         expectedBytePlanes->begin(), expectedBytePlanes->end(),
                         block.bytesPlanes.begin(), block.bytesPlanes.end())) {
@@ -1124,7 +1130,13 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
                             block.texelBlockDimension3 + 1,
                             4, 4, 1, 1, "UASTC");
 
-                if (header.supercompressionScheme == KTX_SS_NONE) {
+                if (header.supercompressionScheme != KTX_SS_NONE && block.bytesPlanes[0] == 0) {
+                    if (block.bytesPlanes[0] == 0)
+                        warning(DFD::BytesPlanesUnsized,
+                                blockIndex,
+                                block.bytesPlanes[0],
+                                toString(ktxSupercmpScheme(header.supercompressionScheme)));
+                } else {
                     if (block.bytesPlanes[0] != 16 || block.bytesPlanes[1] != 0
                             || block.bytesPlanes[2] != 0 || block.bytesPlanes[3] != 0
                             || block.bytesPlanes[4] != 0 || block.bytesPlanes[5] != 0
@@ -1138,15 +1150,6 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
                                 "UASTC",
                                 16, 0, 0, 0, 0, 0, 0, 0);
                     }
-                } else {
-                    if (block.hasNonZeroBytePlane())
-                        error(DFD::BytesPlanesNotUnsized,
-                                blockIndex,
-                                block.bytesPlanes[0], block.bytesPlanes[1],
-                                block.bytesPlanes[2], block.bytesPlanes[3],
-                                block.bytesPlanes[4], block.bytesPlanes[5],
-                                block.bytesPlanes[6], block.bytesPlanes[7],
-                                "UASTC");
                 }
 
                 if (samples.size() > 0) {
@@ -1198,14 +1201,28 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
                     block.texelBlockDimension3 + 1,
                     4, 4, 1, 1, "BasisLZ/ETC1S");
 
-        if (block.hasNonZeroBytePlane())
-            error(DFD::BytesPlanesNotUnsized,
+        if (block.bytesPlanes[0] == 0) {
+            warning(DFD::BytesPlanesUnsized,
+                    blockIndex,
+                    block.bytesPlanes[0],
+                    toString(ktxSupercmpScheme(header.supercompressionScheme)));
+        } else {
+            uint8_t expectedBytesPlane1 = samples.size() == 2 ? 8 : 0;
+            std::string ssType = fmt::format("BasisLZ_ETC1S with {} slices", samples.size());
+            if (block.bytesPlanes[0] != 8 || block.bytesPlanes[1] != expectedBytesPlane1
+                || block.bytesPlanes[2] != 0 || block.bytesPlanes[3] != 0
+                || block.bytesPlanes[4] != 0 || block.bytesPlanes[5] != 0
+                || block.bytesPlanes[6] != 0 || block.bytesPlanes[7] != 0) {
+            error(DFD::BytesPlanesMismatch,
                     blockIndex,
                     block.bytesPlanes[0], block.bytesPlanes[1],
                     block.bytesPlanes[2], block.bytesPlanes[3],
                     block.bytesPlanes[4], block.bytesPlanes[5],
                     block.bytesPlanes[6], block.bytesPlanes[7],
-                    "BasisLZ/ETC1S");
+                    ssType,
+                    8, expectedBytesPlane1, 0, 0, 0, 0, 0, 0);
+            }
+        }
 
         for (uint32_t i = 0; i < std::min(static_cast<uint32_t>(samples.size()), 2u); ++i) {
             if (samples[i].bitOffset != (i == 0 ? 0u : 64u))
