@@ -88,7 +88,8 @@ jobs:
       run: ./install-gitconfig.ps1 && scripts/smudge_date.ps1
 
     - name: Build docs
-      run: | 
+      run: |
+        echo "Doxygen version: $(doxygen --version)"
         cmake -B ${{ env.BUILD_DIR }} -D KTX_FEATURE_DOC=ON -D KTX_FEATURE_PY=ON -D KTX_FEATURE_TESTS=OFF -D KTX_FEATURE_TOOLS=OFF
         cmake --build ${{ env.BUILD_DIR }} --target all.doc
 
