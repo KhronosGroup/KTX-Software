@@ -107,27 +107,30 @@ jobs:
       with:
         path: ${{ env.BUILD_DIR }}/docs/html
 
-#  deploy:
-#    name: Deploy to GitHub Pages
-#    # Add a dependency to the build job
-#    needs: build-docs
-#    # Only deploy when building `main`.
+  deploy:
+    name: Deploy to GitHub Pages
+    # Add a dependency to the build job
+    needs: build-docs
+    # Only deploy when building `main`.
 #    if: github.ref == 'refs/heads/main'
-#
-#    runs-on: ubuntu-latest
-#
-#    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
-#    permissions:
-#      pages: write      # to deploy to Pages
-#      id-token: write   # to verify the deployment originates from an appropriate source
-#
-#    # Deploy to the github-pages environment
-#    environment:
-#      name: github-pages
-#      url: ${{ steps.deployment.outputs.page_url }}
-#
-#    # Specify deployment step
-#    steps:
-#      - name: Deploy to GitHub Pages
-#        id: deployment
-#        uses: actions/deploy-pages@v4
+    # Only deploy when building for a release tag. Note that filtering in
+    # on: means the only tags jobs run for are release tags.
+    if: startsWith(github.ref, 'refs/tags')
+
+    runs-on: ubuntu-latest
+
+    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+    permissions:
+      pages: write      # to deploy to Pages
+      id-token: write   # to verify the deployment originates from an appropriate source
+
+    # Deploy to the github-pages environment
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    # Specify deployment step
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
