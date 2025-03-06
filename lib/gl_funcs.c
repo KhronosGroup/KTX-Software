@@ -155,7 +155,7 @@ ktxFindOpenGL() {
 #endif
         pfnWglGetProcAddress =
             (PFNGLGETPROCADDRESS)GetProcAddress(module,
-                                               "wglGetProcAddress");
+                                                "wglGetProcAddress");
 #ifdef __clang__
     #pragma clang diagnostic pop
 #endif

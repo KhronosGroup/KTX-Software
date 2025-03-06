@@ -55,7 +55,7 @@ Deflate (supercompress) a KTX2 file.
     @snippet{doc} ktx/deflate_utils.h command options_deflate
     <dl>
         <dt>-q, --quiet</dt>
-        <dd>Silence warning about already supercompressed input fiile..</dd>
+        <dd>Silence warning about already supercompressed input fiile.</dd>
         <dt>-e, --warnings-as-errors</dt>
         <dd>Treat warnings as errors.</dd>
     </dl>

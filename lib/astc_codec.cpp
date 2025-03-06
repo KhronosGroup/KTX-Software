@@ -53,7 +53,7 @@ pthread_create(pthread_t* thread, const pthread_attr_t* attribs,
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
 #endif
-    LPTHREAD_START_ROUTINE func = reinterpret_cast<LPTHREAD_START_ROUTINE>(threadfunc);
+    LPTHREAD_START_ROUTINE func = (LPTHREAD_START_ROUTINE)(threadfunc);
 #ifdef __clang__
     #pragma clang diagnostic pop
 #endif

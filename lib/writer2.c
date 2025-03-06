@@ -133,6 +133,13 @@ appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
     }
 
     // strnstr needed because KTXwriter values may not be NUL terminated.
+#if defined(EMPTY_LIBVER_WITH_UNIDENTIFIED_APP)
+    // May be needed for patching some CTS files without changing their KTXwriter
+    // metadata. Keep in case useful again.
+    if (strnstr(id, "Unidentified app", idLen) != NULL) {
+        libVer = "";
+    } else
+#endif
     if (strnstr(id, "__default__", idLen) != NULL) {
         libVer = STR(LIBKTX_DEFAULT_VERSION);
     } else {
@@ -883,9 +890,6 @@ ktxTexture2_DeflateZstd(ktxTexture2* This, ktx_uint32_t compressionLevel)
     This->dataSize = byteLengthCmp;
     This->supercompressionScheme = KTX_SS_ZSTD;
     This->_private->_requiredLevelAlignment = 1;
-    // Clear bytesPlane to indicate we're now unsized.
-    uint32_t* bdb = This->pDfd + 1;
-    bdb[KHR_DF_WORD_BYTESPLANE0] = 0; /* bytesPlane3..0 = 0 */
 
     return KTX_SUCCESS;
 
@@ -972,9 +976,6 @@ ktxTexture2_DeflateZLIB(ktxTexture2* This, ktx_uint32_t compressionLevel)
     This->dataSize = byteLengthCmp;
     This->supercompressionScheme = KTX_SS_ZLIB;
     This->_private->_requiredLevelAlignment = 1;
-    // Clear bytesPlane to indicate we're now unsized.
-    uint32_t* bdb = This->pDfd + 1;
-    bdb[KHR_DF_WORD_BYTESPLANE0] = 0; /* bytesPlane3..0 = 0 */
 
     return KTX_SUCCESS;
 }
