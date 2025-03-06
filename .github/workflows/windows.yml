@@ -31,7 +31,6 @@ on:
       - LICENSE.md
       - LICENSES
       - REUSE.toml
-      - install-gitconfig*
       - vcpkg.json
       - vcpkg-configuration.json
 
