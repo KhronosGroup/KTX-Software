@@ -22,7 +22,7 @@ sys.path.insert(0, target_dir)
 
 project = 'pyktx'
 copyright = '2025, Khronos Group, Inc.'
-author = 'Shukant Pal'
+author = 'Shukant Pal, Mark Callow'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
