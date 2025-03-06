@@ -73,51 +73,11 @@ jobs:
     - name: Install Python virtualenv
       run: pip install virtualenv
 
-    - name: Install Doxygen and Graphviz on macOS
-      if: matrix.os == 'macos-latest'
-      run: brew install --formula doxygen && brew install --formula graphviz && echo "Doxygen version $(doxygen --version)"
+    - name: Install Graphviz
+      uses: ts-graphviz/setup-graphviz@v2
 
-    - name: Install Doxygen and Graphviz on Ubuntu
-      if: matrix.os == 'ubuntu-latest'
-      run: sudo apt-get install -y doxygen graphviz && echo "Doxygen version $(doxygen --version)"
-
-    - name: Install Doxygen and Graphviz on Windows
-      if: matrix.os == 'windows-latest'
-      #run: choco install doxygen.install
-      #run: choco install graphviz
-      # Note these suffer frequent failures due to Chocolatey attempts
-      # to blackmail you into purchasing a license. Hence we retry a
-      # few times. If this still fails, re-run the build.
-      run: |
-        function Install-WithChoco {
-            param ( $Package )
-            $retryCount = 4
-            $success = $false
-            for ($i = 1; $i -le $retryCount; $i++) {
-                Write-Host "Attempt no $i for $Package"
-                # Without | Out-Host the choco output becomes output of this
-                # function because it is called from within `if`.
-                choco install $Package --no-progress --yes | Out-Host
-                if ($LASTEXITCODE -eq 0) {
-                    $success = $true
-                    Write-Host "$Package installation successful."
-                    break
-                } else {
-                    Write-Host "$Package installation failed. Retrying..."
-                    Start-Sleep -Seconds (2*$i)
-                }
-            }
-            if (-not $success) {
-                Write-Host "$Package installation failed after $retryCount attempts."
-            }
-            return $success
-        }
-        if (-not ((Install-WithChoco doxygen.install) -and (Install-WithChoco graphviz))) {
-            exit 1
-        }
-        Import-Module "$env:ChocolateyInstall/helpers/chocolateyInstaller.psm1"
-        refreshenv
-        echo "Doxygen version $(doxygen --version)"
+    - name: Install Doxygen
+      uses: ssciwr/doxygen-install@v1
 
     - name: Smudge dates (macOS and Ubuntu)
       if:  matrix.os == 'macos-latest' || matrix.os == 'ubuntu-latest'
