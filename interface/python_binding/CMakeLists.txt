@@ -148,13 +148,6 @@ if(KTX_FEATURE_DOC)
             ${KTX_BUILD_DIR}/interface/python_binding/docs/pyktx.rst
             ${KTX_BUILD_DIR}/interface/python_binding/docs/pyktx.native.rst
             ${pyktx_egg_info}
-#        COMMAND
-#            ${CMAKE_COMMAND} -E env
-#                LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
-#                LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
-#                DYLD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{DYLD_LIBRARY_PATH}
-#                LD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{LD_LIBRARY_PATH}
-#            ${PYTHON_EXECUTABLE} buildscript.py
         COMMAND
             ${CMAKE_COMMAND} -E copy
                 index.rst conf.py ${KTX_BUILD_DIR}/interface/python_binding

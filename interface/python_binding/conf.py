@@ -13,11 +13,15 @@ import os
 import sys
 
 current_dir = os.path.dirname(__file__)
-target_dir = os.path.abspath(os.path.join(current_dir, "."))
+# Extract docstrings from source rather than modules to avoid having
+# to build, and build libktx, in order to produce documentation.
+target_dir = os.path.abspath(os.path.join(current_dir, "pyktx"))
+# To extract from module instead, uncomment the below and comment the above.
+#target_dir = os.path.abspath(os.path.join(current_dir, "."))
 sys.path.insert(0, target_dir)
 
 project = 'pyktx'
-copyright = '2023, Shukant Pal'
+copyright = '2025, Khronos Group, Inc.'
 author = 'Shukant Pal'
 
 # -- General configuration ---------------------------------------------------
