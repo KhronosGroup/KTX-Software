@@ -264,8 +264,10 @@ ktxTexture2_rewriteDfd4BasisLzETC1S(ktxTexture2* This,
 
     nbdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0] =
                             3 | (3 << KHR_DF_SHIFT_TEXELBLOCKDIMENSION1);
-    // Show it describes an unsized format.
     nbdb[KHR_DF_WORD_BYTESPLANE0] = 0; /* bytesPlane3..0 = 0 */
+    KHR_DFDSETVAL(nbdb, BYTESPLANE0, 8);
+    if (alphaContent != eNone)
+        KHR_DFDSETVAL(nbdb, BYTESPLANE1, 8);
     nbdb[KHR_DF_WORD_BYTESPLANE4] = 0; /* bytesPlane7..5 = 0 */
 
     for (uint32_t sample = 0; sample < newSampleCount; sample++) {
