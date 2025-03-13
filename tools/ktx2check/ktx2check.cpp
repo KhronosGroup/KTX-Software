@@ -293,8 +293,9 @@ struct {
     issue InvalidTexelBlockDimension {
         ERROR | 0x005e, "DFD texel block dimension must be %dx%d for %s textures."
     };
-    issue NotUnsized {
-        ERROR | 0x005f, "DFD bytes/plane must be 0 for a supercompressed texture."
+    issue Unsized {
+        WARNING | 0x005f, "DFD bytes/plane0 is 0 for a supercompressed texture. This is deprecated"
+                          " behavior. Since spec. v2.0.4 bytes/plane0 should be non-zero."
     };
     issue InvalidChannelForBLZE {
         ERROR | 0x0060, "Only ETC1S_RGB (0), ETC1S_RRR (3), ETC1S_GGG (4) or ETC1S_AAA (15)"
@@ -1531,8 +1532,9 @@ ktxValidator::validateDfd(validationContext& ctx)
     switch (ctx.header.supercompressionScheme) {
       case KTX_SS_NONE:
       case KTX_SS_ZSTD:
+      case KTX_SS_ZLIB:
         if (ctx.header.vkFormat != VK_FORMAT_UNDEFINED) {
-            if (ctx.header.supercompressionScheme != KTX_SS_ZSTD) {
+            if (ctx.header.supercompressionScheme == KTX_SS_NONE) {
                 // Do a simple comparison with the expected DFD.
                 analyze = memcmp(ctx.pActualDfd, ctx.pDfd4Format,
                                   *ctx.pDfd4Format);
@@ -1541,9 +1543,8 @@ ktxValidator::validateDfd(validationContext& ctx)
                 analyze = memcmp(ctx.pActualDfd, ctx.pDfd4Format,
                                   KHR_DF_WORD_BYTESPLANE0 * 4);
                 // Check for unsized.
-                if (bdb[KHR_DF_WORD_BYTESPLANE0]  != 0
-                    || bdb[KHR_DF_WORD_BYTESPLANE4]  != 0)
-                    addIssue(logger::eError, DFD.NotUnsized);
+                if (bdb[KHR_DF_WORD_BYTESPLANE0]  == 0)
+                    addIssue(logger::eWarning, DFD.Unsized);
                 // Compare the sample information.
                 if (!analyze) {
                     analyze = memcmp(&ctx.pActualDfd[KHR_DF_WORD_SAMPLESTART+1],
@@ -1571,8 +1572,8 @@ ktxValidator::validateDfd(validationContext& ctx)
                                  bytesPlane0, 16);
                     }
                 } else {
-                     if (bytesPlane0 != 0) {
-                          addIssue(logger::eError, DFD.NotUnsized, "UASTC");
+                     if (bytesPlane0 == 0) {
+                          addIssue(logger::eWarning, DFD.Unsized);
                      }
                 }
                 uint8_t channelID = KHR_DFDSVAL(bdb, 0, CHANNELID);
@@ -1612,8 +1613,8 @@ ktxValidator::validateDfd(validationContext& ctx)
                         addIssue(logger::eError, DFD.BytesPlane0Zero,
                                  "VK_FORMAT_UNDEFINED");
                 } else {
-                     if (KHR_DFDVAL(bdb, BYTESPLANE0) != 0) {
-                          addIssue(logger::eError, DFD.NotUnsized);
+                     if (KHR_DFDVAL(bdb, BYTESPLANE0) == 0) {
+                          addIssue(logger::eWarning, DFD.Unsized);
                      }
                 }
                 if ((bdb[KHR_DF_WORD_BYTESPLANE0] & KHR_DF_MASK_BYTESPLANE0) != 0
@@ -1643,9 +1644,8 @@ ktxValidator::validateDfd(validationContext& ctx)
               addIssue(logger::eError, DFD.InvalidTexelBlockDimension,
                        4, 4, "BasisLZ/ETC1S");
           // Check for unsized.
-          if (bdb[KHR_DF_WORD_BYTESPLANE0]  != 0
-              || bdb[KHR_DF_WORD_BYTESPLANE4]  != 0)
-              addIssue(logger::eError, DFD.NotUnsized);
+          if (bdb[KHR_DF_WORD_BYTESPLANE0]  == 0)
+              addIssue(logger::eWarning, DFD.Unsized);
 
           for (uint32_t sample = 0; sample < numSamples; sample++) {
               uint8_t channelID = KHR_DFDSVAL(bdb, sample, CHANNELID);

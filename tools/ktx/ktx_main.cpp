@@ -165,6 +165,9 @@ void Tools::printUsage(std::ostream& os, const cxxopts::Options& options) {
     fmt::print(os, "  validate   Validate a KTX2 file\n");
     fmt::print(os, "  compare    Compare two KTX2 files\n");
     fmt::print(os, "  help       Display help information about the ktx tool\n");
+#if KTX_DEVELOPER_FEATURE_PATCH
+    fmt::print(os, "  patch      Apple certain patch operations to a KTX2 file.");
+#endif
     fmt::print(os, "\n");
     fmt::print(os, "For detailed usage and description of each subcommand use 'ktx help <command>'\n"
                    "or 'ktx <command> --help'\n");
@@ -181,6 +184,10 @@ KTX_COMMAND_BUILTIN(ktxInfo)
 KTX_COMMAND_BUILTIN(ktxValidate)
 KTX_COMMAND_BUILTIN(ktxCompare)
 KTX_COMMAND_BUILTIN(ktxHelp)
+#if KTX_DEVELOPER_FEATURE_PATCH
+  KTX_COMMAND_BUILTIN(ktxPatch)
+#endif
+
 
 std::unordered_map<std::string, ktx::pfnBuiltinCommand> builtinCommands = {
     { "create",     ktxCreate },
@@ -191,7 +198,10 @@ std::unordered_map<std::string, ktx::pfnBuiltinCommand> builtinCommands = {
     { "info",       ktxInfo },
     { "validate",   ktxValidate },
     { "compare",    ktxCompare },
-    { "help",       ktxHelp }
+    { "help",       ktxHelp },
+#if KTX_DEVELOPER_FEATURE_PATCH
+    { "patch",      ktxPatch }
+#endif
 };
 
 int main(int argc, char* argv[]) {
