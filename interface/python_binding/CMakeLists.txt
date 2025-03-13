@@ -1,3 +1,4 @@
+# Copyright 2025 The Khronos Group Inc.
 # Copyright 2023 Shukant Pal
 # SPDX-License-Identifier: Apache-2.0
 
@@ -88,9 +89,13 @@ add_custom_command(
             LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
             LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
             LIBKTX_VERSION=${KTX_VERSION_NORMALIZED}
-        # Bulding sdist requires a virtual env. I have not found a
-        # a way via find_package to ensure venv support is installed.
+        # The build module by default builds in an isolated environment, i.e. it
+        # requires a virtual env. I have not found a way via find_package to
+        # ensure venv support is installed. This can be turned off with
+        # `--no-isolation` but such builds have not been tested.
         ${PYTHON_EXECUTABLE} -m build --sdist --outdir ${DIST_DIR}
+    COMMENT
+        "Build pyktx source package"
     WORKING_DIRECTORY
         ${SOURCE_DIR}
 )
@@ -103,8 +108,10 @@ add_custom_command(
             LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
             LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
             LIBKTX_VERSION=${KTX_VERSION_NORMALIZED}
-        # Ditto with sdist venv comment.
+        # Ditto with sdist isolated environment comment.
         ${PYTHON_EXECUTABLE} -m build --wheel --outdir ${DIST_DIR}
+    COMMENT
+        "Build pyktx wheel"
     WORKING_DIRECTORY
         ${SOURCE_DIR}
 )
@@ -131,12 +138,12 @@ add_test(NAME pyktx
 
 if(KTX_FEATURE_DOC)
     add_custom_target(pyktx.doc ALL
+      DEPENDS
+        pyktx-deps
+        ktx    # No way to avoid this autodoc needs compiled modules.
       COMMENT
-          "Python documentation"
+          "Build Python documentation"
     )
-
-    add_dependencies(pyktx.doc pyktx-deps)
-    add_dependencies(pyktx pyktx.doc)
 
     add_custom_command(
         TARGET pyktx.doc
@@ -149,8 +156,22 @@ if(KTX_FEATURE_DOC)
             ${KTX_BUILD_DIR}/interface/python_binding/docs/pyktx.native.rst
             ${pyktx_egg_info}
         COMMAND
+            # This appears to build binaries of the native parts in the source pyktx
+            # folder. Without the binaries, autodoc can't import the modules. It
+            # prints warnings and fails to include any content in the documentation
+            # for the native interfaces in the HTML files it creates.
+            ${CMAKE_COMMAND} -E env
+                LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
+                LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
+                DYLD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{DYLD_LIBRARY_PATH}
+                LD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{LD_LIBRARY_PATH}
+            ${PYTHON_EXECUTABLE} buildscript.py
+        COMMAND
             ${CMAKE_COMMAND} -E copy
                 index.rst conf.py ${KTX_BUILD_DIR}/interface/python_binding
+        # Currently there are no static items to be included in the Sphinx generated
+        # documentation. The infrastructure is here in case of future need. If
+        # these command are removed, also remove html_static_path from conf.py.
         COMMAND
             ${CMAKE_COMMAND} -E make_directory
             ${KTX_BUILD_DIR}/interface/python_binding/_static
@@ -158,11 +179,28 @@ if(KTX_FEATURE_DOC)
             ${CMAKE_COMMAND} -E copy_directory
             _static ${KTX_BUILD_DIR}/interface/python_binding/_static
         COMMAND
+            # Sphinx Apidoc extracts docstrings from the source files and builds .rst files
+            # in the docs directory of the python_binding section of the build directory.
+            # `--separate` says to put the documentation for each module on its own page.
             ${CMAKE_COMMAND} -E env
                 LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
                 LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
             ${PYTHON_EXECUTABLE} -m sphinx.ext.apidoc -o ${KTX_BUILD_DIR}/interface/python_binding/docs ./pyktx --separate
         COMMAND
+            # Sphinx uses autodoc to generate html files from the .rst files generated above.
+            # These are expected to be in a docs subdirectory of the SOURCEDIR hence the
+            # build directory appearing in SOURCEDIR. Sphinx invokes autodoc which wants to
+            # import the modules hence libktx, must be built for this to fully succeed.
+            #
+            # Autodoc is configured by the copy of `conf.py` in the build directory (copied
+            # there by one of the COMMANDs above). `conf.py` adds the python binding
+            # section of the build directory to Python's `sys.path` so Autodoc can find the
+            # modules. However they aren't there. The `pyktx` module is the directory
+            # ${SOURCE_DIR}/pyktx and the .o files from compiling the native parts are
+            # built there by buildscript.py when invoked above. ${SOURCE_DIR} appears in
+            # Python's sys.path so autodoc finds them. There is nothing explicit in `conf.py`
+            # to do this. It appears that Sphinx or autodoc itself adds its working directory
+            # to `sys.path`.
             ${CMAKE_COMMAND} -E env
                 LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
                 LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
