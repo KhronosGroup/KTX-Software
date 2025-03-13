@@ -13,8 +13,8 @@ setup(
     name=__name__,
     version=__version__,
     description='A Python interface to the libktx library',
-    author='Shukant Pal',
-    author_email='foss@shukantpal.com',
+    author='Shukant Pal, Mark Callow',
+    author_email='ktx-sw-maintainer@khronosgroup.org',
     cffi_modules=["buildscript.py:ffibuilder"],
     classifiers=[
         "Programming Language :: Python :: 3",
