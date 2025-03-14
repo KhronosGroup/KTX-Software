@@ -3,6 +3,19 @@
 name: Build and Deploy Reference Pages and Other Documentation
 
 # Ensure documentation builds on all platforms. Deploy from the Ubuntu build.
+#
+#   The plan is for this to be used to build the docs on all platforms for
+# PRs and pushes to main and remove those builds from the platform software
+# builds. On release tags though the platform software builsd will have to
+# build the documentation so it can be included in the release package.
+#   Due to a tight deadline for 4.4 there is no time to modify the platform
+# software builds to build docs only on release tags so they continue to
+# build for PRs and pushes to main. Therefore all but the Ubuntu build have
+# been disabled here for now.
+#   The ubuntu build is used to deploy the docs to GitHub Pages on a release
+# build. The plan, once the destination is set up, is to use this workflow
+# to deploy the docs for a release to a location on khronos.org and docs
+# for any pushes to main to GitHub Pages.
 
 on:
   # Trigger the workflow on a pull request,
@@ -44,7 +57,8 @@ jobs:
     name: Build KTX-Software reference pages and documentation
     strategy:
       matrix:
-        os: [ macos-latest,  ubuntu-latest, windows-latest ]
+        #os: [ macos-latest,  ubuntu-latest, windows-latest ]
+        os: [ ubuntu-latest ]
 
     runs-on: ${{ matrix.os }}
 
@@ -114,7 +128,7 @@ jobs:
     # Only deploy when building `main`.
 #    if: github.ref == 'refs/heads/main'
     # Only deploy when building for a release tag. Note that filtering in
-    # on: means the only tags jobs run for are release tags.
+    # on: means the only tags the workflow runs for are release tags.
     if: startsWith(github.ref, 'refs/tags')
 
     runs-on: ubuntu-latest
