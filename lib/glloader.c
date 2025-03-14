@@ -1059,7 +1059,7 @@ ktxTexture2_GLUpload(ktxTexture2* This, GLuint* pTexture, GLenum* pTarget,
 /**
  * @memberof ktxTexture
  * @~English
- * @brief Create a GL texture object from a ktxTexture1 object.
+ * @brief Create a GL texture object from a ktxTexture object.
  *
  * In order to ensure that the GL uploader is not linked into an application unless explicitly called,
  * this is not a virtual function. It determines the texture type then dispatches to the correct function.
