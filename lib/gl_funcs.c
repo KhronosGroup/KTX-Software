@@ -192,13 +192,14 @@ ktxLoadOpenGLLibrary(void)
 }
 
 /**
+ * @ingroup ktx\_glloader
  * @~English
- * @brief Load pointers for the GL functions used by ktxTexture_GLUpload.
+ * @brief Load pointers for the GL functions used by the ktxTexture\*\_GLUpload functions.
  *
- * Should be called by an application before its first call to
- * ktxTexture\_GLUpload, passing a pointer to the GLGetProcAddress function
+ * Should be called by an application before its first call to a
+ * ktxTexture\*\_GLUpload function, passing a pointer to the GLGetProcAddress function
  * provided by whatever OpenGL framework it is using. For backward
- * compatibility, ktxTexture\_GLUpload calls this with a NULL pointer causing an
+ * compatibility, the ktxTexture\*\_GLUpload functions call this with a NULL pointer causing an
  * attempt to load the pointers from the program module using
  * @c dlsym (GNU/Linux, macOS), @c wglGetProcAddr and @c GetProcAddr (Windows)
  * or @c emscripten_GetProcAddress (Web). This works with the vast majority of
@@ -211,7 +212,7 @@ ktxLoadOpenGLLibrary(void)
  *                                 attempted using system dependent generic
  *                                 functions.
  */
-KTX_API ktx_error_code_e KTX_APIENTRY
+ktx_error_code_e
 ktxLoadOpenGL(PFNGLGETPROCADDRESS pfnGLGetProcAddress)
 {
     if (openGLLoaded)
