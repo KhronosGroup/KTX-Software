@@ -53,8 +53,8 @@ result = ktxTexture_CreateFromNamedFile("mytex3d.ktx",
 
 // Retrieve information about the texture from fields in the ktxTexture
 // such as:
-ktx_uint32 numLevels = texture->numLevels;
-ktx_uint32 baseWidth = texture->baseWidth;
+ktx_uint32_t numLevels = texture->numLevels;
+ktx_uint32_t baseWidth = texture->baseWidth;
 ktx_bool_t isArray = texture->isArray;
 
 // Retrieve a pointer to the image for a specific mip level, array layer
