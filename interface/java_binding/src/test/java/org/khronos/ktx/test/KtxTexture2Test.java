@@ -31,7 +31,6 @@ import org.khronos.ktx.KtxTextureCreateInfo;
 import org.khronos.ktx.KtxTranscodeFormat;
 import org.khronos.ktx.VkFormat;
 
-@ExtendWith({ KtxTestLibraryLoader.class })
 public class KtxTexture2Test {
 
     @Test
