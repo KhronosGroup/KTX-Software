@@ -15,11 +15,13 @@ ktx Overview
 
 | Tool | Description | Equivalent old tool |
 | :--- | ----------- | ------------------- |
+| @ref ktx_compare | Compare two KTX2 files. | |
 | @ref ktx_create | Create a KTX2 file from various input files | `toktx` |
+| @ref ktx_deflate | Deflate (supercompress) a KTX2 file. | `ktxsc` |
 | @ref ktx_extract | Export selected images from a KTX2 file | - |
 | @ref ktx_encode | Encode a KTX2 file | `ktxsc` |
-| @ref ktx_transcode | Transcode a KTX2 file | - |
 | @ref ktx_info | Prints information about a KTX2 file | `ktxinfo` |
+| @ref ktx_transcode | Transcode a KTX2 file | - |
 | @ref ktx_validate | Validate a KTX2 file | `ktx2check` |
 | @ref ktx_help | Display help information about the ktx tools | - |
 
@@ -29,8 +31,7 @@ Some features of old tools are not currently available in the new equivalent.
 
 | Old Tool | New Tool | Missing Features |
 | :------: | :------: | ---------------- |
-| @ref toktx  | @ref ktx_create "create" | JPEG and NBPM input and scaling/resizing of input images. |
-| @ref ktxsc  | @ref ktx_encode "encode" | ASTC encoding. This can be done in `create`.<br>Deflation of a KTX2 file with zlib or zstd.|
+| @ref toktx  | @ref ktx_create "create" | JPEG and NBPM input. |
 
 The command-line syntax and semantics differ from the old tools including, but not limited to:
 
