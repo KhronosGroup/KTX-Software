@@ -223,16 +223,33 @@ elseif(WIN32)
     )
 endif()
 
-set( LOAD_TEST_COMMON_MODELS
+set( LOAD_TEST_COLLADA_MODELS
+     "teapot.dae"
+)
+list(TRANSFORM LOAD_TEST_COLLADA_MODELS PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/common/models/")
+# An Xcode (or possibly CMake) update in late 2024 or early 2025 started
+# compressing .dae files when copying them to bundle resources. This piece
+# of undocumented magic makes it just copy. The Xcode GUI presents an option
+# menu on the file with "Copy" and "Compress" in the project settings browser.
+# This attribute sets it to "Copy."
+set_source_files_properties( ${LOAD_TEST_COLLADA_MODELS}
+    PROPERTIES
+        XCODE_FILE_ATTRIBUTES "--decompress"
+)
+
+set( LOAD_TEST_OBJ_MODELS
      "cube.obj"
      "sphere.obj"
-     "teapot.dae"
      "torusknot.obj"
 )
-list(TRANSFORM LOAD_TEST_COMMON_MODELS PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/common/models/")
+list(TRANSFORM LOAD_TEST_OBJ_MODELS PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/common/models/")
 # Hack to prevent *.obj 3D files being mistaken as linkable obj files
-set_source_files_properties( ${LOAD_TEST_COMMON_MODELS}
+set_source_files_properties( ${LOAD_TEST_OBJ_MODELS}
     PROPERTIES HEADER_FILE_ONLY TRUE
+)
+set( LOAD_TEST_COMMON_MODELS
+     ${LOAD_TEST_COLLADA_MODELS}
+     ${LOAD_TEST_OBJ_MODELS}
 )
 
 # A custom loadtest_models target does not work as configure fails at
