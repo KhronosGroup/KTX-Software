@@ -1191,6 +1191,7 @@ private:
 
     void selectASTCMode(uint32_t bitLength);
     void determineTargetColorSpace(const ImageInput& in, ImageSpec& target, ColorSpaceInfo& colorSpaceInfo);
+    void determineInputOrigin(const ImageInput& in, ImageSpec::Origin& usedInputOrigin);
     void determineTargetOrigin(const ImageInput& in, ImageSpec& target, ImageSpec::Origin& usedInputOrigin);
 
     void checkSpecsMatch(const ImageInput& current, const ImageSpec& firstSpec);
@@ -1489,10 +1490,9 @@ void CommandCreate::executeCreate() {
                     options.depth.value_or(1u),
                     options.formatDesc};
 
-            ColorSpaceInfo colorSpaceInfo{};
             ImageSpec::Origin usedInputOrigin;
+            ColorSpaceInfo colorSpaceInfo{};
             determineTargetColorSpace(*inputImageFile, target, colorSpaceInfo);
-            determineTargetOrigin(*inputImageFile, target, usedInputOrigin);
 
             if (std::exchange(firstImage, false)) {
                 if (options.cubemap && target.width() != target.height())
@@ -1513,9 +1513,11 @@ void CommandCreate::executeCreate() {
                     selectASTCMode(inputImageFile->spec().format().largestChannelBitLength());
 
                 firstImageSpec = inputImageFile->spec();
+                determineTargetOrigin(*inputImageFile, target, usedInputOrigin);
                 texture = createTexture(target);
             } else {
                 checkSpecsMatch(*inputImageFile, firstImageSpec);
+                determineInputOrigin(*inputImageFile, usedInputOrigin);
             }
 
             const uint32_t imageWidth = std::max(firstImageSpec.width() >> levelIndex, 1u);
@@ -2620,18 +2622,19 @@ void CommandCreate::determineTargetColorSpace(const ImageInput& in, ImageSpec& t
     }
 }
 
-void CommandCreate::determineTargetOrigin(const ImageInput& in, ImageSpec& target,
-                                          ImageSpec::Origin& usedInputOrigin) {
-    const ImageSpec& spec = in.spec();
+void CommandCreate::determineInputOrigin(const ImageInput& in, ImageSpec::Origin& usedInputOrigin) {
 
-    // Set Origin
-    usedInputOrigin = spec.origin();
     if (options.assignTexcoordOrigin.has_value()) {
         usedInputOrigin = options.assignTexcoordOrigin.value();
-        target.setOrigin(options.assignTexcoordOrigin.value());
     } else {
-        target.setOrigin(spec.origin());
+        usedInputOrigin = in.spec().origin();
     }
+}
+
+void CommandCreate::determineTargetOrigin(const ImageInput& in, ImageSpec& target,
+                                          ImageSpec::Origin& usedInputOrigin) {
+    determineInputOrigin(in, usedInputOrigin);
+    target.setOrigin(usedInputOrigin);
 
     if (options.convertTexcoordOrigin.has_value()) {
         if (usedInputOrigin.unspecified()) {
@@ -2643,8 +2646,6 @@ void CommandCreate::determineTargetOrigin(const ImageInput& in, ImageSpec& targe
         }
     }
 }
-
-
 
 void CommandCreate::checkSpecsMatch(const ImageInput& currentFile, const ImageSpec& firstSpec) {
     const FormatDescriptor& firstFormat = firstSpec.format();
@@ -2705,6 +2706,23 @@ void CommandCreate::checkSpecsMatch(const ImageInput& currentFile, const ImageSp
 
     if (currentFormat.channelCount() != firstFormat.channelCount()) {
         warning("Input image \"{}\" has a different component count than the first image.", currentFile.filename());
+    }
+
+    if (currentFile.spec().origin() != firstSpec.origin()) {
+        if (options.assignTexcoordOrigin.has_value()) {
+            warning("Input image \"{}\" has different texcoord origin ({}) than the first image ({})"
+                " but will be treated identically as specified by the --assign-texcoord-origin option.",
+                currentFile.filename(), toString(currentFile.spec().origin()), toString(firstSpec.origin()));
+        } else if (options.convertTexcoordOrigin.has_value()) {
+            warning("Input image \"{}\" has different texcoord origin ({}) than the first image ({})"
+                " and thus will go through different origin conversion to the target origin"
+                " specified by the --convert-texcoord-origin option.",
+                currentFile.filename(), toString(currentFile.spec().origin()), toString(firstSpec.origin()));
+        } else {
+            fatal(rc::INVALID_FILE, "Input image \"{}\" has different texcoord origin ({}) than the first image ({})."
+                " Use --assign-texcoord-origin or --convert-texcoord-origin to specify handling and stop this error.",
+                currentFile.filename(), toString(currentFile.spec().origin()), toString(firstSpec.origin()));
+        }
     }
 }
 
