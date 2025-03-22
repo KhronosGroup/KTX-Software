@@ -764,7 +764,6 @@ macro(common_libktx_settings target enable_write library_type)
         PRIVATE
             lib/basis_encode.cpp
             lib/astc_codec.cpp
-            ${BASISU_ENCODER_C_SRC}
             ${BASISU_ENCODER_CXX_SRC}
             lib/writer1.c
             lib/writer2.c
