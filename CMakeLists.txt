@@ -945,6 +945,26 @@ else()
     message(FATAL_ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")
 endif()
 
+if(NOT MSVC)
+    # Basis Universal requires strict aliasing to be disabled for GCC and Clang
+    get_source_file_property(cur_options
+        external/basisu/encoder/basisu_comp.cpp
+        COMPILE_OPTIONS
+    )
+    set_source_files_properties(
+        ${BASISU_ENCODER_CXX_SRC}
+        PROPERTIES COMPILE_OPTIONS "${cur_options};-fno-strict-aliasing"
+    )
+    get_source_file_property(cur_options
+        external/basisu/transcoder/basisu_transcoder.cpp
+        COMPILE_OPTIONS
+    )
+    set_source_files_properties(
+        external/basisu/transcoder/basisu_transcoder.cpp
+        PROPERTIES COMPILE_OPTIONS "${cur_options};-fno-strict-aliasing"
+    )
+endif()
+
 # Retrieve the final set of properties for use by the transcodetests.
 # We do this because the CMake feature that would allow the transcodetests
 # target to retrieve these from the ktx target are not available until
