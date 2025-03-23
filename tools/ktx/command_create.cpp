@@ -83,6 +83,7 @@ struct OptionsCreate {
     inline static const char* kMipmapFilter = "mipmap-filter";
     inline static const char* kMipmapFilterScale = "mipmap-filter-scale";
     inline static const char* kMipmapWrap = "mipmap-wrap";
+    inline static const char* kScale = "scale";
 
     bool _1d = false;
     bool cubemap = false;
@@ -107,6 +108,8 @@ struct OptionsCreate {
     basisu::Resampler::Boundary_Op defaultMipmapWrap = basisu::Resampler::Boundary_Op::BOUNDARY_WRAP;
     std::optional<std::string> swizzle; /// Sets KTXswizzle
     std::optional<std::string> swizzleInput; /// Used to swizzle the input image data
+
+    std::optional<float> imageScale;
 
     std::optional<khr_df_transfer_e> convertTF = {};
     std::optional<khr_df_transfer_e> assignTF = {};
@@ -143,8 +146,16 @@ struct OptionsCreate {
                 (k1D, "Create a 1D texture. If not set the texture will be a 2D or 3D texture.")
                 (kCubemap, "Create a cubemap texture. If not set the texture will be a 2D or 3D texture.")
                 (kRaw, "Create from raw image data.")
-                (kWidth, "Base level width in pixels.", cxxopts::value<uint32_t>(), "[0-9]+")
-                (kHeight, "Base level height in pixels.", cxxopts::value<uint32_t>(), "[0-9]+")
+                (kWidth, "Base level width in pixels. Required with --raw. For non-raw, if not set,"
+                    " the image width is used otherwise the image is resampled to this width and"
+                    " any provided mip levels are resampled proportionately. For non-raw it enables"
+                    " use of the \'Generate Mipmap\' options to tune the resampler.",
+                    cxxopts::value<uint32_t>(), "[0-9]+")
+                (kHeight, "Base level height in pixels. Required with --raw. For non-raw, if not"
+                    " set, the image height is used otherwise the image is resampled to this height"
+                    " and any provided mip levels are resampled proportionately. For non-raw it"
+                    " enables use of the \'Generate Mipmap\' options to tune the resampler.",
+                    cxxopts::value<uint32_t>(), "[0-9]+")
                 (kDepth, "Base level depth in pixels. If set the texture will be a 3D texture.", cxxopts::value<uint32_t>(), "[0-9]+")
                 (kLayers, "Number of layers. If set the texture will be an array texture.", cxxopts::value<uint32_t>(), "[0-9]+")
                 (kLevels, "Number of mip levels.", cxxopts::value<uint32_t>(), "[0-9]+")
@@ -153,6 +164,9 @@ struct OptionsCreate {
                     " It enables the use of \'Generate Mipmap\' options."
                     " If the --levels is not specified the maximum possible mip level will be generated."
                     " This option is mutually exclusive with --runtime-mipmap and cannot be used with UINT or 3D textures.")
+                (kScale, "Scale images as they are loaded. Cannot be used with --raw. It enables use of"
+                    " the \'Generate Mipmap\' options to tune the resampler.",
+                    cxxopts::value<float>(), "<float>")
                 (kEncode, "Encode the created KTX file. Case insensitive."
                     "\nPossible options are: basis-lz | uastc", cxxopts::value<std::string>(), "<codec>")
                 (kNormalize, "Normalize input normals to have a unit length. Only valid for\n"
@@ -227,14 +241,20 @@ struct OptionsCreate {
 
         opts.add_options("Generate Mipmap")
                 (kMipmapFilter, "Specifies the filter to use when generating the mipmaps. Case insensitive."
+                    " Ignored unless --generate-mipmap, --scale, --width or --height are specified for"
+                    " non-raw input."
                     "\nPossible options are:"
                     " box | tent | bell | b-spline | mitchell | blackman | lanczos3 | lanczos4 | lanczos6 |"
                     " lanczos12 | kaiser | gaussian | catmullrom | quadratic_interp | quadratic_approx | "
                     " quadratic_mix."
                     " Defaults to lanczos4.",
                     cxxopts::value<std::string>(), "<filter>")
-                (kMipmapFilterScale, "The filter scale to use. Defaults to 1.0.", cxxopts::value<float>(), "<float>")
+                (kMipmapFilterScale, "The filter scale to use. Defaults to 1.0. Ignored unless --generate-mipmap,"
+                    " --scale, --width or --height are specified for non-raw input.",
+                    cxxopts::value<float>(), "<float>")
                 (kMipmapWrap, "Specify how to sample pixels near the image boundaries. Case insensitive."
+                    " Ignored unless --generate-mipmap, --scale, --width or --height are specified for"
+                    " non-raw input."
                     "\nPossible options are:"
                     " wrap | reflect | clamp."
                     " Defaults to clamp.", cxxopts::value<std::string>(), "<mode>");
@@ -476,7 +496,7 @@ struct OptionsCreate {
 
         if (args[kNormalize].count()) {
             if (raw)
-                report.fatal_usage("Conflicting options: Option --normalize can't be used with --raw.");
+                report.fatal_usage("Option --{} cannot be used with --{}.", kNormalize, kRaw);
             normalize = true;
         }
 
@@ -518,6 +538,12 @@ struct OptionsCreate {
             vkFormat = *parsedVkFormat;
         } else {
             report.fatal_usage("Required option 'format' is missing.");
+        }
+
+        if (args[kScale].count()) {
+            if (args[kWidth].count() || args[kHeight].count())
+                report.fatal_usage("{} cannot be used with {} or {}.", kScale, kWidth, kHeight);
+            imageScale = args[kScale].as<float>();
         }
 
         // List of formats that have supported format conversions
@@ -656,11 +682,6 @@ struct OptionsCreate {
                 report.fatal_usage("Option --width is missing but is required for --raw texture creation.");
             if (!height)
                 report.fatal_usage("Option --height is missing but is required for --raw texture creation.");
-        } else {
-            if (width)
-                report.warning("Option --width is ignored for non-raw texture creation.");
-            if (height)
-                report.warning("Option --height is ignored for non-raw texture creation.");
         }
 
         if (width == 0u)
@@ -705,15 +726,6 @@ struct OptionsCreate {
         if (mipmapGenerate && depth)
             report.fatal_usage("Mipmap generation for 3D textures is not supported: --generate-mipmap cannot be used with --depth.");
 
-        if (mipmapFilter && !mipmapGenerate)
-            report.fatal_usage("Option --mipmap-filter can only be used if --generate-mipmap is set.");
-
-        if (mipmapFilterScale && !mipmapGenerate)
-            report.fatal_usage("Option --mipmap-filter-scale can only be used if --generate-mipmap is set.");
-
-        if (mipmapWrap && !mipmapGenerate)
-            report.fatal_usage("Option --mipmap-wrap can only be used if --generate-mipmap is set.");
-
         formatDesc = createFormatDescriptor(vkFormat, report);
 
         convertTF = parseTransferFunction(args, kConvertTf, kConvertOetf, report);
@@ -744,6 +756,8 @@ struct OptionsCreate {
                 report.fatal_usage("Option {} cannot be used with --{}.", kConvertPrimaries, kRaw);
             if (convertTexcoordOrigin.has_value())
                 report.fatal_usage("Option {} cannot be used with --{}.", kConvertTexcoordOrigin, kRaw);
+            if (imageScale.has_value())
+                report.fatal_usage("Option {} cannot be used with --{}.", kScale, kRaw);
         }
 
         if (formatDesc.transfer() == KHR_DF_TRANSFER_SRGB) {
@@ -882,9 +896,17 @@ Create a KTX2 file from various input files.
         <dt>\--raw</dt>
         <dd>Create from raw image data.</dd>
         <dt>\--width</dt>
-        <dd>Base level width in pixels.</dd>
+        <dd>Base level width in pixels. Required with \--raw. For non-raw, if not
+            set, the image width is used otherwise the image is resampled to this width
+            and any provided mip levels are resampled proportionately. For non-raw it
+            enables use of the 'Generate Mipmap' options listed under \--generate-mipmap
+            to tune the resampler.</dd>
         <dt>\--height</dt>
-        <dd>Base level height in pixels.</dd>
+        <dd>Base level height in pixels. Required with \--raw. For non-raw, if not
+            set, the image height is used otherwise the image is resampled to this height
+            and any provided mip levels are resampled proportionately. For non-raw it
+            enables use of the 'Generate Mipmap' options listed under \--generate-mipmap
+            to tune the resampler.</dd>
         <dt>\--depth</dt>
         <dd>Base level depth in pixels.
             If set the texture will be a 3D texture.</dd>
@@ -905,7 +927,8 @@ Create a KTX2 file from various input files.
         <dl>
             <dt>\--mipmap-filter &lt;filter&gt;</dt>
             <dd>Specifies the filter to use when generating the mipmaps.
-                Case insensitive.<br />
+                Case insensitive. Ignored unless --generate-mipmap, --scale,
+                --width or --height are specified for non-raw input.<br />
                 Possible options are:
                 box | tent | bell | b-spline | mitchell | blackman | lanczos3 |
                 lanczos4 | lanczos6 | lanczos12 | kaiser | gaussian |
@@ -914,10 +937,12 @@ Create a KTX2 file from various input files.
                 Defaults to lanczos4.</dd>
             <dt>\--mipmap-filter-scale &lt;float&gt;</dt>
             <dd>The filter scale to use.
-                Defaults to 1.0.</dd>
+                Defaults to 1.0. Ignored unless --generate-mipmap, --scale,
+                --width or --height are specified for non-raw input.</dd>
             <dt>\--mipmap-wrap &lt;mode&gt;</dt>
             <dd>Specify how to sample pixels near the image boundaries.
-                Case insensitive.<br />
+                Case insensitive. Ignored unless --generate-mipmap, --scale,
+                --width or --height are specified for non-raw input.<br />
                 Possible options are:
                 wrap | reflect | clamp.
                 Defaults to clamp.</dd>
@@ -925,13 +950,17 @@ Create a KTX2 file from various input files.
         Avoid mipmap generation if the Output TF (see @ref ktx\_create\_tf\_handling
         below) is non-linear and is not sRGB.
         </dd>
+        <dt>\--scale</dt>
+        <dd>Scale images as they are loaded. Cannot be used with --raw.
+            It enables use of the 'Generate Mipmap' options listed under \--generate-mipmap
+            to tune the resampler.</dd>
         <dt>\--normalize</dt>
         <dd>Normalize input normals to have a unit length. Only valid for
-                linear normal textures with 2 or more components. For 2-component
-                inputs 2D unit normals are calculated. Do not use these 2D unit
-                normals to generate X+Y normals with @b --normal-mode. For 4-component
-                inputs a 3D unit normal is calculated. 1.0 is used for the value of
-                the 4th component. Cannot be used with @b \--raw.</dd>
+            linear normal textures with 2 or more components. For 2-component
+            inputs 2D unit normals are calculated. Do not use these 2D unit
+            normals to generate X+Y normals with @b --normal-mode. For 4-component
+            inputs a 3D unit normal is calculated. 1.0 is used for the value of
+            the 4th component. Cannot be used with @b \--raw.</dd>
         <dt>\--swizzle [rgba01]{4}</dt>
         <dd>KTX swizzle metadata.</dd>
         <dt>\--input-swizzle [rgba01]{4}</dt>
@@ -1202,6 +1231,7 @@ private:
     [[nodiscard]] KTXTexture2 createTexture(const ImageSpec& target);
     void generateMipLevels(KTXTexture2& texture, std::unique_ptr<Image> image, ImageInput& inputFile,
             uint32_t numMipLevels, uint32_t layerIndex, uint32_t faceIndex, uint32_t depthSliceIndex);
+    std::unique_ptr<Image> scaleImage(std::unique_ptr<Image>&& image, uint32_t width, uint32_t height);
 
     [[nodiscard]] std::string readRawFile(const std::filesystem::path& filepath);
     [[nodiscard]] std::unique_ptr<Image> loadInputImage(ImageInput& inputImageFile);
@@ -1255,7 +1285,7 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
         // If --generate-mipmap is set the input only contains the base level images
         expectedInputImages += numLayers * numFaces * ceil_div(std::max(baseDepth >> i, 1u), blockSizeZ);
     if (options.inputFilepaths.size() != expectedInputImages) {
-        fatal_usage("Too {} input image for {} level{}, {} layer, {} face and {} depth. Provided {} but expected {}.",
+        fatal_usage("Too {} input images for {} level{}, {} layer, {} face and {} depth. Provided {} but expected {}.",
                 options.inputFilepaths.size() > expectedInputImages ? "many" : "few",
                 numLevels,
                 options.mipmapGenerate ? " (mips generated)" : "",
@@ -1509,11 +1539,24 @@ void CommandCreate::executeCreate() {
             ImageSpec::Origin usedSourceOrigin;
 
             if (std::exchange(firstImage, false)) {
-               target = ImageSpec{
-                          inputImageFile->spec().width(),
-                          inputImageFile->spec().height(),
-                          options.depth.value_or(1u),
-                          options.formatDesc};
+                ktx_uint32_t targetWidth, targetHeight;
+                if (options.imageScale.has_value()) {
+                    targetWidth = inputImageFile->spec().width() * options.imageScale.value();
+                    targetHeight = inputImageFile->spec().height() * options.imageScale.value();
+                    // TODO: scale depth
+                } else {
+                    targetWidth = options.width.has_value()
+                                  ? options.width.value() : inputImageFile->spec().width();
+                    targetHeight = options.height.has_value()
+                                  ? options.height.value() : inputImageFile->spec().height();
+                    // TODO: handle resampling depth
+                }
+
+                target = ImageSpec{
+                    targetWidth,
+                    targetHeight,
+                    options.depth.value_or(1u),
+                    options.formatDesc};
 
                if (options.cubemap && target.width() != target.height())
                     fatal(rc::INVALID_FILE, "--cubemap specified but the input image \"{}\" with size {}x{} is not square.",
@@ -1525,9 +1568,22 @@ void CommandCreate::executeCreate() {
 
                 const auto maxDimension = std::max(target.width(), std::max(target.height(), baseDepth));
                 const auto maxLevels = log2(maxDimension) + 1;
-                if (options.levels.value_or(1) > maxLevels)
-                    fatal_usage("Requested {} levels is too many. With input image \"{}\" sized {}x{} and depth {} the texture can only have {} levels at most.",
-                            options.levels.value_or(1), fmtInFile(inputFilepath), target.width(), target.height(), baseDepth, maxLevels);
+                if (options.levels.value_or(1) > maxLevels) {
+                    auto errorFmt = "Requested {} levels is too many. With {} {}x{} and depth {} the texture can only have {} levels at most.";
+                    std::string baseExpl;
+                    if (options.width.has_value() || options.height.has_value()) {
+                        baseExpl = "a requested base image size of";
+                    } else if (options.imageScale.has_value()) {
+                        baseExpl = fmt::format("a base input image \"{}\" size * scale ({}) of",
+                                           fmtInFile(inputFilepath), options.imageScale.value());
+                    } else {
+                        baseExpl = fmt::format("base input image \"{}\" sized", fmtInFile(inputFilepath));
+                    }
+                    fatal_usage(errorFmt, options.levels.value_or(1),
+                                baseExpl,
+                                target.width(), target.height(),
+                                baseDepth, maxLevels);
+                }
 
                 if (options.encodeASTC)
                     selectASTCMode(inputImageFile->spec().format().largestChannelBitLength());
@@ -1544,13 +1600,28 @@ void CommandCreate::executeCreate() {
                 determineSourceOrigin(*inputImageFile, usedSourceOrigin);
             }
 
-            const uint32_t imageWidth = std::max(firstImageSpec.width() >> levelIndex, 1u);
-            const uint32_t imageHeight = std::max(firstImageSpec.height() >> levelIndex, 1u);
+            const uint32_t expectedImageWidth = std::max(firstImageSpec.width() >> levelIndex, 1u);
+            const uint32_t expectedImageHeight = std::max(firstImageSpec.height() >> levelIndex, 1u);
+            const uint32_t targetImageWidth = std::max(target.width() >> levelIndex, 1u);
+            const uint32_t targetImageHeight = std::max(target.height() >> levelIndex, 1u);
 
-            if (inputImageFile->spec().width() != imageWidth || inputImageFile->spec().height() != imageHeight)
-                fatal(rc::INVALID_FILE, "Input image \"{}\" with size {}x{} does not match expected size {}x{} for level {}.",
-                        fmtInFile(inputFilepath), inputImageFile->spec().width(), inputImageFile->spec().height(), imageWidth, imageHeight, levelIndex);
-
+            if (inputImageFile->spec().width() != expectedImageWidth || inputImageFile->spec().height() != expectedImageHeight) {
+                if (!(options.width.has_value() || options.height.has_value() || options.imageScale.has_value())
+                    || (inputImageFile->spec().width() != targetImageWidth || inputImageFile->spec().height() != targetImageHeight)) {
+                    const auto errorFmt = "Input image \"{}\" with size {}x{} does not match expected size {}x{}{} for level {}.";
+                    std::string prescaled;
+                    if (targetImageWidth != expectedImageWidth || targetImageHeight != expectedImageHeight) {
+                        prescaled = fmt::format("or pre-scaled size {}x{}",
+                                                targetImageWidth, targetImageHeight);
+                    }
+                    fatal(rc::INVALID_FILE, errorFmt, fmtInFile(inputFilepath),
+                          inputImageFile->spec().width(),
+                          inputImageFile->spec().height(),
+                          // When no scaling option is specified image* == targetImage*.
+                          expectedImageWidth, expectedImageHeight,
+                          prescaled, levelIndex);
+                }
+            }
             auto image = loadInputImage(*inputImageFile);
 
             // Need to do color conversion if either the transfer functions or primaries don't
@@ -1663,6 +1734,9 @@ void CommandCreate::executeCreate() {
 
             // TODO: Add auto conversion and warning? Not needed now
             // because all supported source formats provide top-left images.
+
+            if (image->getWidth() != targetImageWidth || image->getHeight() != targetImageHeight)
+                image = scaleImage(std::move(image), targetImageWidth, targetImageHeight);
 
             if (target.origin() != usedSourceOrigin) {
                     if (options.failOnOriginChanges)
@@ -2404,11 +2478,27 @@ KTXTexture2 CommandCreate::createTexture(const ImageSpec& target) {
     return texture;
 }
 
+// TODO: This should probably be a method on Image.
+std::unique_ptr<Image>
+CommandCreate::scaleImage(std::unique_ptr<Image>&& image, ktx_uint32_t width, ktx_uint32_t height)
+{
+    try {
+        image = image->resample(width, height,
+                options.mipmapFilter.value_or(options.defaultMipmapFilter).c_str(),
+                options.mipmapFilterScale.value_or(options.defaultMipmapFilterScale),
+                options.mipmapWrap.value_or(options.defaultMipmapWrap));
+    } catch (const std::exception& e) {
+        fatal(rc::RUNTIME_ERROR, "Image resampling failed: {}", e.what());
+    }
+    return image;
+}
+
 void CommandCreate::generateMipLevels(KTXTexture2& texture, std::unique_ptr<Image> image, ImageInput& inputFile,
         uint32_t numMipLevels, uint32_t layerIndex, uint32_t faceIndex, uint32_t depthSliceIndex) {
 
     if (isFormatINT(static_cast<VkFormat>(texture->vkFormat)))
-        fatal(rc::NOT_SUPPORTED, "Mipmap generation for SINT or UINT format {} is not supported.", toString(static_cast<VkFormat>(texture->vkFormat)));
+        fatal(rc::NOT_SUPPORTED, "Mipmap generation for SINT or UINT format {} is not supported.",
+              toString(static_cast<VkFormat>(texture->vkFormat)));
 
     const auto baseWidth = image->getWidth();
     const auto baseHeight = image->getHeight();
