@@ -32,13 +32,21 @@
 
 namespace ktx {
 
+struct SrcColorSpaceInfo {
+    khr_df_transfer_e usedTransferFunction;
+    khr_df_primaries_e usedPrimaries;
+    std::unique_ptr<const TransferFunction> transferFunction{};
+    std::unique_ptr<const ColorPrimaries> colorPrimaries{};
+};
+
+struct DstColorSpaceInfo {
+    std::unique_ptr<const TransferFunction> transferFunction{};
+    std::unique_ptr<const ColorPrimaries> colorPrimaries{};
+};
+
 struct ColorSpaceInfo {
-    khr_df_transfer_e usedInputTransferFunction;
-    khr_df_primaries_e usedInputPrimaries;
-    std::unique_ptr<const TransferFunction> srcTransferFunction{};
-    std::unique_ptr<const TransferFunction> dstTransferFunction{};
-    std::unique_ptr<const ColorPrimaries> srcColorPrimaries{};
-    std::unique_ptr<const ColorPrimaries> dstColorPrimaries{};
+    SrcColorSpaceInfo src;
+    DstColorSpaceInfo dst;
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -711,6 +719,17 @@ struct OptionsCreate {
         convertTF = parseTransferFunction(args, kConvertTf, kConvertOetf, report);
         assignTF = parseTransferFunction(args, kAssignTf, kAssignOetf, report);
 
+        if (convertTF.has_value()) {
+            switch (convertTF.value()) {
+                case KHR_DF_TRANSFER_LINEAR: [[fallthrough]];
+                case KHR_DF_TRANSFER_SRGB:
+                    break;
+                default:
+                    report.fatal_usage("Unsupported transfer function {} for --{}.",
+                                       args[kConvertTf].as<std::string>(), kConvertTf);
+            }
+        }
+
         convertPrimaries = parseColorPrimaries(args, kConvertPrimaries, report);
         assignPrimaries = parseColorPrimaries(args, kAssignPrimaries, report);
 
@@ -921,9 +940,8 @@ Create a KTX2 file from various input files.
         <dd>Force the created texture to have the specified transfer function,
             ignoring the transfer function of the input file(s). Possible
             options match the khr_df_transfer_e enumerators without the
-            KHR_DF_TRANSFER_ prefix except that hlg_unnormalized_oetf is not
-            allowed. The KHR_DF_TRANSFER_ prefix is ignored if present. Case
-            insensitive. The options are:
+            KHR_DF_TRANSFER_ prefix. The KHR_DF_TRANSFER_ prefix
+            is ignored if present. Case nsensitive. The options are:
             linear | srgb | srgb_eotf | scrgb | scrgb_eotf | itu | itu_oetf |
             bt601 | bt601_oetf | bt709 | bt709_oetf | bt2020 | bt2020_oetf |
             smpte170m | smpte170m_oetf | smpte170m_eotf | ntsc | ntsc_eotf |
@@ -1102,7 +1120,9 @@ Transfer function handling proceeds as follows:
     </ul></li>
 <li>Supported inputs for implicit or explicit conversion are linear, sRGB,
     ITU (a.k.a BT601, BT.709, BT.2020 and SMPTE170M) and PQ EOTF. An error is
-    generated if an unsupported conversion is required. </li>
+    generated if an unsupported conversion is required.</li>
+<li>Supported outputs for implicit or explicit conversion are linear and sRGB,
+    An error is generated if an unsupported conversion is required.</li>
 <li>Output Transfer Function for a format that is not one of the @c *_SRGB{,_*}
     formats can be set to a non-linear transfer function via
     @b \--assign-tf.</li>
@@ -1190,9 +1210,10 @@ private:
     std::unique_ptr<const ColorPrimaries> createColorPrimaries(khr_df_primaries_e primaries) const;
 
     void selectASTCMode(uint32_t bitLength);
+    void determineSourceColorSpace(const ImageInput& in, SrcColorSpaceInfo& srcColorSpaceInfo);
     void determineTargetColorSpace(const ImageInput& in, ImageSpec& target, ColorSpaceInfo& colorSpaceInfo);
-    void determineInputOrigin(const ImageInput& in, ImageSpec::Origin& usedInputOrigin);
-    void determineTargetOrigin(const ImageInput& in, ImageSpec& target, ImageSpec::Origin& usedInputOrigin);
+    void determineSourceOrigin(const ImageInput& in, ImageSpec::Origin& usedSourceOrigin);
+    void determineTargetOrigin(const ImageInput& in, ImageSpec& target, ImageSpec::Origin& usedSourceOrigin);
 
     void checkSpecsMatch(const ImageInput& current, const ImageSpec& firstSpec);
 };
@@ -1430,6 +1451,7 @@ void CommandCreate::executeCreate() {
     targetChannelCount = options.formatDesc.channelCount();
 
     ImageSpec target;
+    ColorSpaceInfo colorSpaceInfo{};
 
     bool firstImage = true;
     ImageSpec firstImageSpec{};
@@ -1484,18 +1506,16 @@ void CommandCreate::executeCreate() {
             const auto inputImageFile = ImageInput::open(inputFilepath, nullptr, warningFn);
             inputImageFile->seekSubimage(0, 0); // Loading multiple subimage from the same input is not supported
 
-            target = ImageSpec{
-                    inputImageFile->spec().width(),
-                    inputImageFile->spec().height(),
-                    options.depth.value_or(1u),
-                    options.formatDesc};
-
-            ImageSpec::Origin usedInputOrigin;
-            ColorSpaceInfo colorSpaceInfo{};
-            determineTargetColorSpace(*inputImageFile, target, colorSpaceInfo);
+            ImageSpec::Origin usedSourceOrigin;
 
             if (std::exchange(firstImage, false)) {
-                if (options.cubemap && target.width() != target.height())
+               target = ImageSpec{
+                          inputImageFile->spec().width(),
+                          inputImageFile->spec().height(),
+                          options.depth.value_or(1u),
+                          options.formatDesc};
+
+               if (options.cubemap && target.width() != target.height())
                     fatal(rc::INVALID_FILE, "--cubemap specified but the input image \"{}\" with size {}x{} is not square.",
                             fmtInFile(inputFilepath), target.width(), target.height());
 
@@ -1513,11 +1533,15 @@ void CommandCreate::executeCreate() {
                     selectASTCMode(inputImageFile->spec().format().largestChannelBitLength());
 
                 firstImageSpec = inputImageFile->spec();
-                determineTargetOrigin(*inputImageFile, target, usedInputOrigin);
+
+                determineTargetColorSpace(*inputImageFile, target, colorSpaceInfo);
+                determineTargetOrigin(*inputImageFile, target, usedSourceOrigin);
+      
                 texture = createTexture(target);
             } else {
                 checkSpecsMatch(*inputImageFile, firstImageSpec);
-                determineInputOrigin(*inputImageFile, usedInputOrigin);
+                determineSourceColorSpace(*inputImageFile, colorSpaceInfo.src);
+                determineSourceOrigin(*inputImageFile, usedSourceOrigin);
             }
 
             const uint32_t imageWidth = std::max(firstImageSpec.width() >> levelIndex, 1u);
@@ -1529,8 +1553,51 @@ void CommandCreate::executeCreate() {
 
             auto image = loadInputImage(*inputImageFile);
 
-            if (colorSpaceInfo.dstTransferFunction != nullptr) {
-                assert(colorSpaceInfo.srcTransferFunction != nullptr);
+            // Need to do color conversion if either the transfer functions or primaries don't
+            // match. Primaries conversion requires decode to linear then reencode thus
+            // transferFunctions are always required.
+            if (target.format().transfer() != colorSpaceInfo.src.usedTransferFunction ||
+                target.format().primaries() != colorSpaceInfo.src.usedPrimaries) {
+                assert(colorSpaceInfo.src.usedPrimaries != KHR_DF_PRIMARIES_UNSPECIFIED
+                       && "determineSourceColorSpace failed to check for UNSPECIFIED.");
+                const auto errorFmt = "Colorspace conversion requires unsupported {} {} {}.";
+                if (colorSpaceInfo.src.transferFunction == nullptr) {
+                    std::string source;
+                    if (options.assignTF.has_value()) {
+                        source = fmt::format("specified with --{}", options.kAssignTf);
+                    } else {
+                        source = fmt::format("used by input file \"{}\"", fmtInFile(inputFilepath));
+                    }
+                    auto errorMsg = fmt::format(errorFmt,
+                                                "decode from",
+                                                toString(colorSpaceInfo.src.usedTransferFunction),
+                                                source);
+                    if (!options.assignTF.has_value()) {
+                        errorMsg += fmt::format(" Use an image processing tool to convert it or use"
+                                                " --{}, with or without --{}, to specify handling.",
+                                                options.kAssignTf, options.kConvertTf);
+                    }
+                    fatal(rc::NOT_SUPPORTED, errorMsg);
+                }
+                if (colorSpaceInfo.dst.transferFunction == nullptr) {
+                    // If we get here it is because (a) a transfer supported for decode but not
+                    // encode has been set with --assign-tf and (b) a primary conversion was
+                    // requested with --convert-primaries. CLI checks prevent an unsupported
+                    // transfer being given to --convert-tf.
+                    auto source = fmt::format("specified with --{}", options.convertTF.has_value()
+                                              ? options.kConvertTf : options.kAssignTf);
+                    auto errorMsg = fmt::format(errorFmt,
+                                                "encode to",
+                                                toString(target.format().transfer()),
+                                                source);
+                    // Transfer functions derived from --format values are supported.
+                    if (target.format().primaries() != colorSpaceInfo.src.usedPrimaries) {
+                        errorMsg += fmt::format(" Decode and encode with transfer function is"
+                                                " required to convert primaries to {}.",
+                                                toString(target.format().primaries()));
+                    }
+                    fatal(rc::NOT_SUPPORTED, errorMsg);
+                }
                 if (!options.noWarnOnColorConversions) {
                     if (target.format().model() == KHR_DF_MODEL_RGBSDA
                         && target.format().transfer() == KHR_DF_TRANSFER_LINEAR) {
@@ -1547,21 +1614,22 @@ void CommandCreate::executeCreate() {
                         if (bitLength < 14) {
                             // Per Poynton, >= 14 bits is enough to handle all transitions
                             // visible to a human
-                            if (colorSpaceInfo.usedInputTransferFunction == KHR_DF_TRANSFER_SRGB
-                               || colorSpaceInfo.usedInputTransferFunction == KHR_DF_TRANSFER_ITU) {
+                            if (colorSpaceInfo.src.usedTransferFunction == KHR_DF_TRANSFER_SRGB
+                               || colorSpaceInfo.src.usedTransferFunction == KHR_DF_TRANSFER_ITU) {
                               warning("Input file \"{}\" is undergoing a visual lossy color conversion from {} "
                                       "to KHR_DF_TRANSFER_LINEAR. Specify an _SRGB format with --{} to prevent "
                                       "this warning.",
                                       fmtInFile(inputFilepath),
-                                      toString(colorSpaceInfo.usedInputTransferFunction),
+                                      toString(colorSpaceInfo.src.usedTransferFunction),
                                       options.kFormat);
                             }
                         }
                     }
                 }
-                if (colorSpaceInfo.dstColorPrimaries != nullptr) {
-                    assert(colorSpaceInfo.srcColorPrimaries != nullptr);
-                    auto primaryTransform = colorSpaceInfo.srcColorPrimaries->transformTo(*colorSpaceInfo.dstColorPrimaries);
+                if (target.format().primaries() != colorSpaceInfo.src.usedPrimaries) {
+                //if (colorSpaceInfo.dst.colorPrimaries != nullptr) {
+                    //assert(colorSpaceInfo.src.colorPrimaries != nullptr);
+                    auto primaryTransform = colorSpaceInfo.src.colorPrimaries->transformTo(*colorSpaceInfo.dst.colorPrimaries);
 
                     if (options.failOnColorConversions)
                         fatal(rc::INVALID_FILE,
@@ -1575,7 +1643,7 @@ void CommandCreate::executeCreate() {
                             fmtInFile(inputFilepath));
 
                     // Transform transfer function with primary transform
-                    image->transformColorSpace(*colorSpaceInfo.srcTransferFunction, *colorSpaceInfo.dstTransferFunction, &primaryTransform);
+                    image->transformColorSpace(*colorSpaceInfo.src.transferFunction, *colorSpaceInfo.dst.transferFunction, &primaryTransform);
                 } else {
                     if (options.failOnColorConversions)
                         fatal(rc::INVALID_FILE,
@@ -1589,14 +1657,14 @@ void CommandCreate::executeCreate() {
                             fmtInFile(inputFilepath));
 
                     // Transform transfer function without primary transform
-                    image->transformColorSpace(*colorSpaceInfo.srcTransferFunction, *colorSpaceInfo.dstTransferFunction);
+                    image->transformColorSpace(*colorSpaceInfo.src.transferFunction, *colorSpaceInfo.dst.transferFunction);
                 }
             }
 
             // TODO: Add auto conversion and warning? Not needed now
             // because all supported source formats provide top-left images.
 
-            if (target.origin() != usedInputOrigin) {
+            if (target.origin() != usedSourceOrigin) {
                     if (options.failOnOriginChanges)
                         fatal(rc::INVALID_FILE,
                             "Input file \"{}\" would need to be y-flipped as input and output origins are different. "
@@ -2429,7 +2497,9 @@ std::unique_ptr<const ColorPrimaries> CommandCreate::createColorPrimaries(khr_df
     }
 }
 
-void CommandCreate::determineTargetColorSpace(const ImageInput& in, ImageSpec& target, ColorSpaceInfo& colorSpaceInfo) {
+void CommandCreate::determineSourceColorSpace(const ImageInput& in, SrcColorSpaceInfo& srcColorSpaceInfo) {
+    const ImageSpec& spec = in.spec();
+
     // Primaries handling:
     //
     // 1. Use assign-primaries option value, if set.
@@ -2439,37 +2509,26 @@ void CommandCreate::determineTargetColorSpace(const ImageInput& in, ImageSpec& t
     //    UNSPECIFIED.
     // 4. If convert-primaries is specified but no primaries info is
     //    given by the plugin then fail.
-    // 5. If convert-primaries is specified and primaries info determined
-    //    above is different then set up conversion.
-    const ImageSpec& spec = in.spec();
 
-    // Set Primaries
-    colorSpaceInfo.usedInputPrimaries = spec.format().primaries();
+    srcColorSpaceInfo.colorPrimaries = nullptr;
+    srcColorSpaceInfo.usedPrimaries = spec.format().primaries();
     if (options.assignPrimaries.has_value()) {
-        colorSpaceInfo.usedInputPrimaries = options.assignPrimaries.value();
-        target.format().setPrimaries(options.assignPrimaries.value());
-    } else if (spec.format().primaries() != KHR_DF_PRIMARIES_UNSPECIFIED) {
-        target.format().setPrimaries(spec.format().primaries());
-    } else {
+        srcColorSpaceInfo.usedPrimaries = options.assignPrimaries.value();
+    } else if (spec.format().primaries() == KHR_DF_PRIMARIES_UNSPECIFIED) {
         if (!in.formatName().compare("png")) {
             warning("No color primaries in PNG input file \"{}\", defaulting to BT.709.", in.filename());
-            colorSpaceInfo.usedInputPrimaries = KHR_DF_PRIMARIES_BT709;
-            target.format().setPrimaries(KHR_DF_PRIMARIES_BT709);
-        } else {
+            srcColorSpaceInfo.usedPrimaries = KHR_DF_PRIMARIES_BT709;
+        } // else
             // Leave as unspecified.
-            target.format().setPrimaries(spec.format().primaries());
-        }
     }
 
     if (options.convertPrimaries.has_value()) {
-        if (colorSpaceInfo.usedInputPrimaries == KHR_DF_PRIMARIES_UNSPECIFIED) {
+        if (srcColorSpaceInfo.usedPrimaries == KHR_DF_PRIMARIES_UNSPECIFIED) {
             fatal(rc::INVALID_FILE, "Cannot convert primaries as no information about the color primaries "
                 "is available in the input file \"{}\". Use --{} to specify one.", in.filename(),
                   options.kAssignPrimaries);
-        } else if (options.convertPrimaries.value() != colorSpaceInfo.usedInputPrimaries) {
-            colorSpaceInfo.srcColorPrimaries = createColorPrimaries(colorSpaceInfo.usedInputPrimaries);
-            colorSpaceInfo.dstColorPrimaries = createColorPrimaries(options.convertPrimaries.value());
-            target.format().setPrimaries(options.convertPrimaries.value());
+        } else if (options.convertPrimaries.value() != srcColorSpaceInfo.usedPrimaries) {
+            srcColorSpaceInfo.colorPrimaries = createColorPrimaries(srcColorSpaceInfo.usedPrimaries);
         }
     }
 
@@ -2492,12 +2551,12 @@ void CommandCreate::determineTargetColorSpace(const ImageInput& in, ImageSpec& t
     // 6. Convert transfer function based on convert-tf option value or as
     //    described above.
 
+    srcColorSpaceInfo.transferFunction = nullptr;
     if (options.assignTF.has_value()) {
-        colorSpaceInfo.usedInputTransferFunction = options.assignTF.value();
-        target.format().setTransfer(options.assignTF.value());
+        srcColorSpaceInfo.usedTransferFunction = options.assignTF.value();
     } else {
         // Set image's transfer function as indicated by metadata.
-        colorSpaceInfo.usedInputTransferFunction = spec.format().transfer();
+        srcColorSpaceInfo.usedTransferFunction = spec.format().transfer();
         if (spec.format().transfer() == KHR_DF_TRANSFER_UNSPECIFIED) {
             if (spec.format().iccProfileName().size()) {
                 fatal(rc::INVALID_FILE,
@@ -2516,23 +2575,23 @@ void CommandCreate::determineTargetColorSpace(const ImageInput& in, ImageSpec& t
                     // images produced before and after this change of loader.
                     warning("Converting gamma 2.2f to sRGB. Use --{} srgb to force treating input as sRGB.",
                             options.kAssignTf);
-                    colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionGamma>(spec.format().oeGamma());
+                    srcColorSpaceInfo.transferFunction = std::make_unique<TransferFunctionGamma>(spec.format().oeGamma());
                 } else if (spec.format().oeGamma() == 1.0) {
-                    colorSpaceInfo.usedInputTransferFunction = KHR_DF_TRANSFER_LINEAR;
+                    srcColorSpaceInfo.usedTransferFunction = KHR_DF_TRANSFER_LINEAR;
                 } else if (spec.format().oeGamma() > 0.0f) {
                     // We allow any gamma, there is no reason why we could not
                     // allow such input
-                    colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionGamma>(spec.format().oeGamma());
+                    srcColorSpaceInfo.transferFunction = std::make_unique<TransferFunctionGamma>(spec.format().oeGamma());
                 } else if (spec.format().oeGamma() == 0.0f) {
                     if (!in.formatName().compare("png")) {
                         // If 8-bit, treat as sRGB, otherwise treat as linear.
                         if (spec.format().channelBitLength() == 8) {
-                            colorSpaceInfo.usedInputTransferFunction = KHR_DF_TRANSFER_SRGB;
+                            srcColorSpaceInfo.usedTransferFunction = KHR_DF_TRANSFER_SRGB;
                         } else {
-                            colorSpaceInfo.usedInputTransferFunction = KHR_DF_TRANSFER_LINEAR;
+                            srcColorSpaceInfo.usedTransferFunction = KHR_DF_TRANSFER_LINEAR;
                         }
                         warning("Ignoring reported gamma of 0.0f in {}-bit PNG input file \"{}\". Handling as {}.",
-                            spec.format().channelBitLength(), in.filename(), toString(colorSpaceInfo.usedInputTransferFunction));
+                                spec.format().channelBitLength(), in.filename(), toString(srcColorSpaceInfo.usedTransferFunction));
                     } else {
                         fatal(rc::INVALID_FILE,
                               "Input file \"{}\" has gamma 0.0f. Use --{} to specify transfer function.",
@@ -2548,100 +2607,107 @@ void CommandCreate::determineTargetColorSpace(const ImageInput& in, ImageSpec& t
             } else if (!in.formatName().compare("png")) {
                 // If 8-bit, treat as sRGB, otherwise treat as linear.
                 if (spec.format().channelBitLength() == 8) {
-                    colorSpaceInfo.usedInputTransferFunction = KHR_DF_TRANSFER_SRGB;
+                  srcColorSpaceInfo.usedTransferFunction = KHR_DF_TRANSFER_SRGB;
                 } else {
-                    colorSpaceInfo.usedInputTransferFunction = KHR_DF_TRANSFER_LINEAR;
+                  srcColorSpaceInfo.usedTransferFunction = KHR_DF_TRANSFER_LINEAR;
                 }
                 warning("No transfer function can be determined from {}-bit PNG input file \"{}\", defaulting to {}. Use --{} to override.",
                         spec.format().channelBitLength(), in.filename(),
-                        toString(colorSpaceInfo.usedInputTransferFunction),
+                        toString(srcColorSpaceInfo.usedTransferFunction),
                         options.kAssignTf);
             }
         }
     }
-    if (colorSpaceInfo.srcTransferFunction == nullptr) {
-        switch (colorSpaceInfo.usedInputTransferFunction) {
+    if (srcColorSpaceInfo.transferFunction == nullptr) {
+      switch (srcColorSpaceInfo.usedTransferFunction) {
         case KHR_DF_TRANSFER_LINEAR:
-            colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionLinear>();
+            srcColorSpaceInfo.transferFunction = std::make_unique<TransferFunctionLinear>();
             break;
         case KHR_DF_TRANSFER_SRGB:
-            colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionSRGB>();
+            srcColorSpaceInfo.transferFunction = std::make_unique<TransferFunctionSRGB>();
             break;
         case KHR_DF_TRANSFER_ITU:
-            colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionITU>();
+            srcColorSpaceInfo.transferFunction = std::make_unique<TransferFunctionITU>();
             break;
         case KHR_DF_TRANSFER_PQ_EOTF:
-            colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionBT2100_PQ_EOTF>();
+            srcColorSpaceInfo.transferFunction = std::make_unique<TransferFunctionBT2100_PQ_EOTF>();
             break;
         default:
-            if (!options.assignTF.has_value() || options.convertTF.has_value()) {
-                const auto errorFmt = "Conversion from transfer function {} {} is not supported by KTX. "
-                                      "Use an image processing tool to convert it";
-                std::string detail;
-                if (options.assignTF.has_value())
-                    detail = fmt::format("specified with --{}", options.kAssignTf);
-                else
-                    detail = fmt::format("used by input file \"{}\"", in.filename());
-
-                auto errorMsg = fmt::format(errorFmt,
-                                            toString(colorSpaceInfo.usedInputTransferFunction),
-                                            detail);
-                if (!options.assignTF.has_value())
-                    errorMsg += fmt::format(" or use --{}, with or without --{}, to specify handling.",
-                                            options.kAssignTf, options.kConvertTf);
-                else
-                    errorMsg += ".";
-
-                fatal(rc::INVALID_FILE, errorMsg);
-            } // else with just --assign_tf srcTransferFunction is not needed.
+            // Lack of will be handled if a color transformation attempted.
+            break;
         }
     }
+}
+
+void CommandCreate::determineTargetColorSpace(const ImageInput& in, ImageSpec& target, ColorSpaceInfo& colorSpaceInfo) {
+    // Primaries handling:
+    //
+    // 1. Use assign-primaries option value, if set.
+    // 2. Use primaries info given by plugin.
+    // 3. If no primaries info and input is PNG use PNG spec.
+    //    recommendation of BT709/sRGB otherwise leave as
+    //    UNSPECIFIED.
+    // 4. If convert-primaries is specified but no primaries info is
+    //    given by the plugin then fail.
+    // 5. If convert-primaries is specified and primaries info determined
+    //    above is different then set up conversion.
+
+    determineSourceColorSpace(in, colorSpaceInfo.src);
+
+    // Set Primaries
+
+    // If convert-primaries is specified and primaries info determined
+    // above is different then set up conversion.
+    if (options.convertPrimaries.has_value()) {
+        assert(colorSpaceInfo.src.usedPrimaries != KHR_DF_PRIMARIES_UNSPECIFIED
+               && "determineSourceColorSpace failed to check for UNSPECIFIED.");
+        target.format().setPrimaries(options.convertPrimaries.value());
+        // Okay to set this even if no conversion needed.
+        colorSpaceInfo.dst.colorPrimaries = createColorPrimaries(target.format().primaries());
+    } else {
+        target.format().setPrimaries(colorSpaceInfo.src.usedPrimaries);
+    }
+
+    // target transfer is set from the --format value or --assignTF or --convertTF.
+    if (options.assignTF.has_value())
+        target.format().setTransfer(options.assignTF.value());
 
     if (options.convertTF.has_value())
         target.format().setTransfer(options.convertTF.value());
 
-    // Need to do color conversion if either the transfer functions don't match or the primaries
-    if (target.format().transfer() != colorSpaceInfo.usedInputTransferFunction ||
-        target.format().primaries() != colorSpaceInfo.usedInputPrimaries) {
-        if (colorSpaceInfo.srcTransferFunction == nullptr)
-            fatal(rc::INVALID_FILE,
-                  "No transfer function can be determined from input file \"{}\". Use --{} to specify one.",
-                  in.filename(), options.kAssignTf);
-
-        switch (target.format().transfer()) {
-        case KHR_DF_TRANSFER_LINEAR:
-            colorSpaceInfo.dstTransferFunction = std::make_unique<TransferFunctionLinear>();
-            break;
-        case KHR_DF_TRANSFER_SRGB:
-            colorSpaceInfo.dstTransferFunction = std::make_unique<TransferFunctionSRGB>();
-            break;
-        default:
-            assert(false);
-            break;
-        }
+    switch (target.format().transfer()) {
+    case KHR_DF_TRANSFER_LINEAR:
+        colorSpaceInfo.dst.transferFunction = std::make_unique<TransferFunctionLinear>();
+        break;
+    case KHR_DF_TRANSFER_SRGB:
+        colorSpaceInfo.dst.transferFunction = std::make_unique<TransferFunctionSRGB>();
+        break;
+    default:
+        // Lack of will be handled if color transformation attempted.
+        colorSpaceInfo.dst.transferFunction = nullptr;
     }
 }
 
-void CommandCreate::determineInputOrigin(const ImageInput& in, ImageSpec::Origin& usedInputOrigin) {
+void CommandCreate::determineSourceOrigin(const ImageInput& in, ImageSpec::Origin& usedSourceOrigin) {
 
     if (options.assignTexcoordOrigin.has_value()) {
-        usedInputOrigin = options.assignTexcoordOrigin.value();
+        usedSourceOrigin = options.assignTexcoordOrigin.value();
     } else {
-        usedInputOrigin = in.spec().origin();
+        usedSourceOrigin = in.spec().origin();
     }
 }
 
 void CommandCreate::determineTargetOrigin(const ImageInput& in, ImageSpec& target,
-                                          ImageSpec::Origin& usedInputOrigin) {
-    determineInputOrigin(in, usedInputOrigin);
-    target.setOrigin(usedInputOrigin);
+                                          ImageSpec::Origin& usedSourceOrigin) {
+    determineSourceOrigin(in, usedSourceOrigin);
+    target.setOrigin(usedSourceOrigin);
 
     if (options.convertTexcoordOrigin.has_value()) {
-        if (usedInputOrigin.unspecified()) {
+        if (usedSourceOrigin.unspecified()) {
             fatal(rc::INVALID_FILE, "Cannot convert texcoord origin as no information about the origin "
                 "is available in the input file \"{}\". Use --{} to specify one.",
                 in.filename(), OptionsCreate::kAssignTexcoordOrigin);
-        } else if (options.convertTexcoordOrigin.value() != usedInputOrigin) {
+        } else if (options.convertTexcoordOrigin.value() != usedSourceOrigin) {
             target.setOrigin(options.convertTexcoordOrigin.value());
         }
     }
