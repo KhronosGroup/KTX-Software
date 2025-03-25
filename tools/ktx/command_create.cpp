@@ -1551,8 +1551,10 @@ void CommandCreate::executeCreate() {
             if (std::exchange(firstImage, false)) {
                 uint32_t targetWidth, targetHeight;
                 if (options.imageScale.has_value()) {
-                    targetWidth = inputImageFile->spec().width() * options.imageScale.value();
-                    targetHeight = inputImageFile->spec().height() * options.imageScale.value();
+                    targetWidth = static_cast<uint32_t>(inputImageFile->spec().width()
+                                                        * options.imageScale.value());
+                    targetHeight = static_cast<uint32_t>(inputImageFile->spec().height()
+                                                         * options.imageScale.value());
                     // TODO: scale depth
                 } else {
                     targetWidth = options.width.value_or(inputImageFile->spec().width());
