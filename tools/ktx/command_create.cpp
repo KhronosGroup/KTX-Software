@@ -1232,7 +1232,7 @@ private:
     [[nodiscard]] KTXTexture2 createTexture(const ImageSpec& target);
     void generateMipLevels(KTXTexture2& texture, std::unique_ptr<Image> image, ImageInput& inputFile,
             uint32_t numMipLevels, uint32_t layerIndex, uint32_t faceIndex, uint32_t depthSliceIndex);
-    std::unique_ptr<Image> scaleImage(std::unique_ptr<Image>&& image, uint32_t width, uint32_t height);
+    std::unique_ptr<Image> scaleImage(std::unique_ptr<Image> image, uint32_t width, uint32_t height);
 
     [[nodiscard]] std::string readRawFile(const std::filesystem::path& filepath);
     [[nodiscard]] std::unique_ptr<Image> loadInputImage(ImageInput& inputImageFile);
@@ -2483,7 +2483,7 @@ KTXTexture2 CommandCreate::createTexture(const ImageSpec& target) {
 
 // TODO: This should probably be a method on Image.
 std::unique_ptr<Image>
-CommandCreate::scaleImage(std::unique_ptr<Image>&& image, ktx_uint32_t width, ktx_uint32_t height)
+CommandCreate::scaleImage(std::unique_ptr<Image> image, ktx_uint32_t width, ktx_uint32_t height)
 {
     try {
         image = image->resample(width, height,
