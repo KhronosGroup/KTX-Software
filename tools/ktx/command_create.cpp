@@ -1636,8 +1636,8 @@ void CommandCreate::executeCreate() {
             // transferFunctions are always required.
             if (target.format().transfer() != colorSpaceInfo.src.usedTransferFunction ||
                 target.format().primaries() != colorSpaceInfo.src.usedPrimaries) {
-                assert(target.format().primaries() == colorSpaceInfo.src.usedPrimaries
-                       || colorSpaceInfo.src.usedPrimaries != KHR_DF_PRIMARIES_UNSPECIFIED
+                assert((target.format().primaries() == colorSpaceInfo.src.usedPrimaries
+                       || colorSpaceInfo.src.usedPrimaries != KHR_DF_PRIMARIES_UNSPECIFIED)
                        && "determineSourceColorSpace failed to check for UNSPECIFIED.");
                 const auto errorFmt = "Colorspace conversion requires unsupported {} {} {}.";
                 if (colorSpaceInfo.src.transferFunction == nullptr) {
