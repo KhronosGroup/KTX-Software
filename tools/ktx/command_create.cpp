@@ -32,13 +32,21 @@
 
 namespace ktx {
 
+struct SrcColorSpaceInfo {
+    khr_df_transfer_e usedTransferFunction;
+    khr_df_primaries_e usedPrimaries;
+    std::unique_ptr<const TransferFunction> transferFunction{};
+    std::unique_ptr<const ColorPrimaries> colorPrimaries{};
+};
+
+struct DstColorSpaceInfo {
+    std::unique_ptr<const TransferFunction> transferFunction{};
+    std::unique_ptr<const ColorPrimaries> colorPrimaries{};
+};
+
 struct ColorSpaceInfo {
-    khr_df_transfer_e usedInputTransferFunction;
-    khr_df_primaries_e usedInputPrimaries;
-    std::unique_ptr<const TransferFunction> srcTransferFunction{};
-    std::unique_ptr<const TransferFunction> dstTransferFunction{};
-    std::unique_ptr<const ColorPrimaries> srcColorPrimaries{};
-    std::unique_ptr<const ColorPrimaries> dstColorPrimaries{};
+    SrcColorSpaceInfo src;
+    DstColorSpaceInfo dst;
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -75,6 +83,7 @@ struct OptionsCreate {
     inline static const char* kMipmapFilter = "mipmap-filter";
     inline static const char* kMipmapFilterScale = "mipmap-filter-scale";
     inline static const char* kMipmapWrap = "mipmap-wrap";
+    inline static const char* kScale = "scale";
 
     bool _1d = false;
     bool cubemap = false;
@@ -99,6 +108,8 @@ struct OptionsCreate {
     basisu::Resampler::Boundary_Op defaultMipmapWrap = basisu::Resampler::Boundary_Op::BOUNDARY_WRAP;
     std::optional<std::string> swizzle; /// Sets KTXswizzle
     std::optional<std::string> swizzleInput; /// Used to swizzle the input image data
+
+    std::optional<float> imageScale;
 
     std::optional<khr_df_transfer_e> convertTF = {};
     std::optional<khr_df_transfer_e> assignTF = {};
@@ -135,8 +146,16 @@ struct OptionsCreate {
                 (k1D, "Create a 1D texture. If not set the texture will be a 2D or 3D texture.")
                 (kCubemap, "Create a cubemap texture. If not set the texture will be a 2D or 3D texture.")
                 (kRaw, "Create from raw image data.")
-                (kWidth, "Base level width in pixels.", cxxopts::value<uint32_t>(), "[0-9]+")
-                (kHeight, "Base level height in pixels.", cxxopts::value<uint32_t>(), "[0-9]+")
+                (kWidth, "Base level width in pixels. Required with --raw. For non-raw, if not set,"
+                    " the image width is used otherwise the image is resampled to this width and"
+                    " any provided mip levels are resampled proportionately. For non-raw it enables"
+                    " use of the \'Generate Mipmap\' options to tune the resampler.",
+                    cxxopts::value<uint32_t>(), "[0-9]+")
+                (kHeight, "Base level height in pixels. Required with --raw. For non-raw, if not"
+                    " set, the image height is used otherwise the image is resampled to this height"
+                    " and any provided mip levels are resampled proportionately. For non-raw it"
+                    " enables use of the \'Generate Mipmap\' options to tune the resampler.",
+                    cxxopts::value<uint32_t>(), "[0-9]+")
                 (kDepth, "Base level depth in pixels. If set the texture will be a 3D texture.", cxxopts::value<uint32_t>(), "[0-9]+")
                 (kLayers, "Number of layers. If set the texture will be an array texture.", cxxopts::value<uint32_t>(), "[0-9]+")
                 (kLevels, "Number of mip levels.", cxxopts::value<uint32_t>(), "[0-9]+")
@@ -145,6 +164,9 @@ struct OptionsCreate {
                     " It enables the use of \'Generate Mipmap\' options."
                     " If the --levels is not specified the maximum possible mip level will be generated."
                     " This option is mutually exclusive with --runtime-mipmap and cannot be used with UINT or 3D textures.")
+                (kScale, "Scale images as they are loaded. Cannot be used with --raw. It enables use of"
+                    " the \'Generate Mipmap\' options to tune the resampler.",
+                    cxxopts::value<float>(), "<float>")
                 (kEncode, "Encode the created KTX file. Case insensitive."
                     "\nPossible options are: basis-lz | uastc", cxxopts::value<std::string>(), "<codec>")
                 (kNormalize, "Normalize input normals to have a unit length. Only valid for\n"
@@ -219,14 +241,20 @@ struct OptionsCreate {
 
         opts.add_options("Generate Mipmap")
                 (kMipmapFilter, "Specifies the filter to use when generating the mipmaps. Case insensitive."
+                    " Ignored unless --generate-mipmap, --scale, --width or --height are specified for"
+                    " non-raw input."
                     "\nPossible options are:"
                     " box | tent | bell | b-spline | mitchell | blackman | lanczos3 | lanczos4 | lanczos6 |"
                     " lanczos12 | kaiser | gaussian | catmullrom | quadratic_interp | quadratic_approx | "
                     " quadratic_mix."
                     " Defaults to lanczos4.",
                     cxxopts::value<std::string>(), "<filter>")
-                (kMipmapFilterScale, "The filter scale to use. Defaults to 1.0.", cxxopts::value<float>(), "<float>")
+                (kMipmapFilterScale, "The filter scale to use. Defaults to 1.0. Ignored unless --generate-mipmap,"
+                    " --scale, --width or --height are specified for non-raw input.",
+                    cxxopts::value<float>(), "<float>")
                 (kMipmapWrap, "Specify how to sample pixels near the image boundaries. Case insensitive."
+                    " Ignored unless --generate-mipmap, --scale, --width or --height are specified for"
+                    " non-raw input."
                     "\nPossible options are:"
                     " wrap | reflect | clamp."
                     " Defaults to clamp.", cxxopts::value<std::string>(), "<mode>");
@@ -468,7 +496,7 @@ struct OptionsCreate {
 
         if (args[kNormalize].count()) {
             if (raw)
-                report.fatal_usage("Conflicting options: Option --normalize can't be used with --raw.");
+                report.fatal_usage("Option --{} cannot be used with --{}.", kNormalize, kRaw);
             normalize = true;
         }
 
@@ -510,6 +538,12 @@ struct OptionsCreate {
             vkFormat = *parsedVkFormat;
         } else {
             report.fatal_usage("Required option 'format' is missing.");
+        }
+
+        if (args[kScale].count()) {
+            if (args[kWidth].count() || args[kHeight].count())
+                report.fatal_usage("{} cannot be used with {} or {}.", kScale, kWidth, kHeight);
+            imageScale = args[kScale].as<float>();
         }
 
         // List of formats that have supported format conversions
@@ -648,11 +682,6 @@ struct OptionsCreate {
                 report.fatal_usage("Option --width is missing but is required for --raw texture creation.");
             if (!height)
                 report.fatal_usage("Option --height is missing but is required for --raw texture creation.");
-        } else {
-            if (width)
-                report.warning("Option --width is ignored for non-raw texture creation.");
-            if (height)
-                report.warning("Option --height is ignored for non-raw texture creation.");
         }
 
         if (width == 0u)
@@ -697,19 +726,21 @@ struct OptionsCreate {
         if (mipmapGenerate && depth)
             report.fatal_usage("Mipmap generation for 3D textures is not supported: --generate-mipmap cannot be used with --depth.");
 
-        if (mipmapFilter && !mipmapGenerate)
-            report.fatal_usage("Option --mipmap-filter can only be used if --generate-mipmap is set.");
-
-        if (mipmapFilterScale && !mipmapGenerate)
-            report.fatal_usage("Option --mipmap-filter-scale can only be used if --generate-mipmap is set.");
-
-        if (mipmapWrap && !mipmapGenerate)
-            report.fatal_usage("Option --mipmap-wrap can only be used if --generate-mipmap is set.");
-
         formatDesc = createFormatDescriptor(vkFormat, report);
 
         convertTF = parseTransferFunction(args, kConvertTf, kConvertOetf, report);
         assignTF = parseTransferFunction(args, kAssignTf, kAssignOetf, report);
+
+        if (convertTF.has_value()) {
+            switch (convertTF.value()) {
+                case KHR_DF_TRANSFER_LINEAR: [[fallthrough]];
+                case KHR_DF_TRANSFER_SRGB:
+                    break;
+                default:
+                    report.fatal_usage("Unsupported transfer function {} for --{}.",
+                                       args[kConvertTf].as<std::string>(), kConvertTf);
+            }
+        }
 
         convertPrimaries = parseColorPrimaries(args, kConvertPrimaries, report);
         assignPrimaries = parseColorPrimaries(args, kAssignPrimaries, report);
@@ -725,6 +756,8 @@ struct OptionsCreate {
                 report.fatal_usage("Option {} cannot be used with --{}.", kConvertPrimaries, kRaw);
             if (convertTexcoordOrigin.has_value())
                 report.fatal_usage("Option {} cannot be used with --{}.", kConvertTexcoordOrigin, kRaw);
+            if (imageScale.has_value())
+                report.fatal_usage("Option {} cannot be used with --{}.", kScale, kRaw);
         }
 
         if (formatDesc.transfer() == KHR_DF_TRANSFER_SRGB) {
@@ -839,12 +872,6 @@ Create a KTX2 file from various input files.
             </ul>
             The format will be used to verify and load all input files into a
             texture before performing any specified encoding.<br />
-            <br />
-            In a change from previous versions no automatic color conversions
-            are performed. The transfer function of the input images,
-            potentially modified by @b \--assign-tf or @b \--convert-tf options,
-            must match that of the chosen VkFormat according to the rules given
-            in @ref ktx\_create\_tf\_handling below.
         </dd>
         <dt>\--encode basis-lz | uastc</dt>
         <dd>Encode the texture with the specified codec before saving it.
@@ -863,15 +890,30 @@ Create a KTX2 file from various input files.
         <dt>\--raw</dt>
         <dd>Create from raw image data.</dd>
         <dt>\--width</dt>
-        <dd>Base level width in pixels.</dd>
+        <dd>Base level width in pixels. Required with \--raw. For non-raw, if not
+            set, the image width is used otherwise the image is resampled to this width
+            and any provided mip levels are resampled proportionately. For non-raw it
+            enables use of the 'Generate Mipmap' options listed under \--generate-mipmap
+            to tune the resampler.</dd>
         <dt>\--height</dt>
-        <dd>Base level height in pixels.</dd>
+        <dd>Base level height in pixels. Required with \--raw. For non-raw, if not
+            set, the image height is used otherwise the image is resampled to this height
+            and any provided mip levels are resampled proportionately. For non-raw it
+            enables use of the 'Generate Mipmap' options listed under \--generate-mipmap
+            to tune the resampler.</dd>
         <dt>\--depth</dt>
         <dd>Base level depth in pixels.
             If set the texture will be a 3D texture.</dd>
         <dt>\--layers</dt>
         <dd>Number of layers.
             If set the texture will be an array texture.</dd>
+        <dt>\--levels</dt>
+        <dd>Number of mip levels. This is the number of level images to include in the texture
+            being created. If @b \--generate-mipmap is specified this number of level images
+            will be generated otherwise this number of input images must be provided.
+            Generates an error if the value is greater than the maximum possible for the
+            specified dimensions of the texture or, for non-raw, the dimensions of the base
+            level image as possibly modified by @b \--scale.</dd>
         <dt>\--runtime-mipmap</dt>
         <dd>Runtime mipmap generation mode.
             Sets up the texture to request the mipmaps to be generated by the
@@ -886,7 +928,8 @@ Create a KTX2 file from various input files.
         <dl>
             <dt>\--mipmap-filter &lt;filter&gt;</dt>
             <dd>Specifies the filter to use when generating the mipmaps.
-                Case insensitive.<br />
+                Case insensitive. Ignored unless --generate-mipmap, --scale,
+                --width or --height are specified for non-raw input.<br />
                 Possible options are:
                 box | tent | bell | b-spline | mitchell | blackman | lanczos3 |
                 lanczos4 | lanczos6 | lanczos12 | kaiser | gaussian |
@@ -895,10 +938,12 @@ Create a KTX2 file from various input files.
                 Defaults to lanczos4.</dd>
             <dt>\--mipmap-filter-scale &lt;float&gt;</dt>
             <dd>The filter scale to use.
-                Defaults to 1.0.</dd>
+                Defaults to 1.0. Ignored unless --generate-mipmap, --scale,
+                --width or --height are specified for non-raw input.</dd>
             <dt>\--mipmap-wrap &lt;mode&gt;</dt>
             <dd>Specify how to sample pixels near the image boundaries.
-                Case insensitive.<br />
+                Case insensitive. Ignored unless --generate-mipmap, --scale,
+                --width or --height are specified for non-raw input.<br />
                 Possible options are:
                 wrap | reflect | clamp.
                 Defaults to clamp.</dd>
@@ -906,13 +951,17 @@ Create a KTX2 file from various input files.
         Avoid mipmap generation if the Output TF (see @ref ktx\_create\_tf\_handling
         below) is non-linear and is not sRGB.
         </dd>
+        <dt>\--scale</dt>
+        <dd>Scale images as they are loaded. Cannot be used with --raw.
+            It enables use of the 'Generate Mipmap' options listed under \--generate-mipmap
+            to tune the resampler.</dd>
         <dt>\--normalize</dt>
         <dd>Normalize input normals to have a unit length. Only valid for
-                linear normal textures with 2 or more components. For 2-component
-                inputs 2D unit normals are calculated. Do not use these 2D unit
-                normals to generate X+Y normals with @b --normal-mode. For 4-component
-                inputs a 3D unit normal is calculated. 1.0 is used for the value of
-                the 4th component. Cannot be used with @b \--raw.</dd>
+            linear normal textures with 2 or more components. For 2-component
+            inputs 2D unit normals are calculated. Do not use these 2D unit
+            normals to generate X+Y normals with @b --normal-mode. For 4-component
+            inputs a 3D unit normal is calculated. 1.0 is used for the value of
+            the 4th component. Cannot be used with @b \--raw.</dd>
         <dt>\--swizzle [rgba01]{4}</dt>
         <dd>KTX swizzle metadata.</dd>
         <dt>\--input-swizzle [rgba01]{4}</dt>
@@ -921,9 +970,8 @@ Create a KTX2 file from various input files.
         <dd>Force the created texture to have the specified transfer function,
             ignoring the transfer function of the input file(s). Possible
             options match the khr_df_transfer_e enumerators without the
-            KHR_DF_TRANSFER_ prefix except that hlg_unnormalized_oetf is not
-            allowed. The KHR_DF_TRANSFER_ prefix is ignored if present. Case
-            insensitive. The options are:
+            KHR_DF_TRANSFER_ prefix. The KHR_DF_TRANSFER_ prefix
+            is ignored if present. Case nsensitive. The options are:
             linear | srgb | srgb_eotf | scrgb | scrgb_eotf | itu | itu_oetf |
             bt601 | bt601_oetf | bt709 | bt709_oetf | bt2020 | bt2020_oetf |
             smpte170m | smpte170m_oetf | smpte170m_eotf | ntsc | ntsc_eotf |
@@ -1006,7 +1054,7 @@ Create a KTX2 file from various input files.
             the specified origin is written to the output file. Example values
             are "rd" (top-left) and "ru" (bottom-left) or, when @b \--depth is
             specified, "rdi" (top-left-front) and "rui" (bottom-left-back).
-            An error is raised if the input image origin is unknown as is the
+            Generates an error if the input image origin is unknown as is the
             case with raw image data.  Use @b --assign-texcoord-origin to
             specify the orientation.
             @note ktx create cannot rotate or flip incoming images, except
@@ -1102,7 +1150,9 @@ Transfer function handling proceeds as follows:
     </ul></li>
 <li>Supported inputs for implicit or explicit conversion are linear, sRGB,
     ITU (a.k.a BT601, BT.709, BT.2020 and SMPTE170M) and PQ EOTF. An error is
-    generated if an unsupported conversion is required. </li>
+    generated if an unsupported conversion is required.</li>
+<li>Supported outputs for implicit or explicit conversion are linear and sRGB,
+    An error is generated if an unsupported conversion is required.</li>
 <li>Output Transfer Function for a format that is not one of the @c *_SRGB{,_*}
     formats can be set to a non-linear transfer function via
     @b \--assign-tf.</li>
@@ -1182,6 +1232,7 @@ private:
     [[nodiscard]] KTXTexture2 createTexture(const ImageSpec& target);
     void generateMipLevels(KTXTexture2& texture, std::unique_ptr<Image> image, ImageInput& inputFile,
             uint32_t numMipLevels, uint32_t layerIndex, uint32_t faceIndex, uint32_t depthSliceIndex);
+    std::unique_ptr<Image> scaleImage(std::unique_ptr<Image> image, uint32_t width, uint32_t height);
 
     [[nodiscard]] std::string readRawFile(const std::filesystem::path& filepath);
     [[nodiscard]] std::unique_ptr<Image> loadInputImage(ImageInput& inputImageFile);
@@ -1190,9 +1241,12 @@ private:
     std::unique_ptr<const ColorPrimaries> createColorPrimaries(khr_df_primaries_e primaries) const;
 
     void selectASTCMode(uint32_t bitLength);
+    void determineSourceColorSpace(const ImageInput& in, SrcColorSpaceInfo& srcColorSpaceInfo);
     void determineTargetColorSpace(const ImageInput& in, ImageSpec& target, ColorSpaceInfo& colorSpaceInfo);
-    void determineTargetOrigin(const ImageInput& in, ImageSpec& target, ImageSpec::Origin& usedInputOrigin);
+    void determineSourceOrigin(const ImageInput& in, ImageSpec::Origin& usedSourceOrigin);
+    void determineTargetOrigin(const ImageInput& in, ImageSpec& target, ImageSpec::Origin& usedSourceOrigin);
 
+    void checkNumInputImages();
     void checkSpecsMatch(const ImageInput& current, const ImageSpec& firstSpec);
 };
 
@@ -1218,6 +1272,25 @@ void CommandCreate::initOptions(cxxopts::Options& opts) {
     options.init(opts);
 }
 
+void CommandCreate::checkNumInputImages() {
+    const auto blockSizeZ = isFormat3DBlockCompressed(options.vkFormat) ?
+       createFormatDescriptor(options.vkFormat, *this).basic.texelBlockDimension2 + 1u : 1u;
+    uint32_t expectedInputImages = 0;
+    for (uint32_t i = 0; i < (options.mipmapGenerate ? 1 : options.levels.value_or(1)); ++i)
+        // If --generate-mipmap is set the input only contains the base level images
+        expectedInputImages += numLayers * numFaces * ceil_div(std::max(baseDepth >> i, 1u), blockSizeZ);
+    if (options.inputFilepaths.size() != expectedInputImages) {
+        fatal_usage("Too {} input images for {} level{}, {} layer, {} face and {} depth. Provided {} but expected {}.",
+                options.inputFilepaths.size() > expectedInputImages ? "many" : "few",
+                numLevels,
+                options.mipmapGenerate ? " (mips generated)" : "",
+                numLayers,
+                numFaces,
+                baseDepth,
+                options.inputFilepaths.size(), expectedInputImages);
+    }
+}
+
 void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) {
     options.process(opts, args, *this);
 
@@ -1226,21 +1299,9 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
     numFaces = options.cubemap ? 6 : 1;
     baseDepth = options.depth.value_or(1u);
 
-    const auto blockSizeZ = isFormat3DBlockCompressed(options.vkFormat) ?
-            createFormatDescriptor(options.vkFormat, *this).basic.texelBlockDimension2 + 1u : 1u;
-    uint32_t expectedInputImages = 0;
-    for (uint32_t i = 0; i < (options.mipmapGenerate ? 1 : numLevels); ++i)
-        // If --generate-mipmap is set the input only contains the base level images
-        expectedInputImages += numLayers * numFaces * ceil_div(std::max(baseDepth >> i, 1u), blockSizeZ);
-    if (options.inputFilepaths.size() != expectedInputImages) {
-        fatal_usage("Too {} input image for {} level{}, {} layer, {} face and {} depth. Provided {} but expected {}.",
-                options.inputFilepaths.size() > expectedInputImages ? "many" : "few",
-                numLevels,
-                options.mipmapGenerate ? " (mips generated)" : "",
-                numLayers,
-                numFaces,
-                baseDepth,
-                options.inputFilepaths.size(), expectedInputImages);
+    if (options.raw) {
+        // options.levels <= max for dimensions was checked in CreateOptions::process
+        checkNumInputImages();
     }
 
     if (!isFormatAstc(options.vkFormat)) {
@@ -1429,9 +1490,11 @@ void CommandCreate::executeCreate() {
     targetChannelCount = options.formatDesc.channelCount();
 
     ImageSpec target;
+    ColorSpaceInfo colorSpaceInfo{};
 
     bool firstImage = true;
     ImageSpec firstImageSpec{};
+    uint32_t maxLevels = 1;
 
     foreachImage(options.formatDesc, [&](
             const auto& inputFilepath,
@@ -1483,19 +1546,29 @@ void CommandCreate::executeCreate() {
             const auto inputImageFile = ImageInput::open(inputFilepath, nullptr, warningFn);
             inputImageFile->seekSubimage(0, 0); // Loading multiple subimage from the same input is not supported
 
-            target = ImageSpec{
-                    inputImageFile->spec().width(),
-                    inputImageFile->spec().height(),
+            ImageSpec::Origin usedSourceOrigin;
+
+            if (std::exchange(firstImage, false)) {
+                uint32_t targetWidth, targetHeight;
+                if (options.imageScale.has_value()) {
+                    targetWidth = static_cast<uint32_t>(inputImageFile->spec().width()
+                                                        * options.imageScale.value());
+                    targetHeight = static_cast<uint32_t>(inputImageFile->spec().height()
+                                                         * options.imageScale.value());
+                    // TODO: scale depth
+                } else {
+                    targetWidth = options.width.value_or(inputImageFile->spec().width());
+                    targetHeight = options.height.value_or(inputImageFile->spec().height());
+                    // TODO: handle resampling depth
+                }
+
+                target = ImageSpec{
+                    targetWidth,
+                    targetHeight,
                     options.depth.value_or(1u),
                     options.formatDesc};
 
-            ColorSpaceInfo colorSpaceInfo{};
-            ImageSpec::Origin usedInputOrigin;
-            determineTargetColorSpace(*inputImageFile, target, colorSpaceInfo);
-            determineTargetOrigin(*inputImageFile, target, usedInputOrigin);
-
-            if (std::exchange(firstImage, false)) {
-                if (options.cubemap && target.width() != target.height())
+               if (options.cubemap && target.width() != target.height())
                     fatal(rc::INVALID_FILE, "--cubemap specified but the input image \"{}\" with size {}x{} is not square.",
                             fmtInFile(inputFilepath), target.width(), target.height());
 
@@ -1504,31 +1577,106 @@ void CommandCreate::executeCreate() {
                             fmtInFile(inputFilepath), target.height());
 
                 const auto maxDimension = std::max(target.width(), std::max(target.height(), baseDepth));
-                const auto maxLevels = log2(maxDimension) + 1;
-                if (options.levels.value_or(1) > maxLevels)
-                    fatal_usage("Requested {} levels is too many. With input image \"{}\" sized {}x{} and depth {} the texture can only have {} levels at most.",
-                            options.levels.value_or(1), fmtInFile(inputFilepath), target.width(), target.height(), baseDepth, maxLevels);
+                maxLevels = log2(maxDimension) + 1;
+                if (options.levels.value_or(1) > maxLevels) {
+                    auto errorFmt = "Requested {} levels is too many. With {} {}x{} and depth {} the texture can only have {} levels at most.";
+                    std::string baseExpl;
+                    if (options.width.has_value() || options.height.has_value()) {
+                        baseExpl = "a requested base image size of";
+                    } else if (options.imageScale.has_value()) {
+                        baseExpl = fmt::format(
+                                           "base input image \"{}\" sized {}x{} * scale {} being",
+                                           fmtInFile(inputFilepath), inputImageFile->spec().width(),
+                                           inputImageFile->spec().height(),
+                                           options.imageScale.value());
+                    } else {
+                        baseExpl = fmt::format("base input image \"{}\" sized", fmtInFile(inputFilepath));
+                    }
+                    fatal_usage(errorFmt, options.levels.value_or(1),
+                                baseExpl,
+                                target.width(), target.height(),
+                                baseDepth, maxLevels);
+                }
+
+                checkNumInputImages();
 
                 if (options.encodeASTC)
                     selectASTCMode(inputImageFile->spec().format().largestChannelBitLength());
 
                 firstImageSpec = inputImageFile->spec();
+
+                determineTargetColorSpace(*inputImageFile, target, colorSpaceInfo);
+                determineTargetOrigin(*inputImageFile, target, usedSourceOrigin);
+      
                 texture = createTexture(target);
             } else {
                 checkSpecsMatch(*inputImageFile, firstImageSpec);
+                determineSourceColorSpace(*inputImageFile, colorSpaceInfo.src);
+                determineSourceOrigin(*inputImageFile, usedSourceOrigin);
             }
 
-            const uint32_t imageWidth = std::max(firstImageSpec.width() >> levelIndex, 1u);
-            const uint32_t imageHeight = std::max(firstImageSpec.height() >> levelIndex, 1u);
+            const uint32_t expectedImageWidth = std::max(firstImageSpec.width() >> levelIndex, 1u);
+            const uint32_t expectedImageHeight = std::max(firstImageSpec.height() >> levelIndex, 1u);
+            const uint32_t targetImageWidth = std::max(target.width() >> levelIndex, 1u);
+            const uint32_t targetImageHeight = std::max(target.height() >> levelIndex, 1u);
 
-            if (inputImageFile->spec().width() != imageWidth || inputImageFile->spec().height() != imageHeight)
-                fatal(rc::INVALID_FILE, "Input image \"{}\" with size {}x{} does not match expected size {}x{} for level {}.",
-                        fmtInFile(inputFilepath), inputImageFile->spec().width(), inputImageFile->spec().height(), imageWidth, imageHeight, levelIndex);
-
+            if (inputImageFile->spec().width() != expectedImageWidth || inputImageFile->spec().height() != expectedImageHeight) {
+                const auto errorFmt = "Input image \"{}\" with size {}x{} does not match expected size {}x{} for level {}.";
+                fatal(rc::INVALID_FILE, errorFmt, fmtInFile(inputFilepath),
+                      inputImageFile->spec().width(),
+                      inputImageFile->spec().height(),
+                      // When no scaling option is specified image* == targetImage*.
+                      expectedImageWidth, expectedImageHeight,
+                      levelIndex);
+            }
             auto image = loadInputImage(*inputImageFile);
 
-            if (colorSpaceInfo.dstTransferFunction != nullptr) {
-                assert(colorSpaceInfo.srcTransferFunction != nullptr);
+            // Need to do color conversion if either the transfer functions or primaries don't
+            // match. Primaries conversion requires decode to linear then reencode thus
+            // transferFunctions are always required.
+            if (target.format().transfer() != colorSpaceInfo.src.usedTransferFunction ||
+                target.format().primaries() != colorSpaceInfo.src.usedPrimaries) {
+                assert((target.format().primaries() == colorSpaceInfo.src.usedPrimaries
+                       || colorSpaceInfo.src.usedPrimaries != KHR_DF_PRIMARIES_UNSPECIFIED)
+                       && "determineSourceColorSpace failed to check for UNSPECIFIED.");
+                const auto errorFmt = "Colorspace conversion requires unsupported {} {} {}.";
+                if (colorSpaceInfo.src.transferFunction == nullptr) {
+                    std::string source;
+                    if (options.assignTF.has_value()) {
+                        source = fmt::format("specified with --{}", options.kAssignTf);
+                    } else {
+                        source = fmt::format("used by input file \"{}\"", fmtInFile(inputFilepath));
+                    }
+                    auto errorMsg = fmt::format(errorFmt,
+                                                "decode from",
+                                                toString(colorSpaceInfo.src.usedTransferFunction),
+                                                source);
+                    if (!options.assignTF.has_value()) {
+                        errorMsg += fmt::format(" Use an image processing tool to convert it or use"
+                                                " --{}, with or without --{}, to specify handling.",
+                                                options.kAssignTf, options.kConvertTf);
+                    }
+                    fatal(rc::NOT_SUPPORTED, errorMsg);
+                }
+                if (colorSpaceInfo.dst.transferFunction == nullptr) {
+                    // If we get here it is because (a) a transfer supported for decode but not
+                    // encode has been set with --assign-tf and (b) a primary conversion was
+                    // requested with --convert-primaries. CLI checks prevent an unsupported
+                    // transfer being given to --convert-tf.
+                    auto source = fmt::format("specified with --{}", options.convertTF.has_value()
+                                              ? options.kConvertTf : options.kAssignTf);
+                    auto errorMsg = fmt::format(errorFmt,
+                                                "encode to",
+                                                toString(target.format().transfer()),
+                                                source);
+                    // Transfer functions derived from --format values are supported.
+                    if (target.format().primaries() != colorSpaceInfo.src.usedPrimaries) {
+                        errorMsg += fmt::format(" Decode and encode with transfer function is"
+                                                " required to convert primaries to {}.",
+                                                toString(target.format().primaries()));
+                    }
+                    fatal(rc::NOT_SUPPORTED, errorMsg);
+                }
                 if (!options.noWarnOnColorConversions) {
                     if (target.format().model() == KHR_DF_MODEL_RGBSDA
                         && target.format().transfer() == KHR_DF_TRANSFER_LINEAR) {
@@ -1545,21 +1693,22 @@ void CommandCreate::executeCreate() {
                         if (bitLength < 14) {
                             // Per Poynton, >= 14 bits is enough to handle all transitions
                             // visible to a human
-                            if (colorSpaceInfo.usedInputTransferFunction == KHR_DF_TRANSFER_SRGB
-                               || colorSpaceInfo.usedInputTransferFunction == KHR_DF_TRANSFER_ITU) {
+                            if (colorSpaceInfo.src.usedTransferFunction == KHR_DF_TRANSFER_SRGB
+                               || colorSpaceInfo.src.usedTransferFunction == KHR_DF_TRANSFER_ITU) {
                               warning("Input file \"{}\" is undergoing a visual lossy color conversion from {} "
                                       "to KHR_DF_TRANSFER_LINEAR. Specify an _SRGB format with --{} to prevent "
                                       "this warning.",
                                       fmtInFile(inputFilepath),
-                                      toString(colorSpaceInfo.usedInputTransferFunction),
+                                      toString(colorSpaceInfo.src.usedTransferFunction),
                                       options.kFormat);
                             }
                         }
                     }
                 }
-                if (colorSpaceInfo.dstColorPrimaries != nullptr) {
-                    assert(colorSpaceInfo.srcColorPrimaries != nullptr);
-                    auto primaryTransform = colorSpaceInfo.srcColorPrimaries->transformTo(*colorSpaceInfo.dstColorPrimaries);
+                if (target.format().primaries() != colorSpaceInfo.src.usedPrimaries) {
+                //if (colorSpaceInfo.dst.colorPrimaries != nullptr) {
+                    //assert(colorSpaceInfo.src.colorPrimaries != nullptr);
+                    auto primaryTransform = colorSpaceInfo.src.colorPrimaries->transformTo(*colorSpaceInfo.dst.colorPrimaries);
 
                     if (options.failOnColorConversions)
                         fatal(rc::INVALID_FILE,
@@ -1573,7 +1722,7 @@ void CommandCreate::executeCreate() {
                             fmtInFile(inputFilepath));
 
                     // Transform transfer function with primary transform
-                    image->transformColorSpace(*colorSpaceInfo.srcTransferFunction, *colorSpaceInfo.dstTransferFunction, &primaryTransform);
+                    image->transformColorSpace(*colorSpaceInfo.src.transferFunction, *colorSpaceInfo.dst.transferFunction, &primaryTransform);
                 } else {
                     if (options.failOnColorConversions)
                         fatal(rc::INVALID_FILE,
@@ -1587,14 +1736,17 @@ void CommandCreate::executeCreate() {
                             fmtInFile(inputFilepath));
 
                     // Transform transfer function without primary transform
-                    image->transformColorSpace(*colorSpaceInfo.srcTransferFunction, *colorSpaceInfo.dstTransferFunction);
+                    image->transformColorSpace(*colorSpaceInfo.src.transferFunction, *colorSpaceInfo.dst.transferFunction);
                 }
             }
 
             // TODO: Add auto conversion and warning? Not needed now
             // because all supported source formats provide top-left images.
 
-            if (target.origin() != usedInputOrigin) {
+            if (image->getWidth() != targetImageWidth || image->getHeight() != targetImageHeight)
+                image = scaleImage(std::move(image), targetImageWidth, targetImageHeight);
+
+            if (target.origin() != usedSourceOrigin) {
                     if (options.failOnOriginChanges)
                         fatal(rc::INVALID_FILE,
                             "Input file \"{}\" would need to be y-flipped as input and output origins are different. "
@@ -1648,8 +1800,6 @@ void CommandCreate::executeCreate() {
             assert(ret == KTX_SUCCESS && "Internal error"); (void) ret;
 
             if (options.mipmapGenerate) {
-                const auto maxDimension = std::max(target.width(), std::max(target.height(), baseDepth));
-                const auto maxLevels = log2(maxDimension) + 1;
                 uint32_t numMipLevels = options.levels.value_or(maxLevels);
                 generateMipLevels(texture, std::move(image), *inputImageFile, numMipLevels, layerIndex, faceIndex, depthSliceIndex);
             }
@@ -2300,7 +2450,7 @@ KTXTexture2 CommandCreate::createTexture(const ImageSpec& target) {
             const auto maxLevels = log2(maxDimension) + 1;
             createInfo.numLevels = options.levels.value_or(maxLevels);
         } else {
-            createInfo.numLevels = numLevels;
+            createInfo.numLevels = options.levels.value_or(1);
         }
     }
 
@@ -2334,11 +2484,27 @@ KTXTexture2 CommandCreate::createTexture(const ImageSpec& target) {
     return texture;
 }
 
+// TODO: This should probably be a method on Image.
+std::unique_ptr<Image>
+CommandCreate::scaleImage(std::unique_ptr<Image> image, ktx_uint32_t width, ktx_uint32_t height)
+{
+    try {
+        image = image->resample(width, height,
+                options.mipmapFilter.value_or(options.defaultMipmapFilter).c_str(),
+                options.mipmapFilterScale.value_or(options.defaultMipmapFilterScale),
+                options.mipmapWrap.value_or(options.defaultMipmapWrap));
+    } catch (const std::exception& e) {
+        fatal(rc::RUNTIME_ERROR, "Image resampling failed: {}", e.what());
+    }
+    return image;
+}
+
 void CommandCreate::generateMipLevels(KTXTexture2& texture, std::unique_ptr<Image> image, ImageInput& inputFile,
         uint32_t numMipLevels, uint32_t layerIndex, uint32_t faceIndex, uint32_t depthSliceIndex) {
 
     if (isFormatINT(static_cast<VkFormat>(texture->vkFormat)))
-        fatal(rc::NOT_SUPPORTED, "Mipmap generation for SINT or UINT format {} is not supported.", toString(static_cast<VkFormat>(texture->vkFormat)));
+        fatal(rc::NOT_SUPPORTED, "Mipmap generation for SINT or UINT format {} is not supported.",
+              toString(static_cast<VkFormat>(texture->vkFormat)));
 
     const auto baseWidth = image->getWidth();
     const auto baseHeight = image->getHeight();
@@ -2427,7 +2593,9 @@ std::unique_ptr<const ColorPrimaries> CommandCreate::createColorPrimaries(khr_df
     }
 }
 
-void CommandCreate::determineTargetColorSpace(const ImageInput& in, ImageSpec& target, ColorSpaceInfo& colorSpaceInfo) {
+void CommandCreate::determineSourceColorSpace(const ImageInput& in, SrcColorSpaceInfo& srcColorSpaceInfo) {
+    const ImageSpec& spec = in.spec();
+
     // Primaries handling:
     //
     // 1. Use assign-primaries option value, if set.
@@ -2437,37 +2605,26 @@ void CommandCreate::determineTargetColorSpace(const ImageInput& in, ImageSpec& t
     //    UNSPECIFIED.
     // 4. If convert-primaries is specified but no primaries info is
     //    given by the plugin then fail.
-    // 5. If convert-primaries is specified and primaries info determined
-    //    above is different then set up conversion.
-    const ImageSpec& spec = in.spec();
 
-    // Set Primaries
-    colorSpaceInfo.usedInputPrimaries = spec.format().primaries();
+    srcColorSpaceInfo.colorPrimaries = nullptr;
+    srcColorSpaceInfo.usedPrimaries = spec.format().primaries();
     if (options.assignPrimaries.has_value()) {
-        colorSpaceInfo.usedInputPrimaries = options.assignPrimaries.value();
-        target.format().setPrimaries(options.assignPrimaries.value());
-    } else if (spec.format().primaries() != KHR_DF_PRIMARIES_UNSPECIFIED) {
-        target.format().setPrimaries(spec.format().primaries());
-    } else {
+        srcColorSpaceInfo.usedPrimaries = options.assignPrimaries.value();
+    } else if (spec.format().primaries() == KHR_DF_PRIMARIES_UNSPECIFIED) {
         if (!in.formatName().compare("png")) {
             warning("No color primaries in PNG input file \"{}\", defaulting to BT.709.", in.filename());
-            colorSpaceInfo.usedInputPrimaries = KHR_DF_PRIMARIES_BT709;
-            target.format().setPrimaries(KHR_DF_PRIMARIES_BT709);
-        } else {
+            srcColorSpaceInfo.usedPrimaries = KHR_DF_PRIMARIES_BT709;
+        } // else
             // Leave as unspecified.
-            target.format().setPrimaries(spec.format().primaries());
-        }
     }
 
     if (options.convertPrimaries.has_value()) {
-        if (colorSpaceInfo.usedInputPrimaries == KHR_DF_PRIMARIES_UNSPECIFIED) {
+        if (srcColorSpaceInfo.usedPrimaries == KHR_DF_PRIMARIES_UNSPECIFIED) {
             fatal(rc::INVALID_FILE, "Cannot convert primaries as no information about the color primaries "
                 "is available in the input file \"{}\". Use --{} to specify one.", in.filename(),
                   options.kAssignPrimaries);
-        } else if (options.convertPrimaries.value() != colorSpaceInfo.usedInputPrimaries) {
-            colorSpaceInfo.srcColorPrimaries = createColorPrimaries(colorSpaceInfo.usedInputPrimaries);
-            colorSpaceInfo.dstColorPrimaries = createColorPrimaries(options.convertPrimaries.value());
-            target.format().setPrimaries(options.convertPrimaries.value());
+        } else if (options.convertPrimaries.value() != srcColorSpaceInfo.usedPrimaries) {
+            srcColorSpaceInfo.colorPrimaries = createColorPrimaries(srcColorSpaceInfo.usedPrimaries);
         }
     }
 
@@ -2490,12 +2647,12 @@ void CommandCreate::determineTargetColorSpace(const ImageInput& in, ImageSpec& t
     // 6. Convert transfer function based on convert-tf option value or as
     //    described above.
 
+    srcColorSpaceInfo.transferFunction = nullptr;
     if (options.assignTF.has_value()) {
-        colorSpaceInfo.usedInputTransferFunction = options.assignTF.value();
-        target.format().setTransfer(options.assignTF.value());
+        srcColorSpaceInfo.usedTransferFunction = options.assignTF.value();
     } else {
         // Set image's transfer function as indicated by metadata.
-        colorSpaceInfo.usedInputTransferFunction = spec.format().transfer();
+        srcColorSpaceInfo.usedTransferFunction = spec.format().transfer();
         if (spec.format().transfer() == KHR_DF_TRANSFER_UNSPECIFIED) {
             if (spec.format().iccProfileName().size()) {
                 fatal(rc::INVALID_FILE,
@@ -2514,23 +2671,23 @@ void CommandCreate::determineTargetColorSpace(const ImageInput& in, ImageSpec& t
                     // images produced before and after this change of loader.
                     warning("Converting gamma 2.2f to sRGB. Use --{} srgb to force treating input as sRGB.",
                             options.kAssignTf);
-                    colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionGamma>(spec.format().oeGamma());
+                    srcColorSpaceInfo.transferFunction = std::make_unique<TransferFunctionGamma>(spec.format().oeGamma());
                 } else if (spec.format().oeGamma() == 1.0) {
-                    colorSpaceInfo.usedInputTransferFunction = KHR_DF_TRANSFER_LINEAR;
+                    srcColorSpaceInfo.usedTransferFunction = KHR_DF_TRANSFER_LINEAR;
                 } else if (spec.format().oeGamma() > 0.0f) {
                     // We allow any gamma, there is no reason why we could not
                     // allow such input
-                    colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionGamma>(spec.format().oeGamma());
+                    srcColorSpaceInfo.transferFunction = std::make_unique<TransferFunctionGamma>(spec.format().oeGamma());
                 } else if (spec.format().oeGamma() == 0.0f) {
                     if (!in.formatName().compare("png")) {
                         // If 8-bit, treat as sRGB, otherwise treat as linear.
                         if (spec.format().channelBitLength() == 8) {
-                            colorSpaceInfo.usedInputTransferFunction = KHR_DF_TRANSFER_SRGB;
+                            srcColorSpaceInfo.usedTransferFunction = KHR_DF_TRANSFER_SRGB;
                         } else {
-                            colorSpaceInfo.usedInputTransferFunction = KHR_DF_TRANSFER_LINEAR;
+                            srcColorSpaceInfo.usedTransferFunction = KHR_DF_TRANSFER_LINEAR;
                         }
                         warning("Ignoring reported gamma of 0.0f in {}-bit PNG input file \"{}\". Handling as {}.",
-                            spec.format().channelBitLength(), in.filename(), toString(colorSpaceInfo.usedInputTransferFunction));
+                                spec.format().channelBitLength(), in.filename(), toString(srcColorSpaceInfo.usedTransferFunction));
                     } else {
                         fatal(rc::INVALID_FILE,
                               "Input file \"{}\" has gamma 0.0f. Use --{} to specify transfer function.",
@@ -2546,105 +2703,111 @@ void CommandCreate::determineTargetColorSpace(const ImageInput& in, ImageSpec& t
             } else if (!in.formatName().compare("png")) {
                 // If 8-bit, treat as sRGB, otherwise treat as linear.
                 if (spec.format().channelBitLength() == 8) {
-                    colorSpaceInfo.usedInputTransferFunction = KHR_DF_TRANSFER_SRGB;
+                  srcColorSpaceInfo.usedTransferFunction = KHR_DF_TRANSFER_SRGB;
                 } else {
-                    colorSpaceInfo.usedInputTransferFunction = KHR_DF_TRANSFER_LINEAR;
+                  srcColorSpaceInfo.usedTransferFunction = KHR_DF_TRANSFER_LINEAR;
                 }
                 warning("No transfer function can be determined from {}-bit PNG input file \"{}\", defaulting to {}. Use --{} to override.",
                         spec.format().channelBitLength(), in.filename(),
-                        toString(colorSpaceInfo.usedInputTransferFunction),
+                        toString(srcColorSpaceInfo.usedTransferFunction),
                         options.kAssignTf);
             }
         }
     }
-    if (colorSpaceInfo.srcTransferFunction == nullptr) {
-        switch (colorSpaceInfo.usedInputTransferFunction) {
+    if (srcColorSpaceInfo.transferFunction == nullptr) {
+      switch (srcColorSpaceInfo.usedTransferFunction) {
         case KHR_DF_TRANSFER_LINEAR:
-            colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionLinear>();
+            srcColorSpaceInfo.transferFunction = std::make_unique<TransferFunctionLinear>();
             break;
         case KHR_DF_TRANSFER_SRGB:
-            colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionSRGB>();
+            srcColorSpaceInfo.transferFunction = std::make_unique<TransferFunctionSRGB>();
             break;
         case KHR_DF_TRANSFER_ITU:
-            colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionITU>();
+            srcColorSpaceInfo.transferFunction = std::make_unique<TransferFunctionITU>();
             break;
         case KHR_DF_TRANSFER_PQ_EOTF:
-            colorSpaceInfo.srcTransferFunction = std::make_unique<TransferFunctionBT2100_PQ_EOTF>();
+            srcColorSpaceInfo.transferFunction = std::make_unique<TransferFunctionBT2100_PQ_EOTF>();
             break;
         default:
-            if (!options.assignTF.has_value() || options.convertTF.has_value()) {
-                const auto errorFmt = "Conversion from transfer function {} {} is not supported by KTX. "
-                                      "Use an image processing tool to convert it";
-                std::string detail;
-                if (options.assignTF.has_value())
-                    detail = fmt::format("specified with --{}", options.kAssignTf);
-                else
-                    detail = fmt::format("used by input file \"{}\"", in.filename());
-
-                auto errorMsg = fmt::format(errorFmt,
-                                            toString(colorSpaceInfo.usedInputTransferFunction),
-                                            detail);
-                if (!options.assignTF.has_value())
-                    errorMsg += fmt::format(" or use --{}, with or without --{}, to specify handling.",
-                                            options.kAssignTf, options.kConvertTf);
-                else
-                    errorMsg += ".";
-
-                fatal(rc::INVALID_FILE, errorMsg);
-            } // else with just --assign_tf srcTransferFunction is not needed.
+            // Lack of will be handled if a color transformation attempted.
+            break;
         }
     }
+}
+
+void CommandCreate::determineTargetColorSpace(const ImageInput& in, ImageSpec& target, ColorSpaceInfo& colorSpaceInfo) {
+    // Primaries handling:
+    //
+    // 1. Use assign-primaries option value, if set.
+    // 2. Use primaries info given by plugin.
+    // 3. If no primaries info and input is PNG use PNG spec.
+    //    recommendation of BT709/sRGB otherwise leave as
+    //    UNSPECIFIED.
+    // 4. If convert-primaries is specified but no primaries info is
+    //    given by the plugin then fail.
+    // 5. If convert-primaries is specified and primaries info determined
+    //    above is different then set up conversion.
+
+    determineSourceColorSpace(in, colorSpaceInfo.src);
+
+    // Set Primaries
+
+    // If convert-primaries is specified and primaries info determined
+    // above is different then set up conversion.
+    if (options.convertPrimaries.has_value()) {
+        assert(colorSpaceInfo.src.usedPrimaries != KHR_DF_PRIMARIES_UNSPECIFIED
+               && "determineSourceColorSpace failed to check for UNSPECIFIED.");
+        target.format().setPrimaries(options.convertPrimaries.value());
+        // Okay to set this even if no conversion needed.
+        colorSpaceInfo.dst.colorPrimaries = createColorPrimaries(target.format().primaries());
+    } else {
+        target.format().setPrimaries(colorSpaceInfo.src.usedPrimaries);
+    }
+
+    // target transfer is set from the --format value or --assignTF or --convertTF.
+    if (options.assignTF.has_value())
+        target.format().setTransfer(options.assignTF.value());
 
     if (options.convertTF.has_value())
         target.format().setTransfer(options.convertTF.value());
 
-    // Need to do color conversion if either the transfer functions don't match or the primaries
-    if (target.format().transfer() != colorSpaceInfo.usedInputTransferFunction ||
-        target.format().primaries() != colorSpaceInfo.usedInputPrimaries) {
-        if (colorSpaceInfo.srcTransferFunction == nullptr)
-            fatal(rc::INVALID_FILE,
-                  "No transfer function can be determined from input file \"{}\". Use --{} to specify one.",
-                  in.filename(), options.kAssignTf);
+    switch (target.format().transfer()) {
+    case KHR_DF_TRANSFER_LINEAR:
+        colorSpaceInfo.dst.transferFunction = std::make_unique<TransferFunctionLinear>();
+        break;
+    case KHR_DF_TRANSFER_SRGB:
+        colorSpaceInfo.dst.transferFunction = std::make_unique<TransferFunctionSRGB>();
+        break;
+    default:
+        // Lack of will be handled if color transformation attempted.
+        colorSpaceInfo.dst.transferFunction = nullptr;
+    }
+}
 
-        switch (target.format().transfer()) {
-        case KHR_DF_TRANSFER_LINEAR:
-            colorSpaceInfo.dstTransferFunction = std::make_unique<TransferFunctionLinear>();
-            break;
-        case KHR_DF_TRANSFER_SRGB:
-            colorSpaceInfo.dstTransferFunction = std::make_unique<TransferFunctionSRGB>();
-            break;
-        default:
-            assert(false);
-            break;
-        }
+void CommandCreate::determineSourceOrigin(const ImageInput& in, ImageSpec::Origin& usedSourceOrigin) {
+
+    if (options.assignTexcoordOrigin.has_value()) {
+        usedSourceOrigin = options.assignTexcoordOrigin.value();
+    } else {
+        usedSourceOrigin = in.spec().origin();
     }
 }
 
 void CommandCreate::determineTargetOrigin(const ImageInput& in, ImageSpec& target,
-                                          ImageSpec::Origin& usedInputOrigin) {
-    const ImageSpec& spec = in.spec();
-
-    // Set Origin
-    usedInputOrigin = spec.origin();
-    if (options.assignTexcoordOrigin.has_value()) {
-        usedInputOrigin = options.assignTexcoordOrigin.value();
-        target.setOrigin(options.assignTexcoordOrigin.value());
-    } else {
-        target.setOrigin(spec.origin());
-    }
+                                          ImageSpec::Origin& usedSourceOrigin) {
+    determineSourceOrigin(in, usedSourceOrigin);
+    target.setOrigin(usedSourceOrigin);
 
     if (options.convertTexcoordOrigin.has_value()) {
-        if (usedInputOrigin.unspecified()) {
+        if (usedSourceOrigin.unspecified()) {
             fatal(rc::INVALID_FILE, "Cannot convert texcoord origin as no information about the origin "
                 "is available in the input file \"{}\". Use --{} to specify one.",
                 in.filename(), OptionsCreate::kAssignTexcoordOrigin);
-        } else if (options.convertTexcoordOrigin.value() != usedInputOrigin) {
+        } else if (options.convertTexcoordOrigin.value() != usedSourceOrigin) {
             target.setOrigin(options.convertTexcoordOrigin.value());
         }
     }
 }
-
-
 
 void CommandCreate::checkSpecsMatch(const ImageInput& currentFile, const ImageSpec& firstSpec) {
     const FormatDescriptor& firstFormat = firstSpec.format();
@@ -2705,6 +2868,23 @@ void CommandCreate::checkSpecsMatch(const ImageInput& currentFile, const ImageSp
 
     if (currentFormat.channelCount() != firstFormat.channelCount()) {
         warning("Input image \"{}\" has a different component count than the first image.", currentFile.filename());
+    }
+
+    if (currentFile.spec().origin() != firstSpec.origin()) {
+        if (options.assignTexcoordOrigin.has_value()) {
+            warning("Input image \"{}\" has different texcoord origin ({}) than the first image ({})"
+                " but will be treated identically as specified by the --assign-texcoord-origin option.",
+                currentFile.filename(), toString(currentFile.spec().origin()), toString(firstSpec.origin()));
+        } else if (options.convertTexcoordOrigin.has_value()) {
+            warning("Input image \"{}\" has different texcoord origin ({}) than the first image ({})"
+                " and thus will go through different origin conversion to the target origin"
+                " specified by the --convert-texcoord-origin option.",
+                currentFile.filename(), toString(currentFile.spec().origin()), toString(firstSpec.origin()));
+        } else {
+            fatal(rc::INVALID_FILE, "Input image \"{}\" has different texcoord origin ({}) than the first image ({})."
+                " Use --assign-texcoord-origin or --convert-texcoord-origin to specify handling and stop this error.",
+                currentFile.filename(), toString(currentFile.spec().origin()), toString(firstSpec.origin()));
+        }
     }
 }
 

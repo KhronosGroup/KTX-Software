@@ -211,6 +211,32 @@ constexpr bool operator!=(const ImageSpec::Origin& lhs, const ImageSpec::Origin&
     return lhs.x != rhs.x || lhs.y != rhs.y || lhs.z != rhs.z;
 }
 
+[[nodiscard]] inline std::string toString(const ImageSpec::Origin& o) noexcept {
+    std::string str;
+    switch (o.x) {
+    case ImageSpec::Origin::eLeft: str = "left"; break;
+    case ImageSpec::Origin::eRight: str = "right"; break;
+    case ImageSpec::Origin::eUnspecified: str = "unspecified"; break;
+    default: assert(false && "Invalid origin.x");
+    }
+    str += ",";
+    switch (o.y) {
+    case ImageSpec::Origin::eTop: str += "top"; break;
+    case ImageSpec::Origin::eBottom: str += "bottom"; break;
+    case ImageSpec::Origin::eUnspecified: str += "unspecified"; break;
+    default: assert(false && "Invalid origin.y");
+    }
+    str += ",";
+    switch (o.z) {
+    case ImageSpec::Origin::eFront: str += "front"; break;
+    case ImageSpec::Origin::eBack: str += "back"; break;
+    case ImageSpec::Origin::eUnspecified: str += "unspecified"; break;
+    default: assert(false && "Invalid origin.z");
+    }
+
+    return str;
+}
+
 typedef std::function<void(const std::string&)> WarningCallbackFunction;
 
 enum class ImageInputFormatType {
