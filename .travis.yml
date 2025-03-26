@@ -334,6 +334,8 @@ after_success:
 before_deploy:
   - |
     gem install octokit:'~> 4.15.0' mime-types
+    # Because the scripts are old need old version of dpl.
+    gem install dpl -v 2.0.3.beta.4
     case "${TRAVIS_OS_NAME:-linux}" in
     linux)
       ;;
