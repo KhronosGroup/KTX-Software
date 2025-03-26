@@ -107,13 +107,6 @@ jobs:
         cmake -B ${{ env.BUILD_DIR }} -D KTX_FEATURE_DOC=ON -D KTX_FEATURE_PY=ON -D KTX_FEATURE_TESTS=OFF -D KTX_FEATURE_TOOLS=OFF
         cmake --build ${{ env.BUILD_DIR }} --target all.doc
 
-#    - name: Patch .nojekyll
-      # Some files in the pyktx docs have an _ prefix so Jekyll will
-      # not copy them from the gh-pages branch to the website. This
-      # file says no Jekyll files here. Treat all as ordinary files.
-#      if: matrix.os == 'ubuntu-latest'
-#      run: touch ${{ env.BUILD_DIR }}/docs/html/.nojekyll
-
     - name: Upload generated HTML documentation for GitHub Pages
       if: matrix.os == 'ubuntu-latest'
       id: deployment
