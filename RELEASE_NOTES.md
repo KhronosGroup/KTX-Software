@@ -108,6 +108,8 @@ Massive thanks to @javagl for this work.
 ### Changes since v4.3.2 (by part)
 ### libktx
 
+* Fix memory leaks. (#1003) (0f0e06519) (@MarkCallow)
+
 * Fix issues with ktxLoadOpenGL documentation. (0c1922d89) (@MarkCallow)
 
 * Fix incorrect data types in libktx\_mainpage.md examples (#992) (b35a47811) (@Lephar)
