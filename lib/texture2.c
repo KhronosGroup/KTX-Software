@@ -2393,13 +2393,17 @@ ktxTexture2_IterateLoadLevelFaces(ktxTexture2* This, PFNKTXITERCB iterCb,
                 ZSTD_ErrorCode error = ZSTD_getErrorCode(levelSize);
                 switch(error) {
                   case ZSTD_error_dstSize_tooSmall:
-                    return KTX_DECOMPRESS_LENGTH_ERROR; // inflatedDataCapacity too small.
+                    result = KTX_DECOMPRESS_LENGTH_ERROR; // inflatedDataCapacity too small.
+                    goto cleanup;
                   case ZSTD_error_checksum_wrong:
-                    return KTX_DECOMPRESS_CHECKSUM_ERROR;
+                    result =  KTX_DECOMPRESS_CHECKSUM_ERROR;
+                    goto cleanup;
                   case ZSTD_error_memory_allocation:
-                    return KTX_OUT_OF_MEMORY;
+                    result = KTX_OUT_OF_MEMORY;
+                    goto cleanup;
                   default:
-                    return KTX_FILE_DATA_ERROR;
+                    result = KTX_FILE_DATA_ERROR;
+                    goto cleanup;
                 }
             }
 
@@ -2418,8 +2422,11 @@ ktxTexture2_IterateLoadLevelFaces(ktxTexture2* This, PFNKTXITERCB iterCb,
                 return result;
         }
 
-        if (levelIndex[level].uncompressedByteLength != levelSize)
-            return KTX_DECOMPRESS_LENGTH_ERROR;
+        if (levelIndex[level].uncompressedByteLength != levelSize) {
+            result = KTX_DECOMPRESS_LENGTH_ERROR;
+            goto cleanup;
+        }
+
 
 #if IS_BIG_ENDIAN
         switch (prtctd->_typeSize) {
