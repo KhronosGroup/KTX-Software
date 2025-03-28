@@ -143,6 +143,7 @@ appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
 
     if (strnstr(id, libId, idLen) != NULL) {
         // This lib id is already in the writer value.
+        free(libId);
         return KTX_SUCCESS;
     }
 
@@ -156,10 +157,16 @@ appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
 
     size_t fullIdLen = idLen + strlen(libId) + 1;
     if (fullIdLen > UINT_MAX)
+    {
+        free(libId);
         return KTX_INVALID_OPERATION;
+    }
     char* fullId = malloc(fullIdLen);
     if (!fullId)
+    {
+        free(libId);
         return KTX_OUT_OF_MEMORY;
+    }
     strncpy(fullId, id, idLen);
     strncpy(&fullId[idLen], libId, libIdLen);
     assert(fullId[fullIdLen-1] == '\0');
