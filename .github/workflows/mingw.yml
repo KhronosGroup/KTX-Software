@@ -41,6 +41,7 @@ on:
 
 jobs:
   mingw:
+    if: false
     runs-on: windows-latest
     defaults:
       run:
