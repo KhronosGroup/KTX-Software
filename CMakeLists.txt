@@ -764,7 +764,6 @@ macro(common_libktx_settings target enable_write library_type)
         PRIVATE
             lib/basis_encode.cpp
             lib/astc_codec.cpp
-            ${BASISU_ENCODER_C_SRC}
             ${BASISU_ENCODER_CXX_SRC}
             lib/writer1.c
             lib/writer2.c
@@ -944,6 +943,26 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     endif()
 else()
     message(FATAL_ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")
+endif()
+
+if(NOT MSVC)
+    # Basis Universal requires strict aliasing to be disabled for GCC and Clang
+    get_source_file_property(cur_options
+        external/basisu/encoder/basisu_comp.cpp
+        COMPILE_OPTIONS
+    )
+    set_source_files_properties(
+        ${BASISU_ENCODER_CXX_SRC}
+        PROPERTIES COMPILE_OPTIONS "${cur_options};-fno-strict-aliasing"
+    )
+    get_source_file_property(cur_options
+        external/basisu/transcoder/basisu_transcoder.cpp
+        COMPILE_OPTIONS
+    )
+    set_source_files_properties(
+        external/basisu/transcoder/basisu_transcoder.cpp
+        PROPERTIES COMPILE_OPTIONS "${cur_options};-fno-strict-aliasing"
+    )
 endif()
 
 # Retrieve the final set of properties for use by the transcodetests.
@@ -1197,9 +1216,15 @@ if(NOT ${universal_build})
         set(ASTCENC_ISA_SSE2 OFF)
     endif()
 
+    if(${ASTCENC_DECOMPRESSOR})
+        set(ASTCENC_LIB_NAME astcdec)
+    else()
+        set(ASTCENC_LIB_NAME astcenc)
+    endif()
+
     # "" in the CACHE sets causes use of the existing documentation string.
     if(${ASTCENC_ISA_NONE})
-        set(ASTCENC_LIB_TARGET astcenc-none-static)
+        set(ASTCENC_LIB_TARGET ${ASTCENC_LIB_NAME}-none-static)
         if(CPU_ARCHITECTURE STREQUAL x86_64)
             set(ASTCENC_ISA_AVX2 OFF CACHE BOOL "" FORCE)
             set(ASTCENC_ISA_SSE41 OFF CACHE BOOL "" FORCE)
@@ -1208,27 +1233,27 @@ if(NOT ${universal_build})
     else()
         if(CPU_ARCHITECTURE STREQUAL x86_64)
             if (${ASTCENC_ISA_SSE41})
-                set(ASTCENC_LIB_TARGET astcenc-sse4.1-static)
+                set(ASTCENC_LIB_TARGET ${ASTCENC_LIB_NAME}-sse4.1-static)
                 set(ASTCENC_ISA_AVX2 OFF CACHE BOOL "" FORCE)
                 set(ASTCENC_ISA_SSE2 OFF CACHE BOOL "" FORCE)
             elseif (${ASTCENC_ISA_SSE2})
-                set(ASTCENC_LIB_TARGET astcenc-sse2-static)
+                set(ASTCENC_LIB_TARGET ${ASTCENC_LIB_NAME}-sse2-static)
                 set(ASTCENC_ISA_AVX2 OFF CACHE BOOL "" FORCE)
                 set(ASTCENC_ISA_SSE41 OFF CACHE BOOL "" FORCE)
             else()
-                set(ASTCENC_LIB_TARGET astcenc-avx2-static)
+                set(ASTCENC_LIB_TARGET ${ASTCENC_LIB_NAME}-avx2-static)
                 set(ASTCENC_ISA_AVX2 ON CACHE BOOL "" FORCE)
                 set(ASTCENC_ISA_SSE41 OFF CACHE BOOL "" FORCE)
                 set(ASTCENC_ISA_SSE2 OFF CACHE BOOL "" FORCE)
             endif()
         elseif(CPU_ARCHITECTURE STREQUAL armv8 OR CPU_ARCHITECTURE STREQUAL arm64)
-            set(ASTCENC_LIB_TARGET astcenc-neon-static)
+            set(ASTCENC_LIB_TARGET ${ASTCENC_LIB_NAME}-neon-static)
             set(ASTCENC_ISA_NEON ON)
             set(ASTCENC_ISA_NONE OFF CACHE BOOL "" FORCE)
         else()
             message(STATUS "Unsupported ISA for ASTC on ${CPU_ARCHITECTURE} arch, using ASTCENC_ISA_NONE.")
             set(ASTCENC_ISA_NONE ON CACHE BOOL "" FORCE)
-            set(ASTCENC_LIB_TARGET astcenc-none-static)
+            set(ASTCENC_LIB_TARGET ${ASTCENC_LIB_NAME}-none-static)
         endif()
     endif()
 endif()
