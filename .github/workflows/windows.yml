@@ -36,6 +36,7 @@ on:
 
   # Allow manual trigger
   workflow_dispatch:
+  workflow_call:
 
 jobs:
   #formatting:

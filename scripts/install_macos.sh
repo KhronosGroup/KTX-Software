@@ -20,7 +20,9 @@ git lfs install
 git lfs version
 gem install xcpretty
 
-git lfs pull --include=tests/srcimages,tests/testimages
+if [[ (-n "$FEATURE_LOADTESTS" && "$FEATURE_LOADTESTS" != "OFF") || ("$FEATURE_TESTS" = "ON") ]]; then
+  git lfs pull --include=tests/srcimages,tests/testimages
+fi
 
 if [[ -n "$FEATURE_LOADTESTS" && "$FEATURE_LOADTESTS" != "OFF" ]]; then
   if [ "$PLATFORM" = "iOS" ]; then

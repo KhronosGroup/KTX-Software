@@ -38,6 +38,7 @@ on:
       - vcpkg-configuration.json
   # Allow manual trigger
   workflow_dispatch:
+  workflow_call:
 
 jobs:
   mingw:

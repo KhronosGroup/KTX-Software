@@ -1,0 +1,26 @@
+# Copyright 2015-2020 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+name: KTX-Software Manual CI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  android:
+    uses: ./.github/workflows/android.yml
+  linux:
+    uses: ./.github/workflows/linux.yml
+  macos:
+    uses: ./.github/workflows/macos.yml
+  mingw:
+    uses: ./.github/workflows/mingw.yml
+  web:
+    uses: ./.github/workflows/web.yml
+  windows:
+    uses: ./.github/workflows/windows.yml
+
+  all:
+    needs: [android, linux, macos, mingw, web, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - run: exit 0
