@@ -65,6 +65,7 @@ env:
 
 jobs:
   publish-to-pypi:
+    if: false
     name:  Publish Python 🐍 distribution 📦 to PyPI
     if: ${{ ! inputs.test-pypi }}
     runs-on: ubuntu-latest
