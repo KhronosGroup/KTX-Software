@@ -254,6 +254,7 @@ install:
           brew install doxygen
           brew install graphviz
       fi
+      sudo gem install -v 3.1 ruby
       ./scripts/install_macos.sh
     fi
     ;;
@@ -346,7 +347,7 @@ before_deploy:
       # each deployment so we need to take steps to prevent notarization being
       # run twice. https://github.com/travis-ci/travis-ci/issues/2570 about
       # this has been open for years. What a crock!
-      if [ -n "$MACOS_CERTIFICATES_P12" -a -n "$TRAVIS_TAG" -a -z "$NOTARIZED" ]; then
+      if [ -n "$MACOS_CERTIFICATES_P12" -a -n "$TRAVIS_TAG" -a -z "$NOTARIZED" -a "$PLATFORM" = "macOS" ]; then
         ./scripts/notarize.sh $BUILD_DIR/KTX-Software-*.pkg $APPLE_ID $DEVELOPMENT_TEAM $ALTOOL_PASSWORD && export NOTARIZED="true"
       fi
       ;;
