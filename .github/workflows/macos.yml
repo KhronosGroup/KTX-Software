@@ -315,6 +315,7 @@ jobs:
                   brew install doxygen
                   brew install graphviz
               fi
+              env
               ./scripts/install_macos.sh
             fi
             ;;

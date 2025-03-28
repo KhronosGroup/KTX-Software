@@ -22,6 +22,8 @@ gem install xcpretty
 
 git lfs pull --include=tests/srcimages,tests/testimages
 
+env
+
 if [[ -n "$FEATURE_LOADTESTS" && "$FEATURE_LOADTESTS" != "OFF" ]]; then
   if [ "$PLATFORM" = "iOS" ]; then
     IOS_COMPONENT=com.lunarg.vulkan.ios
