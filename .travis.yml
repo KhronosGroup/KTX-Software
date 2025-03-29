@@ -334,6 +334,16 @@ after_success:
 before_deploy:
   - |
     gem install octokit:'~> 4.15.0' mime-types
+    if [ ! -f $REL_DESC_FILE -a -f RELEASE_NOTES.md ]; then
+      # Remove lines that are unnecessary in the context of a GitHub
+      # release description.
+      awk '/^Release Notes/,/^## Version/ { next }
+           ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }' RELEASE_NOTES.md \
+      > $REL_DESC_FILE
+      # dpl v2 alternative
+      #RELNOTES=$(awk '/^Release Notes/,/^## Version/ { next }
+      #     ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }' RELEASE_NOTES.md)
+    fi
     case "${TRAVIS_OS_NAME:-linux}" in
     linux)
       ;;
@@ -349,18 +359,11 @@ before_deploy:
       if [ -n "$MACOS_CERTIFICATES_P12" -a -n "$TRAVIS_TAG" -a -z "$NOTARIZED" -a "$PLATFORM" = "macOS" ]; then
         ./scripts/notarize.sh $BUILD_DIR/KTX-Software-*.pkg $APPLE_ID $DEVELOPMENT_TEAM $ALTOOL_PASSWORD && export NOTARIZED="true"
       fi
+      # Older dpl we are forced to use on macOS doesn't like non-ascii characters.
+      # Later Linux builds can fill in the release notes.
+      export REL_DESC_FILE=/dev/null
       ;;
     esac
-    if [ ! -f $REL_DESC_FILE -a -f RELEASE_NOTES.md ]; then
-      # Remove lines that are unnecessary in the context of a GitHub
-      # release description.
-      awk '/^Release Notes/,/^## Version/ { next }
-           ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }' RELEASE_NOTES.md \
-      > $REL_DESC_FILE
-      # dpl v2 alternative
-      #RELNOTES=$(awk '/^Release Notes/,/^## Version/ { next }
-      #     ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }' RELEASE_NOTES.md)
-    fi
 
 deploy:
   - provider: pages
@@ -428,8 +431,7 @@ deploy:
   - provider: script
     dpl_version: 2.0.3.beta.4
     # nullglob is to force a null string when there are no *.whl files.
-#    script: ruby scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -c $REL_DESC_FILE -t ${TRAVIS_TAG} --overwrite true --draft true --prerelease true $BUILD_DIR/KTX-Software-*-*
-    script: ruby scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -c /dev/null -t ${TRAVIS_TAG} --overwrite true --draft true --prerelease true $BUILD_DIR/KTX-Software-*-*
+    script: ruby scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -c $REL_DESC_FILE -t ${TRAVIS_TAG} --overwrite true --draft true --prerelease true $BUILD_DIR/KTX-Software-*-*
     on:
       tags: true
       #branch: main
@@ -441,8 +443,7 @@ deploy:
   # FEATURE_PY not ON.
   - provider: script
     dpl_version: 2.0.3.beta.4
-#    script: ruby scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -c $REL_DESC_FILE -t ${TRAVIS_TAG} --overwrite true --draft true --prerelease true $BUILD_DIR/interface/python_binding/dist/*.whl
-    script: ruby scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -c /dev/null -t ${TRAVIS_TAG} --overwrite true --draft true --prerelease true $BUILD_DIR/interface/python_binding/dist/*.whl
+    script: ruby scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -c $REL_DESC_FILE -t ${TRAVIS_TAG} --overwrite true --draft true --prerelease true $BUILD_DIR/interface/python_binding/dist/*.whl
     on:
       tags: true
       #branch: main
