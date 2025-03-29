@@ -427,7 +427,7 @@ deploy:
 
   - provider: script
     #dpl_version: 2.0.3.beta.4
-    dpl_version: 2.0.1
+    dpl_version: 2.0.0.beta.3
     # nullglob is to force a null string when there are no *.whl files.
     script: ruby scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -c $REL_DESC_FILE -t ${TRAVIS_TAG} --overwrite true --draft true --prerelease true $BUILD_DIR/KTX-Software-*-*
     on:
@@ -441,7 +441,7 @@ deploy:
   # FEATURE_PY not ON.
   - provider: script
     #dpl_version: 2.0.3.beta.4
-    dpl_version: 2.0.1
+    dpl_version: 2.0.0.beta.3
     script: ruby scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -c $REL_DESC_FILE -t ${TRAVIS_TAG} --overwrite true --draft true --prerelease true $BUILD_DIR/interface/python_binding/dist/*.whl
     on:
       tags: true
