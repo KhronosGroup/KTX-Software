@@ -35,7 +35,7 @@ user = client.user
 user.login
 
 unless client.scopes.include? 'public_repo' or client.scopes.include? 'repo'
-  raise Error, "Insufficient permissions. Make sure your token contains the repo or public_repo scope."
+  raise "Insufficient permissions. Make sure your token contains the repo or public_repo scope."
 end
 
 puts "Logged in as #{user.name}"

@@ -334,6 +334,16 @@ after_success:
 before_deploy:
   - |
     gem install octokit:'~> 4.15.0' mime-types
+    if [ ! -f $REL_DESC_FILE -a -f RELEASE_NOTES.md ]; then
+      # Remove lines that are unnecessary in the context of a GitHub
+      # release description.
+      awk '/^Release Notes/,/^## Version/ { next }
+           ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }' RELEASE_NOTES.md \
+      > $REL_DESC_FILE
+      # dpl v2 alternative
+      #RELNOTES=$(awk '/^Release Notes/,/^## Version/ { next }
+      #     ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }' RELEASE_NOTES.md)
+    fi
     case "${TRAVIS_OS_NAME:-linux}" in
     linux)
       ;;
@@ -346,25 +356,17 @@ before_deploy:
       # each deployment so we need to take steps to prevent notarization being
       # run twice. https://github.com/travis-ci/travis-ci/issues/2570 about
       # this has been open for years. What a crock!
-      if [ -n "$MACOS_CERTIFICATES_P12" -a -n "$TRAVIS_TAG" -a -z "$NOTARIZED" ]; then
+      if [ -n "$MACOS_CERTIFICATES_P12" -a -n "$TRAVIS_TAG" -a -z "$NOTARIZED" -a "$PLATFORM" = "macOS" ]; then
         ./scripts/notarize.sh $BUILD_DIR/KTX-Software-*.pkg $APPLE_ID $DEVELOPMENT_TEAM $ALTOOL_PASSWORD && export NOTARIZED="true"
       fi
+      # Older dpl we are forced to use on macOS doesn't like non-ascii characters.
+      # Later Linux builds can fill in the release notes.
+      export REL_DESC_FILE=/dev/null
       ;;
     esac
-    if [ ! -f $REL_DESC_FILE -a -f RELEASE_NOTES.md ]; then
-      # Remove lines that are unnecessary in the context of a GitHub
-      # release description.
-      awk '/^Release Notes/,/^## Version/ { next }
-           ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }' RELEASE_NOTES.md \
-      > $REL_DESC_FILE
-      # dpl v2 alternative
-      #RELNOTES=$(awk '/^Release Notes/,/^## Version/ { next }
-      #     ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }' RELEASE_NOTES.md)
-    fi
 
 deploy:
   - provider: pages
-    edge: true # Use bleeding edge (dplv2)
     token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
     local_dir: $BUILD_DIR/docs/html
     on:
@@ -393,7 +395,7 @@ deploy:
 #    prerelease: true
 #    on:
 #      tags: true
-#      #branch: master
+#      #branch: main
 #      condition: $PACKAGE = YES
 # ----------------------- dpl v1 -------------------------
 ##### Not working on jammy runners at present. Do everything via our script.
@@ -423,16 +425,16 @@ deploy:
 #    prerelease: true
 #    on:
 #      tags: true
-#      #branch: master
+#      #branch: main
 #      condition: $PACKAGE = "YES" && $TRAVIS_TAG =~ ^v[0-9].*
 
   - provider: script
-    edge: true
+    dpl_version: 2.0.3.beta.4
     # nullglob is to force a null string when there are no *.whl files.
     script: ruby scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -c $REL_DESC_FILE -t ${TRAVIS_TAG} --overwrite true --draft true --prerelease true $BUILD_DIR/KTX-Software-*-*
     on:
       tags: true
-      #branch: master
+      #branch: main
       condition: $PACKAGE = "YES" && $TRAVIS_TAG =~ ^v[0-9].*
 
   # Separate deploy for pyktx because the linux runners use sh not bash
@@ -440,11 +442,11 @@ deploy:
   # does not work to avoid passing `.../*.whl` to github_release when
   # FEATURE_PY not ON.
   - provider: script
-    edge: true
+    dpl_version: 2.0.3.beta.4
     script: ruby scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -c $REL_DESC_FILE -t ${TRAVIS_TAG} --overwrite true --draft true --prerelease true $BUILD_DIR/interface/python_binding/dist/*.whl
     on:
       tags: true
-      #branch: master
+      #branch: main
       condition: $PACKAGE = "YES" && $TRAVIS_TAG =~ ^v[0-9].* && $FEATURE_PY = "ON"
 
 # ---------------------------------------------------------
