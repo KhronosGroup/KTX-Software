@@ -5,14 +5,14 @@ Release Notes
 ## Version 4.4
 ### Summary
 
-* Aligns with [KTX Specification](https://registry.khronos.org/KTX/specs/2.0 ktxspec.v2.html) Revision 4 and [Khronos Data Format Specification](https://registry.khronos.org/DataFormat/specs/1.4/dataformat.1.4.html) version 1.4.
+* Aligns with [KTX Specification](https://registry.khronos.org/KTX/specs/2.0/ktxspec.v2.html) Revision 4 and [Khronos Data Format Specification](https://registry.khronos.org/DataFormat/specs/1.4/dataformat.1.4.html) version 1.4.
 * Adds new tools and features to the KTX suite. Of particular note is
   `ktx compare`.
-* Has a largely rewritten JavaScript binding which gives access to read _and_
+* Has a largely rewritten Javascript binding which gives access to read _and_
   write functionality of *libktx* and includes an expanded test suite.
 * Has a refactored and greatly improved Java binding thanks to @javagl.
 
-With the new tools and features the KTX tool suite now provides a superset of the functionality found in the legacy tools with the exception of `ktx2ktx2`. __The legacy tools, except `ktx2ktx2` will be removed in Release 4.5. Adjust your workflows accordingly.__
+With the new tools and features the KTX tool suite now provides a superset of the functionality found in the legacy tools with the exception of `ktx2ktx2`. __The legacy tools, except `ktx2ktx2`, will be removed in Release 4.5. Adjust your workflows accordingly.__
 
 ### New Features in 4.4
 #### Command Line Tools Suite
