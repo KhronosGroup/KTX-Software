@@ -887,8 +887,10 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
             }
 
             result = stream->read(stream, pKvd, kvdLen);
-            if (result != KTX_SUCCESS)
+            if (result != KTX_SUCCESS) {
+                free(pKvd);
                 goto cleanup;
+            }
 
             if (IS_BIG_ENDIAN) {
                 /* Swap the counts inside the key & value data. */
