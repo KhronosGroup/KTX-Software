@@ -34,8 +34,6 @@ on:
       - RELEASE_NOTES.md
       - REUSE.toml
       - install-gitconfig*
-      - vcpkg.json
-      - vcpkg-configuration.json
   # Allow manual trigger
   workflow_dispatch:
 
@@ -260,7 +258,7 @@ jobs:
 
       - name: before_install
         run: |
-          echo -n "Running on the following travis CI runner: " && uname -a
+          echo -n "Running on the following GitHub Actions CI runner: " && uname -a
           echo -n "CMake version on the runner is " && cmake --version
           echo -e "machine github.com\n  login $GITHUB_TOKEN" >> ~/.netrc # Prevent rate limiting on Git LFS.
           cat ~/.netrc
@@ -363,6 +361,7 @@ jobs:
               else
                 ./scripts/build_ios.sh
               fi
+              ./scripts/notarize.sh $BUILD_DIR/KTX-Software-*.pkg $APPLE_ID $DEVELOPMENT_TEAM $ALTOOL_PASSWORD && export NOTARIZED="true"
             fi
             ;;
           esac
@@ -380,23 +379,6 @@ jobs:
       - name: before_deploy
         run: |
           gem install octokit:'~> 4.15.0' mime-types
-          case "${RUNNER_OS:-Linux}" in
-          Linux)
-            ;;
-          macOS)
-            # Only notarize if we're going to deploy. I.e on a tag. Also check for
-            # access to signing certs to make sure we don't try this on a fork which
-            # has a tag.
-            #
-            # Although undocumented, except for a blog post, before_deploy is run for
-            # each deployment so we need to take steps to prevent notarization being
-            # run twice. https://github.com/travis-ci/travis-ci/issues/2570 about
-            # this has been open for years. What a crock!
-            if [ -n "$MACOS_CERTIFICATES_P12" -a -n "$TRAVIS_TAG" -a -z "$NOTARIZED" ]; then
-              ./scripts/notarize.sh $BUILD_DIR/KTX-Software-*.pkg $APPLE_ID $DEVELOPMENT_TEAM $ALTOOL_PASSWORD && export NOTARIZED="true"
-            fi
-            ;;
-          esac
           if [ ! -f $REL_DESC_FILE -a -f RELEASE_NOTES.md ]; then
             # Remove lines that are unnecessary in the context of a GitHub
             # release description.
@@ -407,16 +389,6 @@ jobs:
             #RELNOTES=$(awk '/^Release Notes/,/^## Version/ { next }
             #     ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }' RELEASE_NOTES.md)
           fi
-
-      - name: Upload pages artifact
-        if: matrix.options.deploy_docs == 'YES'
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: $BUILD_DIR/docs/html
-
-      - name: Deploy to GitHub pages
-        if: matrix.options.deploy_docs == 'YES'
-        uses: actions/deploy-pages@v4
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
