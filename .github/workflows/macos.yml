@@ -230,7 +230,7 @@ jobs:
       PYTHON_DIST_DIR: interface/python_binding/dist
 
       REL_DESC_FILE: "$BUILD_DIR/rel_desc.md"
-      VULKAN_SDK_VER: ${{ matrix.options.vk_sdk_ver }}
+      VULKAN_SDK_VER: ${{ matrix.vk_sdk_ver }}
     # This is just to tell the Vulkan install script where to install.
       VULKAN_INSTALL_DIR: /Users/runner/VulkanSDK/${{ matrix.options.vk_sdk_ver }}
       VULKAN_SDK: /Users/runner/VulkanSDK/${{ matrix.options.vk_sdk_ver }}/macOS
