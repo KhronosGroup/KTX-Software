@@ -211,6 +211,7 @@ jobs:
       CHECK_MKVK: ${{ matrix.check_mkvk && matrix.check_mkvk || 'NO' }}
       CHECK_REUSE: ${{ matrix.check_reuse && matrix.check_reuse || 'NO' }}
       CONFIGURATION: ${{ matrix.options.config }}
+      PLATFORM: ${{ matrix.options.platform }}
       FEATURE_DOC: ${{ matrix.options.doc }}
       FEATURE_JNI: ${{ matrix.options.jni }}
       FEATURE_LOADTESTS: ${{ matrix.options.loadtests }}
