@@ -281,7 +281,7 @@ jobs:
               # Install vcpkg.
               pushd $HOME
               git clone https://github.com/microsoft/vcpkg
-              cd vcpkg && ./bootstrap-vcpkg.sh -disableMetrics && export VCPKG_ROOT=$(pwd)
+              cd vcpkg && ./bootstrap-vcpkg.sh -disableMetrics && echo "VCPKG_ROOT=`pwd`" >> $GITHUB_ENV
               popd
             fi
             ;;
