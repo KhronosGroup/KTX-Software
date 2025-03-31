@@ -312,7 +312,7 @@ jobs:
           macOS)
             if [ "$CHECK_REUSE" != "ONLY" -a "$CHECK_MKVK" != "ONLY" ]; then
               if [ "$FEATURE_DOC" = "ON" ]; then
-                  brew install doxygen
+                  brew install --formula doxygen
                   brew install graphviz
               fi
               env
