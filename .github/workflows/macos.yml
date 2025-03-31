@@ -45,14 +45,14 @@ jobs:
     #needs: formatting
     strategy:
       matrix:
-        #os: [ macos-13 ]
-        #generator: [ Xcode ]
-        #arch: [ x86_64 ]
-        #vk_sdk_ver: ['1.3.290.0']
-        #options: [
-        #  {config: 'Debug,Release', platform: macOS,
-        #   doc: ON, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tools: ON, tools_cts: ON,
-        #   package: YES, sse: ON, opencl: OFF},
+        os: [ macos-13 ]
+        generator: [ Xcode ]
+        arch: [ x86_64 ]
+        vk_sdk_ver: ['1.3.290.0']
+        options: [
+          {config: 'Debug,Release', platform: macOS,
+           doc: ON, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tools: ON, tools_cts: ON,
+           package: YES, sse: ON, opencl: OFF},
         #  {config: Release, platform: macOS,
         #   doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tools: OFF, tools_cts: OFF,
         #   sse: ON, opencl: ON},
@@ -62,17 +62,17 @@ jobs:
         #  {config: Release, platform: macOS,
         #   doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tools: OFF, tools_cts: OFF,
         #   sse: OFF, opencl: OFF}
-        #]
-        include:
-        - os: macos-latest
-          generator: Xcode
-          arch: arm64
-          vk_sdk_ver: '1.3.290.0'
-          options: {
-            config: Release, platform: macOS,
-            doc: ON, jni: ON, loadtests: OpenGL+Vulkan, py: OFF, tests: OFF, tools: ON, tools_cts: OFF,
-            package: YES, sse: ON, opencl: OFF
-          }
+        ]
+        #include:
+        #- os: macos-latest
+        #  generator: Xcode
+        #  arch: arm64
+        #  vk_sdk_ver: '1.3.290.0'
+        #  options: {
+        #    config: Release, platform: macOS,
+        #    doc: ON, jni: ON, loadtests: OpenGL+Vulkan, py: OFF, tests: OFF, tools: ON, tools_cts: OFF,
+        #    package: YES, sse: ON, opencl: OFF
+        #  }
         #- os: macos-latest
         #  generator: Xcode
         #  arch: arm64
@@ -394,7 +394,8 @@ jobs:
         if: matrix.options.package == 'YES'
         id: ktx-version
         run: |
-          echo "KTX_VERSION=`cat $BUILD_DIR/ktx.version`" >> $env:GITHUB_ENV
+          KTX_VERSION=`cat $BUILD_DIR/ktx.version`
+          echo "KTX_VERSION=$KTX_VERSION" >> $env:GITHUB_ENV
 
       # For these artifact uploads, need to take care that only one CLangCL
       # "package" job for each architecture produces artifacts. A second
