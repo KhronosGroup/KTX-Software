@@ -321,7 +321,6 @@ jobs:
 
       - name: before_script
         run: |
-          git fetch --unshallow --tags
           case "${RUNNER_OS:-Linux}" in
           Linux)
             ;;
