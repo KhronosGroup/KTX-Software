@@ -407,6 +407,13 @@ jobs:
           path: ${{env.BUILD_DIR}}/KTX-Software-*-*
           compression-level: 0 # Installer already compressed.
 
+      - name: Upload artifact pyktx
+        if: matrix.options.package == 'YES' && matrix.options.py == 'ON'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pyktx-${{env.KTX_VERSION}}-${{runner.os}}-${{matrix.arch}}
+          path: ${{env.BUILD_DIR}}/${{env.PYTHON_DIST_DIR}}
+
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
         if: matrix.options.package == 'YES' && github.event_name == 'push' && github.ref_type == 'tag'
