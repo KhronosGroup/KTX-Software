@@ -71,8 +71,7 @@ jobs:
           options: {
             config: Release, platform: macOS,
             doc: ON, jni: ON, loadtests: OpenGL+Vulkan, py: OFF, tests: OFF, tools: ON, tools_cts: OFF,
-            #package: YES, sse: ON, opencl: OFF
-            package: NO, sse: ON, opencl: OFF
+            package: YES, sse: ON, opencl: OFF
           }
         #- os: macos-latest
         #  generator: Xcode
@@ -390,6 +389,23 @@ jobs:
             #RELNOTES=$(awk '/^Release Notes/,/^## Version/ { next }
             #     ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }' RELEASE_NOTES.md)
           fi
+
+      - name: Get KTX version
+        if: matrix.options.package == 'YES'
+        id: ktx-version
+        run: |
+          echo "KTX_VERSION=`cat $BUILD_DIR/ktx.version`" >> $env:GITHUB_ENV
+
+      # For these artifact uploads, need to take care that only one CLangCL
+      # "package" job for each architecture produces artifacts. A second
+      # job would attempt to upload a same-named artifact.
+      - name: Upload artifact Install Package
+        if: matrix.options.package == 'YES'
+        uses: actions/upload-artifact@v4
+        with:
+          name: KTX-Software-${{env.KTX_VERSION}}-${{runner.os}}-${{matrix.arch}}
+          path: ${{env.BUILD_DIR}}/KTX-Software-*-*
+          compression-level: 0 # Installer already compressed.
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
