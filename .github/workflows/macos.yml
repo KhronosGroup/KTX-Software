@@ -233,8 +233,8 @@ jobs:
       VULKAN_SDK_VER: ${{ matrix.vk_sdk_ver }}
     # This is just to tell the Vulkan install script where to install.
     # NOTE: Hardcoded $HOME expansion, due to 'env' context being unavailble in env:
-      VULKAN_INSTALL_DIR: /Users/runner/VulkanSDK/${{ matrix.options.vk_sdk_ver }}
-      VULKAN_SDK: /Users/runner/VulkanSDK/${{ matrix.options.vk_sdk_ver }}/macOS
+      VULKAN_INSTALL_DIR: /Users/runner/VulkanSDK/${{ matrix.vk_sdk_ver }}
+      VULKAN_SDK: /Users/runner/VulkanSDK/${{ matrix.vk_sdk_ver }}/macOS
 
     steps:
       - uses: actions/checkout@v4
@@ -358,10 +358,10 @@ jobs:
             if [ "$CHECK_REUSE" != "ONLY" -a "$CHECK_MKVK" != "ONLY" ]; then
               if [ "$PLATFORM" = "macOS" ]; then
                 ./scripts/build_macos.sh
+                ./scripts/notarize.sh $BUILD_DIR/KTX-Software-*.pkg $APPLE_ID $DEVELOPMENT_TEAM $ALTOOL_PASSWORD && export NOTARIZED="true"
               else
                 ./scripts/build_ios.sh
               fi
-              ./scripts/notarize.sh $BUILD_DIR/KTX-Software-*.pkg $APPLE_ID $DEVELOPMENT_TEAM $ALTOOL_PASSWORD && export NOTARIZED="true"
             fi
             ;;
           esac
