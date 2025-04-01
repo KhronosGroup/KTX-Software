@@ -155,9 +155,11 @@ appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
     strncpy(&libId[sizeof(libIdIntro)-1], libVer,
             libIdLen-(sizeof(libIdIntro)-1));
 
+    char* fullId = NULL;
     if (strnstr(id, libId, idLen) != NULL) {
         // This lib id is already in the writer value.
-        return KTX_SUCCESS;
+        result = KTX_SUCCESS;
+        goto cleanup;
     }
 
     const char* libVerPos = strnstr(id, libIdIntro, idLen);
@@ -169,11 +171,15 @@ appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
     }
 
     size_t fullIdLen = idLen + strlen(libId) + 1;
-    if (fullIdLen > UINT_MAX)
-        return KTX_INVALID_OPERATION;
-    char* fullId = malloc(fullIdLen);
-    if (!fullId)
-        return KTX_OUT_OF_MEMORY;
+    if (fullIdLen > UINT_MAX) {
+        result = KTX_INVALID_OPERATION;
+        goto cleanup;
+    }
+    fullId = malloc(fullIdLen);
+    if (!fullId) {
+        result = KTX_OUT_OF_MEMORY;
+        goto cleanup;
+    }
     strncpy(fullId, id, idLen);
     strncpy(&fullId[idLen], libId, libIdLen);
     assert(fullId[fullIdLen-1] == '\0');
@@ -181,6 +187,7 @@ appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
     ktxHashList_DeleteEntry(head, writerEntry);
     result = ktxHashList_AddKVPair(head, KTX_WRITER_KEY,
                                    (ktx_uint32_t)fullIdLen, fullId);
+cleanup:
     free(libId);
     free(fullId);
     return result;
