@@ -118,7 +118,7 @@ do
   if [ -n "$MACOS_CERTIFICATES_P12" -a "$config" = "Release" ]; then
     cmake --build . --config $config #| handle_compiler_output
   else
-    cmake --build . --config $config -- $XCODE_NO_CODESIGN_ENV | handle_compiler_output
+    cmake --build . --config $config -- $XCODE_NO_CODESIGN_ENV #| handle_compiler_output
   fi
 
   # Rosetta 2 should let x86_64 tests run on an Apple Silicon Mac hence the -o.
