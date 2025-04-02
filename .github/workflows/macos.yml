@@ -394,12 +394,19 @@ jobs:
             #     ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }' RELEASE_NOTES.md)
           fi
 
-      - name: Get KTX version
+      - name: Prepare KTX artifact names
         if: matrix.options.package == 'YES'
         id: ktx-version
         run: |
           KTX_VERSION=`cat $BUILD_DIR/ktx.version`
-          echo "KTX_VERSION=$KTX_VERSION" >> $GITHUB_ENV
+          case "${RUNNER_OS:-Linux}" in
+          Linux)
+            echo "PACKAGE_NAME_SUFFIX=${KTX_VERSION}-${{runner.os}}-${{matrix.arch}}" >> $GITHUB_ENV
+            ;;
+          macOS)
+            echo "PACKAGE_NAME_SUFFIX=${KTX_VERSION}-${{matrix.options.platform}}-${{matrix.arch}}" >> $GITHUB_ENV
+            ;;
+          esac
 
       # For these artifact uploads, need to take care that only one CLangCL
       # "package" job for each architecture produces artifacts. A second
@@ -408,7 +415,7 @@ jobs:
         if: matrix.options.package == 'YES'
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ runner.os == 'Linux' && 'KTX-Software-${{env.KTX_VERSION}}-${{runner.os}}-${{matrix.arch}}' || 'KTX-Software-${{env.KTX_VERSION}}-${{matrix.options.platform}}-${{matrix.arch}}' }}
+          name: KTX-Software-${{env.PACKAGE_NAME_SUFFIX}}
           path: ${{env.BUILD_DIR}}/KTX-Software-*-*
           compression-level: 0 # Installer already compressed.
 
@@ -416,7 +423,7 @@ jobs:
         if: matrix.options.package == 'YES' && matrix.options.py == 'ON'
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ runner.os == 'Linux' && 'pyktx-${{env.KTX_VERSION}}-${{runner.os}}-${{matrix.arch}}' || 'pyktx-${{env.KTX_VERSION}}-${{matrix.options.platform}}-${{matrix.arch}}' }}
+          name: pyktx-${{env.PACKAGE_NAME_SUFFIX}}
           path: ${{env.BUILD_DIR}}/${{env.PYTHON_DIST_DIR}}
 
       - name: Upload to Release
