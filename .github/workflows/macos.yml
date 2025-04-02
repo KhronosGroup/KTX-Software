@@ -303,8 +303,6 @@ jobs:
               echo "JAVA_HOME = $JAVA_HOME"
               echo "/usr/lib/jvm"
               ls -l /usr/lib/jvm
-              # echo "/usr/local/lib/jvm"
-              # ls -l /usr/local/lib/jvm
               ./scripts/install_linux.sh
             fi
             ;;
@@ -384,7 +382,7 @@ jobs:
 
       - name: before_deploy
         run: |
-          gem install octokit:'~> 4.15.0' mime-types
+          sudo gem install octokit:'~> 4.15.0' mime-types
           if [ ! -f $REL_DESC_FILE -a -f RELEASE_NOTES.md ]; then
             # Remove lines that are unnecessary in the context of a GitHub
             # release description.
