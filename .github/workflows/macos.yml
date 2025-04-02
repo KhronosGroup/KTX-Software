@@ -401,9 +401,9 @@ jobs:
           case "${RUNNER_OS:-Linux}" in
           Linux)
             if [ "$WASM_BUILD" = "YES" ]; then
-              echo "PACKAGE_NAME_SUFFIX=${KTX_VERSION}-${{runner.os}}-${{matrix.arch}}" >> $GITHUB_ENV
+              echo "PACKAGE_NAME_SUFFIX=${KTX_VERSION}-Web" >> $GITHUB_ENV
             else
-              echo "PACKAGE_NAME_SUFFIX=${KTX_VERSION}-Wasm-${{matrix.arch}}" >> $GITHUB_ENV
+              echo "PACKAGE_NAME_SUFFIX=${KTX_VERSION}-${{runner.os}}-${{matrix.arch}}" >> $GITHUB_ENV
             fi
             ;;
           macOS)
