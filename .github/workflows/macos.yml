@@ -408,7 +408,7 @@ jobs:
         if: matrix.options.package == 'YES'
         uses: actions/upload-artifact@v4
         with:
-          name: KTX-Software-${{env.KTX_VERSION}}-${{matrix.options.platform}}-${{matrix.arch}}
+          name: ${{ runner.os == 'Linux' && 'KTX-Software-${{env.KTX_VERSION}}-${{runner.os}}-${{matrix.arch}}' || 'KTX-Software-${{env.KTX_VERSION}}-${{matrix.options.platform}}-${{matrix.arch}}' }}
           path: ${{env.BUILD_DIR}}/KTX-Software-*-*
           compression-level: 0 # Installer already compressed.
 
@@ -416,7 +416,7 @@ jobs:
         if: matrix.options.package == 'YES' && matrix.options.py == 'ON'
         uses: actions/upload-artifact@v4
         with:
-          name: pyktx-${{env.KTX_VERSION}}-${{matrix.options.platform}}-${{matrix.arch}}
+          name: ${{ runner.os == 'Linux' && 'pyktx-${{env.KTX_VERSION}}-${{runner.os}}-${{matrix.arch}}' || 'pyktx-${{env.KTX_VERSION}}-${{matrix.options.platform}}-${{matrix.arch}}' }}
           path: ${{env.BUILD_DIR}}/${{env.PYTHON_DIST_DIR}}
 
       - name: Upload to Release
