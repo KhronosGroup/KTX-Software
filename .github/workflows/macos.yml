@@ -382,7 +382,6 @@ jobs:
 
       - name: before_deploy
         run: |
-          sudo gem install octokit:'~> 4.15.0' mime-types
           if [ ! -f $REL_DESC_FILE -a -f RELEASE_NOTES.md ]; then
             # Remove lines that are unnecessary in the context of a GitHub
             # release description.
