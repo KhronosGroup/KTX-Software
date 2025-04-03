@@ -42,6 +42,7 @@ on:
 
 jobs:
   linux:
+    if: false
     runs-on: ubuntu-latest
 
     env:

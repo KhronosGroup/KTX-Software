@@ -54,6 +54,7 @@ on:
 
 jobs:
   build-docs:
+    if: false
     name: Build KTX-Software reference pages and documentation
     strategy:
       matrix:

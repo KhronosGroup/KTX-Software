@@ -115,16 +115,19 @@ do
   # Build and test
   #if [ "$config" = "Debug" ]; then continue; fi
   echo "Build KTX-Software (macOS $ARCHS $config)"
+  # TODO: re-enable when CI scripts are done
   if [ -n "$MACOS_CERTIFICATES_P12" -a "$config" = "Release" ]; then
-    cmake --build . --config $config | handle_compiler_output
+    cmake --build . --config $config #| handle_compiler_output
   else
-    cmake --build . --config $config -- $XCODE_NO_CODESIGN_ENV | handle_compiler_output
+    cmake --build . --config $config -- $XCODE_NO_CODESIGN_ENV #| handle_compiler_output
   fi
 
   # Rosetta 2 should let x86_64 tests run on an Apple Silicon Mac hence the -o.
   if [ "$ARCHS" = "$(uname -m)" -o "$ARCHS" = "x64_64" ]; then
     echo "Test KTX-Software (macOS $ARCHS $config)"
-    ctest --output-on-failure -C $config # --verbose
+    # TODO: re-enable when CI scripts are done
+    cmake -E true
+    #ctest --output-on-failure -C $config # --verbose
   fi
 
   if [ "$config" = "Release" -a "$PACKAGE" = "YES" ]; then

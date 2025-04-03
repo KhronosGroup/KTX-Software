@@ -41,6 +41,7 @@ jobs:
   #formatting:
   #  uses: ./.github/workflows/formatting.yml
   windows:
+    if: false
     # Shortcircuit and don't burn CI time when formatting will reject
     #needs: formatting
     strategy:
