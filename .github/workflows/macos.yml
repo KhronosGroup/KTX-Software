@@ -258,7 +258,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set compiler (linux)
-        if: runner.os == 'Linux'
+        if: runner.os == 'Linux' && matrix.compiler
         run: |
           if [ "${{ matrix.compiler }}" = "gcc" ]; then
             echo "CC=gcc" >> $GITHUB_ENV
