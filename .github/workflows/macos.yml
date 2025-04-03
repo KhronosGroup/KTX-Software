@@ -116,21 +116,21 @@ jobs:
         #    package: YES, sse: OFF, opencl: OFF
         #  }
         # Linux matrix elements
-        - name: Linux Reuse-only
-          os: ubuntu-22.04
-          check_mkvk: NO
-          check_reuse: ONLY
-        - name: Linux Default
-          os: ubuntu-22.04
-          generator: Ninja
-          arch: x86_64
-          compiler: gcc
-          vk_sdk_ver: '1.3.290'
-          options: {
-            config: Debug,
-            doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tools: ON, tools_cts: ON,
-            sse: ON, opencl: OFF
-          }
+        #- name: Linux Reuse-only
+        #  os: ubuntu-22.04
+        #  check_mkvk: NO
+        #  check_reuse: ONLY
+        #- name: Linux Default
+        #  os: ubuntu-22.04
+        #  generator: Ninja
+        #  arch: x86_64
+        #  compiler: gcc
+        #  vk_sdk_ver: '1.3.290'
+        #  options: {
+        #    config: Debug,
+        #    doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tools: ON, tools_cts: ON,
+        #    sse: ON, opencl: OFF
+        #  }
         - name: Linux Package (x86_64)
           os: ubuntu-22.04
           generator: Ninja
@@ -153,39 +153,39 @@ jobs:
             doc: ON, jni: ON, loadtests: OpenGL, py: ON, tools: ON, tools_cts: ON,
             package: YES, sse: OFF, opencl: OFF
           }
-        - name: Linux OpenCL,SSE
-          os: ubuntu-22.04
-          generator: Ninja
-          arch: x86_64
-          compiler: gcc
-          vk_sdk_ver: '1.3.290'
-          options: {
-            config: Release,
-            doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tools: OFF, tools_cts: OFF,
-            sse: ON, opencl: ON
-          }
-        - name: Linux OpenCL
-          os: ubuntu-22.04
-          generator: Ninja
-          arch: x86_64
-          compiler: gcc
-          vk_sdk_ver: '1.3.290'
-          options: {
-            config: Release,
-            doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tools: OFF, tools_cts: OFF,
-            sse: OFF, opencl: ON
-          }
-        - name: Linux All OFF
-          os: ubuntu-22.04
-          generator: Ninja
-          arch: x86_64
-          compiler: gcc
-          vk_sdk_ver: '1.3.290'
-          options: {
-            config: Release,
-            doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tools: OFF, tools_cts: OFF,
-            sse: OFF, opencl: OFF
-          }
+        #- name: Linux OpenCL,SSE
+        #  os: ubuntu-22.04
+        #  generator: Ninja
+        #  arch: x86_64
+        #  compiler: gcc
+        #  vk_sdk_ver: '1.3.290'
+        #  options: {
+        #    config: Release,
+        #    doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tools: OFF, tools_cts: OFF,
+        #    sse: ON, opencl: ON
+        #  }
+        #- name: Linux OpenCL
+        #  os: ubuntu-22.04
+        #  generator: Ninja
+        #  arch: x86_64
+        #  compiler: gcc
+        #  vk_sdk_ver: '1.3.290'
+        #  options: {
+        #    config: Release,
+        #    doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tools: OFF, tools_cts: OFF,
+        #    sse: OFF, opencl: ON
+        #  }
+        #- name: Linux All OFF
+        #  os: ubuntu-22.04
+        #  generator: Ninja
+        #  arch: x86_64
+        #  compiler: gcc
+        #  vk_sdk_ver: '1.3.290'
+        #  options: {
+        #    config: Release,
+        #    doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tools: OFF, tools_cts: OFF,
+        #    sse: OFF, opencl: OFF
+        #  }
         # WASM
         #- name: Wasm Debug
         #  os: ubuntu-22.04
@@ -222,6 +222,8 @@ jobs:
       # Map test matrix elements to environmental variables, so that scripts launched from CI scripts may react to them.
       # Some matrix variables have defaults if unspecified by the matrix
       CMAKE_GEN: ${{ matrix.generator }}
+      ARCH: ${{ matrix.arch }}
+      ARCHS: ${{ matrix.arch }} # MacOS uses ARCHS
       CHECK_MKVK: ${{ matrix.check_mkvk && matrix.check_mkvk || 'NO' }}
       CHECK_REUSE: ${{ matrix.check_reuse && matrix.check_reuse || 'NO' }}
       CONFIGURATION: ${{ matrix.options.config }}
