@@ -210,7 +210,7 @@ jobs:
             package: YES, sse: OFF, opencl: OFF, wasm: YES
           }
 
-    name: ${{ matrix.name && matrix.name || format('{} SSE,OpenCL:{},{}', matrix.os, matrix.options.sse, matrix.options.opencl) }}
+    name: ${{ matrix.name && matrix.name || format('{0} SSE,OpenCL:{1},{2}', matrix.os, matrix.options.sse, matrix.options.opencl) }}
     runs-on: ${{ matrix.os }}
     env:
       GIT_LFS_SKIP_SMUDGE: 1
