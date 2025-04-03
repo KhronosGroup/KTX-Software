@@ -52,6 +52,8 @@ else
     dpkg_arch=arm64
     gcc_pkg_arch=$ARCH
   fi
+  echo "ARCH: $ARCH"
+  echo "dpkg_arch: $dpkg_arch"
   sudo dpkg --add-architecture $dpkg_arch
   sudo apt-get update
   # Don't think this is right to install cross-compiler. apt reports
