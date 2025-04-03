@@ -116,8 +116,8 @@ do
   if [ "$ARCH" = "$(uname -m)" ]; then
     echo "Test KTX-Software (Linux $ARCH $config)"
     # TODO: re-enable when CI scripts are done
-    cmake -E true
-    #ctest --output-on-failure -C $config #--verbose
+    #cmake -E true
+    ctest --output-on-failure -C $config #--verbose
   fi
   if [ "$config" = "Release" -a "$PACKAGE" = "YES" ]; then
     echo "Pack KTX-Software (Linux $ARCH $config)"
