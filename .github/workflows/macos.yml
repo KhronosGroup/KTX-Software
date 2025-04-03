@@ -143,7 +143,7 @@ jobs:
             package: YES, sse: ON, opencl: OFF
           }
         - name: Linux Package (arm64)
-          os: ubuntu-22.04
+          os: ubuntu-22.04-arm
           generator: Ninja
           arch: arm64
           compiler: gcc
