@@ -55,6 +55,7 @@ else
   echo "uname -m: $(uname -m)"
   echo "ARCH: $ARCH"
   echo "dpkg_arch: $dpkg_arch"
+  cat /etc/apt/sources.list
   sudo dpkg --add-architecture $dpkg_arch
   sudo apt-get update
   # Don't think this is right to install cross-compiler. apt reports
