@@ -48,10 +48,11 @@ else
   if [ "$ARCH" = "x86_64" ]; then
     dpkg_arch=amd64
     gcc_pkg_arch=x86-64
-  elif [ "$ARCH" = "aarch64" ]; then
+  elif [ "$ARCH" = "arm64" ]; then
     dpkg_arch=arm64
     gcc_pkg_arch=$ARCH
   fi
+  echo "uname -m: $(uname -m)"
   echo "ARCH: $ARCH"
   echo "dpkg_arch: $dpkg_arch"
   sudo dpkg --add-architecture $dpkg_arch
