@@ -395,6 +395,8 @@ jobs:
           set +e
 
       - name: before_deploy
+        # Seemingly unneeded
+        if: false
         run: |
           if [ ! -f $REL_DESC_FILE -a -f RELEASE_NOTES.md ]; then
             # Remove lines that are unnecessary in the context of a GitHub
