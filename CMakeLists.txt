@@ -967,7 +967,7 @@ endif()
 
 # Retrieve the final set of properties for use by the transcodetests.
 # We do this because the CMake feature that would allow the transcodetests
-# target to retrieve these from the ktx target are not available until
+# target to retrieve these from the ktx target is not available until
 # v18 and we still need to work with v16 in the Emscripten Docker image.
 get_source_file_property(transcoder_options
     external/basisu/transcoder/basisu_transcoder.cpp
@@ -1252,6 +1252,9 @@ if(NOT ${universal_build})
     endif()
 endif()
 
+# setting ASTCENC_DECOMPRESSOR to ON breaks the build, so force it to OFF
+# and hide it from cmake-gui (by using type INTERNAL)
+set(ASTCENC_DECOMPRESSOR OFF CACHE INTERNAL "")
 set(ASTCENC_CLI OFF) # Only build as library not the CLI astcencoder
 # Force static build for astc-encoder
 set(BUILD_SHARED_LIBS OFF)
@@ -1262,7 +1265,7 @@ target_compile_definitions(
     ${ASTCENC_LIB_TARGET}
 PRIVATE
     # ASTC encoder uses std::mutex. For more info. see comment about
-    # same setting in libktx starting about line 618. To be eventually
+    # same setting in libktx starting about line 633. To be eventually
     # removed as noted in that comment.
     $<$<AND:${is_msvccl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.40.33811>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
     $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,17.0.3>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
