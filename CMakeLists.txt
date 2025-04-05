@@ -764,7 +764,6 @@ macro(common_libktx_settings target enable_write library_type)
         PRIVATE
             lib/basis_encode.cpp
             lib/astc_codec.cpp
-            ${BASISU_ENCODER_C_SRC}
             ${BASISU_ENCODER_CXX_SRC}
             lib/writer1.c
             lib/writer2.c
@@ -848,7 +847,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         # It's too much work to discriminate which files need which warnings
         # disabled.
         ${BASISU_ENCODER_CXX_SRC}
-        PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-variable;-Wno-class-memaccess;-Wno-misleading-indentation;-Wno-extra;-Wno-deprecated-copy;-Wno-parentheses;-Wno-strict-aliasing"
+        PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-variable;-Wno-class-memaccess;-Wno-misleading-indentation;-Wno-extra;-Wno-deprecated-copy;-Wno-parentheses"
     )
     set_source_files_properties(
         external/basisu/transcoder/basisu_transcoder.cpp
@@ -946,9 +945,29 @@ else()
     message(FATAL_ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")
 endif()
 
+if(NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    # Basis Universal requires strict aliasing to be disabled for GCC and Clang
+    get_source_file_property(cur_options
+        external/basisu/encoder/basisu_comp.cpp
+        COMPILE_OPTIONS
+    )
+    set_source_files_properties(
+        ${BASISU_ENCODER_CXX_SRC}
+        PROPERTIES COMPILE_OPTIONS "${cur_options};-fno-strict-aliasing"
+    )
+    get_source_file_property(cur_options
+        external/basisu/transcoder/basisu_transcoder.cpp
+        COMPILE_OPTIONS
+    )
+    set_source_files_properties(
+        external/basisu/transcoder/basisu_transcoder.cpp
+        PROPERTIES COMPILE_OPTIONS "${cur_options};-fno-strict-aliasing"
+    )
+endif()
+
 # Retrieve the final set of properties for use by the transcodetests.
 # We do this because the CMake feature that would allow the transcodetests
-# target to retrieve these from the ktx target are not available until
+# target to retrieve these from the ktx target is not available until
 # v18 and we still need to work with v16 in the Emscripten Docker image.
 get_source_file_property(transcoder_options
     external/basisu/transcoder/basisu_transcoder.cpp
@@ -1233,6 +1252,9 @@ if(NOT ${universal_build})
     endif()
 endif()
 
+# setting ASTCENC_DECOMPRESSOR to ON breaks the build, so force it to OFF
+# and hide it from cmake-gui (by using type INTERNAL)
+set(ASTCENC_DECOMPRESSOR OFF CACHE INTERNAL "")
 set(ASTCENC_CLI OFF) # Only build as library not the CLI astcencoder
 # Force static build for astc-encoder
 set(BUILD_SHARED_LIBS OFF)
@@ -1243,7 +1265,7 @@ target_compile_definitions(
     ${ASTCENC_LIB_TARGET}
 PRIVATE
     # ASTC encoder uses std::mutex. For more info. see comment about
-    # same setting in libktx starting about line 618. To be eventually
+    # same setting in libktx starting about line 633. To be eventually
     # removed as noted in that comment.
     $<$<AND:${is_msvccl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.40.33811>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
     $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,17.0.3>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
