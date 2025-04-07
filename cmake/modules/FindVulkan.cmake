@@ -233,23 +233,48 @@ if("FATAL_ERROR" IN_LIST Vulkan_FIND_COMPONENTS)
     list(REMOVE_ITEM Vulkan_FIND_COMPONENTS "FATAL_ERROR")
 endif()
 
-# FindVulkan only works correctly with the default CMAKE_FIND_FRAMEWORK
-# value: FIRST. If LAST it will find the macOS dylibs instead of the iOS
-# frameworks when IOS is true. If ALWAYS it will fail to find the macOS
-# dylibs. If NEVER it will fail to find the iOS frameworks. If frameworks
-# are ever included in the SDK for macOS, the search mechanism will need
-# revisiting.
-if(DEFINED CMAKE_FIND_FRAMEWORK)
-    set(_Vulkan_saved_cmake_find_framework ${CMAKE_FIND_FRAMEWORK})
-    set(CMAKE_FIND_FRAMEWORK FIRST)
+# FindVulkan only works correctly for iOS with CMAKE_FIND_FRAMEWORK set to
+# FIRST or ALWAYS. If LAST or NEVER it will find the macOS dylibs instead
+# of the iOS frameworks because the macOS lib directory has to be added to
+# the search path so libraries for various tools can be found.
+#
+# For macOS there is a MoltenVK.xcframework which contains a static library.
+# To find the MoltenVK.dylib, which is needed when building bundles we need
+# to LAST or NEVER. LAST appears to be default value.
+#
+# If frameworks are ever included in the SDK for macOS, the search mechanism
+# will need  revisiting.
+if(APPLE)
+    if(IOS)
+        if (NOT ${CMAKE_FIND_FRAMEWORK} STREQUAL "FIRST" AND NOT ${CMAKE_FIND_FRAMEWORK} STREQUAL "ALWAYS")
+            message(NOTICE "Temporarily setting CMAKE_FIND_FRAMEWORK to FIRST to find Vulkan iOS frameworks.")
+            set(_Vulkan_saved_cmake_find_framework ${CMAKE_FIND_FRAMEWORK})
+            set(CMAKE_FIND_FRAMEWORK FIRST)
+        endif()
+    else()
+        if (NOT ${CMAKE_FIND_FRAMEWORK} STREQUAL "LAST" AND NOT ${CMAKE_FIND_FRAMEWORK} STREQUAL "NEVER")
+            message(NOTICE "Temporarily setting CMAKE_FIND_FRAMEWORK to LAST to find Vulkan macOS dylibs.")
+        endif()
+    endif()
 endif()
 
-if(IOS)
-    get_filename_component(Vulkan_Target_SDK "$ENV{VULKAN_SDK}/.." REALPATH)
-    list(APPEND CMAKE_FRAMEWORK_PATH "${Vulkan_Target_SDK}/iOS/lib")
-    set (CMAKE_FIND_ROOT_PATH_MODE_PROGRAM BOTH)
-    set (CMAKE_FIND_ROOT_PATH_MODE_LIBRARY BOTH)
-    set (CMAKE_FIND_ROOT_PATH_MODE_INCLUDE BOTH)
+if(APPLE)
+    # Make robust against different ways VULKAN_SDK may be set.
+    get_filename_component(_Vulkan_SDK_dirname "$ENV{VULKAN_SDK}" NAME)
+    if(${_Vulkan_SDK_dirname} STREQUAL "macOS" OR ${_Vulkan_SDK_dirname} STREQUAL "iOS")
+        get_filename_component(Vulkan_SDK_Base "$ENV{VULKAN_SDK}/.." REALPATH)
+    else()
+        get_filename_component(Vulkan_SDK_Base "$ENV{VULKAN_SDK}" REALPATH)
+    endif()
+    set(_Vulkan_SDK ${Vulkan_SDK_Base}/macOS)
+    if(IOS)
+        list(APPEND CMAKE_FRAMEWORK_PATH "${Vulkan_SDK_Base}/iOS/lib")
+        set (CMAKE_FIND_ROOT_PATH_MODE_PROGRAM BOTH)
+        set (CMAKE_FIND_ROOT_PATH_MODE_LIBRARY BOTH)
+        set (CMAKE_FIND_ROOT_PATH_MODE_INCLUDE BOTH)
+    endif()
+else()
+    set(_Vulkan_SDK "$ENV{VULKAN_SDK}/bin")
 endif()
 
 # For backward compatibility as `FindVulkan` in previous CMake versions allow to retrieve `glslc`
@@ -264,56 +289,56 @@ endif()
 if(WIN32)
     set(_Vulkan_library_name vulkan-1)
     set(_Vulkan_hint_include_search_paths
-            "$ENV{VULKAN_SDK}/include"
+            ${_Vulkan_SDK}/include
     )
     if(CMAKE_SIZEOF_VOID_P EQUAL 8)
         set(_Vulkan_hint_executable_search_paths
-                "$ENV{VULKAN_SDK}/bin"
+                ${_Vulkan_SDK}/bin
         )
         set(_Vulkan_hint_library_search_paths
-                "$ENV{VULKAN_SDK}/lib"
-                "$ENV{VULKAN_SDK}/bin"
+                ${_Vulkan_SDK}/lib
+                ${_Vulkan_SDK}/bin
         )
     else()
         set(_Vulkan_hint_executable_search_paths
-                "$ENV{VULKAN_SDK}/bin32"
-                "$ENV{VULKAN_SDK}/bin"
+                ${_Vulkan_SDK}/bin32
+                ${_Vulkan_SDK}/bin
         )
         set(_Vulkan_hint_library_search_paths
-                "$ENV{VULKAN_SDK}/lib32"
-                "$ENV{VULKAN_SDK}/bin32"
-                "$ENV{VULKAN_SDK}/lib"
-                "$ENV{VULKAN_SDK}/bin"
+                ${_Vulkan_SDK}/lib32
+                ${_Vulkan_SDK}/bin32
+                ${_Vulkan_SDK}/lib
+                ${_Vulkan_SDK}/bin
         )
     endif()
 else()
     set(_Vulkan_library_name vulkan)
     set(_Vulkan_hint_include_search_paths
-            "$ENV{VULKAN_SDK}/include"
+            "${_Vulkan_SDK}/include"
     )
     set(_Vulkan_hint_executable_search_paths
-            "$ENV{VULKAN_SDK}/bin"
+            "${_Vulkan_SDK}/bin"
     )
     set(_Vulkan_hint_library_search_paths
-            "$ENV{VULKAN_SDK}/lib"
+            "${_Vulkan_SDK}/lib"
     )
 endif()
-if(APPLE AND DEFINED Vulkan_Target_SDK)
-    list(APPEND _Vulkan_hint_include_search_paths
-            "${Vulkan_Target_SDK}/macOS/include"
-    )
+if(APPLE AND IOS)
+    #list(APPEND _Vulkan_hint_include_search_paths
+    #        "${Vulkan_SDK_Base}/macOS/include"
+    #)
     if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
         list(APPEND _Vulkan_hint_library_search_paths
-                "${Vulkan_Target_SDK}/iOS/lib"
+                "${Vulkan_SDK_Base}/iOS/lib"
         )
     elseif(CMAKE_SYSTEM_NAME STREQUAL "tvOS")
         list(APPEND _Vulkan_hint_library_search_paths
-                "${Vulkan_Target_SDK}/tvOS/lib"
+                "${Vulkan_SDK_Base}/tvOS/lib"
         )
-    else()
-        list(APPEND _Vulkan_hint_library_search_paths
-                "${Vulkan_Target_SDK}/lib"
-        )
+#    else()
+#        list(APPEND _Vulkan_hint_library_search_paths
+#                "${Vulkan_SDK_Base}/lib"
+#        )
     endif()
 endif()
 
@@ -329,7 +354,7 @@ find_library(Vulkan_LIBRARY
         HINTS
         ${_Vulkan_hint_library_search_paths}
 )
-message(STATUS "vulkan_library ${Vulkan_LIBRARY} search paths ${_Vulkan_hint_library_search_paths}")
+message(STATUS "Vulkan_LIBRARY ${Vulkan_LIBRARY} search paths ${_Vulkan_hint_library_search_paths}")
 mark_as_advanced(Vulkan_LIBRARY)
 
 find_library(Vulkan_Layer_API_DUMP
@@ -491,9 +516,9 @@ if(MoltenVK IN_LIST Vulkan_FIND_COMPONENTS)
     # CMake has a bug in 3.28 that doesn't handle xcframeworks.  Do it by hand for now.
     if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
         if(CMAKE_VERSION VERSION_LESS 3.29)
-            set( _Vulkan_hint_library_search_paths ${Vulkan_Target_SDK}/ios/lib/MoltenVK.xcframework/ios-arm64)
+            set( _Vulkan_hint_library_search_paths ${Vulkan_SDK_Base}/ios/lib/MoltenVK.xcframework/ios-arm64)
         else ()
-            set( _Vulkan_hint_library_search_paths ${Vulkan_Target_SDK}/ios/lib/)
+            set( _Vulkan_hint_library_search_paths ${Vulkan_SDK_Base}/ios/lib/)
         endif ()
     endif ()
     find_library(Vulkan_MoltenVK_LIBRARY
@@ -502,6 +527,7 @@ if(MoltenVK IN_LIST Vulkan_FIND_COMPONENTS)
             HINTS
             ${_Vulkan_hint_library_search_paths}
     )
+    message(STATUS "MoltenVK_LIBRARY ${Vulkan_MoltenVK_LIBRARY} search paths ${_Vulkan_hint_library_search_paths}")
     mark_as_advanced(Vulkan_MoltenVK_LIBRARY)
 
     find_path(Vulkan_MoltenVK_INCLUDE_DIR
@@ -955,6 +981,8 @@ if(Vulkan_MoltenVK_FOUND)
 endif()
 
 unset(_Vulkan_library_name)
+unset(_Vulkan_SDK)
+unset(_Vulkan_SDK_dirname)
 unset(_Vulkan_hint_include_search_paths)
 unset(_Vulkan_hint_executable_search_paths)
 unset(_Vulkan_hint_library_search_paths)

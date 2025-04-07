@@ -426,9 +426,9 @@ set(KTX_MAIN_SRC
     )
 
 if (KTX_FEATURE_ETC_UNPACK)
-	list(APPEND KTX_MAIN_SRC 
-		external/etcdec/etcdec.cxx
-	)
+    list(APPEND KTX_MAIN_SRC 
+        external/etcdec/etcdec.cxx
+    )
 endif()
 
 set(BASISU_ENCODER_CXX_SRC
