@@ -274,7 +274,7 @@ if(APPLE)
         set (CMAKE_FIND_ROOT_PATH_MODE_INCLUDE BOTH)
     endif()
 else()
-    set(_Vulkan_SDK "$ENV{VULKAN_SDK}/bin")
+    set(_Vulkan_SDK "$ENV{VULKAN_SDK}")
 endif()
 
 # For backward compatibility as `FindVulkan` in previous CMake versions allow to retrieve `glslc`
@@ -314,31 +314,24 @@ if(WIN32)
 else()
     set(_Vulkan_library_name vulkan)
     set(_Vulkan_hint_include_search_paths
-            "${_Vulkan_SDK}/include"
+            ${_Vulkan_SDK}/include
     )
     set(_Vulkan_hint_executable_search_paths
-            "${_Vulkan_SDK}/bin"
+            ${_Vulkan_SDK}/bin
     )
     set(_Vulkan_hint_library_search_paths
-            "${_Vulkan_SDK}/lib"
+            ${_Vulkan_SDK}/lib
     )
 endif()
 if(APPLE AND IOS)
-    #list(APPEND _Vulkan_hint_include_search_paths
-    #        "${Vulkan_SDK_Base}/macOS/include"
-    #)
     if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
         list(APPEND _Vulkan_hint_library_search_paths
-                "${Vulkan_SDK_Base}/iOS/lib"
+                ${Vulkan_SDK_Base}/iOS/lib
         )
     elseif(CMAKE_SYSTEM_NAME STREQUAL "tvOS")
         list(APPEND _Vulkan_hint_library_search_paths
-                "${Vulkan_SDK_Base}/tvOS/lib"
+                ${Vulkan_SDK_Base}/tvOS/lib
         )
-#    else()
-#        list(APPEND _Vulkan_hint_library_search_paths
-#                "${Vulkan_SDK_Base}/lib"
-#        )
     endif()
 endif()
 
