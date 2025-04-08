@@ -837,6 +837,30 @@ PRIVATE
     BASISD_SUPPORT_KTX2=0
 )
 
+# helper function to append COMPILE_OPTIONS to source file properties
+# !! if SRCFILES is a list, remember to quote it                              !!
+# !! like add_source_file_compile_options("${MY_SRC_LIST}"  "-Wall")          !!
+# !! or add_source_file_compile_options("dir/foo.cpp;dir/bar.cpp"  "-Wextra") !!
+function(add_source_file_compile_options SRCFILES OPTIONS)
+    foreach(src_file ${SRCFILES})
+        get_source_file_property(cur_options
+            "${src_file}"
+            COMPILE_OPTIONS
+        )
+        if(cur_options)
+            set_source_files_properties(
+                "${src_file}"
+                PROPERTIES COMPILE_OPTIONS "${cur_options};${OPTIONS}"
+            )
+        else() # if cur_options were undefined or empty ("")
+            set_source_files_properties(
+                "${src_file}"
+                PROPERTIES COMPILE_OPTIONS "${OPTIONS}"
+            )
+        endif()
+    endforeach()
+endfunction()
+
 # Turn off these warnings until Rich fixes the occurences.
 # It it not clear to me if generator expressions can be used here
 # hence the long-winded way.
@@ -847,26 +871,22 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         # It's too much work to discriminate which files need which warnings
         # disabled.
         ${BASISU_ENCODER_CXX_SRC}
-        PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-variable;-Wno-class-memaccess;-Wno-misleading-indentation;-Wno-extra;-Wno-deprecated-copy;-Wno-parentheses"
+        PROPERTIES COMPILE_OPTIONS "-fno-strict-aliasing;-Wno-sign-compare;-Wno-unused-variable;-Wno-class-memaccess;-Wno-misleading-indentation;-Wno-extra;-Wno-deprecated-copy;-Wno-parentheses"
     )
     set_source_files_properties(
         external/basisu/transcoder/basisu_transcoder.cpp
-        PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable;-Wno-class-memaccess;-Wno-maybe-uninitialized"
+        PROPERTIES COMPILE_OPTIONS "-fno-strict-aliasing;-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable;-Wno-class-memaccess;-Wno-maybe-uninitialized"
     )
     if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "11")
         if (${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS "12" )
-        # Version 11 raises several stringop-overflow warnings in some
-        # very hard to decipher code. They appear to be bogus based on
-        # the facts that we have never seen a crash and version 12 no
-        # longer raises the warnings.
-        get_source_file_property(cur_options
-            external/basisu/encoder/basisu_comp.cpp
-            COMPILE_OPTIONS
-        )
-        set_source_files_properties(
-            external/basisu/encoder/basisu_comp.cpp
-            PROPERTIES COMPILE_OPTIONS "${cur_options};-Wno-stringop-overflow"
-        )
+            # Version 11 raises several stringop-overflow warnings in some
+            # very hard to decipher code. They appear to be bogus based on
+            # the facts that we have never seen a crash and version 12 no
+            # longer raises the warnings.
+            add_source_file_compile_options(
+                external/basisu/encoder/basisu_comp.cpp
+                "-Wno-stringop-overflow"
+            )
         endif()
     endif()
     if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "12.0")
@@ -874,28 +894,16 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         # There seems no way for the index calculated by the code at
         # line 326, where the error is raised, to be > the array length.
         # Also we have never seen any crashes.
-        set_source_files_properties(
+        add_source_file_compile_options(
             external/basisu/encoder/basisu_uastc_enc.cpp
-            PROPERTIES COMPILE_OPTIONS "-Wno-stringop-overflow"
+            "-Wno-stringop-overflow"
         )
     endif()
     if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "14.0")
         # Version 14 raises stringop-overflow on these files.
-        get_source_file_property(cur_options
-            external/basisu/encoder/basisu_comp.cpp
-            COMPILE_OPTIONS
-        )
-        set_source_files_properties(
-            external/basisu/transcoder/basisu_transcoder.cpp
-            PROPERTIES COMPILE_OPTIONS  "${cur_options};-Wno-stringop-overflow"
-        )
-        get_source_file_property(cur_options
-            external/basisu/encoder/basisu_bc7enc.cpp
-            COMPILE_OPTIONS
-        )
-        set_source_files_properties(
-            external/basisu/encoder/basisu_bc7enc.cpp
-            PROPERTIES COMPILE_OPTIONS  "${cur_options};-Wno-stringop-overflow"
+        add_source_file_compile_options(
+            "external/basisu/transcoder/basisu_transcoder.cpp;external/basisu/encoder/basisu_bc7enc.cpp"
+            "-Wno-stringop-overflow"
         )
     endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -918,23 +926,31 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         set( clang_version ${CMAKE_CXX_COMPILER_VERSION} )
     endif()
     # BEWARE: set_source_files_properties is not additive; it replaces.
+    set_source_files_properties(
+        ${BASISU_ENCODER_CXX_SRC}
+        PROPERTIES COMPILE_OPTIONS "-fno-strict-aliasing"
+    )
+    set_source_files_properties(
+        external/basisu/transcoder/basisu_transcoder.cpp
+        PROPERTIES COMPILE_OPTIONS "-fno-strict-aliasing"
+    )
     if (${clang_version} VERSION_GREATER_EQUAL "12.0.0")
-        set_source_files_properties( external/basisu/encoder/basisu_kernels_sse.cpp
-            PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter;-Wno-deprecated-copy;-Wno-uninitialized-const-reference"
+        add_source_file_compile_options( external/basisu/encoder/basisu_kernels_sse.cpp
+            "-Wno-unused-parameter;-Wno-deprecated-copy;-Wno-uninitialized-const-reference"
         )
     else()
-        set_source_files_properties( external/basisu/encoder/basisu_kernels_sse.cpp
-            PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter"
+        add_source_file_compile_options( external/basisu/encoder/basisu_kernels_sse.cpp
+            "-Wno-unused-parameter"
         )
     endif()
     if (${clang_version} VERSION_GREATER_EQUAL "14.0")
-        set_source_files_properties(
-            ${BASISU_ENCODER_CXX_SRC}
-            PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-variable;-Wno-unused-parameter;-Wno-deprecated-copy-with-user-provided-copy"
+        add_source_file_compile_options(
+            "${BASISU_ENCODER_CXX_SRC}"
+            "-Wno-sign-compare;-Wno-unused-variable;-Wno-unused-parameter;-Wno-deprecated-copy-with-user-provided-copy"
         )
-        set_source_files_properties(
+        add_source_file_compile_options(
             external/basisu/transcoder/basisu_transcoder.cpp
-            PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable"
+            "-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable"
         )
         set_source_files_properties(
             external/basisu/zstd/zstd.c
@@ -943,26 +959,6 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     endif()
 else()
     message(FATAL_ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")
-endif()
-
-if(NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-    # Basis Universal requires strict aliasing to be disabled for GCC and Clang
-    get_source_file_property(cur_options
-        external/basisu/encoder/basisu_comp.cpp
-        COMPILE_OPTIONS
-    )
-    set_source_files_properties(
-        ${BASISU_ENCODER_CXX_SRC}
-        PROPERTIES COMPILE_OPTIONS "${cur_options};-fno-strict-aliasing"
-    )
-    get_source_file_property(cur_options
-        external/basisu/transcoder/basisu_transcoder.cpp
-        COMPILE_OPTIONS
-    )
-    set_source_files_properties(
-        external/basisu/transcoder/basisu_transcoder.cpp
-        PROPERTIES COMPILE_OPTIONS "${cur_options};-fno-strict-aliasing"
-    )
 endif()
 
 # Retrieve the final set of properties for use by the transcodetests.
