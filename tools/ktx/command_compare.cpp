@@ -1846,6 +1846,10 @@ struct KVEntry {
     char* value;
     ktx_uint32_t valueLen;
 
+    // shut up clang's complaints about derived classes
+    // that have virtual functions but non-virtual destructor
+    virtual ~KVEntry() {}
+
     template <typename T>
     static std::optional<T> load(ktxHashListEntry* entry) {
         if (entry) {
