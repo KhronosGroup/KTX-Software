@@ -6,9 +6,13 @@
 ## The Official Khronos KTX Software Repository
 
 
-| GNU/Linux, iOS, macOS & wasm | Windows | Android | Mingw |
-| :--------------------------: | :-----: | :-----: | :---: |
-| :hammer:CI undergoing remodelling:wrench:  | ![Build status](https://github.com/KhronosGroup/KTX-Software/actions/workflows/windows.yml/badge.svg) | ![KTX-Software CI](https://github.com/KhronosGroup/KTX-Software/actions/workflows/android.yml/badge.svg) | ![KTX-Software CI](https://github.com/KhronosGroup/KTX-Software/actions/workflows/mingw.yml/badge.svg) |
+| GNU/Linux | iOS, macOS | Web / wasm | Windows | Android | Mingw |
+| :-------: | :--------: | :--------: | :-----: | :-----: | :---: |
+| ![KTX-Software CI](https://github.com/KhronosGroup/KTX-Software/actions/workflows/linux.yml/badge.svg) | ![KTX-Software CI](https://github.com/KhronosGroup/KTX-Software/actions/workflows/macos.yml/badge.svg) | ![KTX-Software CI](https://github.com/KhronosGroup/KTX-Software/actions/workflows/web.yml/badge.svg) | ![KTX-Software CI](https://github.com/KhronosGroup/KTX-Software/actions/workflows/windows.yml/badge.svg) | ![KTX-Software CI](https://github.com/KhronosGroup/KTX-Software/actions/workflows/android.yml/badge.svg) | ![KTX-Software CI](https://github.com/KhronosGroup/KTX-Software/actions/workflows/mingw.yml/badge.svg) |
+
+| Documentation | Check-reuse | Check-mkvk |
+| :-----------: | :---------: | :--------: |
+| ![KTX-Software CI](https://github.com/KhronosGroup/KTX-Software/actions/workflows/docs.yml/badge.svg) | ![KTX-Software CI](https://github.com/KhronosGroup/KTX-Software/actions/workflows/check-reuse.yml/badge.svg) | ![KTX-Software CI](https://github.com/KhronosGroup/KTX-Software/actions/workflows/check-mkvk.yml/badge.svg)
 
 This is the official home of the source code for the Khronos KTX library and tools.
 
