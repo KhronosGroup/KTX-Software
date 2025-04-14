@@ -5,13 +5,34 @@ set( PLUGIN_SOURCES
     exr.imageio/exrinput.cc
     jpg.imageio/jpginput.cc
     npbm.imageio/npbminput.cc
-    png.imageio/lodepng.cc
     png.imageio/pnginput.cc
     png.imageio/pngoutput.cc
 )
 set( PLUGIN_HEADERS
-    png.imageio/lodepng.h
 )
+
+set( EXTERNAL
+    "${PROJECT_SOURCE_DIR}/external"
+)
+
+set( EXR_PLUGIN_EXTERNAL_SOURCES
+)
+set( EXR_PLUGIN_EXTERNAL_HEADERS
+    ${EXTERNAL}/astc-encoder/Source/ThirdParty/tinyexr.h
+)
+set( JPG_PLUGIN_EXTERNAL_SOURCES
+    ${EXTERNAL}/basisu/encoder/jpgd.cpp
+)
+set( JPG_PLUGIN_EXTERNAL_HEADERS
+    ${EXTERNAL}/basisu/encoder/jpgd.h
+)
+set( PNG_PLUGIN_EXTERNAL_SOURCES
+    ${EXTERNAL}/lodepng/lodepng.cpp
+)
+set( PNG_PLUGIN_EXTERNAL_HEADERS
+    ${EXTERNAL}/lodepng/lodepng.h
+)
+
 
 add_library( imageio STATIC
     formatdesc.h
@@ -23,23 +44,35 @@ add_library( imageio STATIC
     imageio.h
     imageio_utility.h
     imageoutput.cc
-    "${PROJECT_SOURCE_DIR}/external/astc-encoder/Source/ThirdParty/tinyexr.h"
-    "${PROJECT_SOURCE_DIR}/external/basisu/encoder/jpgd.cpp"
-    "${PROJECT_SOURCE_DIR}/external/basisu/encoder/jpgd.h"
     ${PLUGIN_HEADERS}
     ${PLUGIN_SOURCES}
+    ${EXR_PLUGIN_EXTERNAL_HEADERS}
+    ${EXR_PLUGIN_EXTERNAL_SOURCES}
+    ${JPG_PLUGIN_EXTERNAL_HEADERS}
+    ${JPG_PLUGIN_EXTERNAL_SOURCES}
+    ${PNG_PLUGIN_EXTERNAL_HEADERS}
+    ${PNG_PLUGIN_EXTERNAL_SOURCES}
 )
 
 source_group(TREE "${CMAKE_CURRENT_LIST_DIR}" PREFIX "Source Files" FILES ${PLUGIN_SOURCES})
 source_group(TREE "${CMAKE_CURRENT_LIST_DIR}" PREFIX "Header Files" FILES ${PLUGIN_HEADERS})
-source_group("Source Files/jpg.imageio" FILES
-    "${PROJECT_SOURCE_DIR}/external/basisu/encoder/jpgd.cpp"
-)
-source_group("Header Files/jpg.imageio" FILES
-    "${PROJECT_SOURCE_DIR}/external/basisu/encoder/jpgd.h"
+source_group("Header Files/exr.imageio" FILES
+    ${EXR_PLUGIN_EXTERNAL_SOURCES}
 )
 source_group("Header Files/exr.imageio" FILES
-    "${PROJECT_SOURCE_DIR}/external/astc-encoder/Source/ThirdParty/tinyexr.h"
+    ${EXR_PLUGIN_EXTERNAL_HEADERS}
+)
+source_group("Source Files/jpg.imageio" FILES
+    ${JPG_PLUGIN_EXTERNAL_SOURCES}
+)
+source_group("Header Files/jpg.imageio" FILES
+    ${JPG_PLUGIN_EXTERNAL_HEADERS}
+)
+source_group("Source Files/png.imageio" FILES
+    ${PNG_PLUGIN_EXTERNAL_SOURCES}
+)
+source_group("Header Files/png.imageio" FILES
+    ${PNG_PLUGIN_EXTERNAL_HEADERS}
 )
 
 target_include_directories(
@@ -59,6 +92,7 @@ PRIVATE
     "${PROJECT_SOURCE_DIR}/external/astc-encoder/Source/ThirdParty"
     "${PROJECT_SOURCE_DIR}/external/basisu"
     "${PROJECT_SOURCE_DIR}/external/dfdutils"
+    "${PROJECT_SOURCE_DIR}/external/lodepng"
 )
 
 target_compile_definitions(
