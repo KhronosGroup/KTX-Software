@@ -1089,6 +1089,7 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
             vResult = vdi->vkFuncs.vkAllocateMemory(vdi->device, &memAllocInfo,
                 vdi->pAllocator, &stagingMemory);
             if (vResult != VK_SUCCESS) {
+                free(copyRegions);
                 return KTX_OUT_OF_MEMORY;
             }
             VK_CHECK_RESULT(
@@ -1104,9 +1105,11 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
             uint64_t numPages = 0ull;
             stagingAllocId = subAllocatorCallbacks->allocMemFuncPtr(&memAllocInfo, &memReqs, &numPages);
             if (stagingAllocId == 0ull) {
+                free(copyRegions);
                 return KTX_OUT_OF_MEMORY;
             }
             if (numPages > 1ull) { // Sparse binding of KTX textures is unsupported for the moment
+                free(copyRegions);
                 return KTX_UNSUPPORTED_FEATURE;
             }
             VK_CHECK_RESULT(
