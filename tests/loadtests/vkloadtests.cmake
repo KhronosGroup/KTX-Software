@@ -4,17 +4,16 @@
 # Find Vulkan package
 if(APPLE)
     # N.B. FindVulkan needs the VULKAN_SDK environment variable set to find
-    # the iOS frameworks and to set Vulkan_Target_SDK, used later in this
+    # the iOS frameworks and to set Vulkan_SDK_Base, used later in this
     # file. Therefore ensure to make that env. var. available to CMake and
     # Xcode. Special care is needed to ensure it is available to the CMake
     # and Xcode GUIs.
 #    set(CMAKE_FIND_DEBUG_MODE TRUE)
     find_package( Vulkan REQUIRED COMPONENTS MoltenVK )
 #    set(CMAKE_FIND_DEBUG_MODE FALSE)
-
     # Derive some other useful variables from those provided by find_package
     if(APPLE_LOCKED_OS)
-        set( Vulkan_SHARE_VULKAN ${Vulkan_Target_SDK}/${CMAKE_SYSTEM_NAME}/share/vulkan )
+        set( Vulkan_SHARE_VULKAN ${Vulkan_SDK_Base}/${CMAKE_SYSTEM_NAME}/share/vulkan )
     else()
         # Vulkan_LIBRARIES points to "libvulkan.dylib".
         # Find the name of the actual dylib which includes the version no.
@@ -310,7 +309,7 @@ if(APPLE)
             XCODE_EMBED_FRAMEWORKS_CODE_SIGN_ON_COPY		"YES"
             XCODE_EMBED_FRAMEWORKS_REMOVE_HEADERS_ON_COPY	"YES"
             # Set RPATH to find frameworks
-            INSTALL_RPATH "@executable_path/Frameworks"
+            INSTALL_RPATH @executable_path/Frameworks
         )
     else()
         # Why is XCODE_EMBED_FRAMEWORKS_CODE_SIGN_ON_COPY not set here?
@@ -321,7 +320,7 @@ if(APPLE)
         set_target_properties( vkloadtests PROPERTIES
             XCODE_EMBED_FRAMEWORKS "${Vulkan_LIBRARY_REAL_PATH_NAME};${Vulkan_MoltenVK_LIBRARY};${Vulkan_Layer_VALIDATION}"
             # Set RPATH to find frameworks and dylibs
-            INSTALL_RPATH "@executable_path/../Frameworks"
+            INSTALL_RPATH @executable_path/../Frameworks
         )
         if(BUILD_SHARED_LIBS)
             # XCODE_EMBED_FRAMEWORKS does not appear to support generator

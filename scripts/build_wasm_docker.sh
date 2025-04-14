@@ -94,9 +94,9 @@ fi
 
 echo "Software versions"
 echo '*****************'
-docker exec -it emscripten sh -c "emcc -v; echo '********'"
-docker exec -it emscripten sh -c "cmake --version; echo '********'"
-docker exec -it emscripten sh -c "git --version; echo '********'"
+docker exec emscripten sh -c "emcc -v; echo '********'"
+docker exec emscripten sh -c "cmake --version; echo '********'"
+docker exec emscripten sh -c "git --version; echo '********'"
 
 mkdir -p $BUILD_DIR
 
@@ -107,7 +107,7 @@ echo "Configure and Build KTX-Software (Web $CONFIGURATION)"
 # Uncomment for debugging some generator expressions.
 #targets="--target debug_isgnufe1 --target debug_gnufe_ffpcontract"
 
-docker exec -it emscripten sh -c "emcmake cmake -B$BUILD_DIR . \
+docker exec emscripten sh -c "emcmake cmake -B$BUILD_DIR . \
     -D CMAKE_BUILD_TYPE=$CONFIGURATION \
     -D KTX_FEATURE_DOC=OFF \
     -D KTX_FEATURE_LOADTEST_APPS=$FEATURE_LOADTESTS \
@@ -118,6 +118,6 @@ if [ "$PACKAGE" = "YES" ]; then
   echo "Pack KTX-Software (Web $CONFIGURATION)"
   # Call cmake rather than cpack so we don't need knowledge of the working
   # directory inside docker.
-  docker exec -it emscripten sh -c "cmake --build $BUILD_DIR --target package"
+  docker exec emscripten sh -c "cmake --build $BUILD_DIR --target package"
 fi
 

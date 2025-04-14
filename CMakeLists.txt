@@ -426,9 +426,9 @@ set(KTX_MAIN_SRC
     )
 
 if (KTX_FEATURE_ETC_UNPACK)
-	list(APPEND KTX_MAIN_SRC 
-		external/etcdec/etcdec.cxx
-	)
+    list(APPEND KTX_MAIN_SRC 
+        external/etcdec/etcdec.cxx
+    )
 endif()
 
 set(BASISU_ENCODER_CXX_SRC
@@ -480,12 +480,12 @@ if(KTX_FEATURE_GL_UPLOAD)
     )
 endif()
 
-if(APPLE_MAC_OS OR LINUX OR WIN32)
+if(APPLE OR LINUX OR WIN32)
     # By wrapping in generator expression we force multi configuration
     # generators (like Visual Studio, Xcode or Ninja multi-config) to
     # take the exact path and not change it.
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
-    if(APPLE_MAC_OS OR LINUX)
+    if(APPLE OR LINUX)
         # Use a common RUNTIME_OUTPUT_DIR and LIBRARY_OUTPUT_DIR for all
         # targets so that INSTALL RPATH is functional in build directory
         # as well. BUILD_WITH_INSTALL_RPATH is necessary for working code
