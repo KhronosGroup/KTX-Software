@@ -20,6 +20,11 @@ package org.khronos.ktx;
  */
 public class KtxTexture1 extends KtxTexture {
 
+    static
+    {
+        KtxLibraryLoader.load();
+    }
+
 	/**
 	 * Creates a new instance.<br>
 	 * <br>
