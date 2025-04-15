@@ -764,7 +764,6 @@ macro(common_libktx_settings target enable_write library_type)
         PRIVATE
             lib/basis_encode.cpp
             lib/astc_codec.cpp
-            ${BASISU_ENCODER_C_SRC}
             ${BASISU_ENCODER_CXX_SRC}
             lib/writer1.c
             lib/writer2.c
@@ -838,6 +837,30 @@ PRIVATE
     BASISD_SUPPORT_KTX2=0
 )
 
+# helper function to append COMPILE_OPTIONS to source file properties
+# !! if SRCFILES is a list, remember to quote it                              !!
+# !! like add_source_file_compile_options("${MY_SRC_LIST}"  "-Wall")          !!
+# !! or add_source_file_compile_options("dir/foo.cpp;dir/bar.cpp"  "-Wextra") !!
+function(add_source_file_compile_options SRCFILES OPTIONS)
+    foreach(src_file ${SRCFILES})
+        get_source_file_property(cur_options
+            "${src_file}"
+            COMPILE_OPTIONS
+        )
+        if(cur_options)
+            set_source_files_properties(
+                "${src_file}"
+                PROPERTIES COMPILE_OPTIONS "${cur_options};${OPTIONS}"
+            )
+        else() # if cur_options were undefined or empty ("")
+            set_source_files_properties(
+                "${src_file}"
+                PROPERTIES COMPILE_OPTIONS "${OPTIONS}"
+            )
+        endif()
+    endforeach()
+endfunction()
+
 # Turn off these warnings until Rich fixes the occurences.
 # It it not clear to me if generator expressions can be used here
 # hence the long-winded way.
@@ -848,26 +871,22 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         # It's too much work to discriminate which files need which warnings
         # disabled.
         ${BASISU_ENCODER_CXX_SRC}
-        PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-variable;-Wno-class-memaccess;-Wno-misleading-indentation;-Wno-extra;-Wno-deprecated-copy;-Wno-parentheses;-Wno-strict-aliasing"
+        PROPERTIES COMPILE_OPTIONS "-fno-strict-aliasing;-Wno-sign-compare;-Wno-unused-variable;-Wno-class-memaccess;-Wno-misleading-indentation;-Wno-extra;-Wno-deprecated-copy;-Wno-parentheses"
     )
     set_source_files_properties(
         external/basisu/transcoder/basisu_transcoder.cpp
-        PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable;-Wno-class-memaccess;-Wno-maybe-uninitialized"
+        PROPERTIES COMPILE_OPTIONS "-fno-strict-aliasing;-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable;-Wno-class-memaccess;-Wno-maybe-uninitialized"
     )
     if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "11")
         if (${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS "12" )
-        # Version 11 raises several stringop-overflow warnings in some
-        # very hard to decipher code. They appear to be bogus based on
-        # the facts that we have never seen a crash and version 12 no
-        # longer raises the warnings.
-        get_source_file_property(cur_options
-            external/basisu/encoder/basisu_comp.cpp
-            COMPILE_OPTIONS
-        )
-        set_source_files_properties(
-            external/basisu/encoder/basisu_comp.cpp
-            PROPERTIES COMPILE_OPTIONS "${cur_options};-Wno-stringop-overflow"
-        )
+            # Version 11 raises several stringop-overflow warnings in some
+            # very hard to decipher code. They appear to be bogus based on
+            # the facts that we have never seen a crash and version 12 no
+            # longer raises the warnings.
+            add_source_file_compile_options(
+                external/basisu/encoder/basisu_comp.cpp
+                "-Wno-stringop-overflow"
+            )
         endif()
     endif()
     if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "12.0")
@@ -875,28 +894,16 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         # There seems no way for the index calculated by the code at
         # line 326, where the error is raised, to be > the array length.
         # Also we have never seen any crashes.
-        set_source_files_properties(
+        add_source_file_compile_options(
             external/basisu/encoder/basisu_uastc_enc.cpp
-            PROPERTIES COMPILE_OPTIONS "-Wno-stringop-overflow"
+            "-Wno-stringop-overflow"
         )
     endif()
     if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "14.0")
         # Version 14 raises stringop-overflow on these files.
-        get_source_file_property(cur_options
-            external/basisu/encoder/basisu_comp.cpp
-            COMPILE_OPTIONS
-        )
-        set_source_files_properties(
-            external/basisu/transcoder/basisu_transcoder.cpp
-            PROPERTIES COMPILE_OPTIONS  "${cur_options};-Wno-stringop-overflow"
-        )
-        get_source_file_property(cur_options
-            external/basisu/encoder/basisu_bc7enc.cpp
-            COMPILE_OPTIONS
-        )
-        set_source_files_properties(
-            external/basisu/encoder/basisu_bc7enc.cpp
-            PROPERTIES COMPILE_OPTIONS  "${cur_options};-Wno-stringop-overflow"
+        add_source_file_compile_options(
+            "external/basisu/transcoder/basisu_transcoder.cpp;external/basisu/encoder/basisu_bc7enc.cpp"
+            "-Wno-stringop-overflow"
         )
     endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -919,23 +926,31 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         set( clang_version ${CMAKE_CXX_COMPILER_VERSION} )
     endif()
     # BEWARE: set_source_files_properties is not additive; it replaces.
+    set_source_files_properties(
+        ${BASISU_ENCODER_CXX_SRC}
+        PROPERTIES COMPILE_OPTIONS "-fno-strict-aliasing"
+    )
+    set_source_files_properties(
+        external/basisu/transcoder/basisu_transcoder.cpp
+        PROPERTIES COMPILE_OPTIONS "-fno-strict-aliasing"
+    )
     if (${clang_version} VERSION_GREATER_EQUAL "12.0.0")
-        set_source_files_properties( external/basisu/encoder/basisu_kernels_sse.cpp
-            PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter;-Wno-deprecated-copy;-Wno-uninitialized-const-reference"
+        add_source_file_compile_options( external/basisu/encoder/basisu_kernels_sse.cpp
+            "-Wno-unused-parameter;-Wno-deprecated-copy;-Wno-uninitialized-const-reference"
         )
     else()
-        set_source_files_properties( external/basisu/encoder/basisu_kernels_sse.cpp
-            PROPERTIES COMPILE_OPTIONS "-Wno-unused-parameter"
+        add_source_file_compile_options( external/basisu/encoder/basisu_kernels_sse.cpp
+            "-Wno-unused-parameter"
         )
     endif()
     if (${clang_version} VERSION_GREATER_EQUAL "14.0")
-        set_source_files_properties(
-            ${BASISU_ENCODER_CXX_SRC}
-            PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-variable;-Wno-unused-parameter;-Wno-deprecated-copy-with-user-provided-copy"
+        add_source_file_compile_options(
+            "${BASISU_ENCODER_CXX_SRC}"
+            "-Wno-sign-compare;-Wno-unused-variable;-Wno-unused-parameter;-Wno-deprecated-copy-with-user-provided-copy"
         )
-        set_source_files_properties(
+        add_source_file_compile_options(
             external/basisu/transcoder/basisu_transcoder.cpp
-            PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable"
+            "-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable"
         )
         set_source_files_properties(
             external/basisu/zstd/zstd.c
@@ -948,7 +963,7 @@ endif()
 
 # Retrieve the final set of properties for use by the transcodetests.
 # We do this because the CMake feature that would allow the transcodetests
-# target to retrieve these from the ktx target are not available until
+# target to retrieve these from the ktx target is not available until
 # v18 and we still need to work with v16 in the Emscripten Docker image.
 get_source_file_property(transcoder_options
     external/basisu/transcoder/basisu_transcoder.cpp
@@ -1233,6 +1248,9 @@ if(NOT ${universal_build})
     endif()
 endif()
 
+# setting ASTCENC_DECOMPRESSOR to ON breaks the build, so force it to OFF
+# and hide it from cmake-gui (by using type INTERNAL)
+set(ASTCENC_DECOMPRESSOR OFF CACHE INTERNAL "")
 set(ASTCENC_CLI OFF) # Only build as library not the CLI astcencoder
 # Force static build for astc-encoder
 set(BUILD_SHARED_LIBS OFF)
@@ -1243,7 +1261,7 @@ target_compile_definitions(
     ${ASTCENC_LIB_TARGET}
 PRIVATE
     # ASTC encoder uses std::mutex. For more info. see comment about
-    # same setting in libktx starting about line 618. To be eventually
+    # same setting in libktx starting about line 633. To be eventually
     # removed as noted in that comment.
     $<$<AND:${is_msvccl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.40.33811>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
     $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,17.0.3>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
