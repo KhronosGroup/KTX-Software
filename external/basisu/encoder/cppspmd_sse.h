@@ -493,7 +493,7 @@ struct spmd_kernel
 	CPPSPMD_FORCE_INLINE vfloat& store(vfloat&& dst, const vfloat& src)
 	{
 		dst.m_value = blendv_mask_ps(dst.m_value, src.m_value, _mm_castsi128_ps(m_exec.m_mask));
-		return dst;
+		return { dst };
 	}
 	
 	CPPSPMD_FORCE_INLINE vfloat& store_all(vfloat& dst, const vfloat& src)
@@ -505,7 +505,7 @@ struct spmd_kernel
 	CPPSPMD_FORCE_INLINE vfloat& store_all(vfloat&& dst, const vfloat& src)
 	{
 		dst.m_value = src.m_value;
-		return dst;
+		return { dst };
 	}
 
 	// Linear ref to floats
