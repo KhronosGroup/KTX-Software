@@ -144,7 +144,7 @@ SPDX-FileCopyrightText = "2016 The Android Open Source Project"
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
-path = "tools/imageio/png.imageio/lodepng.**"
+path = "external/lodepng/lodepng.**"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2005-2019 Lode Vandevenne"
 SPDX-License-Identifier = "Zlib"

@@ -1,3 +1,6 @@
+<!-- Copyright 2025 Mark Callow -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
 # LodePNG
 
 Sourced from https://github.com/KhronosGroup/lodepng/tree/split_decode_inflate which is a branch in a fork of https://github.com/lvandeve/lodepng.
