@@ -778,6 +778,9 @@ struct OptionsCreate {
             }
         }
 
+        if (isFormatSRGB(vkFormat) && normalize)
+            report.fatal_usage("Option --{} cannot be used with sRGB formats.", kNormalize);
+
         if (isFormatNotSRGBButHasSRGBVariant(vkFormat)) {
             const auto error_message = "Invalid value \"{}\" to --{} for format \"{}\". Transfer function must not be sRGB for a non-sRGB VkFormat with sRGB variant.";
             if (!convertTF.has_value() && assignTF.has_value() && assignTF == KHR_DF_TRANSFER_SRGB) {
@@ -1766,22 +1769,33 @@ void CommandCreate::executeCreate() {
 
             if (options.normalize) {
                 if (target.format().transfer() != KHR_DF_TRANSFER_UNSPECIFIED && target.format().transfer() != KHR_DF_TRANSFER_LINEAR) {
-                    const auto input_error_message = "Input file \"{}\" The transfer function to be applied to the created texture is neither linear nor none. Normalize is only available for these transfer functions.";
-                    const auto assign_error_message = "Input file \"{}\" Use \"{}\" to assign the linear transfer function to the input image, if required.";
-                    const auto convert_error_message = "Input file \"{}\" Modify \"{}\" settings to convert the input image to linear transfer function, if required.";
-                    const auto inputTransfer =  inputImageFile->spec().format().transfer();
-                    bool is_file_error = (inputTransfer != KHR_DF_TRANSFER_UNSPECIFIED && inputTransfer != KHR_DF_TRANSFER_LINEAR);
-                    bool is_assign_error =  !options.assignTF.has_value();
-                    bool is_convert_error =  !options.convertTF.has_value();
-                    if (is_assign_error)
-                        fatal(rc::INVALID_FILE, assign_error_message, fmtInFile(inputFilepath), OptionsCreate::kAssignOetf);
-                    else if (is_convert_error)
-                        fatal(rc::INVALID_FILE, convert_error_message, fmtInFile(inputFilepath), OptionsCreate::kConvertOetf);
-                    else {
-                        assert(is_file_error && "In this branch it must be the input file that has the transfer function issue"); (void)is_file_error;
-                        fatal(rc::INVALID_FILE, input_error_message, fmtInFile(inputFilepath));
+                    // Report source of problematic TF.
+                    //
+                    // If --format is an SRGB format
+                    // - a fatal usage error will already have been thrown so nothing to do.
+                    // If --format is non-SRGB format
+                    // - absent TF options, an implicit conversion to LINEAR takes place if the file
+                    //   TF is not LINEAR or UNSPECIFIED. If it can't be converted a fatal
+                    //   unsupported conversion error will already have been thrown. Therefore
+                    //   nothing to do. But if `create` is changed to set the TF for non-SRGB
+                    //   formats from the file's TF then this error handling will need updating.
+                    // - --assign-tf has many other possible values so that is a possible source.
+                    // - --convert-tf can only be linear or srgb. If it's srgb and the format does
+                    //   not have an equivalent SRGB format, that is another possible source.
+
+                    //const auto input_error_message = "Input file \"{}\" The transfer function to be applied to the created texture is neither linear nor none. Normalize is only available for these transfer functions.";
+                    //const auto inputTransfer =  inputImageFile->spec().format().transfer();
+                    //bool is_file_error = (inputTransfer != KHR_DF_TRANSFER_UNSPECIFIED && inputTransfer != KHR_DF_TRANSFER_LINEAR);
+                    const auto option_error_message = "--{} value is {}. Normalize can only be used if the transfer function is linear or none.";
+                    if (options.convertTF.has_value()) {
+                        fatal_usage(option_error_message, OptionsCreate::kConvertTf,
+                                    toString(options.convertTF.value()));
+                    } else if (options.assignTF.has_value()) {
+                        fatal_usage(option_error_message, OptionsCreate::kAssignTf,
+                                    toString(options.assignTF.value()));
                     }
-                    }
+                    assert(false && "target.format().transfer() is not suitable for --normalize though --assign-tf and --conver-tf were not used.");
+                }
                 image->normalize();
             }
 
