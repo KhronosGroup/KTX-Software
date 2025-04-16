@@ -58,6 +58,28 @@ jobs:
             doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tools: ON, tools_cts: ON,
             sse: ON, opencl: OFF
           }
+        - name: Clang Debug
+          os: ubuntu-22.04
+          generator: Ninja
+          arch: x86_64
+          compiler: clang
+          vk_sdk_ver: '1.3.290'
+          options: {
+            config: Debug,
+            doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tools: ON, tools_cts: OFF,
+            sse: ON, opencl: OFF
+          }
+        - name: Clang Release
+          os: ubuntu-22.04
+          generator: Ninja
+          arch: x86_64
+          compiler: clang
+          vk_sdk_ver: '1.3.290'
+          options: {
+            config: Release,
+            doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tools: ON, tools_cts: OFF,
+            sse: ON, opencl: OFF
+          }
         - name: Package (x86_64)
           os: ubuntu-22.04
           generator: Ninja
