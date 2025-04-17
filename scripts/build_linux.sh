@@ -54,25 +54,39 @@ if [[ "$ARCH" = "aarch64" && "$FEATURE_LOADTESTS" =~ "Vulkan" ]]; then
   else
     FEATURE_LOADTESTS=OpenGL
   fi
-  echo "Forcing FEATURE_LOADTESTS to \"$FEATURE_LOADTESTS\" as no Vulkan SDK yet for Linux/arm64."
+  echo "$0: Forcing FEATURE_LOADTESTS to \"$FEATURE_LOADTESTS\" as no Vulkan SDK yet for Linux/arm64."
 fi
+
+if [ ! "$CMAKE_GEN" = "Ninja Multi-Config" ]; then
+  # Single configuration generator.
+  if [[ "$CONFIGURATION" =~ "," ]]; then
+    echo "$0: Multiple build configurations specified with single-configuration CMake generator."
+    exit 1
+  fi
+fi
+
+cmake_args=("-G" "$CMAKE_GEN")
 
 if [[ -z $BUILD_DIR ]]; then
   BUILD_DIR=build/linux
   if [ "$ARCH" != $(uname -m) ]; then
     BUILD_DIR+="-$ARCH-"
   fi
-  if [ "$CMAKE_GEN" = "Ninja" -o "$CMAKE_GEN" = "Unix Makefiles" ]; then
-    # Single configuration generators.
+  if [ ! "$CMAKE_GEN" = "Ninja Multi-Config" ]; then
+    # Single configuration generator. That only a single configuration
+    # is specified has already been verified.
     BUILD_DIR+="-$CONFIGURATION"
+    CMAKE_BUILD_TYPE=$CONFIGURATION
   fi
+fi
+cmake_args+=("-B" $BUILD_DIR)
+if [ -n "$CMAKE_BUILD_TYPE" ]; then
+  cmake_args+=("-D" "CMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE")
 fi
 
 mkdir -p $BUILD_DIR
 
-cmake_args=("-G" "$CMAKE_GEN"
-  "-B" $BUILD_DIR \
-  "-D" "CMAKE_BUILD_TYPE=$CONFIGURATION" \
+cmake_args+=(\
   "-D" "KTX_FEATURE_DOC=$FEATURE_DOC" \
   "-D" "KTX_FEATURE_JNI=$FEATURE_JNI" \
   "-D" "KTX_FEATURE_LOADTEST_APPS=$FEATURE_LOADTESTS" \
