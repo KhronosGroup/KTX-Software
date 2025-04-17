@@ -22,7 +22,7 @@ setup(
     include_package_data=True,
     install_requires=["cffi>=1.15.1"],
     license="Apache 2.0",
-    license_files=('LICENSE'),
+    license_files=['LICENSE'],
     long_description_content_type="text/markdown",
     long_description="This Python package provides a Pythonic interface to libktx. It uses CFFI to generate the C bindings.",
     packages=['pyktx'],
