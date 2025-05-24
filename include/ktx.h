@@ -1278,9 +1278,9 @@ typedef enum ktx_pack_astc_block_dimension_e {
  *        This and function is used later to derive the profile.
  */
 typedef enum ktx_pack_astc_encoder_mode_e {
-    KTX_PACK_ASTC_ENCODER_MODE_DEFAULT,
     KTX_PACK_ASTC_ENCODER_MODE_LDR,
     KTX_PACK_ASTC_ENCODER_MODE_HDR,
+    KTX_PACK_ASTC_ENCODER_MODE_DEFAULT = KTX_PACK_ASTC_ENCODER_MODE_LDR,
     KTX_PACK_ASTC_ENCODER_MODE_MAX = KTX_PACK_ASTC_ENCODER_MODE_HDR
 } ktx_pack_astc_encoder_mode_e;
 
