@@ -7,10 +7,16 @@
 # Exit if any command fails.
 set -e
 
+docker_running=0
+rm_container=0
+
 function atexit () {
-  if [ -z $dockerrunning ]; then
+  if [ $docker_running -eq 0 ]; then
     docker stop emscripten > /dev/null
-    docker rm emscripten > /dev/null
+    # By default keep the container as it now has a populated emscripten cache.
+    if [ $rm_container -eq 1 ]; then
+      docker rm emscripten > /dev/null
+    fi
   fi
 }
 
@@ -21,6 +27,7 @@ function usage() {
   echo "Defaults to building everything (Release config) if no targets specified."
   echo "Options:"
   echo "  --help, -h      Print this usage message."
+  echo "  --remove-container, -r    Remove docker container when finished."
   echo "  --verbose ,-v   Cause the underlying make to run in verbose mode."
   exit $1
 }
@@ -33,6 +40,10 @@ for arg in $@; do
   case $arg in
     --help | -h)
       usage 0
+      ;;
+    --remove-container | -r)
+      rm_container=1
+      shift
       ;;
     --verbose | -v)
       verbose_make="-- VERBOSE=1"
@@ -64,10 +75,9 @@ BUILD_DIR=${BUILD_DIR:-build/web-$CONFIGURATION}
 
 trap atexit EXIT SIGINT
 
-# Check if emscripten container is already running as CI will already have started it.
-if [ "$(docker container inspect -f '{{.State.Status}}' emscripten 2> /dev/null)" != "running" ]
-then
-  # Create docker container.
+# Check emscripten container status.
+if ! container_status="$(docker container inspect -f '{{.State.Status}}' emscripten 2> /dev/null)"; then
+  # `inspect` failed therefore no docker container. Create one.
 
   #   In the event that /src ends up having the same owner as the repo
   # (cwd) on the docker host, which is presumably the user running
@@ -85,11 +95,21 @@ then
   if [ -n "$TRAVIS" ]; then
     ugids="--user $(id -u):$(id -g)"
   fi
-  echo "Starting docker"
+  echo "Starting Enscripten Docker container"
   docker run -dit --name emscripten $ugids -v $(pwd):/src emscripten/emsdk bash
 else
-  echo "Docker running"
-  dockerrunning=1
+  if [ "$container_status" = "running" ]; then
+    # CI has already started it.
+    echo "Emscripten Docker container running"
+    dockerrunning=1
+  elif [ "$container_status" = "exited" ]; then
+    # It wasn't removed after previous run. Resume it for use of Emscripten cache.
+    echo "Resuming Emscripten Docker container"
+    docker start emscripten
+  else
+    echo "Emscripten container is in unsupported state."
+    exit 1
+  fi
 fi
 
 echo "Software versions"
@@ -107,10 +127,18 @@ echo "Configure and Build KTX-Software (Web $CONFIGURATION)"
 # Uncomment for debugging some generator expressions.
 #targets="--target debug_isgnufe1 --target debug_gnufe_ffpcontract"
 
+# Since 4.0.9 SDL2 has to be installed in order for its CMake config
+# file to be found.
+if [ -n "$FEATURE_LOADTESTS" ]; then
+  docker exec emscripten sh -c "embuilder build sdl2"
+fi
+
 docker exec emscripten sh -c "emcmake cmake -B$BUILD_DIR . \
     -D CMAKE_BUILD_TYPE=$CONFIGURATION \
     -D KTX_FEATURE_DOC=OFF \
+    -D KTX_FEATURE_JNI=OFF \
     -D KTX_FEATURE_LOADTEST_APPS=$FEATURE_LOADTESTS \
+    -D KTX_FEATURE_TOOLS=OFF \
     -D KTX_WERROR=$WERROR \
   && cmake --build $BUILD_DIR $targets $verbose_make"
 
