@@ -369,51 +369,6 @@ astcProfile(bool sRGB, bool ldr) {
  * @internal
  * @ingroup writer
  * @~English
- * @brief       Creates valid ASTC encoder profile provided params and bdb
- *
- * @return      Valid astc_profile from params and bdb
- */
-static astcenc_profile
-astcEncoderProfile(const ktxAstcParams &params, const uint32_t* bdb) {
-
-    ktx_uint32_t transfer = KHR_DFDVAL(bdb, TRANSFER);
-
-    bool sRGB = transfer == KHR_DF_TRANSFER_SRGB;
-    bool ldr = params.mode == KTX_PACK_ASTC_ENCODER_MODE_LDR;
-
-    if (!sRGB) {
-        assert(transfer == KHR_DF_TRANSFER_LINEAR && "Unsupported transfer function, only support sRGB and Linear");
-    }
-
-    return astcProfile(sRGB, ldr);
-}
-
-/**
- * @memberof ktxTexture
- * @internal
- * @ingroup reader
- * @~English
- * @brief       Creates valid ASTC decoder profile from VkFormat
- *
- * @return      Valid astc_profile from VkFormat
- */
-static astcenc_profile
-astcDecoderProfile(ktxTexture2 *This) {
-
-    uint32_t* BDB = This->pDfd + 1;
-    ktx_uint32_t transfer = KHR_DFDVAL(BDB, TRANSFER);
-
-    bool sRGB = transfer == KHR_DF_TRANSFER_SRGB;
-    bool ldr = isFormatAstcLDR(This);
-
-    return astcProfile(sRGB, ldr);
-}
-
-/**
- * @memberof ktxTexture
- * @internal
- * @ingroup writer
- * @~English
  * @brief       Creates valid ASTC encoder swizzle from string.
  *
  * @return      Valid astcenc_swizzle from string
@@ -661,6 +616,11 @@ mapAstcError(astcenc_error astc_error) {
  * @exception KTX_INVALID_OPERATION
  *                              The texture's images are 1D. Only 2D images can
  *                              be supercompressed.
+ * @exception  KTX_INVALID_OPERATION
+ *                              Transfer function of @c This is not sRGB or Linear.
+ * @exception  KTX_INVALID_OPERATION
+ *                              @c params->mode  is HDR but transfer function
+ *                              of @c This is sRGB.
  * @exception KTX_INVALID_OPERATION
  *                              ASTC encoder failed to compress image.
  *                              Possibly due to incorrect floating point
@@ -669,15 +629,20 @@ mapAstcError(astcenc_error astc_error) {
  * @exception KTX_INVALID_OPERATION
  *                              This->generateMipmaps is set.
  * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out compression.
- * @exception KTX_UNSUPPORTED_FEATURE ASTC encoder not compiled with enough
- *                                    capacity for requested block size. Should
- *                                    not happen in release package.
+ * @exception KTX_UNSUPPORTED_FEATURE
+ *                              @c params->mode is HDR mode which is not
+ *                              yet implemented.
+ * @exception KTX_UNSUPPORTED_FEATURE
+ *                              ASTC encoder not compiled with enough
+ *                              capacity for requested block size. Should
+ *                              not happen in release package.
  */
 extern "C" KTX_error_code
 ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
     assert(This->classId == ktxTexture2_c && "Only support ktx2 ASTC.");
 
-    KTX_error_code result;
+    ktx_error_code_e result;
+    ktx_pack_astc_encoder_mode_e mode;
 
     if (!params)
         return KTX_INVALID_VALUE;
@@ -703,9 +668,25 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
 
     uint32_t num_components, component_size;
     getDFDComponentInfoUnpacked(This->pDfd, &num_components, &component_size);
+    ktx_uint32_t transfer = KHR_DFDVAL(BDB, TRANSFER);
+    bool sRGB = transfer == KHR_DF_TRANSFER_SRGB;
 
     if (component_size != 1)
-        return KTX_INVALID_OPERATION; // Can only deal with 8-bit components at the moment
+        return KTX_UNSUPPORTED_FEATURE; // Can only deal with 8-bit components at the moment
+    if (params->mode == KTX_PACK_ASTC_ENCODER_MODE_DEFAULT) {
+        if (component_size == 1 || sRGB)
+            mode = KTX_PACK_ASTC_ENCODER_MODE_LDR;
+        else
+            mode = KTX_PACK_ASTC_ENCODER_MODE_HDR;
+    } else {
+        mode = static_cast<ktx_pack_astc_encoder_mode_e>(params->mode);
+    }
+
+    if (mode == KTX_PACK_ASTC_ENCODER_MODE_HDR && sRGB)
+        return KTX_INVALID_OPERATION;
+
+    if (!(sRGB || transfer == KHR_DF_TRANSFER_LINEAR))
+        return KTX_INVALID_OPERATION;
 
     if (This->pData == NULL) {
         result = ktxTexture2_LoadImageData((ktxTexture2*)This, nullptr, 0);
@@ -717,9 +698,6 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
     ktx_uint32_t threadCount = params->threadCount;
     if (threadCount < 1)
         threadCount = 1;
-
-    ktx_uint32_t transfer = KHR_DFDVAL(BDB, TRANSFER);
-    bool sRGB = transfer == KHR_DF_TRANSFER_SRGB;
 
     VkFormat vkFormat = astcVkFormat(params->blockDimension, sRGB);
 
@@ -766,7 +744,7 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
     astcBlockDimensions(params->blockDimension,
                         block_size_x, block_size_y, block_size_z);
     quality = astcQuality(params->qualityLevel);
-    profile = astcEncoderProfile(*params, BDB);
+    profile = astcProfile(sRGB, mode);
     swizzle = astcSwizzle(*params);
 
     if(params->perceptual)
@@ -1106,7 +1084,9 @@ ktxTexture2_DecodeAstc(ktxTexture2 *This) {
 
     // if(params->perceptual) flags |= ASTCENC_FLG_USE_PERCEPTUAL;
 
-    astcenc_profile profile = astcDecoderProfile(This);
+    ktx_uint32_t transfer = KHR_DFDVAL(BDB, TRANSFER);
+    bool ldr = isFormatAstcLDR(This);
+    astcenc_profile profile = astcProfile(transfer == KHR_DF_TRANSFER_SRGB, ldr);
 
     uint32_t threadCount{1}; // Decompression isn't the bottleneck and only used when checking for psnr and ssim
     astcenc_config   astc_config;
