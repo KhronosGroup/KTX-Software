@@ -269,12 +269,12 @@ namespace msc {
                                               imageDesc.m_alpha_byte_length != 0,
                                               isVideo
                                               // API currently doesn't have any
-                                              // way indicate if this is an
+                                              // way to indicate if this is an
                                               // iFrame or pFrame.
                                               );
             val ret = val::object();
             if (status) {
-                ret.set("transcodedImage", dst);
+                ret.set("transcodedImage", val(dst, allow_raw_pointers()));
             }
             return ret;
         }
@@ -354,12 +354,12 @@ namespace msc {
                                               hasAlpha,
                                               isVideo
                                               // API currently doesn't have any
-                                              // way indicate if this is an
+                                              // way to indicate if this is an
                                               // iFrame or pFrame.
                                               );
             val ret = val::object();
             if (status) {
-                ret.set("transcodedImage", dst);
+                ret.set("transcodedImage", val(dst, allow_raw_pointers()));
             }
             return ret;
         }
@@ -798,5 +798,4 @@ EMSCRIPTEN_BINDINGS(ktx_wrappers)
         .function( "get_typed_memory_view",
                   &msc::TranscodedImage::get_typed_memory_view )
     ;
-
 }
