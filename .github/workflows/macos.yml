@@ -72,7 +72,7 @@ jobs:
           vk_sdk_ver: '1.3.290.0'
           options: {
             config: Release, platform: macOS,
-            doc: ON, jni: ON, loadtests: OpenGL+Vulkan, py: OFF, tests: OFF, tools: ON, tools_cts: OFF,
+            doc: ON, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tests: OFF, tools: ON, tools_cts: OFF,
             package: YES, sse: ON, opencl: OFF
           }
         - name: OpenCL,SSE
