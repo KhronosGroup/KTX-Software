@@ -13,6 +13,7 @@ for i in $@; do
 done
 
 ARCH=${ARCH:-$(uname -m)}  # Architecture to install tools for.
+FEATURE_DOC=${FEATURE_DOC:-ON}
 FEATURE_GL_UPLOAD=${FEATURE_GL_UPLOAD:-ON}
 FEATURE_VK_UPLOAD=${FEATURE_VK_UPLOAD:-ON}
 if [ "$ARCH" = "x86_64" ]; then
@@ -34,7 +35,10 @@ sudo apt-get -qq update
 # LFS is not preinstalled in the arm64 image.
 sudo apt-get -qq install git-lfs:native
 sudo apt-get -qq install ninja-build:native
-sudo apt-get -qq install doxygen:native
+if [ "$FEATURE_DOC" = "ON" ]; then
+  sudo apt-get -qq install doxygen:native
+  sudo apt-get -qq install graphviz:native
+fi
 sudo apt-get -qq install rpm:native
 
 if [ "$ARCH" = "$(uname -m)" ]; then
