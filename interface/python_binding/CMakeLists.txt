@@ -2,20 +2,32 @@
 # Copyright 2023 Shukant Pal
 # SPDX-License-Identifier: Apache-2.0
 
+option( KTX_PY_USE_VENV
+    "Use a Python virtual environment. Needed for externally managed python installations."
+    OFF
+)
+
 find_package (Python3 COMPONENTS Interpreter)
 set(SOURCE_DIR ${CMAKE_SOURCE_DIR}/interface/python_binding)
 file(GLOB pyktx_py_src ${SOURCE_DIR}/pyktx/*.py)
 list(TRANSFORM pyktx_py_src REPLACE "${SOURCE_DIR}/pyktx/" "${KTX_BUILD_DIR}/interface/python_binding/docs/pyktx." OUTPUT_VARIABLE pyktx_py_rst_filenames)
 list(TRANSFORM pyktx_py_rst_filenames REPLACE ".py$" ".rst" OUTPUT_VARIABLE pyktx_py_rst)
 
-set(PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
+set(PYTHON_EXECUTABLE_SYSTEM ${Python3_EXECUTABLE})
 if(DEFINED PYTHON AND NOT ${PYTHON} STREQUAL "")
-    set(PYTHON_EXECUTABLE ${PYTHON})
+    set(PYTHON_EXECUTABLE_SYSTEM ${PYTHON})
     message(STATUS "Override PYTHON with ${PYTHON}")
 endif()
 if (LINUX AND NOT Python3_FOUND)
-    set(PYTHON_EXECUTABLE python)
+    set(PYTHON_EXECUTABLE_SYSTEM python)
     message(STATUS "CMake failed to find python3. Will continue assuming it's on PATH")
+endif()
+if(KTX_PY_USE_VENV)
+    set(PYTHON_VENV_DIR "${KTX_BUILD_DIR}/interface/python_binding")
+    set(PYTHON_EXECUTABLE ${PYTHON_VENV_DIR}/bin/python3)
+    message(STATUS "Using virtual environment for Python")
+else()
+  set(PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE_SYSTEM})
 endif()
 
 # Convert Windows path to CMake path
@@ -23,10 +35,28 @@ cmake_path(SET PYTHON_PATH ${PYTHON_EXECUTABLE})
 
 set(LIBKTX_LIB_DIR ${KTX_BUILD_DIR}/$<CONFIG>)
 
+if(KTX_PY_USE_VENV)
+    add_custom_target( py-venv ALL
+        COMMENT
+            "Set up virtual environment for Python"
+    )
+    add_custom_command(
+        TARGET py-venv
+        PRE_BUILD
+        COMMAND
+            ${PYTHON_EXECUTABLE_SYSTEM} -m venv ${PYTHON_VENV_DIR}
+        COMMENT
+            "Create virtual environment for Python"
+    )
+endif()
+
 add_custom_target( pyktx-deps ALL
     COMMENT
-        "Python deps")
-
+        "Python deps"
+)
+if(KTX_PY_USE_VENV)
+    add_dependencies(pyktx-deps py-venv)
+endif()
 add_custom_command(
     TARGET pyktx-deps
     PRE_BUILD
