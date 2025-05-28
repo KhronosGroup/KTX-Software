@@ -436,7 +436,7 @@ class KTX2Container {
 		if ( config.astcSupported ) {
 
 			targetFormat = TranscodeTarget.ASTC_4x4_RGBA;
-			thights.transcodedFormat = RGBA_ASTC_4x4_Format;
+			this.transcodedFormat = RGBA_ASTC_4x4_Format;
 
 		} else if ( config.dxtSupported ) {
 
