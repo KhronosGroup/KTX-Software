@@ -12,7 +12,7 @@ find_package(Threads)
 # Silicon Macs. By default (MODE POST_BUILD) test discovery
 # is done as a post build operation which runs the test
 # executable to discover the list of tests as soon as it is
-# built. This unsurprisngly fails when cross compiling as
+# built. This unsurprisingly fails when cross compiling as
 # tests built for the target won't run on the host. It fails
 # on Apple Silicon as all executables must be signed. Because
 # most generators (Xcode certainly) set up signing as a post
@@ -77,9 +77,16 @@ target_link_libraries(
 add_executable( texturetests
     texturetests/texturetests.cc
     unittests/wthelper.h
+    tests.cmake
 )
 set_test_properties(texturetests)
 set_code_sign(texturetests)
+
+target_compile_features(
+    texturetests
+PUBLIC
+    cxx_std_17
+)
 
 target_include_directories(
     texturetests

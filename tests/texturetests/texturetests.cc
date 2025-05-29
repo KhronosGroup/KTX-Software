@@ -26,6 +26,7 @@
 #include <string>
 //#include <sys/types.h>
 #include <sys/stat.h>
+#include <filesystem>
 #include <limits.h>
 #include <stdint.h>
 #include <string.h>
@@ -2919,3 +2920,82 @@ GTEST_API_ int main(int argc, char** argv) {
     return RUN_ALL_TESTS();
 }
 
+////////////////////////////////////////////
+// ASTC encode & decode tests
+///////////////////////////////////////////
+
+// The ASTC encoder and decoder are heavily tested elsewhere hence the focus
+// of these tests is the mechanics of encoding and decoding a ktxTexture2.
+
+class ktxTexture2_AstcLdrEncodeDecodeTest: public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> { };
+
+TEST_F(ktxTexture2_AstcLdrEncodeDecodeTest, CompressToAstcLdrThenDecode) {
+    ktxTexture2* texture;
+    ktx_uint64_t dataSize;
+    KTX_error_code result;
+    auto tmpDir = std::filesystem::temp_directory_path();
+    std::filesystem::path original = tmpDir /= "CompressToAstcLdrThenDecode_original.ktx2";
+    std::filesystem::path decoded = tmpDir /= "CompressToAstcLdrThenDecode_decoded.ktx2";
+
+    if (ktxMemFile != NULL) {
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
+                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                              &texture);
+        ASSERT_TRUE(result == KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
+                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
+
+        result = ktxTexture2_WriteToNamedFile(texture, original.c_str());
+        ASSERT_TRUE(result == KTX_SUCCESS);
+
+        ktxAstcParams params;
+        params.structSize = sizeof(params);
+        params.threadCount = 1;
+        params.blockDimension = KTX_PACK_ASTC_BLOCK_DIMENSION_4x4;
+        params.mode = KTX_PACK_ASTC_ENCODER_MODE_DEFAULT;
+        params.qualityLevel = KTX_PACK_ASTC_QUALITY_LEVEL_FAST;
+        params.normalMap = false;
+        params.perceptual = false;
+        params.inputSwizzle[0] = 'R';
+        params.inputSwizzle[1] = 'G';
+        params.inputSwizzle[2] = 'B';
+        params.inputSwizzle[3] = 'A';
+        dataSize = texture->dataSize;
+        result = ktxTexture2_CompressAstcEx(texture, &params);
+        EXPECT_EQ(result, KTX_SUCCESS);
+        EXPECT_TRUE((texture->vkFormat >= VK_FORMAT_ASTC_4x4_UNORM_BLOCK
+                    && texture->vkFormat <= VK_FORMAT_ASTC_12x12_SRGB_BLOCK)
+                    || (texture->vkFormat >= VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK
+                    && texture->vkFormat <= VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK)
+                    || (texture->vkFormat >= VK_FORMAT_ASTC_3x3x3_UNORM_BLOCK_EXT
+                    && texture->vkFormat <= VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT));
+        uint32_t* pBdb = texture->pDfd+1;
+        khr_df_model_e model = static_cast<khr_df_model_e>(KHR_DFDVAL(pBdb, MODEL));
+        EXPECT_EQ(model, KHR_DF_MODEL_ASTC);
+        EXPECT_EQ(texture->supercompressionScheme, KTX_SS_NONE);
+        EXPECT_TRUE(texture->_private->_supercompressionGlobalData == (ktx_uint8_t*)0);
+        EXPECT_EQ(texture->numLevels, helper.numLevels);
+        EXPECT_LT(texture->dataSize, dataSize);
+        // How else to test the result?
+
+        bool isFloat = KHR_DFDSVAL(pBdb, 1, QUALIFIERS) & KHR_DF_SAMPLE_DATATYPE_FLOAT;
+        bool isSrgb = KHR_DFDVAL(pBdb, TRANSFER) == KHR_DF_TRANSFER_SRGB;
+        result = ktxTexture2_DecodeAstc(texture);
+        EXPECT_EQ(result, KTX_SUCCESS);
+        if (isFloat)
+            EXPECT_EQ(texture->vkFormat, VK_FORMAT_R32G32B32A32_SFLOAT);
+        else if (isSrgb)
+            EXPECT_EQ(texture->vkFormat, VK_FORMAT_R8G8B8A8_SRGB);
+        else
+            EXPECT_EQ(texture->vkFormat, VK_FORMAT_R8G8B8A8_UNORM);
+        model = static_cast<khr_df_model_e>(KHR_DFDVAL(texture->pDfd+1, MODEL));
+        EXPECT_EQ(model, KHR_DF_MODEL_RGBSDA);
+        result = ktxTexture2_WriteToNamedFile(texture, decoded.c_str());
+        if (texture) {
+            ktxTexture_Destroy(ktxTexture(texture));
+            std::filesystem::remove(original);
+            std::filesystem::remove(decoded);
+        }
+    }
+}
