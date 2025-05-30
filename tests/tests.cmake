@@ -74,6 +74,10 @@ target_link_libraries(
     ${CMAKE_THREAD_LIBS_INIT}
 )
 
+if(NOT DEFINED KTX_DIFF_PATH)
+    message(FATAL_ERROR "KTX_DIFF_PATH not defined. Needed by texturetests.")
+endif()
+
 add_executable( texturetests
     texturetests/texturetests.cc
     unittests/wthelper.h
@@ -109,8 +113,11 @@ gtest_discover_tests(unittests
     # With the 5s default we get periodic timeouts on Travis & GitHub CI.
     DISCOVERY_TIMEOUT 20
 )
+
+#cmake_policy(SET CMP0178 NEW)
+cmake_print_variables(CMAKE_CURRENT_BINARY_DIR)
 gtest_discover_tests(texturetests
     TEST_PREFIX texturetest.
     DISCOVERY_TIMEOUT 20
-    EXTRA_ARGS "${PROJECT_SOURCE_DIR}/tests/testimages/"
+    EXTRA_ARGS "${PROJECT_SOURCE_DIR}/tests/testimages/" ${KTX_DIFF_PATH}
 )

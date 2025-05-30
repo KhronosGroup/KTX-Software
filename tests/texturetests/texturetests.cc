@@ -23,10 +23,12 @@
   #endif
 #endif
 
+#include <filesystem>
+#include <fstream>
+#include <iostream>
 #include <string>
 //#include <sys/types.h>
 #include <sys/stat.h>
-#include <filesystem>
 #include <limits.h>
 #include <stdint.h>
 #include <string.h>
@@ -2830,6 +2832,7 @@ TEST_F(ktxTexture2_MetadataTest, LibVersionUpdatedCorrectly) {
 #endif
 
 std::string imagePath;
+std::string ktxdiffPath;
 
 std::string combinePaths(std::string const a, std::string const b) {
     if (a.back() == OS_SEP) {
@@ -2898,12 +2901,13 @@ GTEST_API_ int main(int argc, char** argv) {
     testing::InitGoogleTest(&argc, argv);
 
     if (!::testing::FLAGS_gtest_list_tests) {
-        if (argc != 2) {
-            std::cerr << "Usage: " << argv[0] << " <test images path>\n";
+        if (argc != 3) {
+            std::cerr << "Usage: " << argv[0] << " <test images path> <ktxdiff path>\n";
             return -1;
         }
 
         imagePath = std::string(argv[1]);
+        ktxdiffPath = std::string(argv[2]);
 
         struct stat info;
 
@@ -2931,11 +2935,14 @@ class ktxTexture2_AstcLdrEncodeDecodeTest: public ktxTexture2TestBase<GLubyte, 4
 
 TEST_F(ktxTexture2_AstcLdrEncodeDecodeTest, CompressToAstcLdrThenDecode) {
     ktxTexture2* texture;
-    ktx_uint64_t dataSize;
     KTX_error_code result;
     auto tmpDir = std::filesystem::temp_directory_path();
-    std::filesystem::path original = tmpDir /= "CompressToAstcLdrThenDecode_original.ktx2";
-    std::filesystem::path decoded = tmpDir /= "CompressToAstcLdrThenDecode_decoded.ktx2";
+    std::filesystem::path original = tmpDir;
+    original /= "CompressToAstcLdrThenDecode_original.ktx2";
+    std::filesystem::path decoded = tmpDir;
+    decoded /= "CompressToAstcLdrThenDecode_decoded.ktx2";
+    std::filesystem::path ktxdiffOut = tmpDir;
+    ktxdiffOut /= "ktxdiffOut.txt";
 
     if (ktxMemFile != NULL) {
         result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
@@ -2949,6 +2956,14 @@ TEST_F(ktxTexture2_AstcLdrEncodeDecodeTest, CompressToAstcLdrThenDecode) {
         result = ktxTexture2_WriteToNamedFile(texture, original.c_str());
         ASSERT_TRUE(result == KTX_SUCCESS);
 
+        auto depth = texture->baseDepth;
+        auto height = texture->baseHeight;
+        auto width = texture->baseWidth;
+        //ktx_uint64_t dataSize = texture->dataSize;
+        auto dataSize = texture->dataSize;
+
+        ASSERT_TRUE(depth == 1);
+
         ktxAstcParams params;
         params.structSize = sizeof(params);
         params.threadCount = 1;
@@ -2961,7 +2976,6 @@ TEST_F(ktxTexture2_AstcLdrEncodeDecodeTest, CompressToAstcLdrThenDecode) {
         params.inputSwizzle[1] = 'G';
         params.inputSwizzle[2] = 'B';
         params.inputSwizzle[3] = 'A';
-        dataSize = texture->dataSize;
         result = ktxTexture2_CompressAstcEx(texture, &params);
         EXPECT_EQ(result, KTX_SUCCESS);
         EXPECT_TRUE((texture->vkFormat >= VK_FORMAT_ASTC_4x4_UNORM_BLOCK
@@ -2971,16 +2985,18 @@ TEST_F(ktxTexture2_AstcLdrEncodeDecodeTest, CompressToAstcLdrThenDecode) {
                     || (texture->vkFormat >= VK_FORMAT_ASTC_3x3x3_UNORM_BLOCK_EXT
                     && texture->vkFormat <= VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT));
         uint32_t* pBdb = texture->pDfd+1;
+        bool isFloat = KHR_DFDSVAL(pBdb, 1, QUALIFIERS) & KHR_DF_SAMPLE_DATATYPE_FLOAT;
+        bool isSrgb = KHR_DFDVAL(pBdb, TRANSFER) == KHR_DF_TRANSFER_SRGB;
         khr_df_model_e model = static_cast<khr_df_model_e>(KHR_DFDVAL(pBdb, MODEL));
         EXPECT_EQ(model, KHR_DF_MODEL_ASTC);
         EXPECT_EQ(texture->supercompressionScheme, KTX_SS_NONE);
         EXPECT_TRUE(texture->_private->_supercompressionGlobalData == (ktx_uint8_t*)0);
         EXPECT_EQ(texture->numLevels, helper.numLevels);
+        EXPECT_EQ(texture->baseDepth, depth);
+        EXPECT_EQ(texture->baseHeight, height);
+        EXPECT_EQ(texture->baseWidth, width);
         EXPECT_LT(texture->dataSize, dataSize);
-        // How else to test the result?
 
-        bool isFloat = KHR_DFDSVAL(pBdb, 1, QUALIFIERS) & KHR_DF_SAMPLE_DATATYPE_FLOAT;
-        bool isSrgb = KHR_DFDVAL(pBdb, TRANSFER) == KHR_DF_TRANSFER_SRGB;
         result = ktxTexture2_DecodeAstc(texture);
         EXPECT_EQ(result, KTX_SUCCESS);
         if (isFloat)
@@ -2991,11 +3007,22 @@ TEST_F(ktxTexture2_AstcLdrEncodeDecodeTest, CompressToAstcLdrThenDecode) {
             EXPECT_EQ(texture->vkFormat, VK_FORMAT_R8G8B8A8_UNORM);
         model = static_cast<khr_df_model_e>(KHR_DFDVAL(texture->pDfd+1, MODEL));
         EXPECT_EQ(model, KHR_DF_MODEL_RGBSDA);
+        EXPECT_EQ(depth, texture->baseDepth);
         result = ktxTexture2_WriteToNamedFile(texture, decoded.c_str());
+        std::string command = ktxdiffPath;
+        command += " " + original.string() + " " + decoded.string() + " 0.01 > " + ktxdiffOut.string();
+        int status = std::system(command.c_str());
+        EXPECT_EQ(status, 0);
+        EXPECT_EQ(texture->baseHeight, height);
+        EXPECT_EQ(texture->baseWidth, width);
+        if (status != 0) {
+            std::cout << std::ifstream(ktxdiffOut.string()).rdbuf();
+        }
         if (texture) {
             ktxTexture_Destroy(ktxTexture(texture));
             std::filesystem::remove(original);
             std::filesystem::remove(decoded);
+            std::filesystem::remove(ktxdiffOut);
         }
     }
 }
