@@ -2825,16 +2825,7 @@ TEST_F(ktxTexture2_MetadataTest, LibVersionUpdatedCorrectly) {
 // Unicode file name tests
 ///////////////////////////////////////////
 
-#if defined(_WIN32)
-#define _CRT_SECURE_NO_WARNINGS
-#define OS_SEP '\\'
-#define UNIX_SEP '/'
-#else
-#define OS_SEP '/'
-#endif
-
 fs::path imagePath;
-fs::path ktxdiffPath;
 
 TEST(UnicodeFileNames, CreateFrom) {
     std::vector<std::string> fileSet = {
@@ -2882,35 +2873,6 @@ TEST(UnicodeFileNames, CreateFrom) {
     }
 }
 
-}  // namespace
-
-GTEST_API_ int main(int argc, char** argv) {
-    testing::InitGoogleTest(&argc, argv);
-
-    if (!::testing::FLAGS_gtest_list_tests) {
-        if (argc != 3) {
-            std::cerr << "Usage: " << argv[0] << " <test images path> <ktxdiff path>\n";
-            return -1;
-        }
-
-        imagePath = argv[1];
-        ktxdiffPath = argv[2];
-
-        struct stat info;
-
-        if (stat(imagePath.c_str(), &info) != 0) {
-            std::cerr << "Cannot access " << imagePath << std::endl;
-            return -2;
-        }
-        else if (!(info.st_mode & S_IFDIR)) {
-            std::cerr << imagePath << " is not a valid directory\n";
-            return -3;
-        }
-    }
-
-    return RUN_ALL_TESTS();
-}
-
 ////////////////////////////////////////////
 // ASTC encode & decode tests
 ///////////////////////////////////////////
@@ -2920,16 +2882,15 @@ GTEST_API_ int main(int argc, char** argv) {
 
 class ktxTexture2_AstcLdrEncodeDecodeTest: public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> { };
 
+fs::path ktxdiffPath;
+
 TEST_F(ktxTexture2_AstcLdrEncodeDecodeTest, CompressToAstcLdrThenDecode) {
     ktxTexture2* texture;
     KTX_error_code result;
-    auto tmpDir = std::filesystem::temp_directory_path();
-    std::filesystem::path original = tmpDir;
-    original /= "CompressToAstcLdrThenDecode_original.ktx2";
-    std::filesystem::path decoded = tmpDir;
-    decoded /= "CompressToAstcLdrThenDecode_decoded.ktx2";
-    std::filesystem::path ktxdiffOut = tmpDir;
-    ktxdiffOut /= "ktxdiffOut.txt";
+    auto tmpDir = fs::temp_directory_path();
+    fs::path original = tmpDir / "CompressToAstcLdrThenDecode_original.ktx2";
+    fs::path decoded = tmpDir / "CompressToAstcLdrThenDecode_decoded.ktx2";
+    fs::path ktxdiffOut = tmpDir / "ktxdiffOut.txt";
 
     if (ktxMemFile != NULL) {
         result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
@@ -3007,9 +2968,38 @@ TEST_F(ktxTexture2_AstcLdrEncodeDecodeTest, CompressToAstcLdrThenDecode) {
         }
         if (texture) {
             ktxTexture_Destroy(ktxTexture(texture));
-            std::filesystem::remove(original);
-            std::filesystem::remove(decoded);
-            std::filesystem::remove(ktxdiffOut);
+            fs::remove(original);
+            fs::remove(decoded);
+            fs::remove(ktxdiffOut);
         }
     }
+}
+
+}  // namespace
+
+GTEST_API_ int main(int argc, char** argv) {
+    testing::InitGoogleTest(&argc, argv);
+
+    if (!::testing::FLAGS_gtest_list_tests) {
+        if (argc != 3) {
+            std::cerr << "Usage: " << argv[0] << " <test images path> <ktxdiff path>\n";
+            return -1;
+        }
+
+        imagePath = argv[1];
+        ktxdiffPath = argv[2];
+
+        struct stat info;
+
+        if (stat(imagePath.c_str(), &info) != 0) {
+            std::cerr << "Cannot access " << imagePath << std::endl;
+            return -2;
+        }
+        else if (!(info.st_mode & S_IFDIR)) {
+            std::cerr << imagePath << " is not a valid directory\n";
+            return -3;
+        }
+    }
+
+    return RUN_ALL_TESTS();
 }
