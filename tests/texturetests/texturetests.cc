@@ -51,6 +51,8 @@ extern ktx_bool_t __disableWriterMetadata__;
 
 namespace {
 
+namespace fs = std::filesystem;
+
 // Recursive function to return the greatest common divisor of a and b.
 static uint32_t
 gcd(uint32_t a, uint32_t b) {
@@ -2831,22 +2833,8 @@ TEST_F(ktxTexture2_MetadataTest, LibVersionUpdatedCorrectly) {
 #define OS_SEP '/'
 #endif
 
-std::string imagePath;
-std::string ktxdiffPath;
-
-std::string combinePaths(std::string const a, std::string const b) {
-    if (a.back() == OS_SEP) {
-        return a + b;
-#if defined(_WIN32)
-    }
-    else if (a.back() == UNIX_SEP) {
-        return a + b;
-#endif
-    }
-    else {
-        return a + OS_SEP + b;
-    }
-}
+fs::path imagePath;
+fs::path ktxdiffPath;
 
 TEST(UnicodeFileNames, CreateFrom) {
     std::vector<std::string> fileSet = {
@@ -2868,7 +2856,7 @@ TEST(UnicodeFileNames, CreateFrom) {
         ktx_error_code_e result;
         ktxTexture* texture;
 
-        std::string path = combinePaths(imagePath, *it);
+        fs::path path = imagePath / *it;
         result = ktxTexture_CreateFromNamedFile(
             path.c_str(),
             KTX_TEXTURE_CREATE_NO_FLAGS,
@@ -2877,8 +2865,7 @@ TEST(UnicodeFileNames, CreateFrom) {
         EXPECT_NE(texture, (ktxTexture*)0);
         ktxTexture_Destroy(texture);
 
-        size_t dotIndex = path.find_last_of('.');
-        if (path.substr(dotIndex + 1).compare("ktx") == 0) {
+        if (path.extension() == ".ktx") {
             result = ktxTexture1_CreateFromNamedFile(
                 path.c_str(),
                 KTX_TEXTURE_CREATE_NO_FLAGS,
@@ -2906,12 +2893,12 @@ GTEST_API_ int main(int argc, char** argv) {
             return -1;
         }
 
-        imagePath = std::string(argv[1]);
-        ktxdiffPath = std::string(argv[2]);
+        imagePath = argv[1];
+        ktxdiffPath = argv[2];
 
         struct stat info;
 
-        if (stat(imagePath.data(), &info) != 0) {
+        if (stat(imagePath.c_str(), &info) != 0) {
             std::cerr << "Cannot access " << imagePath << std::endl;
             return -2;
         }
