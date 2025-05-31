@@ -2843,33 +2843,37 @@ TEST(UnicodeFileNames, CreateFrom) {
 
     std::vector<std::string>::const_iterator it;
 
+    fs::path filePath = imagePath;
     for (it = fileSet.begin(); it < fileSet.end(); it++) {
         ktx_error_code_e result;
-        ktxTexture* texture;
+        ktxTexture* texture = nullptr;
 
-        fs::path path = imagePath / *it;
+        filePath.replace_filename(*it);
         result = ktxTexture_CreateFromNamedFile(
-            path.c_str(),
+            filePath.c_str(),
             KTX_TEXTURE_CREATE_NO_FLAGS,
             &texture);
         EXPECT_EQ(result, KTX_SUCCESS);
         EXPECT_NE(texture, (ktxTexture*)0);
-        ktxTexture_Destroy(texture);
+        if (texture) {
+            ktxTexture_Destroy(texture);
+            texture = nullptr;
+        }
 
-        if (path.extension() == ".ktx") {
+        if (filePath.extension() == ".ktx") {
             result = ktxTexture1_CreateFromNamedFile(
-                path.c_str(),
+                filePath.c_str(),
                 KTX_TEXTURE_CREATE_NO_FLAGS,
                 (ktxTexture1**)&texture);
         } else {
             result = ktxTexture2_CreateFromNamedFile(
-                path.c_str(),
+                filePath.c_str(),
                 KTX_TEXTURE_CREATE_NO_FLAGS,
                 (ktxTexture2**)&texture);
         }
         EXPECT_EQ(result, KTX_SUCCESS);
         EXPECT_NE(texture, (ktxTexture*)0);
-        ktxTexture_Destroy(texture);
+        if (texture) ktxTexture_Destroy(texture);
     }
 }
 
@@ -2888,6 +2892,7 @@ TEST_F(ktxTexture2_AstcLdrEncodeDecodeTest, CompressToAstcLdrThenDecode) {
     ktxTexture2* texture;
     KTX_error_code result;
     auto tmpDir = fs::temp_directory_path();
+
     fs::path original = tmpDir / "CompressToAstcLdrThenDecode_original.ktx2";
     fs::path decoded = tmpDir / "CompressToAstcLdrThenDecode_decoded.ktx2";
     fs::path ktxdiffOut = tmpDir / "ktxdiffOut.txt";
@@ -2987,6 +2992,7 @@ GTEST_API_ int main(int argc, char** argv) {
         }
 
         imagePath = argv[1];
+        imagePath /= "";   // Ensure trailing / so path will be handled as a directory.
         ktxdiffPath = argv[2];
 
         struct stat info;
