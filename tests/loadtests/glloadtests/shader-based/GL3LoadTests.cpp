@@ -32,7 +32,7 @@
 #endif
 
 LoadTestSample*
-GLLoadTests::showFile(std::string& filename)
+GLLoadTests::showFile(const std::string& filename)
 {
     KTX_error_code ktxresult;
     ktxTexture* kTexture;
@@ -76,8 +76,7 @@ GLLoadTests::showFile(std::string& filename)
     ktxTexture_Destroy(kTexture);
 
     // Escape any spaces in filename.
-    filename = std::regex_replace( filename, std::regex(" "), "\\ " );
-    std::string args = "--external " + filename;
+    std::string args = "--external " + std::regex_replace( filename, std::regex(" "), "\\ " );
     pViewer = createViewer(w_width, w_height, args.c_str(), sBasePath);
     return pViewer;
 }

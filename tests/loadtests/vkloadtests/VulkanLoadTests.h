@@ -42,7 +42,7 @@ class VulkanLoadTests : public VulkanAppSDL {
         eBack
     };
     void invokeSample(Direction dir);
-    VulkanLoadTestSample* showFile(std::string& filename);
+    VulkanLoadTestSample* showFile(const std::string& filename);
     VulkanLoadTestSample* pCurSample;
 
     bool quit = false;

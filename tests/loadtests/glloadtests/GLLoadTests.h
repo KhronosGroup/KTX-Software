@@ -54,7 +54,7 @@ class GLLoadTests : public GLAppSDL {
         eBack
     };
     void invokeSample(Direction dir);
-    LoadTestSample* showFile(std::string& filename);
+    LoadTestSample* showFile(const std::string& filename);
     LoadTestSample* pCurSample;
 
     bool quit = false;
