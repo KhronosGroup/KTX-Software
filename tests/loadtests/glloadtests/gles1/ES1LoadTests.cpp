@@ -22,7 +22,7 @@
 #include "TexturedCube.h"
 
 LoadTestSample*
-GLLoadTests::showFile(std::string& filename)
+GLLoadTests::showFile(const std::string& filename)
 {
     KTX_error_code ktxresult;
     ktxTexture* kTexture;
