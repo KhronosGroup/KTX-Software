@@ -2850,7 +2850,7 @@ TEST(UnicodeFileNames, CreateFrom) {
 
         filePath.replace_filename(*it);
         result = ktxTexture_CreateFromNamedFile(
-            filePath.c_str(),
+            filePath.u8string().c_str(),
             KTX_TEXTURE_CREATE_NO_FLAGS,
             &texture);
         EXPECT_EQ(result, KTX_SUCCESS);
@@ -2862,12 +2862,12 @@ TEST(UnicodeFileNames, CreateFrom) {
 
         if (filePath.extension() == ".ktx") {
             result = ktxTexture1_CreateFromNamedFile(
-                filePath.c_str(),
+                filePath.u8string().c_str(),
                 KTX_TEXTURE_CREATE_NO_FLAGS,
                 (ktxTexture1**)&texture);
         } else {
             result = ktxTexture2_CreateFromNamedFile(
-                filePath.c_str(),
+                filePath.u8string().c_str(),
                 KTX_TEXTURE_CREATE_NO_FLAGS,
                 (ktxTexture2**)&texture);
         }
@@ -2906,7 +2906,7 @@ TEST_F(ktxTexture2_AstcLdrEncodeDecodeTest, CompressToAstcLdrThenDecode) {
                                      << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
-        result = ktxTexture2_WriteToNamedFile(texture, original.c_str());
+        result = ktxTexture2_WriteToNamedFile(texture, original.u8string().c_str());
         ASSERT_TRUE(result == KTX_SUCCESS);
 
         auto depth = texture->baseDepth;
@@ -2961,7 +2961,7 @@ TEST_F(ktxTexture2_AstcLdrEncodeDecodeTest, CompressToAstcLdrThenDecode) {
         model = static_cast<khr_df_model_e>(KHR_DFDVAL(texture->pDfd+1, MODEL));
         EXPECT_EQ(model, KHR_DF_MODEL_RGBSDA);
         EXPECT_EQ(depth, texture->baseDepth);
-        result = ktxTexture2_WriteToNamedFile(texture, decoded.c_str());
+        result = ktxTexture2_WriteToNamedFile(texture, decoded.u8string().c_str());
         std::string command = ktxdiffPath;
         command += " " + original.string() + " " + decoded.string() + " 0.01 > " + ktxdiffOut.string();
         int status = std::system(command.c_str());
@@ -2969,7 +2969,7 @@ TEST_F(ktxTexture2_AstcLdrEncodeDecodeTest, CompressToAstcLdrThenDecode) {
         EXPECT_EQ(texture->baseHeight, height);
         EXPECT_EQ(texture->baseWidth, width);
         if (status != 0) {
-            std::cout << std::ifstream(ktxdiffOut.string()).rdbuf();
+            std::cout << std::ifstream(ktxdiffOut).rdbuf();
         }
         if (texture) {
             ktxTexture_Destroy(ktxTexture(texture));
