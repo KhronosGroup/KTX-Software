@@ -239,7 +239,7 @@ jobs:
 
       - name: script
         env:
-          VCPKG_BINARY_SOURCES: clear;nuget,${{ env.NUGET_NUGET_FEED_URL }},readwrite
+          VCPKG_BINARY_SOURCES: clear;nuget,${{ env.NUGET_FEED_URL }},readwrite
         run: |
           set -e # Instead of trying to chain everything together with &&
                  # otherwise subsequent commands will swallow bad exit status.
