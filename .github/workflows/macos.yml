@@ -187,6 +187,7 @@ jobs:
         run: |
             whereis vcpkg
             which vcpkg
+            echo "VCPKG_INSTALLATION_ROOT = $VCPKG_INSTALLATION_ROOT"
             pushd $HOME
             git clone https://github.com/microsoft/vcpkg
             cd vcpkg && ./bootstrap-vcpkg.sh -disableMetrics \
