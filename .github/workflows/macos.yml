@@ -215,7 +215,7 @@ jobs:
             core.exportVariable('VCPKG_EXE', process.env.VCPKG_INSTALLATION_ROOT + '/vcpkg' || '');
             core.exportVariable('NUGET_FEED_URL', 'https://nuget.pkg.github.com/KhronosGroup/index.json' || '');
 
-      - name: Add NuGet sources (macOS and Ubuntu)
+      - name: Add NuGet sources for vcpkg binary caching
         if: matrix.options.loadtests != 'OFF'
         env:
           USERNAME: KhronosGroup
