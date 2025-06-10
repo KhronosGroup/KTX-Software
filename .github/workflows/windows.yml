@@ -123,6 +123,7 @@ jobs:
       AZURE_KEY_VAULT_CLIENT_SECRET: ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }}
       AZURE_KEY_VAULT_TENANT_ID: ${{ secrets.AZURE_KEY_VAULT_TENANT_ID }}
 
+      NUGET_FEED_URL: https://nuget.pkg.github.com/KhronosGroup/index.json
       OPENCL_SDK_HOME: https://github.com/intel/llvm/releases/download/2021-09
       OPENCL_SDK_NAME: win-oclcpuexp-2021.12.9.0.24_rel
       OPENGL_ES_EMULATOR: C:/Imagination/Windows_x86_64
@@ -188,16 +189,41 @@ jobs:
           echo "CODE_SIGN_KEY_VAULT=Azure" >> $env:GITHUB_ENV
         }
 
-    - name: Export GitHub Actions cache and vcpkg environment variables
+    # vcpkg is pre-installed on Windows runners but location is
+    # indicated by a non-standard env. var. Build scripts use the
+    # standard var.
+    #
+    # Using github-script to set the variables has two advantages though
+    # only the second is relevant here: it is cross-platform and it gives
+    # access to VCPKG_INSTALLATION_ROOT which is otherwise only accessible
+    # via platform(shell)-dependent methods.
+    - name: Export VCPKG_ROOT and VCPKG_EXE
       if: matrix.options.loadtests != 'OFF'
       uses: actions/github-script@v7
       with:
-        # Caution. JSON in use. "#core" breaks the build.
+        # JSON in use here. #core... will break the script.
         script: |
-          core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-          core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
-          core.exportVariable('VCPKG_BINARY_SOURCES', "clear;x-gha,readwrite");
           core.exportVariable('VCPKG_ROOT', process.env.VCPKG_INSTALLATION_ROOT || '');
+          core.exportVariable('VCPKG_EXE', process.env.VCPKG_INSTALLATION_ROOT + '/vcpkg' || '');
+
+    - name: Add NuGet sources for vcpkg binary caching
+      if: matrix.options.loadtests != 'OFF'
+      env:
+        USERNAME: KhronosGroup
+      shell: pwsh
+      # `vcpkg fetch nuget` fetches nuget and outputs the location of
+      # the fetched command.
+      run: |
+        .$(${{ env.VCPKG_EXE }} fetch nuget) `
+          sources add `
+          -Source "${{ env.NUGET_FEED_URL }}" `
+          -StorePasswordInClearText `
+          -Name GitHubPackages `
+          -UserName "${{ env.USERNAME }}" `
+          -Password "${{ secrets.GH_PACKAGES_TOKEN }}"
+        .$(${{ env.VCPKG_EXE }} fetch nuget) `
+          setapikey "${{ secrets.GH_PACKAGES_TOKEN }}" `
+          -Source "${{ env.NUGET_FEED_URL }}"
 
     - name: Install Dependencies
       if: matrix.check_mkvk != 'ONLY'
@@ -240,6 +266,8 @@ jobs:
 
     - name: Build Windows
       if: matrix.check_mkvk != 'ONLY'
+      env:
+        VCPKG_BINARY_SOURCES: clear;nuget,${{ env.NUGET_FEED_URL }},readwrite
       #   The installers run as part of "Install Dependencies" add
       # environment variables to the registry and augment $Path there.
       # Although each step gets a new Powershell instance, that instance
