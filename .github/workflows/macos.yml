@@ -223,14 +223,14 @@ jobs:
         run: |
           mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
             sources add \
-            -Source "${{ env.FEED_URL }}" \
+            -Source "${{ env.NUGET_FEED_URL }}" \
             -StorePasswordInClearText \
             -Name GitHubPackages \
             -UserName "${{ env.USERNAME }}" \
             -Password "${{ secrets.GH_PACKAGES_TOKEN }}"
           mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
             setapikey "${{ secrets.GH_PACKAGES_TOKEN }}" \
-            -Source "${{ env.FEED_URL }}"
+            -Source "${{ env.NUGET_FEED_URL }}"
 
       - name: before_script
         run: |
@@ -243,7 +243,7 @@ jobs:
 
       - name: script
         env:
-          VCPKG_BINARY_SOURCES: clear;nuget,${{ env.NUGET_FEED_URL }},readwrite
+          VCPKG_BINARY_SOURCES: clear;nuget,${{ env.NUGET_NUGET_FEED_URL }},readwrite
         run: |
           set -e # Instead of trying to chain everything together with &&
                  # otherwise subsequent commands will swallow bad exit status.
