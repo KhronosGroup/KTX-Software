@@ -192,10 +192,6 @@ jobs:
               && echo "VCPKG_EXE=`pwd`/vcpkg" >> $GITHUB_ENV
             popd
 
-      - name: Install mono
-        if: matrix.options.loadtests != 'OFF'
-        run: brew install mono
-
       - name: Install Doxygen
         if: matrix.options.doc == 'ON'
         uses: ssciwr/doxygen-install@v1
