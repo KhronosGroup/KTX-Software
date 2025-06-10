@@ -143,6 +143,7 @@ jobs:
       FEATURE_TESTS: ${{ matrix.options.tests && matrix.options.tests || 'ON' }}
       FEATURE_TOOLS: ${{ matrix.options.tools }}
       FEATURE_TOOLS_CTS: ${{ matrix.options.tools_cts }}
+      NUGET_FEED_URL: https://nuget.pkg.github.com/KhronosGroup/index.json
       PACKAGE: ${{ matrix.options.package && matrix.options.package || 'NO' }}
       SUPPORT_OPENCL: ${{ matrix.options.opencl }}
       SUPPORT_SSE: ${{ matrix.options.sse }}
@@ -180,23 +181,20 @@ jobs:
           echo -n "CMake version on the runner is " && cmake --version
           echo -e "machine github.com\n  login $GITHUB_TOKEN" >> ~/.netrc # Prevent rate limiting on Git LFS.
           cat ~/.netrc
-          if [[ -n "$FEATURE_LOADTESTS" && "$FEATURE_LOADTESTS" != "OFF" ]]; then
-            # Install vcpkg.
+
+      - name: Install vcpkg
+        if: matrix.options.loadtests != 'OFF'
+        run: |
             pushd $HOME
             git clone https://github.com/microsoft/vcpkg
-            cd vcpkg && ./bootstrap-vcpkg.sh -disableMetrics && echo "VCPKG_ROOT=`pwd`" >> $GITHUB_ENV
+            cd vcpkg && ./bootstrap-vcpkg.sh -disableMetrics \
+              && echo "VCPKG_ROOT=`pwd`" >> $GITHUB_ENV \
+              && echo "VCPKG_EXE=`pwd`/vcpkg" >> $GITHUB_ENV
             popd
-          fi
 
-      - name: Export GitHub Actions cache and vcpkg environment variables
+      - name: Install mono
         if: matrix.options.loadtests != 'OFF'
-        uses: actions/github-script@v7
-        with:
-          # Caution. JSON in use. "#core" breaks the build.
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
-            core.exportVariable('VCPKG_BINARY_SOURCES', "clear;x-gha,readwrite");
+        run: brew install mono
 
       - name: Install Doxygen
         if: matrix.options.doc == 'ON'
@@ -215,6 +213,25 @@ jobs:
         with:
           python-version: '3.11.4'
 
+      - name: Add NuGet sources (macOS and Ubuntu)
+        if: matrix.options.loadtests != 'OFF'
+        env:
+          USERNAME: KhronosGroup
+        shell: bash
+        # `vcpkg fetch nuget` fetches nuget and outputs the location of
+        # the fetched command.
+        run: |
+          mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
+            sources add \
+            -Source "${{ env.FEED_URL }}" \
+            -StorePasswordInClearText \
+            -Name GitHubPackages \
+            -UserName "${{ env.USERNAME }}" \
+            -Password "${{ secrets.GH_PACKAGES_TOKEN }}"
+          mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
+            setapikey "${{ secrets.GH_PACKAGES_TOKEN }}" \
+            -Source "${{ env.FEED_URL }}"
+
       - name: before_script
         run: |
           if [ "$FEATURE_TOOLS_CTS" = "ON" ]; then
@@ -225,6 +242,8 @@ jobs:
           scripts/smudge_date.sh
 
       - name: script
+        env:
+          VCPKG_BINARY_SOURCES: clear;nuget,${{ env.NUGET_FEED_URL }},readwrite
         run: |
           set -e # Instead of trying to chain everything together with &&
                  # otherwise subsequent commands will swallow bad exit status.
