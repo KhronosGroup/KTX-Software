@@ -185,6 +185,8 @@ jobs:
       - name: Install vcpkg
         if: matrix.options.loadtests != 'OFF'
         run: |
+            whereis vcpkg
+            which vcpkg
             pushd $HOME
             git clone https://github.com/microsoft/vcpkg
             cd vcpkg && ./bootstrap-vcpkg.sh -disableMetrics \
