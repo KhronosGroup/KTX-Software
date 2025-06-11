@@ -247,6 +247,12 @@ jobs:
             setapikey "${{ secrets.GH_PACKAGES_TOKEN }}" \
             -Source "${{ env.NUGET_FEED_URL }}"
 
+      - name: Update vcpkg
+        run: |
+          pushd $VCPKG_INSTALLATION_ROOT
+          sudo git pull
+          vcpkg update
+
       - name: script
         env:
           VCPKG_BINARY_SOURCES: clear;nuget,${{ env.NUGET_FEED_URL }},readwrite
