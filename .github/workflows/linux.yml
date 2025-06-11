@@ -250,8 +250,11 @@ jobs:
       - name: Update vcpkg
         run: |
           pushd $VCPKG_INSTALLATION_ROOT
+          git branch
+          git status
           sudo git pull
           vcpkg update
+          popd
 
       - name: script
         env:
