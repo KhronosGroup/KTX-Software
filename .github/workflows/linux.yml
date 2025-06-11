@@ -81,7 +81,7 @@ jobs:
             package: YES, sse: ON, opencl: OFF
           }
         - name: Package (aarch64)
-          os: ubuntu-22.04-arm
+          os: ubuntu-latest-arm
           generator: Ninja
           arch: aarch64
           compiler: gcc
@@ -200,7 +200,7 @@ jobs:
       - name: Install libldtl and mono
         # libldtl is needed by libxcrypt which is needed by vcpkg.
         # mono is needed for adding NuGet sources for caching.
-        run: sudo apt-get -qq install mono-complete libltdl-dev
+        run: sudo apt-get install mono-complete libltdl-dev
 
       - name: Export environment variables for vcpkg binary caching
         if: matrix.options.loadtests != 'OFF'
