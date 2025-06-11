@@ -80,6 +80,11 @@ if [[ -z $BUILD_DIR ]]; then
   fi
 fi
 cmake_args+=("-B" $BUILD_DIR)
+if [[ "$FEATURE_LOADTESTS" != "OFF" && -n "$VCPKG_ROOT" ]]; then
+  cmake_args+=(
+    "-D" "CMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
+  )
+fi
 if [ -n "$CMAKE_BUILD_TYPE" ]; then
   cmake_args+=("-D" "CMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE")
 fi

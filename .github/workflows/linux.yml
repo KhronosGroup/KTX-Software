@@ -197,6 +197,23 @@ jobs:
         with:
           python-version: '3.11.4'
 
+      - name: Export environment variables for vcpkg binary caching
+        if: matrix.options.loadtests != 'OFF'
+        # actions/github-script is used primarily because it is the only
+        # way to access VCPKG_INSTALLATION_ROOT outside of the runner's shell.
+        # Maintaining cross-platform access is desirable so the code can be
+        # easily copied to a multi-platform workflow. NUGET_FEED_URL is set
+        # here to keep the vcpkg cache environment variables together.
+        uses: actions/github-script@v7
+        with:
+          # JSON in use here. #<comments> in the script will break it.
+          # Pre-installed vcpkg location is indicated by a non-standard env.
+          # var.
+          script: |
+            core.exportVariable('VCPKG_ROOT', process.env.VCPKG_INSTALLATION_ROOT || '');
+            core.exportVariable('VCPKG_EXE', process.env.VCPKG_INSTALLATION_ROOT + '/vcpkg' || '');
+            core.exportVariable('NUGET_FEED_URL', 'https://nuget.pkg.github.com/KhronosGroup/index.json' || '');
+
       - name: before_script
         run: |
           if [ "$FEATURE_TOOLS_CTS" = "ON" ]; then
@@ -206,7 +223,28 @@ jobs:
           ./install-gitconfig.sh
           scripts/smudge_date.sh
 
+      - name: Add NuGet sources for vcpkg binary caching
+        if: matrix.options.loadtests != 'OFF'
+        env:
+          USERNAME: KhronosGroup
+        shell: bash
+        # `vcpkg fetch nuget` fetches nuget and outputs the location of
+        # the fetched command. It is a .exe that runs in the mono VM.
+        run: |
+          mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
+            sources add \
+            -Source "${{ env.NUGET_FEED_URL }}" \
+            -StorePasswordInClearText \
+            -Name GitHubPackages \
+            -UserName "${{ env.USERNAME }}" \
+            -Password "${{ secrets.GH_PACKAGES_TOKEN }}"
+          mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
+            setapikey "${{ secrets.GH_PACKAGES_TOKEN }}" \
+            -Source "${{ env.NUGET_FEED_URL }}"
+
       - name: script
+        env:
+          VCPKG_BINARY_SOURCES: clear;nuget,${{ env.NUGET_FEED_URL }},readwrite
         run: |
           ./scripts/build_linux.sh
 

@@ -72,10 +72,6 @@ fi
 if [[ "$FEATURE_VK_UPLOAD" = "ON" || "$FEATURE_LOADTESTS" =~ "Vulkan" ]]; then
   sudo apt-get -qq install libvulkan1 libvulkan-dev:$dpkg_arch
 fi
-if [[ -n "$FEATURE_LOADTESTS" && "$FEATURE_LOADTESTS" != "OFF" ]]; then
-  sudo apt-get -qq install libsdl2-dev:$dpkg_arch
-  sudo apt-get -qq install libassimp5 libassimp-dev:$dpkg_arch
-fi
 
 if [[ "$FEATURE_LOADTESTS" =~ "Vulkan" ]]; then
   # No Vulkan SDK for Linux/arm64 yet.

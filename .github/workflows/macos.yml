@@ -221,7 +221,7 @@ jobs:
           USERNAME: KhronosGroup
         shell: bash
         # `vcpkg fetch nuget` fetches nuget and outputs the location of
-        # the fetched command.
+        # the fetched command. It is a .exe that runs in the mono VM.
         run: |
           mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
             sources add \
