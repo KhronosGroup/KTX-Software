@@ -48,7 +48,7 @@ jobs:
       matrix:
         include:
         - name: Default
-          os: ubuntu-22.04
+          os: ubuntu-latest
           generator: Ninja
           arch: x86_64
           compiler: gcc
@@ -59,7 +59,7 @@ jobs:
             sse: ON, opencl: OFF
           }
         - name: Clang
-          os: ubuntu-22.04
+          os: ubuntu-latest
           generator: Ninja Multi-Config
           arch: x86_64
           compiler: clang
@@ -70,7 +70,7 @@ jobs:
             sse: ON, opencl: OFF
           }
         - name: Package (x86_64)
-          os: ubuntu-22.04
+          os: ubuntu-latest
           generator: Ninja
           arch: x86_64
           compiler: gcc
