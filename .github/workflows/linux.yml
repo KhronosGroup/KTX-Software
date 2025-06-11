@@ -200,7 +200,6 @@ jobs:
       - name: Install libldtl and mono
         # libldtl is needed by libxcrypt which is needed by vcpkg.
         # mono is needed for adding NuGet sources for caching.
-        if: matrix.os == 'ubuntu-latest'
         run: sudo apt-get -qq install mono-complete libltdl-dev
 
       - name: Export environment variables for vcpkg binary caching
