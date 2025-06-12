@@ -191,18 +191,18 @@ jobs:
           echo "JAVA_HOME=$JAVA_HOME_17_X64" >> $GITHUB_ENV
           ./scripts/install_linux.sh
 
-      - name: Set up Python 3.11
-        if: matrix.options.py == 'ON' || matrix.options.loadtests != 'OFF'
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11.4'
-          cache: 'pip' # caching pip dependencies
-
-      # jinja2 needed by meson which vcpkg is installing even though it is
-      # not a dependency of sdl2 or assimp.
-      - name: Install jinja2
-        if: matrix.options.loadtests != 'OFF'
-        run: pip install jinja2
+#      - name: Set up Python 3.11
+#        if: matrix.options.py == 'ON' || matrix.options.loadtests != 'OFF'
+#        uses: actions/setup-python@v5
+#        with:
+#          python-version: '3.11.4'
+#          cache: 'pip' # caching pip dependencies
+#
+#      # jinja2 needed by meson which vcpkg is installing even though it is
+#      # not a dependency of sdl2 or assimp.
+#      - name: Install jinja2
+#        if: matrix.options.loadtests != 'OFF'
+#        run: pip install jinja2
 
       - name: Install libldtl and mono
         if: matrix.options.loadtests != 'OFF' && (matrix.os =='ubuntu-24.04' || matrix.os == 'ubuntu-latest')
