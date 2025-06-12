@@ -197,10 +197,10 @@ jobs:
         with:
           python-version: '3.11.4'
 
-      - name: Install libldtl and mono
+#      - name: Install libldtl and mono
         # libldtl is needed by libxcrypt which is needed by vcpkg.
         # mono is needed for adding NuGet sources for caching.
-        run: sudo apt-get install mono-complete libltdl-dev
+#        run: sudo apt-get install mono-complete libltdl-dev
 
       - name: Export environment variables for vcpkg binary caching
         if: matrix.options.loadtests != 'OFF'
@@ -247,14 +247,14 @@ jobs:
             setapikey "${{ secrets.GH_PACKAGES_TOKEN }}" \
             -Source "${{ env.NUGET_FEED_URL }}"
 
-      - name: Update vcpkg
-        run: |
-          pushd $VCPKG_INSTALLATION_ROOT
-          git branch
-          git status
-          sudo git pull
-          vcpkg update
-          popd
+#      - name: Update vcpkg
+#        run: |
+#          pushd $VCPKG_INSTALLATION_ROOT
+#          git branch
+#          git status
+#          sudo git pull
+#          vcpkg update
+#          popd
 
       - name: script
         env:
