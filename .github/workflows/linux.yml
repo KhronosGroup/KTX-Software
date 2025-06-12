@@ -198,9 +198,12 @@ jobs:
           python-version: '3.11.4'
 
       - name: Install libldtl and mono
+        if: matrix.options.loadtests != 'OFF'
         # libldtl is needed by libxcrypt which is needed by vcpkg.
         # mono is needed for adding NuGet sources for caching.
-        run: sudo apt-get install mono-complete libltdl-dev
+        run: |
+          apt list --installed | grep -E 'mono-complete|libltdl-dev'
+          sudo apt-get install mono-complete libltdl-dev
 
       - name: Export environment variables for vcpkg binary caching
         if: matrix.options.loadtests != 'OFF'
