@@ -198,7 +198,7 @@ jobs:
           python-version: '3.11.4'
 
       - name: Install libldtl and mono
-        if: matrix.options.loadtests != 'OFF'
+        if: matrix.options.loadtests != 'OFF' && (matrix.os =='ubuntu-24.04' || matrix.os == 'ubuntu-latest')
         # libldtl is needed by libxcrypt which is needed by vcpkg.
         # mono is needed for adding NuGet sources for caching.
         run: sudo apt-get install mono-complete libltdl-dev
@@ -262,6 +262,12 @@ jobs:
           VCPKG_BINARY_SOURCES: clear;nuget,${{ env.NUGET_FEED_URL }},readwrite
         run: |
           ./scripts/build_linux.sh
+
+      - name: Print logs after a build failure
+        if: failure()
+        run: |
+          cat /usr/local/share/vcpkg/buildtrees/libsystemd/config-x64-linux-dbg-meson-log.txt.log
+          cat /usr/local/share/vcpkg/buildtrees/libsystemd/config-x64-linux-dbg-out.log
 
       - name: Sanitize release notes
         if: matrix.options.package == 'YES' && github.event_name == 'push' && github.ref_type == 'tag'
