@@ -70,7 +70,7 @@ jobs:
             sse: ON, opencl: OFF
           }
         - name: Package (x86_64)
-          os: ubuntu-latest
+          os: ubuntu-22.04
           generator: Ninja
           arch: x86_64
           compiler: gcc
@@ -81,7 +81,7 @@ jobs:
             package: YES, sse: ON, opencl: OFF
           }
         - name: Package (aarch64)
-          os: ubuntu-latest-arm
+          os: ubuntu-22.04-arm
           generator: Ninja
           arch: aarch64
           compiler: gcc
@@ -255,26 +255,11 @@ jobs:
             setapikey "${{ secrets.GH_PACKAGES_TOKEN }}" \
             -Source "${{ env.NUGET_FEED_URL }}"
 
-#      - name: Update vcpkg
-#        run: |
-#          pushd $VCPKG_INSTALLATION_ROOT
-#          git branch
-#          git status
-#          sudo git pull
-#          vcpkg update
-#          popd
-
       - name: script
         env:
           VCPKG_BINARY_SOURCES: clear;nuget,${{ env.NUGET_FEED_URL }},readwrite
         run: |
           ./scripts/build_linux.sh
-
-      - name: Print logs after a build failure
-        if: failure()
-        run: |
-          cat /usr/local/share/vcpkg/buildtrees/libsystemd/config-x64-linux-dbg-meson-log.txt.log
-          cat /usr/local/share/vcpkg/buildtrees/libsystemd/config-x64-linux-dbg-out.log
 
       - name: Sanitize release notes
         if: matrix.options.package == 'YES' && github.event_name == 'push' && github.ref_type == 'tag'
