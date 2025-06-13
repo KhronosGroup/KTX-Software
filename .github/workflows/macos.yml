@@ -192,12 +192,6 @@ jobs:
       - name: Run install script
         run: ./scripts/install_macos.sh
 
-      - name: Set up Python 3.11
-        if: matrix.options.py == 'ON'
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11.4'
-
       - name: Export environment variables for vcpkg binary caching
         if: matrix.options.loadtests != 'OFF'
         # actions/github-script is used primarily because it is the only
