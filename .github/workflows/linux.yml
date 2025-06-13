@@ -264,7 +264,7 @@ jobs:
             -Source "${{ env.NUGET_FEED_URL }}"
 
       - name: Add NuGet sources for vcpkg binary caching
-        if: matrix.options.loadtests != 'OFF' && (matrix.os == 'ubuntu-22.04-arm' || matrix.os == 'ubuntu-24.04-arm' || matrix.os == 'ubuntu-latest-arm'
+        if: matrix.options.loadtests != 'OFF' && (matrix.os == 'ubuntu-22.04-arm' || matrix.os == 'ubuntu-24.04-arm' || matrix.os == 'ubuntu-latest-arm')
         env:
           USERNAME: KhronosGroup
         shell: bash
