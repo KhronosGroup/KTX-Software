@@ -205,7 +205,7 @@ jobs:
 #        run: pip install jinja2
 
       - name: Install libldtl and mono
-        if: matrix.options.loadtests != 'OFF' && (matrix.os =='ubuntu-24.04' || matrix.os == 'ubuntu-latest')
+        if: matrix.options.loadtests != 'OFF' && (matrix.os =='ubuntu-24.04' || matrix.os == 'ubuntu-latest' || matrix.os == 'ubuntu-22.04-arm')
         # libldtl is needed by libxcrypt which is needed by vcpkg.
         # mono is needed for adding NuGet sources for caching.
         run: sudo apt-get install mono-complete libltdl-dev
