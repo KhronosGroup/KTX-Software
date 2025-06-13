@@ -192,6 +192,14 @@ jobs:
       - name: Run install script
         run: ./scripts/install_macos.sh
 
+      # virtualenv is not pre-installed in the runner so install it ourselves.
+      #
+      # Note that it is the builds of sdist and wheel that require virtualenv
+      # not the explicit dependencies of pyktx.
+      - name: Install Python virtualenv
+        if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
+        run: pip install virtualenv
+
       - name: Export environment variables for vcpkg binary caching
         if: matrix.options.loadtests != 'OFF'
         # actions/github-script is used primarily because it is the only
