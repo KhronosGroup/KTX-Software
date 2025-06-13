@@ -191,24 +191,21 @@ jobs:
           echo "JAVA_HOME=$JAVA_HOME_17_X64" >> $GITHUB_ENV
           ./scripts/install_linux.sh
 
-#      - name: Set up Python 3.11
-#        if: matrix.options.py == 'ON' || matrix.options.loadtests != 'OFF'
-#        uses: actions/setup-python@v5
-#        with:
-#          python-version: '3.11.4'
-#          cache: 'pip' # caching pip dependencies
-#
-#      # jinja2 needed by meson which vcpkg is installing even though it is
-#      # not a dependency of sdl2 or assimp.
-#      - name: Install jinja2
-#        if: matrix.options.loadtests != 'OFF'
-#        run: pip install jinja2
-
       - name: Install libldtl and mono
-        if: matrix.options.loadtests != 'OFF' && (matrix.os =='ubuntu-24.04' || matrix.os == 'ubuntu-latest')
+        if: matrix.options.loadtests != 'OFF' && (matrix.os == 'ubuntu-24.04' || matrix.os == 'ubuntu-latest')
+        # These packages were omitted from ubuntu-24.04 for some reason.
         # libldtl is needed by libxcrypt which is needed by vcpkg.
         # mono is needed for adding NuGet sources for caching.
         run: sudo apt-get install mono-complete libltdl-dev
+
+      - name: before_script
+        run: |
+          if [ "$FEATURE_TOOLS_CTS" = "ON" ]; then
+            git submodule update --init --recursive tests/cts
+          fi
+          # Make sure embedded dates are correct.
+          ./install-gitconfig.sh
+          scripts/smudge_date.sh
 
       - name: Export environment variables for vcpkg binary caching
         if: matrix.options.loadtests != 'OFF'
@@ -227,58 +224,31 @@ jobs:
             core.exportVariable('VCPKG_EXE', process.env.VCPKG_INSTALLATION_ROOT + '/vcpkg' || '');
             core.exportVariable('NUGET_FEED_URL', 'https://nuget.pkg.github.com/KhronosGroup/index.json' || '');
 
-      - name: before_script
+      - name: Set $MONO to run mono or not.
+        if: matrix.options.loadtests != 'OFF' && matrix.arch = 'aarch64'
+        # On aarch64 runners the item fetched by `vcpkg fetch nuget` is a
+        # shell script which needs to be run directly rather than in a mono
+        # VM.
         run: |
-          if [ "$FEATURE_TOOLS_CTS" = "ON" ]; then
-            git submodule update --init --recursive tests/cts
-          fi
-          # Make sure embedded dates are correct.
-          ./install-gitconfig.sh
-          scripts/smudge_date.sh
-
-      - name: Print file name of received nuget.exe
-        if: matrix.options.loadtests != 'OFF'
-        run: ${{ env.VCPKG_EXE }} fetch nuget
-
-      - name: Dump received nuget.exe
-        if: matrix.options.loadtests != 'OFF'
-        run: cat `${{ env.VCPKG_EXE }} fetch nuget`
+          if [ `uname -m` = "aarch64" ]; then mono=""; else mono="mono"; fi
+          echo "MONO=$mono" >> $GITHUB_ENV
 
       - name: Add NuGet sources for vcpkg binary caching
-        if: matrix.options.loadtests != 'OFF' && matrix.os != 'ubuntu-22.04-arm' && matrix.os != 'ubuntu-24.04-arm' && matrix.os != 'ubuntu-latest-arm'
+        if: matrix.options.loadtests != 'OFF'
         env:
           USERNAME: KhronosGroup
         shell: bash
         # `vcpkg fetch nuget` fetches nuget and outputs the location of
         # the fetched command. It is a .exe that runs in the mono VM.
         run: |
-          mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
+          $MONO `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
             sources add \
             -Source "${{ env.NUGET_FEED_URL }}" \
             -StorePasswordInClearText \
             -Name GitHubPackages \
             -UserName "${{ env.USERNAME }}" \
             -Password "${{ secrets.GH_PACKAGES_TOKEN }}"
-          mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
-            setapikey "${{ secrets.GH_PACKAGES_TOKEN }}" \
-            -Source "${{ env.NUGET_FEED_URL }}"
-
-      - name: Add NuGet sources for vcpkg binary caching
-        if: matrix.options.loadtests != 'OFF' && (matrix.os == 'ubuntu-22.04-arm' || matrix.os == 'ubuntu-24.04-arm' || matrix.os == 'ubuntu-latest-arm')
-        env:
-          USERNAME: KhronosGroup
-        shell: bash
-        # `vcpkg fetch nuget` fetches nuget and outputs the location of
-        # the fetched command. It is a .exe that runs in the mono VM.
-        run: |
-          `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
-            sources add \
-            -Source "${{ env.NUGET_FEED_URL }}" \
-            -StorePasswordInClearText \
-            -Name GitHubPackages \
-            -UserName "${{ env.USERNAME }}" \
-            -Password "${{ secrets.GH_PACKAGES_TOKEN }}"
-          `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
+          $MONO `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
             setapikey "${{ secrets.GH_PACKAGES_TOKEN }}" \
             -Source "${{ env.NUGET_FEED_URL }}"
 
