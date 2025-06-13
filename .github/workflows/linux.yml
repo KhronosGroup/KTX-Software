@@ -236,6 +236,10 @@ jobs:
           ./install-gitconfig.sh
           scripts/smudge_date.sh
 
+      - name: Dump received nuget.exe
+        if:  matrix.os == 'ubuntu-22.04-arm'
+        run: cat `${{ env.VCPKG_EXE }} fetch nuget`
+
       - name: Add NuGet sources for vcpkg binary caching
         if: matrix.options.loadtests != 'OFF'
         env:
