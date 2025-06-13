@@ -245,7 +245,7 @@ jobs:
         run: cat `${{ env.VCPKG_EXE }} fetch nuget`
 
       - name: Add NuGet sources for vcpkg binary caching
-        if: matrix.options.loadtests != 'OFF'
+        if: matrix.options.loadtests != 'OFF' && matrix.os != 'ubuntu-22.04-arm' && matrix.os != 'ubuntu-24.04-arm' && matrix.os != 'ubuntu-latest-arm'
         env:
           USERNAME: KhronosGroup
         shell: bash
@@ -260,6 +260,25 @@ jobs:
             -UserName "${{ env.USERNAME }}" \
             -Password "${{ secrets.GH_PACKAGES_TOKEN }}"
           mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
+            setapikey "${{ secrets.GH_PACKAGES_TOKEN }}" \
+            -Source "${{ env.NUGET_FEED_URL }}"
+
+      - name: Add NuGet sources for vcpkg binary caching
+        if: matrix.options.loadtests != 'OFF' && (matrix.os == 'ubuntu-22.04-arm' || matrix.os == 'ubuntu-24.04-arm' || matrix.os == 'ubuntu-latest-arm'
+        env:
+          USERNAME: KhronosGroup
+        shell: bash
+        # `vcpkg fetch nuget` fetches nuget and outputs the location of
+        # the fetched command. It is a .exe that runs in the mono VM.
+        run: |
+          `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
+            sources add \
+            -Source "${{ env.NUGET_FEED_URL }}" \
+            -StorePasswordInClearText \
+            -Name GitHubPackages \
+            -UserName "${{ env.USERNAME }}" \
+            -Password "${{ secrets.GH_PACKAGES_TOKEN }}"
+          `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
             setapikey "${{ secrets.GH_PACKAGES_TOKEN }}" \
             -Source "${{ env.NUGET_FEED_URL }}"
 
