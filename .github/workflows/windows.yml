@@ -248,6 +248,7 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.13'
+        freethreaded: false
 
     # virtualenv is no longer included as of 20240929.1 runner so
     # install it ourselves. See
@@ -255,9 +256,9 @@ jobs:
     #
     # Note that it is the builds of sdist and wheel that require virtualenv
     # not the explicit dependencies of pyktx.
-#    - name: Install Python virtualenv
-#      if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
-#      run: pip install virtualenv
+    - name: Install Python virtualenv
+      if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
+      run: pip install virtualenv
 
     - name: Init CTS submodule
       if: matrix.options.tools_cts =='ON'
