@@ -237,11 +237,17 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-#    - name: Set up Python 3.11
-#      if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
-#      uses: actions/setup-python@v5
-#      with:
-#        python-version: '3.11.4'
+    # Pre-installed Python in Windows Server 2022 is 3.9 free-threaded
+    # (whaatever that means). Our Python binding, or more accurately CFFI,
+    # wants to use the limited API(whatever that is) by setting
+    # "Py_LIMITED_API" before including Python.h. The limited API is
+    # not supported by free-threaded builds, at least not at v3.9.
+    # So set up a Python that works for us.
+    - name: Set up Python 3.13
+      if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
 
     # virtualenv is no longer included as of 20240929.1 runner so
     # install it ourselves. See
