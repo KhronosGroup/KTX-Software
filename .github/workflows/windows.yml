@@ -243,11 +243,11 @@ jobs:
     # "Py_LIMITED_API" before including Python.h. The limited API is
     # not supported by free-threaded builds, at least not at v3.9.
     # So set up a Python that works for us.
-    - name: Set up Python 3.13
+    - name: Set up Python 3.11
       if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
       uses: actions/setup-python@v5
       with:
-        python-version: '3.13'
+        python-version: '3.11.4'
         freethreaded: false
 
     # virtualenv is no longer included as of 20240929.1 runner so
