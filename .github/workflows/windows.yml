@@ -240,7 +240,7 @@ jobs:
     # this setup, CMake finds the latest (3.13.4) on the runner. Normally
     # this would be fine but a bug in 3.13.4 for Windows
     # (https://github.com/python/cpython/issues/135151) means it looks
-    # like a free-threaded (whaatever that means) version to CPython leading
+    # like a free-threaded (whatever that means) version to CPython leading
     # to an error that the "limited API" (whatever that is) is not supported
     # by free-threaded Python. This is fixed in 3.13.5. Until the runners
     # are updated (see https://github.com/actions/runner-images/issues/12377)
