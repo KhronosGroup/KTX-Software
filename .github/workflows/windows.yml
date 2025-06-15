@@ -129,7 +129,6 @@ jobs:
       OPENGL_ES_EMULATOR: C:/Imagination/Windows_x86_64
       OPENGL_ES_EMULATOR_WIN: C:\Imagination\Windows_x86_64
       PVR_SDK_HOME: https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/
-      #PYTHON: C:\hostedtoolcache\windows\Python\3.11.4\x64\python.exe
       PYTHON_DIST_DIR: interface/python_binding/dist
       # This is set to avoid the compiler running out of heap space
       # when vcpkg is compiling glew. Default is logical cores + 1.
@@ -243,11 +242,11 @@ jobs:
     # "Py_LIMITED_API" before including Python.h. The limited API is
     # not supported by free-threaded builds, at least not at v3.9.
     # So set up a Python that works for us.
-    - name: Set up Python 3.11
+    - name: Set up Python 3.12
       if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11.4'
+        python-version: '3.12'
         freethreaded: false
 
     # virtualenv is no longer included as of 20240929.1 runner so
