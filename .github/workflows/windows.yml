@@ -236,18 +236,20 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    # Pre-installed Python in Windows Server 2022 is 3.9 free-threaded
-    # (whaatever that means). Our Python binding, or more accurately CFFI,
-    # wants to use the limited API(whatever that is) by setting
-    # "Py_LIMITED_API" before including Python.h. The limited API is
-    # not supported by free-threaded builds, at least not at v3.9.
-    # So set up a Python that works for us.
+    # Pre-installed Python in Windows Server 2022 is 3.9. However absent
+    # this setup, CMake finds the latest (3.13.4) on the runner. Normally
+    # this would be fine but a bug in 3.13.4 for Windows
+    # (https://github.com/python/cpython/issues/135151) means it looks
+    # like a free-threaded (whaatever that means) version to CPython leading
+    # to an error that the "limited API" (whatever that is) is not supported
+    # by free-threaded Python. This is fixed in 3.13.5. Until the runners
+    # are updated (see https://github.com/actions/runner-images/issues/12377)
+    # install a version that works.
     - name: Set up Python 3.12
       if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
       uses: actions/setup-python@v5
       with:
         python-version: '3.12'
-        freethreaded: false
 
     # virtualenv is no longer included as of 20240929.1 runner so
     # install it ourselves. See
