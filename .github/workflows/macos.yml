@@ -194,10 +194,14 @@ jobs:
       - name: Run install script
         run: ./scripts/install_macos.sh
 
-      # virtualenv is not pre-installed in the runner so install it ourselves.
+      # virtualenv is included in the runner's pre-installed Python. This
+      # is how to install it, should it be removed or if using a different
+      # Python that does not include it.
       #
-      # Note that it is the builds of sdist and wheel that require virtualenv
-      # not the explicit dependencies of pyktx.
+      # Note that the builds via sdist and wheel require a virtual env.
+      # regardless of whether the in-use Python is externally managed.
+      # Installing the explicit dependencies of pyktx only needs virtualenv
+      # and PY_USE_VENV: ON when Python is externally managed.
 #      - name: Install Python virtualenv
 #        if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
 #        run: pip install virtualenv
