@@ -304,9 +304,9 @@ jobs:
       if: matrix.arch == 'x64' && matrix.options.tests == 'ON'
       run: ctest --output-on-failure --test-dir $env:BUILD_DIR -C Release
 
-    - name: Upload test log
-      if: ${{ failure() }}
-      run: scripts/on_failure.ps1
+#    - name: Upload test log
+#      if: ${{ failure() }}
+#      run: scripts/on_failure.ps1
 
     - name: Get KTX version
       if: matrix.options.package == 'YES'
