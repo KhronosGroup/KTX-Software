@@ -255,11 +255,14 @@ jobs:
     # install it ourselves. See
     # https://github.com/actions/runner-images/issues/10749.
     #
-    # Note that it is the builds of sdist and wheel that require virtualenv
-    # not the explicit dependencies of pyktx.
-#    - name: Install Python virtualenv
-#      if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
-#      run: pip install virtualenv
+    # Note that the builds, via sdist and wheel, require a virtual env.
+    # regardless of whether the in-use Python is externally managed.
+    # Installing the explicit dependencies of pyktx only needs virtualenv
+    # and PY_USE_VENV: ON when Python is externally managed. The packages
+    # on the Windows runners are not externally managed.
+    - name: Install Python virtualenv
+      if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
+      run: pip install virtualenv
 
     - name: Init CTS submodule
       if: matrix.options.tools_cts =='ON'
