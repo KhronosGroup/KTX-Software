@@ -257,9 +257,9 @@ jobs:
     #
     # Note that it is the builds of sdist and wheel that require virtualenv
     # not the explicit dependencies of pyktx.
-    - name: Install Python virtualenv
-      if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
-      run: pip install virtualenv
+#    - name: Install Python virtualenv
+#      if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
+#      run: pip install virtualenv
 
     - name: Init CTS submodule
       if: matrix.options.tools_cts =='ON'

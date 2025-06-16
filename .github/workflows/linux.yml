@@ -199,6 +199,23 @@ jobs:
         # mono is needed for adding NuGet sources for caching.
         run: sudo apt-get install mono-complete libltdl-dev
 
+      # Should a specific version of Python ever be wanted, use this.
+#      - name: Set up Python
+#        if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
+#        uses: actions/setup-python@v5
+#        with:
+#          python-version: '3.13'
+
+      # If the selected Python does not have virtualenv installed, use this.
+      #
+      # Note that the builds, via sdist and wheel, require a virtual env.
+      # regardless of whether the in-use Python is externally managed.
+      # Installing the explicit dependencies of pyktx only needs virtualenv
+      # and PY_USE_VENV: ON when Python is externally managed.
+#      - name: Install Python virtualenv
+#        if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
+#        run: pip install virtualenv
+
       - name: before_script
         run: |
           if [ "$FEATURE_TOOLS_CTS" = "ON" ]; then
