@@ -2898,7 +2898,7 @@ class ktxTexture2AstcLdrEncodeDecodeTestBase
     using ktxTextureTestBase<component_type, numComponents, internalformat>::ktxMemFileLen;
 
   public:
-    void runTest() {
+    void runTest(ktx_pack_astc_block_dimension_e blockDimension) {
         ktxTexture2* texture;
         KTX_error_code result;
         auto tmpDir = fs::temp_directory_path();
@@ -2930,7 +2930,7 @@ class ktxTexture2AstcLdrEncodeDecodeTestBase
             ktxAstcParams params;
             params.structSize = sizeof(params);
             params.threadCount = 1;
-            params.blockDimension = KTX_PACK_ASTC_BLOCK_DIMENSION_4x4;
+            params.blockDimension = blockDimension;
             params.mode = KTX_PACK_ASTC_ENCODER_MODE_DEFAULT;
             params.qualityLevel = KTX_PACK_ASTC_QUALITY_LEVEL_FAST;
             params.normalMap = false;
@@ -2940,22 +2940,20 @@ class ktxTexture2AstcLdrEncodeDecodeTestBase
             params.inputSwizzle[2] = 'B';
             params.inputSwizzle[3] = 'A';
             result = ktxTexture2_CompressAstcEx(texture, &params);
+
             EXPECT_EQ(result, KTX_SUCCESS);
-            EXPECT_TRUE((texture->vkFormat >= VK_FORMAT_ASTC_4x4_UNORM_BLOCK
-                        && texture->vkFormat <= VK_FORMAT_ASTC_12x12_SRGB_BLOCK)
-                        || (texture->vkFormat >= VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK
-                        && texture->vkFormat <= VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK)
-                        || (texture->vkFormat >= VK_FORMAT_ASTC_3x3x3_UNORM_BLOCK_EXT
-                        && texture->vkFormat <= VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT));
+            VkFormat expectedFormat = blockDimensionToFormat(blockDimension);
+            EXPECT_TRUE(texture->vkFormat == expectedFormat);
+
             uint32_t* pBdb = texture->pDfd+1;
-            bool isFloat = KHR_DFDSVAL(pBdb, 1, QUALIFIERS) & KHR_DF_SAMPLE_DATATYPE_FLOAT;
-            bool isSrgb = KHR_DFDVAL(pBdb, TRANSFER) == KHR_DF_TRANSFER_SRGB;
+            if (isFormatFloat()) {
+                EXPECT_TRUE(KHR_DFDSVAL(pBdb, 1, QUALIFIERS) & KHR_DF_SAMPLE_DATATYPE_FLOAT);
+                EXPECT_TRUE(KHR_DFDSVAL(pBdb, 1, QUALIFIERS) & KHR_DF_SAMPLE_DATATYPE_SIGNED);
+            } else if (isFormatSrgb()) {
+                EXPECT_TRUE(KHR_DFDVAL(pBdb, TRANSFER) == KHR_DF_TRANSFER_SRGB);
+            }
             khr_df_model_e model = static_cast<khr_df_model_e>(KHR_DFDVAL(pBdb, MODEL));
             EXPECT_EQ(model, KHR_DF_MODEL_ASTC);
-            if (internalformat == GL_SRGB8 || internalformat == GL_SRGB8_ALPHA8)
-                EXPECT_TRUE(isSrgb);
-            else
-                EXPECT_FALSE(isSrgb);
             EXPECT_EQ(texture->supercompressionScheme, KTX_SS_NONE);
             EXPECT_TRUE(texture->_private->_supercompressionGlobalData == (ktx_uint8_t*)0);
             EXPECT_EQ(texture->numLevels, helper.numLevels);
@@ -2966,9 +2964,9 @@ class ktxTexture2AstcLdrEncodeDecodeTestBase
 
             result = ktxTexture2_DecodeAstc(texture);
             EXPECT_EQ(result, KTX_SUCCESS);
-            if (isFloat)
+            if (isFormatFloat())
                 EXPECT_EQ(texture->vkFormat, VK_FORMAT_R32G32B32A32_SFLOAT);
-            else if (isSrgb)
+            else if (isFormatSrgb())
                 EXPECT_EQ(texture->vkFormat, VK_FORMAT_R8G8B8A8_SRGB);
             else
                 EXPECT_EQ(texture->vkFormat, VK_FORMAT_R8G8B8A8_UNORM);
@@ -3002,6 +3000,88 @@ class ktxTexture2AstcLdrEncodeDecodeTestBase
             }
         }
     }
+  protected:
+    bool isFormatFloat() {
+        // Test does not yet support float formats
+        return false;
+    }
+
+    bool isFormatSrgb() {
+        switch(internalformat) {
+            case GL_SRGB8_ALPHA8: [[fallthrough]];
+            case GL_SRGB8:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    VkFormat blockDimensionToFormat(ktx_pack_astc_block_dimension_e blockDimension) {
+        if (isFormatSrgb())
+            return blockDimensionToSrgbFormat(blockDimension);
+        else
+            return blockDimensionToUnormFormat(blockDimension);
+    }
+
+    VkFormat blockDimensionToSrgbFormat(ktx_pack_astc_block_dimension_e blockDimension) {
+        switch(blockDimension) {
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4: return VK_FORMAT_ASTC_4x4_SRGB_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_5x4: return VK_FORMAT_ASTC_5x4_SRGB_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5: return VK_FORMAT_ASTC_5x5_SRGB_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_6x5: return VK_FORMAT_ASTC_6x5_SRGB_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6: return VK_FORMAT_ASTC_6x6_SRGB_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_8x5: return VK_FORMAT_ASTC_8x5_SRGB_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_8x6: return VK_FORMAT_ASTC_8x6_SRGB_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_10x5: return VK_FORMAT_ASTC_10x5_SRGB_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_10x6: return VK_FORMAT_ASTC_10x6_SRGB_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_8x8:  return VK_FORMAT_ASTC_8x8_SRGB_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_10x8: return VK_FORMAT_ASTC_10x8_SRGB_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_10x10: return VK_FORMAT_ASTC_10x10_SRGB_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_12x10: return VK_FORMAT_ASTC_12x10_SRGB_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_12x12: return VK_FORMAT_ASTC_12x12_SRGB_BLOCK;
+            // 3D formats
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_3x3x3: return VK_FORMAT_ASTC_3x3x3_SRGB_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_4x3x3: return VK_FORMAT_ASTC_4x3x3_SRGB_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x3: return VK_FORMAT_ASTC_4x4x3_SRGB_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x4: return VK_FORMAT_ASTC_4x4x4_SRGB_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_5x4x4: return VK_FORMAT_ASTC_5x4x4_SRGB_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x4: return VK_FORMAT_ASTC_5x5x4_SRGB_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x5: return VK_FORMAT_ASTC_5x5x5_SRGB_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_6x5x5: return VK_FORMAT_ASTC_6x5x5_SRGB_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x5: return VK_FORMAT_ASTC_6x6x5_SRGB_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x6: return VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT;
+        };
+    }
+
+    VkFormat blockDimensionToUnormFormat(ktx_pack_astc_block_dimension_e blockDimension) {
+        switch(blockDimension) {
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4: return VK_FORMAT_ASTC_4x4_UNORM_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_5x4: return VK_FORMAT_ASTC_5x4_UNORM_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5: return VK_FORMAT_ASTC_5x5_UNORM_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_6x5: return VK_FORMAT_ASTC_6x5_UNORM_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6: return VK_FORMAT_ASTC_6x6_UNORM_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_8x5: return VK_FORMAT_ASTC_8x5_UNORM_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_8x6: return VK_FORMAT_ASTC_8x6_UNORM_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_10x5: return VK_FORMAT_ASTC_10x5_UNORM_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_10x6: return VK_FORMAT_ASTC_10x6_UNORM_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_8x8:  return VK_FORMAT_ASTC_8x8_UNORM_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_10x8: return VK_FORMAT_ASTC_10x8_UNORM_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_10x10: return VK_FORMAT_ASTC_10x10_UNORM_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_12x10: return VK_FORMAT_ASTC_12x10_UNORM_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_12x12: return VK_FORMAT_ASTC_12x12_UNORM_BLOCK;
+            // 3D formats
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_3x3x3: return VK_FORMAT_ASTC_3x3x3_UNORM_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_4x3x3: return VK_FORMAT_ASTC_4x3x3_UNORM_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x3: return VK_FORMAT_ASTC_4x4x3_UNORM_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x4: return VK_FORMAT_ASTC_4x4x4_UNORM_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_5x4x4: return VK_FORMAT_ASTC_5x4x4_UNORM_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x4: return VK_FORMAT_ASTC_5x5x4_UNORM_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x5: return VK_FORMAT_ASTC_5x5x5_UNORM_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_6x5x5: return VK_FORMAT_ASTC_6x5x5_UNORM_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x5: return VK_FORMAT_ASTC_6x6x5_UNORM_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x6: return VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT;
+        };
+    }
 };
 
 // Test fixtures for ASTC encode and decode tests.
@@ -3019,20 +3099,35 @@ class ktxTexture2_AstcLdrEncodeDecodeTestRGB8_SRGB
 // ASTC encode & decode tests
 ///////////////////////////////////////////
 
-TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGBA8_UNORM, CompressToAstcLdrThenDecode) {
-    runTest();
+TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGBA8_UNORM, CompressToAstc4x4LdrThenDecode) {
+    runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_4x4);
 }
 
-TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGBA8_SRGB, CompressToAstcLdrThenDecode) {
-    runTest();
+TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGBA8_SRGB, CompressToAstc4x4LdrThenDecode) {
+    runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_4x4);
 }
 
-TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGB8_UNORM, CompressToAstcLdrThenDecode) {
-    runTest();
+TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGB8_UNORM, CompressToAstc4x4LdrThenDecode) {
+    runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_4x4);
 }
 
-TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGB8_SRGB, CompressToAstcLdrThenDecode) {
-    runTest();
+TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGB8_SRGB, CompressToAstc4x4LdrThenDecode) {
+    runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_4x4);
+}
+
+TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGBA8_UNORM, CompressToAstc8x5LdrThenDecode) {
+    runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_8x5);
+}
+
+TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGBA8_SRGB, CompressToAstc8x5LdrThenDecode) {
+    runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_8x5);
+}
+TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGBA8_UNORM, CompressToAstc12x12LdrThenDecode) {
+    runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_12x12);
+}
+
+TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGBA8_SRGB, CompressToAstc12x12LdrThenDecode) {
+    runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_12x12);
 }
 
 }  // namespace
