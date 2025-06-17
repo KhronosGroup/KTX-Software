@@ -152,7 +152,7 @@ jobs:
       SUPPORT_SSE: ${{ matrix.options.sse }}
       PY_USE_VENV: ${{ matrix.options.py.use_venv && matrix.options.py_use_venv || 'OFF' }}
       WERROR: ${{ matrix.options.werror && matrix.options.werror || 'ON' }}
-      VCPKG_INSTALL_OPTIONS: ${{ matrix.vcpkg_install_options &&  matrix.vcpkg_install_options || ''
+      VCPKG_INSTALL_OPTIONS: ${{ matrix.vcpkg_install_options &&  matrix.vcpkg_install_options || '' }}
       # CC Handled by job step
       # CXX Handled by job step
 
