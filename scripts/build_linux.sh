@@ -83,8 +83,7 @@ fi
 cmake_args+=("-B" $BUILD_DIR)
 if [[ "$FEATURE_LOADTESTS" != "OFF" && -n "$VCPKG_ROOT" ]]; then
   cmake_args+=(
-    "-D" "CMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" \
-    "-D" "VCPKG_INSTALL_OPTIONS=\"--debug\""
+    "-D" "CMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
   )
 fi
 if [ -n "$CMAKE_BUILD_TYPE" ]; then
@@ -109,7 +108,6 @@ cmake_args+=(\
   "-D" "KTX_WERROR=$WERROR"
 )
 if [ "$ARCH" != $(uname -m) ]; then
-  echo "ARCH, $ARCH, differs from uname -m, $(uname -m). Setting --toolchain"
   cmake_args+=("--toolchain", "cmake/linux-$ARCH-toolchain.cmake")
 fi
 config_display="Configure KTX-Software (Linux on $ARCH): "
