@@ -205,7 +205,7 @@ jobs:
         # nuget downloaded by vcpkg fetch on aarch64 is a shell script. This
         # prevents vcpkg from tryin,g and failing, to run it in mono.
         if: matrix.options.loadtests != 'OFF' && matrix.arch == 'aarch64'
-        run: sudo echo '#! /usr/bin/env bash\n$*' > /usr/bin/mono
+        run: sudo sh -c "echo '#! /usr/bin/env bash\n$*' > /usr/bin/mono"
 
       # Should a specific version of Python ever be wanted, use this.
 #      - name: Set up Python
