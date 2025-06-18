@@ -250,7 +250,7 @@ jobs:
             core.exportVariable('VCPKG_EXE', process.env.VCPKG_INSTALLATION_ROOT + '/vcpkg' || '');
             core.exportVariable('NUGET_FEED_URL', 'https://nuget.pkg.github.com/KhronosGroup/index.json' || '');
 
-     - name: Set $MONO to run mono or not.
+      - name: Set $MONO to run mono or not.
         # On aarch64 runners the item fetched by `vcpkg fetch nuget` is a
         # shell script which needs to be run directly rather than in a mono
         # VM.
