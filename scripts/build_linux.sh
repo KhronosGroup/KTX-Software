@@ -81,9 +81,9 @@ if [[ -z $BUILD_DIR ]]; then
   fi
 fi
 cmake_args+=("-B" $BUILD_DIR)
-if [ "aarch64" = $(uname -m) ]; then
-  cmake_args+=("-D" "VCPKG_INSTALL_OPTIONS=--debug")
-fi
+#if [ "aarch64" = $(uname -m) ]; then
+#  cmake_args+=("-D" "VCPKG_INSTALL_OPTIONS=--debug")
+#fi
 if [[ "$FEATURE_LOADTESTS" != "OFF" && -n "$VCPKG_ROOT" ]]; then
   cmake_args+=(
     "-D" "CMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
