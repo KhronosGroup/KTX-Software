@@ -201,15 +201,6 @@ jobs:
         # mono is needed for adding NuGet sources for caching.
         run: sudo apt-get install mono-complete libltdl-dev
 
-      - name: Overwrite /usr/bin/mono
-        # nuget downloaded by vcpkg fetch on aarch64 is a shell script. This
-        # prevents vcpkg from trying and failing, to run it in mono. It also
-        # allows the  "Add Nuget sources" step to work without modification for
-        # either x86_64 or aarch64. This is my worst hack in 45 years of software
-        # development.
-        if: matrix.options.loadtests != 'OFF' && matrix.arch == 'aarch64'
-        run: sudo sh -c "unlink /usr/bin/mono && echo '#! /usr/bin/env bash\n$*' > /usr/bin/mono && chmod 755 /usr/bin/mono"
-
       # Should a specific version of Python ever be wanted, use this.
 #      - name: Set up Python
 #        if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
@@ -279,6 +270,15 @@ jobs:
           $MONO `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
             setapikey "${{ secrets.GH_PACKAGES_TOKEN }}" \
             -Source "${{ env.NUGET_FEED_URL }}"
+
+      - name: Overwrite /usr/bin/mono
+        # nuget downloaded by vcpkg fetch on aarch64 is a shell script. This
+        # prevents vcpkg from trying and failing, to run it in mono. It also
+        # allows the  "Add Nuget sources" step to work without modification for
+        # either x86_64 or aarch64. This is my worst hack in 45 years of software
+        # development.
+        if: matrix.options.loadtests != 'OFF' && matrix.arch == 'aarch64'
+        run: sudo sh -c "unlink /usr/bin/mono && echo '#! /usr/bin/env bash\n$*' > /usr/bin/mono && chmod 755 /usr/bin/mono"
 
       - name: script
         env:
