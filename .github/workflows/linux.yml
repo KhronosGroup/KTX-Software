@@ -86,7 +86,7 @@ jobs:
           arch: aarch64
           compiler: gcc
           vk_sdk_ver: '1.3.290'
-          vcpkg_install_options: --debug
+          #vcpkg_install_options: --debug
           options: {
             config: Release,
             doc: ON, jni: ON, loadtests: OpenGL, py: ON, tools: ON, tools_cts: ON,
