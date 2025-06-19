@@ -259,7 +259,9 @@ jobs:
         # either x86_64 or aarch64. This is my worst hack in 45 years of software
         # development.
         if: matrix.options.loadtests != 'OFF' && matrix.arch == 'aarch64'
-        run: sudo sh -c "mv /usr/bin/mono /usr/bin/mono-real && echo '#! /usr/bin/env bash\nif [ \"$1\" = \"/usr/bin/nuget\" ]; then $*;else /usr/bin/mono-real $*;fi' > /usr/bin/mono && chmod 755 /usr/bin/mono"
+        run: |
+          sudo sh -c "mv /usr/bin/mono /usr/bin/mono-real && echo '#! /usr/bin/env bash\nif [ \"\$1\" = \"/usr/bin/nuget\" ]; then \$*; else /usr/bin/mono-real \$*; fi' && chmod 755 /usr/bin/mono"
+          cat /usr/bin/mono
 
       - name: Add NuGet sources for vcpkg binary caching
         if: matrix.options.loadtests != 'OFF'
