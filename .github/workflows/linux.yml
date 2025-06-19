@@ -244,13 +244,22 @@ jobs:
             core.exportVariable('VCPKG_EXE', process.env.VCPKG_INSTALLATION_ROOT + '/vcpkg' || '');
             core.exportVariable('NUGET_FEED_URL', 'https://nuget.pkg.github.com/KhronosGroup/index.json' || '');
 
-      - name: Set $MONO to run mono or not.
+      #- name: Set $MONO to run mono or not.
         # On aarch64 runners the item fetched by `vcpkg fetch nuget` is a
         # shell script which needs to be run directly rather than in a mono
         # VM.
-        run: |
-          if [ `uname -m` = "aarch64" ]; then mono=""; else mono="mono"; fi
-          echo "MONO=$mono" >> $GITHUB_ENV
+      #  run: |
+      #    if [ `uname -m` = "aarch64" ]; then mono=""; else mono="mono"; fi
+      #    echo "MONO=$mono" >> $GITHUB_ENV
+
+      - name: Overwrite /usr/bin/mono
+        # nuget downloaded by vcpkg fetch on aarch64 is a shell script. This
+        # prevents vcpkg from trying and failing, to run it in mono. It also
+        # allows the  "Add Nuget sources" step to work without modification for
+        # either x86_64 or aarch64. This is my worst hack in 45 years of software
+        # development.
+        if: matrix.options.loadtests != 'OFF' && matrix.arch == 'aarch64'
+        run: sudo sh -c "mv /usr/bin/mono /usr/bin/mono-real && echo '#! /usr/bin/env bash\nif [ \"$1\" = \"/usr/bin/nuget\" ]; then $*;else /usr/bin/mono-real $*;fi' > /usr/bin/mono && chmod 755 /usr/bin/mono"
 
       - name: Add NuGet sources for vcpkg binary caching
         if: matrix.options.loadtests != 'OFF'
@@ -260,25 +269,16 @@ jobs:
         # `vcpkg fetch nuget` fetches nuget and outputs the location of
         # the fetched command. It is a .exe that runs in the mono VM.
         run: |
-          $MONO `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
+          mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
             sources add \
             -Source "${{ env.NUGET_FEED_URL }}" \
             -StorePasswordInClearText \
             -Name GitHubPackages \
             -UserName "${{ env.USERNAME }}" \
             -Password "${{ secrets.GH_PACKAGES_TOKEN }}"
-          $MONO `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
+          mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
             setapikey "${{ secrets.GH_PACKAGES_TOKEN }}" \
             -Source "${{ env.NUGET_FEED_URL }}"
-
-      - name: Overwrite /usr/bin/mono
-        # nuget downloaded by vcpkg fetch on aarch64 is a shell script. This
-        # prevents vcpkg from trying and failing, to run it in mono. It also
-        # allows the  "Add Nuget sources" step to work without modification for
-        # either x86_64 or aarch64. This is my worst hack in 45 years of software
-        # development.
-        if: matrix.options.loadtests != 'OFF' && matrix.arch == 'aarch64'
-        run: sudo sh -c "unlink /usr/bin/mono && echo '#! /usr/bin/env bash\n$*' > /usr/bin/mono && chmod 755 /usr/bin/mono"
 
       - name: script
         env:
