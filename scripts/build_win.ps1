@@ -95,7 +95,7 @@ if($CMAKE_TOOLSET) {
 }
 # Just setting the environment variable does not seem to work, so pass to cmake.
 if($env:VCPKG_INSTALL_OPTIONS) {
-  cmake_args+=@("-D", "VCPKG_INSTALL_OPTIONS=$env:VCPKG_INSTALL_OPTIONS")
+  cmake_args += @( "-D", "VCPKG_INSTALL_OPTIONS=$env:VCPKG_INSTALL_OPTIONS" )
 }
 if($FEATURE_LOADTESTS -ne "OFF" -and $env:VCPKG_ROOT) {
   $cmake_args += @(
