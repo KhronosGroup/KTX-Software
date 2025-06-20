@@ -152,11 +152,12 @@ jobs:
       SUPPORT_SSE: ${{ matrix.options.sse }}
       PY_USE_VENV: ${{ matrix.options.py.use_venv && matrix.options.py_use_venv || 'OFF' }}
       WERROR: ${{ matrix.options.werror && matrix.options.werror || 'ON' }}
-      VCPKG_INSTALL_OPTIONS: ${{ matrix.vcpkg_install_options &&  matrix.vcpkg_install_options || '' }}
       # CC Handled by job step
       # CXX Handled by job step
 
       PYTHON_DIST_DIR: interface/python_binding/dist
+
+      VCPKG_INSTALL_OPTIONS: ${{ matrix.vcpkg_install_options && matrix.vcpkg_install_options || '' }}
 
       VULKAN_SDK_VER: ${{ matrix.vk_sdk_ver }}
 
@@ -244,22 +245,12 @@ jobs:
             core.exportVariable('VCPKG_EXE', process.env.VCPKG_INSTALLATION_ROOT + '/vcpkg' || '');
             core.exportVariable('NUGET_FEED_URL', 'https://nuget.pkg.github.com/KhronosGroup/index.json' || '');
 
-      #- name: Set $MONO to run mono or not.
-        # On aarch64 runners the item fetched by `vcpkg fetch nuget` is a
-        # shell script which needs to be run directly rather than in a mono
-        # VM.
-      #  run: |
-      #    if [ `uname -m` = "aarch64" ]; then mono=""; else mono="mono"; fi
-      #    echo "MONO=$mono" >> $GITHUB_ENV
-
       - name: Overwrite /usr/bin/mono
         # nuget downloaded by vcpkg fetch on aarch64 is a shell script. This
         # prevents vcpkg from trying and failing, to run it in mono. This is
         # my ugliest hack in 45 years of software development.
         if: matrix.options.loadtests != 'OFF' && matrix.arch == 'aarch64'
-        run: |
-          sudo sh -c "mv /usr/bin/mono /usr/bin/mono-real && echo '#! /usr/bin/env bash\nif [ \"\$1\" = \"/usr/bin/nuget\" ]; then \$*; else /usr/bin/mono-real \$*; fi' > /usr/bin/mono && chmod 755 /usr/bin/mono"
-          cat /usr/bin/mono
+        run: sudo sh -c "mv /usr/bin/mono /usr/bin/mono-real && echo '#! /usr/bin/env bash\nif [ \"\$1\" = \"/usr/bin/nuget\" ]; then \$*; else /usr/bin/mono-real \$*; fi' > /usr/bin/mono && chmod 755 /usr/bin/mono"
 
       - name: Add NuGet sources for vcpkg binary caching
         if: matrix.options.loadtests != 'OFF'

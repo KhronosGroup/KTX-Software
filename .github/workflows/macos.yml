@@ -155,6 +155,8 @@ jobs:
 
       PYTHON_DIST_DIR: interface/python_binding/dist
 
+      VCPKG_INSTALL_OPTIONS: ${{ matrix.vcpkg_install_options && matrix.vcpkg_install_options || '' }}
+
       VULKAN_SDK_VER: ${{ matrix.vk_sdk_ver }}
     # This is just to tell the Vulkan install script where to install.
     # NOTE: Hardcoded $HOME expansion, due to 'env' context being unavailble in env:

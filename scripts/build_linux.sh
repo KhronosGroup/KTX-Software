@@ -81,9 +81,10 @@ if [[ -z $BUILD_DIR ]]; then
   fi
 fi
 cmake_args+=("-B" $BUILD_DIR)
-#if [ "aarch64" = $(uname -m) ]; then
-#  cmake_args+=("-D" "VCPKG_INSTALL_OPTIONS=--debug")
-#fi
+# Just setting the environment variable does not seem to work so pass to cmake.
+if [[ -n "$VCPKG_INSTALL_OPTIONS" ]]; then
+  cmake_args+=("-D" "VCPKG_INSTALL_OPTIONS=$VCPKG_INSTALL_OPTIONS")
+fi
 if [[ "$FEATURE_LOADTESTS" != "OFF" && -n "$VCPKG_ROOT" ]]; then
   cmake_args+=(
     "-D" "CMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
