@@ -2911,7 +2911,7 @@ GTEST_API_ int main(int argc, char** argv) {
             return -2;
         }
         else if (!(info.st_mode & S_IFDIR)) {
-            std::cerr << imagePath << "is not a valid directory\n";
+            std::cerr << imagePath << " is not a valid directory\n";
             return -3;
         }
     }
