@@ -246,12 +246,11 @@ jobs:
     # (https://github.com/python/cpython/issues/135151) means it looks
     # like a free-threaded (whatever that means) version to CPython leading
     # to an error that the "limited API" (whatever that is) is not supported
-    # by free-threaded Python. This is fixed in 3.13.5. The VS2022 runner
-    # image has been updated but the VS209 runner image still has 3.13.4.
-    # (see https://github.com/actions/runner-images/issues/12377). Install
-    # a version that works.
+    # by free-threaded Python. This is fixed in 3.13.5. Not all the runners
+    # have been updated (see https://github.com/actions/runner-images/issues/12377).
+    # Install a version that works.
     - name: Set up Python 3.12
-      if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY' && matrix.os == 'windows-2019'
+      if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
       uses: actions/setup-python@v5
       with:
         python-version: '3.12'
