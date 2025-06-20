@@ -84,6 +84,7 @@ jobs:
             generator: 'Visual Studio 17 2022'
             toolset: CLangCL
             arch: arm64
+            vcpkg_install_options: --debug
             options: {
               config: 'Debug,Release',
               doc: ON, jni: ON, loadtests: OpenGL+Vulkan, py: OFF, tests: ON, tools: ON, tools_cts: ON,
