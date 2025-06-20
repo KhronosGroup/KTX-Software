@@ -195,12 +195,12 @@ jobs:
           echo "JAVA_HOME=$JAVA_HOME_17_X64" >> $GITHUB_ENV
           ./scripts/install_linux.sh
 
-      - name: Install libldtl and mono
-        if: matrix.options.loadtests != 'OFF' && (matrix.os == 'ubuntu-24.04' || matrix.os == 'ubuntu-latest')
+#      - name: Install libldtl and mono
+#        if: matrix.options.loadtests != 'OFF' && (matrix.os == 'ubuntu-24.04' || matrix.os == 'ubuntu-latest')
         # These packages were omitted from ubuntu-24.04 for some reason.
         # libldtl is needed by libxcrypt which is needed by vcpkg.
         # mono is needed for adding NuGet sources for caching.
-        run: sudo apt-get install mono-complete libltdl-dev
+#        run: sudo apt-get install mono-complete libltdl-dev
 
       # Should a specific version of Python ever be wanted, use this.
 #      - name: Set up Python
