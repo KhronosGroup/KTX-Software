@@ -3050,6 +3050,7 @@ class ktxTexture2AstcLdrEncodeDecodeTestBase
             case KTX_PACK_ASTC_BLOCK_DIMENSION_6x5x5: return VK_FORMAT_ASTC_6x5x5_SRGB_BLOCK_EXT;
             case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x5: return VK_FORMAT_ASTC_6x6x5_SRGB_BLOCK_EXT;
             case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x6: return VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT;
+            default: return VK_FORMAT_UNDEFINED;
         };
     }
 
@@ -3080,6 +3081,7 @@ class ktxTexture2AstcLdrEncodeDecodeTestBase
             case KTX_PACK_ASTC_BLOCK_DIMENSION_6x5x5: return VK_FORMAT_ASTC_6x5x5_UNORM_BLOCK_EXT;
             case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x5: return VK_FORMAT_ASTC_6x6x5_UNORM_BLOCK_EXT;
             case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x6: return VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT;
+            default: return VK_FORMAT_UNDEFINED;
         };
     }
 };
