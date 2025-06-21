@@ -3172,25 +3172,6 @@ statUTF8(const char* path, struct stat* info) {
 }
 
 GTEST_API_ int main(int argc, char* argv[]) {
-#if defined(_WIN32)
-    // Windows does not support UTF-8 argv so we have to manually acquire it
-    static std::vector<std::unique_ptr<char[]>> utf8Argv(argc);
-    LPWSTR commandLine = GetCommandLineW();
-    LPWSTR* wideArgv = CommandLineToArgvW(commandLine, &argc);
-    for (int i = 0; i < argc; ++i) {
-        int byteSize =
-            WideCharToMultiByte(CP_UTF8, 0, wideArgv[i], -1, nullptr, 0, nullptr, nullptr);
-        utf8Argv[i] = std::make_unique<char[]>(byteSize);
-        WideCharToMultiByte(CP_UTF8, 0, wideArgv[i], -1, utf8Argv[i].get(), byteSize, nullptr,
-                            nullptr);
-        argv[i] = utf8Argv[i].get();
-    }
-#else
-    // Nothing to do for other platforms
-    (void)argc;
-    (void)argv;
-#endif
-
     testing::InitGoogleTest(&argc, argv);
 
     if (!::testing::FLAGS_gtest_list_tests) {
@@ -3199,9 +3180,20 @@ GTEST_API_ int main(int argc, char* argv[]) {
             return -1;
         }
 
+#if defined(_WIN32)
+        // Manually acquire the wide char command line in case a unicode
+        // filename has been specified.
+        static std::vector<std::unique_ptr<char[]>> utf8Argv(argc);
+        LPWSTR commandLine = GetCommandLineW();
+        LPWSTR* wideArgv = CommandLineToArgvW(commandLine, &argc);
+
+        imagePath = wideArgv[1];
+        ktxdiffPath = wideArgv[2];
+#else
         imagePath = argv[1];
-        imagePath /= "";  // Ensure trailing / so path will be handled as a directory.
         ktxdiffPath = argv[2];
+#endif
+        imagePath /= "";  // Ensure trailing / so path will be handled as a directory.
 
         struct stat info;
 
