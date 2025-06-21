@@ -2829,26 +2829,28 @@ fs::path imagePath;
 
 TEST(UnicodeFileNames, CreateFrom) {
     std::vector<std::string> fileSet = {
-        "hűtő.ktx",
-        "hűtő.ktx2",
-        "نَسِيج.ktx",
-        "نَسِيج.ktx2",
-        "テクスチャ.ktx",
-        "テクスチャ.ktx2",
-        "质地.ktx",
-        "质地.ktx2",
-        "조직.ktx",
-        "조직.ktx2"
+        u8"hűtő.ktx",
+        u8"hűtő.ktx2",
+        u8"نَسِيج.ktx",
+        u8"نَسِيج.ktx2",
+        u8"テクスチャ.ktx",
+        u8"テクスチャ.ktx2",
+        u8"质地.ktx",
+        u8"质地.ktx2",
+        u8"조직.ktx",
+        u8"조직.ktx2"
     };
 
     std::vector<std::string>::const_iterator it;
+
 
     fs::path filePath = imagePath;
     for (it = fileSet.begin(); it < fileSet.end(); it++) {
         ktx_error_code_e result;
         ktxTexture* texture = nullptr;
 
-        filePath.replace_filename(*it);
+        filePath.replace_filename(fs::u8path(*it));
+
         result = ktxTexture_CreateFromNamedFile(
             filePath.u8string().c_str(),
             KTX_TEXTURE_CREATE_NO_FLAGS,
@@ -2966,11 +2968,11 @@ class ktxTexture2AstcLdrEncodeDecodeTestBase
             result = ktxTexture2_DecodeAstc(texture);
             EXPECT_EQ(result, KTX_SUCCESS);
             if (isFormatFloat())
-                EXPECT_EQ(texture->vkFormat, VK_FORMAT_R32G32B32A32_SFLOAT);
+                EXPECT_EQ(texture->vkFormat, (ktx_uint32_t)VK_FORMAT_R32G32B32A32_SFLOAT);
             else if (isFormatSrgb())
-                EXPECT_EQ(texture->vkFormat, VK_FORMAT_R8G8B8A8_SRGB);
+                EXPECT_EQ(texture->vkFormat, (ktx_uint32_t)VK_FORMAT_R8G8B8A8_SRGB);
             else
-                EXPECT_EQ(texture->vkFormat, VK_FORMAT_R8G8B8A8_UNORM);
+                EXPECT_EQ(texture->vkFormat, (ktx_uint32_t)VK_FORMAT_R8G8B8A8_UNORM);
             model = static_cast<khr_df_model_e>(KHR_DFDVAL(texture->pDfd+1, MODEL));
             EXPECT_EQ(model, KHR_DF_MODEL_RGBSDA);
             EXPECT_EQ(depth, texture->baseDepth);
@@ -3135,7 +3137,60 @@ TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGBA8_SRGB, CompressToAstc12x12LdrThen
 
 }  // namespace
 
-GTEST_API_ int main(int argc, char** argv) {
+#if defined(_WIN32)
+// For Windows, we convert the UTF-8 path to a UTF-16 path to force using
+// the APIs that correctly handle unicode characters.
+inline std::wstring
+DecodeUTF8Path(std::string path) {
+    std::wstring result;
+    int len =
+        MultiByteToWideChar(CP_UTF8, 0, path.c_str(), static_cast<int>(path.length()), NULL, 0);
+    if (len > 0) {
+        result.resize(len);
+        MultiByteToWideChar(CP_UTF8, 0, path.c_str(), static_cast<int>(path.length()), &result[0],
+                            len);
+    }
+    return result;
+}
+#else
+// For other platforms there is no need for any conversion, they
+// support UTF-8 natively.
+inline std::string DecodeUTF8Path(std::string path) { return path; }
+#endif
+
+#if defined(WIN32)
+  #define stat64 _stat64i32
+#endif
+
+static int
+stat64UTF8(const char* path, struct stat64* info) {
+#if defined(_WIN32)
+    return _wstat(DecodeUTF8Path(path).c_str(), info);
+#else
+    return stat64(path, &info);
+#endif
+}
+
+GTEST_API_ int main(int argc, char* argv[]) {
+#if defined(_WIN32)
+    // Windows does not support UTF-8 argv so we have to manually acquire it
+    static std::vector<std::unique_ptr<char[]>> utf8Argv(argc);
+    LPWSTR commandLine = GetCommandLineW();
+    LPWSTR* wideArgv = CommandLineToArgvW(commandLine, &argc);
+    for (int i = 0; i < argc; ++i) {
+        int byteSize =
+            WideCharToMultiByte(CP_UTF8, 0, wideArgv[i], -1, nullptr, 0, nullptr, nullptr);
+        utf8Argv[i] = std::make_unique<char[]>(byteSize);
+        WideCharToMultiByte(CP_UTF8, 0, wideArgv[i], -1, utf8Argv[i].get(), byteSize, nullptr,
+                            nullptr);
+        argv[i] = utf8Argv[i].get();
+    }
+#else
+    // Nothing to do for other platforms
+    (void)argc;
+    (void)argv;
+#endif
+
     testing::InitGoogleTest(&argc, argv);
 
     if (!::testing::FLAGS_gtest_list_tests) {
@@ -3145,16 +3200,15 @@ GTEST_API_ int main(int argc, char** argv) {
         }
 
         imagePath = argv[1];
-        imagePath /= "";   // Ensure trailing / so path will be handled as a directory.
+        imagePath /= "";  // Ensure trailing / so path will be handled as a directory.
         ktxdiffPath = argv[2];
 
-        struct stat info;
+        struct stat64 info;
 
-        if (stat(imagePath.u8string().c_str(), &info) != 0) {
+        if (stat64UTF8(imagePath.u8string().c_str(), &info) != 0) {
             std::cerr << "Cannot access " << imagePath << std::endl;
             return -2;
-        }
-        else if (!(info.st_mode & S_IFDIR)) {
+        }  else if (!(info.st_mode & S_IFDIR)) {
             std::cerr << imagePath << " is not a valid directory\n";
             return -3;
         }
