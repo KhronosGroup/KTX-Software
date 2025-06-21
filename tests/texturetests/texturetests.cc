@@ -2976,7 +2976,7 @@ class ktxTexture2AstcLdrEncodeDecodeTestBase
             result = ktxTexture2_WriteToNamedFile(texture, decoded.u8string().c_str());
             int status;
             if (internalformat != GL_RGB8 && internalformat != GL_SRGB8) {
-                std::string command = ktxdiffPath;
+                std::string command = ktxdiffPath.u8string();
                 command += " " + original.string() + " " + decoded.string() + " 0.01 > " + ktxdiffOut.string();
                 status = std::system(command.c_str());
             } else {
