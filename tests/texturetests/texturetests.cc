@@ -2943,7 +2943,8 @@ class ktxTexture2AstcLdrEncodeDecodeTestBase
 
             EXPECT_EQ(result, KTX_SUCCESS);
             VkFormat expectedFormat = blockDimensionToFormat(blockDimension);
-            EXPECT_TRUE(texture->vkFormat == expectedFormat);
+            // Oops! Maybe it was a mistake to define texture.vkFormat as unsigned.
+            EXPECT_TRUE(texture->vkFormat == (ktx_uint32_t)expectedFormat);
 
             uint32_t* pBdb = texture->pDfd+1;
             if (isFormatFloat()) {
