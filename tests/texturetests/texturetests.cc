@@ -3149,7 +3149,7 @@ GTEST_API_ int main(int argc, char** argv) {
 
         struct stat info;
 
-        if (stat(imagePath.c_str(), &info) != 0) {
+        if (stat(imagePath.u8string().c_str(), &info) != 0) {
             std::cerr << "Cannot access " << imagePath << std::endl;
             return -2;
         }
