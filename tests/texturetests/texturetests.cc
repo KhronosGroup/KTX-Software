@@ -3174,10 +3174,6 @@ statUTF8(const char* path, struct stat* info) {
 GTEST_API_ int main(int argc, char* argv[]) {
     testing::InitGoogleTest(&argc, argv);
 
-    std::cerr << "argc = " << argc << std::endl;
-    for (int i = 0; i < argc; i++) {
-        std::cerr << "argv[" << i << "] = " << argv[i] << std::endl;
-    }
     if (!::testing::FLAGS_gtest_list_tests) {
         if (argc != 3) {
             std::cerr << "Usage: " << argv[0] << " <test images path> <ktxdiff path>\n";
