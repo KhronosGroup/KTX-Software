@@ -32,6 +32,7 @@ FEATURE_TOOLS_CTS=${FEATURE_TOOLS_CTS:-ON}
 PACKAGE=${PACKAGE:-NO}
 SUPPORT_SSE=${SUPPORT_SSE:-ON}
 SUPPORT_OPENCL=${SUPPORT_OPENCL:-OFF}
+PY_USE_VENV=${PY_USE_VENV:-OFF}
 WERROR=${WERROR:-OFF}
 
 if [ "$ARCHS" = '(ARCHS_STANDARD)' ]; then
@@ -62,6 +63,10 @@ else
 fi
 
 cmake_args=("-G" "Xcode" "-B" "$BUILD_DIR")
+# Just setting the environment variable does not seem to work so pass to cmake.
+if [[ -n "$VCPKG_INSTALL_OPTIONS" ]]; then
+  cmake_args+=("-D" "VCPKG_INSTALL_OPTIONS=$VCPKG_INSTALL_OPTIONS")
+fi
 if [[ "$FEATURE_LOADTESTS" != "OFF" && -n "$VCPKG_ROOT" ]]; then
   cmake_args+=(
     "-D" "CMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
@@ -76,6 +81,7 @@ cmake_args+=( \
   "-D" "KTX_FEATURE_TESTS=$FEATURE_TESTS" \
   "-D" "KTX_FEATURE_TOOLS=$FEATURE_TOOLS" \
   "-D" "KTX_FEATURE_TOOLS_CTS=$FEATURE_TOOLS_CTS" \
+  "-D" "KTX_PY_USE_VENV=$PY_USE_VENV" \
   "-D" "KTX_WERROR=$WERROR" \
   "-D" "BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL" \
   "-D" "BASISU_SUPPORT_SSE=$SUPPORT_SSE"

@@ -46,6 +46,7 @@ FEATURE_VK_UPLOAD=${FEATURE_VK_UPLOAD:-ON}
 PACKAGE=${PACKAGE:-NO}
 SUPPORT_SSE=${SUPPORT_SSE:-ON}
 SUPPORT_OPENCL=${SUPPORT_OPENCL:-OFF}
+PY_USE_VENV=${PY_USE_VENV:-OFF}
 WERROR=${WERROR:-OFF}
 
 if [[ "$ARCH" = "aarch64" && "$FEATURE_LOADTESTS" =~ "Vulkan" ]]; then
@@ -80,6 +81,15 @@ if [[ -z $BUILD_DIR ]]; then
   fi
 fi
 cmake_args+=("-B" $BUILD_DIR)
+# Just setting the environment variable does not seem to work so pass to cmake.
+if [[ -n "$VCPKG_INSTALL_OPTIONS" ]]; then
+  cmake_args+=("-D" "VCPKG_INSTALL_OPTIONS=$VCPKG_INSTALL_OPTIONS")
+fi
+if [[ "$FEATURE_LOADTESTS" != "OFF" && -n "$VCPKG_ROOT" ]]; then
+  cmake_args+=(
+    "-D" "CMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
+  )
+fi
 if [ -n "$CMAKE_BUILD_TYPE" ]; then
   cmake_args+=("-D" "CMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE")
 fi
@@ -98,6 +108,7 @@ cmake_args+=(\
   "-D" "KTX_FEATURE_VK_UPLOAD=$FEATURE_VK_UPLOAD" \
   "-D" "BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL" \
   "-D" "BASISU_SUPPORT_SSE=$SUPPORT_SSE" \
+  "-D" "KTX_PY_USE_VENV=$PY_USE_VENV" \
   "-D" "KTX_WERROR=$WERROR"
 )
 if [ "$ARCH" != $(uname -m) ]; then

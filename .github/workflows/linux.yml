@@ -48,7 +48,7 @@ jobs:
       matrix:
         include:
         - name: Default
-          os: ubuntu-22.04
+          os: ubuntu-latest
           generator: Ninja
           arch: x86_64
           compiler: gcc
@@ -59,7 +59,7 @@ jobs:
             sse: ON, opencl: OFF
           }
         - name: Clang
-          os: ubuntu-22.04
+          os: ubuntu-latest
           generator: Ninja Multi-Config
           arch: x86_64
           compiler: clang
@@ -86,6 +86,7 @@ jobs:
           arch: aarch64
           compiler: gcc
           vk_sdk_ver: '1.3.290'
+          #vcpkg_install_options: --debug
           options: {
             config: Release,
             doc: ON, jni: ON, loadtests: OpenGL, py: ON, tools: ON, tools_cts: ON,
@@ -149,11 +150,14 @@ jobs:
       PACKAGE: ${{ matrix.options.package && matrix.options.package || 'NO' }}
       SUPPORT_OPENCL: ${{ matrix.options.opencl }}
       SUPPORT_SSE: ${{ matrix.options.sse }}
+      PY_USE_VENV: ${{ matrix.options.py.use_venv && matrix.options.py_use_venv || 'OFF' }}
       WERROR: ${{ matrix.options.werror && matrix.options.werror || 'ON' }}
       # CC Handled by job step
       # CXX Handled by job step
 
       PYTHON_DIST_DIR: interface/python_binding/dist
+
+      VCPKG_INSTALL_OPTIONS: ${{ matrix.vcpkg_install_options && matrix.vcpkg_install_options || '' }}
 
       VULKAN_SDK_VER: ${{ matrix.vk_sdk_ver }}
 
@@ -191,11 +195,29 @@ jobs:
           echo "JAVA_HOME=$JAVA_HOME_17_X64" >> $GITHUB_ENV
           ./scripts/install_linux.sh
 
-      - name: Set up Python 3.11
-        if: matrix.options.py == 'ON'
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11.4'
+      - name: Install libldtl and mono
+        if: matrix.options.loadtests != 'OFF' && (matrix.os == 'ubuntu-24.04' || matrix.os == 'ubuntu-latest')
+        # These packages were omitted from ubuntu-24.04 for some reason.
+        # libldtl is needed by libxcrypt which is needed by vcpkg.
+        # mono is needed for adding NuGet sources for caching.
+        run: sudo apt-get install mono-complete libltdl-dev
+
+      # Should a specific version of Python ever be wanted, use this.
+#      - name: Set up Python
+#        if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
+#        uses: actions/setup-python@v5
+#        with:
+#          python-version: '3.13'
+
+      # If the selected Python does not have virtualenv installed, use this.
+      #
+      # Note that the builds, via sdist and wheel, require a virtual env.
+      # regardless of whether the in-use Python is externally managed.
+      # Installing the explicit dependencies of pyktx only needs virtualenv
+      # and PY_USE_VENV: ON when Python is externally managed.
+#      - name: Install Python virtualenv
+#        if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
+#        run: pip install virtualenv
 
       - name: before_script
         run: |
@@ -206,7 +228,52 @@ jobs:
           ./install-gitconfig.sh
           scripts/smudge_date.sh
 
+      - name: Export environment variables for vcpkg binary caching
+        if: matrix.options.loadtests != 'OFF'
+        # actions/github-script is used primarily because it is the only
+        # way to access VCPKG_INSTALLATION_ROOT outside of the runner's shell.
+        # Maintaining cross-platform access is desirable so the code can be
+        # easily copied to a multi-platform workflow. NUGET_FEED_URL is set
+        # here to keep the vcpkg cache environment variables together.
+        uses: actions/github-script@v7
+        with:
+          # JSON in use here. #<comments> in the script will break it.
+          # Pre-installed vcpkg location is indicated by a non-standard env.
+          # var.
+          script: |
+            core.exportVariable('VCPKG_ROOT', process.env.VCPKG_INSTALLATION_ROOT || '');
+            core.exportVariable('VCPKG_EXE', process.env.VCPKG_INSTALLATION_ROOT + '/vcpkg' || '');
+            core.exportVariable('NUGET_FEED_URL', 'https://nuget.pkg.github.com/KhronosGroup/index.json' || '');
+
+      - name: Overwrite /usr/bin/mono
+        # nuget downloaded by vcpkg fetch on aarch64 is a shell script. This
+        # prevents vcpkg from trying and failing, to run it in mono. This is
+        # my ugliest hack in 45 years of software development.
+        if: matrix.options.loadtests != 'OFF' && matrix.arch == 'aarch64'
+        run: sudo sh -c "mv /usr/bin/mono /usr/bin/mono-real && echo '#! /usr/bin/env bash\nif [ \"\$1\" = \"/usr/bin/nuget\" ]; then \$*; else /usr/bin/mono-real \$*; fi' > /usr/bin/mono && chmod 755 /usr/bin/mono"
+
+      - name: Add NuGet sources for vcpkg binary caching
+        if: matrix.options.loadtests != 'OFF'
+        env:
+          USERNAME: KhronosGroup
+        shell: bash
+        # `vcpkg fetch nuget` fetches nuget and outputs the location of
+        # the fetched command. It is a .exe that runs in the mono VM.
+        run: |
+          mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
+            sources add \
+            -Source "${{ env.NUGET_FEED_URL }}" \
+            -StorePasswordInClearText \
+            -Name GitHubPackages \
+            -UserName "${{ env.USERNAME }}" \
+            -Password "${{ secrets.GH_PACKAGES_TOKEN }}"
+          mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
+            setapikey "${{ secrets.GH_PACKAGES_TOKEN }}" \
+            -Source "${{ env.NUGET_FEED_URL }}"
+
       - name: script
+        env:
+          VCPKG_BINARY_SOURCES: clear;nuget,${{ env.NUGET_FEED_URL }},readwrite
         run: |
           ./scripts/build_linux.sh
 

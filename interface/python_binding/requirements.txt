@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 build==1.0.3
-cffi==1.15.1
+cffi==1.17.1
 setuptools==78.1.1
 wheel>=0.38.4
 sphinx==6.2.1

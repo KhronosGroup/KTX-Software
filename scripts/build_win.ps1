@@ -59,6 +59,7 @@ $PACKAGE = Set-ConfigVariable PACKAGE "NO"
 $PYTHON = Set-ConfigVariable PYTHON ""
 $SUPPORT_SSE = Set-ConfigVariable SUPPORT_SSE "ON"
 $SUPPORT_OPENCL = Set-ConfigVariable SUPPORT_OPENCL "OFF"
+$PY_USE_VENV = Set-ConfigVariable PY_USE_VENV "OFF"
 $WERROR = Set-ConfigVariable WERROR "OFF"
 if ($ARCH -eq 'x64') {
   $OPENGL_ES_EMULATOR = Set-ConfigVariable OPENGL_ES_EMULATOR `
@@ -92,6 +93,10 @@ if($CMAKE_TOOLSET) {
     "-T", "$CMAKE_TOOLSET"
   )
 }
+# Just setting the environment variable does not seem to work, so pass to cmake.
+if($env:VCPKG_INSTALL_OPTIONS) {
+  $cmake_args += @( "-D", "VCPKG_INSTALL_OPTIONS=$env:VCPKG_INSTALL_OPTIONS" )
+}
 if($FEATURE_LOADTESTS -ne "OFF" -and $env:VCPKG_ROOT) {
   $cmake_args += @(
     "-D", "CMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
@@ -106,6 +111,7 @@ $cmake_args += @(
   "-D", "KTX_FEATURE_TESTS=$FEATURE_TESTS"
   "-D", "KTX_FEATURE_TOOLS=$FEATURE_TOOLS"
   "-D", "KTX_FEATURE_TOOLS_CTS=$FEATURE_TOOLS_CTS"
+  "-D", "KTX_PY_USE_VENV=$PY_USE_VENV"
   "-D", "KTX_WERROR=$WERROR"
   "-D", "BASISU_SUPPORT_SSE=$SUPPORT_SSE"
   "-D", "BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL"
