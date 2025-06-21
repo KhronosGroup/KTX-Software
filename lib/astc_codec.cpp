@@ -777,7 +777,7 @@ astcSwizzle(const ktxAstcParams &params) {
     astcenc_swizzle swizzle{ASTCENC_SWZ_R, ASTCENC_SWZ_G, ASTCENC_SWZ_B, ASTCENC_SWZ_A};
 
     std::vector<astcenc_swz*> swizzle_array{&swizzle.r, &swizzle.g, &swizzle.b, &swizzle.a};
-    std::string inputSwizzle = params.inputSwizzle;
+    std::string inputSwizzle(params.inputSwizzle, sizeof(params.inputSwizzle));
 
     if (inputSwizzle.size() > 0) {
         assert(inputSwizzle.size() == 4 && "InputSwizzle is invalid.");
