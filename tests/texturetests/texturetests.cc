@@ -3158,16 +3158,16 @@ DecodeUTF8Path(std::string path) {
 inline std::string DecodeUTF8Path(std::string path) { return path; }
 #endif
 
-#if defined(WIN32)
-  #define stat64 _stat64i32
-#endif
+//#if defined(WIN32)
+//  #define stat _stat64i32
+//#endif
 
 static int
-stat64UTF8(const char* path, struct stat64* info) {
+statUTF8(const char* path, struct stat* info) {
 #if defined(_WIN32)
     return _wstat(DecodeUTF8Path(path).c_str(), info);
 #else
-    return stat64(path, &info);
+    return stat(path, info);
 #endif
 }
 
@@ -3203,9 +3203,9 @@ GTEST_API_ int main(int argc, char* argv[]) {
         imagePath /= "";  // Ensure trailing / so path will be handled as a directory.
         ktxdiffPath = argv[2];
 
-        struct stat64 info;
+        struct stat info;
 
-        if (stat64UTF8(imagePath.u8string().c_str(), &info) != 0) {
+        if (statUTF8(imagePath.u8string().c_str(), &info) != 0) {
             std::cerr << "Cannot access " << imagePath << std::endl;
             return -2;
         }  else if (!(info.st_mode & S_IFDIR)) {
