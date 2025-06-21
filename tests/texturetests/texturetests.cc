@@ -3158,9 +3158,9 @@ DecodeUTF8Path(std::string path) {
 inline std::string DecodeUTF8Path(std::string path) { return path; }
 #endif
 
-//#if defined(WIN32)
-//  #define stat _stat64i32
-//#endif
+#if defined(WIN32)
+  #define stat _stat64i32
+#endif
 
 static int
 statUTF8(const char* path, struct stat* info) {
