@@ -3,6 +3,7 @@
 
 add_executable( streamtests
     streamtests.cc
+    ../tests.cmake
 )
 set_test_properties(streamtests)
 set_code_sign(streamtests)

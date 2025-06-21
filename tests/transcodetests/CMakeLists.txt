@@ -3,6 +3,7 @@
 
 add_executable( transcodetests
     transcodetests.cc
+    ../tests.cmake
 )
 set_test_properties(transcodetests)
 set_code_sign(transcodetests)

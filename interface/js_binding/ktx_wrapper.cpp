@@ -101,7 +101,7 @@ namespace ktx
         }
 
         // This is needed because embind cannot do constructor overloads
-        // where the only the parameter type(s) differ. See
+        // where only the parameter type(s) differ. See
         // class_<ktx::texture> in EMSCRIPTEN_BINDINGS below for more
         // details.
         texture createCopy()
@@ -256,6 +256,16 @@ namespace ktx
             return result;
         }
 
+        ktx_error_code_e decodeAstc()
+        {
+            ktx_error_code_e result;
+            result = ktxTexture2_DecodeAstc(*this);
+            if (result != KTX_SUCCESS) {
+                std::cout << "ERROR: Failed to decodeAstc: " << ktxErrorString(result) << std::endl;
+            }
+            return result;
+        }
+
         // NOTE: WebGLTexture objects are completely opaque so the option of passing in the texture
         // to use is not viable.
         val glUpload()
@@ -363,7 +373,7 @@ namespace ktx
 
             result = ktxTexture2_CompressAstcEx(*this, &params);
             if (result != KTX_SUCCESS) {
-                std::cout << "ERROR: failed to compressAstc: " << ktxErrorString(result) << std::endl;
+                std::cout << "ERROR: Failed to compressAstc: " << ktxErrorString(result) << std::endl;
             }
             return result;
         }
@@ -426,7 +436,7 @@ namespace ktx
 
             result = ktxTexture2_DeflateZstd(*this, compression_level);
             if (result != KTX_SUCCESS) {
-                std::cout << "ERROR: failed to deflateZstd: " << ktxErrorString(result) << std::endl;
+                std::cout << "ERROR: Failed to deflateZstd: " << ktxErrorString(result) << std::endl;
             }
             return result;
         }
@@ -443,7 +453,7 @@ namespace ktx
 
             result = ktxTexture2_DeflateZLIB(*this, compression_level);
             if (result != KTX_SUCCESS) {
-                std::cout << "ERROR: failed to deflateZLIB: " << ktxErrorString(result) << std::endl;
+                std::cout << "ERROR: Failed to deflateZLIB: " << ktxErrorString(result) << std::endl;
             }
             return result;
         }
@@ -457,7 +467,7 @@ namespace ktx
                                            value.c_str());
 
             if (result != KTX_SUCCESS) {
-                std::cout << "ERROR: failed to addKVPair (string): " << ktxErrorString(result) << std::endl;
+                std::cout << "ERROR: Failed to addKVPair (string): " << ktxErrorString(result) << std::endl;
             }
             return result;
         }
@@ -479,7 +489,7 @@ namespace ktx
                                            value.data());
 
             if (result != KTX_SUCCESS) {
-                std::cout << "ERROR: failed to addKVPair (vector): " << ktxErrorString(result) << std::endl;
+                std::cout << "ERROR: Failed to addKVPair (vector): " << ktxErrorString(result) << std::endl;
             }
             return result;
         }
@@ -491,7 +501,7 @@ namespace ktx
             result = ktxHashList_DeleteKVPair(ht, key.c_str());
 
             if (result != KTX_SUCCESS) {
-                std::cout << "ERROR: failed to deleteKVPair: " << ktxErrorString(result) << std::endl;
+                std::cout << "ERROR: Failed to deleteKVPair: " << ktxErrorString(result) << std::endl;
             }
             return result;
         }
@@ -526,11 +536,11 @@ namespace ktx
             if (result == KTX_SUCCESS) {
                 return val(emscripten::typed_memory_view(ktx_data_size, ktx_data));
             } else {
-                std::cout << "ERROR: failed to writeToMemory: " << ktxErrorString(result) << std::endl;
+                std::cout << "ERROR: Failed to writeToMemory: " << ktxErrorString(result) << std::endl;
                 return val::null();
             }
         }
-#endif
+#endif /* KTX_FEATURE_WRITE */
     };
 }
 
@@ -633,6 +643,7 @@ interface texture {
                 CreateStorageEnum? storage);
 
     error_code compressAstc(ktxAstcParams params); // **
+    error_code decodeAstc(ktxAstcParams params);
     error_code compressBasis(ktxBasisParams params); // **
     texture createCopy();  // **
     error_code defateZLIB();   // **
@@ -1286,6 +1297,7 @@ EMSCRIPTEN_BINDINGS(ktx)
         .function("findKeyValue", &ktx::texture::findKeyValue)
         .function("getImage", &ktx::texture::getImage)
         .function("glUpload", &ktx::texture::glUpload)
+        .function("decodeAstc", &ktx::texture::decodeAstc)
         .function("transcodeBasis", &ktx::texture::transcodeBasis)
 #if KTX_FEATURE_WRITE
         .constructor<const ktxTextureCreateInfo&, ktxTextureCreateStorageEnum>()

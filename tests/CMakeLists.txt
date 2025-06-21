@@ -19,6 +19,12 @@ if(KTX_FEATURE_LOADTEST_APPS)
     add_subdirectory(loadtests)
 endif()
 
+if(KTX_FEATURE_TESTS OR KTX_FEATURE_TOOLS_CTS)
+    # Used by texturetests as well as CTS.
+    add_subdirectory(ktxdiff)
+    set(KTX_DIFF_PATH $<TARGET_FILE:ktxdiff>)
+endif()
+
 # gtest based unit-tests
 if(KTX_FEATURE_TESTS AND NOT APPLE_LOCKED_OS AND NOT ANDROID AND NOT EMSCRIPTEN)
     include(tests.cmake)
@@ -33,7 +39,6 @@ if(KTX_FEATURE_TOOLS)
 
     # ktx cli tool tests
     if(KTX_FEATURE_TOOLS_CTS)
-        add_subdirectory(ktxdiff)
         set(KTX_TOOLS_PATH $<TARGET_FILE:ktxtools>)
         set(KTX_DIFF_PATH $<TARGET_FILE:ktxdiff>)
         add_subdirectory(cts/clitests)

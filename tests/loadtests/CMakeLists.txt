@@ -117,7 +117,7 @@ add_library( appfwSDL STATIC
 target_compile_features(appfwSDL PUBLIC c_std_99 cxx_std_11)
 if(EMSCRIPTEN)
     target_compile_options( appfwSDL PUBLIC
-         "SHELL:-s USE_SDL=2"
+         "SHELL:--use-port=sdl2"
     )
 endif()
 

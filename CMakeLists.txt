@@ -372,6 +372,7 @@ set(KTX_BUILD_DIR "${CMAKE_BINARY_DIR}")
 set(KTX_MAIN_SRC
     include/KHR/khr_df.h
     include/ktx.h
+    lib/astc_codec.cpp
     lib/basis_sgd.h
     lib/basis_transcode.cpp
     lib/miniz_wrapper.cpp
@@ -763,7 +764,6 @@ macro(common_libktx_settings target enable_write library_type)
             ${target}
         PRIVATE
             lib/basis_encode.cpp
-            lib/astc_codec.cpp
             ${BASISU_ENCODER_CXX_SRC}
             lib/writer1.c
             lib/writer2.c
@@ -1267,21 +1267,25 @@ PRIVATE
     $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,17.0.3>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
 )
 
-if(NOT BUILD_SHARED_LIBS AND APPLE)
-    # Make a single static library to simplify linking.
-    add_dependencies(ktx ${ASTCENC_LIB_TARGET})
-    add_custom_command( TARGET ktx
-        POST_BUILD
-        COMMAND libtool -static -o $<TARGET_FILE:ktx> $<TARGET_FILE:ktx> $<TARGET_FILE:${ASTCENC_LIB_TARGET}>
-    )
+macro(set_astc_dependencies target)
+    if(NOT BUILD_SHARED_LIBS AND APPLE)
+        # Make a single static library to simplify linking.
+        add_dependencies(${target} ${ASTCENC_LIB_TARGET})
+        add_custom_command( TARGET ${target}
+            POST_BUILD
+            COMMAND libtool -static -o $<TARGET_FILE:${target}> $<TARGET_FILE:ktx> $<TARGET_FILE:${ASTCENC_LIB_TARGET}>
+        )
 
-    # Don't know libtool equivalent on Windows or Emscripten. Applications
-    # will have to link with  both ktx and ${ASTCENC_LIB_TARGET}. Static libs
-    # are unlikely to be used on Windows so not a problem there. For Emscripten
-    # everything is built into the JS module so not an issue there either.
-else()
-    target_link_libraries(ktx PRIVATE ${ASTCENC_LIB_TARGET})
-endif()
+        # Don't know libtool equivalent on Windows or Emscripten. Applications
+        # will have to link with  both ktx and ${ASTCENC_LIB_TARGET}. Static libs
+        # are unlikely to be used on Windows so not a problem there. For Emscripten
+        # everything is built into the JS module so not an issue there either.
+    else()
+        target_link_libraries(${target} PRIVATE ${ASTCENC_LIB_TARGET})
+    endif()
+endmacro(set_astc_dependencies)
+set_astc_dependencies(ktx)
+set_astc_dependencies(ktx_read)
 
 # Other external projects
 # `NOT TARGET`s here are a precaution. They would only be exercised if

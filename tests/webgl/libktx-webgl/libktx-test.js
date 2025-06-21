@@ -992,15 +992,16 @@ async function runTests(filename) {
     await testWriteToMemoryAndRead(ktexture)
 
     await testEncodeAstc(ktextureCopy);
-    if (astcSupported) {
-      textureAstc = uploadTextureToGl(gl, ktextureCopy);
-      setUVMatrix(textureAstc, mat3.create(), ktextureCopy);
-      setTexParameters(texture, ktexture);
-      updateItem(items[astcCompTextureItem], textureAstc);
-    } else {
+    if (!astcSupported) {
+      var result = ktextureCopy.decodeAstc();
+      showTestResult('compress_astc_result', result == ktx.error_code.SUCCESS);
       items[astcCompTextureItem].label.textContent +=
-                 ". (Not displayed. This device does not support WEBGL_compressed_texture_astc)"
+                 ". (Software decoded. This device does not support WEBGL_compressed_texture_astc)"
     }
+    textureAstc = uploadTextureToGl(gl, ktextureCopy);
+    setUVMatrix(textureAstc, mat3.create(), ktextureCopy);
+    setTexParameters(texture, ktexture);
+    updateItem(items[astcCompTextureItem], textureAstc);
 
     elem('runtests').disabled = true;
 

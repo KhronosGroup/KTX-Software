@@ -76,7 +76,7 @@ jobs:
       run: cmake --build build --config Release
     - name: Test Mingw build
       run: ctest --output-on-failure --test-dir build -C Release
-    - name: Upload test log
-      shell: pwsh
-      if: ${{ failure() }}
-      run: scripts/on_failure.ps1
+#    - name: Upload test log
+#      shell: pwsh
+#      if: ${{ failure() }}
+#      run: scripts/on_failure.ps1

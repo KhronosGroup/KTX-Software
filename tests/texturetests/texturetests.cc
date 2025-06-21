@@ -23,6 +23,9 @@
   #endif
 #endif
 
+#include <filesystem>
+#include <fstream>
+#include <iostream>
 #include <string>
 //#include <sys/types.h>
 #include <sys/stat.h>
@@ -47,6 +50,8 @@ extern ktx_bool_t __disableWriterMetadata__;
 #endif
 
 namespace {
+
+namespace fs = std::filesystem;
 
 // Recursive function to return the greatest common divisor of a and b.
 static uint32_t
@@ -2820,97 +2825,383 @@ TEST_F(ktxTexture2_MetadataTest, LibVersionUpdatedCorrectly) {
 // Unicode file name tests
 ///////////////////////////////////////////
 
-#if defined(_WIN32)
-#define _CRT_SECURE_NO_WARNINGS
-#define OS_SEP '\\'
-#define UNIX_SEP '/'
-#else
-#define OS_SEP '/'
-#endif
-
-std::string imagePath;
-
-std::string combinePaths(std::string const a, std::string const b) {
-    if (a.back() == OS_SEP) {
-        return a + b;
-#if defined(_WIN32)
-    }
-    else if (a.back() == UNIX_SEP) {
-        return a + b;
-#endif
-    }
-    else {
-        return a + OS_SEP + b;
-    }
-}
+fs::path imagePath;
 
 TEST(UnicodeFileNames, CreateFrom) {
     std::vector<std::string> fileSet = {
-        "hűtő.ktx",
-        "hűtő.ktx2",
-        "نَسِيج.ktx",
-        "نَسِيج.ktx2",
-        "テクスチャ.ktx",
-        "テクスチャ.ktx2",
-        "质地.ktx",
-        "质地.ktx2",
-        "조직.ktx",
-        "조직.ktx2"
+        u8"hűtő.ktx",
+        u8"hűtő.ktx2",
+        u8"نَسِيج.ktx",
+        u8"نَسِيج.ktx2",
+        u8"テクスチャ.ktx",
+        u8"テクスチャ.ktx2",
+        u8"质地.ktx",
+        u8"质地.ktx2",
+        u8"조직.ktx",
+        u8"조직.ktx2"
     };
 
     std::vector<std::string>::const_iterator it;
 
+
+    fs::path filePath = imagePath;
     for (it = fileSet.begin(); it < fileSet.end(); it++) {
         ktx_error_code_e result;
-        ktxTexture* texture;
+        ktxTexture* texture = nullptr;
 
-        std::string path = combinePaths(imagePath, *it);
+        filePath.replace_filename(fs::u8path(*it));
+
         result = ktxTexture_CreateFromNamedFile(
-            path.c_str(),
+            filePath.u8string().c_str(),
             KTX_TEXTURE_CREATE_NO_FLAGS,
             &texture);
         EXPECT_EQ(result, KTX_SUCCESS);
         EXPECT_NE(texture, (ktxTexture*)0);
-        ktxTexture_Destroy(texture);
+        if (texture) {
+            ktxTexture_Destroy(texture);
+            texture = nullptr;
+        }
 
-        size_t dotIndex = path.find_last_of('.');
-        if (path.substr(dotIndex + 1).compare("ktx") == 0) {
+        if (filePath.extension() == ".ktx") {
             result = ktxTexture1_CreateFromNamedFile(
-                path.c_str(),
+                filePath.u8string().c_str(),
                 KTX_TEXTURE_CREATE_NO_FLAGS,
                 (ktxTexture1**)&texture);
         } else {
             result = ktxTexture2_CreateFromNamedFile(
-                path.c_str(),
+                filePath.u8string().c_str(),
                 KTX_TEXTURE_CREATE_NO_FLAGS,
                 (ktxTexture2**)&texture);
         }
         EXPECT_EQ(result, KTX_SUCCESS);
         EXPECT_NE(texture, (ktxTexture*)0);
-        ktxTexture_Destroy(texture);
+        if (texture) ktxTexture_Destroy(texture);
     }
+}
+
+// The ASTC encoder and decoder are heavily tested elsewhere hence the focus
+// of these tests is the mechanics of encoding and decoding a ktxTexture2
+// and the resulting changes to the ktxTexture2 object.
+
+//------------------------------------------------------------
+// Template for base fixture for ASTC encode and decode tests.
+//------------------------------------------------------------
+
+fs::path ktxdiffPath;
+
+template<typename component_type, ktx_uint32_t numComponents,
+         GLenum internalformat>
+class ktxTexture2AstcLdrEncodeDecodeTestBase
+      : public ktxTexture2TestBase<component_type, numComponents, internalformat> {
+
+  protected:
+    using ktxTextureTestBase<component_type, numComponents, internalformat>::helper;
+    using ktxTextureTestBase<component_type, numComponents, internalformat>::ktxMemFile;
+    using ktxTextureTestBase<component_type, numComponents, internalformat>::ktxMemFileLen;
+
+  public:
+    void runTest(ktx_pack_astc_block_dimension_e blockDimension) {
+        ktxTexture2* texture;
+        KTX_error_code result;
+        auto tmpDir = fs::temp_directory_path();
+
+        fs::path original = tmpDir / "CompressToAstcLdrThenDecode_original.ktx2";
+        fs::path decoded = tmpDir / "CompressToAstcLdrThenDecode_decoded.ktx2";
+        fs::path ktxdiffOut = tmpDir / "ktxdiffOut.txt";
+
+        if (ktxMemFile != NULL) {
+            result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
+                                                  KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                                  &texture);
+            ASSERT_TRUE(result == KTX_SUCCESS);
+            ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
+                                         << ktxErrorString(result);
+            ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
+
+            result = ktxTexture2_WriteToNamedFile(texture, original.u8string().c_str());
+            ASSERT_TRUE(result == KTX_SUCCESS);
+
+            auto depth = texture->baseDepth;
+            auto height = texture->baseHeight;
+            auto width = texture->baseWidth;
+            //ktx_uint64_t dataSize = texture->dataSize;
+            auto dataSize = texture->dataSize;
+
+            ASSERT_TRUE(depth == 1);
+
+            ktxAstcParams params;
+            params.structSize = sizeof(params);
+            params.threadCount = 1;
+            params.blockDimension = blockDimension;
+            params.mode = KTX_PACK_ASTC_ENCODER_MODE_DEFAULT;
+            params.qualityLevel = KTX_PACK_ASTC_QUALITY_LEVEL_FAST;
+            params.normalMap = false;
+            params.perceptual = false;
+            params.inputSwizzle[0] = 'R';
+            params.inputSwizzle[1] = 'G';
+            params.inputSwizzle[2] = 'B';
+            params.inputSwizzle[3] = 'A';
+            result = ktxTexture2_CompressAstcEx(texture, &params);
+
+            EXPECT_EQ(result, KTX_SUCCESS);
+            VkFormat expectedFormat = blockDimensionToFormat(blockDimension);
+            // Oops! Maybe it was a mistake to define texture.vkFormat as unsigned.
+            EXPECT_TRUE(texture->vkFormat == (ktx_uint32_t)expectedFormat);
+
+            uint32_t* pBdb = texture->pDfd+1;
+            if (isFormatFloat()) {
+                EXPECT_TRUE(KHR_DFDSVAL(pBdb, 1, QUALIFIERS) & KHR_DF_SAMPLE_DATATYPE_FLOAT);
+                EXPECT_TRUE(KHR_DFDSVAL(pBdb, 1, QUALIFIERS) & KHR_DF_SAMPLE_DATATYPE_SIGNED);
+            } else if (isFormatSrgb()) {
+                EXPECT_TRUE(KHR_DFDVAL(pBdb, TRANSFER) == KHR_DF_TRANSFER_SRGB);
+            }
+            khr_df_model_e model = static_cast<khr_df_model_e>(KHR_DFDVAL(pBdb, MODEL));
+            EXPECT_EQ(model, KHR_DF_MODEL_ASTC);
+            EXPECT_EQ(texture->supercompressionScheme, KTX_SS_NONE);
+            EXPECT_TRUE(texture->_private->_supercompressionGlobalData == (ktx_uint8_t*)0);
+            EXPECT_EQ(texture->numLevels, helper.numLevels);
+            EXPECT_EQ(texture->baseDepth, depth);
+            EXPECT_EQ(texture->baseHeight, height);
+            EXPECT_EQ(texture->baseWidth, width);
+            EXPECT_LT(texture->dataSize, dataSize);
+
+            result = ktxTexture2_DecodeAstc(texture);
+            EXPECT_EQ(result, KTX_SUCCESS);
+            if (isFormatFloat())
+                EXPECT_EQ(texture->vkFormat, (ktx_uint32_t)VK_FORMAT_R32G32B32A32_SFLOAT);
+            else if (isFormatSrgb())
+                EXPECT_EQ(texture->vkFormat, (ktx_uint32_t)VK_FORMAT_R8G8B8A8_SRGB);
+            else
+                EXPECT_EQ(texture->vkFormat, (ktx_uint32_t)VK_FORMAT_R8G8B8A8_UNORM);
+            model = static_cast<khr_df_model_e>(KHR_DFDVAL(texture->pDfd+1, MODEL));
+            EXPECT_EQ(model, KHR_DF_MODEL_RGBSDA);
+            EXPECT_EQ(depth, texture->baseDepth);
+            result = ktxTexture2_WriteToNamedFile(texture, decoded.u8string().c_str());
+            int status;
+            if constexpr (internalformat != (GLenum)GL_RGB8 && internalformat != (GLenum)GL_SRGB8) {
+                std::string command = ktxdiffPath.u8string();
+                command += " " + original.string() + " " + decoded.string() + " 0.01 > " + ktxdiffOut.string();
+                status = std::system(command.c_str());
+            } else {
+                // ASTC formats always decode to a 4-component format as there is no way to
+                // tell prior to decode if any blocks have an alpha channel. Since we don't
+                // have a command comparing only some components of the image data, we can't
+                // test for a data match.
+                status = 0;
+            }
+            EXPECT_EQ(status, 0);
+            EXPECT_EQ(texture->baseHeight, height);
+            EXPECT_EQ(texture->baseWidth, width);
+            if (status != 0) {
+                std::cout << std::ifstream(ktxdiffOut).rdbuf();
+            }
+            if (texture) {
+                ktxTexture_Destroy(ktxTexture(texture));
+                fs::remove(original);
+                fs::remove(decoded);
+                fs::remove(ktxdiffOut);
+            }
+        }
+    }
+  protected:
+    bool isFormatFloat() {
+        // Test does not yet support float formats
+        return false;
+    }
+
+    bool isFormatSrgb() {
+        switch(internalformat) {
+            case GL_SRGB8_ALPHA8: [[fallthrough]];
+            case GL_SRGB8:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    VkFormat blockDimensionToFormat(ktx_pack_astc_block_dimension_e blockDimension) {
+        if (isFormatSrgb())
+            return blockDimensionToSrgbFormat(blockDimension);
+        else
+            return blockDimensionToUnormFormat(blockDimension);
+    }
+
+    VkFormat blockDimensionToSrgbFormat(ktx_pack_astc_block_dimension_e blockDimension) {
+        switch(blockDimension) {
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4: return VK_FORMAT_ASTC_4x4_SRGB_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_5x4: return VK_FORMAT_ASTC_5x4_SRGB_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5: return VK_FORMAT_ASTC_5x5_SRGB_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_6x5: return VK_FORMAT_ASTC_6x5_SRGB_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6: return VK_FORMAT_ASTC_6x6_SRGB_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_8x5: return VK_FORMAT_ASTC_8x5_SRGB_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_8x6: return VK_FORMAT_ASTC_8x6_SRGB_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_10x5: return VK_FORMAT_ASTC_10x5_SRGB_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_10x6: return VK_FORMAT_ASTC_10x6_SRGB_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_8x8:  return VK_FORMAT_ASTC_8x8_SRGB_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_10x8: return VK_FORMAT_ASTC_10x8_SRGB_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_10x10: return VK_FORMAT_ASTC_10x10_SRGB_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_12x10: return VK_FORMAT_ASTC_12x10_SRGB_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_12x12: return VK_FORMAT_ASTC_12x12_SRGB_BLOCK;
+            // 3D formats
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_3x3x3: return VK_FORMAT_ASTC_3x3x3_SRGB_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_4x3x3: return VK_FORMAT_ASTC_4x3x3_SRGB_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x3: return VK_FORMAT_ASTC_4x4x3_SRGB_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x4: return VK_FORMAT_ASTC_4x4x4_SRGB_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_5x4x4: return VK_FORMAT_ASTC_5x4x4_SRGB_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x4: return VK_FORMAT_ASTC_5x5x4_SRGB_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x5: return VK_FORMAT_ASTC_5x5x5_SRGB_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_6x5x5: return VK_FORMAT_ASTC_6x5x5_SRGB_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x5: return VK_FORMAT_ASTC_6x6x5_SRGB_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x6: return VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT;
+            default: return VK_FORMAT_UNDEFINED;
+        };
+    }
+
+    VkFormat blockDimensionToUnormFormat(ktx_pack_astc_block_dimension_e blockDimension) {
+        switch(blockDimension) {
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4: return VK_FORMAT_ASTC_4x4_UNORM_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_5x4: return VK_FORMAT_ASTC_5x4_UNORM_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5: return VK_FORMAT_ASTC_5x5_UNORM_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_6x5: return VK_FORMAT_ASTC_6x5_UNORM_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6: return VK_FORMAT_ASTC_6x6_UNORM_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_8x5: return VK_FORMAT_ASTC_8x5_UNORM_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_8x6: return VK_FORMAT_ASTC_8x6_UNORM_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_10x5: return VK_FORMAT_ASTC_10x5_UNORM_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_10x6: return VK_FORMAT_ASTC_10x6_UNORM_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_8x8:  return VK_FORMAT_ASTC_8x8_UNORM_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_10x8: return VK_FORMAT_ASTC_10x8_UNORM_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_10x10: return VK_FORMAT_ASTC_10x10_UNORM_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_12x10: return VK_FORMAT_ASTC_12x10_UNORM_BLOCK;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_12x12: return VK_FORMAT_ASTC_12x12_UNORM_BLOCK;
+            // 3D formats
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_3x3x3: return VK_FORMAT_ASTC_3x3x3_UNORM_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_4x3x3: return VK_FORMAT_ASTC_4x3x3_UNORM_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x3: return VK_FORMAT_ASTC_4x4x3_UNORM_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_4x4x4: return VK_FORMAT_ASTC_4x4x4_UNORM_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_5x4x4: return VK_FORMAT_ASTC_5x4x4_UNORM_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x4: return VK_FORMAT_ASTC_5x5x4_UNORM_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_5x5x5: return VK_FORMAT_ASTC_5x5x5_UNORM_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_6x5x5: return VK_FORMAT_ASTC_6x5x5_UNORM_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x5: return VK_FORMAT_ASTC_6x6x5_UNORM_BLOCK_EXT;
+            case KTX_PACK_ASTC_BLOCK_DIMENSION_6x6x6: return VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT;
+            default: return VK_FORMAT_UNDEFINED;
+        };
+    }
+};
+
+// Test fixtures for ASTC encode and decode tests.
+
+class ktxTexture2_AstcLdrEncodeDecodeTestRGBA8_UNORM
+    : public ktxTexture2AstcLdrEncodeDecodeTestBase<GLubyte, 4, GL_RGBA8> { };
+class ktxTexture2_AstcLdrEncodeDecodeTestRGBA8_SRGB
+    : public ktxTexture2AstcLdrEncodeDecodeTestBase<GLubyte, 4, GL_SRGB8_ALPHA8> { };
+class ktxTexture2_AstcLdrEncodeDecodeTestRGB8_UNORM
+    : public ktxTexture2AstcLdrEncodeDecodeTestBase<GLubyte, 4, GL_RGB8> { };
+class ktxTexture2_AstcLdrEncodeDecodeTestRGB8_SRGB
+    : public ktxTexture2AstcLdrEncodeDecodeTestBase<GLubyte, 4, GL_SRGB8> { };
+
+////////////////////////////////////////////
+// ASTC encode & decode tests
+///////////////////////////////////////////
+
+TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGBA8_UNORM, CompressToAstc4x4LdrThenDecode) {
+    runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_4x4);
+}
+
+TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGBA8_SRGB, CompressToAstc4x4LdrThenDecode) {
+    runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_4x4);
+}
+
+TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGB8_UNORM, CompressToAstc4x4LdrThenDecode) {
+    runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_4x4);
+}
+
+TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGB8_SRGB, CompressToAstc4x4LdrThenDecode) {
+    runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_4x4);
+}
+
+TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGBA8_UNORM, CompressToAstc8x5LdrThenDecode) {
+    runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_8x5);
+}
+
+TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGBA8_SRGB, CompressToAstc8x5LdrThenDecode) {
+    runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_8x5);
+}
+TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGBA8_UNORM, CompressToAstc12x12LdrThenDecode) {
+    runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_12x12);
+}
+
+TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGBA8_SRGB, CompressToAstc12x12LdrThenDecode) {
+    runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_12x12);
 }
 
 }  // namespace
 
-GTEST_API_ int main(int argc, char** argv) {
+#if defined(_WIN32)
+// For Windows, we convert the UTF-8 path to a UTF-16 path to force using
+// the APIs that correctly handle unicode characters.
+inline std::wstring
+DecodeUTF8Path(std::string path) {
+    std::wstring result;
+    int len =
+        MultiByteToWideChar(CP_UTF8, 0, path.c_str(), static_cast<int>(path.length()), NULL, 0);
+    if (len > 0) {
+        result.resize(len);
+        MultiByteToWideChar(CP_UTF8, 0, path.c_str(), static_cast<int>(path.length()), &result[0],
+                            len);
+    }
+    return result;
+}
+#else
+// For other platforms there is no need for any conversion, they
+// support UTF-8 natively.
+inline std::string DecodeUTF8Path(std::string path) { return path; }
+#endif
+
+#if defined(WIN32)
+  #define stat _stat64i32
+#endif
+
+static int
+statUTF8(const char* path, struct stat* info) {
+#if defined(_WIN32)
+    return _wstat(DecodeUTF8Path(path).c_str(), info);
+#else
+    return stat(path, info);
+#endif
+}
+
+GTEST_API_ int main(int argc, char* argv[]) {
     testing::InitGoogleTest(&argc, argv);
 
     if (!::testing::FLAGS_gtest_list_tests) {
-        if (argc != 2) {
-            std::cerr << "Usage: " << argv[0] << " <test images path>\n";
+        if (argc != 3) {
+            std::cerr << "Usage: " << argv[0] << " <test images path> <ktxdiff path>\n";
             return -1;
         }
 
-        imagePath = std::string(argv[1]);
+#if defined(_WIN32)
+        // Manually acquire the wide char command line in case a unicode
+        // filename has been specified.
+        int allargc;
+        LPWSTR commandLine = GetCommandLineW();
+        LPWSTR* wideArgv = CommandLineToArgvW(commandLine, &allargc);
+        // commandLine still has all the arguments including those removed
+        // by InitGoogleTest, hence the arg index calculation.
+        imagePath = wideArgv[allargc - argc + 1];
+        ktxdiffPath = wideArgv[allargc - argc + 2];
+#else
+        imagePath = argv[1];
+        ktxdiffPath = argv[2];
+#endif
+        imagePath /= "";  // Ensure trailing / so path will be handled as a directory.
 
         struct stat info;
 
-        if (stat(imagePath.data(), &info) != 0) {
+        if (statUTF8(imagePath.u8string().c_str(), &info) != 0) {
             std::cerr << "Cannot access " << imagePath << std::endl;
             return -2;
-        }
-        else if (!(info.st_mode & S_IFDIR)) {
+        }  else if (!(info.st_mode & S_IFDIR)) {
             std::cerr << imagePath << " is not a valid directory\n";
             return -3;
         }
@@ -2918,4 +3209,3 @@ GTEST_API_ int main(int argc, char** argv) {
 
     return RUN_ALL_TESTS();
 }
-
