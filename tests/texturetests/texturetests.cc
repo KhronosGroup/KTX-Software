@@ -3174,6 +3174,10 @@ statUTF8(const char* path, struct stat* info) {
 GTEST_API_ int main(int argc, char* argv[]) {
     testing::InitGoogleTest(&argc, argv);
 
+    std::cerr << "argc = " << argc << std::endl;
+    for (int i = 0; i < argc; i++) {
+        std::cerr << "argv[" << i << "] = " << argv[i] << std::endl;
+    }
     if (!::testing::FLAGS_gtest_list_tests) {
         if (argc != 3) {
             std::cerr << "Usage: " << argv[0] << " <test images path> <ktxdiff path>\n";
@@ -3183,12 +3187,13 @@ GTEST_API_ int main(int argc, char* argv[]) {
 #if defined(_WIN32)
         // Manually acquire the wide char command line in case a unicode
         // filename has been specified.
-        static std::vector<std::unique_ptr<char[]>> utf8Argv(argc);
+        int allargc;
         LPWSTR commandLine = GetCommandLineW();
-        LPWSTR* wideArgv = CommandLineToArgvW(commandLine, &argc);
-
-        imagePath = wideArgv[1];
-        ktxdiffPath = wideArgv[2];
+        LPWSTR* wideArgv = CommandLineToArgvW(commandLine, &allargc);
+        // commandLine still has all the arguments including those removed
+        // by InitGoogleTest, hence the arg index calculation.
+        imagePath = wideArgv[allargc - argc + 1];
+        ktxdiffPath = wideArgv[allargc - argc + 2];
 #else
         imagePath = argv[1];
         ktxdiffPath = argv[2];
