@@ -114,8 +114,6 @@ gtest_discover_tests(unittests
     DISCOVERY_TIMEOUT 20
 )
 
-#cmake_policy(SET CMP0178 NEW)
-cmake_print_variables(CMAKE_CURRENT_BINARY_DIR)
 gtest_discover_tests(texturetests
     TEST_PREFIX texturetest.
     DISCOVERY_TIMEOUT 20
