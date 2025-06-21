@@ -777,11 +777,11 @@ astcSwizzle(const ktxAstcParams &params) {
     astcenc_swizzle swizzle{ASTCENC_SWZ_R, ASTCENC_SWZ_G, ASTCENC_SWZ_B, ASTCENC_SWZ_A};
 
     std::vector<astcenc_swz*> swizzle_array{&swizzle.r, &swizzle.g, &swizzle.b, &swizzle.a};
-    std::string inputSwizzle(params.inputSwizzle, sizeof(params.inputSwizzle));
-
-    if (inputSwizzle.size() > 0) {
-        assert(inputSwizzle.size() == 4 && "InputSwizzle is invalid.");
-
+    // For historical reasons params.inputSwizzle[0] == '\0' is interpreted to mean no
+    // swizzle. The docs says it must match the regular expression /^[rgba01]{4}$/.
+    if (params.inputSwizzle[0] != '\0') {
+        std::string inputSwizzle(params.inputSwizzle, sizeof(params.inputSwizzle));
+        // TODO: Check for RE match.
         for (int i = 0; i < 4; i++) {
             if (inputSwizzle[i] == 'r')
                 *swizzle_array[i] = ASTCENC_SWZ_R;
