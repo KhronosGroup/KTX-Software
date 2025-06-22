@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/KhronosGroup/lodepng.git
 	branch = msc_separate_chunk_decode
-	commit = b51e824aed20329a579741ee7a33260f261eacac
-	parent = 64a69009b72bee37ea75f8c4238686ea4c616e0b
+	commit = d4cc52d8c074da137303e1117cc098a97647960c
+	parent = 10f0c25658d9ad5b69e572d043079c54cdc89f88
 	method = merge
 	cmdver = 0.4.3
