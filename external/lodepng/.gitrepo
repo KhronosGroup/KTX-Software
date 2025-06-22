@@ -7,6 +7,6 @@
 	remote = https://github.com/KhronosGroup/lodepng.git
 	branch = msc_separate_chunk_decode
 	commit = b51e824aed20329a579741ee7a33260f261eacac
-	parent = c8446561d489d8c3cf29d9e28445fc21d5dd0bf1
+	parent = 64a69009b72bee37ea75f8c4238686ea4c616e0b
 	method = merge
 	cmdver = 0.4.3
