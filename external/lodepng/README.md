@@ -1,20 +1,75 @@
-<!-- Copyright 2025 Mark Callow -->
-<!-- SPDX-License-Identifier: Apache-2.0 -->
+LodePNG
+-------
 
-# LodePNG
+PNG encoder and decoder in C and C++, without dependencies
 
-Sourced from https://github.com/KhronosGroup/lodepng/tree/split_decode_inflate
-which is a branch in a fork of https://github.com/lvandeve/lodepng.
+Home page: http://lodev.org/lodepng/
 
-The branch in the fork has been modified to split decode and data inflation to
-allow it to work with our imageio library. A PR has been submitted to merge
-these changes upstream: https://github.com/lvandeve/lodepng/pull/206.
+### Documentation
 
-The version here has different comments than that in [KhronosGroup/lodepng](https://github.com/KhronosGroup/lodepng/tree/split_decode_inflate).
-The one in [KhronosGroup/lodepng](https://github.com/KhronosGroup/lodepng/tree/split_decode_inflate) has been prepared as source for the PR while this one,
-in compliance with the license requirements, has comments clearly indicating it has been modified, why and where. The code is identical.
+Detailed documentation is included in a large comment in the second half of the
+header file `lodepng.h`.
 
-The repo is 3MB but only the 2 files here are needed and it has no tags so 
-using `git submodule` or `git subrepo` are unattractive options.
+Source code examples using LodePNG can be found in the examples directory.
 
+An FAQ can be found on http://lodev.org/lodepng/
 
+### Building
+
+Only two files are needed to encode and decode PNGs:
+
+* `lodepng.cpp` (or renamed to `lodepng.c`)
+* `lodepng.h`
+
+All other files are just source code examples, tests, misc utilities, etc...,
+which are normally not needed in projects using this.
+
+You can include the files directly in your project's source tree and its
+makefile, IDE project file, or other build system. No library is necessary.
+
+In addition to C++, LodePNG also supports ANSI C (C89), with all the same
+functionality: C++ only adds extra convenience API.
+
+For C, rename `lodepng.cpp` to `lodepng.c`.
+
+Consider using git submodules to include LodePNG in your project.
+
+### Compiling in C++
+
+If you have a hypothetical `your_program.cpp` that #includes and uses `lodepng.h`,
+you can build as follows:
+
+`g++ your_program.cpp lodepng.cpp -Wall -Wextra -pedantic -ansi -O3`
+
+or:
+
+`clang++ your_program.cpp lodepng.cpp -Wall -Wextra -pedantic -ansi -O3`
+
+This shows compiler flags it was designed for, but normally one would use the
+compiler or build system of their project instead of those commands, and other
+C++ compilers are supported.
+
+### Compiling in C
+
+Rename `lodepng.cpp` to `lodepng.c` for this.
+
+If you have a hypothetical your_program.c that #includes and uses lodepng.h,
+you can build as follows:
+
+`gcc your_program.c lodepng.c -ansi -pedantic -Wall -Wextra -O3`
+
+or
+
+`clang your_program.c lodepng.c -ansi -pedantic -Wall -Wextra -O3`
+
+This shows compiler flags it was designed for, but normally one would use the
+compiler or build system of their project instead of those commands, and other
+C compilers are supported.
+
+### Makefile
+
+There is a Makefile, but this is not intended for using LodePNG itself since the
+way to use that one is to include its source files in your program. The Makefile
+only builds development and testing utilities. It can be used as follows:
+
+`make -j`

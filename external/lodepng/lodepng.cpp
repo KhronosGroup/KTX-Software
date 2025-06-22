@@ -1,7 +1,7 @@
 /*
-LodePNG version 20241228
+LodePNG version 20250506
 
-Copyright (c) 2005-2024 Lode Vandevenne
+Copyright (c) 2005-2025 Lode Vandevenne
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages
@@ -61,7 +61,7 @@ to 64 bits" warnings have been fixed by changing 1u constants to 1ull.
 #pragma clang diagnostic ignored "-Wshorten-64-to-32" /*implicit conversions*/
 #endif
 
-const char* LODEPNG_VERSION_STRING = "20241228";
+const char* LODEPNG_VERSION_STRING = "20250506";
 
 /*
 This source file is divided into the following large parts. The code sections
@@ -5162,8 +5162,8 @@ static unsigned readChunk_cICP(LodePNGInfo* info, const unsigned char* data, siz
   return 0; /* OK */
 }
 
-static unsigned readChunk_mDCv(LodePNGInfo* info, const unsigned char* data, size_t chunkLength) {
-  if(chunkLength != 24) return 119; /*invalid mDCv chunk size*/
+static unsigned readChunk_mDCV(LodePNGInfo* info, const unsigned char* data, size_t chunkLength) {
+  if(chunkLength != 24) return 119; /*invalid mDCV chunk size*/
 
   info->mdcv_defined = 1;
   info->mdcv_red_x = 256u * data[0] + data[1];
@@ -5180,8 +5180,8 @@ static unsigned readChunk_mDCv(LodePNGInfo* info, const unsigned char* data, siz
   return 0; /* OK */
 }
 
-static unsigned readChunk_cLLi(LodePNGInfo* info, const unsigned char* data, size_t chunkLength) {
-  if(chunkLength != 8) return 120; /*invalid cLLi chunk size*/
+static unsigned readChunk_cLLI(LodePNGInfo* info, const unsigned char* data, size_t chunkLength) {
+  if(chunkLength != 8) return 120; /*invalid cLLI chunk size*/
 
   info->clli_defined = 1;
   info->clli_max_cll = 16777216u * data[0] + 65536u * data[1] + 256u * data[2] + data[3];
@@ -5277,10 +5277,10 @@ unsigned lodepng_inspect_chunk(LodePNGState* state, size_t pos,
     error = readChunk_iCCP(&state->info_png, &state->decoder, data, chunkLength);
   } else if(lodepng_chunk_type_equals(chunk, "cICP")) {
     error = readChunk_cICP(&state->info_png, data, chunkLength);
-  } else if(lodepng_chunk_type_equals(chunk, "mDCv")) {
-    error = readChunk_mDCv(&state->info_png, data, chunkLength);
-  } else if(lodepng_chunk_type_equals(chunk, "cLLi")) {
-    error = readChunk_cLLi(&state->info_png, data, chunkLength);
+  } else if(lodepng_chunk_type_equals(chunk, "mDCV")) {
+    error = readChunk_mDCV(&state->info_png, data, chunkLength);
+  } else if(lodepng_chunk_type_equals(chunk, "cLLI")) {
+    error = readChunk_cLLI(&state->info_png, data, chunkLength);
   } else if(lodepng_chunk_type_equals(chunk, "eXIf")) {
     error = readChunk_eXIf(&state->info_png, data, chunkLength);
   } else if(lodepng_chunk_type_equals(chunk, "sBIT")) {
@@ -5305,7 +5305,6 @@ unsigned lodepng_decode_chunks(void** idat_out, size_t* idatsize_out, unsigned* 
                                const unsigned char* in, size_t insize) {
   unsigned char IEND = 0;
   unsigned char* idat;
-  size_t idatsize = 0;
   const unsigned char* chunk; /*points to beginning of next chunk*/
 
   /*for unknown chunk order*/
@@ -5314,9 +5313,9 @@ unsigned lodepng_decode_chunks(void** idat_out, size_t* idatsize_out, unsigned* 
   unsigned critical_pos = 1; /*1 = after IHDR, 2 = after PLTE, 3 = after IDAT*/
 #endif /*LODEPNG_COMPILE_ANCILLARY_CHUNKS*/
 
-
   /* safe output values in case error happens */
   *idat_out = 0;
+  *idatsize_out = 0; /* zlib compressor checks the size rather than for a null pointer. */
   *w = *h = 0;
 
   state->error = lodepng_inspect(w, h, state, in, insize); /*reads header and resets other parameters in state->info_png*/
@@ -5327,8 +5326,9 @@ unsigned lodepng_decode_chunks(void** idat_out, size_t* idatsize_out, unsigned* 
   }
 
   /*the input filesize is a safe upper bound for the sum of idat chunks size*/
-  idat = (unsigned char*)lodepng_malloc(insize);
-  if(!idat) CERROR_RETURN_ERROR(state->error, 83); /*alloc fail*/
+  *idat_out = (unsigned char*)lodepng_malloc(insize);
+  if(!*idat_out) CERROR_RETURN_ERROR(state->error, 83); /*alloc fail*/
+  idat = *(unsigned char**)idat_out;
 
   chunk = &in[33]; /*first byte of the first chunk after the header*/
 
@@ -5364,12 +5364,10 @@ unsigned lodepng_decode_chunks(void** idat_out, size_t* idatsize_out, unsigned* 
     /*IDAT chunk, containing compressed image data*/
     if(lodepng_chunk_type_equals(chunk, "IDAT")) {
       size_t newsize;
-      if(lodepng_addofl(idatsize, chunkLength, &newsize)) CERROR_BREAK(state->error, 95);
+      if(lodepng_addofl(*idatsize_out, chunkLength, &newsize)) CERROR_BREAK(state->error, 95);
       if(newsize > insize) CERROR_BREAK(state->error, 95);
-      lodepng_memcpy(idat + idatsize, data, chunkLength);
-      idatsize += chunkLength;
-      *idat_out = idat;
-      *idatsize_out = idatsize;
+      lodepng_memcpy(idat + *idatsize_out, data, chunkLength);
+      *idatsize_out += chunkLength;
 #ifdef LODEPNG_COMPILE_ANCILLARY_CHUNKS
       critical_pos = 3;
 #endif /*LODEPNG_COMPILE_ANCILLARY_CHUNKS*/
@@ -5433,11 +5431,11 @@ unsigned lodepng_decode_chunks(void** idat_out, size_t* idatsize_out, unsigned* 
     } else if(lodepng_chunk_type_equals(chunk, "cICP")) {
       state->error = readChunk_cICP(&state->info_png, data, chunkLength);
       if(state->error) break;
-    } else if(lodepng_chunk_type_equals(chunk, "mDCv")) {
-      state->error = readChunk_mDCv(&state->info_png, data, chunkLength);
+    } else if(lodepng_chunk_type_equals(chunk, "mDCV")) {
+      state->error = readChunk_mDCV(&state->info_png, data, chunkLength);
       if(state->error) break;
-    } else if(lodepng_chunk_type_equals(chunk, "cLLi")) {
-      state->error = readChunk_cLLi(&state->info_png, data, chunkLength);
+    } else if(lodepng_chunk_type_equals(chunk, "cLLI")) {
+      state->error = readChunk_cLLI(&state->info_png, data, chunkLength);
       if(state->error) break;
     } else if(lodepng_chunk_type_equals(chunk, "eXIf")) {
       state->error = readChunk_eXIf(&state->info_png, data, chunkLength);
@@ -5476,7 +5474,7 @@ unsigned lodepng_decode_chunks(void** idat_out, size_t* idatsize_out, unsigned* 
     if(!IEND) chunk = lodepng_chunk_next_const(chunk, in + insize);
   }
 
-  if (state->error) lodepng_free(idat);
+  if (state->error) lodepng_free(*idat_out);
   return state->error;
 }
 
@@ -5493,7 +5491,7 @@ static unsigned inflateIdat(unsigned char** out,
 
   unsigned char* idat = (unsigned char*)idat_in;
   size_t idatsize = idatsize_in;
-  unsigned char* dest;
+  unsigned char* dest = directOut; // This initialization is to keep some compilers happy.
 
   if (!out && !directOut && directOutSize == 0)
       CERROR_RETURN_ERROR(state->error, 105);  /*no destination specified*/
@@ -5526,21 +5524,22 @@ static unsigned inflateIdat(unsigned char** out,
   if(!state->error && scanlines_size != expected_size) state->error = 91; /*decompressed size doesn't match prediction*/
   lodepng_free(idat);
 
-  if(state->error)
-    return state->error;
-
-  outsize = lodepng_get_raw_size(w, h, &state->info_png.color);
-  if (out) {
-    *out = (unsigned char*)lodepng_malloc(outsize);
-    if(!*out) CERROR_RETURN_ERROR(state->error, 83); /*alloc fail*/
-    dest = *out;
-  } else {
-    if(directOutSize < outsize) CERROR_RETURN_ERROR(state->error, 123); /* error: "destination buffer too small */
-    dest = directOut;
+  if (!state->error) {
+    outsize = lodepng_get_raw_size(w, h, &state->info_png.color);
+    if (out) {
+      *out = (unsigned char*)lodepng_malloc(outsize);
+      if(!*out) state->error = 83; /*alloc fail*/
+      dest = *out;
+    } else {
+      if(directOutSize < outsize) state->error = 123; /* error: "destination buffer too small */
+      dest = directOut;
+    }
   }
 
-  for(i = 0; i < outsize; i++) (dest)[i] = 0;
-  state->error = postProcessScanlines(dest, scanlines, w, h, &state->info_png);
+  if (!state->error) {
+    for(i = 0; i < outsize; i++) (dest)[i] = 0;
+    state->error = postProcessScanlines(dest, scanlines, w, h, &state->info_png);
+  }
   lodepng_free(scanlines);
   return state->error;
 }
@@ -5593,7 +5592,9 @@ static void decodeGeneric(unsigned char** out, unsigned* w, unsigned* h,
   void* idat;
   size_t idatsize;
   (void)lodepng_decode_chunks(&idat, &idatsize, w, h, state, in, insize);
-  (void)inflateIdat(out, NULL, 0, *w, *h, state, idat, idatsize);
+  if (!state->error) {
+    (void)inflateIdat(out, NULL, 0, *w, *h, state, idat, idatsize);
+  }
 }
 
 unsigned lodepng_decode(unsigned char** out, unsigned* w, unsigned* h,
@@ -6053,7 +6054,7 @@ static unsigned addChunk_cICP(ucvector* out, const LodePNGInfo* info) {
   return 0;
 }
 
-static unsigned addChunk_mDCv(ucvector* out, const LodePNGInfo* info) {
+static unsigned addChunk_mDCV(ucvector* out, const LodePNGInfo* info) {
   unsigned char* chunk;
   /* Allow up to 65535 since they are 16-bit ints. */
   if(info->mdcv_red_x > 65535) return 118;
@@ -6064,7 +6065,7 @@ static unsigned addChunk_mDCv(ucvector* out, const LodePNGInfo* info) {
   if(info->mdcv_blue_y > 65535) return 118;
   if(info->mdcv_white_x > 65535) return 118;
   if(info->mdcv_white_y > 65535) return 118;
-  CERROR_TRY_RETURN(lodepng_chunk_init(&chunk, out, 24, "mDCv"));
+  CERROR_TRY_RETURN(lodepng_chunk_init(&chunk, out, 24, "mDCV"));
   chunk[8 + 0] = (unsigned char)((info->mdcv_red_x) >> 8u);
   chunk[8 + 1] = (unsigned char)(info->mdcv_red_x);
   chunk[8 + 2] = (unsigned char)((info->mdcv_red_y) >> 8u);
@@ -6087,9 +6088,9 @@ static unsigned addChunk_mDCv(ucvector* out, const LodePNGInfo* info) {
   return 0;
 }
 
-static unsigned addChunk_cLLi(ucvector* out, const LodePNGInfo* info) {
+static unsigned addChunk_cLLI(ucvector* out, const LodePNGInfo* info) {
   unsigned char* chunk;
-  CERROR_TRY_RETURN(lodepng_chunk_init(&chunk, out, 8, "cLLi"));
+  CERROR_TRY_RETURN(lodepng_chunk_init(&chunk, out, 8, "cLLI"));
   lodepng_set32bitInt(chunk + 8 + 0, info->clli_max_cll);
   lodepng_set32bitInt(chunk + 8 + 4, info->clli_max_fall);
   lodepng_chunk_generate_crc(chunk);
@@ -6769,11 +6770,11 @@ unsigned lodepng_encode(unsigned char** out, size_t* outsize,
       if(state->error) goto cleanup;
     }
     if(info.mdcv_defined) {
-      state->error = addChunk_mDCv(&outv, &info);
+      state->error = addChunk_mDCV(&outv, &info);
       if(state->error) goto cleanup;
     }
     if(info.clli_defined) {
-      state->error = addChunk_cLLi(&outv, &info);
+      state->error = addChunk_cLLI(&outv, &info);
       if(state->error) goto cleanup;
     }
     if(info.iccp_defined) {
@@ -7105,9 +7106,9 @@ const char* lodepng_error_text(unsigned code) {
     case 115: return "sBIT value out of range";
     case 116: return "cICP value out of range";
     case 117: return "invalid cICP chunk size";
-    case 118: return "mDCv value out of range";
-    case 119: return "invalid mDCv chunk size";
-    case 120: return "invalid cLLi chunk size";
+    case 118: return "mDCV value out of range";
+    case 119: return "invalid mDCV chunk size";
+    case 120: return "invalid cLLI chunk size";
     case 121: return "invalid chunk type name: may only contain [a-zA-Z]";
     case 122: return "invalid chunk type name: third character must be uppercase";
     // Added for 'msc' changes

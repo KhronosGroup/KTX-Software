@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/KhronosGroup/lodepng.git
+	branch = msc_separate_chunk_decode
+	commit = d4cc52d8c074da137303e1117cc098a97647960c
+	parent = 64a69009b72bee37ea75f8c4238686ea4c616e0b
+	method = merge
+	cmdver = 0.4.3
