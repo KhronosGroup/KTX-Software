@@ -17,8 +17,11 @@ jobs:
         with:
           submodules: 'true'
 
+      - name: Update apt packages
+        run: sudo apt-get update
+
       - name: Install ImageMagick
-        run: sudo apt install imagemagick
+        run: sudo apt-get install imagemagick
 
       - name: Build release
         run: |
@@ -55,18 +58,16 @@ jobs:
           pip install numpy Pillow
 
       - name: Run system tests
-        # GitHub is using Cobalt-100, which has 128-bit SVE so we cannot test sve_256 here
+        # Disable SVE for now
         run: |
           python ./Test/astc_test_functional.py --encoder none
           python ./Test/astc_test_functional.py --encoder neon
-          python ./Test/astc_test_functional.py --encoder sve_128
           python ./Test/astc_test_image.py --encoder none --test-set Small
           python ./Test/astc_test_image.py --encoder neon --test-set Small
-          python ./Test/astc_test_image.py --encoder sve_128 --test-set Small
 
       - name: Run unit tests
-        # GitHub is using Cobalt-100, which has 128-bit SVE so we cannot test sve_256 here
-        run: ctest -E test-unit-sve_256 --rerun-failed --output-on-failure
+        # Disable SVE for now
+        run: ctest -E "test-unit-sve_128|test-unit-sve_256" --rerun-failed --output-on-failure
         working-directory: build_rel
 
   build-ubuntu-arm64-gcc:
@@ -78,13 +79,14 @@ jobs:
         with:
           submodules: 'true'
 
+      - name: Update apt packages
+        run: sudo apt-get update
+
       - name: Install ImageMagick
-        run: sudo apt install imagemagick
+        run: sudo apt-get install imagemagick
 
       - name: Install GCC 14
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-14
+        run: sudo apt-get install -y gcc-14
 
       - name: Build release
         run: |
@@ -113,18 +115,16 @@ jobs:
           pip install numpy Pillow
 
       - name: Run system tests
-        # GitHub is using Cobalt-100, which has 128-bit SVE so we cannot test sve_256 here
+        # Disable SVE for now
         run: |
           python ./Test/astc_test_functional.py --encoder none
           python ./Test/astc_test_functional.py --encoder neon
-          python ./Test/astc_test_functional.py --encoder sve_128
           python ./Test/astc_test_image.py --encoder none --test-set Small
           python ./Test/astc_test_image.py --encoder neon --test-set Small
-          python ./Test/astc_test_image.py --encoder sve_128 --test-set Small
 
       - name: Run unit tests
-        # GitHub is using Cobalt-100, which has 128-bit SVE so we cannot test sve_256 here
-        run: ctest -E test-unit-sve_256 --rerun-failed --output-on-failure
+        # Disable SVE for now
+        run: ctest -E "test-unit-sve_128|test-unit-sve_256" --rerun-failed --output-on-failure
         working-directory: build_rel
 
   build-ubuntu-x64-clang:

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2011-2024 Arm Limited
+// Copyright 2011-2025 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -48,7 +48,7 @@
     #define ASTCENC_SSE 42
   #elif defined(__SSE4_1__)
     #define ASTCENC_SSE 41
-  #elif defined(__SSE2__)
+  #elif defined(__SSE2__) || (defined(_M_AMD64) && !defined(_M_ARM64EC))
     #define ASTCENC_SSE 20
   #else
     #define ASTCENC_SSE 0
@@ -68,7 +68,7 @@
 #endif
 
 #ifndef ASTCENC_NEON
-  #if defined(__aarch64__)
+  #if defined(__aarch64__) || defined(_M_ARM64) || defined(_M_ARM64EC)
     #define ASTCENC_NEON 1
   #else
     #define ASTCENC_NEON 0

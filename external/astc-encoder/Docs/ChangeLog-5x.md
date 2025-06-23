@@ -7,6 +7,26 @@ All performance data on this page is measured on an Intel Core i5-9600K
 clocked at 4.2 GHz, running `astcenc` using AVX2 and 6 threads.
 
 <!-- ---------------------------------------------------------------------- -->
+## 5.3.0
+
+**Status:** March 2025
+
+The 5.3.0 release is a minor maintenance release.
+
+* **General:**
+  * **Feature:** Reference C builds (`ASTCENC_ISA_NONE`) now support compiling
+    for big-endian CPUs. Compile with `-DASTCENC_BIG_ENDIAN=ON` when compiling
+    for a big-endian target; it is not auto-detected.
+  * **Improvement:** Builds using GCC now specify `-flto=auto` to allow
+    parallel link steps, and remove the log warnings about not setting a CPU
+    count parameter value.
+  * **Bug fix:** Builds using MSVC `cl.exe` that do not specify an explicit
+    ISA using the preprocessor configuration defines will now correctly
+    default to the SSE2 backend on x86-64 and the NEON backend on Arm64. Previously they would have defaulted to the reference C implementation,
+    which is around 3.25 times slower.
+
+
+<!-- ---------------------------------------------------------------------- -->
 ## 5.2.0
 
 **Status:** February 2025

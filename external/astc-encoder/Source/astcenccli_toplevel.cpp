@@ -2267,7 +2267,8 @@ int astcenc_main(
 
 		if (work.error != ASTCENC_SUCCESS)
 		{
-			print_error("ERROR: Codec decompress failed: %s\n", astcenc_get_error_string(codec_status));
+			print_error("ERROR: Codec decompress failed: %s\n",
+				        astcenc_get_error_string(work.error));
 			return 1;
 		}
 	}

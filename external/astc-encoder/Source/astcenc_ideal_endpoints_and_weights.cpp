@@ -195,8 +195,8 @@ static void compute_ideal_colors_and_weights_1_comp(
 	}
 
 	// Zero initialize any SIMD over-fetch
-	unsigned int texel_count_simd = round_up_to_simd_multiple_vla(texel_count);
-	for (unsigned int i = texel_count; i < texel_count_simd; i++)
+	size_t texel_count_simd = round_up_to_simd_multiple_vla(texel_count);
+	for (size_t i = texel_count; i < texel_count_simd; i++)
 	{
 		ei.weights[i] = 0.0f;
 		ei.weight_error_scale[i] = 0.0f;
@@ -333,8 +333,8 @@ static void compute_ideal_colors_and_weights_2_comp(
 	}
 
 	// Zero initialize any SIMD over-fetch
-	unsigned int texel_count_simd = round_up_to_simd_multiple_vla(texel_count);
-	for (unsigned int i = texel_count; i < texel_count_simd; i++)
+	size_t texel_count_simd = round_up_to_simd_multiple_vla(texel_count);
+	for (size_t i = texel_count; i < texel_count_simd; i++)
 	{
 		ei.weights[i] = 0.0f;
 		ei.weight_error_scale[i] = 0.0f;
@@ -500,8 +500,8 @@ static void compute_ideal_colors_and_weights_3_comp(
 	}
 
 	// Zero initialize any SIMD over-fetch
-	unsigned int texel_count_simd = round_up_to_simd_multiple_vla(texel_count);
-	for (unsigned int i = texel_count; i < texel_count_simd; i++)
+	size_t texel_count_simd = round_up_to_simd_multiple_vla(texel_count);
+	for (size_t i = texel_count; i < texel_count_simd; i++)
 	{
 		ei.weights[i] = 0.0f;
 		ei.weight_error_scale[i] = 0.0f;
@@ -598,8 +598,8 @@ static void compute_ideal_colors_and_weights_4_comp(
 	}
 
 	// Zero initialize any SIMD over-fetch
-	unsigned int texel_count_simd = round_up_to_simd_multiple_vla(texel_count);
-	for (unsigned int i = texel_count; i < texel_count_simd; i++)
+	size_t texel_count_simd = round_up_to_simd_multiple_vla(texel_count);
+	for (size_t i = texel_count; i < texel_count_simd; i++)
 	{
 		ei.weights[i] = 0.0f;
 		ei.weight_error_scale[i] = 0.0f;
@@ -867,7 +867,6 @@ void compute_ideal_weights_for_decimation(
 	}
 
 	// Otherwise compute an estimate and perform single refinement iteration
-	ASTCENC_ALIGNAS float infilled_weights[BLOCK_MAX_TEXELS];
 
 	// Compute an initial average for each decimated weight
 	bool constant_wes = ei.is_constant_weight_error_scale;
@@ -908,6 +907,7 @@ void compute_ideal_weights_for_decimation(
 	// Populate the interpolated weight grid based on the initial average
 	// Process SIMD-width texel coordinates at at time while we can. Safe to
 	// over-process full SIMD vectors - the tail is zeroed.
+	ASTCENC_ALIGNAS float infilled_weights[BLOCK_MAX_TEXELS];
 	if (di.max_texel_weight_count <= 2)
 	{
 		for (unsigned int i = 0; i < texel_count; i += ASTCENC_SIMD_WIDTH)

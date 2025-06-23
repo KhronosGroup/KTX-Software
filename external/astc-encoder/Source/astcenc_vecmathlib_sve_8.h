@@ -486,6 +486,15 @@ ASTCENC_SIMD_INLINE int hmax_s(vint8 a)
 }
 
 /**
+ * @brief Generate a vint8 from a size_t.
+ */
+ ASTCENC_SIMD_INLINE vint8 vint8_from_size(size_t a)
+ {
+	assert(a <= std::numeric_limits<int>::max());
+	return vint8(static_cast<int>(a));
+ }
+
+/**
  * @brief Store a vector to a 16B aligned memory address.
  */
 ASTCENC_SIMD_INLINE void storea(vint8 a, int* p)
