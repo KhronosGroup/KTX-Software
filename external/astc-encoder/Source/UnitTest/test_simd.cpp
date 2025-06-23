@@ -83,7 +83,7 @@ static unsigned int round_up(unsigned int x)
 }
 
 /** @brief Test VLA loop limit round down. */
-TEST(misc, RoundDownVLA)
+TEST(SuiteMisc, RoundDownVLA)
 {
 	// Static ones which are valid for all VLA widths
 	EXPECT_EQ(round_down_to_simd_multiple_vla(0),  0u);
@@ -98,7 +98,7 @@ TEST(misc, RoundDownVLA)
 }
 
 /** @brief Test VLA loop limit round up. */
-TEST(misc, RoundUpVLA)
+TEST(SuiteMisc, RoundUpVLA)
 {
 	// Static ones which are valid for all VLA widths
 	EXPECT_EQ(round_up_to_simd_multiple_vla(0),  0u);
@@ -117,7 +117,7 @@ TEST(misc, RoundUpVLA)
 // VLA (1-wide) tests - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 /** @brief Test VLA change_sign. */
-TEST(vfloat, ChangeSign)
+TEST(SuiteVfloat, ChangeSign)
 {
 	vfloat a0(-1.0f);
 	vfloat b0(-1.0f);
@@ -141,7 +141,7 @@ TEST(vfloat, ChangeSign)
 }
 
 /** @brief Test VLA atan. */
-TEST(vfloat, Atan)
+TEST(SuiteVfloat, Atan)
 {
 	vfloat a0(-0.15f);
 	vfloat r0 = atan(a0);
@@ -161,7 +161,7 @@ TEST(vfloat, Atan)
 }
 
 /** @brief Test VLA atan2. */
-TEST(vfloat, Atan2)
+TEST(SuiteVfloat, Atan2)
 {
 	vfloat a0(-0.15f);
 	vfloat b0( 1.15f);
@@ -189,7 +189,7 @@ TEST(vfloat, Atan2)
 // VLA (4-wide) tests - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 /** @brief Test VLA change_sign. */
-TEST(vfloat, ChangeSign)
+TEST(SuiteVfloat, ChangeSign)
 {
 	vfloat4 a(-1.0f,  1.0f, -3.12f, 3.12f);
 	vfloat4 b(-1.0f, -1.0f,  3.12f, 3.12f);
@@ -202,7 +202,7 @@ TEST(vfloat, ChangeSign)
 }
 
 /** @brief Test VLA atan. */
-TEST(vfloat, Atan)
+TEST(SuiteVfloat, Atan)
 {
 	vfloat4 a(-0.15f, 0.0f, 0.9f, 2.1f);
 	vfloat4 r = atan(a);
@@ -214,7 +214,7 @@ TEST(vfloat, Atan)
 }
 
 /** @brief Test VLA atan2. */
-TEST(vfloat, Atan2)
+TEST(SuiteVfloat, Atan2)
 {
 	vfloat4 a(-0.15f, 0.0f, 0.9f, 2.1f);
 	vfloat4 b(1.15f, -3.0f, -0.9f, 1.1f);
@@ -231,7 +231,7 @@ TEST(vfloat, Atan2)
 // VLA (8-wide) tests - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 /** @brief Test VLA change_sign. */
-TEST(vfloat, ChangeSign)
+TEST(SuiteVfloat, ChangeSign)
 {
 	vfloat8 a = vfloat8_lit(-1.0f,  1.0f, -3.12f, 3.12f, -1.0f,  1.0f, -3.12f, 3.12f);
 	vfloat8 b = vfloat8_lit(-1.0f, -1.0f,  3.12f, 3.12f, -1.0f, -1.0f,  3.12f, 3.12f);
@@ -251,7 +251,7 @@ TEST(vfloat, ChangeSign)
 }
 
 /** @brief Test VLA atan. */
-TEST(vfloat, Atan)
+TEST(SuiteVfloat, Atan)
 {
 	vfloat8 a = vfloat8_lit(-0.15f, 0.0f, 0.9f, 2.1f, -0.15f, 0.0f, 0.9f, 2.1f);
 	vfloat8 r = atan(a);
@@ -270,7 +270,7 @@ TEST(vfloat, Atan)
 }
 
 /** @brief Test VLA atan2. */
-TEST(vfloat, Atan2)
+TEST(SuiteVfloat, Atan2)
 {
 	vfloat8 a = vfloat8_lit(-0.15f, 0.0f, 0.9f, 2.1f, -0.15f, 0.0f, 0.9f, 2.1f);
 	vfloat8 b = vfloat8_lit(1.15f, -3.0f, -0.9f, 1.1f, 1.15f, -3.0f, -0.9f, 1.1f);
@@ -308,7 +308,7 @@ alignas(32) static const uint8_t u8_data[9] {
 // VFLOAT4 tests - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 /** @brief Test unaligned vfloat4 data load. */
-TEST(vfloat4, UnalignedLoad)
+TEST(SuiteVfloat4, UnalignedLoad)
 {
 	vfloat4 a(&(f32_data[1]));
 	EXPECT_EQ(a.lane<0>(), 1.0f);
@@ -318,7 +318,7 @@ TEST(vfloat4, UnalignedLoad)
 }
 
 /** @brief Test scalar duplicated vfloat4 load. */
-TEST(vfloat4, ScalarDupLoad)
+TEST(SuiteVfloat4, ScalarDupLoad)
 {
 	vfloat4 a(1.1f);
 	EXPECT_EQ(a.lane<0>(), 1.1f);
@@ -328,7 +328,7 @@ TEST(vfloat4, ScalarDupLoad)
 }
 
 /** @brief Test scalar vfloat4 load. */
-TEST(vfloat4, ScalarLoad)
+TEST(SuiteVfloat4, ScalarLoad)
 {
 	vfloat4 a(1.1f, 2.2f, 3.3f, 4.4f);
 	EXPECT_EQ(a.lane<0>(), 1.1f);
@@ -338,7 +338,7 @@ TEST(vfloat4, ScalarLoad)
 }
 
 /** @brief Test copy vfloat4 load. */
-TEST(vfloat4, CopyLoad)
+TEST(SuiteVfloat4, CopyLoad)
 {
 	vfloat4 s(1.1f, 2.2f, 3.3f, 4.4f);
 	vfloat4 a(s.m);
@@ -349,7 +349,7 @@ TEST(vfloat4, CopyLoad)
 }
 
 /** @brief Test vfloat4 scalar lane set. */
-TEST(vfloat4, SetLane)
+TEST(SuiteVfloat4, SetLane)
 {
 	vfloat4 a(0.0f);
 
@@ -379,7 +379,7 @@ TEST(vfloat4, SetLane)
 }
 
 /** @brief Test vfloat4 zero. */
-TEST(vfloat4, Zero)
+TEST(SuiteVfloat4, Zero)
 {
 	vfloat4 a = vfloat4::zero();
 	EXPECT_EQ(a.lane<0>(), 0.0f);
@@ -389,7 +389,7 @@ TEST(vfloat4, Zero)
 }
 
 /** @brief Test vfloat4 load1. */
-TEST(vfloat4, Load1)
+TEST(SuiteVfloat4, Load1)
 {
 	float s = 3.14f;
 	vfloat4 a = vfloat4::load1(&s);
@@ -400,7 +400,7 @@ TEST(vfloat4, Load1)
 }
 
 /** @brief Test vfloat4 loada. */
-TEST(vfloat4, Loada)
+TEST(SuiteVfloat4, Loada)
 {
 	vfloat4 a = vfloat4::loada(&(f32_data[0]));
 	EXPECT_EQ(a.lane<0>(), 0.0f);
@@ -410,7 +410,7 @@ TEST(vfloat4, Loada)
 }
 
 /** @brief Test vfloat4 swz to float4. */
-TEST(vfloat4, swz4)
+TEST(SuiteVfloat4, swz4)
 {
 	vfloat4 a(1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat4 r = a.swz<0, 3, 2, 1>();
@@ -427,7 +427,7 @@ TEST(vfloat4, swz4)
 }
 
 /** @brief Test vfloat4 swz to float3. */
-TEST(vfloat4, swz3)
+TEST(SuiteVfloat4, swz3)
 {
 	vfloat4 a(1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat4 r = a.swz<0, 3, 2>();
@@ -444,7 +444,7 @@ TEST(vfloat4, swz3)
 }
 
 /** @brief Test vfloat4 swz to float2. */
-TEST(vfloat4, swz2)
+TEST(SuiteVfloat4, swz2)
 {
 	vfloat4 a(1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat4 r = a.swz<0, 3>();
@@ -457,7 +457,7 @@ TEST(vfloat4, swz2)
 }
 
 /** @brief Test vfloat4 add. */
-TEST(vfloat4, vadd)
+TEST(SuiteVfloat4, vadd)
 {
 	vfloat4 a(1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat4 b(0.1f, 0.2f, 0.3f, 0.4f);
@@ -469,7 +469,7 @@ TEST(vfloat4, vadd)
 }
 
 /** @brief Test vfloat4 self-add. */
-TEST(vfloat4, vselfadd1)
+TEST(SuiteVfloat4, vselfadd1)
 {
 	vfloat4 a(1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat4 b(0.1f, 0.2f, 0.3f, 0.4f);
@@ -490,7 +490,7 @@ TEST(vfloat4, vselfadd1)
 }
 
 /** @brief Test vfloat4 sub. */
-TEST(vfloat4, vsub)
+TEST(SuiteVfloat4, vsub)
 {
 	vfloat4 a(1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat4 b(0.1f, 0.2f, 0.3f, 0.4f);
@@ -502,7 +502,7 @@ TEST(vfloat4, vsub)
 }
 
 /** @brief Test vfloat4 mul. */
-TEST(vfloat4, vmul)
+TEST(SuiteVfloat4, vmul)
 {
 	vfloat4 a(1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat4 b(0.1f, 0.2f, 0.3f, 0.4f);
@@ -514,7 +514,7 @@ TEST(vfloat4, vmul)
 }
 
 /** @brief Test vfloat4 mul. */
-TEST(vfloat4, vsmul)
+TEST(SuiteVfloat4, vsmul)
 {
 	vfloat4 a(1.0f, 2.0f, 3.0f, 4.0f);
 	float b = 3.14f;
@@ -526,7 +526,7 @@ TEST(vfloat4, vsmul)
 }
 
 /** @brief Test vfloat4 mul. */
-TEST(vfloat4, svmul)
+TEST(SuiteVfloat4, svmul)
 {
 	float a = 3.14f;
 	vfloat4 b(1.0f, 2.0f, 3.0f, 4.0f);
@@ -538,7 +538,7 @@ TEST(vfloat4, svmul)
 }
 
 /** @brief Test vfloat4 div. */
-TEST(vfloat4, vdiv)
+TEST(SuiteVfloat4, vdiv)
 {
 	vfloat4 a(1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat4 b(0.1f, 0.2f, 0.3f, 0.4f);
@@ -550,7 +550,7 @@ TEST(vfloat4, vdiv)
 }
 
 /** @brief Test vfloat4 div. */
-TEST(vfloat4, vsdiv)
+TEST(SuiteVfloat4, vsdiv)
 {
 	vfloat4 a(1.0f, 2.0f, 3.0f, 4.0f);
 	float b = 0.3f;
@@ -562,7 +562,7 @@ TEST(vfloat4, vsdiv)
 }
 
 /** @brief Test vfloat4 div. */
-TEST(vfloat4, svdiv)
+TEST(SuiteVfloat4, svdiv)
 {
 	float a = 3.0f;
 	vfloat4 b(0.1f, 0.2f, 0.3f, 0.4f);
@@ -574,7 +574,7 @@ TEST(vfloat4, svdiv)
 }
 
 /** @brief Test vfloat4 ceq. */
-TEST(vfloat4, ceq)
+TEST(SuiteVfloat4, ceq)
 {
 	vfloat4 a1(1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat4 b1(0.1f, 0.2f, 0.3f, 0.4f);
@@ -605,7 +605,7 @@ TEST(vfloat4, ceq)
 }
 
 /** @brief Test vfloat4 cne. */
-TEST(vfloat4, cne)
+TEST(SuiteVfloat4, cne)
 {
 	vfloat4 a1(1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat4 b1(0.1f, 0.2f, 0.3f, 0.4f);
@@ -636,7 +636,7 @@ TEST(vfloat4, cne)
 }
 
 /** @brief Test vfloat4 clt. */
-TEST(vfloat4, clt)
+TEST(SuiteVfloat4, clt)
 {
 	vfloat4 a(1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat4 b(0.9f, 2.1f, 3.0f, 4.1f);
@@ -645,7 +645,7 @@ TEST(vfloat4, clt)
 }
 
 /** @brief Test vfloat4 cle. */
-TEST(vfloat4, cle)
+TEST(SuiteVfloat4, cle)
 {
 	vfloat4 a(1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat4 b(0.9f, 2.1f, 3.0f, 4.1f);
@@ -654,7 +654,7 @@ TEST(vfloat4, cle)
 }
 
 /** @brief Test vfloat4 cgt. */
-TEST(vfloat4, cgt)
+TEST(SuiteVfloat4, cgt)
 {
 	vfloat4 a(1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat4 b(0.9f, 2.1f, 3.0f, 4.1f);
@@ -663,7 +663,7 @@ TEST(vfloat4, cgt)
 }
 
 /** @brief Test vfloat4 cge. */
-TEST(vfloat4, cge)
+TEST(SuiteVfloat4, cge)
 {
 	vfloat4 a(1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat4 b(0.9f, 2.1f, 3.0f, 4.1f);
@@ -672,7 +672,7 @@ TEST(vfloat4, cge)
 }
 
 /** @brief Test vfloat4 min. */
-TEST(vfloat4, min)
+TEST(SuiteVfloat4, min)
 {
 	vfloat4 a(1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat4 b(0.9f, 2.1f, 3.0f, 4.1f);
@@ -698,7 +698,7 @@ TEST(vfloat4, min)
 }
 
 /** @brief Test vfloat4 max. */
-TEST(vfloat4, max)
+TEST(SuiteVfloat4, max)
 {
 	vfloat4 a(1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat4 b(0.9f, 2.1f, 3.0f, 4.1f);
@@ -724,7 +724,7 @@ TEST(vfloat4, max)
 }
 
 /** @brief Test vfloat4 clamp. */
-TEST(vfloat4, clamp)
+TEST(SuiteVfloat4, clamp)
 {
 	vfloat4 a1(1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat4 r1 = clamp(2.1f, 3.0f, a1);
@@ -742,7 +742,7 @@ TEST(vfloat4, clamp)
 }
 
 /** @brief Test vfloat4 clampz. */
-TEST(vfloat4, clampzo)
+TEST(SuiteVfloat4, clampzo)
 {
 	vfloat4 a1(-1.0f, 0.0f, 0.1f, 4.0f);
 	vfloat4 r1 = clampzo(a1);
@@ -760,7 +760,7 @@ TEST(vfloat4, clampzo)
 }
 
 /** @brief Test vfloat4 abs. */
-TEST(vfloat4, abs)
+TEST(SuiteVfloat4, abs)
 {
 	vfloat4 a(-1.0f, 0.0f, 0.1f, 4.0f);
 	vfloat4 r = abs(a);
@@ -771,7 +771,7 @@ TEST(vfloat4, abs)
 }
 
 /** @brief Test vfloat4 round. */
-TEST(vfloat4, round)
+TEST(SuiteVfloat4, round)
 {
 	vfloat4 a1(1.1f, 1.5f, 1.6f, 4.0f);
 	vfloat4 r1 = round(a1);
@@ -787,7 +787,7 @@ TEST(vfloat4, round)
 }
 
 /** @brief Test vfloat4 hmin. */
-TEST(vfloat4, hmin)
+TEST(SuiteVfloat4, hmin)
 {
 	vfloat4 a1(1.1f, 1.5f, 1.6f, 4.0f);
 	vfloat4 r1 = hmin(a1);
@@ -805,7 +805,7 @@ TEST(vfloat4, hmin)
 }
 
 /** @brief Test vfloat4 hmin_s. */
-TEST(vfloat4, hmin_s)
+TEST(SuiteVfloat4, hmin_s)
 {
 	vfloat4 a1(1.1f, 1.5f, 1.6f, 4.0f);
 	float r1 = hmin_s(a1);
@@ -817,7 +817,7 @@ TEST(vfloat4, hmin_s)
 }
 
 /** @brief Test vfloat4 hmin_rgb_s. */
-TEST(vfloat4, hmin_rgb_s)
+TEST(SuiteVfloat4, hmin_rgb_s)
 {
 	vfloat4 a1(1.1f, 1.5f, 1.6f, 0.2f);
 	float r1 = hmin_rgb_s(a1);
@@ -829,7 +829,7 @@ TEST(vfloat4, hmin_rgb_s)
 }
 
 /** @brief Test vfloat4 hmax. */
-TEST(vfloat4, hmax)
+TEST(SuiteVfloat4, hmax)
 {
 	vfloat4 a1(1.1f, 1.5f, 1.6f, 4.0f);
 	vfloat4 r1 = hmax(a1);
@@ -847,7 +847,7 @@ TEST(vfloat4, hmax)
 }
 
 /** @brief Test vfloat4 hmax_s. */
-TEST(vfloat4, hmax_s)
+TEST(SuiteVfloat4, hmax_s)
 {
 	vfloat4 a1(1.1f, 1.5f, 1.6f, 4.0f);
 	float r1 = hmax_s(a1);
@@ -859,7 +859,7 @@ TEST(vfloat4, hmax_s)
 }
 
 /** @brief Test vfloat4 hadd_s. */
-TEST(vfloat4, hadd_s)
+TEST(SuiteVfloat4, hadd_s)
 {
 	vfloat4 a1(1.1f, 1.5f, 1.6f, 4.0f);
 	float sum = 1.1f + 1.5f + 1.6f + 4.0f;
@@ -868,7 +868,7 @@ TEST(vfloat4, hadd_s)
 }
 
 /** @brief Test vfloat4 hadd_rgb_s. */
-TEST(vfloat4, hadd_rgb_s)
+TEST(SuiteVfloat4, hadd_rgb_s)
 {
 	vfloat4 a1(1.1f, 1.5f, 1.6f, 4.0f);
 	float sum = 1.1f + 1.5f + 1.6f;
@@ -877,7 +877,7 @@ TEST(vfloat4, hadd_rgb_s)
 }
 
 /** @brief Test vfloat4 sqrt. */
-TEST(vfloat4, sqrt)
+TEST(SuiteVfloat4, sqrt)
 {
 	vfloat4 a(1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat4 r = sqrt(a);
@@ -888,7 +888,7 @@ TEST(vfloat4, sqrt)
 }
 
 /** @brief Test vfloat4 select. */
-TEST(vfloat4, select)
+TEST(SuiteVfloat4, select)
 {
 	vfloat4 m1(1.0f, 1.0f, 1.0f, 1.0f);
 	vfloat4 m2(1.0f, 2.0f, 1.0f, 2.0f);
@@ -913,7 +913,7 @@ TEST(vfloat4, select)
 }
 
 /** @brief Test vfloat4 gatherf. */
-TEST(vfloat4, gatherf)
+TEST(SuiteVfloat4, gatherf)
 {
 	vint4 indices(0, 4, 3, 2);
 	vfloat4 r = gatherf(f32_data, indices);
@@ -924,7 +924,7 @@ TEST(vfloat4, gatherf)
 }
 
 /** @brief Test vfloat4 storea. */
-TEST(vfloat4, storea)
+TEST(SuiteVfloat4, storea)
 {
 	ASTCENC_ALIGNAS float out[4];
 	vfloat4 a(f32_data);
@@ -936,7 +936,7 @@ TEST(vfloat4, storea)
 }
 
 /** @brief Test vfloat4 store. */
-TEST(vfloat4, store)
+TEST(SuiteVfloat4, store)
 {
 	ASTCENC_ALIGNAS float out[5];
 	vfloat4 a(f32_data);
@@ -948,7 +948,7 @@ TEST(vfloat4, store)
 }
 
 /** @brief Test vfloat4 dot. */
-TEST(vfloat4, dot)
+TEST(SuiteVfloat4, dot)
 {
 	vfloat4 a1(1.0f, 2.0f, 4.0f, 8.0f);
 	vfloat4 b1(1.0f, 0.5f, 0.25f, 0.125f);
@@ -976,7 +976,7 @@ TEST(vfloat4, dot)
 }
 
 /** @brief Test vfloat4 dot_s. */
-TEST(vfloat4, dot_s)
+TEST(SuiteVfloat4, dot_s)
 {
 	vfloat4 a1(1.0f, 2.0f, 4.0f, 8.0f);
 	vfloat4 b1(1.0f, 0.5f, 0.25f, 0.125f);
@@ -1001,7 +1001,7 @@ TEST(vfloat4, dot_s)
 }
 
 /** @brief Test vfloat4 dot3. */
-TEST(vfloat4, dot3)
+TEST(SuiteVfloat4, dot3)
 {
 	vfloat4 a(1.0f, 2.0f, 4.0f, 8.0f);
 	vfloat4 b(1.0f, 0.5f, 0.25f, 0.125f);
@@ -1013,7 +1013,7 @@ TEST(vfloat4, dot3)
 }
 
 /** @brief Test vfloat4 dot3_s. */
-TEST(vfloat4, dot3_s)
+TEST(SuiteVfloat4, dot3_s)
 {
 	vfloat4 a(1.0f, 2.0f, 4.0f, 8.0f);
 	vfloat4 b(1.0f, 0.5f, 0.25f, 0.125f);
@@ -1022,7 +1022,7 @@ TEST(vfloat4, dot3_s)
 }
 
 /** @brief Test vfloat4 normalize. */
-TEST(vfloat4, normalize)
+TEST(SuiteVfloat4, normalize)
 {
 	vfloat4 a(1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat4 r = normalize(a);
@@ -1033,7 +1033,7 @@ TEST(vfloat4, normalize)
 }
 
 /** @brief Test vfloat4 normalize_safe. */
-TEST(vfloat4, normalize_safe)
+TEST(SuiteVfloat4, normalize_safe)
 {
 	vfloat4 s(-1.0f, -1.0f, -1.0f, -1.0f);
 
@@ -1053,7 +1053,7 @@ TEST(vfloat4, normalize_safe)
 }
 
 /** @brief Test vfloat4 float_to_int. */
-TEST(vfloat4, float_to_int)
+TEST(SuiteVfloat4, float_to_int)
 {
 	vfloat4 a(1.1f, 1.5f, -1.6f, 4.0f);
 	vint4 r = float_to_int(a);
@@ -1064,7 +1064,7 @@ TEST(vfloat4, float_to_int)
 }
 
 /** @brief Test vfloat4 round. */
-TEST(vfloat4, float_to_int_rtn)
+TEST(SuiteVfloat4, float_to_int_rtn)
 {
 	vfloat4 a(1.1f, 1.5f, 1.6f, 4.0f);
 	vint4 r = float_to_int_rtn(a);
@@ -1075,7 +1075,7 @@ TEST(vfloat4, float_to_int_rtn)
 }
 
 /** @brief Test vfloat4 round. */
-TEST(vfloat4, int_to_float)
+TEST(SuiteVfloat4, int_to_float)
 {
 	vint4 a(1, 2, 3, 4);
 	vfloat4 r = int_to_float(a);
@@ -1086,7 +1086,7 @@ TEST(vfloat4, int_to_float)
 }
 
 /** @brief Test vfloat4 float to fp16 conversion. */
-TEST(vfloat4, float_to_float16)
+TEST(SuiteVfloat4, float_to_float16)
 {
 	vfloat4 a(1.5, 234.5, 345345.0, qnan);
 	vint4 r = float_to_float16(a);
@@ -1111,7 +1111,7 @@ TEST(sfloat, float_to_float16)
 }
 
 /** @brief Test vfloat4 fp16 to float conversion. */
-TEST(vfloat4, float16_to_float)
+TEST(SuiteVfloat4, float16_to_float)
 {	vint4 a(0x3E00, 0x5B54, 0x7C00, 0xFFFF);
 	vfloat4 r = float16_to_float(a);
 
@@ -1136,7 +1136,7 @@ TEST(sfloat, float16_to_float)
 // VINT4 tests - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 /** @brief Test unaligned vint4 data load. */
-TEST(vint4, UnalignedLoad)
+TEST(SuiteVint4, UnalignedLoad)
 {
 	vint4 a(&(s32_data[1]));
 	EXPECT_EQ(a.lane<0>(), 1);
@@ -1146,7 +1146,7 @@ TEST(vint4, UnalignedLoad)
 }
 
 /** @brief Test unaligned vint4 data load. */
-TEST(vint4, UnalignedLoad8)
+TEST(SuiteVint4, UnalignedLoad8)
 {
 	vint4 a(&(u8_data[1]));
 	EXPECT_EQ(a.lane<0>(), 1);
@@ -1156,7 +1156,7 @@ TEST(vint4, UnalignedLoad8)
 }
 
 /** @brief Test scalar duplicated vint4 load. */
-TEST(vint4, ScalarDupLoad)
+TEST(SuiteVint4, ScalarDupLoad)
 {
 	vint4 a(42);
 	EXPECT_EQ(a.lane<0>(), 42);
@@ -1166,7 +1166,7 @@ TEST(vint4, ScalarDupLoad)
 }
 
 /** @brief Test scalar vint4 load. */
-TEST(vint4, ScalarLoad)
+TEST(SuiteVint4, ScalarLoad)
 {
 	vint4 a(11, 22, 33, 44);
 	EXPECT_EQ(a.lane<0>(), 11);
@@ -1176,7 +1176,7 @@ TEST(vint4, ScalarLoad)
 }
 
 /** @brief Test copy vint4 load. */
-TEST(vint4, CopyLoad)
+TEST(SuiteVint4, CopyLoad)
 {
 	vint4 s(11, 22, 33, 44);
 	vint4 a(s.m);
@@ -1217,7 +1217,7 @@ TEST(int4, SetLane)
 }
 
 /** @brief Test vint4 zero. */
-TEST(vint4, Zero)
+TEST(SuiteVint4, Zero)
 {
 	vint4 a = vint4::zero();
 	EXPECT_EQ(a.lane<0>(), 0);
@@ -1227,7 +1227,7 @@ TEST(vint4, Zero)
 }
 
 /** @brief Test vint4 load1. */
-TEST(vint4, Load1)
+TEST(SuiteVint4, Load1)
 {
 	int s = 42;
 	vint4 a = vint4::load1(&s);
@@ -1238,7 +1238,7 @@ TEST(vint4, Load1)
 }
 
 /** @brief Test vint4 loada. */
-TEST(vint4, Loada)
+TEST(SuiteVint4, Loada)
 {
 	vint4 a = vint4::loada(&(s32_data[0]));
 	EXPECT_EQ(a.lane<0>(), 0);
@@ -1248,7 +1248,7 @@ TEST(vint4, Loada)
 }
 
 /** @brief Test vint4 lane_id. */
-TEST(vint4, LaneID)
+TEST(SuiteVint4, LaneID)
 {
 	vint4 a = vint4::lane_id();
 	EXPECT_EQ(a.lane<0>(), 0);
@@ -1258,7 +1258,7 @@ TEST(vint4, LaneID)
 }
 
 /** @brief Test vint4 add. */
-TEST(vint4, vadd)
+TEST(SuiteVint4, vadd)
 {
 	vint4 a(1, 2, 3, 4);
 	vint4 b(2, 3, 4, 5);
@@ -1270,7 +1270,7 @@ TEST(vint4, vadd)
 }
 
 /** @brief Test vint4 self-add. */
-TEST(vint4, vselfadd)
+TEST(SuiteVint4, vselfadd)
 {
 	vint4 a(1, 2, 3, 4);
 	vint4 b(2, 3, 4, 5);
@@ -1283,7 +1283,7 @@ TEST(vint4, vselfadd)
 }
 
 /** @brief Test vint4 add. */
-TEST(vint4, vsadd)
+TEST(SuiteVint4, vsadd)
 {
 	vint4 a(1, 2, 3, 4);
 	int b = 5;
@@ -1295,7 +1295,7 @@ TEST(vint4, vsadd)
 }
 
 /** @brief Test vint4 sub. */
-TEST(vint4, vsub)
+TEST(SuiteVint4, vsub)
 {
 	vint4 a(1, 2, 4, 4);
 	vint4 b(2, 3, 3, 5);
@@ -1307,7 +1307,7 @@ TEST(vint4, vsub)
 }
 
 /** @brief Test vint4 sub. */
-TEST(vint4, vssub)
+TEST(SuiteVint4, vssub)
 {
 	vint4 a(1, 2, 4, 4);
 	int b = 5;
@@ -1319,7 +1319,7 @@ TEST(vint4, vssub)
 }
 
 /** @brief Test vint4 mul. */
-TEST(vint4, vmul)
+TEST(SuiteVint4, vmul)
 {
 	vint4 a(1, 2, 4, 4);
 	vint4 b(2, 3, 3, 5);
@@ -1331,7 +1331,7 @@ TEST(vint4, vmul)
 }
 
 /** @brief Test vint4 mul. */
-TEST(vint4, vsmul)
+TEST(SuiteVint4, vsmul)
 {
 	vint4 a(1, 2, 4, 4);
 	a = a * 3;
@@ -1349,7 +1349,7 @@ TEST(vint4, vsmul)
 }
 
 /** @brief Test vint4 bitwise invert. */
-TEST(vint4, bit_invert)
+TEST(SuiteVint4, bit_invert)
 {
 	vint4 a(-1, 0, 1, 2);
 	a = ~a;
@@ -1360,7 +1360,7 @@ TEST(vint4, bit_invert)
 }
 
 /** @brief Test vint4 bitwise or. */
-TEST(vint4, bit_vor)
+TEST(SuiteVint4, bit_vor)
 {
 	vint4 a(1, 2, 3, 4);
 	vint4 b(2, 3, 4, 5);
@@ -1371,7 +1371,7 @@ TEST(vint4, bit_vor)
 	EXPECT_EQ(a.lane<3>(), 5);
 }
 
-TEST(vint4, bit_vsor)
+TEST(SuiteVint4, bit_vsor)
 {
 	vint4 a(1, 2, 3, 4);
 	int b = 2;
@@ -1383,7 +1383,7 @@ TEST(vint4, bit_vsor)
 }
 
 /** @brief Test vint4 bitwise and. */
-TEST(vint4, bit_vand)
+TEST(SuiteVint4, bit_vand)
 {
 	vint4 a(1, 2, 3, 4);
 	vint4 b(2, 3, 4, 5);
@@ -1395,7 +1395,7 @@ TEST(vint4, bit_vand)
 }
 
 /** @brief Test vint4 bitwise and. */
-TEST(vint4, bit_vsand)
+TEST(SuiteVint4, bit_vsand)
 {
 	vint4 a(1, 2, 3, 4);
 	int b = 2;
@@ -1407,7 +1407,7 @@ TEST(vint4, bit_vsand)
 }
 
 /** @brief Test vint4 bitwise xor. */
-TEST(vint4, bit_vxor)
+TEST(SuiteVint4, bit_vxor)
 {
 	vint4 a(1, 2, 3, 4);
 	vint4 b(2, 3, 4, 5);
@@ -1419,7 +1419,7 @@ TEST(vint4, bit_vxor)
 }
 
 /** @brief Test vint4 bitwise xor. */
-TEST(vint4, bit_vsxor)
+TEST(SuiteVint4, bit_vsxor)
 {
 	vint4 a(1, 2, 3, 4);
 	int b = 2;
@@ -1431,7 +1431,7 @@ TEST(vint4, bit_vsxor)
 }
 
 /** @brief Test vint4 ceq. */
-TEST(vint4, ceq)
+TEST(SuiteVint4, ceq)
 {
 	vint4 a1(1, 2, 3, 4);
 	vint4 b1(0, 1, 2, 3);
@@ -1462,7 +1462,7 @@ TEST(vint4, ceq)
 }
 
 /** @brief Test vint4 cne. */
-TEST(vint4, cne)
+TEST(SuiteVint4, cne)
 {
 	vint4 a1(1, 2, 3, 4);
 	vint4 b1(0, 1, 2, 3);
@@ -1493,7 +1493,7 @@ TEST(vint4, cne)
 }
 
 /** @brief Test vint4 clt. */
-TEST(vint4, clt)
+TEST(SuiteVint4, clt)
 {
 	vint4 a(1, 2, 3, 4);
 	vint4 b(0, 3, 3, 5);
@@ -1502,7 +1502,7 @@ TEST(vint4, clt)
 }
 
 /** @brief Test vint4 cgt. */
-TEST(vint4, cle)
+TEST(SuiteVint4, cle)
 {
 	vint4 a(1, 2, 3, 4);
 	vint4 b(0, 3, 3, 5);
@@ -1511,7 +1511,7 @@ TEST(vint4, cle)
 }
 
 /** @brief Test vint4 lsl. */
-TEST(vint4, lsl)
+TEST(SuiteVint4, lsl)
 {
 	vint4 a(1, 2, 4, 4);
 	a = lsl<0>(a);
@@ -1534,7 +1534,7 @@ TEST(vint4, lsl)
 }
 
 /** @brief Test vint4 lsr. */
-TEST(vint4, lsr)
+TEST(SuiteVint4, lsr)
 {
 	vint4 a(1, 2, 4, -4);
 	a = lsr<0>(a);
@@ -1557,7 +1557,7 @@ TEST(vint4, lsr)
 }
 
 /** @brief Test vint4 asr. */
-TEST(vint4, asr)
+TEST(SuiteVint4, asr)
 {
 	vint4 a(1, 2, 4, -4);
 	a = asr<0>(a);
@@ -1581,7 +1581,7 @@ TEST(vint4, asr)
 }
 
 /** @brief Test vint4 min. */
-TEST(vint4, min)
+TEST(SuiteVint4, min)
 {
 	vint4 a(1, 2, 3, 4);
 	vint4 b(0, 3, 3, 5);
@@ -1593,7 +1593,7 @@ TEST(vint4, min)
 }
 
 /** @brief Test vint4 max. */
-TEST(vint4, max)
+TEST(SuiteVint4, max)
 {
 	vint4 a(1, 2, 3, 4);
 	vint4 b(0, 3, 3, 5);
@@ -1605,7 +1605,7 @@ TEST(vint4, max)
 }
 
 /** @brief Test vint4 clamp. */
-TEST(vint4, clamp)
+TEST(SuiteVint4, clamp)
 {
 	vint4 a(1, 2, 3, 4);
 	vint4 r = clamp(2, 3, a);
@@ -1616,7 +1616,7 @@ TEST(vint4, clamp)
 }
 
 /** @brief Test vint4 hmin. */
-TEST(vint4, hmin)
+TEST(SuiteVint4, hmin)
 {
 	vint4 a1(1, 2, 1, 2);
 	vint4 r1 = hmin(a1);
@@ -1634,7 +1634,7 @@ TEST(vint4, hmin)
 }
 
 /** @brief Test vint4 hmax. */
-TEST(vint4, hmax)
+TEST(SuiteVint4, hmax)
 {
 	vint4 a1(1, 3, 1, 2);
 	vint4 r1 = hmax(a1);
@@ -1652,7 +1652,7 @@ TEST(vint4, hmax)
 }
 
 /** @brief Test vint4 hadd_rgb_s. */
-TEST(vint4, hadd_rgb_s)
+TEST(SuiteVint4, hadd_rgb_s)
 {
 	vint4 a1(1, 3, 5, 7);
 	int r1 = hadd_rgb_s(a1);
@@ -1664,7 +1664,7 @@ TEST(vint4, hadd_rgb_s)
 }
 
 /** @brief Test vint4 clz. */
-TEST(vint4, clz)
+TEST(SuiteVint4, clz)
 {
 	int msb_set = static_cast<int>(0x80000000);
 	vint4 a1(msb_set, 0x40000000, 0x20000000, 0x10000000);
@@ -1683,7 +1683,7 @@ TEST(vint4, clz)
 }
 
 /** @brief Test vint4 two_to_the_n. */
-TEST(vint4, two_to_the_n)
+TEST(SuiteVint4, two_to_the_n)
 {
 	vint4 a1(0, 1, 2, 3);
 	vint4 r1 = two_to_the_n(a1);
@@ -1707,7 +1707,7 @@ TEST(vint4, two_to_the_n)
 }
 
 /** @brief Test vint4 storea. */
-TEST(vint4, storea)
+TEST(SuiteVint4, storea)
 {
 	ASTCENC_ALIGNAS int out[4];
 	vint4 a(s32_data);
@@ -1719,7 +1719,7 @@ TEST(vint4, storea)
 }
 
 /** @brief Test vint4 store. */
-TEST(vint4, store)
+TEST(SuiteVint4, store)
 {
 	ASTCENC_ALIGNAS int out[5];
 	vint4 a(s32_data);
@@ -1731,7 +1731,7 @@ TEST(vint4, store)
 }
 
 /** @brief Test vint4 store_nbytes. */
-TEST(vint4, store_nbytes)
+TEST(SuiteVint4, store_nbytes)
 {
 	ASTCENC_ALIGNAS int out;
 	vint4 a(42, 314, 75, 90);
@@ -1740,7 +1740,7 @@ TEST(vint4, store_nbytes)
 }
 
 /** @brief Test vint4 store_lanes_masked. */
-TEST(vint4, store_lanes_masked)
+TEST(SuiteVint4, store_lanes_masked)
 {
 	uint8_t resulta[16] { 0 };
 
@@ -1773,7 +1773,7 @@ TEST(vint4, store_lanes_masked)
 }
 
 /** @brief Test vint4 store_lanes_masked to unaligned address. */
-TEST(vint4, store_lanes_masked_unaligned)
+TEST(SuiteVint4, store_lanes_masked_unaligned)
 {
 	uint8_t resulta[17] { 0 };
 
@@ -1806,7 +1806,7 @@ TEST(vint4, store_lanes_masked_unaligned)
 }
 
 /** @brief Test vint4 pack_and_store_low_bytes. */
-TEST(vint4, pack_and_store_low_bytes)
+TEST(SuiteVint4, pack_and_store_low_bytes)
 {
 	vint4 a(1, 2, 3, 4);
 	uint8_t bytes[4] { 0 };
@@ -1819,7 +1819,7 @@ TEST(vint4, pack_and_store_low_bytes)
 }
 
 /** @brief Test vint4 select. */
-TEST(vint4, select)
+TEST(SuiteVint4, select)
 {
 	vint4 m1(1, 1, 1, 1);
 	vint4 m2(1, 2, 1, 2);
@@ -1843,7 +1843,7 @@ TEST(vint4, select)
 
 // VMASK4 tests - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** @brief Test vmask4 scalar literal constructor. */
-TEST(vmask4, scalar_literal_construct)
+TEST(SuiteVmask4, scalar_literal_construct)
 {
 	vfloat4 m1a(0.0f, 0.0f, 0.0f, 0.0f);
 	vfloat4 m1b(1.0f, 1.0f, 1.0f, 1.0f);
@@ -1865,7 +1865,7 @@ TEST(vmask4, scalar_literal_construct)
 }
 
 /** @brief Test vmask4 literal constructor. */
-TEST(vmask4, literal_construct)
+TEST(SuiteVmask4, literal_construct)
 {
 	vfloat4 m1a(0.0f, 0.0f, 0.0f, 0.0f);
 	vfloat4 m1b(1.0f, 1.0f, 1.0f, 1.0f);
@@ -1880,7 +1880,7 @@ TEST(vmask4, literal_construct)
 }
 
 /** @brief Test vmask4 or. */
-TEST(vmask4, or)
+TEST(SuiteVmask4, TestOr)
 {
 	vfloat4 m1a(0, 1, 0, 1);
 	vfloat4 m1b(1, 1, 1, 1);
@@ -1895,7 +1895,7 @@ TEST(vmask4, or)
 }
 
 /** @brief Test vmask4 and. */
-TEST(vmask4, and)
+TEST(SuiteVmask4, TestAnd)
 {
 	vfloat4 m1a(0, 1, 0, 1);
 	vfloat4 m1b(1, 1, 1, 1);
@@ -1910,7 +1910,7 @@ TEST(vmask4, and)
 }
 
 /** @brief Test vmask4 xor. */
-TEST(vmask4, xor)
+TEST(SuiteVmask4, TestXor)
 {
 	vfloat4 m1a(0, 1, 0, 1);
 	vfloat4 m1b(1, 1, 1, 1);
@@ -1925,7 +1925,7 @@ TEST(vmask4, xor)
 }
 
 /** @brief Test vmask4 not. */
-TEST(vmask4, not)
+TEST(SuiteVmask4, TestNot)
 {
 	vfloat4 m1a(0, 1, 0, 1);
 	vfloat4 m1b(1, 1, 1, 1);
@@ -1935,7 +1935,7 @@ TEST(vmask4, not)
 }
 
 /** @brief Test vint4 table permute. */
-TEST(vint4, vtable4_16x8)
+TEST(SuiteVint4, vtable4_16x8)
 {
 	uint8_t data[16] = {
 		0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
@@ -1956,7 +1956,7 @@ TEST(vint4, vtable4_16x8)
 }
 
 /** @brief Test vint4 table permute. */
-TEST(vint4, vtable4_32x8)
+TEST(SuiteVint4, vtable4_32x8)
 {
 	uint8_t data[32] = {
 		0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
@@ -1979,7 +1979,7 @@ TEST(vint4, vtable4_32x8)
 }
 
 /** @brief Test vint4 table permute. */
-TEST(vint4, vtable4_64x8)
+TEST(SuiteVint4, vtable4_64x8)
 {
 	uint8_t data[64] = {
 		0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
@@ -1999,10 +1999,6 @@ TEST(vint4, vtable4_64x8)
 
 	vint4 result = vtable_lookup_32bit(table, index);
 
-	uint8_t* hack = reinterpret_cast<uint8_t*>(&table);
-	std::cout << "38: " << hack[38] << "\n";
-	std::cout << "63: " << hack[63] << "\n";
-
 	EXPECT_EQ(result.lane<0>(),  0);
 	EXPECT_EQ(result.lane<1>(),  7);
 	EXPECT_EQ(result.lane<2>(), 38);
@@ -2010,7 +2006,7 @@ TEST(vint4, vtable4_64x8)
 }
 
 /** @brief Test vint4 rgba byte interleave. */
-TEST(vint4, interleave_rgba8)
+TEST(SuiteVint4, interleave_rgba8)
 {
 	vint4 r(0x01, 0x11, 0x21, 0x31);
 	vint4 g(0x02, 0x12, 0x22, 0x32);
@@ -2019,10 +2015,17 @@ TEST(vint4, interleave_rgba8)
 
 	vint4 result = interleave_rgba8(r, g, b, a);
 
+#if !defined(ASTCENC_BIG_ENDIAN)
 	EXPECT_EQ(result.lane<0>(), 0x04030201);
 	EXPECT_EQ(result.lane<1>(), 0x14131211);
 	EXPECT_EQ(result.lane<2>(), 0x24232221);
 	EXPECT_EQ(result.lane<3>(), 0x34333231);
+#else
+	EXPECT_EQ(result.lane<0>(), 0x01020304);
+	EXPECT_EQ(result.lane<1>(), 0x11121314);
+	EXPECT_EQ(result.lane<2>(), 0x21222324);
+	EXPECT_EQ(result.lane<3>(), 0x31323334);
+#endif
 }
 
 # if ASTCENC_SIMD_WIDTH == 8
@@ -2030,7 +2033,7 @@ TEST(vint4, interleave_rgba8)
 // VFLOAT8 tests - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 /** @brief Test unaligned vfloat8 data load. */
-TEST(vfloat8, UnalignedLoad)
+TEST(SuiteVfloat8, UnalignedLoad)
 {
 	vfloat8 a(&(f32_data[1]));
 
@@ -2048,7 +2051,7 @@ TEST(vfloat8, UnalignedLoad)
 }
 
 /** @brief Test scalar duplicated vfloat8 load. */
-TEST(vfloat8, ScalarDupLoad)
+TEST(SuiteVfloat8, ScalarDupLoad)
 {
 	vfloat8 a(1.1f);
 
@@ -2066,7 +2069,7 @@ TEST(vfloat8, ScalarDupLoad)
 }
 
 /** @brief Test scalar vfloat8 load. */
-TEST(vfloat8, ScalarLoad)
+TEST(SuiteVfloat8, ScalarLoad)
 {
 	vfloat8 a = vfloat8_lit(1.1f, 2.2f, 3.3f, 4.4f, 5.5f, 6.6f, 7.7f, 8.8f);
 
@@ -2084,7 +2087,7 @@ TEST(vfloat8, ScalarLoad)
 }
 
 /** @brief Test copy vfloat8 load. */
-TEST(vfloat8, CopyLoad)
+TEST(SuiteVfloat8, CopyLoad)
 {
 	vfloat8 s = vfloat8_lit(1.1f, 2.2f, 3.3f, 4.4f, 5.5f, 6.6f, 7.7f, 8.8f);
 	vfloat8 a(s.m);
@@ -2103,7 +2106,7 @@ TEST(vfloat8, CopyLoad)
 }
 
 /** @brief Test vfloat8 zero. */
-TEST(vfloat8, Zero)
+TEST(SuiteVfloat8, Zero)
 {
 	vfloat8 a = vfloat8::zero();
 
@@ -2121,7 +2124,7 @@ TEST(vfloat8, Zero)
 }
 
 /** @brief Test vfloat8 load1. */
-TEST(vfloat8, Load1)
+TEST(SuiteVfloat8, Load1)
 {
 	float s = 3.14f;
 	vfloat8 a = vfloat8::load1(&s);
@@ -2140,7 +2143,7 @@ TEST(vfloat8, Load1)
 }
 
 /** @brief Test vfloat8 loada. */
-TEST(vfloat8, Loada)
+TEST(SuiteVfloat8, Loada)
 {
 	vfloat8 a = vfloat8::loada(&(f32_data[0]));
 
@@ -2158,7 +2161,7 @@ TEST(vfloat8, Loada)
 }
 
 /** @brief Test vfloat8 add. */
-TEST(vfloat8, vadd)
+TEST(SuiteVfloat8, vadd)
 {
 	vfloat8 a = vfloat8_lit(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f);
 	vfloat8 b = vfloat8_lit(0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f);
@@ -2178,7 +2181,7 @@ TEST(vfloat8, vadd)
 }
 
 /** @brief Test vfloat8 sub. */
-TEST(vfloat8, vsub)
+TEST(SuiteVfloat8, vsub)
 {
 	vfloat8 a = vfloat8_lit(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f);
 	vfloat8 b = vfloat8_lit(0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f);
@@ -2198,7 +2201,7 @@ TEST(vfloat8, vsub)
 }
 
 /** @brief Test vfloat8 mul. */
-TEST(vfloat8, vmul)
+TEST(SuiteVfloat8, vmul)
 {
 	vfloat8 a = vfloat8_lit(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f);
 	vfloat8 b = vfloat8_lit(0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f);
@@ -2218,7 +2221,7 @@ TEST(vfloat8, vmul)
 }
 
 /** @brief Test vfloat8 mul. */
-TEST(vfloat8, vsmul)
+TEST(SuiteVfloat8, vsmul)
 {
 	vfloat8 a = vfloat8_lit(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f);
 	float b = 3.14f;
@@ -2238,7 +2241,7 @@ TEST(vfloat8, vsmul)
 }
 
 /** @brief Test vfloat8 mul. */
-TEST(vfloat8, svmul)
+TEST(SuiteVfloat8, svmul)
 {
 	float a = 3.14f;
 	vfloat8 b = vfloat8_lit(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f);
@@ -2258,7 +2261,7 @@ TEST(vfloat8, svmul)
 }
 
 /** @brief Test vfloat8 div. */
-TEST(vfloat8, vdiv)
+TEST(SuiteVfloat8, vdiv)
 {
 	vfloat8 a = vfloat8_lit(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f);
 	vfloat8 b = vfloat8_lit(0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f);
@@ -2278,7 +2281,7 @@ TEST(vfloat8, vdiv)
 }
 
 /** @brief Test vfloat8 div. */
-TEST(vfloat8, vsdiv)
+TEST(SuiteVfloat8, vsdiv)
 {
 	vfloat8 a = vfloat8_lit(0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f);
 	float b = 3.14f;
@@ -2298,7 +2301,7 @@ TEST(vfloat8, vsdiv)
 }
 
 /** @brief Test vfloat8 div. */
-TEST(vfloat8, svdiv)
+TEST(SuiteVfloat8, svdiv)
 {
 	float a = 3.14f;
 	vfloat8 b = vfloat8_lit(0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f);
@@ -2318,7 +2321,7 @@ TEST(vfloat8, svdiv)
 }
 
 /** @brief Test vfloat8 ceq. */
-TEST(vfloat8, ceq)
+TEST(SuiteVfloat8, ceq)
 {
 	vfloat8 a1 = vfloat8_lit(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f);
 	vfloat8 b1 = vfloat8_lit(0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f);
@@ -2349,7 +2352,7 @@ TEST(vfloat8, ceq)
 }
 
 /** @brief Test vfloat8 cne. */
-TEST(vfloat8, cne)
+TEST(SuiteVfloat8, cne)
 {
 	vfloat8 a1 = vfloat8_lit(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f);
 	vfloat8 b1 = vfloat8_lit(0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f);
@@ -2380,7 +2383,7 @@ TEST(vfloat8, cne)
 }
 
 /** @brief Test vfloat8 clt. */
-TEST(vfloat8, clt)
+TEST(SuiteVfloat8, clt)
 {
 	vfloat8 a = vfloat8_lit(1.0f, 2.0f, 3.0f, 4.0f, 1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat8 b = vfloat8_lit(0.9f, 2.1f, 3.0f, 4.1f, 0.9f, 2.1f, 3.0f, 4.1f);
@@ -2389,7 +2392,7 @@ TEST(vfloat8, clt)
 }
 
 /** @brief Test vfloat8 cle. */
-TEST(vfloat8, cle)
+TEST(SuiteVfloat8, cle)
 {
 	vfloat8 a = vfloat8_lit(1.0f, 2.0f, 3.0f, 4.0f, 1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat8 b = vfloat8_lit(0.9f, 2.1f, 3.0f, 4.1f, 0.9f, 2.1f, 3.0f, 4.1f);
@@ -2398,7 +2401,7 @@ TEST(vfloat8, cle)
 }
 
 /** @brief Test vfloat8 cgt. */
-TEST(vfloat8, cgt)
+TEST(SuiteVfloat8, cgt)
 {
 	vfloat8 a = vfloat8_lit(1.0f, 2.0f, 3.0f, 4.0f, 1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat8 b = vfloat8_lit(0.9f, 2.1f, 3.0f, 4.1f, 0.9f, 2.1f, 3.0f, 4.1f);
@@ -2407,7 +2410,7 @@ TEST(vfloat8, cgt)
 }
 
 /** @brief Test vfloat8 cge. */
-TEST(vfloat8, cge)
+TEST(SuiteVfloat8, cge)
 {
 	vfloat8 a = vfloat8_lit(1.0f, 2.0f, 3.0f, 4.0f, 1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat8 b = vfloat8_lit(0.9f, 2.1f, 3.0f, 4.1f, 0.9f, 2.1f, 3.0f, 4.1f);
@@ -2416,7 +2419,7 @@ TEST(vfloat8, cge)
 }
 
 /** @brief Test vfloat8 min. */
-TEST(vfloat8, min)
+TEST(SuiteVfloat8, min)
 {
 	vfloat8 a = vfloat8_lit(1.0f, 2.0f, 3.0f, 4.0f, 1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat8 b = vfloat8_lit(0.9f, 2.1f, 3.0f, 4.1f, 0.9f, 2.1f, 3.0f, 4.1f);
@@ -2436,7 +2439,7 @@ TEST(vfloat8, min)
 }
 
 /** @brief Test vfloat8 max. */
-TEST(vfloat8, max)
+TEST(SuiteVfloat8, max)
 {
 	vfloat8 a = vfloat8_lit(1.0f, 2.0f, 3.0f, 4.0f, 1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat8 b = vfloat8_lit(0.9f, 2.1f, 3.0f, 4.1f, 0.9f, 2.1f, 3.0f, 4.1f);
@@ -2456,7 +2459,7 @@ TEST(vfloat8, max)
 }
 
 /** @brief Test vfloat8 clamp. */
-TEST(vfloat8, clamp)
+TEST(SuiteVfloat8, clamp)
 {
 	vfloat8 a1 = vfloat8_lit(1.0f, 2.0f, 3.0f, 4.0f, 1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat8 r1 = clamp(2.1f, 3.0f, a1);
@@ -2489,7 +2492,7 @@ TEST(vfloat8, clamp)
 }
 
 /** @brief Test vfloat8 clampz. */
-TEST(vfloat8, clampzo)
+TEST(SuiteVfloat8, clampzo)
 {
 	vfloat8 a1 = vfloat8_lit(-1.0f, 0.0f, 0.1f, 4.0f, -1.0f, 0.0f, 0.1f, 4.0f);
 	vfloat8 r1 = clampzo(a1);
@@ -2522,7 +2525,7 @@ TEST(vfloat8, clampzo)
 }
 
 /** @brief Test vfloat8 abs. */
-TEST(vfloat8, abs)
+TEST(SuiteVfloat8, abs)
 {
 	vfloat8 a = vfloat8_lit(-1.0f, 0.0f, 0.1f, 4.0f, -1.0f, 0.0f, 0.1f, 4.0f);
 	vfloat8 r = abs(a);
@@ -2541,7 +2544,7 @@ TEST(vfloat8, abs)
 }
 
 /** @brief Test vfloat8 round. */
-TEST(vfloat8, round)
+TEST(SuiteVfloat8, round)
 {
 	vfloat8 a = vfloat8_lit(1.1f, 1.5f, 1.6f, 4.0f, 1.1f, 1.5f, 1.6f, 4.0f);
 	vfloat8 r = round(a);
@@ -2560,7 +2563,7 @@ TEST(vfloat8, round)
 }
 
 /** @brief Test vfloat8 hmin. */
-TEST(vfloat8, hmin)
+TEST(SuiteVfloat8, hmin)
 {
 	vfloat8 a1 = vfloat8_lit(1.1f, 1.5f, 1.6f, 4.0f, 1.1f, 1.5f, 1.6f, 4.0f);
 	vfloat8 r1 = hmin(a1);
@@ -2593,7 +2596,7 @@ TEST(vfloat8, hmin)
 }
 
 /** @brief Test vfloat8 hmin_s. */
-TEST(vfloat8, hmin_s)
+TEST(SuiteVfloat8, hmin_s)
 {
 	vfloat8 a1 = vfloat8_lit(1.1f, 1.5f, 1.6f, 4.0f, 1.1f, 1.5f, 1.6f, 4.0f);
 	float r1 = hmin_s(a1);
@@ -2605,7 +2608,7 @@ TEST(vfloat8, hmin_s)
 }
 
 /** @brief Test vfloat8 hmax. */
-TEST(vfloat8, hmax)
+TEST(SuiteVfloat8, hmax)
 {
 	vfloat8 a1 = vfloat8_lit(1.1f, 1.5f, 1.6f, 4.0f, 1.1f, 1.5f, 1.6f, 4.0f);
 	vfloat8 r1 = hmax(a1);
@@ -2638,7 +2641,7 @@ TEST(vfloat8, hmax)
 }
 
 /** @brief Test vfloat8 hmax_s. */
-TEST(vfloat8, hmax_s)
+TEST(SuiteVfloat8, hmax_s)
 {
 	vfloat8 a1 = vfloat8_lit(1.1f, 1.5f, 1.6f, 4.0f, 1.1f, 1.5f, 1.6f, 4.0f);
 	float r1 = hmax_s(a1);
@@ -2650,7 +2653,7 @@ TEST(vfloat8, hmax_s)
 }
 
 /** @brief Test vfloat8 hadd_s. */
-TEST(vfloat8, hadd_s)
+TEST(SuiteVfloat8, hadd_s)
 {
 	vfloat8 a1 = vfloat8_lit(1.1f, 1.5f, 1.6f, 4.0f, 1.1f, 1.5f, 1.6f, 4.0f);
 	float sum = 1.1f + 1.5f + 1.6f + 4.0f + 1.1f + 1.5f + 1.6f + 4.0f;
@@ -2659,7 +2662,7 @@ TEST(vfloat8, hadd_s)
 }
 
 /** @brief Test vfloat8 sqrt. */
-TEST(vfloat8, sqrt)
+TEST(SuiteVfloat8, sqrt)
 {
 	vfloat8 a = vfloat8_lit(1.0f, 2.0f, 3.0f, 4.0f, 1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat8 r = sqrt(a);
@@ -2678,7 +2681,7 @@ TEST(vfloat8, sqrt)
 }
 
 /** @brief Test vfloat8 select. */
-TEST(vfloat8, select)
+TEST(SuiteVfloat8, select)
 {
 	vfloat8 m1 = vfloat8_lit(1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
 	vfloat8 m2 = vfloat8_lit(1.0f, 2.0f, 1.0f, 2.0f, 1.0f, 2.0f, 1.0f, 2.0f);
@@ -2718,7 +2721,7 @@ TEST(vfloat8, select)
 }
 
 /** @brief Test vfloat8 gatherf. */
-TEST(vfloat8, gatherf)
+TEST(SuiteVfloat8, gatherf)
 {
 	vint8 indices = vint8_lit(0, 4, 3, 2, 7, 4, 3, 2);
 	vfloat8 r = gatherf(f32_data, indices);
@@ -2737,7 +2740,7 @@ TEST(vfloat8, gatherf)
 }
 
 /** @brief Test vfloat8 store. */
-TEST(vfloat8, store)
+TEST(SuiteVfloat8, store)
 {
 	vfloat8 a(f32_data);
 
@@ -2755,7 +2758,7 @@ TEST(vfloat8, store)
 }
 
 /** @brief Test vfloat8 storea. */
-TEST(vfloat8, storea)
+TEST(SuiteVfloat8, storea)
 {
 	vfloat8 a(f32_data);
 
@@ -2773,7 +2776,7 @@ TEST(vfloat8, storea)
 }
 
 /** @brief Test vfloat8 float_to_int. */
-TEST(vfloat8, float_to_int)
+TEST(SuiteVfloat8, float_to_int)
 {
 	vfloat8 a = vfloat8_lit(1.1f, 1.5f, 1.6f, 4.0f, 1.1f, 1.5f, 1.6f, 4.0f);
 	vint8 r = float_to_int(a);
@@ -2794,7 +2797,7 @@ TEST(vfloat8, float_to_int)
 // vint8 tests - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 /** @brief Test unaligned vint8 data load. */
-TEST(vint8, UnalignedLoad)
+TEST(SuiteVint8, UnalignedLoad)
 {
 	vint8 a(&(s32_data[1]));
 
@@ -2812,7 +2815,7 @@ TEST(vint8, UnalignedLoad)
 }
 
 /** @brief Test unaligned vint8 data load. */
-TEST(vint8, UnalignedLoad8)
+TEST(SuiteVint8, UnalignedLoad8)
 {
 	vint8 a(&(u8_data[1]));
 
@@ -2830,7 +2833,7 @@ TEST(vint8, UnalignedLoad8)
 }
 
 /** @brief Test scalar duplicated vint8 load. */
-TEST(vint8, ScalarDupLoad)
+TEST(SuiteVint8, ScalarDupLoad)
 {
 	vint8 a(42);
 
@@ -2848,7 +2851,7 @@ TEST(vint8, ScalarDupLoad)
 }
 
 /** @brief Test scalar vint8 load. */
-TEST(vint8, ScalarLoad)
+TEST(SuiteVint8, ScalarLoad)
 {
 	vint8 a = vint8_lit(11, 22, 33, 44, 55, 66, 77, 88);
 
@@ -2866,7 +2869,7 @@ TEST(vint8, ScalarLoad)
 }
 
 /** @brief Test copy vint8 load. */
-TEST(vint8, CopyLoad)
+TEST(SuiteVint8, CopyLoad)
 {
 	vint8 s = vint8_lit(11, 22, 33, 44, 55, 66, 77, 88);
 	vint8 a(s.m);
@@ -2885,7 +2888,7 @@ TEST(vint8, CopyLoad)
 }
 
 /** @brief Test vint8 zero. */
-TEST(vint8, Zero)
+TEST(SuiteVint8, Zero)
 {
 	vint8 a = vint8::zero();
 
@@ -2903,7 +2906,7 @@ TEST(vint8, Zero)
 }
 
 /** @brief Test vint8 load1. */
-TEST(vint8, Load1)
+TEST(SuiteVint8, Load1)
 {
 	int s = 42;
 	vint8 a = vint8::load1(&s);
@@ -2922,7 +2925,7 @@ TEST(vint8, Load1)
 }
 
 /** @brief Test vint8 loada. */
-TEST(vint8, Loada)
+TEST(SuiteVint8, Loada)
 {
 	vint8 a = vint8::loada(&(s32_data[0]));
 
@@ -2940,7 +2943,7 @@ TEST(vint8, Loada)
 }
 
 /** @brief Test vint8 lane_id. */
-TEST(vint8, LaneID)
+TEST(SuiteVint8, LaneID)
 {
 	vint8 a = vint8::lane_id();
 
@@ -2958,7 +2961,7 @@ TEST(vint8, LaneID)
 }
 
 /** @brief Test vint8 add. */
-TEST(vint8, vadd)
+TEST(SuiteVint8, vadd)
 {
 	vint8 a = vint8_lit(1, 2, 3, 4, 1, 2, 3, 4);
 	vint8 b = vint8_lit(2, 3, 4, 5, 2, 3, 4, 5);
@@ -2979,7 +2982,7 @@ TEST(vint8, vadd)
 
 
 /** @brief Test vint8 self-add. */
-TEST(vint8, vselfadd1)
+TEST(SuiteVint8, vselfadd1)
 {
 	vint8 a = vint8_lit(1, 2, 3, 4, 1, 2, 3, 4);
 	vint8 b = vint8_lit(2, 3, 4, 5, 2, 3, 4, 5);
@@ -2999,7 +3002,7 @@ TEST(vint8, vselfadd1)
 }
 
 /** @brief Test vint8 sub. */
-TEST(vint8, vsub)
+TEST(SuiteVint8, vsub)
 {
 	vint8 a = vint8_lit(1, 2, 4, 4, 1, 2, 4, 4);
 	vint8 b = vint8_lit(2, 3, 3, 5, 2, 3, 3, 5);
@@ -3019,7 +3022,7 @@ TEST(vint8, vsub)
 }
 
 /** @brief Test vint8 mul. */
-TEST(vint8, vmul)
+TEST(SuiteVint8, vmul)
 {
 	vint8 a = vint8_lit(1, 2, 4, 4, 1, 2, 4, 4);
 	vint8 b = vint8_lit(2, 3, 3, 5, 2, 3, 3, 5);
@@ -3039,7 +3042,7 @@ TEST(vint8, vmul)
 }
 
 /** @brief Test vint8 bitwise invert. */
-TEST(vint8, bit_invert)
+TEST(SuiteVint8, bit_invert)
 {
 	vint8 a = vint8_lit(-1, 0, 1, 2, -1, 0, 1, 2);
 	a = ~a;
@@ -3058,7 +3061,7 @@ TEST(vint8, bit_invert)
 }
 
 /** @brief Test vint8 bitwise or. */
-TEST(vint8, bit_vor)
+TEST(SuiteVint8, bit_vor)
 {
 	vint8 a = vint8_lit(1, 2, 3, 4, 1, 2, 3, 4);
 	vint8 b = vint8_lit(2, 3, 4, 5, 2, 3, 4, 5);
@@ -3078,7 +3081,7 @@ TEST(vint8, bit_vor)
 }
 
 /** @brief Test vint8 bitwise and. */
-TEST(vint8, bit_vand)
+TEST(SuiteVint8, bit_vand)
 {
 	vint8 a = vint8_lit(1, 2, 3, 4, 1, 2, 3, 4);
 	vint8 b = vint8_lit(2, 3, 4, 5, 2, 3, 4, 5);
@@ -3098,7 +3101,7 @@ TEST(vint8, bit_vand)
 }
 
 /** @brief Test vint8 bitwise xor. */
-TEST(vint8, bit_vxor)
+TEST(SuiteVint8, bit_vxor)
 {
 	vint8 a = vint8_lit(1, 2, 3, 4, 1, 2, 3, 4);
 	vint8 b = vint8_lit(2, 3, 4, 5, 2, 3, 4, 5);
@@ -3118,7 +3121,7 @@ TEST(vint8, bit_vxor)
 }
 
 /** @brief Test vint8 ceq. */
-TEST(vint8, ceq)
+TEST(SuiteVint8, ceq)
 {
 	vint8 a1 = vint8_lit(1, 2, 3, 4, 1, 2, 3, 4);
 	vint8 b1 = vint8_lit(0, 1, 2, 3, 0, 1, 2, 3);
@@ -3149,7 +3152,7 @@ TEST(vint8, ceq)
 }
 
 /** @brief Test vint8 cne. */
-TEST(vint8, cne)
+TEST(SuiteVint8, cne)
 {
 	vint8 a1 = vint8_lit(1, 2, 3, 4, 1, 2, 3, 4);
 	vint8 b1 = vint8_lit(0, 1, 2, 3, 0, 1, 2, 3);
@@ -3180,7 +3183,7 @@ TEST(vint8, cne)
 }
 
 /** @brief Test vint8 clt. */
-TEST(vint8, clt)
+TEST(SuiteVint8, clt)
 {
 	vint8 a = vint8_lit(1, 2, 3, 4, 1, 2, 3, 4);
 	vint8 b = vint8_lit(0, 3, 3, 5, 0, 3, 3, 5);
@@ -3189,7 +3192,7 @@ TEST(vint8, clt)
 }
 
 /** @brief Test vint8 cgt. */
-TEST(vint8, cgt)
+TEST(SuiteVint8, cgt)
 {
 	vint8 a = vint8_lit(1, 2, 3, 4, 1, 2, 3, 4);
 	vint8 b = vint8_lit(0, 3, 3, 5, 0, 3, 3, 5);
@@ -3198,7 +3201,7 @@ TEST(vint8, cgt)
 }
 
 /** @brief Test vint8 min. */
-TEST(vint8, min)
+TEST(SuiteVint8, min)
 {
 	vint8 a = vint8_lit(1, 2, 3, 4, 1, 2, 3, 4);
 	vint8 b = vint8_lit(0, 3, 3, 5, 0, 3, 3, 5);
@@ -3218,7 +3221,7 @@ TEST(vint8, min)
 }
 
 /** @brief Test vint8 max. */
-TEST(vint8, max)
+TEST(SuiteVint8, max)
 {
 	vint8 a = vint8_lit(1, 2, 3, 4, 1, 2, 3, 4);
 	vint8 b = vint8_lit(0, 3, 3, 5, 0, 3, 3, 5);
@@ -3238,7 +3241,7 @@ TEST(vint8, max)
 }
 
 /** @brief Test vint8 lsl. */
-TEST(vint8, lsl)
+TEST(SuiteVint8, lsl)
 {
 	vint8 a = vint8_lit(1, 2, 4, -4, 1, 2, 4, -4);
 	a = lsl<0>(a);
@@ -3283,7 +3286,7 @@ TEST(vint8, lsl)
 }
 
 /** @brief Test vint8 lsr. */
-TEST(vint8, lsr)
+TEST(SuiteVint8, lsr)
 {
 	vint8 a = vint8_lit(1, 2, 4, -4, 1, 2, 4, -4);
 	a = lsr<0>(a);
@@ -3328,7 +3331,7 @@ TEST(vint8, lsr)
 }
 
 /** @brief Test vint8 asr. */
-TEST(vint8, asr)
+TEST(SuiteVint8, asr)
 {
 	vint8 a = vint8_lit(1, 2, 4, -4, 1, 2, 4, -4);
 	a = asr<0>(a);
@@ -3374,7 +3377,7 @@ TEST(vint8, asr)
 }
 
 /** @brief Test vint8 hmin. */
-TEST(vint8, hmin)
+TEST(SuiteVint8, hmin)
 {
 	vint8 a1 = vint8_lit(1, 2, 1, 2, 1, 2, 1, 2);
 	vint8 r1 = hmin(a1);
@@ -3407,7 +3410,7 @@ TEST(vint8, hmin)
 }
 
 /** @brief Test vint8 hmax. */
-TEST(vint8, hmax)
+TEST(SuiteVint8, hmax)
 {
 	vint8 a1 = vint8_lit(1, 2, 1, 2, 1, 3, 1, 2);
 	vint8 r1 = hmax(a1);
@@ -3440,7 +3443,7 @@ TEST(vint8, hmax)
 }
 
 /** @brief Test vint8 storea. */
-TEST(vint8, storea)
+TEST(SuiteVint8, storea)
 {
 	alignas(32) int out[8];
 	vint8 a(s32_data);
@@ -3456,7 +3459,7 @@ TEST(vint8, storea)
 }
 
 /** @brief Test vint8 store. */
-TEST(vint8, store)
+TEST(SuiteVint8, store)
 {
 	vint8 a(s32_data);
 
@@ -3474,7 +3477,7 @@ TEST(vint8, store)
 }
 
 /** @brief Test vint8 store_nbytes. */
-TEST(vint8, store_nbytes)
+TEST(SuiteVint8, store_nbytes)
 {
 	alignas(32) int out[2];
 	vint8 a = vint8_lit(42, 314, 75, 90, 42, 314, 75, 90);
@@ -3484,7 +3487,7 @@ TEST(vint8, store_nbytes)
 }
 
 /** @brief Test vint8 store_lanes_masked. */
-TEST(vint8, store_lanes_masked)
+TEST(SuiteVint8, store_lanes_masked)
 {
 	uint8_t resulta[32] { 0 };
 
@@ -3517,7 +3520,7 @@ TEST(vint8, store_lanes_masked)
 }
 
 /** @brief Test vint8 store_lanes_masked to unaligned address. */
-TEST(vint8, store_lanes_masked_unaligned)
+TEST(SuiteVint8, store_lanes_masked_unaligned)
 {
 	uint8_t resulta[33] { 0 };
 
@@ -3550,7 +3553,7 @@ TEST(vint8, store_lanes_masked_unaligned)
 }
 
 /** @brief Test vint8 pack_and_store_low_bytes. */
-TEST(vint8, pack_and_store_low_bytes)
+TEST(SuiteVint8, pack_and_store_low_bytes)
 {
 	vint8 a = vint8_lit(1, 2, 3, 4, 2, 3, 4, 5);
 	uint8_t bytes[8] { 0 };
@@ -3568,7 +3571,7 @@ TEST(vint8, pack_and_store_low_bytes)
 }
 
 /** @brief Test vint8 select. */
-TEST(vint8, select)
+TEST(SuiteVint8, select)
 {
 	vint8 m1 = vint8_lit(1, 1, 1, 1, 1, 1, 1, 1);
 	vint8 m2 = vint8_lit(1, 2, 1, 2, 1, 2, 1, 2);
@@ -3608,7 +3611,7 @@ TEST(vint8, select)
 // vmask8 tests - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 /** @brief Test vmask8 scalar literal constructor. */
-TEST(vmask8, scalar_literal_construct)
+TEST(SuiteVmask8, scalar_literal_construct)
 {
 	vfloat8 ma(0.0f);
 	vfloat8 mb(1.0f);
@@ -3625,7 +3628,7 @@ TEST(vmask8, scalar_literal_construct)
 }
 
 /** @brief Test vmask8 or. */
-TEST(vmask8, or)
+TEST(SuiteVmask8, TestOr)
 {
 	vfloat8 m1a = vfloat8_lit(0, 1, 0, 1, 0, 1, 0, 1);
 	vfloat8 m1b = vfloat8_lit(1, 1, 1, 1, 1, 1, 1, 1);
@@ -3640,7 +3643,7 @@ TEST(vmask8, or)
 }
 
 /** @brief Test vmask8 and. */
-TEST(vmask8, and)
+TEST(SuiteVmask8, TestAnd)
 {
 	vfloat8 m1a = vfloat8_lit(0, 1, 0, 1, 0, 1, 0, 1);
 	vfloat8 m1b = vfloat8_lit(1, 1, 1, 1, 1, 1, 1, 1);
@@ -3655,7 +3658,7 @@ TEST(vmask8, and)
 }
 
 /** @brief Test vmask8 xor. */
-TEST(vmask8, xor)
+TEST(SuiteVmask8, TestXor)
 {
 	vfloat8 m1a = vfloat8_lit(0, 1, 0, 1, 0, 1, 0, 1);
 	vfloat8 m1b = vfloat8_lit(1, 1, 1, 1, 1, 1, 1, 1);
@@ -3670,7 +3673,7 @@ TEST(vmask8, xor)
 }
 
 /** @brief Test vmask8 not. */
-TEST(vmask8, not)
+TEST(SuiteVmask8, TestNot)
 {
 	vfloat8 m1a = vfloat8_lit(0, 1, 0, 1, 0, 1, 0, 1);
 	vfloat8 m1b = vfloat8_lit(1, 1, 1, 1, 1, 1, 1, 1);
@@ -3680,7 +3683,7 @@ TEST(vmask8, not)
 }
 
 /** @brief Test vint8 table permute. */
-TEST(vint8, vtable8_16x8)
+TEST(SuiteVint8, vtable8_16x8)
 {
 	uint8_t data[16] = {
 		0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
@@ -3708,7 +3711,7 @@ TEST(vint8, vtable8_16x8)
 }
 
 /** @brief Test vint8 table permute. */
-TEST(vint8, vtable8_32x8)
+TEST(SuiteVint8, vtable8_32x8)
 {
 	uint8_t data[32] = {
 		0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
@@ -3738,7 +3741,7 @@ TEST(vint8, vtable8_32x8)
 }
 
 /** @brief Test vint8 table permute. */
-TEST(vint8, vtable8_64x8)
+TEST(SuiteVint8, vtable8_64x8)
 {
 	uint8_t data[64] = {
 		0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,

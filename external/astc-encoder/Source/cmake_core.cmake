@@ -1,6 +1,6 @@
 #  SPDX-License-Identifier: Apache-2.0
 #  ----------------------------------------------------------------------------
-#  Copyright 2020-2024 Arm Limited
+#  Copyright 2020-2025 Arm Limited
 #
 #  Licensed under the Apache License, Version 2.0 (the "License"); you may not
 #  use this file except in compliance with the License. You may obtain a copy
@@ -19,26 +19,7 @@ set(ASTCENC_TARGET astc${ASTCENC_CODEC}-${ASTCENC_ISA_SIMD})
 
 project(${ASTCENC_TARGET})
 
-# On CMake 3.25 or older CXX_COMPILER_FRONTEND_VARIANT is not always set
-if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "")
-    set(CMAKE_CXX_COMPILER_FRONTEND_VARIANT "${CMAKE_CXX_COMPILER_ID}")
-endif()
-
-# Compiler accepts MSVC-style command line options
-set(is_msvc_fe "$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},MSVC>")
-# Compiler accepts GNU-style command line options
-set(is_gnu_fe1 "$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},GNU>")
-# Compiler accepts AppleClang-style command line options, which is also GNU-style
-set(is_gnu_fe2 "$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},AppleClang>")
-# Compiler accepts GNU-style command line options
-set(is_gnu_fe "$<OR:${is_gnu_fe1},${is_gnu_fe2}>")
-
-# Compiler is Visual Studio cl.exe
-set(is_msvccl "$<AND:${is_msvc_fe},$<CXX_COMPILER_ID:MSVC>>")
-# Compiler is Visual Studio clangcl.exe
-set(is_clangcl "$<AND:${is_msvc_fe},$<CXX_COMPILER_ID:Clang>>")
-# Compiler is upstream clang with the standard frontend
-set(is_clang "$<AND:${is_gnu_fe},$<CXX_COMPILER_ID:Clang,AppleClang>>")
+include(cmake_compiler.cmake)
 
 add_library(${ASTCENC_TARGET}-static
     STATIC
@@ -164,13 +145,14 @@ macro(astcenc_set_properties ASTCENC_TARGET_NAME ASTCENC_VENEER_TYPE)
 
             # MSVC compiler defines
             $<${is_msvc_fe}:/EHsc>
+            $<$<AND:$<BOOL:${ASTCENC_WERROR}>,${is_msvc_fe}>:/WX>
             $<${is_msvccl}:/wd4324>
 
             # G++ and Clang++ compiler defines
             $<${is_gnu_fe}:-Wall>
             $<${is_gnu_fe}:-Wextra>
             $<${is_gnu_fe}:-Wpedantic>
-            $<${is_gnu_fe}:-Werror>
+            $<$<AND:$<BOOL:${ASTCENC_WERROR}>,${is_gnu_fe}>:-Werror>
             $<${is_gnu_fe}:-Wshadow>
             $<${is_gnu_fe}:-Wdouble-promotion>
             $<${is_clang}:-Wdocumentation>
@@ -283,6 +265,12 @@ macro(astcenc_set_properties ASTCENC_TARGET_NAME ASTCENC_VENEER_TYPE)
                 ASTCENC_AVX=0
                 ASTCENC_POPCNT=0
                 ASTCENC_F16C=0)
+
+        if(${ASTCENC_BIG_ENDIAN})
+            target_compile_definitions(${ASTCENC_TARGET_NAME}
+                PRIVATE
+                    ASTCENC_BIG_ENDIAN=1)
+        endif()
 
     elseif(${ASTCENC_ISA_SIMD} MATCHES "neon")
         target_compile_definitions(${ASTCENC_TARGET_NAME}

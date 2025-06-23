@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2011-2024 Arm Limited
+// Copyright 2011-2025 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -1135,13 +1135,13 @@ unsigned int compute_ideal_endpoint_formats(
 	vfloat clear_error(ERROR_CALC_DEFAULT);
 	vint clear_quant(0);
 
-	unsigned int packed_start_block_mode = round_down_to_simd_multiple_vla(start_block_mode);
+	size_t packed_start_block_mode = round_down_to_simd_multiple_vla(start_block_mode);
 	storea(clear_error, errors_of_best_combination + packed_start_block_mode);
 	store_nbytes(clear_quant, best_quant_levels + packed_start_block_mode);
 	store_nbytes(clear_quant, best_quant_levels_mod + packed_start_block_mode);
 
 	// Ensure that last iteration overstep contains data that will never be picked
-	unsigned int packed_end_block_mode = round_down_to_simd_multiple_vla(end_block_mode - 1);
+	size_t packed_end_block_mode = round_down_to_simd_multiple_vla(end_block_mode - 1);
 	storea(clear_error, errors_of_best_combination + packed_end_block_mode);
 	store_nbytes(clear_quant, best_quant_levels + packed_end_block_mode);
 	store_nbytes(clear_quant, best_quant_levels_mod + packed_end_block_mode);
@@ -1292,9 +1292,12 @@ unsigned int compute_ideal_endpoint_formats(
 		vint vbest_error_index(-1);
 		vfloat vbest_ep_error(ERROR_CALC_DEFAULT);
 
-		start_block_mode = round_down_to_simd_multiple_vla(start_block_mode);
-		vint lane_ids = vint::lane_id() + vint(start_block_mode);
-		for (unsigned int j = start_block_mode; j < end_block_mode; j += ASTCENC_SIMD_WIDTH)
+		// TODO: This should use size_t for the inputs of start/end_block_mode
+		// to avoid some of this type conversion, but that propagates and will
+		// need a bigger PR to fix
+		size_t start_mode = round_down_to_simd_multiple_vla(start_block_mode);
+		vint lane_ids = vint::lane_id() + vint_from_size(start_mode);
+		for (size_t j = start_mode; j < end_block_mode; j += ASTCENC_SIMD_WIDTH)
 		{
 			vfloat err = vfloat(errors_of_best_combination + j);
 			vmask mask = err < vbest_ep_error;

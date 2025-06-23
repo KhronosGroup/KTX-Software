@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2020-2024 Arm Limited
+// Copyright 2020-2025 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -31,6 +31,7 @@
 #endif
 
 #include <cstdio>
+#include <limits>
 
 // ============================================================================
 // vint4 operators and functions
@@ -116,6 +117,15 @@ ASTCENC_SIMD_INLINE int hmin_s(vint4 a)
 {
 	return hmin(a).lane<0>();
 }
+
+/**
+ * @brief Generate a vint4 from a size_t.
+ */
+ ASTCENC_SIMD_INLINE vint4 vint4_from_size(size_t a)
+ {
+	assert(a <= std::numeric_limits<int>::max());
+	return vint4(static_cast<int>(a));
+ }
 
 /**
  * @brief Return the horizontal maximum of a vector.
@@ -380,8 +390,12 @@ ASTCENC_SIMD_INLINE void printx(vint4 a)
 {
 	ASTCENC_ALIGNAS int v[4];
 	storea(a, v);
+
+	unsigned int uv[4];
+	std::memcpy(uv, v, sizeof(int) * 4);
+
 	printf("v4_i32:\n  %08x %08x %08x %08x\n",
-	       v[0], v[1], v[2], v[3]);
+		uv[0], uv[1], uv[2], uv[3]);
 }
 
 /**

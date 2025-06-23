@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2019-2024 Arm Limited
+// Copyright 2019-2025 Arm Limited
 // Copyright 2008 Jose Fonseca
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -104,6 +104,7 @@ template<typename T> T gatherf_byte_inds(const float* base, const uint8_t* indic
 
 	constexpr auto loada = vfloat8::loada;
 	constexpr auto load1 = vfloat8::load1;
+	constexpr auto vint_from_size = vint8_from_size;
 
 #elif ASTCENC_SSE >= 20
 	// If we have SSE expose 4-wide VLA, and 4-wide fixed width.
@@ -123,6 +124,7 @@ template<typename T> T gatherf_byte_inds(const float* base, const uint8_t* indic
 
 	constexpr auto loada = vfloat4::loada;
 	constexpr auto load1 = vfloat4::load1;
+	constexpr auto vint_from_size = vint4_from_size;
 
 #elif ASTCENC_SVE == 8
 	// Check the compiler is configured with fixed-length 256-bit SVE.
@@ -154,6 +156,7 @@ template<typename T> T gatherf_byte_inds(const float* base, const uint8_t* indic
 
 	constexpr auto loada = vfloat8::loada;
 	constexpr auto load1 = vfloat8::load1;
+	constexpr auto vint_from_size = vint8_from_size;
 
 #elif ASTCENC_NEON > 0
 	// If we have NEON expose 4-wide VLA.
@@ -173,6 +176,7 @@ template<typename T> T gatherf_byte_inds(const float* base, const uint8_t* indic
 
 	constexpr auto loada = vfloat4::loada;
 	constexpr auto load1 = vfloat4::load1;
+	constexpr auto vint_from_size = vint4_from_size;
 
 #else
 	// If we have nothing expose 4-wide VLA, and 4-wide fixed width.
@@ -209,31 +213,8 @@ template<typename T> T gatherf_byte_inds(const float* base, const uint8_t* indic
 
 	constexpr auto loada = vfloat4::loada;
 	constexpr auto load1 = vfloat4::load1;
+	constexpr auto vint_from_size = vint4_from_size;
 #endif
-
-/**
- * @brief Round a count down to the largest multiple of 8.
- *
- * @param count   The unrounded value.
- *
- * @return The rounded value.
- */
-ASTCENC_SIMD_INLINE unsigned int round_down_to_simd_multiple_8(unsigned int count)
-{
-	return count & static_cast<unsigned int>(~(8 - 1));
-}
-
-/**
- * @brief Round a count down to the largest multiple of 4.
- *
- * @param count   The unrounded value.
- *
- * @return The rounded value.
- */
-ASTCENC_SIMD_INLINE unsigned int round_down_to_simd_multiple_4(unsigned int count)
-{
-	return count & static_cast<unsigned int>(~(4 - 1));
-}
 
 /**
  * @brief Round a count down to the largest multiple of the SIMD width.
@@ -244,9 +225,9 @@ ASTCENC_SIMD_INLINE unsigned int round_down_to_simd_multiple_4(unsigned int coun
  *
  * @return The rounded value.
  */
-ASTCENC_SIMD_INLINE unsigned int round_down_to_simd_multiple_vla(unsigned int count)
+ASTCENC_SIMD_INLINE size_t round_down_to_simd_multiple_vla(size_t count)
 {
-	return count & static_cast<unsigned int>(~(ASTCENC_SIMD_WIDTH - 1));
+	return count & static_cast<size_t>(~(ASTCENC_SIMD_WIDTH - 1));
 }
 
 /**
@@ -258,9 +239,9 @@ ASTCENC_SIMD_INLINE unsigned int round_down_to_simd_multiple_vla(unsigned int co
  *
  * @return The rounded value.
  */
-ASTCENC_SIMD_INLINE unsigned int round_up_to_simd_multiple_vla(unsigned int count)
+ASTCENC_SIMD_INLINE size_t round_up_to_simd_multiple_vla(size_t count)
 {
-	unsigned int multiples = (count + ASTCENC_SIMD_WIDTH - 1) / ASTCENC_SIMD_WIDTH;
+	size_t multiples = (count + ASTCENC_SIMD_WIDTH - 1) / ASTCENC_SIMD_WIDTH;
 	return multiples * ASTCENC_SIMD_WIDTH;
 }
 

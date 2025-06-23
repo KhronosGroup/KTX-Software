@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2011-2024 Arm Limited
+// Copyright 2011-2025 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -226,7 +226,7 @@ static void kmeans_update(
 
 	uint8_t partition_texel_count[BLOCK_MAX_PARTITIONS] { 0 };
 
-	// Find the center-of-gravity in each cluster
+	// Find the center of gravity in each cluster
 	for (unsigned int i = 0; i < texel_count; i++)
 	{
 		uint8_t partition = partition_of_texel[i];

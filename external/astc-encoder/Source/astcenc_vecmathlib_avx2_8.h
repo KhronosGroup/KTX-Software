@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2019-2024 Arm Limited
+// Copyright 2019-2025 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -496,6 +496,15 @@ ASTCENC_SIMD_INLINE int hmax_s(vint8 a)
 {
 	return _mm256_cvtsi256_si32(hmax(a).m);
 }
+
+/**
+ * @brief Generate a vint8 from a size_t.
+ */
+ ASTCENC_SIMD_INLINE vint8 vint8_from_size(size_t a)
+ {
+	assert(a <= std::numeric_limits<int>::max());
+	return vint8(static_cast<int>(a));
+ }
 
 /**
  * @brief Store a vector to a 16B aligned memory address.
@@ -1176,8 +1185,12 @@ ASTCENC_SIMD_INLINE void printx(vint8 a)
 {
 	alignas(32) int v[8];
 	storea(a, v);
+
+	unsigned int uv[8];
+	std::memcpy(uv, v, sizeof(int) * 8);
+
 	printf("v8_i32:\n  %08x %08x %08x %08x %08x %08x %08x %08x\n",
-	       v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7]);
+		uv[0], uv[1], uv[2], uv[3], uv[4], uv[5], uv[6], uv[7]);
 }
 
 /**

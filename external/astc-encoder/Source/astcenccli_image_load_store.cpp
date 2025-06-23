@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2011-2023 Arm Limited
+// Copyright 2011-2025 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -33,6 +33,18 @@
 #include "ThirdParty/stb_image.h"
 #include "ThirdParty/stb_image_write.h"
 #include "ThirdParty/tinyexr.h"
+
+/**
+ * @brief Reverse the bytes in a uint32_t value.
+ */
+static uint32_t reverse_bytes_u32(
+	uint32_t val
+) {
+	return ((val >> 24) & 0x000000FF) |
+	       ((val >>  8) & 0x0000FF00) |
+	       ((val <<  8) & 0x00FF0000) |
+	       ((val << 24) & 0xFF000000);
+}
 
 /**
  * @brief Determine the output file name to use for a sliced image write.
@@ -656,18 +668,6 @@ static void switch_endianness4(
 	}
 }
 
-/**
- * @brief Swap endianness of a u32 value.
- *
- * @param v   The data to convert.
- *
- * @return The converted value.
- */
-static uint32_t u32_byterev(uint32_t v)
-{
-	return (v >> 24) | ((v >> 8) & 0xFF00) | ((v << 8) & 0xFF0000) | (v << 24);
-}
-
 /*
  Notes about KTX:
 
@@ -904,7 +904,7 @@ static uint8_t ktx_magic[12] {
 
 static void ktx_header_switch_endianness(ktx_header * kt)
 {
-	#define REV(x) kt->x = u32_byterev(kt->x)
+	#define REV(x) kt->x = reverse_bytes_u32(kt->x)
 	REV(endianness);
 	REV(gl_type);
 	REV(gl_type_size);
@@ -961,11 +961,11 @@ static astcenc_image* load_ktx_uncompressed_image(
 		return nullptr;
 	}
 
-	int switch_endianness = 0;
+	bool switch_endianness = false;
 	if (hdr.endianness == 0x01020304)
 	{
 		ktx_header_switch_endianness(&hdr);
-		switch_endianness = 1;
+		switch_endianness = true;
 	}
 
 	if (hdr.gl_type == 0 || hdr.gl_format == 0)
@@ -1191,7 +1191,7 @@ static astcenc_image* load_ktx_uncompressed_image(
 
 	if (switch_endianness)
 	{
-		specified_bytes_of_surface = u32_byterev(specified_bytes_of_surface);
+		specified_bytes_of_surface = reverse_bytes_u32(specified_bytes_of_surface);
 	}
 
 	// read the surface
@@ -1346,7 +1346,7 @@ bool load_ktx_compressed_image(
 
 	if (switch_endianness)
 	{
-		data_len = u32_byterev(data_len);
+		data_len = reverse_bytes_u32(data_len);
 	}
 
 	// Read the data
@@ -1409,6 +1409,10 @@ bool store_ktx_compressed_image(
 	hdr.number_of_mipmap_levels = 1;
 	hdr.bytes_of_key_value_data = 0;
 
+#if defined(ASTCENC_BIG_ENDIAN)
+	ktx_header_switch_endianness(&hdr);
+#endif
+
 	size_t expected = sizeof(ktx_header) + 4 + img.data_len;
 	size_t actual = 0;
 
@@ -1418,8 +1422,13 @@ bool store_ktx_compressed_image(
 		return true;
 	}
 
+	uint32_t data_len = static_cast<uint32_t>(img.data_len);
+#if defined(ASTCENC_BIG_ENDIAN)
+	data_len = reverse_bytes_u32(data_len);
+#endif
+
 	actual += fwrite(&hdr, 1, sizeof(ktx_header), wf);
-	actual += fwrite(&img.data_len, 1, 4, wf);
+	actual += fwrite(&data_len, 1, sizeof(uint32_t), wf);
 	actual += fwrite(img.data, 1, img.data_len, wf);
 	fclose(wf);
 
@@ -1769,23 +1778,52 @@ static astcenc_image* load_dds_uncompressed_image(
 		return nullptr;
 	}
 
-	uint8_t magic[4];
-
-	dds_header hdr;
-	size_t magic_bytes_read = fread(magic, 1, 4, f);
-	size_t header_bytes_read = fread(&hdr, 1, sizeof(hdr), f);
-	if (magic_bytes_read != 4 || header_bytes_read != sizeof(hdr))
+	// Read and check the DDS magic number
+	uint32_t magic;
+	size_t magic_bytes_read = fread(&magic, 1, sizeof(uint32_t), f);
+	if (magic_bytes_read != 4)
 	{
-		printf("Failed to read header of DDS file %s\n", filename);
+		printf("Failed to read magic number from file %s\n", filename);
 		fclose(f);
 		return nullptr;
 	}
 
-	uint32_t magicx = magic[0] | (magic[1] << 8) | (magic[2] << 16) | (magic[3] << 24);
+#if defined(ASTCENC_BIG_ENDIAN)
+	magic = reverse_bytes_u32(magic);
+#endif
 
-	if (magicx != DDS_MAGIC || hdr.size != 124)
+	if (magic != DDS_MAGIC)
 	{
-		printf("File %s does not have a valid DDS header\n", filename);
+		printf("File %s has incorrect magic number\n", filename);
+		fclose(f);
+		return nullptr;
+	}
+
+	// Validate that we can read the DDS header
+	dds_header hdr;
+	size_t header_bytes_read = fread(&hdr, 1, sizeof(hdr), f);
+	if (header_bytes_read != sizeof(hdr))
+	{
+		printf("Failed to read header from file %s\n", filename);
+		fclose(f);
+		return nullptr;
+	}
+
+#if defined(ASTCENC_BIG_ENDIAN)
+	// DDS header fields all 32-bit words
+	uint32_t* words = reinterpret_cast<uint32_t*>(&hdr);
+	size_t word_count = sizeof(hdr) / sizeof(uint32_t);
+
+	// Reverse all of them
+	for (size_t i = 0; i < word_count; i++)
+	{
+		words[i] = reverse_bytes_u32(words[i]);
+	}
+#endif
+
+	if (hdr.size != 124)
+	{
+		printf("File %s has incorrect header\n", filename);
 		fclose(f);
 		return nullptr;
 	}
