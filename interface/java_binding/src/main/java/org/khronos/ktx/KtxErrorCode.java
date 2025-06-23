@@ -11,6 +11,11 @@ package org.khronos.ktx;
  */
 public class KtxErrorCode {
 
+    static
+    {
+        KtxLibraryLoader.load();
+    }
+
 	/**
 	 * Operation was successful
 	 */
