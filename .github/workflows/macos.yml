@@ -49,7 +49,7 @@ jobs:
         os: [ macos-13 ]
         generator: [ Xcode ]
         arch: [ x86_64 ]
-        vk_sdk_ver: ['1.3.290.0']
+        vk_sdk_ver: ['1.4.313.1']
         options: [
           {config: 'Debug,Release', platform: macOS,
            doc: ON, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tools: ON, tools_cts: ON,
@@ -69,7 +69,7 @@ jobs:
           os: macos-latest
           generator: Xcode
           arch: arm64
-          vk_sdk_ver: '1.3.290.0'
+          vk_sdk_ver: '1.4.313.1'
           options: {
             config: Release, platform: macOS,
             doc: ON, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tests: OFF, tools: ON, tools_cts: OFF,
@@ -79,7 +79,7 @@ jobs:
           os: macos-latest
           generator: Xcode
           arch: arm64
-          vk_sdk_ver: '1.3.290.0'
+          vk_sdk_ver: '1.4.313.1'
           options: {
             config: Release, platform: macOS,
             doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tests: OFF, tools: OFF, tools_cts: OFF,
@@ -89,7 +89,7 @@ jobs:
           os: macos-latest
           generator: Xcode
           arch: arm64
-          vk_sdk_ver: '1.3.290.0'
+          vk_sdk_ver: '1.4.313.1'
           options: {
             config: Release, platform: macOS,
             doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tests: OFF, tools: OFF, tools_cts: OFF,
@@ -99,7 +99,7 @@ jobs:
           os: macos-latest
           generator: Xcode
           arch: arm64
-          vk_sdk_ver: '1.3.290.0'
+          vk_sdk_ver: '1.4.313.1'
           options: {
             config: Release, platform: macOS,
             doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tests: OFF, tools: OFF, tools_cts: OFF,
@@ -109,7 +109,7 @@ jobs:
           os: macos-latest
           generator: Xcode
           arch: arm64
-          vk_sdk_ver: '1.3.290.0'
+          vk_sdk_ver: '1.4.313.1'
           options: {
             config: Release, platform: iOS,
             doc: OFF, jni: OFF, loadtests: OpenGL+Vulkan, py: OFF, tests: OFF, tools: OFF, tools_cts: OFF,

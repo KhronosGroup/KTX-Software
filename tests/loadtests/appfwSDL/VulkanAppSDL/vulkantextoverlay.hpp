@@ -503,7 +503,9 @@ public:
             vkTools::initializers::pipelineInputAssemblyStateCreateInfo(
                 VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP,
                 0,
-                VK_FALSE);
+                // primmitiveRestartEnable not needed but disabling it results in a MoltenVK
+                // feature not present warning.
+                VK_TRUE);
 
         VkPipelineRasterizationStateCreateInfo rasterizationState =
             vkTools::initializers::pipelineRasterizationStateCreateInfo(
