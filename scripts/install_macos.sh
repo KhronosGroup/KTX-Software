@@ -35,7 +35,7 @@ if [[ -n "$FEATURE_LOADTESTS" && "$FEATURE_LOADTESTS" != "OFF" ]]; then
     VULKAN_SDK_NAME=vulkansdk-macos-$VULKAN_SDK_VER
     curl -s -S -o $VULKAN_SDK_NAME.zip https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/mac/$VULKAN_SDK_NAME.zip?Human=true
     unzip  $VULKAN_SDK_NAME
-    sudo open $VULKAN_SDK_NAME.app --root "$VULKAN_INSTALL_DIR" --accept-licenses --default-answer --confirm-command install $IOS_COMPONENT
+    sudo open $VULKAN_SDK_NAME.app --args --root "$VULKAN_INSTALL_DIR" --accept-licenses --default-answer --confirm-command install $IOS_COMPONENT
     rm $VULKAN_SDK_NAME.zip
     unset VULKAN_SDK_NAME IOS_COMPONENT
     popd
