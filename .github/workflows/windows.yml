@@ -88,8 +88,8 @@ jobs:
             options: {
               config: 'Debug,Release',
               # Can't run arm64 tests on x86 runner.
-              doc: ON, jni: ON, loadtests: OpenGL, py: OFF, tests: OFF, tools: ON, tools_cts: OFF,
-              package: YES
+              doc: ON, jni: OFF, loadtests: OpenGL, py: OFF, tests: OFF, tools: ON, tools_cts: OFF,
+              package: NO
             }
           - os: windows-11-arm
             generator: 'Visual Studio 17 2022'
@@ -98,7 +98,7 @@ jobs:
             #vcpkg_install_options: --debug
             options: {
               config: 'Debug,Release',
-              doc: ON, jni: ON, loadtests: OpenGL+Vulkan, py: OFF, tests: ON, tools: ON, tools_cts: ON,
+              doc: ON, jni: OFF, loadtests: OpenGL+Vulkan, py: OFF, tests: ON, tools: ON, tools_cts: ON,
               package: YES
             }
     runs-on: ${{ matrix.os }}
