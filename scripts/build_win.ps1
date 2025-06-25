@@ -25,31 +25,37 @@ function Set-ConfigVariable {
 }
 
 # Build for the local machine by default.
-# NOTE: $env:processor_architecture reflects the architecture of
-# the process not the machine. Do not use.
+# NOTE: See comment in ./install_win.ps1.
 $systype = (Get-ComputerInfo).CsSystemType -match "(?<arch>.*)-based PC"
 $defaultArch = $matches['arch'].toLower()
-if ($defaultArch -ne "x64" -and $defaultArch -ne "arm64") {
-  echo "KTX build for Windows does not support $defaultArch architecture."
-  echo "Only amd64 and arm64 are supported."
-  exit 1
-}
 
 # These defaults are here to permit easy running of the script locally
 # when debugging is needed. Use local variables to avoid polluting the
 # environment. Some cases have been observed where setting env. var's
 # here sets them for the parent as well.
 $ARCH = Set-ConfigVariable ARCH $defaultArch
+if ($$ARCH -ne "x64" -and $ARCH -ne "arm64") {
+  echo "KTX build for Windows does not support $ARCH architecture."
+  echo "Only amd64 and arm64 are supported."
+  exit 1
+}
 $BUILD_DIR = Set-ConfigVariable BUILD_DIR "build/build-batch-vs2022"
 $CONFIGURATION = Set-ConfigVariable CONFIGURATION "Release"
 $CMAKE_GEN = Set-ConfigVariable CMAKE_GEN "Visual Studio 17 2022"
 $CMAKE_TOOLSET = Set-ConfigVariable CMAKE_TOOLSET ""
 $FEATURE_DOC = Set-ConfigVariable FEATURE_DOC "OFF"
 $FEATURE_JNI = Set-ConfigVariable FEATURE_JNI "OFF"
-if ($ARCH -eq 'x64') {
+if ($ARCH -eq $defaultArch) {
   $FEATURE_LOADTESTS = Set-ConfigVariable FEATURE_LOADTESTS "OpenGL+Vulkan"
 } else {
   $FEATURE_LOADTESTS = Set-ConfigVariable FEATURE_LOADTESTS "OpenGL"
+}
+if ($FEATURE_LOADTESTS -match "Vulkan" -and $ARCH -ne  $defaultArch) {
+  echo "The Vulkan SDK does not support cross-compilation of Vulkan apps."
+  echo "Removing `"Vulkan`" from FEATURE_LOADTESTS."
+  $FEATURE_LOADTESTS -replace "\+?Vulkan"
+  if (-not $FEATURE_LOADTESTS) {
+    $FEATURE_LOADTESTS = "OFF"
 }
 $FEATURE_PY = Set-ConfigVariable FEATURE_PY "OFF"
 $FEATURE_TESTS = Set-ConfigVariable FEATURE_TESTS "ON"

@@ -33,7 +33,7 @@ $OPENCL_SDK_NAME = Set-ConfigVariable OPENCL_SDK_NAME "win-oclcpuexp-2021.12.9.0
 $OPENGL_ES_EMULATOR = Set-ConfigVariable OPENGL_ES_EMULATOR "C:/Imagination/Windows_x86_64"
 $OPENGL_ES_EMULATOR_WIN = Set-ConfigVariable OPENGL_ES_EMULATOR_WIN "C:\Imagination\Windows_x86_64"
 $PVR_SDK_HOME = Set-ConfigVariable PVR_SDK_HOME "https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/"
-$VULKAN_SDK_VER = Set-ConfigVariable VULKAN_SDK_VER 1.3.243.0
+$VULKAN_SDK_VER = Set-ConfigVariable VULKAN_SDK_VER 1.4.313.2
 
 if ($FEATURE_TESTS -eq "ON") {
   git lfs pull --include=tests/srcimages,tests/testimages
@@ -58,9 +58,23 @@ if ($FEATURE_LOADTESTS -and $FEATURE_LOADTESTS -ne "OFF") {
     popd
   }
   if ($FEATURE_LOADTESTS -match "Vulkan") {
-    echo "Install VulkanSDK."
+    # Find the processor architecture to install the correct VulkanSDK.
+    # NOTE 1: $env:ARCH is ignored because, we believe, the Vulkan SDK does
+    # not support cross-compilation.
+    # NOTE 2: $env:processor_architecture reflects the architecture of
+    # the process not the machine. It will return AMD64 in an X64 process
+    # running on MS's equivalent of Rosetta. Do not use.
+    # $env:PROCESSOR_IDENTIFIER reports the correct information but in a
+    # form, "ARMv8 (64-bit) ...", difficult to process into the arch. name
+    # used in the SDK installers. Hence this though it takes time...
+    $ARCH = (Get-ComputerInfo).CsSystemType -match "(?<arch>.*)-based PC"
+    if ($ARCH -ne ARM64 -and $ARCH -ne "X64") {
+      echo "No VulkanSDK available for $ARCH."
+      exit 1
+    }
+    echo "Install VulkanSDK for $ARCH."
     pushd $env:TEMP
-    curl.exe -s -S -o VulkanSDK-Installer.exe "https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/windows/VulkanSDK-$VULKAN_SDK_VER-Installer.exe?Human=true"
+    curl.exe -s -S -o VulkanSDK-Installer.exe "https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/windows/vulkansdk-windows-$ARCH-$VULKAN_SDK_VER.exe?Human=true"
     Start-Process .\VulkanSDK-Installer.exe -ArgumentList "--accept-licenses --default-answer --confirm-command install" -NoNewWindow -Wait
     echo "Return to cloned repo."
     popd
