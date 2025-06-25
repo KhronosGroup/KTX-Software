@@ -25,7 +25,7 @@ function Set-ConfigVariable {
 }
 
 # Build for the local machine by default.
-# NOTE: See comment in ./install_win.ps1.
+# NOTE: See comment around line 64 in ./install_win.ps1.
 $systype = (Get-ComputerInfo).CsSystemType -match "(?<arch>.*)-based PC"
 $defaultArch = $matches['arch'].toLower()
 
@@ -34,7 +34,7 @@ $defaultArch = $matches['arch'].toLower()
 # environment. Some cases have been observed where setting env. var's
 # here sets them for the parent as well.
 $ARCH = Set-ConfigVariable ARCH $defaultArch
-if ($$ARCH -ne "x64" -and $ARCH -ne "arm64") {
+if ($ARCH -ne "x64" -and $ARCH -ne "arm64") {
   echo "KTX build for Windows does not support $ARCH architecture."
   echo "Only amd64 and arm64 are supported."
   exit 1
