@@ -87,7 +87,8 @@ jobs:
             #vcpkg_install_options: --debug
             options: {
               config: 'Debug,Release',
-              doc: ON, jni: ON, loadtests: OpenGL, py: OFF, tests: ON, tools: ON, tools_cts: ON,
+              # Can't run arm64 tests on x86 runner.
+              doc: ON, jni: ON, loadtests: OpenGL, py: OFF, tests: OFF, tools: ON, tools_cts: OFF,
               package: YES
             }
           - os: windows-11-arm
@@ -319,7 +320,7 @@ jobs:
 
     - name: Test Windows build
       # Tests built for arm64 can't be run as the CI runners are all x64.
-      if: matrix.arch == 'x64' && matrix.options.tests == 'ON'
+      if: matrix.options.tests == 'ON'
       run: ctest --output-on-failure --test-dir $env:BUILD_DIR -C Release
 
 #    - name: Upload test log
