@@ -56,6 +56,7 @@ if ($FEATURE_LOADTESTS -match "Vulkan" -and $ARCH -ne  $defaultArch) {
   $FEATURE_LOADTESTS -replace "\+?Vulkan"
   if (-not $FEATURE_LOADTESTS) {
     $FEATURE_LOADTESTS = "OFF"
+  }
 }
 $FEATURE_PY = Set-ConfigVariable FEATURE_PY "OFF"
 $FEATURE_TESTS = Set-ConfigVariable FEATURE_TESTS "ON"
