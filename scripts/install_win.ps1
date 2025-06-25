@@ -73,9 +73,16 @@ if ($FEATURE_LOADTESTS -and $FEATURE_LOADTESTS -ne "OFF") {
       echo "No VulkanSDK available for $ARCH."
       exit 1
     }
+    # Grumble, grumble, grumble ...
+    if ($ARCH -eq "X64") {
+      $VSDK_PARENT = "windows"
+    } else {
+      $VSDK_PARENT = "warm"
+    }
     echo "Install VulkanSDK for $ARCH."
     pushd $env:TEMP
-    curl.exe -s -S -o VulkanSDK-Installer.exe "https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/windows/vulkansdk-windows-$ARCH-$VULKAN_SDK_VER.exe?Human=true"
+    echo "curl.exe -s -S -o VulkanSDK-Installer.exe `"https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/$VSDK_PARENT/vulkansdk-windows-$ARCH-$VULKAN_SDK_VER.exe?Human=true`""
+    curl.exe -s -S -o VulkanSDK-Installer.exe "https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/$VSDK_PARENT/vulkansdk-windows-$ARCH-$VULKAN_SDK_VER.exe?Human=true"
     Start-Process .\VulkanSDK-Installer.exe -ArgumentList "--accept-licenses --default-answer --confirm-command install" -NoNewWindow -Wait
     echo "Return to cloned repo."
     popd
