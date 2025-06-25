@@ -67,7 +67,8 @@ if ($FEATURE_LOADTESTS -and $FEATURE_LOADTESTS -ne "OFF") {
     # $env:PROCESSOR_IDENTIFIER reports the correct information but in a
     # form, "ARMv8 (64-bit) ...", difficult to process into the arch. name
     # used in the SDK installers. Hence this though it takes time...
-    $ARCH = (Get-ComputerInfo).CsSystemType -match "(?<arch>.*)-based PC"
+    $found = (Get-ComputerInfo).CsSystemType -match "(?<arch>.*)-based PC"
+    $ARCH = $matches['arch']
     if ($ARCH -ne "ARM64" -and $ARCH -ne "X64") {
       echo "No VulkanSDK available for $ARCH."
       exit 1
