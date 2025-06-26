@@ -101,9 +101,9 @@ jobs:
             }
     runs-on: ${{ matrix.os }}
     env:
-      # Skip downloading necessities for the load tests and source and golden
-      # images for the other tests. Pull them when only when FEATURE_TESTS is on.
-      # build host.
+      # To avoid bandwidth charges skip downloading source and golden images
+      # for loadtests and legacy tool tests. They will be pulled later as
+      # necessary
       GIT_LFS_SKIP_SMUDGE: 1
 
       BUILD_DIR: "build"

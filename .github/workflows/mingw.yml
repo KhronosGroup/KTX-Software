@@ -47,6 +47,9 @@ jobs:
       run:
         shell: bash
     env:
+      # To avoid bandwidth charges skip downloading source and golden images
+      # for loadtests and legacy tool tests. They will be pulled later as
+      # necessary
       GIT_LFS_SKIP_SMUDGE: 1
       WERROR: ON
 

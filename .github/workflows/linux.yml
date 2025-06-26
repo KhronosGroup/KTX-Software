@@ -129,6 +129,9 @@ jobs:
     name: ${{ matrix.name && matrix.name || format('{0} SSE,OpenCL:{1},{2}', matrix.os, matrix.options.sse, matrix.options.opencl) }}
     runs-on: ${{ matrix.os }}
     env:
+      # To avoid bandwidth charges skip downloading source and golden images
+      # for loadtests and legacy tool tests. They will be pulled later as
+      # necessary
       GIT_LFS_SKIP_SMUDGE: 1
 
       BUILD_DIR: build

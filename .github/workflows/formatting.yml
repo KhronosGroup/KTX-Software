@@ -9,6 +9,9 @@ on:
 permissions:
   contents: read
 
+env:
+  GIT_LFS_SKIP_SMUDGE: 1
+
 jobs:
   clang-format:
     runs-on: ubuntu-latest
