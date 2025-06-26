@@ -22,7 +22,7 @@ else
   # No Vulkan SDK yet for Linux/arm64.
   FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-OpenGL}
 fi
-VULKAN_SDK_VER=${VULKAN_SDK_VER:-1.3.290}
+VULKAN_SDK_VER=${VULKAN_SDK_VER:-1.4.313}
 
 sudo apt-get -qq update
 
