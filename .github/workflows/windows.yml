@@ -48,7 +48,7 @@ jobs:
         generator: [ 'Visual Studio 17 2022' ]
         toolset: [v143, CLangCL]
         arch: [ x64 ]
-        java_version: [ '17' ]
+        java-version: [ '17' ]
         check_mkvk: [ NO ]
         options: [
           {config: 'Debug,Release',
@@ -73,6 +73,7 @@ jobs:
             generator: 'Visual Studio 16 2019'
             toolset: v142
             arch: x64
+            java-version: '17'
             options: {
               config: 'Debug,Release',
               doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tests: ON, tools: ON, tools_cts: ON,
@@ -95,7 +96,7 @@ jobs:
             toolset: CLangCL
             arch: arm64
             # Oldest version available on arm runner.
-            java_version: '21'
+            java-version: '21'
             #vcpkg_install_options: --debug
             options: {
               config: 'Debug,Release',
@@ -253,7 +254,7 @@ jobs:
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
-        java-version: ${{ matrix.java_version }}
+        java-version: ${{ matrix.java-version }}
 
     # Pre-installed Python in Windows Server 2022 is 3.9. However
     # CMake finds the latest on the runner (3.13.5 now). Should a
