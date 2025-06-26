@@ -48,6 +48,7 @@ jobs:
         generator: [ 'Visual Studio 17 2022' ]
         toolset: [v143, CLangCL]
         arch: [ x64 ]
+        java_version: [ '17' ]
         check_mkvk: [ NO ]
         options: [
           {config: 'Debug,Release',
@@ -85,7 +86,7 @@ jobs:
             #vcpkg_install_options: --debug
             options: {
               config: 'Debug,Release',
-              # Can't run arm64 tests on x86 runner.
+              # Can't run arm64 tests on x86 runner. Can't cross-compile Vulkan apps.
               doc: ON, jni: OFF, loadtests: OpenGL, py: OFF, tests: OFF, tools: ON, tools_cts: OFF,
               package: NO
             }
@@ -93,17 +94,19 @@ jobs:
             generator: 'Visual Studio 17 2022'
             toolset: CLangCL
             arch: arm64
+            # Oldest version available on arm runner.
+            java_version: '21'
             #vcpkg_install_options: --debug
             options: {
               config: 'Debug,Release',
-              doc: ON, jni: OFF, loadtests: OpenGL+Vulkan, py: OFF, tests: ON, tools: ON, tools_cts: ON,
+              doc: ON, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tests: ON, tools: ON, tools_cts: ON,
               package: YES
             }
     runs-on: ${{ matrix.os }}
     env:
       # To avoid bandwidth charges skip downloading source and golden images
-      # for loadtests and legacy tool tests. They will be pulled later as
-      # necessary
+      # for texturetests etc., loadtests and legacy tool tests. They will be
+      # pulled later as necessary
       GIT_LFS_SKIP_SMUDGE: 1
 
       BUILD_DIR: "build"
@@ -245,12 +248,12 @@ jobs:
       # This script only installs what's needed by ON FEATUREs.
       run: scripts/install_win.ps1
 
-    - name: Set up JDK 17.
+    - name: Set up JDK.
       if: matrix.options.jni == 'ON' && matrix.check_mkvk != 'ONLY'
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
-        java-version: '17'
+        java-version: ${{ matrix.java_version }}
 
     # Pre-installed Python in Windows Server 2022 is 3.9. However
     # CMake finds the latest on the runner (3.13.5 now). Should a
@@ -285,6 +288,10 @@ jobs:
       if: matrix.options.tools_cts =='ON'
       run:
         git submodule update --init --recursive tests/cts
+
+    - name: Pull LFS files
+      if: matrix.options.tests == 'ON'
+      run: git lfs pull --include=tests/srcimages,tests/testimages
 
     - name: Smudge embedded dates
       if: matrix.options.doc == 'ON'
