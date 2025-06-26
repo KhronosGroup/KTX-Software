@@ -256,6 +256,9 @@ jobs:
           if [ "$FEATURE_TOOLS_CTS" = "ON" ]; then
             git submodule update --init --recursive tests/cts
           fi
+          if [ "$FEATURE_TESTS" = "ON" ]; then
+            git lfs pull --include=tests/srcimages,tests/testimage
+          fi
           # Make sure embedded dates are correct.
           ./install-gitconfig.sh
           scripts/smudge_date.sh
