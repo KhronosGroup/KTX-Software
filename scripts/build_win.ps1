@@ -53,7 +53,7 @@ if ($ARCH -eq $defaultArch) {
 if ($FEATURE_LOADTESTS -match "Vulkan" -and $ARCH -ne  $defaultArch) {
   echo "The Vulkan SDK does not support cross-compilation of Vulkan apps."
   echo "Removing `"Vulkan`" from FEATURE_LOADTESTS."
-  $FEATURE_LOADTESTS -replace "\+?Vulkan"
+  $FEATURE_LOADTESTS = $FEATURE_LOADTESTS -replace "\+?Vulkan"
   if (-not $FEATURE_LOADTESTS) {
     $FEATURE_LOADTESTS = "OFF"
   }

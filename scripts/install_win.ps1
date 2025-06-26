@@ -81,7 +81,6 @@ if ($FEATURE_LOADTESTS -and $FEATURE_LOADTESTS -ne "OFF") {
     }
     echo "Install VulkanSDK for $ARCH."
     pushd $env:TEMP
-    echo "curl.exe -s -S -o VulkanSDK-Installer.exe `"https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/$VSDK_PARENT/vulkansdk-windows-$ARCH-$VULKAN_SDK_VER.exe?Human=true`""
     curl.exe -s -S -o VulkanSDK-Installer.exe "https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/$VSDK_PARENT/vulkansdk-windows-$ARCH-$VULKAN_SDK_VER.exe?Human=true"
     Start-Process .\VulkanSDK-Installer.exe -ArgumentList "--accept-licenses --default-answer --confirm-command install" -NoNewWindow -Wait
     echo "Return to cloned repo."
