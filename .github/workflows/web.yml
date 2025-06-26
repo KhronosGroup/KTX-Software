@@ -131,8 +131,6 @@ jobs:
         run: |
           echo -n "Running on the following GitHub Actions CI runner: " && uname -a
           echo -n "CMake version on the runner is " && cmake --version
-          echo -e "machine github.com\n  login $GITHUB_TOKEN" >> ~/.netrc # Prevent rate limiting on Git LFS.
-          cat ~/.netrc
           # Need to set uid/gid because, unlike when running docker locally,
           # /src ends up being owned by the uid/gid running this script and
           # the recent fix for CVE-2022-24765 in Git causes Git to error

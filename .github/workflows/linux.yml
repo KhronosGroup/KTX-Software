@@ -189,8 +189,6 @@ jobs:
         run: |
           echo -n "Running on the following GitHub Actions CI runner: " && uname -a
           echo -n "CMake version on the runner is " && cmake --version
-          echo -e "machine github.com\n  login $GITHUB_TOKEN" >> ~/.netrc # Prevent rate limiting on Git LFS.
-          cat ~/.netrc
           sudo apt-get update
 
       - name: install
