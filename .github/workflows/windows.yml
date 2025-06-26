@@ -88,7 +88,8 @@ jobs:
             options: {
               config: 'Debug,Release',
               # Can't run arm64 tests on x86 runner. Can't cross-compile Vulkan apps.
-              doc: ON, jni: OFF, loadtests: OpenGL, py: OFF, tests: OFF, tools: ON, tools_cts: OFF,
+              # Vulkan is added to test the build script correctly forces OpenGL only.
+              doc: ON, jni: OFF, loadtests: OpenGL+Vulkan, py: OFF, tests: OFF, tools: ON, tools_cts: OFF,
               package: NO
             }
           - os: windows-11-arm
