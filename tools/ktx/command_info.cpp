@@ -112,19 +112,30 @@ void CommandInfo::executeInfo() {
 
     KTX_error_code result;
 
-    switch (options.format) {
-    case OutputFormat::text:
-        result = printInfoText(inputStream);
-        break;
-    case OutputFormat::json:
-        result = printInfoJSON(inputStream, false);
-        break;
-    case OutputFormat::json_mini:
-        result = printInfoJSON(inputStream, true);
-        break;
-    default:
-        assert(false && "Internal error");
-        return;
+    ktx_uint8_t ktx_ident_ref[12] = KTX_IDENTIFIER_REF;
+    ktx_uint8_t identifier[12];
+    inputStream->read((char*)identifier, 12);
+    inputStream->seekg(0);
+    if (!memcmp(identifier, ktx_ident_ref, 12)) {
+        if (options.format != OutputFormat::text)
+            fatal_usage("Only text format can be output for KTX v1 files.");
+        StreambufStream<std::streambuf*> ktxStream{inputStream->rdbuf(), std::ios::in | std::ios::binary};
+        result = ktxPrintKTX1InfoTextForStream(ktxStream.stream());
+    } else {
+        switch (options.format) {
+        case OutputFormat::text:
+            result = printInfoText(inputStream);
+            break;
+        case OutputFormat::json:
+            result = printInfoJSON(inputStream, false);
+            break;
+        case OutputFormat::json_mini:
+            result = printInfoJSON(inputStream, true);
+            break;
+        default:
+            assert(false && "Internal error");
+            return;
+        }
     }
 
     if (result != KTX_SUCCESS)

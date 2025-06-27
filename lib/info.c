@@ -533,6 +533,29 @@ printKTXInfo(ktxStream* stream)
     printKTXInfo2(stream, &header);
 }
 
+KTX_error_code
+ktxPrintKTX1InfoTextForStream(ktxStream* stream)
+{
+    ktx_uint8_t ktx_ident_ref[12] = KTX_IDENTIFIER_REF;
+    KTX_header header;
+    KTX_error_code result;
+
+    if (stream == NULL)
+        return KTX_INVALID_VALUE;
+
+    result = stream->read(stream, &header, sizeof(ktx_ident_ref));
+    if (result == KTX_SUCCESS) {
+        // Compare identifier, is this a KTX  or KTX2 file?
+        if (!memcmp(header.identifier, ktx_ident_ref, sizeof(ktx_ident_ref))) {
+            result = stream->read(stream, &header.endianness,
+                                  KTX_HEADER_SIZE - sizeof(ktx_ident_ref));
+            printKTXInfo2(stream, &header);
+        } else {
+                return KTX_UNKNOWN_FILE_FORMAT;
+        }
+    }
+    return result;
+}
 
 /*===========================================================*
  * For KTX format version 2                                  *
