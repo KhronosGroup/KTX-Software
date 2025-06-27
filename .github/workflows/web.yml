@@ -73,6 +73,9 @@ jobs:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     env:
+      # To avoid bandwidth charges skip downloading source and golden images
+      # for texturetests etc., loadtests and legacy tool tests. They will be
+      # pulled later as necessary
       GIT_LFS_SKIP_SMUDGE: 1
 
       BUILD_DIR: build
@@ -128,8 +131,6 @@ jobs:
         run: |
           echo -n "Running on the following GitHub Actions CI runner: " && uname -a
           echo -n "CMake version on the runner is " && cmake --version
-          echo -e "machine github.com\n  login $GITHUB_TOKEN" >> ~/.netrc # Prevent rate limiting on Git LFS.
-          cat ~/.netrc
           # Need to set uid/gid because, unlike when running docker locally,
           # /src ends up being owned by the uid/gid running this script and
           # the recent fix for CVE-2022-24765 in Git causes Git to error
@@ -147,6 +148,9 @@ jobs:
         run: |
           if [ "$FEATURE_TOOLS_CTS" = "ON" ]; then
             git submodule update --init --recursive tests/cts
+          fi
+          if [ "$FEATURE_TESTS" = "ON" ]; then
+            git lfs pull --include=tests/srcimages,tests/testimage
           fi
           # Make sure embedded dates are correct.
           ./install-gitconfig.sh

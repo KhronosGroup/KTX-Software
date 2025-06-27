@@ -52,6 +52,9 @@ on:
   # Allow manual trigger
   workflow_dispatch:
 
+env:
+ GIT_LFS_SKIP_SMUDGE: 1
+
 jobs:
   build-docs:
     name: Build KTX-Software reference pages and documentation
@@ -64,7 +67,6 @@ jobs:
 
     env:
       BUILD_DIR: build
-      GIT_LFS_SKIP_SMUDGE: 1
 
     steps:
     - uses: actions/checkout@v4
