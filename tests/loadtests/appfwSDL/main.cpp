@@ -26,7 +26,6 @@
 #include <emscripten.h>
 #endif
 
-#include <SDL3/SDL.h> // Only because SDL_gesture.h requires it.
 #define SDL_GESTURE_IMPLEMENTATION 1
 #include "SDL_gesture.h"
 
