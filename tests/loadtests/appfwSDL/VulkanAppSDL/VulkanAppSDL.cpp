@@ -91,10 +91,8 @@ VulkanAppSDL::initialize(Args& args)
     // to window creation so creating the window first should be ok...
     pswMainWindow = SDL_CreateWindow(
                         szName,
-                        SDL_WINDOWPOS_UNDEFINED,
-                        SDL_WINDOWPOS_UNDEFINED,
                         w_width, w_height,
-                        SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI
+                        SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY
                     );
 
     if (pswMainWindow == NULL) {
@@ -140,20 +138,14 @@ VulkanAppSDL::finalize()
 }
 
 
-int
+bool
 VulkanAppSDL::doEvent(SDL_Event* event)
 {
     switch (event->type) {
-      case SDL_WINDOWEVENT:
-        switch (event->window.event) {
-          case SDL_WINDOWEVENT_SIZE_CHANGED:
-            // Size given in event is in 'points' on some platforms.
-            // Resize window will figure out the drawable pixel size.
-            resizeWindow(/*event->window.data1, event->window.data2*/);
-            return 0;
-        }
+      case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+        resizeWindow(event->window.data1, event->window.data2);
+        return 0;
         break;
-            
     }
     return AppBaseSDL::doEvent(event);
 }
@@ -186,7 +178,7 @@ VulkanAppSDL::windowResized()
 }
 
 void
-VulkanAppSDL::resizeWindow()
+VulkanAppSDL::resizeWindow(int width, int height)
 {
     // XXX Necessary? Get out-of-date errors from vkAcquireNextImage regardless
     // of whether this guard is used. This guard doesn't seem to make them any
@@ -202,9 +194,8 @@ VulkanAppSDL::resizeWindow()
 
     // Recreate swap chain.
 
-    // This call is unnecessary on iOS or macOS. Swapchain creation gets the
-    // correct drawable size from the surface capabilities. Elsewhere?
-    SDL_Vulkan_GetDrawableSize(pswMainWindow, (int*)&w_width, (int*)&w_height);
+    w_width = width;
+    w_height = height;
 
     // This destroys any existing swapchain and makes a new one.
     createSwapchain();
@@ -462,8 +453,9 @@ VulkanAppSDL::createInstance()
 
 
     /* Build list of needed extensions */
-    uint32_t c;
-    if (!SDL_Vulkan_GetInstanceExtensions(pswMainWindow, &c, nullptr)) {
+    uint32_t rec;
+    const char* const* requiredExtensionNames = SDL_Vulkan_GetInstanceExtensions(&rec);
+    if (requiredExtensionNames == nullptr) {
         std::string title;
         std::stringstream msg;
         title = szName;
@@ -503,10 +495,9 @@ VulkanAppSDL::createInstance()
     if (validate)
         extensionNames.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 
-    uint32_t i = (uint32_t)extensionNames.size();
-    extensionNames.resize(i + c);
-    (void)SDL_Vulkan_GetInstanceExtensions(pswMainWindow, &c,
-                                           &extensionNames.data()[i]);
+    for (uint32_t i = 0; i < rec; i++) {
+        extensionNames.push_back(requiredExtensionNames[i]);
+    }
 
     const vk::ApplicationInfo app(szName, 0, szName, 0, vkVersion);
 
@@ -1609,7 +1600,7 @@ VulkanAppSDL::debugFunc(VkDebugReportFlagsEXT msgFlags,
     title += " Debug Report";
     if (showDebugReport(mbFlags, title, message.str(), prepared)) {
         SDL_Event sdlevent;
-        sdlevent.type = SDL_QUIT;
+        sdlevent.type = SDL_EVENT_QUIT;
         sdlevent.quit.timestamp = SDL_GetTicks();
 
         (void)SDL_PushEvent(&sdlevent);
@@ -1715,7 +1706,7 @@ VulkanAppSDL::showDebugReport(uint32_t mbFlags, const std::string title,
         NULL //&colorScheme                                     // .colorScheme
     };
     int buttonid;
-    if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {
+    if (!SDL_ShowMessageBox(&messageboxdata, &buttonid)) {
         SDL_Log("error displaying message box");
     }
     if (buttonid == -1) {

@@ -23,7 +23,7 @@
   #define _CRT_SECURE_NO_WARNINGS
 #include "windows.h"
   #include "GL/glew.h"
-  #include "SDL2/SDL_loadso.h"
+  #include "SDL3/SDL_loadso.h"
 #else
   #define GL_GLEXT_PROTOTYPES 1
   #include "GL/glcorearb.h"   // for glEnable and FRAMEBUFFER_RGB
@@ -86,8 +86,6 @@ GLAppSDL::initialize(Args& args)
     
     pswMainWindow = SDL_CreateWindow(
                         szName,
-                        SDL_WINDOWPOS_UNDEFINED,
-                        SDL_WINDOWPOS_UNDEFINED,
                         w_width, w_height,
                         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
                     );
@@ -204,7 +202,9 @@ GLAppSDL::initialize(Args& args)
         glEnable(GL_FRAMEBUFFER_SRGB);
 
     // In case the window is created with a different size than specified.
-    resizeWindow();
+    int actualWidth, actualHeight;
+    SDL_GetWindowSizeInPixels(pswMainWindow, &actualWidth, &actualHeight);
+    resizeWindow(actualWidth, actualHeight);
 
     initializeFPSTimer();
     return true;
@@ -214,24 +214,18 @@ GLAppSDL::initialize(Args& args)
 void
 GLAppSDL::finalize()
 {
-    SDL_GL_DeleteContext(sgcGLContext);
+    SDL_GL_DestroyContext(sgcGLContext);
 }
 
 
-int
+bool
 GLAppSDL::doEvent(SDL_Event* event)
 {
     switch (event->type) {
-      case SDL_WINDOWEVENT:
-        switch (event->window.event) {
-          case SDL_WINDOWEVENT_SIZE_CHANGED:
-            // Size given in event is in 'points' on some platforms.
-            // Resize window will figure out the drawable pixel size.
-            resizeWindow(/*event->window.data1, event->window.data2*/);
-            return 0;
-        }
+      case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+        resizeWindow(event->window.data1, event->window.data2);
+        return 0;
         break;
-            
     }
     return AppBaseSDL::doEvent(event);
 }
@@ -252,9 +246,10 @@ GLAppSDL::windowResized()
 
 
 void
-GLAppSDL::resizeWindow()
+GLAppSDL::resizeWindow(int width, int height)
 {
-    SDL_GL_GetDrawableSize(pswMainWindow, &w_width, &w_height);
+    w_width = width;
+    w_height = height;
     windowResized();
 }
 
@@ -305,7 +300,7 @@ GLAppSDL::setWindowTitle()
 // Windows specific code to use icon in module
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
-#include <SDL2/SDL_syswm.h>
+#include <SDL3/SDL_syswm.h>
 void
 setWindowsIcon(SDL_Window *sdlWindow) {
     HINSTANCE handle = ::GetModuleHandle(nullptr);
@@ -313,10 +308,8 @@ setWindowsIcon(SDL_Window *sdlWindow) {
     // include application's resource.h.
     HICON icon = ::LoadIcon(handle, "MAIN_ICON");// MAKEINTRESOURCE(IDI_ICON1));
     if (icon != nullptr){
-        SDL_SysWMinfo wminfo;
-        SDL_VERSION(&wminfo.version);
-        if (SDL_GetWindowWMInfo(sdlWindow, &wminfo) == 1){
-            HWND hwnd = wminfo.info.win.window;
+        HWND hwnd = (HWND)SDL_GetPointerProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL);
+        if (hwnd) {
             ::SetClassLongPtr(hwnd, GCLP_HICON, reinterpret_cast<LONG_PTR>(icon));
         }
     }

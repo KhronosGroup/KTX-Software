@@ -7,7 +7,7 @@
       "dependencies": [
         "assimp",
         {
-          "name": "sdl2",
+          "name": "sdl3",
           "default-features": true,
           "features": [
             "vulkan"

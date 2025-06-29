@@ -14,8 +14,7 @@
 #include <iomanip>
 #include <sstream>
 
-//#include <SDL2/SDL.h>
-#include <SDL2/SDL_messagebox.h>
+#include <SDL3/SDL_messagebox.h>
 
 /**
  * @internal

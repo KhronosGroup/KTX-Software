@@ -34,8 +34,8 @@
 
 #include "VulkanSwapchain.h"
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_vulkan.h>
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_vulkan.h>
 #include "AppBaseSDL.h"
 #include "unused.h"
 
@@ -69,7 +69,7 @@ VulkanSwapchain::initSurface(SDL_Window* window)
 {
     U_ASSERT_ONLY VkResult err;
 
-    if (!SDL_Vulkan_CreateSurface(window, instance, &surface)) {
+    if (!SDL_Vulkan_CreateSurface(window, instance, nullptr, &surface)) {
         std::string msg = "SDL_CreateVulkanSurface failed: ";
         msg += SDL_GetError();
         ERROR_RETURN(msg.c_str());

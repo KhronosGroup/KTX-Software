@@ -172,7 +172,7 @@ PRIVATE
 
 target_include_directories(vkloadtests
 PRIVATE
-    ${SDL2_INCLUDE_DIRS}
+    SDL3::Headers
     $<TARGET_PROPERTY:appfwSDL,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:ktx,INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:objUtil,INTERFACE_INCLUDE_DIRECTORIES>
@@ -338,7 +338,7 @@ if(APPLE)
             COMMAND ${CMAKE_COMMAND} -E create_symlink "${Vulkan_LIBRARY_REAL_FILE_NAME}" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/${Vulkan_LIBRARY_SONAME_FILE_NAME}"
             COMMENT "Create symlink for Vulkan library (ld name to real name)"
         )
-        # Re. SDL2 & assimp: no copy required.: vcpkg libs are static or else
+        # Re. SDL3 & assimp: no copy required.: vcpkg libs are static or else
         # vcpkg arranges copy. Brew libs cannot be bundled.
 
         # Specify destination for cmake --install.

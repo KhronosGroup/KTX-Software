@@ -28,7 +28,7 @@
 #include <android/asset_manager.h>
 #endif
 
-#include <SDL2/SDL_messagebox.h>
+#include <SDL3/SDL_messagebox.h>
 
 // Custom define for better code readability
 #define VK_FLAGS_NONE 0

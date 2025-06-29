@@ -19,7 +19,7 @@
  * @brief Declarations for App framework using SDL.
  */
 
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include <string>
 #include <vector>
 
@@ -35,7 +35,7 @@ class AppBaseSDL {
     // When used with SDL_SetEventWatch, return value is ignored. When used
     // with SDL_SetEventFilter, 1 causes event to be added to SDL's internal
     // event queue, 0 causes it to be dropped.
-    virtual int doEvent(SDL_Event* event);
+    virtual bool doEvent(SDL_Event* event);
     virtual void onFPSUpdate();
     virtual SDL_Window* getMainWindow() { return pswMainWindow; }
     
@@ -48,7 +48,7 @@ class AppBaseSDL {
     // appended to the app name.
     virtual void setAppTitle(const char* const szExtra);
 
-    static int onEvent(void* userdata, SDL_Event* event) {
+    static bool onEvent(void* userdata, SDL_Event* event) {
         return ((AppBaseSDL *)userdata)->doEvent(event);
     }
     

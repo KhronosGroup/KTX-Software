@@ -28,7 +28,7 @@ class VulkanLoadTests : public VulkanAppSDL {
                 const uint32_t numSamples,
                 const char* const name);
     virtual ~VulkanLoadTests();
-    virtual int doEvent(SDL_Event* event);
+    virtual bool doEvent(SDL_Event* event);
     virtual void drawFrame(uint32_t msTicks);
     virtual void finalize();
     virtual void getOverlayText(float yOffset);
@@ -76,11 +76,11 @@ class VulkanLoadTests : public VulkanAppSDL {
 
     std::vector<std::string> infiles;
 
-    uint32_t dropCompleteTime = 0;
+    Sint64 dropCompleteTime = 0;
     struct {
         int32_t x;
         int32_t y;
-        uint32_t timestamp;
+        Sint64 timestamp;
     } buttonDown;
 
     SwipeDetector swipeDetector;

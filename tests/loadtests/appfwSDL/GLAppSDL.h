@@ -26,7 +26,7 @@ class GLAppSDL : public AppBaseSDL {
   public:
       GLAppSDL(const char* const name,
                int width, int height,
-               const SDL_GLprofile profile,
+               const SDL_GLProfile profile,
                const int majorVersion,
                const int minorVersion)
             : AppBaseSDL(name),
@@ -37,12 +37,12 @@ class GLAppSDL : public AppBaseSDL {
         w_width = width;
         w_height = height;
     };
-    virtual int doEvent(SDL_Event* event);
+    virtual bool doEvent(SDL_Event* event);
     virtual void drawFrame(uint32_t msTicks);
     virtual void finalize();
     virtual bool initialize(Args& args);
     virtual void onFPSUpdate();
-    virtual void resizeWindow();
+    virtual void resizeWindow(int width, int height);
     virtual void windowResized();
 
   protected:
@@ -51,7 +51,7 @@ class GLAppSDL : public AppBaseSDL {
     int w_width;
     int w_height;
 
-    const SDL_GLprofile profile;
+    const SDL_GLProfile profile;
     const int majorVersion;
     const int minorVersion;
 };

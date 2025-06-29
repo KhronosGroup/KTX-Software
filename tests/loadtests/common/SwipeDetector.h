@@ -9,7 +9,8 @@
 #ifndef _SWIPE_DETECTOR_H
 #define _SWIPE_DETECTOR_H
 
-#include <SDL2/SDL_events.h>
+#include <SDL3/SDL.h>
+#include "SDL_gesture.h"
 
 class SwipeDetector {
   public:
@@ -27,7 +28,7 @@ class SwipeDetector {
     result doEvent(SDL_Event* event);
 
   protected:
-    SDL_MultiGestureEvent mgestureFirst;
+    Gesture_MultiGestureEvent mgestureFirst;
     bool mgestureFirstSaved;
     bool mgestureSwipe;
 };

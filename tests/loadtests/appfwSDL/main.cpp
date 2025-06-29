@@ -20,11 +20,15 @@
 #include <vector>
 #include <stdio.h>
 #include "AppBaseSDL.h"
+#include <SDL3/SDL_main.h>
 #include "platform_utils.h"
 #if defined(EMSCRIPTEN)
 #include <emscripten.h>
 #endif
 
+#include <SDL3/SDL.h> // Only because SDL_gesture.h requires it.
+#define SDL_GESTURE_IMPLEMENTATION 1
+#include "SDL_gesture.h"
 
 #if defined(__IPHONEOS__)
   #define NEED_MAIN_LOOP 0
@@ -33,7 +37,7 @@
   //                             void (*callback)(void*), void *callbackParam
   //                                  );
   #define setAnimationCallback(win, cb, userdata) \
-    SDL_iPhoneSetAnimationCallback(win, 1, cb, userdata)
+    SDL_SetiOSAnimationCallback(win, 1, cb, userdata)
 #elif defined(EMSCRIPTEN)
   #define NEED_MAIN_LOOP 0
   //void emscripten_set_main_loop_arg(em_arg_callback_func func, void *arg,
@@ -45,16 +49,22 @@
   #define setAnimationCallback(win, cb, userdata)
 #endif
 
+static void
+quit() {
+    Gesture_Quit();
+    SDL_Quit();
+}
 
 int
 main(int argc, char* argv[])
 {
-  if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_EVENTS) < 0) {
+  if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
       fprintf(stderr, "%s: SDL video initialization failed: %s\n",
               theApp->name(), SDL_GetError());
       return 1;
   }
-  atexit(SDL_Quit);
+  Gesture_Init();
+  atexit(quit);
 
   InitUTF8CLI(argc, argv);
   AppBaseSDL::Args args(argv, argv+argc);

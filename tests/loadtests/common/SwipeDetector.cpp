@@ -17,7 +17,7 @@
  */
 
 #include <math.h>
-#include "SDL2/SDL_log.h"
+#include "SDL3/SDL_log.h"
 #include "SwipeDetector.h"
 
 namespace Swipe {
@@ -117,7 +117,7 @@ SwipeDetector::doEvent(SDL_Event* event)
     result result = eEventConsumed;
 
     switch (event->type) {
-      case SDL_FINGERUP:
+      case SDL_EVENT_FINGER_UP: {
 #if LOG_GESTURE_EVENTS
         SDL_Log("Finger: %" SDL_PRIs64 " up - x: %f, y: %f",
                event->tfinger.fingerId,event->tfinger.x,event->tfinger.y);
@@ -129,40 +129,45 @@ SwipeDetector::doEvent(SDL_Event* event)
         // SDL_GetNumTouchFingers appears to return the number of fingers
         // down *before* the event was generated, so 1 means the last finger
         // just lifted.
-        if (SDL_GetNumTouchFingers(event->tfinger.touchId) == 1) {
+        int numFingers;
+        SDL_Finger** fingers = SDL_GetTouchFingers(event->tfinger.touchID, &numFingers);
+        if (numFingers == 1) {
             mgestureFirstSaved = false;
         }
+        SDL_free(fingers);
         break;
-      case SDL_MULTIGESTURE:
+      }
+      case GESTURE_MULTIGESTURE: {
+        Gesture_MultiGestureEvent& mgesture = *(Gesture_MultiGestureEvent *)event;
 #if LOG_GESTURE_EVENTS
         SDL_Log("MG: x = %f, y = %f, dAng = %f (%f), dR = %f, numFingers = %i",
-           event->mgesture.x,
-           event->mgesture.y,
-           event->mgesture.dTheta * 180.0 / M_PI,
-           event->mgesture.dTheta,
-           event->mgesture.dDist,
-           event->mgesture.numFingers);
+           mgesture.x,
+           mgesture.y,
+           mgesture.dTheta * 180.0 / M_PI,
+           mgesture.dTheta,
+           mgesture.dDist,
+           mgesture.numFingers);
 #endif
 #if LOG_GESTURE_DETECTION
         SDL_Log("mgestureSwipe = %i, time = %i",
                  mgestureSwipe,
-                 event->mgesture.timestamp - mgestureFirst.timestamp);
+                 mgesture.timestamp - mgestureFirst.timestamp);
 #endif
         if (!mgestureFirstSaved) {
 #if LOG_GESTURE_DETECTION
             SDL_Log("***************** MULTIGESTURE START *******************");
 #endif
-            mgestureFirst = event->mgesture;
+            mgestureFirst = mgesture;
             mgestureFirstSaved = true;
             mgestureSwipe = false;
         } else {
             if (!mgestureSwipe) {
                 float dx, dy, distanceSq, velocitySq;
                 uint32_t duration;
-                dx = event->mgesture.x - mgestureFirst.x;
-                dy = event->mgesture.y - mgestureFirst.y;
+              dx = mgesture.x - mgestureFirst.x;
+                dy = mgesture.y - mgestureFirst.y;
                 distanceSq = dx * dx + dy * dy;
-                duration = (event->mgesture.timestamp - mgestureFirst.timestamp);
+                duration = (mgesture.timestamp - mgestureFirst.timestamp);
                 velocitySq = distanceSq / duration;
 #if LOG_GESTURE_DETECTION
                 SDL_Log("MG: distanceSq = %f, velocitySq = %f",
@@ -178,14 +183,15 @@ SwipeDetector::doEvent(SDL_Event* event)
                     Swipe::Direction direction = Swipe::getDirection(
                                                             mgestureFirst.x,
                                                             mgestureFirst.y,
-                                                            event->mgesture.x,
-                                                            event->mgesture.y);
+                                                            mgesture.x,
+                                                            mgesture.y);
                     return static_cast<enum result>(direction);
                 } else
                     result = eEventNotConsumed;
             }
         }
         break;
+      }
       default:
           result = eEventNotConsumed;
     }
