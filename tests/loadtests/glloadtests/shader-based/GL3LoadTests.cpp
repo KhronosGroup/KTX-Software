@@ -270,6 +270,8 @@ const uint32_t uNumSamples = sizeof(siSamples) / sizeof(GLLoadTests::sampleInvoc
   #error GL_CONTEXT_PROFILE, GL_CONTEXT_MAJOR_VERSION & GL_CONTEXT_MINOR_VERSION must be defined.
 #endif
 
+// TODO: Figure out why this is necessary
+#define SDL_GL_CONTEXT_PROFILE_CORE 0x0001
 AppBaseSDL* theApp = new GLLoadTests(siSamples, uNumSamples,
                                          "KTX Loader Tests for GL3 & ES3",
                                          GL_CONTEXT_PROFILE,

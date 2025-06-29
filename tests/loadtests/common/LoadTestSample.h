@@ -10,11 +10,12 @@
 #define _LOAD_TEST_SAMPLE_H
 
 #include <string>
-#include <SDL2/SDL_events.h>
+#include <SDL3/SDL.h>
 #define GLM_FORCE_RADIANS
 #include "disable_glm_warnings.h"
 #include <glm/glm.hpp>
 #include "reenable_warnings.h"
+#include "SDL_gesture.h"
 
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
 
