@@ -75,14 +75,14 @@ VulkanLoadTests::finalize()
     VulkanAppSDL::finalize();
 }
 
-int
+bool
 VulkanLoadTests::doEvent(SDL_Event* event)
 {
     int result = 0;
 
     switch (event->type) {
-      case SDL_KEYUP:
-        switch (event->key.keysym.sym) {
+      case SDL_EVENT_KEY_UP:
+        switch (event->key.key) {
           case 'q':
             quit = true;
             break;
@@ -100,7 +100,7 @@ VulkanLoadTests::doEvent(SDL_Event* event)
         break;
 
       // On macOS drop events come also when Launch Pad sends a file open event.
-      case SDL_DROPBEGIN:
+      case SDL_EVENT_DROP_BEGIN:
         // Opens of multiple selected files from Finder/LaunchPad come as
         // a BEGIN, COMPLETE sequence per file. Only clear infiles after a
         // suitable pause between COMPLETE and BEGIN.
@@ -108,11 +108,11 @@ VulkanLoadTests::doEvent(SDL_Event* event)
             infiles.clear();
         }
         break;
-      case SDL_DROPFILE:
-        infiles.push_back(event->drop.file);
-        SDL_free(event->drop.file);
+      case SDL_EVENT_DROP_FILE:
+        infiles.push_back(event->drop.data);
+        //SDL_free(event->drop.data); // data is const char*. Are we supposed to free it or not?
         break;
-      case SDL_DROPCOMPLETE:
+      case SDL_EVENT_DROP_COMPLETE:
         if (!infiles.empty()) {
             // Guard against the drop being text.
             dropCompleteTime = event->drop.timestamp;
@@ -255,7 +255,7 @@ VulkanLoadTests::invokeSample(Direction dir)
                 NULL //&colorScheme                             // .colorScheme
             };
             int buttonid;
-            if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {
+            if (!SDL_ShowMessageBox(&messageboxdata, &buttonid)) {
                 SDL_Log("error displaying error message box");
                 exit(1);
             }
@@ -296,7 +296,7 @@ VulkanLoadTests::invokeSample(Direction dir)
                 NULL //&colorScheme                                 // .colorScheme
             };
             int buttonid;
-            if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {
+            if (!SDL_ShowMessageBox(&messageboxdata, &buttonid)) {
                 SDL_Log("error displaying error message box");
                 exit(1);
             }

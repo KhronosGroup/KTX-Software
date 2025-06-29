@@ -16,8 +16,8 @@
  * @author Mark Callow, www.edgewise-consulting.com.
  */
 
-#include "SDL2/SDL_log.h"
 #include "LoadTestSample.h"
+#include <SDL3/SDL_log.h>
 
 #if !defined(LOG_GESTURE_DETECTION)
   #define LOG_GESTURE_DETECTION 0
@@ -27,7 +27,7 @@ int
 LoadTestSample::doEvent(SDL_Event* event)
 {
     switch (event->type) {
-      case SDL_MOUSEMOTION:
+      case SDL_EVENT_MOUSE_MOTION:
       {
         SDL_MouseMotionEvent& motion = event->motion;
         // On macOS with trackpad, SDL_TOUCH_MOUSEID is never set.
@@ -54,7 +54,7 @@ LoadTestSample::doEvent(SDL_Event* event)
         mousePos = glm::vec2((float)motion.x, (float)motion.y);
         return 0;
       }
-      case SDL_MOUSEBUTTONDOWN:
+      case SDL_EVENT_MOUSE_BUTTON_DOWN:
         //if (event->button.which == SDL_TOUCH_MOUSEID
         //    && SDL_GetNumTouchFingers(event->tfinger.touchId) != 1)
         //    return 0;
@@ -75,7 +75,7 @@ LoadTestSample::doEvent(SDL_Event* event)
             return 1;
         }
         return 0;
-      case SDL_MOUSEBUTTONUP:
+      case SDL_EVENT_MOUSE_BUTTON_UP:
         //if (event->button.which == SDL_TOUCH_MOUSEID
         //    && SDL_GetNumTouchFingers(event->tfinger.touchId) != 1)
         //    return 0;
@@ -95,7 +95,7 @@ LoadTestSample::doEvent(SDL_Event* event)
             return 1;
         }
         return 0;
-      case SDL_FINGERDOWN:
+      case SDL_EVENT_FINGER_DOWN: {
         // On iOS you get a left button down event no matter how many fingers
         // you touch to the screen. We want 1 finger mouse to work so
         // behaviour is same as pressing the trackpad on macOS, etc. On iOS
@@ -107,11 +107,15 @@ LoadTestSample::doEvent(SDL_Event* event)
         //
         // Prevent multifingers from triggering the left button action and
         // interfering with multigestures.
-        if (SDL_GetNumTouchFingers(event->tfinger.touchId) > 1)
+        int numFingers;
+        SDL_Finger** fingers = SDL_GetTouchFingers(event->tfinger.touchID, &numFingers);
+        if (numFingers > 1)
             mouseButtons.left = false;
+        SDL_free(fingers);
         accumDist = accumTheta = 0;
         zooming = rotating = false;
         return 0;
+      }
 #if 0
       case SDL_FINGERMOTION:
         if (SDL_GetNumTouchFingers(event->tfinger.touchId) == 1) {
@@ -122,21 +126,22 @@ LoadTestSample::doEvent(SDL_Event* event)
         }
         return 1;
 #endif
-      case SDL_MULTIGESTURE:
+      case GESTURE_MULTIGESTURE: {
+        Gesture_MultiGestureEvent& mgesture = *(Gesture_MultiGestureEvent*)event;
         if (!zooming && !rotating) {
-            accumDist += event->mgesture.dDist;
+            accumDist += mgesture.dDist;
             accumTheta +=
-                    static_cast<float>(event->mgesture.dTheta * 180.0 / M_PI);
+                    static_cast<float>(mgesture.dTheta * 180.0 / M_PI);
             if (LOG_GESTURE_DETECTION) {
                 SDL_Log("dDist = %f, accumDist = %f",
-                        event->mgesture.dDist,
+                        mgesture.dDist,
                         accumDist);
                 SDL_Log("dTheta = %f°, accumTheta = %f°",
-                        event->mgesture.dTheta * 180.0 / M_PI, accumTheta);
+                        mgesture.dTheta * 180.0 / M_PI, accumTheta);
             }
         }
         if (zooming) {
-            zoom += event->mgesture.dDist * 10.0f;
+            zoom += mgesture.dDist * 10.0f;
         } else {
             if (fabs(accumDist) > 0.018) {
                 if (LOG_GESTURE_DETECTION) SDL_Log("zooming detected");
@@ -146,7 +151,7 @@ LoadTestSample::doEvent(SDL_Event* event)
         }
         if (rotating) {
             rotation.z +=
-                static_cast<float>(event->mgesture.dTheta * 180.0 / M_PI);
+                static_cast<float>(mgesture.dTheta * 180.0 / M_PI);
             if (LOG_GESTURE_DETECTION) {
                 SDL_Log("rotation.z = %f°", rotation.z);
             }
@@ -166,10 +171,11 @@ LoadTestSample::doEvent(SDL_Event* event)
         }
         viewChanged();
         return 0;
-      case SDL_KEYUP:
-        if (event->key.keysym.sym == 'q')
+      }
+      case SDL_EVENT_KEY_UP:
+        if (event->key.key == 'q')
             quit = true;
-        keyPressed(event->key.keysym.sym);
+        keyPressed(event->key.key);
         return 0;
       default:
         break;

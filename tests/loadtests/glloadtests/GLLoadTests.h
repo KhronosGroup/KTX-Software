@@ -36,11 +36,11 @@ class GLLoadTests : public GLAppSDL {
     GLLoadTests(const sampleInvocation samples[],
                 const uint32_t numSamples,
                 const char* const name,
-                const SDL_GLprofile profile,
+                const SDL_GLProfile profile,
                 const int majorVersion,
                 const int minorVersion);
     virtual ~GLLoadTests();
-    virtual int doEvent(SDL_Event* event);
+    virtual bool doEvent(SDL_Event* event);
     virtual void drawFrame(uint32_t msTicks);
     virtual void finalize();
     //virtual void getOverlayText(TextOverlay* textOverlay, float yOffset);
@@ -87,11 +87,11 @@ class GLLoadTests : public GLAppSDL {
 
     std::vector<std::string> infiles;
     
-    uint32_t dropCompleteTime = 0;
+    Sint64 dropCompleteTime = 0;
     struct {
         int32_t x;
         int32_t y;
-        uint32_t timestamp;
+        Sint64 timestamp;
     } buttonDown;
 
     SwipeDetector swipeDetector;

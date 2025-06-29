@@ -20,27 +20,15 @@
 set( CMAKE_XCODE_SCHEME_ENABLE_GPU_API_VALIDATION FALSE )
 set( CMAKE_XCODE_SCHEME_ENABLE_GPU_FRAME_CAPTURE_MODE DISABLED )
 
-set( fp_pref ${CMAKE_FIND_PACKAGE_PREFER_CONFIG} )
-# Prefer CONFIG for vcpkg
-set( CMAKE_FIND_PACKAGE_PREFER_CONFIG TRUE )
-# When using a local SDL2 package installed by brew, on macOS at
-# least, a mysterious .../lib/$<CONFIG> appears in the library
-# search paths in the generated project. I've been unable to find
-# this in the {INTERFACE,}_LINK_DIRECTORIES properties in any of
-# the SDL2::SDL2 or {gl3,vk}loadtests targets. My guess is the Xcode
-# generator is adding it. It leads to a harmless warning during
-# build, harmless because the libraries are referenced by full paths
-# and the .../lib directory is in the search path of SDL2::SDL2.
 #set(CMAKE_FIND_DEBUG_MODE TRUE)
-find_package(SDL2 REQUIRED)
+find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3)
 #set(CMAKE_FIND_DEBUG_MODE FALSE)
 if(NOT EMSCRIPTEN)
     # There is no official assimp port for Emscripten, and we've had
     # no time to experiment, so tests that use assimp are omitted from
     # loadtests when building for the web.
-    find_package(assimp REQUIRED)
+    find_package(assimp REQUIRED CONFIG REQUIRED)
 endif()
-set( CMAKE_FIND_PACKAGE_PREFER_CONFIG ${fp_pref} )
 
 # We use our own local copy of GL headers to ensure we have glcorearb.h.
 set( OPENGL_INCLUDE_DIR  ${CMAKE_SOURCE_DIR}/other_include )
@@ -117,7 +105,7 @@ add_library( appfwSDL STATIC
 target_compile_features(appfwSDL PUBLIC c_std_99 cxx_std_11)
 if(EMSCRIPTEN)
     target_compile_options( appfwSDL PUBLIC
-         "SHELL:--use-port=sdl2"
+         "SHELL:--use-port=sdl3"
     )
 endif()
 
@@ -138,14 +126,16 @@ PUBLIC
 target_include_directories(
     appfwSDL
 SYSTEM AFTER PUBLIC
-    ${SDL2_INCLUDE_DIRS}
+    #${SDL3_INCLUDE_DIRS}
+    SDL3::Headers
     ${PROJECT_SOURCE_DIR}/other_include # For glm
 )
 
 target_link_libraries(
     appfwSDL
 PUBLIC
-    ${SDL2_LIBRARIES}
+    #${SDL3_LIBRARIES}
+    SDL3::SDL3
 )
 
 if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
@@ -159,7 +149,7 @@ if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
   if(EMSCRIPTEN)
       target_compile_options( GLAppSDL PUBLIC
           "SHELL:-s DISABLE_EXCEPTION_CATCHING=0"
-          "SHELL:-s USE_SDL=2"
+          "SHELL:--use-port=sdl3"
       )
   endif()
 
@@ -200,26 +190,28 @@ if(APPLE)
     # Assets are copied to the bundle in the build target setup.
     set( KTX_APP_ICON_PATH ${PROJECT_SOURCE_DIR}/icons/mac/${KTX_APP_ICON} )
     set( KTX_DOC_ICON_PATH ${PROJECT_SOURCE_DIR}/icons/mac/${KTX_DOC_ICON} )
+    cmake_print_variables(assimp_LIBRARIES)
     if(IOS)
         set( LOAD_TEST_COMMON_LIBS
-            ${ASSIMP_LIBRARIES}
+            assimp::assimp
         )
     else()
         set( LOAD_TEST_COMMON_LIBS
-            ${ASSIMP_LIBRARIES}
+            assimp::assimp
         )
     endif()
 elseif(LINUX)
     set( KTX_APP_ICON_PATH ${PROJECT_SOURCE_DIR}/icons/linux/ktx_app.svg )
     set( LOAD_TEST_COMMON_LIBS
-        ${ASSIMP_LIBRARIES}
-        ${SDL2_LIBRARIES}
+        assimp::assimp
+        #${SDL3_LIBRARIES}
+        SDL3::SDL3
     )
 elseif(WIN32)
     set( EXE_FLAG WIN32 )
     set( KTX_APP_ICON_PATH ${PROJECT_SOURCE_DIR}/icons/win/ktx_app.ico )
     set( LOAD_TEST_COMMON_LIBS
-        ${ASSIMP_LIBRARIES}
+        assimp::assimp
     )
 endif()
 

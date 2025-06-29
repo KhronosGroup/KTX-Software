@@ -20,7 +20,7 @@
 #include <sstream>
 #include <ktx.h>
 #define __IPHONEOS__ 0
-#include <SDL2/SDL_platform.h>
+#include <SDL3/SDL_platform.h>
 
 #include "GL3LoadTestSample.h"
 

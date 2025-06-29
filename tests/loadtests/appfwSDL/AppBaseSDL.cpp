@@ -39,7 +39,6 @@ AppBaseSDL::initialize(Args& /*args*/)
     // Ditto
     sBasePath += "resources/";
 #endif
-    SDL_free((void *)basePath);
     return true;
 }
 
@@ -60,15 +59,15 @@ AppBaseSDL::finalize() {
 }
 
 
-int
+bool
 AppBaseSDL::doEvent(SDL_Event* event)
 {
     switch (event->type) {
-      case SDL_QUIT:
+      case SDL_EVENT_QUIT:
         finalize();
         exit(0);
     }
-    return 1;    
+    return true;
 }
 
 
