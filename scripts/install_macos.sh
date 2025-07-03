@@ -14,7 +14,8 @@ done
 
 FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-OpenGL+Vulkan}
 PLATFORM=${PLATFORM:-macOS}
-VULKAN_SDK_VER=${VULKAN_SDK_VER:-1.4.313.1}
+VULKAN_SDK_VERSION=${VULKAN_SDK_VERSION:-1.4.313.1}
+VULKAN_INSTALL_DIR=${VULKAN_INSTALL_DIR:-~/VulkanSDK}
 
 git lfs install
 git lfs version
@@ -26,18 +27,20 @@ fi
 
 if [[ -n "$FEATURE_LOADTESTS" && "$FEATURE_LOADTESTS" != "OFF" ]]; then
   if [ "$PLATFORM" = "iOS" ]; then
-    IOS_COMPONENT=com.lunarg.vulkan.ios
+    ios_component=com.lunarg.vulkan.ios
   fi
 
   if [[ "$FEATURE_LOADTESTS" =~ "Vulkan" ]]; then
-    # Current dir. is .../build/{KhronosGroup,msc-}/KTX-Software. cd to 'build'.
-    pushd ../..
-    VULKAN_SDK_NAME=vulkansdk-macos-$VULKAN_SDK_VER
-    curl -s -S -o $VULKAN_SDK_NAME.zip https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/mac/$VULKAN_SDK_NAME.zip?Human=true
-    unzip  $VULKAN_SDK_NAME
-    sudo open $VULKAN_SDK_NAME.app --args --root "$VULKAN_INSTALL_DIR" --accept-licenses --default-answer --confirm-command install $IOS_COMPONENT
-    rm $VULKAN_SDK_NAME.zip
-    unset VULKAN_SDK_NAME IOS_COMPONENT
+    pushd ~/Downloads
+    vulkan_sdk_dl_name=vulkan_sdk.zip # Name to download
+    vulkan_sdk_name=vulkansdk-macos-$VULKAN_SDK_VERSION  # Name after unzip.
+    echo curl -s -S -O https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VERSION/mac/$vulkan_sdk_dl_name?Human=true
+    curl -s -S -O https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VERSION/mac/$vulkan_sdk_dl_name?Human=true
+    unzip  $vulkan_sdk_dl_name
+    open -W $vulkan_sdk_name.app --args --root "$VULKAN_INSTALL_DIR" --accept-licenses --default-answer --confirm-command install $ios_component
+    rm $vulkan_sdk_dl_name
+    rm -rf $vulkan_sdk_name.app
+    unset vulkan_sdk_dw_name vulkan_sdk_name ios_component
     popd
   fi
 fi
