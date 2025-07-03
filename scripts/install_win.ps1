@@ -92,9 +92,8 @@ if ($FEATURE_LOADTESTS -and $FEATURE_LOADTESTS -ne "OFF") {
     echo $message
     pushd $env:TEMP
     $vulkan_sdk_name = "vulkan_sdk.exe"
-    #curl.exe -s -S -o VulkanSDK-Installer.exe "https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VERSION/$VSDK_PARENT/vulkansdk-windows-$ARCH-$VULKAN_SDK_VERSION.exe?Human=true"
     echo "curl.exe -s -S -O https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VERSION/$vsdk_platform/vulkan_sdk.exe"
-    curl.exe -s -S -O https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VERSION/$vsdk_platform/vulkan_sdk.exe
+    curl.exe -s -S -O "https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VERSION/$vsdk_platform/vulkan_sdk.exe?Human=true"
     Start-Process .\$vulkan_sdk_name -ArgumentList "--accept-licenses --default-answer --confirm-command install $vulkan_cross_component" -NoNewWindow -Wait
     echo "Return to cloned repo."
     popd
