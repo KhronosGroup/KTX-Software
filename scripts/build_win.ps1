@@ -25,7 +25,7 @@ function Set-ConfigVariable {
 }
 
 # Build for the local machine by default.
-# NOTE: See comment around line 64 in ./install_win.ps1.
+# NOTE: See comment around line 25 in ./install_win.ps1.
 $found = (Get-ComputerInfo).CsSystemType -match "(?<arch>.*)-based PC"
 $defaultArch = $matches['arch'].toLower()
 

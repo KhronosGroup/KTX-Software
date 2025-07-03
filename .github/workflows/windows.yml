@@ -151,7 +151,7 @@ jobs:
       OPENGL_ES_EMULATOR_WIN: C:\Imagination\Windows_x86_64
       PVR_SDK_HOME: https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/
       PYTHON_DIST_DIR: interface/python_binding/dist
-      VULKAN_SDK_VER: 1.4.313.2
+      VULKAN_SDK_VERSION: 1.4.313.2
 
     steps:
     - uses: actions/checkout@v4
