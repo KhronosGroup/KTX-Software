@@ -85,12 +85,7 @@ if ($FEATURE_LOADTESTS -and $FEATURE_LOADTESTS -ne "OFF") {
     }
     if ($ARCH -ne $localArch) {
       $message += "and component to cross compile for $ARCH."
-      # grumble ...
-      if ($ARCH -eq "X64") {
-        $vulkan_cross_component = "com.lunarg.vulkan.x64"
-      } else {
-        $vulkan_cross_component = "com.lunarg.vulkan.arm64"
-      }
+      $vulkan_cross_component = "com.lunarg.vulkan." + $ARCH.toLower()
     } else {
       $message += "."
     }
