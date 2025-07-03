@@ -21,10 +21,28 @@ function Set-ConfigVariable {
   return $res
 }
 
+# Find the processor architecture to install the correct VulkanSDK.
+# NOTE 1: $env:processor_architecture reflects the architecture of
+# the process not the machine. It will return AMD64 in an X64 process
+# running on MS's equivalent of Rosetta. Do not use.
+# $env:PROCESSOR_IDENTIFIER reports the correct information but in a
+# form, "ARMv8 (64-bit) ...", difficult to process into the arch. name
+# used in the SDK installers. Hence this though it takes time...
+$found = (Get-ComputerInfo).CsSystemType -match "(?<arch>.*)-based PC"
+$localArch = $matches['arch'].toLower()
+
 # These defaults are here to permit easy running of the script locally
 # when debugging is needed. Use local variables to avoid polluting the
 # environment. Some case have been observed where setting env. var's here
 # sets them for the parent as well.
+#
+# Install for the local machine by default.
+$ARCH = Set-ConfigVariable ARCH $localArch
+if ($ARCH -ne "x64" -and $ARCH -ne "arm64") {
+  echo "KTX build for Windows does not support $ARCH architecture."
+  echo "Only amd64 and arm64 are supported."
+  exit 1
+}
 $FEATURE_LOADTESTS = Set-ConfigVariable FEATURE_LOADTESTS "OpenGL+Vulkan"
 $FEATURE_TESTS = Set-ConfigVariable FEATURE_TESTS "ON"
 $SUPPORT_OPENCL = Set-ConfigVariable SUPPORT_OPENCL "OFF"
@@ -33,7 +51,7 @@ $OPENCL_SDK_NAME = Set-ConfigVariable OPENCL_SDK_NAME "win-oclcpuexp-2021.12.9.0
 $OPENGL_ES_EMULATOR = Set-ConfigVariable OPENGL_ES_EMULATOR "C:/Imagination/Windows_x86_64"
 $OPENGL_ES_EMULATOR_WIN = Set-ConfigVariable OPENGL_ES_EMULATOR_WIN "C:\Imagination\Windows_x86_64"
 $PVR_SDK_HOME = Set-ConfigVariable PVR_SDK_HOME "https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/"
-$VULKAN_SDK_VER = Set-ConfigVariable VULKAN_SDK_VER 1.4.313.2
+$VULKAN_SDK_VERSION = Set-ConfigVariable VULKAN_SDK_VERSION 1.4.313.2
 
 if ($FEATURE_TESTS -eq "ON") {
   git lfs pull --include=tests/srcimages,tests/testimages
@@ -58,31 +76,25 @@ if ($FEATURE_LOADTESTS -and $FEATURE_LOADTESTS -ne "OFF") {
     popd
   }
   if ($FEATURE_LOADTESTS -match "Vulkan") {
-    # Find the processor architecture to install the correct VulkanSDK.
-    # NOTE 1: $env:ARCH is ignored because, we believe, the Vulkan SDK does
-    # not support cross-compilation.
-    # NOTE 2: $env:processor_architecture reflects the architecture of
-    # the process not the machine. It will return AMD64 in an X64 process
-    # running on MS's equivalent of Rosetta. Do not use.
-    # $env:PROCESSOR_IDENTIFIER reports the correct information but in a
-    # form, "ARMv8 (64-bit) ...", difficult to process into the arch. name
-    # used in the SDK installers. Hence this though it takes time...
-    $found = (Get-ComputerInfo).CsSystemType -match "(?<arch>.*)-based PC"
-    $ARCH = $matches['arch'].toUpper()
-    if ($ARCH -ne "ARM64" -and $ARCH -ne "X64") {
-      echo "No VulkanSDK available for $ARCH."
-      exit 1
-    }
-    # Grumble, grumble, grumble ...
-    if ($ARCH -eq "X64") {
-      $VSDK_PARENT = "windows"
+    $message = "Install VulkanSDK for $localArch"
+    # Grumble, grumble, ...
+    if ($localArch -eq "X64") {
+      $vsdk_platform = "windows"
     } else {
-      $VSDK_PARENT = "warm"
+      $vsdk_platform = "warm"
     }
-    echo "Install VulkanSDK for $ARCH."
+    if ($ARCH -ne $localArch) {
+      $message += "and component to cross compile for $ARCH."
+      $vulkan_cross_component = "com.lunarg.vulkan." + $ARCH.toLower()
+    } else {
+      $message += "."
+    }
+    echo $message
     pushd $env:TEMP
-    curl.exe -s -S -o VulkanSDK-Installer.exe "https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/$VSDK_PARENT/vulkansdk-windows-$ARCH-$VULKAN_SDK_VER.exe?Human=true"
-    Start-Process .\VulkanSDK-Installer.exe -ArgumentList "--accept-licenses --default-answer --confirm-command install" -NoNewWindow -Wait
+    $vulkan_sdk_name = "vulkan_sdk.exe"
+    echo "curl.exe -s -S -O https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VERSION/$vsdk_platform/vulkan_sdk.exe"
+    curl.exe -s -S -O "https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VERSION/$vsdk_platform/vulkan_sdk.exe?Human=true"
+    Start-Process .\$vulkan_sdk_name -ArgumentList "--accept-licenses --default-answer --confirm-command install $vulkan_cross_component" -NoNewWindow -Wait
     echo "Return to cloned repo."
     popd
     $key='HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment'
