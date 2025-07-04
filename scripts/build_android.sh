@@ -31,6 +31,7 @@ cmake_args=("-G" "Ninja" \
   "-D" "CMAKE_BUILD_TYPE=$CONFIGURATION" \
   "-D" "BASISU_SUPPORT_SSE=OFF" \
   "-D" "${ASTCENC_ISA}"
+  "-D" "KTX_FEATURE_TESTS=OFF"
   "-D" "KTX_WERROR=$WERROR"
 )
 
