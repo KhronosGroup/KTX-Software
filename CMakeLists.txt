@@ -258,7 +258,7 @@ if(KTX_GENERATE_VK_FILES)
 endif()
 
 # EMSCRIPTEN is not set until project so all these must be after.
-if(APPLE_LOCKED_OS OR ANDROID OR EMSCRIPTEN)
+if(KTX_FEATURE_TESTS AND (APPLE_LOCKED_OS OR ANDROID OR EMSCRIPTEN))
     message(WARNING "Building unit tests for Android, Apple locked OSes or the web is not supported -> disabling KTX_FEATURE_TESTS.")
     set(KTX_FEATURE_TESTS "OFF")
 endif()
