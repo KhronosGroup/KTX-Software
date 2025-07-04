@@ -91,7 +91,7 @@ jobs:
       FEATURE_JNI: ${{ matrix.options.jni }}
       FEATURE_LOADTESTS: ${{ matrix.options.loadtests }}
       FEATURE_PY: ${{ matrix.options.py }}
-      FEATURE_TESTS: ${{ matrix.options.tests && matrix.options.tests || 'ON' }}
+      FEATURE_TESTS: ${{ matrix.options.tests && matrix.options.tests || 'OFF' }}
       FEATURE_TOOLS: ${{ matrix.options.tools }}
       FEATURE_TOOLS_CTS: ${{ matrix.options.tools_cts }}
       PACKAGE: ${{ matrix.options.package && matrix.options.package || 'NO' }}

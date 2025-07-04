@@ -20,7 +20,7 @@ if(KTX_FEATURE_LOADTEST_APPS)
 endif()
 
 # gtest based unit-tests
-if(KTX_FEATURE_TESTS AND NOT APPLE_LOCKED_OS AND NOT ANDROID AND NOT EMSCRIPTEN)
+if(KTX_FEATURE_TESTS)
     # Used by texturetests as well as CTS.
     add_subdirectory(ktxdiff)
     set(KTX_DIFF_PATH $<TARGET_FILE:ktxdiff>)
