@@ -16,12 +16,7 @@
 #ifndef MYGL_H
 #define MYGL_H
 
-/* These are enum values in SDL3/SDL_video.h. Need defines for the
- * following pre-processor conditionals to work.
- */
-#define SDL_GL_CONTEXT_PROFILE_CORE          0x0001
-#define SDL_GL_CONTEXT_PROFILE_COMPATIBILITY 0x0002
-#define SDL_GL_CONTEXT_PROFILE_ES            0x0004
+#include <SDL3/SDL_video.h>  // For the SDL_GL_CONTEXT_PROFILE macros
 
 #if GL_CONTEXT_PROFILE == SDL_GL_CONTEXT_PROFILE_CORE
   #ifdef _WIN32
@@ -82,10 +77,5 @@
 #if !defined(GL_COMPRESSED_RGBA_S3TC_DXT5_EXT)
   #define GL_COMPRESSED_RGBA_S3TC_DXT5_EXT  0x83F3
 #endif
-
-/* undef to avoid needing ordering of mygl.h & SDL3/sdl.h inclusion. */
-#undef SDL_GL_CONTEXT_PROFILE_CORE
-#undef SDL_GL_CONTEXT_PROFILE_COMPATIBILITY
-#undef SDL_GL_CONTEXT_PROFILE_ES
 
 #endif /* MYGL_H */
