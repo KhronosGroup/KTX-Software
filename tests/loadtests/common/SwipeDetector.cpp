@@ -17,7 +17,7 @@
  */
 
 #include <math.h>
-#include "SDL3/SDL_log.h"
+#include <SDL3/SDL_log.h>
 #include "SwipeDetector.h"
 
 namespace Swipe {
@@ -105,10 +105,10 @@ namespace Swipe {
 }
 
 #if !defined(LOG_GESTURE_EVENTS)
-  #define LOG_GESTURE_EVENTS 0
+  #define LOG_GESTURE_EVENTS 1
 #endif
 #if !defined(LOG_GESTURE_DETECTION)
-  #define LOG_GESTURE_DETECTION 0
+  #define LOG_GESTURE_DETECTION 1
 #endif
 
 SwipeDetector::result
@@ -120,7 +120,7 @@ SwipeDetector::doEvent(SDL_Event* event)
       case SDL_EVENT_FINGER_UP: {
 #if LOG_GESTURE_EVENTS
         SDL_Log("Finger: %" SDL_PRIs64 " up - x: %f, y: %f",
-               event->tfinger.fingerId,event->tfinger.x,event->tfinger.y);
+               event->tfinger.fingerID,event->tfinger.x,event->tfinger.y);
 #endif
 #if LOG_GESTURE_DETECTION
         SDL_Log("----------------------- FINGERUP ---------------------------");
@@ -140,13 +140,14 @@ SwipeDetector::doEvent(SDL_Event* event)
       case GESTURE_MULTIGESTURE: {
         Gesture_MultiGestureEvent& mgesture = *(Gesture_MultiGestureEvent *)event;
 #if LOG_GESTURE_EVENTS
-        SDL_Log("MG: x = %f, y = %f, dAng = %f (%f), dR = %f, numFingers = %i",
+        SDL_Log("MG: x = %f, y = %f, dAng = %f (%f), dR = %f, numFingers = %i, timestamp = %i",
            mgesture.x,
            mgesture.y,
            mgesture.dTheta * 180.0 / M_PI,
            mgesture.dTheta,
            mgesture.dDist,
-           mgesture.numFingers);
+           mgesture.numFingers,
+           mgesture.timestamp);
 #endif
 #if LOG_GESTURE_DETECTION
         SDL_Log("mgestureSwipe = %i, time = %i",
@@ -164,7 +165,7 @@ SwipeDetector::doEvent(SDL_Event* event)
             if (!mgestureSwipe) {
                 float dx, dy, distanceSq, velocitySq;
                 uint32_t duration;
-              dx = mgesture.x - mgestureFirst.x;
+                dx = mgesture.x - mgestureFirst.x;
                 dy = mgesture.y - mgestureFirst.y;
                 distanceSq = dx * dx + dy * dy;
                 duration = (mgesture.timestamp - mgestureFirst.timestamp);
