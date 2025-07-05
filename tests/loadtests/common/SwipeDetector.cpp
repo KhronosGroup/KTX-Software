@@ -152,7 +152,7 @@ SwipeDetector::doEvent(SDL_Event* event)
 #if LOG_GESTURE_DETECTION
         SDL_Log("mgestureSwipe = %i, time = %lli",
                  mgestureSwipe,
-                 mgesture.timestamp - mgestureFirst.timestamp);
+                 (mgesture.timestamp - mgestureFirst.timestamp) / 1000000);
 #endif
         if (!mgestureFirstSaved) {
 #if LOG_GESTURE_DETECTION
@@ -168,7 +168,9 @@ SwipeDetector::doEvent(SDL_Event* event)
                 dx = mgesture.x - mgestureFirst.x;
                 dy = mgesture.y - mgestureFirst.y;
                 distanceSq = dx * dx + dy * dy;
-                duration = (mgesture.timestamp - mgestureFirst.timestamp);
+                // SDL2 timestamps were in milliseconds, SDL3 are nanoseconds. Given the
+                // normalized distances reported, using nanoseconds leads to 0 velocitySq.
+                duration = (mgesture.timestamp - mgestureFirst.timestamp) / 1000000;
                 velocitySq = distanceSq / duration;
 #if LOG_GESTURE_DETECTION
                 SDL_Log("MG: dx = %f, dy = %f, distanceSq = %f, velocitySq = %f",
