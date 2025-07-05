@@ -140,7 +140,7 @@ SwipeDetector::doEvent(SDL_Event* event)
       case GESTURE_MULTIGESTURE: {
         Gesture_MultiGestureEvent& mgesture = *(Gesture_MultiGestureEvent *)event;
 #if LOG_GESTURE_EVENTS
-        SDL_Log("MG: x = %f, y = %f, dAng = %f (%f), dR = %f, numFingers = %i, timestamp = %i",
+        SDL_Log("MG: x = %f, y = %f, dAng = %f (%f), dR = %f, numFingers = %i, time = %lli",
            mgesture.x,
            mgesture.y,
            mgesture.dTheta * 180.0 / M_PI,
@@ -150,7 +150,7 @@ SwipeDetector::doEvent(SDL_Event* event)
            mgesture.timestamp);
 #endif
 #if LOG_GESTURE_DETECTION
-        SDL_Log("mgestureSwipe = %i, time = %i",
+        SDL_Log("mgestureSwipe = %i, time = %lli",
                  mgestureSwipe,
                  mgesture.timestamp - mgestureFirst.timestamp);
 #endif
@@ -163,16 +163,16 @@ SwipeDetector::doEvent(SDL_Event* event)
             mgestureSwipe = false;
         } else {
             if (!mgestureSwipe) {
-                float dx, dy, distanceSq, velocitySq;
-                uint32_t duration;
+                float dx, dy, distanceSq; double velocitySq;
+                Uint64 duration;
                 dx = mgesture.x - mgestureFirst.x;
                 dy = mgesture.y - mgestureFirst.y;
                 distanceSq = dx * dx + dy * dy;
                 duration = (mgesture.timestamp - mgestureFirst.timestamp);
                 velocitySq = distanceSq / duration;
 #if LOG_GESTURE_DETECTION
-                SDL_Log("MG: distanceSq = %f, velocitySq = %f",
-                        distanceSq, velocitySq);
+                SDL_Log("MG: dx = %f, dy = %f, distanceSq = %f, velocitySq = %f",
+                        dx, dy, distanceSq, velocitySq);
 #endif
                 // Multiple events with the same timestamp is a possibility
                 // hence the isinf() check.

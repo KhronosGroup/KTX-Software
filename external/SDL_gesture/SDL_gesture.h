@@ -63,7 +63,8 @@ typedef Sint64 Gesture_ID;
 typedef struct Gesture_MultiGestureEvent
 {
     Uint32 type;
-    Uint32 timestamp;
+    Uint32 reserved;
+    Uint64 timestamp;
     SDL_TouchID touchID;
     float dTheta;
     float dDist;
@@ -76,7 +77,8 @@ typedef struct Gesture_MultiGestureEvent
 typedef struct Gesture_DollarGestureEvent
 {
     Uint32 type;
-    Uint32 timestamp;
+    Uint32 reserved;
+    Uint64 timestamp;
     SDL_TouchID touchID;
     Gesture_ID gestureId;
     Uint32 numFingers;
