@@ -48,6 +48,8 @@ GLAppSDL::initialize(Args& args)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, profile);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, majorVersion);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, minorVersion);
+    // On SDL3 this defaults to 8. On SDL2 it was 0.
+    SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 0);
 #if !defined(EMSCRIPTEN)
     if (majorVersion >= 3)
       SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, 1);
@@ -94,7 +96,6 @@ GLAppSDL::initialize(Args& args)
         (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, szName, SDL_GetError(), NULL);
         return false;
     }
-
 #if __WINDOWS__
     // Set the applications own icon in place of the Windows default set by SDL.
     // Needs to be done here to avoid change being visible.
