@@ -217,7 +217,7 @@ EncodeTexture::EncodeTexture(uint32_t width, uint32_t height,
         makeShader(GL_VERTEX_SHADER, pszVs, &gnVs);
         makeShader(GL_FRAGMENT_SHADER, actualDecalFs, &gnDecalFs);
         makeProgram(gnVs, gnDecalFs, &gnTexProg);
-        } catch (std::exception& e) {
+    } catch (std::exception& e) {
         (void)e; // To quiet unused variable warnings from some compilers.
         throw;
     }
