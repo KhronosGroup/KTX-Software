@@ -162,6 +162,12 @@ SPDX-FileCopyrightText = "2019-2020 The Khronos Group Inc"
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
+path = "external/SDL_gesture/SDL_gesture.h"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "1997-2022 Sam Lantinga <slouken@libsdl.org>"
+SPDX-License-Identifier = "Zlib"
+
+[[annotations]]
 path = "cmake/modules/FindVulkan.cmake"
 precedence = "aggregate"
 SPDX-FileCopyrightText = ["Copyright 2000-2024 Kitware, Inc. and Contributors", "Updates for iOS Copyright (c) 2024, Holochip Inc"]

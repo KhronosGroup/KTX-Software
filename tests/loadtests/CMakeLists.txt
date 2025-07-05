@@ -100,6 +100,7 @@ add_library( appfwSDL STATIC
     geom/cube.h
     geom/frame.h
     geom/quad.h
+    ${PROJECT_SOURCE_DIR}/external/SDL_gesture/SDL_gesture.h
 )
 
 target_compile_features(appfwSDL PUBLIC c_std_99 cxx_std_11)
@@ -119,6 +120,7 @@ PUBLIC
     appfwSDL
     $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
     ${PROJECT_SOURCE_DIR}/utils
+    ${PROJECT_SOURCE_DIR}/external/SDL_gesture
     common
     geom
 )
@@ -126,7 +128,6 @@ PUBLIC
 target_include_directories(
     appfwSDL
 SYSTEM AFTER PUBLIC
-    #${SDL3_INCLUDE_DIRS}
     SDL3::Headers
     ${PROJECT_SOURCE_DIR}/other_include # For glm
 )
@@ -134,7 +135,6 @@ SYSTEM AFTER PUBLIC
 target_link_libraries(
     appfwSDL
 PUBLIC
-    #${SDL3_LIBRARIES}
     SDL3::SDL3
 )
 
