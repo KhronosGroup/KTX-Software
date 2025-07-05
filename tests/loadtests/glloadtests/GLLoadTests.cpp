@@ -141,7 +141,6 @@ GLLoadTests::doEvent(SDL_Event* event)
         break;
       case SDL_EVENT_DROP_FILE:
         infiles.push_back(event->drop.data);
-        //SDL_free(event->drop.data); // data is const char*. Are we supposed to free it or not?
         break;
       case SDL_EVENT_DROP_COMPLETE:
         if (!infiles.empty()) {
