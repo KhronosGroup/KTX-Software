@@ -209,7 +209,7 @@ include(GNUInstallDirs) # Must be after project.
 include(CTest)          #           "
 
 set_target_processor_type(CPU_ARCHITECTURE) # Must be after project.
-if (CPU_ARCHITECTURE STREQUAL x86)
+if (CPU_ARCHITECTURE STREQUAL x86 AND NOT ANDROID)
     message(FATAL_ERROR "This project cannot be built for x86 cpu.")
 endif()
 CMAKE_DEPENDENT_OPTION( BASISU_SUPPORT_SSE
