@@ -11,6 +11,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/modules/")
 find_package(Bash REQUIRED)
 
 include(cmake/version.cmake)
+include(cmake/macros.cmake)
 
 if(POLICY CMP0149)
     # Ignore CMAKE_SYSTEM_VERSION and select either latest available
@@ -648,7 +649,7 @@ macro(common_libktx_settings target enable_write library_type)
             # To avoid this set a define to prevent the compiler using
             # constexpr mutex constructors. Remove this eventually after
             # in-use JVM installations have at least this VC runtime. Remove
-            # also from ASTCENC_LIB_TARGET settings around line 1169.
+            # also from ASTCENC_LIB_TARGETS settings around line 1169.
             $<$<AND:${is_msvccl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.40.33811>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
             $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,17.0.3>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
         PUBLIC # only for basisu_c_binding.
@@ -1188,9 +1189,12 @@ add_subdirectory(interface/basisu_c_binding)
 set(universal_build OFF)
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
     # Check CMAKE_OSX_ARCHITECTURES for multiple architectures.
-    list(FIND CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" archs_standard)
+    list_contains(CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" archs_standard)
+    list_contains(CMAKE_OSX_ARCHITECTURES "arm64" arch_arm64)
+    list_contains(CMAKE_OSX_ARCHITECTURES "x86_64" arch_x86_64)
+    list_contains(CMAKE_OSX_ARCHITECTURES "x86_64h" arch_x86_64h)
     list(LENGTH CMAKE_OSX_ARCHITECTURES architecture_count)
-    if(NOT ${archs_standard} EQUAL -1 OR architecture_count GREATER 1)
+    if(${archs_standard} OR architecture_count GREATER 1)
         set(universal_build ON)
     endif()
     # Set ordinary variable to override astc-encoder option's ON default
@@ -1219,37 +1223,46 @@ if(NOT ${universal_build})
 
     # "" in the CACHE sets causes use of the existing documentation string.
     if(${ASTCENC_ISA_NONE})
-        set(ASTCENC_LIB_TARGET astcenc-none-static)
+        list(APPEND ASTCENC_LIB_TARGETS astcenc-none-static)
         if(CPU_ARCHITECTURE STREQUAL x86_64)
             set(ASTCENC_ISA_AVX2 OFF CACHE BOOL "" FORCE)
             set(ASTCENC_ISA_SSE41 OFF CACHE BOOL "" FORCE)
             set(ASTCENC_ISA_SSE2 OFF CACHE BOOL "" FORCE)
         endif()
     else()
-        if(CPU_ARCHITECTURE STREQUAL x86_64)
+        if(CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86_64h)
             if (${ASTCENC_ISA_SSE41})
-                set(ASTCENC_LIB_TARGET astcenc-sse4.1-static)
+                list(APPEND ASTCENC_LIB_TARGETS astcenc-sse4.1-static)
                 set(ASTCENC_ISA_AVX2 OFF CACHE BOOL "" FORCE)
                 set(ASTCENC_ISA_SSE2 OFF CACHE BOOL "" FORCE)
             elseif (${ASTCENC_ISA_SSE2})
-                set(ASTCENC_LIB_TARGET astcenc-sse2-static)
+                list(APPEND ASTCENC_LIB_TARGETS astcenc-sse2-static)
                 set(ASTCENC_ISA_AVX2 OFF CACHE BOOL "" FORCE)
                 set(ASTCENC_ISA_SSE41 OFF CACHE BOOL "" FORCE)
             else()
-                set(ASTCENC_LIB_TARGET astcenc-avx2-static)
+                list(APPEND ASTCENC_LIB_TARGETS astcenc-avx2-static)
                 set(ASTCENC_ISA_AVX2 ON CACHE BOOL "" FORCE)
                 set(ASTCENC_ISA_SSE41 OFF CACHE BOOL "" FORCE)
                 set(ASTCENC_ISA_SSE2 OFF CACHE BOOL "" FORCE)
             endif()
         elseif(CPU_ARCHITECTURE STREQUAL armv8 OR CPU_ARCHITECTURE STREQUAL arm64)
-            set(ASTCENC_LIB_TARGET astcenc-neon-static)
+            list(APPEND ASTCENC_LIB_TARGETS astcenc-neon-static)
             set(ASTCENC_ISA_NEON ON)
             set(ASTCENC_ISA_NONE OFF CACHE BOOL "" FORCE)
         else()
             message(STATUS "Unsupported ISA for ASTC on ${CPU_ARCHITECTURE} arch, using ASTCENC_ISA_NONE.")
-            set(ASTCENC_ISA_NONE ON CACHE BOOL "" FORCE)
+            list(APPEND ASTCENC_LIB_TARGETS astcenc-none-static)
             set(ASTCENC_LIB_TARGET astcenc-none-static)
         endif()
+    endif()
+else()
+    if(${arch_x86_64h})
+        list(APPEND ASTCENC_LIB_TARGETS astcenc-avx2-static)
+    elseif(${arch_x86_64} OR ${archs_standard})
+        list(APPEND ASTCENC_LIB_TARGETS astcenc-sse4.1-static)
+    endif()
+    if(${arch_arm64} OR ${archs_standard})
+        list(APPEND ASTCENC_LIB_TARGETS astcenc-neon-static)
     endif()
 endif()
 
@@ -1261,32 +1274,40 @@ set(ASTCENC_CLI OFF) # Only build as library not the CLI astcencoder
 set(BUILD_SHARED_LIBS OFF)
 add_subdirectory(external/astc-encoder)
 set(BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS_RESET})
-set_property(TARGET ${ASTCENC_LIB_TARGET} PROPERTY POSITION_INDEPENDENT_CODE ON)
-target_compile_definitions(
-    ${ASTCENC_LIB_TARGET}
-PRIVATE
-    # ASTC encoder uses std::mutex. For more info. see comment about
-    # same setting in libktx starting about line 633. To be eventually
-    # removed as noted in that comment.
-    $<$<AND:${is_msvccl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.40.33811>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
-    $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,17.0.3>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
-)
+
+foreach(ASTCENC_LIB_TARGET ${ASTCENC_LIB_TARGETS})
+    set_property(TARGET ${ASTCENC_LIB_TARGET} PROPERTY POSITION_INDEPENDENT_CODE ON)
+    target_compile_definitions(
+        ${ASTCENC_LIB_TARGET}
+    PRIVATE
+        # ASTC encoder uses std::mutex. For more info. see comment about
+        # same setting in libktx starting about line 618. To be eventually
+        # removed as noted in that comment.
+        $<$<AND:${is_msvccl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.40.33811>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
+        $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,17.0.3>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
+    )
+endforeach()
 
 macro(set_astc_dependencies target)
     if(NOT BUILD_SHARED_LIBS AND APPLE)
         # Make a single static library to simplify linking.
-        add_dependencies(${target} ${ASTCENC_LIB_TARGET})
+        foreach(ASTCENC_LIB_TARGET ${ASTCENC_LIB_TARGETS})
+            add_dependencies(${target} ${ASTCENC_LIB_TARGET})
+            list(APPEND TARGETS "$<TARGET_FILE:${ASTCENC_LIB_TARGET}>")
+        endforeach()
         add_custom_command( TARGET ${target}
             POST_BUILD
-            COMMAND libtool -static -o $<TARGET_FILE:${target}> $<TARGET_FILE:ktx> $<TARGET_FILE:${ASTCENC_LIB_TARGET}>
+            COMMAND libtool -static -o $<TARGET_FILE:${target}> $<TARGET_FILE:${target}> ${TARGETS}
         )
 
         # Don't know libtool equivalent on Windows or Emscripten. Applications
-        # will have to link with  both ktx and ${ASTCENC_LIB_TARGET}. Static libs
+        # will have to link with both ktx and ${ASTCENC_LIB_TARGETS}. Static libs
         # are unlikely to be used on Windows so not a problem there. For Emscripten
         # everything is built into the JS module so not an issue there either.
     else()
-        target_link_libraries(${target} PRIVATE ${ASTCENC_LIB_TARGET})
+        foreach(ASTCENC_LIB_TARGET ${ASTCENC_LIB_TARGETS})
+            target_link_libraries(${target} PRIVATE ${ASTCENC_LIB_TARGET})
+        endforeach()
     endif()
 endmacro(set_astc_dependencies)
 set_astc_dependencies(ktx)
@@ -1323,7 +1344,7 @@ endif()
 
 set(KTX_INSTALL_TARGETS ktx)
 if(NOT BUILD_SHARED_LIBS AND NOT APPLE)
-    list(APPEND KTX_INSTALL_TARGETS ${ASTCENC_LIB_TARGET})
+    list(APPEND KTX_INSTALL_TARGETS ${ASTCENC_LIB_TARGETS})
 endif()
 
 # Install
