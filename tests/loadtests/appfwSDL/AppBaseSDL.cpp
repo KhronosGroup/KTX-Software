@@ -31,11 +31,11 @@ AppBaseSDL::initialize(Args& /*args*/)
     if (basePath == NULL)
         basePath = SDL_strdup("./");
     sBasePath = basePath;
-#if __LINUX__
+#if SDL_PLATFORMLINUX
     // TODO figure out best way to handle these resources
     sBasePath += "../resources/";
 #endif
-#if __WINDOWS__
+#if SDL_PLATFORM_WINDOWS
     // Ditto
     sBasePath += "resources/";
 #endif

@@ -35,7 +35,7 @@
 
 #include "GLAppSDL.h"
 
-#if __WINDOWS__
+#if SDL_PLATFORM_WINDOWS
 void setWindowsIcon(SDL_Window *sdlWindow);
 #endif
 
@@ -72,11 +72,11 @@ GLAppSDL::initialize(Args& args)
 
         // Only the indicated platforms pay attention to these hints
         // but they could be set on any platform.
-#if __WINDOWS__ || __LINUX__
+#if SDL_PLATFORM_WINDOWS || SDL_PLATFORM_LINUX
         SDL_SetHint(SDL_HINT_OPENGL_ES_DRIVER, "1");
 #endif
 
-#if __WINDOWS__
+#if SDL_PLATFORM_WINDOWS
         // If using ANGLE copied from Chrome should set to "d3dcompiler_46.dll"
         // Should set value via compiler -D definition from gyp file.
         SDL_SetHint(SDL_HINT_VIDEO_WIN_D3DCOMPILER, "none");
@@ -96,7 +96,7 @@ GLAppSDL::initialize(Args& args)
         (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, szName, SDL_GetError(), NULL);
         return false;
     }
-#if __WINDOWS__
+#if SDL_PLATFORM_WINDOWS
     // Set the applications own icon in place of the Windows default set by SDL.
     // Needs to be done here to avoid change being visible.
     setWindowsIcon(pswMainWindow);
@@ -116,7 +116,7 @@ GLAppSDL::initialize(Args& args)
         return false;
     }
 
-#if __WINDOWS__
+#if SDL_PLATFORM_WINDOWS
     if (profile != SDL_GL_CONTEXT_PROFILE_ES)
     {
         // No choice but to use GLEW for GL on Windows; there is no .lib with static
@@ -297,7 +297,7 @@ GLAppSDL::setWindowTitle()
 }
 #endif
 
-#if __WINDOWS__
+#if SDL_PLATFORM_WINDOWS
 // Windows specific code to use icon in module
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
