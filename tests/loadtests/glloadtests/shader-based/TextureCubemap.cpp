@@ -495,6 +495,15 @@ TextureCubemap::updateUniformBuffers()
                                       0.001f, 256.0f);
     viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0f, 0.0f, zoom));
 
+    // Transform the z axis to what the viewer is perceiving as the z axis to make
+    // the behaviour of 2-finger rotation (the value in rotation.z) understandable.
+    glm::mat4 zAxisRotMatrix;
+    zAxisRotMatrix = glm::rotate(zAxisRotMatrix, glm::radians(180.0f - rotation.x),
+                            glm::vec3(1.0f, 0.0f, 0.0f));
+    zAxisRotMatrix = glm::rotate(zAxisRotMatrix, glm::radians(rotation.y),
+                            glm::vec3(0.0f, 1.0f, 0.0f));
+    zRotationAxis =  normalize(zAxisRotMatrix * glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+
     // I do not understand why this is necessary. Assimp is supposed to
     // put models in the GL coordinate system by default but the teapot is
     // upside down. Since the other objects are symmetrical it is not possible
@@ -508,7 +517,7 @@ TextureCubemap::updateUniformBuffers()
     ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.y),
                                 glm::vec3(0.0f, 1.0f, 0.0f));
     ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.z),
-                                glm::vec3(0.0f, 0.0f, 1.0f));
+                                zRotationAxis);
     // Remove translation from modelView so the skybox doesn't move.
     ubo.skyboxView = glm::mat4(glm::mat3(ubo.modelView));
     // Do the inverse here because doing it in every fragment is a bit much.

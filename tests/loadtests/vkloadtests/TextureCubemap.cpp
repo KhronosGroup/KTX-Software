@@ -35,6 +35,7 @@
 #define VERTEX_BUFFER_BIND_ID 0
 #define ENABLE_VALIDATION false
 #define USE_GL_RH_NDC 0
+#define NORMALIZE_AXES 0
 
 // Vertex layout for this example
 std::vector<vkMeshLoader::VertexLayout> vertexLayout =
@@ -118,7 +119,7 @@ TextureCubemap::TextureCubemap(VulkanContext& vkctx,
         // Assume a KTX-compliant cubemap. That means the faces are in a
         // LH coord system with +y up. Multiply the cube's y and z by -1 to
         // put the +z face in front of the view and keep +y up. Alternatively
-        // we could multiply the y and x coords by -1 to kepp the +y up while
+        // we could multiply the y and x coords by -1 to keep the +y up while
         // placing the +z face in the +z direction.
 #if !USE_GL_RH_NDC
         ubo.uvwTransform = glm::scale(glm::mat4(1.0f), glm::vec3(1, -1, -1));
@@ -667,6 +668,15 @@ TextureCubemap::updateUniformBuffers()
                                       0.001f, 256.0f);
     viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0f, 0.0f, zoom));
 
+    // Transform the z axis to what the viewer is perceiving as the z axis to make
+    // the behaviour of 2-finger rotation (the value in rotation.z) understandable.
+    glm::mat4 zAxisRotMatrix;
+    zAxisRotMatrix = glm::rotate(zAxisRotMatrix, glm::radians(-rotation.x),
+                            glm::vec3(1.0f, 0.0f, 0.0f));
+    zAxisRotMatrix = glm::rotate(zAxisRotMatrix, glm::radians(-rotation.y),
+                            glm::vec3(0.0f, 1.0f, 0.0f));
+    zRotationAxis =  normalize(zAxisRotMatrix * glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+
     ubo.modelView = glm::mat4();
     ubo.modelView = viewMatrix * glm::translate(ubo.modelView, cameraPos);
     ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.x),
@@ -674,7 +684,8 @@ TextureCubemap::updateUniformBuffers()
     ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.y),
                                 glm::vec3(0.0f, 1.0f, 0.0f));
     ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.z),
-                                glm::vec3(0.0f, 0.0f, 1.0f));
+                                zRotationAxis);
+
     // Do the inverse here because doing it in every fragment is a bit much.
     // Also MetalSL does not have inverse() and does not support passing
     // transforms between stages.
