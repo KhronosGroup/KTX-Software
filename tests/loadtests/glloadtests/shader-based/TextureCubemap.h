@@ -85,6 +85,8 @@ class TextureCubemap : public GL3LoadTestSample
     GLint uReflectCubemap;
     GLint uSkyboxCubemap;
 
+    glm::vec3 zRotationAxis;
+
     void cleanup();
 
     void loadMeshes();

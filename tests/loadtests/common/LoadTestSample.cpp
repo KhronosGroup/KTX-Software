@@ -23,7 +23,7 @@
   #define LOADTESTSAMPLE_LOG_MOTION_EVENTS 0
 #endif
 #if !defined(LOADTESTSAMPLE_LOG_UP_DOWN_EVENTS)
-  #define LOADTESTSAMPLE_LOG_UP_DOWN_EVENTS 0
+  #define LOADTESTSAMPLE_LOG_UP_DOWN_EVENTS 1
 #endif
 #if !defined(LOADTESTSAMPLE_LOG_GESTURE_DETECTION)
   #define LOADTESTSAMPLE_LOG_GESTURE_DETECTION 0
@@ -147,7 +147,7 @@ LoadTestSample::doEvent(SDL_Event* event)
         int numFingers;
         SDL_Finger** fingers = SDL_GetTouchFingers(event->tfinger.touchID, &numFingers);
         if (LOADTESTSAMPLE_LOG_UP_DOWN_EVENTS) {
-            SDL_Log("LTS: Finger: %" SDL_PRIs64 " down - fingers: %i, x: %f, y: %f",
+            SDL_Log("LTS: Finger: %#" SDL_PRIx64 " down - fingers: %i, x: %f, y: %f",
                     event->tfinger.fingerID, numFingers, event->tfinger.x, event->tfinger.y);
         }
         if (numFingers > 1) {
@@ -168,7 +168,7 @@ LoadTestSample::doEvent(SDL_Event* event)
         int numFingers;
         SDL_Finger** fingers = SDL_GetTouchFingers(event->tfinger.touchID, &numFingers);
         if (LOADTESTSAMPLE_LOG_UP_DOWN_EVENTS) {
-            SDL_Log("LTS: Finger: %" SDL_PRIs64 " up - fingers: %i, x: %f, y: %f",
+            SDL_Log("LTS: Finger: %#" SDL_PRIx64 " up - fingers: %i, x: %f, y: %f",
                     event->tfinger.fingerID, numFingers, event->tfinger.x, event->tfinger.y);
         }
         if (numFingers == 2) {
