@@ -141,7 +141,7 @@ SwipeDetector::doEvent(SDL_Event* event)
       case GESTURE_MULTIGESTURE: {
         Gesture_MultiGestureEvent& mgesture = *(Gesture_MultiGestureEvent *)event;
         if (SWIPEDETECTOR_LOG_GESTURE_EVENTS) {
-            SDL_Log("SD: MG: x = %f, y = %f, dAng = %f (%f), dR = %f, numFingers = %i, time = %lli",
+            SDL_Log("SD: MG: x = %f, y = %f, dAng = %f (%f), dR = %f, numFingers = %i, time = %" SDL_PRIu64,
                mgesture.x,
                mgesture.y,
                mgesture.dTheta * 180.0 / M_PI,
@@ -151,7 +151,7 @@ SwipeDetector::doEvent(SDL_Event* event)
                mgesture.timestamp);
         }
         if (SWIPEDETECTOR_LOG_GESTURE_DETECTION) {
-            SDL_Log("SD: mgestureSwipe = %i, time = %lli",
+            SDL_Log("SD: mgestureSwipe = %i, time = %" SDL_PRIu64,
                      mgestureSwipe,
                      (mgesture.timestamp - mgestureFirst.timestamp) / 1000000);
         }

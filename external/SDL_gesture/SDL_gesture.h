@@ -44,6 +44,8 @@
 #define Gesture_DollarGestureEvent SDL_DollarGestureEvent
 #else
 
+#include <cmath>
+
 /* Set up for C function definitions, even when using C++ */
 #ifdef __cplusplus
 extern "C" {
@@ -431,15 +433,13 @@ Gesture_LoadDollarTemplates(SDL_TouchID touchID, SDL_IOStream *src)
     if (src == NULL) {
         return 0;
     }
-    if (touchID >= 0) {
-        for (i = 0; i < GestureNumTouches; i++) {
-            if (GestureTouches[i].touchID == touchID) {
-                touch = &GestureTouches[i];
-            }
+    for (i = 0; i < GestureNumTouches; i++) {
+        if (GestureTouches[i].touchID == touchID) {
+            touch = &GestureTouches[i];
         }
-        if (touch == NULL) {
-            return SDL_SetError("given touch id not found");
-        }
+    }
+    if (touch == NULL) {
+        return SDL_SetError("given touch id not found");
     }
 
     while (1) {
@@ -461,11 +461,13 @@ Gesture_LoadDollarTemplates(SDL_TouchID touchID, SDL_IOStream *src)
         }
 #endif
 
-        if (touchID >= 0) {
+        //if (touchID >= 0) {
             /* printf("Adding loaded gesture to 1 touch\n"); */
             if (GestureAddDollar(touch, templ.path) >= 0) {
                 loaded++;
             }
+#if 0
+        // touchID is now a Uint64 so it can never be negative.
         } else {
             /* printf("Adding to: %i touches\n",GestureNumTouches); */
             for (i = 0; i < GestureNumTouches; i++) {
@@ -476,6 +478,7 @@ Gesture_LoadDollarTemplates(SDL_TouchID touchID, SDL_IOStream *src)
             }
             loaded++;
         }
+#endif
     }
 
     return loaded;
@@ -748,6 +751,9 @@ static void GestureProcessEvent(const SDL_Event *event)
             // The fingerID of the button immediately before the BUTTON_DOWN and _UP events
             // has the id SDL_BUTTON_LEFT (1). Since there really aren't multiple fingers down
             // ignore fingers with this to avoid generating spurious gesture events later.
+            //
+            // On linux there is only 1 finger down event with the finger id SDL_BUTTON_LEFT.
+            // There are no other touch events on Linux.
             //
             // N.B.ONE When 2 fingers are pressed down (for the right button) 2 finger-down
             // events are received with regular fingerIDs followed by the button down
