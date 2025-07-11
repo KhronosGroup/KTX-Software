@@ -84,8 +84,9 @@ VulkanAppSDL::initialize(Args& args)
         return false;
 
     SDL_SetHint(SDL_HINT_MAC_CTRL_CLICK_EMULATE_RIGHT_CLICK, "1");
+    // CAUTION: Setting this to 0 (the default) on macOS causes loss of all touch events
+    // from a trackpad not just those corresponding to mouse clicks.
     SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "1");
-
     // Create window.
     // Vulkan samples do not pass any information from Vulkan initialization
     // to window creation so creating the window first should be ok...
