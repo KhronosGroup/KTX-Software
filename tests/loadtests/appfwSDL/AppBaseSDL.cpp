@@ -31,7 +31,7 @@ AppBaseSDL::initialize(Args& /*args*/)
     if (basePath == NULL)
         basePath = SDL_strdup("./");
     sBasePath = basePath;
-#if SDL_PLATFORMLINUX
+#if SDL_PLATFORM_LINUX
     // TODO figure out best way to handle these resources
     sBasePath += "../resources/";
 #endif
