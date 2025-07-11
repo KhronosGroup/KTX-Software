@@ -26,10 +26,10 @@
   #define LOADTESTSAMPLE_LOG_UP_DOWN_EVENTS 1
 #endif
 #if !defined(LOADTESTSAMPLE_LOG_GESTURE_DETECTION)
-  #define LOADTESTSAMPLE_LOG_GESTURE_DETECTION 0
+  #define LOADTESTSAMPLE_LOG_GESTURE_DETECTION 1
 #endif
 #if !defined(LOADTESTSAMPLE_LOG_GESTURE_EVENTS)
-  #define LOADTESTSAMPLE_LOG_GESTURE_EVENTS 0
+  #define LOADTESTSAMPLE_LOG_GESTURE_EVENTS 1
 #endif
 
 [[maybe_unused]] static const char*
@@ -125,8 +125,6 @@ LoadTestSample::doEvent(SDL_Event* event)
             return 1;
         }
         return 0;
-      // N.B. On macOS (at least) finger down and finger up events are received when
-      // fingers enter and leave the window.
       case SDL_EVENT_FINGER_DOWN: {
         // Prevent multifingers from triggering the left button action and
         // interfering with multigestures.
