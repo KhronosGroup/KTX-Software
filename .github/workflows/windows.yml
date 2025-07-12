@@ -239,9 +239,9 @@ jobs:
           -StorePasswordInClearText `
           -Name GitHubPackages `
           -UserName "${{ env.USERNAME }}" `
-          -Password "$env.API_KEY"
+          -Password "${{ secrets.GH_PACKAGES_TOKEN }}"
         .$(${{ env.VCPKG_EXE }} fetch nuget) `
-          setapikey "$env:API_KEY" `
+          setapikey "${{ secrets.GH_PACKAGES_TOKEN }}" `
           -Source "${{ env.NUGET_FEED_URL }}"
 
     - name: Install Dependencies
