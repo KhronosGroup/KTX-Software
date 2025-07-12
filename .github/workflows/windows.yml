@@ -227,7 +227,12 @@ jobs:
         # ??= is PowerShell 7+ only.
         $PSVersionTable
         $env:API_KEY ??= $env:GITHUB_TOKEN
-        echo $env:API_KEY
+        echo "API_KEY = $env:API_KEY"
+        if ($env:API_KEY -eq ${{ secrets.GH_PACKAGES_TOKEN }}) {
+            echo "API_KEY matches secret"
+        } else {
+            echo "API_KEY does not match secret"
+        }
         .$(${{ env.VCPKG_EXE }} fetch nuget) `
           sources add `
           -Source "${{ env.NUGET_FEED_URL }}" `
