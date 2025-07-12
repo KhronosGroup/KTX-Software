@@ -234,7 +234,7 @@ jobs:
           -UserName "${{ env.USERNAME }}" `
           -Password "$env.API_KEY"
         .$(${{ env.VCPKG_EXE }} fetch nuget) `
-          setapikey "$env:API_KEY"
+          setapikey "$env:API_KEY" `
           -Source "${{ env.NUGET_FEED_URL }}"
 
     - name: Install Dependencies
