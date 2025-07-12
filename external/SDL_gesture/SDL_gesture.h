@@ -321,7 +321,7 @@ static unsigned long GestureHashDollar(SDL_FPoint *points)
 
 static int GestureSaveTemplate(GestureDollarTemplate *templ, SDL_IOStream *dst)
 {
-    const Sint64 bytes = sizeof(templ->path[0]) * GESTURE_DOLLARNPOINTS;
+    const size_t bytes = sizeof(templ->path[0]) * GESTURE_DOLLARNPOINTS;
 
     if (dst == NULL) {
         return 0;
@@ -452,7 +452,7 @@ Gesture_LoadDollarTemplates(SDL_TouchID touchID, SDL_IOStream *src)
 
     while (1) {
         GestureDollarTemplate templ;
-        const Sint64 bytes = sizeof(templ.path[0]) * GESTURE_DOLLARNPOINTS;
+        const size_t bytes = sizeof(templ.path[0]) * GESTURE_DOLLARNPOINTS;
 
         if (SDL_ReadIO(src, templ.path, bytes) < bytes) {
             if (loaded == 0) {
