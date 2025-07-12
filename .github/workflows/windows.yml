@@ -225,7 +225,9 @@ jobs:
       # the fetched command.
       run: |
         # ??= is PowerShell 7+ only.
+        $PSVersionTable
         $env:API_KEY ??= $env:GITHUB_TOKEN
+        echo $env:API_KEY
         .$(${{ env.VCPKG_EXE }} fetch nuget) `
           sources add `
           -Source "${{ env.NUGET_FEED_URL }}" `
