@@ -433,13 +433,21 @@ Gesture_LoadDollarTemplates(SDL_TouchID touchID, SDL_IOStream *src)
     if (src == NULL) {
         return 0;
     }
-    for (i = 0; i < GestureNumTouches; i++) {
-        if (GestureTouches[i].touchID == touchID) {
-            touch = &GestureTouches[i];
+    // In SDL2 this test was `touchID >= 0` leading to warnings from gcc
+    // because SDL_TouchId is now Uint64 where in SDL2 it was Sint64. The
+    // documentation does not say what < 0 means here but the only defined
+    // negative touchID was SDL_MOUSE_TOUCHID (-1). In SDL3 SDL_PEN_TOUCHID (-2)
+    // has been added hence this test. Given the lack of documentation
+    // it is impossible to say if this test is correct.
+    if (touchID < SDL_PEN_TOUCHID) {
+        for (i = 0; i < GestureNumTouches; i++) {
+            if (GestureTouches[i].touchID == touchID) {
+                touch = &GestureTouches[i];
+            }
         }
-    }
-    if (touch == NULL) {
-        return SDL_SetError("given touch id not found");
+        if (touch == NULL) {
+            return SDL_SetError("given touch id not found");
+        }
     }
 
     while (1) {
@@ -461,13 +469,12 @@ Gesture_LoadDollarTemplates(SDL_TouchID touchID, SDL_IOStream *src)
         }
 #endif
 
-        //if (touchID >= 0) {
+        // See comment at line 436.
+        if (touchID < SDL_PEN_TOUCHID) {
             /* printf("Adding loaded gesture to 1 touch\n"); */
             if (GestureAddDollar(touch, templ.path) >= 0) {
                 loaded++;
             }
-#if 0
-        // touchID is now a Uint64 so it can never be negative.
         } else {
             /* printf("Adding to: %i touches\n",GestureNumTouches); */
             for (i = 0; i < GestureNumTouches; i++) {
@@ -478,7 +485,6 @@ Gesture_LoadDollarTemplates(SDL_TouchID touchID, SDL_IOStream *src)
             }
             loaded++;
         }
-#endif
     }
 
     return loaded;
