@@ -219,19 +219,22 @@ jobs:
       if: matrix.options.loadtests != 'OFF'
       env:
         USERNAME: KhronosGroup
+        API_KEY: ${{ secrets.GH_PACKAGES_TOKEN }}
       shell: pwsh
       # `vcpkg fetch nuget` fetches nuget and outputs the location of
       # the fetched command.
       run: |
+        # ??= is PowerShell 7+ only.
+        $env:API_KEY ??= $env:GITHUB_TOKEN
         .$(${{ env.VCPKG_EXE }} fetch nuget) `
           sources add `
           -Source "${{ env.NUGET_FEED_URL }}" `
           -StorePasswordInClearText `
           -Name GitHubPackages `
           -UserName "${{ env.USERNAME }}" `
-          -Password "${{ secrets.GH_PACKAGES_TOKEN }}"
+          -Password "$env.API_KEY"
         .$(${{ env.VCPKG_EXE }} fetch nuget) `
-          setapikey "${{ secrets.GH_PACKAGES_TOKEN }}" `
+          setapikey "$env:API_KEY"
           -Source "${{ env.NUGET_FEED_URL }}"
 
     - name: Install Dependencies

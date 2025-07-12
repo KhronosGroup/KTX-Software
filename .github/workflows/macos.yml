@@ -236,6 +236,7 @@ jobs:
         if: matrix.options.loadtests != 'OFF'
         env:
           USERNAME: KhronosGroup
+          API_KEY: ${{ secrets.GH_PACKAGES_TOKEN }}
         shell: bash
         # `vcpkg fetch nuget` fetches nuget and outputs the location of
         # the fetched command. It is a .exe that runs in the mono VM.
@@ -246,9 +247,9 @@ jobs:
             -StorePasswordInClearText \
             -Name GitHubPackages \
             -UserName "${{ env.USERNAME }}" \
-            -Password "${{ secrets.GH_PACKAGES_TOKEN }}"
+            -Password "${API_KEY:-$GITHUB_TOKEN}"
           mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
-            setapikey "${{ secrets.GH_PACKAGES_TOKEN }}" \
+            setapikey "${API_KEY:-$GITHUB_TOKEN}" \
             -Source "${{ env.NUGET_FEED_URL }}"
 
       - name: before_script
