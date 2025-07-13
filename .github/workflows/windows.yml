@@ -40,6 +40,8 @@ jobs:
   #formatting:
   #  uses: ./.github/workflows/formatting.yml
   windows:
+    permissions:
+      packages: write
     # Shortcircuit and don't burn CI time when formatting will reject
     #needs: formatting
     strategy:
@@ -219,29 +221,19 @@ jobs:
       if: matrix.options.loadtests != 'OFF'
       env:
         USERNAME: KhronosGroup
-        API_KEY: ${{ secrets.GH_PACKAGES_TOKEN }}
       shell: pwsh
       # `vcpkg fetch nuget` fetches nuget and outputs the location of
       # the fetched command.
       run: |
-        # ??= is PowerShell 7+ only.
-        $PSVersionTable
-        $env:API_KEY ??= "${{ secrets.GITHUB_TOKEN }}"
-        echo "API_KEY = $env:API_KEY"
-        if ($env:API_KEY -eq "${{ secrets.GH_PACKAGES_TOKEN }}") {
-            echo "API_KEY matches secret"
-        } else {
-            echo "API_KEY does not match secret"
-        }
         .$(${{ env.VCPKG_EXE }} fetch nuget) `
           sources add `
           -Source "${{ env.NUGET_FEED_URL }}" `
           -StorePasswordInClearText `
           -Name GitHubPackages `
           -UserName "${{ env.USERNAME }}" `
-          -Password "$env:API_KEY"
+          -Password "${{ secrets.GITHUB_TOKEN }}"
         .$(${{ env.VCPKG_EXE }} fetch nuget) `
-          setapikey "$env:API_KEY" `
+          setapikey "${{ secrets.GITHUB_TOKEN }}" `
           -Source "${{ env.NUGET_FEED_URL }}"
 
     - name: Install Dependencies
