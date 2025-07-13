@@ -220,14 +220,13 @@ jobs:
       env:
         USERNAME: KhronosGroup
         API_KEY: ${{ secrets.GH_PACKAGES_TOKEN }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       shell: pwsh
       # `vcpkg fetch nuget` fetches nuget and outputs the location of
       # the fetched command.
       run: |
         # ??= is PowerShell 7+ only.
         $PSVersionTable
-        $env:API_KEY ??= $env:GITHUB_TOKEN
+        $env:API_KEY ??= "${{ secrets.GITHUB_TOKEN }}"
         echo "API_KEY = $env:API_KEY"
         if ($env:API_KEY -eq "${{ secrets.GH_PACKAGES_TOKEN }}") {
             echo "API_KEY matches secret"
