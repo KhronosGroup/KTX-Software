@@ -16,7 +16,10 @@
  * @author Mark Callow, www.edgewise-consulting.com.
  */
 
-#include <math.h>
+#if defined(_WIN32)
+  #define _USE_MATH_DEFINES
+#endif
+#include <cmath>
 #include <SDL3/SDL_log.h>
 #include "SwipeDetector.h"
 
