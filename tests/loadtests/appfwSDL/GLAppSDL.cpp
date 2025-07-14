@@ -139,7 +139,7 @@ GLAppSDL::initialize(Args& args)
         // So one build of this library can be linked in to applications using GLEW and
         // applications not using GLEW, do not call any GLEW functions directly.
         // Call via queried function pointers.
-        void* glewdll;
+        SDL_SharedObject* glewdll;
 #if defined(_DEBUG)
         glewdll = SDL_LoadObject("glew32d.dll");
         // KTX-Software repo only contains non-debug library for x64 hence this.
@@ -159,7 +159,7 @@ GLAppSDL::initialize(Args& args)
                 NULL);
             return false;
         }
-        
+
         typedef GLenum(GLEWAPIENTRY PFNGLEWINIT)(void);
         typedef const GLubyte * GLEWAPIENTRY PFNGLEWGETERRORSTRING(GLenum error);
         PFNGLEWINIT* pGlewInit;
@@ -310,7 +310,6 @@ GLAppSDL::setWindowTitle()
 // Windows specific code to use icon in module
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
-#include <SDL3/SDL_syswm.h>
 void
 setWindowsIcon(SDL_Window *sdlWindow) {
     HINSTANCE handle = ::GetModuleHandle(nullptr);
@@ -318,11 +317,13 @@ setWindowsIcon(SDL_Window *sdlWindow) {
     // include application's resource.h.
     HICON icon = ::LoadIcon(handle, "MAIN_ICON");// MAKEINTRESOURCE(IDI_ICON1));
     if (icon != nullptr){
-        HWND hwnd = (HWND)SDL_GetPointerProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL);
+        HWND hwnd = (HWND)SDL_GetPointerProperty(SDL_GetWindowProperties(sdlWindow), SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL);
         if (hwnd) {
             ::SetClassLongPtr(hwnd, GCLP_HICON, reinterpret_cast<LONG_PTR>(icon));
         }
     }
 }
 #endif
+
+//    }
 

@@ -16,6 +16,9 @@
  * @author Mark Callow, www.edgewise-consulting.com.
  */
 
+#if defined(_WIN32)
+  #define _USE_MATH_DEFINES
+#endif
 #include "LoadTestSample.h"
 #include <SDL3/SDL_log.h>
 
