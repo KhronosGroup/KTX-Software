@@ -63,6 +63,9 @@
     }                                                                       \
   }
 
+#if SDL_PLATFORM_WINDOWS
+void setWindowsIcon(SDL_Window *sdlWindow);
+#endif
 
 VulkanAppSDL::~VulkanAppSDL()
 {
@@ -101,6 +104,12 @@ VulkanAppSDL::initialize(Args& args)
                                        SDL_GetError(), NULL);
         return false;
     }
+
+#if SDL_PLATFORM_WINDOWS
+    // Set the application's own icon in place of the Windows default set by SDL.
+    // Needs to be done here to avoid change being visible.
+    setWindowsIcon(pswMainWindow);
+#endif
 
     if (!initializeVulkan()) {
         return false;
@@ -1717,4 +1726,23 @@ VulkanAppSDL::showDebugReport(uint32_t mbFlags, const std::string title,
         return buttonid;
     }
 }
+
+#if SDL_PLATFORM_WINDOWS
+    // Windows specific code to use icon in module
+    #define WIN32_LEAN_AND_MEAN
+    #include <Windows.h>
+void setWindowsIcon(SDL_Window *sdlWindow) {
+    HINSTANCE handle = ::GetModuleHandle(nullptr);
+    // Identify icon by name rather than IDI_ macro to avoid having to
+    // include application's resource.h.
+    HICON icon = ::LoadIcon(handle, "MAIN_ICON");  // MAKEINTRESOURCE(IDI_ICON1));
+    if (icon != nullptr) {
+        HWND hwnd = (HWND)SDL_GetPointerProperty(SDL_GetWindowProperties(sdlWindow),
+                                                 SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL);
+        if (hwnd) {
+            ::SetClassLongPtr(hwnd, GCLP_HICON, reinterpret_cast<LONG_PTR>(icon));
+        }
+    }
+}
+#endif
 

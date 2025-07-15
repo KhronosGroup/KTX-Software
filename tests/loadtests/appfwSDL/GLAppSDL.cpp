@@ -21,7 +21,8 @@
     #define snprintf _snprintf
   #endif
   #define _CRT_SECURE_NO_WARNINGS
-#include "windows.h"
+  #define WIN32_LEAN_AND_MEAN
+  #include "windows.h"
   #include "GL/glew.h"
   #include "SDL3/SDL_loadso.h"
 #else
@@ -106,7 +107,7 @@ GLAppSDL::initialize(Args& args)
         return false;
     }
 #if SDL_PLATFORM_WINDOWS
-    // Set the applications own icon in place of the Windows default set by SDL.
+    // Set the application's own icon in place of the Windows default set by SDL.
     // Needs to be done here to avoid change being visible.
     setWindowsIcon(pswMainWindow);
 #endif
@@ -308,8 +309,6 @@ GLAppSDL::setWindowTitle()
 
 #if SDL_PLATFORM_WINDOWS
 // Windows specific code to use icon in module
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
 void
 setWindowsIcon(SDL_Window *sdlWindow) {
     HINSTANCE handle = ::GetModuleHandle(nullptr);
