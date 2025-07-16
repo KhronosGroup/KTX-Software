@@ -42,6 +42,8 @@ jobs:
   #formatting:
   #  uses: ./.github/workflows/formatting.yml
   linux:
+    permissions:
+      packages: write
     # Shortcircuit and don't burn CI time when formatting will reject
     #needs: formatting
     strategy:
@@ -75,6 +77,7 @@ jobs:
           arch: x86_64
           compiler: gcc
           vk_sdk_ver: '1.4.313'
+          #vcpkg_install_options: --debug
           options: {
             config: Release,
             doc: ON, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tools: ON, tools_cts: ON,
@@ -260,8 +263,6 @@ jobs:
         if: matrix.options.loadtests != 'OFF'
         env:
           USERNAME: KhronosGroup
-          API_KEY: ${{ secrets.GH_PACKAGES_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         # `vcpkg fetch nuget` fetches nuget and outputs the location of
         # the fetched command. It is a .exe that runs in the mono VM.
@@ -272,9 +273,9 @@ jobs:
             -StorePasswordInClearText \
             -Name GitHubPackages \
             -UserName "${{ env.USERNAME }}" \
-            -Password "${API_KEY:-$GITHUB_TOKEN}"
+            -Password "${{ secrets.GITHUB_TOKEN }}"
           mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
-            setapikey "${API_KEY:-$GITHUB_TOKEN}" \
+            setapikey "${{ secrets.GITHUB_TOKEN }}" \
             -Source "${{ env.NUGET_FEED_URL }}"
 
       - name: script
