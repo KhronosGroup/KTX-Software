@@ -194,8 +194,8 @@ SwipeDetector::doEvent(SDL_Event* event)
                     return static_cast<enum result>(direction);
                 } else {
                     if (SWIPEDETECTOR_LOG_GESTURE_DETECTION) SDL_Log("SD: No swipe detected.");
-                }
                     result = eEventNotConsumed;
+                }
             }
         }
         break;
