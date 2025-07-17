@@ -194,7 +194,7 @@ LoadTestSample::doEvent(SDL_Event* event)
 #endif
       case GESTURE_MULTIGESTURE: {
         Gesture_MultiGestureEvent& mgesture = *(Gesture_MultiGestureEvent*)event;
-        if (mgesture.numFingers != 2)
+        if (mgesture.numFingers != 2)  // For extra robustness.
             break;
         if (!zooming && !rotating) {
             accumDist += mgesture.dDist;
