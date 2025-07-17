@@ -130,7 +130,7 @@ SwipeDetector::doEvent(SDL_Event* event)
             SDL_Log("SD: Finger: %" SDL_PRIs64 " up - fingers: %i, x: %f, y: %f",
                     event->tfinger.fingerID, numFingers, event->tfinger.x, event->tfinger.y);
         }
-        if (numFingers < 3 && mgestureFirstSaved) {
+        if (numFingers == 1 && mgestureFirstSaved) {
             mgestureFirstSaved = false;
             if (SWIPEDETECTOR_LOG_GESTURE_DETECTION) {
                 SDL_Log("***************** SD: FINGER_UP, MULTIGESTURE DONE *****************");
@@ -166,12 +166,6 @@ SwipeDetector::doEvent(SDL_Event* event)
             mgestureFirstSaved = true;
             mgestureSwipe = false;
         } else {
-            if (mgesture.numFingers != 3) {
-                if (SWIPEDETECTOR_LOG_GESTURE_DETECTION) {
-                    SDL_Log("SD: numFingers != 3, bailing");
-                }
-                return eEventNotConsumed;
-            }
             if (!mgestureSwipe) {
                 float dx, dy, distanceSq; double velocitySq;
                 Uint64 duration;
@@ -188,7 +182,7 @@ SwipeDetector::doEvent(SDL_Event* event)
                 }
                 // Multiple events with the same timestamp is a possibility
                 // hence the isinf() check.
-                if (!isinf(velocitySq) && velocitySq > 0.0002) { // 0.08
+                if (!isinf(velocitySq) && velocitySq > 0.00014) {
                     if (SWIPEDETECTOR_LOG_GESTURE_DETECTION)
                         SDL_Log("----------------- SD: Swipe detected -----------------");
                     mgestureSwipe = true;
