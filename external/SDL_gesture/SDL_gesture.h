@@ -750,30 +750,33 @@ static void GestureProcessEvent(const SDL_Event *event)
 #endif
             SDL_FPoint path[GESTURE_DOLLARNPOINTS];
 #if SDL_PLATFORM_MACOS
-            // Only applications using button-down drag will care about this and then,
-            // probably, only those using a button-down drag to, e.g move a 3d model
-            // where the model can also be moved by gesture events.
+            // Only applications using button-down drag will care about this
+            // and then, probably, only those using a button-down drag to,
+            // e.g move a 3d model where the model can also be moved by
+            // gesture events.
             //
-            // On macOS (at least) when pressing 1 finger on the touchpad to make a
-            // button click and SDL_HINT_MOUSE_TOUCH_EVENTS is 1, 2 finger down events
-            // are received followed by the button event. The same happens on letting go.
-            // The fingerID of the button immediately before the BUTTON_DOWN and _UP events
-            // has the id SDL_BUTTON_LEFT (1). Since there really aren't multiple fingers down
-            // ignore fingers with this to avoid generating spurious gesture events later.
+            // On macOS (at least) when pressing 1 finger on the touchpad to
+            // make a button click and SDL_HINT_MOUSE_TOUCH_EVENTS is 1,
+            // 2 finger down events are received followed by the button event.
+            // The same happens on letting go. The fingerID of the button
+            // immediately before the BUTTON_DOWN and _UP events has the
+            // id SDL_BUTTON_LEFT (1). Since there aren't multiple fingers down
+            // ignore fingers with this ID to avoid generating spurious gesture
+            // events later.
             //
-            // On linux there is only 1 finger down event with the finger id SDL_BUTTON_LEFT.
-            // There are no other touch events on Linux.
+            // On linux there is only 1 finger down event with the finger id
+            // SDL_BUTTON_LEFT. There are no other touch events on Linux.
             //
-            // N.B.ONE When 2 fingers are pressed down (for the right button) 2 finger-down
-            // events are received with regular fingerIDs followed by the button down
-            // event.
+            // N.B.ONE When 2 fingers are pressed down (for the right button)
+            // 2 finger-down events are received with regular fingerIDs
+            // followed by the button down event.
             //
-            // N.B.TWO If SDL_HINT_MOUSE_TOUCH_EVENTS is set to 0 no touch events are
-            // received from the trackpad.
+            // N.B.TWO If SDL_HINT_MOUSE_TOUCH_EVENTS is set to 0 no touch
+            // events are received from the trackpad.
             if (event->tfinger.fingerID == SDL_BUTTON_LEFT) return;
 #endif
             // A single finger up event with multiple fingers is possible.
-            // One circumstance where this reliably happens with when
+            // One circumstance where this reliably happens is when
             // releasing a two-finger press (for right mouse button). A
             // single FINGER_UP event with numFingers == 2 is sent (even
             // if you raise one finger long before the other). The easiest
@@ -837,9 +840,9 @@ static void GestureProcessEvent(const SDL_Event *event)
                   event->tfinger.timestamp, inTouch->numDownFingers);
 #endif
 #if SDL_PLATFORM_MACOS
-            // During mouse button up, it seems possible to get a finger motion event after
-            // the finger up event but before the mouse button up event.
-            // Guard against this.
+            // During mouse button up, it seems possible to get a finger
+            // motion event after the finger up event but before the mouse
+            // button up event. Guard against this.
             if (inTouch->numDownFingers == 0) return;
 #endif
             if (path->numPoints < GESTURE_MAX_DOLLAR_PATH_SIZE) {
