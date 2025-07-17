@@ -29,7 +29,7 @@
   #define LOADTESTSAMPLE_LOG_UP_DOWN_EVENTS 1
 #endif
 #if !defined(LOADTESTSAMPLE_LOG_GESTURE_DETECTION)
-  #define LOADTESTSAMPLE_LOG_GESTURE_DETECTION 1
+  #define LOADTESTSAMPLE_LOG_GESTURE_DETECTION 0
 #endif
 #if !defined(LOADTESTSAMPLE_LOG_GESTURE_EVENTS)
   #define LOADTESTSAMPLE_LOG_GESTURE_EVENTS 1
@@ -200,11 +200,12 @@ LoadTestSample::doEvent(SDL_Event* event)
                     static_cast<float>(mgesture.dTheta * 180.0 / M_PI);
             if (LOADTESTSAMPLE_LOG_GESTURE_EVENTS) {
                 SDL_Log("LTS MG: Not zooming or rotating. dDist = %f, accumDist = %f,"
-                        " dTheta = %f°, accumTheta = %f°",
+                        " dTheta = %f°, accumTheta = %f°, timestamp = %" SDL_PRIu64,
                         mgesture.dDist,
                         accumDist,
                         mgesture.dTheta * 180.0 / M_PI,
-                        accumTheta);
+                        accumTheta,
+                        mgesture.timestamp);
             }
         }
         // This is all heuristics derived from use.
