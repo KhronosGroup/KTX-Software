@@ -5,11 +5,11 @@ function(set_test_properties test_target)
     # See comments in set_tools_properties() in ../tools/CMakeLists.txt.
     if(APPLE)
         set_target_properties(${test_target} PROPERTIES
-            INSTALL_RPATH "@executable_path;/usr/local/lib"
+            INSTALL_RPATH "@executable_path;@executable_path/../${CMAKE_INSTALL_LIBDIR}"
         )
     elseif(LINUX)
         set_target_properties(${test_target} PROPERTIES
-            INSTALL_RPATH "\$ORIGIN;\$ORIGIN/../lib"
+            INSTALL_RPATH "\$ORIGIN;\$ORIGIN/../${CMAKE_INSTALL_LIBDIR}"
         )
     endif()
 endfunction()
