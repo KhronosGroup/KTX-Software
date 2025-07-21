@@ -43,6 +43,12 @@ set_target_properties(ktx-jni PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${KTX_BUILD_DIR}/$<CONFIG>
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
+    # N.B. On macOS setting INSTALL_NAME_DIR here will invalidate the
+    # signature as it causes `install_name_tool` to be run after signing.
+    # With a bad signature a program dlopening the library is "Killed: 9".
+    # Even with the default `@rpath` prefix on the library's install name
+    # it can still be loaded by giving the full path to dlopen. So there
+    # is no need to try to remove `@rpath`.
     XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
 )
 # The location of libktx_jni must be set explicitly in java.library.path.
