@@ -51,7 +51,7 @@ set_target_properties(ktx-jni PROPERTIES
 if(APPLE)
     set_target_properties(ktx-jni PROPERTIES
         # @executable_path does not work as the executable here is the JVM.
-        INSTALL_RPATH "@loader_path;${CMAKE_INSTALL_LIBDIR}"
+        INSTALL_RPATH "@loader_path;/usr/local/${CMAKE_INSTALL_LIBDIR}"
     )
 elseif(LINUX)
     set_target_properties(ktx-jni PROPERTIES
@@ -59,7 +59,7 @@ elseif(LINUX)
         # searches first in the directory of the .so then in the directory
         # of the application that is loading the first .so. See
         # https://stackoverflow.com/questions/23006930/the-shared-library-rpath-and-the-binary-rpath-priority/52647116#52647116
-        INSTALL_RPATH "$ORIGIN;${CMAKE_INSTALL_LIBDIR}"
+        INSTALL_RPATH "$ORIGIN;/usr/local/${CMAKE_INSTALL_LIBDIR}"
     )
 endif()
 set_code_sign(ktx-jni)
