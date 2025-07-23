@@ -26,7 +26,7 @@ function(set_tool_properties tool_target)
             #
             # Check the LC_RPATH entries with
             # - otool -l <file> | grep -A 3 LC_RPATH
-            INSTALL_RPATH "@executable_path;/usr/local/${CMAKE_INSTALL_LIBDIR}"
+            INSTALL_RPATH "@executable_path;@executable_path/../${CMAKE_INSTALL_LIBDIR}"
             CXX_VISIBILITY_PRESET ${STATIC_APP_LIB_SYMBOL_VISIBILITY}
         )
     elseif(LINUX)
