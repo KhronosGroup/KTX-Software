@@ -493,13 +493,27 @@ if(APPLE OR LINUX OR WIN32)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
     if(APPLE OR LINUX)
         # Use a common RUNTIME_OUTPUT_DIR and LIBRARY_OUTPUT_DIR for all
-        # targets so that INSTALL RPATH is functional in build directory
-        # as well. BUILD_WITH_INSTALL_RPATH is necessary for working code
-        # signing. Signing happens at build time so the binary must not
-        # be altered during install. Although Linux code is not yet being
-        # signed, make it symmetrical with macOS.
+        # targets so that the INSTALL RPATH we need for installed binaries
+        # is functional in the build directory as well. INSTALL_RPATH cannot
+        # be altered during install because that would break code signing
+        # which happens after building. Therefore BUILD_WITH_INSTALL_RPATH
+        # is necessary for working code signing. Although Linux code is not
+        # yet being signed, make it symmetrical with macOS.
         set(CMAKE_LIBRARY_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
         set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
+
+        # Notes about install names, rpaths and code signing
+        # --------------------------------------------------
+        # Changing the install name of a library by setting INSTALL_NAME_DIR
+        # on a library target will invalidate the signature as it causes
+        # cmake to run `install_name_tool` after building and signing. The
+        # default install name is the library target's name prefixed by
+        # `@rpath/`. With this, `dyld` will load the library provided it is
+        # in one of the directories specified by a program's INSTALL_RPATH
+        # or is in the directory part of a full-path name passed to `dlopen`.
+        #
+        # A bad signature in either executable or shared library is
+        # indicated by the executable exiting with "Killed: 9".
     endif()
 endif()
 

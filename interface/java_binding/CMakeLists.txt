@@ -43,12 +43,6 @@ set_target_properties(ktx-jni PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${KTX_BUILD_DIR}/$<CONFIG>
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
-    # N.B. On macOS setting INSTALL_NAME_DIR here will invalidate the
-    # signature as it causes `install_name_tool` to be run after signing.
-    # With a bad signature a program dlopening the library is "Killed: 9".
-    # Even with the default `@rpath` prefix on the library's install name
-    # it can still be loaded by giving the full path to dlopen. So there
-    # is no need to try to remove `@rpath`.
     XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
 )
 # The location of libktx_jni must be set explicitly in java.library.path.
@@ -57,7 +51,7 @@ set_target_properties(ktx-jni PROPERTIES
 if(APPLE)
     set_target_properties(ktx-jni PROPERTIES
         # @executable_path does not work as the executable here is the JVM.
-        INSTALL_RPATH "@loader_path;/usr/local/lib"
+        INSTALL_RPATH "@loader_path;${CMAKE_INSTALL_LIBDIR}"
     )
 elseif(LINUX)
     set_target_properties(ktx-jni PROPERTIES
@@ -65,7 +59,7 @@ elseif(LINUX)
         # searches first in the directory of the .so then in the directory
         # of the application that is loading the first .so. See
         # https://stackoverflow.com/questions/23006930/the-shared-library-rpath-and-the-binary-rpath-priority/52647116#52647116
-        INSTALL_RPATH "$ORIGIN;/usr/local/lib"
+        INSTALL_RPATH "$ORIGIN;${CMAKE_INSTALL_LIBDIR}"
     )
 endif()
 set_code_sign(ktx-jni)
