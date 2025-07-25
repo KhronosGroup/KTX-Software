@@ -44,13 +44,24 @@ set_target_properties(ktx-jni PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
     XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
-    # The location of libktx_jni must be set explicitly in java.library.path.
-    # This sets places to search for libktx. The second is needed to
-    # successfully run the tests during build. Setting "./" here, to say look
-    # in the same directory, does not work. @executable_path does not
-    # work as the executable here is the JVM.
-    INSTALL_RPATH "/usr/local/lib;${KTX_BUILD_DIR}/$<CONFIG>"
 )
+# The location of libktx_jni must be set explicitly in java.library.path.
+# This sets places to search for libktx when loading libktx_jni. Setting
+# "./" here, to say look in the same directory, does not work.
+if(APPLE)
+    set_target_properties(ktx-jni PROPERTIES
+        # @executable_path does not work as the executable here is the JVM.
+        INSTALL_RPATH "@loader_path;/usr/local/${CMAKE_INSTALL_LIBDIR}"
+    )
+elseif(LINUX)
+    set_target_properties(ktx-jni PROPERTIES
+        # Reportedly ld.so when loading a .so with a DT_RUNPATH of $ORIGIN
+        # searches first in the directory of the .so then in the directory
+        # of the application that is loading the first .so. See
+        # https://stackoverflow.com/questions/23006930/the-shared-library-rpath-and-the-binary-rpath-priority/52647116#52647116
+        INSTALL_RPATH "$ORIGIN;/usr/local/${CMAKE_INSTALL_LIBDIR}"
+    )
+endif()
 set_code_sign(ktx-jni)
 
 if(APPLE AND KTX_EMBED_BITCODE)
