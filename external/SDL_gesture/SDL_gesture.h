@@ -854,8 +854,8 @@ static void GestureProcessEvent(const SDL_Event *event)
             // received with the remaining down fingers. Guard against zero.
             assert(numFingers > 0);
             assert(inTouch->numDownFingers == 0 || inTouch->numDownFingers == numFingers);
-            if (inTouch->numDownFingers == 0) return;
-            //inTouch->numDownFingers = numFingers;
+            //if (inTouch->numDownFingers == 0) return;
+            inTouch->numDownFingers = numFingers;
 //#endif
             if (path->numPoints < GESTURE_MAX_DOLLAR_PATH_SIZE) {
                 path->p[path->numPoints].x = inTouch->centroid.x;
