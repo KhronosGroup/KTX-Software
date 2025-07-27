@@ -43,6 +43,8 @@ GNUmakefile eol=lf
 # Keyword expansion
 interface/js_binding/ktx_wrapper.cpp filter=keyworder
 lib/libktx_mainpage.md filter=keyworder
+lib/etcunpack.cxx ident
+lib/swap.c ident
 pkgdoc/pages.md filter=keyworder
 tools/ktxtools_mainpage.md filter=keyworder
 tests/loadtests/common/at.[ch] ident
