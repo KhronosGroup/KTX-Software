@@ -182,7 +182,7 @@ SwipeDetector::doEvent(SDL_Event* event)
                 }
                 // Multiple events with the same timestamp is a possibility
                 // hence the isinf() check.
-                if (!std::isinf(velocitySq) && velocitySq > 0.00014) {
+                if (!std::isinf(velocitySq) && velocitySq > 0.00016) {
                     if (SWIPEDETECTOR_LOG_GESTURE_DETECTION)
                         SDL_Log("----------------- SD: Swipe detected -----------------");
                     mgestureSwipe = true;
