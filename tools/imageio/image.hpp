@@ -729,6 +729,7 @@ class Image {
     virtual Image& copyToRG(Image&, std::string_view swizzle) = 0;
     virtual Image& copyToRGB(Image&, std::string_view swizzle) = 0;
     virtual Image& copyToRGBA(Image&, std::string_view swizzle) = 0;
+    virtual Image& premultiplyAlpha() = 0;
 
   protected:
     Image() : Image(0, 0) { }
@@ -1313,6 +1314,24 @@ class ImageT : public Image {
     virtual ImageT& copyToRG(Image& dst, std::string_view swizzle) override { return copyTo((ImageT<componentType, 2>&)dst, swizzle); }
     virtual ImageT& copyToRGB(Image& dst, std::string_view swizzle) override { return copyTo((ImageT<componentType, 3>&)dst, swizzle); }
     virtual ImageT& copyToRGBA(Image& dst, std::string_view swizzle) override { return copyTo((ImageT<componentType, 4>&)dst, swizzle); }
+
+    virtual ImageT& premultiplyAlpha() override {
+        if(getComponentCount() < 4) {
+            return *this; // Nothing to do (no alpha channel)
+        }
+
+        uint32_t pixelCount = getPixelCount();
+        static_assert(gc_s[sizeof(componentType)] > 0);
+        double invMax = 1.0 / gc_s[sizeof(componentType)];
+        for (uint32_t i = 0; i < pixelCount; ++i) {
+            Color& c = pixels[i];
+            double alpha = c[3] * invMax;
+            for (uint32_t comp = 0; comp < 3; comp++) {
+                c.set(comp, c[comp] * alpha);
+            }
+        }
+        return *this;
+    }
 
   protected:
     componentType swizzlePixel(const Color& srcPixel, char swizzle) {
