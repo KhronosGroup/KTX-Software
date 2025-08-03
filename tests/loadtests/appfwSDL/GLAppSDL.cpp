@@ -89,12 +89,14 @@ GLAppSDL::initialize(Args& args)
     // from a trackpad not just those corresponding to mouse clicks.
     SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "1");
 
+#if 0
     const char* mt = SDL_GetHint(SDL_HINT_MOUSE_TOUCH_EVENTS);
     SDL_Log("MOUSE_TOUCH_EVENTS = %s", mt);
     const char* tm = SDL_GetHint(SDL_HINT_TOUCH_MOUSE_EVENTS);
     SDL_Log("TOUCH_MOUSE_EVENTS = %s", tm);
     const char* tto = SDL_GetHint(SDL_HINT_TRACKPAD_IS_TOUCH_ONLY);
     SDL_Log("TRACKPAD_IS_TOUCH_ONLY = %s", tto);
+#endif
 
     pswMainWindow = SDL_CreateWindow(
                         szName,
