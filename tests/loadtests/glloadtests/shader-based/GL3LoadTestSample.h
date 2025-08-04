@@ -26,7 +26,8 @@ class GL3LoadTestSample : public LoadTestSample {
     {
     }
 
-    virtual ~GL3LoadTestSample() { }   
+    virtual ~GL3LoadTestSample() { }
+    virtual int doEvent(SDL_Event* event) { return LoadTestSample::doEvent(event); };
     virtual void resize(uint32_t width, uint32_t height) = 0;
     virtual void run(uint32_t msTicks) = 0;
 
