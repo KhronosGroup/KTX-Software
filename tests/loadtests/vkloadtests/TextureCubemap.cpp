@@ -29,6 +29,7 @@
 
 #include "TextureCubemap.h"
 #include "VulkanTextureTranscoder.hpp"
+#include "SwipeDetector.h"
 #include "argparser.h"
 #include "ltexceptions.h"
 
@@ -152,7 +153,37 @@ TextureCubemap::~TextureCubemap()
     cleanup();
 }
 
-void TextureCubemap::resize(uint32_t width, uint32_t height)
+int
+TextureCubemap::doEvent(SDL_Event* event)
+{
+    int result = 0;
+    switch(event->type) {
+      case SDL_EVENT_USER:
+        if (event->user.code == SwipeDetector::swipeGesture) {
+            SwipeDetector::Direction direction = POINTER_TO_DIRECTION(event->user.data1);
+            switch (direction) {
+              case SwipeDetector::Direction::up:
+                toggleObject(+1);
+                break;
+              case SwipeDetector::Direction::down:
+                toggleObject(-1);
+                break;
+              default:
+                result = 1;
+            }
+        } else {
+            result = 1;
+        }
+      default:
+        result = 1;
+    }
+    if (result == 1)
+        result = VulkanLoadTestSample::doEvent(event);
+    return result;
+}
+
+void
+TextureCubemap::resize(uint32_t width, uint32_t height)
 {
     this->w_width = width;
     this->w_height = height;
@@ -764,12 +795,13 @@ TextureCubemap::toggleSkyBox()
 }
 
 void
-TextureCubemap::toggleObject()
+TextureCubemap::toggleObject(int direction)
 {
-    meshes.objectIndex++;
-    if (meshes.objectIndex >= static_cast<uint32_t>(meshes.objects.size()))
-    {
+    meshes.objectIndex += direction;
+    if (meshes.objectIndex >= static_cast<int32_t>(meshes.objects.size())) {
         meshes.objectIndex = 0;
+    } else if (meshes.objectIndex < 0) {
+        meshes.objectIndex = static_cast<int32_t>(meshes.objects.size()) - 1;
     }
     rebuildCommandBuffers();
 }
@@ -799,7 +831,7 @@ TextureCubemap::keyPressed(uint32_t keyCode)
         toggleSkyBox();
         break;
     case ' ':
-        toggleObject();
+        toggleObject(+1);
         break;
     case SDLK_KP_PLUS:
         changeLodBias(0.1f);
@@ -817,7 +849,7 @@ TextureCubemap::getOverlayText(VulkanTextOverlay *textOverlay, float yOffset)
     ss << std::setprecision(2) << std::fixed << ubo.lodBias;
     textOverlay->addText("Press \"s\" to toggle skybox", 5.0f,
                          yOffset, VulkanTextOverlay::alignLeft);
-    textOverlay->addText("Press \"space\" to change object", 5.0f,
+    textOverlay->addText("Press \"space\" or 2-ginger swipe up or down to change object", 5.0f,
                          yOffset+20.0f, VulkanTextOverlay::alignLeft);
     textOverlay->addText("LOD bias: " + ss.str() + " (numpad +/- to change)",
                          5.0f, yOffset+40.0f, VulkanTextOverlay::alignLeft);

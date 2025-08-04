@@ -25,6 +25,7 @@ class TextureCubemap : public VulkanLoadTestSample
             const std::string sBasePath, int32_t yflip);
     ~TextureCubemap();
 
+    virtual int doEvent(SDL_Event* event);
     virtual void resize(uint32_t width, uint32_t height);
     virtual void run(uint32_t msTicks);
 
@@ -60,7 +61,7 @@ class TextureCubemap : public VulkanLoadTestSample
     struct {
         vkMeshLoader::MeshBuffer skybox;
         std::vector<vkMeshLoader::MeshBuffer> objects;
-        uint32_t objectIndex = 0;
+        int32_t objectIndex = 0;
     } meshes;
 
     struct {
@@ -109,7 +110,7 @@ class TextureCubemap : public VulkanLoadTestSample
     void prepare();
 
     void toggleSkyBox();
-    void toggleObject();
+    void toggleObject(int direction);
     void changeLodBias(float delta);
 
     void processArgs(std::string sArgs);
