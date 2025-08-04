@@ -31,10 +31,10 @@
   #define SWIPEDETECTOR_LOG_GESTURE_DETECTION 1
 #endif
 
-SwipeDetector::result
+bool
 SwipeDetector::doEvent(SDL_Event* event)
 {
-    result result = eEventConsumed;
+    bool result = false;
 
     switch (event->type) {
       case SDL_EVENT_FINGER_UP: {
@@ -53,7 +53,7 @@ SwipeDetector::doEvent(SDL_Event* event)
                 SDL_Log("***************** SD: FINGER_UP, MULTIGESTURE DONE *****************");
             }
         } else {
-            result = eEventNotConsumed;
+            result = true;
         }
         SDL_free(fingers);
         break;
@@ -114,23 +114,31 @@ SwipeDetector::doEvent(SDL_Event* event)
                         if (SWIPEDETECTOR_LOG_GESTURE_DETECTION)
                             SDL_Log("----------------- SD: Swipe detected -----------------");
                         gestureSwipe = true;
-                        Direction direction = sv.getDirection();
-                        return static_cast<enum result>(direction);
+                        if (SDL_EventEnabled(SDL_EVENT_USER)) {
+                            SDL_Event user_event;
+                            // SDL will copy this entire struct! Initialize to keep memory
+                            // checkers happy.
+                            SDL_zero(user_event);
+                            user_event.type = SDL_EVENT_USER;
+                            user_event.user.code = swipeGesture;
+                            user_event.user.data1 = reinterpret_cast<void*>(sv.getDirection());
+                            user_event.user.data2 = NULL;
+                            SDL_PushEvent(&user_event);
+                        }
                     } else {
                         if (SWIPEDETECTOR_LOG_GESTURE_DETECTION) SDL_Log("SD: No swipe detected.");
-                        result = eEventNotConsumed;
+                        result = true;
                     }
                 } else {
-                     //lastVector.x = sv.x / distance;
-                     //lastVector.y = sv.y / distance;
                      lastVector = sv;
+                     result = true;
                 }
             }
         }
         break;
       }
       default:
-          result = eEventNotConsumed;
+          result = true;
     }
 
     return result;

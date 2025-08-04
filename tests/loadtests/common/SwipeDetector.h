@@ -14,21 +14,21 @@
 
 class SwipeDetector {
   public:
-    enum result {
-        eEventNotConsumed,
-        eEventConsumed,
-        eSwipeUp,
-        eSwipeDown,
-        eSwipeLeft,
-        eSwipeRight
-    };
+    SwipeDetector() : gestureSwipe(false) { }
+    bool doEvent(SDL_Event* event);
 
     enum Direction {
-        up = SwipeDetector::eSwipeUp,
-        down = SwipeDetector::eSwipeDown,
-        left = SwipeDetector::eSwipeLeft,
-        right = SwipeDetector::eSwipeRight
+        // Do not use negative values here to prevent potential problems
+        // with the ugly casting necessary to coerce these values into
+        // the void* provided by SDL_UserEvent.
+        up = 2,
+        down = 3,
+        left = 4,
+        right = 5
     };
+
+    //#define GESTURE_MULTIGESTURE 0x802
+    static const Uint32 swipeGesture = 0x01;
 
     class vector {
       public:
@@ -148,9 +148,6 @@ class SwipeDetector {
             return (angle >= init) && (angle < end);
         }
     };
-
-    SwipeDetector() : gestureSwipe(false) { }
-    result doEvent(SDL_Event* event);
 
   protected:
     //Gesture_MultiGestureEvent mgestureFirst;
