@@ -23,16 +23,130 @@ class SwipeDetector {
         eSwipeRight
     };
 
-    struct vector {
+    enum Direction {
+        up = SwipeDetector::eSwipeUp,
+        down = SwipeDetector::eSwipeDown,
+        left = SwipeDetector::eSwipeLeft,
+        right = SwipeDetector::eSwipeRight
+    };
+
+    class vector {
+      public:
         float w;
         float h;
 
         vector() : w(0.0), h(0.0) { }
         vector(float _w, float _h) : w(_w), h(_h) { }
-        double getAngle();
-        double getAngle(const vector& v2);
-        double getNormalizedAngle();
+        /**
+         * @~English
+         * @internal
+         * @brief Find the angle between the vector and the X-axis
+         *
+         * Positive angles increase counter-clockwise from the X-axis
+         * which has +x to the right.
+         *
+         * @return the angle between the vector and the x axis in degrees.
+         */
+        double getAngle() {
+            double rad = atan2(h, w);
+            return rad * 180/M_PI;
+        }
+
+        /**
+         * @~English
+         * @internal
+         * @brief Find the angle between this vector and another.
+         *
+         * Positive angles increase counter-clockwise.
+         *
+         * @return the angle between the 2 vectors in degrees.
+         */
+        double getAngle(const vector& v2) {
+            // Reputed to be more accurate but in our use so far both approaches give same answer.
+            //double rad = atan2f(v2.h, v2.w) - SDL_atan2(h, w);
+            double rad = atan2f(w * v2.h - h * v2.w, w * v2.w + h * v2.h);
+            return rad * 180/M_PI;
+        }
+
+        /**
+         * @~English
+         * @internal
+         * @brief Find the angle between the vector and the X-axis
+         *
+         * Positive angles increase counter-clockwise from the X-axis
+         * which has +x to the right. Value is normalized to the range 0 to 360.
+         *
+         * @return the angle between the vector and the x axis in degrees.
+         */
+        double getAngleNormalized() {
+            double rad = atan2(h, w) + M_PI;
+            return fmod(rad*180/M_PI + 180, 360);
+        }
+
+        /**
+         * @~English
+         * @internal
+         * @brief Return the length of the vector.
+         *
+         * @return the length of the vector.
+         */
         float length() { return SDL_sqrt(w * w + h * h); }
+
+        /**
+         * @~English
+         * @internal
+         * @brief Return the direction of the vector.
+         *
+         * @return the direction
+         */
+        Direction getDirection() {
+            double angle = getAngleNormalized();
+            return getDirection(angle);
+        }
+
+        /**
+         * @~English
+         * @internal
+         * @brief Return a direction given an angle.
+         *
+         * Directions are defined as follows:
+         *
+         * Up: [45, 135]
+         * Right: [0,45] and [315, 360]
+         * Down: [225, 315]
+         * Left: [135, 225]
+         *
+         * @param angle an angle from 0 to 360°
+         * @return the direction of an angle
+         */
+        static Direction getDirection(double angle){
+            if (inRange(angle, 45, 135)) {
+                return Direction::up;
+            } else if (inRange(angle, 0,45) || inRange(angle, 315, 360)) {
+                return Direction::right;
+            } else if (inRange(angle, 225, 315)) {
+                return Direction::down;
+            } else {
+               return Direction::left;
+           }
+        }
+
+      protected:
+        /**
+         * @~English
+         * @internal
+         * @brief Check if angle falls within an interval.
+         *
+         * @param angle an angle
+         * @param init the initial bound
+         * @param end the final bound
+         *
+         * @return true if the given angle is in the interval [init, end), false
+         *         otherwise.
+         */
+        static bool inRange(double angle, float init, float end){
+            return (angle >= init) && (angle < end);
+        }
     };
 
     SwipeDetector() : gestureSwipe(false) { }
