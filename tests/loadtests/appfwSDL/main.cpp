@@ -29,7 +29,7 @@
 #define SDL_GESTURE_IMPLEMENTATION 1
 #include "SDL_gesture.h"
 
-#if defined(__IPHONEOS__)
+#if defined(SDL_PLATFORM_IOS)
   #define NEED_MAIN_LOOP 0
   //int SDL_iPhoneSetAnimationCallback(
   //                             SDL_Window * window, int interval,
