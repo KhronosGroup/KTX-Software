@@ -121,7 +121,7 @@ SwipeDetector::doEvent(SDL_Event* event)
                             SDL_zero(user_event);
                             user_event.type = SDL_EVENT_USER;
                             user_event.user.code = swipeGesture;
-                            user_event.user.data1 = reinterpret_cast<void*>(sv.getDirection());
+                            user_event.user.data1 = DIRECTION_TO_POINTER(sv.getDirection());
                             user_event.user.data2 = NULL;
                             SDL_PushEvent(&user_event);
                         }

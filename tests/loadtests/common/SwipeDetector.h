@@ -12,22 +12,25 @@
 #include <SDL3/SDL.h>
 #include "SDL_gesture.h"
 
+// These macros only allow storing a Direction in pointers, and only preserve 32 bits
+// of the Direction enum' integer value; values outside the range of a 32-bit integer
+// will be mangled. Ugly. Horrible. But preferable to allocating and freeing memory
+// when passing the information in user events.
+#define DIRECTION_TO_POINTER(i)	(reinterpret_cast<void*>(static_cast<long>(i)))
+#define POINTER_TO_DIRECTION(p)	(static_cast<SwipeDetector::Direction>(reinterpret_cast<long>(p)))
+
 class SwipeDetector {
   public:
     SwipeDetector() : gestureSwipe(false) { }
     bool doEvent(SDL_Event* event);
 
     enum Direction {
-        // Do not use negative values here to prevent potential problems
-        // with the ugly casting necessary to coerce these values into
-        // the void* provided by SDL_UserEvent.
         up = 2,
         down = 3,
         left = 4,
         right = 5
     };
 
-    //#define GESTURE_MULTIGESTURE 0x802
     static const Uint32 swipeGesture = 0x01;
 
     class vector {

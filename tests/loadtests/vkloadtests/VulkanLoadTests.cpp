@@ -121,10 +121,7 @@ VulkanLoadTests::doEvent(SDL_Event* event)
         break;
       case SDL_EVENT_USER:
         if (event->user.code == SwipeDetector::swipeGesture) {
-            // This is horrible.
-            uint64_t udirection = reinterpret_cast<uint64_t>(event->user.data1);
-            SwipeDetector::Direction direction =
-              static_cast<SwipeDetector::Direction>(udirection);
+            SwipeDetector::Direction direction = POINTER_TO_DIRECTION(event->user.data1);
             switch (direction) {
               case SwipeDetector::Direction::left:
                 ++sampleIndex;
