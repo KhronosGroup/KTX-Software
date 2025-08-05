@@ -1320,14 +1320,21 @@ class ImageT : public Image {
             return *this; // Nothing to do (no alpha channel)
         }
 
+        const TransferFunctionSRGB tfSRGB;
+        const TransferFunctionLinear tfLinear;
+        const TransferFunction& tf = transferFunction == KHR_DF_TRANSFER_SRGB ?
+                static_cast<const TransferFunction&>(tfSRGB) :
+                static_cast<const TransferFunction&>(tfLinear);
+
         uint32_t pixelCount = getPixelCount();
-        static_assert(gc_s[sizeof(componentType)] > 0);
-        double invMax = 1.0 / gc_s[sizeof(componentType)];
         for (uint32_t i = 0; i < pixelCount; ++i) {
             Color& c = pixels[i];
-            double alpha = c[3] * invMax;
+            float alpha = c[3] * Color::rcpOne();
             for (uint32_t comp = 0; comp < 3; comp++) {
-                c.set(comp, c[comp] * alpha);
+                float linearColor = tf.decode(c[comp] * Color::rcpOne());
+                linearColor *= alpha;
+                float srgbColor = tf.encode(linearColor);
+                c.set(comp, srgbColor * Color::one());
             }
         }
         return *this;

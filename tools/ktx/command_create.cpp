@@ -177,8 +177,9 @@ struct OptionsCreate {
                     "normals to generate X+Y normals with --normal-mode. For 4-component\n"
                     "inputs a 3D unit normal is calculated. 1.0 is used for the value of\n"
                     "the 4th component. Cannot be used with --raw.")
-                (kPremultiplyAlpha, "Pre-multiplies the texture by its alpha value before encoding"
-                    " and set the flag in the metadata.")
+                (kPremultiplyAlpha, "Pre-multiplies the color components of the input pixels by the alpha component\n"
+                    "before encoding and sets the flag in the metadata. Cannot be used with --normalize\n"
+                    "or --raw.")
                 (kSwizzle, "KTX swizzle metadata.", cxxopts::value<std::string>(), "[rgba01]{4}")
                 (kInputSwizzle, "Pre-swizzle input channels.", cxxopts::value<std::string>(), "[rgba01]{4}")
                 (kAssignTf, "Force the created texture to have the specified transfer function, ignoring"
@@ -817,6 +818,14 @@ struct OptionsCreate {
         }
 
         if(args[kPremultiplyAlpha].count()) {
+            if(normalize) {
+                report.fatal_usage("The options --{} cannot be used with --{}",
+                                   kPremultiplyAlpha, kNormalize);
+            }
+            if(raw) {
+                report.fatal_usage("The options --{} cannot be used with --{}",
+                                   kPremultiplyAlpha, kRaw);
+            }
             premultiplyAlpha = true;
         }
     }
@@ -974,8 +983,9 @@ Create a KTX2 file from various input files.
             inputs a 3D unit normal is calculated. 1.0 is used for the value of
             the 4th component. Cannot be used with @b \--raw.</dd>
         <dt>\--premultiply-alpha</dt>
-        <dd>Pre-multiplies the texture by its alpha value before encoding
-            and set the flag in the metadata.</dd>
+        <dd>Pre-multiplies the color components of the input pixels by the alpha component
+            before encoding and sets the flag in the metadata. Cannot be used with --normalize
+            or --raw.</dd>
         <dt>\--swizzle [rgba01]{4}</dt>
         <dd>KTX swizzle metadata.</dd>
         <dt>\--input-swizzle [rgba01]{4}</dt>
@@ -1813,8 +1823,14 @@ void CommandCreate::executeCreate() {
             if (options.swizzleInput)
                 image->swizzle(*options.swizzleInput);
 
-            if (options.premultiplyAlpha)
+            if (options.premultiplyAlpha) {
+                if(image->getComponentCount() < 4) {
+                    // This branch is unreachable because all images from loadInputImage already contain alpha channel.
+                    const auto option_error_message = "PremultiplyAlpha can only be used if the input image has alpha channels.";
+                    fatal_usage(option_error_message, OptionsCreate::kPremultiplyAlpha);
+                }
                 image->premultiplyAlpha();
+            }
 
             const auto imageData = convert(image, options.vkFormat, *inputImageFile);
 
@@ -1860,6 +1876,12 @@ void CommandCreate::executeCreate() {
     metrics.decodeAndCalculateMetrics(texture, options, *this);
 
     compress(texture, options);
+
+    // Set premultiplied alpha metadata.
+    // Must be done after encoding and compression because those operations may change the texture object.
+    if (options.premultiplyAlpha) {
+        KHR_DFDSETVAL(texture->pDfd+1, FLAGS, KHR_DF_FLAG_ALPHA_PREMULTIPLIED);
+    }
 
     // Add KTXwriterScParams metadata if ASTC encoding, BasisU encoding, or other supercompression was used
     const auto writerScParams = fmt::format("{}{}{}{}", options.astcOptions, options.codecOptions, options.commonOptions, options.compressOptions);
@@ -2489,9 +2511,6 @@ KTXTexture2 CommandCreate::createTexture(const ImageSpec& target) {
 
     KHR_DFDSETVAL(texture->pDfd + 1, PRIMARIES, target.format().primaries());
     KHR_DFDSETVAL(texture->pDfd + 1, TRANSFER, target.format().transfer());
-    if(options.premultiplyAlpha) {
-        KHR_DFDSETVAL(texture->pDfd + 1, FLAGS, KHR_DF_FLAG_ALPHA_PREMULTIPLIED);
-    }
 
     // Add KTXorientation metadata
     if (options.assignTexcoordOrigin.has_value() || options.convertTexcoordOrigin.has_value()) {
