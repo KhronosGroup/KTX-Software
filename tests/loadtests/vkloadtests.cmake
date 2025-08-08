@@ -19,13 +19,13 @@ if(APPLE)
         # Find the name of the actual dylib which includes the version no.
         # readlink -f requires macOS >= 12.3!
         execute_process(COMMAND readlink -f ${Vulkan_LIBRARIES}
-                        OUTPUT_VARIABLE Vulkan_LIBRARY_REAL_PATH
+                        OUTPUT_VARIABLE Vulkan_LIBRARY_REAL_PATH_NAME
                         OUTPUT_STRIP_TRAILING_WHITESPACE
         )
         cmake_path(GET
-                  Vulkan_LIBRARY_REAL_PATH
-                  FILENAME
                   Vulkan_LIBRARY_REAL_PATH_NAME
+                  FILENAME
+                  Vulkan_LIBRARY_REAL_FILE_NAME
         )
         # Find the name that includes only the major version number.
         execute_process(COMMAND readlink ${Vulkan_LIBRARIES}
@@ -332,14 +332,12 @@ if(APPLE)
                 ktx
             )
             add_custom_command( TARGET vkloadtests POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks"
-                COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/$<TARGET_SONAME_FILE_NAME:ktx>"
-                COMMENT "Create symlink for KTX library (ld name to real name)"
+                COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE_NAME:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/$<TARGET_SONAME_FILE_NAME:ktx>"
+                COMMENT "Create symlink for KTX library (ld name to real name"
             )
         endif()
         add_custom_command( TARGET vkloadtests POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks"
-            COMMAND ${CMAKE_COMMAND} -E create_symlink "${Vulkan_LIBRARY_REAL_PATH}" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/${Vulkan_LIBRARY_SONAME_FILE_NAME}"
+            COMMAND ${CMAKE_COMMAND} -E create_symlink "${Vulkan_LIBRARY_REAL_FILE_NAME}" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/${Vulkan_LIBRARY_SONAME_FILE_NAME}"
             COMMENT "Create symlink for Vulkan library (ld name to real name)"
         )
         # Re. SDL2 & assimp: no copy required.: vcpkg libs are static or else
