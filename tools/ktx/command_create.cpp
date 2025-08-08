@@ -177,7 +177,7 @@ struct OptionsCreate {
                     "normals to generate X+Y normals with --normal-mode. For 4-component\n"
                     "inputs a 3D unit normal is calculated. 1.0 is used for the value of\n"
                     "the 4th component. Cannot be used with --raw.")
-                (kPremultiplyAlpha, "Pre-multiplies the color components of the input pixels by the alpha component\n"
+                (kPremultiplyAlpha, "Pre-multiplies the color components of the input pixels by the alpha component"
                     "before encoding and sets the flag in the metadata. Cannot be used with --normalize\n"
                     "or --raw.")
                 (kSwizzle, "KTX swizzle metadata.", cxxopts::value<std::string>(), "[rgba01]{4}")
