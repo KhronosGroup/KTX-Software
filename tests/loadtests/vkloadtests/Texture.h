@@ -68,7 +68,7 @@ class Texture : public VulkanLoadTestSample
     } uboVS;
 
     // Alpha mode uniform buffer
-    UniformData uniformDataAlphaMode;
+    UniformData uniformDataFS;
     struct {
         int alphaMode = 0; // 0 = Straight, 1 = Premultiplied
     } uboAlphaMode;

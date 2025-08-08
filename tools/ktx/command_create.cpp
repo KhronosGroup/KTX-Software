@@ -1825,7 +1825,6 @@ void CommandCreate::executeCreate() {
 
             if (options.premultiplyAlpha) {
                 if(image->getComponentCount() < 4) {
-                    // This branch is unreachable because all images from loadInputImage already contain alpha channel.
                     const auto option_error_message = "PremultiplyAlpha can only be used if the input image has alpha channels.";
                     fatal_usage(option_error_message, OptionsCreate::kPremultiplyAlpha);
                 }

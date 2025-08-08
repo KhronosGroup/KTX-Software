@@ -315,7 +315,7 @@ Texture::cleanup()
 
     quad.freeResources(vkctx.device);
     uniformDataVS.freeResources(vkctx.device);
-    uniformDataAlphaMode.freeResources(vkctx.device);
+    uniformDataFS.freeResources(vkctx.device);
 }
 
 void
@@ -592,7 +592,7 @@ Texture::setupDescriptorSet()
             1,
             vk::DescriptorType::eUniformBuffer,
             nullptr,
-            &uniformDataAlphaMode.descriptor)
+            &uniformDataFS.descriptor)
     );
 
     vkctx.device.updateDescriptorSets(
@@ -709,9 +709,9 @@ Texture::prepareUniformBuffers()
         vk::BufferUsageFlagBits::eUniformBuffer,
         sizeof(uboAlphaMode),
         &uboAlphaMode,
-        &uniformDataAlphaMode.buffer,
-        &uniformDataAlphaMode.memory,
-        &uniformDataAlphaMode.descriptor);
+        &uniformDataFS.buffer,
+        &uniformDataFS.memory,
+        &uniformDataFS.descriptor);
 
     updateUniformBuffers();
 }
