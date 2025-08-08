@@ -104,7 +104,7 @@ Texture::Texture(VulkanContext& vkctx,
     }
 
     if(kTexture->classId == ktxTexture2_c && ktxTexture2_GetPremultipliedAlpha((ktxTexture2*)kTexture)) {
-        uboAlphaMode.alphaMode = 1;
+        uboFS.alphaMode = 1;
     }
     
     vk::Format vkFormat
@@ -707,8 +707,8 @@ Texture::prepareUniformBuffers()
     // Alpha mode uniform buffer block
     vkctx.createBuffer(
         vk::BufferUsageFlagBits::eUniformBuffer,
-        sizeof(uboAlphaMode),
-        &uboAlphaMode,
+        sizeof(uboFS),
+        &uboFS,
         &uniformDataFS.buffer,
         &uniformDataFS.memory,
         &uniformDataFS.descriptor);

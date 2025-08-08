@@ -71,7 +71,7 @@ class Texture : public VulkanLoadTestSample
     UniformData uniformDataFS;
     struct {
         int alphaMode = 0; // 0 = Straight, 1 = Premultiplied
-    } uboAlphaMode;
+    } uboFS;
 
     struct {
         vk::Pipeline solid;
