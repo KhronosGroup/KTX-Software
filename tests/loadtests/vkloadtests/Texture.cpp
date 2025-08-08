@@ -102,6 +102,10 @@ Texture::Texture(VulkanContext& vkctx,
         tc.transcode((ktxTexture2*)kTexture);
         transcoded = true;
     }
+
+    if(kTexture->classId == ktxTexture2_c && ktxTexture2_GetPremultipliedAlpha((ktxTexture2*)kTexture)) {
+        uboAlphaMode.alphaMode = 1;
+    }
     
     vk::Format vkFormat
                 = static_cast<vk::Format>(ktxTexture_GetVkFormat(kTexture));
@@ -311,6 +315,7 @@ Texture::cleanup()
 
     quad.freeResources(vkctx.device);
     uniformDataVS.freeResources(vkctx.device);
+    uniformDataAlphaMode.freeResources(vkctx.device);
 }
 
 void
@@ -471,10 +476,10 @@ Texture::setupVertexDescriptions()
 void
 Texture::setupDescriptorPool()
 {
-    // Example uses one ubo and one image sampler
+    // Example uses two ubo and one image sampler
     std::vector<vk::DescriptorPoolSize> poolSizes =
     {
-        {vk::DescriptorType::eUniformBuffer, 1},
+        {vk::DescriptorType::eUniformBuffer, 2},
         {vk::DescriptorType::eCombinedImageSampler, 1}
     };
 
@@ -506,6 +511,11 @@ Texture::setupDescriptorSetLayout()
          vk::DescriptorType::eCombinedImageSampler,
          1,
          vk::ShaderStageFlagBits::eFragment},
+         // Binding 2 : Fragment shader image alpha mode
+        {2,
+         vk::DescriptorType::eUniformBuffer,
+         1,
+         vk::ShaderStageFlagBits::eFragment}
     };
 
     vk::DescriptorSetLayoutCreateInfo descriptorLayout(
@@ -573,6 +583,16 @@ Texture::setupDescriptorSet()
             1,
             vk::DescriptorType::eCombinedImageSampler,
             &texDescriptor)
+    );
+    // Binding 2 : Fragment shader alpha mode uniform buffer
+    writeDescriptorSets.push_back(vk::WriteDescriptorSet(
+            descriptorSet,
+            2,
+            0,
+            1,
+            vk::DescriptorType::eUniformBuffer,
+            nullptr,
+            &uniformDataAlphaMode.descriptor)
     );
 
     vkctx.device.updateDescriptorSets(
@@ -683,6 +703,15 @@ Texture::prepareUniformBuffers()
         &uniformDataVS.buffer,
         &uniformDataVS.memory,
         &uniformDataVS.descriptor);
+
+    // Alpha mode uniform buffer block
+    vkctx.createBuffer(
+        vk::BufferUsageFlagBits::eUniformBuffer,
+        sizeof(uboAlphaMode),
+        &uboAlphaMode,
+        &uniformDataAlphaMode.buffer,
+        &uniformDataAlphaMode.memory,
+        &uniformDataAlphaMode.descriptor);
 
     updateUniformBuffers();
 }
