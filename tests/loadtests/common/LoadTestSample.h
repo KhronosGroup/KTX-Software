@@ -59,8 +59,7 @@ class LoadTestSample {
     glm::vec3 rotation;
     glm::vec3 cameraPos;
     glm::vec2 mousePos;
-    float accumDist = 0;
-    float accumTheta = 0;
+    Uint64 lastGestureTimestamp = 0;
     struct {
         bool left = false;
         bool right = false;

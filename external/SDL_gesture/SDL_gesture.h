@@ -433,12 +433,12 @@ Gesture_LoadDollarTemplates(SDL_TouchID touchID, SDL_IOStream *src)
     if (src == NULL) {
         return 0;
     }
-    // In SDL2 this test was `touchID >= 0` leading to warnings from gcc
-    // because SDL_TouchId is now Uint64 where in SDL2 it was Sint64. The
-    // documentation does not say what < 0 means here but the only defined
-    // negative touchID was SDL_MOUSE_TOUCHID (-1). In SDL3 SDL_PEN_TOUCHID (-2)
-    // has been added hence this test. Given the lack of documentation
-    // it is impossible to say if this test is correct.
+    /* In SDL2 this test was `touchID >= 0` leading to warnings from gcc
+       because SDL_TouchId is now Uint64. In SDL2 it was Sint64. The
+       documentation does not say what < 0 means here but the only defined
+       negative touchID was SDL_MOUSE_TOUCHID (-1). In SDL3 SDL_PEN_TOUCHID (-2)
+       has been added hence this test. Given the lack of documentation
+       it is impossible to say if this updated test is correct. */
     if (touchID < SDL_PEN_TOUCHID) {
         for (i = 0; i < GestureNumTouches; i++) {
             if (GestureTouches[i].touchID == touchID) {
@@ -708,7 +708,7 @@ static void GestureSendDollarRecord(GestureTouch *touch, Gesture_ID gestureId)
 }
 
 #if !defined(GESTURE_LOG_UP_DOWN_EVENTS)
-  #define GESTURE_LOG_UP_DOWN_EVENTS 0
+  #define GESTURE_LOG_UP_DOWN_EVENTS 1
 #endif
 #if !defined(GESTURE_LOG_MOTION_EVENTS)
   #define GESTURE_LOG_MOTION_EVENTS 0
@@ -750,56 +750,30 @@ static void GestureProcessEvent(const SDL_Event *event)
 #endif
             SDL_FPoint path[GESTURE_DOLLARNPOINTS];
 #if SDL_PLATFORM_MACOS
-            // Only applications using button-down drag will care about this
-            // and then, probably, only those using a button-down drag to,
-            // e.g move a 3d model where the model can also be moved by
-            // gesture events.
-            //
-            // On macOS (at least) when pressing 1 finger on the touchpad to
-            // make a button click and SDL_HINT_MOUSE_TOUCH_EVENTS is 1,
-            // 2 finger down events are received followed by the button event.
-            // The same happens on letting go. The fingerID of the button
-            // immediately before the BUTTON_DOWN and _UP events has the
-            // id SDL_BUTTON_LEFT (1). Since there aren't multiple fingers down
-            // ignore fingers with this ID to avoid generating spurious gesture
-            // events later.
+            /* Workaround issue https://github.com/libsdl-org/SDL/issues/13428,
+               Extra SDL_EVENT_FINGER_{UP,DOWN} with mouse button press, by
+               ignoring events with fingerID of SDL_BUTTON_LEFT.
+
+               Only applications using button-down events and gestures will
+               care about this.
+
+               N.B. If SDL_HINT_MOUSE_TOUCH_EVENTS is set to 0 no touch
+               events are received from the trackpad. */
+            if (event->tfinger.fingerID == SDL_BUTTON_LEFT) return;
+#endif
             //
             // When 2 fingers are pressed down to make a right mouse click,
             // two finger down events are received with normal finger ids
-            // then the mouse button down is received followed by 2 finger up
-            // events. When the fingers are raised a mouse button up is received.
-            // If the window has focus finger motion events are received while
-            // the "button" is pressed but because fingers down = 0, nothing happens.
+            // then the mouse button down is received followed by a finger up
+            // event. When the fingers are raised a mouse button up is
+            // received leaving us with numDownFingers incorrectly 1. If the
+            // window has focus, finger motion events are received and a
+            // second finger up event is received after the button up.
+            //
             // Following the mouse button up event, a finger down event with
             // 2 fingers is received followed by a finger up event with 2 fingers.
-            //
-            // On linux on Parallels VM with the Apple trackpad there is only
-            // one finger down event with the finger id SDL_BUTTON_LEFT. There
-            // are no other touch events with this configuration.
-            //
-            // On a Linux notebook with a touch screen the events are the same
-            // as on Mac except there is only one finger down event which has
-            // the finger ID SDL_BUTTON_LEFT.
-            //
-            // On a Windows guest in Parallels VM on the same Mac and with the
-            // same trackpad there is only one finger down event with  the
-            // finger ID SDL_BUTTON_LEFT before the BUTTON_DOWN event. There
-            // are no finger events for right mouse button.
-            //
-            // On Windows notebook with trackpad, there is a single finger
-            // down event from the trackpad with finger ID SDL_BUTTON_LEFT
-            // followed by MOUSE_BUTTON_DOWN. From the touch screen there is
-            // MOUSE_BUTTON_DOWN followed by a single finger down event with
-            // a regular button id.
-            //
-            // N.B.ONE On macOS When 2 fingers are pressed down (for the right button)
-            // 2 finger-down events are received with regular fingerIDs
-            // followed by the button down event.
-            //
-            // N.B.TWO If SDL_HINT_MOUSE_TOUCH_EVENTS is set to 0 no touch
-            // events are received from the trackpad.
-            if (event->tfinger.fingerID == SDL_BUTTON_LEFT) return;
-#endif
+
+
             // A single finger up event with multiple fingers is possible.
             // One circumstance where this reliably happens is when
             // releasing a two-finger press (for right mouse button) on
@@ -812,7 +786,9 @@ static void GestureProcessEvent(const SDL_Event *event)
             // before the finger was raised. Therefore the sum of the
             // numFingers values can be more than the number of fingers that
             // were down hence the < 0 check.
-            inTouch->numDownFingers -= numFingers;
+            //inTouch->numDownFingers -= numFingers;
+            inTouch->numDownFingers--;
+            /* Safety first, in case of unexpected events. */
             if (inTouch->numDownFingers < 0) inTouch->numDownFingers = 0;
 #if (GESTURE_LOG_UP_DOWN_EVENTS)
             SDL_Log("GPE FINGER_UP, numDownFingers now = %i", inTouch->numDownFingers);
@@ -859,6 +835,8 @@ static void GestureProcessEvent(const SDL_Event *event)
             assert(!std::isinf(inTouch->centroid.x) && !std::isinf(inTouch->centroid.y));
             assert(!std::isnan(inTouch->centroid.x) && !std::isnan(inTouch->centroid.y));
         } else if (event->type == SDL_EVENT_FINGER_MOTION) {
+            /* There is one FINGER_MOTION event per down finger. x,y give
+               the position of the finger whose id is in the event. */
             const float dx = event->tfinger.dx;
             const float dy = event->tfinger.dy;
             GestureDollarPath *path = &inTouch->dollarPath;
@@ -872,12 +850,11 @@ static void GestureProcessEvent(const SDL_Event *event)
 #endif
 
 #if SDL_PLATFORM_MACOS
-            // On macOS we receive 2 motion events during left-button down
-            // and drag. Ignore the one identifiable as special. See comment
-            // at line 753 for more details.
+            /* Workaround issue https://github.com/libsdl-org/SDL/issues/13428.
+               See comment at line 753 for more details. */
             if (event->tfinger.fingerID == SDL_BUTTON_LEFT) return;
-            // SDL_GetTouchFingers reports 2 fingers down in each of the
-            // events mentioned above. Fix up the number of fingers.
+            /* SDL_GetTouchFingers reports 2 fingers down in each of the
+               events mentioned in the issue. Fix up the number of fingers. */
             uint32_t reportedNumFingers = numFingers;
             for (uint32_t i = 0; i < reportedNumFingers; i++) {
                 if (fingers[i]->id == SDL_BUTTON_LEFT) {

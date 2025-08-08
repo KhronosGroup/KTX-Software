@@ -26,7 +26,7 @@
   #define LOADTESTSAMPLE_LOG_MOTION_EVENTS 0
 #endif
 #if !defined(LOADTESTSAMPLE_LOG_UP_DOWN_EVENTS)
-  #define LOADTESTSAMPLE_LOG_UP_DOWN_EVENTS 0
+  #define LOADTESTSAMPLE_LOG_UP_DOWN_EVENTS 1
 #endif
 #if !defined(LOADTESTSAMPLE_LOG_GESTURE_DETECTION)
   #define LOADTESTSAMPLE_LOG_GESTURE_DETECTION 0
@@ -160,7 +160,6 @@ LoadTestSample::doEvent(SDL_Event* event)
         }
         // It is possible to somehow get out of the window without seeing FINGER_UP so
         // as a safeguard stop any previous gesture.
-        accumDist = accumTheta = 0;
         zooming = rotating = false;
         SDL_free(fingers);
         return 0;
@@ -173,14 +172,18 @@ LoadTestSample::doEvent(SDL_Event* event)
                     event->tfinger.fingerID, numFingers, event->tfinger.x, event->tfinger.y);
         }
         if (numFingers == 2) {
-            accumDist = accumTheta = 0;
+            // There may still be one finger down. Even so the action is completed.
+            if (LOADTESTSAMPLE_LOG_GESTURE_EVENTS) {
+                SDL_Log("-------------- LTS: %s complete. -----------------",
+                        zooming ? "zooming" : rotating ? "rotating" : "gesture");
+            }
             zooming = rotating = false;
         }
         SDL_free(fingers);
         break;
       }
 #if 0
-      case SDL_FINGERMOTION: {
+      case SDL_EVENT_FINGER_MOTION: {
         int numFingers;
         SDL_Finger** fingers = SDL_GetTouchFingers(event->tfinger.touchID, &numFingers);
         SDL_free(fingers);
@@ -194,36 +197,40 @@ LoadTestSample::doEvent(SDL_Event* event)
 #endif
       case GESTURE_MULTIGESTURE: {
         Gesture_MultiGestureEvent& mgesture = *(Gesture_MultiGestureEvent*)event;
+        float velocity = 0;
         if (mgesture.numFingers != 2)  // For extra robustness.
             break;
         if (!zooming && !rotating) {
-            accumDist += mgesture.dDist;
-            accumTheta +=
-                    static_cast<float>(mgesture.dTheta * 180.0 / M_PI);
+            if (lastGestureTimestamp == 0) {
+                lastGestureTimestamp = mgesture.timestamp;
+                return 0;
+            } else {
+                float duration = (mgesture.timestamp - lastGestureTimestamp ) / 1000000.0;
+                velocity = mgesture.dDist / duration;
+            }
             if (LOADTESTSAMPLE_LOG_GESTURE_EVENTS) {
-                SDL_Log("LTS MG: Not zooming or rotating. dDist = %f, accumDist = %f,"
-                        " dTheta = %f°, accumTheta = %f°, timestamp = %" SDL_PRIu64,
+                SDL_Log("LTS MG: Not zooming or rotating. dDist = %f, dTheta = %f°"
+                        " timestamp = %" SDL_PRIu64 ", velocity = %f",
                         mgesture.dDist,
-                        accumDist,
                         mgesture.dTheta * 180.0 / M_PI,
-                        accumTheta,
-                        mgesture.timestamp);
+                        mgesture.timestamp,
+                        velocity);
             }
         }
         // This is all heuristics derived from use.
         if (zooming) {
             zoom += mgesture.dDist * 10.0f;
             if (LOADTESTSAMPLE_LOG_GESTURE_EVENTS) {
-                SDL_Log("LTS MG: Zooming. zoom = %f", rotation.z);
+                SDL_Log("LTS MG: Zooming. zoom = %f", zoom);
             }
         } else if (!rotating) {
-            if (fabs(accumDist) > 0.012 && fabs(accumTheta) <= 3.0) {
+            if (fabs(mgesture.dDist) > 0.0002 && fabs(mgesture.dTheta) <= 0.2 * M_PI / 180.0 && fabs(velocity) < 0.000002) {
                 zooming = true;
-                zoom += accumDist * 10.0f;
+                zoom += mgesture.dDist * 10.0f;
                 if (LOADTESTSAMPLE_LOG_GESTURE_DETECTION) {
-                    SDL_Log("LTS MG: spreading detected,"
-                            " accumTheta = %f°, accumDist = %f, zoom = %f",
-                            accumTheta, accumDist, zoom);
+                    SDL_Log("---------------- LTS MG: spreading detected ---------------\n"
+                            " dTheta = %f°, dDist = %f, zoom = %f",
+                            mgesture.dTheta * 180.0 / M_PI, mgesture.dDist, zoom);
                 }
             }
         }
@@ -234,15 +241,13 @@ LoadTestSample::doEvent(SDL_Event* event)
                 SDL_Log("LTS MG: Rotating around Z. rotation.z = %f°", rotation.z);
             }
        } else if (!zooming) {
-            if (fabs(accumTheta) > 15.0) {
+           if (fabs(mgesture.dTheta) >= 0.9 * M_PI / 180.0 && fabs(velocity) < 0.000002) {
                 rotating = true;
-                rotation.z += accumTheta;
+                rotation.z += mgesture.dTheta * 180.0 / M_PI;
                 if (LOADTESTSAMPLE_LOG_GESTURE_DETECTION) {
-                    SDL_Log("LTS MG: rotation detected,"
-                            " accumTheta = %f°, accumDist = %f, rotation.z = %f°",
-                            accumTheta,
-                            accumDist,
-                            rotation.z);
+                    SDL_Log("---------------- LTS MG: rotation detected ---------------\n"
+                            " dTheta = %f°, dDist = %f, rotation.z = %f°",
+                            mgesture.dTheta * 180.0 / M_PI, mgesture.dDist, rotation.z);
                 }
             }
         }

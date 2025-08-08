@@ -9,6 +9,7 @@
 #ifndef _SWIPE_DETECTOR_H
 #define _SWIPE_DETECTOR_H
 #include <optional>
+#include <string>
 #include <SDL3/SDL.h>
 #include "SDL_gesture.h"
 
@@ -124,11 +125,11 @@ class SwipeDetector {
          */
         static Direction getDirection(double angle){
             if (inRange(angle, 45, 135)) {
-                return Direction::up;
-            } else if (inRange(angle, 0,45) || inRange(angle, 315, 360)) {
+                return Direction::down;
+            } else if (inRange(angle, 0, 45) || inRange(angle, 315, 360)) {
                 return Direction::right;
             } else if (inRange(angle, 225, 315)) {
-                return Direction::down;
+                return Direction::up;
             } else {
                return Direction::left;
            }
@@ -163,5 +164,14 @@ class SwipeDetector {
     std::optional<vector> lastVector;
     bool gestureSwipe;
 };
+
+[[nodiscard]] inline std::string toString(SwipeDetector::Direction dir) {
+    switch (dir) {
+      case SwipeDetector::up: return "up";
+      case SwipeDetector::down: return "down";
+      case SwipeDetector::left: return "left";
+      case SwipeDetector::right: return "right";
+    }
+}
 
 #endif /* _SWIPE_DETECTOR_H */

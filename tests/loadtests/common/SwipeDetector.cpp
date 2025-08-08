@@ -25,10 +25,10 @@
 #include "SwipeDetector.h"
 
 #if !defined(SWIPEDETECTOR_LOG_GESTURE_EVENTS)
-  #define SWIPEDETECTOR_LOG_GESTURE_EVENTS 1
+  #define SWIPEDETECTOR_LOG_GESTURE_EVENTS 0
 #endif
 #if !defined(SWIPEDETECTOR_LOG_GESTURE_DETECTION)
-  #define SWIPEDETECTOR_LOG_GESTURE_DETECTION 1
+  #define SWIPEDETECTOR_LOG_GESTURE_DETECTION 0
 #endif
 
 bool
@@ -47,10 +47,12 @@ SwipeDetector::doEvent(SDL_Event* event)
         // SDL_GetTouchFingers appears to return the number of fingers
         // down *before* the event was generated, so 1 means the last finger
         // just lifted.
-        if (numFingers == 1 && gestureStart.time != 0.0) {
-            gestureStart.time = 0.0;
+        if (numFingers == 1 && gestureStart.time != 0) {
+            gestureStart.time = 0;
+            gestureSwipe = false;
             if (SWIPEDETECTOR_LOG_GESTURE_DETECTION) {
-                SDL_Log("***************** SD: FINGER_UP, MULTIGESTURE DONE *****************");
+                SDL_Log("***************** SD: FINGER_UP, %smultigesture done *****************",
+                        gestureSwipe ? "Swipe complete & " : "");
             }
         } else {
             result = true;
@@ -75,9 +77,9 @@ SwipeDetector::doEvent(SDL_Event* event)
                      gestureSwipe,
                      (mgesture.timestamp - gestureStart.time) / 1000000);
         }
-        if (gestureStart.time == 0.0) {
+        if (gestureStart.time == 0) {
             if (SWIPEDETECTOR_LOG_GESTURE_DETECTION) {
-                SDL_Log("************ SD: MULTIGESTURE DETECTION START **************");
+                SDL_Log("************ SD: Multigesture detection start **************");
             }
             gestureStart.time = mgesture.timestamp;
             gestureStart.point.x = mgesture.x;
@@ -101,18 +103,20 @@ SwipeDetector::doEvent(SDL_Event* event)
                     velocity = distance / duration;
                     assert(!std::isinf(velocity));
                     theta = lastVector->getAngle(sv);
-                    lastVector = sv;
                     if (SWIPEDETECTOR_LOG_GESTURE_DETECTION) {
-                        SDL_Log("SD: Detection: distance = %f, velocity = %f, theta = %f, sv angle = %f, lastv angle = %f",
+                        SDL_Log("SD: Detection: distance = %f, velocity = %f, theta = %f, sv angle = %f, sv angle normalized = %f, lastv angle = %f",
                                 distance, velocity, theta,
                                 sv.getAngle(),
+                                sv.getAngleNormalized(),
                                 lastVector->getAngle());
                     }
+                    lastVector = sv;
                     // Multiple events with the same timestamp is a possibility
                     // hence the isinf() check.
-                    if (std::abs(theta) < 3.0 && std::abs(mgesture.dDist) > 0.01 && !std::isinf(velocity) && velocity > 0.001) { // 0.0004
+                    if (std::abs(theta) < 3.0 && std::abs(mgesture.dDist) > 0.01 && !std::isinf(velocity) && velocity > 0.0007) {
                         if (SWIPEDETECTOR_LOG_GESTURE_DETECTION)
-                            SDL_Log("----------------- SD: Swipe detected -----------------");
+                            SDL_Log("----------------- SD: Swipe %s detected -----------------",
+                                    toString(sv.getDirection()).c_str());
                         gestureSwipe = true;
                         if (SDL_EventEnabled(SDL_EVENT_USER)) {
                             SDL_Event user_event;
