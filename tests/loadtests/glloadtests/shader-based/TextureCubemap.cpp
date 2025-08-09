@@ -29,6 +29,7 @@
 #include "argparser.h"
 #include "TextureCubemap.h"
 #include "GLTextureTranscoder.hpp"
+#include "SwipeDetector.h"
 #include "ltexceptions.h"
 
 #define member_size(type, member) sizeof(((type *)0)->member)
@@ -344,6 +345,35 @@ TextureCubemap::~TextureCubemap()
     cleanup();
 }
 
+int
+TextureCubemap::doEvent(SDL_Event* event)
+{
+    int result = 0;
+    switch(event->type) {
+      case SDL_EVENT_USER:
+        if (event->user.code == SwipeDetector::swipeGesture) {
+            SwipeDetector::Direction direction = POINTER_TO_DIRECTION(event->user.data1);
+            switch (direction) {
+              case SwipeDetector::Direction::up:
+                toggleObject(+1);
+                break;
+              case SwipeDetector::Direction::down:
+                toggleObject(-1);
+                break;
+              default:
+                result = 1;
+            }
+        } else {
+            result = 1;
+        }
+      default:
+        result = 1;
+    }
+    if (result == 1)
+        result = GL3LoadTestSample::doEvent(event);
+    return result;
+}
+
 void
 TextureCubemap::resize(uint32_t width, uint32_t height)
 {
@@ -629,12 +659,13 @@ TextureCubemap::toggleSkyBox()
 }
 
 void
-TextureCubemap::toggleObject()
+TextureCubemap::toggleObject(int direction)
 {
-    meshes.objectIndex++;
-    if (meshes.objectIndex >= static_cast<uint32_t>(meshes.objects.size()))
-    {
+    meshes.objectIndex += direction;
+    if (meshes.objectIndex >= static_cast<int32_t>(meshes.objects.size())) {
         meshes.objectIndex = 0;
+    } else if (meshes.objectIndex < 0) {
+        meshes.objectIndex = static_cast<int32_t>(meshes.objects.size()) - 1;
     }
 }
 
@@ -662,7 +693,7 @@ TextureCubemap::keyPressed(uint32_t keyCode)
         toggleSkyBox();
         break;
     case ' ':
-        toggleObject();
+        toggleObject(+1);
         break;
     case SDLK_KP_PLUS:
         changeLodBias(0.1f);

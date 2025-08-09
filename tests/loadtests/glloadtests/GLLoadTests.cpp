@@ -81,7 +81,7 @@ GLLoadTests::finalize()
 bool
 GLLoadTests::doEvent(SDL_Event* event)
 {
-    int result = 0;
+    bool result = false;
     switch (event->type) {
       case SDL_EVENT_KEY_UP:
         switch (event->key.key) {
@@ -97,12 +97,12 @@ GLLoadTests::doEvent(SDL_Event* event)
             invokeSample(Direction::eBack);
             break;
           default:
-            result = 1;
+            result = true;
         }
         break;
       case SDL_EVENT_MOUSE_BUTTON_DOWN:
         // Forward to sample in case this is the start of motion.
-        result = 1;
+        result = true;
         switch (event->button.button) {
           case SDL_BUTTON_LEFT:
             buttonDown.x = event->button.x;
@@ -115,7 +115,7 @@ GLLoadTests::doEvent(SDL_Event* event)
         break;
       case SDL_EVENT_MOUSE_BUTTON_UP:
         // Forward to sample so it doesn't get stuck in button down state.
-        result = 1;
+        result = true;
         switch (event->button.button) {
           case SDL_BUTTON_LEFT:
             if (SDL_abs(event->button.x - buttonDown.x) < 5
@@ -150,30 +150,36 @@ GLLoadTests::doEvent(SDL_Event* event)
             invokeSample(Direction::eForward);
         }
         break;
+      case SDL_EVENT_USER:
+        if (event->user.code == SwipeDetector::swipeGesture) {
+            // This is horrible.
+            uint64_t udirection = reinterpret_cast<uint64_t>(event->user.data1);
+            SwipeDetector::Direction direction =
+              static_cast<SwipeDetector::Direction>(udirection);
+            switch (direction) {
+              case SwipeDetector::Direction::left:
+                ++sampleIndex;
+                invokeSample(Direction::eForward);
+                break;
+              case SwipeDetector::Direction::right:
+                --sampleIndex;
+                invokeSample(Direction::eBack);
+                break;
+              default:
+                result = true;
+            }
+        } else {
+            result = true;
+        }
       default:
-        switch(swipeDetector.doEvent(event)) {
-          case SwipeDetector::eSwipeUp:
-          case SwipeDetector::eSwipeDown:
-          case SwipeDetector::eEventConsumed:
-            break;
-          case SwipeDetector::eSwipeLeft:
-            ++sampleIndex;
-            invokeSample(Direction::eForward);
-            break;
-          case SwipeDetector::eSwipeRight:
-            --sampleIndex;
-            invokeSample(Direction::eBack);
-            break;
-          case SwipeDetector::eEventNotConsumed:
-            result = 1;
-          }
+        result = swipeDetector.doEvent(event);
     }
     
-    if (result == 1) {
+    if (result) {
         // Further processing required.
         if (pCurSample != nullptr)
             result = pCurSample->doEvent(event);  // Give sample a chance.
-        if (result == 1)
+        if (result)
             return GLAppSDL::doEvent(event);  // Pass to base class.
     }
     return result;

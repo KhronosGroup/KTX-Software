@@ -33,6 +33,7 @@ class TextureCubemap : public GL3LoadTestSample
                  const std::string sBasePath);
     ~TextureCubemap();
 
+    virtual int doEvent(SDL_Event* event);
     virtual void resize(uint32_t width, uint32_t height);
     virtual void run(uint32_t msTicks);
 
@@ -67,7 +68,7 @@ class TextureCubemap : public GL3LoadTestSample
     struct {
         glMeshLoader::MeshBuffer skybox;
         std::vector<glMeshLoader::MeshBuffer> objects;
-        uint32_t objectIndex = 0;
+        int32_t objectIndex = 0;
     } meshes;
 
     struct {
@@ -98,7 +99,7 @@ class TextureCubemap : public GL3LoadTestSample
     void prepare();
 
     void toggleSkyBox();
-    void toggleObject();
+    void toggleObject(int direction);
     void changeLodBias(float delta);
 
     void processArgs(std::string sArgs);

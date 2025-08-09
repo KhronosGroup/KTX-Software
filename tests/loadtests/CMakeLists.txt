@@ -103,7 +103,7 @@ add_library( appfwSDL STATIC
     ${PROJECT_SOURCE_DIR}/external/SDL_gesture/SDL_gesture.h
 )
 
-target_compile_features(appfwSDL PUBLIC c_std_99 cxx_std_11)
+target_compile_features(appfwSDL PUBLIC c_std_99 cxx_std_17)
 if(EMSCRIPTEN)
     target_compile_options( appfwSDL PUBLIC
          "SHELL:--use-port=sdl3"
