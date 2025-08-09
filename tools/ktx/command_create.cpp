@@ -1742,6 +1742,10 @@ void CommandCreate::executeCreate() {
                     image->transformColorSpace(*colorSpaceInfo.src.transferFunction, *colorSpaceInfo.dst.transferFunction);
                 }
             }
+            // Must be set before operations like resampling. Needed even when
+            // transformColorSpace is not called.
+            image->setPrimaries(target.format().primaries());
+            image->setTransferFunction(target.format().transfer());
 
             // TODO: Add auto conversion and warning? Not needed now
             // because all supported source formats provide top-left images.
@@ -1750,18 +1754,18 @@ void CommandCreate::executeCreate() {
                 image = scaleImage(std::move(image), targetImageWidth, targetImageHeight);
 
             if (target.origin() != usedSourceOrigin) {
-                    if (options.failOnOriginChanges)
-                        fatal(rc::INVALID_FILE,
-                            "Input file \"{}\" would need to be y-flipped as input and output origins are different. "
-                            "Use --{} and do not use --{} to avoid unwanted origin conversions.",
-                            fmtInFile(inputFilepath), OptionsCreate::kAssignTexcoordOrigin,
-                            OptionsCreate::kConvertTexcoordOrigin);
+                if (options.failOnOriginChanges)
+                    fatal(rc::INVALID_FILE,
+                        "Input file \"{}\" would need to be y-flipped as input and output origins are different. "
+                        "Use --{} and do not use --{} to avoid unwanted origin conversions.",
+                        fmtInFile(inputFilepath), OptionsCreate::kAssignTexcoordOrigin,
+                        OptionsCreate::kConvertTexcoordOrigin);
 
-                    if (options.warnOnOriginChanges)
-                        warning("Input file \"{}\" is y-flipped as input and output origins are different. "
-                            "Use --{} and do not use --{} to avoid unwanted origin conversions.",
-                            fmtInFile(inputFilepath), OptionsCreate::kAssignTexcoordOrigin,
-                            OptionsCreate::kConvertTexcoordOrigin);
+                if (options.warnOnOriginChanges)
+                    warning("Input file \"{}\" is y-flipped as input and output origins are different. "
+                        "Use --{} and do not use --{} to avoid unwanted origin conversions.",
+                        fmtInFile(inputFilepath), OptionsCreate::kAssignTexcoordOrigin,
+                        OptionsCreate::kConvertTexcoordOrigin);
 
                 // Only difference allowed by CLI is y down or y up.
                 image->yflip();
