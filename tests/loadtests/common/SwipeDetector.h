@@ -8,29 +8,50 @@
 
 #ifndef _SWIPE_DETECTOR_H
 #define _SWIPE_DETECTOR_H
+#if defined(_WIN32)
+  #define _USE_MATH_DEFINES
+#endif
 #include <optional>
 #include <string>
+#include <math.h>
 #include <SDL3/SDL.h>
 #include "SDL_gesture.h"
 
-// These macros only allow storing a Direction in pointers, and only preserve 32 bits
-// of the Direction enum' integer value; values outside the range of a 32-bit integer
-// will be mangled. Ugly. Horrible. But preferable to allocating and freeing memory
-// when passing the information in user events.
-#define DIRECTION_TO_POINTER(i)	(reinterpret_cast<void*>(static_cast<long>(i)))
-#define POINTER_TO_DIRECTION(p)	(static_cast<SwipeDetector::Direction>(reinterpret_cast<long>(p)))
-
 class SwipeDetector {
   public:
-    SwipeDetector() : gestureSwipe(false) { }
+    enum class Direction { up, down, left, right };
+
+    SwipeDetector() : gestureSwipe(false) {}
     bool doEvent(SDL_Event* event);
 
-    enum Direction {
-        up = 2,
-        down = 3,
-        left = 4,
-        right = 5
-    };
+#if defined(_MSC_VER) && !defined(__clang__)
+   // Not clangcl
+   #pragma warning(push)
+   #pragma warning(disable : 4311)
+   #pragma warning(disable : 4302)
+   #pragma warning(disable : 4312)
+#endif
+#if defined(__clang__)
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wvoid-pointer-to-int-cast"
+#endif
+    // These conversions allow storing a Direction in a pointer.
+    // Ugly. Horrible. But preferable to allocating and freeing memory
+    // when passing the information in user events.
+    static inline Direction pointerToDirection(void* p) {
+        return static_cast<SwipeDetector::Direction>(reinterpret_cast<long>(p));
+    }
+
+    // Only preserves the low 32-bits of the pointer; perfect for this use.
+    static inline void* directionToPointer(SwipeDetector::Direction d) {
+        return reinterpret_cast<void*>(static_cast<long>(d));
+    }
+#if defined(_MSC_VER) && !defined(__clang__)
+        #pragma warning(pop)
+#endif
+#if defined(__clang__)
+    #pragma clang diagnostic pop
+#endif
 
     static const Uint32 swipeGesture = 0x01;
 
@@ -94,7 +115,7 @@ class SwipeDetector {
          *
          * @return the length of the vector.
          */
-        float length() { return SDL_sqrt(w * w + h * h); }
+        float length() { return sqrt(w * w + h * h); }
 
         /**
          * @~English
@@ -167,10 +188,14 @@ class SwipeDetector {
 
 [[nodiscard]] inline std::string toString(SwipeDetector::Direction dir) {
     switch (dir) {
-      case SwipeDetector::up: return "up";
-      case SwipeDetector::down: return "down";
-      case SwipeDetector::left: return "left";
-      case SwipeDetector::right: return "right";
+      case SwipeDetector::Direction::up: return "up";
+      case SwipeDetector::Direction::down: return "down";
+      case SwipeDetector::Direction::left: return "left";
+      case SwipeDetector::Direction::right: return "right";
+      // This is to hide a warning from MSVC. According to the solution given
+      // in https://developercommunity.visualstudio.com/t/Visual-Studio-warning-on-Strongly-typed-/96302
+      // it is possible to construct an enum class with any value. Thus warning.
+      default: return "unknown";
     }
 }
 

@@ -16,13 +16,9 @@
  * @author Mark Callow, www.edgewise-consulting.com.
  */
 
-#if defined(_WIN32)
-  #define _USE_MATH_DEFINES
-#endif
 #include <assert.h>
-#include <cmath>
-#include <SDL3/SDL_log.h>
 #include "SwipeDetector.h"
+#include <SDL3/SDL_log.h>
 
 #if !defined(SWIPEDETECTOR_LOG_GESTURE_EVENTS)
   #define SWIPEDETECTOR_LOG_GESTURE_EVENTS 0
@@ -98,11 +94,12 @@ SwipeDetector::doEvent(SDL_Event* event)
                 if (lastVector.has_value()) {
                     // SDL2 timestamps were in milliseconds, SDL3 are nanoseconds. Given the
                     // normalized distances reported, using nanoseconds leads to 0 velocitySq.
-                    duration = (mgesture.timestamp - gestureStart.time) / 1000000.0;
+                    duration = static_cast<float>(
+                        (mgesture.timestamp - gestureStart.time) / 1000000.0);
 
                     velocity = distance / duration;
                     assert(!std::isinf(velocity));
-                    theta = lastVector->getAngle(sv);
+                    theta = static_cast<float>(lastVector->getAngle(sv));
                     if (SWIPEDETECTOR_LOG_GESTURE_DETECTION) {
                         SDL_Log("SD: Detection: distance = %f, velocity = %f, theta = %f, sv angle = %f, sv angle normalized = %f, lastv angle = %f",
                                 distance, velocity, theta,
@@ -125,7 +122,7 @@ SwipeDetector::doEvent(SDL_Event* event)
                             SDL_zero(user_event);
                             user_event.type = SDL_EVENT_USER;
                             user_event.user.code = swipeGesture;
-                            user_event.user.data1 = DIRECTION_TO_POINTER(sv.getDirection());
+                            user_event.user.data1 = SwipeDetector::directionToPointer(sv.getDirection());
                             user_event.user.data2 = NULL;
                             SDL_PushEvent(&user_event);
                         }

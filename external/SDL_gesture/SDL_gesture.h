@@ -189,7 +189,7 @@ typedef struct
     SDL_TouchID touchID;
     SDL_FPoint centroid;
     GestureDollarPath dollarPath;
-    Sint16 numDownFingers;
+    int numDownFingers;
     int numDollarTemplates;
     GestureDollarTemplate *dollarTemplate;
     bool recording;
@@ -673,7 +673,7 @@ static void GestureSendMulti(GestureTouch *touch, float dTheta, float dDist)
         mgesture.y = touch->centroid.y;
         mgesture.dTheta = dTheta;
         mgesture.dDist = dDist;
-        mgesture.numFingers = touch->numDownFingers;
+        mgesture.numFingers = (Uint16)touch->numDownFingers;
         SDL_PushEvent((SDL_Event*)&mgesture);
     }
 }
@@ -714,9 +714,9 @@ static void GestureSendDollarRecord(GestureTouch *touch, Gesture_ID gestureId)
   #define GESTURE_LOG_MOTION_EVENTS 1
 #endif
 
-#define DISABLE_FINGER_DOWN_MODS 1
+#define DISABLE_FINGER_DOWN_MODS 0
 #define DISABLE_FINGER_UP_MODS 1
-#define DISABLE_FINGER_MOTION_MODS 1
+#define DISABLE_FINGER_MOTION_MODS 0
 
 static void GestureProcessEvent(const SDL_Event *event)
 {
@@ -825,7 +825,7 @@ static void GestureProcessEvent(const SDL_Event *event)
                 const float error = GestureDollarRecognize(&inTouch->dollarPath, &bestTempl, inTouch);
                 if (bestTempl >= 0) {
                     /* Send Event */
-                    const unsigned long gestureId = inTouch->dollarTemplate[bestTempl].hash;
+                    const Gesture_ID gestureId = inTouch->dollarTemplate[bestTempl].hash;
                     GestureSendDollar(inTouch, gestureId, error);
                     /* printf ("%s\n",);("Dollar error: %f\n",error); */
                 }
@@ -969,7 +969,7 @@ static void GestureProcessEvent(const SDL_Event *event)
                events are actually received. */
             inTouch->numDownFingers = numFingers;
             inTouch->centroid.x = inTouch->centroid.y = 0.0;
-            for (int32_t i = 0; i < numFingers; i++) {
+            for (i = 0; i < numFingers; i++) {
                 inTouch->centroid.x += fingers[i]->x;
                 inTouch->centroid.y += fingers[i]->y;
             }

@@ -89,8 +89,8 @@ class GLLoadTests : public GLAppSDL {
     
     Sint64 dropCompleteTime = 0;
     struct {
-        int32_t x;
-        int32_t y;
+        float x;
+        float y;
         Sint64 timestamp;
     } buttonDown;
 

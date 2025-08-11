@@ -217,6 +217,10 @@ GL3LoadTestSample::contextSupportsSwizzle()
     else
         return true;
 }
+#if !defined(SDL_PLATFORM_IOS)
+  // SDL only defines this on IOS and on Windows undefined != 0
+  #define SDL_PLATFORM_IOS 0
+#endif
 
 GLint
 GL3LoadTestSample::framebufferColorEncoding()

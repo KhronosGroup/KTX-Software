@@ -160,7 +160,8 @@ TextureCubemap::doEvent(SDL_Event* event)
     switch(event->type) {
       case SDL_EVENT_USER:
         if (event->user.code == SwipeDetector::swipeGesture) {
-            SwipeDetector::Direction direction = POINTER_TO_DIRECTION(event->user.data1);
+            SwipeDetector::Direction direction
+                = SwipeDetector::pointerToDirection(event->user.data1);
             switch (direction) {
               case SwipeDetector::Direction::up:
                 toggleObject(+1);

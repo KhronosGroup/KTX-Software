@@ -118,8 +118,8 @@ GLLoadTests::doEvent(SDL_Event* event)
         result = true;
         switch (event->button.button) {
           case SDL_BUTTON_LEFT:
-            if (SDL_abs(event->button.x - buttonDown.x) < 5
-                && SDL_abs(event->button.y - buttonDown.y) < 5
+            if (SDL_fabs(event->button.x - buttonDown.x) < 5
+                && SDL_fabs(event->button.y - buttonDown.y) < 5
                 && (event->button.timestamp - buttonDown.timestamp) < 100) {
                 // Advance to the next sample.
                 ++sampleIndex;

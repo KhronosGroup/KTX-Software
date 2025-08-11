@@ -205,7 +205,8 @@ LoadTestSample::doEvent(SDL_Event* event)
                 lastGestureTimestamp = mgesture.timestamp;
                 return 0;
             } else {
-                float duration = (mgesture.timestamp - lastGestureTimestamp ) / 1000000.0;
+                float duration = static_cast<float>(
+                    (mgesture.timestamp - lastGestureTimestamp ) / 1000000.0);
                 velocity = mgesture.dDist / duration;
             }
             if (LOADTESTSAMPLE_LOG_GESTURE_EVENTS) {
@@ -243,7 +244,7 @@ LoadTestSample::doEvent(SDL_Event* event)
        } else if (!zooming) {
            if (fabs(mgesture.dTheta) >= 0.9 * M_PI / 180.0 && fabs(velocity) < 0.000002) {
                 rotating = true;
-                rotation.z += mgesture.dTheta * 180.0 / M_PI;
+                rotation.z += static_cast<float>(mgesture.dTheta * 180.0 / M_PI);
                 if (LOADTESTSAMPLE_LOG_GESTURE_DETECTION) {
                     SDL_Log("---------------- LTS MG: rotation detected ---------------\n"
                             " dTheta = %f°, dDist = %f, rotation.z = %f°",
