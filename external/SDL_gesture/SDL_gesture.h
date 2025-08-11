@@ -711,7 +711,7 @@ static void GestureSendDollarRecord(GestureTouch *touch, Gesture_ID gestureId)
   #define GESTURE_LOG_UP_DOWN_EVENTS 1
 #endif
 #if !defined(GESTURE_LOG_MOTION_EVENTS)
-  #define GESTURE_LOG_MOTION_EVENTS 0
+  #define GESTURE_LOG_MOTION_EVENTS 1
 #endif
 
 static void GestureProcessEvent(const SDL_Event *event)
@@ -773,8 +773,9 @@ static void GestureProcessEvent(const SDL_Event *event)
                case of FINGER_UP SDL_GetTouchFingers reports the number of
                fingers down *before* the up event.
 
-               N.B. In the case of a left button press, SDL_GetTouchFingers
-               reports 1 for the event that is not ignored.
+               N.B. In the case of a left button press on macOS,
+               SDL_GetTouchFingers reports 1 for the event that is not
+               ignored.
                */
             inTouch->numDownFingers = numDownFingersReported - 1;
             assert(inTouch->numDownFingers >= 0);
@@ -853,8 +854,14 @@ static void GestureProcessEvent(const SDL_Event *event)
                 }
             }
 #endif
-            assert(inTouch->numDownFingers == numDownFingersReported);
-            /* See comment at line 762. */
+            //assert(inTouch->numDownFingers == numDownFingersReported);
+            /* See comment at line 762. One case where the count reliably
+               differs from reported is on iOS. When touching, dragging and
+               releasing 2 fingers, iOS sends a BUTTON_DOWN and BUTTON_UP
+               for one of the fingers. When the finger corresponding to the
+               button is raised, it sends the BUTTON_UP followed by the
+               FINGER_UP but FINGER_MOTION events can come before the
+               FINGER_UP and those events have only one finger down. */
             inTouch->numDownFingers = numDownFingersReported;
             if (path->numPoints < GESTURE_MAX_DOLLAR_PATH_SIZE) {
                 path->p[path->numPoints].x = inTouch->centroid.x;
