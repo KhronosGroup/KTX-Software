@@ -714,9 +714,6 @@ static void GestureSendDollarRecord(GestureTouch *touch, Gesture_ID gestureId)
   #define GESTURE_LOG_MOTION_EVENTS 0
 #endif
 
-#define DISABLE_FINGER_DOWN_MOTION_MODS 1
-#define DISABLE_FINGER_UP_MODS 1
-
 static void GestureProcessEvent(const SDL_Event *event)
 {
     float x, y;
@@ -760,44 +757,27 @@ static void GestureProcessEvent(const SDL_Event *event)
 
                N.B. If SDL_HINT_MOUSE_TOUCH_EVENTS is set to 0 no touch
                events are received from the trackpad. */
-#if !DISABLE_FINGER_DOWN_MOTION_MODS || !DISABLE_FINGER_UP_MODS
             if (event->tfinger.fingerID == SDL_BUTTON_LEFT) return;
 #endif
-#endif
-#if !DISABLE_FINGER_UP_MODS
-            // When 2 fingers are pressed down to make a right mouse click,
-            // two finger down events are received with normal finger ids
-            // then the mouse button down is received followed by a finger up
-            // event. When the fingers are raised a mouse button up is
-            // received leaving us with numDownFingers incorrectly 1. If the
-            // window has focus, finger motion events are received and a
-            // second finger up event is received after the button up.
-            //
-            // Following the mouse button up event, a finger down event with
-            // 2 fingers is received followed by a finger up event with 2 fingers.
+            /* Using the number of fingers returned by SDL_GetTouchFingers
+               is much more robust than counting finger up and down events.
+               With counting it is easy for the counted number to be higher
+               than the actual number. Unfortunately it has not been possible
+               to identify a sequence of actions that reliably reproduces
+               this but asserts have shown it happens often. Perhaps
+               sometimes a single UP or DOWN event is received for multiple
+               fingers.
 
+               Using the reported number is independent of how many events
+               are actually received. But, and this is a big one, in the
+               case of FINGER_UP SDL_GetTouchFingers reports the number of
+               fingers down *before* the up event.
 
-            // A single finger up event with multiple fingers is possible.
-            // One circumstance where this reliably happens is when
-            // releasing a two-finger press (for right mouse button) on
-            // macOS. A single FINGER_UP event with numDownFingersReported == 2 is sent
-            // when the second finger is raised, even if you raise one finger
-            // long before the other. The easiest way to handle this is
-            // decrement by numDownFingersReported. However absent the press, there is a
-            // good chance of multiple FINGER_UP events with one as each
-            // finger is raised. numDownFingersReported reflects the number down just
-            // before the finger was raised. Therefore the sum of the
-            // numDownFingersReported values can be more than the number of fingers that
-            // were down hence the < 0 check.
-
-            //inTouch->numDownFingers -= numDownFingersReported;
+               N.B. In the case of a left button press, SDL_GetTouchFingers
+               reports 1 for the event that is not ignored.
+               */
             inTouch->numDownFingers = numDownFingersReported - 1;
-            /* Safety first, in case of unexpected events. */
-            //if (inTouch->numDownFingers < 0) inTouch->numDownFingers = 0;
             assert(inTouch->numDownFingers >= 0);
-#else
-            inTouch->numDownFingers--;
-#endif
 #if (GESTURE_LOG_UP_DOWN_EVENTS)
             SDL_Log("GPE FINGER_UP, numDownFingers now = %i", inTouch->numDownFingers);
 #endif
@@ -838,15 +818,13 @@ static void GestureProcessEvent(const SDL_Event *event)
             if (inTouch->numDownFingers > 0) {
                 inTouch->centroid.x = (inTouch->centroid.x * (inTouch->numDownFingers + 1) - x) / inTouch->numDownFingers;
                 inTouch->centroid.y = (inTouch->centroid.y * (inTouch->numDownFingers + 1) - y) / inTouch->numDownFingers;
-//#if !DISABLE_FINGER_UP_MODS
             } else {
                 inTouch->centroid.x = inTouch->centroid.y = 0.0f;
-//#endif
             }
             assert(!std::isinf(inTouch->centroid.x) && !std::isinf(inTouch->centroid.y));
             assert(!std::isnan(inTouch->centroid.x) && !std::isnan(inTouch->centroid.y));
         } else if (event->type == SDL_EVENT_FINGER_MOTION) {
-            /* There is one FINGER_MOTION event per down finger. x,y give
+            /* There is one FINGER_MOTION event per down finger. x,y gives
                the position of the finger whose id is in the event. */
             const float dx = event->tfinger.dx;
             const float dy = event->tfinger.dy;
@@ -860,7 +838,6 @@ static void GestureProcessEvent(const SDL_Event *event)
                     inTouch->numDownFingers);
 #endif
             assert(numDownFingersReported > 0);
-#if !DISABLE_FINGER_DOWN_MOTION_MODS
 #if SDL_PLATFORM_MACOS
             /* Workaround issue https://github.com/libsdl-org/SDL/issues/13428.
                See comment at line 753 for more details. */
@@ -877,10 +854,8 @@ static void GestureProcessEvent(const SDL_Event *event)
             }
 #endif
             assert(inTouch->numDownFingers == numDownFingersReported);
-            /* Using the number of fingers returned by SDL_GetTouchFingers
-               is much more robust than counting finger up and down events. */
+            /* See comment at line 762. */
             inTouch->numDownFingers = numDownFingersReported;
-#endif
             if (path->numPoints < GESTURE_MAX_DOLLAR_PATH_SIZE) {
                 path->p[path->numPoints].x = inTouch->centroid.x;
                 path->p[path->numPoints].y = inTouch->centroid.y;
@@ -956,7 +931,6 @@ static void GestureProcessEvent(const SDL_Event *event)
                     event->tfinger.fingerID, event->tfinger.touchID, numDownFingersReported,
                     event->tfinger.x, event->tfinger.y, event->tfinger.pressure);
 #endif
-#if !DISABLE_FINGER_DOWN_MOTION_MODS
 #if SDL_PLATFORM_MACOS
             /* See comment starting at line 753. */
             if (event->tfinger.fingerID == SDL_BUTTON_LEFT) return;
@@ -976,19 +950,6 @@ static void GestureProcessEvent(const SDL_Event *event)
             }
             inTouch->centroid.x /= numDownFingersReported;
             inTouch->centroid.y /= numDownFingersReported;
-#else
-            inTouch->numDownFingers++;
-#if (GESTURE_LOG_UP_DOWN_EVENTS)
-            SDL_Log("GPE FINGER_DOWN, inTouch->numDownFingers now = %i", inTouch->numDownFingers);
-#endif
-            assert(inTouch->numDownFingers <= 2);
-            inTouch->centroid.x = (inTouch->centroid.x * (inTouch->numDownFingers - 1) +
-                                   x) /
-                                  inTouch->numDownFingers;
-            inTouch->centroid.y = (inTouch->centroid.y * (inTouch->numDownFingers - 1) +
-                                   y) /
-                                  inTouch->numDownFingers;
-#endif
             assert(!std::isinf(inTouch->centroid.x) && !std::isinf(inTouch->centroid.y));
             assert(!std::isnan(inTouch->centroid.x) && !std::isnan(inTouch->centroid.y));
             //printf("Finger Down: (%f,%f). Centroid: (%f,%f\n",x,y,
