@@ -178,8 +178,7 @@ struct OptionsCreate {
                     "inputs a 3D unit normal is calculated. 1.0 is used for the value of\n"
                     "the 4th component. Cannot be used with --raw.")
                 (kPremultiplyAlpha, "Pre-multiplies the color components of the input pixels by the alpha component"
-                    "before encoding and sets the flag in the metadata. Cannot be used with --normalize\n"
-                    "or --raw.")
+                    " before encoding and sets the flag in the metadata. Cannot be used with --normalize or --raw.")
                 (kSwizzle, "KTX swizzle metadata.", cxxopts::value<std::string>(), "[rgba01]{4}")
                 (kInputSwizzle, "Pre-swizzle input channels.", cxxopts::value<std::string>(), "[rgba01]{4}")
                 (kAssignTf, "Force the created texture to have the specified transfer function, ignoring"
