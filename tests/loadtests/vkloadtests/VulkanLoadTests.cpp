@@ -534,6 +534,14 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
       "RGB8 + Auto Mipmap"
     },
 #endif
+    { Texture::create,
+      "straight-rgba.ktx2",
+      "Straight KTX2 RGBA8"
+    },
+    { Texture::create,
+    "premultiplied-rgba.ktx2",
+    "Premultiplied KTX2 RGBA8"
+    },
 };
 
 const uint32_t uNumSamples = sizeof(siSamples) / sizeof(VulkanLoadTests::sampleInvocation);
