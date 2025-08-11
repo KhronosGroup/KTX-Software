@@ -68,7 +68,7 @@ function( ensure_runtime_dependencies_windows target )
     # Custom copy commands to ensure all dependencies (testimages,
     # shaders, models) are in correct location relative to executable.
 
-    if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "Vulkan")
+    if(${target} MATCHES "vkloadtests")
         add_custom_command( TARGET ${target} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_directory  "${CMAKE_CURRENT_BINARY_DIR}/shaders" "$<TARGET_FILE_DIR:${target}>/resources"
             COMMENT "Copy shaders to build destination"
