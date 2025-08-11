@@ -959,6 +959,7 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
     getDFDComponentInfoUnpacked(This->pDfd, &num_components, &component_size);
     ktx_uint32_t transfer = KHR_DFDVAL(BDB, TRANSFER);
     bool sRGB = transfer == KHR_DF_TRANSFER_SRGB;
+    ktx_uint8_t alphaMode = KHR_DFDVAL(BDB, FLAGS);
 
     if (component_size != 1)
         return KTX_UNSUPPORTED_FEATURE; // Can only deal with 8-bit components at the moment
@@ -1163,6 +1164,8 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
     prototype->dataSize = 0;
 
     ktxTexture2_Destroy(prototype);
+
+    KHR_DFDSETVAL(This->pDfd+1, FLAGS, alphaMode); // Restore alphaMode flags
     return KTX_SUCCESS;
 }
 

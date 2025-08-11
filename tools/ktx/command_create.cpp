@@ -1876,12 +1876,6 @@ void CommandCreate::executeCreate() {
 
     compress(texture, options);
 
-    // Set premultiplied alpha metadata.
-    // Must be done after encoding and compression because those operations may change the texture object.
-    if (options.premultiplyAlpha) {
-        KHR_DFDSETVAL(texture->pDfd+1, FLAGS, KHR_DF_FLAG_ALPHA_PREMULTIPLIED);
-    }
-
     // Add KTXwriterScParams metadata if ASTC encoding, BasisU encoding, or other supercompression was used
     const auto writerScParams = fmt::format("{}{}{}{}", options.astcOptions, options.codecOptions, options.commonOptions, options.compressOptions);
     if (writerScParams.size() > 0) {
@@ -2510,6 +2504,9 @@ KTXTexture2 CommandCreate::createTexture(const ImageSpec& target) {
 
     KHR_DFDSETVAL(texture->pDfd + 1, PRIMARIES, target.format().primaries());
     KHR_DFDSETVAL(texture->pDfd + 1, TRANSFER, target.format().transfer());
+    if(options.premultiplyAlpha) {
+        KHR_DFDSETVAL(texture->pDfd+1, FLAGS, KHR_DF_FLAG_ALPHA_PREMULTIPLIED);
+    }
 
     // Add KTXorientation metadata
     if (options.assignTexcoordOrigin.has_value() || options.convertTexcoordOrigin.has_value()) {
