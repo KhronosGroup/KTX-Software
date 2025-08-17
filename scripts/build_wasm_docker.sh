@@ -131,6 +131,8 @@ echo "Configure and Build KTX-Software (Web $CONFIGURATION)"
 # Since 4.0.9 SDL2 has to be installed in order for its CMake config
 # file to be found.
 if [ -n "$FEATURE_LOADTESTS" ]; then
+  dpcker exec emscripten sh -c "which embuilder"
+  dpcker exec emscripten sh -c "ls -l $(which embuilder)"
   docker exec emscripten sh -c "embuilder build sdl2"
 fi
 
