@@ -132,7 +132,7 @@ echo "Configure and Build KTX-Software (Web $CONFIGURATION)"
 # file to be found.
 if [ -n "$FEATURE_LOADTESTS" ]; then
   docker exec emscripten sh -c 'if which embuilder; then ls -l $(which embuilder); fi'
-  docker exec emscripten sh -c "id -un"
+  docker exec emscripten sh -c "id -u"
   docker exec emscripten sh -c "embuilder build sdl2"
 fi
 
