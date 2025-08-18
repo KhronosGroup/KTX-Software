@@ -167,6 +167,7 @@ jobs:
         id: ktx-version
         run: |
           KTX_VERSION=`cat $BUILD_DIR/ktx.version`
+          echo "KTX_VERSION = $KTX_VERSION"
           echo "PACKAGE_NAME_SUFFIX=${KTX_VERSION}-Web" >> $GITHUB_ENV
 
       # For these artifact uploads, need to take care that only one CLangCL
