@@ -43,10 +43,12 @@ function(git_describe_raw _var)
         res
         OUTPUT_VARIABLE
         out
-        ERROR_QUIET
+        #ERROR_QUIET
+        ERROR_VARIABLE
+        error
         OUTPUT_STRIP_TRAILING_WHITESPACE)
     if(NOT res EQUAL 0)
-        set(out "${out}-${res}-NOTFOUND")
+        set(out "${error}-${res}-NOTFOUND")
     endif()
 
     set(${_var} "${out}" PARENT_SCOPE)

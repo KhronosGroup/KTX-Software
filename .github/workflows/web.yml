@@ -131,11 +131,10 @@ jobs:
         run: |
           echo -n "Running on the following GitHub Actions CI runner: " && uname -a
           echo -n "CMake version on the runner is " && cmake --version
-          # Need to set uid/gid because, unlike when running docker locally,
-          # /src ends up being owned by the uid/gid running this script and
-          # the recent fix for CVE-2022-24765 in Git causes Git to error
-          # when the repo owner differs from the user. For details see
-          # https://github.blog/2022-04-12-git-security-vulnerability-announced/
+          # Need to set uid/gid because without it all commands are run by
+          # the default docker user, root, and /src is also owned by that
+          # user. The former results in all products of the build in our
+          # $BUILD_DIR being owned by root. Tell docker to use our user id.
           #docker run -dit --name emscripten --user "$(id -u):$(id -g)" -v $(pwd):/src emscripten/emsdk bash
           docker run -dit --name emscripten -v $(pwd):/src emscripten/emsdk bash
 
