@@ -136,7 +136,8 @@ jobs:
           # the recent fix for CVE-2022-24765 in Git causes Git to error
           # when the repo owner differs from the user. For details see
           # https://github.blog/2022-04-12-git-security-vulnerability-announced/
-          docker run -dit --name emscripten --user "$(id -u):$(id -g)" -v $(pwd):/src emscripten/emsdk bash
+          #docker run -dit --name emscripten --user "$(id -u):$(id -g)" -v $(pwd):/src emscripten/emsdk bash
+          docker run -dit --name emscripten -v $(pwd):/src emscripten/emsdk bash
 
       - name: Set up Python 3.11
         if: matrix.options.py == 'ON'
