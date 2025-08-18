@@ -159,8 +159,9 @@ jobs:
 
       - name: script
         run: |
+          echo "User id = $(id -un)"
           ./scripts/build_wasm_docker.sh
-          ls -l  $BUILD_DIR/KTX-Software-*-*
+          ls -l  $BUILD_DIR
 
       - name: Prepare KTX artifacts
         if: matrix.options.package == 'YES'
