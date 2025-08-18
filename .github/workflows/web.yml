@@ -131,10 +131,20 @@ jobs:
         run: |
           echo -n "Running on the following GitHub Actions CI runner: " && uname -a
           echo -n "CMake version on the runner is " && cmake --version
-          # Need to set uid/gid because without it all commands are run by
-          # the default docker user, root, and /src is also owned by that
-          # user. The former results in all products of the build in our
-          # $BUILD_DIR being owned by root. Tell docker to use our user id.
+          # Set uid/gid. Without it all commands are run by the default
+          # docker user root (0), and, in the Linux version of the Docker
+          # engine /src will be owned by the user running this workflow
+          # (usually 1001). This results in `git` commands within the build
+          # script failing with
+          #
+          #    "fatal: detected dubious ownership in repository at '/src'."
+          #
+          # This is due to the fix for CVE-2022-24765. See
+          # https://github.blog/2022-04-12-git-security-vulnerability-announced/
+          # The build script uses `git describe` to create version numbers.
+          #
+          # Also with the Linux version of the Docker engine, all products of
+          # the build in $BUILD_DIR are owned by root unless uid/gid is set.
           #docker run -dit --name emscripten --user "$(id -u):$(id -g)" -v $(pwd):/src emscripten/emsdk bash
           docker run -dit --name emscripten -v $(pwd):/src emscripten/emsdk bash
 
