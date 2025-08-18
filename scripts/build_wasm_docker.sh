@@ -128,6 +128,7 @@ echo "Configure and Build KTX-Software (Web $CONFIGURATION)"
 # Uncomment for debugging some generator expressions.
 #targets="--target debug_isgnufe1 --target debug_gnufe_ffpcontract"
 
+docker exec emscripten sh -c "ls -l /src"
 # Since 4.0.9 SDL2 has to be installed in order for its CMake config
 # file to be found.
 if [ -n "$FEATURE_LOADTESTS" ]; then
