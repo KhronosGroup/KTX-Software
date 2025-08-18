@@ -139,11 +139,11 @@ jobs:
           #docker run -dit --name emscripten --user "$(id -u):$(id -g)" -v $(pwd):/src emscripten/emsdk bash
           docker run -dit --name emscripten -v $(pwd):/src emscripten/emsdk bash
 
-      - name: Set up Python 3.11
-        if: matrix.options.py == 'ON'
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11.4'
+#      - name: Set up Python 3.11
+#        if: matrix.options.py == 'ON'
+#        uses: actions/setup-python@v5
+#        with:
+#          python-version: '3.11.4'
 
       - name: before_script
         run: |
@@ -160,6 +160,7 @@ jobs:
       - name: script
         run: |
           ./scripts/build_wasm_docker.sh
+          ls -l  $BUILD_DIR/KTX-Software-*-*
 
       - name: Prepare KTX artifacts
         if: matrix.options.package == 'YES'
@@ -177,14 +178,14 @@ jobs:
         with:
           name: KTX-Software-${{env.PACKAGE_NAME_SUFFIX}}
           path: ${{env.BUILD_DIR}}/KTX-Software-*-*
-          compression-level: 0 # Installer already compressed.
+#          compression-level: 0 # Installer already compressed.
 
-      - name: Upload artifact pyktx
-        if: matrix.options.package == 'YES' && matrix.options.py == 'ON'
-        uses: actions/upload-artifact@v4
-        with:
-          name: pyktx-${{env.PACKAGE_NAME_SUFFIX}}
-          path: ${{env.BUILD_DIR}}/${{env.PYTHON_DIST_DIR}}
+#      - name: Upload artifact pyktx
+#        if: matrix.options.package == 'YES' && matrix.options.py == 'ON'
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: pyktx-${{env.PACKAGE_NAME_SUFFIX}}
+#          path: ${{env.BUILD_DIR}}/${{env.PYTHON_DIST_DIR}}
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
@@ -194,6 +195,6 @@ jobs:
           prerelease: true
           files: |
               ${{env.BUILD_DIR}}/KTX-Software-*-*
-              ${{env.BUILD_DIR}}/${{env.PYTHON_DIST_DIR}}/pyktx-*
+#              ${{env.BUILD_DIR}}/${{env.PYTHON_DIST_DIR}}/pyktx-*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
