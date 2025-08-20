@@ -149,8 +149,7 @@ jobs:
           # In emsdk 4.0.13 all the executable files except emcc have mode 744
           # so can only be run by root. Until emsdk is fixed, stick with 4.0.12.
           #docker run -dit --name emscripten --user "$(id -u):$(id -g)" -v $(pwd):/src emscripten/emsdk bash
-          #docker run -dit --name emscripten --user "$(id -u):$(id -g)" -v $(pwd):/src emscripten/emsdk:4.0.12 bash
-          docker run -dit --name emscripten -v $(pwd):/src emscripten/emsdk bash
+          docker run -dit --name emscripten --user "$(id -u):$(id -g)" -v $(pwd):/src emscripten/emsdk:4.0.12 bash
 
       - name: before_script
         run: |
