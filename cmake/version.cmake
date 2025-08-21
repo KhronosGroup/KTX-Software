@@ -113,7 +113,7 @@ endfunction()
 if(NOT KTX_GIT_VERSION_FULL)
     git_describe_raw(KTX_GIT_VERSION_FULL --abbrev=0 --match v[0-9]*)
 endif()
-message("KTX git full version: ${KTX_GIT_VERSION_FULL}")
+#message("KTX git full version: ${KTX_GIT_VERSION_FULL}")
 
 # generate_version(TOKTX_VERSION tools/toktx)
 # message("TOKTX_VERSION: ${TOKTX_VERSION}")
