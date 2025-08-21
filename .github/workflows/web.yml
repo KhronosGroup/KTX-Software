@@ -131,18 +131,25 @@ jobs:
         run: |
           echo -n "Running on the following GitHub Actions CI runner: " && uname -a
           echo -n "CMake version on the runner is " && cmake --version
-          # Need to set uid/gid because, unlike when running docker locally,
-          # /src ends up being owned by the uid/gid running this script and
-          # the recent fix for CVE-2022-24765 in Git causes Git to error
-          # when the repo owner differs from the user. For details see
+          # Set uid/gid. Without it all commands are run by the default
+          # docker user root (0), and, in the Linux version of the Docker
+          # engine /src will be owned by the user running this workflow
+          # (usually 1001). This results in `git` commands within the build
+          # script failing with
+          #
+          #    "fatal: detected dubious ownership in repository at '/src'."
+          #
+          # This is due to the fix for CVE-2022-24765. See
           # https://github.blog/2022-04-12-git-security-vulnerability-announced/
-          docker run -dit --name emscripten --user "$(id -u):$(id -g)" -v $(pwd):/src emscripten/emsdk bash
-
-      - name: Set up Python 3.11
-        if: matrix.options.py == 'ON'
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11.4'
+          # The build script uses `git describe` to create version numbers.
+          #
+          # Also with the Linux version of the Docker engine, all products of
+          # the build in $BUILD_DIR are owned by root unless uid/gid is set.
+          #
+          # In emsdk 4.0.13 all the executable files except emcc have mode 744
+          # so can only be run by root. Until emsdk is fixed, stick with 4.0.12.
+          #docker run -dit --name emscripten --user "$(id -u):$(id -g)" -v $(pwd):/src emscripten/emsdk bash
+          docker run -dit --name emscripten --user "$(id -u):$(id -g)" -v $(pwd):/src emscripten/emsdk:4.0.12 bash
 
       - name: before_script
         run: |
@@ -176,14 +183,6 @@ jobs:
         with:
           name: KTX-Software-${{env.PACKAGE_NAME_SUFFIX}}
           path: ${{env.BUILD_DIR}}/KTX-Software-*-*
-          compression-level: 0 # Installer already compressed.
-
-      - name: Upload artifact pyktx
-        if: matrix.options.package == 'YES' && matrix.options.py == 'ON'
-        uses: actions/upload-artifact@v4
-        with:
-          name: pyktx-${{env.PACKAGE_NAME_SUFFIX}}
-          path: ${{env.BUILD_DIR}}/${{env.PYTHON_DIST_DIR}}
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
@@ -193,6 +192,5 @@ jobs:
           prerelease: true
           files: |
               ${{env.BUILD_DIR}}/KTX-Software-*-*
-              ${{env.BUILD_DIR}}/${{env.PYTHON_DIST_DIR}}/pyktx-*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -80,19 +80,21 @@ trap atexit EXIT SIGINT
 if ! container_status="$(docker container inspect -f '{{.State.Status}}' emscripten 2> /dev/null)"; then
   # `inspect` failed therefore no docker container. Create one.
 
-  #   In the event that /src ends up having the same owner as the repo
-  # (cwd) on the docker host, which is presumably the user running
+  #   In the event that /src in docker ends up having the same owner as
+  # the repo (cwd) on the docker host, which is presumably the user running
   # this script, it is necessary to set the uid/gid used to run the
   # commands in docker. This is because the recent fix for
   # CVE-2022-24765 causes Git to error when the repo owner differs from
-  # the user running the command. For details see
+  # the user running the command and the default docker user running the
+  # commands is root. For details see
   # https://github.blog/2022-04-12-git-security-vulnerability-announced/
-  #   When I run docker locally on macOS /src is owned by root which is
-  # the default docker user so we don't trip over the CVE fix. However
-  # on Travis /src ends up owned by the same uid as the repo on the host.
-  # Since .travis.yml starts docker before calling this script, the correct
-  # uid is set there. This is retained as an example in case some other
-  # system exhibits the same behavior as Travis.
+  #   When I run docker locally on macOS /src is owned by root so we don't
+  # trip over the CVE fix. However in Linux CI runners, on both Travis and
+  # GitHub, /src ends up owned by the same uid as the repo on the host.
+  # Since .github/workflows/web.yml starts docker before calling this
+  # script, the correct uid is set there. This is retained as an example
+  # in case this is related to Linux rather than GHA/Travis or some other
+  # system exhibits the same behavior.
   if [ -n "$TRAVIS" ]; then
     ugids="--user $(id -u):$(id -g)"
   fi
