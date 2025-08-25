@@ -385,6 +385,13 @@ PngInput::readImage(void* bufferOut, size_t bufferOutByteCount,
             state.info_png.sbit_b,
             state.info_png.sbit_a,
         };
+        // state.info_png reflects the input file not any changes made by
+        // lodepng_finish_decode, which supports adding and removing the alpha channel
+        // in 8-bit images. sBits will be zero for added channels. Scan for such.
+        for (uint32_t c = 0; c < channelCount; ++c) {
+            if (sBits[c] == 0) // channel added.
+                sBits[c] = requestBits;
+        }
 
         for (uint32_t y = 0; y < height; ++y) {
             for (uint32_t x = 0; x < width; ++x) {

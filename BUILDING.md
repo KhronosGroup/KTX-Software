@@ -522,7 +522,7 @@ cd KTX-Software/
 git submodule update --init --recursive tests/cts
 # Configure 
 mkdir build
-cmake -B build . -DKTX_FEATURE_DOC=ON -DBUILD_SHARED_LIBS=OFF -DKTX_FEATURE_TOOLS_CTS=ON -DKTX_FEATURE_TESTS=ON -DKTX_FEATURE_TOOLS_CTS=ON
+cmake -B build . -DKTX_FEATURE_DOC=ON -DBUILD_SHARED_LIBS=OFF -DKTX_FEATURE_TOOLS=ON -DKTX_FEATURE_TESTS=ON -DKTX_FEATURE_TOOLS_CTS=ON
 # Build everything (depending on workflow its better to build the specific target like 'ktxtools'):
 cmake --build build --target all 
 # Run every test case:
