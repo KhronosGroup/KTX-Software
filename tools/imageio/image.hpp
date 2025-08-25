@@ -1334,7 +1334,8 @@ class ImageT : public Image {
                 float linearColor = tf.decode(c[comp] * Color::rcpOne());
                 linearColor *= alpha;
                 float srgbColor = tf.encode(linearColor);
-                c.set(comp, srgbColor * Color::one());
+                float outValue = static_cast<componentType>(srgbColor * static_cast<float>(Color::one()) + 0.5f);
+                c.set(comp, outValue);
             }
         }
         return *this;
