@@ -9,6 +9,7 @@
 #ifndef _LOAD_TEST_SAMPLE_H
 #define _LOAD_TEST_SAMPLE_H
 
+#include <optional>
 #include <string>
 #include <SDL3/SDL.h>
 #define GLM_FORCE_RADIANS
@@ -32,6 +33,7 @@ class LoadTestSample {
         // definition yet compile without warnings. So initialize the
         // old-fashioned way.
         mouseButtons.left = mouseButtons.middle = mouseButtons.right = false;
+        //lastGesture.timestamp = 0;
         quit = false;
         paused = false;
         timer = 0.f;
@@ -59,7 +61,16 @@ class LoadTestSample {
     glm::vec3 rotation;
     glm::vec3 cameraPos;
     glm::vec2 mousePos;
-    Uint64 lastGestureTimestamp = 0;
+    Uint64 lastVectorTimestamp = 0;
+    Uint64 lastFMTimestamp = 0;
+    //Gesture_MultiGestureEvent lastGesture;
+    glm::vec2 lastDifference;
+    float lastAngle = 0.0;
+    float initialDistance = 0.0;
+    float initialXAngle = 0.0;
+    glm::vec2 initialDifference;
+    bool processingGesture = false;
+
     struct {
         bool left = false;
         bool right = false;

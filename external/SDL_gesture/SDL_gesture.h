@@ -708,10 +708,10 @@ static void GestureSendDollarRecord(GestureTouch *touch, Gesture_ID gestureId)
 }
 
 #if !defined(GESTURE_LOG_UP_DOWN_EVENTS)
-  #define GESTURE_LOG_UP_DOWN_EVENTS 1
+  #define GESTURE_LOG_UP_DOWN_EVENTS 0
 #endif
 #if !defined(GESTURE_LOG_MOTION_EVENTS)
-  #define GESTURE_LOG_MOTION_EVENTS 1
+  #define GESTURE_LOG_MOTION_EVENTS 0
 #endif
 
 static void GestureProcessEvent(const SDL_Event *event)
