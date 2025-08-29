@@ -24,18 +24,19 @@
 #include <glm/gtx/vector_angle.hpp>
 #include <SDL3/SDL_log.h>
 
-
-#if !defined(LOADTESTSAMPLE_LOG_MOTION_EVENTS)
-  #define LOADTESTSAMPLE_LOG_MOTION_EVENTS 0
-#endif
-#if !defined(LOADTESTSAMPLE_LOG_UP_DOWN_EVENTS)
-  #define LOADTESTSAMPLE_LOG_UP_DOWN_EVENTS 1
-#endif
 #if !defined(LOADTESTSAMPLE_LOG_GESTURE_DETECTION)
+  // Log detected and completed gestures.
   #define LOADTESTSAMPLE_LOG_GESTURE_DETECTION 1
 #endif
 #if !defined(LOADTESTSAMPLE_LOG_GESTURE_EVENTS)
+  // Log events contributing to gesture detection and gestures.
   #define LOADTESTSAMPLE_LOG_GESTURE_EVENTS 1
+#endif
+#if !defined(LOADTESTSAMPLE_LOG_MOUSE_UP_DOWN_EVENTS)
+  #define LOADTESTSAMPLE_LOG_MOUSE_UP_DOWN_EVENTS 0
+#endif
+#if !defined(LOADTESTSAMPLE_LOG_MOUSE_MOTION_EVENTS)
+  #define LOADTESTSAMPLE_LOG_MOUSE_MOTION_EVENTS 0
 #endif
 
 [[maybe_unused]] static const char*
@@ -55,7 +56,7 @@ LoadTestSample::doEvent(SDL_Event* event)
       case SDL_EVENT_MOUSE_MOTION:
       {
         SDL_MouseMotionEvent& motion = event->motion;
-#if LOADTESTSAMPLE_LOG_MOTION_EVENTS
+#if LOADTESTSAMPLE_LOG_MOUSE_MOTION_EVENTS
         SDL_Log("LTS: MOUSE_MOTION - x: %f, y: %f", motion.x, motion.y);
 #endif
         // On macOS with trackpad, SDL_TOUCH_MOUSEID is never set.
@@ -83,13 +84,8 @@ LoadTestSample::doEvent(SDL_Event* event)
         return 0;
       }
       case SDL_EVENT_MOUSE_BUTTON_DOWN:
-        //if (event->button.which == SDL_TOUCH_MOUSEID
-        //    && SDL_GetNumTouchFingers(event->tfinger.touchId) != 1)
-        //    return 0;
-        //if (event->button.which == SDL_TOUCH_MOUSEID)
-        //    return 0;
         mousePos = glm::vec2((float)event->button.x, (float)event->button.y);
-        if (LOADTESTSAMPLE_LOG_UP_DOWN_EVENTS) {
+        if (LOADTESTSAMPLE_LOG_MOUSE_UP_DOWN_EVENTS) {
             SDL_Log("LTS: MOUSE_DOWN - button: %s, x: %f, y: %f", buttonName(event->button.button),
                      event->button.x, event->button.y);
         }
@@ -113,7 +109,7 @@ LoadTestSample::doEvent(SDL_Event* event)
         //    return 0;
         //if (event->button.which == SDL_TOUCH_MOUSEID)
         //    return 0;
-        if (LOADTESTSAMPLE_LOG_UP_DOWN_EVENTS) {
+        if (LOADTESTSAMPLE_LOG_MOUSE_UP_DOWN_EVENTS) {
             SDL_Log("LTS: MOUSE_UP - button: %s, x: %f, y: %f", buttonName(event->button.button),
                      event->button.x, event->button.y);
         }
@@ -151,13 +147,13 @@ LoadTestSample::doEvent(SDL_Event* event)
         int numFingers;
         SDL_Finger** fingers = SDL_GetTouchFingers(event->tfinger.touchID, &numFingers);
         int retVal = 0;
-        if (LOADTESTSAMPLE_LOG_UP_DOWN_EVENTS) {
+        if (LOADTESTSAMPLE_LOG_GESTURE_EVENTS) {
             SDL_Log("LTS: Finger: %#" SDL_PRIx64 " down - fingers: %i, x: %f, y: %f",
                     event->tfinger.fingerID, numFingers, event->tfinger.x, event->tfinger.y);
         }
         if (numFingers > 1) {
             mouseButtons.left = false;
-            if (LOADTESTSAMPLE_LOG_UP_DOWN_EVENTS) {
+            if (LOADTESTSAMPLE_LOG_GESTURE_EVENTS) {
                 SDL_Log("LTS: FINGER_DOWN with multiple fingers received."
                         " Resetting mouseButtons.left.");
             }
@@ -173,7 +169,7 @@ LoadTestSample::doEvent(SDL_Event* event)
                 lastVectorTimestamp = event->tfinger.timestamp;
                 lastFMTimestamp = 0;
                 processingGesture = true;
-                if (LOADTESTSAMPLE_LOG_UP_DOWN_EVENTS) {
+                if (LOADTESTSAMPLE_LOG_GESTURE_EVENTS) {
                     SDL_Log("LTS: FINGER_DOWN: initialDistance = %f, initialXAngle = %f°",
                             initialDistance, initialXAngle * 180.0 / M_PI
                             );
@@ -190,13 +186,13 @@ LoadTestSample::doEvent(SDL_Event* event)
       case SDL_EVENT_FINGER_UP: {
         int numFingers;
         SDL_Finger** fingers = SDL_GetTouchFingers(event->tfinger.touchID, &numFingers);
-        if (LOADTESTSAMPLE_LOG_UP_DOWN_EVENTS) {
+        if (LOADTESTSAMPLE_LOG_GESTURE_EVENTS) {
             SDL_Log("LTS: Finger: %#" SDL_PRIx64 " up - fingers: %i, x: %f, y: %f",
                     event->tfinger.fingerID, numFingers, event->tfinger.x, event->tfinger.y);
         }
         if (numFingers == 2) {
             // There may still be one finger down. Even so the action is completed.
-            if (LOADTESTSAMPLE_LOG_GESTURE_EVENTS) {
+            if (LOADTESTSAMPLE_LOG_GESTURE_DETECTION) {
                 SDL_Log("-------------- LTS: %s complete. -----------------",
                         zooming ? "zooming" : rotating ? "rotating" : "gesture");
             }
@@ -247,10 +243,10 @@ LoadTestSample::doEvent(SDL_Event* event)
         //iAngle = fmod(iAngle + M_PI, 2 * M_PI);
         // Angle between current and previous difference vectors
         //assert(initialXAngle != 0 && iAngle != xAngle);
-        float iAngleMag;
-        iAngleMag = fabs(iAngle);
-        if (iAngle > M_PI / 2)
-            iAngleMag = M_PI - iAngle;
+        //float iAngleMag;
+        //iAngleMag = fabs(iAngle);
+        //if (iAngle > M_PI / 2)
+        //    iAngleMag = M_PI - iAngle;
         float dAngleCalc = atan2f(difference.x * lastDifference.y - difference.y * lastDifference.x, difference.x * lastDifference.x + difference.y * lastDifference.y);
         float dAngle = xAngle - xAngleOfLast;
         float dDist = distance - distanceOfLast;
@@ -280,16 +276,14 @@ LoadTestSample::doEvent(SDL_Event* event)
                         dDist, dTheta * 180.0 / M_PI);
 #else
                 SDL_Log("LTS FINGER_MOTION: Not zooming or rotating. "
-                        " timestamp = %" SDL_PRIu64 ", distanceOfLast = %f, distance = %f, dDist = %f, dDistStart = %f, dDist_r = %f, xAngle = %f°, iAngle = %f°, iAngleMag = %f°, dAngle = %f°, dAngleCalc = %f°, dAngle_r = %f°",
+                        " timestamp = %" SDL_PRIu64 ", distanceOfLast = %f, distance = %f, dDist = %f, dDistStart = %f, dDist_r = %f, xAngle = %f°, iAngle = %f°, dAngle = %f°, dAngleCalc = %f°, dAngle_r = %f°",
                         event->tfinger.timestamp,
                         distanceOfLast, distance, dDist, dDistStart, dDist_r,
-                        xAngle * 180.0 / M_PI, iAngle * 180.0 / M_PI, iAngleMag * 180.0 / M_PI, dAngle * 180.0 / M_PI,
+                        xAngle * 180.0 / M_PI, iAngle * 180.0 / M_PI, dAngle * 180.0 / M_PI,
                         dAngleCalc * 180.0 / M_PI, dAngle_r * 180.0 / M_PI);
 #endif
         }
-#if 1
         // This is all heuristics derived from use.
-#if 1
         if (zooming) {
             zoom += dDist * 10.0f;
             if (LOADTESTSAMPLE_LOG_GESTURE_EVENTS) {
@@ -307,7 +301,6 @@ LoadTestSample::doEvent(SDL_Event* event)
                 }
             }
         }
-#endif
         if (rotating) {
             rotation.z +=
                 static_cast<float>(dAngle * 180.0 / M_PI);
@@ -315,8 +308,8 @@ LoadTestSample::doEvent(SDL_Event* event)
                 SDL_Log("LTS MG: Rotating around Z. rotation.z = %f°", rotation.z);
             }
        } else if (!zooming) {
-           //if (fabs(dAngle_r) > 0.16 * M_PI / 180.0 && fabs(dDistStart) < 0.3) {
-           if (iAngleMag > 10 * M_PI / 180.0 && fabs(dDistStart) < 0.04) {
+           if (fabs(dAngle_r) > 0.16 * M_PI / 180.0 && fabs(dDistStart) < 0.04) {
+          //if (fabs(iAngle) > 10 * M_PI / 180.0 && fabs(dDistStart) < 0.04) {
                 rotating = true;
                 rotation.z += static_cast<float>(dAngle * 180.0 / M_PI);
                 if (LOADTESTSAMPLE_LOG_GESTURE_DETECTION) {
@@ -327,84 +320,9 @@ LoadTestSample::doEvent(SDL_Event* event)
             }
         }
         viewChanged();
-#endif
         SDL_free(fingers);
         return 0;
       }
-#if 0
-      case GESTURE_MULTIGESTURE: {
-        Gesture_MultiGestureEvent& mgesture = *(Gesture_MultiGestureEvent*)event;
-        float dDist = 0; // Rate of change of distance between (moving) centroid and finger
-                         // triggering this event.
-        float dTheta = 0; // Rate of change of angle between vector from last centroid to last
-                          // finger position and vector between current centroid and position.
-        // NOTE: Despite the names, mgesture.dDist and mgetsure.dTheta are not derivatives.
-        // mgesture.dDist is the change in distance between the centroid and finger in the
-        // previous event and this one. mgesture.dTheta is the change in angle between the
-        // vectors from centroid to finger in previous and current events. Note that the
-        // centroid is moving too. Naming variables sucks!
-        if (mgesture.numFingers != 2)  // For extra robustness.
-            break;
-        if (!zooming && !rotating) {
-            if (lastGesture.timestamp == 0) {
-                lastGesture = mgesture;
-                return 0;
-            } else {
-                float duration = static_cast<float>(
-                    (mgesture.timestamp - lastGesture.timestamp ) / 1000000.0);
-                dDist = (mgesture.dDist - lastGesture.dDist) / duration;
-                dTheta = (mgesture.dTheta - lastGesture.dTheta) / duration;
-                lastGesture = mgesture;
-            }
-            if (LOADTESTSAMPLE_LOG_GESTURE_EVENTS) {
-                SDL_Log("LTS MG: Not zooming or rotating. dDist = %f, dTheta = %f°"
-                        " timestamp = %" SDL_PRIu64 ", dDist = %f, dTheta = %f",
-                        mgesture.dDist,
-                        mgesture.dTheta * 180.0 / M_PI,
-                        mgesture.timestamp,
-                        dDist, dTheta * 180.0 / M_PI);
-            }
-        }
-        // This is all heuristics derived from use.
-        if (zooming) {
-            zoom += mgesture.dDist * 10.0f;
-            if (LOADTESTSAMPLE_LOG_GESTURE_EVENTS) {
-                SDL_Log("LTS MG: Zooming. zoom = %f", zoom);
-            }
-        } else if (!rotating) {
-            //if (fabs(dDist) > 0.0006 && fabs(dTheta) < 0.1 * M_PI / 180.0) {
-            if (fabs(dDist) > 0.5) {
-                zooming = true;
-                zoom += mgesture.dDist * 10.0f;
-                if (LOADTESTSAMPLE_LOG_GESTURE_DETECTION) {
-                    SDL_Log("---------------- LTS MG: spreading detected ---------------\n"
-                            " dTheta = %f°, dDist = %f, zoom = %f",
-                            dTheta * 180.0 / M_PI, dDist, zoom);
-                }
-            }
-        }
-        if (rotating) {
-            rotation.z +=
-                static_cast<float>(mgesture.dTheta * 180.0 / M_PI);
-            if (LOADTESTSAMPLE_LOG_GESTURE_EVENTS) {
-                SDL_Log("LTS MG: Rotating around Z. rotation.z = %f°", rotation.z);
-            }
-       } else if (!zooming) {
-           //if (fabs(dDist) <= 0.0006 && fabs(dTheta) >= 0.1 * M_PI / 180.0) {
-           if (fabs(dTheta) > 3.0) {
-                rotating = true;
-                rotation.z += static_cast<float>(mgesture.dTheta * 180.0 / M_PI);
-                if (LOADTESTSAMPLE_LOG_GESTURE_DETECTION) {
-                    SDL_Log("---------------- LTS MG: rotation detected ---------------\n"
-                            " dTheta = %f°, dDist = %f, rotation.z = %f°",
-                            dTheta * 180.0 / M_PI, dDist, rotation.z);
-                }
-            }
-        }
-        viewChanged();
-        return 0;
-      }
-#endif // GESTURE_MULTIGESTURE
       case SDL_EVENT_KEY_UP:
         if (event->key.key == 'q')
             quit = true;

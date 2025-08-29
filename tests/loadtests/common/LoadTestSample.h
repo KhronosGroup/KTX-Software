@@ -16,7 +16,6 @@
 #include "disable_glm_warnings.h"
 #include <glm/glm.hpp>
 #include "reenable_warnings.h"
-#include "SDL_gesture.h"
 
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
 
@@ -63,7 +62,6 @@ class LoadTestSample {
     glm::vec2 mousePos;
     Uint64 lastVectorTimestamp = 0;
     Uint64 lastFMTimestamp = 0;
-    //Gesture_MultiGestureEvent lastGesture;
     glm::vec2 lastDifference;
     float lastAngle = 0.0;
     float initialDistance = 0.0;
