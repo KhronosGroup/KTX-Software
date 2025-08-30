@@ -66,6 +66,7 @@ class LoadTestSample {
     float lastAngle = 0.0;
     float initialDistance = 0.0;
     float initialXAngle = 0.0;
+    Uint64 firstFingerId = 0;
     glm::vec2 initialDifference;
     bool processingGesture = false;
 

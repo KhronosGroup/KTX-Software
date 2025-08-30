@@ -39,6 +39,26 @@
   #define LOADTESTSAMPLE_LOG_MOUSE_MOTION_EVENTS 0
 #endif
 
+#if LOADTESTSAMPLE_LOG_GESTURE_EVENTS
+  #include <sstream>
+
+  const std::string printFingerIds(SDL_Finger* fingers[], uint32_t numFingers) {
+      std::stringstream msg;
+      assert(numFingers > 0);
+      msg << "finger id" << (numFingers > 1 ? "s" : "") << ": ";
+      for (uint32_t f = 0; f < numFingers; f++) {
+          if (f > 0) {
+              if (f == numFingers - 1)
+                  msg << " & ";
+              else
+                  msg << ", ";
+          }
+          msg << fingers[f]->id;
+      }
+      return msg.str();
+  }
+#endif
+
 [[maybe_unused]] static const char*
 buttonName(Uint8 button) {
     switch(button) {
@@ -148,8 +168,10 @@ LoadTestSample::doEvent(SDL_Event* event)
         SDL_Finger** fingers = SDL_GetTouchFingers(event->tfinger.touchID, &numFingers);
         int retVal = 0;
         if (LOADTESTSAMPLE_LOG_GESTURE_EVENTS) {
-            SDL_Log("LTS: Finger: %#" SDL_PRIx64 " down - fingers: %i, x: %f, y: %f",
-                    event->tfinger.fingerID, numFingers, event->tfinger.x, event->tfinger.y);
+            SDL_Log("LTS: Finger: %#" SDL_PRIx64 " down - fingers: %i, %s, x: %f, y: %f",
+                    event->tfinger.fingerID, numFingers,
+                    printFingerIds(fingers, numFingers).c_str(),
+                    event->tfinger.x, event->tfinger.y);
         }
         if (numFingers > 1) {
             mouseButtons.left = false;
@@ -159,6 +181,7 @@ LoadTestSample::doEvent(SDL_Event* event)
             }
             if (numFingers == 2) {
                 // Calc. difference vector between fingers.
+                firstFingerId = fingers[0]->id;
                 lastDifference.x = fingers[1]->x - fingers[0]->x;
                 lastDifference.y = fingers[1]->y - fingers[0]->y;
                 initialDifference = lastDifference;
@@ -186,11 +209,13 @@ LoadTestSample::doEvent(SDL_Event* event)
       case SDL_EVENT_FINGER_UP: {
         int numFingers;
         SDL_Finger** fingers = SDL_GetTouchFingers(event->tfinger.touchID, &numFingers);
-        if (numFingers == 2) {
         if (LOADTESTSAMPLE_LOG_GESTURE_EVENTS) {
-            SDL_Log("LTS: Finger: %#" SDL_PRIx64 " up - fingers: %i, finger Ids = %" SDL_PRIu64 " and %" SDL_PRIu64 ", x: %f, y: %f",
-                    event->tfinger.fingerID, numFingers, fingers[0]->id, fingers[1]->id, event->tfinger.x, event->tfinger.y);
+            SDL_Log("LTS: Finger: %#" SDL_PRIx64 " up - fingers: %i, %s, x: %f, y: %f",
+                    event->tfinger.fingerID, numFingers,
+                    printFingerIds(fingers, numFingers).c_str(),
+                    event->tfinger.x, event->tfinger.y);
         }
+        if (processingGesture && numFingers == 2) {
             // There may still be one finger down. Even so the action is completed.
             if (LOADTESTSAMPLE_LOG_GESTURE_DETECTION) {
                 SDL_Log("-------------- LTS: %s complete. -----------------",
@@ -204,7 +229,6 @@ LoadTestSample::doEvent(SDL_Event* event)
       case SDL_EVENT_FINGER_MOTION: {
         int numFingers;
         SDL_Finger** fingers = SDL_GetTouchFingers(event->tfinger.touchID, &numFingers);
-        //SDL_Log("LTS FINGER MOTION: numFingers = %d, processingGesture = %d, timestamp difference = %" SDL_PRIu64, numFingers, processingGesture, event->tfinger.timestamp - lastFMTimestamp);
         if (numFingers != 2)
             return 1;
         if (!processingGesture) {
@@ -213,7 +237,11 @@ LoadTestSample::doEvent(SDL_Event* event)
             // the tail end of the swipe motion.
             return 1;
         }
-#if SDL_PLATFORM_MACOS || SDL_PLATFORM_IOS
+        // With two fingers down, events come in pairs. No point in processing both.
+        if (event->tfinger.fingerID == firstFingerId) {
+            return 0;
+        }
+#if 0 // SDL_PLATFORM_MACOS || SDL_PLATFORM_IOS
         if (event->tfinger.timestamp != lastFMTimestamp) {
             // This event is the motion of the first finger of the pair.
             lastFMTimestamp = event->tfinger.timestamp;
@@ -279,9 +307,9 @@ LoadTestSample::doEvent(SDL_Event* event)
                         dDist, dTheta * 180.0 / M_PI);
 #else
                 SDL_Log("LTS FINGER_MOTION: Not zooming or rotating. "
-                        " timestamp = %" SDL_PRIu64 ", finger Ids = %" SDL_PRIu64 " and %" SDL_PRIu64 ", distanceOfLast = %f, distance = %f, dDist = %f, dDistStart = %f, dDist_r = %f, xAngle = %f°, iAngle = %f°, dAngle = %f°, dAngleCalc = %f°, dAngle_r = %f°",
+                        " timestamp = %" SDL_PRIu64 ", %s, distanceOfLast = %f, distance = %f, dDist = %f, dDistStart = %f, dDist_r = %f, xAngle = %f°, iAngle = %f°, dAngle = %f°, dAngleCalc = %f°, dAngle_r = %f°",
                         event->tfinger.timestamp,
-                        fingers[0]->id, fingers[1]->id,
+                        printFingerIds(fingers, numFingers).c_str(),
                         distanceOfLast, distance, dDist, dDistStart, dDist_r,
                         xAngle * 180.0 / M_PI, iAngle * 180.0 / M_PI, dAngle * 180.0 / M_PI,
                         dAngleCalc * 180.0 / M_PI, dAngle_r * 180.0 / M_PI);
