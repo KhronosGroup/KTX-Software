@@ -186,11 +186,11 @@ LoadTestSample::doEvent(SDL_Event* event)
       case SDL_EVENT_FINGER_UP: {
         int numFingers;
         SDL_Finger** fingers = SDL_GetTouchFingers(event->tfinger.touchID, &numFingers);
-        if (LOADTESTSAMPLE_LOG_GESTURE_EVENTS) {
-            SDL_Log("LTS: Finger: %#" SDL_PRIx64 " up - fingers: %i, x: %f, y: %f",
-                    event->tfinger.fingerID, numFingers, event->tfinger.x, event->tfinger.y);
-        }
         if (numFingers == 2) {
+        if (LOADTESTSAMPLE_LOG_GESTURE_EVENTS) {
+            SDL_Log("LTS: Finger: %#" SDL_PRIx64 " up - fingers: %i, finger Ids = %" SDL_PRIu64 " and %" SDL_PRIu64 ", x: %f, y: %f",
+                    event->tfinger.fingerID, numFingers, fingers[0]->id, fingers[1]->id, event->tfinger.x, event->tfinger.y);
+        }
             // There may still be one finger down. Even so the action is completed.
             if (LOADTESTSAMPLE_LOG_GESTURE_DETECTION) {
                 SDL_Log("-------------- LTS: %s complete. -----------------",
@@ -204,6 +204,7 @@ LoadTestSample::doEvent(SDL_Event* event)
       case SDL_EVENT_FINGER_MOTION: {
         int numFingers;
         SDL_Finger** fingers = SDL_GetTouchFingers(event->tfinger.touchID, &numFingers);
+        //SDL_Log("LTS FINGER MOTION: numFingers = %d, processingGesture = %d, timestamp difference = %" SDL_PRIu64, numFingers, processingGesture, event->tfinger.timestamp - lastFMTimestamp);
         if (numFingers != 2)
             return 1;
         if (!processingGesture) {
@@ -212,11 +213,13 @@ LoadTestSample::doEvent(SDL_Event* event)
             // the tail end of the swipe motion.
             return 1;
         }
+#if SDL_PLATFORM_MACOS || SDL_PLATFORM_IOS
         if (event->tfinger.timestamp != lastFMTimestamp) {
             // This event is the motion of the first finger of the pair.
             lastFMTimestamp = event->tfinger.timestamp;
             return 0;
         }
+#endif
 
         lastFMTimestamp = event->tfinger.timestamp;
         glm::vec2 difference; // between fingers.
@@ -276,8 +279,9 @@ LoadTestSample::doEvent(SDL_Event* event)
                         dDist, dTheta * 180.0 / M_PI);
 #else
                 SDL_Log("LTS FINGER_MOTION: Not zooming or rotating. "
-                        " timestamp = %" SDL_PRIu64 ", distanceOfLast = %f, distance = %f, dDist = %f, dDistStart = %f, dDist_r = %f, xAngle = %f°, iAngle = %f°, dAngle = %f°, dAngleCalc = %f°, dAngle_r = %f°",
+                        " timestamp = %" SDL_PRIu64 ", finger Ids = %" SDL_PRIu64 " and %" SDL_PRIu64 ", distanceOfLast = %f, distance = %f, dDist = %f, dDistStart = %f, dDist_r = %f, xAngle = %f°, iAngle = %f°, dAngle = %f°, dAngleCalc = %f°, dAngle_r = %f°",
                         event->tfinger.timestamp,
+                        fingers[0]->id, fingers[1]->id,
                         distanceOfLast, distance, dDist, dDistStart, dDist_r,
                         xAngle * 180.0 / M_PI, iAngle * 180.0 / M_PI, dAngle * 180.0 / M_PI,
                         dAngleCalc * 180.0 / M_PI, dAngle_r * 180.0 / M_PI);
@@ -290,7 +294,8 @@ LoadTestSample::doEvent(SDL_Event* event)
                 SDL_Log("LTS MG: Zooming. zoom = %f", zoom);
             }
         } else if (!rotating) {
-            if (fabs(dDistStart) >= 0.1 && fabs(dAngle_r) < 0.03 * M_PI / 180.0) {
+            //if (fabs(dDistStart) >= 0.1 && fabs(dAngle_r) < 0.03 * M_PI / 180.0) {
+            if (fabs(dDistStart) >= 0.05 && fabs(iAngle) < 5.0 * M_PI / 180.0) {
             //if (fabs(dDist_r) > 0.0022 && fabs(dAngle_r) < 0.03 * M_PI / 180.0) {
                 zooming = true;
                 zoom += dDist * 10.0f;
@@ -308,8 +313,8 @@ LoadTestSample::doEvent(SDL_Event* event)
                 SDL_Log("LTS MG: Rotating around Z. rotation.z = %f°", rotation.z);
             }
        } else if (!zooming) {
-           if (fabs(dAngle_r) > 0.16 * M_PI / 180.0 && fabs(dDistStart) < 0.04) {
-          //if (fabs(iAngle) > 10 * M_PI / 180.0 && fabs(dDistStart) < 0.04) {
+          // if (fabs(dAngle_r) > 0.16 * M_PI / 180.0 && fabs(dDistStart) < 0.04) {
+          if (fabs(iAngle) > 10 * M_PI / 180.0 && fabs(dDistStart) < 0.04) {
                 rotating = true;
                 rotation.z += static_cast<float>(dAngle * 180.0 / M_PI);
                 if (LOADTESTSAMPLE_LOG_GESTURE_DETECTION) {
