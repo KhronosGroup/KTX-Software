@@ -126,10 +126,12 @@ VulkanLoadTests::doEvent(SDL_Event* event)
             switch (direction) {
               case SwipeDetector::Direction::left:
                 ++sampleIndex;
+                //SDL_Log("*********** Sample changed by swipe left **********");
                 invokeSample(Direction::eForward);
                 break;
               case SwipeDetector::Direction::right:
                 --sampleIndex;
+                //SDL_Log("*********** Sample changed by swipe right *********");
                 invokeSample(Direction::eBack);
                 break;
               default:

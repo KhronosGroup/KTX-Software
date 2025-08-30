@@ -45,6 +45,7 @@
   const std::string printFingerIds(SDL_Finger* fingers[], uint32_t numFingers) {
       std::stringstream msg;
       assert(numFingers > 0);
+      msg << std::hex << std::showbase;
       msg << "finger id" << (numFingers > 1 ? "s" : "") << ": ";
       for (uint32_t f = 0; f < numFingers; f++) {
           if (f > 0) {
@@ -55,6 +56,12 @@
           }
           msg << fingers[f]->id;
       }
+      return msg.str();
+  }
+
+  const std::string printVector(const std::string& name, glm::vec2 v) {
+      std::stringstream msg;
+      msg << name << " (" << v.x << ", " << v.y << ")";
       return msg.str();
   }
 #endif
@@ -193,15 +200,16 @@ LoadTestSample::doEvent(SDL_Event* event)
                 lastFMTimestamp = 0;
                 processingGesture = true;
                 if (LOADTESTSAMPLE_LOG_GESTURE_EVENTS) {
-                    SDL_Log("LTS: FINGER_DOWN: initialDistance = %f, initialXAngle = %f°",
+                    SDL_Log("LTS: FINGER_DOWN, initial values: %s, Distance = %f, XAngle = %f°",
+                            printVector("Difference", initialDifference).c_str(),
                             initialDistance, initialXAngle * 180.0 / M_PI
                             );
                     }
                 retVal = 1;
             }
         }
-        // It is possible to somehow get out of the window without seeing FINGER_UP so
-        // as a safeguard stop any previous gesture.
+        // It is possible to somehow get out of the window without seeing
+        // FINGER_UP so as a safeguard stop any previous gesture.
         zooming = rotating = false;
         SDL_free(fingers);
         return retVal;
@@ -232,13 +240,15 @@ LoadTestSample::doEvent(SDL_Event* event)
         if (numFingers != 2)
             return 1;
         if (!processingGesture) {
-            // Protect against FINGER_MOTION without FINGER_DOWN. This can happen
-            // when the sample is switched by a swipe and the new sample receives
-            // the tail end of the swipe motion.
+            // Protect against FINGER_MOTION without FINGER_DOWN. This can
+            // happen when the sample is switched by a swipe and the new sample
+            // receives the tail end of the swipe motion.
             return 1;
         }
-        // With two fingers down, events come in pairs. No point in processing both.
+        // With two fingers down, events come in pairs. No point in processing
+        // both.
         if (event->tfinger.fingerID == firstFingerId) {
+            lastFMTimestamp = event->tfinger.timestamp;
             return 0;
         }
 #if 0 // SDL_PLATFORM_MACOS || SDL_PLATFORM_IOS
@@ -307,9 +317,11 @@ LoadTestSample::doEvent(SDL_Event* event)
                         dDist, dTheta * 180.0 / M_PI);
 #else
                 SDL_Log("LTS FINGER_MOTION: Not zooming or rotating. "
-                        " timestamp = %" SDL_PRIu64 ", %s, distanceOfLast = %f, distance = %f, dDist = %f, dDistStart = %f, dDist_r = %f, xAngle = %f°, iAngle = %f°, dAngle = %f°, dAngleCalc = %f°, dAngle_r = %f°",
+                        " timestamp = %" SDL_PRIu64 ", %s, %s",
                         event->tfinger.timestamp,
                         printFingerIds(fingers, numFingers).c_str(),
+                        printVector("Difference", difference).c_str());
+                SDL_Log("... distanceOfLast = %f, distance = %f, dDist = %f, dDistStart = %f, dDist_r = %f, xAngle = %f°, iAngle = %f°, dAngle = %f°, dAngleCalc = %f°, dAngle_r = %f°",
                         distanceOfLast, distance, dDist, dDistStart, dDist_r,
                         xAngle * 180.0 / M_PI, iAngle * 180.0 / M_PI, dAngle * 180.0 / M_PI,
                         dAngleCalc * 180.0 / M_PI, dAngle_r * 180.0 / M_PI);
