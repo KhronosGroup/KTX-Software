@@ -171,6 +171,7 @@ GLLoadTests::doEvent(SDL_Event* event)
         } else {
             result = true;
         }
+        break;
       default:
         result = swipeDetector.doEvent(event);
     }

@@ -175,6 +175,7 @@ TextureCubemap::doEvent(SDL_Event* event)
         } else {
             result = 1;
         }
+        break;
       default:
         result = 1;
     }
