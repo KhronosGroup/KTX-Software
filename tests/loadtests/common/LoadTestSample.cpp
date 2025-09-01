@@ -292,15 +292,15 @@ LoadTestSample::doEvent(SDL_Event* event)
         float dAngle = xAngle - xAngleOfLast;
         float dDist = distance - distanceOfLast;
         float dDistStart = distance - initialDistance;
-        float timestep = (event->tfinger.timestamp - lastVectorTimestamp) / 1000000.0;
+        //float timestep = (event->tfinger.timestamp - lastVectorTimestamp) / 1000000.0;
         //float dDist, dTheta;
-        assert(timestep != 0);
+        //assert(timestep != 0);
         //if (timestep == 0) {
         //    dDist = distance - lastDistance;
         //    dTheta = angle - lastAngle;
         //} else {
-            float dDist_r = dDist / timestep;
-            float dAngle_r = dAngle / timestep;
+        //    float dDist_r = dDist / timestep;
+        //    float dAngle_r = dAngle / timestep;
             //dDist = distance - initialDistance;
             //dTheta = angle_x - initialAngle;
             //float dTheta1 = angle_x - lastAngle;
@@ -321,10 +321,10 @@ LoadTestSample::doEvent(SDL_Event* event)
                         event->tfinger.timestamp,
                         printFingerIds(fingers, numFingers).c_str(),
                         printVector("Difference", difference).c_str());
-                SDL_Log("... distanceOfLast = %f, distance = %f, dDist = %f, dDistStart = %f, dDist_r = %f, xAngle = %f°, iAngle = %f°, dAngle = %f°, dAngleCalc = %f°, dAngle_r = %f°",
-                        distanceOfLast, distance, dDist, dDistStart, dDist_r,
+                SDL_Log("... distanceOfLast = %f, distance = %f, dDist = %f, dDistStart = %f, xAngle = %f°, iAngle = %f°, dAngle = %f°, dAngleCalc = %f°",
+                        distanceOfLast, distance, dDist, dDistStart,
                         xAngle * 180.0 / M_PI, iAngle * 180.0 / M_PI, dAngle * 180.0 / M_PI,
-                        dAngleCalc * 180.0 / M_PI, dAngle_r * 180.0 / M_PI);
+                        dAngleCalc * 180.0 / M_PI);
 #endif
         }
         // This is all heuristics derived from use.
@@ -341,8 +341,8 @@ LoadTestSample::doEvent(SDL_Event* event)
                 zoom += dDist * 10.0f;
                 if (LOADTESTSAMPLE_LOG_GESTURE_DETECTION) {
                     SDL_Log("---------------- LTS MG: spreading detected ---------------\n"
-                            " dAngle_r = %f°, dDist = %f, zoom = %f",
-                            dAngle_r * 180.0 / M_PI, dDist, zoom);
+                            " iAngle = %f°, dDistStart = %f, dDist = %f, zoom = %f",
+                            iAngle * 180.0 / M_PI, dDistStart, dDist, zoom);
                 }
             }
         }
@@ -359,8 +359,8 @@ LoadTestSample::doEvent(SDL_Event* event)
                 rotation.z += static_cast<float>(dAngle * 180.0 / M_PI);
                 if (LOADTESTSAMPLE_LOG_GESTURE_DETECTION) {
                     SDL_Log("---------------- LTS MG: rotation detected ---------------\n"
-                            " dAngle = %f°, dDist = %f, rotation.z = %f°",
-                            dAngle * 180.0 / M_PI, dDist, rotation.z);
+                            " iAngle = %f°, dAngle = %f°, dDistStart = %f, rotation.z = %f°",
+                            iAngle * 180 / M_PI, dAngle * 180.0 / M_PI, dDistStart, rotation.z);
                 }
             }
         }
