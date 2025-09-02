@@ -335,7 +335,8 @@ LoadTestSample::doEvent(SDL_Event* event)
             }
         } else if (!rotating) {
             //if (fabs(dDistStart) >= 0.1 && fabs(dAngle_r) < 0.03 * M_PI / 180.0) {
-            if (fabs(dDistStart) >= 0.05 && fabs(iAngle) < 5.0 * M_PI / 180.0) {
+            //if (fabs(dDistStart) >= 0.05 && fabs(iAngle) < 5.0 * M_PI / 180.0) {
+            if (fabs(dDistStart) >= 0.1 && fabs(dAngle) < 0.5 * M_PI / 180.0) {
             //if (fabs(dDist_r) > 0.0022 && fabs(dAngle_r) < 0.03 * M_PI / 180.0) {
                 zooming = true;
                 zoom += dDist * 10.0f;
@@ -354,7 +355,7 @@ LoadTestSample::doEvent(SDL_Event* event)
             }
        } else if (!zooming) {
           // if (fabs(dAngle_r) > 0.16 * M_PI / 180.0 && fabs(dDistStart) < 0.04) {
-          if (fabs(iAngle) > 10 * M_PI / 180.0 && fabs(dDistStart) < 0.04) {
+          if (fabs(iAngle) > 10 * M_PI / 180.0 && fabs(dDistStart) < 0.1) {
                 rotating = true;
                 rotation.z += static_cast<float>(dAngle * 180.0 / M_PI);
                 if (LOADTESTSAMPLE_LOG_GESTURE_DETECTION) {
