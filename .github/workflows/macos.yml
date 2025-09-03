@@ -196,6 +196,10 @@ jobs:
         if: matrix.options.doc == 'ON'
         uses: ts-graphviz/setup-graphviz@v2
 
+      - name: Install Mono
+        if: matrix.options.loadtests != 'OFF'
+        run: brew install mono
+
       - name: Run install script
         run: ./scripts/install_macos.sh
 
