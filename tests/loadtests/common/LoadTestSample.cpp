@@ -187,22 +187,19 @@ LoadTestSample::doEvent(SDL_Event* event)
                         " Resetting mouseButtons.left.");
             }
             if (numFingers == 2) {
-                // Calc. difference vector between fingers.
+                // Calc. vDifference vector between fingers.
                 firstFingerId = fingers[0]->id;
-                lastDifference.x = fingers[1]->x - fingers[0]->x;
-                lastDifference.y = fingers[1]->y - fingers[0]->y;
-                initialDifference = lastDifference;
-                initialDistance = glm::length(initialDifference);
-                // Angle of vector to X axis.
-                initialXAngle = atan2f(lastDifference.y, lastDifference.x);
-                assert(initialXAngle != 0);
-                lastVectorTimestamp = event->tfinger.timestamp;
-                lastFMTimestamp = 0;
+                vDifferenceLast.x = fingers[1]->x - fingers[0]->x;
+                vDifferenceLast.y = fingers[1]->y - fingers[0]->y;
+                vDifferenceStart = vDifferenceLast;
+                distanceStart = glm::length(vDifferenceStart);
                 processingGesture = true;
                 if (LOADTESTSAMPLE_LOG_GESTURE_EVENTS) {
-                    SDL_Log("LTS: FINGER_DOWN, initial values: %s, Distance = %f, XAngle = %f°",
-                            printVector("Difference", initialDifference).c_str(),
-                            initialDistance, initialXAngle * 180.0 / M_PI
+                    // Angle of vector to X axis.
+                    xAngleStart = atan2f(vDifferenceLast.y, vDifferenceLast.x);
+                    SDL_Log("LTS: FINGER_DOWN, start values: %s, Distance = %f, XAngle = %f°",
+                            printVector("Difference", vDifferenceStart).c_str(),
+                            distanceStart, xAngleStart * 180.0 / M_PI
                             );
                     }
                 retVal = 1;
@@ -248,84 +245,62 @@ LoadTestSample::doEvent(SDL_Event* event)
         // With two fingers down, events come in pairs. No point in processing
         // both.
         if (event->tfinger.fingerID == firstFingerId) {
-            lastFMTimestamp = event->tfinger.timestamp;
             return 0;
         }
 #if 0 // SDL_PLATFORM_MACOS || SDL_PLATFORM_IOS
         if (event->tfinger.timestamp != lastFMTimestamp) {
             // This event is the motion of the first finger of the pair.
-            lastFMTimestamp = event->tfinger.timestamp;
             return 0;
         }
 #endif
 
-        lastFMTimestamp = event->tfinger.timestamp;
-        glm::vec2 difference; // between fingers.
-        difference.x = fingers[1]->x - fingers[0]->x;
-        difference.y = fingers[1]->y - fingers[0]->y;
-        float distanceOfLast = glm::length(lastDifference);
-        float distance = glm::length(difference);
+        glm::vec2 vDifference; // Difference vector between the fingers.
+        vDifference.x = fingers[1]->x - fingers[0]->x;
+        vDifference.y = fingers[1]->y - fingers[0]->y;
+        float distanceLast = glm::length(vDifferenceLast);
+        float distance = glm::length(vDifference);
         // Normalized vectors required by glm::angle
         //glm::normalize(lastVector);
         //glm::normalize(vector);
         //float angle_glm = glm::angle(vector, lastVector);
-        // Angle from X axis to difference vector
-        float xAngle = atan2f(difference.y, difference.x);
-        float xAngleOfLast = atan2f(lastDifference.y, lastDifference.x);
+        // Angle from X axis to vDifference vector
+        //float xAngle = atan2f(vDifference.y, vDifference.x);
+        //float xAngleOfLast = atan2f(vDifferenceLast.y, vDifferenceLast.x);
          //atan2f(v1.x * v2.y - v1.y * v2.x, v1.x * v2.x + v1.y * v2.y);
         //float angle = atan2f(vector.x * lastVector.y - vector.y * lastVector.x, vector.x * lastVector.x + vector.y * lastVector.y);
-        // Angle between current and initial difference vectors
-        float iAngle = atan2f(difference.x * initialDifference.y - difference.y * initialDifference.x, difference.x * initialDifference.x + difference.y * initialDifference.y);
-        // Magnitude of the angle between current and initial difference vectors
-        //float iDot = glm::dot(difference, initialDifference);
+        // Angle between start and current difference vectors
+        float sAngle = atan2f(vDifferenceStart.x * vDifference.y - vDifferenceStart.y * vDifference.x,
+                          vDifferenceStart.x * vDifference.x + vDifferenceStart.y * vDifference.y);
+        // Magnitude of the angle between current and initial vDifference vectors
+        //float iDot = glm::dot(vDifference, vDifferenceStart);
         //float iAngle = acosf(iDot / fabs(distance) * fabs(initialDistance));
         //if (iDot < 0) iAngle
         //float iAngle = xAngle - initialXAngle;
         //iAngle = fmod(iAngle + M_PI, 2 * M_PI);
-        // Angle between current and previous difference vectors
+        // Angle between current and previous vDifference vectors
         //assert(initialXAngle != 0 && iAngle != xAngle);
         //float iAngleMag;
         //iAngleMag = fabs(iAngle);
         //if (iAngle > M_PI / 2)
         //    iAngleMag = M_PI - iAngle;
-        float dAngleCalc = atan2f(difference.x * lastDifference.y - difference.y * lastDifference.x, difference.x * lastDifference.x + difference.y * lastDifference.y);
-        float dAngle = xAngle - xAngleOfLast;
-        float dDist = distance - distanceOfLast;
-        float dDistStart = distance - initialDistance;
-        //float timestep = (event->tfinger.timestamp - lastVectorTimestamp) / 1000000.0;
-        //float dDist, dTheta;
-        //assert(timestep != 0);
-        //if (timestep == 0) {
-        //    dDist = distance - lastDistance;
-        //    dTheta = angle - lastAngle;
-        //} else {
-        //    float dDist_r = dDist / timestep;
-        //    float dAngle_r = dAngle / timestep;
-            //dDist = distance - initialDistance;
-            //dTheta = angle_x - initialAngle;
-            //float dTheta1 = angle_x - lastAngle;
-        //}
-        lastDifference = difference;
-        lastAngle = xAngle;
-        lastVectorTimestamp = event->tfinger.timestamp;
+        //float dAngle = atan2f(vDifference.x * vDifferenceLast.y - vDifference.y * vDifferenceLast.x, vDifference.x * vDifferenceLast.x + vDifference.y * vDifferenceLast.y);
+        // Angle between last and current difference vectors.
+        float dAngle = atan2f(vDifferenceLast.x * vDifference.y - vDifferenceLast.y * vDifference.x,
+                            vDifferenceLast.x * vDifference.x + vDifferenceLast.y * vDifference.y);
+        float dDist = distance - distanceLast;
+        float dDistStart = distance - distanceStart;
+        vDifferenceLast = vDifference;
         if (LOADTESTSAMPLE_LOG_GESTURE_EVENTS && !(rotating || zooming)) {
-#if 0
-                SDL_Log("LTS FINGER_MOTION: Not zooming or rotating. "
-                        " timestamp = %" SDL_PRIu64 ", distance = %f, angle_glm = %f°, angle_x = %f°, angle = %f°, dDist = %f, dTheta = %f°",
-                        event->tfinger.timestamp,
-                        distance, angle_glm * 180.0 / M_PI, angle_x * 180.0 / M_PI, angle * 180.0 / M_PI,
-                        dDist, dTheta * 180.0 / M_PI);
-#else
+                // Angle from X axis to vDifference vector
+                float xAngle = atan2f(vDifference.y, vDifference.x);
                 SDL_Log("LTS FINGER_MOTION: Not zooming or rotating. "
                         " timestamp = %" SDL_PRIu64 ", %s, %s",
                         event->tfinger.timestamp,
                         printFingerIds(fingers, numFingers).c_str(),
-                        printVector("Difference", difference).c_str());
-                SDL_Log("... distanceOfLast = %f, distance = %f, dDist = %f, dDistStart = %f, xAngle = %f°, iAngle = %f°, dAngle = %f°, dAngleCalc = %f°",
-                        distanceOfLast, distance, dDist, dDistStart,
-                        xAngle * 180.0 / M_PI, iAngle * 180.0 / M_PI, dAngle * 180.0 / M_PI,
-                        dAngleCalc * 180.0 / M_PI);
-#endif
+                        printVector("Difference", vDifference).c_str());
+                SDL_Log("... distanceLast = %f, distance = %f, dDist = %f, dDistStart = %f, xAngle = %f°, sAngle = %f°, dAngle = %f°",
+                        distanceLast, distance, dDist, dDistStart,
+                        xAngle * 180.0 / M_PI, sAngle * 180.0 / M_PI, dAngle * 180.0 / M_PI);
         }
         // This is all heuristics derived from use.
         if (zooming) {
@@ -341,9 +316,9 @@ LoadTestSample::doEvent(SDL_Event* event)
                 zooming = true;
                 zoom += dDist * 10.0f;
                 if (LOADTESTSAMPLE_LOG_GESTURE_DETECTION) {
-                    SDL_Log("---------------- LTS MG: spreading detected ---------------\n"
-                            " iAngle = %f°, dDistStart = %f, dDist = %f, zoom = %f",
-                            iAngle * 180.0 / M_PI, dDistStart, dDist, zoom);
+                    SDL_Log("---------------- LTS MG: pinch/zoom detected ---------------\n"
+                            " dAngle = %f°, dDistStart = %f, dDist = %f, zoom = %f",
+                            dAngle * 180.0 / M_PI, dDistStart, dDist, zoom);
                 }
             }
         }
@@ -355,13 +330,13 @@ LoadTestSample::doEvent(SDL_Event* event)
             }
        } else if (!zooming) {
           // if (fabs(dAngle_r) > 0.16 * M_PI / 180.0 && fabs(dDistStart) < 0.04) {
-          if (fabs(iAngle) > 10 * M_PI / 180.0 && fabs(dDistStart) < 0.1) {
+          if (fabs(sAngle) > 10 * M_PI / 180.0 && fabs(dDistStart) < 0.1) {
                 rotating = true;
                 rotation.z += static_cast<float>(dAngle * 180.0 / M_PI);
                 if (LOADTESTSAMPLE_LOG_GESTURE_DETECTION) {
                     SDL_Log("---------------- LTS MG: rotation detected ---------------\n"
-                            " iAngle = %f°, dAngle = %f°, dDistStart = %f, rotation.z = %f°",
-                            iAngle * 180 / M_PI, dAngle * 180.0 / M_PI, dDistStart, rotation.z);
+                            " sAngle = %f°, dAngle = %f°, dDistStart = %f, rotation.z = %f°",
+                            sAngle * 180 / M_PI, dAngle * 180.0 / M_PI, dDistStart, rotation.z);
                 }
             }
         }

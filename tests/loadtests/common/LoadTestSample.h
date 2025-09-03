@@ -60,14 +60,11 @@ class LoadTestSample {
     glm::vec3 rotation;
     glm::vec3 cameraPos;
     glm::vec2 mousePos;
-    Uint64 lastVectorTimestamp = 0;
-    Uint64 lastFMTimestamp = 0;
-    glm::vec2 lastDifference;
-    float lastAngle = 0.0;
-    float initialDistance = 0.0;
-    float initialXAngle = 0.0;
+    glm::vec2 vDifferenceLast; // Difference between fingers at last motion event.
+    glm::vec2 vDifferenceStart; // Difference between fingers at start of gesture.
+    float distanceStart = 0.0; // Distance between fingers at start of gesture.
+    float xAngleStart = 0.0;   // Unused unless event logging is enabled.
     Uint64 firstFingerId = 0;
-    glm::vec2 initialDifference;
     bool processingGesture = false;
 
     struct {
