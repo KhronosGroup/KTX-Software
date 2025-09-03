@@ -187,21 +187,25 @@ LoadTestSample::doEvent(SDL_Event* event)
                         " Resetting mouseButtons.left.");
             }
             if (numFingers == 2) {
-                // Calc. vDifference vector between fingers.
                 firstFingerId = fingers[0]->id;
-                vDifferenceLast.x = fingers[1]->x - fingers[0]->x;
-                vDifferenceLast.y = fingers[1]->y - fingers[0]->y;
-                vDifferenceStart = vDifferenceLast;
-                distanceStart = glm::length(vDifferenceStart);
+                // Calc. difference vector between fingers.
+                glm::vec2 vDifference;
+                vDifference.x = fingers[1]->x - fingers[0]->x;
+                vDifference.y = fingers[1]->y - fingers[0]->y;
+                distanceStart = glm::length(vDifference);
+                distanceLast = distanceStart;
+                // Need normalized vectors for glm::orientedAngle
+                nvDifferenceStart = glm::normalize(vDifference);
+                nvDifferenceLast = nvDifferenceStart;
                 processingGesture = true;
                 if (LOADTESTSAMPLE_LOG_GESTURE_EVENTS) {
                     // Angle of vector to X axis.
-                    xAngleStart = atan2f(vDifferenceLast.y, vDifferenceLast.x);
+                    xAngleStart = atan2f(vDifference.y, vDifference.x);
                     SDL_Log("LTS: FINGER_DOWN, start values: %s, Distance = %f, XAngle = %f°",
-                            printVector("Difference", vDifferenceStart).c_str(),
+                            printVector("Difference", vDifference).c_str(),
                             distanceStart, xAngleStart * 180.0 / M_PI
                             );
-                    }
+                }
                 retVal = 1;
             }
         }
@@ -257,39 +261,17 @@ LoadTestSample::doEvent(SDL_Event* event)
         glm::vec2 vDifference; // Difference vector between the fingers.
         vDifference.x = fingers[1]->x - fingers[0]->x;
         vDifference.y = fingers[1]->y - fingers[0]->y;
-        float distanceLast = glm::length(vDifferenceLast);
         float distance = glm::length(vDifference);
-        // Normalized vectors required by glm::angle
-        //glm::normalize(lastVector);
-        //glm::normalize(vector);
-        //float angle_glm = glm::angle(vector, lastVector);
-        // Angle from X axis to vDifference vector
-        //float xAngle = atan2f(vDifference.y, vDifference.x);
-        //float xAngleOfLast = atan2f(vDifferenceLast.y, vDifferenceLast.x);
-         //atan2f(v1.x * v2.y - v1.y * v2.x, v1.x * v2.x + v1.y * v2.y);
-        //float angle = atan2f(vector.x * lastVector.y - vector.y * lastVector.x, vector.x * lastVector.x + vector.y * lastVector.y);
+        // Normalized vectors required by glm::orientedAngle
+        glm::vec2 nvDifference = glm::normalize(vDifference);
         // Angle between start and current difference vectors
-        float sAngle = atan2f(vDifferenceStart.x * vDifference.y - vDifferenceStart.y * vDifference.x,
-                          vDifferenceStart.x * vDifference.x + vDifferenceStart.y * vDifference.y);
-        // Magnitude of the angle between current and initial vDifference vectors
-        //float iDot = glm::dot(vDifference, vDifferenceStart);
-        //float iAngle = acosf(iDot / fabs(distance) * fabs(initialDistance));
-        //if (iDot < 0) iAngle
-        //float iAngle = xAngle - initialXAngle;
-        //iAngle = fmod(iAngle + M_PI, 2 * M_PI);
+        float sAngle = glm::orientedAngle(nvDifferenceStart, nvDifference);
         // Angle between current and previous vDifference vectors
-        //assert(initialXAngle != 0 && iAngle != xAngle);
-        //float iAngleMag;
-        //iAngleMag = fabs(iAngle);
-        //if (iAngle > M_PI / 2)
-        //    iAngleMag = M_PI - iAngle;
-        //float dAngle = atan2f(vDifference.x * vDifferenceLast.y - vDifference.y * vDifferenceLast.x, vDifference.x * vDifferenceLast.x + vDifference.y * vDifferenceLast.y);
-        // Angle between last and current difference vectors.
-        float dAngle = atan2f(vDifferenceLast.x * vDifference.y - vDifferenceLast.y * vDifference.x,
-                            vDifferenceLast.x * vDifference.x + vDifferenceLast.y * vDifference.y);
+        float dAngle = glm::orientedAngle(nvDifferenceLast, nvDifference);
+        // Difference in distance since last motion event.
         float dDist = distance - distanceLast;
+        // Difference in distance since start.
         float dDistStart = distance - distanceStart;
-        vDifferenceLast = vDifference;
         if (LOADTESTSAMPLE_LOG_GESTURE_EVENTS && !(rotating || zooming)) {
                 // Angle from X axis to vDifference vector
                 float xAngle = atan2f(vDifference.y, vDifference.x);
@@ -302,6 +284,9 @@ LoadTestSample::doEvent(SDL_Event* event)
                         distanceLast, distance, dDist, dDistStart,
                         xAngle * 180.0 / M_PI, sAngle * 180.0 / M_PI, dAngle * 180.0 / M_PI);
         }
+        nvDifferenceLast = nvDifference;
+        distanceLast = distance;
+
         // This is all heuristics derived from use.
         if (zooming) {
             zoom += dDist * 10.0f;
@@ -309,10 +294,7 @@ LoadTestSample::doEvent(SDL_Event* event)
                 SDL_Log("LTS MG: Zooming. zoom = %f", zoom);
             }
         } else if (!rotating) {
-            //if (fabs(dDistStart) >= 0.1 && fabs(dAngle_r) < 0.03 * M_PI / 180.0) {
-            //if (fabs(dDistStart) >= 0.05 && fabs(iAngle) < 5.0 * M_PI / 180.0) {
             if (fabs(dDistStart) >= 0.1 && fabs(dAngle) < 0.5 * M_PI / 180.0) {
-            //if (fabs(dDist_r) > 0.0022 && fabs(dAngle_r) < 0.03 * M_PI / 180.0) {
                 zooming = true;
                 zoom += dDist * 10.0f;
                 if (LOADTESTSAMPLE_LOG_GESTURE_DETECTION) {
@@ -329,7 +311,6 @@ LoadTestSample::doEvent(SDL_Event* event)
                 SDL_Log("LTS MG: Rotating around Z. rotation.z = %f°", rotation.z);
             }
        } else if (!zooming) {
-          // if (fabs(dAngle_r) > 0.16 * M_PI / 180.0 && fabs(dDistStart) < 0.04) {
           if (fabs(sAngle) > 10 * M_PI / 180.0 && fabs(dDistStart) < 0.1) {
                 rotating = true;
                 rotation.z += static_cast<float>(dAngle * 180.0 / M_PI);

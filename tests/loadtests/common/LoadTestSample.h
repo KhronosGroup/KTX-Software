@@ -28,16 +28,14 @@ class LoadTestSample {
            : w_width(width), w_height(height), yflip(yflip),
              sBasePath(sBasePath)
     {
-        // Some compilers. e.g. VS2013, do not support initializers in the class
-        // definition yet compile without warnings. So initialize the
-        // old-fashioned way.
+#if 0
         mouseButtons.left = mouseButtons.middle = mouseButtons.right = false;
-        //lastGesture.timestamp = 0;
         quit = false;
         paused = false;
         timer = 0.f;
         timerSpeed = 0.25f;
         rotationSpeed = zoomSpeed = 1.f;
+#endif
     }
 
     virtual ~LoadTestSample() { };
@@ -60,10 +58,11 @@ class LoadTestSample {
     glm::vec3 rotation;
     glm::vec3 cameraPos;
     glm::vec2 mousePos;
-    glm::vec2 vDifferenceLast; // Difference between fingers at last motion event.
-    glm::vec2 vDifferenceStart; // Difference between fingers at start of gesture.
+    glm::vec2 nvDifferenceStart; // Normalized difference between fingers at start of gesture.
     float distanceStart = 0.0; // Distance between fingers at start of gesture.
-    float xAngleStart = 0.0;   // Unused unless event logging is enabled.
+    float xAngleStart = 0.0;   // Angle between x-axis and nvDifferenceStart. Unused unless event logging is enabled.
+    glm::vec2 nvDifferenceLast; // Normalized difference between fingers at last motion event.
+    float distanceLast = 0.0;   // Distance between fingers at last motion event.
     Uint64 firstFingerId = 0;
     bool processingGesture = false;
 
@@ -75,6 +74,7 @@ class LoadTestSample {
     bool quit = false;
     bool rotating = false;
     bool zooming = false;
+    bool paused = false;
 
     float zoom = 0;
 
@@ -86,8 +86,6 @@ class LoadTestSample {
     float timer = 0.0f;
     // Multiplier for speeding up (or slowing down) the global timer
     float timerSpeed = 0.25f;
-
-    bool paused = false;
 
     // Use to adjust mouse rotation speed
     float rotationSpeed = 1.0f;
