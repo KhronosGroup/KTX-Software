@@ -28,14 +28,6 @@ class LoadTestSample {
            : w_width(width), w_height(height), yflip(yflip),
              sBasePath(sBasePath)
     {
-#if 0
-        mouseButtons.left = mouseButtons.middle = mouseButtons.right = false;
-        quit = false;
-        paused = false;
-        timer = 0.f;
-        timerSpeed = 0.25f;
-        rotationSpeed = zoomSpeed = 1.f;
-#endif
     }
 
     virtual ~LoadTestSample() { };

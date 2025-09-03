@@ -26,11 +26,11 @@
 
 #if !defined(LOADTESTSAMPLE_LOG_GESTURE_DETECTION)
   // Log detected and completed gestures.
-  #define LOADTESTSAMPLE_LOG_GESTURE_DETECTION 1
+  #define LOADTESTSAMPLE_LOG_GESTURE_DETECTION 0
 #endif
 #if !defined(LOADTESTSAMPLE_LOG_GESTURE_EVENTS)
   // Log events contributing to gesture detection and gestures.
-  #define LOADTESTSAMPLE_LOG_GESTURE_EVENTS 1
+  #define LOADTESTSAMPLE_LOG_GESTURE_EVENTS 0
 #endif
 #if !defined(LOADTESTSAMPLE_LOG_MOUSE_UP_DOWN_EVENTS)
   #define LOADTESTSAMPLE_LOG_MOUSE_UP_DOWN_EVENTS 0
@@ -174,12 +174,12 @@ LoadTestSample::doEvent(SDL_Event* event)
         int numFingers;
         SDL_Finger** fingers = SDL_GetTouchFingers(event->tfinger.touchID, &numFingers);
         int retVal = 0;
-        if (LOADTESTSAMPLE_LOG_GESTURE_EVENTS) {
-            SDL_Log("LTS: Finger: %#" SDL_PRIx64 " down - fingers: %i, %s, x: %f, y: %f",
-                    event->tfinger.fingerID, numFingers,
-                    printFingerIds(fingers, numFingers).c_str(),
-                    event->tfinger.x, event->tfinger.y);
-        }
+#if LOADTESTSAMPLE_LOG_GESTURE_EVENTS
+        SDL_Log("LTS: Finger: %#" SDL_PRIx64 " down - fingers: %i, %s, x: %f, y: %f",
+                event->tfinger.fingerID, numFingers,
+                printFingerIds(fingers, numFingers).c_str(),
+                event->tfinger.x, event->tfinger.y);
+#endif
         if (numFingers > 1) {
             mouseButtons.left = false;
             if (LOADTESTSAMPLE_LOG_GESTURE_EVENTS) {
@@ -198,17 +198,18 @@ LoadTestSample::doEvent(SDL_Event* event)
                 nvDifferenceStart = glm::normalize(vDifference);
                 nvDifferenceLast = nvDifferenceStart;
                 processingGesture = true;
-                if (LOADTESTSAMPLE_LOG_GESTURE_EVENTS) {
-                    // Angle of vector to X axis.
-                    xAngleStart = atan2f(vDifference.y, vDifference.x);
-                    SDL_Log("LTS: FINGER_DOWN, start values: %s, Distance = %f, XAngle = %f°",
-                            printVector("Difference", vDifference).c_str(),
-                            distanceStart, xAngleStart * 180.0 / M_PI
-                            );
-                }
+#if LOADTESTSAMPLE_LOG_GESTURE_EVENTS
+                // Angle of vector to X axis.
+                xAngleStart = atan2f(vDifference.y, vDifference.x);
+                SDL_Log("LTS: FINGER_DOWN, start values: %s, Distance = %f, XAngle = %f°",
+                        printVector("Difference", vDifference).c_str(),
+                        distanceStart, xAngleStart * 180.0 / M_PI
+                        );
+#endif
                 retVal = 1;
             }
         }
+
         // It is possible to somehow get out of the window without seeing
         // FINGER_UP so as a safeguard stop any previous gesture.
         zooming = rotating = false;
@@ -218,12 +219,12 @@ LoadTestSample::doEvent(SDL_Event* event)
       case SDL_EVENT_FINGER_UP: {
         int numFingers;
         SDL_Finger** fingers = SDL_GetTouchFingers(event->tfinger.touchID, &numFingers);
-        if (LOADTESTSAMPLE_LOG_GESTURE_EVENTS) {
-            SDL_Log("LTS: Finger: %#" SDL_PRIx64 " up - fingers: %i, %s, x: %f, y: %f",
-                    event->tfinger.fingerID, numFingers,
-                    printFingerIds(fingers, numFingers).c_str(),
-                    event->tfinger.x, event->tfinger.y);
-        }
+#if LOADTESTSAMPLE_LOG_GESTURE_EVENTS
+        SDL_Log("LTS: Finger: %#" SDL_PRIx64 " up - fingers: %i, %s, x: %f, y: %f",
+                event->tfinger.fingerID, numFingers,
+                printFingerIds(fingers, numFingers).c_str(),
+                event->tfinger.x, event->tfinger.y);
+#endif
         if (processingGesture && numFingers == 2) {
             // There may still be one finger down. Even so the action is completed.
             if (LOADTESTSAMPLE_LOG_GESTURE_DETECTION) {
@@ -251,12 +252,6 @@ LoadTestSample::doEvent(SDL_Event* event)
         if (event->tfinger.fingerID == firstFingerId) {
             return 0;
         }
-#if 0 // SDL_PLATFORM_MACOS || SDL_PLATFORM_IOS
-        if (event->tfinger.timestamp != lastFMTimestamp) {
-            // This event is the motion of the first finger of the pair.
-            return 0;
-        }
-#endif
 
         glm::vec2 vDifference; // Difference vector between the fingers.
         vDifference.x = fingers[1]->x - fingers[0]->x;
@@ -272,7 +267,8 @@ LoadTestSample::doEvent(SDL_Event* event)
         float dDist = distance - distanceLast;
         // Difference in distance since start.
         float dDistStart = distance - distanceStart;
-        if (LOADTESTSAMPLE_LOG_GESTURE_EVENTS && !(rotating || zooming)) {
+#if LOADTESTSAMPLE_LOG_GESTURE_EVENTS
+        if (!(rotating || zooming)) {
                 // Angle from X axis to vDifference vector
                 float xAngle = atan2f(vDifference.y, vDifference.x);
                 SDL_Log("LTS FINGER_MOTION: Not zooming or rotating. "
@@ -284,6 +280,7 @@ LoadTestSample::doEvent(SDL_Event* event)
                         distanceLast, distance, dDist, dDistStart,
                         xAngle * 180.0 / M_PI, sAngle * 180.0 / M_PI, dAngle * 180.0 / M_PI);
         }
+#endif
         nvDifferenceLast = nvDifference;
         distanceLast = distance;
 
