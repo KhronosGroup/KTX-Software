@@ -196,10 +196,11 @@ jobs:
         if: matrix.options.doc == 'ON'
         uses: ts-graphviz/setup-graphviz@v2
 
-      - name: Install nuget
-        # mono was removed from macos 15 runners because it is unsupported.
+      - name: Install nuget and mono
+        # nuget & mono were removed from macos 15 runners because mono is
+        # unsupported and nuget needs mono. This will install both.
         if: matrix.options.loadtests != 'OFF'
-        run: brew install nuget
+        run: nuget help || brew install nuget -q
 
       - name: Run install script
         run: ./scripts/install_macos.sh
