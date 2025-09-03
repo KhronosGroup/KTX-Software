@@ -196,10 +196,6 @@ jobs:
         if: matrix.options.doc == 'ON'
         uses: ts-graphviz/setup-graphviz@v2
 
-      - name: Install Mono
-        if: matrix.options.loadtests != 'OFF'
-        run: sudo brew install mono
-
       - name: Run install script
         run: ./scripts/install_macos.sh
 
@@ -237,6 +233,11 @@ jobs:
             core.exportVariable('VCPKG_ROOT', process.env.VCPKG_INSTALLATION_ROOT || '');
             core.exportVariable('VCPKG_EXE', process.env.VCPKG_INSTALLATION_ROOT + '/vcpkg' || '');
             core.exportVariable('NUGET_FEED_URL', 'https://nuget.pkg.github.com/KhronosGroup/index.json' || '');
+
+      - name: Bootstrap vcpkg
+        # This is an attempt to fix an error running mono in the next step.
+        if: matrix.options.loadtests != 'OFF'
+        run: $VCPKG_ROOT/bootstrap_vcpkg.sh
 
       - name: Add NuGet sources for vcpkg binary caching
         if: matrix.options.loadtests != 'OFF'
