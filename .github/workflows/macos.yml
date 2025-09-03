@@ -237,7 +237,7 @@ jobs:
       - name: Bootstrap vcpkg
         # This is an attempt to fix an error running mono in the next step.
         if: matrix.options.loadtests != 'OFF'
-        run: $VCPKG_ROOT/bootstrap_vcpkg.sh
+        run: $VCPKG_ROOT/bootstrap-vcpkg.sh
 
       - name: Add NuGet sources for vcpkg binary caching
         if: matrix.options.loadtests != 'OFF'
