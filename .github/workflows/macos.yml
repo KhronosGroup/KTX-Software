@@ -198,7 +198,7 @@ jobs:
 
       - name: Install Mono
         if: matrix.options.loadtests != 'OFF'
-        run: brew install mono
+        run: sudo brew install mono
 
       - name: Run install script
         run: ./scripts/install_macos.sh
