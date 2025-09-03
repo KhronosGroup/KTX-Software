@@ -311,7 +311,7 @@ LoadTestSample::doEvent(SDL_Event* event)
                 SDL_Log("LTS MG: Rotating around Z. rotation.z = %f°", rotation.z);
             }
        } else if (!zooming) {
-          if (fabs(sAngle) > 10 * M_PI / 180.0 && fabs(dDistStart) < 0.1) {
+          if (fabs(sAngle) > 15 * M_PI / 180.0 && fabs(dDistStart) < 0.1) {
                 rotating = true;
                 rotation.z += static_cast<float>(dAngle * 180.0 / M_PI);
                 if (LOADTESTSAMPLE_LOG_GESTURE_DETECTION) {
