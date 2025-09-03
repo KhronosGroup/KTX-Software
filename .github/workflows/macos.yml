@@ -196,6 +196,11 @@ jobs:
         if: matrix.options.doc == 'ON'
         uses: ts-graphviz/setup-graphviz@v2
 
+      - name: Install nuget
+        # mono was removed from macos 15 runners because it is unsupported.
+        if: matrix.options.loadtests != 'OFF'
+        run: brew install nuget
+
       - name: Run install script
         run: ./scripts/install_macos.sh
 
@@ -234,28 +239,19 @@ jobs:
             core.exportVariable('VCPKG_EXE', process.env.VCPKG_INSTALLATION_ROOT + '/vcpkg' || '');
             core.exportVariable('NUGET_FEED_URL', 'https://nuget.pkg.github.com/KhronosGroup/index.json' || '');
 
-      - name: Bootstrap vcpkg
-        # This is an attempt to fix an error running mono in the next step.
-        if: matrix.options.loadtests != 'OFF'
-        run: $VCPKG_ROOT/bootstrap-vcpkg.sh
-
       - name: Add NuGet sources for vcpkg binary caching
         if: matrix.options.loadtests != 'OFF'
         env:
           USERNAME: KhronosGroup
         shell: bash
-        # `vcpkg fetch nuget` fetches nuget and outputs the location of
-        # the fetched command. It is a .exe that runs in the mono VM.
         run: |
-          mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
-            sources add \
+            nuget sources add \
             -Source "${{ env.NUGET_FEED_URL }}" \
             -StorePasswordInClearText \
             -Name GitHubPackages \
             -UserName "${{ env.USERNAME }}" \
             -Password "${{ secrets.GITHUB_TOKEN }}"
-          mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
-            setapikey "${{ secrets.GITHUB_TOKEN }}" \
+            nuget setapikey "${{ secrets.GITHUB_TOKEN }}" \
             -Source "${{ env.NUGET_FEED_URL }}"
 
       - name: before_script
