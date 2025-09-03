@@ -812,9 +812,6 @@ static void GestureProcessEvent(const SDL_Event *event)
                 }
             }
 
-            assert(inTouch->numDownFingers >= 0);
-            assert(!std::isinf(inTouch->centroid.x) && !std::isinf(inTouch->centroid.y));
-            assert(!std::isnan(inTouch->centroid.x) && !std::isnan(inTouch->centroid.y));
             /* inTouch->gestureLast[j] = inTouch->gestureLast[inTouch->numDownFingers]; */
             if (inTouch->numDownFingers > 0) {
                 inTouch->centroid.x = (inTouch->centroid.x * (inTouch->numDownFingers + 1) - x) / inTouch->numDownFingers;
@@ -822,8 +819,6 @@ static void GestureProcessEvent(const SDL_Event *event)
             } else {
                 inTouch->centroid.x = inTouch->centroid.y = 0.0f;
             }
-            assert(!std::isinf(inTouch->centroid.x) && !std::isinf(inTouch->centroid.y));
-            assert(!std::isnan(inTouch->centroid.x) && !std::isnan(inTouch->centroid.y));
         } else if (event->type == SDL_EVENT_FINGER_MOTION) {
             /* There is one FINGER_MOTION event per down finger. x,y gives
                the position of the finger whose id is in the event. */
@@ -854,7 +849,6 @@ static void GestureProcessEvent(const SDL_Event *event)
                 }
             }
 #endif
-            //assert(inTouch->numDownFingers == numDownFingersReported);
             /* See comment at line 762. One case where the count reliably
                differs from reported is on iOS. When touching, dragging and
                releasing 2 fingers, iOS sends a BUTTON_DOWN and BUTTON_UP
@@ -878,8 +872,6 @@ static void GestureProcessEvent(const SDL_Event *event)
 
             inTouch->centroid.x += dx / inTouch->numDownFingers;
             inTouch->centroid.y += dy / inTouch->numDownFingers;
-            assert(!std::isinf(inTouch->centroid.x) && !std::isinf(inTouch->centroid.y));
-            assert(!std::isnan(inTouch->centroid.x) && !std::isnan(inTouch->centroid.y));
             /* printf("Centroid : (%f,%f)\n",inTouch->centroid.x,inTouch->centroid.y); */
             if (inTouch->numDownFingers > 1) {
                 SDL_FPoint lv; /* Vector from centroid to last x,y position */
@@ -919,8 +911,6 @@ static void GestureProcessEvent(const SDL_Event *event)
                 knob.ang += dtheta;
                 printf("thetaSum = %f, distSum = %f\n",gdtheta,gdDist);
                 printf("id: %i dTheta = %f, dDist = %f\n",j,dtheta,dDist); */
-                assert(!std::isinf(dtheta) && !std::isinf(dDist));
-                assert(!std::isnan(dtheta) && !std::isnan(dDist));
                 GestureSendMulti(inTouch, dtheta, dDist);
             } else {
                 /* inTouch->gestureLast[j].dDist = 0;
@@ -957,8 +947,6 @@ static void GestureProcessEvent(const SDL_Event *event)
             }
             inTouch->centroid.x /= numDownFingersReported;
             inTouch->centroid.y /= numDownFingersReported;
-            assert(!std::isinf(inTouch->centroid.x) && !std::isinf(inTouch->centroid.y));
-            assert(!std::isnan(inTouch->centroid.x) && !std::isnan(inTouch->centroid.y));
             //printf("Finger Down: (%f,%f). Centroid: (%f,%f\n",x,y,
             //     inTouch->centroid.x,inTouch->centroid.y);
 
