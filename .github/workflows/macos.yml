@@ -200,7 +200,7 @@ jobs:
         # nuget & mono were removed from macos 15 runners because mono is
         # unsupported and nuget needs mono. This will install both.
         if: matrix.options.loadtests != 'OFF'
-        run: nuget help || brew install nuget -q
+        run: which nuget || brew install nuget -q
 
       - name: Run install script
         run: ./scripts/install_macos.sh
