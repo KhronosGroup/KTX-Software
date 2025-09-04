@@ -175,8 +175,6 @@ class SwipeDetector {
     };
 
   protected:
-    //Gesture_MultiGestureEvent mgestureFirst;
-    //bool mgestureFirstSaved;
     struct gestureStart {
         Uint64 time;
         SDL_FPoint point;

@@ -131,12 +131,7 @@ LoadTestSample::doEvent(SDL_Event* event)
         }
         return 0;
       case SDL_EVENT_MOUSE_BUTTON_UP:
-        //if (event->button.which == SDL_TOUCH_MOUSEID
-        //    && SDL_GetNumTouchFingers(event->tfinger.touchId) != 1)
-        //    return 0;
-        //if (event->button.which == SDL_TOUCH_MOUSEID)
-        //    return 0;
-        if (LOADTESTSAMPLE_LOG_MOUSE_UP_DOWN_EVENTS) {
+       if (LOADTESTSAMPLE_LOG_MOUSE_UP_DOWN_EVENTS) {
             SDL_Log("LTS: MOUSE_UP - button: %s, x: %f, y: %f", buttonName(event->button.button),
                      event->button.x, event->button.y);
         }
@@ -261,7 +256,7 @@ LoadTestSample::doEvent(SDL_Event* event)
         glm::vec2 nvDifference = glm::normalize(vDifference);
         // Angle between start and current difference vectors
         float sAngle = glm::orientedAngle(nvDifferenceStart, nvDifference);
-        // Angle between current and previous vDifference vectors
+        // Angle between current and previous difference vectors
         float dAngle = glm::orientedAngle(nvDifferenceLast, nvDifference);
         // Difference in distance since last motion event.
         float dDist = distance - distanceLast;

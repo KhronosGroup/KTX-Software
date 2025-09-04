@@ -9,7 +9,6 @@
 #ifndef _LOAD_TEST_SAMPLE_H
 #define _LOAD_TEST_SAMPLE_H
 
-#include <optional>
 #include <string>
 #include <SDL3/SDL.h>
 #define GLM_FORCE_RADIANS
