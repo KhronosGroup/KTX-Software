@@ -24,7 +24,7 @@
 GLLoadTests::GLLoadTests(const sampleInvocation samples[],
                          const uint32_t numSamples,
                          const char* const name,
-                         const SDL_GLprofile profile,
+                         const SDL_GLProfile profile,
                          const int majorVersion,
                          const int minorVersion)
                 : GLAppSDL(name, 640, 480, profile, majorVersion, minorVersion),
@@ -66,7 +66,7 @@ GLLoadTests::initialize(Args& args)
     }
     // Launch the first sample.
     invokeSample(Direction::eForward);
-    return AppBaseSDL::initialize(args);
+    return true;
 }
 
 
@@ -78,13 +78,13 @@ GLLoadTests::finalize()
 }
 
 
-int
+bool
 GLLoadTests::doEvent(SDL_Event* event)
 {
-    int result = 0;
+    bool result = false;
     switch (event->type) {
-      case SDL_KEYUP:
-        switch (event->key.keysym.sym) {
+      case SDL_EVENT_KEY_UP:
+        switch (event->key.key) {
           case 'q':
             quit = true;
             break;
@@ -97,12 +97,12 @@ GLLoadTests::doEvent(SDL_Event* event)
             invokeSample(Direction::eBack);
             break;
           default:
-            result = 1;
+            result = true;
         }
         break;
-      case SDL_MOUSEBUTTONDOWN:
+      case SDL_EVENT_MOUSE_BUTTON_DOWN:
         // Forward to sample in case this is the start of motion.
-        result = 1;
+        result = true;
         switch (event->button.button) {
           case SDL_BUTTON_LEFT:
             buttonDown.x = event->button.x;
@@ -113,13 +113,13 @@ GLLoadTests::doEvent(SDL_Event* event)
             break;
         }
         break;
-      case SDL_MOUSEBUTTONUP:
+      case SDL_EVENT_MOUSE_BUTTON_UP:
         // Forward to sample so it doesn't get stuck in button down state.
-        result = 1;
+        result = true;
         switch (event->button.button) {
           case SDL_BUTTON_LEFT:
-            if (SDL_abs(event->button.x - buttonDown.x) < 5
-                && SDL_abs(event->button.y - buttonDown.y) < 5
+            if (SDL_fabs(event->button.x - buttonDown.x) < 5
+                && SDL_fabs(event->button.y - buttonDown.y) < 5
                 && (event->button.timestamp - buttonDown.timestamp) < 100) {
                 // Advance to the next sample.
                 ++sampleIndex;
@@ -131,7 +131,7 @@ GLLoadTests::doEvent(SDL_Event* event)
         }
         break;
       // On macOS drop events come also when Launch Pad sends a file open event.
-      case SDL_DROPBEGIN:
+      case SDL_EVENT_DROP_BEGIN:
         // Opens of multiple selected files from Finder/LaunchPad come as
         // a BEGIN, COMPLETE sequence per file. Only clear infiles after a
         // suitable pause between COMPLETE and BEGIN.
@@ -139,11 +139,10 @@ GLLoadTests::doEvent(SDL_Event* event)
             infiles.clear();
         }
         break;
-      case SDL_DROPFILE:
-        infiles.push_back(event->drop.file);
-        SDL_free(event->drop.file);
+      case SDL_EVENT_DROP_FILE:
+        infiles.push_back(event->drop.data);
         break;
-      case SDL_DROPCOMPLETE:
+      case SDL_EVENT_DROP_COMPLETE:
         if (!infiles.empty()) {
             // Guard against the drop being text.
             dropCompleteTime = event->drop.timestamp;
@@ -151,30 +150,37 @@ GLLoadTests::doEvent(SDL_Event* event)
             invokeSample(Direction::eForward);
         }
         break;
+      case SDL_EVENT_USER:
+        if (event->user.code == SwipeDetector::swipeGesture) {
+            // This is horrible.
+            uint64_t udirection = reinterpret_cast<uint64_t>(event->user.data1);
+            SwipeDetector::Direction direction =
+              static_cast<SwipeDetector::Direction>(udirection);
+            switch (direction) {
+              case SwipeDetector::Direction::left:
+                ++sampleIndex;
+                invokeSample(Direction::eForward);
+                break;
+              case SwipeDetector::Direction::right:
+                --sampleIndex;
+                invokeSample(Direction::eBack);
+                break;
+              default:
+                result = true;
+            }
+        } else {
+            result = true;
+        }
+        break;
       default:
-        switch(swipeDetector.doEvent(event)) {
-          case SwipeDetector::eSwipeUp:
-          case SwipeDetector::eSwipeDown:
-          case SwipeDetector::eEventConsumed:
-            break;
-          case SwipeDetector::eSwipeLeft:
-            ++sampleIndex;
-            invokeSample(Direction::eForward);
-            break;
-          case SwipeDetector::eSwipeRight:
-            --sampleIndex;
-            invokeSample(Direction::eBack);
-            break;
-          case SwipeDetector::eEventNotConsumed:
-            result = 1;
-          }
+        result = swipeDetector.doEvent(event);
     }
     
-    if (result == 1) {
+    if (result) {
         // Further processing required.
         if (pCurSample != nullptr)
             result = pCurSample->doEvent(event);  // Give sample a chance.
-        if (result == 1)
+        if (result)
             return GLAppSDL::doEvent(event);  // Pass to base class.
     }
     return result;
@@ -280,7 +286,7 @@ GLLoadTests::invokeSample(Direction dir)
                 NULL //&colorScheme                                 // .colorScheme
             };
             int buttonid;
-            if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {
+            if (!SDL_ShowMessageBox(&messageboxdata, &buttonid)) {
                 SDL_Log("error displaying error message box");
                 exit(1);
             }

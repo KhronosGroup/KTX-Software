@@ -196,6 +196,12 @@ jobs:
         if: matrix.options.doc == 'ON'
         uses: ts-graphviz/setup-graphviz@v2
 
+      - name: Install nuget and mono
+        # nuget & mono were removed from macos 15 runners because mono is
+        # unsupported and nuget needs mono. This will install both.
+        if: matrix.options.loadtests != 'OFF'
+        run: which nuget || brew install nuget -q
+
       - name: Run install script
         run: ./scripts/install_macos.sh
 
@@ -239,18 +245,14 @@ jobs:
         env:
           USERNAME: KhronosGroup
         shell: bash
-        # `vcpkg fetch nuget` fetches nuget and outputs the location of
-        # the fetched command. It is a .exe that runs in the mono VM.
         run: |
-          mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
-            sources add \
+            nuget sources add \
             -Source "${{ env.NUGET_FEED_URL }}" \
             -StorePasswordInClearText \
             -Name GitHubPackages \
             -UserName "${{ env.USERNAME }}" \
             -Password "${{ secrets.GITHUB_TOKEN }}"
-          mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
-            setapikey "${{ secrets.GITHUB_TOKEN }}" \
+            nuget setapikey "${{ secrets.GITHUB_TOKEN }}" \
             -Source "${{ env.NUGET_FEED_URL }}"
 
       - name: before_script

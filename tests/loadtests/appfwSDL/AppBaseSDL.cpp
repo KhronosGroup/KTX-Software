@@ -31,15 +31,14 @@ AppBaseSDL::initialize(Args& /*args*/)
     if (basePath == NULL)
         basePath = SDL_strdup("./");
     sBasePath = basePath;
-#if __LINUX__
+#if SDL_PLATFORM_LINUX
     // TODO figure out best way to handle these resources
     sBasePath += "../resources/";
 #endif
-#if __WINDOWS__
+#if SDL_PLATFORM_WINDOWS
     // Ditto
     sBasePath += "resources/";
 #endif
-    SDL_free((void *)basePath);
     return true;
 }
 
@@ -60,15 +59,15 @@ AppBaseSDL::finalize() {
 }
 
 
-int
+bool
 AppBaseSDL::doEvent(SDL_Event* event)
 {
     switch (event->type) {
-      case SDL_QUIT:
+      case SDL_EVENT_QUIT:
         finalize();
         exit(0);
     }
-    return 1;    
+    return true;
 }
 
 

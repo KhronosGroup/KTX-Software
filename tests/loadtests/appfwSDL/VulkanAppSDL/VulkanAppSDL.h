@@ -15,7 +15,7 @@
 #include <vector>
 #define VK_ENABLE_BETA_EXTENSIONS 1
 #include <vulkan/vulkan.hpp>
-#include <SDL2/SDL_vulkan.h> // Must be after vulkan.hpp.
+#include <SDL3/SDL_vulkan.h> // Must be after vulkan.hpp.
 
 #include "AppBaseSDL.h"
 #include "VulkanContext.h"
@@ -40,12 +40,12 @@ class VulkanAppSDL : public AppBaseSDL {
         appTitle = name;
     };
     virtual ~VulkanAppSDL();
-    virtual int doEvent(SDL_Event* event);
+    virtual bool doEvent(SDL_Event* event);
     virtual void drawFrame(uint32_t msTicks);
     virtual void finalize();
     virtual bool initialize(Args& args);
     virtual void onFPSUpdate();
-    virtual void resizeWindow();
+    virtual void resizeWindow(int width, int height);
     virtual void windowResized();
 
     static void* operator new(size_t size) {

@@ -63,6 +63,9 @@
     }                                                                       \
   }
 
+#if SDL_PLATFORM_WINDOWS
+void setWindowsIcon(SDL_Window *sdlWindow);
+#endif
 
 VulkanAppSDL::~VulkanAppSDL()
 {
@@ -84,17 +87,16 @@ VulkanAppSDL::initialize(Args& args)
         return false;
 
     SDL_SetHint(SDL_HINT_MAC_CTRL_CLICK_EMULATE_RIGHT_CLICK, "1");
+    // CAUTION: Setting this to 0 (the default) on macOS causes loss of all touch events
+    // from a trackpad not just those corresponding to mouse clicks.
     SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "1");
-
     // Create window.
     // Vulkan samples do not pass any information from Vulkan initialization
     // to window creation so creating the window first should be ok...
     pswMainWindow = SDL_CreateWindow(
                         szName,
-                        SDL_WINDOWPOS_UNDEFINED,
-                        SDL_WINDOWPOS_UNDEFINED,
                         w_width, w_height,
-                        SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI
+                        SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY
                     );
 
     if (pswMainWindow == NULL) {
@@ -102,6 +104,12 @@ VulkanAppSDL::initialize(Args& args)
                                        SDL_GetError(), NULL);
         return false;
     }
+
+#if SDL_PLATFORM_WINDOWS
+    // Set the application's own icon in place of the Windows default set by SDL.
+    // Needs to be done here to avoid change being visible.
+    setWindowsIcon(pswMainWindow);
+#endif
 
     if (!initializeVulkan()) {
         return false;
@@ -140,20 +148,14 @@ VulkanAppSDL::finalize()
 }
 
 
-int
+bool
 VulkanAppSDL::doEvent(SDL_Event* event)
 {
     switch (event->type) {
-      case SDL_WINDOWEVENT:
-        switch (event->window.event) {
-          case SDL_WINDOWEVENT_SIZE_CHANGED:
-            // Size given in event is in 'points' on some platforms.
-            // Resize window will figure out the drawable pixel size.
-            resizeWindow(/*event->window.data1, event->window.data2*/);
-            return 0;
-        }
+      case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+        resizeWindow(event->window.data1, event->window.data2);
+        return 0;
         break;
-            
     }
     return AppBaseSDL::doEvent(event);
 }
@@ -186,7 +188,7 @@ VulkanAppSDL::windowResized()
 }
 
 void
-VulkanAppSDL::resizeWindow()
+VulkanAppSDL::resizeWindow(int width, int height)
 {
     // XXX Necessary? Get out-of-date errors from vkAcquireNextImage regardless
     // of whether this guard is used. This guard doesn't seem to make them any
@@ -202,9 +204,8 @@ VulkanAppSDL::resizeWindow()
 
     // Recreate swap chain.
 
-    // This call is unnecessary on iOS or macOS. Swapchain creation gets the
-    // correct drawable size from the surface capabilities. Elsewhere?
-    SDL_Vulkan_GetDrawableSize(pswMainWindow, (int*)&w_width, (int*)&w_height);
+    w_width = width;
+    w_height = height;
 
     // This destroys any existing swapchain and makes a new one.
     createSwapchain();
@@ -462,8 +463,9 @@ VulkanAppSDL::createInstance()
 
 
     /* Build list of needed extensions */
-    uint32_t c;
-    if (!SDL_Vulkan_GetInstanceExtensions(pswMainWindow, &c, nullptr)) {
+    uint32_t rec;
+    const char* const* requiredExtensionNames = SDL_Vulkan_GetInstanceExtensions(&rec);
+    if (requiredExtensionNames == nullptr) {
         std::string title;
         std::stringstream msg;
         title = szName;
@@ -503,10 +505,9 @@ VulkanAppSDL::createInstance()
     if (validate)
         extensionNames.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 
-    uint32_t i = (uint32_t)extensionNames.size();
-    extensionNames.resize(i + c);
-    (void)SDL_Vulkan_GetInstanceExtensions(pswMainWindow, &c,
-                                           &extensionNames.data()[i]);
+    for (uint32_t i = 0; i < rec; i++) {
+        extensionNames.push_back(requiredExtensionNames[i]);
+    }
 
     const vk::ApplicationInfo app(szName, 0, szName, 0, vkVersion);
 
@@ -1609,7 +1610,7 @@ VulkanAppSDL::debugFunc(VkDebugReportFlagsEXT msgFlags,
     title += " Debug Report";
     if (showDebugReport(mbFlags, title, message.str(), prepared)) {
         SDL_Event sdlevent;
-        sdlevent.type = SDL_QUIT;
+        sdlevent.type = SDL_EVENT_QUIT;
         sdlevent.quit.timestamp = SDL_GetTicks();
 
         (void)SDL_PushEvent(&sdlevent);
@@ -1715,7 +1716,7 @@ VulkanAppSDL::showDebugReport(uint32_t mbFlags, const std::string title,
         NULL //&colorScheme                                     // .colorScheme
     };
     int buttonid;
-    if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {
+    if (!SDL_ShowMessageBox(&messageboxdata, &buttonid)) {
         SDL_Log("error displaying message box");
     }
     if (buttonid == -1) {
@@ -1725,4 +1726,23 @@ VulkanAppSDL::showDebugReport(uint32_t mbFlags, const std::string title,
         return buttonid;
     }
 }
+
+#if SDL_PLATFORM_WINDOWS
+    // Windows specific code to use icon in module
+    #define WIN32_LEAN_AND_MEAN
+    #include <Windows.h>
+void setWindowsIcon(SDL_Window *sdlWindow) {
+    HINSTANCE handle = ::GetModuleHandle(nullptr);
+    // Identify icon by name rather than IDI_ macro to avoid having to
+    // include application's resource.h.
+    HICON icon = ::LoadIcon(handle, "MAIN_ICON");  // MAKEINTRESOURCE(IDI_ICON1));
+    if (icon != nullptr) {
+        HWND hwnd = (HWND)SDL_GetPointerProperty(SDL_GetWindowProperties(sdlWindow),
+                                                 SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL);
+        if (hwnd) {
+            ::SetClassLongPtr(hwnd, GCLP_HICON, reinterpret_cast<LONG_PTR>(icon));
+        }
+    }
+}
+#endif
 

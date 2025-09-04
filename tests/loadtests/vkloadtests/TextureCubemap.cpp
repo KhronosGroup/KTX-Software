@@ -29,12 +29,14 @@
 
 #include "TextureCubemap.h"
 #include "VulkanTextureTranscoder.hpp"
+#include "SwipeDetector.h"
 #include "argparser.h"
 #include "ltexceptions.h"
 
 #define VERTEX_BUFFER_BIND_ID 0
 #define ENABLE_VALIDATION false
 #define USE_GL_RH_NDC 0
+#define NORMALIZE_AXES 0
 
 // Vertex layout for this example
 std::vector<vkMeshLoader::VertexLayout> vertexLayout =
@@ -118,7 +120,7 @@ TextureCubemap::TextureCubemap(VulkanContext& vkctx,
         // Assume a KTX-compliant cubemap. That means the faces are in a
         // LH coord system with +y up. Multiply the cube's y and z by -1 to
         // put the +z face in front of the view and keep +y up. Alternatively
-        // we could multiply the y and x coords by -1 to kepp the +y up while
+        // we could multiply the y and x coords by -1 to keep the +y up while
         // placing the +z face in the +z direction.
 #if !USE_GL_RH_NDC
         ubo.uvwTransform = glm::scale(glm::mat4(1.0f), glm::vec3(1, -1, -1));
@@ -151,7 +153,39 @@ TextureCubemap::~TextureCubemap()
     cleanup();
 }
 
-void TextureCubemap::resize(uint32_t width, uint32_t height)
+int
+TextureCubemap::doEvent(SDL_Event* event)
+{
+    int result = 0;
+    switch(event->type) {
+      case SDL_EVENT_USER:
+        if (event->user.code == SwipeDetector::swipeGesture) {
+            SwipeDetector::Direction direction
+                = SwipeDetector::pointerToDirection(event->user.data1);
+            switch (direction) {
+              case SwipeDetector::Direction::up:
+                toggleObject(+1);
+                break;
+              case SwipeDetector::Direction::down:
+                toggleObject(-1);
+                break;
+              default:
+                result = 1;
+            }
+        } else {
+            result = 1;
+        }
+        break;
+      default:
+        result = 1;
+    }
+    if (result == 1)
+        result = VulkanLoadTestSample::doEvent(event);
+    return result;
+}
+
+void
+TextureCubemap::resize(uint32_t width, uint32_t height)
 {
     this->w_width = width;
     this->w_height = height;
@@ -667,6 +701,15 @@ TextureCubemap::updateUniformBuffers()
                                       0.001f, 256.0f);
     viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0f, 0.0f, zoom));
 
+    // Transform the z axis to what the viewer is perceiving as the z axis to make
+    // the behaviour of 2-finger rotation (the value in rotation.z) understandable.
+    glm::mat4 zAxisRotMatrix;
+    zAxisRotMatrix = glm::rotate(zAxisRotMatrix, glm::radians(-rotation.x),
+                            glm::vec3(1.0f, 0.0f, 0.0f));
+    zAxisRotMatrix = glm::rotate(zAxisRotMatrix, glm::radians(-rotation.y),
+                            glm::vec3(0.0f, 1.0f, 0.0f));
+    zRotationAxis =  normalize(zAxisRotMatrix * glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+
     ubo.modelView = glm::mat4();
     ubo.modelView = viewMatrix * glm::translate(ubo.modelView, cameraPos);
     ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.x),
@@ -674,7 +717,8 @@ TextureCubemap::updateUniformBuffers()
     ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.y),
                                 glm::vec3(0.0f, 1.0f, 0.0f));
     ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.z),
-                                glm::vec3(0.0f, 0.0f, 1.0f));
+                                zRotationAxis);
+
     // Do the inverse here because doing it in every fragment is a bit much.
     // Also MetalSL does not have inverse() and does not support passing
     // transforms between stages.
@@ -753,12 +797,13 @@ TextureCubemap::toggleSkyBox()
 }
 
 void
-TextureCubemap::toggleObject()
+TextureCubemap::toggleObject(int direction)
 {
-    meshes.objectIndex++;
-    if (meshes.objectIndex >= static_cast<uint32_t>(meshes.objects.size()))
-    {
+    meshes.objectIndex += direction;
+    if (meshes.objectIndex >= static_cast<int32_t>(meshes.objects.size())) {
         meshes.objectIndex = 0;
+    } else if (meshes.objectIndex < 0) {
+        meshes.objectIndex = static_cast<int32_t>(meshes.objects.size()) - 1;
     }
     rebuildCommandBuffers();
 }
@@ -788,7 +833,7 @@ TextureCubemap::keyPressed(uint32_t keyCode)
         toggleSkyBox();
         break;
     case ' ':
-        toggleObject();
+        toggleObject(+1);
         break;
     case SDLK_KP_PLUS:
         changeLodBias(0.1f);
@@ -806,7 +851,7 @@ TextureCubemap::getOverlayText(VulkanTextOverlay *textOverlay, float yOffset)
     ss << std::setprecision(2) << std::fixed << ubo.lodBias;
     textOverlay->addText("Press \"s\" to toggle skybox", 5.0f,
                          yOffset, VulkanTextOverlay::alignLeft);
-    textOverlay->addText("Press \"space\" to change object", 5.0f,
+    textOverlay->addText("Press \"space\" or 2-finger swipe up or down to change object", 5.0f,
                          yOffset+20.0f, VulkanTextOverlay::alignLeft);
     textOverlay->addText("LOD bias: " + ss.str() + " (numpad +/- to change)",
                          5.0f, yOffset+40.0f, VulkanTextOverlay::alignLeft);

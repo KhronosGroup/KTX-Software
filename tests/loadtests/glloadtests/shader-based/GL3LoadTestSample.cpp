@@ -19,8 +19,7 @@
 #include <string.h>
 #include <sstream>
 #include <ktx.h>
-#define __IPHONEOS__ 0
-#include <SDL2/SDL_platform.h>
+#include <SDL3/SDL_platform.h>
 
 #include "GL3LoadTestSample.h"
 
@@ -218,6 +217,10 @@ GL3LoadTestSample::contextSupportsSwizzle()
     else
         return true;
 }
+#if !defined(SDL_PLATFORM_IOS)
+  // SDL only defines this on IOS and on Windows undefined != 0
+  #define SDL_PLATFORM_IOS 0
+#endif
 
 GLint
 GL3LoadTestSample::framebufferColorEncoding()
@@ -229,7 +232,7 @@ GL3LoadTestSample::framebufferColorEncoding()
 #endif
     if (strstr((const char*)glGetString(GL_VERSION), "GL ES") == NULL)
         attachment = GL_BACK_LEFT;
-    else if (__IPHONEOS__)
+    else if (SDL_PLATFORM_IOS)
         // iOS does not use the default framebuffer.
         attachment = GL_COLOR_ATTACHMENT0;
     else
