@@ -746,7 +746,7 @@ public:
 
                 printDiff("Packed", formatPacked(texelBlockPair.first, false), formatPacked(texelBlockPair.second, false));
 
-                // Only output chnalles if not block-compressed
+                // Only output channels if not block-compressed
                 if (!texelBlockPair.first.isBlockCompressed())
                     printDiff("Channels", formatChannels(texelBlockPair.first, false), formatChannels(texelBlockPair.second, false));
             }
