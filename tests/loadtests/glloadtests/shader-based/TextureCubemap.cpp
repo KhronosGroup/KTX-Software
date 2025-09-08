@@ -29,6 +29,7 @@
 #include "argparser.h"
 #include "TextureCubemap.h"
 #include "GLTextureTranscoder.hpp"
+#include "SwipeDetector.h"
 #include "ltexceptions.h"
 
 #define member_size(type, member) sizeof(((type *)0)->member)
@@ -344,6 +345,37 @@ TextureCubemap::~TextureCubemap()
     cleanup();
 }
 
+int
+TextureCubemap::doEvent(SDL_Event* event)
+{
+    int result = 0;
+    switch(event->type) {
+      case SDL_EVENT_USER:
+        if (event->user.code == SwipeDetector::swipeGesture) {
+            SwipeDetector::Direction direction
+                = SwipeDetector::pointerToDirection(event->user.data1);
+            switch (direction) {
+              case SwipeDetector::Direction::up:
+                toggleObject(+1);
+                break;
+              case SwipeDetector::Direction::down:
+                toggleObject(-1);
+                break;
+              default:
+                result = 1;
+            }
+        } else {
+            result = 1;
+        }
+        break;
+      default:
+        result = 1;
+    }
+    if (result == 1)
+        result = GL3LoadTestSample::doEvent(event);
+    return result;
+}
+
 void
 TextureCubemap::resize(uint32_t width, uint32_t height)
 {
@@ -495,6 +527,15 @@ TextureCubemap::updateUniformBuffers()
                                       0.001f, 256.0f);
     viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0f, 0.0f, zoom));
 
+    // Transform the z axis to what the viewer is perceiving as the z axis to make
+    // the behaviour of 2-finger rotation (the value in rotation.z) understandable.
+    glm::mat4 zAxisRotMatrix;
+    zAxisRotMatrix = glm::rotate(zAxisRotMatrix, glm::radians(180.0f - rotation.x),
+                            glm::vec3(1.0f, 0.0f, 0.0f));
+    zAxisRotMatrix = glm::rotate(zAxisRotMatrix, glm::radians(rotation.y),
+                            glm::vec3(0.0f, 1.0f, 0.0f));
+    zRotationAxis =  normalize(zAxisRotMatrix * glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+
     // I do not understand why this is necessary. Assimp is supposed to
     // put models in the GL coordinate system by default but the teapot is
     // upside down. Since the other objects are symmetrical it is not possible
@@ -508,7 +549,7 @@ TextureCubemap::updateUniformBuffers()
     ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.y),
                                 glm::vec3(0.0f, 1.0f, 0.0f));
     ubo.modelView = glm::rotate(ubo.modelView, glm::radians(rotation.z),
-                                glm::vec3(0.0f, 0.0f, 1.0f));
+                                zRotationAxis);
     // Remove translation from modelView so the skybox doesn't move.
     ubo.skyboxView = glm::mat4(glm::mat3(ubo.modelView));
     // Do the inverse here because doing it in every fragment is a bit much.
@@ -620,12 +661,13 @@ TextureCubemap::toggleSkyBox()
 }
 
 void
-TextureCubemap::toggleObject()
+TextureCubemap::toggleObject(int direction)
 {
-    meshes.objectIndex++;
-    if (meshes.objectIndex >= static_cast<uint32_t>(meshes.objects.size()))
-    {
+    meshes.objectIndex += direction;
+    if (meshes.objectIndex >= static_cast<int32_t>(meshes.objects.size())) {
         meshes.objectIndex = 0;
+    } else if (meshes.objectIndex < 0) {
+        meshes.objectIndex = static_cast<int32_t>(meshes.objects.size()) - 1;
     }
 }
 
@@ -653,7 +695,7 @@ TextureCubemap::keyPressed(uint32_t keyCode)
         toggleSkyBox();
         break;
     case ' ':
-        toggleObject();
+        toggleObject(+1);
         break;
     case SDLK_KP_PLUS:
         changeLodBias(0.1f);

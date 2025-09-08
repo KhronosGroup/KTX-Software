@@ -54,6 +54,7 @@ argvector::argvector(const string& sArgs)
     bool continuation = false;
     for (smatch sm; regex_search(first, last, sm, re);) {
         bool needContinuation = false;
+#define DEBUG_REGEX 0
 #if DEBUG_REGEX
         std::cout << "prefix: " << sm.prefix() << '\n';
         std::cout << "suffix: " << sm.suffix() << '\n';
@@ -66,7 +67,7 @@ argvector::argvector(const string& sArgs)
         // All this because std::regex does not support negative
         // lookbehind assertions.
         arg = sm.str(1);
-        if (*sm[2].first == '\\') {
+         if (sm.str(2)[0] == '\\') {
             arg += " ";
             needContinuation = true;
         }

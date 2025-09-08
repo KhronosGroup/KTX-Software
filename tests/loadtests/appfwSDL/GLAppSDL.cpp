@@ -21,9 +21,10 @@
     #define snprintf _snprintf
   #endif
   #define _CRT_SECURE_NO_WARNINGS
-#include "windows.h"
+  #define WIN32_LEAN_AND_MEAN
+  #include "windows.h"
   #include "GL/glew.h"
-  #include "SDL2/SDL_loadso.h"
+  #include "SDL3/SDL_loadso.h"
 #else
   #define GL_GLEXT_PROTOTYPES 1
   #include "GL/glcorearb.h"   // for glEnable and FRAMEBUFFER_RGB
@@ -35,7 +36,7 @@
 
 #include "GLAppSDL.h"
 
-#if __WINDOWS__
+#if SDL_PLATFORM_WINDOWS
 void setWindowsIcon(SDL_Window *sdlWindow);
 #endif
 
@@ -48,6 +49,8 @@ GLAppSDL::initialize(Args& args)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, profile);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, majorVersion);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, minorVersion);
+    // On SDL3 this defaults to 8. On SDL2 it was 0.
+    SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 0);
 #if !defined(EMSCRIPTEN)
     if (majorVersion >= 3)
       SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, 1);
@@ -70,11 +73,11 @@ GLAppSDL::initialize(Args& args)
 
         // Only the indicated platforms pay attention to these hints
         // but they could be set on any platform.
-#if __WINDOWS__ || __LINUX__
+#if SDL_PLATFORM_WINDOWS || SDL_PLATFORM_LINUX
         SDL_SetHint(SDL_HINT_OPENGL_ES_DRIVER, "1");
 #endif
 
-#if __WINDOWS__
+#if SDL_PLATFORM_WINDOWS
         // If using ANGLE copied from Chrome should set to "d3dcompiler_46.dll"
         // Should set value via compiler -D definition from gyp file.
         SDL_SetHint(SDL_HINT_VIDEO_WIN_D3DCOMPILER, "none");
@@ -82,12 +85,21 @@ GLAppSDL::initialize(Args& args)
     }
 
     SDL_SetHint(SDL_HINT_MAC_CTRL_CLICK_EMULATE_RIGHT_CLICK, "1");
+    // CAUTION: Setting this to 0 (the default) on macOS causes loss of all touch events
+    // from a trackpad not just those corresponding to mouse clicks.
     SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "1");
-    
+
+#if 0
+    const char* mt = SDL_GetHint(SDL_HINT_MOUSE_TOUCH_EVENTS);
+    SDL_Log("MOUSE_TOUCH_EVENTS = %s", mt);
+    const char* tm = SDL_GetHint(SDL_HINT_TOUCH_MOUSE_EVENTS);
+    SDL_Log("TOUCH_MOUSE_EVENTS = %s", tm);
+    const char* tto = SDL_GetHint(SDL_HINT_TRACKPAD_IS_TOUCH_ONLY);
+    SDL_Log("TRACKPAD_IS_TOUCH_ONLY = %s", tto);
+#endif
+
     pswMainWindow = SDL_CreateWindow(
                         szName,
-                        SDL_WINDOWPOS_UNDEFINED,
-                        SDL_WINDOWPOS_UNDEFINED,
                         w_width, w_height,
                         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
                     );
@@ -96,9 +108,8 @@ GLAppSDL::initialize(Args& args)
         (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, szName, SDL_GetError(), NULL);
         return false;
     }
-
-#if __WINDOWS__
-    // Set the applications own icon in place of the Windows default set by SDL.
+#if SDL_PLATFORM_WINDOWS
+    // Set the application's own icon in place of the Windows default set by SDL.
     // Needs to be done here to avoid change being visible.
     setWindowsIcon(pswMainWindow);
 #endif
@@ -117,7 +128,7 @@ GLAppSDL::initialize(Args& args)
         return false;
     }
 
-#if __WINDOWS__
+#if SDL_PLATFORM_WINDOWS
     if (profile != SDL_GL_CONTEXT_PROFILE_ES)
     {
         // No choice but to use GLEW for GL on Windows; there is no .lib with static
@@ -131,7 +142,7 @@ GLAppSDL::initialize(Args& args)
         // So one build of this library can be linked in to applications using GLEW and
         // applications not using GLEW, do not call any GLEW functions directly.
         // Call via queried function pointers.
-        void* glewdll;
+        SDL_SharedObject* glewdll;
 #if defined(_DEBUG)
         glewdll = SDL_LoadObject("glew32d.dll");
         // KTX-Software repo only contains non-debug library for x64 hence this.
@@ -151,7 +162,7 @@ GLAppSDL::initialize(Args& args)
                 NULL);
             return false;
         }
-        
+
         typedef GLenum(GLEWAPIENTRY PFNGLEWINIT)(void);
         typedef const GLubyte * GLEWAPIENTRY PFNGLEWGETERRORSTRING(GLenum error);
         PFNGLEWINIT* pGlewInit;
@@ -204,7 +215,9 @@ GLAppSDL::initialize(Args& args)
         glEnable(GL_FRAMEBUFFER_SRGB);
 
     // In case the window is created with a different size than specified.
-    resizeWindow();
+    int actualWidth, actualHeight;
+    SDL_GetWindowSizeInPixels(pswMainWindow, &actualWidth, &actualHeight);
+    resizeWindow(actualWidth, actualHeight);
 
     initializeFPSTimer();
     return true;
@@ -214,24 +227,18 @@ GLAppSDL::initialize(Args& args)
 void
 GLAppSDL::finalize()
 {
-    SDL_GL_DeleteContext(sgcGLContext);
+    SDL_GL_DestroyContext(sgcGLContext);
 }
 
 
-int
+bool
 GLAppSDL::doEvent(SDL_Event* event)
 {
     switch (event->type) {
-      case SDL_WINDOWEVENT:
-        switch (event->window.event) {
-          case SDL_WINDOWEVENT_SIZE_CHANGED:
-            // Size given in event is in 'points' on some platforms.
-            // Resize window will figure out the drawable pixel size.
-            resizeWindow(/*event->window.data1, event->window.data2*/);
-            return 0;
-        }
+      case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+        resizeWindow(event->window.data1, event->window.data2);
+        return 0;
         break;
-            
     }
     return AppBaseSDL::doEvent(event);
 }
@@ -252,9 +259,10 @@ GLAppSDL::windowResized()
 
 
 void
-GLAppSDL::resizeWindow()
+GLAppSDL::resizeWindow(int width, int height)
 {
-    SDL_GL_GetDrawableSize(pswMainWindow, &w_width, &w_height);
+    w_width = width;
+    w_height = height;
     windowResized();
 }
 
@@ -301,11 +309,8 @@ GLAppSDL::setWindowTitle()
 }
 #endif
 
-#if __WINDOWS__
+#if SDL_PLATFORM_WINDOWS
 // Windows specific code to use icon in module
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-#include <SDL2/SDL_syswm.h>
 void
 setWindowsIcon(SDL_Window *sdlWindow) {
     HINSTANCE handle = ::GetModuleHandle(nullptr);
@@ -313,13 +318,13 @@ setWindowsIcon(SDL_Window *sdlWindow) {
     // include application's resource.h.
     HICON icon = ::LoadIcon(handle, "MAIN_ICON");// MAKEINTRESOURCE(IDI_ICON1));
     if (icon != nullptr){
-        SDL_SysWMinfo wminfo;
-        SDL_VERSION(&wminfo.version);
-        if (SDL_GetWindowWMInfo(sdlWindow, &wminfo) == 1){
-            HWND hwnd = wminfo.info.win.window;
+        HWND hwnd = (HWND)SDL_GetPointerProperty(SDL_GetWindowProperties(sdlWindow), SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL);
+        if (hwnd) {
             ::SetClassLongPtr(hwnd, GCLP_HICON, reinterpret_cast<LONG_PTR>(icon));
         }
     }
 }
 #endif
+
+//    }
 

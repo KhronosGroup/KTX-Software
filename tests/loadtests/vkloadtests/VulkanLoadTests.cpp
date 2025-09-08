@@ -75,14 +75,14 @@ VulkanLoadTests::finalize()
     VulkanAppSDL::finalize();
 }
 
-int
+bool
 VulkanLoadTests::doEvent(SDL_Event* event)
 {
-    int result = 0;
+    bool result = false;
 
     switch (event->type) {
-      case SDL_KEYUP:
-        switch (event->key.keysym.sym) {
+      case SDL_EVENT_KEY_UP:
+        switch (event->key.key) {
           case 'q':
             quit = true;
             break;
@@ -95,12 +95,12 @@ VulkanLoadTests::doEvent(SDL_Event* event)
             invokeSample(Direction::eBack);
             break;
           default:
-            result = 1;
+            result = true;
         }
         break;
 
       // On macOS drop events come also when Launch Pad sends a file open event.
-      case SDL_DROPBEGIN:
+      case SDL_EVENT_DROP_BEGIN:
         // Opens of multiple selected files from Finder/LaunchPad come as
         // a BEGIN, COMPLETE sequence per file. Only clear infiles after a
         // suitable pause between COMPLETE and BEGIN.
@@ -108,11 +108,10 @@ VulkanLoadTests::doEvent(SDL_Event* event)
             infiles.clear();
         }
         break;
-      case SDL_DROPFILE:
-        infiles.push_back(event->drop.file);
-        SDL_free(event->drop.file);
+      case SDL_EVENT_DROP_FILE:
+        infiles.push_back(event->drop.data);
         break;
-      case SDL_DROPCOMPLETE:
+      case SDL_EVENT_DROP_COMPLETE:
         if (!infiles.empty()) {
             // Guard against the drop being text.
             dropCompleteTime = event->drop.timestamp;
@@ -120,31 +119,37 @@ VulkanLoadTests::doEvent(SDL_Event* event)
             invokeSample(Direction::eForward);
         }
         break;
-
+      case SDL_EVENT_USER:
+        if (event->user.code == SwipeDetector::swipeGesture) {
+            SwipeDetector::Direction direction
+                = SwipeDetector::pointerToDirection(event->user.data1);
+            switch (direction) {
+              case SwipeDetector::Direction::left:
+                ++sampleIndex;
+                //SDL_Log("*********** Sample changed by swipe left **********");
+                invokeSample(Direction::eForward);
+                break;
+              case SwipeDetector::Direction::right:
+                --sampleIndex;
+                //SDL_Log("*********** Sample changed by swipe right *********");
+                invokeSample(Direction::eBack);
+                break;
+              default:
+                result = true;
+            }
+        } else {
+            result = true;
+        }
+        break;
       default:
-        switch(swipeDetector.doEvent(event)) {
-          case SwipeDetector::eSwipeUp:
-          case SwipeDetector::eSwipeDown:
-          case SwipeDetector::eEventConsumed:
-            break;
-          case SwipeDetector::eSwipeLeft:
-            ++sampleIndex;
-            invokeSample(Direction::eForward);
-            break;
-          case SwipeDetector::eSwipeRight:
-            --sampleIndex;
-            invokeSample(Direction::eBack);
-            break;
-          case SwipeDetector::eEventNotConsumed:
-            result = 1;
-          }
+        result = swipeDetector.doEvent(event);
     }
     
-    if (result == 1) {
+    if (result) {
         // Further processing required.
         if (pCurSample != nullptr)
             result = pCurSample->doEvent(event);  // Give sample a chance.
-        if (result == 1)
+        if (result)
             return VulkanAppSDL::doEvent(event);  // Pass to base class.
     }
     return result;
@@ -255,7 +260,7 @@ VulkanLoadTests::invokeSample(Direction dir)
                 NULL //&colorScheme                             // .colorScheme
             };
             int buttonid;
-            if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {
+            if (!SDL_ShowMessageBox(&messageboxdata, &buttonid)) {
                 SDL_Log("error displaying error message box");
                 exit(1);
             }
@@ -296,7 +301,7 @@ VulkanLoadTests::invokeSample(Direction dir)
                 NULL //&colorScheme                                 // .colorScheme
             };
             int buttonid;
-            if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {
+            if (!SDL_ShowMessageBox(&messageboxdata, &buttonid)) {
                 SDL_Log("error displaying error message box");
                 exit(1);
             }

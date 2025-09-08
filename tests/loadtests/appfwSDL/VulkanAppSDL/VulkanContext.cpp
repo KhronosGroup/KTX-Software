@@ -20,7 +20,7 @@
 #include <exception>
 #include <iomanip>
 #include <sstream>
-#include <SDL2/SDL_rwops.h>
+#include <SDL3/SDL_iostream.h>
 #include "VulkanContext.h"
 // Until exceptions are used everywhere...
 #include "vulkancheckres.h"
@@ -339,8 +339,8 @@ VulkanContext::readSpv(const char *filename, size_t *pSize) {
     U_ASSERT_ONLY size_t retval;
     uint32_t* shader_code;
 
-    SDL_RWops* rw = SDL_RWFromFile(filename, "rb");
-    if (!rw) {
+  SDL_IOStream* io = SDL_IOFromFile(filename, "rb");
+    if (!io) {
         std::stringstream message;
 
         // String returned by SDL_GetError() includes file name.
@@ -348,16 +348,16 @@ VulkanContext::readSpv(const char *filename, size_t *pSize) {
         throw std::runtime_error(message.str());
     }
 
-    size = (size_t)SDL_RWsize(rw);
+    size = (size_t)SDL_GetIOSize(io);
 
     // Round-up to next 4-byte size.
     shader_code = new uint32_t[(size + 3)/4];
-    retval = SDL_RWread(rw, shader_code, size, 1);
-    assert(retval == 1);
+    retval = SDL_ReadIO(io, shader_code, size);
+    assert(retval == size);
 
     *pSize = size;
 
-    SDL_RWclose(rw);
+    SDL_CloseIO(io);
     return shader_code;
 }
 

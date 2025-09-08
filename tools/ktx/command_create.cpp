@@ -164,8 +164,9 @@ struct OptionsCreate {
                 (kRuntimeMipmap, "Runtime mipmap generation mode.")
                 (kGenerateMipmap, "Causes mipmaps to be generated during texture creation."
                     " It enables the use of \'Generate Mipmap\' options."
-                    " If the --levels is not specified the maximum possible mip level will be generated."
-                    " This option is mutually exclusive with --runtime-mipmap and cannot be used with UINT or 3D textures.")
+                    " If --levels is not specified the maximum possible mip level will be generated."
+                    " This option is mutually exclusive with --runtime-mipmap and cannot be used with SINT,"
+                    " UINT or 3D textures or --raw.")
                 (kScale, "Scale images as they are loaded. Cannot be used with --raw. It enables use of"
                     " the \'Generate Mipmap\' options to tune the resampler.",
                     cxxopts::value<float>(), "<float>")
@@ -909,16 +910,16 @@ Create a KTX2 file from various input files.
         <dt>\--raw</dt>
         <dd>Create from raw image data.</dd>
         <dt>\--width</dt>
-        <dd>Base level width in pixels. Required with \--raw. For non-raw, if not
+        <dd>Base level width in pixels. Required with @b \--raw. For non-raw, if not
             set, the image width is used otherwise the image is resampled to this width
             and any provided mip levels are resampled proportionately. For non-raw it
-            enables use of the 'Generate Mipmap' options listed under \--generate-mipmap
+            enables use of the 'Generate Mipmap' options listed under @b \--generate-mipmap
             to tune the resampler.</dd>
         <dt>\--height</dt>
-        <dd>Base level height in pixels. Required with \--raw. For non-raw, if not
+        <dd>Base level height in pixels. Required with @b \--raw. For non-raw, if not
             set, the image height is used otherwise the image is resampled to this height
             and any provided mip levels are resampled proportionately. For non-raw it
-            enables use of the 'Generate Mipmap' options listed under \--generate-mipmap
+            enables use of the 'Generate Mipmap' options listed under @b \--generate-mipmap
             to tune the resampler.</dd>
         <dt>\--depth</dt>
         <dd>Base level depth in pixels.
@@ -941,14 +942,14 @@ Create a KTX2 file from various input files.
         <dd>Causes mipmaps to be generated during texture creation.
             If @b \--levels is not specified the maximum possible mip level will
             be generated. This option is mutually exclusive with
-            --runtime-mipmap and cannot be used with SINT, UINT or 3D textures.
-            When set it enables the use of the following 'Generate Mipmap'
-            options.
+            --runtime-mipmap and cannot be used with SINT, UINT or 3D textures
+            or @b \--raw. When set it enables the use of the following
+            'Generate Mipmap' options.
         <dl>
             <dt>\--mipmap-filter &lt;filter&gt;</dt>
             <dd>Specifies the filter to use when generating the mipmaps.
-                Case insensitive. Ignored unless --generate-mipmap, --scale,
-                --width or --height are specified for non-raw input.<br />
+                Case insensitive. Ignored unless @b \--generate-mipmap, @b \--scale,
+                @b \--width or @b \--height are specified for non-raw input.<br />
                 Possible options are:
                 box | tent | bell | b-spline | mitchell | blackman | lanczos3 |
                 lanczos4 | lanczos6 | lanczos12 | kaiser | gaussian |
@@ -957,12 +958,12 @@ Create a KTX2 file from various input files.
                 Defaults to lanczos4.</dd>
             <dt>\--mipmap-filter-scale &lt;float&gt;</dt>
             <dd>The filter scale to use.
-                Defaults to 1.0. Ignored unless --generate-mipmap, --scale,
-                --width or --height are specified for non-raw input.</dd>
+                Defaults to 1.0. Ignored unless @b \--generate-mipmap, @b \--scale,
+                @b \--width or @b \--height are specified for non-raw input.</dd>
             <dt>\--mipmap-wrap &lt;mode&gt;</dt>
             <dd>Specify how to sample pixels near the image boundaries.
-                Case insensitive. Ignored unless --generate-mipmap, --scale,
-                --width or --height are specified for non-raw input.<br />
+                Case insensitive. Ignored unless @b \--generate-mipmap, @b \--scale,
+                @b \--width or @b \--height are specified for non-raw input.<br />
                 Possible options are:
                 wrap | reflect | clamp.
                 Defaults to clamp.</dd>
@@ -978,7 +979,7 @@ Create a KTX2 file from various input files.
         <dd>Normalize input normals to have a unit length. Only valid for
             linear normal textures with 2 or more components. For 2-component
             inputs 2D unit normals are calculated. Do not use these 2D unit
-            normals to generate X+Y normals with @b --normal-mode. For 4-component
+            normals to generate X+Y normals with @b \--normal-mode. For 4-component
             inputs a 3D unit normal is calculated. 1.0 is used for the value of
             the 4th component. Cannot be used with @b \--raw.</dd>
         <dt>\--premultiply-alpha</dt>

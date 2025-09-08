@@ -109,8 +109,7 @@ sudo dnf install make automake gcc gcc-c++ kernel-devel cmake libzstd-devel ninj
 
 To build the load test applications you also need to install the following
 
-- [SDL2](sdl2) development library
-- [assimp](assimp) development library
+- [vcpkg](#vcpkg) (which will automatically install the actual dependencies: [SDL3](sdl3) and [assimp](assimp))
 - OpenGL development libraries
 - Vulkan development libraries
 - [Vulkan SDK](#vulkan-sdk)
@@ -119,13 +118,13 @@ To build the load test applications you also need to install the following
 On Ubuntu and Debian these can be installed via
 
 ```bash
-sudo apt install libsdl2-dev libgl1-mesa-glx libgl1-mesa-dev libvulkan1 libvulkan-dev libassimp-dev
+sudo apt install libsdl3-dev libgl1-mesa-glx libgl1-mesa-dev libvulkan1 libvulkan-dev libassimp-dev
 ```
 
 On Fedora and RedHat these can be installed via
 
 ```bash
-sudo dnf install SDL2-devel mesa-libGL mesa-libGL-devel mesa-vulkan-drivers assimp-devel
+sudo dnf install SDL3-devel mesa-libGL mesa-libGL-devel mesa-vulkan-drivers assimp-devel
 ```
 
 KTX requires `glslc`, which comes with [Vulkan SDK](#vulkan-sdk) (in sub-
@@ -163,7 +162,7 @@ You need to install the following
 
 To build the load test applications you also need to install
 
-- [vcpkg](#vcpkg) (which will automatically install the actual dependencies: [SDL2](sdl2) and [assimp](assimp))
+- [vcpkg](#vcpkg) (which will automatically install the actual dependencies: [SDL3](sdl3) and [assimp](assimp))
 - [Vulkan SDK](#vulkan-sdk)
 
 Other dependencies (like OpenGL) come with Xcode.
@@ -345,12 +344,12 @@ Web builds create three additional targets:
 You need to install the following
 
 - CMake
-- Visual Studio 2019 or 2022
+- Visual Studio 2022. VS2025 will likely work but is untested.
 - [Doxygen](#doxygen) and [dot](#dot\(graphviz\)) (only if generating documentation)
 
 To build the load test applications you also need to install
 
-- [vcpkg](#vcpkg) (which will automatically install the actual dependencies: [SDL2](sdl2) and [assimp](assimp))
+- [vcpkg](#vcpkg) (which will automatically install the actual dependencies: [SDL3](sdl3) and [assimp](assimp))
 - [Vulkan SDK](#vulkan-sdk)
 
 For the load test applications you must also set these environment variables:
@@ -362,7 +361,7 @@ Additional requirement for the OpenGL ES version of the load tests application
 
 - [OpenGL ES emulator](#opengl-es-emulator-for-windows).
 
-CMake can create solutions for Microsoft Visual Studio (2019 and 2022 are supported by KTX).
+CMake can create solutions for Microsoft Visual Studio.
 
 > **Note:** x86 (32-bit) Windows is not supported.
 
@@ -584,7 +583,7 @@ Windows, WSL (Windows Subsystem for Linux) or Cygwin.
 
 #### vcpkg
 
-This package manager is needed to install the [SDL2](#sdl2) and [assimp](assimp)
+This package manager is needed to install the [SDL3](#sdl3) and [assimp](assimp)
 dependencies of the KTX load test applications on macOS and Windows. Since
 KTX-Software uses vcpkg's manifest mode, installation of the dependencies is
 automatic.
@@ -607,15 +606,15 @@ environment variable `VCPKG_ROOT` to where you have installed _vcpkg_ and set
 `CMAKE_TOOLCHAIN_FILE` to `$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake` when
 using CMake to configure your project.
 
-### SDL2
+### SDL3
 
 Simple Direct Media Layer. Needed if you want to build the KTX load tests.
 
-On GNU/Linux install `libsdl2-dev` using your package manager. On iOS, macOS
-and Windows it will be automatically installed by [vcpkg](#vcpkg). Libraries installed by other package managers are typically not redistributable or
-bundle-able.
+On GNU_Linx, iOS, macOS and Windows it will be automatically installed by
+[vcpkg](#vcpkg). Libraries installed by other package managers are typically
+not redistributable or bundle-able.
 
-Canonical source is at https://github.com/libsdl-org/SDL/tree/SDL2.
+Canonical source is at https://github.com/libsdl-org/SDL/tree/SDL3.
 
 ### assimp
 

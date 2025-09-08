@@ -47,7 +47,8 @@ const GLchar* pszDecalFs =
 "  vec4 color = texture(sampler, v_texcoord);\n"
 "  // DECAL\n"
 "  fragcolor.rgb = v_color.rgb * (1.0f - color.a) + color.rgb * color.a;\n"
-"  fragcolor.a = color.a;\n"
+"  // No need for blending with page or screen background.\n"
+"  fragcolor.a = 1.0f;\n"
 "}";
 
 const GLchar* pszColorFs =
@@ -88,7 +89,8 @@ const GLchar* pszDecalSrgbEncodeFs =
 "  // DECAL\n"
 "  lin_fragcolor = v_color.rgb * (1.0f - t_color.a) + t_color.rgb * t_color.a;\n"
 "  fragcolor.rgb = srgb_encode(lin_fragcolor);\n"
-"  fragcolor.a = t_color.a;\n"
+"  // No need for blending with page or screen background.\n"
+"  fragcolor.a = 1.0f;\n"
 "}";
 
 const GLchar* pszColorSrgbEncodeFs =
