@@ -1334,8 +1334,12 @@ class ImageT : public Image {
                 float linearColor = tf.decode(c[comp] * Color::rcpOne());
                 linearColor *= alpha;
                 float srgbColor = tf.encode(linearColor);
-                float outValue = static_cast<componentType>(srgbColor * static_cast<float>(Color::one()) + 0.5f);
-                c.set(comp, outValue);
+                if (std::is_floating_point_v<componentType>) {
+                    c.set(comp, static_cast<componentType>(srgbColor));
+                } else {
+                    componentType outValue = static_cast<componentType>(srgbColor * static_cast<float>(Color::one()) + 0.5f);
+                    c.set(comp, outValue);
+                }
             }
         }
         return *this;
