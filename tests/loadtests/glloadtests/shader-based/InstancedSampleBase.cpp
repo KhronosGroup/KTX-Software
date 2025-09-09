@@ -13,7 +13,7 @@
  *
  * @brief Base for samplesusing instancing such as array texture display.
  *
- * @author Mark Callow, www.edgewise-consulting.com.
+ * @author Mark Callow, github.com/MarkCallow.
  */
 
 #include <stdlib.h>

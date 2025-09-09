@@ -13,7 +13,7 @@
  *
  * @brief Test loading of a cubemap.
  *
- * @author Mark Callow, www.edgewise-consulting.com.
+ * @author Mark Callow, github.com/MarkCallow.
  */
 
 #include <vector>

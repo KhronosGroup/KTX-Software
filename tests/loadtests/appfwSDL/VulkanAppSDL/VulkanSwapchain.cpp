@@ -16,7 +16,7 @@
  * A swap chain is a collection of image buffers used for rendering
  * The images can then be presented to the windowing system for display.
  *
- * @author Mark Callow, www.edgewise-consulting.com.
+ * @author Mark Callow, github.com/MarkCallow.
  */
 
 #include <stdlib.h>

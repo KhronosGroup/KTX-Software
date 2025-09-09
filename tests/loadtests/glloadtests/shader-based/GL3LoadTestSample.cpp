@@ -13,7 +13,7 @@
  *
  * @brief Definition of a base class for OpenGL texture loading test samples.
  *
- * @author Mark Callow, www.edgewise-consulting.com.
+ * @author Mark Callow, github.com/MarkCallow.
  */
 
 #include <string.h>

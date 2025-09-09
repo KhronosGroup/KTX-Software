@@ -81,7 +81,7 @@ Supercompress the images in a KTX2 file.
  - Initial version.
 
 @section ktxsc_author AUTHOR
-    Mark Callow, Edgewise Consulting www.edgewise-consulting.com
+    Mark Callow, github.com/MarkCallow
 */
 
 #define QUOTE(x) #x

@@ -13,7 +13,7 @@
  *
  * @brief Functions for instantiating Vulkan textures from KTX files.
  *
- * @author Mark Callow, Edgewise Consulting
+ * @author Mark Callow, github.com/MarkCallow
  */
 
 #ifdef _WIN32

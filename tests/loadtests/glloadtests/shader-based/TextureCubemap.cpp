@@ -13,7 +13,7 @@
  *
  * @brief Test loading of 2D texture arrays.
  *
- * @author Mark Callow, www.edgewise-consulting.com.
+ * @author Mark Callow, github.com/MarkCallow.
  */
 
 #include <stdio.h>

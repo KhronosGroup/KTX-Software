@@ -13,7 +13,7 @@
  * This is used principally to check the encoders are properly linked on platforms where the ktx tools are
  * unavailable and libktx is a static library.
  *
- * @author Mark Callow, www.edgewise-consulting.com.
+ * @author Mark Callow, github.com/MarkCallow.
  */
 
 #if defined(_WIN32)

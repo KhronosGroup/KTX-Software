@@ -8,7 +8,7 @@
  *
  * @brief Functions for printing information about KTX or KTX2.
  *
- * @author Mark Callow, www.edgewise-consulting.com
+ * @author Mark Callow, github.com/MarkCallow
  */
 
 /*

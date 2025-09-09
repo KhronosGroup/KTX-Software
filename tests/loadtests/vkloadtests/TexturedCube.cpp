@@ -13,7 +13,7 @@
  *
  * @brief Test loading of 2D textures.
  *
- * @author Mark Callow, www.edgewise-consulting.com.
+ * @author Mark Callow, github.com/MarkCallow.
  *
  * @par Acknowledgement
  * Thanks to Sascha Willems' - www.saschawillems.de - for VulkanTextOverlay.

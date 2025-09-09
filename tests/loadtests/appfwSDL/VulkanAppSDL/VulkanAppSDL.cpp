@@ -13,7 +13,7 @@
  *
  * @brief Framework for Vulkan apps using SDL windows.
  *
- * @author Mark Callow, www.edgewise-consulting.com.
+ * @author Mark Callow, github.com/MarkCallow.
  */
 
 
