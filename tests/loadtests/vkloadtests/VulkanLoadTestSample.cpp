@@ -13,7 +13,7 @@
  *
  * @brief Base class for Vulkan texture loading test samples.
  *
- * @author Mark Callow, www.edgewise-consulting.com.
+ * @author Mark Callow, github.com/MarkCallow.
  */
 
 #include "VulkanLoadTestSample.h"

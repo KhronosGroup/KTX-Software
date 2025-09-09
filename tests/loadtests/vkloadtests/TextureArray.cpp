@@ -13,7 +13,7 @@
  *
  * @brief Definition of test sample for loading and displaying the layers of a 2D array texture.
  *
- * @author Mark Callow, www.edgewise-consulting.com.
+ * @author Mark Callow, github.com/MarkCallow.
  *
  * @par Acknowledgement
  * Thanks to Sascha Willems' - www.saschawillems.de - for the concept,

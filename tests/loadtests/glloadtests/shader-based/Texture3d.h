@@ -13,7 +13,7 @@
  *
  * @brief Declaration of test sample for loading and displaying the slices of a 3d texture..
  *
- * @author Mark Callow, www.edgewise-consulting.com.
+ * @author Mark Callow, github.com/MarkCallow.
  */
 
 #include <vector>

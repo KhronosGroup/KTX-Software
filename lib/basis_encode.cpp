@@ -15,7 +15,7 @@
  *
  * This is where two worlds collide. Ugly!
  *
- * @author Mark Callow, www.edgewise-consulting.com
+ * @author Mark Callow, github.com/MarkCallow
  */
 
 #include <inttypes.h>

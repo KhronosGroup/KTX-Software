@@ -13,7 +13,7 @@
  *
  * @brief Helper class for writer tests.
  *
- * @author Mark Callow, Edgewise Consulting
+ * @author Mark Callow, github.com/MarkCallow
  */
 
 #include "gl_format.h"

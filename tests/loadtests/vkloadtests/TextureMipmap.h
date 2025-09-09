@@ -16,7 +16,7 @@
  *
  * @brief Declaration of test sample for loading and displaying all the levels of a 2D mipmapped texture.
  *
- * @author Mark Callow, www.edgewise-consulting.com.
+ * @author Mark Callow, github.com/MarkCallow.
  */
 
 #include <vector>

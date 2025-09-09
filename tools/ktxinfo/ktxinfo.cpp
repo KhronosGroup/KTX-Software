@@ -79,7 +79,7 @@ Print information about KTX or KTX2 files.
  - Initial version
 
 @section ktxinfo_author AUTHOR
-    Mark Callow, Edgewise Consulting www.edgewise-consulting.com
+    Mark Callow, github.com/MarkCallow
 */
 
 #define QUOTE(x) #x
