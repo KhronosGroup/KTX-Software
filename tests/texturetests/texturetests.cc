@@ -8,7 +8,7 @@
  *
  * @brief Test ktxTexture API functions.
  *
- * @author Mark Callow,github.com/MarkCallow
+ * @author Mark Callow, github.com/MarkCallow
  */
 
 /*
