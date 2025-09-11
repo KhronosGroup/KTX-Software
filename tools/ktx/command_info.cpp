@@ -31,12 +31,11 @@ Print information about a KTX2 file.
     ktx info [option...] @e input-file
 
 @section ktx_info_description DESCRIPTION
-    @b ktx @b info prints information about the KTX2 file specified as the @e input-file argument.
-    If the @e input-file is '-' the file will be read from the stdin.
-    The command implicitly calls @ref ktx_validate "validate" and prints any found errors
-    and warnings to stdout.
-    If the specified input file is invalid the information is displayed based on best effort and
-    may be incomplete.
+    @b ktx @b info prints information about the KTX v1 or v2 file specified as the
+    @e input-file argument. If the @e input-file is '-' the file will be read from the stdin.
+    The command implicitly calls @ref ktx_validate "validate" for KTX v2 files and prints any
+    found errors and warnings to stdout. If the specified input file is invalid the information
+    is displayed based on best effort and may be incomplete.
 
     The JSON output formats conform to the https://schema.khronos.org/ktx/info_v0.json
     schema even if the input file is invalid and certain information cannot be parsed or
@@ -44,6 +43,8 @@ Print information about a KTX2 file.
     Additionally, for JSON outputs the KTX file identifier is printed using "\u001A" instead of
     "\x1A" as an unescaped "\x1A" sequence inside a JSON string breaks nearly every JSON tool.
     Note that this does not change the value of the string only its representation.
+    JSON output is only supported for KTX v2 files. If requested for a KTX v1 file,
+    an error is generated.
 
     @note @b ktx @b info prints using UTF-8 encoding. If your console is not
     set for UTF-8 you will see incorrect characters in output of the file
@@ -85,8 +86,8 @@ private:
 int CommandInfo::main(int argc, char* argv[]) {
     try {
         parseCommandLine("ktx info",
-                "Prints information about the KTX2 file specified as the input-file argument.\n"
-                "    The command implicitly calls validate and prints any found errors\n"
+                "Prints information about the KTX v1 or v2 file specified as the input-file argument.\n"
+                "    The command implicitly calls validate for v2 files and prints any found errors\n"
                 "    and warnings to stdout.",
                 argc, argv);
         executeInfo();
@@ -111,6 +112,7 @@ void CommandInfo::executeInfo() {
     InputStream inputStream(options.inputFilepath, *this);
 
     KTX_error_code result;
+    bool v2 = true;
 
     ktx_uint8_t ktx_ident_ref[12] = KTX_IDENTIFIER_REF;
     ktx_uint8_t identifier[12];
@@ -118,7 +120,8 @@ void CommandInfo::executeInfo() {
     inputStream->seekg(0);
     if (!memcmp(identifier, ktx_ident_ref, 12)) {
         if (options.format != OutputFormat::text)
-            fatal_usage("Only text format can be output for KTX v1 files.");
+            fatal_usage("JSON output formats are not supported for KTX v1 files.");
+        v2 = false;
         StreambufStream<std::streambuf*> ktxStream{inputStream->rdbuf(), std::ios::in | std::ios::binary};
         result = ktxPrintKTX1InfoTextForStream(ktxStream.stream());
     } else {
@@ -139,7 +142,9 @@ void CommandInfo::executeInfo() {
     }
 
     if (result != KTX_SUCCESS)
-        fatal(rc::INVALID_FILE, "Failed to process KTX2 file \"{}\": {}", fmtInFile(options.inputFilepath), ktxErrorString(result));
+        fatal(rc::INVALID_FILE, "Failed to process KTX {} file \"{}\": {}",
+              v2 ? "v2" : "v1",
+              fmtInFile(options.inputFilepath), ktxErrorString(result));
 }
 
 KTX_error_code CommandInfo::printInfoText(std::istream& file) {
