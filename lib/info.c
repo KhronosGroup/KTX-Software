@@ -401,6 +401,11 @@ printIdentifier(const ktx_uint8_t identifier[12], bool json)
  * For KTX format version 1                                  *
  *===========================================================*/
 
+extern const char* glFormatString();
+extern const char* glInternalformatString();
+extern const char* glBaseInternalformatString();
+extern const char* glTypeString();
+
 /**
  * @internal
  * @~English
@@ -415,12 +420,12 @@ printKTXHeader(KTX_header* pHeader)
     printIdentifier(pHeader->identifier, false);
     fprintf(stdout, "\n");
     fprintf(stdout, "endianness: %#x\n", pHeader->endianness);
-    fprintf(stdout, "glType: %#x\n", pHeader->glType);
+    fprintf(stdout, "glType: %s\n", glTypeString(pHeader->glType));
     fprintf(stdout, "glTypeSize: %u\n", pHeader->glTypeSize);
-    fprintf(stdout, "glFormat: %#x\n", pHeader->glFormat);
-    fprintf(stdout, "glInternalformat: %#x\n", pHeader->glInternalformat);
-    fprintf(stdout, "glBaseInternalformat: %#x\n",
-            pHeader->glBaseInternalformat);
+    fprintf(stdout, "glFormat: %s\n", glFormatString(pHeader->glFormat));
+    fprintf(stdout, "glInternalformat: %s\n", glInternalformatString(pHeader->glInternalformat));
+    fprintf(stdout, "glBaseInternalformat: %s\n",
+            glBaseInternalformatString(pHeader->glBaseInternalformat));
     fprintf(stdout, "pixelWidth: %u\n", pHeader->pixelWidth);
     fprintf(stdout, "pixelHeight: %u\n", pHeader->pixelHeight);
     fprintf(stdout, "pixelDepth: %u\n", pHeader->pixelDepth);
