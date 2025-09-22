@@ -27,6 +27,12 @@
 #include <stdlib.h>
 
 #include "gl_funcs.h"
+#define SUPPORT_LEGACY_FORMAT_CONVERSION 0
+// Legacy formats are not supported by libktx. Consider removing format conversion code.
+#if SUPPORT_LEGACY_FORMAT_CONVERSION
+  // For legacy formats defined only in compatibility mode and as extensions.
+  #include "GL/glext.h"
+#endif
 
 #include "ktx.h"
 #include "ktxint.h"
@@ -343,12 +349,12 @@ static void convertFormat(GLenum target, GLenum* pFormat, GLenum* pInternalforma
           glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
           switch (*pInternalformat) {
             case GL_ALPHA:
-            case GL_ALPHA4:
-            case GL_ALPHA8:
+            case GL_ALPHA4_EXT:
+            case GL_ALPHA8_EXT:
               *pInternalformat = GL_R8;
               break;
-            case GL_ALPHA12:
-            case GL_ALPHA16:
+            case GL_ALPHA12_EXT:
+            case GL_ALPHA16_EXT:
               *pInternalformat = GL_R16;
               break;
           }
@@ -360,12 +366,12 @@ static void convertFormat(GLenum target, GLenum* pFormat, GLenum* pInternalforma
           glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
           switch (*pInternalformat) {
             case GL_LUMINANCE:
-            case GL_LUMINANCE4:
-            case GL_LUMINANCE8:
+            case GL_LUMINANCE4_EXT:
+            case GL_LUMINANCE8_EXT:
               *pInternalformat = GL_R8;
               break;
-            case GL_LUMINANCE12:
-            case GL_LUMINANCE16:
+            case GL_LUMINANCE12_EXT:
+            case GL_LUMINANCE16_EXT:
               *pInternalformat = GL_R16;
               break;
 #if 0
@@ -386,21 +392,21 @@ static void convertFormat(GLenum target, GLenum* pFormat, GLenum* pInternalforma
           glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
           switch (*pInternalformat) {
             case GL_LUMINANCE_ALPHA:
-            case GL_LUMINANCE4_ALPHA4:
-            case GL_LUMINANCE6_ALPHA2:
-            case GL_LUMINANCE8_ALPHA8:
+            case GL_LUMINANCE4_ALPHA4_EXT:
+            case GL_LUMINANCE6_ALPHA2_EXT:
+            case GL_LUMINANCE8_ALPHA8_EXT:
               *pInternalformat = GL_RG8;
               break;
-            case GL_LUMINANCE12_ALPHA4:
-            case GL_LUMINANCE12_ALPHA12:
-            case GL_LUMINANCE16_ALPHA16:
+            case GL_LUMINANCE12_ALPHA4_EXT:
+            case GL_LUMINANCE12_ALPHA12_EXT:
+            case GL_LUMINANCE16_ALPHA16_EXT:
               *pInternalformat = GL_RG16;
               break;
 #if 0
             // XXX Must avoid setting TEXTURE_SWIZZLE in these cases
             // XXX Must manually swizzle.
-            case GL_SLUMINANCE_ALPHA:
-            case GL_SLUMINANCE8_ALPHA8:
+            case GL_SLUMINANCE_ALPHA_EXT:
+            case GL_SLUMINANCE8_ALPHA8_EXT:
               *pInternalformat = GL_SRGB8_ALPHA8;
               break;
 #endif
@@ -414,12 +420,12 @@ static void convertFormat(GLenum target, GLenum* pFormat, GLenum* pInternalforma
           glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
           switch (*pInternalformat) {
             case GL_INTENSITY:
-            case GL_INTENSITY4:
-            case GL_INTENSITY8:
+            case GL_INTENSITY4_EXT:
+            case GL_INTENSITY8_EXT:
               *pInternalformat = GL_R8;
               break;
-            case GL_INTENSITY12:
-            case GL_INTENSITY16:
+            case GL_INTENSITY12_EXT:
+            case GL_INTENSITY16_EXT:
               *pInternalformat = GL_R16;
               break;
           }
