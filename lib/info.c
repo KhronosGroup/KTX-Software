@@ -403,7 +403,6 @@ printIdentifier(const ktx_uint8_t identifier[12], bool json)
 
 extern const char* glFormatString();
 extern const char* glInternalformatString();
-extern const char* glBaseInternalformatString();
 extern const char* glTypeString();
 
 /**
