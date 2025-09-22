@@ -401,9 +401,9 @@ printIdentifier(const ktx_uint8_t identifier[12], bool json)
  * For KTX format version 1                                  *
  *===========================================================*/
 
-extern const char* glFormatString();
-extern const char* glInternalformatString();
-extern const char* glTypeString();
+extern const char* glFormatString(GLenum);
+extern const char* glInternalformatString(GLenum);
+extern const char* glTypeString(GLenum);
 
 /**
  * @internal
