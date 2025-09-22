@@ -88,7 +88,7 @@ int CommandInfo::main(int argc, char* argv[]) {
         parseCommandLine("ktx info",
                 "Prints information about the KTX v1 or v2 file specified as the input-file argument.\n"
                 "    The command implicitly calls validate for v2 files and prints any found errors\n"
-                "    and warnings to stdout.",
+                "    and warnings to stdout. For KTX v1 files only text format output is supported.",
                 argc, argv);
         executeInfo();
         return to_underlying(rc::SUCCESS);
@@ -115,9 +115,10 @@ void CommandInfo::executeInfo() {
     bool v2 = true;
 
     ktx_uint8_t ktx_ident_ref[12] = KTX_IDENTIFIER_REF;
-    ktx_uint8_t identifier[12];
+    ktx_uint8_t identifier[12] = {};
     inputStream->read((char*)identifier, 12);
-    inputStream->seekg(0);
+    inputStream->clear();   // Clear an unexpected EOF so seekg works.
+    inputStream->seekg(0);  // Rewind to give validation a clean slate.
     if (!memcmp(identifier, ktx_ident_ref, 12)) {
         if (options.format != OutputFormat::text)
             fatal_usage("JSON output formats are not supported for KTX v1 files.");
