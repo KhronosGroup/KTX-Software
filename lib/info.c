@@ -425,7 +425,7 @@ printKTXHeader(KTX_header* pHeader)
     fprintf(stdout, "glFormat: %s\n", glFormatString(pHeader->glFormat));
     fprintf(stdout, "glInternalformat: %s\n", glInternalformatString(pHeader->glInternalformat));
     fprintf(stdout, "glBaseInternalformat: %s\n",
-            glBaseInternalformatString(pHeader->glBaseInternalformat));
+            glFormatString(pHeader->glBaseInternalformat));
     fprintf(stdout, "pixelWidth: %u\n", pHeader->pixelWidth);
     fprintf(stdout, "pixelHeight: %u\n", pHeader->pixelHeight);
     fprintf(stdout, "pixelDepth: %u\n", pHeader->pixelDepth);

@@ -16,12 +16,11 @@
 // The unsuffixed names are deprecated so not in glcorearb.h and it defines macros
 // which hide their definitions in glext.h. Rather than include gl.h define these in
 // terms of the equivalent extension names which are also in glext.h.
-#define GL_COMPRESSED_ALPHA               GL_COMPRESSED_ALPHA_ARB
-#define GL_COMPRESSED_LUMINANCE           GL_COMPRESSED_LUMINANCE_ARB
-#define GL_COMPRESSED_LUMINANCE_ALPHA     GL_COMPRESSED_LUMINANCE_ALPHA_ARB
-#define GL_COMPRESSED_INTENSITY           GL_COMPRESSED_INTENSITY_ARB
-#define GL_COMPRESSED_SLUMINANCE          GL_COMPRESSED_SLUMINANCE_EXT
-#define GL_COMPRESSED_SLUMINANCE_ALPHA    GL_COMPRESSED_SLUMINANCE_ALPHA_EXT
+#define GL_SR8                            GL_SR8_EXT
+#define GL_SRG8                           GL_SRG8_EXT
+// These are from GLES2/gl2.h.
+#define GL_LUMINANCE                      0x1909
+#define GL_LUMINANCE_ALPHA                0x190A
 
 // s/\(^[A-Z]\)/GL_\1/
 // s/\(GL_[A-Z0-9_]*\) .*$/      case \1: return "\1";/
@@ -32,15 +31,15 @@ const char* glFormatString(GLenum format)
 
     switch (format) {
       case 0: return "0 (Compressed)";
-      case GL_STENCIL_INDEX: return "GL_STENCIL_INDEX";
       case GL_DEPTH_COMPONENT: return "GL_DEPTH_COMPONENT";
       case GL_DEPTH_STENCIL: return "GL_DEPTH_STENCIL";
+      case GL_STENCIL_INDEX: return "GL_STENCIL_INDEX";
       case GL_RED: return "GL_RED";
-      case GL_GREEN: return "GL_GREEN";
-      case GL_BLUE: return "GL_BLUE";
       case GL_RG: return "GL_RG";
       case GL_RGB: return "GL_RGB";
       case GL_RGBA: return "GL_RGBA";
+      case GL_GREEN: return "GL_GREEN";
+      case GL_BLUE: return "GL_BLUE";
       case GL_BGR: return "GL_BGR";
       case GL_BGRA: return "GL_BGRA";
       case GL_RED_INTEGER: return "GL_RED_INTEGER";
@@ -51,8 +50,14 @@ const char* glFormatString(GLenum format)
       case GL_RGBA_INTEGER: return "GL_RGBA_INTEGER";
       case GL_BGR_INTEGER: return "GL_BGR_INTEGER";
       case GL_BGRA_INTEGER: return "GL_BGRA_INTEGER";
+      case GL_SRGB: return "GL_SRGB";
+      case GL_SRGB_ALPHA: return "GL_SRGB_ALPHA";
+      // Deprecated values.
+      case GL_ALPHA: return "GL_ALPHA";
+      case GL_LUMINANCE: return "GL_LUMINANCE";
+      case GL_LUMINANCE_ALPHA: return "GL_LUMINANCE_ALPHA";
       default:
-         return snprintf(retstr, sizeof(retstr), "%#x", format);
+         (void)snprintf(retstr, sizeof(retstr), "%#x", format);
          return retstr;
     }
 }
@@ -90,6 +95,8 @@ const char* glInternalformatString(GLenum format)
       case GL_RGBA12: return "GL_RGBA12";
       case GL_RGBA16: return "GL_RGBA16";
       case GL_RGBA16_SNORM: return "GL_RGBA16_SNORM";
+      case GL_SR8: return "GL_SR8";
+      case GL_SRG8: return "GL_SRG8";
       case GL_SRGB8: return "GL_SRGB8";
       case GL_SRGB8_ALPHA8: return "GL_SRGB8_ALPHA8";
       case GL_R16F: return "GL_R16F";
@@ -228,33 +235,14 @@ const char* glInternalformatString(GLenum format)
       case GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV1_EXT: return "GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV1_EXT";
       case GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV2_IMG: return "GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV2_IMG";
       case GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV2_IMG: return "GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV2_IMG";
-      case GL_COMPRESSED_ALPHA: return "GL_COMPRESSED_ALPHA";
-      case GL_COMPRESSED_LUMINANCE: return "GL_COMPRESSED_LUMINANCE";
-      case GL_COMPRESSED_LUMINANCE_ALPHA: return "GL_COMPRESSED_LUMINANCE_ALPHA";
-      case GL_COMPRESSED_INTENSITY: return "GL_COMPRESSED_INTENSITY";
-      case GL_COMPRESSED_SLUMINANCE: return "GL_COMPRESSED_SLUMINANCE";
-      case GL_COMPRESSED_SLUMINANCE_ALPHA: return "GL_COMPRESSED_SLUMINANCE_ALPHA";
-
+      case GL_ETC1_RGB8_OES: return "GL_ETC1_RGB8_OES";
+      // Deprecated values.
+      case GL_ALPHA8_EXT: return "GL_ALPHA8_EXT";
+      case GL_LUMINANCE4_ALPHA4_EXT: return "GL_LUMINANCE4_ALPHA4_EXT";
+      case GL_LUMINANCE8_ALPHA8_EXT: return "GL_LUMINANCE8_ALPHA8_EXT";
+      case GL_LUMINANCE8_EXT: return "GL_LUMINANCE8_EXT";
       default:
-         return snprintf(retstr, sizeof(retstr), "%#x", format);
-         return retstr;
-    }
-}
-
-const char* glBaseInternalformatString(GLenum format)
-{
-    static char retstr[11];
-
-    switch (format) {
-      case GL_DEPTH_COMPONENT: return "GL_DEPTH_COMPONENT";
-      case GL_DEPTH_STENCIL: return "GL_DEPTH_STENCIL";
-      case GL_RED: return "GL_RED";
-      case GL_RG: return "GL_RG";
-      case GL_RGB: return "GL_RGB";
-      case GL_RGBA: return "GL_RGBA";
-      case GL_STENCIL_INDEX: return "GL_STENCIL_INDEX";
-      default:
-         return snprintf(retstr, sizeof(retstr), "%#x", format);
+         (void)snprintf(retstr, sizeof(retstr), "%#x", format);
          return retstr;
     }
 }
@@ -290,7 +278,7 @@ const char* glTypeString(GLenum type)
       case GL_UNSIGNED_INT_5_9_9_9_REV: return "GL_UNSIGNED_INT_5_9_9_9_REV";
       case GL_FLOAT_32_UNSIGNED_INT_24_8_REV: return "GL_FLOAT_32_UNSIGNED_INT_24_8_REV";
       default:
-         return snprintf(retstr, sizeof(retstr), "%#x", type);
+         (void)snprintf(retstr, sizeof(retstr), "%#x", type);
          return retstr;
     }
 }
