@@ -48,7 +48,7 @@ jobs:
     #needs: formatting
     strategy:
       matrix:
-        os: [ macos-13 ]
+        os: [ macos-14 ]
         generator: [ Xcode ]
         arch: [ x86_64 ]
         vulkan_sdk_version: ['1.4.313.1']
