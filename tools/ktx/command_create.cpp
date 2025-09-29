@@ -84,6 +84,7 @@ struct OptionsCreate {
     inline static const char* kMipmapFilterScale = "mipmap-filter-scale";
     inline static const char* kMipmapWrap = "mipmap-wrap";
     inline static const char* kScale = "scale";
+    inline static const char* kPremultiplyAlpha = "premultiply-alpha";
 
     bool _1d = false;
     bool cubemap = false;
@@ -123,6 +124,7 @@ struct OptionsCreate {
     bool failOnOriginChanges = false;
     bool warnOnOriginChanges = false;
     bool normalize = false;
+    bool premultiplyAlpha = false;
 
     void init(cxxopts::Options& opts) {
         opts.add_options()
@@ -176,6 +178,8 @@ struct OptionsCreate {
                     "normals to generate X+Y normals with --normal-mode. For 4-component\n"
                     "inputs a 3D unit normal is calculated. 1.0 is used for the value of\n"
                     "the 4th component. Cannot be used with --raw.")
+                (kPremultiplyAlpha, "Pre-multiplies the color components of the input pixels by the alpha component"
+                    " before encoding and sets the flag in the metadata. Cannot be used with --normalize or --raw.")
                 (kSwizzle, "KTX swizzle metadata.", cxxopts::value<std::string>(), "[rgba01]{4}")
                 (kInputSwizzle, "Pre-swizzle input channels.", cxxopts::value<std::string>(), "[rgba01]{4}")
                 (kAssignTf, "Force the created texture to have the specified transfer function, ignoring"
@@ -812,6 +816,18 @@ struct OptionsCreate {
                                    kFailOnOriginChanges, kWarnOnOriginChanges);
             warnOnOriginChanges = true;
         }
+
+        if(args[kPremultiplyAlpha].count()) {
+            if(normalize) {
+                report.fatal_usage("The options --{} cannot be used with --{}",
+                                   kPremultiplyAlpha, kNormalize);
+            }
+            if(raw) {
+                report.fatal_usage("The options --{} cannot be used with --{}",
+                                   kPremultiplyAlpha, kRaw);
+            }
+            premultiplyAlpha = true;
+        }
     }
 };
 
@@ -966,6 +982,10 @@ Create a KTX2 file from various input files.
             normals to generate X+Y normals with @b \--normal-mode. For 4-component
             inputs a 3D unit normal is calculated. 1.0 is used for the value of
             the 4th component. Cannot be used with @b \--raw.</dd>
+        <dt>\--premultiply-alpha</dt>
+        <dd>Pre-multiplies the color components of the input pixels by the alpha component
+            before encoding and sets the flag in the metadata. Cannot be used with --normalize
+            or --raw.</dd>
         <dt>\--swizzle [rgba01]{4}</dt>
         <dd>KTX swizzle metadata.</dd>
         <dt>\--input-swizzle [rgba01]{4}</dt>
@@ -1807,6 +1827,14 @@ void CommandCreate::executeCreate() {
             if (options.swizzleInput)
                 image->swizzle(*options.swizzleInput);
 
+            if (options.premultiplyAlpha) {
+                if(image->getComponentCount() < 4) {
+                    const auto option_error_message = "PremultiplyAlpha can only be used if the input image has alpha channels.";
+                    fatal_usage(option_error_message, OptionsCreate::kPremultiplyAlpha);
+                }
+                image->premultiplyAlpha();
+            }
+
             const auto imageData = convert(image, options.vkFormat, *inputImageFile);
 
             const auto ret = ktxTexture_SetImageFromMemory(
@@ -2480,6 +2508,9 @@ KTXTexture2 CommandCreate::createTexture(const ImageSpec& target) {
 
     KHR_DFDSETVAL(texture->pDfd + 1, PRIMARIES, target.format().primaries());
     KHR_DFDSETVAL(texture->pDfd + 1, TRANSFER, target.format().transfer());
+    if(options.premultiplyAlpha) {
+        KHR_DFDSETVAL(texture->pDfd+1, FLAGS, KHR_DF_FLAG_ALPHA_PREMULTIPLIED);
+    }
 
     // Add KTXorientation metadata
     if (options.assignTexcoordOrigin.has_value() || options.convertTexcoordOrigin.has_value()) {
