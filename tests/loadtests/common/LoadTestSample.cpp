@@ -13,7 +13,7 @@
  *
  * @brief Definition of a base class for texture loading test samples.
  *
- * @author Mark Callow, www.edgewise-consulting.com.
+ * @author Mark Callow, github.com/MarkCallow.
  */
 
 #if defined(_WIN32)

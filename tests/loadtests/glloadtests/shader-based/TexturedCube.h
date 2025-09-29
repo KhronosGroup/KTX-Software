@@ -10,7 +10,7 @@
  * @file
  * @brief   GLLoadTestSample derived class for drawing a textured cube.
  *
- * @author Mark Callow, www.edgewise-consulting.com.
+ * @author Mark Callow, github.com/MarkCallow.
  */
 
 #ifndef TEXTURED_CUBE_H

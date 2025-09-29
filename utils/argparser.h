@@ -5,7 +5,7 @@
 #define ARGPARSER_H
 
 /*
- * Copyright 2017-2020 Mark Callow, www.edgewise-cosulting.com.
+ * Copyright 2017-2020 Mark Callow, github.com/MarkCallow.
  * SPDX-License-Identifier: Apache-2.0
  */
 

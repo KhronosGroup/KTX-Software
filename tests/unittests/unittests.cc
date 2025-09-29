@@ -13,7 +13,7 @@
  *
  * @brief Tests of internal API functions.
  *
- * @author Mark Callow, Edgewise Consulting
+ * @author Mark Callow, github.com/MarkCallow
  */
 
 #if defined(_WIN32)

@@ -88,7 +88,7 @@ Create a KTX 2 file from a KTX file.
  - Initial version.
 
 @section ktx2ktx2_author AUTHOR
-    Mark Callow, Edgewise Consulting www.edgewise-consulting.com
+    Mark Callow, github.com/MarkCallow
 */
 
 

@@ -13,7 +13,7 @@
  *
  * @brief Base for tests that need instanced drawing of textured quads.
  *
- * @author Mark Callow, www.edgewise-consulting.com.
+ * @author Mark Callow, github.com/MarkCallow.
  *
  * @par Acknowledgement
  * Thanks to Sascha Willems' - www.saschawillems.de - for the concept,

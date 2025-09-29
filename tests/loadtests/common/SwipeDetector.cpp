@@ -13,7 +13,7 @@
  *
  * @brief Definition of a class for detecting swipes.
  *
- * @author Mark Callow, www.edgewise-consulting.com.
+ * @author Mark Callow, github.com/MarkCallow.
  */
 
 #include <assert.h>

@@ -19,8 +19,8 @@ For information about the KTX format see the
 formal specification.</a>
 
 @authors
-Mark Callow, <a href="http://www.edgewise-consulting.com">Edgewise Consulting</a>,
-             formerly at <a href="http://www.hicorp.co.jp">HI Corporation</a>\n
+<a href="http://github.com/MarkCallow">Mark Callow/a>,
+formerly at <a href="http://www.hicorp.co.jp">HI Corporation</a>\n
 Mátyás Császár and Daniel Rákos, <a href="https://www.rastergrid.com/">RasterGrid</a>\n
 Wasim Abbas, <a href="https://www.arm.com/">Arm</a>\n
 Andreas Atteneder, Independent\n

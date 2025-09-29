@@ -14,7 +14,7 @@
  * @brief Functions for instantiating GL or GLES textures from KTX files.
  *
  * @author Georg Kolling, Imagination Technology
- * @author Mark Callow, HI Corporation & Edgewise Consulting
+ * @author Mark Callow, HI Corporation & Edgewise Consulting. github.com/MarkCallow
  */
 
 #ifdef _WIN32

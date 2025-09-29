@@ -327,7 +327,7 @@ Create a KTX file from JPEG, PNG or netpbm format files.
  - Moved --alpha and --luminance to legacy.
 
 @section toktx_author AUTHOR
-    Mark Callow, Edgewise Consulting www.edgewise-consulting.com
+    Mark Callow, github.com/MarkCallow
 */
 
 #define QUOTE(x) #x

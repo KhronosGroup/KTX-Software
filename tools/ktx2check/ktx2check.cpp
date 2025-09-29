@@ -118,7 +118,7 @@ Check the validity of a KTX 2 file.
  - Initial version.
 
 @section ktx2check_author AUTHOR
-    Mark Callow, Edgewise Consulting www.edgewise-consulting.com
+    Mark Callow, github.com/MarkCallow
 */
 
 
