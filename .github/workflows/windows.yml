@@ -153,7 +153,8 @@ jobs:
 
     - name: Install NSIS
       # NSIS was removed from windows-2025 (windows-latest as of this writing).
-      if: matrix.check_mkvk != 'ONLY' && matrix.os != 'windows-11-arm' && matrix.os != 'windows-2022'
+      # Earlier runner images only have NSIS 3.08 so install latest everywhere.
+      if: matrix.check_mkvk != 'ONLY'
       uses: repolevedavaj/install-nsis@v1.0.3
       with:
         nsis-version: '3.11'
