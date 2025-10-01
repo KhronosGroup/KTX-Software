@@ -81,7 +81,6 @@ jobs:
           os: macos-latest
           generator: Xcode
           arch: arm64
-          vulkan_sdk_version: '1.4.313.1'
           options: {
             config: Release, platform: iOS,
             doc: OFF, jni: OFF, loadtests: OpenGL+Vulkan, py: OFF, tests: OFF, tools: OFF, tools_cts: OFF,
