@@ -48,9 +48,9 @@ jobs:
     #needs: formatting
     strategy:
       matrix:
-        os: [ macos-14 ]
+        os: [ macos-latest, macos-14 ]
         generator: [ Xcode ]
-        arch: [ x86_64 ]
+        arch: [ arm64, x86_64 ]
         vulkan_sdk_version: ['1.4.313.1']
         options: [
           {config: 'Debug,Release', platform: macOS,
@@ -67,47 +67,20 @@ jobs:
            sse: OFF, opencl: OFF}
         ]
         include:
-        - name: Package (arm64)
-          os: macos-latest
+        - name: Test macOS 13 build
+          os: macos-13
           generator: Xcode
-          arch: arm64
+          arch: [ arm64, x86_64 ]
           vulkan_sdk_version: '1.4.313.1'
           options: {
-            config: Release, platform: macOS,
-            doc: ON, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tests: OFF, tools: ON, tools_cts: OFF,
+            # graphviz no longer supports macOS 13 so doc: OFF.
+            # ts-graphviz/setup-graphviz@v2 does not support specifying a
+            # version on macOS.
+            config: 'Debug,Release', platform: macOS,
+            doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tests: OFF, tools: ON, tools_cts: OFF,
             package: YES, sse: ON, opencl: OFF
           }
-        - name: OpenCL,SSE
-          os: macos-latest
-          generator: Xcode
-          arch: arm64
-          vulkan_sdk_version: '1.4.313.1'
-          options: {
-            config: Release, platform: macOS,
-            doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tests: OFF, tools: OFF, tools_cts: OFF,
-            sse: ON, opencl: ON
-          }
-        - name: OpenCL
-          os: macos-latest
-          generator: Xcode
-          arch: arm64
-          vulkan_sdk_version: '1.4.313.1'
-          options: {
-            config: Release, platform: macOS,
-            doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tests: OFF, tools: OFF, tools_cts: OFF,
-            sse: OFF, opencl: ON
-          }
-        - name: All OFF
-          os: macos-latest
-          generator: Xcode
-          arch: arm64
-          vulkan_sdk_version: '1.4.313.1'
-          options: {
-            config: Release, platform: macOS,
-            doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tests: OFF, tools: OFF, tools_cts: OFF,
-            sse: OFF, opencl: OFF
-          }
-        - name: iOS
+        - name: Build for iOS
           os: macos-latest
           generator: Xcode
           arch: arm64
@@ -280,12 +253,16 @@ jobs:
           fi
           set +e
 
+      # Re. packaging, note that the build script only creates packages for
+      # the Release configuration. If a change is desired, this workflow
+      # AND the script will have to be modified.
+
       # Notarization can only run if secrets were set (upstream repo)
       - name: Notarize
         env:
           ALTOOL_PASSWORD: ${{ secrets.ALTOOL_PASSWORD }}
           ALTOOL_PW_LABEL: ${{ secrets.ALTOOL_PW_LABEL }}
-        if: matrix.options.platform == 'macOS' && matrix.options.package == 'YES' && env.APPLE_ID
+        if: matrix.options.platform == 'macOS' && matrix.options.package == 'YES' && matrix.options.config = 'Release' && env.APPLE_ID
         run: ./scripts/notarize.sh $BUILD_DIR/KTX-Software-*.pkg $APPLE_ID $DEVELOPMENT_TEAM $ALTOOL_PASSWORD
 
       - name: Prepare KTX artifacts
@@ -299,7 +276,7 @@ jobs:
       # "package" job for each architecture produces artifacts. A second
       # job would attempt to upload a same-named artifact.
       - name: Upload artifact Install Package
-        if: matrix.options.package == 'YES'
+        if: matrix.options.package == 'YES' && matrix.options.config ='Release'
         uses: actions/upload-artifact@v4
         with:
           name: KTX-Software-${{env.PACKAGE_NAME_SUFFIX}}
@@ -315,7 +292,7 @@ jobs:
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
-        if: matrix.options.package == 'YES' && github.event_name == 'push' && github.ref_type == 'tag'
+        if: github.ref_type == 'tag' && github.event_name == 'push' && matrix.options.package == 'YES' && matrix.options.config ='Release'
         with:
           draft: true
           prerelease: true
