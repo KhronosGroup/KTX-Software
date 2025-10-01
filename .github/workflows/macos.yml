@@ -69,9 +69,6 @@ jobs:
         include:
         - name: Test macOS 13 build
           os: macos-13
-          generator: Xcode
-          arch: [ arm64, x86_64 ]
-          vulkan_sdk_version: '1.4.313.1'
           options: {
             # graphviz no longer supports macOS 13 so doc: OFF.
             # ts-graphviz/setup-graphviz@v2 does not support specifying a
