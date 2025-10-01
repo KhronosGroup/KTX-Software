@@ -73,7 +73,7 @@ jobs:
         include:
           - os: windows-2022
             generator: 'Visual Studio 17 2022'
-            toolset: v144
+            toolset: v143
             arch: x64
             java-version: '17'
             options: {
