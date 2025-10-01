@@ -406,6 +406,7 @@ set(KTX_MAIN_SRC
     lib/filestream.h
     lib/formatsize.h
     lib/gl_format.h
+    lib/glformat_str.c
     lib/hashlist.c
     lib/info.c
     lib/ktxint.h
