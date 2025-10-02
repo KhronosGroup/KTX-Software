@@ -42,6 +42,7 @@ jobs:
   windows:
     permissions:
       packages: write
+      contents: write
     # Shortcircuit and don't burn CI time when formatting will reject
     #needs: formatting
     strategy:
@@ -375,7 +376,7 @@ jobs:
         path: ${{env.BUILD_DIR}}/${{env.PYTHON_DIST_DIR}}
 
     - name: Upload to Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       if: matrix.options.package == 'YES' && matrix.toolset == 'CLangCL' && github.event_name == 'push' && github.ref_type == 'tag'
       with:
         draft: true

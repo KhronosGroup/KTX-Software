@@ -44,6 +44,7 @@ jobs:
   macos:
     permissions:
       packages: write
+      contents: write
     # Shortcircuit and don't burn CI time when formatting will reject
     #needs: formatting
     strategy:
