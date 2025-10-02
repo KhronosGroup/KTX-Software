@@ -274,7 +274,7 @@ jobs:
       # "package" job for each architecture produces artifacts. A second
       # job would attempt to upload a same-named artifact.
       - name: Upload artifact Install Package
-        if: matrix.options.package == 'YES'  matrix.os == 'macos-latest'
+        if: matrix.options.package == 'YES'  && matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v4
         with:
           name: KTX-Software-${{env.PACKAGE_NAME_SUFFIX}}
@@ -290,7 +290,7 @@ jobs:
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
-        if: github.ref_type == 'tag' && github.event_name == 'push' && matrix.options.package == 'YES' && matrix.options.config == 'Release' && matrix.os == 'macos-latest'
+        if: github.ref_type == 'tag' && github.event_name == 'push' && matrix.options.package == 'YES' && matrix.os == 'macos-latest'
         with:
           draft: true
           prerelease: true
