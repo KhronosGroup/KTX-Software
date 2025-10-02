@@ -75,7 +75,7 @@ jobs:
             # version on macOS.
             config: 'Debug,Release', platform: macOS,
             doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tests: OFF, tools: ON, tools_cts: OFF,
-            package: YES, sse: ON, opencl: OFF
+            package: OFF, sse: ON, opencl: OFF
           }
         - name: Build for iOS
           os: macos-latest
