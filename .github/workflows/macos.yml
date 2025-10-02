@@ -87,7 +87,7 @@ jobs:
             package: YES, sse: OFF, opencl: OFF
           }
 
-    name: ${{ matrix.name && matrix.name || format('{0} SSE,OpenCL:{1},{2}', matrix.os, matrix.options.sse, matrix.options.opencl) }}
+    name: ${{ matrix.name && matrix.name || format('{0} Package,Loadtest Apps,SSE,OpenCL:{1},{2},{3},{4}', matrix.os, matrix.options.package, matrix.options.loadtests, matrix.options.sse, matrix.options.opencl) }}
     runs-on: ${{ matrix.os }}
     env:
       # To avoid bandwidth charges skip downloading source and golden images
@@ -250,15 +250,17 @@ jobs:
           set +e
 
       # Re. packaging, note that the build script only creates packages for
-      # the Release configuration. If a change is desired, this workflow
-      # AND the script will have to be modified.
+      # the Release configuration. If this is changed work will be needed
+      # here to prevent failures from uploading same-named artifacts from both
+      # Release and Debug configs. Only uploading artifacts from macos-latest
+      # prevents the same failure with artifacts from builds on older OSes.
 
       # Notarization can only run if secrets were set (upstream repo)
       - name: Notarize
         env:
           ALTOOL_PASSWORD: ${{ secrets.ALTOOL_PASSWORD }}
           ALTOOL_PW_LABEL: ${{ secrets.ALTOOL_PW_LABEL }}
-        if: matrix.options.platform == 'macOS' && matrix.options.package == 'YES' && matrix.options.config == 'Release' && env.APPLE_ID
+        if: matrix.options.platform == 'macOS' && matrix.options.package == 'YES' && env.APPLE_ID
         run: ./scripts/notarize.sh $BUILD_DIR/KTX-Software-*.pkg $APPLE_ID $DEVELOPMENT_TEAM $ALTOOL_PASSWORD
 
       - name: Prepare KTX artifacts
@@ -272,7 +274,7 @@ jobs:
       # "package" job for each architecture produces artifacts. A second
       # job would attempt to upload a same-named artifact.
       - name: Upload artifact Install Package
-        if: matrix.options.package == 'YES' && matrix.options.config == 'Release'
+        if: matrix.options.package == 'YES'  matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v4
         with:
           name: KTX-Software-${{env.PACKAGE_NAME_SUFFIX}}
@@ -280,7 +282,7 @@ jobs:
           compression-level: 0 # Installer already compressed.
 
       - name: Upload artifact pyktx
-        if:  matrix.options.py == 'ON' && matrix.options.package == 'YES' && matrix.options.config == 'Release'
+        if:  matrix.options.py == 'ON' && matrix.options.package == 'YES' && matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v4
         with:
           name: pyktx-${{env.PACKAGE_NAME_SUFFIX}}
@@ -288,7 +290,7 @@ jobs:
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
-        if: github.ref_type == 'tag' && github.event_name == 'push' && matrix.options.package == 'YES' && matrix.options.config == 'Release'
+        if: github.ref_type == 'tag' && github.event_name == 'push' && matrix.options.package == 'YES' && matrix.options.config == 'Release' && matrix.os == 'macos-latest'
         with:
           draft: true
           prerelease: true
