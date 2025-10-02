@@ -87,7 +87,10 @@ jobs:
             package: YES, sse: OFF, opencl: OFF
           }
 
-    name: ${{ matrix.name && matrix.name || format('{0} Package,Loadtest Apps,SSE,OpenCL:\ {1},{2},{3},{4}', matrix.os, matrix.options.package, (matrix.options.loadtests && matrix.options.loadtests || 'NO'), matrix.options.sse, matrix.options.opencl) }}
+    # ': ' within the format string causes a "mapping values are not
+    # allowed in this context" YAMl syntax error. Replacement {1} is
+    # a workaround.
+    name: ${{ matrix.name && matrix.name || format('{0} Package,Loadtest Apps,SSE,OpenCL:{1}{2},{3},{4},{5}', matrix.os, ' ', matrix.options.package && matrix.options.package || 'NO', matrix.options.loadtests, matrix.options.sse, matrix.options.opencl) }}
     runs-on: ${{ matrix.os }}
     env:
       # To avoid bandwidth charges skip downloading source and golden images
