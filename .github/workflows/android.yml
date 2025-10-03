@@ -45,6 +45,9 @@ jobs:
   linux:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+
     env:
       GIT_LFS_SKIP_SMUDGE: 1
       WERROR: ON
@@ -129,7 +132,7 @@ jobs:
         sha1sum $zip_basename.zip > $zip_basename.zip.sha1
 
     - name: Upload To Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       if: github.event_name == 'push' && github.ref_type == 'tag'
       with:
         draft: true
