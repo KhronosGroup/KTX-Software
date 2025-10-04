@@ -2,7 +2,12 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 Release Notes
 =============
-## Version 4.4.1
+## Version 4.4.2
+### Notice
+v4.4.2 is an emergency release that replaces v4.4.1 which has been withdrawn. It
+fixes the version number in the release assets. There are no other changes
+compared to v4.4.1.
+
 ### Summary
 
 * `ktxTexture2_DecodeAstc` now exposed in _libktx\_read_ on all platforms and in
@@ -17,7 +22,7 @@ Release Notes
 
 __The legacy tools will be removed in Release 4.5. Adjust your workflows accordingly.__
 
-### New Features in 4.4.1
+### New Features in v4.4.2
 #### libktx functions
 
 * `ktxTexture2_DecodeAstc`, which decodes an ASTC format texture to an
@@ -26,7 +31,7 @@ __The legacy tools will be removed in Release 4.5. Adjust your workflows accordi
 * `ktxPrintKTX1InfoTextForStream`, which prints information about a KTX v1 file
   and was previously internal, is now exposed.
 
-### Notable Fixes in 4.4.1
+### Notable Fixes in v4.4.2
 
 * A bug in mipmap generation in `ktx create` that led to sRGB images being
   resampled without first decoding to linear has been fixed. If you have affected
@@ -52,6 +57,8 @@ __The legacy tools will be removed in Release 4.5. Adjust your workflows accordi
 
 ### Changes since v4.4.0 (by part)
 ### libktx
+
+* 4.4.1 release prep (#1063) (0b10eb17e) (@MarkCallow)
 
 * Add v1 support to ktx info (#1060) (3cd9e3447) (@MarkCallow)
 
@@ -164,6 +171,10 @@ __The legacy tools will be removed in Release 4.5. Adjust your workflows accordi
 
 
 ### Build Scripts and CMake files
+
+* Add force-fetch-provoking-tag-annotation workaround (e5c085b51) (@MarkCallow)
+
+* Add options. (16a24e087) (@MarkCallow)
 
 * Add v1 support to ktx info (#1060) (3cd9e3447) (@MarkCallow)
 
