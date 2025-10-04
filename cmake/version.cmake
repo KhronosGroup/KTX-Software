@@ -166,7 +166,10 @@ set(KTX_VERSION_FULL ${KTX_VERSION}${KTX_VERSION_TWEAK})
 
 
 #
-# Create a version.h header file using the mkversion shell script
+# Create a version.h header file using the mkversion shell script.
+# Dignum memoria (worth remembering): you need to run CMake config
+# after adding a new tag or making a software change in order for the
+# version to be updated.
 #
 
 function( create_version_header dest_path target )
