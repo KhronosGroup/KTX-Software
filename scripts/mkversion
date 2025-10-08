@@ -18,6 +18,7 @@ LF='
 depth=..
 cd $(dirname $0)/$depth
 
+# `man 7 gitrevisions` for the meaning of the output from git describe.
 function genversion() {
   # Try git-describe, then default.
   if [ -d ${GIT_DIR:-.git} -o -f .git ]; then

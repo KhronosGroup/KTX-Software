@@ -24,6 +24,7 @@ function(git_update_index)
     endif()
 endfunction()
 
+# `man 7 gitrevisions` for the meaning of the output from git describe.
 function(git_describe_raw _var)
     if(NOT GIT_FOUND)
         find_package(Git QUIET)
@@ -108,15 +109,23 @@ function(generate_version _var )
     set(${_var} "${KTX_VERSION}" PARENT_SCOPE)
 endfunction()
 
-# Get latest tag from git if not passed to cmake
+# Get latest tag from git if not passed to cmake.
 # This property can be passed to cmake when building from tar.gz
+# This value will only change when a config is run. While not ideal,
+# this limitation is acceptable for a value that is used only to label
+# installer packages, etc. as they are built by CI which always starts
+# with a clean slate and configuration of the project.
 if(NOT KTX_GIT_VERSION_FULL)
     git_describe_raw(KTX_GIT_VERSION_FULL --abbrev=0 --match v[0-9]*)
+    # No MKV_VERSION_OPT so mkversion will run git describe at build
+    # time.
+else()
+    # Set up option to pass version on to mkversion when generating
+    # version.h files.
+    set(MKV_VERSION_OPT -v ${KTX_GIT_VERSION_FULL})
 endif()
 #message("KTX git full version: ${KTX_GIT_VERSION_FULL}")
-
-# generate_version(TOKTX_VERSION tools/toktx)
-# message("TOKTX_VERSION: ${TOKTX_VERSION}")
+#cmake_print_variables(MKV_VERSION_OPT)
 
 # First try a full regex ( vMAJOR.MINOR.PATCH-TWEAK )
 string(REGEX MATCH "^v([0-9]*)\.([0-9]*)\.([0-9]*)(-[^\.]*)"
@@ -164,14 +173,6 @@ set(KTX_VERSION_FULL ${KTX_VERSION}${KTX_VERSION_TWEAK})
 
 #message("KTX version: ${KTX_VERSION}  major:${KTX_VERSION_MAJOR} minor:${KTX_VERSION_MINOR} patch:${KTX_VERSION_PATCH} tweak:${KTX_VERSION_TWEAK}")
 
-
-#
-# Create a version.h header file using the mkversion shell script.
-# Dignum memoria (worth remembering): you need to run CMake config
-# after adding a new tag or making a software change in order for the
-# version to be updated.
-#
-
 function( create_version_header dest_path target )
 
     set( version_h_output ${PROJECT_SOURCE_DIR}/${dest_path}/version.h)
@@ -180,7 +181,7 @@ function( create_version_header dest_path target )
         add_custom_command(
             OUTPUT ${version_h_output}
             # On Windows this command has to be invoked by a shell in order to work
-            COMMAND ${BASH_EXECUTABLE} -c "\"scripts/mkversion\" \"-v\" \"${KTX_GIT_VERSION_FULL}\" \"-o\" \"version.h\" \"${dest_path}\""
+            COMMAND ${BASH_EXECUTABLE} -c "\"scripts/mkversion\" ${MKV_VERSION_OPT} \"-o\" \"version.h\" \"${dest_path}\""
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
             COMMENT "Generate ${version_h_output}"
             VERBATIM
@@ -188,7 +189,7 @@ function( create_version_header dest_path target )
     else()
         add_custom_command(
             OUTPUT ${version_h_output}
-            COMMAND scripts/mkversion -v ${KTX_GIT_VERSION_FULL} -o version.h ${dest_path}
+            COMMAND scripts/mkversion ${MKV_VERSION_OPT} -o version.h ${dest_path}
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
             COMMENT "Generate ${version_h_output}"
             VERBATIM
