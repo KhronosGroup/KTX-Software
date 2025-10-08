@@ -125,7 +125,7 @@ else()
     set(MKV_VERSION_OPT -v ${KTX_GIT_VERSION_FULL})
 endif()
 #message("KTX git full version: ${KTX_GIT_VERSION_FULL}")
-cmake_print_variables(MKV_VERSION_OPT)
+#cmake_print_variables(MKV_VERSION_OPT)
 
 # First try a full regex ( vMAJOR.MINOR.PATCH-TWEAK )
 string(REGEX MATCH "^v([0-9]*)\.([0-9]*)\.([0-9]*)(-[^\.]*)"
