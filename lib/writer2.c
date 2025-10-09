@@ -54,7 +54,10 @@
  * @{
  */
 
-#if defined(_WIN32) || defined(linux) || defined(__linux) || defined(__linux__) || defined(__EMSCRIPTEN__)
+// See ktxint.h for explanation and setting of _KTX_TEST_OUR_STRNSTR_ON_PLATFORM_WITH_STRNSTR
+// and STRNSTR.
+#if _KTX_TEST_OUR_STRNSTR_ON_PLATFORM_WITH_STRNSTR \
+    || defined(_WIN32) || defined(linux) || defined(__linux) || defined(__linux__) || defined(__EMSCRIPTEN__)
 /** @internal
  * @~English
  * @brief strnstr for Windows, Linux and Emscripten.
@@ -71,29 +74,22 @@
  *            @p needle does not occur in @p haystack, or a pointer to the
  *            first character of the first occurrence of @p needle.
  */
-static char*
-strnstr(const char *haystack, const char *needle, size_t len)
+char*
+STRNSTR(const char *haystack, const char *needle, size_t len)
 {
-    size_t i;
-    size_t needleLen;
-    const char* needleEnd;
+    // Having fallen foul of Android's (Linux's?) memchr implementation
+    // reading len bytes and triggering FORTIFY checks when needle is less
+    // than len bytes, implement without relying on external functions.
+    size_t i, j;
 
-    // strnlen is not part of the C standard and does not compile on some platforms, 
-    // use case is covered by memchr.
-    needleEnd = (char *)memchr(needle, 0, len);
-    if (needleEnd == needle)
+    if (needle[0] == '\0')
         return (char *)haystack;
 
-    needleLen = len;
-    if (needleEnd != NULL)
-        needleLen = needleEnd - needle;
-
-    for (i = 0; i <= len - needleLen; i++)
-    {
-        if (haystack[0] == needle[0]
-            && strncmp(haystack, needle, needleLen) == 0)
-            return (char *)haystack;
-        haystack++;
+    for (i = 0; i < len && haystack[i]; i++) {
+        for (j = 0; needle[j] && haystack[i] && needle[j] == haystack[i] && i < len; j++, i++) { }
+        i = i - j;
+        if (needle[j] == '\0')
+            return ((char *)&haystack[i]);
     }
     return NULL;
 }
@@ -121,6 +117,8 @@ appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
     const char* id;
     const char* libVer;
     const char libIdIntro[] = " / libktx ";
+    const char unidentified[] = "Unidentified app";
+    const char defaultId[] = "__default__";
     size_t idLen, libIdLen;
 
     if (writerEntry) {
@@ -128,7 +126,7 @@ appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
         result = ktxHashListEntry_GetValue(writerEntry, &len, (void**)&id);
         idLen = len;
     } else {
-        id = "Unidentified app";
+        id = unidentified;
         idLen = 17;
     }
 
@@ -136,11 +134,11 @@ appendLibId(ktxHashList* head, ktxHashListEntry* writerEntry)
 #if defined(EMPTY_LIBVER_WITH_UNIDENTIFIED_APP)
     // May be needed for patching some CTS files without changing their KTXwriter
     // metadata. Keep in case useful again.
-    if (strnstr(id, "Unidentified app", idLen) != NULL) {
+    if (strnstr(id, unidentified, idLen) != NULL) {
         libVer = "";
     } else
 #endif
-    if (strnstr(id, "__default__", idLen) != NULL) {
+    if (strnstr(id, defaultId, idLen) != NULL) {
         libVer = STR(LIBKTX_DEFAULT_VERSION);
     } else {
         libVer = STR(LIBKTX_VERSION);

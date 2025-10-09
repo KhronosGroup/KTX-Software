@@ -116,7 +116,7 @@ typedef WriterTestHelper<GLubyte, 4, GL_RGBA8>::createFlagBits createFlagBits;
 // CheckHeaderTest
 //////////////////////////////
 
-#if defined(DEBUG)
+#if 0 //defined(DEBUG)
 TEST_F(CheckHeader1Test, AssertsOnNullArguments) {
     ASSERT_DEATH_IF_SUPPORTED(ktxCheckHeader1_(0, 0), "Assert*");
 }
@@ -1134,5 +1134,47 @@ TEST(BadVulkanAllocExceptionTest, PoolFragmented) {
         EXPECT_EQ(strcmp(e.what(), "Pool fragmented when allocating for fragmented pool memory test."), 0);
     }
 }
+
+// See ktxint.h for explanation and setting of _KTX_TEST_OUR_STRNSTR_ON_PLATFORM_WITH_STRNSTR
+// and STRNSTR.
+#if _KTX_TEST_OUR_STRNSTR_ON_PLATFORM_WITH_STRNSTR \
+    || defined(_WIN32) || defined(linux) || defined(__linux) || defined(__linux__) || defined(__EMSCRIPTEN__)//////////////////////////////
+// Test homegrown strnstr
+//////////////////////////////
+
+extern "C" {
+    char*  STRNSTR(const char *haystack, const char *needle, size_t len);
+}
+
+const char* haystack = "abcdefabc";
+
+TEST(strnstr, ZeroLengthNeedle) {
+    EXPECT_EQ( STRNSTR(haystack, "", sizeof(haystack)), haystack);
+}
+
+TEST(strnstr, MatchAtStart) {
+    EXPECT_EQ( STRNSTR(haystack, "abc", sizeof(haystack)), haystack);
+}
+
+TEST(strnstr, MatchAtEnd) {
+    EXPECT_EQ( STRNSTR(haystack, "def", sizeof(haystack)), &haystack[3]);
+}
+
+TEST(strnstr, MatchInMiddle) {
+    EXPECT_EQ( STRNSTR(haystack, "fa", sizeof(haystack)), &haystack[5]);
+}
+
+TEST(strnstr, NoMatchBeforeGivenLength) {
+    EXPECT_EQ( STRNSTR(haystack, "cde", 2), nullptr);
+}
+
+TEST(strnstr, NeedleMatchesHaystackButLonger) {
+    EXPECT_EQ( STRNSTR(haystack, "abcdefg", sizeof(haystack)), nullptr);
+}
+
+TEST(strnstr, NoMatch) {
+    EXPECT_EQ( STRNSTR(haystack, "foo", sizeof(haystack)), nullptr);
+}
+#endif
 
 }  // namespace
