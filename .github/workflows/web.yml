@@ -42,6 +42,8 @@ jobs:
   #formatting:
   #  uses: ./.github/workflows/formatting.yml
   web:
+    permissions:
+      contents: write
     # Shortcircuit and don't burn CI time when formatting will reject
     #needs: formatting
     strategy:
@@ -127,6 +129,11 @@ jobs:
             exit 1
           fi
 
+      - name: Force fetch provoking tag's annotation.
+        # Work around https://github.com/actions/checkout/issues/290.
+        if: github.ref_type == 'tag' && matrix.check_mkvk != 'ONLY'
+        run: git fetch -f origin ${{ github.ref }}:${{ github.ref }}
+
       - name: before_install
         run: |
           echo -n "Running on the following GitHub Actions CI runner: " && uname -a
@@ -146,10 +153,7 @@ jobs:
           # Also with the Linux version of the Docker engine, all products of
           # the build in $BUILD_DIR are owned by root unless uid/gid is set.
           #
-          # In emsdk 4.0.13 all the executable files except emcc have mode 744
-          # so can only be run by root. Until emsdk is fixed, stick with 4.0.12.
-          #docker run -dit --name emscripten --user "$(id -u):$(id -g)" -v $(pwd):/src emscripten/emsdk bash
-          docker run -dit --name emscripten --user "$(id -u):$(id -g)" -v $(pwd):/src emscripten/emsdk:4.0.12 bash
+          docker run -dit --name emscripten --user "$(id -u):$(id -g)" -v $(pwd):/src emscripten/emsdk bash
 
       - name: before_script
         run: |

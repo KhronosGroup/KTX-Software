@@ -1803,7 +1803,13 @@ KTX_API KTX_error_code KTX_APIENTRY ktxPrintInfoForNamedFile(const char* const f
 KTX_API KTX_error_code KTX_APIENTRY ktxPrintInfoForMemory(const ktx_uint8_t* bytes, ktx_size_t size);
 
 /*===========================================================*
- * Utilities for printing info about a KTX2 file.            *
+ * Utilities for printing info about a KTX v1 file.          *
+ *===========================================================*/
+
+ KTX_API KTX_error_code KTX_APIENTRY ktxPrintKTX1InfoTextForStream(ktxStream* stream);
+
+/*===========================================================*
+ * Utilities for printing info about a KTX v2 file.          *
  *===========================================================*/
 
 KTX_API KTX_error_code KTX_APIENTRY ktxPrintKTX2InfoTextForMemory(const ktx_uint8_t* bytes, ktx_size_t size);

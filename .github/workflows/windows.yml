@@ -42,6 +42,7 @@ jobs:
   windows:
     permissions:
       packages: write
+      contents: write
     # Shortcircuit and don't burn CI time when formatting will reject
     #needs: formatting
     strategy:
@@ -71,6 +72,17 @@ jobs:
            sse: ON, opencl: ON}
         ]
         include:
+          - os: windows-2022
+            generator: 'Visual Studio 17 2022'
+            toolset: v143
+            arch: x64
+            java-version: '17'
+            options: {
+              config: 'Debug,Release',
+              doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tests: ON, tools: ON, tools_cts: ON,
+              package: NO,
+              sse: ON, opencl: OFF
+            }
           - os: windows-latest
             generator: 'Visual Studio 17 2022'
             toolset: CLangCL
@@ -151,7 +163,16 @@ jobs:
         # included (used for version creation)
         fetch-depth: 0
 
+    - name: Install NSIS
+      # NSIS was removed from windows-2025 (windows-latest as of this writing).
+      # Earlier runner images only have NSIS 3.08 so install latest everywhere.
+      if: matrix.check_mkvk != 'ONLY'
+      uses: repolevedavaj/install-nsis@v1.0.3
+      with:
+        nsis-version: '3.11'
+
     - name: Install NSIS with large string support
+      # This replaces some items in the full NSIS installation.
       if: matrix.check_mkvk != 'ONLY'
       shell: bash
       run: |
@@ -159,11 +180,11 @@ jobs:
         success=0
         for i in $(seq $retryCount) ; do
             echo "Attempt no: $i"
-            stack exec -- wget -O nsis-3.08-strlen_8192.zip https://downloads.sourceforge.net/nsis/NSIS%203/3.08/nsis-3.08-strlen_8192.zip
+            stack exec -- wget -O nsis-3.11-strlen_8192.zip https://sourceforge.net/projects/nsis/files/NSIS%203/3.11/nsis-3.11-strlen_8192.zip
             if [[ $? -eq 0 ]] ; then
                 success=1
-                7z x -aoa -o"/c/Program Files (x86)/NSIS" nsis-3.08-strlen_8192.zip
-                rm nsis-3.08-strlen_8192.zip
+                7z x -aoa -o"/c/Program Files (x86)/NSIS" nsis-3.11-strlen_8192.zip
+                rm nsis-3.11-strlen_8192.zip
                 echo "Installation successful."
                 break
             else
@@ -355,7 +376,7 @@ jobs:
         path: ${{env.BUILD_DIR}}/${{env.PYTHON_DIST_DIR}}
 
     - name: Upload to Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       if: matrix.options.package == 'YES' && matrix.toolset == 'CLangCL' && github.event_name == 'push' && github.ref_type == 'tag'
       with:
         draft: true

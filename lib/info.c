@@ -401,6 +401,10 @@ printIdentifier(const ktx_uint8_t identifier[12], bool json)
  * For KTX format version 1                                  *
  *===========================================================*/
 
+extern const char* glFormatString(GLenum);
+extern const char* glInternalformatString(GLenum);
+extern const char* glTypeString(GLenum);
+
 /**
  * @internal
  * @~English
@@ -415,12 +419,12 @@ printKTXHeader(KTX_header* pHeader)
     printIdentifier(pHeader->identifier, false);
     fprintf(stdout, "\n");
     fprintf(stdout, "endianness: %#x\n", pHeader->endianness);
-    fprintf(stdout, "glType: %#x\n", pHeader->glType);
+    fprintf(stdout, "glType: %s\n", glTypeString(pHeader->glType));
     fprintf(stdout, "glTypeSize: %u\n", pHeader->glTypeSize);
-    fprintf(stdout, "glFormat: %#x\n", pHeader->glFormat);
-    fprintf(stdout, "glInternalformat: %#x\n", pHeader->glInternalformat);
-    fprintf(stdout, "glBaseInternalformat: %#x\n",
-            pHeader->glBaseInternalformat);
+    fprintf(stdout, "glFormat: %s\n", glFormatString(pHeader->glFormat));
+    fprintf(stdout, "glInternalformat: %s\n", glInternalformatString(pHeader->glInternalformat));
+    fprintf(stdout, "glBaseInternalformat: %s\n",
+            glFormatString(pHeader->glBaseInternalformat));
     fprintf(stdout, "pixelWidth: %u\n", pHeader->pixelWidth);
     fprintf(stdout, "pixelHeight: %u\n", pHeader->pixelHeight);
     fprintf(stdout, "pixelDepth: %u\n", pHeader->pixelDepth);
@@ -533,6 +537,29 @@ printKTXInfo(ktxStream* stream)
     printKTXInfo2(stream, &header);
 }
 
+KTX_error_code
+ktxPrintKTX1InfoTextForStream(ktxStream* stream)
+{
+    ktx_uint8_t ktx_ident_ref[12] = KTX_IDENTIFIER_REF;
+    KTX_header header;
+    KTX_error_code result;
+
+    if (stream == NULL)
+        return KTX_INVALID_VALUE;
+
+    result = stream->read(stream, &header, sizeof(ktx_ident_ref));
+    if (result == KTX_SUCCESS) {
+        // Compare identifier, is this a KTX  or KTX2 file?
+        if (!memcmp(header.identifier, ktx_ident_ref, sizeof(ktx_ident_ref))) {
+            result = stream->read(stream, &header.endianness,
+                                  KTX_HEADER_SIZE - sizeof(ktx_ident_ref));
+            printKTXInfo2(stream, &header);
+        } else {
+                return KTX_UNKNOWN_FILE_FORMAT;
+        }
+    }
+    return result;
+}
 
 /*===========================================================*
  * For KTX format version 2                                  *
