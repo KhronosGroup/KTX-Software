@@ -341,6 +341,52 @@ static inline FILE* ktxFOpenUTF8(char const* path, char const* mode) {
 }
 #endif
 
+/*
+ ======================================
+     Test helper
+ ======================================
+*/
+
+/**
+ * @internal
+ * @~English
+ * @define _KTX_TEST_OUR_STRNSTR_ON_PLATFORM_WITH_STRNSTR
+ * @brief Enable unittests to test our @c strnstr implementation on a platform
+ * that supports @c strnstr.
+ *
+ * For developer use only. Set to 1 to give the function a different name and
+ * enable building it and the corresponding unit test even when the platform
+ * supports its own @c strnstr. If 0, both will be omitted on platforms that
+ * support @c strnstr. These are BSD based distributions including macOS
+ * and freeBSD.
+ */
+#if !defined(_KTX_TEST_OUR_STRNSTR_ON_PLATFORM_WITH_STRNSTR)
+  #define _KTX_TEST_OUR_STRNSTR_ON_PLATFORM_WITH_STRNSTR 0
+#endif
+// Protect against inadvertent setting on platforms where the internal
+// function will be used.
+#if _KTX_TEST_OUR_STRNSTR_ON_PLATFORM_WITH_STRNSTR
+  #if defined(_WIN32) || defined(linux) || defined(__linux) || defined(__linux__) || defined(__EMSCRIPTEN__)
+    #undef _KTX_TEST_OUR_STRNSTR_ON_PLATFORM_WITH_STRNSTR
+    #define _KTX_TEST_OUR_STRNSTR_ON_PLATFORM_WITH_STRNSTR 0
+  #endif
+#endif
+
+/**
+ * @internal
+ * @~English
+ * @define STRNSTR
+ * @brief Provides funciton name to implementation and unittests.
+ *
+ * On platforms with support the only caller of the our function will be
+ * the unittests.
+ */
+#if _KTX_TEST_OUR_STRNSTR_ON_PLATFORM_WITH_STRNSTR
+  #define STRNSTR our_strnstr
+#else
+  #define STRNSTR strnstr
+#endif
+
 #ifdef __cplusplus
 }
 #endif

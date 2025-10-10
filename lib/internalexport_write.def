@@ -28,3 +28,4 @@ EXPORTS
     dfdToStringVersionNumber
     ktxBUImageFlagsBitString
     ktxTexture2_constructCopy
+    strnstr
