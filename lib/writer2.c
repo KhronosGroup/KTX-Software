@@ -78,8 +78,9 @@ char*
 STRNSTR(const char *haystack, const char *needle, size_t len)
 {
     // Having fallen foul of Android's (Linux's?) memchr implementation
-    // reading len bytes and triggering FORTIFY checks when needle is less
-    // than len bytes, implement without relying on external functions.
+    // reading len bytes and triggering FORTIFY checks, when using it to
+    // determine the length of needle and the length is less than len bytes,
+    // implement without relying on external functions.
     size_t i, j;
 
     if (needle[0] == '\0')
