@@ -102,6 +102,8 @@ set( VK_TEST_IMAGES
     texturearray_bc3_unorm.ktx
     texturearray_astc_8x8_unorm.ktx
     texturearray_etc2_unorm.ktx
+    straight-rgba.ktx2
+    premultiplied-rgba.ktx2
 )
 list( TRANSFORM VK_TEST_IMAGES
     PREPEND "${PROJECT_SOURCE_DIR}/tests/testimages/"

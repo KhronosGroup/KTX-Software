@@ -729,6 +729,7 @@ class Image {
     virtual Image& copyToRG(Image&, std::string_view swizzle) = 0;
     virtual Image& copyToRGB(Image&, std::string_view swizzle) = 0;
     virtual Image& copyToRGBA(Image&, std::string_view swizzle) = 0;
+    virtual Image& premultiplyAlpha() = 0;
 
   protected:
     Image() : Image(0, 0) { }
@@ -1313,6 +1314,36 @@ class ImageT : public Image {
     virtual ImageT& copyToRG(Image& dst, std::string_view swizzle) override { return copyTo((ImageT<componentType, 2>&)dst, swizzle); }
     virtual ImageT& copyToRGB(Image& dst, std::string_view swizzle) override { return copyTo((ImageT<componentType, 3>&)dst, swizzle); }
     virtual ImageT& copyToRGBA(Image& dst, std::string_view swizzle) override { return copyTo((ImageT<componentType, 4>&)dst, swizzle); }
+
+    virtual ImageT& premultiplyAlpha() override {
+        if(getComponentCount() < 4) {
+            return *this; // Nothing to do (no alpha channel)
+        }
+
+        const TransferFunctionSRGB tfSRGB;
+        const TransferFunctionLinear tfLinear;
+        const TransferFunction& tf = transferFunction == KHR_DF_TRANSFER_SRGB ?
+                static_cast<const TransferFunction&>(tfSRGB) :
+                static_cast<const TransferFunction&>(tfLinear);
+
+        uint32_t pixelCount = getPixelCount();
+        for (uint32_t i = 0; i < pixelCount; ++i) {
+            Color& c = pixels[i];
+            float alpha = c[3] * Color::rcpOne();
+            for (uint32_t comp = 0; comp < 3; comp++) {
+                float linearColor = tf.decode(c[comp] * Color::rcpOne());
+                linearColor *= alpha;
+                float srgbColor = tf.encode(linearColor);
+                if (std::is_floating_point_v<componentType>) {
+                    c.set(comp, static_cast<componentType>(srgbColor));
+                } else {
+                    componentType outValue = static_cast<componentType>(srgbColor * static_cast<float>(Color::one()) + 0.5f);
+                    c.set(comp, outValue);
+                }
+            }
+        }
+        return *this;
+    }
 
   protected:
     componentType swizzlePixel(const Color& srcPixel, char swizzle) {

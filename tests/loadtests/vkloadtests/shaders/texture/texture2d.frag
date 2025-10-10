@@ -7,6 +7,9 @@
 #extension GL_ARB_shading_language_420pack : enable
 
 layout (binding = 1) uniform sampler2D samplerColor;
+layout (binding = 2) uniform AlphaModeUniform {
+    int alphaMode; // 0 = Straight, 1 = Premultiplied
+} alphaModeUniform;
 
 layout (location = 0) in vec2 inUV;
 layout (location = 1) in float inLodBias;
@@ -22,7 +25,8 @@ void main()
     vec4 fragcolor, texcolor;
 
     texcolor = texture(samplerColor, inUV, inLodBias);
-    fragcolor.rgb = inColor.rgb * (1.0f - texcolor.a) + texcolor.rgb * texcolor.a;
+    float A = mix(texcolor.a, 1.0f, alphaModeUniform.alphaMode);
+    fragcolor.rgb = inColor.rgb * (1.0f - texcolor.a) + texcolor.rgb * A;
     fragcolor.a = texcolor.a;
 
     vec3 N = normalize(inNormal);

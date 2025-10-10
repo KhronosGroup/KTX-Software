@@ -67,6 +67,12 @@ class Texture : public VulkanLoadTestSample
         float lodBias = 0.0f;
     } uboVS;
 
+    // Alpha mode uniform buffer
+    UniformData uniformDataFS;
+    struct {
+        int alphaMode = 0; // 0 = Straight, 1 = Premultiplied
+    } uboFS;
+
     struct {
         vk::Pipeline solid;
     } pipelines;
