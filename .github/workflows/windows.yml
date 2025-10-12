@@ -167,15 +167,10 @@ jobs:
       # NSIS was removed from windows-2025 (windows-latest as of this writing).
       # Earlier runner images only have NSIS 3.08 so install latest everywhere.
       # install-nsis v1.1.0 also installs long string support.
-      if: matrix.check_mkvk != 'ONLY'
+      if: matrix.options.package == 'YES'
       uses: repolevedavaj/install-nsis@v1.1.0
       with:
         nsis-version: '3.11'
-
-    - name: Verify NSIS with long string support
-      if: matrix.check_mkvk != 'ONLY'
-      shell: bash
-      run: makensisw /HELP
 
     - name: Force fetch provoking tag's annotation.
       # Work around https://github.com/actions/checkout/issues/290.
