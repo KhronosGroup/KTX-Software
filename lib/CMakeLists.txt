@@ -605,8 +605,8 @@ macro(common_libktx_settings target enable_write library_type)
             target_sources(
                 ${target}
             PRIVATE
-                lib/internalexport_mingw.def
-                $<${enable_write}:lib/internalexport_write_mingw.def>
+                internalexport_mingw.def
+                $<${enable_write}:internalexport_write_mingw.def>
             )
             # Need these flags if mingw happens to target the ucrt (new) rather
             # than the legacy msvcrt. Otherwise tests will fail to run because
@@ -618,8 +618,8 @@ macro(common_libktx_settings target enable_write library_type)
             target_sources(
                 ${target}
             PRIVATE
-                lib/internalexport.def
-                $<${enable_write}:lib/internalexport_write.def>
+                internalexport.def
+                $<${enable_write}:internalexport_write.def>
             )
         endif()
     elseif(EMSCRIPTEN)
