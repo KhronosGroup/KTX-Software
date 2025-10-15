@@ -100,7 +100,7 @@ function writeversion() {
   else
     vfp=$1/$VF
   fi
-  if [ "$1" = "lib" ]; then
+  if [[ $1 =~ .*/lib$ ]]; then
     ON=LIBKTX
     setfile $ON $1/$VF
   else

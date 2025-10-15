@@ -4,27 +4,24 @@
 
 cmake_minimum_required(VERSION 3.22)
 
-# Web search has not revealed the answer as to whether the parent project
-# includes are visible here. Keep these around until we find out.
-#include(CMakePrintHelpers)
-
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/../cmake/modules/")
+set( KTX_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR}/.. )
 
-#include(../cmake/version.cmake)
+if(PROJECT_IS_TOP_LEVEL)
+    include(CMakePrintHelpers)
+    include(../cmake/version.cmake)
+endif()
 
 project(libktx
     VERSION ${KTX_VERSION}
     DESCRIPTION "Libraries and tools to create and read KTX image texture files."
 )
 
-set( KTX_SOURCE_DIR ${PROJECT_SOURCE_DIR}/.. )
-
-# TODO: If parent includes aren't visible remove the if.
 if(PROJECT_IS_TOP_LEVEL)
     include(CMakeDependentOption)
 
-    include(../cmake/codesign.cmake)
-    include(../cmake/cputypetest.cmake)
+    include(${KTX_ROOT_DIR}/cmake/codesign.cmake)
+    include(${KTX_ROOT_DIR}/cmake/cputypetest.cmake)
 endif()
 
 if(APPLE)
@@ -465,10 +462,10 @@ macro(common_libktx_settings target enable_write library_type)
 
     set_target_properties(${target} PROPERTIES
         PUBLIC_HEADER
-#          "${CMAKE_CURRENT_SOURCE_DIR}/include/ktx.h;${KTX_SOURCE_DIR}/include/KHR/khr_df.h"
+#          "${CMAKE_CURRENT_SOURCE_DIR}/include/ktx.h;${KTX_ROOT_DIR}/include/KHR/khr_df.h"
           # Omit khr_df.h. Its installation has to be handled separately to
           # workaround CMake's failure to preserve the directory hierarchy.
-          "${KTX_SOURCE_DIR}/include/ktx.h"
+          "${KTX_ROOT_DIR}/include/ktx.h"
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}
         XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
@@ -531,13 +528,13 @@ macro(common_libktx_settings target enable_write library_type)
     target_include_directories(
         ${target}
     PUBLIC
-        $<BUILD_INTERFACE:${KTX_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${KTX_ROOT_DIR}/include>
         $<INSTALL_INTERFACE:include>
     PRIVATE
         ../external
         ../external/basisu/transcoder
         #../external/basisu/zstd
-        $<BUILD_INTERFACE:${KTX_SOURCE_DIR}/external/basisu/zstd>
+        $<BUILD_INTERFACE:${KTX_ROOT_DIR}/external/basisu/zstd>
         ../utils
 
         #$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../external/basisu/zstd>
@@ -698,7 +695,7 @@ macro(common_libktx_settings target enable_write library_type)
         )
 
         get_target_property( libktx_public_header ${target} PUBLIC_HEADER )
-        list(APPEND libktx_public_header ${KTX_SOURCE_DIR}/include/ktxvulkan.h)
+        list(APPEND libktx_public_header ${KTX_ROOT_DIR}/include/ktxvulkan.h)
         set_target_properties(${target} PROPERTIES
             PUBLIC_HEADER "${libktx_public_header}"
         )
@@ -760,7 +757,8 @@ common_libktx_settings(ktx_read 0 ${LIB_TYPE})
 # Third param is path to the KTX-Software root The function needs it
 # to locate the mkversion script. How to find the script needs revisiting
 # if libktx is moved to its own repo.
-create_version_header(${CMAKE_CURRENT_LIST_DIR} ktx ${KTX_SOURCE_DIR})
+cmake_print_variables(CMAKE_CURRENT_LIST_DIR)
+create_version_header(${CMAKE_CURRENT_LIST_DIR} ktx)
 
 target_compile_definitions(
     ktx_read

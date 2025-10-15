@@ -173,23 +173,17 @@ set(KTX_VERSION_FULL ${KTX_VERSION}${KTX_VERSION_TWEAK})
 
 #message("KTX version: ${KTX_VERSION}  major:${KTX_VERSION_MAJOR} minor:${KTX_VERSION_MINOR} patch:${KTX_VERSION_PATCH} tweak:${KTX_VERSION_TWEAK}")
 
-function( create_version_header dest_path target ) # + ktx_source_dir
+function( create_version_header dest_path target )
 
-    # N.B. cmake_print_variables always prints 1 for the value of ARGC.
-    if (ARGC GREATER 2)
-        list(GET ARGN 0 ktx_source_dir)
-    else()
-        set(ktx_source_dir .)
-    endif()
-    set( script_dir "${ktx_source_dir}/scripts" )
-
+    # N.B. cmake_print_variables(CMAKE_CURRENT_FUNCTION_LIST_DIR) will
+    # print the location of the cmake_print_variables function.
+    set( mkversion "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../scripts/mkversion" )
     set( version_h_output ${PROJECT_SOURCE_DIR}/${dest_path}/version.h)
-
     if(CMAKE_HOST_WIN32)
         add_custom_command(
             OUTPUT ${version_h_output}
             # On Windows this command has to be invoked by a shell in order to work
-            COMMAND ${BASH_EXECUTABLE} -c "\"${script_dir}/mkversion\" ${MKV_VERSION_OPT} \"-o\" \"version.h\" \"${dest_path}\""
+            COMMAND ${BASH_EXECUTABLE} -c "\"${mkversion}\" ${MKV_VERSION_OPT} \"-o\" \"version.h\" \"${dest_path}\""
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
             COMMENT "Generate ${version_h_output}"
             VERBATIM
@@ -197,7 +191,7 @@ function( create_version_header dest_path target ) # + ktx_source_dir
     else()
         add_custom_command(
             OUTPUT ${version_h_output}
-            COMMAND ${script_dir}/mkversion ${MKV_VERSION_OPT} -o version.h ${dest_path}
+            COMMAND ${mkversion} ${MKV_VERSION_OPT} -o version.h ${dest_path}
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
             COMMENT "Generate ${version_h_output}"
             VERBATIM
