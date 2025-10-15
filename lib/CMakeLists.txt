@@ -7,10 +7,12 @@ cmake_minimum_required(VERSION 3.22)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/../cmake/modules/")
 set( KTX_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR}/.. )
 
-if(PROJECT_IS_TOP_LEVEL)
-    include(CMakePrintHelpers)
+if(NOT DEFINED KTX_VERSION)
     include(../cmake/version.cmake)
 endif()
+
+# N.B. When used before the project() command PROJECT_IS_TOP_LEVEL will be TRUE
+# if this is included in another project.
 
 project(libktx
     VERSION ${KTX_VERSION}
@@ -18,6 +20,9 @@ project(libktx
 )
 
 if(PROJECT_IS_TOP_LEVEL)
+    # N.B. Beware of using cmake_print_variables for function dependent
+    # variables, e.g. ARGN and CMAKE_CURRENT_FUNCTION_LIST_DIR.
+    include(CMakePrintHelpers)
     include(CMakeDependentOption)
 
     include(${KTX_ROOT_DIR}/cmake/codesign.cmake)
@@ -48,10 +53,6 @@ option( LIBKTX_FEATURE_VK_UPLOAD "Enable Vulkan texture upload." ON )
 option( LIBKTX_FEATURE_GL_UPLOAD "Enable OpenGL texture upload." ON )
 option( LIBKTX_FEATURE_ETC_UNPACK "ETC decoding support." ON )
 
-
-# Used to reset BUILD_SHARED_LIBS after forcing static builds
-set(BUILD_SHARED_LIBS_RESET ${BUILD_SHARED_LIBS})
-
 CMAKE_DEPENDENT_OPTION( BASISU_SUPPORT_SSE
     "Compile with SSE support so applications can choose to use it."
     ON
@@ -79,6 +80,7 @@ CMAKE_DEPENDENT_OPTION( BUILD_SHARED_LIBS
     "NOT (APPLE_LOCKED_OS OR EMSCRIPTEN)"
     OFF
 )
+# Used to reset BUILD_SHARED_LIBS after forcing static builds
 set( BUILD_SHARED_LIBS_RESET ${BUILD_SHARED_LIBS} )
 
 # Platform specific settings
@@ -758,7 +760,7 @@ common_libktx_settings(ktx_read 0 ${LIB_TYPE})
 # to locate the mkversion script. How to find the script needs revisiting
 # if libktx is moved to its own repo.
 cmake_print_variables(CMAKE_CURRENT_LIST_DIR)
-create_version_header(${CMAKE_CURRENT_LIST_DIR} ktx)
+create_version_header(. ktx)
 
 target_compile_definitions(
     ktx_read

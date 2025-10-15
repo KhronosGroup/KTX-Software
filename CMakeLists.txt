@@ -4,6 +4,8 @@
 
 cmake_minimum_required(VERSION 3.22)
 
+# N.B. Beware of using cmake_print_variables for function dependent
+# variables, e.g. ARGN and CMAKE_CURRENT_FUNCTION_LIST_DIR.
 include(CMakePrintHelpers)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/modules/")

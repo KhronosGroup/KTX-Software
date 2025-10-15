@@ -14,8 +14,12 @@ DEF_VER=v4.0
 LF='
 '
 
-# Change directory the root of the Git repo.
+# Change directory the root of the Git repo after first
+# capturing the working directory in case the <object>
+# parameter is ".".
+# git describe has to be run in the repo root.
 depth=..
+workdir=$(pwd)
 cd $(dirname $0)/$depth
 
 # `man 7 gitrevisions` for the meaning of the output from git describe.
@@ -63,8 +67,11 @@ function setfile() {
   local VC
   local verstring=$1_VERSION
   if [ $dry_run -eq 1 ]; then
-      echo $verstring $VN
-      return
+    echo $verstring $VN
+    if [ -n $VF ]; then
+      echo "will be written to $2"
+    fi
+    return
   fi
   if [ -r $2 ]; then
     VC=$(grep $verstring $2 | sed -e "s/^#define $verstring //")
@@ -100,7 +107,7 @@ function writeversion() {
   else
     vfp=$1/$VF
   fi
-  if [[ $1 =~ .*/lib$ ]]; then
+  if [[ $1 =~ .*lib$ ]]; then
     ON=LIBKTX
     setfile $ON $1/$VF
   else
@@ -148,6 +155,15 @@ if [ $write_all -eq 1 ]; then
     fi
   done
 else
+  if [ "$OBJ" = "." ]; then
+    # Trailing part of workdir gives object location in repo.
+    if [[ $workdir =~ $(pwd)/(.*$) ]]; then
+      OBJ=${BASH_REMATCH[1]}
+    else
+      >&2 echo "$0: <object> param is '.' but current directory is not in KTX-Software repo."
+      exit 1
+    fi
+  fi
   writeversion $OBJ
 fi
 
