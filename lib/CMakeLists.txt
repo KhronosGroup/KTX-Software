@@ -1070,4 +1070,92 @@ endmacro(set_astc_dependencies)
 set_astc_dependencies(ktx)
 set_astc_dependencies(ktx_read)
 
+set(KTX_INSTALL_TARGETS ktx)
+if(NOT BUILD_SHARED_LIBS AND NOT APPLE)
+    list(APPEND KTX_INSTALL_TARGETS ${ASTCENC_LIB_TARGET})
+endif()
+
+# Install
+
+if(APPLE OR LINUX)
+    # Have library's name links as separate component
+    set(KTX_NAMELINKS ON)
+    install(TARGETS ${KTX_INSTALL_TARGETS}
+        EXPORT KTXTargets
+        ARCHIVE
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            COMPONENT library
+        FRAMEWORK
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            COMPONENT library
+        LIBRARY
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            COMPONENT library
+            NAMELINK_SKIP
+        PUBLIC_HEADER
+            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+            COMPONENT dev
+    )
+    install(TARGETS ${KTX_INSTALL_TARGETS}
+        LIBRARY
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            COMPONENT library
+            NAMELINK_ONLY
+    )
+else()
+    # No name links on Windows
+    set(KTX_NAMELINKS OFF)
+    install(TARGETS ${KTX_INSTALL_TARGETS}
+        EXPORT KTXTargets
+        ARCHIVE
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            COMPONENT dev
+        LIBRARY
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            COMPONENT library
+        RUNTIME
+            DESTINATION ${CMAKE_INSTALL_BINDIR}
+            COMPONENT library
+        PUBLIC_HEADER
+            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+            COMPONENT dev
+    )
+endif()
+
+# Use of this to install KHR/khr_df.h is due to CMake's failure to
+# preserve the include source folder hierarchy.
+# See https://gitlab.kitware.com/cmake/cmake/-/issues/16739.
+if (APPLE_LOCKED_OS)
+    set_source_files_properties(
+          include/KHR/khr_df.h
+          PROPERTIES MACOSX_PACKAGE_LOCATION Headers/KHR
+    )
+else()
+    include(GNUInstallDirs)
+    install(FILES include/KHR/khr_df.h
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/KHR
+        COMPONENT dev
+    )
+endif()
+
+install(EXPORT KTXTargets
+    FILE KtxTargets.cmake
+    NAMESPACE KTX::
+    DESTINATION lib/cmake/ktx
+    COMPONENT dev
+)
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    "KtxConfigVersion.cmake"
+    COMPATIBILITY SameMajorVersion
+)
+
+install( FILES
+    "cmake/KtxConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/KtxConfigVersion.cmake"
+    DESTINATION lib/cmake/ktx
+    COMPONENT dev
+)
+
 # vim:ai:ts=4:sts=2:sw=2:expandtab
