@@ -14,10 +14,11 @@ DEF_VER=v4.0
 LF='
 '
 
-# Change directory the root of the Git repo after first
-# capturing the working directory in case the <object>
-# parameter is ".".
-# git describe has to be run in the repo root.
+# git describe has to be run in the Git repo root.
+# Before changing the directory to the repo root capture
+# the working directory to support <object> values that are
+# relative paths. This is particularly helpful for CMake
+# sub-projects in subdirectories of the repo.
 depth=..
 workdir=$(pwd)
 cd $(dirname $0)/$depth
@@ -107,9 +108,13 @@ function writeversion() {
   else
     vfp=$1/$VF
   fi
-  if [[ $1 =~ .*lib$ ]]; then
+  if [[ $1 =~ .*lib$ || $1 =~ .*lib/src$ ]]; then
     ON=LIBKTX
     setfile $ON $1/$VF
+  elif [ "$OBJ" == "." ]; then
+    # Will only get "." if in repo root.
+    ON=KTX-Software
+    setfile $ON $1
   else
     ON=$(basename $1)
     ON=$(echo $ON | tr [:lower:] [:upper:])
@@ -155,16 +160,22 @@ if [ $write_all -eq 1 ]; then
     fi
   done
 else
-  if [ "$OBJ" = "." ]; then
+  if [[ $workdir =~ $(pwd)(/(.*$)?)? ]]; then
     # Trailing part of workdir gives object location in repo.
-    if [[ $workdir =~ $(pwd)/(.*$) ]]; then
-      OBJ=${BASH_REMATCH[1]}
-    else
-      >&2 echo "$0: <object> param is '.' but current directory is not in KTX-Software repo."
+    echo "RE Matches: ${BASH_REMATCH[0]} ${BASH_REMATCH[1]} ${BASH_REMATCH[2]}"
+    if [ -n "${BASH_REMATCH[2]}" ]; then
+      if [ "$OBJ" == "." ]; then
+        OBJ=${BASH_REMATCH[2]}
+      else
+        OBJ=${BASH_REMATCH[2]}/$OBJ
+      fi
+    # else  We are in the repo root
+    fi
+  else
+      >&2 echo "$0: Working directory is not in KTX-Software repo."
       exit 1
     fi
   fi
   writeversion $OBJ
-fi
 
 # vim:ai:ts=4:sts=4:sw=2:expandtab:textwidth=70

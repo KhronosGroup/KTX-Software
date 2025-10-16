@@ -11,7 +11,7 @@ set_code_sign(transcodetests)
 target_include_directories(
     transcodetests
 PRIVATE
-    ${PROJECT_SOURCE_DIR}/lib
+    ${PROJECT_SOURCE_DIR}/lib/src
 )
 
 target_link_libraries(

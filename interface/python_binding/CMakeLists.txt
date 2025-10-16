@@ -116,7 +116,7 @@ add_custom_command(
         ${SOURCE_ARCHIVE_BASENAME}.zip
     COMMAND
         ${CMAKE_COMMAND} -E env
-            LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
+            LIBKTX_INCLUDE_DIR=$<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
             LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
             LIBKTX_VERSION=${KTX_VERSION_NORMALIZED}
         # The build module by default builds in an isolated environment, i.e. it
@@ -135,7 +135,7 @@ add_custom_command(
     POST_BUILD
     COMMAND
         ${CMAKE_COMMAND} -E env
-            LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
+            LIBKTX_INCLUDE_DIR=$<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
             LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
             LIBKTX_VERSION=${KTX_VERSION_NORMALIZED}
         # Ditto with sdist isolated environment comment.
@@ -156,7 +156,7 @@ set(pyktx_egg_info
 add_test(NAME pyktx
     COMMAND
         ${CMAKE_COMMAND} -E env
-            LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
+            LIBKTX_INCLUDE_DIR=$<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
             LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
             KTX_RUN_TESTS=ON
             DYLD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{DYLD_LIBRARY_PATH}
@@ -191,7 +191,7 @@ if(KTX_FEATURE_DOC)
             # prints warnings and fails to include any content in the documentation
             # for the native interfaces in the HTML files it creates.
             ${CMAKE_COMMAND} -E env
-                LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
+                LIBKTX_INCLUDE_DIR=$<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
                 LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
                 DYLD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{DYLD_LIBRARY_PATH}
                 LD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{LD_LIBRARY_PATH}
@@ -213,7 +213,7 @@ if(KTX_FEATURE_DOC)
             # in the docs directory of the python_binding section of the build directory.
             # `--separate` says to put the documentation for each module on its own page.
             ${CMAKE_COMMAND} -E env
-                LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
+                LIBKTX_INCLUDE_DIR=$<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
                 LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
             ${PYTHON_EXECUTABLE} -m sphinx.ext.apidoc -o ${KTX_BUILD_DIR}/interface/python_binding/docs ./pyktx --separate
         COMMAND
@@ -232,7 +232,7 @@ if(KTX_FEATURE_DOC)
             # to do this. It appears that Sphinx or autodoc itself adds its working directory
             # to `sys.path`.
             ${CMAKE_COMMAND} -E env
-                LIBKTX_INCLUDE_DIR=${CMAKE_SOURCE_DIR}/include
+                LIBKTX_INCLUDE_DIR=$<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
                 LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
                 SPHINXBUILD=${PYTHON_PATH}\ -m\ sphinx
             make SOURCEDIR="${KTX_BUILD_DIR}/interface/python_binding" BUILDDIR="${KTX_BUILD_DIR}/interface/python_binding/docs/html/pyktx" html

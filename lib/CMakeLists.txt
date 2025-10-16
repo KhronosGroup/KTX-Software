@@ -297,12 +297,12 @@ add_compile_options(
 set(LIBKTX_BUILD_DIR "${CMAKE_BINARY_DIR}")
 
 set(LIBKTX_MAIN_SRC
-    ../include/KHR/khr_df.h
-    ../include/ktx.h
-    astc_codec.cpp
-    basis_sgd.h
-    basis_transcode.cpp
-    miniz_wrapper.cpp
+    include/KHR/khr_df.h
+    include/ktx.h
+    src/astc_codec.cpp
+    src/basis_sgd.h
+    src/basis_transcode.cpp
+    src/miniz_wrapper.cpp
     ../external/basisu/transcoder/basisu_containers.h
     ../external/basisu/transcoder/basisu_containers_impl.h
     ../external/basisu/transcoder/basisu_file_headers.h
@@ -312,7 +312,7 @@ set(LIBKTX_MAIN_SRC
     ../external/basisu/transcoder/basisu_transcoder.h
     ../external/basisu/transcoder/basisu.h
     ../external/basisu/zstd/zstd.c
-    checkheader.c
+    src/checkheader.c
     ../external/dfdutils/createdfd.c
     ../external/dfdutils/colourspaces.c
     ../external/dfdutils/dfd.h
@@ -323,35 +323,35 @@ set(LIBKTX_MAIN_SRC
     ../external/dfdutils/vk2dfd.inl
     ../external/dfdutils/vulkan/vk_platform.h
     ../external/dfdutils/vulkan/vulkan_core.h
-    etcunpack.cxx
-    filestream.c
-    filestream.h
-    formatsize.h
-    gl_format.h
-    glformat_str.c
-    hashlist.c
-    info.c
-    ktxint.h
-    memstream.c
-    memstream.h
-    strings.c
-    swap.c
-    texture.c
-    texture.h
-    texture2.c
-    texture2.h
-    texture_funcs.inl
-    uthash.h
-    vk2gl.h
-    vk_format.h
-    vkFormat2glFormat.inl
-    vkFormat2glInternalFormat.inl
-    vkFormat2glType.inl
-    vkformat_check.c
-    vkformat_check_variant.c
-    vkformat_enum.h
-    vkformat_str.c
-    vkformat_typesize.c
+    src/etcunpack.cxx
+    src/filestream.c
+    src/filestream.h
+    src/formatsize.h
+    src/gl_format.h
+    src/glformat_str.c
+    src/hashlist.c
+    src/info.c
+    src/ktxint.h
+    src/memstream.c
+    src/memstream.h
+    src/strings.c
+    src/swap.c
+    src/texture.c
+    src/texture.h
+    src/texture2.c
+    src/texture2.h
+    src/texture_funcs.inl
+    src/uthash.h
+    src/vk2gl.h
+    src/vk_format.h
+    src/vkFormat2glFormat.inl
+    src/vkFormat2glInternalFormat.inl
+    src/vkFormat2glType.inl
+    src/vkformat_check.c
+    src/vkformat_check_variant.c
+    src/vkformat_enum.h
+    src/vkformat_str.c
+    src/vkformat_typesize.c
     ../utils/unused.h
 
 )
@@ -402,10 +402,10 @@ set(BASISU_ENCODER_CXX_SRC
 
 if(LIBKTX_FEATURE_GL_UPLOAD)
     list(APPEND LIBKTX_MAIN_SRC
-        gl_funclist.inl
-        gl_funcs.c
-        gl_funcs.h
-        glloader.c
+        src/gl_funclist.inl
+        src/gl_funcs.c
+        src/gl_funcs.h
+        src/glloader.c
     )
 endif()
 
@@ -444,10 +444,10 @@ endif()
 # Main library
 add_library( ktx ${LIB_TYPE}
     ${LIBKTX_MAIN_SRC}
-    basis_encode.cpp
+    src/basis_encode.cpp
     ${BASISU_ENCODER_CXX_SRC}
-    writer1.c
-    writer2.c
+    src/writer1.c
+    src/writer2.c
 )
 
 # Read-only library
@@ -464,10 +464,10 @@ macro(common_libktx_settings target enable_write library_type)
 
     set_target_properties(${target} PROPERTIES
         PUBLIC_HEADER
-#          "${CMAKE_CURRENT_SOURCE_DIR}/include/ktx.h;${KTX_ROOT_DIR}/include/KHR/khr_df.h"
+#          "${CMAKE_CURRENT_SOURCE_DIR}/include/ktx.h;${CMAKE_CURRENT_SOURCE_DIR}/include/KHR/khr_df.h"
           # Omit khr_df.h. Its installation has to be handled separately to
           # workaround CMake's failure to preserve the directory hierarchy.
-          "${KTX_ROOT_DIR}/include/ktx.h"
+          include/ktx.h
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}
         XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
@@ -530,13 +530,13 @@ macro(common_libktx_settings target enable_write library_type)
     target_include_directories(
         ${target}
     PUBLIC
-        $<BUILD_INTERFACE:${KTX_ROOT_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
         $<INSTALL_INTERFACE:include>
     PRIVATE
         ../external
         ../external/basisu/transcoder
-        #../external/basisu/zstd
-        $<BUILD_INTERFACE:${KTX_ROOT_DIR}/external/basisu/zstd>
+        ../external/basisu/zstd
+        #$<BUILD_INTERFACE:${KTX_ROOT_DIR}/external/basisu/zstd>
         ../utils
 
         #$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../external/basisu/zstd>
@@ -604,8 +604,8 @@ macro(common_libktx_settings target enable_write library_type)
             target_sources(
                 ${target}
             PRIVATE
-                internalexport_mingw.def
-                $<${enable_write}:internalexport_write_mingw.def>
+                def/internalexport_mingw.def
+                $<${enable_write}:def/internalexport_write_mingw.def>
             )
             # Need these flags if mingw happens to target the ucrt (new) rather
             # than the legacy msvcrt. Otherwise tests will fail to run because
@@ -617,8 +617,8 @@ macro(common_libktx_settings target enable_write library_type)
             target_sources(
                 ${target}
             PRIVATE
-                internalexport.def
-                $<${enable_write}:internalexport_write.def>
+                def/internalexport.def
+                $<${enable_write}:def/internalexport_write.def>
             )
         endif()
     elseif(EMSCRIPTEN)
@@ -647,8 +647,8 @@ macro(common_libktx_settings target enable_write library_type)
         target_sources(
             ${target}
         PRIVATE
-            texture1.c
-            texture1.h
+            src/texture1.c
+            src/texture1.h
         )
     endif()
 
@@ -683,10 +683,10 @@ macro(common_libktx_settings target enable_write library_type)
         target_sources(
             ${target}
         PRIVATE
-            ../include/ktxvulkan.h
-            vk_funcs.c
-            vk_funcs.h
-            vkloader.c
+            include/ktxvulkan.h
+            src/vk_funcs.c
+            src/vk_funcs.h
+            src/vkloader.c
         )
         target_include_directories(
             ${target}
@@ -697,7 +697,7 @@ macro(common_libktx_settings target enable_write library_type)
         )
 
         get_target_property( libktx_public_header ${target} PUBLIC_HEADER )
-        list(APPEND libktx_public_header ${KTX_ROOT_DIR}/include/ktxvulkan.h)
+        list(APPEND libktx_public_header include/ktxvulkan.h)
         set_target_properties(${target} PROPERTIES
             PUBLIC_HEADER "${libktx_public_header}"
         )
@@ -760,7 +760,7 @@ common_libktx_settings(ktx_read 0 ${LIB_TYPE})
 # to locate the mkversion script. How to find the script needs revisiting
 # if libktx is moved to its own repo.
 cmake_print_variables(CMAKE_CURRENT_LIST_DIR)
-create_version_header(. ktx)
+create_version_header(src ktx)
 
 target_compile_definitions(
     ktx_read
@@ -894,15 +894,16 @@ else()
     message(FATAL_ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")
 endif()
 
+# TODO: Use CMake feature and remove these.
 # Retrieve the final set of properties for use by the transcodetests.
 # We do this because the CMake feature that would allow the transcodetests
 # target to retrieve these from the ktx target is not available until
 # v18 and we still need to work with v16 in the Emscripten Docker image.
 get_source_file_property(transcoder_options
-    external/basisu/transcoder/basisu_transcoder.cpp
+    ../external/basisu/transcoder/basisu_transcoder.cpp
     COMPILE_OPTIONS
 )
-get_source_file_property(zstd_options external/basisu/zstd/zstd.c COMPILE_OPTIONS)
+get_source_file_property(zstd_options ../external/basisu/zstd/zstd.c COMPILE_OPTIONS)
 
 # TODO: Figure out what to do about these. EXPORTED_RUNTIME_METHODS 'GL' and
 #  GL_PREINITIALIZED_CONTEXT=1 are probably the only libktx related ones.
@@ -1072,9 +1073,9 @@ endmacro(set_astc_dependencies)
 set_astc_dependencies(ktx)
 set_astc_dependencies(ktx_read)
 
-set(KTX_INSTALL_TARGETS ktx)
+set(LIBKTX_INSTALL_TARGETS ktx)
 if(NOT BUILD_SHARED_LIBS AND NOT APPLE)
-    list(APPEND KTX_INSTALL_TARGETS ${ASTCENC_LIB_TARGET})
+    list(APPEND LIBKTX_INSTALL_TARGETS ${ASTCENC_LIB_TARGET})
 endif()
 
 # Install
@@ -1082,7 +1083,7 @@ endif()
 if(APPLE OR LINUX)
     # Have library's name links as separate component
     set(KTX_NAMELINKS ON)
-    install(TARGETS ${KTX_INSTALL_TARGETS}
+    install(TARGETS ${LIBKTX_INSTALL_TARGETS}
         EXPORT KTXTargets
         ARCHIVE
             DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -1098,7 +1099,7 @@ if(APPLE OR LINUX)
             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
             COMPONENT dev
     )
-    install(TARGETS ${KTX_INSTALL_TARGETS}
+    install(TARGETS ${LIBKTX_INSTALL_TARGETS}
         LIBRARY
             DESTINATION ${CMAKE_INSTALL_LIBDIR}
             COMPONENT library
@@ -1107,7 +1108,7 @@ if(APPLE OR LINUX)
 else()
     # No name links on Windows
     set(KTX_NAMELINKS OFF)
-    install(TARGETS ${KTX_INSTALL_TARGETS}
+    install(TARGETS ${LIBKTX_INSTALL_TARGETS}
         EXPORT KTXTargets
         ARCHIVE
             DESTINATION ${CMAKE_INSTALL_LIBDIR}
