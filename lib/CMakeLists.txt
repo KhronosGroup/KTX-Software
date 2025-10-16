@@ -905,26 +905,6 @@ get_source_file_property(transcoder_options
 )
 get_source_file_property(zstd_options ../external/basisu/zstd/zstd.c COMPILE_OPTIONS)
 
-# TODO: Figure out what to do about these. EXPORTED_RUNTIME_METHODS 'GL' and
-#  GL_PREINITIALIZED_CONTEXT=1 are probably the only libktx related ones.
-# How can we do the equivalent of INTERFACE here?
-if(EMSCRIPTEN)
-    set(
-        KTX_EM_COMMON_LINK_FLAGS
-        --bind
-        "SHELL:-s MODULARIZE=1"
-        "SHELL:-s EXPORTED_RUNTIME_METHODS=[\'GL,HEAP8\']"
-        "SHELL:-s GL_PREINITIALIZED_CONTEXT=1"
-    )
-
-    set(
-        KTX_EM_COMMON_KTX_LINK_FLAGS
-        --pre-js ${CMAKE_CURRENT_SOURCE_DIR}/interface/js_binding/class_compat.js
-        --extern-post-js ${CMAKE_CURRENT_SOURCE_DIR}/interface/js_binding/module_create_compat.js
-        ${KTX_EM_COMMON_LINK_FLAGS}
-    )
-endif()
-
 # In C++ apps that use statically linked Libraries all compilatiom units must
 # be compiled with matching symbol visibility settings to avoid warnings from
 # clang. Many 3rd party libraries, including libassimp which is used by the

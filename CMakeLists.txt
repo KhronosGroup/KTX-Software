@@ -395,7 +395,7 @@ if(EMSCRIPTEN)
         ktx_js
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/other_include
-        ${CMAKE_CURRENT_SOURCE_DIR}/lib
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/src
         $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
     )
     target_link_options(
@@ -432,7 +432,7 @@ if(EMSCRIPTEN)
         ktx_js_read
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/other_include
-        ${CMAKE_CURRENT_SOURCE_DIR}/lib
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/src
         $<TARGET_PROPERTY:ktx_read,INTERFACE_INCLUDE_DIRECTORIES>
     )
     target_link_options(
