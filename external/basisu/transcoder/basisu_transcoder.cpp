@@ -213,8 +213,10 @@ namespace basist
 	}
 
 	static inline int32_t clampi(int32_t value, int32_t low, int32_t high) { if (value < low) value = low; else if (value > high) value = high;	return value; }
+#if BASISD_SUPPORT_PVRTC2
 	static inline float clampf(float value, float low, float high) { if (value < low) value = low; else if (value > high) value = high;	return value; }
 	static inline float saturate(float value) { return clampf(value, 0, 1.0f); }
+#endif
 
 	static inline uint8_t mul_8(uint32_t v, uint32_t q) { v = v * q + 128; return (uint8_t)((v + (v >> 8)) >> 8); }
 
