@@ -177,7 +177,9 @@ endif()
 
 set(bitness 64)
 
-set_target_processor_type(CPU_ARCHITECTURE)
+if(NOT DEFINED CPU_ARCHITECTURE)
+    set_target_processor_type(CPU_ARCHITECTURE)
+endif()
 if (CPU_ARCHITECTURE STREQUAL x86)
     message(FATAL_ERROR "This project cannot be built for x86 cpu.")
 endif()
@@ -186,19 +188,23 @@ if(BASISU_SUPPORT_OPENCL)
     find_package(OpenCL)
 endif()
 
-if(BASISU_SUPPORT_OPENCL AND WIN32 AND NOT OpenCL_FOUND)
-    # To avoid fiddly setting up of OpenCL on Windows CI VMs, use copy in repo.
-    set(OpenCL_INCLUDE_DIR
-        "${CMAKE_CURRENT_SOURCE_DIR}/external/basisu/opencl"
-        # FORCE to override *-NOTFOUND set by the failed find.
-        CACHE PATH "" FORCE
-    )
-    set(OpenCL_LIBRARY
-        "${CMAKE_CURRENT_SOURCE_DIR}/external/basisu/opencl/lib/OpenCL64.lib"
-        CACHE FILEPATH "" FORCE
-    )
-    set(OpenCL_INCLUDE_DIRS ${OpenCL_INCLUDE_DIR})
-    set(OpenCL_LIBRARIES ${OpenCL_LIBRARY})
+if(BASISU_SUPPORT_OPENCL AND NOT OpenCL_FOUND)
+    if(WIN32 AND CPU_ARCHITECTURE STREQUAL x86_64)
+        # To avoid fiddly setting up of OpenCL on Windows CI VMs, use copy in repo.
+        set(OpenCL_INCLUDE_DIR
+            "${CMAKE_CURRENT_SOURCE_DIR}/../external/basisu/opencl"
+            # FORCE to override *-NOTFOUND set by the failed find.
+            CACHE PATH "" FORCE
+        )
+        set(OpenCL_LIBRARY
+            "${CMAKE_CURRENT_SOURCE_DIR}/../external/basisu/opencl/lib/OpenCL64.lib"
+            CACHE FILEPATH "" FORCE
+        )
+        set(OpenCL_INCLUDE_DIRS ${OpenCL_INCLUDE_DIR})
+        set(OpenCL_LIBRARIES ${OpenCL_LIBRARY})
+    else()
+        message(FATAL_ERROR "OpenCL not found.")
+    endif()
 endif()
 
 # Windows Store Compatibility.
