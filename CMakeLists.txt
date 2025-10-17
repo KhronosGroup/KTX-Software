@@ -350,6 +350,7 @@ if(APPLE OR LINUX OR WIN32)
     endif()
 endif()
 
+set( LIBKTX_WERROR ${KTX_WERROR} )
 add_subdirectory(lib)
 
 if(KTX_FEATURE_JNI)

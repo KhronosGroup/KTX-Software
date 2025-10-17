@@ -65,7 +65,7 @@ option( BASISU_SUPPORT_OPENCL
     OFF
 )
 
-option( LIBKTX_WERROR "Make all warnings in KTX code into errors." ${KTX_WERROR})
+option( LIBKTX_WERROR "Make all warnings in libktx code into errors." OFF)
 
 # TODO: How to acquire from generic top-level project? Pass it in?
 CMAKE_DEPENDENT_OPTION( LIBKTX_EMBED_BITCODE
