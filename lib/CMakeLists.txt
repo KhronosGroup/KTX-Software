@@ -804,7 +804,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         PROPERTIES COMPILE_OPTIONS "-fno-strict-aliasing;-Wno-sign-compare;-Wno-unused-variable;-Wno-class-memaccess;-Wno-misleading-indentation;-Wno-extra;-Wno-deprecated-copy;-Wno-parentheses"
     )
     set_source_files_properties(
-        external/basisu/transcoder/basisu_transcoder.cpp
+        ../external/basisu/transcoder/basisu_transcoder.cpp
         PROPERTIES COMPILE_OPTIONS "-fno-strict-aliasing;-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable;-Wno-class-memaccess;-Wno-maybe-uninitialized"
     )
     if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "11")
@@ -825,14 +825,14 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         # line 326, where the error is raised, to be > the array length.
         # Also we have never seen any crashes.
         add_source_file_compile_options(
-            external/basisu/encoder/basisu_uastc_enc.cpp
+            ../external/basisu/encoder/basisu_uastc_enc.cpp
             "-Wno-stringop-overflow"
         )
     endif()
     if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "14.0")
         # Version 14 raises stringop-overflow on these files.
         add_source_file_compile_options(
-            "external/basisu/transcoder/basisu_transcoder.cpp;external/basisu/encoder/basisu_bc7enc.cpp"
+            "../external/basisu/transcoder/basisu_transcoder.cpp;external/basisu/encoder/basisu_bc7enc.cpp"
             "-Wno-stringop-overflow"
         )
     endif()
@@ -861,15 +861,15 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         PROPERTIES COMPILE_OPTIONS "-fno-strict-aliasing"
     )
     set_source_files_properties(
-        external/basisu/transcoder/basisu_transcoder.cpp
+        ../external/basisu/transcoder/basisu_transcoder.cpp
         PROPERTIES COMPILE_OPTIONS "-fno-strict-aliasing"
     )
     if (${clang_version} VERSION_GREATER_EQUAL "12.0.0")
-        add_source_file_compile_options( external/basisu/encoder/basisu_kernels_sse.cpp
+        add_source_file_compile_options( ../external/basisu/encoder/basisu_kernels_sse.cpp
             "-Wno-unused-parameter;-Wno-deprecated-copy;-Wno-uninitialized-const-reference"
         )
     else()
-        add_source_file_compile_options( external/basisu/encoder/basisu_kernels_sse.cpp
+        add_source_file_compile_options( ../external/basisu/encoder/basisu_kernels_sse.cpp
             "-Wno-unused-parameter"
         )
     endif()
@@ -879,28 +879,17 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
             "-Wno-sign-compare;-Wno-unused-variable;-Wno-unused-parameter;-Wno-deprecated-copy-with-user-provided-copy"
         )
         add_source_file_compile_options(
-            external/basisu/transcoder/basisu_transcoder.cpp
+            ../external/basisu/transcoder/basisu_transcoder.cpp
             "-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable"
         )
         set_source_files_properties(
-            external/basisu/zstd/zstd.c
+            ../external/basisu/zstd/zstd.c
             PROPERTIES COMPILE_OPTIONS "-Wno-unused-function"
         )
     endif()
 else()
     message(FATAL_ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")
 endif()
-
-# TODO: Use CMake feature and remove these.
-# Retrieve the final set of properties for use by the transcodetests.
-# We do this because the CMake feature that would allow the transcodetests
-# target to retrieve these from the ktx target is not available until
-# v18 and we still need to work with v16 in the Emscripten Docker image.
-get_source_file_property(transcoder_options
-    ../external/basisu/transcoder/basisu_transcoder.cpp
-    COMPILE_OPTIONS
-)
-get_source_file_property(zstd_options ../external/basisu/zstd/zstd.c COMPILE_OPTIONS)
 
 # In C++ apps that use statically linked Libraries all compilatiom units must
 # be compiled with matching symbol visibility settings to avoid warnings from
@@ -1028,6 +1017,10 @@ PRIVATE
     $<$<AND:${is_msvccl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.40.33811>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
     $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,17.0.3>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
 )
+
+# ktxdiff needs access to this variable to find the ASTC
+# library to link with so set it in parent.
+set(ASTCENC_LIB_TARGET ${ASTCENC_LIB_TARGET} PARENT_SCOPE)
 
 macro(set_astc_dependencies target)
     if(NOT BUILD_SHARED_LIBS AND APPLE)
