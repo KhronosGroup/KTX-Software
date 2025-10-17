@@ -7,12 +7,13 @@ cmake_minimum_required(VERSION 3.22)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/../cmake/modules/")
 set( KTX_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR}/.. )
 
+# N.B. When used before the project() command, PROJECT_IS_TOP_LEVEL will not
+# do what you likely at first expect. It will be TRUE if this is included
+# in another project.
+
 if(NOT DEFINED KTX_VERSION)
     include(../cmake/version.cmake)
 endif()
-
-# N.B. When used before the project() command PROJECT_IS_TOP_LEVEL will be TRUE
-# if this is included in another project.
 
 project(libktx
     VERSION ${KTX_VERSION}
@@ -20,8 +21,8 @@ project(libktx
 )
 
 if(PROJECT_IS_TOP_LEVEL)
-    # N.B. Beware of using cmake_print_variables for function dependent
-    # variables, e.g. ARGN and CMAKE_CURRENT_FUNCTION_LIST_DIR.
+    # Beware of using cmake_print_variables for variables with function
+    # dependent values, e.g. ARGN and CMAKE_CURRENT_FUNCTION_LIST_DIR.
     include(CMakePrintHelpers)
     include(CMakeDependentOption)
 
@@ -756,10 +757,6 @@ endmacro(common_libktx_settings)
 common_libktx_settings(ktx 1 ${LIB_TYPE})
 common_libktx_settings(ktx_read 0 ${LIB_TYPE})
 
-# Third param is path to the KTX-Software root The function needs it
-# to locate the mkversion script. How to find the script needs revisiting
-# if libktx is moved to its own repo.
-cmake_print_variables(CMAKE_CURRENT_LIST_DIR)
 create_version_header(src ktx)
 
 target_compile_definitions(

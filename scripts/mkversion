@@ -162,7 +162,6 @@ if [ $write_all -eq 1 ]; then
 else
   if [[ $workdir =~ $(pwd)(/(.*$)?)? ]]; then
     # Trailing part of workdir gives object location in repo.
-    echo "RE Matches: ${BASH_REMATCH[0]} ${BASH_REMATCH[1]} ${BASH_REMATCH[2]}"
     if [ -n "${BASH_REMATCH[2]}" ]; then
       if [ "$OBJ" == "." ]; then
         OBJ=${BASH_REMATCH[2]}
