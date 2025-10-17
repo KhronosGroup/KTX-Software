@@ -108,9 +108,11 @@ cmake_args+=(\
   "-D" "LIBKTX_FEATURE_VK_UPLOAD=$FEATURE_VK_UPLOAD" \
   "-D" "BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL" \
   "-D" "BASISU_SUPPORT_SSE=$SUPPORT_SSE" \
-  "-D" "KTX_PY_USE_VENV=$PY_USE_VENV" \
   "-D" "KTX_WERROR=$WERROR"
 )
+if [ "$FEATURE_PY = "ON ]; then
+  cmake_args+=("-D", "KTX_PY_USE_VENV=$PY_USE_VENV")
+fi
 if [ "$ARCH" != $(uname -m) ]; then
   cmake_args+=("--toolchain", "cmake/linux-$ARCH-toolchain.cmake")
 fi
