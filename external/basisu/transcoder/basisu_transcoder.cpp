@@ -12956,7 +12956,7 @@ namespace basist
 				}
 			}
 
-			uint32_t best_pbits[2];
+			uint32_t best_pbits[2] = {}; // Initialization here is to stop gcc warning
 			color_quad_u8 bestMinColor, bestMaxColor;
 			determine_unique_pbits((total_comps == 2) ? 4 : total_comps, 7, xl, xh, bestMinColor, bestMaxColor, best_pbits);
 
