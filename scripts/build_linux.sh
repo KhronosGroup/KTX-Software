@@ -110,11 +110,11 @@ cmake_args+=(\
   "-D" "BASISU_SUPPORT_SSE=$SUPPORT_SSE" \
   "-D" "KTX_WERROR=$WERROR"
 )
-if [ "$FEATURE_PY = "ON ]; then
-  cmake_args+=("-D", "KTX_PY_USE_VENV=$PY_USE_VENV")
+if [ "$FEATURE_PY" = "ON" ]; then
+  cmake_args+=("-D" "KTX_PY_USE_VENV=$PY_USE_VENV")
 fi
 if [ "$ARCH" != $(uname -m) ]; then
-  cmake_args+=("--toolchain", "cmake/linux-$ARCH-toolchain.cmake")
+  cmake_args+=("--toolchain" "cmake/linux-$ARCH-toolchain.cmake")
 fi
 config_display="Configure KTX-Software (Linux on $ARCH): "
 for arg in "${cmake_args[@]}"; do
