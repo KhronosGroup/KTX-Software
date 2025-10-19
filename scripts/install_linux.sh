@@ -64,8 +64,10 @@ else
   # Try this where `arch` is x86-64 or arm64.
   sudo apt-get -qq install gcc-$gcc_pkg_arch-linux-gnu:native g++-$gcc_pkg_arch-linux-gnu:native binutils-$gcc_pkg_arch-linux-gnu:native
 fi
-sudo apt-get -qq install opencl-c-headers:$dpkg_arch
-sudo apt-get -qq install mesa-opencl-icd:$dpkg_arch
+if [[ "$SUPPORT_OPENCL" = "ON" ]]; then
+  sudo apt-get -qq install ocl-icd-opencl-dev:$dpkg_arch
+  sudo apt-get -qq install mesa-opencl-icd:$dpkg_arch
+fi
 if [[ "$FEATURE_GL_UPLOAD" = "ON" || "$FEATURE_LOADTESTS" =~ "OpenGL" ]]; then
   sudo apt-get -qq install libgl1:$dpkg_arch libgl1-mesa-dev:$dpkg_arch
 fi
