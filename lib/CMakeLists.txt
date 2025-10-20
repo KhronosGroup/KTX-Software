@@ -300,7 +300,12 @@ add_compile_options(
 )
 #add_custom_target(debug_gnufe_ffpcontract COMMAND ${CMAKE_COMMAND} -E echo "ffp_contract = $<${is_gnu_fe}:-ffp-contract=off>")
 
-set(LIBKTX_BUILD_DIR "${CMAKE_BINARY_DIR}")
+if(PROJECT_IS_TOP_LEVEL)
+    set(LIBKTX_BUILD_DIR "${CMAKE_BINARY_DIR}")
+else()
+    set(LIBKTX_BUILD_DIR "${KTX_BUILD_DIR}")
+    set(LIBKTX_BUILD_DIR "${LIBKTX_BUILD_DIR}" PARENT_SCOPE)
+endif()
 
 set(LIBKTX_MAIN_SRC
     include/KHR/khr_df.h
@@ -415,35 +420,37 @@ if(LIBKTX_FEATURE_GL_UPLOAD)
     )
 endif()
 
-# TODO: What to do?
-if(APPLE OR LINUX OR WIN32)
-    # By wrapping in generator expression we force multi configuration
-    # generators (like Visual Studio, Xcode or Ninja multi-config) to
-    # take the exact path and not change it.
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
-    if(APPLE OR LINUX)
-        # Use a common RUNTIME_OUTPUT_DIR and LIBRARY_OUTPUT_DIR for all
-        # targets so that the INSTALL RPATH we need for installed binaries
-        # is functional in the build directory as well. INSTALL_RPATH cannot
-        # be altered during install because that would break code signing
-        # which happens after building. Therefore BUILD_WITH_INSTALL_RPATH
-        # is necessary for working code signing. Although Linux code is not
-        # yet being signed, make it symmetrical with macOS.
-        set(CMAKE_LIBRARY_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
-        set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
+if(PROJECT_IS_TOP_LEVEL)
+    # TODO: What to do?
+    if(APPLE OR LINUX OR WIN32)
+        # By wrapping in generator expression we force multi configuration
+        # generators (like Visual Studio, Xcode or Ninja multi-config) to
+        # take the exact path and not change it.
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
+        if(APPLE OR LINUX)
+            # Use a common RUNTIME_OUTPUT_DIR and LIBRARY_OUTPUT_DIR for all
+            # targets so that the INSTALL RPATH we need for installed binaries
+            # is functional in the build directory as well. INSTALL_RPATH cannot
+            # be altered during install because that would break code signing
+            # which happens after building. Therefore BUILD_WITH_INSTALL_RPATH
+            # is necessary for working code signing. Although Linux code is not
+            # yet being signed, make it symmetrical with macOS.
+            set(CMAKE_LIBRARY_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
+            set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
 
-        # Notes about install names, rpaths and code signing
-        # --------------------------------------------------
-        # Changing the install name of a library by setting INSTALL_NAME_DIR
-        # on a library target will invalidate the signature as it causes
-        # cmake to run `install_name_tool` after building and signing. The
-        # default install name is the library target's name prefixed by
-        # `@rpath/`. With this, `dyld` will load the library provided it is
-        # in one of the directories specified by a program's INSTALL_RPATH
-        # or is in the directory part of a full-path name passed to `dlopen`.
-        #
-        # A bad signature in either executable or shared library is
-        # indicated by the executable exiting with "Killed: 9".
+            # Notes about install names, rpaths and code signing
+            # --------------------------------------------------
+            # Changing the install name of a library by setting INSTALL_NAME_DIR
+            # on a library target will invalidate the signature as it causes
+            # cmake to run `install_name_tool` after building and signing. The
+            # default install name is the library target's name prefixed by
+            # `@rpath/`. With this, `dyld` will load the library provided it is
+            # in one of the directories specified by a program's INSTALL_RPATH
+            # or is in the directory part of a full-path name passed to `dlopen`.
+            #
+            # A bad signature in either executable or shared library is
+            # indicated by the executable exiting with "Killed: 9".
+        endif()
     endif()
 endif()
 
