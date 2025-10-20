@@ -427,19 +427,6 @@ add_library( ktx_read ${LIB_TYPE}
     ${LIBKTX_MAIN_SRC}
 )
 
-set( LIBKTX_BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}")
-
-# These genex's will overwrite the current values of the RUNTIME_OUTPUT
-# and LIBRARY_OUTPUT directory properties so do not try to be clever by
-# use an expression that will become nothing under some condition. The
-# properties must be set to actual values especially the LIBRARY_OUTPUT
-# as it is queried by the pyktx and ktx-jni target to find the library.
-set(genex_rod "$<IF:$<BOOL:${CMAKE_RUNTIME_OUTPUT_DIRECTORY}>,${CMAKE_RUNTIME_OUTPUT_DIRECTORY},${LIBKTX_BUILD_DIR}/$<CONFIG>>")
-set(genex_lod "$<IF:$<BOOL:${CMAKE_LIBRARY_OUTPUT_DIRECTORY}>,${CMAKE_LIBRARY_OUTPUT_DIRECTORY},${LIBKTX_BUILD_DIR}/$<CONFIG>>")
-# For genex debug
-add_custom_target(genexdebug_rod COMMAND ${CMAKE_COMMAND} -E echo ${genex_rod})
-add_custom_target(genexdebug_lod COMMAND ${CMAKE_COMMAND} -E echo ${genex_lod})
-
 macro(common_libktx_settings target enable_write library_type)
 
     if(TARGET mkvk)
@@ -462,47 +449,6 @@ macro(common_libktx_settings target enable_write library_type)
             FRAMEWORK TRUE
         )
     endif()
-
-    if(APPLE OR LINUX OR WIN32)
-        # By wrapping in generator expression we force multi configuration
-        # generators (like Visual Studio, Xcode or Ninja multi-config) to
-        # take the exact path and not change it.
-        set_target_properties(${target} PROPERTIES
-            RUNTIME_OUTPUT_DIRECTORY ${genex_rod}
-            # If CMAKE_LIBRARY_OUTPUT_DIRECTORY is not set, the genex sets
-            # the default location, This property is queried by the pyktx
-            # and ktx-jni targets. It is set here for Windows builds because
-            # the top-level KTX-Software project only sets
-            # CMAKE_LIBRARY_OUTPUT_DIRECTORY for Apple and Linux.
-            LIBRARY_OUTPUT_DIRECTORY ${genex_lod}
-        )
-        if(APPLE OR LINUX)
-            # Use a common RUNTIME_OUTPUT_DIR and LIBRARY_OUTPUT_DIR for all
-            # targets so that the INSTALL RPATH we need for installed binaries
-            # is functional in the build directory as well. INSTALL_RPATH cannot
-            # be altered during install because that would break code signing
-            # which happens after building. Therefore BUILD_WITH_INSTALL_RPATH
-            # is necessary for working code signing. Although Linux code is not
-            # yet being signed, make it symmetrical with macOS.
-            set_target_properties(${target} PROPERTIES
-                LIBRARY_OUTPUT_DIRECTORY ${genex_lod}
-                BUILD_WITH_INSTALL_RPATH ON
-            )
-            # Notes about install names, rpaths and code signing
-            # --------------------------------------------------
-            # Changing the install name of a library by setting INSTALL_NAME_DIR
-            # on a library target will invalidate the signature as it causes
-            # cmake to run `install_name_tool` after building and signing. The
-            # default install name is the library target's name prefixed by
-            # `@rpath/`. With this, `dyld` will load the library provided it is
-            # in one of the directories specified by a program's INSTALL_RPATH
-            # or is in the directory part of a full-path name passed to `dlopen`.
-            #
-            # A bad signature in either executable or shared library is
-            # indicated by the executable exiting with "Killed: 9".
-        endif()
-    endif()
-
 
     if( NOT ${library_type} STREQUAL STATIC )
         # Must not call this macro for static libs on Windows. To keep

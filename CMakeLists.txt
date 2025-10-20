@@ -324,7 +324,7 @@ if(APPLE OR LINUX OR WIN32)
     # generators (like Visual Studio, Xcode or Ninja multi-config) to
     # take the exact path and not change it.
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
-    if(APPLE OR LINUX)
+    #if(APPLE OR LINUX)
         # Use a common RUNTIME_OUTPUT_DIR and LIBRARY_OUTPUT_DIR for all
         # targets so that the INSTALL RPATH we need for installed binaries
         # is functional in the build directory as well. INSTALL_RPATH cannot
@@ -347,7 +347,7 @@ if(APPLE OR LINUX OR WIN32)
         #
         # A bad signature in either executable or shared library is
         # indicated by the executable exiting with "Killed: 9".
-    endif()
+    #endif()
 endif()
 
 set( LIBKTX_WERROR ${KTX_WERROR} )
