@@ -33,7 +33,7 @@ endif()
 # Convert Windows path to CMake path
 cmake_path(SET PYTHON_PATH ${PYTHON_EXECUTABLE})
 
-set(LIBKTX_LIB_DIR ${LIBKTX_BUILD_DIR}/$<CONFIG>)
+get_target_property(LIBKTX_LIB_DIR ktx LIBRARY_OUTPUT_DIRECTORY)
 
 if(KTX_PY_USE_VENV)
     add_custom_target( py-venv ALL
