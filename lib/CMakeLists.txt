@@ -460,7 +460,9 @@ macro(common_libktx_settings target enable_write library_type)
         set_target_properties(${target} PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>
             # This is the default location. Property added so it can be
-            # queried by pyktx and ktx-jni targets.
+            # queried by pyktx and ktx-jni targets. Do not use a genex
+            # here that will do nothing if some condition is met as that
+            # will become nothing in the pyktx and ktx-jni tagets.
             LIBRARY_OUTPUT_DIRECTORY $<1:${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>
         )
         if(APPLE OR LINUX)
