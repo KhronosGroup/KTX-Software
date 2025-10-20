@@ -427,8 +427,18 @@ add_library( ktx_read ${LIB_TYPE}
     ${LIBKTX_MAIN_SRC}
 )
 
-# CMAKE_BINARY_DIR is the top-level project's binary directory.
-set(LIBKTX_BUILD_DIR "${CMAKE_BINARY_DIR}")
+set( LIBKTX_BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}")
+
+# These genex's will overwrite the current values of the RUNTIME_OUTPUT
+# and LIBRARY_OUTPUT directory properties so do not try to be clever by
+# use an expression that will become nothing under some condition. The
+# properties must be set to actual values especially the LIBRARY_OUTPUT
+# as it is queried by the pyktx and ktx-jni target to find the library.
+set(genex_rod "$<IF:$<BOOL:${CMAKE_RUNTIME_OUTPUT_DIRECTORY}>,${CMAKE_RUNTIME_OUTPUT_DIRECTORY},${LIBKTX_BUILD_DIR}/$<CONFIG>>")
+set(genex_lod "$<IF:$<BOOL:${CMAKE_LIBRARY_OUTPUT_DIRECTORY}>,${CMAKE_LIBRARY_OUTPUT_DIRECTORY},${LIBKTX_BUILD_DIR}/$<CONFIG>>")
+# For genex debug
+add_custom_target(genexdebug_rod COMMAND ${CMAKE_COMMAND} -E echo ${genex_rod})
+add_custom_target(genexdebug_lod COMMAND ${CMAKE_COMMAND} -E echo ${genex_lod})
 
 macro(common_libktx_settings target enable_write library_type)
 
@@ -458,12 +468,13 @@ macro(common_libktx_settings target enable_write library_type)
         # generators (like Visual Studio, Xcode or Ninja multi-config) to
         # take the exact path and not change it.
         set_target_properties(${target} PROPERTIES
-            RUNTIME_OUTPUT_DIRECTORY "$<1:${KTX_BUILD_DIR}/$<CONFIG>>"
-            # This is the default location. Property added so it can be
-            # queried by pyktx and ktx-jni targets. Do not use a genex
-            # here that will do nothing if some condition is met as that
-            # will become nothing in the pyktx and ktx-jni targets.
-            LIBRARY_OUTPUT_DIRECTORY "$<1:${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>>"
+            RUNTIME_OUTPUT_DIRECTORY ${genex_rod}
+            # If CMAKE_LIBRARY_OUTPUT_DIRECTORY is not set, the genex sets
+            # the default location, This property is queried by the pyktx
+            # and ktx-jni targets. It is set here for Windows builds because
+            # the top-level KTX-Software project only sets
+            # CMAKE_LIBRARY_OUTPUT_DIRECTORY for Apple and Linux.
+            LIBRARY_OUTPUT_DIRECTORY ${genex_lod}
         )
         if(APPLE OR LINUX)
             # Use a common RUNTIME_OUTPUT_DIR and LIBRARY_OUTPUT_DIR for all
@@ -474,7 +485,7 @@ macro(common_libktx_settings target enable_write library_type)
             # is necessary for working code signing. Although Linux code is not
             # yet being signed, make it symmetrical with macOS.
             set_target_properties(${target} PROPERTIES
-                LIBRARY_OUTPUT_DIRECTORY "$<1:${KTX_BUILD_DIR}/$<CONFIG>>"
+                LIBRARY_OUTPUT_DIRECTORY ${genex_lod}
                 BUILD_WITH_INSTALL_RPATH ON
             )
             # Notes about install names, rpaths and code signing
