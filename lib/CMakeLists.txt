@@ -60,8 +60,10 @@ CMAKE_DEPENDENT_OPTION( BASISU_SUPPORT_SSE
     "NOT CMAKE_OSX_ARCHITECTURES STREQUAL \"$(ARCHS_STANDARD)\"; CPU_ARCHITECTURE STREQUAL x86_64"
     OFF
 )
-option( BASISU_SUPPORT_OPENCL
+CMAKE_DEPENDENT_OPTION( BASISU_SUPPORT_OPENCL
     "Compile with OpenCL support so applications can choose to use it."
+    OFF
+    "NOT APPLE_LOCKED_OS"
     OFF
 )
 
@@ -185,25 +187,22 @@ if (CPU_ARCHITECTURE STREQUAL x86)
 endif()
 
 if(BASISU_SUPPORT_OPENCL)
-    find_package(OpenCL)
-endif()
-
-if(BASISU_SUPPORT_OPENCL AND NOT OpenCL_FOUND)
-    if(WIN32 AND CPU_ARCHITECTURE STREQUAL x86_64)
-        # To avoid fiddly setting up of OpenCL on Windows CI VMs, use copy in repo.
-        set(OpenCL_INCLUDE_DIR
-            "${CMAKE_CURRENT_SOURCE_DIR}/../external/basisu/opencl"
-            # FORCE to override *-NOTFOUND set by the failed find.
-            CACHE PATH "" FORCE
-        )
-        set(OpenCL_LIBRARY
-            "${CMAKE_CURRENT_SOURCE_DIR}/../external/basisu/opencl/lib/OpenCL64.lib"
-            CACHE FILEPATH "" FORCE
-        )
-        set(OpenCL_INCLUDE_DIRS ${OpenCL_INCLUDE_DIR})
-        set(OpenCL_LIBRARIES ${OpenCL_LIBRARY})
+    if(NOT WIN32)
+        find_package(OpenCL REQUIRED)
     else()
-        message(FATAL_ERROR "OpenCL not found.")
+        find_package(OpenCL)
+        if(NOT OpenCL_FOUND)
+            # To avoid fiddly setting up of OpenCL on Windows CI VMs, use copy in repo.
+            set(OpenCL_INCLUDE_DIR
+                "${CMAKE_CURRENT_SOURCE_DIR}/../external/basisu/opencl"
+                # FORCE to override *-NOTFOUND set by the failed find.
+                CACHE PATH "" FORCE
+            )
+            set(OpenCL_LIBRARY
+                "${CMAKE_CURRENT_SOURCE_DIR}/../external/basisu/opencl/lib/OpenCL64.lib"
+                CACHE FILEPATH "" FORCE
+            )
+        endif()
     endif()
 endif()
 
@@ -719,7 +718,7 @@ macro(common_libktx_settings target enable_write library_type)
         PRIVATE
             ../external/basisu
             #$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../external/basisu>
-            $<$<BOOL:${BASISU_SUPPORT_OPENCL}>:${OpenCL_INCLUDE_DIRS}>
+            $<$<BOOL:${BASISU_SUPPORT_OPENCL}>:${OpenCL_INCLUDE_DIR}>
         )
         target_compile_definitions(
             ${target}
@@ -755,7 +754,7 @@ macro(common_libktx_settings target enable_write library_type)
         target_link_libraries(
             ${target}
         PRIVATE
-            $<$<BOOL:${BASISU_SUPPORT_OPENCL}>:${OpenCL_LIBRARIES}>
+            $<$<BOOL:${BASISU_SUPPORT_OPENCL}>:${OpenCL_LIBRARY}>
         )
     endif()
 endmacro(common_libktx_settings)
