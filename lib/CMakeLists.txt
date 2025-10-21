@@ -427,14 +427,6 @@ add_library( ktx_read ${LIB_TYPE}
     ${LIBKTX_MAIN_SRC}
 )
 
-cmake_print_variables(CMAKE_RUNTIME_OUTPUT_DIRECTORY CMAKE_LIBRARY_OUTPUT_DIRECTORY)
-get_target_property(rod_ktx ktx RUNTIME_OUTPUT_DIRECTORY)
-get_target_property(lod_ktx ktx LIBRARY_OUTPUT_DIRECTORY)
-get_target_property(aod_ktx ktx LIBRARY_OUTPUT_DIRECTORY)
-get_target_property(rod_ktx_read ktx_read RUNTIME_OUTPUT_DIRECTORY)
-get_target_property(lod_ktx_read ktx_read LIBRARY_OUTPUT_DIRECTORY)
-get_target_property(aod_ktx_read ktx_read LIBRARY_OUTPUT_DIRECTORY)
-cmake_print_variables(aod_ktx rod_ktx lod_ktx aod_ktx_read rod_ktx_read lod_ktx_read)
 macro(common_libktx_settings target enable_write library_type)
 
     if(TARGET mkvk)
@@ -794,7 +786,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
             # the facts that we have never seen a crash and version 12 no
             # longer raises the warnings.
             add_source_file_compile_options(
-                external/basisu/encoder/basisu_comp.cpp
+                ../external/basisu/encoder/basisu_comp.cpp
                 "-Wno-stringop-overflow"
             )
         endif()
