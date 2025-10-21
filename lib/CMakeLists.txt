@@ -428,9 +428,13 @@ add_library( ktx_read ${LIB_TYPE}
 )
 
 cmake_print_variables(CMAKE_RUNTIME_OUTPUT_DIRECTORY CMAKE_LIBRARY_OUTPUT_DIRECTORY)
-get_target_property(rod ktx RUNTIME_OUTPUT_DIRECTORY)
-get_target_property(lod ktx LIBRARY_OUTPUT_DIRECTORY)
-cmake_print_variables(rod lod)
+get_target_property(rod_ktx ktx RUNTIME_OUTPUT_DIRECTORY)
+get_target_property(lod_ktx ktx LIBRARY_OUTPUT_DIRECTORY)
+get_target_property(aod_ktx ktx LIBRARY_OUTPUT_DIRECTORY)
+get_target_property(rod_ktx_read ktx_read RUNTIME_OUTPUT_DIRECTORY)
+get_target_property(lod_ktx_read ktx_read LIBRARY_OUTPUT_DIRECTORY)
+get_target_property(aod_ktx_read ktx_read LIBRARY_OUTPUT_DIRECTORY)
+cmake_print_variables(aod_ktx rod_ktx lod_ktx aod_ktx_read rod_ktx_read lod_ktx_read)
 macro(common_libktx_settings target enable_write library_type)
 
     if(TARGET mkvk)
@@ -448,6 +452,7 @@ macro(common_libktx_settings target enable_write library_type)
         SOVERSION ${PROJECT_VERSION_MAJOR}
         XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
     )
+
     if(APPLE_LOCKED_OS)
         set_target_properties(${target} PROPERTIES
             FRAMEWORK TRUE

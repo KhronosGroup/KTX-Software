@@ -317,41 +317,69 @@ add_compile_options(
 )
 #add_custom_target(debug_gnufe_ffpcontract COMMAND ${CMAKE_COMMAND} -E echo "ffp_contract = $<${is_gnu_fe}:-ffp-contract=off>")
 
+# Set output directories
 set(KTX_BUILD_DIR "${CMAKE_BINARY_DIR}")
 
 if(APPLE OR LINUX OR WIN32)
-    # By wrapping in generator expression we force multi configuration
-    # generators (like Visual Studio, Xcode or Ninja multi-config) to
-    # take the exact path and not change it.
+    # Normalize the output directory so it is the same regardless of
+    # single or multi-config generator. Note that wrapping this in a
+    # generator expression forces multi-configuration generators (like
+    # Visual Studio, Xcode or Ninja multi-config) to take the exact path
+    # and not add $<CONFIG> to it.
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
-    #if(APPLE OR LINUX)
-        # Use a common RUNTIME_OUTPUT_DIR and LIBRARY_OUTPUT_DIR for all
-        # targets so that the INSTALL RPATH we need for installed binaries
-        # is functional in the build directory as well. INSTALL_RPATH cannot
-        # be altered during install because that would break code signing
-        # which happens after building. Therefore BUILD_WITH_INSTALL_RPATH
-        # is necessary for working code signing. Although Linux code is not
-        # yet being signed, make it symmetrical with macOS.
-        set(CMAKE_LIBRARY_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
-        set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
 
-        # Notes about install names, rpaths and code signing
-        # --------------------------------------------------
-        # Changing the install name of a library by setting INSTALL_NAME_DIR
-        # on a library target will invalidate the signature as it causes
-        # cmake to run `install_name_tool` after building and signing. The
-        # default install name is the library target's name prefixed by
-        # `@rpath/`. With this, `dyld` will load the library provided it is
-        # in one of the directories specified by a program's INSTALL_RPATH
-        # or is in the directory part of a full-path name passed to `dlopen`.
-        #
-        # A bad signature in either executable or shared library is
-        # indicated by the executable exiting with "Killed: 9".
+    # Use a common RUNTIME_OUTPUT_DIRECTORY and LIBRARY_OUTPUT_DIRECTORY
+    # for all targets so that the INSTALL RPATH we need for installed
+    # binaries is functional in the build directory as well. INSTALL_RPATH
+    # cannot be altered during install because that would break code
+    # signing which happens after building. BUILD_WITH_INSTALL_RPATH
+    # is also necessary for working code signing.
+    #
+    # Although only macOS and iOS code is currently being signed also
+    # set LIBRARY_OUTPUT_DIRECTORY on Linux for symmetry and on Windows
+    # because the ktx-jni and pyktx targets query this property of the
+    # ktx target to find the library for build and for running their tests.
+    # The property is not set by default.
+    # TODO: Revisit the way ktx-jni and pyktx targets find ktx.
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
+    set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
+
+    # Notes about install names, rpaths and code signing
+    # --------------------------------------------------
+    # Changing the install name of a library by setting INSTALL_NAME_DIR
+    # on a library target will invalidate the signature as it causes
+    # cmake to run `install_name_tool` after building and signing. The
+    # default install name is the library target's name prefixed by
+    # `@rpath/`. With this, `dyld` will load the library provided it is
+    # in one of the directories specified by a program's INSTALL_RPATH
+    # or is in the directory part of a full-path name passed to `dlopen`.
+    #
+    # A bad signature in either executable or shared library is
+    # indicated by the executable exiting with "Killed: 9".
     #endif()
 endif()
 
 set( LIBKTX_WERROR ${KTX_WERROR} )
 add_subdirectory(lib)
+
+if(WIN32)
+    # The ktx-jni and pyktx targets expect to find the interface ktx.lib
+    # in the same directory as ktx.dll. ARCHIVE_OUTPUT_DIRECTORY must be
+    # set to affect placement of ktx.lib. Not that this is clear from
+    # CMake's awesome documentation!!!!! It only says this is used
+    # when building static libraries.
+    #
+    # Not set globally because we don't want internal static libs like fmt
+    # and astc-encoder in the output directory.
+    # TODO: Does this need to be set also when BUILD_SHARED_LIBS is OFF?
+    set_target_properties(ktx PROPERTIES
+        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}"
+    )
+    set_target_properties(ktx_read PROPERTIES
+        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}"
+    )
+endif()
+
 
 if(KTX_FEATURE_JNI)
     add_subdirectory(interface/java_binding)
