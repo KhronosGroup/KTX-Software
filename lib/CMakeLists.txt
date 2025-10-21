@@ -427,6 +427,10 @@ add_library( ktx_read ${LIB_TYPE}
     ${LIBKTX_MAIN_SRC}
 )
 
+cmake_print_variables(CMAKE_RUNTIME_OUTPUT_DIRECTORY CMAKE_LIBRARY_OUTPUT_DIRECTORY)
+get_target_property(rod ktx RUNTIME_OUTPUT_DIRECTORY)
+get_target_property(lod ktx LIBRARY_OUTPUT_DIRECTORY)
+cmake_print_variables(rod lod)
 macro(common_libktx_settings target enable_write library_type)
 
     if(TARGET mkvk)

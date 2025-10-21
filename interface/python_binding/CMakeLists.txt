@@ -34,6 +34,7 @@ endif()
 cmake_path(SET PYTHON_PATH ${PYTHON_EXECUTABLE})
 
 get_target_property(LIBKTX_LIB_DIR ktx LIBRARY_OUTPUT_DIRECTORY)
+cmake_print_variables(LIBKTX_LIB_DIR)
 
 if(KTX_PY_USE_VENV)
     add_custom_target( py-venv ALL
