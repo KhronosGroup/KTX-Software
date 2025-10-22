@@ -8,9 +8,8 @@ option( KTX_PY_USE_VENV
 )
 
 find_package (Python3 COMPONENTS Interpreter)
-set(SOURCE_DIR ${CMAKE_SOURCE_DIR}/interface/python_binding)
-file(GLOB pyktx_py_src ${SOURCE_DIR}/pyktx/*.py)
-list(TRANSFORM pyktx_py_src REPLACE "${SOURCE_DIR}/pyktx/" "${KTX_BUILD_DIR}/interface/python_binding/docs/pyktx." OUTPUT_VARIABLE pyktx_py_rst_filenames)
+file(GLOB pyktx_py_src ${CMAKE_CURRENT_SOURCE_DIR}/pyktx/*.py)
+list(TRANSFORM pyktx_py_src REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/pyktx/" "${KTX_BUILD_DIR}/interface/python_binding/docs/pyktx." OUTPUT_VARIABLE pyktx_py_rst_filenames)
 list(TRANSFORM pyktx_py_rst_filenames REPLACE ".py$" ".rst" OUTPUT_VARIABLE pyktx_py_rst)
 
 set(PYTHON_EXECUTABLE_SYSTEM ${Python3_EXECUTABLE})
@@ -62,7 +61,7 @@ add_custom_command(
     TARGET pyktx-deps
     PRE_BUILD
     COMMAND
-        ${PYTHON_EXECUTABLE} -m pip install --no-warn-script-location -r ${SOURCE_DIR}/requirements.txt
+        ${PYTHON_EXECUTABLE} -m pip install --no-warn-script-location -r ${CMAKE_CURRENT_SOURCE_DIR}/requirements.txt
     COMMENT
         "Install dependencies for pyktx build"
 )
@@ -78,7 +77,7 @@ add_custom_target( pyktx ALL
         pyktx/ktx_texture1.c
         pyktx/ktx_texture2.c
     WORKING_DIRECTORY
-        ${SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT
         "Python distributions"
 )
@@ -92,7 +91,7 @@ add_custom_command(
     COMMENT
         "Clean up pyktx build artifacts"
     WORKING_DIRECTORY
-        ${SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 # Normalize version number as the python toolchain does. Tweaks are reduced
@@ -128,7 +127,7 @@ add_custom_command(
     COMMENT
         "Build pyktx source package"
     WORKING_DIRECTORY
-        ${SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 add_custom_command(
@@ -144,15 +143,15 @@ add_custom_command(
     COMMENT
         "Build pyktx wheel"
     WORKING_DIRECTORY
-        ${SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 set(pyktx_egg_info
-    ${SOURCE_DIR}/pyktx.egg-info/dependency_links.txt
-    ${SOURCE_DIR}/pyktx.egg-info/PKG-INFO
-    ${SOURCE_DIR}/pyktx.egg-info/requires.txt
-    ${SOURCE_DIR}/pyktx.egg-info/SOURCES.txt
-    ${SOURCE_DIR}/pyktx.egg-info/top_level.txt)
+    ${CMAKE_CURRENT_SOURCE_DIR}/pyktx.egg-info/dependency_links.txt
+    ${CMAKE_CURRENT_SOURCE_DIR}/pyktx.egg-info/PKG-INFO
+    ${CMAKE_CURRENT_SOURCE_DIR}/pyktx.egg-info/requires.txt
+    ${CMAKE_CURRENT_SOURCE_DIR}/pyktx.egg-info/SOURCES.txt
+    ${CMAKE_CURRENT_SOURCE_DIR}/pyktx.egg-info/top_level.txt)
 
 add_test(NAME pyktx
     COMMAND
@@ -164,7 +163,7 @@ add_test(NAME pyktx
             LD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{LD_LIBRARY_PATH}
         ${PYTHON_EXECUTABLE} buildscript.py
     WORKING_DIRECTORY
-        ${SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 if(KTX_FEATURE_DOC)
@@ -227,8 +226,8 @@ if(KTX_FEATURE_DOC)
             # there by one of the COMMANDs above). `conf.py` adds the python binding
             # section of the build directory to Python's `sys.path` so Autodoc can find the
             # modules. However they aren't there. The `pyktx` module is the directory
-            # ${SOURCE_DIR}/pyktx and the .o files from compiling the native parts are
-            # built there by buildscript.py when invoked above. ${SOURCE_DIR} appears in
+            # ${CMAKE_CURRENT_SOURCE_DIR}/pyktx and the .o files from compiling the native parts are
+            # built there by buildscript.py when invoked above. ${CMAKE_CURRENT_SOURCE_DIR} appears in
             # Python's sys.path so autodoc finds them. There is nothing explicit in `conf.py`
             # to do this. It appears that Sphinx or autodoc itself adds its working directory
             # to `sys.path`.
@@ -238,6 +237,6 @@ if(KTX_FEATURE_DOC)
                 SPHINXBUILD=${PYTHON_PATH}\ -m\ sphinx
             make SOURCEDIR="${KTX_BUILD_DIR}/interface/python_binding" BUILDDIR="${KTX_BUILD_DIR}/interface/python_binding/docs/html/pyktx" html
         WORKING_DIRECTORY
-            ${SOURCE_DIR}
+            ${CMAKE_CURRENT_SOURCE_DIR}
     )
 endif()
