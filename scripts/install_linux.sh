@@ -65,10 +65,10 @@ else
   sudo apt-get -qq install gcc-$gcc_pkg_arch-linux-gnu:native g++-$gcc_pkg_arch-linux-gnu:native binutils-$gcc_pkg_arch-linux-gnu:native
 fi
 if [[ "$SUPPORT_OPENCL" = "ON" ]]; then
-  sudo apt-get -qq install ocl-icd-opencl-dev:$dpkg_arch
-  sudo apt-get -qq install mesa-opencl-icd:$dpkg_arch
-  sudo apt-get -qq install clinfo:$dkpg_arch
-  clinfo
+  sudo apt-get -qq install pocl-opencl-icd libpocl-dev:$dpkg_arch
+  # In case we need to check the OpenCL installation.
+  #sudo apt-get -qq install clinfo:$dkpg_arch
+  #clinfo
 fi
 if [[ "$FEATURE_GL_UPLOAD" = "ON" || "$FEATURE_LOADTESTS" =~ "OpenGL" ]]; then
   sudo apt-get -qq install libgl1:$dpkg_arch libgl1-mesa-dev:$dpkg_arch
