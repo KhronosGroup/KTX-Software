@@ -39,9 +39,7 @@ target_include_directories(ktx-jni SYSTEM PRIVATE
       ${JNI_INCLUDE_DIRS}
 )
 
-get_target_property(lib_output_dir ktx LIBRARY_OUTPUT_DIRECTORY)
 set_target_properties(ktx-jni PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY ${lib_output_dir}
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
     XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
