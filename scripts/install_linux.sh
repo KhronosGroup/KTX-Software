@@ -69,8 +69,8 @@ if [[ "$SUPPORT_OPENCL" = "ON" ]]; then
   # This is still needed as only it provides libOpenCL.so.
   sudo apt-get -qq install ocl-icd-opencl-dev:$dpkg_arch
   # In case we need to check the OpenCL installation.
-  sudo apt-get -qq install clinfo:$dkpg_arch
-  clinfo
+  #sudo apt-get -qq install clinfo:$dkpg_arch
+  #clinfo
 fi
 if [[ "$FEATURE_GL_UPLOAD" = "ON" || "$FEATURE_LOADTESTS" =~ "OpenGL" ]]; then
   sudo apt-get -qq install libgl1:$dpkg_arch libgl1-mesa-dev:$dpkg_arch
