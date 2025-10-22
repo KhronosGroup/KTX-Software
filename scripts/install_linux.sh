@@ -66,6 +66,8 @@ else
 fi
 if [[ "$SUPPORT_OPENCL" = "ON" ]]; then
   sudo apt-get -qq install pocl-opencl-icd libpocl-dev:$dpkg_arch
+  # This is still needed as only it provides libOpenCL.so.
+  sudo apt-get -qq install ocl-icd-opencl-dev:$dpkg_arch
   # In case we need to check the OpenCL installation.
   #sudo apt-get -qq install clinfo:$dkpg_arch
   #clinfo
