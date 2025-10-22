@@ -67,6 +67,8 @@ fi
 if [[ "$SUPPORT_OPENCL" = "ON" ]]; then
   sudo apt-get -qq install ocl-icd-opencl-dev:$dpkg_arch
   sudo apt-get -qq install mesa-opencl-icd:$dpkg_arch
+  sudo apt-get -qq install clinfo:$dkpg_arch
+  clinfo
 fi
 if [[ "$FEATURE_GL_UPLOAD" = "ON" || "$FEATURE_LOADTESTS" =~ "OpenGL" ]]; then
   sudo apt-get -qq install libgl1:$dpkg_arch libgl1-mesa-dev:$dpkg_arch
