@@ -2,6 +2,8 @@
 # Copyright 2023 Shukant Pal
 # SPDX-License-Identifier: Apache-2.0
 
+cmake_minimum_required(VERSION 3.27) # 3.27 for genex TARGET_IMPORT_FILE artifacts.
+
 option( KTX_PY_USE_VENV
     "Use a Python virtual environment. Needed for externally managed python installations."
     OFF
@@ -32,8 +34,12 @@ endif()
 # Convert Windows path to CMake path
 cmake_path(SET PYTHON_PATH ${PYTHON_EXECUTABLE})
 
-get_target_property(LIBKTX_LIB_DIR ktx LIBRARY_OUTPUT_DIRECTORY)
-cmake_print_variables(LIBKTX_LIB_DIR)
+set(libktx_include_dir $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>)
+# IMPORT_FILE_DIR is typically only set when building a Windows DLL and
+# points to the directory with the .lib import file.
+set(libktx_import_dir $<IF:$<BOOL:$<TARGET_IMPORT_FILE_DIR:ktx>>,$<TARGET_IMPORT_FILE_DIR:ktx>,$<TARGET_FILE_DIR:ktx>>)
+set(libktx_lib_dir $<TARGET_FILE_DIR:ktx>)
+add_custom_target(debug_libktx_dirs COMMAND ${CMAKE_COMMAND} -E echo "libktx_include_dir = ${libktx_include_dir}, libktx_import_dir = ${libktx_import_dir}, libktx_lib_dir = ${libktx_lib_dir}")
 
 if(KTX_PY_USE_VENV)
     add_custom_target( py-venv ALL
@@ -116,8 +122,8 @@ add_custom_command(
         ${SOURCE_ARCHIVE_BASENAME}.zip
     COMMAND
         ${CMAKE_COMMAND} -E env
-            LIBKTX_INCLUDE_DIR=$<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
-            LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
+            LIBKTX_INCLUDE_DIR=${libktx_include_dir}
+            LIBKTX_LIB_DIR=${libktx_lib_dir}
             LIBKTX_VERSION=${KTX_VERSION_NORMALIZED}
         # The build module by default builds in an isolated environment, i.e. it
         # requires a virtual env. I have not found a way via find_package to
@@ -135,8 +141,8 @@ add_custom_command(
     POST_BUILD
     COMMAND
         ${CMAKE_COMMAND} -E env
-            LIBKTX_INCLUDE_DIR=$<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
-            LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
+            LIBKTX_INCLUDE_DIR=${libktx_include_dir}
+            LIBKTX_LIB_DIR=${libktx_lib_dir}
             LIBKTX_VERSION=${KTX_VERSION_NORMALIZED}
         # Ditto with sdist isolated environment comment.
         ${PYTHON_EXECUTABLE} -m build --wheel --outdir ${DIST_DIR}
@@ -156,11 +162,12 @@ set(pyktx_egg_info
 add_test(NAME pyktx
     COMMAND
         ${CMAKE_COMMAND} -E env
-            LIBKTX_INCLUDE_DIR=$<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
-            LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
+            LIBKTX_INCLUDE_DIR=${libktx_include_dir}
+            LIBKTX_IMPORT_DIR=${libktx_import_dir}
+            LIBKTX_LIB_DIR=${libktx_lib_dir}
             KTX_RUN_TESTS=ON
-            DYLD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{DYLD_LIBRARY_PATH}
-            LD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{LD_LIBRARY_PATH}
+            DYLD_LIBRARY_PATH=${libktx_lib_dir}:$ENV{DYLD_LIBRARY_PATH}
+            LD_LIBRARY_PATH=${libktx_lib_dir}:$ENV{LD_LIBRARY_PATH}
         ${PYTHON_EXECUTABLE} buildscript.py
     WORKING_DIRECTORY
         ${CMAKE_CURRENT_SOURCE_DIR}
@@ -191,10 +198,11 @@ if(KTX_FEATURE_DOC)
             # prints warnings and fails to include any content in the documentation
             # for the native interfaces in the HTML files it creates.
             ${CMAKE_COMMAND} -E env
-                LIBKTX_INCLUDE_DIR=$<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
-                LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
-                DYLD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{DYLD_LIBRARY_PATH}
-                LD_LIBRARY_PATH=${LIBKTX_LIB_DIR}:$ENV{LD_LIBRARY_PATH}
+                LIBKTX_INCLUDE_DIR=${libktx_include_dir}
+                LIBKTX_IMPORT_DIR=${libktx_import_dir}
+                LIBKTX_LIB_DIR=${libktx_lib_dir}
+                DYLD_LIBRARY_PATH=${libktx_lib_dir}:$ENV{DYLD_LIBRARY_PATH}
+                LD_LIBRARY_PATH=${libktx_lib_dir}:$ENV{LD_LIBRARY_PATH}
             ${PYTHON_EXECUTABLE} buildscript.py
         COMMAND
             ${CMAKE_COMMAND} -E copy
@@ -213,8 +221,8 @@ if(KTX_FEATURE_DOC)
             # in the docs directory of the python_binding section of the build directory.
             # `--separate` says to put the documentation for each module on its own page.
             ${CMAKE_COMMAND} -E env
-                LIBKTX_INCLUDE_DIR=$<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
-                LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
+                LIBKTX_INCLUDE_DIR=${libktx_include_dir}
+                LIBKTX_LIB_DIR=${libktx_lib_dir}
             ${PYTHON_EXECUTABLE} -m sphinx.ext.apidoc -o ${KTX_BUILD_DIR}/interface/python_binding/docs ./pyktx --separate
         COMMAND
             # Sphinx uses autodoc to generate html files from the .rst files generated above.
@@ -226,14 +234,14 @@ if(KTX_FEATURE_DOC)
             # there by one of the COMMANDs above). `conf.py` adds the python binding
             # section of the build directory to Python's `sys.path` so Autodoc can find the
             # modules. However they aren't there. The `pyktx` module is the directory
-            # ${CMAKE_CURRENT_SOURCE_DIR}/pyktx and the .o files from compiling the native parts are
-            # built there by buildscript.py when invoked above. ${CMAKE_CURRENT_SOURCE_DIR} appears in
-            # Python's sys.path so autodoc finds them. There is nothing explicit in `conf.py`
-            # to do this. It appears that Sphinx or autodoc itself adds its working directory
-            # to `sys.path`.
+            # ${CMAKE_CURRENT_SOURCE_DIR}/pyktx and the .o files from compiling the native
+            # parts are built there by buildscript.py when invoked above.
+            # ${CMAKE_CURRENT_SOURCE_DIR} appears in Python's sys.path so autodoc finds them.
+            # There is nothing explicit in `conf.py` to do this. It appears that Sphinx or
+            # autodoc itself adds its working directory to `sys.path`.
             ${CMAKE_COMMAND} -E env
                 LIBKTX_INCLUDE_DIR=$<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
-                LIBKTX_LIB_DIR=${LIBKTX_LIB_DIR}
+                LIBKTX_LIB_DIR=${libktx_lib_dir}
                 SPHINXBUILD=${PYTHON_PATH}\ -m\ sphinx
             make SOURCEDIR="${KTX_BUILD_DIR}/interface/python_binding" BUILDDIR="${KTX_BUILD_DIR}/interface/python_binding/docs/html/pyktx" html
         WORKING_DIRECTORY

@@ -9,6 +9,7 @@ import unittest
 
 LIBKTX_INSTALL_DIR = os.getenv("LIBKTX_INSTALL_DIR")
 LIBKTX_INCLUDE_DIR = os.getenv("LIBKTX_INCLUDE_DIR")
+LIBKTX_IMPORT_DIR = os.getenv("LIBKTX_IMPORT_DIR")
 LIBKTX_LIB_DIR = os.getenv("LIBKTX_LIB_DIR")
 
 if os.name == 'nt':
@@ -18,16 +19,22 @@ if os.name == 'nt':
         LIBKTX_INCLUDE_DIR = LIBKTX_INSTALL_DIR + '\\include'
     if LIBKTX_LIB_DIR is None:
         LIBKTX_LIB_DIR = LIBKTX_INSTALL_DIR + '\\lib'
+    if LIBKTX_IMPORT_DIR is None:
+        LIBKTX_IMPORT_DIR = LIBKTX_LIB_DIR
 elif platform.system() == 'Darwin':
     if LIBKTX_INCLUDE_DIR is None:
         LIBKTX_INCLUDE_DIR = '/usr/local/include'
     if LIBKTX_LIB_DIR is None:
         LIBKTX_LIB_DIR = '/usr/local/lib'
+    if LIBKTX_IMPORT_DIR is None:
+        LIBKTX_IMPORT_DIR = LIBKTX_LIB_DIR
 elif os.name == 'posix':
     if LIBKTX_INCLUDE_DIR is None:
         LIBKTX_INCLUDE_DIR = '/usr/include'
     if LIBKTX_LIB_DIR is None:
-        LIBKTX_LIB_DIR = '/usr/lib'
+        LIBKTX_LIB_DIR = '/usr/local/lib'
+    if LIBKTX_IMPORT_DIR is None:
+        LIBKTX_IMPORT_DIR = LIBKTX_LIB_DIR
 
 ffibuilder = FFI()
 
@@ -190,7 +197,7 @@ ffibuilder.set_source(
                  + ([LIBKTX_INCLUDE_DIR] if LIBKTX_INCLUDE_DIR is not None else []),
     sources=['pyktx/ktx_texture.c', 'pyktx/ktx_texture1.c', 'pyktx/ktx_texture2.c'],
     libraries=['ktx'],
-    library_dirs=([LIBKTX_LIB_DIR] if LIBKTX_LIB_DIR is not None else []),
+    library_dirs=([LIBKTX_IMPORT_DIR] if LIBKTX_IMPORT_DIR is not None else []),
     runtime_library_dirs=(([LIBKTX_LIB_DIR] if LIBKTX_LIB_DIR is not None else []) if os.name != 'nt' else None))
 
 if __name__ == "__main__":

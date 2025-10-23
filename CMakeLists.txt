@@ -2,7 +2,7 @@
 # Copyright 2022-2023 RasterGrid Kft.
 # SPDX-License-Identifier: Apache-2.0
 
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.27) # 3.27 for genex TARGET_IMPORT_FILE artifacts.
 
 # N.B. Beware of using cmake_print_variables for function dependent
 # variables, e.g. ARGN and CMAKE_CURRENT_FUNCTION_LIST_DIR.
@@ -361,25 +361,6 @@ endif()
 
 set( LIBKTX_WERROR ${KTX_WERROR} )
 add_subdirectory(lib)
-
-if(WIN32)
-    # The ktx-jni and pyktx targets expect to find the interface ktx.lib
-    # in the same directory as ktx.dll. ARCHIVE_OUTPUT_DIRECTORY must be
-    # set to affect placement of ktx.lib. Not that this is clear from
-    # CMake's awesome documentation!!!!! It only says this is used
-    # when building static libraries.
-    #
-    # Not set globally because we don't want internal static libs like fmt
-    # and astc-encoder in the output directory.
-    # TODO: Does this need to be set also when BUILD_SHARED_LIBS is OFF?
-    set_target_properties(ktx PROPERTIES
-        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}"
-    )
-    set_target_properties(ktx_read PROPERTIES
-        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}"
-    )
-endif()
-
 
 if(KTX_FEATURE_JNI)
     add_subdirectory(interface/java_binding)

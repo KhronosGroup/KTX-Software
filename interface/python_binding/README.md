@@ -9,7 +9,7 @@ This Python package provides a Pythonic interface to libktx. It uses CFFI to gen
 
 ## Usage
 
-**You must have libktx installed on your system to use pyktx ordinarily. You can configure where libktx is installed using the `LIBKTX_INCLUDE_DIR` and `LIBKTX_LIB_DIR` environment variables too.**
+**You must have libktx installed on your system to use pyktx ordinarily. You can configure where libktx is installed using the `LIBKTX_INCLUDE_DIR` and `LIBKTX_LIB_DIR` environment variables.**
 
 To install libktx, download and run the appropriate installer from [our releases](https://github.com/KhronosGroup/KTX-Software/releases).
 
@@ -17,12 +17,25 @@ To install libktx, download and run the appropriate installer from [our releases
 
 To build and test pyktx,
 
+Set `LIBKTX_INSTALL_DIR` to point to your libktx installation. If you've installed
+libktx at the default location there is no need to set this.
+
 ```bash
-# Set LIBKTX_INSTALL_DIR if you've installed libktx at the default system location.
-# Otherwise set LIBKTX_INCLUDE_DIR, LIBKTX_LIB_DIR to wherever you've built libktx.
 cd ${PROJECT_DIR}/interface/python_binding
 KTX_RUN_TESTS=ON python3 buildscript.py
+# or
+LIBKTX_INSTALL_DIR=<path_to_your_installation> KTX_RUN_TESTS=ON python3 buildscript.py
 ```
+
+If you want to test with a self-built libktx set `LIBKTX_INCLUDE_DIR` and
+`LIBKTX_LIB_DIR` to wherever your build is located. E.g.
+
+```bash
+cd ${PROJECT_DIR}/interface/python_binding
+LIBKTX_INCLUDE_DIR=../../lib/include LIBKTX_LIB_DIR=../../build/Debug KTX_RUN_TESTS=ON python3 buildscript.py
+```
+On Windows, you must also set `LIBKTX_IMPORT_DIR` to the directory where ktx.lib
+can be found. E.g. ```LIBKTX_IMPORT_DIR=../../build/lib/Debug```
 
 If you are on a POSIX system (macOS or Linux), make sure libktx is on your `DYLD_LIBRARY_PATH` and `LD_LIBRARY_PATH`.
 
