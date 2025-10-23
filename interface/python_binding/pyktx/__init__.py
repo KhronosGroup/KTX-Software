@@ -12,6 +12,7 @@ if os.name == 'nt':
     if LIBKTX_LIB_DIR is None:
         LIBKTX_LIB_DIR = LIBKTX_INSTALL_DIR + '\\bin'
     else:
+        # add_dll_directory requires full path.
         LIBKTX_LIB_DIR = os.path.abspath(LIBKTX_LIB_DIR);
 
     os.add_dll_directory(os.path.normpath(LIBKTX_LIB_DIR))
