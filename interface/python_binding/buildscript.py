@@ -19,22 +19,20 @@ if os.name == 'nt':
         LIBKTX_INCLUDE_DIR = LIBKTX_INSTALL_DIR + '\\include'
     if LIBKTX_LIB_DIR is None:
         LIBKTX_LIB_DIR = LIBKTX_INSTALL_DIR + '\\lib'
-    if LIBKTX_IMPORT_DIR is None:
-        LIBKTX_IMPORT_DIR = LIBKTX_LIB_DIR
 elif platform.system() == 'Darwin':
     if LIBKTX_INCLUDE_DIR is None:
         LIBKTX_INCLUDE_DIR = '/usr/local/include'
     if LIBKTX_LIB_DIR is None:
         LIBKTX_LIB_DIR = '/usr/local/lib'
-    if LIBKTX_IMPORT_DIR is None:
-        LIBKTX_IMPORT_DIR = LIBKTX_LIB_DIR
 elif os.name == 'posix':
     if LIBKTX_INCLUDE_DIR is None:
         LIBKTX_INCLUDE_DIR = '/usr/include'
     if LIBKTX_LIB_DIR is None:
         LIBKTX_LIB_DIR = '/usr/local/lib'
-    if LIBKTX_IMPORT_DIR is None:
-        LIBKTX_IMPORT_DIR = LIBKTX_LIB_DIR
+
+LIBKTX_LIB_DIR = os.path.abspath(LIBKTX_LIB_DIR);
+if LIBKTX_IMPORT_DIR is not None:
+    LIBKTX_IMPORT_DIR = os.path.abspath(LIBKTX_IMPORT_DIR);
 
 ffibuilder = FFI()
 
@@ -193,11 +191,20 @@ ffibuilder.set_source(
     #include "ktx_texture1.h"
     #include "ktx_texture2.h"
     """,
+    # The following distutil keywords are documented
+    # at https://docs.python.org/3.11/distutils/apiref.html
+    #
+    # List of directories to search for C/C++ header files
     include_dirs=['pyktx']
                  + ([LIBKTX_INCLUDE_DIR] if LIBKTX_INCLUDE_DIR is not None else []),
+    # List of source filenames, relative to the the setup script
     sources=['pyktx/ktx_texture.c', 'pyktx/ktx_texture1.c', 'pyktx/ktx_texture2.c'],
+    # List of library names (not filenames or paths) to link against
     libraries=['ktx'],
-    library_dirs=([LIBKTX_IMPORT_DIR] if LIBKTX_IMPORT_DIR is not None else []),
+    # List of directories to search for C/C++ libraries at link time
+    library_dirs=([LIBKTX_LIB_DIR] if LIBKTX_LIB_DIR is not None else [])
+                + ([LIBKTX_IMPORT_DIR] if LIBKTX_IMPORT_DIR is not None else []),
+    # List of directories to search for C/C++ libraries at run time. 
     runtime_library_dirs=(([LIBKTX_LIB_DIR] if LIBKTX_LIB_DIR is not None else []) if os.name != 'nt' else None))
 
 if __name__ == "__main__":
