@@ -114,6 +114,7 @@ normalize_version(KTX_VERSION_NORMALIZED ${KTX_VERSION_FULL})
 set(DIST_DIR ${KTX_BUILD_DIR}/interface/python_binding/dist)
 set(SOURCE_ARCHIVE_BASENAME ${DIST_DIR}/pyktx-${KTX_VERSION_NORMALIZED})
 
+cmake_print_variables(BASH_EXECUTABLE)
 add_custom_command(
     TARGET pyktx
     POST_BUILD
@@ -121,8 +122,11 @@ add_custom_command(
         ${SOURCE_ARCHIVE_BASENAME}.tar.gz
         ${SOURCE_ARCHIVE_BASENAME}.zip
     COMMAND
+        ${BASH_EXECUTABLE} -c "ls ${CMAKE_BINARY_DIR}/lib/$<CONFIG>"
+    COMMAND
         ${CMAKE_COMMAND} -E env
             LIBKTX_INCLUDE_DIR=${libktx_include_dir}
+            LIBKTX_IMPORT_DIR=${libktx_import_dir}
             LIBKTX_LIB_DIR=${libktx_lib_dir}
             LIBKTX_VERSION=${KTX_VERSION_NORMALIZED}
         # The build module by default builds in an isolated environment, i.e. it
@@ -142,6 +146,7 @@ add_custom_command(
     COMMAND
         ${CMAKE_COMMAND} -E env
             LIBKTX_INCLUDE_DIR=${libktx_include_dir}
+            LIBKTX_IMPORT_DIR=${libktx_import_dir}
             LIBKTX_LIB_DIR=${libktx_lib_dir}
             LIBKTX_VERSION=${KTX_VERSION_NORMALIZED}
         # Ditto with sdist isolated environment comment.

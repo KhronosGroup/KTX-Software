@@ -34,6 +34,10 @@ LIBKTX_LIB_DIR = os.path.abspath(LIBKTX_LIB_DIR);
 if LIBKTX_IMPORT_DIR is not None:
     LIBKTX_IMPORT_DIR = os.path.abspath(LIBKTX_IMPORT_DIR);
 
+library_dirs = ([LIBKTX_IMPORT_DIR] if LIBKTX_IMPORT_DIR is not None else [])
+library_dirs += ([LIBKTX_LIB_DIR] if LIBKTX_LIB_DIR is not None else [])
+print("library_dirs = ", library_dirs)
+
 ffibuilder = FFI()
 
 ffibuilder.cdef(
@@ -202,8 +206,9 @@ ffibuilder.set_source(
     # List of library names (not filenames or paths) to link against
     libraries=['ktx'],
     # List of directories to search for C/C++ libraries at link time
-    library_dirs=([LIBKTX_LIB_DIR] if LIBKTX_LIB_DIR is not None else [])
-                + ([LIBKTX_IMPORT_DIR] if LIBKTX_IMPORT_DIR is not None else []),
+    #library_dirs=([LIBKTX_LIB_DIR] if LIBKTX_LIB_DIR is not None else [])
+    #            + ([LIBKTX_IMPORT_DIR] if LIBKTX_IMPORT_DIR is not None else []),
+    library_dirs=library_dirs,
     # List of directories to search for C/C++ libraries at run time. 
     runtime_library_dirs=(([LIBKTX_LIB_DIR] if LIBKTX_LIB_DIR is not None else []) if os.name != 'nt' else None))
 
