@@ -901,9 +901,11 @@ PRIVATE
     $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,17.0.3>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
 )
 
-# ktxdiff needs access to this variable to find the ASTC
-# library to link with so set it in parent.
-set(ASTCENC_LIB_TARGET ${ASTCENC_LIB_TARGET} PARENT_SCOPE)
+if(NOT PROJECT_IS_TOP_LEVEL)
+    # ktxdiff needs access to this variable to find the ASTC
+    # library to link with so set it in parent.
+    set(ASTCENC_LIB_TARGET ${ASTCENC_LIB_TARGET} PARENT_SCOPE)
+endif()
 
 macro(set_astc_dependencies target)
     if(NOT BUILD_SHARED_LIBS AND APPLE)
