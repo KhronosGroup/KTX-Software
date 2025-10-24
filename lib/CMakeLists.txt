@@ -69,10 +69,9 @@ CMAKE_DEPENDENT_OPTION( BASISU_SUPPORT_OPENCL
 
 option( LIBKTX_WERROR "Make all warnings in libktx code into errors." OFF)
 
-# TODO: How to acquire from generic top-level project? Pass it in?
 CMAKE_DEPENDENT_OPTION( LIBKTX_EMBED_BITCODE
     "Embed bitcode in binaries."
-    ${KTX_EMBED_BITCODE}
+    OFF
     "APPLE"
     OFF
 )
@@ -136,38 +135,6 @@ if(NOT BUILD_SHARED_LIBS)
 else()
     set(LIB_TYPE SHARED)
 endif()
-
-
-# TODO: Probably leave these settings to the parent, except /utf-8.
-# Global compile & link options including optimization flags
-#if(MSVC)
-#    add_compile_options( /W4;$<$<BOOL:${KTX_WERROR}>:/WX> )
-#    add_compile_options( $<IF:$<CONFIG:Debug>,/Gz,/O2> )
-#    # Enable UTF-8 support
-#    add_compile_options( $<$<C_COMPILER_ID:MSVC>:/utf-8> )
-#    add_compile_options( $<$<CXX_COMPILER_ID:MSVC>:/utf-8> )
-#elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"
-#       OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-#    add_compile_options( -Wall -Wextra $<$<BOOL:${KTX_WERROR}>:-Werror>)
-#    add_compile_options( $<IF:$<CONFIG:Debug>,-O0$<SEMICOLON>-g,-O3> )
-#    if(EMSCRIPTEN)
-#        add_link_options( $<IF:$<CONFIG:Debug>,-gsource-map,-O3> )
-#    else()
-#        add_link_options( $<IF:$<CONFIG:Debug>,-g,-O3> )
-#    endif()
-#else()
-#    message(FATAL_ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")
-#endif()
-
-# To improve output determinism enable precise floating point operations globally
-# This code was based on external/astc-encoder/Source/cmake_core.cmake
-
-# For Visual Studio prior to 2022 (compiler < 19.30) /fp:strict
-# For Visual Studio 2022 (compiler >= 19.30) /fp:precise
-# For Visual Studio 2022 ClangCL has enabled contraction by default,
-# which is the same as standard clang, so behaves differently to
-# CL.exe. Use the -Xclang argument to access GNU-style switch to
-# control contraction and force disable.
 
 # On CMake 3.25 or older CXX_COMPILER_FRONTEND_VARIANT is not always set
 if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "")
@@ -370,9 +337,24 @@ macro(common_libktx_settings target enable_write library_type)
     endif()
 
 
-    # Enable UTF-8 support in MSVC.
-    target_compile_options( ${target} PRIVATE $<$<C_COMPILER_ID:MSVC>:/utf-8> )
-    target_compile_options( ${target} PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/utf-8> )
+    if(MSVC)
+        target_compile_options( ${target} PRIVATE /W4;$<$<BOOL:${LIBKTX_WERROR}>:/WX> )
+        target_compile_options( ${target} PRIVATE $<IF:$<CONFIG:Debug>,/Gz,/O2> )
+        # Enable UTF-8 support
+        target_compile_options( ${target} PRIVATE $<$<C_COMPILER_ID:MSVC>:/utf-8> )
+        target_compile_options( ${target} PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/utf-8> )
+    elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"
+           OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+        target_compile_options( ${target} PRIVATE -Wall -Wextra $<$<BOOL:${KTX_WERROR}>:-Werror>)
+        target_compile_options( ${target} PRIVATE $<IF:$<CONFIG:Debug>,-O0$<SEMICOLON>-g,-O3> )
+        if(EMSCRIPTEN)
+            target_link_options( ${target} PRIVATE $<IF:$<CONFIG:Debug>,-gsource-map,-O3> )
+        else()
+            target_link_options( ${target} PRIVATE $<IF:$<CONFIG:Debug>,-g,-O3> )
+        endif()
+    else()
+        message(FATAL_ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")
+    endif()
 
     # To improve output determinism enable precise floating point operations globally
     # This code was based on external/astc-encoder/Source/cmake_core.cmake

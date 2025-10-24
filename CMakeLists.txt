@@ -218,6 +218,7 @@ if(APPLE OR LINUX OR WIN32)
 endif()
 
 set( LIBKTX_WERROR ${KTX_WERROR} )
+set( LIBKTX_EMBED_BITCODE ${KTX_EMBED_BITCODE} )
 add_subdirectory(lib)
 
 if(KTX_FEATURE_JNI)
