@@ -177,57 +177,6 @@ else()
     message(FATAL_ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")
 endif()
 
-# To improve output determinism enable precise floating point operations globally
-# This code was based on external/astc-encoder/Source/cmake_core.cmake
-
-# For Visual Studio prior to 2022 (compiler < 19.30) /fp:strict
-# For Visual Studio 2022 (compiler >= 19.30) /fp:precise
-# For Visual Studio 2022 ClangCL has enabled contraction by default,
-# which is the same as standard clang, so behaves differently to
-# CL.exe. Use the -Xclang argument to access GNU-style switch to
-# control contraction and force disable.
-
-# On CMake 3.25 or older CXX_COMPILER_FRONTEND_VARIANT is not always set
-if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "")
-    set(CMAKE_CXX_COMPILER_FRONTEND_VARIANT "${CMAKE_CXX_COMPILER_ID}")
-endif()
-
-#cmake_print_variables(
-#    CMAKE_CXX_COMPILER_ID
-#    CMAKE_CXX_COMPILER_VERSION
-#    CMAKE_CXX_COMPILER_FRONTEND_VARIANT
-#)
-
-# Compiler accepts MSVC-style command line options
-set(is_msvc_fe "$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},MSVC>")
-# Compiler accepts GNU-style command line options
-set(is_gnu_fe1 "$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},GNU>")
-# Compiler accepts AppleClang-style command line options, which is also GNU-style
-set(is_gnu_fe2 "$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},AppleClang>")
-# Compiler accepts GNU-style command line options
-set(is_gnu_fe "$<OR:${is_gnu_fe1},${is_gnu_fe2}>")
-#add_custom_target(debug_isgnufe1 COMMAND ${CMAKE_COMMAND} -E echo "is_gnufe1_exp = $<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},GNU>")
-
-# Compiler is Visual Studio cl.exe
-set(is_msvccl "$<AND:${is_msvc_fe},$<CXX_COMPILER_ID:MSVC>>")
-# Compiler is Visual Studio clangcl.exe
-set(is_clangcl "$<AND:${is_msvc_fe},$<CXX_COMPILER_ID:Clang>>")
-# Compiler is upstream clang with the standard frontend
-set(is_clang "$<AND:${is_gnu_fe},$<CXX_COMPILER_ID:Clang,AppleClang>>")
-
-add_compile_options(
-    $<$<AND:${is_msvccl},$<VERSION_LESS:$<CXX_COMPILER_VERSION>,19.30>>:/fp:strict>
-    $<$<AND:${is_msvccl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.30>>:/fp:precise>
-    $<${is_clangcl}:/fp:precise>
-    $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,14.0.0>>:-Xclang$<SEMICOLON>-ffp-contract=off>
-    $<$<AND:${is_clang},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,10.0.0>>:-ffp-model=precise>
-    $<${is_gnu_fe}:-ffp-contract=off>
-    # Hide noise from clang and clangcl 20 warning the 2nd fp option changes
-    # one of the settings made the first.
-    $<$<AND:${is_clang},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,20.0.0>>:-Wno-overriding-option>
-)
-#add_custom_target(debug_gnufe_ffpcontract COMMAND ${CMAKE_COMMAND} -E echo "ffp_contract = $<${is_gnu_fe}:-ffp-contract=off>")
-
 # Set output directories
 set(KTX_BUILD_DIR "${CMAKE_BINARY_DIR}")
 
@@ -236,23 +185,17 @@ if(APPLE OR LINUX OR WIN32)
     # single or multi-config generator. Note that wrapping this in a
     # generator expression forces multi-configuration generators (like
     # Visual Studio, Xcode or Ninja multi-config) to take the exact path
-    # and not add $<CONFIG> to it.
+    # and not add  a further $<CONFIG> to it.
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
 
     # Use a common RUNTIME_OUTPUT_DIRECTORY and LIBRARY_OUTPUT_DIRECTORY
-    # for all targets so that the INSTALL RPATH we need for installed
-    # binaries is functional in the build directory as well. INSTALL_RPATH
-    # cannot be altered during install because that would break code
-    # signing which happens after building. BUILD_WITH_INSTALL_RPATH
-    # is also necessary for working code signing.
-    #
-    # Although only macOS and iOS code is currently being signed also
-    # set LIBRARY_OUTPUT_DIRECTORY on Linux for symmetry and on Windows
-    # because the ktx-jni and pyktx targets query this property of the
-    # ktx target to find the library for build and for running their tests.
-    # The property is not set by default.
-    # TODO: Revisit the way ktx-jni and pyktx targets find ktx.
+    # for all targets. On GNU/Linux and macOS this so that the INSTALL RPATH
+    # we need to add to installed binaries is functional in the build
+    # directory as well. On Windows this is so binaries run in the build
+    # directory can find the dll.
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
+    # For GNU/Linux and macOS BUILD_WITH_INSTALL_RPATH is necessary to have
+    # the install rpath set duing build. See below for more explanation.
     set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
 
     # Notes about install names, rpaths and code signing
@@ -260,14 +203,18 @@ if(APPLE OR LINUX OR WIN32)
     # Changing the install name of a library by setting INSTALL_NAME_DIR
     # on a library target will invalidate the signature as it causes
     # cmake to run `install_name_tool` after building and signing. The
-    # default install name is the library target's name prefixed by
-    # `@rpath/`. With this, `dyld` will load the library provided it is
-    # in one of the directories specified by a program's INSTALL_RPATH
-    # or is in the directory part of a full-path name passed to `dlopen`.
+    # default install name is the library target's name prefixed by `@rpath/`.
+    # With this, `dyld` will load the library provided it is in one of the
+    # directories specified by a program's INSTALL_RPATH or is in the
+    # directory part of a full-path name passed to `dlopen`. Because it would
+    # also invalidate the signature INSTALL_RPATH cannot be altered
+    # during install. Hence BUILD_WITH_INSTALL_RPATH.
     #
-    # A bad signature in either executable or shared library is
+    # On macOS, a bad signature in either executable or shared library is
     # indicated by the executable exiting with "Killed: 9".
-    #endif()
+    #
+    # Although GNU/Linux code is not currently being signed, handle its
+    # INSTALL_RPATH the same way for symmetry.
 endif()
 
 set( LIBKTX_WERROR ${KTX_WERROR} )

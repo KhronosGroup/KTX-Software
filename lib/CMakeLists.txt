@@ -28,6 +28,13 @@ if(APPLE)
     endif()
 endif()
 
+if(POLICY CMP0127)
+    # cmake_dependent_option() supports full Condition Syntax. Introduced in
+    # 3.22. Not all build environments have 3.22+. Set policy to avoid warning.
+    # Seems the parens in the match string trigger the warning.
+    cmake_policy(SET CMP0127 NEW)
+endif()
+
 if(PROJECT_IS_TOP_LEVEL)
     # Beware of using cmake_print_variables for variables with function
     # dependent values, e.g. ARGN and CMAKE_CURRENT_FUNCTION_LIST_DIR.
@@ -36,13 +43,6 @@ if(PROJECT_IS_TOP_LEVEL)
 
     include(${KTX_ROOT_DIR}/cmake/codesign.cmake) # Needs APPLE_*_OS values.
     include(${KTX_ROOT_DIR}/cmake/cputypetest.cmake)
-endif()
-
-if(POLICY CMP0127)
-    # cmake_dependent_option() supports full Condition Syntax. Introduced in
-    # 3.22. Not all build environments have 3.22+. Set policy to avoid warning.
-    # Seems the parens in the match string trigger the warning.
-    cmake_policy(SET CMP0127 NEW)
 endif()
 
 # OPTIONS
@@ -180,36 +180,7 @@ endif()
 #    CMAKE_CXX_COMPILER_FRONTEND_VARIANT
 #)
 
-# Compiler accepts MSVC-style command line options
-set(is_msvc_fe "$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},MSVC>")
-# Compiler accepts GNU-style command line options
-set(is_gnu_fe1 "$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},GNU>")
-# Compiler accepts AppleClang-style command line options, which is also GNU-style
-set(is_gnu_fe2 "$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},AppleClang>")
-# Compiler accepts GNU-style command line options
-set(is_gnu_fe "$<OR:${is_gnu_fe1},${is_gnu_fe2}>")
-#add_custom_target(debug_isgnufe1 COMMAND ${CMAKE_COMMAND} -E echo "is_gnufe1_exp = $<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},GNU>")
-
-# Compiler is Visual Studio cl.exe
-set(is_msvccl "$<AND:${is_msvc_fe},$<CXX_COMPILER_ID:MSVC>>")
-# Compiler is Visual Studio clangcl.exe
-set(is_clangcl "$<AND:${is_msvc_fe},$<CXX_COMPILER_ID:Clang>>")
-# Compiler is upstream clang with the standard frontend
-set(is_clang "$<AND:${is_gnu_fe},$<CXX_COMPILER_ID:Clang,AppleClang>>")
-
-# TODO: What to do about these. Make macro to set these plus function or macro to set the queries above, and set on target or ???
-add_compile_options(
-    $<$<AND:${is_msvccl},$<VERSION_LESS:$<CXX_COMPILER_VERSION>,19.30>>:/fp:strict>
-    $<$<AND:${is_msvccl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.30>>:/fp:precise>
-    $<${is_clangcl}:/fp:precise>
-    $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,14.0.0>>:-Xclang$<SEMICOLON>-ffp-contract=off>
-    $<$<AND:${is_clang},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,10.0.0>>:-ffp-model=precise>
-    $<${is_gnu_fe}:-ffp-contract=off>
-    # Hide noise from clang and clangcl 20 warning the 2nd fp option changes
-    # one of the settings made the first.
-    $<$<AND:${is_clang},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,20.0.0>>:-Wno-overriding-option>
-)
-#add_custom_target(debug_gnufe_ffpcontract COMMAND ${CMAKE_COMMAND} -E echo "ffp_contract = $<${is_gnu_fe}:-ffp-contract=off>")
+# Source Lists
 
 set(LIBKTX_MAIN_SRC
     include/KHR/khr_df.h
@@ -338,6 +309,34 @@ add_library( ktx_read ${LIB_TYPE}
     ${LIBKTX_MAIN_SRC}
 )
 
+# Compiler info queries for determining floating-point options
+
+# On CMake 3.25 or older CXX_COMPILER_FRONTEND_VARIANT is not always set
+if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "")
+    set(CMAKE_CXX_COMPILER_FRONTEND_VARIANT "${CMAKE_CXX_COMPILER_ID}")
+endif()
+
+# Compiler accepts MSVC-style command line options
+set(is_msvc_fe "$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},MSVC>")
+# Compiler accepts GNU-style command line options
+set(is_gnu_fe1 "$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},GNU>")
+# Compiler accepts AppleClang-style command line options, which is also GNU-style
+set(is_gnu_fe2 "$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},AppleClang>")
+# Compiler accepts GNU-style command line options
+set(is_gnu_fe "$<OR:${is_gnu_fe1},${is_gnu_fe2}>")
+#add_custom_target(debug_isgnufe1 COMMAND ${CMAKE_COMMAND} -E echo "is_gnufe1_exp = $<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},GNU>")
+
+# Compiler is Visual Studio cl.exe
+set(is_msvccl "$<AND:${is_msvc_fe},$<CXX_COMPILER_ID:MSVC>>")
+# Compiler is Visual Studio clangcl.exe
+set(is_clangcl "$<AND:${is_msvc_fe},$<CXX_COMPILER_ID:Clang>>")
+# Compiler is upstream clang with the standard frontend
+set(is_clang "$<AND:${is_gnu_fe},$<CXX_COMPILER_ID:Clang,AppleClang>>")
+
+#add_custom_target(debug_gnufe_ffpcontract COMMAND ${CMAKE_COMMAND} -E echo "ffp_contract = $<${is_gnu_fe}:-ffp-contract=off>")
+
+# Macro for common lib settings
+
 macro(common_libktx_settings target enable_write library_type)
 
     if(TARGET mkvk)
@@ -374,6 +373,27 @@ macro(common_libktx_settings target enable_write library_type)
     # Enable UTF-8 support in MSVC.
     target_compile_options( ${target} PRIVATE $<$<C_COMPILER_ID:MSVC>:/utf-8> )
     target_compile_options( ${target} PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/utf-8> )
+
+    # To improve output determinism enable precise floating point operations globally
+    # This code was based on external/astc-encoder/Source/cmake_core.cmake
+
+    # For Visual Studio prior to 2022 (compiler < 19.30) /fp:strict
+    # For Visual Studio 2022 (compiler >= 19.30) /fp:precise
+    # For Visual Studio 2022 ClangCL has enabled contraction by default,
+    # which is the same as standard clang, so behaves differently to
+    # CL.exe. Use the -Xclang argument to access GNU-style switch to
+    # control contraction and force disable.
+    target_compile_options( ${target} PUBLIC
+        $<$<AND:${is_msvccl},$<VERSION_LESS:$<CXX_COMPILER_VERSION>,19.30>>:/fp:strict>
+        $<$<AND:${is_msvccl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.30>>:/fp:precise>
+        $<${is_clangcl}:/fp:precise>
+        $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,14.0.0>>:-Xclang$<SEMICOLON>-ffp-contract=off>
+        $<$<AND:${is_clang},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,10.0.0>>:-ffp-model=precise>
+        $<${is_gnu_fe}:-ffp-contract=off>
+        # Hide noise from clang and clangcl 20 warning the 2nd fp option changes
+        # one of the settings made the first.
+        $<$<AND:${is_clang},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,20.0.0>>:-Wno-overriding-option>
+    )
 
     target_compile_definitions(
         ${target}
