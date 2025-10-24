@@ -24,13 +24,6 @@ if(POLICY CMP0149)
     cmake_policy(SET CMP0149 NEW)
 endif()
 
-include(CMakeDependentOption)
-
-include(cmake/codesign.cmake)
-include(cmake/cputypetest.cmake)
-
-# OPTIONS
-
 # N.B IOS and, in the Darwin case, CMAKE_SYSTEM_NAME are not set
 # until after the project() command. The latter is most strange.
 if(APPLE)
@@ -40,6 +33,13 @@ if(APPLE)
         set( APPLE_MAC_OS ON )
     endif()
 endif()
+
+include(CMakeDependentOption)
+
+include(cmake/codesign.cmake) # Needs APPLE_LOCKED_OS value.
+include(cmake/cputypetest.cmake)
+
+# OPTIONS
 
 option( KTX_FEATURE_DOC "Create KTX documentation." OFF )
 option( KTX_FEATURE_JNI "Create Java bindings for libktx." OFF )
@@ -99,95 +99,6 @@ option( KTX_GENERATE_VK_FILES
 mark_as_advanced(FORCE KTX_GENERATE_VK_FILES)
 
 # Platform specific settings
-
-if(APPLE)
-    # Signing
-    set(XCODE_CODE_SIGN_IDENTITY "Development" CACHE STRING "Xcode code sign ID")
-    set(XCODE_DEVELOPMENT_TEAM "" CACHE STRING "Xcode development team ID")
-    set(PRODUCTBUILD_IDENTITY_NAME "" CACHE STRING "productbuild identity name")
-    set(PRODUCTBUILD_KEYCHAIN_PATH "" CACHE FILEPATH "pkgbuild keychain file")
-    if(APPLE_LOCKED_OS)
-        set(XCODE_PROVISIONING_PROFILE_SPECIFIER "" CACHE STRING "Xcode provisioning profile specifier")
-    endif()
-
-    # Deployment
-    # When changing the target you must also edit the triplet files in
-    # vcpkg-triplets to reflect the new target.
-    if(APPLE_MAC_OS)
-        set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "macOS Deployment Target")
-    elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS" OR CMAKE_SYSTEM_NAME STREQUAL "tvOS")
-        set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0" CACHE STRING "iOS/tvOS Deployment Target")
-        set(CMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH NO)
-    elseif(CMAKE_SYSTEM_NAME STREQUAL "visionOS")
-        set(CMAKE_OSX_DEPLOYMENT_TARGET "1.0" CACHE STRING "visionOS Deployment Target")
-    endif()
-endif()
-
-if(WIN32)
-    if (${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.18.0")
-        include(KtxDependentVariable)
-        # Signing
-        set(CODE_SIGN_KEY_VAULT "" CACHE STRING "Name of the vault to search for signing certificate. Enables related code signing variables when set.")
-        set_property(CACHE CODE_SIGN_KEY_VAULT
-            PROPERTY STRINGS "" Azure Machine User)
-
-        # Common signing variables
-        KTX_DEPENDENT_VARIABLE( CODE_SIGN_TIMESTAMP_URL STRING
-          "URL of timestamp server for code signing. Signed code should be timestamped so the signature will remain valid even after the certificate expires."
-          ""
-          "CODE_SIGN_KEY_VAULT"
-          ""
-        )
-        # Variables for signing with local certificate.
-        KTX_DEPENDENT_VARIABLE( LOCAL_KEY_VAULT_SIGNING_IDENTITY STRING
-            "Subject Name of Windows code signing certificate. Displayed in 'Issued To' field of cert{lm,mgr}. Overriden by LOCAL_KEY_VAULT_CERTIFICATE_THUMBPRINT."
-            ""
-            "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Machine OR ${CODE_SIGN_KEY_VAULT} MATCHES User"
-            ""
-        )
-        KTX_DEPENDENT_VARIABLE( LOCAL_KEY_VAULT_CERTIFICATE_THUMBPRINT STRING
-            "Thumbprint of the certificate to use. Use this instead of LOCAL_KEY_VAULT_SIGNING_IDENTITY when you have multiple certificates with the same identity. Overrides LOCAL_KEY_VAULT_SIGNING_IDENTITY."
-            ""
-            "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Machine OR ${CODE_SIGN_KEY_VAULT} MATCHES User"
-            ""
-        )
-
-        # Variables for signing with certificate from Azure
-        KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_URL STRING
-            "The URL of your Azure key vault."
-            ""
-            "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Azure"
-            ""
-        )
-        KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_CERTIFICATE STRING
-            "The name of the certificate in Azure Key Vault."
-            ""
-            "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Azure"
-            ""
-        )
-        KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_CLIENT_ID STRING
-            "The id of an application (Client) registered with Azure that has permission to access the certificate."
-            ""
-            "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Azure"
-            ""
-        )
-        KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_TENANT_ID STRING
-            "The id of the Azure Active Directory (Tenant) holding the Client."
-            ""
-            "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Azure"
-            ""
-        )
-        KTX_DEPENDENT_VARIABLE( AZURE_KEY_VAULT_CLIENT_SECRET STRING
-            "The secret to authenticate access to the Client."
-            ""
-            "CODE_SIGN_KEY_VAULT;${CODE_SIGN_KEY_VAULT} MATCHES Azure"
-            ""
-        )
-    else()
-        # KTX_DEPENDENT_VARIABLE won't work. Force disable signing.
-        unset(CODE_SIGN_KEY_VAULT CACHE)
-    endif()
-endif()
 
 set(bitness 64)
 
