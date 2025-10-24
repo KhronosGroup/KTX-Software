@@ -31,7 +31,6 @@ elif os.name == 'posix':
         LIBKTX_LIB_DIR = '/usr/local/lib'
 
 library_dirs = ([LIBKTX_IMPORT_DIR] if LIBKTX_IMPORT_DIR is not None else [LIBKTX_LIB_DIR] if LIBKTX_LIB_DIR is not None else [])
-print("library_dirs = ", library_dirs)
 
 ffibuilder = FFI()
 
