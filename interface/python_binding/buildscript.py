@@ -30,10 +30,6 @@ elif os.name == 'posix':
     if LIBKTX_LIB_DIR is None:
         LIBKTX_LIB_DIR = '/usr/local/lib'
 
-#LIBKTX_LIB_DIR = os.path.abspath(LIBKTX_LIB_DIR);
-#if LIBKTX_IMPORT_DIR is not None:
-#    LIBKTX_IMPORT_DIR = os.path.abspath(LIBKTX_IMPORT_DIR);
-
 library_dirs = ([LIBKTX_IMPORT_DIR] if LIBKTX_IMPORT_DIR is not None else [LIBKTX_LIB_DIR] if LIBKTX_LIB_DIR is not None else [])
 print("library_dirs = ", library_dirs)
 
