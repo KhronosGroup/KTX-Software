@@ -122,8 +122,6 @@ add_custom_command(
         ${SOURCE_ARCHIVE_BASENAME}.tar.gz
         ${SOURCE_ARCHIVE_BASENAME}.zip
     COMMAND
-        ${BASH_EXECUTABLE} -c "ls ${CMAKE_BINARY_DIR}/lib/$<CONFIG>"
-    COMMAND
         ${CMAKE_COMMAND} -E env
             LIBKTX_INCLUDE_DIR=${libktx_include_dir}
             LIBKTX_IMPORT_DIR=${libktx_import_dir}

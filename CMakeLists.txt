@@ -2,7 +2,7 @@
 # Copyright 2022-2023 RasterGrid Kft.
 # SPDX-License-Identifier: Apache-2.0
 
-cmake_minimum_required(VERSION 3.27) # 3.27 for genex TARGET_IMPORT_FILE artifacts.
+cmake_minimum_required(VERSION 3.22)
 
 # N.B. Beware of using cmake_print_variables for function dependent
 # variables, e.g. ARGN and CMAKE_CURRENT_FUNCTION_LIST_DIR.
