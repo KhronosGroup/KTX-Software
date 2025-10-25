@@ -47,7 +47,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  check-mkvk:
+  check-libktx-only:
     strategy:
       matrix:
         os: [ macos-latest, ubuntu-latest, windows-latest ]
