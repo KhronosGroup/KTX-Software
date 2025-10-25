@@ -641,6 +641,9 @@ common_libktx_settings(ktx 1 ${LIB_TYPE})
 common_libktx_settings(ktx_read 0 ${LIB_TYPE})
 
 create_version_header(src ktx)
+if(PROJECT_IS_TOP_LEVEL)
+    create_version_file()
+endif()
 
 target_compile_definitions(
     ktx_read
@@ -901,7 +904,7 @@ PRIVATE
     $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,17.0.3>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
 )
 
-if(NOT PROJECT_IS_TOP_LEVEL)
+if(NOT PROJECT_IS_TOP_LEVEL AND ${CMAKE_PROJECT_NAME} STREQUAL "KTX-Software")
     # ktxdiff needs access to this variable to find the ASTC
     # library to link with so set it in parent.
     set(ASTCENC_LIB_TARGET ${ASTCENC_LIB_TARGET} PARENT_SCOPE)
