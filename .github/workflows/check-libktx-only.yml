@@ -50,6 +50,7 @@ on:
 
   # Allow manual trigger
   workflow_dispatch:
+  workflow_call:
 
 jobs:
   check-libktx-only:
