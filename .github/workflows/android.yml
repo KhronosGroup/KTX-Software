@@ -19,11 +19,17 @@ on:
       - 'v[0-9]+.[0-9]+.[0-9]+-*'
     paths-ignore:
       - .appveyor.yml
+      - .github/workflows/check-libktx-only.yml
       - .github/workflows/check-mkvk.yml
+      - .github/workflows/check-reuse.yml
       - .github/workflows/docs.yml
       - .github/workflows/formatting.yml
+      - .github/workflows/macos.yml
+      - .github/workflows/linux.yml
       - .github/workflows/mingw.yml
       - .github/workflows/publish-pyktx.yml
+      - .github/workflows/manual.yml
+      - .github/workflows/web.yml
       - .github/workflows/windows.yml
       - .travis.yml
       - README.md

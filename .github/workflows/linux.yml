@@ -20,10 +20,15 @@ on:
     paths-ignore:
       - .appveyor.yml
       - .github/workflows/android.yml
+      - .github/workflows/check-libktx-only.yml
       - .github/workflows/check-mkvk.yml
       - .github/workflows/docs.yml
       - .github/workflows/formatting.yml
+      - .github/workflows/mingw.yml
+      - .github/workflows/macos.yml
       - .github/workflows/publish-pyktx.yml
+      - .github/workflows/manual.yml
+      - .github/workflows/web.yml
       - .github/workflows/windows.yml
       - .travis.yml
       - README.md

@@ -1,6 +1,6 @@
 # Copyright 2015-2020 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
-name: KTX-Software Check mkvk CI
+name: Check config and build of just libktx
 
 # Seems no way to avoid duplicating this on logic in each .yml file.
 # See https://github.com/actions/starter-workflows/issues/245.
@@ -20,15 +20,15 @@ on:
     paths-ignore:
       - .appveyor.yml
       - .github/workflows/android.yml
-      - .github/workflows/check-libktx-only.yml
+      - .github/workflows/check-mkvk.yml
       - .github/workflows/check-reuse.yml
       - .github/workflows/docs.yml
       - .github/workflows/formatting.yml
-      - .github/workflows/macos.yml
       - .github/workflows/linux.yml
+      - .github/workflows/macos.yml
+      - .github/workflows/manual.yml
       - .github/workflows/mingw.yml
       - .github/workflows/publish-pyktx.yml
-      - .github/workflows/manual.yml
       - .github/workflows/web.yml
       - .github/workflows/windows.yml
       - .travis.yml
@@ -60,14 +60,25 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        # Fetch all history to make sure tags are
+        # included (used for version creation)
+        fetch-depth: 0
 
-    - name: Clone KTX-Specification repo
-      run: |
-        pushd ..; git clone https://github.com/KhronosGroup/KTX-Specification.git; popd
     - name: Configure CMake build
-      run: cmake -B ${{ env.BUILD_DIR }} -DKTX_GENERATE_VK_FILES=ON -DKTX_FEATURE_TESTS=OFF -DKTX_FEATURE_TOOLS=OFF -DKTX_WERROR=${{ env.WERROR }} 
-    - name: Test file generation
-      run: |
-        cmake --build ${{ env.BUILD_DIR }} --target mkvk --clean-first
-        git diff --quiet HEAD
+      run: cmake -B ${{ env.BUILD_DIR }} -DLIBKTX_WERROR=${{ env.WERROR }}
+    - name: Build libktx
+      run: cmake --build ${{ env.BUILD_DIR }} --config=Release
+
+    - name: Prepare version for artifact
+        id: ktx-version
+        run: |
+          KTX_VERSION=`cat $BUILD_DIR/ktx.version`
+          echo KTX_VERSION=$(cat ${{ env.BUILD_DIR }}) >> ${{ env.GITHUB_ENV }}
+
+    - name: Upload artifact libktx
+      uses: actions/upload-artifact@v4
+      with:
+        name: libktx-${{ env.KTX_VERSION }}
+        path: ${{env.BUILD_DIR}}/Release/*ktx*
 
