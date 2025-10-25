@@ -71,7 +71,7 @@ jobs:
         fetch-depth: 0
 
     - name: Configure CMake build
-      run: cmake -B ${{ env.BUILD_DIR }} -G "Ninja Multi-Config -DLIBKTX_WERROR=${{ env.WERROR }}
+      run: cmake -B ${{ env.BUILD_DIR }} -G "Ninja Multi-Config" -DLIBKTX_WERROR=${{ env.WERROR }}
     - name: Build libktx
       run: cmake --build ${{ env.BUILD_DIR }} --config=Release
 
