@@ -6,6 +6,7 @@
 #
 
 include(GetGitRevisionDescription)
+include(CMakePrintHelpers)
 
 function(git_update_index)
     if(NOT GIT_FOUND)
@@ -171,7 +172,8 @@ endif()
 set(KTX_VERSION ${KTX_VERSION_MAJOR}.${KTX_VERSION_MINOR}.${KTX_VERSION_PATCH})
 set(KTX_VERSION_FULL ${KTX_VERSION}${KTX_VERSION_TWEAK})
 
-#message("KTX version: ${KTX_VERSION}  major:${KTX_VERSION_MAJOR} minor:${KTX_VERSION_MINOR} patch:${KTX_VERSION_PATCH} tweak:${KTX_VERSION_TWEAK}")
+#cmake_print_variables(KTX_VERSION KTX_VERSION_FULL)
+#cmake_print_variables(KTX_VERSION_MAJOR KTX_VERSION_MINOR KTX_VERSION_PATCH KTX_VERSION_TWEAK)
 
 function( create_version_header dest_path target )
 
