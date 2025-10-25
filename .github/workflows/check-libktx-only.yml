@@ -71,10 +71,10 @@ jobs:
       run: cmake --build ${{ env.BUILD_DIR }} --config=Release
 
     - name: Prepare version for artifact
-        id: ktx-version
-        run: |
-          KTX_VERSION=`cat $BUILD_DIR/ktx.version`
-          echo KTX_VERSION=$(cat ${{ env.BUILD_DIR }}) >> ${{ env.GITHUB_ENV }}
+      id: ktx-version
+      run: |
+        KTX_VERSION=`cat $BUILD_DIR/ktx.version`
+        echo KTX_VERSION=$(cat ${{ env.BUILD_DIR }}) >> ${{ env.GITHUB_ENV }}
 
     - name: Upload artifact libktx
       uses: actions/upload-artifact@v4
