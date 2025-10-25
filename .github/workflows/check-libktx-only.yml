@@ -2,6 +2,11 @@
 # SPDX-License-Identifier: Apache-2.0
 name: Check config and build of just libktx
 
+# The purpose of this is to smoke test building just libktx using its
+# CMakeLists.txt as the top-level project. Testing of various build
+# options and running of tests on the library is left to the various
+# KTX-Software project workflows.
+
 # Seems no way to avoid duplicating this on logic in each .yml file.
 # See https://github.com/actions/starter-workflows/issues/245.
 on:
@@ -66,7 +71,7 @@ jobs:
         fetch-depth: 0
 
     - name: Configure CMake build
-      run: cmake -B ${{ env.BUILD_DIR }} -DLIBKTX_WERROR=${{ env.WERROR }}
+      run: cmake -B ${{ env.BUILD_DIR }} -G "Ninja Multi-Config -DLIBKTX_WERROR=${{ env.WERROR }}
     - name: Build libktx
       run: cmake --build ${{ env.BUILD_DIR }} --config=Release
 
