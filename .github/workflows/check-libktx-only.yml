@@ -79,11 +79,16 @@ jobs:
     - name: Prepare version number for artifact
       id: libktx-version
       shell: bash
-      run: echo KTX_VERSION=$(grep -A 1 -m 1 "Code version" lib/src/version.h | tail -n 1) >> ${{ github.env }}
+      # tolower and subsequent if are to match arch to names used in releases and platforms.
+      run: |
+        echo KTX_VERSION=$(grep -A 1 -m 1 "Code version" lib/src/version.h | tail -n 1) >> ${{ github.env }}
+        arch=$(tolower ${{ runner.arch }})
+        if [ "${{ runner.os }}" = "Linux" -a "$arch" = "arm64" ]; then arch=aarch64; fi
+        echo ARCH=$arch >> ${{ github.env }}
 
     - name: Upload artifact libktx
       uses: actions/upload-artifact@v4
       with:
-        name: libktx-${{ env.KTX_VERSION }}-${{ runner.os }}-${{ runner.arch }}
+        name: libktx-${{ env.KTX_VERSION }}-${{ runner.os }}-$ARCH
         path: ${{env.BUILD_DIR}}/Release/*ktx*
 
