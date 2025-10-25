@@ -6,15 +6,12 @@
 *~
 *.bak
 
-/CMakeUserPresets.json
-/build*/
-/install*/
+CMakeUserPresets.json
+build*/
+install*/
 
 # /include/
 /include/imdebug.h
-
-# /lib/
-/lib/src
 
 # /external/
 /external/astc-encoder/.gitmodules
