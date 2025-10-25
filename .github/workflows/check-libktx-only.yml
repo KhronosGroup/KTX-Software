@@ -78,11 +78,11 @@ jobs:
     - name: Prepare version number for artifact
       id: libktx-version
       shell: bash
-      run: echo KTX_VERSION=$(grep -A 1 -m 1 "Code version" lib/src/version.h | tail -n 1) >> $GITHUB_ENV
+      run: echo KTX_VERSION=$(grep -A 1 -m 1 "Code version" lib/src/version.h | tail -n 1) >> ${{ github.env }}
 
     - name: Upload artifact libktx
       uses: actions/upload-artifact@v4
       with:
-        name: libktx-${{ env.KTX_VERSION }}
+        name: libktx-${{ env.KTX_VERSION }}-${{ runner.os }}-${{ runner.arch }}
         path: ${{env.BUILD_DIR}}/Release/*ktx*
 
