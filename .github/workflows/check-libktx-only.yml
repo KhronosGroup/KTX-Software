@@ -72,7 +72,8 @@ jobs:
 
     - name: Prepare version for artifact
       id: ktx-version
-      run: echo KTX_VERSION=$(cat ${{ env.BUILD_DIR }}) >> ${{ env.GITHUB_ENV }}
+      shell: bash
+      run: echo KTX_VERSION=$(cat ${{ env.BUILD_DIR }}/ktx.version) >> ${{ env.GITHUB_ENV }}
 
     - name: Upload artifact libktx
       uses: actions/upload-artifact@v4
