@@ -62,6 +62,7 @@ jobs:
     env:
       GIT_LFS_SKIP_SMUDGE: 1
       BUILD_DIR: "build"
+      SOURCE_DIR: "lib"
       WERROR: ON
 
     steps:
@@ -72,7 +73,7 @@ jobs:
         fetch-depth: 0
 
     - name: Configure CMake build
-      run: cmake -B ${{ env.BUILD_DIR }} -G "Ninja Multi-Config" -DLIBKTX_WERROR=${{ env.WERROR }}
+      run: cmake -S ${{ env.SOURCE_DIR }} -B ${{ env.BUILD_DIR }} -G "Ninja Multi-Config" -DLIBKTX_WERROR=${{ env.WERROR }}
     - name: Build libktx
       run: cmake --build ${{ env.BUILD_DIR }} --config=Release
 
