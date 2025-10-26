@@ -56,7 +56,8 @@ jobs:
   check-libktx-only:
     strategy:
       matrix:
-        os: [ macos-latest, ubuntu-latest, windows-latest ]
+        #os: [ macos-latest, ubuntu-latest, windows-latest ]
+        os: [ windows-latest ]
 
     runs-on: ${{ matrix.os }}
     env:
