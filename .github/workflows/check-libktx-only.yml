@@ -56,8 +56,7 @@ jobs:
   check-libktx-only:
     strategy:
       matrix:
-        #os: [ macos-latest, ubuntu-latest, windows-latest ]
-        os: [ windows-latest ]
+        os: [ macos-latest, ubuntu-latest, windows-latest ]
 
     runs-on: ${{ matrix.os }}
     env:
@@ -77,25 +76,22 @@ jobs:
     - name: Build libktx
       run: cmake --build ${{ env.BUILD_DIR }} --config=Release
 
-    - name: Prepare version number for artifact
+    - name: Prepare version number and architecture for artifact
       id: libktx-version
       shell: bash
-      # tolower and subsequent ifs are to match arch to names used in releases and platforms.
+      # Arch set up is to match arch to names used in releases and platforms.
+      # N.B. If `>> ${{ github.env }} is used here variables are not seen in
+      # following step on Windows runners. Linux and macOS have no problem.
       run: |
         echo KTX_VERSION=$(grep -A 1 -m 1 "Code version" lib/src/version.h | tail -n 1) >> $GITHUB_ENV
-#        grep KTX_VERSION ${{ github.env }}
-#        arch=$(echo ${{ runner.arch }} | tr '[:upper:]' '[:lower:]')
-#        echo "arch is $arch"
-#        if [ "$arch" = "x64" ]; then arch=x86_64
-#        elif [ "${{ runner.os }}" = "Linux" -a "$arch" = "arm64" ]; then arch=aarch64; fi
-#        echo "arch is $arch"
-#        echo KTX_ARCH=$arch >> ${{ github.env }}
-#        grep KTX_ARCH ${{ github.env }}
+        arch=$(echo ${{ runner.arch }} | tr '[:upper:]' '[:lower:]')
+        if [ "$arch" = "x64" ]; then arch=x86_64
+        elif [ "${{ runner.os }}" = "Linux" -a "$arch" = "arm64" ]; then arch=aarch64; fi
+        echo ARCH=$arch >> $GITHUB_ENV
 
     - name: Upload artifact libktx
       uses: actions/upload-artifact@v4
       with:
-        #name: libktx-${{ env.KTX_VERSION }}-${{ runner.os }}-${{ env.KTX_ARCH }}
-        name: libktx-${{ env.KTX_VERSION }}
+        name: libktx-${{ env.KTX_VERSION }}-${{ runner.os }}-${{ env.ARCH }}
         path: ${{env.BUILD_DIR}}/Release/*ktx*
 
