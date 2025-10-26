@@ -39,11 +39,9 @@ done
 for f in *; do
   expectedFile=0
   for e in ${expected[@]}; do
-    echo "comparing $e and $f"
     if [[ "$e" = "$f" ]] ; then
       expectedFile=1
     fi
-    echo "expectedFile = $expectedFile"
   done
   if [[ ! expectedFile -eq 1 ]]; then
       echo "Unexpected file $f found in output directory"
