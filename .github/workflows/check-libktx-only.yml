@@ -82,14 +82,15 @@ jobs:
       shell: bash
       # tolower and subsequent ifs are to match arch to names used in releases and platforms.
       run: |
-        echo KTX_VERSION=$(grep -A 1 -m 1 "Code version" lib/src/version.h | tail -n 1) >> ${{ github.env }}
-        grep KTX_VERSION ${{ github.env }}
-        arch=$(echo ${{ runner.arch }} | tr '[:upper:]' '[:lower:]')
-        echo "arch is $arch"
-        if [ "$arch" = "x64" ]; then arch=x86_64
-        elif [ "${{ runner.os }}" = "Linux" -a "$arch" = "arm64" ]; then arch=aarch64; fi
-        echo "arch is $arch"
-        echo KTX_ARCH=$arch >> ${{ github.env }}
+        echo KTX_VERSION=$(grep -A 1 -m 1 "Code version" lib/src/version.h | tail -n 1) >> $GITHUB_ENV
+#        grep KTX_VERSION ${{ github.env }}
+#        arch=$(echo ${{ runner.arch }} | tr '[:upper:]' '[:lower:]')
+#        echo "arch is $arch"
+#        if [ "$arch" = "x64" ]; then arch=x86_64
+#        elif [ "${{ runner.os }}" = "Linux" -a "$arch" = "arm64" ]; then arch=aarch64; fi
+#        echo "arch is $arch"
+#        echo KTX_ARCH=$arch >> ${{ github.env }}
+#        grep KTX_ARCH ${{ github.env }}
 
     - name: Upload artifact libktx
       uses: actions/upload-artifact@v4
