@@ -60,11 +60,11 @@ jobs:
         config: [ Release ]
         generator: [ 'Ninja Multi-Config' ]
         exclude:
-          os: windows-latest
-          generator: 'Ninja Multi-Config'
+          - os: windows-latest
+            generator: 'Ninja Multi-Config'
         include:
-          os: windows-latest
-          generator: 'Visual Studio 17 2022'
+          - os: windows-latest
+            generator: 'Visual Studio 17 2022'
 
     runs-on: ${{ matrix.os }}
     env:
