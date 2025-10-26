@@ -8,6 +8,8 @@
 include(GetGitRevisionDescription)
 include(CMakePrintHelpers)
 
+find_package(Bash REQUIRED)
+
 function(git_update_index)
     if(NOT GIT_FOUND)
         find_package(Git QUIET)
