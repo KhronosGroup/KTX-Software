@@ -88,11 +88,12 @@ jobs:
         if [ "$arch" = "x64" ]; then arch=x86_64
         elif [ "${{ runner.os }}" = "Linux" -a "$arch" = "arm64" ]; then arch=aarch64; fi
         echo "arch is $arch"
-        echo ARCH=$arch >> ${{ github.env }}
+        echo KTX_ARCH=$arch >> ${{ github.env }}
 
     - name: Upload artifact libktx
       uses: actions/upload-artifact@v4
       with:
-        name: libktx-${{ env.KTX_VERSION }}-${{ runner.os }}-${{ env.ARCH }}
+        #name: libktx-${{ env.KTX_VERSION }}-${{ runner.os }}-${{ env.KTX_ARCH }}
+        name: libktx-${{ env.KTX_VERSION }}
         path: ${{env.BUILD_DIR}}/Release/*ktx*
 
