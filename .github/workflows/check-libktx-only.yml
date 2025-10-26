@@ -63,10 +63,10 @@ jobs:
           - os: windows-latest
             generator: 'Ninja Multi-Config'
         include:
-          # Using the NMC generator, which defaults to using GCC, the project
-          # names the dlls and import libraries with a "lib" prefix and gives
-          # the import libraries a ".a" extension. I have neither the time nor
-          # energy to find out why and how to fix it. Use VS.
+          # The NMC generator defaults to using GCC and GCC names dlls with
+          # a "lib" prefix and the import files with both the prefix and a
+          # .dll.a" extension. I have neither the time nor energy to find out
+          # how to change the behaviour. Use VS.
           - os: windows-latest
             generator: 'Visual Studio 17 2022'
 
