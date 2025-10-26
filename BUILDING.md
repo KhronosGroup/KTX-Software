@@ -23,25 +23,25 @@ Supported platforms (please see their specific requirements first)
 - [Windows](#windows)
 - [Android](#android)
 
-The minimal way to a build is to clone this repository and run the following in a terminal
+The minimal way to a build is to clone this repository and follow the instructions for your desired build below.
+
+_libktx_ only
+-------------
+To build only _libktx_ and nothing else, run the following in a terminal
 
 ```bash
-# Navigate to the root of your KTX-Software clone (replace with
+# Navigate to the `lib` directory of your KTX-Software clone (replace with
 # your actual path)
-cd /path/to/KTX-Software
+cd /path/to/KTX-Software/lib
 
-# This generates build/project files in the sub-folder `build`
+# This generates build/project files in the clone's `lib/build` subfolder
 cmake . -B build
 
 # Compile the project
 cmake --build build
 ```
 
-This creates the `libktx` library and the command line tools. To create the complete project generate the project like this:
-
-```bash
-cmake . -B build -D KTX_FEATURE_LOADTEST_APPS=ON -D KTX_FEATURE_DOC=ON
-```
+The only dependency beyond the build tools is a [bash](#bash) shell.
 
 If you need the library to be static, add `-D BUILD_SHARED_LIBS=OFF` to the CMake configure command (always disabled on iOS and Emscripten).
 
@@ -50,10 +50,6 @@ If you need the library to be static, add `-D BUILD_SHARED_LIBS=OFF` to the CMak
 > When linking to the static library, make sure to
 > define `KHRONOS_STATIC` before including KTX header files.
 > This is especially important on Windows.
-
-If you want to run the CTS tests (recommended only during KTX development)
-add `-D KTX_FEATURE_TOOLS_CTS=ON` to the CMake configure command and fetch
-the CTS submodule. For more information see [Conformance Test Suite](#conformance-test-suite).
 
 If you want the Basis Universal encoders in `libktx` to use OpenCL
 add `-D BASISU_SUPPORT_OPENCL=ON` to the CMake configure command.
@@ -74,8 +70,38 @@ add `-D BASISU_SUPPORT_OPENCL=ON` to the CMake configure command.
 > ```
 > Use with caution.
 
-Building
---------
+The information below about signing on iOS, macOS and Windows applies to library only and complete builds.
+
+The complete project
+--------------------
+
+```bash
+# Navigate to the root of your KTX-Software clone (replace with
+# your actual path)
+cd /path/to/KTX-Software
+
+# This generates build/project files in the sub-folder `build`
+cmake . -B build
+
+# Compile the project
+cmake --build build
+```
+
+This creates the `libktx` library and the command line tools. To create the complete project generate the project like this:
+
+```bash
+cmake . -B build -D KTX_FEATURE_LOADTEST_APPS=ON -D KTX_FEATURE_DOC=ON
+```
+
+The library build notes and the note about `KTX_GIT_VERSION_FULL` above apply
+here too.
+
+If you want to run the CTS tests (recommended only during KTX development)
+add `-D KTX_FEATURE_TOOLS_CTS=ON` to the CMake configure command and fetch
+the CTS submodule. For more information see [Conformance Test Suite](#conformance-test-suite).
+
+Detailed Build and Dependency Notes
+-----------------------------------
 
 ### GNU/Linux
 
@@ -95,10 +121,10 @@ OpenCL you need
 On Ubuntu and Debian these can be installed via
 
 ```bash
-sudo apt install build-essential cmake libzstd-dev ninja-build doxygen graphviz opencl-c-headers mesa-opencl-icd
+sudo apt install build-essential cmake libzstd-dev ninja-build doxygen graphviz opencl-c-headers ocl-icd-opencl-dev mesa-opencl-icd
 ```
 
-`mesa-opencl-icd` should be replaced by the appropriate package for your GPU.
+`mesa-opencl-icd` should be replaced by the appropriate package for your GPU or with the Portable OpenCL: `pocl-opencl-icd libpocl-dev`.
 
 On Fedora and RedHat these can be installed via
 
