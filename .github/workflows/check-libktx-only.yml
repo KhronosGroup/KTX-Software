@@ -57,6 +57,14 @@ jobs:
     strategy:
       matrix:
         os: [ macos-latest, ubuntu-latest, windows-latest ]
+        config: [ Release ]
+        generator: 'Ninja Multi-Config'
+      exclude:
+        os: windows-latest
+        generator: 'Ninja Multi-Config'
+      include:
+        os: windows-latest
+        generator: 'Visual Studio 17 2022'
 
     runs-on: ${{ matrix.os }}
     env:
@@ -73,7 +81,7 @@ jobs:
         fetch-depth: 0
 
     - name: Configure CMake build
-      run: cmake -S ${{ env.SOURCE_DIR }} -B ${{ env.BUILD_DIR }} -G "Ninja Multi-Config" -DLIBKTX_WERROR=${{ env.WERROR }}
+      run: cmake -S ${{ env.SOURCE_DIR }} -B ${{ env.BUILD_DIR }} -G "${{ matrix.generator }}" -DLIBKTX_WERROR=${{ env.WERROR }}
     - name: Build libktx
       run: cmake --build ${{ env.BUILD_DIR }} --config=Release
 
@@ -89,6 +97,9 @@ jobs:
         if [ "$arch" = "x64" ]; then arch=x86_64
         elif [ "${{ runner.os }}" = "Linux" -a "$arch" = "arm64" ]; then arch=aarch64; fi
         echo ARCH=$arch >> $GITHUB_ENV
+
+    - name: Check output directory content
+      run: scripts/check_lib_build_output.sh ${{ env.BUILD_DIR }}/${{ matrix.config }}
 
     - name: Upload artifact libktx
       uses: actions/upload-artifact@v4
