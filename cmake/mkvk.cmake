@@ -16,12 +16,13 @@
 # this. Since only project developers need to use these targets, and
 # only occasionally, this misfeature can be tolerated.
 
-set(dfdutils "${PROJECT_SOURCE_DIR}/../external/dfdutils")
-set(java_binding "${PROJECT_SOURCE_DIR}/../interface/java_binding")
-set(js_binding "${PROJECT_SOURCE_DIR}/../interface/js_binding")
-set(python_binding "${PROJECT_SOURCE_DIR}/../interface/python_binding")
-set(scripts "${PROJECT_SOURCE_DIR}/../scripts")
-set(unittests "${PROJECT_SOURCE_DIR}/../tests/unittests")
+set(dfdutils "${PROJECT_SOURCE_DIR}/external/dfdutils")
+set(java_binding "${PROJECT_SOURCE_DIR}/interface/java_binding")
+set(js_binding "${PROJECT_SOURCE_DIR}/interface/js_binding")
+set(lib_src "${PROJECT_SOURCE_DIR}/lib/src")
+set(python_binding "${PROJECT_SOURCE_DIR}/interface/python_binding")
+set(scripts "${PROJECT_SOURCE_DIR}/scripts")
+set(unittests "${PROJECT_SOURCE_DIR}/tests/unittests")
 
 if (NOT IOS AND NOT ANDROID)
 # Not needed as local custom vulkan_core.h is used. Keeping
@@ -77,7 +78,7 @@ endif()
 
 find_path(KTX_SPECIFICATION
     NAMES formats.json
-    PATHS ${PROJECT_SOURCE_DIR}/../../KTX-Specification
+    PATHS ${PROJECT_SOURCE_DIR}/../KTX-Specification
     NO_DEFAULT_PATH)
 if(NOT KTX_SPECIFICATION)
     message(FATAL_ERROR "KTX-Specification repo clone ${not_found_error}")
@@ -90,10 +91,10 @@ list(APPEND mkvkformatfiles_output
     "${java_binding}/src/main/java/org/khronos/ktx/VkFormat.java"
     "${js_binding}/vk_format.inl"
     "${python_binding}/pyktx/vk_format.py"
-    "${PROJECT_SOURCE_DIR}/src/vkformat_enum.h"
-    "${PROJECT_SOURCE_DIR}/src/vkformat_typesize.c"
-    "${PROJECT_SOURCE_DIR}/src/vkformat_check.c"
-    "${PROJECT_SOURCE_DIR}/src/vkformat_str.c"
+    "${lib_src}/vkformat_enum.h"
+    "${lib_src}/vkformat_typesize.c"
+    "${lib_src}/vkformat_check.c"
+    "${lib_src}/src/vkformat_str.c"
     "${unittests}/vkformat_list.inl")
 
 # CAUTION: When a COMMAND contains VAR="Value" CMake messes up the escaping
@@ -130,12 +131,12 @@ add_custom_target(mkvkformatfiles
 
 list(APPEND makevk2dfd_input
     ${vulkan_header}
-    ../external/dfdutils/makevk2dfd.pl)
+    external/dfdutils/makevk2dfd.pl)
 set(makevk2dfd_output "${dfdutils}/vk2dfd.inl")
 
 add_custom_command(
     OUTPUT ${makevk2dfd_output}
-    COMMAND "${PERL_EXECUTABLE}" ../external/dfdutils/makevk2dfd.pl ${vulkan_header} ../external/dfdutils/vk2dfd.inl
+    COMMAND "${PERL_EXECUTABLE}" ${dfdutils}/makevk2dfd.pl ${vulkan_header} ${dfdutils}/vk2dfd.inl
     DEPENDS ${makevk2dfd_input}
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT "Generating VkFormat/DFD switch body"
@@ -150,14 +151,14 @@ add_custom_target(makevk2dfd
 
 list(APPEND makedfd2vk_input
     ${vulkan_header}
-    ../external/dfdutils/makedfd2vk.pl)
+    ${dfdutils}/makedfd2vk.pl)
 list(APPEND makedfd2vk_output
     "${dfdutils}/dfd2vk.inl")
 
 add_custom_command(
     OUTPUT ${makedfd2vk_output}
-    COMMAND ${CMAKE_COMMAND} -E make_directory external/dfdutils
-    COMMAND "${PERL_EXECUTABLE}" ../external/dfdutils/makedfd2vk.pl ${vulkan_header} ../external/dfdutils/dfd2vk.inl
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${dfdutils}
+    COMMAND "${PERL_EXECUTABLE}" ${dfdutils}/makedfd2vk.pl ${vulkan_header} ${dfdutils}/dfd2vk.inl
     DEPENDS ${makedfd2vk_input}
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT "Generating DFD/VkFormat switch body"
@@ -173,19 +174,19 @@ list(APPEND makevk2gl_input
     ${KTX_SPECIFICATION}/generate_format_switches.rb
     ${KTX_SPECIFICATION}/formats.json)
 list(APPEND makevk2gl_output
-    "${PROJECT_SOURCE_DIR}/src/vkFormat2glFormat.inl"
-    "${PROJECT_SOURCE_DIR}/src/vkFormat2glInternalFormat.inl"
-    "${PROJECT_SOURCE_DIR}/src/vkFormat2glType.inl")
+    "${lib_src}/vkFormat2glFormat.inl"
+    "${lib_src}/vkFormat2glInternalFormat.inl"
+    "${lib_src}/vkFormat2glType.inl")
 # Until we have D3D or Metal loaders these outputs of
 # generate_format_switches.rb are unneeded.
 list(APPEND makevk2gl_extraneous_files
-    "${PROJECT_SOURCE_DIR}/src/vkFormat2dxgiFormat.inl"
-    "${PROJECT_SOURCE_DIR}/src/vkFormat2mtlFormat.inl"
+    "${lib_src}/vkFormat2dxgiFormat.inl"
+    "${lib_src}/vkFormat2mtlFormat.inl"
 )
 
 add_custom_command(
     OUTPUT ${makevk2gl_output}
-    COMMAND "${RUBY_EXECUTABLE}" ${KTX_SPECIFICATION}/generate_format_switches.rb ${PROJECT_SOURCE_DIR}/src
+    COMMAND "${RUBY_EXECUTABLE}" ${KTX_SPECIFICATION}/generate_format_switches.rb ${lib_src}
     COMMAND ${CMAKE_COMMAND} -E rm -f ${makevk2gl_extraneous_files}
     DEPENDS ${makevk2gl_input}
     WORKING_DIRECTORY ${KTX_SPECIFICATION}

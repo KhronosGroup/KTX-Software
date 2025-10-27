@@ -65,7 +65,7 @@ jobs:
       run: |
         pushd ..; git clone https://github.com/KhronosGroup/KTX-Specification.git; popd
     - name: Configure CMake build
-      run: cmake -B ${{ env.BUILD_DIR }} -DLIBKTX_GENERATE_VK_FILES=ON -DKTX_FEATURE_TESTS=OFF -DKTX_FEATURE_TOOLS=OFF -DKTX_WERROR=${{ env.WERROR }} 
+      run: cmake -B ${{ env.BUILD_DIR }} -DKTX_GENERATE_VK_FILES=ON -DKTX_FEATURE_TESTS=OFF -DKTX_FEATURE_TOOLS=OFF -DKTX_WERROR=${{ env.WERROR }} 
     - name: Test file generation
       run: |
         cmake --build ${{ env.BUILD_DIR }} --target mkvk --clean-first
