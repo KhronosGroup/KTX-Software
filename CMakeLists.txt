@@ -90,12 +90,6 @@ if(NOT KTX_FEATURE_LOADTEST_APPS MATCHES OFF)
     endif()
 endif()
 
-option( KTX_GENERATE_VK_FILES
-    "Include targets for generating VkFormat related files. For project developers only."
-    OFF
-)
-mark_as_advanced(FORCE KTX_GENERATE_VK_FILES)
-
 # Platform specific settings
 
 set(bitness 64)
@@ -114,11 +108,6 @@ include(CTest)          #           "
 set_target_processor_type(CPU_ARCHITECTURE) # Must be after project.
 if (CPU_ARCHITECTURE STREQUAL x86)
     message(FATAL_ERROR "This project cannot be built for x86 cpu.")
-endif()
-
-# Uses IOS, so included after project to avoid modifying it.
-if(KTX_GENERATE_VK_FILES)
-    include(cmake/mkvk.cmake)
 endif()
 
 # EMSCRIPTEN is not set until project so all these must be after.

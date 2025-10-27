@@ -5,14 +5,15 @@
 cmake_minimum_required(VERSION 3.22)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/../cmake/modules/")
-set( KTX_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR}/.. )
+#set( KTX_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR}/.. )
+set( KTX_ROOT_DIR .. )
 
 # N.B. When used before the project() command, PROJECT_IS_TOP_LEVEL will not
 # do what you likely at first expect. It will be TRUE if this is included
 # in another project.
 
 if(NOT DEFINED KTX_VERSION)
-    include(../cmake/version.cmake)
+    include(${KTX_ROOT_DIR}/cmake/version.cmake)
 endif()
 
 project(libktx
@@ -82,6 +83,18 @@ CMAKE_DEPENDENT_OPTION( BUILD_SHARED_LIBS
     "NOT (APPLE_LOCKED_OS OR EMSCRIPTEN)"
     OFF
 )
+
+option( LIBKTX_GENERATE_VK_FILES
+    "Include targets for generating VkFormat related files. For project developers only."
+    OFF
+)
+mark_as_advanced(FORCE KTX_GENERATE_VK_FILES)
+
+# Uses IOS, so included after project to avoid modifying it.
+if(LIBKTX_GENERATE_VK_FILES)
+    include(${KTX_ROOT_DIR}/cmake/mkvk.cmake)
+endif()
+
 # Used to reset BUILD_SHARED_LIBS after forcing static builds
 set( BUILD_SHARED_LIBS_RESET ${BUILD_SHARED_LIBS} )
 
