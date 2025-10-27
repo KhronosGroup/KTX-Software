@@ -41,8 +41,6 @@ cmake . -B build
 cmake --build build
 ```
 
-The only dependency beyond the build tools is a [bash](#bash) shell.
-
 If you need the library to be static, add `-D BUILD_SHARED_LIBS=OFF` to the CMake configure command (always disabled on iOS and Emscripten).
 
 > **Note:**
@@ -52,7 +50,9 @@ If you need the library to be static, add `-D BUILD_SHARED_LIBS=OFF` to the CMak
 > This is especially important on Windows.
 
 If you want the Basis Universal encoders in `libktx` to use OpenCL
-add `-D BASISU_SUPPORT_OPENCL=ON` to the CMake configure command.
+add `-D BASISU_SUPPORT_OPENCL=ON` to the CMake configure command. In this case
+you must have an OpenCL development environment installed on the build machine
+and a driver on the run-time machine.
 
 > **Note:**
 > 
@@ -71,6 +71,10 @@ add `-D BASISU_SUPPORT_OPENCL=ON` to the CMake configure command.
 > Use with caution.
 
 The information below about signing on iOS, macOS and Windows applies to library only and complete builds.
+
+The only dependencies beyond the build tools are for the build machine to have a
+[bash](#bash) shell and, if using OpenCL, the mentioned OpenCL development
+environment.
 
 The complete project
 --------------------
