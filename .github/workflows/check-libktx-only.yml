@@ -103,7 +103,6 @@ jobs:
         echo ARCH=$arch >> $GITHUB_ENV
 
     - name: Check output directory content
-      shell: bash
       run: scripts/check_lib_build_output.sh ${{ env.BUILD_DIR }}/${{ matrix.config }}
 
     - name: Upload artifact libktx
