@@ -84,17 +84,6 @@ CMAKE_DEPENDENT_OPTION( BUILD_SHARED_LIBS
     OFF
 )
 
-option( LIBKTX_GENERATE_VK_FILES
-    "Include targets for generating VkFormat related files. For project developers only."
-    OFF
-)
-mark_as_advanced(FORCE KTX_GENERATE_VK_FILES)
-
-# Uses IOS, so included after project to avoid modifying it.
-if(LIBKTX_GENERATE_VK_FILES)
-    include(${KTX_ROOT_DIR}/cmake/mkvk.cmake)
-endif()
-
 # Used to reset BUILD_SHARED_LIBS after forcing static builds
 set( BUILD_SHARED_LIBS_RESET ${BUILD_SHARED_LIBS} )
 
