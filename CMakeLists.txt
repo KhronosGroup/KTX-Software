@@ -138,6 +138,20 @@ endif()
 
 option(BUILD_SHARED_LIBS "Create shared libraries (static otherwise)." ${LIB_TYPE_DEFAULT} )
 
+if(APPLE)
+    # Deployment
+    # When changing the target you must also edit the triplet files in
+    # vcpkg-triplets to reflect the new target.
+    if(APPLE_MAC_OS)
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "macOS Deployment Target")
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS" OR CMAKE_SYSTEM_NAME STREQUAL "tvOS")
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0" CACHE STRING "iOS/tvOS Deployment Target")
+        set(CMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH NO)
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "visionOS")
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "1.0" CACHE STRING "visionOS Deployment Target")
+    endif()
+endif()
+
 if(UNIX AND NOT APPLE AND NOT EMSCRIPTEN AND NOT ANDROID)
     set(LINUX TRUE)
 endif()

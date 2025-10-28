@@ -12,18 +12,6 @@ if(APPLE)
     if(APPLE_LOCKED_OS)
         set(XCODE_PROVISIONING_PROFILE_SPECIFIER "" CACHE STRING "Xcode provisioning profile specifier")
     endif()
-
-    # Deployment
-    # When changing the target you must also edit the triplet files in
-    # vcpkg-triplets to reflect the new target.
-    if(APPLE_MAC_OS)
-        set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "macOS Deployment Target")
-    elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS" OR CMAKE_SYSTEM_NAME STREQUAL "tvOS")
-        set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0" CACHE STRING "iOS/tvOS Deployment Target")
-        set(CMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH NO)
-    elseif(CMAKE_SYSTEM_NAME STREQUAL "visionOS")
-        set(CMAKE_OSX_DEPLOYMENT_TARGET "1.0" CACHE STRING "visionOS Deployment Target")
-    endif()
 endif()
 
 if(WIN32)
