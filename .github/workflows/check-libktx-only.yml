@@ -98,8 +98,7 @@ jobs:
       run: |
         echo KTX_VERSION=$(grep -A 1 -m 1 "Code version" lib/src/version.h | tail -n 1) >> $GITHUB_ENV
         arch=$(echo ${{ runner.arch }} | tr '[:upper:]' '[:lower:]')
-        if [ "$arch" = "x64" ]; then arch=x86_64
-        elif [ "${{ runner.os }}" = "Linux" -a "$arch" = "arm64" ]; then arch=aarch64; fi
+        if [ "$arch" = "x64" ]; then arch=x86_64; fi
         echo ARCH=$arch >> $GITHUB_ENV
 
     - name: Check output directory content
