@@ -89,7 +89,7 @@ if (NOT MSVC)
         # BASISU_SUPPORT_SSE does not appear in basisu_tool or examples so this can be
         # target_compile_definitions and moved to after the lib target has been created.
         add_compile_definitions(BASISU_SUPPORT_SSE=0)
-        add_compile_options("SHELL:-s ALLOW_MEMORY_GROWTH=1")
+        add_link_options("SHELL:-s ALLOW_MEMORY_GROWTH=1")
     else()
         message("BASISU_SSE = ${BASISU_SSE}")
         add_compile_options("$<IF:$<BOOL:${BASISU_SSE}>,-DBASISU_SUPPORT_SSE=1;-msse4.1,-DBASISU_SUPPORT_SSE=0>")
@@ -189,8 +189,8 @@ endif()
 add_library(basisu_encoder STATIC ${ENCODER_LIB_SRC_LIST} ${ENCODER_LIB_HDR_LIST})
 target_include_directories(basisu_encoder
 INTERFACE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/zstd> // So KTX-Software can use it.
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/zstd> # So KTX-Software can use it.
 )
 if (NOT MSVC)
     # PUBLIC so it will be exported to dependent programs.
