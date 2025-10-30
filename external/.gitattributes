@@ -1,0 +1,9 @@
+# Copyright 2015-2020 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+# Customize behaviour for files under external.
+
+# Turn off LFS. Do not change files in subrepo and submodule clones.
+# The only possibly LFS'ed files at present are the libs in
+# basis_universal/OpenCL/lib.
+*.lib !filter
