@@ -46,6 +46,7 @@ option( KTX_FEATURE_TESTS "Create unit tests." ON )
 option( KTX_FEATURE_TOOLS_CTS "Enable KTX CLI Tools CTS tests (requires CTS submodule)." OFF )
 option( KTX_FEATURE_JS "Enable JavaScript bindings in Emscripten builds." ON )
 option( KTX_FEATURE_EMBEDDED_ZSTD "Use embedded zstd library. If OFF, zstd must be findable with find_package(zstd CONFIG)." ON )
+option( KTX_FEATURE_EMBEDDED_TOOLS_DEPENDENCIES "Use embedded fmt and cxxopts libraries for the KTX_FEATURE_TOOLS. If OFF, these libraries must be findable using find_package(... CONFIG)." ON )
 
 if(KTX_FEATURE_TOOLS_CTS AND NOT KTX_FEATURE_TOOLS)
     message(WARNING "KTX_FEATURE_TOOLS is not set -> disabling KTX_FEATURE_TOOLS_CTS.")
@@ -447,15 +448,23 @@ add_subdirectory(interface/basisu_c_binding)
 # this CMakeLists is included in another project which is unlikely
 # except for building the ktx library.
 if((KTX_FEATURE_TOOLS OR KTX_FEATURE_TESTS) AND NOT TARGET fmt::fmt)
-    # Always build fmt static
-    set(BUILD_SHARED_LIBS OFF)
-    set(FMT_INSTALL OFF)
-    set(FMT_SYSTEM_HEADERS ON)
-    add_subdirectory(external/fmt)
-    set(BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS_RESET})
+    if(KTX_FEATURE_EMBEDDED_TOOLS_DEPENDENCIES)
+        # Always build fmt static
+        set(BUILD_SHARED_LIBS OFF)
+        set(FMT_INSTALL OFF)
+        set(FMT_SYSTEM_HEADERS ON)
+        add_subdirectory(external/fmt)
+        set(BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS_RESET})
+    else()
+        find_package(fmt CONFIG REQUIRED)
+    endif()
 endif()
 if(KTX_FEATURE_TOOLS AND NOT TARGET cxxopts::cxxopts)
-    add_subdirectory(external/cxxopts)
+    if(KTX_FEATURE_EMBEDDED_TOOLS_DEPENDENCIES)
+        add_subdirectory(external/cxxopts)
+    else()
+        find_package(cxxopts CONFIG REQUIRED)
+    endif()
 endif()
 
 # Tools
