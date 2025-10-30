@@ -54,6 +54,7 @@ option( LIBKTX_FEATURE_KTX2 "Enable KTX 2 support." ON )
 option( LIBKTX_FEATURE_VK_UPLOAD "Enable Vulkan texture upload." ON )
 option( LIBKTX_FEATURE_GL_UPLOAD "Enable OpenGL texture upload." ON )
 option( LIBKTX_FEATURE_ETC_UNPACK "ETC decoding support." ON )
+option( LIBKTX_FEATURE_EMBEDDED_ZSTD "Use embedded zstd library. If OFF, zstd must be findable with find_package(zstd CONFIG)." ON )
 
 CMAKE_DEPENDENT_OPTION( BASISU_SUPPORT_SSE
     "Compile with SSE support so applications can choose to use it."
@@ -143,6 +144,10 @@ if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "")
     set(CMAKE_CXX_COMPILER_FRONTEND_VARIANT "${CMAKE_CXX_COMPILER_ID}")
 endif()
 
+if(NOT LIBKTX_FEATURE_EMBEDDED_ZSTD)
+    find_package(zstd CONFIG REQUIRED)
+endif()
+
 #cmake_print_variables(
 #    CMAKE_CXX_COMPILER_ID
 #    CMAKE_CXX_COMPILER_VERSION
@@ -166,7 +171,6 @@ set(LIBKTX_MAIN_SRC
     ../external/basisu/transcoder/basisu_transcoder.cpp
     ../external/basisu/transcoder/basisu_transcoder.h
     ../external/basisu/transcoder/basisu.h
-    ../external/basisu/zstd/zstd.c
     src/checkheader.c
     ../external/dfdutils/createdfd.c
     ../external/dfdutils/colourspaces.c
@@ -210,6 +214,12 @@ set(LIBKTX_MAIN_SRC
     ../utils/unused.h
 
 )
+
+if (LIBKTX_FEATURE_EMBEDDED_ZSTD)
+    list( APPEND LIBKTX_MAIN_SRC
+        ../external/basisu/zstd/zstd.c
+    )
+endif()
 
 if (LIBKTX_FEATURE_ETC_UNPACK)
     list( APPEND LIBKTX_MAIN_SRC ../external/etcdec/etcdec.cxx )
@@ -425,11 +435,7 @@ macro(common_libktx_settings target enable_write library_type)
     PRIVATE
         ../external
         ../external/basisu/transcoder
-        ../external/basisu/zstd
-        #$<BUILD_INTERFACE:${KTX_ROOT_DIR}/external/basisu/zstd>
         ../utils
-
-        #$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../external/basisu/zstd>
 
         #$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../utils>
     )
@@ -440,6 +446,22 @@ macro(common_libktx_settings target enable_write library_type)
         ../other_include
         #$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../other_include>
     )
+
+    if(LIBKTX_FEATURE_EMBEDDED_ZSTD)
+        target_include_directories(
+            ${target}
+        PRIVATE
+            ../external/basisu/zstd
+            #$<BUILD_INTERFACE:${KTX_ROOT_DIR}/external/basisu/zstd>
+            #$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../external/basisu/zstd>
+        )
+    else()
+        target_link_libraries(
+            ${target}
+            PRIVATE
+                zstd::libzstd
+        )
+    endif()
 
     if( ${library_type} STREQUAL STATIC )
         target_compile_definitions(${target} PUBLIC KHRONOS_STATIC)
