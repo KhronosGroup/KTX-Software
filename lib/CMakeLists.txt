@@ -54,6 +54,7 @@ option( LIBKTX_FEATURE_KTX2 "Enable KTX 2 support." ON )
 option( LIBKTX_FEATURE_VK_UPLOAD "Enable Vulkan texture upload." ON )
 option( LIBKTX_FEATURE_GL_UPLOAD "Enable OpenGL texture upload." ON )
 option( LIBKTX_FEATURE_ETC_UNPACK "ETC decoding support." ON )
+option( LIBKTX_FEATURE_APPLE_FRAMEWORK "Build as a Framework on APPLE_LOCKED_OS targets." ON )
 
 CMAKE_DEPENDENT_OPTION( BASISU_SUPPORT_SSE
     "Compile with SSE support so applications can choose to use it."
@@ -329,7 +330,7 @@ macro(common_libktx_settings target enable_write library_type)
         XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
     )
 
-    if(APPLE_LOCKED_OS)
+    if(APPLE_LOCKED_OS AND LIBKTX_FEATURE_APPLE_FRAMEWORK)
         set_target_properties(${target} PROPERTIES
             FRAMEWORK TRUE
         )
@@ -1007,7 +1008,7 @@ endif()
 # Use of this to install KHR/khr_df.h is due to CMake's failure to
 # preserve the include source folder hierarchy.
 # See https://gitlab.kitware.com/cmake/cmake/-/issues/16739.
-if (APPLE_LOCKED_OS)
+if (APPLE_LOCKED_OS AND LIBKTX_FEATURE_APPLE_FRAMEWORK)
     set_source_files_properties(
           include/KHR/khr_df.h
           PROPERTIES MACOSX_PACKAGE_LOCATION Headers/KHR
