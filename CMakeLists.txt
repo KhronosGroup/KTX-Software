@@ -350,7 +350,6 @@ if(EMSCRIPTEN AND KTX_FEATURE_JS)
         PRIVATE
         lib
         external
-        external/basisu/transcoder
     )
 
     # Re-use ktx's compile options
@@ -368,6 +367,8 @@ if(EMSCRIPTEN AND KTX_FEATURE_JS)
         $<TARGET_PROPERTY:ktx_read,INTERFACE_LINK_OPTIONS>
     )
     set_target_properties( msc_basis_transcoder_js PROPERTIES OUTPUT_NAME "msc_basis_transcoder")
+
+    target_link_libraries(msc_basis_transcoder_js basisu_encoder)
 
     add_custom_command(
         TARGET msc_basis_transcoder_js
