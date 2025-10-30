@@ -54,7 +54,6 @@ option( LIBKTX_FEATURE_KTX2 "Enable KTX 2 support." ON )
 option( LIBKTX_FEATURE_VK_UPLOAD "Enable Vulkan texture upload." ON )
 option( LIBKTX_FEATURE_GL_UPLOAD "Enable OpenGL texture upload." ON )
 option( LIBKTX_FEATURE_ETC_UNPACK "ETC decoding support." ON )
-option( LIBKTX_FEATURE_EMBEDDED_ZSTD "Use embedded zstd library. If OFF, zstd must be findable with find_package(zstd CONFIG)." ON )
 
 CMAKE_DEPENDENT_OPTION( BASISU_SUPPORT_SSE
     "Compile with SSE support so applications can choose to use it."
@@ -144,10 +143,6 @@ if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "")
     set(CMAKE_CXX_COMPILER_FRONTEND_VARIANT "${CMAKE_CXX_COMPILER_ID}")
 endif()
 
-if(NOT LIBKTX_FEATURE_EMBEDDED_ZSTD)
-    find_package(zstd CONFIG REQUIRED)
-endif()
-
 #cmake_print_variables(
 #    CMAKE_CXX_COMPILER_ID
 #    CMAKE_CXX_COMPILER_VERSION
@@ -215,7 +210,7 @@ set(LIBKTX_MAIN_SRC
 
 )
 
-if (LIBKTX_FEATURE_EMBEDDED_ZSTD)
+if (KTX_FEATURE_EMBEDDED_ZSTD)
     list( APPEND LIBKTX_MAIN_SRC
         ../external/basisu/zstd/zstd.c
     )
@@ -447,7 +442,7 @@ macro(common_libktx_settings target enable_write library_type)
         #$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../other_include>
     )
 
-    if(LIBKTX_FEATURE_EMBEDDED_ZSTD)
+    if(KTX_FEATURE_EMBEDDED_ZSTD)
         target_include_directories(
             ${target}
         PRIVATE
@@ -792,10 +787,12 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
             ../external/basisu/transcoder/basisu_transcoder.cpp
             "-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable"
         )
-        set_source_files_properties(
-            ../external/basisu/zstd/zstd.c
-            PROPERTIES COMPILE_OPTIONS "-Wno-unused-function"
-        )
+        if(KTX_FEATURE_EMBEDDED_ZSTD)
+            set_source_files_properties(
+                ../external/basisu/zstd/zstd.c
+                PROPERTIES COMPILE_OPTIONS "-Wno-unused-function"
+            )
+        endif()
     endif()
 else()
     message(FATAL_ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")

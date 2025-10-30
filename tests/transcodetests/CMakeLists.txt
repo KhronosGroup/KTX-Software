@@ -60,24 +60,30 @@ if(WIN32)
            PROPERTIES COMPILE_OPTIONS "${transcoder_options}"
         )
     endif()
-    get_source_file_property(
-        zstd_options
-        "${PROJECT_SOURCE_DIR}/external/basisu/zstd/zstd.c"
-        TARGET_DIRECTORY ktx_read
-        COMPILE_OPTIONS
-    )
-    if (zstd_options)
-        set_source_files_properties(
-            ${PROJECT_SOURCE_DIR}/external/basisu/zstd/zstd.c
-            PROPERTIES COMPILE_OPTIONS "${zstd_options}"
+    if(KTX_FEATURE_EMBEDDED_ZSTD)
+        get_source_file_property(
+            zstd_options
+            "${PROJECT_SOURCE_DIR}/external/basisu/zstd/zstd.c"
+            TARGET_DIRECTORY ktx_read
+            COMPILE_OPTIONS
         )
+        if (zstd_options)
+            set_source_files_properties(
+                ${PROJECT_SOURCE_DIR}/external/basisu/zstd/zstd.c
+                PROPERTIES COMPILE_OPTIONS "${zstd_options}"
+            )
+        endif()
     endif()
 
     # The Windows ktx.dll does not export needed symbols. This is a workaround to get it linking.
     add_library(obj_tmp_basisu OBJECT
         $<$<BOOL:${BUILD_SHARED_LIBS}>:${PROJECT_SOURCE_DIR}/external/basisu/transcoder/basisu_transcoder.cpp>
-        "${PROJECT_SOURCE_DIR}/external/basisu/zstd/zstd.c"
-        )
+    )
+
+    if(KTX_FEATURE_EMBEDDED_ZSTD)
+        target_sources(obj_tmp_basisu PRIVATE "${PROJECT_SOURCE_DIR}/external/basisu/zstd/zstd.c")
+    endif()
+        
     target_compile_definitions(
         obj_tmp_basisu
         PUBLIC # only for basisu_c_binding.

@@ -145,7 +145,7 @@ set(BASISU_SRC_LIST ${COMMON_SRC_LIST}
 	transcoder/basisu_transcoder.cpp
 	)
 
-if (ZSTD)
+if (ZSTD AND KTX_FEATURE_EMBEDDED_ZSTD)
 	set(BASISU_SRC_LIST ${BASISU_SRC_LIST} zstd/zstd.c)
 endif()
 
@@ -163,6 +163,10 @@ if (ZSTD)
 	target_compile_definitions(basisu PRIVATE BASISD_SUPPORT_KTX2_ZSTD=1)
 else()
 	target_compile_definitions(basisu PRIVATE BASISD_SUPPORT_KTX2_ZSTD=0)
+endif()
+
+if(NOT KTX_FEATURE_EMBEDDED_ZSTD)
+    target_link_libraries(basisu zstd::libzstd)
 endif()
 
 if (NOT MSVC)

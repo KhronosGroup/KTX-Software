@@ -34,9 +34,11 @@ if (EMSCRIPTEN)
   )
 
   if (KTX2_ZSTANDARD)
-  	set(SRC_LIST ${SRC_LIST}
-		../../zstd/zstd.c
-	)
+	if(KTX_FEATURE_EMBEDDED_ZSTD)
+		set(SRC_LIST ${SRC_LIST}
+			../../zstd/zstd.c
+		)
+	endif()
 	set(ZSTD_DEFINITION BASISD_SUPPORT_KTX2_ZSTD=1)
   else()
   	set(ZSTD_DEFINITION BASISD_SUPPORT_KTX2_ZSTD=0)
@@ -55,6 +57,10 @@ if (EMSCRIPTEN)
   target_compile_options(basis_encoder.js PRIVATE -fno-strict-aliasing -O3)
   
   target_include_directories(basis_encoder.js PRIVATE ../../transcoder)
+
+  if(KTX_FEATURE_EMBEDDED_ZSTD)
+	target_link_libraries(basis_encoder.js zstd::libzstd)
+  endif()
 
   set_target_properties(basis_encoder.js PROPERTIES
       OUTPUT_NAME "basis_encoder"
