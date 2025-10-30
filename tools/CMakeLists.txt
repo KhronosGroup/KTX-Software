@@ -1,13 +1,13 @@
 # Copyright 2017-2020 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-if(NOT KTX_FEATURE_KTX1)
-    message(WARNING "KTX_FEATURE_KTX1 is not set -> disabling tools")
+if(NOT LIBKTX_FEATURE_KTX1)
+    message(WARNING "LIBKTX_FEATURE_KTX1 is not set -> disabling tools")
     return()
 endif()
 
-if(NOT KTX_FEATURE_KTX2)
-    message(WARNING "KTX_FEATURE_KTX2 is not set -> disabling tools")
+if(NOT LIBKTX_FEATURE_KTX2)
+    message(WARNING "LIBKTX_FEATURE_KTX2 is not set -> disabling tools")
     return()
 endif()
 

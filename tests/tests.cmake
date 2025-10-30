@@ -53,7 +53,7 @@ target_include_directories(
     unittests
 PRIVATE
     $<TARGET_PROPERTY:ktx,INCLUDE_DIRECTORIES>
-    ${PROJECT_SOURCE_DIR}/lib
+    ${PROJECT_SOURCE_DIR}/lib/src
     ${PROJECT_SOURCE_DIR}/tools
     ${PROJECT_SOURCE_DIR}/tools/imageio
     loadtests/common
@@ -97,7 +97,7 @@ target_include_directories(
 PRIVATE
     $<TARGET_PROPERTY:ktx,INCLUDE_DIRECTORIES>
     ${PROJECT_SOURCE_DIR}/other_include
-    ${PROJECT_SOURCE_DIR}/lib
+    ${PROJECT_SOURCE_DIR}/lib/src
     unittests
 )
 

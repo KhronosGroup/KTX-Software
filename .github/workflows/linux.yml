@@ -20,10 +20,15 @@ on:
     paths-ignore:
       - .appveyor.yml
       - .github/workflows/android.yml
+      - .github/workflows/check-libktx-only.yml
       - .github/workflows/check-mkvk.yml
       - .github/workflows/docs.yml
       - .github/workflows/formatting.yml
+      - .github/workflows/mingw.yml
+      - .github/workflows/macos.yml
       - .github/workflows/publish-pyktx.yml
+      - .github/workflows/manual.yml
+      - .github/workflows/web.yml
       - .github/workflows/windows.yml
       - .travis.yml
       - README.md
@@ -96,6 +101,9 @@ jobs:
             doc: ON, jni: ON, loadtests: OpenGL, py: ON, tools: ON, tools_cts: ON,
             package: YES, sse: OFF, opencl: OFF
           }
+        # Can't run OpenCL on Actions because the runner CPU reports as
+        # "generic" so POCL (the only OpenCL CPU driver) can't figure out
+        # which code to use. Disable tests, just check building.
         - name: OpenCL,SSE
           os: ubuntu-22.04
           generator: Ninja
@@ -104,8 +112,8 @@ jobs:
           vk_sdk_ver: '1.4.313'
           options: {
             config: Release,
-            doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tools: OFF, tools_cts: OFF,
-            sse: ON, opencl: ON
+            doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tests: OFF, tools: OFF,
+            tools_cts: OFF, sse: ON, opencl: ON
           }
         - name: OpenCL
           os: ubuntu-22.04
@@ -115,8 +123,8 @@ jobs:
           vk_sdk_ver: '1.4.313'
           options: {
             config: Release,
-            doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tools: OFF, tools_cts: OFF,
-            sse: OFF, opencl: ON
+            doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tests: OFF, tools: OFF,
+            tools_cts: OFF, sse: OFF, opencl: ON
           }
         - name: All OFF
           os: ubuntu-22.04
@@ -155,8 +163,8 @@ jobs:
       FEATURE_TOOLS: ${{ matrix.options.tools }}
       FEATURE_TOOLS_CTS: ${{ matrix.options.tools_cts }}
       PACKAGE: ${{ matrix.options.package && matrix.options.package || 'NO' }}
-      SUPPORT_OPENCL: ${{ matrix.options.opencl }}
-      SUPPORT_SSE: ${{ matrix.options.sse }}
+      SUPPORT_OPENCL: ${{ matrix.options.opencl && matrix.options.opencl || 'OFF' }}
+      SUPPORT_SSE: ${{ matrix.options.sse && matrix.options.sse || 'OFF' }}
       PY_USE_VENV: ${{ matrix.options.py.use_venv && matrix.options.py_use_venv || 'OFF' }}
       WERROR: ${{ matrix.options.werror && matrix.options.werror || 'ON' }}
       # CC Handled by job step

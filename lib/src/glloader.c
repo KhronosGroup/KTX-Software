@@ -540,7 +540,9 @@ compressedTexImage2DCallback(int miplevel, int face,
 {
     ktx_cbdata* cbData = (ktx_cbdata*)userdata;
     GLenum glerror;
+#if SUPPORT_SOFTWARE_ETC_UNPACK
     KTX_error_code result;
+#endif
     UNUSED(depth);
 
     if (faceLodSize > UINT32_MAX)

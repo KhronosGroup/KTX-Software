@@ -2,6 +2,11 @@
 # SPDX-License-Identifier: Apache-2.0
 name: Check config and build of just libktx
 
+# The purpose of this is to smoke test building just libktx using its
+# CMakeLists.txt as the top-level project. Testing of various build
+# options and running of tests on the library is left to the various
+# KTX-Software project workflows.
+
 # Seems no way to avoid duplicating this on logic in each .yml file.
 # See https://github.com/actions/starter-workflows/issues/245.
 on:
@@ -45,17 +50,31 @@ on:
 
   # Allow manual trigger
   workflow_dispatch:
+  workflow_call:
 
 jobs:
-  check-mkvk:
+  check-libktx-only:
     strategy:
       matrix:
         os: [ macos-latest, ubuntu-latest, windows-latest ]
+        config: [ Release ]
+        generator: [ 'Ninja Multi-Config' ]
+        exclude:
+          - os: windows-latest
+            generator: 'Ninja Multi-Config'
+        include:
+          # The NMC generator defaults to using GCC and GCC names dlls with
+          # a "lib" prefix and the import files with both the prefix and a
+          # ".dll.a" extension. I have neither the time nor energy to find out
+          # how to change the behaviour. Use VS.
+          - os: windows-latest
+            generator: 'Visual Studio 17 2022'
 
     runs-on: ${{ matrix.os }}
     env:
       GIT_LFS_SKIP_SMUDGE: 1
       BUILD_DIR: "build"
+      SOURCE_DIR: "lib"
       WERROR: ON
 
     steps:
@@ -66,19 +85,28 @@ jobs:
         fetch-depth: 0
 
     - name: Configure CMake build
-      run: cmake -B ${{ env.BUILD_DIR }} -DLIBKTX_WERROR=${{ env.WERROR }}
+      run: cmake -S ${{ env.SOURCE_DIR }} -B ${{ env.BUILD_DIR }} -G "${{ matrix.generator }}" -DLIBKTX_WERROR=${{ env.WERROR }}
     - name: Build libktx
       run: cmake --build ${{ env.BUILD_DIR }} --config=Release
 
-    - name: Prepare version for artifact
-      id: ktx-version
+    - name: Prepare version number and architecture for artifact
+      id: libktx-version
+      shell: bash
+      # Arch set up is to match arch to names used in releases and platforms.
+      # N.B. If `>> ${{ github.env }} is used here variables are not seen in
+      # following step on Windows runners. Linux and macOS have no problem.
       run: |
-        KTX_VERSION=`cat $BUILD_DIR/ktx.version`
-        echo KTX_VERSION=$(cat ${{ env.BUILD_DIR }}) >> ${{ env.GITHUB_ENV }}
+        echo KTX_VERSION=$(grep -A 1 -m 1 "Code version" lib/src/version.h | tail -n 1) >> $GITHUB_ENV
+        arch=$(echo ${{ runner.arch }} | tr '[:upper:]' '[:lower:]')
+        if [ "$arch" = "x64" ]; then arch=x86_64; fi
+        echo ARCH=$arch >> $GITHUB_ENV
+
+    - name: Check output directory content
+      run: scripts/check_lib_build_output.sh ${{ env.BUILD_DIR }}/${{ matrix.config }}
 
     - name: Upload artifact libktx
       uses: actions/upload-artifact@v4
       with:
-        name: libktx-${{ env.KTX_VERSION }}
+        name: libktx-${{ env.KTX_VERSION }}-${{ runner.os }}-${{ env.ARCH }}
         path: ${{env.BUILD_DIR}}/Release/*ktx*
 

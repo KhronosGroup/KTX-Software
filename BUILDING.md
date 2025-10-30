@@ -23,7 +23,61 @@ Supported platforms (please see their specific requirements first)
 - [Windows](#windows)
 - [Android](#android)
 
-The minimal way to a build is to clone this repository and run the following in a terminal
+The minimal way to a build is to clone this repository and follow the instructions for your desired build below.
+
+_libktx_ only
+-------------
+To build only _libktx_ and nothing else, run the following in a terminal
+
+```bash
+# Navigate to the `lib` directory of your KTX-Software clone (replace with
+# your actual path)
+cd /path/to/KTX-Software/lib
+
+# This generates build/project files in the clone's `lib/build` subfolder
+cmake . -B build
+
+# Compile the project
+cmake --build build
+```
+
+If you need the library to be static, add `-D BUILD_SHARED_LIBS=OFF` to the CMake configure command (always disabled on iOS and Emscripten).
+
+> **Note:**
+>
+> When linking to the static library, make sure to
+> define `KHRONOS_STATIC` before including KTX header files.
+> This is especially important on Windows.
+
+If you want the Basis Universal encoders in `libktx` to use OpenCL
+add `-D BASISU_SUPPORT_OPENCL=ON` to the CMake configure command. In this case
+you must have an OpenCL development environment installed on the build machine
+and a driver on the run-time machine.
+
+> **Note:**
+> 
+>  There is very little advantage to using OpenCL in the context
+>  of `libktx`. It is disabled in the default build configuration.
+
+> **Note:**
+> 
+> When building from a source `tar.gz` and not from the git repository directly, 
+> it is recommended to set the variable `KTX_GIT_VERSION_FULL` to the
+> associated git tag (e.g `v4.3.2`)
+> 
+> ```bash
+> cmake . -G Ninja -B build -DKTX_GIT_VERSION_FULL=v4.3.2
+> ```
+> Use with caution.
+
+The information below about signing on iOS, macOS and Windows applies to library only and complete builds.
+
+The only dependencies beyond the build tools are for the build machine to have a
+[bash](#bash) shell and, if using OpenCL, the mentioned OpenCL development
+environment.
+
+The complete project
+--------------------
 
 ```bash
 # Navigate to the root of your KTX-Software clone (replace with
@@ -43,39 +97,15 @@ This creates the `libktx` library and the command line tools. To create the comp
 cmake . -B build -D KTX_FEATURE_LOADTEST_APPS=ON -D KTX_FEATURE_DOC=ON
 ```
 
-If you need the library to be static, add `-D BUILD_SHARED_LIBS=OFF` to the CMake configure command (always disabled on iOS and Emscripten).
-
-> **Note:**
->
-> When linking to the static library, make sure to
-> define `KHRONOS_STATIC` before including KTX header files.
-> This is especially important on Windows.
+The library build notes and the note about `KTX_GIT_VERSION_FULL` above apply
+here too.
 
 If you want to run the CTS tests (recommended only during KTX development)
 add `-D KTX_FEATURE_TOOLS_CTS=ON` to the CMake configure command and fetch
 the CTS submodule. For more information see [Conformance Test Suite](#conformance-test-suite).
 
-If you want the Basis Universal encoders in `libktx` to use OpenCL
-add `-D BASISU_SUPPORT_OPENCL=ON` to the CMake configure command.
-
-> **Note:**
-> 
->  There is very little advantage to using OpenCL in the context
->  of `libktx`. It is disabled in the default build configuration.
-
-> **Note:**
-> 
-> When building from a source `tar.gz` and not from the git repository directly, 
-> it is recommended to set the variable `KTX_GIT_VERSION_FULL` to the
-> associated git tag (e.g `v4.3.2`)
-> 
-> ```bash
-> cmake . -G Ninja -B build -DKTX_GIT_VERSION_FULL=v4.3.2
-> ```
-> Use with caution.
-
-Building
---------
+Detailed Build and Dependency Notes
+-----------------------------------
 
 ### GNU/Linux
 
@@ -95,10 +125,10 @@ OpenCL you need
 On Ubuntu and Debian these can be installed via
 
 ```bash
-sudo apt install build-essential cmake libzstd-dev ninja-build doxygen graphviz opencl-c-headers mesa-opencl-icd
+sudo apt install build-essential cmake libzstd-dev ninja-build doxygen graphviz opencl-c-headers ocl-icd-opencl-dev mesa-opencl-icd
 ```
 
-`mesa-opencl-icd` should be replaced by the appropriate package for your GPU.
+`mesa-opencl-icd` should be replaced by the appropriate package for your GPU or with the Portable OpenCL: `pocl-opencl-icd libpocl-dev`.
 
 On Fedora and RedHat these can be installed via
 
@@ -539,23 +569,24 @@ All but a few project developers can ignore this section. The files discussed he
 
 The following files related to the the VkFormat enum are generated from `vulkan_core.h`:
 
-- lib/vkformat_check.c
-- lib/vkformat_enum.h
-- lib/vkformat_list.inl
-- lib/vkformat_str.c
-- lib/vkformat_typesize.c
-- lib/dfd/dfd2vk.inl
-- lib/dfd/vk2dfd.inl
+- lib/src/vkformat_check.c
+- lib/src/vkformat_enum.h
+- lib/src/vkformat_list.inl
+- lib/src/vkformat_str.c
+- lib/src/vkformat_typesize.c
+- external/dfdutils/dfd2vk.inl
+- external/dfdutils/vk2dfd.inl
 - interface/java\_binding/src/main/java/org/khronos/ktxVkFormat.java
 - interface/python\_binding/pyktx/vk\_format.py
 - interface/js\_binding/vk\_format.inl
+- tests/unittests/vkformat\_list.inl
 
 
 The following files are generated from the mapping database in the KTX-Specification repo by `generate_format_switches.rb`:
 
-- lib/vkFormat2glFormat.inl
-- lib/vkFormat2glInternalFormat.inl
-- lib/vkFormat2glType.inl
+- lib/src/vkFormat2glFormat.inl
+- lib/src/vkFormat2glInternalFormat.inl
+- lib/src/vkFormat2glType.inl
 
 All are generated by the `mkvk` target which is only configured if `KTX_GENERATE_VK_FILES` is set to `ON` at the time of CMake configuration. Since this setting is labelled *Advanced* it will not be visible in the CMake GUI unless `Advanced` is set.
 

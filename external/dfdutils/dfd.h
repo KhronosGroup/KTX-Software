@@ -65,7 +65,7 @@ typedef unsigned int uint32_t;
 #if !defined(LIBKTX)
 #include <vulkan/vulkan_core.h>
 #else
-#include "../../lib/vkformat_enum.h"
+#include "../../lib/src/vkformat_enum.h"
 #endif
 
 uint32_t* vk2dfd(enum VkFormat format);

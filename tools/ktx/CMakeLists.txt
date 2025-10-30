@@ -53,7 +53,7 @@ target_include_directories(
     ktxtools
     SYSTEM
 PRIVATE
-    ${PROJECT_SOURCE_DIR}/lib
+    ${PROJECT_SOURCE_DIR}/lib/src
     ${PROJECT_SOURCE_DIR}/other_include
 )
 

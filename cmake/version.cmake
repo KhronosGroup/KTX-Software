@@ -6,6 +6,9 @@
 #
 
 include(GetGitRevisionDescription)
+include(CMakePrintHelpers)
+
+find_package(Bash REQUIRED)
 
 function(git_update_index)
     if(NOT GIT_FOUND)
@@ -171,17 +174,20 @@ endif()
 set(KTX_VERSION ${KTX_VERSION_MAJOR}.${KTX_VERSION_MINOR}.${KTX_VERSION_PATCH})
 set(KTX_VERSION_FULL ${KTX_VERSION}${KTX_VERSION_TWEAK})
 
-#message("KTX version: ${KTX_VERSION}  major:${KTX_VERSION_MAJOR} minor:${KTX_VERSION_MINOR} patch:${KTX_VERSION_PATCH} tweak:${KTX_VERSION_TWEAK}")
+#cmake_print_variables(KTX_VERSION KTX_VERSION_FULL)
+#cmake_print_variables(KTX_VERSION_MAJOR KTX_VERSION_MINOR KTX_VERSION_PATCH KTX_VERSION_TWEAK)
 
 function( create_version_header dest_path target )
 
+    # N.B. cmake_print_variables(CMAKE_CURRENT_FUNCTION_LIST_DIR) will
+    # print the location of the cmake_print_variables function.
+    set( mkversion "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../scripts/mkversion" )
     set( version_h_output ${PROJECT_SOURCE_DIR}/${dest_path}/version.h)
-
     if(CMAKE_HOST_WIN32)
         add_custom_command(
             OUTPUT ${version_h_output}
             # On Windows this command has to be invoked by a shell in order to work
-            COMMAND ${BASH_EXECUTABLE} -c "\"scripts/mkversion\" ${MKV_VERSION_OPT} \"-o\" \"version.h\" \"${dest_path}\""
+            COMMAND ${BASH_EXECUTABLE} -c "\"${mkversion}\" ${MKV_VERSION_OPT} \"-o\" \"version.h\" \"${dest_path}\""
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
             COMMENT "Generate ${version_h_output}"
             VERBATIM
@@ -189,7 +195,7 @@ function( create_version_header dest_path target )
     else()
         add_custom_command(
             OUTPUT ${version_h_output}
-            COMMAND scripts/mkversion ${MKV_VERSION_OPT} -o version.h ${dest_path}
+            COMMAND ${mkversion} ${MKV_VERSION_OPT} -o version.h ${dest_path}
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
             COMMENT "Generate ${version_h_output}"
             VERBATIM

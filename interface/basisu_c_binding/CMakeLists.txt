@@ -25,9 +25,9 @@ target_include_directories(
     obj_basisu_cbind
 PUBLIC
     inc
-    ${KTX_BASISU_INCLUDE_DIRS}
+    ${PROJECT_SOURCE_DIR}/external/basisu/transcoder
 PRIVATE
-    $<TARGET_PROPERTY:ktx,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:ktx_read,INCLUDE_DIRECTORIES>
     ${PROJECT_SOURCE_DIR}/utils
 )
 
@@ -36,7 +36,7 @@ target_compile_definitions(
 PUBLIC
     KTX_BASISU_C_BINDINGS
 PRIVATE
-    $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
+    $<TARGET_PROPERTY:ktx_read,INTERFACE_COMPILE_DEFINITIONS>
     # We're only using this to read .basis files.
     BASISD_SUPPORT_KTX2_ZSTD=0
     BASISD_SUPPORT_KTX2=0

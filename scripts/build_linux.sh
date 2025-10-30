@@ -104,15 +104,17 @@ cmake_args+=(\
   "-D" "KTX_FEATURE_TESTS=$FEATURE_TESTS" \
   "-D" "KTX_FEATURE_TOOLS=$FEATURE_TOOLS" \
   "-D" "KTX_FEATURE_TOOLS_CTS=$FEATURE_TOOLS_CTS" \
-  "-D" "KTX_FEATURE_GL_UPLOAD=$FEATURE_GL_UPLOAD" \
-  "-D" "KTX_FEATURE_VK_UPLOAD=$FEATURE_VK_UPLOAD" \
+  "-D" "LIBKTX_FEATURE_GL_UPLOAD=$FEATURE_GL_UPLOAD" \
+  "-D" "LIBKTX_FEATURE_VK_UPLOAD=$FEATURE_VK_UPLOAD" \
   "-D" "BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL" \
   "-D" "BASISU_SUPPORT_SSE=$SUPPORT_SSE" \
-  "-D" "KTX_PY_USE_VENV=$PY_USE_VENV" \
   "-D" "KTX_WERROR=$WERROR"
 )
+if [ "$FEATURE_PY" = "ON" ]; then
+  cmake_args+=("-D" "KTX_PY_USE_VENV=$PY_USE_VENV")
+fi
 if [ "$ARCH" != $(uname -m) ]; then
-  cmake_args+=("--toolchain", "cmake/linux-$ARCH-toolchain.cmake")
+  cmake_args+=("--toolchain" "cmake/linux-$ARCH-toolchain.cmake")
 fi
 config_display="Configure KTX-Software (Linux on $ARCH): "
 for arg in "${cmake_args[@]}"; do

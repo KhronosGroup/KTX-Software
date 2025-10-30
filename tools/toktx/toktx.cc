@@ -23,7 +23,7 @@
 
 #include "GL/glcorearb.h"
 #include "ktx.h"
-#include "../../lib/vkformat_enum.h"
+#include "../../lib/src/vkformat_enum.h"
 #include "argparser.h"
 #include "version.h"
 #include "image.hpp"

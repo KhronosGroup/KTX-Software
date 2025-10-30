@@ -4,6 +4,9 @@
 
 # Usage: mkvkformatfiles [output-dir path/to/vulkan_core]
 #
+# This is expected to be run in the repo's root directory which is set
+# as the working directory by the cmake commands that run this script.
+#
 # output_dir defaults to the current directory.
 # path/to/vulkan_core defaults to ENVIRON["Vulkan_INCLUDE_DIR"]. If not
 # set, default is external/dfdutils/vulkan/vulkan_core.h.
@@ -13,16 +16,16 @@
 
 # This script creates 6 files from vulkan/vulkan_core.h:
 #
-# - lib/vkformat_enum.h: the VkFormat enum declaration for those who don't
+# - lib/src/vkformat_enum.h: the VkFormat enum declaration for those who don't
 #   want to include vulkan_core.h. extension token names for
 #   extensions that have been moved to core are omitted.
 #
-# - lib/vkformat_str.c: a switch statement for converting VkFormat enums to
+# - lib/src/vkformat_str.c: a switch statement for converting VkFormat enums to
 #   to strings corresponding to the format names.
 # - lib/vkformat_typesize.c, function to return the type-size for each
 #   format.
 #
-# - lib/vkformat_check.c: 3 functions: 1 to check if a format is prohibited in
+# - lib/src/vkformat_check.c: 3 functions: 1 to check if a format is prohibited in
 #   KTX2, one to see if a format is a valid Vulkan format and one to see
 #   if it is an sRGB format.
 #
@@ -65,11 +68,11 @@ BEGIN {
 
     # Hard-coded paths are somewhat unfortunate but major changes in
     # the source code organization are unlikely.
-    format_hdr = output_dir "lib/vkformat_enum.h"
-    format_typesize = output_dir "lib/vkformat_typesize.c"
+    format_hdr = output_dir "lib/src/vkformat_enum.h"
+    format_typesize = output_dir "lib/src/vkformat_typesize.c"
     format_inl = output_dir "tests/unittests/vkformat_list.inl"
-    format_strings = output_dir "lib/vkformat_str.c"
-    format_check = output_dir "lib/vkformat_check.c"
+    format_strings = output_dir "lib/src/vkformat_str.c"
+    format_check = output_dir "lib/src/vkformat_check.c"
     format_java = output_dir "interface/java_binding/src/main/java/org/khronos/ktx/VkFormat.java"
     format_js = output_dir "interface/js_binding/vk_format.inl"
     format_python = output_dir "interface/python_binding/pyktx/vk_format.py"

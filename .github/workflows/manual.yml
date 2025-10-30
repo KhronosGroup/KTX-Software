@@ -8,6 +8,8 @@ on:
 jobs:
   android:
     uses: ./.github/workflows/android.yml
+  libktx-only:
+    uses: ./.github/workflows/check-libktx-only.yml
   linux:
     uses: ./.github/workflows/linux.yml
   macos:
@@ -20,7 +22,7 @@ jobs:
     uses: ./.github/workflows/windows.yml
 
   all:
-    needs: [android, linux, macos, mingw, web, windows]
+    needs: [android, libktx-only, linux, macos, mingw, web, windows]
     runs-on: ubuntu-latest
     steps:
       - run: exit 0

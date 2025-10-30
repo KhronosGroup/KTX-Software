@@ -80,7 +80,7 @@ function( CreateDocLibKTX )
     set( DOXYGEN_TYPEDEF_HIDES_STRUCT NO )
     set( DOXYGEN_EXCLUDE lib/uthash.h )
     set( DOXYGEN_EXCLUDE_PATTERNS ktxint.h )
-    set( DOXYGEN_EXAMPLE_PATH examples lib )
+    set( DOXYGEN_EXAMPLE_PATH examples lib/src )
     # This does not hide the scope (class) names in the Modules list
     # in the ToC. See https://github.com/doxygen/doxygen/issues/9921.
     set( DOXYGEN_HIDE_SCOPE_NAMES YES )
@@ -126,23 +126,23 @@ function( CreateDocLibKTX )
     doxygen_add_docs(
         libktx.doc
         lib/libktx_mainpage.md
-        include
-        lib/astc_codec.cpp
-        lib/basis_encode.cpp
-        lib/basis_transcode.cpp
-        lib/miniz_wrapper.cpp
-        lib/strings.c
-        lib/gl_funcs.c
-        lib/glloader.c
-        lib/hashlist.c
-        lib/filestream.c
-        lib/memstream.c
-        lib/texture.c
-        lib/texture1.c
-        lib/texture2.c
-        lib/vkloader.c
-        lib/writer1.c
-        lib/writer2.c
+        lib/include
+        lib/src/astc_codec.cpp
+        lib/src/basis_encode.cpp
+        lib/src/basis_transcode.cpp
+        lib/src/miniz_wrapper.cpp
+        lib/src/strings.c
+        lib/src/gl_funcs.c
+        lib/src/glloader.c
+        lib/src/hashlist.c
+        lib/src/filestream.c
+        lib/src/memstream.c
+        lib/src/texture.c
+        lib/src/texture1.c
+        lib/src/texture2.c
+        lib/src/vkloader.c
+        lib/src/writer1.c
+        lib/src/writer2.c
     )
     add_docs_cmake_plus( libktx.doc pkgdoc/libktxDoxyLayout.xml )
 endfunction()
@@ -220,7 +220,7 @@ function( CreateDocKTX )
     set( DOXYGEN_LAYOUT_FILE pkgdoc/packageDoxyLayout.xml )
     set( DOXYGEN_EXCLUDE lib/uthash.h )
     set( DOXYGEN_EXCLUDE_PATTERNS ktxint.h )
-    set( DOXYGEN_EXAMPLE_PATH lib )
+    set( DOXYGEN_EXAMPLE_PATH lib/src )
     set( DOXYGEN_GENERATE_TAGFILE ${docdest}/ktxpkg.tag )
     set( DOXYGEN_HTML_HEADER pkgdoc/header.html )
     set( DOXYGEN_HTML_OUTPUT . )
