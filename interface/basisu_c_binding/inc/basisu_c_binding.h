@@ -15,7 +15,7 @@
   #define KTX_BASISU_API
 #endif
 
-#include <basisu_transcoder.h>
+#include <transcoder/basisu_transcoder.h>
 
 using namespace basist;
 

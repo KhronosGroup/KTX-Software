@@ -29,9 +29,7 @@
 #include "vkformat_enum.h"
 #include "vk_format.h"
 #include "basis_sgd.h"
-#include "basisu/transcoder/basisu_file_headers.h"
-#include "basisu/transcoder/basisu_transcoder.h"
-#include "basisu/transcoder/basisu_transcoder_internal.h"
+#include "transcoder/basisu_transcoder.h"
 
 #undef DECLARE_PRIVATE
 #undef DECLARE_PROTECTED
@@ -663,7 +661,7 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
     ktxLevelIndexEntry* protoLevelIndex = protoPriv._levelIndex;
     ktx_size_t levelOffsetWrite = 0;
 
-    basisu_lowlevel_uastc_transcoder uit;
+    basist::basisu_lowlevel_uastc_ldr_4x4_transcoder uit;
     // See comment on same declaration in transcodeEtc1s.
     std::vector<basisu_transcoder_state> xcoderStates;
     xcoderStates.resize(This->isVideo ? This->numFaces : 1);

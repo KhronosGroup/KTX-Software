@@ -33,12 +33,12 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-parameter"
 #endif
-#include "basisu/encoder/basisu_comp.h"
+// If Rich does not accept the warning fixes need to ignore -Wunused-local-typedef for clang here.
+#include "encoder/basisu_comp.h"
+#include "transcoder/basisu_transcoder.h"
 #if (EMSCRIPTEN)
 #pragma clang diagnostic pop
 #endif
-#include "basisu/transcoder/basisu_file_headers.h"
-#include "basisu/transcoder/basisu_transcoder.h"
 #include "dfdutils/dfd.h"
 
 using namespace basisu;
@@ -464,7 +464,8 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
 
     basis_compressor_params cparams;
     cparams.m_read_source_images = false; // Don't read from source files.
-    cparams.m_write_output_basis_files = false; // Don't write output files.
+    cparams.m_write_output_basis_or_ktx2_files = false; // Don't write output files.
+    cparams.m_create_ktx2_file = false; // To avoid rewriting this code, continue with .basis.
     cparams.m_status_output = params->verbose;
 
     //
@@ -643,27 +644,27 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
 
     cparams.m_uastc = params->uastc;
     if (params->uastc) {
-        cparams.m_pack_uastc_flags = params->uastcFlags;
+        cparams.m_pack_uastc_ldr_4x4_flags = params->uastcFlags;
         if (params->uastcRDO) {
-            cparams.m_rdo_uastc = true;
+            cparams.m_rdo_uastc_ldr_4x4 = true;
             if (params->uastcRDOQualityScalar > 0.0f) {
-                cparams.m_rdo_uastc_quality_scalar =
+                cparams.m_rdo_uastc_ldr_4x4_quality_scalar =
                                 params->uastcRDOQualityScalar;
             }
             if (params->uastcRDODictSize > 0) {
-                cparams.m_rdo_uastc_dict_size = params->uastcRDODictSize;
+                cparams.m_rdo_uastc_ldr_4x4_dict_size = params->uastcRDODictSize;
             }
             if (params->uastcRDOMaxSmoothBlockErrorScale > 0) {
-              cparams.m_rdo_uastc_max_smooth_block_error_scale =
+              cparams.m_rdo_uastc_ldr_4x4_max_smooth_block_error_scale =
                                params->uastcRDOMaxSmoothBlockErrorScale;
             }
             if (params->uastcRDOMaxSmoothBlockStdDev > 0) {
-                cparams.m_rdo_uastc_smooth_block_max_std_dev =
+                cparams.m_rdo_uastc_ldr_4x4_smooth_block_max_std_dev =
                                 params->uastcRDOMaxSmoothBlockStdDev;
             }
-            cparams.m_rdo_uastc_favor_simpler_modes_in_rdo_mode =
+            cparams.m_rdo_uastc_ldr_4x4_favor_simpler_modes_in_rdo_mode =
                                     !params->uastcRDODontFavorSimplerModes;
-            cparams.m_rdo_uastc_favor_simpler_modes_in_rdo_mode =
+            cparams.m_rdo_uastc_ldr_4x4_favor_simpler_modes_in_rdo_mode =
                                     !params->uastcRDONoMultithreading;
         }
     } else {
@@ -692,17 +693,17 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         // except that intentionally we require the caller to have set both
         // of max{Endpoint,Selector}s
         if (params->maxEndpoints && params->maxSelectors) {
-            cparams.m_max_endpoint_clusters = params->maxEndpoints;
-            cparams.m_max_selector_clusters = params->maxSelectors;
-            // cparams.m_quality_level = -1; // Default setting.
+            cparams.m_etc1s_max_endpoint_clusters = params->maxEndpoints;
+            cparams.m_etc1s_max_selector_clusters = params->maxSelectors;
+            // cparams.m_etc1s_quality_level = -1; // Default setting.
         } else if (params->qualityLevel != 0) {
-            cparams.m_max_endpoint_clusters = 0;
-            cparams.m_max_selector_clusters = 0;
-            cparams.m_quality_level = params->qualityLevel;
+            cparams.m_etc1s_max_endpoint_clusters = 0;
+            cparams.m_etc1s_max_selector_clusters = 0;
+            cparams.m_etc1s_quality_level = params->qualityLevel;
         } else {
-            cparams.m_max_endpoint_clusters = 0;
-            cparams.m_max_selector_clusters = 0;
-            cparams.m_quality_level = 128;
+            cparams.m_etc1s_max_endpoint_clusters = 0;
+            cparams.m_etc1s_max_selector_clusters = 0;
+            cparams.m_etc1s_quality_level = 128;
         }
 
         if (params->endpointRDOThreshold > 0)

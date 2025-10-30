@@ -25,7 +25,6 @@ target_include_directories(
     obj_basisu_cbind
 PUBLIC
     inc
-    ${PROJECT_SOURCE_DIR}/external/basisu/transcoder
 PRIVATE
     $<TARGET_PROPERTY:ktx_read,INCLUDE_DIRECTORIES>
     ${PROJECT_SOURCE_DIR}/utils
