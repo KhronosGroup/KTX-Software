@@ -30,14 +30,20 @@
 #include "vk_format.h"
 #include "basis_sgd.h"
 #if (EMSCRIPTEN)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wunused-parameter"
 #endif
-// If Rich does not accept the warning fixes need to ignore -Wunused-local-typedef for clang here.
+#if defined(__GNUC__) && !defined(__clang__)
+  // If Rich does not accept the warning fixes need to add -Wunused-local-typedef for clang here.
+  #pragma GCC diagnostic ignored "-Wunused-value"
+#endif
 #include "encoder/basisu_comp.h"
 #include "transcoder/basisu_transcoder.h"
+#if defined(__GCC__) && !defined(__clang__)
+  #pragma GCC diagnostic pop
+#endif
 #if (EMSCRIPTEN)
-#pragma clang diagnostic pop
+  #pragma clang diagnostic pop
 #endif
 #include "dfdutils/dfd.h"
 
