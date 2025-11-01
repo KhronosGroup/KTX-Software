@@ -180,10 +180,12 @@ if(MSVC)
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"
        OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
     add_compile_options( -Wall -Wextra $<$<BOOL:${KTX_WERROR}>:-Werror>)
-    add_compile_options( $<IF:$<CONFIG:Debug>,-O0$<SEMICOLON>-g,-O3> )
     if(EMSCRIPTEN)
-        add_link_options( $<IF:$<CONFIG:Debug>,-gsource-map,-O3> )
+        # Optimize for size in Release builds for Emscripten
+        add_compile_options( $<IF:$<CONFIG:Debug>,-O0$<SEMICOLON>-g,-Oz> )
+        add_link_options( $<IF:$<CONFIG:Debug>,-gsource-map,-Oz> )
     else()
+        add_compile_options( $<IF:$<CONFIG:Debug>,-O0$<SEMICOLON>-g,-O3> )
         add_link_options( $<IF:$<CONFIG:Debug>,-g,-O3> )
     endif()
 else()
@@ -255,6 +257,11 @@ if(EMSCRIPTEN AND KTX_FEATURE_JS)
         "SHELL:-s ALLOW_MEMORY_GROWTH=1"
         "SHELL:-s EXPORTED_RUNTIME_METHODS=['ccall','cwrap','getValue','setValue','HEAPU8','GL','HEAP8']"
         "SHELL:-s GL_PREINITIALIZED_CONTEXT=1"
+        # Size optimization flags
+        "SHELL:-s AGGRESSIVE_VARIABLE_ELIMINATION=1"
+        "SHELL:-s ELIMINATE_DUPLICATE_FUNCTIONS=1"
+        $<$<CONFIG:Release>:--closure=1>
+        $<$<CONFIG:Release>:-flto>
     )
 
     set(
