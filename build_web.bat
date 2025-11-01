@@ -89,22 +89,26 @@ echo Step 2: Building
 echo ========================================
 echo.
 
-REM Change to build directory for actual build
-cd /d %ROOT_DIR%\%BUILD_DIR%
-
-cmake --build . --config %BUILD_TYPE%
-
+REM Change to build directory and build
+pushd %BUILD_DIR%
 if %ERRORLEVEL% NEQ 0 (
-    cd /d %ROOT_DIR%
+    echo [ERROR] Cannot enter build directory!
+    pause
+    exit /b 1
+)
+
+call cmake --build . --config %BUILD_TYPE%
+set BUILD_ERROR=%ERRORLEVEL%
+
+popd
+
+if %BUILD_ERROR% NEQ 0 (
     echo.
     echo [ERROR] Build failed!
     echo.
     pause
     exit /b 1
 )
-
-REM Return to root
-cd /d %ROOT_DIR%
 
 echo.
 echo ========================================
