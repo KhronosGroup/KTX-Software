@@ -267,7 +267,6 @@ if(EMSCRIPTEN AND KTX_FEATURE_JS)
     set(
         KTX_EM_COMMON_KTX_LINK_FLAGS
         --pre-js ${CMAKE_CURRENT_SOURCE_DIR}/interface/js_binding/class_compat.js
-        --post-js ${CMAKE_CURRENT_SOURCE_DIR}/interface/js_binding/post_ready.js
         --extern-post-js ${CMAKE_CURRENT_SOURCE_DIR}/interface/js_binding/module_create_compat.js
         ${KTX_EM_COMMON_LINK_FLAGS}
     )
