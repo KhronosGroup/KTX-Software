@@ -44,6 +44,7 @@ option( KTX_FEATURE_JNI "Create Java bindings for libktx." OFF )
 option( KTX_FEATURE_PY "Create Python source distribution." OFF )
 option( KTX_FEATURE_TESTS "Create unit tests." ON )
 option( KTX_FEATURE_TOOLS_CTS "Enable KTX CLI Tools CTS tests (requires CTS submodule)." OFF )
+option( KTX_FEATURE_JS "Enable JavaScript bindings in Emscripten builds." ON )
 
 if(KTX_FEATURE_TOOLS_CTS AND NOT KTX_FEATURE_TOOLS)
     message(WARNING "KTX_FEATURE_TOOLS is not set -> disabling KTX_FEATURE_TOOLS_CTS.")
@@ -243,7 +244,7 @@ endif()
 
 create_version_file()
 
-if(EMSCRIPTEN)
+if(EMSCRIPTEN AND KTX_FEATURE_JS)
     set(
         KTX_EM_COMMON_LINK_FLAGS
         --bind
