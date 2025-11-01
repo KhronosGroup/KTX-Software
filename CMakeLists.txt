@@ -249,13 +249,18 @@ if(EMSCRIPTEN AND KTX_FEATURE_JS)
         KTX_EM_COMMON_LINK_FLAGS
         --bind
         "SHELL:-s MODULARIZE=1"
-        "SHELL:-s EXPORTED_RUNTIME_METHODS=[\'GL,HEAP8\']"
+        "SHELL:-s EXPORT_ES6=1"
+        "SHELL:-s FILESYSTEM=0"
+        "SHELL:-s NO_EXIT_RUNTIME=1"
+        "SHELL:-s ALLOW_MEMORY_GROWTH=1"
+        "SHELL:-s EXPORTED_RUNTIME_METHODS=['ccall','cwrap','getValue','setValue','HEAPU8','GL','HEAP8']"
         "SHELL:-s GL_PREINITIALIZED_CONTEXT=1"
     )
 
     set(
         KTX_EM_COMMON_KTX_LINK_FLAGS
         --pre-js ${CMAKE_CURRENT_SOURCE_DIR}/interface/js_binding/class_compat.js
+        --post-js ${CMAKE_CURRENT_SOURCE_DIR}/interface/js_binding/post_ready.js
         --extern-post-js ${CMAKE_CURRENT_SOURCE_DIR}/interface/js_binding/module_create_compat.js
         ${KTX_EM_COMMON_LINK_FLAGS}
     )
@@ -264,6 +269,7 @@ if(EMSCRIPTEN AND KTX_FEATURE_JS)
         KTX_JS_COMMON_SOURCE
         interface/js_binding/ktx_wrapper.cpp
         interface/js_binding/class_compat.js
+        interface/js_binding/post_ready.js
         interface/js_binding/module_create_compat.js
     )
 
@@ -285,6 +291,9 @@ if(EMSCRIPTEN AND KTX_FEATURE_JS)
     PUBLIC
         ${KTX_EM_COMMON_KTX_LINK_FLAGS}
         "SHELL:-s EXPORT_NAME=createKtxModule"
+        "SHELL:-s ENVIRONMENT=web,worker"
+        "SHELL:-s MAXIMUM_MEMORY=4GB"
+        "SHELL:-s INITIAL_MEMORY=64MB"
     )
     set_target_properties( ktx_js PROPERTIES OUTPUT_NAME "libktx")
 
@@ -322,6 +331,9 @@ if(EMSCRIPTEN AND KTX_FEATURE_JS)
     PUBLIC
         ${KTX_EM_COMMON_KTX_LINK_FLAGS}
         "SHELL:-s EXPORT_NAME=createKtxReadModule"
+        "SHELL:-s ENVIRONMENT=web,worker"
+        "SHELL:-s MAXIMUM_MEMORY=4GB"
+        "SHELL:-s INITIAL_MEMORY=64MB"
     )
     set_target_properties( ktx_js_read PROPERTIES OUTPUT_NAME "libktx_read")
 
@@ -363,6 +375,9 @@ if(EMSCRIPTEN AND KTX_FEATURE_JS)
     PUBLIC
         ${KTX_EM_COMMON_LINK_FLAGS}
         "SHELL:-s EXPORT_NAME=MSC_TRANSCODER"
+        "SHELL:-s ENVIRONMENT=web,worker"
+        "SHELL:-s MAXIMUM_MEMORY=4GB"
+        "SHELL:-s INITIAL_MEMORY=64MB"
         # Re-use ktx's link options
         $<TARGET_PROPERTY:ktx_read,INTERFACE_LINK_OPTIONS>
     )
