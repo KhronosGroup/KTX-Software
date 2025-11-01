@@ -182,7 +182,10 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"
     add_compile_options( -Wall -Wextra $<$<BOOL:${KTX_WERROR}>:-Werror>)
     if(EMSCRIPTEN)
         # Optimize for size in Release builds for Emscripten
-        add_compile_options( $<IF:$<CONFIG:Debug>,-O0$<SEMICOLON>-g,-Oz> )
+        # Override CMake's default -O3 flags with -Oz for size optimization
+        set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -Oz" CACHE STRING "" FORCE)
+        set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -Oz" CACHE STRING "" FORCE)
+        add_compile_options( $<IF:$<CONFIG:Debug>,-O0$<SEMICOLON>-g,> )
         add_link_options( $<IF:$<CONFIG:Debug>,-gsource-map,-Oz> )
     else()
         add_compile_options( $<IF:$<CONFIG:Debug>,-O0$<SEMICOLON>-g,-O3> )
