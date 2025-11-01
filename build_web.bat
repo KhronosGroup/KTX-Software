@@ -89,20 +89,9 @@ echo Step 2: Building
 echo ========================================
 echo.
 
-REM Change to build directory and build
-pushd %BUILD_DIR%
+cmake --build %BUILD_DIR% --config %BUILD_TYPE%
+
 if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] Cannot enter build directory!
-    pause
-    exit /b 1
-)
-
-call cmake --build . --config %BUILD_TYPE%
-set BUILD_ERROR=%ERRORLEVEL%
-
-popd
-
-if %BUILD_ERROR% NEQ 0 (
     echo.
     echo [ERROR] Build failed!
     echo.
