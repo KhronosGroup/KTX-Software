@@ -2,7 +2,14 @@
 # It should also work without this option, but we do not test with it.
 cmake_minimum_required(VERSION 3.16)
 
+if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
+    # Needed otherwise Xcode builds with the default installed SDK which can often be
+    # more recent than the macOS version being used.
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "macOS Deployment Target")
+endif()
+
 project(basisu C CXX)
+
 option(BASISU_TOOL "Include basisu tool in build" TRUE)
 option(BASISU_EXAMPLES "Include examples in build" TRUE)
 
@@ -14,11 +21,9 @@ option(BASISU_SAN "sanitize" FALSE)
 # by a subsequent build for a different configuration.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_SOURCE_DIR}/bin>)
 
-# Otherwise Xcode builds only for the most recent version of macOS.
-set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "macOS Deployment Target")
-
 # For MSVC builds default to SSE enabled, and determine if it's a 64-bit (-A x64) vs. 32-bit (-A Win32) build.
 if (MSVC)
+    # TODO: Fix me for Windows ARM
     option(BASISU_SSE "SSE 4.1 support" TRUE)
     if ( CMAKE_GENERATOR_PLATFORM STREQUAL Win32 )
         set(BASISU_BUILD_X64 0)
@@ -91,22 +96,25 @@ if (NOT MSVC)
         add_compile_definitions(BASISU_SUPPORT_SSE=0)
         add_link_options("SHELL:-s ALLOW_MEMORY_GROWTH=1")
     else()
-        message("BASISU_SSE = ${BASISU_SSE}")
         add_compile_options("$<IF:$<BOOL:${BASISU_SSE}>,-DBASISU_SUPPORT_SSE=1;-msse4.1,-DBASISU_SUPPORT_SSE=0>")
     endif()
 
     add_compile_options(-fvisibility=hidden -fPIC -fno-strict-aliasing -D_LARGEFILE64_SOURCE=1
                         -D_FILE_OFFSET_BITS=64 -Wall -Wextra -Wno-unused-local-typedefs
                         -Wno-unused-value -Wno-unused-parameter -Wno-unused-variable
-                        -Wno-reorder -Wno-misleading-indentation -Wno-class-memaccess
-                        -Wno-deprecated-copy -Wno-maybe-uninitialized -Wno-unused-function
+                        -Wno-misleading-indentation
+                        -Wno-maybe-uninitialized -Wno-unused-function
                         -Wno-stringop-overflow -Wno-unknown-warning-option)
+
+    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Wno-reorder;-Wno-class-memaccess;-Wno-deprecated-copy>)
 
     add_compile_options($<$<NOT:$<BOOL:BASISU_BUILD_X64>>:-m32>)
     add_compile_definitions($<$<CONFIG:Debug>:_DEBUG>)
 else()
     # This could be moved to lib target as BASISU_SUPPORT_SSE does not appear in app code.
     add_compile_definitions(BASISU_SUPPORT_SSE=$<IF:$<BOOL:${BASISU_SSE}>,1,0>)
+
+    add_compile_options("$<$<CXX_COMPILER_ID:Clang>:-Wno-unused-variable;-Wno-unused-function>")
 endif()
 
 # Define the source files for the static library
@@ -187,14 +195,15 @@ endif()
 
 # Create the static library
 add_library(basisu_encoder STATIC ${ENCODER_LIB_SRC_LIST} ${ENCODER_LIB_HDR_LIST})
+
 target_include_directories(basisu_encoder
 INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/zstd> # So KTX-Software can use it.
 )
+# PUBLIC so it will be exported to dependent programs.
+target_compile_features(basisu_encoder PUBLIC cxx_std_17)
 if (NOT MSVC)
-    # PUBLIC so it will be exported to dependent programs.
-    target_compile_features(basisu_encoder PUBLIC cxx_std_17)
     # For Non-Windows builds, let cmake try and find the system OpenCL headers/libs for us.
     if (BASISU_OPENCL AND OPENCL_FOUND)
         target_compile_definitions(basisu_encoder PRIVATE BASISU_SUPPORT_OPENCL=1)

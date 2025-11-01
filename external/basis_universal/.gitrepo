@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/BinomialLLC/basis_universal.git
 	branch = combined_cmake_warnings
-	commit = e269829a18be671c3836489ca8e16cfa62e7dfa1
-	parent = 2f4fe1d28367d49db3a1a7b2b5e585efda5565ba
+	commit = c412cd69f96daf443395bce56b005197a678c0de
+	parent = 625314f74c5f021640e740dbffded69c57118bb8
 	method = merge
 	cmdver = 0.4.9
