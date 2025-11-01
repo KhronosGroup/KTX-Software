@@ -30,7 +30,7 @@
 #include "vk_format.h"
 #include "basis_sgd.h"
 #if defined(__GNUC__) && !defined(__clang__)
-// If Rich does not accept the warning fixes need to add -Wunused-local-typedef for clang here.
+  // If Rich does not accept the warning fixes need to add -Wunused-local-typedef for clang here.
   #pragma GCC diagnostic ignored "-Wunused-value"
 #endif
 #include "transcoder/basisu_transcoder.h"

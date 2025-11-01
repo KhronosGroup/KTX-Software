@@ -321,8 +321,9 @@ macro(common_libktx_settings target enable_write library_type)
     )
 
     # C/C++ Standard
-    # Need c11 for Unicode string literals
-    target_compile_features(${target} PUBLIC c_std_11 cxx_std_11)
+    # Need c11 for Unicode string literals. Need c++17 because some basisu
+    # include files have c++17 features.
+    target_compile_features(${target} PUBLIC c_std_11 cxx_std_17)
 
     # Compiler Warning Flags
     if(EMSCRIPTEN)
@@ -585,6 +586,10 @@ endmacro(add_lib_dependencies)
 
 set(BASISU_TOOL FALSE)
 set(BASISU_EXAMPLES FALSE)
+if(NOT ${CPU_ARCHITECTURE} STREQUAL "x86_64")
+    # Basisu sets this TRUE if MSVC is TRUE.
+    set(BASISU_SSE FALSE)
+endif()
 #set(BASISU_ZSTD FALSE)
 add_subdirectory(../external/basis_universal basisu-encoder)
 
