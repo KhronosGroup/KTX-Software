@@ -140,6 +140,51 @@ namespace ktx
             return m_ptr->baseHeight;
         }
 
+        uint32_t baseDepth() const
+        {
+            return m_ptr->baseDepth;
+        }
+
+        uint32_t numLevels() const
+        {
+            return m_ptr->numLevels;
+        }
+
+        uint32_t numLayers() const
+        {
+            return m_ptr->numLayers;
+        }
+
+        uint32_t numFaces() const
+        {
+            return m_ptr->numFaces;
+        }
+
+        uint32_t numDimensions() const
+        {
+            return m_ptr->numDimensions;
+        }
+
+        bool isArray() const
+        {
+            return m_ptr->isArray;
+        }
+
+        bool isCubemap() const
+        {
+            return m_ptr->isCubemap;
+        }
+
+        bool isCompressed() const
+        {
+            return m_ptr->isCompressed;
+        }
+
+        bool generateMipmaps() const
+        {
+            return m_ptr->generateMipmaps;
+        }
+
         bool needsTranscoding() const
         {
             return ktxTexture_NeedsTranscoding(m_ptr.get());
@@ -1279,6 +1324,15 @@ EMSCRIPTEN_BINDINGS(ktx)
         .property("dataSize", &ktx::texture::getDataSize)
         .property("baseWidth", &ktx::texture::baseWidth)
         .property("baseHeight", &ktx::texture::baseHeight)
+        .property("baseDepth", &ktx::texture::baseDepth)
+        .property("numLevels", &ktx::texture::numLevels)
+        .property("numLayers", &ktx::texture::numLayers)
+        .property("numFaces", &ktx::texture::numFaces)
+        .property("numDimensions", &ktx::texture::numDimensions)
+        .property("isArray", &ktx::texture::isArray)
+        .property("isCubemap", &ktx::texture::isCubemap)
+        .property("isCompressed", &ktx::texture::isCompressed)
+        .property("generateMipmaps", &ktx::texture::generateMipmaps)
 #if KTX_FEATURE_WRITE
         .property("oetf", &ktx::texture::getOETF, &ktx::texture::setOETF)
         .property("primaries", &ktx::texture::getPrimaries,

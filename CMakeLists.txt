@@ -180,10 +180,15 @@ if(MSVC)
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"
        OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
     add_compile_options( -Wall -Wextra $<$<BOOL:${KTX_WERROR}>:-Werror>)
-    add_compile_options( $<IF:$<CONFIG:Debug>,-O0$<SEMICOLON>-g,-O3> )
     if(EMSCRIPTEN)
-        add_link_options( $<IF:$<CONFIG:Debug>,-gsource-map,-O3> )
+        # Optimize for size in Release builds for Emscripten
+        # Override CMake's default -O3 flags with -Oz for size optimization
+        set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -Oz" CACHE STRING "" FORCE)
+        set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -Oz" CACHE STRING "" FORCE)
+        add_compile_options( $<IF:$<CONFIG:Debug>,-O0$<SEMICOLON>-g,> )
+        add_link_options( $<IF:$<CONFIG:Debug>,-gsource-map,-Oz> )
     else()
+        add_compile_options( $<IF:$<CONFIG:Debug>,-O0$<SEMICOLON>-g,-O3> )
         add_link_options( $<IF:$<CONFIG:Debug>,-g,-O3> )
     endif()
 else()
@@ -249,8 +254,17 @@ if(EMSCRIPTEN AND KTX_FEATURE_JS)
         KTX_EM_COMMON_LINK_FLAGS
         --bind
         "SHELL:-s MODULARIZE=1"
-        "SHELL:-s EXPORTED_RUNTIME_METHODS=[\'GL,HEAP8\']"
+        "SHELL:-s EXPORT_ES6=1"
+        "SHELL:-s FILESYSTEM=0"
+        "SHELL:-s NO_EXIT_RUNTIME=1"
+        "SHELL:-s ALLOW_MEMORY_GROWTH=1"
+        "SHELL:-s EXPORTED_RUNTIME_METHODS=['ccall','cwrap','getValue','setValue','HEAPU8','GL','HEAP8']"
         "SHELL:-s GL_PREINITIALIZED_CONTEXT=1"
+        # Size optimization flags
+        "SHELL:-s AGGRESSIVE_VARIABLE_ELIMINATION=1"
+        "SHELL:-s ELIMINATE_DUPLICATE_FUNCTIONS=1"
+        $<$<CONFIG:Release>:--closure=1>
+        $<$<CONFIG:Release>:-flto>
     )
 
     set(
@@ -264,6 +278,7 @@ if(EMSCRIPTEN AND KTX_FEATURE_JS)
         KTX_JS_COMMON_SOURCE
         interface/js_binding/ktx_wrapper.cpp
         interface/js_binding/class_compat.js
+        interface/js_binding/post_ready.js
         interface/js_binding/module_create_compat.js
     )
 
@@ -285,15 +300,21 @@ if(EMSCRIPTEN AND KTX_FEATURE_JS)
     PUBLIC
         ${KTX_EM_COMMON_KTX_LINK_FLAGS}
         "SHELL:-s EXPORT_NAME=createKtxModule"
+        "SHELL:-s ENVIRONMENT=web,worker"
+        "SHELL:-s MAXIMUM_MEMORY=4GB"
+        "SHELL:-s INITIAL_MEMORY=64MB"
     )
-    set_target_properties( ktx_js PROPERTIES OUTPUT_NAME "libktx")
+    set_target_properties( ktx_js PROPERTIES
+        OUTPUT_NAME "libktx"
+        SUFFIX ".mjs"
+    )
 
     add_custom_command(
         TARGET ktx_js
         POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE_DIR:ktx_js>/$<TARGET_FILE_PREFIX:ktx_js>$<TARGET_FILE_BASE_NAME:ktx_js>.js" "${PROJECT_SOURCE_DIR}/tests/webgl"
-        COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE_DIR:ktx_js>/$<TARGET_FILE_PREFIX:ktx_js>$<TARGET_FILE_BASE_NAME:ktx_js>.wasm" "${PROJECT_SOURCE_DIR}/tests/webgl"
-        COMMENT "Copy libktx.js and libktx.wasm to tests/webgl"
+        COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE_DIR:ktx_js>/libktx.mjs" "${PROJECT_SOURCE_DIR}/tests/webgl"
+        COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE_DIR:ktx_js>/libktx.wasm" "${PROJECT_SOURCE_DIR}/tests/webgl"
+        COMMENT "Copy libktx.mjs and libktx.wasm to tests/webgl"
     )
 
     install(TARGETS ktx_js
@@ -304,6 +325,12 @@ if(EMSCRIPTEN AND KTX_FEATURE_JS)
     install(FILES ${CMAKE_BINARY_DIR}/libktx.wasm
         DESTINATION .
         COMPONENT ktx_js
+    )
+    # Install .mjs file separately to ensure correct extension
+    install(FILES ${CMAKE_BINARY_DIR}/libktx.mjs
+        DESTINATION .
+        COMPONENT ktx_js
+        OPTIONAL
     )
 
     add_executable( ktx_js_read
@@ -322,15 +349,21 @@ if(EMSCRIPTEN AND KTX_FEATURE_JS)
     PUBLIC
         ${KTX_EM_COMMON_KTX_LINK_FLAGS}
         "SHELL:-s EXPORT_NAME=createKtxReadModule"
+        "SHELL:-s ENVIRONMENT=web,worker"
+        "SHELL:-s MAXIMUM_MEMORY=4GB"
+        "SHELL:-s INITIAL_MEMORY=64MB"
     )
-    set_target_properties( ktx_js_read PROPERTIES OUTPUT_NAME "libktx_read")
+    set_target_properties( ktx_js_read PROPERTIES
+        OUTPUT_NAME "libktx_read"
+        SUFFIX ".mjs"
+    )
 
     add_custom_command(
         TARGET ktx_js_read
         POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE_DIR:ktx_js_read>/$<TARGET_FILE_PREFIX:ktx_js_read>$<TARGET_FILE_BASE_NAME:ktx_js_read>.js" "${PROJECT_SOURCE_DIR}/tests/webgl"
-        COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE_DIR:ktx_js_read>/$<TARGET_FILE_PREFIX:ktx_js_read>$<TARGET_FILE_BASE_NAME:ktx_js_read>.wasm" "${PROJECT_SOURCE_DIR}/tests/webgl"
-        COMMENT "Copy libktx_read.js and libktx_read.wasm to tests/webgl"
+        COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE_DIR:ktx_js_read>/libktx_read.mjs" "${PROJECT_SOURCE_DIR}/tests/webgl"
+        COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE_DIR:ktx_js_read>/libktx_read.wasm" "${PROJECT_SOURCE_DIR}/tests/webgl"
+        COMMENT "Copy libktx_read.mjs and libktx_read.wasm to tests/webgl"
     )
 
     install(TARGETS ktx_js_read
@@ -341,6 +374,12 @@ if(EMSCRIPTEN AND KTX_FEATURE_JS)
     install(FILES ${CMAKE_BINARY_DIR}/libktx_read.wasm
         DESTINATION .
         COMPONENT ktx_js_read
+    )
+    # Install .mjs file separately to ensure correct extension
+    install(FILES ${CMAKE_BINARY_DIR}/libktx_read.mjs
+        DESTINATION .
+        COMPONENT ktx_js_read
+        OPTIONAL
     )
 
     add_executable( msc_basis_transcoder_js interface/js_binding/transcoder_wrapper.cpp )
@@ -363,17 +402,23 @@ if(EMSCRIPTEN AND KTX_FEATURE_JS)
     PUBLIC
         ${KTX_EM_COMMON_LINK_FLAGS}
         "SHELL:-s EXPORT_NAME=MSC_TRANSCODER"
+        "SHELL:-s ENVIRONMENT=web,worker"
+        "SHELL:-s MAXIMUM_MEMORY=4GB"
+        "SHELL:-s INITIAL_MEMORY=64MB"
         # Re-use ktx's link options
         $<TARGET_PROPERTY:ktx_read,INTERFACE_LINK_OPTIONS>
     )
-    set_target_properties( msc_basis_transcoder_js PROPERTIES OUTPUT_NAME "msc_basis_transcoder")
+    set_target_properties( msc_basis_transcoder_js PROPERTIES
+        OUTPUT_NAME "msc_basis_transcoder"
+        SUFFIX ".mjs"
+    )
 
     add_custom_command(
         TARGET msc_basis_transcoder_js
         POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE_DIR:msc_basis_transcoder_js>/$<TARGET_FILE_PREFIX:msc_basis_transcoder_js>$<TARGET_FILE_BASE_NAME:msc_basis_transcoder_js>.js" "${PROJECT_SOURCE_DIR}/tests/webgl"
-        COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE_DIR:msc_basis_transcoder_js>/$<TARGET_FILE_PREFIX:msc_basis_transcoder_js>$<TARGET_FILE_BASE_NAME:msc_basis_transcoder_js>.wasm" "${PROJECT_SOURCE_DIR}/tests/webgl"
-        COMMENT "Copy msc_basis_transcoder.js and msc_basis_transcoder.wasm to tests/webgl"
+        COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE_DIR:msc_basis_transcoder_js>/msc_basis_transcoder.mjs" "${PROJECT_SOURCE_DIR}/tests/webgl"
+        COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE_DIR:msc_basis_transcoder_js>/msc_basis_transcoder.wasm" "${PROJECT_SOURCE_DIR}/tests/webgl"
+        COMMENT "Copy msc_basis_transcoder.mjs and msc_basis_transcoder.wasm to tests/webgl"
     )
 
     install(TARGETS msc_basis_transcoder_js
@@ -384,6 +429,12 @@ if(EMSCRIPTEN AND KTX_FEATURE_JS)
     install(FILES ${CMAKE_BINARY_DIR}/msc_basis_transcoder.wasm
         DESTINATION .
         COMPONENT msc_basis_transcoder_js
+    )
+    # Install .mjs file separately to ensure correct extension
+    install(FILES ${CMAKE_BINARY_DIR}/msc_basis_transcoder.mjs
+        DESTINATION .
+        COMPONENT msc_basis_transcoder_js
+        OPTIONAL
     )
 endif()
 
@@ -594,9 +645,9 @@ elseif(WIN32)
     endif()
 elseif(EMSCRIPTEN)
     set(CPACK_GENERATOR ZIP)
-    set(CPACK_ARCHIVE_KTX_JS_FILE_NAME "${CMAKE_PROJECT_NAME}-${KTX_VERSION_FULL}-Web-libktx")
-    set(CPACK_ARCHIVE_KTX_JS_READ_FILE_NAME "${CMAKE_PROJECT_NAME}-${KTX_VERSION_FULL}-Web-libktx_read")
-    set(CPACK_ARCHIVE_MSC_BASIS_TRANSCODER_JS_FILE_NAME "${CMAKE_PROJECT_NAME}-${KTX_VERSION_FULL}-Web-msc_basis_transcoder")
+    set(CPACK_ARCHIVE_KTX_JS_FILE_NAME "${CMAKE_PROJECT_NAME}-${KTX_VERSION_FULL}-Web-libktx-ES6")
+    set(CPACK_ARCHIVE_KTX_JS_READ_FILE_NAME "${CMAKE_PROJECT_NAME}-${KTX_VERSION_FULL}-Web-libktx_read-ES6")
+    set(CPACK_ARCHIVE_MSC_BASIS_TRANSCODER_JS_FILE_NAME "${CMAKE_PROJECT_NAME}-${KTX_VERSION_FULL}-Web-msc_basis_transcoder-ES6")
 
     set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
     set(CPACK_PACKAGE_CHECKSUM SHA1)
