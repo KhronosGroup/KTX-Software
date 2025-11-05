@@ -947,7 +947,7 @@ namespace jpgd {
 	// Finds the next marker.
 	int jpeg_decoder::next_marker()
 	{
-		uint c; //, bytes;
+		uint c;// , bytes;
 
 		//bytes = 0;
 
@@ -1303,7 +1303,7 @@ namespace jpgd {
 		int i;
 		jpgd_block_t* p;
 		jpgd_quant_t* q;
-		int mcu_row, mcu_block; //, row_block = 0;
+		int mcu_row, mcu_block;// , row_block = 0;
 		int component_num, component_id;
 		int block_x_mcu[JPGD_MAX_COMPONENTS];
 
@@ -3146,7 +3146,7 @@ namespace jpgd {
 
 		for (int y = 0; y < image_height; y++)
 		{
-			const uint8* pScan_line = 0; // init to quiet compile warning.
+			const uint8* pScan_line = nullptr;
 			uint scan_line_len;
 			if (decoder.decode((const void**)&pScan_line, &scan_line_len) != JPGD_SUCCESS)
 			{

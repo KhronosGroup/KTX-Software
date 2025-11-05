@@ -1,12 +1,12 @@
 ; DO NOT EDIT (unless you know what you are doing)
 ;
 ; This subdirectory is a git "subrepo", and this file is maintained by the
-; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
 ;
 [subrepo]
-	remote = https://github.com/BinomialLLC/basis_universal.git
-	branch = master
-	commit = 1f4b564ae0b8ec1e67f21f058e53112d0405a25a
-	parent = cb45eadca7fed568d9f6f51477ca897d1ec2732a
+	remote = https://github.com/KhronosGroup/basis_universal.git
+	branch = combined_cmake_warnings
+	commit = f9554e7f1541feceb212207534beefe6d7c7d8ff
+	parent = 2f4fe1d28367d49db3a1a7b2b5e585efda5565ba
 	method = merge
-	cmdver = 0.4.3
+	cmdver = 0.4.9
