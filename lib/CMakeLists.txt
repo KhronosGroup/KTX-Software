@@ -1,12 +1,12 @@
-# Copyright 2015-2023 The Khronos Group Inc.
+# Copyright 2015-2025 The Khronos Group Inc.
 # Copyright 2022-2023 RasterGrid Kft.
 # SPDX-License-Identifier: Apache-2.0
 
 cmake_minimum_required(VERSION 3.22)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/../cmake/modules/")
-#set( KTX_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR}/.. )
-set( KTX_ROOT_DIR .. )
+set( KTX_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR}/.. )
+#set( KTX_ROOT_DIR .. )
 
 # N.B. When used before the project() command, PROJECT_IS_TOP_LEVEL will not
 # do what you likely at first expect. It will be TRUE if this is included
@@ -98,26 +98,6 @@ if (CPU_ARCHITECTURE STREQUAL x86)
     message(FATAL_ERROR "This project cannot be built for x86 cpu.")
 endif()
 
-if(BASISU_SUPPORT_OPENCL)
-    if(NOT WIN32)
-        find_package(OpenCL REQUIRED)
-    else()
-        find_package(OpenCL)
-        if(NOT OpenCL_FOUND)
-            # To avoid fiddly setting up of OpenCL on Windows CI VMs, use copy in repo.
-            set(OpenCL_INCLUDE_DIR
-                "${CMAKE_CURRENT_SOURCE_DIR}/../external/basisu/opencl"
-                # FORCE to override *-NOTFOUND set by the failed find.
-                CACHE PATH "" FORCE
-            )
-            set(OpenCL_LIBRARY
-                "${CMAKE_CURRENT_SOURCE_DIR}/../external/basisu/opencl/lib/OpenCL64.lib"
-                CACHE FILEPATH "" FORCE
-            )
-        endif()
-    endif()
-endif()
-
 # Windows Store Compatibility.
 if (${CMAKE_SYSTEM_NAME} STREQUAL "WindowsStore" AND LIBKTX_FEATURE_GL_UPLOAD)
     message(INFO "Disabling OpenGL upload in libktx for Universal Windows Platform.")
@@ -138,16 +118,12 @@ else()
     set(LIB_TYPE SHARED)
 endif()
 
-# On CMake 3.25 or older CXX_COMPILER_FRONTEND_VARIANT is not always set
-if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "")
-    set(CMAKE_CXX_COMPILER_FRONTEND_VARIANT "${CMAKE_CXX_COMPILER_ID}")
+if(WIN32 AND MINGW)
+    # Check if the Threads package is provided; if using Mingw it MIGHT be
+    find_package(Threads)
+elseif(LINUX)
+    find_package(Threads REQUIRED)
 endif()
-
-#cmake_print_variables(
-#    CMAKE_CXX_COMPILER_ID
-#    CMAKE_CXX_COMPILER_VERSION
-#    CMAKE_CXX_COMPILER_FRONTEND_VARIANT
-#)
 
 # Source Lists
 
@@ -158,15 +134,6 @@ set(LIBKTX_MAIN_SRC
     src/basis_sgd.h
     src/basis_transcode.cpp
     src/miniz_wrapper.cpp
-    ../external/basisu/transcoder/basisu_containers.h
-    ../external/basisu/transcoder/basisu_containers_impl.h
-    ../external/basisu/transcoder/basisu_file_headers.h
-    ../external/basisu/transcoder/basisu_transcoder_internal.h
-    ../external/basisu/transcoder/basisu_transcoder_uastc.h
-    ../external/basisu/transcoder/basisu_transcoder.cpp
-    ../external/basisu/transcoder/basisu_transcoder.h
-    ../external/basisu/transcoder/basisu.h
-    ../external/basisu/zstd/zstd.c
     src/checkheader.c
     ../external/dfdutils/createdfd.c
     ../external/dfdutils/colourspaces.c
@@ -215,46 +182,6 @@ if (LIBKTX_FEATURE_ETC_UNPACK)
     list( APPEND LIBKTX_MAIN_SRC ../external/etcdec/etcdec.cxx )
 endif()
 
-set(BASISU_ENCODER_CXX_SRC
-    ../external/basisu/encoder/basisu_backend.cpp
-    ../external/basisu/encoder/basisu_backend.h
-    ../external/basisu/encoder/basisu_basis_file.cpp
-    ../external/basisu/encoder/basisu_basis_file.h
-    ../external/basisu/encoder/basisu_bc7enc.cpp
-    ../external/basisu/encoder/basisu_bc7enc.h
-    ../external/basisu/encoder/basisu_comp.cpp
-    ../external/basisu/encoder/basisu_comp.h
-    ../external/basisu/encoder/basisu_enc.cpp
-    ../external/basisu/encoder/basisu_enc.h
-    ../external/basisu/encoder/basisu_etc.cpp
-    ../external/basisu/encoder/basisu_etc.h
-    ../external/basisu/encoder/basisu_frontend.cpp
-    ../external/basisu/encoder/basisu_frontend.h
-    ../external/basisu/encoder/basisu_gpu_texture.cpp
-    ../external/basisu/encoder/basisu_gpu_texture.h
-    ../external/basisu/encoder/basisu_kernels_declares.h
-    ../external/basisu/encoder/basisu_kernels_imp.h
-    ../external/basisu/encoder/basisu_kernels_sse.cpp
-    ../external/basisu/encoder/basisu_miniz.h
-    ../external/basisu/encoder/basisu_opencl.cpp
-    ../external/basisu/encoder/basisu_opencl.h
-    ../external/basisu/encoder/basisu_pvrtc1_4.cpp
-    ../external/basisu/encoder/basisu_pvrtc1_4.h
-    ../external/basisu/encoder/basisu_resample_filters.cpp
-    ../external/basisu/encoder/basisu_resampler_filters.h
-    ../external/basisu/encoder/basisu_resampler.cpp
-    ../external/basisu/encoder/basisu_resampler.h
-    ../external/basisu/encoder/basisu_ssim.cpp
-    ../external/basisu/encoder/basisu_ssim.h
-    ../external/basisu/encoder/basisu_uastc_enc.cpp
-    ../external/basisu/encoder/basisu_uastc_enc.h
-    ../external/basisu/encoder/cppspmd_flow.h
-    ../external/basisu/encoder/cppspmd_math.h
-    ../external/basisu/encoder/cppspmd_math_declares.h
-    ../external/basisu/encoder/cppspmd_sse.h
-    ../external/basisu/encoder/cppspmd_type_aliases.h
-)
-
 if(LIBKTX_FEATURE_GL_UPLOAD)
     list(APPEND LIBKTX_MAIN_SRC
         src/gl_funclist.inl
@@ -264,45 +191,15 @@ if(LIBKTX_FEATURE_GL_UPLOAD)
     )
 endif()
 
-# Main library
-add_library( ktx ${LIB_TYPE}
-    ${LIBKTX_MAIN_SRC}
-    src/basis_encode.cpp
-    ${BASISU_ENCODER_CXX_SRC}
-    src/writer1.c
-    src/writer2.c
-)
+include(${KTX_ROOT_DIR}/cmake/fp-settings.cmake)
+# To improve output determinism, enable precise floating point operations.
+# Set via add_compile_options so they will be set for basisu_encoder too.
+# The root KTX-Software project also sets these. Rather than figuring out
+# what the parent project is, let CMake's option de-duplication do its work.
+get_fp_compile_options(fp_options)
+add_compile_options( ${fp_options} )
 
-# Read-only library
-add_library( ktx_read ${LIB_TYPE}
-    ${LIBKTX_MAIN_SRC}
-)
-
-# Compiler info queries for determining floating-point options
-
-# On CMake 3.25 or older CXX_COMPILER_FRONTEND_VARIANT is not always set
-if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "")
-    set(CMAKE_CXX_COMPILER_FRONTEND_VARIANT "${CMAKE_CXX_COMPILER_ID}")
-endif()
-
-# Compiler accepts MSVC-style command line options
-set(is_msvc_fe "$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},MSVC>")
-# Compiler accepts GNU-style command line options
-set(is_gnu_fe1 "$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},GNU>")
-# Compiler accepts AppleClang-style command line options, which is also GNU-style
-set(is_gnu_fe2 "$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},AppleClang>")
-# Compiler accepts GNU-style command line options
-set(is_gnu_fe "$<OR:${is_gnu_fe1},${is_gnu_fe2}>")
-#add_custom_target(debug_isgnufe1 COMMAND ${CMAKE_COMMAND} -E echo "is_gnufe1_exp = $<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},GNU>")
-
-# Compiler is Visual Studio cl.exe
-set(is_msvccl "$<AND:${is_msvc_fe},$<CXX_COMPILER_ID:MSVC>>")
-# Compiler is Visual Studio clangcl.exe
-set(is_clangcl "$<AND:${is_msvc_fe},$<CXX_COMPILER_ID:Clang>>")
-# Compiler is upstream clang with the standard frontend
-set(is_clang "$<AND:${is_gnu_fe},$<CXX_COMPILER_ID:Clang,AppleClang>>")
-
-#add_custom_target(debug_gnufe_ffpcontract COMMAND ${CMAKE_COMMAND} -E echo "ffp_contract = $<${is_gnu_fe}:-ffp-contract=off>")
+include(${KTX_ROOT_DIR}/cmake/compiler_query_genexs.cmake)
 
 # Macro for common lib settings
 
@@ -360,26 +257,9 @@ macro(common_libktx_settings target enable_write library_type)
         message(FATAL_ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")
     endif()
 
-    # To improve output determinism enable precise floating point operations globally
-    # This code was based on external/astc-encoder/Source/cmake_core.cmake
-
-    # For Visual Studio prior to 2022 (compiler < 19.30) /fp:strict
-    # For Visual Studio 2022 (compiler >= 19.30) /fp:precise
-    # For Visual Studio 2022 ClangCL has enabled contraction by default,
-    # which is the same as standard clang, so behaves differently to
-    # CL.exe. Use the -Xclang argument to access GNU-style switch to
-    # control contraction and force disable.
-    target_compile_options( ${target} PUBLIC
-        $<$<AND:${is_msvccl},$<VERSION_LESS:$<CXX_COMPILER_VERSION>,19.30>>:/fp:strict>
-        $<$<AND:${is_msvccl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.30>>:/fp:precise>
-        $<${is_clangcl}:/fp:precise>
-        $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,14.0.0>>:-Xclang$<SEMICOLON>-ffp-contract=off>
-        $<$<AND:${is_clang},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,10.0.0>>:-ffp-model=precise>
-        $<${is_gnu_fe}:-ffp-contract=off>
-        # Hide noise from clang and clangcl 20 warning the 2nd fp option changes
-        # one of the settings made the first.
-        $<$<AND:${is_clang},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,20.0.0>>:-Wno-overriding-option>
-    )
+    # To influence the FP settings of apps depending on us do this. Unsure if that is
+    # a wise thing hence commented.
+    #target_compile_options( ${target} PUBLIC ${fp_options} )
 
     target_compile_definitions(
         ${target}
@@ -391,8 +271,9 @@ macro(common_libktx_settings target enable_write library_type)
     )
 
     # C/C++ Standard
-    # Need c11 for Unicode string literals
-    target_compile_features(${target} PUBLIC c_std_11 cxx_std_11)
+    # Need c11 for Unicode string literals. Need c++17 because some basisu
+    # include files have c++17 features.
+    target_compile_features(${target} PUBLIC c_std_11 cxx_std_17)
 
     # Compiler Warning Flags
     if(EMSCRIPTEN)
@@ -423,22 +304,14 @@ macro(common_libktx_settings target enable_write library_type)
         $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
         $<INSTALL_INTERFACE:include>
     PRIVATE
-        ../external
-        ../external/basisu/transcoder
-        ../external/basisu/zstd
-        #$<BUILD_INTERFACE:${KTX_ROOT_DIR}/external/basisu/zstd>
-        ../utils
-
-        #$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../external/basisu/zstd>
-
-        #$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../utils>
+        $<BUILD_INTERFACE:${KTX_ROOT_DIR}/external>
+        $<BUILD_INTERFACE:${KTX_ROOT_DIR}/utils>
     )
 
     target_include_directories(
         ${target}
     SYSTEM PRIVATE
-        ../other_include
-        #$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../other_include>
+        $<BUILD_INTERFACE:${KTX_ROOT_DIR}/other_include>
     )
 
     if( ${library_type} STREQUAL STATIC )
@@ -447,21 +320,6 @@ macro(common_libktx_settings target enable_write library_type)
 
     # To reduce size, don't support transcoding to ancient formats.
     target_compile_definitions(${target} PRIVATE BASISD_SUPPORT_FXT1=0)
-
-    # TODO: make options for all formats and good per-platform defaults
-    # - BASISD_SUPPORT_UASTC
-    # - BASISD_SUPPORT_DXT1 (BC1)
-    # - BASISD_SUPPORT_DXT5A (BC3/4/5)
-    # - BASISD_SUPPORT_BC7
-    # - BASISD_SUPPORT_BC7_MODE5
-    # - BASISD_SUPPORT_PVRTC1
-    # - BASISD_SUPPORT_ETC2_EAC_A8
-    # - BASISD_SUPPORT_ASTC
-    # - BASISD_SUPPORT_ATC
-    # - BASISD_SUPPORT_ASTC_HIGHER_OPAQUE_QUALITY
-    # - BASISD_SUPPORT_ETC2_EAC_RG11
-    # - BASISD_SUPPORT_FXT1
-    # - BASISD_SUPPORT_PVRTC2
 
     if(WIN32)
         target_compile_definitions(
@@ -489,12 +347,13 @@ macro(common_libktx_settings target enable_write library_type)
         )
         # The generator automatically sets the needed VCLinker
         # option when a .def file is seen in sources.
-        # The def files that we add have a different syntax depending on the ABI
+        # C++ names are mangled differently according to compiler and ABI.
+        # Only internalexport_write has a c++ name.
         if(MINGW)
             target_sources(
                 ${target}
             PRIVATE
-                def/internalexport_mingw.def
+                def/internalexport.def
                 $<${enable_write}:def/internalexport_write_mingw.def>
             )
             # Need these flags if mingw happens to target the ucrt (new) rather
@@ -546,23 +405,8 @@ macro(common_libktx_settings target enable_write library_type)
         target_compile_definitions(${target} PUBLIC KTX_FEATURE_KTX2)
     endif()
 
-    if(WIN32)
-        if(MINGW)
-            # Check if the Threads package is provided; if using Mingw it MIGHT be
-            find_package(Threads)
-            if(Threads_FOUND AND CMAKE_USE_PTHREADS_INIT)
-                target_compile_definitions(${target} PRIVATE WIN32_HAS_PTHREADS)
-                target_link_libraries(${target} INTERFACE Threads::Threads)
-            endif()
-        endif()
-    elseif(LINUX)
-        find_package(Threads REQUIRED)
-        target_link_libraries(
-            ${target}
-            PRIVATE
-            dl
-            Threads::Threads
-        )
+    if(WIN32 AND MINGW AND TARGET Threads::Threads AND CMAKE_USE_PTHREADS_INIT)
+        target_compile_definitions(${target} PRIVATE WIN32_HAS_PTHREADS)
     endif()
 
     if(LIBKTX_FEATURE_VK_UPLOAD)
@@ -577,9 +421,8 @@ macro(common_libktx_settings target enable_write library_type)
         target_include_directories(
             ${target}
         PRIVATE
-            ../external/dfdutils
-            #$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../external/dfdutils>
-            #$<INSTALL_INTERFACE:../external/dfdutils>
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../external/dfdutils>
+            $<INSTALL_INTERFACE:../external/dfdutils>
         )
 
         get_target_property( libktx_public_header ${target} PUBLIC_HEADER )
@@ -593,28 +436,12 @@ macro(common_libktx_settings target enable_write library_type)
 
     # Adding write capability to target ktx
     if(${enable_write})
-        target_include_directories(
-            ${target}
-        PRIVATE
-            ../external/basisu
-            #$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../external/basisu>
-            $<$<BOOL:${BASISU_SUPPORT_OPENCL}>:${OpenCL_INCLUDE_DIR}>
-        )
         target_compile_definitions(
             ${target}
         PUBLIC
             KTX_FEATURE_WRITE
         PRIVATE
-            # BASISD_SUPPORT_KTX2 has to be 1 to compile the encoder. We
-            # don't use it. Hopefully it doesn't add too much code. We're using
-            # the zstd encoder in basisu by explicitly including the file in our
-            # source list. We don't need the related code in the encoder.
-            BASISD_SUPPORT_KTX2_ZSTD=0
-            BASISD_SUPPORT_KTX2=1
-            $<$<BOOL:${BASISU_SUPPORT_SSE}>:BASISU_SUPPORT_SSE=1>
-            $<$<NOT:$<BOOL:${BASISU_SUPPORT_SSE}>>:BASISU_SUPPORT_SSE=0>
-            $<$<BOOL:${BASISU_SUPPORT_OPENCL}>:BASISU_SUPPORT_OPENCL=1>
-            $<$<NOT:$<BOOL:${BASISU_SUPPORT_OPENCL}>>:BASISU_SUPPORT_OPENCL=0>
+            BASISU_SUPPORT_OPENCL=$<IF:$<BOOL:${BASISU_OPENCL}>,1,0>
         )
         target_compile_options(
             ${target}
@@ -639,144 +466,63 @@ macro(common_libktx_settings target enable_write library_type)
     endif()
 endmacro(common_libktx_settings)
 
+macro(add_lib_dependencies target lib)
+    if(NOT BUILD_SHARED_LIBS AND APPLE)
+        # Make a single static library to simplify linking.
+        add_dependencies(${target} ${lib})
+        add_custom_command( TARGET ${target}
+            POST_BUILD
+            COMMAND libtool -static -o $<TARGET_FILE:${target}> $<TARGET_FILE:ktx> $<TARGET_FILE:${lib}>
+        )
+        target_include_directories(${target} PRIVATE $<TARGET_PROPERTY:${lib},INTERFACE_INCLUDE_DIRECTORIES>)
+
+        # Don't know libtool equivalent on Windows or Emscripten. Applications
+        # will have to link with  both ktx and ${ASTCENC_LIB_TARGET}. Static libs
+        # are unlikely to be used on Windows so not a problem there. For Emscripten
+        # everything is built into the JS module so not an issue there either.
+    else()
+        target_link_libraries(${target} PRIVATE ${lib})
+    endif()
+endmacro(add_lib_dependencies)
+
+####################################################
+# Basis Universal Encoder.
+####################################################
+
+set(BASISU_TOOL FALSE)
+set(BASISU_EXAMPLES FALSE)
+if(NOT ${CPU_ARCHITECTURE} STREQUAL "x86_64")
+    # Basisu sets this TRUE if MSVC is TRUE.
+    set(BASISU_SSE FALSE)
+endif()
+#set(BASISU_ZSTD FALSE)
+add_subdirectory(../external/basis_universal basisu-encoder)
+
+###################################################
+# ktx libraries
+###################################################
+
+add_library( ktx ${LIB_TYPE}
+    ${LIBKTX_MAIN_SRC}
+    src/basis_encode.cpp
+    src/writer1.c
+    src/writer2.c
+)
+
+# Read-only library
+add_library( ktx_read ${LIB_TYPE}
+    ${LIBKTX_MAIN_SRC}
+)
+
 common_libktx_settings(ktx 1 ${LIB_TYPE})
 common_libktx_settings(ktx_read 0 ${LIB_TYPE})
+
+add_lib_dependencies(ktx basisu_encoder)
+add_lib_dependencies(ktx_read basisu_encoder)
 
 create_version_header(src ktx)
 if(PROJECT_IS_TOP_LEVEL)
     create_version_file()
-endif()
-
-target_compile_definitions(
-    ktx_read
-PRIVATE
-    # We're reading the files ourselves so don't need Basis KTX v2 support.
-    BASISD_SUPPORT_KTX2_ZSTD=0
-    BASISD_SUPPORT_KTX2=0
-)
-
-# helper function to append COMPILE_OPTIONS to source file properties
-# !! if SRCFILES is a list, remember to quote it                              !!
-# !! like add_source_file_compile_options("${MY_SRC_LIST}"  "-Wall")          !!
-# !! or add_source_file_compile_options("dir/foo.cpp;dir/bar.cpp"  "-Wextra") !!
-function(add_source_file_compile_options SRCFILES OPTIONS)
-    foreach(src_file ${SRCFILES})
-        get_source_file_property(cur_options
-            "${src_file}"
-            COMPILE_OPTIONS
-        )
-        if(cur_options)
-            set_source_files_properties(
-                "${src_file}"
-                PROPERTIES COMPILE_OPTIONS "${cur_options};${OPTIONS}"
-            )
-        else() # if cur_options were undefined or empty ("")
-            set_source_files_properties(
-                "${src_file}"
-                PROPERTIES COMPILE_OPTIONS "${OPTIONS}"
-            )
-        endif()
-    endforeach()
-endfunction()
-
-# Turn off these warnings until Rich fixes the occurences.
-# It it not clear to me if generator expressions can be used here
-# hence the long-winded way.
-if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-# Currently no need to disable any warnings in basisu code. Rich fixed them.
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    set_source_files_properties(
-        # It's too much work to discriminate which files need which warnings
-        # disabled.
-        ${BASISU_ENCODER_CXX_SRC}
-        PROPERTIES COMPILE_OPTIONS "-fno-strict-aliasing;-Wno-sign-compare;-Wno-unused-variable;-Wno-class-memaccess;-Wno-misleading-indentation;-Wno-extra;-Wno-deprecated-copy;-Wno-parentheses"
-    )
-    set_source_files_properties(
-        ../external/basisu/transcoder/basisu_transcoder.cpp
-        PROPERTIES COMPILE_OPTIONS "-fno-strict-aliasing;-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable;-Wno-class-memaccess;-Wno-maybe-uninitialized"
-    )
-    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "11")
-        if (${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS "12" )
-            # Version 11 raises several stringop-overflow warnings in some
-            # very hard to decipher code. They appear to be bogus based on
-            # the facts that we have never seen a crash and version 12 no
-            # longer raises the warnings.
-            add_source_file_compile_options(
-                ../external/basisu/encoder/basisu_comp.cpp
-                "-Wno-stringop-overflow"
-            )
-        endif()
-    endif()
-    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "12.0")
-        # Version 12 newly raises this warning on basisu_uastc_enc.cpp.
-        # There seems no way for the index calculated by the code at
-        # line 326, where the error is raised, to be > the array length.
-        # Also we have never seen any crashes.
-        add_source_file_compile_options(
-            ../external/basisu/encoder/basisu_uastc_enc.cpp
-            "-Wno-stringop-overflow"
-        )
-    endif()
-    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "14.0")
-        # Version 14 raises stringop-overflow on these files.
-        add_source_file_compile_options(
-            "../external/basisu/transcoder/basisu_transcoder.cpp;external/basisu/encoder/basisu_bc7enc.cpp"
-            "-Wno-stringop-overflow"
-        )
-    endif()
-elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    if (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-        # Versions equivalency from https://en.wikipedia.org/wiki/Xcode#Xcode_11.x_-_14.x_(since_SwiftUI_framework)_2
-        if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "14")
-            set( clang_version ${CMAKE_CXX_COMPILER_VERSION})
-        elseif (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "13.1.0")
-            set( clang_version "13.0.0")
-        elseif (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "13.0.0")
-            set( clang_version "12.0.0")
-        elseif (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "12.0.5")
-            set( clang_version "11.1.0")
-        elseif (${CMAKE_CXX_COMPILER_VERSION} VERSION_EQUAL "12.0.0")
-            set( clang_version "10.0.0")
-        else()
-            message(FATAL_ERROR "Unsupported AppleClang version")
-        endif()
-    else()
-        set( clang_version ${CMAKE_CXX_COMPILER_VERSION} )
-    endif()
-    # BEWARE: set_source_files_properties is not additive; it replaces.
-    set_source_files_properties(
-        ${BASISU_ENCODER_CXX_SRC}
-        PROPERTIES COMPILE_OPTIONS "-fno-strict-aliasing"
-    )
-    set_source_files_properties(
-        ../external/basisu/transcoder/basisu_transcoder.cpp
-        PROPERTIES COMPILE_OPTIONS "-fno-strict-aliasing"
-    )
-    if (${clang_version} VERSION_GREATER_EQUAL "12.0.0")
-        add_source_file_compile_options( ../external/basisu/encoder/basisu_kernels_sse.cpp
-            "-Wno-unused-parameter;-Wno-deprecated-copy;-Wno-uninitialized-const-reference"
-        )
-    else()
-        add_source_file_compile_options( ../external/basisu/encoder/basisu_kernels_sse.cpp
-            "-Wno-unused-parameter"
-        )
-    endif()
-    if (${clang_version} VERSION_GREATER_EQUAL "14.0")
-        add_source_file_compile_options(
-            "${BASISU_ENCODER_CXX_SRC}"
-            "-Wno-sign-compare;-Wno-unused-variable;-Wno-unused-parameter;-Wno-deprecated-copy-with-user-provided-copy"
-        )
-        add_source_file_compile_options(
-            ../external/basisu/transcoder/basisu_transcoder.cpp
-            "-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable"
-        )
-        set_source_files_properties(
-            ../external/basisu/zstd/zstd.c
-            PROPERTIES COMPILE_OPTIONS "-Wno-unused-function"
-        )
-    endif()
-else()
-    message(FATAL_ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")
 endif()
 
 # In C++ apps that use statically linked Libraries all compilatiom units must
@@ -802,6 +548,7 @@ if(NOT BUILD_SHARED_LIBS AND
         PROPERTIES COMPILE_OPTIONS "-fvisibility=hidden"
     )
 endif()
+
 
 ####################################################
 # ASTC Encoder.
@@ -896,11 +643,12 @@ set(BUILD_SHARED_LIBS OFF)
 add_subdirectory(../external/astc-encoder astc-encoder)
 set(BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS_RESET})
 set_property(TARGET ${ASTCENC_LIB_TARGET} PROPERTY POSITION_INDEPENDENT_CODE ON)
+
 target_compile_definitions(
     ${ASTCENC_LIB_TARGET}
 PRIVATE
-    # ASTC encoder uses std::mutex. For more info. see comment about
-    # same setting in libktx starting about line 633. To be eventually
+    # ASTC encoder uses std::mutex. For more info. see comment about same
+    # setting in common_libktx_settings starting about line 355. To be eventually
     # removed as noted in that comment.
     $<$<AND:${is_msvccl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.40.33811>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
     $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,17.0.3>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
@@ -912,30 +660,12 @@ if(NOT PROJECT_IS_TOP_LEVEL AND ${CMAKE_PROJECT_NAME} STREQUAL "KTX-Software")
     set(ASTCENC_LIB_TARGET ${ASTCENC_LIB_TARGET} PARENT_SCOPE)
 endif()
 
-macro(set_astc_dependencies target)
-    if(NOT BUILD_SHARED_LIBS AND APPLE)
-        # Make a single static library to simplify linking.
-        add_dependencies(${target} ${ASTCENC_LIB_TARGET})
-        add_custom_command( TARGET ${target}
-            POST_BUILD
-            COMMAND libtool -static -o $<TARGET_FILE:${target}> $<TARGET_FILE:ktx> $<TARGET_FILE:${ASTCENC_LIB_TARGET}>
-        )
-
-        # Don't know libtool equivalent on Windows or Emscripten. Applications
-        # will have to link with  both ktx and ${ASTCENC_LIB_TARGET}. Static libs
-        # are unlikely to be used on Windows so not a problem there. For Emscripten
-        # everything is built into the JS module so not an issue there either.
-    else()
-        target_link_libraries(${target} PRIVATE ${ASTCENC_LIB_TARGET})
-    endif()
-endmacro(set_astc_dependencies)
-
-set_astc_dependencies(ktx)
-set_astc_dependencies(ktx_read)
+add_lib_dependencies(ktx ${ASTCENC_LIB_TARGET})
+add_lib_dependencies(ktx_read ${ASTCENC_LIB_TARGET})
 
 set(LIBKTX_INSTALL_TARGETS ktx)
 if(NOT BUILD_SHARED_LIBS AND NOT APPLE)
-    list(APPEND LIBKTX_INSTALL_TARGETS ${ASTCENC_LIB_TARGET})
+    list(APPEND LIBKTX_INSTALL_TARGETS ${ASTCENC_LIB_TARGET} basisu_encoder)
 endif()
 
 # Install

@@ -39,7 +39,7 @@ set(libktx_include_dir $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>)
 # points to the directory with the .lib import file.
 set(libktx_import_dir $<IF:$<BOOL:$<TARGET_IMPORT_FILE_DIR:ktx>>,$<TARGET_IMPORT_FILE_DIR:ktx>,$<TARGET_FILE_DIR:ktx>>)
 set(libktx_lib_dir $<TARGET_FILE_DIR:ktx>)
-add_custom_target(debug_libktx_dirs COMMAND ${CMAKE_COMMAND} -E echo "libktx_include_dir = ${libktx_include_dir}, libktx_import_dir = ${libktx_import_dir}, libktx_lib_dir = ${libktx_lib_dir}")
+#add_custom_target(debug_libktx_dirs COMMAND ${CMAKE_COMMAND} -E echo "libktx_include_dir = ${libktx_include_dir}, libktx_import_dir = ${libktx_import_dir}, libktx_lib_dir = ${libktx_lib_dir}")
 
 if(KTX_PY_USE_VENV)
     add_custom_target( py-venv ALL

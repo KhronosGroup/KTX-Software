@@ -1,0 +1,12 @@
+
+CMakeUserPresets.json
+
+# VS project and working files
+*.vcxproj.user
+.vs/
+Debug/
+Release/
+x64/
+
+# Mac finder
+.DS_Store

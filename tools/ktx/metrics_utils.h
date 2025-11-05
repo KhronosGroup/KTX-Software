@@ -13,8 +13,8 @@
 #include "ktxint.h"
 #include "texture2.h"
 
-#include <basisu/encoder/basisu_enc.h>
-#include <basisu/encoder/basisu_ssim.h>
+#include <encoder/basisu_enc.h>
+#include <encoder/basisu_ssim.h>
 
 // -------------------------------------------------------------------------------------------------
 
@@ -121,7 +121,7 @@ public:
             report.fatal(rc::KTX_FAILURE, "Failed to transcode KTX2 texture to calculate error metrics: {}", ktxErrorString(ec));
 
         float overallSSIM[4] = {};
-        float overallPSNR = 0;
+        double overallPSNR = 0;
 
         auto refIt = referenceImages.begin();
         for (uint32_t levelIndex = 0; levelIndex < texture->numLevels; ++levelIndex) {
