@@ -21,10 +21,10 @@ set( EXR_PLUGIN_EXTERNAL_HEADERS
     ${EXTERNAL}/astc-encoder/Source/ThirdParty/tinyexr.h
 )
 set( JPG_PLUGIN_EXTERNAL_SOURCES
-    ${EXTERNAL}/basisu/encoder/jpgd.cpp
+    ${EXTERNAL}/basis_universal/encoder/jpgd.cpp
 )
 set( JPG_PLUGIN_EXTERNAL_HEADERS
-    ${EXTERNAL}/basisu/encoder/jpgd.h
+    ${EXTERNAL}/basis_universal/encoder/jpgd.h
 )
 set( PNG_PLUGIN_EXTERNAL_SOURCES
     ${EXTERNAL}/lodepng/lodepng.cpp
@@ -90,7 +90,6 @@ PUBLIC
     ${PROJECT_SOURCE_DIR}/other_include
 PRIVATE
     "${PROJECT_SOURCE_DIR}/external/astc-encoder/Source/ThirdParty"
-    "${PROJECT_SOURCE_DIR}/external/basisu"
     "${PROJECT_SOURCE_DIR}/external/dfdutils"
     "${PROJECT_SOURCE_DIR}/external/lodepng"
 )
@@ -103,7 +102,7 @@ PRIVATE
 
 target_compile_features(imageio PUBLIC cxx_std_17)
 
-target_link_libraries(imageio fmt::fmt)
+target_link_libraries(imageio fmt::fmt basisu_encoder)
 
 set_target_properties(imageio PROPERTIES
     CXX_VISIBILITY_PRESET ${STATIC_APP_LIB_SYMBOL_VISIBILITY}

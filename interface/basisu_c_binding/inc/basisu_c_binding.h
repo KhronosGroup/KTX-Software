@@ -15,7 +15,13 @@
   #define KTX_BASISU_API
 #endif
 
-#include <basisu_transcoder.h>
+#if defined(__GNUC__) && !defined(__clang__)
+  #pragma GCC diagnostic ignored "-Wunused-value"
+#endif
+#include <transcoder/basisu_transcoder.h>
+#if defined(__GCC__) && !defined(__clang__)
+  #pragma GCC diagnostic pop
+#endif
 
 using namespace basist;
 

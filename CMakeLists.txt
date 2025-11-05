@@ -103,6 +103,21 @@ set(bitness 64)
 
 option( KTX_WERROR "Make all warnings in KTX code into errors." OFF)
 
+if(APPLE)
+    # Deployment.
+    # MUST be set before project() else it is ignored.
+    # When changing the target you must also edit the triplet files in
+    # vcpkg-triplets to reflect the new target.
+    if(APPLE_MAC_OS)
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "macOS Deployment Target")
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS" OR CMAKE_SYSTEM_NAME STREQUAL "tvOS")
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0" CACHE STRING "iOS/tvOS Deployment Target")
+        set(CMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH NO)
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "visionOS")
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "1.0" CACHE STRING "visionOS Deployment Target")
+    endif()
+endif()
+
 # After most option settings so settings can be used to affect vcpkg.
 project(KTX-Software
     VERSION ${KTX_VERSION}
@@ -138,20 +153,6 @@ else()
 endif()
 
 option(BUILD_SHARED_LIBS "Create shared libraries (static otherwise)." ${LIB_TYPE_DEFAULT} )
-
-if(APPLE)
-    # Deployment
-    # When changing the target you must also edit the triplet files in
-    # vcpkg-triplets to reflect the new target.
-    if(APPLE_MAC_OS)
-        set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "macOS Deployment Target")
-    elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS" OR CMAKE_SYSTEM_NAME STREQUAL "tvOS")
-        set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0" CACHE STRING "iOS/tvOS Deployment Target")
-        set(CMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH NO)
-    elseif(CMAKE_SYSTEM_NAME STREQUAL "visionOS")
-        set(CMAKE_OSX_DEPLOYMENT_TARGET "1.0" CACHE STRING "visionOS Deployment Target")
-    endif()
-endif()
 
 if(UNIX AND NOT APPLE AND NOT EMSCRIPTEN AND NOT ANDROID)
     set(LINUX TRUE)
@@ -189,6 +190,11 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"
 else()
     message(FATAL_ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")
 endif()
+
+# To improve output determinism, enable precise floating point operations globally
+include(cmake/fp-settings.cmake)
+get_fp_compile_options(fp_options)
+add_compile_options( ${fp_options} )
 
 # Set output directories
 set(KTX_BUILD_DIR "${CMAKE_BINARY_DIR}")
@@ -349,7 +355,6 @@ if(EMSCRIPTEN AND KTX_FEATURE_JS)
         PRIVATE
         lib
         external
-        external/basisu/transcoder
     )
 
     # Re-use ktx's compile options
@@ -367,6 +372,8 @@ if(EMSCRIPTEN AND KTX_FEATURE_JS)
         $<TARGET_PROPERTY:ktx_read,INTERFACE_LINK_OPTIONS>
     )
     set_target_properties( msc_basis_transcoder_js PROPERTIES OUTPUT_NAME "msc_basis_transcoder")
+
+    target_link_libraries(msc_basis_transcoder_js basisu_encoder)
 
     add_custom_command(
         TARGET msc_basis_transcoder_js

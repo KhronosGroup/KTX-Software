@@ -1,8 +1,6 @@
 // Copyright 2019 Andreas Atteneder, All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-#include <basisu_transcoder.h>
-
 #include "basisu_c_binding.h"
 #include "unused.h"
 

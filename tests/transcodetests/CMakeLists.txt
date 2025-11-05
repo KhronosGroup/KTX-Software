@@ -19,6 +19,7 @@ target_link_libraries(
     gtest
     ktx
     obj_basisu_cbind
+    basisu_encoder
     ${CMAKE_THREAD_LIBS_INIT}
 )
 
@@ -43,48 +44,4 @@ if(WIN32)
     PRIVATE
         $<$<STREQUAL:"${BASISU_CBIND_LIBTYPE}","STATIC">:KHRONOS_STATIC>
     )
-
-    # Retrieve and set warning settings for the 2 files from the ktx_read
-    # target.
-    # TODO: After BasisU update check if this is still necessary to compile
-    # without warnings
-    get_source_file_property(
-        transcoder_options
-        "${PROJECT_SOURCE_DIR}/external/basisu/transcoder/basisu_transcoder.cpp"
-        TARGET_DIRECTORY ktx_read
-        COMPILE_OPTIONS
-    )
-    if (transcoder_options)
-        set_source_files_properties(
-           "${PROJECT_SOURCE_DIR}/external/basisu/transcoder/basisu_transcoder.cpp"
-           PROPERTIES COMPILE_OPTIONS "${transcoder_options}"
-        )
-    endif()
-    get_source_file_property(
-        zstd_options
-        "${PROJECT_SOURCE_DIR}/external/basisu/zstd/zstd.c"
-        TARGET_DIRECTORY ktx_read
-        COMPILE_OPTIONS
-    )
-    if (zstd_options)
-        set_source_files_properties(
-            ${PROJECT_SOURCE_DIR}/external/basisu/zstd/zstd.c
-            PROPERTIES COMPILE_OPTIONS "${zstd_options}"
-        )
-    endif()
-
-    # The Windows ktx.dll does not export needed symbols. This is a workaround to get it linking.
-    add_library(obj_tmp_basisu OBJECT
-        $<$<BOOL:${BUILD_SHARED_LIBS}>:${PROJECT_SOURCE_DIR}/external/basisu/transcoder/basisu_transcoder.cpp>
-        "${PROJECT_SOURCE_DIR}/external/basisu/zstd/zstd.c"
-        )
-    target_compile_definitions(
-        obj_tmp_basisu
-        PUBLIC # only for basisu_c_binding.
-            BASISU_NO_ITERATOR_DEBUG_LEVEL
-            # We're only using this to read .basis files.
-            BASISD_SUPPORT_KTX2_ZSTD=0
-            BASISD_SUPPORT_KTX2=0
-        )
-    target_link_libraries(transcodetests obj_tmp_basisu)
 endif()

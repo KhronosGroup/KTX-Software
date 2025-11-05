@@ -73,26 +73,40 @@ jobs:
            doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tools: OFF, tools_cts: OFF,
            sse: OFF, opencl: OFF}
         ]
+        exclude:
+          # Disable this when package: YES because the Python and Java interface
+          # libraries built for x86_64 will not run on arm64. Have not investigated
+          # why Rosetta does not work in this case.
+          - arch: x86_64
+            options: { package: YES }
         include:
-        - name: Test macOS 13 build
-          os: macos-13
-          options: {
-            # graphviz no longer supports macOS 13 so doc: OFF.
-            # ts-graphviz/setup-graphviz@v2 does not support specifying a
-            # version on macOS.
-            config: 'Debug,Release', platform: macOS,
-            doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tests: OFF, tools: ON, tools_cts: OFF,
-            package: OFF, sse: ON, opencl: OFF
-          }
-        - name: Build for iOS
-          os: macos-latest
-          generator: Xcode
-          arch: arm64
-          options: {
-            config: Release, platform: iOS,
-            doc: OFF, jni: OFF, loadtests: OpenGL+Vulkan, py: OFF, tests: OFF, tools: OFF, tools_cts: OFF,
-            package: YES, sse: OFF, opencl: OFF
-          }
+          - name: Build x86_64 package on Intel runner
+            os: macos-15-intel
+            arch: x86_64
+            options: {
+              config: 'Debug,Release', platform: macOS,
+               doc: ON, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tools: ON, tools_cts: ON,
+               package: YES, sse: ON, opencl: OFF
+            }
+          - name: Test macOS 13 build
+            os: macos-13
+            options: {
+              # graphviz no longer supports macOS 13 so doc: OFF.
+              # ts-graphviz/setup-graphviz@v2 does not support specifying a
+              # version on macOS.
+              config: 'Debug,Release', platform: macOS,
+              doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tests: OFF, tools: ON, tools_cts: OFF,
+              package: OFF, sse: ON, opencl: OFF
+            }
+          - name: Build for iOS
+            os: macos-latest
+            generator: Xcode
+            arch: arm64
+            options: {
+              config: Release, platform: iOS,
+              doc: OFF, jni: OFF, loadtests: OpenGL+Vulkan, py: OFF, tests: OFF, tools: OFF, tools_cts: OFF,
+              package: YES, sse: OFF, opencl: OFF
+            }
 
     # ': ' within the format string causes a "mapping values are not
     # allowed in this context" YAML syntax error. Replacement {1} is
@@ -117,7 +131,7 @@ jobs:
       # Some matrix variables have defaults if unspecified by the matrix
       CMAKE_GEN: ${{ matrix.generator }}
       ARCH: ${{ matrix.arch }} # iOS uses ARCH
-      ARCHS: ${{ matrix.arch }} # MacOS uses ARCHS
+      ARCHS: ${{ matrix.arch }} # macOS uses ARCHS
       CONFIGURATION: ${{ matrix.options.config }}
       PLATFORM: ${{ matrix.options.platform }}
       FEATURE_DOC: ${{ matrix.options.doc }}
@@ -180,21 +194,12 @@ jobs:
         if: matrix.options.doc == 'ON'
         uses: ts-graphviz/setup-graphviz@v2
 
-      - name: Install nuget and mono
-        # nuget & mono were removed from macos 15 runners because mono is
-        # unsupported and nuget needs mono. This will install both.
-        if: matrix.options.loadtests != 'OFF'
-        run: which nuget || brew install nuget -q
-
-      - name: Run install script
-        run: ./scripts/install_macos.sh
-
       # Should a specific version of Python ever be wanted, use this.
 #      - name: Set up Python
-#       if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
-#       uses: actions/setup-python@v5
-#       with:
-#         python-version: '3.13'
+#        if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
+#        uses: actions/setup-python@v5
+#        with:
+#          python-version: '3.14'
 
       # If the selected Python does not have virtualenv installed, use this.
       # It is included currently in the runner's pre-installed Pythons.
@@ -206,6 +211,26 @@ jobs:
 #      - name: Install Python virtualenv
 #        if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
 #        run: pip install virtualenv
+
+      # A brute-force hack to enable installation of nuget on Intel runners.
+      # nuget, installed by Brew, requires Python 3.14 which Brew, naturally,
+      # tries to install as the runner has only 3.13 which was not installed
+      # by Brew leading to failure when Brew tries to update these links.
+      # Apple Silicon runners have Brew-installed 3.14.
+      - name: Remove Python links to enable Brew Install of nuget
+        if: matrix.options.loadtests != 'OFF' && matrix.os == 'macos-15-intel'
+        run: sudo rm -f /usr/local/bin/idle3 /usr/local/bin/idle3.13 /usr/local/bin/pip3 -> /Library/Frameworks/Python.framework/Versions/3.13/bin/pip3 /usr/local/bin/pip3.13 /usr/local/bin/pydoc3 /usr/local/bin/pydoc3.13 /usr/local/bin/python3 /usr/local/bin/python3-config /usr/local/bin/python3.13 /usr/local/bin/python3.13-config
+
+      - name: Install nuget and mono
+        # nuget & mono were removed from macos 15 runners because mono is
+        # unsupported and nuget needs mono. This will install both.
+        if: matrix.options.loadtests != 'OFF'
+        run: |
+            Echo "Python3 version $(python3 --version) is installed at $(which python3)"
+            which nuget || brew install nuget -q
+
+      - name: Run install script
+        run: ./scripts/install_macos.sh
 
       - name: Export environment variables for vcpkg binary caching
         if: matrix.options.loadtests != 'OFF'

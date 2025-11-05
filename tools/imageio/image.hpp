@@ -34,8 +34,14 @@
 #endif
 #include "imageio_utility.h"
 #include "unused.h"
+#if defined(__GNUC__) && !defined(__clang__)
+  #pragma GCC diagnostic ignored "-Wunused-value"
+#endif
 #include "encoder/basisu_resampler.h"
 #include "encoder/basisu_resampler_filters.h"
+#if defined(__GCC__) && !defined(__clang__)
+  #pragma GCC diagnostic pop
+#endif
 
 // cclamp to avoid conflict in toktx.cc with clamp template defined in scApp.
 template <typename T> inline T cclamp(T value, T low, T high) {
