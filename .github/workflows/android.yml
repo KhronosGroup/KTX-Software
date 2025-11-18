@@ -1,6 +1,6 @@
 # Copyright 2015-2020 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
-name: KTX-Software Android CI
+name: Android CI
 
 # Seems no way to avoid duplicating this on logic in each .yml file.
 # See https://github.com/actions/starter-workflows/issues/245.
