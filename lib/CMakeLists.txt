@@ -472,7 +472,7 @@ macro(add_lib_dependencies target lib)
         add_dependencies(${target} ${lib})
         add_custom_command( TARGET ${target}
             POST_BUILD
-            COMMAND libtool -static -o $<TARGET_FILE:${target}> $<TARGET_FILE:ktx> $<TARGET_FILE:${lib}>
+            COMMAND libtool -static -o $<TARGET_FILE:${target}> $<TARGET_FILE:${target}> $<TARGET_FILE:${lib}>
         )
         target_include_directories(${target} PRIVATE $<TARGET_PROPERTY:${lib},INTERFACE_INCLUDE_DIRECTORIES>)
 
