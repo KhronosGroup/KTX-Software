@@ -160,13 +160,14 @@ if [ $write_all -eq 1 ]; then
     fi
   done
 else
-  if [[ $workdir =~ $(pwd)(/(.*$)?)? ]]; then
+  relative_path=$(realpath --relative-base=$(pwd) -- $workdir)
+  if [[ $relative_path =~ ^[^/] ]]; then
     # Trailing part of workdir gives object location in repo.
-    if [ -n "${BASH_REMATCH[2]}" ]; then
+    if [[ $relative_path != . ]]; then
       if [ "$OBJ" == "." ]; then
-        OBJ=${BASH_REMATCH[2]}
+        OBJ=$relative_path
       else
-        OBJ=${BASH_REMATCH[2]}/$OBJ
+        OBJ=$relative_path/$OBJ
       fi
     # else  We are in the repo root
     fi
