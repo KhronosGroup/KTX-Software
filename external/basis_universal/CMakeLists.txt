@@ -1,6 +1,6 @@
 # Important: The Basis Universal encoder and transcoder libraries must be compiled with -fno-strict-aliasing (MSVC's default, and also the Linux kernel).
 # It should also work without this option, but we do not test with it.
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.20)
 
 if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
     # Needed otherwise Xcode builds with the default installed SDK which can often be
@@ -25,12 +25,12 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_SOURCE_DIR}/bin>)
 if (MSVC)
     # TODO: Fix me for Windows ARM
     option(BASISU_SSE "SSE 4.1 support" TRUE)
-    if ( CMAKE_GENERATOR_PLATFORM STREQUAL Win32 )
+    if ( CMAKE_GENERATOR_PLATFORM STREQUAL "Win32" )
         set(BASISU_BUILD_X64 0)
     else()
         set(BASISU_BUILD_X64 1)
     endif()
-	add_compile_options(/W4)
+    add_compile_options(/W4)
 else()
     option(BASISU_SSE "SSE 4.1 support" FALSE)
     option(BASISU_BUILD_X64 "build 64-bit" TRUE)
@@ -48,17 +48,17 @@ message("Initial BASISU_SAN=${BASISU_SAN}")
 message("initial BASISU_TOOL=${BASISU_TOOL}")
 message("initial BASISU_EXAMPLES=${BASISU_EXAMPLES}")
 
-if(WIN32 AND MINGW)
+if(MINGW)
     # Check if the Threads package is provided; if using Mingw it MIGHT be
     find_package(Threads)
 elseif(LINUX)
     find_package(Threads REQUIRED)
 endif()
 
-if ((NOT MSVC) AND BASISU_OPENCL)
-    # With MSVC builds we use the Khronos lib/include files in the project's "OpenCL" directory, to completely avoid requiring fiddly to install vendor SDK's.
+if ((NOT WIN32) AND BASISU_OPENCL)
+    # For Windows builds we use the Khronos lib/include files in the project's "OpenCL" directory, to completely avoid requiring fiddly to install vendor SDK's.
     # Otherwise we use the system's (if any).
-    find_package(OpenCL)
+    find_package(OpenCL REQUIRED)
     message(STATUS "OpenCL found: ${OPENCL_FOUND}")
     message(STATUS "OpenCL includes: ${OpenCL_INCLUDE_DIRS}")
     message(STATUS "OpenCL libraries: ${OpenCL_LIBRARIES}")
@@ -89,22 +89,27 @@ else()
 endif()
 
 if (NOT MSVC)
-    add_compile_options(-g)
+    add_compile_options($<$<CONFIG:Debug>:-g>)
+    # If you want to set an optimization option for non-debug too, use this instead.
+    #add_compile_options($<IF:$<CONFIG:Debug>,-g,-O3>)
 
     if (BASISU_SAN)
-		message("Enabling SAN")
-		
+        message("Enabling SAN")
+
         add_compile_options(-fsanitize=address -fno-omit-frame-pointer -fsanitize=undefined -fno-sanitize=alignment)
     endif()
 
-
-
-    add_compile_options(-fvisibility=hidden -fPIC -fno-strict-aliasing -D_LARGEFILE64_SOURCE=1
+    # Add common non-MSVC flags excluding -fPIC.
+    add_compile_options(-fvisibility=hidden -fno-strict-aliasing -D_LARGEFILE64_SOURCE=1
                         -D_FILE_OFFSET_BITS=64 -Wall -Wextra -Wno-unused-local-typedefs
                         -Wno-unused-value -Wno-unused-parameter -Wno-unused-variable
                         -Wno-misleading-indentation
                         -Wno-maybe-uninitialized -Wno-unused-function
                         -Wno-stringop-overflow -Wno-unknown-warning-option)
+    # Add -fPIC ONLY on non-Windows platforms
+    if (NOT WIN32)
+        add_compile_options(-fPIC)
+    endif()
 
     # AppleClang 14 raises this warning in zstd.cpp.
     add_compile_options("$<$<AND:$<CXX_COMPILER_ID:Clang,AppleClang>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,17>>:-Wno-bitwise-instead-of-logical>")
@@ -208,22 +213,42 @@ INTERFACE
 target_compile_features(basisu_encoder PUBLIC cxx_std_17)
 
 if (EMSCRIPTEN)
-    target_compile_definitions(basisu_encoder PRIVATE BASISU_SUPPORT_SSE=0)
+    target_compile_definitions(basisu_encoder PUBLIC BASISU_SUPPORT_SSE=0)
 else()
+    target_compile_definitions(basisu_encoder PUBLIC
+        BASISU_SUPPORT_SSE=$<IF:$<BOOL:${BASISU_SSE}>,1,0>
+    )
     target_compile_options(basisu_encoder PRIVATE
-        "$<IF:$<BOOL:${BASISU_SSE}>,-DBASISU_SUPPORT_SSE=1;$<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-msse4.1>,-DBASISU_SUPPORT_SSE=0>"
+        "$<$<AND:$<BOOL:${BASISU_SSE}>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-msse4.1>"
     )
 endif()
 
-if (NOT MSVC)
-    # For Non-Windows builds, let cmake try and find the system OpenCL headers/libs for us.
-    if (BASISU_OPENCL AND OPENCL_FOUND)
-        target_compile_definitions(basisu_encoder PRIVATE BASISU_SUPPORT_OPENCL=1)
-
-		target_include_directories(basisu_encoder INTERFACE ${OpenCL_INCLUDE_DIRS})
-        target_link_libraries(basisu_encoder INTERFACE ${OpenCL_LIBRARIES})
+target_compile_definitions(basisu_encoder PRIVATE "BASISD_SUPPORT_KTX2_ZSTD=$<IF:$<BOOL:${BASISU_ZSTD}>,1,0>")
+if (BASISU_OPENCL)
+    # basisu uses this to confirm the library has been compiled with OpenCL support hence PUBLIC.
+    target_compile_definitions(basisu_encoder PUBLIC BASISU_SUPPORT_OPENCL=1)
+    if (NOT WIN32) # True when the target system is Windows.
+        # For Non-Windows builds, use the system OpenCL headers/libs, if cmake found them.
+        target_include_directories(basisu_encoder PRIVATE ${OpenCL_INCLUDE_DIRS})
+        target_link_libraries(basisu_encoder PRIVATE ${OpenCL_LIBRARIES})
+    else()
+        # For Windows builds, we use our local copies of the OpenCL import lib and Khronos headers.
+        target_include_directories(basisu_encoder PRIVATE "OpenCL")
+        if (BASISU_BUILD_X64)
+            target_link_libraries(basisu_encoder PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/OpenCL/lib/OpenCL64.lib")
+        else()
+            target_link_libraries(basisu_encoder PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/OpenCL/lib/OpenCL.lib")
+        endif()
     endif()
-    target_link_libraries(basisu_encoder INTERFACE m)
+else()
+    target_compile_definitions(basisu_encoder PUBLIC BASISU_SUPPORT_OPENCL=0)
+endif()
+
+if (NOT MSVC)
+    # Only link 'm' on non-Windows platforms (Linux, macOS)
+    if (NOT WIN32)
+        target_link_libraries(basisu_encoder INTERFACE m)
+    endif()
     if(Threads_FOUND AND CMAKE_USE_PTHREADS_INIT)
         target_link_libraries(basisu_encoder INTERFACE Threads::Threads)
     elseif(LINUX)
@@ -232,22 +257,12 @@ if (NOT MSVC)
     if (BASISU_STATIC AND MINGW)
         target_link_options(basisu_encoder INTERFACE -static-libgcc -static-libstdc++ -static)
     endif()
-else()
-    # For Windows builds, we use our local copies of the OpenCL import lib and Khronos headers.
-    if (BASISU_OPENCL)
-        target_compile_definitions(basisu_encoder PRIVATE BASISU_SUPPORT_OPENCL=1)
-		target_include_directories(basisu_encoder INTERFACE "OpenCL")
-
-        if (BASISU_BUILD_X64)
-            target_link_libraries(basisu_encoder INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/OpenCL/lib/OpenCL64.lib")
-        else()
-            target_link_libraries(basisu_encoder INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/OpenCL/lib/OpenCL.lib")
-        endif()
-    endif()
-endif()    
+endif()
 
 macro(set_common_executable_properties target)
-    target_compile_definitions(${target} PRIVATE BASISD_SUPPORT_KTX2_ZSTD=$<IF:$<BOOL:${BASISU_ZSTD}>,1,0>)
+    #if (MSVC)
+        target_sources(${target} PRIVATE "${CMAKE_SOURCE_DIR}/basisu.manifest")
+    #endif()
     target_link_libraries(${target} PRIVATE basisu_encoder)
     if (NOT BASISU_STATIC AND NOT EMSCRIPTEN AND NOT WIN32)
         target_link_options(${target} PUBLIC -Wl,-rpath .)
@@ -268,15 +283,14 @@ endif()
 
 if (BASISU_TOOL AND NOT EMSCRIPTEN)
     if (UNIX)
-        if (CMAKE_BUILD_TYPE STREQUAL Release)
+        if (CMAKE_BUILD_TYPE STREQUAL "Release")
             if (APPLE)
                 add_custom_command(TARGET basisu POST_BUILD COMMAND strip -X -x ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/basisu)
-				#message("strip command: strip -X -x ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/basisu")
+                #message("strip command: strip -X -x ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/basisu")
             else()
                 add_custom_command(TARGET basisu POST_BUILD COMMAND strip -g -X -x ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/basisu)
-				#message("strip command: strip -g -X -x ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/basisu")
+                #message("strip command: strip -g -X -x ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/basisu")
             endif()
         endif()
     endif()
 endif()
-
