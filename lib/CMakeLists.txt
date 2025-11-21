@@ -118,7 +118,7 @@ else()
     set(LIB_TYPE SHARED)
 endif()
 
-if(WIN32 AND MINGW)
+if(MINGW)
     # Check if the Threads package is provided; if using Mingw it MIGHT be
     find_package(Threads)
 elseif(LINUX)
@@ -405,7 +405,7 @@ macro(common_libktx_settings target enable_write library_type)
         target_compile_definitions(${target} PUBLIC KTX_FEATURE_KTX2)
     endif()
 
-    if(WIN32 AND MINGW AND TARGET Threads::Threads AND CMAKE_USE_PTHREADS_INIT)
+    if(MINGW AND TARGET Threads::Threads AND CMAKE_USE_PTHREADS_INIT)
         target_compile_definitions(${target} PRIVATE WIN32_HAS_PTHREADS)
     endif()
 
