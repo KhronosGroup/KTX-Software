@@ -29,7 +29,7 @@ cmake_args=("-G" "Ninja" \
   "-D" "ANDROID_NDK=$ANDROID_NDK" \
   "-D" "CMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake" \
   "-D" "CMAKE_BUILD_TYPE=$CONFIGURATION" \
-  "-D" "BASISU_SUPPORT_SSE=OFF" \
+  "-D" "BASISU_SSE=OFF" \
   "-D" "${ASTCENC_ISA}"
   "-D" "KTX_FEATURE_TESTS=OFF"
   "-D" "KTX_WERROR=$WERROR"

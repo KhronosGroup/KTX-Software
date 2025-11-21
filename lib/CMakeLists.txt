@@ -55,13 +55,15 @@ option( LIBKTX_FEATURE_VK_UPLOAD "Enable Vulkan texture upload." ON )
 option( LIBKTX_FEATURE_GL_UPLOAD "Enable OpenGL texture upload." ON )
 option( LIBKTX_FEATURE_ETC_UNPACK "ETC decoding support." ON )
 
-CMAKE_DEPENDENT_OPTION( BASISU_SUPPORT_SSE
+# Intentionally override the BASISU options, only making them visible
+# when it makes sense.
+CMAKE_DEPENDENT_OPTION( BASISU_SSE
     "Compile with SSE support so applications can choose to use it."
     ON
     "NOT CMAKE_OSX_ARCHITECTURES STREQUAL \"$(ARCHS_STANDARD)\"; CPU_ARCHITECTURE STREQUAL x86_64"
     OFF
 )
-CMAKE_DEPENDENT_OPTION( BASISU_SUPPORT_OPENCL
+CMAKE_DEPENDENT_OPTION( BASISU_OPENCL
     "Compile with OpenCL support so applications can choose to use it."
     OFF
     "NOT APPLE_LOCKED_OS"
