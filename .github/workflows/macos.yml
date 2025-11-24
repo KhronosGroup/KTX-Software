@@ -322,7 +322,7 @@ jobs:
           compression-level: 0 # Installer already compressed.
 
       - name: Upload artifact pyktx
-        if:  matrix.options.py == 'ON' && matrix.options.package == 'YES' && matrix.os == 'macos-latest'
+        if:  matrix.options.py == 'ON' && matrix.options.package == 'YES' && (matrix.os == 'macos-latest' || matrix.os == 'macos-15-intel')
         uses: actions/upload-artifact@v4
         with:
           name: pyktx-${{env.PACKAGE_NAME_SUFFIX}}
