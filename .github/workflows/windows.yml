@@ -199,7 +199,8 @@ jobs:
       id: install-ast
       run: |
         if ($env:PACKAGE -eq "YES" -and $env:AZURE_KEY_VAULT_URL) {
-          dotnet tool install --global AzureSignTool
+          # Pin version to 6.0.1 until runner is updated to .NET Core 10.
+          dotnet tool install --global AzureSignTool --version 6.0.1
           echo "CODE_SIGN_KEY_VAULT=Azure" >> $env:GITHUB_ENV
         }
 
