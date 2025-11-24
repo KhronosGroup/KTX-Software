@@ -1,11 +1,11 @@
 # Copyright 2015-2020 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
-name: Check config and build of just libktx
+name: Check Config and Build of Just libktx
 
 # The purpose of this is to smoke test building just libktx using its
 # CMakeLists.txt as the top-level project. Testing of various build
 # options and running of tests on the library is left to the various
-# KTX-Software project workflows.
+# KTX-Software platform workflows.
 
 # Seems no way to avoid duplicating this on logic in each .yml file.
 # See https://github.com/actions/starter-workflows/issues/245.

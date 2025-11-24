@@ -1,6 +1,6 @@
 # Copyright 2015-2020 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
-name: KTX-Software Manual CI
+name: Manually Run All Workflows
 
 on:
   workflow_dispatch:
