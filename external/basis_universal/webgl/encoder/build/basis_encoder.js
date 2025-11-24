@@ -1,10 +1,19 @@
+// This code implements the `-sMODULARIZE` settings by taking the generated
+// JS program code (INNER_JS_CODE) and wrapping it in a factory function.
+
+// Single threaded MINIMAL_RUNTIME programs do not need access to
+// document.currentScript, so a simple export declaration is enough.
 var BASIS = (() => {
-  var _scriptName = typeof document != 'undefined' ? document.currentScript?.src : undefined;
-  return (
-async function(moduleArg = {}) {
-  var moduleRtn;
+  // When MODULARIZE this JS may be executed later,
+  // after document.currentScript is gone, so we save it.
+  // In EXPORT_ES6 mode we can just use 'import.meta.url'.
+  var _scriptName = globalThis.document?.currentScript?.src;
+  return async function(moduleArg = {}) {
+    var moduleRtn;
 
 // include: shell.js
+// include: minimum_runtime_check.js
+// end include: minimum_runtime_check.js
 // The Module object: Our interface to the outside world. We import
 // and export values on it. There are various ways Module can be used:
 // 1. Not defined. We create it here
@@ -24,11 +33,11 @@ var Module = moduleArg;
 // setting the ENVIRONMENT setting at compile time (see settings.js).
 
 // Attempt to auto-detect the environment
-var ENVIRONMENT_IS_WEB = typeof window == 'object';
-var ENVIRONMENT_IS_WORKER = typeof WorkerGlobalScope != 'undefined';
+var ENVIRONMENT_IS_WEB = !!globalThis.window;
+var ENVIRONMENT_IS_WORKER = !!globalThis.WorkerGlobalScope;
 // N.b. Electron.js environment is simultaneously a NODE-environment, but
 // also a web environment.
-var ENVIRONMENT_IS_NODE = typeof process == 'object' && process.versions?.node && process.type != 'renderer';
+var ENVIRONMENT_IS_NODE = globalThis.process?.versions?.node && globalThis.process?.type != 'renderer';
 var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIRONMENT_IS_WORKER;
 
 // --pre-jses are emitted after the Module integration code, so that they can
@@ -215,9 +224,6 @@ var isFileURI = (filename) => filename.startsWith('file://');
 var readyPromiseResolve, readyPromiseReject;
 
 // Memory management
-
-var wasmMemory;
-
 var
 /** @type {!Int8Array} */
   HEAP8,
@@ -307,37 +313,6 @@ function postRun() {
   // End ATPOSTRUNS hooks
 }
 
-// A counter of dependencies for calling run(). If we need to
-// do asynchronous work before running, increment this and
-// decrement it. Incrementing must happen in a place like
-// Module.preRun (used by emcc to add file preloading).
-// Note that you can add dependencies in preRun, even though
-// it happens right before run - run will be postponed until
-// the dependencies are met.
-var runDependencies = 0;
-var dependenciesFulfilled = null; // overridden to take different actions when all run dependencies are fulfilled
-
-function addRunDependency(id) {
-  runDependencies++;
-
-  Module['monitorRunDependencies']?.(runDependencies);
-
-}
-
-function removeRunDependency(id) {
-  runDependencies--;
-
-  Module['monitorRunDependencies']?.(runDependencies);
-
-  if (runDependencies == 0) {
-    if (dependenciesFulfilled) {
-      var callback = dependenciesFulfilled;
-      dependenciesFulfilled = null;
-      callback(); // can add another dependenciesFulfilled
-    }
-  }
-}
-
 /** @param {string|number=} what */
 function abort(what) {
   Module['onAbort']?.(what);
@@ -377,7 +352,7 @@ function abort(what) {
 var wasmBinaryFile;
 
 function findWasmBinary() {
-    return locateFile('basis_encoder.wasm');
+  return locateFile('basis_encoder.wasm');
 }
 
 function getBinarySync(file) {
@@ -387,6 +362,8 @@ function getBinarySync(file) {
   if (readBinary) {
     return readBinary(file);
   }
+  // Throwing a plain string here, even though it not normally adviables since
+  // this gets turning into an `abort` in instantiateArrayBuffer.
   throw 'both async and sync fetching of the wasm failed';
 }
 
@@ -419,7 +396,7 @@ async function instantiateArrayBuffer(binaryFile, imports) {
 }
 
 async function instantiateAsync(binary, binaryFile, imports) {
-  if (!binary && typeof WebAssembly.instantiateStreaming == 'function'
+  if (!binary
       // Don't use streaming for file:// delivered objects in a webview, fetch them synchronously.
       && !isFileURI(binaryFile)
       // Avoid instantiateStreaming() on Node.js environment for now, as while
@@ -447,10 +424,11 @@ async function instantiateAsync(binary, binaryFile, imports) {
 
 function getWasmImports() {
   // prepare imports
-  return {
+  var imports = {
     'env': wasmImports,
     'wasi_snapshot_preview1': wasmImports,
-  }
+  };
+  return imports;
 }
 
 // Create the wasm instance.
@@ -463,21 +441,12 @@ async function createWasm() {
   function receiveInstance(instance, module) {
     wasmExports = instance.exports;
 
-    
+    assignWasmExports(wasmExports);
 
-    wasmMemory = wasmExports['memory'];
-    
     updateMemoryViews();
 
-    wasmTable = wasmExports['__indirect_function_table'];
-    
-
-    assignWasmExports(wasmExports);
-    removeRunDependency('wasm-instantiate');
     return wasmExports;
   }
-  // wait for the pthread pool (if any)
-  addRunDependency('wasm-instantiate');
 
   // Prefer streaming instantiation if available.
   function receiveInstantiationResult(result) {
@@ -498,8 +467,8 @@ async function createWasm() {
   // path.
   if (Module['instantiateWasm']) {
     return new Promise((resolve, reject) => {
-        Module['instantiateWasm'](info, (mod, inst) => {
-          resolve(receiveInstance(mod, inst));
+        Module['instantiateWasm'](info, (inst, mod) => {
+          resolve(receiveInstance(inst, mod));
         });
     });
   }
@@ -536,7 +505,7 @@ async function createWasm() {
   var addOnPreRun = (cb) => onPreRuns.push(cb);
 
 
-  
+
     /**
      * @param {number} ptr
      * @param {string} type
@@ -558,7 +527,7 @@ async function createWasm() {
 
   var noExitRuntime = true;
 
-  
+
     /**
      * @param {number} ptr
      * @param {number} value
@@ -583,65 +552,67 @@ async function createWasm() {
 
   var stackSave = () => _emscripten_stack_get_current();
 
+
+
   class ExceptionInfo {
       // excPtr - Thrown object pointer to wrap. Metadata pointer is calculated from it.
       constructor(excPtr) {
         this.excPtr = excPtr;
         this.ptr = excPtr - 24;
       }
-  
+
       set_type(type) {
         HEAPU32[(((this.ptr)+(4))>>2)] = type;
       }
-  
+
       get_type() {
         return HEAPU32[(((this.ptr)+(4))>>2)];
       }
-  
+
       set_destructor(destructor) {
         HEAPU32[(((this.ptr)+(8))>>2)] = destructor;
       }
-  
+
       get_destructor() {
         return HEAPU32[(((this.ptr)+(8))>>2)];
       }
-  
+
       set_caught(caught) {
         caught = caught ? 1 : 0;
         HEAP8[(this.ptr)+(12)] = caught;
       }
-  
+
       get_caught() {
         return HEAP8[(this.ptr)+(12)] != 0;
       }
-  
+
       set_rethrown(rethrown) {
         rethrown = rethrown ? 1 : 0;
         HEAP8[(this.ptr)+(13)] = rethrown;
       }
-  
+
       get_rethrown() {
         return HEAP8[(this.ptr)+(13)] != 0;
       }
-  
+
       // Initialize native structure fields. Should be called once after allocated.
       init(type, destructor) {
         this.set_adjusted_ptr(0);
         this.set_type(type);
         this.set_destructor(destructor);
       }
-  
+
       set_adjusted_ptr(adjustedPtr) {
         HEAPU32[(((this.ptr)+(16))>>2)] = adjustedPtr;
       }
-  
+
       get_adjusted_ptr() {
         return HEAPU32[(((this.ptr)+(16))>>2)];
       }
     }
-  
+
   var exceptionLast = 0;
-  
+
   var uncaughtExceptionCount = 0;
   var ___cxa_throw = (ptr, type, destructor) => {
       var info = new ExceptionInfo(ptr);
@@ -652,7 +623,6 @@ async function createWasm() {
       throw exceptionLast;
     };
 
-  /** @suppress {duplicate } */
   var syscallGetVarargI = () => {
       // the `+` prepended here is necessary to convince the JSCompiler that varargs is indeed a number.
       var ret = HEAP32[((+SYSCALLS.varargs)>>2)];
@@ -660,8 +630,8 @@ async function createWasm() {
       return ret;
     };
   var syscallGetVarargP = syscallGetVarargI;
-  
-  
+
+
   var PATH = {
   isAbs:(path) => path.charAt(0) === '/',
   splitPath:(filename) => {
@@ -722,23 +692,23 @@ async function createWasm() {
   join:(...paths) => PATH.normalize(paths.join('/')),
   join2:(l, r) => PATH.normalize(l + '/' + r),
   };
-  
+
   var initRandomFill = () => {
       // This block is not needed on v19+ since crypto.getRandomValues is builtin
       if (ENVIRONMENT_IS_NODE) {
         var nodeCrypto = require('crypto');
         return (view) => nodeCrypto.randomFillSync(view);
       }
-  
+
       return (view) => crypto.getRandomValues(view);
     };
   var randomFill = (view) => {
       // Lazily init on the first invocation.
       (randomFill = initRandomFill())(view);
     };
-  
-  
-  
+
+
+
   var PATH_FS = {
   resolve:(...args) => {
         var resolvedPath = '',
@@ -792,10 +762,21 @@ async function createWasm() {
         return outputParts.join('/');
       },
   };
-  
-  
-  var UTF8Decoder = typeof TextDecoder != 'undefined' ? new TextDecoder() : undefined;
-  
+
+
+  var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
+
+  var findStringEnd = (heapOrArray, idx, maxBytesToRead, ignoreNul) => {
+      var maxIdx = idx + maxBytesToRead;
+      if (ignoreNul) return maxIdx;
+      // TextDecoder needs to know the byte length in advance, it doesn't stop on
+      // null terminator by itself.
+      // As a tiny code save trick, compare idx against maxIdx using a negation,
+      // so that maxBytesToRead=undefined/NaN means Infinity.
+      while (heapOrArray[idx] && !(idx >= maxIdx)) ++idx;
+      return idx;
+    };
+
     /**
      * Given a pointer 'idx' to a null-terminated UTF8-encoded string in the given
      * array that contains uint8 values, returns a copy of that string as a
@@ -803,25 +784,18 @@ async function createWasm() {
      * heapOrArray is either a regular array, or a JavaScript typed array view.
      * @param {number=} idx
      * @param {number=} maxBytesToRead
+     * @param {boolean=} ignoreNul - If true, the function will not stop on a NUL character.
      * @return {string}
      */
-  var UTF8ArrayToString = (heapOrArray, idx = 0, maxBytesToRead = NaN) => {
-      var endIdx = idx + maxBytesToRead;
-      var endPtr = idx;
-      // TextDecoder needs to know the byte length in advance, it doesn't stop on
-      // null terminator by itself.  Also, use the length info to avoid running tiny
-      // strings through TextDecoder, since .subarray() allocates garbage.
-      // (As a tiny code save trick, compare endPtr against endIdx using a negation,
-      // so that undefined/NaN means Infinity)
-      while (heapOrArray[endPtr] && !(endPtr >= endIdx)) ++endPtr;
-  
+  var UTF8ArrayToString = (heapOrArray, idx = 0, maxBytesToRead, ignoreNul) => {
+
+      var endPtr = findStringEnd(heapOrArray, idx, maxBytesToRead, ignoreNul);
+
       // When using conditional TextDecoder, skip it for short strings as the overhead of the native call is not worth it.
       if (endPtr - idx > 16 && heapOrArray.buffer && UTF8Decoder) {
         return UTF8Decoder.decode(heapOrArray.subarray(idx, endPtr));
       }
       var str = '';
-      // If building with TextDecoder, we have already computed the string length
-      // above, so test loop end condition against that
       while (idx < endPtr) {
         // For UTF8 byte structure, see:
         // http://en.wikipedia.org/wiki/UTF-8#Description
@@ -837,7 +811,7 @@ async function createWasm() {
         } else {
           u0 = ((u0 & 7) << 18) | (u1 << 12) | (u2 << 6) | (heapOrArray[idx++] & 63);
         }
-  
+
         if (u0 < 0x10000) {
           str += String.fromCharCode(u0);
         } else {
@@ -847,9 +821,9 @@ async function createWasm() {
       }
       return str;
     };
-  
+
   var FS_stdin_getChar_buffer = [];
-  
+
   var lengthBytesUTF8 = (str) => {
       var len = 0;
       for (var i = 0; i < str.length; ++i) {
@@ -870,13 +844,13 @@ async function createWasm() {
       }
       return len;
     };
-  
+
   var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       // Parameter maxBytesToWrite is not optional. Negative values, 0, null,
       // undefined and false each don't write out any bytes.
       if (!(maxBytesToWrite > 0))
         return 0;
-  
+
       var startIdx = outIdx;
       var endIdx = outIdx + maxBytesToWrite - 1; // -1 for string null terminator.
       for (var i = 0; i < str.length; ++i) {
@@ -927,7 +901,7 @@ async function createWasm() {
           var BUFSIZE = 256;
           var buf = Buffer.alloc(BUFSIZE);
           var bytesRead = 0;
-  
+
           // For some reason we must suppress a closure warning here, even though
           // fd definitely exists on process.stdin, and is even the proper way to
           // get the fd of stdin,
@@ -936,7 +910,7 @@ async function createWasm() {
           // so it is related to the surrounding code in some unclear manner.
           /** @suppress {missingProperties} */
           var fd = process.stdin.fd;
-  
+
           try {
             bytesRead = fs.readSync(fd, buf, 0, BUFSIZE);
           } catch(e) {
@@ -946,13 +920,12 @@ async function createWasm() {
             if (e.toString().includes('EOF')) bytesRead = 0;
             else throw e;
           }
-  
+
           if (bytesRead > 0) {
             result = buf.slice(0, bytesRead).toString('utf-8');
           }
         } else
-        if (typeof window != 'undefined' &&
-          typeof window.prompt == 'function') {
+        if (globalThis.window?.prompt) {
           // Browser.
           result = window.prompt('Input: ');  // returns null on cancel
           if (result !== null) {
@@ -1108,10 +1081,10 @@ async function createWasm() {
         },
   },
   };
-  
-  
+
+
   var zeroMemory = (ptr, size) => HEAPU8.fill(0, ptr, ptr + size);
-  
+
   var alignMemory = (size, alignment) => {
       return Math.ceil(size / alignment) * alignment;
     };
@@ -1189,7 +1162,7 @@ async function createWasm() {
           // When the byte data of the file is populated, this will point to either a typed array, or a normal JS array. Typed arrays are preferred
           // for performance, and used by default. However, typed arrays are not resizable like normal JS arrays are, so there is a small disk size
           // penalty involved for appending file writes that continuously grow a file similar to std::vector capacity vs used -scheme.
-          node.contents = null; 
+          node.contents = null;
         } else if (FS.isLink(node.mode)) {
           node.node_ops = MEMFS.ops_table.link.node;
           node.stream_ops = MEMFS.ops_table.link.stream;
@@ -1277,6 +1250,13 @@ async function createWasm() {
           }
         },
   lookup(parent, name) {
+          // This error may happen quite a bit. To avoid overhead we reuse it (and
+          // suffer a lack of stack info).
+          if (!MEMFS.doesNotExistError) {
+            MEMFS.doesNotExistError = new FS.ErrnoError(44);
+            /** @suppress {checkTypes} */
+            MEMFS.doesNotExistError.stack = '<generic error, no stack>';
+          }
           throw MEMFS.doesNotExistError;
         },
   mknod(parent, name, mode, dev) {
@@ -1349,11 +1329,11 @@ async function createWasm() {
           if (buffer.buffer === HEAP8.buffer) {
             canOwn = false;
           }
-  
+
           if (!length) return 0;
           var node = stream.node;
           node.mtime = node.ctime = Date.now();
-  
+
           if (buffer.subarray && (!node.contents || node.contents.subarray)) { // This write is from a typed array to a typed array?
             if (canOwn) {
               node.contents = buffer.subarray(offset, offset + length);
@@ -1368,7 +1348,7 @@ async function createWasm() {
               return length;
             }
           }
-  
+
           // Appending to an existing file and we need to reallocate, or source data did not come as a typed array.
           MEMFS.expandFileStorage(node, position+length);
           if (node.contents.subarray && buffer.subarray) {
@@ -1436,64 +1416,7 @@ async function createWasm() {
         },
   },
   };
-  
-  var asyncLoad = async (url) => {
-      var arrayBuffer = await readAsync(url);
-      return new Uint8Array(arrayBuffer);
-    };
-  
-  
-  var FS_createDataFile = (...args) => FS.createDataFile(...args);
-  
-  var getUniqueRunDependency = (id) => {
-      return id;
-    };
-  
-  var preloadPlugins = [];
-  var FS_handledByPreloadPlugin = (byteArray, fullname, finish, onerror) => {
-      // Ensure plugins are ready.
-      if (typeof Browser != 'undefined') Browser.init();
-  
-      var handled = false;
-      preloadPlugins.forEach((plugin) => {
-        if (handled) return;
-        if (plugin['canHandle'](fullname)) {
-          plugin['handle'](byteArray, fullname, finish, onerror);
-          handled = true;
-        }
-      });
-      return handled;
-    };
-  var FS_createPreloadedFile = (parent, name, url, canRead, canWrite, onload, onerror, dontCreateFile, canOwn, preFinish) => {
-      // TODO we should allow people to just pass in a complete filename instead
-      // of parent and name being that we just join them anyways
-      var fullname = name ? PATH_FS.resolve(PATH.join2(parent, name)) : parent;
-      var dep = getUniqueRunDependency(`cp ${fullname}`); // might have several active requests for the same fullname
-      function processData(byteArray) {
-        function finish(byteArray) {
-          preFinish?.();
-          if (!dontCreateFile) {
-            FS_createDataFile(parent, name, byteArray, canRead, canWrite, canOwn);
-          }
-          onload?.();
-          removeRunDependency(dep);
-        }
-        if (FS_handledByPreloadPlugin(byteArray, fullname, finish, () => {
-          onerror?.();
-          removeRunDependency(dep);
-        })) {
-          return;
-        }
-        finish(byteArray);
-      }
-      addRunDependency(dep);
-      if (typeof url == 'string') {
-        asyncLoad(url).then(processData, onerror);
-      } else {
-        processData(url);
-      }
-    };
-  
+
   var FS_modeStringToFlags = (str) => {
       var flagModes = {
         'r': 0,
@@ -1509,14 +1432,91 @@ async function createWasm() {
       }
       return flags;
     };
-  
+
   var FS_getMode = (canRead, canWrite) => {
       var mode = 0;
       if (canRead) mode |= 292 | 73;
       if (canWrite) mode |= 146;
       return mode;
     };
-  
+
+
+  var asyncLoad = async (url) => {
+      var arrayBuffer = await readAsync(url);
+      return new Uint8Array(arrayBuffer);
+    };
+
+
+  var FS_createDataFile = (...args) => FS.createDataFile(...args);
+
+  var getUniqueRunDependency = (id) => {
+      return id;
+    };
+
+  var runDependencies = 0;
+
+
+  var dependenciesFulfilled = null;
+  var removeRunDependency = (id) => {
+      runDependencies--;
+
+      Module['monitorRunDependencies']?.(runDependencies);
+
+      if (runDependencies == 0) {
+        if (dependenciesFulfilled) {
+          var callback = dependenciesFulfilled;
+          dependenciesFulfilled = null;
+          callback(); // can add another dependenciesFulfilled
+        }
+      }
+    };
+  var addRunDependency = (id) => {
+      runDependencies++;
+
+      Module['monitorRunDependencies']?.(runDependencies);
+
+    };
+
+
+  var preloadPlugins = [];
+  var FS_handledByPreloadPlugin = async (byteArray, fullname) => {
+      // Ensure plugins are ready.
+      if (typeof Browser != 'undefined') Browser.init();
+
+      for (var plugin of preloadPlugins) {
+        if (plugin['canHandle'](fullname)) {
+          return plugin['handle'](byteArray, fullname);
+        }
+      }
+      // In no plugin handled this file then return the original/unmodified
+      // byteArray.
+      return byteArray;
+    };
+  var FS_preloadFile = async (parent, name, url, canRead, canWrite, dontCreateFile, canOwn, preFinish) => {
+      // TODO we should allow people to just pass in a complete filename instead
+      // of parent and name being that we just join them anyways
+      var fullname = name ? PATH_FS.resolve(PATH.join2(parent, name)) : parent;
+      var dep = getUniqueRunDependency(`cp ${fullname}`); // might have several active requests for the same fullname
+      addRunDependency(dep);
+
+      try {
+        var byteArray = url;
+        if (typeof url == 'string') {
+          byteArray = await asyncLoad(url);
+        }
+
+        byteArray = await FS_handledByPreloadPlugin(byteArray, fullname);
+        preFinish?.();
+        if (!dontCreateFile) {
+          FS_createDataFile(parent, name, byteArray, canRead, canWrite, canOwn);
+        }
+      } finally {
+        removeRunDependency(dep);
+      }
+    };
+  var FS_createPreloadedFile = (parent, name, url, canRead, canWrite, onload, onerror, dontCreateFile, canOwn, preFinish) => {
+      FS_preloadFile(parent, name, url, canRead, canWrite, dontCreateFile, canOwn, preFinish).then(onload).catch(onerror);
+    };
   var FS = {
   root:null,
   mounts:[],
@@ -1616,42 +1616,45 @@ async function createWasm() {
           throw new FS.ErrnoError(44);
         }
         opts.follow_mount ??= true
-  
+
         if (!PATH.isAbs(path)) {
           path = FS.cwd() + '/' + path;
         }
-  
+
         // limit max consecutive symlinks to 40 (SYMLOOP_MAX).
         linkloop: for (var nlinks = 0; nlinks < 40; nlinks++) {
           // split the absolute path
           var parts = path.split('/').filter((p) => !!p);
-  
+
           // start at the root
           var current = FS.root;
           var current_path = '/';
-  
+
           for (var i = 0; i < parts.length; i++) {
             var islast = (i === parts.length-1);
             if (islast && opts.parent) {
               // stop resolving
               break;
             }
-  
+
             if (parts[i] === '.') {
               continue;
             }
-  
+
             if (parts[i] === '..') {
               current_path = PATH.dirname(current_path);
               if (FS.isRoot(current)) {
                 path = current_path + '/' + parts.slice(i + 1).join('/');
+                // We're making progress here, don't let many consecutive ..'s
+                // lead to ELOOP
+                nlinks--;
                 continue linkloop;
               } else {
                 current = current.parent;
               }
               continue;
             }
-  
+
             current_path = PATH.join2(current_path, parts[i]);
             try {
               current = FS.lookupNode(current, parts[i]);
@@ -1664,12 +1667,12 @@ async function createWasm() {
               }
               throw e;
             }
-  
+
             // jump to the mount's root node if this is a mountpoint
             if (FS.isMountpoint(current) && (!islast || opts.follow_mount)) {
               current = current.mounted.root;
             }
-  
+
             // by default, lookupPath will not follow a symlink if it is the final path component.
             // setting opts.follow = true will override this behavior.
             if (FS.isLink(current.mode) && (!islast || opts.follow)) {
@@ -1702,7 +1705,7 @@ async function createWasm() {
       },
   hashName(parentid, name) {
         var hash = 0;
-  
+
         for (var i = 0; i < name.length; i++) {
           hash = ((hash << 5) - hash + name.charCodeAt(i)) | 0;
         }
@@ -1745,9 +1748,9 @@ async function createWasm() {
       },
   createNode(parent, name, mode, rdev) {
         var node = new FS.FSNode(parent, name, mode, rdev);
-  
+
         FS.hashAddNode(node);
-  
+
         return node;
       },
   destroyNode(node) {
@@ -1882,7 +1885,7 @@ async function createWasm() {
       },
   getStream:(fd) => FS.streams[fd],
   createStream(stream, fd = -1) {
-  
+
         // clone it, so we can return an instance of FSStream
         stream = Object.assign(new FS.FSStream(), stream);
         if (fd == -1) {
@@ -1929,15 +1932,15 @@ async function createWasm() {
   getMounts(mount) {
         var mounts = [];
         var check = [mount];
-  
+
         while (check.length) {
           var m = check.pop();
-  
+
           mounts.push(m);
-  
+
           check.push(...m.mounts);
         }
-  
+
         return mounts;
       },
   syncfs(populate, callback) {
@@ -1945,21 +1948,21 @@ async function createWasm() {
           callback = populate;
           populate = false;
         }
-  
+
         FS.syncFSRequests++;
-  
+
         if (FS.syncFSRequests > 1) {
           err(`warning: ${FS.syncFSRequests} FS.syncfs operations in flight at once, probably just doing extra work`);
         }
-  
+
         var mounts = FS.getMounts(FS.root.mount);
         var completed = 0;
-  
+
         function doCallback(errCode) {
           FS.syncFSRequests--;
           return callback(errCode);
         }
-  
+
         function done(errCode) {
           if (errCode) {
             if (!done.errored) {
@@ -1972,92 +1975,91 @@ async function createWasm() {
             doCallback(null);
           }
         };
-  
+
         // sync all mounts
-        mounts.forEach((mount) => {
-          if (!mount.type.syncfs) {
-            return done(null);
+        for (var mount of mounts) {
+          if (mount.type.syncfs) {
+            mount.type.syncfs(mount, populate, done);
+          } else {
+            done(null);
           }
-          mount.type.syncfs(mount, populate, done);
-        });
+        }
       },
   mount(type, opts, mountpoint) {
         var root = mountpoint === '/';
         var pseudo = !mountpoint;
         var node;
-  
+
         if (root && FS.root) {
           throw new FS.ErrnoError(10);
         } else if (!root && !pseudo) {
           var lookup = FS.lookupPath(mountpoint, { follow_mount: false });
-  
+
           mountpoint = lookup.path;  // use the absolute path
           node = lookup.node;
-  
+
           if (FS.isMountpoint(node)) {
             throw new FS.ErrnoError(10);
           }
-  
+
           if (!FS.isDir(node.mode)) {
             throw new FS.ErrnoError(54);
           }
         }
-  
+
         var mount = {
           type,
           opts,
           mountpoint,
           mounts: []
         };
-  
+
         // create a root node for the fs
         var mountRoot = type.mount(mount);
         mountRoot.mount = mount;
         mount.root = mountRoot;
-  
+
         if (root) {
           FS.root = mountRoot;
         } else if (node) {
           // set as a mountpoint
           node.mounted = mount;
-  
+
           // add the new mount to the current mount's children
           if (node.mount) {
             node.mount.mounts.push(mount);
           }
         }
-  
+
         return mountRoot;
       },
   unmount(mountpoint) {
         var lookup = FS.lookupPath(mountpoint, { follow_mount: false });
-  
+
         if (!FS.isMountpoint(lookup.node)) {
           throw new FS.ErrnoError(28);
         }
-  
+
         // destroy the nodes for this mount, and all its child mounts
         var node = lookup.node;
         var mount = node.mounted;
         var mounts = FS.getMounts(mount);
-  
-        Object.keys(FS.nameTable).forEach((hash) => {
-          var current = FS.nameTable[hash];
-  
+
+        for (var [hash, current] of Object.entries(FS.nameTable)) {
           while (current) {
             var next = current.name_next;
-  
+
             if (mounts.includes(current.mount)) {
               FS.destroyNode(current);
             }
-  
+
             current = next;
           }
-        });
-  
+        }
+
         // no longer a mountpoint
         node.mounted = null;
-  
+
         // remove this mount from the child mounts
         var idx = node.mount.mounts.indexOf(mount);
         node.mount.mounts.splice(idx, 1);
@@ -2109,7 +2111,7 @@ async function createWasm() {
           flags: 2,
           namelen: 255,
         };
-  
+
         if (node.node_ops.statfs) {
           Object.assign(rtn, node.node_ops.statfs(node.mount.opts.root));
         }
@@ -2173,13 +2175,13 @@ async function createWasm() {
         var new_name = PATH.basename(new_path);
         // parents must exist
         var lookup, old_dir, new_dir;
-  
+
         // let the errors from non existent directories percolate up
         lookup = FS.lookupPath(old_path, { parent: true });
         old_dir = lookup.node;
         lookup = FS.lookupPath(new_path, { parent: true });
         new_dir = lookup.node;
-  
+
         if (!old_dir || !new_dir) throw new FS.ErrnoError(44);
         // need to be part of the same mount
         if (old_dir.mount !== new_dir.mount) {
@@ -2492,7 +2494,7 @@ async function createWasm() {
         }
         // we've already handled these, don't pass down to the underlying vfs
         flags &= ~(128 | 512 | 131072);
-  
+
         // register the stream with the filesystem
         var stream = FS.createStream({
           node,
@@ -2647,7 +2649,7 @@ async function createWasm() {
         opts.flags = opts.flags || 0;
         opts.encoding = opts.encoding || 'binary';
         if (opts.encoding !== 'utf8' && opts.encoding !== 'binary') {
-          throw new Error(`Invalid encoding type "${opts.encoding}"`);
+          abort(`Invalid encoding type "${opts.encoding}"`);
         }
         var stream = FS.open(path, opts.flags);
         var stat = FS.stat(path);
@@ -2669,7 +2671,7 @@ async function createWasm() {
         if (ArrayBuffer.isView(data)) {
           FS.write(stream, data, 0, data.byteLength, undefined, opts.canOwn);
         } else {
-          throw new Error('Unsupported data type');
+          abort('Unsupported data type');
         }
         FS.close(stream);
       },
@@ -2766,7 +2768,7 @@ async function createWasm() {
         // TODO deprecate the old functionality of a single
         // input / output callback and that utilizes FS.createDevice
         // and instead require a unique set of stream ops
-  
+
         // by default, we symlink the standard streams to the
         // default tty devices. however, if the standard streams
         // have been overwritten we create a unique device for
@@ -2786,7 +2788,7 @@ async function createWasm() {
         } else {
           FS.symlink('/dev/tty1', '/dev/stderr');
         }
-  
+
         // open default streams for the stdin, stdout and stderr devices
         var stdin = FS.open('/dev/stdin', 0);
         var stdout = FS.open('/dev/stdout', 1);
@@ -2794,25 +2796,25 @@ async function createWasm() {
       },
   staticInit() {
         FS.nameTable = new Array(4096);
-  
+
         FS.mount(MEMFS, {}, '/');
-  
+
         FS.createDefaultDirectories();
         FS.createDefaultDevices();
         FS.createSpecialDirectories();
-  
+
         FS.filesystems = {
           'MEMFS': MEMFS,
         };
       },
   init(input, output, error) {
         FS.initialized = true;
-  
+
         // Allow Module.stdin etc. to provide defaults, if none explicitly passed to us here
         input ??= Module['stdin'];
         output ??= Module['stdout'];
         error ??= Module['stderr'];
-  
+
         FS.createStandardStreams(input, output, error);
       },
   quit() {
@@ -2959,12 +2961,11 @@ async function createWasm() {
       },
   forceLoadFile(obj) {
         if (obj.isDevice || obj.isFolder || obj.link || obj.contents) return true;
-        if (typeof XMLHttpRequest != 'undefined') {
-          throw new Error("Lazy loading should have been performed (contents set) in createLazyFile, but it was not. Lazy loading only works in web workers. Use --embed-file or --preload-file in emcc on the main thread.");
+        if (globalThis.XMLHttpRequest) {
+          abort("Lazy loading should have been performed (contents set) in createLazyFile, but it was not. Lazy loading only works in web workers. Use --embed-file or --preload-file in emcc on the main thread.");
         } else { // Command-line.
           try {
             obj.contents = readBinary(obj.url);
-            obj.usedBytes = obj.contents.length;
           } catch (e) {
             throw new FS.ErrnoError(29);
           }
@@ -2992,34 +2993,34 @@ async function createWasm() {
             var xhr = new XMLHttpRequest();
             xhr.open('HEAD', url, false);
             xhr.send(null);
-            if (!(xhr.status >= 200 && xhr.status < 300 || xhr.status === 304)) throw new Error("Couldn't load " + url + ". Status: " + xhr.status);
+            if (!(xhr.status >= 200 && xhr.status < 300 || xhr.status === 304)) abort("Couldn't load " + url + ". Status: " + xhr.status);
             var datalength = Number(xhr.getResponseHeader("Content-length"));
             var header;
             var hasByteServing = (header = xhr.getResponseHeader("Accept-Ranges")) && header === "bytes";
             var usesGzip = (header = xhr.getResponseHeader("Content-Encoding")) && header === "gzip";
-  
+
             var chunkSize = 1024*1024; // Chunk size in bytes
-  
+
             if (!hasByteServing) chunkSize = datalength;
-  
+
             // Function to get a range from the remote URL.
             var doXHR = (from, to) => {
-              if (from > to) throw new Error("invalid range (" + from + ", " + to + ") or no bytes requested!");
-              if (to > datalength-1) throw new Error("only " + datalength + " bytes available! programmer error!");
-  
+              if (from > to) abort("invalid range (" + from + ", " + to + ") or no bytes requested!");
+              if (to > datalength-1) abort("only " + datalength + " bytes available! programmer error!");
+
               // TODO: Use mozResponseArrayBuffer, responseStream, etc. if available.
               var xhr = new XMLHttpRequest();
               xhr.open('GET', url, false);
               if (datalength !== chunkSize) xhr.setRequestHeader("Range", "bytes=" + from + "-" + to);
-  
+
               // Some hints to the browser that we want binary data.
               xhr.responseType = 'arraybuffer';
               if (xhr.overrideMimeType) {
                 xhr.overrideMimeType('text/plain; charset=x-user-defined');
               }
-  
+
               xhr.send(null);
-              if (!(xhr.status >= 200 && xhr.status < 300 || xhr.status === 304)) throw new Error("Couldn't load " + url + ". Status: " + xhr.status);
+              if (!(xhr.status >= 200 && xhr.status < 300 || xhr.status === 304)) abort("Couldn't load " + url + ". Status: " + xhr.status);
               if (xhr.response !== undefined) {
                 return new Uint8Array(/** @type{Array<number>} */(xhr.response || []));
               }
@@ -3033,10 +3034,10 @@ async function createWasm() {
               if (typeof lazyArray.chunks[chunkNum] == 'undefined') {
                 lazyArray.chunks[chunkNum] = doXHR(start, end);
               }
-              if (typeof lazyArray.chunks[chunkNum] == 'undefined') throw new Error('doXHR failed!');
+              if (typeof lazyArray.chunks[chunkNum] == 'undefined') abort('doXHR failed!');
               return lazyArray.chunks[chunkNum];
             });
-  
+
             if (usesGzip || !datalength) {
               // if the server uses gzip or doesn't supply the length, we have to download the whole file to get the (uncompressed) length
               chunkSize = datalength = 1; // this will force getter(0)/doXHR do download the whole file
@@ -3044,7 +3045,7 @@ async function createWasm() {
               chunkSize = datalength;
               out("LazyFiles on gzip forces download of the whole file when length is accessed");
             }
-  
+
             this._length = datalength;
             this._chunkSize = chunkSize;
             this.lengthKnown = true;
@@ -3062,15 +3063,15 @@ async function createWasm() {
             return this._chunkSize;
           }
         }
-  
-        if (typeof XMLHttpRequest != 'undefined') {
-          if (!ENVIRONMENT_IS_WORKER) throw 'Cannot do synchronous binary XHRs outside webworkers in modern browsers. Use --embed-file or --preload-file in emcc';
+
+        if (globalThis.XMLHttpRequest) {
+          if (!ENVIRONMENT_IS_WORKER) abort('Cannot do synchronous binary XHRs outside webworkers in modern browsers. Use --embed-file or --preload-file in emcc');
           var lazyArray = new LazyUint8Array();
           var properties = { isDevice: false, contents: lazyArray };
         } else {
           var properties = { isDevice: false, url: url };
         }
-  
+
         var node = FS.createFile(parent, name, properties, canRead, canWrite);
         // This is a total hack, but I want to get this lazy file code out of the
         // core of MEMFS. If we want to keep this lazy file concept I feel it should
@@ -3089,14 +3090,12 @@ async function createWasm() {
         });
         // override each stream op with one that tries to force load the lazy file first
         var stream_ops = {};
-        var keys = Object.keys(node.stream_ops);
-        keys.forEach((key) => {
-          var fn = node.stream_ops[key];
+        for (const [key, fn] of Object.entries(node.stream_ops)) {
           stream_ops[key] = (...args) => {
             FS.forceLoadFile(node);
             return fn(...args);
           };
-        });
+        }
         function writeChunks(stream, buffer, offset, length, position) {
           var contents = stream.node.contents;
           if (position >= contents.length)
@@ -3132,8 +3131,8 @@ async function createWasm() {
         return node;
       },
   };
-  
-  
+
+
     /**
      * Given a pointer 'ptr' to a null-terminated UTF8-encoded string in the
      * emscripten HEAP, returns a copy of that string as a Javascript String object.
@@ -3143,14 +3142,12 @@ async function createWasm() {
      *   maximum number of bytes to read. You can omit this parameter to scan the
      *   string until the first 0 byte. If maxBytesToRead is passed, and the string
      *   at [ptr, ptr+maxBytesToReadr[ contains a null byte in the middle, then the
-     *   string will cut short at that byte index (i.e. maxBytesToRead will not
-     *   produce a string of exact length [ptr, ptr+maxBytesToRead[) N.B. mixing
-     *   frequent uses of UTF8ToString() with and without maxBytesToRead may throw
-     *   JS JIT optimizations off, so it is worth to consider consistently using one
+     *   string will cut short at that byte index.
+     * @param {boolean=} ignoreNul - If true, the function will not stop on a NUL character.
      * @return {string}
      */
-  var UTF8ToString = (ptr, maxBytesToRead) => {
-      return ptr ? UTF8ArrayToString(HEAPU8, ptr, maxBytesToRead) : '';
+  var UTF8ToString = (ptr, maxBytesToRead, ignoreNul) => {
+      return ptr ? UTF8ArrayToString(HEAPU8, ptr, maxBytesToRead, ignoreNul) : '';
     };
   var SYSCALLS = {
   DEFAULT_POLLMASK:5,
@@ -3175,12 +3172,12 @@ async function createWasm() {
         return dir + '/' + path;
       },
   writeStat(buf, stat) {
-        HEAP32[((buf)>>2)] = stat.dev;
-        HEAP32[(((buf)+(4))>>2)] = stat.mode;
+        HEAPU32[((buf)>>2)] = stat.dev;
+        HEAPU32[(((buf)+(4))>>2)] = stat.mode;
         HEAPU32[(((buf)+(8))>>2)] = stat.nlink;
-        HEAP32[(((buf)+(12))>>2)] = stat.uid;
-        HEAP32[(((buf)+(16))>>2)] = stat.gid;
-        HEAP32[(((buf)+(20))>>2)] = stat.rdev;
+        HEAPU32[(((buf)+(12))>>2)] = stat.uid;
+        HEAPU32[(((buf)+(16))>>2)] = stat.gid;
+        HEAPU32[(((buf)+(20))>>2)] = stat.rdev;
         HEAP64[(((buf)+(24))>>3)] = BigInt(stat.size);
         HEAP32[(((buf)+(32))>>2)] = 4096;
         HEAP32[(((buf)+(36))>>2)] = stat.blocks;
@@ -3197,16 +3194,16 @@ async function createWasm() {
         return 0;
       },
   writeStatFs(buf, stats) {
-        HEAP32[(((buf)+(4))>>2)] = stats.bsize;
-        HEAP32[(((buf)+(40))>>2)] = stats.bsize;
-        HEAP32[(((buf)+(8))>>2)] = stats.blocks;
-        HEAP32[(((buf)+(12))>>2)] = stats.bfree;
-        HEAP32[(((buf)+(16))>>2)] = stats.bavail;
-        HEAP32[(((buf)+(20))>>2)] = stats.files;
-        HEAP32[(((buf)+(24))>>2)] = stats.ffree;
-        HEAP32[(((buf)+(28))>>2)] = stats.fsid;
-        HEAP32[(((buf)+(44))>>2)] = stats.flags;  // ST_NOSUID
-        HEAP32[(((buf)+(36))>>2)] = stats.namelen;
+        HEAPU32[(((buf)+(4))>>2)] = stats.bsize;
+        HEAPU32[(((buf)+(60))>>2)] = stats.bsize;
+        HEAP64[(((buf)+(8))>>3)] = BigInt(stats.blocks);
+        HEAP64[(((buf)+(16))>>3)] = BigInt(stats.bfree);
+        HEAP64[(((buf)+(24))>>3)] = BigInt(stats.bavail);
+        HEAP64[(((buf)+(32))>>3)] = BigInt(stats.files);
+        HEAP64[(((buf)+(40))>>3)] = BigInt(stats.ffree);
+        HEAPU32[(((buf)+(48))>>2)] = stats.fsid;
+        HEAPU32[(((buf)+(64))>>2)] = stats.flags;  // ST_NOSUID
+        HEAPU32[(((buf)+(56))>>2)] = stats.namelen;
       },
   doMsync(addr, stream, len, flags, offset) {
         if (!FS.isFile(stream.node.mode)) {
@@ -3232,7 +3229,7 @@ async function createWasm() {
   function ___syscall_fcntl64(fd, cmd, varargs) {
   SYSCALLS.varargs = varargs;
   try {
-  
+
       var stream = SYSCALLS.getStreamFromFD(fd);
       switch (cmd) {
         case 0: {
@@ -3281,7 +3278,7 @@ async function createWasm() {
 
   function ___syscall_fstat64(fd, buf) {
   try {
-  
+
       return SYSCALLS.writeStat(buf, FS.fstat(fd));
     } catch (e) {
     if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
@@ -3289,11 +3286,11 @@ async function createWasm() {
   }
   }
 
-  
+
   function ___syscall_ioctl(fd, op, varargs) {
   SYSCALLS.varargs = varargs;
   try {
-  
+
       var stream = SYSCALLS.getStreamFromFD(fd);
       switch (op) {
         case 21509: {
@@ -3350,6 +3347,7 @@ async function createWasm() {
           if (!stream.tty) return -59;
           return -28; // not supported
         }
+        case 21537:
         case 21531: {
           var argp = syscallGetVarargP();
           return FS.ioctl(stream, op, argp);
@@ -3387,7 +3385,7 @@ async function createWasm() {
 
   function ___syscall_lstat64(path, buf) {
   try {
-  
+
       path = SYSCALLS.getStr(path);
       return SYSCALLS.writeStat(buf, FS.lstat(path));
     } catch (e) {
@@ -3398,7 +3396,7 @@ async function createWasm() {
 
   function ___syscall_newfstatat(dirfd, path, buf, flags) {
   try {
-  
+
       path = SYSCALLS.getStr(path);
       var nofollow = flags & 256;
       var allowEmpty = flags & 4096;
@@ -3411,11 +3409,11 @@ async function createWasm() {
   }
   }
 
-  
+
   function ___syscall_openat(dirfd, path, flags, varargs) {
   SYSCALLS.varargs = varargs;
   try {
-  
+
       path = SYSCALLS.getStr(path);
       path = SYSCALLS.calculateAt(dirfd, path);
       var mode = varargs ? syscallGetVarargI() : 0;
@@ -3428,7 +3426,7 @@ async function createWasm() {
 
   function ___syscall_stat64(path, buf) {
   try {
-  
+
       path = SYSCALLS.getStr(path);
       return SYSCALLS.writeStat(buf, FS.stat(path));
     } catch (e) {
@@ -3442,7 +3440,7 @@ async function createWasm() {
 
   var structRegistrations = {
   };
-  
+
   var runDestructors = (destructors) => {
       while (destructors.length) {
         var ptr = destructors.pop();
@@ -3450,26 +3448,26 @@ async function createWasm() {
         del(ptr);
       }
     };
-  
+
   /** @suppress {globalThis} */
   function readPointer(pointer) {
-      return this['fromWireType'](HEAPU32[((pointer)>>2)]);
+      return this.fromWireType(HEAPU32[((pointer)>>2)]);
     }
-  
+
   var awaitingDependencies = {
   };
-  
+
   var registeredTypes = {
   };
-  
+
   var typeDependencies = {
   };
-  
+
   var InternalError =  class InternalError extends Error { constructor(message) { super(message); this.name = 'InternalError'; }};
   var throwInternalError = (message) => { throw new InternalError(message); };
   var whenDependentTypesAreResolved = (myTypes, dependentTypes, getTypeConverters) => {
       myTypes.forEach((type) => typeDependencies[type] = dependentTypes);
-  
+
       function onComplete(typeConverters) {
         var myTypeConverters = getTypeConverters(typeConverters);
         if (myTypeConverters.length !== myTypes.length) {
@@ -3479,11 +3477,11 @@ async function createWasm() {
           registerType(myTypes[i], myTypeConverters[i]);
         }
       }
-  
+
       var typeConverters = new Array(dependentTypes.length);
       var unregisteredTypes = [];
       var registered = 0;
-      dependentTypes.forEach((dt, i) => {
+      for (let [i, dt] of dependentTypes.entries()) {
         if (registeredTypes.hasOwnProperty(dt)) {
           typeConverters[i] = registeredTypes[dt];
         } else {
@@ -3499,7 +3497,7 @@ async function createWasm() {
             }
           });
         }
-      });
+      }
       if (0 === unregisteredTypes.length) {
         onComplete(typeConverters);
       }
@@ -3507,7 +3505,7 @@ async function createWasm() {
   var __embind_finalize_value_object = (structType) => {
       var reg = structRegistrations[structType];
       delete structRegistrations[structType];
-  
+
       var rawConstructor = reg.rawConstructor;
       var rawDestructor = reg.rawDestructor;
       var fieldRecords = reg.fields;
@@ -3515,29 +3513,27 @@ async function createWasm() {
                 concat(fieldRecords.map((field) => field.setterArgumentType));
       whenDependentTypesAreResolved([structType], fieldTypes, (fieldTypes) => {
         var fields = {};
-        fieldRecords.forEach((field, i) => {
-          var fieldName = field.fieldName;
-          var getterReturnType = fieldTypes[i];
-          var optional = fieldTypes[i].optional;
-          var getter = field.getter;
-          var getterContext = field.getterContext;
-          var setterArgumentType = fieldTypes[i + fieldRecords.length];
-          var setter = field.setter;
-          var setterContext = field.setterContext;
-          fields[fieldName] = {
-            read: (ptr) => getterReturnType['fromWireType'](getter(getterContext, ptr)),
+        for (var [i, field] of fieldRecords.entries()) {
+          const getterReturnType = fieldTypes[i];
+          const getter = field.getter;
+          const getterContext = field.getterContext;
+          const setterArgumentType = fieldTypes[i + fieldRecords.length];
+          const setter = field.setter;
+          const setterContext = field.setterContext;
+          fields[field.fieldName] = {
+            read: (ptr) => getterReturnType.fromWireType(getter(getterContext, ptr)),
             write: (ptr, o) => {
               var destructors = [];
-              setter(setterContext, ptr, setterArgumentType['toWireType'](destructors, o));
+              setter(setterContext, ptr, setterArgumentType.toWireType(destructors, o));
               runDestructors(destructors);
             },
-            optional,
+            optional: getterReturnType.optional,
           };
-        });
-  
+        }
+
         return [{
           name: reg.name,
-          'fromWireType': (ptr) => {
+          fromWireType: (ptr) => {
             var rv = {};
             for (var i in fields) {
               rv[i] = fields[i].read(ptr);
@@ -3545,7 +3541,7 @@ async function createWasm() {
             rawDestructor(ptr);
             return rv;
           },
-          'toWireType': (destructors, o) => {
+          toWireType: (destructors, o) => {
             // todo: Here we have an opportunity for -O3 level "unsafe" optimizations:
             // assume all fields are present without checking.
             for (var fieldName in fields) {
@@ -3562,8 +3558,7 @@ async function createWasm() {
             }
             return ptr;
           },
-          argPackAdvance: GenericWireTypeSize,
-          'readValueFromPointer': readPointer,
+          readValueFromPointer: readPointer,
           destructorFunction: rawDestructor,
         }];
       });
@@ -3577,10 +3572,10 @@ async function createWasm() {
         str += String.fromCharCode(ch);
       }
     };
-  
-  
-  
-  
+
+
+
+
   var BindingError =  class BindingError extends Error { constructor(message) { super(message); this.name = 'BindingError'; }};
   var throwBindingError = (message) => { throw new BindingError(message); };
   /** @param {Object=} options */
@@ -3596,10 +3591,10 @@ async function createWasm() {
           throwBindingError(`Cannot register type '${name}' twice`);
         }
       }
-  
+
       registeredTypes[rawType] = registeredInstance;
       delete typeDependencies[rawType];
-  
+
       if (awaitingDependencies.hasOwnProperty(rawType)) {
         var callbacks = awaitingDependencies[rawType];
         delete awaitingDependencies[rawType];
@@ -3610,7 +3605,7 @@ async function createWasm() {
   function registerType(rawType, registeredInstance, options = {}) {
       return sharedRegisterType(rawType, registeredInstance, options);
     }
-  
+
   var integerReadValueFromPointer = (name, width, signed) => {
       // integers are quite common, so generate very specialized functions
       switch (width) {
@@ -3633,9 +3628,9 @@ async function createWasm() {
   /** @suppress {globalThis} */
   var __embind_register_bigint = (primitiveType, name, size, minRange, maxRange) => {
       name = AsciiToString(name);
-  
+
       const isUnsignedType = minRange === 0n;
-  
+
       let fromWireType = (value) => value;
       if (isUnsignedType) {
         // uint64 get converted to int64 in ABI, fix them up like we do for 32-bit integers.
@@ -3645,48 +3640,44 @@ async function createWasm() {
         }
         maxRange = fromWireType(maxRange);
       }
-  
+
       registerType(primitiveType, {
         name,
-        'fromWireType': fromWireType,
-        'toWireType': (destructors, value) => {
+        fromWireType: fromWireType,
+        toWireType: (destructors, value) => {
           if (typeof value == "number") {
             value = BigInt(value);
           }
           return value;
         },
-        argPackAdvance: GenericWireTypeSize,
-        'readValueFromPointer': integerReadValueFromPointer(name, size, !isUnsignedType),
+        readValueFromPointer: integerReadValueFromPointer(name, size, !isUnsignedType),
         destructorFunction: null, // This type does not need a destructor
       });
     };
 
-  
-  
-  var GenericWireTypeSize = 8;
+
   /** @suppress {globalThis} */
   var __embind_register_bool = (rawType, name, trueValue, falseValue) => {
       name = AsciiToString(name);
       registerType(rawType, {
         name,
-        'fromWireType': function(wt) {
+        fromWireType: function(wt) {
           // ambiguous emscripten ABI: sometimes return values are
           // true or false, and sometimes integers (0 or 1)
           return !!wt;
         },
-        'toWireType': function(destructors, o) {
+        toWireType: function(destructors, o) {
           return o ? trueValue : falseValue;
         },
-        argPackAdvance: GenericWireTypeSize,
-        'readValueFromPointer': function(pointer) {
-          return this['fromWireType'](HEAPU8[pointer]);
+        readValueFromPointer: function(pointer) {
+          return this.fromWireType(HEAPU8[pointer]);
         },
         destructorFunction: null, // This type does not need a destructor
       });
     };
 
-  
-  
+
+
   var shallowCopyInternalPointer = (o) => {
       return {
         count: o.count,
@@ -3698,18 +3689,18 @@ async function createWasm() {
         smartPtrType: o.smartPtrType,
       };
     };
-  
+
   var throwInstanceAlreadyDeleted = (obj) => {
       function getInstanceTypeName(handle) {
         return handle.$$.ptrType.registeredClass.name;
       }
       throwBindingError(getInstanceTypeName(obj) + ' instance already deleted');
     };
-  
+
   var finalizationRegistry = false;
-  
+
   var detachFinalizer = (handle) => {};
-  
+
   var runDestructor = ($$) => {
       if ($$.smartPtr) {
         $$.smartPtrType.rawDestructor($$.smartPtr);
@@ -3725,7 +3716,7 @@ async function createWasm() {
       }
     };
   var attachFinalizer = (handle) => {
-      if ('undefined' === typeof FinalizationRegistry) {
+      if (!globalThis.FinalizationRegistry) {
         attachFinalizer = (handle) => handle;
         return handle;
       }
@@ -3749,10 +3740,10 @@ async function createWasm() {
       detachFinalizer = (handle) => finalizationRegistry.unregister(handle);
       return attachFinalizer(handle);
     };
-  
-  
-  
-  
+
+
+
+
   var deletionQueue = [];
   var flushPendingDeletes = () => {
       while (deletionQueue.length) {
@@ -3761,11 +3752,11 @@ async function createWasm() {
         obj['delete']();
       }
     };
-  
+
   var delayFunction;
   var init_ClassHandle = () => {
       let proto = ClassHandle.prototype;
-  
+
       Object.assign(proto, {
         "isAliasOf"(other) {
           if (!(this instanceof ClassHandle)) {
@@ -3774,31 +3765,31 @@ async function createWasm() {
           if (!(other instanceof ClassHandle)) {
             return false;
           }
-  
+
           var leftClass = this.$$.ptrType.registeredClass;
           var left = this.$$.ptr;
           other.$$ = /** @type {Object} */ (other.$$);
           var rightClass = other.$$.ptrType.registeredClass;
           var right = other.$$.ptr;
-  
+
           while (leftClass.baseClass) {
             left = leftClass.upcast(left);
             leftClass = leftClass.baseClass;
           }
-  
+
           while (rightClass.baseClass) {
             right = rightClass.upcast(right);
             rightClass = rightClass.baseClass;
           }
-  
+
           return leftClass === rightClass && left === right;
         },
-  
+
         "clone"() {
           if (!this.$$.ptr) {
             throwInstanceAlreadyDeleted(this);
           }
-  
+
           if (this.$$.preservePointerOnDelete) {
             this.$$.count.value += 1;
             return this;
@@ -3808,35 +3799,35 @@ async function createWasm() {
                 value: shallowCopyInternalPointer(this.$$),
               }
             }));
-  
+
             clone.$$.count.value += 1;
             clone.$$.deleteScheduled = false;
             return clone;
           }
         },
-  
+
         "delete"() {
           if (!this.$$.ptr) {
             throwInstanceAlreadyDeleted(this);
           }
-  
+
           if (this.$$.deleteScheduled && !this.$$.preservePointerOnDelete) {
             throwBindingError('Object already scheduled for deletion');
           }
-  
+
           detachFinalizer(this);
           releaseClassHandle(this.$$);
-  
+
           if (!this.$$.preservePointerOnDelete) {
             this.$$.smartPtr = undefined;
             this.$$.ptr = undefined;
           }
         },
-  
+
         "isDeleted"() {
           return !this.$$.ptr;
         },
-  
+
         "deleteLater"() {
           if (!this.$$.ptr) {
             throwInstanceAlreadyDeleted(this);
@@ -3852,7 +3843,7 @@ async function createWasm() {
           return this;
         },
       });
-  
+
       // Support `using ...` from https://github.com/tc39/proposal-explicit-resource-management.
       const symbolDispose = Symbol.dispose;
       if (symbolDispose) {
@@ -3862,12 +3853,12 @@ async function createWasm() {
   /** @constructor */
   function ClassHandle() {
     }
-  
+
   var createNamedFunction = (name, func) => Object.defineProperty(func, 'name', { value: name });
-  
+
   var registeredPointers = {
   };
-  
+
   var ensureOverloadTable = (proto, methodName, humanName) => {
       if (undefined === proto[methodName].overloadTable) {
         var prevFunc = proto[methodName];
@@ -3884,14 +3875,14 @@ async function createWasm() {
         proto[methodName].overloadTable[prevFunc.argCount] = prevFunc;
       }
     };
-  
+
   /** @param {number=} numArguments */
   var exposePublicSymbol = (name, value, numArguments) => {
       if (Module.hasOwnProperty(name)) {
         if (undefined === numArguments || (undefined !== Module[name].overloadTable && undefined !== Module[name].overloadTable[numArguments])) {
           throwBindingError(`Cannot register public name '${name}' twice`);
         }
-  
+
         // We are exposing a function with the same name as an existing function. Create an overload table and a function selector
         // that routes between the two.
         ensureOverloadTable(Module, name, name);
@@ -3905,9 +3896,9 @@ async function createWasm() {
         Module[name].argCount = numArguments;
       }
     };
-  
+
   var char_0 = 48;
-  
+
   var char_9 = 57;
   var makeLegalFunctionName = (name) => {
       name = name.replace(/[^a-zA-Z0-9_]/g, '$');
@@ -3917,8 +3908,8 @@ async function createWasm() {
       }
       return name;
     };
-  
-  
+
+
   /** @constructor */
   function RegisteredClass(name,
                                constructor,
@@ -3938,8 +3929,8 @@ async function createWasm() {
       this.downcast = downcast;
       this.pureVirtualFunctions = [];
     }
-  
-  
+
+
   var upcastPointer = (ptr, ptrClass, desiredClass) => {
       while (ptrClass !== desiredClass) {
         if (!ptrClass.upcast) {
@@ -3950,7 +3941,7 @@ async function createWasm() {
       }
       return ptr;
     };
-  
+
   var embindRepr = (v) => {
       if (v === null) {
           return 'null';
@@ -3970,7 +3961,7 @@ async function createWasm() {
         }
         return 0;
       }
-  
+
       if (!handle.$$) {
         throwBindingError(`Cannot pass "${embindRepr(handle)}" as a ${this.name}`);
       }
@@ -3981,8 +3972,8 @@ async function createWasm() {
       var ptr = upcastPointer(handle.$$.ptr, handleClass, this.registeredClass);
       return ptr;
     }
-  
-  
+
+
   /** @suppress {globalThis} */
   function genericPointerToWireType(destructors, handle) {
       var ptr;
@@ -3990,7 +3981,7 @@ async function createWasm() {
         if (this.isReference) {
           throwBindingError(`null is not a valid ${this.name}`);
         }
-  
+
         if (this.isSmartPointer) {
           ptr = this.rawConstructor();
           if (destructors !== null) {
@@ -4001,7 +3992,7 @@ async function createWasm() {
           return 0;
         }
       }
-  
+
       if (!handle || !handle.$$) {
         throwBindingError(`Cannot pass "${embindRepr(handle)}" as a ${this.name}`);
       }
@@ -4013,7 +4004,7 @@ async function createWasm() {
       }
       var handleClass = handle.$$.ptrType.registeredClass;
       ptr = upcastPointer(handle.$$.ptr, handleClass, this.registeredClass);
-  
+
       if (this.isSmartPointer) {
         // TODO: this is not strictly true
         // We could support BY_EMVAL conversions from raw pointers to smart pointers
@@ -4021,7 +4012,7 @@ async function createWasm() {
         if (undefined === handle.$$.smartPtr) {
           throwBindingError('Passing raw pointer to smart pointer is illegal');
         }
-  
+
         switch (this.sharingPolicy) {
           case 0: // NONE
             // no upcasting
@@ -4031,11 +4022,11 @@ async function createWasm() {
               throwBindingError(`Cannot convert argument of type ${(handle.$$.smartPtrType ? handle.$$.smartPtrType.name : handle.$$.ptrType.name)} to parameter type ${this.name}`);
             }
             break;
-  
+
           case 1: // INTRUSIVE
             ptr = handle.$$.smartPtr;
             break;
-  
+
           case 2: // BY_EMVAL
             if (handle.$$.smartPtrType === this) {
               ptr = handle.$$.smartPtr;
@@ -4050,16 +4041,16 @@ async function createWasm() {
               }
             }
             break;
-  
+
           default:
             throwBindingError('Unsupporting sharing policy');
         }
       }
       return ptr;
     }
-  
-  
-  
+
+
+
   /** @suppress {globalThis} */
   function nonConstNoSmartPtrRawPointerToWireType(destructors, handle) {
       if (handle === null) {
@@ -4068,7 +4059,7 @@ async function createWasm() {
         }
         return 0;
       }
-  
+
       if (!handle.$$) {
         throwBindingError(`Cannot pass "${embindRepr(handle)}" as a ${this.name}`);
       }
@@ -4082,9 +4073,9 @@ async function createWasm() {
       var ptr = upcastPointer(handle.$$.ptr, handleClass, this.registeredClass);
       return ptr;
     }
-  
-  
-  
+
+
+
   var downcastPointer = (ptr, ptrClass, desiredClass) => {
       if (ptrClass === desiredClass) {
         return ptr;
@@ -4092,18 +4083,18 @@ async function createWasm() {
       if (undefined === desiredClass.baseClass) {
         return null; // no conversion
       }
-  
+
       var rv = downcastPointer(ptr, ptrClass, desiredClass.baseClass);
       if (rv === null) {
         return null;
       }
       return desiredClass.downcast(rv);
     };
-  
-  
+
+
   var registeredInstances = {
   };
-  
+
   var getBasestPointer = (class_, ptr) => {
       if (ptr === undefined) {
           throwBindingError('ptr should not be undefined');
@@ -4118,8 +4109,8 @@ async function createWasm() {
       ptr = getBasestPointer(class_, ptr);
       return registeredInstances[ptr];
     };
-  
-  
+
+
   var makeClassHandle = (prototype, record) => {
       if (!record.ptrType || !record.ptr) {
         throwInternalError('makeClassHandle requires ptr and ptrType');
@@ -4140,14 +4131,14 @@ async function createWasm() {
   /** @suppress {globalThis} */
   function RegisteredPointer_fromWireType(ptr) {
       // ptr is a raw pointer (or a raw smartpointer)
-  
+
       // rawPointer is a maybe-null raw pointer
       var rawPointer = this.getPointee(ptr);
       if (!rawPointer) {
         this.destructor(ptr);
         return null;
       }
-  
+
       var registeredInstance = getInheritedInstance(this.registeredClass, rawPointer);
       if (undefined !== registeredInstance) {
         // JS object has been neutered, time to repopulate it
@@ -4163,7 +4154,7 @@ async function createWasm() {
           return rv;
         }
       }
-  
+
       function makeDefaultHandle() {
         if (this.isSmartPointer) {
           return makeClassHandle(this.registeredClass.instancePrototype, {
@@ -4179,13 +4170,13 @@ async function createWasm() {
           });
         }
       }
-  
+
       var actualType = this.registeredClass.getActualType(rawPointer);
       var registeredPointerRecord = registeredPointers[actualType];
       if (!registeredPointerRecord) {
         return makeDefaultHandle.call(this);
       }
-  
+
       var toType;
       if (this.isConst) {
         toType = registeredPointerRecord.constPointerType;
@@ -4213,7 +4204,6 @@ async function createWasm() {
         });
       }
     }
-  
   var init_RegisteredPointer = () => {
       Object.assign(RegisteredPointer.prototype, {
         getPointee(ptr) {
@@ -4225,9 +4215,8 @@ async function createWasm() {
         destructor(ptr) {
           this.rawDestructor?.(ptr);
         },
-        argPackAdvance: GenericWireTypeSize,
-        'readValueFromPointer': readPointer,
-        'fromWireType': RegisteredPointer_fromWireType,
+        readValueFromPointer: readPointer,
+        fromWireType: RegisteredPointer_fromWireType,
       });
     };
   /** @constructor
@@ -4243,7 +4232,7 @@ async function createWasm() {
       registeredClass,
       isReference,
       isConst,
-  
+
       // smart pointer properties
       isSmartPointer,
       pointeeType,
@@ -4257,7 +4246,7 @@ async function createWasm() {
       this.registeredClass = registeredClass;
       this.isReference = isReference;
       this.isConst = isConst;
-  
+
       // smart pointer properties
       this.isSmartPointer = isSmartPointer;
       this.pointeeType = pointeeType;
@@ -4266,24 +4255,24 @@ async function createWasm() {
       this.rawConstructor = rawConstructor;
       this.rawShare = rawShare;
       this.rawDestructor = rawDestructor;
-  
+
       if (!isSmartPointer && registeredClass.baseClass === undefined) {
         if (isConst) {
-          this['toWireType'] = constNoSmartPtrRawPointerToWireType;
+          this.toWireType = constNoSmartPtrRawPointerToWireType;
           this.destructorFunction = null;
         } else {
-          this['toWireType'] = nonConstNoSmartPtrRawPointerToWireType;
+          this.toWireType = nonConstNoSmartPtrRawPointerToWireType;
           this.destructorFunction = null;
         }
       } else {
-        this['toWireType'] = genericPointerToWireType;
+        this.toWireType = genericPointerToWireType;
         // Here we must leave this.destructorFunction undefined, since whether genericPointerToWireType returns
         // a pointer that needs to be freed up is runtime-dependent, and cannot be evaluated at registration time.
         // TODO: Create an alternative mechanism that allows removing the use of var destructors = []; array in
         //       craftInvokerFunction altogether.
       }
     }
-  
+
   /** @param {number=} numArguments */
   var replacePublicSymbol = (name, value, numArguments) => {
       if (!Module.hasOwnProperty(name)) {
@@ -4297,13 +4286,12 @@ async function createWasm() {
         Module[name].argCount = numArguments;
       }
     };
-  
-  
-  
+
+
+
   var wasmTableMirror = [];
-  
-  /** @type {WebAssembly.Table} */
-  var wasmTable;
+
+
   var getWasmTableEntry = (funcPtr) => {
       var func = wasmTableMirror[funcPtr];
       if (!func) {
@@ -4313,27 +4301,27 @@ async function createWasm() {
       return func;
     };
   var embind__requireFunction = (signature, rawFunction, isAsync = false) => {
-  
+
       signature = AsciiToString(signature);
-  
+
       function makeDynCaller() {
         var rtn = getWasmTableEntry(rawFunction);
         return rtn;
       }
-  
+
       var fp = makeDynCaller();
       if (typeof fp != 'function') {
           throwBindingError(`unknown function pointer with signature ${signature}: ${rawFunction}`);
       }
       return fp;
     };
-  
-  
-  
+
+
+
   class UnboundTypeError extends Error {}
-  
-  
-  
+
+
+
   var getTypeName = (type) => {
       var ptr = ___getTypeName(type);
       var rv = AsciiToString(ptr);
@@ -4358,10 +4346,10 @@ async function createWasm() {
         seen[type] = true;
       }
       types.forEach(visit);
-  
+
       throw new UnboundTypeError(`${message}: ` + unboundTypes.map(getTypeName).join([', ']));
     };
-  
+
   var __embind_register_class = (rawType,
                              rawPointerType,
                              rawConstPointerType,
@@ -4381,18 +4369,18 @@ async function createWasm() {
       downcast &&= embind__requireFunction(downcastSignature, downcast);
       rawDestructor = embind__requireFunction(destructorSignature, rawDestructor);
       var legalFunctionName = makeLegalFunctionName(name);
-  
+
       exposePublicSymbol(legalFunctionName, function() {
         // this code cannot run if baseClassRawType is zero
         throwUnboundTypeError(`Cannot construct ${name} due to unbound types`, [baseClassRawType]);
       });
-  
+
       whenDependentTypesAreResolved(
         [rawType, rawPointerType, rawConstPointerType],
         baseClassRawType ? [baseClassRawType] : [],
         (base) => {
           base = base[0];
-  
+
           var baseClass;
           var basePrototype;
           if (baseClassRawType) {
@@ -4401,7 +4389,7 @@ async function createWasm() {
           } else {
             basePrototype = ClassHandle.prototype;
           }
-  
+
           var constructor = createNamedFunction(name, function(...args) {
             if (Object.getPrototypeOf(this) !== instancePrototype) {
               throw new BindingError(`Use 'new' to construct ${name}`);
@@ -4415,13 +4403,13 @@ async function createWasm() {
             }
             return body.apply(this, args);
           });
-  
+
           var instancePrototype = Object.create(basePrototype, {
             constructor: { value: constructor },
           });
-  
+
           constructor.prototype = instancePrototype;
-  
+
           var registeredClass = new RegisteredClass(name,
                                                     constructor,
                                                     instancePrototype,
@@ -4430,39 +4418,39 @@ async function createWasm() {
                                                     getActualType,
                                                     upcast,
                                                     downcast);
-  
+
           if (registeredClass.baseClass) {
             // Keep track of class hierarchy. Used to allow sub-classes to inherit class functions.
             registeredClass.baseClass.__derivedClasses ??= [];
-  
+
             registeredClass.baseClass.__derivedClasses.push(registeredClass);
           }
-  
+
           var referenceConverter = new RegisteredPointer(name,
                                                          registeredClass,
                                                          true,
                                                          false,
                                                          false);
-  
+
           var pointerConverter = new RegisteredPointer(name + '*',
                                                        registeredClass,
                                                        false,
                                                        false,
                                                        false);
-  
+
           var constPointerConverter = new RegisteredPointer(name + ' const*',
                                                             registeredClass,
                                                             false,
                                                             true,
                                                             false);
-  
+
           registeredPointers[rawType] = {
             pointerType: pointerConverter,
             constPointerType: constPointerConverter
           };
-  
+
           replacePublicSymbol(legalFunctionName, constructor);
-  
+
           return [referenceConverter, pointerConverter, constPointerConverter];
         }
       );
@@ -4477,12 +4465,12 @@ async function createWasm() {
       }
       return array;
     };
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
   function usesDestructorStack(argTypes) {
       // Skip return value at index 0 - it's not deleted here.
       for (var i = 1; i < argTypes.length; ++i) {
@@ -4493,7 +4481,7 @@ async function createWasm() {
       }
       return false;
     }
-  
+
   function createJsInvoker(argTypes, isClassMethodFunc, returns, isAsync) {
       var needsDestructorStack = usesDestructorStack(argTypes);
       var argCount = argTypes.length - 2;
@@ -4508,29 +4496,30 @@ async function createWasm() {
       }
       argsList = argsList.join(',')
       argsListWired = argsListWired.join(',')
-  
+
       var invokerFnBody = `return function (${argsList}) {\n`;
-  
+
       if (needsDestructorStack) {
         invokerFnBody += "var destructors = [];\n";
       }
-  
+
       var dtorStack = needsDestructorStack ? "destructors" : "null";
-      var args1 = ["humanName", "throwBindingError", "invoker", "fn", "runDestructors", "retType", "classParam"];
-  
+      var args1 = ["humanName", "throwBindingError", "invoker", "fn", "runDestructors", "fromRetWire", "toClassParamWire"];
+
       if (isClassMethodFunc) {
-        invokerFnBody += `var thisWired = classParam['toWireType'](${dtorStack}, this);\n`;
+        invokerFnBody += `var thisWired = toClassParamWire(${dtorStack}, this);\n`;
       }
-  
+
       for (var i = 0; i < argCount; ++i) {
-        invokerFnBody += `var arg${i}Wired = argType${i}['toWireType'](${dtorStack}, arg${i});\n`;
-        args1.push(`argType${i}`);
+        var argName = `toArg${i}Wire`;
+        invokerFnBody += `var arg${i}Wired = ${argName}(${dtorStack}, arg${i});\n`;
+        args1.push(argName);
       }
-  
+
       invokerFnBody += (returns || isAsync ? "var rv = ":"") + `invoker(${argsListWired});\n`;
-  
+
       var returnVal = returns ? "rv" : "";
-  
+
       if (needsDestructorStack) {
         invokerFnBody += "runDestructors(destructors);\n";
       } else {
@@ -4542,16 +4531,16 @@ async function createWasm() {
           }
         }
       }
-  
+
       if (returns) {
-        invokerFnBody += "var ret = retType['fromWireType'](rv);\n" +
+        invokerFnBody += "var ret = fromRetWire(rv);\n" +
                          "return ret;\n";
       } else {
       }
-  
+
       invokerFnBody += "}\n";
-  
-      return [args1, invokerFnBody];
+
+      return new Function(args1, invokerFnBody);
     }
   function craftInvokerFunction(humanName, argTypes, classType, cppInvokerFunc, cppTargetFunc, /** boolean= */ isAsync) {
       // humanName: a human-readable string name for the function to be generated.
@@ -4564,31 +4553,34 @@ async function createWasm() {
       // cppTargetFunc: Function pointer (an integer to FUNCTION_TABLE) to the target C++ function the cppInvokerFunc will end up calling.
       // isAsync: Optional. If true, returns an async function. Async bindings are only supported with JSPI.
       var argCount = argTypes.length;
-  
+
       if (argCount < 2) {
         throwBindingError("argTypes array size mismatch! Must at least get return value and 'this' types!");
       }
-  
+
       var isClassMethodFunc = (argTypes[1] !== null && classType !== null);
-  
+
       // Free functions with signature "void function()" do not need an invoker that marshalls between wire types.
       // TODO: This omits argument count check - enable only at -O3 or similar.
       //    if (ENABLE_UNSAFE_OPTS && argCount == 2 && argTypes[0].name == "void" && !isClassMethodFunc) {
       //       return FUNCTION_TABLE[fn];
       //    }
-  
+
       // Determine if we need to use a dynamic stack to store the destructors for the function parameters.
       // TODO: Remove this completely once all function invokers are being dynamically generated.
       var needsDestructorStack = usesDestructorStack(argTypes);
-  
-      var returns = (argTypes[0].name !== 'void');
-  
+
+      var returns = !argTypes[0].isVoid;
+
       var expectedArgCount = argCount - 2;
       // Builld the arguments that will be passed into the closure around the invoker
       // function.
-      var closureArgs = [humanName, throwBindingError, cppInvokerFunc, cppTargetFunc, runDestructors, argTypes[0], argTypes[1]];
-      for (var i = 0; i < argCount - 2; ++i) {
-        closureArgs.push(argTypes[i+2]);
+      var retType = argTypes[0];
+      var instType = argTypes[1];
+      var closureArgs = [humanName, throwBindingError, cppInvokerFunc, cppTargetFunc, runDestructors, retType.fromWireType.bind(retType), instType?.toWireType.bind(instType)];
+      for (var i = 2; i < argCount; ++i) {
+        var argType = argTypes[i];
+        closureArgs.push(argType.toWireType.bind(argType));
       }
       if (!needsDestructorStack) {
         // Skip return value at index 0 - it's not deleted here. Also skip class type if not a method.
@@ -4598,9 +4590,9 @@ async function createWasm() {
           }
         }
       }
-  
-      let [args, invokerFnBody] = createJsInvoker(argTypes, isClassMethodFunc, returns, isAsync);
-      var invokerFn = new Function(...args, invokerFnBody)(...closureArgs);
+
+      let invokerFactory = createJsInvoker(argTypes, isClassMethodFunc, returns, isAsync);
+      var invokerFn = invokerFactory(...closureArgs);
       return createNamedFunction(humanName, invokerFn);
     }
   var __embind_register_class_constructor = (
@@ -4615,11 +4607,11 @@ async function createWasm() {
       invoker = embind__requireFunction(invokerSignature, invoker);
       var args = [rawConstructor];
       var destructors = [];
-  
+
       whenDependentTypesAreResolved([], [rawClassType], (classType) => {
         classType = classType[0];
         var humanName = `constructor ${classType.name}`;
-  
+
         if (undefined === classType.registeredClass.constructor_body) {
           classType.registeredClass.constructor_body = [];
         }
@@ -4629,7 +4621,7 @@ async function createWasm() {
         classType.registeredClass.constructor_body[argCount - 1] = () => {
           throwUnboundTypeError(`Cannot construct ${classType.name} due to unbound types`, rawArgTypes);
         };
-  
+
         whenDependentTypesAreResolved([], rawArgTypes, (argTypes) => {
           // Insert empty slot for context type (argTypes[1]).
           argTypes.splice(1, 0, null);
@@ -4640,12 +4632,12 @@ async function createWasm() {
       });
     };
 
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
   var getFunctionName = (signature) => {
       signature = signature.trim();
       const argsIndex = signature.indexOf("(");
@@ -4666,23 +4658,23 @@ async function createWasm() {
       methodName = AsciiToString(methodName);
       methodName = getFunctionName(methodName);
       rawInvoker = embind__requireFunction(invokerSignature, rawInvoker, isAsync);
-  
+
       whenDependentTypesAreResolved([], [rawClassType], (classType) => {
         classType = classType[0];
         var humanName = `${classType.name}.${methodName}`;
-  
+
         if (methodName.startsWith("@@")) {
           methodName = Symbol[methodName.substring(2)];
         }
-  
+
         if (isPureVirtual) {
           classType.registeredClass.pureVirtualFunctions.push(methodName);
         }
-  
+
         function unboundTypesHandler() {
           throwUnboundTypeError(`Cannot call ${humanName} due to unbound types`, rawArgTypes);
         }
-  
+
         var proto = classType.registeredClass.instancePrototype;
         var method = proto[methodName];
         if (undefined === method || (undefined === method.overloadTable && method.className !== classType.name && method.argCount === argCount - 2)) {
@@ -4697,10 +4689,10 @@ async function createWasm() {
           ensureOverloadTable(proto, methodName, humanName);
           proto[methodName].overloadTable[argCount - 2] = unboundTypesHandler;
         }
-  
+
         whenDependentTypesAreResolved([], rawArgTypes, (argTypes) => {
           var memberFunction = craftInvokerFunction(humanName, argTypes, classType, rawInvoker, context, isAsync);
-  
+
           // Replace the initial unbound-handler-stub function with the
           // appropriate member function, now that all types are resolved. If
           // multiple overloads are registered for this function, the function
@@ -4712,26 +4704,26 @@ async function createWasm() {
           } else {
             proto[methodName].overloadTable[argCount - 2] = memberFunction;
           }
-  
+
           return [];
         });
         return [];
       });
     };
 
-  
+
   var __embind_register_constant = (name, type, value) => {
       name = AsciiToString(name);
       whenDependentTypesAreResolved([], [type], (type) => {
         type = type[0];
-        Module[name] = type['fromWireType'](value);
+        Module[name] = type.fromWireType(value);
         return [];
       });
     };
 
-  
+
   var emval_freelist = [];
-  
+
   var emval_handles = [0,1,,1,null,1,true,1,false,1];
   var __emval_decref = (handle) => {
       if (handle > 9 && 0 === --emval_handles[handle + 1]) {
@@ -4739,9 +4731,9 @@ async function createWasm() {
         emval_freelist.push(handle);
       }
     };
-  
-  
-  
+
+
+
   var Emval = {
   toValue:(handle) => {
         if (!handle) {
@@ -4764,68 +4756,65 @@ async function createWasm() {
         }
       },
   };
-  
-  
+
   var EmValType = {
       name: 'emscripten::val',
-      'fromWireType': (handle) => {
+      fromWireType: (handle) => {
         var rv = Emval.toValue(handle);
         __emval_decref(handle);
         return rv;
       },
-      'toWireType': (destructors, value) => Emval.toHandle(value),
-      argPackAdvance: GenericWireTypeSize,
-      'readValueFromPointer': readPointer,
+      toWireType: (destructors, value) => Emval.toHandle(value),
+      readValueFromPointer: readPointer,
       destructorFunction: null, // This type does not need a destructor
-  
+
       // TODO: do we need a deleteObject here?  write a test where
       // emval is passed into JS via an interface
     };
   var __embind_register_emval = (rawType) => registerType(rawType, EmValType);
 
-  
+
   var enumReadValueFromPointer = (name, width, signed) => {
       switch (width) {
         case 1: return signed ?
-          function(pointer) { return this['fromWireType'](HEAP8[pointer]) } :
-          function(pointer) { return this['fromWireType'](HEAPU8[pointer]) };
+          function(pointer) { return this.fromWireType(HEAP8[pointer]) } :
+          function(pointer) { return this.fromWireType(HEAPU8[pointer]) };
         case 2: return signed ?
-          function(pointer) { return this['fromWireType'](HEAP16[((pointer)>>1)]) } :
-          function(pointer) { return this['fromWireType'](HEAPU16[((pointer)>>1)]) };
+          function(pointer) { return this.fromWireType(HEAP16[((pointer)>>1)]) } :
+          function(pointer) { return this.fromWireType(HEAPU16[((pointer)>>1)]) };
         case 4: return signed ?
-          function(pointer) { return this['fromWireType'](HEAP32[((pointer)>>2)]) } :
-          function(pointer) { return this['fromWireType'](HEAPU32[((pointer)>>2)]) };
+          function(pointer) { return this.fromWireType(HEAP32[((pointer)>>2)]) } :
+          function(pointer) { return this.fromWireType(HEAPU32[((pointer)>>2)]) };
         default:
           throw new TypeError(`invalid integer width (${width}): ${name}`);
       }
     };
-  
-  
+
+
   /** @suppress {globalThis} */
   var __embind_register_enum = (rawType, name, size, isSigned) => {
       name = AsciiToString(name);
-  
+
       function ctor() {}
       ctor.values = {};
-  
+
       registerType(rawType, {
         name,
         constructor: ctor,
-        'fromWireType': function(c) {
+        fromWireType: function(c) {
           return this.constructor.values[c];
         },
-        'toWireType': (destructors, c) => c.value,
-        argPackAdvance: GenericWireTypeSize,
-        'readValueFromPointer': enumReadValueFromPointer(name, size, isSigned),
+        toWireType: (destructors, c) => c.value,
+        readValueFromPointer: enumReadValueFromPointer(name, size, isSigned),
         destructorFunction: null,
       });
       exposePublicSymbol(name, ctor);
     };
 
-  
-  
-  
-  
+
+
+
+
   var requireRegisteredType = (rawType, humanName) => {
       var impl = registeredTypes[rawType];
       if (undefined === impl) {
@@ -4836,9 +4825,9 @@ async function createWasm() {
   var __embind_register_enum_value = (rawEnumType, name, enumValue) => {
       var enumType = requireRegisteredType(rawEnumType, 'enum');
       name = AsciiToString(name);
-  
+
       var Enum = enumType.constructor;
-  
+
       var Value = Object.create(enumType.constructor.prototype, {
         value: {value: enumValue},
         constructor: {value: createNamedFunction(`${enumType.name}_${name}`, function() {})},
@@ -4850,52 +4839,51 @@ async function createWasm() {
   var floatReadValueFromPointer = (name, width) => {
       switch (width) {
         case 4: return function(pointer) {
-          return this['fromWireType'](HEAPF32[((pointer)>>2)]);
+          return this.fromWireType(HEAPF32[((pointer)>>2)]);
         };
         case 8: return function(pointer) {
-          return this['fromWireType'](HEAPF64[((pointer)>>3)]);
+          return this.fromWireType(HEAPF64[((pointer)>>3)]);
         };
         default:
           throw new TypeError(`invalid float width (${width}): ${name}`);
       }
     };
-  
-  
+
+
   var __embind_register_float = (rawType, name, size) => {
       name = AsciiToString(name);
       registerType(rawType, {
         name,
-        'fromWireType': (value) => value,
-        'toWireType': (destructors, value) => {
+        fromWireType: (value) => value,
+        toWireType: (destructors, value) => {
           // The VM will perform JS to Wasm value conversion, according to the spec:
           // https://www.w3.org/TR/wasm-js-api-1/#towebassemblyvalue
           return value;
         },
-        argPackAdvance: GenericWireTypeSize,
-        'readValueFromPointer': floatReadValueFromPointer(name, size),
+        readValueFromPointer: floatReadValueFromPointer(name, size),
         destructorFunction: null, // This type does not need a destructor
       });
     };
 
-  
-  
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
+
+
   var __embind_register_function = (name, argCount, rawArgTypesAddr, signature, rawInvoker, fn, isAsync, isNonnullReturn) => {
       var argTypes = heap32VectorToArray(argCount, rawArgTypesAddr);
       name = AsciiToString(name);
       name = getFunctionName(name);
-  
+
       rawInvoker = embind__requireFunction(signature, rawInvoker, isAsync);
-  
+
       exposePublicSymbol(name, function() {
         throwUnboundTypeError(`Cannot call ${name} due to unbound types`, argTypes);
       }, argCount - 1);
-  
+
       whenDependentTypesAreResolved([], argTypes, (argTypes) => {
         var invokerArgsArray = [argTypes[0] /* return value */, null /* no class 'this'*/].concat(argTypes.slice(1) /* actual params */);
         replacePublicSymbol(name, craftInvokerFunction(name, invokerArgsArray, null /* no class 'this'*/, rawInvoker, fn, isAsync), argCount - 1);
@@ -4903,36 +4891,35 @@ async function createWasm() {
       });
     };
 
-  
-  
+
+
   /** @suppress {globalThis} */
   var __embind_register_integer = (primitiveType, name, size, minRange, maxRange) => {
       name = AsciiToString(name);
-  
+
       const isUnsignedType = minRange === 0;
-  
+
       let fromWireType = (value) => value;
       if (isUnsignedType) {
         var bitshift = 32 - 8*size;
         fromWireType = (value) => (value << bitshift) >>> bitshift;
         maxRange = fromWireType(maxRange);
       }
-  
+
       registerType(primitiveType, {
         name,
-        'fromWireType': fromWireType,
-        'toWireType': (destructors, value) => {
+        fromWireType: fromWireType,
+        toWireType: (destructors, value) => {
           // The VM will perform JS to Wasm value conversion, according to the spec:
           // https://www.w3.org/TR/wasm-js-api-1/#towebassemblyvalue
           return value;
         },
-        argPackAdvance: GenericWireTypeSize,
-        'readValueFromPointer': integerReadValueFromPointer(name, size, minRange !== 0),
+        readValueFromPointer: integerReadValueFromPointer(name, size, minRange !== 0),
         destructorFunction: null, // This type does not need a destructor
       });
     };
 
-  
+
   var __embind_register_memory_view = (rawType, dataTypeIndex, name) => {
       var typeMapping = [
         Int8Array,
@@ -4946,88 +4933,70 @@ async function createWasm() {
         BigInt64Array,
         BigUint64Array,
       ];
-  
+
       var TA = typeMapping[dataTypeIndex];
-  
+
       function decodeMemoryView(handle) {
         var size = HEAPU32[((handle)>>2)];
         var data = HEAPU32[(((handle)+(4))>>2)];
         return new TA(HEAP8.buffer, data, size);
       }
-  
+
       name = AsciiToString(name);
       registerType(rawType, {
         name,
-        'fromWireType': decodeMemoryView,
-        argPackAdvance: GenericWireTypeSize,
-        'readValueFromPointer': decodeMemoryView,
+        fromWireType: decodeMemoryView,
+        readValueFromPointer: decodeMemoryView,
       }, {
         ignoreDuplicateRegistrations: true,
       });
     };
 
-  
-  
-  
-  
+
+
+
+
   var stringToUTF8 = (str, outPtr, maxBytesToWrite) => {
       return stringToUTF8Array(str, HEAPU8, outPtr, maxBytesToWrite);
     };
-  
-  
-  
-  
+
+
+
+
   var __embind_register_std_string = (rawType, name) => {
       name = AsciiToString(name);
-      var stdStringIsUTF8
-      = true;
-  
+      var stdStringIsUTF8 = true;
+
       registerType(rawType, {
         name,
         // For some method names we use string keys here since they are part of
         // the public/external API and/or used by the runtime-generated code.
-        'fromWireType'(value) {
+        fromWireType(value) {
           var length = HEAPU32[((value)>>2)];
           var payload = value + 4;
-  
+
           var str;
           if (stdStringIsUTF8) {
-            var decodeStartPtr = payload;
-            // Looping here to support possible embedded '0' bytes
-            for (var i = 0; i <= length; ++i) {
-              var currentBytePtr = payload + i;
-              if (i == length || HEAPU8[currentBytePtr] == 0) {
-                var maxRead = currentBytePtr - decodeStartPtr;
-                var stringSegment = UTF8ToString(decodeStartPtr, maxRead);
-                if (str === undefined) {
-                  str = stringSegment;
-                } else {
-                  str += String.fromCharCode(0);
-                  str += stringSegment;
-                }
-                decodeStartPtr = currentBytePtr + 1;
-              }
-            }
+            str = UTF8ToString(payload, length, true);
           } else {
-            var a = new Array(length);
+            str = '';
             for (var i = 0; i < length; ++i) {
-              a[i] = String.fromCharCode(HEAPU8[payload + i]);
+              str += String.fromCharCode(HEAPU8[payload + i]);
             }
-            str = a.join('');
           }
-  
+
           _free(value);
-  
+
           return str;
         },
-        'toWireType'(destructors, value) {
+        toWireType(destructors, value) {
           if (value instanceof ArrayBuffer) {
             value = new Uint8Array(value);
           }
-  
+
           var length;
           var valueIsOfTypeString = (typeof value == 'string');
-  
+
           // We accept `string` or array views with single byte elements
           if (!(valueIsOfTypeString || (ArrayBuffer.isView(value) && value.BYTES_PER_ELEMENT == 1))) {
             throwBindingError('Cannot pass non-string to std::string');
@@ -5037,7 +5006,7 @@ async function createWasm() {
           } else {
             length = value.length;
           }
-  
+
           // assumes POINTER_SIZE alignment
           var base = _malloc(4 + length + 1);
           var ptr = base + 4;
@@ -5058,56 +5027,48 @@ async function createWasm() {
           } else {
             HEAPU8.set(value, ptr);
           }
-  
+
           if (destructors !== null) {
             destructors.push(_free, base);
           }
           return base;
         },
-        argPackAdvance: GenericWireTypeSize,
-        'readValueFromPointer': readPointer,
+        readValueFromPointer: readPointer,
         destructorFunction(ptr) {
           _free(ptr);
         },
       });
     };
 
-  
-  
-  
-  var UTF16Decoder = typeof TextDecoder != 'undefined' ? new TextDecoder('utf-16le') : undefined;;
-  var UTF16ToString = (ptr, maxBytesToRead) => {
+
+
+
+  var UTF16Decoder = globalThis.TextDecoder ? new TextDecoder('utf-16le') : undefined;;
+
+  var UTF16ToString = (ptr, maxBytesToRead, ignoreNul) => {
       var idx = ((ptr)>>1);
-      var maxIdx = idx + maxBytesToRead / 2;
-      // TextDecoder needs to know the byte length in advance, it doesn't stop on
-      // null terminator by itself.
-      // Also, use the length info to avoid running tiny strings through
-      // TextDecoder, since .subarray() allocates garbage.
-      var endIdx = idx;
-      // If maxBytesToRead is not passed explicitly, it will be undefined, and this
-      // will always evaluate to true. This saves on code size.
-      while (!(endIdx >= maxIdx) && HEAPU16[endIdx]) ++endIdx;
-  
+      var endIdx = findStringEnd(HEAPU16, idx, maxBytesToRead / 2, ignoreNul);
+
+      // When using conditional TextDecoder, skip it for short strings as the overhead of the native call is not worth it.
       if (endIdx - idx > 16 && UTF16Decoder)
         return UTF16Decoder.decode(HEAPU16.subarray(idx, endIdx));
-  
+
       // Fallback: decode without UTF16Decoder
       var str = '';
-  
+
       // If maxBytesToRead is not passed explicitly, it will be undefined, and the
       // for-loop's condition will always evaluate to true. The loop is then
       // terminated on the first null char.
-      for (var i = idx; !(i >= maxIdx); ++i) {
+      for (var i = idx; i < endIdx; ++i) {
         var codeUnit = HEAPU16[i];
-        if (codeUnit == 0) break;
         // fromCharCode constructs a character from a UTF-16 code unit, so we can
         // pass the UTF16 string right through.
         str += String.fromCharCode(codeUnit);
       }
-  
+
       return str;
     };
-  
+
   var stringToUTF16 = (str, outPtr, maxBytesToWrite) => {
       // Backwards compatibility: if max bytes is not specified, assume unsafe unbounded write is allowed.
       maxBytesToWrite ??= 0x7FFFFFFF;
@@ -5125,21 +5086,22 @@ async function createWasm() {
       HEAP16[((outPtr)>>1)] = 0;
       return outPtr - startPtr;
     };
-  
+
   var lengthBytesUTF16 = (str) => str.length*2;
-  
-  var UTF32ToString = (ptr, maxBytesToRead) => {
+
+  var UTF32ToString = (ptr, maxBytesToRead, ignoreNul) => {
       var str = '';
+      var startIdx = ((ptr)>>2);
       // If maxBytesToRead is not passed explicitly, it will be undefined, and this
       // will always evaluate to true. This saves on code size.
       for (var i = 0; !(i >= maxBytesToRead / 4); i++) {
-        var utf32 = HEAP32[(((ptr)+(i*4))>>2)];
-        if (!utf32) break;
+        var utf32 = HEAPU32[startIdx + i];
+        if (!utf32 && !ignoreNul) break;
         str += String.fromCodePoint(utf32);
       }
       return str;
     };
-  
+
   var stringToUTF32 = (str, outPtr, maxBytesToWrite) => {
       // Backwards compatibility: if max bytes is not specified, assume unsafe unbounded write is allowed.
       maxBytesToWrite ??= 0x7FFFFFFF;
@@ -5161,7 +5123,7 @@ async function createWasm() {
       HEAP32[((outPtr)>>2)] = 0;
       return outPtr - startPtr;
     };
-  
+
   var lengthBytesUTF32 = (str) => {
       var len = 0;
       for (var i = 0; i < str.length; ++i) {
@@ -5173,78 +5135,58 @@ async function createWasm() {
         }
         len += 4;
       }
-  
+
       return len;
     };
   var __embind_register_std_wstring = (rawType, charSize, name) => {
       name = AsciiToString(name);
-      var decodeString, encodeString, readCharAt, lengthBytesUTF;
+      var decodeString, encodeString, lengthBytesUTF;
       if (charSize === 2) {
         decodeString = UTF16ToString;
         encodeString = stringToUTF16;
         lengthBytesUTF = lengthBytesUTF16;
-        readCharAt = (pointer) => HEAPU16[((pointer)>>1)];
-      } else if (charSize === 4) {
+      } else {
         decodeString = UTF32ToString;
         encodeString = stringToUTF32;
         lengthBytesUTF = lengthBytesUTF32;
-        readCharAt = (pointer) => HEAPU32[((pointer)>>2)];
       }
       registerType(rawType, {
         name,
-        'fromWireType': (value) => {
+        fromWireType: (value) => {
           // Code mostly taken from _embind_register_std_string fromWireType
           var length = HEAPU32[((value)>>2)];
-          var str;
-  
-          var decodeStartPtr = value + 4;
-          // Looping here to support possible embedded '0' bytes
-          for (var i = 0; i <= length; ++i) {
-            var currentBytePtr = value + 4 + i * charSize;
-            if (i == length || readCharAt(currentBytePtr) == 0) {
-              var maxReadBytes = currentBytePtr - decodeStartPtr;
-              var stringSegment = decodeString(decodeStartPtr, maxReadBytes);
-              if (str === undefined) {
-                str = stringSegment;
-              } else {
-                str += String.fromCharCode(0);
-                str += stringSegment;
-              }
-              decodeStartPtr = currentBytePtr + charSize;
-            }
-          }
-  
+          var str = decodeString(value + 4, length * charSize, true);
+
           _free(value);
-  
+
           return str;
         },
-        'toWireType': (destructors, value) => {
+        toWireType: (destructors, value) => {
           if (!(typeof value == 'string')) {
             throwBindingError(`Cannot pass non-string to C++ string type ${name}`);
           }
-  
+
           // assumes POINTER_SIZE alignment
           var length = lengthBytesUTF(value);
           var ptr = _malloc(4 + length + charSize);
           HEAPU32[((ptr)>>2)] = length / charSize;
-  
+
           encodeString(value, ptr + 4, length + charSize);
-  
+
           if (destructors !== null) {
             destructors.push(_free, ptr);
           }
           return ptr;
         },
-        argPackAdvance: GenericWireTypeSize,
-        'readValueFromPointer': readPointer,
+        readValueFromPointer: readPointer,
         destructorFunction(ptr) {
           _free(ptr);
         }
       });
     };
 
-  
-  
+
+
   var __embind_register_value_object = (
       rawType,
       name,
@@ -5261,8 +5203,8 @@ async function createWasm() {
       };
     };
 
-  
-  
+
+
   var __embind_register_value_object_field = (
       structType,
       fieldName,
@@ -5286,16 +5228,15 @@ async function createWasm() {
       });
     };
 
-  
+
   var __embind_register_void = (rawType, name) => {
       name = AsciiToString(name);
       registerType(rawType, {
         isVoid: true, // void return values can be optimized out sometimes
         name,
-        argPackAdvance: 0,
-        'fromWireType': () => undefined,
+        fromWireType: () => undefined,
         // TODO: assert if anything else is given?
-        'toWireType': (destructors, o) => undefined,
+        toWireType: (destructors, o) => undefined,
       });
     };
 
@@ -5303,69 +5244,13 @@ async function createWasm() {
       throw Infinity;
     };
 
-  
-  
-  var emval_returnValue = (returnType, destructorsRef, handle) => {
-      var destructors = [];
-      var result = returnType['toWireType'](destructors, handle);
-      if (destructors.length) {
-        // void, primitives and any other types w/o destructors don't need to allocate a handle
-        HEAPU32[((destructorsRef)>>2)] = Emval.toHandle(destructors);
-      }
-      return result;
-    };
-  var __emval_as = (handle, returnType, destructorsRef) => {
-      handle = Emval.toValue(handle);
-      returnType = requireRegisteredType(returnType, 'emval::as');
-      return emval_returnValue(returnType, destructorsRef, handle);
-    };
-
   var emval_methodCallers = [];
-  
-  var __emval_call = (caller, handle, destructorsRef, args) => {
-      caller = emval_methodCallers[caller];
-      handle = Emval.toValue(handle);
-      return caller(null, handle, destructorsRef, args);
-    };
-
-  var emval_symbols = {
-  };
-  
-  var getStringOrSymbol = (address) => {
-      var symbol = emval_symbols[address];
-      if (symbol === undefined) {
-        return AsciiToString(address);
-      }
-      return symbol;
-    };
-  
-  
-  var __emval_call_method = (caller, objHandle, methodName, destructorsRef, args) => {
-      caller = emval_methodCallers[caller];
-      objHandle = Emval.toValue(objHandle);
-      methodName = getStringOrSymbol(methodName);
-      return caller(objHandle, objHandle[methodName], destructorsRef, args);
-    };
-
-
-  
-  
-  var emval_get_global = () => globalThis;
-  var __emval_get_global = (name) => {
-      if (name===0) {
-        return Emval.toHandle(emval_get_global());
-      } else {
-        name = getStringOrSymbol(name);
-        return Emval.toHandle(emval_get_global()[name]);
-      }
-    };
-
   var emval_addMethodCaller = (caller) => {
       var id = emval_methodCallers.length;
       emval_methodCallers.push(caller);
       return id;
     };
-  
+
   var emval_lookupTypes = (argCount, argTypes) => {
       var a = new Array(argCount);
       for (var i = 0; i < argCount; ++i) {
@@ -5374,49 +5259,85 @@ async function createWasm() {
       }
       return a;
     };
-  
-  
-  var __emval_get_method_caller = (argCount, argTypes, kind) => {
-      var types = emval_lookupTypes(argCount, argTypes);
-      var retType = types.shift();
-      argCount--; // remove the shifted off return type
-  
-      var functionBody =
-        `return function (obj, func, destructorsRef, args) {\n`;
-  
-      var offset = 0;
-      var argsList = []; // 'obj?, arg0, arg1, arg2, ... , argN'
-      if (kind === /* FUNCTION */ 0) {
-        argsList.push('obj');
+
+
+  var emval_returnValue = (toReturnWire, destructorsRef, handle) => {
+      var destructors = [];
+      var result = toReturnWire(destructors, handle);
+      if (destructors.length) {
+        // void, primitives and any other types w/o destructors don't need to allocate a handle
+        HEAPU32[((destructorsRef)>>2)] = Emval.toHandle(destructors);
       }
-      var params = ['retType'];
-      var args = [retType];
-      for (var i = 0; i < argCount; ++i) {
-        argsList.push(`arg${i}`);
-        params.push(`argType${i}`);
-        args.push(types[i]);
-        functionBody +=
-          `  var arg${i} = argType${i}.readValueFromPointer(args${offset ? '+' + offset : ''});\n`;
-        offset += types[i].argPackAdvance;
+      return result;
+    };
+
+
+  var emval_symbols = {
+  };
+
+  var getStringOrSymbol = (address) => {
+      var symbol = emval_symbols[address];
+      if (symbol === undefined) {
+        return AsciiToString(address);
       }
-      var invoker = kind === /* CONSTRUCTOR */ 1 ? 'new func' : 'func.call';
-      functionBody +=
-        `  var rv = ${invoker}(${argsList.join(', ')});\n`;
+      return symbol;
+    };
+  var __emval_create_invoker = (argCount, argTypesPtr, kind) => {
+      var GenericWireTypeSize = 8;
+
+      var [retType, ...argTypes] = emval_lookupTypes(argCount, argTypesPtr);
+      var toReturnWire = retType.toWireType.bind(retType);
+      var argFromPtr = argTypes.map(type => type.readValueFromPointer.bind(type));
+      argCount--; // remove the extracted return type
+
+      var captures = {'toValue': Emval.toValue};
+      var args = argFromPtr.map((argFromPtr, i) => {
+        var captureName = `argFromPtr${i}`;
+        captures[captureName] = argFromPtr;
+        return `${captureName}(args${i ? '+' + i * GenericWireTypeSize : ''})`;
+      });
+      var functionBody;
+      switch (kind){
+        case 0:
+          functionBody = 'toValue(handle)';
+          break;
+        case 2:
+          functionBody = 'new (toValue(handle))';
+          break;
+        case 3:
+          functionBody = '';
+          break;
+        case 1:
+          captures['getStringOrSymbol'] = getStringOrSymbol;
+          functionBody = 'toValue(handle)[getStringOrSymbol(methodName)]';
+          break;
+      }
+      functionBody += `(${args})`;
       if (!retType.isVoid) {
-        params.push('emval_returnValue');
-        args.push(emval_returnValue);
-        functionBody +=
-          '  return emval_returnValue(retType, destructorsRef, rv);\n';
+        captures['toReturnWire'] = toReturnWire;
+        captures['emval_returnValue'] = emval_returnValue;
+        functionBody = `return emval_returnValue(toReturnWire, destructorsRef, ${functionBody})`;
       }
-      functionBody +=
-        "};\n";
-  
-      var invokerFunction = new Function(...params, functionBody)(...args);
-      var functionName = `methodCaller<(${types.map(t => t.name).join(', ')}) => ${retType.name}>`;
+      functionBody = `return function (handle, methodName, destructorsRef, args) {
+  ${functionBody}
+  }`;
+
+      var invokerFunction = new Function(Object.keys(captures), functionBody)(...Object.values(captures));
+      var functionName = `methodCaller<(${argTypes.map(t => t.name)}) => ${retType.name}>`;
       return emval_addMethodCaller(createNamedFunction(functionName, invokerFunction));
     };
 
-  
+
+
+  var __emval_get_global = (name) => {
+      if (!name) {
+        return Emval.toHandle(globalThis);
+      }
+      name = getStringOrSymbol(name);
+      return Emval.toHandle(globalThis[name]);
+    };
+
+
   var __emval_get_module_property = (name) => {
       name = getStringOrSymbol(name);
       return Emval.toHandle(Module[name]);
@@ -5434,32 +5355,38 @@ async function createWasm() {
       }
     };
 
-  
+
+
+  var __emval_invoke = (caller, handle, methodName, destructorsRef, args) => {
+      return emval_methodCallers[caller](handle, methodName, destructorsRef, args);
+    };
+
+
   var __emval_new_cstring = (v) => Emval.toHandle(getStringOrSymbol(v));
 
-  
-  
+
+
   var __emval_run_destructors = (handle) => {
       var destructors = Emval.toValue(handle);
       runDestructors(destructors);
       __emval_decref(handle);
     };
 
-  
-  
-  
-  
-  
+
+
+
+
+
   var INT53_MAX = 9007199254740992;
-  
+
   var INT53_MIN = -9007199254740992;
   var bigintToI53Checked = (num) => (num < INT53_MIN || num > INT53_MAX) ? NaN : Number(num);
   function __mmap_js(len, prot, flags, fd, offset, allocated, addr) {
     offset = bigintToI53Checked(offset);
-  
-  
+
+
   try {
-  
+
       var stream = SYSCALLS.getStreamFromFD(fd);
       var res = FS.mmap(stream, len, offset, prot, flags);
       var ptr = res.ptr;
@@ -5473,13 +5400,13 @@ async function createWasm() {
   ;
   }
 
-  
+
   function __munmap_js(addr, len, prot, flags, fd, offset) {
     offset = bigintToI53Checked(offset);
-  
-  
+
+
   try {
-  
+
       var stream = SYSCALLS.getStreamFromFD(fd);
       if (prot & 2) {
         SYSCALLS.doMsync(addr, stream, len, flags, offset);
@@ -5498,7 +5425,7 @@ async function createWasm() {
       var summer = new Date(currentYear, 6, 1);
       var winterOffset = winter.getTimezoneOffset();
       var summerOffset = summer.getTimezoneOffset();
-  
+
       // Local standard timezone offset. Local standard time is not adjusted for
       // daylight savings.  This code uses the fact that getTimezoneOffset returns
       // a greater value during Standard Time versus Daylight Saving Time (DST).
@@ -5506,28 +5433,28 @@ async function createWasm() {
       // compares whether the output of the given date the same (Standard) or less
       // (DST).
       var stdTimezoneOffset = Math.max(winterOffset, summerOffset);
-  
+
       // timezone is specified as seconds west of UTC ("The external variable
       // `timezone` shall be set to the difference, in seconds, between
       // Coordinated Universal Time (UTC) and local standard time."), the same
       // as returned by stdTimezoneOffset.
       // See http://pubs.opengroup.org/onlinepubs/009695399/functions/tzset.html
       HEAPU32[((timezone)>>2)] = stdTimezoneOffset * 60;
-  
+
       HEAP32[((daylight)>>2)] = Number(winterOffset != summerOffset);
-  
+
       var extractZone = (timezoneOffset) => {
         // Why inverse sign?
         // Read here https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getTimezoneOffset
         var sign = timezoneOffset >= 0 ? "-" : "+";
-  
+
         var absOffset = Math.abs(timezoneOffset)
         var hours = String(Math.floor(absOffset / 60)).padStart(2, "0");
         var minutes = String(absOffset % 60).padStart(2, "0");
-  
+
         return `UTC${sign}${hours}${minutes}`;
       }
-  
+
       var winterName = extractZone(winterOffset);
       var summerName = extractZone(summerOffset);
       if (summerOffset < winterOffset) {
@@ -5541,17 +5468,17 @@ async function createWasm() {
     };
 
   var _emscripten_get_now = () => performance.now();
-  
+
   var _emscripten_date_now = () => Date.now();
-  
+
   var nowIsMonotonic = 1;
-  
+
   var checkWasiClock = (clock_id) => clock_id >= 0 && clock_id <= 3;
-  
+
   function _clock_time_get(clk_id, ignored_precision, ptime) {
     ignored_precision = bigintToI53Checked(ignored_precision);
-  
-  
+
+
       if (!checkWasiClock(clk_id)) {
         return 28;
       }
@@ -5581,11 +5508,11 @@ async function createWasm() {
   var _emscripten_get_heap_max = () => getHeapMax();
 
 
-  
-  
+
+
   var growMemory = (size) => {
-      var b = wasmMemory.buffer;
-      var pages = ((size - b.byteLength + 65535) / 65536) | 0;
+      var oldHeapSize = wasmMemory.buffer.byteLength;
+      var pages = ((size - oldHeapSize + 65535) / 65536) | 0;
       try {
         // round size grow request up to wasm page size (fixed 64KB per spec)
         wasmMemory.grow(pages); // .grow() takes a delta compared to the previous size
@@ -5602,7 +5529,7 @@ async function createWasm() {
       requestedSize >>>= 0;
       // With multithreaded builds, races can happen (another thread might increase the size
       // in between), so return a failure, and let the caller retry.
-  
+
       // Memory resize rules:
       // 1.  Always increase heap size to at least the requested size, rounded up
       //     to next page multiple.
@@ -5619,14 +5546,14 @@ async function createWasm() {
       //     over-eager decision to excessively reserve due to (3) above.
       //     Hence if an allocation fails, cut down on the amount of excess
       //     growth, in an attempt to succeed to perform a smaller allocation.
-  
+
       // A limit is set for how much we can grow. We should not exceed that
       // (the wasm binary specifies it, so if we tried, we'd fail anyhow).
       var maxHeapSize = getHeapMax();
       if (requestedSize > maxHeapSize) {
         return false;
       }
-  
+
       // Loop through potential heap size increases. If we attempt a too eager
       // reservation that fails, cut down on the attempted size and reserve a
       // smaller bump instead. (max 3 times, chosen somewhat arbitrarily)
@@ -5634,12 +5561,12 @@ async function createWasm() {
         var overGrownHeapSize = oldSize * (1 + 0.2 / cutDown); // ensure geometric growth
         // but limit overreserving (default to capping at +96MB overgrowth at most)
         overGrownHeapSize = Math.min(overGrownHeapSize, requestedSize + 100663296 );
-  
+
         var newSize = Math.min(maxHeapSize, alignMemory(Math.max(requestedSize, overGrownHeapSize), 65536));
-  
+
         var replacement = growMemory(newSize);
         if (replacement) {
-  
+
           return true;
         }
       }
@@ -5648,7 +5575,7 @@ async function createWasm() {
 
   var ENV = {
   };
-  
+
   var getExecutableName = () => thisProgram || './this.program';
   var getEnvStrings = () => {
       if (!getEnvStrings.strings) {
@@ -5680,7 +5607,7 @@ async function createWasm() {
       }
       return getEnvStrings.strings;
     };
-  
+
   var _environ_get = (__environ, environ_buf) => {
       var bufSize = 0;
       var envp = 0;
@@ -5693,7 +5620,7 @@ async function createWasm() {
       return 0;
     };
 
-  
+
   var _environ_sizes_get = (penviron_count, penviron_buf_size) => {
       var strings = getEnvStrings();
       HEAPU32[((penviron_count)>>2)] = strings.length;
@@ -5707,7 +5634,7 @@ async function createWasm() {
 
   function _fd_close(fd) {
   try {
-  
+
       var stream = SYSCALLS.getStreamFromFD(fd);
       FS.close(stream);
       return 0;
@@ -5734,10 +5661,10 @@ async function createWasm() {
       }
       return ret;
     };
-  
+
   function _fd_read(fd, iov, iovcnt, pnum) {
   try {
-  
+
       var stream = SYSCALLS.getStreamFromFD(fd);
       var num = doReadv(stream, iov, iovcnt);
       HEAPU32[((pnum)>>2)] = num;
@@ -5748,13 +5675,13 @@ async function createWasm() {
   }
   }
 
-  
+
   function _fd_seek(fd, offset, whence, newOffset) {
     offset = bigintToI53Checked(offset);
-  
-  
+
+
   try {
-  
+
       if (isNaN(offset)) return 61;
       var stream = SYSCALLS.getStreamFromFD(fd);
       FS.llseek(stream, offset, whence);
@@ -5788,10 +5715,10 @@ async function createWasm() {
       }
       return ret;
     };
-  
+
   function _fd_write(fd, iov, iovcnt, pnum) {
   try {
-  
+
       var stream = SYSCALLS.getStreamFromFD(fd);
       var num = doWritev(stream, iov, iovcnt);
       HEAPU32[((pnum)>>2)] = num;
@@ -5804,14 +5731,8 @@ async function createWasm() {
 
 
   FS.createPreloadedFile = FS_createPreloadedFile;
+  FS.preloadFile = FS_preloadFile;
   FS.staticInit();;
-
-      // This error may happen quite a bit. To avoid overhead we reuse it (and
-      // suffer a lack of stack info).
-      MEMFS.doesNotExistError = new FS.ErrnoError(44);
-      /** @suppress {checkTypes} */
-      MEMFS.doesNotExistError.stack = '<generic error, no stack>';
-      ;
 init_ClassHandle();
 init_RegisteredPointer();
 // End JS library code
@@ -5833,6 +5754,12 @@ if (Module['wasmBinary']) wasmBinary = Module['wasmBinary'];
   if (Module['arguments']) arguments_ = Module['arguments'];
   if (Module['thisProgram']) thisProgram = Module['thisProgram'];
 
+  if (Module['preInit']) {
+    if (typeof Module['preInit'] == 'function') Module['preInit'] = [Module['preInit']];
+    while (Module['preInit'].length > 0) {
+      Module['preInit'].shift()();
+    }
+  }
 }
 
 // Begin runtime exports
@@ -5851,7 +5778,11 @@ var ___getTypeName,
   _setThrew,
   __emscripten_stack_restore,
   __emscripten_stack_alloc,
-  _emscripten_stack_get_current;
+  _emscripten_stack_get_current,
+  memory,
+  __indirect_function_table,
+  wasmMemory,
+  wasmTable;
 
 
 function assignWasmExports(wasmExports) {
@@ -5863,7 +5794,10 @@ function assignWasmExports(wasmExports) {
   __emscripten_stack_restore = wasmExports['_emscripten_stack_restore'];
   __emscripten_stack_alloc = wasmExports['_emscripten_stack_alloc'];
   _emscripten_stack_get_current = wasmExports['emscripten_stack_get_current'];
+  memory = wasmMemory = wasmExports['memory'];
+  __indirect_function_table = wasmTable = wasmExports['__indirect_function_table'];
 }
+
 var wasmImports = {
   /** @export */
   __cxa_throw: ___cxa_throw,
@@ -5924,23 +5858,19 @@ var wasmImports = {
   /** @export */
   _emscripten_throw_longjmp: __emscripten_throw_longjmp,
   /** @export */
-  _emval_as: __emval_as,
-  /** @export */
-  _emval_call: __emval_call,
-  /** @export */
-  _emval_call_method: __emval_call_method,
+  _emval_create_invoker: __emval_create_invoker,
   /** @export */
   _emval_decref: __emval_decref,
   /** @export */
   _emval_get_global: __emval_get_global,
-  /** @export */
-  _emval_get_method_caller: __emval_get_method_caller,
   /** @export */
   _emval_get_module_property: __emval_get_module_property,
   /** @export */
   _emval_get_property: __emval_get_property,
   /** @export */
   _emval_incref: __emval_incref,
+  /** @export */
+  _emval_invoke: __emval_invoke,
   /** @export */
   _emval_new_cstring: __emval_new_cstring,
   /** @export */
@@ -5982,7 +5912,6 @@ var wasmImports = {
   /** @export */
   invoke_viii
 };
-var wasmExports = await createWasm();
 
 function invoke_vi(index,a1) {
   var sp = stackSave();
@@ -6074,16 +6003,12 @@ function run() {
   }
 }
 
-function preInit() {
-  if (Module['preInit']) {
-    if (typeof Module['preInit'] == 'function') Module['preInit'] = [Module['preInit']];
-    while (Module['preInit'].length > 0) {
-      Module['preInit'].shift()();
-    }
-  }
-}
+var wasmExports;
 
-preInit();
+// In modularize mode the generated code is within a factory function so we
+// can use await here (since it's not top-level-await).
+wasmExports = await (createWasm());
+
 run();
 
 // end include: postamble.js
@@ -6109,10 +6034,11 @@ if (runtimeInitialized)  {
 
 
 
-  return moduleRtn;
-}
-);
+    return moduleRtn;
+  };
 })();
+
+// Export using a UMD style export, or ES6 exports if selected
 if (typeof exports === 'object' && typeof module === 'object') {
   module.exports = BASIS;
   // This default export looks redundant, but it allows TS to import this

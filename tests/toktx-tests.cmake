@@ -158,17 +158,13 @@ if(APPLE)
   # Run only on macOS until we figure out the BasisLZ/ETC1S compressor non-determinancy.
   gencmpktx( alpha_simple_basis alpha_simple_basis.ktx2 ../srcimages/alpha_simple.png "--bcmp" "" "" )
   gencmpktx( color_grid_basis color_grid_basis.ktx2 ../srcimages/color_grid.png "--bcmp" "" "" )
-  if (NOT ${CPU_ARCHITECTURE} STREQUAL "arm64" )
-    gencmpktx( kodim17_basis kodim17_basis.ktx2 ../srcimages/kodim17.png "--bcmp" "" "" )
-    gencmpktx( 16bit_png_basis camera_camera_BaseColor_basis.ktx2 ../srcimages/camera_camera_BaseColor_16bit.png "--bcmp --nowarn" "" "" )
-    gencmpktx( paletted_png CesiumLogoFlat.ktx2 ../srcimages/CesiumLogoFlat_palette.png "--bcmp --nowarn" "" "" )
-  endif()
+  gencmpktx( kodim17_basis kodim17_basis.ktx2 ../srcimages/kodim17.png "--bcmp" "" "" )
+  gencmpktx( 16bit_png_basis camera_camera_BaseColor_basis.ktx2 ../srcimages/camera_camera_BaseColor_16bit.png "--bcmp --nowarn" "" "" )
+  gencmpktx( paletted_png CesiumLogoFlat.ktx2 ../srcimages/CesiumLogoFlat_palette.png "--bcmp --nowarn" "" "" )
 endif()
-if (NOT ${CPU_ARCHITECTURE} STREQUAL "arm64" )
-  gencmpktx( cimg5293_uastc cimg5293_uastc.ktx2 ../srcimages/CIMG5293.jpg "--uastc --genmipmap --test" "" "" )
-  gencmpktx( cimg5293_uastc_zstd cimg5293_uastc_zstd.ktx2 ../srcimages/CIMG5293.jpg "--zcmp --uastc --genmipmap --test" "" "" )
-  gencmpktx( 16bit_png_uastc camera_camera_BaseColor_uastc.ktx2 ../srcimages/camera_camera_BaseColor_16bit.png "--uastc 1 --nowarn" "" "" )
-endif()
+gencmpktx( cimg5293_uastc cimg5293_uastc.ktx2 ../srcimages/CIMG5293.jpg "--uastc --genmipmap --test" "" "" )
+gencmpktx( cimg5293_uastc_zstd cimg5293_uastc_zstd.ktx2 ../srcimages/CIMG5293.jpg "--zcmp --uastc --genmipmap --test" "" "" )
+gencmpktx( 16bit_png_uastc camera_camera_BaseColor_uastc.ktx2 ../srcimages/camera_camera_BaseColor_16bit.png "--uastc 1 --nowarn" "" "" )
 
 gencmpktx( luminance_reference_u luminance_reference_u.ktx2 ../srcimages/luminance.pgm "--t2 --convert_oetf linear" "" "" )
 gencmpktx( luminance_reference_uastc luminance_reference_uastc.ktx2 ../srcimages/luminance.pgm "--t2 --uastc --" "" "" )
@@ -200,11 +196,9 @@ gencmpktx( swizzle_r_to_gb_convert_to_rgba_u cyan_rgba_reference_u.ktx2 ../srcim
 gencmpktx( swizzle_r_to_gb_convert_to_rgba_basis cyan_rgb_reference_basis.ktx2 ../srcimages/level0.ppm "--nowarn --t2 --input_swizzle 0rr1 --target_type RGBA --bcmp" "" "" )
 gencmpktx( swizzle_r_to_gb_convert_to_rgba_uastc cyan_rgb_reference_uastc.ktx2 ../srcimages/level0.ppm "--nowarn --t2 --input_swizzle 0rr1 --target_type RGBA --uastc --" "" "" )
 
-if (NOT ${CPU_ARCHITECTURE} STREQUAL "arm64" )
-  gencmpktx( uastc_Iron_Bars_001_normal      uastc_Iron_Bars_001_normal.ktx2     ../srcimages/Iron_Bars/Iron_Bars_001_normal_unnormalized.png "--assign_oetf linear --genmipmap --normalize --normal_mode --encode uastc --zcmp 5" "" "")
-  if(APPLE)
-    gencmpktx( etc1s_Iron_Bars_001_normal      etc1s_Iron_Bars_001_normal.ktx2     ../srcimages/Iron_Bars/Iron_Bars_001_normal_unnormalized.png "--assign_oetf linear --genmipmap --normalize --normal_mode --encode etc1s" "" "")
-  endif()
+gencmpktx( uastc_Iron_Bars_001_normal      uastc_Iron_Bars_001_normal.ktx2     ../srcimages/Iron_Bars/Iron_Bars_001_normal_unnormalized.png "--assign_oetf linear --genmipmap --normalize --normal_mode --encode uastc --zcmp 5" "" "")
+if(APPLE)
+  gencmpktx( etc1s_Iron_Bars_001_normal      etc1s_Iron_Bars_001_normal.ktx2     ../srcimages/Iron_Bars/Iron_Bars_001_normal_unnormalized.png "--assign_oetf linear --genmipmap --normalize --normal_mode --encode etc1s" "" "")
 endif()
 
 gencmpktx( gAMA_chunk_png g03n2c08.ktx2 ../srcimages/g03n2c08.png "--t2 --convert_oetf srgb" "" "" )
@@ -235,38 +229,32 @@ PROPERTIES
 # which produces identical results when compiled with either GCC 14 or
 # clang 16, all but astc_mipmap_ldr_4x4 pass on x86_64 machines as well.
 # Run thesse ASTC tests on arm64 as well.
-#if (NOT ${CPU_ARCHITECTURE} STREQUAL "arm64" )
-  gencmpktx( astc_mipmap_ldr_cubemap_6x6 astc_mipmap_ldr_cubemap_6x6.ktx2 "../srcimages/Yokohama3/posx.jpg ../srcimages/Yokohama3/negx.jpg ../srcimages/Yokohama3/posy.jpg ../srcimages/Yokohama3/negy.jpg ../srcimages/Yokohama3/posz.jpg ../srcimages/Yokohama3/negz.jpg" "--test --encode astc --astc_blk_d 6x6 --genmipmap --cubemap" "" "" )
-#endif()
+gencmpktx( astc_mipmap_ldr_cubemap_6x6 astc_mipmap_ldr_cubemap_6x6.ktx2 "../srcimages/Yokohama3/posx.jpg ../srcimages/Yokohama3/negx.jpg ../srcimages/Yokohama3/posy.jpg ../srcimages/Yokohama3/negy.jpg ../srcimages/Yokohama3/posz.jpg ../srcimages/Yokohama3/negz.jpg" "--test --encode astc --astc_blk_d 6x6 --genmipmap --cubemap" "" "" )
 gencmpktx( astc_ldr_cubemap_6x6 astc_ldr_cubemap_6x6.ktx2 "../srcimages/Yokohama3/posx.jpg ../srcimages/Yokohama3/negx.jpg ../srcimages/Yokohama3/posy.jpg ../srcimages/Yokohama3/negy.jpg ../srcimages/Yokohama3/posz.jpg ../srcimages/Yokohama3/negz.jpg" "--test --encode astc --astc_blk_d 6x6 --cubemap" "" "" )
 
 gencmpktx( astc_ldr_6x6_posx               astc_ldr_6x6_posx.ktx2 ../srcimages/Yokohama3/posx.jpg "--test --encode astc --astc_blk_d 6x6" "" "" )
-#if (NOT ${CPU_ARCHITECTURE} STREQUAL "arm64" )
-  gencmpktx( astc_mipmap_ldr_6x6_posx astc_mipmap_ldr_6x6_posx.ktx2 ../srcimages/Yokohama3/posx.jpg "--test --encode astc --astc_blk_d 6x6 --genmipmap" "" "" )
-  gencmpktx( astc_mipmap_ldr_6x6_posz astc_mipmap_ldr_6x6_posz.ktx2 ../srcimages/Yokohama3/posz.jpg "--test --encode astc --astc_blk_d 6x6 --genmipmap" "" "" )
-  gencmpktx( astc_mipmap_ldr_6x6_posy astc_mipmap_ldr_6x6_posy.ktx2 ../srcimages/Yokohama3/posy.jpg "--test --encode astc --astc_blk_d 6x6 --genmipmap" "" "" )
-  gencmpktx( astc_mipmap_ldr_6x6_kodim17_fastest    astc_mipmap_ldr_6x6_kodim17_fastest.ktx2    ../srcimages/kodim17.png "--test --encode astc --astc_blk_d 6x6 --genmipmap --astc_quality fastest   " "" "" )
-  gencmpktx( astc_mipmap_ldr_6x6_kodim17_fast       astc_mipmap_ldr_6x6_kodim17_fast.ktx2       ../srcimages/kodim17.png "--test --encode astc --astc_blk_d 6x6 --genmipmap --astc_quality fast      " "" "" )
-#endif()
+gencmpktx( astc_mipmap_ldr_6x6_posx astc_mipmap_ldr_6x6_posx.ktx2 ../srcimages/Yokohama3/posx.jpg "--test --encode astc --astc_blk_d 6x6 --genmipmap" "" "" )
+gencmpktx( astc_mipmap_ldr_6x6_posz astc_mipmap_ldr_6x6_posz.ktx2 ../srcimages/Yokohama3/posz.jpg "--test --encode astc --astc_blk_d 6x6 --genmipmap" "" "" )
+gencmpktx( astc_mipmap_ldr_6x6_posy astc_mipmap_ldr_6x6_posy.ktx2 ../srcimages/Yokohama3/posy.jpg "--test --encode astc --astc_blk_d 6x6 --genmipmap" "" "" )
+gencmpktx( astc_mipmap_ldr_6x6_kodim17_fastest    astc_mipmap_ldr_6x6_kodim17_fastest.ktx2    ../srcimages/kodim17.png "--test --encode astc --astc_blk_d 6x6 --genmipmap --astc_quality fastest   " "" "" )
+gencmpktx( astc_mipmap_ldr_6x6_kodim17_fast       astc_mipmap_ldr_6x6_kodim17_fast.ktx2       ../srcimages/kodim17.png "--test --encode astc --astc_blk_d 6x6 --genmipmap --astc_quality fast      " "" "" )
 gencmpktx( astc_mipmap_ldr_6x6_kodim17_medium     astc_mipmap_ldr_6x6_kodim17_medium.ktx2     ../srcimages/kodim17.png "--test --encode astc --astc_blk_d 6x6 --genmipmap --astc_quality medium    " "" "" )
 
-#if (NOT ${CPU_ARCHITECTURE} STREQUAL "arm64" )
-  # This file, and only this file, has tiny differences in mip level 1 when
-  # created with VC++ compilers for on x86 (result with arm64 unknown) or
-  # with GCC 11 on arm64, compare with the original made with GCC 14 (or
-  # clang 16) on arm64. As it is in mip level 1 it has nothing to do with
-  # the ASTC encoder. Since toktx will be removed soon and tests with the
-  # new tool use ktxdiff, which avoids problems like this, it is not worth
-  # the effort to find out why the mipmap generator has this difference.
-  # Comment out the test.
-  #gencmpktx( astc_mipmap_ldr_4x4_posx     astc_mipmap_ldr_4x4_posx.ktx2   ../srcimages/Yokohama3/posx.jpg "--test --encode astc --astc_blk_d 4x4   --genmipmap" "" "" )
-  gencmpktx( astc_mipmap_ldr_6x5_posx     astc_mipmap_ldr_6x5_posx.ktx2   ../srcimages/Yokohama3/posx.jpg "--test --encode astc --astc_blk_d 6x5   --genmipmap" "" "" )
-  gencmpktx( astc_mipmap_ldr_8x6_posx     astc_mipmap_ldr_8x6_posx.ktx2   ../srcimages/Yokohama3/posx.jpg "--test --encode astc --astc_blk_d 8x6   --genmipmap" "" "" )
-  gencmpktx( astc_mipmap_ldr_10x5_posx    astc_mipmap_ldr_10x5_posx.ktx2  ../srcimages/Yokohama3/posx.jpg "--test --encode astc --astc_blk_d 10x5  --genmipmap" "" "" )
-  gencmpktx( astc_mipmap_ldr_8x8_posx     astc_mipmap_ldr_8x8_posx.ktx2   ../srcimages/Yokohama3/posx.jpg "--test --encode astc --astc_blk_d 8x8   --genmipmap" "" "" )
-  gencmpktx( astc_mipmap_ldr_12x10_posx   astc_mipmap_ldr_12x10_posx.ktx2 ../srcimages/Yokohama3/posx.jpg "--test --encode astc --astc_blk_d 12x10 --genmipmap" "" "" )
-  gencmpktx( astc_mipmap_ldr_12x12_posx   astc_mipmap_ldr_12x12_posx.ktx2 ../srcimages/Yokohama3/posx.jpg "--test --encode astc --astc_blk_d 12x12 --genmipmap" "" "" )
-#endif()
+# This file, and only this file, has tiny differences in mip level 1 when
+# created with VC++ compilers for on x86 (result with arm64 unknown) or
+# with GCC 11 on arm64, compare with the original made with GCC 14 (or
+# clang 16) on arm64. As it is in mip level 1 it has nothing to do with
+# the ASTC encoder. Since toktx will be removed soon and tests with the
+# new tool use ktxdiff, which avoids problems like this, it is not worth
+# the effort to find out why the mipmap generator has this difference.
+# Comment out the test.
+#gencmpktx( astc_mipmap_ldr_4x4_posx     astc_mipmap_ldr_4x4_posx.ktx2   ../srcimages/Yokohama3/posx.jpg "--test --encode astc --astc_blk_d 4x4   --genmipmap" "" "" )
+gencmpktx( astc_mipmap_ldr_6x5_posx     astc_mipmap_ldr_6x5_posx.ktx2   ../srcimages/Yokohama3/posx.jpg "--test --encode astc --astc_blk_d 6x5   --genmipmap" "" "" )
+gencmpktx( astc_mipmap_ldr_8x6_posx     astc_mipmap_ldr_8x6_posx.ktx2   ../srcimages/Yokohama3/posx.jpg "--test --encode astc --astc_blk_d 8x6   --genmipmap" "" "" )
+gencmpktx( astc_mipmap_ldr_10x5_posx    astc_mipmap_ldr_10x5_posx.ktx2  ../srcimages/Yokohama3/posx.jpg "--test --encode astc --astc_blk_d 10x5  --genmipmap" "" "" )
+gencmpktx( astc_mipmap_ldr_8x8_posx     astc_mipmap_ldr_8x8_posx.ktx2   ../srcimages/Yokohama3/posx.jpg "--test --encode astc --astc_blk_d 8x8   --genmipmap" "" "" )
+gencmpktx( astc_mipmap_ldr_12x10_posx   astc_mipmap_ldr_12x10_posx.ktx2 ../srcimages/Yokohama3/posx.jpg "--test --encode astc --astc_blk_d 12x10 --genmipmap" "" "" )
+gencmpktx( astc_mipmap_ldr_12x12_posx   astc_mipmap_ldr_12x12_posx.ktx2 ../srcimages/Yokohama3/posx.jpg "--test --encode astc --astc_blk_d 12x12 --genmipmap" "" "" )
 
 gencmpktx( astc_ldr_4x4_FlightHelmet_baseColor    astc_ldr_4x4_FlightHelmet_baseColor.ktx2   ../srcimages/FlightHelmet_baseColor.png "--test --encode astc --astc_blk_d 4x4" "" "")
 gencmpktx( astc_ldr_6x5_FlightHelmet_baseColor    astc_ldr_6x5_FlightHelmet_baseColor.ktx2   ../srcimages/FlightHelmet_baseColor.png "--test --encode astc --astc_blk_d 6x5" "" "")
