@@ -78,7 +78,7 @@ jobs:
       BUILD_DIR_UKP: "build/ukp"
       SOURCE_DIR_LIB: "lib"
       SOURCE_DIR_UKP: "tests/use-ktx"
-      TESTKTX2: "tests/testimages/kodim17_basis.ktx2"
+      KTX2_TEST_FILE: "tests/testimages/kodim17_basis.ktx2"
       WERROR: ON
 
     steps:
@@ -88,6 +88,9 @@ jobs:
         # included (used for version creation)
         fetch-depth: 0
 
+    - name: Fetch test image from LFS and check it out
+      run: git lfs fetch ${{ env.KTX2_TEST_FILE }} && git lfs checkout ${{ env.KTX2_TEST_FILE }}
+
     - name: Configure as top-level project
       run: cmake -S ${{ env.SOURCE_DIR_LIB }} -B ${{ env.BUILD_DIR_TL }} -G "${{ matrix.generator }}" -DLIBKTX_WERROR=${{ env.WERROR }} -DLIBKTX_VERSION_READ_ONLY=ON
     - name: Build libktx with top-level project
@@ -95,9 +98,6 @@ jobs:
 
     - name: Configure as sub-project
       run: cmake -S ${{ env.SOURCE_DIR_UKP }} -B ${{ env.BUILD_DIR_UKP }} -G "${{ matrix.generator }}" -DLIBKTX_WERROR=${{ env.WERROR }}
-
-    - name: Fetch test image from LFS
-      run: git lfs fetch ${{ env.TESTKTX2 }}
 
     - name: Build use-ktx and libktx projects
       run: cmake --build ${{ env.BUILD_DIR_UKP }} --config=Release
@@ -119,7 +119,7 @@ jobs:
 
     - name: Test run use-ktx program
       run: |
-        ${{ env.BUILD_DIR_UKP }}/Release/use-ktx tests/testimages/kodim17_basis.ktx2
+        ${{ env.BUILD_DIR_UKP }}/Release/use-ktx ${{ env.KTX2_TEST_FILE }}
 
     - name: Upload artifact libktx
       uses: actions/upload-artifact@v4
