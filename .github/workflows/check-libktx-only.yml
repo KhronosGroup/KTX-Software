@@ -78,6 +78,7 @@ jobs:
       BUILD_DIR_UKP: "build/ukp"
       SOURCE_DIR_LIB: "lib"
       SOURCE_DIR_UKP: "tests/use-ktx"
+      TESTKTX2: "tests/testimages/kodim17_basis.ktx2"
       WERROR: ON
 
     steps:
@@ -94,6 +95,9 @@ jobs:
 
     - name: Configure as sub-project
       run: cmake -S ${{ env.SOURCE_DIR_UKP }} -B ${{ env.BUILD_DIR_UKP }} -G "${{ matrix.generator }}" -DLIBKTX_WERROR=${{ env.WERROR }}
+
+    - name: Checkout test image from LFS
+      run: git lfs checkout ${{ env.TESTKTX2 }}
 
     - name: Build use-ktx and libktx projects
       run: cmake --build ${{ env.BUILD_DIR_UKP }} --config=Release
@@ -114,9 +118,7 @@ jobs:
       run: scripts/check_lib_build_output.sh ${{ env.BUILD_DIR_TL }}/${{ matrix.config }}
 
     - name: Test run use-ktx program
-      shell: bash
       run: |
-        pwd
         ${{ env.BUILD_DIR_UKP }}/Release/use-ktx tests/testimages/kodim17_basis.ktx2
 
     - name: Upload artifact libktx
