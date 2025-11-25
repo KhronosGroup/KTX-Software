@@ -96,8 +96,8 @@ jobs:
     - name: Configure as sub-project
       run: cmake -S ${{ env.SOURCE_DIR_UKP }} -B ${{ env.BUILD_DIR_UKP }} -G "${{ matrix.generator }}" -DLIBKTX_WERROR=${{ env.WERROR }}
 
-    - name: Checkout test image from LFS
-      run: git lfs checkout ${{ env.TESTKTX2 }}
+    - name: Fetch test image from LFS
+      run: git lfs fetch ${{ env.TESTKTX2 }}
 
     - name: Build use-ktx and libktx projects
       run: cmake --build ${{ env.BUILD_DIR_UKP }} --config=Release
