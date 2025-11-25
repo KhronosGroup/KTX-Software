@@ -88,7 +88,7 @@ jobs:
         fetch-depth: 0
 
     - name: Configure as top-level project
-      run: cmake -S ${{ env.SOURCE_DIR_LIB }} -B ${{ env.BUILD_DIR_TL }} -G "${{ matrix.generator }}" -DLIBKTX_WERROR=${{ env.WERROR }}
+      run: cmake -S ${{ env.SOURCE_DIR_LIB }} -B ${{ env.BUILD_DIR_TL }} -G "${{ matrix.generator }}" -DLIBKTX_WERROR=${{ env.WERROR }} -DLIBKTX_VERSION_READ_ONLY=ON
     - name: Build libktx with top-level project
       run: cmake --build ${{ env.BUILD_DIR_TL }} --config=Release
 
