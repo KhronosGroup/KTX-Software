@@ -110,8 +110,8 @@ jobs:
         if [ "$arch" = "x64" ]; then arch=x86_64; fi
         echo ARCH=$arch >> $GITHUB_ENV
 
-    - name: Check output directory content
-      run: scripts/check_lib_build_output.sh ${{ env.BUILD_DIR }}/${{ matrix.config }}
+    - name: Check content of output directory from top-level build
+      run: scripts/check_lib_build_output.sh ${{ env.BUILD_DIR_TL }}/${{ matrix.config }}
 
     - name: Test run use-ktx program
       run: ${{ env.BUILD_DIR_UKP }}/use-ktx tests/testimages/kodim17_basis.ktx2
