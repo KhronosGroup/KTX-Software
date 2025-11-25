@@ -114,8 +114,7 @@ jobs:
       run: scripts/check_lib_build_output.sh ${{ env.BUILD_DIR_TL }}/${{ matrix.config }}
 
     - name: Test run use-ktx program
-      shell: bash
-      run: ${{ env.BUILD_DIR_UKP }}/use-ktx tests/testimages/kodim17_basis.ktx2
+      run: ${{ env.BUILD_DIR_UKP }}/Release/use-ktx tests/testimages/kodim17_basis.ktx2
 
     - name: Upload artifact libktx
       uses: actions/upload-artifact@v4
