@@ -160,7 +160,7 @@ if [ $write_all -eq 1 ]; then
     fi
   done
 else
-  if [[ $workdir =~ $(pwd)(/(.*$)?)? ]]; then
+  if [[ $workdir =~ "$(pwd)"(/(.*$)?)? ]]; then
     # Trailing part of workdir gives object location in repo.
     if [ -n "${BASH_REMATCH[2]}" ]; then
       if [ "$OBJ" == "." ]; then
