@@ -238,6 +238,9 @@ endif()
 
 set( LIBKTX_WERROR ${KTX_WERROR} )
 set( LIBKTX_EMBED_BITCODE ${KTX_EMBED_BITCODE} )
+# This var needs a different default from that in the libktx project.
+# Make it a cache variable so our users can see and change it.
+set( LIBKTX_VERSION_READ_ONLY ON CACHE BOOL "Build the read-only library")
 add_subdirectory(lib)
 
 if(KTX_FEATURE_JNI)

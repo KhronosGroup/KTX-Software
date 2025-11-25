@@ -3,9 +3,11 @@
 
 # Config options for code signing
 
+include_guard(DIRECTORY)
+
 if(APPLE)
     # Signing
-    set(XCODE_CODE_SIGN_IDENTITY "Development" CACHE STRING "Xcode code sign ID")
+    set(XCODE_CODE_SIGN_IDENTITY "" CACHE STRING "Xcode code sign ID")
     set(XCODE_DEVELOPMENT_TEAM "" CACHE STRING "Xcode development team ID")
     set(PRODUCTBUILD_IDENTITY_NAME "" CACHE STRING "productbuild identity name")
     set(PRODUCTBUILD_KEYCHAIN_PATH "" CACHE FILEPATH "pkgbuild keychain file")
@@ -83,12 +85,22 @@ endif()
 # Macro for setting up code signing on targets
 macro (set_code_sign target)
   if(APPLE)
-    set_target_properties(${target} PROPERTIES
-      XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${XCODE_CODE_SIGN_IDENTITY}"
-      XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "${XCODE_DEVELOPMENT_TEAM}"
-      XCODE_ATTRIBUTE_OTHER_CODE_SIGN_FLAGS "--timestamp"
-      XCODE_ATTRIBUTE_CODE_SIGN_INJECT_BASE_ENTITLEMENTS $<IF:$<CONFIG:Debug>,YES,NO>
-    )
+    if (XCODE_CODE_SIGN_IDENTITY)
+      set_target_properties(${target} PROPERTIES
+        XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${XCODE_CODE_SIGN_IDENTITY}"
+        XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "${XCODE_DEVELOPMENT_TEAM}"
+        XCODE_ATTRIBUTE_OTHER_CODE_SIGN_FLAGS "--timestamp"
+        XCODE_ATTRIBUTE_CODE_SIGN_INJECT_BASE_ENTITLEMENTS $<IF:$<CONFIG:Debug>,YES,NO>
+      )
+    else()
+      set_target_properties(${target} PROPERTIES
+        XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ""
+        XCODE_ATTRIBUTE_CODE_SIGN_INJECT_BASE_ENTITLEMENTS NO
+        XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED NO
+        XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED NO
+      )
+    endif()
+
     if(IOS)
       set(set_pps FALSE)
       if(${ARGC} EQUAL 1)
