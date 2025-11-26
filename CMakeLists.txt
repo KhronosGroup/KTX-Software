@@ -236,10 +236,12 @@ if(APPLE OR LINUX OR WIN32)
     # INSTALL_RPATH the same way for symmetry.
 endif()
 
+# Ensure the following are set as KTX-Software needs and hide them from users.
 set( LIBKTX_WERROR ${KTX_WERROR} )
 set( LIBKTX_EMBED_BITCODE ${KTX_EMBED_BITCODE} )
-# This var needs a different default from that in the libktx project.
-# Make it a cache variable so our users can see and change it.
+set( LIBKTX_VERSION_FULL ON )
+# Want to expose this one to users so must be a cache variable. Note
+# that this is a different default from the one set in the libktx project.
 set( LIBKTX_VERSION_READ_ONLY ON CACHE BOOL "Build the read-only library")
 add_subdirectory(lib)
 

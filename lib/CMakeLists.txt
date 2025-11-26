@@ -677,10 +677,12 @@ endif()
 if(LIBKTX_VERSION_FULL)
     list(APPEND LIBKTX_INSTALL_TARGETS ktx)
 endif()
-if(LIBKTX_VERSION_READ_ONLY)
+# ktx_read has never been included in the install packages and no
+# issues have been filed. Only install it if bulding static libs
+# or full version is not being built.
+if(LIBKTX_VERSION_READ_ONLY AND NOT (BUILD_SHARED_LIBRARIES OR LIBKTX_VERSION_FULL))
     list(APPEND LIBKTX_INSTALL_TARGETS ktx_read)
 endif()
-set(LIBKTX_INSTALL_TARGETS ktx)
 if(NOT BUILD_SHARED_LIBS AND NOT APPLE)
     list(APPEND LIBKTX_INSTALL_TARGETS ${ASTCENC_LIB_TARGET} basisu_encoder)
 endif()
