@@ -118,8 +118,8 @@ jobs:
       run: scripts/check_lib_build_output.sh ${{ env.BUILD_DIR_TL }}/${{ matrix.config }}
 
     - name: Test run use-ktx program
-      run: |
-        ${{ env.BUILD_DIR_UKP }}/Release/use-ktx ${{ env.KTX2_TEST_FILE }}
+      shell: bash
+      run: ${{ env.BUILD_DIR_UKP }}/Release/use-ktx ${{ env.KTX2_TEST_FILE }}
 
     - name: Upload artifact libktx
       uses: actions/upload-artifact@v4
