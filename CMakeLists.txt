@@ -200,19 +200,23 @@ add_compile_options( ${fp_options} )
 set(KTX_BUILD_DIR "${CMAKE_BINARY_DIR}")
 
 if(APPLE OR LINUX OR WIN32)
-    # Normalize the output directory so it is the same regardless of
-    # single or multi-config generator. Note that wrapping this in a
-    # generator expression forces multi-configuration generators (like
-    # Visual Studio, Xcode or Ninja multi-config) to take the exact path
-    # and not add  a further $<CONFIG> to it.
+    # Three reasons for setting CMAKE_RUNTIME_OUTPUT_DIRECTORY.
+    # - Normalize the output directory so it is the same regardless of
+    #   single or multi-config generator. Note that wrapping this in a
+    #   generator expression forces multi-configuration generators (like
+    #   Visual Studio, Xcode or Ninja multi-config) to take the exact path
+    #   and not add  a further $<CONFIG> to it;
+    # - Build all executables into a common output directory.
+    # - On Windows, build dlls into the same directory as the executables,
+    #   so they can find their dlls when run in the build directory.
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
 
-    # Use a common RUNTIME_OUTPUT_DIRECTORY and LIBRARY_OUTPUT_DIRECTORY
-    # for all targets. On GNU/Linux and macOS this so that the INSTALL RPATH
-    # we need to add to installed binaries is functional in the build
-    # directory as well. On Windows this is so binaries run in the build
-    # directory can find the dll.
+    # Reason for setting CMAKE_LIBRARY_OUTPUT_DIRECTORY.
+    # - On GNU/Linux and macOS build .{so,dylib}s into the same directory
+    #   as the executables so that the INSTALL RPATH we need to add to
+    #   installed binaries is functional in the build directory as well.
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
+
     # For GNU/Linux and macOS BUILD_WITH_INSTALL_RPATH is necessary to have
     # the install rpath set duing build. See below for more explanation.
     set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
