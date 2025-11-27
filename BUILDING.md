@@ -42,7 +42,7 @@ cmake --build build
 ```
 
 By default the project will be configured to build the full library. To build just the read-only library, add
-`-D LIBKTX_VERSION_FULL=OFF -D LIBKTX_VERSION_READ_ONLY=ON` to the configure
+`-D LIBKTX_VERSION_FULL=OFF -D LIBKTX_VERSION_READ_ONLY=ON` to the CMake configure
 command.
 If you need the library to be static, add `-D BUILD_SHARED_LIBS=OFF` to the CMake configure command (always disabled on iOS and Emscripten).
 
