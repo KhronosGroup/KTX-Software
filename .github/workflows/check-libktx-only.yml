@@ -123,7 +123,7 @@ jobs:
         ls -l ${{ env.BUILD_DIR_UKP }}/Release/use-ktx*
         ls -l ${{ env.BUILD_DIR_UKP }}/Release
         ls -l ${{ env.KTX2_TEST_FILE }}
-        ${{ env.BUILD_DIR_UKP }}/Release/use-ktx.exe ${{ env.KTX2_TEST_FILE }}
+        ${{ env.BUILD_DIR_UKP }}/Release/use-ktx ${{ env.KTX2_TEST_FILE }}
 
     - name: Upload artifact libktx
       uses: actions/upload-artifact@v4
