@@ -57,7 +57,7 @@ option( LIBKTX_FEATURE_GL_UPLOAD "Enable OpenGL texture upload." ON )
 option( LIBKTX_FEATURE_ETC_UNPACK "ETC decoding support." ON )
 
 # Intentionally override the BASISU options, only making them visible
-# when they are makes useful.
+# when they are useful.
 CMAKE_DEPENDENT_OPTION( BASISU_SSE
     "Compile with SSE support so applications can choose to use it."
     ON
@@ -678,7 +678,7 @@ if(LIBKTX_VERSION_FULL)
     list(APPEND LIBKTX_INSTALL_TARGETS ktx)
 endif()
 # ktx_read has never been included in the install packages and no
-# issues have been filed. Only install it if bulding static libs
+# issues have been filed. Only install it if building static libs
 # or full version is not being built.
 if(LIBKTX_VERSION_READ_ONLY AND NOT (BUILD_SHARED_LIBRARIES OR LIBKTX_VERSION_FULL))
     list(APPEND LIBKTX_INSTALL_TARGETS ktx_read)
