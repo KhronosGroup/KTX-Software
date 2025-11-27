@@ -24,7 +24,7 @@ project(use-ktx
 
 set(path_to_ktx ../../lib)
 
-if(win32)
+if(WIN32)
     # Set this to make the ktx build put ktx.dll into the same
     # directory as use-ktx.exe, so use-ktx can be run in its
     # build location.
