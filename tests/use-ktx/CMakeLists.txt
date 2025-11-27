@@ -3,8 +3,6 @@
 
 # Project, that is not KTX-Software, to test using libktx as a sub-project.
 
-cmake_minimum_required(VERSION 3.22)
-
 # MUST be set before project() else it is ignored.
 # N.B IOS and, in the Darwin case, CMAKE_SYSTEM_NAME are not set
 # until after the project() command. The latter is most strange.
@@ -23,6 +21,13 @@ project(use-ktx
 )
 
 set(path_to_ktx ../../lib)
+
+if(win32)
+    # Set this to make the ktx build put ktx.dll into the same
+    # directory as use-ktx.exe, so use-ktx can be run in its
+    # build location.
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+endif()
 
 add_subdirectory(${path_to_ktx} ktx)
 
