@@ -3,6 +3,8 @@
 
 # Project, that is not KTX-Software, to test using libktx as a sub-project.
 
+cmake_minimum_required(VERSION 3.22)
+
 # MUST be set before project() else it is ignored.
 # N.B IOS and, in the Darwin case, CMAKE_SYSTEM_NAME are not set
 # until after the project() command. The latter is most strange.
