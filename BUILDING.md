@@ -83,7 +83,7 @@ One way to add _libktx_ to your own project is to add the following line to your
 CMakeLists.txt.
 
 ```CMake
-add_subdirectory(/path/to/ktx/software/KTX-Software/lib)
+add_subdirectory(/path/to/ktx/software/KTX-Software/lib ktx)
 ```
 
 You can set any of the aforementioned configuration options by adding a set command, e.g, `set(BUILD_SHARED_LIBS OFF)`, before `add_subdirectory`.
