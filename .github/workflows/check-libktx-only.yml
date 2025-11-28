@@ -1,9 +1,10 @@
 # Copyright 2015-2020 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
-name: Check Config and Build of Just libktx
+name: Check Config and Build of libktx as top-level project and sub-project
 
 # The purpose of this is to smoke test building just libktx using its
-# CMakeLists.txt as the top-level project. Testing of various build
+# CMakeLists.txt as both a top-level project and sub-project that is
+# not related to the KTX-Software project. Testing of various build
 # options and running of tests on the library is left to the various
 # KTX-Software platform workflows.
 
@@ -73,8 +74,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       GIT_LFS_SKIP_SMUDGE: 1
-      BUILD_DIR: "build"
-      SOURCE_DIR: "lib"
+      BUILD_DIR_TL: "build/tl"
+      BUILD_DIR_UKP: "build/ukp"
+      SOURCE_DIR_LIB: "lib"
+      SOURCE_DIR_UKP: "tests/use-ktx"
+      KTX2_TEST_FILE: "tests/testimages/kodim17_basis.ktx2"
       WERROR: ON
 
     steps:
@@ -84,10 +88,19 @@ jobs:
         # included (used for version creation)
         fetch-depth: 0
 
-    - name: Configure CMake build
-      run: cmake -S ${{ env.SOURCE_DIR }} -B ${{ env.BUILD_DIR }} -G "${{ matrix.generator }}" -DLIBKTX_WERROR=${{ env.WERROR }}
-    - name: Build libktx
-      run: cmake --build ${{ env.BUILD_DIR }} --config=Release
+    - name: Fetch test image from LFS and check it out
+      run: git lfs fetch ${{ env.KTX2_TEST_FILE }} && git lfs checkout ${{ env.KTX2_TEST_FILE }}
+
+    - name: Configure as top-level project
+      run: cmake -S ${{ env.SOURCE_DIR_LIB }} -B ${{ env.BUILD_DIR_TL }} -G "${{ matrix.generator }}" -DLIBKTX_WERROR=${{ env.WERROR }} -DLIBKTX_VERSION_READ_ONLY=ON
+    - name: Build libktx with top-level project
+      run: cmake --build ${{ env.BUILD_DIR_TL }} --config=Release
+
+    - name: Configure as sub-project
+      run: cmake -S ${{ env.SOURCE_DIR_UKP }} -B ${{ env.BUILD_DIR_UKP }} -G "${{ matrix.generator }}" -DLIBKTX_WERROR=${{ env.WERROR }}
+
+    - name: Build use-ktx and libktx projects
+      run: cmake --build ${{ env.BUILD_DIR_UKP }} --config=Release
 
     - name: Prepare version number and architecture for artifact
       id: libktx-version
@@ -101,12 +114,15 @@ jobs:
         if [ "$arch" = "x64" ]; then arch=x86_64; fi
         echo ARCH=$arch >> $GITHUB_ENV
 
-    - name: Check output directory content
-      run: scripts/check_lib_build_output.sh ${{ env.BUILD_DIR }}/${{ matrix.config }}
+    - name: Check content of output directory from top-level build
+      run: scripts/check_lib_build_output.sh ${{ env.BUILD_DIR_TL }}/${{ matrix.config }}
+
+    - name: Test run use-ktx program
+      run: ${{ env.BUILD_DIR_UKP }}/Release/use-ktx ${{ env.KTX2_TEST_FILE }}
 
     - name: Upload artifact libktx
       uses: actions/upload-artifact@v4
       with:
         name: libktx-${{ env.KTX_VERSION }}-${{ runner.os }}-${{ env.ARCH }}
-        path: ${{env.BUILD_DIR}}/Release/*ktx*
+        path: ${{env.BUILD_DIR_TL}}/Release/*ktx*
 

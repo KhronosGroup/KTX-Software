@@ -36,17 +36,18 @@ if(POLICY CMP0127)
     cmake_policy(SET CMP0127 NEW)
 endif()
 
-if(PROJECT_IS_TOP_LEVEL)
-    # Beware of using cmake_print_variables for variables with function
-    # dependent values, e.g. ARGN and CMAKE_CURRENT_FUNCTION_LIST_DIR.
-    include(CMakePrintHelpers)
-    include(CMakeDependentOption)
+# Beware of using cmake_print_variables for variables with function
+# dependent values, e.g. ARGN and CMAKE_CURRENT_FUNCTION_LIST_DIR.
+include(CMakePrintHelpers)
+include(CMakeDependentOption)
 
-    include(${KTX_ROOT_DIR}/cmake/codesign.cmake) # Needs APPLE_*_OS values.
-    include(${KTX_ROOT_DIR}/cmake/cputypetest.cmake)
-endif()
+include(${KTX_ROOT_DIR}/cmake/codesign.cmake) # Needs APPLE_*_OS values.
+include(${KTX_ROOT_DIR}/cmake/cputypetest.cmake)
 
 # OPTIONS
+
+option( LIBKTX_VERSION_READ_ONLY "Build the read only library" OFF)
+option( LIBKTX_VERSION_FULL "Build the full library" ON)
 
 option( LIBKTX_FEATURE_KTX1 "Enable KTX 1 support." ON )
 # TODO: Remove this option?
@@ -56,7 +57,7 @@ option( LIBKTX_FEATURE_GL_UPLOAD "Enable OpenGL texture upload." ON )
 option( LIBKTX_FEATURE_ETC_UNPACK "ETC decoding support." ON )
 
 # Intentionally override the BASISU options, only making them visible
-# when it makes sense.
+# when they are useful.
 CMAKE_DEPENDENT_OPTION( BASISU_SSE
     "Compile with SSE support so applications can choose to use it."
     ON
@@ -504,23 +505,25 @@ add_subdirectory(../external/basis_universal basisu-encoder)
 # ktx libraries
 ###################################################
 
-add_library( ktx ${LIB_TYPE}
-    ${LIBKTX_MAIN_SRC}
-    src/basis_encode.cpp
-    src/writer1.c
-    src/writer2.c
-)
+if(LIBKTX_VERSION_FULL)
+    add_library( ktx ${LIB_TYPE}
+        ${LIBKTX_MAIN_SRC}
+        src/basis_encode.cpp
+        src/writer1.c
+        src/writer2.c
+    )
+    common_libktx_settings(ktx 1 ${LIB_TYPE})
+    add_lib_dependencies(ktx basisu_encoder)
+endif()
 
 # Read-only library
-add_library( ktx_read ${LIB_TYPE}
-    ${LIBKTX_MAIN_SRC}
-)
-
-common_libktx_settings(ktx 1 ${LIB_TYPE})
-common_libktx_settings(ktx_read 0 ${LIB_TYPE})
-
-add_lib_dependencies(ktx basisu_encoder)
-add_lib_dependencies(ktx_read basisu_encoder)
+if(LIBKTX_VERSION_READ_ONLY)
+    add_library( ktx_read ${LIB_TYPE}
+        ${LIBKTX_MAIN_SRC}
+    )
+    common_libktx_settings(ktx_read 0 ${LIB_TYPE})
+    add_lib_dependencies(ktx_read basisu_encoder)
+endif()
 
 create_version_header(src ktx)
 if(PROJECT_IS_TOP_LEVEL)
@@ -662,15 +665,27 @@ if(NOT PROJECT_IS_TOP_LEVEL AND ${CMAKE_PROJECT_NAME} STREQUAL "KTX-Software")
     set(ASTCENC_LIB_TARGET ${ASTCENC_LIB_TARGET} PARENT_SCOPE)
 endif()
 
-add_lib_dependencies(ktx ${ASTCENC_LIB_TARGET})
-add_lib_dependencies(ktx_read ${ASTCENC_LIB_TARGET})
-
-set(LIBKTX_INSTALL_TARGETS ktx)
-if(NOT BUILD_SHARED_LIBS AND NOT APPLE)
-    list(APPEND LIBKTX_INSTALL_TARGETS ${ASTCENC_LIB_TARGET} basisu_encoder)
+if(LIBKTX_VERSION_FULL)
+    add_lib_dependencies(ktx ${ASTCENC_LIB_TARGET})
+endif()
+if(LIBKTX_VERSION_READ_ONLY)
+    add_lib_dependencies(ktx_read ${ASTCENC_LIB_TARGET})
 endif()
 
 # Install
+
+if(LIBKTX_VERSION_FULL)
+    list(APPEND LIBKTX_INSTALL_TARGETS ktx)
+endif()
+# ktx_read has never been included in the install packages and no
+# issues have been filed. Only install it if building static libs
+# or full version is not being built.
+if(LIBKTX_VERSION_READ_ONLY AND NOT (BUILD_SHARED_LIBRARIES OR LIBKTX_VERSION_FULL))
+    list(APPEND LIBKTX_INSTALL_TARGETS ktx_read)
+endif()
+if(NOT BUILD_SHARED_LIBS AND NOT APPLE)
+    list(APPEND LIBKTX_INSTALL_TARGETS ${ASTCENC_LIB_TARGET} basisu_encoder)
+endif()
 
 if(APPLE OR LINUX)
     # Have library's name links as separate component
