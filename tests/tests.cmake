@@ -43,11 +43,7 @@ add_executable( unittests
 set_test_properties(unittests)
 set_code_sign(unittests)
 
-target_compile_features(
-    unittests
-PUBLIC
-    cxx_std_17
-)
+target_compile_features( unittests PUBLIC cxx_std_20 )
 
 target_include_directories(
     unittests
@@ -86,11 +82,7 @@ add_executable( texturetests
 set_test_properties(texturetests)
 set_code_sign(texturetests)
 
-target_compile_features(
-    texturetests
-PUBLIC
-    cxx_std_17
-)
+target_compile_features( texturetests PUBLIC cxx_std_20 )
 
 target_include_directories(
     texturetests

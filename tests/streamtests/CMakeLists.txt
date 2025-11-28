@@ -8,12 +8,8 @@ add_executable( streamtests
 set_test_properties(streamtests)
 set_code_sign(streamtests)
 
-target_compile_features(
-    streamtests
-PUBLIC
-    # C++14 for std::make_unique on AppleClang and Linux GCC
-    cxx_std_14
-)
+target_compile_features( streamtests PUBLIC cxx_std_20 )
+
 target_include_directories(
     streamtests
 PRIVATE
