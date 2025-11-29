@@ -23,11 +23,12 @@
   #endif
 #endif
 
+#include <barrier>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <string>
-//#include <sys/types.h>
+#include <thread>
 #include <sys/stat.h>
 #include <limits.h>
 #include <stdint.h>
@@ -2270,11 +2271,63 @@ TEST_F(ktxTexture2ReadTestRGBA8, Read3DMipmap) {
     runTest();
 }
 
-class ktxTexture2_BasisCompressTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8>  { };
+////////////////////////////////////////////
+// Multithreaded basisu encode & transcode tests
+///////////////////////////////////////////
+
+// Must be before any other test calling ktxTexture2_TranscodeBasis.
+
+fs::path imagePath;
+
+TEST(Multithreaded, TranscodeBasis) {
+    std::barrier syncPoint(2);
+
+    auto funcLoad = [&syncPoint] (const std::string& imagePath) {
+        ktxTexture2 *texture = nullptr;
+
+        KTX_error_code result = ktxTexture_CreateFromNamedFile(
+                imagePath.c_str(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, (ktxTexture **)&texture);
+        ASSERT_TRUE(result == KTX_SUCCESS) << "ktxTexture_CreateFromNamedFile \""
+                << imagePath << "\" failed: " << ktxErrorString(result);
+        ASSERT_TRUE(texture != NULL) << "Returned texture pointer is NULL";
+        ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
+
+        if (ktxTexture2_NeedsTranscoding(texture)) {
+            auto targetFormat = KTX_TTF_ASTC_4x4_RGBA;
+
+            // The barrier to make ktxTexture2_TranscodeBasis to be called concurrently in multiple threads
+            syncPoint.arrive_and_wait();
+
+            //ALOGD("transcoding(%s)...", ktxTranscodeFormatString(targetFormat));
+            result = ktxTexture2_TranscodeBasis(texture, targetFormat, 0);
+            EXPECT_EQ(result, KTX_SUCCESS);
+            //result = ktxTexture2_WriteToNamedFile(texture, "/tmp/testktx2");
+        }
+
+        ktxTexture2_Destroy(texture);
+    };
+
+    fs::path imagePath = ::imagePath;
+
+    imagePath.replace_filename(u8"color_grid_uastc.ktx2");
+    std::thread t1([&funcLoad, imagePath] {
+        funcLoad(imagePath.string());
+    });
+
+    imagePath.replace_filename(u8"kodim17_basis.ktx2");
+    std::thread t2([&funcLoad, imagePath] {
+        funcLoad(imagePath.string());
+    });
+
+    t1.join();
+    t2.join();
+}
 
 /////////////////////////////////////////
 // ktxTexture2_BasisCompress tests
 ////////////////////////////////////////
+
+class ktxTexture2_BasisCompressTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8>  { };
 
 TEST_F(ktxTexture2_BasisCompressTest, Compress) {
     ktxTexture2* texture;
@@ -2825,10 +2878,8 @@ TEST_F(ktxTexture2_MetadataTest, LibVersionUpdatedCorrectly) {
 // Unicode file name tests
 ///////////////////////////////////////////
 
-fs::path imagePath;
-
 TEST(UnicodeFileNames, CreateFrom) {
-    std::vector<std::string> fileSet = {
+    std::vector<std::u8string> fileSet = {
         u8"hűtő.ktx",
         u8"hűtő.ktx2",
         u8"نَسِيج.ktx",
@@ -2841,7 +2892,7 @@ TEST(UnicodeFileNames, CreateFrom) {
         u8"조직.ktx2"
     };
 
-    std::vector<std::string>::const_iterator it;
+    std::vector<std::u8string>::const_iterator it;
 
 
     fs::path filePath = imagePath;
@@ -2849,10 +2900,10 @@ TEST(UnicodeFileNames, CreateFrom) {
         ktx_error_code_e result;
         ktxTexture* texture = nullptr;
 
-        filePath.replace_filename(fs::u8path(*it));
+        filePath.replace_filename(*it);
 
         result = ktxTexture_CreateFromNamedFile(
-            filePath.u8string().c_str(),
+            filePath.string().c_str(),
             KTX_TEXTURE_CREATE_NO_FLAGS,
             &texture);
         EXPECT_EQ(result, KTX_SUCCESS);
@@ -2864,12 +2915,12 @@ TEST(UnicodeFileNames, CreateFrom) {
 
         if (filePath.extension() == ".ktx") {
             result = ktxTexture1_CreateFromNamedFile(
-                filePath.u8string().c_str(),
+                filePath.string().c_str(),
                 KTX_TEXTURE_CREATE_NO_FLAGS,
                 (ktxTexture1**)&texture);
         } else {
             result = ktxTexture2_CreateFromNamedFile(
-                filePath.u8string().c_str(),
+                filePath.string().c_str(),
                 KTX_TEXTURE_CREATE_NO_FLAGS,
                 (ktxTexture2**)&texture);
         }
@@ -2918,7 +2969,7 @@ class ktxTexture2AstcLdrEncodeDecodeTestBase
                                          << ktxErrorString(result);
             ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
-            result = ktxTexture2_WriteToNamedFile(texture, original.u8string().c_str());
+            result = ktxTexture2_WriteToNamedFile(texture, original.string().c_str());
             ASSERT_TRUE(result == KTX_SUCCESS);
 
             auto depth = texture->baseDepth;
@@ -2976,10 +3027,10 @@ class ktxTexture2AstcLdrEncodeDecodeTestBase
             model = static_cast<khr_df_model_e>(KHR_DFDVAL(texture->pDfd+1, MODEL));
             EXPECT_EQ(model, KHR_DF_MODEL_RGBSDA);
             EXPECT_EQ(depth, texture->baseDepth);
-            result = ktxTexture2_WriteToNamedFile(texture, decoded.u8string().c_str());
+            result = ktxTexture2_WriteToNamedFile(texture, decoded.string().c_str());
             int status;
             if constexpr (internalformat != (GLenum)GL_RGB8 && internalformat != (GLenum)GL_SRGB8) {
-                std::string command = ktxdiffPath.u8string();
+                std::string command = ktxdiffPath.string();
                 command += " " + original.string() + " " + decoded.string() + " 0.01 > " + ktxdiffOut.string();
                 status = std::system(command.c_str());
             } else {
@@ -3198,7 +3249,7 @@ GTEST_API_ int main(int argc, char* argv[]) {
 
         struct stat info;
 
-        if (statUTF8(imagePath.u8string().c_str(), &info) != 0) {
+        if (statUTF8(imagePath.c_str(), &info) != 0) {
             std::cerr << "Cannot access " << imagePath << std::endl;
             return -2;
         }  else if (!(info.st_mode & S_IFDIR)) {
