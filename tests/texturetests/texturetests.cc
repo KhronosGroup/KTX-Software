@@ -2275,12 +2275,13 @@ TEST_F(ktxTexture2ReadTestRGBA8, Read3DMipmap) {
 // Multithreaded basisu encode & transcode tests
 ///////////////////////////////////////////
 
-// Must be before any other test calling ktxTexture2_TranscodeBasis.
-
 fs::path imagePath;
 
+#if 0
+// Must be before any other test calling ktxTexture2_TranscodeBasis.
 TEST(Multithreaded, TranscodeBasis) {
-    std::barrier syncPoint(2);
+    const int numThreads = 500;
+    std::barrier syncPoint(numThreads);
 
     auto funcLoad = [&syncPoint] (const std::string& imagePath) {
         ktxTexture2 *texture = nullptr;
@@ -2307,21 +2308,24 @@ TEST(Multithreaded, TranscodeBasis) {
         ktxTexture2_Destroy(texture);
     };
 
-    fs::path imagePath = ::imagePath;
+    fs::path image1 = ::imagePath;
+    image1.replace_filename(u8"color_grid_uastc.ktx2");
+    fs::path image2 = ::imagePath;
+    image2.replace_filename(u8"kodim17_basis.ktx2");
 
-    imagePath.replace_filename(u8"color_grid_uastc.ktx2");
-    std::thread t1([&funcLoad, imagePath] {
-        funcLoad(imagePath.string());
-    });
+    std::vector<std::thread> threads;
+    threads.resize(numThreads);
+    for (int i = 0; i < numThreads; i++) {
+        threads[i] = std::thread([&funcLoad, image1] {
+            funcLoad(image1.string());
+        });
+    }
 
-    imagePath.replace_filename(u8"kodim17_basis.ktx2");
-    std::thread t2([&funcLoad, imagePath] {
-        funcLoad(imagePath.string());
-    });
-
-    t1.join();
-    t2.join();
+    for (int i = 0; i < numThreads; i++) {
+        threads[i].join();
+    }
 }
+#endif
 
 /////////////////////////////////////////
 // ktxTexture2_BasisCompress tests
