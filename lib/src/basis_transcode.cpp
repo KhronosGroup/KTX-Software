@@ -18,6 +18,7 @@
  * @author Mark Callow, github.com/MarkCallow
  */
 
+#include <mutex>
 #include <inttypes.h>
 #include <stdio.h>
 #include <KHR/khr_df.h>
@@ -339,10 +340,17 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
     // and executed natively on a Core i7 2.2 GHz. If this is too slow, the
     // tables it computes can easily be moved to be compiled in.
     static bool transcoderInitialized;
+    static std::mutex transcoderInitMutex;
+
+    // By deliberate choice basisu_transcoder_init() does not have its own mutex.
+    // See https://github.com/BinomialLLC/basis_universal/issues/416.
+    transcoderInitMutex.lock();
     if (!transcoderInitialized) {
+        // Another thread did not initialize the transcoder while we were waiting.
         basisu_transcoder_init();
         transcoderInitialized = true;
     }
+    transcoderInitMutex.unlock();
 
     if (textureFormat == basis_tex_format::cETC1S) {
         result = ktxTexture2_transcodeLzEtc1s(This, alphaContent,
@@ -511,11 +519,11 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
     // Prepare low-level transcoder for transcoding slices.
     basist::basisu_lowlevel_etc1s_transcoder bit;
 
-    // basisu_transcoder_state is used to find the previous frame when
-    // decoding a video P-Frame. It tracks the previous frame for each mip
-    // level. For cube map array textures we need to find the previous frame
-    // for each face so we a state per face. Although providing this is only
-    // needed for video, it is easier to always pass our own.
+    // basisu_transcoder_state is needed for thread safety and is used to
+    // find the previous frame when decoding a video P-Frame. It tracks the
+    // previous frame for each mip level. For cube map array textures we
+    // need to find the previous frame for each face so we need a state per
+    // face.
     std::vector<basisu_transcoder_state> xcoderStates;
     xcoderStates.resize(This->isVideo ? This->numFaces : 1);
 
