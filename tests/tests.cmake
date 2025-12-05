@@ -4,6 +4,7 @@
 # gtest based unit-tests
 
 include(GoogleTest)
+include(../cmake/compiler_query_genexs.cmake)
 
 add_subdirectory(gtest)
 find_package(Threads)
@@ -44,6 +45,14 @@ set_test_properties(unittests)
 set_code_sign(unittests)
 
 target_compile_features( unittests PUBLIC cxx_std_20 )
+
+target_compile_options(
+    unittests
+PRIVATE
+    # AppleClang 15 raises this error in the glm code with -std=c++20. 17 does
+    # not. Have not investigated why 17 does not.
+    $<$<AND:${is_clang},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,15.0.0>>:-Wdeprecated-volatile>
+)
 
 target_include_directories(
     unittests
