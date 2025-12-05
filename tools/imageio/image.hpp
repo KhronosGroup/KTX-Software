@@ -30,8 +30,11 @@
 #endif
 #if defined(__clang__)
   #pragma clang diagnostic push
-  // This warning is raised by Apple clang 15.0.0 when -std=c++20.
-  // Not raised by Apple clang 17.
+  // Compound operators on volatile qualified variables are deprecated in
+  // c++20. Those with bitwise logical operators will be un-deprecated in
+  // c++26 but not those with arithmetic operators which is the case here.
+  // This warning is raised by Apple clang 15.0.0 but not raised by Apple
+  // clang 17+, gcc or msvc for some reason.
   #pragma clang diagnostic ignored "-Wdeprecated-volatile"
 #endif
 #include <glm/gtc/packing.hpp>
