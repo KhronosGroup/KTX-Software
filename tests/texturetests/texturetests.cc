@@ -2907,7 +2907,7 @@ TEST(UnicodeFileNames, CreateFrom) {
         filePath.replace_filename(*it);
 
         result = ktxTexture_CreateFromNamedFile(
-            filePath.string().c_str(),
+            reinterpret_cast<const char*>(filePath.u8string().c_str()),
             KTX_TEXTURE_CREATE_NO_FLAGS,
             &texture);
         EXPECT_EQ(result, KTX_SUCCESS);
@@ -2919,12 +2919,12 @@ TEST(UnicodeFileNames, CreateFrom) {
 
         if (filePath.extension() == ".ktx") {
             result = ktxTexture1_CreateFromNamedFile(
-                filePath.string().c_str(),
+                reinterpret_cast<const char*>(filePath.u8string().c_str()),
                 KTX_TEXTURE_CREATE_NO_FLAGS,
                 (ktxTexture1**)&texture);
         } else {
             result = ktxTexture2_CreateFromNamedFile(
-                filePath.string().c_str(),
+                reinterpret_cast<const char*>(filePath.u8string().c_str()),
                 KTX_TEXTURE_CREATE_NO_FLAGS,
                 (ktxTexture2**)&texture);
         }
@@ -3196,21 +3196,22 @@ TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGBA8_SRGB, CompressToAstc12x12LdrThen
 // For Windows, we convert the UTF-8 path to a UTF-16 path to force using
 // the APIs that correctly handle unicode characters.
 inline std::wstring
-DecodeUTF8Path(std::string path) {
+DecodeUTF8Path(const std::u8string& path) {
     std::wstring result;
     int len =
-        MultiByteToWideChar(CP_UTF8, 0, path.c_str(), static_cast<int>(path.length()), NULL, 0);
+        MultiByteToWideChar(CP_UTF8, 0, reinterpret_cast<const char*>(path.c_str()),
+                            static_cast<int>(path.length()), NULL, 0);
     if (len > 0) {
         result.resize(len);
-        MultiByteToWideChar(CP_UTF8, 0, path.c_str(), static_cast<int>(path.length()), &result[0],
-                            len);
+        MultiByteToWideChar(CP_UTF8, 0, reinterpret_cast<const char*>(path.c_str()),
+                            static_cast<int>(path.length()), &result[0], len);
     }
     return result;
 }
 #else
 // For other platforms there is no need for any conversion, they
 // support UTF-8 natively.
-inline std::string DecodeUTF8Path(std::string path) { return path; }
+inline std::u8string DecodeUTF8Path(std::u8string path) { return path; }
 #endif
 
 #if defined(WIN32)
@@ -3218,11 +3219,11 @@ inline std::string DecodeUTF8Path(std::string path) { return path; }
 #endif
 
 static int
-statUTF8(const char* path, struct stat* info) {
+statUTF8(const std::u8string& path, struct stat* info) {
 #if defined(_WIN32)
     return _wstat(DecodeUTF8Path(path).c_str(), info);
 #else
-    return stat(path, info);
+    return stat((const char*)path.c_str(), info);
 #endif
 }
 
@@ -3253,7 +3254,7 @@ GTEST_API_ int main(int argc, char* argv[]) {
 
         struct stat info;
 
-        if (statUTF8(imagePath.c_str(), &info) != 0) {
+        if (statUTF8(imagePath.u8string().c_str(), &info) != 0) {
             std::cerr << "Cannot access " << imagePath << std::endl;
             return -2;
         }  else if (!(info.st_mode & S_IFDIR)) {
