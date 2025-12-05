@@ -3223,7 +3223,7 @@ statUTF8(const std::u8string& path, struct stat* info) {
 #if defined(_WIN32)
     return _wstat(DecodeUTF8Path(path).c_str(), info);
 #else
-    return stat((const char*)path.c_str(), info);
+    return stat(reinterpret_cast<const char*>(path.c_str()), info);
 #endif
 }
 
