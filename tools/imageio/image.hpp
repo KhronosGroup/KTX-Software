@@ -28,13 +28,23 @@
   #pragma warning(push)
   #pragma warning(disable : 4201)
 #endif
+#if defined(__clang__)
+  #pragma clang diagnostic push
+  // This warning is raised by Apple clang 15.0.0 when -std=c++20.
+  // Not raised by Apple clang 17.
+  #pragma clang diagnostic ignored "-Wdeprecated-volatile"
+#endif
 #include <glm/gtc/packing.hpp>
 #ifdef _MSC_VER
   #pragma warning(pop)
 #endif
+#if defined(__clang__)
+  #pragma clang diagnostic pop
+#endif
 #include "imageio_utility.h"
 #include "unused.h"
 #if defined(__GNUC__) && !defined(__clang__)
+  #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wunused-value"
 #endif
 #include "encoder/basisu_resampler.h"
