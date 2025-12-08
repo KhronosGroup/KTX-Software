@@ -71,6 +71,8 @@ jobs:
           # how to change the behaviour. Use VS.
           - os: windows-latest
             generator: 'Visual Studio 17 2022'
+            config: Release
+            static: [ OFF, ON ]
 
     runs-on: ${{ matrix.os }}
     env:
