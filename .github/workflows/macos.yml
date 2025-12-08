@@ -88,16 +88,6 @@ jobs:
                doc: ON, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tools: ON, tools_cts: ON,
                package: YES, sse: ON, opencl: OFF
             }
-          - name: Test macOS 13 build
-            os: macos-13
-            options: {
-              # graphviz no longer supports macOS 13 so doc: OFF.
-              # ts-graphviz/setup-graphviz@v2 does not support specifying a
-              # version on macOS.
-              config: 'Debug,Release', platform: macOS,
-              doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tests: OFF, tools: ON, tools_cts: OFF,
-              package: OFF, sse: ON, opencl: OFF
-            }
           - name: Build for iOS
             os: macos-latest
             generator: Xcode
