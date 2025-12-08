@@ -59,6 +59,7 @@ jobs:
       matrix:
         os: [ macos-latest, ubuntu-latest, windows-latest ]
         config: [ Release ]
+        static: [ OFF, ON ]
         generator: [ 'Ninja Multi-Config' ]
         exclude:
           - os: windows-latest
@@ -96,10 +97,9 @@ jobs:
     - name: Build libktx with top-level project
       run: cmake --build ${{ env.BUILD_DIR_TL }} --config=Release
 
-    - name: Configure as sub-project
+    - name: Configure as sub-project, static library: ${{ matrix.static }}
       run: cmake -S ${{ env.SOURCE_DIR_UKP }} -B ${{ env.BUILD_DIR_UKP }} -G "${{ matrix.generator }}" -DLIBKTX_WERROR=${{ env.WERROR }}
-
-    - name: Build use-ktx and libktx projects
+    - name: Build use-ktx and libktx projects, static library: ${{ matrix.static }}
       run: cmake --build ${{ env.BUILD_DIR_UKP }} --config=Release
 
     - name: Prepare version number and architecture for artifact
@@ -121,6 +121,7 @@ jobs:
       run: ${{ env.BUILD_DIR_UKP }}/Release/use-ktx ${{ env.KTX2_TEST_FILE }}
 
     - name: Upload artifact libktx
+      if: matrix.static == 'OFF'
       uses: actions/upload-artifact@v4
       with:
         name: libktx-${{ env.KTX_VERSION }}-${{ runner.os }}-${{ env.ARCH }}

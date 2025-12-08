@@ -22,7 +22,10 @@ project(use-ktx
     DESCRIPTION "Test using libktx project independently of KTX-Software"
 )
 
+option(USE_STATIC_LIBRARY "Build and use static library" OFF)
+
 set(path_to_ktx ../../lib)
+
 
 if(WIN32)
     # Set this to make the ktx build put ktx.dll into the same
@@ -31,11 +34,16 @@ if(WIN32)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 endif()
 
+
+if(USE_STATIC_LIBRARY)
+    set(BUILD_SHARED_LIBS OFF)
+endif()
 add_subdirectory(${path_to_ktx} ktx)
 
 add_executable(use-ktx
     use-ktx.cc
 )
 
+# libktx adds KHRONOS_STATIC as a public define so no need to set it here.
 target_compile_features(use-ktx PRIVATE cxx_std_20)
 target_link_libraries(use-ktx PRIVATE ktx)
