@@ -97,9 +97,9 @@ jobs:
     - name: Build libktx with top-level project
       run: cmake --build ${{ env.BUILD_DIR_TL }} --config=Release
 
-    - name: Configure as sub-project, static library: ${{ matrix.static }}
+    - name: Configure as sub-project, static library is ${{ matrix.static }}
       run: cmake -S ${{ env.SOURCE_DIR_UKP }} -B ${{ env.BUILD_DIR_UKP }} -G "${{ matrix.generator }}" -DLIBKTX_WERROR=${{ env.WERROR }}
-    - name: Build use-ktx and libktx projects, static library: ${{ matrix.static }}
+    - name: Build use-ktx and libktx projects, static library is ${{ matrix.static }}
       run: cmake --build ${{ env.BUILD_DIR_UKP }} --config=Release
 
     - name: Prepare version number and architecture for artifact
