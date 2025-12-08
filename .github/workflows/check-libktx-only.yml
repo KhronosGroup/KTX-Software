@@ -85,6 +85,8 @@ jobs:
       BUILD_DIR_UKP: "build/ukp"
       SOURCE_DIR_LIB: "lib"
       SOURCE_DIR_UKP: "tests/use-ktx"
+      # In theory it should not matter, but this image is chosen to exercise
+      # some of the functions in one of the library dependencies.
       KTX2_TEST_FILE: "tests/testimages/kodim17_basis.ktx2"
       WERROR: ON
 

@@ -26,7 +26,6 @@ option(USE_STATIC_LIBRARY "Build and use static library" OFF)
 
 set(path_to_ktx ../../lib)
 
-
 if(WIN32)
     # Set this to make the ktx build put ktx.dll into the same
     # directory as use-ktx.exe, so use-ktx can be run in its
@@ -34,9 +33,11 @@ if(WIN32)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 endif()
 
-
 if(USE_STATIC_LIBRARY)
+    message("Building and using static library")
     set(BUILD_SHARED_LIBS OFF)
+else()
+    message("Building and using shared library")
 endif()
 add_subdirectory(${path_to_ktx} ktx)
 
