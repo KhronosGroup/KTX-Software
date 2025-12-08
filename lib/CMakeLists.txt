@@ -470,19 +470,10 @@ macro(common_libktx_settings target enable_write library_type)
 endmacro(common_libktx_settings)
 
 macro(add_lib_dependencies target lib)
-    if(NOT BUILD_SHARED_LIBS AND APPLE)
+    if(NOT BUILD_SHARED_LIBS)
         # Make a single static library to simplify linking.
-        add_dependencies(${target} ${lib})
-        add_custom_command( TARGET ${target}
-            POST_BUILD
-            COMMAND libtool -static -o $<TARGET_FILE:${target}> $<TARGET_FILE:${target}> $<TARGET_FILE:${lib}>
-        )
+        target_sources(${target} PRIVATE $<TARGET_OBJECTS:${lib}>)
         target_include_directories(${target} PRIVATE $<TARGET_PROPERTY:${lib},INTERFACE_INCLUDE_DIRECTORIES>)
-
-        # Don't know libtool equivalent on Windows or Emscripten. Applications
-        # will have to link with  both ktx and ${ASTCENC_LIB_TARGET}. Static libs
-        # are unlikely to be used on Windows so not a problem there. For Emscripten
-        # everything is built into the JS module so not an issue there either.
     else()
         target_link_libraries(${target} PRIVATE ${lib})
     endif()
