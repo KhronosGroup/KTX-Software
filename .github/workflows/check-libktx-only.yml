@@ -59,6 +59,7 @@ jobs:
       matrix:
         os: [ macos-latest, ubuntu-latest, windows-latest ]
         config: [ Release ]
+        static: [ OFF, ON ]
         generator: [ 'Ninja Multi-Config' ]
         exclude:
           - os: windows-latest
@@ -70,6 +71,12 @@ jobs:
           # how to change the behaviour. Use VS.
           - os: windows-latest
             generator: 'Visual Studio 17 2022'
+            config: Release
+            static: OFF
+          - os: windows-latest
+            generator: 'Visual Studio 17 2022'
+            config: Release
+            static: ON
 
     runs-on: ${{ matrix.os }}
     env:
@@ -78,6 +85,8 @@ jobs:
       BUILD_DIR_UKP: "build/ukp"
       SOURCE_DIR_LIB: "lib"
       SOURCE_DIR_UKP: "tests/use-ktx"
+      # In theory it should not matter, but this image is chosen to exercise
+      # some of the functions in one of the library dependencies.
       KTX2_TEST_FILE: "tests/testimages/kodim17_basis.ktx2"
       WERROR: ON
 
@@ -96,10 +105,9 @@ jobs:
     - name: Build libktx with top-level project
       run: cmake --build ${{ env.BUILD_DIR_TL }} --config=Release
 
-    - name: Configure as sub-project
-      run: cmake -S ${{ env.SOURCE_DIR_UKP }} -B ${{ env.BUILD_DIR_UKP }} -G "${{ matrix.generator }}" -DLIBKTX_WERROR=${{ env.WERROR }}
-
-    - name: Build use-ktx and libktx projects
+    - name: Configure as sub-project, static library is ${{ matrix.static }}
+      run: cmake -S ${{ env.SOURCE_DIR_UKP }} -B ${{ env.BUILD_DIR_UKP }} -G "${{ matrix.generator }}" -DLIBKTX_WERROR=${{ env.WERROR }} -DUSE_STATIC_LIBRARY=${{ matrix.static }}
+    - name: Build use-ktx and libktx projects, static library is ${{ matrix.static }}
       run: cmake --build ${{ env.BUILD_DIR_UKP }} --config=Release
 
     - name: Prepare version number and architecture for artifact
@@ -121,6 +129,7 @@ jobs:
       run: ${{ env.BUILD_DIR_UKP }}/Release/use-ktx ${{ env.KTX2_TEST_FILE }}
 
     - name: Upload artifact libktx
+      if: matrix.static == 'OFF'
       uses: actions/upload-artifact@v4
       with:
         name: libktx-${{ env.KTX_VERSION }}-${{ runner.os }}-${{ env.ARCH }}
