@@ -1360,7 +1360,7 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
 
     }
 
-    if (options.codec != BasisCodec::NONE) {
+    if (options.codec == BasisCodec::BasisLZ || options.codec == BasisCodec::UASTC) {
         switch (options.vkFormat) {
         case VK_FORMAT_R8_UNORM:
         case VK_FORMAT_R8_SRGB:
@@ -1370,12 +1370,22 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
         case VK_FORMAT_R8G8B8_SRGB:
         case VK_FORMAT_R8G8B8A8_UNORM:
         case VK_FORMAT_R8G8B8A8_SRGB:
+            // Allowed formats
+            break;
+        default:
+            fatal_usage("Only R8, RG8, RGB8, or RGBA8 UNORM and SRGB formats can be encoded, "
+                "but format is {}.", toString(VkFormat(options.vkFormat)));
+            break;
+        }
+    } else if (options.codec == BasisCodec::UASTC_HDR_4x4 || options.codec == BasisCodec::UASTC_HDR_6x6i) {
+        switch (options.vkFormat) {
         case VK_FORMAT_R16G16B16_SFLOAT:
         case VK_FORMAT_R16G16B16A16_SFLOAT:
             // Allowed formats
             break;
         default:
-            fatal_usage("Only R8, RG8, RGB8, or RGBA8 UNORM and SRGB formats or RGB16 SFLOAT or RGBA16 SFLOAT can be encoded, "
+            fatal_usage(
+                "Only RGB16 or RGBA16 SFLOAT can be encoded, "
                 "but format is {}.", toString(VkFormat(options.vkFormat)));
             break;
         }
