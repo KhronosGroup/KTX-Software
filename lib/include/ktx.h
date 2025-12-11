@@ -1358,6 +1358,23 @@ KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture2_DecodeAstc(ktxTexture2* This);
 
 /**
+ * @~English
+ * @brief Options specifiying basis codec.
+ */
+typedef enum ktx_basis_codec_e {
+    KTX_BASIS_CODEC_NONE  = 0,
+        /*!< NONE. */
+    KTX_BASIS_CODEC_ETC1S   = 1,
+        /*!< BasisLZ. */
+    KTX_BASIS_CODEC_UASTC   = 2,
+        /*!< UASTC. */
+    KTX_BASIS_CODEC_UASTC_HDR_4X4   = 4,
+        /*!< UASTC_HDR_4x4. */
+    KTX_BASIS_CODEC_UASTC_HDR_6X6_INTERMEDIATE = 8,
+        /*!< UASTC_HDR_6x6i. */
+} ktx_basis_codec_e;
+
+/**
  * @memberof ktxTexture2
  * @~English
  * @brief Structure for passing extended parameters to
@@ -1381,8 +1398,8 @@ typedef struct ktxBasisParams {
         /*!< Size of this struct. Used so library can tell which version
              of struct is being passed.
          */
-    ktx_bool_t uastc;
-        /*!<  True to use UASTC base, false to use ETC1S base. */
+    ktx_basis_codec_e codecFlag;
+        /*!<  Flag to indicate which codec to use. 1 - ETC1S, 2 - UASTC, 4 - UASTC_HDR4x4, 8 - UASTC_HDR6x6i. */
     ktx_bool_t verbose;
         /*!< If true, prints Basis Universal encoder operation details to
              @c stdout. Not recommended for GUI apps.
@@ -1517,6 +1534,28 @@ typedef struct ktxBasisParams {
     ktx_bool_t uastcRDONoMultithreading;
         /*!< Disable RDO multithreading (slightly higher compression,
              deterministic).
+         */
+    ktx_uint32_t uastcHDRQuality;
+        /*!< UASTC HDR 4x4: Sets the UASTC HDR 4x4 compressor's level. Valid range is [0,4] - higher=slower but higher quality. HDR default=1.
+		                    Level 0=fastest/lowest quality, 3=highest practical setting, 4=exhaustive
+         */
+    ktx_bool_t uastcHDRUberMode;
+        /*!< UASTC HDR 4x4: Allow the UASTC HDR 4x4 encoder to try varying the CEM 11 selectors more for slightly higher quality (slower). This may negatively impact BC6H quality, however.
+         */
+    ktx_bool_t uastcHDRUltraQuant;
+        /*!< UASTC HDR 4x4: Try to find better quantized CEM 7/11 endpoint values (slower)
+         */
+    ktx_bool_t uastcHDRFavorAstc;
+        /*!< UASTC HDR 4x4: By default the UASTC HDR 4x4 encoder tries to strike a balance or even slightly favor BC6H quality. If this option is specified, ASTC HDR 4x4 quality is favored instead.
+         */
+    ktx_bool_t rec2020;
+        /*!< UASTC HDR 6x6i specific option: The input image's gamut is Rec. 2020 vs. the default Rec. 709 - for accurate colorspace error calculations.
+         */
+    float uastcLambda;
+        /*!< UASTC HDR 6x6i specific option: Enables rate distortion optimization (RDO). The higher this value, the lower the quality, but the smaller the file size. Try 100-20000, or higher values on some images.
+         */
+    ktx_uint32_t uastcHDRLevel;
+        /*!< UASTC HDR 6x6i specific option: Controls the 6x6 HDR intermediate mode encoder performance vs. max quality tradeoff. X may range from [0,12]. Default level is 2.
          */
 
 } ktxBasisParams;

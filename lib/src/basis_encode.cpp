@@ -76,7 +76,7 @@ enum swizzle_e {
 };
 
 typedef void
-(* PFNBUCOPYCB)(uint8_t* rgbadst, uint8_t* rgbasrc, uint32_t src_len,
+(* PFNBUCOPYCB_LDR)(uint8_t* rgbadst, uint8_t* rgbasrc, uint32_t src_len,
                 ktx_size_t image_size, swizzle_e swizzle[4]);
 
 // All callbacks expect source images to have no row padding and expect
@@ -132,6 +132,66 @@ swizzle_to_rgba(uint8_t* rgbadst, uint8_t* rgbasrc, uint32_t src_len,
             }
         }
         rgbadst +=4; rgbasrc += src_len;
+    }
+}
+
+typedef void (*PFNBUCOPYCB_HDR)(float* rgbadst, const basist::half_float* rgbasrc, uint32_t src_len,
+                                ktx_size_t image_size, swizzle_e swizzle[4]);
+
+// All callbacks expect source images to have no row padding and expect
+// component size to be 32 bits.
+static void
+copy_rgbaF_to_rgbaF(float* rgbadst, const basist::half_float* rgbasrc, uint32_t,
+                    ktx_size_t image_size, swizzle_e[4]) {
+    memcpy(rgbadst, rgbasrc, image_size);
+}
+
+// Copy rgb to rgba. No swizzle.
+static void
+copy_rgbF_to_rgbaF(float* rgbadst, const basist::half_float* rgbsrc, uint32_t,
+                   ktx_size_t image_size, swizzle_e[4]) {
+    for (ktx_size_t i = 0; i < image_size; i += 3 * sizeof(basist::half_float)) {
+        memcpy(rgbadst, rgbsrc, 3 * sizeof(basist::half_float));
+        rgbadst[0] = basist::half_to_float(rgbsrc[0]);
+        rgbadst[1] = basist::half_to_float(rgbsrc[1]);
+        rgbadst[2] = basist::half_to_float(rgbsrc[2]);
+        rgbadst[3] = 1.f;  // Convince Basis there is no alpha.
+        rgbadst += 4;
+        rgbsrc += 3;
+    }
+}
+
+// This is not static only so the unit tests can access it.
+void
+swizzle_to_rgbaF(float* rgbadst, const basist::half_float* rgbasrc, uint32_t src_len,
+                 ktx_size_t image_size, swizzle_e swizzle[4]) {
+    for (ktx_size_t i = 0; i < image_size; i += src_len) {
+        for (uint32_t c = 0; c < 4; c++) {
+            switch (swizzle[c]) {
+            case R:
+                rgbadst[c] = basist::half_to_float(rgbasrc[0]);
+                break;
+            case G:
+                rgbadst[c] = basist::half_to_float(rgbasrc[1]);
+                break;
+            case B:
+                rgbadst[c] = basist::half_to_float(rgbasrc[2]);
+                break;
+            case A:
+                rgbadst[c] = basist::half_to_float(rgbasrc[3]);
+                break;
+            case ZERO:
+                rgbadst[c] = 0.f;
+                break;
+            case ONE:
+                rgbadst[c] = 1.f;
+                break;
+            default:
+                assert(false);
+            }
+        }
+        rgbadst += 4;
+        rgbasrc += src_len;
     }
 }
 
@@ -371,6 +431,90 @@ ktxTexture2_rewriteDfd4Uastc(ktxTexture2* This,
     return KTX_SUCCESS;
 }
 
+static KTX_error_code
+ktxTexture2_rewriteDfd4UastcHDR4x4(ktxTexture2* This, alpha_content_e alphaContent, bool isLuminance,
+                             swizzle_e swizzle[4]) {
+    uint32_t* cdfd = This->pDfd;
+    uint32_t* cbdb = cdfd + 1;
+
+    uint32_t ndbSize = KHR_DF_WORD_SAMPLESTART + 1 * KHR_DF_WORD_SAMPLEWORDS;
+    ndbSize *= sizeof(uint32_t);
+    uint32_t ndfdSize = ndbSize + 1 * sizeof(uint32_t);
+    uint32_t* ndfd = (uint32_t*)malloc(ndfdSize);
+    uint32_t* nbdb = ndfd + 1;
+
+    if (!ndfd) return KTX_OUT_OF_MEMORY;
+
+    *ndfd = ndfdSize;
+    KHR_DFDSETVAL(nbdb, VENDORID, KHR_DF_VENDORID_KHRONOS);
+    KHR_DFDSETVAL(nbdb, DESCRIPTORTYPE, KHR_DF_KHR_DESCRIPTORTYPE_BASICFORMAT);
+    KHR_DFDSETVAL(nbdb, VERSIONNUMBER, KHR_DF_VERSIONNUMBER_LATEST);
+    KHR_DFDSETVAL(nbdb, DESCRIPTORBLOCKSIZE, ndbSize);
+    KHR_DFDSETVAL(nbdb, MODEL, KHR_DF_MODEL_UASTC_4X4_HDR);
+    KHR_DFDSETVAL(nbdb, PRIMARIES, KHR_DFDVAL(cbdb, PRIMARIES));
+    KHR_DFDSETVAL(nbdb, TRANSFER, KHR_DFDVAL(cbdb, TRANSFER));
+    KHR_DFDSETVAL(nbdb, FLAGS, KHR_DFDVAL(cbdb, FLAGS));
+
+    nbdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0] = 3 | (3 << KHR_DF_SHIFT_TEXELBLOCKDIMENSION1);
+    nbdb[KHR_DF_WORD_BYTESPLANE0] = 16; /* bytesPlane0 = 16, bytesPlane3..1 = 0 */
+    nbdb[KHR_DF_WORD_BYTESPLANE4] = 0;  /* bytesPlane7..5 = 0 */
+
+    // Set the data for our single sample
+    KHR_DFDSETSVAL(nbdb, 0, CHANNELID, KHR_DF_CHANNEL_UASTC_4X4_HDR_RGB);
+    KHR_DFDSETSVAL(nbdb, 0, QUALIFIERS, 0);
+    KHR_DFDSETSVAL(nbdb, 0, SAMPLEPOSITION_ALL, 0);
+    KHR_DFDSETSVAL(nbdb, 0, BITOFFSET, 0);
+    KHR_DFDSETSVAL(nbdb, 0, BITLENGTH, 127);
+    KHR_DFDSETSVAL(nbdb, 0, SAMPLELOWER, 0);
+    KHR_DFDSETSVAL(nbdb, 0, SAMPLEUPPER, UINT32_MAX);
+
+    This->pDfd = ndfd;
+    free(cdfd);
+    return KTX_SUCCESS;
+}
+
+static KTX_error_code
+ktxTexture2_rewriteDfd4UastcHDR6x6i(ktxTexture2* This, alpha_content_e alphaContent, bool isLuminance,
+                             swizzle_e swizzle[4]) {
+    uint32_t* cdfd = This->pDfd;
+    uint32_t* cbdb = cdfd + 1;
+
+    uint32_t ndbSize = KHR_DF_WORD_SAMPLESTART + 1 * KHR_DF_WORD_SAMPLEWORDS;
+    ndbSize *= sizeof(uint32_t);
+    uint32_t ndfdSize = ndbSize + 1 * sizeof(uint32_t);
+    uint32_t* ndfd = (uint32_t*)malloc(ndfdSize);
+    uint32_t* nbdb = ndfd + 1;
+
+    if (!ndfd) return KTX_OUT_OF_MEMORY;
+
+    *ndfd = ndfdSize;
+    KHR_DFDSETVAL(nbdb, VENDORID, KHR_DF_VENDORID_KHRONOS);
+    KHR_DFDSETVAL(nbdb, DESCRIPTORTYPE, KHR_DF_KHR_DESCRIPTORTYPE_BASICFORMAT);
+    KHR_DFDSETVAL(nbdb, VERSIONNUMBER, KHR_DF_VERSIONNUMBER_LATEST);
+    KHR_DFDSETVAL(nbdb, DESCRIPTORBLOCKSIZE, ndbSize);
+    KHR_DFDSETVAL(nbdb, MODEL, KHR_DF_MODEL_UASTC_6x6_HDR);
+    KHR_DFDSETVAL(nbdb, PRIMARIES, KHR_DFDVAL(cbdb, PRIMARIES));
+    KHR_DFDSETVAL(nbdb, TRANSFER, KHR_DFDVAL(cbdb, TRANSFER));
+    KHR_DFDSETVAL(nbdb, FLAGS, KHR_DFDVAL(cbdb, FLAGS));
+
+    nbdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0] = 3 | (3 << KHR_DF_SHIFT_TEXELBLOCKDIMENSION1);
+    nbdb[KHR_DF_WORD_BYTESPLANE0] = 16; /* bytesPlane0 = 16, bytesPlane3..1 = 0 */
+    nbdb[KHR_DF_WORD_BYTESPLANE4] = 0;  /* bytesPlane7..5 = 0 */
+
+    // Set the data for our single sample
+    KHR_DFDSETSVAL(nbdb, 0, CHANNELID, KHR_DF_CHANNEL_UASTC_6X6_HDR_RGB);
+    KHR_DFDSETSVAL(nbdb, 0, QUALIFIERS, 0);
+    KHR_DFDSETSVAL(nbdb, 0, SAMPLEPOSITION_ALL, 0);
+    KHR_DFDSETSVAL(nbdb, 0, BITOFFSET, 0);
+    KHR_DFDSETSVAL(nbdb, 0, BITLENGTH, 127);
+    KHR_DFDSETSVAL(nbdb, 0, SAMPLELOWER, 0);
+    KHR_DFDSETSVAL(nbdb, 0, SAMPLEUPPER, UINT32_MAX);
+
+    This->pDfd = ndfd;
+    free(cdfd);
+    return KTX_SUCCESS;
+}
+
 static bool basisuEncoderInitialized = false;
 
 /**
@@ -446,8 +590,8 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     uint32_t num_components, component_size;
     getDFDComponentInfoUnpacked(This->pDfd, &num_components, &component_size);
 
-    if (component_size != 1)
-        return KTX_INVALID_OPERATION; // Basis must have 8-bit components.
+    if (component_size != 1 && component_size != 2)
+        return KTX_INVALID_OPERATION; // Basis can have either 8-bit or 16-bit components.
 
     if (num_components == 1 && params->normalMap)
         return KTX_INVALID_OPERATION; // Not enough components.
@@ -474,6 +618,25 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     cparams.m_create_ktx2_file = false; // To avoid rewriting this code, continue with .basis.
     cparams.m_status_output = params->verbose;
 
+    switch (params->codecFlag) {
+    case ktx_basis_codec_e::KTX_BASIS_CODEC_ETC1S:
+        cparams.m_uastc = false;
+        break;
+    case ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC:
+        cparams.m_uastc = true;
+        break;
+    case ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4X4:
+        cparams.m_uastc = true;
+        cparams.m_hdr = true;
+        cparams.m_hdr_mode = basisu::hdr_modes::cUASTC_HDR_4X4;
+        break;
+    case ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_6X6_INTERMEDIATE:
+        cparams.m_uastc = true;
+        cparams.m_hdr = true;
+        cparams.m_hdr_mode = basisu::hdr_modes::cASTC_HDR_6X6_INTERMEDIATE;
+        break;
+    }
+
     //
     // Calculate number of images
     //
@@ -491,8 +654,12 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     // Darn it! m_source_images is a vector of an internal image class which
     // has its own array of RGBA-only pixels. Pending modifications to the
     // basisu code we'll have to copy in the images.
-    cparams.m_source_images.resize(num_images);
-    basisu::vector<image>::iterator iit = cparams.m_source_images.begin();
+    if (cparams.m_hdr)
+        cparams.m_source_images_hdr.resize(num_images);
+    else
+        cparams.m_source_images.resize(num_images);
+    basisu::vector<image>::iterator iit_ldr = cparams.m_source_images.begin();
+    basisu::vector<imagef>::iterator iit_hdr = cparams.m_source_images_hdr.begin();
 
     // Since we have to copy the data into the vector image anyway do the
     // separation here to avoid another loop over the image inside
@@ -541,7 +708,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         } else if (num_components == 1) {
             comp_mapping = r_to_rgba_mapping;
         } else if (num_components == 2) {
-            if (params->uastc)
+            if (cparams.m_uastc)
                 comp_mapping = rg_to_rgba_mapping_uastc;
             else {
                 comp_mapping = rg_to_rgba_mapping_etc1s;
@@ -587,18 +754,24 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         }
     }
 
-    PFNBUCOPYCB copycb = copy_rgba_to_rgba; // Initialization is just to keep
-                                            // compilers happy
+    PFNBUCOPYCB_LDR copycb_ldr = copy_rgba_to_rgba; // Initialization is just to keep
+    PFNBUCOPYCB_HDR copycb_hdr = copy_rgbaF_to_rgbaF; // compilers happy
     if (comp_mapping) {
-        copycb = swizzle_to_rgba;
+        copycb_ldr = swizzle_to_rgba;
+        copycb_hdr = swizzle_to_rgbaF;
     } else {
         switch (num_components) {
-          case 4: copycb = copy_rgba_to_rgba; break;
-          case 3: copycb = copy_rgb_to_rgba; break;
+        case 4:
+            copycb_ldr = copy_rgba_to_rgba;
+            copycb_hdr = copy_rgbaF_to_rgbaF;
+            break;
+        case 3:
+            copycb_ldr = copy_rgb_to_rgba;
+            copycb_hdr = copy_rgbF_to_rgbaF;
+            break;
           default: assert(false);
         }
     }
-
     // NOTA BENE: It is advantageous for Basis LZ compression to order
     // mipmap levels from largest to smallest.
     for (uint32_t level = 0; level < This->numLevels; level++) {
@@ -611,11 +784,20 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
             for (ktx_uint32_t slice = 0; slice < faceSlices; slice++) {
                 ktx_size_t offset;
                 ktxTexture2_GetImageOffset(This, level, layer, slice, &offset);
-                iit->resize(width, height);
-                copycb((uint8_t*)iit->get_ptr(), This->pData + offset,
-                        num_components, image_size,
-                        comp_mapping);
-                ++iit;
+                if (cparams.m_hdr)
+                {
+                    iit_hdr->resize(width, height);
+                    copycb_hdr(iit_hdr->get_ptr()->get_ptr(), (const basist::half_float*)(This->pData + offset), num_components,
+                           image_size, comp_mapping);
+                    ++iit_hdr;
+                }
+                else
+                {
+                    iit_ldr->resize(width, height);
+                    copycb_ldr((uint8_t*)iit_ldr->get_ptr(), This->pData + offset, num_components,
+                           image_size, comp_mapping);
+                    ++iit_ldr;
+                }                
             }
         }
     }
@@ -647,9 +829,8 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         cparams.m_perceptual = false;
 
     cparams.m_mip_gen = false; // We provide the mip levels.
-
-    cparams.m_uastc = params->uastc;
-    if (params->uastc) {
+    
+    if (cparams.m_uastc) {
         cparams.m_pack_uastc_ldr_4x4_flags = params->uastcFlags;
         if (params->uastcRDO) {
             cparams.m_rdo_uastc_ldr_4x4 = true;
@@ -673,6 +854,17 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
             cparams.m_rdo_uastc_ldr_4x4_favor_simpler_modes_in_rdo_mode =
                                     !params->uastcRDONoMultithreading;
         }
+        cparams.m_hdr_favor_astc = params->uastcHDRFavorAstc;
+        cparams.m_uastc_hdr_4x4_options.m_allow_uber_mode = params->uastcHDRUberMode;
+        cparams.m_uastc_hdr_4x4_options.m_ultra_quant = params->uastcHDRUltraQuant;
+        cparams.m_astc_hdr_6x6_options.m_rec2020_bt2100_color_gamut = params->rec2020;
+        if (params->uastcLambda > 0.0f)
+        {
+            cparams.m_astc_hdr_6x6_options.m_lambda = params->uastcLambda;
+            cparams.m_rdo_uastc_ldr_4x4_quality_scalar = params->uastcLambda;
+            cparams.m_rdo_uastc_ldr_4x4 = true;
+        }        
+        
     } else {
         // ETC1S-related params.
 
@@ -852,7 +1044,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
             = reinterpret_cast<const basis_slice_desc*>(&bf[base_offset]);
     std::vector<uint32_t> level_file_offsets(This->numLevels);
 
-    if (params->uastc) {
+    if (cparams.m_uastc) {
         for (uint32_t level = 0; level < This->numLevels; level++) {
             uint32_t depth = MAX(1, This->baseDepth >> level);
             uint32_t levelByteLength = 0;
@@ -1010,10 +1202,28 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
 
     // Delayed modifying texture until here so it's after points of
     // possible failure.
-    if (params->uastc) {
+    if (params->codecFlag == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC) {
         result = ktxTexture2_rewriteDfd4Uastc(This, alphaContent,
                                               isLuminance,
                                               comp_mapping);
+        if (result != KTX_SUCCESS) goto cleanup;
+
+        // Reflect this in the formatSize
+        ktxFormatSize_initFromDfd(&formatSize, This->pDfd);
+        // and the requiredLevelAlignment.
+        priv._requiredLevelAlignment = 4 * 4;
+    }
+    else if (params->codecFlag == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4X4 ) {
+        result = ktxTexture2_rewriteDfd4UastcHDR4x4(This, alphaContent, isLuminance, comp_mapping);
+        if (result != KTX_SUCCESS) goto cleanup;
+
+        // Reflect this in the formatSize
+        ktxFormatSize_initFromDfd(&formatSize, This->pDfd);
+        // and the requiredLevelAlignment.
+        priv._requiredLevelAlignment = 4 * 4;
+    } 
+    else if (params->codecFlag == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_6X6_INTERMEDIATE) {
+        result = ktxTexture2_rewriteDfd4UastcHDR6x6i(This, alphaContent, isLuminance, comp_mapping);
         if (result != KTX_SUCCESS) goto cleanup;
 
         // Reflect this in the formatSize
@@ -1034,6 +1244,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     }
     This->vkFormat = VK_FORMAT_UNDEFINED;
     This->isCompressed = KTX_TRUE;
+    This->_protected->_typeSize = 1;
 
     // Block-compressed textures never need byte swapping so typeSize is 1.
     assert(This->_protected->_typeSize == 1);

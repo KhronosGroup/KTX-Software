@@ -171,7 +171,7 @@ struct OptionsCreate {
                     " the \'Generate Mipmap\' options to tune the resampler.",
                     cxxopts::value<float>(), "<float>")
                 (kEncode, "Encode the created KTX file. Case insensitive."
-                    "\nPossible options are: basis-lz | uastc", cxxopts::value<std::string>(), "<codec>")
+                    "\nPossible options are: basis-lz | uastc | uastc-hdr-4x4 | uastc-hdr-6x6i", cxxopts::value<std::string>(), "<codec>")
                 (kNormalize, "Normalize input normals to have a unit length. Only valid for\n"
                     "linear normal textures with 2 or more components. For 2-component\n"
                     "inputs 2D unit normals are calculated. Do not use these 2D unit\n"
@@ -1346,6 +1346,20 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
             fatal_usage("Cannot encode to BasisLZ and supercompress with ZLIB.");
     }
 
+    if (options.codec == BasisCodec::UASTC_HDR_6x6i) {
+        if (options.zstd.has_value())
+            fatal_usage("Cannot encode to UASTC HDR 6x6i and supercompress with Zstd.");
+
+        if (options.zlib.has_value())
+            fatal_usage("Cannot encode to UASTC HDR 6x6i and supercompress with ZLIB.");
+    }
+    if (options.codec == BasisCodec::UASTC_HDR_4x4 || options.codec == BasisCodec::UASTC_HDR_6x6i) {
+        if (options.raw && (options.vkFormat != VK_FORMAT_R16G16B16_SFLOAT &&
+                            options.vkFormat != VK_FORMAT_R16G16B16A16_SFLOAT))
+            fatal_usage("Cannot encode to UASTC-HDR from RAW due to incorrect format value. The format should be either R16G16B16_SFLOAT or R16G16B16A16_SFLOAT.");
+
+    }
+
     if (options.codec != BasisCodec::NONE) {
         switch (options.vkFormat) {
         case VK_FORMAT_R8_UNORM:
@@ -1356,16 +1370,18 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
         case VK_FORMAT_R8G8B8_SRGB:
         case VK_FORMAT_R8G8B8A8_UNORM:
         case VK_FORMAT_R8G8B8A8_SRGB:
+        case VK_FORMAT_R16G16B16_SFLOAT:
+        case VK_FORMAT_R16G16B16A16_SFLOAT:
             // Allowed formats
             break;
         default:
-            fatal_usage("Only R8, RG8, RGB8, or RGBA8 UNORM and SRGB formats can be encoded, "
+            fatal_usage("Only R8, RG8, RGB8, or RGBA8 UNORM and SRGB formats or RGB16 SFLOAT or RGBA16 SFLOAT can be encoded, "
                 "but format is {}.", toString(VkFormat(options.vkFormat)));
             break;
         }
     }
 
-    const auto basisCodec = options.codec == BasisCodec::BasisLZ || options.codec == BasisCodec::UASTC;
+    const auto basisCodec = options.codec == BasisCodec::BasisLZ || options.codec == BasisCodec::UASTC || options.codec == BasisCodec::UASTC_HDR_4x4 || options.codec == BasisCodec::UASTC_HDR_6x6i;
     const auto astcCodec = isFormatAstc(options.vkFormat);
     const auto canCompare = basisCodec || astcCodec;
 
