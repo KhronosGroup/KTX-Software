@@ -63,6 +63,24 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
                            ktx_transcode_fmt_e outputFormat,
                            ktx_transcode_flags transcodeFlags);
 
+static transcoder_texture_format
+ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
+  switch (ktx_fmt) {
+  case KTX_TTF_ASTC_HDR_4x4_RGBA:
+      return transcoder_texture_format::cTFASTC_HDR_4x4_RGBA;
+      break;
+  case KTX_TTF_ASTC_HDR_6x6_RGBA:
+      return transcoder_texture_format::cTFASTC_HDR_6x6_RGBA;
+      break;
+  case KTX_TTF_BC6HU:
+      return transcoder_texture_format::cTFBC6H;
+      break;
+  default:
+      break;
+  }
+  return (transcoder_texture_format)ktx_fmt;
+}
+
 /**
  * @memberof ktxTexture2
  * @ingroup reader
@@ -142,7 +160,9 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
 {
     uint32_t* BDB = This->pDfd + 1;
     khr_df_model_e colorModel = (khr_df_model_e)KHR_DFDVAL(BDB, MODEL);
-    if (colorModel != KHR_DF_MODEL_UASTC
+    if (colorModel != KHR_DF_MODEL_UASTC &&
+        colorModel != KHR_DF_MODEL_UASTC_4X4_HDR &&
+        colorModel != KHR_DF_MODEL_UASTC_6x6_HDR 
         // Constructor has checked color model matches BASIS_LZ.
         && This->supercompressionScheme != KTX_SS_BASIS_LZ)
     {
@@ -263,6 +283,15 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
         vkFormat = srgb ? VK_FORMAT_ASTC_4x4_SRGB_BLOCK
                         : VK_FORMAT_ASTC_4x4_UNORM_BLOCK;
         break;
+      case KTX_TTF_ASTC_HDR_4x4_RGBA:
+        vkFormat = VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK;
+        break;
+      case KTX_TTF_ASTC_HDR_6x6_RGBA:
+        vkFormat = VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK;
+        break;
+      case KTX_TTF_BC6HU:
+        vkFormat = VK_FORMAT_BC6H_UFLOAT_BLOCK;
+        break;
       case KTX_TTF_RGB565:
         vkFormat = VK_FORMAT_R5G6B5_UNORM_PACK16;
         break;
@@ -276,6 +305,9 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
         vkFormat = srgb ? VK_FORMAT_R8G8B8A8_SRGB
                         : VK_FORMAT_R8G8B8A8_UNORM;
         break;
+      case KTX_TTF_RGBA_HALF:
+        vkFormat = VK_FORMAT_R16G16B16A16_SFLOAT;
+        break;
       default:
         return KTX_INVALID_VALUE;
     }
@@ -283,11 +315,16 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
     basis_tex_format textureFormat;
     if (colorModel == KHR_DF_MODEL_UASTC)
         textureFormat = basis_tex_format::cUASTC4x4;
+    else if (colorModel == KHR_DF_MODEL_UASTC_4X4_HDR)
+        textureFormat = basis_tex_format::cUASTC_HDR_4x4;        
+    else if (colorModel == KHR_DF_MODEL_UASTC_6x6_HDR)
+        textureFormat = basis_tex_format::cASTC_HDR_6x6_INTERMEDIATE;    
     else
         textureFormat = basis_tex_format::cETC1S;
 
-    if (!basis_is_format_supported((transcoder_texture_format)outputFormat,
-                                    textureFormat)) {
+    
+    if (!basis_is_format_supported(ktx2transcoderFormat(outputFormat),
+                                   textureFormat)) {
         return KTX_UNSUPPORTED_FEATURE;
     }
 
@@ -297,7 +334,7 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
     // data allocation and the DFD for the target format.
     ktxTextureCreateInfo createInfo;
     createInfo.glInternalformat = 0;
-    createInfo.vkFormat = vkFormat;
+    createInfo.vkFormat = (ktx_uint32_t)vkFormat;
     createInfo.baseWidth = This->baseWidth;
     createInfo.baseHeight = This->baseHeight;
     createInfo.baseDepth = This->baseDepth;
@@ -362,6 +399,7 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
         memcpy(&thisPrtctd._formatSize, &protoPrtctd._formatSize,
                sizeof(ktxFormatSize));
         This->vkFormat = vkFormat;
+        thisPrtctd._typeSize = protoPrtctd._typeSize;
         This->isCompressed = prototype->isCompressed;
         This->supercompressionScheme = KTX_SS_NONE;
         priv._requiredLevelAlignment = protoPriv._requiredLevelAlignment;
@@ -596,7 +634,7 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
 
             bool status;
             status = bit.transcode_image(
-                      (transcoder_texture_format)outputFormat,
+                      ktx2transcoderFormat(outputFormat),
                       pXcodedData + writeOffset,
                       (uint32_t)(xcodedDataLength - writeOffsetBlocks),
                       This->pData,
@@ -649,14 +687,10 @@ cleanup:
     return result;
 }
 
-
-KTX_error_code
-ktxTexture2_transcodeUastc(ktxTexture2* This,
-                           alpha_content_e alphaContent,
-                           ktxTexture2* prototype,
-                           ktx_transcode_fmt_e outputFormat,
-                           ktx_transcode_flags transcodeFlags)
-{
+static KTX_error_code
+transcodeUastcLDR4x4(ktxTexture2* This, alpha_content_e alphaContent,
+                                  ktxTexture2* prototype,
+                           ktx_transcode_fmt_e outputFormat, ktx_transcode_flags transcodeFlags) {
     assert(This->supercompressionScheme != KTX_SS_BASIS_LZ);
 
     ktx_uint8_t* pXcodedData = prototype->pData;
@@ -745,5 +779,193 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
     // In case of transcoding to uncompressed.
     levelOffsetWrite = _KTX_PADN(protoPriv._requiredLevelAlignment,
                                  levelOffsetWrite);
+
+    return KTX_SUCCESS;
+}
+
+
+static KTX_error_code
+transcodeUastcHDR4x4(ktxTexture2* This, alpha_content_e alphaContent, ktxTexture2* prototype,
+                     ktx_transcode_fmt_e outputFormat, ktx_transcode_flags transcodeFlags) {
+    assert(This->supercompressionScheme != KTX_SS_BASIS_LZ);
+
+    ktx_uint8_t* pXcodedData = prototype->pData;
+    ktx_uint32_t outputBlockByteLength = prototype->_protected->_formatSize.blockSizeInBits / 8;
+    ktx_size_t xcodedDataLength = prototype->dataSize / outputBlockByteLength;
+    DECLARE_PRIVATE(protoPriv, prototype);
+    ktxLevelIndexEntry* protoLevelIndex = protoPriv._levelIndex;
+    ktx_size_t levelOffsetWrite = 0;
+
+    basist::basisu_lowlevel_uastc_hdr_4x4_transcoder uit;
+    // See comment on same declaration in transcodeEtc1s.
+    std::vector<basisu_transcoder_state> xcoderStates;
+    xcoderStates.resize(This->isVideo ? This->numFaces : 1);
+
+    for (ktx_int32_t level = This->numLevels - 1; level >= 0; level--) {
+        ktx_uint32_t depth;
+        uint64_t writeOffset = levelOffsetWrite;
+        uint64_t writeOffsetBlocks = levelOffsetWrite / outputBlockByteLength;
+        ktx_size_t levelImageSizeIn, levelImageOffsetIn;
+        ktx_size_t levelImageSizeOut, levelSizeOut;
+        ktx_uint32_t levelImageCount;
+        uint32_t levelWidth = MAX(1, This->baseWidth >> level);
+        uint32_t levelHeight = MAX(1, This->baseHeight >> level);
+        // UASTC texel block dimensions
+        const uint32_t bw = 4, bh = 4;
+        uint32_t levelBlocksX = (levelWidth + (bw - 1)) / bw;
+        uint32_t levelBlocksY = (levelHeight + (bh - 1)) / bh;
+        uint32_t stateIndex = 0;
+
+        depth = MAX(1, This->baseDepth >> level);
+
+        levelImageCount = This->numLayers * This->numFaces * depth;
+        levelImageSizeIn =
+            ktxTexture_calcImageSize(ktxTexture(This), level, KTX_FORMAT_VERSION_TWO);
+        levelImageSizeOut =
+            ktxTexture_calcImageSize(ktxTexture(prototype), level, KTX_FORMAT_VERSION_TWO);
+
+        levelImageOffsetIn = ktxTexture2_levelDataOffset(This, level);
+        levelSizeOut = 0;
+        bool status;
+        for (uint32_t image = 0; image < levelImageCount; image++) {
+            basisu_transcoder_state& xcoderState = xcoderStates[stateIndex];
+            // See comment before same lines in transcodeEtc1s.
+            if (++stateIndex == xcoderStates.size()) stateIndex = 0;
+
+            status = uit.transcode_image(
+                ktx2transcoderFormat(outputFormat), pXcodedData + writeOffset,
+                (uint32_t)(xcodedDataLength - writeOffsetBlocks), This->pData,
+                (uint32_t)This->dataSize, levelBlocksX, levelBlocksY, levelWidth, levelHeight,
+                level, (uint32_t)levelImageOffsetIn, (uint32_t)levelImageSizeIn, transcodeFlags,
+                alphaContent != eNone,
+                This->isVideo,  // is_video
+                // imageDesc.imageFlags ^ cSliceDescFlagsFrameIsIFrame,
+                0,             // output_row_pitch_in_blocks_or_pixels
+                &xcoderState,  // pState
+                0,             // output_rows_in_pixels,
+                -1,            // channel0
+                -1             // channel1
+            );
+            if (!status) return KTX_TRANSCODE_FAILED;
+            writeOffset += levelImageSizeOut;
+            levelSizeOut += levelImageSizeOut;
+            levelImageOffsetIn += levelImageSizeIn;
+        }
+        protoLevelIndex[level].byteOffset = levelOffsetWrite;
+        // writeOffset will be equal to total size of the images in the level.
+        protoLevelIndex[level].byteLength = levelSizeOut;
+        protoLevelIndex[level].uncompressedByteLength = levelSizeOut;
+        levelOffsetWrite += levelSizeOut;
+    }
+    // In case of transcoding to uncompressed.
+    levelOffsetWrite = _KTX_PADN(protoPriv._requiredLevelAlignment, levelOffsetWrite);
+    
+    return KTX_SUCCESS;
+}
+
+
+static KTX_error_code
+transcodeUastcHDR6x6_intermediate(ktxTexture2* This, alpha_content_e alphaContent, ktxTexture2* prototype,
+                     ktx_transcode_fmt_e outputFormat, ktx_transcode_flags transcodeFlags) {
+    // assert(This->supercompressionScheme != KTX_SS_BASIS_LZ);
+
+    ktx_uint8_t* pXcodedData = prototype->pData;
+    ktx_uint32_t outputBlockByteLength = prototype->_protected->_formatSize.blockSizeInBits / 8;
+    ktx_size_t xcodedDataLength = prototype->dataSize / outputBlockByteLength;
+    DECLARE_PRIVATE(protoPriv, prototype);
+    ktxLevelIndexEntry* protoLevelIndex = protoPriv._levelIndex;
+    ktx_size_t levelOffsetWrite = 0;
+
+    basist::basisu_lowlevel_astc_hdr_6x6_intermediate_transcoder uit;
+    // See comment on same declaration in transcodeEtc1s.
+    std::vector<basisu_transcoder_state> xcoderStates;
+    xcoderStates.resize(This->isVideo ? This->numFaces : 1);
+
+    for (ktx_int32_t level = This->numLevels - 1; level >= 0; level--) {
+        ktx_uint32_t depth;
+        uint64_t writeOffset = levelOffsetWrite;
+        uint64_t writeOffsetBlocks = levelOffsetWrite / outputBlockByteLength;
+        ktx_size_t levelImageSizeIn, levelImageOffsetIn;
+        ktx_size_t levelImageSizeOut, levelSizeOut;
+        ktx_uint32_t levelImageCount;
+        uint32_t levelWidth = MAX(1, This->baseWidth >> level);
+        uint32_t levelHeight = MAX(1, This->baseHeight >> level);
+        // UASTC texel block dimensions
+        const uint32_t bw = 6, bh = 6;
+        uint32_t levelBlocksX = (levelWidth + (bw - 1)) / bw;
+        uint32_t levelBlocksY = (levelHeight + (bh - 1)) / bh;
+        uint32_t stateIndex = 0;
+
+        depth = MAX(1, This->baseDepth >> level);
+
+        levelImageCount = This->numLayers * This->numFaces * depth;
+        levelImageSizeIn = This->dataSize;
+        levelImageSizeOut =
+            ktxTexture_calcImageSize(ktxTexture(prototype), level, KTX_FORMAT_VERSION_TWO);
+
+        levelImageOffsetIn = ktxTexture2_levelDataOffset(This, level);
+        //levelImageOffsetIn = ktxTexture2_levelFileOffset(This, level);
+
+        levelSizeOut = 0;
+        bool status;
+        for (uint32_t image = 0; image < levelImageCount; image++) {
+            basisu_transcoder_state& xcoderState = xcoderStates[stateIndex];
+            // See comment before same lines in transcodeEtc1s.
+            if (++stateIndex == xcoderStates.size()) stateIndex = 0;
+
+            status = uit.transcode_image(
+                ktx2transcoderFormat(outputFormat), pXcodedData + writeOffset,
+                (uint32_t)(xcodedDataLength - writeOffsetBlocks), This->pData,
+                (uint32_t)This->dataSize, levelBlocksX, levelBlocksY, levelWidth, levelHeight,
+                level, (uint32_t)levelImageOffsetIn, (uint32_t)levelImageSizeIn, transcodeFlags,
+                alphaContent != eNone,
+                This->isVideo,  // is_video
+                // imageDesc.imageFlags ^ cSliceDescFlagsFrameIsIFrame,
+                0,             // output_row_pitch_in_blocks_or_pixels
+                &xcoderState,  // pState
+                0,             // output_rows_in_pixels,
+                -1,            // channel0
+                -1             // channel1
+            );
+            if (!status) return KTX_TRANSCODE_FAILED;
+            writeOffset += levelImageSizeOut;
+            levelSizeOut += levelImageSizeOut;
+            levelImageOffsetIn += levelImageSizeIn;
+        }
+        protoLevelIndex[level].byteOffset = levelOffsetWrite;
+        // writeOffset will be equal to total size of the images in the level.
+        protoLevelIndex[level].byteLength = levelSizeOut;
+        protoLevelIndex[level].uncompressedByteLength = levelSizeOut;
+        levelOffsetWrite += levelSizeOut;
+    }
+    // In case of transcoding to uncompressed.
+    levelOffsetWrite = _KTX_PADN(protoPriv._requiredLevelAlignment, levelOffsetWrite);
+
+    return KTX_SUCCESS;
+}
+
+KTX_error_code
+ktxTexture2_transcodeUastc(ktxTexture2* This,
+                           alpha_content_e alphaContent,
+                           ktxTexture2* prototype,
+                           ktx_transcode_fmt_e outputFormat,
+                           ktx_transcode_flags transcodeFlags)
+{
+    uint32_t* BDB = This->pDfd + 1;
+    khr_df_model_e colorModel = (khr_df_model_e)KHR_DFDVAL(BDB, MODEL);
+    if (colorModel == KHR_DF_MODEL_UASTC) {
+        return transcodeUastcLDR4x4(
+            This, alphaContent, prototype,
+            outputFormat, transcodeFlags);
+    } else if (colorModel == KHR_DF_MODEL_UASTC_4X4_HDR) {
+        return transcodeUastcHDR4x4(This, alphaContent, prototype, outputFormat,
+                                                transcodeFlags);
+    } else if (colorModel == KHR_DF_MODEL_UASTC_6x6_HDR) {
+        return transcodeUastcHDR6x6_intermediate(This, alphaContent, prototype, outputFormat, transcodeFlags);
+    } else {
+        debug_printf(
+            "ktxTexture2_transcodeUastc: colorModel currently unsupported\n");
+        return KTX_UNSUPPORTED_FEATURE;
+    }
     return KTX_SUCCESS;
 }
