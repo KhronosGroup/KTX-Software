@@ -27,7 +27,10 @@ TranscodeSwizzleInfo determineTranscodeSwizzle(const KTXTexture2& texture, Repor
 
     if (texture->supercompressionScheme == KTX_SS_BASIS_LZ) {
         result.defaultNumComponents = 0;
-        if (sample0 == KHR_DF_CHANNEL_ETC1S_RGB && sample1 == KHR_DF_CHANNEL_ETC1S_AAA) {
+        if (khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_UASTC_6x6_HDR) {
+            result.defaultNumComponents = 4;
+            result.swizzle = "rgba";
+        } else if (sample0 == KHR_DF_CHANNEL_ETC1S_RGB && sample1 == KHR_DF_CHANNEL_ETC1S_AAA) {
             result.defaultNumComponents = 4;
             result.swizzle = "rgba";
         } else if (sample0 == KHR_DF_CHANNEL_ETC1S_RGB) {
@@ -65,6 +68,9 @@ TranscodeSwizzleInfo determineTranscodeSwizzle(const KTXTexture2& texture, Repor
             report.fatal(rc::INVALID_FILE, "Unsupported channel type for UASTC transcoding: {}",
                     sample0 ? toString(KHR_DF_MODEL_UASTC, *sample0) : "-");
         }
+    } else if (khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_UASTC_4X4_HDR) {
+        result.defaultNumComponents = 4;
+        result.swizzle = "rgba";
     } else {
         report.fatal(rc::INVALID_FILE, "Requested transcoding but input file is neither BasisLZ, nor UASTC");
     }
