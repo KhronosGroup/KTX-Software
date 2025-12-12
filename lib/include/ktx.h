@@ -1680,6 +1680,13 @@ typedef enum ktx_transcode_fmt_e {
             /*!< Automatically selects @c KTX_TTF_BC1_RGB or
                  @c KTX_TTF_BC3_RGBA according to presence of alpha. */
 
+        /* 48bpp RGB half (16-bits/component, 3 components) */
+        KTX_TTF_RGBA_HALF = 25, 
+
+        KTX_TTF_ASTC_HDR_4x4_RGBA = 29,					// HDR, RGBA (currently UASTC HDR 4x4 encoders are only RGB), unsigned
+        KTX_TTF_ASTC_HDR_6x6_RGBA = 30,					// HDR, RGBA (currently UASTC HDR 4x4 encoders are only RGB), unsigned
+        KTX_TTF_BC6HU = 31,						// HDR, RGB only, unsigned
+
         KTX_TTF_NOSELECTION = 0x7fffffff,
 
         // Old enums for compatibility with code compiled against previous
