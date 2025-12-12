@@ -57,6 +57,10 @@ struct OptionsTranscodeTarget {
             {"rg8", {KTX_TTF_RGBA32, 2}},
             {"rgb8", {KTX_TTF_RGBA32, 3}},
             {"rgba8", {KTX_TTF_RGBA32, 4}},
+            {"rgba16f", {KTX_TTF_RGBA_HALF, 4}},
+            {"astc-hdr-4x4", {KTX_TTF_ASTC_HDR_4x4_RGBA, 0}},
+            {"astc-hdr-6x6", {KTX_TTF_ASTC_HDR_6x6_RGBA, 0}},
+            {"bc6hu", {KTX_TTF_BC6HU, 0}},        
         };
         if (args[argName].count()) {
             const auto argStr = to_lower_copy(args[argName].as<std::string>());
