@@ -54,7 +54,12 @@ if (NOT TARGET basisu::basisu_encoder)
         # Iterating over collected files
         foreach(filename ${headers})
             get_filename_component(directory ${filename} DIRECTORY)
-            file(${BASISU_INCLUDE_DIR} ${BASISU_INCLUDE_DIR}/${subdir}/${directory})
+
+            # Ensure destination directory exists
+            file(
+                MAKE_DIRECTORY
+                ${BASISU_INCLUDE_DIR} ${BASISU_INCLUDE_DIR}/${subdir}/${directory}
+            )
 
             # And finally copy to temporary folder
             file(COPY ${basisu_SOURCE_DIR}/${subdir}/${filename}
@@ -63,7 +68,7 @@ if (NOT TARGET basisu::basisu_encoder)
     endforeach()
 
     # Add temporary include path to target
-    target_include_directories(basisu_encoder
-        PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/include
+    target_include_directories(basisu_encoder PUBLIC 
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
     )
 endif()
