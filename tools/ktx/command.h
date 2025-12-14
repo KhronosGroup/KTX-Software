@@ -262,6 +262,7 @@ struct OptionsSingleIn {
     }
 };
 
+template<bool OUTPUT_FILE_OPTIONAL = false>
 struct OptionsSingleInSingleOut {
     std::string inputFilepath;
     std::string outputFilepath;
@@ -285,7 +286,7 @@ struct OptionsSingleInSingleOut {
         if (args.count("stdin") + args.count("input-file") > 1)
             report.fatal_usage("Conflicting options: Only one can be specified from <input-file> and --stdin.");
 
-        if (args.count("stdout") + args.count("output-file") == 0)
+        if (args.count("stdout") + args.count("output-file") == 0 && !OUTPUT_FILE_OPTIONAL)
             report.fatal_usage("Missing output file. Either <output-file> or --stdout must be specified.");
         if (args.count("stdout") + args.count("output-file") > 1)
             report.fatal_usage("Conflicting options: Only one can be specified from <output-file> and --stdout.");
@@ -297,7 +298,7 @@ struct OptionsSingleInSingleOut {
 
         if (args.count("stdout"))
             outputFilepath = "-";
-        else
+        else if (args.count("output-file"))
             outputFilepath = args["output-file"].as<std::string>();
     }
 };
@@ -383,6 +384,7 @@ public:
 
 /// Helper to handle stdout and fstream uniformly
 class OutputStream {
+protected:
     std::string filepath;
     FILE* file;
     // std::ostream* activeStream = nullptr;
