@@ -479,15 +479,6 @@ macro(common_libktx_settings target enable_write library_type)
     )
 endmacro(common_libktx_settings)
 
-macro(add_lib_dependencies target lib)
-    if(NOT BUILD_SHARED_LIBS)
-        # Make a single static library to simplify linking.
-        target_sources(${target} PRIVATE $<TARGET_OBJECTS:${lib}>)
-        target_include_directories(${target} PRIVATE $<TARGET_PROPERTY:${lib},INTERFACE_INCLUDE_DIRECTORIES>)
-    else()
-        target_link_libraries(${target} PRIVATE ${lib})
-    endif()
-endmacro(add_lib_dependencies)
 
 ###################################################
 # ktx libraries
@@ -501,7 +492,9 @@ if(LIBKTX_VERSION_FULL)
         src/writer2.c
     )
     common_libktx_settings(ktx 1 ${LIB_TYPE})
-    add_lib_dependencies(ktx basisu::basisu_encoder)
+    target_link_libraries(
+        ktx PRIVATE basisu::basisu_encoder
+    )
 endif()
 
 # Read-only library
@@ -510,7 +503,9 @@ if(LIBKTX_VERSION_READ_ONLY)
         ${LIBKTX_MAIN_SRC}
     )
     common_libktx_settings(ktx_read 0 ${LIB_TYPE})
-    add_lib_dependencies(ktx_read basisu::basisu_encoder)
+    target_link_libraries(
+        ktx_read PRIVATE basisu::basisu_encoder
+    )
 endif()
 
 create_version_header(src ktx)
