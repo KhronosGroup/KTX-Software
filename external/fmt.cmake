@@ -21,7 +21,7 @@ set(FMT_SYSTEM_HEADERS ON)
 FetchContent_Declare(
     fmt
     GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-    GIT_TAG "v${FMT_VERSION}"
+    GIT_TAG ${FMT_VERSION}
     FIND_PACKAGE_ARGS
 )
 
