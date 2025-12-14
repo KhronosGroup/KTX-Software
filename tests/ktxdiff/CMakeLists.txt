@@ -33,7 +33,7 @@ target_link_libraries(
     ktxdiff
 PRIVATE
     ktx
-    ${ASTCENC_LIB_TARGET}
+    astc::astcenc
     fmt::fmt
     objUtil
 )

@@ -1,6 +1,9 @@
 # Copyright 2022 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
+include("../../external/lodepng.cmake")
+include("../../external/basisu.cmake")
+
 set( PLUGIN_SOURCES
     exr.imageio/exrinput.cc
     jpg.imageio/jpginput.cc
@@ -18,21 +21,14 @@ set( EXTERNAL
 set( EXR_PLUGIN_EXTERNAL_SOURCES
 )
 set( EXR_PLUGIN_EXTERNAL_HEADERS
-    ${EXTERNAL}/astc-encoder/Source/ThirdParty/tinyexr.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/tinyexr.h
 )
 set( JPG_PLUGIN_EXTERNAL_SOURCES
-    ${EXTERNAL}/basis_universal/encoder/jpgd.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/jpgd.cpp
 )
 set( JPG_PLUGIN_EXTERNAL_HEADERS
-    ${EXTERNAL}/basis_universal/encoder/jpgd.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/jpgd.h
 )
-set( PNG_PLUGIN_EXTERNAL_SOURCES
-    ${EXTERNAL}/lodepng/lodepng.cpp
-)
-set( PNG_PLUGIN_EXTERNAL_HEADERS
-    ${EXTERNAL}/lodepng/lodepng.h
-)
-
 
 add_library( imageio STATIC
     formatdesc.h
@@ -50,8 +46,6 @@ add_library( imageio STATIC
     ${EXR_PLUGIN_EXTERNAL_SOURCES}
     ${JPG_PLUGIN_EXTERNAL_HEADERS}
     ${JPG_PLUGIN_EXTERNAL_SOURCES}
-    ${PNG_PLUGIN_EXTERNAL_HEADERS}
-    ${PNG_PLUGIN_EXTERNAL_SOURCES}
 )
 
 source_group(TREE "${CMAKE_CURRENT_LIST_DIR}" PREFIX "Source Files" FILES ${PLUGIN_SOURCES})
@@ -89,9 +83,8 @@ target_include_directories(
 PUBLIC
     ${PROJECT_SOURCE_DIR}/other_include
 PRIVATE
-    "${PROJECT_SOURCE_DIR}/external/astc-encoder/Source/ThirdParty"
     "${PROJECT_SOURCE_DIR}/external/dfdutils"
-    "${PROJECT_SOURCE_DIR}/external/lodepng"
+    "${CMAKE_CURRENT_SOURCE_DIR}/external"
 )
 
 target_compile_definitions(
@@ -102,7 +95,7 @@ PRIVATE
 
 target_compile_features(imageio PUBLIC cxx_std_17)
 
-target_link_libraries(imageio fmt::fmt basisu_encoder)
+target_link_libraries(imageio fmt::fmt basisu::basisu_encoder lodepng::lodepng)
 
 set_target_properties(imageio PROPERTIES
     CXX_VISIBILITY_PRESET ${STATIC_APP_LIB_SYMBOL_VISIBILITY}

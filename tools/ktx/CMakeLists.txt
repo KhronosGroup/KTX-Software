@@ -63,8 +63,8 @@ PRIVATE
     imageio
     objUtil
     ktx
-    basisu_encoder
-    ${ASTCENC_LIB_TARGET}
+    basisu::basisu_encoder
+    astc::astcenc
     $<IF:$<BOOL:${WIN32}>,Pathcch,> # For PathCchRemoveFileSpec on Windows
     fmt::fmt
     cxxopts::cxxopts

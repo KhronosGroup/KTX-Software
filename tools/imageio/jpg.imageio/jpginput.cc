@@ -26,7 +26,7 @@
 #include <sstream>
 #include <stdexcept>
 
-#include "encoder/jpgd.h"
+#include "jpgd.h"
 
 using namespace jpgd;
 

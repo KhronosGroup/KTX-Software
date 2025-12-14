@@ -19,7 +19,7 @@ target_link_libraries(
     gtest
     ktx
     obj_basisu_cbind
-    basisu_encoder
+    basisu::basisu_encoder
     ${CMAKE_THREAD_LIBS_INIT}
 )
 

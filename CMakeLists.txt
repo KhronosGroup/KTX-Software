@@ -382,7 +382,7 @@ if(EMSCRIPTEN AND KTX_FEATURE_JS)
     )
     set_target_properties( msc_basis_transcoder_js PROPERTIES OUTPUT_NAME "msc_basis_transcoder")
 
-    target_link_libraries(msc_basis_transcoder_js basisu_encoder)
+    target_link_libraries(msc_basis_transcoder_js basisu::basisu_encoder)
 
     add_custom_command(
         TARGET msc_basis_transcoder_js
@@ -459,14 +459,10 @@ add_subdirectory(interface/basisu_c_binding)
 # except for building the ktx library.
 if((KTX_FEATURE_TOOLS OR KTX_FEATURE_TESTS) AND NOT TARGET fmt::fmt)
     # Always build fmt static
-    set(BUILD_SHARED_LIBS OFF)
-    set(FMT_INSTALL OFF)
-    set(FMT_SYSTEM_HEADERS ON)
-    add_subdirectory(external/fmt)
-    set(BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS_RESET})
+    include("external/fmt.cmake")
 endif()
 if(KTX_FEATURE_TOOLS AND NOT TARGET cxxopts::cxxopts)
-    add_subdirectory(external/cxxopts)
+    include("external/cxxopts.cmake")
 endif()
 
 # Tools
