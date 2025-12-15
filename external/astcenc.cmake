@@ -4,7 +4,7 @@
 include(FetchContent)
 include(${KTX_ROOT_DIR}/cmake/compiler_query_genexs.cmake)
 
-if (TARGET astc::astcenc)
+if (TARGET astcenc::astcenc)
     message(STATUS "Using prebuilt astc")
     return()
 endif()
@@ -110,14 +110,16 @@ FetchContent_Declare(
 
 # Populate astc
 FetchContent_MakeAvailable(astcenc)
-
 set(BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS_RESET})
-set_property(TARGET ${ASTCENC_LIB_TARGET} PROPERTY POSITION_INDEPENDENT_CODE ON)
 
-target_compile_definitions(
-    ${ASTCENC_LIB_TARGET} PRIVATE
-    $<$<AND:${is_msvccl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.40.33811>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
-    $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,17.0.3>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
-)
+if (NOT TARGET astcenc::astcenc)
+    set_property(TARGET ${ASTCENC_LIB_TARGET} PROPERTY POSITION_INDEPENDENT_CODE ON)
 
-add_library(astc::astcenc ALIAS ${ASTCENC_LIB_TARGET})
+    target_compile_definitions(
+        ${ASTCENC_LIB_TARGET} PRIVATE
+        $<$<AND:${is_msvccl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.40.33811>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
+        $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,17.0.3>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
+    )
+
+    add_library(astcenc::astcenc ALIAS ${ASTCENC_LIB_TARGET})
+endif()

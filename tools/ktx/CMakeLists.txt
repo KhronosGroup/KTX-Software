@@ -64,7 +64,7 @@ PRIVATE
     objUtil
     ktx
     basisu::basisu_encoder
-    astc::astcenc
+    astcenc::astcenc
     $<IF:$<BOOL:${WIN32}>,Pathcch,> # For PathCchRemoveFileSpec on Windows
     fmt::fmt
     cxxopts::cxxopts

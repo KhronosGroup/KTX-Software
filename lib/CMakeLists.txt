@@ -475,7 +475,7 @@ macro(common_libktx_settings target enable_write library_type)
 
     target_link_libraries(
         ${target} PRIVATE
-        $<BUILD_INTERFACE:zstd::libzstd astc::astcenc>
+        $<BUILD_INTERFACE:zstd::libzstd astcenc::astcenc>
     )
 endmacro(common_libktx_settings)
 
@@ -549,7 +549,7 @@ if(LIBKTX_VERSION_READ_ONLY AND NOT (BUILD_SHARED_LIBRARIES OR LIBKTX_VERSION_FU
     list(APPEND LIBKTX_INSTALL_TARGETS ktx_read)
 endif()
 if(NOT BUILD_SHARED_LIBS AND NOT APPLE)
-    get_target_property(ASTC_LIB_NAME astc::astcenc ALIASED_TARGET)
+    get_target_property(ASTC_LIB_NAME astcenc::astcenc ALIASED_TARGET)
     get_target_property(BASISU_LIB_NAME basisu::basisu_encoder ALIASED_TARGET)
 
     list(APPEND LIBKTX_INSTALL_TARGETS ${ASTC_LIB_NAME} ${BASISU_LIB_NAME})
