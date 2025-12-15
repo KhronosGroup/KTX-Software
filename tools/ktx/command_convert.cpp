@@ -24,6 +24,9 @@
 #include <fmt/ostream.h>
 #include <fmt/printf.h>
 
+#if defined(_MSC_VER)
+    #define strncasecmp _strnicmp
+#endif
 
 // -------------------------------------------------------------------------------------------------
 
@@ -207,7 +210,7 @@ void CommandConvert::executeConvert() {
     if (outputFilepath.has_parent_path()) {
         std::filesystem::create_directories(outputFilepath.parent_path());
     }
-    OutputStreamEx outputStream(outputFilepath, *this);
+    OutputStreamEx outputStream(outputFilepath.u8string(), *this);
 
     if (options.inputType == input_type_e::ktx1)
         convertKtx1(inputStream, outputStream);
