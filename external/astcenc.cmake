@@ -24,7 +24,6 @@ message(STATUS "ASTC VERSION: ${ASTC_VERSION}")
 # value of CMAKE_OSX_ARCHITECTURES to decide if a universal build
 # has been requested. Do not expose the astc-encoder's
 # ASTCENC_UNIVERSAL_BUILD configuration option.
-
 set(universal_build OFF)
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
     # Check CMAKE_OSX_ARCHITECTURES for multiple architectures.
@@ -37,6 +36,7 @@ if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
     # and hide the option.
     set(ASTCENC_UNIVERSAL_BUILD ${universal_build})
 endif()
+
 
 # If we detect the user is doing a universal build defer to astc-encoder
 # to pick the architectures. If a universal build has not been requested,

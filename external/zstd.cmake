@@ -30,7 +30,7 @@ FetchContent_Declare(
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     SOURCE_SUBDIR build/cmake
     URL "https://github.com/facebook/zstd/releases/download/v${ZSTD_VERSION}/zstd-${ZSTD_VERSION}.tar.gz"
-    FIND_PACKAGE_ARGS NAMES ZSTD
+    FIND_PACKAGE_ARGS NAMES ZSTD zstd
 )
 
 # Populate zstd
