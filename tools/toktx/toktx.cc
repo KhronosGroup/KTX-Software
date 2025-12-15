@@ -486,13 +486,13 @@ toktxApp::toktxApp() : scApp(myversion, mydefversion, options)
         { "srgb", argparser::option::no_argument, (int*)&options.assign_oetf, KHR_DF_TRANSFER_SRGB },
         { "resize", argparser::option::required_argument, NULL, 'r' },
         { "scale", argparser::option::required_argument, NULL, 's' },
-        { "swizzle", argparser::option::required_argument, NULL, 1101},
-        { "target_type", argparser::option::required_argument, NULL, 1102},
-        { "assign_oetf", argparser::option::required_argument, NULL, 1103},
-        { "convert_oetf", argparser::option::required_argument, NULL, 1104},
-        { "assign_primaries", argparser::option::required_argument, NULL, 1105},
-        { "convert_primaries", argparser::option::required_argument, NULL, 1106},
-        { "t2", argparser::option::no_argument, &options.ktx2, 1},
+        { "swizzle", argparser::option::required_argument, NULL, 1101 },
+        { "target_type", argparser::option::required_argument, NULL, 1102 },
+        { "assign_oetf", argparser::option::required_argument, NULL, 1103 },
+        { "convert_oetf", argparser::option::required_argument, NULL, 1104 },
+        { "assign_primaries", argparser::option::required_argument, NULL, 1105 },
+        { "convert_primaries", argparser::option::required_argument, NULL, 1106 },
+        { "t2", argparser::option::no_argument, &options.ktx2, 1 },
     };
 
     const int lastOptionIndex = sizeof(my_option_list)
@@ -864,13 +864,10 @@ toktxApp::main(int argc, char *argv[])
                 break;
             }
         } catch (cant_create_texture& e) {
-            cerr << name << ": failed to create ktxTexture. "
-                 << e.what() << endl;
+            error("%s: failed to create ktxTexture. ", e.what());
             exit(2);
         } catch (cant_create_image& e) {
-            cerr << name << ": could not create image from "
-                 << infile << "(" << subimage << "," << miplevel
-                 << ")." << endl << e.what() << endl;
+            error("%s: could not create image from %s (%s, %s)\n%s.", name, infile, subimage, miplevel, e.what());
             // Some of these exceptions are thrown after the image has
             // been created despite its name. We want the same message
             // to the user hence not creating a different exception.
@@ -879,18 +876,13 @@ toktxApp::main(int argc, char *argv[])
             exitCode = 1;
             goto cleanup;
         } catch (runtime_error& e) {
-            cerr << name << ": failed to create image from "
-                 << infile << "(" << subimage << "," << miplevel
-                 << ")." << endl << e.what() << endl;
+            error("%s: failed to create image from %s (%s, %s)\n%s.", name, infile, subimage, miplevel, e.what());
             exitCode = 2;
             goto cleanup;
         }
     }
     if (layer != texture->numLayers) {
-        cerr << name << ": too few input images for " << levelCount
-             << " levels, " << texture->numLayers
-             << " layers and " << texture->numFaces
-             << " faces." << endl;
+        error("%s: too few input images for %s levels, %s layers and %s faces.)", name, levelCount, texture->numLayers, texture->numFaces);
         exitCode = 1;
         goto cleanup;
     }
@@ -988,9 +980,7 @@ toktxApp::main(int argc, char *argv[])
         }
         ret = ktxTexture_WriteToStdioStream(ktxTexture(texture), f);
         if (KTX_SUCCESS != ret) {
-            cerr << name << ": "
-                 << "%s failed to write KTX file \"" << options.outfile
-                 << "\"; KTX error: " << ktxErrorString(ret) << endl;
+            error("%s: failed to write KTX file \"%s\"; KTX error: %s.", options.outfile, ktxErrorString(ret));
             exitCode = 2;
         }
 closefileandcleanup:
@@ -999,9 +989,7 @@ closefileandcleanup:
             unlinkUTF8(options.outfile);
         }
     } else {
-        cerr << name << ": "
-             << "could not open output file \"" << options.outfile
-             << "\". " << strerror(errno) << endl;
+        error("%s: could not open output file \"%s\". %s", options.outfile, strerror(errno));
         exitCode = 2;
     }
 
@@ -1842,12 +1830,12 @@ toktxApp::validateOptions()
     if (options.automipmap + options.genmipmap + options.mipmap > 1) {
         error("only one of --automipmap, --genmipmap and "
               "--mipmap may be specified.");
-        usage();
+        ktxApp::usage();
         exit(1);
     }
     if ((options.automipmap || options.genmipmap) && options.levels > 1) {
         error("cannot specify --levels > 1 with --automipmap or --genmipmap.");
-        usage();
+        ktxApp::usage();
         exit(1);
     }
     if (options.cubemap && options.lower_left_maps_to_s0t0) {
@@ -1857,22 +1845,22 @@ toktxApp::validateOptions()
     }
     if (options.cubemap && options.depth > 0) {
         error("cubemaps cannot have 3D textures.");
-        usage();
+        ktxApp::usage();
         exit(1);
     }
     if (options.layers && options.depth > 0) {
         error("cannot have 3D array textures.");
-        usage();
+        ktxApp::usage();
         exit(1);
     }
     if (options.scale != 1.0 && options.resize) {
         error("only one of --scale and --resize can be specified.");
-        usage();
+        ktxApp::usage();
         exit(1);
     }
     if (options.resize && options.mipmap) {
         error("only one of --resize and --mipmap can be specified.");
-        usage();
+        ktxApp::usage();
         exit(1);
     }
 
@@ -1918,9 +1906,9 @@ toktxApp::processEnvOptions() {
         argparser optparser(arglist, 0);
         processOptions(optparser);
         if (optparser.optind != arglist.size()) {
-            cerr << "Only options are allowed in the TOKTX_OPTIONS "
-                 << "environment variable." << endl;
-            usage();
+            error("Only options are allowed in the TOKTX_OPTIONS "
+                "environment variable.");
+            ktxApp::usage();
             exit(1);
         }
     }
@@ -1958,9 +1946,7 @@ toktxApp::processEnvOptions() {
             if (it != values.end()) {
                 result = it->second;
             } else {
-                cerr << name
-                     << "Invalid or unsupported transfer function specified: "
-                     << argValue << endl;
+                error("%s Invalid or unsupported transfer function specified: %s", name, argValue);
                 exit(1);
             }
         }
@@ -1987,24 +1973,21 @@ toktxApp::processOption(argparser& parser, int opt)
       case 'a':
         options.layers = (uint32_t)strtoi(parser.optarg.c_str());
         if (options.layers == 0) {
-            cerr << name << ": "
-                 << "To create an array texture set --layers > 0." << endl;
+            error("%s: To create an array texture set --layers > 0.", name);
             exit(1);
         }
         break;
       case 'd':
         options.depth = (uint32_t)strtoi(parser.optarg.c_str());
         if (options.depth == 0) {
-            cerr << name << ": "
-                 << "To create a 3d texture set --depth > 0." << endl;
+            error("%s: To create a 3d texture set --depth > 0.");
             exit(1);
         }
         break;
       case 'l':
         options.levels = (uint32_t)strtoi(parser.optarg.c_str());
         if (options.levels < 2) {
-            cerr << name << ": "
-                 << "--levels must be > 1." << endl;
+            error("%s: --levels must be > 1.");
             exit(1);
         }
         break;
@@ -2025,9 +2008,8 @@ toktxApp::processOption(argparser& parser, int opt)
             options.gmopts.wrapMode
                   = basisu::Resampler::Boundary_Op::BOUNDARY_REFLECT;
         } else {
-            cerr << "Unrecognized mode \"" << parser.optarg
-                 << "\" passed to --wmode" << endl;
-            usage();
+            error("Unrecognized mode \"%s\" passed to --wmode", parser.optarg);
+            ktxApp::usage();
             exit(1);
         }
         break;
@@ -2037,8 +2019,8 @@ toktxApp::processOption(argparser& parser, int opt)
             char x;
             iss >> options.newGeom.width >> x >> options.newGeom.height;
             if (iss.fail()) {
-                cerr << "Bad resize geometry." << endl;
-                usage();
+                error("Bad resize geometry.");
+                ktxApp::usage();
                 exit(1);
             }
             options.resize = 1;
@@ -2047,8 +2029,7 @@ toktxApp::processOption(argparser& parser, int opt)
       case 's':
         options.scale = strtof(parser.optarg.c_str(), nullptr);
         if (options.scale > 2000.0f) {
-            cerr << name << ": Unreasonable scale factor of "
-                 << options.scale << "." << endl;
+            error("%s: Unreasonable scale factor of %s.", name, options.scale);
             exit(1);
         }
         break;
@@ -2069,9 +2050,8 @@ toktxApp::processOption(argparser& parser, int opt)
         else if (parser.optarg.compare("RGBA") == 0)
           options.targetType = commandOptions::eRGBA;
         else {
-            cerr << name << ": unrecognized target_type \"" << parser.optarg
-                 << "\"." << endl;
-            usage();
+            error("%s: unrecognized target_type \"%s\".", name, parser.optarg);
+            ktxApp::usage();
             exit(1);
         }
         break;

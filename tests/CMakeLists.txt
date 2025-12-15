@@ -1,6 +1,9 @@
 # Copyright 2017-2020 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
+cmake_minimum_required(VERSION 3.22)
+project(ktxTests)
+
 function(set_test_properties test_target)
     # See comments in set_tools_properties() in ../tools/CMakeLists.txt.
     if(APPLE)

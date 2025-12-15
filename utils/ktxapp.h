@@ -192,7 +192,7 @@ class ktxApp {
         // Some implementations set errno == EINVAL but we can't rely on it.
         if (value == 0 && endptr && *endptr != '\0') {
             cerr << "Argument \"" << endptr << "\" not a number." << endl;
-            usage();
+            ktxApp::usage();
             exit(1);
         }
         return value;
@@ -242,7 +242,7 @@ class ktxApp {
                 for (it = options.infiles.begin(); it < options.infiles.end(); it++) {
                     if (it->compare("-") == 0) {
                         error("cannot use stdin as one among many inputs.");
-                        usage();
+                        ktxApp::usage();
                         exit(1);
                     }
                 }
@@ -256,12 +256,14 @@ class ktxApp {
                 options.infiles.push_back("-"); // Use stdin as 0 files.
             } else {
                 error("need some input files.");
-                usage();
+                ktxApp::usage();
                 exit(1);
             }
         }
         if (outfilePos != eNone && options.outfile.empty()) {
             error("need an output file");
+            ktxApp::usage();
+            exit(1);
         }
     }
 
@@ -351,11 +353,13 @@ class ktxApp {
                 exit(0);
               case ':':
                 error("missing required option argument.");
-                usage();
-                exit(0);
+                ktxApp::usage();
+                exit(1);
               default:
                 if (!processOption(parser, opt)) {
-                    usage();
+                    std::string unknownOpt = parser.argv[parser.optind - 1];
+                    error("unrecognized command line option \"%s\".", unknownOpt.c_str());
+                    ktxApp::usage();
                     exit(1);
                 }
             }

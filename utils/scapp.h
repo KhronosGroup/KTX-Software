@@ -806,7 +806,7 @@ scApp::scApp(string& version, string& defaultVersion,
       { "astc_quality", argparser::option::required_argument, NULL, 1014 },
       { "astc_perceptual", argparser::option::no_argument, NULL, 1015 },
       { "encode", argparser::option::required_argument, NULL, 1016 },
-      { "input_swizzle", argparser::option::required_argument, NULL, 1100},
+      { "input_swizzle", argparser::option::required_argument, NULL, 1100 },
       { "normalize", argparser::option::no_argument, NULL, 1017 },
       // Deprecated options
       { "bcmp", argparser::option::no_argument, NULL, 'b' },
@@ -835,15 +835,15 @@ scApp::captureOption(const argparser& parser, HasArg hasArg)
 void
 scApp::validateOptions() {
     if ((options.bopts.maxEndpoints == 0) ^ (options.bopts.maxSelectors == 0)) {
-        cerr << name << ": Both or neither of --max_endpoints and"
-             << " --max_selectors must be specified." << endl;
-        usage();
+        error("%s: Both or neither of --max_endpoints and"
+            " --max_selectors must be specified.", name);
+        ktxApp::usage();
         exit(1);
     }
     if (options.bopts.qualityLevel
         && (options.bopts.maxEndpoints + options.bopts.maxSelectors)) {
-        cerr << name << ": Warning: ignoring --qlevel as it, --max_endpoints"
-             << " and --max_selectors are all set." << endl;
+        error("%s: Warning: ignoring --qlevel as it, --max_endpoints"
+            " and --max_selectors are all set.", name);
     }
 }
 
@@ -866,7 +866,7 @@ scApp::validateSwizzle(string& swizzle)
             && swizzle[i] != '0'
             && swizzle[i] != '1') {
             error("invalid character in swizzle.");
-            usage();
+            ktxApp::usage();
             exit(1);
         }
     }
@@ -883,9 +883,8 @@ scApp::processOption(argparser& parser, int opt)
     switch (opt) {
       case 'z':
         if (options.etc1s) {
-            cerr << "Only one of '--encode etc1s | --bcmp'  and --zcmp can be specified."
-                 << endl;
-            usage();
+            error("Only one of '--encode etc1s | --bcmp'  and --zcmp can be specified.");
+            ktxApp::usage();
             exit(1);
         }
         options.zcmp = 1;
@@ -1000,17 +999,15 @@ scApp::processOption(argparser& parser, int opt)
         break;
       case 'b':
         if (options.zcmp) {
-            cerr << "Only one of --bcmp and --zcmp can be specified.\n"
-                 << "--bcmp is deprecated, use '--encode etc1s' instead."
-                 << endl;
-            usage();
+            error("Only one of --bcmp and --zcmp can be specified.\n"
+                "--bcmp is deprecated, use '--encode etc1s' instead.");
+            ktxApp::usage();
             exit(1);
         }
         if (options.bopts.uastc) {
-            cerr << "Only one of --bcmp and '--encode etc1s | --uastc' can be specified.\n"
-                 << "--bcmp is deprecated, use '--encode etc1s' instead."
-                 << endl;
-            usage();
+            error("Only one of --bcmp and '--encode etc1s | --uastc' can be specified.\n"
+                 "--bcmp is deprecated, use '--encode etc1s' instead.");
+            ktxApp::usage();
             exit(1);
         }
         options.etc1s = 1;
@@ -1029,10 +1026,9 @@ scApp::processOption(argparser& parser, int opt)
         break;
       case 1018:
         if (options.etc1s) {
-             cerr << "Only one of `--encode etc1s | --bcmp` and `--uastc [<level>]` can be specified."
-                  << endl;
-             usage();
-             exit(1);
+            error("Only one of `--encode etc1s | --bcmp` and `--uastc [<level>]` can be specified.");
+            ktxApp::usage();
+            exit(1);
         }
         options.bopts.uastc = 1;
         options.ktx2 = 1;
@@ -1081,11 +1077,8 @@ scApp::encode(ktxTexture2* texture, const string& swizzle,
 
     khr_df_transfer_e tf = ktxTexture2_GetTransferFunction_e(texture);
     if (options.normalMode && tf != KHR_DF_TRANSFER_LINEAR) {
-        cerr << name << ": "
-             << "--normal_mode specified but input file(s) are not "
-             << "linear." << endl;
+        error("%s: --normal_mode specified but input file(s) are not linear.", name);
         return 1;
-
     }
     if (options.etc1s || options.bopts.uastc) {
         commandOptions::basisOptions& bopts = options.bopts;
@@ -1103,10 +1096,7 @@ scApp::encode(ktxTexture2* texture, const string& swizzle,
 #endif
         result = ktxTexture2_CompressBasisEx(texture, &bopts);
         if (KTX_SUCCESS != result) {
-            cerr << name
-                 << " failed to compress KTX file \"" << filename
-                 << "\" with Basis Universal; KTX error: "
-                 << ktxErrorString(result) << endl;
+            error("%s failed to compress KTX file \"%s\" with Basis Universal; KTX error: %s", name, filename, ktxErrorString(result));
             return 2;
         }
     } else if (options.astc) {
@@ -1123,10 +1113,7 @@ scApp::encode(ktxTexture2* texture, const string& swizzle,
         result = ktxTexture2_CompressAstcEx((ktxTexture2*)texture,
                                          &astcopts);
         if (KTX_SUCCESS != result) {
-            cerr << name
-                 << " failed to compress KTX file \"" << filename
-                 << "\" with ASTC; KTX error: "
-                 << ktxErrorString(result) << endl;
+            error("%s failed to compress KTX file \"%s\" with ASTC; KTX error: ", name, filename, ktxErrorString(result));
             return 2;
         }
     } else {
@@ -1137,9 +1124,7 @@ scApp::encode(ktxTexture2* texture, const string& swizzle,
             result = ktxTexture2_DeflateZstd((ktxTexture2*)texture,
                                               options.zcmpLevel);
             if (KTX_SUCCESS != result) {
-                cerr << name << ": Zstd deflation of \"" << filename
-                     << "\" failed; KTX error: "
-                     << ktxErrorString(result) << endl;
+                error("%s: Zstd deflation of \"%s\" failed; KTX error: %s", name, filename, ktxErrorString(result));
                 return 2;
             }
         }
