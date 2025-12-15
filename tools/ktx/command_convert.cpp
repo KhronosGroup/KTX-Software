@@ -4,29 +4,14 @@
 
 #include "command.h"
 #include "platform_utils.h"
-#if 0
-#include "transcode_utils.h"
-#include "formats.h"
-#include "utility.h"
-#include "validate.h"
-#include "image.hpp"
-#include <array>
-#include <filesystem>
-#include <fstream>
-#include <iostream>
-#include <unordered_map>
-#endif
 #include "sbufstream.h"
 #include "ktx.h"
 
 #include <filesystem>
+#include <regex>
 #include <cxxopts.hpp>
 #include <fmt/ostream.h>
 #include <fmt/printf.h>
-
-#if defined(_MSC_VER)
-    #define strncasecmp _strnicmp
-#endif
 
 // -------------------------------------------------------------------------------------------------
 
@@ -231,13 +216,16 @@ void CommandConvert::convertKtx1(InputStream& inputStream, OutputStreamEx& outpu
          pEntry != NULL;
          pEntry = ktxHashList_Next(pEntry)) {
         unsigned int keyLen;
-        char* key;
+        char* rawKey;
 
-        ktxHashListEntry_GetKey(pEntry, &keyLen, &key);
-        if (strncasecmp(key, "KTX", 3) == 0) {
-            if (strcmp(key, KTX_ORIENTATION_KEY)
-                && strcmp(key, KTX_WRITER_KEY)) {
-                if (strcmp(key, "KTXOrientation") == 0
+        ktxHashListEntry_GetKey(pEntry, &keyLen, &rawKey);
+        auto key = std::string_view(rawKey);
+        std::regex re("ktx|KTX");
+        std::smatch ktxMatch;
+        if (std::regex_search(static_cast<std::string>(key), re)) {
+            if (key.compare(KTX_ORIENTATION_KEY)
+                && key.compare(KTX_WRITER_KEY)) {
+                if (key.compare("KTXOrientation") == 0
                     && !options.dropBadOrientation) {
                         unsigned int orientLen;
                         char* orientation;
