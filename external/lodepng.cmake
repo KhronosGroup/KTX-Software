@@ -1,3 +1,6 @@
+# Copyright 2025 Danylo Sivachenko (@Daniil-SV).
+# SPDX-License-Identifier: Apache-2.0
+
 ####################################################
 # lodepng
 ####################################################
