@@ -1,6 +1,8 @@
 # Copyright 2017-2020 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
+include("../../external/basisu.cmake")
+
 add_executable( transcodetests
     transcodetests.cc
     ../tests.cmake

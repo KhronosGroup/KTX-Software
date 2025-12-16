@@ -4,7 +4,7 @@
 include(FetchContent)
 
 if (TARGET cxxopts::cxxopts)
-    message(STATUS "Using prebuilt cxxopts")
+    message(STATUS "(${PROJECT_NAME}): Using configured cxxopts target")
     return()
 endif()
 

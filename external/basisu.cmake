@@ -1,13 +1,14 @@
 ####################################################
-# Basis Universal Encoder.
+# Basis Universal Encoder
 ####################################################
 include(FetchContent)
 
 if (TARGET basisu::basisu_encoder)
-    message(STATUS "Using prebuilt basisu")
+    message(STATUS "(${PROJECT_NAME}): Using configured Basis Universal Encoder target")
     return()
 endif()
 
+# TODO: Restore after new basisu release
 #set(BASISU_VERSION 1_60)
 #message(STATUS "Basisu VERSION: ${BASISU_VERSION}")
 
@@ -24,7 +25,7 @@ FetchContent_Declare(
     basisu
     GIT_REPOSITORY https://github.com/Daniil-SV/basis_universal.git
     GIT_TAG master #"v${BASISU_VERSION}"
-    #FIND_PACKAGE_ARGS
+    FIND_PACKAGE_ARGS
 )
 
 # Populate basisu

@@ -2,6 +2,7 @@
 # Copyright 2022-2023 RasterGrid Kft.
 # SPDX-License-Identifier: Apache-2.0
 
+include("../../external/astcenc.cmake")
 
 add_executable(ktxdiff
         ktxdiff_main.cpp

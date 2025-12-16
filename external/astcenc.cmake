@@ -1,11 +1,11 @@
 ####################################################
-# ASTC Encoder.
+# ASTC Encoder
 ####################################################
 include(FetchContent)
-include(${KTX_ROOT_DIR}/cmake/compiler_query_genexs.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/../cmake/compiler_query_genexs.cmake)
 
 if (TARGET astcenc::astcenc)
-    message(STATUS "Using prebuilt astc")
+    message(STATUS "(${PROJECT_NAME}): Using configured ASTC Encoder target")
     return()
 endif()
 

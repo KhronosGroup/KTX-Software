@@ -2,6 +2,8 @@
 # Copyright 2022-2023 RasterGrid Kft.
 # SPDX-License-Identifier: Apache-2.0
 
+include("../../external/basisu.cmake")
+include("../../external/astcenc.cmake")
 
 add_executable(ktxtools
         command.cpp

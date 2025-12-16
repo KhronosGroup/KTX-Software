@@ -4,7 +4,7 @@
 include(FetchContent)
 
 if (TARGET lodepng::lodepng)
-    message(STATUS "Using prebuilt lodepng")
+    message(STATUS "(${PROJECT_NAME}): Using configured lodepng target")
     return()
 endif()
 

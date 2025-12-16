@@ -4,7 +4,7 @@
 include(FetchContent)
 
 if (TARGET fmt::fmt)
-    message(STATUS "Using prebuilt fmt")
+    message(STATUS "(${PROJECT_NAME}): Using configured fmt target")
     return()
 endif()
 
