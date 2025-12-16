@@ -2,10 +2,11 @@
 // Copyright 2022-2023 RasterGrid Kft.
 // SPDX-License-Identifier: Apache-2.0
 
+#include "ktx.h"
 #include "command.h"
 #include "platform_utils.h"
 #include "sbufstream.h"
-#include "ktx.h"
+#include "validate.h"
 
 #include <filesystem>
 #include <regex>
@@ -199,6 +200,24 @@ void CommandConvert::executeConvert() {
 
     if (options.inputType == input_type_e::ktx1)
         convertKtx1(inputStream, outputStream);
+
+    outputStream.flush();
+    std::ostringstream messagesOS;
+    InputStream converted(outputFilepath, *this);
+    const auto validationResult = validateIOStream(converted,
+        fmtInFile(outputFilepath.string()), false, false, [&](const ValidationReport& issue) {
+        fmt::print(messagesOS, "{}-{:04}: {}\n", toString(issue.type), issue.id, issue.message);
+        fmt::print(messagesOS, "    {}\n", issue.details);
+    });
+
+    if (validationResult) {
+        fatal(ReturnCode(validationResult),
+              "Validation of converted file failed. This is likely due to an internal issue"
+              " in the tool. If you feel this is so after looking at the validation messages"
+              " below, please open an issue at"
+              " https://github.com/KhronosGroup/KTX-Software/issues.\n\n{}",
+              messagesOS.str());
+    }
 }
 
 void CommandConvert::convertKtx1(InputStream& inputStream, OutputStreamEx& outputStream) {
@@ -241,18 +260,18 @@ void CommandConvert::convertKtx1(InputStream& inputStream, OutputStreamEx& outpu
                }
                ktxHashList_DeleteEntry(&texture->kvDataHead,
                                        pEntry);
-           }
-       }
-   }
+            }
+        }
+    }
 
-   // Add required writer metadata.
-   const auto writer = fmt::format("{} {}", commandName, version(options.testrun));
-   ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
+    // Add required writer metadata.
+    const auto writer = fmt::format("{} {}", commandName, version(options.testrun));
+    ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
                          static_cast<uint32_t>(writer.size() + 1),
                          writer.c_str());
 
-   outputStream.writeKTX2(texture, *this);
-   ktxTexture_Destroy(ktxTexture(texture));
+    outputStream.writeKTX2(texture, *this);
+    ktxTexture_Destroy(ktxTexture(texture));
 }
 
 } // namespace ktx
