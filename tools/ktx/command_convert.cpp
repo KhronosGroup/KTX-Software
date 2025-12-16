@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "ktx.h"
+#include "ktxint.h"
 #include "command.h"
 #include "platform_utils.h"
 #include "sbufstream.h"
@@ -13,6 +14,8 @@
 #include <cxxopts.hpp>
 #include <fmt/ostream.h>
 #include <fmt/printf.h>
+
+extern "C" const char* glInternalformatString(GLenum);
 
 // -------------------------------------------------------------------------------------------------
 
@@ -205,7 +208,7 @@ void CommandConvert::executeConvert() {
     std::ostringstream messagesOS;
     InputStream converted(outputFilepath, *this);
     const auto validationResult = validateIOStream(converted,
-        fmtInFile(outputFilepath.string()), false, false, [&](const ValidationReport& issue) {
+        fmtInFile(outputFilepath.u8string()), false, false, [&](const ValidationReport& issue) {
         fmt::print(messagesOS, "{}-{:04}: {}\n", toString(issue.type), issue.id, issue.message);
         fmt::print(messagesOS, "    {}\n", issue.details);
     });
@@ -222,11 +225,21 @@ void CommandConvert::executeConvert() {
 
 void CommandConvert::convertKtx1(InputStream& inputStream, OutputStreamEx& outputStream) {
     ktxTexture1* texture = nullptr;
-    StreambufStream<std::streambuf*> ktx2Stream{inputStream->rdbuf(), std::ios::in | std::ios::binary};
-    auto ret = ktxTexture1_CreateFromStream(ktx2Stream.stream(),
+    StreambufStream<std::streambuf*> ktx1Stream{inputStream->rdbuf(), std::ios::in | std::ios::binary};
+    auto ret = ktxTexture1_CreateFromStream(ktx1Stream.stream(),
                                             KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
-    if (ret != KTX_SUCCESS)
-        fatal(rc::INVALID_FILE, "Failed to create KTX2 texture: {}", ktxErrorString(ret));
+    if (ret != KTX_SUCCESS) {
+        if (ret == KTX_UNSUPPORTED_TEXTURE_TYPE) {
+            inputStream->seekg(0);
+            KTX_header header;
+            inputStream->read(reinterpret_cast<char*>(&header), KTX_HEADER_SIZE);
+            fatal(rc::NOT_SUPPORTED,
+                  "Format of input file, {}, is unsupported or has no equivalent VkFormat.",
+                  ::glInternalformatString(header.glInternalformat));
+        } else {
+            fatal(rc::INVALID_FILE, "Failed to create KTX texture: {}", ktxErrorString(ret));
+        }
+    }
 
     // Some in-the-wild KTX files have incorrect KTXOrientation
     // Warn about dropping invalid metadata.

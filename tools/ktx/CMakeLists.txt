@@ -31,6 +31,8 @@ add_executable(ktxtools
         validate.cpp
         validate.h
         validation_messages.h
+        # Until the API is public
+        ${PROJECT_SOURCE_DIR}/lib/src/glformat_str.c
 )
 
 create_version_header(tools/ktx ktxtools)
