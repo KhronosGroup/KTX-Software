@@ -88,7 +88,7 @@ jobs:
       # In theory it should not matter, but this image is chosen to exercise
       # some of the functions in one of the library dependencies.
       KTX2_TEST_FILE: "tests/testimages/kodim17_basis.ktx2"
-      WERROR: OFF
+      WERROR: ON
 
     steps:
     - uses: actions/checkout@v4

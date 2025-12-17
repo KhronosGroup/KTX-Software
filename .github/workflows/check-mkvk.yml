@@ -56,7 +56,7 @@ jobs:
     env:
       GIT_LFS_SKIP_SMUDGE: 1
       BUILD_DIR: "build"
-      WERROR: OFF
+      WERROR: ON
 
     steps:
     - uses: actions/checkout@v4

@@ -56,7 +56,7 @@ jobs:
       # for texturetests etc., loadtests and legacy tool tests. They will be
       # pulled later as necessary
       GIT_LFS_SKIP_SMUDGE: 1
-      WERROR: OFF
+      WERROR: ON
 
     steps:
     - uses: actions/checkout@v4

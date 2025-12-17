@@ -18,12 +18,12 @@ endif()
 # Options
 set(TOOL FALSE)
 set(EXAMPLES FALSE)
-set(SSE ${BASISU_SSE})
-set(OPENCL ${BASISU_OPENCL})
 if(NOT ${CPU_ARCHITECTURE} STREQUAL "x86_64")
     # Basisu sets this TRUE if MSVC is TRUE.
     set(BASISU_SSE FALSE)
 endif()
+set(SSE ${BASISU_SSE})
+set(OPENCL ${BASISU_OPENCL})
 
 # Declare package
 FetchContent_Declare(
@@ -34,7 +34,17 @@ FetchContent_Declare(
 )
 
 # Populate basisu
-FetchContent_MakeAvailable(basisu)
+# We need to explicitly populate basisu and add it as a subdirectory with EXCLUDE_FROM_ALL 
+# to avoid problems with KTX_WERROR in ci
+FetchContent_GetProperties(basisu)
+if (NOT basisu_POPULATED)
+    FetchContent_Populate(basisu)
+    add_subdirectory(
+        ${basisu_SOURCE_DIR}
+        ${basisu_BINARY_DIR}
+        EXCLUDE_FROM_ALL
+    )
+endif()
 
 if (NOT TARGET basisu::basisu_encoder)
     add_library(basisu::basisu_encoder ALIAS basisu_encoder)
