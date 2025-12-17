@@ -34,17 +34,7 @@ FetchContent_Declare(
 )
 
 # Populate basisu
-# We need to explicitly populate basisu and add it as a subdirectory with EXCLUDE_FROM_ALL 
-# to avoid problems with KTX_WERROR in ci
-FetchContent_GetProperties(basisu)
-if (NOT basisu_POPULATED)
-    FetchContent_Populate(basisu)
-    add_subdirectory(
-        ${basisu_SOURCE_DIR}
-        ${basisu_BINARY_DIR}
-        EXCLUDE_FROM_ALL
-    )
-endif()
+FetchContent_MakeAvailable(basisu)
 
 if (NOT TARGET basisu::basisu_encoder)
     add_library(basisu::basisu_encoder ALIAS basisu_encoder)

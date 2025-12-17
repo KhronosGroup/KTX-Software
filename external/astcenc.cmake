@@ -106,8 +106,8 @@ set(BUILD_SHARED_LIBS OFF)
 # Declare package
 FetchContent_Declare(
     astcenc
-    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-    URL "https://github.com/ARM-software/astc-encoder/archive/refs/tags/${ASTC_VERSION}.tar.gz"
+    GIT_REPOSITORY https://github.com/ARM-software/astc-encoder
+    GIT_TAG ${ASTC_VERSION}
     FIND_PACKAGE_ARGS
 )
 
