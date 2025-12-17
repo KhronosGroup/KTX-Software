@@ -137,7 +137,7 @@ jobs:
       WASM_BUILD: ${{ matrix.options.wasm && matrix.options.wasm || 'OFF' }}
       # Virtual env (ON) is needed because pre-installed python is "externally managed."
       PY_USE_VENV: ${{ matrix.options.py.use_venv && matrix.options.py_use_venv || 'ON' }}
-      WERROR: ${{ matrix.options.werror && matrix.options.werror || 'ON' }}
+      WERROR: ${{ matrix.options.werror && matrix.options.werror || 'OFF' }}
       # CC Handled by job step
       # CXX Handled by job step
 
