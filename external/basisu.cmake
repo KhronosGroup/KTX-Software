@@ -18,6 +18,8 @@ endif()
 # Options
 set(TOOL FALSE)
 set(EXAMPLES FALSE)
+set(SSE ${BASISU_SSE})
+set(OPENCL ${BASISU_OPENCL})
 if(NOT ${CPU_ARCHITECTURE} STREQUAL "x86_64")
     # Basisu sets this TRUE if MSVC is TRUE.
     set(BASISU_SSE FALSE)
