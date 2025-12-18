@@ -56,8 +56,8 @@ Transcode a KTX2 file.
             selected based on the number of channels in the input texture.
             Block compressed transcode targets can only be saved in raw format.
             Case-insensitive. Possible options are:
-            etc-rgb | etc-rgba | eac-r11 | eac-rg11 | bc1 | bc3 | bc4 | bc5 | bc7 | astc |
-            r8 | rg8 | rgb8 | rgba8.
+            etc-rgb | etc-rgba | eac-r11 | eac-rg11 | bc1 | bc3 | bc4 | bc5 | bc6hu | bc7 | astc | astc-hdr-4x4 | astc-hdr-6x6 |
+            r8 | rg8 | rgb8 | rgba8 | rgba16f.
             etc-rgb is ETC1; etc-rgba, eac-r11 and eac-rg11 are ETC2.
         </dd>
     </dl>
@@ -121,8 +121,8 @@ void CommandTranscode::OptionsTranscode::init(cxxopts::Options& opts) {
                    " Block compressed transcode targets can only be saved in raw format."
                    " Case-insensitive."
                    "\nPossible options are:"
-                   " etc-rgb | etc-rgba | eac-r11 | eac-rg11 | bc1 | bc3 | bc4 | bc5 | bc7 | astc |"
-                   " r8 | rg8 | rgb8 | rgba8."
+                   " etc-rgb | etc-rgba | eac-r11 | eac-rg11 | bc1 | bc3 | bc4 | bc5 | bc6hu | bc7 |"
+                   " astc | astc-hdr-4x4 | astc-hdr-6x6 | r8 | rg8 | rgb8 | rgba8 | rgba16f"
                    "\netc-rgb is ETC1; etc-rgba, eac-r11 and eac-rg11 are ETC2.",
                    cxxopts::value<std::string>(), "<target>");
 }
