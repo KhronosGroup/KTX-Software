@@ -9,6 +9,7 @@
 #include "sbufstream.h"
 #include "validate.h"
 
+#include <exception>
 #include <filesystem>
 #include <regex>
 #include <cxxopts.hpp>
@@ -53,13 +54,13 @@ Convert another texture file type to a KTX2 file
 @section ktx\_convert\_options OPTIONS
     The following options are available:
     <dl>
-        <dt>\--input-type &lt;type&gt;</dt>
-        <dd>Type of input file. Currently @b type must be @c ktx1. Case insensitive.</dd>
-        <dt>\--drop-bad-orientation</dt>
+        <dt>\--input-type,-t &lt;type&gt;</dt>
+        <dd>Type of input file. Currently @b type must be @c ktx. Case insensitive.</dd>
+        <dt>\--drop-bad-orientation,-d</dt>
         <dd>Some in-the-wild KTX v1 files have orientation metadata with the key
             "KTXOrientation" instead of KTXorientaion. By default such metadata is
             rewritten with the correct name. This option causes such bad metadata
-            to be dropped. Ignored unless @b type is @c ktx1.
+            to be dropped. Ignored unless @b type is @c ktx.
         </dd>
     </dl>
     @snippet{doc} ktx/command.h command options_generic
@@ -93,25 +94,28 @@ public:
 };
 
 class CommandConvert : public Command {
-    enum class input_type_e { ktx1, dds };
+    enum class input_type_e { ktx, dds };
+
     struct OptionsConvert {
         inline static const char* kDropBadOrientation = "drop-bad-orientation";
-        inline static const char* kType = "type";
+        inline static const char* kInputType = "input-type";
 
         bool dropBadOrientation = false;
         std::optional<input_type_e> inputType;
 
         void init(cxxopts::Options& opts) {
+            const std::string kDropBadOrientationFlags = std::string("d,") + kDropBadOrientation;
+            const std::string kInputTypeFlags = std::string("t,") + kInputType;
             opts.add_options()
-                (kType, "Specify the type of input file. Currently must be ktx1.",
+                (kInputTypeFlags, "Specify the type of input file. Currently must be ktx.",
                   cxxopts::value<std::string>(), "<type>")
-                (kDropBadOrientation, "Drop bad orientation metadata, such as \"KTXOrientation\","
+                (kDropBadOrientationFlags, "Drop bad orientation metadata, such as \"KTXOrientation\","
                     " instead of fixing it.");
         }
 
         std::optional<input_type_e> parseInputType(cxxopts::ParseResult& args, const char* argName, Reporter& report) const {
             static const std::unordered_map<std::string, input_type_e> values {
-                { "KTX1", input_type_e::ktx1}
+                { "KTX", input_type_e::ktx}
             };
             std::optional<input_type_e> result = {};
             if (args[argName].count()) {
@@ -128,9 +132,9 @@ class CommandConvert : public Command {
         }
 
         void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
-            inputType = parseInputType(args, kType, report);
+            inputType = parseInputType(args, kInputType, report);
             if (!inputType.has_value())
-                report.fatal_usage("--{} <type> must be specified", kType);
+                report.fatal_usage("--{} <type> must be specified", kInputType);
 
             dropBadOrientation = args[kDropBadOrientation].as<bool>();
         }
@@ -144,7 +148,7 @@ public:
     virtual void processOptions(cxxopts::Options& opts, cxxopts::ParseResult& args) override;
 
 private:
-    void convertKtx1(InputStream&, OutputStreamEx&);
+    void convertKtx(InputStream&, OutputStreamEx&);
     void executeConvert();
 };
 
@@ -186,7 +190,9 @@ void CommandConvert::executeConvert() {
     if (outputFilepath.empty()) {
         outputFilepath = options.inputFilepath;
         usingInputName = true;
-    } else if (std::filesystem::is_directory(outputFilepath)) {
+    } else if (!outputFilepath.has_filename() || std::filesystem::is_directory(outputFilepath)) {
+        // is_directory() above handles case where outputFilepath is not '/' terminated but
+        // exists and is a directory.
         auto inputFilepath = std::filesystem::u8path(options.inputFilepath);
         outputFilepath /= inputFilepath.filename();
         usingInputName = true;
@@ -201,8 +207,13 @@ void CommandConvert::executeConvert() {
     }
     OutputStreamEx outputStream(outputFilepath.u8string(), *this);
 
-    if (options.inputType == input_type_e::ktx1)
-        convertKtx1(inputStream, outputStream);
+    try {
+        if (options.inputType == input_type_e::ktx)
+            convertKtx(inputStream, outputStream);
+    } catch (const FatalError& error) {
+        outputStream.removeFile();
+        throw error;
+    }
 
     outputStream.flush();
     std::ostringstream messagesOS;
@@ -215,18 +226,19 @@ void CommandConvert::executeConvert() {
 
     if (validationResult) {
         fatal(ReturnCode(validationResult),
-              "Validation of converted file failed. This is likely due to an internal issue"
-              " in the tool. If you feel this is so after looking at the validation messages"
-              " below, please open an issue at"
-              " https://github.com/KhronosGroup/KTX-Software/issues.\n\n{}",
-              messagesOS.str());
+              "Validation of converted file \"{}\" failed. This is likely due to an internal"
+              " issue in the tool. If, after looking at the validation messages below,"
+              " you agree, please open an issue at"
+              " https://github.com/KhronosGroup/KTX-Software/issues. The file has not been"
+              " deleted so you can attach it to the issue.\n\n{}",
+              outputStream.str(), messagesOS.str());
     }
 }
 
-void CommandConvert::convertKtx1(InputStream& inputStream, OutputStreamEx& outputStream) {
+void CommandConvert::convertKtx(InputStream& inputStream, OutputStreamEx& outputStream) {
     ktxTexture1* texture = nullptr;
-    StreambufStream<std::streambuf*> ktx1Stream{inputStream->rdbuf(), std::ios::in | std::ios::binary};
-    auto ret = ktxTexture1_CreateFromStream(ktx1Stream.stream(),
+    StreambufStream<std::streambuf*> ktxStream{inputStream->rdbuf(), std::ios::in | std::ios::binary};
+    auto ret = ktxTexture1_CreateFromStream(ktxStream.stream(),
                                             KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
     if (ret != KTX_SUCCESS) {
         if (ret == KTX_UNSUPPORTED_TEXTURE_TYPE) {

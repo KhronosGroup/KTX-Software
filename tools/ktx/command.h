@@ -399,6 +399,7 @@ public:
     }
 
     void flush() { fflush(file); }
+    void removeFile();
     void writeKTX2(ktxTexture* texture, Reporter& report);
     void write(const char* data, std::size_t size, Reporter& report);
 };
