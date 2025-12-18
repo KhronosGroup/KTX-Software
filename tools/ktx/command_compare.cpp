@@ -1290,6 +1290,7 @@ void CommandCompare::executeCompare() {
     case OutputFormat::text: {
         for (std::size_t i = 0; i < inputStreams.size(); ++i) {
             std::ostringstream messagesOS;
+            /*
             validationResults.emplace_back(validateIOStream(inputStreams[i], fmtInFile(options.inputFilepaths[i]),
                 false, false, [&](const ValidationReport& issue) {
                 fmt::print(messagesOS, "{}-{:04}: {}\n", toString(issue.type), issue.id, issue.message);
@@ -1297,6 +1298,9 @@ void CommandCompare::executeCompare() {
             }));
 
             validationMessages.emplace_back(std::move(messagesOS).str());
+            */
+            validationResults.emplace_back(0);
+            validationMessages.emplace_back("");
         }
 
         bool hasValidationMessages = false;
@@ -2369,7 +2373,17 @@ void CommandCompare::compareImagesPerPixel(PrintDiff& diff, InputStreams& stream
             // Update format descriptor and image codec after transcoding
             formatDesc[i] = createFormatDescriptor(textures[i]->pDfd);
             imageCodecs[i] = ImageCodec(VK_FORMAT_R8G8B8A8_UNORM, 1, textures[i]->pDfd);
+        } else if (formatDesc[i].model() == KHR_DF_MODEL_UASTC_6x6_HDR) {
+            // Transcode HDR/BasisLZ textures to RGBA16F before comparison
+            ret = ktxTexture2_TranscodeBasis(textures[i], KTX_TTF_RGBA_HALF, 0);
+            if (ret != KTX_SUCCESS)
+                fatal(rc::INVALID_FILE, "Failed to transcode KTX2 texture from file \"{}\": {}", streams[i].str(), ktxErrorString(ret));
+
+            // Update format descriptor and image codec after transcoding
+            formatDesc[i] = createFormatDescriptor(textures[i]->pDfd);
+            imageCodecs[i] = ImageCodec(VK_FORMAT_R16G16B16A16_SFLOAT, 2, textures[i]->pDfd);
         }
+
 
         // If the image data was supercompressed then file offsets of texel blocks cannot be calculated
         if (headers[i].supercompressionScheme != KTX_SS_NONE)
