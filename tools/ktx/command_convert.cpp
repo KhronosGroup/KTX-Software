@@ -54,9 +54,9 @@ Convert another texture file type to a KTX2 file
 @section ktx\_convert\_options OPTIONS
     The following options are available:
     <dl>
-        <dt>\--input-type,-t &lt;type&gt;</dt>
+        <dt>-t, \--input-type &lt;type&gt;</dt>
         <dd>Type of input file. Currently @b type must be @c ktx. Case insensitive.</dd>
-        <dt>\--drop-bad-orientation,-d</dt>
+        <dt>-d, \--drop-bad-orientation</dt>
         <dd>Some in-the-wild KTX v1 files have orientation metadata with the key
             "KTXOrientation" instead of KTXorientaion. By default such metadata is
             rewritten with the correct name. This option causes such bad metadata
