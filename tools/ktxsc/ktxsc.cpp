@@ -266,7 +266,7 @@ ktxSupercompressor::main(int argc, char* argv[])
                     exitCode = 1;
                     goto cleanup;
                 }
-                if ((options.astc || options.etc1s || options.bopts.uastc) && texture->isCompressed) {
+                if ((options.astc || options.etc1s || (options.bopts.codecFlag == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC)) && texture->isCompressed) {
                     cerr << name << ": "
                          << "Cannot encode already block-compressed textures "
                          << "to ASTC, Basis Universal or UASTC."
@@ -358,7 +358,7 @@ ktxSupercompressor::validateOptions()
         usage();
         exit(1);
     }
-    if (!options.astc && !options.etc1s && !options.zcmp && !options.bopts.uastc) {
+    if (!options.astc && !options.etc1s && !options.zcmp && (options.bopts.codecFlag != ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC)) {
        cerr << "Must specify one of --zcmp, --etc1s (deprecated --bcmp) or --uastc." << endl;
        usage();
        exit(1);
