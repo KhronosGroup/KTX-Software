@@ -18,6 +18,7 @@ var texture;
 var astcSupported = false;
 var etcSupported = false;
 var dxtSupported = false;
+var bptcSupported = false;
 var pvrtcSupported = false;
 
 //
@@ -48,6 +49,7 @@ function main() {
   astcSupported = !!gl.getExtension('WEBGL_compressed_texture_astc');
   etcSupported = !!gl.getExtension('WEBGL_compressed_texture_etc1');
   dxtSupported = !!gl.getExtension('WEBGL_compressed_texture_s3tc');
+  bptcSupported = !!gl.getExtension('EXT_texture_compression_bptc');
   pvrtcSupported = !!(gl.getExtension('WEBGL_compressed_texture_pvrtc')) || !!(gl.getExtension('WEBKIT_WEBGL_compressed_texture_pvrtc'));
 
   // Vertex shader program
@@ -353,21 +355,42 @@ function uploadTextureToGl(gl, ktexture) {
 
   if (ktexture.needsTranscoding) {
     var format;
-    if (astcSupported) {
-      formatString = 'ASTC';
-      format = transcode_fmt.ASTC_4x4_RGBA;
-    } else if (dxtSupported) {
-      formatString = ktexture.numComponents == 4 ? 'BC3' : 'BC1';
-      format = transcode_fmt.BC1_OR_3;
-    } else if (pvrtcSupported) {
-      formatString = 'PVRTC1';
-      format = transcode_fmt.PVRTC1_4_RGBA;
-    } else if (etcSupported) {
-      formatString = 'ETC';
-      format = transcode_fmt.ETC;
+    if (ktexture.isHDR) {
+      const model = ktexture.colorModel;
+
+      //const model = ktexture.get
+      if (astcSupported) {
+        if (ktx.khr_df_model.KHR_DF_MODEL_UASTC_4X4_HDR == model) {
+          formatString = 'ASTC_HDR_4x4';
+          format = transcode_fmt.ASTC_HDR_4x4_RGBA;
+        } else {
+          formatString = 'ASTC_HDR_6x6';
+          format = transcode_fmt.ASTC_HDR_6x6_RGBA;
+        }
+      } else if (bptcSupported) {
+        formatString = 'BC6HU';
+        format = transcode_fmt.BC6HU;
+      } else {
+        formatString = 'RGBA16F';
+        format = transcode_fmt.RGBA16F;
+      }
     } else {
-      formatString = 'RGBA4444';
-      format = transcode_fmt.RGBA4444;
+      if (astcSupported) {
+        formatString = 'ASTC';
+        format = transcode_fmt.ASTC_4x4_RGBA;
+      } else if (dxtSupported) {
+        formatString = ktexture.numComponents == 4 ? 'BC3' : 'BC1';
+        format = transcode_fmt.BC1_OR_3;
+      } else if (pvrtcSupported) {
+        formatString = 'PVRTC1';
+        format = transcode_fmt.PVRTC1_4_RGBA;
+      } else if (etcSupported) {
+        formatString = 'ETC';
+        format = transcode_fmt.ETC;
+      } else {
+        formatString = 'RGBA4444';
+        format = transcode_fmt.RGBA4444;
+      }
     }
     if (ktexture.transcodeBasis(format, 0) != ktx.error_code.SUCCESS) {
         alert('Texture transcode failed. See console for details.');
@@ -494,6 +517,7 @@ function loadTexture(gl, url)
     gl.deleteTexture(texture.object);
     texture = tex;
     elem('format').innerText = tex.format;
+    console.log(texture);
     ktexture.delete();
   };
 
