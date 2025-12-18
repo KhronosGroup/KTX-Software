@@ -217,7 +217,7 @@ void CommandConvert::executeConvert() {
 
     outputStream.flush();
     std::ostringstream messagesOS;
-    InputStream converted(outputFilepath, *this);
+    InputStream converted(outputFilepath.u8string(), *this);
     const auto validationResult = validateIOStream(converted,
         fmtInFile(outputFilepath.u8string()), false, false, [&](const ValidationReport& issue) {
         fmt::print(messagesOS, "{}-{:04}: {}\n", toString(issue.type), issue.id, issue.message);
