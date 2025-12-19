@@ -215,23 +215,26 @@ void CommandConvert::executeConvert() {
         throw error;
     }
 
-    outputStream.flush();
-    std::ostringstream messagesOS;
-    InputStream converted(outputFilepath.u8string(), *this);
-    const auto validationResult = validateIOStream(converted,
-        fmtInFile(outputFilepath.u8string()), false, false, [&](const ValidationReport& issue) {
-        fmt::print(messagesOS, "{}-{:04}: {}\n", toString(issue.type), issue.id, issue.message);
-        fmt::print(messagesOS, "    {}\n", issue.details);
-    });
 
-    if (validationResult) {
-        fatal(ReturnCode(validationResult),
-              "Validation of converted file \"{}\" failed. This is likely due to an internal"
-              " issue in the tool. If, after looking at the validation messages below,"
-              " you agree, please open an issue at"
-              " https://github.com/KhronosGroup/KTX-Software/issues. The file has not been"
-              " deleted so you can attach it to the issue.\n\n{}",
-              outputStream.str(), messagesOS.str());
+    if (!outputStream.isStdout()) {
+        outputStream.flush();
+        std::ostringstream messagesOS;
+        InputStream converted(outputFilepath.u8string(), *this);
+        const auto validationResult = validateIOStream(converted,
+            fmtInFile(outputFilepath.u8string()), false, false, [&](const ValidationReport& issue) {
+            fmt::print(messagesOS, "{}-{:04}: {}\n", toString(issue.type), issue.id, issue.message);
+            fmt::print(messagesOS, "    {}\n", issue.details);
+        });
+
+        if (validationResult) {
+            fatal(ReturnCode(validationResult),
+                  "Validation of converted file \"{}\" failed. This is likely due to an internal"
+                  " issue in the tool. If, after looking at the validation messages below,"
+                  " you agree, please open an issue at"
+                  " https://github.com/KhronosGroup/KTX-Software/issues. The file has not been"
+                  " deleted so you can attach it to the issue.\n\n{}",
+                  outputStream.str(), messagesOS.str());
+        }
     }
 }
 

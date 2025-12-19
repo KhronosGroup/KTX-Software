@@ -398,6 +398,7 @@ public:
         return filepath;
     }
 
+    bool isStdout() { return (file == stdout); }
     void flush() { fflush(file); }
     void removeFile();
     void writeKTX2(ktxTexture* texture, Reporter& report);
