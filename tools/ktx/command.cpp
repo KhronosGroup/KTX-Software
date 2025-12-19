@@ -162,14 +162,9 @@ OutputStream::OutputStream(const std::string& filepath, Reporter& report) :
 }
 
 OutputStream::~OutputStream() {
-    if (file != stdout)
-        fclose(file);
-}
-
-void OutputStream::removeFile() {
     if (file != stdout) {
         fclose(file);
-        std::filesystem::remove(DecodeUTF8Path(filepath).c_str());
+        if (removeAtDestruct) std::filesystem::remove(DecodeUTF8Path(filepath).c_str());
     }
 }
 

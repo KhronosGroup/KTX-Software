@@ -387,6 +387,7 @@ class OutputStream {
 protected:
     std::string filepath;
     FILE* file;
+    bool removeAtDestruct = false;
     // std::ostream* activeStream = nullptr;
     // std::ofstream file; // Unused for stdin/stdout
 
@@ -400,7 +401,7 @@ public:
 
     bool isStdout() { return (file == stdout); }
     void flush() { fflush(file); }
-    void removeFile();
+    void removeOnDestruct() { removeAtDestruct = true; }
     void writeKTX2(ktxTexture* texture, Reporter& report);
     void write(const char* data, std::size_t size, Reporter& report);
 };

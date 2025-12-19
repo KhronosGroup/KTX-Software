@@ -211,7 +211,7 @@ void CommandConvert::executeConvert() {
         if (options.inputType == input_type_e::ktx)
             convertKtx(inputStream, outputStream);
     } catch (const FatalError& error) {
-        outputStream.removeFile();
+        outputStream.removeOnDestruct();
         throw error;
     }
 
