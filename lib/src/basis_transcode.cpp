@@ -339,18 +339,19 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
     // Transcoder global initialization. Requires ~9 milliseconds when compiled
     // and executed natively on a Core i7 2.2 GHz. If this is too slow, the
     // tables it computes can easily be moved to be compiled in.
-    static bool transcoderInitialized;
-    static std::mutex transcoderInitMutex;
 
     // By deliberate choice basisu_transcoder_init() does not have its own mutex.
     // See https://github.com/BinomialLLC/basis_universal/issues/416.
-    transcoderInitMutex.lock();
-    if (!transcoderInitialized) {
-        // Another thread did not initialize the transcoder while we were waiting.
-        basisu_transcoder_init();
-        transcoderInitialized = true;
+    static std::atomic<bool> transcoderInitialized(false);
+    static std::mutex init_mutex;
+
+    if (!transcoderInitialized.load(std::memory_order_acquire)) {
+        std::lock_guard<std::mutex> lock(init_mutex);
+        if (!transcoderInitialized.load(std::memory_order_relaxed)) {
+            basisu_transcoder_init();
+            transcoderInitialized.store(true, std::memory_order_release);
+        }
     }
-    transcoderInitMutex.unlock();
 
     if (textureFormat == basis_tex_format::cETC1S) {
         result = ktxTexture2_transcodeLzEtc1s(This, alphaContent,
