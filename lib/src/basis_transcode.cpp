@@ -18,6 +18,7 @@
  * @author Mark Callow, github.com/MarkCallow
  */
 
+#include <atomic>
 #include <mutex>
 #include <inttypes.h>
 #include <stdio.h>
