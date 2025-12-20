@@ -27,8 +27,9 @@ set(CMAKE_GTEST_DISCOVER_TESTS_DISCOVERY_MODE PRE_TEST)
 
 enable_testing()
 
-add_subdirectory(transcodetests)
 add_subdirectory(streamtests)
+add_subdirectory(threadtests)
+add_subdirectory(transcodetests)
 
 add_executable( unittests
     "${PROJECT_SOURCE_DIR}/external/dfdutils/dfd2vk.c"
