@@ -230,6 +230,8 @@ TEST_F(MultithreadedEncode, EncodeASTC) {
 }  // namespace
 
 #if defined(_WIN32)
+#define WINDOWS_LEAN_AND_MEAN
+#include <windows.h>
 // For Windows, we convert the UTF-8 path to a UTF-16 path to force using
 // the APIs that correctly handle unicode characters.
 inline std::wstring
