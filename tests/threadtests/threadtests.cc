@@ -51,8 +51,8 @@ namespace fs = std::filesystem;
 ///////////////////////////////////////////
 
 fs::path ktx2Path;
-fs::path pngPath;
-fs::path goldenPath;
+//fs::path pngPath;
+//fs::path goldenPath;
 
 // Must be before any other test calling ktxTexture2_TranscodeBasis.
 TEST(Multithreaded, TranscodeBasis) {
