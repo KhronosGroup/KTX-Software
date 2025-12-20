@@ -58,7 +58,7 @@ fi
 
 $ktx create --testrun --format R8G8B8A8_SRGB --levels 7 npbm/level0-alpha.pam npbm/level1-alpha.pam npbm/level2-alpha.pam npbm/level3-alpha.pam npbm/level4-alpha.pam npbm/level5-alpha.pam npbm/level6-alpha.pam ktx2/rgba_mipmap.ktx2
 $ktx create --testrun --format R8G8B8A8_SRGB --encode basis-lz --levels 7 npbm/level0-alpha.pam npbm/level1-alpha.pam npbm/level2-alpha.pam npbm/level3-alpha.pam npbm/level4-alpha.pam npbm/level5-alpha.pam npbm/level6-alpha.pam ktx2/rgba_mipmap_basis.ktx2
-$ktx transcode --target etc-rgba ktx2/rgba_mipmap_basis.ktx2 ktx2/rgba_mipmap_etc2.ktx2
+$ktx transcode --testrun --target etc-rgba ktx2/rgba_mipmap_basis.ktx2 ktx2/rgba_mipmap_etc2.ktx2
 $ktx create --testrun --format ASTC_4x4_SRGB_BLOCK --levels 7 npbm/level0-alpha.pam npbm/level1-alpha.pam npbm/level2-alpha.pam npbm/level3-alpha.pam npbm/level4-alpha.pam npbm/level5-alpha.pam npbm/level6-alpha.pam ktx2/rgba_mipmap_astc.ktx2
 
 #$toktx --lower_left_maps_to_s0t0 --nometadata rgb-reference.ktx ../srcimages/rgb.ppm
