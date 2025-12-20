@@ -59,13 +59,13 @@ TEST(Multithreaded, TranscodeBasis) {
     const int numThreads = 2;
     std::barrier syncPoint(numThreads);
 
-    auto funcLoad = [&syncPoint] (const std::string& ktxPath, const std::string& goldenPath) {
+    auto funcLoad = [&syncPoint] (const std::string& ktxFile, const std::string& goldenFile) {
         ktxTexture2 *texture = nullptr;
 
-        KTX_error_code result = ktxTexture_CreateFromNamedFile(ktxPath.c_str(),
+        KTX_error_code result = ktxTexture_CreateFromNamedFile(ktxFile.c_str(),
             KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, (ktxTexture **)&texture);
         ASSERT_TRUE(result == KTX_SUCCESS) << "ktxTexture_CreateFromNamedFile \""
-                << ktxPath << "\" failed: " << ktxErrorString(result);
+                << ktxFile << "\" failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture != NULL) << "Returned texture pointer is NULL";
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
@@ -80,10 +80,10 @@ TEST(Multithreaded, TranscodeBasis) {
             //result = ktxTexture2_WriteToNamedFile(texture, "/tmp/testktx2");
 
             ktxTexture2* golden = nullptr;
-            result = ktxTexture_CreateFromNamedFile(goldenPath.c_str(),
+            result = ktxTexture_CreateFromNamedFile(goldenFile.c_str(),
                 KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, (ktxTexture **)&golden);
             ASSERT_TRUE(result == KTX_SUCCESS) << "ktxTexture_CreateFromNamedFile \""
-                    << goldenPath << "\" failed: " << ktxErrorString(result);
+                    << goldenFile << "\" failed: " << ktxErrorString(result);
             ASSERT_TRUE(golden != NULL) << "Returned texture pointer is NULL";
             ASSERT_TRUE(golden->pData != NULL) << "Image data not loaded";
             EXPECT_EQ(texture->dataSize, golden->dataSize);
@@ -117,13 +117,13 @@ TEST(Multithreaded, DecodeASTC) {
     const int numThreads = 2;
     std::barrier syncPoint(numThreads);
 
-    auto funcLoad = [&syncPoint] (const std::string& ktxPath, const std::string& goldenPath) {
+    auto funcLoad = [&syncPoint] (const std::string& ktxFile, const std::string& goldenFile) {
         ktxTexture2 *texture = nullptr;
 
-        KTX_error_code result = ktxTexture_CreateFromNamedFile(ktxPath.c_str(),
+        KTX_error_code result = ktxTexture_CreateFromNamedFile(ktxFile.c_str(),
             KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, (ktxTexture **)&texture);
         ASSERT_TRUE(result == KTX_SUCCESS) << "ktxTexture_CreateFromNamedFile \""
-                << ktxPath << "\" failed: " << ktxErrorString(result);
+                << ktxFile << "\" failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture != NULL) << "Returned texture pointer is NULL";
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
@@ -137,10 +137,10 @@ TEST(Multithreaded, DecodeASTC) {
         //result = ktxTexture2_WriteToNamedFile(texture, "/tmp/testktx2");
 
         ktxTexture2* golden = nullptr;
-        result = ktxTexture_CreateFromNamedFile(goldenPath.c_str(),
+        result = ktxTexture_CreateFromNamedFile(goldenFile.c_str(),
             KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, (ktxTexture **)&golden);
         ASSERT_TRUE(result == KTX_SUCCESS) << "ktxTexture_CreateFromNamedFile \""
-                << goldenPath << "\" failed: " << ktxErrorString(result);
+                << goldenFile << "\" failed: " << ktxErrorString(result);
         ASSERT_TRUE(golden != NULL) << "Returned texture pointer is NULL";
         ASSERT_TRUE(golden->pData != NULL) << "Image data not loaded";
         EXPECT_EQ(texture->dataSize, golden->dataSize);
@@ -304,9 +304,9 @@ GTEST_API_ int main(int argc, char* argv[]) {
             }
             return 0;
         };
-        checkPath(goldenPath);
+        //checkPath(goldenPath);
         checkPath(ktx2Path);
-        checkPath(pngPath);
+        //checkPath(pngPath);
     }
 
     return RUN_ALL_TESTS();
