@@ -38,22 +38,6 @@ PRIVATE
     $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
 )
 
-
-#configure_file(
-#    launch.cmake.in
-#    ${CMAKE_CURRENT_BINARY_DIR}/launch.cmake.genex
-#    USE_SOURCE_PERMISSIONS
-#    @ONLY
-#)
-
-# The file configured by the above has a generator expression for CMAKE_RUNTIME_OUTPUT_DIRECTORY
-# so we need this step too.
-#file( GENERATE
-#    OUTPUT launch_$<CONFIG>.cmake
-#    INPUT ${CMAKE_CURRENT_BINARY_DIR}/launch.cmake.genex
-#    USE_SOURCE_PERMISSIONS
-#)
-
 # Use a script to launch the test multiple times as running it once
 # is highly unlikely to reveal a race. The thread unsafe parts are the
 # one time initialization of global tables. Since initialization is a
