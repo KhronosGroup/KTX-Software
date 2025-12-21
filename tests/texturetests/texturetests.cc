@@ -2271,62 +2271,6 @@ TEST_F(ktxTexture2ReadTestRGBA8, Read3DMipmap) {
     runTest();
 }
 
-////////////////////////////////////////////
-// Multithreaded basisu encode & transcode tests
-///////////////////////////////////////////
-
-fs::path imagePath;
-
-#if 0
-// Must be before any other test calling ktxTexture2_TranscodeBasis.
-TEST(Multithreaded, TranscodeBasis) {
-    const int numThreads = 500;
-    std::barrier syncPoint(numThreads);
-
-    auto funcLoad = [&syncPoint] (const std::string& imagePath) {
-        ktxTexture2 *texture = nullptr;
-
-        KTX_error_code result = ktxTexture_CreateFromNamedFile(
-                imagePath.c_str(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, (ktxTexture **)&texture);
-        ASSERT_TRUE(result == KTX_SUCCESS) << "ktxTexture_CreateFromNamedFile \""
-                << imagePath << "\" failed: " << ktxErrorString(result);
-        ASSERT_TRUE(texture != NULL) << "Returned texture pointer is NULL";
-        ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
-
-        if (ktxTexture2_NeedsTranscoding(texture)) {
-            auto targetFormat = KTX_TTF_ASTC_4x4_RGBA;
-
-            // The barrier to make ktxTexture2_TranscodeBasis to be called concurrently in multiple threads
-            syncPoint.arrive_and_wait();
-
-            //ALOGD("transcoding(%s)...", ktxTranscodeFormatString(targetFormat));
-            result = ktxTexture2_TranscodeBasis(texture, targetFormat, 0);
-            EXPECT_EQ(result, KTX_SUCCESS);
-            //result = ktxTexture2_WriteToNamedFile(texture, "/tmp/testktx2");
-        }
-
-        ktxTexture2_Destroy(texture);
-    };
-
-    fs::path image1 = ::imagePath;
-    image1.replace_filename(u8"color_grid_uastc.ktx2");
-    fs::path image2 = ::imagePath;
-    image2.replace_filename(u8"kodim17_basis.ktx2");
-
-    std::vector<std::thread> threads;
-    threads.resize(numThreads);
-    for (int i = 0; i < numThreads; i++) {
-        threads[i] = std::thread([&funcLoad, image1] {
-            funcLoad(image1.string());
-        });
-    }
-
-    for (int i = 0; i < numThreads; i++) {
-        threads[i].join();
-    }
-}
-#endif
-
 /////////////////////////////////////////
 // ktxTexture2_BasisCompress tests
 ////////////////////////////////////////
@@ -2881,6 +2825,8 @@ TEST_F(ktxTexture2_MetadataTest, LibVersionUpdatedCorrectly) {
 ////////////////////////////////////////////
 // Unicode file name tests
 ///////////////////////////////////////////
+
+fs::path imagePath;
 
 TEST(UnicodeFileNames, CreateFrom) {
     std::vector<std::u8string> fileSet = {
