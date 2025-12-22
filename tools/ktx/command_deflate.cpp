@@ -86,7 +86,7 @@ class CommandDeflate : public Command {
         void process(cxxopts::Options& opts, cxxopts::ParseResult& args, Reporter& report);
     };
 
-    Combine<Options, OptionsDeflate, OptionsSingleInSingleOut, OptionsGeneric> options;
+    Combine<Options, OptionsDeflate, OptionsSingleInSingleOut<>, OptionsGeneric> options;
 
 public:
     virtual int main(int argc, char* argv[]) override;

@@ -162,8 +162,10 @@ OutputStream::OutputStream(const std::string& filepath, Reporter& report) :
 }
 
 OutputStream::~OutputStream() {
-    if (file != stdout)
+    if (file != stdout) {
         fclose(file);
+        if (removeAtDestruct) std::filesystem::remove(DecodeUTF8Path(filepath).c_str());
+    }
 }
 
 void OutputStream::write(const char* data, std::size_t size, Reporter& report) {

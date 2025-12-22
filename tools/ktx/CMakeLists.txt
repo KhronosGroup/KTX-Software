@@ -7,6 +7,7 @@ add_executable(ktxtools
         command.cpp
         command.h
         command_compare.cpp
+        command_convert.cpp
         command_create.cpp
         command_deflate.cpp
         command_encode.cpp
@@ -30,6 +31,8 @@ add_executable(ktxtools
         validate.cpp
         validate.h
         validation_messages.h
+        # Until the API is public
+        ${PROJECT_SOURCE_DIR}/lib/src/glformat_str.c
 )
 
 create_version_header(tools/ktx ktxtools)
