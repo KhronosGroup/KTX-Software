@@ -27,12 +27,15 @@ set(ZSTD_BUILD_TESTS OFF)
 set(ZSTD_BUILD_CONTRIB OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# On most platforms, static libraries require compilation with -fPIC for shared builds, but zstd is usually supplied without it.
-# So we need to build it manually in such cases
-# On Windows, this behavior is simplified, so we can try to use system installed library (shared/static) without any fear.
-# Or if this is a static library build or was requested to use shared zstd, we can also search for already installed files.
-if (NOT ${BUILD_SHARED_LIBS} OR CMAKE_SYSTEM_NAME STREQUAL "Windows" OR ZSTD_BUILD_SHARED)
-    find_package(zstd CONFIG)
+# Trying to mimic FetchContent`s find_package behavior, but with our custom rules 
+if (NOT FETCHCONTENT_TRY_FIND_PACKAGE_MODE STREQUAL "NEVER")
+    # On most platforms, static libraries require compilation with -fPIC for shared builds, but zstd is usually supplied without it.
+    # So we need to build it manually in such cases
+    # On Windows, this behavior is simplified, so we can try to use system installed library (shared/static) without any fear.
+    # Or if this is a static library build or was requested to use shared zstd, we can also search for already installed files.
+    if (NOT ${BUILD_SHARED_LIBS} OR CMAKE_SYSTEM_NAME STREQUAL "Windows" OR ZSTD_BUILD_SHARED)
+        find_package(zstd CONFIG)
+    endif()
 endif()
 
 if (zstd_FOUND)
@@ -75,7 +78,23 @@ if (NOT TARGET zstd::libzstd)
     foreach(LOOKUP_NAME IN LISTS ZSTD_LOOKUP_NAMES)
         if (TARGET ${LOOKUP_NAME})
             add_library(zstd::libzstd ALIAS ${LOOKUP_NAME})
+
+            # Disable unused function warning
+            if (MSVC)
+                target_compile_options(
+                    ${LOOKUP_NAME} PRIVATE 
+                    /wd4505
+                    $<$<CXX_COMPILER_ID:Clang>: /clang:-Wno-unused-function>
+                )
+            else()
+                target_compile_options(
+                    ${LOOKUP_NAME} PRIVATE 
+                    $<$<CXX_COMPILER_ID:GNU,Clang>: -Wno-unused-function>
+                )
+            endif()
             break()
         endif()
     endforeach()
+
+    
 endif()

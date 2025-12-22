@@ -16,20 +16,18 @@ endif()
 #message(STATUS "Basisu VERSION: ${BASISU_VERSION}")
 
 # Options
-set(TOOL FALSE)
-set(EXAMPLES FALSE)
+set(BASISU_TOOL FALSE)
+set(BASISU_EXAMPLES FALSE)
 if(NOT ${CPU_ARCHITECTURE} STREQUAL "x86_64")
     # Basisu sets this TRUE if MSVC is TRUE.
     set(BASISU_SSE FALSE)
 endif()
-set(SSE ${BASISU_SSE})
-set(OPENCL ${BASISU_OPENCL})
 
 # Declare package
 FetchContent_Declare(
     basisu
     GIT_REPOSITORY https://github.com/Daniil-SV/basis_universal.git
-    GIT_TAG master #"v${BASISU_VERSION}"
+    GIT_TAG cmake_fixes #"v${BASISU_VERSION}"
     FIND_PACKAGE_ARGS
 )
 

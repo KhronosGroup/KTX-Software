@@ -209,6 +209,29 @@ add_compile_options( ${fp_options} )
 
 include(${KTX_ROOT_DIR}/cmake/compiler_query_genexs.cmake)
 
+# Make a single static library to simplify linking.
+macro(add_lib_dependencies target lib)
+    # still need to add include directories and make sure that everything will be ok with install targets
+    target_link_libraries(${target} PRIVATE ${lib})
+
+    # getting original target name
+    set(library_name )
+    get_target_property(aliased_name ${lib} ALIASED_TARGET)
+    if (aliased_name)
+        set(library_name ${aliased_name})
+    else()
+        set(library_name ${lib})
+    endif()
+
+    # make sure that dependency target is actual target
+    # there's no sense to do something with imported targets
+    get_target_property(is_imported ${library_name} IMPORTED)
+    if(NOT BUILD_SHARED_LIBS AND NOT is_imported)
+        target_sources(${target} PRIVATE $<TARGET_OBJECTS:${lib}>)
+        target_include_directories(${target} PRIVATE $<TARGET_PROPERTY:${lib},INTERFACE_INCLUDE_DIRECTORIES>)
+    endif()
+endmacro(add_lib_dependencies)
+
 # Macro for common lib settings
 
 macro(common_libktx_settings target enable_write library_type)
@@ -473,11 +496,10 @@ macro(common_libktx_settings target enable_write library_type)
         )
     endif()
 
-    target_link_libraries(
-        ${target} PRIVATE zstd::libzstd astcenc::astcenc
-    )
+    add_lib_dependencies(${target} zstd::libzstd)
+    add_lib_dependencies(${target} astcenc::astcenc)
+    add_lib_dependencies(${target} basisu::basisu_encoder)
 endmacro(common_libktx_settings)
-
 
 ###################################################
 # ktx libraries
@@ -491,9 +513,6 @@ if(LIBKTX_VERSION_FULL)
         src/writer2.c
     )
     common_libktx_settings(ktx 1 ${LIB_TYPE})
-    target_link_libraries(
-        ktx PRIVATE basisu::basisu_encoder
-    )
 endif()
 
 # Read-only library
@@ -502,9 +521,6 @@ if(LIBKTX_VERSION_READ_ONLY)
         ${LIBKTX_MAIN_SRC}
     )
     common_libktx_settings(ktx_read 0 ${LIB_TYPE})
-    target_link_libraries(
-        ktx_read PRIVATE basisu::basisu_encoder
-    )
 endif()
 
 create_version_header(src ktx)
