@@ -48,16 +48,7 @@ Javascript wrapper for Basis Universal formats. For use with KTX parsers written
   - *ktx info* - Prints information about a KTX2 file
   - *ktx validate* - Validate a KTX2 file
   - *ktx help* - Display help information about the ktx tools
-- *ktx2check* - a tool for validating KTX Version 2 format files. [`tools/ktx2check`](https://github.com/KhronosGroup/KTX-Software/tree/main/tools/ktx2check)
-- *ktx2ktx2* - a tool for converting a KTX Version 1 file to a KTX
-Version 2 file. [`tools/ktx2ktx2`](https://github.com/KhronosGroup/KTX-Software/tree/main/tools/ktx2ktx2)
-- *ktxinfo* - a tool to display information about a KTX file in
-human readable form. [`tools/ktxinfo`](https://github.com/KhronosGroup/KTX-Software/tree/main/tools/ktxinfo)
-- *ktxsc* - a tool to supercompress a KTX Version 2 file that
-contains uncompressed images.[`tools/ktxsc`](https://github.com/KhronosGroup/KTX-Software/tree/main/tools/ktxsc)
 - *pyktx* - Python wrapper
-- *toktx* - a tool to create KTX files from PNG, Netpbm or JPEG format images. It supports mipmap generation, encoding to
-Basis Universal formats and Zstd supercompression.[`tools/toktx`](https://github.com/KhronosGroup/KTX-Software/tree/main/tools/toktx)
 
 See [CONTRIBUTING](CONTRIBUTING.md) for information about contributing.
 
