@@ -314,7 +314,7 @@ macro(common_libktx_settings target enable_write library_type)
     target_include_directories(
         ${target}
     SYSTEM PRIVATE
-        $<BUILD_INTERFACE:${KTX_ROOT_DIR}/other_include>
+        ${KTX_ROOT_DIR}/other_include
     )
 
     if( ${library_type} STREQUAL STATIC )

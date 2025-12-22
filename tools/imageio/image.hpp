@@ -28,13 +28,27 @@
   #pragma warning(push)
   #pragma warning(disable : 4201)
 #endif
+#if defined(__clang__)
+  #pragma clang diagnostic push
+  // <glm/detail/type_half.inl> uses += on a volatile qualified variable.
+  // Compound operators on volatile qualified variables are deprecated in
+  // c++20. This warning is raised by Apple clang 15.0.0 but not raised
+  // by Apple clang 17+, gcc or msvc for some reason. Ignore the warning
+  // until we can update our local glm. Note that compound bitwise logical
+  // operators will be un-deprecated in c++26.
+  #pragma clang diagnostic ignored "-Wdeprecated-volatile"
+#endif
 #include <glm/gtc/packing.hpp>
 #ifdef _MSC_VER
   #pragma warning(pop)
 #endif
+#if defined(__clang__)
+  #pragma clang diagnostic pop
+#endif
 #include "imageio_utility.h"
 #include "unused.h"
 #if defined(__GNUC__) && !defined(__clang__)
+  #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wunused-value"
 #endif
 #include "encoder/basisu_resampler.h"

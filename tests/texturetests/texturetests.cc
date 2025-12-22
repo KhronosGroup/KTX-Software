@@ -23,11 +23,12 @@
   #endif
 #endif
 
+#include <barrier>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <string>
-//#include <sys/types.h>
+#include <thread>
 #include <sys/stat.h>
 #include <limits.h>
 #include <stdint.h>
@@ -2270,11 +2271,11 @@ TEST_F(ktxTexture2ReadTestRGBA8, Read3DMipmap) {
     runTest();
 }
 
-class ktxTexture2_BasisCompressTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8>  { };
-
 /////////////////////////////////////////
 // ktxTexture2_BasisCompress tests
 ////////////////////////////////////////
+
+class ktxTexture2_BasisCompressTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8>  { };
 
 TEST_F(ktxTexture2_BasisCompressTest, Compress) {
     ktxTexture2* texture;
@@ -2828,7 +2829,7 @@ TEST_F(ktxTexture2_MetadataTest, LibVersionUpdatedCorrectly) {
 fs::path imagePath;
 
 TEST(UnicodeFileNames, CreateFrom) {
-    std::vector<std::string> fileSet = {
+    std::vector<std::u8string> fileSet = {
         u8"hűtő.ktx",
         u8"hűtő.ktx2",
         u8"نَسِيج.ktx",
@@ -2841,7 +2842,7 @@ TEST(UnicodeFileNames, CreateFrom) {
         u8"조직.ktx2"
     };
 
-    std::vector<std::string>::const_iterator it;
+    std::vector<std::u8string>::const_iterator it;
 
 
     fs::path filePath = imagePath;
@@ -2849,10 +2850,10 @@ TEST(UnicodeFileNames, CreateFrom) {
         ktx_error_code_e result;
         ktxTexture* texture = nullptr;
 
-        filePath.replace_filename(fs::u8path(*it));
+        filePath.replace_filename(*it);
 
         result = ktxTexture_CreateFromNamedFile(
-            filePath.u8string().c_str(),
+            reinterpret_cast<const char*>(filePath.u8string().c_str()),
             KTX_TEXTURE_CREATE_NO_FLAGS,
             &texture);
         EXPECT_EQ(result, KTX_SUCCESS);
@@ -2864,12 +2865,12 @@ TEST(UnicodeFileNames, CreateFrom) {
 
         if (filePath.extension() == ".ktx") {
             result = ktxTexture1_CreateFromNamedFile(
-                filePath.u8string().c_str(),
+                reinterpret_cast<const char*>(filePath.u8string().c_str()),
                 KTX_TEXTURE_CREATE_NO_FLAGS,
                 (ktxTexture1**)&texture);
         } else {
             result = ktxTexture2_CreateFromNamedFile(
-                filePath.u8string().c_str(),
+                reinterpret_cast<const char*>(filePath.u8string().c_str()),
                 KTX_TEXTURE_CREATE_NO_FLAGS,
                 (ktxTexture2**)&texture);
         }
@@ -2918,7 +2919,7 @@ class ktxTexture2AstcLdrEncodeDecodeTestBase
                                          << ktxErrorString(result);
             ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
-            result = ktxTexture2_WriteToNamedFile(texture, original.u8string().c_str());
+            result = ktxTexture2_WriteToNamedFile(texture, original.string().c_str());
             ASSERT_TRUE(result == KTX_SUCCESS);
 
             auto depth = texture->baseDepth;
@@ -2976,10 +2977,10 @@ class ktxTexture2AstcLdrEncodeDecodeTestBase
             model = static_cast<khr_df_model_e>(KHR_DFDVAL(texture->pDfd+1, MODEL));
             EXPECT_EQ(model, KHR_DF_MODEL_RGBSDA);
             EXPECT_EQ(depth, texture->baseDepth);
-            result = ktxTexture2_WriteToNamedFile(texture, decoded.u8string().c_str());
+            result = ktxTexture2_WriteToNamedFile(texture, decoded.string().c_str());
             int status;
             if constexpr (internalformat != (GLenum)GL_RGB8 && internalformat != (GLenum)GL_SRGB8) {
-                std::string command = ktxdiffPath.u8string();
+                std::string command = ktxdiffPath.string();
                 command += " " + original.string() + " " + decoded.string() + " 0.01 > " + ktxdiffOut.string();
                 status = std::system(command.c_str());
             } else {
@@ -3141,21 +3142,22 @@ TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGBA8_SRGB, CompressToAstc12x12LdrThen
 // For Windows, we convert the UTF-8 path to a UTF-16 path to force using
 // the APIs that correctly handle unicode characters.
 inline std::wstring
-DecodeUTF8Path(std::string path) {
+DecodeUTF8Path(const std::u8string& path) {
     std::wstring result;
     int len =
-        MultiByteToWideChar(CP_UTF8, 0, path.c_str(), static_cast<int>(path.length()), NULL, 0);
+        MultiByteToWideChar(CP_UTF8, 0, reinterpret_cast<const char*>(path.c_str()),
+                            static_cast<int>(path.length()), NULL, 0);
     if (len > 0) {
         result.resize(len);
-        MultiByteToWideChar(CP_UTF8, 0, path.c_str(), static_cast<int>(path.length()), &result[0],
-                            len);
+        MultiByteToWideChar(CP_UTF8, 0, reinterpret_cast<const char*>(path.c_str()),
+                            static_cast<int>(path.length()), &result[0], len);
     }
     return result;
 }
 #else
 // For other platforms there is no need for any conversion, they
 // support UTF-8 natively.
-inline std::string DecodeUTF8Path(std::string path) { return path; }
+inline std::u8string DecodeUTF8Path(std::u8string path) { return path; }
 #endif
 
 #if defined(WIN32)
@@ -3163,11 +3165,11 @@ inline std::string DecodeUTF8Path(std::string path) { return path; }
 #endif
 
 static int
-statUTF8(const char* path, struct stat* info) {
+statUTF8(const std::u8string& path, struct stat* info) {
 #if defined(_WIN32)
     return _wstat(DecodeUTF8Path(path).c_str(), info);
 #else
-    return stat(path, info);
+    return stat(reinterpret_cast<const char*>(path.c_str()), info);
 #endif
 }
 
