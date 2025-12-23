@@ -461,12 +461,12 @@ ktxTexture2_rewriteDfd4UastcHDR4x4(ktxTexture2* This, alpha_content_e alphaConte
 
     // Set the data for our single sample
     KHR_DFDSETSVAL(nbdb, 0, CHANNELID, KHR_DF_CHANNEL_UASTC_4X4_HDR_RGB);
-    KHR_DFDSETSVAL(nbdb, 0, QUALIFIERS, 0);
+    KHR_DFDSETSVAL(nbdb, 0, QUALIFIERS, KHR_DF_SAMPLE_DATATYPE_FLOAT | KHR_DF_SAMPLE_DATATYPE_SIGNED);
     KHR_DFDSETSVAL(nbdb, 0, SAMPLEPOSITION_ALL, 0);
     KHR_DFDSETSVAL(nbdb, 0, BITOFFSET, 0);
     KHR_DFDSETSVAL(nbdb, 0, BITLENGTH, 127);
     KHR_DFDSETSVAL(nbdb, 0, SAMPLELOWER, 0);
-    KHR_DFDSETSVAL(nbdb, 0, SAMPLEUPPER, UINT32_MAX);
+    KHR_DFDSETSVAL(nbdb, 0, SAMPLEUPPER, 0x3F800000U);
 
     This->pDfd = ndfd;
     free(cdfd);
@@ -497,18 +497,18 @@ ktxTexture2_rewriteDfd4UastcHDR6x6i(ktxTexture2* This, alpha_content_e alphaCont
     KHR_DFDSETVAL(nbdb, TRANSFER, KHR_DFDVAL(cbdb, TRANSFER));
     KHR_DFDSETVAL(nbdb, FLAGS, KHR_DFDVAL(cbdb, FLAGS));
 
-    nbdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0] = 3 | (3 << KHR_DF_SHIFT_TEXELBLOCKDIMENSION1);
+    nbdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0] = 5 | (5 << KHR_DF_SHIFT_TEXELBLOCKDIMENSION1);
     nbdb[KHR_DF_WORD_BYTESPLANE0] = 16; /* bytesPlane0 = 16, bytesPlane3..1 = 0 */
     nbdb[KHR_DF_WORD_BYTESPLANE4] = 0;  /* bytesPlane7..5 = 0 */
 
     // Set the data for our single sample
     KHR_DFDSETSVAL(nbdb, 0, CHANNELID, KHR_DF_CHANNEL_UASTC_6X6_HDR_RGB);
-    KHR_DFDSETSVAL(nbdb, 0, QUALIFIERS, 0);
+    KHR_DFDSETSVAL(nbdb, 0, QUALIFIERS, KHR_DF_SAMPLE_DATATYPE_FLOAT);
     KHR_DFDSETSVAL(nbdb, 0, SAMPLEPOSITION_ALL, 0);
     KHR_DFDSETSVAL(nbdb, 0, BITOFFSET, 0);
     KHR_DFDSETSVAL(nbdb, 0, BITLENGTH, 127);
     KHR_DFDSETSVAL(nbdb, 0, SAMPLELOWER, 0);
-    KHR_DFDSETSVAL(nbdb, 0, SAMPLEUPPER, UINT32_MAX);
+    KHR_DFDSETSVAL(nbdb, 0, SAMPLEUPPER, 0x3F800000U);
 
     This->pDfd = ndfd;
     free(cdfd);
@@ -1242,7 +1242,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         // and the requiredLevelAlignment.
         priv._requiredLevelAlignment = 1;
     }
-    This->vkFormat = VK_FORMAT_UNDEFINED;
+    This->vkFormat = (params->codecFlag == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4X4)? VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK : VK_FORMAT_UNDEFINED;
     This->isCompressed = KTX_TRUE;
     This->_protected->_typeSize = 1;
 
