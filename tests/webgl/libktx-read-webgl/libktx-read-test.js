@@ -17,6 +17,7 @@ var texture;
 
 var astcSupported = false;
 var etcSupported = false;
+var HDRsupported = false;
 var dxtSupported = false;
 var bptcSupported = false;
 var pvrtcSupported = false;
@@ -52,6 +53,9 @@ function main() {
   bptcSupported = !!gl.getExtension('EXT_texture_compression_bptc');
   pvrtcSupported = !!(gl.getExtension('WEBGL_compressed_texture_pvrtc')) || !!(gl.getExtension('WEBKIT_WEBGL_compressed_texture_pvrtc'));
 
+  if (astcSupported) {
+    HDRsupported = gl.getExtension('WEBGL_compressed_texture_astc').getSupportedProfiles().includes('hdr');
+  }
   // Vertex shader program
 
   const vsSource = `
@@ -359,7 +363,7 @@ function uploadTextureToGl(gl, ktexture) {
       const model = ktexture.colorModel;
 
       //const model = ktexture.get
-      if (astcSupported) {
+      if (astcSupported && HDRsupported) {
         if (ktx.khr_df_model.KHR_DF_MODEL_UASTC_4X4_HDR == model) {
           formatString = 'ASTC_HDR_4x4';
           format = transcode_fmt.ASTC_HDR_4x4_RGBA;
