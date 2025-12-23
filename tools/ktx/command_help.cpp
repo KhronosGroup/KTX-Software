@@ -42,9 +42,11 @@ struct OptionsHelp {
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
         if (args.count("command")) {
             static const std::unordered_set<std::string> command_table{
+                "convert",
                 "create",
-                "extract",
+                "deflate",
                 "encode",
+                "extract",
                 "transcode",
                 "info",
                 "validate",
@@ -79,14 +81,15 @@ Display help information about the ktx tool.
     @e command specifies which command's man page will be displayed.
     If @e command is s missing the main ktx tool man page will be displayed.
     Possible choices are: <br />
-    -        @ref ktx_compare "compare" <br />
+    -        @ref ktx_convert "compare" <br />
     -        @ref ktx_create "create" <br />
-    -        @ref ktx_create "deflate" <br />
+    -        @ref ktx_deflate "deflate" <br />
     -        @ref ktx_encode "encode" <br />
     -        @ref ktx_extract "extract" <br />
-    -        @ref ktx_info "info" <br />
     -        @ref ktx_transcode "transcode" <br />
+    -        @ref ktx_info "info" <br />
     -        @ref ktx_validate "validate" <br />
+    -        @ref ktx_compare "compare" <br />
     -        @ref ktx_help "help"
 
 @section ktx\_help\_options OPTIONS

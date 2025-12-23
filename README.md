@@ -39,6 +39,7 @@ Javascript wrapper for Basis Universal formats. For use with KTX parsers written
 [`interface/java_binding`](https://github.com/KhronosGroup/KTX-Software/tree/main/interface/java_binding)
 - *ktx* - a generic command line tool for managing KTX2 files with subcommands.[`tools/ktx`](https://github.com/KhronosGroup/KTX-Software/tree/main/tools/ktx)
   - *ktx compare* - Compare two KTX2 files
+  - *ktx convert* - Convert other texture file types to KTX2
   - *ktx create* - Create a KTX2 file from various input files
   - *ktx deflate* - Deflate a KTX2 file with zstd or ZLIB
   - *ktx extract* - Export selected images from a KTX2 file

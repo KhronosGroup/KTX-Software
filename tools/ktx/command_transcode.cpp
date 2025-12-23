@@ -86,7 +86,8 @@ class CommandTranscode : public Command {
         void process(cxxopts::Options& opts, cxxopts::ParseResult& args, Reporter& report);
     };
 
-    Combine<OptionsTranscode, OptionsTranscodeTarget<true>, OptionsDeflate, OptionsSingleInSingleOut, OptionsGeneric> options;
+    Combine<OptionsTranscode, OptionsTranscodeTarget<true>, OptionsDeflate,
+            OptionsSingleInSingleOut<>, OptionsGeneric> options;
 
 public:
     virtual int main(int argc, char* argv[]) override;

@@ -16,31 +16,28 @@ ktx Overview
 | Tool | Description | Equivalent old tool |
 | :--- | ----------- | ------------------- |
 | @ref ktx_compare | Compare two KTX2 files. | |
+| @ref ktx_convert | Convert other texture file types to KTX2. | `ktx2ktx2` |
 | @ref ktx_create | Create a KTX2 file from various input files | `toktx` |
 | @ref ktx_deflate | Deflate (supercompress) a KTX2 file. | `ktxsc` |
 | @ref ktx_extract | Export selected images from a KTX2 file | - |
 | @ref ktx_encode | Encode a KTX2 file | `ktxsc` |
-| @ref ktx_info | Prints information about a KTX2 file | `ktxinfo` |
+| @ref ktx_info | Prints information about a KTX2 or KTX1 file | `ktxinfo` |
 | @ref ktx_transcode | Transcode a KTX2 file | - |
 | @ref ktx_validate | Validate a KTX2 file | `ktx2check` |
 | @ref ktx_help | Display help information about the ktx tools | - |
 
-Equivalent old tools are deprecated and will be removed soon.
+Equivalent legacy tools are deprecated and will be removed soon.
 
-Some features of old tools are not currently available in the new equivalent.
+The command-line syntax and semantics differ from the legacy tools including, but not limited to:
 
-| Old Tool | New Tool | Missing Features |
-| :------: | :------: | ---------------- |
-| @ref toktx  | @ref ktx_create "create" | JPEG and NBPM input. |
-
-The command-line syntax and semantics differ from the old tools including, but not limited to:
-
-* KTX 1.0 files are not supported by the new tools.
+* KTX 1.0 files are not supported by the new tools except as input for
+`ktx convert` and `ktx info`.
 
 * Words in multi-word option names are connected with `-` instead of `_`.
 * Individual option names may differ between the old and new tools.
-* The `ktx validate` tool may be stricter than `ktx2check` or otherwise differ in behavior, as the new tool enforces all rules of the KTX 2.0 specification. In addition, all new tools that accept KTX 2.0 files as input will be validated in a similar fashion as they would be with the `ktx validate` tool and will fail on the first specification rule violation, if there is one. It also has the option to output the validation results in human readable text format or in JSON format (both formatted and minified options are available), as controlled by the `--format` command-line option.
-* The `ktx validate` tool also supports validating KTX 2.0 files against the additional restrictions defined by the _KHR\_texture\_basisu_ extension. Use the `--gltf-basisu` command-line option to verify glTF and WebGL compatibility.
+* The `ktx validate` tool may be stricter than `ktx2check` or otherwise differ in behavior, as the new tool enforces all rules of the KTX 2.0 specification. In addition, all new tools that accept KTX 2.0 files as input will validated the inputs in a similar fashion as they would be with the `ktx validate` tool and will fail on the first specification rule violation, if there is one.
+* `ktx validate` has the option to output the validation results in human readable text format or in JSON format (both formatted and minified options are available), as controlled by the `--format` command-line option.
+* `ktx validate` supports validating KTX 2.0 files against the additional restrictions defined by the _KHR\_texture\_basisu_ extension. Use the `--gltf-basisu` command-line option to verify glTF and WebGL compatibility.
 * The new `ktx info` tool produces a unified and complete output of all metadata in KTX 2.0 files and can provide output in human readable text format or in JSON format (both formatted and minified options are available), as controlled by the `--format` command-line option.
 * The source repository also includes the JSON schemas that the JSON outputs of the `ktx info` and `ktx validate` tools comply to.
 * The `ktx create` tool takes an explicit Vulkan format argument (`--format`) instead of inferring the format based on the provided input files as `toktx`, and thus doesn't perform any implicit color-space conversions except gamma 2.2 to sRGB. Use the `--assign-tf`, `--convert-tf`, `--assign-primaries`, and the new `--convert-primaries` for fine grained control over color-space interpretation and conversion.

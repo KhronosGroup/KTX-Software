@@ -41,6 +41,9 @@ cmake . -B build
 cmake --build build
 ```
 
+By default the project will be configured to build the full library. To build just the read-only library, add
+`-D LIBKTX_VERSION_FULL=OFF -D LIBKTX_VERSION_READ_ONLY=ON` to the CMake configure
+command.
 If you need the library to be static, add `-D BUILD_SHARED_LIBS=OFF` to the CMake configure command (always disabled on iOS and Emscripten).
 
 > **Note:**
@@ -75,6 +78,15 @@ The information below about signing on iOS, macOS and Windows applies to library
 The only dependencies beyond the build tools are for the build machine to have a
 [bash](#bash) shell and, if using OpenCL, the mentioned OpenCL development
 environment.
+
+One way to add _libktx_ to your own project is to add the following line to your
+CMakeLists.txt.
+
+```CMake
+add_subdirectory(/path/to/ktx/software/KTX-Software/lib ktx)
+```
+
+You can set any of the aforementioned configuration options by adding a set command, e.g, `set(BUILD_SHARED_LIBS OFF)`, before `add_subdirectory`.
 
 The complete project
 --------------------

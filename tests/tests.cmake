@@ -27,8 +27,9 @@ set(CMAKE_GTEST_DISCOVER_TESTS_DISCOVERY_MODE PRE_TEST)
 
 enable_testing()
 
-add_subdirectory(transcodetests)
 add_subdirectory(streamtests)
+add_subdirectory(threadtests)
+add_subdirectory(transcodetests)
 
 add_executable( unittests
     "${PROJECT_SOURCE_DIR}/external/dfdutils/dfd2vk.c"
@@ -43,12 +44,8 @@ add_executable( unittests
 set_test_properties(unittests)
 set_code_sign(unittests)
 
-target_compile_features(
-    unittests
-PUBLIC
-    cxx_std_17
-)
-
+target_compile_features( unittests PUBLIC cxx_std_20 )
+ 
 target_include_directories(
     unittests
 PRIVATE
@@ -61,8 +58,7 @@ PRIVATE
 
 target_include_directories(
     unittests
-    SYSTEM
-PRIVATE
+SYSTEM PRIVATE
     ${PROJECT_SOURCE_DIR}/other_include
 )
 
@@ -86,11 +82,7 @@ add_executable( texturetests
 set_test_properties(texturetests)
 set_code_sign(texturetests)
 
-target_compile_features(
-    texturetests
-PUBLIC
-    cxx_std_17
-)
+target_compile_features( texturetests PUBLIC cxx_std_20 )
 
 target_include_directories(
     texturetests

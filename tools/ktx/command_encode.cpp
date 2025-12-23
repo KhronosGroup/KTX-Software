@@ -68,11 +68,11 @@ Encode a KTX2 file.
             they are ignored. Case-insensitive.</dd>
 
             @snippet{doc} ktx/encode_utils_basis.h command options_basis_encoders
-        <dt>\--format</dt>
+        <dt>\--format &lt;enum&gt;</dt>
         <dd>KTX format enum that specifies the target ASTC format. Non-ASTC
             formats are invalid. When specified the ASTC-specific and common
             encoder options listed @ref ktx\_encode\_options\_encoding "below"
-            become valid, otherwise they are ignored.
+            become valid, otherwise they are ignored.</dd>
     </dl>
     @snippet{doc} ktx/deflate_utils.h command options_deflate
     @snippet{doc} ktx/command.h command options_generic
@@ -112,7 +112,8 @@ class CommandEncode : public Command {
         void process(cxxopts::Options& opts, cxxopts::ParseResult& args, Reporter& report);
     };
 
-    Combine<OptionsEncode, OptionsEncodeASTC, OptionsEncodeBasis<true>, OptionsEncodeCommon, OptionsMetrics, OptionsDeflate, OptionsSingleInSingleOut, OptionsGeneric> options;
+    Combine<OptionsEncode, OptionsEncodeASTC, OptionsEncodeBasis<true>, OptionsEncodeCommon,
+            OptionsMetrics, OptionsDeflate, OptionsSingleInSingleOut<>, OptionsGeneric> options;
 
 public:
     virtual int main(int argc, char* argv[]) override;

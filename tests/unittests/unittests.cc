@@ -365,6 +365,11 @@ class createDFDCompressedTest1 : public createDFDTestBaseComp<1, 8> { };
 class createDFDCompressedTest2 : public createDFDTestBaseComp<2, 16> { };
 class createDFDCompressedTest1x16 : public createDFDTestBaseComp<1, 16> { };
 
+// Helper to workaround c++20 "bitwise operation between different enumeration types"
+// warning/error.
+#define DF_CHANNEL_TYPE(id, q) \
+    ((uint32_t)KHR_DF_CHANNEL_##id | (uint32_t)KHR_DF_SAMPLE_DATATYPE_##q)
+
 //////////////////////////////
 // createDFD tests.
 //////////////////////////////
@@ -376,7 +381,7 @@ TEST_F(createDFDUnpackedTest4, FormatSRGBA8) {
                 {0, 7, KHR_DF_CHANNEL_RGBSDA_RED, 0, 0, 0, 0, 0, 255},
                 {8, 7, KHR_DF_CHANNEL_RGBSDA_GREEN, 0, 0, 0, 0, 0, 255},
                 {16, 7, KHR_DF_CHANNEL_RGBSDA_BLUE, 0, 0, 0, 0, 0, 255},
-                {24, 7, KHR_DF_CHANNEL_RGBSDA_ALPHA | KHR_DF_SAMPLE_DATATYPE_LINEAR,
+                {24, 7, DF_CHANNEL_TYPE(RGBSDA_ALPHA, LINEAR),
                 0, 0, 0, 0, 0, 255}
               }
              );
@@ -396,7 +401,7 @@ TEST_F(createDFDUnpackedTest4, FormatSBGRA8) {
                 {0, 7, KHR_DF_CHANNEL_RGBSDA_BLUE, 0, 0, 0, 0, 0, 255},
                 {8, 7, KHR_DF_CHANNEL_RGBSDA_GREEN, 0, 0, 0, 0, 0, 255},
                 {16, 7, KHR_DF_CHANNEL_RGBSDA_RED, 0, 0, 0, 0, 0, 255},
-                {24, 7, KHR_DF_CHANNEL_RGBSDA_ALPHA | KHR_DF_SAMPLE_DATATYPE_LINEAR,
+                {24, 7, DF_CHANNEL_TYPE(RGBSDA_ALPHA, LINEAR),
                 0, 0, 0, 0, 0, 255}
               }
              );
@@ -563,7 +568,7 @@ TEST_F(createDFDCompressedTest2, FormatETC2_SR8G8B8A8) {
               KHR_DF_TRANSFER_SRGB, KHR_DF_FLAG_ALPHA_STRAIGHT,
               3, 3,
               {
-                {0, 63, KHR_DF_CHANNEL_ETC2_ALPHA | KHR_DF_SAMPLE_DATATYPE_LINEAR,
+                {0, 63, DF_CHANNEL_TYPE(RGBSDA_ALPHA, LINEAR),
                  0, 0, 0, 0, 0, 0xFFFFFFFF},
                 {64, 63, KHR_DF_CHANNEL_ETC2_COLOR, 0, 0, 0, 0, 0, 0xFFFFFFFF},
               }

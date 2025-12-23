@@ -34,6 +34,10 @@ Unified CLI frontend for the KTX-Software library.
 
     The following commands are available:
     <dl>
+        <dt>@ref ktx_convert "convert"</dt>
+        <dd>
+            Convert a file in another texture format to a KTX2 file
+        </dd>
         <dt>@ref ktx_create "create"</dt>
         <dd>
             Create a KTX2 file from various input files.
@@ -42,13 +46,13 @@ Unified CLI frontend for the KTX-Software library.
         <dd>
             Deflate (supercompress) a KTX2 file.
         </dd>
-        <dt>@ref ktx_extract "extract"</dt>
-        <dd>
-            Extract selected images from a KTX2 file.
-        </dd>
         <dt>@ref ktx_encode "encode"</dt>
         <dd>
             Encode a KTX2 file.
+        </dd>
+        <dt>@ref ktx_extract "extract"</dt>
+        <dd>
+            Extract selected images from a KTX2 file.
         </dd>
         <dt>@ref ktx_transcode "transcode"</dt>
         <dd>
@@ -156,17 +160,18 @@ void Tools::printUsage(std::ostream& os, const cxxopts::Options& options) {
 
     fmt::print(os, "\n");
     fmt::print(os, "Available commands:\n");
+    fmt::print(os, "  convert    Convert another texture file type to a KTX2 file\n");
     fmt::print(os, "  create     Create a KTX2 file from various input files\n");
     fmt::print(os, "  deflate    Deflate (supercompress) a KTX2 file\n");
-    fmt::print(os, "  extract    Extract selected images from a KTX2 file\n");
     fmt::print(os, "  encode     Encode a KTX2 file\n");
+    fmt::print(os, "  extract    Extract selected images from a KTX2 file\n");
     fmt::print(os, "  transcode  Transcode a KTX2 file\n");
     fmt::print(os, "  info       Print information about a KTX2 file\n");
     fmt::print(os, "  validate   Validate a KTX2 file\n");
     fmt::print(os, "  compare    Compare two KTX2 files\n");
     fmt::print(os, "  help       Display help information about the ktx tool\n");
 #if KTX_DEVELOPER_FEATURE_PATCH
-    fmt::print(os, "  patch      Apple certain patch operations to a KTX2 file.");
+    fmt::print(os, "  patch      Apply certain patch operations to a KTX2 file.");
 #endif
     fmt::print(os, "\n");
     fmt::print(os, "For detailed usage and description of each subcommand use 'ktx help <command>'\n"
@@ -175,10 +180,11 @@ void Tools::printUsage(std::ostream& os, const cxxopts::Options& options) {
 
 } // namespace ktx ---------------------------------------------------------------------------------
 
+KTX_COMMAND_BUILTIN(ktxConvert)
 KTX_COMMAND_BUILTIN(ktxCreate)
 KTX_COMMAND_BUILTIN(ktxDeflate)
-KTX_COMMAND_BUILTIN(ktxExtract)
 KTX_COMMAND_BUILTIN(ktxEncode)
+KTX_COMMAND_BUILTIN(ktxExtract)
 KTX_COMMAND_BUILTIN(ktxTranscode)
 KTX_COMMAND_BUILTIN(ktxInfo)
 KTX_COMMAND_BUILTIN(ktxValidate)
@@ -190,10 +196,11 @@ KTX_COMMAND_BUILTIN(ktxHelp)
 
 
 std::unordered_map<std::string, ktx::pfnBuiltinCommand> builtinCommands = {
+    { "convert",    ktxConvert },
     { "create",     ktxCreate },
     { "deflate",    ktxDeflate },
-    { "extract",    ktxExtract },
     { "encode",     ktxEncode },
+    { "extract",    ktxExtract },
     { "transcode",  ktxTranscode },
     { "info",       ktxInfo },
     { "validate",   ktxValidate },

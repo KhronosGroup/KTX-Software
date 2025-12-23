@@ -29,7 +29,7 @@ PRIVATE
     $<TARGET_PROPERTY:ktx,INTERFACE_COMPILE_DEFINITIONS>
 )
 
-target_compile_features(transcodetests PUBLIC cxx_std_11)
+target_compile_features( transcodetests PUBLIC cxx_std_20 )
 
 gtest_discover_tests( transcodetests
     TEST_PREFIX transcodetest.
