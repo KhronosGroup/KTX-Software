@@ -321,7 +321,7 @@ void CommandExtract::processOptions(cxxopts::Options& opts, cxxopts::ParseResult
 
 void CommandExtract::executeExtract() {
     InputStream inputStream(options.inputFilepath, *this);
-    //validateToolInput(inputStream, fmtInFile(options.inputFilepath), *this);
+    validateToolInput(inputStream, fmtInFile(options.inputFilepath), *this);
 
     KTXTexture2 texture{nullptr};
     StreambufStream<std::streambuf*> ktx2Stream{inputStream->rdbuf(), std::ios::in | std::ios::binary};
