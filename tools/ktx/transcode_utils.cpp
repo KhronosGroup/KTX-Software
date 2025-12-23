@@ -71,6 +71,9 @@ TranscodeSwizzleInfo determineTranscodeSwizzle(const KTXTexture2& texture, Repor
     } else if (khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_UASTC_4X4_HDR) {
         result.defaultNumComponents = 4;
         result.swizzle = "rgba";
+    } else if (khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_UASTC_6x6_HDR) {
+        result.defaultNumComponents = 4;
+        result.swizzle = "rgba";
     } else {
         report.fatal(rc::INVALID_FILE, "Requested transcoding but input file is neither BasisLZ, nor UASTC");
     }
