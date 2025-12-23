@@ -691,8 +691,6 @@ static KTX_error_code
 transcodeUastcLDR4x4(ktxTexture2* This, alpha_content_e alphaContent,
                                   ktxTexture2* prototype,
                            ktx_transcode_fmt_e outputFormat, ktx_transcode_flags transcodeFlags) {
-    assert(This->supercompressionScheme != KTX_SS_BASIS_LZ);
-
     ktx_uint8_t* pXcodedData = prototype->pData;
     ktx_uint32_t outputBlockByteLength
                       = prototype->_protected->_formatSize.blockSizeInBits / 8;
@@ -951,6 +949,8 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
                            ktx_transcode_fmt_e outputFormat,
                            ktx_transcode_flags transcodeFlags)
 {
+    assert(This->supercompressionScheme != KTX_SS_BASIS_LZ);
+
     uint32_t* BDB = This->pDfd + 1;
     khr_df_model_e colorModel = (khr_df_model_e)KHR_DFDVAL(BDB, MODEL);
     if (colorModel == KHR_DF_MODEL_UASTC) {
