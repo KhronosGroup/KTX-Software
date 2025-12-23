@@ -1290,7 +1290,7 @@ void CommandCompare::executeCompare() {
     case OutputFormat::text: {
         for (std::size_t i = 0; i < inputStreams.size(); ++i) {
             std::ostringstream messagesOS;
-            /*
+
             validationResults.emplace_back(validateIOStream(inputStreams[i], fmtInFile(options.inputFilepaths[i]),
                 false, false, [&](const ValidationReport& issue) {
                 fmt::print(messagesOS, "{}-{:04}: {}\n", toString(issue.type), issue.id, issue.message);
@@ -1298,9 +1298,6 @@ void CommandCompare::executeCompare() {
             }));
 
             validationMessages.emplace_back(std::move(messagesOS).str());
-            */
-            validationResults.emplace_back(0);
-            validationMessages.emplace_back("");
         }
 
         bool hasValidationMessages = false;
