@@ -818,7 +818,7 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
     }
     This->isCompressed = (This->_protected->_formatSize.flags & KTX_FORMAT_SIZE_COMPRESSED_BIT);
 
-    if (This->supercompressionScheme == KTX_SS_BASIS_LZ && pBDFD->model != KHR_DF_MODEL_ETC1S) {
+    if (This->supercompressionScheme == KTX_SS_BASIS_LZ && pBDFD->model != KHR_DF_MODEL_ETC1S && pBDFD->model != KHR_DF_MODEL_UASTC_6x6_HDR) {
         result = KTX_FILE_DATA_ERROR;
         goto cleanup;
     }
@@ -2038,6 +2038,10 @@ ktxTexture2_NeedsTranscoding(ktxTexture2* This)
     if (KHR_DFDVAL(This->pDfd + 1, MODEL) == KHR_DF_MODEL_ETC1S)
         return true;
     else if (KHR_DFDVAL(This->pDfd + 1, MODEL) == KHR_DF_MODEL_UASTC)
+        return true;
+    else if (KHR_DFDVAL(This->pDfd + 1, MODEL) == KHR_DF_MODEL_UASTC_4X4_HDR)
+        return true;
+    else if (KHR_DFDVAL(This->pDfd + 1, MODEL) == KHR_DF_MODEL_UASTC_6x6_HDR)
         return true;
     else
         return false;

@@ -262,6 +262,10 @@ const char* dfdToStringColorModel(khr_df_model_e value) {
         return "KHR_DF_MODEL_PVRTC2";
     case KHR_DF_MODEL_UASTC:
         return "KHR_DF_MODEL_UASTC";
+    case KHR_DF_MODEL_UASTC_4X4_HDR:
+        return "KHR_DF_MODEL_UASTC_4X4_HDR";
+    case KHR_DF_MODEL_UASTC_6x6_HDR:
+        return "KHR_DF_MODEL_UASTC_6x6_HDR";
 
     case KHR_DF_MODEL_MAX:
         // These enum values are not meant for string representation. Ignore

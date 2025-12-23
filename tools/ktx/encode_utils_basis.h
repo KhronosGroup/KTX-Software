@@ -18,6 +18,8 @@ enum class BasisCodec {
     NONE = 0,
     BasisLZ,
     UASTC,
+    UASTC_HDR_4x4,
+    UASTC_HDR_6x6i,
     INVALID = 0x7FFFFFFF
 };
 
@@ -179,6 +181,12 @@ struct OptionsEncodeBasis : public ktxBasisParams {
     inline static const char* kUastcRdoS = "uastc-rdo-s";
     inline static const char* kUastcRdoF = "uastc-rdo-f";
     inline static const char* kUastcRdoM = "uastc-rdo-m";
+    inline static const char* kUastcHdrUberMode = "uastc-hdr-uber-mode";
+    inline static const char* kUastcHdrUltraQuant = "uastc-hdr-ultra-quant";
+    inline static const char* kUastcHdrFavorAstc = "uastc-hdr-favor-astc";
+    inline static const char* kRec2020 = "rec-2020";
+    inline static const char* kLambda = "uastc-lambda";
+    inline static const char* kUastcHdr6x6iLevel = "uastc-hdr-6x6i-level";
 
     // The remaining numeric fields are clamped within the Basis library
     ClampedOption<ktx_uint32_t> qualityLevel;
@@ -188,6 +196,9 @@ struct OptionsEncodeBasis : public ktxBasisParams {
     ClampedOption<float> uastcRDOQualityScalar;
     ClampedOption<float> uastcRDOMaxSmoothBlockErrorScale;
     ClampedOption<float> uastcRDOMaxSmoothBlockStdDev;
+    ClampedOption<float> uastcLambda;
+    ClampedOption<ktx_uint32_t> uastcHDRLevel;
+    ClampedOption<ktx_uint32_t> uastcHDRQuality;
 
     OptionsEncodeBasis() :
         qualityLevel(ktxBasisParams::qualityLevel, 1, 255),
@@ -201,7 +212,11 @@ struct OptionsEncodeBasis : public ktxBasisParams {
             1.0f, 300.0f),
         uastcRDOMaxSmoothBlockStdDev(
             ktxBasisParams::uastcRDOMaxSmoothBlockStdDev,
-            0.01f, 65536.0f) {
+            0.01f, 65536.0f),
+        uastcLambda(ktxBasisParams::uastcLambda, 0.0f, FLT_MAX),
+        uastcHDRLevel(ktxBasisParams::uastcHDRLevel, 0, 12),
+        uastcHDRQuality(ktxBasisParams::uastcHDRQuality, 0, 4)
+    {
         threadCount = std::max<ktx_uint32_t>(1u, std::thread::hardware_concurrency());
         noSSE = false;
         structSize = sizeof(ktxBasisParams);
@@ -217,7 +232,7 @@ struct OptionsEncodeBasis : public ktxBasisParams {
         preSwizzle = false;
         noEndpointRDO = false;
         noSelectorRDO = false;
-        uastc = false; // Default to ETC1S.
+        codecFlag = KTX_BASIS_CODEC_ETC1S; // Default to ETC1S.
         uastcRDO = false;
         uastcFlags = KTX_PACK_UASTC_LEVEL_DEFAULT;
         uastcRDODictSize.clear();
@@ -225,6 +240,14 @@ struct OptionsEncodeBasis : public ktxBasisParams {
         uastcRDODontFavorSimplerModes = false;
         uastcRDONoMultithreading = false;
         verbose = false; // Default to quiet operation.
+        uastcHDRFavorAstc = false;
+        uastcHDRUltraQuant = false;
+        uastcHDRUberMode = false;
+        rec2020 = false;
+        uastcLambda = 0;
+        uastcHDRLevel = 2;
+        uastcHDRQuality = 1;
+        
         for (int i = 0; i < 4; i++) inputSwizzle[i] = 0;
     }
 
@@ -279,13 +302,22 @@ struct OptionsEncodeBasis : public ktxBasisParams {
                 "Default is 18.0. Larger values expand the range of blocks considered smooth.",
                 cxxopts::value<float>(), "<deviation>")
             (kUastcRdoF, "Do not favor simpler UASTC modes in RDO mode.")
-            (kUastcRdoM, "Disable RDO multithreading (slightly higher compression, deterministic).");
+            (kUastcRdoM, "Disable RDO multithreading (slightly higher compression, deterministic).")
+            (kUastcHdrUberMode, "Allow the UASTC HDR 4x4 encoder to try varying the CEM 11 selectors more for slightly higher quality (slower). This may negatively impact BC6H quality, however.")
+            (kUastcHdrUltraQuant, "UASTC HDR 4x4: Try to find better quantized CEM 7/11 endpoint values (slower).")
+            (kUastcHdrFavorAstc, "UASTC HDR 4x4: By default the UASTC HDR 4x4 encoder tries to strike a balance or even slightly favor BC6H quality. If this option is specified, ASTC HDR 4x4 quality is favored instead.")
+            (kRec2020, "The input image's gamut is Rec. 2020 vs. the default Rec. 709 - for accurate colorspace error calculations.")
+            (kLambda, "Enables rate distortion optimization (RDO). The higher this value, the lower the quality, but the smaller the file size. Try 100-20000, or higher values on some images.", cxxopts::value<uint32_t>(), "<level>")
+            (kUastcHdr6x6iLevel, "Sets the codec to 6x6 HDR intermediate mode (same as -hdr_6x6i) and controls encoder performance vs. max quality tradeoff. X may range from [0,12]. Default level is 2.", 
+                cxxopts::value<uint32_t>(), "<level>");
     }
 
     BasisCodec validateBasisCodec(const cxxopts::OptionValue& codecOpt) const {
         static const std::unordered_map<std::string, BasisCodec> codecs = {
             { "basis-lz", BasisCodec::BasisLZ },
-            { "uastc", BasisCodec::UASTC }
+            { "uastc", BasisCodec::UASTC },
+            { "uastc-hdr-4x4", BasisCodec::UASTC_HDR_4x4 },
+            { "uastc-hdr-6x6i", BasisCodec::UASTC_HDR_6x6i}
         };
         if (codecOpt.count()) {
             auto it = codecs.find(to_lower_copy(codecOpt.as<std::string>()));
@@ -349,6 +381,28 @@ struct OptionsEncodeBasis : public ktxBasisParams {
                 "Invalid use of argument --{} when UASTC RDO post-processing was not enabled.", name);
     }
 
+    void validateUASTCOrUASTCHDR4x4Arg(Reporter& report, const char* name) {
+        if (codec != BasisCodec::UASTC && codec != BasisCodec::UASTC_HDR_4x4)
+            report.fatal(
+                rc::INVALID_ARGUMENTS,
+                "Invalid use of argument --{} that only applies when the used codec is UASTC or UASTC HDR 4x4.",
+                name);
+    }
+
+    void validateUASTC4x4Arg(Reporter& report, const char* name) {
+        if (codecFlag != ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4X4)
+            report.fatal(
+                rc::INVALID_ARGUMENTS,
+                "Invalid use of argument --{} when UASTC HDR 4x4 was not enabled.",
+                name);
+    }
+
+    void validateUASTC6x6iArg(Reporter& report, const char* name) {
+        if (codecFlag != ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_6X6_INTERMEDIATE)
+            report.fatal(rc::INVALID_ARGUMENTS,
+                         "Invalid use of argument --{} when UASTC HDR 6x6i was not enabled.", name);
+    }
+
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
         std::string codec_option{"encode"};
 
@@ -364,6 +418,8 @@ struct OptionsEncodeBasis : public ktxBasisParams {
 
         case BasisCodec::BasisLZ:
         case BasisCodec::UASTC:
+        case BasisCodec::UASTC_HDR_4x4:
+        case BasisCodec::UASTC_HDR_6x6i:
             codecName = to_lower_copy(args[codec_option].as<std::string>());
             break;
 
@@ -372,8 +428,22 @@ struct OptionsEncodeBasis : public ktxBasisParams {
             break;
         }
 
-        if (codec == BasisCodec::UASTC) {
-            uastc = 1;
+        switch (codec)
+        { 
+        case BasisCodec::BasisLZ:
+            codecFlag = ktx_basis_codec_e::KTX_BASIS_CODEC_ETC1S;
+            break;
+        case BasisCodec::UASTC:
+            codecFlag = ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC;
+            break;
+        case BasisCodec::UASTC_HDR_4x4:
+            codecFlag = ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4X4;
+            break;
+        case BasisCodec::UASTC_HDR_6x6i:
+            codecFlag = ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_6X6_INTERMEDIATE;
+            break;
+        default:
+            break;
         }
 
         // NOTE: The order of the validation below matters
@@ -421,11 +491,12 @@ struct OptionsEncodeBasis : public ktxBasisParams {
         }
 
         if (args[kUastcQuality].count()) {
-            validateUASTCArg(report, kUastcQuality);
+            validateUASTCOrUASTCHDR4x4Arg(report, kUastcQuality);
             uint32_t level = captureCodecOption<uint32_t>(args, kUastcQuality);
             level = std::clamp<uint32_t>(level, 0, KTX_PACK_UASTC_MAX_LEVEL);
             uastcFlags = (unsigned int)~KTX_PACK_UASTC_LEVEL_MASK;
             uastcFlags |= level;
+            uastcHDRQuality = level;
         }
 
         if (args[kUastcRdo].count()) {
@@ -460,11 +531,33 @@ struct OptionsEncodeBasis : public ktxBasisParams {
             uastcRDODontFavorSimplerModes = 1;
         }
 
-        if (args[kUastcRdoM].count()) {
-            validateUASTCRDOArg(report, kUastcRdoM);
-            captureCodecOption(kUastcRdoM);
-            uastcRDONoMultithreading = 1;
+        if (args[kUastcHdrUberMode].count()) {
+            validateUASTC4x4Arg(report, kUastcHdrUberMode);
+            uastcHDRUberMode = captureCodecOption<bool>(args, kUastcHdrUberMode);
         }
+
+        if (args[kUastcHdrUltraQuant].count()) {
+            validateUASTC4x4Arg(report, kUastcHdrUltraQuant);
+            uastcHDRUberMode = captureCodecOption<bool>(args, kUastcHdrUltraQuant);
+        }
+        if (args[kUastcHdrFavorAstc].count()) {
+            validateUASTC4x4Arg(report, kUastcHdrFavorAstc);
+            uastcHDRFavorAstc = captureCodecOption<bool>(args, kUastcHdrFavorAstc);
+        }
+
+        if (args[kRec2020].count()) {
+            validateUASTC6x6iArg(report, kRec2020);
+            rec2020 = captureCodecOption<bool>(args, kRec2020);
+        }
+        if (args[kLambda].count()) {
+            validateUASTC6x6iArg(report, kLambda);
+            uastcLambda = captureCodecOption<uint32_t>(args, kLambda);
+        }
+        if (args[kUastcHdr6x6iLevel].count()) {
+            validateUASTC6x6iArg(report, kUastcHdr6x6iLevel);
+            uastcHDRLevel = captureCodecOption<uint32_t>(args, kUastcHdr6x6iLevel);
+        }
+
     }
 };
 

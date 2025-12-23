@@ -907,7 +907,7 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
 
     } else if (isFormatBlockCompressed(VkFormat(header.vkFormat))) {
         const auto expectedBCColorModel = getColorModelForBlockCompressedFormat(VkFormat(header.vkFormat));
-        if (khr_df_model_e(block.model) != expectedBCColorModel)
+        if (khr_df_model_e(block.model) != expectedBCColorModel && khr_df_model_e(block.model) != khr_df_model_e::KHR_DF_MODEL_UASTC_4X4_HDR)
             error(DFD::IncorrectModelForBlock, blockIndex, toString(khr_df_model_e(block.model)), toString(VkFormat(header.vkFormat)), toString(expectedBCColorModel));
 
     } else if (header.vkFormat != VK_FORMAT_UNDEFINED) {
@@ -1002,6 +1002,11 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
             if (expectedSamples) {
                 if (samples.size() != expectedSamples->size())
                     error(DFD::SampleCountMismatch, blockIndex, samples.size(), toString(VkFormat(header.vkFormat)), expectedSamples->size());
+
+                // UASTC 4x4 requires lower to be 0.
+                if (khr_df_model_e(block.model) == khr_df_model_e::KHR_DF_MODEL_UASTC_4X4_HDR)
+                    for (auto& expectedSample : *expectedSamples) 
+                        expectedSample.lower = 0;
 
                 for (std::size_t i = 0; i < std::min(samples.size(), expectedSamples->size()); ++i) {
                     const auto& parsed = samples[i];

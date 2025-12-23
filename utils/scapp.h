@@ -438,7 +438,7 @@ class scApp : public ktxApp {
                 preSwizzle = false;
                 noEndpointRDO = false;
                 noSelectorRDO = false;
-                uastc = false; // Default to ETC1S.
+                codecFlag = KTX_BASIS_CODEC_ETC1S; // Default to ETC1S.
                 uastcRDO = false;
                 uastcFlags = KTX_PACK_UASTC_LEVEL_DEFAULT;
                 uastcRDODictSize.clear();
@@ -554,7 +554,7 @@ class scApp : public ktxApp {
         else if (encoding == "etc1s")
             options.etc1s = 1;
         else if (encoding == "uastc")
-            options.bopts.uastc = 1;
+            options.bopts.codecFlag = KTX_BASIS_CODEC_UASTC;
     }
 
     int encode(ktxTexture2* texture, const string& swizzle,
@@ -1006,7 +1006,7 @@ scApp::processOption(argparser& parser, int opt)
             usage();
             exit(1);
         }
-        if (options.bopts.uastc) {
+        if (options.bopts.codecFlag == KTX_BASIS_CODEC_UASTC) {
             cerr << "Only one of --bcmp and '--encode etc1s | --uastc' can be specified.\n"
                  << "--bcmp is deprecated, use '--encode etc1s' instead."
                  << endl;
@@ -1034,7 +1034,7 @@ scApp::processOption(argparser& parser, int opt)
              usage();
              exit(1);
         }
-        options.bopts.uastc = 1;
+        options.bopts.codecFlag = KTX_BASIS_CODEC_UASTC;
         options.ktx2 = 1;
         if (parser.optarg.size() > 0) {
             ktx_uint32_t level = strtoi(parser.optarg.c_str());
@@ -1087,7 +1087,7 @@ scApp::encode(ktxTexture2* texture, const string& swizzle,
         return 1;
 
     }
-    if (options.etc1s || options.bopts.uastc) {
+    if (options.etc1s || (options.bopts.codecFlag == KTX_BASIS_CODEC_UASTC)) {
         commandOptions::basisOptions& bopts = options.bopts;
         if (swizzle.size()) {
             for (uint32_t i = 0; i < swizzle.size(); i++) {
