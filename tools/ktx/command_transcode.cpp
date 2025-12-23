@@ -122,7 +122,7 @@ void CommandTranscode::OptionsTranscode::init(cxxopts::Options& opts) {
                    " Case-insensitive."
                    "\nPossible options are:"
                    " etc-rgb | etc-rgba | eac-r11 | eac-rg11 | bc1 | bc3 | bc4 | bc5 | bc6hu | bc7 |"
-                   " astc | astc-hdr-4x4 | astc-hdr-6x6 | r8 | rg8 | rgb8 | rgba8 | rgba16f"
+                   " astc | astc-hdr-4x4 | astc-hdr-6x6 | r8 | rg8 | rgb8 | rgba8 | rgba16f."
                    "\netc-rgb is ETC1; etc-rgba, eac-r11 and eac-rg11 are ETC2.",
                    cxxopts::value<std::string>(), "<target>");
 }
