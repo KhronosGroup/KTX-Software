@@ -80,18 +80,22 @@ if (NOT TARGET zstd::libzstd)
             add_library(zstd::libzstd ALIAS ${LOOKUP_NAME})
 
             # Disable unused function warning
-            if (MSVC)
-                target_compile_options(
-                    ${LOOKUP_NAME} PRIVATE 
-                    /wd4505
-                    $<$<CXX_COMPILER_ID:Clang>: /clang:-Wno-unused-function>
-                )
-            else()
-                target_compile_options(
-                    ${LOOKUP_NAME} PRIVATE 
-                    $<$<CXX_COMPILER_ID:GNU,Clang>: -Wno-unused-function>
-                )
+            get_target_property(is_imported ${LOOKUP_NAME} IMPORTED)
+            if(NOT is_imported)
+                if (MSVC)
+                    target_compile_options(
+                        ${LOOKUP_NAME} PRIVATE 
+                        /wd4505
+                        $<$<CXX_COMPILER_ID:Clang>: /clang:-Wno-unused-function>
+                    )
+                else()
+                    target_compile_options(
+                        ${LOOKUP_NAME} PRIVATE 
+                        $<$<CXX_COMPILER_ID:GNU,Clang>: -Wno-unused-function>
+                    )
+                endif()
             endif()
+
             break()
         endif()
     endforeach()
