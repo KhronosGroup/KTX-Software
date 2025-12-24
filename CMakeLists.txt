@@ -173,14 +173,14 @@ endif()
 
 # Global compile & link options including optimization flags
 if(MSVC)
-    #add_compile_options( /W4;$<$<BOOL:${KTX_WERROR}>:/WX> )
+    add_compile_options( /W4;$<$<BOOL:${KTX_WERROR}>:/WX> )
     add_compile_options( $<IF:$<CONFIG:Debug>,/Gz,/O2> )
     # Enable UTF-8 support
     add_compile_options( $<$<C_COMPILER_ID:MSVC>:/utf-8> )
     add_compile_options( $<$<CXX_COMPILER_ID:MSVC>:/utf-8> )
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"
        OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-    #add_compile_options( -Wall -Wextra $<$<BOOL:${KTX_WERROR}>:-Werror>)
+    add_compile_options( -Wall -Wextra $<$<BOOL:${KTX_WERROR}>:-Werror>)
     add_compile_options( $<IF:$<CONFIG:Debug>,-O0$<SEMICOLON>-g,-O3> )
     if(EMSCRIPTEN)
         add_link_options( $<IF:$<CONFIG:Debug>,-gsource-map,-O3> )
