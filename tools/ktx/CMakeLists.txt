@@ -50,6 +50,7 @@ PRIVATE
     .
     $<TARGET_PROPERTY:imageio,INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:ktx,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:objUtil,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 target_include_directories(
@@ -64,7 +65,6 @@ target_link_libraries(
     ktxtools
 PRIVATE
     imageio
-    objUtil
     ktx
     basisu_encoder
     ${ASTCENC_LIB_TARGET}
