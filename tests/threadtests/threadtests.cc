@@ -1,4 +1,4 @@
-/* -*- tab-width: 4; -*- */
+﻿/* -*- tab-width: 4; -*- */
 /* vi: set sw=2 ts=4 expandtab: */
 
 /*
@@ -39,6 +39,7 @@
 #include <thread>
 #include <sys/stat.h>
 #include "ktx.h"
+#include "platform_utils.h"
 #include "gtest/gtest.h"
 
 
@@ -59,13 +60,14 @@ TEST(Multithreaded, TranscodeBasis) {
     const int numThreads = 2;
     std::barrier syncPoint(numThreads);
 
-    auto funcLoad = [&syncPoint] (const std::string& ktxFile, const std::string& goldenFile) {
+    auto funcLoad = [&syncPoint] (const std::u8string& ktxFile, const std::u8string& goldenFile) {
         ktxTexture2 *texture = nullptr;
 
-        KTX_error_code result = ktxTexture_CreateFromNamedFile(ktxFile.c_str(),
+        ktx_error_code_e result = ktxTexture_CreateFromNamedFile(
+            reinterpret_cast<const char*>(ktxFile.c_str()),
             KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, (ktxTexture **)&texture);
         ASSERT_TRUE(result == KTX_SUCCESS) << "ktxTexture_CreateFromNamedFile \""
-                << ktxFile << "\" failed: " << ktxErrorString(result);
+                << from_u8string(ktxFile) << "\" failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture != NULL) << "Returned texture pointer is NULL";
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
@@ -80,10 +82,11 @@ TEST(Multithreaded, TranscodeBasis) {
             //result = ktxTexture2_WriteToNamedFile(texture, "/tmp/testktx2");
 
             ktxTexture2* golden = nullptr;
-            result = ktxTexture_CreateFromNamedFile(goldenFile.c_str(),
+            result = ktxTexture_CreateFromNamedFile(
+                reinterpret_cast<const char*>(goldenFile.c_str()),
                 KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, (ktxTexture **)&golden);
             ASSERT_TRUE(result == KTX_SUCCESS) << "ktxTexture_CreateFromNamedFile \""
-                    << goldenFile << "\" failed: " << ktxErrorString(result);
+                    << from_u8string(goldenFile) << "\" failed: " << ktxErrorString(result);
             ASSERT_TRUE(golden != NULL) << "Returned texture pointer is NULL";
             ASSERT_TRUE(golden->pData != NULL) << "Image data not loaded";
             EXPECT_EQ(texture->dataSize, golden->dataSize);
@@ -104,7 +107,7 @@ TEST(Multithreaded, TranscodeBasis) {
     threads.resize(numThreads);
     for (int i = 0; i < numThreads; i++) {
         threads[i] = std::thread([&funcLoad, ktxFile1, goldenFile1] {
-            funcLoad(ktxFile1.string(), goldenFile1.string());
+            funcLoad(ktxFile1.u8string(), goldenFile1.u8string());
         });
     }
 
@@ -117,13 +120,14 @@ TEST(Multithreaded, DecodeASTC) {
     const int numThreads = 2;
     std::barrier syncPoint(numThreads);
 
-    auto funcLoad = [&syncPoint] (const std::string& ktxFile, const std::string& goldenFile) {
+    auto funcLoad = [&syncPoint] (const std::u8string& ktxFile, const std::u8string& goldenFile) {
         ktxTexture2 *texture = nullptr;
 
-        KTX_error_code result = ktxTexture_CreateFromNamedFile(ktxFile.c_str(),
+        ktx_error_code_e result = ktxTexture_CreateFromNamedFile(
+            reinterpret_cast<const char*>(ktxFile.c_str()),
             KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, (ktxTexture **)&texture);
         ASSERT_TRUE(result == KTX_SUCCESS) << "ktxTexture_CreateFromNamedFile \""
-                << ktxFile << "\" failed: " << ktxErrorString(result);
+                << from_u8string(ktxFile) << "\" failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture != NULL) << "Returned texture pointer is NULL";
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
@@ -137,10 +141,11 @@ TEST(Multithreaded, DecodeASTC) {
         //result = ktxTexture2_WriteToNamedFile(texture, "/tmp/testktx2");
 
         ktxTexture2* golden = nullptr;
-        result = ktxTexture_CreateFromNamedFile(goldenFile.c_str(),
+        result = ktxTexture_CreateFromNamedFile(
+            reinterpret_cast<const char*>(goldenFile.c_str()),
             KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, (ktxTexture **)&golden);
         ASSERT_TRUE(result == KTX_SUCCESS) << "ktxTexture_CreateFromNamedFile \""
-                << goldenFile << "\" failed: " << ktxErrorString(result);
+                << from_u8string(goldenFile) << "\" failed: " << ktxErrorString(result);
         ASSERT_TRUE(golden != NULL) << "Returned texture pointer is NULL";
         ASSERT_TRUE(golden->pData != NULL) << "Image data not loaded";
         EXPECT_EQ(texture->dataSize, golden->dataSize);
@@ -160,7 +165,7 @@ TEST(Multithreaded, DecodeASTC) {
     threads.resize(numThreads);
     for (int i = 0; i < numThreads; i++) {
         threads[i] = std::thread([&funcLoad, ktxFile1, goldenFile1] {
-            funcLoad(ktxFile1.string(), goldenFile1.string());
+            funcLoad(ktxFile1.u8string(), goldenFile1.u8string());
         });
     }
 
@@ -178,13 +183,18 @@ public:
     void run(bool basisu) {
         std::barrier<> syncPoint(numThreads);
 
-        auto funcEncode = [&syncPoint, basisu] (const std::string& imagePath) {
+        auto funcEncode = [&syncPoint, basisu] (const std::u8string& imagePath) {
             ktxTexture2 *texture = nullptr;
 
-            KTX_error_code result = ktxTexture_CreateFromNamedFile(
-                    imagePath.c_str(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, (ktxTexture **)&texture);
+            ktx_error_code_e result = ktxTexture_CreateFromNamedFile(
+                    reinterpret_cast<const char*>(imagePath.c_str()),
+                    KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, (ktxTexture **)&texture);
+            // If imagePath contains non-ASCII unicode characters then, on
+            // Windows, we have to tolerate mojibake in the error message as there
+            // is no way to print utf-8 to std::cerr. Any hacks using fmt::print
+            // result in the message order being wrong.
             ASSERT_TRUE(result == KTX_SUCCESS) << "ktxTexture_CreateFromNamedFile \""
-                    << imagePath << "\" failed: " << ktxErrorString(result);
+                        << from_u8string(imagePath) << "\" failed: " << ktxErrorString(result);
             ASSERT_TRUE(texture != NULL) << "Returned texture pointer is NULL";
             ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
             ASSERT_TRUE(!texture->isCompressed);
@@ -201,21 +211,20 @@ public:
             ktxTexture2_Destroy(texture);
         };
 
-        fs::path ktx2Input = ::ktx2Path;
+        fs::path ktx2Input = ktx2Path;
         ktx2Input.replace_filename(u8"rgba_mipmap.ktx2");
 
         std::vector<std::thread> threads;
         threads.resize(numThreads);
         for (unsigned int i = 0; i < numThreads; i++) {
-          threads[i] = std::thread([&funcEncode, ktx2Input] {
-                funcEncode(ktx2Input.string());
+            threads[i] = std::thread([&funcEncode, ktx2Input] {
+                funcEncode(ktx2Input.u8string());
             });
         }
 
         for (unsigned int i = 0; i < numThreads; i++) {
             threads[i].join();
         }
-
     }
 };
 
@@ -229,43 +238,6 @@ TEST_F(MultithreadedEncode, EncodeASTC) {
 
 }  // namespace
 
-#if defined(_WIN32)
-#define WINDOWS_LEAN_AND_MEAN
-#include <windows.h>
-// For Windows, we convert the UTF-8 path to a UTF-16 path to force using
-// the APIs that correctly handle unicode characters.
-inline std::wstring
-DecodeUTF8Path(const std::u8string& path) {
-    std::wstring result;
-    int len =
-        MultiByteToWideChar(CP_UTF8, 0, reinterpret_cast<const char*>(path.c_str()),
-                            static_cast<int>(path.length()), NULL, 0);
-    if (len > 0) {
-        result.resize(len);
-        MultiByteToWideChar(CP_UTF8, 0, reinterpret_cast<const char*>(path.c_str()),
-                            static_cast<int>(path.length()), &result[0], len);
-    }
-    return result;
-}
-#else
-// For other platforms there is no need for any conversion, they
-// support UTF-8 natively.
-inline std::u8string DecodeUTF8Path(std::u8string path) { return path; }
-#endif
-
-#if defined(WIN32)
-  #define stat _stat64i32
-#endif
-
-static int
-statUTF8(const std::u8string& path, struct stat* info) {
-#if defined(_WIN32)
-    return _wstat(DecodeUTF8Path(path).c_str(), info);
-#else
-    return stat(reinterpret_cast<const char*>(path.c_str()), info);
-#endif
-}
-
 GTEST_API_ int main(int argc, char* argv[]) {
     testing::InitGoogleTest(&argc, argv);
 
@@ -276,37 +248,35 @@ GTEST_API_ int main(int argc, char* argv[]) {
         }
 
         fs::path resourcesPath;
-#if defined(_WIN32)
-        // Manually acquire the wide char command line in case a unicode
-        // filename has been specified.
-        int allargc;
-        LPWSTR commandLine = GetCommandLineW();
-        LPWSTR* wideArgv = CommandLineToArgvW(commandLine, &allargc);
-        // commandLine still has all the arguments including those removed
-        // by InitGoogleTest, hence the arg index calculation.
-        resourcesPath = wideArgv[allargc - argc + 1];
-#else
-        resourcesPath = argv[1];
-#endif
+        std::vector<std::u8string> u8argv;
+        InitUTF8CLI(argc, argv, u8argv);
+        resourcesPath = u8argv[1];
         // Trailing / so path will be handled as directory.
         //goldenPath = resourcesPath / u8"golden/threadtests/";
         ktx2Path = resourcesPath / u8"input/ktx2/";
         //pngPath = resourcesPath / u8"input/png/";
 
-        auto checkPath = [] (const fs::path path) {
-            struct stat info;
-            if (statUTF8(path.u8string().c_str(), &info) != 0) {
-                std::cerr << "Cannot access " << path << std::endl;
+        auto checkPath = [](const fs::path path) {
+            // struct stat info;
+            fs::file_status stat;
+            std::error_code ec;
+            stat = fs::status(path, ec);
+            if (!fs::exists(stat)) {
+                std::cerr << std::format("{} does not exist.\n", from_u8string(path.u8string()));
                 return -2;
-            }  else if (!(info.st_mode & S_IFDIR)) {
-                std::cerr << path << " is not a valid directory\n";
+            } else if (!fs::is_directory(stat)) {
+                std::cerr << std::format("{} is not a directory.\n", from_u8string(path.u8string()));
                 return -3;
             }
             return 0;
         };
-        //checkPath(goldenPath);
-        checkPath(ktx2Path);
-        //checkPath(pngPath);
+        //std::cerr << std::format("test unicode name is {}.\n", "テクスチャー");
+        // int ret = checkPath(goldenPath);
+        // if (!ret)
+        int ret = checkPath(ktx2Path);
+        //if (!ret)
+            // ret = checkPath(pngPath);
+        if (ret) return ret;
     }
 
     return RUN_ALL_TESTS();

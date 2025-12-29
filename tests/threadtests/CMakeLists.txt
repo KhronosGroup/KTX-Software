@@ -23,6 +23,7 @@ target_include_directories(
     threadtests
 PRIVATE
     $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:objUtil,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 target_link_libraries(
