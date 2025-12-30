@@ -119,10 +119,10 @@ protected:
         ++numWarning;
         if (treatWarningsAsError) {
             returnCode = +rc::INVALID_FILE;
-            callback(ValidationReport{IssueType::error, issue.id, std::string{issue.message}, fmt::format(issue.detailsFmt, std::forward<Args>(args)...)});
+            callback(ValidationReport{IssueType::error, issue.id, std::string{issue.message}, fmt::format(fmt::runtime(issue.detailsFmt), std::forward<Args>(args)...)});
 
         } else {
-            callback(ValidationReport{issue.type, issue.id, std::string{issue.message}, fmt::format(issue.detailsFmt, std::forward<Args>(args)...)});
+            callback(ValidationReport{issue.type, issue.id, std::string{issue.message}, fmt::format(fmt::runtime(issue.detailsFmt), std::forward<Args>(args)...)});
         }
     }
 
@@ -130,14 +130,14 @@ protected:
     void error(const IssueError& issue, Args&&... args) {
         ++numError;
         returnCode = +rc::INVALID_FILE;
-        callback(ValidationReport{issue.type, issue.id, std::string{issue.message}, fmt::format(issue.detailsFmt, std::forward<Args>(args)...)});
+        callback(ValidationReport{issue.type, issue.id, std::string{issue.message}, fmt::format(fmt::runtime(issue.detailsFmt), std::forward<Args>(args)...)});
     }
 
     template <typename... Args>
     void fatal(const IssueFatal& issue, Args&&... args) {
         ++numError;
         returnCode = +rc::INVALID_FILE;
-        const auto report = ValidationReport{issue.type, issue.id, std::string{issue.message}, fmt::format(issue.detailsFmt, std::forward<Args>(args)...)};
+        const auto report = ValidationReport{issue.type, issue.id, std::string{issue.message}, fmt::format(fmt::runtime(issue.detailsFmt), std::forward<Args>(args)...)};
         callback(report);
 
         throw FatalValidationError(report);

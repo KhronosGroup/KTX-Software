@@ -322,10 +322,10 @@ struct PrintIndent {
     int indentWidth = 4;
 
 public:
-    template <typename Fmt, typename... Args>
-    inline void operator()(int depth, Fmt&& fmt, Args&&... args) {
+    template <typename... Args>
+    inline void operator()(int depth, fmt::format_string<Args...> fmt, Args&&... args) {
         fmt::print(os, "{:{}}", "", indentWidth * (indentBase + depth));
-        fmt::print(os, std::forward<Fmt>(fmt), std::forward<Args>(args)...);
+        fmt::print(os, fmt, std::forward<Args>(args)...);
     }
 };
 
