@@ -178,7 +178,7 @@ struct DiffHexFixedWidth : public DiffBase<T> {
 
     virtual std::string value(std::size_t index, OutputFormat format) const override {
         if (format == OutputFormat::text) {
-            return fmt::format(fmt::format("0x{{:0{}x}}", sizeof(T) << 1), DiffBase<T>::rawValue(index));
+            return fmt::format(fmt::runtime(fmt::format("0x{{:0{}x}}", sizeof(T) << 1)), DiffBase<T>::rawValue(index));
         } else {
             return fmt::format("{}", DiffBase<T>::rawValue(index));
         }
@@ -499,7 +499,7 @@ class PrintDiff {
             if (!std::exchange(firstContext, false))
                 printIndent(0, "\n");
             for (const auto& ctx : context)
-                printIndent(0, ctx);
+                printIndent(0, fmt::runtime(ctx));
             context.clear();
         }
     }
@@ -650,9 +650,9 @@ public:
 
         auto formatOptionalFileOffset = [](const std::optional<std::size_t>& fileOffset, std::size_t imageOffset, bool json) {
             if (fileOffset.has_value())
-                return fmt::format(json ? "{}" : "0x{:x}", *fileOffset + imageOffset);
+                return fmt::format(fmt::runtime(json ? "{}" : "0x{:x}"), *fileOffset + imageOffset);
             else
-                return fmt::format(json ? "null" : "N/A");
+                return fmt::format(fmt::runtime(json ? "null" : "N/A"));
         };
 
         auto formatPacked = [=](const ImageSpan::TexelBlockPtr<>& texelBlock, bool json) {
