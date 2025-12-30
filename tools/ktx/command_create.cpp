@@ -1840,7 +1840,7 @@ void CommandCreate::executeCreate() {
 
             if (options.premultiplyAlpha) {
                 if(image->getComponentCount() < 4) {
-                    const auto option_error_message = "PremultiplyAlpha can only be used if the input image has alpha channels.";
+                    constexpr auto option_error_message = "PremultiplyAlpha can only be used if the input image has alpha channels.";
                     fatal_usage(option_error_message, OptionsCreate::kPremultiplyAlpha);
                 }
                 image->premultiplyAlpha();
