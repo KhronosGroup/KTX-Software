@@ -19,15 +19,18 @@ extern "C" {
   #include "filestream.h"
   #include "memstream.h"
 }
+#include "platform_utils.h"
 #include "gtest/gtest.h"
 #include <vector>
 #include <cstring>
+#include <filesystem>
 
 #include "basisu_c_binding.h"
 
 using namespace std;
+namespace fs = std::filesystem;
 
-string image_path;
+fs::path image_path;
 
 namespace {
 
@@ -95,8 +98,8 @@ INSTANTIATE_TEST_SUITE_P(AllCombinations,
                         ::testing::Combine(::testing::ValuesIn(allTextureSets),
                                            ::testing::ValuesIn(allFormats)));
 
-bool read_file( string path, void** data, unsigned long *fsize ) {
-    FILE *f = fopen(path.data(),"rb");
+bool read_file( fs::path file, void** data, unsigned long *fsize ) {
+    FILE *f = fopenUTF8(file.u8string(), string("rb"));
     if(f==NULL) {
         return false;
     }
@@ -114,24 +117,12 @@ bool isPo2(uint32_t i) {
     return (i&(i-1))==0;
 }
 
-string combine_paths(string const a, string const b) {
-	if (a.back() == OS_SEP) {
-		return a + b;
-#if defined(_WIN32)
-	} else if (a.back() == UNIX_SEP) {
-		return a + b;
-#endif
-	} else {
-        return a+OS_SEP+b;
-    }
-}
-
 void test_texture_set( TextureSet & textureSet, FormatFeature & format ) {
 
     void * basisData = nullptr;
     unsigned long basisSize = 0;
     
-    string path = combine_paths(image_path,textureSet.basisuPath);
+    fs::path path = image_path / textureSet.basisuPath;
     bool read_success = read_file(path, &basisData, &basisSize);
 
     ASSERT_TRUE(read_success) << "Could not open or read texture file " << path;
@@ -167,7 +158,7 @@ void test_texture_set( TextureSet & textureSet, FormatFeature & format ) {
     void * data = 0; // = 0 to silence over-enthusiastic gcc 11 warning.
     unsigned long fsize;
 
-    path = combine_paths(image_path,textureSet.ktxPath);
+    path.replace_filename(textureSet.ktxPath);
     read_success = read_file(path, &data, &fsize);
 
     ASSERT_TRUE(read_success) << "Could not open texture file " << path;
@@ -224,15 +215,20 @@ int main(int argc, char **argv) {
             return -1;
         }
 
-        image_path = string(argv[1]);
+        std::vector<std::u8string> u8argv;
+        InitUTF8CLI(argc, argv, u8argv);
+        image_path = u8argv[1];
+        image_path /= "";  // Ensure trailing / so path will be handled as a directory.
 
-        struct stat info;
-
-        if( stat( image_path.data(), &info ) != 0 ) {
-            cerr << "Cannot access " << image_path << '\n';
+        std::error_code ec;
+        auto stat = fs::status(image_path, ec);
+        if (!fs::exists(stat)) {
+            std::cerr << format("{} does not exist.\n",
+                                from_u8string(image_path.u8string()));
             return -2;
-        } else if( ! (info.st_mode & S_IFDIR) ) {
-            cerr << image_path << "is not a valid directory\n";
+        } else if (!std::filesystem::is_directory(stat)) {
+            std::cerr << format("{} is not a directory.\n",
+                                from_u8string(image_path.u8string()));
             return -3;
         }
     }

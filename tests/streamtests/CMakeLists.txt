@@ -14,6 +14,7 @@ target_include_directories(
     streamtests
 PRIVATE
     $<TARGET_PROPERTY:ktx,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:objUtil,INTERFACE_INCLUDE_DIRECTORIES>
     ${CMAKE_CURRENT_SOURCE_DIR}/../../other_include
     ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/src  # Just for gl_format.h
 )

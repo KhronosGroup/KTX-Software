@@ -39,6 +39,7 @@
 #include "texture.h"
 #include "texture1.h"
 #include "texture2.h"
+#include "platform_utils.h"
 #include "gtest/gtest.h"
 #include "wthelper.h"
 #include "vk_format.h"
@@ -2925,7 +2926,6 @@ class ktxTexture2AstcLdrEncodeDecodeTestBase
             auto depth = texture->baseDepth;
             auto height = texture->baseHeight;
             auto width = texture->baseWidth;
-            //ktx_uint64_t dataSize = texture->dataSize;
             auto dataSize = texture->dataSize;
 
             ASSERT_TRUE(depth == 1);
@@ -3138,40 +3138,6 @@ TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGBA8_SRGB, CompressToAstc12x12LdrThen
 
 }  // namespace
 
-#if defined(_WIN32)
-// For Windows, we convert the UTF-8 path to a UTF-16 path to force using
-// the APIs that correctly handle unicode characters.
-inline std::wstring
-DecodeUTF8Path(const std::u8string& path) {
-    std::wstring result;
-    int len =
-        MultiByteToWideChar(CP_UTF8, 0, reinterpret_cast<const char*>(path.c_str()),
-                            static_cast<int>(path.length()), NULL, 0);
-    if (len > 0) {
-        result.resize(len);
-        MultiByteToWideChar(CP_UTF8, 0, reinterpret_cast<const char*>(path.c_str()),
-                            static_cast<int>(path.length()), &result[0], len);
-    }
-    return result;
-}
-#else
-// For other platforms there is no need for any conversion, they
-// support UTF-8 natively.
-inline std::u8string DecodeUTF8Path(std::u8string path) { return path; }
-#endif
-
-#if defined(WIN32)
-  #define stat _stat64i32
-#endif
-
-static int
-statUTF8(const std::u8string& path, struct stat* info) {
-#if defined(_WIN32)
-    return _wstat(DecodeUTF8Path(path).c_str(), info);
-#else
-    return stat(reinterpret_cast<const char*>(path.c_str()), info);
-#endif
-}
 
 GTEST_API_ int main(int argc, char* argv[]) {
     testing::InitGoogleTest(&argc, argv);
@@ -3182,29 +3148,36 @@ GTEST_API_ int main(int argc, char* argv[]) {
             return -1;
         }
 
-#if defined(_WIN32)
-        // Manually acquire the wide char command line in case a unicode
-        // filename has been specified.
-        int allargc;
-        LPWSTR commandLine = GetCommandLineW();
-        LPWSTR* wideArgv = CommandLineToArgvW(commandLine, &allargc);
-        // commandLine still has all the arguments including those removed
-        // by InitGoogleTest, hence the arg index calculation.
-        imagePath = wideArgv[allargc - argc + 1];
-        ktxdiffPath = wideArgv[allargc - argc + 2];
-#else
-        imagePath = argv[1];
-        ktxdiffPath = argv[2];
-#endif
+        //fs::path resourcesPath;
+        std::vector<std::u8string> u8argv;
+        InitUTF8CLI(argc, argv, u8argv);
+        imagePath = u8argv[1];
+        ktxdiffPath = u8argv[2];
+
         imagePath /= "";  // Ensure trailing / so path will be handled as a directory.
 
-        struct stat info;
-
-        if (statUTF8(imagePath.u8string().c_str(), &info) != 0) {
-            std::cerr << "Cannot access " << imagePath << std::endl;
+        std::error_code ec;
+        auto stat = fs::status(imagePath, ec);
+        if (!fs::exists(stat)) {
+            std::cerr << std::format("{} does not exist.\n",
+                                     from_u8string(imagePath.u8string()));
             return -2;
-        }  else if (!(info.st_mode & S_IFDIR)) {
-            std::cerr << imagePath << " is not a valid directory\n";
+        } else if (!std::filesystem::is_directory(stat)) {
+            std::cerr << std::format("{} is not a directory.\n",
+                                     from_u8string(imagePath.u8string()));
+            return -3;
+        }
+#if defined(_WIN32)
+        ktxdiffPath.replace_extension("exe");
+#endif
+        stat = fs::status(ktxdiffPath, ec);
+        if (!fs::exists(stat)) {
+            std::cerr << std::format("{} does not exist.\n",
+                                     from_u8string(ktxdiffPath.u8string()));
+            return -4;
+        } else if (std::filesystem::is_directory(stat)) {
+            std::cerr << std::format("{} is a directory.\n",
+                                     from_u8string(ktxdiffPath.u8string()));
             return -3;
         }
     }

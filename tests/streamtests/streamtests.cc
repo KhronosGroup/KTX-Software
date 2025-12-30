@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <algorithm>
+#include <filesystem>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -13,20 +14,21 @@
 #include "gl_format.h"
 #include "ktx.h"
 #include "gtest/gtest.h"
+#include "platform_utils.h"
 
 namespace
 {
 
-constexpr const char SAMPLE_KTX1[] = "pattern_02_bc2.ktx";
-constexpr const char SAMPLE_KTX2[] = "pattern_02_bc2.ktx2";
+constexpr const char8_t SAMPLE_KTX1[] = u8"pattern_02_bc2.ktx";
+constexpr const char8_t SAMPLE_KTX2[] = u8"pattern_02_bc2.ktx2";
 
-std::string testImagesPath;
+namespace fs = std::filesystem;
+fs::path testImagesPath;
 
-std::unique_ptr<std::streambuf> testImageFilebuf(std::string name)
+std::unique_ptr<std::streambuf> testImageFilebuf(std::u8string name)
 {
-    std::string imagePath{testImagesPath};
-    imagePath += '/';
-    imagePath += name;
+    fs::path imagePath;
+    imagePath = testImagesPath / name;
     
     auto filebuf = std::make_unique<std::filebuf>();
     filebuf->open(imagePath, std::ios::in | std::ios::binary);
@@ -464,17 +466,20 @@ int main(int argc, char **argv)
             return -1;
         }
 
-        testImagesPath = argv[1];
+        std::vector<std::u8string> u8argv;
+        InitUTF8CLI(argc, argv, u8argv);
+        testImagesPath = u8argv[1];
+        testImagesPath /= "";  // Ensure trailing / so path will be handled as a directory.
 
-        struct stat info;
-        if (stat(testImagesPath.data(), &info) != 0)
-        {
-            std::cerr << "Cannot access " << testImagesPath << '\n';
+        std::error_code ec;
+        auto stat = fs::status(testImagesPath, ec);
+        if (!fs::exists(stat)) {
+            std::cerr << format("{} does not exist.\n",
+                                from_u8string(testImagesPath.u8string()));
             return -2;
-        }
-        else if (!(info.st_mode & S_IFDIR))
-        {
-            std::cerr << testImagesPath << "is not a valid directory\n";
+        } else if (!std::filesystem::is_directory(stat)) {
+            std::cerr << format("{} is not a directory.\n",
+                                from_u8string(testImagesPath.u8string()));
             return -3;
         }
     }

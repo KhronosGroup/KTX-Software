@@ -257,10 +257,8 @@ GTEST_API_ int main(int argc, char* argv[]) {
         //pngPath = resourcesPath / u8"input/png/";
 
         auto checkPath = [](const fs::path path) {
-            // struct stat info;
-            fs::file_status stat;
             std::error_code ec;
-            stat = fs::status(path, ec);
+            auto stat = fs::status(path, ec);
             if (!fs::exists(stat)) {
                 std::cerr << std::format("{} does not exist.\n", from_u8string(path.u8string()));
                 return -2;

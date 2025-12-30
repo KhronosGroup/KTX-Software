@@ -12,6 +12,8 @@ target_include_directories(
     transcodetests
 PRIVATE
     ${PROJECT_SOURCE_DIR}/lib/src
+    $<TARGET_PROPERTY:objUtil,INTERFACE_INCLUDE_DIRECTORIES>
+
 )
 
 target_link_libraries(
