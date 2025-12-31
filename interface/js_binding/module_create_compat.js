@@ -1,18 +1,3 @@
-// -*- tab-width: 4; -*-
-// vi: set sw=2 ts=4 expandtab textwidth=80:
-
-//
-// Copyright 2019-2024 Khronos Group, Inc.
-// SPDX-License-Identifier: Apache-2.0
-//
-
-// Provide old module create function name for backward compatibility.
-// N.B. --pre-js and --post-js code is run inside the module creation
-// function so the variable holding that function is not available.
-// This has to be --extern-post-js.
-
-var LIBKTX
-if (typeof createKtxReadModule === "function")
-  LIBKTX = createKtxReadModule;
-else
-  LIBKTX = createKtxModule;
+version https://git-lfs.github.com/spec/v1
+oid sha256:800f5147acaa3bdf627af60d695e8cd7f23ed807a87fcf615408e8f3bac8f16b
+size 529

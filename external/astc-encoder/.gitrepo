@@ -1,12 +1,3 @@
-; DO NOT EDIT (unless you know what you are doing)
-;
-; This subdirectory is a git "subrepo", and this file is maintained by the
-; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
-;
-[subrepo]
-	remote = https://github.com/ARM-software/astc-encoder.git
-	branch = 5.3.0
-	commit = 30aabb3f42406df45a910d8496f9bee17eeba9bb
-	parent = f9c73388a58de9b83f260f11008b043d8f7c0954
-	method = merge
-	cmdver = 0.4.9
+version https://git-lfs.github.com/spec/v1
+oid sha256:c16d4447bd4cc313cdc53f83cc243fee911de56c7a619e8109b263954137a64a
+size 427

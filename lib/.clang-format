@@ -1,14 +1,3 @@
-# Copyright 2024 The Khronos Group Inc.
-# SPDX-License-Identifier: Apache-2.0
----
-# Use defaults from the Google style with the following exceptions:
-Language: Cpp
-BasedOnStyle: Google
-IndentWidth: 4
-IndentCaseLabels: false
-AccessModifierOffset: -2
-ColumnLimit: 100
-SortIncludes: false
-AlwaysBreakAfterDefinitionReturnType: TopLevel
-IndentPPDirectives: BeforeHash
-...
+version https://git-lfs.github.com/spec/v1
+oid sha256:e7f20ac6a0eded3dcbde5c826000670c4e4ccff464fb078e241634c980b2d60a
+size 368

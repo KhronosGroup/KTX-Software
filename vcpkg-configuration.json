@@ -1,17 +1,3 @@
-{
-  "default-registry": {
-    "kind": "git",
-    "baseline": "0cb95c860ea83aafc1b24350510b30dec535989a",
-    "repository": "https://github.com/microsoft/vcpkg"
-  },
-  "registries": [
-    {
-      "kind": "artifact",
-      "location": "https://aka.ms/vcpkg-ce-default",
-      "name": "microsoft"
-    }
-  ],
-  "overlay-triplets": [
-    "./vcpkg-triplets"
-  ]
-}
+version https://git-lfs.github.com/spec/v1
+oid sha256:1375a02691c24dcc5f47e89b1f919ee88583c9b9b5ce090fc7cb628cd0c16667
+size 358

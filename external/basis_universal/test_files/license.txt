@@ -1,1 +1,3 @@
-The test images in the "test_files" directory are not required to build or use the Basis Universal codec. They are not copyrighted or owned by Binomial LLC.
+version https://git-lfs.github.com/spec/v1
+oid sha256:ab629dda52792438f61e7b49fdaf7efc7dbad5b6cdf500097763fdccbc2ab337
+size 157

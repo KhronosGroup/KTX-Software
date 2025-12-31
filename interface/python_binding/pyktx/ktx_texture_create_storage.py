@@ -1,15 +1,3 @@
-# Copyright (c) 2023, Shukant Pal and Contributors
-# SPDX-License-Identifier: Apache-2.0
-
-from enum import IntEnum
-
-
-class KtxTextureCreateStorage(IntEnum):
-    """Enum for requesting, or not, allocation of storage for images."""
-
-    NO = 0
-    """Don't allocate any image storage."""
-
-    ALLOC = 1
-    """Allocate image storage."""
-
+version https://git-lfs.github.com/spec/v1
+oid sha256:c184135836fec2eed3b31e093f1618de1e4b95ad655960a6a3c88515d332d0df
+size 336

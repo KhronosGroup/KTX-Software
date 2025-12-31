@@ -1,7 +1,3 @@
-# Copyright 2015-2020 The Khronos Group Inc.
-# SPDX-License-Identifier: Apache-2.0
-
-# include(CMakeFindDependencyMacro)
-# find_dependency()
-
-include("${CMAKE_CURRENT_LIST_DIR}/KtxTargets.cmake")
+version https://git-lfs.github.com/spec/v1
+oid sha256:8449c8ca65a1c5a14abfa017f89bd5f50c6b10d53f4f0c1ad57e8841a69f5eca
+size 195

@@ -1,26 +1,3 @@
-#! /usr/bin/env bash
-# Copyright 2023 The Khronos Group Inc.
-# SPDX-License-Identifier: Apache-2.0
-
-# Smudge all files with proper $Date$ values.
-
-# Exit if any command fails.
-set -e
-
-# Make sure we're in the repo root
-cd $(dirname $0)/..
-
-
-target_files=(pkgdoc/pages.md
-    lib/libktx_mainpage.md
-    tools/ktxtools_mainpage.md
-    interface/js_binding/ktx_wrapper.cpp
-)
-
-#for file in "${target_files[@]}"; do
-#  rm $file
-#  git checkout $file
-#done
-rm "${target_files[@]}"
-git checkout  "${target_files[@]}"
-
+version https://git-lfs.github.com/spec/v1
+oid sha256:45192ab0715ee06473d2dc4ec8c7e65f0173df7ccc876589979759253cd887f3
+size 511

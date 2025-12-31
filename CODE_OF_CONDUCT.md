@@ -1,4 +1,3 @@
-Copyright 2013-2020 Mark Callow
-SPDX-License-Identifier: Apache-2.0
-
-A reminder that this issue tracker is managed by the Khronos Group. Interactions here should follow the Khronos Code of Conduct (https://www.khronos.org/developers/code-of-conduct), which prohibits aggressive or derogatory language. Please keep the discussion friendly and civil.
+version https://git-lfs.github.com/spec/v1
+oid sha256:a4eb61922f44243c501726ee0b056110f5de966daafd984f3a563c3064d36871
+size 349

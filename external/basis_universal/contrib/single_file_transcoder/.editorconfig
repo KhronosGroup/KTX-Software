@@ -1,4 +1,3 @@
-[*]
-insert_final_newline = true
-indent_style = tab
-indent_size = 4
+version https://git-lfs.github.com/spec/v1
+oid sha256:caa1f37ef9fc186dc55124a6b64a981f92cc22243d25132f3153b37e374c6b75
+size 67

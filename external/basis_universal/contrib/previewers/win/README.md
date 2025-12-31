@@ -1,7 +1,3 @@
-# Windows Previewers for Basis Universal
-
-Build using Visual Studio from 2012 onwards. Enable from an Administrator console using `regsvr32 previewers.dll` (and remove using `regsvr32 /u previewers.dll`).
-
-![Icon and preview pane](preview.png)
-
-Work-in-progress. Prebuilt signed version and installer coming soon. Mac version to follow.
+version https://git-lfs.github.com/spec/v1
+oid sha256:817cae518ae1a78a3911876703363fb5f767252e872912b6986f82a63d14c09c
+size 337

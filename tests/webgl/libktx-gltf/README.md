@@ -1,12 +1,3 @@
-## Not functional. Under Development.
-
-## Credits
-
-Based on BasisU gltf sample.
-
-* Contributors:
-  * [Don McCurdy](https://www.donmccurdy.com)
-  * [Austin Eng](https://github.com/austinEng)
-  * [Shrek Shao](https://github.com/shrekshao)
-  * [Mark Callow](https://github.com/MarkCallow)
-* Made with [three.js](https://threejs.org/).
+version https://git-lfs.github.com/spec/v1
+oid sha256:c12efd238a17f62567aa7ebd0eaece890bd475ba2a1a34ca83deb75580a01f19
+size 332

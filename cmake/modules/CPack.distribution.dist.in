@@ -1,15 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
-    Copyright 2020 Andreas Atteneder
-    SPDX-License-Identifier: Apache-2.0
--->
-<installer-gui-script minSpecVersion="1.0">
-    <title>KTX-Software</title>
-    <welcome file="@CPACK_RESOURCE_FILE_WELCOME_NOPATH@"/>
-    <readme file="@CPACK_RESOURCE_FILE_README_NOPATH@"/>
-    <license file="@CPACK_RESOURCE_FILE_LICENSE_NOPATH@"/>
-    <domains enable_localSystem="true"/>
-    <options allow-external-scripts="no" customize="allow" rootVolumeOnly="true"/>
-    @CPACK_PACKAGEMAKER_CHOICES@
-    <conclusion file="summary.html" mime-type="text/html"/>
-</installer-gui-script>
+version https://git-lfs.github.com/spec/v1
+oid sha256:e17c177a09737c9149940d75a202a1273acb1f5ce3838c144feda2b2133432a0
+size 617

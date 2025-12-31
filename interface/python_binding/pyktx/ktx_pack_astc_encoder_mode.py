@@ -1,17 +1,3 @@
-# Copyright (c) 2023, Shukant Pal and Contributors
-# SPDX-License-Identifier: Apache-2.0
-
-from enum import IntEnum
-
-
-class KtxPackAstcEncoderMode(IntEnum):
-    """
-    Options specifying ASTC encoder profile mode.
-
-    This and function is used later to derive the profile.
-    """
-
-    DEFAULT = 0
-    LDR = 1
-    HDR = 2
-    MAX = HDR
+version https://git-lfs.github.com/spec/v1
+oid sha256:f6c7e13f380590cbc8b4baefe6b485489b99a512eb619fb3de81da5cf8468076
+size 337

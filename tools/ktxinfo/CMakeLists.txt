@@ -1,25 +1,3 @@
-# Copyright 2017-2020 The Khronos Group Inc.
-# SPDX-License-Identifier: Apache-2.0
-
-add_executable( ktxinfo
-    ktxinfo.cpp
-)
-create_version_header( tools/ktxinfo ktxinfo )
-
-target_include_directories(
-    ktxinfo
-PRIVATE
-    .
-    $<TARGET_PROPERTY:ktx,INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:objUtil,INTERFACE_INCLUDE_DIRECTORIES>
-    ${PROJECT_SOURCE_DIR}/lib
-)
-
-target_link_libraries(
-    ktxinfo
-    ktx
-    objUtil
-)
-
-set_tool_properties(ktxinfo)
-set_code_sign(ktxinfo)
+version https://git-lfs.github.com/spec/v1
+oid sha256:e03a19d970b6e54255ceb00756168b000e25a4c6c4e61b5887fb766f5d30bf65
+size 479

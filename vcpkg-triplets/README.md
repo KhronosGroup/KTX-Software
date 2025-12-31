@@ -1,12 +1,3 @@
-<!-- Copyright 2024, The Khronos Group Inc. -->
-<!-- SPDX-License-Identifier: Apache-2.0 -->
-
-vcpkg Triplets
-==============
-
-These are necessary to get vcpkg to build the dependencies with the same
-deployment target as the KTX applications and library. When changing either
-deployment target in `../CMakeLists.txt` you must make the same change to the
-`*ios*` or `*osx*` files here.
-
-See https://github.com/microsoft/vcpkg/issues/39981.
+version https://git-lfs.github.com/spec/v1
+oid sha256:90f83d8d79a93a25246cbc5514b2443b0e7e59cda60d3253a47bb7f190bb6b38
+size 437

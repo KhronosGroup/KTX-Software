@@ -1,12 +1,3 @@
-#if defined(_WIN32)
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
-#endif
-
-#ifdef _MSC_VER
-#pragma warning (disable:4530) //  warning C4530: C++ exception handler used, but unwind semantics are not enabled. Specify /EHsc
-#endif
-
-#define TINYEXR_IMPLEMENTATION
-#include "tinyexr.h"
+version https://git-lfs.github.com/spec/v1
+oid sha256:79d256d0b53b9b2fcd944c9cc0729282a56f83d651737b4073f7c5fa5ddfa3ea
+size 275

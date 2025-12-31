@@ -1,2 +1,3 @@
-# WORKSPACE marker file needed by Bazel
-
+version https://git-lfs.github.com/spec/v1
+oid sha256:98c583b3c14422a9dd80aad060c0043f15e40ed73ccf40d8f5c19eb0130ab458
+size 41

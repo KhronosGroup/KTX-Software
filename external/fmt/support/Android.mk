@@ -1,15 +1,3 @@
-LOCAL_PATH := $(call my-dir)
-include $(CLEAR_VARS)
-
-LOCAL_MODULE := fmt_static
-LOCAL_MODULE_FILENAME := libfmt
-
-LOCAL_SRC_FILES := ../src/format.cc
-
-LOCAL_C_INCLUDES := $(LOCAL_PATH)
-LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)
-
-LOCAL_CFLAGS += -std=c++11 -fexceptions
-
-include $(BUILD_STATIC_LIBRARY)
-
+version https://git-lfs.github.com/spec/v1
+oid sha256:3bed3cd78eda81bab8836b2ba69da50e88a1781760fb4219a35236bb34b58e6f
+size 299

@@ -1,5 +1,3 @@
-// This file is only provided for compatibility and may be removed in future
-// versions. Use fmt/base.h if you don't need fmt::format and fmt/format.h
-// otherwise.
-
-#include "format.h"
+version https://git-lfs.github.com/spec/v1
+oid sha256:b2b6692145b11c7c2774db106078c97575a47d18e80c7783c68566475325ebb4
+size 187

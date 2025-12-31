@@ -1,10 +1,3 @@
-# Copyright (c) 2023, Shukant Pal and Contributors
-# SPDX-License-Identifier: Apache-2.0
-
-include buildscript.py
-include pyktx/ktx_texture.c
-include pyktx/ktx_texture1.c
-include pyktx/ktx_texture2.c
-include pyktx/ktx_texture.h
-include pyktx/ktx_texture1.h
-include pyktx/ktx_texture2.h
+version https://git-lfs.github.com/spec/v1
+oid sha256:a2822a2b31342098925a8598307f3a162307d7972cc10b5ddb7b0198dcb16463
+size 285

@@ -1,21 +1,3 @@
-#! /bin/zsh
-# Copyright 2019-2020 The Khronos Group, Inc.
-# SPDX-License-Identifier: Apache-2.0
-
-if [ "$EUID" -ne 0 ]
-  then echo "Please run as root to uninstall KTX-Software" >&2
-  exit -1
-fi
-
-cd /
-for pkg in $(pkgutil --pkgs='com.khronos.ktx.*')
-do
-    # pkgutil's --only-files shows only regular files. There are symbolic
-    # links we need to deal with.
-    pkgutil --files $pkg | xargs -n 1 sh -c 'if [ -f $0 -o -L $0 ]; then rm $0; fi'
-    # Deal with doc/KTX-Software
-    pkgutil --only-dirs --files $pkg | xargs -n 1 sh -c 'if [ -d $0 -a $(basename $0) = "KTX-Software" ]; then rm -rf $0; fi'
-
-    pkgutil --forget $pkg
-done
-
+version https://git-lfs.github.com/spec/v1
+oid sha256:1c7620dcddc6a15274e4d6680003bc5b0466259c400522d909e5dc57866cca2c
+size 636

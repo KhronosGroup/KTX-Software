@@ -1,6 +1,3 @@
-posx.jpg
-negx.jpg
-posy.jpg
-negy.jpg
-posz.jpg
-negz.jpg
+version https://git-lfs.github.com/spec/v1
+oid sha256:f044e2599f0138e3ef66fc9c3de1ca977bf20b83a163c769b5e36305e67701a0
+size 54

@@ -1,12 +1,3 @@
-; DO NOT EDIT (unless you know what you are doing)
-;
-; This subdirectory is a git "subrepo", and this file is maintained by the
-; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
-;
-[subrepo]
-	remote = https://github.com/fmtlib/fmt.git
-	branch = 2dd4fa8742fdac36468f8d8ea3e06e78215551f8
-	commit = 40626af88bd7df9a5fb80be7b25ac85b122d6c21
-	parent = 443e122381d2cc9e4ee608ef0b0d2e7bbbbf9a22
-	method = merge
-	cmdver = 0.4.9
+version https://git-lfs.github.com/spec/v1
+oid sha256:fecb3324ff4cf906564f8774d83cd7e9d5dcfb6598232dea289d91c05fdafab7
+size 445

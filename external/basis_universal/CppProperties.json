@@ -1,21 +1,3 @@
-{
-  "configurations": [
-    {
-      "inheritEnvironments": [
-        "msvc_x64"
-      ],
-      "name": "x64-Release",
-      "includePath": [
-        "${env.INCLUDE}",
-        "${workspaceRoot}\\**"
-      ],
-      "defines": [
-        "WIN32",
-        "NDEBUG",
-        "UNICODE",
-        "_UNICODE"
-      ],
-      "intelliSenseMode": "windows-msvc-x64"
-    }
-  ]
-}
+version https://git-lfs.github.com/spec/v1
+oid sha256:d811d10d747b451a4b7fba056e82108fa606a326976ca752ae4a66e61ef65398
+size 365

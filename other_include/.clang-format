@@ -1,7 +1,3 @@
-# Copyright 2024 The Khronos Group Inc.
-# SPDX-License-Identifier: Apache-2.0
----
-# Disable clang-format in this directory
-DisableFormat: true
-SortIncludes: false
-...
+version https://git-lfs.github.com/spec/v1
+oid sha256:4c884644fdbb555219888b6a383ef6877525d793d7d19cd7196400727fee93d8
+size 167

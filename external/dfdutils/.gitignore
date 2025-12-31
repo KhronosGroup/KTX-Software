@@ -1,8 +1,3 @@
-# Copyright 2019-2020 The Khronos Group Inc.
-# SPDX-License-Identifier: Apache-2.0
-
-# Build output
-out
-
-# User generated project files.
-build
+version https://git-lfs.github.com/spec/v1
+oid sha256:039bbde60eb742a5f1946cd973b4de7e379e6927bd23d4c1c62cd96a4e87eb07
+size 142

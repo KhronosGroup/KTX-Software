@@ -1,11 +1,3 @@
-#! /bin/bash
-# Copyright 2016-2020 Mark Callow
-# SPDX-License-Identifier: Apache-2.0
-
-# Smudge driver for the kwexpander filter for expanding keywords. Currently
-# only $Date$ is supported.
-#
-# See CONTRIBUTING.md for usage information.
-
-last_date=$(git log --pretty=format:"%ad" -1 HEAD -- "$1")
-sed -e 's/\$Date.*\$/\$Date: '"$last_date"' \$'/
+version https://git-lfs.github.com/spec/v1
+oid sha256:1eac6b4c669320a86615a048ce1f34152ed43bf67803702c51c438624f682404
+size 346

@@ -1,7 +1,3 @@
-module(
-   name = "fmt",
-   compatibility_level = 10,
-)
-
-bazel_dep(name = "platforms", version = "0.0.11")
-bazel_dep(name = "rules_cc", version = "0.1.1")
+version https://git-lfs.github.com/spec/v1
+oid sha256:e9f2bb24c3d918ccc5a39769bb9cbed2ddd9052dd68050c58f68c6f88458eac1
+size 155

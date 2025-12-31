@@ -1,12 +1,3 @@
-<!-- Copyright 2025 Mark Callow -->
-<!-- SPDX-License-Identifier: Apache-2.0 -->
-
-SDL_gesture.h
--------------
-
-The Gesture API was removed from SDL3. As a migration path they provided an equivalent single-header library `SDL_gesture.h` that can be dropped into an SDL3-based project.
-
-They do not make formal releases of this code; they say "just grab the latest and drop it into your project!"
-
-The origin of this file is fork https://github.com/MarkCallow/SDL_gesture.git whose upstream is
-https://github.com/libsdl-org/SDL_gesture. It includes modifications for robustness to prevent production of spurious GESTURE\_MULTIGESTURE events. 
+version https://git-lfs.github.com/spec/v1
+oid sha256:8ae2774c8905caa0b61f6a0789c1348a62af541e50812ae8d75d37db3618d095
+size 641

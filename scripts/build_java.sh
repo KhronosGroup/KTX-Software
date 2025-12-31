@@ -1,12 +1,3 @@
-#!/bin/bash
-# Copyright 2021 Shukant Pal
-# SPDX-License-Identifier: Apache-2.0
-
-echo "Build Java bindings for KTX-Software"
-echo "LIBKTX_BINARY_DIR " $LIBKTX_BINARY_DIR
-
-build_libktx_java_dir=interface/java_binding
-
-pushd $build_libktx_java_dir
-LIBKTX_BINARY_DIR=$LIBKTX_BINARY_DIR mvn package
-popd
+version https://git-lfs.github.com/spec/v1
+oid sha256:fdaed835283433dc231fcc61501bf0eccb984dd1c70dbc129eaca8080d43bfae
+size 299

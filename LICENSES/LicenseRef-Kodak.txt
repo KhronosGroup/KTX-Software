@@ -1,7 +1,3 @@
-This LICENSES file applies to images from the Kodak Lossless True Color
-Image Suite, and exists only for REUSE compliance. According to
-http://r0k.us/graphics/kodak/ , for such images:
-
-"It is my understanding they have been released by the Eastman Kodak Company
-for unrestricted usage. Many sites use them as a standard test suite for
-compression testing, etc."
+version https://git-lfs.github.com/spec/v1
+oid sha256:1dd8d9721d8f047dc1e4c6fe261a5bd70df7262289c44b1cdd962c1d9b54f984
+size 363
