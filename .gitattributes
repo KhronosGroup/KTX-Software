@@ -61,6 +61,11 @@ tests/loadtests/shader-based/*.c ident
 **/*.framework/[Vv]ersions/[A-Za-z]/* filter=lfs -text
 # Large images. Well they're not all large but trying to put
 # only the truly large ones in LFS is too fragile.
+tests/resources/**/*.exr filter=lfs -text
+tests/resources/**/*.ktx filter=lfs -text
+tests/resources/**/*.ktx2 filter=lfs -text
+tests/resources/**/*.jpg filter=lfs -text
+tests/resources/**/*.png filter=lfs -text
 tests/testimages/*.ktx filter=lfs -text
 tests/testimages/*.ktx2 filter=lfs -text
 tests/srcimages/**/*.jpg filter=lfs -text
