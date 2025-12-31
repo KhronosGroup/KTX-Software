@@ -254,7 +254,6 @@ GTEST_API_ int main(int argc, char* argv[]) {
         // Trailing / so path will be handled as directory.
         //goldenPath = resourcesPath / u8"golden/threadtests/";
         ktx2Path = resourcesPath / u8"input/ktx2/";
-        //pngPath = resourcesPath / u8"input/png/";
 
         auto checkPath = [](const fs::path path) {
             std::error_code ec;

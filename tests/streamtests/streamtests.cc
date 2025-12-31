@@ -23,12 +23,13 @@ constexpr const char8_t SAMPLE_KTX1[] = u8"pattern_02_bc2.ktx";
 constexpr const char8_t SAMPLE_KTX2[] = u8"pattern_02_bc2.ktx2";
 
 namespace fs = std::filesystem;
-fs::path testImagesPath;
+fs::path ktxPath;
+fs::path ktx2Path;
 
-std::unique_ptr<std::streambuf> testImageFilebuf(std::u8string name)
+std::unique_ptr<std::streambuf> testImageFilebuf(fs::path& path, const std::u8string& name)
 {
     fs::path imagePath;
-    imagePath = testImagesPath / name;
+    imagePath = path / name;
     
     auto filebuf = std::make_unique<std::filebuf>();
     filebuf->open(imagePath, std::ios::in | std::ios::binary);
@@ -202,10 +203,10 @@ class ktxStreamTest : public ::testing::Test
 protected:
     void SetUp() override
     {
-        _ktx1Streambuf = testImageFilebuf(SAMPLE_KTX1);
+        _ktx1Streambuf = testImageFilebuf(ktxPath, SAMPLE_KTX1);
         ASSERT_TRUE(_ktx1Streambuf) << "Could not load sample KTX1";
 
-        _ktx2Streambuf = testImageFilebuf(SAMPLE_KTX2);
+        _ktx2Streambuf = testImageFilebuf(ktx2Path, SAMPLE_KTX2);
         ASSERT_TRUE(_ktx2Streambuf) << "Could not load sample KTX2";
     }
 
@@ -462,26 +463,29 @@ int main(int argc, char **argv)
     {
         if (argc != 2)
         {
-            std::cerr << "Usage: " << argv[0] << " <test images path>\n";
+            std::cerr << "Usage: " << argv[0] << " <test resources path>\n";
             return -1;
         }
 
+        fs::path resourcesPath;
         std::vector<std::u8string> u8argv;
         InitUTF8CLI(argc, argv, u8argv);
-        testImagesPath = u8argv[1];
-        testImagesPath /= "";  // Ensure trailing / so path will be handled as a directory.
+        resourcesPath = u8argv[1];
+        resourcesPath /= "";  // Ensure trailing / so path will be handled as a directory.
 
         std::error_code ec;
-        auto stat = fs::status(testImagesPath, ec);
+        auto stat = fs::status(resourcesPath, ec);
         if (!fs::exists(stat)) {
             std::cerr << format("{} does not exist.\n",
-                                from_u8string(testImagesPath.u8string()));
+                                from_u8string(resourcesPath.u8string()));
             return -2;
         } else if (!std::filesystem::is_directory(stat)) {
             std::cerr << format("{} is not a directory.\n",
-                                from_u8string(testImagesPath.u8string()));
+                                from_u8string(resourcesPath.u8string()));
             return -3;
         }
+        ktxPath = resourcesPath / u8"input/ktx/";
+        ktx2Path = resourcesPath / u8"input/ktx2/";
     }
 
     return RUN_ALL_TESTS();

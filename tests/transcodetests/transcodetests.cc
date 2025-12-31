@@ -30,20 +30,20 @@ extern "C" {
 using namespace std;
 namespace fs = std::filesystem;
 
-fs::path image_path;
+fs::path basisResources, ktxResources;
 
 namespace {
 
 typedef struct {
-    string ktxPath;
-    string basisuPath;
+    string ktxFile;
+    string basisuFile;
     bool isPo2;
     bool hasAlpha;
 } TextureSet;
 
 std::ostream& operator<<(std::ostream& out, const TextureSet& h)
 {
-     return out << h.ktxPath;
+     return out << h.ktxFile;
 }
 
 typedef struct {
@@ -122,7 +122,7 @@ void test_texture_set( TextureSet & textureSet, FormatFeature & format ) {
     void * basisData = nullptr;
     unsigned long basisSize = 0;
     
-    fs::path path = image_path / textureSet.basisuPath;
+    fs::path path = basisResources / textureSet.basisuFile;
     bool read_success = read_file(path, &basisData, &basisSize);
 
     ASSERT_TRUE(read_success) << "Could not open or read texture file " << path;
@@ -158,7 +158,7 @@ void test_texture_set( TextureSet & textureSet, FormatFeature & format ) {
     void * data = 0; // = 0 to silence over-enthusiastic gcc 11 warning.
     unsigned long fsize;
 
-    path.replace_filename(textureSet.ktxPath);
+    path = ktxResources / textureSet.ktxFile;
     read_success = read_file(path, &data, &fsize);
 
     ASSERT_TRUE(read_success) << "Could not open texture file " << path;
@@ -209,28 +209,30 @@ TEST_P(TextureCombinationsTest, Basic) {
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
 
-    if(!::testing::FLAGS_gtest_list_tests) {
-        if(argc!=2) {
-            cerr << "Usage: " << argv[0] << " <test images path>\n";
+    if (!::testing::FLAGS_gtest_list_tests) {
+        if (argc != 2) {
+            cerr << "Usage: " << argv[0] << " <test resources path>\n";
             return -1;
         }
 
+        fs::path resourcesPath;
         std::vector<std::u8string> u8argv;
         InitUTF8CLI(argc, argv, u8argv);
-        image_path = u8argv[1];
-        image_path /= "";  // Ensure trailing / so path will be handled as a directory.
+        resourcesPath = u8argv[1];
+        resourcesPath /= "";  // Ensure trailing / so path will be handled as a directory.
 
         std::error_code ec;
-        auto stat = fs::status(image_path, ec);
+        auto stat = fs::status(resourcesPath, ec);
         if (!fs::exists(stat)) {
-            std::cerr << format("{} does not exist.\n",
-                                from_u8string(image_path.u8string()));
+            std::cerr << format("{} does not exist.\n", from_u8string(resourcesPath.u8string()));
             return -2;
         } else if (!std::filesystem::is_directory(stat)) {
             std::cerr << format("{} is not a directory.\n",
-                                from_u8string(image_path.u8string()));
+                                from_u8string(resourcesPath.u8string()));
             return -3;
         }
+        ktxResources = resourcesPath / u8"input/ktx2/";
+        basisResources = resourcesPath / u8"input/basis/";
     }
 
     ktx_basisu_basis_init();
