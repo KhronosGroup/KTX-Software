@@ -197,3 +197,4 @@ tests/clitests/golden/images/**/*.exr filter=lfs -text
 /tools/package/mac/ktx-uninstall filter=lfs diff=lfs merge=lfs -text
 *.pkgproj filter=lfs diff=lfs merge=lfs -text
 /tests/resources/genktx2 filter=lfs diff=lfs merge=lfs -text
+/tests/resources/genbasis filter=lfs diff=lfs merge=lfs -text
