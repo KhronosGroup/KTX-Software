@@ -10,6 +10,7 @@
 #include <vector>
 #include <iostream>
 #include "utility.h"
+#include "platform_utils.h"
 
 #include <cxxopts.hpp>
 #include <fmt/ostream.h>
@@ -317,6 +318,72 @@ struct OptionsMultiInSingleOut {
         opts.positional_help("<input-file...> <output-file>");
     }
 
+    void loadFileList(const std::string &f, bool relativize,
+                      std::vector<std::string>& files,
+                      Reporter& report) {
+        std::string listName(f);
+        listName.erase(0, relativize ? 2 : 1);
+
+        FILE *lf = nullptr;
+        lf = fopenUTF8(listName, "r");
+        if (!lf) {
+            report.fatal(rc::RUNTIME_ERROR, "Opening filename list: \"{}\" failed: {}\n",
+                         listName.c_str(), strerror(errno));
+        }
+
+        std::string dirname;
+
+        if (relativize) {
+            size_t dirnameEnd = listName.find_last_of('/');
+            if (dirnameEnd == std::string::npos) {
+                relativize = false;
+            } else {
+                dirname = listName.substr(0, dirnameEnd + 1);
+            }
+        }
+
+        for (;;) {
+            // Cross platform PATH_MAX def is too much trouble!
+            char buf[4096];
+            buf[0] = '\0';
+
+            char *p = fgets(buf, sizeof(buf), lf);
+            if (!p) {
+              if (ferror(lf)) {
+                report.fatal(rc::RUNTIME_ERROR, "Reading filename list: \"{}\" failed: {}\n",
+                             listName.c_str(), strerror(errno));
+                fclose(lf);
+              } else
+                break;
+            }
+
+            std::string readFilename(p);
+            while (readFilename.size()) {
+                if (readFilename[0] == ' ')
+                  readFilename.erase(0, 1);
+                else
+                  break;
+            }
+
+            while (readFilename.size()) {
+                const char c = readFilename.back();
+                if ((c == ' ') || (c == '\n') || (c == '\r'))
+                  readFilename.erase(readFilename.size() - 1, 1);
+                else
+                  break;
+            }
+
+            if (readFilename.size()) {
+                if (relativize)
+                    files.push_back(dirname + readFilename);
+                else
+                    files.push_back(readFilename);
+            }
+        }
+        fclose(lf);
+
+    }
+
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
         std::vector<std::string> files;
         if (args.count("stdin"))
@@ -334,7 +401,15 @@ struct OptionsMultiInSingleOut {
 
         outputFilepath = std::move(files.back());
         files.pop_back();
-        inputFilepaths = std::move(files);
+        std::vector<std::string>::const_iterator fit;
+        for (fit = files.begin(); fit < files.end(); fit++) {
+            if (fit[0][0] == '@') {
+                loadFileList(*fit, fit[0][1] == '@', inputFilepaths, report);
+            } else {
+                inputFilepaths.push_back(std::move(*fit));
+            }
+        }
+        //inputFilepaths = std::move(files);
 
         if (std::count(inputFilepaths.begin(), inputFilepaths.end(), "-") > 1)
             report.fatal_usage("'-' or --stdin as input file was specified more than once.");
@@ -393,6 +468,9 @@ protected:
 
 public:
     OutputStream(const std::string& filepath, Reporter& report);
+#if defined(__cpp_lib_char8_t)
+    OutputStream(const std::u8string& filepath, Reporter& report);
+#endif
     ~OutputStream();
 
     const std::string& str() {
