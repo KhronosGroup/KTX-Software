@@ -1,3 +1,89 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:59861707658fa975de3828a3b1cb28a55c9d4200baefd56add676ab2669515f1
-size 1026
+/// @ref gtx_scalar_relational
+/// @file glm/gtx/scalar_relational.inl
+
+namespace glm
+{
+	template<typename T>
+	GLM_FUNC_QUALIFIER bool lessThan
+	(
+		T const & x, 
+		T const & y
+	)
+	{
+		return x < y;
+	}
+
+	template<typename T>
+	GLM_FUNC_QUALIFIER bool lessThanEqual
+	(
+		T const & x, 
+		T const & y
+	)
+	{
+		return x <= y;
+	}
+
+	template<typename T>
+	GLM_FUNC_QUALIFIER bool greaterThan
+	(
+		T const & x, 
+		T const & y
+	)
+	{
+		return x > y;
+	}
+
+	template<typename T>
+	GLM_FUNC_QUALIFIER bool greaterThanEqual
+	(
+		T const & x, 
+		T const & y
+	)
+	{
+		return x >= y;
+	}
+
+	template<typename T>
+	GLM_FUNC_QUALIFIER bool equal
+	(
+		T const & x, 
+		T const & y
+	)
+	{
+		return x == y;
+	}
+
+	template<typename T>
+	GLM_FUNC_QUALIFIER bool notEqual
+	(
+		T const & x, 
+		T const & y
+	)
+	{
+		return x != y;
+	}
+
+	GLM_FUNC_QUALIFIER bool any
+	(
+		bool const & x
+	)
+	{
+		return x;
+	}
+
+	GLM_FUNC_QUALIFIER bool all
+	(
+		bool const & x
+	)
+	{
+		return x;
+	}
+
+	GLM_FUNC_QUALIFIER bool not_
+	(
+		bool const & x
+	)
+	{
+		return !x;
+	}
+}//namespace glm

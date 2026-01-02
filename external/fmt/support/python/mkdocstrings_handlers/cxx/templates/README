@@ -1,3 +1,1 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:791eb3f2079575cab5a1b6d39594f977f5e616e0f16339f53b64362fbb182e14
-size 64
+mkdocsstrings requires a handler to have a templates directory.

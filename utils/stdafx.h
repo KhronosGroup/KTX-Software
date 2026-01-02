@@ -1,3 +1,28 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:26c830834d695743f8ec61e057e0bcb6e31da71a0f2ca4d7faea4df95b50619a
-size 528
+// Copyright 2010-2020 The Khronos Group Inc.
+// SPDX-License-Identifier: Apache-2.0
+
+// stdafx.h
+
+#pragma once
+
+#if defined(_WIN32)
+  // _CRT_SECURE_NO_WARNINGS must be defined before <windows.h>,
+  // <stdio.h> and and <iostream>
+  #define _CRT_SECURE_NO_WARNINGS
+#endif
+
+#include <assert.h>
+#include <stdio.h>
+#ifdef _WIN32
+  #include <io.h>
+  #if _MSC_VER < 1900
+    #define snprintf _snprintf
+  #endif
+#else
+  #include <unistd.h>
+  #define _setmode(x, y) 0
+#endif
+
+#include <fcntl.h>
+#include <errno.h>
+#include <string.h>

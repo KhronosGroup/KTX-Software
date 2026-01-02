@@ -1,3 +1,38 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:8328c6a6079726f967066761e55b70dcd077b47ea1945ef688db7a10851fa026
-size 1092
+{
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "$id": "https://schema.khronos.org/ktx/validate_v0.json",
+    "type": "object",
+    "required": [
+        "valid",
+        "messages"
+    ],
+    "properties": {
+        "valid": { "type": "boolean" },
+        "messages": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "type",
+                    "message",
+                    "details"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                    "id": { "type": "integer" },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "fatal",
+                            "error",
+                            "warning"
+                        ]
+                    },
+                    "message": { "type": "string" },
+                    "details": { "type": "string" }
+                }
+            }
+        }
+    }
+}

@@ -1,3 +1,21 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:b820fbdad31032b01df92c0c7b7c6bdc6af189837e600e69e28220c5f68b6734
-size 230
+*.a
+*.so*
+*.xcodeproj
+*~
+.vscode/
+.vs/
+/CMakeScripts
+/Testing
+/_CPack_Packages
+/install_manifest.txt
+CMakeCache.txt
+CMakeFiles
+CPack*.cmake
+CTestTestfile.cmake
+FMT.build
+Makefile
+bin/
+build/
+cmake_install.cmake
+fmt-*.cmake
+fmt.pc

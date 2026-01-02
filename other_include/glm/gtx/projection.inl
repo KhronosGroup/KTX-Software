@@ -1,3 +1,11 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:ff1ff1c4e41a802b5a52dc931468847a012d7b9ab8d8978e2f5d00a621156620
-size 267
+/// @ref gtx_projection
+/// @file glm/gtx/projection.inl
+
+namespace glm
+{
+	template<typename vecType>
+	GLM_FUNC_QUALIFIER vecType proj(vecType const & x, vecType const & Normal)
+	{
+		return glm::dot(x, Normal) / glm::dot(Normal, Normal) * Normal;
+	}
+}//namespace glm

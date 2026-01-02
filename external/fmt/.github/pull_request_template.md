@@ -1,3 +1,7 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:4547e593fddf1cd9df97eb380f41a27176afac43cacd3cf793274e0fb8c4d6f6
-size 305
+<!--
+Please read the contribution guidelines before submitting a pull request:
+https://github.com/fmtlib/fmt/blob/master/CONTRIBUTING.md.
+By submitting this pull request, you agree to license your contribution(s)
+under the terms outlined in LICENSE.rst and represent that you have the right
+to do so.
+-->

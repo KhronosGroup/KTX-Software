@@ -1,3 +1,11 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:55c84f3900a7f502deb8dd4ac458f9bb846a82b2367eabe36fd42ebf2075f291
-size 391
+// Copyright (c) 2018-2020 The Khronos Group Inc.
+//
+// SPDX-License-Identifier: Apache-2.0
+
+= Code of Conduct
+
+A reminder that this issue tracker is managed by the Khronos Group.
+Interactions here should follow the
+https://www.khronos.org/developers/code-of-conduct[Khronos Code of Conduct],
+which prohibits aggressive or derogatory language. Please keep the
+discussion friendly and civil.

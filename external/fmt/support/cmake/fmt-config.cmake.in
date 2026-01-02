@@ -1,3 +1,7 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:a7e7ed7e1d21b05b7ba76d8ed6b2d286ef7771fe03dd1d946ece665a35c413fd
-size 147
+@PACKAGE_INIT@
+
+if (NOT TARGET fmt::fmt)
+  include(${CMAKE_CURRENT_LIST_DIR}/@targets_export_name@.cmake)
+endif ()
+
+check_required_components(fmt)

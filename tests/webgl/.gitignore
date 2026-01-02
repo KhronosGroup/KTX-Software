@@ -1,3 +1,9 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:06d605d3e49a22c8dadabf73b7c63d0f543a6465fed1df6793777329ea337ba4
-size 183
+# Copyright 2020 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+libktx.js
+libktx.wasm
+libktx_read.js
+libktx_read.wasm
+msc_basis_transcoder.js
+msc_basis_transcoder.wasm

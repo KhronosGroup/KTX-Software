@@ -1,3 +1,206 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:c01cace87146d3dcb29cc44aa4e091cfae809bbe5a4f9783cc336881a05773d1
-size 7550
+# Copyright 2025 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+name: Web CI
+
+# Seems no way to avoid duplicating this on logic in each .yml file.
+# See https://github.com/actions/starter-workflows/issues/245.
+on:
+  # Trigger the workflow on a pull request,
+  pull_request:
+
+  push:
+    # And on pushes to main, which will occur when a PR is merged.
+    branches:
+      - main
+    # Also trigger on push of release tags to any branch. Useful
+    # for testing release builds before merging to main.
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-*'
+    paths-ignore:
+      - .appveyor.yml
+      - .github/workflows/android.yml
+      - .github/workflows/check-libktx-only.yml
+      - .github/workflows/check-mkvk.yml
+      - .github/workflows/check-reuse.yml
+      - .github/workflows/docs.yml
+      - .github/workflows/formatting.yml
+      - .github/workflows/macos.yml
+      - .github/workflows/linux.yml
+      - .github/workflows/mingw.yml
+      - .github/workflows/publish-pyktx.yml
+      - .github/workflows/manual.yml
+      - .github/workflows/windows.yml
+      - .travis.yml
+      - README.md
+      - CODE_OF_CONDUCT.md
+      - CONTRIBUTING.md
+      - LICENSE.md
+      - LICENSES
+      - RELEASE_NOTES.md
+      - REUSE.toml
+      - install-gitconfig*
+  # Allow manual trigger
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  #formatting:
+  #  uses: ./.github/workflows/formatting.yml
+  web:
+    permissions:
+      contents: write
+    # Shortcircuit and don't burn CI time when formatting will reject
+    #needs: formatting
+    strategy:
+      matrix:
+        include:
+        - name: Debug
+          os: ubuntu-22.04
+          generator: Ninja
+          arch: x86_64
+          compiler: clang
+          vulkan_sdk_version: '1.3.290'
+          options: {
+            config: Debug,
+            doc: OFF, jni: OFF, loadtests: OpenGL, py: OFF, tools: OFF, tools_cts: OFF,
+            sse: OFF, opencl: OFF, wasm: ON
+          }
+        - name: Package
+          os: ubuntu-22.04
+          generator: Ninja
+          arch: x86_64
+          compiler: clang
+          vulkan_sdk_version: '1.3.290'
+          options: {
+            config: Release,
+            doc: OFF, jni: OFF, loadtests: OpenGL, py: OFF, tools: OFF, tools_cts: OFF,
+            package: YES, sse: OFF, opencl: OFF, wasm: ON
+          }
+
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    env:
+      # To avoid bandwidth charges skip downloading source and golden images
+      # for texturetests etc., loadtests and legacy tool tests. They will be
+      # pulled later as necessary
+      GIT_LFS_SKIP_SMUDGE: 1
+
+      BUILD_DIR: build
+      REL_DESC_FILE: "build/rel_desc.md"
+
+      # Map test matrix elements to environmental variables, so that scripts launched from CI scripts may react to them.
+      # Some matrix variables have defaults if unspecified by the matrix
+      CMAKE_GEN: ${{ matrix.generator }}
+      ARCH: ${{ matrix.arch }}
+      CONFIGURATION: ${{ matrix.options.config }}
+      PLATFORM: ${{ matrix.options.platform }}
+      FEATURE_DOC: ${{ matrix.options.doc }}
+      FEATURE_JNI: ${{ matrix.options.jni }}
+      FEATURE_LOADTESTS: ${{ matrix.options.loadtests }}
+      FEATURE_PY: ${{ matrix.options.py }}
+      FEATURE_TESTS: ${{ matrix.options.tests && matrix.options.tests || 'OFF' }}
+      FEATURE_TOOLS: ${{ matrix.options.tools }}
+      FEATURE_TOOLS_CTS: ${{ matrix.options.tools_cts }}
+      PACKAGE: ${{ matrix.options.package && matrix.options.package || 'NO' }}
+      SUPPORT_OPENCL: ${{ matrix.options.opencl }}
+      SUPPORT_SSE: ${{ matrix.options.sse }}
+      WASM_BUILD: ${{ matrix.options.wasm && matrix.options.wasm || 'OFF' }}
+      WERROR: ${{ matrix.options.werror && matrix.options.werror || 'ON' }}
+      # CC Handled by job step
+      # CXX Handled by job step
+
+      PYTHON_DIST_DIR: interface/python_binding/dist
+
+      VULKAN_SDK_VERSION: ${{ matrix.vulkan_sdk_version }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Fetch all history to make sure tags are
+          # included (used for version creation)
+          fetch-depth: 0
+
+      - name: Set compiler
+        if: matrix.compiler
+        run: |
+          if [ "${{ matrix.compiler }}" = "gcc" ]; then
+            echo "CC=gcc" >> $GITHUB_ENV
+            echo "CXX=g++" >> $GITHUB_ENV
+          elif [ "${{ matrix.compiler }}" = "clang" ]; then
+            echo "CC=clang" >> $GITHUB_ENV
+            echo "CXX=clang++" >> $GITHUB_ENV
+          else
+            echo "Unknown compiler toolchain set"
+            exit 1
+          fi
+
+      - name: Force fetch provoking tag's annotation.
+        # Work around https://github.com/actions/checkout/issues/290.
+        if: github.ref_type == 'tag' && matrix.check_mkvk != 'ONLY'
+        run: git fetch -f origin ${{ github.ref }}:${{ github.ref }}
+
+      - name: before_install
+        run: |
+          echo -n "Running on the following GitHub Actions CI runner: " && uname -a
+          echo -n "CMake version on the runner is " && cmake --version
+          # Set uid/gid. Without it all commands are run by the default
+          # docker user root (0), and, in the Linux version of the Docker
+          # engine /src will be owned by the user running this workflow
+          # (usually 1001). This results in `git` commands within the build
+          # script failing with
+          #
+          #    "fatal: detected dubious ownership in repository at '/src'."
+          #
+          # This is due to the fix for CVE-2022-24765. See
+          # https://github.blog/2022-04-12-git-security-vulnerability-announced/
+          # The build script uses `git describe` to create version numbers.
+          #
+          # Also with the Linux version of the Docker engine, all products of
+          # the build in $BUILD_DIR are owned by root unless uid/gid is set.
+          #
+          docker run -dit --name emscripten --user "$(id -u):$(id -g)" -v $(pwd):/src emscripten/emsdk bash
+
+      - name: before_script
+        run: |
+          if [ "$FEATURE_TOOLS_CTS" = "ON" ]; then
+            git submodule update --init --recursive tests/cts
+          fi
+          if [ "$FEATURE_TESTS" = "ON" ]; then
+            git lfs pull --include=tests/srcimages,tests/testimage
+          fi
+          # Make sure embedded dates are correct.
+          ./install-gitconfig.sh
+          scripts/smudge_date.sh
+
+      - name: script
+        run: |
+          ./scripts/build_wasm_docker.sh
+
+      - name: Prepare KTX artifacts
+        if: matrix.options.package == 'YES'
+        id: ktx-version
+        run: |
+          KTX_VERSION=`cat $BUILD_DIR/ktx.version`
+          echo "PACKAGE_NAME_SUFFIX=${KTX_VERSION}-Web" >> $GITHUB_ENV
+
+      # For these artifact uploads, need to take care that only one CLangCL
+      # "package" job for each architecture produces artifacts. A second
+      # job would attempt to upload a same-named artifact.
+      - name: Upload artifact Install Package
+        if: matrix.options.package == 'YES'
+        uses: actions/upload-artifact@v4
+        with:
+          name: KTX-Software-${{env.PACKAGE_NAME_SUFFIX}}
+          path: ${{env.BUILD_DIR}}/KTX-Software-*-*
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        if: matrix.options.package == 'YES' && github.event_name == 'push' && github.ref_type == 'tag'
+        with:
+          draft: true
+          prerelease: true
+          files: |
+              ${{env.BUILD_DIR}}/KTX-Software-*-*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

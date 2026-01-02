@@ -1,3 +1,10 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:7d1c0040e597e420182bf8efc6be527022abc9167f59c1173b5f6d35cb19bbec
-size 292
+# Copyright 2024, The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+set(VCPKG_TARGET_ARCHITECTURE arm64)
+set(VCPKG_CRT_LINKAGE dynamic)
+set(VCPKG_LIBRARY_LINKAGE static)
+
+set(VCPKG_CMAKE_SYSTEM_NAME Darwin)
+set(VCPKG_OSX_ARCHITECTURES arm64)
+set(VCPKG_OSX_DEPLOYMENT_TARGET 11.0)

@@ -1,3 +1,2 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:2276280f83050f2c5992e9201c495c4eb7e9fffd93bf530bb0ae47df6d88e496
-size 55
+# Don't commit the generated files
+basisu_transcoder.*

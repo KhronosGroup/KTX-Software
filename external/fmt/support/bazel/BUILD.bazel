@@ -1,3 +1,22 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:9dfefc28a98a1c9f6d317ed0ddca8049154c5b08b9dc3195a4d00a9c07873415
-size 541
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+cc_library(
+    name = "fmt",
+    srcs = [
+        #"src/fmt.cc", # No C++ module support, yet in Bazel (https://github.com/bazelbuild/bazel/pull/19940)
+        "src/format.cc",
+        "src/os.cc",
+    ],
+    hdrs = glob([
+        "include/fmt/*.h",
+    ]),
+    copts = select({
+        "@platforms//os:windows": ["-utf-8"],
+        "//conditions:default": [],
+    }),
+    includes = [
+        "include",
+    ],
+    strip_include_prefix = "include",
+    visibility = ["//visibility:public"],
+)

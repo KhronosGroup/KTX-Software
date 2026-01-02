@@ -1,3 +1,348 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:57fb343340a14fce10d76d2e6f1b27ac199c01276352d047e45206a0d24a40b1
-size 13733
+# Copyright 2025 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+name: Linux CI
+
+# Seems no way to avoid duplicating this on logic in each .yml file.
+# See https://github.com/actions/starter-workflows/issues/245.
+on:
+  # Trigger the workflow on a pull request,
+  pull_request:
+
+  push:
+    # And on pushes to main, which will occur when a PR is merged.
+    branches:
+      - main
+    # Also trigger on push of release tags to any branch. Useful
+    # for testing release builds before merging to main.
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-*'
+    paths-ignore:
+      - .appveyor.yml
+      - .github/workflows/android.yml
+      - .github/workflows/check-libktx-only.yml
+      - .github/workflows/check-mkvk.yml
+      - .github/workflows/docs.yml
+      - .github/workflows/formatting.yml
+      - .github/workflows/mingw.yml
+      - .github/workflows/macos.yml
+      - .github/workflows/publish-pyktx.yml
+      - .github/workflows/manual.yml
+      - .github/workflows/web.yml
+      - .github/workflows/windows.yml
+      - .travis.yml
+      - README.md
+      - CODE_OF_CONDUCT.md
+      - CONTRIBUTING.md
+      - LICENSE.md
+      - LICENSES
+      - RELEASE_NOTES.md
+      - REUSE.toml
+      - install-gitconfig*
+  # Allow manual trigger
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  #formatting:
+  #  uses: ./.github/workflows/formatting.yml
+  linux:
+    permissions:
+      packages: write
+      contents: write
+    # Shortcircuit and don't burn CI time when formatting will reject
+    #needs: formatting
+    strategy:
+      matrix:
+        include:
+        - name: Default
+          os: ubuntu-latest
+          generator: Ninja
+          arch: x86_64
+          compiler: gcc
+          vk_sdk_ver: '1.4.313'
+          options: {
+            config: Debug,
+            doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tools: ON, tools_cts: ON,
+            sse: ON, opencl: OFF
+          }
+        - name: Clang
+          os: ubuntu-latest
+          generator: Ninja Multi-Config
+          arch: x86_64
+          compiler: clang
+          vk_sdk_ver: '1.4.313'
+          options: {
+            config: 'Debug,Release',
+            doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tools: ON, tools_cts: OFF,
+            sse: ON, opencl: OFF
+          }
+        - name: Package (x86_64)
+          os: ubuntu-22.04
+          generator: Ninja
+          arch: x86_64
+          compiler: gcc
+          vk_sdk_ver: '1.4.313'
+          #vcpkg_install_options: --debug
+          options: {
+            config: Release,
+            doc: ON, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tools: ON, tools_cts: ON,
+            package: YES, sse: ON, opencl: OFF
+          }
+        - name: Package (aarch64)
+          os: ubuntu-22.04-arm
+          generator: Ninja
+          arch: aarch64
+          compiler: gcc
+          vk_sdk_ver: '1.4.313'
+          #vcpkg_install_options: --debug
+          options: {
+            config: Release,
+            doc: ON, jni: ON, loadtests: OpenGL, py: ON, tools: ON, tools_cts: ON,
+            package: YES, sse: OFF, opencl: OFF
+          }
+        # Can't run OpenCL on Actions because the runner CPU reports as
+        # "generic" so POCL (the only OpenCL CPU driver) can't figure out
+        # which code to use. Disable tests, just check building.
+        - name: OpenCL,SSE
+          os: ubuntu-22.04
+          generator: Ninja
+          arch: x86_64
+          compiler: gcc
+          vk_sdk_ver: '1.4.313'
+          options: {
+            config: Release,
+            doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tests: OFF, tools: OFF,
+            tools_cts: OFF, sse: ON, opencl: ON
+          }
+        - name: OpenCL
+          os: ubuntu-22.04
+          generator: Ninja
+          arch: x86_64
+          compiler: gcc
+          vk_sdk_ver: '1.4.313'
+          options: {
+            config: Release,
+            doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tests: OFF, tools: OFF,
+            tools_cts: OFF, sse: OFF, opencl: ON
+          }
+        - name: All OFF
+          os: ubuntu-22.04
+          generator: Ninja
+          arch: x86_64
+          compiler: gcc
+          vk_sdk_ver: '1.4.313'
+          options: {
+            config: Release,
+            doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tools: OFF, tools_cts: OFF,
+            sse: OFF, opencl: OFF
+          }
+
+    name: ${{ matrix.name && matrix.name || format('{0} SSE,OpenCL:{1},{2}', matrix.os, matrix.options.sse, matrix.options.opencl) }}
+    runs-on: ${{ matrix.os }}
+    env:
+      # To avoid bandwidth charges skip downloading source and golden images
+      # for texturetests etc., loadtests and legacy tool tests. They will be
+      # pulled later as necessary
+      GIT_LFS_SKIP_SMUDGE: 1
+
+      BUILD_DIR: build
+      REL_DESC_FILE: "build/rel_desc.md"
+
+      # Map test matrix elements to environmental variables, so that scripts launched from CI scripts may react to them.
+      # Some matrix variables have defaults if unspecified by the matrix
+      CMAKE_GEN: ${{ matrix.generator }}
+      ARCH: ${{ matrix.arch }}
+      CONFIGURATION: ${{ matrix.options.config }}
+      PLATFORM: ${{ matrix.options.platform }}
+      FEATURE_DOC: ${{ matrix.options.doc }}
+      FEATURE_JNI: ${{ matrix.options.jni }}
+      FEATURE_LOADTESTS: ${{ matrix.options.loadtests }}
+      FEATURE_PY: ${{ matrix.options.py }}
+      FEATURE_TESTS: ${{ matrix.options.tests && matrix.options.tests || 'ON' }}
+      FEATURE_TOOLS: ${{ matrix.options.tools }}
+      FEATURE_TOOLS_CTS: ${{ matrix.options.tools_cts }}
+      PACKAGE: ${{ matrix.options.package && matrix.options.package || 'NO' }}
+      SUPPORT_OPENCL: ${{ matrix.options.opencl && matrix.options.opencl || 'OFF' }}
+      SUPPORT_SSE: ${{ matrix.options.sse && matrix.options.sse || 'OFF' }}
+      PY_USE_VENV: ${{ matrix.options.py.use_venv && matrix.options.py_use_venv || 'OFF' }}
+      WERROR: ${{ matrix.options.werror && matrix.options.werror || 'ON' }}
+      # CC Handled by job step
+      # CXX Handled by job step
+
+      PYTHON_DIST_DIR: interface/python_binding/dist
+
+      VCPKG_INSTALL_OPTIONS: ${{ matrix.vcpkg_install_options && matrix.vcpkg_install_options || '' }}
+
+      VULKAN_SDK_VER: ${{ matrix.vk_sdk_ver }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Fetch all history to make sure tags are
+          # included (used for version creation)
+          fetch-depth: 0
+
+      - name: Set compiler
+        if: matrix.compiler
+        run: |
+          if [ "${{ matrix.compiler }}" = "gcc" ]; then
+            echo "CC=gcc" >> $GITHUB_ENV
+            echo "CXX=g++" >> $GITHUB_ENV
+          elif [ "${{ matrix.compiler }}" = "clang" ]; then
+            echo "CC=clang" >> $GITHUB_ENV
+            echo "CXX=clang++" >> $GITHUB_ENV
+          else
+            echo "Unknown compiler toolchain set"
+            exit 1
+          fi
+
+      - name: Force fetch provoking tag's annotation.
+        # Work around https://github.com/actions/checkout/issues/290.
+        if: github.ref_type == 'tag' && matrix.check_mkvk != 'ONLY'
+        run: git fetch -f origin ${{ github.ref }}:${{ github.ref }}
+
+      - name: before_install
+        run: |
+          echo -n "Running on the following GitHub Actions CI runner: " && uname -a
+          echo -n "CMake version on the runner is " && cmake --version
+          sudo apt-get update
+
+      - name: install
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME_17_X64" >> $GITHUB_ENV
+          ./scripts/install_linux.sh
+
+      - name: Install libldtl and mono
+        if: matrix.options.loadtests != 'OFF' && (matrix.os == 'ubuntu-24.04' || matrix.os == 'ubuntu-latest')
+        # These packages were omitted from ubuntu-24.04 for some reason.
+        # libldtl is needed by libxcrypt which is needed by vcpkg.
+        # mono is needed for adding NuGet sources for caching.
+        run: sudo apt-get install mono-complete libltdl-dev
+
+      # Should a specific version of Python ever be wanted, use this.
+#      - name: Set up Python
+#        if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
+#        uses: actions/setup-python@v5
+#        with:
+#          python-version: '3.13'
+
+      # If the selected Python does not have virtualenv installed, use this.
+      #
+      # Note that the builds, via sdist and wheel, require a virtual env.
+      # regardless of whether the in-use Python is externally managed.
+      # Installing the explicit dependencies of pyktx only needs virtualenv
+      # and PY_USE_VENV: ON when Python is externally managed.
+#      - name: Install Python virtualenv
+#        if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
+#        run: pip install virtualenv
+
+      - name: before_script
+        run: |
+          if [ "$FEATURE_TOOLS_CTS" = "ON" ]; then
+            git submodule update --init --recursive tests/cts
+          fi
+          if [ "$FEATURE_TESTS" = "ON" ]; then
+            git lfs pull --include=tests/srcimages,tests/testimage
+          fi
+          # Make sure embedded dates are correct.
+          ./install-gitconfig.sh
+          scripts/smudge_date.sh
+
+      - name: Export environment variables for vcpkg binary caching
+        if: matrix.options.loadtests != 'OFF'
+        # actions/github-script is used primarily because it is the only
+        # way to access VCPKG_INSTALLATION_ROOT outside of the runner's shell.
+        # Maintaining cross-platform access is desirable so the code can be
+        # easily copied to a multi-platform workflow. NUGET_FEED_URL is set
+        # here to keep the vcpkg cache environment variables together.
+        uses: actions/github-script@v7
+        with:
+          # JSON in use here. #<comments> in the script will break it.
+          # Pre-installed vcpkg location is indicated by a non-standard env.
+          # var.
+          script: |
+            core.exportVariable('VCPKG_ROOT', process.env.VCPKG_INSTALLATION_ROOT || '');
+            core.exportVariable('VCPKG_EXE', process.env.VCPKG_INSTALLATION_ROOT + '/vcpkg' || '');
+            core.exportVariable('NUGET_FEED_URL', 'https://nuget.pkg.github.com/KhronosGroup/index.json' || '');
+
+      - name: Overwrite /usr/bin/mono
+        # nuget downloaded by vcpkg fetch on aarch64 is a shell script. This
+        # prevents vcpkg from trying and failing, to run it in mono. This is
+        # my ugliest hack in 45 years of software development.
+        if: matrix.options.loadtests != 'OFF' && matrix.arch == 'aarch64'
+        run: sudo sh -c "mv /usr/bin/mono /usr/bin/mono-real && echo '#! /usr/bin/env bash\nif [ \"\$1\" = \"/usr/bin/nuget\" ]; then \$*; else /usr/bin/mono-real \$*; fi' > /usr/bin/mono && chmod 755 /usr/bin/mono"
+
+      - name: Add NuGet sources for vcpkg binary caching
+        if: matrix.options.loadtests != 'OFF'
+        env:
+          USERNAME: KhronosGroup
+        shell: bash
+        # `vcpkg fetch nuget` fetches nuget and outputs the location of
+        # the fetched command. It is a .exe that runs in the mono VM.
+        run: |
+          mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
+            sources add \
+            -Source "${{ env.NUGET_FEED_URL }}" \
+            -StorePasswordInClearText \
+            -Name GitHubPackages \
+            -UserName "${{ env.USERNAME }}" \
+            -Password "${{ secrets.GITHUB_TOKEN }}"
+          mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
+            setapikey "${{ secrets.GITHUB_TOKEN }}" \
+            -Source "${{ env.NUGET_FEED_URL }}"
+
+      - name: script
+        env:
+          VCPKG_BINARY_SOURCES: clear;nuget,${{ env.NUGET_FEED_URL }},readwrite
+        run: |
+          ./scripts/build_linux.sh
+
+      - name: Sanitize release notes
+        if: matrix.options.package == 'YES' && github.event_name == 'push' && github.ref_type == 'tag'
+        run: |
+          if [ ! -f $REL_DESC_FILE -a -f RELEASE_NOTES.md ]; then
+            # Remove lines that are unnecessary in the context of a GitHub
+            # release description.
+            awk '/^Release Notes/,/^## Version/ { next }
+                 ! /<!-- Copyright/ && ! /<!-- SPDX/ { print }' RELEASE_NOTES.md \
+            > $REL_DESC_FILE
+          fi
+
+      - name: Prepare KTX artifacts
+        if: matrix.options.package == 'YES'
+        id: ktx-version
+        run: |
+          KTX_VERSION=`cat $BUILD_DIR/ktx.version`
+          echo "PACKAGE_NAME_SUFFIX=${KTX_VERSION}-${{runner.os}}-${{matrix.arch}}" >> $GITHUB_ENV
+
+      # For these artifact uploads, need to take care that only one CLangCL
+      # "package" job for each architecture produces artifacts. A second
+      # job would attempt to upload a same-named artifact.
+      - name: Upload artifact Install Package
+        if: matrix.options.package == 'YES'
+        uses: actions/upload-artifact@v4
+        with:
+          name: KTX-Software-${{env.PACKAGE_NAME_SUFFIX}}
+          path: ${{env.BUILD_DIR}}/KTX-Software-*-*
+          compression-level: 0 # Installer already compressed.
+
+      - name: Upload artifact pyktx
+        if: matrix.options.package == 'YES' && matrix.options.py == 'ON'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pyktx-${{env.PACKAGE_NAME_SUFFIX}}
+          path: ${{env.BUILD_DIR}}/${{env.PYTHON_DIST_DIR}}
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        if: matrix.options.package == 'YES' && github.event_name == 'push' && github.ref_type == 'tag'
+        with:
+          draft: true
+          prerelease: true
+          files: |
+              ${{env.BUILD_DIR}}/KTX-Software-*-*
+              ${{env.BUILD_DIR}}/${{env.PYTHON_DIST_DIR}}/pyktx-*
+          body_path: ${{env.REL_DESC_FILE}}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

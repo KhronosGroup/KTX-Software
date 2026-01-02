@@ -1,3 +1,19 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:0ced94d49eb7bdcc087185735494c0a1f6e33bea558d4d6152c282d3afbba0aa
-size 305
+/// @ref core
+/// @file glm/detail/type_half.hpp
+
+#pragma once
+
+#include "setup.hpp"
+
+namespace glm{
+namespace detail
+{
+	typedef short hdata;
+
+	GLM_FUNC_DECL float toFloat32(hdata value);
+	GLM_FUNC_DECL hdata toFloat16(float const & value);
+
+}//namespace detail
+}//namespace glm
+
+#include "type_half.inl"

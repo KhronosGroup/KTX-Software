@@ -1,3 +1,12 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:520bcd47188aad00ac5db87cb6f1d266d1ca63d74f0330649231d6db920cd479
-size 434
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/KhronosGroup/basis_universal.git
+	branch = cmake_fixes
+	commit = daf79c6ee7343f547d29c36d180331a73300607b
+	parent = d5787860a2a47e8ecc79f437566c0d62cc5cebee
+	method = merge
+	cmdver = 0.4.9

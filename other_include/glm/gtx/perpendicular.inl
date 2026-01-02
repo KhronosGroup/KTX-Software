@@ -1,3 +1,15 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:44140c31caaace85b8b48c1a5b28527b8d6e04a3023e3ca94bfeb0282146c32d
-size 248
+/// @ref gtx_perpendicular
+/// @file glm/gtx/perpendicular.inl
+
+namespace glm
+{
+	template<typename vecType> 
+	GLM_FUNC_QUALIFIER vecType perp
+	(
+		vecType const & x, 
+		vecType const & Normal
+	)
+	{
+		return x - proj(x, Normal);
+	}
+}//namespace glm

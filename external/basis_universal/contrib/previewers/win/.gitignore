@@ -1,3 +1,13 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:6e116a90737b94d9ee6eea80142cb6e3c06b67cc7b9a4443ba0800f00fb11f43
-size 135
+# Windows intermediate files
+bin/x86/
+bin/x64/
+
+# VS project files
+*.vcxproj.user
+.vs/
+*.VC.db
+*.VC.opendb
+*.sdf
+*.suo
+*.opensdf
+*.aps

@@ -1,3 +1,9 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:b0ea04d7bb0b74447685272530faab4a90013c14294c4a4ec6da09c4df1ffd55
-size 295
+# Copyright (c) 2023, Shukant Pal and Contributors
+# SPDX-License-Identifier: Apache-2.0
+
+from pathlib import Path
+import os
+
+__test_images__ = os.environ['KTX_IMAGES_DIR'] \
+    if 'KTX_IMAGES_DIR' in os.environ \
+    else str((Path(__file__) / Path('../../../../tests/testimages')).resolve())

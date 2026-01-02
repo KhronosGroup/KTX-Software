@@ -1,3 +1,8 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:eb6e2fa51f0714e71b81e75c79020fcd1519579ab8c297042c1867cfd1427360
-size 239
+# Copyright 2022-2023 The Khronos Group Inc.
+# Copyright 2022-2023 RasterGrid Kft.
+# SPDX-License-Identifier: Apache-2.0
+
+[submodule "tests/cts"]
+	path = tests/cts
+	url = https://github.com/KhronosGroup/KTX-Software-CTS.git
+	branch = main

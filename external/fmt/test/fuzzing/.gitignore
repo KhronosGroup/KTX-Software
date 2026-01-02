@@ -1,3 +1,3 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:ee7c3240dcf16788b92c9f7642171be381a8d63184dd45c14024c867de728f99
-size 54
+# ignore artifacts from the build.sh script
+build-*/
+

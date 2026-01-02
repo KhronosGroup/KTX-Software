@@ -1,3 +1,8 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:bf7f9d19d65e5743f3822a376ca3ef4fe71634db457af1fee1ec3c0ff2ff8e2a
-size 261
+# Copyright 2023 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+# Add [include] of repo's .gitconfig in clone's .git/config.
+# This only needs to be run once.
+
+git config --local include.path ..\.gitconfig
+echo 'Git config was successfully set.'

@@ -1,3 +1,24 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:c88246cecae11b3d23e9c9b8703fbbaeb6f0821957b95b7dd3f3ea5b47677934
-size 616
+name: 📊 Static Checks
+on: [push, pull_request]
+
+concurrency:
+  group: ci-${{ github.actor }}-${{ github.head_ref || github.run_number }}-${{ github.ref }}-static
+
+jobs:
+  static-checks:
+    name: Code style and file formatting
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Install Python dependencies and general setup
+        run: |
+          git config diff.wsErrorHighlight all
+
+      - name: Style checks via pre-commit
+        uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --all-files

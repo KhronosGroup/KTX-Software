@@ -1,3 +1,78 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:aebb5151fec366c990cb403c6704e2b45686bf3c5868ea1f1423dfad6dcfa5c5
-size 1729
+# Copyright 2019-2020 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+# CI build script for Travis.
+# See https://docs.travis-ci.com/user/multi-os/ for more info.
+
+language: cpp
+
+matrix:
+  include:
+    - os: linux
+      addons:
+      dist: focal
+      env:
+        - VULKAN_SDK_VER="1.2.176"
+      compiler: gcc # clang is tested by macOS build
+    - os: osx
+      env:
+        - VULKAN_SDK_VER="1.2.176.1"
+        - VULKAN_INSTALL_DIR="$HOME/build/vulkansdk-macos-$VULKAN_SDK_VER"
+        - VULKAN_SDK="$VULKAN_INSTALL_DIR/macOS"
+      compiler: clang
+      osx_image: xcode13.2
+
+#env:
+  #global:
+
+# Phase 1: Git clone - done automatically.
+# Phase 2: Install apt addons.
+# Phase 3: Install cache components - Currently not using a cache
+# then the following phases:
+before_install:
+
+install:
+- |
+  case "${TRAVIS_OS_NAME:-linux}" in
+  linux)
+    # No need to install git-lfs. It is part of Travis's Ubuntu environment.
+    sudo apt-get -qq update &&
+    sudo apt-get -qq install doxygen &&
+    pip3 install reuse
+    ;;
+  osx)
+    brew install doxygen
+    ;;
+  esac
+#- pushd ../..
+#- git clone https://github.com/msc-/gyp
+#- cd gyp && sudo ./setup.py install && cd ..
+#- popd
+
+before_script:
+
+script:
+- |
+  case "${TRAVIS_OS_NAME:-linux}" in
+  linux)
+    reuse lint &&
+    make
+    ;;
+  osx)
+    make
+    ;;
+    esac
+
+# Errors in something run in after_success: don't cause the build to fail so don't use.
+
+deploy:
+  provider: pages
+  edge: true # Use bleeding edge (dplv2)
+  github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
+  local-dir: out/doc/html
+  on:
+    branch: master
+    condition: $TRAVIS_OS_NAME = osx
+    #tags: true
+
+# vim:ai:ts=4:sts=2:sw=2:expandtab

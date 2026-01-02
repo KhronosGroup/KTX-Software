@@ -1,3 +1,385 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:015ce4dc5ea0713cdbcd13b7b55bc021a2adafba5ddae1d94c372fa7d0a5141e
-size 11982
+name: post-weekly-release
+run-name: Build, test, generate signed artifacts and optionally prepare release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    tags:
+      - '*'
+  schedule:
+    - cron: '17 2 * * 1'
+
+jobs:
+
+  coverity:
+    if: ${{ (!startsWith(github.event.ref, 'refs/tags/')) && (github.repository_owner == 'Arm-software') }}
+    name: Run Coverity static analysis
+    runs-on: [self-hosted-ubuntu-latest-x64]
+    steps:
+      - name: Clean workspace
+        uses: AutoModality/action-clean@v1
+
+      - name: Git checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+
+      - name: Coverity preparation
+        run: |
+          export PATH=$PATH:/usr/local/cov-analysis/bin
+          mkdir build_cov
+          cd build_cov
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_ISA_AVX2=ON ..
+          cov-configure --config ${GITHUB_WORKSPACE}/coverity.conf --template --compiler cc --comptype gcc
+          cov-configure --config ${GITHUB_WORKSPACE}/coverity.conf --template --compiler c++ --comptype g++
+
+      - name: Coverity build
+        run: |
+          export PATH=$PATH:/usr/local/cov-analysis/bin
+          cd build_cov
+          cov-build --config ${GITHUB_WORKSPACE}/coverity.conf --dir ${GITHUB_WORKSPACE}/intermediate make install
+
+      - name: Coverity analyze
+        run: |
+          export PATH=$PATH:/usr/local/cov-analysis/bin
+          cd build_cov
+          cov-analyze --dir ${GITHUB_WORKSPACE}/intermediate
+
+      - name: Coverity upload
+        env:
+          COVERITY_KEY: ${{ secrets.COVERITY_KEY }}
+        run: |
+          export PATH=$PATH:/usr/local/cov-analysis/bin
+          echo "${COVERITY_KEY}" > coverity.key
+          chmod 400 coverity.key
+          cd build_cov
+          cov-commit-defects \
+            --dir ${GITHUB_WORKSPACE}/intermediate \
+            --stream astcenc-master \
+            --url https://coverity.cambridge.arm.com \
+            --auth-key-file ../coverity.key \
+            --strip-path ${GITHUB_WORKSPACE}
+
+  build-ubuntu-arm64:
+    name: Ubuntu arm64
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+
+      - name: Update apt packages
+        run: sudo apt-get update
+
+      - name: Install ImageMagick
+        run: sudo apt-get install imagemagick
+
+      - name: Build release
+        run: |
+          export CXX=clang++
+          mkdir build_rel
+          cd build_rel
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_ISA_NEON=ON -DASTCENC_ISA_SVE_128=ON -DASTCENC_ISA_SVE_256=ON -DASTCENC_PACKAGE=arm64 ..
+          make install package -j4
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: astcenc-linux-arm64
+          path: |
+            build_rel/*.zip
+            build_rel/*.zip.sha256
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Get Python modules
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy Pillow
+
+      - name: Run system tests
+        # Disable SVE testing for now
+        run: |
+          python ./Test/astc_test_functional.py --encoder neon
+          python ./Test/astc_test_image.py --encoder neon --test-set Small
+
+  build-ubuntu-x64:
+    name: Ubuntu x64
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+
+      - name: Build release
+        run: |
+          export CXX=clang++
+          mkdir build_rel
+          cd build_rel
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_PACKAGE=x64 ..
+          make install package -j4
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: astcenc-linux-x86_64
+          path: |
+            build_rel/*.zip
+            build_rel/*.zip.sha256
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Get Python modules
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy Pillow
+
+      - name: Run system tests
+        run: |
+          python ./Test/astc_test_functional.py
+          python ./Test/astc_test_image.py --encoder all-x86 --test-set Small
+
+  build-macos-universal:
+    name: macOS universal
+    runs-on: macos-14
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+
+      - name: Build release
+        run: |
+          mkdir build_rel
+          cd build_rel
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_PACKAGE=universal ..
+          make install package -j4
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: astcenc-macos-universal
+          path: |
+            build_rel/*.zip
+            build_rel/*.zip.sha256
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Get Python modules
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy Pillow
+
+      - name: Run system tests
+        run: |
+          python ./Test/astc_test_image.py --test-set Small --encoder universal
+
+  build-windows-multi:
+    name: Windows multi
+    runs-on: windows-2022
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+
+      - name: Setup Visual Studio x86_64
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Build release x64
+        run: |
+          mkdir build_rel
+          cd build_rel
+          cmake -G "Visual Studio 17 2022" -T ClangCL -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_PACKAGE=x64 ..
+          msbuild astcencoder.sln -property:Configuration=Release
+          msbuild PACKAGE.vcxproj -property:Configuration=Release
+          msbuild INSTALL.vcxproj -property:Configuration=Release
+        shell: cmd
+
+      - name: Setup Visual Studio arm64
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x86_arm64
+
+      - name: Build release arm64
+        run: |
+          mkdir build_rel_arm64
+          cd build_rel_arm64
+          cmake -G "Visual Studio 17 2022" -A ARM64 -T ClangCL -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_ISA_NEON=ON -DASTCENC_PACKAGE=arm64 ..
+          msbuild astcencoder.sln -property:Configuration=Release
+          msbuild PACKAGE.vcxproj -property:Configuration=Release
+          msbuild INSTALL.vcxproj -property:Configuration=Release
+        shell: cmd
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: astcenc-windows-multi-cl
+          path: |
+            build_rel/*.zip
+            build_rel/*.zip.sha256
+            build_rel_arm64/*.zip
+            build_rel_arm64/*.zip.sha256
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Get Python modules
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy Pillow
+        shell: cmd
+
+      - name: Run system tests
+        run: |
+          python ./Test/astc_test_image.py --test-set Small
+        shell: cmd
+
+  sign-binaries:
+    if: github.repository_owner == 'Arm-software'
+    name: Sign Windows and macOS
+    runs-on: [self-hosted-ubuntu-latest-x64]
+    needs: [build-macos-universal, build-windows-multi]
+    steps:
+      - name: Clean workspace
+        uses: AutoModality/action-clean@v1
+
+      - name: Checkout signing code
+        env:
+          SIGNING_REPO_URL: ${{ secrets.SIGNING_REPO_URL }}
+        run: |
+          git clone --depth 1 ${SIGNING_REPO_URL}
+
+      - name: Install code sign v2 client
+        env:
+          ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_USER }}
+          ARTIFACTORY_APIKEY: ${{ secrets.ARTIFACTORY_APIKEY }}
+          ARTIFACTORY_FQDN: ${{ secrets.ARTIFACTORY_FQDN }}
+        run: |
+          python3.11 -m venv cs
+          . ./cs/bin/activate
+          pip install -i https://${ARTIFACTORY_USER}:${ARTIFACTORY_APIKEY}@${ARTIFACTORY_FQDN}/artifactory/api/pypi/dsgcore.pypi/simple code-signer-client
+
+      - name: Download macOS binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: astcenc-macos-universal
+          path: mac
+
+      - name: Download Windows binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: astcenc-windows-multi-cl
+          path: windows
+
+      - name: Sign macOS binaries
+        env:
+          CODESIGNER_USER: ${{ secrets.CODESIGNER_USER }}
+        run: |
+          . ./cs/bin/activate
+          cd mac
+          python3 ${GITHUB_WORKSPACE}/signing/macos-client-wrapper.py ${CODESIGNER_USER} *.zip
+
+      - name: Sign Windows binaries
+        env:
+          ARTIFACTORY_APIKEY: ${{ secrets.ARTIFACTORY_APIKEY }}
+        run: |
+          . ./cs/bin/activate
+          cd windows
+          for FILENAME in */*; do mv ${FILENAME} .; done
+          for ZIPFILE in *.zip; do python3 ../signing/windows-client-wrapper.py -b ${GITHUB_RUN_NUMBER} -t ${ARTIFACTORY_APIKEY} ${ZIPFILE}; done
+
+      - name: Upload signed binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: signed-binaries
+          path: |
+            windows/*
+            mac/*
+
+      - name: Tidy intermediate artifacts
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: |
+            astcenc-windows-multi-cl
+            astcenc-macos-universal
+
+  prepare-release:
+    if: ${{ (startsWith(github.event.ref, 'refs/tags/')) && (github.repository_owner == 'Arm-software') }}
+    name: Prepare release
+    runs-on: ubuntu-22.04
+    needs: [sign-binaries, build-ubuntu-x64]
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v4
+
+      - name: Download signed binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: signed-binaries
+          path: prepare-release
+
+      - name: Download Linux x86_64 binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: astcenc-linux-x86_64
+          path: prepare-release
+
+      - name: Download Linux arm64 binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: astcenc-linux-arm64
+          path: prepare-release
+
+      - name: Flatten file structure
+        run: |
+          cd prepare-release
+          for FILENAME in */*; do mv ${FILENAME} .; done
+          rmdir windows
+          rmdir mac
+
+      - name: Create checksum file
+        run: |
+          cd prepare-release
+          cat *.sha256 > release-sha256.txt
+          rm *.sha256
+
+      - name: Create release body
+        run: |
+          export STATUS_DATE=$(date "+%B %Y")
+          GITHUB_REF=${{ github.ref }} ; export RELEASE_VERSION=${GITHUB_REF##*/}
+          export SHA_CHECKSUMS=$(cat prepare-release/release-sha256.txt)
+          envsubst < .github/workflows/release_body_template.md > prepare-release/release_body.md
+
+      - name: Create release
+        id: create_release
+        uses: comnoco/create-release-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          body_path: prepare-release/release_body.md
+          draft: true
+
+      - name: Attach artifacts
+        uses: AButler/upload-release-assets@v3.0
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          release-id: ${{ steps.create_release.outputs.id }}
+          files: "prepare-release/astcenc-*-*-*.zip;prepare-release/release-sha256.txt"

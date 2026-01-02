@@ -1,3 +1,39 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:8dbd50fcbb2a283b42f4af4f2a942a5e75b30ff02dc0db9cab69c7814ec36985
-size 1210
+version = 1
+SPDX-PackageName = "basis_universal"
+SPDX-PackageDownloadLocation = "https://github.com/BinomialLLC/basis_universal"
+
+[[annotations]]
+path = "**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = ["2019-2024 Binomial LLC", "2016 The Android Open Source Project"]
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "OpenCL/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2008-2020 The Khronos Group Inc."
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "zstd/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2016-present Facebook, Inc."
+SPDX-License-Identifier = "BSD-3-Clause"
+
+[[annotations]]
+path = "encoder/3rdparty/tinyexr.h"
+precedence = "aggregate"
+SPDX-FileCopyrightText = ["2014 - 2021, Syoyo Fujita and many contributors.", "2002 Industrial Light & Magic, a division of Lucas"]
+SPDX-License-Identifier = "BSD-3-Clause"
+
+[[annotations]]
+path = "encoder/3rdparty/qoi.h"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2021 Dominic Szablewski - https://phoboslab.org"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "encoder/3rdparty/tinydds.h"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2019 DeanoC"
+SPDX-License-Identifier = "MIT"

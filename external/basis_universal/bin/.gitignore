@@ -1,3 +1,7 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:e47f08703f8e7739abde188e04f2ac81ea5f88574185d61a3b34a32939d6173f
-size 55
+
+*
+
+!.gitignore
+!ocl_kernels.cl
+!clean.bat
+!readme.txt

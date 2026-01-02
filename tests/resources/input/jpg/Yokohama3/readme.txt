@@ -1,3 +1,13 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:3fe7de58276906a8f454f73e7a41e853da4a5393fbfa90c21f7a93ddeeb96ac9
-size 227
+Author
+======
+
+This is the work of Emil Persson, aka Humus.
+http://www.humus.name
+
+
+
+License
+=======
+
+This work is licensed under a Creative Commons Attribution 3.0 Unported License.
+http://creativecommons.org/licenses/by/3.0/

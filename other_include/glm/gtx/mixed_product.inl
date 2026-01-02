@@ -1,3 +1,16 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:c79c887a4fd3fe801ff392c00bcb0caa52567ff1fa3d2c9d71f07d4cf715de10
-size 292
+/// @ref gtx_mixed_product
+/// @file glm/gtx/mixed_product.inl
+
+namespace glm
+{
+	template<typename T, precision P>
+	GLM_FUNC_QUALIFIER T mixedProduct
+	(
+		vec<3, T, P> const & v1,
+		vec<3, T, P> const & v2,
+		vec<3, T, P> const & v3
+	)
+	{
+		return dot(cross(v1, v2), v3);
+	}
+}//namespace glm

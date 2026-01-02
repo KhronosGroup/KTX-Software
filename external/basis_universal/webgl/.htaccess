@@ -1,3 +1,8 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:d97289aac81867690d7726cc3da3ae6727288ffeea4aa190761077d87c512072
-size 318
+# Ensure WebAssembly files are served with the correct MIME type
+AddType application/wasm .wasm
+
+# Add headers to enable SharedArrayBuffer and cross-origin isolation
+<IfModule mod_headers.c>
+    Header set Cross-Origin-Opener-Policy "same-origin"
+    Header set Cross-Origin-Embedder-Policy "require-corp"
+</IfModule>

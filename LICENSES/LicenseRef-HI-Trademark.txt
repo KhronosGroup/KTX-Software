@@ -1,3 +1,5 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:4f937797a70963a7d03dc55960770dccb04726816cd2e440e5135448f20be03a
-size 333
+The HI logo textures are copyright by & trademarks of HI Corporation and are
+provided for use only in testing the KTX loader. Any other use requires
+specific prior written permission from HI. Furthermore the name HI may
+not be used to endorse or promote products derived from this software
+without specific prior written permission.

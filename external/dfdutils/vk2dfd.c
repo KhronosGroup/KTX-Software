@@ -1,3 +1,34 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:8203bed277d72ce10bbe1f7b70430270624943339bf1bf2022e9ad2b7dd6bdcd
-size 660
+/* -*- tab-width: 4; -*- */
+/* vi: set sw=2 ts=4 expandtab: */
+
+/* Copyright 2019-2020 Mark Callow
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/**
+ * @file
+ * @~English
+ * @brief Create a DFD for a VkFormat.
+ */
+
+#include "dfd.h"
+
+/**
+ * @~English
+ * @brief Create a DFD matching a VkFormat.
+ *
+ * @param[in] format    VkFormat for which to create a DFD.
+ *
+ * @return      pointer to the created DFD or 0 if format not supported or
+ *              unrecognized. Caller is responsible for freeing the created
+ *              DFD.
+ */
+uint32_t*
+vk2dfd(enum VkFormat format)
+ {
+     switch (format) {
+#include "vk2dfd.inl"
+         default: return 0;
+     }
+ }
+

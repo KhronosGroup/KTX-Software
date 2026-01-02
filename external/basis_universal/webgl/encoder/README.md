@@ -1,3 +1,7 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:2aea13d2ce172739badcb1dd248d9dffd1a7a370e25219bb837fef420a753b70
-size 437
+Prebuilt versions of `basis_encoder.js` and `basis_encoder.wasm` are included in the `build/` folder, and are sufficient for local demos. Note the encoder also includes the transcoder. To build the encoder yourself, first install emscripten ([tutorial](https://webassembly.org/getting-started/developers-guide/)) and cmake ([download](https://cmake.org/download/)). Then run:
+
+```shell
+cd webgl/encoder/build/
+emcmake cmake ../
+make
+```

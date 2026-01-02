@@ -1,3 +1,27 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:55c640685768f8867035fa7418657420c1bfba76802d1f3fc8161529b5156d19
-size 659
+/// @ref core
+/// @file glm/detail/func_geometric.inl
+
+#include <limits>
+
+namespace glm {
+namespace detail
+{
+	template<typename T, precision P, bool Aligned>
+	struct compute_cross_vec2
+	{
+		GLM_FUNC_QUALIFIER static T call(vec<2, T, P> const& v, vec<2, T, P> const& u)
+		{
+			GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559, "'cross' accepts only floating-point inputs");
+
+			return v.x * u.y - u.x * v.y;
+		}
+	};
+}//namespace detail
+
+	template<typename T, precision P>
+	GLM_FUNC_QUALIFIER T cross(vec<2, T, P> const & x, vec<2, T, P> const & y)
+	{
+		return detail::compute_cross_vec2<T, P, detail::is_aligned<P>::value>::call(x, y);
+	}
+}//namespace glm
+

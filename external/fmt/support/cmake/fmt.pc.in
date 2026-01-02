@@ -1,3 +1,11 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:734b9afb583495c8297b6f4736f2dc780d5075ece0f5fd2aa40e872524437051
-size 264
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=@CMAKE_INSTALL_PREFIX@
+libdir=@libdir_for_pc_file@
+includedir=@includedir_for_pc_file@
+
+Name: fmt
+Description: A modern formatting library
+Version: @FMT_VERSION@
+Libs: -L${libdir} -l@FMT_LIB_NAME@
+Cflags: -I${includedir}
+

@@ -1,3 +1,29 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:64c6e225ebddb0f9df571248110fd810e87e2bcd4ebb3f6ffae4bc7346e8e30b
-size 597
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "ktx-software",
+  "features": {
+    "loadtests": {
+      "description": "OpenGL & Vulkan Load Tests.",
+      "dependencies": [
+        "assimp",
+        {
+          "name": "sdl3",
+          "default-features": true,
+          "features": [
+            "vulkan"
+          ]
+        }
+      ]
+    },
+    "glloadtests": {
+      "description": "OpenGL Load Tests.",
+      "dependencies": [
+        {
+          "name": "glew",
+          "platform": "windows"
+        }
+      ]
+    }
+  }
+}
+

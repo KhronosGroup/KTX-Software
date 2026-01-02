@@ -1,3 +1,11 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:ac6ce74965718445b956f3caebea58e9602fc6f35b6df5c2a3e42f0bbdfc5773
-size 174
+/*
+ * Copyright 2020 Mark Callow
+ * SPDX-License-Identifier: Apache-2.0
+ */
+canvas {
+    border: 2px solid black;
+    background-color: black;
+}
+video {
+    display: none;
+}

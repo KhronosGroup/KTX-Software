@@ -1,3 +1,53 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:09cd41bb5b78b044a8f0186510eceff3e404e7f5f956f66c75953daa41574947
-size 1505
+#! /bin/bash
+# -*- tab-width: 4; -*-
+# vi: set sw=2 ts=4:
+
+# Regenerate the basis files for libktx transcodetests.
+
+# Copyright 2026 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+# Depth of this script relative to the project root
+depth=../..
+
+# Change dir to the resources/input folder, the script location...
+cd $(dirname $0)
+
+function usage() {
+  echo "Usage: $0"
+  exit 1
+}
+
+function check_exec() {
+  if [ -z "$1" -o ! -x "$1" ]; then
+    if [ $2 -eq 1 ]; then
+      echo "$0: $1 not found."
+      exit 1
+    else
+      echo $3
+    fi
+  fi
+}
+
+if [ $# -gt 0 ]; then
+  usage
+fi
+
+# Until https://github.com/BinomialLLC/basis_universal/pull/418 is merged we
+# must use a basisu built using the subproject generated when a KTX-Software
+# project is generated. This is because of the deterministic floating-point
+# compiler settings used here.
+#
+# Edit ../../lib/CMakeLists.txt and comment out the line that sets the
+# BASISU_TOOL option FALSE (~l486) then when you configure the KTX-Software
+# project set that option TRUE then use cmake to build the basisu_tool target.
+# The tool will appear at the following location.
+basisu=../../external/basis_universal/bin/basisu
+check_exec $basisu 0 "$basisu not found. .basis files will not be regenerated"
+
+# Generate input files for libktx tests.
+
+$basisu -etc1s -basis -output_path basis input/png/alpha_simple.png
+$basisu -etc1s -basis -output_path basis input/png/kodim17.png
+$basisu -etc1s -basis -output_path basis input/png/color_grid.png
+

@@ -1,3 +1,9 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:0253d415d4486abf245f8a685e6a15c8b87ffa337aba7c7c44f045db75445fc9
-size 284
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="basisu_tool.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="basisu.manifest" />
+  </ItemGroup>
+</Project>

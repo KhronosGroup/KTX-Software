@@ -1,3 +1,23 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:f0f4a31df3190e0296fef3ad382e8579be8f9029efaa2592016b75b3046ef2c2
-size 305
+/*
+ * Copyright 2016-2020 Mark Callow
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/*
+ * Frame definition
+ */
+static const GLbyte frame_position[] =
+{
+    -1, -1, 0,
+     1, -1, 0,
+     1,  1, 0,
+    -1,  1, 0
+};
+
+static const GLbyte frame_color[] =
+{
+    1, 1, 0,
+    1, 1, 0,
+    1, 1, 0,
+    1, 1, 0
+};

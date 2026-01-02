@@ -1,3 +1,8 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:0a294592bae19ce3f7cc40f270bc01b8ef98f10184ad72d23dca72a9c8712ac0
-size 194
+{
+    "file_format_version": "1.0.0",
+    "ICD": {
+        "library_path": "../../../Frameworks/libMoltenVK.dylib",
+        "api_version": "1.2.0",
+        "is_portability_driver": true
+    }
+}

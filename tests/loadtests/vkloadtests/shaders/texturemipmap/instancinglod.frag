@@ -1,3 +1,19 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:684634a66ed8653575d7d8a56426a1dd4702445714acae32e278bbc4e95b710e
-size 436
+// Copyright 2017 Mark Callow
+// SPDX-License-Identifier: Apache-2.0
+
+#version 450
+
+#extension GL_ARB_separate_shader_objects : enable
+#extension GL_ARB_shading_language_420pack : enable
+
+layout (binding = 1) uniform sampler2D sampler2d;
+
+layout (location = 0) in vec2 inUV;
+layout (location = 1) in flat float lambda;
+
+layout (location = 0) out vec4 outFragColor;
+
+void main() 
+{
+	outFragColor = textureLod(sampler2d, inUV, lambda);
+}

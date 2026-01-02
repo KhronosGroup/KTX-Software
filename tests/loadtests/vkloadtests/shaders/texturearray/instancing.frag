@@ -1,3 +1,18 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:6b8dbe49a27ebfd3f5ec82f5018c5a6cb1fee058181f0a148f1921521cf37463
-size 394
+// Copyright 2017 Mark Callow
+// SPDX-License-Identifier: Apache-2.0
+
+#version 450
+
+#extension GL_ARB_separate_shader_objects : enable
+#extension GL_ARB_shading_language_420pack : enable
+
+layout (binding = 1) uniform sampler2DArray samplerArray;
+
+layout (location = 0) in vec3 inUVW;
+
+layout (location = 0) out vec4 outFragColor;
+
+void main() 
+{
+	outFragColor = texture(samplerArray, inUVW);
+}

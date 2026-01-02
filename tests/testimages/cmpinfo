@@ -1,3 +1,21 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:6e88157cbd0e625359a61e6a52ca4bd5931f0db075b3b602b82aedbbd0a99f8e
-size 480
+#! /usr/bin/env bash
+# -*- tab-width: 4; -*-
+# vi: set sw=2 ts=4:
+
+# Show ktxinfo output differences between files.
+
+# Copyright 2017 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+for i in $*
+do
+  bad=$i
+  ref=${i#toktx.}
+  infobad=`mktemp $bad.XXXXXX.info` || exit 1
+  inforef=`mktemp $ref.XXXXXX.info` || exit 1
+  ktxinfo $ref > $inforef
+  ktxinfo $bad > $infobad
+  echo  "************ $bad ****************"
+  diff $inforef $infobad
+  rm $inforef $infobad
+done

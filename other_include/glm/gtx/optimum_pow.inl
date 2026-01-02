@@ -1,3 +1,23 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:4c3d226eddc5e4e681cc124ae7a2c0bb2c36747c88df7d8711ae04e4c573e283
-size 417
+/// @ref gtx_optimum_pow
+/// @file glm/gtx/optimum_pow.inl
+
+namespace glm
+{
+	template<typename genType>
+	GLM_FUNC_QUALIFIER genType pow2(genType const & x)
+	{
+		return x * x;
+	}
+
+	template<typename genType>
+	GLM_FUNC_QUALIFIER genType pow3(genType const & x)
+	{
+		return x * x * x;
+	}
+
+	template<typename genType>
+	GLM_FUNC_QUALIFIER genType pow4(genType const & x)
+	{
+		return (x * x) * (x * x);
+	}
+}//namespace glm

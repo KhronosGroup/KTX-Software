@@ -1,3 +1,8 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:85589a27bd20f786f152bfcef089988124efdf65addcf205c733aa7a105aa19d
-size 253
+# Copyright 2024, The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+set(VCPKG_TARGET_ARCHITECTURE arm64)
+set(VCPKG_CRT_LINKAGE dynamic)
+set(VCPKG_LIBRARY_LINKAGE static)
+set(VCPKG_CMAKE_SYSTEM_NAME iOS)
+set(VCPKG_OSX_DEPLOYMENT_TARGET 12.0)

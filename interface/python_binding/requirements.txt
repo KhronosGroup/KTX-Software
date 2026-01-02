@@ -1,3 +1,9 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:4176d7a90a661acc44a3d1d08ea3fa8c55274fc1c532008256c5aa8c73917f4f
-size 187
+# Copyright (c) 2023, Shukant Pal and Contributors
+# SPDX-License-Identifier: Apache-2.0
+
+build==1.0.3
+cffi==1.17.1
+setuptools==78.1.1
+wheel>=0.38.4
+sphinx==6.2.1
+sphinx-rtd-theme==1.2.2

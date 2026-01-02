@@ -1,3 +1,28 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:a900805126bc53211cbf4a1d51b08e15da07a5a887dcbd75ef2b3d754fdb40f9
-size 649
+# Copyright 2015-2020 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+name: Manually Run All Workflows
+
+on:
+  workflow_dispatch:
+
+jobs:
+  android:
+    uses: ./.github/workflows/android.yml
+  libktx-only:
+    uses: ./.github/workflows/check-libktx-only.yml
+  linux:
+    uses: ./.github/workflows/linux.yml
+  macos:
+    uses: ./.github/workflows/macos.yml
+  mingw:
+    uses: ./.github/workflows/mingw.yml
+  web:
+    uses: ./.github/workflows/web.yml
+  windows:
+    uses: ./.github/workflows/windows.yml
+
+  all:
+    needs: [android, libktx-only, linux, macos, mingw, web, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - run: exit 0

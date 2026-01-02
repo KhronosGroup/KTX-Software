@@ -1,3 +1,12 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:1801c35052af1c293e289a6048aea2ff47d4d2627442af8c5bff87e146f85c00
-size 422
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/KhronosGroup/dfdutils.git
+	branch = main
+	commit = c802c1b6849d05d1f23d1cdc3c0569c8dd3663f6
+	parent = 5a07bc6f8eb95b6ea5b636903b335947d4684cef
+	method = merge
+	cmdver = 0.4.9

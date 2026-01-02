@@ -1,3 +1,4 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:3f780fe36b5d07e8c4b6ea7de31e6424390fa685d3835d7a835b7198dc2429d9
-size 87
+build/*
+!build/basis_loader.js
+!build/basis_transcoder.js
+!build/basis_transcoder.wasm

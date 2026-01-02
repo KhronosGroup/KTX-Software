@@ -1,3 +1,25 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:70f80ee11dbe38747eedebb856cebc4ba3170ec10fa081085c82bbc71c4e040a
-size 531
+# Copyright 2017-2020 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+add_library( gtest STATIC
+    src/gtest-all.cc
+    src/gtest-internal-inl.h
+    src/gtest_main.cc
+)
+
+target_include_directories(
+    gtest
+PUBLIC
+    include
+    .
+)
+
+target_compile_features(gtest PUBLIC cxx_std_11)
+
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+    set_source_files_properties(
+        src/gtest-all.cc
+        PROPERTIES COMPILE_OPTIONS "-Wno-missing-field-initializers"
+    )
+endif()
+

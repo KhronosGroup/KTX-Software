@@ -1,3 +1,7 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:c98df679b114aca78851fa4cd5bcc27f0a194310ab5f8f802b2c1b7d99fe46f2
-size 402
+Prebuilt versions of `basis_transcoder.js` and `basis_transcoder.wasm` are included in the `build/` folder, and are sufficient for local demos. To build the transcoder yourself, first install emscripten ([tutorial](https://webassembly.org/getting-started/developers-guide/)) and cmake ([download](https://cmake.org/download/)). Then run:
+
+```shell
+cd webgl/transcoder/build/
+emcmake cmake ../
+make
+```

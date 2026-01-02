@@ -1,3 +1,16 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:0f8f1024324a2ddb6fcb34e5572422c5ebc0401daf8381c451fdd115ca8a8c18
-size 335
+// Copyright 2017-2020 Mark Callow
+// SPDX-License-Identifier: Apache-2.0
+
+#version 450 core
+
+layout (location = 0) in vec2 inUV;
+
+layout (binding = 0) uniform sampler2D samplerFont;
+
+layout (location = 0) out vec4 outFragColor;
+
+void main(void)
+{
+	float color = texture(samplerFont, inUV).r;
+	outFragColor = vec4(vec3(color), 1.0);
+}

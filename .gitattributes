@@ -5,6 +5,7 @@
 # N.B. This only causes normalization of files to LF on commit. It says nothing
 # about working directory line endings.
 * text=auto
+
 # Explicitly declare text files we want to always be normalized and converted
 # to native line endings on checkout.
 *.cpp text
@@ -14,6 +15,7 @@
 *.h text
 *.inl text
 *.json text
+
 # Declare files that will always have CRLF line endings on checkout.
 *.bat text eol=crlf
 *.sln text eol=crlf
@@ -22,6 +24,7 @@
 *.vcxproj.filters text eol=crlf
 *.vsprops text eol=crlf
 build/msvs/* eol=crlf
+
 # Denote all files that are truly binary and should not be modified.
 *.ktx binary
 *.ktx2 binary
@@ -29,12 +32,14 @@ build/msvs/* eol=crlf
 *.lib binary
 *.png binary
 *.pspimage binary
+
 # Force line endings for unix shell scripts and other specific files
 tests/toktx-tests eol=lf
 scripts/expandkw eol=lf
 scripts/mkversion eol=lf
 .ktx-stamp eol=lf
 GNUmakefile eol=lf
+
 # Keyword expansion
 interface/js_binding/ktx_wrapper.cpp filter=keyworder
 lib/libktx_mainpage.md filter=keyworder
@@ -46,6 +51,7 @@ tests/loadtests/common/at.[ch] ident
 tests/loadtests/common/egltowgl.c ident
 tests/loadtests/gles1/*.c ident
 tests/loadtests/shader-based/*.c ident
+
 # LFS attributes
 *.a filter=lfs -text
 *.dll filter=lfs -text
@@ -61,11 +67,6 @@ tests/loadtests/shader-based/*.c ident
 **/*.framework/[Vv]ersions/[A-Za-z]/* filter=lfs -text
 # Large images. Well they're not all large but trying to put
 # only the truly large ones in LFS is too fragile.
-tests/resources/**/*.exr filter=lfs -text
-tests/resources/**/*.ktx filter=lfs -text
-tests/resources/**/*.ktx2 filter=lfs -text
-tests/resources/**/*.jpg filter=lfs -text
-tests/resources/**/*.png filter=lfs -text
 tests/testimages/*.ktx filter=lfs -text
 tests/testimages/*.ktx2 filter=lfs -text
 tests/srcimages/**/*.jpg filter=lfs -text
@@ -77,124 +78,4 @@ tests/clitests/input/images/**/*.exr filter=lfs -text
 tests/clitests/golden/images/**/*.ktx2 filter=lfs -text
 tests/clitests/golden/images/**/*.png filter=lfs -text
 tests/clitests/golden/images/**/*.exr filter=lfs -text
-*.clang-format filter=lfs diff=lfs merge=lfs -text
-*.git-blame-ignore-revs filter=lfs diff=lfs merge=lfs -text
-*.gitconfig filter=lfs diff=lfs merge=lfs -text
-*.yml filter=lfs diff=lfs merge=lfs -text
-*.gitignore filter=lfs diff=lfs merge=lfs -text
-*.gitmodules filter=lfs diff=lfs merge=lfs -text
-*.md filter=lfs diff=lfs merge=lfs -text
-*.txt filter=lfs diff=lfs merge=lfs -text
-*.toml filter=lfs diff=lfs merge=lfs -text
-*.rtf filter=lfs diff=lfs merge=lfs -text
-*.license filter=lfs diff=lfs merge=lfs -text
-*.cmake filter=lfs diff=lfs merge=lfs -text
-*.in filter=lfs diff=lfs merge=lfs -text
-*.cpp filter=lfs diff=lfs merge=lfs -text
-*.h filter=lfs diff=lfs merge=lfs -text
-*.yaml filter=lfs diff=lfs merge=lfs -text
-*.gitrepo filter=lfs diff=lfs merge=lfs -text
-*.pylintrc filter=lfs diff=lfs merge=lfs -text
-*.png filter=lfs diff=lfs merge=lfs -text
-*.svg filter=lfs diff=lfs merge=lfs -text
-*.sh filter=lfs diff=lfs merge=lfs -text
-*.c filter=lfs diff=lfs merge=lfs -text
-*.astc filter=lfs diff=lfs merge=lfs -text
-*.exr filter=lfs diff=lfs merge=lfs -text
-*.hdr filter=lfs diff=lfs merge=lfs -text
-*.bmp filter=lfs diff=lfs merge=lfs -text
-*.dds filter=lfs diff=lfs merge=lfs -text
-*.jpg filter=lfs diff=lfs merge=lfs -text
-*.ktx filter=lfs diff=lfs merge=lfs -text
-*.tga filter=lfs diff=lfs merge=lfs -text
-*.unk filter=lfs diff=lfs merge=lfs -text
-*.rst filter=lfs diff=lfs merge=lfs -text
-*.py filter=lfs diff=lfs merge=lfs -text
-*.csv filter=lfs diff=lfs merge=lfs -text
-/external/astc-encoder/Test/Makefile filter=lfs diff=lfs merge=lfs -text
-*.bat filter=lfs diff=lfs merge=lfs -text
-*.json filter=lfs diff=lfs merge=lfs -text
-/external/basis_universal/LICENSE filter=lfs diff=lfs merge=lfs -text
-*.lib filter=lfs diff=lfs merge=lfs -text
-*.manifest filter=lfs diff=lfs merge=lfs -text
-*.sln filter=lfs diff=lfs merge=lfs -text
-*.vcxproj filter=lfs diff=lfs merge=lfs -text
-*.filters filter=lfs diff=lfs merge=lfs -text
-*.cl filter=lfs diff=lfs merge=lfs -text
-*.def filter=lfs diff=lfs merge=lfs -text
-*.editorconfig filter=lfs diff=lfs merge=lfs -text
-*.html filter=lfs diff=lfs merge=lfs -text
-*.inc filter=lfs diff=lfs merge=lfs -text
-*.qoi filter=lfs diff=lfs merge=lfs -text
-*.htaccess filter=lfs diff=lfs merge=lfs -text
-*.js filter=lfs diff=lfs merge=lfs -text
-*.wasm filter=lfs diff=lfs merge=lfs -text
-*.ico filter=lfs diff=lfs merge=lfs -text
-*.gltf filter=lfs diff=lfs merge=lfs -text
-*.basis filter=lfs diff=lfs merge=lfs -text
-*.bin filter=lfs diff=lfs merge=lfs -text
-*.ktx2 filter=lfs diff=lfs merge=lfs -text
-/external/basis_universal/zstd/LICENSE filter=lfs diff=lfs merge=lfs -text
-*.hpp filter=lfs diff=lfs merge=lfs -text
-/external/dfdutils/.reuse/dep5 filter=lfs diff=lfs merge=lfs -text
-*.adoc filter=lfs diff=lfs merge=lfs -text
-/external/dfdutils/Makefile filter=lfs diff=lfs merge=lfs -text
-*.inl filter=lfs diff=lfs merge=lfs -text
-*.doxy filter=lfs diff=lfs merge=lfs -text
-*.pl filter=lfs diff=lfs merge=lfs -text
-/external/dfdutils/vulkan/build_custom_vulkan_core filter=lfs diff=lfs merge=lfs -text
-*.cxx filter=lfs diff=lfs merge=lfs -text
-/external/fmt/LICENSE filter=lfs diff=lfs merge=lfs -text
-*.css filter=lfs diff=lfs merge=lfs -text
-*.cc filter=lfs diff=lfs merge=lfs -text
-*.mk filter=lfs diff=lfs merge=lfs -text
-*.xml filter=lfs diff=lfs merge=lfs -text
-*.sublime-syntax filter=lfs diff=lfs merge=lfs -text
-/external/fmt/support/README filter=lfs diff=lfs merge=lfs -text
-/external/fmt/support/Vagrantfile filter=lfs diff=lfs merge=lfs -text
-*.bazelversion filter=lfs diff=lfs merge=lfs -text
-*.bazel filter=lfs diff=lfs merge=lfs -text
-*.gradle filter=lfs diff=lfs merge=lfs -text
-/external/fmt/support/check-commits filter=lfs diff=lfs merge=lfs -text
-/external/fmt/support/mkdocs filter=lfs diff=lfs merge=lfs -text
-/external/fmt/support/python/mkdocstrings_handlers/cxx/templates/README filter=lfs diff=lfs merge=lfs -text
-*.cu filter=lfs diff=lfs merge=lfs -text
-/external/lodepng/LICENSE filter=lfs diff=lfs merge=lfs -text
-/external/lodepng/Makefile filter=lfs diff=lfs merge=lfs -text
-*.icns filter=lfs diff=lfs merge=lfs -text
-*.ps1 filter=lfs diff=lfs merge=lfs -text
-*.java filter=lfs diff=lfs merge=lfs -text
-/interface/python_binding/LICENSE filter=lfs diff=lfs merge=lfs -text
-/interface/python_binding/Makefile filter=lfs diff=lfs merge=lfs -text
-*.keep filter=lfs diff=lfs merge=lfs -text
-/lib/nmkvkff filter=lfs diff=lfs merge=lfs -text
-*.dox filter=lfs diff=lfs merge=lfs -text
-/scripts/expand_kw filter=lfs diff=lfs merge=lfs -text
-*.rb filter=lfs diff=lfs merge=lfs -text
-/scripts/gk filter=lfs diff=lfs merge=lfs -text
-/scripts/ktx-compare-git filter=lfs diff=lfs merge=lfs -text
-/scripts/mkrelnotes filter=lfs diff=lfs merge=lfs -text
-/scripts/mkversion filter=lfs diff=lfs merge=lfs -text
-/scripts/mkvkformatfiles filter=lfs diff=lfs merge=lfs -text
-/tests/ktx2check-tests filter=lfs diff=lfs merge=lfs -text
-*.frag filter=lfs diff=lfs merge=lfs -text
-*.vert filter=lfs diff=lfs merge=lfs -text
-*.obj filter=lfs diff=lfs merge=lfs -text
-*.dae filter=lfs diff=lfs merge=lfs -text
-*.rc filter=lfs diff=lfs merge=lfs -text
-*.pspimage filter=lfs diff=lfs merge=lfs -text
-*.storyboard filter=lfs diff=lfs merge=lfs -text
-*.desktop filter=lfs diff=lfs merge=lfs -text
-/tests/resources/input/genktx2 filter=lfs diff=lfs merge=lfs -text
-*.pam filter=lfs diff=lfs merge=lfs -text
-*.ppm filter=lfs diff=lfs merge=lfs -text
-*.pgm filter=lfs diff=lfs merge=lfs -text
-/tests/testimages/cmpinfo filter=lfs diff=lfs merge=lfs -text
-/tests/testimages/genktx2 filter=lfs diff=lfs merge=lfs -text
-/tests/testimages/genktx2icons filter=lfs diff=lfs merge=lfs -text
-/tests/testimages/genref filter=lfs diff=lfs merge=lfs -text
-/tests/toktx-tests filter=lfs diff=lfs merge=lfs -text
-/tools/package/mac/ktx-uninstall filter=lfs diff=lfs merge=lfs -text
-*.pkgproj filter=lfs diff=lfs merge=lfs -text
-/tests/resources/genktx2 filter=lfs diff=lfs merge=lfs -text
-/tests/resources/genbasis filter=lfs diff=lfs merge=lfs -text
+

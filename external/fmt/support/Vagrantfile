@@ -1,3 +1,19 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:9295f399d8704020eeed7bd7a5e1b7be082ecf46f635aee8ce70bdbd8367e029
-size 583
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# A vagrant config for testing against gcc-4.8.
+Vagrant.configure("2") do |config|
+  config.vm.box = "bento/ubuntu-22.04-arm64"
+
+  config.vm.provider "vmware_desktop" do |vb|
+    vb.memory = "4096"
+  end
+
+  config.vm.provision "shell", inline: <<-SHELL
+    apt-get update
+    apt-get install -y g++ make wget git
+    wget -q https://github.com/Kitware/CMake/releases/download/v3.26.0/cmake-3.26.0-Linux-x86_64.tar.gz
+    tar xzf cmake-3.26.0-Linux-x86_64.tar.gz
+    ln -s `pwd`/cmake-3.26.0-Linux-x86_64/bin/cmake /usr/local/bin
+  SHELL
+end

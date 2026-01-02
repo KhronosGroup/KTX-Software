@@ -1,3 +1,58 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:52ff3d3e66ab3ca8b1a3ed5f22e3e84dc98c81e50a6ca8779e196db3ea19a82b
-size 1851
+#!/bin/bash -eu
+
+#  SPDX-License-Identifier: Apache-2.0
+#  ----------------------------------------------------------------------------
+#  Copyright 2020-2021 Arm Limited
+#  Copyright 2020 Google Inc.
+#
+#  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+#  use this file except in compliance with the License. You may obtain a copy
+#  of the License at:
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#  License for the specific language governing permissions and limitations
+#  under the License.
+#  ----------------------------------------------------------------------------
+
+# This script is invoked by oss-fuzz from <root>/Source/
+
+# Generate a dummy version header (normally built by CMake variable expansion)
+echo "#pragma once" > astcenccli_version.h
+echo "#define VERSION_STRING \"0.0.0\"" >> astcenccli_version.h
+echo "#define YEAR_STRING \"2021\"" >> astcenccli_version.h
+
+# Build the core project for fuzz tests to link against
+for source in ./*.cpp; do
+  BASE="${source##*/}"
+  BASE="${BASE%.cpp}"
+  echo ${BASE}
+
+  $CXX $CXXFLAGS \
+      -c \
+      -DASTCENC_SSE=0 \
+      -DASTCENC_AVX=0 \
+      -DASTCENC_POPCNT=0 \
+      -I. -std=c++14 -mfpmath=sse -msse2 -fno-strict-aliasing -O0 -g \
+      $source \
+      -o ${BASE}.o
+done
+
+ar -qc libastcenc.a *.o
+
+# Build project local fuzzers
+for fuzzer in ./Fuzzers/fuzz_*.cpp; do
+  $CXX $CXXFLAGS \
+      -DASTCENC_SSE=0 \
+      -DASTCENC_AVX=0 \
+      -DASTCENC_POPCNT=0 \
+      -I. -std=c++14 $fuzzer $LIB_FUZZING_ENGINE ./libastcenc.a \
+      -o $OUT/$(basename -s .cpp $fuzzer)
+done
+
+# Cleanup temporary build files
+rm *.o
+rm *.a

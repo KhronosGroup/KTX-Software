@@ -1,3 +1,15 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:1a6235d4fe35b8692646325d0465b8f84652ee231b36486767358070e0c16116
-size 418
+#!/bin/bash
+# Copyright 2022 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+# aaaaargh! macOS readlink did not support `-f` until macOS 12.3.
+# CI has yet to catch up - latest is 12.2 - so this script finds
+# the canonical file using just `readlink`.
+libdir=$(dirname $1)
+prev_target=$1
+
+until target="$(readlink $prev_target)"; [ -z $target ]; do
+  prev_target=$libdir/$target;
+done
+
+echo $prev_target

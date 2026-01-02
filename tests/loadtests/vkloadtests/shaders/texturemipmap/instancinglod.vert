@@ -1,3 +1,41 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:84c9b8f22b9e912ab52e627f334b6973cea0ee7a893c7217d8f04fa0e4eac758
-size 1064
+// Copyright 2017 Mark Callow
+// SPDX-License-Identifier: Apache-2.0
+
+#version 450
+
+#extension GL_ARB_separate_shader_objects : enable
+#extension GL_ARB_shading_language_420pack : enable
+
+layout (location = 0) in vec4 inPos;
+layout (location = 1) in vec2 inUV;
+
+struct Instance
+{
+	mat4 model;
+};
+
+// Keep the default value small to avoid MoltenVK issue 1420.
+// https://github.com/KhronosGroup/MoltenVK/issues/1420
+//layout(constant_id = 1) const int instanceCount = 1;
+// Sadly the above does not work on iOS, only macOS so declare
+// roughly the max size expected and in the app allocate the size
+// as declared.
+layout(constant_id = 1) const int instanceCount = 16;
+
+layout (binding = 0, std140) uniform UBO
+{
+	mat4 projection;
+	mat4 view;
+	Instance instance[instanceCount];
+} ubo;
+
+layout (location = 0) out vec2 outUV;
+layout (location = 1) out flat float lambda;
+
+void main() 
+{
+    outUV = inUV;
+    lambda = gl_InstanceIndex+0.5;
+    mat4 modelView = ubo.view * ubo.instance[gl_InstanceIndex].model;
+    gl_Position = ubo.projection * modelView * inPos;
+}

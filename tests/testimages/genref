@@ -1,3 +1,170 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:ea90a9336dd751785ebe9c67915638f45bd3a2f7b4b5fd8b073dc6efb9dac5bf
-size 11731
+#! /bin/bash
+# -*- tab-width: 4; -*-
+# vi: set sw=2 ts=4:
+
+# Regenerate the reference files for toktx-tests.
+
+# Copyright 2017 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+# Depth of this script relative to the project root
+depth=../..
+
+# Change dir to the testimages folder, the script location...
+cd $(dirname $0)
+
+# Ensure generation is not polluted by user environment
+unset TOKTX_OPTIONS
+
+function usage() {
+  echo "Usage: $0 [--bindir <path/to/tools/bindir>]"
+  exit 1
+}
+
+function check_exec() {
+  if [ -z "$1" -o ! -x "$1" ]; then
+    echo "$0: $1 not found."
+    exit 1
+  fi
+}
+
+if [ "$1" = "--bindir" ]; then
+  shift
+  if [ $# -eq 1 ]; then
+    bindir=$1
+    toktx=$bindir/toktx
+    ktxsc=$bindir/ktxsc
+    ktx2ktx2=$bindir/ktx2ktx2
+    shift
+    check_exec $toktx
+    check_exec $ktxsc
+    check_exec $ktx2ktx2
+  else
+    usage
+  fi
+fi
+
+if [ $# -gt 0 ]; then
+  usage
+fi
+
+function check_path() {
+  if which $1 >/dev/null; then
+    #declare -g $1="$1"  # For recent versions of bash.
+    eval "$1=\$1"
+  else
+    echo "$1 not found in $PATH."
+    exit 1
+  fi
+}
+
+if [ -z "$toktx" ]; then
+  check_path toktx
+fi
+
+if [ -z "$ktxsc" ]; then
+  check_path ktxsc
+fi
+
+if [ -z "$ktx2ktx2" ]; then
+  check_path ktx2ktx2
+fi
+
+# Generate the reference files for toktx and sctests ...
+
+$toktx --lower_left_maps_to_s0t0 --nometadata rgb-reference.ktx ../srcimages/rgb.ppm
+# The purpose of this is testing automatic mipmap generation. Since SRGB is
+# not color renderable on ES3 or WebGL, therefore AMG won't work, use linear.
+$toktx --automipmap --lower_left_maps_to_s0t0 --nometadata --linear rgb-amg-reference.ktx ../srcimages/rgb.ppm
+$toktx --lower_left_maps_to_s0t0 --nometadata orient-up.ktx ../srcimages/up.ppm
+$toktx --lower_left_maps_to_s0t0 orient-up-metadata.ktx ../srcimages/up.ppm
+$toktx orient-down-metadata.ktx ../srcimages/up.ppm
+$toktx --lower_left_maps_to_s0t0 --mipmap --nometadata rgb-mipmap-reference.ktx ../srcimages/level0.ppm ../srcimages/level1.ppm ../srcimages/level2.ppm ../srcimages/level3.ppm ../srcimages/level4.ppm ../srcimages/level5.ppm ../srcimages/level6.ppm
+$toktx --lower_left_maps_to_s0t0 --nometadata rgba-reference.ktx ../srcimages/rgba.pam
+$toktx --bcmp --test alpha_simple_basis.ktx2 ../srcimages/alpha_simple.png
+$toktx --bcmp --test kodim17_basis.ktx2 ../srcimages/kodim17.png
+$toktx --bcmp --test color_grid_basis.ktx2 ../srcimages/color_grid.png
+$toktx --t2 --bcmp --mipmap --test rgba-mipmap-reference-basis.ktx2 ../srcimages/level0-alpha.pam ../srcimages/level1-alpha.pam ../srcimages/level2-alpha.pam ../srcimages/level3-alpha.pam ../srcimages/level4-alpha.pam ../srcimages/level5-alpha.pam ../srcimages/level6-alpha.pam
+$toktx --uastc --genmipmap --test cimg5293_uastc.ktx2 ../srcimages/CIMG5293.jpg
+$toktx --zcmp --uastc --genmipmap --test cimg5293_uastc_zstd.ktx2 ../srcimages/CIMG5293.jpg
+$toktx --nowarn --bcmp --test camera_camera_BaseColor_basis.ktx2 ../srcimages/camera_camera_BaseColor_16bit.png
+$toktx --nowarn --uastc 1 --test camera_camera_BaseColor_uastc.ktx2 ../srcimages/camera_camera_BaseColor_16bit.png
+$toktx --nowarn --bcmp --test CesiumLogoFlat.ktx2 ../srcimages/CesiumLogoFlat_palette.png
+$toktx --nowarn --t2 --test tbrn2c08.ktx2 ../srcimages/tbrn2c08.png
+$toktx --nowarn --t2 --test tbyn3p08.ktx2 ../srcimages/tbyn3p08.png
+$toktx --nowarn --t2 --test tm3n3p02.ktx2 ../srcimages/tm3n3p02.png
+$toktx --nowarn --t2 --test --convert_oetf linear luminance_reference_u.ktx2 ../srcimages/luminance.pgm
+$toktx --nowarn --t2 --test --uastc -- luminance_reference_uastc.ktx2 ../srcimages/luminance.pgm
+$toktx --nowarn --t2 --test --bcmp luminance_reference_basis.ktx2 ../srcimages/luminance.pgm
+$toktx --nowarn --t2 --test luminance_alpha_reference_u.ktx2 ../srcimages/basn4a08.png
+$toktx --nowarn --t2 --test --uastc -- luminance_alpha_reference_uastc.ktx2 ../srcimages/basn4a08.png
+$toktx --nowarn --t2 --test --bcmp luminance_alpha_reference_basis.ktx2 ../srcimages/basn4a08.png
+$toktx --nowarn --t2 --test --convert_oetf linear --target_type R r_reference_u.ktx2 ../srcimages/luminance.pgm
+$toktx --nowarn --t2 --test --target_type R --swizzle r001 --uastc -- r_reference_uastc.ktx2 ../srcimages/luminance.pgm
+$toktx --nowarn --t2 --test --target_type R --swizzle r001 --bcmp r_reference_basis.ktx2 ../srcimages/luminance.pgm
+$toktx --nowarn --t2 --test --target_type RG rg_reference_u.ktx2 ../srcimages/basn4a08.png
+$toktx --nowarn --t2 --test --target_type RG --swizzle rg01 --uastc -- rg_reference_uastc.ktx2 ../srcimages/basn4a08.png
+$toktx --nowarn --t2 --test --target_type RG --swizzle ra01 --bcmp rg_reference_basis.ktx2 ../srcimages/basn4a08.png
+# Input to the following is a red RGB texture.
+$toktx --nowarn --t2 --test --input_swizzle 0r01 green_rgb_reference_u.ktx2 ../srcimages/level0.ppm
+$toktx --nowarn --t2 --test --input_swizzle 0rr1 --target_type RGBA cyan_rgba_reference_u.ktx2 ../srcimages/level0.ppm
+# BasisU encoders notice that alpha is all 1 and removes it, hence RGB output for these.
+$toktx --nowarn --t2 --test --input_swizzle 0rr1 --target_type RGBA --bcmp cyan_rgb_reference_basis.ktx2 ../srcimages/level0.ppm
+$toktx --nowarn --t2 --test --input_swizzle 0rr1 --target_type RGBA --uastc -- cyan_rgb_reference_uastc.ktx2 ../srcimages/level0.ppm
+
+$toktx --nowarn --t2 --test --assign_oetf linear --genmipmap --normalize --normal_mode --encode uastc --zcmp 5 uastc_Iron_Bars_001_normal.ktx2 ../srcimages/Iron_Bars/Iron_Bars_001_normal_unnormalized.png
+$toktx --nowarn --t2 --test --assign_oetf linear --genmipmap  --normalize --normal_mode --encode etc1s etc1s_Iron_Bars_001_normal.ktx2 ../srcimages/Iron_Bars/Iron_Bars_001_normal_unnormalized.png
+
+# ... and additional files for the load tests.
+
+$toktx --lower_left_maps_to_s0t0 rgb-reference-metadata.ktx ../srcimages/rgb.ppm
+
+# generate astc reference images
+
+$toktx --test --encode astc --astc_blk_d 6x6 --genmipmap --cubemap astc_mipmap_ldr_cubemap_6x6.ktx2 ../srcimages/Yokohama3/posx.jpg ../srcimages/Yokohama3/negx.jpg ../srcimages/Yokohama3/posy.jpg ../srcimages/Yokohama3/negy.jpg ../srcimages/Yokohama3/posz.jpg ../srcimages/Yokohama3/negz.jpg
+$toktx --test --encode astc --astc_blk_d 6x6 --cubemap   astc_ldr_cubemap_6x6.ktx2 ../srcimages/Yokohama3/posx.jpg ../srcimages/Yokohama3/negx.jpg ../srcimages/Yokohama3/posy.jpg ../srcimages/Yokohama3/negy.jpg ../srcimages/Yokohama3/posz.jpg ../srcimages/Yokohama3/negz.jpg
+$toktx --test --encode astc --astc_blk_d 6x6 --genmipmap astc_mipmap_ldr_6x6_posx.ktx2 ../srcimages/Yokohama3/posx.jpg
+$toktx --test --encode astc --astc_blk_d 6x6             astc_ldr_6x6_posx.ktx2        ../srcimages/Yokohama3/posx.jpg
+$toktx --test --encode astc --astc_blk_d 6x6 --genmipmap astc_mipmap_ldr_6x6_posz.ktx2 ../srcimages/Yokohama3/posz.jpg
+$toktx --test --encode astc --astc_blk_d 6x6 --genmipmap astc_mipmap_ldr_6x6_posy.ktx2 ../srcimages/Yokohama3/posy.jpg
+
+$toktx --test --encode astc --astc_blk_d 6x6 --genmipmap --astc_quality fastest    astc_mipmap_ldr_6x6_kodim17_fastest.ktx2    ../srcimages/kodim17.png
+$toktx --test --encode astc --astc_blk_d 6x6 --genmipmap --astc_quality fast       astc_mipmap_ldr_6x6_kodim17_fast.ktx2       ../srcimages/kodim17.png
+$toktx --test --encode astc --astc_blk_d 6x6 --genmipmap --astc_quality medium     astc_mipmap_ldr_6x6_kodim17_medium.ktx2     ../srcimages/kodim17.png
+
+$toktx --test --encode astc --astc_blk_d 4x4    --genmipmap astc_mipmap_ldr_4x4_posx.ktx2   ../srcimages/Yokohama3/posx.jpg
+$toktx --test --encode astc --astc_blk_d 6x5    --genmipmap astc_mipmap_ldr_6x5_posx.ktx2   ../srcimages/Yokohama3/posx.jpg
+$toktx --test --encode astc --astc_blk_d 8x6    --genmipmap astc_mipmap_ldr_8x6_posx.ktx2   ../srcimages/Yokohama3/posx.jpg
+$toktx --test --encode astc --astc_blk_d 10x5   --genmipmap astc_mipmap_ldr_10x5_posx.ktx2  ../srcimages/Yokohama3/posx.jpg
+$toktx --test --encode astc --astc_blk_d 8x8    --genmipmap astc_mipmap_ldr_8x8_posx.ktx2   ../srcimages/Yokohama3/posx.jpg
+$toktx --test --encode astc --astc_blk_d 12x10  --genmipmap astc_mipmap_ldr_12x10_posx.ktx2 ../srcimages/Yokohama3/posx.jpg
+$toktx --test --encode astc --astc_blk_d 12x12  --genmipmap astc_mipmap_ldr_12x12_posx.ktx2 ../srcimages/Yokohama3/posx.jpg
+
+$toktx --test --encode astc --astc_blk_d 4x4    astc_ldr_4x4_FlightHelmet_baseColor.ktx2   ../srcimages/FlightHelmet_baseColor.png
+$toktx --test --encode astc --astc_blk_d 6x5    astc_ldr_6x5_FlightHelmet_baseColor.ktx2   ../srcimages/FlightHelmet_baseColor.png
+$toktx --test --encode astc --astc_blk_d 8x6    astc_ldr_8x6_FlightHelmet_baseColor.ktx2   ../srcimages/FlightHelmet_baseColor.png
+$toktx --test --encode astc --astc_blk_d 10x5   astc_ldr_10x5_FlightHelmet_baseColor.ktx2  ../srcimages/FlightHelmet_baseColor.png
+$toktx --test --encode astc --astc_blk_d 8x8    astc_ldr_8x8_FlightHelmet_baseColor.ktx2   ../srcimages/FlightHelmet_baseColor.png
+$toktx --test --encode astc --astc_blk_d 12x10  astc_ldr_12x10_FlightHelmet_baseColor.ktx2 ../srcimages/FlightHelmet_baseColor.png
+$toktx --test --encode astc --astc_blk_d 12x12  astc_ldr_12x12_FlightHelmet_baseColor.ktx2 ../srcimages/FlightHelmet_baseColor.png
+$toktx --test --assign_oetf linear --normalize --normal_mode --encode astc --astc_blk_d 6x6  astc_ldr_6x6_Iron_Bars_001_normal.ktx2 ../srcimages/Iron_Bars/Iron_Bars_001_normal_unnormalized.png
+$toktx --test --assign_oetf linear --normalize --normal_mode --encode astc --astc_blk_d 5x4  astc_ldr_5x4_Iron_Bars_001_normal.ktx2 ../srcimages/Iron_Bars/Iron_Bars_001_normal_unnormalized.png
+
+$toktx --test --layers 7 --encode astc --astc_blk_d 6x6             astc_ldr_6x6_arraytex_7.ktx2        ../srcimages/red16.png ../srcimages/orange16.png ../srcimages/yellow16.png ../srcimages/green16.png ../srcimages/blue16.png ../srcimages/indigo16.png ../srcimages/violet16.png
+$toktx --test --layers 7 --encode astc --astc_blk_d 6x6 --genmipmap astc_ldr_6x6_arraytex_7_mipmap.ktx2 ../srcimages/red16.png ../srcimages/orange16.png ../srcimages/yellow16.png ../srcimages/green16.png ../srcimages/blue16.png ../srcimages/indigo16.png ../srcimages/violet16.png
+$toktx --test --depth 7  --encode astc --astc_blk_d 6x6             astc_ldr_6x6_3dtex_7.ktx2           ../srcimages/red16.png ../srcimages/orange16.png ../srcimages/yellow16.png ../srcimages/green16.png ../srcimages/blue16.png ../srcimages/indigo16.png ../srcimages/violet16.png
+
+$toktx --test --layers 1 --t2 arraytex_1_reference_u.ktx2 ../srcimages/red16.png
+$toktx --test --depth 1 --t2 3dtex_1_reference_u.ktx2 ../srcimages/red16.png
+$toktx --test --depth 7 --t2 3dtex_7_reference_u.ktx2 ../srcimages/red16.png ../srcimages/orange16.png ../srcimages/yellow16.png ../srcimages/green16.png ../srcimages/blue16.png ../srcimages/indigo16.png ../srcimages/violet16.png
+$toktx --test --layers 7 --t2 arraytex_7_reference_u.ktx2 ../srcimages/red16.png ../srcimages/orange16.png ../srcimages/yellow16.png ../srcimages/green16.png ../srcimages/blue16.png ../srcimages/indigo16.png ../srcimages/violet16.png
+$toktx --test --depth 7 --t2 3dtex_7_reference_u.ktx2 ../srcimages/red16.png ../srcimages/orange16.png ../srcimages/yellow16.png ../srcimages/green16.png ../srcimages/blue16.png ../srcimages/indigo16.png ../srcimages/violet16.png
+$toktx --test --layers 7 --genmipmap --t2 arraytex_7_mipmap_reference_u.ktx2 ../srcimages/red16.png ../srcimages/orange16.png ../srcimages/yellow16.png ../srcimages/green16.png ../srcimages/blue16.png ../srcimages/indigo16.png ../srcimages/violet16.png
+
+$ktxsc -o skybox_zstd.ktx2 --force --test --zcmp 5 skybox.ktx2
+
+for name in hűtő نَسِيج テクスチャ 质地 조직; do
+  $toktx --test $name.ktx ../srcimages/$name.png
+  $ktx2ktx2 --test --force -o $name.ktx2 $name.ktx
+  $ktxsc --test -o ${name}_zstd.ktx2 --force --zcmp 5 $name.ktx2
+done

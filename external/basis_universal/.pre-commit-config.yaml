@@ -1,3 +1,16 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:bb3232e1fdf1a91ebaf75d9b55146fb7e44d12a65024ea1625fcec8c21b45325
-size 282
+default_language_version:
+  python: python3
+
+exclude: |
+  (?x)^(
+    CODE_OF_CONDUCT.md
+  )
+
+repos:
+  - repo: local
+    hooks:
+      - id: file-format
+        name: file-format
+        language: python
+        entry: python .github/workflows/file_format.py
+        types_or: [text]

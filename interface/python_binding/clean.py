@@ -1,3 +1,17 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:5a8b55c0348d5602a53e329bb9c3d42ef9e1eaccc37da945dbc8e466e02073eb
-size 572
+# Copyright (c) 2023, Shukant Pal and Contributors
+# SPDX-License-Identifier: Apache-2.0
+
+import os
+
+for root, directories, files in os.walk('pyktx'):
+    for file in files:
+        if (file.endswith('.o') or
+                file.endswith('.obj') or
+                file.endswith('.lib') or
+                file.endswith('.so') or
+                file.endswith('.dylib') or
+                file.endswith('.dll') or
+                file.startswith('native')):
+            path = os.path.join('pyktx', file)
+            print(f"Deleting {path}")
+            os.remove(path)

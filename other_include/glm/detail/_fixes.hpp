@@ -1,3 +1,30 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:22508408c83e084cc04bc5d85f2b8bd173c3bac93e0f9e2bad165d0718d9647d
-size 427
+/// @ref core
+/// @file glm/detail/_fixes.hpp
+
+#include <cmath>
+
+//! Workaround for compatibility with other libraries
+#ifdef max
+#undef max
+#endif
+
+//! Workaround for compatibility with other libraries
+#ifdef min
+#undef min
+#endif
+
+//! Workaround for Android
+#ifdef isnan
+#undef isnan
+#endif
+
+//! Workaround for Android
+#ifdef isinf
+#undef isinf
+#endif
+
+//! Workaround for Chrone Native Client
+#ifdef log2
+#undef log2
+#endif
+

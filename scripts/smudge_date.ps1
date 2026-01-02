@@ -1,3 +1,24 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:65d6bd4a30fa05ef8314cf7ef5d8829ab400e32f3fced03dabd8b440658beed9
-size 509
+# Copyright 2023 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+# Smudge all files with proper $Date$ values.
+
+# Make sure we're in the repo root
+$path=(split-path $MyInvocation.MyCommand.Path -Parent)
+echo $path
+cd $path/..
+
+$target_files = @(
+    'pkgdoc/pages.md'
+    'lib/libktx_mainpage.md'
+    'tools/ktxtools_mainpage.md'
+    'interface/js_binding/ktx_wrapper.cpp'
+)
+
+#foreach ($file in $target_files) {
+#  rm $file
+#  git checkout $file
+#}
+rm $target_files
+git checkout  $target_files
+

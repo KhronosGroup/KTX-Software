@@ -1,3 +1,5 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:44dbd8e9b8686f3f4ac675b4785092267a2c0e3e3cc5b1b6b30f962ccff7ed44
-size 117
+EXPORTS
+	DllGetClassObject	PRIVATE
+	DllCanUnloadNow		PRIVATE
+	DllRegisterServer	PRIVATE
+	DllUnregisterServer	PRIVATE
