@@ -161,6 +161,15 @@ OutputStream::OutputStream(const std::string& filepath, Reporter& report) :
     // }
 }
 
+//#if defined(__cpp_lib_char8_t)
+OutputStream::OutputStream(const std::u8string& filepath, Reporter& report) :
+    filepath(filepath) {
+
+}
+
+
+//#endif
+
 OutputStream::~OutputStream() {
     if (file != stdout) {
         fclose(file);

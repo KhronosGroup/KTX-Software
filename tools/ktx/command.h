@@ -460,7 +460,11 @@ public:
 /// Helper to handle stdout and fstream uniformly
 class OutputStream {
 protected:
+#if defined(__cpp_lib_char8_t)
+    std::u8string filepath;
+#else
     std::string filepath;
+#endif
     FILE* file;
     bool removeAtDestruct = false;
     // std::ostream* activeStream = nullptr;
