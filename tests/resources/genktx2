@@ -93,6 +93,11 @@ $ktx create --testrun --format R8G8B8_SRGB --assign-tf srgb --encode basis-lz in
 $ktx create --testrun --format R8G8B8_UNORM --no-warn-on-color-conversions --assign-tf linear --generate-mipmap --normalize --normal-mode --encode uastc --zstd 5  input/jpg/Iron_Bars/Iron_Bars_001_normal_unnormalized.png ktx2/uastc_Iron_Bars_001_normal.ktx2
 $ktx create --testrun  --format R8G8B8_UNORM --no-warn-on-color-conversions --assign-tf linear --generate-mipmap  --normalize --normal-mode --encode basis-lz input/jpg/Iron_Bars/Iron_Bars_001_normal_unnormalized.png ktx2/etc1s_Iron_Bars_001_normal.ktx2
 
+$ktx convert --testrun -t ktx ktx/pattern_02_bc2.ktx ktx2/pattern_02_bc2.ktx2
+#$ktx convert --testrun -t ktx ktx/rgba-reference.ktx ktx2/rgba-reference-u.ktx
+$ktx convert --testrun -t ktx ktx/texturearray_astc_8x8_unorm.ktx ktx2/texturearray_astc_8x8_unorm.ktx2
+$ktx convert --testrun -t ktx ktx/texturearray_bc3_unorm.ktx ktx2/texturearray_bc3_unorm.ktx2
+$ktx convert --testrun -t ktx ktx/texturearray_etc2_unorm.ktx ktx2/texturearray_etc2_unorm.ktx2
 
 #$toktx --lower_left_maps_to_s0t0 --nometadata rgb-reference.ktx ../srcimages/rgb.ppm
 ## The purpose of this is testing automatic mipmap generation. Since SRGB is
