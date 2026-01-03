@@ -333,7 +333,7 @@ struct OptionsMultiInSingleOut {
         lf = fopenUTF8(listName, "r");
         if (!lf) {
             report.fatal(rc::RUNTIME_ERROR, "Opening filename list: \"{}\" failed: {}\n",
-                         listName.c_str(), strerror(errno));
+                         listName.c_str(), errnoMessage());
         }
 
         std::string dirname;
@@ -356,7 +356,7 @@ struct OptionsMultiInSingleOut {
             if (!p) {
               if (ferror(lf)) {
                 report.fatal(rc::RUNTIME_ERROR, "Reading filename list: \"{}\" failed: {}\n",
-                             listName.c_str(), strerror(errno));
+                             listName.c_str(), errnoMessage());
                 fclose(lf);
               } else
                 break;
