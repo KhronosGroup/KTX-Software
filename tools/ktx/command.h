@@ -414,7 +414,6 @@ struct OptionsMultiInSingleOut {
                 inputFilepaths.push_back(std::move(*fit));
             }
         }
-        //inputFilepaths = std::move(files);
 
         if (std::count(inputFilepaths.begin(), inputFilepaths.end(), "-") > 1)
             report.fatal_usage("'-' or --stdin as input file was specified more than once.");
