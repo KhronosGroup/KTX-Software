@@ -178,7 +178,7 @@ struct DiffHexFixedWidth : public DiffBase<T> {
 
     virtual std::string value(std::size_t index, OutputFormat format) const override {
         if (format == OutputFormat::text) {
-            return fmt::format(fmt::runtime(fmt::format("0x{{:0{}x}}", sizeof(T) << 1)), DiffBase<T>::rawValue(index));
+            return fmt::format("0x{1:0{0}x}", sizeof(T) << 1, DiffBase<T>::rawValue(index));
         } else {
             return fmt::format("{}", DiffBase<T>::rawValue(index));
         }
