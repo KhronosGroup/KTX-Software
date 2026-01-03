@@ -81,6 +81,10 @@ class OutputStreamEx : public OutputStream {
 public:
     OutputStreamEx(const std::string& filepath, Reporter& report)
         : OutputStream(filepath, report) { }
+#if defined(__cpp_lib_char8_t)
+    OutputStreamEx(const std::u8string& filepath, Reporter& report)
+        : OutputStream(filepath, report) { }
+#endif
 
     void writeKTX2(ktxTexture1* texture, Reporter& report) {
         const auto ret = ktxTexture1_WriteKTX2ToStdioStream(texture, file);
