@@ -10,6 +10,7 @@
 #include <vector>
 #include <iostream>
 #include "utility.h"
+#include "platform_utils.h"
 
 #include <cxxopts.hpp>
 #include <fmt/ostream.h>
@@ -312,9 +313,80 @@ struct OptionsMultiInSingleOut {
                 ("stdin", "Use stdin as the first input file. (Using a single dash '-' as the first input file has the same effect)")
                 ("stdout", "Use stdout as the output file. (Using a single dash '-' as the output file has the same effect)")
                 ("files", "Input/output files. Last file specified will be used as output."
-                          " Using a single dash '-' as an input or output file will use stdin/stdout.", cxxopts::value<std::vector<std::string>>(), "<filepath>");
+                          " Using a single dash '-' as an input or output file will use stdin/stdout."
+                          " A filepath prefixed with @ is read as a file name listing file. Listing text"
+                          " files specify which actual files to process, one file name per line. Names can"
+                          " be absolute paths or relative to the current directory when the application is"
+                          " run. If the file is prefixed with @b @@ the names must be relative to the listing file.",
+                          cxxopts::value<std::vector<std::string>>(), "<filepath>");
         opts.parse_positional("files");
         opts.positional_help("<input-file...> <output-file>");
+    }
+
+    void loadFileList(const std::string &f, bool relativize,
+                      std::vector<std::string>& files,
+                      Reporter& report) {
+        std::string listName(f);
+        listName.erase(0, relativize ? 2 : 1);
+
+        FILE *lf = nullptr;
+        lf = fopenUTF8(listName, "r");
+        if (!lf) {
+            report.fatal(rc::RUNTIME_ERROR, "Opening filename list: \"{}\" failed: {}\n",
+                         listName.c_str(), errnoMessage());
+        }
+
+        std::string dirname;
+
+        if (relativize) {
+            size_t dirnameEnd = listName.find_last_of('/');
+            if (dirnameEnd == std::string::npos) {
+                relativize = false;
+            } else {
+                dirname = listName.substr(0, dirnameEnd + 1);
+            }
+        }
+
+        for (;;) {
+            // Cross platform PATH_MAX def is too much trouble!
+            char buf[4096];
+            buf[0] = '\0';
+
+            char *p = fgets(buf, sizeof(buf), lf);
+            if (!p) {
+              if (ferror(lf)) {
+                report.fatal(rc::RUNTIME_ERROR, "Reading filename list: \"{}\" failed: {}\n",
+                             listName.c_str(), errnoMessage());
+                fclose(lf);
+              } else
+                break;
+            }
+
+            std::string readFilename(p);
+            while (readFilename.size()) {
+                if (readFilename[0] == ' ')
+                  readFilename.erase(0, 1);
+                else
+                  break;
+            }
+
+            while (readFilename.size()) {
+                const char c = readFilename.back();
+                if ((c == ' ') || (c == '\n') || (c == '\r'))
+                  readFilename.erase(readFilename.size() - 1, 1);
+                else
+                  break;
+            }
+
+            if (readFilename.size()) {
+                if (relativize)
+                    files.push_back(dirname + readFilename);
+                else
+                    files.push_back(readFilename);
+            }
+        }
+        fclose(lf);
+
     }
 
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
@@ -334,7 +406,14 @@ struct OptionsMultiInSingleOut {
 
         outputFilepath = std::move(files.back());
         files.pop_back();
-        inputFilepaths = std::move(files);
+        std::vector<std::string>::const_iterator fit;
+        for (fit = files.begin(); fit < files.end(); fit++) {
+            if (fit[0][0] == '@') {
+                loadFileList(*fit, fit[0][1] == '@', inputFilepaths, report);
+            } else {
+                inputFilepaths.push_back(std::move(*fit));
+            }
+        }
 
         if (std::count(inputFilepaths.begin(), inputFilepaths.end(), "-") > 1)
             report.fatal_usage("'-' or --stdin as input file was specified more than once.");
@@ -393,6 +472,14 @@ protected:
 
 public:
     OutputStream(const std::string& filepath, Reporter& report);
+#if defined(__cpp_lib_char8_t)
+    // This is a simplest way to make this work when compiled with >= c++20
+    // and the caller of this is passing the output of std::filesystem::path::u8string().
+    // At some point we should consider making filepath a u8string.
+    OutputStream::OutputStream(const std::u8string& filepath, Reporter& report) :
+           OutputStream(from_u8string(filepath), report) { }
+#endif
+
     ~OutputStream();
 
     const std::string& str() {
