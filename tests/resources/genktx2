@@ -14,8 +14,8 @@ depth=../..
 cd $(dirname $0)
 
 function usage() {
-  echo "Usage: $0 [--bindir <path/to/ktx>]"
-  exit 1
+  echo "Usage: $0 [--tooldir,-t <path/to/dir/with/ktx>] [--cubemaps,-c]"
+  exit $1
 }
 
 function check_exec() {
@@ -29,21 +29,6 @@ function check_exec() {
   fi
 }
 
-if [ "$1" = "--bindir" ]; then
-  shift
-  if [ $# -eq 1 ]; then
-    ktx=$1
-    shift
-    check_exec $ktx 1
-  else
-    usage
-  fi
-fi
-
-if [ $# -gt 0 ]; then
-  usage
-fi
-
 function check_path() {
   if which $1 >/dev/null; then
     #declare -g $1="$1"  # For recent versions of bash.
@@ -53,6 +38,25 @@ function check_path() {
     exit 1
   fi
 }
+
+gen_cubemaps=0
+
+while [ $# -ne 0 ]; do
+  case $1 in
+    --tooldir | -t)
+      if [ $# -ge 1 ]; then
+        ktx=$2/ktx
+        check_exec $ktx 1
+      else
+        usage 1
+      fi
+      shift 2 ;;
+    --cubemaps | -c)
+      gen_cubemaps=1
+      shift ;;
+    *) usage 1 ;;
+  esac
+done
 
 if [ -z "$ktx" ]; then
   check_path ktx
@@ -77,10 +81,17 @@ $ktx create --testrun --format R8G8B8A8_SRGB --assign-tf srgb --encode basis-lz 
 $ktx create --testrun --format R8G8B8_SRGB --encode basis-lz input/png/kodim17.png ktx2/kodim17_basis.ktx2
 $ktx create --testrun --format R8G8B8A8_SRGB --assign-tf srgb --encode basis-lz input/png/color_grid.png ktx2/color_grid_basis.ktx2
 
-# For loadtests
-$ktx create --testrun --format R8G8B8_SRGB --encode basis-lz --cubemap --generate-mipmap  @@input/jpg/Yokohama3/filelist.txt ktx2/cubemap_yokohama_basis_rd.ktx2
-# This takes a long time to generate especially with the debug version with --threads 1 but that has been deleted.
-$ktx create --testrun --format R8G8B8_SRGB --encode uastc --cubemap --scale 0.5 --generate-mipmap --uastc-rdo --uastc-rdo-l 4 --zstd 5 @@input/jpg/GoldenGateBridge3/filelist.txt ktx2/cubemap_goldengate_uastc_rdo4_zstd5_rd.ktx2
+# For loadtests. Optional, because they take a while, especially if using
+# the Debug config.
+if [ $gen_cubemaps -ne 0 ]; then
+  $ktx create --testrun --format R8G8B8_SRGB --encode basis-lz --cubemap --generate-mipmap  @@input/jpg/Yokohama3/filelist.txt ktx2/cubemap_yokohama_basis_rd.ktx2
+  $ktx create --testrun --format R8G8B8_SRGB --encode uastc --cubemap --scale 0.5 --generate-mipmap --uastc-rdo --uastc-rdo-l 4 --zstd 5 @@input/jpg/GoldenGateBridge3/filelist.txt ktx2/cubemap_goldengate_uastc_rdo4_zstd5_rd.ktx2
+fi
+
+# For loadtests.
+$ktx create --testrun --format R8G8B8_UNORM --no-warn-on-color-conversions --assign-tf linear --generate-mipmap --normalize --normal-mode --encode uastc --zstd 5  input/jpg/Iron_Bars/Iron_Bars_001_normal_unnormalized.png ktx2/uastc_Iron_Bars_001_normal.ktx2
+$ktx create --testrun  --format R8G8B8_UNORM --no-warn-on-color-conversions --assign-tf linear --generate-mipmap  --normalize --normal-mode --encode basis-lz input/jpg/Iron_Bars/Iron_Bars_001_normal_unnormalized.png ktx2/etc1s_Iron_Bars_001_normal.ktx2
+
 
 #$toktx --lower_left_maps_to_s0t0 --nometadata rgb-reference.ktx ../srcimages/rgb.ppm
 ## The purpose of this is testing automatic mipmap generation. Since SRGB is
@@ -117,9 +128,6 @@ $ktx create --testrun --format R8G8B8_SRGB --encode uastc --cubemap --scale 0.5 
 ## BasisU encoders notice that alpha is all 1 and removes it, hence RGB output for these.
 #$toktx --nowarn --t2 --test --input_swizzle 0rr1 --target_type RGBA --bcmp cyan_rgb_reference_basis.ktx2 ../srcimages/level0.ppm
 #$toktx --nowarn --t2 --test --input_swizzle 0rr1 --target_type RGBA --uastc -- cyan_rgb_reference_uastc.ktx2 ../srcimages/level0.ppm
-#
-#$toktx --nowarn --t2 --test --assign_oetf linear --genmipmap --normalize --normal_mode --encode uastc --zcmp 5 uastc_Iron_Bars_001_normal.ktx2 ../srcimages/Iron_Bars/Iron_Bars_001_normal_unnormalized.png
-#$toktx --nowarn --t2 --test --assign_oetf linear --genmipmap  --normalize --normal_mode --encode etc1s etc1s_Iron_Bars_001_normal.ktx2 ../srcimages/Iron_Bars/Iron_Bars_001_normal_unnormalized.png
 #
 ## ... and additional files for the load tests.
 #
