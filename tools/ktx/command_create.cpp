@@ -848,10 +848,10 @@ Create a KTX2 file from various input files.
     If the @e input-file is '-' the file will be read from the stdin.
     If the @e output-path is '-' the output file will be written to the stdout.
 
-    An @e input-file prefixed with @b @ will be read as a file name listing file.
-    Listing text files specify which actual files to process one file name  per line.
+    An @e input-file prefixed with @b \@ will be read as a file name listing file.
+    Listing text files specify which actual files to process, one file name  per line.
     Names can be absolute paths or relative to the current directory when the
-    application is run. If the file is prefixed with @b @@ the names must be
+    application is run. If the file is prefixed with @b \@\@ the names must be
     relative to the listing file.
 
     Each @e input-file must be a valid EXR (.exr), PNG (.png) or Raw (.raw) file.
