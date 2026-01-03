@@ -21,6 +21,31 @@
 #include <shellapi.h>
 #endif
 
+/*
+ * @internal
+ * @file
+ * @~English
+ *
+ * @brief Cross-platform utilities for handling utf-8 file names.
+ *
+ * To display UTF-8 strings streamed to the console correctly on WindowsPowerShell
+ * or Command Prompt they must be set to display UTF-8 text. For PowerShell run the
+ * following command before executing the program or add it to your $PROFILE:
+ *   $OutputEncoding = [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
+ * See https://stackoverflow.com/questions/57131654/using-utf-8-encoding-chcp-65001-in-command-prompt-windows-powershell-window
+ * for more details and how to change the encoding for Command Prompt.
+ *
+ * Note that the PS console spawned by Visual Studio when running a console
+ * application does not load $PROFILE so displayed utf-8 will be mojibake.
+ *
+ * Note also that fmt::print works correctly without changing the console
+ * encoding because it uses the Windows wide char APIs to write to the
+ * console.
+ *
+ * @author Daniel Rákos
+ * @author Mark Callow
+ */
+
 #if defined(_WIN32) && !defined(_UNICODE)
 // For Windows, we convert the UTF-8 path to a UTF-16 path to force using
 // the APIs that correctly handle unicode characters.
@@ -93,24 +118,11 @@ inline int unlinkUTF8(const std::string& path) {
     // Casting from u8string to string is not allowed in C++20. Neither
     // can char8_t or std::u8string be streamed to ostreams. This provides
     // an explicit conversion. Note that this does not perform any encoding.
-    //
-    // To display streamed UTF-8 strings correctly on Windows PowerShell or
-    // Command Prompt they must be set to display UTF-8 text. For PowerShell
-    // run the following command before executing the program or add it to
-    // your $PROFILE:
-    //   $OutputEncoding = [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
-    // See https://stackoverflow.com/questions/57131654/using-utf-8-encoding-chcp-65001-in-command-prompt-windows-powershell-window
-    // for more details and how to change the encoding for Command.
-    //
-    // Note that the console spawned by Visual Studio when running a console
-    // application does not load $PROFILE so displayed utf-8 will be
-    // mojibake.
-    //
-    // Note also that fmt::print works correctly without changing the console
-    // encoding because it uses the Windows wide char APIs to write to the
-    // console.
     inline std::string from_u8string(const std::u8string& s) {
         return std::string(s.begin(), s.end());
+    }
+    inline std::string to_u8string(const std::string& s) {
+        return std::u8string(s.begin(), s.end());
     }
 
     #if defined(_WIN32) && !defined(_UNICODE)
@@ -120,11 +132,12 @@ inline int unlinkUTF8(const std::string& path) {
             std::wstring result;
             std::string path = from_u8string(u8path);
             int len =
-                MultiByteToWideChar(CP_UTF8, 0, path.c_str(), static_cast<int>(path.length()), NULL, 0);
+                MultiByteToWideChar(CP_UTF8, 0, path.c_str(), static_cast<int>(path.length()),
+                                    NULL, 0);
             if (len > 0) {
                 result.resize(len);
-                MultiByteToWideChar(CP_UTF8, 0, path.c_str(), static_cast<int>(path.length()), &result[0],
-                                    len);
+                MultiByteToWideChar(CP_UTF8, 0, path.c_str(), static_cast<int>(path.length()),
+                                    &result[0], len);
             }
             return result;
         }
@@ -181,4 +194,5 @@ inline int unlinkUTF8(const std::string& path) {
     }
 #else
     #define from_u8string(s) (s)
+    #define to_u8string(s) (s)
 #endif
