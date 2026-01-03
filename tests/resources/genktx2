@@ -89,6 +89,7 @@ if [ $gen_cubemaps -ne 0 ]; then
 fi
 
 # For loadtests.
+$ktx create --testrun --format R8G8B8_SRGB --assign-tf srgb --encode basis-lz input/png/FlightHelmet_baseColor.png ktx2/FlightHelmet_baseColor_basis.ktx2
 $ktx create --testrun --format R8G8B8_UNORM --no-warn-on-color-conversions --assign-tf linear --generate-mipmap --normalize --normal-mode --encode uastc --zstd 5  input/jpg/Iron_Bars/Iron_Bars_001_normal_unnormalized.png ktx2/uastc_Iron_Bars_001_normal.ktx2
 $ktx create --testrun  --format R8G8B8_UNORM --no-warn-on-color-conversions --assign-tf linear --generate-mipmap  --normalize --normal-mode --encode basis-lz input/jpg/Iron_Bars/Iron_Bars_001_normal_unnormalized.png ktx2/etc1s_Iron_Bars_001_normal.ktx2
 
