@@ -313,7 +313,12 @@ struct OptionsMultiInSingleOut {
                 ("stdin", "Use stdin as the first input file. (Using a single dash '-' as the first input file has the same effect)")
                 ("stdout", "Use stdout as the output file. (Using a single dash '-' as the output file has the same effect)")
                 ("files", "Input/output files. Last file specified will be used as output."
-                          " Using a single dash '-' as an input or output file will use stdin/stdout.", cxxopts::value<std::vector<std::string>>(), "<filepath>");
+                          " Using a single dash '-' as an input or output file will use stdin/stdout."
+                          " A filepath prefixed with @ is read as a file name listing file. Listing text"
+                          " files specify which actual files to process, one file name per line. Names can"
+                          " be absolute paths or relative to the current directory when the application is"
+                          " run. If the file is prefixed with @b @@ the names must be relative to the listing file.",
+                          cxxopts::value<std::vector<std::string>>(), "<filepath>");
         opts.parse_positional("files");
         opts.positional_help("<input-file...> <output-file>");
     }
@@ -460,11 +465,7 @@ public:
 /// Helper to handle stdout and fstream uniformly
 class OutputStream {
 protected:
-#if defined(__cpp_lib_char8_t)
-    std::u8string filepath;
-#else
     std::string filepath;
-#endif
     FILE* file;
     bool removeAtDestruct = false;
     // std::ostream* activeStream = nullptr;
@@ -473,8 +474,13 @@ protected:
 public:
     OutputStream(const std::string& filepath, Reporter& report);
 #if defined(__cpp_lib_char8_t)
-    OutputStream(const std::u8string& filepath, Reporter& report);
+    // This is a simplest way to make this work when compiled with >= c++20
+    // and the caller of this is passing the output of std::filesystem::path::u8string().
+    // At some point we should consider making filepath a u8string.
+    OutputStream::OutputStream(const std::u8string& filepath, Reporter& report) :
+           OutputStream(from_u8string(filepath), report) { }
 #endif
+
     ~OutputStream();
 
     const std::string& str() {
