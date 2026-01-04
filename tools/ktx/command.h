@@ -96,31 +96,31 @@ struct Reporter {
     std::string commandDescription;
 
     template <typename... Args>
-    void warning(Args&&... args) {
+    void warning(fmt::format_string<Args...> fmt, Args&&... args) {
         fmt::print(std::cerr, "{} warning: ", commandName);
-        fmt::print(std::cerr, std::forward<Args>(args)...);
+        fmt::print(std::cerr, fmt, std::forward<Args>(args)...);
         fmt::print(std::cerr, "\n");
     }
 
     template <typename... Args>
-    void error(Args&&... args) {
+    void error(fmt::format_string<Args...> fmt, Args&&... args) {
         fmt::print(std::cerr, "{} error: ", commandName);
-        fmt::print(std::cerr, std::forward<Args>(args)...);
+        fmt::print(std::cerr, fmt, std::forward<Args>(args)...);
         fmt::print(std::cerr, "\n");
     }
 
     template <typename... Args>
-    void fatal(ReturnCode return_code, Args&&... args) {
+    void fatal(ReturnCode return_code, fmt::format_string<Args...> fmt, Args&&... args) {
         fmt::print(std::cerr, "{} fatal: ", commandName);
-        fmt::print(std::cerr, std::forward<Args>(args)...);
+        fmt::print(std::cerr, fmt, std::forward<Args>(args)...);
         fmt::print(std::cerr, "\n");
         throw FatalError(return_code);
     }
 
     template <typename... Args>
-    void fatal_usage(Args&&... args) {
+    void fatal_usage(fmt::format_string<Args...> fmt, Args&&... args) {
         fmt::print(std::cerr, "{} fatal: ", commandName);
-        fmt::print(std::cerr, std::forward<Args>(args)...);
+        fmt::print(std::cerr, fmt, std::forward<Args>(args)...);
         fmt::print(std::cerr, " See '{} --help'.\n", commandName);
         throw FatalError(rc::INVALID_ARGUMENTS);
     }
