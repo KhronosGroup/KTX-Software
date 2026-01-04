@@ -444,7 +444,13 @@ class InputStream {
 
 public:
     InputStream(const std::string& filepath, Reporter& report);
-
+#if defined(__cpp_lib_char8_t)
+    // This is a simplest way to make this work when compiled with >= c++20
+    // and the caller of this is passing the output of std::filesystem::path::u8string().
+    // At some point we should consider making filepath a u8string.
+    InputStream(const std::u8string& filepath, Reporter& report) :
+           InputStream(from_u8string(filepath), report) { }
+#endif
     const std::string& str() {
         return filepath;
     }
@@ -473,10 +479,8 @@ protected:
 public:
     OutputStream(const std::string& filepath, Reporter& report);
 #if defined(__cpp_lib_char8_t)
-    // This is a simplest way to make this work when compiled with >= c++20
-    // and the caller of this is passing the output of std::filesystem::path::u8string().
-    // At some point we should consider making filepath a u8string.
-    OutputStream::OutputStream(const std::u8string& filepath, Reporter& report) :
+    // See comment under same ifdef in InputStream constructor.
+    OutputStream(const std::u8string& filepath, Reporter& report) :
            OutputStream(from_u8string(filepath), report) { }
 #endif
 

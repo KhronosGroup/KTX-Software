@@ -187,7 +187,11 @@ void CommandConvert::executeConvert() {
 
     // In c++20 options.{input,output}Filepath should be changed to u8string
     // and u8path() replaced with path.
+#if defined(__cpp_lib_char8_t)
+   auto outputFilepath = std::filesystem::path(to_u8string(options.outputFilepath));
+#else
     auto outputFilepath = std::filesystem::u8path(options.outputFilepath);
+#endif
     bool usingInputName = false;
     // If no output path given or output is a directory, use input path/filename
     // changing extension to or adding ".ktx2".
@@ -197,7 +201,11 @@ void CommandConvert::executeConvert() {
     } else if (!outputFilepath.has_filename() || std::filesystem::is_directory(outputFilepath)) {
         // is_directory() above handles case where outputFilepath is not '/' terminated but
         // exists and is a directory.
+#if defined(__cpp_lib_char8_t)
+        auto inputFilepath = std::filesystem::path(to_u8string(options.inputFilepath));
+#else
         auto inputFilepath = std::filesystem::u8path(options.inputFilepath);
+#endif
         outputFilepath /= inputFilepath.filename();
         usingInputName = true;
     }
