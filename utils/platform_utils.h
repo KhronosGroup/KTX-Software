@@ -121,7 +121,13 @@ inline int unlinkUTF8(const std::string& path) {
     inline std::string from_u8string(const std::u8string& s) {
         return std::string(s.begin(), s.end());
     }
-    inline std::string to_u8string(const std::string& s) {
+    inline std::string from_u8string(const std::u8string_view& s) {
+        return std::string(s.begin(), s.end());
+    }
+    inline std::u8string to_u8string(const std::string& s) {
+        return std::u8string(s.begin(), s.end());
+    }
+    inline std::u8string to_u8string(const std::string_view& s) {
         return std::u8string(s.begin(), s.end());
     }
 
