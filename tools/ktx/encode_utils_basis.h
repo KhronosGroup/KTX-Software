@@ -385,8 +385,7 @@ struct OptionsEncodeBasis : public ktxBasisParams {
         if (codec != BasisCodec::UASTC && codec != BasisCodec::UASTC_HDR_4x4)
             report.fatal(
                 rc::INVALID_ARGUMENTS,
-                "Invalid use of argument --{} that only applies when the used codec is UASTC or UASTC HDR 4x4.",
-                name);
+                "Invalid use of argument, --{}, that only applies when the used codec is UASTC or UASTC HDR 4x4.", name);
     }
 
     void validateUASTC4x4Arg(Reporter& report, const char* name) {
