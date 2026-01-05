@@ -314,7 +314,7 @@ typedef enum _khr_df_model_e {
     KHR_DF_MODEL_UASTC         = 166U,
     KHR_DF_MODEL_UASTC_4X4_LDR = 166U,
     KHR_DF_MODEL_UASTC_4X4_HDR = 167U,
-    KHR_DF_MODEL_UASTC_6x6_HDR = 168U,
+    KHR_DF_MODEL_UASTC_6X6_HDR = 168U,
     /* Proprietary formats (ATITC, etc.) should follow */
     KHR_DF_MODEL_MAX = 0xFFU
 } khr_df_model_e;
