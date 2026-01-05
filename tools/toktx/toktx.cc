@@ -803,7 +803,7 @@ toktxApp::main(int argc, char *argv[])
                     }
                     if (options.inputSwizzle.size() > 0
                         // inputSwizzle is handled during BasisU and astc encoding
-                        && !options.etc1s && (options.bopts.codecFlag != KTX_BASIS_CODEC_UASTC) && !options.astc) {
+                        && !options.etc1s && (options.bopts.codecFlag != KTX_BASIS_CODEC_UASTC_LDR) && !options.astc) {
                         image->swizzle(options.inputSwizzle);
                     }
 
@@ -949,7 +949,7 @@ toktxApp::main(int argc, char *argv[])
         // Add Swizzle metadata
         if (options.swizzle.size()) {
             swizzle = options.swizzle;
-        } else if (!options.etc1s && (options.bopts.codecFlag != KTX_BASIS_CODEC_UASTC) && !options.astc
+        } else if (!options.etc1s && (options.bopts.codecFlag != KTX_BASIS_CODEC_UASTC_LDR) && !options.astc
                    && defaultSwizzle.size()) {
             swizzle = defaultSwizzle;
         }
@@ -977,7 +977,7 @@ toktxApp::main(int argc, char *argv[])
     }
 
     if (f) {
-        if (options.astc || options.etc1s || (options.bopts.codecFlag == KTX_BASIS_CODEC_UASTC) || options.zcmp) {
+        if (options.astc || options.etc1s || (options.bopts.codecFlag == KTX_BASIS_CODEC_UASTC_LDR) || options.zcmp) {
             string& swizzle = options.inputSwizzle.size() == 0 && defaultSwizzle.size() && !options.normalMode
                             ? defaultSwizzle
                             : options.inputSwizzle;
@@ -1355,7 +1355,7 @@ toktxApp::createTexture(const targetImageSpec& target)
     }
     if ((createInfo.vkFormat == VK_FORMAT_R8_SRGB
         || createInfo.vkFormat == VK_FORMAT_R8G8_SRGB)
-        && !(options.astc || options.etc1s || (options.bopts.codecFlag == KTX_BASIS_CODEC_UASTC))) {
+        && !(options.astc || options.etc1s || (options.bopts.codecFlag == KTX_BASIS_CODEC_UASTC_LDR))) {
         // Encoding to BasisU or ASTC will cause conversion to RGB.
         warning("GPU support of sRGB variants of R & RG formats is"
                 " limited.\nConsider using '--target_type' or"
@@ -1661,7 +1661,7 @@ toktxApp::determineTargetTypeBitLengthScale(const ImageInput& in,
     uint32_t maxValue;
 
     if (format.largestChannelBitLength() > 8
-        && (options.etc1s || (options.bopts.codecFlag == KTX_BASIS_CODEC_UASTC))) {
+        && (options.etc1s || (options.bopts.codecFlag == KTX_BASIS_CODEC_UASTC_LDR))) {
         bitLength = 8;
     } else if (format.largestChannelBitLength() < 8) {
         bitLength = 8;

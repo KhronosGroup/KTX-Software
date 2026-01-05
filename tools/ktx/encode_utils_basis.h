@@ -433,7 +433,7 @@ struct OptionsEncodeBasis : public ktxBasisParams {
             codecFlag = ktx_basis_codec_e::KTX_BASIS_CODEC_ETC1S;
             break;
         case BasisCodec::UASTC:
-            codecFlag = ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC;
+            codecFlag = ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_LDR;
             break;
         case BasisCodec::UASTC_HDR_4x4:
             codecFlag = ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4X4;
