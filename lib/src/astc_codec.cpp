@@ -32,7 +32,7 @@
 #include "texture2.h"
 #include "vkformat_enum.h"
 
-#include "astc-encoder/Source/astcenc.h"
+#include <astcenc.h>
 
 //************************************************************************
 //*              Functions common to decoder and encoder                 *

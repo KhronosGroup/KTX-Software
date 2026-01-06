@@ -35,7 +35,7 @@
   #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wunused-value"
 #endif
-#include "transcoder/basisu_transcoder.h"
+#include "basisu/transcoder/basisu_transcoder.h"
 #if defined(__GCC__) && !defined(__clang__)
   #pragma GCC diagnostic pop
 #endif

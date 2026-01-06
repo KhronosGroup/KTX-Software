@@ -128,6 +128,11 @@ elseif(LINUX)
     find_package(Threads REQUIRED)
 endif()
 
+# Dependencies
+include("../external/zstd.cmake")
+include("../external/astcenc.cmake")
+include("../external/basisu.cmake")
+
 # Source Lists
 
 set(LIBKTX_MAIN_SRC
@@ -203,6 +208,29 @@ get_fp_compile_options(fp_options)
 add_compile_options( ${fp_options} )
 
 include(${KTX_ROOT_DIR}/cmake/compiler_query_genexs.cmake)
+
+# Make a single static library to simplify linking.
+macro(add_lib_dependencies target lib)
+    # still need to add include directories and make sure that everything will be ok with install targets
+    target_link_libraries(${target} PRIVATE ${lib})
+
+    # getting original target name
+    set(library_name )
+    get_target_property(aliased_name ${lib} ALIASED_TARGET)
+    if (aliased_name)
+        set(library_name ${aliased_name})
+    else()
+        set(library_name ${lib})
+    endif()
+
+    # make sure that dependency target is actual target
+    # there's no sense to do something with imported targets
+    get_target_property(is_imported ${library_name} IMPORTED)
+    if(NOT BUILD_SHARED_LIBS AND NOT is_imported)
+        target_sources(${target} PRIVATE $<TARGET_OBJECTS:${lib}>)
+        target_include_directories(${target} PRIVATE $<TARGET_PROPERTY:${lib},INTERFACE_INCLUDE_DIRECTORIES>)
+    endif()
+endmacro(add_lib_dependencies)
 
 # Macro for common lib settings
 
@@ -467,30 +495,11 @@ macro(common_libktx_settings target enable_write library_type)
             $<$<BOOL:${BASISU_SUPPORT_OPENCL}>:${OpenCL_LIBRARY}>
         )
     endif()
+
+    add_lib_dependencies(${target} zstd::libzstd)
+    add_lib_dependencies(${target} astcenc::astcenc)
+    add_lib_dependencies(${target} basisu::basisu_encoder)
 endmacro(common_libktx_settings)
-
-macro(add_lib_dependencies target lib)
-    if(NOT BUILD_SHARED_LIBS)
-        # Make a single static library to simplify linking.
-        target_sources(${target} PRIVATE $<TARGET_OBJECTS:${lib}>)
-        target_include_directories(${target} PRIVATE $<TARGET_PROPERTY:${lib},INTERFACE_INCLUDE_DIRECTORIES>)
-    else()
-        target_link_libraries(${target} PRIVATE ${lib})
-    endif()
-endmacro(add_lib_dependencies)
-
-####################################################
-# Basis Universal Encoder.
-####################################################
-
-set(BASISU_TOOL FALSE)
-set(BASISU_EXAMPLES FALSE)
-if(NOT ${CPU_ARCHITECTURE} STREQUAL "x86_64")
-    # Basisu sets this TRUE if MSVC is TRUE.
-    set(BASISU_SSE FALSE)
-endif()
-#set(BASISU_ZSTD FALSE)
-add_subdirectory(../external/basis_universal basisu-encoder)
 
 ###################################################
 # ktx libraries
@@ -504,7 +513,6 @@ if(LIBKTX_VERSION_FULL)
         src/writer2.c
     )
     common_libktx_settings(ktx 1 ${LIB_TYPE})
-    add_lib_dependencies(ktx basisu_encoder)
 endif()
 
 # Read-only library
@@ -513,7 +521,6 @@ if(LIBKTX_VERSION_READ_ONLY)
         ${LIBKTX_MAIN_SRC}
     )
     common_libktx_settings(ktx_read 0 ${LIB_TYPE})
-    add_lib_dependencies(ktx_read basisu_encoder)
 endif()
 
 create_version_header(src ktx)
@@ -545,124 +552,6 @@ if(NOT BUILD_SHARED_LIBS AND
     )
 endif()
 
-
-####################################################
-# ASTC Encoder.
-####################################################
-
-# Determine most of the ASTC-related settings automatically.
-
-# On Linux and Windows only one architecture is supported at once. On
-# macOS simultaneous multiple architectures are supported by the ASTC
-# encoder but not by the BasisU encoder. The latter supports only SSE
-# SIMD that is enabled by compile time defines which makes it not amenable
-# to a standard Xcode universal binary build. To ensure BASISU_SUPPORT_SSE
-# is disabled when building for multiple architectures use only the
-# value of CMAKE_OSX_ARCHITECTURES to decide if a universal build
-# has been requested. Do not expose the astc-encoder's
-# ASTCENC_UNIVERSAL_BUILD configuration option.
-
-set(universal_build OFF)
-if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
-    # Check CMAKE_OSX_ARCHITECTURES for multiple architectures.
-    list(FIND CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" archs_standard)
-    list(LENGTH CMAKE_OSX_ARCHITECTURES architecture_count)
-    if(NOT ${archs_standard} EQUAL -1 OR architecture_count GREATER 1)
-        set(universal_build ON)
-    endif()
-    # Set ordinary variable to override astc-encoder option's ON default
-    # and hide the option.
-    set(ASTCENC_UNIVERSAL_BUILD ${universal_build})
-endif()
-
-# If we detect the user is doing a universal build defer to astc-encoder
-# to pick the architectures. If a universal build has not been requested,
-# present options to the user to turn off SIMD and, if running on x86_64
-# to choose which SIMD ISA to use. On arm64 always use Neon. On unknown
-# CPUs use None.
-#
-# On x86_64, if neither ASTCENC_ISA_SSE41 nor ASTCENC_ISA_SSE2 are defined,
-# choose ASTCENC_ISA_AVX2. If ASTCENC_ISA_AVX2 fails to compile user must
-# choose another x86_64 option.
-
-if(NOT ${universal_build})
-    set(ASTCENC_ISA_NATIVE OFF)
-    set(ASTCENC_ISA_NEON OFF)
-    if(NOT CPU_ARCHITECTURE STREQUAL x86_64)
-        set(ASTCENC_ISA_AVX2 OFF)
-        set(ASTCENC_ISA_SSE41 OFF)
-        set(ASTCENC_ISA_SSE2 OFF)
-    endif()
-
-    # "" in the CACHE sets causes use of the existing documentation string.
-    if(${ASTCENC_ISA_NONE})
-        set(ASTCENC_LIB_TARGET astcenc-none-static)
-        if(CPU_ARCHITECTURE STREQUAL x86_64)
-            set(ASTCENC_ISA_AVX2 OFF CACHE BOOL "" FORCE)
-            set(ASTCENC_ISA_SSE41 OFF CACHE BOOL "" FORCE)
-            set(ASTCENC_ISA_SSE2 OFF CACHE BOOL "" FORCE)
-        endif()
-    else()
-        if(CPU_ARCHITECTURE STREQUAL x86_64)
-            if (${ASTCENC_ISA_SSE41})
-                set(ASTCENC_LIB_TARGET astcenc-sse4.1-static)
-                set(ASTCENC_ISA_AVX2 OFF CACHE BOOL "" FORCE)
-                set(ASTCENC_ISA_SSE2 OFF CACHE BOOL "" FORCE)
-            elseif (${ASTCENC_ISA_SSE2})
-                set(ASTCENC_LIB_TARGET astcenc-sse2-static)
-                set(ASTCENC_ISA_AVX2 OFF CACHE BOOL "" FORCE)
-                set(ASTCENC_ISA_SSE41 OFF CACHE BOOL "" FORCE)
-            else()
-                set(ASTCENC_LIB_TARGET astcenc-avx2-static)
-                set(ASTCENC_ISA_AVX2 ON CACHE BOOL "" FORCE)
-                set(ASTCENC_ISA_SSE41 OFF CACHE BOOL "" FORCE)
-                set(ASTCENC_ISA_SSE2 OFF CACHE BOOL "" FORCE)
-            endif()
-        elseif(CPU_ARCHITECTURE STREQUAL armv8 OR CPU_ARCHITECTURE STREQUAL arm64)
-            set(ASTCENC_LIB_TARGET astcenc-neon-static)
-            set(ASTCENC_ISA_NEON ON)
-            set(ASTCENC_ISA_NONE OFF CACHE BOOL "" FORCE)
-        else()
-            message(STATUS "Unsupported ISA for ASTC on ${CPU_ARCHITECTURE} arch, using ASTCENC_ISA_NONE.")
-            set(ASTCENC_ISA_NONE ON CACHE BOOL "" FORCE)
-            set(ASTCENC_LIB_TARGET astcenc-none-static)
-        endif()
-    endif()
-endif()
-
-# setting ASTCENC_DECOMPRESSOR to ON breaks the build, so force it to OFF
-# and hide it from cmake-gui (by using type INTERNAL)
-set(ASTCENC_DECOMPRESSOR OFF CACHE INTERNAL "")
-set(ASTCENC_CLI OFF) # Only build as library not the CLI astcencoder
-# Force static build for astc-encoder
-set(BUILD_SHARED_LIBS OFF)
-add_subdirectory(../external/astc-encoder astc-encoder)
-set(BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS_RESET})
-set_property(TARGET ${ASTCENC_LIB_TARGET} PROPERTY POSITION_INDEPENDENT_CODE ON)
-
-target_compile_definitions(
-    ${ASTCENC_LIB_TARGET}
-PRIVATE
-    # ASTC encoder uses std::mutex. For more info. see comment about same
-    # setting in common_libktx_settings starting about line 355. To be eventually
-    # removed as noted in that comment.
-    $<$<AND:${is_msvccl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.40.33811>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
-    $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,17.0.3>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
-)
-
-if(NOT PROJECT_IS_TOP_LEVEL AND ${CMAKE_PROJECT_NAME} STREQUAL "KTX-Software")
-    # ktxdiff needs access to this variable to find the ASTC
-    # library to link with so set it in parent.
-    set(ASTCENC_LIB_TARGET ${ASTCENC_LIB_TARGET} PARENT_SCOPE)
-endif()
-
-if(LIBKTX_VERSION_FULL)
-    add_lib_dependencies(ktx ${ASTCENC_LIB_TARGET})
-endif()
-if(LIBKTX_VERSION_READ_ONLY)
-    add_lib_dependencies(ktx_read ${ASTCENC_LIB_TARGET})
-endif()
-
 # Install
 
 if(LIBKTX_VERSION_FULL)
@@ -674,8 +563,16 @@ endif()
 if(LIBKTX_VERSION_READ_ONLY AND NOT (BUILD_SHARED_LIBRARIES OR LIBKTX_VERSION_FULL))
     list(APPEND LIBKTX_INSTALL_TARGETS ktx_read)
 endif()
-if(NOT BUILD_SHARED_LIBS AND NOT APPLE)
-    list(APPEND LIBKTX_INSTALL_TARGETS ${ASTCENC_LIB_TARGET} basisu_encoder)
+if(NOT BUILD_SHARED_LIBS)
+    get_target_property(BASISU_LIB_NAME basisu::basisu_encoder ALIASED_TARGET)
+    if(NOT ${BASISU_LIB_NAME} STREQUAL "BASISU_LIB_NAME-NOTFOUND")
+        list(APPEND LIBKTX_INSTALL_TARGETS ${BASISU_LIB_NAME})
+    endif()
+
+    get_target_property(ASTC_LIB_NAME astcenc::astcenc ALIASED_TARGET)
+    if(NOT ${ASTC_LIB_NAME} STREQUAL "ASTC_LIB_NAME-NOTFOUND")
+        list(APPEND LIBKTX_INSTALL_TARGETS ${ASTC_LIB_NAME})
+    endif()
 endif()
 
 if(APPLE OR LINUX)

@@ -12,7 +12,7 @@
  */
 
 #include <emscripten/bind.h>
-#include "transcoder/basisu_transcoder.h"
+#include "basisu/transcoder/basisu_transcoder.h"
 
 using namespace emscripten;
 using namespace basist;

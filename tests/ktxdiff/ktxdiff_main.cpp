@@ -8,7 +8,7 @@
 #include "vkformat_enum.h"
 #include "platform_utils.h"
 
-#include "astc-encoder/Source/astcenc.h"
+#include <astcenc.h>
 
 #include <cassert>
 #include <fstream>

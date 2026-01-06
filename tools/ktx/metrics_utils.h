@@ -13,8 +13,8 @@
 #include "ktxint.h"
 #include "texture2.h"
 
-#include <encoder/basisu_enc.h>
-#include <encoder/basisu_ssim.h>
+#include "basisu/encoder/basisu_enc.h"
+#include "basisu/encoder/basisu_ssim.h"
 
 // -------------------------------------------------------------------------------------------------
 
