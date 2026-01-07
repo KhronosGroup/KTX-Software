@@ -185,7 +185,7 @@ struct OptionsEncodeBasis : public ktxBasisParams {
     inline static const char* kUastcHdrUltraQuant = "uastc-hdr-ultra-quant";
     inline static const char* kUastcHdrFavorAstc = "uastc-hdr-favor-astc";
     inline static const char* kRec2020 = "rec-2020";
-    inline static const char* kLambda = "uastc-lambda";
+    inline static const char* kUastcHdrLambda = "uastc-hdr-lambda";
     inline static const char* kUastcHdr6x6iLevel = "uastc-hdr-6x6i-level";
 
     // The remaining numeric fields are clamped within the Basis library
@@ -196,7 +196,7 @@ struct OptionsEncodeBasis : public ktxBasisParams {
     ClampedOption<float> uastcRDOQualityScalar;
     ClampedOption<float> uastcRDOMaxSmoothBlockErrorScale;
     ClampedOption<float> uastcRDOMaxSmoothBlockStdDev;
-    ClampedOption<float> uastcLambda;
+    ClampedOption<float> uastcHDRLambda;
     ClampedOption<ktx_uint32_t> uastcHDRLevel;
     ClampedOption<ktx_uint32_t> uastcHDRQuality;
 
@@ -213,7 +213,7 @@ struct OptionsEncodeBasis : public ktxBasisParams {
         uastcRDOMaxSmoothBlockStdDev(
             ktxBasisParams::uastcRDOMaxSmoothBlockStdDev,
             0.01f, 65536.0f),
-        uastcLambda(ktxBasisParams::uastcLambda, 0.0f, FLT_MAX),
+        uastcHDRLambda(ktxBasisParams::uastcHDRLambda, 0.0f, FLT_MAX),
         uastcHDRLevel(ktxBasisParams::uastcHDRLevel, 0, 12),
         uastcHDRQuality(ktxBasisParams::uastcHDRQuality, 0, 4)
     {
@@ -244,7 +244,7 @@ struct OptionsEncodeBasis : public ktxBasisParams {
         uastcHDRUltraQuant = false;
         uastcHDRUberMode = false;
         rec2020 = false;
-        uastcLambda = 0;
+        uastcHDRLambda = 0;
         uastcHDRLevel = 2;
         uastcHDRQuality = 1;
         
@@ -307,7 +307,7 @@ struct OptionsEncodeBasis : public ktxBasisParams {
             (kUastcHdrUltraQuant, "UASTC HDR 4x4: Try to find better quantized CEM 7/11 endpoint values (slower).")
             (kUastcHdrFavorAstc, "UASTC HDR 4x4: By default the UASTC HDR 4x4 encoder tries to strike a balance or even slightly favor BC6H quality. If this option is specified, ASTC HDR 4x4 quality is favored instead.")
             (kRec2020, "The input image's gamut is Rec. 2020 vs. the default Rec. 709 - for accurate colorspace error calculations.")
-            (kLambda, "Enables rate distortion optimization (RDO). The higher this value, the lower the quality, but the smaller the file size. Try 100-20000, or higher values on some images.", cxxopts::value<uint32_t>(), "<level>")
+            (kUastcHdrLambda, "Enables rate distortion optimization (RDO). The higher this value, the lower the quality, but the smaller the file size. Try 100-20000, or higher values on some images.", cxxopts::value<uint32_t>(), "<level>")
             (kUastcHdr6x6iLevel, "Sets the codec to 6x6 HDR intermediate mode (same as -hdr_6x6i) and controls encoder performance vs. max quality tradeoff. X may range from [0,12]. Default level is 2.", 
                 cxxopts::value<uint32_t>(), "<level>");
     }
@@ -548,9 +548,9 @@ struct OptionsEncodeBasis : public ktxBasisParams {
             validateUASTC6x6iArg(report, kRec2020);
             rec2020 = captureCodecOption<bool>(args, kRec2020);
         }
-        if (args[kLambda].count()) {
-            validateUASTC6x6iArg(report, kLambda);
-            uastcLambda = captureCodecOption<uint32_t>(args, kLambda);
+        if (args[kUastcHdrLambda].count()) {
+            validateUASTC6x6iArg(report, kUastcHdrLambda);
+            uastcHDRLambda = captureCodecOption<uint32_t>(args, kUastcHdrLambda);
         }
         if (args[kUastcHdr6x6iLevel].count()) {
             validateUASTC6x6iArg(report, kUastcHdr6x6iLevel);

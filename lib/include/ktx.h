@@ -1551,7 +1551,7 @@ typedef struct ktxBasisParams {
     ktx_bool_t rec2020;
         /*!< UASTC HDR 6x6i specific option: The input image's gamut is Rec. 2020 vs. the default Rec. 709 - for accurate colorspace error calculations.
          */
-    float uastcLambda;
+    float uastcHDRLambda;
         /*!< UASTC HDR 6x6i specific option: Enables rate distortion optimization (RDO). The higher this value, the lower the quality, but the smaller the file size. Try 100-20000, or higher values on some images.
          */
     ktx_uint32_t uastcHDRLevel;
