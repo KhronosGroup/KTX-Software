@@ -1228,7 +1228,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         // Reflect this in the formatSize
         ktxFormatSize_initFromDfd(&formatSize, This->pDfd);
         // and the requiredLevelAlignment.
-        priv._requiredLevelAlignment = 4 * 4;
+        priv._requiredLevelAlignment = 1;
     } else {
         result = ktxTexture2_rewriteDfd4BasisLzETC1S(This, alphaContent,
                                                      isLuminance,
