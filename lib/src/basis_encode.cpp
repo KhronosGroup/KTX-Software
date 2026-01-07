@@ -492,7 +492,7 @@ ktxTexture2_rewriteDfd4UastcHDR6x6i(ktxTexture2* This, alpha_content_e alphaCont
     KHR_DFDSETVAL(nbdb, DESCRIPTORTYPE, KHR_DF_KHR_DESCRIPTORTYPE_BASICFORMAT);
     KHR_DFDSETVAL(nbdb, VERSIONNUMBER, KHR_DF_VERSIONNUMBER_LATEST);
     KHR_DFDSETVAL(nbdb, DESCRIPTORBLOCKSIZE, ndbSize);
-    KHR_DFDSETVAL(nbdb, MODEL, KHR_DF_MODEL_UASTC_6x6_HDR);
+    KHR_DFDSETVAL(nbdb, MODEL, KHR_DF_MODEL_UASTC_6X6_HDR);
     KHR_DFDSETVAL(nbdb, PRIMARIES, KHR_DFDVAL(cbdb, PRIMARIES));
     KHR_DFDSETVAL(nbdb, TRANSFER, KHR_DFDVAL(cbdb, TRANSFER));
     KHR_DFDSETVAL(nbdb, FLAGS, KHR_DFDVAL(cbdb, FLAGS));
@@ -858,10 +858,10 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         cparams.m_uastc_hdr_4x4_options.m_allow_uber_mode = params->uastcHDRUberMode;
         cparams.m_uastc_hdr_4x4_options.m_ultra_quant = params->uastcHDRUltraQuant;
         cparams.m_astc_hdr_6x6_options.m_rec2020_bt2100_color_gamut = params->rec2020;
-        if (params->uastcLambda > 0.0f)
+        if (params->uastcHDRLambda > 0.0f)
         {
-            cparams.m_astc_hdr_6x6_options.m_lambda = params->uastcLambda;
-            cparams.m_rdo_uastc_ldr_4x4_quality_scalar = params->uastcLambda;
+            cparams.m_astc_hdr_6x6_options.m_lambda = params->uastcHDRLambda;
+            cparams.m_rdo_uastc_ldr_4x4_quality_scalar = params->uastcHDRLambda;
             cparams.m_rdo_uastc_ldr_4x4 = true;
         }        
         

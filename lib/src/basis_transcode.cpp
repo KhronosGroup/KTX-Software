@@ -164,7 +164,7 @@ ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
     khr_df_model_e colorModel = (khr_df_model_e)KHR_DFDVAL(BDB, MODEL);
     if (colorModel != KHR_DF_MODEL_UASTC &&
         colorModel != KHR_DF_MODEL_UASTC_4X4_HDR &&
-        colorModel != KHR_DF_MODEL_UASTC_6x6_HDR 
+        colorModel != KHR_DF_MODEL_UASTC_6X6_HDR 
         // Constructor has checked color model matches BASIS_LZ.
         && This->supercompressionScheme != KTX_SS_BASIS_LZ)
     {
@@ -319,7 +319,7 @@ ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
         textureFormat = basis_tex_format::cUASTC4x4;
     else if (colorModel == KHR_DF_MODEL_UASTC_4X4_HDR)
         textureFormat = basis_tex_format::cUASTC_HDR_4x4;        
-    else if (colorModel == KHR_DF_MODEL_UASTC_6x6_HDR)
+    else if (colorModel == KHR_DF_MODEL_UASTC_6X6_HDR)
         textureFormat = basis_tex_format::cASTC_HDR_6x6_INTERMEDIATE;    
     else
         textureFormat = basis_tex_format::cETC1S;
@@ -970,7 +970,7 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
     } else if (colorModel == KHR_DF_MODEL_UASTC_4X4_HDR) {
         return transcodeUastcHDR4x4(This, alphaContent, prototype, outputFormat,
                                                 transcodeFlags);
-    } else if (colorModel == KHR_DF_MODEL_UASTC_6x6_HDR) {
+    } else if (colorModel == KHR_DF_MODEL_UASTC_6X6_HDR) {
         return transcodeUastcHDR6x6_intermediate(This, alphaContent, prototype, outputFormat, transcodeFlags);
     } else {
         debug_printf(

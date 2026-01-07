@@ -79,7 +79,7 @@ struct OptionsTranscodeTarget {
 
         if (!transcodeTarget.has_value()) {
             const auto* bdfd = texture->pDfd + 1;
-            if (khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_UASTC_6x6_HDR
+            if (khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_UASTC_6X6_HDR
              || khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_UASTC_4X4_HDR) {
                 transcodeTarget = KTX_TTF_RGBA_HALF;
                 transcodeTargetName = "rgba16f";

@@ -2041,7 +2041,7 @@ ktxTexture2_NeedsTranscoding(ktxTexture2* This)
         return true;
     else if (KHR_DFDVAL(This->pDfd + 1, MODEL) == KHR_DF_MODEL_UASTC_4X4_HDR)
         return true;
-    else if (KHR_DFDVAL(This->pDfd + 1, MODEL) == KHR_DF_MODEL_UASTC_6x6_HDR)
+    else if (KHR_DFDVAL(This->pDfd + 1, MODEL) == KHR_DF_MODEL_UASTC_6X6_HDR)
         return true;
     else
         return false;
