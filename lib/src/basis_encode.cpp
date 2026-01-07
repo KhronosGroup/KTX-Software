@@ -151,7 +151,6 @@ static void
 copy_rgbF_to_rgbaF(float* rgbadst, const basist::half_float* rgbsrc, uint32_t,
                    ktx_size_t image_size, swizzle_e[4]) {
     for (ktx_size_t i = 0; i < image_size; i += 3 * sizeof(basist::half_float)) {
-        memcpy(rgbadst, rgbsrc, 3 * sizeof(basist::half_float));
         rgbadst[0] = basist::half_to_float(rgbsrc[0]);
         rgbadst[1] = basist::half_to_float(rgbsrc[1]);
         rgbadst[2] = basist::half_to_float(rgbsrc[2]);
