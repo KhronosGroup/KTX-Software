@@ -143,7 +143,14 @@ typedef void (*PFNBUCOPYCB_HDR)(float* rgbadst, const basist::half_float* rgbasr
 static void
 copy_rgbaF_to_rgbaF(float* rgbadst, const basist::half_float* rgbasrc, uint32_t,
                     ktx_size_t image_size, swizzle_e[4]) {
-    memcpy(rgbadst, rgbasrc, image_size);
+    for (ktx_size_t i = 0; i < image_size; i += 4 * sizeof(basist::half_float)) {
+        rgbadst[0] = basist::half_to_float(rgbasrc[0]);
+        rgbadst[1] = basist::half_to_float(rgbasrc[1]);
+        rgbadst[2] = basist::half_to_float(rgbasrc[2]);
+        rgbadst[3] = basist::half_to_float(rgbasrc[3]);
+        rgbadst += 4;
+        rgbasrc += 4;
+    }
 }
 
 // Copy rgb to rgba. No swizzle.
