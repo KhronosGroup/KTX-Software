@@ -641,6 +641,8 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         cparams.m_hdr = true;
         cparams.m_hdr_mode = basisu::hdr_modes::cASTC_HDR_6X6_INTERMEDIATE;
         break;
+    default:
+        break;
     }
 
     //
