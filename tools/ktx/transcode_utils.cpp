@@ -27,10 +27,7 @@ TranscodeSwizzleInfo determineTranscodeSwizzle(const KTXTexture2& texture, Repor
 
     if (texture->supercompressionScheme == KTX_SS_BASIS_LZ) {
         result.defaultNumComponents = 0;
-        if (khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_UASTC_6X6_HDR) {
-            result.defaultNumComponents = 4;
-            result.swizzle = "rgba";
-        } else if (sample0 == KHR_DF_CHANNEL_ETC1S_RGB && sample1 == KHR_DF_CHANNEL_ETC1S_AAA) {
+        if (sample0 == KHR_DF_CHANNEL_ETC1S_RGB && sample1 == KHR_DF_CHANNEL_ETC1S_AAA) {
             result.defaultNumComponents = 4;
             result.swizzle = "rgba";
         } else if (sample0 == KHR_DF_CHANNEL_ETC1S_RGB) {
