@@ -153,6 +153,14 @@ namespace ktx
                 return KHR_DF_MODEL_UNSPECIFIED;
         }
 
+        khr_df_transfer_e getTransferFunction() const
+        {
+            if (isTexture2())
+                return ktxTexture2_GetTransferFunction_e(*this);
+            else
+                return KHR_DF_TRANSFER_UNSPECIFIED;
+        }
+
         khr_df_transfer_e getOETF() const
         {
             if (isTexture2())
@@ -169,11 +177,19 @@ namespace ktx
                 return KHR_DF_PRIMARIES_UNSPECIFIED;
         }
 
-        bool isHDR() const
-        {
+        bool isHDR() const {
+            if (isTexture2() && getColorModel() == KHR_DF_MODEL_ASTC) {
+                const uint32_t *BDFDB =  static_cast<ktxTexture2*>(*this)->pDfd;
+                uint32_t numSamples = KHR_DFDSAMPLECOUNT(BDFDB);
+                for (uint32_t sample = 0; sample < numSamples; ++sample) {
+                    khr_df_sample_datatype_qualifiers_e qualifiers = (khr_df_sample_datatype_qualifiers_e)KHR_DFDSVAL(BDFDB, sample, QUALIFIERS);
+                    if (qualifiers & KHR_DF_SAMPLE_DATATYPE_FLOAT) return true;
+                }
+            }
+
             return (getColorModel() == KHR_DF_MODEL_BC6H
                  || getColorModel() == KHR_DF_MODEL_UASTC_4X4_HDR
-                 || getColorModel() == KHR_DF_MODEL_UASTC_6x6_HDR
+                 || getColorModel() == KHR_DF_MODEL_UASTC_6X6_HDR
                  );
         }
 
@@ -520,6 +536,15 @@ namespace ktx
                 std::cout << "ERROR: Failed to deleteKVPair: " << ktxErrorString(result) << std::endl;
             }
             return result;
+        }
+
+        ktx_error_code_e setTransferFunction(khr_df_transfer_e tf)
+        {
+            if (isTexture2())
+                return ktxTexture2_SetTransferFunction(static_cast<ktxTexture2*>(*this),
+                                           tf);
+
+            return KTX_INVALID_OPERATION;
         }
 
         // Should only be used when creating new ktx textures.
@@ -1278,7 +1303,7 @@ EMSCRIPTEN_BINDINGS(ktx)
         // These are the values needed with HTML5/WebGL.
         .value("KHR_DF_MODEL_UASTC_4X4_LDR", KHR_DF_MODEL_UASTC_4X4_LDR)
         .value("KHR_DF_MODEL_UASTC_4X4_HDR", KHR_DF_MODEL_UASTC_4X4_HDR)
-        .value("KHR_DF_MODEL_UASTC_6x6_HDR", KHR_DF_MODEL_UASTC_6x6_HDR)
+        .value("KHR_DF_MODEL_UASTC_6x6_HDR", KHR_DF_MODEL_UASTC_6X6_HDR)
     ;
 
     enum_<khr_df_primaries_e>("khr_df_primaries")
@@ -1312,10 +1337,12 @@ EMSCRIPTEN_BINDINGS(ktx)
         .property("baseHeight", &ktx::texture::baseHeight)
         .property("colorModel", &ktx::texture::getColorModel)
 #if KTX_FEATURE_WRITE
+        .property("transferFunction", &ktx::texture::getTransferFunction, &ktx::texture::setTransferFunction)
         .property("oetf", &ktx::texture::getOETF, &ktx::texture::setOETF)
         .property("primaries", &ktx::texture::getPrimaries,
                                &ktx::texture::setPrimaries)
 #else
+        .property("transferFunction", &ktx::texture::getTransferFunction)
         .property("oetf", &ktx::texture::getOETF)
         .property("primaries", &ktx::texture::getPrimaries)
 #endif
