@@ -145,6 +145,10 @@ namespace ktx
             return ktxTexture_NeedsTranscoding(m_ptr.get());
         }
 
+        bool isHDR() const {
+            return ktxTexture_IsHDR(m_ptr.get());
+        }
+
         khr_df_model_e getColorModel() const
         {
             if (isTexture2())
@@ -175,22 +179,6 @@ namespace ktx
                 return ktxTexture2_GetPrimaries_e(*this);
             else
                 return KHR_DF_PRIMARIES_UNSPECIFIED;
-        }
-
-        bool isHDR() const {
-            if (isTexture2() && getColorModel() == KHR_DF_MODEL_ASTC) {
-                const uint32_t *BDFDB =  static_cast<ktxTexture2*>(*this)->pDfd;
-                uint32_t numSamples = KHR_DFDSAMPLECOUNT(BDFDB);
-                for (uint32_t sample = 0; sample < numSamples; ++sample) {
-                    khr_df_sample_datatype_qualifiers_e qualifiers = (khr_df_sample_datatype_qualifiers_e)KHR_DFDSVAL(BDFDB, sample, QUALIFIERS);
-                    if (qualifiers & KHR_DF_SAMPLE_DATATYPE_FLOAT) return true;
-                }
-            }
-
-            return (getColorModel() == KHR_DF_MODEL_BC6H
-                 || getColorModel() == KHR_DF_MODEL_UASTC_4X4_HDR
-                 || getColorModel() == KHR_DF_MODEL_UASTC_6X6_HDR
-                 );
         }
 
         bool isSrgb() const
@@ -706,6 +694,7 @@ interface texture {
     readonly attribute boolean isSRGB;
     readonly attribute boolean isPremultiplied;
     readonly attribute boolean needsTranscoding;
+    readonly attribute boolean isHDR;
     readonly attribute long numComponents;
     readonly attribute long vkFormat;
     readonly attribute SupercmpScheme supercompressionScheme;

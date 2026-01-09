@@ -2047,6 +2047,33 @@ ktxTexture2_NeedsTranscoding(ktxTexture2* This)
         return false;
 }
 
+/**
+ * @memberof ktxTexture2
+ * @~English
+ * @brief Query if the images are in an HDR format.
+ *
+ * @param[in]     This     pointer to the ktxTexture2 object of interest.
+ */
+ktx_bool_t
+ktxTexture2_IsHDR(ktxTexture2* This)
+{
+    khr_df_model_e model = KHR_DFDVAL(This->pDfd + 1, MODEL);
+
+    if (model == KHR_DF_MODEL_ASTC) {
+        const uint32_t *pBdb = This->pDfd + 1;
+        uint32_t numSamples = KHR_DFDSAMPLECOUNT(pBdb);
+        for (uint32_t sample = 0; sample < numSamples; ++sample) {
+            khr_df_sample_datatype_qualifiers_e qualifiers = (khr_df_sample_datatype_qualifiers_e)KHR_DFDSVAL(pBdb, sample, QUALIFIERS);
+            if (qualifiers & KHR_DF_SAMPLE_DATATYPE_FLOAT) return true;
+        }
+    }
+
+    return (model == KHR_DF_MODEL_BC6H
+         || model == KHR_DF_MODEL_UASTC_4X4_HDR
+         || model == KHR_DF_MODEL_UASTC_6X6_HDR
+         );
+}
+
 #if KTX_FEATURE_WRITE
 /*
  * @memberof ktxTexture2
@@ -3034,6 +3061,7 @@ struct ktxTexture_vtbl ktxTexture2_vtbl = {
     (PFNKTEXITERATELEVELS)ktxTexture2_IterateLevels,
     (PFNKTEXITERATELOADLEVELFACES)ktxTexture2_IterateLoadLevelFaces,
     (PFNKTEXNEEDSTRANSCODING)ktxTexture2_NeedsTranscoding,
+    (PFNKTEXISHDR)ktxTexture2_IsHDR,
     (PFNKTEXLOADIMAGEDATA)ktxTexture2_LoadImageData,
     (PFNKTEXSETIMAGEFROMMEMORY)ktxTexture2_SetImageFromMemory,
     (PFNKTEXSETIMAGEFROMSTDIOSTREAM)ktxTexture2_SetImageFromStdioStream,

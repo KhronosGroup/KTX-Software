@@ -472,6 +472,9 @@ typedef KTX_error_code
 typedef ktx_bool_t
     (KTX_APIENTRY* PFNKTEXNEEDSTRANSCODING)(ktxTexture* This);
 
+typedef ktx_bool_t
+    (KTX_APIENTRY* PFNKTEXISHDR)(ktxTexture* This);
+
 typedef KTX_error_code
     (KTX_APIENTRY* PFNKTEXSETIMAGEFROMMEMORY)(ktxTexture* This,
                                               ktx_uint32_t level,
@@ -512,6 +515,7 @@ typedef KTX_error_code
     PFNKTEXITERATELEVELS IterateLevels;
     PFNKTEXITERATELOADLEVELFACES IterateLoadLevelFaces;
     PFNKTEXNEEDSTRANSCODING NeedsTranscoding;
+    PFNKTEXISHDR IsHDR;
     PFNKTEXLOADIMAGEDATA LoadImageData;
     PFNKTEXSETIMAGEFROMMEMORY SetImageFromMemory;
     PFNKTEXSETIMAGEFROMSTDIOSTREAM SetImageFromStdioStream;
@@ -599,6 +603,13 @@ typedef KTX_error_code
  * @copydoc ktxTexture2.ktxTexture2_NeedsTranscoding
  */
 #define ktxTexture_NeedsTranscoding(This) (This)->vtbl->NeedsTranscoding(This)
+
+/**
+ * @~English
+ * @brief Helper for calling the IsHDR virtual method of a ktxTexture.
+ * @copydoc ktxTexture2.ktxTexture2_IsHDR
+ */
+#define ktxTexture_IsHDR(This) (This)->vtbl->IsHDR(This)
 
 /**
  * @~English
