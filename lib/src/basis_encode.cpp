@@ -26,6 +26,7 @@
 #include "ktx.h"
 #include "ktxint.h"
 #include "texture2.h"
+#include "unused.h"
 #include "vkformat_enum.h"
 #include "vk_format.h"
 #include "basis_sgd.h"
@@ -440,6 +441,9 @@ ktxTexture2_rewriteDfd4Uastc(ktxTexture2* This,
 static KTX_error_code
 ktxTexture2_rewriteDfd4UastcHDR4x4(ktxTexture2* This, alpha_content_e alphaContent, bool isLuminance,
                              swizzle_e swizzle[4]) {
+    UNUSED(alphaContent);
+    UNUSED(isLuminance);
+    UNUSED(swizzle);
     uint32_t* cdfd = This->pDfd;
     uint32_t* cbdb = cdfd + 1;
 
@@ -482,6 +486,9 @@ ktxTexture2_rewriteDfd4UastcHDR4x4(ktxTexture2* This, alpha_content_e alphaConte
 static KTX_error_code
 ktxTexture2_rewriteDfd4UastcHDR6x6i(ktxTexture2* This, alpha_content_e alphaContent, bool isLuminance,
                              swizzle_e swizzle[4]) {
+    UNUSED(alphaContent);
+    UNUSED(isLuminance);
+    UNUSED(swizzle);
     uint32_t* cdfd = This->pDfd;
     uint32_t* cbdb = cdfd + 1;
 
