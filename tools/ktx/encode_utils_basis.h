@@ -564,7 +564,7 @@ struct OptionsEncodeBasis : public ktxBasisParams {
 
         if (args[kUastcHdrUltraQuant].count()) {
             validateUASTC4x4Arg(report, kUastcHdrUltraQuant);
-            uastcHDRUberMode = captureCodecOption<bool>(args, kUastcHdrUltraQuant);
+            uastcHDRUltraQuant = captureCodecOption<bool>(args, kUastcHdrUltraQuant);
         }
         if (args[kUastcHdrFavorAstc].count()) {
             validateUASTC4x4Arg(report, kUastcHdrFavorAstc);
