@@ -7,6 +7,7 @@
 
 #include "ktx.h"
 #include "imageio_utility.h"
+#include "platform_utils.h"
 #include <fmt/ostream.h>
 #include <fmt/printf.h>
 #include <algorithm>
@@ -302,6 +303,16 @@ template <typename Iterator>
 [[nodiscard]] inline std::string fmtOutFile(std::string_view filepath) {
     return filepath == "-" ? std::string("stdout") : std::string(filepath);
 }
+
+#if defined(__cpp_lib_char8_t)
+[[nodiscard]] inline std::string fmtInFile(std::u8string_view filepath) {
+    return filepath == u8"-" ? std::string("stdin") : from_u8string(filepath);
+}
+
+[[nodiscard]] inline std::string fmtOutFile(std::u8string_view filepath) {
+    return filepath == u8"-" ? std::string("stdout") : from_u8string(filepath);
+}
+#endif
 
 // -------------------------------------------------------------------------------------------------
 
