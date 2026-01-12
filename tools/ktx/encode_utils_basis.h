@@ -557,6 +557,12 @@ struct OptionsEncodeBasis : public ktxBasisParams {
             uastcRDODontFavorSimplerModes = 1;
         }
 
+        if (args[kUastcRdoM].count()) {
+            validateUASTCRDOArg(report, kUastcRdoM);
+            captureCodecOption(kUastcRdoM);
+            uastcRDONoMultithreading = 1;
+        }
+
         if (args[kUastcHdrUberMode].count()) {
             validateUASTC4x4Arg(report, kUastcHdrUberMode);
             uastcHDRUberMode = captureCodecOption<bool>(args, kUastcHdrUberMode);
