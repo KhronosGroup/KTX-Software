@@ -49,6 +49,8 @@ Encode a KTX2 file.
     For universal and ASTC LDR formats, the input file must be R8, R8G8, R8G8B8
     or R8G8B8A8 (or their sRGB variants).
 
+    For universal HDR formats, the input file must be R16G16B16_SFLOAT or R16G16B16A16_SFLOAT.
+
     <!--For ASTC HDR formats the input file must be TBD (e.g. R16_{,S}FLOAT,
     R16G16_{,S}FLOAT ...
 -->
@@ -61,7 +63,7 @@ Encode a KTX2 file.
 -->
     The following options are available:
     <dl>
-        <dt>\--codec basis-lz | uastc</dt>
+        <dt>\--codec basis-lz | uastc | uastc-hdr-4x4 | uastc-hdr-6x6i</dt>
         <dd>Target codec followed by the codec specific options. With each choice
             the specific and common encoder options listed
             @ref ktx\_encode\_options\_encoding "below" become valid, otherwise

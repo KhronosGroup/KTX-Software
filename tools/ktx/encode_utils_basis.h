@@ -43,6 +43,20 @@ enum class BasisCodec {
         Create a texture in high-quality transcodable UASTC format. When set
         the @e uastc options become valid.
     </dd>
+    <dt>
+        uastc-hdr-4x4:
+    </dt>
+    <dd>
+        Create a texture in high-quality transcodable UASTC HDR 4x4 format. When set
+        the @e uastc hdr-4x4 options become valid.
+    </dd>
+    <dt>
+        uastc-hdr-6x6i:
+    </dt>
+    <dd>
+        Create a texture in high-quality transcodable UASTC HDR 6x6i format. When set
+        the @e uastc hdr-6x6i options become valid.
+    </dd>
 </dl>
 //! [command options_basis_encoders]
 */
@@ -159,6 +173,19 @@ enum class BasisCodec {
         <dt>\--uastc-rdo-m</dt>
         <dd>Disable RDO multithreading (slightly higher compression,
             deterministic).</dd>
+        <dt>\--uastc-hdr-uber-mode</dt>
+        <dd>Allow the UASTC HDR 4x4 encoder to try varying the CEM 11 selectors more for slightly
+            higher quality (slower). This may negatively impact BC6H quality, however.</dd>
+        <dt>\--uastc-hdr-ultra-quant</dt>
+        <dd>Allow the UASTC HDR 4x4 encoder to try and find better quantized CEM 7/11 endpoint values (slower).</dd>
+        <dt>\--uastc-hdr-favor-astc</dt>
+        <dd>By default the UASTC HDR 4x4 encoder tries to strike a balance or even slightly favor BC6H quality. If this option is specified, ASTC HDR 4x4 quality is favored instead.</dd> 
+        <dt>\--uastc-hdr-lambda &lt;level&gt;</dt>
+        <dd>Enables rate distortion optimization (RDO). The higher this value, the lower the quality, but the smaller the file size. Try 100-20000, or higher values on some images.</dd>
+        <dt>\--uastc-hdr-6x6i-level &lt;level&gt;</dt>
+        <dd>Controls the 6x6 HDR intermediate mode encoder performance vs. max quality tradeoff. Range is [0,12]. Default level is 2.</dd>
+        <dt>\--rec-2020</dt>
+        <dd>The input image's gamut is Rec. 2020 vs. the default Rec. 709 - for accurate colorspace error calculations.</dd>
     </dl>
 </dl>
 //! [command options_encode_basis]
@@ -304,11 +331,11 @@ struct OptionsEncodeBasis : public ktxBasisParams {
             (kUastcRdoF, "Do not favor simpler UASTC modes in RDO mode.")
             (kUastcRdoM, "Disable RDO multithreading (slightly higher compression, deterministic).")
             (kUastcHdrUberMode, "Allow the UASTC HDR 4x4 encoder to try varying the CEM 11 selectors more for slightly higher quality (slower). This may negatively impact BC6H quality, however.")
-            (kUastcHdrUltraQuant, "UASTC HDR 4x4: Try to find better quantized CEM 7/11 endpoint values (slower).")
-            (kUastcHdrFavorAstc, "UASTC HDR 4x4: By default the UASTC HDR 4x4 encoder tries to strike a balance or even slightly favor BC6H quality. If this option is specified, ASTC HDR 4x4 quality is favored instead.")
+            (kUastcHdrUltraQuant, "Allow the UASTC HDR 4x4 encoder to try and find better quantized CEM 7/11 endpoint values (slower).")
+            (kUastcHdrFavorAstc, "By default the UASTC HDR 4x4 encoder tries to strike a balance or even slightly favor BC6H quality. If this option is specified, ASTC HDR 4x4 quality is favored instead.")
             (kRec2020, "The input image's gamut is Rec. 2020 vs. the default Rec. 709 - for accurate colorspace error calculations.")
             (kUastcHdrLambda, "Enables rate distortion optimization (RDO). The higher this value, the lower the quality, but the smaller the file size. Try 100-20000, or higher values on some images.", cxxopts::value<uint32_t>(), "<level>")
-            (kUastcHdr6x6iLevel, "Sets the codec to 6x6 HDR intermediate mode (same as -hdr_6x6i) and controls encoder performance vs. max quality tradeoff. X may range from [0,12]. Default level is 2.", 
+            (kUastcHdr6x6iLevel, "Controls the 6x6 HDR intermediate mode encoder performance vs. max quality tradeoff. Range is [0,12]. Default level is 2.", 
                 cxxopts::value<uint32_t>(), "<level>");
     }
 
