@@ -899,7 +899,7 @@ Create a KTX2 file from various input files.
             The format will be used to verify and load all input files into a
             texture before performing any specified encoding.<br />
         </dd>
-        <dt>\--encode basis-lz | uastc</dt>
+        <dt>\--encode basis-lz | uastc | uastc-hdr-4x4 | uastc-hdr-6x6i</dt>
         <dd>Encode the texture with the specified codec before saving it.
             This option matches the functionality of the @ref ktx_encode
             "ktx encode" command. With each choice, the specific and common
