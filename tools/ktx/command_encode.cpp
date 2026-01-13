@@ -239,23 +239,39 @@ void CommandEncode::executeEncode() {
     if (khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_ASTC && options.encodeASTC)
         fatal_usage("Encoding from ASTC format {} to another ASTC format {} is not supported.", toString(VkFormat(texture->vkFormat)), toString(options.vkFormat));
 
-    switch (texture->vkFormat) {
-    case VK_FORMAT_R8_UNORM:
-    case VK_FORMAT_R8_SRGB:
-    case VK_FORMAT_R8G8_UNORM:
-    case VK_FORMAT_R8G8_SRGB:
-    case VK_FORMAT_R8G8B8_UNORM:
-    case VK_FORMAT_R8G8B8_SRGB:
-    case VK_FORMAT_R8G8B8A8_UNORM:
-    case VK_FORMAT_R8G8B8A8_SRGB:
-    case VK_FORMAT_R16G16B16_SFLOAT:
-    case VK_FORMAT_R16G16B16A16_SFLOAT:
-        // Allowed formats
-        break;
-    default:
-        fatal_usage("Only R8, RG8, RGB8, or RGBA8 UNORM and SRGB or RGB16 SFLOAT or RGBA16 SFLOAT formats can be encoded, "
-            "but format is {}.", toString(VkFormat(texture->vkFormat)));
-        break;
+    if (options.codec == BasisCodec::NONE || options.codec == BasisCodec::BasisLZ || options.codec == BasisCodec::UASTC) {
+        switch (texture->vkFormat) {
+        case VK_FORMAT_R8_UNORM:
+        case VK_FORMAT_R8_SRGB:
+        case VK_FORMAT_R8G8_UNORM:
+        case VK_FORMAT_R8G8_SRGB:
+        case VK_FORMAT_R8G8B8_UNORM:
+        case VK_FORMAT_R8G8B8_SRGB:
+        case VK_FORMAT_R8G8B8A8_UNORM:
+        case VK_FORMAT_R8G8B8A8_SRGB:
+            // Allowed formats
+            break;
+        default:
+            fatal_usage(
+                "Only R8, RG8, RGB8, or RGBA8 UNORM and SRGB formats can be encoded, "
+                "but format is {}.",
+                toString(VkFormat(texture->vkFormat)));
+            break;
+        }
+    } else if (options.codec == BasisCodec::UASTC_HDR_4x4 ||
+               options.codec == BasisCodec::UASTC_HDR_6x6i) {
+        switch (texture->vkFormat) {
+        case VK_FORMAT_R16G16B16_SFLOAT:
+        case VK_FORMAT_R16G16B16A16_SFLOAT:
+            // Allowed formats
+            break;
+        default:
+            fatal_usage(
+                "Only RGB16 or RGBA16 SFLOAT can be encoded, "
+                "but format is {}.",
+                toString(VkFormat(texture->vkFormat)));
+            break;
+        }
     }
 
     // Convert 1D textures to 2D (we could consider 1D as an invalid input)
