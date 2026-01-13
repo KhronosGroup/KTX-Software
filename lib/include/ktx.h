@@ -1379,9 +1379,9 @@ typedef enum ktx_basis_codec_e {
         /*!< BasisLZ. */
     KTX_BASIS_CODEC_UASTC_LDR   = 2,
         /*!< UASTC. */
-    KTX_BASIS_CODEC_UASTC_HDR_4X4   = 4,
+    KTX_BASIS_CODEC_UASTC_HDR_4X4   = 3,
         /*!< UASTC_HDR_4x4. */
-    KTX_BASIS_CODEC_UASTC_HDR_6X6_INTERMEDIATE = 8,
+    KTX_BASIS_CODEC_UASTC_HDR_6X6_INTERMEDIATE = 4,
         /*!< UASTC_HDR_6x6i. */
 } ktx_basis_codec_e;
 
@@ -1410,7 +1410,7 @@ typedef struct ktxBasisParams {
              of struct is being passed.
          */
     ktx_basis_codec_e codecFlag;
-        /*!<  Flag to indicate which codec to use. 1 - ETC1S, 2 - UASTC, 4 - UASTC_HDR4x4, 8 - UASTC_HDR6x6i. */
+        /*!<  Flag to indicate which codec to use. 0 - NONE, 1 - ETC1S, 2 - UASTC_LDR, 3 - UASTC_HDR4x4, 4 - UASTC_HDR6x6i. */
     ktx_bool_t verbose;
         /*!< If true, prints Basis Universal encoder operation details to
              @c stdout. Not recommended for GUI apps.
