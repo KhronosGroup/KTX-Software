@@ -977,5 +977,4 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
             "ktxTexture2_transcodeUastc: colorModel currently unsupported\n");
         return KTX_UNSUPPORTED_FEATURE;
     }
-    return KTX_SUCCESS;
 }
