@@ -1,3 +1,6 @@
+# Copyright 2019-2020 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+
 cmake_minimum_required(VERSION 3.10)
 project(dfdutils C)
 
