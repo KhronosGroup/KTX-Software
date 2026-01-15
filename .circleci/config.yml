@@ -1,0 +1,21 @@
+version: 2.1
+orbs:
+  uni-deploy: uni-intelligence/uni-deploy@0
+  uni-security-orb: uni-intelligence/uni-security-orb@0.3
+  uni: uni-intelligence/uni@1
+
+workflows:
+  test_and_deploy:
+    when: << pipeline.git.branch >>
+    jobs:
+      - uni/build_and_push_docker_image:
+          name: build_and_push_base_amd
+          arch_suffix: amd
+          resource_class: xlarge
+          generate_sbom: true
+          context: build
+      - uni/build_and_push_docker_image:
+          name: build_and_push_base_arm
+          arch_suffix: arm
+          resource_class: arm.xlarge
+          context: build

@@ -1,0 +1,6 @@
+services:
+  # use for local testing:
+  circleci-tests:
+    build:
+      target: prod
+      context: ./
