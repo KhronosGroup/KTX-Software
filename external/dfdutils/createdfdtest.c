@@ -7,9 +7,13 @@
 #include "dfd.h"
 
 #define TESTRGB565 1
+#define UNUSED(x) (void)(x)
 
 int main(int argc, char** argv)
 {
+    UNUSED(argc);
+    UNUSED(argv);
+
 #ifdef TESTRGBA8888
     uint32_t *DFD = createDFDUnpacked(0, 4, 1, 1, s_UNORM);
 #endif
