@@ -28,9 +28,9 @@ public class KtxBasisParams {
 	public static final int ETC1S_DEFAULT_COMPRESSION_LEVEL = 2;
 
 	/**
-	 * True to use UASTC base, false to use ETC1S base.
+	 * Flag to indicate which codec to use. 0 - NONE, 1 - ETC1S, 2 - UASTC_LDR, 3 - UASTC_HDR4x4, 4 - UASTC_HDR6x6i.
 	 */
-	private boolean uastc;
+	private int codecFlag;
 
 	/**
 	 * Whether encoder operations are printed to standard output
@@ -143,25 +143,23 @@ public class KtxBasisParams {
 	private boolean uastcRDONoMultithreading;
 
 	/**
-	 * Returns whether UASTC base is set.
+	 * Returns the used codec.
 	 *
-	 * See {@link #setUastc(boolean)}
+	 * See {@link #setCodecFlag(int)}
 	 *
-	 * @return The setting
+	 * @return The codec
 	 */
-	public boolean isUastc() {
-		return uastc;
+	public int getCodecFlag() {
+		return codecFlag;
 	}
 
 	/**
-	 * Set whether to use UASTC base.<br>
-	 * <br>
-	 * Setting this to <code>false</code> will use ETC1S base.
+	 * Set the codec flag.<br>
 	 *
-	 * @param uastc The setting
+	 * @param codecFlag The codec
 	 */
-	public void setUastc(boolean uastc) {
-		this.uastc = uastc;
+	public void setCodecFlag(int codecFlag) {
+		this.codecFlag = codecFlag;
 	}
 
 	/**
