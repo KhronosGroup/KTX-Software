@@ -142,7 +142,7 @@ if(DOXYGEN_FOUND)
     set( DOXYGEN_TIMESTAMP YES )
 
     doxygen_add_docs(
-            docs
+            dfdutils.doc
             dfd.h
             colourspaces.c
             createdfd.c
