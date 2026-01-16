@@ -458,16 +458,20 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
       "Premultiplied KTX2 RGBA8"
     },
     { Texture::create,
+      "orient_down_metadata_u.ktx2",
+      "KTX v2 RGBA8 2D + KTXOrientation down"
+    },
+    { Texture::create,
+      "orient_up_metadata_u.ktx2",
+      "KTX v2 RGBA8 2D + KTXOrientation up"
+    },
+    { Texture::create,
       "orient-down-metadata.ktx",
-      "RGB8 2D + KTXOrientation down"
+      "KTX v1 RGB8 2D + KTXOrientation down"
     },
     { Texture::create,
       "orient-up-metadata.ktx",
-      "RGB8 2D + KTXOrientation up"
-    },
-    { Texture::create,
-      "--linear-tiling orient-up-metadata.ktx",
-      "RGB8 2D + KTXOrientation up with Linear Tiling"
+      "KTX v1 RGB8 2D + KTXOrientation up"
     },
     { Texture::create,
       "rgba-reference.ktx",

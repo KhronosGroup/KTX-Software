@@ -90,6 +90,8 @@ set( vk_ktx2_test_images
     skybox_zstd.ktx2
     straight-rgba.ktx2
     premultiplied-rgba.ktx2
+    orient_down_metadata_u.ktx2
+    orient_up_metadata_u.ktx2
 )
 set( vk_ktx_test_images
     orient-down-metadata.ktx

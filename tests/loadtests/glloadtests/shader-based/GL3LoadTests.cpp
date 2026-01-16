@@ -142,13 +142,26 @@ const GLLoadTests::sampleInvocation siSamples[] = {
       "Transcode of ETC1S/BasisLZ Compressed KTX2 mipmapped cube map",
     },
 #endif
+
     { DrawTexture::create,
-      "orient-down-metadata-u.ktx2",
-      "KTX2: RGB8 + KTXOrientation down"
+      "orient_down_metadata_u.ktx2",
+      "KTX v2 RGBA8 2D + KTXOrientation down"
     },
     { DrawTexture::create,
-      "--preload orient-down-metadata-u.ktx2",
-      "KTX2: RGB8 + KTXOrientation down with pre-loaded images"
+      "orient_up_metadata_u.ktx2",
+      "KTX v2 RGBA8 2D + KTXOrientation up"
+    },
+    { DrawTexture::create,
+      "--preload orient_down_metadata_u.ktx2",
+      "KTX v2 RGBA8 + KTXOrientation down with pre-loaded images"
+    },
+    { DrawTexture::create,
+      "orient-up-metadata.ktx",
+      "KTX v1 RGB8 + KTXOrientation up"
+    },
+    { DrawTexture::create,
+      "orient-down-metadata.ktx",
+      "KTX v1 RGB8 + KTXOrientation down"
     },
     { TextureArray::create,
       "texturearray_bc3_unorm.ktx2",
@@ -173,14 +186,6 @@ const GLLoadTests::sampleInvocation siSamples[] = {
     { DrawTexture::create,
       "hi_mark.ktx",
       "RGB8 NPOT HI Logo"
-    },
-    { DrawTexture::create,
-      "orient-up-metadata.ktx",
-      "RGB8 + KTXOrientation up"
-    },
-    { DrawTexture::create,
-      "orient-down-metadata.ktx",
-      "RGB8 + KTXOrientation down"
     },
     { DrawTexture::create,
       "not4_rgb888_srgb.ktx",
