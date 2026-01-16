@@ -481,7 +481,7 @@ endif()
 #set(BASISU_ZSTD FALSE)
 add_subdirectory(../external/basis_universal basisu-encoder)
 
-set(DFDUTILS_EMBED ON CACHE BOOL "Embed DFD Utils library via object library")
+set(DFDUTILS_TESTAPPS OFF CACHE BOOL "Enable DFD Utils tests.")
 add_subdirectory(../external/dfdutils dfdutils)
 
 ###################################################
