@@ -1384,6 +1384,7 @@ typedef enum ktx_basis_codec_e {
     KTX_BASIS_CODEC_UASTC_HDR_6X6_INTERMEDIATE = 4,
         /*!< UASTC_HDR_6x6i. */
 } ktx_basis_codec_e;
+typedef ktx_uint32_t ktx_basis_codec;
 
 /**
  * @memberof ktxTexture2
@@ -1409,7 +1410,7 @@ typedef struct ktxBasisParams {
         /*!< Size of this struct. Used so library can tell which version
              of struct is being passed.
          */
-    ktx_basis_codec_e codecFlag;
+    ktx_basis_codec codecFlag;
         /*!<  Flag to indicate which codec to use. 0 - NONE, 1 - ETC1S, 2 - UASTC_LDR, 3 - UASTC_HDR4x4, 4 - UASTC_HDR6x6i. */
     ktx_bool_t verbose;
         /*!< If true, prints Basis Universal encoder operation details to
