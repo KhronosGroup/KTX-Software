@@ -248,12 +248,22 @@ ImageInput::readScanline(void* pBufferOut, size_t bufferByteCount,
 
     seekSubimage(subimage, miplevel);
 
+    if (targetFormat != spec().format()) {
+        if (targetFormat.channelBitLength() == spec().format().channelBitLength()
+            && targetFormat.channelCount() == spec().format().channelCount()
+            && targetFormat.transfer() == spec().format().transfer())
+            throw std::runtime_error(fmt::format(
+                    "Requested unsupported format conversion.")
+                  );
+    }
     size_t outScanlineByteCount = targetFormat.pixelByteCount() * spec().width();
     if (bufferByteCount < outScanlineByteCount)
         throw buffer_too_small();
 
     uint8_t* pNativeBuffer;
-    if (targetFormat.channelBitLength() != spec().format().channelBitLength()) {
+    bool rescaleChannels = targetFormat.channelBitLength() != spec().format().channelBitLength();
+    bool addRemoveChannels = targetFormat.channelCount() != spec().format().channelCount();
+    if (rescaleChannels || addRemoveChannels) {
         if (spec().format().channelBitLength() == 16) {
             if (nativeBuffer16.size() < spec().scanlineByteCount())
                 nativeBuffer16.resize(spec().scanlineByteCount());
@@ -272,17 +282,41 @@ ImageInput::readScanline(void* pBufferOut, size_t bufferByteCount,
     readNativeScanline(pNativeBuffer, bufferByteCount, y, z, subimage, miplevel);
 
     if (reinterpret_cast<uint16_t*>(pNativeBuffer) == nativeBuffer16.data()) {
-         rescale(static_cast<uint8_t*>(pBufferOut),
-                 static_cast<uint8_t>(targetFormat.channelUpper()),
-                 nativeBuffer16.data(),
-                 static_cast<uint16_t>(spec().format().channelUpper()),
-                 spec().scanlineChannelCount());
+        if (targetFormat.channelBitLength() == 8) {
+            convert(static_cast<uint8_t*>(pBufferOut),
+                    static_cast<uint8_t>(targetFormat.channelUpper()),
+                    nativeBuffer16.data(),
+                    static_cast<uint16_t>(spec().format().channelUpper()),
+                    spec().width(),
+                    spec().format().channelCount(),
+                    targetFormat.channelCount());
+        } else {
+            convert(static_cast<uint16_t*>(pBufferOut),
+                    static_cast<uint16_t>(targetFormat.channelUpper()),
+                    nativeBuffer16.data(),
+                    static_cast<uint16_t>(spec().format().channelUpper()),
+                    spec().width(),
+                    spec().format().channelCount(),
+                    targetFormat.channelCount());
+        }
     } else if (pNativeBuffer == nativeBuffer8.data()) {
-         rescale(static_cast<uint16_t*>(pBufferOut),
-                 static_cast<uint16_t>(targetFormat.channelUpper()),
-                 nativeBuffer8.data(),
-                 static_cast<uint8_t>(spec().format().channelUpper()),
-                 spec().scanlineChannelCount());
+        if (targetFormat.channelBitLength() == 16) {
+            convert(static_cast<uint16_t*>(pBufferOut),
+                    static_cast<uint16_t>(targetFormat.channelUpper()),
+                    nativeBuffer8.data(),
+                    static_cast<uint8_t>(spec().format().channelUpper()),
+                    spec().width(),
+                    spec().format().channelCount(),
+                    targetFormat.channelCount());
+        } else {
+            convert(static_cast<uint8_t*>(pBufferOut),
+                    static_cast<uint8_t>(targetFormat.channelUpper()),
+                    nativeBuffer8.data(),
+                    static_cast<uint8_t>(spec().format().channelUpper()),
+                    spec().width(),
+                    spec().format().channelCount(),
+                    targetFormat.channelCount());
+        }
     } else if (targetFormat.channelUpper() != spec().format().channelUpper()) {
         if (spec().format().channelBitLength() == 16) {
             rescale(static_cast<uint16_t*>(pBufferOut),

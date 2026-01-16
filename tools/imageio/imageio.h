@@ -38,6 +38,7 @@
 #include <sstream>
 #include <vector>
 #include <memory>
+#include <type_traits>
 
 #include <fmt/format.h>
 #include <math.h>
@@ -543,6 +544,102 @@ class ImageInput {
             float multiplier = static_cast<float>(maxw) / maxr;
             for (size_t i = 0; i < nvals; i++) {
                 write[i] = static_cast<Tw>(roundf(read[i] * multiplier));
+            }
+        }
+    }
+
+    template<class T>
+    inline static T
+    luminance(T* rgb)
+    {
+        return static_cast<T>(roundf(0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]));
+    }
+
+    template<class T>
+    inline static void
+    // Tw read is not a typo.
+    rechannel(T* write, const T* read, uint32_t ncIn, uint32_t ncOut)
+    {
+        assert(ncIn <= 4 && ncOut <= 4 && ncIn != ncOut);
+        switch (ncOut) {
+        case 4:
+            switch (ncIn) {
+            case 3:
+                write[0] = read[0];
+                write[1] = read[1];
+                write[2] = read[2];
+                write[3] = static_cast<T>(0xffff);
+                break;
+            case 2:
+                write[0] = write[1] = write[2] = read[0];
+                write[3] = read[1];
+                break;
+            case 1:
+                write[0] = write[1] = write[2] = read[0];
+                write[3] = static_cast<T>(0xffff);
+                break;
+            }
+            break;
+        case 3:
+            switch (ncIn) {
+            case 4:
+                write[0] = read[0];
+                write[1] = read[1];
+                write[2] = read[2];
+                break;
+            case 2: [[fallthrough]];
+            case 1:
+                write[0] = write[1] = write[2] = read[0];
+                break;
+            }
+            break;
+        case 2:
+            switch (ncIn) {
+            case 4:
+                write[0] = luminance(read);
+                write[1] = read[3];
+                break;
+            case 3:
+                write[0] = luminance(read);
+                write[1] = static_cast<T>(0xffff);
+                break;
+            case 1:
+                write[0] = read[0];
+                write[1] = static_cast<T>(0xffff);
+                break;
+            }
+        case 1:
+            switch (ncIn) {
+            case 4: [[fallthrough]];
+            case 3:
+                write[0] = luminance(read);
+                break;
+            case 2:
+                write[0] = read[0];
+                break;
+            }
+        break;
+        }
+    }
+
+    template<class Tr, class Tw>
+    inline static void
+    convert(Tw* write, Tw maxw, const Tr* read, Tr maxr, size_t npixels,
+            uint32_t nchannelsIn, uint32_t nchannelsOut)
+    {
+        if (!std::is_same_v<Tr, Tw> && nchannelsIn == nchannelsOut) {
+            rescale(write, maxw, read, maxr, npixels * nchannelsOut);
+        } else {
+            for(size_t p = 0; p < npixels; p++) {
+                Tw channels[4];
+                const Tw* pixel = std::is_same<Tr, Tw>() ? (Tw*)&read[p*nchannelsIn] : channels;
+                static_assert((std::is_same<Tw, uint16_t>::value || std::is_same<Tw, uint8_t>::value)
+                      && (std::is_same<Tr, uint16_t>::value || std::is_same<Tr, uint8_t>::value)
+                      && "Template only supports uint8_t and uint16_t.");
+                if (static_cast<uint16_t>(maxw) != static_cast<uint16_t>(maxr)) {
+                    rescale(channels, maxw, &read[p*nchannelsIn], maxr, nchannelsIn);
+                }
+                rechannel(&write[p*nchannelsOut], pixel, nchannelsIn, nchannelsOut);
             }
         }
     }
