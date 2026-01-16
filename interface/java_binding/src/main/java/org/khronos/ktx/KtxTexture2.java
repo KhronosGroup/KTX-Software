@@ -123,7 +123,7 @@ public class KtxTexture2 extends KtxTexture {
 	 * <br>
 	 * The images are either encoded to ETC1S block-compressed format and supercompressed
 	 * with Basis LZ or they are encoded to UASTC block-compressed format. UASTC format
-	 * is selected by setting the {@link KtxBasisParams#setUastc(boolean)} to <code>true</code>.
+	 * is selected by setting the {@link KtxBasisParams#setCodecFlag(int)} to <code>2</code>.
 	 * The encoded images replace the original images and the texture's fields including the
 	 * DFD are modified to reflect the new state.<br>
 	 * <br>
