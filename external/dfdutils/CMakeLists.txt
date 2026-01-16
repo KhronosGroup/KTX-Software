@@ -81,12 +81,6 @@ set_target_properties(dfdutils PROPERTIES POSITION_INDEPENDENT_CODE ON)
 add_dependencies(dfdutils dfd2vk_inl)
 add_dependencies(dfdutils vk2dfd_inl)
 
-target_include_directories(dfdutils
-        PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/KHR>
-        $<INSTALL_INTERFACE:KHR>
-)
-
 # ALSO install dfdutils headers
 install(DIRECTORY
         ${CMAKE_CURRENT_SOURCE_DIR}/KHR/
