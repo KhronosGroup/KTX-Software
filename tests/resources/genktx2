@@ -7,8 +7,8 @@
 # Copyright 2025 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-# Depth of this script relative to the project root
-depth=../..
+depth=../.. # Depth of this script relative to the project root
+tests=..    # Relative path to tests directory.
 
 # Change dir to the resources/input folder, the script location...
 cd $(dirname $0)
@@ -99,7 +99,7 @@ fi
 # cloned KTX-Software and KTX-Specification repos.
 if [ $gen_ktxicons -ne 0 ]; then
   ktxspec_dir=$depth/../KTX-Specification
-  webgl_read_test_dir=../webgl/libktx-read-webgl
+  webgl_read_test_dir=$tests/webgl/libktx-read-webgl
   $ktx create --testrun --format R8G8B8A8_SRGB --generate-mipmap --encode basis-lz --scale 0.5 $ktxspec_dir/icons/png/ktx_app.png $webgl_read_test_dir/ktx_app_basis.ktx2
   $ktx create --testrun --format R8G8B8A8_SRGB --encode uastc --uastc-rdo --uastc-rdo-l 5.0 --width 1000 --height 1392 $ktxspec_dir/icons/png/ktx_document.png $webgl_read_test_dir/ktx_document_uastc_rdo5.ktx2
   $ktx create --testrun --format R8G8B8A8_SRGB --generate-mipmap --encode basis-lz $ktxspec_dir/icons/png/ktx_document.png ktx2/ktx_document_basis.ktx2
@@ -119,14 +119,20 @@ $ktx create --testrun  --format R8G8B8_UNORM --no-warn-on-color-conversions --as
 $ktx create --testrun --format R8G8B8_UNORM --no-warn-on-color-conversions --assign-tf linear --generate-mipmap --normalize --normal-mode --encode uastc --zstd 5  input/jpg/Iron_Bars/Iron_Bars_001_normal_unnormalized.png ktx2/uastc_Iron_Bars_001_normal.ktx2
 $ktx create --testrun --format R8G8B8A8_SRGB --convert-texcoord-origin bottom-left input/npbm/up.ppm ktx2/orient_up_metadata_u.ktx2
 $ktx create --testrun --format R8G8B8A8_SRGB --convert-texcoord-origin top-left input/npbm/up.ppm ktx2/orient_down_metadata_u.ktx2
+alpha_complex=$tests/cts/clitests/input/png_sample/alpha_complex.png
+if [ -f $alpha_complex ]; then
+  $ktx create --testrun --format R8G8B8A8_SRGB --premultiply-alpha --zstd 10 $alpha_complex ktx2/premultiplied-rgba.ktx2
+  $ktx create --testrun --format R8G8B8A8_SRGB --zstd 10 $alpha_complex ktx2/straight-rgba.ktx2
+else
+  echo "$0: Warning: cts submodule not cloned. No source from which to generate {premultiplied,straight}-rgba.ktx2."
+fi
+# No source from which to generate skybox.ktx2
 
 $ktx convert --testrun -t ktx ktx/pattern_02_bc2.ktx ktx2/pattern_02_bc2.ktx2
 #$ktx convert --testrun -t ktx ktx/rgba-reference.ktx ktx2/rgba-reference-u.ktx
 $ktx convert --testrun -t ktx ktx/texturearray_astc_8x8_unorm.ktx ktx2/texturearray_astc_8x8_unorm.ktx2
 $ktx convert --testrun -t ktx ktx/texturearray_bc3_unorm.ktx ktx2/texturearray_bc3_unorm.ktx2
 $ktx convert --testrun -t ktx ktx/texturearray_etc2_unorm.ktx ktx2/texturearray_etc2_unorm.ktx2
-
-# No sources for premultiplied-rgba.ktx2, straight-rgba.ktx2 or skybox_zstd.ktx2.
 
 #$toktx --lower_left_maps_to_s0t0 --nometadata rgb-reference.ktx ../srcimages/rgb.ppm
 ## The purpose of this is testing automatic mipmap generation. Since SRGB is
