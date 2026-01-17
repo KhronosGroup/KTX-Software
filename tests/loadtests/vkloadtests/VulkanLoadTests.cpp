@@ -417,7 +417,7 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
       "ETC1S+BasisLZ  compressed RGBA + Mipmap"
     },
     { TextureMipmap::create,
-      "rgba-mipmap-reference-basis.ktx2",
+      "rgba_mipmap_basis.ktx2",
       // ETC1S encoder removed all-1 alpha from rgba-mipmap-reference.
       "ETC1S+BasisLZ Compressed RGB + Mipmap"
     },

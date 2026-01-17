@@ -358,7 +358,7 @@ set( gl3_ktx2_test_images
     texturearray_astc_8x8_unorm.ktx2
     texturearray_etc2_unorm.ktx2
     3dtex_7_reference_u.ktx2
-    rgb-mipmap-reference-u.ktx2
+    rgb-mipmap-u.ktx2
     orient_down_metadata_u.ktx2
     orient_up_metadata_u.ktx2
 )

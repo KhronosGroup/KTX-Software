@@ -180,7 +180,7 @@ const GLLoadTests::sampleInvocation siSamples[] = {
       "RGBA8 3d Texture, Depth == 7"
     },
     { TexturedCube::create,
-      "rgb-mipmap-reference-u.ktx2",
+      "rgb-mipmap-u.ktx2",
       "KTX2: RGB8 Color/level mipmap"
     },
     { DrawTexture::create,

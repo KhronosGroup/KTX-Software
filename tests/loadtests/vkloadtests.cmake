@@ -82,7 +82,7 @@ set( vk_ktx2_test_images
     kodim17_basis.ktx2
     pattern_02_bc2.ktx2
     ktx_document_basis.ktx2
-    rgba-mipmap-reference-basis.ktx2
+    rgba_mipmap_basis.ktx2
     3dtex_7_reference_u.ktx2
     arraytex_7_mipmap_reference_u.ktx2
     cubemap_goldengate_uastc_rdo4_zstd5_rd.ktx2

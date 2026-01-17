@@ -126,12 +126,12 @@ if [ -f $alpha_complex ]; then
 else
   echo "$0: Warning: cts submodule not cloned. No source from which to generate {premultiplied,straight}-rgba.ktx2."
 fi
-$ktx create --testrun --format R8G8B8_SRGB --levels 7 input/npbm/level0.ppm input/npbm/level1.ppm input/npbm/level2.ppm input/npbm/level3.ppm input/npbm/level4.ppm input/npbm/level5.ppm input/npbm/level6.ppm ktx2/rgb-mipmap-reference-u.ktx2
+$ktx create --testrun --format R8G8B8_SRGB --levels 7 input/npbm/level0.ppm input/npbm/level1.ppm input/npbm/level2.ppm input/npbm/level3.ppm input/npbm/level4.ppm input/npbm/level5.ppm input/npbm/level6.ppm ktx2/rgb-mipmap-u.ktx2
 
 # No source from which to generate skybox.ktx2
 
 $ktx convert --testrun -t ktx ktx/pattern_02_bc2.ktx ktx2/pattern_02_bc2.ktx2
-#$ktx convert --testrun -t ktx ktx/rgba-reference.ktx ktx2/rgba-reference-u.ktx
+$ktx convert --testrun -t ktx ktx/rgba-reference.ktx ktx2/rgba-u.ktx2
 $ktx convert --testrun -t ktx ktx/texturearray_astc_8x8_unorm.ktx ktx2/texturearray_astc_8x8_unorm.ktx2
 $ktx convert --testrun -t ktx ktx/texturearray_bc3_unorm.ktx ktx2/texturearray_bc3_unorm.ktx2
 $ktx convert --testrun -t ktx ktx/texturearray_etc2_unorm.ktx ktx2/texturearray_etc2_unorm.ktx2
