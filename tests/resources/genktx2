@@ -14,7 +14,7 @@ depth=../..
 cd $(dirname $0)
 
 function usage() {
-  echo "Usage: $0 [--tooldir,-t <path/to/dir/with/ktx>] [--cubemaps,-c]"
+  echo "Usage: $0 [--tooldir,-t <path/to/dir/with/ktx>] [--cubemaps,-c] [--icons,-i]"
   exit $1
 }
 
@@ -40,6 +40,7 @@ function check_path() {
 }
 
 gen_cubemaps=0
+gen_ktxicons=0
 
 while [ $# -ne 0 ]; do
   case $1 in
@@ -54,6 +55,9 @@ while [ $# -ne 0 ]; do
     --cubemaps | -c)
       gen_cubemaps=1
       shift ;;
+    --icons | -i)
+      gen_ktxicons=1
+      shift ;;
     *) usage 1 ;;
   esac
 done
@@ -61,6 +65,9 @@ done
 if [ -z "$ktx" ]; then
   check_path ktx
 fi
+
+testktx="$ktx --testrun"
+#$testktx
 
 # For threadtests
 $ktx create --testrun --format R8G8B8A8_SRGB --levels 7 input/npbm/level0-alpha.pam input/npbm/level1-alpha.pam input/npbm/level2-alpha.pam input/npbm/level3-alpha.pam input/npbm/level4-alpha.pam input/npbm/level5-alpha.pam input/npbm/level6-alpha.pam ktx2/rgba_mipmap.ktx2
@@ -88,12 +95,28 @@ if [ $gen_cubemaps -ne 0 ]; then
   $ktx create --testrun --format R8G8B8_SRGB --encode uastc --cubemap --scale 0.5 --generate-mipmap --uastc-rdo --uastc-rdo-l 4 --zstd 5 @@input/jpg/GoldenGateBridge3/filelist.txt ktx2/cubemap_goldengate_uastc_rdo4_zstd5_rd.ktx2
 fi
 
+# For loadtests. Optional, because they expect a particular arrangement of
+# cloned KTX-Software and KTX-Specification repos.
+if [ $gen_ktxicons -ne 0 ]; then
+  ktxspec_dir=$depth/../KTX-Specification
+  webgl_read_test_dir=../webgl/libktx-read-webgl
+  $ktx create --testrun --format R8G8B8A8_SRGB --generate-mipmap --encode basis-lz --scale 0.5 $ktxspec_dir/icons/png/ktx_app.png $webgl_read_test_dir/ktx_app_basis.ktx2
+  $ktx create --testrun --format R8G8B8A8_SRGB --encode uastc --uastc-rdo --uastc-rdo-l 5.0 --width 1000 --height 1392 $ktxspec_dir/icons/png/ktx_document.png $webgl_read_test_dir/ktx_document_uastc_rdo5.ktx2
+  $ktx create --testrun --format R8G8B8A8_SRGB --generate-mipmap --encode basis-lz $ktxspec_dir/icons/png/ktx_document.png ktx2/ktx_document_basis.ktx2
+  # threads 1 here is to avoid non-determism in the RDO processing.
+  # Hopefully a fix will be forthcoming.
+  $ktx create --testrun --format R8G8B8A8_SRGB --generate-mipmap --threads 1 --encode uastc --uastc-rdo --uastc-rdo-l 4 --zstd 5 $ktxspec_dir/icons/png/ktx_document.png ktx2/ktx_document_uastc_rdo4_zstd5.ktx2
+fi
+
 # For loadtests.
 $ktx create --testrun --format R8G8B8A8_SRGB --convert-tf srgb --depth 7 input/png/red16.png input/png/orange16.png input/png/yellow16.png input/png/green16.png input/png/blue16.png input/png/indigo16.png input/png/violet16.png ktx2/3dtex_7_reference_u.ktx2
 $ktx create --testrun --format R8G8B8A8_SRGB --convert-tf srgb --layers 7 --generate-mipmap input/png/red16.png input/png/orange16.png input/png/yellow16.png input/png/green16.png input/png/blue16.png input/png/indigo16.png input/png/violet16.png ktx2/arraytex_7_mipmap_reference_u.ktx2
+$ktx create --testrun --format R8G8B8A8_SRGB --assign-tf srgb --encode uastc input/png/color_grid.png ktx2/color_grid_uastc.ktx2
+$ktx create --testrun --format R8G8B8A8_SRGB --assign-tf srgb --encode uastc --zstd 5 input/png/color_grid.png ktx2/color_grid_uastc_zstd.ktx2
+$ktx create --testrun --format R8G8B8A8_SRGB --assign-tf srgb --zstd 5 input/png/color_grid.png ktx2/color_grid_zstd.ktx2
 $ktx create --testrun --format R8G8B8_SRGB --assign-tf srgb --encode basis-lz input/png/FlightHelmet_baseColor.png ktx2/FlightHelmet_baseColor_basis.ktx2
-$ktx create --testrun --format R8G8B8_UNORM --no-warn-on-color-conversions --assign-tf linear --generate-mipmap --normalize --normal-mode --encode uastc --zstd 5  input/jpg/Iron_Bars/Iron_Bars_001_normal_unnormalized.png ktx2/uastc_Iron_Bars_001_normal.ktx2
 $ktx create --testrun  --format R8G8B8_UNORM --no-warn-on-color-conversions --assign-tf linear --generate-mipmap  --normalize --normal-mode --encode basis-lz input/jpg/Iron_Bars/Iron_Bars_001_normal_unnormalized.png ktx2/etc1s_Iron_Bars_001_normal.ktx2
+$ktx create --testrun --format R8G8B8_UNORM --no-warn-on-color-conversions --assign-tf linear --generate-mipmap --normalize --normal-mode --encode uastc --zstd 5  input/jpg/Iron_Bars/Iron_Bars_001_normal_unnormalized.png ktx2/uastc_Iron_Bars_001_normal.ktx2
 $ktx create --testrun --format R8G8B8A8_SRGB --convert-texcoord-origin bottom-left input/npbm/up.ppm ktx2/orient_up_metadata_u.ktx2
 $ktx create --testrun --format R8G8B8A8_SRGB --convert-texcoord-origin top-left input/npbm/up.ppm ktx2/orient_down_metadata_u.ktx2
 
