@@ -120,15 +120,15 @@ const GLLoadTests::sampleInvocation siSamples[] = {
     },
 #if TEST_COMPRESSION
     { EncodeTexture::create,
-      "--encode etc1s rgba-reference-u.ktx2",
+      "--encode etc1s rgba_u.ktx2",
       "Encode to ETC1S+BasisLZ then Transcode of Compressed KTX2 RGBA not mipmapped"
     },
     { EncodeTexture::create,
-      "--encode uastc rgba-reference-u.ktx2",
+      "--encode uastc rgba_u.ktx2",
       "Encode to UASTC then Transcode of Compressed KTX2 RGBA not mipmapped"
     },
     { EncodeTexture::create,
-      "--encode astc rgba-reference-u.ktx2",
+      "--encode astc rgba_u.ktx2",
       "Encode to ASTC then display RGBA not mipmapped"
     },
 #endif

@@ -131,7 +131,7 @@ $ktx create --testrun --format R8G8B8_SRGB --levels 7 input/npbm/level0.ppm inpu
 # No source from which to generate skybox.ktx2
 
 $ktx convert --testrun -t ktx ktx/pattern_02_bc2.ktx ktx2/pattern_02_bc2.ktx2
-$ktx convert --testrun -t ktx ktx/rgba-reference.ktx ktx2/rgba-u.ktx2
+$ktx convert --testrun -t ktx ktx/rgba-reference.ktx ktx2/rgba_u.ktx2
 $ktx convert --testrun -t ktx ktx/texturearray_astc_8x8_unorm.ktx ktx2/texturearray_astc_8x8_unorm.ktx2
 $ktx convert --testrun -t ktx ktx/texturearray_bc3_unorm.ktx ktx2/texturearray_bc3_unorm.ktx2
 $ktx convert --testrun -t ktx ktx/texturearray_etc2_unorm.ktx ktx2/texturearray_etc2_unorm.ktx2

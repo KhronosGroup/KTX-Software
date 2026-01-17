@@ -351,7 +351,7 @@ set( gl3_ktx2_test_images
     color_grid_basis.ktx2
     kodim17_basis.ktx2
     FlightHelmet_baseColor_basis.ktx2
-    rgba-reference-u.ktx2
+    rgba_u.ktx2
     cubemap_goldengate_uastc_rdo4_zstd5_rd.ktx2
     cubemap_yokohama_basis_rd.ktx2
     texturearray_bc3_unorm.ktx2
