@@ -48,55 +48,55 @@ GLLoadTests::showFile(const std::string& filename)
 const GLLoadTests::sampleInvocation siSamples[] = {
     { DrawTexture::create,
       "--npot hi_mark.ktx",
-      "RGB8 NPOT HI Logo"
+      "KTX1: RGB8 NPOT HI Logo"
     },
     { DrawTexture::create,
-      "--npot luminance-reference-metadata.ktx",
-      "LUMINANCE8 NPOT"
+      "--npot l8_unorm_metadata.ktx",
+      "KTX1: LUMINANCE8 NPOT"
     },
     { DrawTexture::create,
-      "orient-up-metadata.ktx",
-      "RGB8 + KTXOrientation up"
+      "orient_up_metadata.ktx",
+      "KTX1: RGB8 + KTXOrientation up"
     },
     { DrawTexture::create,
-      "orient-down-metadata.ktx",
-      "RGB8 + KTXOrientation down"
+      "orient_down_metadata.ktx",
+      "KTX1: RGB8 + KTXOrientation down"
     },
     { DrawTexture::create,
       "etc1.ktx",
-      "ETC1 RGB8"
+      "KTX1: ETC1 RGB8"
     },
     { DrawTexture::create,
-      "etc2-rgb.ktx",
-      "ETC2 RGB8"
+      "etc2_rgb.ktx",
+      "KTX1: ETC2 RGB8"
     },
     { DrawTexture::create,
-      "etc2-rgba1.ktx",
-      "ETC2 RGB8A1"
+      "etc2_rgba1.ktx",
+      "KTX1: ETC2 RGB8A1"
     },
     { DrawTexture::create,
-      "etc2-rgba8.ktx",
-      "ETC2 RGB8A8"
+      "etc2_rgba8.ktx",
+      "KTX1: ETC2 RGB8A8"
     },
     { DrawTexture::create,
-      "rgba-reference.ktx",
-      "RGBA8"
+      "r8g8b8a8_srgb.ktx",
+      "KTX1: RGBA8 No KTXOrientation"
     },
     { TexturedCube::create,
-      "rgb-reference.ktx",
-      "RGB8"
+      "r8g8b8_srgb.ktx",
+      "KTX1: RGB8"
     },
     { TexturedCube::create,
-      "rgb-amg-reference.ktx",
-      "RGB8 + Auto Mipmap"
+      "r8g8b8_unorm_amg.ktx",
+      "KTX1: RGB8 + Auto Mipmap"
     },
     { TexturedCube::create,
-      "rgb-mipmap-reference.ktx",
-      "RGB8 Color/level mipmap"
+      "r8g8b8_srgb_mip.ktx",
+      "KTX1: RGB8 Color/level mipmap"
     },
     { TexturedCube::create,
       "--npot hi_mark_sq.ktx",
-      "RGB8 NPOT HI Logo"
+      "KTX1: RGB8 NPOT HI Logo"
     },
 };
 
@@ -105,5 +105,3 @@ const int iNumSamples = sizeof(siSamples) / sizeof(GLLoadTests::sampleInvocation
 AppBaseSDL* theApp = new GLLoadTests(siSamples, iNumSamples,
                                          "KTX Loader Tests for OpenGL ES 1",
                                          SDL_GL_CONTEXT_PROFILE_ES, 1, 1);
-
-

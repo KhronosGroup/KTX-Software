@@ -58,10 +58,10 @@ std::ostream& operator<<(std::ostream& out, const FormatFeature& h)
 }
 
 vector<TextureSet> allTextureSets = {
-    {"color_grid_basis.ktx2","color_grid.basis",true,false},
+    {"color_grid_blze.ktx2","color_grid.basis",true,false},
 #if 1
-    {"kodim17_basis.ktx2","kodim17.basis",false,false},
-    {"alpha_simple_basis.ktx2","alpha_simple.basis",true,true}
+    {"kodim17_blze.ktx2","kodim17.basis",false,false},
+    {"alpha_simple_blze.ktx2","alpha_simple.basis",true,true}
 #endif
 };
 

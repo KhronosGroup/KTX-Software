@@ -43,7 +43,7 @@ if (!gl) {
 
 function main() {
 
-  texture = loadTexture(gl, 'ktx_app_basis.ktx2');
+  texture = loadTexture(gl, 'ktx_app_blze.ktx2');
 
   astcSupported = !!gl.getExtension('WEBGL_compressed_texture_astc');
   etcSupported = !!gl.getExtension('WEBGL_compressed_texture_etc1');

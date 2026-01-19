@@ -97,9 +97,9 @@ TEST(Multithreaded, TranscodeBasis) {
     };
 
     fs::path ktxFile1 = ::ktx2Path;
-    ktxFile1.replace_filename(u8"rgba_mipmap_basis.ktx2");
+    ktxFile1.replace_filename(u8"r8g8b8a8_srgb_mip_blze.ktx2");
     fs::path goldenFile1 = ::ktx2Path;
-    goldenFile1.replace_filename(u8"rgba_mipmap_etc2.ktx2");
+    goldenFile1.replace_filename(u8"r8g8b8a8_srgb_mip_etc2.ktx2");
     //fs::path image2 = ::ktx2Path;
     //image2.replace_filename(u8"kodim17_basis.ktx2");
 
@@ -155,9 +155,9 @@ TEST(Multithreaded, DecodeASTC) {
     };
 
     fs::path ktxFile1 = ::ktx2Path;
-    ktxFile1.replace_filename(u8"rgba_mipmap_astc.ktx2");
+    ktxFile1.replace_filename(u8"r8g8b8a8_srgb_mip_astc.ktx2");
     fs::path goldenFile1 = ::ktx2Path;
-    goldenFile1.replace_filename(u8"rgba_mipmap.ktx2");
+    goldenFile1.replace_filename(u8"r8g8b8a8_srgb_mip.ktx2");
     //fs::path image2 = ::ktx2Path;
     //image2.replace_filename(u8"kodim17_basis.ktx2");
 
@@ -212,7 +212,7 @@ public:
         };
 
         fs::path ktx2Input = ktx2Path;
-        ktx2Input.replace_filename(u8"rgba_mipmap.ktx2");
+        ktx2Input.replace_filename(u8"r8g8b8a8_srgb_mip.ktx2");
 
         std::vector<std::thread> threads;
         threads.resize(numThreads);

@@ -315,23 +315,23 @@ endfunction( create_gl_target target )
 
 
 set( ES1_TEST_IMAGES
-    no-npot.ktx
+    no_npot.ktx
     hi_mark.ktx
-    luminance-reference-metadata.ktx
-    orient-up-metadata.ktx
-    orient-down-metadata.ktx
+    l8_unorm_metadata.ktx
+    orient_up_metadata.ktx
+    orient_down_metadata.ktx
     etc1.ktx
-    etc2-rgb.ktx
-    etc2-rgba1.ktx
-    etc2-rgba8.ktx
-    rgba-reference.ktx
-    rgb-reference.ktx
-    rgb-amg-reference.ktx
-    rgb-mipmap-reference.ktx
+    etc2_rgb.ktx
+    etc2_rgba1.ktx
+    etc2_rgba8.ktx
+    r8g8b8a8_srgb.ktx
+    r8g8b8_srgb.ktx
+    r8g8b8_unorm_amg.ktx
+    r8g8b8_srgb_mip.ktx
     hi_mark_sq.ktx
 )
 list( TRANSFORM ES1_TEST_IMAGES
-    PREPEND "${PROJECT_SOURCE_DIR}/resources/ktx/"
+    PREPEND "${PROJECT_SOURCE_DIR}/tests/resources/ktx/"
 )
 
 set( ES1_SOURCES
@@ -343,49 +343,51 @@ set( ES1_SOURCES
 )
 
 set( gl3_ktx2_test_images
-    etc1s_Iron_Bars_001_normal.ktx2
-    uastc_Iron_Bars_001_normal.ktx2
-    color_grid_uastc_zstd.ktx2
-    color_grid_zstd.ktx2
-    color_grid_uastc.ktx2
-    color_grid_basis.ktx2
-    kodim17_basis.ktx2
-    FlightHelmet_baseColor_basis.ktx2
-    rgba_u.ktx2
-    cubemap_goldengate_uastc_rdo4_zstd5_rd.ktx2
-    cubemap_yokohama_basis_rd.ktx2
-    texturearray_bc3_unorm.ktx2
-    texturearray_astc_8x8_unorm.ktx2
-    texturearray_etc2_unorm.ktx2
-    3dtex_7_reference_u.ktx2
-    rgb-mipmap-u.ktx2
-    orient_down_metadata_u.ktx2
-    orient_up_metadata_u.ktx2
+    astc_8x8_unorm_array_7.ktx2
+    bc3_unorm_array_7.ktx2
+    color_grid_uastc_zstd_5.ktx2
+    color_grid_zstd_5.ktx2
+    color_grid_blze.ktx2
+    cubemap_goldengate_uastc_rdo_4_zstd_5.ktx2
+    cubemap_yokohama_blze.ktx2
+    etc2_unorm_array_7.ktx2
+    FlightHelmet_baseColor_blze.ktx2
+    Iron_Bars_001_normal_blze.ktx2
+    Iron_Bars_001_normal_uastc_zstd_10.ktx2
+    kodim17_blze.ktx2
+    orient_down_metadata.ktx2
+    orient_up_metadata.ktx2
+    pattern_02_bc2.ktx2
+    r8g8b8a8_srgb.ktx2
+    r8g8b8a8_srgb_3d_7.ktx2
+    r8g8b8_srgb_mip.ktx2
 )
 set( gl3_ktx_test_images
-    hi_mark.ktx
-    orient-up-metadata.ktx
-    orient-down-metadata.ktx
-    not4_rgb888_srgb.ktx
-    etc1.ktx
-    etc2-rgb.ktx
-    etc2-rgba1.ktx
-    etc2-rgba8.ktx
-    etc2-sRGB.ktx
-    etc2-sRGBa1.ktx
-    etc2-sRGBa8.ktx
-    rgba-reference.ktx
-    rgb-reference.ktx
+    astc_8x8_unorm_array_7.ktx
+    bc3_unorm_array_7.ktx
     conftestimage_R11_EAC.ktx
     conftestimage_SIGNED_R11_EAC.ktx
     conftestimage_RG11_EAC.ktx
     conftestimage_SIGNED_RG11_EAC.ktx
-    texturearray_bc3_unorm.ktx
-    texturearray_astc_8x8_unorm.ktx
-    texturearray_etc2_unorm.ktx
-    rgb-amg-reference.ktx
-    rgb-mipmap-reference.ktx
+    etc1.ktx
+    etc2_rgb.ktx
+    etc2_rgba1.ktx
+    etc2_rgba8.ktx
+    etc2_srgb.ktx
+    etc2_srgba1.ktx
+    etc2_srgba8.ktx
+    etc2_unorm_array_7.ktx
+    hi_mark.ktx
     hi_mark_sq.ktx
+    metalplate_amg.ktx
+    not4_r8g8b8_srgb.ktx
+    orient_down_metadata.ktx
+    orient_up_metadata.ktx
+    pattern_02_bc2.ktx
+    r8g8b8a8_srgb.ktx
+    r8g8b8_srgb.ktx
+    r8g8b8_unorm_amg.ktx
+    r8g8b8_srgb_mip.ktx
 )
 list( TRANSFORM gl3_ktx_test_images
     PREPEND "${PROJECT_SOURCE_DIR}/tests/resources/ktx/"
