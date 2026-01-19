@@ -85,14 +85,14 @@ done
 # For transcodetests and loadtests. For transcode tests some .basis files
 # are also needed. See genbasis.
 $ktx create --testrun --format R8G8B8A8_SRGB --assign-tf srgb --encode basis-lz input/png/alpha_simple.png ktx2/alpha_simple_blze.ktx2
-$ktx create --testrun --format R8G8B8_SRGB --encode basis-lz input/png/kodim17.png ktx2/kodim17_blze.ktx2
 $ktx create --testrun --format R8G8B8A8_SRGB --assign-tf srgb --encode basis-lz input/png/color_grid.png ktx2/color_grid_blze.ktx2
+$ktx create --testrun --format R8G8B8_SRGB --encode basis-lz input/png/kodim17.png ktx2/kodim17_blze.ktx2
 
 # For loadtests. Optional, because they take a while, especially if using
 # the Debug config.
 if [ $gen_cubemaps -ne 0 ]; then
-  $ktx create --testrun --format R8G8B8_SRGB --encode basis-lz --cubemap --generate-mipmap  @@input/jpg/Yokohama3/filelist.txt ktx2/cubemap_yokohama_blze.ktx2
   $ktx create --testrun --format R8G8B8_SRGB --encode uastc --cubemap --scale 0.5 --generate-mipmap --uastc-rdo --uastc-rdo-l 4 --zstd 5 @@input/jpg/GoldenGateBridge3/filelist.txt ktx2/cubemap_goldengate_uastc_rdo_4_zstd_5.ktx2
+  $ktx create --testrun --format R8G8B8_SRGB --encode basis-lz --cubemap --generate-mipmap  @@input/jpg/Yokohama3/filelist.txt ktx2/cubemap_yokohama_blze.ktx2
 fi
 
 # For loadtests. Optional, because they expect a particular arrangement of
@@ -109,15 +109,6 @@ if [ $gen_ktxicons -ne 0 ]; then
 fi
 
 # For loadtests.
-$ktx create --testrun --format R8G8B8A8_SRGB --convert-tf srgb --depth 7 input/png/red16.png input/png/orange16.png input/png/yellow16.png input/png/green16.png input/png/blue16.png input/png/indigo16.png input/png/violet16.png ktx2/r8g8b8a8_srgb_3d_7.ktx2
-$ktx create --testrun --format R8G8B8A8_SRGB --convert-tf srgb --layers 7 --generate-mipmap input/png/red16.png input/png/orange16.png input/png/yellow16.png input/png/green16.png input/png/blue16.png input/png/indigo16.png input/png/violet16.png ktx2/r8g8b8a8_srgb_array_7_mip.ktx2
-$ktx create --testrun --format R8G8B8A8_SRGB --assign-tf srgb --encode uastc --zstd 5 input/png/color_grid.png ktx2/color_grid_uastc_zstd_5.ktx2
-$ktx create --testrun --format R8G8B8A8_SRGB --assign-tf srgb --zstd 5 input/png/color_grid.png ktx2/color_grid_zstd_5.ktx2
-$ktx create --testrun --format R8G8B8_SRGB --assign-tf srgb --encode basis-lz input/png/FlightHelmet_baseColor.png ktx2/FlightHelmet_baseColor_blze.ktx2
-$ktx create --testrun  --format R8G8B8_UNORM --no-warn-on-color-conversions --assign-tf linear --generate-mipmap  --normalize --normal-mode --encode basis-lz input/jpg/Iron_Bars/Iron_Bars_001_normal_unnormalized.png ktx2/Iron_Bars_001_normal_blze.ktx2
-$ktx create --testrun --format R8G8B8_UNORM --no-warn-on-color-conversions --assign-tf linear --generate-mipmap --normalize --normal-mode --encode uastc --zstd 10 input/jpg/Iron_Bars/Iron_Bars_001_normal_unnormalized.png ktx2/Iron_Bars_001_normal_uastc_zstd_10.ktx2
-$ktx create --testrun --format R8G8B8A8_SRGB --convert-texcoord-origin bottom-left input/npbm/up.ppm ktx2/orient_up_metadata.ktx2
-$ktx create --testrun --format R8G8B8A8_SRGB --convert-texcoord-origin top-left input/npbm/up.ppm ktx2/orient_down_metadata.ktx2
 alpha_complex=$tests/cts/clitests/input/png_sample/alpha_complex.png
 if [ -f $alpha_complex ]; then
   $ktx create --testrun --format R8G8B8A8_SRGB --premultiply-alpha --zstd 10 $alpha_complex ktx2/alpha_complex_premultiplied.ktx2
@@ -125,13 +116,21 @@ if [ -f $alpha_complex ]; then
 else
   echo "$0: Warning: cts submodule not cloned. No source from which to generate {premultiplied,straight}-rgba.ktx2."
 fi
+$ktx create --testrun --format R8G8B8A8_SRGB --assign-tf srgb --encode uastc --zstd 5 input/png/color_grid.png ktx2/color_grid_uastc_zstd_5.ktx2
+$ktx create --testrun --format R8G8B8A8_SRGB --assign-tf srgb --zstd 5 input/png/color_grid.png ktx2/color_grid_zstd_5.ktx2
+$ktx create --testrun --format R8G8B8_SRGB --assign-tf srgb --encode basis-lz input/png/FlightHelmet_baseColor.png ktx2/FlightHelmet_baseColor_blze.ktx2
+$ktx create --testrun  --format R8G8B8_UNORM --no-warn-on-color-conversions --assign-tf linear --generate-mipmap  --normalize --normal-mode --encode basis-lz input/jpg/Iron_Bars/Iron_Bars_001_normal_unnormalized.png ktx2/Iron_Bars_001_normal_blze.ktx2
+$ktx create --testrun --format R8G8B8_UNORM --no-warn-on-color-conversions --assign-tf linear --generate-mipmap --normalize --normal-mode --encode uastc --zstd 10 input/jpg/Iron_Bars/Iron_Bars_001_normal_unnormalized.png ktx2/Iron_Bars_001_normal_uastc_zstd_10.ktx2
+$ktx create --testrun --format R8G8B8A8_SRGB --convert-texcoord-origin bottom-left input/npbm/up.ppm ktx2/orient_up_metadata.ktx2
+$ktx create --testrun --format R8G8B8A8_SRGB --convert-texcoord-origin top-left input/npbm/up.ppm ktx2/orient_down_metadata.ktx2
+$ktx create --testrun --format R8G8B8A8_SRGB --convert-tf srgb --depth 7 input/png/red16.png input/png/orange16.png input/png/yellow16.png input/png/green16.png input/png/blue16.png input/png/indigo16.png input/png/violet16.png ktx2/r8g8b8a8_srgb_3d_7.ktx2
+$ktx create --testrun --format R8G8B8A8_SRGB --convert-tf srgb --layers 7 --generate-mipmap input/png/red16.png input/png/orange16.png input/png/yellow16.png input/png/green16.png input/png/blue16.png input/png/indigo16.png input/png/violet16.png ktx2/r8g8b8a8_srgb_array_7_mip.ktx2
 $ktx create --testrun --format R8G8B8_SRGB --levels 7 input/npbm/level0.ppm input/npbm/level1.ppm input/npbm/level2.ppm input/npbm/level3.ppm input/npbm/level4.ppm input/npbm/level5.ppm input/npbm/level6.ppm ktx2/r8g8b8_srgb_mip.ktx2
 $ktx create --testrun --format R8G8B8A8_SRGB input/npbm/rgba.pam ktx2/r8g8b8a8_srgb.ktx2
 
 # No source from which to generate skybox_zstd_22.ktx2
 
-$ktx convert --testrun -t ktx ktx/pattern_02_bc2.ktx ktx2/pattern_02_bc2.ktx2
 $ktx convert --testrun -t ktx ktx/astc_8x8_unorm_array_7.ktx ktx2/astc_8x8_unorm_array_7.ktx2
 $ktx convert --testrun -t ktx ktx/bc3_unorm_array_7.ktx ktx2/bc3_unorm_array_7.ktx2
 $ktx convert --testrun -t ktx ktx/etc2_unorm_array_7.ktx ktx2/etc2_unorm_array_7.ktx2
-
+$ktx convert --testrun -t ktx ktx/pattern_02_bc2.ktx ktx2/pattern_02_bc2.ktx2
