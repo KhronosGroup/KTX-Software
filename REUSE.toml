@@ -114,7 +114,7 @@ SPDX-FileCopyrightText = "2017 Sean Barrett"
 SPDX-License-Identifier = "MIT"
 
 [[annotations]]
-path = "external/basisu/Source/tinyexr.h"
+path = "tools/imageio/external/tinyexr.h"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2014-2019 Syoyo Fujita and many contributors"
 SPDX-License-Identifier = "BSD-3-Clause"
@@ -273,4 +273,10 @@ SPDX-License-Identifier = "Apache-2.0"
 path = ["vcpkg.json", "vcpkg-configuration.json"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2024 The Khronos Group Inc."
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ["tools/imageio/external/jpgd.h", "tools/imageio/external/jpgd.cpp"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "1994-2020 Rich Geldreich <richgel99@gmail.com>"
 SPDX-License-Identifier = "Apache-2.0"

@@ -30,7 +30,7 @@
 #pragma GCC diagnostic ignored "-Wextra"
 #pragma GCC diagnostic ignored "-Wmisleading-indentation"
 #endif
-#include "encoder/basisu_miniz.h"
+#include "basisu/encoder/basisu_miniz.h"
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif

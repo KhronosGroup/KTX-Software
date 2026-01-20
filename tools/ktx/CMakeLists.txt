@@ -2,6 +2,8 @@
 # Copyright 2022-2023 RasterGrid Kft.
 # SPDX-License-Identifier: Apache-2.0
 
+include("../../external/basisu.cmake")
+include("../../external/astcenc.cmake")
 
 add_executable(ktxtools
         command.cpp
@@ -66,8 +68,8 @@ PRIVATE
     imageio
     objUtil
     ktx
-    basisu_encoder
-    ${ASTCENC_LIB_TARGET}
+    basisu::basisu_encoder
+    astcenc::astcenc
     $<IF:$<BOOL:${WIN32}>,Pathcch,> # For PathCchRemoveFileSpec on Windows
     fmt::fmt
     cxxopts::cxxopts

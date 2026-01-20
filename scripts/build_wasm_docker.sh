@@ -136,7 +136,17 @@ if [ -n "$FEATURE_LOADTESTS" ]; then
   docker exec emscripten sh -c "embuilder build sdl3"
 fi
 
-docker exec emscripten sh -c "emcmake cmake -B$BUILD_DIR . \
+# The Docker container's integrated cmake is acting very strangely.
+# It generates incorrect files for fetching dependencies via FetchContent, causing the build and CI to fail.
+# As a workaround, we can download the latest cmake build from official website 
+# and install it during Docker container configuration, then use it to configure our package.
+docker exec -u root emscripten sh -c "mkdir -p /opt/cmake && \
+  wget https://github.com/Kitware/CMake/releases/download/v3.31.10/cmake-3.31.10-linux-x86_64.sh \
+  -O /tmp/cmake.sh -q && \
+  chmod +x /tmp/cmake.sh && \
+  sh /tmp/cmake.sh --skip-license --prefix=/opt/cmake"
+
+docker exec emscripten sh -c "emcmake /opt/cmake/bin/cmake -B$BUILD_DIR . \
     -D CMAKE_BUILD_TYPE=$CONFIGURATION \
     -D KTX_FEATURE_DOC=$FEATURE_DOC \
     -D KTX_FEATURE_JNI=$FEATURE_JNI \
@@ -144,7 +154,7 @@ docker exec emscripten sh -c "emcmake cmake -B$BUILD_DIR . \
     -D KTX_FEATURE_TESTS=$FEATURE_TESTS \
     -D KTX_FEATURE_TOOLS=$FEATURE_TOOLS \
     -D KTX_WERROR=$WERROR \
-  && cmake --build $BUILD_DIR $targets $verbose_make"
+  && /opt/cmake/bin/cmake --build $BUILD_DIR $targets $verbose_make"
 
 if [ "$PACKAGE" = "YES" ]; then
   echo "Pack KTX-Software (Web $CONFIGURATION)"

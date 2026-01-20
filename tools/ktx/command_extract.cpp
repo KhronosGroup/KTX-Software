@@ -23,9 +23,9 @@
 #include <fmt/ostream.h>
 #include <fmt/printf.h>
 
-#include "lodepng/lodepng.h"
-#include "astc-encoder/Source/ThirdParty/tinyexr.h"
-#include "astc-encoder/Source/astcenc.h"
+#include "lodepng.h"
+#include "tinyexr.h"
+#include <astcenc.h>
 
 // -------------------------------------------------------------------------------------------------
 

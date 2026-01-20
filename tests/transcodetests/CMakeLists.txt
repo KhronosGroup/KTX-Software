@@ -1,6 +1,8 @@
 # Copyright 2017-2020 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
+include("../../external/basisu.cmake")
+
 add_executable( transcodetests
     transcodetests.cc
     ../tests.cmake
@@ -19,7 +21,7 @@ target_link_libraries(
     gtest
     ktx
     obj_basisu_cbind
-    basisu_encoder
+    basisu::basisu_encoder
     ${CMAKE_THREAD_LIBS_INIT}
 )
 

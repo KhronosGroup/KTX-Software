@@ -51,8 +51,8 @@
   #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wunused-value"
 #endif
-#include "encoder/basisu_resampler.h"
-#include "encoder/basisu_resampler_filters.h"
+#include "basisu/encoder/basisu_resampler.h"
+#include "basisu/encoder/basisu_resampler_filters.h"
 #if defined(__GCC__) && !defined(__clang__)
   #pragma GCC diagnostic pop
 #endif
