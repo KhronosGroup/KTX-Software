@@ -20,6 +20,7 @@ target_link_libraries(
     transcodetests
     gtest
     ktx
+    "$<${is_stdformat_unsupported}:fmt::fmt>"
     obj_basisu_cbind
     basisu_encoder
     ${CMAKE_THREAD_LIBS_INIT}

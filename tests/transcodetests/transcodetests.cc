@@ -24,19 +24,30 @@ extern "C" {
 #include <vector>
 #include <cstring>
 #include <filesystem>
+#if defined(__cpp_lib_format)
+  #include <format>
+#else
+  // Sigh!! gcc11 does not support std::format though it has a g++20 option.
+  // Use {fmt} instead.
+  #include <fmt/ostream.h>
+#endif
 
 #include "basisu_c_binding.h"
 
-using namespace std;
+namespace {
+
 namespace fs = std::filesystem;
+#if defined(__cpp_lib_format)
+  using namespace std;
+#else
+  using namespace fmt;
+#endif
 
 fs::path basisResources, ktxResources;
 
-namespace {
-
 typedef struct {
-    string ktxFile;
-    string basisuFile;
+    std::string ktxFile;
+    std::string basisuFile;
     bool isPo2;
     bool hasAlpha;
 } TextureSet;
@@ -57,7 +68,7 @@ std::ostream& operator<<(std::ostream& out, const FormatFeature& h)
      return out << ktxTranscodeFormatString(h.format);
 }
 
-vector<TextureSet> allTextureSets = {
+std::vector<TextureSet> allTextureSets = {
     {"color_grid_blze.ktx2","color_grid.basis",true,false},
 #if 1
     {"kodim17_blze.ktx2","kodim17.basis",false,false},
@@ -65,7 +76,7 @@ vector<TextureSet> allTextureSets = {
 #endif
 };
 
-vector<FormatFeature> allFormats = {
+std::vector<FormatFeature> allFormats = {
 #if 1
     {KTX_TTF_ETC1_RGB,true,true},
     {KTX_TTF_ETC2_RGBA,true,true},
@@ -91,7 +102,7 @@ vector<FormatFeature> allFormats = {
 };
 
 class TextureCombinationsTest :
-    public ::testing::TestWithParam<tuple<TextureSet,FormatFeature>> {};
+    public ::testing::TestWithParam<std::tuple<TextureSet,FormatFeature>> {};
 
 INSTANTIATE_TEST_SUITE_P(AllCombinations,
                         TextureCombinationsTest,
@@ -99,7 +110,7 @@ INSTANTIATE_TEST_SUITE_P(AllCombinations,
                                            ::testing::ValuesIn(allFormats)));
 
 bool read_file( fs::path file, void** data, unsigned long *fsize ) {
-    FILE *f = fopenUTF8(file.u8string(), string("rb"));
+    FILE *f = fopenUTF8(file.u8string(), std::string("rb"));
     if(f==NULL) {
         return false;
     }
@@ -211,7 +222,7 @@ int main(int argc, char **argv) {
 
     if (!::testing::FLAGS_gtest_list_tests) {
         if (argc != 2) {
-            cerr << "Usage: " << argv[0] << " <test resources path>\n";
+            std::cerr << "Usage: " << argv[0] << " <test resources path>\n";
             return -1;
         }
 
