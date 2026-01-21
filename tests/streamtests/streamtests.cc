@@ -6,6 +6,13 @@
 #include <sys/stat.h>
 #include <algorithm>
 #include <filesystem>
+#if defined(__cpp_lib_format)
+  #include <format>
+#else
+  // Sigh!! gcc11 does not support std::format though it has a g++20 option.
+  // Use {fmt} instead.
+  #include <fmt/ostream.h>
+#endif
 #include <memory>
 #include <utility>
 #include <vector>
@@ -25,6 +32,13 @@ constexpr const char8_t SAMPLE_KTX2[] = u8"pattern_02_bc2.ktx2";
 namespace fs = std::filesystem;
 fs::path ktxPath;
 fs::path ktx2Path;
+
+namespace fs = std::filesystem;
+#if defined(__cpp_lib_format)
+  using namespace std;
+#else
+  using namespace fmt;
+#endif
 
 std::unique_ptr<std::streambuf> testImageFilebuf(fs::path& path, const std::u8string& name)
 {
