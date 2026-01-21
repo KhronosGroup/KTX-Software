@@ -71,7 +71,7 @@ jobs:
       if: github.ref_type == 'tag'
       run: git fetch -f origin ${{ github.ref }}:${{ github.ref }}
     - name: Pull test images from Git LFS
-      run: git lfs pull --include=tests/srcimages,tests/testimages
+      run: git lfs pull --include=tests/resources
     - name: Fetch CTS Submodule
       run: git submodule update --init --recursive tests/cts
     - name: Install Ninja

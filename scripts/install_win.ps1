@@ -54,7 +54,7 @@ $PVR_SDK_HOME = Set-ConfigVariable PVR_SDK_HOME "https://github.com/powervr-grap
 $VULKAN_SDK_VERSION = Set-ConfigVariable VULKAN_SDK_VERSION 1.4.313.2
 
 if ($FEATURE_TESTS -eq "ON") {
-  git lfs pull --include=tests/srcimages,tests/testimages
+  git lfs pull --include=tests/resources
 }
 
 if ($FEATURE_LOADTESTS -and $FEATURE_LOADTESTS -ne "OFF") {
