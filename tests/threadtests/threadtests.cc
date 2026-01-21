@@ -36,6 +36,13 @@
 
 #include <barrier>
 #include <filesystem>
+#if defined(__cpp_lib_format)
+  #include <format>
+#else
+  // Sigh!! gcc11 does not support std::format though it has a g++20 option.
+  // Use {fmt} instead.
+  #include <fmt/ostream.h>
+#endif
 #include <thread>
 #include <sys/stat.h>
 #include "ktx.h"
@@ -46,6 +53,11 @@
 namespace {
 
 namespace fs = std::filesystem;
+#if defined(__cpp_lib_format)
+  using namespace std;
+#else
+  using namespace fmt;
+#endif
 
 ////////////////////////////////////////////
 // Multithreaded basisu encode & transcode tests
@@ -259,15 +271,15 @@ GTEST_API_ int main(int argc, char* argv[]) {
             std::error_code ec;
             auto stat = fs::status(path, ec);
             if (!fs::exists(stat)) {
-                std::cerr << std::format("{} does not exist.\n", from_u8string(path.u8string()));
+                std::cerr << format("{} does not exist.\n", from_u8string(path.u8string()));
                 return -2;
             } else if (!fs::is_directory(stat)) {
-                std::cerr << std::format("{} is not a directory.\n", from_u8string(path.u8string()));
+                std::cerr << format("{} is not a directory.\n", from_u8string(path.u8string()));
                 return -3;
             }
             return 0;
         };
-        //std::cerr << std::format("test unicode name is {}.\n", "テクスチャー");
+        //std::cerr << format("test unicode name is {}.\n", "テクスチャー");
         // int ret = checkPath(goldenPath);
         // if (!ret)
         int ret = checkPath(ktx2Path);

@@ -25,7 +25,13 @@
 
 #include <barrier>
 #include <filesystem>
-#include <format>
+#if defined(__cpp_lib_format)
+  #include <format>
+#else
+  // Sigh!! gcc11 does not support std::format though it has a g++20 option.
+  // Use {fmt} instead.
+  #include <fmt/ostream.h>
+#endif
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -55,6 +61,11 @@ extern ktx_bool_t __disableWriterMetadata__;
 namespace {
 
 namespace fs = std::filesystem;
+#if defined(__cpp_lib_format)
+  using namespace std;
+#else
+  using namespace fmt;
+#endif
 
 // Recursive function to return the greatest common divisor of a and b.
 static uint32_t
@@ -2858,8 +2869,8 @@ TEST(UnicodeFileNames, CreateFrom) {
             ktxTexture_CreateFromNamedFile(reinterpret_cast<const char*>(file.u8string().c_str()),
                                            KTX_TEXTURE_CREATE_NO_FLAGS, &texture);
         EXPECT_EQ(result, KTX_SUCCESS)
-            << std::format("ktxTexture_CreateFromNamedFile \"{}\" failed: {}",
-                           from_u8string(file.u8string()), ktxErrorString(result));
+            << format("ktxTexture_CreateFromNamedFile \"{}\" failed: {}",
+                      from_u8string(file.u8string()), ktxErrorString(result));
         EXPECT_NE(texture, (ktxTexture*)0);
         if (texture) {
             ktxTexture_Destroy(texture);
@@ -2876,7 +2887,7 @@ TEST(UnicodeFileNames, CreateFrom) {
                 (ktxTexture2**)&texture);
         }
         EXPECT_EQ(result, KTX_SUCCESS)
-            << std::format("ktxTexture{}_CreateFromNamedFile \"{}\" failed: {}",
+            << format("ktxTexture{}_CreateFromNamedFile \"{}\" failed: {}",
                            ktx ? 1 : 2, from_u8string(file.u8string()), ktxErrorString(result));
         EXPECT_NE(texture, (ktxTexture*)0);
         if (texture) ktxTexture_Destroy(texture);
@@ -3172,11 +3183,11 @@ GTEST_API_ int main(int argc, char* argv[]) {
         std::error_code ec;
         auto stat = fs::status(resourcesPath, ec);
         if (!fs::exists(stat)) {
-            std::cerr << std::format("{} does not exist.\n",
+            std::cerr << format("{} does not exist.\n",
                                      from_u8string(resourcesPath.u8string()));
             return -2;
         } else if (!std::filesystem::is_directory(stat)) {
-            std::cerr << std::format("{} is not a directory.\n",
+            std::cerr << format("{} is not a directory.\n",
                                      from_u8string(resourcesPath.u8string()));
             return -3;
         }
@@ -3189,11 +3200,11 @@ GTEST_API_ int main(int argc, char* argv[]) {
         ktxdiffPath.make_preferred();
         stat = fs::status(ktxdiffPath, ec);
         if (!fs::exists(stat)) {
-            std::cerr << std::format("{} does not exist.\n",
+            std::cerr << format("{} does not exist.\n",
                                      from_u8string(ktxdiffPath.u8string()));
             return -4;
         } else if (std::filesystem::is_directory(stat)) {
-            std::cerr << std::format("{} is a directory.\n",
+            std::cerr << format("{} is a directory.\n",
                                      from_u8string(ktxdiffPath.u8string()));
             return -3;
         }

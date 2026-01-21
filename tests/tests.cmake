@@ -27,6 +27,8 @@ set(CMAKE_GTEST_DISCOVER_TESTS_DISCOVERY_MODE PRE_TEST)
 
 enable_testing()
 
+set(is_stdformat_unsupported "$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,13.0.0>>")
+
 add_subdirectory(streamtests)
 add_subdirectory(threadtests)
 add_subdirectory(transcodetests)
@@ -66,7 +68,6 @@ target_link_libraries(
     unittests
     gtest
     ktx
-    fmt::fmt
     ${CMAKE_THREAD_LIBS_INIT}
 )
 
@@ -98,6 +99,7 @@ target_link_libraries(
     texturetests
     gtest
     ktx
+    "$<${is_stdformat_unsupported}:fmt::fmt>"
     ${CMAKE_THREAD_LIBS_INIT}
 )
 
