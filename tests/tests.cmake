@@ -68,6 +68,7 @@ target_link_libraries(
     unittests
     gtest
     ktx
+    fmt::fmt
     ${CMAKE_THREAD_LIBS_INIT}
 )
 
