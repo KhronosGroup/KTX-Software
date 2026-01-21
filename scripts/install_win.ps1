@@ -111,7 +111,7 @@ function Augment-UserPath {
 
 if ($SUPPORT_OPENCL -eq "ON") {
   # Must be in repo root for this lfs pull.
-  git lfs pull --include=external/basisu/opencl
+  git lfs pull --include=external/basis_universal/opencl
   echo "Download and install OpenCL CPU runtime..."
   echo "... in sibling of cloned repo (../$OPENCL_SDK_NAME)."
   pushd ..

@@ -608,6 +608,7 @@ class ImageInput {
                 write[1] = static_cast<T>(0xffff);
                 break;
             }
+            break;
         case 1:
             switch (ncIn) {
             case 4: [[fallthrough]];
@@ -618,7 +619,7 @@ class ImageInput {
                 write[0] = read[0];
                 break;
             }
-        break;
+            break;
         }
     }
 
