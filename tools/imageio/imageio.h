@@ -552,7 +552,7 @@ class ImageInput {
     inline static T
     luminance(T* rgb)
     {
-        return static_cast<T>(roundf(0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]));
+        return static_cast<T>(roundf(0.2126f * rgb[0] + 0.7152f * rgb[1] + 0.0722f * rgb[2]));
     }
 
     template<class T>
@@ -628,20 +628,25 @@ class ImageInput {
     convert(Tw* write, Tw maxw, const Tr* read, Tr maxr, size_t npixels,
             uint32_t nchannelsIn, uint32_t nchannelsOut)
     {
-        if (!std::is_same_v<Tr, Tw> && nchannelsIn == nchannelsOut) {
-            rescale(write, maxw, read, maxr, npixels * nchannelsOut);
-        } else {
-            for(size_t p = 0; p < npixels; p++) {
-                Tw channels[4];
-                const Tw* pixel = std::is_same<Tr, Tw>() ? (Tw*)&read[p*nchannelsIn] : channels;
-                static_assert((std::is_same<Tw, uint16_t>::value || std::is_same<Tw, uint8_t>::value)
-                      && (std::is_same<Tr, uint16_t>::value || std::is_same<Tr, uint8_t>::value)
-                      && "Template only supports uint8_t and uint16_t.");
-                if (static_cast<uint16_t>(maxw) != static_cast<uint16_t>(maxr)) {
-                    rescale(channels, maxw, &read[p*nchannelsIn], maxr, nchannelsIn);
-                }
-                rechannel(&write[p*nchannelsOut], pixel, nchannelsIn, nchannelsOut);
+        if constexpr (!std::is_same_v<Tr, Tw>) {
+            // Because of MSVC warning C4127: conditional expression is constant
+            // cannot && a constexpr that may be 0 with a non-constexpr in the
+            // same condition so split into two ifs.
+            if (nchannelsIn == nchannelsOut) {
+                rescale(write, maxw, read, maxr, npixels * nchannelsOut);
+                return;
             }
+        }
+        for(size_t p = 0; p < npixels; p++) {
+            Tw channels[4];
+            const Tw* pixel = std::is_same<Tr, Tw>() ? (Tw*)&read[p*nchannelsIn] : channels;
+            static_assert((std::is_same<Tw, uint16_t>::value || std::is_same<Tw, uint8_t>::value)
+                    && (std::is_same<Tr, uint16_t>::value || std::is_same<Tr, uint8_t>::value)
+                    && "Template only supports uint8_t and uint16_t.");
+            if (static_cast<uint16_t>(maxw) != static_cast<uint16_t>(maxr)) {
+                rescale(channels, maxw, &read[p*nchannelsIn], maxr, nchannelsIn);
+            }
+            rechannel(&write[p*nchannelsOut], pixel, nchannelsIn, nchannelsOut);
         }
     }
 
