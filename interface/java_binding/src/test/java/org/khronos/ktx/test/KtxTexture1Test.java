@@ -22,7 +22,7 @@ public class KtxTexture1Test {
     @Test
     public void testCreateFromNamedFile() {
         Path testKtxFile = Paths.get("")
-                .resolve("../../tests/testimages/etc1.ktx")
+                .resolve("../../tests/resources/ktx/etc1.ktx")
                 .toAbsolutePath()
                 .normalize();
 
@@ -42,7 +42,7 @@ public class KtxTexture1Test {
     @Test
     public void testWriteToNamedFile() throws IOException {
         Path testKtxFile = Paths.get("")
-                .resolve("../../tests/testimages/etc2-rgb.ktx")
+                .resolve("../../tests/resources/ktx/etc2_rgb.ktx")
                 .toAbsolutePath()
                 .normalize();
         File copyFile = File.createTempFile("copyktx", ".ktx");
@@ -64,7 +64,7 @@ public class KtxTexture1Test {
     @Test
     public void testWriteToMemory() throws IOException {
         Path testKtxFile = Paths.get("")
-                .resolve("../../tests/testimages/etc2-rgba1.ktx")
+                .resolve("../../tests/resources/ktx/etc2_rgba1.ktx")
                 .toAbsolutePath()
                 .normalize();
 
@@ -82,7 +82,7 @@ public class KtxTexture1Test {
     @Test
     public void testGetData() throws IOException {
         Path testKtxFile = Paths.get("")
-                .resolve("../../tests/testimages/etc2-rgba1.ktx")
+                .resolve("../../tests/resources/ktx/etc2_rgba1.ktx")
                 .toAbsolutePath()
                 .normalize();
 

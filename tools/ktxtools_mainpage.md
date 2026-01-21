@@ -6,7 +6,7 @@
  SPDX-License-Identifier: Apache-2.0
 -->
 
-There are two sets of tools: a new set with a unified front end, @ref ktx, and an older set of individual tools. Both are documented here.
+There is now a single set of tools invoked via a unified front end, `ktx`.
 
 ktx Overview
 ------------
@@ -15,7 +15,7 @@ ktx Overview
 
 | Tool | Description | Equivalent old tool |
 | :--- | ----------- | ------------------- |
-| @ref ktx_compare | Compare two KTX2 files. | |
+| @ref ktx_compare | Compare two KTX2 files. | - |
 | @ref ktx_convert | Convert other texture file types to KTX2. | `ktx2ktx2` |
 | @ref ktx_create | Create a KTX2 file from various input files | `toktx` |
 | @ref ktx_deflate | Deflate (supercompress) a KTX2 file. | `ktxsc` |
@@ -25,8 +25,6 @@ ktx Overview
 | @ref ktx_transcode | Transcode a KTX2 file | - |
 | @ref ktx_validate | Validate a KTX2 file | `ktx2check` |
 | @ref ktx_help | Display help information about the ktx tools | - |
-
-Equivalent legacy tools are deprecated and will be removed soon.
 
 The command-line syntax and semantics differ from the legacy tools including, but not limited to:
 

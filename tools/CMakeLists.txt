@@ -60,20 +60,9 @@ endfunction()
 
 add_subdirectory(imageio)
 add_subdirectory(ktx)
-add_subdirectory(ktx2check)
-add_subdirectory(ktx2ktx2)
-add_subdirectory(ktxinfo)
-add_subdirectory(ktxsc)
-add_subdirectory(toktx)
 
 install(TARGETS
     ktxtools
-
-    ktx2check
-    ktx2ktx2
-    ktxinfo
-    ktxsc
-    toktx
 RUNTIME
     DESTINATION ${CMAKE_INSTALL_BINDIR}
     COMPONENT tools

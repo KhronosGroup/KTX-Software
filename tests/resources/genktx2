@@ -106,13 +106,16 @@ if [ $gen_ktxicons -ne 0 ]; then
   # threads 1 here is to avoid non-determism in the RDO processing.
   # Hopefully a fix will be forthcoming.
   $ktx create --testrun --format R8G8B8A8_SRGB --generate-mipmap --threads 1 --encode uastc --uastc-rdo --uastc-rdo-l 4 --zstd 5 $ktxspec_dir/icons/png/ktx_document.png ktx2/ktx_document_uastc_rdo_4_zstd_5.ktx2
+  # For Java-wrapper and pyktx tests.
+  $ktx create --testrun --format ASTC_8X8_SRGB_BLOCK --generate-mipmap $ktxspec_dir/icons/png/ktx_app.png ktx2/ktx_app_astc_8x8.ktx2
 fi
 
 # For loadtests.
 alpha_complex=$tests/cts/clitests/input/png_sample/alpha_complex.png
 if [ -f $alpha_complex ]; then
   $ktx create --testrun --format R8G8B8A8_SRGB --premultiply-alpha --zstd 10 $alpha_complex ktx2/alpha_complex_premultiplied.ktx2
-  $ktx create --testrun --format R8G8B8A8_SRGB --zstd 10 $alpha_complex ktx2/alpha_complex_straight.ktx2
+  # --asign-texcoord-origin is to provide KTXorientation metadata for a pyktx test.
+  $ktx create --testrun --format R8G8B8A8_SRGB --assign-texcoord-origin top-left --zstd 10 $alpha_complex ktx2/alpha_complex_straight.ktx2
 else
   echo "$0: Warning: cts submodule not cloned. No source from which to generate {premultiplied,straight}-rgba.ktx2."
 fi
