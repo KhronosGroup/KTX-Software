@@ -677,6 +677,28 @@ printBasisSGDInfo(ktx_uint8_t* bgd, ktx_uint64_t byteLength,
 /**
  * @internal
  * @~English
+ * @brief Print Basis supercompression global data.
+ *
+ * @param [in]  bgd          pointer to the Basis supercompression global data.
+ * @param [in]  byteLength   byte length of the data pointed to by @p bgd.
+ */
+void
+printUASTCHDR6X6IntermediateSGDInfo(ktx_uint8_t* bgd, ktx_uint64_t byteLength,
+                ktx_uint32_t numImages)
+{
+    ktxUASTCHDR6X6IntermediateImageDesc* slices = (ktxUASTCHDR6X6IntermediateImageDesc*)(bgd);
+    for (ktx_uint32_t i = 0; i < numImages; i++) {
+        if (byteLength < (i + 1) * sizeof(ktxUASTCHDR6X6IntermediateImageDesc))
+            break;
+
+        fprintf(stdout, "\nrgbSliceByteLength: %u\n", slices[i].rgbSliceByteLength);
+        fprintf(stdout, "rgbSliceByteOffset: %#x\n", slices[i].rgbSliceByteOffset);
+    }
+}
+
+/**
+ * @internal
+ * @~English
  * @brief Print information about a KTX 2 file.
  *
  * The stream's read pointer should be immediately following the header.
@@ -780,6 +802,33 @@ printKTX2Info2(ktxStream* stream, KTX_header2* pHeader)
             uint32_t numImages = layersFaces * layerPixelDepth;
             fprintf(stdout, "\nBasis Supercompression Global Data\n\n");
             printBasisSGDInfo(sgd, pHeader->supercompressionGlobalData.byteLength, numImages);
+            free(sgd);
+        } else if (pHeader->supercompressionScheme == KTX_SS_UASTC_HDR_6X6_INTERMEDIATE) {
+            ktx_uint8_t* sgd = malloc(pHeader->supercompressionGlobalData.byteLength);
+            if (sgd == NULL)
+                return KTX_OUT_OF_MEMORY;
+            ec = stream->setpos(stream, pHeader->supercompressionGlobalData.byteOffset);
+            if (ec != KTX_SUCCESS) {
+                free(sgd);
+                return ec;
+            }
+            ec = stream->read(stream, sgd, pHeader->supercompressionGlobalData.byteLength);
+            if (ec != KTX_SUCCESS) {
+                free(sgd);
+                return ec;
+            }
+            //
+            // Calculate number of images
+            //
+            uint32_t layersFaces = MAX(pHeader->layerCount, 1) * pHeader->faceCount;
+            uint32_t layerPixelDepth = MAX(pHeader->pixelDepth, 1);
+            for(uint32_t level = 1; level < MAX(pHeader->levelCount, 1); level++)
+                layerPixelDepth += MAX(MAX(pHeader->pixelDepth, 1) >> level, 1U);
+            // NOTA BENE: faceCount * layerPixelDepth is only reasonable because
+            // faceCount and depth can't both be > 1. I.e there are no 3d cubemaps.
+            uint32_t numImages = layersFaces * layerPixelDepth;
+            fprintf(stdout, "\nUASTC HDR6X6 Intermediate Supercompression Global Data\n\n");
+            printUASTCHDR6X6IntermediateSGDInfo(sgd, pHeader->supercompressionGlobalData.byteLength, numImages);
             free(sgd);
         } else {
             fprintf(stdout, "\nUnrecognized supercompressionScheme.\n");

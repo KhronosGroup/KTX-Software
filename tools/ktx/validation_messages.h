@@ -293,6 +293,10 @@ struct LevelIndex {
         4010, "Invalid uncompressedByteLength in Level Index. uncompressedByteLength must be equally divisible between every face and layer.",
         "Level {} uncompressedByteLength is {} but it must be divisible with faceCount * max(1, layerCount)."
     };
+    static constexpr IssueError NonZeroUBLForUH6X6IE{
+        4011, "Invalid uncompressedByteLength in Level Index. For UASTC HDR6X6 Intermediate supercompression uncompressedByteLength must be 0.",
+        "Level {} uncompressedByteLength is {} but for UASTC HDR6X6 Intermediate supercompression it must be 0."
+    };
 };
 
 struct Validator {
@@ -784,6 +788,25 @@ struct SGD {
     static constexpr IssueError BLZEDFDMismatchNoAlpha{
         8110, "Incompatible alphaSliceByteLength and DFD sampleCount. If DFD indicates no alpha slice the alphaSliceByteLength in BasisLzEtc1sImageDesc must be 0.",
         "For Level {} Layer {} Face {} zSlice {} the alphaSliceByteLength is {} but DFD indicates no alpha slice so it must be 0."
+    };
+
+    // 82xx - UASTC HDR6X6 Intermediate related issues:
+
+    static constexpr IssueError UH6X6IESizeTooSmall{
+        8201, "Invalid sgdByteLength for UASTC HDR6X6 Intermediate. sgdByteLength must be at least 8 bytes (sizeof ktxUASTCHDR6X6IntermediateImageDesc).",
+        "sgdByteLength is {} but for UASTC HDR6X6 Intermediate textures it must be at least 8 bytes (sizeof ktxUASTCHDR6X6IntermediateImageDesc)."
+    };
+    static constexpr IssueError UH6X6IEByteLengthInvalidSize{
+        8202, "Invalid sgdByteLength for UASTC HDR6X6 Intermediate. sgdByteLength must be a multiple of 8 (sizeof ktxUASTCHDR6X6IntermediateImageDesc).",
+        "sgdByteLength is {} but for UASTC HDR6X6 Intermediate byte length must be a multiple of 8 bytes (sizeof ktxUASTCHDR6X6IntermediateImageDesc)."
+    };
+    static constexpr IssueError UH6X6IEZeroRGBLength{
+        8203, "Invalid rgbSliceByteLength in UASTCHDR6X6IntermediateImageDesc. rgbSliceByteLength must not be 0.",
+        "For Level {} Layer {} Face {} zSlice {} the rgbSliceByteLength is {} but it must not be 0."
+    };
+    static constexpr IssueError UH6X6IEInvalidRGBSlice{
+        8204, "Invalid rgbSliceByteOffset or rgbSliceByteLength. The defined byte region must be within the corresponding mip level.",
+        "For Level {} Layer {} Face {} zSlice {} the rgbSliceByteOffset is {} and the rgbSliceByteLength is {} but the defined region must fit in the level's byteLength of {}."
     };
 };
 

@@ -172,7 +172,7 @@ ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
     }
 
     DECLARE_PRIVATE(priv, This);
-    if (This->supercompressionScheme == KTX_SS_BASIS_LZ) {
+    if (This->supercompressionScheme == KTX_SS_BASIS_LZ || This->supercompressionScheme == KTX_SS_UASTC_HDR_6X6_INTERMEDIATE) {
         if (!priv._supercompressionGlobalData || priv._sgdByteLength == 0)
             return KTX_INVALID_OPERATION;
     }
@@ -875,7 +875,7 @@ transcodeUastcHDR4x4(ktxTexture2* This, alpha_content_e alphaContent, ktxTexture
 static KTX_error_code
 transcodeUastcHDR6x6_intermediate(ktxTexture2* This, alpha_content_e alphaContent, ktxTexture2* prototype,
                      ktx_transcode_fmt_e outputFormat, ktx_transcode_flags transcodeFlags) {
-    // assert(This->supercompressionScheme != KTX_SS_BASIS_LZ);
+    assert(This->supercompressionScheme == KTX_SS_UASTC_HDR_6X6_INTERMEDIATE);
 
     ktx_uint8_t* pXcodedData = prototype->pData;
     ktx_uint32_t outputBlockByteLength = prototype->_protected->_formatSize.blockSizeInBits / 8;

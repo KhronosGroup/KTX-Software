@@ -416,7 +416,7 @@ void ValidationContext::validateHeader() {
             warning(HeaderData::UnknownFormat, toString(vkFormat));
     }
 
-    if (header.supercompressionScheme == KTX_SS_BASIS_LZ) {
+    if (header.supercompressionScheme == KTX_SS_BASIS_LZ || header.supercompressionScheme == KTX_SS_UASTC_HDR_6X6_INTERMEDIATE) {
         if (header.vkFormat != VK_FORMAT_UNDEFINED)
             error(HeaderData::VkFormatAndBasis, toString(vkFormat));
     }
@@ -714,6 +714,9 @@ void ValidationContext::validateLevelIndex() {
             if (header.supercompressionScheme == KTX_SS_BASIS_LZ) {
                 if (level.uncompressedByteLength != 0)
                     error(LevelIndex::NonZeroUBLForBLZE, index, level.uncompressedByteLength);
+            } else if (header.supercompressionScheme == KTX_SS_UASTC_HDR_6X6_INTERMEDIATE) {
+                if (level.uncompressedByteLength != 0)
+                    error(LevelIndex::NonZeroUBLForUH6X6IE, index, level.uncompressedByteLength);
             } else if (header.vkFormat != VK_FORMAT_UNDEFINED) {
                 if (header.supercompressionScheme == KTX_SS_NONE) {
                     const auto expectedUncompressedLength = calcLevelSize(index);
@@ -1623,80 +1626,128 @@ void ValidationContext::validateSGD() {
     const auto buffer = std::make_unique<uint8_t[]>(sgdByteLength);
     read(sgdByteOffset, buffer.get(), sgdByteLength, "the SGD");
 
-    if (header.supercompressionScheme != KTX_SS_BASIS_LZ)
+    if ((header.supercompressionScheme != KTX_SS_BASIS_LZ) && (header.supercompressionScheme != KTX_SS_UASTC_HDR_6X6_INTERMEDIATE))
         return;
 
     // Validate BASIS_LZ SGD
 
-    uint32_t imageCount = 0;
-    // uint32_t layersFaces = numLayers * header.faceCount;
-    for (uint32_t level = 0; level < numLevels; ++level)
-        // numFaces * depth is only reasonable because they can't both be > 1. There are no 3D cubemaps
-        imageCount += numLayers * header.faceCount * std::max(header.pixelDepth >> level, 1u);
+    switch (header.supercompressionScheme) {
+        case KTX_SS_UASTC_HDR_6X6_INTERMEDIATE: {
+            uint32_t imageCount = 0;
+            // uint32_t layersFaces = numLayers * header.faceCount;
+            for (uint32_t level = 0; level < numLevels; ++level)
+                // numFaces * depth is only reasonable because they can't both be > 1. There are no 3D cubemaps
+                imageCount += numLayers * header.faceCount * std::max(header.pixelDepth >> level, 1u);
 
-    // Validate GlobalHeader
-    if (sgdByteLength < sizeof(ktxBasisLzGlobalHeader)) {
-        error(SGD::BLZESizeTooSmallHeader, sgdByteLength);
-        return;
-    }
+            // Validate GlobalHeader
+            if (sgdByteLength < sizeof(ktxUASTCHDR6X6IntermediateImageDesc)) {
+                error(SGD::BLZESizeTooSmallHeader, sgdByteLength);
+                return;
+            }
 
-    const ktxBasisLzGlobalHeader& bgh = *reinterpret_cast<const ktxBasisLzGlobalHeader*>(buffer.get());
+            if ((sgdByteLength % 8) != 0) {
+                error(SGD::UH6X6IEByteLengthInvalidSize, sgdByteLength);
+                return;
+            }
 
-    const uint64_t expectedBgdByteLength =
-            sizeof(ktxBasisLzGlobalHeader) +
-            sizeof(ktxBasisLzEtc1sImageDesc) * imageCount +
-            bgh.endpointsByteLength +
-            bgh.selectorsByteLength +
-            bgh.tablesByteLength +
-            bgh.extendedByteLength;
-    if (sgdByteLength != expectedBgdByteLength)
-        error(SGD::BLZESizeIncorrect, sgdByteLength, imageCount, expectedBgdByteLength);
+            const ktxUASTCHDR6X6IntermediateImageDesc* imageDescs = reinterpret_cast<ktxUASTCHDR6X6IntermediateImageDesc*>(buffer.get());
 
-    if (parsedColorModel && *parsedColorModel == KHR_DF_MODEL_ETC1S && bgh.extendedByteLength != 0)
-        error(SGD::BLZEExtendedByteLengthNotZero, bgh.extendedByteLength);
+            uint32_t i = 0;
+            for (uint32_t level = 0; level < numLevels; ++level) {
+                for (uint32_t layer = 0; layer < numLayers; ++layer) {
+                    for (uint32_t face = 0; face < header.faceCount; ++face) {
+                        for (uint32_t zSlice = 0; zSlice < std::max(header.pixelDepth >> level, 1u); ++zSlice) {
+                            const auto imageIndex = i++;
+                            const auto& image = imageDescs[imageIndex];
 
-    // Validate ImageDesc
-    if (sgdByteLength < sizeof(ktxBasisLzGlobalHeader) + sizeof(ktxBasisLzEtc1sImageDesc) * imageCount)
-        return;
+                            if (image.rgbSliceByteLength == 0)
+                                error(SGD::UH6X6IEZeroRGBLength, level, layer, face, zSlice, image.rgbSliceByteLength);
 
-    const ktxBasisLzEtc1sImageDesc* imageDescs = BGD_ETC1S_IMAGE_DESCS(buffer.get());
-
-    bool foundPFrame = false;
-    uint32_t i = 0;
-    for (uint32_t level = 0; level < numLevels; ++level) {
-        for (uint32_t layer = 0; layer < numLayers; ++layer) {
-            for (uint32_t face = 0; face < header.faceCount; ++face) {
-                for (uint32_t zSlice = 0; zSlice < std::max(header.pixelDepth >> level, 1u); ++zSlice) {
-                    const auto imageIndex = i++;
-                    const auto& image = imageDescs[imageIndex];
-
-                    if (image.imageFlags & ETC1S_P_FRAME)
-                        foundPFrame = true;
-
-                    if (image.imageFlags & ~ETC1S_P_FRAME)
-                        error(SGD::BLZEInvalidImageFlagBit, level, layer, face, zSlice, image.imageFlags);
-
-                    if (image.rgbSliceByteLength == 0)
-                        error(SGD::BLZEZeroRGBLength, level, layer, face, zSlice, image.rgbSliceByteLength);
-
-                    if (image.rgbSliceByteOffset + image.rgbSliceByteLength > levelIndices[level].byteLength)
-                        error(SGD::BLZEInvalidRGBSlice, level, layer, face, zSlice, image.rgbSliceByteOffset, image.rgbSliceByteLength, levelIndices[level].byteLength);
-                    if (image.alphaSliceByteOffset + image.alphaSliceByteLength > levelIndices[level].byteLength)
-                        error(SGD::BLZEInvalidAlphaSlice, level, layer, face, zSlice, image.alphaSliceByteOffset, image.alphaSliceByteLength, levelIndices[level].byteLength);
-
-                    // Crosscheck with the DFD numSamples
-                    if (image.alphaSliceByteLength == 0 && numSamples == 2)
-                        error(SGD::BLZEDFDMismatchAlpha, level, layer, face, zSlice);
-                    if (image.alphaSliceByteLength != 0 && numSamples == 1)
-                        error(SGD::BLZEDFDMismatchNoAlpha, level, layer, face, zSlice, image.alphaSliceByteLength);
+                            if (image.rgbSliceByteOffset + image.rgbSliceByteLength > levelIndices[level].byteLength)
+                                error(SGD::UH6X6IEInvalidRGBSlice, level, layer, face, zSlice, image.rgbSliceByteOffset, image.rgbSliceByteLength, levelIndices[level].byteLength);
+                        }
+                    }
                 }
             }
-        }
-    }
 
-    if (foundPFrame)
-        if (!foundKTXanimData)
-            error(SGD::BLZENoAnimationSequencesPFrame);
+            break;
+        }
+        case KTX_SS_BASIS_LZ: {
+            uint32_t imageCount = 0;
+            // uint32_t layersFaces = numLayers * header.faceCount;
+            for (uint32_t level = 0; level < numLevels; ++level)
+                // numFaces * depth is only reasonable because they can't both be > 1. There are no 3D cubemaps
+                imageCount += numLayers * header.faceCount * std::max(header.pixelDepth >> level, 1u);
+
+            // Validate GlobalHeader
+            if (sgdByteLength < sizeof(ktxBasisLzGlobalHeader)) {
+                error(SGD::BLZESizeTooSmallHeader, sgdByteLength);
+                return;
+            }
+
+            const ktxBasisLzGlobalHeader& bgh = *reinterpret_cast<const ktxBasisLzGlobalHeader*>(buffer.get());
+
+            const uint64_t expectedBgdByteLength =
+                    sizeof(ktxBasisLzGlobalHeader) +
+                    sizeof(ktxBasisLzEtc1sImageDesc) * imageCount +
+                    bgh.endpointsByteLength +
+                    bgh.selectorsByteLength +
+                    bgh.tablesByteLength +
+                    bgh.extendedByteLength;
+            if (sgdByteLength != expectedBgdByteLength)
+                error(SGD::BLZESizeIncorrect, sgdByteLength, imageCount, expectedBgdByteLength);
+
+            if (parsedColorModel && *parsedColorModel == KHR_DF_MODEL_ETC1S && bgh.extendedByteLength != 0)
+                error(SGD::BLZEExtendedByteLengthNotZero, bgh.extendedByteLength);
+
+            // Validate ImageDesc
+            if (sgdByteLength < sizeof(ktxBasisLzGlobalHeader) + sizeof(ktxBasisLzEtc1sImageDesc) * imageCount)
+                return;
+
+            const ktxBasisLzEtc1sImageDesc* imageDescs = BGD_ETC1S_IMAGE_DESCS(buffer.get());
+
+            bool foundPFrame = false;
+            uint32_t i = 0;
+            for (uint32_t level = 0; level < numLevels; ++level) {
+                for (uint32_t layer = 0; layer < numLayers; ++layer) {
+                    for (uint32_t face = 0; face < header.faceCount; ++face) {
+                        for (uint32_t zSlice = 0; zSlice < std::max(header.pixelDepth >> level, 1u); ++zSlice) {
+                            const auto imageIndex = i++;
+                            const auto& image = imageDescs[imageIndex];
+
+                            if (image.imageFlags & ETC1S_P_FRAME)
+                                foundPFrame = true;
+
+                            if (image.imageFlags & ~ETC1S_P_FRAME)
+                                error(SGD::BLZEInvalidImageFlagBit, level, layer, face, zSlice, image.imageFlags);
+
+                            if (image.rgbSliceByteLength == 0)
+                                error(SGD::BLZEZeroRGBLength, level, layer, face, zSlice, image.rgbSliceByteLength);
+
+                            if (image.rgbSliceByteOffset + image.rgbSliceByteLength > levelIndices[level].byteLength)
+                                error(SGD::BLZEInvalidRGBSlice, level, layer, face, zSlice, image.rgbSliceByteOffset, image.rgbSliceByteLength, levelIndices[level].byteLength);
+                            if (image.alphaSliceByteOffset + image.alphaSliceByteLength > levelIndices[level].byteLength)
+                                error(SGD::BLZEInvalidAlphaSlice, level, layer, face, zSlice, image.alphaSliceByteOffset, image.alphaSliceByteLength, levelIndices[level].byteLength);
+
+                            // Crosscheck with the DFD numSamples
+                            if (image.alphaSliceByteLength == 0 && numSamples == 2)
+                                error(SGD::BLZEDFDMismatchAlpha, level, layer, face, zSlice);
+                            if (image.alphaSliceByteLength != 0 && numSamples == 1)
+                                error(SGD::BLZEDFDMismatchNoAlpha, level, layer, face, zSlice, image.alphaSliceByteLength);
+                        }
+                    }
+                }
+            }
+
+            if (foundPFrame)
+                if (!foundKTXanimData)
+                    error(SGD::BLZENoAnimationSequencesPFrame);
+            break;
+        }
+    default:
+        break;
+    }
+    return;
 }
 
 void ValidationContext::validatePaddings() {

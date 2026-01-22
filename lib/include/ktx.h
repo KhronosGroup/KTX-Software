@@ -699,8 +699,9 @@ typedef enum ktxSupercmpScheme {
     KTX_SS_BASIS_LZ = 1,        /*!< Basis LZ supercompression. */
     KTX_SS_ZSTD = 2,            /*!< ZStd supercompression. */
     KTX_SS_ZLIB = 3,            /*!< ZLIB supercompression. */
+    KTX_SS_UASTC_HDR_6X6_INTERMEDIATE = 4,            /*!< UASTC HDR 6x6 Intermediate supercompression. */
     KTX_SS_BEGIN_RANGE = KTX_SS_NONE,
-    KTX_SS_END_RANGE = KTX_SS_ZLIB,
+    KTX_SS_END_RANGE = KTX_SS_UASTC_HDR_6X6_INTERMEDIATE,
     KTX_SS_BEGIN_VENDOR_RANGE = 0x10000,
     KTX_SS_END_VENDOR_RANGE = 0x1ffff,
     KTX_SS_BEGIN_RESERVED = 0x20000

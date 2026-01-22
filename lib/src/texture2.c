@@ -821,6 +821,9 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
     if (This->supercompressionScheme == KTX_SS_BASIS_LZ && pBDFD->model != KHR_DF_MODEL_ETC1S) {
         result = KTX_FILE_DATA_ERROR;
         goto cleanup;
+    } else if (This->supercompressionScheme == KTX_SS_UASTC_HDR_6X6_INTERMEDIATE && pBDFD->model != KHR_DF_MODEL_UASTC_6X6_HDR) {
+        result = KTX_FILE_DATA_ERROR;
+        goto cleanup;
     }
 
     // Check compatibility with the KHR_texture_basisu glTF extension, if needed.
@@ -995,6 +998,7 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
     if (pHeader->supercompressionGlobalData.byteLength > 0) {
         switch (This->supercompressionScheme) {
           case KTX_SS_BASIS_LZ:
+          case KTX_SS_UASTC_HDR_6X6_INTERMEDIATE:
             break;
           case KTX_SS_NONE:
           case KTX_SS_ZSTD:
@@ -1036,6 +1040,10 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
         goto cleanup;
     } else if (This->supercompressionScheme == KTX_SS_BASIS_LZ) {
         // SGD is required for BasisLZ
+        result = KTX_FILE_DATA_ERROR;
+        goto cleanup;
+    } else if (This->supercompressionScheme == KTX_SS_UASTC_HDR_6X6_INTERMEDIATE) {
+        // SGD is required for UASTC HDR6X6 Intermediate
         result = KTX_FILE_DATA_ERROR;
         goto cleanup;
     }
@@ -2159,6 +2167,7 @@ ktxTexture2_GetDataSizeUncompressed(ktxTexture2* This)
 {
     switch (This->supercompressionScheme) {
       case KTX_SS_BASIS_LZ:
+      case KTX_SS_UASTC_HDR_6X6_INTERMEDIATE:
       case KTX_SS_NONE:
         return This->dataSize;
       case KTX_SS_ZSTD:

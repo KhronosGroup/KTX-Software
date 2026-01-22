@@ -1060,18 +1060,54 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     std::vector<uint32_t> level_file_offsets(This->numLevels);
 
     if (cparams.m_uastc) {
-        for (uint32_t level = 0; level < This->numLevels; level++) {
-            uint32_t depth = MAX(1, This->baseDepth >> level);
-            uint32_t levelByteLength = 0;
-            uint32_t levelImageCount = This->numLayers * This->numFaces * depth;
+        if (cparams.m_hdr && cparams.m_hdr_mode == hdr_modes::cASTC_HDR_6X6_INTERMEDIATE) {
+            uint32_t image_desc_size = sizeof(ktxUASTCHDR6X6IntermediateImageDesc);
+            bgd_size = image_desc_size * num_images;
+            bgd = new ktx_uint8_t[bgd_size];
 
-            level_file_offsets[level] = slice->m_file_ofs;
-            for (uint32_t image = 0; image < levelImageCount; image++, slice++) {
-                image_data_size += slice->m_file_size;
-                levelByteLength += slice->m_file_size;
+            ktxUASTCHDR6X6IntermediateImageDesc* kimages = reinterpret_cast<ktxUASTCHDR6X6IntermediateImageDesc*>(bgd);
+
+            uint32_t image = 0;
+            for (uint32_t level = 0; level < This->numLevels; level++) {
+                uint32_t depth = MAX(1, This->baseDepth >> level);
+                uint32_t level_byte_length = 0;
+
+                assert(!(slice->m_flags & cSliceDescFlagsHasAlpha));
+                level_file_offsets[level] = slice->m_file_ofs;
+                for (uint32_t layer = 0; layer < This->numLayers; layer++) {
+                    uint32_t faceSlices = This->numFaces == 1 ? depth
+                                                              : This->numFaces;
+                    for (uint32_t faceSlice = 0; faceSlice < faceSlices; faceSlice++) {
+                        level_byte_length += slice->m_file_size;
+                        kimages[image].rgbSliceByteOffset = slice->m_file_ofs
+                                                       - level_file_offsets[level];
+                        kimages[image].rgbSliceByteLength = slice->m_file_size;
+
+                        slice++;
+                        image++;
+                    }
+                }
+                priv._levelIndex[level].byteLength = level_byte_length;
+                priv._levelIndex[level].uncompressedByteLength = 0;
+                image_data_size += level_byte_length;
             }
-            priv._levelIndex[level].byteLength = levelByteLength;
-            priv._levelIndex[level].uncompressedByteLength = levelByteLength;
+
+            priv._supercompressionGlobalData = bgd;
+            priv._sgdByteLength = bgd_size;
+        } else {
+            for (uint32_t level = 0; level < This->numLevels; level++) {
+                uint32_t depth = MAX(1, This->baseDepth >> level);
+                uint32_t levelByteLength = 0;
+                uint32_t levelImageCount = This->numLayers * This->numFaces * depth;
+
+                level_file_offsets[level] = slice->m_file_ofs;
+                for (uint32_t image = 0; image < levelImageCount; image++, slice++) {
+                    image_data_size += slice->m_file_size;
+                    levelByteLength += slice->m_file_size;
+                }
+                priv._levelIndex[level].byteLength = levelByteLength;
+                priv._levelIndex[level].uncompressedByteLength = levelByteLength;
+            }
         }
     } else {
         //
@@ -1240,6 +1276,8 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     else if (params->codecFlag == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_6X6_INTERMEDIATE) {
         result = ktxTexture2_rewriteDfd4UastcHDR6x6i(This, alphaContent, isLuminance, comp_mapping);
         if (result != KTX_SUCCESS) goto cleanup;
+
+        This->supercompressionScheme = KTX_SS_UASTC_HDR_6X6_INTERMEDIATE;
 
         // Reflect this in the formatSize
         ktxFormatSize_initFromDfd(&formatSize, This->pDfd);
