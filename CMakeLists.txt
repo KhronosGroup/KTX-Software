@@ -408,9 +408,7 @@ endif()
 add_library( objUtil STATIC
     utils/argparser.cpp
     utils/argparser.h
-    utils/ktxapp.h
     utils/sbufstream.h
-    utils/scapp.h
     utils/stdafx.h
     utils/platform_utils.h
     utils/unused.h
