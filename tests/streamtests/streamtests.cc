@@ -1,6 +1,7 @@
 // Copyright 2021 Paolo Jovon, All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+#include <version>
 #include <cstring>
 #include <sys/types.h>
 #include <sys/stat.h>

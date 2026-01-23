@@ -23,6 +23,7 @@
   #endif
 #endif
 
+#include <version>
 #include <barrier>
 #include <filesystem>
 #if defined(__cpp_lib_format)

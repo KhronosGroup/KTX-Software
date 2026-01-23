@@ -21,6 +21,8 @@ extern "C" {
 }
 #include "platform_utils.h"
 #include "gtest/gtest.h"
+
+#include <version>
 #include <vector>
 #include <cstring>
 #include <filesystem>
