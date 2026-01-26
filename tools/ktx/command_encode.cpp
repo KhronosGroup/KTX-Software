@@ -186,11 +186,12 @@ void CommandEncode::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
 
     fillOptionsCodecBasis<decltype(options)>(options);
 
-    if ((options.codec == BasisCodec::NONE || options.codec == BasisCodec::INVALID) &&
+    if ((options.selectedCodec == BasisCodec::NONE ||
+         options.selectedCodec == BasisCodec::INVALID) &&
         options.vkFormat == VK_FORMAT_UNDEFINED)
         fatal_usage("Either codec or format must be specified");
 
-    if (options.codec == BasisCodec::BasisLZ) {
+    if (options.selectedCodec == BasisCodec::BasisLZ) {
         if (options.zstd.has_value())
             fatal_usage("Cannot encode to BasisLZ and supercompress with Zstd.");
 
@@ -198,7 +199,7 @@ void CommandEncode::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
             fatal_usage("Cannot encode to BasisLZ and supercompress with ZLIB.");
     }
 
-    if (options.codec == BasisCodec::UASTC_HDR_6x6i) {
+    if (options.selectedCodec == BasisCodec::UASTC_HDR_6x6i) {
         if (options.zstd.has_value())
             fatal_usage("Cannot encode to UASTC-HDR and supercompress with Zstd.");
 
@@ -206,9 +207,10 @@ void CommandEncode::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
             fatal_usage("Cannot encode to UASTC-HDR and supercompress with ZLIB.");
     }
 
-    const auto basisCodec =
-        options.codec == BasisCodec::BasisLZ || options.codec == BasisCodec::UASTC ||
-        options.codec == BasisCodec::UASTC_HDR_4x4 || options.codec == BasisCodec::UASTC_HDR_6x6i;
+    const auto basisCodec = options.selectedCodec == BasisCodec::BasisLZ ||
+                            options.selectedCodec == BasisCodec::UASTC ||
+                            options.selectedCodec == BasisCodec::UASTC_HDR_4x4 ||
+                            options.selectedCodec == BasisCodec::UASTC_HDR_6x6i;
     const auto astcCodec = isFormatAstc(options.vkFormat);
     const auto canCompare = basisCodec || astcCodec;
 
@@ -239,7 +241,9 @@ void CommandEncode::executeEncode() {
     if (khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_ASTC && options.encodeASTC)
         fatal_usage("Encoding from ASTC format {} to another ASTC format {} is not supported.", toString(VkFormat(texture->vkFormat)), toString(options.vkFormat));
 
-    if (options.codec == BasisCodec::NONE || options.codec == BasisCodec::BasisLZ || options.codec == BasisCodec::UASTC) {
+    if (options.selectedCodec == BasisCodec::NONE ||
+        options.selectedCodec == BasisCodec::BasisLZ ||
+        options.selectedCodec == BasisCodec::UASTC) {
         switch (texture->vkFormat) {
         case VK_FORMAT_R8_UNORM:
         case VK_FORMAT_R8_SRGB:
@@ -258,8 +262,8 @@ void CommandEncode::executeEncode() {
                 toString(VkFormat(texture->vkFormat)));
             break;
         }
-    } else if (options.codec == BasisCodec::UASTC_HDR_4x4 ||
-               options.codec == BasisCodec::UASTC_HDR_6x6i) {
+    } else if (options.selectedCodec == BasisCodec::UASTC_HDR_4x4 ||
+               options.selectedCodec == BasisCodec::UASTC_HDR_6x6i) {
         switch (texture->vkFormat) {
         case VK_FORMAT_R16G16B16_SFLOAT:
         case VK_FORMAT_R16G16B16A16_SFLOAT:

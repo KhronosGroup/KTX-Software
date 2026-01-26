@@ -1344,7 +1344,7 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
             fatal_usage("--{} is not allowed with ASTC encode", OptionsEncodeCommon::kNoSse);
     }
 
-    if (options.codec == BasisCodec::BasisLZ) {
+    if (options.selectedCodec == BasisCodec::BasisLZ) {
         if (options.zstd.has_value())
             fatal_usage("Cannot encode to BasisLZ and supercompress with Zstd.");
 
@@ -1352,21 +1352,23 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
             fatal_usage("Cannot encode to BasisLZ and supercompress with ZLIB.");
     }
 
-    if (options.codec == BasisCodec::UASTC_HDR_6x6i) {
+    if (options.selectedCodec == BasisCodec::UASTC_HDR_6x6i) {
         if (options.zstd.has_value())
             fatal_usage("Cannot encode to UASTC HDR 6x6i and supercompress with Zstd.");
 
         if (options.zlib.has_value())
             fatal_usage("Cannot encode to UASTC HDR 6x6i and supercompress with ZLIB.");
     }
-    if (options.codec == BasisCodec::UASTC_HDR_4x4 || options.codec == BasisCodec::UASTC_HDR_6x6i) {
+    if (options.selectedCodec == BasisCodec::UASTC_HDR_4x4 ||
+        options.selectedCodec == BasisCodec::UASTC_HDR_6x6i) {
         if (options.raw && (options.vkFormat != VK_FORMAT_R16G16B16_SFLOAT &&
                             options.vkFormat != VK_FORMAT_R16G16B16A16_SFLOAT))
             fatal_usage("Cannot encode to UASTC-HDR from RAW due to incorrect format value. The format should be either R16G16B16_SFLOAT or R16G16B16A16_SFLOAT.");
 
     }
 
-    if (options.codec == BasisCodec::BasisLZ || options.codec == BasisCodec::UASTC) {
+    if (options.selectedCodec == BasisCodec::BasisLZ ||
+        options.selectedCodec == BasisCodec::UASTC) {
         switch (options.vkFormat) {
         case VK_FORMAT_R8_UNORM:
         case VK_FORMAT_R8_SRGB:
@@ -1383,7 +1385,8 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
                 "but format is {}.", toString(VkFormat(options.vkFormat)));
             break;
         }
-    } else if (options.codec == BasisCodec::UASTC_HDR_4x4 || options.codec == BasisCodec::UASTC_HDR_6x6i) {
+    } else if (options.selectedCodec == BasisCodec::UASTC_HDR_4x4 ||
+               options.selectedCodec == BasisCodec::UASTC_HDR_6x6i) {
         switch (options.vkFormat) {
         case VK_FORMAT_R16G16B16_SFLOAT:
         case VK_FORMAT_R16G16B16A16_SFLOAT:
@@ -1397,7 +1400,10 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
         }
     }
 
-    const auto basisCodec = options.codec == BasisCodec::BasisLZ || options.codec == BasisCodec::UASTC || options.codec == BasisCodec::UASTC_HDR_4x4 || options.codec == BasisCodec::UASTC_HDR_6x6i;
+    const auto basisCodec = options.selectedCodec == BasisCodec::BasisLZ ||
+                            options.selectedCodec == BasisCodec::UASTC ||
+                            options.selectedCodec == BasisCodec::UASTC_HDR_4x4 ||
+                            options.selectedCodec == BasisCodec::UASTC_HDR_6x6i;
     const auto astcCodec = isFormatAstc(options.vkFormat);
     const auto canCompare = basisCodec || astcCodec;
 
@@ -1903,7 +1909,7 @@ void CommandCreate::executeCreate() {
     MetricsCalculator metrics;
     metrics.saveReferenceImages(texture, options, *this);
 
-    if (options.codec != BasisCodec::NONE)
+    if (options.selectedCodec != BasisCodec::NONE)
         encodeBasis(texture, options);
     if (options.encodeASTC)
         encodeASTC(texture, options);
@@ -1937,7 +1943,7 @@ void CommandCreate::encodeBasis(KTXTexture2& texture, OptionsEncodeBasis<false>&
     auto ret = ktxTexture2_CompressBasisEx(texture, &opts);
     if (ret != KTX_SUCCESS)
         fatal(rc::KTX_FAILURE, "Failed to encode KTX2 file with codec \"{}\". KTX Error: {}",
-                to_underlying(opts.codec), ktxErrorString(ret));
+              to_underlying(opts.selectedCodec), ktxErrorString(ret));
 }
 
 void CommandCreate::encodeASTC(KTXTexture2& texture, OptionsEncodeASTC& opts) {

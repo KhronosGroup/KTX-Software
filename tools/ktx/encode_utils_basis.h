@@ -280,7 +280,7 @@ struct OptionsEncodeBasis : public ktxBasisParams {
 
     std::string codecOptions{};
     std::string codecName;
-    BasisCodec codec;
+    BasisCodec selectedCodec;
 
     void init(cxxopts::Options& opts) {
         opts.add_options("Encode BasisLZ")
@@ -376,7 +376,7 @@ struct OptionsEncodeBasis : public ktxBasisParams {
     }
 
     void validateBasisLZArg(Reporter& report, const char* name) {
-        if (codec != BasisCodec::BasisLZ)
+        if (selectedCodec != BasisCodec::BasisLZ)
             report.fatal(rc::INVALID_ARGUMENTS,
                 "Invalid use of argument --{} that only applies when the used codec is BasisLZ.", name);
     }
@@ -396,7 +396,7 @@ struct OptionsEncodeBasis : public ktxBasisParams {
     }
 
     void validateUASTCArg(Reporter& report, const char* name) {
-        if (codec != BasisCodec::UASTC)
+        if (selectedCodec != BasisCodec::UASTC)
             report.fatal(rc::INVALID_ARGUMENTS,
                 "Invalid use of argument --{} that only applies when the used codec is UASTC.", name);
     }
@@ -409,7 +409,7 @@ struct OptionsEncodeBasis : public ktxBasisParams {
     }
 
     void validateUASTCOrUASTCHDR4x4Arg(Reporter& report, const char* name) {
-        if (codec != BasisCodec::UASTC && codec != BasisCodec::UASTC_HDR_4x4)
+        if (selectedCodec != BasisCodec::UASTC && selectedCodec != BasisCodec::UASTC_HDR_4x4)
             report.fatal(
                 rc::INVALID_ARGUMENTS,
                 "Invalid use of argument, --{}, that only applies when the used codec is UASTC or UASTC HDR 4x4.", name);
@@ -436,8 +436,8 @@ struct OptionsEncodeBasis : public ktxBasisParams {
             codec_option = "codec";
         }
 
-        codec = validateBasisCodec(args[codec_option]);
-        switch (codec) {
+        selectedCodec = validateBasisCodec(args[codec_option]);
+        switch (selectedCodec) {
         case BasisCodec::NONE:
             // Not specified
             break;
@@ -454,7 +454,7 @@ struct OptionsEncodeBasis : public ktxBasisParams {
             break;
         }
 
-        switch (codec)
+        switch (selectedCodec)
         { 
         case BasisCodec::BasisLZ:
             codecFlag = ktx_basis_codec_e::KTX_BASIS_CODEC_ETC1S;
