@@ -23422,7 +23422,7 @@ namespace basist
 			pack_bc6h_block(*pBlock, log_blk);
 		}
 
-		bool decode_6x6_hdr(const uint8_t *pComp_data, uint32_t comp_data_size, basisu::vector2D<astc_helpers::astc_block>& decoded_blocks, uint32_t& width, uint32_t& height, bool skip_header_check)
+		bool decode_6x6_hdr(const uint8_t *pComp_data, uint32_t comp_data_size, basisu::vector2D<astc_helpers::astc_block>& decoded_blocks, uint32_t& width, uint32_t& height)
 		{
 			const uint32_t BLOCK_W = 6, BLOCK_H = 6;
 
