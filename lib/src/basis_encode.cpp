@@ -869,8 +869,10 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
 #endif
 
     ktx_uint32_t transfer = KHR_DFDVAL(BDB, TRANSFER);
-    if (transfer == KHR_DF_TRANSFER_SRGB)
+    if (transfer == KHR_DF_TRANSFER_SRGB) {
         cparams.m_perceptual = true;
+        cparams.m_ktx2_srgb_transfer_func = true;
+    }
     else
         cparams.m_perceptual = false;
 
