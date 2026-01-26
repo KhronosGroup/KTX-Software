@@ -631,7 +631,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     cparams.m_create_ktx2_file = false; // To avoid rewriting this code, continue with .basis.
     cparams.m_status_output = params->verbose;
 
-    switch (params->codecFlag) {
+    switch (params->codec) {
     case ktx_basis_codec_e::KTX_BASIS_CODEC_ETC1S:
         cparams.m_uastc = false;
         break;
@@ -1253,7 +1253,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
 
     // Delayed modifying texture until here so it's after points of
     // possible failure.
-    if (params->codecFlag == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_LDR) {
+    if (params->codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_LDR) {
         result = ktxTexture2_rewriteDfd4Uastc(This, alphaContent,
                                               isLuminance,
                                               comp_mapping);
@@ -1264,7 +1264,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         // and the requiredLevelAlignment.
         priv._requiredLevelAlignment = 4 * 4;
     }
-    else if (params->codecFlag == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4X4 ) {
+    else if (params->codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4X4 ) {
         result = ktxTexture2_rewriteDfd4UastcHDR4x4(This, alphaContent, isLuminance, comp_mapping);
         if (result != KTX_SUCCESS) goto cleanup;
 
@@ -1273,7 +1273,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         // and the requiredLevelAlignment.
         priv._requiredLevelAlignment = 4 * 4;
     } 
-    else if (params->codecFlag == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_6X6_INTERMEDIATE) {
+    else if (params->codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_6X6_INTERMEDIATE) {
         result = ktxTexture2_rewriteDfd4UastcHDR6x6i(This, alphaContent, isLuminance, comp_mapping);
         if (result != KTX_SUCCESS) goto cleanup;
 
@@ -1295,7 +1295,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         // and the requiredLevelAlignment.
         priv._requiredLevelAlignment = 1;
     }
-    This->vkFormat = (params->codecFlag == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4X4)? VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK : VK_FORMAT_UNDEFINED;
+    This->vkFormat = (params->codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4X4)? VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK : VK_FORMAT_UNDEFINED;
     This->isCompressed = KTX_TRUE;
     This->_protected->_typeSize = 1;
 

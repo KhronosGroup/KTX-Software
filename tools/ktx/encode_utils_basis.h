@@ -259,7 +259,7 @@ struct OptionsEncodeBasis : public ktxBasisParams {
         preSwizzle = false;
         noEndpointRDO = false;
         noSelectorRDO = false;
-        codecFlag = ktx_basis_codec_e::KTX_BASIS_CODEC_ETC1S;  // Default to ETC1S.
+        codec = ktx_basis_codec_e::KTX_BASIS_CODEC_ETC1S;  // Default to ETC1S.
         uastcRDO = false;
         uastcFlags = KTX_PACK_UASTC_LEVEL_DEFAULT;
         uastcRDODictSize.clear();
