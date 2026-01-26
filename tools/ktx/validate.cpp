@@ -1629,16 +1629,9 @@ void ValidationContext::validateSGD() {
     if ((header.supercompressionScheme != KTX_SS_BASIS_LZ) && (header.supercompressionScheme != KTX_SS_UASTC_HDR_6X6_INTERMEDIATE))
         return;
 
-    // Validate BASIS_LZ SGD
-
     switch (header.supercompressionScheme) {
+        // Validate UASTC_HDR_6X6_INTERMEDIATE SGD
         case KTX_SS_UASTC_HDR_6X6_INTERMEDIATE: {
-            uint32_t imageCount = 0;
-            // uint32_t layersFaces = numLayers * header.faceCount;
-            for (uint32_t level = 0; level < numLevels; ++level)
-                // numFaces * depth is only reasonable because they can't both be > 1. There are no 3D cubemaps
-                imageCount += numLayers * header.faceCount * std::max(header.pixelDepth >> level, 1u);
-
             // Validate GlobalHeader
             if (sgdByteLength < sizeof(ktxUASTCHDR6X6IntermediateImageDesc)) {
                 error(SGD::BLZESizeTooSmallHeader, sgdByteLength);
@@ -1672,6 +1665,7 @@ void ValidationContext::validateSGD() {
 
             break;
         }
+        // Validate BASIS_LZ SGD
         case KTX_SS_BASIS_LZ: {
             uint32_t imageCount = 0;
             // uint32_t layersFaces = numLayers * header.faceCount;
