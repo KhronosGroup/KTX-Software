@@ -370,7 +370,7 @@ struct OptionsEncodeBasis : public ktxBasisParams {
     }
 
     void validateCommonEncodeArg(Reporter& report, const char* name) {
-        if (codec == BasisCodec::NONE)
+        if (selectedCodec == BasisCodec::NONE)
             report.fatal(rc::INVALID_ARGUMENTS,
                 "Invalid use of argument --{} that only applies to encoding.", name);
     }
