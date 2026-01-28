@@ -23,12 +23,14 @@ target_include_directories(
     threadtests
 PRIVATE
     $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:objUtil,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 target_link_libraries(
     threadtests
     gtest
     ktx
+    "$<${is_stdformat_unsupported}:fmt::fmt>"
     ${CMAKE_THREAD_LIBS_INIT}
 )
 

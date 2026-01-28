@@ -175,12 +175,6 @@ function( CreateDocTools )
         tools/ktx/command_info.cpp
         tools/ktx/command_transcode.cpp
         tools/ktx/command_validate.cpp
-        tools/ktx2check/ktx2check.cpp
-        tools/ktx2ktx2/ktx2ktx2.cpp
-        tools/ktxinfo/ktxinfo.cpp
-        tools/ktxsc/ktxsc.cpp
-        tools/ktxtools_mainpage.md
-        tools/toktx/toktx.cc
     )
     add_docs_cmake_plus( tools.doc pkgdoc/toolsDoxyLayout.xml )
 endfunction()

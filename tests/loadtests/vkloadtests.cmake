@@ -71,45 +71,59 @@ add_custom_target(
     shader_texturemipmap
 )
 
-set( VK_TEST_IMAGES
-    etc1s_Iron_Bars_001_normal.ktx2
-    uastc_Iron_Bars_001_normal.ktx2
-    ktx_document_uastc_rdo4_zstd5.ktx2
-    color_grid_uastc_zstd.ktx2
-    color_grid_zstd.ktx2
-    color_grid_uastc.ktx2
-    color_grid_basis.ktx2
-    kodim17_basis.ktx2
+set( vk_ktx2_test_images
+    astc_8x8_unorm_array_7.ktx2
+    bc3_unorm_array_7.ktx2
+    alpha_complex_straight.ktx2
+    alpha_complex_premultiplied.ktx2
+    color_grid_uastc_zstd_5.ktx2
+    color_grid_zstd_5.ktx2
+    color_grid_blze.ktx2
+    cubemap_goldengate_uastc_rdo_4_zstd_5.ktx2
+    cubemap_yokohama_blze.ktx2
+    etc2_unorm_array_7.ktx2
+    Iron_Bars_001_normal_blze.ktx2
+    Iron_Bars_001_normal_uastc_zstd_10.ktx2
+    ktx_document_blze.ktx2
+    ktx_document_uastc_rdo_4_zstd_5.ktx2
+    kodim17_blze.ktx2
+    orient_down_metadata.ktx2
+    orient_up_metadata.ktx2
     pattern_02_bc2.ktx2
-    ktx_document_basis.ktx2
-    rgba-mipmap-reference-basis.ktx2
-    3dtex_7_reference_u.ktx2
-    arraytex_7_mipmap_reference_u.ktx2
-    cubemap_goldengate_uastc_rdo4_zstd5_rd.ktx2
-    cubemap_yokohama_basis_rd.ktx2
-    skybox_zstd.ktx2
-    orient-down-metadata.ktx
-    orient-up-metadata.ktx
-    rgba-reference.ktx
-    etc2-rgb.ktx
-    etc2-rgba8.ktx
-    etc2-sRGB.ktx
-    etc2-sRGBa8.ktx
+    r8g8b8a8_srgb.ktx2
+    r8g8b8a8_srgb_mip_blze.ktx2
+    r8g8b8a8_srgb_3d_7.ktx2
+    r8g8b8a8_srgb_array_7_mip.ktx2
+    skybox_zstd_22.ktx2
+)
+set( vk_ktx_test_images
+    astc_8x8_unorm_array_7.ktx
+    bc3_unorm_array_7.ktx
+    etc2_rgb.ktx
+    etc2_rgba8.ktx
+    etc2_srgb.ktx
+    #etc2_srgba1.ktx
+    etc2_srgba8.ktx
+    etc2_unorm_array_7.ktx
+    metalplate_amg.ktx
+    not4_r8g8b8_srgb.ktx
+    orient_down_metadata.ktx
+    orient_up_metadata.ktx
     pattern_02_bc2.ktx
-    rgb-amg-reference.ktx
-    metalplate-amg-rgba8.ktx
-    not4_rgb888_srgb.ktx
-    texturearray_bc3_unorm.ktx
-    texturearray_astc_8x8_unorm.ktx
-    texturearray_etc2_unorm.ktx
-    straight-rgba.ktx2
-    premultiplied-rgba.ktx2
+    r8g8b8_unorm_amg.ktx
+    r8g8b8a8_srgb.ktx
 )
-list( TRANSFORM VK_TEST_IMAGES
-    PREPEND "${PROJECT_SOURCE_DIR}/tests/testimages/"
+list( TRANSFORM vk_ktx2_test_images
+    PREPEND "${PROJECT_SOURCE_DIR}/tests/resources/ktx2/"
 )
-
+list( TRANSFORM vk_ktx_test_images
+    PREPEND "${PROJECT_SOURCE_DIR}/tests/resources/ktx/"
+)
+set( VK_TEST_IMAGES ${vk_ktx2_test_images} ${vk_ktx_test_images} )
 set( KTX_RESOURCES ${LOAD_TEST_COMMON_RESOURCE_FILES} ${VK_TEST_IMAGES} )
+unset( vk_ktx2_test_images )
+unset( vk_ktx_test_images )
+
 if(APPLE)
     # Adding this directory to KTX_RESOURCES and ultimately vkloadtests's
     # RESOURCE property causes the install command (later in this file) to

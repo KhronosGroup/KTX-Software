@@ -1,0 +1,139 @@
+#! /bin/bash
+# -*- tab-width: 4; -*-
+# vi: set sw=2 ts=4:
+
+# Regenerate the input ktx files for libktx tests.
+
+# Copyright 2025 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+depth=../.. # Depth of this script relative to the project root
+tests=..    # Relative path to tests directory.
+
+# Change dir to the resources/input folder, the script location...
+cd $(dirname $0)
+
+function usage() {
+  echo "Usage: $0 [--tooldir,-t <path/to/dir/with/ktx>] [--cubemaps,-c] [--icons,-i]"
+  exit $1
+}
+
+function check_exec() {
+  if [ -z "$1" -o ! -x "$1" ]; then
+    if [ $2 -eq 1 ]; then
+      echo "$0: $1 not found."
+      exit 1
+    else
+      echo $3
+    fi
+  fi
+}
+
+function check_path() {
+  if which $1 >/dev/null; then
+    #declare -g $1="$1"  # For recent versions of bash.
+    eval "$1=\$1"
+  else
+    echo "$1 not found in $PATH."
+    exit 1
+  fi
+}
+
+gen_cubemaps=0
+gen_ktxicons=0
+
+while [ $# -ne 0 ]; do
+  case $1 in
+    --tooldir | -t)
+      if [ $# -ge 1 ]; then
+        ktx=$2/ktx
+        check_exec $ktx 1
+      else
+        usage 1
+      fi
+      shift 2 ;;
+    --cubemaps | -c)
+      gen_cubemaps=1
+      shift ;;
+    --icons | -i)
+      gen_ktxicons=1
+      shift ;;
+    *) usage 1 ;;
+  esac
+done
+
+if [ -z "$ktx" ]; then
+  check_path ktx
+fi
+
+testktx="$ktx --testrun"
+#$testktx
+
+# For threadtests
+$ktx create --testrun --format R8G8B8A8_SRGB --levels 7 input/npbm/level0_alpha.pam input/npbm/level1_alpha.pam input/npbm/level2_alpha.pam input/npbm/level3_alpha.pam input/npbm/level4_alpha.pam input/npbm/level5_alpha.pam input/npbm/level6_alpha.pam ktx2/r8g8b8a8_srgb_mip.ktx2
+$ktx create --testrun --format R8G8B8A8_SRGB --encode basis-lz --levels 7 input/npbm/level0_alpha.pam input/npbm/level1_alpha.pam input/npbm/level2_alpha.pam input/npbm/level3_alpha.pam input/npbm/level4_alpha.pam input/npbm/level5_alpha.pam input/npbm/level6_alpha.pam ktx2/r8g8b8a8_srgb_mip_blze.ktx2
+$ktx transcode --testrun --target etc-rgba ktx2/r8g8b8a8_srgb_mip_blze.ktx2 ktx2/r8g8b8a8_srgb_mip_etc2.ktx2
+$ktx create --testrun --format ASTC_4x4_SRGB_BLOCK --levels 7 input/npbm/level0_alpha.pam input/npbm/level1_alpha.pam input/npbm/level2_alpha.pam input/npbm/level3_alpha.pam input/npbm/level4_alpha.pam input/npbm/level5_alpha.pam input/npbm/level6_alpha.pam ktx2/r8g8b8a8_srgb_mip_astc.ktx2
+
+# For texturetests
+for i in نَسِيج テクスチャ 质地 조직 hűtő
+do
+  $ktx create --testrun --format R8G8B8A8_SRGB --assign-tf srgb input/png/テクスチャ.png unicode/$i.ktx2
+  $ktx create --testrun --format R8G8B8A8_SRGB --assign-tf srgb --zstd 5 input/png/テクスチャ.png unicode/${i}_zstd.ktx2
+done
+
+# For transcodetests and loadtests. For transcode tests some .basis files
+# are also needed. See genbasis.
+$ktx create --testrun --format R8G8B8A8_SRGB --assign-tf srgb --encode basis-lz input/png/alpha_simple.png ktx2/alpha_simple_blze.ktx2
+$ktx create --testrun --format R8G8B8A8_SRGB --assign-tf srgb --encode basis-lz input/png/color_grid.png ktx2/color_grid_blze.ktx2
+$ktx create --testrun --format R8G8B8_SRGB --encode basis-lz input/png/kodim17.png ktx2/kodim17_blze.ktx2
+
+# For loadtests. Optional, because they take a while, especially if using
+# the Debug config.
+if [ $gen_cubemaps -ne 0 ]; then
+  $ktx create --testrun --format R8G8B8_SRGB --encode uastc --cubemap --scale 0.5 --generate-mipmap --uastc-rdo --uastc-rdo-l 4 --zstd 5 @@input/jpg/GoldenGateBridge3/filelist.txt ktx2/cubemap_goldengate_uastc_rdo_4_zstd_5.ktx2
+  $ktx create --testrun --format R8G8B8_SRGB --encode basis-lz --cubemap --generate-mipmap  @@input/jpg/Yokohama3/filelist.txt ktx2/cubemap_yokohama_blze.ktx2
+fi
+
+# For loadtests. Optional, because they expect a particular arrangement of
+# cloned KTX-Software and KTX-Specification repos.
+if [ $gen_ktxicons -ne 0 ]; then
+  ktxspec_dir=$depth/../KTX-Specification
+  webgl_read_test_dir=$tests/webgl/libktx-read-webgl
+  $ktx create --testrun --format R8G8B8A8_SRGB --generate-mipmap --encode basis-lz --scale 0.5 $ktxspec_dir/icons/png/ktx_app.png $webgl_read_test_dir/ktx_app_blze.ktx2
+  $ktx create --testrun --format R8G8B8A8_SRGB --encode uastc --uastc-rdo --uastc-rdo-l 5.0 --width 1000 --height 1392 $ktxspec_dir/icons/png/ktx_document.png $webgl_read_test_dir/ktx_document_uastc_rdo_5.ktx2
+  $ktx create --testrun --format R8G8B8A8_SRGB --generate-mipmap --encode basis-lz $ktxspec_dir/icons/png/ktx_document.png ktx2/ktx_document_blze.ktx2
+  # threads 1 here is to avoid non-determism in the RDO processing.
+  # Hopefully a fix will be forthcoming.
+  $ktx create --testrun --format R8G8B8A8_SRGB --generate-mipmap --threads 1 --encode uastc --uastc-rdo --uastc-rdo-l 4 --zstd 5 $ktxspec_dir/icons/png/ktx_document.png ktx2/ktx_document_uastc_rdo_4_zstd_5.ktx2
+  # For Java-wrapper and pyktx tests.
+  $ktx create --testrun --format ASTC_8X8_SRGB_BLOCK --generate-mipmap $ktxspec_dir/icons/png/ktx_app.png ktx2/ktx_app_astc_8x8.ktx2
+fi
+
+# For loadtests.
+alpha_complex=$tests/cts/clitests/input/png_sample/alpha_complex.png
+if [ -f $alpha_complex ]; then
+  $ktx create --testrun --format R8G8B8A8_SRGB --premultiply-alpha --zstd 10 $alpha_complex ktx2/alpha_complex_premultiplied.ktx2
+  # --asign-texcoord-origin is to provide KTXorientation metadata for a pyktx test.
+  $ktx create --testrun --format R8G8B8A8_SRGB --assign-texcoord-origin top-left --zstd 10 $alpha_complex ktx2/alpha_complex_straight.ktx2
+else
+  echo "$0: Warning: cts submodule not cloned. No source from which to generate {premultiplied,straight}-rgba.ktx2."
+fi
+$ktx create --testrun --format R8G8B8A8_SRGB --assign-tf srgb --encode uastc --zstd 5 input/png/color_grid.png ktx2/color_grid_uastc_zstd_5.ktx2
+$ktx create --testrun --format R8G8B8A8_SRGB --assign-tf srgb --zstd 5 input/png/color_grid.png ktx2/color_grid_zstd_5.ktx2
+$ktx create --testrun --format R8G8B8_SRGB --assign-tf srgb --encode basis-lz input/png/FlightHelmet_baseColor.png ktx2/FlightHelmet_baseColor_blze.ktx2
+$ktx create --testrun  --format R8G8B8_UNORM --no-warn-on-color-conversions --assign-tf linear --generate-mipmap  --normalize --normal-mode --encode basis-lz input/jpg/Iron_Bars/Iron_Bars_001_normal_unnormalized.png ktx2/Iron_Bars_001_normal_blze.ktx2
+$ktx create --testrun --format R8G8B8_UNORM --no-warn-on-color-conversions --assign-tf linear --generate-mipmap --normalize --normal-mode --encode uastc --zstd 10 input/jpg/Iron_Bars/Iron_Bars_001_normal_unnormalized.png ktx2/Iron_Bars_001_normal_uastc_zstd_10.ktx2
+$ktx create --testrun --format R8G8B8A8_SRGB --convert-texcoord-origin bottom-left input/npbm/up.ppm ktx2/orient_up_metadata.ktx2
+$ktx create --testrun --format R8G8B8A8_SRGB --convert-texcoord-origin top-left input/npbm/up.ppm ktx2/orient_down_metadata.ktx2
+$ktx create --testrun --format R8G8B8A8_SRGB --convert-tf srgb --depth 7 input/png/red16.png input/png/orange16.png input/png/yellow16.png input/png/green16.png input/png/blue16.png input/png/indigo16.png input/png/violet16.png ktx2/r8g8b8a8_srgb_3d_7.ktx2
+$ktx create --testrun --format R8G8B8A8_SRGB --convert-tf srgb --layers 7 --generate-mipmap input/png/red16.png input/png/orange16.png input/png/yellow16.png input/png/green16.png input/png/blue16.png input/png/indigo16.png input/png/violet16.png ktx2/r8g8b8a8_srgb_array_7_mip.ktx2
+$ktx create --testrun --format R8G8B8_SRGB --levels 7 input/npbm/level0.ppm input/npbm/level1.ppm input/npbm/level2.ppm input/npbm/level3.ppm input/npbm/level4.ppm input/npbm/level5.ppm input/npbm/level6.ppm ktx2/r8g8b8_srgb_mip.ktx2
+$ktx create --testrun --format R8G8B8A8_SRGB input/npbm/rgba.pam ktx2/r8g8b8a8_srgb.ktx2
+
+# No source from which to generate skybox_zstd_22.ktx2
+
+$ktx convert --testrun -t ktx ktx/astc_8x8_unorm_array_7.ktx ktx2/astc_8x8_unorm_array_7.ktx2
+$ktx convert --testrun -t ktx ktx/bc3_unorm_array_7.ktx ktx2/bc3_unorm_array_7.ktx2
+$ktx convert --testrun -t ktx ktx/etc2_unorm_array_7.ktx ktx2/etc2_unorm_array_7.ktx2
+$ktx convert --testrun -t ktx ktx/pattern_02_bc2.ktx ktx2/pattern_02_bc2.ktx2

@@ -14,6 +14,7 @@ target_include_directories(
     streamtests
 PRIVATE
     $<TARGET_PROPERTY:ktx,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:objUtil,INTERFACE_INCLUDE_DIRECTORIES>
     ${CMAKE_CURRENT_SOURCE_DIR}/../../other_include
     ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/src  # Just for gl_format.h
 )
@@ -22,6 +23,7 @@ target_link_libraries(
     streamtests
     gtest
     ktx
+    "$<${is_stdformat_unsupported}:fmt::fmt>"
     ${CMAKE_THREAD_LIBS_INIT}
 )
 
@@ -35,5 +37,5 @@ gtest_discover_tests( streamtests
     TEST_PREFIX streamtest.
     # With the 5s default we get periodic timeouts on Travis & GitHub CI.
     DISCOVERY_TIMEOUT 20
-    EXTRA_ARGS "${PROJECT_SOURCE_DIR}/tests/testimages/"
+    EXTRA_ARGS "${PROJECT_SOURCE_DIR}/tests/resources/"
 )

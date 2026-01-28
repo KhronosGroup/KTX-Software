@@ -27,19 +27,11 @@ if(KTX_FEATURE_TESTS)
     include(tests.cmake)
 endif()
 
-# tools tests
-if(KTX_FEATURE_TOOLS)
-    include( ktx2check-tests.cmake )
-    include( ktx2ktx2-tests.cmake )
-    include( ktxsc-tests.cmake )
-    include( toktx-tests.cmake )
-
-    # ktx cli tool tests
-    if(KTX_FEATURE_TOOLS_CTS)
-        set(KTX_TOOLS_PATH $<TARGET_FILE:ktxtools>)
-        if(NOT KTX_DIFF_PATH)
-            set(KTX_DIFF_PATH $<TARGET_FILE:ktxdiff>)
-        endif()
-        add_subdirectory(cts/clitests)
+# ktx cli tools tests
+if(KTX_FEATURE_TOOLS AND KTX_FEATURE_TOOLS_CTS)
+    set(KTX_TOOLS_PATH $<TARGET_FILE:ktxtools>)
+    if(NOT KTX_DIFF_PATH)
+        set(KTX_DIFF_PATH $<TARGET_FILE:ktxdiff>)
     endif()
+    add_subdirectory(cts/clitests)
 endif()

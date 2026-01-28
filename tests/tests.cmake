@@ -27,6 +27,8 @@ set(CMAKE_GTEST_DISCOVER_TESTS_DISCOVERY_MODE PRE_TEST)
 
 enable_testing()
 
+set(is_stdformat_unsupported "$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,13.0.0>>")
+
 add_subdirectory(streamtests)
 add_subdirectory(threadtests)
 add_subdirectory(transcodetests)
@@ -88,6 +90,7 @@ target_include_directories(
     texturetests
 PRIVATE
     $<TARGET_PROPERTY:ktx,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:objUtil,INTERFACE_INCLUDE_DIRECTORIES>
     ${PROJECT_SOURCE_DIR}/other_include
     ${PROJECT_SOURCE_DIR}/lib/src
     unittests
@@ -97,6 +100,7 @@ target_link_libraries(
     texturetests
     gtest
     ktx
+    "$<${is_stdformat_unsupported}:fmt::fmt>"
     ${CMAKE_THREAD_LIBS_INIT}
 )
 
@@ -109,5 +113,5 @@ gtest_discover_tests(unittests
 gtest_discover_tests(texturetests
     TEST_PREFIX texturetest.
     DISCOVERY_TIMEOUT 20
-    EXTRA_ARGS "${PROJECT_SOURCE_DIR}/tests/testimages/" ${KTX_DIFF_PATH}
+    EXTRA_ARGS "${PROJECT_SOURCE_DIR}/tests/resources/" ${KTX_DIFF_PATH}
 )

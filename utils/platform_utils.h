@@ -77,10 +77,10 @@ inline void InitUTF8CLI(int& argc, char* argv[]) {
     int wargc;
     LPWSTR commandLine = GetCommandLineW();
     LPWSTR* wideArgv = CommandLineToArgvW(commandLine, &wargc);
-    for (int i = 0; i < argc; ++i) {
+    for (int i = 0, j = 0; j < argc; i++, j++) {
         int byteSize = WideCharToMultiByte(CP_UTF8, 0, wideArgv[i], -1, nullptr, 0, nullptr, nullptr);
-        utf8Argv[i] = std::make_unique<char[]>(byteSize);
-        WideCharToMultiByte(CP_UTF8, 0, wideArgv[i], -1, utf8Argv[i].get(),
+        utf8Argv[j] = std::make_unique<char[]>(byteSize);
+        WideCharToMultiByte(CP_UTF8, 0, wideArgv[i], -1, utf8Argv[j].get(),
                             byteSize, nullptr, nullptr);
         argv[i] = utf8Argv[i].get();
         if (i == 0) {
@@ -161,12 +161,12 @@ inline int unlinkUTF8(const std::string& path) {
         int wargc;
         LPWSTR commandLine = GetCommandLineW();
         LPWSTR* wideArgv = CommandLineToArgvW(commandLine, &wargc);
-        for (int i = 0; i < argc; ++i) {
+        for (int i = 0, j = 0; j < argc; i++, j++) {
             int byteSize =
                 WideCharToMultiByte(CP_UTF8, 0, wideArgv[i], -1, nullptr, 0, nullptr, nullptr);
             byteSize--; // Returned byteSize includes the terminating NUL.
-            u8argv[i].resize(byteSize);
-            WideCharToMultiByte(CP_UTF8, 0, wideArgv[i], -1, (LPSTR)u8argv[i].data(),
+            u8argv[j].resize(byteSize);
+            WideCharToMultiByte(CP_UTF8, 0, wideArgv[i], -1, (LPSTR)u8argv[j].data(),
                                 byteSize, nullptr, nullptr);
             if (i == 0) {
                 // Skip over the removed args.

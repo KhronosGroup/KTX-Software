@@ -22,7 +22,7 @@ git lfs version
 gem install xcpretty
 
 if [[ (-n "$FEATURE_LOADTESTS" && "$FEATURE_LOADTESTS" != "OFF") || ("$FEATURE_TESTS" = "ON") ]]; then
-  git lfs pull --include=tests/srcimages,tests/testimages
+  git lfs pull --include=tests/resources
 fi
 
 if [[ -n "$FEATURE_LOADTESTS" && "$FEATURE_LOADTESTS" != "OFF" ]]; then

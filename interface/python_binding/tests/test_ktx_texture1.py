@@ -10,7 +10,7 @@ import unittest
 
 class TestKtxTexture1(unittest.TestCase):
     def test_create_from_named_file(self):
-        test_ktx_file = os.path.join(__test_images__, 'etc1.ktx')
+        test_ktx_file = os.path.join(__test_images__, 'ktx/etc1.ktx')
         texture = KtxTexture1.create_from_named_file(test_ktx_file)
 
         self.assertEqual(texture.gl_internalformat, GlInternalformat.ETC1_RGB8_OES)
@@ -19,7 +19,7 @@ class TestKtxTexture1(unittest.TestCase):
         self.assertEqual(texture.num_levels, 1)
 
     def test_write_to_named_file(self):
-        test_ktx_file = os.path.join(__test_images__, 'etc2-rgb.ktx')
+        test_ktx_file = os.path.join(__test_images__, 'ktx/etc2_rgb.ktx')
         copy_file = NamedTemporaryFile(delete=False)
         copy_file.close()
 
@@ -32,7 +32,7 @@ class TestKtxTexture1(unittest.TestCase):
         os.unlink(copy_file.name)
 
     def test_write_to_memory(self):
-        test_ktx_file = os.path.join(__test_images__, 'etc2-rgba1.ktx')
+        test_ktx_file = os.path.join(__test_images__, 'ktx/etc2_rgba1.ktx')
         texture = KtxTexture1.create_from_named_file(test_ktx_file, KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT)
         texture_bytes = texture.write_to_memory()
 
@@ -40,7 +40,7 @@ class TestKtxTexture1(unittest.TestCase):
             self.assertEqual(original.read(), texture_bytes)
 
     def test_get_data(self):
-        test_ktx_file = os.path.join(__test_images__, 'etc2-rgba1.ktx')
+        test_ktx_file = os.path.join(__test_images__, 'ktx/etc2_rgba1.ktx')
         texture = KtxTexture1.create_from_named_file(test_ktx_file, KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT)
 
         data = texture.data()

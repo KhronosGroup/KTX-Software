@@ -98,7 +98,7 @@ if [[ "$FEATURE_LOADTESTS" =~ "Vulkan" ]]; then
 fi
 
 if [[ (-n "$FEATURE_LOADTESTS" && "$FEATURE_LOADTESTS" != "OFF") || ("$FEATURE_TESTS" = "ON") ]]; then
-  git lfs pull --include=tests/srcimages,tests/testimages
+  git lfs pull --include=tests/resources
 fi
 
 # vim:ai:ts=4:sts=2:sw=2:expandtab

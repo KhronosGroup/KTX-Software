@@ -508,7 +508,6 @@ struct FormatDescriptor {
         if (!samples.empty()) {
             for (uint32_t i = 1; i < static_cast<uint32_t>(samples.size()); ++i) {
                 if (samples[0].bitLength != samples[i].bitLength
-                        || samples[0].qualifierLinear != samples[i].qualifierLinear
                         || samples[0].qualifierExponent != samples[i].qualifierExponent
                         || samples[0].qualifierSigned != samples[i].qualifierSigned
                         || samples[0].qualifierFloat != samples[i].qualifierFloat) {
@@ -613,6 +612,14 @@ struct FormatDescriptor {
             return samples[0].bitLength + 1;
 
         if (!extended.sameUnitAllChannels) {
+            std::vector<sample>::const_iterator it = samples.begin();
+            uint32_t bitLength = it->bitLength;
+            for (it++; it < samples.end(); it++) {
+                if (bitLength != it->bitLength) {
+                bitLength += it->bitLength + 1;
+            }
+        }
+
             throw std::runtime_error(
                 "Differing size channels. Specify channel to query."
             );

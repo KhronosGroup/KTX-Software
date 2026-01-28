@@ -19,28 +19,44 @@ extern "C" {
   #include "filestream.h"
   #include "memstream.h"
 }
+#include "platform_utils.h"
 #include "gtest/gtest.h"
+
+#include <version>
 #include <vector>
 #include <cstring>
+#include <filesystem>
+#if defined(__cpp_lib_format)
+  #include <format>
+#else
+  // Sigh!! gcc11 does not support std::format though it has a g++20 option.
+  // Use {fmt} instead.
+  #include <fmt/ostream.h>
+#endif
 
 #include "basisu_c_binding.h"
 
-using namespace std;
-
-string image_path;
-
 namespace {
 
+namespace fs = std::filesystem;
+#if defined(__cpp_lib_format)
+  using namespace std;
+#else
+  using namespace fmt;
+#endif
+
+fs::path basisResources, ktxResources;
+
 typedef struct {
-    string ktxPath;
-    string basisuPath;
+    std::string ktxFile;
+    std::string basisuFile;
     bool isPo2;
     bool hasAlpha;
 } TextureSet;
 
 std::ostream& operator<<(std::ostream& out, const TextureSet& h)
 {
-     return out << h.ktxPath;
+     return out << h.ktxFile;
 }
 
 typedef struct {
@@ -54,15 +70,15 @@ std::ostream& operator<<(std::ostream& out, const FormatFeature& h)
      return out << ktxTranscodeFormatString(h.format);
 }
 
-vector<TextureSet> allTextureSets = {
-    {"color_grid_basis.ktx2","color_grid.basis",true,false},
+std::vector<TextureSet> allTextureSets = {
+    {"color_grid_blze.ktx2","color_grid.basis",true,false},
 #if 1
-    {"kodim17_basis.ktx2","kodim17.basis",false,false},
-    {"alpha_simple_basis.ktx2","alpha_simple.basis",true,true}
+    {"kodim17_blze.ktx2","kodim17.basis",false,false},
+    {"alpha_simple_blze.ktx2","alpha_simple.basis",true,true}
 #endif
 };
 
-vector<FormatFeature> allFormats = {
+std::vector<FormatFeature> allFormats = {
 #if 1
     {KTX_TTF_ETC1_RGB,true,true},
     {KTX_TTF_ETC2_RGBA,true,true},
@@ -88,15 +104,15 @@ vector<FormatFeature> allFormats = {
 };
 
 class TextureCombinationsTest :
-    public ::testing::TestWithParam<tuple<TextureSet,FormatFeature>> {};
+    public ::testing::TestWithParam<std::tuple<TextureSet,FormatFeature>> {};
 
 INSTANTIATE_TEST_SUITE_P(AllCombinations,
                         TextureCombinationsTest,
                         ::testing::Combine(::testing::ValuesIn(allTextureSets),
                                            ::testing::ValuesIn(allFormats)));
 
-bool read_file( string path, void** data, unsigned long *fsize ) {
-    FILE *f = fopen(path.data(),"rb");
+bool read_file( fs::path file, void** data, unsigned long *fsize ) {
+    FILE *f = fopenUTF8(file.u8string(), std::string("rb"));
     if(f==NULL) {
         return false;
     }
@@ -114,24 +130,12 @@ bool isPo2(uint32_t i) {
     return (i&(i-1))==0;
 }
 
-string combine_paths(string const a, string const b) {
-	if (a.back() == OS_SEP) {
-		return a + b;
-#if defined(_WIN32)
-	} else if (a.back() == UNIX_SEP) {
-		return a + b;
-#endif
-	} else {
-        return a+OS_SEP+b;
-    }
-}
-
 void test_texture_set( TextureSet & textureSet, FormatFeature & format ) {
 
     void * basisData = nullptr;
     unsigned long basisSize = 0;
     
-    string path = combine_paths(image_path,textureSet.basisuPath);
+    fs::path path = basisResources / textureSet.basisuFile;
     bool read_success = read_file(path, &basisData, &basisSize);
 
     ASSERT_TRUE(read_success) << "Could not open or read texture file " << path;
@@ -167,7 +171,7 @@ void test_texture_set( TextureSet & textureSet, FormatFeature & format ) {
     void * data = 0; // = 0 to silence over-enthusiastic gcc 11 warning.
     unsigned long fsize;
 
-    path = combine_paths(image_path,textureSet.ktxPath);
+    path = ktxResources / textureSet.ktxFile;
     read_success = read_file(path, &data, &fsize);
 
     ASSERT_TRUE(read_success) << "Could not open texture file " << path;
@@ -218,23 +222,30 @@ TEST_P(TextureCombinationsTest, Basic) {
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
 
-    if(!::testing::FLAGS_gtest_list_tests) {
-        if(argc!=2) {
-            cerr << "Usage: " << argv[0] << " <test images path>\n";
+    if (!::testing::FLAGS_gtest_list_tests) {
+        if (argc != 2) {
+            std::cerr << "Usage: " << argv[0] << " <test resources path>\n";
             return -1;
         }
 
-        image_path = string(argv[1]);
+        fs::path resourcesPath;
+        std::vector<std::u8string> u8argv;
+        InitUTF8CLI(argc, argv, u8argv);
+        resourcesPath = u8argv[1];
+        resourcesPath /= "";  // Ensure trailing / so path will be handled as a directory.
 
-        struct stat info;
-
-        if( stat( image_path.data(), &info ) != 0 ) {
-            cerr << "Cannot access " << image_path << '\n';
+        std::error_code ec;
+        auto stat = fs::status(resourcesPath, ec);
+        if (!fs::exists(stat)) {
+            std::cerr << format("{} does not exist.\n", from_u8string(resourcesPath.u8string()));
             return -2;
-        } else if( ! (info.st_mode & S_IFDIR) ) {
-            cerr << image_path << "is not a valid directory\n";
+        } else if (!std::filesystem::is_directory(stat)) {
+            std::cerr << format("{} is not a directory.\n",
+                                from_u8string(resourcesPath.u8string()));
             return -3;
         }
+        ktxResources = resourcesPath / u8"ktx2/";
+        basisResources = resourcesPath / u8"basis/";
     }
 
     ktx_basisu_basis_init();
