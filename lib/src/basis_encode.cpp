@@ -20,6 +20,7 @@
 
 #include <inttypes.h>
 #include <stdlib.h>
+#include <cstring> // std::memcpy
 #include <zstd.h>
 #include <KHR/khr_df.h>
 
