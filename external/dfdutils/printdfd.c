@@ -628,6 +628,22 @@ const char* dfdToStringChannelId(khr_df_model_e model, khr_df_model_channels_e v
             return NULL;
         }
 
+    case KHR_DF_MODEL_UASTC_4X4_HDR:
+        switch (value) {
+        case KHR_DF_CHANNEL_UASTC_4X4_HDR_RGB:
+            return "KHR_DF_CHANNEL_UASTC_4X4_HDR_RGB";
+        default:
+            return NULL;
+        }
+
+    case KHR_DF_MODEL_UASTC_6X6_HDR:
+        switch (value) {
+        case KHR_DF_CHANNEL_UASTC_6X6_HDR_RGB:
+            return "KHR_DF_CHANNEL_UASTC_6X6_HDR_RGB";
+        default:
+            return NULL;
+        }
+
     default:
         break;
     }
