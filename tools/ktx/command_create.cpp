@@ -141,6 +141,8 @@ struct OptionsCreate {
                     "\n    R8G8B8_SRGB"
                     "\n    R8G8B8A8_UNORM"
                     "\n    R8G8B8A8_SRGB"
+                    "\n    R16G16B16_SFLOAT"
+                    "\n    R16G16B16A16_SFLOAT"
                     "\nIf the format is an ASTC format the ASTC encoder specific options become valid,"
                     " otherwise they are ignored."
                     "\nThe format will be used to verify and load all input files into a texture before encoding."
@@ -895,6 +897,8 @@ Create a KTX2 file from various input files.
                 <li>R8G8B8\_SRGB</li>
                 <li>R8G8B8A8\_UNORM</li>
                 <li>R8G8B8A8\_SRGB</li>
+                <li>R16G16B16_SFLOAT</li>
+                <li>R16G16B16A16_SFLOAT</li>
             </ul>
             The format will be used to verify and load all input files into a
             texture before performing any specified encoding.<br />
