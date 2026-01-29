@@ -657,12 +657,6 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     // Calculate number of images
     //
     uint32_t layersFaces = This->numLayers * This->numFaces;
-    uint32_t num_images = 0;
-    for (uint32_t level = 1; level <= This->numLevels; level++) {
-        // NOTA BENE: numFaces * depth is only reasonable because they can't
-        // both be > 1. I.e there are no 3d cubemaps.
-        num_images += layersFaces * MAX(This->baseDepth >> (level - 1), 1);
-    }
     uint32_t num_images_level_0 = layersFaces * MAX(This->baseDepth, 1);
 
     //
@@ -1094,13 +1088,15 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     }
 
     ktxTexture2* newTex = nullptr;
+    uint32_t image_data_size = 0;
+    uint64_t level_offset = 0;
+
     result = ktxTexture2_CreateFromMemory(kf.data(), kf.size_in_bytes(), KTX_TEXTURE_CREATE_SKIP_KVDATA_BIT, &newTex);
     if (result != KTX_SUCCESS)
     {
         goto cleanup;
     }
 
-    uint32_t image_data_size = 0;
 
     This->_private->_firstLevelFileOffset = newTex->_private->_firstLevelFileOffset;
     This->_private->_requiredLevelAlignment = newTex->_private->_requiredLevelAlignment;
@@ -1117,8 +1113,6 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         This->_private->_levelIndex[level] = newTex->_private->_levelIndex[level];
         image_data_size += This->_private->_levelIndex[level].byteLength;
     }
-
-    uint64_t level_offset = 0;
 
     new_data = (uint8_t*)malloc(image_data_size);
     if (!new_data) {
