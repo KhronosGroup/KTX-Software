@@ -12,12 +12,15 @@ target_include_directories(
     transcodetests
 PRIVATE
     ${PROJECT_SOURCE_DIR}/lib/src
+    $<TARGET_PROPERTY:objUtil,INTERFACE_INCLUDE_DIRECTORIES>
+
 )
 
 target_link_libraries(
     transcodetests
     gtest
     ktx
+    "$<${is_stdformat_unsupported}:fmt::fmt>"
     obj_basisu_cbind
     basisu_encoder
     ${CMAKE_THREAD_LIBS_INIT}
@@ -35,7 +38,7 @@ gtest_discover_tests( transcodetests
     TEST_PREFIX transcodetest.
     # With the 5s default we get periodic timeouts on Travis & GitHub CI.
     DISCOVERY_TIMEOUT 15
-    EXTRA_ARGS "${PROJECT_SOURCE_DIR}/tests/testimages/"
+    EXTRA_ARGS "${PROJECT_SOURCE_DIR}/tests/resources/"
 )
 
 if(WIN32)

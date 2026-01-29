@@ -110,7 +110,9 @@ if(APPLE)
     # When changing the target you must also edit the triplet files in
     # vcpkg-triplets to reflect the new target.
     if(APPLE_MAC_OS)
-        set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "macOS Deployment Target")
+        # Some part of std::filesystem uses to_chars which was not introduced until 13.3.
+        # The unit tests now use std::filesystem.
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "13.3" CACHE STRING "macOS Deployment Target")
     elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS" OR CMAKE_SYSTEM_NAME STREQUAL "tvOS")
         set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0" CACHE STRING "iOS/tvOS Deployment Target")
         set(CMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH NO)
@@ -407,9 +409,7 @@ endif()
 add_library( objUtil STATIC
     utils/argparser.cpp
     utils/argparser.h
-    utils/ktxapp.h
     utils/sbufstream.h
-    utils/scapp.h
     utils/stdafx.h
     utils/platform_utils.h
     utils/unused.h

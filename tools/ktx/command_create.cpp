@@ -809,6 +809,11 @@ struct OptionsCreate {
             warnOnColorConversions = true;
         }
 
+        if (args[kNoWarnOnColorConversions].count()) {
+            noWarnOnColorConversions = true;
+            warnOnColorConversions = false;
+        }
+
         if (args[kFailOnOriginChanges].count())
             failOnOriginChanges = true;
 
@@ -2748,7 +2753,7 @@ void CommandCreate::determineSourceColorSpace(const ImageInput& in, SrcColorSpac
         if (spec.format().transfer() == KHR_DF_TRANSFER_UNSPECIFIED) {
             if (spec.format().iccProfileName().size()) {
                 fatal(rc::INVALID_FILE,
-                     "Input file \"{}\" contains unsupported ICC profile \"{}\". Use --{} to specify a different one.",
+                     "Input file \"{}\" contains unsupported ICC profile \"{}\". Use --{} to specify a transfer function.",
                      in.filename(), spec.format().iccProfileName(),
                      options.kAssignTf);
             } else if (spec.format().oeGamma() > 0.0f) {
@@ -2761,8 +2766,10 @@ void CommandCreate::determineSourceColorSpace(const ImageInput& in, SrcColorSpac
                     // This change results in 1 bit differences in the LSB of
                     // some color values noticeable only when directly comparing
                     // images produced before and after this change of loader.
-                    warning("Converting gamma 2.2f to sRGB. Use --{} srgb to force treating input as sRGB.",
-                            options.kAssignTf);
+                    if (!options.noWarnOnColorConversions
+                        && !(options.convertTF.has_value() && options.convertTF == KHR_DF_TRANSFER_SRGB))
+                        warning("Converting gamma 2.2f to sRGB. Use --{} srgb to force treating input as sRGB or"
+                                " --{} srgb to approve conversion.", options.kAssignTf, options.kConvertTf);
                     srcColorSpaceInfo.transferFunction = std::make_unique<TransferFunctionGamma>(spec.format().oeGamma());
                 } else if (spec.format().oeGamma() == 1.0) {
                     srcColorSpaceInfo.usedTransferFunction = KHR_DF_TRANSFER_LINEAR;

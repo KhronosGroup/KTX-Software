@@ -23,8 +23,16 @@
   #endif
 #endif
 
+#include <version>
 #include <barrier>
 #include <filesystem>
+#if defined(__cpp_lib_format)
+  #include <format>
+#else
+  // Sigh!! gcc11 does not support std::format though it has a g++20 option.
+  // Use {fmt} instead.
+  #include <fmt/ostream.h>
+#endif
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -39,6 +47,7 @@
 #include "texture.h"
 #include "texture1.h"
 #include "texture2.h"
+#include "platform_utils.h"
 #include "gtest/gtest.h"
 #include "wthelper.h"
 #include "vk_format.h"
@@ -53,6 +62,11 @@ extern ktx_bool_t __disableWriterMetadata__;
 namespace {
 
 namespace fs = std::filesystem;
+#if defined(__cpp_lib_format)
+  using namespace std;
+#else
+  using namespace fmt;
+#endif
 
 // Recursive function to return the greatest common divisor of a and b.
 static uint32_t
@@ -2826,57 +2840,70 @@ TEST_F(ktxTexture2_MetadataTest, LibVersionUpdatedCorrectly) {
 // Unicode file name tests
 ///////////////////////////////////////////
 
-fs::path imagePath;
+fs::path unicodePath;
 
 TEST(UnicodeFileNames, CreateFrom) {
-    std::vector<std::u8string> fileSet = {
+    std::vector<std::u8string> ktxFileSet = {
         u8"hűtő.ktx",
-        u8"hűtő.ktx2",
         u8"نَسِيج.ktx",
-        u8"نَسِيج.ktx2",
         u8"テクスチャ.ktx",
-        u8"テクスチャ.ktx2",
         u8"质地.ktx",
-        u8"质地.ktx2",
         u8"조직.ktx",
-        u8"조직.ktx2"
+    };
+    std::vector<std::u8string> ktx2FileSet = {
+        u8"hűtő.ktx2",
+        u8"نَسِيج.ktx2",
+        u8"テクスチャ.ktx2",
+        u8"质地.ktx2",
+        u8"조직.ktx2",
+        u8"hűtő_zstd.ktx2",
+        u8"نَسِيج_zstd.ktx2",
+        u8"テクスチャ_zstd.ktx2",
+        u8"质地_zstd.ktx2",
+        u8"조직_zstd.ktx2"
     };
 
-    std::vector<std::u8string>::const_iterator it;
-
-
-    fs::path filePath = imagePath;
-    for (it = fileSet.begin(); it < fileSet.end(); it++) {
-        ktx_error_code_e result;
+    auto checkCreation = [](const fs::path file, bool ktx) {
         ktxTexture* texture = nullptr;
-
-        filePath.replace_filename(*it);
-
-        result = ktxTexture_CreateFromNamedFile(
-            reinterpret_cast<const char*>(filePath.u8string().c_str()),
-            KTX_TEXTURE_CREATE_NO_FLAGS,
-            &texture);
-        EXPECT_EQ(result, KTX_SUCCESS);
+        ktx_error_code_e result;
+        result =
+            ktxTexture_CreateFromNamedFile(reinterpret_cast<const char*>(file.u8string().c_str()),
+                                           KTX_TEXTURE_CREATE_NO_FLAGS, &texture);
+        EXPECT_EQ(result, KTX_SUCCESS)
+            << format("ktxTexture_CreateFromNamedFile \"{}\" failed: {}",
+                      from_u8string(file.u8string()), ktxErrorString(result));
         EXPECT_NE(texture, (ktxTexture*)0);
         if (texture) {
             ktxTexture_Destroy(texture);
             texture = nullptr;
         }
 
-        if (filePath.extension() == ".ktx") {
+        if (ktx) {
             result = ktxTexture1_CreateFromNamedFile(
-                reinterpret_cast<const char*>(filePath.u8string().c_str()),
-                KTX_TEXTURE_CREATE_NO_FLAGS,
+                reinterpret_cast<const char*>(file.u8string().c_str()), KTX_TEXTURE_CREATE_NO_FLAGS,
                 (ktxTexture1**)&texture);
         } else {
             result = ktxTexture2_CreateFromNamedFile(
-                reinterpret_cast<const char*>(filePath.u8string().c_str()),
-                KTX_TEXTURE_CREATE_NO_FLAGS,
+                reinterpret_cast<const char*>(file.u8string().c_str()), KTX_TEXTURE_CREATE_NO_FLAGS,
                 (ktxTexture2**)&texture);
         }
-        EXPECT_EQ(result, KTX_SUCCESS);
+        EXPECT_EQ(result, KTX_SUCCESS)
+            << format("ktxTexture{}_CreateFromNamedFile \"{}\" failed: {}",
+                           ktx ? 1 : 2, from_u8string(file.u8string()), ktxErrorString(result));
         EXPECT_NE(texture, (ktxTexture*)0);
         if (texture) ktxTexture_Destroy(texture);
+    };
+
+    std::vector<std::u8string>::const_iterator it;
+    for (it = ktxFileSet.begin(); it < ktxFileSet.end(); it++) {
+        fs::path filePath = unicodePath;
+        filePath.replace_filename(*it);
+        checkCreation(filePath, true);
+    }
+    for (it = ktx2FileSet.begin(); it < ktx2FileSet.end(); it++) {
+        fs::path filePath = unicodePath;
+        filePath.replace_filename(*it);
+        checkCreation(filePath, false);
     }
 }
 
@@ -2925,7 +2952,6 @@ class ktxTexture2AstcLdrEncodeDecodeTestBase
             auto depth = texture->baseDepth;
             auto height = texture->baseHeight;
             auto width = texture->baseWidth;
-            //ktx_uint64_t dataSize = texture->dataSize;
             auto dataSize = texture->dataSize;
 
             ASSERT_TRUE(depth == 1);
@@ -2980,7 +3006,7 @@ class ktxTexture2AstcLdrEncodeDecodeTestBase
             result = ktxTexture2_WriteToNamedFile(texture, decoded.string().c_str());
             int status;
             if constexpr (internalformat != (GLenum)GL_RGB8 && internalformat != (GLenum)GL_SRGB8) {
-                std::string command = ktxdiffPath.string();
+                std::string command = (ktxdiffPath.string());
                 command += " " + original.string() + " " + decoded.string() + " 0.01 > " + ktxdiffOut.string();
                 status = std::system(command.c_str());
             } else {
@@ -3138,73 +3164,49 @@ TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGBA8_SRGB, CompressToAstc12x12LdrThen
 
 }  // namespace
 
-#if defined(_WIN32)
-// For Windows, we convert the UTF-8 path to a UTF-16 path to force using
-// the APIs that correctly handle unicode characters.
-inline std::wstring
-DecodeUTF8Path(const std::u8string& path) {
-    std::wstring result;
-    int len =
-        MultiByteToWideChar(CP_UTF8, 0, reinterpret_cast<const char*>(path.c_str()),
-                            static_cast<int>(path.length()), NULL, 0);
-    if (len > 0) {
-        result.resize(len);
-        MultiByteToWideChar(CP_UTF8, 0, reinterpret_cast<const char*>(path.c_str()),
-                            static_cast<int>(path.length()), &result[0], len);
-    }
-    return result;
-}
-#else
-// For other platforms there is no need for any conversion, they
-// support UTF-8 natively.
-inline std::u8string DecodeUTF8Path(std::u8string path) { return path; }
-#endif
-
-#if defined(WIN32)
-  #define stat _stat64i32
-#endif
-
-static int
-statUTF8(const std::u8string& path, struct stat* info) {
-#if defined(_WIN32)
-    return _wstat(DecodeUTF8Path(path).c_str(), info);
-#else
-    return stat(reinterpret_cast<const char*>(path.c_str()), info);
-#endif
-}
 
 GTEST_API_ int main(int argc, char* argv[]) {
     testing::InitGoogleTest(&argc, argv);
 
     if (!::testing::FLAGS_gtest_list_tests) {
         if (argc != 3) {
-            std::cerr << "Usage: " << argv[0] << " <test images path> <ktxdiff path>\n";
+            std::cerr << "Usage: " << argv[0] << " <test resources path> <ktxdiff path>\n";
             return -1;
         }
 
-#if defined(_WIN32)
-        // Manually acquire the wide char command line in case a unicode
-        // filename has been specified.
-        int allargc;
-        LPWSTR commandLine = GetCommandLineW();
-        LPWSTR* wideArgv = CommandLineToArgvW(commandLine, &allargc);
-        // commandLine still has all the arguments including those removed
-        // by InitGoogleTest, hence the arg index calculation.
-        imagePath = wideArgv[allargc - argc + 1];
-        ktxdiffPath = wideArgv[allargc - argc + 2];
-#else
-        imagePath = argv[1];
-        ktxdiffPath = argv[2];
-#endif
-        imagePath /= "";  // Ensure trailing / so path will be handled as a directory.
+        fs::path resourcesPath;
+        std::vector<std::u8string> u8argv;
+        InitUTF8CLI(argc, argv, u8argv);
+        resourcesPath = u8argv[1];
+        resourcesPath /= "";  // Ensure trailing / so path is handled as directory.
+        ktxdiffPath = u8argv[2];
 
-        struct stat info;
-
-        if (statUTF8(imagePath.u8string().c_str(), &info) != 0) {
-            std::cerr << "Cannot access " << imagePath << std::endl;
+        std::error_code ec;
+        auto stat = fs::status(resourcesPath, ec);
+        if (!fs::exists(stat)) {
+            std::cerr << format("{} does not exist.\n",
+                                     from_u8string(resourcesPath.u8string()));
             return -2;
-        }  else if (!(info.st_mode & S_IFDIR)) {
-            std::cerr << imagePath << " is not a valid directory\n";
+        } else if (!std::filesystem::is_directory(stat)) {
+            std::cerr << format("{} is not a directory.\n",
+                                     from_u8string(resourcesPath.u8string()));
+            return -3;
+        }
+        unicodePath = resourcesPath / u8"unicode" / "";
+
+#if defined(_WIN32)
+        ktxdiffPath.replace_extension("exe");
+#endif
+        // std::system on Windows fails to find the command if "/" is used.
+        ktxdiffPath.make_preferred();
+        stat = fs::status(ktxdiffPath, ec);
+        if (!fs::exists(stat)) {
+            std::cerr << format("{} does not exist.\n",
+                                     from_u8string(ktxdiffPath.u8string()));
+            return -4;
+        } else if (std::filesystem::is_directory(stat)) {
+            std::cerr << format("{} is a directory.\n",
+                                     from_u8string(ktxdiffPath.u8string()));
             return -3;
         }
     }

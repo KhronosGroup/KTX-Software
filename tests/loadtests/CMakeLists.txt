@@ -75,7 +75,7 @@ function( ensure_runtime_dependencies_windows target )
         )
     endif()
     add_custom_command( TARGET ${target} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory  "${PROJECT_SOURCE_DIR}/tests/testimages" "$<TARGET_FILE_DIR:${target}>/resources"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory  "${PROJECT_SOURCE_DIR}/tests/resources" "$<TARGET_FILE_DIR:${target}>/resources"
         COMMENT "Copy testimages to build destination"
     )
     add_custom_command( TARGET ${target} POST_BUILD

@@ -83,184 +83,185 @@ GLLoadTests::showFile(const std::string& filename)
 
 const GLLoadTests::sampleInvocation siSamples[] = {
     { DrawTexture::create,
-      "etc1s_Iron_Bars_001_normal.ktx2",
-      "Transcode of ETC1S+BasisLZ Compressed KTX2 XY normal map mipmapped"
+      "Iron_Bars_001_normal_blze.ktx2",
+      "KTX2: Transcode of ETC1S+BasisLZ Compressed XY normal map mipmapped"
     },
     { DrawTexture::create,
-      "uastc_Iron_Bars_001_normal.ktx2",
-      "Transcode of UASTC+zstd Compressed KTX2 XY normal map mipmapped"
+      "Iron_Bars_001_normal_uastc_zstd_10.ktx2",
+      "KTX2: Transcode of UASTC+zstd Compressed XY normal map mipmapped"
     },
     { DrawTexture::create,
-      "color_grid_uastc_zstd.ktx2",
-      "Transcode of UASTC+Zstd Compressed KTX2 RGB not mipmapped "
+      "color_grid_zstd_5.ktx2",
+      "KTX2: Zstd Compressed RGB not mipmapped"
     },
     { DrawTexture::create,
-      "color_grid_zstd.ktx2",
-      "Zstd Compressed KTX2 RGB not mipmapped"
+      "color_grid_uastc_zstd_5.ktx2",
+      "KTX2: Transcode of UASTC+Zstd Compressed RGB not mipmapped "
     },
     { DrawTexture::create,
-      "color_grid_uastc.ktx2",
-      "Transcode of UASTC Compressed KTX2 RGB not mipmapped"
+      "color_grid_blze.ktx2",
+      "KTX2: Transcode of ETC1S+BasisLZ Compressed RGB not mipmapped"
     },
     { DrawTexture::create,
-      "color_grid_basis.ktx2",
-      "Transcode of ETC1S+BasisLZ Compressed KTX2 RGB not mipmapped"
+      "kodim17_blze.ktx2",
+      "KTX2: Transcode of ETC1S+BasisLZ Compressed RGB not mipmapped"
     },
     { DrawTexture::create,
-      "kodim17_basis.ktx2",
-      "Transcode of ETC1S+BasisLZ Compressed KTX2 RGB not mipmapped"
-    },
-    { DrawTexture::create,
-      "--transcode-target RGBA4444 kodim17_basis.ktx2",
-      "Transcode of ETC1S+BasisLZ Compressed KTX2 RGB not mipmapped to RGBA4444"
+      "--transcode-target RGBA4444 kodim17_blze.ktx2",
+      "KTX2: Transcode of ETC1S+BasisLZ Compressed RGB not mipmapped to RGBA4444"
     },
     { EncodeTexture::create,
-      "FlightHelmet_baseColor_basis.ktx2",
-      "Transcode of ETC1S+BasisLZ Compressed KTX2 RGBA not mipmapped"
+      "FlightHelmet_baseColor_blze.ktx2",
+      "KTX2: Transcode of ETC1S+BasisLZ Compressed RGBA not mipmapped"
     },
 #if TEST_COMPRESSION
     { EncodeTexture::create,
-      "--encode etc1s rgba-reference-u.ktx2",
-      "Encode to ETC1S+BasisLZ then Transcode of Compressed KTX2 RGBA not mipmapped"
+      "--encode etc1s r8g8b8a8_srgb.ktx2",
+      "KTX2: Encode to ETC1S+BasisLZ then Transcode of Compressed RGBA not mipmapped"
     },
     { EncodeTexture::create,
-      "--encode uastc rgba-reference-u.ktx2",
-      "Encode to UASTC then Transcode of Compressed KTX2 RGBA not mipmapped"
+      "--encode uastc r8g8b8a8_srgb.ktx2",
+      "KTX2: Encode to UASTC then Transcode of Compressed KTX2 RGBA not mipmapped"
     },
     { EncodeTexture::create,
-      "--encode astc rgba-reference-u.ktx2",
-      "Encode to ASTC then display RGBA not mipmapped"
+      "--encode astc r8g8b8a8_srgb.ktx2",
+      "KTX2: Encode to ASTC then display RGBA not mipmapped"
     },
 #endif
 #if !defined(__EMSCRIPTEN__)
     { TextureCubemap::create,
-      "cubemap_goldengate_uastc_rdo4_zstd5_rd.ktx2",
-      "Transcode of UASTC+rdo+zstd Compressed KTX2 Cube Map Transcoded"
+      "cubemap_goldengate_uastc_rdo_4_zstd_5.ktx2",
+      "KTX2: Transcode of UASTC+rdo+zstd Compressed KTX2 Cube Map Transcoded"
     },
     { TextureCubemap::create,
-      "cubemap_yokohama_basis_rd.ktx2",
-      "Transcode of ETC1S/BasisLZ Compressed KTX2 mipmapped cube map",
+      "cubemap_yokohama_blze.ktx2",
+      "KTX2: Transcode of ETC1S/BasisLZ Compressed KTX2 mipmapped cube map",
     },
 #endif
+
     { DrawTexture::create,
-      "orient-down-metadata-u.ktx2",
-      "KTX2: RGB8 + KTXOrientation down"
+      "orient_down_metadata.ktx2",
+      "KTX2: RGBA8 2D + KTXOrientation down"
     },
     { DrawTexture::create,
-      "--preload orient-down-metadata-u.ktx2",
-      "KTX2: RGB8 + KTXOrientation down with pre-loaded images"
+      "orient_up_metadata.ktx2",
+      "KTX2: RGBA8 2D + KTXOrientation up"
+    },
+    { DrawTexture::create,
+      "--preload orient_down_metadata.ktx2",
+      "KTX2: RGBA8 + KTXOrientation down with pre-loaded images"
+    },
+    { DrawTexture::create,
+      "orient_up_metadata.ktx",
+      "KTX1: RGB8 + KTXOrientation up"
+    },
+    { DrawTexture::create,
+      "orient_down_metadata.ktx",
+      "KTX1: RGB8 + KTXOrientation down"
     },
     { TextureArray::create,
-      "texturearray_bc3_unorm.ktx2",
+      "bc3_unorm_array_7.ktx2",
       "KTX2: BC3 (S3TC DXT5) Compressed Texture Array"
     },
     { TextureArray::create,
-      "texturearray_astc_8x8_unorm.ktx2",
+      "astc_8x8_unorm_array_7.ktx2",
       "KTX2: ASTC 8x8 Compressed Texture Array"
     },
     { TextureArray::create,
-      "texturearray_etc2_unorm.ktx2",
+      "etc2_unorm_array_7.ktx2",
       "KTX2: ETC2 Compressed Texture Array"
     },
     { Texture3d::create,
-      "3dtex_7_reference_u.ktx2",
-      "RGBA8 3d Texture, Depth == 7"
+      "r8g8b8a8_srgb_3d_7.ktx2",
+      "KTX2: RGBA8 3d Texture, Depth == 7"
     },
     { TexturedCube::create,
-      "rgb-mipmap-reference-u.ktx2",
+      "r8g8b8_srgb_mip.ktx2",
       "KTX2: RGB8 Color/level mipmap"
     },
     { DrawTexture::create,
       "hi_mark.ktx",
-      "RGB8 NPOT HI Logo"
+      "KTX1: RGB8 NPOT HI Logo"
     },
     { DrawTexture::create,
-      "orient-up-metadata.ktx",
-      "RGB8 + KTXOrientation up"
-    },
-    { DrawTexture::create,
-      "orient-down-metadata.ktx",
-      "RGB8 + KTXOrientation down"
-    },
-    { DrawTexture::create,
-      "not4_rgb888_srgb.ktx",
-      "RGB8 2D, Row length not Multiple of 4"
+      "not4_r8g8b8_srgb.ktx",
+      "KTX1: RGB8 2D, Row length not Multiple of 4"
     },
     { DrawTexture::create,
       "etc1.ktx",
-      "ETC1 RGB8"
+      "KTX1: ETC1 RGB8"
     },
     { DrawTexture::create,
-      "etc2-rgb.ktx",
-      "ETC2 RGB8"
+      "etc2_rgb.ktx",
+      "KTX1: ETC2 RGB8"
     },
     { DrawTexture::create,
-      "etc2-rgba1.ktx",
-      "ETC2 RGB8A1"
+      "etc2_rgba1.ktx",
+      "KTX1: ETC2 RGB8A1"
     },
     { DrawTexture::create,
-      "etc2-rgba8.ktx",
-      "ETC2 RGB8A8"
+      "etc2_rgba8.ktx",
+      "KTX1: ETC2 RGB8A8"
     },
     { DrawTexture::create,
-      "etc2-sRGB.ktx",
-      "ETC2 sRGB8"
+      "etc2_srgb.ktx",
+      "KTX1: ETC2 sRGB8"
     },
     { DrawTexture::create,
-      "etc2-sRGBa1.ktx",
-      "ETC2 sRGB8A1"
+      "etc2_srgba1.ktx",
+      "KTX1: ETC2 sRGB8A1"
     },
     { DrawTexture::create,
-      "etc2-sRGBa8.ktx",
-      "ETC2 sRGB8A8"
+      "etc2_srgba8.ktx",
+      "KTX1: ETC2 sRGB8A8"
     },
     { DrawTexture::create,
-      "rgba-reference.ktx",
-      "RGBA8"
+      "r8g8b8a8_srgb.ktx",
+      "KTX1: RGBA8"
     },
     { DrawTexture::create,
-      "rgb-reference.ktx",
-      "RGB8"
+      "r8g8b8_srgb.ktx",
+      "KTX1: RGB8"
     },
     { DrawTexture::create,
       "conftestimage_R11_EAC.ktx",
-      "ETC2 R11"
+      "KTX1: ETC2 R11"
     },
     { DrawTexture::create,
       "conftestimage_SIGNED_R11_EAC.ktx",
-      "ETC2 Signed R11"
+      "KTX1: ETC2 Signed R11"
     },
     { DrawTexture::create,
       "conftestimage_RG11_EAC.ktx",
-      "ETC2 RG11"
+      "KTX1: ETC2 RG11"
     },
     { DrawTexture::create,
       "conftestimage_SIGNED_RG11_EAC.ktx",
-      "ETC2 Signed RG11"
+      "KTX1: ETC2 Signed RG11"
     },
     { TextureArray::create,
-      "texturearray_bc3_unorm.ktx",
-      "BC3 (S3TC DXT5) Compressed Texture Array"
+      "bc3_unorm_array_7.ktx",
+      "KTX1: BC3 (S3TC DXT5) Compressed Texture Array"
     },
     { TextureArray::create,
-      "texturearray_astc_8x8_unorm.ktx",
-      "ASTC 8x8 Compressed Texture Array"
+      "astc_8x8_unorm_array_7.ktx",
+      "KTX1: ASTC 8x8 Compressed Texture Array"
     },
     { TextureArray::create,
-      "texturearray_etc2_unorm.ktx",
-      "ETC2 Compressed Texture Array"
+      "etc2_unorm_array_7.ktx",
+      "KTX1: ETC2 Compressed Texture Array"
     },
     { TexturedCube::create,
-      "rgb-amg-reference.ktx",
-      "RGB8 + Auto Mipmap"
+      "r8g8b8_unorm_amg.ktx",
+      "KTX1: RGB8 + Auto Mipmap"
     },
     { TexturedCube::create,
-      "rgb-mipmap-reference.ktx",
-      "RGB8 Color/level mipmap"
+      "r8g8b8_srgb_mip.ktx",
+      "KTX1: RGB8 Color/level mipmap"
     },
     { TexturedCube::create,
       "hi_mark_sq.ktx",
-      "RGB8 NPOT HI Logo"
+      "KTX1: RGB8 NPOT HI Logo"
     },
 };
 

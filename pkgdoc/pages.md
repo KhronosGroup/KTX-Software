@@ -14,8 +14,6 @@ The KTX software consists of
 - The unified KTX tools fronted by `ktx` for creating KTX files from PNG or
   EXR files, validating, encoding and transcoding KTX files, extracting
   images from them and more.
-- Legacy tools including `toktx` for creating KTX files from PNG or Netpbm
-  format images.
 
 For information about the KTX format see the
 <a href="https://www.khronos.org/registry/KTX/">
@@ -57,9 +55,6 @@ for portability.
 and Daniel Rákos of RasterGrid under contract from The Khronos Group, Inc.
 
 The CLI for `ktx` and its commands was designed by Alexey Knyazev.
-
-`ktx2check`, `ktx2ktx2`, `ktxinfo`, `ktxsc` and `toktx` are the work of
-Mark Callow.
 
 The KTX application and file icons were designed by Dominic Agoro-Ombaka.
 

@@ -288,7 +288,11 @@ jobs:
 
     - name: Pull LFS files
       if: matrix.options.tests == 'ON'
-      run: git lfs pull --include=tests/srcimages,tests/testimages
+      run: git lfs pull --include=tests/resources
+
+    - name: Pull OpenCL library
+      if: matrix.options.opencl =='ON'
+      run: git lfs pull --include=external/basis_universal/opencl
 
     - name: Smudge embedded dates
       if: matrix.options.doc == 'ON'

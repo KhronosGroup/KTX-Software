@@ -127,7 +127,7 @@
 
     var loader = new KTX2Loader().detectSupport( renderer )
 
-    loader.load( '../libktx-webgl/ktx_app_basis.ktx2', ( texture ) => {
+    loader.load( '../libktx-read-webgl/ktx_app_blze.ktx2', ( texture ) => {
 
         materialEtc1s.map = texture;
         elem('format').innerText = formatToString( materialEtc1s.map.format );
@@ -136,7 +136,7 @@
 
       }, ( p ) => console.log( `...${p}` ), ( e ) => console.error( e ) );
 
-    loader.load( '../libktx-webgl/ktx_document_uastc_rdo5.ktx2', ( texture ) => {
+    loader.load( '../libktx-read-webgl/ktx_document_uastc_rdo_5.ktx2', ( texture ) => {
 
         materialUastc.map = texture;
         //elem('format').innerText = formatToString( materialEtc1s.map.format );

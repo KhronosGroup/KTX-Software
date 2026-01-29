@@ -1234,7 +1234,7 @@ class ImageT : public Image {
         // Minimize memory use by only buffering a single row.
         Color* rowBuffer = new Color[width];
 
-        for (uint32_t sy = height-1, dy = 0; sy >= height / 2; sy--, dy++) {
+        for (uint32_t sy = height-1, dy = 0; sy >= height / 2 && sy != 0; sy--, dy++) {
             Color* srcRow = &pixels[width * sy];
             Color* dstRow = &pixels[width * dy];
 

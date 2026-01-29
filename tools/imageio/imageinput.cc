@@ -248,22 +248,32 @@ ImageInput::readScanline(void* pBufferOut, size_t bufferByteCount,
 
     seekSubimage(subimage, miplevel);
 
-    size_t imageByteCount = (requestBits * spec().imageChannelCount()) / 8;
-    if (imageByteCount < bufferByteCount)
+    if (targetFormat != spec().format()) {
+        if (targetFormat.channelBitLength() == spec().format().channelBitLength()
+            && targetFormat.channelCount() == spec().format().channelCount()
+            && targetFormat.transfer() == spec().format().transfer())
+            throw std::runtime_error(fmt::format(
+                    "Requested unsupported format conversion.")
+                  );
+    }
+    size_t outScanlineByteCount = targetFormat.pixelByteCount() * spec().width();
+    if (bufferByteCount < outScanlineByteCount)
         throw buffer_too_small();
 
     uint8_t* pNativeBuffer;
-    if (targetFormat.channelBitLength() != spec().format().channelBitLength()) {
+    bool rescaleChannels = targetFormat.channelBitLength() != spec().format().channelBitLength();
+    bool addRemoveChannels = targetFormat.channelCount() != spec().format().channelCount();
+    if (rescaleChannels || addRemoveChannels) {
         if (spec().format().channelBitLength() == 16) {
-            if (nativeBuffer16.size() < spec().imageChannelCount())
-                nativeBuffer16.resize(spec().imageChannelCount());
+            if (nativeBuffer16.size() < spec().scanlineByteCount())
+                nativeBuffer16.resize(spec().scanlineByteCount());
             pNativeBuffer = reinterpret_cast<uint8_t*>(nativeBuffer16.data());
-            bufferByteCount = nativeBuffer16.size() * sizeof(uint16_t);
+            bufferByteCount = spec().scanlineByteCount();
         } else {
-            if (nativeBuffer8.size() < spec().imageChannelCount())
-                nativeBuffer8.resize(spec().imageChannelCount());
+            if (nativeBuffer8.size() < spec().scanlineByteCount())
+                nativeBuffer8.resize(spec().scanlineByteCount());
             pNativeBuffer = nativeBuffer8.data();
-            bufferByteCount = nativeBuffer16.size() * sizeof(uint8_t);
+            bufferByteCount = spec().scanlineByteCount();
         }
     } else {
         pNativeBuffer = static_cast<uint8_t*>(pBufferOut);
@@ -272,30 +282,54 @@ ImageInput::readScanline(void* pBufferOut, size_t bufferByteCount,
     readNativeScanline(pNativeBuffer, bufferByteCount, y, z, subimage, miplevel);
 
     if (reinterpret_cast<uint16_t*>(pNativeBuffer) == nativeBuffer16.data()) {
-         rescale(static_cast<uint8_t*>(pBufferOut),
-                 static_cast<uint8_t>(targetFormat.channelUpper()),
-                 nativeBuffer16.data(),
-                 static_cast<uint16_t>(spec().format().channelUpper()),
-                 spec().imageChannelCount());
+        if (targetFormat.channelBitLength() == 8) {
+            convert(static_cast<uint8_t*>(pBufferOut),
+                    static_cast<uint8_t>(targetFormat.channelUpper()),
+                    nativeBuffer16.data(),
+                    static_cast<uint16_t>(spec().format().channelUpper()),
+                    spec().width(),
+                    spec().format().channelCount(),
+                    targetFormat.channelCount());
+        } else {
+            convert(static_cast<uint16_t*>(pBufferOut),
+                    static_cast<uint16_t>(targetFormat.channelUpper()),
+                    nativeBuffer16.data(),
+                    static_cast<uint16_t>(spec().format().channelUpper()),
+                    spec().width(),
+                    spec().format().channelCount(),
+                    targetFormat.channelCount());
+        }
     } else if (pNativeBuffer == nativeBuffer8.data()) {
-         rescale(static_cast<uint16_t*>(pBufferOut),
-                 static_cast<uint16_t>(targetFormat.channelUpper()),
-                 nativeBuffer8.data(),
-                 static_cast<uint8_t>(spec().format().channelUpper()),
-                 spec().imageChannelCount());
+        if (targetFormat.channelBitLength() == 16) {
+            convert(static_cast<uint16_t*>(pBufferOut),
+                    static_cast<uint16_t>(targetFormat.channelUpper()),
+                    nativeBuffer8.data(),
+                    static_cast<uint8_t>(spec().format().channelUpper()),
+                    spec().width(),
+                    spec().format().channelCount(),
+                    targetFormat.channelCount());
+        } else {
+            convert(static_cast<uint8_t*>(pBufferOut),
+                    static_cast<uint8_t>(targetFormat.channelUpper()),
+                    nativeBuffer8.data(),
+                    static_cast<uint8_t>(spec().format().channelUpper()),
+                    spec().width(),
+                    spec().format().channelCount(),
+                    targetFormat.channelCount());
+        }
     } else if (targetFormat.channelUpper() != spec().format().channelUpper()) {
         if (spec().format().channelBitLength() == 16) {
             rescale(static_cast<uint16_t*>(pBufferOut),
                     static_cast<uint16_t>(targetFormat.channelUpper()),
                     static_cast<uint16_t*>(pBufferOut),
                     static_cast<uint16_t>(spec().format().channelUpper()),
-                    spec().imageChannelCount());
+                    spec().scanlineChannelCount());
         } else {
             rescale(static_cast<uint8_t*>(pBufferOut),
                     static_cast<uint8_t>(targetFormat.channelUpper()),
                     static_cast<uint8_t*>(pBufferOut),
                     static_cast<uint8_t>(spec().format().channelUpper()),
-                    spec().imageChannelCount());
+                    spec().scanlineChannelCount());
         }
     }
 }
@@ -306,7 +340,7 @@ ImageInput::readScanline(void* pBufferOut, size_t bufferByteCount,
 ///
 /// Default implementation for derived classes.
 ///
-/// @sa readScanline() for support conversions.
+/// @sa readScanline() for supported conversions.
 void
 ImageInput::readImage(void* pBuffer, size_t bufferByteCount,
                      uint32_t subimage, uint32_t miplevel,

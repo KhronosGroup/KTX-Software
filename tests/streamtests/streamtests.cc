@@ -1,10 +1,19 @@
 // Copyright 2021 Paolo Jovon, All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+#include <version>
 #include <cstring>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <algorithm>
+#include <filesystem>
+#if defined(__cpp_lib_format)
+  #include <format>
+#else
+  // Sigh!! gcc11 does not support std::format though it has a g++20 option.
+  // Use {fmt} instead.
+  #include <fmt/ostream.h>
+#endif
 #include <memory>
 #include <utility>
 #include <vector>
@@ -13,20 +22,29 @@
 #include "gl_format.h"
 #include "ktx.h"
 #include "gtest/gtest.h"
+#include "platform_utils.h"
 
 namespace
 {
 
-constexpr const char SAMPLE_KTX1[] = "pattern_02_bc2.ktx";
-constexpr const char SAMPLE_KTX2[] = "pattern_02_bc2.ktx2";
+constexpr const char8_t SAMPLE_KTX1[] = u8"pattern_02_bc2.ktx";
+constexpr const char8_t SAMPLE_KTX2[] = u8"pattern_02_bc2.ktx2";
 
-std::string testImagesPath;
+namespace fs = std::filesystem;
+fs::path ktxPath;
+fs::path ktx2Path;
 
-std::unique_ptr<std::streambuf> testImageFilebuf(std::string name)
+namespace fs = std::filesystem;
+#if defined(__cpp_lib_format)
+  using namespace std;
+#else
+  using namespace fmt;
+#endif
+
+std::unique_ptr<std::streambuf> testImageFilebuf(fs::path& path, const std::u8string& name)
 {
-    std::string imagePath{testImagesPath};
-    imagePath += '/';
-    imagePath += name;
+    fs::path imagePath;
+    imagePath = path / name;
     
     auto filebuf = std::make_unique<std::filebuf>();
     filebuf->open(imagePath, std::ios::in | std::ios::binary);
@@ -200,10 +218,10 @@ class ktxStreamTest : public ::testing::Test
 protected:
     void SetUp() override
     {
-        _ktx1Streambuf = testImageFilebuf(SAMPLE_KTX1);
+        _ktx1Streambuf = testImageFilebuf(ktxPath, SAMPLE_KTX1);
         ASSERT_TRUE(_ktx1Streambuf) << "Could not load sample KTX1";
 
-        _ktx2Streambuf = testImageFilebuf(SAMPLE_KTX2);
+        _ktx2Streambuf = testImageFilebuf(ktx2Path, SAMPLE_KTX2);
         ASSERT_TRUE(_ktx2Streambuf) << "Could not load sample KTX2";
     }
 
@@ -460,23 +478,29 @@ int main(int argc, char **argv)
     {
         if (argc != 2)
         {
-            std::cerr << "Usage: " << argv[0] << " <test images path>\n";
+            std::cerr << "Usage: " << argv[0] << " <test resources path>\n";
             return -1;
         }
 
-        testImagesPath = argv[1];
+        fs::path resourcesPath;
+        std::vector<std::u8string> u8argv;
+        InitUTF8CLI(argc, argv, u8argv);
+        resourcesPath = u8argv[1];
+        resourcesPath /= "";  // Ensure trailing / so path will be handled as a directory.
 
-        struct stat info;
-        if (stat(testImagesPath.data(), &info) != 0)
-        {
-            std::cerr << "Cannot access " << testImagesPath << '\n';
+        std::error_code ec;
+        auto stat = fs::status(resourcesPath, ec);
+        if (!fs::exists(stat)) {
+            std::cerr << format("{} does not exist.\n",
+                                from_u8string(resourcesPath.u8string()));
             return -2;
-        }
-        else if (!(info.st_mode & S_IFDIR))
-        {
-            std::cerr << testImagesPath << "is not a valid directory\n";
+        } else if (!std::filesystem::is_directory(stat)) {
+            std::cerr << format("{} is not a directory.\n",
+                                from_u8string(resourcesPath.u8string()));
             return -3;
         }
+        ktxPath = resourcesPath / u8"ktx/";
+        ktx2Path = resourcesPath / u8"ktx2/";
     }
 
     return RUN_ALL_TESTS();

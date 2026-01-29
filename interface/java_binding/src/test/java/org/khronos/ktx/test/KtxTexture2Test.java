@@ -37,7 +37,7 @@ public class KtxTexture2Test {
     @Test
     public void testCreateFromNamedFile() {
         Path testKtxFile = Paths.get("")
-                .resolve("../../tests/testimages/astc_ldr_4x4_FlightHelmet_baseColor.ktx2")
+                .resolve("../../tests/resources/ktx2/alpha_complex_straight.ktx2")
                 .toAbsolutePath()
                 .normalize();
 
@@ -47,10 +47,10 @@ public class KtxTexture2Test {
         assertNotNull(texture);
         assertEquals(texture.getNumLevels(), 1);
         assertEquals(texture.getNumFaces(), 1);
-        assertEquals(texture.getVkFormat(), VkFormat.VK_FORMAT_ASTC_4x4_SRGB_BLOCK);
-        assertEquals(texture.getBaseWidth(), 2048);
-        assertEquals(texture.getBaseHeight(), 2048);
-        assertEquals(texture.getSupercompressionScheme(), KtxSupercmpScheme.NONE);
+        assertEquals(texture.getVkFormat(), VkFormat.VK_FORMAT_R8G8B8A8_SRGB);
+        assertEquals(texture.getBaseWidth(), 256);
+        assertEquals(texture.getBaseHeight(), 256);
+        assertEquals(texture.getSupercompressionScheme(), KtxSupercmpScheme.ZSTD);
 
         texture.destroy();
     }
@@ -177,7 +177,7 @@ public class KtxTexture2Test {
     @Test
     public void testCreateFromNamedFileMipmapped() {
         Path testKtxFile = Paths.get("")
-                .resolve("../../tests/testimages/astc_mipmap_ldr_4x4_posx.ktx2")
+                .resolve("../../tests/resources/ktx2/ktx_app_astc_8x8.ktx2")
                 .toAbsolutePath()
                 .normalize();
 
@@ -185,9 +185,9 @@ public class KtxTexture2Test {
                 KtxTextureCreateFlagBits.NO_FLAGS);
 
         assertNotNull(texture);
-        assertEquals(texture.getNumLevels(), 12);
-        assertEquals(texture.getBaseWidth(), 2048);
-        assertEquals(texture.getBaseHeight(), 2048);
+        assertEquals(texture.getNumLevels(), 11);
+        assertEquals(texture.getBaseWidth(), 1024);
+        assertEquals(texture.getBaseHeight(), 1024);
 
         texture.destroy();
     }
@@ -195,7 +195,7 @@ public class KtxTexture2Test {
     @Test
     public void testGetImageSize() {
         Path testKtxFile = Paths.get("")
-                .resolve("../../tests/testimages/astc_mipmap_ldr_4x4_posx.ktx2")
+                .resolve("../../tests/resources/ktx2/ktx_app_astc_8x8.ktx2")
                 .toAbsolutePath()
                 .normalize();
 
@@ -203,7 +203,7 @@ public class KtxTexture2Test {
                 KtxTextureCreateFlagBits.NO_FLAGS);
 
         assertNotNull(texture);
-        assertEquals( 4194304, texture.getImageSize(0));
+        assertEquals( 262144, texture.getImageSize(0));
 
         texture.destroy();
     }
@@ -211,7 +211,7 @@ public class KtxTexture2Test {
     @Test
     public void testGetImageOffset() {
         Path testKtxFile = Paths.get("")
-                .resolve("../../tests/testimages/astc_mipmap_ldr_4x4_posx.ktx2")
+                .resolve("../../tests/resources/ktx2/ktx_app_astc_8x8.ktx2")
                 .toAbsolutePath()
                 .normalize();
 
@@ -220,12 +220,13 @@ public class KtxTexture2Test {
 
         assertNotNull(texture);
 
-        long level11Offset = texture.getImageOffset(11, 0, 0);
+        long level10Offset = texture.getImageOffset(10, 0, 0);
         long level0Offset = texture.getImageOffset(0, 0, 0);
+        System.out.println("level10Offset = " + level10Offset + ", level0Offset = " + level0Offset);
 
-        assertEquals(level11Offset, 0);
-        // ktxinfo offsets are from start of file :)
-        assertEquals(level0Offset - level11Offset, 0x155790 -  0x220);
+        assertEquals(level10Offset, 0);
+        // ktx info offsets are from start of file :)
+        assertEquals(level0Offset - level10Offset, 0x15750 -  0x1d0);
 
         texture.destroy();
     }
@@ -233,7 +234,7 @@ public class KtxTexture2Test {
     @Test
     public void testGetSize() {
         Path testKtxFile = Paths.get("")
-                .resolve("../../tests/testimages/astc_mipmap_ldr_4x4_posx.ktx2")
+                .resolve("../../tests/resources/ktx2/ktx_app_astc_8x8.ktx2")
                 .toAbsolutePath()
                 .normalize();
 
@@ -241,12 +242,12 @@ public class KtxTexture2Test {
                 KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
 
         assertNotNull(texture);
-        assertEquals(texture.getNumLevels(), 12);
+        assertEquals(texture.getNumLevels(), 11);
 
         long dataSize = texture.getDataSize();
         long totalSize = 0;
 
-        for (int i = 0; i < 12; i++) {
+        for (int i = 0; i < 11; i++) {
             totalSize += texture.getImageSize(i);
         }
 
@@ -262,7 +263,7 @@ public class KtxTexture2Test {
     @Test
     public void testGetData() throws IOException {
         Path testKtxFile = Paths.get("")
-                .resolve("../../tests/testimages/astc_mipmap_ldr_4x4_posx.ktx2")
+                .resolve("../../tests/resources/ktx2/ktx_app_astc_8x8.ktx2")
                 .toAbsolutePath()
                 .normalize();
 
@@ -270,7 +271,7 @@ public class KtxTexture2Test {
                 KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT);
 
         assertNotNull(texture);
-        assertEquals(texture.getNumLevels(), 12);
+        assertEquals(texture.getNumLevels(), 11);
 
         byte[] file = Files.readAllBytes(testKtxFile);
         byte[] data = texture.getData();
@@ -286,7 +287,7 @@ public class KtxTexture2Test {
     @Test
     public void testCompressBasis() {
         Path testKtxFile = Paths.get("")
-                .resolve("../../tests/testimages/arraytex_7_mipmap_reference_u.ktx2")
+                .resolve("../../tests/resources/ktx2/r8g8b8a8_srgb_array_7_mip.ktx2")
                 .toAbsolutePath()
                 .normalize();
 
@@ -308,7 +309,7 @@ public class KtxTexture2Test {
     @Test
     public void testCompressBasisEx() {
         Path testKtxFile = Paths.get("")
-                .resolve("../../tests/testimages/arraytex_7_mipmap_reference_u.ktx2")
+                .resolve("../../tests/resources/ktx2/r8g8b8a8_srgb_array_7_mip.ktx2")
                 .toAbsolutePath()
                 .normalize();
 
@@ -382,7 +383,7 @@ public class KtxTexture2Test {
     @Test
     public void testTranscodeBasis() {
         Path testKtxFile = Paths.get("")
-                .resolve("../../tests/testimages/color_grid_basis.ktx2")
+                .resolve("../../tests/resources/ktx2/color_grid_blze.ktx2")
                 .toAbsolutePath()
                 .normalize();
 
@@ -475,7 +476,7 @@ public class KtxTexture2Test {
         inputInfo.setBaseHeight(sizeY);
         inputInfo.setVkFormat(VkFormat.VK_FORMAT_R8G8B8A8_SRGB);
         KtxTexture2 inputTexture = KtxTexture2.create(inputInfo,
-        		KtxTextureCreateStorage.ALLOC_STORAGE);
+                KtxTextureCreateStorage.ALLOC_STORAGE);
         inputTexture.setImageFromMemory(0, 0, 0, input);
 
         // Apply basis compression to the input, with an input swizzle BRGA,
@@ -513,7 +514,7 @@ public class KtxTexture2Test {
         goldInfo.setBaseHeight(sizeY);
         goldInfo.setVkFormat(VkFormat.VK_FORMAT_R8G8B8A8_SRGB);
         KtxTexture2 goldTexture = KtxTexture2.create(goldInfo,
-        		KtxTextureCreateStorage.ALLOC_STORAGE);
+                KtxTextureCreateStorage.ALLOC_STORAGE);
         goldTexture.setImageFromMemory(0, 0, 0, gold);
 
         // Apply basis compression to the reference, without swizzling
@@ -603,7 +604,7 @@ public class KtxTexture2Test {
     @Test
     public void testBindings() {
         Path testKtxFile = Paths.get("")
-                .resolve("../../tests/testimages/astc_ldr_4x4_FlightHelmet_baseColor.ktx2")
+                .resolve("../../tests/resources/ktx2/alpha_complex_straight.ktx2")
                 .toAbsolutePath()
                 .normalize();
 
@@ -645,7 +646,7 @@ public class KtxTexture2Test {
     @Test
     public void testGlUpload() {
         Path testKtxFile = Paths.get("")
-                .resolve("../../tests/testimages/astc_ldr_4x4_FlightHelmet_baseColor.ktx2")
+                .resolve("../../tests/resources/ktx2/alpha_complex_straight.ktx2")
                 .toAbsolutePath()
                 .normalize();
 
