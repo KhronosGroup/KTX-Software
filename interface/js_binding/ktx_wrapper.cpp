@@ -1260,6 +1260,14 @@ EMSCRIPTEN_BINDINGS(ktx)
                KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS)
     ;
 
+    enum_<ktx_basis_codec_e>("basis_codec")
+        .value("NONE", KTX_BASIS_CODEC_NONE)
+        .value("ETC1S", KTX_BASIS_CODEC_ETC1S)
+        .value("UASTC_LDR", KTX_BASIS_CODEC_UASTC_LDR)
+        .value("UASTC_HDR_4X4", KTX_BASIS_CODEC_UASTC_HDR_4X4)
+        .value("UASTC_HDR_6X6_INTERMEDIATE", KTX_BASIS_CODEC_UASTC_HDR_6X6_INTERMEDIATE)
+    ;
+
     enum_<ktxSupercmpScheme>("SupercmpScheme")
         .value("NONE", KTX_SS_NONE)
         .value("BASIS_LZ", KTX_SS_BASIS_LZ)
@@ -1487,7 +1495,7 @@ EMSCRIPTEN_BINDINGS(ktx)
     class_<ktxBasisParams>("basisParams")
       .constructor<>()
       .property("structSize", &ktxBasisParams::structSize)
-      .property("codecFlag", &ktxBasisParams::codecFlag)
+      .property("codec", &ktxBasisParams::codec)
       .property("verbose", &ktxBasisParams::verbose)
       .property("noSSE", &ktxBasisParams::noSSE)
       .property("threadCount", &ktxBasisParams::threadCount)
