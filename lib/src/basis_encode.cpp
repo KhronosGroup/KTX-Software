@@ -1080,7 +1080,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
 #endif
 
     const uint8_vec& kf = c.get_output_ktx2_file();
-    const ktx2_header& kfh = *reinterpret_cast<const ktx2_header*>(kf.data());
+    //const ktx2_header& kfh = *reinterpret_cast<const ktx2_header*>(kf.data());
 
     ktxTexture2_private& priv = *This->_private;
     ktxFormatSize& formatSize = This->_protected->_formatSize;
@@ -1114,7 +1114,6 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     }
 
     for (uint32_t level = 0; level < This->numLevels; level++) {
-        auto a = newTex->_private->_levelIndex[level];
         This->_private->_levelIndex[level] = newTex->_private->_levelIndex[level];
         image_data_size += This->_private->_levelIndex[level].byteLength;
     }
