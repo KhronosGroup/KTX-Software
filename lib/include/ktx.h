@@ -1200,7 +1200,7 @@ ktxTexture2_WriteToStream(ktxTexture2* This, ktxStream *dststr);
 
 /**
  * @~English
- * @brief Flags specifiying UASTC encoding options.
+ * @brief Flags specifying UASTC encoding options.
  */
 typedef enum ktx_pack_uastc_flag_bits_e {
     KTX_PACK_UASTC_LEVEL_FASTEST  = 0,
