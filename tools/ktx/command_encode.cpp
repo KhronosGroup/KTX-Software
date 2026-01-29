@@ -257,8 +257,9 @@ void CommandEncode::executeEncode() {
             break;
         default:
             fatal_usage(
-                "Only R8, RG8, RGB8, or RGBA8 UNORM and SRGB formats can be encoded, "
+                "Only R8, RG8, RGB8, or RGBA8 UNORM and SRGB formats can be encoded to {}, "
                 "but format is {}.",
+                toString(options.selectedCodec), 
                 toString(VkFormat(texture->vkFormat)));
             break;
         }
@@ -271,8 +272,9 @@ void CommandEncode::executeEncode() {
             break;
         default:
             fatal_usage(
-                "Only RGB16 or RGBA16 SFLOAT can be encoded, "
+                "Only RGB16 or RGBA16 SFLOAT can be encoded to {}, "
                 "but format is {}.",
+                toString(options.selectedCodec), 
                 toString(VkFormat(texture->vkFormat)));
             break;
         }
