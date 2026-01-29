@@ -1385,8 +1385,8 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
             // Allowed formats
             break;
         default:
-            fatal_usage("Only R8, RG8, RGB8, or RGBA8 UNORM and SRGB formats can be encoded, "
-                "but format is {}.", toString(VkFormat(options.vkFormat)));
+            fatal_usage("Only R8, RG8, RGB8, or RGBA8 UNORM and SRGB formats can be encoded to {}, "
+                "but format is {}.", toString(options.selectedCodec), toString(VkFormat(options.vkFormat)));
             break;
         }
     } else if (options.selectedCodec == BasisCodec::UASTC_HDR_4x4 ||
@@ -1398,8 +1398,8 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
             break;
         default:
             fatal_usage(
-                "Only RGB16 or RGBA16 SFLOAT can be encoded, "
-                "but format is {}.", toString(VkFormat(options.vkFormat)));
+                "Only RGB16 or RGBA16 SFLOAT can be encoded to {}, "
+                "but format is {}.", toString(options.selectedCodec), toString(VkFormat(options.vkFormat)));
             break;
         }
     }

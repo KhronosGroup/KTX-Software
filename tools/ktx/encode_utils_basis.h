@@ -23,6 +23,26 @@ enum class BasisCodec {
     INVALID = 0x7FFFFFFF
 };
 
+[[nodiscard]] inline std::string toString(BasisCodec codec) noexcept {
+    switch(codec)
+    {
+        case BasisCodec::NONE:
+            return "NONE";
+        case BasisCodec::BasisLZ:
+            return "BasisLZ";
+        case BasisCodec::UASTC:
+            return "UASTC_LDR";
+        case BasisCodec::UASTC_HDR_4x4:
+            return "UASTC_HDR_4x4";
+        case BasisCodec::UASTC_HDR_6x6i:
+            return "UASTC_HDR_6x6i";
+        case BasisCodec::INVALID:
+            return "INVALID";
+        default:
+            return "UNKNOWN_CODEC";
+    }
+}
+
 /**
 //! [command options_basis_encoders]
 <dl>
