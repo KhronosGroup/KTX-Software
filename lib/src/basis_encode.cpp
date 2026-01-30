@@ -1100,7 +1100,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     uint8_t* new_data = 0;
 
     ktxTexture2* newTex = nullptr;
-    uint32_t image_data_size = 0;
+    ktx_size_t image_data_size = 0;
     uint64_t level_offset = 0;
 
     result = ktxTexture2_CreateFromMemory(kf.data(), kf.size_in_bytes(), KTX_TEXTURE_CREATE_SKIP_KVDATA_BIT, &newTex);
@@ -1123,7 +1123,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
 
     for (uint32_t level = 0; level < This->numLevels; level++) {
         This->_private->_levelIndex[level] = newTex->_private->_levelIndex[level];
-        image_data_size += This->_private->_levelIndex[level].byteLength;
+        image_data_size += (ktx_size_t)This->_private->_levelIndex[level].byteLength;
     }
 
     new_data = (uint8_t*)malloc(image_data_size);
