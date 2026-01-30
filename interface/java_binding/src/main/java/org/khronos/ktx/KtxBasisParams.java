@@ -30,7 +30,7 @@ public class KtxBasisParams {
 	/**
 	 * Flag to indicate which codec to use. 0 - NONE, 1 - ETC1S, 2 - UASTC_LDR, 3 - UASTC_HDR4x4, 4 - UASTC_HDR6x6i.
 	 */
-	private int codecFlag;
+	private int codec;
 
 	/**
 	 * Whether encoder operations are printed to standard output
@@ -145,21 +145,21 @@ public class KtxBasisParams {
 	/**
 	 * Returns the used codec.
 	 *
-	 * See {@link #setCodecFlag(int)}
+	 * See {@link #setCodec(int)}
 	 *
 	 * @return The codec
 	 */
-	public int getCodecFlag() {
-		return codecFlag;
+	public int getCodec() {
+		return codec;
 	}
 
 	/**
 	 * Set the codec flag.<br>
 	 *
-	 * @param codecFlag The codec
+	 * @param codec The codec
 	 */
-	public void setCodecFlag(int codecFlag) {
-		this.codecFlag = codecFlag;
+	public void setCodec(int codec) {
+		this.codec = codec;
 	}
 
 	/**

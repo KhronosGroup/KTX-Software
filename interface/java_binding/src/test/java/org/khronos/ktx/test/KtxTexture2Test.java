@@ -486,7 +486,7 @@ public class KtxTexture2Test {
         // the former G channel becomes the B channel
         // the former A channel remains the A channel
         KtxBasisParams inputParams = new KtxBasisParams();
-        inputParams.setCodecFlag(1);
+        inputParams.setCodec(1);
         inputParams.setInputSwizzle(new char[] { 'b', 'r', 'g', 'a' });
         inputTexture.compressBasisEx(inputParams);
 
@@ -519,7 +519,7 @@ public class KtxTexture2Test {
 
         // Apply basis compression to the reference, without swizzling
         KtxBasisParams goldParams = new KtxBasisParams();
-        goldParams.setCodecFlag(1);
+        goldParams.setCodec(1);
         goldTexture.compressBasisEx(goldParams);
 
         // Transcode the reference texture to RGBA32
@@ -550,7 +550,7 @@ public class KtxTexture2Test {
 
         // Apply default UASTC compression
         KtxBasisParams p = new KtxBasisParams();
-        p.setCodecFlag(2);
+        p.setCodec(2);
         t.compressBasisEx(p);
 
         // The supercompression scheme should be NONE here
@@ -584,7 +584,7 @@ public class KtxTexture2Test {
 
         // Apply default UASTC compression
         KtxBasisParams p = new KtxBasisParams();
-        p.setCodecFlag(2);
+        p.setCodec(2);
         t.compressBasisEx(p);
 
         // The supercompression scheme should be NONE here
