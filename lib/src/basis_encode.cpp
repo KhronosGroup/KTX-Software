@@ -1099,12 +1099,6 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     uint8_t* bgd = nullptr;
     uint8_t* new_data = 0;
 
-    if (true) {
-            FILE* fp = fopen("temp.ktx2", "wb");
-            fwrite(kf.data(), kf.size_in_bytes(), 1, fp);
-            fclose(fp);
-    }
-
     ktxTexture2* newTex = nullptr;
     uint32_t image_data_size = 0;
     uint64_t level_offset = 0;
@@ -1124,7 +1118,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
             (ktx_uint8_t*)malloc(This->_private->_sgdByteLength);
         std::memcpy(This->_private->_supercompressionGlobalData,
                     newTex->_private->_supercompressionGlobalData,
-                    This->_private->_sgdByteLength);
+                    (size_t)This->_private->_sgdByteLength);
     }
 
     for (uint32_t level = 0; level < This->numLevels; level++) {
