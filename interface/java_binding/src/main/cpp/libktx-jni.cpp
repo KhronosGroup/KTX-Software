@@ -52,7 +52,7 @@ jfieldID KtxAstcParams_normalMap_field; // "Z"
 jfieldID KtxAstcParams_perceptual_field; // "Z"
 jfieldID KtxAstcParams_inputSwizzle_field; // "[C"
 
-jfieldID KtxBasisParams_codecFlag_field; // "I"
+jfieldID KtxBasisParams_codec_field; // "I"
 jfieldID KtxBasisParams_verbose_field; // "Z"
 jfieldID KtxBasisParams_noSSE_field; // "Z"
 jfieldID KtxBasisParams_threadCount_field; // "I"
@@ -151,7 +151,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *jvm, void *)
 
     // Obtain the fieldIDs of the KtxBasisParams class
     if (!initClass(env, cls, "org/khronos/ktx/KtxBasisParams")) return JNI_ERR;
-    if (!initField(env, cls, KtxBasisParams_codecFlag_field, "codecFlag", "I")) return JNI_ERR;
+    if (!initField(env, cls, KtxBasisParams_codec_field, "codec", "I")) return JNI_ERR;
     if (!initField(env, cls, KtxBasisParams_verbose_field, "verbose", "Z")) return JNI_ERR;
     if (!initField(env, cls, KtxBasisParams_noSSE_field, "noSSE", "Z")) return JNI_ERR;
     if (!initField(env, cls, KtxBasisParams_threadCount_field, "threadCount", "I")) return JNI_ERR;
@@ -283,7 +283,7 @@ bool copy_ktx_basis_params(JNIEnv *env, jobject params, ktxBasisParams &out)
     // Undocumented quirk!
     out.structSize = sizeof(ktxBasisParams);
 
-    out.codecFlag = env->GetIntField(params, KtxBasisParams_codecFlag_field);
+    out.codec = env->GetIntField(params, KtxBasisParams_codec_field);
     out.verbose = env->GetBooleanField(params, KtxBasisParams_verbose_field);
     out.noSSE = env->GetBooleanField(params, KtxBasisParams_noSSE_field);
     out.threadCount = env->GetIntField(params, KtxBasisParams_threadCount_field);
