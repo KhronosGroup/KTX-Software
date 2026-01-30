@@ -298,6 +298,7 @@ macro(common_libktx_settings target enable_write library_type)
     PRIVATE
         $<BUILD_INTERFACE:${KTX_ROOT_DIR}/external>
         $<BUILD_INTERFACE:${KTX_ROOT_DIR}/utils>
+        ${CMAKE_SOURCE_DIR}/external/dfdutils
     )
 
     target_include_directories(

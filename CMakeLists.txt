@@ -297,6 +297,7 @@ if(EMSCRIPTEN AND KTX_FEATURE_JS)
         ${CMAKE_CURRENT_SOURCE_DIR}/other_include
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/src
         $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
+        ${CMAKE_SOURCE_DIR}/external/dfdutils
     )
     target_link_options(
         ktx_js
@@ -334,6 +335,7 @@ if(EMSCRIPTEN AND KTX_FEATURE_JS)
         ${CMAKE_CURRENT_SOURCE_DIR}/other_include
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/src
         $<TARGET_PROPERTY:ktx_read,INTERFACE_INCLUDE_DIRECTORIES>
+        ${CMAKE_SOURCE_DIR}/external/dfdutils
     )
     target_link_options(
         ktx_js_read
