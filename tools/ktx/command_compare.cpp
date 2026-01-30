@@ -648,11 +648,11 @@ public:
         const auto space = outputFormat != OutputFormat::json_mini ?  " " : "";
         const auto nl = outputFormat != OutputFormat::json_mini ?  "\n" : "";
 
-        auto formatOptionalFileOffset = [](const std::optional<std::size_t>& fileOffset, std::size_t imageOffset, bool json) {
+        auto formatOptionalFileOffset = [](const std::optional<std::size_t>& fileOffset, std::size_t imageOffset, bool json) -> std::string {
             if (fileOffset.has_value())
                 return fmt::format(fmt::runtime(json ? "{}" : "0x{:x}"), *fileOffset + imageOffset);
             else
-                return fmt::format(fmt::runtime(json ? "null" : "N/A"));
+                return json ? "null" : "N/A";
         };
 
         auto formatPacked = [=](const ImageSpan::TexelBlockPtr<>& texelBlock, bool json) {
