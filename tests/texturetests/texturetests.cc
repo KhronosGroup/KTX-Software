@@ -2389,7 +2389,7 @@ TEST_F(ktxTexture2_GetNumComponentsTestR8, UASTC) {
 
         ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
         EXPECT_EQ(components, 1U);
-        cparams.codecFlag = KTX_BASIS_CODEC_UASTC_LDR;
+        cparams.codec = KTX_BASIS_CODEC_UASTC_LDR;
         ktxTexture2_CompressBasisEx(texture, &cparams);
         EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
         if (texture)
@@ -2453,7 +2453,7 @@ TEST_F(ktxTexture2_GetNumComponentsTestRG8, UASTC) {
 
         ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
         EXPECT_EQ(components, 2U);
-        cparams.codecFlag = KTX_BASIS_CODEC_UASTC_LDR;
+        cparams.codec = KTX_BASIS_CODEC_UASTC_LDR;
         ktxTexture2_CompressBasisEx(texture, &cparams);
         EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
         if (texture)
@@ -2519,7 +2519,7 @@ TEST_F(ktxTexture2_GetNumComponentsTestRGB8, UASTC) {
 
         ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
         EXPECT_EQ(components, 3U);
-        cparams.codecFlag = KTX_BASIS_CODEC_UASTC_LDR;
+        cparams.codec = KTX_BASIS_CODEC_UASTC_LDR;
         ktxTexture2_CompressBasisEx(texture, &cparams);
         EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
         if (texture)
@@ -2585,7 +2585,7 @@ TEST_F(ktxTexture2_GetNumComponentsTestRGBA8, UASTC) {
 
         ktx_uint32_t components = ktxTexture2_GetNumComponents(texture);
         EXPECT_EQ(components, 4U);
-        cparams.codecFlag = KTX_BASIS_CODEC_UASTC_LDR;
+        cparams.codec = KTX_BASIS_CODEC_UASTC_LDR;
         ktxTexture2_CompressBasisEx(texture, &cparams);
         EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
         if (texture)
