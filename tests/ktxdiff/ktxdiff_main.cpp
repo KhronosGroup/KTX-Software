@@ -126,8 +126,8 @@ int EXIT_CODE_MISMATCH = 1;
 int EXIT_CODE_MATCH = 0;
 
 template <typename... Args>
-void error(int return_code, Args&&... args) {
-    fmt::print(std::cerr, std::forward<Args>(args)...);
+void error(int return_code, fmt::format_string<Args...> fmt, Args&&... args) {
+    fmt::print(std::cerr, fmt, std::forward<Args>(args)...);
     std::exit(return_code);
 }
 
@@ -354,9 +354,9 @@ bool compare(Texture& lhs, Texture& rhs, float tolerance) {
     const bool isFormatSFloat32 = isSigned && isFloat && is32Bit && vkFormat != VK_FORMAT_D32_SFLOAT_S8_UINT;
     const bool isFormatUNORM8 = !isSigned && !isFloat && is8Bit && isNormalized;
 
-    const auto mismatch = [&](auto&&... args) {
+    const auto mismatch = [&](const auto& fmt, auto&&... args) {
         fmt::print("ktxdiff: ");
-        fmt::print(std::forward<decltype(args)>(args)...);
+        fmt::print(fmt::runtime(fmt), std::forward<decltype(args)>(args)...);
         fmt::print(" between\n");
         fmt::print("          Expected: {} and\n", lhs.filepath);
         fmt::print("          Received: {}\n", rhs.filepath);
