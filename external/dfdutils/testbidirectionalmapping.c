@@ -8,6 +8,8 @@
 #include "KHR/khr_df.h"
 #include "dfd.h"
 
+#define UNUSED(x) (void)(x)
+
 const char*
 formatname(VkFormat format)
 {
@@ -575,6 +577,8 @@ enum VkFormat unmap(uint32_t *dfd)
 
 int main(int argc, char** argv)
 {
+    UNUSED(argc);
+    UNUSED(argv);
     unsigned int i;
     for (i = 1; i <= 184; ++i) {
         uint32_t *dfd = getmap((enum VkFormat)i);

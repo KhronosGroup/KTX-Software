@@ -145,6 +145,26 @@ namespace ktx
             return ktxTexture_NeedsTranscoding(m_ptr.get());
         }
 
+        bool isHDR() const {
+            return ktxTexture_IsHDR(m_ptr.get());
+        }
+
+        khr_df_model_e getColorModel() const
+        {
+            if (isTexture2())
+                return ktxTexture2_GetColorModel_e(*this);
+            else
+                return KHR_DF_MODEL_UNSPECIFIED;
+        }
+
+        khr_df_transfer_e getTransferFunction() const
+        {
+            if (isTexture2())
+                return ktxTexture2_GetTransferFunction_e(*this);
+            else
+                return KHR_DF_TRANSFER_UNSPECIFIED;
+        }
+
         khr_df_transfer_e getOETF() const
         {
             if (isTexture2())
@@ -506,6 +526,15 @@ namespace ktx
             return result;
         }
 
+        ktx_error_code_e setTransferFunction(khr_df_transfer_e tf)
+        {
+            if (isTexture2())
+                return ktxTexture2_SetTransferFunction(static_cast<ktxTexture2*>(*this),
+                                           tf);
+
+            return KTX_INVALID_OPERATION;
+        }
+
         // Should only be used when creating new ktx textures.
         // TODO: How to prevent use on ktxTexture objects
         // created with CreateFromMemory? Should we?
@@ -665,6 +694,7 @@ interface texture {
     readonly attribute boolean isSRGB;
     readonly attribute boolean isPremultiplied;
     readonly attribute boolean needsTranscoding;
+    readonly attribute boolean isHDR;
     readonly attribute long numComponents;
     readonly attribute long vkFormat;
     readonly attribute SupercmpScheme supercompressionScheme;
@@ -712,13 +742,17 @@ enum transcode_fmt = {
     "BC1_OR_3",
     "PVRTC1_4_RGB",
     "PVRTC1_4_RGBA",
+    "BC6HU",
     "BC7_RGBA",
     "ETC2_RGBA",
     "ASTC_4x4_RGBA",
+    "ASTC_HDR_4x4_RGBA",
+    "ASTC_HDR_6x6_RGBA",
     "RGBA32",
     "RGB565",
     "BGR565",
     "RGBA4444",
+    "RGBA16F",
     "PVRTC2_4_RGB",
     "PVRTC2_4_RGBA",
     "ETC",
@@ -1202,14 +1236,18 @@ EMSCRIPTEN_BINDINGS(ktx)
         .value("BC1_OR_3", KTX_TTF_BC1_OR_3)
         .value("PVRTC1_4_RGB", KTX_TTF_PVRTC1_4_RGB)
         .value("PVRTC1_4_RGBA", KTX_TTF_PVRTC1_4_RGBA)
+        .value("BC6HU", KTX_TTF_BC6HU)
         .value("BC7_RGBA", KTX_TTF_BC7_RGBA)
         .value("ETC2_RGBA", KTX_TTF_ETC2_RGBA)
         .value("ASTC_4x4_RGBA", KTX_TTF_ASTC_4x4_RGBA)
+        .value("ASTC_HDR_4x4_RGBA", KTX_TTF_ASTC_HDR_4x4_RGBA)
+        .value("ASTC_HDR_6x6_RGBA", KTX_TTF_ASTC_HDR_6x6_RGBA)
         .value("RGBA32", KTX_TTF_RGBA32)
         .value("RGB565", KTX_TTF_RGB565)
         .value("BGR565", KTX_TTF_BGR565)
         .value("RGBA4444", KTX_TTF_RGBA4444)
         .value("RGBA8888", KTX_TTF_RGBA32)
+        .value("RGBA16F", KTX_TTF_RGBA_HALF)
         .value("PVRTC2_4_RGB", KTX_TTF_PVRTC2_4_RGB)
         .value("PVRTC2_4_RGBA", KTX_TTF_PVRTC2_4_RGBA)
         .value("ETC", KTX_TTF_ETC)
@@ -1220,6 +1258,14 @@ EMSCRIPTEN_BINDINGS(ktx)
     enum_<ktx_transcode_flag_bits_e>("transcode_flag_bits")
         .value("TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS",
                KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS)
+    ;
+
+    enum_<ktx_basis_codec_e>("basis_codec")
+        .value("NONE", KTX_BASIS_CODEC_NONE)
+        .value("ETC1S", KTX_BASIS_CODEC_ETC1S)
+        .value("UASTC_LDR", KTX_BASIS_CODEC_UASTC_LDR)
+        .value("UASTC_HDR_4X4", KTX_BASIS_CODEC_UASTC_HDR_4X4)
+        .value("UASTC_HDR_6X6_INTERMEDIATE", KTX_BASIS_CODEC_UASTC_HDR_6X6_INTERMEDIATE)
     ;
 
     enum_<ktxSupercmpScheme>("SupercmpScheme")
@@ -1248,6 +1294,13 @@ EMSCRIPTEN_BINDINGS(ktx)
         .field("x", &ktxOrientation::x)
         .field("y", &ktxOrientation::y)
         .field("z", &ktxOrientation::z)
+    ;
+
+    enum_<khr_df_model_e>("khr_df_model")
+        // These are the values needed with HTML5/WebGL.
+        .value("KHR_DF_MODEL_UASTC_4X4_LDR", KHR_DF_MODEL_UASTC_4X4_LDR)
+        .value("KHR_DF_MODEL_UASTC_4X4_HDR", KHR_DF_MODEL_UASTC_4X4_HDR)
+        .value("KHR_DF_MODEL_UASTC_6x6_HDR", KHR_DF_MODEL_UASTC_6X6_HDR)
     ;
 
     enum_<khr_df_primaries_e>("khr_df_primaries")
@@ -1279,15 +1332,19 @@ EMSCRIPTEN_BINDINGS(ktx)
         .property("dataSize", &ktx::texture::getDataSize)
         .property("baseWidth", &ktx::texture::baseWidth)
         .property("baseHeight", &ktx::texture::baseHeight)
+        .property("colorModel", &ktx::texture::getColorModel)
 #if KTX_FEATURE_WRITE
+        .property("transferFunction", &ktx::texture::getTransferFunction, &ktx::texture::setTransferFunction)
         .property("oetf", &ktx::texture::getOETF, &ktx::texture::setOETF)
         .property("primaries", &ktx::texture::getPrimaries,
                                &ktx::texture::setPrimaries)
 #else
+        .property("transferFunction", &ktx::texture::getTransferFunction)
         .property("oetf", &ktx::texture::getOETF)
         .property("primaries", &ktx::texture::getPrimaries)
 #endif
         .property("isSrgb", &ktx::texture::isSrgb)
+        .property("isHDR", &ktx::texture::isHDR)
         .property("isPremultiplied", &ktx::texture::isPremultiplied)
         .property("needsTranscoding", &ktx::texture::needsTranscoding)
         .property("numComponents", &ktx::texture::numComponents)
@@ -1438,7 +1495,7 @@ EMSCRIPTEN_BINDINGS(ktx)
     class_<ktxBasisParams>("basisParams")
       .constructor<>()
       .property("structSize", &ktxBasisParams::structSize)
-      .property("uastc", &ktxBasisParams::uastc)
+      .property("codec", &ktxBasisParams::codec)
       .property("verbose", &ktxBasisParams::verbose)
       .property("noSSE", &ktxBasisParams::noSSE)
       .property("threadCount", &ktxBasisParams::threadCount)

@@ -67,7 +67,7 @@ if(APPLE AND KTX_EMBED_BITCODE)
     target_compile_options(ktx-jni PRIVATE "-fembed-bitcode")
 endif()
 
-target_include_directories(ktx-jni PRIVATE $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>)
+target_include_directories(ktx-jni PRIVATE $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES> ${CMAKE_SOURCE_DIR}/external/dfdutils)
 
 target_link_libraries(ktx-jni ktx)
 
