@@ -510,7 +510,12 @@ function loadTexture(gl, url)
 
   const placeholder = createPlaceholderTexture(gl, [0, 0, 255, 255]);
   gl.bindTexture(placeholder.target, placeholder.object);
+  replaceTexture(gl, url)
+  return placeholder;
+}
 
+function replaceTexture(gl, url)
+{
   var xhr = new XMLHttpRequest();
   xhr.open('GET', url);
   xhr.responseType = "arraybuffer";
@@ -531,8 +536,6 @@ function loadTexture(gl, url)
   //xhr.onprogress = runProgress;
   //xhr.onloadstart = openProgress;
   xhr.send();
-
-  return placeholder;
 }
 
 function isPowerOf2(value) {
