@@ -28,6 +28,9 @@
       #ktx-input {
         display: none;
       }
+      #transcoded {
+        display: none;
+      }
     </style>
   </head>
 
@@ -35,9 +38,10 @@
     <div id="panel">
       <h2>libktx Read-only Javascript Binding Test</h2>
       <p>This test uses the read-only Javascript binding for libktx,
-      which has been compiled to Javascript using Emscripten. It uses a
-      KTX2 file with a Basis Universal-compressed payload. It has
-      transcoded the images to <b id='format'>FORMAT</b>.
+      which has been compiled to Javascript using Emscripten. It has
+      loaded <span id='file_name'></span><span id='transcoded'>, which
+      is a KTX file with a Basis Universal-compressed payload. It has
+      transcoded the images to <span id='format'>FORMAT</span></span>.
       </p>
       <label id="click-zone">
         <p>Drop a .ktx or .ktx2 file on the canvas to view it or click here to upload one.</p>
@@ -111,7 +115,7 @@
         if (file.type || file.name.endsWith(".ktx2") || file.name.endsWith(".ktx")) {
           ev.preventDefault();
           const url = window.URL.createObjectURL(file)
-          replaceTexture(gl, url);
+          replaceTexture(gl, url, file.name);
           break;
         }
       }
