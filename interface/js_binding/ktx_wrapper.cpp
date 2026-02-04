@@ -1298,9 +1298,9 @@ EMSCRIPTEN_BINDINGS(ktx)
 
     enum_<khr_df_model_e>("khr_df_model")
         // These are the values needed with HTML5/WebGL.
-        .value("KHR_DF_MODEL_UASTC_4X4_LDR", KHR_DF_MODEL_UASTC_4X4_LDR)
-        .value("KHR_DF_MODEL_UASTC_4X4_HDR", KHR_DF_MODEL_UASTC_4X4_HDR)
-        .value("KHR_DF_MODEL_UASTC_6x6_HDR", KHR_DF_MODEL_UASTC_6X6_HDR)
+        .value("KHR_DF_MODEL_UASTC_LDR_4X4", KHR_DF_MODEL_UASTC_LDR_4X4)
+        .value("KHR_DF_MODEL_UASTC_HDR_4X4", KHR_DF_MODEL_UASTC_HDR_4X4)
+        .value("KHR_DF_MODEL_UASTC_HDR_6X6", KHR_DF_MODEL_UASTC_HDR_6X6)
     ;
 
     enum_<khr_df_primaries_e>("khr_df_primaries")
