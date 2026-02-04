@@ -610,7 +610,7 @@ struct OptionsEncodeBasis : public ktxBasisParams {
         }
         if (args[kUastcHdrLambda].count()) {
             validateUASTC6x6iArg(report, kUastcHdrLambda);
-            uastcHDRLambda = captureCodecOption<uint32_t>(args, kUastcHdrLambda);
+            uastcHDRLambda = captureCodecOption<float>(args, kUastcHdrLambda);
         }
         if (args[kUastcHdr6x6iLevel].count()) {
             validateUASTC6x6iArg(report, kUastcHdr6x6iLevel);
