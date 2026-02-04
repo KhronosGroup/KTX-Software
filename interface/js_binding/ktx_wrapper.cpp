@@ -1263,7 +1263,7 @@ EMSCRIPTEN_BINDINGS(ktx)
     enum_<ktx_basis_codec_e>("basis_codec")
         .value("NONE", KTX_BASIS_CODEC_NONE)
         .value("ETC1S", KTX_BASIS_CODEC_ETC1S)
-        .value("UASTC_LDR", KTX_BASIS_CODEC_UASTC_LDR)
+        .value("UASTC_LDR_4X4", KTX_BASIS_CODEC_UASTC_LDR_4X4)
         .value("UASTC_HDR_4X4", KTX_BASIS_CODEC_UASTC_HDR_4X4)
         .value("UASTC_HDR_6X6_INTERMEDIATE", KTX_BASIS_CODEC_UASTC_HDR_6X6_INTERMEDIATE)
     ;

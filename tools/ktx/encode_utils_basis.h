@@ -31,7 +31,7 @@ enum class BasisCodec {
         case BasisCodec::BasisLZ:
             return "BasisLZ";
         case BasisCodec::UASTC:
-            return "UASTC_LDR";
+            return "UASTC_LDR_4X4";
         case BasisCodec::UASTC_HDR_4x4:
             return "UASTC_HDR_4x4";
         case BasisCodec::UASTC_HDR_6x6i:
@@ -480,7 +480,7 @@ struct OptionsEncodeBasis : public ktxBasisParams {
             codec = ktx_basis_codec_e::KTX_BASIS_CODEC_ETC1S;
             break;
         case BasisCodec::UASTC:
-            codec = ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_LDR;
+            codec = ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_LDR_4X4;
             break;
         case BasisCodec::UASTC_HDR_4x4:
             codec = ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4X4;

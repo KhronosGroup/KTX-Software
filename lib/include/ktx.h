@@ -1378,7 +1378,7 @@ typedef enum ktx_basis_codec_e {
         /*!< NONE. */
     KTX_BASIS_CODEC_ETC1S   = 1,
         /*!< BasisLZ. */
-    KTX_BASIS_CODEC_UASTC_LDR   = 2,
+    KTX_BASIS_CODEC_UASTC_LDR_4X4   = 2,
         /*!< UASTC. */
     KTX_BASIS_CODEC_UASTC_HDR_4X4   = 3,
         /*!< UASTC_HDR_4x4. */

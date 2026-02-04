@@ -636,7 +636,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     case ktx_basis_codec_e::KTX_BASIS_CODEC_ETC1S:
         cparams.m_uastc = false;
         break;
-    case ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_LDR:
+    case ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_LDR_4X4:
         cparams.m_uastc = true;
         break;
     case ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4X4:
@@ -1134,7 +1134,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
 
     // Delayed modifying texture until here so it's after points of
     // possible failure.
-    if (params->codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_LDR) {
+    if (params->codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_LDR_4X4) {
         result = ktxTexture2_rewriteDfd4Uastc(This, alphaContent, isLuminance, comp_mapping);
         if (result != KTX_SUCCESS) goto cleanup;
 
