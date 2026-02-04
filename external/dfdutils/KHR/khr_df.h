@@ -1,6 +1,6 @@
 /* The Khronos Data Format Specification (version 1.4.1) */
 /*
-** Copyright 2015-2025 The Khronos Group Inc.
+** Copyright 2015-2026 The Khronos Group Inc.
 ** SPDX-License-Identifier: Apache-2.0
 */
 
@@ -312,9 +312,9 @@ typedef enum _khr_df_model_e {
     KHR_DF_MODEL_PVRTC2        = 165U,
     /* UASTC for BASIS supercompression */
     KHR_DF_MODEL_UASTC         = 166U,
-    KHR_DF_MODEL_UASTC_4X4_LDR = 166U,
-    KHR_DF_MODEL_UASTC_4X4_HDR = 167U,
-    KHR_DF_MODEL_UASTC_6X6_HDR = 168U,
+    KHR_DF_MODEL_UASTC_LDR_4X4 = 166U,
+    KHR_DF_MODEL_UASTC_HDR_4X4 = 167U,
+    KHR_DF_MODEL_UASTC_HDR_6X6 = 168U,
     /* Proprietary formats (ATITC, etc.) should follow */
     KHR_DF_MODEL_MAX = 0xFFU
 } khr_df_model_e;
@@ -518,16 +518,16 @@ typedef enum _khr_df_model_channels_e {
     KHR_DF_CHANNEL_UASTC_RRR   = 4U,
     KHR_DF_CHANNEL_UASTC_RRRG  = 5U,
     KHR_DF_CHANNEL_UASTC_RG    = 6U,
-    /* MODEL UASTC_4X4_LDR (alias) */
-    KHR_DF_CHANNEL_UASTC_4X4_LDR_RGB  = 0U,
-    KHR_DF_CHANNEL_UASTC_4X4_LDR_RGBA = 3U,
-    KHR_DF_CHANNEL_UASTC_4X4_LDR_RRR  = 4U,
-    KHR_DF_CHANNEL_UASTC_4X4_LDR_RRRG = 5U,
-    KHR_DF_CHANNEL_UASTC_4X4_LDR_RG   = 6U,
+    /* MODEL UASTC_LDR_4X4 (alias) */
+    KHR_DF_CHANNEL_UASTC_LDR_4X4_RGB  = 0U,
+    KHR_DF_CHANNEL_UASTC_LDR_4X4_RGBA = 3U,
+    KHR_DF_CHANNEL_UASTC_LDR_4X4_RRR  = 4U,
+    KHR_DF_CHANNEL_UASTC_LDR_4X4_RRRG = 5U,
+    KHR_DF_CHANNEL_UASTC_LDR_4X4_RG   = 6U,
     /* MODEL UASTC_4X4_HDR */
-    KHR_DF_CHANNEL_UASTC_4X4_HDR_RGB  = 0U,
+    KHR_DF_CHANNEL_UASTC_HDR_4X4_RGB  = 0U,
     /* MODEL UASTC_6X6_HDR */
-    KHR_DF_CHANNEL_UASTC_6X6_HDR_RGB  = 0U,
+    KHR_DF_CHANNEL_UASTC_HDR_6X6_RGB  = 0U,
 
     /* Common channel names shared by multiple formats */
     KHR_DF_CHANNEL_COMMON_LUMA    =  0U,

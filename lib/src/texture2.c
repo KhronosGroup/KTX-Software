@@ -821,7 +821,7 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
     if (This->supercompressionScheme == KTX_SS_BASIS_LZ && pBDFD->model != KHR_DF_MODEL_ETC1S) {
         result = KTX_FILE_DATA_ERROR;
         goto cleanup;
-    } else if (This->supercompressionScheme == KTX_SS_UASTC_HDR_6X6_INTERMEDIATE && pBDFD->model != KHR_DF_MODEL_UASTC_6X6_HDR) {
+    } else if (This->supercompressionScheme == KTX_SS_UASTC_HDR_6X6_INTERMEDIATE && pBDFD->model != KHR_DF_MODEL_UASTC_HDR_6X6) {
         result = KTX_FILE_DATA_ERROR;
         goto cleanup;
     }
@@ -2047,9 +2047,9 @@ ktxTexture2_NeedsTranscoding(ktxTexture2* This)
         return true;
     else if (KHR_DFDVAL(This->pDfd + 1, MODEL) == KHR_DF_MODEL_UASTC)
         return true;
-    else if (KHR_DFDVAL(This->pDfd + 1, MODEL) == KHR_DF_MODEL_UASTC_4X4_HDR)
+    else if (KHR_DFDVAL(This->pDfd + 1, MODEL) == KHR_DF_MODEL_UASTC_HDR_4X4)
         return true;
-    else if (KHR_DFDVAL(This->pDfd + 1, MODEL) == KHR_DF_MODEL_UASTC_6X6_HDR)
+    else if (KHR_DFDVAL(This->pDfd + 1, MODEL) == KHR_DF_MODEL_UASTC_HDR_6X6)
         return true;
     else
         return false;
@@ -2077,8 +2077,8 @@ ktxTexture2_IsHDR(ktxTexture2* This)
     }
 
     return (model == KHR_DF_MODEL_BC6H
-         || model == KHR_DF_MODEL_UASTC_4X4_HDR
-         || model == KHR_DF_MODEL_UASTC_6X6_HDR
+         || model == KHR_DF_MODEL_UASTC_HDR_4X4
+         || model == KHR_DF_MODEL_UASTC_HDR_6X6
          );
 }
 

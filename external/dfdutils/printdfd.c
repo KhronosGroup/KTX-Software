@@ -261,11 +261,11 @@ const char* dfdToStringColorModel(khr_df_model_e value) {
     case KHR_DF_MODEL_PVRTC2:
         return "KHR_DF_MODEL_PVRTC2";
     case KHR_DF_MODEL_UASTC:
-        return "KHR_DF_MODEL_UASTC";
-    case KHR_DF_MODEL_UASTC_4X4_HDR:
-        return "KHR_DF_MODEL_UASTC_4X4_HDR";
-    case KHR_DF_MODEL_UASTC_6X6_HDR:
-        return "KHR_DF_MODEL_UASTC_6X6_HDR";
+        return "KHR_DF_MODEL_UASTC_LDR_4X4";
+    case KHR_DF_MODEL_UASTC_HDR_4X4:
+        return "KHR_DF_MODEL_UASTC_HDR_4X4";
+    case KHR_DF_MODEL_UASTC_HDR_6X6:
+        return "KHR_DF_MODEL_UASTC_HDR_6X6";
     case KHR_DF_MODEL_MAX:
         // These enum values are not meant for string representation. Ignore
         break;
@@ -628,18 +628,18 @@ const char* dfdToStringChannelId(khr_df_model_e model, khr_df_model_channels_e v
             return NULL;
         }
 
-    case KHR_DF_MODEL_UASTC_4X4_HDR:
+    case KHR_DF_MODEL_UASTC_HDR_4X4:
         switch (value) {
-        case KHR_DF_CHANNEL_UASTC_4X4_HDR_RGB:
-            return "KHR_DF_CHANNEL_UASTC_4X4_HDR_RGB";
+        case KHR_DF_CHANNEL_UASTC_HDR_4X4_RGB:
+            return "KHR_DF_CHANNEL_UASTC_HDR_4X4_RGB";
         default:
             return NULL;
         }
 
-    case KHR_DF_MODEL_UASTC_6X6_HDR:
+    case KHR_DF_MODEL_UASTC_HDR_6X6:
         switch (value) {
-        case KHR_DF_CHANNEL_UASTC_6X6_HDR_RGB:
-            return "KHR_DF_CHANNEL_UASTC_6X6_HDR_RGB";
+        case KHR_DF_CHANNEL_UASTC_HDR_6X6_RGB:
+            return "KHR_DF_CHANNEL_UASTC_HDR_6X6_RGB";
         default:
             return NULL;
         }
