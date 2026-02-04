@@ -728,10 +728,10 @@ if (APPLE_LOCKED_OS)
     )
 else()
     include(GNUInstallDirs)
-    install(FILES include/KHR/khr_df.h
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/KHR
-        COMPONENT dev
-    )
+    #install(FILES include/KHR/khr_df.h
+    #    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/KHR
+    #    COMPONENT dev
+    #)
 endif()
 
 install(EXPORT KTXTargets
