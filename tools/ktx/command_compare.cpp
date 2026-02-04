@@ -2370,7 +2370,7 @@ void CommandCompare::compareImagesPerPixel(PrintDiff& diff, InputStreams& stream
             // Update format descriptor and image codec after transcoding
             formatDesc[i] = createFormatDescriptor(textures[i]->pDfd);
             imageCodecs[i] = ImageCodec(VK_FORMAT_R8G8B8A8_UNORM, 1, textures[i]->pDfd);
-        } else if (formatDesc[i].model() == KHR_DF_MODEL_UASTC_6X6_HDR) {
+        } else if (formatDesc[i].model() == KHR_DF_MODEL_UASTC_HDR_6X6) {
             // Transcode HDR/BasisLZ textures to RGBA16F before comparison
             ret = ktxTexture2_TranscodeBasis(textures[i], KTX_TTF_RGBA_HALF, 0);
             if (ret != KTX_SUCCESS)
