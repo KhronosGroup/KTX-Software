@@ -173,7 +173,7 @@ struct OptionsCreate {
                     " the \'Generate Mipmap\' options to tune the resampler.",
                     cxxopts::value<float>(), "<float>")
                 (kEncode, "Encode the created KTX file. Case insensitive."
-                    "\nPossible options are: basis-lz | uastc | uastc-hdr-4x4 | uastc-hdr-6x6i", cxxopts::value<std::string>(), "<codec>")
+                    "\nPossible options are: basis-lz | uastc | uastc-ldr-4x4 | uastc-hdr-4x4 | uastc-hdr-6x6i", cxxopts::value<std::string>(), "<codec>")
                 (kNormalize, "Normalize input normals to have a unit length. Only valid for\n"
                     "linear normal textures with 2 or more components. For 2-component\n"
                     "inputs 2D unit normals are calculated. Do not use these 2D unit\n"
@@ -908,7 +908,7 @@ Create a KTX2 file from various input files.
             The format will be used to verify and load all input files into a
             texture before performing any specified encoding.<br />
         </dd>
-        <dt>\--encode basis-lz | uastc | uastc-hdr-4x4 | uastc-hdr-6x6i</dt>
+        <dt>\--encode basis-lz | uastc | uastc-ldr-4x4 | uastc-hdr-4x4 | uastc-hdr-6x6i</dt>
         <dd>Encode the texture with the specified codec before saving it.
             This option matches the functionality of the @ref ktx_encode
             "ktx encode" command. With each choice, the specific and common
@@ -1377,7 +1377,7 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
     }
 
     if (options.selectedCodec == BasisCodec::BasisLZ ||
-        options.selectedCodec == BasisCodec::UASTC) {
+        options.selectedCodec == BasisCodec::UASTC_LDR_4x4) {
         switch (options.vkFormat) {
         case VK_FORMAT_R8_UNORM:
         case VK_FORMAT_R8_SRGB:
@@ -1410,7 +1410,7 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
     }
 
     const auto basisCodec = options.selectedCodec == BasisCodec::BasisLZ ||
-                            options.selectedCodec == BasisCodec::UASTC ||
+                            options.selectedCodec == BasisCodec::UASTC_LDR_4x4 ||
                             options.selectedCodec == BasisCodec::UASTC_HDR_4x4 ||
                             options.selectedCodec == BasisCodec::UASTC_HDR_6x6i;
     const auto astcCodec = isFormatAstc(options.vkFormat);

@@ -17,7 +17,7 @@ namespace ktx {
 enum class BasisCodec {
     NONE = 0,
     BasisLZ,
-    UASTC,
+    UASTC_LDR_4x4,
     UASTC_HDR_4x4,
     UASTC_HDR_6x6i,
     INVALID = 0x7FFFFFFF
@@ -30,7 +30,7 @@ enum class BasisCodec {
             return "NONE";
         case BasisCodec::BasisLZ:
             return "BasisLZ";
-        case BasisCodec::UASTC:
+        case BasisCodec::UASTC_LDR_4x4:
             return "UASTC_LDR_4X4";
         case BasisCodec::UASTC_HDR_4x4:
             return "UASTC_HDR_4x4";
@@ -60,7 +60,13 @@ enum class BasisCodec {
         uastc:
     </dt>
     <dd>
-        Create a texture in high-quality transcodable UASTC format. When set
+        Alias of uastc-ldr-4x4. <b>DEPRECATED:</b> Use uastc-ldr-4x4 instead
+    </dd>
+    <dt>
+        uastc-ldr-4x4:
+    </dt>
+    <dd>
+        Create a texture in high-quality transcodable UASTC LDR 4X4 format. When set
         the @e uastc options become valid.
     </dd>
     <dt>
@@ -362,7 +368,8 @@ struct OptionsEncodeBasis : public ktxBasisParams {
     BasisCodec validateBasisCodec(const cxxopts::OptionValue& codecOpt) const {
         static const std::unordered_map<std::string, BasisCodec> codecs = {
             { "basis-lz", BasisCodec::BasisLZ },
-            { "uastc", BasisCodec::UASTC },
+            { "uastc", BasisCodec::UASTC_LDR_4x4 },
+            { "uastc-ldr-4x4", BasisCodec::UASTC_LDR_4x4},
             { "uastc-hdr-4x4", BasisCodec::UASTC_HDR_4x4 },
             { "uastc-hdr-6x6i", BasisCodec::UASTC_HDR_6x6i}
         };
@@ -416,7 +423,7 @@ struct OptionsEncodeBasis : public ktxBasisParams {
     }
 
     void validateUASTCArg(Reporter& report, const char* name) {
-        if (selectedCodec != BasisCodec::UASTC)
+        if (selectedCodec != BasisCodec::UASTC_LDR_4x4)
             report.fatal(rc::INVALID_ARGUMENTS,
                 "Invalid use of argument --{} that only applies when the used codec is UASTC.", name);
     }
@@ -429,7 +436,7 @@ struct OptionsEncodeBasis : public ktxBasisParams {
     }
 
     void validateUASTCOrUASTCHDR4x4Arg(Reporter& report, const char* name) {
-        if (selectedCodec != BasisCodec::UASTC && selectedCodec != BasisCodec::UASTC_HDR_4x4)
+        if (selectedCodec != BasisCodec::UASTC_LDR_4x4 && selectedCodec != BasisCodec::UASTC_HDR_4x4)
             report.fatal(
                 rc::INVALID_ARGUMENTS,
                 "Invalid use of argument, --{}, that only applies when the used codec is UASTC or UASTC HDR 4x4.", name);
@@ -463,7 +470,7 @@ struct OptionsEncodeBasis : public ktxBasisParams {
             break;
 
         case BasisCodec::BasisLZ:
-        case BasisCodec::UASTC:
+        case BasisCodec::UASTC_LDR_4x4:
         case BasisCodec::UASTC_HDR_4x4:
         case BasisCodec::UASTC_HDR_6x6i:
             codecName = to_lower_copy(args[codec_option].as<std::string>());
@@ -479,7 +486,7 @@ struct OptionsEncodeBasis : public ktxBasisParams {
         case BasisCodec::BasisLZ:
             codec = ktx_basis_codec_e::KTX_BASIS_CODEC_ETC1S;
             break;
-        case BasisCodec::UASTC:
+        case BasisCodec::UASTC_LDR_4x4:
             codec = ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_LDR_4X4;
             break;
         case BasisCodec::UASTC_HDR_4x4:

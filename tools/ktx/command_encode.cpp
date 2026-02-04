@@ -63,7 +63,7 @@ Encode a KTX2 file.
 -->
     The following options are available:
     <dl>
-        <dt>\--codec basis-lz | uastc | uastc-hdr-4x4 | uastc-hdr-6x6i</dt>
+        <dt>\--codec basis-lz | uastc | uastc-ldr-4x4 | uastc-hdr-4x4 | uastc-hdr-6x6i</dt>
         <dd>Target codec followed by the codec specific options. With each choice
             the specific and common encoder options listed
             @ref ktx\_encode\_options\_encoding "below" become valid, otherwise
@@ -156,7 +156,7 @@ void CommandEncode::OptionsEncode::init(cxxopts::Options& opts) {
         (kCodec, "Target codec."
                   " With each encoding option the encoder specific options become valid,"
                   " otherwise they are ignored. Case-insensitive."
-                  "\nPossible options are: basis-lz | uastc | uastc-hdr-4x4 | uastc-hdr-6x6i", cxxopts::value<std::string>(), "<target>");
+                  "\nPossible options are: basis-lz | uastc | uastc-ldr-4x4 | uastc-hdr-4x4 | uastc-hdr-6x6i", cxxopts::value<std::string>(), "<target>");
 }
 
 void CommandEncode::OptionsEncode::process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
@@ -208,7 +208,7 @@ void CommandEncode::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
     }
 
     const auto basisCodec = options.selectedCodec == BasisCodec::BasisLZ ||
-                            options.selectedCodec == BasisCodec::UASTC ||
+                            options.selectedCodec == BasisCodec::UASTC_LDR_4x4 ||
                             options.selectedCodec == BasisCodec::UASTC_HDR_4x4 ||
                             options.selectedCodec == BasisCodec::UASTC_HDR_6x6i;
     const auto astcCodec = isFormatAstc(options.vkFormat);
@@ -243,7 +243,7 @@ void CommandEncode::executeEncode() {
 
     if (options.selectedCodec == BasisCodec::NONE ||
         options.selectedCodec == BasisCodec::BasisLZ ||
-        options.selectedCodec == BasisCodec::UASTC) {
+        options.selectedCodec == BasisCodec::UASTC_LDR_4x4) {
         switch (texture->vkFormat) {
         case VK_FORMAT_R8_UNORM:
         case VK_FORMAT_R8_SRGB:
