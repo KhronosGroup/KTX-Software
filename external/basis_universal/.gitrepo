@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/KhronosGroup/basis_universal.git
 	branch = set_fp_options
-	commit = 29e75d0f3c590ccc85d8d35534dd846cb80c7cb3
-	parent = e6fe864f74df1710b6d0f89232c8f6aa41b78721
+	commit = c40de6605612385cc39a6ce433343ee3d7e8b3fd
+	parent = 15e03d47b67cb1d670571897ab8453223f53189d
 	method = merge
 	cmdver = 0.4.9
