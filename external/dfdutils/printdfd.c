@@ -261,7 +261,7 @@ const char* dfdToStringColorModel(khr_df_model_e value) {
     case KHR_DF_MODEL_PVRTC2:
         return "KHR_DF_MODEL_PVRTC2";
     case KHR_DF_MODEL_UASTC:
-        return "KHR_DF_MODEL_UASTC_LDR_4X4";
+        return "KHR_DF_MODEL_UASTC";
     case KHR_DF_MODEL_UASTC_HDR_4X4:
         return "KHR_DF_MODEL_UASTC_HDR_4X4";
     case KHR_DF_MODEL_UASTC_HDR_6X6:
