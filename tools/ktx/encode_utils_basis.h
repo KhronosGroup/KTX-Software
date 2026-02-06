@@ -360,7 +360,7 @@ struct OptionsEncodeBasis : public ktxBasisParams {
             (kUastcHdrUltraQuant, "Allow the UASTC HDR 4x4 encoder to try and find better quantized CEM 7/11 endpoint values (slower).")
             (kUastcHdrFavorAstc, "By default the UASTC HDR 4x4 encoder tries to strike a balance or even slightly favor BC6H quality. If this option is specified, ASTC HDR 4x4 quality is favored instead.")
             (kRec2020, "The input image's gamut is Rec. 2020 vs. the default Rec. 709 - for accurate colorspace error calculations.")
-            (kUastcHdrLambda, "Enables rate distortion optimization (RDO). The higher this value, the lower the quality, but the smaller the file size. Try 100-20000, or higher values on some images.", cxxopts::value<uint32_t>(), "<level>")
+            (kUastcHdrLambda, "Enables rate distortion optimization (RDO). The higher this value, the lower the quality, but the smaller the file size. Try 100-20000, or higher values on some images.", cxxopts::value<float>(), "<level>")
             (kUastcHdr6x6iLevel, "Controls the 6x6 HDR intermediate mode encoder performance vs. max quality tradeoff. Range is [0,12]. Default level is 2.", 
                 cxxopts::value<uint32_t>(), "<level>");
     }
