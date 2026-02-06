@@ -48,3 +48,4 @@ add_executable(use-ktx
 # libktx adds KHRONOS_STATIC as a public define so no need to set it here.
 target_compile_features(use-ktx PRIVATE cxx_std_20)
 target_link_libraries(use-ktx PRIVATE ktx)
+target_include_directories(use-ktx PRIVATE ${path_to_ktx}/../external/dfdutils)

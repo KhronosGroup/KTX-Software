@@ -57,6 +57,10 @@ struct OptionsTranscodeTarget {
             {"rg8", {KTX_TTF_RGBA32, 2}},
             {"rgb8", {KTX_TTF_RGBA32, 3}},
             {"rgba8", {KTX_TTF_RGBA32, 4}},
+            {"rgba16f", {KTX_TTF_RGBA_HALF, 4}},
+            {"astc-hdr-4x4", {KTX_TTF_ASTC_HDR_4x4_RGBA, 0}},
+            {"astc-hdr-6x6", {KTX_TTF_ASTC_HDR_6x6_RGBA, 0}},
+            {"bc6hu", {KTX_TTF_BC6HU, 0}},        
         };
         if (args[argName].count()) {
             const auto argStr = to_lower_copy(args[argName].as<std::string>());
@@ -74,9 +78,17 @@ struct OptionsTranscodeTarget {
         const auto tswizzle = determineTranscodeSwizzle(texture, report);
 
         if (!transcodeTarget.has_value()) {
-            transcodeTarget = KTX_TTF_RGBA32;
-            transcodeTargetName = "rgba8";
-            transcodeSwizzleComponents = tswizzle.defaultNumComponents;
+            const auto* bdfd = texture->pDfd + 1;
+            if (khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_UASTC_HDR_6X6
+             || khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_UASTC_HDR_4X4) {
+                transcodeTarget = KTX_TTF_RGBA_HALF;
+                transcodeTargetName = "rgba16f";
+                transcodeSwizzleComponents = tswizzle.defaultNumComponents;
+            } else {
+                transcodeTarget = KTX_TTF_RGBA32;
+                transcodeTargetName = "rgba8";
+                transcodeSwizzleComponents = tswizzle.defaultNumComponents;
+            }
         }
 
         transcodeSwizzle = tswizzle.swizzle;

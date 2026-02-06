@@ -131,23 +131,12 @@ endif()
 # Source Lists
 
 set(LIBKTX_MAIN_SRC
-    include/KHR/khr_df.h
     include/ktx.h
     src/astc_codec.cpp
     src/basis_sgd.h
     src/basis_transcode.cpp
     src/miniz_wrapper.cpp
     src/checkheader.c
-    ../external/dfdutils/createdfd.c
-    ../external/dfdutils/colourspaces.c
-    ../external/dfdutils/dfd.h
-    ../external/dfdutils/interpretdfd.c
-    ../external/dfdutils/printdfd.c
-    ../external/dfdutils/queries.c
-    ../external/dfdutils/vk2dfd.c
-    ../external/dfdutils/vk2dfd.inl
-    ../external/dfdutils/vulkan/vk_platform.h
-    ../external/dfdutils/vulkan/vulkan_core.h
     src/etcunpack.cxx
     src/filestream.c
     src/filestream.h
@@ -309,6 +298,7 @@ macro(common_libktx_settings target enable_write library_type)
     PRIVATE
         $<BUILD_INTERFACE:${KTX_ROOT_DIR}/external>
         $<BUILD_INTERFACE:${KTX_ROOT_DIR}/utils>
+        ${CMAKE_SOURCE_DIR}/external/dfdutils
     )
 
     target_include_directories(
@@ -492,6 +482,9 @@ endif()
 #set(BASISU_ZSTD FALSE)
 add_subdirectory(../external/basis_universal basisu-encoder)
 
+set(DFDUTILS_TESTAPPS OFF CACHE BOOL "Enable DFD Utils tests.")
+add_subdirectory(../external/dfdutils dfdutils)
+
 ###################################################
 # ktx libraries
 ###################################################
@@ -505,6 +498,7 @@ if(LIBKTX_VERSION_FULL)
     )
     common_libktx_settings(ktx 1 ${LIB_TYPE})
     add_lib_dependencies(ktx basisu_encoder)
+    target_link_libraries(ktx PUBLIC dfdutils)
 endif()
 
 # Read-only library
@@ -514,6 +508,7 @@ if(LIBKTX_VERSION_READ_ONLY)
     )
     common_libktx_settings(ktx_read 0 ${LIB_TYPE})
     add_lib_dependencies(ktx_read basisu_encoder)
+    target_link_libraries(ktx_read PUBLIC dfdutils)
 endif()
 
 create_version_header(src ktx)
@@ -666,13 +661,13 @@ endif()
 # Install
 
 if(LIBKTX_VERSION_FULL)
-    list(APPEND LIBKTX_INSTALL_TARGETS ktx)
+    list(APPEND LIBKTX_INSTALL_TARGETS ktx dfdutils)
 endif()
 # ktx_read has never been included in the install packages and no
 # issues have been filed. Only install it if building static libs
 # or full version is not being built.
 if(LIBKTX_VERSION_READ_ONLY AND NOT (BUILD_SHARED_LIBRARIES OR LIBKTX_VERSION_FULL))
-    list(APPEND LIBKTX_INSTALL_TARGETS ktx_read)
+    list(APPEND LIBKTX_INSTALL_TARGETS ktx_read dfdutils)
 endif()
 if(NOT BUILD_SHARED_LIBS AND NOT APPLE)
     list(APPEND LIBKTX_INSTALL_TARGETS ${ASTCENC_LIB_TARGET} basisu_encoder)
@@ -733,10 +728,10 @@ if (APPLE_LOCKED_OS)
     )
 else()
     include(GNUInstallDirs)
-    install(FILES include/KHR/khr_df.h
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/KHR
-        COMPONENT dev
-    )
+    #install(FILES include/KHR/khr_df.h
+    #    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/KHR
+    #    COMPONENT dev
+    #)
 endif()
 
 install(EXPORT KTXTargets

@@ -17,6 +17,7 @@ PRIVATE
     $<TARGET_PROPERTY:objUtil,INTERFACE_INCLUDE_DIRECTORIES>
     ${CMAKE_CURRENT_SOURCE_DIR}/../../other_include
     ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/src  # Just for gl_format.h
+    ${CMAKE_SOURCE_DIR}/external/dfdutils
 )
 
 target_link_libraries(

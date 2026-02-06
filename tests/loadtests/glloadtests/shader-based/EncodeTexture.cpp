@@ -97,7 +97,7 @@ EncodeTexture::EncodeTexture(uint32_t width, uint32_t height,
             {
                 ktxBasisParams params = { };
                 params.structSize = sizeof(params);
-                params.uastc = KTX_TRUE;
+                params.codec = ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_LDR_4X4;
                 params.threadCount = 1;
                 ktxresult = ktxTexture2_CompressBasisEx(kTexture, &params);
                 break;
