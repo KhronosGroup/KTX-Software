@@ -11368,7 +11368,7 @@ namespace basist
 		// TODO: Optimize this
 
 		basisu::vector2D<astc_helpers::astc_block> decoded_blocks;
-		uint32_t dec_width = orig_width, dec_height = orig_height;
+		uint32_t dec_width = 0, dec_height = 0;
 		bool dec_status = astc_6x6_hdr::decode_6x6_hdr(pImage_data, image_data_size, decoded_blocks, dec_width, dec_height);
 		if (!dec_status)
 		{
@@ -23429,6 +23429,9 @@ namespace basist
 			//interval_timer tm;
 			//tm.start();
 
+			width = 0;
+			height = 0;
+
 			if (comp_data_size <= (2 * 3 + 1))
 				return false;
 
@@ -23436,15 +23439,14 @@ namespace basist
 			if (!decoder.init(pComp_data, comp_data_size))
 				return false;
 
-		        if (decoder.peek_bits(16) == 0xABCD) {
-		            decoder.get_bits(16);
+			if (decoder.get_bits(16) != 0xABCD)
+				return false;
 
-			    width = decoder.get_bits(16);
-			    height = decoder.get_bits(16);
-                        }
+			width = decoder.get_bits(16);
+			height = decoder.get_bits(16);
 
-	                if (!width || !height || (width > MAX_ASTC_HDR_6X6_DIM) || (height > MAX_ASTC_HDR_6X6_DIM))
-	                    return false;
+			if (!width || !height || (width > MAX_ASTC_HDR_6X6_DIM) || (height > MAX_ASTC_HDR_6X6_DIM))
+				return false;
 
 			const uint32_t num_blocks_x = (width + BLOCK_W - 1) / BLOCK_W;
 			const uint32_t num_blocks_y = (height + BLOCK_H - 1) / BLOCK_H;
