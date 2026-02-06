@@ -3566,13 +3566,7 @@ namespace basisu
 			}
 			else
 			{
-			    if (m_fmt_mode == basist::basis_tex_format::cASTC_HDR_6x6_INTERMEDIATE) {
-			        uint8_vec ktx_data(m_uastc_backend_output.m_slice_image_data[slice_index].size() - 6); // assume data.size() >= 6
-			        memcpy(ktx_data.data(), m_uastc_backend_output.m_slice_image_data[slice_index].begin() + 6, m_uastc_backend_output.m_slice_image_data[slice_index].size() - 6);
-			        append_vector(level_data_bytes[slice_desc.m_mip_index], ktx_data);
-			    } else {
-			        append_vector(level_data_bytes[slice_desc.m_mip_index], m_uastc_backend_output.m_slice_image_data[slice_index]);
-			    }
+				append_vector(level_data_bytes[slice_desc.m_mip_index], m_uastc_backend_output.m_slice_image_data[slice_index]);
 			}
 		}
 
@@ -3686,14 +3680,14 @@ namespace basisu
 
 				const uint32_t output_image_index = level_index * (total_layers * total_faces) + layer_index * total_faces + face_index;
 
-				image_descs[output_image_index].m_rgb_slice_byte_length = m_uastc_backend_output.m_slice_image_data[slice_index].size() - 6;
+				image_descs[output_image_index].m_rgb_slice_byte_length = m_uastc_backend_output.m_slice_image_data[slice_index].size();
 				image_descs[output_image_index].m_rgb_slice_byte_offset = slice_level_offsets[slice_index];
 
 			} // slice_index
 
 			append_vector(ktx2_global_data, (const uint8_t*)image_descs.data(), image_descs.size_in_bytes());
 
-			header.m_supercompression_scheme = 4;
+			header.m_supercompression_scheme = basist::KTX2_SS_BASISLZ;
 		}
 
 		// Key values
