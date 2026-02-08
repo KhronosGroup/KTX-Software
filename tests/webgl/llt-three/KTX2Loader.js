@@ -138,13 +138,13 @@ class KTX2Loader extends CompressedTextureLoader {
 // colorModel is ETC1S (163) or if dfd colorModel is UASTCF (166)
 // then texture must be transcoded.
 
-		var texFormat = ktx.dfd.colorModel == DFD.modelUastc ? TextureFormat.UASTC4x4
+		var texFormat = ktx.dfd.colorModel == DFD.modelUastc ? TextureFormat.UASTC_LDR_4x4
 												   : TextureFormat.ETC1S;
 		// TODO(donmccurdy): Handle all channelIds (i.e. the R & R+G cases),
 		// choosing appropriate transcode target formats or providing queries
 		// for applications so they know what to do with the content.
 		var hasAlpha = false;
-		if (texFormat == TextureFormat.UASTC4x4) {
+		if (texFormat == TextureFormat.UASTC_LDR_4x4) {
 			var transcoder = new UastcImageTranscoder();
 			if ( (ktx.dfd.samples[0].channelId & 0xf) === DFD.channelUastc.rgba )
 				hasAlpha = true;
@@ -419,7 +419,7 @@ class KTX2Container {
 
 		var isVideo = false;
 
-		// For both ETC1S and UASTC4x4 formats.
+		// For both ETC1S and UASTC_LDR_4x4 formats.
 		if ( texFormat == TextureFormat.ETC1S ) {
 			var numEndpoints = this.sgd.endpointCount;
 			var numSelectors = this.sgd.selectorCount;
@@ -483,7 +483,7 @@ class KTX2Container {
 			for ( var imageIndex = 0; imageIndex < numImagesInLevel; imageIndex ++ ) {
 
 				var result;
-				if ( texFormat == TextureFormat.UASTC4x4 ) {
+				if ( texFormat == TextureFormat.UASTC_LDR_4x4 ) {
 					imageInfo.flags = 0;
 					imageInfo.rgbByteOffset = 0;
 					imageInfo.rgbByteLength = levelImageByteLength;
