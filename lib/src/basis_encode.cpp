@@ -699,7 +699,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         // indicate the parameter has not been set by the caller. (If we
         // leave m_compression_level unset it will default to 1. We don't
         // want the default to differ from `basisu` so 0 can't be the default.
-        cparams.m_compression_level = params->compressionLevel;
+        cparams.m_etc1s_compression_level = params->compressionLevel;
 
         // There's no default for m_quality_level. `basisu` tool overrides
         // any explicit m_{endpoint,selector}_clusters settings with those
@@ -723,11 +723,11 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         } else if (params->qualityLevel != 0) {
             cparams.m_etc1s_max_endpoint_clusters = 0;
             cparams.m_etc1s_max_selector_clusters = 0;
-            cparams.m_etc1s_quality_level = params->qualityLevel;
+            cparams.m_quality_level = params->qualityLevel;
         } else {
             cparams.m_etc1s_max_endpoint_clusters = 0;
             cparams.m_etc1s_max_selector_clusters = 0;
-            cparams.m_etc1s_quality_level = 128;
+            cparams.m_quality_level = 128;
         }
 
         if (params->endpointRDOThreshold > 0)
@@ -1085,7 +1085,7 @@ cleanup:
 }
 
 extern "C" KTX_API const ktx_uint32_t KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL
-                                      = BASISU_DEFAULT_COMPRESSION_LEVEL;
+                                           = BASISU_DEFAULT_ETC1S_COMPRESSION_LEVEL;
 
 /**
  * @memberof ktxTexture2

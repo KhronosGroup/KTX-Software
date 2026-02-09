@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = https://github.com/KhronosGroup/basis_universal.git
-	branch = cmake_fixes
-	commit = daf79c6ee7343f547d29c36d180331a73300607b
-	parent = d5787860a2a47e8ecc79f437566c0d62cc5cebee
+	branch = set_fp_options
+	commit = c40de6605612385cc39a6ce433343ee3d7e8b3fd
+	parent = 15e03d47b67cb1d670571897ab8453223f53189d
 	method = merge
 	cmdver = 0.4.9
