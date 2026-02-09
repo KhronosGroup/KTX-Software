@@ -629,7 +629,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     basis_compressor_params cparams;
     cparams.m_read_source_images = false; // Don't read from source files.
     cparams.m_write_output_basis_or_ktx2_files = false; // Don't write output files.
-    cparams.m_create_ktx2_file = true; // To avoid rewriting this code, continue with .basis.
+    cparams.m_create_ktx2_file = false; // To avoid rewriting this code, continue with .basis.
     cparams.m_status_output = params->verbose;
 
     switch (params->codec) {
@@ -657,7 +657,13 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     // Calculate number of images
     //
     uint32_t layersFaces = This->numLayers * This->numFaces;
-    uint32_t num_images_level_0 = layersFaces * MAX(This->baseDepth, 1);
+    uint32_t num_images = 0;
+    for (uint32_t level = 1; level <= This->numLevels; level++) {
+        // NOTA BENE: numFaces * depth is only reasonable because they can't
+        // both be > 1. I.e there are no 3d cubemaps.
+        num_images += layersFaces * MAX(This->baseDepth >> (level - 1), 1);
+    }
+    //uint32_t num_images_level_0 = layersFaces * MAX(This->baseDepth, 1);
 
     //
     // Copy images into compressor parameters.
@@ -667,13 +673,13 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     // basisu code we'll have to copy in the images.
     if (cparams.m_hdr)
     {
-        cparams.m_source_images_hdr.resize(num_images_level_0);
-        cparams.m_source_mipmap_images_hdr.resize(num_images_level_0);
+        cparams.m_source_images_hdr.resize(num_images);
+        //cparams.m_source_mipmap_images_hdr.resize(num_images_level_0);
     }        
     else 
     {
-        cparams.m_source_images.resize(num_images_level_0);
-        cparams.m_source_mipmap_images.resize(num_images_level_0);
+        cparams.m_source_images.resize(num_images);
+        //cparams.m_source_mipmap_images.resize(num_images_level_0);
     }
     basisu::vector<image>::iterator iit_ldr = cparams.m_source_images.begin();
     basisu::vector<imagef>::iterator iit_hdr = cparams.m_source_images_hdr.begin();
@@ -803,41 +809,18 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
                 ktxTexture2_GetImageOffset(This, level, layer, slice, &offset);
                 if (cparams.m_hdr)
                 {
-                    if (level == 0) {
-                        iit_hdr->resize(width, height);
-                        copycb_hdr(iit_hdr->get_ptr()->get_ptr(),
-                                   (const basist::half_float*)(This->pData + offset),
-                                   num_components, image_size, comp_mapping);
-                        ++iit_hdr;
-                    }
-                    else
-                    {
-                        imagef mip_image;
-                        mip_image.resize(width, height);
-                        copycb_hdr(mip_image.get_ptr()->get_ptr(),
-                                   (const basist::half_float*)(This->pData + offset),
-                                   num_components, image_size, comp_mapping);
-                        cparams.m_source_mipmap_images_hdr[layer * This->numFaces + slice].push_back(
-                            mip_image);
-                    }
+                    iit_hdr->resize(width, height);
+                    copycb_hdr(iit_hdr->get_ptr()->get_ptr(),
+                                (const basist::half_float*)(This->pData + offset),
+                                num_components, image_size, comp_mapping);
+                    ++iit_hdr;
                 }
                 else
                 {
-                    if (level == 0)
-                    {
-                        iit_ldr->resize(width, height);
-                        copycb_ldr((uint8_t*)iit_ldr->get_ptr(), This->pData + offset,
-                                   num_components, image_size, comp_mapping);
-                        ++iit_ldr;
-                    }
-                    else
-                    {
-                        image mip_image;
-                        mip_image.resize(width, height);
-                        copycb_ldr((uint8_t*)mip_image.get_ptr(), This->pData + offset,
-                                   num_components, image_size, comp_mapping);
-                        cparams.m_source_mipmap_images[layer * This->numFaces + slice].push_back(mip_image);
-                    }
+                    iit_ldr->resize(width, height);
+                    copycb_ldr((uint8_t*)iit_ldr->get_ptr(), This->pData + offset,
+                                num_components, image_size, comp_mapping);
+                    ++iit_ldr;
                 }                
             }
         }
@@ -1091,39 +1074,204 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     g_cpu_supports_sse41 = prevSSESupport;
 #endif
 
-    const uint8_vec& kf = c.get_output_ktx2_file();
-    //const ktx2_header& kfh = *reinterpret_cast<const ktx2_header*>(kf.data());
+    const uint8_vec& bf = c.get_output_basis_file();
+    const basis_file_header& bfh = *reinterpret_cast<const basis_file_header*>(bf.data());
 
-    ktxTexture2_private& priv = *This->_private;
-    ktxFormatSize& formatSize = This->_protected->_formatSize;
+    assert(bfh.m_total_images == num_images);
+
     uint8_t* bgd = nullptr;
-    uint8_t* new_data = 0;
+    size_t bgd_size;
+    uint32_t image_data_size = 0;
+    ktxTexture2_private& priv = *This->_private;
+    uint32_t base_offset = bfh.m_slice_desc_file_ofs;
+    const basis_slice_desc* slice
+            = reinterpret_cast<const basis_slice_desc*>(&bf[base_offset]);
+    std::vector<uint32_t> level_file_offsets(This->numLevels);
 
-    ktxTexture2* newTex = nullptr;
-    ktx_size_t image_data_size = 0;
+    if (cparams.m_uastc) {
+        if (cparams.m_hdr && cparams.m_hdr_mode == hdr_modes::cASTC_HDR_6X6_INTERMEDIATE) {
+            uint32_t image_desc_size = sizeof(ktxUASTCHDR6X6IntermediateImageDesc);
+            bgd_size = image_desc_size * num_images;
+            bgd = new ktx_uint8_t[bgd_size];
+
+            ktxUASTCHDR6X6IntermediateImageDesc* kimages = reinterpret_cast<ktxUASTCHDR6X6IntermediateImageDesc*>(bgd);
+
+            uint32_t image = 0;
+            for (uint32_t level = 0; level < This->numLevels; level++) {
+                uint32_t depth = MAX(1, This->baseDepth >> level);
+                uint32_t level_byte_length = 0;
+
+                assert(!(slice->m_flags & cSliceDescFlagsHasAlpha));
+                level_file_offsets[level] = slice->m_file_ofs;
+                for (uint32_t layer = 0; layer < This->numLayers; layer++) {
+                    uint32_t faceSlices = This->numFaces == 1 ? depth
+                                                              : This->numFaces;
+                    for (uint32_t faceSlice = 0; faceSlice < faceSlices; faceSlice++) {
+                        level_byte_length += slice->m_file_size;
+                        kimages[image].rgbSliceByteOffset = slice->m_file_ofs
+                                                       - level_file_offsets[level];
+                        kimages[image].rgbSliceByteLength = slice->m_file_size;
+
+                        slice++;
+                        image++;
+                    }
+                }
+                priv._levelIndex[level].byteLength = level_byte_length;
+                priv._levelIndex[level].uncompressedByteLength = 0;
+                image_data_size += level_byte_length;
+            }
+
+            priv._supercompressionGlobalData = bgd;
+            priv._sgdByteLength = bgd_size;
+        } else {
+            for (uint32_t level = 0; level < This->numLevels; level++) {
+                uint32_t depth = MAX(1, This->baseDepth >> level);
+                uint32_t levelByteLength = 0;
+                uint32_t levelImageCount = This->numLayers * This->numFaces * depth;
+
+                level_file_offsets[level] = slice->m_file_ofs;
+                for (uint32_t image = 0; image < levelImageCount; image++, slice++) {
+                    image_data_size += slice->m_file_size;
+                    levelByteLength += slice->m_file_size;
+                }
+                priv._levelIndex[level].byteLength = levelByteLength;
+                priv._levelIndex[level].uncompressedByteLength = levelByteLength;
+            }
+        }
+    } else {
+        //
+        // Allocate supercompression global data and write its header.
+        //
+        uint32_t image_desc_size = sizeof(ktxBasisLzEtc1sImageDesc);
+
+        bgd_size = sizeof(ktxBasisLzGlobalHeader)
+                 + image_desc_size * num_images
+                 + bfh.m_endpoint_cb_file_size + bfh.m_selector_cb_file_size
+                 + bfh.m_tables_file_size;
+        bgd = new ktx_uint8_t[bgd_size];
+        ktxBasisLzGlobalHeader& bgdh = *reinterpret_cast<ktxBasisLzGlobalHeader*>(bgd);
+        bgdh.endpointCount = (uint16_t)bfh.m_total_endpoints;
+        bgdh.endpointsByteLength = bfh.m_endpoint_cb_file_size;
+        bgdh.selectorCount = (uint16_t)bfh.m_total_selectors;
+        bgdh.selectorsByteLength = bfh.m_selector_cb_file_size;
+        bgdh.tablesByteLength = bfh.m_tables_file_size;
+        bgdh.extendedByteLength = 0;
+
+        //
+        // Write the index of slice descriptions to the global data.
+        //
+
+        ktxBasisLzEtc1sImageDesc* kimages = BGD_ETC1S_IMAGE_DESCS(bgd);
+
+        // 3 things to remember about offsets:
+        //    1. levelIndex offsets at this point are relative to This->pData;
+        //    2. In the ktx image descriptors, slice offsets are relative to the
+        //       start of the mip level;
+        //    3. basis_slice_desc offsets are relative to the end of the basis
+        //       header. Hence base_offset set above is used to rebase offsets
+        //       relative to the start of the slice data.
+
+        // Assumption here is that slices produced by the compressor are in the
+        // same order as we passed them in above, i.e. ordered by mip level.
+        // Note also that slice->m_level_index is always 0, unless the compressor
+        // generated mip levels, so essentially useless. Alpha slices are always
+        // the odd numbered slices.
+        uint32_t image = 0;
+        for (uint32_t level = 0; level < This->numLevels; level++) {
+            uint32_t depth = MAX(1, This->baseDepth >> level);
+            uint32_t level_byte_length = 0;
+
+            assert(!(slice->m_flags & cSliceDescFlagsHasAlpha));
+            level_file_offsets[level] = slice->m_file_ofs;
+            for (uint32_t layer = 0; layer < This->numLayers; layer++) {
+                uint32_t faceSlices = This->numFaces == 1 ? depth
+                                                          : This->numFaces;
+                for (uint32_t faceSlice = 0; faceSlice < faceSlices; faceSlice++) {
+                    level_byte_length += slice->m_file_size;
+                    kimages[image].rgbSliceByteOffset = slice->m_file_ofs
+                                                   - level_file_offsets[level];
+                    kimages[image].rgbSliceByteLength = slice->m_file_size;
+                    if (bfh.m_flags & cBASISHeaderFlagHasAlphaSlices) {
+                        slice++;
+                        level_byte_length += slice->m_file_size;
+                        kimages[image].alphaSliceByteOffset =
+                                slice->m_file_ofs - level_file_offsets[level];
+                        kimages[image].alphaSliceByteLength =
+                                slice->m_file_size;
+                    } else {
+                        kimages[image].alphaSliceByteOffset = 0;
+                        kimages[image].alphaSliceByteLength = 0;
+                    }
+                    // Set the PFrame flag, inverse of the .basis IFrame flag.
+                    if (This->isVideo) {
+                        // Extract FrameIsIFrame
+                        kimages[image].imageFlags =
+                                    (slice->m_flags & ~cSliceDescFlagsHasAlpha);
+                        // Set our flag to the inverse.
+                        kimages[image].imageFlags ^=
+                                    cSliceDescFlagsFrameIsIFrame;
+                    } else {
+                        kimages[image].imageFlags = 0;
+                    }
+                    slice++;
+                    image++;
+                }
+            }
+            priv._levelIndex[level].byteLength = level_byte_length;
+            priv._levelIndex[level].uncompressedByteLength = 0;
+            image_data_size += level_byte_length;
+        }
+
+        //
+        // Copy the global code books & huffman tables to global data.
+        //
+
+        // Slightly sleazy but as image is now the last valid index in the
+        // slice description array plus 1, &kimages[image] points at the first
+        // byte where the endpoints, etc. must be written.
+        uint8_t* dstptr = reinterpret_cast<uint8_t*>(&kimages[image]);
+        // Copy the endpoints ...
+        memcpy(dstptr,
+               &bf[bfh.m_endpoint_cb_file_ofs],
+               bfh.m_endpoint_cb_file_size);
+        dstptr += bgdh.endpointsByteLength;
+        // selectors ...
+        memcpy(dstptr,
+               &bf[bfh.m_selector_cb_file_ofs],
+               bfh.m_selector_cb_file_size);
+        dstptr += bgdh.selectorsByteLength;
+        // and the huffman tables.
+        memcpy(dstptr,
+               &bf[bfh.m_tables_file_ofs],
+               bfh.m_tables_file_size);
+
+        assert((size_t)(dstptr + bgdh.tablesByteLength - bgd) <= bgd_size);
+
+        //
+        // We have a complete global data package.
+        //
+
+        priv._supercompressionGlobalData = bgd;
+        priv._sgdByteLength = bgd_size;
+    }
+
+    //
+    // Update This texture and copy compressed image data to it.
+    //
+
+    // Declare here so can use goto cleanup.
+    uint8_t* new_data = 0;
+    ktxFormatSize& formatSize = This->_protected->_formatSize;
     uint64_t level_offset = 0;
 
-    result = ktxTexture2_CreateFromMemory(kf.data(), kf.size_in_bytes(), KTX_TEXTURE_CREATE_SKIP_KVDATA_BIT, &newTex);
-    if (result != KTX_SUCCESS)
-    {
-        goto cleanup;
-    }
-
-
-    This->_private->_firstLevelFileOffset = newTex->_private->_firstLevelFileOffset;
-    This->_private->_requiredLevelAlignment = newTex->_private->_requiredLevelAlignment;
-    This->_private->_sgdByteLength = newTex->_private->_sgdByteLength;
-    if (This->_private->_sgdByteLength) {
-        This->_private->_supercompressionGlobalData =
-            (ktx_uint8_t*)malloc(This->_private->_sgdByteLength);
-        std::memcpy(This->_private->_supercompressionGlobalData,
-                    newTex->_private->_supercompressionGlobalData,
-                    (size_t)This->_private->_sgdByteLength);
-    }
-
-    for (uint32_t level = 0; level < This->numLevels; level++) {
-        This->_private->_levelIndex[level] = newTex->_private->_levelIndex[level];
-        image_data_size += (ktx_size_t)This->_private->_levelIndex[level].byteLength;
+    // Since we've left m_check_for_alpha set and m_force_alpha unset in
+    // the compressor parameters, the basis encoder will have removed an input
+    // alpha channel, if every alpha pixel in every image is 255 prior to
+    // encoding and supercompression. The DFD needs to reflect the encoded data
+    // not the input texture. Override the alphacontent setting, if this has
+    // happened.
+    if ((bfh.m_flags & cBASISHeaderFlagHasAlphaSlices) == 0) {
+        alphaContent = eNone;
     }
 
     new_data = (uint8_t*)malloc(image_data_size);
@@ -1170,9 +1318,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         // and the requiredLevelAlignment.
         priv._requiredLevelAlignment = 1;
     }
-    This->vkFormat = (params->codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4X4)
-                         ? VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK
-                         : VK_FORMAT_UNDEFINED;
+    This->vkFormat = (params->codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4X4)? VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK : VK_FORMAT_UNDEFINED;
     This->isCompressed = KTX_TRUE;
     This->_protected->_typeSize = 1;
 
@@ -1189,14 +1335,11 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         priv._levelIndex[level].byteOffset = level_offset;
         // byteLength was set in loop above
         memcpy(This->pData + level_offset,
-               &kf[priv._firstLevelFileOffset + priv._levelIndex[level].byteOffset],
+               &bf[level_file_offsets[level]],
                priv._levelIndex[level].byteLength);
-        level_offset += _KTX_PADN(priv._requiredLevelAlignment, priv._levelIndex[level].byteLength);
+        level_offset += _KTX_PADN(priv._requiredLevelAlignment,
+                                  priv._levelIndex[level].byteLength);
     }
-
-    ktxTexture2_destruct(newTex);
-    free(newTex);
-    newTex = nullptr;
 
     return KTX_SUCCESS;
 
