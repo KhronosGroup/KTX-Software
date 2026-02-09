@@ -14,8 +14,8 @@
 
 /* We stick to standard C89 constructs for simplicity and portability. */
 
-#ifndef _KHR_DATA_FORMAT_H_
-#define _KHR_DATA_FORMAT_H_
+#ifndef KHR_DATA_FORMAT_H_
+#define KHR_DATA_FORMAT_H_
 
 /* Accessors */
 typedef enum _khr_word_e {

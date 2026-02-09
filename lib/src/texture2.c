@@ -2047,6 +2047,26 @@ ktxTexture2_NeedsTranscoding(ktxTexture2* This)
         return true;
     else if (KHR_DFDVAL(This->pDfd + 1, MODEL) == KHR_DF_MODEL_UASTC)
         return true;
+    else if (KHR_DFDVAL(This->pDfd + 1, MODEL) == KHR_DF_MODEL_UASTC_HDR_6X6)
+        return true;
+    else
+        return false;
+}
+
+/**
+ * @memberof ktxTexture2
+ * @~English
+ * @brief Query if the images require transcoding or can be used directly format.
+ *
+ * @param[in]     This     pointer to the ktxTexture2 object of interest.
+ */
+ktx_bool_t
+ktxTexture2_IsTranscodable(ktxTexture2* This)
+{
+    if (KHR_DFDVAL(This->pDfd + 1, MODEL) == KHR_DF_MODEL_ETC1S)
+        return true;
+    else if (KHR_DFDVAL(This->pDfd + 1, MODEL) == KHR_DF_MODEL_UASTC)
+        return true;
     else if (KHR_DFDVAL(This->pDfd + 1, MODEL) == KHR_DF_MODEL_UASTC_HDR_4X4)
         return true;
     else if (KHR_DFDVAL(This->pDfd + 1, MODEL) == KHR_DF_MODEL_UASTC_HDR_6X6)
@@ -3070,6 +3090,7 @@ struct ktxTexture_vtbl ktxTexture2_vtbl = {
     (PFNKTEXITERATELEVELS)ktxTexture2_IterateLevels,
     (PFNKTEXITERATELOADLEVELFACES)ktxTexture2_IterateLoadLevelFaces,
     (PFNKTEXNEEDSTRANSCODING)ktxTexture2_NeedsTranscoding,
+    (PFNKTEXISTRANSCODABLE)ktxTexture2_IsTranscodable,
     (PFNKTEXISHDR)ktxTexture2_IsHDR,
     (PFNKTEXLOADIMAGEDATA)ktxTexture2_LoadImageData,
     (PFNKTEXSETIMAGEFROMMEMORY)ktxTexture2_SetImageFromMemory,

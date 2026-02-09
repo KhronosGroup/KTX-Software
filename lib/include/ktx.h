@@ -473,6 +473,9 @@ typedef ktx_bool_t
     (KTX_APIENTRY* PFNKTEXNEEDSTRANSCODING)(ktxTexture* This);
 
 typedef ktx_bool_t
+    (KTX_APIENTRY* PFNKTEXISTRANSCODABLE)(ktxTexture* This);
+
+typedef ktx_bool_t
     (KTX_APIENTRY* PFNKTEXISHDR)(ktxTexture* This);
 
 typedef KTX_error_code
@@ -515,6 +518,7 @@ typedef KTX_error_code
     PFNKTEXITERATELEVELS IterateLevels;
     PFNKTEXITERATELOADLEVELFACES IterateLoadLevelFaces;
     PFNKTEXNEEDSTRANSCODING NeedsTranscoding;
+    PFNKTEXISTRANSCODABLE IsTranscodable;
     PFNKTEXISHDR IsHDR;
     PFNKTEXLOADIMAGEDATA LoadImageData;
     PFNKTEXSETIMAGEFROMMEMORY SetImageFromMemory;
@@ -603,6 +607,13 @@ typedef KTX_error_code
  * @copydoc ktxTexture2.ktxTexture2_NeedsTranscoding
  */
 #define ktxTexture_NeedsTranscoding(This) (This)->vtbl->NeedsTranscoding(This)
+
+/**
+ * @~English
+ * @brief Helper for calling the IsTranscodable virtual method of a ktxTexture.
+ * @copydoc ktxTexture2.ktxTexture2_IsTranscodable
+ */
+#define ktxTexture_IsTranscodable(This) (This)->vtbl->IsTranscodable(This)
 
 /**
  * @~English
@@ -1048,6 +1059,9 @@ ktxTexture1_Destroy(ktxTexture1* This);
 KTX_API ktx_bool_t KTX_APIENTRY
 ktxTexture1_NeedsTranscoding(ktxTexture1* This);
 
+KTX_API ktx_bool_t KTX_APIENTRY
+ktxTexture1_IsTranscodable(ktxTexture1* This);
+
 KTX_API ktx_error_code_e KTX_APIENTRY
 ktxTexture1_LoadImageData(ktxTexture1* This, ktx_uint8_t* pBuffer, ktx_size_t bufSize);
 
@@ -1163,6 +1177,9 @@ ktxTexture2_GetPrimaries_e(ktxTexture2* This);
 
 KTX_API ktx_bool_t KTX_APIENTRY
 ktxTexture2_NeedsTranscoding(ktxTexture2* This);
+
+KTX_API ktx_bool_t KTX_APIENTRY
+ktxTexture2_IsTranscodable(ktxTexture2* This);
 
 KTX_API ktx_error_code_e KTX_APIENTRY
 ktxTexture2_SetTransferFunction(ktxTexture2* This, khr_df_transfer_e tf);
@@ -1425,7 +1442,7 @@ typedef struct ktxBasisParams {
 
     /* ETC1S params */
 
-    ktx_uint32_t compressionLevel;
+    ktx_uint32_t etc1sCompressionLevel;
         /*!< Encoding speed vs. quality tradeoff. Range is [0,6]. Higher values
              are much slower, but give slightly higher quality. Higher levels
              are intended for video. There is no default. Callers must

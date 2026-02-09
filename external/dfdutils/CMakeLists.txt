@@ -70,6 +70,7 @@ add_library(dfdutils OBJECT
         colourspaces.c
         dfd.h
         interpretdfd.c
+        KHR/khr_df.h
         printdfd.c
         queries.c
         vk2dfd.c
@@ -142,7 +143,7 @@ if(DOXYGEN_FOUND)
     set( DOXYGEN_TIMESTAMP YES )
 
     doxygen_add_docs(
-            dfdutils.doc
+            docs
             dfd.h
             colourspaces.c
             createdfd.c

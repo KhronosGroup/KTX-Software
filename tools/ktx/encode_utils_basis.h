@@ -274,7 +274,7 @@ struct OptionsEncodeBasis : public ktxBasisParams {
         noSSE = false;
         structSize = sizeof(ktxBasisParams);
         // - 1 is to match what basisu_tool does (since 1.13).
-        compressionLevel = KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL - 1;
+        etc1sCompressionLevel = KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL - 1;
         qualityLevel.clear();
         maxEndpoints.clear();
         endpointRDOThreshold = 0.0f;
@@ -503,7 +503,7 @@ struct OptionsEncodeBasis : public ktxBasisParams {
 
         if (args[kCLevel].count()) {
             validateBasisLZArg(report, kCLevel);
-            compressionLevel = captureCodecOption<uint32_t>(args, kCLevel);;
+            etc1sCompressionLevel = captureCodecOption<uint32_t>(args, kCLevel);;
         }
 
         if (args[kQLevel].count()) {
