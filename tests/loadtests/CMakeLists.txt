@@ -78,7 +78,6 @@ function( ensure_runtime_dependencies_windows target test_images )
             COMMENT "Copy shaders to build destination"
         )
     endif()
-    cmake_print_variables(test_images)
     add_custom_command( TARGET ${target} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${test_images} "$<TARGET_FILE_DIR:${target}>/resources"
         COMMENT "Copy testimages to build destination"
