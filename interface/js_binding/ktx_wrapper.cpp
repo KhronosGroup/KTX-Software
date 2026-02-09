@@ -421,7 +421,7 @@ namespace ktx
     printf("params.threadCount %d\n", params.threadCount);
     printf("params.inputSwizzle %.4s\n", params.inputSwizzle);
     printf("params.preSwizzle %d\n", params.preSwizzle);
-    printf("params.ETC1S.compressionLevel %d\n", params.compressionLevel);
+    printf("params.ETC1S.etc1sCompressionLevel %d\n", params.etc1sCompressionLevel);
     printf("params.ETC1S.qualityLevel %d\n", params.qualityLevel);
     printf("params.ETC1S.maxEndpoints %d\n", params.maxEndpoints);
     printf("params.ETC1S.endpointRDOThreshold %f\n", params.endpointRDOThreshold);
@@ -649,7 +649,7 @@ interface basisParams {  // **
 
     // ETC1S/Basis-LZ parameters.
 
-    attribute long compressionLevel,
+    attribute long etc1sCompressionLevel,
     attribute long qualityLevel,
     attribute long maxEndpoints,
     attribute float endpointRDOThreshold,
@@ -1188,7 +1188,7 @@ like the following.
       basisu_options.noSSE = true;
       basisu_options.verbose = false;
       basisu_options.qualityLevel = 200;
-      basisu_options.compressionLevel = ktx.ETC1S_DEFAULT_COMPRESSION_LEVEL;
+      basisu_options.etc1sCompressionLevel = ktx.ETC1S_DEFAULT_COMPRESSION_LEVEL;
 
       var result = ktexture.compressBasis(basisu_options);
       // Check result for ktx.error_code.SUCCESS.
@@ -1518,7 +1518,7 @@ EMSCRIPTEN_BINDINGS(ktx)
 
       /* ETC1S params */
 
-      .property("compressionLevel", &ktxBasisParams::compressionLevel)
+      .property("etc1sCompressionLevel", &ktxBasisParams::etc1sCompressionLevel)
       .property("qualityLevel", &ktxBasisParams::qualityLevel)
       .property("maxEndpoints", &ktxBasisParams::maxEndpoints)
       .property("endpointRDOThreshold", &ktxBasisParams::endpointRDOThreshold)

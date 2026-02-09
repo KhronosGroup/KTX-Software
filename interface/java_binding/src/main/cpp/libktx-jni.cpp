@@ -56,7 +56,7 @@ jfieldID KtxBasisParams_codec_field; // "I"
 jfieldID KtxBasisParams_verbose_field; // "Z"
 jfieldID KtxBasisParams_noSSE_field; // "Z"
 jfieldID KtxBasisParams_threadCount_field; // "I"
-jfieldID KtxBasisParams_compressionLevel_field; // "I"
+jfieldID KtxBasisParams_etc1sCompressionLevel_field; // "I"
 jfieldID KtxBasisParams_qualityLevel_field; // "I"
 jfieldID KtxBasisParams_maxEndpoints_field; // "I"
 jfieldID KtxBasisParams_endpointRDOThreshold_field; // "F"
@@ -155,7 +155,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *jvm, void *)
     if (!initField(env, cls, KtxBasisParams_verbose_field, "verbose", "Z")) return JNI_ERR;
     if (!initField(env, cls, KtxBasisParams_noSSE_field, "noSSE", "Z")) return JNI_ERR;
     if (!initField(env, cls, KtxBasisParams_threadCount_field, "threadCount", "I")) return JNI_ERR;
-    if (!initField(env, cls, KtxBasisParams_compressionLevel_field, "compressionLevel", "I")) return JNI_ERR;
+    if (!initField(env, cls, KtxBasisParams_etc1sCompressionLevel_field, "compressionLevel", "I")) return JNI_ERR;
     if (!initField(env, cls, KtxBasisParams_qualityLevel_field, "qualityLevel", "I")) return JNI_ERR;
     if (!initField(env, cls, KtxBasisParams_maxEndpoints_field, "maxEndpoints", "I")) return JNI_ERR;
     if (!initField(env, cls, KtxBasisParams_endpointRDOThreshold_field, "endpointRDOThreshold", "F")) return JNI_ERR;
@@ -287,7 +287,7 @@ bool copy_ktx_basis_params(JNIEnv *env, jobject params, ktxBasisParams &out)
     out.verbose = env->GetBooleanField(params, KtxBasisParams_verbose_field);
     out.noSSE = env->GetBooleanField(params, KtxBasisParams_noSSE_field);
     out.threadCount = env->GetIntField(params, KtxBasisParams_threadCount_field);
-    out.compressionLevel = env->GetIntField(params, KtxBasisParams_compressionLevel_field);
+    out.etc1sCompressionLevel = env->GetIntField(params, KtxBasisParams_etc1sCompressionLevel_field);
     out.qualityLevel = env->GetIntField(params, KtxBasisParams_qualityLevel_field);
     out.maxEndpoints = env->GetIntField(params, KtxBasisParams_maxEndpoints_field);
     out.endpointRDOThreshold = env->GetFloatField(params, KtxBasisParams_endpointRDOThreshold_field);

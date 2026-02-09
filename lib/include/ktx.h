@@ -1442,7 +1442,7 @@ typedef struct ktxBasisParams {
 
     /* ETC1S params */
 
-    ktx_uint32_t compressionLevel;
+    ktx_uint32_t etc1sCompressionLevel;
         /*!< Encoding speed vs. quality tradeoff. Range is [0,6]. Higher values
              are much slower, but give slightly higher quality. Higher levels
              are intended for video. There is no default. Callers must
