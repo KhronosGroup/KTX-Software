@@ -1393,6 +1393,13 @@ ktxTexture1_NeedsTranscoding(ktxTexture1* This)
 }
 
 ktx_bool_t
+ktxTexture1_IsTranscodable(ktxTexture1* This)
+{
+    UNUSED(This);
+    return KTX_FALSE;
+}
+
+ktx_bool_t
 ktxTexture1_IsHDR(ktxTexture1* This)
 {
     UNUSED(This);
@@ -1490,6 +1497,7 @@ struct ktxTexture_vtbl ktxTexture1_vtbl = {
     (PFNKTEXITERATELEVELS)ktxTexture1_IterateLevels,
     (PFNKTEXITERATELOADLEVELFACES)ktxTexture1_IterateLoadLevelFaces,
     (PFNKTEXNEEDSTRANSCODING)ktxTexture1_NeedsTranscoding,
+    (PFNKTEXISTRANSCODABLE)ktxTexture1_IsTranscodable,
     (PFNKTEXISHDR)ktxTexture1_IsHDR,
     (PFNKTEXLOADIMAGEDATA)ktxTexture1_LoadImageData,
     (PFNKTEXSETIMAGEFROMMEMORY)ktxTexture1_SetImageFromMemory,

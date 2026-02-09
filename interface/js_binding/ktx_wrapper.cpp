@@ -145,6 +145,11 @@ namespace ktx
             return ktxTexture_NeedsTranscoding(m_ptr.get());
         }
 
+        bool isTranscodable() const
+        {
+            return ktxTexture_IsTranscodable(m_ptr.get());
+        }
+
         bool isHDR() const {
             return ktxTexture_IsHDR(m_ptr.get());
         }
@@ -694,6 +699,7 @@ interface texture {
     readonly attribute boolean isSRGB;
     readonly attribute boolean isPremultiplied;
     readonly attribute boolean needsTranscoding;
+    readonly attribute boolean isTranscodable;
     readonly attribute boolean isHDR;
     readonly attribute long numComponents;
     readonly attribute long vkFormat;
@@ -1346,6 +1352,7 @@ EMSCRIPTEN_BINDINGS(ktx)
         .property("isSrgb", &ktx::texture::isSrgb)
         .property("isHDR", &ktx::texture::isHDR)
         .property("isPremultiplied", &ktx::texture::isPremultiplied)
+        .property("isTranscodable", &ktx::texture::isTranscodable)
         .property("needsTranscoding", &ktx::texture::needsTranscoding)
         .property("numComponents", &ktx::texture::numComponents)
         .property("orientation", &ktx::texture::orientation)

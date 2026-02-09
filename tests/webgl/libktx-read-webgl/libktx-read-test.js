@@ -357,14 +357,14 @@ function uploadTextureToGl(gl, ktexture) {
   const { transcode_fmt } = ktx;
   var formatString;
 
-  if (ktexture.needsTranscoding) {
+  if (ktexture.isTranscodable) {
     var format;
     if (ktexture.isHDR) {
       const model = ktexture.colorModel;
 
       //const model = ktexture.get
       if (astcSupported && HDRsupported) {
-        if (ktx.khr_df_model.KHR_DF_MODEL_UASTC_4X4_HDR == model) {
+        if (ktx.khr_df_model.KHR_DF_MODEL_UASTC_HDR_4X4 == model) {
           formatString = 'ASTC_HDR_4x4';
           format = transcode_fmt.ASTC_HDR_4x4_RGBA;
         } else {
