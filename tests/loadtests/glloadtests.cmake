@@ -153,7 +153,7 @@ function( create_gl_target target version sources common_resources test_images
                 ${GLEW_LIBRARIES}
             )
         endif()
-        ensure_runtime_dependencies_windows(${target})
+        ensure_runtime_dependencies_windows(${target} "${test_images}")
     elseif(LINUX)
         # The output file is configured at CMake config time.
         configure_file(glloadtests/resources/linux/glloadtests.desktop.in
