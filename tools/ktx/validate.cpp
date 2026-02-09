@@ -1008,8 +1008,14 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
 
                 // UASTC 4x4 requires lower to be 0.
                 if (khr_df_model_e(block.model) == khr_df_model_e::KHR_DF_MODEL_UASTC_HDR_4X4)
+                {
                     for (auto& expectedSample : *expectedSamples) 
+                    {
                         expectedSample.lower = 0;
+                        expectedSample.qualifierSigned = 0;
+                    }
+                }
+                    
 
                 for (std::size_t i = 0; i < std::min(samples.size(), expectedSamples->size()); ++i) {
                     const auto& parsed = samples[i];
