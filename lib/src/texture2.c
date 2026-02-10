@@ -2063,13 +2063,9 @@ ktxTexture2_NeedsTranscoding(ktxTexture2* This)
 ktx_bool_t
 ktxTexture2_IsTranscodable(ktxTexture2* This)
 {
-    if (KHR_DFDVAL(This->pDfd + 1, MODEL) == KHR_DF_MODEL_ETC1S)
-        return true;
-    else if (KHR_DFDVAL(This->pDfd + 1, MODEL) == KHR_DF_MODEL_UASTC)
+    if (ktxTexture2_NeedsTranscoding(This))
         return true;
     else if (KHR_DFDVAL(This->pDfd + 1, MODEL) == KHR_DF_MODEL_UASTC_HDR_4X4)
-        return true;
-    else if (KHR_DFDVAL(This->pDfd + 1, MODEL) == KHR_DF_MODEL_UASTC_HDR_6X6)
         return true;
     else
         return false;
