@@ -1638,13 +1638,12 @@ void ValidationContext::validateSGD() {
     switch (header.supercompressionScheme) {
         // Validate UASTC_HDR_6X6_INTERMEDIATE SGD
         case KTX_SS_UASTC_HDR_6X6_INTERMEDIATE: {
-            // Validate GlobalHeader
             if (sgdByteLength < sizeof(ktxUASTCHDR6X6IntermediateImageDesc)) {
-                error(SGD::BLZESizeTooSmallHeader, sgdByteLength);
+                error(SGD::UH6X6IESizeTooSmall, sgdByteLength);
                 return;
             }
 
-            if ((sgdByteLength % 8) != 0) {
+            if ((sgdByteLength % 12) != 0) {
                 error(SGD::UH6X6IEByteLengthInvalidSize, sgdByteLength);
                 return;
             }
@@ -1653,6 +1652,7 @@ void ValidationContext::validateSGD() {
 
             uint32_t i = 0;
             for (uint32_t level = 0; level < numLevels; ++level) {
+                const auto level_offset = levelIndices[level].byteOffset;
                 for (uint32_t layer = 0; layer < numLayers; ++layer) {
                     for (uint32_t face = 0; face < header.faceCount; ++face) {
                         for (uint32_t zSlice = 0; zSlice < std::max(header.pixelDepth >> level, 1u); ++zSlice) {
@@ -1664,6 +1664,20 @@ void ValidationContext::validateSGD() {
 
                             if (image.rgbSliceByteOffset + image.rgbSliceByteLength > levelIndices[level].byteLength)
                                 error(SGD::UH6X6IEInvalidRGBSlice, level, layer, face, zSlice, image.rgbSliceByteOffset, image.rgbSliceByteLength, levelIndices[level].byteLength);
+
+                            if (image.rgbSliceType != 0x0000ABCD)
+                                error(SGD::UH6X6IEInvalidRGBSliceType, level, layer, face, zSlice, image.rgbSliceType);
+
+                            const auto header_buffer = std::make_unique<uint16_t[]>(3);
+                            read(level_offset + image.rgbSliceByteOffset, header_buffer.get(), sizeof(uint16_t) * 3, "Headers");
+
+                            if (header_buffer[0] != 0xABCD)
+                                error(SGD::UH6X6IEInvalidRGBSliceType, level, layer, face, zSlice, image.rgbSliceType);
+
+                            const auto expected_width = static_cast<uint16_t>(std::max(header.pixelWidth >> level, 1u));
+                            const auto expected_height = static_cast<uint16_t>(std::max(header.pixelHeight >> level, 1u));
+                            if ((header_buffer[1] != expected_width) || (header_buffer[2] != expected_height))
+                                error(SGD::UH6X6IEInvalidRGBSliceDimensionsInData, level, layer, face, zSlice, header_buffer[1], header_buffer[2], expected_width, expected_height);
                         }
                     }
                 }

@@ -84,6 +84,7 @@ enum alpha_content_e {
 typedef struct ktxUASTCHDR6X6IntermediateImageDesc {
     uint32_t rgbSliceByteOffset;
     uint32_t rgbSliceByteLength;
+    uint32_t rgbSliceType;
 } ktxUASTCHDR6X6IntermediateImageDesc;
 
 #ifdef __cplusplus

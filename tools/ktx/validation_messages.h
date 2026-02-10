@@ -793,12 +793,12 @@ struct SGD {
     // 82xx - UASTC HDR6X6 Intermediate related issues:
 
     static constexpr IssueError UH6X6IESizeTooSmall{
-        8201, "Invalid sgdByteLength for UASTC HDR6X6 Intermediate. sgdByteLength must be at least 8 bytes (sizeof ktxUASTCHDR6X6IntermediateImageDesc).",
-        "sgdByteLength is {} but for UASTC HDR6X6 Intermediate textures it must be at least 8 bytes (sizeof ktxUASTCHDR6X6IntermediateImageDesc)."
+        8201, "Invalid sgdByteLength for UASTC HDR6X6 Intermediate. sgdByteLength must be at least 12 bytes (sizeof ktxUASTCHDR6X6IntermediateImageDesc).",
+        "sgdByteLength is {} but for UASTC HDR6X6 Intermediate textures it must be at least 12 bytes (sizeof ktxUASTCHDR6X6IntermediateImageDesc)."
     };
     static constexpr IssueError UH6X6IEByteLengthInvalidSize{
-        8202, "Invalid sgdByteLength for UASTC HDR6X6 Intermediate. sgdByteLength must be a multiple of 8 (sizeof ktxUASTCHDR6X6IntermediateImageDesc).",
-        "sgdByteLength is {} but for UASTC HDR6X6 Intermediate byte length must be a multiple of 8 bytes (sizeof ktxUASTCHDR6X6IntermediateImageDesc)."
+        8202, "Invalid sgdByteLength for UASTC HDR6X6 Intermediate. sgdByteLength must be a multiple of 12 (sizeof ktxUASTCHDR6X6IntermediateImageDesc).",
+        "sgdByteLength is {} but for UASTC HDR6X6 Intermediate byte length must be a multiple of 12 bytes (sizeof ktxUASTCHDR6X6IntermediateImageDesc)."
     };
     static constexpr IssueError UH6X6IEZeroRGBLength{
         8203, "Invalid rgbSliceByteLength in UASTCHDR6X6IntermediateImageDesc. rgbSliceByteLength must not be 0.",
@@ -807,6 +807,18 @@ struct SGD {
     static constexpr IssueError UH6X6IEInvalidRGBSlice{
         8204, "Invalid rgbSliceByteOffset or rgbSliceByteLength. The defined byte region must be within the corresponding mip level.",
         "For Level {} Layer {} Face {} zSlice {} the rgbSliceByteOffset is {} and the rgbSliceByteLength is {} but the defined region must fit in the level's byteLength of {}."
+    };
+    static constexpr IssueError UH6X6IEInvalidRGBSliceType{
+        8205, "Invalid rgbSliceType. The rgbSliceType byte region must be 0xABCD.",
+        "For Level {} Layer {} Face {} zSlice {} the rgbSliceType is {} but the rgbSliceType must be 0xABCD."
+    };
+    static constexpr IssueError UH6X6IEInvalidRGBSliceTypeInData{
+        8206, "Invalid rgbSliceType in data. The rgbSliceType byte in the compressed data region must be 0xABCD.",
+        "For Level {} Layer {} Face {} zSlice {} the rgbSliceType in the compressed data is {} but the rgbSliceType in the compressed data must be 0xABCD."
+    };
+    static constexpr IssueError UH6X6IEInvalidRGBSliceDimensionsInData{
+        8207, "Invalid slice dimensions in data. The dimensions in the compressed data region must match the level dimensions.",
+        "For Level {} Layer {} Face {} zSlice {} the dimensions in the compressed data are width: {} and height: {} but the dimensions must be width: {} and height: {}."
     };
 };
 

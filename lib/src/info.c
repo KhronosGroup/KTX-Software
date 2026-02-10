@@ -693,6 +693,7 @@ printUASTCHDR6X6IntermediateSGDInfo(ktx_uint8_t* bgd, ktx_uint64_t byteLength,
 
         fprintf(stdout, "\nrgbSliceByteLength: %u\n", slices[i].rgbSliceByteLength);
         fprintf(stdout, "rgbSliceByteOffset: %#x\n", slices[i].rgbSliceByteOffset);
+        fprintf(stdout, "rgbSliceType: %#x\n", slices[i].rgbSliceType);
     }
 }
 
