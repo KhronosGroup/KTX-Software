@@ -149,7 +149,7 @@ void CommandTranscode::executeTranscode() {
     if (ret != KTX_SUCCESS)
         fatal(rc::INVALID_FILE, "Failed to create KTX2 texture: {}", ktxErrorString(ret));
 
-    if (!ktxTexture2_NeedsTranscoding(texture))
+    if (!ktxTexture2_IsTranscodable(texture))
         fatal(rc::INVALID_FILE, "KTX file is not transcodable.");
 
     texture = transcode(std::move(texture), options, *this);
