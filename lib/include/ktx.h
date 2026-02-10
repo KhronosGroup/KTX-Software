@@ -1415,11 +1415,11 @@ typedef ktx_uint32_t ktx_basis_codec;
  * @code
  *  ktxBasisParams params = {0};
  *  params.structSize = sizeof(params);
- *  params.compressionLevel = KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL;
+ *  params.etc1sCompressionLevel = KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL;
  * @endcode
  *
- * @e compressionLevel has to be explicitly set because 0 is a valid
- * @e compressionLevel but is not the default used by the BasisU encoder
+ * @e etc1sCompressionLevel has to be explicitly set because 0 is a valid
+ * @e etc1sCompressionLevel but is not the default used by the BasisU encoder
  * when no value is set. Only the other settings that are to be non-default
  * must be non-zero.
  */
@@ -1443,12 +1443,14 @@ typedef struct ktxBasisParams {
     /* ETC1S params */
 
     ktx_uint32_t etc1sCompressionLevel;
-        /*!< Encoding speed vs. quality tradeoff. Range is [0,6]. Higher values
-             are much slower, but give slightly higher quality. Higher levels
-             are intended for video. There is no default. Callers must
-             explicitly set this value. Callers can use
-             KTX\_ETC1S\_DEFAULT\_COMPRESSION\_LEVEL as a default value.
-             Currently this is 2.
+        /*!< ETC1S compression effort level. Range is [0,6]. Higher values are much
+             slower, but give slightly higher quality. Higher levels are intended
+             for video. This parameter controls numerous internal encoding speed vs.
+             compression efficiency/performance tradeoffs. Note this is NOT the same
+             as the ETC1S quality level, and most users shouldn't change this.
+             There is no default. Callers must explicitly set this value. Callers
+             can use KTX\_ETC1S\_DEFAULT\_COMPRESSION\_LEVEL as a default value.
+             Currently this is 2
         */
     ktx_uint32_t qualityLevel;
         /*!< Compression quality. Range is [1,255].  Lower gives better
