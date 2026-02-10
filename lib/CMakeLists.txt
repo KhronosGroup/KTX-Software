@@ -483,6 +483,7 @@ endif()
 add_subdirectory(../external/basis_universal basisu-encoder)
 
 set(DFDUTILS_TESTAPPS OFF CACHE BOOL "Enable DFD Utils tests.")
+set(DFDUTILS_EMBED ON CACHE BOOL "Embed DFD Utils library via object library")
 add_subdirectory(../external/dfdutils dfdutils)
 
 ###################################################

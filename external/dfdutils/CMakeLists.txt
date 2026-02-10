@@ -8,6 +8,7 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 option( DFDUTILS_TESTAPPS "Enable DFD Utils tests." ON)
+option( DFDUTILS_EMBED "Embed DFD Utils library via object library" OFF)
 
 # Output directory used for all build artifacts
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -62,10 +63,15 @@ add_custom_target(vk2dfd_inl
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/vk2dfd.inl
 )
 
+set(DFDUTILS_LINK_TYPE STATIC)
+if(DFDUTILS_EMBED)
+    set(DFDUTILS_LINK_TYPE OBJECT)
+endif()
+
 #
 # --- DFD Utils library ---
 #
-add_library(dfdutils OBJECT
+add_library(dfdutils ${DFDUTILS_LINK_TYPE}
         createdfd.c
         colourspaces.c
         dfd.h
