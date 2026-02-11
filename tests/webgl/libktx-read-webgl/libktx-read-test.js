@@ -396,9 +396,12 @@ function uploadTextureToGl(gl, ktexture) {
         format = transcode_fmt.RGBA4444;
       }
     }
-    if (ktexture.transcodeBasis(format, 0) != ktx.error_code.SUCCESS) {
-        alert('Texture transcode failed. See console for details.');
-        return undefined;
+    /* UASTC_HDR_4x4_RGBA is regular ASTC_HDR_4x4_RGBA so we use directly without transcoding */
+    if (format !== transcode_fmt.ASTC_HDR_4x4_RGBA) {
+      if (ktexture.transcodeBasis(format, 0) != ktx.error_code.SUCCESS) {
+          alert('Texture transcode failed. See console for details.');
+          return undefined;
+      }
     }
   }
 
