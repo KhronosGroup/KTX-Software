@@ -78,7 +78,7 @@ enum alpha_content_e {
     eGreen
 };
 
-// 1, or 2 slices per image (i.e. layer, face & slice).
+// 1 slice per image (i.e. layer, face & slice).
 // These offsets are relative to start of a mip level as given by the
 // main levelIndex.
 typedef struct ktxUASTCHDR6X6IntermediateImageDesc {
