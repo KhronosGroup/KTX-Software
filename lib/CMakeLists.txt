@@ -457,6 +457,8 @@ macro(common_libktx_settings target enable_write library_type)
             $<$<BOOL:${BASISU_SUPPORT_OPENCL}>:${OpenCL_LIBRARY}>
         )
     endif()
+
+    target_link_libraries(${target} PUBLIC dfdutils)
 endmacro(common_libktx_settings)
 
 macro(add_lib_dependencies target lib)
@@ -499,7 +501,6 @@ if(LIBKTX_VERSION_FULL)
     )
     common_libktx_settings(ktx 1 ${LIB_TYPE})
     add_lib_dependencies(ktx basisu_encoder)
-    target_link_libraries(ktx PUBLIC dfdutils)
 endif()
 
 # Read-only library
@@ -509,7 +510,6 @@ if(LIBKTX_VERSION_READ_ONLY)
     )
     common_libktx_settings(ktx_read 0 ${LIB_TYPE})
     add_lib_dependencies(ktx_read basisu_encoder)
-    target_link_libraries(ktx_read PUBLIC dfdutils)
 endif()
 
 create_version_header(src ktx)
