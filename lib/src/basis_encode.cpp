@@ -1111,8 +1111,9 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
                         kimages[image].rgbSliceByteOffset = slice->m_file_ofs
                                                        - level_file_offsets[level];
                         kimages[image].rgbSliceByteLength = slice->m_file_size;
-                        kimages[image].rgbSliceType = 0x0000ABCD;
-
+                        const auto version = bf[slice->m_file_ofs + 0];
+                        const auto profile = bf[slice->m_file_ofs + 1];
+                        kimages[image].rgbSliceType = (static_cast<uint32_t>(profile) << 8) | static_cast<uint32_t>(version);
                         slice++;
                         image++;
                     }

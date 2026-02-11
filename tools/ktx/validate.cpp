@@ -1665,14 +1665,26 @@ void ValidationContext::validateSGD() {
                             if (image.rgbSliceByteOffset + image.rgbSliceByteLength > levelIndices[level].byteLength)
                                 error(SGD::UH6X6IEInvalidRGBSlice, level, layer, face, zSlice, image.rgbSliceByteOffset, image.rgbSliceByteLength, levelIndices[level].byteLength);
 
-                            if (image.rgbSliceType != 0x0000ABCD)
-                                error(SGD::UH6X6IEInvalidRGBSliceType, level, layer, face, zSlice, image.rgbSliceType);
+                            const auto sgd_profile = static_cast<unsigned char>(image.rgbSliceType >> 8);
+                            const auto sgd_version = static_cast<unsigned char>(image.rgbSliceType);
+
+                            if (sgd_profile != 0xAB)
+                                error(SGD::UH6X6IEInvalidRGBSliceTypeProfile, level, layer, face, zSlice, sgd_profile);
+
+                            if ((sgd_version != 0xCD) && (sgd_version != 0xCE))
+                                error(SGD::UH6X6IEInvalidRGBSliceTypeVersion, level, layer, face, zSlice, sgd_version);
 
                             const auto header_buffer = std::make_unique<uint16_t[]>(3);
                             read(level_offset + image.rgbSliceByteOffset, header_buffer.get(), sizeof(uint16_t) * 3, "Headers");
 
-                            if (header_buffer[0] != 0xABCD)
-                                error(SGD::UH6X6IEInvalidRGBSliceType, level, layer, face, zSlice, image.rgbSliceType);
+                            const auto profile = static_cast<unsigned char>(header_buffer[0] >> 8);
+                            const auto version = static_cast<unsigned char>(header_buffer[0]);
+
+                            if (profile != sgd_profile)
+                                error(SGD::UH6X6IERGBSliceTypeProfileMismatch, level, layer, face, zSlice, sgd_profile, profile);
+
+                            if (version != sgd_version)
+                                error(SGD::UH6X6IERGBSliceTypeVersionMismatch, level, layer, face, zSlice, sgd_version, version);
 
                             const auto expected_width = static_cast<uint16_t>(std::max(header.pixelWidth >> level, 1u));
                             const auto expected_height = static_cast<uint16_t>(std::max(header.pixelHeight >> level, 1u));

@@ -808,17 +808,25 @@ struct SGD {
         8204, "Invalid rgbSliceByteOffset or rgbSliceByteLength. The defined byte region must be within the corresponding mip level.",
         "For Level {} Layer {} Face {} zSlice {} the rgbSliceByteOffset is {} and the rgbSliceByteLength is {} but the defined region must fit in the level's byteLength of {}."
     };
-    static constexpr IssueError UH6X6IEInvalidRGBSliceType{
-        8205, "Invalid rgbSliceType. The rgbSliceType byte region must be 0xABCD.",
-        "For Level {} Layer {} Face {} zSlice {} the rgbSliceType is {} but the rgbSliceType must be 0xABCD."
+    static constexpr IssueError UH6X6IEInvalidRGBSliceTypeProfile{
+        8205, "Invalid rgbSliceType profile. The rgbSliceType profile byte region must be 171 (0xAB).",
+        "For Level {} Layer {} Face {} zSlice {} the rgbSliceType profile is {} but the rgbSliceType profile must be 171 (0xAB)."
     };
-    static constexpr IssueError UH6X6IEInvalidRGBSliceTypeInData{
-        8206, "Invalid rgbSliceType in data. The rgbSliceType byte in the compressed data region must be 0xABCD.",
-        "For Level {} Layer {} Face {} zSlice {} the rgbSliceType in the compressed data is {} but the rgbSliceType in the compressed data must be 0xABCD."
+    static constexpr IssueError UH6X6IEInvalidRGBSliceTypeVersion{
+        8206, "Invalid rgbSliceType version. The rgbSliceType version byte region must be either 205 (0xCD) or 206 (0xCE).",
+        "For Level {} Layer {} Face {} zSlice {} the rgbSliceType version is {} but the rgbSliceType version must be either 205 (0xCD) or 206 (0xCE)."
+    };
+    static constexpr IssueError UH6X6IERGBSliceTypeProfileMismatch{
+        8207, "Mismatched rgbSliceType profile in Supercompression Global Data and Compressed Data bitstream.",
+        "For Level {} Layer {} Face {} zSlice {} the rgbSliceType profile in the Supercompression Global Data is {} but the rgbSliceType profile in the Compressed Data bitstream is {}."
+    };
+    static constexpr IssueError UH6X6IERGBSliceTypeVersionMismatch{
+        8208, "Mismatched rgbSliceType version in Supercompression Global Data and Compressed Data bitstream.",
+        "For Level {} Layer {} Face {} zSlice {} the rgbSliceType version in the Supercompression Global Data is {} but the rgbSliceType profile in the Compressed Data bitstream is {}."
     };
     static constexpr IssueError UH6X6IEInvalidRGBSliceDimensionsInData{
-        8207, "Invalid slice dimensions in data. The dimensions in the compressed data region must match the level dimensions.",
-        "For Level {} Layer {} Face {} zSlice {} the dimensions in the compressed data are width: {} and height: {} but the dimensions must be width: {} and height: {}."
+        8209, "Invalid slice dimensions in the Compressed Data bitstream. The dimensions in the Compressed Data bitstream must match the level dimensions.",
+        "For Level {} Layer {} Face {} zSlice {} the dimensions in the Compressed Data bitstream are width: {} and height: {} but the dimensions must be width: {} and height: {}."
     };
 };
 
