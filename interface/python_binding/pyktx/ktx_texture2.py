@@ -139,7 +139,7 @@ class KtxTexture2(KtxTexture):
                                                    params.verbose,
                                                    params.no_sse,
                                                    params.thread_count,
-                                                   params.compression_level,
+                                                   params.etc1s_compression_level,
                                                    params.quality_level,
                                                    params.max_endpoints,
                                                    params.endpoint_rdo_threshold,
