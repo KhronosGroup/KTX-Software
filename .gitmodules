@@ -5,4 +5,4 @@
 [submodule "tests/cts"]
 	path = tests/cts
 	url = https://github.com/KhronosGroup/KTX-Software-CTS.git
-	branch = main
+	branch = hdrtests
