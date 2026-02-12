@@ -441,7 +441,7 @@ ktxTexture2_rewriteDfd4Uastc(ktxTexture2* This,
 
 static KTX_error_code
 ktxTexture2_rewriteDfd4UastcHDR4x4(ktxTexture2* This, alpha_content_e alphaContent, bool isLuminance,
-                             swizzle_e swizzle[4]) {
+                                   swizzle_e swizzle[4]) {
     UNUSED(alphaContent);
     UNUSED(isLuminance);
     UNUSED(swizzle);
@@ -486,7 +486,7 @@ ktxTexture2_rewriteDfd4UastcHDR4x4(ktxTexture2* This, alpha_content_e alphaConte
 
 static KTX_error_code
 ktxTexture2_rewriteDfd4UastcHDR6x6i(ktxTexture2* This, alpha_content_e alphaContent, bool isLuminance,
-                             swizzle_e swizzle[4]) {
+                                    swizzle_e swizzle[4]) {
     UNUSED(alphaContent);
     UNUSED(isLuminance);
     UNUSED(swizzle);
