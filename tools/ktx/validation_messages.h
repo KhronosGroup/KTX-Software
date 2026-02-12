@@ -813,8 +813,10 @@ struct SGD {
         "For Level {} Layer {} Face {} zSlice {} the rgbSliceType profile is {} but the rgbSliceType profile must be 171 (0xAB)."
     };
     static constexpr IssueError UH6X6IEInvalidRGBSliceTypeVersion{
-        8206, "Invalid rgbSliceType version. The rgbSliceType version byte region must be either 205 (0xCD) or 206 (0xCE).",
-        "For Level {} Layer {} Face {} zSlice {} the rgbSliceType version is {} but the rgbSliceType version must be either 205 (0xCD) or 206 (0xCE)."
+        //8206, "Invalid rgbSliceType version. The rgbSliceType version byte region must be either 205 (0xCD) or 206 (0xCE).",
+        //"For Level {} Layer {} Face {} zSlice {} the rgbSliceType version is {} but the rgbSliceType version must be either 205 (0xCD) or 206 (0xCE)."
+        8206, "Invalid rgbSliceType version. The rgbSliceType version byte region must be either 205 (0xCD).",
+        "For Level {} Layer {} Face {} zSlice {} the rgbSliceType version is {} but the rgbSliceType version must be either 205 (0xCD)."
     };
     static constexpr IssueError UH6X6IERGBSliceTypeProfileMismatch{
         8207, "Mismatched rgbSliceType profile in Supercompression Global Data and Compressed Data bitstream.",

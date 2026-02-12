@@ -1671,7 +1671,7 @@ void ValidationContext::validateSGD() {
                             if (sgd_profile != 0xAB)
                                 error(SGD::UH6X6IEInvalidRGBSliceTypeProfile, level, layer, face, zSlice, sgd_profile);
 
-                            if ((sgd_version != 0xCD) && (sgd_version != 0xCE))
+                            if ((sgd_version != 0xCD) /* && (sgd_version != 0xCE) */)
                                 error(SGD::UH6X6IEInvalidRGBSliceTypeVersion, level, layer, face, zSlice, sgd_version);
 
                             const auto header_buffer = std::make_unique<uint16_t[]>(3);
