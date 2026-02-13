@@ -15,8 +15,8 @@
  * Author: Andrew Garrard
  */
 
-#ifndef _DFD_H_
-#define _DFD_H_
+#ifndef DFD_H_
+#define DFD_H_
 
 #include <KHR/khr_df.h>
 #include <stdbool.h>
@@ -233,4 +233,4 @@ bool getPrimaries(khr_df_primaries_e primaries, Primaries *p);
 }
 #endif
 
-#endif /* _DFD_H_ */
+#endif /* DFD_H_ */

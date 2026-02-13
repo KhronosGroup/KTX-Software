@@ -7,6 +7,8 @@
 #include <KHR/khr_df.h>
 #include "dfd.h"
 
+#define UNUSED(x) (void)(x)
+
 uint32_t dfd1[] = {
     4U + 4U * (KHR_DF_WORD_SAMPLESTART + (4U * KHR_DF_WORD_SAMPLEWORDS)),
     ((KHR_DF_VENDORID_KHRONOS << KHR_DF_SHIFT_VENDORID) |
@@ -200,6 +202,8 @@ uint32_t dfd6[] = { /* Little-endian unpacked extended (N.B. could be done in tw
 
 int main(int argc, char** argv)
 {
+    UNUSED(argc);
+    UNUSED(argv);
     const char *errorText[] = {
         "UNSUPPORTED_NONTRIVIAL_ENDIANNESS",
         "UNSUPPORTED_MULTIPLE_SAMPLE_LOCATIONS",

@@ -24,6 +24,7 @@ target_include_directories(
 PRIVATE
     $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:objUtil,INTERFACE_INCLUDE_DIRECTORIES>
+    ${CMAKE_SOURCE_DIR}/external/dfdutils
 )
 
 target_link_libraries(

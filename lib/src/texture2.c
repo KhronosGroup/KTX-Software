@@ -821,6 +821,9 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
     if (This->supercompressionScheme == KTX_SS_BASIS_LZ && pBDFD->model != KHR_DF_MODEL_ETC1S) {
         result = KTX_FILE_DATA_ERROR;
         goto cleanup;
+    } else if (This->supercompressionScheme == KTX_SS_UASTC_HDR_6X6_INTERMEDIATE && pBDFD->model != KHR_DF_MODEL_UASTC_HDR_6X6) {
+        result = KTX_FILE_DATA_ERROR;
+        goto cleanup;
     }
 
     // Check compatibility with the KHR_texture_basisu glTF extension, if needed.
@@ -995,6 +998,7 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
     if (pHeader->supercompressionGlobalData.byteLength > 0) {
         switch (This->supercompressionScheme) {
           case KTX_SS_BASIS_LZ:
+          case KTX_SS_UASTC_HDR_6X6_INTERMEDIATE:
             break;
           case KTX_SS_NONE:
           case KTX_SS_ZSTD:
@@ -1036,6 +1040,10 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
         goto cleanup;
     } else if (This->supercompressionScheme == KTX_SS_BASIS_LZ) {
         // SGD is required for BasisLZ
+        result = KTX_FILE_DATA_ERROR;
+        goto cleanup;
+    } else if (This->supercompressionScheme == KTX_SS_UASTC_HDR_6X6_INTERMEDIATE) {
+        // SGD is required for UASTC HDR6X6 Intermediate
         result = KTX_FILE_DATA_ERROR;
         goto cleanup;
     }
@@ -2039,8 +2047,55 @@ ktxTexture2_NeedsTranscoding(ktxTexture2* This)
         return true;
     else if (KHR_DFDVAL(This->pDfd + 1, MODEL) == KHR_DF_MODEL_UASTC)
         return true;
+    else if (KHR_DFDVAL(This->pDfd + 1, MODEL) == KHR_DF_MODEL_UASTC_HDR_6X6)
+        return true;
     else
         return false;
+}
+
+/**
+ * @memberof ktxTexture2
+ * @~English
+ * @brief Query if the images require transcoding or can be used directly format.
+ *
+ * @param[in]     This     pointer to the ktxTexture2 object of interest.
+ */
+ktx_bool_t
+ktxTexture2_IsTranscodable(ktxTexture2* This)
+{
+    if (ktxTexture2_NeedsTranscoding(This))
+        return true;
+    else if (KHR_DFDVAL(This->pDfd + 1, MODEL) == KHR_DF_MODEL_UASTC_HDR_4X4)
+        return true;
+    else
+        return false;
+}
+
+/**
+ * @memberof ktxTexture2
+ * @~English
+ * @brief Query if the images are in an HDR format.
+ *
+ * @param[in]     This     pointer to the ktxTexture2 object of interest.
+ */
+ktx_bool_t
+ktxTexture2_IsHDR(ktxTexture2* This)
+{
+    khr_df_model_e model = KHR_DFDVAL(This->pDfd + 1, MODEL);
+
+    if (model == KHR_DF_MODEL_ASTC) {
+        const uint32_t *pBdb = This->pDfd + 1;
+        uint32_t numSamples = KHR_DFDSAMPLECOUNT(pBdb);
+        for (uint32_t sample = 0; sample < numSamples; ++sample) {
+            khr_df_sample_datatype_qualifiers_e qualifiers = (khr_df_sample_datatype_qualifiers_e)KHR_DFDSVAL(pBdb, sample, QUALIFIERS);
+            if (qualifiers & KHR_DF_SAMPLE_DATATYPE_FLOAT) return true;
+        }
+    }
+
+    return (model == KHR_DF_MODEL_BC6H
+         || model == KHR_DF_MODEL_UASTC_HDR_4X4
+         || model == KHR_DF_MODEL_UASTC_HDR_6X6
+         );
 }
 
 #if KTX_FEATURE_WRITE
@@ -2128,6 +2183,7 @@ ktxTexture2_GetDataSizeUncompressed(ktxTexture2* This)
 {
     switch (This->supercompressionScheme) {
       case KTX_SS_BASIS_LZ:
+      case KTX_SS_UASTC_HDR_6X6_INTERMEDIATE:
       case KTX_SS_NONE:
         return This->dataSize;
       case KTX_SS_ZSTD:
@@ -3030,6 +3086,8 @@ struct ktxTexture_vtbl ktxTexture2_vtbl = {
     (PFNKTEXITERATELEVELS)ktxTexture2_IterateLevels,
     (PFNKTEXITERATELOADLEVELFACES)ktxTexture2_IterateLoadLevelFaces,
     (PFNKTEXNEEDSTRANSCODING)ktxTexture2_NeedsTranscoding,
+    (PFNKTEXISTRANSCODABLE)ktxTexture2_IsTranscodable,
+    (PFNKTEXISHDR)ktxTexture2_IsHDR,
     (PFNKTEXLOADIMAGEDATA)ktxTexture2_LoadImageData,
     (PFNKTEXSETIMAGEFROMMEMORY)ktxTexture2_SetImageFromMemory,
     (PFNKTEXSETIMAGEFROMSTDIOSTREAM)ktxTexture2_SetImageFromStdioStream,

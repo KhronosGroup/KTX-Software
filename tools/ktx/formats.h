@@ -105,6 +105,7 @@ namespace ktx {
 [[nodiscard]] constexpr inline bool isSupercompressionWithGlobalData(ktxSupercmpScheme scheme) noexcept {
     switch (scheme) {
     case KTX_SS_BASIS_LZ:
+    case KTX_SS_UASTC_HDR_6X6_INTERMEDIATE:
         return true;
     default:
         return false;
@@ -311,6 +312,7 @@ namespace ktx {
 [[nodiscard]] constexpr inline bool isSupercompressionBlockCompressed(ktxSupercmpScheme scheme) noexcept {
     switch (scheme) {
     case KTX_SS_BASIS_LZ:
+    case KTX_SS_UASTC_HDR_6X6_INTERMEDIATE:
         return true;
     default:
         return false;

@@ -49,6 +49,8 @@ Encode a KTX2 file.
     For universal and ASTC LDR formats, the input file must be R8, R8G8, R8G8B8
     or R8G8B8A8 (or their sRGB variants).
 
+    For universal HDR formats, the input file must be R16G16B16_SFLOAT or R16G16B16A16_SFLOAT.
+
     <!--For ASTC HDR formats the input file must be TBD (e.g. R16_{,S}FLOAT,
     R16G16_{,S}FLOAT ...
 -->
@@ -61,7 +63,7 @@ Encode a KTX2 file.
 -->
     The following options are available:
     <dl>
-        <dt>\--codec basis-lz | uastc</dt>
+        <dt>\--codec basis-lz | uastc | uastc-ldr-4x4 | uastc-hdr-4x4 | uastc-hdr-6x6i</dt>
         <dd>Target codec followed by the codec specific options. With each choice
             the specific and common encoder options listed
             @ref ktx\_encode\_options\_encoding "below" become valid, otherwise
@@ -154,7 +156,7 @@ void CommandEncode::OptionsEncode::init(cxxopts::Options& opts) {
         (kCodec, "Target codec."
                   " With each encoding option the encoder specific options become valid,"
                   " otherwise they are ignored. Case-insensitive."
-                  "\nPossible options are: basis-lz | uastc", cxxopts::value<std::string>(), "<target>");
+                  "\nPossible options are: basis-lz | uastc | uastc-ldr-4x4 | uastc-hdr-4x4 | uastc-hdr-6x6i", cxxopts::value<std::string>(), "<target>");
 }
 
 void CommandEncode::OptionsEncode::process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
@@ -184,11 +186,12 @@ void CommandEncode::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
 
     fillOptionsCodecBasis<decltype(options)>(options);
 
-    if ((options.codec == BasisCodec::NONE || options.codec == BasisCodec::INVALID) &&
+    if ((options.selectedCodec == BasisCodec::NONE ||
+         options.selectedCodec == BasisCodec::INVALID) &&
         options.vkFormat == VK_FORMAT_UNDEFINED)
         fatal_usage("Either codec or format must be specified");
 
-    if (options.codec == BasisCodec::BasisLZ) {
+    if (options.selectedCodec == BasisCodec::BasisLZ) {
         if (options.zstd.has_value())
             fatal_usage("Cannot encode to BasisLZ and supercompress with Zstd.");
 
@@ -196,7 +199,18 @@ void CommandEncode::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
             fatal_usage("Cannot encode to BasisLZ and supercompress with ZLIB.");
     }
 
-    const auto basisCodec = options.codec == BasisCodec::BasisLZ || options.codec == BasisCodec::UASTC;
+    if (options.selectedCodec == BasisCodec::UASTC_HDR_6x6i) {
+        if (options.zstd.has_value())
+            fatal_usage("Cannot encode to UASTC-HDR and supercompress with Zstd.");
+
+        if (options.zlib.has_value())
+            fatal_usage("Cannot encode to UASTC-HDR and supercompress with ZLIB.");
+    }
+
+    const auto basisCodec = options.selectedCodec == BasisCodec::BasisLZ ||
+                            options.selectedCodec == BasisCodec::UASTC_LDR_4x4 ||
+                            options.selectedCodec == BasisCodec::UASTC_HDR_4x4 ||
+                            options.selectedCodec == BasisCodec::UASTC_HDR_6x6i;
     const auto astcCodec = isFormatAstc(options.vkFormat);
     const auto canCompare = basisCodec || astcCodec;
 
@@ -227,21 +241,43 @@ void CommandEncode::executeEncode() {
     if (khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_ASTC && options.encodeASTC)
         fatal_usage("Encoding from ASTC format {} to another ASTC format {} is not supported.", toString(VkFormat(texture->vkFormat)), toString(options.vkFormat));
 
-    switch (texture->vkFormat) {
-    case VK_FORMAT_R8_UNORM:
-    case VK_FORMAT_R8_SRGB:
-    case VK_FORMAT_R8G8_UNORM:
-    case VK_FORMAT_R8G8_SRGB:
-    case VK_FORMAT_R8G8B8_UNORM:
-    case VK_FORMAT_R8G8B8_SRGB:
-    case VK_FORMAT_R8G8B8A8_UNORM:
-    case VK_FORMAT_R8G8B8A8_SRGB:
-        // Allowed formats
-        break;
-    default:
-        fatal_usage("Only R8, RG8, RGB8, or RGBA8 UNORM and SRGB formats can be encoded, "
-            "but format is {}.", toString(VkFormat(texture->vkFormat)));
-        break;
+    if (options.selectedCodec == BasisCodec::NONE ||
+        options.selectedCodec == BasisCodec::BasisLZ ||
+        options.selectedCodec == BasisCodec::UASTC_LDR_4x4) {
+        switch (texture->vkFormat) {
+        case VK_FORMAT_R8_UNORM:
+        case VK_FORMAT_R8_SRGB:
+        case VK_FORMAT_R8G8_UNORM:
+        case VK_FORMAT_R8G8_SRGB:
+        case VK_FORMAT_R8G8B8_UNORM:
+        case VK_FORMAT_R8G8B8_SRGB:
+        case VK_FORMAT_R8G8B8A8_UNORM:
+        case VK_FORMAT_R8G8B8A8_SRGB:
+            // Allowed formats
+            break;
+        default:
+            fatal_usage(
+                "Only R8, RG8, RGB8, or RGBA8 UNORM and SRGB formats can be encoded to {}, "
+                "but format is {}.",
+                toString(options.selectedCodec), 
+                toString(VkFormat(texture->vkFormat)));
+            break;
+        }
+    } else if (options.selectedCodec == BasisCodec::UASTC_HDR_4x4 ||
+               options.selectedCodec == BasisCodec::UASTC_HDR_6x6i) {
+        switch (texture->vkFormat) {
+        case VK_FORMAT_R16G16B16_SFLOAT:
+        case VK_FORMAT_R16G16B16A16_SFLOAT:
+            // Allowed formats
+            break;
+        default:
+            fatal_usage(
+                "Only RGB16 or RGBA16 SFLOAT can be encoded to {}, "
+                "but format is {}.",
+                toString(options.selectedCodec), 
+                toString(VkFormat(texture->vkFormat)));
+            break;
+        }
     }
 
     // Convert 1D textures to 2D (we could consider 1D as an invalid input)
