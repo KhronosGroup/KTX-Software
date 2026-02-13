@@ -177,18 +177,28 @@ ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
             return KTX_INVALID_OPERATION;
     }
 
-    const ktxUASTCHDR6X6IntermediateImageDesc* image_descs = reinterpret_cast<ktxUASTCHDR6X6IntermediateImageDesc*>(priv._supercompressionGlobalData);
-    uint32_t i = 0;
-    for (uint32_t level = 0; level < This->numLevels; ++level) {
-        for (uint32_t layer = 0; layer < This->numLayers; ++layer) {
-            for (uint32_t face = 0; face < This->numFaces; ++face) {
-                for (uint32_t zSlice = 0; zSlice < std::max(This->baseDepth >> level, 1u); ++zSlice) {
-                    const ktxUASTCHDR6X6IntermediateImageDesc* image_desc = &image_descs[i];
-                    if (image_desc->rgbSliceType != 0xABCD /* && image_desc->rgbSliceType != 0xABCE */ ) {
-                        debug_printf("ktxTexture_TranscodeBasis: rgbSliceType for Level %d Layer %d Face %d zSlice %d is %x and is currently unsupported\n", level, layer, face, zSlice, image_desc->rgbSliceType );
-                        return KTX_UNSUPPORTED_FEATURE;
+    // Validate SGD data for KTX_SS_UASTC_HDR_6X6_INTERMEDIATE
+    if (This->supercompressionScheme == KTX_SS_UASTC_HDR_6X6_INTERMEDIATE) {
+        const ktxUASTCHDR6X6IntermediateImageDesc* image_descs =
+            reinterpret_cast<ktxUASTCHDR6X6IntermediateImageDesc*>(
+                priv._supercompressionGlobalData);
+        uint32_t i = 0;
+        for (uint32_t level = 0; level < This->numLevels; ++level) {
+            for (uint32_t layer = 0; layer < This->numLayers; ++layer) {
+                for (uint32_t face = 0; face < This->numFaces; ++face) {
+                    for (uint32_t zSlice = 0; zSlice < std::max(This->baseDepth >> level, 1u);
+                         ++zSlice) {
+                        const ktxUASTCHDR6X6IntermediateImageDesc* image_desc = &image_descs[i];
+                        if (image_desc->rgbSliceType !=
+                            0xABCD /* && image_desc->rgbSliceType != 0xABCE */) {
+                            debug_printf(
+                                "ktxTexture_TranscodeBasis: rgbSliceType for Level %d Layer %d "
+                                "Face %d zSlice %d is %x and is currently unsupported\n",
+                                level, layer, face, zSlice, image_desc->rgbSliceType);
+                            return KTX_UNSUPPORTED_FEATURE;
+                        }
+                        i++;
                     }
-                    i++;
                 }
             }
         }
