@@ -284,7 +284,7 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
 
     basis_tex_format textureFormat;
     if (colorModel == KHR_DF_MODEL_UASTC)
-        textureFormat = basis_tex_format::cUASTC4x4;
+        textureFormat = basis_tex_format::cUASTC_LDR_4x4;
     else
         textureFormat = basis_tex_format::cETC1S;
 

@@ -465,7 +465,7 @@ enum TranscodeTarget = {
 
 enum TextureFormat = {
     "ETC1S",
-    "UASTC4x4",
+    "UASTC_LDR_4x4",
 };
 
 enum TranscodeFlagBits =
@@ -525,7 +525,7 @@ container format.
     // Determine from the KTX2 header information in buData if
     // the data format  is BasisU or Uastc.
     // supercompressionScheme value == 1, it's TextureFormat.ETC1S.
-    // DFD colorModel == 166, it's TextureFormat.UASTC4x4.
+    // DFD colorModel == 166, it's TextureFormat.UASTC_LDR_4x4.
     const texFormat = ...
 
     // Determine appropriate transcode format from available targets,
@@ -536,7 +536,7 @@ container format.
         throw new Error( ... );
     }
 
-    if (TextureFormat.UASTC4x4) {
+    if (TextureFormat.UASTC_LDR_4x4) {
         var result = transcodeUastc(targetFormat);
     } else {
         var result = transcodeEtc1s(targetFormat);
@@ -676,7 +676,7 @@ transcodeUastc(targetFormat) {
       var levelImageCount = number of layers * number of faces * depth;
       var imageOffsetInLevel = 0;
 
-      var imageInfo = new ImageInfo(TextureFormat::UASTC4x4,
+      var imageInfo = new ImageInfo(TextureFormat::UASTC_LDR_4x4,
                                     levelWidth, levelHeight, level);
       var levelImageByteLength = imageInfo.numBlocksX * imageInfo.numBlocksY * DFD bytesPlane0;
 
@@ -746,7 +746,9 @@ EMSCRIPTEN_BINDINGS(ktx_wrappers)
 
     enum_<basis_tex_format>("TextureFormat")
         .value("ETC1S", basis_tex_format::cETC1S)
-        .value("UASTC4x4", basis_tex_format::cUASTC4x4)
+        .value("UASTC_LDR_4x4", basis_tex_format::cUASTC_LDR_4x4)
+        // For backward compatibility
+        .value("UASTC4x4", basis_tex_format::cUASTC_LDR_4x4)
     ;
 
     enum_<msc::TranscodeFlagBits>("TranscodeFlagBits")
