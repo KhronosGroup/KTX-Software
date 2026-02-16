@@ -1542,7 +1542,17 @@ EMSCRIPTEN_BINDINGS(ktx)
       .property("uastcRDOMaxSmoothBlockErrorScale", &ktxBasisParams::uastcRDOMaxSmoothBlockErrorScale)
       .property("uastcRDOMaxSmoothBlockStdDev", &ktxBasisParams::uastcRDOMaxSmoothBlockStdDev)
       .property("uastcRDODontFavorSimplerModes", &ktxBasisParams::uastcRDODontFavorSimplerModes)
-      .property("uastcRDONoMultithreading", &ktxBasisParams::uastcRDONoMultithreading);
+      .property("uastcRDONoMultithreading", &ktxBasisParams::uastcRDONoMultithreading)
+
+      /* UASTC HDR params */
+
+      .property("uastcHDRQuality", &ktxBasisParams::uastcHDRQuality)
+      .property("uastcHDRUberMode", &ktxBasisParams::uastcHDRUberMode)
+      .property("uastcHDRUltraQuant", &ktxBasisParams::uastcHDRUltraQuant)
+      .property("uastcHDRFavorAstc", &ktxBasisParams::uastcHDRFavorAstc)
+      .property("rec2020", &ktxBasisParams::rec2020)
+      .property("uastcHDRLambda", &ktxBasisParams::uastcHDRLambda)
+      .property("uastcHDRLevel", &ktxBasisParams::uastcHDRLevel)
     ;
 
     constant("ANIMDATA_KEY", std::string(KTX_ANIMDATA_KEY));
