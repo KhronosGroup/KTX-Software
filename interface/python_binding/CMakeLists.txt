@@ -34,6 +34,7 @@ endif()
 # Convert Windows path to CMake path
 cmake_path(SET PYTHON_PATH ${PYTHON_EXECUTABLE})
 
+set(dfdutils_include_dir ${CMAKE_SOURCE_DIR}/external/dfdutils)
 set(libktx_include_dir $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>)
 # IMPORT_FILE_DIR is typically only set when building a Windows DLL and
 # points to the directory with the .lib import file.
@@ -124,6 +125,7 @@ add_custom_command(
     COMMAND
         ${CMAKE_COMMAND} -E env
             LIBKTX_INCLUDE_DIR=${libktx_include_dir}
+            DFDUTILS_INCLUDE_DIR=${dfdutils_include_dir}
             LIBKTX_IMPORT_DIR=${libktx_import_dir}
             LIBKTX_LIB_DIR=${libktx_lib_dir}
             LIBKTX_VERSION=${KTX_VERSION_NORMALIZED}
@@ -144,6 +146,7 @@ add_custom_command(
     COMMAND
         ${CMAKE_COMMAND} -E env
             LIBKTX_INCLUDE_DIR=${libktx_include_dir}
+            DFDUTILS_INCLUDE_DIR=${dfdutils_include_dir}
             LIBKTX_IMPORT_DIR=${libktx_import_dir}
             LIBKTX_LIB_DIR=${libktx_lib_dir}
             LIBKTX_VERSION=${KTX_VERSION_NORMALIZED}
@@ -166,6 +169,7 @@ add_test(NAME pyktx
     COMMAND
         ${CMAKE_COMMAND} -E env
             LIBKTX_INCLUDE_DIR=${libktx_include_dir}
+            DFDUTILS_INCLUDE_DIR=${dfdutils_include_dir}
             LIBKTX_IMPORT_DIR=${libktx_import_dir}
             LIBKTX_LIB_DIR=${libktx_lib_dir}
             KTX_RUN_TESTS=ON
@@ -202,6 +206,7 @@ if(KTX_FEATURE_DOC)
             # for the native interfaces in the HTML files it creates.
             ${CMAKE_COMMAND} -E env
                 LIBKTX_INCLUDE_DIR=${libktx_include_dir}
+                DFDUTILS_INCLUDE_DIR=${dfdutils_include_dir}
                 LIBKTX_IMPORT_DIR=${libktx_import_dir}
                 LIBKTX_LIB_DIR=${libktx_lib_dir}
                 DYLD_LIBRARY_PATH=${libktx_lib_dir}:$ENV{DYLD_LIBRARY_PATH}
@@ -225,6 +230,7 @@ if(KTX_FEATURE_DOC)
             # `--separate` says to put the documentation for each module on its own page.
             ${CMAKE_COMMAND} -E env
                 LIBKTX_INCLUDE_DIR=${libktx_include_dir}
+                DFDUTILS_INCLUDE_DIR=${dfdutils_include_dir}
                 LIBKTX_LIB_DIR=${libktx_lib_dir}
             ${PYTHON_EXECUTABLE} -m sphinx.ext.apidoc -o ${KTX_BUILD_DIR}/interface/python_binding/docs ./pyktx --separate
         COMMAND
@@ -244,6 +250,7 @@ if(KTX_FEATURE_DOC)
             # autodoc itself adds its working directory to `sys.path`.
             ${CMAKE_COMMAND} -E env
                 LIBKTX_INCLUDE_DIR=$<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
+                DFDUTILS_INCLUDE_DIR=${dfdutils_include_dir}
                 LIBKTX_LIB_DIR=${libktx_lib_dir}
                 SPHINXBUILD=${PYTHON_PATH}\ -m\ sphinx
             make SOURCEDIR="${KTX_BUILD_DIR}/interface/python_binding" BUILDDIR="${KTX_BUILD_DIR}/interface/python_binding/docs/html/pyktx" html

@@ -21,9 +21,9 @@ class KtxBasisParams:
     thread_count: int = 1
     """Number of threads used for compression. Default is 1."""
 
-    compression_level: int = 0
+    etc1s_compression_level: int = 0
     """
-    Encoding speed vs. quality tradeoff. Range is [0,5].
+    Encoding speed vs. quality tradeoff for etc1s. Range is [0,5].
 
     Higher values are slower, but give higher quality. There is no default.
     Callers must explicitly set this value. Callers can use

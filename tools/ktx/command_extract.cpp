@@ -80,7 +80,7 @@ Extract selected images from a KTX2 file.
             Requires the input file to be transcodable (it must be either BasisLZ
             supercompressed or has UASTC color model in the DFD). This option matches the
             functionality of the @ref ktx_transcode "ktx transcode" command.
-            If the target option is not set the r8, rg8, rgb8 or rgba8 target will be selected
+            If the target option is not set the r8, rg8, rgb8, rgba8 or rgba16f target will be selected
             based on the number of channels in the input texture.
             Block compressed transcode targets can only be saved in raw format.
             Case-insensitive. Possible options are:
@@ -313,9 +313,9 @@ void CommandExtract::processOptions(cxxopts::Options& opts, cxxopts::ParseResult
     options.process(opts, args, *this);
 
     if (!options.raw && options.transcodeTarget) {
-        if (options.transcodeTarget != KTX_TTF_RGBA32)
+        if (options.transcodeTarget != KTX_TTF_RGBA32 && options.transcodeTarget != KTX_TTF_RGBA_HALF)
             fatal_usage("Transcode to \"{}\" for non-raw extract is not supported. "
-                    "For PNG/EXR output only r8, rg8, rgb8 and rgba8 are supported.", options.transcodeTargetName);
+                    "For PNG/EXR output only r8, rg8, rgb8, rgba8 and rgba16f are supported.", options.transcodeTargetName);
     }
 }
 

@@ -209,6 +209,10 @@ KTX_error_code ktxCheckHeader2_(KTX_header2* pHeader,
     {
         return KTX_FILE_DATA_ERROR;
     }
+    if (pHeader->supercompressionScheme == KTX_SS_UASTC_HDR_6X6_INTERMEDIATE && pHeader->vkFormat != VK_FORMAT_UNDEFINED)
+    {
+        return KTX_FILE_DATA_ERROR;
+    }
 
     /* Check texture dimensions. KTX files can store 8 types of textures:
        1D, 2D, 3D, cube, and array variants of these. There is currently
@@ -278,6 +282,7 @@ KTX_error_code ktxCheckHeader2_(KTX_header2* pHeader,
     switch (pHeader->supercompressionScheme) {
       case KTX_SS_NONE:
       case KTX_SS_BASIS_LZ:
+      case KTX_SS_UASTC_HDR_6X6_INTERMEDIATE:
       case KTX_SS_ZSTD:
       case KTX_SS_ZLIB:
         break;

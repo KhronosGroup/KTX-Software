@@ -141,6 +141,8 @@ struct OptionsCreate {
                     "\n    R8G8B8_SRGB"
                     "\n    R8G8B8A8_UNORM"
                     "\n    R8G8B8A8_SRGB"
+                    "\n    R16G16B16_SFLOAT"
+                    "\n    R16G16B16A16_SFLOAT"
                     "\nIf the format is an ASTC format the ASTC encoder specific options become valid,"
                     " otherwise they are ignored."
                     "\nThe format will be used to verify and load all input files into a texture before encoding."
@@ -171,7 +173,7 @@ struct OptionsCreate {
                     " the \'Generate Mipmap\' options to tune the resampler.",
                     cxxopts::value<float>(), "<float>")
                 (kEncode, "Encode the created KTX file. Case insensitive."
-                    "\nPossible options are: basis-lz | uastc", cxxopts::value<std::string>(), "<codec>")
+                    "\nPossible options are: basis-lz | uastc | uastc-ldr-4x4 | uastc-hdr-4x4 | uastc-hdr-6x6i", cxxopts::value<std::string>(), "<codec>")
                 (kNormalize, "Normalize input normals to have a unit length. Only valid for\n"
                     "linear normal textures with 2 or more components. For 2-component\n"
                     "inputs 2D unit normals are calculated. Do not use these 2D unit\n"
@@ -900,11 +902,13 @@ Create a KTX2 file from various input files.
                 <li>R8G8B8\_SRGB</li>
                 <li>R8G8B8A8\_UNORM</li>
                 <li>R8G8B8A8\_SRGB</li>
+                <li>R16G16B16_SFLOAT</li>
+                <li>R16G16B16A16_SFLOAT</li>
             </ul>
             The format will be used to verify and load all input files into a
             texture before performing any specified encoding.<br />
         </dd>
-        <dt>\--encode basis-lz | uastc</dt>
+        <dt>\--encode basis-lz | uastc | uastc-ldr-4x4 | uastc-hdr-4x4 | uastc-hdr-6x6i</dt>
         <dd>Encode the texture with the specified codec before saving it.
             This option matches the functionality of the @ref ktx_encode
             "ktx encode" command. With each choice, the specific and common
@@ -1349,7 +1353,7 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
             fatal_usage("--{} is not allowed with ASTC encode", OptionsEncodeCommon::kNoSse);
     }
 
-    if (options.codec == BasisCodec::BasisLZ) {
+    if (options.selectedCodec == BasisCodec::BasisLZ) {
         if (options.zstd.has_value())
             fatal_usage("Cannot encode to BasisLZ and supercompress with Zstd.");
 
@@ -1357,7 +1361,23 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
             fatal_usage("Cannot encode to BasisLZ and supercompress with ZLIB.");
     }
 
-    if (options.codec != BasisCodec::NONE) {
+    if (options.selectedCodec == BasisCodec::UASTC_HDR_6x6i) {
+        if (options.zstd.has_value())
+            fatal_usage("Cannot encode to UASTC HDR 6x6i and supercompress with Zstd.");
+
+        if (options.zlib.has_value())
+            fatal_usage("Cannot encode to UASTC HDR 6x6i and supercompress with ZLIB.");
+    }
+    if (options.selectedCodec == BasisCodec::UASTC_HDR_4x4 ||
+        options.selectedCodec == BasisCodec::UASTC_HDR_6x6i) {
+        if (options.raw && (options.vkFormat != VK_FORMAT_R16G16B16_SFLOAT &&
+                            options.vkFormat != VK_FORMAT_R16G16B16A16_SFLOAT))
+            fatal_usage("Cannot encode to UASTC-HDR from RAW due to incorrect format value. The format should be either R16G16B16_SFLOAT or R16G16B16A16_SFLOAT.");
+
+    }
+
+    if (options.selectedCodec == BasisCodec::BasisLZ ||
+        options.selectedCodec == BasisCodec::UASTC_LDR_4x4) {
         switch (options.vkFormat) {
         case VK_FORMAT_R8_UNORM:
         case VK_FORMAT_R8_SRGB:
@@ -1370,13 +1390,29 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
             // Allowed formats
             break;
         default:
-            fatal_usage("Only R8, RG8, RGB8, or RGBA8 UNORM and SRGB formats can be encoded, "
-                "but format is {}.", toString(VkFormat(options.vkFormat)));
+            fatal_usage("Only R8, RG8, RGB8, or RGBA8 UNORM and SRGB formats can be encoded to {}, "
+                "but format is {}.", toString(options.selectedCodec), toString(VkFormat(options.vkFormat)));
+            break;
+        }
+    } else if (options.selectedCodec == BasisCodec::UASTC_HDR_4x4 ||
+               options.selectedCodec == BasisCodec::UASTC_HDR_6x6i) {
+        switch (options.vkFormat) {
+        case VK_FORMAT_R16G16B16_SFLOAT:
+        case VK_FORMAT_R16G16B16A16_SFLOAT:
+            // Allowed formats
+            break;
+        default:
+            fatal_usage(
+                "Only RGB16 or RGBA16 SFLOAT can be encoded to {}, "
+                "but format is {}.", toString(options.selectedCodec), toString(VkFormat(options.vkFormat)));
             break;
         }
     }
 
-    const auto basisCodec = options.codec == BasisCodec::BasisLZ || options.codec == BasisCodec::UASTC;
+    const auto basisCodec = options.selectedCodec == BasisCodec::BasisLZ ||
+                            options.selectedCodec == BasisCodec::UASTC_LDR_4x4 ||
+                            options.selectedCodec == BasisCodec::UASTC_HDR_4x4 ||
+                            options.selectedCodec == BasisCodec::UASTC_HDR_6x6i;
     const auto astcCodec = isFormatAstc(options.vkFormat);
     const auto canCompare = basisCodec || astcCodec;
 
@@ -1882,7 +1918,7 @@ void CommandCreate::executeCreate() {
     MetricsCalculator metrics;
     metrics.saveReferenceImages(texture, options, *this);
 
-    if (options.codec != BasisCodec::NONE)
+    if (options.selectedCodec != BasisCodec::NONE)
         encodeBasis(texture, options);
     if (options.encodeASTC)
         encodeASTC(texture, options);
@@ -1916,7 +1952,7 @@ void CommandCreate::encodeBasis(KTXTexture2& texture, OptionsEncodeBasis<false>&
     auto ret = ktxTexture2_CompressBasisEx(texture, &opts);
     if (ret != KTX_SUCCESS)
         fatal(rc::KTX_FAILURE, "Failed to encode KTX2 file with codec \"{}\". KTX Error: {}",
-                to_underlying(opts.codec), ktxErrorString(ret));
+              to_underlying(opts.selectedCodec), ktxErrorString(ret));
 }
 
 void CommandCreate::encodeASTC(KTXTexture2& texture, OptionsEncodeASTC& opts) {

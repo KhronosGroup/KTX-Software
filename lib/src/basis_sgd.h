@@ -78,6 +78,15 @@ enum alpha_content_e {
     eGreen
 };
 
+// 1 slice per image (i.e. layer, face & slice).
+// These offsets are relative to start of a mip level as given by the
+// main levelIndex.
+typedef struct ktxUASTCHDR6X6IntermediateImageDesc {
+    uint32_t rgbSliceByteOffset;
+    uint32_t rgbSliceByteLength;
+    uint32_t rgbSliceType;
+} ktxUASTCHDR6X6IntermediateImageDesc;
+
 #ifdef __cplusplus
 }
 #endif

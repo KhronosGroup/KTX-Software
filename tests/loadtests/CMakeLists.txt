@@ -123,6 +123,7 @@ target_include_directories(
 PUBLIC
     appfwSDL
     $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
+    ${CMAKE_SOURCE_DIR}/external/dfdutils
     ${PROJECT_SOURCE_DIR}/utils
     ${PROJECT_SOURCE_DIR}/external/SDL_gesture
     common

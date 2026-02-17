@@ -13,7 +13,7 @@ target_include_directories(
 PRIVATE
     ${PROJECT_SOURCE_DIR}/lib/src
     $<TARGET_PROPERTY:objUtil,INTERFACE_INCLUDE_DIRECTORIES>
-
+    ${CMAKE_SOURCE_DIR}/external/dfdutils
 )
 
 target_link_libraries(

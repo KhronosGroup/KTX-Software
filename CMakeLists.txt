@@ -45,6 +45,7 @@ option( KTX_FEATURE_PY "Create Python source distribution." OFF )
 option( KTX_FEATURE_TESTS "Create unit tests." ON )
 option( KTX_FEATURE_TOOLS_CTS "Enable KTX CLI Tools CTS tests (requires CTS submodule)." OFF )
 option( KTX_FEATURE_JS "Enable JavaScript bindings in Emscripten builds." ON )
+option( KTX_FEATURE_TOOLS "Enable KTX CLI Tools." OFF)
 
 if(KTX_FEATURE_TOOLS_CTS AND NOT KTX_FEATURE_TOOLS)
     message(WARNING "KTX_FEATURE_TOOLS is not set -> disabling KTX_FEATURE_TOOLS_CTS.")
@@ -296,6 +297,7 @@ if(EMSCRIPTEN AND KTX_FEATURE_JS)
         ${CMAKE_CURRENT_SOURCE_DIR}/other_include
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/src
         $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
+        ${CMAKE_SOURCE_DIR}/external/dfdutils
     )
     target_link_options(
         ktx_js
@@ -333,6 +335,7 @@ if(EMSCRIPTEN AND KTX_FEATURE_JS)
         ${CMAKE_CURRENT_SOURCE_DIR}/other_include
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/src
         $<TARGET_PROPERTY:ktx_read,INTERFACE_INCLUDE_DIRECTORIES>
+        ${CMAKE_SOURCE_DIR}/external/dfdutils
     )
     target_link_options(
         ktx_js_read
