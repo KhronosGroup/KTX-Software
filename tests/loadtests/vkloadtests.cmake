@@ -253,7 +253,7 @@ if(APPLE)
         set( INFO_PLIST_IN "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/mac/Info.plist.in" )
     endif()
 elseif(WIN32)
-    ensure_runtime_dependencies_windows(vkloadtests)
+    ensure_runtime_dependencies_windows(vkloadtests ${VK_TEST_IMAGES})
 elseif(LINUX)
         target_sources(
             vkloadtests

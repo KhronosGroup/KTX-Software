@@ -509,7 +509,7 @@ struct OptionsCreate {
 
         if (args[kSwizzle].count()) {
             swizzle = to_lower_copy(args[kSwizzle].as<std::string>());
-            const auto errorFmt = "Invalid --swizzle value: \"{}\". The value must match the \"[rgba01]{{4}}\" regex.";
+            constexpr auto errorFmt = "Invalid --swizzle value: \"{}\". The value must match the \"[rgba01]{{4}}\" regex.";
             if (swizzle->size() != 4)
                 report.fatal_usage(errorFmt, *swizzle);
             for (const auto c : *swizzle)
@@ -518,7 +518,7 @@ struct OptionsCreate {
         }
         if (args[kInputSwizzle].count()) {
             swizzleInput = to_lower_copy(args[kInputSwizzle].as<std::string>());
-            const auto errorFmt = "Invalid --input-swizzle value: \"{}\". The value must match the \"[rgba01]{{4}}\" regex.";
+            constexpr auto errorFmt = "Invalid --input-swizzle value: \"{}\". The value must match the \"[rgba01]{{4}}\" regex.";
             if (swizzleInput->size() != 4)
                 report.fatal_usage(errorFmt, *swizzleInput);
             for (const auto c : *swizzleInput)
@@ -768,7 +768,7 @@ struct OptionsCreate {
         }
 
         if (formatDesc.transfer() == KHR_DF_TRANSFER_SRGB) {
-            const auto error_message = "Invalid value \"{}\" to --{} for format \"{}\". Transfer function must be sRGB for sRGB formats.";
+            constexpr auto error_message = "Invalid value \"{}\" to --{} for format \"{}\". Transfer function must be sRGB for sRGB formats.";
             if (!convertTF.has_value() && assignTF.has_value()) {
                 switch (assignTF.value()) {
                 case KHR_DF_TRANSFER_UNSPECIFIED:
@@ -789,7 +789,7 @@ struct OptionsCreate {
             report.fatal_usage("Option --{} cannot be used with sRGB formats.", kNormalize);
 
         if (isFormatNotSRGBButHasSRGBVariant(vkFormat)) {
-            const auto error_message = "Invalid value \"{}\" to --{} for format \"{}\". Transfer function must not be sRGB for a non-sRGB VkFormat with sRGB variant.";
+            constexpr auto error_message = "Invalid value \"{}\" to --{} for format \"{}\". Transfer function must not be sRGB for a non-sRGB VkFormat with sRGB variant.";
             if (!convertTF.has_value() && assignTF.has_value() && assignTF == KHR_DF_TRANSFER_SRGB) {
                 report.fatal_usage(error_message, args[kAssignTf].count() ? args[kAssignTf].as<std::string>() : args[kAssignOetf].as<std::string>(),
                                    kAssignTf, args[kFormat].as<std::string>());
@@ -1555,7 +1555,7 @@ std::string CommandCreate::readRawFile(const std::filesystem::path& filepath) {
 }
 
 void CommandCreate::executeCreate() {
-    const auto warningFn = [this](const std::string& w) { this->warning(w); };
+    const auto warningFn = [this](const std::string& w) { this->warning(fmt::runtime(w)); };
 
     KTXTexture2 texture{nullptr};
     targetChannelCount = options.formatDesc.channelCount();
@@ -1650,7 +1650,7 @@ void CommandCreate::executeCreate() {
                 const auto maxDimension = std::max(target.width(), std::max(target.height(), baseDepth));
                 maxLevels = log2(maxDimension) + 1;
                 if (options.levels.value_or(1) > maxLevels) {
-                    auto errorFmt = "Requested {} levels is too many. With {} {}x{} and depth {} the texture can only have {} levels at most.";
+                    constexpr auto errorFmt = "Requested {} levels is too many. With {} {}x{} and depth {} the texture can only have {} levels at most.";
                     std::string baseExpl;
                     if (options.width.has_value() || options.height.has_value()) {
                         baseExpl = "a requested base image size of";
@@ -1692,7 +1692,7 @@ void CommandCreate::executeCreate() {
             const uint32_t targetImageHeight = std::max(target.height() >> levelIndex, 1u);
 
             if (inputImageFile->spec().width() != expectedImageWidth || inputImageFile->spec().height() != expectedImageHeight) {
-                const auto errorFmt = "Input image \"{}\" with size {}x{} does not match expected size {}x{} for level {}.";
+                constexpr auto errorFmt = "Input image \"{}\" with size {}x{} does not match expected size {}x{} for level {}.";
                 fatal(rc::INVALID_FILE, errorFmt, fmtInFile(inputFilepath),
                       inputImageFile->spec().width(),
                       inputImageFile->spec().height(),
@@ -1710,7 +1710,7 @@ void CommandCreate::executeCreate() {
                 assert((target.format().primaries() == colorSpaceInfo.src.usedPrimaries
                        || colorSpaceInfo.src.usedPrimaries != KHR_DF_PRIMARIES_UNSPECIFIED)
                        && "determineSourceColorSpace failed to check for UNSPECIFIED.");
-                const auto errorFmt = "Colorspace conversion requires unsupported {} {} {}.";
+                constexpr auto errorFmt = "Colorspace conversion requires unsupported {} {} {}.";
                 if (colorSpaceInfo.src.transferFunction == nullptr) {
                     std::string source;
                     if (options.assignTF.has_value()) {
@@ -1727,7 +1727,7 @@ void CommandCreate::executeCreate() {
                                                 " --{}, with or without --{}, to specify handling.",
                                                 options.kAssignTf, options.kConvertTf);
                     }
-                    fatal(rc::NOT_SUPPORTED, errorMsg);
+                    fatal(rc::NOT_SUPPORTED, fmt::runtime(errorMsg));
                 }
                 if (colorSpaceInfo.dst.transferFunction == nullptr) {
                     // If we get here it is because (a) a transfer supported for decode but not
@@ -1746,7 +1746,7 @@ void CommandCreate::executeCreate() {
                                                 " required to convert primaries to {}.",
                                                 toString(target.format().primaries()));
                     }
-                    fatal(rc::NOT_SUPPORTED, errorMsg);
+                    fatal(rc::NOT_SUPPORTED, fmt::runtime(errorMsg));
                 }
                 if (!options.noWarnOnColorConversions) {
                     if (target.format().model() == KHR_DF_MODEL_RGBSDA
@@ -1858,7 +1858,7 @@ void CommandCreate::executeCreate() {
                     //const auto input_error_message = "Input file \"{}\" The transfer function to be applied to the created texture is neither linear nor none. Normalize is only available for these transfer functions.";
                     //const auto inputTransfer =  inputImageFile->spec().format().transfer();
                     //bool is_file_error = (inputTransfer != KHR_DF_TRANSFER_UNSPECIFIED && inputTransfer != KHR_DF_TRANSFER_LINEAR);
-                    const auto option_error_message = "--{} value is {}. Normalize can only be used if the transfer function is linear or none.";
+                    constexpr auto option_error_message = "--{} value is {}. Normalize can only be used if the transfer function is linear or none.";
                     if (options.convertTF.has_value()) {
                         fatal_usage(option_error_message, OptionsCreate::kConvertTf,
                                     toString(options.convertTF.value()));
@@ -1876,7 +1876,7 @@ void CommandCreate::executeCreate() {
 
             if (options.premultiplyAlpha) {
                 if(image->getComponentCount() < 4) {
-                    const auto option_error_message = "PremultiplyAlpha can only be used if the input image has alpha channels.";
+                    constexpr auto option_error_message = "PremultiplyAlpha can only be used if the input image has alpha channels.";
                     fatal_usage(option_error_message, OptionsCreate::kPremultiplyAlpha);
                 }
                 image->premultiplyAlpha();
@@ -2790,7 +2790,7 @@ void CommandCreate::determineSourceColorSpace(const ImageInput& in, SrcColorSpac
                     } else {
                         fatal(rc::INVALID_FILE,
                               "Input file \"{}\" has gamma 0.0f. Use --{} to specify transfer function.",
-                              options.kAssignTf);
+                              in.filename(), options.kAssignTf);
                     }
                 } else {
                     if (!options.convertTF.has_value()) {
