@@ -105,6 +105,7 @@ ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
  * @c KTX_TTF_BC4_R, @c KTX_TTF_BC5_RG, @c KTX_TTF_BC7_RGBA,
  * @c @c KTX_TTF_PVRTC1_4_RGB, @c KTX_TTF_PVRTC1_4_RGBA,
  * @c KTX_TTF_PVRTC2_4_RGB, @c KTX_TTF_PVRTC2_4_RGBA, @c KTX_TTF_ASTC_4x4_RGBA,
+ * @c KTX_TTF_ASTC_HDR_4x4_RGBA, KTX_TTF_ASTC_HDR_6x6_RGBA
  * @c KTX_TTF_ETC2_EAC_R11, @c KTX_TTF_ETC2_EAC_RG11, @c KTX_TTF_ETC and
  * @c KTX_TTF_BC1_OR_3.
  *
@@ -118,7 +119,7 @@ ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
  * are no equivalent Vulkan formats.
  *
  * The following uncompressed transcode targets are also available: @c KTX_TTF_RGBA32,
- * @c KTX_TTF_RGB565, KTX_TTF_BGR565 and KTX_TTF_RGBA4444.
+ * @c KTX_TTF_RGBA_HALF, @c KTX_TTF_RGB565, KTX_TTF_BGR565 and KTX_TTF_RGBA4444.
  *
  * The following @p transcodeFlags are available.
  *
