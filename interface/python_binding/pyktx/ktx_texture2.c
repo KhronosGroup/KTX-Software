@@ -106,7 +106,7 @@ KTX_error_code PY_ktxTexture2_CompressBasisEx(ktxTexture2 *texture,
 {
     ktxBasisParams params = {
         .structSize = sizeof(ktxBasisParams),
-        .codec = (uastc) ? KTX_BASIS_CODEC_UASTC_LDR_4X4 : KTX_BASIS_CODEC_ETC1S,
+        .codec = (uastc) ? KTX_BASIS_CODEC_UASTC_LDR_4x4 : KTX_BASIS_CODEC_ETC1S,
         .verbose = verbose,
         .noSSE = noSSE,
         .threadCount = threadCount,

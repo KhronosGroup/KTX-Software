@@ -163,8 +163,8 @@ ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
     uint32_t* BDB = This->pDfd + 1;
     khr_df_model_e colorModel = (khr_df_model_e)KHR_DFDVAL(BDB, MODEL);
     if (colorModel != KHR_DF_MODEL_UASTC &&
-        colorModel != KHR_DF_MODEL_UASTC_HDR_4X4 &&
-        colorModel != KHR_DF_MODEL_UASTC_HDR_6X6 
+        colorModel != KHR_DF_MODEL_UASTC_HDR_4x4 &&
+        colorModel != KHR_DF_MODEL_UASTC_HDR_6x6
         // Constructor has checked color model matches BASIS_LZ.
         && This->supercompressionScheme != KTX_SS_BASIS_LZ)
     {
@@ -172,15 +172,15 @@ ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
     }
 
     DECLARE_PRIVATE(priv, This);
-    if (This->supercompressionScheme == KTX_SS_BASIS_LZ || This->supercompressionScheme == KTX_SS_UASTC_HDR_6X6_INTERMEDIATE) {
+    if (This->supercompressionScheme == KTX_SS_BASIS_LZ || This->supercompressionScheme == KTX_SS_UASTC_HDR_6x6_INTERMEDIATE) {
         if (!priv._supercompressionGlobalData || priv._sgdByteLength == 0)
             return KTX_INVALID_OPERATION;
     }
 
-    // Validate SGD data for KTX_SS_UASTC_HDR_6X6_INTERMEDIATE
-    if (This->supercompressionScheme == KTX_SS_UASTC_HDR_6X6_INTERMEDIATE) {
-        const ktxUASTCHDR6X6IntermediateImageDesc* image_descs =
-            reinterpret_cast<ktxUASTCHDR6X6IntermediateImageDesc*>(
+    // Validate SGD data for KTX_SS_UASTC_HDR_6x6_INTERMEDIATE
+    if (This->supercompressionScheme == KTX_SS_UASTC_HDR_6x6_INTERMEDIATE) {
+        const ktxUASTCHDR6x6IntermediateImageDesc* image_descs =
+            reinterpret_cast<ktxUASTCHDR6x6IntermediateImageDesc*>(
                 priv._supercompressionGlobalData);
         uint32_t i = 0;
         for (uint32_t level = 0; level < This->numLevels; ++level) {
@@ -188,7 +188,7 @@ ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
                 for (uint32_t face = 0; face < This->numFaces; ++face) {
                     for (uint32_t zSlice = 0; zSlice < std::max(This->baseDepth >> level, 1u);
                          ++zSlice) {
-                        const ktxUASTCHDR6X6IntermediateImageDesc* image_desc = &image_descs[i];
+                        const ktxUASTCHDR6x6IntermediateImageDesc* image_desc = &image_descs[i];
                         if (image_desc->rgbSliceType !=
                             0xABCD /* && image_desc->rgbSliceType != 0xABCE */) {
                             debug_printf(
@@ -344,9 +344,9 @@ ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
     basis_tex_format textureFormat;
     if (colorModel == KHR_DF_MODEL_UASTC)
         textureFormat = basis_tex_format::cUASTC4x4;
-    else if (colorModel == KHR_DF_MODEL_UASTC_HDR_4X4)
+    else if (colorModel == KHR_DF_MODEL_UASTC_HDR_4x4)
         textureFormat = basis_tex_format::cUASTC_HDR_4x4;        
-    else if (colorModel == KHR_DF_MODEL_UASTC_HDR_6X6)
+    else if (colorModel == KHR_DF_MODEL_UASTC_HDR_6x6)
         textureFormat = basis_tex_format::cASTC_HDR_6x6_INTERMEDIATE;    
     else
         textureFormat = basis_tex_format::cETC1S;
@@ -902,7 +902,7 @@ transcodeUastcHDR4x4(ktxTexture2* This, alpha_content_e alphaContent, ktxTexture
 static KTX_error_code
 transcodeUastcHDR6x6_intermediate(ktxTexture2* This, alpha_content_e alphaContent, ktxTexture2* prototype,
                      ktx_transcode_fmt_e outputFormat, ktx_transcode_flags transcodeFlags) {
-    assert(This->supercompressionScheme == KTX_SS_UASTC_HDR_6X6_INTERMEDIATE);
+    assert(This->supercompressionScheme == KTX_SS_UASTC_HDR_6x6_INTERMEDIATE);
 
     ktx_uint8_t* pXcodedData = prototype->pData;
     ktx_uint32_t outputBlockByteLength = prototype->_protected->_formatSize.blockSizeInBits / 8;
@@ -994,10 +994,10 @@ ktxTexture2_transcodeUastc(ktxTexture2* This,
         return transcodeUastcLDR4x4(
             This, alphaContent, prototype,
             outputFormat, transcodeFlags);
-    } else if (colorModel == KHR_DF_MODEL_UASTC_HDR_4X4) {
+    } else if (colorModel == KHR_DF_MODEL_UASTC_HDR_4x4) {
         return transcodeUastcHDR4x4(This, alphaContent, prototype, outputFormat,
                                                 transcodeFlags);
-    } else if (colorModel == KHR_DF_MODEL_UASTC_HDR_6X6) {
+    } else if (colorModel == KHR_DF_MODEL_UASTC_HDR_6x6) {
         return transcodeUastcHDR6x6_intermediate(This, alphaContent, prototype, outputFormat, transcodeFlags);
     } else {
         debug_printf(

@@ -793,15 +793,15 @@ struct SGD {
     // 82xx - UASTC HDR6X6 Intermediate related issues:
 
     static constexpr IssueError UH6X6IESizeTooSmall{
-        8201, "Invalid sgdByteLength for UASTC HDR6X6 Intermediate. sgdByteLength must be at least 12 bytes (sizeof ktxUASTCHDR6X6IntermediateImageDesc).",
-        "sgdByteLength is {} but for UASTC HDR6X6 Intermediate textures it must be at least 12 bytes (sizeof ktxUASTCHDR6X6IntermediateImageDesc)."
+        8201, "Invalid sgdByteLength for UASTC HDR6X6 Intermediate. sgdByteLength must be at least 12 bytes (sizeof ktxUASTCHDR6x6IntermediateImageDesc).",
+        "sgdByteLength is {} but for UASTC HDR6X6 Intermediate textures it must be at least 12 bytes (sizeof ktxUASTCHDR6x6IntermediateImageDesc)."
     };
     static constexpr IssueError UH6X6IEByteLengthInvalidSize{
-        8202, "Invalid sgdByteLength for UASTC HDR6X6 Intermediate. sgdByteLength must be a multiple of 12 (sizeof ktxUASTCHDR6X6IntermediateImageDesc).",
-        "sgdByteLength is {} but for UASTC HDR6X6 Intermediate byte length must be a multiple of 12 bytes (sizeof ktxUASTCHDR6X6IntermediateImageDesc)."
+        8202, "Invalid sgdByteLength for UASTC HDR6X6 Intermediate. sgdByteLength must be a multiple of 12 (sizeof ktxUASTCHDR6x6IntermediateImageDesc).",
+        "sgdByteLength is {} but for UASTC HDR6X6 Intermediate byte length must be a multiple of 12 bytes (sizeof ktxUASTCHDR6x6IntermediateImageDesc)."
     };
     static constexpr IssueError UH6X6IEZeroRGBLength{
-        8203, "Invalid rgbSliceByteLength in UASTCHDR6X6IntermediateImageDesc. rgbSliceByteLength must not be 0.",
+        8203, "Invalid rgbSliceByteLength in UASTCHDR6x6IntermediateImageDesc. rgbSliceByteLength must not be 0.",
         "For Level {} Layer {} Face {} zSlice {} the rgbSliceByteLength is {} but it must not be 0."
     };
     static constexpr IssueError UH6X6IEInvalidRGBSlice{

@@ -461,7 +461,7 @@ ktxTexture2_rewriteDfd4UastcHDR4x4(ktxTexture2* This, alpha_content_e alphaConte
     KHR_DFDSETVAL(nbdb, DESCRIPTORTYPE, KHR_DF_KHR_DESCRIPTORTYPE_BASICFORMAT);
     KHR_DFDSETVAL(nbdb, VERSIONNUMBER, KHR_DF_VERSIONNUMBER_LATEST);
     KHR_DFDSETVAL(nbdb, DESCRIPTORBLOCKSIZE, ndbSize);
-    KHR_DFDSETVAL(nbdb, MODEL, KHR_DF_MODEL_UASTC_HDR_4X4);
+    KHR_DFDSETVAL(nbdb, MODEL, KHR_DF_MODEL_UASTC_HDR_4x4);
     KHR_DFDSETVAL(nbdb, PRIMARIES, KHR_DFDVAL(cbdb, PRIMARIES));
     KHR_DFDSETVAL(nbdb, TRANSFER, KHR_DFDVAL(cbdb, TRANSFER));
     KHR_DFDSETVAL(nbdb, FLAGS, KHR_DFDVAL(cbdb, FLAGS));
@@ -471,7 +471,7 @@ ktxTexture2_rewriteDfd4UastcHDR4x4(ktxTexture2* This, alpha_content_e alphaConte
     nbdb[KHR_DF_WORD_BYTESPLANE4] = 0;  /* bytesPlane7..5 = 0 */
 
     // Set the data for our single sample
-    KHR_DFDSETSVAL(nbdb, 0, CHANNELID, KHR_DF_CHANNEL_UASTC_HDR_4X4_RGB);
+    KHR_DFDSETSVAL(nbdb, 0, CHANNELID, KHR_DF_CHANNEL_UASTC_HDR_4x4_RGB);
     KHR_DFDSETSVAL(nbdb, 0, QUALIFIERS, KHR_DF_SAMPLE_DATATYPE_FLOAT);
     KHR_DFDSETSVAL(nbdb, 0, SAMPLEPOSITION_ALL, 0);
     KHR_DFDSETSVAL(nbdb, 0, BITOFFSET, 0);
@@ -506,7 +506,7 @@ ktxTexture2_rewriteDfd4UastcHDR6x6i(ktxTexture2* This, alpha_content_e alphaCont
     KHR_DFDSETVAL(nbdb, DESCRIPTORTYPE, KHR_DF_KHR_DESCRIPTORTYPE_BASICFORMAT);
     KHR_DFDSETVAL(nbdb, VERSIONNUMBER, KHR_DF_VERSIONNUMBER_LATEST);
     KHR_DFDSETVAL(nbdb, DESCRIPTORBLOCKSIZE, ndbSize);
-    KHR_DFDSETVAL(nbdb, MODEL, KHR_DF_MODEL_UASTC_HDR_6X6);
+    KHR_DFDSETVAL(nbdb, MODEL, KHR_DF_MODEL_UASTC_HDR_6x6);
     KHR_DFDSETVAL(nbdb, PRIMARIES, KHR_DFDVAL(cbdb, PRIMARIES));
     KHR_DFDSETVAL(nbdb, TRANSFER, KHR_DFDVAL(cbdb, TRANSFER));
     KHR_DFDSETVAL(nbdb, FLAGS, KHR_DFDVAL(cbdb, FLAGS));
@@ -516,7 +516,7 @@ ktxTexture2_rewriteDfd4UastcHDR6x6i(ktxTexture2* This, alpha_content_e alphaCont
     nbdb[KHR_DF_WORD_BYTESPLANE4] = 0;  /* bytesPlane7..5 = 0 */
 
     // Set the data for our single sample
-    KHR_DFDSETSVAL(nbdb, 0, CHANNELID, KHR_DF_CHANNEL_UASTC_HDR_6X6_RGB);
+    KHR_DFDSETSVAL(nbdb, 0, CHANNELID, KHR_DF_CHANNEL_UASTC_HDR_6x6_RGB);
     KHR_DFDSETSVAL(nbdb, 0, QUALIFIERS, KHR_DF_SAMPLE_DATATYPE_FLOAT);
     KHR_DFDSETSVAL(nbdb, 0, SAMPLEPOSITION_ALL, 0);
     KHR_DFDSETSVAL(nbdb, 0, BITOFFSET, 0);
@@ -636,15 +636,15 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     case ktx_basis_codec_e::KTX_BASIS_CODEC_ETC1S:
         cparams.m_uastc = false;
         break;
-    case ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_LDR_4X4:
+    case ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_LDR_4x4:
         cparams.m_uastc = true;
         break;
-    case ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4X4:
+    case ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4x4:
         cparams.m_uastc = true;
         cparams.m_hdr = true;
         cparams.m_hdr_mode = basisu::hdr_modes::cUASTC_HDR_4X4;
         break;
-    case ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_6X6_INTERMEDIATE:
+    case ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_6x6_INTERMEDIATE:
         cparams.m_uastc = true;
         cparams.m_hdr = true;
         cparams.m_hdr_mode = basisu::hdr_modes::cASTC_HDR_6X6_INTERMEDIATE;
@@ -1090,11 +1090,11 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
 
     if (cparams.m_uastc) {
         if (cparams.m_hdr && cparams.m_hdr_mode == hdr_modes::cASTC_HDR_6X6_INTERMEDIATE) {
-            uint32_t image_desc_size = sizeof(ktxUASTCHDR6X6IntermediateImageDesc);
+            uint32_t image_desc_size = sizeof(ktxUASTCHDR6x6IntermediateImageDesc);
             bgd_size = image_desc_size * num_images;
             bgd = new ktx_uint8_t[bgd_size];
 
-            ktxUASTCHDR6X6IntermediateImageDesc* kimages = reinterpret_cast<ktxUASTCHDR6X6IntermediateImageDesc*>(bgd);
+            ktxUASTCHDR6x6IntermediateImageDesc* kimages = reinterpret_cast<ktxUASTCHDR6x6IntermediateImageDesc*>(bgd);
 
             uint32_t image = 0;
             for (uint32_t level = 0; level < This->numLevels; level++) {
@@ -1284,7 +1284,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
 
     // Delayed modifying texture until here so it's after points of
     // possible failure.
-    if (params->codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_LDR_4X4) {
+    if (params->codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_LDR_4x4) {
         result = ktxTexture2_rewriteDfd4Uastc(This, alphaContent, isLuminance, comp_mapping);
         if (result != KTX_SUCCESS) goto cleanup;
 
@@ -1292,7 +1292,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         ktxFormatSize_initFromDfd(&formatSize, This->pDfd);
         // and the requiredLevelAlignment.
         priv._requiredLevelAlignment = 4 * 4;
-    } else if (params->codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4X4) {
+    } else if (params->codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4x4) {
         result = ktxTexture2_rewriteDfd4UastcHDR4x4(This, alphaContent, isLuminance, comp_mapping);
         if (result != KTX_SUCCESS) goto cleanup;
 
@@ -1300,11 +1300,11 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         ktxFormatSize_initFromDfd(&formatSize, This->pDfd);
         // and the requiredLevelAlignment.
         priv._requiredLevelAlignment = 4 * 4;
-    } else if (params->codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_6X6_INTERMEDIATE) {
+    } else if (params->codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_6x6_INTERMEDIATE) {
         result = ktxTexture2_rewriteDfd4UastcHDR6x6i(This, alphaContent, isLuminance, comp_mapping);
         if (result != KTX_SUCCESS) goto cleanup;
 
-        This->supercompressionScheme = KTX_SS_UASTC_HDR_6X6_INTERMEDIATE;
+        This->supercompressionScheme = KTX_SS_UASTC_HDR_6x6_INTERMEDIATE;
 
         // Reflect this in the formatSize
         ktxFormatSize_initFromDfd(&formatSize, This->pDfd);
@@ -1320,7 +1320,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         // and the requiredLevelAlignment.
         priv._requiredLevelAlignment = 1;
     }
-    This->vkFormat = (params->codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4X4)? VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK : VK_FORMAT_UNDEFINED;
+    This->vkFormat = (params->codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4x4)? VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK : VK_FORMAT_UNDEFINED;
     This->isCompressed = KTX_TRUE;
     This->_protected->_typeSize = 1;
 

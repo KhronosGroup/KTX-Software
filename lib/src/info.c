@@ -686,9 +686,9 @@ void
 printUASTCHDR6X6IntermediateSGDInfo(ktx_uint8_t* bgd, ktx_uint64_t byteLength,
                 ktx_uint32_t numImages)
 {
-    ktxUASTCHDR6X6IntermediateImageDesc* slices = (ktxUASTCHDR6X6IntermediateImageDesc*)(bgd);
+    ktxUASTCHDR6x6IntermediateImageDesc* slices = (ktxUASTCHDR6x6IntermediateImageDesc*)(bgd);
     for (ktx_uint32_t i = 0; i < numImages; i++) {
-        if (byteLength < (i + 1) * sizeof(ktxUASTCHDR6X6IntermediateImageDesc))
+        if (byteLength < (i + 1) * sizeof(ktxUASTCHDR6x6IntermediateImageDesc))
             break;
 
         fprintf(stdout, "\nrgbSliceByteLength: %u\n", slices[i].rgbSliceByteLength);
@@ -804,7 +804,7 @@ printKTX2Info2(ktxStream* stream, KTX_header2* pHeader)
             fprintf(stdout, "\nBasis Supercompression Global Data\n\n");
             printBasisSGDInfo(sgd, pHeader->supercompressionGlobalData.byteLength, numImages);
             free(sgd);
-        } else if (pHeader->supercompressionScheme == KTX_SS_UASTC_HDR_6X6_INTERMEDIATE) {
+        } else if (pHeader->supercompressionScheme == KTX_SS_UASTC_HDR_6x6_INTERMEDIATE) {
             ktx_uint8_t* sgd = malloc(pHeader->supercompressionGlobalData.byteLength);
             if (sgd == NULL)
                 return KTX_OUT_OF_MEMORY;

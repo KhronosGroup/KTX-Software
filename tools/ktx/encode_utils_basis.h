@@ -443,7 +443,7 @@ struct OptionsEncodeBasis : public ktxBasisParams {
     }
 
     void validateUASTC4x4Arg(Reporter& report, const char* name) {
-        if (codec != ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4X4)
+        if (codec != ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4x4)
             report.fatal(
                 rc::INVALID_ARGUMENTS,
                 "Invalid use of argument --{} when UASTC HDR 4x4 was not enabled.",
@@ -451,7 +451,7 @@ struct OptionsEncodeBasis : public ktxBasisParams {
     }
 
     void validateUASTC6x6iArg(Reporter& report, const char* name) {
-        if (codec != ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_6X6_INTERMEDIATE)
+        if (codec != ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_6x6_INTERMEDIATE)
             report.fatal(rc::INVALID_ARGUMENTS,
                          "Invalid use of argument --{} when UASTC HDR 6x6i was not enabled.", name);
     }
@@ -487,13 +487,13 @@ struct OptionsEncodeBasis : public ktxBasisParams {
             codec = ktx_basis_codec_e::KTX_BASIS_CODEC_ETC1S;
             break;
         case BasisCodec::UASTC_LDR_4x4:
-            codec = ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_LDR_4X4;
+            codec = ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_LDR_4x4;
             break;
         case BasisCodec::UASTC_HDR_4x4:
-            codec = ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4X4;
+            codec = ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4x4;
             break;
         case BasisCodec::UASTC_HDR_6x6i:
-            codec = ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_6X6_INTERMEDIATE;
+            codec = ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_6x6_INTERMEDIATE;
             break;
         default:
             break;

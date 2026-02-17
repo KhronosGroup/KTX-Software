@@ -209,7 +209,7 @@ KTX_error_code ktxCheckHeader2_(KTX_header2* pHeader,
     {
         return KTX_FILE_DATA_ERROR;
     }
-    if (pHeader->supercompressionScheme == KTX_SS_UASTC_HDR_6X6_INTERMEDIATE && pHeader->vkFormat != VK_FORMAT_UNDEFINED)
+    if (pHeader->supercompressionScheme == KTX_SS_UASTC_HDR_6x6_INTERMEDIATE && pHeader->vkFormat != VK_FORMAT_UNDEFINED)
     {
         return KTX_FILE_DATA_ERROR;
     }
@@ -282,7 +282,7 @@ KTX_error_code ktxCheckHeader2_(KTX_header2* pHeader,
     switch (pHeader->supercompressionScheme) {
       case KTX_SS_NONE:
       case KTX_SS_BASIS_LZ:
-      case KTX_SS_UASTC_HDR_6X6_INTERMEDIATE:
+      case KTX_SS_UASTC_HDR_6x6_INTERMEDIATE:
       case KTX_SS_ZSTD:
       case KTX_SS_ZLIB:
         break;

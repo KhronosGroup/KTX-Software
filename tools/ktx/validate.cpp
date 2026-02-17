@@ -416,7 +416,7 @@ void ValidationContext::validateHeader() {
             warning(HeaderData::UnknownFormat, toString(vkFormat));
     }
 
-    if (header.supercompressionScheme == KTX_SS_BASIS_LZ || header.supercompressionScheme == KTX_SS_UASTC_HDR_6X6_INTERMEDIATE) {
+    if (header.supercompressionScheme == KTX_SS_BASIS_LZ || header.supercompressionScheme == KTX_SS_UASTC_HDR_6x6_INTERMEDIATE) {
         if (header.vkFormat != VK_FORMAT_UNDEFINED)
             error(HeaderData::VkFormatAndBasis, toString(vkFormat));
     }
@@ -714,7 +714,7 @@ void ValidationContext::validateLevelIndex() {
             if (header.supercompressionScheme == KTX_SS_BASIS_LZ) {
                 if (level.uncompressedByteLength != 0)
                     error(LevelIndex::NonZeroUBLForBLZE, index, level.uncompressedByteLength);
-            } else if (header.supercompressionScheme == KTX_SS_UASTC_HDR_6X6_INTERMEDIATE) {
+            } else if (header.supercompressionScheme == KTX_SS_UASTC_HDR_6x6_INTERMEDIATE) {
                 if (level.uncompressedByteLength != 0)
                     error(LevelIndex::NonZeroUBLForUH6X6IE, index, level.uncompressedByteLength);
             } else if (header.vkFormat != VK_FORMAT_UNDEFINED) {
@@ -910,7 +910,7 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
 
     } else if (isFormatBlockCompressed(VkFormat(header.vkFormat))) {
         const auto expectedBCColorModel = getColorModelForBlockCompressedFormat(VkFormat(header.vkFormat));
-        if (khr_df_model_e(block.model) != expectedBCColorModel && khr_df_model_e(block.model) != khr_df_model_e::KHR_DF_MODEL_UASTC_HDR_4X4)
+        if (khr_df_model_e(block.model) != expectedBCColorModel && khr_df_model_e(block.model) != khr_df_model_e::KHR_DF_MODEL_UASTC_HDR_4x4)
             error(DFD::IncorrectModelForBlock, blockIndex, toString(khr_df_model_e(block.model)), toString(VkFormat(header.vkFormat)), toString(expectedBCColorModel));
 
     } else if (header.vkFormat != VK_FORMAT_UNDEFINED) {
@@ -1007,7 +1007,7 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
                     error(DFD::SampleCountMismatch, blockIndex, samples.size(), toString(VkFormat(header.vkFormat)), expectedSamples->size());
 
                 // UASTC 4x4 requires lower to be 0.
-                if (khr_df_model_e(block.model) == khr_df_model_e::KHR_DF_MODEL_UASTC_HDR_4X4)
+                if (khr_df_model_e(block.model) == khr_df_model_e::KHR_DF_MODEL_UASTC_HDR_4x4)
                 {
                     for (auto& expectedSample : *expectedSamples) 
                     {
@@ -1632,13 +1632,13 @@ void ValidationContext::validateSGD() {
     const auto buffer = std::make_unique<uint8_t[]>(sgdByteLength);
     read(sgdByteOffset, buffer.get(), sgdByteLength, "the SGD");
 
-    if ((header.supercompressionScheme != KTX_SS_BASIS_LZ) && (header.supercompressionScheme != KTX_SS_UASTC_HDR_6X6_INTERMEDIATE))
+    if ((header.supercompressionScheme != KTX_SS_BASIS_LZ) && (header.supercompressionScheme != KTX_SS_UASTC_HDR_6x6_INTERMEDIATE))
         return;
 
     switch (header.supercompressionScheme) {
-        // Validate UASTC_HDR_6X6_INTERMEDIATE SGD
-        case KTX_SS_UASTC_HDR_6X6_INTERMEDIATE: {
-            if (sgdByteLength < sizeof(ktxUASTCHDR6X6IntermediateImageDesc)) {
+        // Validate UASTC_HDR_6x6_INTERMEDIATE SGD
+        case KTX_SS_UASTC_HDR_6x6_INTERMEDIATE: {
+            if (sgdByteLength < sizeof(ktxUASTCHDR6x6IntermediateImageDesc)) {
                 error(SGD::UH6X6IESizeTooSmall, sgdByteLength);
                 return;
             }
@@ -1648,7 +1648,7 @@ void ValidationContext::validateSGD() {
                 return;
             }
 
-            const ktxUASTCHDR6X6IntermediateImageDesc* imageDescs = reinterpret_cast<ktxUASTCHDR6X6IntermediateImageDesc*>(buffer.get());
+            const ktxUASTCHDR6x6IntermediateImageDesc* imageDescs = reinterpret_cast<ktxUASTCHDR6x6IntermediateImageDesc*>(buffer.get());
 
             uint32_t i = 0;
             for (uint32_t level = 0; level < numLevels; ++level) {
