@@ -129,6 +129,11 @@ extern "C" {
 #define KTX_SWIZZLE_KEY "KTXswizzle"
 /**
  * @~English
+ * @brief Key string for standard map range metadata.
+ */
+#define KTX_MAP_RANGE_KEY "KTXmapRange"
+/**
+ * @~English
  * @brief Key string for standard writer metadata.
  */
 #define KTX_WRITER_KEY "KTXwriter"
