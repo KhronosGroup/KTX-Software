@@ -1914,7 +1914,7 @@ void CommandCreate::executeCreate() {
     }
 
     // Add KTXmapRange metadata
-    if (options.codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4X4 || options.codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_6X6_INTERMEDIATE) {
+    if (options.codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4x4 || options.codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_6x6_INTERMEDIATE) {
         struct KTXmapRange {
             float scale;
             float offset;
