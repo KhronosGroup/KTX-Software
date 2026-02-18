@@ -886,6 +886,9 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
     parsedBlockDimension1 = static_cast<uint8_t>(block.texelBlockDimension1);
     parsedBlockDimension2 = static_cast<uint8_t>(block.texelBlockDimension2);
 
+    if (parsedColorModel == KHR_DF_MODEL_UASTC_HDR_4x4 && header.vkFormat != VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK)
+        error(DFD::UH4X4ModelRequiresASTC4X4FVkFormat, toString(static_cast<VkFormat>(header.vkFormat)));
+
     // Validate versionNumber
     if (block.versionNumber != KHR_DF_VERSIONNUMBER_1_3)
         error(DFD::BasicVersionNotSupported, blockIndex, toString(khr_df_versionnumber_e(block.versionNumber)));
