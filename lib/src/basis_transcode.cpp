@@ -178,6 +178,18 @@ ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
             return KTX_INVALID_OPERATION;
     }
 
+    // Early exit for redundant transcode from UASTC4x4 to ASTC4x4
+    if (colorModel   == KHR_DF_MODEL_UASTC_HDR_4x4 &&
+        outputFormat == KTX_TTF_ASTC_HDR_4x4_RGBA) {
+        // Fix up the current texture
+        free(This->pDfd);
+        This->vkFormat = VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK;
+        This->pDfd = vk2dfd(VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK);
+        if (!This->pDfd)
+            return KTX_INVALID_VALUE;  // Format is unknown or unsupported.
+        return KTX_SUCCESS;
+    }
+
     // Validate SGD data for KTX_SS_UASTC_HDR_6x6_INTERMEDIATE
     if (This->supercompressionScheme == KTX_SS_UASTC_HDR_6x6_INTERMEDIATE) {
         const ktxUASTCHDR6x6IntermediateImageDesc* image_descs =

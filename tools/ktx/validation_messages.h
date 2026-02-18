@@ -454,6 +454,10 @@ struct DFD {
         6030, "Deprecated unsized bytesPlanes in basic DFD block. Since specification 2.0.4 bytesPlanes must be sized (non-zero) for supercompressed textures.",
         "DFD block #{} bytesPlanes0 in basic DFD block is {} but for {} supercompressed textures, since specification 2.0.4, it must be non-zero."
     };
+    static constexpr IssueError UH4X4ModelRequiresASTC4X4FVkFormat{
+        6031, "For model KHR_DF_MODEL_UASTC_HDR_4x4, vkFormat must be set to VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK.",
+        "DFD Header vkFormat is set to {} but for KHR_DF_MODEL_UASTC_HDR_4x4 it must be set to VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK."
+    };
 
     // 61xx - Basic Data Format Descriptor Block sample related issues:
 
