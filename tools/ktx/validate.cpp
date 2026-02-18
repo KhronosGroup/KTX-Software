@@ -1508,8 +1508,8 @@ void ValidationContext::validateKTXmapRange(const uint8_t* data, uint32_t size) 
     const uint32_t * pDFD = reinterpret_cast<const uint32_t *>(buffer.get());
     const uint32_t * pBDB = pDFD + 1;
 
-    uint32_t numSamples = KHR_DFDSAMPLECOUNT(pBDB);
-    for (uint32_t sample = 0; sample < numSamples; ++sample) {
+    uint32_t nSamples = KHR_DFDSAMPLECOUNT(pBDB);
+    for (uint32_t sample = 0; sample < nSamples; ++sample) {
         auto qualifiers = static_cast<khr_df_sample_datatype_qualifiers_e>(KHR_DFDSVAL(pBDB, sample, QUALIFIERS));
         if (!(qualifiers & KHR_DF_SAMPLE_DATATYPE_LINEAR) &&
             !(qualifiers & KHR_DF_SAMPLE_DATATYPE_FLOAT)) {
