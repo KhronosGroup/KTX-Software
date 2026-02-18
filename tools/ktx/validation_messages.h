@@ -730,6 +730,22 @@ struct Metadata {
         7135, "KTXastcDecodeMode has no effect on and should not be present in KTX files that use the sRGB transfer function.",
         "KTXastcDecodeMode is present but for transferFunction {} it has no effect."
     };
+    static constexpr IssueError KTXmapRangeInvalidSize{
+        7136, "Invalid KTXmapRange metadata. The size of the value must be 8 bytes.",
+        "The size of KTXmapRange value is {} byte(s) but it must be 8 bytes."
+    };
+    static constexpr IssueError KTXmapRangeInvalidFormat{
+        7137, "Invalid metadata entry KTXmapRange. The KTXmapRange metadata entry may be used only with floating point format and any linear *_UNORM or *_SNORM format.",
+        "The metadata entry KTXmapRange is present but the data format is not any floating point format or any linear *_UNORM or *_SNORM format."
+    };
+    static constexpr IssueError KTXmapRangeInvalidScale{
+        7138, "Invalid scale value in the KTXmapRange metadata entry. The scale value in the KTXmapRange metadata entry must be finite.",
+        "The scale value in the KTXmapRange metadata entry is {} but the value needs to be finite."
+    };
+    static constexpr IssueError KTXmapRangeInvalidOffset{
+        7139, "Invalid offset value in the KTXmapRange metadata entry. The offset value in the KTXmapRange metadata entry must be finite.",
+        "The offset value in the KTXmapRange metadata entry is {} but the value needs to be finite."
+    };
 
     // 72xx - GLTF KHR_texture_basisu compatibility
 

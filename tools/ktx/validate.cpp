@@ -96,6 +96,7 @@ private:
     bool foundKTXastcDecodeMode = false;
     bool foundKTXcubemapIncomplete = false;
     bool foundKTXdxgiFormat = false;
+    bool foundKTXmapRange = false;
     bool foundKTXglFormat = false;
     bool foundKTXmetalPixelFormat = false;
     bool foundKTXorientation = false;
@@ -176,6 +177,7 @@ private:
 
     void validateKTXcubemapIncomplete(const uint8_t* data, uint32_t size);
     void validateKTXorientation(const uint8_t* data, uint32_t size);
+    void validateKTXmapRange(const uint8_t* data, uint32_t size);
     void validateKTXglFormat(const uint8_t* data, uint32_t size);
     void validateKTXdxgiFormat(const uint8_t* data, uint32_t size);
     void validateKTXmetalPixelFormat(const uint8_t* data, uint32_t size);
@@ -1399,6 +1401,7 @@ void ValidationContext::validateKVD() {
 
     kvValidators.emplace("KTXcubemapIncomplete", &ValidationContext::validateKTXcubemapIncomplete);
     kvValidators.emplace("KTXorientation", &ValidationContext::validateKTXorientation);
+    kvValidators.emplace("KTXmapRange", &ValidationContext::validateKTXmapRange);
     kvValidators.emplace("KTXglFormat", &ValidationContext::validateKTXglFormat);
     kvValidators.emplace("KTXdxgiFormat__", &ValidationContext::validateKTXdxgiFormat);
     kvValidators.emplace("KTXmetalPixelFormat", &ValidationContext::validateKTXmetalPixelFormat);
@@ -1489,6 +1492,51 @@ void ValidationContext::validateKTXorientation(const uint8_t* data, uint32_t siz
 
     if (checkGLTFBasisU && value != "rd")
         error(Metadata::KTXorientationInvalidGLTFBU, value);
+}
+
+void ValidationContext::validateKTXmapRange(const uint8_t* data, uint32_t size) {
+    foundKTXmapRange = true;
+
+    const auto dfdByteOffset = header.dataFormatDescriptor.byteOffset;
+    const auto dfdByteLength = header.dataFormatDescriptor.byteLength;
+
+    const auto buffer = std::make_unique<uint8_t[]>(dfdByteLength);
+    read(dfdByteOffset, buffer.get(), dfdByteLength, "the ff DFD");
+    const uint32_t * pDFD = reinterpret_cast<const uint32_t *>(buffer.get());
+    const uint32_t * pBDB = pDFD + 1;
+
+    uint32_t numSamples = KHR_DFDSAMPLECOUNT(pBDB);
+    for (uint32_t sample = 0; sample < numSamples; ++sample) {
+        auto qualifiers = static_cast<khr_df_sample_datatype_qualifiers_e>(KHR_DFDSVAL(pBDB, sample, QUALIFIERS));
+        if (!(qualifiers & KHR_DF_SAMPLE_DATATYPE_LINEAR) &&
+            !(qualifiers & KHR_DF_SAMPLE_DATATYPE_FLOAT)) {
+            error(Metadata::KTXmapRangeInvalidFormat);
+            return;
+        }
+    }
+
+    if (size != 8) {
+        error(Metadata::KTXmapRangeInvalidSize, size);
+        return;
+    }
+
+    struct Value {
+        float scale;
+        float offset;
+    };
+
+    Value value{};
+    std::memcpy(&value, data, size);
+
+    if (!std::isfinite(value.scale)) {
+        error(Metadata::KTXmapRangeInvalidScale, value.scale);
+        return;
+    }
+
+    if (!std::isfinite(value.offset)) {
+        error(Metadata::KTXmapRangeInvalidOffset, value.offset);
+        return;
+    }
 }
 
 void ValidationContext::validateKTXglFormat(const uint8_t* data, uint32_t size) {

@@ -172,7 +172,15 @@ printKVData(ktx_uint8_t* pKvd, ktx_uint32_t kvdLen)
                     fprintf(stdout, "    glFormat: 0x%08X\n", glFormat);
                     fprintf(stdout, "    glType: 0x%08X\n", glType);
                 }
+            } else if (strcmp(key, "KTXmapRange") == 0) {
+                if (valueLen == 2 * sizeof(float)) {
+                    float scale = *(const float*) (value + 0);
+                    float offset = *(const float*) (value + 4);
 
+                    fprintf(stdout, "\n");
+                    fprintf(stdout, "    scale: %f\n", scale);
+                    fprintf(stdout, "    offset: %f\n", offset);
+                }
             } else if (strcmp(key, "KTXanimData") == 0) {
                 if (valueLen == 3 * sizeof(ktx_uint32_t)) {
                     ktx_uint32_t duration = *(const ktx_uint32_t*) (value + 0);
