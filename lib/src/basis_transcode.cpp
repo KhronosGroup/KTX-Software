@@ -36,6 +36,7 @@
   #pragma GCC diagnostic ignored "-Wunused-value"
 #endif
 #include "transcoder/basisu_transcoder.h"
+#include "transcoder/basisu_astc_helpers.h"
 #if defined(__GCC__) && !defined(__clang__)
   #pragma GCC diagnostic pop
 #endif
@@ -427,6 +428,7 @@ ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
         std::lock_guard<std::mutex> lock(init_mutex);
         if (!transcoderInitialized.load(std::memory_order_relaxed)) {
             basisu_transcoder_init();
+            astc_helpers::init_tables(true);
             transcoderInitialized.store(true, std::memory_order_release);
         }
     }
