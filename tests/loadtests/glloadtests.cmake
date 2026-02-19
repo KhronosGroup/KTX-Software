@@ -404,6 +404,7 @@ set( GL3_SOURCES
     common/TranscodeTargetStrToFmt.cpp
     common/TranscodeTargetStrToFmt.h
     common/disable_glm_warnings.h
+    common/ltexceptions.h
     common/reenable_warnings.h
     glloadtests/shader-based/DrawTexture.cpp
     glloadtests/shader-based/DrawTexture.h

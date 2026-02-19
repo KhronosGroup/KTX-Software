@@ -33,7 +33,6 @@
 
 #include "argparser.h"
 #include "Texture.h"
-#include "VulkanTextureTranscoder.hpp"
 #include "ltexceptions.h"
 
 #define VERTEX_BUFFER_BIND_ID 0
@@ -97,11 +96,7 @@ Texture::Texture(VulkanContext& vkctx,
         throw std::runtime_error(message.str());
     }
 
-    if (ktxTexture_NeedsTranscoding(kTexture)) {
-        TextureTranscoder tc(vkctx);
-        tc.transcode((ktxTexture2*)kTexture);
-        transcoded = true;
-    }
+    transcoded = transcodeIfNeeded(kTexture);
 
     if(kTexture->classId == ktxTexture2_c && ktxTexture2_GetPremultipliedAlpha((ktxTexture2*)kTexture)) {
         uboFS.alphaMode = 1;

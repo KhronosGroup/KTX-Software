@@ -137,3 +137,7 @@ $ktx convert --testrun -t ktx ktx/astc_8x8_unorm_array_7.ktx ktx2/astc_8x8_unorm
 $ktx convert --testrun -t ktx ktx/bc3_unorm_array_7.ktx ktx2/bc3_unorm_array_7.ktx2
 $ktx convert --testrun -t ktx ktx/etc2_unorm_array_7.ktx ktx2/etc2_unorm_array_7.ktx2
 $ktx convert --testrun -t ktx ktx/pattern_02_bc2.ktx ktx2/pattern_02_bc2.ktx2
+
+# HDR images
+$ktx create --testrun --format R16G16B16_SFLOAT --encode uastc-hdr-4x4 --uastc-hdr-ultra-quant --zstd 15 input/exr/Desk.exr ktx2/Desk_uastc_hdr4x4_zstd_15.ktx2
+$ktx create --testrun --format R16G16B16_SFLOAT --encode uastc-hdr-6x6i input/exr/Desk.exr ktx2/Desk_uastc_hdr6x6i.ktx2

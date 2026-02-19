@@ -38,6 +38,7 @@
 #include <SDL3/SDL_vulkan.h>
 #include "AppBaseSDL.h"
 #include "unused.h"
+#include "ltexceptions.h"
 
 #define ERROR_RETURN(msg)                                                     \
       (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, theApp->name(),    \
@@ -62,17 +63,36 @@
     }                                                                       \
   }
 
+const std::vector<VkColorSpaceKHR> linearCS = {
+    VK_COLOR_SPACE_ADOBERGB_LINEAR_EXT,
+    VK_COLOR_SPACE_BT2020_LINEAR_EXT,
+    VK_COLOR_SPACE_BT709_LINEAR_EXT,
+    VK_COLOR_SPACE_DISPLAY_P3_LINEAR_EXT,
+    VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT
+};
+
+static bool isColorSpaceLinear(VkColorSpaceKHR colorSpace)
+{
+    std::vector<VkColorSpaceKHR>::const_iterator it = linearCS.begin();
+    for (; it < linearCS.end(); it++) {
+        if (*it == colorSpace)
+            return true;
+    }
+    return false;
+}
+
 // Creates an os specific surface
 // Tries to find a graphics and a present queue
-bool
-VulkanSwapchain::initSurface(SDL_Window* window)
+void
+VulkanSwapchain::initSurface(SDL_Window* window, VkFormat reqFormat,
+                             colorSpaceSelector css, VkColorSpaceKHR reqColorSpace)
 {
     U_ASSERT_ONLY VkResult err;
 
     if (!SDL_Vulkan_CreateSurface(window, instance, nullptr, &surface)) {
         std::string msg = "SDL_CreateVulkanSurface failed: ";
         msg += SDL_GetError();
-        ERROR_RETURN(msg.c_str());
+        throw swapchain_init_surface_failed(msg);
     }
 
     // Get available queue family properties
@@ -127,13 +147,15 @@ VulkanSwapchain::initSurface(SDL_Window* window)
     if (graphicsQueueIndex == UINT32_MAX
         || presentQueueIndex == UINT32_MAX)
     {
-        ERROR_RETURN("Could not find a graphics or presenting queue!");
+        vkDestroySurfaceKHR(instance, surface, nullptr);
+        throw swapchain_init_surface_failed("Could not find a graphics or presenting queue!");
     }
 
     // TODO: Add support for separate graphics and presenting queue
     if (graphicsQueueIndex != presentQueueIndex)
     {
-        ERROR_RETURN("Separate graphics and present queues not yet supported!");
+        vkDestroySurfaceKHR(instance, surface, nullptr);
+        throw swapchain_init_surface_failed("Separate graphics and present queues not yet supported!");
     }
 
     queueIndex = graphicsQueueIndex;
@@ -152,31 +174,41 @@ VulkanSwapchain::initSurface(SDL_Window* window)
     assert(err == VK_SUCCESS);
 
     // If the surface format list only includes one entry with
-    // VK_FORMAT_UNDEFINED, there is no preferred format.
-    // Assume VK_FORMAT_B8G8R8A8_RGB.
-    // TODO: Consider passing in desired format from app.
+    // VK_FORMAT_UNDEFINED, there is no preferred format..
     if ((formatCount == 1) && (surfaceFormats[0].format == VK_FORMAT_UNDEFINED))
     {
-        colorFormat = VK_FORMAT_B8G8R8A8_SRGB;
+        colorFormat = reqFormat;
+        colorSpace = reqColorSpace;
     }
     else
     {
         assert(formatCount >= 1);
         uint32_t i;
         for (i = 0; i < formatCount; i++) {
-            if (surfaceFormats[i].format == VK_FORMAT_B8G8R8A8_SRGB) {
-                break;
+            if (surfaceFormats[i].format == reqFormat) {
+                if (css == colorSpaceSelector::eSpecific) {
+                    if (surfaceFormats[i].colorSpace == reqColorSpace) {
+                        break;
+                    }
+                } else {
+                    bool colorSpaceIsLinear = isColorSpaceLinear(surfaceFormats[i].colorSpace);
+                    if (css == colorSpaceSelector::eAnyLinear && colorSpaceIsLinear) {
+                        break;
+                    }
+                    if (css == colorSpaceSelector::eAnyNonLinear && !colorSpaceIsLinear) {
+                        break;
+                    }
+                }
             }
         }
         if (i == formatCount) {
-            // Pick the first available, if no SRGB.
-            // FIXME probably should raise an error...
-            i = 0;
+            vkDestroySurfaceKHR(instance, surface, nullptr);
+            throw unsupported_surface_format();
         }
         colorFormat = surfaceFormats[i].format;
+        colorSpace = surfaceFormats[i].colorSpace;
     }
-    colorSpace = surfaceFormats[0].colorSpace;
-    return true;
+    //colorSpace = surfaceFormats[0].colorSpace;
 }
 
 

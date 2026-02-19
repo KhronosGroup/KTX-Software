@@ -36,9 +36,17 @@ class VulkanSwapchain
     // Index of the detected graphics- and present-capable device queue.
     uint32_t queueIndex = UINT32_MAX;
 
+    enum class colorSpaceSelector {
+        eAnyLinear,
+        eAnyNonLinear,
+        eSpecific
+    };
+
     // Creates an OS specific surface.
     // Looks for a graphics and a present queue
-    bool initSurface(struct SDL_Window* window);
+    void initSurface(struct SDL_Window* window, VkFormat format,
+                     colorSpaceSelector css = colorSpaceSelector::eSpecific,
+                     VkColorSpaceKHR colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR);
 
     // Connect to device and get required device function pointers.
     bool connectDevice(VkDevice device);

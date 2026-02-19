@@ -31,7 +31,6 @@
 #include "argparser.h"
 #include "InstancedSampleBase.h"
 #include "ltexceptions.h"
-#include "VulkanTextureTranscoder.hpp"
 
 #define VERTEX_BUFFER_BIND_ID 0
 #define ENABLE_VALIDATION false
@@ -75,11 +74,7 @@ InstancedSampleBase::InstancedSampleBase(VulkanContext& vkctx,
         throw std::runtime_error(message.str());
     }
 
-    if (ktxTexture_NeedsTranscoding(kTexture)) {
-        TextureTranscoder tc(vkctx);
-        tc.transcode((ktxTexture2*)kTexture);
-        transcoded = true;
-    }
+    transcoded = transcodeIfNeeded(kTexture);
 
     vk::Format vkFormat
                 = static_cast<vk::Format>(ktxTexture_GetVkFormat(kTexture));

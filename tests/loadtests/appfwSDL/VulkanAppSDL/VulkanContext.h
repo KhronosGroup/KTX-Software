@@ -25,9 +25,30 @@ struct VulkanDepthBuffer {
 struct VulkanContext {
     vk::Instance instance;
     vk::PhysicalDevice gpu;
-    vk::PhysicalDeviceFeatures gpuFeatures;
+    vk::StructureChain<vk::PhysicalDeviceFeatures2,
+#if VK_EXT_texture_compression_astc_hdr
+        vk::PhysicalDeviceTextureCompressionASTCHDRFeatures,
+#endif
+#if VK_EXT_texture_compression_astc_3d
+        vk::PhysicalDeviceTextureCompressionASTC3DFeaturesEXT,
+#endif
 #if VK_KHR_portability_subset
-    vk::PhysicalDevicePortabilitySubsetFeaturesKHR gpuPortabilityFeatures;
+        vk::PhysicalDevicePortabilitySubsetFeaturesKHR
+#endif
+        > gpuFeaturesChain;
+    // Copy so we can reuse the gpuFeaturesChain.
+    vk::PhysicalDeviceFeatures gpuFeatures;
+#if VK_EXT_texture_compression_astc_hdr
+    vk::PhysicalDeviceTextureCompressionASTCHDRFeatures& gpuAstcHdrFeatures =
+         gpuFeaturesChain.get<vk::PhysicalDeviceTextureCompressionASTCHDRFeatures>();
+#endif
+#if VK_EXT_texture_compression_astc_3d
+     vk::PhysicalDeviceTextureCompressionASTC3DFeaturesEXT& gpuAstc3dFeatures =
+         gpuFeaturesChain.get<vk::PhysicalDeviceTextureCompressionASTC3DFeaturesEXT();
+#endif
+#if VK_KHR_portability_subset
+    vk::PhysicalDevicePortabilitySubsetFeaturesKHR& gpuPortabilityFeatures =
+        gpuFeaturesChain.get<vk::PhysicalDevicePortabilitySubsetFeaturesKHR>();
 #endif
     vk::PhysicalDeviceProperties gpuProperties;
     vk::PhysicalDeviceMemoryProperties memoryProperties;
@@ -35,12 +56,20 @@ struct VulkanContext {
     vk::CommandPool commandPool;
     vk::Queue queue;
 
-    bool gpuIsPortabilitySubsetDevice = false;
+    // These provide a convenient alternative to looking in the gpuFeatureChain
+    // to check for presence of the feature.
+    bool gpuFeatureAstcHdr = false;
+    bool gpuFeatureAstc3d = false;
 
     struct {
+       // These extensions do not have corresponding device (gpu) features flags. These flags,
+       // showing whether or not the corresponding extensions have been found and
+       // enabled, are used to indicated presence of the functionality.
        bool pvrtc = false;
-       bool astc_hdr = false;
-       bool astc_3d = false;
+       bool hdr_metadata = false;
+       // This extension has multiple feature flags no single one of which can reliably
+       // as a check for portability.
+       bool portability = false;
     } enabledDeviceExtensions;
     std::vector<VkCommandBuffer> drawCmdBuffers;
     std::vector<VkCommandBuffer> postPresentCmdBuffers;
@@ -123,12 +152,14 @@ struct VulkanContext {
 
     bool gpuSupportsSwizzle() {
 #if VK_KHR_portability_subset
-        return !gpuIsPortabilitySubsetDevice
+        return !enabledDeviceExtensions.portability
                || gpuPortabilityFeatures.imageViewFormatSwizzle;
 #else
         return true;
 #endif
     }
+
+    void setGpu(vk::PhysicalDevice gpu);
 };
 
 #endif /* VULKAN_TEXTURE_H_229895365400979164311947449304284143508 */

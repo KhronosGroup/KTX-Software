@@ -46,5 +46,11 @@
     </array>
     <key>UIApplicationSupportsIndirectInputEvents</key>
     <string>YES</string>
+    <key>LSEnvironment</key>
+    <dict>
+        <key>VK_USE_HDR_SURFACE</key>
+        <string>YES</string>
+    </dict>
+
 </dict>
 </plist>

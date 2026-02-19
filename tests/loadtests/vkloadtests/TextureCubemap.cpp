@@ -28,7 +28,6 @@
 #include <vector>
 
 #include "TextureCubemap.h"
-#include "VulkanTextureTranscoder.hpp"
 #include "SwipeDetector.h"
 #include "argparser.h"
 #include "ltexceptions.h"
@@ -88,11 +87,7 @@ TextureCubemap::TextureCubemap(VulkanContext& vkctx,
         throw std::runtime_error(message.str());
     }
 
-    if (ktxTexture_NeedsTranscoding(kTexture)) {
-        TextureTranscoder tc(vkctx);
-        tc.transcode((ktxTexture2*)kTexture);
-        transcoded = true;
-    }
+    transcoded = transcodeIfNeeded(kTexture);
 
     vk::Format
         vkFormat = static_cast<vk::Format>(ktxTexture_GetVkFormat(kTexture));

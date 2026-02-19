@@ -12,6 +12,24 @@ SPDX-FileCopyrightText = "2015-2022 The Khronos Group Inc."
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
+path = "tests/resources/input/exr/Desk.exr"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Copyright (c) 2004, Industrial Light & Magic, a division of Lucasfilm Entertainment Company Ltd."
+SPDX-License-Identifier = "BSD-3-Clause"
+
+[[annotations]]
+path = "tests/resources/ktx2/Desk_uastc_hdr4x4_zstd_15.ktx2"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Copyright (c) 2004, Industrial Light & Magic, a division of Lucasfilm Entertainment Company Ltd."
+SPDX-License-Identifier = "BSD-3-Clause"
+
+[[annotations]]
+path = "tests/resources/ktx2/Desk_uastc_hdr6x6i.ktx2"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Copyright (c) 2004, Industrial Light & Magic, a division of Lucasfilm Entertainment Company Ltd."
+SPDX-License-Identifier = "BSD-3-Clause"
+
+[[annotations]]
 path = "tests/resources/input/png/kodim17.png"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "Eastman Kodak Company"
