@@ -732,6 +732,8 @@ static inline VkFormat vkGetFormatFromOpenGLInternalFormat( const GLenum interna
 		//
 		// ASTC
 		//
+  #define SUPPORT_ASTC_HDR 1
+  #if !SUPPORT_ASTC_HDR
 		case GL_COMPRESSED_RGBA_ASTC_4x4_KHR:					return VK_FORMAT_ASTC_4x4_UNORM_BLOCK;		// 4-component ASTC, 4x4 blocks, unsigned normalized
 		case GL_COMPRESSED_RGBA_ASTC_5x4_KHR:					return VK_FORMAT_ASTC_5x4_UNORM_BLOCK;		// 4-component ASTC, 5x4 blocks, unsigned normalized
 		case GL_COMPRESSED_RGBA_ASTC_5x5_KHR:					return VK_FORMAT_ASTC_5x5_UNORM_BLOCK;		// 4-component ASTC, 5x5 blocks, unsigned normalized
@@ -746,7 +748,22 @@ static inline VkFormat vkGetFormatFromOpenGLInternalFormat( const GLenum interna
 		case GL_COMPRESSED_RGBA_ASTC_10x10_KHR:					return VK_FORMAT_ASTC_10x10_UNORM_BLOCK;	// 4-component ASTC, 10x10 blocks, unsigned normalized
 		case GL_COMPRESSED_RGBA_ASTC_12x10_KHR:					return VK_FORMAT_ASTC_12x10_UNORM_BLOCK;	// 4-component ASTC, 12x10 blocks, unsigned normalized
 		case GL_COMPRESSED_RGBA_ASTC_12x12_KHR:					return VK_FORMAT_ASTC_12x12_UNORM_BLOCK;	// 4-component ASTC, 12x12 blocks, unsigned normalized
-
+#else
+		case GL_COMPRESSED_RGBA_ASTC_4x4_KHR:					return VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK;		// 4-component ASTC, 4x4 blocks, unsigned normalized
+		case GL_COMPRESSED_RGBA_ASTC_5x4_KHR:					return VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK;		// 4-component ASTC, 5x4 blocks, unsigned normalized
+		case GL_COMPRESSED_RGBA_ASTC_5x5_KHR:					return VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK;		// 4-component ASTC, 5x5 blocks, unsigned normalized
+		case GL_COMPRESSED_RGBA_ASTC_6x5_KHR:					return VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK;		// 4-component ASTC, 6x5 blocks, unsigned normalized
+		case GL_COMPRESSED_RGBA_ASTC_6x6_KHR:					return VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK;		// 4-component ASTC, 6x6 blocks, unsigned normalized
+		case GL_COMPRESSED_RGBA_ASTC_8x5_KHR:					return VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK;		// 4-component ASTC, 8x5 blocks, unsigned normalized
+		case GL_COMPRESSED_RGBA_ASTC_8x6_KHR:					return VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK;		// 4-component ASTC, 8x6 blocks, unsigned normalized
+		case GL_COMPRESSED_RGBA_ASTC_8x8_KHR:					return VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK;		// 4-component ASTC, 8x8 blocks, unsigned normalized
+		case GL_COMPRESSED_RGBA_ASTC_10x5_KHR:					return VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK;		// 4-component ASTC, 10x5 blocks, unsigned normalized
+		case GL_COMPRESSED_RGBA_ASTC_10x6_KHR:					return VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK;		// 4-component ASTC, 10x6 blocks, unsigned normalized
+		case GL_COMPRESSED_RGBA_ASTC_10x8_KHR:					return VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK;		// 4-component ASTC, 10x8 blocks, unsigned normalized
+		case GL_COMPRESSED_RGBA_ASTC_10x10_KHR:					return VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK;	// 4-component ASTC, 10x10 blocks, unsigned normalized
+		case GL_COMPRESSED_RGBA_ASTC_12x10_KHR:					return VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK;	// 4-component ASTC, 12x10 blocks, unsigned normalized
+		case GL_COMPRESSED_RGBA_ASTC_12x12_KHR:					return VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK;	// 4-component ASTC, 12x12 blocks, unsigned normalized
+#endif
 		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_4x4_KHR:			return VK_FORMAT_ASTC_4x4_SRGB_BLOCK;		// 4-component ASTC, 4x4 blocks, sRGB
 		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x4_KHR:			return VK_FORMAT_ASTC_5x4_SRGB_BLOCK;		// 4-component ASTC, 5x4 blocks, sRGB
 		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x5_KHR:			return VK_FORMAT_ASTC_5x5_SRGB_BLOCK;		// 4-component ASTC, 5x5 blocks, sRGB
