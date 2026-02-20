@@ -1913,6 +1913,16 @@ void CommandCreate::executeCreate() {
                 options.swizzle->c_str());
     }
 
+    // Add KTXmapRange metadata
+    if (options.codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4x4 || options.codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_6x6_INTERMEDIATE) {
+        struct KTXmapRange {
+            float scale;
+            float offset;
+        };
+        KTXmapRange data = {1, 0};
+        ktxHashList_AddKVPair(&texture->kvDataHead, KTX_MAP_RANGE_KEY, sizeof(KTXmapRange), &data);
+    }
+
     // Encode and apply compression
 
     MetricsCalculator metrics;

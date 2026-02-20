@@ -172,7 +172,15 @@ printKVData(ktx_uint8_t* pKvd, ktx_uint32_t kvdLen)
                     fprintf(stdout, "    glFormat: 0x%08X\n", glFormat);
                     fprintf(stdout, "    glType: 0x%08X\n", glType);
                 }
+            } else if (strcmp(key, "KTXmapRange") == 0) {
+                if (valueLen == 2 * sizeof(float)) {
+                    float scale = *(const float*) (value + 0);
+                    float offset = *(const float*) (value + 4);
 
+                    fprintf(stdout, "\n");
+                    fprintf(stdout, "    scale: %f\n", scale);
+                    fprintf(stdout, "    offset: %f\n", offset);
+                }
             } else if (strcmp(key, "KTXanimData") == 0) {
                 if (valueLen == 3 * sizeof(ktx_uint32_t)) {
                     ktx_uint32_t duration = *(const ktx_uint32_t*) (value + 0);
@@ -686,9 +694,9 @@ void
 printUASTCHDR6X6IntermediateSGDInfo(ktx_uint8_t* bgd, ktx_uint64_t byteLength,
                 ktx_uint32_t numImages)
 {
-    ktxUASTCHDR6X6IntermediateImageDesc* slices = (ktxUASTCHDR6X6IntermediateImageDesc*)(bgd);
+    ktxUASTCHDR6x6IntermediateImageDesc* slices = (ktxUASTCHDR6x6IntermediateImageDesc*)(bgd);
     for (ktx_uint32_t i = 0; i < numImages; i++) {
-        if (byteLength < (i + 1) * sizeof(ktxUASTCHDR6X6IntermediateImageDesc))
+        if (byteLength < (i + 1) * sizeof(ktxUASTCHDR6x6IntermediateImageDesc))
             break;
 
         fprintf(stdout, "\nrgbSliceByteLength: %u\n", slices[i].rgbSliceByteLength);
@@ -804,7 +812,7 @@ printKTX2Info2(ktxStream* stream, KTX_header2* pHeader)
             fprintf(stdout, "\nBasis Supercompression Global Data\n\n");
             printBasisSGDInfo(sgd, pHeader->supercompressionGlobalData.byteLength, numImages);
             free(sgd);
-        } else if (pHeader->supercompressionScheme == KTX_SS_UASTC_HDR_6X6_INTERMEDIATE) {
+        } else if (pHeader->supercompressionScheme == KTX_SS_UASTC_HDR_6x6_INTERMEDIATE) {
             ktx_uint8_t* sgd = malloc(pHeader->supercompressionGlobalData.byteLength);
             if (sgd == NULL)
                 return KTX_OUT_OF_MEMORY;

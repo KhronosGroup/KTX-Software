@@ -88,7 +88,10 @@ const char* ktxTranscodeFormatString(ktx_transcode_fmt_e format)
         case KTX_TTF_PVRTC1_4_RGB: return "PVRTC1_4_RGB";
         case KTX_TTF_PVRTC1_4_RGBA: return "PVRTC1_4_RGBA";
         case KTX_TTF_ASTC_4x4_RGBA: return "ASTC_4x4_RGBA";
+        case KTX_TTF_ASTC_HDR_4x4_RGBA: return "KTX_TTF_ASTC_HDR_4x4_RGBA";
+        case KTX_TTF_ASTC_HDR_6x6_RGBA: return "KTX_TTF_ASTC_HDR_6x6_RGBA";
         case KTX_TTF_RGBA32: return "RGBA32";
+        case KTX_TTF_RGBA_HALF: return "KTX_TTF_RGBA_HALF";
         case KTX_TTF_RGB565: return "RGB565";
         case KTX_TTF_BGR565: return "BGR565";
         case KTX_TTF_RGBA4444: return "RGBA4444";
@@ -122,7 +125,7 @@ ktxSupercompressionSchemeString(ktxSupercmpScheme scheme)
       case KTX_SS_BASIS_LZ: return "KTX_SS_BASIS_LZ";
       case KTX_SS_ZSTD: return "KTX_SS_ZSTD";
       case KTX_SS_ZLIB: return "KTX_SS_ZLIB";
-      case KTX_SS_UASTC_HDR_6X6_INTERMEDIATE: return "KTX_SS_UASTC_HDR_6X6_INTERMEDIATE";
+      case KTX_SS_UASTC_HDR_6x6_INTERMEDIATE: return "KTX_SS_UASTC_HDR_6x6_INTERMEDIATE";
       default:
         if (scheme < KTX_SS_BEGIN_VENDOR_RANGE
             || scheme >= KTX_SS_BEGIN_RESERVED)

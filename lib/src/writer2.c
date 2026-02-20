@@ -439,7 +439,8 @@ ktxTexture2_WriteToStream(ktxTexture2* This, ktxStream* dststr)
               "KTXwriter",
               "KTXwriterScParams",
               "KTXastcDecodeMode",
-              "KTXanimData"
+              "KTXanimData",
+              "KTXmapRange"
             };
             if (strncmp(key, "ktx", 3) == 0)
                 return KTX_INVALID_OPERATION;

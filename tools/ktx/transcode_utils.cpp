@@ -65,10 +65,10 @@ TranscodeSwizzleInfo determineTranscodeSwizzle(const KTXTexture2& texture, Repor
             report.fatal(rc::INVALID_FILE, "Unsupported channel type for UASTC transcoding: {}",
                     sample0 ? toString(KHR_DF_MODEL_UASTC, *sample0) : "-");
         }
-    } else if (khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_UASTC_HDR_4X4) {
+    } else if (khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_UASTC_HDR_4x4) {
         result.defaultNumComponents = 4;
         result.swizzle = "rgba";
-    } else if (khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_UASTC_HDR_6X6) {
+    } else if (khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_UASTC_HDR_6x6) {
         result.defaultNumComponents = 4;
         result.swizzle = "rgba";
     } else {

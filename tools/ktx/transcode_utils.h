@@ -79,8 +79,8 @@ struct OptionsTranscodeTarget {
 
         if (!transcodeTarget.has_value()) {
             const auto* bdfd = texture->pDfd + 1;
-            if (khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_UASTC_HDR_6X6
-             || khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_UASTC_HDR_4X4) {
+            if (khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_UASTC_HDR_6x6
+             || khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_UASTC_HDR_4x4) {
                 transcodeTarget = KTX_TTF_RGBA_HALF;
                 transcodeTargetName = "rgba16f";
                 transcodeSwizzleComponents = tswizzle.defaultNumComponents;

@@ -364,7 +364,7 @@ function uploadTextureToGl(gl, ktexture) {
 
       //const model = ktexture.get
       if (astcSupported && HDRsupported) {
-        if (ktx.khr_df_model.KHR_DF_MODEL_UASTC_HDR_4X4 == model) {
+        if (ktx.khr_df_model.KHR_DF_MODEL_UASTC_HDR_4x4 == model) {
           formatString = 'ASTC_HDR_4x4';
           format = transcode_fmt.ASTC_HDR_4x4_RGBA;
         } else {

@@ -96,6 +96,7 @@ private:
     bool foundKTXastcDecodeMode = false;
     bool foundKTXcubemapIncomplete = false;
     bool foundKTXdxgiFormat = false;
+    bool foundKTXmapRange = false;
     bool foundKTXglFormat = false;
     bool foundKTXmetalPixelFormat = false;
     bool foundKTXorientation = false;
@@ -176,6 +177,7 @@ private:
 
     void validateKTXcubemapIncomplete(const uint8_t* data, uint32_t size);
     void validateKTXorientation(const uint8_t* data, uint32_t size);
+    void validateKTXmapRange(const uint8_t* data, uint32_t size);
     void validateKTXglFormat(const uint8_t* data, uint32_t size);
     void validateKTXdxgiFormat(const uint8_t* data, uint32_t size);
     void validateKTXmetalPixelFormat(const uint8_t* data, uint32_t size);
@@ -416,7 +418,7 @@ void ValidationContext::validateHeader() {
             warning(HeaderData::UnknownFormat, toString(vkFormat));
     }
 
-    if (header.supercompressionScheme == KTX_SS_BASIS_LZ || header.supercompressionScheme == KTX_SS_UASTC_HDR_6X6_INTERMEDIATE) {
+    if (header.supercompressionScheme == KTX_SS_BASIS_LZ || header.supercompressionScheme == KTX_SS_UASTC_HDR_6x6_INTERMEDIATE) {
         if (header.vkFormat != VK_FORMAT_UNDEFINED)
             error(HeaderData::VkFormatAndBasis, toString(vkFormat));
     }
@@ -714,7 +716,7 @@ void ValidationContext::validateLevelIndex() {
             if (header.supercompressionScheme == KTX_SS_BASIS_LZ) {
                 if (level.uncompressedByteLength != 0)
                     error(LevelIndex::NonZeroUBLForBLZE, index, level.uncompressedByteLength);
-            } else if (header.supercompressionScheme == KTX_SS_UASTC_HDR_6X6_INTERMEDIATE) {
+            } else if (header.supercompressionScheme == KTX_SS_UASTC_HDR_6x6_INTERMEDIATE) {
                 if (level.uncompressedByteLength != 0)
                     error(LevelIndex::NonZeroUBLForUH6X6IE, index, level.uncompressedByteLength);
             } else if (header.vkFormat != VK_FORMAT_UNDEFINED) {
@@ -884,6 +886,9 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
     parsedBlockDimension1 = static_cast<uint8_t>(block.texelBlockDimension1);
     parsedBlockDimension2 = static_cast<uint8_t>(block.texelBlockDimension2);
 
+    if (parsedColorModel == KHR_DF_MODEL_UASTC_HDR_4x4 && header.vkFormat != VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK)
+        error(DFD::UH4X4ModelRequiresASTC4X4FVkFormat, toString(static_cast<VkFormat>(header.vkFormat)));
+
     // Validate versionNumber
     if (block.versionNumber != KHR_DF_VERSIONNUMBER_1_3)
         error(DFD::BasicVersionNotSupported, blockIndex, toString(khr_df_versionnumber_e(block.versionNumber)));
@@ -910,7 +915,7 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
 
     } else if (isFormatBlockCompressed(VkFormat(header.vkFormat))) {
         const auto expectedBCColorModel = getColorModelForBlockCompressedFormat(VkFormat(header.vkFormat));
-        if (khr_df_model_e(block.model) != expectedBCColorModel && khr_df_model_e(block.model) != khr_df_model_e::KHR_DF_MODEL_UASTC_HDR_4X4)
+        if (khr_df_model_e(block.model) != expectedBCColorModel && khr_df_model_e(block.model) != khr_df_model_e::KHR_DF_MODEL_UASTC_HDR_4x4)
             error(DFD::IncorrectModelForBlock, blockIndex, toString(khr_df_model_e(block.model)), toString(VkFormat(header.vkFormat)), toString(expectedBCColorModel));
 
     } else if (header.vkFormat != VK_FORMAT_UNDEFINED) {
@@ -1007,7 +1012,7 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
                     error(DFD::SampleCountMismatch, blockIndex, samples.size(), toString(VkFormat(header.vkFormat)), expectedSamples->size());
 
                 // UASTC 4x4 requires lower to be 0.
-                if (khr_df_model_e(block.model) == khr_df_model_e::KHR_DF_MODEL_UASTC_HDR_4X4)
+                if (khr_df_model_e(block.model) == khr_df_model_e::KHR_DF_MODEL_UASTC_HDR_4x4)
                 {
                     for (auto& expectedSample : *expectedSamples) 
                     {
@@ -1399,6 +1404,7 @@ void ValidationContext::validateKVD() {
 
     kvValidators.emplace("KTXcubemapIncomplete", &ValidationContext::validateKTXcubemapIncomplete);
     kvValidators.emplace("KTXorientation", &ValidationContext::validateKTXorientation);
+    kvValidators.emplace("KTXmapRange", &ValidationContext::validateKTXmapRange);
     kvValidators.emplace("KTXglFormat", &ValidationContext::validateKTXglFormat);
     kvValidators.emplace("KTXdxgiFormat__", &ValidationContext::validateKTXdxgiFormat);
     kvValidators.emplace("KTXmetalPixelFormat", &ValidationContext::validateKTXmetalPixelFormat);
@@ -1489,6 +1495,51 @@ void ValidationContext::validateKTXorientation(const uint8_t* data, uint32_t siz
 
     if (checkGLTFBasisU && value != "rd")
         error(Metadata::KTXorientationInvalidGLTFBU, value);
+}
+
+void ValidationContext::validateKTXmapRange(const uint8_t* data, uint32_t size) {
+    foundKTXmapRange = true;
+
+    const auto dfdByteOffset = header.dataFormatDescriptor.byteOffset;
+    const auto dfdByteLength = header.dataFormatDescriptor.byteLength;
+
+    const auto buffer = std::make_unique<uint8_t[]>(dfdByteLength);
+    read(dfdByteOffset, buffer.get(), dfdByteLength, "the ff DFD");
+    const uint32_t * pDFD = reinterpret_cast<const uint32_t *>(buffer.get());
+    const uint32_t * pBDB = pDFD + 1;
+
+    uint32_t nSamples = KHR_DFDSAMPLECOUNT(pBDB);
+    for (uint32_t sample = 0; sample < nSamples; ++sample) {
+        auto qualifiers = static_cast<khr_df_sample_datatype_qualifiers_e>(KHR_DFDSVAL(pBDB, sample, QUALIFIERS));
+        if (!(qualifiers & KHR_DF_SAMPLE_DATATYPE_LINEAR) &&
+            !(qualifiers & KHR_DF_SAMPLE_DATATYPE_FLOAT)) {
+            error(Metadata::KTXmapRangeInvalidFormat);
+            return;
+        }
+    }
+
+    if (size != 8) {
+        error(Metadata::KTXmapRangeInvalidSize, size);
+        return;
+    }
+
+    struct Value {
+        float scale;
+        float offset;
+    };
+
+    Value value{};
+    std::memcpy(&value, data, size);
+
+    if (!std::isfinite(value.scale)) {
+        error(Metadata::KTXmapRangeInvalidScale, value.scale);
+        return;
+    }
+
+    if (!std::isfinite(value.offset)) {
+        error(Metadata::KTXmapRangeInvalidOffset, value.offset);
+        return;
+    }
 }
 
 void ValidationContext::validateKTXglFormat(const uint8_t* data, uint32_t size) {
@@ -1632,13 +1683,13 @@ void ValidationContext::validateSGD() {
     const auto buffer = std::make_unique<uint8_t[]>(sgdByteLength);
     read(sgdByteOffset, buffer.get(), sgdByteLength, "the SGD");
 
-    if ((header.supercompressionScheme != KTX_SS_BASIS_LZ) && (header.supercompressionScheme != KTX_SS_UASTC_HDR_6X6_INTERMEDIATE))
+    if ((header.supercompressionScheme != KTX_SS_BASIS_LZ) && (header.supercompressionScheme != KTX_SS_UASTC_HDR_6x6_INTERMEDIATE))
         return;
 
     switch (header.supercompressionScheme) {
-        // Validate UASTC_HDR_6X6_INTERMEDIATE SGD
-        case KTX_SS_UASTC_HDR_6X6_INTERMEDIATE: {
-            if (sgdByteLength < sizeof(ktxUASTCHDR6X6IntermediateImageDesc)) {
+        // Validate UASTC_HDR_6x6_INTERMEDIATE SGD
+        case KTX_SS_UASTC_HDR_6x6_INTERMEDIATE: {
+            if (sgdByteLength < sizeof(ktxUASTCHDR6x6IntermediateImageDesc)) {
                 error(SGD::UH6X6IESizeTooSmall, sgdByteLength);
                 return;
             }
@@ -1648,7 +1699,7 @@ void ValidationContext::validateSGD() {
                 return;
             }
 
-            const ktxUASTCHDR6X6IntermediateImageDesc* imageDescs = reinterpret_cast<ktxUASTCHDR6X6IntermediateImageDesc*>(buffer.get());
+            const ktxUASTCHDR6x6IntermediateImageDesc* imageDescs = reinterpret_cast<ktxUASTCHDR6x6IntermediateImageDesc*>(buffer.get());
 
             uint32_t i = 0;
             for (uint32_t level = 0; level < numLevels; ++level) {

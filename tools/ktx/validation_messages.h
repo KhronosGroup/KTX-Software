@@ -454,6 +454,10 @@ struct DFD {
         6030, "Deprecated unsized bytesPlanes in basic DFD block. Since specification 2.0.4 bytesPlanes must be sized (non-zero) for supercompressed textures.",
         "DFD block #{} bytesPlanes0 in basic DFD block is {} but for {} supercompressed textures, since specification 2.0.4, it must be non-zero."
     };
+    static constexpr IssueError UH4X4ModelRequiresASTC4X4FVkFormat{
+        6031, "For model KHR_DF_MODEL_UASTC_HDR_4x4, vkFormat must be set to VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK.",
+        "DFD Header vkFormat is set to {} but for KHR_DF_MODEL_UASTC_HDR_4x4 it must be set to VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK."
+    };
 
     // 61xx - Basic Data Format Descriptor Block sample related issues:
 
@@ -730,6 +734,22 @@ struct Metadata {
         7135, "KTXastcDecodeMode has no effect on and should not be present in KTX files that use the sRGB transfer function.",
         "KTXastcDecodeMode is present but for transferFunction {} it has no effect."
     };
+    static constexpr IssueError KTXmapRangeInvalidSize{
+        7136, "Invalid KTXmapRange metadata. The size of the value must be 8 bytes.",
+        "The size of KTXmapRange value is {} byte(s) but it must be 8 bytes."
+    };
+    static constexpr IssueError KTXmapRangeInvalidFormat{
+        7137, "Invalid metadata entry KTXmapRange. The KTXmapRange metadata entry may be used only with floating point format and any linear *_UNORM or *_SNORM format.",
+        "The metadata entry KTXmapRange is present but the data format is not any floating point format or any linear *_UNORM or *_SNORM format."
+    };
+    static constexpr IssueError KTXmapRangeInvalidScale{
+        7138, "Invalid scale value in the KTXmapRange metadata entry. The scale value in the KTXmapRange metadata entry must be finite.",
+        "The scale value in the KTXmapRange metadata entry is {} but the value needs to be finite."
+    };
+    static constexpr IssueError KTXmapRangeInvalidOffset{
+        7139, "Invalid offset value in the KTXmapRange metadata entry. The offset value in the KTXmapRange metadata entry must be finite.",
+        "The offset value in the KTXmapRange metadata entry is {} but the value needs to be finite."
+    };
 
     // 72xx - GLTF KHR_texture_basisu compatibility
 
@@ -793,15 +813,15 @@ struct SGD {
     // 82xx - UASTC HDR6X6 Intermediate related issues:
 
     static constexpr IssueError UH6X6IESizeTooSmall{
-        8201, "Invalid sgdByteLength for UASTC HDR6X6 Intermediate. sgdByteLength must be at least 12 bytes (sizeof ktxUASTCHDR6X6IntermediateImageDesc).",
-        "sgdByteLength is {} but for UASTC HDR6X6 Intermediate textures it must be at least 12 bytes (sizeof ktxUASTCHDR6X6IntermediateImageDesc)."
+        8201, "Invalid sgdByteLength for UASTC HDR6X6 Intermediate. sgdByteLength must be at least 12 bytes (sizeof ktxUASTCHDR6x6IntermediateImageDesc).",
+        "sgdByteLength is {} but for UASTC HDR6X6 Intermediate textures it must be at least 12 bytes (sizeof ktxUASTCHDR6x6IntermediateImageDesc)."
     };
     static constexpr IssueError UH6X6IEByteLengthInvalidSize{
-        8202, "Invalid sgdByteLength for UASTC HDR6X6 Intermediate. sgdByteLength must be a multiple of 12 (sizeof ktxUASTCHDR6X6IntermediateImageDesc).",
-        "sgdByteLength is {} but for UASTC HDR6X6 Intermediate byte length must be a multiple of 12 bytes (sizeof ktxUASTCHDR6X6IntermediateImageDesc)."
+        8202, "Invalid sgdByteLength for UASTC HDR6X6 Intermediate. sgdByteLength must be a multiple of 12 (sizeof ktxUASTCHDR6x6IntermediateImageDesc).",
+        "sgdByteLength is {} but for UASTC HDR6X6 Intermediate byte length must be a multiple of 12 bytes (sizeof ktxUASTCHDR6x6IntermediateImageDesc)."
     };
     static constexpr IssueError UH6X6IEZeroRGBLength{
-        8203, "Invalid rgbSliceByteLength in UASTCHDR6X6IntermediateImageDesc. rgbSliceByteLength must not be 0.",
+        8203, "Invalid rgbSliceByteLength in UASTCHDR6x6IntermediateImageDesc. rgbSliceByteLength must not be 0.",
         "For Level {} Layer {} Face {} zSlice {} the rgbSliceByteLength is {} but it must not be 0."
     };
     static constexpr IssueError UH6X6IEInvalidRGBSlice{

@@ -1269,9 +1269,9 @@ EMSCRIPTEN_BINDINGS(ktx)
     enum_<ktx_basis_codec_e>("basis_codec")
         .value("NONE", KTX_BASIS_CODEC_NONE)
         .value("ETC1S", KTX_BASIS_CODEC_ETC1S)
-        .value("UASTC_LDR_4X4", KTX_BASIS_CODEC_UASTC_LDR_4X4)
-        .value("UASTC_HDR_4X4", KTX_BASIS_CODEC_UASTC_HDR_4X4)
-        .value("UASTC_HDR_6X6_INTERMEDIATE", KTX_BASIS_CODEC_UASTC_HDR_6X6_INTERMEDIATE)
+        .value("UASTC_LDR_4x4", KTX_BASIS_CODEC_UASTC_LDR_4x4)
+        .value("UASTC_HDR_4x4", KTX_BASIS_CODEC_UASTC_HDR_4x4)
+        .value("UASTC_HDR_6x6_INTERMEDIATE", KTX_BASIS_CODEC_UASTC_HDR_6x6_INTERMEDIATE)
     ;
 
     enum_<ktxSupercmpScheme>("SupercmpScheme")
@@ -1304,9 +1304,9 @@ EMSCRIPTEN_BINDINGS(ktx)
 
     enum_<khr_df_model_e>("khr_df_model")
         // These are the values needed with HTML5/WebGL.
-        .value("KHR_DF_MODEL_UASTC_LDR_4X4", KHR_DF_MODEL_UASTC_LDR_4X4)
-        .value("KHR_DF_MODEL_UASTC_HDR_4X4", KHR_DF_MODEL_UASTC_HDR_4X4)
-        .value("KHR_DF_MODEL_UASTC_HDR_6X6", KHR_DF_MODEL_UASTC_HDR_6X6)
+        .value("KHR_DF_MODEL_UASTC_LDR_4x4", KHR_DF_MODEL_UASTC_LDR_4x4)
+        .value("KHR_DF_MODEL_UASTC_HDR_4x4", KHR_DF_MODEL_UASTC_HDR_4x4)
+        .value("KHR_DF_MODEL_UASTC_HDR_6x6", KHR_DF_MODEL_UASTC_HDR_6x6)
     ;
 
     enum_<khr_df_primaries_e>("khr_df_primaries")
