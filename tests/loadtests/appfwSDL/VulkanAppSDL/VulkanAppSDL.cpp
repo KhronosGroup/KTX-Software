@@ -30,6 +30,7 @@
 #include <iomanip>
 #include <string>
 #include <sstream>
+#include <unordered_map>
 
 #include "VulkanAppSDL.h"
 #include "ltexceptions.h"
