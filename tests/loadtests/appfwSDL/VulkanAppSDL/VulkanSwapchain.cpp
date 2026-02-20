@@ -208,7 +208,6 @@ VulkanSwapchain::initSurface(SDL_Window* window, VkFormat reqFormat,
         colorFormat = surfaceFormats[i].format;
         colorSpace = surfaceFormats[i].colorSpace;
     }
-    //colorSpace = surfaceFormats[0].colorSpace;
 }
 
 
