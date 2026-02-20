@@ -740,7 +740,7 @@ VulkanAppSDL::createSurface()
                                 VulkanSwapchain::colorSpaceSelector::eSpecific,
                                 colorSpace);
         // VK_COLOR_SPACE_DISPLAY_P3_LINEAR_EXT, VK_COLOR_SPACE_BT2020_LINEAR_EXT
-    } catch(unsupported_surface_format& e) {
+    } catch(unsupported_surface_format&) {
         std::string msg = "VulkanSwapchain::initSurface: ";
         msg += "No matching HDR surface format found. Reverting to SDR.";
         (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, theApp->name(),
@@ -883,7 +883,7 @@ VulkanAppSDL::createDevice()
     // features. However we only need a few of the standard features. Therefore clear the
     // reported set, which has been saved in vkctx.gpuFeatures, prior to setting those
     // needed.
-    memset(&deviceFeaturesToEnable, 0, sizeof(deviceFeaturesToEnable));
+    deviceFeaturesToEnable = vk::PhysicalDeviceFeatures {};
     // Enable specific required and available features here.
     if (vkctx.gpuFeatures.samplerAnisotropy)
         deviceFeaturesToEnable.samplerAnisotropy = true;
