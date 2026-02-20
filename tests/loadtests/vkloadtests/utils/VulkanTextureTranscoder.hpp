@@ -47,14 +47,14 @@ class TextureTranscoder {
         } else if (colorModel == KHR_DF_MODEL_ETC1S
                    && vkctx.gpuFeatures.textureCompressionETC2) {
             tf = KTX_TTF_ETC;
-        } else if (colorModel == KHR_DF_MODEL_UASTC_HDR_4X4
+        } else if (colorModel == KHR_DF_MODEL_UASTC_HDR_4x4
                    && vkctx.gpuFeatureAstcHdr) {
             tf = KTX_TTF_ASTC_HDR_4x4_RGBA;
-        } else if (colorModel == KHR_DF_MODEL_UASTC_HDR_6X6
+        } else if (colorModel == KHR_DF_MODEL_UASTC_HDR_6x6
                    && vkctx.gpuFeatureAstcHdr) {
             tf = KTX_TTF_ASTC_HDR_6x6_RGBA;
-        } else if (colorModel == KHR_DF_MODEL_UASTC_HDR_4X4
-                || colorModel == KHR_DF_MODEL_UASTC_HDR_6X6) {
+        } else if (colorModel == KHR_DF_MODEL_UASTC_HDR_4x4
+                || colorModel == KHR_DF_MODEL_UASTC_HDR_6x6) {
                 tf = defaultHDRTf;
         } else {
                 tf = defaultLDRTf;
