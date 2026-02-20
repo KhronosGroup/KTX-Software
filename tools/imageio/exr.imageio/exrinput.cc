@@ -139,8 +139,9 @@ void ExrInput::open(ImageSpec& newspec) {
     const uint32_t width = header.data_window[2] - header.data_window[0] + 1;
     const uint32_t height = header.data_window[3] - header.data_window[1] + 1;
 
-    // Use "chromaticities" attribute, if present, to determine color primaries
-    khr_df_primaries_e colorPrimaries = KHR_DF_PRIMARIES_UNSPECIFIED;
+    // Use "chromaticities" attribute, if present, to determine color primaries.
+    // Per the EXR spec. in the absence of chromaticities, use bt.709.
+    khr_df_primaries_e colorPrimaries = KHR_DF_PRIMARIES_BT709;
     for (int i = 0; i < header.num_custom_attributes; ++i) {
         auto attributeName = std::string_view(header.custom_attributes[i].name);
         if (attributeName == "chromaticities") {
