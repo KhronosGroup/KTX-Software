@@ -25,6 +25,12 @@
         padding: 0.5em;
         max-width: 55em;
       }
+      #ktx-input {
+        display: none;
+      }
+      #transcoded {
+        display: none;
+      }
     </style>
   </head>
 
@@ -32,16 +38,95 @@
     <div id="panel">
       <h2>libktx Read-only Javascript Binding Test</h2>
       <p>This test uses the read-only Javascript binding for libktx,
-      which has been compiled to Javascript using Emscripten. It uses a
-      KTX2 file with a Basis Universal-compressed payload. It has
-      transcoded the images to <b id='format'>FORMAT</b>.
+      which has been compiled to Javascript using Emscripten. It has
+      loaded <span id='file_name'></span><span id='transcoded'>, which
+      is a KTX file with a Basis Universal-compressed payload. It has
+      transcoded the images to <span id='format'>FORMAT</span></span>.
       </p>
+      <label id="click-zone">
+        <p>Drop a .ktx or .ktx2 file on the canvas to view it or click here to upload one.</p>
+        <input type="file" id="ktx-input" accept="image/ktx,image/ktx2" />
+      </label>
     </div>
     <p></p>
 
     <canvas id="glcanvas" width="640" height="480"></canvas>
+
   </body>
 
+  <script>
+    const dropZone = document.getElementById("glcanvas");
+    dropZone.addEventListener("drop", dropHandler);
+
+    // To prevent browser's default behavior when a file is dropped, listen
+    // for the drop event on window and cancel it. Take care to handle the
+    // event only if a file is being dragged; if it's something else, such
+    // as a link, we still use the default behavior. If the dragged item
+    // is a non-image file, we still handle the event, but provide feedback
+    // to the user that it is not allowed.
+    window.addEventListener("drop", (e) => {
+      if ([...e.dataTransfer.items].some((item) => item.kind === "file")) {
+        e.preventDefault();
+      }
+    });
+
+    // In order for the drop event to fire, the element must also cancel the
+    // dragover event. Because we are listening for drop on window, we need
+    // to cancel the dragover event for the whole window as well. We also set
+    // DataTransfer.dropEffect to none if the file is not an image or not
+    // dragged to the correct place.
+    dropZone.addEventListener("dragover", (e) => {
+      const transferItem = e.dataTransfer.items[0]
+      const fileItems = [...e.dataTransfer.items].filter(
+        (item) => item.kind === "file",
+      );
+      if (fileItems.length > 0) {
+        e.preventDefault();
+        // Media-type for .ktx{,2} files may not be set. As the file name
+        // is not available to dragover events, fallback to assuming the
+        // user has dragged a KTX file, if type is unset.
+        if (fileItems.some((item) => (!item.type || item.type.startsWith("image/ktx")))) {
+          e.dataTransfer.dropEffect = "copy";
+        } else {
+          e.dataTransfer.dropEffect = "none";
+        }
+      }
+    });
+
+    window.addEventListener("dragover", (e) => {
+      const fileItems = [...e.dataTransfer.items].filter(
+        (item) => item.kind === "file",
+      );
+      if (fileItems.length > 0) {
+        e.preventDefault();
+        if (!dropZone.contains(e.target)) {
+          e.dataTransfer.dropEffect = "none";
+        }
+      }
+    });
+
+    function dropHandler(ev) {
+      const files = [...ev.dataTransfer.items]
+        .map((item) => item.getAsFile())
+        .filter((file) => file);
+      // Can only show one file. Show first .ktx{,2} file.
+      for (const file of files) {
+        // When type is not set, check for .ktx{,2} extension.
+        if (file.type || file.name.endsWith(".ktx2") || file.name.endsWith(".ktx")) {
+          ev.preventDefault();
+          const url = window.URL.createObjectURL(file)
+          replaceTexture(gl, url, file.name);
+          break;
+        }
+      }
+    }
+
+    const ktxInput = document.getElementById("ktx-input");
+    ktxInput.addEventListener("change", (e) => {
+      const url = window.URL.createObjectURL(e.target.files[0])
+      replaceTexture(gl, url);
+    });
+  </script>
   <script src="../gl-matrix.js"></script>
   <script src="../libktx_read.js"></script>
   <script src="libktx-read-test.js"></script>

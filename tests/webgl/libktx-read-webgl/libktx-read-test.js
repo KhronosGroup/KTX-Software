@@ -22,6 +22,8 @@ var dxtSupported = false;
 var bptcSupported = false;
 var pvrtcSupported = false;
 
+const initialFile = 'ktx_app_blze.ktx2';
+
 //
 // Start here
 //
@@ -45,7 +47,7 @@ if (!gl) {
 
 function main() {
 
-  texture = loadTexture(gl, 'ktx_app_blze.ktx2');
+  texture = loadTexture(gl, initialFile, initialFile);
 
   astcSupported = !!gl.getExtension('WEBGL_compressed_texture_astc');
   etcSupported = !!gl.getExtension('WEBGL_compressed_texture_etc1');
@@ -500,7 +502,7 @@ function setTexParameters(texture, ktexture) {
   gl.bindTexture(texture.target, null);
 }
 
-function loadTexture(gl, url)
+function loadTexture(gl, url, name)
 {
   // Because images have to be downloaded over the internet
   // they might take a moment until they are ready. Until
@@ -510,7 +512,12 @@ function loadTexture(gl, url)
 
   const placeholder = createPlaceholderTexture(gl, [0, 0, 255, 255]);
   gl.bindTexture(placeholder.target, placeholder.object);
+  replaceTexture(gl, url, name)
+  return placeholder;
+}
 
+function replaceTexture(gl, url, name)
+{
   var xhr = new XMLHttpRequest();
   xhr.open('GET', url);
   xhr.responseType = "arraybuffer";
@@ -523,16 +530,23 @@ function loadTexture(gl, url)
     gl.bindTexture(tex.target, tex.object);
     gl.deleteTexture(texture.object);
     texture = tex;
-    elem('format').innerText = tex.format;
-    console.log(texture);
+    elem('file_name').innerText = name;
+    var tc = document.getElementById('transcoded');
+    var tcdisplay = getComputedStyle(tc).display;
+    if (typeof tex.format !== 'undefined') {
+      if (tcdisplay === "none") {
+        tc.style.display = "inline";
+      }
+      elem('format').innerText = tex.format;
+    } else if (tcdisplay !== "none") {
+        tc.style.display = "none";
+    }
     ktexture.delete();
   };
 
   //xhr.onprogress = runProgress;
   //xhr.onloadstart = openProgress;
   xhr.send();
-
-  return placeholder;
 }
 
 function isPowerOf2(value) {
