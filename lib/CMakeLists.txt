@@ -722,10 +722,14 @@ endif()
 # Use of this to install KHR/khr_df.h is due to CMake's failure to
 # preserve the include source folder hierarchy.
 # See https://gitlab.kitware.com/cmake/cmake/-/issues/16739.
-if (APPLE_LOCKED_OS)
+if (APPLE)
     set_source_files_properties(
-          include/KHR/khr_df.h
+          ${CMAKE_SOURCE_DIR}/external/dfdutils/KHR/khr_df.h
           PROPERTIES MACOSX_PACKAGE_LOCATION Headers/KHR
+    )
+    install(FILES "${CMAKE_SOURCE_DIR}/external/dfdutils/KHR/khr_df.h"
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/KHR
+        COMPONENT dev
     )
 else()
     include(GNUInstallDirs)

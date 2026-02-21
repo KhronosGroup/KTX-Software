@@ -15,6 +15,9 @@ do
     pkgutil --files $pkg | xargs -n 1 sh -c 'if [ -f $0 -o -L $0 ]; then rm $0; fi'
     # Deal with doc/KTX-Software
     pkgutil --only-dirs --files $pkg | xargs -n 1 sh -c 'if [ -d $0 -a $(basename $0) = "KTX-Software" ]; then rm -rf $0; fi'
+    
+    # Deal with KHR/khd_df.h
+    pkgutil --only-dirs --files $pkg | xargs -n 1 sh -c 'if [ -d $0 -a $(basename $0) = "KHR" ]; then rm -rf $0; fi'
 
     pkgutil --forget $pkg
 done
