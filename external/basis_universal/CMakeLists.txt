@@ -281,12 +281,23 @@ if (BASISU_EXAMPLES)
     set_common_executable_properties(examples)
 endif()
 
-if (BASISU_TOOL AND NOT EMSCRIPTEN)
-    if (UNIX)
-        if (APPLE)
-            add_custom_command(TARGET basisu POST_BUILD COMMAND $<CONFIG:Release:strip> ARGS -X -x $<TARGET_FILE:basisu>)
+if(BASISU_TOOL AND NOT EMSCRIPTEN)
+    if(UNIX)
+        if(APPLE)
+            add_custom_command(
+                TARGET basisu
+                POST_BUILD
+                COMMAND $<$<CONFIG:Release>:strip>
+                ARGS -X -x $<TARGET_FILE:basisu>
+            )
         else()
-            add_custom_command(TARGET basisu POST_BUILD COMMAND $<CONFIG:Release:strip> ARGS -g -X -x $<TARGET_FILE:basisu>)
+            add_custom_command(
+                TARGET basisu
+                POST_BUILD
+                COMMAND $<$<CONFIG:Release>:strip>
+                ARGS -g -X -x $<TARGET_FILE:basisu>
+            )
         endif()
     endif()
 endif()
+
