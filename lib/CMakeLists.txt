@@ -727,8 +727,8 @@ if (APPLE_LOCKED_OS)
           include/KHR/khr_df.h
           PROPERTIES MACOSX_PACKAGE_LOCATION Headers/KHR
     )
-else()
-    include(GNUInstallDirs)
+#else()
+#    include(GNUInstallDirs)
     #install(FILES include/KHR/khr_df.h
     #    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/KHR
     #    COMPONENT dev
