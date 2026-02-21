@@ -78,5 +78,10 @@
     <string></string>
     <key>UISupportedInterfaceOrientations</key>
     <array/>
+    <key>LSEnvironment</key>
+    <dict>
+        <key>VK_USE_HDR_SURFACE</key>
+        <string>YES</string>
+    </dict>
 </dict>
 </plist>

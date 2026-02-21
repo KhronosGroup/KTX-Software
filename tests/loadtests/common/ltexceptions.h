@@ -16,6 +16,7 @@
 
 #include <stdexcept>
 #include <string>
+#include <sstream>
 
 #define OUT_OF_HOST_MEMORY -1
 #define OUT_OF_DEVICE_MEMORY -2
@@ -55,12 +56,24 @@ class bad_vulkan_alloc : public std::bad_alloc {
 class unsupported_ttype : public std::runtime_error {
   public:
     unsupported_ttype()
-         : std::runtime_error("Implementation does not support needed operations on image format") { }
+        : std::runtime_error("Implementation does not support needed operations on image format") { }
     unsupported_ttype(std::string& message) : std::runtime_error(message) { }
 };
 
 class unsupported_ctype : public std::runtime_error {
   public:
     unsupported_ctype()
-         : std::runtime_error("Unsupported compression format") { }
+        : std::runtime_error("Unsupported compression format") { }
+};
+
+class unsupported_surface_format : public std::runtime_error {
+  public:
+    unsupported_surface_format()
+        : std::runtime_error("No matching surface format found.") { }
+};
+
+class swapchain_init_surface_failed : public std::runtime_error {
+  public:
+    swapchain_init_surface_failed(std::string& what) : std::runtime_error(what) { }
+    swapchain_init_surface_failed(const char* what) : std::runtime_error(what) { }
 };

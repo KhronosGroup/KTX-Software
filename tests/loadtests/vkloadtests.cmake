@@ -81,6 +81,8 @@ set( vk_ktx2_test_images
     color_grid_blze.ktx2
     cubemap_goldengate_uastc_rdo_4_zstd_5.ktx2
     cubemap_yokohama_blze.ktx2
+    Desk_uastc_hdr4x4_zstd_15.ktx2
+    Desk_uastc_hdr6x6i.ktx2
     etc2_unorm_array_7.ktx2
     Iron_Bars_001_normal_blze.ktx2
     Iron_Bars_001_normal_uastc_zstd_10.ktx2
@@ -150,6 +152,7 @@ add_executable( vkloadtests
     appfwSDL/VulkanAppSDL/vulkantools.cpp
     appfwSDL/VulkanAppSDL/vulkantools.h
     common/disable_glm_warnings.h
+    common/ltexceptions.h
     common/reenable_warnings.h
     vkloadtests/InstancedSampleBase.cpp
     vkloadtests/InstancedSampleBase.h

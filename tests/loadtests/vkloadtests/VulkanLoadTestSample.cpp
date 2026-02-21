@@ -17,6 +17,7 @@
  */
 
 #include "VulkanLoadTestSample.h"
+#include "VulkanTextureTranscoder.hpp"
 
 #include <random>
 #include <unordered_map>
@@ -186,4 +187,17 @@ VulkanLoadTestSample::loadShader(std::string filename,
     assert(shaderStage.module);
     shaderModules.push_back(shaderStage.module);
     return shaderStage;
+}
+
+bool
+VulkanLoadTestSample::transcodeIfNeeded(ktxTexture* kTexture)
+{
+    if (ktxTexture_IsTranscodable(kTexture)) {
+        // ktxTexture2_TranscodeBasis has an early out for the UASTC HDR 4x4 to ASTC HDR 4x4
+        // so just call the transcoder.
+        TextureTranscoder tc(vkctx);
+        tc.transcode((ktxTexture2*)kTexture);
+        return true;
+    }
+    return false;
 }

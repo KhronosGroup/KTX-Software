@@ -30,8 +30,10 @@
 #include <iomanip>
 #include <string>
 #include <sstream>
+#include <unordered_map>
 
 #include "VulkanAppSDL.h"
+#include "ltexceptions.h"
 
 // Include this when vulkantools is removed.
 //#include "vulkancheckres.h"
@@ -76,13 +78,59 @@ VulkanAppSDL::~VulkanAppSDL()
 bool
 VulkanAppSDL::initialize(Args& args)
 {
+    static const std::unordered_map<std::string, VkColorSpaceKHR> csValues {
+        {"adobergb", VK_COLOR_SPACE_ADOBERGB_LINEAR_EXT},
+        {"bt2020", VK_COLOR_SPACE_BT2020_LINEAR_EXT},
+        {"bt709", VK_COLOR_SPACE_BT709_LINEAR_EXT},
+        {"display-p3", VK_COLOR_SPACE_DISPLAY_P3_LINEAR_EXT},
+        {"extended-srgb", VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT},
+    };
+    std::string colorSpaceStr;
+    const char* use_hdr_surface = SDL_GetEnvironmentVariable(SDL_GetEnvironment(),
+                                                         "VK_USE_HDR_SURFACE");
+    if (use_hdr_surface != nullptr && !SDL_strncasecmp(use_hdr_surface, "YES", 3))
+        hdr = true;
+    const char* css = SDL_GetEnvironmentVariable(SDL_GetEnvironment(),
+                                                 "VK_SURFACE_COLOR_SPACE");
+    if (css != nullptr) colorSpaceStr = css;
+
     for (uint32_t i = 1; i < args.size(); i++) {
         if (args[i].compare("--validate") == 0) {
             validate = true;
-            args.erase(args.begin() + i);
-            break;
+            args.erase(args.begin() + i--);
+            continue;
+        }
+        if (args[i].compare("--hdr") == 0) {
+            hdr = true;
+            args.erase(args.begin() + i--);
+            continue;
+        }
+        if (args[i].compare("--cs") == 0) {
+            if (args.size() < i + 2) {
+                (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, szName,
+                                               "Missing color space for --cs", NULL);
+                return false;
+            }
+
+            colorSpaceStr = args[i+1];
+            args.erase(args.begin() + i, args.begin() + i + 2);
+            i--;
         }
     }
+    if (colorSpaceStr.size() > 0) {
+        const auto it = csValues.find(colorSpaceStr);
+        if (it != csValues.end()) {
+             colorSpace = it->second;
+        } else {
+            std::stringstream msg;
+            msg << "Invalid color space, " << colorSpaceStr
+                << ", given for --cs or VK_SURFACE_COLOR_SPACE";
+            (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, szName,
+                                           msg.str().c_str(), NULL);
+            return false;
+        }
+    }
+
     if (!AppBaseSDL::initialize(args))
         return false;
 
@@ -491,6 +539,14 @@ VulkanAppSDL::createInstance()
                 VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME
             );
         }
+        if (hdr) {
+            if (!strncmp(extension.extensionName,
+                            VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME,
+                            VK_MAX_EXTENSION_NAME_SIZE)) {
+                extensionNames.push_back(VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME);
+            }
+        }
+
 #if VK_KHR_portability_subset
         if (!strncmp(extension.extensionName,
                      VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
@@ -618,19 +674,8 @@ VulkanAppSDL::findGpu()
         err = vkctx.instance.enumeratePhysicalDevices(&gpuCount, gpus.data());
         assert(err == vk::Result::eSuccess);
         // For now just grab the first physical device */
-        vkctx.gpu = gpus[0];
-        // Store properties and features so apps can query them.
-        vkctx.gpu.getProperties(&vkctx.gpuProperties);
-#if 0
-        vk::PhysicalDeviceFeatures2 gpuFeatures2;
-        vkctx.gpu.getFeatures2(&gpuFeatures2);
-        vkctx.gpuFeatures = gpuFeatures2.features;
-#else
-        vkctx.gpu.getFeatures(&vkctx.gpuFeatures);
-#endif
-        // Get Memory information and properties
-        vkctx.gpu.getMemoryProperties(&vkctx.memoryProperties);
-        
+        vkctx.setGpu(gpus[0]);
+        // Store features and properties so apps can query them.
     } else {
         std::string msg;
         ERROR_RETURN(
@@ -684,7 +729,38 @@ VulkanAppSDL::setupDebugReporting()
 bool
 VulkanAppSDL::createSurface()
 {
-    vkctx.swapchain.initSurface(pswMainWindow);
+    if (hdr) try {
+        if (colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) //colorSpace not set?
+            vkctx.swapchain.initSurface(pswMainWindow,
+                                VK_FORMAT_R16G16B16A16_SFLOAT,
+                                VulkanSwapchain::colorSpaceSelector::eAnyLinear);
+        else
+            vkctx.swapchain.initSurface(pswMainWindow,
+                                VK_FORMAT_R16G16B16A16_SFLOAT,
+                                VulkanSwapchain::colorSpaceSelector::eSpecific,
+                                colorSpace);
+        // VK_COLOR_SPACE_DISPLAY_P3_LINEAR_EXT, VK_COLOR_SPACE_BT2020_LINEAR_EXT
+    } catch(unsupported_surface_format&) {
+        std::string msg = "VulkanSwapchain::initSurface: ";
+        msg += "No matching HDR surface format found. Reverting to SDR.";
+        (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, theApp->name(),
+                                       msg.c_str(), NULL);
+        hdr = false;
+    } catch(std::runtime_error& e) {
+        (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, theApp->name(),
+                                       e.what(), NULL);
+        return false;
+    }
+    if (!hdr) try {
+        vkctx.swapchain.initSurface(pswMainWindow,
+                            VK_FORMAT_B8G8R8A8_SRGB,
+                            VulkanSwapchain::colorSpaceSelector::eSpecific,
+                            VK_COLOR_SPACE_SRGB_NONLINEAR_KHR);
+    } catch(std::runtime_error& e) {
+        (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, theApp->name(),
+                                       e.what(), NULL);
+        return false;
+    }
     return true;
 } // createSurface
 
@@ -713,10 +789,10 @@ VulkanAppSDL::createDevice()
         {VK_EXT_TEXTURE_COMPRESSION_ASTC_HDR_EXTENSION_NAME, optional}
     );
 #endif
-#if 0
-    wantedExtensions.push_back(
-        {TEXTURE_COMPRESSION_ASTC_3D_EXTENSION_NAME, optional}
-    );
+    if (hdr)
+        wantedExtensions.push_back({VK_EXT_HDR_METADATA_EXTENSION_NAME, optional});
+#if VK_EXT_texture_compression_astc_3d
+    wantedExtensions.push_back({TEXTURE_COMPRESSION_ASTC_3D_EXTENSION_NAME, optional});
 #endif
 
     vk::Result err;
@@ -754,16 +830,13 @@ VulkanAppSDL::createDevice()
                 extensionsToEnable.push_back(wantedExtensions[i].name.c_str());
                 if (!wantedExtensions[i].name.compare(VK_IMG_FORMAT_PVRTC_EXTENSION_NAME)) {
                     vkctx.enabledDeviceExtensions.pvrtc = true;
-
                 }
-#if VK_EXT_texture_compression_astc_hdr
-                if (!wantedExtensions[i].name.compare(VK_EXT_TEXTURE_COMPRESSION_ASTC_HDR_EXTENSION_NAME)) {
-                    vkctx.enabledDeviceExtensions.astc_hdr = true;
+                if (hdr && !!wantedExtensions[i].name.compare(VK_EXT_HDR_METADATA_EXTENSION_NAME)) {
+                    vkctx.enabledDeviceExtensions.hdr_metadata = true;
                 }
-#endif
 #if VK_KHR_portability_subset
                 if (!wantedExtensions[i].name.compare(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME)) {
-                    vkctx.gpuIsPortabilitySubsetDevice = true;
+                    vkctx.enabledDeviceExtensions.portability = true;
                 }
 #endif
                 break;
@@ -803,7 +876,14 @@ VulkanAppSDL::createDevice()
         queue_priorities
     );
 
-    vk::PhysicalDeviceFeatures deviceFeaturesToEnable;
+    vk::PhysicalDeviceFeatures& deviceFeaturesToEnable =
+              vkctx.gpuFeaturesChain.get<vk::PhysicalDeviceFeatures2>().features;
+    // Reusing gpuFeaturesChain, which holds the output of getFeatures2 queried in findGpu,
+    // is convenient as we want to set all the features reported available by extension
+    // features. However we only need a few of the standard features. Therefore clear the
+    // reported set, which has been saved in vkctx.gpuFeatures, prior to setting those
+    // needed.
+    deviceFeaturesToEnable = vk::PhysicalDeviceFeatures {};
     // Enable specific required and available features here.
     if (vkctx.gpuFeatures.samplerAnisotropy)
         deviceFeaturesToEnable.samplerAnisotropy = true;
@@ -813,36 +893,7 @@ VulkanAppSDL::createDevice()
         deviceFeaturesToEnable.textureCompressionBC = true;
     if (vkctx.gpuFeatures.textureCompressionETC2)
         deviceFeaturesToEnable.textureCompressionETC2 = true;
-
-#if VK_KHR_portability_subset
-    if (vkctx.gpuIsPortabilitySubsetDevice) {
-        vk::PhysicalDeviceFeatures2 deviceFeatures;
-        deviceFeatures.pNext = &vkctx.gpuPortabilityFeatures;
-        vkctx.gpu.getFeatures2(&deviceFeatures);
-    }
-#endif
-
-#if 0
-    // This needs PhysicaldeviceFeaturesToEnable2 and proper understanding of how to
-    // navigate a structure chain. Maybe something also was necessary when the
-    // gpuFeatures were queried.
-    vk::BaseOutStructure* dfs = reinterpret_cast<vk::BaseOutStructure*>(&vkctx.gpuFeatures);
-    while (dfs->pNext != NULL) {
-        if (dfs->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXTURE_COMPRESSION_ASTC_HDR_FEATURES_EXT) {
-            vk::PhysicalDeviceTextureCompressionASTCHDRFeaturesEXT* ahf = dfs;
-            if (afs->textureCompressionASTC_HDR) {
-                // Add one of these structs to the requested deviceFeaturesToEnable we
-                // are passing in and enable this feature.
-            }
-        }
-        if (dfs->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXTURE_COMPRESSION_ASTC_3D_FEATURES_EXT) {
-            vk::PhysicalDeviceTextureCompressionASTC3DFeaturesEXT* ahf = dfs;
-            if (afs->textureCompressionASTC_HDR) {
-                // Add one of these structs to the requested deviceFeaturesToEnable we
-                // are passing in and enable this feature.
-            }
-        }
-#endif
+    // There appears to be no feature to enable for pvrtc.
 
     vk::DeviceCreateInfo deviceInfo(
             {},
@@ -854,14 +905,11 @@ VulkanAppSDL::createDevice()
                                   : NULL),
             (uint32_t)extensionsToEnable.size(),
             (const char *const *)extensionsToEnable.data(),
-            &deviceFeaturesToEnable);
+            nullptr);
 
-#if VK_KHR_portability_subset
-    if (vkctx.gpuIsPortabilitySubsetDevice) {
-        // Enable all available portability features.
-        deviceInfo.pNext = &vkctx.gpuPortabilityFeatures;
-    }
-#endif
+    // Want to enable all available features in the queried device features so use the
+    // structure chain where getFeatures2 saved them.
+    deviceInfo.pNext = vkctx.gpuFeaturesChain.get<vk::PhysicalDeviceFeatures2>();
 
     err = vkctx.gpu.createDevice(&deviceInfo, NULL, &vkctx.device);
     if (err != vk::Result::eSuccess) {

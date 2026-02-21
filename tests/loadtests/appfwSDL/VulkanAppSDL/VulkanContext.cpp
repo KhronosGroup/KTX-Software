@@ -361,3 +361,24 @@ VulkanContext::readSpv(const char *filename, size_t *pSize) {
     return shader_code;
 }
 
+void
+VulkanContext::setGpu(vk::PhysicalDevice _gpu) {
+        gpu = _gpu;
+        // Store features and properties so apps can query them.
+        gpu.getFeatures2(&gpuFeaturesChain.get<vk::PhysicalDeviceFeatures2>());
+        // Make a copy so we can reuse the gpuFeaturesChain for enabling features.
+        gpuFeatures = gpuFeaturesChain.get<vk::PhysicalDeviceFeatures2>().features;
+#if VK_EXT_texture_compression_astc_hdr
+        gpuFeatureAstcHdr = gpuAstcHdrFeatures.textureCompressionASTC_HDR;
+#endif
+#if VK_EXT_texture_compression_astc_3d
+        gpuFeatureAstc3d = gpuAstc3dFeatures.textureCompressionASTC_3D;
+#endif
+        // There is no single portaibility feature we can check in gpuPortabilityFeatures
+        // to determine presence. Instead enabledDeviceExtensions.portability is set if
+        // the extension is found when extensions are enumerated.
+
+        // Get Memory information and properties
+        gpu.getMemoryProperties(&memoryProperties);
+}
+

@@ -67,22 +67,6 @@ Texture3d::Texture3d(VulkanContext& vkctx,
     }
 }
 
-#if 0
-// Addition of extra uniform buffer for the instance count is to work around
-// MoltenVK issue #issue 1421:
-//     https://github.com/KhronosGroup/MoltenVK/issues/1421.
-void
-Texture3d::addSubclassDescriptors(DescriptorBindings& descriptorBindings)
-{
-    descriptorBindings.push_back(vk::DescriptorSetLayoutBinding(
-      2, // Binding 2 : uniform buffer for instanceCount value.
-      vk::DescriptorType::eUniformBuffer,
-      1,
-      vk::ShaderStageFlagBits::eVertex
-    ));
-}
-#endif
-
 // Providing instanceCount via a push constant is a workaround for
 // MoltenVK issue #1421:
 //     https://github.com/KhronosGroup/MoltenVK/issues/1421.

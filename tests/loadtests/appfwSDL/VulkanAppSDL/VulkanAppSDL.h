@@ -30,7 +30,7 @@ class VulkanAppSDL : public AppBaseSDL {
              const uint32_t version,
              bool enableTextOverlay)
             : AppBaseSDL(name), w_width(width), w_height(height),
-              subOptimalPresentWarned(false), validate(false),
+              subOptimalPresentWarned(false), validate(false), hdr(false),
               vkVersion(version),
               enableTextOverlay(enableTextOverlay),
               textOverlay(nullptr)
@@ -131,6 +131,10 @@ class VulkanAppSDL : public AppBaseSDL {
 
     bool subOptimalPresentWarned;
     bool validate;
+    bool hdr;
+    // colorSpace is only used with --hdr and this space is never used with --hdr
+    // so serves to indicate it has not been set.
+    VkColorSpaceKHR colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 
     std::vector<const char*> extensionNames;
     std::vector<const char*> deviceValidationLayers;

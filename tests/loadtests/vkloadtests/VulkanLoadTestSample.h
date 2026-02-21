@@ -60,6 +60,8 @@ class VulkanLoadTestSample : public LoadTestSample {
         return title;
     }
 
+    bool transcodeIfNeeded(ktxTexture* kTexture);
+
     typedef VulkanLoadTestSample* (*PFN_create)(VulkanContext&,
                                     uint32_t width, uint32_t height,
                                     const char* const szArgs,

@@ -373,6 +373,14 @@ VulkanLoadTests::showFile(const std::string& filename)
 
 const VulkanLoadTests::sampleInvocation siSamples[] = {
     { Texture::create,
+      "Desk_uastc_hdr4x4_zstd_15.ktx2",
+      "KTX2: UASTC HDR 4x4 Compressed RGB,"
+    },
+    { Texture::create,
+      "Desk_uastc_hdr6x6i.ktx2",
+      "KTX2: UASTC HDR 6x6 Intermediate Compressed RGB,"
+    },
+    { Texture::create,
       "Iron_Bars_001_normal_blze.ktx2",
       "KTX2: ETC1S+BasisLZ Compressed XY Normal Map Mipmapped,"
     },
@@ -514,7 +522,7 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
       "KTX1: RGBA8 2D + Auto Mipmap using Linear Tiling"
     },
     { TextureMipmap::create,
-      "not4_rgb888_srgb.ktx",
+      "not4_r8g8b8_srgb.ktx",
       "KTX1: RGB8 2D, Row length not Multiple of 4"
     },
     { TextureMipmap::create,
