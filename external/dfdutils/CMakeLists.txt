@@ -92,6 +92,7 @@ add_dependencies(dfdutils vk2dfd_inl)
 install(DIRECTORY
         ${CMAKE_CURRENT_SOURCE_DIR}/KHR/
         DESTINATION include/KHR
+        COMPONENT dev
 )
 
 if(DFDUTILS_TESTAPPS)
