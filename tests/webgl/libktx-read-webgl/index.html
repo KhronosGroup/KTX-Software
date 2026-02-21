@@ -59,9 +59,9 @@
     dropZone.addEventListener("drop", dropHandler);
 
     // To prevent browser's default behavior when a file is dropped, listen
-    // for the drop event on window and cancel it. Take care to only handle
-    // the event only if a file is being dragged; if it's something else,
-    // such as a link, we still use the default behavior. If the dragged item
+    // for the drop event on window and cancel it. Take care to handle the
+    // event only if a file is being dragged; if it's something else, such
+    // as a link, we still use the default behavior. If the dragged item
     // is a non-image file, we still handle the event, but provide feedback
     // to the user that it is not allowed.
     window.addEventListener("drop", (e) => {
