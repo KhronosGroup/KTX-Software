@@ -44,6 +44,8 @@ include(CMakeDependentOption)
 include(${KTX_ROOT_DIR}/cmake/codesign.cmake) # Needs APPLE_*_OS values.
 include(${KTX_ROOT_DIR}/cmake/cputypetest.cmake)
 
+include(GNUInstallDirs) # Must be after project.
+
 # OPTIONS
 
 option( LIBKTX_VERSION_READ_ONLY "Build the read only library" OFF)
