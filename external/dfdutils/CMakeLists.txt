@@ -4,6 +4,8 @@
 cmake_minimum_required(VERSION 3.28)
 project(dfdutils C)
 
+include(GNUInstallDirs) # Must be after project.
+
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
@@ -35,33 +37,33 @@ if (Perl_FOUND)
     # --- GENERATE dfd2vk.inl ---
     #
     add_custom_command(
-            OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/dfd2vk.inl
-            COMMAND ${PERL_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/makedfd2vk.pl
-            ${CMAKE_CURRENT_SOURCE_DIR}/vulkan/vulkan_core.h ${CMAKE_CURRENT_SOURCE_DIR}/dfd2vk.inl
-            DEPENDS makedfd2vk.pl vulkan/vulkan_core.h
-            COMMENT "Generating dfd2vk.inl using makedfd2vk.pl"
+        OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/dfd2vk.inl
+        COMMAND ${PERL_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/makedfd2vk.pl
+        ${CMAKE_CURRENT_SOURCE_DIR}/vulkan/vulkan_core.h ${CMAKE_CURRENT_SOURCE_DIR}/dfd2vk.inl
+        DEPENDS makedfd2vk.pl vulkan/vulkan_core.h
+        COMMENT "Generating dfd2vk.inl using makedfd2vk.pl"
     )
 
     #
     # --- GENERATE vk2dfd.inl ---
     #
     add_custom_command(
-            OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/vk2dfd.inl
-            COMMAND ${PERL_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/makevk2dfd.pl
-            ${CMAKE_CURRENT_SOURCE_DIR}/vulkan/vulkan_core.h ${CMAKE_CURRENT_SOURCE_DIR}/vk2dfd.inl
-            DEPENDS makevk2dfd.pl vulkan/vulkan_core.h
-            COMMENT "Generating vk2dfd.inl using makevk2dfd.pl"
+        OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/vk2dfd.inl
+        COMMAND ${PERL_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/makevk2dfd.pl
+        ${CMAKE_CURRENT_SOURCE_DIR}/vulkan/vulkan_core.h ${CMAKE_CURRENT_SOURCE_DIR}/vk2dfd.inl
+        DEPENDS makevk2dfd.pl vulkan/vulkan_core.h
+        COMMENT "Generating vk2dfd.inl using makevk2dfd.pl"
     )
 else()
     message(STATUS "Perl NOT found — using pre-existing inline switches.")
 endif()
 
 add_custom_target(dfd2vk_inl
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/dfd2vk.inl
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/dfd2vk.inl
 )
 
 add_custom_target(vk2dfd_inl
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/vk2dfd.inl
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/vk2dfd.inl
 )
 
 set(DFDUTILS_LINK_TYPE STATIC)
@@ -73,17 +75,17 @@ endif()
 # --- DFD Utils library ---
 #
 add_library(dfdutils ${DFDUTILS_LINK_TYPE}
-        createdfd.c
-        colourspaces.c
-        dfd.h
-        interpretdfd.c
-        KHR/khr_df.h
-        printdfd.c
-        queries.c
-        vk2dfd.c
-        dfd2vk.c
-        vulkan/vk_platform.h
-        vulkan/vulkan_core.h)
+    createdfd.c
+    colourspaces.c
+    dfd.h
+    interpretdfd.c
+    KHR/khr_df.h
+    printdfd.c
+    queries.c
+    vk2dfd.c
+    dfd2vk.c
+    vulkan/vk_platform.h
+    vulkan/vulkan_core.h)
 set_target_properties(dfdutils PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 add_dependencies(dfdutils dfd2vk_inl)
@@ -95,19 +97,18 @@ add_dependencies(dfdutils vk2dfd_inl)
 if(CMAKE_SYSTEM_NAME STREQUAL "iOS" OR CMAKE_SYSTEM_NAME STREQUAL "tvOS" OR CMAKE_SYSTEM_NAME STREQUAL "visionOS")
     # APPLE_LOCKED_OS
     set_source_files_properties(
-          KHR/khr_df.h
-          PROPERTIES MACOSX_PACKAGE_LOCATION Headers/KHR
+        KHR/khr_df.h
+        PROPERTIES MACOSX_PACKAGE_LOCATION Headers/KHR
     )
 else()
     install(DIRECTORY
-            ${CMAKE_CURRENT_SOURCE_DIR}/KHR/
-            DESTINATION include/KHR
-            COMPONENT dev
+        ${CMAKE_CURRENT_SOURCE_DIR}/KHR/
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/KHR
+        COMPONENT dev
     )
 endif()
 
 if(DFDUTILS_TESTAPPS)
-
     #
     # --- Build testcreatedfd ---
     #

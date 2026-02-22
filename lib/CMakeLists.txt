@@ -203,8 +203,7 @@ macro(common_libktx_settings target enable_write library_type)
     endif()
 
     set_target_properties(${target} PROPERTIES
-        PUBLIC_HEADER
-          include/ktx.h
+        PUBLIC_HEADER include/ktx.h
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}
         XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
@@ -415,10 +414,11 @@ macro(common_libktx_settings target enable_write library_type)
             $<INSTALL_INTERFACE:../external/dfdutils>
         )
 
-        get_target_property( libktx_public_header ${target} PUBLIC_HEADER )
-        list(APPEND libktx_public_header include/ktxvulkan.h)
-        set_target_properties(${target} PROPERTIES
-            PUBLIC_HEADER "${libktx_public_header}"
+        set_property(
+            TARGET ${target}
+            APPEND
+            PROPERTY PUBLIC_HEADER
+                include/ktxvulkan.h
         )
     else()
         target_compile_definitions( ${target} PRIVATE KTX_OMIT_VULKAN=1 )
