@@ -91,11 +91,16 @@ set_target_properties(dfdutils PROPERTIES POSITION_INDEPENDENT_CODE ON)
 add_dependencies(dfdutils dfd2vk_inl)
 add_dependencies(dfdutils vk2dfd_inl)
 
-# Install khr_df.h header
-# We can't make khr_df.h a PUBLIC HEADER of the dfdutils target because that only takes
-# file names and CMake does not preserve the directory hierarchy.
+# Install KHR/khr_df.h header
+# We can't make KHR/khr_df.h a PUBLIC HEADER of the dfdutils target because CMake
+# installs PUBLIC_HEADER files in the destination using only the trailing part
+# of the provided path name. We need to preserve the KHR hence this custom
+# install.
 if(CMAKE_SYSTEM_NAME STREQUAL "iOS" OR CMAKE_SYSTEM_NAME STREQUAL "tvOS" OR CMAKE_SYSTEM_NAME STREQUAL "visionOS")
     # APPLE_LOCKED_OS
+    # For these OSes we create a bundle so the install(DIRECTORY KHR) below
+    # does not work. Do this instead. For this to work this file must be in
+    # the library source list.
     set_source_files_properties(
         KHR/khr_df.h
         PROPERTIES MACOSX_PACKAGE_LOCATION Headers/KHR
@@ -107,6 +112,9 @@ else()
         COMPONENT dev
     )
 endif()
+# When we add install of the full library, dfdutils.h can be installed
+# conventionally and as part of a bundle by adding it the PUBLIC_HEADER
+# property of dfdutils and including PUBLIC_HEADER in the install command.
 
 if(DFDUTILS_TESTAPPS)
     #

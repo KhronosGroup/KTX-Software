@@ -168,7 +168,9 @@ set(LIBKTX_MAIN_SRC
     src/vkformat_enum.h
     src/vkformat_str.c
     src/vkformat_typesize.c
-    ../utils/unused.h
+    # This is included so that we can set MACOSX_PACKAGE_LOCATION to get it installed.
+    ${KTX_ROOT_DIR}/external/dfdutils/KHR/khr_df.h
+    ${KTX_ROOT_DIR}/utils/unused.h
 
 )
 
@@ -206,6 +208,12 @@ macro(common_libktx_settings target enable_write library_type)
 
     set_target_properties(${target} PROPERTIES
         PUBLIC_HEADER include/ktx.h
+        # Although KHR/khr_df.h is a libktx public header, only the trailing
+        # part of the name is used when PUBLIC header files are installed. We
+        # need the KHR directory too. Installation is handled instead by an
+        # install(DIRECTORY ...) command in ../external/dfdutils/CMakeLists.txt
+        # and, for iOS, by setting MACOSX_PACKAGE_LOCATION for the source file
+        # later in this file.
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}
         XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
@@ -675,6 +683,15 @@ if(NOT BUILD_SHARED_LIBS AND NOT APPLE)
     list(APPEND LIBKTX_INSTALL_TARGETS ${ASTCENC_LIB_TARGET} basisu_encoder)
 endif()
 
+if(APPLE_LOCKED_OS)
+    # For these OSes we create a bundle so the special install(DIRECTORY KHR)
+    # in dfdutils/CMakeLists.txt does not work. Do this instead. For this to
+    # work this file must be in the source list in this file.
+    set_source_files_properties(
+        ${KTX_ROOT_DIR}/external/dfdutils/KHR/khr_df.h
+        PROPERTIES MACOSX_PACKAGE_LOCATION Headers/KHR
+    )
+endif()
 if(APPLE OR LINUX)
     # Have library's name links as separate component
     set(KTX_NAMELINKS ON)
@@ -691,6 +708,9 @@ if(APPLE OR LINUX)
             COMPONENT library
             NAMELINK_SKIP
         PUBLIC_HEADER
+            # When making a bundle, CMake arranges to install these files
+            # in the right place in the bundle instead of in
+            # CMAKE_INSTALL_INCLUDEDIR. Hence this works for APPLE_LOCKED_OS.
             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
             COMPONENT dev
     )
