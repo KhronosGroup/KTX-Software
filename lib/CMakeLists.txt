@@ -204,9 +204,6 @@ macro(common_libktx_settings target enable_write library_type)
 
     set_target_properties(${target} PROPERTIES
         PUBLIC_HEADER
-#          "${CMAKE_CURRENT_SOURCE_DIR}/include/ktx.h;${CMAKE_CURRENT_SOURCE_DIR}/include/KHR/khr_df.h"
-          # Omit khr_df.h. Its installation has to be handled separately to
-          # workaround CMake's failure to preserve the directory hierarchy.
           include/ktx.h
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}
@@ -481,11 +478,13 @@ if(NOT ${CPU_ARCHITECTURE} STREQUAL "x86_64")
     # Basisu sets this TRUE if MSVC is TRUE.
     set(BASISU_SSE FALSE)
 endif()
-#set(BASISU_ZSTD FALSE)
+set(BASISU_STATIC TRUE)
+set(BASISU_ZSTD TRUE)
 add_subdirectory(../external/basis_universal basisu-encoder)
 
-set(DFDUTILS_TESTAPPS OFF CACHE BOOL "Enable DFD Utils tests.")
-set(DFDUTILS_EMBED ON CACHE BOOL "Embed DFD Utils library via object library")
+set(DFDUTILS_DOCS OFF)
+set(DFDUTILS_TESTAPPS OFF)
+set(DFDUTILS_EMBED ON)
 add_subdirectory(../external/dfdutils dfdutils)
 
 ###################################################
@@ -717,22 +716,6 @@ else()
             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
             COMPONENT dev
     )
-endif()
-
-# Use of this to install KHR/khr_df.h is due to CMake's failure to
-# preserve the include source folder hierarchy.
-# See https://gitlab.kitware.com/cmake/cmake/-/issues/16739.
-if (APPLE_LOCKED_OS)
-    set_source_files_properties(
-          include/KHR/khr_df.h
-          PROPERTIES MACOSX_PACKAGE_LOCATION Headers/KHR
-    )
-#else()
-#    include(GNUInstallDirs)
-    #install(FILES include/KHR/khr_df.h
-    #    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/KHR
-    #    COMPONENT dev
-    #)
 endif()
 
 install(EXPORT KTXTargets
