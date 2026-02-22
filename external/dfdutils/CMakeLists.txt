@@ -1,14 +1,15 @@
 # Copyright 2019-2020 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.28)
 project(dfdutils C)
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-option( DFDUTILS_TESTAPPS "Enable DFD Utils tests." ON)
-option( DFDUTILS_EMBED "Embed DFD Utils library via object library" OFF)
+option(DFDUTILS_DOCS "Build the documentation" ON)
+option(DFDUTILS_EMBED "Embed DFD Utils library via object library" OFF)
+option(DFDUTILS_TESTAPPS "Enable DFD Utils tests." ON)
 
 # Output directory used for all build artifacts
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -88,12 +89,22 @@ set_target_properties(dfdutils PROPERTIES POSITION_INDEPENDENT_CODE ON)
 add_dependencies(dfdutils dfd2vk_inl)
 add_dependencies(dfdutils vk2dfd_inl)
 
-# ALSO install dfdutils headers
-install(DIRECTORY
-        ${CMAKE_CURRENT_SOURCE_DIR}/KHR/
-        DESTINATION include/KHR
-        COMPONENT dev
-)
+# Install khr_df.h header
+# We can't make khr_df.h a PUBLIC HEADER of the dfdutils target because that only takes
+# file names and CMake does not preserve the directory hierarchy.
+if(CMAKE_SYSTEM_NAME STREQUAL "iOS" OR CMAKE_SYSTEM_NAME STREQUAL "tvOS" OR CMAKE_SYSTEM_NAME STREQUAL "visionOS")
+    # APPLE_LOCKED_OS
+    set_source_files_properties(
+          KHR/khr_df.h
+          PROPERTIES MACOSX_PACKAGE_LOCATION Headers/KHR
+    )
+else()
+    install(DIRECTORY
+            ${CMAKE_CURRENT_SOURCE_DIR}/KHR/
+            DESTINATION include/KHR
+            COMPONENT dev
+    )
+endif()
 
 if(DFDUTILS_TESTAPPS)
 
@@ -122,46 +133,48 @@ if(DFDUTILS_TESTAPPS)
     target_link_libraries(testbidirectionalmapping PRIVATE dfdutils)
 endif()
 
-#
-# --- DOXYGEN TARGET ---
-#
-find_package(Doxygen)
-if(DOXYGEN_FOUND)
-    # Global
-    set( DOXYGEN_OUTPUT_DIRECTORY doc)
-    set( DOXYGEN_OPTIMIZE_OUTPUT_FOR_C YES )
-    set( DOXYGEN_EXTRACT_LOCAL_CLASSES NO )
-    set( DOXYGEN_HIDE_UNDOC_MEMBERS YES )
-    set( DOXYGEN_CASE_SENSE_NAMES YES )
-    set( DOXYGEN_SHOW_USED_FILES NO )
-    set( DOXYGEN_VERBATIM_HEADERS NO )
-    set( DOXYGEN_CLANG_ASSISTED_PARSING NO )
-    set( DOXYGEN_ALPHABETICAL_INDEX NO )
-    set( DOXYGEN_DISABLE_INDEX YES )
-    set( DOXYGEN_DISABLE_INDEX NO )
-    set( DOXYGEN_GENERATE_TREEVIEW YES )
-    set( DOXYGEN_GENERATE_LATEX NO )
-    set( DOXYGEN_GENERATE_HTML YES )
-    set( DOXYGEN_GENERATE_MAN YES )
-    set( DOXYGEN_MAN_OUTPUT man )
-    # This is to get timestamps with older versions of doxygen.
-    # older
-    set( DOXYGEN_HTML_TIMESTAMP YES )
-    set( DOXYGEN_TIMESTAMP YES )
+if(DFDUTILS_DOCS)
+    #
+    # --- DOXYGEN TARGET ---
+    #
+    find_package(Doxygen)
+    if(DOXYGEN_FOUND)
+        # Global
+        set( DOXYGEN_OUTPUT_DIRECTORY doc)
+        set( DOXYGEN_OPTIMIZE_OUTPUT_FOR_C YES )
+        set( DOXYGEN_EXTRACT_LOCAL_CLASSES NO )
+        set( DOXYGEN_HIDE_UNDOC_MEMBERS YES )
+        set( DOXYGEN_CASE_SENSE_NAMES YES )
+        set( DOXYGEN_SHOW_USED_FILES NO )
+        set( DOXYGEN_VERBATIM_HEADERS NO )
+        set( DOXYGEN_CLANG_ASSISTED_PARSING NO )
+        set( DOXYGEN_ALPHABETICAL_INDEX NO )
+        set( DOXYGEN_DISABLE_INDEX YES )
+        set( DOXYGEN_DISABLE_INDEX NO )
+        set( DOXYGEN_GENERATE_TREEVIEW YES )
+        set( DOXYGEN_GENERATE_LATEX NO )
+        set( DOXYGEN_GENERATE_HTML YES )
+        set( DOXYGEN_GENERATE_MAN YES )
+        set( DOXYGEN_MAN_OUTPUT man )
+        # This is to get timestamps with older versions of doxygen.
+        # older
+        set( DOXYGEN_HTML_TIMESTAMP YES )
+        set( DOXYGEN_TIMESTAMP YES )
 
-    doxygen_add_docs(
-            docs
-            dfd.h
-            colourspaces.c
-            createdfd.c
-            interpretdfd.c
-            printdfd.c
-            queries.c
-            endswap.c
-            dfd2vk.c
-            vk2dfd.c
-            COMMENT "Running Doxygen to build documentation"
-    )
-else()
-    message(WARNING "Doxygen not found. 'doc' target will not be available.")
+        doxygen_add_docs(
+                docs
+                dfd.h
+                colourspaces.c
+                createdfd.c
+                interpretdfd.c
+                printdfd.c
+                queries.c
+                endswap.c
+                dfd2vk.c
+                vk2dfd.c
+                COMMENT "Running Doxygen to build documentation"
+        )
+    else()
+        message(WARNING "Doxygen not found. 'doc' target will not be available.")
+    endif()
 endif()
