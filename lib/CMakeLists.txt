@@ -744,7 +744,7 @@ endforeach()
 if(NOT ${framework})
     install(DIRECTORY
         ${KTX_ROOT_DIR}/external/dfdutils/KHR
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/KHR
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
         COMPONENT dev
     )
 else()
