@@ -11,6 +11,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 
 option(DFDUTILS_DOCS "Build the documentation" ON)
 option(DFDUTILS_EMBED "Embed DFD Utils library via object library" OFF)
+option(DFDUTILS_INSTALL "Include the install target" ON)
 option(DFDUTILS_TESTAPPS "Enable DFD Utils tests." ON)
 
 # Output directory used for all build artifacts
@@ -85,36 +86,54 @@ add_library(dfdutils ${DFDUTILS_LINK_TYPE}
     vk2dfd.c
     dfd2vk.c
     vulkan/vk_platform.h
-    vulkan/vulkan_core.h)
-set_target_properties(dfdutils PROPERTIES POSITION_INDEPENDENT_CODE ON)
+    vulkan/vulkan_core.h
+)
+
+set_target_properties(dfdutils PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
+
+if(DFDUTILS_INSTALL)
+    set_target_properties(dfdutils PROPERTIES
+        PUBLIC_HEADER dfd.h
+        # Although KHR/khr_df.h is also a public header, it cannot be installed via
+        # PUBLIC_HEADER due to the KHR sub-directory.
+    )
+endif()
 
 add_dependencies(dfdutils dfd2vk_inl)
 add_dependencies(dfdutils vk2dfd_inl)
 
-# Install KHR/khr_df.h header
-# We can't make KHR/khr_df.h a PUBLIC HEADER of the dfdutils target because CMake
-# installs PUBLIC_HEADER files in the destination using only the trailing part
-# of the provided path name. We need to preserve the KHR hence this custom
-# install.
-if(CMAKE_SYSTEM_NAME STREQUAL "iOS" OR CMAKE_SYSTEM_NAME STREQUAL "tvOS" OR CMAKE_SYSTEM_NAME STREQUAL "visionOS")
-    # APPLE_LOCKED_OS
-    # For these OSes we create a bundle so the install(DIRECTORY KHR) below
-    # does not work. Do this instead. For this to work this file must be in
-    # the library source list.
-    set_source_files_properties(
-        KHR/khr_df.h
-        PROPERTIES MACOSX_PACKAGE_LOCATION Headers/KHR
+if(DFDUTILS_INSTALL AND NOT DFDUTILS_EMBED)
+    install(TARGETS dfdutils
+        ARCHIVE
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        FRAMEWORK
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        PUBLIC_HEADER
+            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     )
-else()
-    install(DIRECTORY
-        ${CMAKE_CURRENT_SOURCE_DIR}/KHR/
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/KHR
-        COMPONENT dev
-    )
+
+    # Install KHR/khr_df.h header
+    # We can't include KHR/khr_df.h in PUBLIC HEADER because CMake installs
+    # PUBLIC_HEADER files in the destination using only the trailing part of
+    # the given path name. We can't change DESTINATION because that's where
+    # we want dfd.h to go.
+    get_target_property(framework dfdutils FRAMEWORK)
+    if (NOT ${framework})
+        install(DIRECTORY
+            ${CMAKE_CURRENT_SOURCE_DIR}/KHR/
+            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/KHR
+        )
+    else()
+        # For frameworks, headers are installed in a different place For
+        # this to work this file must be in the library source list.
+        set_source_files_properties(
+            KHR/khr_df.h
+            PROPERTIES MACOSX_PACKAGE_LOCATION Headers/KHR
+        )
+    endif()
 endif()
-# When we add install of the full library, dfdutils.h can be installed
-# conventionally and as part of a bundle by adding it the PUBLIC_HEADER
-# property of dfdutils and including PUBLIC_HEADER in the install command.
 
 if(DFDUTILS_TESTAPPS)
     #

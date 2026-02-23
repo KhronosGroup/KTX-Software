@@ -208,12 +208,9 @@ macro(common_libktx_settings target enable_write library_type)
 
     set_target_properties(${target} PROPERTIES
         PUBLIC_HEADER include/ktx.h
-        # Although KHR/khr_df.h is a libktx public header, only the trailing
-        # part of the name is used when PUBLIC header files are installed. We
-        # need the KHR directory too. Installation is handled instead by an
-        # install(DIRECTORY ...) command in ../external/dfdutils/CMakeLists.txt
-        # and, for iOS, by setting MACOSX_PACKAGE_LOCATION for the source file
-        # later in this file.
+        # We also want to expose KHR/khr_df.h as a public header but due to
+        # needing the KHR subdirectory in the destination PUBLIC_HEADER cannot
+        # be used. Custom installation is handled later in this file.
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}
         XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
@@ -465,7 +462,6 @@ macro(common_libktx_settings target enable_write library_type)
         )
     endif()
 
-    target_link_libraries(${target} PUBLIC dfdutils)
 endmacro(common_libktx_settings)
 
 macro(add_lib_dependencies target lib)
@@ -493,6 +489,7 @@ set(BASISU_ZSTD TRUE)
 add_subdirectory(../external/basis_universal basisu-encoder)
 
 set(DFDUTILS_DOCS OFF)
+set(DFDUTILS_INSTALL OFF)
 set(DFDUTILS_TESTAPPS OFF)
 set(DFDUTILS_EMBED ON)
 add_subdirectory(../external/dfdutils dfdutils)
@@ -510,6 +507,7 @@ if(LIBKTX_VERSION_FULL)
     )
     common_libktx_settings(ktx 1 ${LIB_TYPE})
     add_lib_dependencies(ktx basisu_encoder)
+    add_lib_dependencies(ktx dfdutils)
 endif()
 
 # Read-only library
@@ -519,6 +517,7 @@ if(LIBKTX_VERSION_READ_ONLY)
     )
     common_libktx_settings(ktx_read 0 ${LIB_TYPE})
     add_lib_dependencies(ktx_read basisu_encoder)
+    add_lib_dependencies(ktx_read dfdutils)
 endif()
 
 create_version_header(src ktx)
@@ -671,27 +670,15 @@ endif()
 # Install
 
 if(LIBKTX_VERSION_FULL)
-    list(APPEND LIBKTX_INSTALL_TARGETS ktx dfdutils)
+    list(APPEND LIBKTX_INSTALL_TARGETS ktx)
 endif()
 # ktx_read has never been included in the install packages and no
 # issues have been filed. Only install it if building static libs
 # or full version is not being built.
 if(LIBKTX_VERSION_READ_ONLY AND NOT (BUILD_SHARED_LIBRARIES OR LIBKTX_VERSION_FULL))
-    list(APPEND LIBKTX_INSTALL_TARGETS ktx_read dfdutils)
-endif()
-if(NOT BUILD_SHARED_LIBS AND NOT APPLE)
-    list(APPEND LIBKTX_INSTALL_TARGETS ${ASTCENC_LIB_TARGET} basisu_encoder)
+    list(APPEND LIBKTX_INSTALL_TARGETS ktx_read)
 endif()
 
-if(APPLE_LOCKED_OS)
-    # For these OSes we create a bundle so the special install(DIRECTORY KHR)
-    # in dfdutils/CMakeLists.txt does not work. Do this instead. For this to
-    # work this file must be in the source list in this file.
-    set_source_files_properties(
-        ${KTX_ROOT_DIR}/external/dfdutils/KHR/khr_df.h
-        PROPERTIES MACOSX_PACKAGE_LOCATION Headers/KHR
-    )
-endif()
 if(APPLE OR LINUX)
     # Have library's name links as separate component
     set(KTX_NAMELINKS ON)
@@ -739,6 +726,36 @@ else()
             COMPONENT dev
     )
 endif()
+
+# Custom installation for KHR/khr_df.h
+foreach(target ${LIBKTX_INSTALL_TARGETS})
+    get_target_property(targetIsFw ${target} FRAMEWORK)
+    if(NOT DEFINED framework)
+        set(framework ${targetIsFw})
+    else()
+        if(NOT ${framework} STREQUAL ${targetIsFw})
+            message(FATAL_ERROR "FRAMEWORK property of all ktx lib targets must be the same. \
+                    This error is an assert for project developers. \
+                    framework = ${framework}, target = ${target}, targetIsFw = ${targetIsFw}, \
+                    LIBKTX_INSTALL_TARGETS = ${LIBKTX_INSTALL_TARGETS}")
+        endif()
+    endif()
+endforeach()
+if(NOT ${framework})
+    install(DIRECTORY
+        ${KTX_ROOT_DIR}/external/dfdutils/KHR
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/KHR
+        COMPONENT dev
+    )
+else()
+    # For frameworks, headers are installed in a different place For
+    # this to work this file must be in the library source list.
+    set_source_files_properties(
+        ${KTX_ROOT_DIR}/external/dfdutils/KHR/khr_df.h
+        PROPERTIES MACOSX_PACKAGE_LOCATION Headers/KHR
+    )
+endif()
+unset(framework)
 
 install(EXPORT KTXTargets
     FILE KtxTargets.cmake
