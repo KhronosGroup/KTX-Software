@@ -250,6 +250,18 @@ void ExrInput::readImage(void* outputBuffer, size_t bufferByteCount,
     if (ec != TINYEXR_SUCCESS)
         throw std::runtime_error(fmt::format("EXR load error: {} - {}.", ec, err));
 
+    for (int i = 0; i < header.num_custom_attributes; i++) {
+         EXRAttribute& attribute = header.custom_attributes[i];
+         // names are null terminated
+         if (strncmp(attribute.name, "envmap", 7) == 0) {
+             throw std::runtime_error("EXR envmaps are not supported. Use exrenvmap to export"
+                                  " images for each face and use those to create your KTX file.");
+         }
+    }
+    if ((header.tiled && image.tiles == nullptr) || (!header.tiled && image.images == nullptr))
+        throw std::runtime_error(fmt::format("Invalid EXR file. {}",
+            header.tiled ? "Tiled with no tiles" : "scanline with no images."));
+
     const auto height = static_cast<uint32_t>(image.height);
     const auto width = static_cast<uint32_t>(image.width);
     const auto numSourceChannels = static_cast<uint32_t>(image.num_channels);
@@ -278,8 +290,32 @@ void ExrInput::readImage(void* outputBuffer, size_t bufferByteCount,
         // TODO: check for "AR", "AG", "AB" and make texture with pre-multipled alpha provided there is also an A channel? Or reject?
     }
 
-    // Copy the data
-    const auto copyData = [&](unsigned char* ptr, uint32_t dataSize, const void* defaultColor) {
+    // Copy tiled data
+    const auto copyTiledData = [&](unsigned char* ptr, uint32_t dataSize, const void* defaultColor) {
+        const auto sourcePtr = [&](uint32_t channel, uint32_t tile, uint32_t tx, uint32_t ty) {
+            return reinterpret_cast<const unsigned char*>(image.tiles[tile].images[channel] + (ty * header.tile_size_x + tx) * dataSize);
+        };
+
+        for(int32_t tile = 0; tile < image.num_tiles; ++tile) {
+            for (int32_t ty = 0; ty < header.tile_size_y; ++ty) {
+                for (int32_t tx = 0; tx < header.tile_size_x; ++tx) {
+                    auto x = image.tiles[tile].offset_x * header.tile_size_x + tx;
+                    auto y = image.tiles[tile].offset_y * header.tile_size_y + ty;
+                    auto* targetPixel = ptr + (y * width * numTargetChannels + x * numTargetChannels) * dataSize;
+                    for (uint32_t c = 0; c < numTargetChannels; ++c) {
+                        if (channels[c].has_value()) {
+                            std::memcpy(targetPixel + c * dataSize, sourcePtr(*channels[c], tile, tx, ty), dataSize);
+                        } else {
+                            std::memcpy(targetPixel + c * dataSize, static_cast<const uint8_t*>(defaultColor) + c * dataSize, dataSize);
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    // Copy scanline data
+    const auto copyScanlineData = [&](unsigned char* ptr, uint32_t dataSize, const void* defaultColor) {
         const auto sourcePtr = [&](uint32_t channel, uint32_t x, uint32_t y) {
             return reinterpret_cast<const unsigned char*>(image.images[channel] + (y * width + x) * dataSize);
         };
@@ -301,17 +337,26 @@ void ExrInput::readImage(void* outputBuffer, size_t bufferByteCount,
     switch (requestedType) {
     case TINYEXR_PIXELTYPE_HALF: {
         uint16_t defaultColor[] = { 0x0000, 0x0000, 0x0000, 0x3C00 }; // { 0.h, 0.h, 0.h,1.h }
-        copyData(reinterpret_cast<unsigned char*>(outputBuffer), sizeof(defaultColor[0]), &defaultColor[0]);
+        if (header.tiled)
+            copyTiledData(reinterpret_cast<unsigned char*>(outputBuffer), sizeof(defaultColor[0]), &defaultColor[0]);
+        else
+            copyScanlineData(reinterpret_cast<unsigned char*>(outputBuffer), sizeof(defaultColor[0]), &defaultColor[0]);
         break;
     }
     case TINYEXR_PIXELTYPE_FLOAT: {
         float defaultColor[] = { 0.f, 0.f, 0.f, 1.f };
-        copyData(reinterpret_cast<unsigned char*>(outputBuffer), sizeof(defaultColor[0]), &defaultColor[0]);
+        if (header.tiled)
+            copyTiledData(reinterpret_cast<unsigned char*>(outputBuffer), sizeof(defaultColor[0]), &defaultColor[0]);
+        else
+            copyScanlineData(reinterpret_cast<unsigned char*>(outputBuffer), sizeof(defaultColor[0]), &defaultColor[0]);
         break;
     }
     case TINYEXR_PIXELTYPE_UINT: {
         uint32_t defaultColor[] = { 0, 0, 0, 1 };
-        copyData(reinterpret_cast<unsigned char*>(outputBuffer), sizeof(defaultColor[0]), &defaultColor[0]);
+        if (header.tiled)
+            copyTiledData(reinterpret_cast<unsigned char*>(outputBuffer), sizeof(defaultColor[0]), &defaultColor[0]);
+        else
+            copyScanlineData(reinterpret_cast<unsigned char*>(outputBuffer), sizeof(defaultColor[0]), &defaultColor[0]);
         break;
     }
     default:
