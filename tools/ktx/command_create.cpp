@@ -921,7 +921,10 @@ Create a KTX2 file from various input files.
             3D texture.</dd>
         <dt>\--cubemap</dt>
         <dd>Create a cubemap texture. If not set the texture will be a 2D or
-            3D texture.</dd>
+            3D texture. The input files must be given in the order +X, -X, +Y, -Y, +Z, -Z
+            in a left-handed coordinate system with +Y up and, with the +Z face forward,
+            +X on the on the right. See Appendix A of the KTX Specification,
+            Cubemap Orientation, for more details.</dd>
         <dt>\--raw</dt>
         <dd>Create from raw image data.</dd>
         <dt>\--width</dt>
