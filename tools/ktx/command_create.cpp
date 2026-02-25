@@ -2601,9 +2601,10 @@ void CommandCreate::generateMipLevels(KTXTexture2& texture, std::unique_ptr<Imag
     for (uint32_t mipLevelIndex = 1; mipLevelIndex < numMipLevels; ++mipLevelIndex) {
         const auto mipImageWidth = std::max(1u, baseWidth >> (mipLevelIndex));
         const auto mipImageHeight = std::max(1u, baseHeight >> (mipLevelIndex));
+        std::unique_ptr<Image> levelImage;
 
         try {
-            image = image->resample(mipImageWidth, mipImageHeight,
+            levelImage = image->resample(mipImageWidth, mipImageHeight,
                     options.mipmapFilter.value_or(options.defaultMipmapFilter).c_str(),
                     options.mipmapFilterScale.value_or(options.defaultMipmapFilterScale),
                     options.mipmapWrap.value_or(options.defaultMipmapWrap));
@@ -2614,7 +2615,7 @@ void CommandCreate::generateMipLevels(KTXTexture2& texture, std::unique_ptr<Imag
         if (options.normalize)
             image->normalize();
 
-        const auto imageData = convert(image, options.vkFormat, inputFile, true);
+        const auto imageData = convert(levelImage, options.vkFormat, inputFile, true);
 
         const auto ret = ktxTexture_SetImageFromMemory(
                 texture,
