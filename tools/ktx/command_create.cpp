@@ -106,7 +106,8 @@ struct OptionsCreate {
     std::optional<float> mipmapFilterScale;
     float defaultMipmapFilterScale = 1.0f;
     std::optional<basisu::Resampler::Boundary_Op> mipmapWrap;
-    basisu::Resampler::Boundary_Op defaultMipmapWrap = basisu::Resampler::Boundary_Op::BOUNDARY_WRAP;
+    basisu::Resampler::Boundary_Op defaultMipmapWrap =
+                                       basisu::Resampler::Boundary_Op::BOUNDARY_CLAMP;
     std::optional<std::string> swizzle; /// Sets KTXswizzle
     std::optional<std::string> swizzleInput; /// Used to swizzle the input image data
 
@@ -195,7 +196,6 @@ struct OptionsCreate {
                     " pal_oetf | pal625_eotf | st240 | st240_oetf | st240_eotf | acescc | acescc_oetf | acescct | acescct_oetf |"
                     " abobergb | adobergb_eotf",
                     cxxopts::value<std::string>(), "<tf>")
-                (kAssignOetf, "Same as --assign-tf. Deprecated.", cxxopts::value<std::string>(), "<tf>")
                 (kAssignPrimaries, "Force the created texture to have the specified color primaries, ignoring"
                     " the color primaries of the input file(s). Possible options match the khr_df_primaries_e"
                     " enumerators without the KHR_DF_PRIMARIES_ prefix. The KHR_DF_PRIMARIES_ prefix is ignored"
@@ -218,7 +218,6 @@ struct OptionsCreate {
                     "\nPossible options are: linear | srgb. The following srgb aliases are also supported:"
                     " srgb_eotf | scrgb | scrgb_eotf",
                     cxxopts::value<std::string>(), "<tf>")
-                (kConvertOetf, "Same as --convert-tf. Deprecated.", cxxopts::value<std::string>(), "<tf>")
                 (kConvertPrimaries, "Convert the image image(s) to the specified color primaries, if different"
                     " from the color primaries of the input file(s) or the one specified by --assign-primaries."
                     " If both this and --assign-primaries are specified, conversion will be performed from "
@@ -269,7 +268,6 @@ struct OptionsCreate {
 
     std::optional<khr_df_transfer_e> parseTransferFunction(cxxopts::ParseResult& args,
                                                   const char* argName,
-                                                  const char* deprArgName,
                                                   Reporter& report) const {
         // Many of these are aliases of others. To prevent breakage, in the
         // unlikely event one is changed to not be an alias, the aliased
@@ -321,18 +319,9 @@ struct OptionsCreate {
         };
 
         std::optional<khr_df_transfer_e> result = {};
-        const char* argNameToUse = nullptr;
 
         if (args[argName].count()) {
-            argNameToUse = argName;
-        } else if (args[deprArgName].count()) { // Prefer non-depcrecated name.
-            report.warning("Option --{} is deprecated and will be removed in the next release. Use --{} instead.",
-                           deprArgName, argName);
-            argNameToUse = deprArgName;
-        }
-
-        if (argNameToUse) {
-            auto transferStr = to_upper_copy(args[argNameToUse].as<std::string>());
+            auto transferStr = to_upper_copy(args[argName].as<std::string>());
             const std::string prefixStr = "KHR_DF_TRANSFER_";
             if (transferStr.find(prefixStr) == 0) {
                 transferStr.erase(transferStr.begin(),
@@ -343,7 +332,7 @@ struct OptionsCreate {
                 result = it->second;
             } else {
                 report.fatal_usage("Invalid or unsupported transfer specified as --{} argument: \"{}\".",
-                                   argNameToUse, args[argNameToUse].as<std::string>());
+                                   argName, args[argName].as<std::string>());
             }
         }
 
@@ -735,8 +724,8 @@ struct OptionsCreate {
 
         formatDesc = createFormatDescriptor(vkFormat, report);
 
-        convertTF = parseTransferFunction(args, kConvertTf, kConvertOetf, report);
-        assignTF = parseTransferFunction(args, kAssignTf, kAssignOetf, report);
+        convertTF = parseTransferFunction(args, kConvertTf, report);
+        assignTF = parseTransferFunction(args, kAssignTf, report);
 
         if (convertTF.has_value()) {
             switch (convertTF.value()) {
@@ -1023,7 +1012,6 @@ Create a KTX2 file from various input files.
             acescc_oetf | acescct | acescct_oetf | abobergb | adobergb_eotf
             See @ref ktx_create_tf_handling below for important information.
             </dd>
-        <dt>\--assign-oetf &lt;transfer function&gt;</dt>
         <dd>Deprecated and will be removed. Use @b \--assign-tf instead.</dd>
         <dt>\--assign-primaries &lt;primaries&gt;</dt>
         <dd>Force the created texture to have the specified color primaries,
@@ -1060,8 +1048,6 @@ Create a KTX2 file from various input files.
             also supported: srgb_eotf | scrgb | scrgb_eotf.
             See @ref ktx_create_tf_handling below for more information.
             </dd>
-        <dt>\--convert-oetf &lt;transfer function&gt;</dt>
-        <dd>Deprecated and will be removed. Use @b \--convert-tf instead.</dd>
         <dt>\--convert-primaries &lt;primaries&gt;</dt>
         <dd>Convert the input image(s) to the specified color primaries, if
             different from the color primaries of the input file(s) or the one
@@ -1213,19 +1199,6 @@ Transfer function handling proceeds as follows:
           sRGB.
       @li avoid encoding to ASTC, BasisLz/ETC1S or UASTC. The encoders'
           quality metrics are designed for linear and sRGB.
-
-
-@subsection ktx_create_tf_handling_changes Changes since last Release
-<ol>
-<li>@b \--assign-oetf and @b \--convert-oetf are deprecated and will be
-    removed. Use @b \--assign-tf and @b \--convert-tf instead.
-<li>The parameter value for @b \--assign-tf can now be any of the
-    transfer functions known to the Khronos Data Format Specification.</li>
-<li>A warning is now generated if a visually lossy color conversion will
-    be performed. The warning can be suppressed with
-    @b \--no-warn-on-color-conversions.
-    </li>
-</ol>
 
 @section ktx_create_exitstatus EXIT STATUS
     @snippet{doc} ktx/command.h command exitstatus
