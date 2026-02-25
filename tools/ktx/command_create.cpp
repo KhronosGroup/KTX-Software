@@ -1251,7 +1251,8 @@ private:
 
     [[nodiscard]] std::string readRawFile(const std::filesystem::path& filepath);
     [[nodiscard]] std::unique_ptr<Image> loadInputImage(ImageInput& inputImageFile);
-    std::vector<uint8_t> convert(const std::unique_ptr<Image>& image, VkFormat format, ImageInput& inputFile);
+    std::vector<uint8_t> convert(const std::unique_ptr<Image>& image, VkFormat format,
+                                 ImageInput& inputFile, bool swizzleDone = false);
 
     std::unique_ptr<const ColorPrimaries> createColorPrimaries(khr_df_primaries_e primaries) const;
 
@@ -2110,8 +2111,13 @@ std::vector<uint8_t> convertSINT(const std::unique_ptr<Image>& image, std::strin
 }
 
 std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image, VkFormat vkFormat,
-        ImageInput& inputFile) {
+                                            ImageInput& inputFile, bool swizzleDone) {
 
+    // A note about swizzleDone. When convertUNORM, etc are passed a swizzle string, this has
+    // the side-effect (!) of swizzling the underlying image. When generating mip levels,
+    // this is a problem as the swizzling would be repeated giving incorrect colors.
+    // The mip generator can seet swizzleDone to inform function there is no need for
+    // further swizzling.
     const uint32_t inputBitDepth = std::max(8u, inputFile.spec().format().largestChannelBitLength());
 
     const auto require = [&](uint32_t bitDepth) {
@@ -2191,7 +2197,7 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
     case VK_FORMAT_B8G8R8_UNORM: [[fallthrough]];
     case VK_FORMAT_B8G8R8_SRGB:
         requireUNORM(8);
-        return convertUNORM<rgb8image>(image, "bgr1");
+        return convertUNORM<rgb8image>(image, swizzleDone ? "" : "bgr1");
 
         // Verbatim copy with component reordering if needed, extra channels must be dropped.
         //
@@ -2207,7 +2213,7 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
     case VK_FORMAT_B8G8R8A8_UNORM: [[fallthrough]];
     case VK_FORMAT_B8G8R8A8_SRGB:
         requireUNORM(8);
-        return convertUNORM<rgba8image>(image, "bgra");
+        return convertUNORM<rgba8image>(image, swizzleDone ? "" : "bgra");
 
         // Verbatim copy with component reordering if needed, extra channels must be dropped.
 
@@ -2258,32 +2264,32 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
         return convertUNORMPacked(image, 5, 6, 5, 0);
     case VK_FORMAT_B5G6R5_UNORM_PACK16:
         requireUNORM(8);
-        return convertUNORMPacked(image, 5, 6, 5, 0, "bgr1");
+        return convertUNORMPacked(image, 5, 6, 5, 0, swizzleDone ? "" : "bgr1");
 
     case VK_FORMAT_R4G4B4A4_UNORM_PACK16:
         requireUNORM(8);
         return convertUNORMPacked(image, 4, 4, 4, 4);
     case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
         requireUNORM(8);
-        return convertUNORMPacked(image, 4, 4, 4, 4, "bgra");
+        return convertUNORMPacked(image, 4, 4, 4, 4, swizzleDone ? "" : "bgra");
     case VK_FORMAT_R5G5B5A1_UNORM_PACK16:
         requireUNORM(8);
         return convertUNORMPacked(image, 5, 5, 5, 1);
     case VK_FORMAT_B5G5R5A1_UNORM_PACK16:
         requireUNORM(8);
-        return convertUNORMPacked(image, 5, 5, 5, 1, "bgra");
+        return convertUNORMPacked(image, 5, 5, 5, 1, swizzleDone ? "" : "bgra");
     case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
         requireUNORM(8);
-        return convertUNORMPacked(image, 1, 5, 5, 5, "argb");
+        return convertUNORMPacked(image, 1, 5, 5, 5, swizzleDone ? "" : "argb");
     case VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR:
         requireUNORM(8);
-        return convertUNORMPacked(image, 1, 5, 5, 5, "abgr");
+        return convertUNORMPacked(image, 1, 5, 5, 5, swizzleDone ? "" : "abgr");
     case VK_FORMAT_A4R4G4B4_UNORM_PACK16:
         requireUNORM(8);
-        return convertUNORMPacked(image, 4, 4, 4, 4, "argb");
+        return convertUNORMPacked(image, 4, 4, 4, 4, swizzleDone ? "" : "argb");
     case VK_FORMAT_A4B4G4R4_UNORM_PACK16:
         requireUNORM(8);
-        return convertUNORMPacked(image, 4, 4, 4, 4, "abgr");
+        return convertUNORMPacked(image, 4, 4, 4, 4, swizzleDone ? "" : "abgr");
 
         // Input values must be rounded to the target precision.
         // When the input file contains an sBIT chunk, its values must be taken into account.
@@ -2329,10 +2335,10 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
 
     case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
         requireUNORM(10);
-        return convertUNORMPacked(image, 2, 10, 10, 10, "argb");
+        return convertUNORMPacked(image, 2, 10, 10, 10, swizzleDone ? "" : "argb");
     case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
         requireUNORM(10);
-        return convertUNORMPacked(image, 2, 10, 10, 10, "abgr");
+        return convertUNORMPacked(image, 2, 10, 10, 10, swizzleDone ? "" : "abgr");
 
         // Input values must be rounded to the target precision.
         // When the input file contains an sBIT chunk, its values must be taken into account.
@@ -2388,10 +2394,10 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
         return convertSINT<rgb8image>(image);
     case VK_FORMAT_B8G8R8_UINT:
         requireSFloat(16);
-        return convertUINT<rgb8image>(image, "bgr1");
+        return convertUINT<rgb8image>(image, swizzleDone ? "" : "bgr1");
     case VK_FORMAT_B8G8R8_SINT:
         requireSFloat(16);
-        return convertSINT<rgb8image>(image, "bgr1");
+        return convertSINT<rgb8image>(image, swizzleDone ? "" : "bgr1");
     case VK_FORMAT_R16G16B16_UINT:
         requireSFloat(32);
         return convertUINT<rgb16image>(image);
@@ -2411,10 +2417,10 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
         return convertSINT<rgba8image>(image);
     case VK_FORMAT_B8G8R8A8_UINT:
         requireSFloat(16);
-        return convertUINT<rgba8image>(image, "bgra");
+        return convertUINT<rgba8image>(image, swizzleDone ? "" : "bgra");
     case VK_FORMAT_B8G8R8A8_SINT:
         requireSFloat(16);
-        return convertSINT<rgba8image>(image, "bgra");
+        return convertSINT<rgba8image>(image, swizzleDone ? "" : "bgra");
     case VK_FORMAT_R16G16B16A16_UINT:
         requireSFloat(32);
         return convertUINT<rgba16image>(image);
@@ -2427,16 +2433,16 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
 
     case VK_FORMAT_A2R10G10B10_UINT_PACK32:
         requireSFloat(16);
-        return convertUINTPacked(image, 2, 10, 10, 10, "argb");
+        return convertUINTPacked(image, 2, 10, 10, 10, swizzleDone ? "" : "argb");
     case VK_FORMAT_A2R10G10B10_SINT_PACK32:
         requireSFloat(16);
-        return convertSINTPacked(image, 2, 10, 10, 10, "argb");
+        return convertSINTPacked(image, 2, 10, 10, 10, swizzleDone ? "" : "argb");
     case VK_FORMAT_A2B10G10R10_UINT_PACK32:
         requireSFloat(16);
-        return convertUINTPacked(image, 2, 10, 10, 10, "abgr");
+        return convertUINTPacked(image, 2, 10, 10, 10, swizzleDone ? "" : "abgr");
     case VK_FORMAT_A2B10G10R10_SINT_PACK32:
         requireSFloat(16);
-        return convertSINTPacked(image, 2, 10, 10, 10, "abgr");
+        return convertSINTPacked(image, 2, 10, 10, 10, swizzleDone ? "" : "abgr");
 
         // The same EXR pixel types as for the decoding must be enforced.
         // Extra channels must be dropped.
@@ -2492,7 +2498,7 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
     case VK_FORMAT_A8_UNORM_KHR:
         // Special case for alpha-only
         requireUNORM(8);
-        return convertUNORM<r8image>(image, "a000");
+        return convertUNORM<r8image>(image, swizzleDone ? "" : "a000");
         break;
 
         // Not supported
@@ -2595,9 +2601,10 @@ void CommandCreate::generateMipLevels(KTXTexture2& texture, std::unique_ptr<Imag
     for (uint32_t mipLevelIndex = 1; mipLevelIndex < numMipLevels; ++mipLevelIndex) {
         const auto mipImageWidth = std::max(1u, baseWidth >> (mipLevelIndex));
         const auto mipImageHeight = std::max(1u, baseHeight >> (mipLevelIndex));
+        std::unique_ptr<Image> levelImage;
 
         try {
-            image = image->resample(mipImageWidth, mipImageHeight,
+            levelImage = image->resample(mipImageWidth, mipImageHeight,
                     options.mipmapFilter.value_or(options.defaultMipmapFilter).c_str(),
                     options.mipmapFilterScale.value_or(options.defaultMipmapFilterScale),
                     options.mipmapWrap.value_or(options.defaultMipmapWrap));
@@ -2608,7 +2615,7 @@ void CommandCreate::generateMipLevels(KTXTexture2& texture, std::unique_ptr<Imag
         if (options.normalize)
             image->normalize();
 
-        const auto imageData = convert(image, options.vkFormat, inputFile);
+        const auto imageData = convert(levelImage, options.vkFormat, inputFile, true);
 
         const auto ret = ktxTexture_SetImageFromMemory(
                 texture,
