@@ -903,6 +903,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         cparams.m_uastc_hdr_4x4_options.m_allow_uber_mode = params->uastcHDRUberMode;
         cparams.m_uastc_hdr_4x4_options.m_ultra_quant = params->uastcHDRUltraQuant;
         cparams.m_astc_hdr_6x6_options.m_rec2020_bt2100_color_gamut = params->rec2020;
+        cparams.m_astc_hdr_6x6_options.set_user_level(params->uastcHDRLevel);
         if (params->uastcHDRLambda > 0.0f)
         {
             cparams.m_astc_hdr_6x6_options.m_lambda = params->uastcHDRLambda;
