@@ -364,7 +364,7 @@ void CommandExtract::executeExtract() {
     }
 
     // Transcoding
-    if (ktxTexture2_NeedsTranscoding(texture)) {
+    if (ktxTexture2_IsTranscodable(texture)) {
         texture = transcode(std::move(texture), options, *this);
 
     } else if (options.transcodeTarget) {

@@ -931,16 +931,21 @@ transcodeUastcHDR6x6_intermediate(ktxTexture2* This, alpha_content_e alphaConten
     std::vector<basisu_transcoder_state> xcoderStates;
     xcoderStates.resize(This->isVideo ? This->numFaces : 1);
 
+    // Pointer and length of the image description seek table within the global supercompressed data.
+    // This array of structs contain offsets and length fields relative to each mipmap level's data.
+    const ktxUASTCHDR6x6IntermediateImageDesc* imageDescs =
+        reinterpret_cast<ktxUASTCHDR6x6IntermediateImageDesc*>(This->_private->_supercompressionGlobalData);
+    const uint64_t totalImageDescs = This->_private->_sgdByteLength / sizeof(ktxUASTCHDR6x6IntermediateImageDesc);
+
     for (ktx_int32_t level = This->numLevels - 1; level >= 0; level--) {
         ktx_uint32_t depth;
         uint64_t writeOffset = levelOffsetWrite;
         uint64_t writeOffsetBlocks = levelOffsetWrite / outputBlockByteLength;
-        ktx_size_t levelImageSizeIn, levelImageOffsetIn;
         ktx_size_t levelImageSizeOut, levelSizeOut;
         ktx_uint32_t levelImageCount;
         uint32_t levelWidth = MAX(1, This->baseWidth >> level);
         uint32_t levelHeight = MAX(1, This->baseHeight >> level);
-        // UASTC texel block dimensions
+        // UASTC HDR 6x6i texel block dimensions
         const uint32_t bw = 6, bh = 6;
         uint32_t levelBlocksX = (levelWidth + (bw - 1)) / bw;
         uint32_t levelBlocksY = (levelHeight + (bh - 1)) / bh;
@@ -949,12 +954,25 @@ transcodeUastcHDR6x6_intermediate(ktxTexture2* This, alpha_content_e alphaConten
         depth = MAX(1, This->baseDepth >> level);
 
         levelImageCount = This->numLayers * This->numFaces * depth;
-        levelImageSizeIn = This->dataSize;
         levelImageSizeOut =
             ktxTexture_calcImageSize(ktxTexture(prototype), level, KTX_FORMAT_VERSION_TWO);
 
-        levelImageOffsetIn = ktxTexture2_levelDataOffset(This, level);
-        //levelImageOffsetIn = ktxTexture2_levelFileOffset(This, level);
+        // Offset and length of the mipmap level's data within the KTX2 file.
+        const uint64_t levelDataOffset = ktxTexture2_levelDataOffset(This, level);
+        const uint64_t levelDataLength = This->_private->_levelIndex[level].byteLength;
+
+        // Sanity check the level data length (transcode_image() wants uint32_t).
+        if (levelDataLength > UINT32_MAX) {
+            // Either we've got a bug or the KTX2 file is too small/invalid. Either way we can't
+            // continue.
+            return KTX_FILE_DATA_ERROR;
+        }
+
+        // Ensure the mipmap level's data is fully contained within the KTX2 file's data.
+        if ((levelDataOffset + levelDataLength) > This->dataSize) {
+            // Either we've got a bug or the KTX2 file is too small/invalid. Either way we can't safely continue.
+            return KTX_FILE_DATA_ERROR;
+        }
 
         levelSizeOut = 0;
         bool status;
@@ -963,11 +981,27 @@ transcodeUastcHDR6x6_intermediate(ktxTexture2* This, alpha_content_e alphaConten
             // See comment before same lines in transcodeEtc1s.
             if (++stateIndex == xcoderStates.size()) stateIndex = 0;
 
+            // Compute the start index into the image seek table.
+            const uint32_t sgdImageDescIndex = (level * levelImageCount) + image;
+
+            // Sanity check the SGD image desc index
+            if (sgdImageDescIndex >= totalImageDescs) {
+                // Either we've got a bug or the SGD is too small/invalid. Either way we can't continue.
+                return KTX_TRANSCODE_FAILED;
+            }
+
+            // The offsets are relative to the mipmap level's data.
+            const uint32_t imageDescByteOfsFromStartOfLevelData = imageDescs[sgdImageDescIndex].rgbSliceByteOffset;
+            const uint32_t imageDescByteLen = imageDescs[sgdImageDescIndex].rgbSliceByteLength;
+
             status = uit.transcode_image(
                 ktx2transcoderFormat(outputFormat), pXcodedData + writeOffset,
-                (uint32_t)(xcodedDataLength - writeOffsetBlocks), This->pData,
-                (uint32_t)This->dataSize, levelBlocksX, levelBlocksY, levelWidth, levelHeight,
-                level, (uint32_t)levelImageOffsetIn, (uint32_t)levelImageSizeIn, transcodeFlags,
+                (uint32_t)(xcodedDataLength - writeOffsetBlocks),
+                This->pData + levelDataOffset, (uint32_t)levelDataLength, // pointer and length of the mipmap level's data within the KTX2 file
+                levelBlocksX, levelBlocksY, levelWidth, levelHeight,
+                level,
+                imageDescByteOfsFromStartOfLevelData, imageDescByteLen, // offset and length of the image within the mipmap level's data
+                transcodeFlags,
                 alphaContent != eNone,
                 This->isVideo,  // is_video
                 // imageDesc.imageFlags ^ cSliceDescFlagsFrameIsIFrame,
@@ -977,10 +1011,11 @@ transcodeUastcHDR6x6_intermediate(ktxTexture2* This, alpha_content_e alphaConten
                 -1,            // channel0
                 -1             // channel1
             );
-            if (!status) return KTX_TRANSCODE_FAILED;
+            if (!status)
+                return KTX_TRANSCODE_FAILED;
+
             writeOffset += levelImageSizeOut;
             levelSizeOut += levelImageSizeOut;
-            levelImageOffsetIn += levelImageSizeIn;
         }
         protoLevelIndex[level].byteOffset = levelOffsetWrite;
         // writeOffset will be equal to total size of the images in the level.
