@@ -933,7 +933,8 @@ transcodeUastcHDR6x6_intermediate(ktxTexture2* This, alpha_content_e alphaConten
 
     // Pointer and length of the image description seek table within the global supercompressed data.
     // This array of structs contain offsets and length fields relative to each mipmap level's data.
-    const ktxUASTCHDR6x6IntermediateImageDesc* imageDescs = reinterpret_cast<ktxUASTCHDR6x6IntermediateImageDesc*>(This->_private->_supercompressionGlobalData);
+    const ktxUASTCHDR6x6IntermediateImageDesc* imageDescs =
+        reinterpret_cast<ktxUASTCHDR6x6IntermediateImageDesc*>(This->_private->_supercompressionGlobalData);
     const uint64_t totalImageDescs = This->_private->_sgdByteLength / sizeof(ktxUASTCHDR6x6IntermediateImageDesc);
 
     for (ktx_int32_t level = This->numLevels - 1; level >= 0; level--) {
