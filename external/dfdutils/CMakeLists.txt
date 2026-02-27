@@ -1,10 +1,11 @@
 # Copyright 2019-2020 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.23)
 project(dfdutils C)
 
 include(GNUInstallDirs) # Must be after project.
+include(CMakePrintHelpers)
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -32,7 +33,6 @@ endif()
 find_package(Perl)
 if (Perl_FOUND)
     message(STATUS "Perl found: ${PERL_EXECUTABLE}")
-
 
     #
     # --- GENERATE dfd2vk.inl ---
@@ -93,13 +93,31 @@ set_target_properties(dfdutils PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
-if(DFDUTILS_INSTALL)
-    set_target_properties(dfdutils PROPERTIES
-        PUBLIC_HEADER dfd.h
-        # Although KHR/khr_df.h is also a public header, it cannot be installed via
-        # PUBLIC_HEADER due to the KHR sub-directory.
+if(NOT FRAMEWORK) # Necessary if(), if a framework becomes an option.
+    # Use a FILE_SET instead of PUBLIC_HEADER because with the latter
+    # the KHR subdirectory cannot be preserved.
+    # Sadly FILE_SETs may not be added to FRAMEWORK targets.
+    target_sources(dfdutils
+    PUBLIC
+        FILE_SET public_headers
+            # FILE_SET supports having the KHR subdirectory. However a FILE SET
+            # cannot be used with frameworks so keep using PUBLIC_HEADER for that
+            TYPE HEADERS
+            BASE_DIRS .
+            FILES
+                dfd.h
+                KHR/khr_df.h
     )
 endif()
+# These properties are used when building a framework.
+set_source_files_properties(
+    include/ktx.h
+    PROPERTIES MACOSX_PACKAGE_LOCATION Headers
+)
+set_source_files_properties(
+    ${KTX_ROOT_DIR}/external/dfdutils/KHR/khr_df.h
+    PROPERTIES MACOSX_PACKAGE_LOCATION Headers/KHR
+)
 
 add_dependencies(dfdutils dfd2vk_inl)
 add_dependencies(dfdutils vk2dfd_inl)
@@ -110,29 +128,13 @@ if(DFDUTILS_INSTALL AND NOT DFDUTILS_EMBED)
             DESTINATION ${CMAKE_INSTALL_LIBDIR}
         FRAMEWORK
             DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        PUBLIC_HEADER
+        # No if() as, fortunately, CMake does not complain when the target does
+        # not contain a matching FILE_SET.
+        FILE_SET public_headers
             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        RUNTIME
+            DESTINATION ${CMAKE_INSTALL_BINDIR}
     )
-
-    # Install KHR/khr_df.h header
-    # We can't include KHR/khr_df.h in PUBLIC HEADER because CMake installs
-    # PUBLIC_HEADER files in the destination using only the trailing part of
-    # the given path name. We can't change DESTINATION because that's where
-    # we want dfd.h to go.
-    get_target_property(framework dfdutils FRAMEWORK)
-    if (NOT ${framework})
-        install(DIRECTORY
-            ${CMAKE_CURRENT_SOURCE_DIR}/KHR/
-            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/KHR
-        )
-    else()
-        # For frameworks, headers are installed in a different place For
-        # this to work this file must be in the library source list.
-        set_source_files_properties(
-            KHR/khr_df.h
-            PROPERTIES MACOSX_PACKAGE_LOCATION Headers/KHR
-        )
-    endif()
 endif()
 
 if(DFDUTILS_TESTAPPS)
