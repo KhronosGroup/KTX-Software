@@ -1,0 +1,133 @@
+# Copyright 2015-2020 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+name: Check Config and Build of dfdutils and run test programs.
+
+# Seems no way to avoid duplicating this on logic in each .yml file.
+# See https://github.com/actions/starter-workflows/issues/245.
+on:
+  # Trigger the workflow on a pull request,
+  pull_request:
+
+  push:
+    # And on pushes to main, which will occur when a PR is merged.
+    branches:
+      - main
+    # Also trigger on push of release tags to any branch. Useful
+    # for testing release builds before merging to main.
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-*'
+    paths-ignore:
+      - README.md
+      - CODE_OF_CONDUCT.adoc
+      - CONTRIBUTING.adoc
+      - LICENSE.adoc
+      - LICENSES
+      - RELEASE_NOTES.adoc
+      - REUSE.toml
+
+  # Allow manual trigger
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  check-dfdutils:
+    strategy:
+      matrix:
+        os: [ macos-latest, ubuntu-latest, windows-latest ]
+        #warch: [ arm64, x64 ]
+        #larch: [ aarch64, x86_64 ]
+        #march: [ arm64, x86_64 ]
+        # runner.arch values are X86, X64, ARM, or ARM64.
+        config: [ Release, Debug ]
+        generator: [ 'Ninja Multi-Config' ]
+        exclude:
+          - os: windows-latest
+            generator: 'Ninja Multi-Config'
+        include:
+          # The NMC generator defaults to using GCC and GCC names dlls with
+          # a "lib" prefix and the import files with both the prefix and a
+          # ".dll.a" extension. I have neither the time nor energy to find out
+          # how to change the behaviour. Use VS.
+          - os: windows-latest
+            generator: 'Visual Studio 17 2022'
+            config: Release
+          - os: windows-latest
+            generator: 'Visual Studio 17 2022'
+            config: Debug
+
+    runs-on: ${{ matrix.os }}
+    env:
+      GIT_LFS_SKIP_SMUDGE: 1
+      BUILD_DIR: "build"
+      #WERROR: ON
+
+    steps:
+    - uses: actions/checkout@v4
+#      with:
+#        # Fetch all history to make sure tags are
+#        # included (used for version creation)
+#        fetch-depth: 0
+
+    - name: Install Doxygen
+      uses: ssciwr/doxygen-install@v1
+
+    - name: Configure dfdutils
+      run: cmake -B ${{ env.BUILD_DIR }} -G "${{ matrix.generator }}"
+    - name: Build dfdutils
+      run: cmake --build ${{ env.BUILD_DIR }} --config=${{ matrix.config }}
+    - name: Build docs
+      if: matrix.config == 'Release'
+      run: cmake --build ${{ env.BUILD_DIR }} --config=${{ matrix.config }} --target docs
+
+    - name: Check latest .inl files are checked in
+      run: git diff --quiet *.inl
+
+    - name: Run test programs
+      run: |
+        build/${{ matrix.config }}/testcreatedfd
+        build/${{ matrix.config }}/testinterpretdfd
+        build/${{ matrix.config }}/testbidirectionalmapping
+
+    - name: Upload artifact libdfdutils
+      if: matrix.config == 'Release'
+      uses: actions/upload-artifact@v4
+      with:
+        name: libdfdutils-${{ runner.os }}-${{ runner.arch }}
+        path: ${{env.BUILD_DIR}}/Release/*dfdutils*
+
+    - name: Upload generated HTML documentation for GitHub Pages
+      if: matrix.os == 'ubuntu-latest' && matrix.config == 'Release'
+      id: deployment
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: ${{ env.BUILD_DIR }}/doc/html
+
+  deploy:
+    name: Deploy to GitHub Pages
+    # Add a dependency to the build job
+    needs: check-dfdutils
+    # Only deploy when building `main`.
+    if: github.ref == 'refs/heads/main'
+    # Alternatively, only deploy when building for a release tag. Note that
+    # filtering in on: means the only tags the workflow runs for are release
+    # tags.
+#    if: startsWith(github.ref, 'refs/tags')
+
+    runs-on: ubuntu-latest
+
+    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+    permissions:
+      pages: write      # to deploy to Pages
+      id-token: write   # to verify the deployment originates from an appropriate source
+
+    # Deploy to the github-pages environment
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    # Specify deployment step
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

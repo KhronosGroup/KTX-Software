@@ -1,0 +1,9 @@
+version = 1
+SPDX-PackageName = "dfdutils"
+SPDX-PackageDownloadLocation = "https://github.com/KhronosGroup/dfdutils"
+
+[[annotations]]
+path = "vulkan/**.h"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2014-2020 The Khronos Group Inc."
+SPDX-License-Identifier = "Apache-2.0"
