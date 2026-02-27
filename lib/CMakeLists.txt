@@ -2,7 +2,7 @@
 # Copyright 2022-2023 RasterGrid Kft.
 # SPDX-License-Identifier: Apache-2.0
 
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.23)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/../cmake/modules/")
 set( KTX_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR}/.. )
@@ -43,6 +43,8 @@ include(CMakeDependentOption)
 
 include(${KTX_ROOT_DIR}/cmake/codesign.cmake) # Needs APPLE_*_OS values.
 include(${KTX_ROOT_DIR}/cmake/cputypetest.cmake)
+
+include(GNUInstallDirs) # Must be after project.
 
 # OPTIONS
 
@@ -166,7 +168,9 @@ set(LIBKTX_MAIN_SRC
     src/vkformat_enum.h
     src/vkformat_str.c
     src/vkformat_typesize.c
-    ../utils/unused.h
+    # This is included so that we can set MACOSX_PACKAGE_LOCATION to get it installed.
+    ${KTX_ROOT_DIR}/external/dfdutils/KHR/khr_df.h
+    ${KTX_ROOT_DIR}/utils/unused.h
 
 )
 
@@ -203,11 +207,6 @@ macro(common_libktx_settings target enable_write library_type)
     endif()
 
     set_target_properties(${target} PROPERTIES
-        PUBLIC_HEADER
-#          "${CMAKE_CURRENT_SOURCE_DIR}/include/ktx.h;${CMAKE_CURRENT_SOURCE_DIR}/include/KHR/khr_df.h"
-          # Omit khr_df.h. Its installation has to be handled separately to
-          # workaround CMake's failure to preserve the directory hierarchy.
-          include/ktx.h
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}
         XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
@@ -216,6 +215,29 @@ macro(common_libktx_settings target enable_write library_type)
     if(APPLE_LOCKED_OS)
         set_target_properties(${target} PROPERTIES
             FRAMEWORK TRUE
+        )
+        set_source_files_properties(
+            include/ktx.h
+            PROPERTIES MACOSX_PACKAGE_LOCATION Headers
+        )
+        set_source_files_properties(
+            ${KTX_ROOT_DIR}/external/dfdutils/KHR/khr_df.h
+            PROPERTIES MACOSX_PACKAGE_LOCATION Headers/KHR
+        )
+    else()
+        # Use a FILE_SET instead of PUBLIC_HEADER because with the latter
+        # the KHR subdirectory cannot be preserved.
+        # Sadly FILE_SETs may not be added to FRAMEWORK targets.
+        target_sources(${target}
+        PUBLIC
+            FILE_SET public_headers
+                # FILE_SET supports having the KHR subdirectory. However a FILE SET
+                # cannot be used with frameworks so keep using PUBLIC_HEADER for that
+                TYPE HEADERS
+                BASE_DIRS include ../external/dfdutils/
+                FILES
+                    include/ktx.h
+                    ../external/dfdutils/KHR/khr_df.h
         )
     endif()
 
@@ -293,6 +315,10 @@ macro(common_libktx_settings target enable_write library_type)
     target_include_directories(
         ${target}
     PUBLIC
+        # N.B. PUBLIC HEADER FILE_SET adds its BASE_DIRS to INTERFACE_INCLUDE_DIRECTORIES.
+        # Unfortunately FILE_SET cannot be used when building a framework (iOS) so keep
+        # this. It does result in `include` being in the list twice. Tolerate the duplicate
+        # entry over YAI (yet another if).
         $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
         $<INSTALL_INTERFACE:include>
     PRIVATE
@@ -411,17 +437,26 @@ macro(common_libktx_settings target enable_write library_type)
             src/vk_funcs.h
             src/vkloader.c
         )
+        if(APPLE_LOCKED_OS)
+            set_source_files_properties(
+                include/ktxvulkan.h
+                PROPERTIES MACOSX_PACKAGE_LOCATION Headers
+            )
+        else()
+            target_sources(
+                ${target}
+            PUBLIC
+                FILE_SET public_headers
+                FILES
+                    include/ktxvulkan.h
+            )
+        endif()
+
         target_include_directories(
             ${target}
         PRIVATE
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../external/dfdutils>
             $<INSTALL_INTERFACE:../external/dfdutils>
-        )
-
-        get_target_property( libktx_public_header ${target} PUBLIC_HEADER )
-        list(APPEND libktx_public_header include/ktxvulkan.h)
-        set_target_properties(${target} PROPERTIES
-            PUBLIC_HEADER "${libktx_public_header}"
         )
     else()
         target_compile_definitions( ${target} PRIVATE KTX_OMIT_VULKAN=1 )
@@ -458,7 +493,6 @@ macro(common_libktx_settings target enable_write library_type)
         )
     endif()
 
-    target_link_libraries(${target} PUBLIC dfdutils)
 endmacro(common_libktx_settings)
 
 macro(add_lib_dependencies target lib)
@@ -481,11 +515,14 @@ if(NOT ${CPU_ARCHITECTURE} STREQUAL "x86_64")
     # Basisu sets this TRUE if MSVC is TRUE.
     set(BASISU_SSE FALSE)
 endif()
-#set(BASISU_ZSTD FALSE)
+set(BASISU_STATIC TRUE)
+set(BASISU_ZSTD TRUE)
 add_subdirectory(../external/basis_universal basisu-encoder)
 
-set(DFDUTILS_TESTAPPS OFF CACHE BOOL "Enable DFD Utils tests.")
-set(DFDUTILS_EMBED ON CACHE BOOL "Embed DFD Utils library via object library")
+set(DFDUTILS_DOCS OFF)
+set(DFDUTILS_INSTALL OFF)
+set(DFDUTILS_TESTAPPS OFF)
+set(DFDUTILS_EMBED ON)
 add_subdirectory(../external/dfdutils dfdutils)
 
 ###################################################
@@ -501,6 +538,11 @@ if(LIBKTX_VERSION_FULL)
     )
     common_libktx_settings(ktx 1 ${LIB_TYPE})
     add_lib_dependencies(ktx basisu_encoder)
+    add_lib_dependencies(ktx dfdutils)
+
+#    get_target_property(includes ktx INTERFACE_INCLUDE_DIRECTORIES)
+#    # Need this because ${INTERFACE_INCLUDE_DIRECTORIES} is a genex.
+#    add_custom_target(debug_ktx_includes COMMAND ${CMAKE_COMMAND} -E echo "ktx include dirs = '${includes}'")
 endif()
 
 # Read-only library
@@ -510,6 +552,10 @@ if(LIBKTX_VERSION_READ_ONLY)
     )
     common_libktx_settings(ktx_read 0 ${LIB_TYPE})
     add_lib_dependencies(ktx_read basisu_encoder)
+    add_lib_dependencies(ktx_read dfdutils)
+
+#    get_target_property(includes ktx_read INTERFACE_INCLUDE_DIRECTORIES)
+#    add_custom_target(debug_ktx_read_includes COMMAND ${CMAKE_COMMAND} -E echo "ktx_read include dirs = '${includes}'")
 endif()
 
 create_version_header(src ktx)
@@ -662,77 +708,44 @@ endif()
 # Install
 
 if(LIBKTX_VERSION_FULL)
-    list(APPEND LIBKTX_INSTALL_TARGETS ktx dfdutils)
+    list(APPEND LIBKTX_INSTALL_TARGETS ktx)
 endif()
 # ktx_read has never been included in the install packages and no
 # issues have been filed. Only install it if building static libs
 # or full version is not being built.
 if(LIBKTX_VERSION_READ_ONLY AND NOT (BUILD_SHARED_LIBRARIES OR LIBKTX_VERSION_FULL))
-    list(APPEND LIBKTX_INSTALL_TARGETS ktx_read dfdutils)
-endif()
-if(NOT BUILD_SHARED_LIBS AND NOT APPLE)
-    list(APPEND LIBKTX_INSTALL_TARGETS ${ASTCENC_LIB_TARGET} basisu_encoder)
+    list(APPEND LIBKTX_INSTALL_TARGETS ktx_read)
 endif()
 
+get_target_property(targetIsFw ktx FRAMEWORK)
+# Have library's name links as separate component
+#set(KTX_NAMELINKS ON)
+install(TARGETS ${LIBKTX_INSTALL_TARGETS}
+    EXPORT KTXTargets
+    ARCHIVE
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        COMPONENT library
+    FRAMEWORK
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        COMPONENT library
+    LIBRARY
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        COMPONENT library
+        NAMELINK_SKIP
+    RUNTIME
+        DESTINATION ${CMAKE_INSTALL_BINDIR}
+        COMPONENT library
+    FILE_SET public_headers
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        COMPONENT dev
+)
 if(APPLE OR LINUX)
-    # Have library's name links as separate component
-    set(KTX_NAMELINKS ON)
-    install(TARGETS ${LIBKTX_INSTALL_TARGETS}
-        EXPORT KTXTargets
-        ARCHIVE
-            DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            COMPONENT library
-        FRAMEWORK
-            DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            COMPONENT library
-        LIBRARY
-            DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            COMPONENT library
-            NAMELINK_SKIP
-        PUBLIC_HEADER
-            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-            COMPONENT dev
-    )
     install(TARGETS ${LIBKTX_INSTALL_TARGETS}
         LIBRARY
             DESTINATION ${CMAKE_INSTALL_LIBDIR}
             COMPONENT library
             NAMELINK_ONLY
     )
-else()
-    # No name links on Windows
-    set(KTX_NAMELINKS OFF)
-    install(TARGETS ${LIBKTX_INSTALL_TARGETS}
-        EXPORT KTXTargets
-        ARCHIVE
-            DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            COMPONENT dev
-        LIBRARY
-            DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            COMPONENT library
-        RUNTIME
-            DESTINATION ${CMAKE_INSTALL_BINDIR}
-            COMPONENT library
-        PUBLIC_HEADER
-            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-            COMPONENT dev
-    )
-endif()
-
-# Use of this to install KHR/khr_df.h is due to CMake's failure to
-# preserve the include source folder hierarchy.
-# See https://gitlab.kitware.com/cmake/cmake/-/issues/16739.
-if (APPLE_LOCKED_OS)
-    set_source_files_properties(
-          include/KHR/khr_df.h
-          PROPERTIES MACOSX_PACKAGE_LOCATION Headers/KHR
-    )
-else()
-    include(GNUInstallDirs)
-    #install(FILES include/KHR/khr_df.h
-    #    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/KHR
-    #    COMPONENT dev
-    #)
 endif()
 
 install(EXPORT KTXTargets
