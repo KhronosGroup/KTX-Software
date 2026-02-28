@@ -719,7 +719,6 @@ endif()
 
 get_target_property(targetIsFw ktx FRAMEWORK)
 # Have library's name links as separate component
-#set(KTX_NAMELINKS ON)
 install(TARGETS ${LIBKTX_INSTALL_TARGETS}
     EXPORT KTXTargets
     ARCHIVE
