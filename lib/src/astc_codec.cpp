@@ -237,7 +237,7 @@ inline bool isFormatAstcLDR(ktxTexture2* This) noexcept {
  * @brief       Should be used to get uncompressed version of ASTC VkFormat
  *
  * The decompressed format is calculated from corresponding ASTC format. There are
- * only 3 possible options currently supported. RGBA8, SRGBA8 and RGBA32.
+ * only 3 possible options currently supported. RGBA8, SRGBA8 and RGBA16.
  *
  * @return      Uncompressed version of VKFormat for a specific ASTC VkFormat
  */
@@ -245,7 +245,7 @@ inline VkFormat getUncompressedFormat(ktxTexture2* This) noexcept {
     uint32_t* BDB = This->pDfd + 1;
 
     if (KHR_DFDSVAL(BDB, 0, QUALIFIERS) & KHR_DF_SAMPLE_DATATYPE_FLOAT) {
-        return VK_FORMAT_R32G32B32A32_SFLOAT;
+        return VK_FORMAT_R16G16B16A16_SFLOAT;
     } else {
         if (khr_df_transfer_e(KHR_DFDVAL(BDB, TRANSFER) == KHR_DF_TRANSFER_SRGB))
             return VK_FORMAT_R8G8B8A8_SRGB;
@@ -336,10 +336,11 @@ ktxTexture2_DecodeAstc(ktxTexture2 *This) {
     // Decompress This using astc-decoder
     uint32_t* BDB = This->pDfd + 1;
     khr_df_model_e colorModel = (khr_df_model_e)KHR_DFDVAL(BDB, MODEL);
-    if (colorModel != KHR_DF_MODEL_ASTC) {
+    if (!(colorModel == KHR_DF_MODEL_ASTC || colorModel == KHR_DF_MODEL_UASTC_HDR_4x4)) {
         return KTX_INVALID_OPERATION; // Not in astc decodable format
     }
-    if (This->supercompressionScheme == KTX_SS_BASIS_LZ) {
+    if (This->supercompressionScheme == KTX_SS_BASIS_LZ
+        || This->supercompressionScheme == KTX_SS_UASTC_HDR_6x6_INTERMEDIATE) {
         return KTX_FILE_DATA_ERROR; // Not a valid file.
     }
     // Safety check.
@@ -462,8 +463,8 @@ ktxTexture2_DecodeAstc(ktxTexture2 *This) {
                     imageOut.dim_x = imageWidth;
                     imageOut.dim_y = imageHeight;
                     imageOut.dim_z = imageDepths;
-                    imageOut.data_type = ASTCENC_TYPE_U8; // TODO: Fix for HDR types
-                    imageOut.data = (void**)&imageDataOut; // TODO: Fix for HDR types
+                    imageOut.data_type = ldr ? ASTCENC_TYPE_U8 : ASTCENC_TYPE_F16;
+                    imageOut.data = (void**)&imageDataOut;
 
                     work.data = imageDataIn;
                     work.data_len = levelImageSizeIn;
