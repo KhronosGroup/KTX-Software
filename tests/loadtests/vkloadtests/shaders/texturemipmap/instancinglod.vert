@@ -35,7 +35,7 @@ layout (location = 1) out flat float lambda;
 void main() 
 {
     outUV = inUV;
-    lambda = gl_InstanceIndex+0.5;
+    lambda = gl_InstanceIndex;
     mat4 modelView = ubo.view * ubo.instance[gl_InstanceIndex].model;
     gl_Position = ubo.projection * modelView * inPos;
 }
