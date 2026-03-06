@@ -24,6 +24,7 @@ add_executable(ktxtools
         formats.h
         fragment_uri.h
         ktx_main.cpp
+        metadata_utils.h
         metrics_utils.h
         transcode_utils.cpp
         transcode_utils.h
