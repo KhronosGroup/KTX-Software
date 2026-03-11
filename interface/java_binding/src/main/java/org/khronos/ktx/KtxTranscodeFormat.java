@@ -146,7 +146,27 @@ public class KtxTranscodeFormat {
 	 * Automatically selects BC1_RGB or BC3_RGBA according to presence of alpha.
 	 */
 	public static final int BC1_OR_3 = 23;
+	
+	/**
+	 * 48bpp RGB half (16-bits/component, 3 components) 
+	 */
+        public static final int RGBA_HALF = 25; 
 
+	/**
+	 * HDR, RGBA (currently UASTC HDR 4x4 encoders are only RGB), unsigned
+	 */
+        public static final int ASTC_HDR_4x4_RGBA = 29;
+        
+	/**
+	 * HDR, RGBA (currently UASTC HDR 4x4 encoders are only RGB), unsigned
+	 */
+        public static final int ASTC_HDR_6x6_RGBA = 30;
+        
+	/**
+	 * HDR, RGB only, unsigned
+	 */
+        public static final int BC6HU = 31;
+	
 	public static final int NOSELECTION = 0x7fffffff;
 
 	/**
@@ -177,6 +197,10 @@ public class KtxTranscodeFormat {
 		case RGBA4444: return "RGBA4444";
 		case ETC: return "ETC";
 		case BC1_OR_3: return "BC1_OR_3";
+		case RGBA_HALF: return "RGBA_HALF"; 
+		case ASTC_HDR_4x4_RGBA: return "ASTC_HDR_4x4_RGBA";
+		case ASTC_HDR_6x6_RGBA: return "ASTC_HDR_6x6_RGBA";
+		case BC6HU: return "BC6HU";
 		case NOSELECTION: return "NOSELECTION";
 		}
 		return "[Unknown KtxTranscodeFormat]";

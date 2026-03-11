@@ -20,6 +20,7 @@ import java.nio.file.Paths;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.khronos.ktx.KtxBasisCodec;
 import org.khronos.ktx.KtxBasisParams;
 import org.khronos.ktx.KtxTextureCreateStorage;
 import org.khronos.ktx.KtxErrorCode;
@@ -486,7 +487,7 @@ public class KtxTexture2Test {
         // the former G channel becomes the B channel
         // the former A channel remains the A channel
         KtxBasisParams inputParams = new KtxBasisParams();
-        inputParams.setCodec(1);
+        inputParams.setCodec(KtxBasisCodec.ETC1S);
         inputParams.setInputSwizzle(new char[] { 'b', 'r', 'g', 'a' });
         inputTexture.compressBasisEx(inputParams);
 
@@ -519,7 +520,7 @@ public class KtxTexture2Test {
 
         // Apply basis compression to the reference, without swizzling
         KtxBasisParams goldParams = new KtxBasisParams();
-        goldParams.setCodec(1);
+        goldParams.setCodec(KtxBasisCodec.ETC1S);
         goldTexture.compressBasisEx(goldParams);
 
         // Transcode the reference texture to RGBA32
@@ -550,7 +551,7 @@ public class KtxTexture2Test {
 
         // Apply default UASTC compression
         KtxBasisParams p = new KtxBasisParams();
-        p.setCodec(2);
+        p.setCodec(KtxBasisCodec.UASTC_LDR);
         t.compressBasisEx(p);
 
         // The supercompression scheme should be NONE here
@@ -584,7 +585,7 @@ public class KtxTexture2Test {
 
         // Apply default UASTC compression
         KtxBasisParams p = new KtxBasisParams();
-        p.setCodec(2);
+        p.setCodec(KtxBasisCodec.UASTC_LDR);
         t.compressBasisEx(p);
 
         // The supercompression scheme should be NONE here
