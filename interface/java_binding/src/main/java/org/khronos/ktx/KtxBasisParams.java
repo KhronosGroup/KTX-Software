@@ -6,8 +6,6 @@
 
 package org.khronos.ktx;
 
-import java.util.Arrays;
-
 /**
  * Structure for passing parameters to {@link KtxTexture2#compressBasisEx(KtxBasisParams)}.<br>
  * <br>
@@ -48,9 +46,9 @@ public class KtxBasisParams {
 	private int threadCount;
 
 	/**
-	 * Encoding speed vs. quality tradeoff
+	 * ETC1S compression effort level. 
 	 */
-	private int compressionLevel;
+	private int etc1sCompressionLevel;
 
 	/**
 	 * Compression quality
@@ -143,6 +141,41 @@ public class KtxBasisParams {
 	private boolean uastcRDONoMultithreading;
 
 	/**
+	 * The UASTC HDR 4x4 compressor's level
+	 */
+	private int uastcHDRQuality;
+
+	/**
+	 * Allow the UASTC HDR 4x4 encoder to try varying the CEM 11 selectors
+	 */
+	private boolean uastcHDRUberMode;
+
+	/**
+	 * Try to find better quantized CEM 7/11 endpoint values (slower)
+	 */
+	private boolean uastcHDRUltraQuant;
+
+	/**
+	 * Whether ASTC HDR 4x4 quality is favored
+	 */
+	private boolean uastcHDRFavorAstc;
+
+	/**
+	 * Whether the input image's gamut is Rec. 2020 vs. the default Rec. 709
+	 */
+	private boolean rec2020;
+
+	/**
+	 * Enables rate distortion optimization
+	 */
+	private float uastcHDRLambda;
+	
+	/**
+	 * Controls the 6x6 HDR intermediate mode encoder performance
+	 */
+	private int uastcHDRLevel;
+	
+	/**
 	 * Returns the used codec.
 	 *
 	 * See {@link #setCodec(int)}
@@ -230,28 +263,32 @@ public class KtxBasisParams {
 	}
 
 	/**
-	 * Returns the encoding speed versus quality tradeoff.
+	 * Returns the ETC1S compression effort level.
 	 *
-	 * See {@link #setCompressionLevel(int)}
+	 * See {@link #setEtc1sCompressionLevel(int)}
 	 *
 	 * @return The compression level
 	 */
-	public int getCompressionLevel() {
-		return compressionLevel;
+	public int getEtc1sCompressionLevel() {
+		return etc1sCompressionLevel;
 	}
 
 	/**
-	 * Set the encoding speed versus quality tradeoff.<br>
+	 * Set the ETC1S compression effort level.<br>
 	 * <br>
-	 * The range is [0,5]. Higher values are slower, but give higher quality.
-	 * There is no default. Callers must explicitly set this value. Callers
+	 * Range is [0,6]. Higher values are much slower, but give slightly 
+	 * higher quality. Higher levels are intended for video. This 
+	 * parameter controls numerous internal encoding speed vs. compression 
+	 * efficiency/performance tradeoffs. Note this is NOT the same as the 
+	 * ETC1S quality level, and most users shouldn't change this. There 
+	 * is no default. Callers must explicitly set this value. Callers
 	 * can use {@link #ETC1S_DEFAULT_COMPRESSION_LEVEL} as a default value.
 	 * Currently this is 2.
 	 *
-	 * @param compressionLevel The compression level
+	 * @param etc1sCompressionLevel The compression level
 	 */
-	public void setCompressionLevel(int compressionLevel) {
-		this.compressionLevel = compressionLevel;
+	public void setEtc1sCompressionLevel(int etc1sCompressionLevel) {
+		this.etc1sCompressionLevel = etc1sCompressionLevel;
 	}
 
 	/**
@@ -690,4 +727,174 @@ public class KtxBasisParams {
 	public void setUastcRDONoMultithreading(boolean uastcRDONoMultithreading) {
 		this.uastcRDONoMultithreading = uastcRDONoMultithreading;
 	}
+
+	/**
+	 * Returns the HRD 4x4 compressor level.
+	 * 
+	 * See {@link #setUastcHDRQuality(int)}
+	 * 
+	 * @return The setting
+	 */
+	public int getUastcHDRQuality() {
+	    return uastcHDRQuality;
+	}
+
+	/**
+	 * Set the HRD 4x4 compressor level.<br>
+	 * <br>
+	 * UASTC HDR 4x4: Sets the UASTC HDR 4x4 compressor's level. Valid 
+	 * range is [0,4] - higher=slower but higher quality. HDR default=1.
+	 * Level 0=fastest/lowest quality, 3=highest practical setting, 
+	 * 4=exhaustive
+	 * 
+	 * @param uastcHDRQuality The quality
+	 */
+	public void setUastcHDRQuality(int uastcHDRQuality) {
+	    this.uastcHDRQuality = uastcHDRQuality;
+	}
+
+	/**
+	 * Returns the UASTC uber mode.
+	 * 
+	 * See {@link #setUastcHDRUberMode(boolean)}
+	 * 
+	 * @return The setting
+	 */
+	public boolean isUastcHDRUberMode() {
+	    return uastcHDRUberMode;
+	}
+
+	/**
+	 * Set the UASTC uber mode.<br>
+	 * <br>
+	 * UASTC HDR 4x4: Allow the UASTC HDR 4x4 encoder to try varying the 
+	 * CEM 11 selectors more for slightly higher quality (slower). 
+	 * This may negatively impact BC6H quality, however.
+	 * 
+	 * @param uastcHDRUberMode The setting
+	 */
+	public void setUastcHDRUberMode(boolean uastcHDRUberMode) {
+	    this.uastcHDRUberMode = uastcHDRUberMode;
+	}
+
+	/**
+	 * Returns the ultra quantization mode.
+	 * 
+	 * See {@link #setUastcHDRUltraQuant(boolean)}
+	 * 
+	 * @return The setting
+	 */
+	public boolean isUastcHDRUltraQuant() {
+	    return uastcHDRUltraQuant;
+	}
+
+	/**
+	 * Set the ultra quantization mode.<br>
+	 * <br>
+	 * ASTC HDR 4x4: Try to find better quantized CEM 7/11 endpoint values 
+	 * (slower)
+	 * 
+	 * @param uastcHDRUltraQuant The setting
+	 */
+	public void setUastcHDRUltraQuant(boolean uastcHDRUltraQuant) {
+	    this.uastcHDRUltraQuant = uastcHDRUltraQuant;
+	}
+
+	/**
+	 * Returns whether to favor ASTC HDR 4x4 quality.
+	 * 
+	 * See {@link #setUastcHDRFavorAstc(boolean)}
+	 * 
+	 * @return The setting
+	 */
+	public boolean isUastcHDRFavorAstc() {
+	    return uastcHDRFavorAstc;
+	}
+
+	/**
+	 * Set whether to favor ASTC HDR 4x4 quality.<br>
+	 * <br>
+	 * UASTC HDR 4x4: By default the UASTC HDR 4x4 encoder tries to 
+	 * strike a balance or even slightly favor BC6H quality. If this 
+	 * option is specified, ASTC HDR 4x4 quality is favored instead.
+	 * 
+	 * @param uastcHDRFavorAstc The setting
+	 */
+	public void setUastcHDRFavorAstc(boolean uastcHDRFavorAstc) {
+	    this.uastcHDRFavorAstc = uastcHDRFavorAstc;
+	}
+
+	/**
+	 * Returns whether the input image is Rec. 2020.
+	 * 
+	 * See {@link #setRec2020(boolean)}
+	 * 
+	 * @return The setting
+	 */
+	public boolean isRec2020() {
+	    return rec2020;
+	}
+
+	/**
+	 * Set whether the input image is Rec. 2020.<br>
+	 * <br>
+	 * UASTC HDR 6x6i specific option: The input image's gamut is Rec. 
+	 * 2020 vs. the default Rec. 709 - for accurate colorspace error 
+	 * calculations.
+	 * 
+	 * @param rec2020 The setting.
+	 */
+	public void setRec2020(boolean rec2020) {
+	    this.rec2020 = rec2020;
+	}
+
+	/**
+	 * Returns whether rate distortion optimization (RDO) is enabled.
+	 * 
+	 * See {@link #setUastcHDRLambda(float)}
+	 * 
+	 * @return The setting
+	 */
+	public float getUastcHDRLambda() {
+	    return uastcHDRLambda;
+	}
+
+	/**
+	 * Set whether rate distortion optimization (RDO) is enabled.<br>
+	 * <br>
+	 *  UASTC HDR 6x6i specific option: Enables rate distortion 
+	 *  optimization (RDO). The higher this value, the lower the quality, 
+	 *  but the smaller the file size. Try 100-20000, or higher values 
+	 *  on some images.
+	 * 
+	 * @param uastcHDRLambda The setting
+	 */
+	public void setUastcHDRLambda(float uastcHDRLambda) {
+	    this.uastcHDRLambda = uastcHDRLambda;
+	}
+
+	/**
+	 * Returns the HDR encoder tradeoff.
+	 * 
+	 * See {@link #setUastcHDRLevel(int)}
+	 * 
+	 * @return The setting
+	 */
+	public int getUastcHDRLevel() {
+	    return uastcHDRLevel;
+	}
+
+	/**
+	 * Returns the HDR encoder tradeoff.<br>
+	 * <br>
+	 * UASTC HDR 6x6i specific option: Controls the 6x6 HDR intermediate 
+	 * mode encoder performance vs. max quality tradeoff. X may range 
+	 * from [0,12]. Default level is 2.
+	 * 
+	 * @param uastcHDRLevel The setting
+	 */
+	public void setUastcHDRLevel(int uastcHDRLevel) {
+	    this.uastcHDRLevel = uastcHDRLevel;
+	}
+	
 }
