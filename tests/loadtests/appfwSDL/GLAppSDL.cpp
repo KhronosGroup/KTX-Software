@@ -51,11 +51,11 @@ GLAppSDL::initialize(Args& args)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, minorVersion);
     // On SDL3 this defaults to 8. On SDL2 it was 0.
     SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 0);
-#if !defined(EMSCRIPTEN)
+#if !defined(__EMSCRIPTEN__)
     if (majorVersion >= 3)
       SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, 1);
 #endif
-#if defined(DEBUG) && !defined(EMSCRIPTEN)
+#if defined(DEBUG) && !defined(__EMSCRIPTEN__)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
 #endif
 

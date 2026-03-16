@@ -559,7 +559,7 @@ TextureCubemap::updateUniformBuffers()
 
 
     glBindBuffer(GL_UNIFORM_BUFFER, gnUbo);
-#if !defined(EMSCRIPTEN)
+#if !defined(__EMSCRIPTEN__)
     uint8_t* pData = (uint8_t*)glMapBufferRange(GL_UNIFORM_BUFFER,
                                                 0, sizeof(ubo),
                                                 GL_MAP_WRITE_BIT);
