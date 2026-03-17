@@ -767,7 +767,7 @@ linearTilingPadCallback(int miplevel, int face,
  * that references the suballocated page(s) is returned on memory procurement 
  * and saved in the @c allocationId field of the structure pointed to by @a vkTexture.
  *
- * @note When loading a KTX v1 texture, payloads with format @c GL_COMPRESSED_RGBA_ASTC_\*_KHR
+ * @note When loading a ktxTexture1, payloads with format @c GL_COMPRESSED_RGBA_ASTC_\*_KHR
  * are mapped to the equivalent @c VK_FORMAT_ASTC_\*_SFLOAT_BLOCK. The calling application
  * must therefore enable the @c VK_EXT_texture_compression_astc_hdr extension and its
  * @c textureCompressionASTC_HDR feature in order to render such textures. Using these formats,
@@ -1610,6 +1610,11 @@ ktxTexture2_VkUpload(ktxTexture2* This, ktxVulkanDeviceInfo* vdi,
  * @~English
  * @brief Return the VkFormat enum of a ktxTexture1 object.
  *
+ * glInternalformats of @c GL_COMPRESSED_RGBA_ASTC_\*_KHR are mapped to the equivalent
+ * @c VK_FORMAT_ASTC_\*_SFLOAT_BLOCK rather than the SDR equivalent
+ * @c VK_FORMAT_ASTC_\*_UNORM_BLOCK as with the former both HDR and SDR blocks will
+ * be rendered while with the latter HDR blocks will be rendered in the error color.
+
  * @return The VkFormat of the texture object. May return VK_FORMAT_UNDEFINED if
  *         there is no mapping from the GL internalformat and format.
  */
@@ -1745,6 +1750,8 @@ setImageLayout(
         assert(KTX_FALSE);
     }
 
+    VkPipelineStageFlags destStageFlags = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+
     // Target layouts (new)
     // The destination access mask controls the dependency for the new image
     // layout.
@@ -1786,7 +1793,9 @@ setImageLayout(
                     = VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
         }
         imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        destStageFlags = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
         break;
+
     default:
         /* Value not used by callers, so not supported. */
         assert(KTX_FALSE);
@@ -1794,7 +1803,6 @@ setImageLayout(
 
     // Put barrier on top of pipeline.
     VkPipelineStageFlags srcStageFlags = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
-    VkPipelineStageFlags destStageFlags = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
 
     // Add the barrier to the passed command buffer
     vkFuncs.vkCmdPipelineBarrier(

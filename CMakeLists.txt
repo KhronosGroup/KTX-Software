@@ -695,11 +695,6 @@ else()
 #        )
 #    endif()
 endif()
-# if(KTX_NAMELINKS)
-#     list(APPEND CPACK_COMPONENTS_ALL
-#         Namelinks
-#     )
-# endif()
 
 include(CPack)
 

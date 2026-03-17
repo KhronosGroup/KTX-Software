@@ -51,6 +51,16 @@ Convert another texture file type to a KTX2 file
     Unrecognized metadata with keys beginning "KTX" or "ktx" found in an input
     KTX v1 file, is dropped and a warning is generated.
 
+    @note When converting a KTX v1 file, payloads with format
+    @c GL_COMPRESSED_RGBA_ASTC_\*_KHR are mapped to the equivalent
+    @c VK_FORMAT_ASTC_\*_SFLOAT_BLOCK. In order to display images from the
+    converted file, applications using Vulkan must therefore enable the
+    @c VK_EXT_texture_compression_astc_hdr extension and its
+    @c textureCompressionASTC_HDR feature. Using these formats, Vulkan
+    implementations will render both HDR and LDR blocks within the images. With
+    the alternative mapping to @c VK_FORMAT_ASTC_\*_UNORM_BLOCK they will render
+    HDR blocks in the error color.
+
 @section ktx\_convert\_options OPTIONS
     The following options are available:
     <dl>

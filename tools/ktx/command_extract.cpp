@@ -366,7 +366,6 @@ void CommandExtract::executeExtract() {
     // Transcoding
     if (ktxTexture2_IsTranscodable(texture)) {
         texture = transcode(std::move(texture), options, *this);
-
     } else if (options.transcodeTarget) {
         fatal(rc::INVALID_FILE, "Requested transcode \"{}\" but the KTX file is not transcodable.",
                 options.transcodeTargetName);
@@ -494,7 +493,11 @@ void CommandExtract::decodeAndSaveASTC(std::string filepath, bool appendExtensio
 
     astcenc_error ec = ASTCENC_SUCCESS;
 
-    const astcenc_profile profile = isFormatSRGB(vkFormat) ? ASTCENC_PRF_LDR_SRGB : ASTCENC_PRF_LDR;
+    bool ldr = isFormatAstcLDR(vkFormat);
+    bool srgb = isFormatSRGB(vkFormat);
+    assert((!srgb || ldr) && "Error in ASTC format checking switches");
+    const astcenc_profile profile = srgb ? ASTCENC_PRF_LDR_SRGB
+                                         : ldr ? ASTCENC_PRF_LDR : ASTCENC_PRF_HDR;
     astcenc_config config{};
     ec = astcenc_config_init(profile, blockSizeX, blockSizeY, blockSizeZ, ASTCENC_PRE_MEDIUM, ASTCENC_FLG_DECOMPRESS_ONLY, &config);
     if (ec != ASTCENC_SUCCESS)
@@ -516,20 +519,21 @@ void CommandExtract::decodeAndSaveASTC(std::string filepath, bool appendExtensio
     image.dim_x = width;
     image.dim_y = height;
     image.dim_z = 1; // 3D ASTC formats are currently not supported
-    const auto uncompressedSize = width * height * 4 * sizeof(uint8_t);
+    const auto uncompressedSize = width * height * 4 * (ldr ? sizeof(uint8_t) : sizeof(uint16_t));
     const auto uncompressedBuffer = std::make_unique<uint8_t[]>(uncompressedSize);
     auto* bufferPtr = uncompressedBuffer.get();
     image.data = reinterpret_cast<void**>(&bufferPtr);
-    image.data_type = ASTCENC_TYPE_U8;
+    image.data_type = ldr ? ASTCENC_TYPE_U8 : ASTCENC_TYPE_F16;
 
-    ec = astcenc_decompress_image(context, reinterpret_cast<const uint8_t*>(compressedData), compressedSize, &image, &swizzle, 0);
+    ec = astcenc_decompress_image(context, reinterpret_cast<const uint8_t*>(compressedData),
+                                  compressedSize, &image, &swizzle, 0);
     if (ec != ASTCENC_SUCCESS)
         fatal(rc::RUNTIME_ERROR, "ASTC Codec decompress failed: {}", astcenc_get_error_string(ec));
     astcenc_decompress_reset(context);
 
-    const auto uncompressedVkFormat = isFormatSRGB(vkFormat) ?
-            VK_FORMAT_R8G8B8A8_SRGB :
-            VK_FORMAT_R8G8B8A8_UNORM;
+    const auto uncompressedVkFormat = srgb ? VK_FORMAT_R8G8B8A8_SRGB
+                                           : ldr ? VK_FORMAT_R8G8B8A8_UNORM
+                                           : VK_FORMAT_R16G16B16A16_SFLOAT;
     saveImageFile(
             std::move(filepath),
             appendExtension,
@@ -1084,32 +1088,79 @@ void CommandExtract::saveImageFile(
 
     case VK_FORMAT_ASTC_4x4_UNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_ASTC_4x4_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK: [[fallthrough]];
     case VK_FORMAT_ASTC_5x4_UNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_ASTC_5x4_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK: [[fallthrough]];
     case VK_FORMAT_ASTC_5x5_UNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_ASTC_5x5_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK: [[fallthrough]];
     case VK_FORMAT_ASTC_6x5_UNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_ASTC_6x5_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK: [[fallthrough]];
     case VK_FORMAT_ASTC_6x6_UNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_ASTC_6x6_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK: [[fallthrough]];
     case VK_FORMAT_ASTC_8x5_UNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_ASTC_8x5_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK: [[fallthrough]];
     case VK_FORMAT_ASTC_8x6_UNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_ASTC_8x6_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK: [[fallthrough]];
     case VK_FORMAT_ASTC_8x8_UNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_ASTC_8x8_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK: [[fallthrough]];
     case VK_FORMAT_ASTC_10x5_UNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_ASTC_10x5_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK: [[fallthrough]];
     case VK_FORMAT_ASTC_10x6_UNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_ASTC_10x6_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK: [[fallthrough]];
     case VK_FORMAT_ASTC_10x8_UNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_ASTC_10x8_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK: [[fallthrough]];
     case VK_FORMAT_ASTC_10x10_UNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_ASTC_10x10_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK: [[fallthrough]];
     case VK_FORMAT_ASTC_12x10_UNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_ASTC_12x10_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK: [[fallthrough]];
     case VK_FORMAT_ASTC_12x12_UNORM_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_12x12_SRGB_BLOCK:
+    case VK_FORMAT_ASTC_12x12_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK:
+#if 0
+    [[fallthrough]];
+    case VK_FORMAT_ASTC_3x3x3_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_3x3x3_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_3x3x3_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x3x3_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x3x3_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x3x3_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4x3_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4x3_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4x3_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4x4_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4x4_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_4x4x4_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x4x4_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x4x4_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x4x4_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5x4_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5x4_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5x4_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5x5_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5x5_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_5x5x5_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x5x5_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x5x5_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x5x5_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6x5_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6x5_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6x5_SFLOAT_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT: [[fallthrough]];
+    case VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT:
+#endif
         // ASTC decode will recurse into this function with the uncompressed data and format
         decodeAndSaveASTC(std::move(filepath), appendExtension, vkFormat, format, width, height, data, size);
         break;

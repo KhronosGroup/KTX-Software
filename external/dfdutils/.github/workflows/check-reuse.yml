@@ -1,0 +1,36 @@
+# Copyright 2015-2020 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+name: Check reuse lint
+
+# Seems no way to avoid duplicating this on logic in each .yml file.
+# See https://github.com/actions/starter-workflows/issues/245.
+on:
+  # Trigger the workflow on a pull request,
+  pull_request:
+
+  push:
+    # And on pushes to main, which will occur when a PR is merged.
+    branches:
+      - main
+    # Also trigger on push of release tags to any branch. Useful
+    # for testing release builds before merging to main.
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-*'
+
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  check-reuse:
+    runs-on: ubuntu-latest
+    env:
+      GIT_LFS_SKIP_SMUDGE: 1
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: REUSE Compliance Check
+      uses: fsfe/reuse-action@v5
+

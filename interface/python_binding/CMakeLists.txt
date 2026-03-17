@@ -35,12 +35,11 @@ endif()
 cmake_path(SET PYTHON_PATH ${PYTHON_EXECUTABLE})
 
 set(dfdutils_include_dir ${CMAKE_SOURCE_DIR}/external/dfdutils)
-set(libktx_include_dir $<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>)
+set(libktx_include_dir ${CMAKE_SOURCE_DIR}/lib/include)
 # IMPORT_FILE_DIR is typically only set when building a Windows DLL and
 # points to the directory with the .lib import file.
 set(libktx_import_dir $<IF:$<BOOL:$<TARGET_IMPORT_FILE_DIR:ktx>>,$<TARGET_IMPORT_FILE_DIR:ktx>,$<TARGET_FILE_DIR:ktx>>)
 set(libktx_lib_dir $<TARGET_FILE_DIR:ktx>)
-#add_custom_target(debug_libktx_dirs COMMAND ${CMAKE_COMMAND} -E echo "libktx_include_dir = ${libktx_include_dir}, libktx_import_dir = ${libktx_import_dir}, libktx_lib_dir = ${libktx_lib_dir}")
 
 if(KTX_PY_USE_VENV)
     add_custom_target( py-venv ALL
@@ -249,7 +248,7 @@ if(KTX_FEATURE_DOC)
             # There is nothing explicit in `conf.py` to do this. It appears that Sphinx or
             # autodoc itself adds its working directory to `sys.path`.
             ${CMAKE_COMMAND} -E env
-                LIBKTX_INCLUDE_DIR=$<TARGET_PROPERTY:ktx,INTERFACE_INCLUDE_DIRECTORIES>
+                LIBKTX_INCLUDE_DIR=${libktx_include_dir}
                 DFDUTILS_INCLUDE_DIR=${dfdutils_include_dir}
                 LIBKTX_LIB_DIR=${libktx_lib_dir}
                 SPHINXBUILD=${PYTHON_PATH}\ -m\ sphinx

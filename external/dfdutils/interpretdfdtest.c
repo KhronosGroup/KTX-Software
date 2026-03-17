@@ -47,7 +47,7 @@ uint32_t dfd1[] = {
     /* Sample 3 */
     ((24U << KHR_DF_SAMPLESHIFT_BITOFFSET) |
      (7U << KHR_DF_SAMPLESHIFT_BITLENGTH) | /* Store length - 1 */
-     ((KHR_DF_CHANNEL_RGBSDA_ALPHA | KHR_DF_SAMPLE_DATATYPE_LINEAR) << KHR_DF_SAMPLESHIFT_CHANNELID))
+     (((unsigned)(KHR_DF_CHANNEL_RGBSDA_ALPHA) | (unsigned)(KHR_DF_SAMPLE_DATATYPE_LINEAR)) << KHR_DF_SAMPLESHIFT_CHANNELID))
 };
 
 uint32_t dfd2[] = { /* Little-endian unpacked */
@@ -74,7 +74,7 @@ uint32_t dfd2[] = { /* Little-endian unpacked */
     0U,
     0xFFFFU,
     /* Sample 3 */
-    48U | (15U << 16) | ((KHR_DF_CHANNEL_RGBSDA_ALPHA | KHR_DF_SAMPLE_DATATYPE_LINEAR) << 24),
+    48U | (15U << 16) | (((unsigned)(KHR_DF_CHANNEL_RGBSDA_ALPHA) | (unsigned)(KHR_DF_SAMPLE_DATATYPE_LINEAR)) << 24),
     0U,
     0U,
     0xFFFFU

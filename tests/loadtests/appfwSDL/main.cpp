@@ -22,7 +22,7 @@
 #include "AppBaseSDL.h"
 #include <SDL3/SDL_main.h>
 #include "platform_utils.h"
-#if defined(EMSCRIPTEN)
+#if defined(__EMSCRIPTEN__)
 #include <emscripten.h>
 #endif
 
@@ -37,7 +37,7 @@
   //                                  );
   #define setAnimationCallback(win, cb, userdata) \
     SDL_SetiOSAnimationCallback(win, 1, cb, userdata)
-#elif defined(EMSCRIPTEN)
+#elif defined(__EMSCRIPTEN__)
   #define NEED_MAIN_LOOP 0
   //void emscripten_set_main_loop_arg(em_arg_callback_func func, void *arg,
   //                                  int fps, int simulate_infinite_loop);
