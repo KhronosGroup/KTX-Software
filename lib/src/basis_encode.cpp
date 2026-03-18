@@ -49,6 +49,12 @@
 #endif
 #include "dfdutils/dfd.h"
 
+#define DUMP_ENCODER_INPUT_DATA 0
+#if DUMP_ENCODER_INPUT_DATA
+  #include <fstream>
+  #include <iostream>
+#endif
+
 using namespace basisu;
 using namespace basist;
 
@@ -830,20 +836,23 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     This->pData = NULL;
     This->dataSize = 0;
 
-#define DUMP_ENCODER INPUT_DATA 0
 #if DUMP_ENCODER_INPUT_DATA
-    #include <fstream>
-    #include <iostream>
-
     std::filebuf dump;
     if (!dump.open("basisenc_input", std::ios::binary | std::ios::out | std::ios::trunc)) {
         std::cout << "Open dump file basicenc_input for write failed\n";
     }
-    for (iit = cparams.m_source_images.begin(); iit < cparams.m_source_images.end(); ++iit) {
-        size_t byteCount = iit->get_total_pixels();
-        // TODO: Handle 16-bit input.
-        byteCount *= sizeof(color_rgba);
-        dump.sputn((char*)iit->get_ptr(), byteCount);
+    if (cparams.m_hdr) {
+        for (iit_hdr = cparams.m_source_images_hdr.begin(); iit_hdr < cparams.m_source_images_hdr.end(); ++iit_hdr) {
+            size_t byteCount = iit_hdr->get_total_pixels();
+            byteCount *= sizeof(color_rgba);
+            dump.sputn((char*)iit_hdr->get_ptr(), byteCount);
+        }
+    } else {
+        for (iit_ldr = cparams.m_source_images.begin(); iit_ldr < cparams.m_source_images.end(); ++iit_ldr) {
+            size_t byteCount = iit_ldr->get_total_pixels();
+            byteCount *= sizeof(color_rgba);
+            dump.sputn((char*)iit_ldr->get_ptr(), byteCount);
+        }
     }
     dump.close();
 #endif
