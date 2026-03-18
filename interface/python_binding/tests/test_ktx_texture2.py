@@ -103,3 +103,13 @@ class TestKtxTexture2(unittest.TestCase):
         texture = KtxTexture2.create(info, KtxTextureCreateStorage.ALLOC)
         self.assertEqual(texture.vk_format, VkFormat.VK_FORMAT_ASTC_4x4_SRGB_BLOCK)
         texture.set_image_from_memory(0, 0, 0, bytes(texture.data_size))
+
+    def test_queries(self):
+        test_ktx_file = os.path.join(__test_images__, 'ktx2/alpha_simple_blze.ktx2')
+        texture = KtxTexture2.create_from_named_file(test_ktx_file, KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT)
+        self.assertTrue(texture.needs_transcoding)
+        self.assertTrue(texture.is_transcodable)
+        self.assertFalse(texture.is_hdr);
+        self.assertEqual(texture.color_model, KhrDfColorModel.ETC1S)
+        self.assertEqual(texture.primaries, KhrDfPrimaries.BT709)
+        self.assertEqual(texture.transfer_function, KhrDfTransferFunction.SRGB)
