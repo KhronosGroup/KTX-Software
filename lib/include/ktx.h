@@ -1573,26 +1573,33 @@ typedef struct ktxBasisParams {
              deterministic).
          */
     ktx_uint32_t uastcHDRQuality;
-        /*!< UASTC HDR 4x4: Sets the UASTC HDR 4x4 compressor's level. Valid range is [0,4] - higher=slower but higher quality. HDR default=1.
-		                    Level 0=fastest/lowest quality, 3=highest practical setting, 4=exhaustive
+        /*!< UASTC HDR 4x4: Sets the UASTC HDR 4x4 compressor's level.
+             Valid range is [0,4] - higher=slower but higher quality. Default=1.
+             Level 0=fastest/lowest quality, 3=highest practical setting, 4=exhaustive
          */
     ktx_bool_t uastcHDRUberMode;
-        /*!< UASTC HDR 4x4: Allow the UASTC HDR 4x4 encoder to try varying the CEM 11 selectors more for slightly higher quality (slower). This may negatively impact BC6H quality, however.
+        /*!< UASTC HDR 4x4: Allow the UASTC HDR 4x4 encoder to try varying the CEM 11
+             selectors more for slightly higher quality (slower). This may negatively impact BC6H quality, however.
          */
     ktx_bool_t uastcHDRUltraQuant;
         /*!< UASTC HDR 4x4: Try to find better quantized CEM 7/11 endpoint values (slower)
          */
     ktx_bool_t uastcHDRFavorAstc;
-        /*!< UASTC HDR 4x4: By default the UASTC HDR 4x4 encoder tries to strike a balance or even slightly favor BC6H quality. If this option is specified, ASTC HDR 4x4 quality is favored instead.
+        /*!< UASTC HDR 4x4: By default the UASTC HDR 4x4 encoder tries to strike a balance
+             or even slightly favor BC6H quality. If this option is specified, ASTC HDR 4x4 quality is favored instead.
          */
     ktx_bool_t rec2020;
-        /*!< UASTC HDR 6x6i specific option: The input image's gamut is Rec. 2020 vs. the default Rec. 709 - for accurate colorspace error calculations.
+        /*!< UASTC HDR 6x6i specific option: The input image's gamut is Rec. 2020 vs. the
+             default Rec. 709 - for accurate colorspace error calculations.
          */
     float uastcHDRLambda;
-        /*!< UASTC HDR 6x6i specific option: Enables rate distortion optimization (RDO). The higher this value, the lower the quality, but the smaller the file size. Try 100-20000, or higher values on some images.
+        /*!< UASTC HDR 6x6i specific option: Enables rate distortion optimization (RDO).
+             The higher this value, the lower the quality, but the smaller the file size. Try 100-20000, or higher values
+             on some images.
          */
     ktx_uint32_t uastcHDRLevel;
-        /*!< UASTC HDR 6x6i specific option: Controls the 6x6 HDR intermediate mode encoder performance vs. max quality tradeoff. X may range from [0,12]. Default level is 2.
+        /*!< UASTC HDR 6x6i specific option: Controls the 6x6 HDR intermediate mode encoder
+             performance vs. max quality tradeoff. X may range from [0,12]. Default level is 2.
          */
 
 } ktxBasisParams;

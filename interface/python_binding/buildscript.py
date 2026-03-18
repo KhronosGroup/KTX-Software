@@ -81,10 +81,15 @@ ffibuilder.cdef(
                                       uint32_t faceSlice,
                                       void *src,
                                       size_t srcSize);
+    bool ktxTexture_IsHDR(ktxTexture *);
+    int ktxTexture2_DecodeAstc(void *);
     int ktxTexture2_TranscodeBasis(void *, int outputFormat, int transcodeFlags);
     int ktxTexture2_DeflateZstd(void *, uint32_t compressionLevel);
-    uint32_t ktxTexture2_GetOETF(void *);
+    uint32_t ktxTexture2_GetColorModel_e(void *);
+    uint32_t ktxTexture2_GetPrimaries_e(void *);
+    uint32_t ktxTexture2_GetTransferFunction_e(void *);
     bool ktxTexture2_GetPremultipliedAlpha(void *);
+    bool ktxTexture2_IsTranscodable(void *);
     bool ktxTexture2_NeedsTranscoding(void *);
 
     int ktxHashList_AddKVPair(ktxHashList *, const char *key, unsigned int valueLen, const void *value);
@@ -182,7 +187,14 @@ ffibuilder.cdef(
                                        float uastcRDOMaxSmoothBlockErrorScale,
                                        float uastcRDOMaxSmoothBlockStdDev,
                                        bool uastcRDODontFavorSimplerModes,
-                                       bool uastcRDONoMultithreading);
+                                       bool uastcRDONoMultithreading,
+                                       uint32_t uastcHDRQuality,
+                                       bool uastcHDRUberMode,
+                                       bool uastcHDRUltraQuant,
+                                       bool uastcHDRFavorAstc,
+                                       bool rec2020,
+                                       float uastcHDRLambda,
+                                       uint32_t uastcHDRLevel);
     uint32_t PY_ktxTexture2_get_vkFormat(void *);
     uint32_t PY_ktxTexture2_get_supercompressionScheme(void *);
     """

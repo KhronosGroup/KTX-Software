@@ -2,15 +2,15 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from dataclasses import dataclass
+from .ktx_basis_codec import KtxBasisCodec
 from .ktx_pack_uastc_flag_bits import KtxPackUastcFlagBits
-
 
 @dataclass
 class KtxBasisParams:
     """Data for passing extended params to KtxTexture2.compressBasis()."""
 
-    uastc: bool = False
-    """True to use UASTC base, false to use ETC1S base."""
+    codec: int = KtxBasisCodec.ETC1S
+    """Basis Universal codec to use. Default is ETC1S/BasisLZ."""
 
     verbose: bool = False
     """If true, prints Basis Universal encoder operation details to stdout. Not recommended for GUI apps."""
@@ -170,3 +170,45 @@ class KtxBasisParams:
 
     uastc_rdo_no_multithreading: bool = False
     """Disable RDO multithreading (slightly higher compression, deterministic)."""
+
+    # UASTC HDR params
+
+    uastc_hdr_quality: int = 1
+    """
+    Valid range is [0,4] - higher=slower but higher quality. Default=1.
+    Level 0=fastest/lowest quality, 3=highest practical setting, 4=exhaustive
+    """
+
+    uastc_hdr_uber_mode: bool = False
+    """
+    UASTC HDR 4x4: Allow the UASTC HDR 4x4 encoder to try varying the CEM 11
+    selectors more for slightly higher quality (slower). This may negatively impact BC6H quality, however.
+    """
+
+    uastc_hdr_ultra_quant: bool = False
+    """UASTC HDR 4x4: Try to find better quantized CEM 7/11 endpoint values (slower)."""
+
+    uastc_hdr_favor_astc: bool = False
+    """
+    UASTC HDR 4x4: By default the UASTC HDR 4x4 encoder tries to strike a balance
+    or even slightly favor BC6H quality. If this option is specified, ASTC HDR 4x4 quality is favored instead.
+    """
+
+    rec_2020: bool = False
+    """
+    UASTC HDR 6x6i specific option: The input image's gamut is Rec. 2020 vs. the
+    default Rec. 709 - for accurate colorspace error calculations.
+    """
+
+    uastc_hdr_lambda: float = 0.
+    """
+    UASTC HDR 6x6i specific option: Enables rate distortion optimization (RDO).
+    The higher this value, the lower the quality, but the smaller the file size.
+    Try 100-20000, or higher values on some images.
+    """
+
+    uastc_hdr_level: int = 2
+    """
+    UASTC HDR 6x6i specific option: Controls the 6x6 HDR intermediate mode encoder
+    performance vs. max quality tradeoff. X may range from [0,12]. Default level is 2.
+    """
