@@ -82,6 +82,8 @@ ffibuilder.cdef(
                                       void *src,
                                       size_t srcSize);
     bool ktxTexture_IsHDR(ktxTexture *);
+    bool ktxTexture_IsTranscodable(ktxTexture *);
+    bool ktxTexture_NeedsTranscoding(ktxTexture *);
     int ktxTexture2_DecodeAstc(void *);
     int ktxTexture2_TranscodeBasis(void *, int outputFormat, int transcodeFlags);
     int ktxTexture2_DeflateZstd(void *, uint32_t compressionLevel);
@@ -89,8 +91,6 @@ ffibuilder.cdef(
     uint32_t ktxTexture2_GetPrimaries_e(void *);
     uint32_t ktxTexture2_GetTransferFunction_e(void *);
     bool ktxTexture2_GetPremultipliedAlpha(void *);
-    bool ktxTexture2_IsTranscodable(void *);
-    bool ktxTexture2_NeedsTranscoding(void *);
 
     int ktxHashList_AddKVPair(ktxHashList *, const char *key, unsigned int valueLen, const void *value);
     int ktxHashList_DeleteKVPair(ktxHashList *, const char *key);

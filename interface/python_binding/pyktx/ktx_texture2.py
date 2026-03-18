@@ -97,24 +97,6 @@ class KtxTexture2(KtxTexture):
 
         return lib.ktxTexture2_GetPremultipliedAlpha(self._ptr)
 
-    @property
-    def is_hdr(self) -> bool:
-        """Whether the images are in an HDR format."""
-
-        return lib.ktxTexture_IsHDR(self._ptr)
-
-    @property
-    def is_transcodable(self) -> bool:
-        """If the images are in a format that can be transcoded."""
-
-        return lib.ktxTexture2_IsTranscodable(self._ptr)
-
-    @property
-    def needs_transcoding(self) -> bool:
-        """If the images are in a format that must be transcoded."""
-
-        return lib.ktxTexture2_NeedsTranscoding(self._ptr)
-
     def compress_astc(self, params: Union[int, KtxAstcParams]) -> None:
         """
         Encode and compress a ktx texture with uncompressed images to ASTC.

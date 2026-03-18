@@ -140,6 +140,24 @@ class KtxTexture:
 
         return lib.ktxTexture_GetDataSizeUncompressed(self._ptr)
 
+    @property
+    def is_hdr(self) -> bool:
+        """Whether the images are in an HDR format."""
+
+        return lib.ktxTexture_IsHDR(self._ptr)
+
+    @property
+    def is_transcodable(self) -> bool:
+        """If the images are in a format that can be transcoded."""
+
+        return lib.ktxTexture_IsTranscodable(self._ptr)
+
+    @property
+    def needs_transcoding(self) -> bool:
+        """If the images are in a format that must be transcoded."""
+
+        return lib.ktxTexture_NeedsTranscoding(self._ptr)
+
     def row_pitch(self, level: int) -> int:
         """
         Return pitch between rows of a texture image level in bytes.
