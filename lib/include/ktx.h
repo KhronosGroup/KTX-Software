@@ -1062,6 +1062,9 @@ KTX_API void KTX_APIENTRY
 ktxTexture1_Destroy(ktxTexture1* This);
 
 KTX_API ktx_bool_t KTX_APIENTRY
+ktxTexture1_IsHDR(ktxTexture1* This);
+
+KTX_API ktx_bool_t KTX_APIENTRY
 ktxTexture1_NeedsTranscoding(ktxTexture1* This);
 
 KTX_API ktx_bool_t KTX_APIENTRY
@@ -1179,6 +1182,9 @@ ktxTexture2_GetPremultipliedAlpha(ktxTexture2* This);
 
 KTX_API khr_df_primaries_e KTX_APIENTRY
 ktxTexture2_GetPrimaries_e(ktxTexture2* This);
+
+KTX_API ktx_bool_t KTX_APIENTRY
+ktxTexture2_IsHDR(ktxTexture2* This);
 
 KTX_API ktx_bool_t KTX_APIENTRY
 ktxTexture2_NeedsTranscoding(ktxTexture2* This);
