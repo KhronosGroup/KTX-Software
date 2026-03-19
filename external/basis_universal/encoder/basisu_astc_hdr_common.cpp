@@ -3216,6 +3216,8 @@ double encode_astc_hdr_block_mode_11(
 
 	float l = BIG_FLOAT_VAL, h = -BIG_FLOAT_VAL;
 	vec3F low_color_q16, high_color_q16;
+	low_color_q16.clear();
+	high_color_q16.clear();
 
 	for (uint32_t i = 0; i < num_pixels; i++)
 	{
@@ -3617,6 +3619,8 @@ double encode_astc_hdr_block_downsampled_mode_11(
 
 	float l = BIG_FLOAT_VAL, h = -BIG_FLOAT_VAL;
 	vec3F low_color_q16, high_color_q16;
+	low_color_q16.clear();
+	high_color_q16.clear();
 
 	for (uint32_t i = 0; i < num_pixels; i++)
 	{
