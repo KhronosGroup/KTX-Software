@@ -3,7 +3,7 @@
 
 from enum import IntEnum
 
-class KhrDfTransferFunction(IntEnum):
+class KhrDfTransfer(IntEnum):
     """The transfer function of an image."""
 
     UNSPECIFIED = 0

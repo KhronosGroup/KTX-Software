@@ -3,7 +3,7 @@
 
 from enum import IntEnum
 
-class KhrDfColorModel(IntEnum):
+class KhrDfModel(IntEnum):
     """Model in which the color coordinate space is defined."""
 
     UNSPECIFIED  = 0

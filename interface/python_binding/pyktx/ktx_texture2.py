@@ -1,9 +1,9 @@
 # Copyright (c) 2023, Shukant Pal and Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-from .khr_df_color_model import KhrDfColorModel
+from .khr_df_model import KhrDfModel
 from .khr_df_primaries import KhrDfPrimaries
-from .khr_df_transfer_function import KhrDfTransferFunction
+from .khr_df_transfer import KhrDfTransfer
 from .ktx_astc_params import KtxAstcParams
 from .ktx_basis_params import KtxBasisParams
 from .ktx_error_code import KtxErrorCode, KtxError
@@ -74,10 +74,10 @@ class KtxTexture2(KtxTexture):
         return KtxSupercmpScheme(lib.PY_ktxTexture2_get_supercompressionScheme(self._ptr))
 
     @property
-    def color_model(self) -> KhrDfColorModel:
+    def color_model(self) -> KhrDfModel:
         """The color model of the images."""
 
-        return KhrDfColorModel(lib.ktxTexture2_GetColorModel_e(self._ptr))
+        return KhrDfModel(lib.ktxTexture2_GetColorModel_e(self._ptr))
 
     @property
     def primaries(self) -> KhrDfPrimaries:
@@ -86,10 +86,10 @@ class KtxTexture2(KtxTexture):
         return KhrDfPrimaries(lib.ktxTexture2_GetPrimaries_e(self._ptr))
 
     @property
-    def transfer_function(self) -> KhrDfTransferFunction:
+    def transfer_function(self) -> KhrDfTransfer:
         """The transfer function of the images."""
 
-        return KhrDfTransferFunction(lib.ktxTexture2_GetTransferFunction_e(self._ptr))
+        return KhrDfTransfer(lib.ktxTexture2_GetTransferFunction_e(self._ptr))
 
     @property
     def premultipled_alpha(self) -> bool:

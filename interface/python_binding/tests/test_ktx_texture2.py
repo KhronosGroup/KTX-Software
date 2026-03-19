@@ -110,6 +110,6 @@ class TestKtxTexture2(unittest.TestCase):
         self.assertTrue(texture.needs_transcoding)
         self.assertTrue(texture.is_transcodable)
         self.assertFalse(texture.is_hdr);
-        self.assertEqual(texture.color_model, KhrDfColorModel.ETC1S)
+        self.assertEqual(texture.color_model, KhrDfModel.ETC1S)
         self.assertEqual(texture.primaries, KhrDfPrimaries.BT709)
-        self.assertEqual(texture.transfer_function, KhrDfTransferFunction.SRGB)
+        self.assertEqual(texture.transfer_function, KhrDfTransfer.SRGB)
