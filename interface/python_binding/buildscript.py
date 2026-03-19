@@ -165,7 +165,7 @@ ffibuilder.cdef(
                                       bool perceptual,
                                       char *inputSwizzle);
     int PY_ktxTexture2_CompressBasisEx(void *texture,
-                                       bool uastc,
+                                       uint32_t codec,
                                        bool verbose,
                                        bool noSSE,
                                        uint32_t threadCount,
