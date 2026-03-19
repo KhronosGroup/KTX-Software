@@ -79,7 +79,7 @@ KTX_error_code PY_ktxTexture2_CompressAstcEx(ktxTexture2 *texture,
 }
 
 KTX_error_code PY_ktxTexture2_CompressBasisEx(ktxTexture2 *texture,
-                                              ktx_bool_t uastc,
+                                              int codec,
                                               ktx_bool_t verbose,
                                               ktx_bool_t noSSE,
                                               ktx_uint32_t threadCount,
@@ -102,11 +102,19 @@ KTX_error_code PY_ktxTexture2_CompressBasisEx(ktxTexture2 *texture,
                                               float uastcRDOMaxSmoothBlockErrorScale,
                                               float uastcRDOMaxSmoothBlockStdDev,
                                               ktx_bool_t uastcRDODontFavorSimplerModes,
-                                              ktx_bool_t uastcRDONoMultithreading)
+                                              ktx_bool_t uastcRDONoMultithreading,
+                                              ktx_uint32_t uastcHDRQuality,
+                                              ktx_bool_t uastcHDRUberMode,
+                                              ktx_bool_t uastcHDRUltraQuant,
+                                              ktx_bool_t uastcHDRFavorAstc,
+                                              ktx_bool_t rec2020,
+                                              float uastcHDRLambda,
+                                              ktx_uint32_t uastcHDRLevel
+                                              )
 {
     ktxBasisParams params = {
         .structSize = sizeof(ktxBasisParams),
-        .codec = (uastc) ? KTX_BASIS_CODEC_UASTC_LDR_4x4 : KTX_BASIS_CODEC_ETC1S,
+        .codec = codec,
         .verbose = verbose,
         .noSSE = noSSE,
         .threadCount = threadCount,
@@ -128,7 +136,14 @@ KTX_error_code PY_ktxTexture2_CompressBasisEx(ktxTexture2 *texture,
         .uastcRDOMaxSmoothBlockErrorScale = uastcRDOMaxSmoothBlockErrorScale,
         .uastcRDOMaxSmoothBlockStdDev = uastcRDOMaxSmoothBlockStdDev,
         .uastcRDODontFavorSimplerModes = uastcRDODontFavorSimplerModes,
-        .uastcRDONoMultithreading = uastcRDONoMultithreading
+        .uastcRDONoMultithreading = uastcRDONoMultithreading,
+        .uastcHDRQuality = uastcHDRQuality,
+        .uastcHDRUberMode = uastcHDRUberMode,
+        .uastcHDRUltraQuant = uastcHDRUltraQuant,
+        .uastcHDRFavorAstc = uastcHDRFavorAstc,
+        .rec2020 = rec2020,
+        .uastcHDRLambda = uastcHDRLambda,
+        .uastcHDRLevel = uastcHDRLevel
     };
 
     params.inputSwizzle[0] = inputSwizzle[0];

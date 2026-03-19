@@ -79,11 +79,22 @@ class KtxTexture:
 
         return lib.PY_ktxTexture_get_baseDepth(self._ptr)
 
+    # A colon in a docstring indicates the preceding text is the type. There is
+    # no way to escape it. See https://github.com/sphinx-doc/sphinx/issues/9273.
+    # Therefore we use a MODIFIER LETTER COLON '꞉', Unicode: U+A789,
+    # UTF-8: EA 9E 89 here and in any other place we want to a colon in the
+    # description.
     @property
     def num_dimensions(self) -> int:
-        """Number of dimensions in the texture: 1, 2 or 3."""
+        """Number of dimensions in the texture꞉ 1, 2 or 3."""
 
         return lib.PY_ktxTexture_get_numDimensions(self._ptr)
+
+    @property
+    def num_layers(self) -> int:
+        """Number of layers in the texture."""
+
+        return lib.PY_ktxTexture_get_numLayers(self._ptr)
 
     @property
     def num_levels(self) -> int:
@@ -93,7 +104,7 @@ class KtxTexture:
 
     @property
     def num_faces(self) -> int:
-        """Number of faces: 6 for cube maps, 1 otherwise."""
+        """Number of faces꞉ 6 for cube maps, 1 otherwise."""
 
         return lib.PY_ktxTexture_get_numFaces(self._ptr)
 
@@ -139,6 +150,24 @@ class KtxTexture:
         """Byte length of the texture's uncompressed image data."""
 
         return lib.ktxTexture_GetDataSizeUncompressed(self._ptr)
+
+    @property
+    def is_hdr(self) -> bool:
+        """Whether the images are in an HDR format."""
+
+        return lib.ktxTexture_IsHDR(self._ptr)
+
+    @property
+    def is_transcodable(self) -> bool:
+        """If the images are in a format that can be transcoded."""
+
+        return lib.ktxTexture_IsTranscodable(self._ptr)
+
+    @property
+    def needs_transcoding(self) -> bool:
+        """If the images are in a format that must be transcoded."""
+
+        return lib.ktxTexture_NeedsTranscoding(self._ptr)
 
     def row_pitch(self, level: int) -> int:
         """

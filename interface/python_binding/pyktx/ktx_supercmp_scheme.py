@@ -18,3 +18,6 @@ class KtxSupercmpScheme(IntEnum):
 
     ZLIB = 3
     """ZLIB supercompression."""
+
+    UASTC_HDR_6x6_INTERMEDIATE = 4
+    """UASTC HDR 6x6 Intermediate supercompression."""
