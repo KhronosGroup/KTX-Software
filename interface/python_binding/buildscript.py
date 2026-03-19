@@ -113,6 +113,7 @@ ffibuilder.cdef(
     uint32_t PY_ktxTexture_get_baseHeight(ktxTexture *);
     uint32_t PY_ktxTexture_get_baseDepth(ktxTexture *);
     uint32_t PY_ktxTexture_get_numDimensions(ktxTexture *);
+    uint32_t PY_ktxTexture_get_numLayers(ktxTexture *);
     uint32_t PY_ktxTexture_get_numLevels(ktxTexture *);
     uint32_t PY_ktxTexture_get_numFaces(ktxTexture *);
     uint32_t PY_ktxTexture_get_kvDataLen(ktxTexture *);

@@ -86,6 +86,12 @@ class KtxTexture:
         return lib.PY_ktxTexture_get_numDimensions(self._ptr)
 
     @property
+    def num_layers(self) -> int:
+        """Number of layers in the texture."""
+
+        return lib.PY_ktxTexture_get_numLayers(self._ptr)
+
+    @property
     def num_levels(self) -> int:
         """Number of mip levels in the texture."""
 
