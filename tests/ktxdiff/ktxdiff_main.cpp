@@ -200,7 +200,9 @@ void Texture::loadKTX() {
         error(EXIT_CODE_ERROR, "ktxdiff error \"{}\": ktxTexture2_CreateFromNamedFile: {}\n", filepath, ktxErrorString(ec));
 
     if (ktxTexture2_NeedsTranscoding(handle)) {
-        ec = ktxTexture2_TranscodeBasis(handle, KTX_TTF_RGBA32, 0);
+        ktx_transcode_fmt_e outputFmt = ktxTexture_IsHDR(ktxTexture(handle)) ?
+                                        KTX_TTF_RGBA_HALF : KTX_TTF_RGBA32;
+        ec = ktxTexture2_TranscodeBasis(handle, outputFmt, 0);
         if (ec != KTX_SUCCESS)
             error(EXIT_CODE_ERROR, "ktxdiff error \"{}\": ktxTexture2_TranscodeBasis: {}\n", filepath, ktxErrorString(ec));
         transcoded = true;

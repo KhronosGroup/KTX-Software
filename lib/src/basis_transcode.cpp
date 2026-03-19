@@ -428,7 +428,6 @@ ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
         std::lock_guard<std::mutex> lock(init_mutex);
         if (!transcoderInitialized.load(std::memory_order_relaxed)) {
             basisu_transcoder_init();
-            astc_helpers::init_tables(true);
             transcoderInitialized.store(true, std::memory_order_release);
         }
     }
