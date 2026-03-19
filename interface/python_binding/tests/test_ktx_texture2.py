@@ -99,8 +99,25 @@ class TestKtxTexture2(unittest.TestCase):
         texture.compress_basis(KtxBasisParams(codec=KtxBasisCodec.UASTC_LDR_4x4,uastc_rdo=True))
 
         self.assertEqual(texture.color_model, KhrDfModel.UASTC)
+        self.assertEqual(texture.color_model, KhrDfModel.UASTC_LDR_4x4)
         self.assertEqual(texture.is_compressed, True)
         self.assertEqual(texture.supercompression_scheme, KtxSupercmpScheme.NONE)
+
+    def test_compress_basis_hdr(self):
+        test_ktx_file = os.path.join(__test_images__, 'ktx2/Desk_small_zstd_15.ktx2')
+        texture = KtxTexture2.create_from_named_file(test_ktx_file, KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT)
+
+        self.assertEqual(texture.color_model, KhrDfModel.RGBSDA)
+        self.assertEqual(texture.is_compressed, False)
+        self.assertEqual(texture.supercompression_scheme, KtxSupercmpScheme.NONE)
+
+        texture.compress_basis(KtxBasisParams(codec=KtxBasisCodec.UASTC_HDR_6x6_INTERMEDIATE,
+                                              uastc_hdr_lambda=100.,
+                                              uastc_hdr_level=3))
+
+        self.assertEqual(texture.color_model, KhrDfModel.UASTC_HDR_6x6)
+        self.assertEqual(texture.is_compressed, True)
+        self.assertEqual(texture.supercompression_scheme, KtxSupercmpScheme.UASTC_HDR_6x6_INTERMEDIATE)
 
     def test_transcode_basis(self):
         test_ktx_file = os.path.join(__test_images__, 'ktx2/color_grid_blze.ktx2')
