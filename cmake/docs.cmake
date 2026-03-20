@@ -164,6 +164,7 @@ function( CreateDocTools )
 
     doxygen_add_docs(
         tools.doc
+        tools/ktxtools_mainpage.md
         tools/ktx/ktx_main.cpp
         tools/ktx/command_compare.cpp
         tools/ktx/command_convert.cpp
