@@ -818,16 +818,16 @@ typedef enum {
  * @sa ktxTexture_CreateFrom*
  */
 enum ktxTextureCreateFlagBits {
-    KTX_TEXTURE_CREATE_NO_FLAGS = 0x00,
-    KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT = 0x01,
+    KTX_TEXTURE_CREATE_NO_FLAGS = 0x00U,
+    KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT = 0x01U,
                                    /*!< Load the images from the KTX source. */
-    KTX_TEXTURE_CREATE_RAW_KVDATA_BIT = 0x02,
+    KTX_TEXTURE_CREATE_RAW_KVDATA_BIT = 0x02U,
                                    /*!< Load the raw key-value data instead of
                                         creating a @c ktxHashList from it. */
-    KTX_TEXTURE_CREATE_SKIP_KVDATA_BIT = 0x04,
+    KTX_TEXTURE_CREATE_SKIP_KVDATA_BIT = 0x04U,
                                    /*!< Skip any key-value data. This overrides
                                         the RAW_KVDATA_BIT. */
-    KTX_TEXTURE_CREATE_CHECK_GLTF_BASISU_BIT = 0x08
+    KTX_TEXTURE_CREATE_CHECK_GLTF_BASISU_BIT = 0x08U
                                    /*!< Load texture compatible with the rules
                                         of KHR_texture_basisu glTF extension */
 };
@@ -1231,29 +1231,29 @@ ktxTexture2_WriteToStream(ktxTexture2* This, ktxStream *dststr);
  * @brief Flags specifying UASTC encoding options.
  */
 typedef enum ktx_pack_uastc_flag_bits_e {
-    KTX_PACK_UASTC_LEVEL_FASTEST  = 0,
+    KTX_PACK_UASTC_LEVEL_FASTEST  = 0U,
         /*!< Fastest compression. 43.45dB. */
-    KTX_PACK_UASTC_LEVEL_FASTER   = 1,
+    KTX_PACK_UASTC_LEVEL_FASTER   = 1U,
         /*!< Faster compression. 46.49dB. */
-    KTX_PACK_UASTC_LEVEL_DEFAULT  = 2,
+    KTX_PACK_UASTC_LEVEL_DEFAULT  = 2U,
         /*!< Default compression. 47.47dB. */
-    KTX_PACK_UASTC_LEVEL_SLOWER   = 3,
+    KTX_PACK_UASTC_LEVEL_SLOWER   = 3U,
         /*!< Slower compression. 48.01dB. */
-    KTX_PACK_UASTC_LEVEL_VERYSLOW = 4,
+    KTX_PACK_UASTC_LEVEL_VERYSLOW = 4U,
         /*!< Very slow compression. 48.24dB. */
     KTX_PACK_UASTC_MAX_LEVEL = KTX_PACK_UASTC_LEVEL_VERYSLOW,
         /*!< Maximum supported quality level. */
     KTX_PACK_UASTC_LEVEL_MASK     = 0xF,
         /*!< Mask to extract the level from the other bits. */
-    KTX_PACK_UASTC_FAVOR_UASTC_ERROR = 8,
+    KTX_PACK_UASTC_FAVOR_UASTC_ERROR = 8U,
         /*!< Optimize for lowest UASTC error. */
-    KTX_PACK_UASTC_FAVOR_BC7_ERROR = 16,
+    KTX_PACK_UASTC_FAVOR_BC7_ERROR = 16U,
         /*!< Optimize for lowest BC7 error. */
-    KTX_PACK_UASTC_ETC1_FASTER_HINTS = 64,
+    KTX_PACK_UASTC_ETC1_FASTER_HINTS = 64U,
         /*!< Optimize for faster transcoding to ETC1. */
-    KTX_PACK_UASTC_ETC1_FASTEST_HINTS = 128,
+    KTX_PACK_UASTC_ETC1_FASTEST_HINTS = 128U,
         /*!< Optimize for fastest transcoding to ETC1. */
-    KTX_PACK_UASTC__ETC1_DISABLE_FLIP_AND_INDIVIDUAL = 256
+    KTX_PACK_UASTC__ETC1_DISABLE_FLIP_AND_INDIVIDUAL = 256U
         /*!< Not documented in BasisU code. */
 } ktx_pack_uastc_flag_bits_e;
 typedef ktx_uint32_t ktx_pack_uastc_flags;
@@ -1263,19 +1263,20 @@ typedef ktx_uint32_t ktx_pack_uastc_flags;
  * @brief Options specifiying ASTC encoding quality levels.
  */
 typedef enum ktx_pack_astc_quality_levels_e {
-    KTX_PACK_ASTC_QUALITY_LEVEL_FASTEST  = 0,
+    KTX_PACK_ASTC_QUALITY_LEVEL_FASTEST  = 0U,
         /*!< Fastest compression. */
-    KTX_PACK_ASTC_QUALITY_LEVEL_FAST   = 10,
+    KTX_PACK_ASTC_QUALITY_LEVEL_FAST   = 10U,
         /*!< Fast compression. */
-    KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM   = 60,
+    KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM   = 60U,
         /*!< Medium compression. */
-    KTX_PACK_ASTC_QUALITY_LEVEL_THOROUGH   = 98,
+    KTX_PACK_ASTC_QUALITY_LEVEL_THOROUGH   = 98U,
         /*!< Slower compression. */
-    KTX_PACK_ASTC_QUALITY_LEVEL_EXHAUSTIVE = 100,
+    KTX_PACK_ASTC_QUALITY_LEVEL_EXHAUSTIVE = 100U,
         /*!< Very slow compression. */
     KTX_PACK_ASTC_QUALITY_LEVEL_MAX = KTX_PACK_ASTC_QUALITY_LEVEL_EXHAUSTIVE,
         /*!< Maximum supported quality level. */
 } ktx_pack_astc_quality_levels_e;
+typedef ktx_uint32_t ktx_pack_astc_quality_levels;
 
 /**
  * @~English
@@ -1364,7 +1365,7 @@ typedef struct ktxAstcParams {
         /*!< Can be {ldr/hdr} from astcenc
          */
 
-    ktx_uint32_t qualityLevel;
+    ktx_pack_astc_quality_levels qualityLevel;
         /*!< astcenc supports -fastest, -fast, -medium, -thorough, -exhaustive
          */
 
@@ -1402,15 +1403,15 @@ ktxTexture2_DecodeAstc(ktxTexture2* This);
  * @brief Options specifiying basis codec.
  */
 typedef enum ktx_basis_codec_e {
-    KTX_BASIS_CODEC_NONE  = 0,
+    KTX_BASIS_CODEC_NONE  = 0U,
         /*!< NONE. */
-    KTX_BASIS_CODEC_ETC1S   = 1,
+    KTX_BASIS_CODEC_ETC1S   = 1U,
         /*!< BasisLZ. */
-    KTX_BASIS_CODEC_UASTC_LDR_4x4   = 2,
+    KTX_BASIS_CODEC_UASTC_LDR_4x4   = 2U,
         /*!< UASTC. */
-    KTX_BASIS_CODEC_UASTC_HDR_4x4   = 3,
+    KTX_BASIS_CODEC_UASTC_HDR_4x4   = 3U,
         /*!< UASTC_HDR_4x4. */
-    KTX_BASIS_CODEC_UASTC_HDR_6x6_INTERMEDIATE = 4,
+    KTX_BASIS_CODEC_UASTC_HDR_6x6_INTERMEDIATE = 4U,
         /*!< UASTC_HDR_6x6i. */
 } ktx_basis_codec_e;
 typedef ktx_uint32_t ktx_basis_codec;
@@ -1768,17 +1769,17 @@ typedef enum ktx_transcode_fmt_e {
  * @brief Flags guiding transcoding of Basis Universal compressed textures.
  */
 typedef enum ktx_transcode_flag_bits_e {
-    KTX_TF_PVRTC_DECODE_TO_NEXT_POW2 = 2,
+    KTX_TF_PVRTC_DECODE_TO_NEXT_POW2 = 2U,
         /*!< PVRTC1: decode non-pow2 ETC1S texture level to the next larger
              power of 2 (not implemented yet, but we're going to support it).
              Ignored if the slice's dimensions are already a power of 2.
          */
-    KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS = 4,
+    KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS = 4U,
         /*!< When decoding to an opaque texture format, if the Basis data has
              alpha, decode the alpha slice instead of the color slice to the
              output texture format. Has no effect if there is no alpha data.
          */
-    KTX_TF_HIGH_QUALITY = 32,
+    KTX_TF_HIGH_QUALITY = 32U,
         /*!< Request higher quality transcode of UASTC to BC1, BC3, ETC2_EAC_R11 and
              ETC2_EAC_RG11. The flag is unused by other UASTC transcoders.
          */
