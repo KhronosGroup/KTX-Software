@@ -113,6 +113,12 @@ if(EMSCRIPTEN)
          "SHELL:--use-port=sdl3"
          "SHELL:-Wno-experimental"
     )
+
+    target_link_options(
+        appfwSDL
+    PUBLIC
+        -Wno-experimental
+    )
 endif()
 
 set_target_properties(appfwSDL PROPERTIES
@@ -142,12 +148,6 @@ target_link_libraries(
     appfwSDL
 PUBLIC
     SDL3::SDL3
-)
-
-target_link_options(
-    appfwSDL
-PUBLIC
-    -Wno-experimental
 )
 
 if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
