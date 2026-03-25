@@ -421,7 +421,10 @@ CompareResult compareSFloat16(const char* rawLhs, const char* rawRhs, std::size_
     const auto count = rawSize / element_size;
 
     for (std::size_t i = 0; i < count; ++i) {
-        const auto diff = std::abs(float16_to_float(lhs[i]) - float16_to_float(rhs[i]));
+        const auto lhsFloat = float16_to_float(lhs[i]);
+        const auto rhsFloat = float16_to_float(rhs[i]);
+        const auto diff = std::abs(lhsFloat - rhsFloat);
+        //const auto diff = std::abs(float16_to_float(lhs[i]) - float16_to_float(rhs[i]));
         if (diff > tolerance)
             return CompareResult{false, diff, i, i * element_size};
     }
@@ -516,7 +519,7 @@ bool compare(Texture& lhs, Texture& rhs, float tolerance) {
 
     const bool isSigned = (KHR_DFDSVAL(bdfd, 0, QUALIFIERS) & KHR_DF_SAMPLE_DATATYPE_SIGNED) != 0;
     const bool isFloat = (KHR_DFDSVAL(bdfd, 0, QUALIFIERS) & KHR_DF_SAMPLE_DATATYPE_FLOAT) != 0;
-    const bool isNormalized = KHR_DFDSVAL(bdfd, 0, SAMPLEUPPER) == (isFloat ? bit_cast<uint32_t>(1.0f) : 1u);
+    const bool isNormalized = KHR_DFDSVAL(bdfd, 0, SAMPLEUPPER) != (isFloat ? bit_cast<uint32_t>(1.0f) : 1u);
     const bool is32Bit = KHR_DFDSVAL(bdfd, 0, BITLENGTH) + 1 == 32;
     const bool is8Bit = KHR_DFDSVAL(bdfd, 0, BITLENGTH) + 1 == 8;
     const bool isFormatSFloat32 = isSigned && isFloat && is32Bit && vkFormat != VK_FORMAT_D32_SFLOAT_S8_UINT;
@@ -556,8 +559,8 @@ bool compare(Texture& lhs, Texture& rhs, float tolerance) {
         if (lhs.sgdSize != rhs.sgdSize || std::memcmp(lhs.sgdData, rhs.sgdData, lhs.sgdSize) != 0)
             return mismatch("Mismatching SGD");
 
-    // If the tolerance is 1 or above accept every image data as matching
-    if (tolerance >= 1.0f)
+    // If the tolerance is 1 or above and data is normalized, accept every image data as matching
+    if (isNormalized && tolerance >= 1.0f)
         return true;
 
     for (uint32_t levelIndex = 0; levelIndex < lhs->numLevels; ++levelIndex) {
