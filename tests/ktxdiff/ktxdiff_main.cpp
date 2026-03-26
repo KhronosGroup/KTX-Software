@@ -1,5 +1,6 @@
 // Copyright 2022-2023 The Khronos Group Inc.
 // Copyright 2022-2023 RasterGrid Kft.
+// float16_to_float32 code Copyright 2011-2021 Arm Limited
 // SPDX-License-Identifier: Apache-2.0
 
 #include "ktx.h"
@@ -24,7 +25,7 @@
 template <typename T>
 [[nodiscard]] constexpr inline T ceil_div(const T x, const T y) noexcept {
     assert(y != 0);
-	return (x + y - 1) / y;
+    return (x + y - 1) / y;
 }
 
 // C++20 - std::bit_cast
@@ -199,7 +200,7 @@ void Texture::loadKTX() {
     if (ec != KTX_SUCCESS)
         error(EXIT_CODE_ERROR, "ktxdiff error \"{}\": ktxTexture2_CreateFromNamedFile: {}\n", filepath, ktxErrorString(ec));
 
-    if (ktxTexture2_NeedsTranscoding(handle)) {
+    if (ktxTexture2_IsTranscodable(handle)) {
         ktx_transcode_fmt_e outputFmt = ktxTexture_IsHDR(ktxTexture(handle)) ?
                                         KTX_TTF_RGBA_HALF : KTX_TTF_RGBA32;
         ec = ktxTexture2_TranscodeBasis(handle, outputFmt, 0);
@@ -232,6 +233,146 @@ void Texture::loadMetadata() {
         sgdData = rawData.data() + header.dataFormatDescriptor.byteOffset;
         sgdSize = header.dataFormatDescriptor.byteLength;
     }
+}
+
+// -------------------------------------------------------------------------------------------------
+
+// float16 to float conversion code is taken from ARM's ASTC encoder under
+// its Apache 2.0 license. Copyright is credited at the top of this file.
+
+// Union for manipulation of float bit patterns
+typedef union
+{
+    uint32_t u;
+    int32_t s;
+    float f;
+} if32;
+
+typedef uint16_t sf16;
+typedef uint32_t sf32;
+
+#if defined(__GNUC__) && (defined(__i386) || defined(__amd64))
+#elif defined(__arm__) && defined(__ARMCC_VERSION)
+#elif defined(__arm__) && defined(__GNUC__)
+#else
+	/* table used for the slow default versions. */
+	static const uint8_t clz_table[256] =
+	{
+		8, 7, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4,
+		3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+		2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+		2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+	};
+#endif
+
+/* 32-bit count-leading-zeros function: use the Assembly instruction whenever possible. */
+static uint32_t clz32(uint32_t inp)
+{
+	#if defined(__GNUC__) && (defined(__i386) || defined(__amd64))
+		uint32_t bsr;
+		__asm__("bsrl %1, %0": "=r"(bsr):"r"(inp | 1));
+		return 31 - bsr;
+	#else
+		#if defined(__arm__) && defined(__ARMCC_VERSION)
+			return __clz(inp);			/* armcc builtin */
+		#else
+			#if defined(__arm__) && defined(__GNUC__)
+				uint32_t lz;
+				__asm__("clz %0, %1": "=r"(lz):"r"(inp));
+				return lz;
+			#else
+				/* slow default version */
+				uint32_t summa = 24;
+				if (inp >= UINT32_C(0x10000))
+				{
+					inp >>= 16;
+					summa -= 16;
+				}
+				if (inp >= UINT32_C(0x100))
+				{
+					inp >>= 8;
+					summa -= 8;
+				}
+				return summa + clz_table[inp];
+			#endif
+		#endif
+	#endif
+}
+
+/* convert from FP16 to FP32. */
+static sf32 sf16_to_sf32(sf16 inp)
+{
+	uint32_t inpx = inp;
+
+	/*
+		This table contains, for every FP16 sign/exponent value combination,
+		the difference between the input FP16 value and the value obtained
+		by shifting the correct FP32 result right by 13 bits.
+		This table allows us to handle every case except denormals and NaN
+		with just 1 table lookup, 2 shifts and 1 add.
+	*/
+
+	#define WITH_MSB(a) (UINT32_C(a) | (1u << 31))
+	static const uint32_t tbl[64] =
+	{
+		WITH_MSB(0x00000), 0x1C000, 0x1C000, 0x1C000, 0x1C000, 0x1C000, 0x1C000,          0x1C000,
+		         0x1C000,  0x1C000, 0x1C000, 0x1C000, 0x1C000, 0x1C000, 0x1C000,          0x1C000,
+		         0x1C000,  0x1C000, 0x1C000, 0x1C000, 0x1C000, 0x1C000, 0x1C000,          0x1C000,
+		         0x1C000,  0x1C000, 0x1C000, 0x1C000, 0x1C000, 0x1C000, 0x1C000, WITH_MSB(0x38000),
+		WITH_MSB(0x38000), 0x54000, 0x54000, 0x54000, 0x54000, 0x54000, 0x54000,          0x54000,
+		         0x54000,  0x54000, 0x54000, 0x54000, 0x54000, 0x54000, 0x54000,          0x54000,
+		         0x54000,  0x54000, 0x54000, 0x54000, 0x54000, 0x54000, 0x54000,          0x54000,
+		         0x54000,  0x54000, 0x54000, 0x54000, 0x54000, 0x54000, 0x54000, WITH_MSB(0x70000)
+	};
+
+	uint32_t res = tbl[inpx >> 10];
+	res += inpx;
+
+	/* Normal cases: MSB of 'res' not set. */
+	if ((res & WITH_MSB(0)) == 0)
+	{
+		return res << 13;
+	}
+
+	/* Infinity and Zero: 10 LSB of 'res' not set. */
+	if ((res & 0x3FF) == 0)
+	{
+		return res << 13;
+	}
+
+	/* NaN: the exponent field of 'inp' is non-zero. */
+	if ((inpx & 0x7C00) != 0)
+	{
+		/* All NaNs are quietened. */
+		return (res << 13) | 0x400000;
+	}
+
+	/* Denormal cases */
+	uint32_t sign = (inpx & 0x8000) << 16;
+	uint32_t mskval = inpx & 0x7FFF;
+	uint32_t leadingzeroes = clz32(mskval);
+	mskval <<= leadingzeroes;
+	return (mskval >> 8) + ((0x85 - leadingzeroes) << 23) + sign;
+}
+
+/* convert from half-float to native-float */
+float float16_to_float(uint16_t h)
+{
+    if32 i;
+    i.u = sf16_to_sf32(h);
+    return i.f;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -273,15 +414,31 @@ CompareResult compareSFloat32(const char* rawLhs, const char* rawRhs, std::size_
     return CompareResult{};
 }
 
+CompareResult compareSFloat16(const char* rawLhs, const char* rawRhs, std::size_t rawSize, float tolerance) {
+    const auto* lhs = reinterpret_cast<const uint16_t*>(rawLhs);
+    const auto* rhs = reinterpret_cast<const uint16_t*>(rawRhs);
+    const auto element_size = sizeof(uint16_t);
+    const auto count = rawSize / element_size;
+
+    for (std::size_t i = 0; i < count; ++i) {
+        const auto diff = std::abs(float16_to_float(lhs[i]) - float16_to_float(rhs[i]));
+        if (diff > tolerance)
+            return CompareResult{false, diff, i, i * element_size};
+    }
+
+    return CompareResult{};
+}
+
 auto decodeASTC(const char* compressedData, std::size_t compressedSize, uint32_t width, uint32_t height,
-        const std::string& filepath, bool isFormatSRGB, uint32_t blockSizeX, uint32_t blockSizeY, uint32_t blockSizeZ) {
+        const std::string& filepath, bool isFloat, bool isFormatSRGB,
+        uint32_t blockSizeX, uint32_t blockSizeY, uint32_t blockSizeZ) {
 
     const auto threadCount = 1u;
     static constexpr astcenc_swizzle swizzle{ASTCENC_SWZ_R, ASTCENC_SWZ_G, ASTCENC_SWZ_B, ASTCENC_SWZ_A};
 
     astcenc_error ec = ASTCENC_SUCCESS;
 
-    const astcenc_profile profile = isFormatSRGB ? ASTCENC_PRF_LDR_SRGB : ASTCENC_PRF_LDR;
+    const astcenc_profile profile = isFloat ? ASTCENC_PRF_HDR : isFormatSRGB ? ASTCENC_PRF_LDR_SRGB : ASTCENC_PRF_LDR;
     astcenc_config config{};
     ec = astcenc_config_init(profile, blockSizeX, blockSizeY, blockSizeZ, ASTCENC_PRE_MEDIUM, ASTCENC_FLG_DECOMPRESS_ONLY, &config);
     if (ec != ASTCENC_SUCCESS)
@@ -303,11 +460,12 @@ auto decodeASTC(const char* compressedData, std::size_t compressedSize, uint32_t
     image.dim_x = width;
     image.dim_y = height;
     image.dim_z = 1; // 3D ASTC formats are currently not supported
-    const auto uncompressedSize = width * height * 4 * sizeof(uint8_t);
+    const auto uncompressedSize = width * height * 4 * (isFloat ? sizeof(uint16_t) : sizeof(uint8_t));
     auto uncompressedBuffer = std::make_unique<uint8_t[]>(uncompressedSize);
     auto* bufferPtr = uncompressedBuffer.get();
     image.data = reinterpret_cast<void**>(&bufferPtr);
-    image.data_type = ASTCENC_TYPE_U8;
+    // F16 is also the target transcode format for HDR transcodable textures.
+    image.data_type = isFloat ? ASTCENC_TYPE_F16 : ASTCENC_TYPE_U8;
 
     ec = astcenc_decompress_image(context, reinterpret_cast<const uint8_t*>(compressedData), compressedSize, &image, &swizzle, 0);
     if (ec != ASTCENC_SUCCESS)
@@ -324,16 +482,24 @@ auto decodeASTC(const char* compressedData, std::size_t compressedSize, uint32_t
 
 CompareResult compareAstc(const char* lhs, const char* rhs, std::size_t size, uint32_t width, uint32_t height,
         const std::string& filepathLhs, const std::string& filepathRhs,
-        bool isFormatSRGB, uint32_t blockSizeX, uint32_t blockSizeY, uint32_t blockSizeZ,
+        bool isFloat, bool isFormatSRGB, uint32_t blockSizeX, uint32_t blockSizeY, uint32_t blockSizeZ,
         float tolerance) {
-    const auto uncompressedLhs = decodeASTC(lhs, size, width, height, filepathLhs, isFormatSRGB, blockSizeX, blockSizeY, blockSizeZ);
-    const auto uncompressedRhs = decodeASTC(rhs, size, width, height, filepathRhs, isFormatSRGB, blockSizeX, blockSizeY, blockSizeZ);
+    const auto uncompressedLhs = decodeASTC(lhs, size, width, height, filepathLhs, isFloat, isFormatSRGB, blockSizeX, blockSizeY, blockSizeZ);
+    const auto uncompressedRhs = decodeASTC(rhs, size, width, height, filepathRhs, isFloat, isFormatSRGB, blockSizeX, blockSizeY, blockSizeZ);
 
-    return compareUnorm8(
-            reinterpret_cast<const char*>(uncompressedLhs.data.get()),
-            reinterpret_cast<const char*>(uncompressedRhs.data.get()),
-            uncompressedLhs.size,
-            tolerance);
+    if (isFloat) {
+        return compareSFloat16(
+                reinterpret_cast<const char*>(uncompressedLhs.data.get()),
+                reinterpret_cast<const char*>(uncompressedRhs.data.get()),
+                uncompressedLhs.size,
+                tolerance);
+    } else {
+        return compareUnorm8(
+                reinterpret_cast<const char*>(uncompressedLhs.data.get()),
+                reinterpret_cast<const char*>(uncompressedRhs.data.get()),
+                uncompressedLhs.size,
+                tolerance);
+    }
 }
 
 bool compare(Texture& lhs, Texture& rhs, float tolerance) {
@@ -410,12 +576,14 @@ bool compare(Texture& lhs, Texture& rhs, float tolerance) {
                     const char* imageDataRhs = reinterpret_cast<const char*>(rhs->pData) + imageOffset;
 
                     CompareResult result;
-                    if (lhs.transcoded || isFormatUNORM8) {
+                    if ((lhs.transcoded && !isFloat) || isFormatUNORM8) {
                         result = compareUnorm8(imageDataLhs, imageDataRhs, imageSize, tolerance);
-                    } else if (isFormatAstc(vkFormat)) {
+                   } else if (lhs.transcoded && isFloat) {
+                        result = compareSFloat16(imageDataLhs, imageDataRhs, imageSize, tolerance);
+                   } else if (isFormatAstc(vkFormat)) {
                         result = compareAstc(imageDataLhs, imageDataRhs, imageSize, imageWidth, imageHeight,
                                 lhs.filepath, rhs.filepath,
-                                isFormatSRGB, blockSizeX, blockSizeY, blockSizeZ,
+                                isFloat, isFormatSRGB, blockSizeX, blockSizeY, blockSizeZ,
                                 tolerance);
                     } else if (isFormatSFloat32) {
                         result = compareSFloat32(imageDataLhs, imageDataRhs, imageSize, tolerance);
