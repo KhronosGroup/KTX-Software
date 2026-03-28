@@ -2116,7 +2116,7 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
     // A note about swizzleDone. When convertUNORM, etc are passed a swizzle string, this has
     // the side-effect (!) of swizzling the underlying image. When generating mip levels,
     // this is a problem as the swizzling would be repeated giving incorrect colors.
-    // The mip generator can seet swizzleDone to inform function there is no need for
+    // The mip generator can set swizzleDone to inform function there is no need for
     // further swizzling.
     const uint32_t inputBitDepth = std::max(8u, inputFile.spec().format().largestChannelBitLength());
 
