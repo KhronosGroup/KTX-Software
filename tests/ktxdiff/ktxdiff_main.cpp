@@ -1,6 +1,5 @@
-// Copyright 2022-2023 The Khronos Group Inc.
+// Copyright 2022-2026 The Khronos Group Inc.
 // Copyright 2022-2023 RasterGrid Kft.
-// float16_to_float32 code Copyright 2011-2021 Arm Limited
 // SPDX-License-Identifier: Apache-2.0
 
 #include "ktx.h"
