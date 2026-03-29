@@ -174,10 +174,12 @@ private:
                  const char* data, std::size_t size);
     void saveEXR(std::string filepath, bool appendExtension, VkFormat vkFormat,
                  const FormatDescriptor& format, uint32_t width, uint32_t height,
-                 int pixelType, const char* data, std::size_t size);
+                 int pixelType, const char* data, std::size_t size,
+                 float scale = 1.0f, float offset = 0.0f);
     void saveEXR(std::string filepath, bool appendExtension, VkFormat vkFormat,
                  const FormatDescriptor& format, uint32_t width, uint32_t height,
-                 const std::vector<int>& pixelTypes, const char* data, std::size_t size);
+                 const std::vector<int>& pixelTypes, const char* data, std::size_t size,
+                 float scale = 1.0f, float offset = 0.0f);
     void decodeAndSaveASTC(std::string filepath, bool appendExtension, VkFormat vkFormat,
                            const FormatDescriptor& format, uint32_t width, uint32_t height,
                            float scale, float offset, const char* data, std::size_t size);
@@ -516,8 +518,7 @@ void CommandExtract::decodeAndSaveASTC(std::string filepath, bool appendExtensio
 
     astcenc_error ec = ASTCENC_SUCCESS;
 
-    //bool doMapping = !(scale == 1.0 && offset == 0.0);
-    bool doMapping = true;
+    bool doMapping = !(scale == 1.0 && offset == 0.0);
     bool ldr = isFormatAstcLDR(vkFormat);
     bool srgb = isFormatSRGB(vkFormat);
     assert((!srgb || ldr) && "Error in ASTC format checking switches");
@@ -578,6 +579,8 @@ void CommandExtract::decodeAndSaveASTC(std::string filepath, bool appendExtensio
             fbuf[component] = fbuf[component] * scale + offset;
     }
 
+    // Range mapping has been handled here so no need to pass the parameters on to
+    // this recursive call.
     saveImageFile(
             std::move(filepath),
             appendExtension,
@@ -907,15 +910,17 @@ void CommandExtract::savePNG(std::string filepath, bool appendExtension,
 
 void CommandExtract::saveEXR(std::string filepath, bool appendExtension,
         VkFormat vkFormat, const FormatDescriptor& format, uint32_t width, uint32_t height,
-        int pixelType, const char* data, std::size_t size) {
+        int pixelType, const char* data, std::size_t size,
+        float scale, float offset) {
     saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height,
             std::vector<int>(vkFormat == VK_FORMAT_E5B9G9R9_UFLOAT_PACK32 ? 3 : format.channelCount(), pixelType),
-            data, size);
+            data, size, scale, offset);
 }
 
 void CommandExtract::saveEXR(std::string filepath, bool appendExtension,
         VkFormat vkFormat, const FormatDescriptor& format, uint32_t width, uint32_t height,
-        const std::vector<int>& pixelTypes, const char* data, std::size_t size) {
+        const std::vector<int>& pixelTypes, const char* data, std::size_t size,
+        float scale, float offset) {
     assert(!format.samples.empty());
 
     if (appendExtension && filepath != "-")
@@ -962,6 +967,14 @@ void CommandExtract::saveEXR(std::string filepath, bool appendExtension,
     assert(size == width * height * pixelBytes); (void) size;
     assert(numChannels == pixelTypes.size());
 
+    bool doMapping = !(scale == 1.0 && offset == 0.0);
+
+    std::vector<int> requestedPixelTypes;
+    requestedPixelTypes.resize(static_cast<size_t>(numChannels));
+    for (uint32_t c = 0; c < numChannels; c++) {
+        requestedPixelTypes[c] = pixelTypes[c];
+    }
+
     // Image data is prepared with either floats or uint32
     // (half output is will be converted from float by TinyEXR during save)
     std::vector<std::vector<uint32_t>> images(numChannels);
@@ -976,13 +989,21 @@ void CommandExtract::saveEXR(std::string filepath, bool appendExtension,
             if (vkFormat == VK_FORMAT_E5B9G9R9_UFLOAT_PACK32) {
                 // Special case for VK_FORMAT_E5B9G9R9_UFLOAT_PACK32
                 assert(numChannels == 3);
-                assert(pixelTypes[0] == TINYEXR_PIXELTYPE_HALF);
                 uint32_t pixel;
                 std::memcpy(&pixel, rawPixel, sizeof(uint32_t));
                 const auto values = glm::unpackF3x9_E1x5(pixel);
-                images[2][y * width + x] = bit_cast<uint32_t>(values.r);
-                images[1][y * width + x] = bit_cast<uint32_t>(values.g);
-                images[0][y * width + x] = bit_cast<uint32_t>(values.b);
+                if (doMapping) {
+                    for (uint32_t c = 0; c < numChannels; c++) {
+                        requestedPixelTypes[c] = TINYEXR_PIXELTYPE_FLOAT;
+                    }
+                    images[2][y * width + x] = bit_cast<uint32_t>(values.r * scale + offset);
+                    images[1][y * width + x] = bit_cast<uint32_t>(values.g * scale + offset);
+                    images[0][y * width + x] = bit_cast<uint32_t>(values.b * scale + offset);
+                } else {
+                    images[2][y * width + x] = bit_cast<uint32_t>(values.r);
+                    images[1][y * width + x] = bit_cast<uint32_t>(values.g);
+                    images[0][y * width + x] = bit_cast<uint32_t>(values.b);
+                }
             } else {
                 for (uint32_t c = 0; c < numChannels; c++) {
                     const auto& channel = channels[c];
@@ -994,17 +1015,27 @@ void CommandExtract::saveEXR(std::string filepath, bool appendExtension,
 
                     if (pixelTypes[c] == TINYEXR_PIXELTYPE_FLOAT || pixelTypes[c] == TINYEXR_PIXELTYPE_HALF) {
                         if (channel.isFloat) {
+                            if (doMapping) {
+                                assert(bits == 16);
+                                requestedPixelTypes[c] = TINYEXR_PIXELTYPE_FLOAT;
+                            }
                             if (channel.isSigned)
-                                target = bit_cast<uint32_t>(convertSFloatToFloat(value, bits));
+                                target = bit_cast<uint32_t>(convertSFloatToFloat(value, bits, scale, offset));
                             else
-                                target = bit_cast<uint32_t>(convertUFloatToFloat(value, bits));
+                                target = bit_cast<uint32_t>(convertUFloatToFloat(value, bits, scale, offset));
+
                         } else {
                             if (channel.isNormalized) {
+                                if (doMapping) {
+                                    assert(bits < 32);
+                                    requestedPixelTypes[c] = TINYEXR_PIXELTYPE_FLOAT;
+                                }
                                 if (channel.isSigned)
-                                    target = bit_cast<uint32_t>(convertSNORMToFloat(value, bits));
+                                    target = bit_cast<uint32_t>(convertSNORMToFloat(value, bits, scale, offset));
                                 else
-                                    target = bit_cast<uint32_t>(convertUNORMToFloat(value, bits));
+                                    target = bit_cast<uint32_t>(convertUNORMToFloat(value, bits, scale, offset));
                             } else {
+                                assert(scale == 1.0f && offset == 0.0f);
                                 if (channel.isSigned)
                                     target = bit_cast<uint32_t>(convertSIntToFloat(value, bits));
                                 else
@@ -1012,6 +1043,7 @@ void CommandExtract::saveEXR(std::string filepath, bool appendExtension,
                             }
                         }
                     } else if (pixelTypes[c] == TINYEXR_PIXELTYPE_UINT) {
+                        assert(scale == 1.0f && offset == 0.0f);
                         if (channel.isFloat && channel.isSigned) {
                             target = convertSFloatToUInt(value, bits);
                         } else if (channel.isFloat && !channel.isSigned) {
@@ -1081,7 +1113,7 @@ void CommandExtract::saveEXR(std::string filepath, bool appendExtension,
         // pixel type of the input image
         exr.header.pixel_types[i] = (pixelTypes[i] == TINYEXR_PIXELTYPE_UINT) ? TINYEXR_PIXELTYPE_UINT : TINYEXR_PIXELTYPE_FLOAT;
         // pixel type of the output image to be stored in .EXR file
-        exr.header.requested_pixel_types[i] = pixelTypes[i];
+        exr.header.requested_pixel_types[i] = requestedPixelTypes[i];
     }
 
     // Output primaries as chromaticities
@@ -1311,7 +1343,8 @@ void CommandExtract::saveImageFile(
     case VK_FORMAT_R16G16_SFLOAT: [[fallthrough]];
     case VK_FORMAT_R16G16B16_SFLOAT: [[fallthrough]];
     case VK_FORMAT_R16G16B16A16_SFLOAT:
-        saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height, TINYEXR_PIXELTYPE_HALF, data, size);
+        saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height,
+                TINYEXR_PIXELTYPE_HALF, data, size, scale, offset);
         break;
     case VK_FORMAT_R32_SFLOAT: [[fallthrough]];
     case VK_FORMAT_R32G32_SFLOAT: [[fallthrough]];
@@ -1322,7 +1355,8 @@ void CommandExtract::saveImageFile(
 
     case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
     case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
-        saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height, TINYEXR_PIXELTYPE_HALF, data, size);
+        saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height,
+                TINYEXR_PIXELTYPE_HALF, data, size, scale, offset);
         break;
 
     case VK_FORMAT_D16_UNORM:
