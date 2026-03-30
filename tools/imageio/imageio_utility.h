@@ -174,9 +174,10 @@ template <typename T>
     assert(numBits == 16 || numBits == 32);
     if (numBits == 16)
         return (half_to_float(static_cast<uint16_t>(rawBits)) * scale + offset);
-    if (numBits == 32)
+    if (numBits == 32) {
         assert(scale == 1.0f && offset == 0.0f);
         return bit_cast<float>(rawBits);
+    }
     return 0;
 }
 [[nodiscard]] inline float convertSFloatToFloat(uint32_t rawBits, uint32_t numBits) {
