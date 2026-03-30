@@ -12,7 +12,6 @@ import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-@ExtendWith({ KtxTestLibraryLoader.class })
 public class KtxParallelTest {
     private static final int NUM_THREADS = 2;
     private static final Logger logger = Logger.getLogger(KtxParallelTest.class.getCanonicalName());

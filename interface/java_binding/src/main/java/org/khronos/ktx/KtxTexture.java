@@ -20,6 +20,11 @@ package org.khronos.ktx;
  */
 public abstract class KtxTexture {
 
+    static
+    {
+        KtxLibraryLoader.load();
+    }
+
 	/**
 	 * The native pointer to the <code>ktxTexture</code> instance,
 	 * converted to a 'long' value.

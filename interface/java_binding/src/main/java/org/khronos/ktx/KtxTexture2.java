@@ -21,6 +21,12 @@ import java.nio.ByteBuffer;
  * may be <code>null</code>.<br>
  */
 public class KtxTexture2 extends KtxTexture {
+
+    static
+    {
+        KtxLibraryLoader.load();
+    }
+
 	/**
 	 * Creates a new instance.<br>
 	 * <br>
