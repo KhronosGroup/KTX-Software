@@ -40,6 +40,17 @@ public class KtxTexture2 extends KtxTexture {
 	 *
 	 * @return The transfer function.
 	 */
+	public native int getTransferFunction();
+
+	/**
+	 * Returns the the opto-electrical transfer function of the images.<br>
+	 * <br>
+	 * This is one of the constants in {@link KhrDfTransfer}.
+	 *
+	 * @return The transfer function.
+	 * @deprecated Only for backward compatibility. 
+	 * Use {@link #getTransferFunction()} instead.
+	 */
 	public native int getOETF();
 
 	/**
@@ -56,6 +67,20 @@ public class KtxTexture2 extends KtxTexture {
 	 */
 	public native boolean needsTranscoding();
 
+	/**
+	 * Query if the images require transcoding or can be used directly.
+	 * 
+	 * @return Whether the images require transcoding
+	 */
+	public native boolean isTranscodable();
+
+	/**
+	 * Query if the images are in an HDR format.
+	 * 
+	 * @return If the images are in an HDR format.
+	 */
+	public native boolean isHDR();
+	
 	/**
 	 * Return the {@link VkFormat} of this texture
 	 *

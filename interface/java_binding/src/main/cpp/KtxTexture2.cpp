@@ -8,6 +8,17 @@
 #include <iostream>
 #include "libktx-jni.h"
 
+extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture2_getTransferFunction(JNIEnv *env, jobject thiz)
+{
+    ktxTexture2 *texture = get_ktx2_texture(env, thiz);
+    if (texture == NULL) 
+    {
+      ThrowDestroyed(env);
+      return 0;
+    }
+    return ktxTexture2_GetTransferFunction_e(texture);
+}
+
 extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture2_getOETF(JNIEnv *env, jobject thiz)
 {
     ktxTexture2 *texture = get_ktx2_texture(env, thiz);
@@ -40,6 +51,29 @@ extern "C" JNIEXPORT jboolean JNICALL Java_org_khronos_ktx_KtxTexture2_needsTran
     }
     return ktxTexture2_NeedsTranscoding(texture);
 }
+
+extern "C" JNIEXPORT jboolean JNICALL Java_org_khronos_ktx_KtxTexture2_isTranscodable(JNIEnv *env, jobject thiz)
+{
+    ktxTexture2 *texture = get_ktx2_texture(env, thiz);
+    if (texture == NULL) 
+    {
+      ThrowDestroyed(env);
+      return false;
+    }
+    return ktxTexture2_IsTranscodable(texture);
+}
+
+extern "C" JNIEXPORT jboolean JNICALL Java_org_khronos_ktx_KtxTexture2_isHDR(JNIEnv *env, jobject thiz)
+{
+    ktxTexture2 *texture = get_ktx2_texture(env, thiz);
+    if (texture == NULL) 
+    {
+      ThrowDestroyed(env);
+      return false;
+    }
+    return ktxTexture2_IsHDR(texture);
+}
+
 
 extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture2_getVkFormat(JNIEnv *env, jobject thiz)
 {
