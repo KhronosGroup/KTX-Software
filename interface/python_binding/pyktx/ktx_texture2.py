@@ -1,6 +1,9 @@
 # Copyright (c) 2023, Shukant Pal and Contributors
 # SPDX-License-Identifier: Apache-2.0
 
+from .khr_df_model import KhrDfModel
+from .khr_df_primaries import KhrDfPrimaries
+from .khr_df_transfer import KhrDfTransfer
 from .ktx_astc_params import KtxAstcParams
 from .ktx_basis_params import KtxBasisParams
 from .ktx_error_code import KtxErrorCode, KtxError
@@ -71,22 +74,28 @@ class KtxTexture2(KtxTexture):
         return KtxSupercmpScheme(lib.PY_ktxTexture2_get_supercompressionScheme(self._ptr))
 
     @property
-    def oetf(self) -> int:
-        """The opto-electrical transfer function of the images."""
+    def color_model(self) -> KhrDfModel:
+        """The color model of the images."""
 
-        return lib.ktxTexture2_GetOETF(self._ptr)
+        return KhrDfModel(lib.ktxTexture2_GetColorModel_e(self._ptr))
+
+    @property
+    def primaries(self) -> KhrDfPrimaries:
+        """The color primaries of the images."""
+
+        return KhrDfPrimaries(lib.ktxTexture2_GetPrimaries_e(self._ptr))
+
+    @property
+    def transfer_function(self) -> KhrDfTransfer:
+        """The transfer function of the images."""
+
+        return KhrDfTransfer(lib.ktxTexture2_GetTransferFunction_e(self._ptr))
 
     @property
     def premultipled_alpha(self) -> bool:
         """Whether the RGB components have been premultiplied by the alpha component."""
 
         return lib.ktxTexture2_GetPremultipliedAlpha(self._ptr)
-
-    @property
-    def needs_transcoding(self) -> bool:
-        """If the images are in a transcodable format."""
-
-        return lib.ktxTexture2_NeedsTranscoding(self._ptr)
 
     def compress_astc(self, params: Union[int, KtxAstcParams]) -> None:
         """
@@ -135,7 +144,7 @@ class KtxTexture2(KtxTexture):
             params.quality_level = quality
 
         error = lib.PY_ktxTexture2_CompressBasisEx(self._ptr,
-                                                   params.uastc,
+                                                   params.codec,
                                                    params.verbose,
                                                    params.no_sse,
                                                    params.thread_count,
@@ -158,10 +167,33 @@ class KtxTexture2(KtxTexture):
                                                    params.uastc_rdo_max_smooth_block_error_scale,
                                                    params.uastc_rdo_max_smooth_block_std_dev,
                                                    params.uastc_rdo_dont_favor_simpler_modes,
-                                                   params.uastc_rdo_no_multithreading)
+                                                   params.uastc_rdo_no_multithreading,
+                                                   params.uastc_hdr_quality,
+                                                   params.uastc_hdr_uber_mode,
+                                                   params.uastc_hdr_ultra_quant,
+                                                   params.uastc_hdr_favor_astc,
+                                                   params.rec_2020,
+                                                   params.uastc_hdr_lambda,
+                                                   params.uastc_hdr_level
+                                                   )
 
         if int(error) != KtxErrorCode.SUCCESS:
             raise KtxError('ktxTexture2_CompressBasisEx', KtxErrorCode(error))
+
+    def decode_astc(self) -> None:
+        """
+        Decode a ktx2 texture object, if it is ASTC encoded.
+
+        The decompressed format is calculated from corresponding ASTC format.
+        There are only 3 possible options currently supported. RGBA8, SRGBA8
+        and RGBA32.
+
+        Note that 3d textures are decoded to a multi-slice 3d texture.
+        """
+
+        error = lib.ktxTexture2_DecodeAstc(self._ptr);
+        if int(error) != KtxErrorCode.SUCCESS:
+            raise KtxError('ktx2_DecodeAstc', KtxErrorCode(error))
 
     def deflate_zstd(self, compression_level: int) -> None:
         """

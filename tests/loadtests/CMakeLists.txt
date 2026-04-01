@@ -111,6 +111,13 @@ target_compile_features(appfwSDL PUBLIC c_std_99 cxx_std_17)
 if(EMSCRIPTEN)
     target_compile_options( appfwSDL PUBLIC
          "SHELL:--use-port=sdl3"
+         "SHELL:-Wno-experimental"
+    )
+
+    target_link_options(
+        appfwSDL
+    PUBLIC
+        -Wno-experimental
     )
 endif()
 
@@ -154,7 +161,6 @@ if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
   if(EMSCRIPTEN)
       target_compile_options( GLAppSDL PUBLIC
           "SHELL:-s DISABLE_EXCEPTION_CATCHING=0"
-          "SHELL:--use-port=sdl3"
       )
   endif()
 

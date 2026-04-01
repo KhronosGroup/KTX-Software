@@ -88,6 +88,7 @@ KTX_IMPL(ktx_uint32_t, baseWidth);
 KTX_IMPL(ktx_uint32_t, baseHeight);
 KTX_IMPL(ktx_uint32_t, baseDepth);
 KTX_IMPL(ktx_uint32_t, numDimensions);
+KTX_IMPL(ktx_uint32_t, numLayers);
 KTX_IMPL(ktx_uint32_t, numLevels);
 KTX_IMPL(ktx_uint32_t, numFaces);
 KTX_IMPL(ktx_uint32_t, kvDataLen);

@@ -81,11 +81,16 @@ ffibuilder.cdef(
                                       uint32_t faceSlice,
                                       void *src,
                                       size_t srcSize);
+    bool ktxTexture_IsHDR(ktxTexture *);
+    bool ktxTexture_IsTranscodable(ktxTexture *);
+    bool ktxTexture_NeedsTranscoding(ktxTexture *);
+    int ktxTexture2_DecodeAstc(void *);
     int ktxTexture2_TranscodeBasis(void *, int outputFormat, int transcodeFlags);
     int ktxTexture2_DeflateZstd(void *, uint32_t compressionLevel);
-    uint32_t ktxTexture2_GetOETF(void *);
+    uint32_t ktxTexture2_GetColorModel_e(void *);
+    uint32_t ktxTexture2_GetPrimaries_e(void *);
+    uint32_t ktxTexture2_GetTransferFunction_e(void *);
     bool ktxTexture2_GetPremultipliedAlpha(void *);
-    bool ktxTexture2_NeedsTranscoding(void *);
 
     int ktxHashList_AddKVPair(ktxHashList *, const char *key, unsigned int valueLen, const void *value);
     int ktxHashList_DeleteKVPair(ktxHashList *, const char *key);
@@ -108,6 +113,7 @@ ffibuilder.cdef(
     uint32_t PY_ktxTexture_get_baseHeight(ktxTexture *);
     uint32_t PY_ktxTexture_get_baseDepth(ktxTexture *);
     uint32_t PY_ktxTexture_get_numDimensions(ktxTexture *);
+    uint32_t PY_ktxTexture_get_numLayers(ktxTexture *);
     uint32_t PY_ktxTexture_get_numLevels(ktxTexture *);
     uint32_t PY_ktxTexture_get_numFaces(ktxTexture *);
     uint32_t PY_ktxTexture_get_kvDataLen(ktxTexture *);
@@ -159,7 +165,7 @@ ffibuilder.cdef(
                                       bool perceptual,
                                       char *inputSwizzle);
     int PY_ktxTexture2_CompressBasisEx(void *texture,
-                                       bool uastc,
+                                       uint32_t codec,
                                        bool verbose,
                                        bool noSSE,
                                        uint32_t threadCount,
@@ -182,7 +188,14 @@ ffibuilder.cdef(
                                        float uastcRDOMaxSmoothBlockErrorScale,
                                        float uastcRDOMaxSmoothBlockStdDev,
                                        bool uastcRDODontFavorSimplerModes,
-                                       bool uastcRDONoMultithreading);
+                                       bool uastcRDONoMultithreading,
+                                       uint32_t uastcHDRQuality,
+                                       bool uastcHDRUberMode,
+                                       bool uastcHDRUltraQuant,
+                                       bool uastcHDRFavorAstc,
+                                       bool rec2020,
+                                       float uastcHDRLambda,
+                                       uint32_t uastcHDRLevel);
     uint32_t PY_ktxTexture2_get_vkFormat(void *);
     uint32_t PY_ktxTexture2_get_supercompressionScheme(void *);
     """

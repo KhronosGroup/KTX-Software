@@ -388,7 +388,7 @@ InstancedSampleBase::updateUniformBufferMatrices()
                                       glm::radians(rotation.z),
                                       glm::vec3(0.0f, 0.0f, 1.0f));
 
-#if !defined(EMSCRIPTEN)
+#if !defined(__EMSCRIPTEN__)
     // Only update the matrices part of the uniform buffer
     uint8_t *pData = (uint8_t*)glMapBufferRange(GL_UNIFORM_BUFFER, 0,
                                                 sizeof(uboVS.matrices),

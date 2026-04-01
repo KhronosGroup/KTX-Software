@@ -53,6 +53,45 @@ RELNOTES_FILE="RELEASE_NOTES.md"
 SUMMARY_FORMAT_W_AUTH="* %s (%h) (%an)"
 SUMMARY_FORMAT="* %s (%h)"
 
+# To avoid confusion with _ for italics, replace it with \_ but only if it
+# is not within backquotes. Use python for this because re.sub can call a
+# function to provide the replacement string. The pattern has two branches:
+# the first matches a backquote '`', the second matches any string with
+# alphanumerics and _s. The replacer function uses matches to the first
+# branch to track entering and leaving a backquoted section. It replaces
+# _ with \_ in second branch matches only if not in a backquoted section.
+#
+# Maybe there is a way to do this with a single regular expression. If so,
+# I failed to find it.
+#
+# Include the python script here to avoid managing another script file.
+# -d '' and no quotes on EOF are required to keep the newlines and not
+# confuse Python. The -r tells read to not treat \ as an escape character.
+# The extra \ are to escape shell special characters since we can't use
+# quotes on EOF to prevent shell expansion.
+read -d '' -r escape_underbar <<EOF
+import sys
+import re
+
+in_backticks = False
+def replacer(match):
+    global in_backticks
+    if match.group(0) == '\`':
+        in_backticks = not in_backticks
+        return match.group(0)
+    elif not in_backticks:
+        replacement = match.group(0).replace('_', '\\_')
+        return replacement
+    else:
+        return match.group(0)
+
+pattern='\`|(_*\\w+(?:_+\\w+)+_*)'
+
+while line := sys.stdin.readline():
+    line = re.sub(pattern, replacer, line)
+    sys.stdout.write(line)
+EOF
+
 function commit_summary() {
   local hash=$1
   local summary
@@ -71,15 +110,14 @@ function commit_summary() {
     author="$(echo $prjson | jq -r -e '.user.login')"
   fi
   summary+=" (@$author)"
-  # \_ avoids confusion with _ for italics.
-  echo "$summary" | sed -e 's/_/\\_/g'
+  echo "$summary" | python3 -c "$escape_underbar"
   if [ -n "$includeDetails" ]; then
     body="$(git log --pretty="%b" -n 1 $hash | sed -E 's/^(.+)/  \1/')"
     if [ -n "$body" ]; then
       echo ""
       # Remove CR which some multi-line commit bodies contain for unknown
-      # reasons.
-      echo "$body" | tr -d \\r | sed -e 's/_/\\_/g'
+      # reasons. Also replace _ with \_.
+      echo "$body" | tr -d \\r | python3 -c "$escape_underbar"
     fi
   fi
 }

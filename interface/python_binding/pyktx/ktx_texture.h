@@ -46,6 +46,7 @@ KTX_GETTER(ktx_uint32_t, baseWidth);
 KTX_GETTER(ktx_uint32_t, baseHeight);
 KTX_GETTER(ktx_uint32_t, baseDepth);
 KTX_GETTER(ktx_uint32_t, numDimensions);
+KTX_GETTER(ktx_uint32_t, numLayers);
 KTX_GETTER(ktx_uint32_t, numLevels);
 KTX_GETTER(ktx_uint32_t, numFaces);
 KTX_GETTER(ktx_uint32_t, kvDataLen);

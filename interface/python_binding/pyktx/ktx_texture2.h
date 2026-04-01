@@ -34,7 +34,7 @@ KTX_error_code PY_ktxTexture2_CompressAstcEx(ktxTexture2 *texture,
                                              char *inputSwizzle);
 
 KTX_error_code PY_ktxTexture2_CompressBasisEx(ktxTexture2 *texture,
-                                              ktx_bool_t uastc,
+                                              int codec,
                                               ktx_bool_t verbose,
                                               ktx_bool_t noSSE,
                                               ktx_uint32_t threadCount,
@@ -57,7 +57,14 @@ KTX_error_code PY_ktxTexture2_CompressBasisEx(ktxTexture2 *texture,
                                               float uastcRDOMaxSmoothBlockErrorScale,
                                               float uastcRDOMaxSmoothBlockStdDev,
                                               ktx_bool_t uastcRDODontFavorSimplerModes,
-                                              ktx_bool_t uastcRDONoMultithreading);
+                                              ktx_bool_t uastcRDONoMultithreading,
+                                              ktx_uint32_t uastcHDRQuality,
+                                              ktx_bool_t uastcHDRUberMode,
+                                              ktx_bool_t uastcHDRUltraQuant,
+                                              ktx_bool_t uastcHDRFavorAstc,
+                                              ktx_bool_t rec2020,
+                                              float uastcHDRLambda,
+                                              ktx_uint32_t uastcHDRLevel);
 
 #define KTX2_GETTER(type, prop) \
     type PY_ktxTexture2_get_##prop(ktxTexture2 *texture)
