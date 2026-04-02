@@ -1900,6 +1900,12 @@ void CommandCreate::executeCreate() {
         ktxHashList_AddKVPair(&texture->kvDataHead, KTX_MAP_RANGE_KEY, sizeof(KTXmapRange), &data);
     }
 
+    // Set Rec 2020
+    if (colorSpaceInfo.src.usedPrimaries == KHR_DF_PRIMARIES_BT2020)
+        options.rec2020 = true;
+    if (target.format().primaries() == KHR_DF_PRIMARIES_BT2020)
+        options.rec2020 = true;
+
     // Encode and apply compression
 
     MetricsCalculator metrics;

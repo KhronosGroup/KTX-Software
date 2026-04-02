@@ -210,8 +210,6 @@ enum class BasisCodec {
         <dd>Enables rate distortion optimization (RDO). The higher this value, the lower the quality, but the smaller the file size. Try 100-20000, or higher values on some images.</dd>
         <dt>\--uastc-hdr-6x6i-level &lt;level&gt;</dt>
         <dd>Controls the 6x6 HDR intermediate mode encoder performance vs. max quality tradeoff. Range is [0,12]. Default level is 2.</dd>
-        <dt>\--rec-2020</dt>
-        <dd>The input image's gamut is Rec. 2020 vs. the default Rec. 709 - for accurate colorspace error calculations.</dd>
     </dl>
 </dl>
 //! [command options_encode_basis]
@@ -237,7 +235,6 @@ struct OptionsEncodeBasis : public ktxBasisParams {
     inline static const char* kUastcHdrUberMode = "uastc-hdr-uber-mode";
     inline static const char* kUastcHdrUltraQuant = "uastc-hdr-ultra-quant";
     inline static const char* kUastcHdrFavorAstc = "uastc-hdr-favor-astc";
-    inline static const char* kRec2020 = "rec-2020";
     inline static const char* kUastcHdrLambda = "uastc-hdr-lambda";
     inline static const char* kUastcHdr6x6iLevel = "uastc-hdr-6x6i-level";
 
@@ -359,7 +356,6 @@ struct OptionsEncodeBasis : public ktxBasisParams {
             (kUastcHdrUberMode, "Allow the UASTC HDR 4x4 encoder to try varying the CEM 11 selectors more for slightly higher quality (slower). This may negatively impact BC6H quality, however.")
             (kUastcHdrUltraQuant, "Allow the UASTC HDR 4x4 encoder to try and find better quantized CEM 7/11 endpoint values (slower).")
             (kUastcHdrFavorAstc, "By default the UASTC HDR 4x4 encoder tries to strike a balance or even slightly favor BC6H quality. If this option is specified, ASTC HDR 4x4 quality is favored instead.")
-            (kRec2020, "The input image's gamut is Rec. 2020 vs. the default Rec. 709 - for accurate colorspace error calculations.")
             (kUastcHdrLambda, "Enables rate distortion optimization (RDO). The higher this value, the lower the quality, but the smaller the file size. Try 100-20000, or higher values on some images.", cxxopts::value<float>(), "<level>")
             (kUastcHdr6x6iLevel, "Controls the 6x6 HDR intermediate mode encoder performance vs. max quality tradeoff. Range is [0,12]. Default level is 2.", 
                 cxxopts::value<uint32_t>(), "<level>");
@@ -604,10 +600,6 @@ struct OptionsEncodeBasis : public ktxBasisParams {
             uastcHDRFavorAstc = captureCodecOption<bool>(args, kUastcHdrFavorAstc);
         }
 
-        if (args[kRec2020].count()) {
-            validateUASTC6x6iArg(report, kRec2020);
-            rec2020 = captureCodecOption<bool>(args, kRec2020);
-        }
         if (args[kUastcHdrLambda].count()) {
             validateUASTC6x6iArg(report, kUastcHdrLambda);
             uastcHDRLambda = captureCodecOption<float>(args, kUastcHdrLambda);
